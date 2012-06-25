@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404.2.3 2012/06/18 13:32:35 mduranti Exp $
+//  $Id: root.C,v 1.404.2.4 2012/06/25 18:07:50 mduranti Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2957,9 +2957,6 @@ void HeaderR::Set(EventNtuple02* ptr){
   B3a=ptr->B3a;    
   B1b=ptr->B1b;    
   B3b=ptr->B3b;
-  //--------DSP Errors-----------------------
-  pdsperr=0;
-  //-----------------------------------------
 }
 #endif
 
@@ -6439,8 +6436,11 @@ char * HeaderR::Info(unsigned long long status){
 	float r,phi,theta,v,vphi,vtheta;
 	int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
 
-	sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x ",
-			bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
+	AMSSetupR::DSPError a;
+	int dsperr = getDSPError(a);
+
+	sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x DSPError %s",
+		bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat,(dsperr)?"true":"false");
 	return _Info;
 }
 
@@ -6935,27 +6935,13 @@ int HeaderR::getDSPError(AMSSetupR::DSPError& dsperr){
   return AMSEventR::getsetup()->getDSPError(dsperr, Time[0]);
 }
 
-int HeaderR::getDSPError(){
-  
-  if(!AMSEventR::getsetup()) return 2;
-  
-  if (pdsperr) delete pdsperr;
-  pdsperr = new AMSSetupR::DSPError();
-  
-  int ret=AMSEventR::getsetup()->getDSPError(*pdsperr, Time[0]);
-  if (!ret) {//AMSSetupR::getDSPError() returned 0 -> no DSPError found
-    if (pdsperr) delete pdsperr;
-    pdsperr=0;
-  }
-  
-  return ret; 
-}
-
 AMSSetupR::DSPError* HeaderR::pDSPError(){
-  
-  getDSPError();
-  
-  return pdsperr;
+  static AMSSetupR::DSPError a;
+#pragma omp threadprivate (a)
+  if (!getDSPError(a))
+    return 0;
+  else
+    return &a;
 }
 //-----------------------------------------
 

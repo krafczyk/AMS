@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437.2.3 2012/06/19 00:18:28 mduranti Exp $
+//  $Id: root.h,v 1.437.2.4 2012/06/25 18:07:50 mduranti Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -239,16 +239,11 @@ static char _Info[255];
    float B3a;   ///< ISS Solar Array Beta (rad)
    float B3b;   ///< ISS Solar Array Beta (rad)
 
-   //--------DSP Errors-----------------------
-   
- private:
-   AMSSetupR::DSPError* pdsperr; ///< AMSSetupR::DSPError* (if current event time is affected by a DSP error) for the current event time.
-   
  public:
+   //--------DSP Errors-----------------------
    /// Access function to DSPError object
    /// \return pointer to DSPError object (if current event time is affected by a DSP error) or 0
    AMSSetupR::DSPError* pDSPError();
-   
    //-----------------------------------------
 
    vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat;
@@ -329,7 +324,6 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 //--------DSP Errors-----------------------
  int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
- int getDSPError(); ///< Get AMSSetupR::DSPError (if any) for the current event time and replace it in the fHeader. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
  //-----------------------------------------
 
   //#ifdef _PGTRACK_
