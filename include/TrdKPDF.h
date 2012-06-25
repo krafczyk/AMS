@@ -52,8 +52,8 @@ public:
 
         SetNormalization(0,0);
 
-        f_func = new TF1("func_for_random",this,0,4000,0,"TrdKPDF");
-        f_func->SetNpx(4000);
+//        f_func = new TF1("func_for_random",this,0,4000,0,"TrdKPDF");
+//        f_func->SetNpx(4000);
 
 
     }
@@ -207,7 +207,7 @@ public:
 
     TRandom3 gRandom;
 
-    TF1* f_func;
+//    TF1* f_func;
 
     TString s_particle;
     int particle;

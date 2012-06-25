@@ -40,7 +40,7 @@ TrdKHit::TrdKHit(TrdRawHitR *_trdhit, float zshit){
     IsAligned=0;
 
 
-    _rawhit=_trdhit;
+//    _rawhit=_trdhit;
 
 }
 
