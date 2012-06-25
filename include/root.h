@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.441 2012/06/25 02:57:41 qyan Exp $
+//  $Id: root.h,v 1.442 2012/06/25 16:24:17 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2469,7 +2469,6 @@ public:
 /*!
  \author qyan@cern.ch
 */
-class ChargeR;
 class BetaHR {
 
  protected:
@@ -2508,10 +2507,7 @@ class BetaHR {
   /// access function to ChargeR object Matched
   /// \return index of ChargeR object in collection or -1
   int iCharge()const {return fCharge;}
-  /// access function to ChargeR object Matched
-  /// \return pointer to ChargeR object or 0
-  ChargeR * pCharge();
-
+    
   /// access function to TofClusterHR objects used
   /// \return number of TofClusterHR used
   int NTofClusterH()const {return fTofClusterH.size();}
