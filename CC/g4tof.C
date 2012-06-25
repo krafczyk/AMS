@@ -1,3 +1,13 @@
+//  $Id: g4tof.C,v 1.2 2012/06/24 13:53:31 qyan Exp 
+
+// ------------------------------------------------------------
+//      AMS GEANT4 TOF Process Physics 
+// ------------------------------------------------------------
+//      History
+//        Created:       2012-Apr-09  Q.Yan
+//        Modified:
+// -----------------------------------------------------------
+
 #include "g4tof.h"
 #include "G4ios.hh"
 #include "G4OpProcessSubType.hh"

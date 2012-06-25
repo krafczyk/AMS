@@ -1,3 +1,5 @@
+//  $Id: g4tof.h,v 1.2 2012/06/24 13:53:31 qyan Exp
+
 //create by  Qi Yan //in order to fix Geant4 unified-model finish-polishedbackpainted
 #ifndef _G4TOF_
 #define _G4TOF_

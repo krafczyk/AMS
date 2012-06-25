@@ -1,3 +1,5 @@
+//  $Id: TofSimUtil.h,v 1.3 2012/06/25 02:56:02 qyan Exp $
+
 //Author Qi Yan 2012/Feb/09 23:14 qyan@cern.ch
 #ifndef __AMSG4TOF__
 #define __AMSG4TOF__
