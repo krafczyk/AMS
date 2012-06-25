@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.739 2012/06/22 16:59:30 ams Exp $
+# $Id: RemoteClient.pm,v 1.740 2012/06/25 11:42:08 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9895,7 +9895,7 @@ else{
                    }
                  }
                  system("rm -rf $dir2tar");
-                 unlink "$file2tar.gz";
+                 #unlink "$file2tar.gz";
                  $q->end_html;
              }
 }
