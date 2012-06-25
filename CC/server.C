@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.199 2012/06/06 11:12:50 choutko Exp $
+//  $Id: server.C,v 1.200 2012/06/25 10:21:45 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3347,7 +3347,7 @@ if(li!=_tid.end()){
   if(ri!=_rl.end()){
     li->second->rereaddb();
     tdvname.Success=true;
-    AMSTimeID::IBE ibe=li->second->findsubtable((*ri)->TFEvent,(*ri)->TLEvent);
+    AMSTimeID::IBE ibe=li->second->findsubtable((*ri)->TFEvent-30,(*ri)->TLEvent+30);
     vtable->length(ibe.size());
     for( AMSTimeID::IBEI ti=ibe.begin();ti!=ibe.end();++ti){
       vtable[length].id=ti->id;

@@ -24,6 +24,32 @@ for(int k=0;k<ev->fHeader.GPSTime.size();k++){
  ret=ev->fHeader.GetGPSEpoche( gps_time_sec, gps_time_nsec);
 //cout <<" ret "<<ret<<" "<< gps_time_sec<< " "<< gps_time_nsec<<endl;
 cout <<"  status bits "<<((ev->fStatus)&3) <<" trd "<<((ev->fStatus>>2)&1)<<" tof "<<((ev->fStatus>>3)&1)<<" trk "<<((ev->fStatus>>4)&1)<<" ecal "<<((ev->fStatus>>6)&1)<<" necal "<<((ev->fStatus>>17)&3)<<" ene "<<((ev->fStatus>>37)&3)<<endl;
+
+
+
+double xtime=double(ev->UTime())+ev->Frac();
+cout <<ev->UTime()<<endl;
+cout <<ev->Frac()<<endl;
+
+cout <<setprecision(14);
+cout <<" xtime "<<xtime<<endl;
+AMSSetupR::ISSCTRSR setup;
+if(ev->getsetup()){
+int k=ev->getsetup()->getISSCTRS(setup, xtime);
+cout <<" ret "<<k<<" "<<setup.r<<" "<<xtime<<endl;
+xtime=xtime+30000;
+ k=ev->getsetup()->getISSCTRS(setup, xtime);
+cout <<" ret "<<k<<" "<<setup.r<<" "<<xtime<<endl;
+return true;
+AMSEventR::getsetup()->fHeader.FEventTime=xtime-10000;
+AMSEventR::getsetup()->fHeader.LEventTime=xtime+10000;
+AMSEventR::getsetup()->fHeader.Run=xtime;
+AMSEventR::getsetup()->fISSCTRS.clear();
+ k=ev->getsetup()->getISSCTRS(setup, xtime);
+cout <<" ret "<<k<<" "<<setup.r<<" "<<xtime<<endl;
+}
+
+AMSEventR::getsetup()->fISSCTRS.clear();
 return true;
 }
 else return false;

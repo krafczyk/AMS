@@ -105,7 +105,7 @@ foreach my $ntuple (@{$ret4}){
       #print "$sql \n"; 
       my $ret5=$o->Query($sql);
         if(defined $ret5->[0][0]){
-            print "  exist in $ret5->[0][0] $ret5->[0][1] \n";
+            #print "  exist in $ret5->[0][0] $ret5->[0][1] \n";
             my $rmv=$ntuple->[0];
             if($rmv==$ret5->[0][1]){
                 $rmv=$jidold;

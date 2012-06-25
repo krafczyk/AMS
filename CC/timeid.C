@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.141 2011/11/18 14:51:53 sdifalco Exp $
+//  $Id: timeid.C,v 1.142 2012/06/25 10:21:46 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -1314,7 +1314,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      a.insert=_pDataBaseEntries[1][i];
 	      a.begin=_pDataBaseEntries[2][i];
 	      a.end=_pDataBaseEntries[3][i];
-	      if(a.begin<end && a.end>begin){
+	      if(a.begin<=end && a.end>begin){
 		if(a.begin<begin && a.end>end){
 		  if(a.insert>insert){
 		    if(insert){
