@@ -1,21 +1,18 @@
+//  $Id: Tofdbc.h,v 1.4 2012/06/25 02:57:41 qyan Exp $
+
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
 #ifndef __TOFDBCQ__
 #define __TOFDBCQ__ 1
 
 #ifndef __ROOTSHAREDLIBRARY__
-#include "cern.h"
-#include "commons.h"
-#include "amsdbc.h"
-#include "extC.h"
 #include <string.h>
 #include <stdlib.h>
-#include "tofanticonst.h"
 #endif
 #include "typedefs.h"
+#include "tofanticonst.h"
+#include "point.h"
 #include <map.h>
-#include "timeid.h"
-#include "commonsi.h"
 
 //--TOF Const 
 namespace TOFCSN{
@@ -36,6 +33,42 @@ namespace TOFDBcN{
   const uinteger BADTIME=512;
   const uinteger TRDTRACK=16384*2*2*2*2*2*2*2*2*2;
 }
+
+//---TOF Simple Geometry
+class TOFGeom{
+  public:
+   static const int NLAY=4;
+   static const int NBAR=10;
+   static const int NSIDE=2;
+   static const int NPMTM=3;
+   static const int Nbar[NLAY];
+   static const int Proj[NLAY];
+   static const int Npmt[NLAY][NBAR];
+   static const float Overlapw;
+   static const float Normw;
+   static const float Nthick;
+   static const float Honshift[2][2];
+   static const float Sci_w[NLAY][NBAR];
+   static const float Sci_l[NLAY][NBAR];
+   static const float Sci_t[NLAY][NBAR];
+   static const float Sci_pt[NLAY][NBAR];
+   static const float Sci_pz[NLAY][NBAR];
+
+  public:
+   TOFGeom(){};
+   static bool      IsTrapezoid(int ilay,int ibar){return ((ibar==0)||(ibar==Nbar[ibar]));}
+   static AMSPoint  GetBarCoo(int ilay,int ibar);
+   static AMSPoint  GToLCoo(int ilay,int ibar,AMSPoint gpos);//Global To Local Coo
+   static AMSPoint  LToGCoo(int ilay,int ibar,AMSPoint lpos);//Local To Global Coo
+   static bool      IsInSideBar(int ilay,int ibar,float x, float y,float z=0);//z=0 z not use
+   static bool      IsInSideTOF(int ilay,float x, float y,float z=0);
+   static int       FindNearBar(int ilay,float x, float y, float &dis,bool &isinbar,float z=0);
+   static bool      IsInOverlap(int ilay,float x, float y,int nexcl=1);//
+   static void      GetBarEdge(int ilay,int ibar,float x[3][2]);//first 3 xyz //second 2 lh
+   static void      GetLayEdge(int ilay,float x[3][2]);//first 3 xyz //second 2 lh(max size)
+};
+
+
 //----get random x from a[] distribution
 class TOFTool{
   TOFTool(){};

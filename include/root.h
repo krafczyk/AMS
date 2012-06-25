@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.440 2012/06/19 00:17:37 mduranti Exp $
+//  $Id: root.h,v 1.441 2012/06/25 02:57:41 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -48,6 +48,7 @@
 #include "TrdTFit.h"
 #include "root_setup.h"
 #include "SlowControlDB.h"
+#include "Tofdbc.h"
 
 #ifdef __AMSVMC__
 #include "amsvmc_MCApplication.h"
@@ -913,37 +914,57 @@ ClassDef(TofClusterR,1)       //TofClusterR
 };
 
 /// TofClusterHR structure
+/*!  IHEP TOF Recontruction: TofClusterH is rectructed from TofRawSide, which contains new independent calibration of each fired TOF Counter.
+   IHEP New TOF Beta Measument BetaH: TofRawSide->TofClusterH(only 1 Fired TOF Counter)->BetaH(New Calibration+Software)
+*/
+
 /*
   \author qyan@cern.ch
-
 */
 class TofClusterHR {
    static char _Info[255];
  public:
-  
-   unsigned int Status;    //bad tag
-   int   Pattern;   //Counter Pattern->1(Side 0 has Signal T+A) 2(Side 1 has Signal T+A) 3(both Side has Signal T+A)
-   int   Layer;     //Counter Layer->Number 0-3
-   int   Bar;       //Counter Bar  ->Number 0-9
-   int   Direction; //Counter Along Direction ->0(x)-1(y) 
-   float Aadc[2];   //Raw Anode ADC   ->Side  0-1
-   float Rtime[2];  //Non Correct Time(ns)(FT-LT)->Side 0-1
-   float Time;      //Counter Hit Time(ns)(After Caliberation LT-FT+Const)
-   float ETime;     //Counter Hit Time Error(ns)
-   float Coo[3];    //Cluster Coo      (cm)
-   float ECoo[3];   //Cluster Coo Error(cm)
-   float AEdep;     //Anode   Energy dep(MeV)
-   float DEdep;     //Dynode  Energy dep(MeV)  
+   /// TOF Counter Bad tag  
+   unsigned int Status;
+   /// TOF Counter Pattern->1(Side 0 has Signal Time+Amp) 2(Side 1 has Signal Time+Amp) 3(both Side has Signal Time+Amp)
+   int   Pattern;
+   /// TOF Counter Layer Number 0-3
+   int   Layer;
+   /// TOF Counter Bar   Number 0-9
+   int   Bar;
+   /// Raw Anode ADC   Side  0-1
+   float Aadc[2];
+   /// Non Correct Time(ns)(FT-LT) Side 0-1
+   float Rtime[2];
+   /// Counter Hit Time(ns)(After Caliberation LT-FT+Const)
+   float Time;
+   /// Counter Hit Time Error(ns)
+   float ETime;
+   /// Counter Fired Time Estimate Coo(cm)
+   float Coo[3];
+   /// Counter Fired Time Estimate Coo Error(cm) 
+   float ECoo[3];
+  /// Anode Estimate Energy dep(MeV)
+   float AEdep;
+   /// Dynode Estimate Energy dep(MeV)
+   float DEdep;
 
  protected:
-    vector<int> fTofRawSide;   //indexes of TofRawclusterR's current object is made of.
+    vector<int> fTofRawSide;
 
  public:
+   /// access function to TofRawSideR objects used
+   /// \return number of TofRawSideR used(Fired Side Number)
    int  NTofRawSide(){return fTofRawSide.size();}
+   /// access function to TofRawSideR objects used
+   /// \return index of TofRawSideR object in collection or -1
    int iTofRawSide(unsigned int i){return i<fTofRawSide.size()?fTofRawSide[i]:-1;}
+   /// access function to TofRawSideR objects used// i=0 NSide i=1 PSide
+   /// \return pointer to TofRawSideR object or 0
    TofRawSideR * pTofRawSide(unsigned int i);
 
   TofClusterHR(){};
+  TofClusterHR(int ilay,int ibar):Layer(ilay),Bar(ibar){};
   TofClusterHR(AMSTOFClusterH *ptr);
   virtual ~TofClusterHR(){};
 
@@ -951,14 +972,36 @@ class TofClusterHR {
   /// check Counter Side is good or not
   bool IsGoodSide(int is){return (is==0||is==1)?((Pattern%10)&(is+1)):0;}//Side 0 or 1
   /// Number of BetaHs use this Counter to build 
-  /*! return 0--this counter not belong to any BetaH  (Matched by zero track)
-      return 1--this counter belong to 1 BetaH        (Matched by one track)//indicate clear events
-      return >=2(N)...--this counter belong to N BetaH(Matched by N track)//indicate bad events
-      
-  !*/
-  int  NBetaHUsed( )     {return (Pattern/1000);}
-
-//------
+  /*! 
+    *\return 0--this counter not belong to any BetaH  (Matched by zero track)
+    *\return 1--this counter belong to 1 BetaH        (Matched by one track)//indicate clear events
+    *\return >=2(N)...--this counter belong to N BetaH(Matched by N track)  //indicate many Tracker many Counter Fired
+  */
+  int  NBetaHUsed( )              {return (Pattern/1000);}
+  /// Counter Shape is Trapezoid(1) or Rectangle(0)
+  bool IsTrapezoid()              {return TOFGeom::IsTrapezoid(Layer,Bar);}
+  /// Counter Along Direction ->0(Along x)-1(Along y)
+  int  GetDirection()             {return TOFGeom::Proj[Layer];}
+  /// Counter PMT Number per Side
+  int  GetPMTNumber()             {return TOFGeom::Npmt[Layer][Bar];}
+  /// Counter Length
+  float GetBarLength()            {return TOFGeom::Sci_l[Layer][Bar];}
+  /// Counter Width 
+  float GetBarWidth()             {return TOFGeom::Sci_w[Layer][Bar];} 
+  /// Counter Overlap Width
+  float GetBarWidthO()            {return TOFGeom::Overlapw;}
+  /// Counter Edge ///(3)xyz (2)low high edge 
+  void  GetBarEdge(float x[3][2]) {return TOFGeom::GetBarEdge(Layer,Bar,x);}
+  /// Counter Central Position
+  AMSPoint  GetBarPos()           {return TOFGeom::GetBarCoo(Layer,Bar);}
+  /// Convert Global Coo to Counter Local Coo
+  AMSPoint  GToLCoo(AMSPoint gpos){return TOFGeom::GToLCoo(Layer,Bar,gpos);}
+  /// Convert Counter Local Coo to Global Coo
+  AMSPoint  LToGCoo(AMSPoint lpos){return TOFGeom::LToGCoo(Layer,Bar,lpos);}
+  /// Global Coo Inside Counter or Not 
+  ///\ z=0 don't use z information,  z!=0 include z judgment.
+  bool IsInSideBar(float x, float y, float z=0){return  TOFGeom::IsInSideBar(Layer,Bar,x,y,z);}
+  //------
   char * Info(int number=-1){
     sprintf(_Info,"TofClusterHR Info");
     return _Info;
@@ -966,9 +1009,10 @@ class TofClusterHR {
 //-------
   friend class AMSTOFClusterH;
   friend class AMSEventR;
-  ClassDef(TofClusterHR ,1)       //TofRawClusterR
+  ClassDef(TofClusterHR,2)       //TofRawClusterR
 #pragma omp threadprivate(fgIsA)
 };
+
 
 /// AntiClusterR structure
 
@@ -2358,84 +2402,138 @@ public:
 
 /// TofBetaPar structure
 /*!
+ IHEP Recontruction New Beta(BetaH) information is recorded by TofBataPar
+*/
+/*!
  \author qyan@cern.ch
 */
 //////////////////////////////////////////////////////////////////////////
 class  TofBetaPar: public TObject{
 public:
-  int    Status;//bad good trdtrack.....
-//--Pattern Mode
-  int    SumHit;//Beta Hit Num
-  int    UseHit;//Use Tof Hit For Fit
-  int    Pattern[4];//Pattern for 4 layer /*0-lay missing/1-has sideN /2-has sideP/4-both side OK
-  float  Len[4]; //Leng for 4 layer
-  float  Time[4];//Time for 4 layer
-  float  ETime[4];//ETime for 4lay
+
+  /// Status of BetaH.....
+  int    Status;
+  /// Number of ClusterHs  (Pos Matched by Tracker or TRDTracker) 
+  int    SumHit;
+  /// Number of ClusterHs for Beta Fit
+  int    UseHit;
+  /// ClusterH Pattern for iLayer(lay missing, only sideN, only sideP...)
+  int    Pattern[4];
+  /// Signed Distance along the Track from plane Z=0 to the Tof iLayer
+  float  Len[4];
+  /// Time Measument for iLayer(return 0 means Layer missing or Time bad)/ns
+  float  Time[4];
+  /// Time Measument Eror for iLayer
+  float  ETime[4];
+
 //--Fit Result
-  float  T0;//Time[il]=Len[il]/(Beta*Cvel)+T0 //using for calulate TResidual
+  /// Fit Beta T0 //Time[il]=Len[il]/(Beta*Cvel)+T0
+  float  T0;
+  /// BetaH Fit Beta Value
   float  Beta;
+  /// Convert Beta Value(BetaC Convert fabs(Beta)>1 to <1 for Mass Calculation)(Vitaly alogrithm) 
   float  BetaC;
+ /// Fitting Error on 1/Beta
   float  InvErrBeta;
+  /// Fitting Error on 1/BetaC
   float  InvErrBetaC;
-  float  Chi2T;//Time Chis
-  float  TResidual[4];//Time Resiual for 4lay
-  float  Chi2C;//Coo  Chis
-  float  CResidual[4][2];//Coo Residual X+Y Match with tracker
+  /// Fitting Time Chis on Beta
+  float  Chi2T;
+  /// Fiting Time Residual for iLayer
+  float  TResidual[4];
+  /// Fiting Coo Chis on Beta (TOF Counter Coo compare to Tracker in XY)
+  float  Chi2C;
+  /// Fiting Coo Residual
+  float  CResidual[4][2];
 
 //--Other Par
-  float  Rigidity;//all rigidty
-  float  InvErrRigidity;
-  float  Charge;//all charge
-  float  Momentum;
-  float  EMomentum;
+  /// Fiting Mass with Particle Charge and Rigidity
   float  Mass;
+  /// Fit Mass Error
   float  EMass;
 
 public:
   TofBetaPar(){Init();}
   const TofBetaPar& operator=(const TofBetaPar &right);
+  /// Set Beta
   void SetFitPar(float _Beta,float _BetaC,float _InvErrBeta,float _InvErrBetaC,
                  float _Chi2T, float _T0);
   void CalFitRes();//calculate residual
   void Init();
-  ClassDef(TofBetaPar, 1);//
+  ClassDef(TofBetaPar,2);//
 };
 
 /// Tof BetaH structure
+/*! IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
+*/
 /*!
  \author qyan@cern.ch
 */
+class ChargeR;
 class BetaHR {
+
  protected:
+/// BetaH Data
   TofBetaPar       BetaPar;
  protected:
-  int   fTrTrack;    ///< index to TrTrack used
-  int   fTrdTrack;   ///< index to TrdTrack used
-  vector<int> fTofClusterH; ///< indexes of TofClusterHR's used
-  int   fLayer[4]; 
+/// index to Matched TrTrack used
+  int   fTrTrack;
+/// index to Matched TrdTrack
+  int   fTrdTrack;
+/// index to Matched Charge
+  int   fCharge;
+/// indexes of TofClusterHR's used
+  vector<int> fTofClusterH;
+/// indexes of 4Layer TofClusterHR's used
+  int   fLayer[4];
 
  public:
   BetaHR(){};
   BetaHR(AMSBetaH *ptr);
   virtual ~BetaHR(){};
 
- public: 
+ public:
+  /// access function to TrTrackR object used
+  /// \return index of TrTrackR object in collection or -1
   int iTrTrack()const {return fTrTrack;}
+  /// access function to TrTrackR object used
+ /// \return pointer to TrTrackR object or 0
   TrTrackR * pTrTrack();
-  int iTrdTrack()const {return fTrdTrack;}//trd betah
+  /// access function to TrdTrackR object Matched
+  /// \return index of TrdTrackR object in collection or -1
+  int iTrdTrack()const {return fTrdTrack;}
+  /// access function to TrdTrackR object Matched
+  /// \return pointer to TrdTrackR object or 0
   TrdTrackR * pTrdTrack();
+  /// access function to ChargeR object Matched
+  /// \return index of ChargeR object in collection or -1
+  int iCharge()const {return fCharge;}
+  /// access function to ChargeR object Matched
+  /// \return pointer to ChargeR object or 0
+  ChargeR * pCharge();
+
+  /// access function to TofClusterHR objects used
+  /// \return number of TofClusterHR used
   int NTofClusterH()const {return fTofClusterH.size();}
+  /// access function to TofClusterHR objects used
+  /// \return index of TofClusterHR object in collection or -1
   int iTofClusterH(unsigned int i){return i<fTofClusterH.size()?fTofClusterH[i]:-1;}
+  /// access function to TofClusterHR objects used
+  /// \return pointer to TofClusterHR object or 0
   TofClusterHR * pTofClusterH(unsigned int i);
 
   /// Get pointer to TOF BetaH iLayer(0-3) ClusterH /*return 0 if not exist*/
   TofClusterHR * GetClusterHL (int ilay);
   /// if TOF BetaH iLayer(0-3) ClusterH exists Return true
   bool           TestExistHL  (int ilay){return (ilay>=0&&ilay<4)&&(fLayer[ilay]>=0);}
-  /// Number of All Fired TOF Counters in iLayer/ */
+  /// Number of All Fired TOF Counters in iLayer
   int            GetAllFireHL (int ilay){return BetaPar.Pattern[ilay]/1000;}
-  /// Return True if BetaH Cluster is Isolation Fire Counter/*return 0 if neighbor Counter Fire/
-  bool           IsIsolaionHL (int ilay,int idis=1){ //idis=1  //BetaH +-1 No Fire Counter
+  /// Return True if BetaH Cluster is Isolation Fire Counter
+  /// \return 0 if neighbor Counter Fire, idis distance to  Central Counter
+ /*!
+   * \idis    distance to BetaH used TOF Counter, idis=3 => Judge if there is any of Left 3Counter or right 3Counter fired
+   */
+  bool           IsIsolaionHL (int ilay,int idis=1){
         bool left=0;
         if((BetaPar.Pattern[ilay]/100%10)==0)left=1;
         else if((BetaPar.Pattern[ilay]/100%10)>idis)left=1;
@@ -2444,12 +2542,13 @@ class BetaHR {
         else if((BetaPar.Pattern[ilay]/10%10)>idis)right=1;
         return (left&&right);
      }
-   
+
 
 //---user function
  public:
-   //Acess BetaH All Data
+  /// Access BetaH All Data
   const TofBetaPar&  gTofBetaPar()      {return BetaPar;}
+  /// Set BetaH All Data
   void  SetTofBetaPar(TofBetaPar tofpar){BetaPar=tofpar;}
 
 //--Beta data
@@ -2469,10 +2568,10 @@ class BetaHR {
   /// Number of ClusterHs  (Pos Matched by Tracker) 
   int   GetSumHit() {return BetaPar.SumHit;}
   /// Number of ClusterHs for Beta Fit  (require counter 2side Ok)
-  int   GetUseHit() {return BetaPar.UseHit;} 
+  int   GetUseHit() {return BetaPar.UseHit;}
   /// Cluster Status
   int   GetStatus() {return BetaPar.Status;}
-  /// ClusterH Pattern for iLayer %10= (0)Layer missing (1)only has sideN (2)only has sideP (4) 2side OK
+  /// ClusterH Pattern for iLayer (TOF Layer missing, only sideN, only has sideP,2side OK)
   int   GetPattern(int ilay){return BetaPar.Pattern[ilay];}
   /// Time Measument for iLayer(return 0 means Layer missing or Time bad)/ns
   float GetTime   (int ilay){return BetaPar.Time[ilay];}
@@ -2489,52 +2588,70 @@ class BetaHR {
 
 //---Mass data
  public:
-  /// Mass Measument for Beta
-  float GetMass()      {return BetaPar.Mass;} 
+    /// Mass Measument for Beta
+  float GetMass()      {return BetaPar.Mass;}
   /// Err Mass
   float GetEMass()     {return BetaPar.EMass;}
-  /// Mass Fit using Rigidity
-  float GetRigidity()  {return BetaPar.Rigidity;}
-  /// Mass Fit using Error 1/Rigidity
-  float GetERigidityV(){return BetaPar.InvErrRigidity;}
-  /// Mass Fit using Charge
-  float GetCharge()    {return BetaPar.Charge;}
-  
+
 //---Using Function 
-  ///ReFit Mass using new Rigidity+new Charge
+  ///ReFit Mass using Rigidity Charge
   /*!
-    [rig]     Input New Rigidity->0  means not update
-    [charge]  Input New Charge  ->0  means not update
-    [erigv]   Input New Error of 1/RigidityV->0 means not update 
-    [isbetac] (1)Using BetaC  (0)Using Beta //Fit Mass
-    [update]  (1)Update BetaPar or (0)Not
-  !*/
-  int  MassReFit(double rig=0,double charge=0,double erigv=0,int isbetac=0,int update=1);
-   ///Beta ReFit 
-   /*
-     [pattern] mmmm: m=1 or 0,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1.
-     [mode]    mode=1 or 0,  different time err or same time err for 4 Tof Layers
-     [update]  (2)Beta ReFit and then Mass ReFit (1)Only Beta ReFit (0)No ReFit
+    * \[mass]    Output Fit Mass
+    * \[emass]   Output Fit Mass Error
+    * \[rig]     Input Rigidity
+    * \[charge]  Input Charge
+    * \[erigv]   Input Error of 1/Rigidity
+    * \[isbetac] (1)Using BetaC(ask Vitaly)  (0)Using Beta //For Fit Mass
+    * \[update]  BetaPar update (1)Update Mass (0)Not Update
+    *
+  */
+  int  MassReFit(double &mass, double &emass,double rig=0,double charge=0,double erigv=0,int isbetac=0,int update=0);
+   ///Beta ReFit
+   /*!
+     * \[mass]    Output Fit Beta
+     *\ [emass]   Output Fit Error 1/Beta
+     * \[pattern] Input  mmmm: m=1 or 0,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1.
+     * \[mode]    Input  mode=1 or 0,  different time err or same time err for 4 Tof Layers
+     * \[update]  Input  BetaPar update (1)Update Beta (0)Not Update
    */
-  int  BetaReFit(int pattern=1111,int mode=1,int update=2);
-//  int    
-    /// Time Interpolation to pos=Z /*Time Infomation for BackSplash Study*/
+  int  BetaReFit(double &beta,double &ebetav,int pattern=1111,int mode=1,int update=0);
+  ///TOF Time Interpolation to posZ
   /*!
-   * \param[in]  zpl  Plane position (Z=zpl)
-   * \param[out] pnt  Track position  at Z=zpl
-   * \param[out] dif  Track direction at Z=zpl
-   * \param[in]  time BetaH Fit Time in  Z=zpl(ns)
-   * \return          Path length between Z=P0z(usually 0) and Z=zpl
+   * \[zpl]  Input  Interpolate to Z position (Z=zpl)
+   * \[pnt]  Output BetaH's Track position at Z=zpl
+   * \[dir]  Output BetaH's Track direction at Z=zpl
+   * \[time] Output TOF Time at Z=zpl(ns)
+   * \return BetaH's Track Path length at Z=zpl
    */
 #ifdef _PGTRACK_
   double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time);
 #endif
+
+//---Geometry information
+  /// TOF ilay Edge(All Counter Dimension) x[3](xyz)[2](low high edge)
+  void GetTOFLayEdge(int ilay,float x[3][2])             {return TOFGeom::GetLayEdge(ilay,x);}
+  /// Global Coo Inside ilay TOF Region or Not
+  ///\ z=0 don't use z information,  z!=0 include z judgment.
+  bool IsInSideTOF(int ilay, float x, float y, float z=0){return TOFGeom::IsInSideTOF(ilay,x,y,z);}
+  /// Global Coo Inside ilay TOF Overlap Region or Not
+  ///\ nexcl=1 overlap=(Bar Overlap), nexcl=2 overlap=2*(Bar Overlap)
+  bool IsInOverlap(int ilay,float x, float y,int nexcl=1){return TOFGeom::IsInOverlap(ilay,x,y,nexcl);}
+  /// Find Global Coo nearest ilay TOF Counter
+  /*!
+   * \[xyz]     Input   Global Coo // z=0 don't use z information,  z!=0 include z judgment.
+   * \[dis]     Output  Distance from Global Coo to it's Nearest TOF Counter Central
+   * \[isinbar] Output  (1)if Global Coo is inside nearest Counter (0)Not
+   * \return    Nearest Counter Bar Number
+  */
+   int FindNearBar(int ilay,float x, float y,float &dis,bool &isinbar,float z=0){return TOFGeom::FindNearBar(ilay,x,y,dis,isinbar,z);}
+//
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,1)
+  ClassDef(BetaHR,2)
 #pragma omp threadprivate(fgIsA)   
 };
+                                                       
 
 #include <map>
 #include <vector>
@@ -3004,15 +3121,15 @@ ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
 class TofMCPmtHitR {
 public:
    int    Idsoft; ///< Idsoft  LBSP---L=Layer(0-3) B=Bar(0-9) S=Side(0-1) P=PMT(0-2)
-   int    ParId;   //photon parent id 
-   float  TimeG;   //< time of photon in pmt (nsec)
-   float  TimeT;   //< time of photon delay in SC+LG (nsec)
-   float  Ekin;    //< photon energy (eV)
-   float  Length;  //< photon transmit length in SC+LG
-   float  Pos[3];  //< photon gen vetex pos
-   float  Dir[3];  //< photon gen vetex dir
-   float  TimeP;   //transmit time in PMT 
-   float  Amp;     //SE amp
+   int    ParId;   ///photon parent id 
+   float  TimeG;   ///< time of photon in pmt (nsec)
+   float  TimeT;   ///< time of photon delay in SC+LG (nsec)
+   float  Ekin;    ///< photon energy (eV)
+   float  Length;  ///< photon transmit length in SC+LG
+   float  Pos[3];  ///< photon gen vetex pos
+   float  Dir[3];  ///< photon gen vetex dir
+   float  TimeP;   ///transmit time in PMT 
+   float  Amp;     ///SE amp
 
    TofMCPmtHitR(){};
    TofMCPmtHitR(AMSTOFMCPmtHit *ptr);
@@ -5639,7 +5756,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,17)       //AMSEventR
+ClassDef(AMSEventR,18)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 

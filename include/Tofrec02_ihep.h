@@ -1,3 +1,5 @@
+//  $Id: Tofrec02_ihep.h,v 1.2 2012/06/25 02:57:41 qyan Exp $
+
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
 #define __AMSTOFREC02_IHEP__
@@ -7,6 +9,7 @@
 #include "tofrec02.h"
 //////////////////////////////////////////////////////////////////////////
 class AMSTOFClusterH;
+class AMSCharge;
 #endif
 class TofBetaPar;
 
@@ -103,14 +106,15 @@ protected:
    AMSTOFClusterH * _phith[4];
    AMSTrTrack *     _ptrack;//trdtrack delete not exis/should be careful
    AMSTRDTrack *    _ptrdtrack;
+   AMSCharge  *     _pcharge;
 
 public:
     TofBetaPar       _betapar;
    
 public:
     AMSBetaH(){};
-    AMSBetaH(integer status,AMSTOFClusterH *phith[4],AMSTrTrack *ptrack,AMSTRDTrack *trdtrack,TofBetaPar &betapar):
-         AMSlink(), _ptrack(ptrack),_ptrdtrack(trdtrack)
+    AMSBetaH(integer status,AMSTOFClusterH *phith[4],AMSTrTrack *ptrack,AMSTRDTrack *trdtrack,AMSCharge *amscharge,TofBetaPar &betapar):
+         AMSlink(), _ptrack(ptrack),_ptrdtrack(trdtrack), _pcharge(amscharge)
        { 
         if((status&AMSDBc::TRDTRACK)==AMSDBc::TRDTRACK)_ptrack=0;//aleady delete next
         for(int ilay=0;ilay<4;ilay++){
@@ -124,6 +128,7 @@ public:
     AMSTrTrack *      gettrack(){return _ptrack;}
     AMSTRDTrack*      gettrdtrack(){return _ptrdtrack;} 
     void              settrdtrack(AMSTRDTrack* ptrdtrack){_ptrdtrack=ptrdtrack;}
+    void              setcharge(AMSCharge *amscharge){_pcharge=amscharge;}
     const TofBetaPar& getbetapar(){return _betapar;}   
 public:
    void _printEl(ostream &stream){stream <<"BetaH "<<endl;}
