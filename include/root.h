@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.442 2012/06/25 16:24:17 choutko Exp $
+//  $Id: root.h,v 1.443 2012/06/25 17:34:16 mduranti Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -245,16 +245,11 @@ static char _Info[255];
    float B3a;   ///< ISS Solar Array Beta (rad)
    float B3b;   ///< ISS Solar Array Beta (rad)
 
-   //--------DSP Errors-----------------------
-
- private:
-   AMSSetupR::DSPError* pdsperr; ///< AMSSetupR::DSPError* (if current event time is affected by a DSP error) for the current event time.
-
  public:
+   //--------DSP Errors-----------------------
    /// Access function to DSPError object
    /// \return pointer to DSPError object (if current event time is affected by a DSP error) or 0
    AMSSetupR::DSPError* pDSPError();
-
    //-----------------------------------------
 
    vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat;

@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.83 2012/06/21 01:55:53 mduranti Exp $
+//  $Id: root_setup.C,v 1.84 2012/06/25 17:34:16 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2666,7 +2666,8 @@ int AMSSetupR::LoadDSPErrors(unsigned int t1, unsigned int t2){
 
   int oldsize=fDSPError.size();
 
-  const char fpath[256]="DSPPERIODS.csv";
+  //when a new file will be produced we will have to implement the loop over files...
+  const char fpath[256]="DSPPERIODS_1305911355_1339661827.csv";
   
   string fname=DSPPath;
   //  cout<<fname<<endl;//only for debug
