@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.879 2012/06/17 16:15:21 qyan Exp $
+// $Id: job.C,v 1.880 2012/06/25 23:56:16 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1595,7 +1595,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.mon[1]=0;
   TFREFFKEY.year[0]=101;//(41)(since year 1900)
   TFREFFKEY.year[1]=125;//(42)
-  TFREFFKEY.TFHTDVCalib=1000000;//TOFH TDV Version T0P0C0(Time POSITION Charge)
+  TFREFFKEY.TFHTDVCalib=1100000;//TOFH TDV Version T0P0C0(Time POSITION Charge)
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
 	"MIXED");
 
@@ -3746,7 +3746,8 @@ void AMSJob::_timeinitjob(){
        end.tm_mon=TFREFFKEY.mon[1];
        end.tm_year=TFREFFKEY.year[1];
 
-//----TOF ClusterH TDV/ version
+//----TOF ClusterH TDV/ version //temp only realdata
+    if(isRealData()){
       if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
        TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
        TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
@@ -3754,7 +3755,7 @@ void AMSJob::_timeinitjob(){
                               TofTAlign->TDVBlock,
                               server,needval,TofTAlignPar::HeadLoadTDVPar));
        }
-
+     }
     //
     if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
       if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB

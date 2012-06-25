@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.5 2012/06/25 02:58:34 qyan Exp $
+//  $Id: Tofdbc.C,v 1.6 2012/06/25 23:56:16 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -715,7 +715,7 @@ int TofTDVTool<T1>::ReadTDV(int rtime,int real){
     gmtime_r(&erun, &end);
     
 //--------Already load
-    AMSTimeID* tdv=new AMSTimeID((TDVName,real),begin,end,
+    AMSTimeID* tdv=new AMSTimeID(AMSID(TDVName,real),begin,end,
                               TDVSize,
                               TDVBlock,
                               AMSTimeID::Standalone,1);
@@ -742,12 +742,13 @@ int TofTDVTool<T1>::WriteTDV(int brun,int erun,int real){
      gmtime_r(&er, &end);
      cout << "Begin: " <<(int)brun<<"  " <<asctime(&begin)<<endl;
      cout << "End  : " <<(int)erun<<"  " <<asctime(&end  )<<endl;
-//--1 realdata  1--vertify   
-     AMSTimeID *tdv=new AMSTimeID((TDVName, real),begin,end,
+//--1 realdata  1--vertify  
+     AMSTimeID *tdv=new AMSTimeID(AMSID(TDVName, real),begin,end,
                                   TDVSize,
                                   TDVBlock,
                                   AMSTimeID::Standalone,1
                                  );
+     tdv->UpdateMe();
      int status=tdv->write(AMSDATADIR.amsdatabase);
      delete tdv;
      return status;
