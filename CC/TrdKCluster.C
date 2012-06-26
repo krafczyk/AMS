@@ -37,10 +37,6 @@ TrdKCluster::TrdKCluster()
 /////////////////////////////////////////////////////////////////////
 
 TrdKCluster::~TrdKCluster(){
-
-    delete M_MyDD;
-    delete M_MyD;
-    delete M_A;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -166,10 +162,6 @@ void TrdKCluster::Init_Base(){
     if(!kpdf_p)kpdf_p=new TrdKPDF("Proton");
     if(!kpdf_h)kpdf_h=new TrdKPDF("Helium");
     if(!kpdf_q)kpdf_q=new TrdKPDF("Nuclei");
-
-    M_MyDD=new TMatrixD(2,2);
-    M_A = new TMatrixD(1,2);
-    M_MyD=new TMatrixD(2,1);
 
 }
 
@@ -599,6 +591,9 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
 
 
 
+    M_MyDD=new TMatrixD(2,2);
+    M_A = new TMatrixD(1,2);
+    M_MyD=new TMatrixD(2,1);
 
     M_MyDD->Use(2,2,DD2[0]);
     M_MyD->Use(2,1,DD1);
@@ -611,8 +606,12 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
     TRDTrack_dx=dx+TMatrixDRow(*M_A,0)(1);
 
 
+    if(M_MyDD)delete M_MyDD;
+    if(M_MyD)delete M_MyD;
+    if(M_A)delete M_A;
 
 
+    return;
 }
 
 
