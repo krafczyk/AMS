@@ -664,7 +664,7 @@ void BuildPlane1NSupport(AMSgvolume* mvol){
   float par[20];
   number nrm[3][3];
   char name[5];
-
+  float pi=atan(1.)*4;
 
   sprintf(name,"P1NS");
   coo[0]=TkDBc::Head->P1NSupportCoo[0];
@@ -684,6 +684,10 @@ void BuildPlane1NSupport(AMSgvolume* mvol){
   par[9]=TkDBc::Head->P1NSupportRadius;
   VZERO(nrm,9*sizeof(nrm[0][0])/4);
   nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;  
+  nrm[0][0] = nrm[1][1] =cos(22.5/180.*pi);
+  nrm[0][1] = sin(22.5/180.*pi);
+  nrm[1][0] = -1*sin(22.5/180.*pi);
+  nrm[2][2] = 1;  
   
   mvol->add(new AMSgvolume("Tr_HoneyOUT", _nrot++, name,
 			      "PGON", par, 10, coo, nrm, "ONLY", 1, 1, 1));
@@ -708,7 +712,10 @@ void BuildPlane1NSupport(AMSgvolume* mvol){
   par[8]=0;
   par[9]=TkDBc::Head->P1NSupportRadius;
   VZERO(nrm,9*sizeof(nrm[0][0])/4);
-  nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;  
+  nrm[0][0] = nrm[1][1] =cos(22.5/180.*pi);
+  nrm[0][1] = sin(22.5/180.*pi);
+  nrm[1][0] = -1*sin(22.5/180.*pi);
+  nrm[2][2] = 1;  
   
   mvol->add(new AMSgvolume("P1NS_HoneySkin", _nrot++, name,
 			      "PGON", par, 10, coo, nrm, "ONLY", 1, 1, 1));
@@ -743,6 +750,10 @@ void BuildPlane1NSupport(AMSgvolume* mvol){
   par[9]=TkDBc::Head->P1NSCRadius;
   VZERO(nrm,9*sizeof(nrm[0][0])/4);
   nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;  
+  nrm[0][0] = nrm[1][1] =cos(22.5/180.*pi);
+  nrm[0][1] = sin(22.5/180.*pi);
+  nrm[1][0] = -1*sin(22.5/180.*pi);
+  nrm[2][2] = 1;  
   
   mvol->add(new AMSgvolume("P1NS_HoneySkin", _nrot++, name,
 			      "PGON", par, 10, coo, nrm, "ONLY", 1, 1, 1));
