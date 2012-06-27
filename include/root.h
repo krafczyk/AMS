@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.444 2012/06/25 17:46:23 mduranti Exp $
+//  $Id: root.h,v 1.445 2012/06/27 14:56:59 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2160,7 +2160,7 @@ public:
                     */
   unsigned short int EcalPatt[6][3];///< EC DynodesPattern for 6 "trigger"-SupLayers(36dynodes use 36of(3x16)lsbits)
   float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)
-  float LiveTime;  ///< Fraction of "nonBusy" time
+  float LiveTime;  ///< Fraction of "nonBusy" time;  May be 0 at the bef of run using  AMSEventR::LiveTime() isrecommended instead
   float TrigRates[19]; ///< TrigCompRates(Hz):FT,FTC,FTZ,FTE,NonPH,LVL1,L1M1-M8,CPmx,BZmx,ACmx,EFTmx,EANmx
   unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec
 
@@ -4011,7 +4011,7 @@ int GetTDVEl(const string & tdvname,unsigned int index, if_t &value);
         */
 int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
 
-float LiveTime(); ///< trying to get livetime from scalers map
+float LiveTime(); ///< trying to get livetime from scalers map return -1 if error
 
 
 
