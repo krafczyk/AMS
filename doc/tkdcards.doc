@@ -26,6 +26,8 @@ F [809,814] L1Amp[6]   L1 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dThe
 F [815,820] L1Phase[6] L1 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
 F [821,826] L9Amp[6]   L9 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
 F [827,832] L9Phase[6] L9 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+I [833]     exalignver PG External Alignment version; 1: no errors,  2: with errors (def)
+I [834]   MdExAlignTag CIEMAT External Alignment tag; 0: default,  otherwise version tag
 
 
 TRMC
