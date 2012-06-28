@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.2 2012/06/25 02:58:34 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.3 2012/06/28 18:52:45 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -110,13 +110,14 @@ int TofRecH::BuildTofClusterH(){
 int TofRecH::TimeRec(int idsoft,number sdtm[], number adca[],number &tm,number &etm, int run,int force,int pattern){
     if(pattern%10==1){sdtm[1]=0;tm=0;etm=4*TFMCFFKEY.TimeSigma/sqrt(2.);return -1;}//s2 missing s1 have
     if(pattern%10==2){sdtm[0]=0;tm=0;etm=4*TFMCFFKEY.TimeSigma/sqrt(2.);return -1;}//s1 missing s2 have
-    
+
+    static int errcount=0;
     TofTAlignPar *TPar=TofTAlignPar::GetHead();
     if(force==1){
        TPar->ReadTDV(run,AMSJob::gethead()->isRealData());
     }
    else if(!TPar->Isload){
-       cerr<<"TofTAlignPar TDV not Load yet!!! Please load first"<<endl; 
+       if(errcount++<100)cerr<<"Error TofTAlignPar TDV not Load yet!!! Please load first"<<endl; 
        return -1;
    }
     number sl1=  TPar->slew[idsoft];
