@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.881 2012/06/28 18:54:28 qyan Exp $
+// $Id: job.C,v 1.882 2012/06/28 21:13:07 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3355,7 +3355,7 @@ void AMSJob::_timeinitjob(){
 			      TrInnerLin2DB));
 		
       DynAlManager::need2bookTDV=((CALIB.SubDetRequestCalib/100)%10)>0;
-      DynAlManager::tdvdb=new AMSTimeID(AMSID("DynAlignmentPG",1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
+      DynAlManager::tdvdb=new AMSTimeID(AMSID(DynAlManager::GetTDVName(TKGEOMFFKEY.MdExAlignTag).Data(),1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
       TID.add(DynAlManager::tdvdb);
     }
     begin.tm_isdst=0;

@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.61 2012/06/09 01:18:49 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.62 2012/06/28 21:13:07 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1813,10 +1813,14 @@ unsigned int DynAlManager::insert=0;
 int DynAlManager::ControlGroup=-1;
 bool DynAlManager::ignoreAlignment=false;
 
+#define SEARCHPREFIX "DynAlignment"
 #ifdef _PGTRACK_
+// Default TDVNAME
 #define TDVNAME "DynAlignmentPG"
+#define TDVNAMEPREFIX "DynAlignmentV5T"
 #else
 #define TDVNAME "DynAlignment"
+#define TDVNAMEPREFIX "DynAlignmentV4T"
 #endif
 
 void _ToAlign(){
@@ -2089,9 +2093,22 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       // Use the information if AMSSetup
       AMSSetupR *setup=AMSSetupR::gethead();
       if(!setup) TDVUPDATE;
-      // Search for the proper TDV
+
+      // Find the TDV prefix in TDV names
+      bool failed=true;
       AMSSetupR::TDVR tdv;
-      if(setup->getTDV (TDVNAME,time, tdv)) TDVUPDATE;
+      for(AMSSetupR::TDVRC_i it=setup->fTDVRC.lower_bound(SEARCHPREFIX);it!=setup->fTDVRC.end();it++){
+	if(it->first.find(SEARCHPREFIX)!=string::npos){
+	  if(setup->getTDV (it->first.c_str(),time, tdv)) TDVUPDATE;
+	  failed=false;
+	  break;
+	}
+      }
+
+      if(failed) TDVUPDATE;
+
+      // Search for the proper TDV
+      //      if(setup->getTDV (TDVNAME,time, tdv)) TDVUPDATE;
 
       // Check that we have to copy out everything again
       if(tdv.Begin!=begin || tdv.End!=end || tdv.Insert!=insert){
@@ -2322,4 +2339,15 @@ bool DynAlManager::RetrieveLocalAlignmentParameters(int layerJ,int slotSide,int 
   if(container.LocalFitParameters.find(id)==container.LocalFitParameters.end()) return false;
   container.LocalFitParameters[id].GetParameters(rotZ,rotY,rotX,dx,dy,dz);
   return true;
+}
+
+
+TString DynAlManager::GetTDVName(int tag=0){
+  if(!tag) return TDVNAME;                         // Default  
+  return TString(Form("%s%i",TDVNAMEPREFIX,tag));  // Built
+}
+
+
+bool DynAlManager::SetTDVTag(int tag,bool forceReading){
+  return SetTDVName(GetTDVName(tag),forceReading);
 }

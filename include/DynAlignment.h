@@ -301,11 +301,14 @@ class DynAlManager:public TObject{
   static bool RetrieveLocalAlignmentParameters(int layerJ,int slotSide,int ladder,
 					       float &rotZ,float &rotY,float &rotX,float &dx,float &dy,float &dz);
 
+  static TString GetTDVName(int tag);   // Build a valid alignment tdv name given a valid tag 
+  static bool SetTDVTag(int tag,bool forceReading=true);   // Build a valid alignment tdv name given a valid tag 
+
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(dynAlFitContainers)
 #pragma omp threadprivate (currentRun,skipRun,tdvBuffer,tdvdb,begin,insert,end)  
 #endif
-  ClassDef(DynAlManager,4);
+  ClassDef(DynAlManager,5);
 };
 
 void _ToAlign();
