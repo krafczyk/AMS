@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.3 2012/06/28 18:52:45 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.4 2012/06/28 23:46:32 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -112,6 +112,9 @@ int TofRecH::TimeRec(int idsoft,number sdtm[], number adca[],number &tm,number &
     if(pattern%10==2){sdtm[0]=0;tm=0;etm=4*TFMCFFKEY.TimeSigma/sqrt(2.);return -1;}//s1 missing s2 have
 
     static int errcount=0;
+    if(TofTAlignPar::Head==0){
+       if(errcount<100)cerr<<"Error TofTAlignPar Head not Initial !!!!"<<endl;
+    }
     TofTAlignPar *TPar=TofTAlignPar::GetHead();
     if(force==1){
        TPar->ReadTDV(run,AMSJob::gethead()->isRealData());

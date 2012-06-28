@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.6 2012/06/25 23:56:16 qyan Exp $
+//  $Id: Tofdbc.C,v 1.7 2012/06/28 23:46:32 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -819,4 +819,8 @@ int TofTAlignPar::LoadFromFile(char *file){
    return 0;
 }
 
+//==========================================================
+void TofTAlignInit(){
+  TofTAlignPar::GetHead()->LoadTDVPar();
+}
 //==========================================================
