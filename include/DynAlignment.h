@@ -243,6 +243,7 @@ class DynAlFitContainer:public TObject{
   static int GetId(DynAlEvent &event){return 100*event.lad()+10*event.half()+event.lay();}
   
   void BuildLocalAlignment(DynAlHistory &history,map<Int_t,Double_t> *errors=0);
+  void BuildLocalAlignment(DynAlHistory &history,DynAlFitContainer &layerAlignment,map<Int_t,Double_t> *errors=0);
   void BuildAlignment(TString dir,TString prefix,int run);
   DynAlFitContainer(DynAlFitContainer &previous,DynAlFitContainer &second);
   void DumpLocalAlignment();
@@ -261,7 +262,7 @@ class DynAlFitContainer:public TObject{
   bool dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer=false);
   DynAlFitContainer(LinearSpace &tdvBuffer,bool layer9=false);
   void TestDump();
-  ClassDef(DynAlFitContainer,5);
+  ClassDef(DynAlFitContainer,6);
 };
 
 
