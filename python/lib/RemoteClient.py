@@ -601,6 +601,7 @@ class RemoteClient:
                s.quit()
                
     def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0,castoronly=0):
+        self.s=""
         self.castoronly=castoronly
         self.needfsmutex=nfs
         self.crczero=0
@@ -1312,7 +1313,12 @@ class RemoteClient:
             sql="update dataruns set status='%s' where jid=%d" %(self.dbclient.cr(run.Status),run.uid)
             self.sqlserver.Update(sql)
         if(self.dbclient.cr(run.Status) == "Finished" and status != "TimeOut" and status !="Completed"):
-            print "Check Run %d Status %s DBStatus %s" %(run.Run,self.dbclient.cr(run.Status),status)
+            print "Check Run %d Status %s DBStatus %s jid %d" %(run.Run,self.dbclient.cr(run.Status),status,run.uid)
+            if(status=='Unchecked'):
+                s0= "%d," %(run.uid)
+                self.s=self.s+s0
+                print self.s
+                print "Check Run %d Status %s DBStatus %s jid %d" %(run.Run,self.dbclient.cr(run.Status),status,run.uid)
             output.write("Check Run %d Status %s DBStatus %s" %(run.Run,self.dbclient.cr(run.Status),status))
             sql="select dataruns.status, jobs.content, cites.status from dataruns,jobs,cites where jobs.jid=%d and dataruns.jid=jobs.jid and cites.cid=jobs.cid" %(run.uid)
             r1=self.sqlserver.Query(sql)
@@ -1356,7 +1362,7 @@ class RemoteClient:
                         for ntuple in self.dbclient.dsts:
                             if(self.dbclient.ct(ntuple.Type)!="RootFile" and self.dbclient.ct(ntuple.Type)!="Ntuple"):
                                 continue
-                            #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
+                 #           print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status),ntuple.Name
                             if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
                                 ntuplelist.append(ntuple)
                         ntuplelist.sort(lambda x,y: cmp(y.Insert,x.Insert))
@@ -3403,7 +3409,88 @@ class RemoteClient:
                         print "problem get attributes ",pfile 
 
 
-    
+    def getDSTFromJournalFile(self,jidl,datamc,ntuple,update=0):
+
+        ntuple.Status=self.dbclient.iorp.Failure
+        ntuple.Type=self.dbclient.iorp.EventTag
+        ntuple.Name=" "
+        if(os.environ.has_key('ProductionLogDir')):
+            runsdir=os.environ['ProductionLogDir']
+        else:
+            runsdir='/afs/cern.ch/ams/local/prod.log'
+        if(datamc==0):
+            runsdir=runsdir+'/MCProducer/'
+        else:
+            runsdir=runsdir+'/Producer/'
+        fn=[]
+        jids=jidl.split(',')
+        for jidi in jids:
+            jid=int(jidi)
+            filej="%010d.journal" %(jid)
+            pfilej=os.path.join(runsdir,filej)
+            try:
+                fltdvo=open(pfilej,'r')
+                for linea in fltdvo.readlines():
+                    line=linea.split('\n')[0]
+                    if(line.find("CloseDST")>=0):
+                        pat=line.split(',')
+                        npat=0
+                        for i in range (2,len(pat)-2):
+                            attr=pat[i].split(' ')
+                            if(attr[1]=='Status' and attr[2]=='Validated'):
+                                ntuple.Status=self.dbclient.iorp.Validated
+                                npat=npat+1
+                            if(attr[1]=='Type' and attr[2]=='RootFile'):
+                                ntuple.Type=self.dbclient.iorp.RootFile
+                                npat=npat+1
+                            if(attr[1]=='Name'):
+                                ntuple.Name=attr[2]
+                                npat=npat+1
+                            if(attr[1]=='Version'):
+                                ntuple.Version=attr[2]
+                                npat=npat+1
+                            if(attr[1]=='Size'):
+                                ntuple.Size=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='crc'):
+                                ntuple.crc=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='Insert'):
+                                ntuple.Insert=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='Begin'):
+                                ntuple.Begin=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='End'):
+                                ntuple.End=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='FirstEvent'):
+                                ntuple.FirstEvent=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='LastEvent'):
+                                ntuple.LastEvent=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='EventNumber'):
+                                ntuple.EventNumber=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='ErrorNumber'):
+                                ntuple.ErrorNumber=int(attr[2])
+                                npat=npat+1
+                            if(attr[1]=='Run'):
+                                ntuple.Run=int(attr[2])
+                                npat=npat+1
+                        if(self.dbclient.ct(ntuple.Type)=="RootFile" and ntuple.Status == self.dbclient.iorp.Validated and npat==14):
+                            fn.append(ntuple)
+                            if(update):
+                                self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Create)
+
+                fltdvo.close() 
+            except IOError,e:
+                print e
+        return fn
+        
+        
+        
     def TransferDataFiles(self,run2p,i,v,u,h,source,c,replace,disk):
         if(os.environ.has_key('RunsDir')):
             runsdir=os.environ['RunsDir']
