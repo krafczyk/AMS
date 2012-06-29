@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.5 2012/06/25 14:13:18 choutko Exp $
+//  $Id: Tofdbc.h,v 1.6 2012/06/29 08:03:44 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -284,5 +284,6 @@ class TofTAlignPar: public TofTDVTool<float>{
      int  LoadFromFile(char *file);//read data from file->Block data
 };  
 
+void TofTAlignInit();
 //---
 #endif
