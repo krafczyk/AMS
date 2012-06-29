@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.883 2012/06/28 23:46:32 qyan Exp $
+// $Id: job.C,v 1.884 2012/06/29 10:13:02 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3732,34 +3732,30 @@ void AMSJob::_timeinitjob(){
     end.tm_isdst=0;
     int needval=1;
 
-       begin.tm_sec=TFREFFKEY.sec[0];
-       begin.tm_min=TFREFFKEY.min[0];
-       begin.tm_hour=TFREFFKEY.hour[0];
-       begin.tm_mday=TFREFFKEY.day[0];
-       begin.tm_mon=TFREFFKEY.mon[0];
-       begin.tm_year=TFREFFKEY.year[0];
+    begin.tm_sec=0;
+    begin.tm_min=0;
+    begin.tm_hour=0;
+    begin.tm_mday=0;
+    begin.tm_mon=0;
+    begin.tm_year=0;
 
-       end.tm_sec=TFREFFKEY.sec[1];
-       end.tm_min=TFREFFKEY.min[1];
-       end.tm_hour=TFREFFKEY.hour[1];
-       end.tm_mday=TFREFFKEY.day[1];
-       end.tm_mon=TFREFFKEY.mon[1];
-       end.tm_year=TFREFFKEY.year[1];
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
 
 //----TOF ClusterH TDV/ version //temp only realdata
     if(isRealData()){
       if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
        TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
-       /*TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
+       TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
                               TofTAlign->TDVSize,
                               TofTAlign->TDVBlock,
-                              server,needval,TofTAlignPar::HeadLoadTDVPar));*/
-          TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
-                              TofTAlign->TDVSize,
-                              TofTAlign->TDVBlock,
-                              server,needval,TofTAlignInit));
-       }
-     }
+                              server,needval,TofTAlignPar::HeadLoadTDVPar));
+      }
+    }
     //
     if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
       if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
