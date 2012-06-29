@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.71 2012/06/18 20:55:47 shaino Exp $
+//  $Id: TrFit.C,v 1.72 2012/06/29 11:49:19 choutko Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/06/18 20:55:47 $
+///$Date: 2012/06/29 11:49:19 $
 ///
-///$Revision: 1.71 $
+///$Revision: 1.72 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1074,7 +1074,7 @@ int TrFit::FillDmsc(double *dmsc, double fact,
 	double wl = 0, ln = 0;
 	l2 = ilay[k];
 	for (int l =  k; l !=  i+dk; l += dk) ln += len[l];
-	for (int l = l1; l != l2+dl; l += dl) wl += WLEN[l];
+	for (int l = l1; l != l2+dl &&l>=0; l += dl) wl += WLEN[l];
 
 	dmsc[i] += ln*ln*0.0118*0.0118*pbi2*wl/cosz[k];
 	l1 = l2+dl;
