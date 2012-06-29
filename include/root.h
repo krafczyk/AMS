@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437.2.4 2012/06/25 18:07:50 mduranti Exp $
+//  $Id: root.h,v 1.437.2.5 2012/06/29 16:39:34 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -680,13 +680,16 @@ public:
   ///< Updated December 2011 -
   ///< 90% efficiency cut (based on electron-like flight events) is -1.49
   ///< Relies on normalised variables (Nxxx) -
+  ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to 
+  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() 
 
 
-	/// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
+  /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
   /// lower values correspond to hadrons, higher to electromagnetic particles
-  /// Trained on August 2010 test beam data
-  /// WARNING: by default this function is dummy, to have it you must compile
-  /// with the ECALBDT defined but this take about 6 minutes
+  /// Trained on ISS.B552 data
+  /// There is no more need to set ECALBDT environment variable to use GetEcalBDT
+  /// Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
+  /// call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator()
   float GetEcalBDT();
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
