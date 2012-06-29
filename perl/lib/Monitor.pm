@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.161 2012/06/22 16:59:30 ams Exp $
+# $Id: Monitor.pm,v 1.162 2012/06/29 12:24:31 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1695,7 +1695,8 @@ sub ErrorPlus{
 
 sub RemoveRuns{
  my $ref=shift;
-
+ open(FILEA,">2ecal2.badrun.list.$$");
+ open(FILEB,">2ecal2.badjob.list.$$");
       print "herewr\n"; 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
@@ -1704,9 +1705,11 @@ sub RemoveRuns{
 #
 #      if($rdst{Run}>1324408120 and $rdst{Run}<1330000000){
 #     if(  $rdst{Status} eq "Canceled" and $rdst{FilePath} =~/calib/ ){
-         print "restoring $rdst{uid} \n";
-         $rdst{Status} = "Finished";
-     if( $rdst{Status} eq "TimeOut" and  $rdst{FilePath} =~/pass2/){
+#         print "restoring $rdst{uid} \n";
+#         $rdst{Status} = "Finished";
+     if( $rdst{Status} eq "Failed" and  $rdst{CounterFail}>2 and $rdst{FilePath} =~/2ecal2noway/){
+         print FILEA "$rdst{Run},";
+         print FILEB "$rdst{uid},";
 #     if($rdst{Status} eq "Finished"){
 #         foreach my $hash (@{$ref->{acl}}){
 #             if ($hash->{id}->{uid} == $rdst{uid}){
@@ -1719,7 +1722,7 @@ sub RemoveRuns{
         foreach $arsref (@{$ref->{arpref}}){
             try{
                 $arsref->sendRunEvInfo(\%rdst,"Delete");
-#                $arsref->sendRunEvInfo(\%rdst,"Update");
+##                $arsref->sendRunEvInfo(\%rdst,"Update");
                 last;
             }
             catch CORBA::SystemException with{
@@ -1739,6 +1742,8 @@ sub RemoveRuns{
 
     }
 }
+close(FILEA);
+close(FILEB);
 }
 
 
@@ -2856,6 +2861,7 @@ warn "   ***evrthing finished***\n";
 
 sub DeleteValidatedDst{
  my $ref=shift;
+ return;
 
 #
 # Find ntuples without runs and delete them
