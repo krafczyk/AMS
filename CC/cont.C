@@ -1,4 +1,4 @@
-//  $Id: cont.C,v 1.17 2010/01/22 11:33:34 pzuccon Exp $
+//  $Id: cont.C,v 1.18 2012/06/30 15:53:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 #include <cstdio> 
 #include "cont.h"
@@ -143,7 +143,7 @@ void AMSContainer::eraseC(){
   // Deletes all cont elements
   // 
   AMSlink *next=0;
-  for(AMSlink *ptr=_Head;ptr;ptr=next){
+  for(AMSlink *ptr=_Head;ptr&&ptr!=ptr->_next;ptr=next){
     next=ptr->_next;
     delete ptr;
   }

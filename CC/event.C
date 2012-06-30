@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.563 2012/06/26 08:15:54 qyan Exp $
+//  $Id: event.C,v 1.564 2012/06/30 15:53:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1256,15 +1256,15 @@ void  AMSEvent::write(int trig){
       //      printf("Adding TrRawCluster to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrRawCluster*)pptr);
     }
-    for (AMSlink* pptr=getheadC("AMSTrCluster",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink* pptr=getheadC("AMSTrCluster",0);pptr!=0&&pptr!=pptr->next();pptr=pptr->next()){
       //      printf("Adding TrCluster to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrCluster*)pptr);
     }
-    for (AMSlink *pptr=getheadC("AMSTrRecHit",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink *pptr=getheadC("AMSTrRecHit",0);pptr!=0&&pptr!=pptr->next();pptr=pptr->next()){
       //     printf("Adding TrRecHit to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrRecHit*)pptr);
     }
-    for (AMSlink* pptr=getheadC("AMSTrTrack",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink* pptr=getheadC("AMSTrTrack",0);pptr!=0&&pptr!=pptr->next();pptr=pptr->next()){
       //    printf("Adding TrTrack to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrTrack*)pptr);
     }
