@@ -1,4 +1,4 @@
-//  $Id: cont.h,v 1.19 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: cont.h,v 1.20 2012/06/30 15:52:40 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSCONTAINER__
@@ -61,9 +61,9 @@ public:
   //! Dump the container info and calls _printEl for all the contained objects
   void printC(ostream & stream){_printEl(stream);for( AMSlink *ptr=_Head;ptr;ptr=ptr->_next)ptr->_printEl(stream);}
   //! calls _writeEl for all the contained objects
-  void writeC(){for(AMSlink *ptr=_Head;ptr;ptr=ptr->_next)ptr->_writeEl();}
+  void writeC(){for(AMSlink *ptr=_Head;ptr&&ptr!=ptr->_next;ptr=ptr->_next)ptr->_writeEl();}
   //! calls _copyEl for all the contained objects
-  void copyC(){for(AMSlink *ptr=_Head;ptr;ptr=ptr->_next)ptr->_copyEl();}
+  void copyC(){for(AMSlink *ptr=_Head;ptr&&ptr!=ptr->_next;ptr=ptr->_next)ptr->_copyEl();}
   //! add an object at the end of the container
   void addnext(AMSlink* ptr);
   //! Replaces the element hanging at prev->next() (which is NOT destroyed)with the element pointed by ptr
