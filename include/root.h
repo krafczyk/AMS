@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.447 2012/07/03 09:17:47 sdifalco Exp $
+//  $Id: root.h,v 1.448 2012/07/03 14:50:03 afiasson Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -676,12 +676,17 @@ public:
   ///< Is automatically called if the LAPP estimator function is called ( EcalStandaloneEstimator() )
 
   float EcalStandaloneEstimator();
-  ///< LAPP Ecal Estimator -
+  ///< LAPP Ecal Estimator V2 -
   ///< Updated December 2011 -
-  ///< 90% efficiency cut (based on electron-like flight events) is -1.49
+  ///< 90% efficiency cut (based on electron-like flight events) is -1.49.
+  ///< Relies on normalised variables (Nxxx) -
+  float EcalStandaloneEstimatorV2();
+  ///< LAPP Ecal Estimator -
+  ///< Updated June 2012 -
+  ///< 90% efficiency cut (based on electron-like flight events) is -1.23
   ///< Relies on normalised variables (Nxxx) -
   ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
-  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator()
+  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()  
 
 
   /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
