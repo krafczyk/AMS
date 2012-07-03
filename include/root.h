@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.446 2012/06/29 15:59:25 sdifalco Exp $
+//  $Id: root.h,v 1.447 2012/07/03 09:17:47 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -685,9 +685,15 @@ public:
 
 
   /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
-  /// lower values correspond to hadrons, higher to electromagnetic particles
-  /// Trained on ISS.B552 data
-  /// There is no more need to set ECALBDT environment variable to use GetEcalBDT
+  /// trained on ISS.B552 data. The 90% efficiency cut on electrons is BDT>0. 
+  /// The training has been done in bins of EnergyD: 
+  /// {0.,3.12,4.86,7.57,11.81,18.41,28.69,44.72,69.71,108.66,169.38,264.03,
+  /// 411.56,641.53,1000.00=infinity}. To define electrons at 90% with BDT>0 
+  /// at any energy, the BDT value has been shifted by an offset in each 
+  /// EnergyD bin:
+  /// {0.55,0.71,0.812,0.866,0.896,0.898,0.916,0.908,0.928,0.948,0.966,0.968,
+  /// 0.97,0.968}
+  /// There is no more need to set ECALBDT environment variable to use GetEcalB
   /// Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
   /// call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator()
   float GetEcalBDT();
