@@ -67,7 +67,8 @@ R [602,603]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
              (def=0.1,0.1)  
 R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
              (def=2.5,2.5)
-
+I 606 ActivateShielding=1;
+I 607 ShieldingDensity=2.5;
 
 //==============================
 //  TRACKER RECONSTRUCTION

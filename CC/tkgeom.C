@@ -2,7 +2,7 @@
 
 #ifdef _PGTRACK_
 #include "gvolume.h"  // for AMSgvolume
-
+#include "tkdcards.h"
 #include "TkDBc.h"
 #include "TkLadder.h"
 #include "TkPlane.h"
@@ -138,12 +138,12 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
     TkPlane *pl = TkDBc::Head->GetPlane(1);
     coo[0] = pl->GetPos()[0]+pl->GetPosT()[0];
     coo[1] = pl->GetPos()[1]+pl->GetPosT()[1];
-    coo[2] = -1*(pl->GetPos()[2]+pl->GetPosT()[2]+
-		 pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[0]);
+    coo[2] = -1*(pl->GetPos()[2]+pl->GetPosT()[2]);
+    //		 pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[0]);
       
     par[0] = 0;
-    par[1] = TkDBc::Head->_plane_d1[0]; //container radius
-    par[2] = TkDBc::Head->_plane_d2[0]; //container half thickness
+    par[1] = TkDBc::Head->_plane_d1[4]; //container radius
+    par[2] = TkDBc::Head->_plane_d2[4]; //container half thickness
   
     
     AMSRotMat lrm0 = pl->GetRotMatT();
@@ -174,6 +174,27 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
     volout= (AMSgvolume*)mvol
         ->add(new AMSgvolume("VACUUM", _nrot++, name, "BOX",
                              par, 3, coo, nrm, "ONLY", 0, plane, 1));
+  }else if(plane==1){ //PZ let's add LBBX (laser boxes)
+  
+    coo[0] = pl->GetPos()[0]+pl->GetPosT()[0];
+    coo[1] = pl->GetPos()[1]+pl->GetPosT()[1];
+    coo[2] = pl->GetPos()[2]+pl->GetPosT()[2]+
+      pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[plane-1]-
+    1.5; //LBBX part outside  
+    par[0] = 0;
+    par[1] = TkDBc::Head->_plane_d1[plane-1]; //container radius
+    par[2] = TkDBc::Head->_plane_d2[plane-1]; //container half thickness
+
+  
+    AMSRotMat lrm0 = pl->GetRotMatT();
+    AMSRotMat lrm = lrm0*pl->GetRotMat();
+  
+    for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
+    volout=(AMSgvolume*)mvol
+      ->add(new AMSgvolume("VACUUM", _nrot++, name, "TUBE",
+                           par, 3, coo, nrm, "ONLY", 0, plane, 1));    
+    
+  
   }else{ //STD AMS PLANES
   
     coo[0] = pl->GetPos()[0]+pl->GetPosT()[0];
@@ -242,7 +263,7 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   coo[0] = oo.x();
   coo[1] = oo.y();
   coo[2] = oo.z();
-  if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
+  if(layer==1) coo[2] -= TkDBc::Head->_dz[0]+1.5; //lbbx
   if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
   if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
 
@@ -333,7 +354,7 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
   coo[0] = oo.x() +sign*(TkCoo::GetLadderLength(tkid)/2+par[0]);
   coo[1] = oo.y();
   coo[2] = (abs(oo.z())/oo.z())*(TkDBc::Head->_sup_hc_w[plane-1]/2.+par[2]); 
-  if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
+  if(layer==1) coo[2] -= TkDBc::Head->_dz[0]+ 1.5; //lbbx
   if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
   if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
 
@@ -389,7 +410,7 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
   coo[0] = oo.x();
   coo[1] = oo.y();
   coo[2] = (abs(oo.z())/oo.z())*(abs(oo.z())-TkDBc::Head->_silicon_z/2-par[2]-sup_foam_tol);
-  if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
+  if(layer==1) coo[2] -= TkDBc::Head->_dz[0]+1.5; //lbbx
   if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
   if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
 
@@ -402,6 +423,31 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
   int gid = tkid+1000;
   mvol->add(new AMSgvolume("Tr_Foam", _nrot++, name, "BOX",
 			   par, 3, coo, nrm, "ONLY", 1, gid, 1));
+  
+  if(TRMCFFKEY.ActivateShielding){
+
+    //shielding
+
+    par[0] = TkDBc::Head->_ssize_inactive[0]*nsen/2;
+    par[1] = 7.3/2;//TkDBc::Head->_ladder_Ypitch/2;
+    par[2] = 0.01;  // 100 um
+
+    coo[0] = oo.x();
+    coo[1] = oo.y();
+    coo[2] = (abs(oo.z())/oo.z())*(abs(oo.z())+TkDBc::Head->_silicon_z/2+par[2]+0.1);
+    if(layer==1) coo[2] -= TkDBc::Head->_dz[0]+1.5; //lbbx
+    if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
+    if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
+
+    VZERO(nrm,9*sizeof(nrm[0][0])/4);
+    nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+    char name2[5];
+    std::ostrstream ost2(name2,sizeof(name2));
+    ost2 << "SHD" << layer << std::ends;
+    gid = tkid+1000;
+    mvol->add(new AMSgvolume("TrShield-M", _nrot++, name2, "BOX",
+	  par, 3, coo, nrm, "ONLY", 1, gid, 1));
+  }
 }
 
 
@@ -414,6 +460,7 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
   number nrm[3][3];
   char name[5];
   char name2[5];
+  float pi=atan(1.)*4;
   std::ostrstream ost(name,sizeof(name));
   ost << "PLA" << plane << std::ends;
   if(plane==7){
@@ -422,7 +469,7 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     par[2] = TkDBc::Head->_sup_hc_w[0]/2. - TkDBc::Head->_sup_hc_skin_w[0];
     
     coo[0] = coo[1] = 0;
-    coo[2] = TkDBc::Head->_dz[0];
+    coo[2] = 0;
     
     
     VZERO(nrm,9*sizeof(nrm[0][0])/4);
@@ -435,12 +482,12 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     par[1] = TkDBc::Head->_sup_hc_r[0];
     par[2] = TkDBc::Head->_sup_hc_skin_w[0]/2.;
     coo[0] = coo[1] = 0;
-    coo[2] = TkDBc::Head->_dz[0]+ TkDBc::Head->_sup_hc_w[0]/2. + TkDBc::Head->_sup_hc_skin_w[0]/2.;
+    coo[2] = TkDBc::Head->_sup_hc_w[0]/2. + TkDBc::Head->_sup_hc_skin_w[0]/2.;
     sprintf(name2,"USK%d",plane);
     mvol->add(new AMSgvolume("Tr_HoneySkin", _nrot++, name2,
 			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
-    coo[2] = TkDBc::Head->_dz[0]- TkDBc::Head->_sup_hc_w[0]/2. - TkDBc::Head->_sup_hc_skin_w[0]/2.;
+    coo[2] = - TkDBc::Head->_sup_hc_w[0]/2. - TkDBc::Head->_sup_hc_skin_w[0]/2.;
     sprintf(name2,"LSK%d",plane);
     mvol->add(new AMSgvolume("Tr_HoneySkin", _nrot++, name2,
 			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
@@ -603,6 +650,71 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
 
 
 
+  }
+  else if(plane==1){ //Lets Consider the LBBX
+  
+    par[0] = 0;
+    par[1] = TkDBc::Head->_sup_hc_r[plane-1];
+    par[2] = TkDBc::Head->_sup_hc_w[plane-1]/2.-TkDBc::Head->_sup_hc_skin_w[plane-1];
+    
+    coo[0] = coo[1] = 0;
+    coo[2] = -TkDBc::Head->_dz[plane-1]
+      -1.5; //container offset for LBBX 
+
+    
+    
+    VZERO(nrm,9*sizeof(nrm[0][0])/4);
+    nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+    char mate[50];
+    if(plane==1||plane==5)
+      sprintf(mate,"Tr_HoneyOUT");
+    else
+      sprintf(mate,"Tr_HoneyIN");
+    mvol->add(new AMSgvolume(mate, _nrot++, name,
+			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
+
+    // ADD CARBON SKINS
+    par[0] = 0;
+    par[1] = TkDBc::Head->_sup_hc_r[plane-1];
+    par[2] = TkDBc::Head->_sup_hc_skin_w[plane-1]/2.;
+    coo[0] = coo[1] = 0;
+    coo[2] = -TkDBc::Head->_dz[plane-1]+ TkDBc::Head->_sup_hc_w[plane-1]/2. + TkDBc::Head->_sup_hc_skin_w[plane-1]/2.
+      -1.5; //container offset for LBBX 
+
+    sprintf(name2,"USK%d",plane);
+    mvol->add(new AMSgvolume("Tr_HoneySkin", _nrot++, name2,
+			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
+
+    coo[2] = -TkDBc::Head->_dz[plane-1]- TkDBc::Head->_sup_hc_w[plane-1]/2. - TkDBc::Head->_sup_hc_skin_w[plane-1]/2.
+      -1.5; //container offset for LBBX 
+    sprintf(name2,"LSK%d",plane);
+    mvol->add(new AMSgvolume("Tr_HoneySkin", _nrot++, name2,
+			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
+
+    // ADD LBBX
+    float lbcoo[5][3]={//X,Y, angle
+      {-5.41,  9.125, 36.45},
+      {-5.41, -5.475, 36.45},
+      { 5.41, 12.575, 36.45},
+      { 5.41,  1.825,-36.45},
+      { 5.41,-12.775,-36.45}
+    };
+    par[0]=3.2/2.;
+    par[1]=3.4/2.;
+    par[2]=1.5/2.;
+    for (int lbb=0;lbb<5;lbb++){
+      coo[0]=lbcoo[lbb][0];
+      coo[1]=lbcoo[lbb][1];
+      coo[2]= TkDBc::Head->_plane_d2[plane-1]-par[2];
+      nrm[0][0]=nrm[1][1]=cos(lbcoo[lbb][2]/180.*pi);
+      nrm[0][1]=sin(lbcoo[lbb][2]/180.*pi);
+      nrm[1][0]=-1*nrm[0][1];
+      nrm[0][2]=nrm[2][0]=nrm[2][1]=nrm[1][2]=0;
+      nrm[2][2]=1;
+      sprintf(name2,"LBB%d",lbb);
+      mvol->add(new AMSgvolume("LBBX-med", _nrot++, name2,
+			       "BOX", par, 3, coo, nrm, "ONLY", 1, lbb, 1));
+    }
   }
   else{ //normal planes
   

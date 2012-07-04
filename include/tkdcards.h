@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.51 2012/06/28 21:13:07 mdelgado Exp $
+// $Id: tkdcards.h,v 1.52 2012/07/04 10:11:13 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -142,7 +142,10 @@ public:
   geant   TrSim2010_FracNoise[2]; 
   // Tuning parameter: adding noise
   geant   TrSim2010_AddNoise[2];    
- 
+
+  integer ActivateShielding;
+  integer ShieldingDensity;
+
   TRMCFFKEY_DEF():TObject(){init();}
   void init();
   number ADC2KeV(){

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.119 2012/05/04 13:46:49 qyan Exp $
+//  $Id: gmat.C,v 1.120 2012/07/04 10:11:13 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -15,6 +15,7 @@
 #include <strstream>
 #include "TRD_SimUtil.h"
 #include "TofSimUtil.h"
+
 #endif
 
 #ifdef __AMSVMC__
@@ -212,6 +213,7 @@ void AMSgmat::amsmat(){
   mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
   mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
   mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
+  mat.add (new AMSgmat("GOLD",  196.967, 79,  19.3  ,0.3344, 10.16));
 #ifdef __G4AMS__
   mat.add(trdSimUtil.GetKaptonMaterial());
 #else
@@ -324,8 +326,26 @@ void AMSgmat::amsmat(){
   mat.add (new AMSgmat( "CSkin-Trpl6",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
   density=1.65/scl;
   mat.add (new AMSgmat( "CSkin-P1NS",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
+  density=1.53; //PZ average density: 25 g over a volume 3.2x3.4x1.5 cm
+  mat.add(new AMSgmat("LBBX-Alloy",47.867,22,density, 3.56*4.54/density,  27.8*4.54/density));
 
+  // Track Shielding Kapton (polyimide (C_22 H_10 N_2 O_5) ) + Cu + Au
 
+  if(0){
+    float a[6] = {1.00999999, 12.0100002, 14.0100002, 16, 63.5400009, 196.966995};
+    float z[6] = {1, 6, 7, 8, 29, 79};
+    float w[6] = {0.0125173256, 0.33936578, 0.0347262844, 0.103113025, 0.314990461, 0.195287138};
+    mat.add(new AMSgmat("TrShield",a,z,w,6,TRMCFFKEY.ShieldingDensity));
+  }
+
+  if(0){
+    float a[4] = {1.00999999, 12.0100002, 14.0100002, 16};
+    float z[4] = {1, 6, 7, 8};
+    float w[4] = {0.025, 0.69, 0.075, 0.21};
+    mat.add(new AMSgmat("TrShield",a,z,w,4,TRMCFFKEY.ShieldingDensity));
+  }
+  density=TRMCFFKEY.ShieldingDensity;
+  mat.add(new AMSgmat("TrShield",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
 
 #else
   mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
@@ -742,6 +762,8 @@ tmed.add (new AMSgtmed("Tr_HoneyOUT","AL-HONEYC-TrOut",0));
 tmed.add (new AMSgtmed("Tr_HoneySkin","CSkin-Tr",0));
 tmed.add (new AMSgtmed("pl6_HoneySkin","CSkin-Trpl6",0));
 tmed.add (new AMSgtmed("P1NS_HoneySkin","CSkin-P1NS",0));
+tmed.add (new AMSgtmed("LBBX-med","LBBX-Alloy",0));
+tmed.add (new AMSgtmed("TrShield-M","TrShield",0));
 
 
 #else
