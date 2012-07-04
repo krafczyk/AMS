@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.43.4.4 2012/06/19 00:18:28 mduranti Exp $
+//  $Id: root_setup.h,v 1.43.4.5 2012/07/04 12:41:31 mduranti Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -319,7 +319,8 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
    bool AddNA(unsigned int NA); ///< Add a NA affected by DSP error (keep previous nodes!). \return true in case of positive inception.
    bool AddNA(DSPError dsperr); ///< Add a NA affected by DSP error (keep previous nodes!) taking by a DSPError object (neglecting its timestart,timend). \return true in case of positive inception.
    int GetFirstNA(); ///< Gives NA affected by DSP error (in case of multiple nodes return the first [the one with lower NA] with negative sign)
-   ClassDef(DSPError,1)       //DSP Error
+   bool SearchNA(unsigned int NA); ///< Search if the passed NA is affected by the problem. \return true if that NA is affected
+   ClassDef(DSPError,2)       //DSP Error
  };
 //-------------------------------------------------
 
