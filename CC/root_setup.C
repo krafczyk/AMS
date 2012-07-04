@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.84 2012/06/25 17:34:16 mduranti Exp $
+//  $Id: root_setup.C,v 1.85 2012/07/04 13:00:07 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -3102,23 +3102,23 @@ bool AMSSetupR::DSPError::SetNA(unsigned int NA){
 }
 bool AMSSetupR::DSPError::AddNA(unsigned int NA) {
 
-  //only used for debug (see below)
-  unsigned int _Nodes_000_01F=Nodes_000_01F;
-  unsigned int _Nodes_020_03F=Nodes_020_03F;
-  unsigned int _Nodes_040_05F=Nodes_040_05F;
-  unsigned int _Nodes_060_07F=Nodes_060_07F;
-  unsigned int _Nodes_080_09F=Nodes_080_09F;
-  unsigned int _Nodes_0A0_0BF=Nodes_0A0_0BF;
-  unsigned int _Nodes_0C0_0DF=Nodes_0C0_0DF;
-  unsigned int _Nodes_0E0_0FF=Nodes_0E0_0FF;
-  unsigned int _Nodes_100_11F=Nodes_100_11F;
-  unsigned int _Nodes_120_13F=Nodes_120_13F;
-  unsigned int _Nodes_140_15F=Nodes_140_15F;
-  unsigned int _Nodes_160_17F=Nodes_160_17F;
-  unsigned int _Nodes_180_19F=Nodes_180_19F;
-  unsigned int _Nodes_1A0_1BF=Nodes_1A0_1BF;
-  unsigned int _Nodes_1C0_1DF=Nodes_1C0_1DF;
-  unsigned int _Nodes_1E0_1FF=Nodes_1E0_1FF;
+  // //only used for debug (see below)
+  // unsigned int _Nodes_000_01F=Nodes_000_01F;
+  // unsigned int _Nodes_020_03F=Nodes_020_03F;
+  // unsigned int _Nodes_040_05F=Nodes_040_05F;
+  // unsigned int _Nodes_060_07F=Nodes_060_07F;
+  // unsigned int _Nodes_080_09F=Nodes_080_09F;
+  // unsigned int _Nodes_0A0_0BF=Nodes_0A0_0BF;
+  // unsigned int _Nodes_0C0_0DF=Nodes_0C0_0DF;
+  // unsigned int _Nodes_0E0_0FF=Nodes_0E0_0FF;
+  // unsigned int _Nodes_100_11F=Nodes_100_11F;
+  // unsigned int _Nodes_120_13F=Nodes_120_13F;
+  // unsigned int _Nodes_140_15F=Nodes_140_15F;
+  // unsigned int _Nodes_160_17F=Nodes_160_17F;
+  // unsigned int _Nodes_180_19F=Nodes_180_19F;
+  // unsigned int _Nodes_1A0_1BF=Nodes_1A0_1BF;
+  // unsigned int _Nodes_1C0_1DF=Nodes_1C0_1DF;
+  // unsigned int _Nodes_1E0_1FF=Nodes_1E0_1FF;
 
   if (NA<0x01F)      Nodes_000_01F|=(1<< NA      );
   else if (NA<0x03F) Nodes_020_03F|=(1<<(NA-   32));
@@ -3141,23 +3141,23 @@ bool AMSSetupR::DSPError::AddNA(unsigned int NA) {
     return false;
   }
   
-  //only used for debug
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_000_01F, NA, Nodes_000_01F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_020_03F, NA, Nodes_020_03F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_040_05F, NA, Nodes_040_05F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_060_07F, NA, Nodes_060_07F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_080_09F, NA, Nodes_080_09F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_0A0_0BF, NA, Nodes_0A0_0BF);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_0C0_0DF, NA, Nodes_0C0_0DF);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_0E0_0FF, NA, Nodes_0E0_0FF);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_100_11F, NA, Nodes_100_11F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_120_13F, NA, Nodes_120_13F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_140_15F, NA, Nodes_140_15F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_160_17F, NA, Nodes_160_17F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_180_19F, NA, Nodes_180_19F);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_1A0_1BF, NA, Nodes_1A0_1BF);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_1C0_1DF, NA, Nodes_1C0_1DF);
-  printf("%08X | NA=%03X -> %08X\n", _Nodes_1E0_1FF, NA, Nodes_1E0_1FF);
+  // //only used for debug
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_000_01F, NA, Nodes_000_01F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_020_03F, NA, Nodes_020_03F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_040_05F, NA, Nodes_040_05F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_060_07F, NA, Nodes_060_07F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_080_09F, NA, Nodes_080_09F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_0A0_0BF, NA, Nodes_0A0_0BF);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_0C0_0DF, NA, Nodes_0C0_0DF);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_0E0_0FF, NA, Nodes_0E0_0FF);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_100_11F, NA, Nodes_100_11F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_120_13F, NA, Nodes_120_13F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_140_15F, NA, Nodes_140_15F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_160_17F, NA, Nodes_160_17F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_180_19F, NA, Nodes_180_19F);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_1A0_1BF, NA, Nodes_1A0_1BF);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_1C0_1DF, NA, Nodes_1C0_1DF);
+  // printf("%08X | NA=%03X -> %08X\n", _Nodes_1E0_1FF, NA, Nodes_1E0_1FF);
 
   return true;
 }
@@ -3249,6 +3249,34 @@ int AMSSetupR::DSPError::GetFirstNA(){
 
   if (vec_NA.size()==1) return vec_NA[0];
   else return -vec_NA[0];
+}
+
+bool AMSSetupR::DSPError::SearchNA(unsigned int NA){
+  
+  bool ret=false;
+  
+  if (NA<0x01F)      ret=(Nodes_000_01F)&(1<< NA      );
+  else if (NA<0x03F) ret=(Nodes_020_03F)&(1<<(NA-   32));
+  else if (NA<0x05F) ret=(Nodes_040_05F)&(1<<(NA- 2*32));
+  else if (NA<0x07F) ret=(Nodes_060_07F)&(1<<(NA- 3*32));
+  else if (NA<0x09F) ret=(Nodes_080_09F)&(1<<(NA- 4*32));
+  else if (NA<0x0BF) ret=(Nodes_0A0_0BF)&(1<<(NA- 5*32));
+  else if (NA<0x0DF) ret=(Nodes_0C0_0DF)&(1<<(NA- 6*32));
+  else if (NA<0x0FF) ret=(Nodes_0E0_0FF)&(1<<(NA- 7*32));
+  else if (NA<0x11F) ret=(Nodes_100_11F)&(1<<(NA- 8*32));
+  else if (NA<0x13F) ret=(Nodes_120_13F)&(1<<(NA- 9*32));
+  else if (NA<0x15F) ret=(Nodes_140_15F)&(1<<(NA-10*32));
+  else if (NA<0x17F) ret=(Nodes_160_17F)&(1<<(NA-11*32));
+  else if (NA<0x19F) ret=(Nodes_180_19F)&(1<<(NA-12*32));
+  else if (NA<0x1BF) ret=(Nodes_1A0_1BF)&(1<<(NA-13*32));
+  else if (NA<0x1DF) ret=(Nodes_1C0_1DF)&(1<<(NA-14*32));
+  else if (NA<0x1FF) ret=(Nodes_1E0_1FF)&(1<<(NA-15*32));
+  else {
+    cerr<<"DSPError::AddNA-W-NodeAddressNotPossible "<<NA<<endl;
+    return false;
+  }
+  
+  return ret;
 }
 
 //-------------------------------------------------------------------------------------------------------
