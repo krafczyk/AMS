@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.48 2012/07/04 13:00:07 mduranti Exp $
+//  $Id: root_setup.h,v 1.49 2012/07/04 13:27:35 mduranti Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -282,6 +282,13 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
 };
 
 //--------------DSP Errors-------------------------
+/*!
+  Object containing the information about DSP errors.\n
+  AMSSetupR::DSPError objects are created by AMSSetupR::LoadDSPErrors() starting from .csv files (stored in $AMSDataDir/altec/DSP/). \n
+  The .csv files are created by a standalone program that scans the HKBPB stream.
+  \sa http://ams.cern.ch/AMS/DAQ/eCos/jap/node_addresses.xls
+  \author matteo.duranti@cern.ch
+*/
  class DSPError{
  public:
    DSPError(){
