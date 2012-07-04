@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.448 2012/07/03 14:50:03 afiasson Exp $
+//  $Id: root.h,v 1.449 2012/07/04 14:55:50 afiasson Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -546,6 +546,9 @@ ClassDef(Ecal2DClusterR,1)       //Ecal2DClusterR
 friend class AMSEcal2DCluster;
 friend class AMSEventR;
 };
+
+
+
 
 
 /*!

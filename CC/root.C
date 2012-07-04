@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.413 2012/07/03 14:50:03 afiasson Exp $
+//  $Id: root.C,v 1.414 2012/07/04 14:55:49 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3438,13 +3438,13 @@ void EcalShowerR::NormaliseVariableLAPP(){
 
 
 
-
 TMVA::Reader *ecallappreader;
+TMVA::Reader *NESEreaderv2;
+
 float varBDT[23];
 float cEnergyC;
 float cMomentum;
 
-TMVA::Reader *NESEreaderv2;
 
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
@@ -3893,9 +3893,8 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         NESEreaderv2->AddSpectator("RigInn",&nRigInn);
 
 
-
                         char name[801]="";
-                                sprintf(name,"/afs/in2p3.fr/group/ams/Offline/AMSDataDir/TMVA_ePrej_V3_12_BCat.weights.xml");
+                        sprintf(name,"%s/%s/TMVA_ePrej_V3_12_BCat.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
                         NESEreaderv2->BookMVA("BCat method" , name);
                 }
 
@@ -3918,6 +3917,9 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         return (output-vMean[a])/vRMS[a];
                 }
         }
+
+	return 0.; 
+
 }
 
 
