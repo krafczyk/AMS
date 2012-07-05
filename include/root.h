@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437.2.6 2012/07/03 09:32:56 sdifalco Exp $
+//  $Id: root.h,v 1.437.2.7 2012/07/05 16:44:14 afiasson Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -675,13 +675,22 @@ public:
   ///< Fill variables Nxxx
   ///< Is automatically called if the LAPP estimator function is called ( EcalStandaloneEstimator() )
 
+  float EcalStandaloneEstimatorV2(AMSEventR *pev);
+  ///< LAPP Ecal Estimator -
+  ///< Updated June 2012 -
+  ///< 90% efficiency cut (based on electron-like flight events) is -1.23
+  ///< Relies on normalised variables (Nxxx) -
+  ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to 
+  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
+
+ 
   float EcalStandaloneEstimator();
   ///< LAPP Ecal Estimator -
   ///< Updated December 2011 -
   ///< 90% efficiency cut (based on electron-like flight events) is -1.49
   ///< Relies on normalised variables (Nxxx) -
   ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to 
-  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() 
+  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
 
 
   /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
@@ -695,7 +704,7 @@ public:
   /// 0.97,0.968}
   /// There is no more need to set ECALBDT environment variable to use GetEcalBDT
   /// Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
-  /// call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator()
+  /// call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() EcalShowerR::EcalStandaloneEstimatorV2()
   float GetEcalBDT();
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used

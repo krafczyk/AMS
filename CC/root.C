@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404.2.4 2012/06/25 18:07:50 mduranti Exp $
+//  $Id: root.C,v 1.404.2.5 2012/07/05 16:44:13 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3370,13 +3370,450 @@ void EcalShowerR::NormaliseVariableLAPP(){
 
 
 
+TMVA::Reader *NESEreaderv2;
+float ESENLayerSigma[18],ESENS1tot[3],ESENS3tot[3],ESENS5tot[3],ESENShowerLatDisp[3],ESENShowerLongDisp;
+float ESENShowerFootprint[3],ESENZprofile[4],ESENZprofileChi2,ESENZProfileMaxRatio,ESENEnergyFractionLayer[18];
+float ESENS1S3[3],ESENS3S5[3],ESENS13R,ESENEnergy3C2,ESENEnergy3C3,ESENShowerMeanNorm,ESENShowerSigmaNorm;
+float ESENShowerSkewnessNorm,ESENShowerKurtosisNorm,ESENF2LEneDepNorm,ESENL2LFracNorm,ESENF2LFracNorm,ESENR3cmFracNorm;
+float ESENR5cmFracNorm,ESENDifoSumNorm,ESENS3totxNorm,ESENS3totyNorm,ESENS5totxNorm,ESENS5totyNorm;
+float ESENEcalHitsNorm,ESENShowerFootprintXNorm,ESENShowerFootprintYNorm;
+float nEnergyA;
+
+float EcalShowerR::EcalStandaloneEstimatorV2(AMSEventR *pev){
+
+        float NewESEv2;
+        float nEnergyC;
+        float nEcalStandaloneEstimator,necalBDT,nMomentum,nEnergyE,nRigInn;
+
+        NormaliseVariableLAPP();
+
+   	float S1totL[18]={-20.};
+   	float S3totL[18]={-20.}; 
+   	float S5totL[18]={-20.}; 
+
+	// Case Processing version <B584
+	if(pev->Version()<=584)
+        	nEnergyA = EnergyA;
+	// Case Processing version >=B584
+	if(pev->Version()>=584)
+		nEnergyA = EnergyA*1000.;
+
+
+        float log10E = TMath::Log10(nEnergyA/1000.);
+        if(log10E<0.4 || log10E>3.){
+                return -30.;
+        }
+
+    //=== Calcul Layer Sigma
+    float MapEneDep[18][72];
+    float s_cell_w[18];
+
+    for (Int_t ilayer = 0; ilayer < 18; ++ilayer){
+        s_cell_w[ilayer] = 0;
+        for (Int_t icell = 0; icell < 72; ++icell)
+                MapEneDep[ilayer][icell] = 0.;
+    }
+
+    for (Int_t i2dcluster = 0; i2dcluster < NEcal2DCluster(); ++i2dcluster){
+        for (Int_t icluster = 0; icluster < pEcal2DCluster(i2dcluster)->NEcalCluster(); ++icluster){
+            for (Int_t ihit = 0; ihit < pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->NEcalHit(); ++ihit){
+                EcalHitR *hit = pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->pEcalHit(ihit);
+                if (hit->ADC[0] > 4.){
+                        MapEneDep[hit->Plane][hit->Cell] = hit->Edep;
+                        s_cell_w[hit->Plane]        += (hit->Cell+1)*hit->Edep;
+                }
+             }
+        }
+    }
+    float LayerMean[18];
+    float LayerEneDep[18];
+    for (Int_t ilayer = 0; ilayer < 18; ++ilayer){
+        LayerEneDep[ilayer] = 0.;
+        LayerMean[ilayer]   = 0.;
+        for (Int_t icell = 0; icell < 72; ++icell){
+            MapEneDep[ilayer][icell] /= 1000.;
+            LayerMean[ilayer]   += icell*MapEneDep[ilayer][icell];
+            LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
+          }
+        if (LayerEneDep[ilayer] > 0.) LayerMean[ilayer] /= LayerEneDep[ilayer];
+        else LayerMean[ilayer] = -1.;
+      } 
+        
+    float LayerSigma[18];
+    int bcell_i;
+    float bcell_lat[18];
+    for (Int_t ilayer = 0; ilayer < 18; ++ilayer){
+        LayerSigma[ilayer] = 0.;
+        S1totL[ilayer] = 0.;
+        S3totL[ilayer] = 0.;
+        S5totL[ilayer] = 0.;
+        for (Int_t icell = 0; icell < 72; ++icell)
+          LayerSigma[ilayer] += TMath::Power(icell-LayerMean[ilayer], 2)*MapEneDep[ilayer][icell];
+        if (LayerEneDep[ilayer] > 0.){
+                LayerSigma[ilayer] /= LayerEneDep[ilayer];
+                LayerSigma[ilayer]  = TMath::Sqrt(LayerSigma[ilayer]);
+                bcell_lat[ilayer]=s_cell_w[ilayer]/LayerEneDep[ilayer];
+                bcell_i=(int) (bcell_lat[ilayer]-1.);
+                if ((bcell_lat[ilayer]-1-bcell_i)>0.5)  bcell_i++;
+                if (((bcell_i-2)>=0)&&((bcell_i+2)<=71)){
+                        S1totL[ilayer]=(MapEneDep[ilayer][bcell_i])/LayerEneDep[ilayer];
+                        S3totL[ilayer]=(MapEneDep[ilayer][bcell_i-1]+MapEneDep[ilayer][bcell_i]+MapEneDep[ilayer][bcell_i+1])/LayerEneDep[ilayer];
+                        S5totL[ilayer]=(MapEneDep[ilayer][bcell_i-2]+MapEneDep[ilayer][bcell_i-1]+MapEneDep[ilayer][bcell_i]+MapEneDep[ilayer][bcell_i+1]+MapEneDep[ilayer][bcell_i+2])/LayerEneDep[ilayer];     
+                }
+        } 
+    }
+    
+
+        
+                
+        
+                
+    
+
+  ESENEnergyFractionLayer[0] = (EnergyFractionLayer[0] - (0.0293281+log10E*-0.0209319+pow(log10E,2)*-0.00743863+pow(log10E,3)*0.0118679+pow(log10E,4)*-0.00407401+pow(log10E,5)*0.000455905))/( 0.0142375+log10E*0.00526443+pow(log10E,2)*-0.0359919+pow(log10E,3)*0.0329761+pow(log10E,4)*-0.0133547+pow(log10E,5)*0.00258324+pow(log10E,6)*-0.000194743);
+  ESENEnergyFractionLayer[1] = (EnergyFractionLayer[1] - (0.0589512+log10E*-0.0105698+pow(log10E,2)*-0.0538665+pow(log10E,3)*0.0424683+pow(log10E,4)*-0.0121717+pow(log10E,5)*0.00123329))/( 0.0227113+log10E*0.0268896+pow(log10E,2)*-0.0854598+pow(log10E,3)*0.0720737+pow(log10E,4)*-0.028848+pow(log10E,5)*0.00569079+pow(log10E,6)*-0.000445795);
+  ESENEnergyFractionLayer[2] = (EnergyFractionLayer[2] - (0.113296+log10E*-0.0435857+pow(log10E,2)*-0.0496812+pow(log10E,3)*0.0439499+pow(log10E,4)*-0.0127508+pow(log10E,5)*0.0013001))/( 0.0453848+log10E*-0.00636716+pow(log10E,2)*-0.0536752+pow(log10E,3)*0.055918+pow(log10E,4)*-0.025203+pow(log10E,5)*0.00547468+pow(log10E,6)*-0.000465204);
+  ESENEnergyFractionLayer[3] = (EnergyFractionLayer[3] - (0.120157+log10E*0.0127458+pow(log10E,2)*-0.109836+pow(log10E,3)*0.0701623+pow(log10E,4)*-0.0183609+pow(log10E,5)*0.00178725))/( 0.0439958+log10E*-0.00170606+pow(log10E,2)*-0.0424325+pow(log10E,3)*0.038754+pow(log10E,4)*-0.0159361+pow(log10E,5)*0.00318657+pow(log10E,6)*-0.00024982);
+  ESENEnergyFractionLayer[4] = (EnergyFractionLayer[4] - (0.116545+log10E*0.0210839+pow(log10E,2)*-0.0576944+pow(log10E,3)*0.0172123+pow(log10E,4)*-0.000713965+pow(log10E,5)*-0.00020084))/( 0.0419422+log10E*-0.0152135+pow(log10E,2)*-0.00849916+pow(log10E,3)*0.0121256+pow(log10E,4)*-0.00583174+pow(log10E,5)*0.00125058+pow(log10E,6)*-9.8688e-05);
+  ESENEnergyFractionLayer[5] = (EnergyFractionLayer[5] - (0.107401+log10E*0.0294138+pow(log10E,2)*-0.0292393+pow(log10E,3)*-0.00644733+pow(log10E,4)*0.00594653+pow(log10E,5)*-0.000857954))/( 0.0416871+log10E*-0.0194578+pow(log10E,2)*-0.0165457+pow(log10E,3)*0.03311+pow(log10E,4)*-0.0196423+pow(log10E,5)*0.00501175+pow(log10E,6)*-0.000473562);
+  ESENEnergyFractionLayer[6] = (EnergyFractionLayer[6] - (0.0868872+log10E*0.0411799+pow(log10E,2)*-0.0191194+pow(log10E,3)*-0.00996514+pow(log10E,4)*0.00570376+pow(log10E,5)*-0.000760575))/( 0.0400084+log10E*-0.00434858+pow(log10E,2)*-0.0651632+pow(log10E,3)*0.0896122+pow(log10E,4)*-0.0499331+pow(log10E,5)*0.0127892+pow(log10E,6)*-0.00124799);
+  ESENEnergyFractionLayer[7] = (EnergyFractionLayer[7] - (0.0725795+log10E*0.0292511+pow(log10E,2)*0.0224447+pow(log10E,3)*-0.0389068+pow(log10E,4)*0.0148578+pow(log10E,5)*-0.00186933))/( 0.0390845+log10E*-0.0102248+pow(log10E,2)*-0.0469026+pow(log10E,3)*0.0635955+pow(log10E,4)*-0.0331956+pow(log10E,5)*0.00794739+pow(log10E,6)*-0.000730641);
+  ESENEnergyFractionLayer[8] = (EnergyFractionLayer[8] - (0.0571514+log10E*0.0224879+pow(log10E,2)*0.0399348+pow(log10E,3)*-0.0450408+pow(log10E,4)*0.0162448+pow(log10E,5)*-0.00209165))/( 0.0346756+log10E*-0.00821707+pow(log10E,2)*-0.034565+pow(log10E,3)*0.042904+pow(log10E,4)*-0.0214691+pow(log10E,5)*0.00509811+pow(log10E,6)*-0.000474483);
+  ESENEnergyFractionLayer[9] = (EnergyFractionLayer[9] - (0.0457281+log10E*-0.00065603+pow(log10E,2)*0.080106+pow(log10E,3)*-0.0679522+pow(log10E,4)*0.0224519+pow(log10E,5)*-0.00273937))/( 0.0331102+log10E*-0.0175524+pow(log10E,2)*-0.00350307+pow(log10E,3)*0.0106265+pow(log10E,4)*-0.0068344+pow(log10E,5)*0.0020232+pow(log10E,6)*-0.000224017);
+  ESENEnergyFractionLayer[10] = (EnergyFractionLayer[10] - (0.034797+log10E*0.000818035+pow(log10E,2)*0.0619266+pow(log10E,3)*-0.0500295+pow(log10E,4)*0.0174051+pow(log10E,5)*-0.00232639))/( 0.029857+log10E*-0.0147422+pow(log10E,2)*-0.00656914+pow(log10E,3)*0.0192983+pow(log10E,4)*-0.0147657+pow(log10E,5)*0.00475027+pow(log10E,6)*-0.000544009);
+  ESENEnergyFractionLayer[11] = (EnergyFractionLayer[11] - (0.0265528+log10E*0.0115914+pow(log10E,2)*0.0302168+pow(log10E,3)*-0.0237653+pow(log10E,4)*0.00888894+pow(log10E,5)*-0.00131228))/( 0.0254383+log10E*-0.00799443+pow(log10E,2)*-0.00911492+pow(log10E,3)*0.0146029+pow(log10E,4)*-0.00848828+pow(log10E,5)*0.00216088+pow(log10E,6)*-0.000196073);
+  ESENEnergyFractionLayer[12] = (EnergyFractionLayer[12] - (0.0212208+log10E*0.00603145+pow(log10E,2)*0.0340895+pow(log10E,3)*-0.0285554+pow(log10E,4)*0.0115654+pow(log10E,5)*-0.00171917))/( 0.0209154+log10E*0.00334983+pow(log10E,2)*-0.0323003+pow(log10E,3)*0.0396929+pow(log10E,4)*-0.0209712+pow(log10E,5)*0.00501654+pow(log10E,6)*-0.000444993);
+  ESENEnergyFractionLayer[13] = (EnergyFractionLayer[13] - (0.0161308+log10E*0.00534484+pow(log10E,2)*0.0218018+pow(log10E,3)*-0.0123567+pow(log10E,4)*0.00387449+pow(log10E,5)*-0.000474708))/( 0.0187966+log10E*-0.00206869+pow(log10E,2)*-0.0121325+pow(log10E,3)*0.015188+pow(log10E,4)*-0.00672142+pow(log10E,5)*0.00111737+pow(log10E,6)*-4.2658e-05);
+  ESENEnergyFractionLayer[14] = (EnergyFractionLayer[14] - (0.0118662+log10E*0.00390857+pow(log10E,2)*0.014345+pow(log10E,3)*-0.00556176+pow(log10E,4)*0.00152988+pow(log10E,5)*-0.000172793))/( 0.0160184+log10E*-0.00732929+pow(log10E,2)*0.00556074+pow(log10E,3)*-0.00533376+pow(log10E,4)*0.00497049+pow(log10E,5)*-0.00202253+pow(log10E,6)*0.000274761);
+  ESENEnergyFractionLayer[15] = (EnergyFractionLayer[15] - (0.00894285+log10E*0.00723843+pow(log10E,2)*-0.00199131+pow(log10E,3)*0.0107959+pow(log10E,4)*-0.00532545+pow(log10E,5)*0.000851564))/( 0.0126819+log10E*-0.00427508+pow(log10E,2)*0.0116124+pow(log10E,3)*-0.021258+pow(log10E,4)*0.0168832+pow(log10E,5)*-0.00562134+pow(log10E,6)*0.00065933);
+  ESENEnergyFractionLayer[16] = (EnergyFractionLayer[16] - (0.00714805+log10E*0.00688464+pow(log10E,2)*-0.005231+pow(log10E,3)*0.0115373+pow(log10E,4)*-0.00518898+pow(log10E,5)*0.000820743))/( 0.0101054+log10E*0.00360477+pow(log10E,2)*-0.0113191+pow(log10E,3)*0.00960592+pow(log10E,4)*-0.0024255+pow(log10E,5)*-8.29438e-06+pow(log10E,6)*4.66736e-05);
+  ESENEnergyFractionLayer[17] = (EnergyFractionLayer[17] - (0.00601519+log10E*0.00429147+pow(log10E,2)*-0.00397828+pow(log10E,3)*0.00906065+pow(log10E,4)*-0.0039474+pow(log10E,5)*0.000635338))/( 0.0108678+log10E*-0.0116407+pow(log10E,2)*0.0257701+pow(log10E,3)*-0.032626+pow(log10E,4)*0.0218976+pow(log10E,5)*-0.00685427+pow(log10E,6)*0.00079466);
+  ESENLayerSigma[0] = (LayerSigma[0] - (1.1995+log10E*0.67065+pow(log10E,2)*-2.30011+pow(log10E,3)*2.43718+pow(log10E,4)*-0.907874+pow(log10E,5)*0.117796))/( 1.53866+log10E*-0.962565+pow(log10E,2)*0.91356+pow(log10E,3)*-0.259805+pow(log10E,4)*-0.0896804+pow(log10E,5)*0.0630317+pow(log10E,6)*-0.00954929);
+  ESENLayerSigma[1] = (LayerSigma[1] - (1.2387+log10E*0.824597+pow(log10E,2)*-2.86718+pow(log10E,3)*2.66005+pow(log10E,4)*-0.998105+pow(log10E,5)*0.137347))/( 1.37315+log10E*-0.868922+pow(log10E,2)*-0.285264+pow(log10E,3)*1.2822+pow(log10E,4)*-0.962437+pow(log10E,5)*0.298924+pow(log10E,6)*-0.033814);
+  ESENLayerSigma[2] = (LayerSigma[2] - (0.704584+log10E*0.379729+pow(log10E,2)*-0.779305+pow(log10E,3)*0.557004+pow(log10E,4)*-0.17599+pow(log10E,5)*0.0249407))/( 0.697992+log10E*-0.654891+pow(log10E,2)*1.815+pow(log10E,3)*-2.60611+pow(log10E,4)*1.67659+pow(log10E,5)*-0.487044+pow(log10E,6)*0.0525982);
+  ESENLayerSigma[3] = (LayerSigma[3] - (0.785647+log10E*0.357952+pow(log10E,2)*-1.11919+pow(log10E,3)*1.01188+pow(log10E,4)*-0.374269+pow(log10E,5)*0.0517661))/( 0.682365+log10E*-0.128638+pow(log10E,2)*-0.420734+pow(log10E,3)*0.400229+pow(log10E,4)*-0.13364+pow(log10E,5)*0.0166614+pow(log10E,6)*-0.000149023);
+  ESENLayerSigma[4] = (LayerSigma[4] - (1.18462+log10E*1.7215+pow(log10E,2)*-4.07251+pow(log10E,3)*2.92371+pow(log10E,4)*-0.870798+pow(log10E,5)*0.0953579))/( 0.998131+log10E*1.03335+pow(log10E,2)*-4.1852+pow(log10E,3)*4.26369+pow(log10E,4)*-2.01173+pow(log10E,5)*0.458226+pow(log10E,6)*-0.0406137);
+  ESENLayerSigma[5] = (LayerSigma[5] - (1.21569+log10E*1.91084+pow(log10E,2)*-4.56144+pow(log10E,3)*3.3692+pow(log10E,4)*-1.03287+pow(log10E,5)*0.115188))/( 0.98569+log10E*1.08057+pow(log10E,2)*-4.34727+pow(log10E,3)*4.42545+pow(log10E,4)*-2.08761+pow(log10E,5)*0.476034+pow(log10E,6)*-0.0423323);
+  ESENLayerSigma[6] = (LayerSigma[6] - (1.08661+log10E*0.61245+pow(log10E,2)*-1.74063+pow(log10E,3)*1.3976+pow(log10E,4)*-0.452953+pow(log10E,5)*0.0528941))/( 0.796743+log10E*0.36108+pow(log10E,2)*-2.17755+pow(log10E,3)*2.28174+pow(log10E,4)*-1.06068+pow(log10E,5)*0.234624+pow(log10E,6)*-0.0201406);
+  ESENLayerSigma[7] = (LayerSigma[7] - (1.11653+log10E*1.06421+pow(log10E,2)*-2.5831+pow(log10E,3)*2.0031+pow(log10E,4)*-0.64257+pow(log10E,5)*0.0743222))/( 0.902575+log10E*-0.240009+pow(log10E,2)*-0.799582+pow(log10E,3)*0.810748+pow(log10E,4)*-0.295105+pow(log10E,5)*0.0438198+pow(log10E,6)*-0.00187547);
+  ESENLayerSigma[8] = (LayerSigma[8] - (1.23703+log10E*2.97847+pow(log10E,2)*-6.13093+pow(log10E,3)*4.41739+pow(log10E,4)*-1.36346+pow(log10E,5)*0.153791))/( 1.09765+log10E*0.616413+pow(log10E,2)*-3.2584+pow(log10E,3)*3.13943+pow(log10E,4)*-1.35608+pow(log10E,5)*0.280426+pow(log10E,6)*-0.0225884);
+  ESENLayerSigma[9] = (LayerSigma[9] - (1.05628+log10E*4.09418+pow(log10E,2)*-7.74194+pow(log10E,3)*5.4826+pow(log10E,4)*-1.69055+pow(log10E,5)*0.1912))/( 1.08859+log10E*1.02871+pow(log10E,2)*-4.2975+pow(log10E,3)*4.17418+pow(log10E,4)*-1.85598+pow(log10E,5)*0.396456+pow(log10E,6)*-0.0329291);
+  ESENLayerSigma[10] = (LayerSigma[10] - (0.878451+log10E*3.27025+pow(log10E,2)*-5.45002+pow(log10E,3)*3.73804+pow(log10E,4)*-1.15754+pow(log10E,5)*0.133677))/( 1.09715+log10E*-0.0871678+pow(log10E,2)*-1.13885+pow(log10E,3)*0.869454+pow(log10E,4)*-0.2249+pow(log10E,5)*0.0125079+pow(log10E,6)*0.00181621);
+  ESENLayerSigma[11] = (LayerSigma[11] - (0.7636+log10E*3.70248+pow(log10E,2)*-5.52066+pow(log10E,3)*3.52622+pow(log10E,4)*-1.04084+pow(log10E,5)*0.116271))/( 1.11495+log10E*0.356329+pow(log10E,2)*-2.01241+pow(log10E,3)*1.55344+pow(log10E,4)*-0.487573+pow(log10E,5)*0.0601787+pow(log10E,6)*-0.00132094);
+  ESENLayerSigma[12] = (LayerSigma[12] - (0.471052+log10E*5.66989+pow(log10E,2)*-7.99996+pow(log10E,3)*4.90874+pow(log10E,4)*-1.40626+pow(log10E,5)*0.153472))/( 1.0284+log10E*2.2878+pow(log10E,2)*-6.17669+pow(log10E,3)*5.30301+pow(log10E,4)*-2.17963+pow(log10E,5)*0.437728+pow(log10E,6)*-0.0344545);
+  ESENLayerSigma[13] = (LayerSigma[13] - (0.422251+log10E*4.55314+pow(log10E,2)*-5.14365+pow(log10E,3)*2.68038+pow(log10E,4)*-0.697187+pow(log10E,5)*0.072939))/( 1.09738+log10E*2.23776+pow(log10E,2)*-6.01791+pow(log10E,3)*5.16537+pow(log10E,4)*-2.154+pow(log10E,5)*0.445421+pow(log10E,6)*-0.0366036);
+  ESENLayerSigma[14] = (LayerSigma[14] - (0.332788+log10E*2.47855+pow(log10E,2)*-0.348791+pow(log10E,3)*-0.829789+pow(log10E,4)*0.363045+pow(log10E,5)*-0.0416549))/( 0.848708+log10E*2.61553+pow(log10E,2)*-5.56182+pow(log10E,3)*4.14436+pow(log10E,4)*-1.50977+pow(log10E,5)*0.272793+pow(log10E,6)*-0.0196357);
+  ESENLayerSigma[15] = (LayerSigma[15] - (0.25737+log10E*1.56722+pow(log10E,2)*2.11807+pow(log10E,3)*-2.75949+pow(log10E,4)*0.977555+pow(log10E,5)*-0.111681))/( 0.652372+log10E*3.38822+pow(log10E,2)*-5.89548+pow(log10E,3)*3.67127+pow(log10E,4)*-1.03417+pow(log10E,5)*0.119647+pow(log10E,6)*-0.00272773);
+  ESENLayerSigma[16] = (LayerSigma[16] - (0.234222+log10E*0.636947+pow(log10E,2)*4.52065+pow(log10E,3)*-4.5979+pow(log10E,4)*1.54902+pow(log10E,5)*-0.174913))/( 0.586191+log10E*3.46126+pow(log10E,2)*-4.58645+pow(log10E,3)*1.57458+pow(log10E,4)*0.191528+pow(log10E,5)*-0.194067+pow(log10E,6)*0.0269499);
+  ESENLayerSigma[17] = (LayerSigma[17] - (0.159336+log10E*-0.0104728+pow(log10E,2)*5.62076+pow(log10E,3)*-5.25354+pow(log10E,4)*1.73196+pow(log10E,5)*-0.19523))/( 0.444376+log10E*3.58308+pow(log10E,2)*-3.7803+pow(log10E,3)*0.494137+pow(log10E,4)*0.702942+pow(log10E,5)*-0.297369+pow(log10E,6)*0.0343403);
+
+
+if(Zprofile[3]!=0.) ESENZProfileMaxRatio = (Zprofile[2]/Zprofile[3]  - (1.0129+log10E*-0.763376+pow(log10E,2)*0.988021+pow(log10E,3)*-0.458768+pow(log10E,4)*0.0717106))/( 0.00100992+log10E*0.785363+pow(log10E,2)*-1.44717+pow(log10E,3)*1.12741+pow(log10E,4)*-0.393829+pow(log10E,5)*0.0504198);
+else ESENZProfileMaxRatio = -10.;
+ESENZprofile[3] = (Zprofile[3] - (4.50263+log10E*2.34572+pow(log10E,2)*0.143905+pow(log10E,3)*-0.0833355+pow(log10E,4)*0.0150589))/( 0.0434271+log10E*0.0464243+pow(log10E,2)*-0.0974044+pow(log10E,3)*0.0767125+pow(log10E,4)*-0.0251018+pow(log10E,5)*0.00290821);
+ESENZprofile[2] = (Zprofile[2] - (3.67016+log10E*2.50798+pow(log10E,2)*-0.107036+pow(log10E,3)*0.18317+pow(log10E,4)*-0.0449247))/( 1.44785+log10E*0.131643+pow(log10E,2)*-1.50198+pow(log10E,3)*2.22714+pow(log10E,4)*-1.11549+pow(log10E,5)*0.179176);
+ESENZprofile[1] = (Zprofile[1] - (0.326949+log10E*0.528463+pow(log10E,2)*-0.670308+pow(log10E,3)*0.339608+pow(log10E,4)*-0.0569746))/( 0.189716+log10E*0.0343689+pow(log10E,2)*-0.251494+pow(log10E,3)*0.255097+pow(log10E,4)*-0.102414+pow(log10E,5)*0.014367);
+ESENZprofile[0] = (Zprofile[0] - (0.976082+log10E*-0.0705222+pow(log10E,2)*0.175072+pow(log10E,3)*-0.0914683+pow(log10E,4)*0.0137933))/( 0.165222+log10E*-0.249009+pow(log10E,2)*0.373086+pow(log10E,3)*-0.254006+pow(log10E,4)*0.0733925+pow(log10E,5)*-0.00739734);
+ESENZprofileChi2 = (ZprofileChi2 - (8.50299+log10E*-13.0275+pow(log10E,2)*8.10907+pow(log10E,3)*-2.32256+pow(log10E,4)*0.254447))/( 3.19023+log10E*-3.17808+pow(log10E,2)*-0.446047+pow(log10E,3)*1.90832+pow(log10E,4)*-0.87448+pow(log10E,5)*0.123363);
+ESENShowerFootprint[2] = (ShowerFootprint[2] - (6.30702+log10E*2.64898+pow(log10E,2)*-6.91719+pow(log10E,3)*4.00913+pow(log10E,4)*-0.690694))/( 2.57879+log10E*1.61286+pow(log10E,2)*-6.8939+pow(log10E,3)*5.43924+pow(log10E,4)*-1.7182+pow(log10E,5)*0.195773);
+ESENShowerFootprint[1] = (ShowerFootprint[1] - (4.02898+log10E*2.04488+pow(log10E,2)*-3.08223+pow(log10E,3)*1.57129+pow(log10E,4)*-0.256888))/( 1.58523+log10E*-0.295658+pow(log10E,2)*-1.52979+pow(log10E,3)*1.33371+pow(log10E,4)*-0.407086+pow(log10E,5)*0.043129);
+ESENShowerFootprint[0] = (ShowerFootprint[0] - (10.7414+log10E*4.30687+pow(log10E,2)*-10.1444+pow(log10E,3)*5.82378+pow(log10E,4)*-1.00416))/( 3.85793+log10E*0.288424+pow(log10E,2)*-6.63226+pow(log10E,3)*5.81433+pow(log10E,4)*-1.91808+pow(log10E,5)*0.224113);
+ESENShowerLatDisp[2] = (ShowerLatDisp[2] - (19.0553+log10E*54.0248+pow(log10E,2)*-69.1774+pow(log10E,3)*29.9681+pow(log10E,4)*-4.15628))/( 15.5826+log10E*32.9272+pow(log10E,2)*-68.8799+pow(log10E,3)*45.2201+pow(log10E,4)*-12.5163+pow(log10E,5)*1.26381);
+ESENShowerLatDisp[1] = (ShowerLatDisp[1] * (1.+VarLeakYA) - (10.5906+log10E*31.8959+pow(log10E,2)*-35.8796+pow(log10E,3)*13.6127+pow(log10E,4)*-1.66184))/( 8.70862+log10E*17.5474+pow(log10E,2)*-34.899+pow(log10E,3)*22.0739+pow(log10E,4)*-6.09356+pow(log10E,5)*0.634846);
+// Remove additionnal correction 
+ESENShowerLatDisp[0] = (ShowerLatDisp[0] * (1.+VarLeakXA) - (29.8002+log10E*88.9076+pow(log10E,2)*-110.919+pow(log10E,3)*46.8499+pow(log10E,4)*-6.38335))/( 19.7325+log10E*41.8142+pow(log10E,2)*-87.4022+pow(log10E,3)*58.9758+pow(log10E,4)*-17.2272+pow(log10E,5)*1.87766);
+if(S5tot[2]) ESENS3S5[2] = (S3tot[2]/S5tot[2] - (0.925137+log10E*-0.100376+pow(log10E,2)*0.125556+pow(log10E,3)*-0.0499635+pow(log10E,4)*0.0065578))/( 0.0537135+log10E*-0.00338936+pow(log10E,2)*-0.0120451+pow(log10E,3)*-0.0114605+pow(log10E,4)*0.0100869+pow(log10E,5)*-0.00179196);
+else ESENS3S5[2] = -20.;
+if(S5tot[1]) ESENS3S5[1] = (S3tot[1]/S5tot[1] - (0.931109+log10E*-0.0265477+pow(log10E,2)*0.0315243+pow(log10E,3)*-0.0115648+pow(log10E,4)*0.00144984))/( 0.0478292+log10E*-0.012534+pow(log10E,2)*-0.0458203+pow(log10E,3)*0.044711+pow(log10E,4)*-0.015465+pow(log10E,5)*0.00188226);
+else ESENS3S5[1] = -20.;
+if(S5tot[0]) ESENS3S5[0] = (S3tot[0]/S5tot[0] - (0.921565+log10E*-0.175071+pow(log10E,2)*0.272039+pow(log10E,3)*-0.133165+pow(log10E,4)*0.0210554))/( 0.0428441+log10E*0.157715+pow(log10E,2)*-0.333628+pow(log10E,3)*0.22896+pow(log10E,4)*-0.067359+pow(log10E,5)*0.00729265);
+else ESENS3S5[0] = -20.;
+if(S3tot[0]) ESENS1S3[0] = (S1tot[0]/S3tot[0] - (0.622985+log10E*-0.243001+pow(log10E,2)*0.31769+pow(log10E,3)*-0.122334+pow(log10E,4)*0.0150953))/( 0.0946042+log10E*0.0751587+pow(log10E,2)*-0.0922105+pow(log10E,3)*-0.0159299+pow(log10E,4)*0.0304762+pow(log10E,5)*-0.00617571);
+else ESENS1S3[0] = -20.;
+ESENShowerLongDisp = (ShowerLongDisp - (11.6608+log10E*2.5556+pow(log10E,2)*-0.379147+pow(log10E,3)*-0.356563+pow(log10E,4)*0.0694614))/( 3.59225+log10E*-1.85411+pow(log10E,2)*-0.283144+pow(log10E,3)*0.856242+pow(log10E,4)*-0.398109+pow(log10E,5)*0.0618494);
+ESENS1tot[0] = (S1tot[0] - (0.507233+log10E*-0.357514+pow(log10E,2)*0.593993+pow(log10E,3)*-0.286615+pow(log10E,4)*0.0443787))/( 0.153756+log10E*0.186214+pow(log10E,2)*-0.47659+pow(log10E,3)*0.313955+pow(log10E,4)*-0.0838449+pow(log10E,5)*0.00795356);
+ESENEnergy3C3 = (Energy3C[2] - (0.830358+log10E*-0.14142+pow(log10E,2)*0.143214+pow(log10E,3)*-0.0440383+pow(log10E,4)*0.00393432))/( 0.0602811+log10E*0.0689515+pow(log10E,2)*-0.0959921+pow(log10E,3)*0.0137288+pow(log10E,4)*0.0125294+pow(log10E,5)*-0.00318491);
+ESENS13R = (S13R - (0.726479+log10E*-0.0412848+pow(log10E,2)*-0.0995643+pow(log10E,3)*0.0911045+pow(log10E,4)*-0.0186589))/( 0.0440288+log10E*-0.00203543+pow(log10E,2)*0.0317023+pow(log10E,3)*-0.0455753+pow(log10E,4)*0.0201134+pow(log10E,5)*-0.00284211);
+ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.015759+pow(log10E,3)*0.00327821+pow(log10E,4)*-0.000232916+pow(log10E,5)*0))/( 0.0152631+log10E*-0.0194549+pow(log10E,2)*0.0118655+pow(log10E,3)*-0.00409424+pow(log10E,4)*0.000934227+pow(log10E,5)*-0.000109527+pow(log10E,6)*0);
+
+
+
+  const int nECAL_VIEWs  = 2;
+   const int nLAYERs = 18;
+   const int nCELLs  = 72;
+
+   float EneDep = 0.; // Total energy deposited [GeV] (sum of every cell of every layer)
+
+   float F2LEneDep = 0.; // Energy deposit [GeV] in the first 2 layer
+
+   float NEcalHits = Nhits; 
+   float L2LFrac = 0.; // Energy fraction of last 2 layer wrt energy deposit
+   float F2LFrac = 0.; // Energy fraction of first 2 layer wrt energy deposit
+   float ShowerFootprintX = ShowerFootprint[1]; 
+   float ShowerFootprintY = ShowerFootprint[2];
+   float S1S3x  = S13Rpi[0]; // Energy fraction in the cells near the maximum deposit cell on x wrt maximum deposit
+   float S1S3y  = S13Rpi[1]; // Energy fraction in the cells near the maximum deposit cell on y wrt maximum deposit
+   float S3totx = S3tot[1];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
+   float S3toty = S3tot[2];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
+   float S5totx = S5tot[1];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
+   float S5toty = S5tot[2];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
+   float R3cmFrac = Energy3C[0]; // Energy fraction in a circle +- 3 cm around maximum wrt to total energy
+   float R5cmFrac = Energy3C[1]; // Energy fraction in a circle +- 5 cm around maximum wrt to total energy
+   float LayerClusterEnergy[nLAYERs];      // Corrected energy deposit [GeV] in each layer (sum of clusters' energy for each layer)
+   float LayerTruncClusterEnergy[nLAYERs]; // Corrected energy [GeV] for each layer between 3 sigma from the maximum
+   float ShowerMean  = 0.; // Longitudinal mean [layer]: (sum_i i*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
+   float ShowerSigma = 0.; // Longitudinal sigma [layer]: TMath::Sqrt((sum_i (i-ShowerMean)^2*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i]))
+   float ShowerSkewness = 0.; // Longitudinal skewness [layer^3]: (sum_i (i-ShowerMean)^3*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
+   float ShowerKurtosis = 0.; // Longitudinal kurtosis [layer^4]: (sum_i (i-ShowerMean)^4*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
+   float LayerEnergy = 0.; // sum_i LayerClusterEnergy[i]
+
+   float LayerTruncSigma[nLAYERs]; // Sigma [cell] for each layer, between 3 sigma from the maximum
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+   {      LayerClusterEnergy[ilayer] = 0.;
+      for (Int_t icell = 0; icell < nCELLs; ++icell) MapEneDep[ilayer][icell] = 0.;
+   }
+   Int_t n2DCLUSTERs = NEcal2DCluster();
+   for (Int_t i2dcluster = 0; i2dcluster < n2DCLUSTERs; ++i2dcluster)   {
+      Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
+      Int_t nCLUSTERs = cluster2d->NEcalCluster();      for (Int_t icluster = 0; icluster < nCLUSTERs; ++icluster)
+      {         EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
+         LayerClusterEnergy[cluster->Plane] += cluster->Edep;
+
+         Int_t nclHITs = cluster->NEcalHit();
+         for (Int_t ihit = 0; ihit < nclHITs; ++ihit)
+         {
+            EcalHitR *hit = cluster->pEcalHit(ihit);
+            if (hit->ADC[0] > 4) MapEneDep[hit->Plane][hit->Cell] = hit->Edep;
+         }
+      }
+   }
+   
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+      for (Int_t icell = 0; icell < nCELLs; ++icell) EneDep += MapEneDep[ilayer][icell];
+
+   EneDep /= 1000.;
+
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+   {
+      LayerEneDep[ilayer] = 0.;
+      for (Int_t icell = 0; icell < nCELLs; ++icell)
+      {
+         MapEneDep[ilayer][icell] /= 1000.;
+
+         LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
+
+         if (ilayer == 16 || ilayer == 17) L2LFrac += MapEneDep[ilayer][icell];
+         if (ilayer ==  0 || ilayer ==  1) F2LFrac += MapEneDep[ilayer][icell];
+      }
+
+      LayerClusterEnergy[ilayer] /= 1000.;
+      LayerEnergy += LayerClusterEnergy[ilayer];
+      ShowerMean  += ilayer*LayerClusterEnergy[ilayer];
+   }
+
+   F2LEneDep   = F2LFrac;
+   L2LFrac     = L2LFrac/EneDep;
+   F2LFrac     = F2LFrac/EneDep;
+   ShowerMean /= LayerEnergy;
+
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+   {
+      ShowerSigma    += TMath::Power(ilayer-ShowerMean, 2)*LayerClusterEnergy[ilayer];
+      ShowerSkewness += TMath::Power(ilayer-ShowerMean, 3)*LayerClusterEnergy[ilayer];
+      ShowerKurtosis += TMath::Power(ilayer-ShowerMean, 4)*LayerClusterEnergy[ilayer];
+   }
+   ShowerSigma    /= LayerEnergy;
+   ShowerSigma     = TMath::Sqrt(ShowerSigma);
+   ShowerSkewness /= LayerEnergy;
+   ShowerKurtosis /= LayerEnergy;
+
+   float mean;
+   float sigma;
+   unsigned int ivar = 0;
+
+
+   mean = 4.6675+(0.979051*log(EnergyE+1.18325));
+   sigma = 0.852135+(-0.0431518*log(EnergyE));
+   ESENShowerMeanNorm = (sigma!=0.)?(ShowerMean - mean)/sigma:-10.;
+
+   mean = 3.53852+(0.0296595*log(EnergyE-4.87199));
+   sigma = 0.287891+(-0.0394277*log(EnergyE-4.37052));
+   ESENShowerSigmaNorm = (sigma!=0.)?(ShowerSigma - mean)/sigma:-10.;
+
+   mean = 50.7688+(-8.72425*log(EnergyE+10.0236));
+   sigma = 8.88718+(-0.533865*log(EnergyE-4.9));
+   ESENShowerSkewnessNorm = (sigma!=0.)?(ShowerSkewness - mean)/sigma:-10.;
+
+   mean = (523.084+(-239.06/EnergyE))+(-59.4085*atan(0.0467487*EnergyE));
+   sigma = 141.4+(-61.9827*atan(0.132307*EnergyE));
+   ESENShowerKurtosisNorm = (sigma!=0.)?(ShowerKurtosis - mean)/sigma:-10.;
+
+   mean = 0.00632314+(0.123049*log(EnergyE+0.353085));
+   sigma = -0.110641+(0.0866421*log(EnergyE+7.60773));
+   ESENF2LEneDepNorm = (sigma!=0.)?(F2LEneDep - mean)/sigma:-10.;
+   
+   mean = 0.00981856+(0.00470305*sqrt(EnergyE-3.35461));
+  sigma = 0.0129705+(0.00166802*sqrt(EnergyE+8.22741));
+   ESENL2LFracNorm = (sigma!=0.)?(L2LFrac - mean)/sigma:-10.;
+         
+   mean = -0.00453365+(0.122221*(pow(EnergyE,(float)-0.513752)));
+   sigma = -0.00315033+(0.107401*(pow(EnergyE,(float)-0.543919)));
+   ESENF2LFracNorm = (sigma!=0.)?(F2LFrac - mean)/sigma:-10.;
+         
+   mean = 0.972864+(-0.00499681*atan((EnergyE*0.0362795)-0.459303));
+   sigma = 0.0104377+(-0.00140507*log(EnergyE-3.97738));
+   ESENR3cmFracNorm = (sigma!=0.)?(R3cmFrac - mean)/sigma:-10.;
+      
+   mean = (1.01319+(-0.00461599*log(EnergyE)))+(-0.113443/(EnergyE+4.50707));
+   sigma = 0.0043004+(-0.000536274*log(EnergyE-4.9));
+   ESENR5cmFracNorm = (sigma!=0.)?(R5cmFrac - mean)/sigma:-10.;
+
+   mean = 0.0180086+(-0.0100441*log(EnergyE+9.07422));
+   sigma = 0.505472+(-0.311353*atan((0.518772*EnergyE)+3.74849));
+   ESENDifoSumNorm = (sigma!=0.)?(DifoSum - mean)/sigma:-10.;
+   
+   mean = 0.91946+(-0.022189*atan((2.52632*EnergyE)-7.67717));
+   sigma = 0.00789299+(0.0720622*(pow(EnergyE,(float)-0.733793)));
+   ESENS3totxNorm = (sigma!=0.)?(S3totx - mean)/sigma:-10.;
+      
+   mean = (-0.0136692*exp(-0.128828*EnergyE))+0.874554; 
+   sigma = 0.501058+(-0.314568*atan((1.2783*EnergyE)+2.90362));
+   ESENS3totyNorm = (sigma!=0.)?(S3toty - mean)/sigma:-10.;
+   
+   mean = 0.960591+(-0.00355234*log(EnergyE));
+   sigma = 0.0217616+(-0.0107094*atan(0.079457*EnergyE));
+   ESENS5totxNorm = (sigma!=0.)?(S5totx - mean)/sigma:-10.;
+
+   mean = 0.948521+(-0.00193183*log(EnergyE));
+   sigma = 0.0227471+(-0.00393239*log(EnergyE-4.78839));
+   ESENS5totyNorm = (sigma!=0.)?(S5toty - mean)/sigma:-10.;
+
+   mean = (55.4579+(21.667*log(EnergyE)))+(4.34059*(log(EnergyE)*log(EnergyE)));
+   sigma = (6.88496+(0.316054*log(EnergyE)))+(0.349772*(log(EnergyE)*log(EnergyE)));
+   ESENEcalHitsNorm = (sigma!=0.)?(NEcalHits - mean)/sigma:-10.;
+   
+   mean = 3.94369+(0.00837397*(pow(EnergyE,(float)0.888997)));
+   sigma = 2.04609+(-1.15052*atan((0.278696*EnergyE)+0.639821));
+   ESENShowerFootprintXNorm = (sigma!=0.)?(ShowerFootprintX - mean)/sigma:-10.;
+   
+   mean = (5.23776+(-0.210765*log(EnergyE)))+(0.00721687*EnergyE);
+   sigma = 1.54466+(-0.845935*atan(EnergyE*0.116966));
+   ESENShowerFootprintYNorm = (sigma!=0.)?(ShowerFootprintY - mean)/sigma:-10.;
+   
+
+  if(isnan(ESENShowerMeanNorm)) ESENShowerMeanNorm = -10.;
+   if(isnan(ESENShowerSigmaNorm)) ESENShowerSigmaNorm = -10.;
+  if(isnan(ESENShowerSkewnessNorm)) ESENShowerSkewnessNorm = -10.;
+   if(isnan(ESENShowerKurtosisNorm)) ESENShowerKurtosisNorm = -10.;
+   if(isnan(ESENF2LEneDepNorm)) ESENF2LEneDepNorm = -10.;
+   if(isnan(ESENL2LFracNorm)) ESENL2LFracNorm = -10.;
+   if(isnan(ESENF2LFracNorm)) ESENF2LFracNorm = -10.;
+   if(isnan(ESENR3cmFracNorm)) ESENR3cmFracNorm = -10.;
+   if(isnan(ESENR5cmFracNorm)) ESENR5cmFracNorm = -10.;
+   if(isnan(ESENDifoSumNorm)) ESENDifoSumNorm = -10.;
+   if(isnan(ESENS3totxNorm)) ESENS3totxNorm = -10.;
+   if(isnan(ESENS3totyNorm)) ESENS3totyNorm = -10.;
+   if(isnan(ESENS5totxNorm)) ESENS5totxNorm = -10.;
+   if(isnan(ESENS5totyNorm)) ESENS5totyNorm = -10.;
+   if(isnan(ESENEcalHitsNorm)) ESENEcalHitsNorm = -10.;
+   if(isnan(ESENShowerFootprintXNorm)) ESENShowerFootprintXNorm = -10.;
+   if(isnan(ESENShowerFootprintYNorm)) ESENShowerFootprintYNorm = -10.;
+
+   TString vname,varset0;
+   if(!NESEreaderv2){
+   	NESEreaderv2 = new TMVA::Reader( "!Color:!Silent" );
+                        
+	for(int aa=0;aa<18;aa++){
+		vname = "N3LayerSigma[";
+                vname += aa;
+                               vname += "]";
+                                NESEreaderv2->AddVariable(vname.Data(),&ESENLayerSigma[aa]);
+                        }
+
+                        for(int aa=0;aa<18;aa++){
+                                vname = "N3EnergyFractionLayer[";
+                                vname += aa;
+                                vname += "]";
+                                NESEreaderv2->AddVariable(vname.Data(),&ESENEnergyFractionLayer[aa]);
+                        }
+
+
+                        NESEreaderv2->AddVariable("N2Energy3C2",&ESENEnergy3C2);
+                        NESEreaderv2->AddVariable("N2S13R",&ESENS13R);
+                        NESEreaderv2->AddVariable("N2Energy3C3",&ESENEnergy3C3);
+                        NESEreaderv2->AddVariable("N2ShowerLongDisp",&ESENShowerLongDisp);
+                        NESEreaderv2->AddVariable("N2S1S3",&ESENS1S3[0]);
+                        NESEreaderv2->AddVariable("N2S3S5",&ESENS3S5[0]);
+                        NESEreaderv2->AddVariable("N2S3S5x",&ESENS3S5[1]);
+                        NESEreaderv2->AddVariable("N2S3S5y",&ESENS3S5[2]);
+                        NESEreaderv2->AddVariable("N2ShowerLatDispx",&ESENShowerFootprint[1]);
+                        NESEreaderv2->AddVariable("N2ShowerLatDispy",&ESENShowerFootprint[2]);
+                        NESEreaderv2->AddVariable("N2ShowerFootprint",&ESENShowerFootprint[0]);
+                        NESEreaderv2->AddVariable("N2ShowerFootprintx",&ESENShowerFootprint[1]);
+                        NESEreaderv2->AddVariable("N2ShowerFootprinty",&ESENShowerFootprint[2]);
+                        NESEreaderv2->AddVariable("N2ZProfileMaxRatio",&ESENZProfileMaxRatio);
+                        NESEreaderv2->AddVariable("N2Zprofile0",&ESENZprofile[0]);
+
+                        NESEreaderv2->AddVariable("ShowerMeanNorm",&ESENShowerMeanNorm);
+                        NESEreaderv2->AddVariable("ShowerSigmaNorm",&ESENShowerSigmaNorm);
+                        NESEreaderv2->AddVariable("ShowerSkewnessNorm",&ESENShowerSkewnessNorm);
+                        NESEreaderv2->AddVariable("ShowerKurtosisNorm",&ESENShowerKurtosisNorm);
+                        NESEreaderv2->AddVariable("F2LEneDepNorm",&ESENF2LEneDepNorm);
+                        NESEreaderv2->AddVariable("L2LFracNorm",&ESENL2LFracNorm);
+                        NESEreaderv2->AddVariable("F2LFracNorm",&ESENF2LFracNorm);
+                        NESEreaderv2->AddVariable("R3cmFracNorm",&ESENR3cmFracNorm);
+                        NESEreaderv2->AddVariable("R5cmFracNorm",&ESENR5cmFracNorm);
+                        NESEreaderv2->AddVariable("DifoSumNorm",&ESENDifoSumNorm);
+                        NESEreaderv2->AddVariable("S3totxNorm",&ESENS3totxNorm);
+                        NESEreaderv2->AddVariable("S3totyNorm",&ESENS3totyNorm);
+                        NESEreaderv2->AddVariable("S5totxNorm",&ESENS5totxNorm);
+                        NESEreaderv2->AddVariable("S5totyNorm",&ESENS5totyNorm);
+                        NESEreaderv2->AddVariable("NEcalHitsNorm",&ESENEcalHitsNorm);
+                        NESEreaderv2->AddVariable("ShowerFootprintXNorm",&ESENShowerFootprintXNorm);
+                        NESEreaderv2->AddVariable("ShowerFootprintYNorm",&ESENShowerFootprintYNorm);
+   
+   
+                        NESEreaderv2->AddSpectator("EnergyC",&nEnergyC);
+                        NESEreaderv2->AddSpectator("EcalStandaloneEstimator",&nEcalStandaloneEstimator);
+                        NESEreaderv2->AddSpectator("ecalBDT",&necalBDT);
+                        NESEreaderv2->AddSpectator("Momentum",&nMomentum);
+                        NESEreaderv2->AddSpectator("EnergyA",&nEnergyA);
+                        NESEreaderv2->AddSpectator("EnergyE",&nEnergyE);
+                        NESEreaderv2->AddSpectator("RigInn",&nRigInn);
+                        
+                                
+                        char name[801]="";
+                        sprintf(name,"%s/%s/TMVA_ePrej_V3_12_BCat.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
+                        NESEreaderv2->BookMVA("BCat method" , name);
+                }       
+
+                        
+        float vMean[11] = {0.,0.,0.0806513,0.0840544,0.101147,0.0780171,0.107208,0.164722,0.229185,0.230659,0.17618};
+        float vRMS[11] = {1.,1.,0.0374293,0.0319869,0.0365631,0.0359361,0.0458087,0.0721709,0.0926243,0.116207,0.0721707};
+                                
+        if(log10E>=2.5){        
+                log10E = 2.4;
+                nEnergyA = 250000.;
+        }
+        float output = NESEreaderv2->EvaluateMVA("BCat method");
+        if(log10E>2.){  
+                return (output-vMean[10])/vRMS[10];
+        }               
+        for(int a=0;a<10;a++){
+                if(log10E>(a*0.2) && log10E<=((a+1)*0.2)){
+                        return (output-vMean[a])/vRMS[a];
+                }       
+        }               
+        return 0.;      
+                        
+}                       
+
+
 
 TMVA::Reader *ecallappreader;
 float varBDT[23];
 float cEnergyC;
 float cMomentum;
-
-
 
 float EcalShowerR::EcalStandaloneEstimator(){
 	// Normalise variables first	
