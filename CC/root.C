@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.414 2012/07/04 14:55:49 afiasson Exp $
+//  $Id: root.C,v 1.415 2012/07/05 17:12:50 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3445,57 +3445,35 @@ float varBDT[23];
 float cEnergyC;
 float cMomentum;
 
+float ESENLayerSigma[18],ESENS1tot[3],ESENS3tot[3],ESENS5tot[3],ESENShowerLatDisp[3],ESENShowerLongDisp;
+float ESENShowerFootprint[3],ESENZprofile[4],ESENZprofileChi2,ESENZProfileMaxRatio,ESENEnergyFractionLayer[18];
+float ESENS1S3[3],ESENS3S5[3],ESENS13R,ESENEnergy3C2,ESENEnergy3C3,ESENShowerMeanNorm,ESENShowerSigmaNorm;float ESENShowerSkewnessNorm,ESENShowerKurtosisNorm,ESENF2LEneDepNorm,ESENL2LFracNorm,ESENF2LFracNorm,ESENR3cmFracNorm;
+float ESENR5cmFracNorm,ESENDifoSumNorm,ESENS3totxNorm,ESENS3totyNorm,ESENS5totxNorm,ESENS5totyNorm;
+float ESENEcalHitsNorm,ESENShowerFootprintXNorm,ESENShowerFootprintYNorm;
+float nEnergyA;
 
-float EcalShowerR::EcalStandaloneEstimatorV2(){
+
+
+float EcalShowerR::EcalStandaloneEstimatorV2(AMSEventR *pev){
 
 	float NewESEv2;
 	float nEnergyC;
-	float nEcalStandaloneEstimator,necalBDT,nMomentum,nEnergyA,nEnergyE,nRigInn;
-
-   	float ESENLayerSigma[18]={-20.}; ///< Normalised Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y            
-        float ESENS1tot[3]={-20.}; ///< Normalised Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y               
-        float ESENS3tot[3]={-20.}; ///< Normalised Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y            
-        float ESENS5tot[3]={-20.}; ///< Normalised Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y            
-        float ESENShowerLatDisp[3]={-20.}; ///< Normalised Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y          
-        float ESENShowerLongDisp=-20.; ///< Normalised Shower Longitudinal Dispersion  
-        float ESENShowerFootprint[3]={-20.}; ///< Normalised Shower Footprint - 0=X - 1=Y - 2=X+Y
-        float ESENZprofile[4]={-20.};  ///< Normalised Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=??????? 
-        float ESENZprofileChi2=-20.; ///< Normalised Chi2 of Zprofile
-        float ESENZProfileMaxRatio=-20.; ///< Ratio between profile fitted and expected Zmax
-        float ESENEnergyFractionLayer[18]={-20.};  ///< Normalised energy fraction per layer    
-        float ESENS1S3[3]={-20.};
-        float ESENS3S5[3]={-20.};
-        float ESENS13R=-20.;
-        float ESENEnergy3C2=-20.;
-        float ESENEnergy3C3=-20.;
-
-  	float ESENShowerMeanNorm;
-   	float ESENShowerSigmaNorm;
-   	float ESENShowerSkewnessNorm;
-   	float ESENShowerKurtosisNorm;
-   	float ESENF2LEneDepNorm;
-   	float ESENL2LFracNorm;
-   	float ESENF2LFracNorm;
-   	float ESENR3cmFracNorm;
-   	float ESENR5cmFracNorm;
-   	float ESENDifoSumNorm;
-   	float ESENS3totxNorm;
-   	float ESENS3totyNorm;
-   	float ESENS5totxNorm;
-   	float ESENS5totyNorm;
-   	float ESENEcalHitsNorm;
-   	float ESENShowerFootprintXNorm;
-   	float ESENShowerFootprintYNorm;
+	float nEcalStandaloneEstimator,necalBDT,nMomentum,nEnergyE,nRigInn;
 
         NormaliseVariableLAPP();
 
-   float S1totL[18]={-20.}; ///< Normalised Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y               
-   float S3totL[18]={-20.}; ///< Normalised Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y            
-   float S5totL[18]={-20.}; ///< Normalised Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y            
+   	float S1totL[18]={-20.};
+   	float S3totL[18]={-20.};
+   	float S5totL[18]={-20.};
 
-
-        float log10E = TMath::Log10(EnergyA/1000.);
-        nEnergyA = EnergyA;
+        // Case Processing version <B584        
+	if(pev->Version()<=584)
+                nEnergyA = EnergyA;
+        // Case Processing version >=B584
+        if(pev->Version()>=584)                
+		nEnergyA = EnergyA*1000.;
+  
+        float log10E = TMath::Log10(nEnergyA/1000.);
 
         if(log10E<0.4 || log10E>3.){
                 return -30.;
@@ -3904,7 +3882,7 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
 
         if(log10E>=2.5){
                 log10E = 2.4;
-                nEnergyA = 250.;
+                nEnergyA = 250000.;
         }
 
         float output = NESEreaderv2->EvaluateMVA("BCat method");
