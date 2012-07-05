@@ -430,7 +430,7 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
 
     par[0] = TkDBc::Head->_ssize_inactive[0]*nsen/2;
     par[1] = 7.3/2;//TkDBc::Head->_ladder_Ypitch/2;
-    par[2] = 0.01;  // 100 um
+    par[2] = 0.01/2.;  // 100 um
 
     coo[0] = oo.x();
     coo[1] = oo.y();

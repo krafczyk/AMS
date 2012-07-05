@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.77 2012/07/04 10:11:13 pzuccon Exp $
+// $Id: tkdcards.C,v 1.78 2012/07/05 14:06:26 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -265,7 +265,7 @@ void TRMCFFKEY_DEF::init(){
   TrSim2010_AddNoise[0] = 2.5; 
   TrSim2010_AddNoise[1] = 2.5;
   // for the ladder shielding
-  ActivateShielding=0;
+  ActivateShielding=1;
   ShieldingDensity=2.5;
 }
 

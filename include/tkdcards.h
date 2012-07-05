@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.52 2012/07/04 10:11:13 pzuccon Exp $
+// $Id: tkdcards.h,v 1.53 2012/07/05 14:06:27 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -144,7 +144,7 @@ public:
   geant   TrSim2010_AddNoise[2];    
 
   integer ActivateShielding;
-  integer ShieldingDensity;
+  geant ShieldingDensity;
 
   TRMCFFKEY_DEF():TObject(){init();}
   void init();

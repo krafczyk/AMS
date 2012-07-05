@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.120 2012/07/04 10:11:13 pzuccon Exp $
+//  $Id: gmat.C,v 1.121 2012/07/05 14:06:26 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -42,6 +42,9 @@
 
 
 integer AMSgmat::debug=0;
+
+
+
 void AMSgmat::_init(){
 #ifdef __AMSDEBUG__
   for( AMSNode *p=this->prev();p;p=p->prev()){
@@ -52,59 +55,59 @@ void AMSgmat::_init(){
   }
 #endif
 #ifdef __G4AMS__
-if(MISCFFKEY.G3On){
+  if(MISCFFKEY.G3On){
 #endif
-   geant *a=new geant[_npar];
-   geant *z=new geant[_npar];
-   geant *w=new geant[_npar];
-   for(int i=0;i<_npar;i++){
-     a[i]=_a[i];
-     w[i]=_w[i];
-     z[i]=_z[i];
-   }
+    geant *a=new geant[_npar];
+    geant *z=new geant[_npar];
+    geant *w=new geant[_npar];
+    for(int i=0;i<_npar;i++){
+      a[i]=_a[i];
+      w[i]=_w[i];
+      z[i]=_z[i];
+    }
    
 #ifdef __AMSVMC__   
-   if(_npar == 1)  gGeoManager->Material(_name, a[0], z[0], _rho,_imate ,_radl,_absl);   //Lack of _ubuf,1
-   else {
-     cout<<"DEBUG: Adding Mixture:"<<_name<<endl;
-     double total=0;
-     for (int i=0;i<_npar;i++) total+=a[i]*w[i];
-     geant *weight = new geant[_npar];
-     for (int i=0;i<_npar;i++) weight[i]=a[i]*w[i]/total;
-     for (int i=0;i<_npar;i++) cout<<"Weight for component"<<i<<": "<<weight[i]<<endl;
-     gGeoManager->Mixture(_name,a,z,_rho,_npar,weight,_imate); //  lack  uid     w should be atom number, do not sure this is right
-}
+    if(_npar == 1)  gGeoManager->Material(_name, a[0], z[0], _rho,_imate ,_radl,_absl);   //Lack of _ubuf,1
+    else {
+      cout<<"DEBUG: Adding Mixture:"<<_name<<endl;
+      double total=0;
+      for (int i=0;i<_npar;i++) total+=a[i]*w[i];
+      geant *weight = new geant[_npar];
+      for (int i=0;i<_npar;i++) weight[i]=a[i]*w[i]/total;
+      for (int i=0;i<_npar;i++) cout<<"Weight for component"<<i<<": "<<weight[i]<<endl;
+      gGeoManager->Mixture(_name,a,z,_rho,_npar,weight,_imate); //  lack  uid     w should be atom number, do not sure this is right
+    }
 
 #else
 
-  if(_npar == 1)   GSMATE(_imate,_name,a[0],z[0],_rho,_radl,_absl,_ubuf,1);
+    if(_npar == 1)   GSMATE(_imate,_name,a[0],z[0],_rho,_radl,_absl,_ubuf,1);
 
-  else    GSMIXT(_imate,_name,a,z,_rho,-_npar,w);
+    else    GSMIXT(_imate,_name,a,z,_rho,-_npar,w);
 #endif
-   delete []a;
-   delete []z;
-   delete []w;
+    delete []a;
+    delete []z;
+    delete []w;
 #ifdef __G4AMS__
-}
-if(MISCFFKEY.G4On){
- if(_npar==1 ){
-  if(_temp==0)_pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3);
-  else _pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3,kStateGas,_temp*kelvin,1.e-18*_rho*g/cm3/universe_mean_density*_temp*kelvin*pascal); 
- }
- else{
-  char namz[255];
-  ostrstream ost(namz,sizeof(namz));
-  _pamsg4m= new G4Material(G4String(_name),_rho*g/cm3,_npar);
-  for(int i=0;i<_npar;i++){
-   ost.clear();
-   ost.seekp(0);
-   ost<<_name<<int(_z[i])<<ends;
-   G4String name(namz);
-   int natoms=int(_w[i]);
-   _pamsg4m->AddElement(new G4Element(name," ",_z[i],_a[i]*g/mole),natoms);
-}
- }
-}
+  }
+  if(MISCFFKEY.G4On){
+    if(_npar==1 ){
+      if(_temp==0)_pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3);
+      else _pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3,kStateGas,_temp*kelvin,1.e-18*_rho*g/cm3/universe_mean_density*_temp*kelvin*pascal); 
+    }
+    else{
+      char namz[255];
+      ostrstream ost(namz,sizeof(namz));
+      _pamsg4m= new G4Material(G4String(_name),_rho*g/cm3,_npar);
+      for(int i=0;i<_npar;i++){
+	ost.clear();
+	ost.seekp(0);
+	ost<<_name<<int(_z[i])<<ends;
+	G4String name(namz);
+	int natoms=int(_w[i]);
+	_pamsg4m->AddElement(new G4Element(name," ",_z[i],_a[i]*g/mole),natoms);
+      }
+    }
+  }
 #endif
 }
 
@@ -331,21 +334,14 @@ void AMSgmat::amsmat(){
 
   // Track Shielding Kapton (polyimide (C_22 H_10 N_2 O_5) ) + Cu + Au
 
-  if(0){
+  {
     float a[6] = {1.00999999, 12.0100002, 14.0100002, 16, 63.5400009, 196.966995};
     float z[6] = {1, 6, 7, 8, 29, 79};
-    float w[6] = {0.0125173256, 0.33936578, 0.0347262844, 0.103113025, 0.314990461, 0.195287138};
+    float w[6] = {13,28,3,6,5,1};
     mat.add(new AMSgmat("TrShield",a,z,w,6,TRMCFFKEY.ShieldingDensity));
   }
 
-  if(0){
-    float a[4] = {1.00999999, 12.0100002, 14.0100002, 16};
-    float z[4] = {1, 6, 7, 8};
-    float w[4] = {0.025, 0.69, 0.075, 0.21};
-    mat.add(new AMSgmat("TrShield",a,z,w,4,TRMCFFKEY.ShieldingDensity));
-  }
-  density=TRMCFFKEY.ShieldingDensity;
-  mat.add(new AMSgmat("TrShield",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
+
 
 #else
   mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
