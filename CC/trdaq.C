@@ -330,9 +330,11 @@ int TrDAQ::TestBoardErrors(char *name,ushort status,int pri){
 //================================================================
 //================================================================
 //================================================================
+
 int TrDAQMC::onesize=45;
 
-int TrDAQMC::calcdaqlength(integer i){
+
+int TrDAQMC::calcdaqlength_old(integer i){
   AMSContainer *p = AMSEvent::gethead()->getC("AMSTrMCCluster");
   int len=1; 
   if(p){
@@ -340,7 +342,7 @@ int TrDAQMC::calcdaqlength(integer i){
       getheadC("AMSTrMCCluster",0);
     while(ptr){ 
       const integer big=10000;
-      if(ptr->_sum!=0 && ptr->_xgl[0]+big>0 && ptr->_xgl[1]+big>0 && ptr->_xgl[2]+big>0)len+=8; 
+      if(ptr->_edep!=0 && ptr->_xgl[0]+big>0 && ptr->_xgl[1]+big>0 && ptr->_xgl[2]+big>0)len+=8; 
       ptr=ptr->next();
     }
   }
@@ -348,16 +350,15 @@ int TrDAQMC::calcdaqlength(integer i){
 }
 
 
-void TrDAQMC::builddaq(integer i, integer length, int16u *p){
-  AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
-    getheadC("AMSTrMCCluster",0);
+void TrDAQMC::builddaq_old(integer i, integer length, int16u *p){
+  AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);
   p--;
   geant sum=0;
   while(ptr){ 
     const uinteger c=65535;
     *(p+1)=ptr->_itra;
     integer big=10000;
-    if(ptr->_sum==0)goto metka;
+    if(ptr->_edep==0)goto metka;
     for(int k=0;k<3;k++){
       if(ptr->_xgl[k]+big<=0){
 	goto metka;
@@ -366,19 +367,18 @@ void TrDAQMC::builddaq(integer i, integer length, int16u *p){
       *(p+3+2*k)=int16u(cd&c);
       *(p+2+2*k)=int16u((cd>>16)&c);
     }
-    sum=ptr->_sum*1000000;
+    sum=ptr->_edep*1000000;
     if(sum>c)sum=c;
     *(p+8)=int16u(sum);
-//    cout <<" sum "<<ptr->getsum()<<" "<<sum<<endl;
     p+=8;
   metka:
     ptr=ptr->next();
   }
-  *(p+1)=getdaqid() ;
+  *(p+1)=getdaqid();
 }
 
 
-void TrDAQMC::buildraw(integer n, int16u *p){
+void TrDAQMC::buildraw_old(integer n, int16u *p){
   integer ip;
   geant mom;
   int len=n&65535;
@@ -389,14 +389,232 @@ void TrDAQMC::buildraw(integer n, int16u *p){
     uinteger cdz=  (*(ptr+6)) | (*(ptr+5))<<16;  
     geant sum=geant(*(ptr+7))/1000000;
     AMSPoint coo(cdx/10000.-10000.,cdy/10000.-10000.,cdz/10000.-10000.);
-//      cout <<ip<<" "<<coo<<" "<<sum<<endl;
-    AMSTrMCCluster *ptrhit=(AMSTrMCCluster*)AMSEvent::gethead()->addnext(AMSID("AMSTrMCCluster",0), new
-									 AMSTrMCCluster(coo,ip,sum));
+    AMSTrMCCluster *ptrhit = (AMSTrMCCluster*) AMSEvent::gethead()->addnext(AMSID("AMSTrMCCluster",0), new AMSTrMCCluster(coo,ip,sum));
     if(ptrhit->IsNoise())ptrhit->setstatus(AMSDBc::AwayTOF);
+  }
+} 
 
+
+int  TrDAQMC::onesize_new = 23;
+int  TrDAQMC::maxword_new = 65535; 
+ 
+void TrDAQMC::builddaq_new(integer i, integer length, int16u *p){
+
+  // Create a "fake" DAQ block for TrMCCluster
+  // Description of the format: 
+  // - GlobalSize [ SizeCluster | ClusterData, SizeCluster | ClusterData, ... ] Status
+  // - Size = 2 + Sum_i (ClusterSize_i + 1)
+  // - ClusterSize is fixed (onesize_new)!
+ 
+  AMSContainer* container = AMSEvent::gethead()->getC("AMSTrMCCluster",0);
+  if (container==0) { 
+    cerr << " TrDAQMC::builddaq_new-E Cannot find the TrMCCluster container "<< endl;
+    return;
+  }
+  int ncluster = container->getnelem();
+  // max number of cluster that can encoded in the global size a word 
+  int max_ncluster = floor(1.*(maxword_new-2)/(onesize_new+1));  
+  if (ncluster>max_ncluster) ncluster = max_ncluster;
+
+  // first word is the global size (with size word)  
+  int pindex = 0;
+  p[pindex++] = int16u(ncluster*(onesize_new + 1) + 2);  
+
+  // loop on MC clusters
+  for (int icluster=0; icluster<ncluster; icluster++) {
+    AMSTrMCCluster* mccluster = (AMSTrMCCluster*) container->at(icluster);
+    // mccluster->Print(); // debug 
+  
+    // size of the cluster   
+    p[pindex++] = int16u(onesize_new + 1); 
+
+    // pack first high bits then low bits (why? ask Vitaly) 
+    p[pindex++] = TrDAQMC::Pack((int)mccluster->_idsoft,true);
+    p[pindex++] = TrDAQMC::Pack((int)mccluster->_idsoft,false);
+    p[pindex++] = *((int16u*)(&(mccluster->_itra)));
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_step,true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_step,false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_xgl.x(),true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_xgl.x(),false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_xgl.y(),true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_xgl.y(),false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_xgl.z(),true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_xgl.z(),false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_dir.x(),true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_dir.x(),false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_dir.y(),true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_dir.y(),false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_dir.z(),true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_dir.z(),false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_mom,true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_mom,false);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_edep,true);
+    p[pindex++] = TrDAQMC::Pack((float)mccluster->_edep,false);
+    p[pindex++] = TrDAQMC::Pack((int)mccluster->Status,true);
+    p[pindex++] = TrDAQMC::Pack((int)mccluster->Status,false);
   }
 
-} 
+  // simulating status
+  p[pindex++] = int16u(getdaqid());
+
+  if (pindex!=((onesize_new+1)*ncluster)+2) {
+    cerr << " TrDAQMC::builddaq_new-E wrong size. Length in words is " << pindex << " instead of " << ((onesize+1)*ncluster+2) << endl;
+  }
+  if(pindex >= maxword_new){
+    cerr<<"TrDAQMC::builddaq_new-E TrMC size too large. Actual length in words is " << pindex << ", max is " << maxword_new << ". This should not happen." << endl;
+  }
+ 
+  // debug 
+  // for (int i=0; i<pindex; i++) {
+  //   printf("%4d %6d %4hX\n",i,p[i],p[i]);
+  // }
+}
+
+
+void TrDAQMC::buildraw_new(integer n, int16u *p) {
+
+  // Decode the "fake" DAQ block and create the TrMCCluster
+  // - the length is passed as well as the first word pointer 
+
+  unsigned int leng = n&0xFFFF; 
+  int16u length = p[0]; 
+  if(leng!=length) {
+    cerr << "TrDAQMC::buildraw_new-E passed length is different from written size. Passed is " << leng << " instead written is " << length << ". Quit." << endl;
+    return;
+  }
+  int16u status = *(p-1+length);
+  int num = status&0x1F;
+  if(num!=getdaqid()) {
+    cerr << "TrDAQMC::buildraw_new-E called on a wrong segment. Node ID is " << num << " instead of " << getdaqid() << ". Quit." << endl;
+    return;
+  }
+  int nclusters = (length-2)/(onesize_new+1);
+  int rest = (length-2)%(onesize_new+1);
+  if(rest!=0) {
+    cerr << "TrDAQMC::buildraw_new-E the format is corrupted. Rest is = " << rest << ". Quit." << endl;
+    return;
+  }
+  AMSContainer* container = AMSEvent::gethead()->getC(AMSID("AMSTrMCCluster"));
+  if (!container) {
+    cerr << "TrDAQMC::buildraw_new-E cannot find the AMSTrMCCluster container. Quit."<<endl;
+    return;
+  }
+
+  int pindex=1;
+  for (int icluster=0; icluster<nclusters; icluster++){
+    int16u cluster_size = p[pindex++];
+    if(cluster_size!=(onesize_new+1)) {
+      cerr << "TrDAQMC::buildraw-E the size of cluster is not the expexted one. Should be " << (onesize_new+1) << " instead is "<< cluster_size << ". Quit." << endl;
+      return;
+    }
+
+    AMSTrMCCluster* mccluster = new AMSTrMCCluster();
+
+    mccluster->_idsoft = TrDAQMC::UnPackInt  (p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->_itra   = p[pindex++];
+    mccluster->_step   = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2; 
+    mccluster->_xgl[0] = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->_xgl[1] = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->_xgl[2] = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->_dir[0] = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->_dir[1] = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->_dir[2] = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->_mom    = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2; 
+    mccluster->_edep   = TrDAQMC::UnPackFloat(p[pindex+1],p[pindex]); pindex += 2;
+    mccluster->Status  = TrDAQMC::UnPackInt  (p[pindex+1],p[pindex]); pindex += 2;
+
+    // mccluster->Print(); // debug 
+
+    if (mccluster->IsNoise()) mccluster->setstatus(AMSDBc::AwayTOF);
+    if (container) container->addnext(mccluster);
+    else{
+      cerr << "TrDAQMC::buildraw_new-E cannot find the AMSTrMCCluster container, in a point of the code that should not happen. Quit." << endl;
+      if (mccluster) delete mccluster;
+    }
+  }
+}
+
+
+int TrDAQMC::calcdaqlength_new(integer i){
+  AMSContainer* container = AMSEvent::gethead()->getC("AMSTrMCCluster",0);
+  if (container==0) {
+    cerr << " TrDAQMC::calcdaqlength_new-E Cannot find the TrMCCluster container "<< endl;
+    return -1;
+  }
+  int ncluster = container->getnelem();
+  // max number of cluster that can encoded in the global size a word 
+  int max_ncluster = floor(1.*(maxword_new-2)/(onesize_new+1));
+  if (ncluster>max_ncluster) ncluster = max_ncluster;
+  int length = ncluster*(onesize_new + 1) + 2;
+  return -length;
+}
+
+
+void TrDAQMC::builddaq(integer i, integer length, int16u *p){
+  // new writing format from build > 592
+  // if (AMSCommonsI::getbuildno()<=592) TrDAQMC::builddaq_old(i,length,p);
+  TrDAQMC::builddaq_new(i,length,p);
+}
+
+
+static int check_that_nothing_happens = 0;
+void TrDAQMC::buildraw(integer n, int16u *p) {
+  // test new reading format (this is not 100 percent sure for old version)
+  // best should be with build number,is it available?
+  // however a message is delivered in case of request of different kinds of decoding
+  if ( (int16u(p[0])==(n&0xFFFF))&&(int16u(p[1])==TrDAQMC::onesize_new+1) ) { 
+    if (check_that_nothing_happens==0) check_that_nothing_happens = 2;
+    if (check_that_nothing_happens==1)
+      cerr << "TrDAQMC::buildraw-E Wrong format decoding requested (old requested, new was used)" << endl;  
+    TrDAQMC::buildraw_new(n,p);
+  }
+  else {
+    if (check_that_nothing_happens==0) check_that_nothing_happens = 1;
+    if (check_that_nothing_happens==2) 
+      cerr << "TrDAQMC::buildraw-E Wrong format decoding requested (old requested, new was used)" << endl;
+    TrDAQMC::buildraw_old(n,p);
+  }
+}
+
+
+int TrDAQMC::calcdaqlength(integer i) {
+  // new writing format from build > 592
+  // if (AMSCommonsI::getbuildno()<=592) return TrDAQMC::calcdaqlength_old(i);
+  return TrDAQMC::calcdaqlength_new(i);
+}
+
+
+int16u TrDAQMC::Pack(float xx, bool high_bits) {
+  int* pp=(int*) &xx;
+  if(high_bits) return ((*pp)>>16)&0xffff;
+  else          return (*pp)&0xffff;
+}
+
+
+int16u TrDAQMC::Pack(int xx, bool high_bits) {
+  if (high_bits) return (xx>>16)&0xffff;
+  else           return xx&0xffff;
+}
+
+
+float TrDAQMC::UnPackFloat(int16u lower, int16u upper) {
+  int a = 0;      
+  a &= 0;
+  a |= (lower);
+  a |= (upper<<16);
+  return *((float*)&a);
+}
+
+
+int TrDAQMC::UnPackInt(int16u lower, int16u upper) {
+  int a = 0;
+  a &= 0;
+  a |= (lower);            
+  a |= (upper<<16);
+  return a;
+}
+
+
 
 // void TrDAQMC::buildraw(integer n, int16u *pbeg){
 //   //  have to split integer n; add crate number on the upper part...
@@ -411,7 +629,6 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 //   }
 //   int ncl=(leng-2)/(onesize+1);
 //   int nclR=(leng-2)%(onesize+1);
-
 //   if(nclR!=0) {
 //     cerr << "TrDAQMC::buildraw -E-  The number of cluster is not an integer! Resto= "<<nclR<<endl;
 //     return;
@@ -421,7 +638,6 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 //     cerr<<"TrDAQMC::buildraw -E- Cannot find the AMSTrMCCluster container "<<endl;
 //     return;
 //   }
-
 //   int pindex=1;
 //   for (int cl=0;cl<ncl;cl++){
 //     int csize=pbeg[pindex++];
@@ -433,15 +649,11 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 //     mccl->_idsoft  = pbeg[pindex++];
 //     mccl->_idsoft  = mccl->_idsoft<<16;
 //     mccl->_idsoft |= pbeg[pindex++];
-
 //     mccl->_itra    = pbeg[pindex++];
-
 //     mccl->_left[0] = pbeg[pindex++];
 //     mccl->_left[1] = pbeg[pindex++];
-
 //     mccl->_center[0] = pbeg[pindex++];
 //     mccl->_center[1] = pbeg[pindex++];
-
 //     mccl->_right[0] = pbeg[pindex++];
 //     mccl->_right[1] = pbeg[pindex++];
 //     for (int ss=0;ss<5;ss++)
@@ -466,21 +678,16 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 //       x[ii]=*((float*)&aa);
 //     }
 //     mccl->_Momentum.setp(x);
-
 //     int aa= pbeg[pindex++];	
 //     aa  = aa <<16;
 //     aa |= pbeg[pindex++];
 //     mccl->_sum=*((float*)&aa);
-
 //     mccl->Status= pbeg[pindex++];	
 //     mccl->Status  = mccl->Status <<16;
 //     mccl->Status |= pbeg[pindex++];
 //     mccl->simcl[0]=0;
 //     mccl->simcl[1]=0;
-
-
 //     if(con)	con->addnext(mccl);
-
 //     else{
 //       cerr<<" TrDAQMC::buildraw: ERROR --  Cant find the AMSTrMCCluster container!!!!"<<endl;
 //       if(mccl) delete mccl;
@@ -488,6 +695,7 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 //   }
 //   return;	
 // }
+
 
 // int TrDAQMC::calcdaqlength(int i){
 // 	AMSContainer *p = AMSEvent::gethead()->getC("AMSTrMCCluster");
@@ -502,19 +710,14 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 // 		len+=(onesize+1)*ncl;
 // 	        len++;
 // 	}
-	
 // 	return -len;
 // }
 
 
-
 // void TrDAQMC::builddaq(integer i, integer n, int16u *p){
 //   int index=0;
-
-
 //   AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
 //     getheadC("AMSTrMCCluster",0);
-
 //   int ncl=0;
 //   int nn=0;
 //   AMSContainer * ptr2= AMSEvent::gethead()->getC("AMSTrMCCluster",0);
@@ -546,24 +749,20 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 // 	p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk],true);
 // 	p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk]);
 //       }
- 
 //     p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x(),true);         //30
 //     p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x());
 //     p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y(),true);         //30
 //     p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y());
 //     p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z(),true);         //30
 //     p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z());
-
 //     p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x(),true);         //30
 //     p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x());
 //     p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y(),true);         //30
 //     p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y());
 //     p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z(),true);         //30
 //     p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z());
-
 //     p[pindex++]=TrDAQMC::Pack(ptr->_sum,true);
 //     p[pindex++]=TrDAQMC::Pack(ptr->_sum);   //55
-
 //     p[pindex++]=ptr->Status&0xffff;
 //     p[pindex++]=(ptr->Status>>16)&0xffff;   //57
 //     if((pindex-index0)>onesize){
@@ -580,5 +779,4 @@ void TrDAQMC::buildraw(integer n, int16u *p){
 //   if(pindex >= 32*1024){
 //     cerr<<"TrDAQMC::builddaq-E-indext TOO LARGE length "<<pindex<< " "<<((onesize+1) * ncl)+1<<endl;
 //   }
-
 // }

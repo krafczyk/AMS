@@ -31,12 +31,13 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   // int sensor = abs(idsoft)/10000;
   int tkid   = abs(idsoft)%1000;
   int ss     = abs(idsoft)%10000-tkid;
-  if(!ss) tkid*=-1;
-  //  printf("TrSim::sitkhits: tkid %d LAYER %d !!!\n",tkid,tkid/100);
+  if (!ss) tkid*=-1;
   TkLadder* lad=TkDBc::Head->FindTkId(tkid);
-  // skip unnown ladders! This should never happen!!!
-  if(!lad) { printf("TrSim::sitkhits-E tkid %d unknown This sholud never happen!!!!\n",tkid);return;}
-
+  // Skip not existing ladders. This should never happen.
+  if(!lad) { 
+    printf("TrSim::sitkhits-E tkid %d unknown. This shold never happen. Skip this step.\n",tkid); 
+    return;
+  }
   // Skip not connected ladders 
   if(lad->GetHwId()<0) {
     //  printf("TrSim::sitkhits: tkid %d NO HWID !!!\n",tkid);
@@ -51,19 +52,26 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
 #endif
     return;
   }
-  if (edep <= 0) edep = 1e-4;
+
+  // calculations
+  // if (edep<=0) edep = 1e-9;
   AMSPoint ppa (vect[0],vect[1],vect[2]);
   AMSPoint dirg(vect[3],vect[4],vect[5]);
-  AMSPoint pmom(vect[3]*vect[6], vect[4]*vect[6], vect[5]*vect[6]);
-  AMSPoint ppb = ppa-dirg*step;
+  float momentum = vect[6];
   AMSPoint pgl = ppa-dirg*step/2;
-  AMSPoint size(TkDBc::Head->_ssize_active[0]/2,TkDBc::Head->_ssize_active[1]/2,TkDBc::Head->_silicon_z/2);
+
+  /*
+  // AMSPoint pmom(vect[3]*vect[6], vect[4]*vect[6], vect[5]*vect[6]);
+  // AMSPoint ppb = ppa-dirg*step;
+  // AMSPoint size(TkDBc::Head->_ssize_active[0]/2,TkDBc::Head->_ssize_active[1]/2,TkDBc::Head->_silicon_z/2);
+  
   // Convert global coo into sensor local coo
   // The origin is the first strip of the sensor
   TkSens tksa(tkid, ppa,1);
   TkSens tksb(tkid, ppb,1);
   AMSPoint pa = tksa.GetSensCoo(); pa[2] += size[2];
   AMSPoint pb = tksb.GetSensCoo(); pb[2] += size[2];
+  */
 
   // Set reference points and angles
   double thx = TMath::Abs(TMath::ATan(dirg.x()/dirg.z())*TMath::RadToDeg());
@@ -72,6 +80,7 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   sitkrefp[ily] = pgl;
   sitkangl[ily] = AMSPoint(thx, thy, 0);
 
+  /*
   // Range check
   for (int i = 0; i < 3; i++) {
     if (pa[i] < 0) pa[i] = 0;
@@ -79,14 +88,15 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
     if (pa[i] > 2*size[i]) pa[i] = 2*size[i];
     if (pb[i] > 2*size[i]) pb[i] = 2*size[i];
   }
+  */ 
 
   // Create a new object
   VCon* aa = GetVCon()->GetCont("AMSTrMCCluster");
   if (aa!=0)
 #ifndef __ROOTSHAREDLIBRARY__
-    aa->addnext(new AMSTrMCCluster(idsoft,  pgl,pmom,edep , itra));
+    aa->addnext(new AMSTrMCCluster(idsoft,step,pgl,dirg,momentum,edep,itra));
 #else
-    aa->addnext(new TrMCClusterR(idsoft, pgl,pmom,edep , itra));
+    aa->addnext(new TrMCClusterR(idsoft,step,pgl,dirg,momentum,edep,itra));
 #endif
   if (aa!=0) delete aa;
 #ifndef __ROOTSHAREDLIBRARY__

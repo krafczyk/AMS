@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.30 2011/09/27 23:50:04 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.31 2012/07/05 23:21:52 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/09/27 23:50:04 $
+///$Date: 2012/07/05 23:21:52 $
 ///
-///$Revision: 1.30 $
+///$Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -46,35 +46,23 @@ ClassImp(TrMCClusterR);
 int TrMCClusterR::_NoiseMarker(555);
 
 
-TrMCClusterR::TrMCClusterR(int idsoft, AMSPoint xgl, AMSPoint mom, float sum, int itra)
-  : _idsoft(idsoft), _itra(itra), _xgl(xgl), _Momentum(mom), _sum(sum) {
-  for (int ii=0; ii<2; ii++){
-    // _left  [ii]=0;
-    // _center[ii]=0;
-    // _right [ii]=0;
-    // for(int kk=0;kk<5;kk++)_ss[ii][kk]=0;
-    simcl[ii] = 0;
-  }
-  Status=0;
+TrMCClusterR::TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra)
+  : _idsoft(idsoft), _itra(itra), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep) {
+  Init();
+  Status = 0;
 }
 
 
-TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
-  _idsoft(0),_itra(itra),_xgl(xgl),_sum(sum),_Momentum(0,0,0) {
-  Status=0;
-  for(int ii=0; ii<2; ii++){
-    // _left[i]=0;
-    // _center[i]=0;
-    // _right[i]=0;
-    // for(int k=0;k<5;k++)_ss[i][k]=0;
-    simcl[ii] = 0;
-  }
+TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra, geant edep):
+  _idsoft(0), _step(0), _itra(itra), _xgl(xgl), _dir(0,0,0), _mom(0), _edep(edep) {
+  Init();
   TkSens pp(_xgl,1);
   if(pp.LadFound()){
-    int tkid=pp.GetLadTkID();
-    int side=(tkid>0)?1:0;
-    _idsoft=abs(tkid)+1000*side+10000*pp.GetSensor();
-  }
+    int tkid = pp.GetLadTkID();
+    int side = (tkid>0) ? 1 : 0;
+    _idsoft = abs(tkid) + 1000*side + 10000*pp.GetSensor();
+  } 
+  Status = 0;
 }
 
 
@@ -88,126 +76,35 @@ TrMCClusterR& TrMCClusterR::operator=(const TrMCClusterR& that) {
 
 void TrMCClusterR::Init() {
   for(int ii=0; ii<2; ii++){
-    simcl[ii] = 0;
+    _simcl[ii] = 0;
   }
 }
 
 
 void TrMCClusterR::Clear() { 
   for(int ii=0; ii<2; ii++){
-    if (simcl[ii]!=0) { 
-      delete simcl[ii];
+    if (_simcl[ii]!=0) { 
+      delete _simcl[ii];
     }
-    simcl[ii] = 0; 
+    _simcl[ii] = 0; 
   }
 }
 
 
 void TrMCClusterR::Copy(const TrMCClusterR& that) {
   _idsoft = that._idsoft;
+  _step = that._step;
   _itra = that._itra;
   _xgl = that._xgl;
-  _sum = that._sum;
-  _Momentum = that._Momentum;
+  _dir = that._dir;
+  _mom = that._mom;
+  _edep =that._edep;
   Status = that.Status;
   for(int ii=0; ii<2; ii++){
-    if (that.simcl[ii]!=0)
-      simcl[ii] = new TrSimCluster(*that.simcl[ii]);
-    else
-      simcl[ii] = 0;
+    if (that._simcl[ii]!=0) _simcl[ii] = new TrSimCluster(*that._simcl[ii]);
+    else                    _simcl[ii] = 0;
   }
 }
-
-
-void TrMCClusterR::_shower() {
-  printf(" TrMCClusterR::_shower-E- NO-DIGITIZATION!!  This method of digitizing the tracker has been declare OBSOLETE and commented out. \n");
-  /*
-
-  AMSDir   dir(_Momentum);
-  AMSPoint entry  = _xgl;
-  AMSPoint dentry(dir[0]/dir[2]*0.0015,
-		  dir[0]/dir[2]*0.0015,
-		  0.0015);
-
-
-  for (int i = 0; i < 5; i++) _ss[0][i] = _ss[1][i] = 0;
-
-//int sensor = abs(_idsoft)/10000;
-  int tkid   = abs(_idsoft)%1000;
-  int ss     = abs(_idsoft)%10000-tkid;
-  if(!ss) tkid*=-1;
-
-  int layer = abs(tkid)/100;
-  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
-  if(!ll){
-    printf(" TrMCClusterR::_shower: ERROR cant find ladder %d into the database\n",tkid);
-    return ;
-  } 
-  int nchx  = (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
-                                         : TkDBc::Head->_NReadStripK5;
-  int nchy  = TkDBc::Head->_NReadoutChanS;
-
-  TkSens tks(tkid, _xgl,1);
-  int bcen0 = tks.GetStripX();
-  int bcen1 = tks.GetStripY();
-
-  int mult = 0, bctdr0 = bcen0;
-
-  // Convert from TDR address into sensor strip
-  if (ll->IsK7()) {
-    int nad = TkDBc::Head->_NReadoutChanK;
-    int sen = tks.GetSensor();
-    int idx = ((sen+1)*nchx-bcen0)/nad;
-    bcen0 = bcen0+idx*nad-sen*nchx;
-  }
-  else if (tks.GetSensor()%2 == 1) bcen0 -= 192;
-
-  if (bcen0 < 0) bcen0 = 0;
-  if (bcen1 < 0) bcen1 = 0;
-  if (bcen0 >= nchx) bcen0 = nchx-1;
-  if (bcen1 >= nchy) bcen1 = nchy-1;
-
-  _center[0] = bcen0;
-  _center[1] = bcen1;
-  _left  [0] = max(0,_center[0]-(5/2));
-  _left  [1] = max(0,_center[1]-(5/2));
-  _right [0] = min(nchx-1, _center[0]+(5/2));
-  _right [1] = min(nchy-1, _center[1]+(5/2));
-
-  float xpr = _sum*TRMCFFKEY.dedx2nprel;
-  if (xpr <= 0) return;
-
-  for (int k = 0; k < 2; k++) {
-
-    // fast algo
-//    if(fabs(dentry[k])/(xpr)<TRMCFFKEY.fastswitch){
-    if(1){
-
-      double s = strip2x(tkid, k, _center[k], mult);
-      double e = entry[k]-s;
-
-      for (int i =_left[k]; i <= _right[k]; i++){
-	double a1 = strip2x(tkid, k, i, mult)-s;
-	double a2 = a1+strip2x(tkid, k, i+1, mult)-strip2x(tkid, k, i, mult);
-	_ss[k][i-_left[k]] = TRMCFFKEY.delta[k]*xpr*fint2(a1, a2, e, dentry[k], a2-a1);
-      }
-    }
-
-    //slow algo
-//    else std::cerr << "Error: slow algo is not implemented" << std::endl;
-
-    for (int i = _left[k]; i <= _right[k]; i++)
-      _ss[k][i-_left[k]] *= 1+rnormx()*TRMCFFKEY.gammaA[k];
-  }
-
-  int offs = 640+bctdr0-bcen0;
-  _left[0]+=offs;  _center[0]+=offs;  _right[0]+=offs;
-
-  if (_right[0] > 1023) _right[0] = 1023;
-  if (_left [0] < 0   ) _left [0] = 0;
-  */
-}
-
 
 
 int TrMCClusterR::GetTkId(){ 
@@ -215,9 +112,9 @@ int TrMCClusterR::GetTkId(){
   int tkid   = abs(_idsoft)%1000;
   int ss     = abs(_idsoft)%10000-tkid;
   if(!ss) tkid*=-1;
- 
   return tkid;
 }
+
 
 std::ostream& TrMCClusterR::putout(std::ostream &ostr ){
   _PrepareOutput(1);
@@ -230,6 +127,7 @@ void TrMCClusterR::Print(int opt) {
   cout << sout;
 }
 
+
 char* TrMCClusterR::Info(int iRef){
   string aa;
   aa.append(Form("TrMCCluster #%d ",iRef));
@@ -241,17 +139,18 @@ char* TrMCClusterR::Info(int iRef){
   return _Info;
 }
 
+
 void TrMCClusterR::_PrepareOutput(int full) {
   sout.clear();
-  sout.append(Form("Part: %2d  tkid: %+04d  Sens: %2d    X:%f Y:%f Z:%f    Px: %f Py: %f Pz: %f\n",
-		   _itra,GetTkId(),GetSensor(),
-		   _xgl[0],_xgl[1],_xgl[2],_Momentum[0],_Momentum[1],_Momentum[2]));
+  sout.append(
+    Form("Part: %3d  Mom(GeV): %12.6f TkId: %+04d  Sens: %2d  Edep(keV): %9.3f  Step(um): %7.1f   X:%8.3f Y:%8.3f Z:%8.3f   Cx: %8.5f Cy: %8.5f Cz: %8.5f\n",
+      _itra,
+      GetMomentum(),GetTkId(),GetSensor(),GetEdep()*1e+6,GetStep()*1e+4,
+      GetXgl().x(),GetXgl().y(),GetXgl().z(),
+      GetDir().x(),GetDir().y(),GetDir().z()
+    )
+  );
   return;
-  //  if(!full) return;
-  //   sout.append(Form("TrMCClusterR-Shower x l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
-  // 		   _left[0],_center[0],_right[0],_ss[0][0],_ss[0][1],_ss[0][2],_ss[0][3],_ss[0][4]));
-  //   sout.append(Form("TrMCClusterR-Shower y l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
-  // 		   _left[1],_center[1],_right[1],_ss[1][0],_ss[1][1],_ss[1][2],_ss[1][3],_ss[1][4]));
 }
 
 
@@ -259,13 +158,13 @@ void TrMCClusterR::GenSimClusters(){
 
   // montecarlo truth
   char     sidename[2] = {'x','y'};
-  AMSPoint glo = GetXgl();        // Coordinate [cm]
-  AMSPoint mom = GetMom();        // Momentum Vector [GeV/c]
-  double   edep = Sum()*1.e6;     // Energy Deposition [keV] 
-  double   momentum = mom.norm(); // Momentum [GeV/C]
-  if (edep<1) return;             // if energy deposition < 1 keV (less than 0.5 ADC counts)
-  if (momentum<1e-6) return;      // if momentum < keV/c
-  AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
+  float    step = GetStep()*1.e4;     // step [um] 
+  AMSPoint glo = GetXgl();            // coordinate [cm]
+  AMSDir   dir = GetDir();            // direction 
+  float    momentum = GetMomentum();  // momentum vector [GeV/c]
+  float    edep = GetEdep()*1.e6;     // energy deposition [keV] 
+  if (edep<1) return;                 // if energy deposition < 1 keV 
+  if (momentum<1e-6) return;          // if momentum < keV/c
 
   TkSens _glo2loc(1);
   _glo2loc.SetGlobal(GetTkId(),glo,dir);                                    // from global to local
@@ -299,39 +198,42 @@ void TrMCClusterR::GenSimClusters(){
     if (simcluster.GetWidth()==0) continue;
 
     // put the cluster in the TrMCCluster object
-    if(simcl[iside]) delete simcl[iside];
-    simcl[iside] = new TrSimCluster(simcluster);
+    if(_simcl[iside]) delete _simcl[iside];
+    _simcl[iside] = new TrSimCluster(simcluster);
     // raw signal
-    hman.Fill(Form("TrSimSig%c",sidename[iside]),simcl[iside]->GetEta(),simcl[iside]->GetTotSignal());
+    hman.Fill(Form("TrSimSig%c",sidename[iside]),_simcl[iside]->GetEta(),_simcl[iside]->GetTotSignal());
+
+    ///////// ALL THIS PART SHOULD BE MOVED AFTER CLUSTER LOCAL MERGING /////////
+
     // from keV to ADC (using tb2003 data normalized to datacard value)
     double ADC = TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC(edep);
     // cluster strip values in ADC counts
-    simcl[iside]->Multiply(ADC);
+    _simcl[iside]->Multiply(ADC);
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
-    simcl[iside]->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
+    _simcl[iside]->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
     // simulation tuning parameter 2: add more noise 
-    simcl[iside]->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
+    _simcl[iside]->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
     // apply asymmetry to strips
-    simcl[iside]->ApplyAsymmetry(iside);
+    _simcl[iside]->ApplyAsymmetry(iside);
     // apply the p-strip saturation
-    if (TRMCFFKEY.TrSim2010_PStripCorr==1) simcl[iside]->ApplyStripNonLinearity();
+    if (TRMCFFKEY.TrSim2010_PStripCorr==1) _simcl[iside]->ApplyStripNonLinearity();
     // apply the gain table
-    simcl[iside]->ApplyGain(iside,GetTkId());
+    _simcl[iside]->ApplyGain(iside,GetTkId());
     // apply saturation
-    simcl[iside]->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
+    _simcl[iside]->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
 
     // dump
-    if (VERBOSE) { printf("TrSim::GenSimClusters-V  ADC=%f\n",ADC); simcl[iside]->Info(10);  }
+    if (VERBOSE) { printf("TrSim::GenSimClusters-V  ADC=%f\n",ADC); _simcl[iside]->Info(10);  }
     // histograms
-    double adc = simcl[iside]->GetTotSignal();
-    double eta = simcl[iside]->GetEta();
+    double adc = _simcl[iside]->GetTotSignal();
+    double eta = _simcl[iside]->GetEta();
     double intr_res = 0.;
     // intrinsic resolution with only 2 strips
     if (iside==0) {
-      intr_res = 1e+04*(_glo2loc.GetLaddCoo().x() - simcl[iside]->GetX(iside,GetTkId(),2,imult));
+      intr_res = 1e+04*(_glo2loc.GetLaddCoo().x() - _simcl[iside]->GetX(iside,GetTkId(),2,imult));
     }
     else {
-      intr_res = 1e+04*(_glo2loc.GetLaddCoo().y() - simcl[iside]->GetX(iside,GetTkId(),2,imult));
+      intr_res = 1e+04*(_glo2loc.GetLaddCoo().y() - _simcl[iside]->GetX(iside,GetTkId(),2,imult));
     }
     // check eta distribution
     hman.Fill(Form("TrSimEta%c",sidename[iside]),fabs(ia[iside]),eta);
@@ -343,20 +245,94 @@ void TrMCClusterR::GenSimClusters(){
     hman.Fill(Form("TrSimEDep%c",sidename[iside]),sqrt(edep),sqrt(adc));
 
     if (VERBOSE) printf("angle=%7.3f   eta=%7.3f   sqrt(edep)=%7.3f   intrres=%7.3f   totsig=%7.3f\n",
-                        ia[iside],simcl[iside]->GetEta(),sqrt(edep),intr_res,simcl[iside]->GetTotSignal());
+                        ia[iside],_simcl[iside]->GetEta(),sqrt(edep),intr_res,_simcl[iside]->GetTotSignal());
   }
   return;
 }
 
 
+AMSPoint TrMCClusterR::GetIntersection() {
+  return AMSPoint(0,0,0);
+}
 
 
-/*
 
 ////////////////////////////////////////////////////////////////////////////////////
 // OLD GBATCH SIMULATION -> could be re-implemented using TrSimCluster middle class
 ////////////////////////////////////////////////////////////////////////////////////
 
+void TrMCClusterR::_shower() {
+  printf(" TrMCClusterR::_shower-E- NO-DIGITIZATION!!  This method of digitizing the tracker has been declare OBSOLETE and commented out. \n");
+  /*
+  AMSDir   dir(_Momentum);
+  AMSPoint entry  = _xgl;
+  AMSPoint dentry(dir[0]/dir[2]*0.0015,
+                  dir[0]/dir[2]*0.0015,
+                  0.0015);
+  for (int i = 0; i < 5; i++) _ss[0][i] = _ss[1][i] = 0;
+  // int sensor = abs(_idsoft)/10000;
+  int tkid   = abs(_idsoft)%1000;
+  int ss     = abs(_idsoft)%10000-tkid;
+  if(!ss) tkid*=-1;
+  int layer = abs(tkid)/100;
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf(" TrMCClusterR::_shower: ERROR cant find ladder %d into the database\n",tkid);
+    return ;
+  } 
+  int nchx  = (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
+                                         : TkDBc::Head->_NReadStripK5;
+  int nchy  = TkDBc::Head->_NReadoutChanS;
+  TkSens tks(tkid, _xgl,1);
+  int bcen0 = tks.GetStripX();
+  int bcen1 = tks.GetStripY();
+  int mult = 0, bctdr0 = bcen0;
+  // Convert from TDR address into sensor strip
+  if (ll->IsK7()) {
+    int nad = TkDBc::Head->_NReadoutChanK;
+    int sen = tks.GetSensor();
+    int idx = ((sen+1)*nchx-bcen0)/nad;
+    bcen0 = bcen0+idx*nad-sen*nchx;
+  }
+  else if (tks.GetSensor()%2 == 1) bcen0 -= 192;
+  if (bcen0 < 0) bcen0 = 0;
+  if (bcen1 < 0) bcen1 = 0;
+  if (bcen0 >= nchx) bcen0 = nchx-1;
+  if (bcen1 >= nchy) bcen1 = nchy-1;
+  _center[0] = bcen0;
+  _center[1] = bcen1;
+  _left  [0] = max(0,_center[0]-(5/2));
+  _left  [1] = max(0,_center[1]-(5/2));
+  _right [0] = min(nchx-1, _center[0]+(5/2));
+  _right [1] = min(nchy-1, _center[1]+(5/2));
+  float xpr = _sum*TRMCFFKEY.dedx2nprel;
+  if (xpr <= 0) return;
+  for (int k = 0; k < 2; k++) {
+    // fast algo
+    //    if(fabs(dentry[k])/(xpr)<TRMCFFKEY.fastswitch){
+    if(1){
+      double s = strip2x(tkid, k, _center[k], mult);
+      double e = entry[k]-s;
+      for (int i =_left[k]; i <= _right[k]; i++){
+        double a1 = strip2x(tkid, k, i, mult)-s;
+        double a2 = a1+strip2x(tkid, k, i+1, mult)-strip2x(tkid, k, i, mult);
+        _ss[k][i-_left[k]] = TRMCFFKEY.delta[k]*xpr*fint2(a1, a2, e, dentry[k], a2-a1);
+      }
+    }
+    //slow algo
+    // else std::cerr << "Error: slow algo is not implemented" << std::endl;
+    for (int i = _left[k]; i <= _right[k]; i++)
+      _ss[k][i-_left[k]] *= 1+rnormx()*TRMCFFKEY.gammaA[k];
+  }
+  int offs = 640+bctdr0-bcen0;
+  _left[0]+=offs;  _center[0]+=offs;  _right[0]+=offs;
+  if (_right[0] > 1023) _right[0] = 1023;
+  if (_left [0] < 0   ) _left [0] = 0;
+  */
+}
+
+
+/*
 float TrMCClusterR::strip2x(int tkid, int side, int strip, int mult) {
    int layer = abs(tkid)/100;
    TkLadder* ll = TkDBc::Head->FindTkId(tkid);

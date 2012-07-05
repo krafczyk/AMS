@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.122 2011/07/19 09:37:16 choutko Exp $
+//  $Id: trrec.h,v 1.123 2012/07/05 23:22:07 oliva Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -512,23 +512,17 @@ friend class AMSTrCalibFit;
 #include "TrTrack.h"
 #include "Vertex.h"
 
-class AMSTrMCCluster: public TrMCClusterR, public AMSlink {
+class AMSTrMCCluster : public TrMCClusterR, public AMSlink {
 
-public:
+ public:
 
-
-  AMSTrMCCluster():TrMCClusterR(),AMSlink(0,0){}
-  
-  AMSTrMCCluster(int idsoft,  
-		   AMSPoint xgl,AMSPoint mom, float sum,int itra)
-    :TrMCClusterR(idsoft, xgl, mom, sum, itra),AMSlink(0,0){}
-  
-  AMSTrMCCluster(AMSPoint xgl, integer itra,geant sum=0):
-    TrMCClusterR( xgl,  itra, sum){}
-
-  ~AMSTrMCCluster(){}
-  
-  AMSTrMCCluster* next(){return (AMSTrMCCluster*) _next;}
+  AMSTrMCCluster() : TrMCClusterR(), AMSlink(0,0) {}
+  AMSTrMCCluster(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra)
+    : TrMCClusterR(idsoft, step, xgl, dir, mom, edep, itra), AMSlink(0,0) {}
+  AMSTrMCCluster(AMSPoint xgl, integer itra,geant sum=0)
+    : TrMCClusterR(xgl, itra, sum) {}
+  ~AMSTrMCCluster() {}
+  AMSTrMCCluster* next() { return (AMSTrMCCluster*) _next; }
   
   unsigned int checkstatus(int c) const { return Status&c; }
   unsigned int getstatus  (void)  const { return Status; }
@@ -539,7 +533,6 @@ public:
   void _printEl(std::ostream&){}
   void _writeEl(){}
   //  ClassDef(AMSTrMCCluster,0)
-
 };
 
 

@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.87 2012/07/05 14:06:26 pzuccon Exp $
+//  $Id: geant4.C,v 1.88 2012/07/05 23:21:55 oliva Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -916,8 +916,15 @@ void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
 	     GrandMother->GetName()(0)=='S' &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K' &&
 	     Mother->GetName()(0)=='L' &&  PrePV->GetName()(0)=='S'){
 	    //         cout <<" tracker "<<endl;
-	    TrSim::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
-			    GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+            int sign = -1;
+            if (Track->GetTrackID()==1) sign = +1; // TrackID is 1 for primaries  
+            TrSim::sitkhits(
+              PrePV->GetCopyNo(),
+              GCTRAK.vect,
+              GCTRAK.destep,
+              GCTRAK.step,
+              sign*GCKINE.ipart
+            );
 	  }
 #else
 	  if(GCTRAK.destep && GrandMother && GrandMother->GetName()(0)=='S' 

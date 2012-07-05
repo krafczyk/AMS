@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.157 2012/05/28 08:59:16 qyan Exp $
+//  $Id: geant3.C,v 1.158 2012/07/05 23:21:54 oliva Exp $
 
 #include "Tofsim02.h"
 #include "typedefs.h"
@@ -213,8 +213,15 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
   GCVOLU.names[2][2]=='K'){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 #ifdef _PGTRACK_
-      TrSim::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
-		      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+      int sign = -1;
+      if (GCKINE.istak==0) sign = +1; // istack is 0 for primaries (current stack track number) 
+      TrSim::sitkhits(
+        GCVOLU.number[lvl],
+        GCTRAK.vect,
+        GCTRAK.destep,
+        GCTRAK.step,
+        sign*GCKINE.ipart // secondary particles are tagged with -   
+      );   
 #else
       AMSTrMCCluster::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
 			       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
