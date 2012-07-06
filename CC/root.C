@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404.2.5 2012/07/05 16:44:13 afiasson Exp $
+//  $Id: root.C,v 1.404.2.6 2012/07/06 06:49:22 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3379,7 +3379,7 @@ float ESENR5cmFracNorm,ESENDifoSumNorm,ESENS3totxNorm,ESENS3totyNorm,ESENS5totxN
 float ESENEcalHitsNorm,ESENShowerFootprintXNorm,ESENShowerFootprintYNorm;
 float nEnergyA;
 
-float EcalShowerR::EcalStandaloneEstimatorV2(AMSEventR *pev){
+float EcalShowerR::EcalStandaloneEstimatorV2(){
 
         float NewESEv2;
         float nEnergyC;
@@ -3392,10 +3392,10 @@ float EcalShowerR::EcalStandaloneEstimatorV2(AMSEventR *pev){
    	float S5totL[18]={-20.}; 
 
 	// Case Processing version <B584
-	if(pev->Version()<=584)
+	if(AMSEventR::Head()->Version()<584)
         	nEnergyA = EnergyA;
 	// Case Processing version >=B584
-	if(pev->Version()>=584)
+	if(AMSEventR::Head()->Version()>=584)
 		nEnergyA = EnergyA*1000.;
 
 

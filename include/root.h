@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437.2.7 2012/07/05 16:44:14 afiasson Exp $
+//  $Id: root.h,v 1.437.2.8 2012/07/06 06:49:23 afiasson Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -675,7 +675,7 @@ public:
   ///< Fill variables Nxxx
   ///< Is automatically called if the LAPP estimator function is called ( EcalStandaloneEstimator() )
 
-  float EcalStandaloneEstimatorV2(AMSEventR *pev);
+  float EcalStandaloneEstimatorV2();
   ///< LAPP Ecal Estimator -
   ///< Updated June 2012 -
   ///< 90% efficiency cut (based on electron-like flight events) is -1.23
