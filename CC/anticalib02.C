@@ -224,8 +224,9 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 	  TrkTrPart=true;
 	  ANTI2JobStat::addre(22);
           trpatt=ptrack->getpattern();//TRK-track pattern
-	  if(trpatt>=0){
+	  //PZ if(trpatt>=0){
 #ifdef _PGTRACK_
+	  if(!(ptrack->IsFake())){
 	    chi2=ptrack->GetChisq(AMSTrTrack::kChoutko);
 	    rigid=ptrack->GetRigidity(AMSTrTrack::kChoutko);
 	    err=ptrack->GetErrRinv(AMSTrTrack::kChoutko);
@@ -233,6 +234,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 	    phi=ptrack->GetPhi(AMSTrTrack::kChoutko);
 	    C0=ptrack->GetP0(AMSTrTrack::kChoutko);
 #else
+	  if(trpatt>=0){
             ptrack->getParFastFit(chi2,rigid,err,the,phi,C0);
 #endif
             status=ptrack->getstatus();

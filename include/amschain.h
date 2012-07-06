@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.31 2012/05/20 16:05:35 mduranti Exp $
+//  $Id: amschain.h,v 1.32 2012/07/06 11:54:27 pzuccon Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -38,10 +38,12 @@ private:
   Int_t _TREENUMBER;
   TFile* _FILE;
   TTree* amsnew; ///used for cloned tree
+  TTree* rsetup; ///used for cloned tree
   TFile* fout;
 
   ///Get AMSEventR in entry number "entry", if kLocal is false the entry number is "global", if true the entry number is local w.r.t. curret tree
   AMSEventR* _getevent(Int_t entry, Bool_t kLocal=false);
+
 
 public:
    Long64_t ntree;
@@ -50,7 +52,7 @@ public:
   unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
   /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
-    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0),fout(0),amsnew(0){}
+    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0),fout(0),amsnew(0),rsetup(0){}
   char * getsetup();
   
   /// alternative constructor (It requires an AMSEventR object to be passed)

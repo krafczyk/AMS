@@ -75,13 +75,35 @@ const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
   return &eapar;
 }
 
-TrExtAlignPar &TrExtAlignDB::GetM(int lay, uint time)
-{
-  if (lay == 8) return L8[time];
-  if (lay == 9) return L9[time];
-
+TrExtAlignPar &TrExtAlignDB::GetM(int lay, uint time){
   static TrExtAlignPar dummy;
   dummy.Init(); 
+  if (lay==1 ||lay==8) 
+    return L8[time];
+  else if  (lay==9) 
+    return L9[time];
+  else    
+    return dummy;
+}
+
+TrExtAlignPar &TrExtAlignDB::FindM(int lay, uint time)
+{
+  map<uint,TrExtAlignPar>::iterator lit;
+  static TrExtAlignPar dummy;
+  dummy.Init(); 
+
+  if (lay == 8||lay==1){
+    lit=L8.lower_bound(time);
+    if(lit!=L8.begin() && lit!=L8.end())
+      dummy=lit->second;
+  }
+
+  if (lay == 9){
+    lit=L9.lower_bound(time);
+    if(lit!=L9.begin() && lit!=L9.end())
+      dummy=lit->second;
+  }
+
   return dummy;
 }
 
@@ -244,7 +266,6 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     AMSPoint o(0,0,offset);
     pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos()); 
 
-
     // Set plane parameters
 //     pl->UpdatePosA()=pos;
 //     pl->UpdateRotA()=rot;
@@ -254,6 +275,7 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     float *ll= (plane[i]==5)?SL1:SL9;
     ll[6]=pos[0]; ll[7]=pos[1];ll[8]=pos[2];
     ll[9]=a;ll[10]=b;ll[11]=c;
+
   }
   return 0;
 }
@@ -309,7 +331,6 @@ int TrExtAlignDB::RecalcAllExtHitCoo(int kind){
   case 1:  rret=UpdateExtLayer(1); break;//CIEMAT
   default: ResetExtAlign();
   }
-
   if(rret!=0) return -2;
 
   

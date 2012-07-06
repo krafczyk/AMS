@@ -184,7 +184,12 @@ void ECREUNcalib::select(){
       badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
       if(!(nottr || ecaltr || badint || trdtr)){//use only TRK-track particle
         trpatt=ptrack->getpattern();//TRK-track pattern
-	if(trpatt>=0){//trk-track ok
+#ifdef _PGTRACK_
+	if(!(ptrack->IsFake()))
+#else
+	if(trpatt>=0)
+#endif
+	{//trk-track ok
           ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
           pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
           chargeTracker=pcharge->getchargeTracker();
@@ -2261,7 +2266,12 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
       badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
       if(!(nottr || ecaltr || badint || trdtr)){//use only TRK-track particle
         trpatt=ptrack->getpattern();//TRK-track pattern
-	if(trpatt>=0){//trk-track ok
+#ifdef _PGTRACK_
+	if(!(ptrack->IsFake()))
+#else
+	  if(trpatt>=0)
+#endif
+	  {//trk-track ok
           ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
           AdvFit=ptrack->AdvancedFitDone();
 #ifdef _PGTRACK_

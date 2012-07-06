@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.93 2012/01/31 19:37:23 oliva Exp $
+//  $Id: beta.C,v 1.94 2012/07/06 11:54:26 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -326,7 +326,7 @@ AMSPoint AMSBeta::Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
   AMSPoint outp;
   number phi;
   ptr->interpolate(coo,dir,outp,theta,phi,sleng);
-  if(ptr->getpattern()<0){
+  if(ptr->IsFake()){
     ecoo[0]+=1.;  // add one cm fot trd/tof
     ecoo[1]+=1.;  // add one cm fot trd/tof
   }

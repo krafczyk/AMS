@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.157 2012/06/07 07:48:24 shaino Exp $
+// $Id: TrTrack.C,v 1.158 2012/07/06 11:54:25 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/06/07 07:48:24 $
+///$Date: 2012/07/06 11:54:25 $
 ///
-///$Revision: 1.157 $
+///$Revision: 1.158 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -382,6 +382,13 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   int ll=hit->GetLayer();
   if(ll==8||ll==9){
     TrExtAlignDB::SetAlKind(1);
+    int l1=-1;
+    int l9=-1;
+    if(ll==8)
+      l1=!hit?-1:1+hit->GetSlotSide()*10+hit->lad()*100;
+    else
+      l9=!hit?-1:9+hit->GetSlotSide()*10+hit->lad()*100;
+    int rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
     hit->BuildCoordinate();
     _HitCoo[ll+10]=hit->GetCoord();
     TrExtAlignDB::SetAlKind(0);
@@ -1784,6 +1791,13 @@ void TrTrackR::RecalcHitCoordinates(int id) {
     if (ll == 8 || ll == 9) {
       TrExtAlignDB::SetAlKind(1);
       hit->BuildCoordinate();
+      int l1=-1;
+      int l9=-1;
+      if(ll==8)
+	l1=!hit?-1:1+hit->GetSlotSide()*10+hit->lad()*100;
+      else
+	l9=!hit?-1:9+hit->GetSlotSide()*10+hit->lad()*100;
+      int rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
       _HitCoo[ll+10] = hit->GetCoord();
       TrExtAlignDB::SetAlKind(0);
     }

@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.24 2012/05/29 11:13:44 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.25 2012/07/06 11:54:26 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -58,6 +58,18 @@ public:
     angles[1] += par.angles[1]; angles[2] += par.angles[2];
     return *this;
   }
+  TrExtAlignPar & operator = (const TrExtAlignPar &par) {
+    if( &par == this) return *this;
+    dpos  [0] = par.dpos  [0]; dpos  [1] = par.dpos  [1];
+    dpos  [2] = par.dpos  [2]; angles[0] = par.angles[0];
+    angles[1] = par.angles[1]; angles[2] = par.angles[2];
+    edpos  [0] = par.edpos  [0]; edpos  [1] = par.edpos  [1];
+    edpos  [2] = par.edpos  [2]; eangles[0] = par.eangles[0];
+    eangles[1] = par.eangles[1]; eangles[2] = par.eangles[2];
+    chisq=par.chisq; NDF=par.NDF;
+    return *this;
+  }
+
 
   TrExtAlignPar operator +(const TrExtAlignPar &par) const {
     TrExtAlignPar pp = *this;
@@ -168,6 +180,9 @@ private:
   static int Ciemat;
 #pragma omp threadprivate(Ciemat)
 
+  /// Get TrExtAlignPar with [time] 
+  TrExtAlignPar &GetM(int lay, uint time);
+
 public:
   /// Std dummy constructor
   TrExtAlignDB(){}
@@ -199,8 +214,8 @@ public:
   /// Get the last time
   uint GetTmax(int lay) const;
 
-  /// Get TrExtAlignPar with [time]
-  TrExtAlignPar &GetM(int lay, uint time);
+  /// Get TrExtAlignPar with lower_bound
+  TrExtAlignPar &FindM(int lay, uint time);
 
   ///  Get TrExtAlignPar with [time] for Madrid alignment 
   ///  The returned object includes the alignment parameters and the error
