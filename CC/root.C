@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.415 2012/07/05 17:12:50 afiasson Exp $
+//  $Id: root.C,v 1.416 2012/07/06 07:50:12 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3454,7 +3454,7 @@ float nEnergyA;
 
 
 
-float EcalShowerR::EcalStandaloneEstimatorV2(AMSEventR *pev){
+float EcalShowerR::EcalStandaloneEstimatorV2(){
 
 	float NewESEv2;
 	float nEnergyC;
@@ -3467,10 +3467,10 @@ float EcalShowerR::EcalStandaloneEstimatorV2(AMSEventR *pev){
    	float S5totL[18]={-20.};
 
         // Case Processing version <B584        
-	if(pev->Version()<=584)
+	if(AMSEventR::Head()->Version()<584)
                 nEnergyA = EnergyA;
         // Case Processing version >=B584
-        if(pev->Version()>=584)                
+        if(AMSEventR::Head()->Version()>=584)                
 		nEnergyA = EnergyA*1000.;
   
         float log10E = TMath::Log10(nEnergyA/1000.);

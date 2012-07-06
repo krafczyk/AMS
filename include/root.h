@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.450 2012/07/05 17:12:50 afiasson Exp $
+//  $Id: root.h,v 1.451 2012/07/06 07:50:13 afiasson Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -683,7 +683,7 @@ public:
   ///< Updated December 2011 -
   ///< 90% efficiency cut (based on electron-like flight events) is -1.49.
   ///< Relies on normalised variables (Nxxx) -
-  float EcalStandaloneEstimatorV2(AMSEventR *pev);
+  float EcalStandaloneEstimatorV2();
   ///< LAPP Ecal Estimator -
   ///< Updated June 2012 -
   ///< 90% efficiency cut (based on electron-like flight events) is -1.23
