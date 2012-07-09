@@ -38,8 +38,8 @@ public:
 
 
 
-    const  bool operator > ( const TrdKSimpleHit rhs) const { return (TRDHit_Layer > rhs.TRDHit_Layer); }
-    const  bool operator < ( const TrdKSimpleHit rhs) const { return (TRDHit_Layer < rhs.TRDHit_Layer); }
+    bool operator > ( const TrdKSimpleHit rhs)  { return (TRDHit_Layer > rhs.TRDHit_Layer); }
+    bool operator < ( const TrdKSimpleHit rhs)  { return (TRDHit_Layer < rhs.TRDHit_Layer); }
 
 
 
