@@ -879,7 +879,13 @@ void TrdKCluster::InitXePressure(){
     vector<ULong64_t> v_time;
     vector<Double_t> v_xe;
     vector<Double_t> v_co2;
-    TFile* f_online=new TFile("/afs/cern.ch/user/z/zweng02/public/trd_pressures.root");
+    //TFile* f_online=new TFile("/afs/cern.ch/user/z/zweng02/public/trd_pressures.root");
+
+    char name[300];
+    sprintf(name, "%s/v5.00/trd_pressures.root",getenv("AMSDataDir"));
+    //    TFile* f_online=new TFile("/afs/cern.ch/user/z/zweng02/public/
+    TFile* f_online=new TFile(name);
+
     ULong64_t       time;
     Double_t        xe;
     Double_t        co2;
