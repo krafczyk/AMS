@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.385 2012/07/09 07:36:20 choutko Exp $
+#  $Id: datacards.doc,v 1.386 2012/07/09 22:27:31 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -962,7 +962,7 @@ I 35-36   hour[2](0,0)       //
 I 37-38   day[2](1,1)        //
 I 39-40   mon[2](0,0)        //
 I 41-42   year[2](101,110)   //
-I 43      TFHTDVCalib        //
+I 43      TFHTDVCalib        //TOFH TDV Version T0P0C0(Time POSITION Charge)
 
 // AMS02 TOF calibration
 
