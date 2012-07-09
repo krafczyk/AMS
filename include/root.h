@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.451 2012/07/06 07:50:13 afiasson Exp $
+//  $Id: root.h,v 1.452 2012/07/09 22:23:47 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -937,14 +937,18 @@ class TofClusterHR {
  public:
    /// TOF Counter Bad tag  
    unsigned int Status;
-   /// TOF Counter Pattern->1(Side 0 has Signal Time+Amp) 2(Side 1 has Signal Time+Amp) 3(both Side has Signal Time+Amp)
+   ///  TOF Counter 2 RawSdie Bit Pattern
+   unsigned int SideBitPat[2];
+   /// TOF Counter Pattern
    int   Pattern;
    /// TOF Counter Layer Number 0-3
    int   Layer;
    /// TOF Counter Bar   Number 0-9
    int   Bar;
-   /// Raw Anode ADC   Side  0-1
+   /// Raw Anode ADC Side  0-1
    float Aadc[2];
+   /// Raw Dynode ADC Side 0-1
+   float Dadc[2][3];
    /// Non Correct Time(ns)(FT-LT) Side 0-1
    float Rtime[2];
    /// Counter Hit Time(ns)(After Caliberation LT-FT+Const)
@@ -980,8 +984,24 @@ class TofClusterHR {
   virtual ~TofClusterHR(){};
 
 //-------user function
-  /// check Counter Side is good or not
-  bool IsGoodSide(int is){return (is==0||is==1)?((Pattern%10)&(is+1)):0;}//Side 0 or 1
+  /// check Counter Side is good or not //require A+T measure
+  bool IsGoodSide(int is){return (is==0)?((Status&TOFDBcN::BADN)==0):((Status&TOFDBcN::BADP)==0);}//Side 0 or 1
+  /// check Side whether only 1 LT in FT windows
+  bool IsOneLT(int is)  {return (SideBitPat[is]&TOFDBcN::LTMANY)==0;}
+  /// check Side whether HT in FT windows
+  bool IsExistHT(int is){return (SideBitPat[is]&TOFDBcN::NOWINDOWHT)==0;}
+  /// Counter Good Time(TCoo) or not //due to one side bad
+  bool IsGoodTime()     {return (Status&TOFDBcN::BADTIME)==0;}
+  /// Recover Time from Hit Position+ one Side Time // Bad Time or Side Lost
+  /*!
+    *\1: Init TofTDV:  TofTAlignPar *TPar=TofTAlignPar::GetHead();
+    *\2: ReadTDV:      TPar->ReadTDV(runno);//run No
+    *\3: After 1 2:    Then use this Function
+    *\4: tklcoo[Input]:  longitide hit position to recover 
+    *\5: useside[Input]: Side1 bad(lost)=>useside=0   Side0 bad(lost)=>useside=1
+    *\6: tm etm[Output]: Recover Time+ETime for this Counter
+  */
+  int TRecover(double  tklcoo,int useside,double &tm,double &etm);
   /// Number of BetaHs use this Counter to build 
   /*! 
     *\return 0--this counter not belong to any BetaH  (Matched by zero track)
@@ -1020,7 +1040,7 @@ class TofClusterHR {
 //-------
   friend class AMSTOFClusterH;
   friend class AMSEventR;
-  ClassDef(TofClusterHR,2)       //TofRawClusterR
+  ClassDef(TofClusterHR,3)       //TofRawClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -2549,7 +2569,14 @@ class BetaHR {
         else if((BetaPar.Pattern[ilay]/10%10)>idis)right=1;
         return (left&&right);
      }
-
+  ///  Return BetaH ClusterH nearest Fired Counter Bar Number(exclude the BetaH Counter Used)
+  ///  \return -1 if Not Found any other Cluster is lr direction /*lr=-1 left direction search, lr=1 right direction search*/
+  int           GetNearbyHLNo (int ilay,int lr)   {
+      if(TestExistHL(ilay)==0)return -1;
+      if(lr<0)return ((BetaPar.Pattern[ilay]/100%10)==0)?-1:GetClusterHL(ilay)->Bar-BetaPar.Pattern[ilay]/100%10;
+      else    return ((BetaPar.Pattern[ilay]/10%10)==0)? -1:GetClusterHL(ilay)->Bar+BetaPar.Pattern[ilay]/10%10;
+  }
+   
 
 //---user function
  public:
@@ -2601,7 +2628,7 @@ class BetaHR {
   float GetEMass()     {return BetaPar.EMass;}
 
 //---Using Function 
-  ///ReFit Mass using Rigidity Charge
+  /// ReFit Mass using Rigidity Charge
   /*!
     * \[mass]    Output Fit Mass
     * \[emass]   Output Fit Mass Error
@@ -2613,16 +2640,16 @@ class BetaHR {
     *
   */
   int  MassReFit(double &mass, double &emass,double rig=0,double charge=0,double erigv=0,int isbetac=0,int update=0);
-   ///Beta ReFit
+   /// Beta ReFit
    /*!
      * \[mass]    Output Fit Beta
      *\ [emass]   Output Fit Error 1/Beta
-     * \[pattern] Input  mmmm: m=1 or 0,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1.
+     * \[pattern] Input  mmmm: m=1 or 0 or 2,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1. 2022 force to use Time recover hit to Fit
      * \[mode]    Input  mode=1 or 0,  different time err or same time err for 4 Tof Layers
      * \[update]  Input  BetaPar update (1)Update Beta (0)Not Update
    */
   int  BetaReFit(double &beta,double &ebetav,int pattern=1111,int mode=1,int update=0);
-  ///TOF Time Interpolation to posZ
+  /// TOF Time Interpolation to posZ
   /*!
    * \[zpl]  Input  Interpolate to Z position (Z=zpl)
    * \[pnt]  Output BetaH's Track position at Z=zpl

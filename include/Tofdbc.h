@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.6 2012/06/29 08:03:44 qyan Exp $
+//  $Id: Tofdbc.h,v 1.7 2012/07/09 22:23:47 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -17,6 +17,7 @@
 //--TOF Const 
 namespace TOFCSN{
    const integer SCLRS=4;
+   const integer SCMXBR=10;
    const integer NBAR[SCLRS]={8,8,10,8};
    const integer SCANMT=700;
    const integer SCANMY=50;   
@@ -26,11 +27,26 @@ namespace TOFCSN{
 }
 
 namespace TOFDBcN{
+  const uinteger SIDEN=1;
+  const uinteger SIDEP=2;
+  const uinteger NOHTRECOVCAD=4;//NO HT  recover Candidate
+  const uinteger NOMATCHRECOVCAD=8;// LT HT Not Match recover Candidate
   const uinteger BAD=16;
   const uinteger USED=32;
-  const uinteger BADHIS=128;
-  const uinteger ONESIDE=256;
-  const uinteger BADTIME=512;
+  const uinteger BADN=64;
+  const uinteger BADP=128;
+  const uinteger BADTCOO=256;
+  const uinteger BADTIME=512;   //Bad Time
+  const uinteger NOWINDOWLT=1024;//NoLT (>40ns befFT)&&(<640 befFT)
+  const uinteger NOWINDOWHT=2048;
+  const uinteger LTMANY=4096;
+  const uinteger HTMANY=8192;
+  const uinteger NOADC=16384; 
+  const uinteger LHMATCHMANY=16384*4; //HT LT Match Too Many
+  const uinteger RECOVERED=16384*2;
+  const uinteger LTREFIND=16384*4;
+  const uinteger DOVERFLOW=16384*2*2*2*2*2*2*2;// Dynode overflow
+  const uinteger AOVERFLOW=16384*2*2*2*2*2*2*2*2;//Anode overflow
   const uinteger TRDTRACK=16384*2*2*2*2*2*2*2*2*2;
 }
 
@@ -264,15 +280,21 @@ class TofTDVTool{
    virtual int  ReadTDV(int rtime,int real=1);
    virtual int  WriteTDV(int brun,int erun,int real=1);
    virtual int  WriteTDV(int real=1){return WriteTDV(BRun,ERun,real);}
+   virtual void PrintTDV(){};
 };
 
 
 //===========================================================
 class TofTAlignPar: public TofTDVTool<float>{
   public:
-     std::map<int, float>slew; //id LBS0
-     std::map<int, float>delay;//id LB00
-     float powindex;
+//---Time Part
+     std::map<int, float>slew; //id LBS0 ///Time Slewing
+     std::map<int, float>delay;//id LB00 ///Time Delay
+     float powindex;           ///Shape Index
+//---Coo Part
+     std::map<int, float>dt1; //id LB00 ///Coo Time T1
+     std::map<int, float>dslew; //id LB00 ///Coo LR Slew Compensate
+     std::map<int, float>vel; //id LB00 ///Coo Vel
 //----
   public:
      TofTAlignPar();
@@ -282,8 +304,28 @@ class TofTAlignPar: public TofTDVTool<float>{
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadTDVPar();//copy TDV to class 
      int  LoadFromFile(char *file);//read data from file->Block data
-};  
+     void PrintTDV();
+};
 
-void TofTAlignInit();
-//---
+//===========================================================
+class TofRecPar: public TofTDVTool<float>{
+  public:
+     static const  float Tdcbin=0.0244141;
+     static const  float FTgate[2];//LT HT relate FTtime age-window(ns) //(FT-LT)ns [80, 200] 
+     static const  float FTgate2[2];//Tight cut windows  if no HT SHT
+     static const  float LHgate[2]; //LT relate HT MPV //(LT-HT)ns [3, 12]    
+     static const  float LHMPV=4.5;  //(LT-HT-MPV) pair window ns
+     static const  int   PUXMXCH=3700; //MAX. value of PUX-chip//an(dy)adc chan
+     static const  int   MaxCharge=6;     
+     static float TimeSigma[MaxCharge];
+     static float CooSigma[MaxCharge][TOFCSN::SCLRS][TOFCSN::SCMXBR];
+     static int   iLay;
+     static int   iBar;
+ public:
+     TofRecPar(){};
+     static void  IdCovert(int id){iLay=id/1000%10;iBar=id/100%10;}
+     static float GetTimeSigma(int id, int icha=1);
+     static float GetCooSigma(int id, int icha=1);
+};
+//===========================================================
 #endif

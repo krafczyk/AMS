@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.2 2012/06/25 02:57:41 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.3 2012/07/09 22:23:47 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -23,20 +23,23 @@ public:
 #ifndef __ROOTSHAREDLIBRARY__
   static int  BuildTofClusterH();
   static int  BuildBetaH(int mode=0);
-  static int  TimeRec(int idsoft,number sdtm[], number adca[],number &tm,number &etm,int run=0,int force=0,int status=0);//force(1) to reload TDV
-  static int  CooRec();
+  static int  TofSideRec(TOF2RawSide *ptr,number &adca, integer &nadcd,number adcd[],number &sdtm,uinteger &sstatus,
+                        vector<number>&ltdcw, vector<number>&htdcw, vector<number>&shtdcw);
+  static int  TimeCooRec(int idsoft,number sdtm[],number adca[],number tms[2],number &tm,number &etm,number &lcoo,number &elcoo,uinteger &status,int run=0,int force=0);//force(1) to reload TDV
   static int  EdepRec();
-  static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,number &tklen,number cres[2],int &pattern,int mode);//mode(1) LMatch should be mode(0) not require
+  static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern,int mode);//mode(1) LMatch should be mode(0) not require
 //----Fit
+  static int  TRecover(AMSTOFClusterH *tofclh[4],number tklcoo[4]);//using hassid to recover other side
   static int  BetaFitC(AMSTOFClusterH *tofclh[4],number res[4][2],int partten[4],TofBetaPar &par,int mode);//
   static int  BetaFitT(AMSTOFClusterH *tofclh[4],number len[4],int partten[4],TofBetaPar &par,int mode);//mode same etime weight(0) or not(1)
 #endif
 //---
+  static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>ltdcw,int hassid);
+  static int  TRecover(int idsoft,number trlcoo,number tms[2],number &tm,number &etm,uinteger &status,int hassid);
   static int  BetaFitT(number time[],number etime[],number len[],const int nhits,TofBetaPar &par,int mode=1);//mode same etime weight(0) or not(1)
 //---
 #ifndef __ROOTSHAREDLIBRARY__
   static int  BetaFitCheck(TofBetaPar &par);//if this is normal value
-//--
   static number BetaCorr(number zint,number z0,number part,uinteger &status);//to BetaC Vitaly
 #endif
 //--Cal Mass
@@ -53,14 +56,21 @@ public:
 class AMSTOFClusterH: public AMSlink{
 
 protected:
+    uinteger  _sstatus[2];
+    vector<number>_ltdcw[2];
+    vector<number>_htdcw[2];
+    vector<number>_shtdcw[2];
+//---
     TOF2RawSide *_tfraws[2]; 
     integer  _nraws;
     integer  _pattern;//%10(2side information)+(/1000%10=used by beta number) information pattern
     integer  _idsoft;
     number   _adca[2];//raw adc
+    number   _adcd[2][TOF2GC::PMTSMX];//dynode adc
     number   _sdtm[2];//raw time 
+    number   _timers[2];//rec time ft-lt
     number   _timer; //correct time /ns lt-ft
-    number   _etimer;//time err/ns
+    number   _etimer;//time err/ns  
     AMSPoint _coo; //coo
     AMSPoint _ecoo;//ecoo
     number   _edepa; //Anode
@@ -75,11 +85,16 @@ public:
    number          getetime()  {return _etimer;}
 public:
     AMSTOFClusterH(){};
-    AMSTOFClusterH(integer status,integer pattern,integer idsoft,number adca[],number sdtm[],number timer,number etimer,
-                   AMSPoint coo,AMSPoint ecoo,number edepa,number edepd,number edep,TOF2RawSide *tfraws[2],integer nraws):
+    AMSTOFClusterH(uinteger sstatus[2],uinteger status,integer pattern,integer idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],
+                   number sdtm[],number timers[],number timer,number etimer,
+                   AMSPoint coo,AMSPoint ecoo,number edepa,number edepd,number edep,TOF2RawSide *tfraws[2],integer nraws,
+                  vector<number>ltdcw[2],vector<number>htdcw[2],vector<number>shtdcw[2]):
                 AMSlink(status),_pattern(pattern),_idsoft(idsoft),_timer(timer),_etimer(etimer),
                 _coo(coo),_ecoo(ecoo), _edepa(edepa),_edepd(edepd),_edep(edep),_nraws(nraws){
-                  for(int i=0;i<2;i++){_adca[i]=adca[i];_sdtm[i]=sdtm[i],_tfraws[i]=tfraws[i];}
+                  for(int i=0;i<2;i++){_sstatus[i]=sstatus[i];_adca[i]=adca[i];_sdtm[i]=sdtm[i],_timers[i]=timers[i],_tfraws[i]=tfraws[i];
+                                       for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++)_adcd[i][ipm]=adcd[i][ipm];
+                                       _ltdcw[i]=ltdcw[i];_htdcw[i]=htdcw[i];_shtdcw[i]=shtdcw[i];
+                                      }
                }
      ~AMSTOFClusterH(){};
      AMSTOFClusterH * next(){ return (AMSTOFClusterH *)_next;}
@@ -96,6 +111,7 @@ public:
 #ifdef __WRITEROOT__
  friend class TofClusterHR;
  friend class AMSBetaH;
+ friend class TofRecH;
 #endif
 };
 
