@@ -881,8 +881,13 @@ void TrdKCluster::InitXePressure(){
     vector<Double_t> v_co2;
     //TFile* f_online=new TFile("/afs/cern.ch/user/z/zweng02/public/trd_pressures.root");
 
-    char name[300];
-    sprintf(name, "%s/v5.00/trd_pressures.root",getenv("AMSDataDir"));
+    const char *amsdatadir=getenv("AMSDataDir");
+    char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+     if(!(amsdatadir && strlen(amsdatadir))){
+         amsdatadir=local;
+    }
+
+    TString name=TString(amsdatadir)+"/v5.00/trd_pressures.root";
     cout<<"Read TRD Pressure root files from: "<<name<<endl;
     TFile* f_online=new TFile(name);
 
