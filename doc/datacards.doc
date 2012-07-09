@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.384 2012/06/17 16:23:54 qyan Exp $
+#  $Id: datacards.doc,v 1.385 2012/07/09 07:36:20 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -588,7 +588,7 @@ I 3 File                            // File with selected events
                                     // format ascii Run Event
 I43 Last Run No(0)                  //  No effect if zero
 I44 Last EventNo(0)                 //  No effect if zero or LastRun!=Run
-
+I45 EventTime                      //  current event time (0 if not known)
 
 
 

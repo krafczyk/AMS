@@ -105,7 +105,7 @@ foreach my $ntuple (@{$ret4}){
       #print "$sql \n"; 
       my $ret5=$o->Query($sql);
         if(defined $ret5->[0][0]){
-            #print "  exist in $ret5->[0][0] $ret5->[0][1] \n";
+#            print "  exist in $ret5->[0][0] $ret5->[0][1] \n";
             my $rmv=$ntuple->[0];
             if($rmv==$ret5->[0][1]){
                 $rmv=$jidold;
@@ -115,6 +115,14 @@ foreach my $ntuple (@{$ret4}){
             if(defined $ret6->[0][0]){
               print "$ret6->[0][0],"; 
           }
+            $sql="select path from amsdes.ntuples where jid=$rmv"; 
+             my $ret66=$o->Query($sql);
+            if(not defined $ret66->[0][0]){
+            $sql="select jobname from amsdes.jobs where jid=$rmv "; 
+             $ret66=$o->Query($sql);
+              print "$ret66->[0][0],"; 
+          }
+          
         }
         $double++;
 }

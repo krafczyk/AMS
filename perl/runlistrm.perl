@@ -97,7 +97,7 @@ my $runlistr="";
 if(defined $rmc){
 $list="$rmc.runlist";
 $alist="$rmc.runalist";
-if(open(FILE,"</f2users/scratch/MC/"."$rmc/$rmc".".runlist")){
+if(open(FILE,"</f2users/scratch/Data/"."$rmc/$rmc".".runlist")){
 $runlistr=<FILE>;
 if($runlistr=~/\,$/){
 chop $runlistr;

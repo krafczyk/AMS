@@ -13,6 +13,10 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+if(ev){
+cout<<ev->LiveTime()<<" lt "<<endl;
+return 1;
+}
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iBeta()>=0 &&ev->Particle(0).iEcalShower()>=0 &&ev->nEcalShower()==1 && ev->EcalShower(0).EnergyC*(1-ev->EcalShower(0).RearLeak)>2){
 unsigned int gps_time_sec=0;
 unsigned int gps_time_nsec=0;

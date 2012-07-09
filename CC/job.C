@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.884 2012/06/29 10:13:02 qyan Exp $
+// $Id: job.C,v 1.885 2012/07/09 07:36:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -197,6 +197,7 @@ void AMSJob::data(){
   GCTIME.ITIME=0;
   SELECTFFKEY.Run=0;
   SELECTFFKEY.Event=0;
+  SELECTFFKEY.EventTime=0;
   SELECTFFKEY.RunE=0;
   SELECTFFKEY.EventE=0;
   VBLANK(SELECTFFKEY.File,40);
