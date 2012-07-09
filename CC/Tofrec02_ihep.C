@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.4 2012/06/28 23:46:32 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.4.2.1 2012/07/09 09:23:13 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -278,8 +278,8 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,n
 int TofRecH::BetaFitC(AMSTOFClusterH *tofclh[4],number res[4][2],int pattern[4], TofBetaPar &par,int mode){
    int iscoo[4]={1,0,0,1};
    AMSPoint tfecoo;
-   int nhitxy[2];
-   number chisxy[2]={0};
+   int nhitxy[2]={0,0};
+   number chisxy[2]={0,0};
    for(int ilay=0;ilay<4;ilay++){//temp exclude missing time measument lay S side
      for(int is=0;is<2;is++){par.CResidual[ilay][is]=res[ilay][is];}
      if(tofclh[ilay]){
