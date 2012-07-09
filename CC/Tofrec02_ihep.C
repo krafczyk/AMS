@@ -1,13 +1,12 @@
-//  $Id: Tofrec02_ihep.C,v 1.4 2012/06/28 23:46:32 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.5 2012/07/09 22:25:23 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
-//      Not All finish: Now focus on time caliberation (BetaH BetaHC)
-//                      Temp use TOFRawCluster to Rec//(will change future)
+//      Not All finish: (BetaH BetaHC)
 // ------------------------------------------------------------
 //      History
 //        Created:       2012-June-10  Q.Yan  qyan@cern.ch
-//        Modified:
+//        Modified:      2012-July-7   Change Recontruction to TOFRawSide+Coo Calib Add
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "tofsim02.h"
@@ -44,72 +43,233 @@ TofBetaPar TofRecH::betapar;
 #ifndef __ROOTSHAREDLIBRARY__
 //========================================================
 int TofRecH::BuildTofClusterH(){
-  
-  TOF2RawCluster *ptrc=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
-  if(!ptrc)return -1;
-  
-  int il=0,ib=0,idsoft=-1,rstatus=0,status=0,pattern,bmax,nraws;
-  bool ismiss=0;
-  number sdtm[2],adca[2],timer,etimer,lcoo,scoo,elcoo,escoo,edepa,edepd,edep,barw;
+
+//---  
+  cout<<"begin tofclusterh"<<endl;
+  integer i,j,hassid;
+  integer idd=0,il=0,ib=0,is=0,idsoft=-1,pattern=0,nraws=0;
+  int16u stat[2];
+  uinteger sstatus[2]={0},status=0,recovsid[2];
+  integer nadcd[2]={0};
+  number sdtm[2]={0},adca[2]={0},timers[2]={0},timer=0,etimer=0,lcoo,scoo,elcoo,escoo,edepa,edepd,edep;
+  number adcd[2][TOF2GC::PMTSMX]={{0}};
+  vector<number>ltdcw[2];
+  vector<number>htdcw[2];
+  vector<number>shtdcw[2];
   AMSPoint coo,ecoo;
-  while(ptrc){ // loop over counters(raw clusters)
-      rstatus=ptrc->getstatus();//TOFGC::SCBADB2 missing
-      il=ptrc->getntof()-1;
-      ib=ptrc->getplane()-1;
-      ptrc->getadca(adca);
-      idsoft=il*1000+ib*100;
-      status=0;ismiss=0;pattern=0; TOF2RawSide *tfraw[2]={0};nraws=0;
-      TOF2RawSide* ptr=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0,1);
-      while(ptr){
-        if((ptr->getsid()/100-1==il)&&(ptr->getsid()%100-1==ib)){tfraw[ptr->getsid()%10-1]=ptr;nraws++;}
-        ptr=ptr->next();
-      }
-      if(adca[0]>0)pattern|=0x1;//S1 has signal
-      if(adca[1]>0)pattern|=0x2;//S2 has signal
-      if((rstatus&TOFGC::SCBADB2)>0){ // 1-side counter found --not candidate
-          if((rstatus&TOFGC::SCBADB4)>0)pattern&=0x1;//S2 missing try S1 
-          else                          pattern&=0x2;//S1 missing try S2
-          ismiss=1;
-      }
-      if(pattern==0){ptrc=ptrc->next();continue;}//both 2 iside has problem
-      status=rstatus;
-//-----time
-      ptrc->getsdtm(sdtm); 
-      TimeRec(idsoft,sdtm,adca,timer,etimer,0,0,pattern);
-//-----coo
-      coo[2]=TOF2DBc::getzsc(il,ib);
-      scoo=TOF2DBc::gettsc(il,ib);  //short coo(transv coo)
-      lcoo=ptrc->gettimeD(); //temp long coo will change 
-//-----ecoo
-      ecoo[2]=TOF2DBc::plnstr(6)/sqrt(12.);//bar thickness/sqrt(12)
-      bmax=TOF2DBc::getbppl(il);
-      if(ib>0 && (ib+1)<bmax)barw= TOF2DBc::plnstr(5);//stand  bar width
-      else                   barw= TOF2DBc::outcp(il,1);//outer counter width
-      escoo=(barw/2+0.5)/3;//3signma=barw/2 //0.5cm compesate
-      if(ismiss==1)elcoo=TOF2DBc::brlen(il,ib)/sqrt(12.);//bleng/sqrt(12)
-      else         elcoo=ptrc->getetimeD();//
-//---       
-      if(il==0||il==3){coo[0]=lcoo;ecoo[0]=elcoo; coo[1]=scoo;ecoo[1]=escoo;}
-      else            {coo[0]=scoo;ecoo[0]=escoo; coo[1]=lcoo;ecoo[1]=elcoo;}
-//-----energy
-      edepa=ptrc->getedepa();//temporaly
-      edepd=ptrc->getedepd();//temp
-      edep=edepa;            //temp
-//--      
-      AMSEvent::gethead()->addnext(AMSID("AMSTOFClusterH",il), new
-        AMSTOFClusterH(status,pattern,idsoft,adca,sdtm,timer,etimer,coo,ecoo,edepa,edepd,edep,tfraw,nraws));
-//------
-      ptrc=ptrc->next();
-  }
+ 
+//-----
+  TOF2RawSide *tfraw[2]={0};
+  TOF2RawSide *ptr=(TOF2RawSide*)AMSEvent::gethead()
+                                    ->getheadC("TOF2RawSide",0,1);
   
+  while(ptr){
+     idd=ptr->getsid();//LBBS
+     il=idd/10/100-1;
+     ib=idd/10%100-1;
+     is=idd%10-1; 
+     stat[is]=ptr->getstat();
+     if(stat[is]%10!=0){ptr=ptr->next();continue;}//validation status(FTtime is required)
+     if(!TOF2Brcal::scbrcal[il][ib].SideOK(is)||!TOFBPeds::scbrped[il][ib].PedAchOK(is)){ptr=ptr->next();continue;}//(LT&QAnode&(sumHT|noMatch) +Peds
+//--already check get data
+     tfraw[is]=ptr;nraws++;
+     TofSideRec(ptr,adca[is],nadcd[is],adcd[is],sdtm[is],sstatus[is],ltdcw[is],htdcw[is],shtdcw[is]); 
+
+//--different LBB// combine to one bar
+    if((ptr->next()==0)||(ptr->next()->getsid()/10!=ptr->getsid()/10)){
+      idsoft=il*1000+ib*100;
+      if(((sstatus[0]&TOFDBcN::BAD)>0)||(tfraw[0]==0))status|=TOFDBcN::BADN;
+      else                                            pattern|=TOFDBcN::SIDEN;
+      if(((sstatus[1]&TOFDBcN::BAD)>0)||(tfraw[1]==0))status|=TOFDBcN::BADP;
+      else                                            pattern|=TOFDBcN::SIDEP;
+//Two side bad abandon     
+      if(((status&TOFDBcN::BADP)>0)&&((status&TOFDBcN::BADN)>0)){
+          status|=TOFDBcN::BAD;
+       }
+//Reconstruction
+      else {
+
+//-- ReFind Lost  LT using other GOOD Side /*due to 30ns LT deadtime, it's enough to use other Side to ReFind LT
+        if(((sstatus[0]|sstatus[1])&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0){
+          if((sstatus[0]&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0)hassid=1;
+          else                                                               hassid=0;
+          LTRefind(idsoft,0,sdtm,adca,status,ltdcw[1-hassid],hassid);
+        }
+
+//---Time Rec
+        TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],status,0,0);
+
+//-----other coo
+       AMSPoint barco=TOFGeom::GetBarCoo(il,ib);
+       coo[1-TOFGeom::Proj[il]] =barco[1-TOFGeom::Proj[il]];
+       ecoo[1-TOFGeom::Proj[il]]=(TOFGeom::Sci_w[il][ib]/2.+0.3)/3.;
+       coo[2]=barco[2];
+       ecoo[2]=TOFGeom::Sci_t[il][ib]/2./3.;//z 3sigma out
+//-----energy temp from RawCluster
+       TOF2RawCluster *ptrc=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
+       while(ptrc){
+         if((ptrc->getntof()-1==il)&&(ptrc->getplane()-1==ib)){
+           edepa=ptrc->getedepa();//temporaly
+           edepd=ptrc->getedepd();//temp
+           edep=edepa;            //temp
+           break;
+         }
+       }
+//--      
+       AMSEvent::gethead()->addnext(AMSID("AMSTOFClusterH",il), new
+         AMSTOFClusterH(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,edep,tfraw,nraws,ltdcw,htdcw,shtdcw));
+      }
+//--clear part
+      nraws=status=pattern=0;
+      timer=etimer=edepa=edepd=edep=0;
+      for(is=0;is<2;is++){
+        tfraw[is]=0; 
+        ltdcw[is].clear();htdcw[is].clear();shtdcw[is].clear();
+        sstatus[i]=0;
+        timers[is]=adca[is]=sdtm[is]=0;
+        nadcd[i]=0;
+        for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++){adcd[is][ipm]=0;}
+      }
+   }//end one bar
+
+   ptr=ptr->next();    
+  }
+     
  return 0;
 }
 
+//========================================================Rec Side
+int TofRecH::TofSideRec(TOF2RawSide *ptr,number &adca, integer &nadcd,number adcd[],number &sdtm,uinteger &sstatus,
+                        vector<number>&ltdcw, vector<number>&htdcw, vector<number>&shtdcw){
+//---
+     integer i,j;
+     integer ltok=0;
+     integer ftdch[TOF2GC::SCTHMX1],ltdch[TOF2GC::SCTHMX3],htdch[TOF2GC::SCTHMX2],shtdch[TOF2GC::SCTHMX2];
+     number  ftdc[TOF2GC::SCTHMX1], ltdc[TOF2GC::SCTHMX3], htdc[TOF2GC::SCTHMX2], shtdc[TOF2GC::SCTHMX2];
+     geant radcd[TOF2GC::PMTSMX];
+//---init
+     sstatus=0;
+
+//----Get adca 
+     adca=ptr->getadca();
+     nadcd=ptr->getadcd(radcd);
+     for(i=0;i<nadcd;i++){adcd[i]=radcd[i];}
+     if(adca<=0)  {sstatus|=TOFDBcN::NOADC;}
+     if(adca>=TofRecPar::PUXMXCH){adca=TofRecPar::PUXMXCH;sstatus|=TOFDBcN::AOVERFLOW;}//now just anode 
+
+//---Get Tdc
+     integer nft=ptr->getftdc(ftdch);//FT
+     integer nlt=ptr->getstdc(ltdch);//LT
+     integer nht=ptr->getsumh(htdch);//SumHT
+     integer nsht=ptr->getsumsh(shtdch);//SumSHT
+//---Get Ref Tdc
+      for(i=0;i<nft;i++)  ftdc[i]=ftdch[i]*TofRecPar::Tdcbin;//FTtime TDCch->ns
+      number fttm=ftdc[nft-1];//choose last because this triggers LVL1 
+      for(i=0;i<nlt;i++)  ltdc[i]=fttm-ltdch[i]*TofRecPar::Tdcbin;//Rel.LTtime(+ means befor FTtime)(+TDCch->ns)
+      for(i=0;i<nht;i++)  htdc[i]=fttm-htdch[i]*TofRecPar::Tdcbin;//Rel.SumHTtime +TDCch->ns
+      for(i=0;i<nsht;i++)shtdc[i]=fttm-shtdch[i]*TofRecPar::Tdcbin;//Rel.SumSHTtime +TDCch->ns
+
+//---Put to calidate
+      ltdcw.clear();htdcw.clear();shtdcw.clear();
+      for(i=0;i<nlt;i++){//notTooYoung(>40ns befFT), notTooOld(<300 befFT)
+         if((ltdc[i]> TofRecPar::FTgate[0])&&(ltdc[i]<TofRecPar::FTgate[1])){
+            ltdcw.push_back(ltdc[i]);
+         }
+       }
+     for(i=0;i<nht;i++){//notTooYoung(>40ns befFT), notTooOld(<300 befFT)
+         if((htdc[i]> TofRecPar::FTgate[0])&& (htdc[i]<TofRecPar::FTgate[1])){
+           htdcw.push_back(htdc[i]);
+         }
+       }
+     for(i=0;i<nsht;i++){//notTooYoung(>40ns befFT), notTooOld(<300 befFT)
+         if((shtdc[i]> TofRecPar::FTgate[0])&& (shtdc[i]<TofRecPar::FTgate[1])){
+           shtdcw.push_back(shtdc[i]);
+         }
+      }
+
+//----Set Bad Status
+       if(ltdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWLT;}
+       if(htdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWHT;}
+       if(ltdcw.size()>1){sstatus|=TOFDBcN::LTMANY;}
+       if(htdcw.size()>1){sstatus|=TOFDBcN::HTMANY;}//HT MANY bad(due to 300ns block)
+       if((sstatus&(TOFDBcN::NOWINDOWLT|TOFDBcN::HTMANY|TOFDBcN::NOADC)>0)){sstatus|=TOFDBcN::BAD;}
+
+//---Get Time imformation----BAD Time
+       sdtm=0;
+       if((sstatus&TOFDBcN::BAD)>0){
+         sdtm=0;
+       }
+
+//----For One LT set this as default (NO Need to ReFind Or will abandon this)
+       else if(ltdcw.size()==1){
+         sdtm=ltdcw[0];ltok=1;
+       }
+
+//----For One HT many LT //may not accurate
+       else  {
+         number minhldt=999999,dt=0;
+          //----if no HT and no SHT try to narrow
+         if((htdcw.size()==0)&&(shtdcw.size()==0)){
+           for(i=0;i<ltdcw.size();i++){//tight guide
+             dt=ltdcw[i]-(TofRecPar::FTgate2[0]+TofRecPar::FTgate2[1])/2.;//using TF MPV gate to choose
+             if(fabs(dt)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt);}
+             if((ltdcw[i]>TofRecPar::FTgate2[0])&&(ltdcw[i]<TofRecPar::FTgate2[1])){ltok++;}
+            }
+            if(ltok!=1){sstatus=(TOFDBcN::BAD|TOFDBcN::NOHTRECOVCAD);ltok=0;}
+          }
+
+          //---Using Ht Sht finding nearest as default match check
+        else {
+         //---First using ht match
+         if(htdcw.size()>0){
+           for(i=0;i<ltdcw.size();i++){//real impossible two LT match HT due to 30ns LT lock
+             dt=ltdcw[i]-htdcw[0];//lt must >ht time
+             if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
+             if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ltok++;}//find LT should match in window
+            }
+          }
+         //---Otherwise try using sht
+          if((!ltok)&&(shtdcw.size()>0)){
+           for(i=0;i<ltdcw.size();i++){//to find LT should match in windows
+             dt=ltdcw[i]-shtdcw[0];//lt must >sht time 
+             if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
+             if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ ltok++;}
+            }
+          }
+         if(!ltok)sstatus|=(TOFDBcN::BAD|TOFDBcN::NOMATCHRECOVCAD);
+       }
+    }
+   return 0;
+}
 
 //========================================================
-int TofRecH::TimeRec(int idsoft,number sdtm[], number adca[],number &tm,number &etm, int run,int force,int pattern){
-    if(pattern%10==1){sdtm[1]=0;tm=0;etm=4*TFMCFFKEY.TimeSigma/sqrt(2.);return -1;}//s2 missing s1 have
-    if(pattern%10==2){sdtm[0]=0;tm=0;etm=4*TFMCFFKEY.TimeSigma/sqrt(2.);return -1;}//s1 missing s2 have
+int TofRecH::LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>ltdcw,int hassid){
+
+    if((adca[0]<=0)||(adca[1]<=0)||ltdcw.size()<=0)return -1;
+
+//---Find Best LT
+    number sdtm1[2],tms[2],tm,etm,lcoo,elcoo,mindis=999999;
+    uinteger ustatus=0;
+    int iminlt=-1;
+    sdtm1[hassid]=sdtm[hassid];
+    for(int i=0;i<ltdcw.size();i++){
+       sdtm1[1-hassid]=ltdcw[i];
+       ustatus=0; 
+       TimeCooRec(idsoft,sdtm1,adca,tms,tm,etm,lcoo,elcoo,ustatus);
+       if(fabs(lcoo-trlcoo)<mindis){mindis=fabs(lcoo-trlcoo);iminlt=i;}
+    }
+
+//---Set Par
+    TofRecPar::IdCovert(idsoft);
+    if(mindis<TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){
+      sdtm[1-hassid]=ltdcw[iminlt];
+      status|=(TOFDBcN::LTREFIND|TOFDBcN::RECOVERED);
+    }
+    return 0;  
+}
+
+//========================================================
+int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],number &tm,number &etm,number &lcoo,number &elcoo,uinteger &status,int run,int force){
 
     static int errcount=0;
     if(TofTAlignPar::Head==0){
@@ -123,20 +283,44 @@ int TofRecH::TimeRec(int idsoft,number sdtm[], number adca[],number &tm,number &
        if(errcount++<100)cerr<<"Error TofTAlignPar TDV not Load yet!!! Please load first"<<endl; 
        return -1;
    }
+//----
     number sl1=  TPar->slew[idsoft];
     number sl2=  TPar->slew[idsoft+10];
-    number t0=   TPar->delay[idsoft];
+    number c0=   TPar->delay[idsoft];
+    number c1=   TPar->dt1[idsoft];
     number index=TPar->powindex;
-    tm=0.5*(sdtm[0]+sdtm[1])+sl1/pow(adca[0],index)+sl2/pow(adca[1],index)+t0;//ns
-//    time=-time/1e9;
-    tm=-tm;//convert to pos 
-    etm=TFMCFFKEY.TimeSigma/sqrt(2.);;//will change //temp 0.15ns
+
+    tms[0]=(((status&TOFDBcN::BADN)>0)&&((status&TOFDBcN::LTREFIND)==0))? 0: (sdtm[0]+2*sl1/pow(adca[0],index)+c0+c1);//s1 missing or not
+    tms[1]=(((status&TOFDBcN::BADP)>0)&&((status&TOFDBcN::LTREFIND)==0))? 0: (sdtm[1]+2*sl2/pow(adca[1],index)+c0-c1);//s2 missing or not
+  
+ 
+//--Both two side to go next
+   number dsl= TPar->dslew[idsoft];
+   number vel= TPar->vel[idsoft];
+
+   TofRecPar::IdCovert(idsoft);
+   if((tms[0]==0)||(tms[1]==0)){
+     lcoo=0;elcoo=TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;
+     tm=(tms[0]!=0)?-tms[0]:-tms[1]; etm=fabs(elcoo/vel);
+     status|=(TOFDBcN::BADTIME|TOFDBcN::BADTCOO);
+     return -1;
+    }
+
+//--time
+    tm=0.5*(tms[0]+tms[1]);
+    tm=-tm;//convert to pos
+    if((status&TOFDBcN::LTREFIND)>0)etm=3*TofRecPar::GetTimeSigma(idsoft);
+    else                            etm=TofRecPar::GetTimeSigma(idsoft);
+    
+
+//--coo
+    number tmsc[2];
+    tmsc[0]=tms[0]-2*dsl/pow(adca[0],index);//coo compensate
+    tmsc[1]=tms[1]+2*dsl/pow(adca[1],index);//coo compensate
+    lcoo=0.5*(tmsc[0]-tmsc[1])*vel;
+    if((status&TOFDBcN::LTREFIND)>0)elcoo=3*TofRecPar::GetCooSigma(idsoft);
+    else                            elcoo=TofRecPar::GetCooSigma(idsoft);
     return 0;
-//    return time;
-}
-//========================================================
-int TofRecH::CooRec(){
-  return 0;
 }
 
 //========================================================
@@ -173,11 +357,11 @@ int TofRecH::BuildBetaH(int mode){
            status|=AMSDBc::TRDTRACK;
            trdtrack=ptrackT;
          }
-         AMSTOFClusterH* phit[4]={0};int pattern[4]={0};number len[4]={0};
+         AMSTOFClusterH* phit[4]={0};int pattern[4]={0};number len[4]={0};number tklcoo[4]={1000};
          number cres[4][2]={{1000}};
 //-----first find
          for(int ilay=0;ilay<4;ilay++){
-           BetaFindTOFCl(track,ilay,&phit[ilay],len[ilay],cres[ilay],pattern[ilay],BETAFITFFKEY.HSearchLMatch);
+           BetaFindTOFCl(track,ilay,&phit[ilay],len[ilay],tklcoo[ilay],cres[ilay],pattern[ilay],BETAFITFFKEY.HSearchLMatch);
          }
 //----then select+Fit
        int xylay[2]={0,0};//x y direction check
@@ -193,6 +377,8 @@ int TofRecH::BuildBetaH(int mode){
        if((xylay[0]>=1)&&(xylay[1]>=1)&&(udlay[0]>=1)&&(udlay[1]>=1)){//pattern found
           if((xylay[0]+xylay[1]>=BETAFITFFKEY.HMinLayer[0])&&(udlay[0]+udlay[1]>=BETAFITFFKEY.HMinLayer[1])){
            betapar.Init();//first initial
+//---first to recover
+           TRecover(phit,tklcoo);
            BetaFitC(phit,cres,pattern,betapar,1);
            BetaFitT(phit,len,pattern,betapar,1);
            BetaFitCheck(betapar);
@@ -209,16 +395,15 @@ int TofRecH::BuildBetaH(int mode){
 }
 
 //========================================================
-int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,number &tklen,number cres[2],int &pattern,int mode){
+int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern,int mode){
 //---init
     int nowbar=0,prebar=-1000,nextbar=-1000,tminbar=0,layhit=0;
     number mscoo=1000,mlcoo=100,mintm=0,barw=0,dscoo=1000,dlcoo=1000;
     number theta,phi,sleng;
     bool leftf,rightf;
     AMSPoint tfcoo,tfecoo;
-    int iscoo[4]={1,0,0,1};
+    int iscoo=1-TOFGeom::Proj[ilay];//short coo y x x y
     (*tfhit)=0;tklen=0;pattern=0;cres[0]=1000,cres[1]=1000;
-    int bmax=TOF2DBc::getbppl(ilay);
 //---
     AMSTOFClusterH * tofhit=(AMSTOFClusterH*)AMSEvent::gethead()->getheadC("AMSTOFClusterH",ilay,1);
     for( ; tofhit;tofhit=tofhit->next()) {
@@ -226,8 +411,6 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,n
        tfcoo=tofhit->getcoo();
        tfecoo=tofhit->getecoo();
        nowbar=tofhit->getbarid()/100%10;
-       if(nowbar>0 && (nowbar+1)<bmax)barw= TOF2DBc::plnstr(5);//stand  bar width
-       else                           barw= TOF2DBc::outcp(ilay,1);//outer counter width
 //---
        ptrack->interpolate(tfcoo,tkdir,tkcoo,theta,phi,sleng);
        if(ptrack->getpattern()<0){//trd track finding
@@ -235,25 +418,26 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,n
 	   //ecoo[1]+=1.;  // add one cm fot trd/tof
        }
 //---time min bar not used now
-       if(tofhit->gettime()!=0){ //bad time
+       if((tofhit->getstatus()&TOFDBcN::BADTIME)==0){ //not bad time
 	 if(mintm==0||tofhit->gettime()<mintm){
            mintm=tofhit->gettime();//find earliest(tm) in this layer
 	   tminbar=nowbar;//tag earliest bar
 	  }
        }
-      dscoo=fabs(tkcoo[iscoo[ilay]]-tfcoo[iscoo[ilay]]);
+      dscoo=fabs(tkcoo[iscoo]-tfcoo[iscoo]);
       if(dscoo<mscoo){//first compare Trans
           mscoo=dscoo;
-          if(mscoo<BETAFITFFKEY.HSearchReg[0]*tfecoo[iscoo[ilay]]){//0.5cm offset tof+tkhit match in same counter 3sigma S flag
+          if(mscoo<BETAFITFFKEY.HSearchReg[0]*tfecoo[iscoo]){//0.5cm offset tof+tkhit match in same counter 3sigma S flag
              (*tfhit)=tofhit;tklen=sleng;
              pattern=(*tfhit)->getpattern()%10;//two side information
-	     dlcoo=fabs(tkcoo[1-iscoo[ilay]]-tfcoo[1-iscoo[ilay]]);
+	     dlcoo=fabs(tkcoo[1-iscoo]-tfcoo[1-iscoo]);
+             tklcoo=tkcoo[1-iscoo];
 //------------
              for(int ip=0;ip<2;ip++){
                 cres[ip]=tkcoo[ip]-tfcoo[ip];
-                if(((pattern%10)!=3)&&(ip==1-iscoo[ilay])){cres[ip]=500;};
+                if((((*tfhit)->getstatus()&TOFDBcN::BADTCOO)>0)&&(ip==1-iscoo)){cres[ip]=TOFGeom::Sci_l[ilay][nowbar]/2.;};
               }
-             if(mode==0||dlcoo<BETAFITFFKEY.HSearchReg[1]*tfecoo[1-iscoo[ilay]]){
+             if(mode==0||dlcoo<BETAFITFFKEY.HSearchReg[1]*tfecoo[1-iscoo]){
                if((pattern%10)==3)pattern=4;
              }//3sigma L flag
 	     leftf=0;rightf=0;
@@ -265,21 +449,35 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,AMSTOFClusterH** tfhit,n
 	     if(nextbar>=0)       {rightf=1;}//right counter fire
 	     else                 {rightf=0;}
              if(rightf)pattern+=(nextbar-nowbar)*10;
-	  }
-       }
-       prebar=nowbar;
-       layhit++;
-    }//end tof loop
+	 }
+    }
+   prebar=nowbar;
+   layhit++;
+  }//end tof loop
    pattern+=1000*layhit;
+
    return 0;
 }
-  
+
+//======================================================== 
+int TofRecH::TRecover(AMSTOFClusterH *tofclh[4],number tklcoo[4]){
+  for(int ilay=0;ilay<4;ilay++){
+    if(!tofclh[ilay])continue;
+    if((tofclh[ilay]->getstatus()&TOFDBcN::BADTIME)>0){
+      int hassid=((tofclh[ilay]->getstatus()&TOFDBcN::BADN)>0)?1:0;//NBAD try PSIDE
+      TRecover(tofclh[ilay]->_idsoft,tklcoo[ilay],tofclh[ilay]->_timers,tofclh[ilay]->_timer,tofclh[ilay]->_etimer,tofclh[ilay]->_status,hassid);
+    }
+  }
+  return 0;
+}
+
 //========================================================
 int TofRecH::BetaFitC(AMSTOFClusterH *tofclh[4],number res[4][2],int pattern[4], TofBetaPar &par,int mode){
    int iscoo[4]={1,0,0,1};
    AMSPoint tfecoo;
-   int nhitxy[2];
+   int nhitxy[2]={0},nhitl=0;
    number chisxy[2]={0};
+   number chisl=0;
    for(int ilay=0;ilay<4;ilay++){//temp exclude missing time measument lay S side
      for(int is=0;is<2;is++){par.CResidual[ilay][is]=res[ilay][is];}
      if(tofclh[ilay]){
@@ -289,12 +487,14 @@ int TofRecH::BetaFitC(AMSTOFClusterH *tofclh[4],number res[4][2],int pattern[4],
        nhitxy[isco]++;
        chisxy[isco]+=res[ilay][isco]*res[ilay][isco]/tfecoo[isco]/tfecoo[isco];
        if(pattern[ilay]%10==4){//not missing layer
-             nhitxy[ilco]++;
+             nhitxy[ilco]++;nhitl++;
              chisxy[ilco]+=res[ilay][ilco]*res[ilay][ilco]/tfecoo[ilco]/tfecoo[ilco];
+             chisl+=res[ilay][ilco]*res[ilay][ilco]/tfecoo[ilco]/tfecoo[ilco];
           }
       }
    }
-  par.Chi2C=sqrt(chisxy[0]/nhitxy[0]+chisxy[1]/nhitxy[1]);
+   par.Chi2C=chisl/nhitl;
+//  par.Chi2C=sqrt((chisxy[0]+chisxy[1])/(nhitxy[0]+nhitxy[1]));
   return 0;
 }
 
@@ -333,6 +533,24 @@ int TofRecH::BetaFitT(AMSTOFClusterH *tofclh[4],number lenr[4],int pattern[4], T
   
 }
 #endif
+
+//========================================================
+int TofRecH::TRecover(int idsoft,number tklcoo,number tms[2],number &tm,number &etm,uinteger &status,int hassid){
+
+  if(TofTAlignPar::Head==0||TofTAlignPar::GetHead()->Isload!=1)return -1;
+  TofTAlignPar *TPar=TofTAlignPar::GetHead();
+
+//----tm recover for 1side
+  number vel= TPar->vel[idsoft];
+  number phdt=2.*tklcoo/vel;//photon time
+  if(hassid==0){tms[1]=tms[0]-phdt;}
+  else         {tms[0]=tms[1]+phdt;}
+  tm=0.5*(tms[0]+tms[1]);
+  tm=-tm;
+  etm=3*TofRecPar::GetTimeSigma(idsoft)*sqrt(2.);//1sid sqrt(2)
+  status|=TOFDBcN::RECOVERED;
+  return 0;
+}
 
 //========================================================
 int TofRecH::BetaFitT(number time[],number etime[],number len[],const int nhits,TofBetaPar &par,int mode){

@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.7 2012/06/28 23:46:32 qyan Exp $
+//  $Id: Tofdbc.C,v 1.8 2012/07/09 22:25:23 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -7,6 +7,7 @@
 //        Modified:  DB update       2010/05/28
 //        Modified:  TOF New Caliberation TDV Template 2012/06/12
 //        Modified:  Simple Geometry Adding            2012/06/23
+//        Modified:  Reconstruction  Par Adding        2012/07/08
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
@@ -764,16 +765,16 @@ TofTAlignPar *TofTAlignPar::GetHead(){
 
 //===========================================================
 TofTAlignPar::TofTAlignPar(){
-  TDVName="TofTAlign";
-  TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1);
+  TDVName="TofTAlign_v2";
+  TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1+TOFCSN::NBARN*3);
   TDVBlock=new float[TDVParN];
   TDVSize=TDVParN*sizeof(float);
 }
 
 //===========================================================
 TofTAlignPar::TofTAlignPar(float *arr,int brun,int erun){
-  TDVName="TofTAlign";
-  TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1);
+  TDVName="TofTAlign_v2";
+  TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1+TOFCSN::NBARN*3);
   TDVBlock=arr;
   TDVSize=TDVParN*sizeof(float);
   BRun=brun;
@@ -802,6 +803,18 @@ void   TofTAlignPar::LoadTDVPar(){
       }
    }
    powindex=TDVBlock[iblock++];
+//---Coo Par
+   for(int ipar=0;ipar<3;ipar++){
+     for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+       for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//Const
+         int id=ilay*1000+ibar*100;
+         if     (ipar==0)vel[id]=TDVBlock[iblock++];
+         else if(ipar==1)dt1[id]=TDVBlock[iblock++];
+         else if(ipar==2)dslew[id]=TDVBlock[iblock++];
+       }
+     }
+   }
+   
    Isload=1;
 }
 //==========================================================
@@ -813,14 +826,73 @@ int TofTAlignPar::LoadFromFile(char *file){
    }
 //---load
    vlfile>>BRun>>ERun;
-   for(int i=0;i<TDVParN;i++){vlfile>>TDVBlock[i];} 
+   int ib=0;
+   for(int i=0;i<TDVParN+1;i++){
+     if(i==TOFCSN::NBARN*2+TOFCSN::NBARN+2)ib--;
+     vlfile>>TDVBlock[ib++];
+   } 
    LoadTDVPar();
    vlfile.close();
    return 0;
 }
 
 //==========================================================
-void TofTAlignInit(){
-  TofTAlignPar::GetHead()->LoadTDVPar();
+void TofTAlignPar::PrintTDV(){
+ cout<<"<<----Print TofTAlignPar"<<endl;
+ for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+ cout<<'\n';
+ cout<<"<<----end of Print TofTAlignPar"<<endl;
+}
+
+//==========================================================
+int   TofRecPar::iLay=0;
+int   TofRecPar::iBar=0;
+const float TofRecPar::FTgate[2]={40,640};
+const float TofRecPar::FTgate2[2]={40,640};
+const float TofRecPar::LHgate[2]={3,11};
+float TofRecPar::TimeSigma[MaxCharge]={
+ 0.16,0.08,0.07,0.06,0.05,0.04,
+};
+
+float TofRecPar::CooSigma[MaxCharge][TOFCSN::SCLRS][TOFCSN::SCMXBR]={
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+//-----
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+//----
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+//---
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+//---
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+//---
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,
+ 2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,  0.,0.,
+};
+//==========================================================
+float TofRecPar::GetTimeSigma(int id,int icha){
+  IdCovert(id);
+  return (icha<=MaxCharge)?TimeSigma[icha-1]:TimeSigma[MaxCharge-1];
+}
+//==========================================================
+float TofRecPar::GetCooSigma(int id,int icha){
+   IdCovert(id);
+   return (icha<=MaxCharge)?CooSigma[icha-1][iLay][iBar]:CooSigma[MaxCharge-1][iLay][iBar];
 }
 //==========================================================

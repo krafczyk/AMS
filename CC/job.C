@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.886 2012/07/09 07:47:08 choutko Exp $
+// $Id: job.C,v 1.887 2012/07/09 22:25:23 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2867,10 +2867,6 @@ void AMSJob::_retof2initjob(){
   //
   //-----------
   if(((CALIB.SubDetInCalib/1000)%10)>0)TOFPedCalib::initb();//OnBoardPeds-calib, runs in normal(not calib) mode
-  if(TFREFFKEY.TFHTDVCalib/10000%10>0){
-     TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
-     TofTAlign->LoadFromFile("/afs/cern.ch/user/q/qyan/work/tofmc/data6/TofTzslw_REC.SO9");
-  }
   //-----------
   AMSTOFCluster::init();
   AMSSCIds::inittable();

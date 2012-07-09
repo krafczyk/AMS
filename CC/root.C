@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.416 2012/07/06 07:50:12 afiasson Exp $
+//  $Id: root.C,v 1.417 2012/07/09 22:25:23 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4318,6 +4318,8 @@ TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
   for(int is=0;is<2;is++){
     Aadc[is]= ptr->_adca[is];
     Rtime[is]=ptr->_sdtm[is];
+    SideBitPat[is]=ptr->_sstatus[is];
+    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=ptr->_adcd[is][ipm];}
   }
   Time= ptr->_timer;
   ETime=ptr->_etimer;
@@ -6051,6 +6053,14 @@ TrTrackR* BetaR::pTrTrack(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
 }
 
+//---TofClusterH
+int TofClusterHR::TRecover(double  tklcoo,int useside,double &tm,double &etm){
+  int idsoft=Layer*1000+Bar*100;
+  unsigned int status=Status;
+  double tms[2];
+  return  TofRecH::TRecover(idsoft,tklcoo,tms,tm,etm,status,useside);
+}
+
 //-------TofBetaPar
 void TofBetaPar::Init(){
   Status=SumHit=UseHit=0;
@@ -6141,7 +6151,8 @@ int BetaHR::BetaReFit(double &beta,double &ebetav,int pattern,int mode,int updat
   int nhit=0;
   int ndiv=1000;
   for(int ilay=0;ilay<4;ilay++){
-      if((GetPattern(ilay))%10==4&&((pattern/ndiv)%10>0)){
+      bool pass1=(((pattern/ndiv)%10>=2)&&(GetClusterHL(ilay))&&((GetClusterHL(ilay)->Status&TOFDBcN::RECOVERED)>0));
+      if(pass1||((GetPattern(ilay))%10==4&&((pattern/ndiv)%10>0))){
         time [nhit]=GetTime(ilay);
         etime[nhit]=GetETime(ilay);
         len  [nhit]=GetTkTFLen(ilay);
