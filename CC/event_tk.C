@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.54 2012/05/13 21:59:47 pzuccon Exp $
+//  $Id: event_tk.C,v 1.54.6.1 2012/07/10 09:20:03 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -41,8 +41,8 @@ void AMSEvent::_retkevent(integer refit){
         TrExtAlignDB::GetHead()->UpdateTkDBc(gettime());
         TrExtAlignDB::GetHead()->UpdateTkDBcDyn(getrun(),gettime(),3);
     }
-
-    TrInnerDzDB::GetHead()->UpdateTkDBc(gettime());
+    if(AMSJob::gethead()->isRealData())
+      TrInnerDzDB::GetHead()->UpdateTkDBc(gettime());
     // Set TkPlaneExt to PG
     TrExtAlignDB::SetAlKind(0);
     

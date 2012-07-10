@@ -76,6 +76,7 @@ int TrInnerDzDB::GetFromTDV( uint Timeid){
   tm* mtim=gmtime_r(&starttime,&begin);
   tm* mtim2=gmtime_r(&endtime,&end);
     
+  printf("TrInnerDzDB::GetFromTDV -W-  111 Loading from TDV\n");  
   AMSTimeID *tid= new AMSTimeID(
 				AMSID("TrInnerDzAlign",1),
 				begin,
@@ -124,7 +125,7 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
   tm end;
   tm* mtim=gmtime_r(&starttime,&begin);
   tm* mtim2=gmtime_r(&endtime,&end);
-    
+  printf("TrInnerDB2Lin2TDV-W- 2222 Loading from TDV\n");  
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),
 		begin,
@@ -176,6 +177,7 @@ int TrInnerDzDB::TDV2DB(){
   tm* mtim=gmtime_r(&starttime,&begin);
   tm* mtim2=gmtime_r(&endtime,&end);
     
+  printf("-WTrInnerDzDB::TDV2DB-333  Loading from TDV\n");  
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),
 		begin,
