@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.53 2012/07/05 14:06:27 pzuccon Exp $
+// $Id: tkdcards.h,v 1.54 2012/07/10 10:09:41 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -152,7 +152,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,2);
+  ClassDef(TRMCFFKEY_DEF,3);
 
 
 };
