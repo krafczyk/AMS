@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.557.4.3 2012/05/24 12:13:14 choutko Exp $
+//  $Id: event.C,v 1.557.4.4 2012/07/10 10:20:15 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2305,6 +2305,10 @@ void AMSEvent::_rerichevent(){
     AMSRichRing::build();
   }
   // LIP reconstruction
+
+  AMSgObj::BookTimer.stop("RERICH");
+
+
   if((RICRECFFKEY.recon[0]/10)%10)
 
     //temporary critical statement
@@ -2322,7 +2326,7 @@ void AMSEvent::_rerichevent(){
     AMSgObj::BookTimer.stop("RERICHLIP");
   }
 
-  AMSgObj::BookTimer.stop("RERICH");
+
 }
 //========================================================================
 void AMSEvent::_reaxevent(){
