@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.88 2012/07/05 23:21:55 oliva Exp $
+//  $Id: geant4.C,v 1.89 2012/07/10 17:25:27 mdelgado Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -687,7 +687,7 @@ void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
   G4ParticleDefinition* particleType = Step->GetTrack()->GetDefinition();
   if(particleType==G4OpticalPhoton::OpticalPhotonDefinition()){
     number phposz=Step->GetPostStepPoint()->GetPosition().z()/cm;
-    if(phposz>-71.62||phposz<71.62){ //tof regin
+    if(phposz>-71.62&&phposz<71.62){ //tof regin
       G4Track* theTrack = Step->GetTrack(); 
       if(theTrack->GetCreatorProcess()->GetProcessName()!="Scintillation"||
 	 theTrack->GetTrackLength()/m>TFMCFFKEY.phtrlcut)
