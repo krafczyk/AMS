@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.121 2012/07/05 14:06:26 pzuccon Exp $
+//  $Id: gmat.C,v 1.121.2.1 2012/07/10 17:23:54 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -224,6 +224,7 @@ void AMSgmat::amsmat(){
 #endif
   mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
   mat.add (new AMSgmat("VACUUMTRD",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
+  mat.add (new AMSgmat("RICHVACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
 
   geant a[]={20.18,12.01,1.01,0};
   geant z[]={10.,6.,1.,0};
@@ -929,7 +930,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
 #ifdef __AMSVMC__
   pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUMTRD",0));  // absorber, Still need to understand why VMC needs VACUUMTRD
 #else
-  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",0));  // absorber
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","RICHVACUUM",0));  // absorber
 #endif
   for(iw=0;iw<RICHDB::entries;iw++)
     {
