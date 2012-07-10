@@ -1,4 +1,4 @@
-//  $Id: Tofsim02.C,v 1.5 2012/06/25 02:56:13 qyan Exp $
+//  $Id: Tofsim02.C,v 1.5.2.1 2012/07/10 11:24:52 choutko Exp $
 
 //Create by Qi Yan 2012/05/01
 // ------------------------------------------------------------
@@ -209,7 +209,6 @@ void TOF2TovtN::build()
       ptrpm=ptrpm->next();//to next
     }//out of loop
 
-    cout<<"<<---TOF New MC Event nphoton="<<nphoton<<endl;
 
          
 //-------

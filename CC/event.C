@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.564.2.1 2012/07/10 10:21:47 mdelgado Exp $
+//  $Id: event.C,v 1.564.2.2 2012/07/10 11:24:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -335,9 +335,9 @@ if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
  }
  _startofrun();
 }
-
+if(AMSJob::gethead()->isRealData()){
 AMSNtuple::readRSetup(this);
-
+}
 
 _retkinitrun();
 _retofinitrun();
@@ -1329,7 +1329,9 @@ void  AMSEvent::write(int trig){
 	      
 	      AMSJob::gethead()->uhend();
 	      AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
+if(AMSJob::gethead()->isRealData()){
 	      AMSNtuple::readRSetup(this);
+}
 	      Barrier()=false;
 	    }
 #pragma omp barrier 
