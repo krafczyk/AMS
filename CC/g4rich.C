@@ -269,13 +269,13 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
   // Follow the standard path if not RICH radiator to vacuum transition
   if(!(Material1->GetName()==aerogel_name) && 
      !(Material1->GetName()==naf_name))
-//    return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
-      return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
+      return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
+//      return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
 
   if(!(Material2->GetName()=="VACUUM"))
-//    return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
-      return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
-   
+     return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
+//   return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
+
   if(!Material1->GetMaterialPropertiesTable() ||
      !Material2->GetMaterialPropertiesTable()){
     aParticleChange.ProposeTrackStatus(fStopAndKill);
@@ -337,8 +337,8 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
   Rindex2=1.00;
   
   // SKIP photons exiting through the lateral sides of the tiles
-//  if(abs(theGlobalNormal[2])<1e-6)  return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
-   if(abs(theGlobalNormal[2])<1e-6)  return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);  
+  if(abs(theGlobalNormal[2])<1e-6)  return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
+//   if(abs(theGlobalNormal[2])<1e-6)  return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);  
 
   DielectricDielectric();
   //  return G4OpBoundaryProcess::PostStepDoIt(aTrack, aStep); //CJD this solves the fucking problem 

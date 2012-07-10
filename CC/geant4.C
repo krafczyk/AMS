@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.88.2.1 2012/07/10 17:23:54 mdelgado Exp $
+//  $Id: geant4.C,v 1.88.2.2 2012/07/10 21:48:53 qyan Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -683,20 +683,6 @@ void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
      
   GCTRAK.istop=0;
 
-  //---TOF Geant4//in case of rich photon cut+photon track length cut
-  G4ParticleDefinition* particleType = Step->GetTrack()->GetDefinition();
-  if(particleType==G4OpticalPhoton::OpticalPhotonDefinition()){
-    number phposz=Step->GetPostStepPoint()->GetPosition().z()/cm;
-    if(phposz>-71.62&&phposz<71.62){ //tof regin
-      G4Track* theTrack = Step->GetTrack(); 
-      if(theTrack->GetCreatorProcess()->GetProcessName()!="Scintillation"||
-	 theTrack->GetTrackLength()/m>TFMCFFKEY.phtrlcut)
-        {theTrack->SetTrackStatus(fStopAndKill);return;}
-      G4String tofn=Step->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-      if(tofn(0)!='T'||tofn(1)!='O'||tofn(2)!='F'||tofn(3)!='P')return;
-    }
-  }
-  //---
 
   /* 
      Some stuff about step
@@ -1206,8 +1192,8 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
     //--new TOF part
     if((G4FFKEY.TFNewGeant4==1)){
       G4ThreeVector phver=aTrack->GetPosition();
-      number phposz=phver.z()/cm;
-      bool IsTof=(phposz>-71.62&&phposz<71.62);//not RICH region
+      G4String volnam=aTrack->GetVolume()->GetName();
+      bool IsTof=(volnam(0)=='T'&&(volnam(1)=='O'||volnam(1)=='F'));//not RICH region
       if(IsTof){
 	if(aTrack->GetCreatorProcess()->GetProcessName()!="Scintillation")return fKill;
 	G4PhysicsTable* PMTEffTable=TofSimUtil::Head->TOFPM_Et;
