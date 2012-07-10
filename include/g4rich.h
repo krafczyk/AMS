@@ -40,8 +40,8 @@ class RichG4Cerenkov: public G4Cerenkov{
 
 #include "G4OpBoundaryProcess.hh"
 #include "g4tof.h"
-//class RichG4OpBoundaryProcess: public G4OpBoundaryProcess{
-class RichG4OpBoundaryProcess: public TOFG4OpBoundaryProcess{
+class RichG4OpBoundaryProcess: public G4OpBoundaryProcess{
+//class RichG4OpBoundaryProcess: public TOFG4OpBoundaryProcess{
  public:
   G4double Rindex1;
   G4double Rindex2;
@@ -55,8 +55,8 @@ class RichG4OpBoundaryProcess: public TOFG4OpBoundaryProcess{
 
   RichG4OpBoundaryProcess(const G4String& processName = "OpBoundary",
 			  G4ProcessType type = fOptical):
-//    G4OpBoundaryProcess(processName,type){};
-  TOFG4OpBoundaryProcess(processName,type){};
+    G4OpBoundaryProcess(processName,type){};
+//  TOFG4OpBoundaryProcess(processName,type){};
   G4VParticleChange* PostStepDoIt(const G4Track& aTrack,
 				  const G4Step&  aStep);
 
