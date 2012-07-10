@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.8 2012/07/09 22:25:23 qyan Exp $
+//  $Id: Tofdbc.C,v 1.9 2012/07/10 14:37:06 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -765,7 +765,7 @@ TofTAlignPar *TofTAlignPar::GetHead(){
 
 //===========================================================
 TofTAlignPar::TofTAlignPar(){
-  TDVName="TofTAlign_v2";
+  TDVName="TofAlign2";
   TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1+TOFCSN::NBARN*3);
   TDVBlock=new float[TDVParN];
   TDVSize=TDVParN*sizeof(float);
@@ -773,7 +773,7 @@ TofTAlignPar::TofTAlignPar(){
 
 //===========================================================
 TofTAlignPar::TofTAlignPar(float *arr,int brun,int erun){
-  TDVName="TofTAlign_v2";
+  TDVName="TofAlign2";
   TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1+TOFCSN::NBARN*3);
   TDVBlock=arr;
   TDVSize=TDVParN*sizeof(float);
