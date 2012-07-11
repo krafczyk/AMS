@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.885.2.1 2012/07/09 07:49:25 choutko Exp $
+// $Id: job.C,v 1.885.2.2 2012/07/11 22:54:43 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4074,12 +4074,12 @@ void AMSJob::_timeinitjob(){
     TID.add (new AMSTimeID(AMSID("RichPMTChannelGain",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows*2
 			   *sizeof(RichPMTsManager::_gain[0]),
-			   (void*)&RichPMTsManager::_gain[0],server,1));
+			   (void*)&RichPMTsManager::_gain[0],server,1,isRealData()?0:_Update_RICHPMT));
 
     TID.add (new AMSTimeID(AMSID("RichPMTChannelGainSigma",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows*2
 			   *sizeof(RichPMTsManager::_gain_sigma[0]),
-			   (void*)&RichPMTsManager::_gain_sigma[0],server,isRealData()));
+			   (void*)&RichPMTsManager::_gain_sigma[0],server,isRealData(),isRealData()?0:_Update_RICHPMT));
 
     TID.add (new AMSTimeID(AMSID("RichPMTChannelGainThreshold",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows

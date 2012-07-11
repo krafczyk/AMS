@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.83 2012/05/28 09:00:46 qyan Exp $
+//  $Id: mccluster.C,v 1.83.2.1 2012/07/11 22:54:44 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -293,7 +293,7 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
   
   RichPMTChannel current(channel);
 
-  RichPMTsManager::GetPMT(current.pmt_geom_id).compute_tables(false);  // Make sure that the gain is the correct one
+  //  RichPMTsManager::GetPMT(current.pmt_geom_id).compute_tables(false);  // Make sure that the gain is the correct one
 
   int loops=0;
   do{

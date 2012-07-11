@@ -1038,34 +1038,34 @@ void RichPMT::compute_tables(bool force){
 
 
 geant RichPMT::SimulateSinglePE(int channel,int mode){
-  compute_tables(false); // Update pdfs if some calibration has been updated
+  //  compute_tables(false); // Update pdfs if some calibration has been updated
 
   // Sample from the _cumulative_prob for _address and mode
   geant dummy=0;
   geant value=RNDM(dummy);
   
-  //  return BSearch(channel,mode,value)*_step[channel][mode]; // Does not work!!! Fix!
-  
-  for(int i=0;i<RIC_prob_bins;i++){
-    if(value<=_cumulative_prob[channel][mode][i])
-      return i*_step[channel][mode];
-  }
-  
-  return RIC_prob_bins*_step[channel][mode];  // Just in case
+  return BSearch(channel,mode,value)*_step[channel][mode];
 }
 
 
 int RichPMT::BSearch(int channel,int mode,geant value){
-  int upper=RIC_prob_bins-1;
-  int lower=0;
+  int a=0;
+  int b=RIC_prob_bins-1;
 
-  while(upper-lower>1){
-    int middle=(upper+lower)>>1;
-    if(_cumulative_prob[channel][mode][middle]>value) upper=middle;
-    else if(_cumulative_prob[channel][mode][middle]<value) lower=middle;
-    else break;
+#define v(_x) _cumulative_prob[channel][mode][_x]
+  while(b>a+1){
+    int candidate=(a+b)/2;
+    
+    if(v(candidate)<value) {a=candidate;continue;}
+    if(v(candidate)>value) {b=candidate;continue;}
+    return candidate;
   }
+  return b;
+#undef v
+}
 
-  return upper;
 
+void _Update_RICHPMT(){
+  // Recompute all the tables 
+  for(int i=0;i<RICmaxpmts;i++) RichPMTsManager::GetPMT(i).compute_tables(false);
 }
