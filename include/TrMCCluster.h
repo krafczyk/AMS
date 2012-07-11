@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.17 2012/07/05 23:22:02 oliva Exp $
+//  $Id: TrMCCluster.h,v 1.18 2012/07/11 06:58:57 oliva Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -8,9 +8,9 @@
 ///\brief A class for the rapresentation of the MC stepping in Silicon active material. 
 ///\ingroup tksim
 ///
-///$Date: 2012/07/05 23:22:02 $
+///$Date: 2012/07/11 06:58:57 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -149,7 +149,7 @@ class TrMCClusterR : public TrElem {
   friend class TrDAQMC;
 
   /// ROOT definition
-  ClassDef(TrMCClusterR,4);
+  ClassDef(TrMCClusterR,5);
 };
 
 #endif
