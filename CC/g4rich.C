@@ -353,6 +353,7 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
     
     // Build the vector
     G4ThreeVector direction(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
+    direction.rotateUz(NewMomentum);
     NewMomentum=direction.unit();
   }
   
