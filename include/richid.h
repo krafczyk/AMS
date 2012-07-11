@@ -255,6 +255,8 @@ class RichPMTChannel{
 // - Eliminate the pmtaddh and pmtaddc checks from loading the calibration. Use only
 //   the pmtpos
 
+void _Update_RICHPMT();
+
 #undef _assert
 #endif
 
