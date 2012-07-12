@@ -345,6 +345,17 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
 
   NewMomentum = NewMomentum.unit();
   NewPolarization = NewPolarization.unit();
+
+  if(Material1->GetName()==aerogel_name && G4UniformRand()<RICHDB::scatprob){
+    // Aerogel scattering effect
+    double phi=2*M_PI*G4UniformRand();
+    double theta=sqrt(-2*log(G4UniformRand()))*RICHDB::scatang;
+    
+    // Build the vector
+    G4ThreeVector direction(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
+    direction.rotateUz(NewMomentum);
+    NewMomentum=direction.unit();
+  }
   
   aParticleChange.ProposeMomentumDirection(NewMomentum);
   aParticleChange.ProposePolarization(NewPolarization);
