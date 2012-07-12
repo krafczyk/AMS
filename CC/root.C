@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.416 2012/07/06 07:50:12 afiasson Exp $
+//  $Id: root.C,v 1.416.2.1 2012/07/12 17:45:22 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8,6 +8,7 @@
 #include "TXNetFile.h"
 #include <TChainElement.h>
 #include "TFile.h"
+#include "TMinuit.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -3453,33 +3454,59 @@ float ESENEcalHitsNorm,ESENShowerFootprintXNorm,ESENShowerFootprintYNorm;
 float nEnergyA;
 
 
+namespace EcalShowerR_ZProf {
+  static TMinuit *fMinuit = 0;
+#pragma omp threadprivate(fMinuit)
+};
 
+float zv1[18],xv1[18],errorzv1[18];
+Int_t nbinsv1;
+//______________________________________________________________________________
+Double_t funcv1(float x,Double_t *par)
+{        
+  Double_t value= par[0]*par[1]*TMath::Exp(-par[1]*x)*pow(par[1]*x,par[1]*par[2])/TMath::Gamma(par[1]*par[2]+1.);;
+  return value;
+} 
+//______________________________________________________________________________
+void fcnv1(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
+{
+  //  const Int_t nbins = 18;
+  Int_t i;
+  //calculate chisquare
+  Double_t chisq = 0.;
+  Double_t delta;
+  for (i=0;i<nbinsv1; i++) {
+    delta = (zv1[i]-funcv1(xv1[i],par))/errorzv1[i];
+    chisq += delta*delta;       
+  } 
+  f = chisq;
+} 
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
-	float NewESEv2;
-	float nEnergyC;
-	float nEcalStandaloneEstimator,necalBDT,nMomentum,nEnergyE,nRigInn;
+        float NewESEv2;
+        float nEnergyC;
+        float nEcalStandaloneEstimator,necalBDT,nMomentum,nEnergyE,nRigInn;
 
         NormaliseVariableLAPP();
 
    	float S1totL[18]={-20.};
-   	float S3totL[18]={-20.};
-   	float S5totL[18]={-20.};
+   	float S3totL[18]={-20.}; 
+   	float S5totL[18]={-20.}; 
 
-        // Case Processing version <B584        
+	// Case Processing version <B584
 	if(AMSEventR::Head()->Version()<584)
-                nEnergyA = EnergyA;
-        // Case Processing version >=B584
-        if(AMSEventR::Head()->Version()>=584)                
+        	nEnergyA = EnergyA;
+	// Case Processing version >=B584
+	if(AMSEventR::Head()->Version()>=584)
 		nEnergyA = EnergyA*1000.;
-  
-        float log10E = TMath::Log10(nEnergyA/1000.);
 
+
+        float log10E = TMath::Log10(nEnergyA/1000.);
         if(log10E<0.4 || log10E>3.){
                 return -30.;
         }
 
-   //=== Calcul Layer Sigma
+    //=== Calcul Layer Sigma
     float MapEneDep[18][72];
     float s_cell_w[18];
 
@@ -3512,8 +3539,8 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
           }
         if (LayerEneDep[ilayer] > 0.) LayerMean[ilayer] /= LayerEneDep[ilayer];
         else LayerMean[ilayer] = -1.;
-      }
-
+      } 
+        
     float LayerSigma[18];
     int bcell_i;
     float bcell_lat[18];
@@ -3533,18 +3560,114 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
                 if (((bcell_i-2)>=0)&&((bcell_i+2)<=71)){
                         S1totL[ilayer]=(MapEneDep[ilayer][bcell_i])/LayerEneDep[ilayer];
                         S3totL[ilayer]=(MapEneDep[ilayer][bcell_i-1]+MapEneDep[ilayer][bcell_i]+MapEneDep[ilayer][bcell_i+1])/LayerEneDep[ilayer];
-                        S5totL[ilayer]=(MapEneDep[ilayer][bcell_i-2]+MapEneDep[ilayer][bcell_i-1]+MapEneDep[ilayer][bcell_i]+MapEneDep[ilayer][bcell_i+1]+MapEneDep[ilayer][bcell_i+2])/LayerEneDep[ilayer];
+                        S5totL[ilayer]=(MapEneDep[ilayer][bcell_i-2]+MapEneDep[ilayer][bcell_i-1]+MapEneDep[ilayer][bcell_i]+MapEneDep[ilayer][bcell_i+1]+MapEneDep[ilayer][bcell_i+2])/LayerEneDep[ilayer];     
                 }
         } 
     }
     
+
+   // FIT ZPROFILE
+    float Zprofilev1[4];
+    float ZprofileChi2v1=-1.;
+
+  Zprofilev1[0]=-1.;
+  Zprofilev1[1]=-1.;
+  Zprofilev1[2]=-1.;
+  Zprofilev1[3]=-1.;
+  int necalcl=0;
+  int ihit,cell,plane,proj;
+  int nhits_cl;
+  float etot=0.;
+  float err;
+  float par0,par1,par2;
+  float xmin, xmax;
+  float par[3];
+  float chi2n,chis,zmax1,zmax,xx,yu,yu1,yu2,yu3,xt,fitn,fitval;
+  float frac[18]={0.};
+  float fracv2[18]={0.};
+  float ECalEdepFrac[18]={0.};
+
+   for (Int_t i2dcluster = 0; i2dcluster < NEcal2DCluster(); ++i2dcluster){
+        for (Int_t icluster = 0; icluster < pEcal2DCluster(i2dcluster)->NEcalCluster(); ++icluster){
+            for (Int_t ihit = 0; ihit < pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->NEcalHit(); ++ihit){
+                EcalHitR *hit = pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->pEcalHit(ihit);
+                if (!isnan(hit->Edep)){
+                        ECalEdepFrac[hit->Plane] += hit->Edep;
+			etot += hit->Edep;
+        	}
+      	    }
+	}	
+    }
+  nbinsv1 = 0;
+  if(etot>=0.){
+    par2= 1.05*(log(EnergyE*1000./(8.))-0.5);
+    for(int a=0;a<18;a++){
+      frac[a] = ECalEdepFrac[a]/(EnergyE*1000.);
+      err=(ECalEdepFrac[a]/(EnergyE*1000.))*0.10;
+      if (err<.009&&EnergyD<1000.) err=0.009;
+      if (err<.004&&EnergyD>1000.) err=0.004;
+      if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
+        if((par2>8&&a>4)||(par2<8&&a<15)){
+          zv1[nbinsv1] = frac[a];
+          errorzv1[nbinsv1] = err;
+          xv1[nbinsv1]=(float) a + 0.5;
+          nbinsv1++;
+        }
+      }
+    }
+     Double_t arglist[10];
+      Double_t a1,erra1;
+      // The z values   
+      Double_t zprof[3],errprof[3];
+      xx=-1.;
+      int ix=-1;  
+      float zint=0.;
+      par0=1.;
+      par1=0.5; 
+      float erec0=1000.;
+      Int_t ierflg = 0;
+    if(nbinsv1>3){
+         
+      // par2==zmax if the shower is an electromagnetic shower 
+      // Minuit
+      if (!EcalShowerR_ZProf::fMinuit) {
+#pragma omp critical (tminuit) 
+        EcalShowerR_ZProf::fMinuit = new TMinuit(3);
+      }         
+      TMinuit *minuit = EcalShowerR_ZProf::fMinuit;
         
-        
-                
+      //Set Minuit print Options
+      minuit->SetPrintLevel(-1);
+      minuit->SetFCN(fcnv1);
+      arglist[0]   = 1;
+      minuit->mnexcm("SET ERR", arglist ,1,ierflg);
+      // Set starting values and step sizes for parameters
+      Double_t vstart[3] = {par0,par1,par2};
+      Double_t step[3]   = {0.0001 , 0.0001 , .0001};
+      minuit->mnparm(0, "a1", vstart[0], step[0],0.2*par0,3.*par0,ierflg);
+      minuit->mnparm(1, "a2", vstart[1], step[1],0.,1.,ierflg);
+      minuit->mnparm(2, "a3", vstart[2], step[2],0.5*par2,3.*par2,ierflg);
+      // Now ready for minimization step
+      arglist[0] = 1000;
+      arglist[1] = 1;
+      minuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+      // Print results
+      minuit->GetParameter(0,zprof[0],errprof[0]);
+      minuit->GetParameter(1,zprof[1],errprof[1]);
+      minuit->GetParameter(2,zprof[2],errprof[2]);
+      Double_t amin,edm,errdef;
+      Int_t nvpar,nparx,icstat;
+      minuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+      Zprofilev1[0] = zprof[0];
+      Zprofilev1[2] = zprof[2];
+      Zprofilev1[3] = par2;
+      Zprofilev1[1] = zprof[1];
+      ZprofileChi2v1 = amin/(nbinsv1-3);
+    }
+  
+}
     
 
-    
-        
   ESENEnergyFractionLayer[0] = (EnergyFractionLayer[0] - (0.0293281+log10E*-0.0209319+pow(log10E,2)*-0.00743863+pow(log10E,3)*0.0118679+pow(log10E,4)*-0.00407401+pow(log10E,5)*0.000455905))/( 0.0142375+log10E*0.00526443+pow(log10E,2)*-0.0359919+pow(log10E,3)*0.0329761+pow(log10E,4)*-0.0133547+pow(log10E,5)*0.00258324+pow(log10E,6)*-0.000194743);
   ESENEnergyFractionLayer[1] = (EnergyFractionLayer[1] - (0.0589512+log10E*-0.0105698+pow(log10E,2)*-0.0538665+pow(log10E,3)*0.0424683+pow(log10E,4)*-0.0121717+pow(log10E,5)*0.00123329))/( 0.0227113+log10E*0.0268896+pow(log10E,2)*-0.0854598+pow(log10E,3)*0.0720737+pow(log10E,4)*-0.028848+pow(log10E,5)*0.00569079+pow(log10E,6)*-0.000445795);
   ESENEnergyFractionLayer[2] = (EnergyFractionLayer[2] - (0.113296+log10E*-0.0435857+pow(log10E,2)*-0.0496812+pow(log10E,3)*0.0439499+pow(log10E,4)*-0.0127508+pow(log10E,5)*0.0013001))/( 0.0453848+log10E*-0.00636716+pow(log10E,2)*-0.0536752+pow(log10E,3)*0.055918+pow(log10E,4)*-0.025203+pow(log10E,5)*0.00547468+pow(log10E,6)*-0.000465204);
@@ -3558,7 +3681,7 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
   ESENEnergyFractionLayer[10] = (EnergyFractionLayer[10] - (0.034797+log10E*0.000818035+pow(log10E,2)*0.0619266+pow(log10E,3)*-0.0500295+pow(log10E,4)*0.0174051+pow(log10E,5)*-0.00232639))/( 0.029857+log10E*-0.0147422+pow(log10E,2)*-0.00656914+pow(log10E,3)*0.0192983+pow(log10E,4)*-0.0147657+pow(log10E,5)*0.00475027+pow(log10E,6)*-0.000544009);
   ESENEnergyFractionLayer[11] = (EnergyFractionLayer[11] - (0.0265528+log10E*0.0115914+pow(log10E,2)*0.0302168+pow(log10E,3)*-0.0237653+pow(log10E,4)*0.00888894+pow(log10E,5)*-0.00131228))/( 0.0254383+log10E*-0.00799443+pow(log10E,2)*-0.00911492+pow(log10E,3)*0.0146029+pow(log10E,4)*-0.00848828+pow(log10E,5)*0.00216088+pow(log10E,6)*-0.000196073);
   ESENEnergyFractionLayer[12] = (EnergyFractionLayer[12] - (0.0212208+log10E*0.00603145+pow(log10E,2)*0.0340895+pow(log10E,3)*-0.0285554+pow(log10E,4)*0.0115654+pow(log10E,5)*-0.00171917))/( 0.0209154+log10E*0.00334983+pow(log10E,2)*-0.0323003+pow(log10E,3)*0.0396929+pow(log10E,4)*-0.0209712+pow(log10E,5)*0.00501654+pow(log10E,6)*-0.000444993);
-  ESENEnergyFractionLayer[13] = (EnergyFractionLayer[13] - (0.0161308+log10E*0.00534484+pow(log10E,2)*0.0218018+pow(log10E,3)*-0.0123567+pow(log10E,4)*0.00387449+pow(log10E,5)*-0.000474708))/( 0.0187966+log10E*-0.00206869+pow(log10E,2)*-0.0121325+pow(log10E,3)*0.015188+pow(log10E,4)*-0.00672142+pow(log10E,5)*0.00111737+pow(log10E,6)*-4.2658e-05);  
+  ESENEnergyFractionLayer[13] = (EnergyFractionLayer[13] - (0.0161308+log10E*0.00534484+pow(log10E,2)*0.0218018+pow(log10E,3)*-0.0123567+pow(log10E,4)*0.00387449+pow(log10E,5)*-0.000474708))/( 0.0187966+log10E*-0.00206869+pow(log10E,2)*-0.0121325+pow(log10E,3)*0.015188+pow(log10E,4)*-0.00672142+pow(log10E,5)*0.00111737+pow(log10E,6)*-4.2658e-05);
   ESENEnergyFractionLayer[14] = (EnergyFractionLayer[14] - (0.0118662+log10E*0.00390857+pow(log10E,2)*0.014345+pow(log10E,3)*-0.00556176+pow(log10E,4)*0.00152988+pow(log10E,5)*-0.000172793))/( 0.0160184+log10E*-0.00732929+pow(log10E,2)*0.00556074+pow(log10E,3)*-0.00533376+pow(log10E,4)*0.00497049+pow(log10E,5)*-0.00202253+pow(log10E,6)*0.000274761);
   ESENEnergyFractionLayer[15] = (EnergyFractionLayer[15] - (0.00894285+log10E*0.00723843+pow(log10E,2)*-0.00199131+pow(log10E,3)*0.0107959+pow(log10E,4)*-0.00532545+pow(log10E,5)*0.000851564))/( 0.0126819+log10E*-0.00427508+pow(log10E,2)*0.0116124+pow(log10E,3)*-0.021258+pow(log10E,4)*0.0168832+pow(log10E,5)*-0.00562134+pow(log10E,6)*0.00065933);
   ESENEnergyFractionLayer[16] = (EnergyFractionLayer[16] - (0.00714805+log10E*0.00688464+pow(log10E,2)*-0.005231+pow(log10E,3)*0.0115373+pow(log10E,4)*-0.00518898+pow(log10E,5)*0.000820743))/( 0.0101054+log10E*0.00360477+pow(log10E,2)*-0.0113191+pow(log10E,3)*0.00960592+pow(log10E,4)*-0.0024255+pow(log10E,5)*-8.29438e-06+pow(log10E,6)*4.66736e-05);
@@ -3589,14 +3712,14 @@ ESENZprofile[3] = (Zprofile[3] - (4.50263+log10E*2.34572+pow(log10E,2)*0.143905+
 ESENZprofile[2] = (Zprofile[2] - (3.67016+log10E*2.50798+pow(log10E,2)*-0.107036+pow(log10E,3)*0.18317+pow(log10E,4)*-0.0449247))/( 1.44785+log10E*0.131643+pow(log10E,2)*-1.50198+pow(log10E,3)*2.22714+pow(log10E,4)*-1.11549+pow(log10E,5)*0.179176);
 ESENZprofile[1] = (Zprofile[1] - (0.326949+log10E*0.528463+pow(log10E,2)*-0.670308+pow(log10E,3)*0.339608+pow(log10E,4)*-0.0569746))/( 0.189716+log10E*0.0343689+pow(log10E,2)*-0.251494+pow(log10E,3)*0.255097+pow(log10E,4)*-0.102414+pow(log10E,5)*0.014367);
 ESENZprofile[0] = (Zprofile[0] - (0.976082+log10E*-0.0705222+pow(log10E,2)*0.175072+pow(log10E,3)*-0.0914683+pow(log10E,4)*0.0137933))/( 0.165222+log10E*-0.249009+pow(log10E,2)*0.373086+pow(log10E,3)*-0.254006+pow(log10E,4)*0.0733925+pow(log10E,5)*-0.00739734);
-ESENZprofileChi2 = (ZprofileChi2 - (8.50299+log10E*-13.0275+pow(log10E,2)*8.10907+pow(log10E,3)*-2.32256+pow(log10E,4)*0.254447))/( 3.19023+log10E*-3.17808+pow(log10E,2)*-0.446047+pow(log10E,3)*1.90832+pow(log10E,4)*-0.87448+pow(log10E,5)*0.123363);
+ESENZprofileChi2 = (ZprofileChi2v1 - (8.50299+log10E*-13.0275+pow(log10E,2)*8.10907+pow(log10E,3)*-2.32256+pow(log10E,4)*0.254447))/( 3.19023+log10E*-3.17808+pow(log10E,2)*-0.446047+pow(log10E,3)*1.90832+pow(log10E,4)*-0.87448+pow(log10E,5)*0.123363);
 ESENShowerFootprint[2] = (ShowerFootprint[2] - (6.30702+log10E*2.64898+pow(log10E,2)*-6.91719+pow(log10E,3)*4.00913+pow(log10E,4)*-0.690694))/( 2.57879+log10E*1.61286+pow(log10E,2)*-6.8939+pow(log10E,3)*5.43924+pow(log10E,4)*-1.7182+pow(log10E,5)*0.195773);
 ESENShowerFootprint[1] = (ShowerFootprint[1] - (4.02898+log10E*2.04488+pow(log10E,2)*-3.08223+pow(log10E,3)*1.57129+pow(log10E,4)*-0.256888))/( 1.58523+log10E*-0.295658+pow(log10E,2)*-1.52979+pow(log10E,3)*1.33371+pow(log10E,4)*-0.407086+pow(log10E,5)*0.043129);
 ESENShowerFootprint[0] = (ShowerFootprint[0] - (10.7414+log10E*4.30687+pow(log10E,2)*-10.1444+pow(log10E,3)*5.82378+pow(log10E,4)*-1.00416))/( 3.85793+log10E*0.288424+pow(log10E,2)*-6.63226+pow(log10E,3)*5.81433+pow(log10E,4)*-1.91808+pow(log10E,5)*0.224113);
-ESENShowerLatDisp[2] = (ShowerLatDisp[2] - (19.0553+log10E*54.0248+pow(log10E,2)*-69.1774+pow(log10E,3)*29.9681+pow(log10E,4)*-4.15628))/( 15.5826+log10E*32.9272+pow(log10E,2)*-68.8799+pow(log10E,3)*45.2201+pow(log10E,4)*-12.5163+pow(log10E,5)*1.26381);
-ESENShowerLatDisp[1] = (ShowerLatDisp[1] * (1.+VarLeakYA) - (10.5906+log10E*31.8959+pow(log10E,2)*-35.8796+pow(log10E,3)*13.6127+pow(log10E,4)*-1.66184))/( 8.70862+log10E*17.5474+pow(log10E,2)*-34.899+pow(log10E,3)*22.0739+pow(log10E,4)*-6.09356+pow(log10E,5)*0.634846);
+ESENShowerLatDisp[2] = (ShowerLatDisp[2]* (AMSEventR::Head()->Version()<584?1.:(1.+VarLeakYA)) - (19.0553+log10E*54.0248+pow(log10E,2)*-69.1774+pow(log10E,3)*29.9681+pow(log10E,4)*-4.15628))/( 15.5826+log10E*32.9272+pow(log10E,2)*-68.8799+pow(log10E,3)*45.2201+pow(log10E,4)*-12.5163+pow(log10E,5)*1.26381);
+ESENShowerLatDisp[1] = (ShowerLatDisp[1] * (AMSEventR::Head()->Version()<584?1.:(1.+VarLeakXA)) - (10.5906+log10E*31.8959+pow(log10E,2)*-35.8796+pow(log10E,3)*13.6127+pow(log10E,4)*-1.66184))/( 8.70862+log10E*17.5474+pow(log10E,2)*-34.899+pow(log10E,3)*22.0739+pow(log10E,4)*-6.09356+pow(log10E,5)*0.634846);
 // Remove additionnal correction 
-ESENShowerLatDisp[0] = (ShowerLatDisp[0] * (1.+VarLeakXA) - (29.8002+log10E*88.9076+pow(log10E,2)*-110.919+pow(log10E,3)*46.8499+pow(log10E,4)*-6.38335))/( 19.7325+log10E*41.8142+pow(log10E,2)*-87.4022+pow(log10E,3)*58.9758+pow(log10E,4)*-17.2272+pow(log10E,5)*1.87766);
+ESENShowerLatDisp[0] = (ShowerLatDisp[0] - (29.8002+log10E*88.9076+pow(log10E,2)*-110.919+pow(log10E,3)*46.8499+pow(log10E,4)*-6.38335))/( 19.7325+log10E*41.8142+pow(log10E,2)*-87.4022+pow(log10E,3)*58.9758+pow(log10E,4)*-17.2272+pow(log10E,5)*1.87766);
 if(S5tot[2]) ESENS3S5[2] = (S3tot[2]/S5tot[2] - (0.925137+log10E*-0.100376+pow(log10E,2)*0.125556+pow(log10E,3)*-0.0499635+pow(log10E,4)*0.0065578))/( 0.0537135+log10E*-0.00338936+pow(log10E,2)*-0.0120451+pow(log10E,3)*-0.0114605+pow(log10E,4)*0.0100869+pow(log10E,5)*-0.00179196);
 else ESENS3S5[2] = -20.;
 if(S5tot[1]) ESENS3S5[1] = (S3tot[1]/S5tot[1] - (0.931109+log10E*-0.0265477+pow(log10E,2)*0.0315243+pow(log10E,3)*-0.0115648+pow(log10E,4)*0.00144984))/( 0.0478292+log10E*-0.012534+pow(log10E,2)*-0.0458203+pow(log10E,3)*0.044711+pow(log10E,4)*-0.015465+pow(log10E,5)*0.00188226);
@@ -3621,12 +3744,10 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
 
    float F2LEneDep = 0.; // Energy deposit [GeV] in the first 2 layer
 
-   float NEcalHits = Nhits;
-
+   float NEcalHits = Nhits; 
    float L2LFrac = 0.; // Energy fraction of last 2 layer wrt energy deposit
    float F2LFrac = 0.; // Energy fraction of first 2 layer wrt energy deposit
-
-   float ShowerFootprintX = ShowerFootprint[1];
+   float ShowerFootprintX = ShowerFootprint[1]; 
    float ShowerFootprintY = ShowerFootprint[2];
    float S1S3x  = S13Rpi[0]; // Energy fraction in the cells near the maximum deposit cell on x wrt maximum deposit
    float S1S3y  = S13Rpi[1]; // Energy fraction in the cells near the maximum deposit cell on y wrt maximum deposit
@@ -3634,38 +3755,26 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    float S3toty = S3tot[2];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
    float S5totx = S5tot[1];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
    float S5toty = S5tot[2];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
-
    float R3cmFrac = Energy3C[0]; // Energy fraction in a circle +- 3 cm around maximum wrt to total energy
    float R5cmFrac = Energy3C[1]; // Energy fraction in a circle +- 5 cm around maximum wrt to total energy
-
    float LayerClusterEnergy[nLAYERs];      // Corrected energy deposit [GeV] in each layer (sum of clusters' energy for each layer)
    float LayerTruncClusterEnergy[nLAYERs]; // Corrected energy [GeV] for each layer between 3 sigma from the maximum
-
    float ShowerMean  = 0.; // Longitudinal mean [layer]: (sum_i i*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float ShowerSigma = 0.; // Longitudinal sigma [layer]: TMath::Sqrt((sum_i (i-ShowerMean)^2*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i]))
    float ShowerSkewness = 0.; // Longitudinal skewness [layer^3]: (sum_i (i-ShowerMean)^3*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float ShowerKurtosis = 0.; // Longitudinal kurtosis [layer^4]: (sum_i (i-ShowerMean)^4*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
-
    float LayerEnergy = 0.; // sum_i LayerClusterEnergy[i]
 
    float LayerTruncSigma[nLAYERs]; // Sigma [cell] for each layer, between 3 sigma from the maximum
-
    for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
-   {
-      LayerClusterEnergy[ilayer] = 0.;
+   {      LayerClusterEnergy[ilayer] = 0.;
       for (Int_t icell = 0; icell < nCELLs; ++icell) MapEneDep[ilayer][icell] = 0.;
    }
-
    Int_t n2DCLUSTERs = NEcal2DCluster();
-   for (Int_t i2dcluster = 0; i2dcluster < n2DCLUSTERs; ++i2dcluster)
-   {
+   for (Int_t i2dcluster = 0; i2dcluster < n2DCLUSTERs; ++i2dcluster)   {
       Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
-
-      Int_t nCLUSTERs = cluster2d->NEcalCluster();
-      for (Int_t icluster = 0; icluster < nCLUSTERs; ++icluster)
-      {
-         EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
-
+      Int_t nCLUSTERs = cluster2d->NEcalCluster();      for (Int_t icluster = 0; icluster < nCLUSTERs; ++icluster)
+      {         EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
          LayerClusterEnergy[cluster->Plane] += cluster->Edep;
 
          Int_t nclHITs = cluster->NEcalHit();
@@ -3676,7 +3785,7 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
          }
       }
    }
-
+   
    for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
       for (Int_t icell = 0; icell < nCELLs; ++icell) EneDep += MapEneDep[ilayer][icell];
 
@@ -3688,19 +3797,19 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
       for (Int_t icell = 0; icell < nCELLs; ++icell)
       {
          MapEneDep[ilayer][icell] /= 1000.;
-   
+
          LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
-   
+
          if (ilayer == 16 || ilayer == 17) L2LFrac += MapEneDep[ilayer][icell];
          if (ilayer ==  0 || ilayer ==  1) F2LFrac += MapEneDep[ilayer][icell];
       }
 
-      LayerClusterEnergy[ilayer] /= 1000.; 
+      LayerClusterEnergy[ilayer] /= 1000.;
       LayerEnergy += LayerClusterEnergy[ilayer];
       ShowerMean  += ilayer*LayerClusterEnergy[ilayer];
    }
-   
-   F2LEneDep   = F2LFrac; 
+
+   F2LEneDep   = F2LFrac;
    L2LFrac     = L2LFrac/EneDep;
    F2LFrac     = F2LFrac/EneDep;
    ShowerMean /= LayerEnergy;
@@ -3710,17 +3819,17 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
       ShowerSigma    += TMath::Power(ilayer-ShowerMean, 2)*LayerClusterEnergy[ilayer];
       ShowerSkewness += TMath::Power(ilayer-ShowerMean, 3)*LayerClusterEnergy[ilayer];
       ShowerKurtosis += TMath::Power(ilayer-ShowerMean, 4)*LayerClusterEnergy[ilayer];
-   }  
+   }
    ShowerSigma    /= LayerEnergy;
    ShowerSigma     = TMath::Sqrt(ShowerSigma);
    ShowerSkewness /= LayerEnergy;
    ShowerKurtosis /= LayerEnergy;
-   
+
    float mean;
    float sigma;
    unsigned int ivar = 0;
-      
-      
+
+
    mean = 4.6675+(0.979051*log(EnergyE+1.18325));
    sigma = 0.852135+(-0.0431518*log(EnergyE));
    ESENShowerMeanNorm = (sigma!=0.)?(ShowerMean - mean)/sigma:-10.;
@@ -3728,11 +3837,11 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    mean = 3.53852+(0.0296595*log(EnergyE-4.87199));
    sigma = 0.287891+(-0.0394277*log(EnergyE-4.37052));
    ESENShowerSigmaNorm = (sigma!=0.)?(ShowerSigma - mean)/sigma:-10.;
-            
+
    mean = 50.7688+(-8.72425*log(EnergyE+10.0236));
    sigma = 8.88718+(-0.533865*log(EnergyE-4.9));
    ESENShowerSkewnessNorm = (sigma!=0.)?(ShowerSkewness - mean)/sigma:-10.;
-   
+
    mean = (523.084+(-239.06/EnergyE))+(-59.4085*atan(0.0467487*EnergyE));
    sigma = 141.4+(-61.9827*atan(0.132307*EnergyE));
    ESENShowerKurtosisNorm = (sigma!=0.)?(ShowerKurtosis - mean)/sigma:-10.;
@@ -3744,15 +3853,15 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    mean = 0.00981856+(0.00470305*sqrt(EnergyE-3.35461));
   sigma = 0.0129705+(0.00166802*sqrt(EnergyE+8.22741));
    ESENL2LFracNorm = (sigma!=0.)?(L2LFrac - mean)/sigma:-10.;
-
+         
    mean = -0.00453365+(0.122221*(pow(EnergyE,(float)-0.513752)));
    sigma = -0.00315033+(0.107401*(pow(EnergyE,(float)-0.543919)));
    ESENF2LFracNorm = (sigma!=0.)?(F2LFrac - mean)/sigma:-10.;
-
+         
    mean = 0.972864+(-0.00499681*atan((EnergyE*0.0362795)-0.459303));
    sigma = 0.0104377+(-0.00140507*log(EnergyE-3.97738));
    ESENR3cmFracNorm = (sigma!=0.)?(R3cmFrac - mean)/sigma:-10.;
-
+      
    mean = (1.01319+(-0.00461599*log(EnergyE)))+(-0.113443/(EnergyE+4.50707));
    sigma = 0.0043004+(-0.000536274*log(EnergyE-4.9));
    ESENR5cmFracNorm = (sigma!=0.)?(R5cmFrac - mean)/sigma:-10.;
@@ -3760,15 +3869,15 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    mean = 0.0180086+(-0.0100441*log(EnergyE+9.07422));
    sigma = 0.505472+(-0.311353*atan((0.518772*EnergyE)+3.74849));
    ESENDifoSumNorm = (sigma!=0.)?(DifoSum - mean)/sigma:-10.;
-
+   
    mean = 0.91946+(-0.022189*atan((2.52632*EnergyE)-7.67717));
    sigma = 0.00789299+(0.0720622*(pow(EnergyE,(float)-0.733793)));
    ESENS3totxNorm = (sigma!=0.)?(S3totx - mean)/sigma:-10.;
-
-   mean = (-0.0136692*exp(-0.128828*EnergyE))+0.874554;
+      
+   mean = (-0.0136692*exp(-0.128828*EnergyE))+0.874554; 
    sigma = 0.501058+(-0.314568*atan((1.2783*EnergyE)+2.90362));
    ESENS3totyNorm = (sigma!=0.)?(S3toty - mean)/sigma:-10.;
-
+   
    mean = 0.960591+(-0.00355234*log(EnergyE));
    sigma = 0.0217616+(-0.0107094*atan(0.079457*EnergyE));
    ESENS5totxNorm = (sigma!=0.)?(S5totx - mean)/sigma:-10.;
@@ -3780,19 +3889,18 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    mean = (55.4579+(21.667*log(EnergyE)))+(4.34059*(log(EnergyE)*log(EnergyE)));
    sigma = (6.88496+(0.316054*log(EnergyE)))+(0.349772*(log(EnergyE)*log(EnergyE)));
    ESENEcalHitsNorm = (sigma!=0.)?(NEcalHits - mean)/sigma:-10.;
-
+   
    mean = 3.94369+(0.00837397*(pow(EnergyE,(float)0.888997)));
    sigma = 2.04609+(-1.15052*atan((0.278696*EnergyE)+0.639821));
    ESENShowerFootprintXNorm = (sigma!=0.)?(ShowerFootprintX - mean)/sigma:-10.;
-
+   
    mean = (5.23776+(-0.210765*log(EnergyE)))+(0.00721687*EnergyE);
    sigma = 1.54466+(-0.845935*atan(EnergyE*0.116966));
    ESENShowerFootprintYNorm = (sigma!=0.)?(ShowerFootprintY - mean)/sigma:-10.;
 
-
   if(isnan(ESENShowerMeanNorm)) ESENShowerMeanNorm = -10.;
    if(isnan(ESENShowerSigmaNorm)) ESENShowerSigmaNorm = -10.;
-   if(isnan(ESENShowerSkewnessNorm)) ESENShowerSkewnessNorm = -10.;
+  if(isnan(ESENShowerSkewnessNorm)) ESENShowerSkewnessNorm = -10.;
    if(isnan(ESENShowerKurtosisNorm)) ESENShowerKurtosisNorm = -10.;
    if(isnan(ESENF2LEneDepNorm)) ESENF2LEneDepNorm = -10.;
    if(isnan(ESENL2LFracNorm)) ESENL2LFracNorm = -10.;
@@ -3807,26 +3915,26 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    if(isnan(ESENEcalHitsNorm)) ESENEcalHitsNorm = -10.;
    if(isnan(ESENShowerFootprintXNorm)) ESENShowerFootprintXNorm = -10.;
    if(isnan(ESENShowerFootprintYNorm)) ESENShowerFootprintYNorm = -10.;
-   
-        TString vname,varset0;
-                if(!NESEreaderv2){
-                        NESEreaderv2 = new TMVA::Reader( "!Color:!Silent" );
 
-                        for(int aa=0;aa<18;aa++){
-                                vname = "N3LayerSigma[";
-                                vname += aa;
-                                vname += "]";
+   TString vname,varset0;
+   if(!NESEreaderv2){
+   	NESEreaderv2 = new TMVA::Reader( "!Color:!Silent" );
+                        
+	for(int aa=0;aa<18;aa++){
+		vname = "N3LayerSigma[";
+                vname += aa;
+                               vname += "]";
                                 NESEreaderv2->AddVariable(vname.Data(),&ESENLayerSigma[aa]);
                         }
-                
+
                         for(int aa=0;aa<18;aa++){
                                 vname = "N3EnergyFractionLayer[";
                                 vname += aa;
                                 vname += "]";
                                 NESEreaderv2->AddVariable(vname.Data(),&ESENEnergyFractionLayer[aa]);
                         }
-   
-        
+
+
                         NESEreaderv2->AddVariable("N2Energy3C2",&ESENEnergy3C2);
                         NESEreaderv2->AddVariable("N2S13R",&ESENS13R);
                         NESEreaderv2->AddVariable("N2Energy3C3",&ESENEnergy3C3);
@@ -3835,8 +3943,8 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         NESEreaderv2->AddVariable("N2S3S5",&ESENS3S5[0]);
                         NESEreaderv2->AddVariable("N2S3S5x",&ESENS3S5[1]);
                         NESEreaderv2->AddVariable("N2S3S5y",&ESENS3S5[2]);
-                        NESEreaderv2->AddVariable("N2ShowerLatDispx",&ESENShowerFootprint[1]);
-                        NESEreaderv2->AddVariable("N2ShowerLatDispy",&ESENShowerFootprint[2]);
+                        NESEreaderv2->AddVariable("N2ShowerLatDispx",&ESENShowerLatDisp[1]);
+                        NESEreaderv2->AddVariable("N2ShowerLatDispy",&ESENShowerLatDisp[2]);
                         NESEreaderv2->AddVariable("N2ShowerFootprint",&ESENShowerFootprint[0]);
                         NESEreaderv2->AddVariable("N2ShowerFootprintx",&ESENShowerFootprint[1]);
                         NESEreaderv2->AddVariable("N2ShowerFootprinty",&ESENShowerFootprint[2]);
@@ -3860,8 +3968,8 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         NESEreaderv2->AddVariable("NEcalHitsNorm",&ESENEcalHitsNorm);
                         NESEreaderv2->AddVariable("ShowerFootprintXNorm",&ESENShowerFootprintXNorm);
                         NESEreaderv2->AddVariable("ShowerFootprintYNorm",&ESENShowerFootprintYNorm);
-
-
+   
+   
                         NESEreaderv2->AddSpectator("EnergyC",&nEnergyC);
                         NESEreaderv2->AddSpectator("EcalStandaloneEstimator",&nEcalStandaloneEstimator);
                         NESEreaderv2->AddSpectator("ecalBDT",&necalBDT);
@@ -3869,36 +3977,34 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         NESEreaderv2->AddSpectator("EnergyA",&nEnergyA);
                         NESEreaderv2->AddSpectator("EnergyE",&nEnergyE);
                         NESEreaderv2->AddSpectator("RigInn",&nRigInn);
-
-
+                        
+                                
                         char name[801]="";
                         sprintf(name,"%s/%s/TMVA_ePrej_V3_12_BCat.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
                         NESEreaderv2->BookMVA("BCat method" , name);
-                }
+                }       
 
-
+                        
         float vMean[11] = {0.,0.,0.0806513,0.0840544,0.101147,0.0780171,0.107208,0.164722,0.229185,0.230659,0.17618};
         float vRMS[11] = {1.,1.,0.0374293,0.0319869,0.0365631,0.0359361,0.0458087,0.0721709,0.0926243,0.116207,0.0721707};
-
-        if(log10E>=2.5){
+        
+        if(log10E>=2.5){        
                 log10E = 2.4;
                 nEnergyA = 250000.;
         }
-
         float output = NESEreaderv2->EvaluateMVA("BCat method");
-
-        if(log10E>2.){
+        if(log10E>2.){  
                 return (output-vMean[10])/vRMS[10];
-        }
+        }               
         for(int a=0;a<10;a++){
                 if(log10E>(a*0.2) && log10E<=((a+1)*0.2)){
                         return (output-vMean[a])/vRMS[a];
-                }
-        }
+                }       
+        }               
+        return 0.;      
+                        
+}                       
 
-	return 0.; 
-
-}
 
 
 
