@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404.2.6 2012/07/06 06:49:22 afiasson Exp $
+//  $Id: root.C,v 1.404.2.7 2012/07/12 15:56:51 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8,6 +8,7 @@
 #include "TXNetFile.h"
 #include <TChainElement.h>
 #include "TFile.h"
+#include "TMinuit.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -3379,6 +3380,35 @@ float ESENR5cmFracNorm,ESENDifoSumNorm,ESENS3totxNorm,ESENS3totyNorm,ESENS5totxN
 float ESENEcalHitsNorm,ESENShowerFootprintXNorm,ESENShowerFootprintYNorm;
 float nEnergyA;
 
+
+namespace EcalShowerR_ZProf {
+  static TMinuit *fMinuit = 0;
+#pragma omp threadprivate(fMinuit)
+};
+
+float zv1[18],xv1[18],errorzv1[18];
+Int_t nbinsv1;
+//______________________________________________________________________________
+Double_t funcv1(float x,Double_t *par)
+{        
+  Double_t value= par[0]*par[1]*TMath::Exp(-par[1]*x)*pow(par[1]*x,par[1]*par[2])/TMath::Gamma(par[1]*par[2]+1.);;
+  return value;
+} 
+//______________________________________________________________________________
+void fcnv1(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
+{
+  //  const Int_t nbins = 18;
+  Int_t i;
+  //calculate chisquare
+  Double_t chisq = 0.;
+  Double_t delta;
+  for (i=0;i<nbinsv1; i++) {
+    delta = (zv1[i]-funcv1(xv1[i],par))/errorzv1[i];
+    chisq += delta*delta;       
+  } 
+  f = chisq;
+} 
+
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
         float NewESEv2;
@@ -3464,10 +3494,124 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
     }
     
 
+   // FIT ZPROFILE
+    float Zprofilev1[4];
+    float ZprofileChi2v1=-1.;
+
+  Zprofilev1[0]=-1.;
+  Zprofilev1[1]=-1.;
+  Zprofilev1[2]=-1.;
+  Zprofilev1[3]=-1.;
+  int necalcl=0;
+  int ihit,cell,plane,proj;
+  int nhits_cl;
+  float etot=0.;
+  float err;
+  float par0,par1,par2;
+  float xmin, xmax;
+  float par[3];
+  float chi2n,chis,zmax1,zmax,xx,yu,yu1,yu2,yu3,xt,fitn,fitval;
+  float frac[18]={0.};
+  float fracv2[18]={0.};
+  float ECalEdepFrac[18]={0.};
+
+   for (Int_t i2dcluster = 0; i2dcluster < NEcal2DCluster(); ++i2dcluster){
+        for (Int_t icluster = 0; icluster < pEcal2DCluster(i2dcluster)->NEcalCluster(); ++icluster){
+            for (Int_t ihit = 0; ihit < pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->NEcalHit(); ++ihit){
+                EcalHitR *hit = pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->pEcalHit(ihit);
+                if (!isnan(hit->Edep)){
+                        ECalEdepFrac[hit->Plane] += hit->Edep;
+			etot += hit->Edep;
+        	}
+      	    }
+	}	
+    }
+  nbinsv1 = 0;
+  if(etot>=0.){
+    par2= 1.05*(log(EnergyE*1000./(8.))-0.5);
+    for(int a=0;a<18;a++){
+      frac[a] = ECalEdepFrac[a]/(EnergyE*1000.);
+      err=(ECalEdepFrac[a]/(EnergyE*1000.))*0.10;
+      if (err<.009&&EnergyD<1000.) err=0.009;
+      if (err<.004&&EnergyD>1000.) err=0.004;
+      if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
+        if((par2>8&&a>4)||(par2<8&&a<15)){
+          zv1[nbinsv1] = frac[a];
+          errorzv1[nbinsv1] = err;
+          xv1[nbinsv1]=(float) a + 0.5;
+          nbinsv1++;
+        }
+      }
+    }
+     Double_t arglist[10];
+      Double_t a1,erra1;
+      // The z values   
+      Double_t zprof[3],errprof[3];
+      xx=-1.;
+      int ix=-1;  
+      float zint=0.;
+      par0=1.;
+      par1=0.5; 
+      float erec0=1000.;
+      Int_t ierflg = 0;
+    if(nbinsv1>3){
+         
+      // par2==zmax if the shower is an electromagnetic shower 
+      // Minuit
+      if (!EcalShowerR_ZProf::fMinuit) {
+#pragma omp critical (tminuit) 
+        EcalShowerR_ZProf::fMinuit = new TMinuit(3);
+      }         
+      TMinuit *minuit = EcalShowerR_ZProf::fMinuit;
+        
+      //Set Minuit print Options
+      minuit->SetPrintLevel(-1);
+      minuit->SetFCN(fcnv1);
+      arglist[0]   = 1;
+      minuit->mnexcm("SET ERR", arglist ,1,ierflg);
+      // Set starting values and step sizes for parameters
+      Double_t vstart[3] = {par0,par1,par2};
+      Double_t step[3]   = {0.0001 , 0.0001 , .0001};
+      minuit->mnparm(0, "a1", vstart[0], step[0],0.2*par0,3.*par0,ierflg);
+      minuit->mnparm(1, "a2", vstart[1], step[1],0.,1.,ierflg);
+      minuit->mnparm(2, "a3", vstart[2], step[2],0.5*par2,3.*par2,ierflg);
+      // Now ready for minimization step
+      arglist[0] = 1000;
+      arglist[1] = 1;
+      minuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+      // Print results
+      minuit->GetParameter(0,zprof[0],errprof[0]);
+      minuit->GetParameter(1,zprof[1],errprof[1]);
+      minuit->GetParameter(2,zprof[2],errprof[2]);
+      Double_t amin,edm,errdef;
+      Int_t nvpar,nparx,icstat;
+      minuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+      Zprofilev1[0] = zprof[0];
+      Zprofilev1[2] = zprof[2];
+      Zprofilev1[3] = par2;
+      Zprofilev1[1] = zprof[1];
+      ZprofileChi2v1 = amin/(nbinsv1-3);
+    }
+  
+}
+
+/*
+cout << "chi2 " << ZprofileChi2v1 << endl;
         
                 
         
-                
+for(int a=0;a<18;a++){cout << LayerSigma[a] << " "; }
+cout<<endl;
+for(int a=0;a<18;a++){cout << EnergyFractionLayer[a] << " ";} cout <<endl;
+for(int a=0;a<3 ;a++){cout<< S1tot[a] << " " << S3tot[a] << " " << S5tot[a] << " ";}
+cout << ShowerLatDisp[0] << " "<< (ShowerLatDisp[1]* (AMSEventR::Head()->Version()<584?1.:(1.+VarLeakXA))) << " "<< (ShowerLatDisp[2]* (AMSEventR::Head()->Version()<584?1.:(1.+VarLeakYA))) << " ";
+for(int a=0;a<3 ;a++){cout<< ShowerFootprint[a] << " "<< (S1tot[0]/S3tot[0]) << " " << (S3tot[0]/S5tot[0]) << " ";}
+for(int a=0;a<4;a++)cout << Zprofile[a] << endl ;
+cout << ShowerLongDisp << " ";
+cout << ZprofileChi2 << " " << (Zprofile[2]/Zprofile[3]) << " ";
+cout << S13R << " " << Energy3C[1] << " " << Energy3C[2] << " ";
+cout <<  nEnergyA << " ";
+*/              
     
 
   ESENEnergyFractionLayer[0] = (EnergyFractionLayer[0] - (0.0293281+log10E*-0.0209319+pow(log10E,2)*-0.00743863+pow(log10E,3)*0.0118679+pow(log10E,4)*-0.00407401+pow(log10E,5)*0.000455905))/( 0.0142375+log10E*0.00526443+pow(log10E,2)*-0.0359919+pow(log10E,3)*0.0329761+pow(log10E,4)*-0.0133547+pow(log10E,5)*0.00258324+pow(log10E,6)*-0.000194743);
@@ -3514,14 +3658,14 @@ ESENZprofile[3] = (Zprofile[3] - (4.50263+log10E*2.34572+pow(log10E,2)*0.143905+
 ESENZprofile[2] = (Zprofile[2] - (3.67016+log10E*2.50798+pow(log10E,2)*-0.107036+pow(log10E,3)*0.18317+pow(log10E,4)*-0.0449247))/( 1.44785+log10E*0.131643+pow(log10E,2)*-1.50198+pow(log10E,3)*2.22714+pow(log10E,4)*-1.11549+pow(log10E,5)*0.179176);
 ESENZprofile[1] = (Zprofile[1] - (0.326949+log10E*0.528463+pow(log10E,2)*-0.670308+pow(log10E,3)*0.339608+pow(log10E,4)*-0.0569746))/( 0.189716+log10E*0.0343689+pow(log10E,2)*-0.251494+pow(log10E,3)*0.255097+pow(log10E,4)*-0.102414+pow(log10E,5)*0.014367);
 ESENZprofile[0] = (Zprofile[0] - (0.976082+log10E*-0.0705222+pow(log10E,2)*0.175072+pow(log10E,3)*-0.0914683+pow(log10E,4)*0.0137933))/( 0.165222+log10E*-0.249009+pow(log10E,2)*0.373086+pow(log10E,3)*-0.254006+pow(log10E,4)*0.0733925+pow(log10E,5)*-0.00739734);
-ESENZprofileChi2 = (ZprofileChi2 - (8.50299+log10E*-13.0275+pow(log10E,2)*8.10907+pow(log10E,3)*-2.32256+pow(log10E,4)*0.254447))/( 3.19023+log10E*-3.17808+pow(log10E,2)*-0.446047+pow(log10E,3)*1.90832+pow(log10E,4)*-0.87448+pow(log10E,5)*0.123363);
+ESENZprofileChi2 = (ZprofileChi2v1 - (8.50299+log10E*-13.0275+pow(log10E,2)*8.10907+pow(log10E,3)*-2.32256+pow(log10E,4)*0.254447))/( 3.19023+log10E*-3.17808+pow(log10E,2)*-0.446047+pow(log10E,3)*1.90832+pow(log10E,4)*-0.87448+pow(log10E,5)*0.123363);
 ESENShowerFootprint[2] = (ShowerFootprint[2] - (6.30702+log10E*2.64898+pow(log10E,2)*-6.91719+pow(log10E,3)*4.00913+pow(log10E,4)*-0.690694))/( 2.57879+log10E*1.61286+pow(log10E,2)*-6.8939+pow(log10E,3)*5.43924+pow(log10E,4)*-1.7182+pow(log10E,5)*0.195773);
 ESENShowerFootprint[1] = (ShowerFootprint[1] - (4.02898+log10E*2.04488+pow(log10E,2)*-3.08223+pow(log10E,3)*1.57129+pow(log10E,4)*-0.256888))/( 1.58523+log10E*-0.295658+pow(log10E,2)*-1.52979+pow(log10E,3)*1.33371+pow(log10E,4)*-0.407086+pow(log10E,5)*0.043129);
 ESENShowerFootprint[0] = (ShowerFootprint[0] - (10.7414+log10E*4.30687+pow(log10E,2)*-10.1444+pow(log10E,3)*5.82378+pow(log10E,4)*-1.00416))/( 3.85793+log10E*0.288424+pow(log10E,2)*-6.63226+pow(log10E,3)*5.81433+pow(log10E,4)*-1.91808+pow(log10E,5)*0.224113);
-ESENShowerLatDisp[2] = (ShowerLatDisp[2] - (19.0553+log10E*54.0248+pow(log10E,2)*-69.1774+pow(log10E,3)*29.9681+pow(log10E,4)*-4.15628))/( 15.5826+log10E*32.9272+pow(log10E,2)*-68.8799+pow(log10E,3)*45.2201+pow(log10E,4)*-12.5163+pow(log10E,5)*1.26381);
-ESENShowerLatDisp[1] = (ShowerLatDisp[1] * (1.+VarLeakYA) - (10.5906+log10E*31.8959+pow(log10E,2)*-35.8796+pow(log10E,3)*13.6127+pow(log10E,4)*-1.66184))/( 8.70862+log10E*17.5474+pow(log10E,2)*-34.899+pow(log10E,3)*22.0739+pow(log10E,4)*-6.09356+pow(log10E,5)*0.634846);
+ESENShowerLatDisp[2] = (ShowerLatDisp[2]* (AMSEventR::Head()->Version()<584?1.:(1.+VarLeakYA)) - (19.0553+log10E*54.0248+pow(log10E,2)*-69.1774+pow(log10E,3)*29.9681+pow(log10E,4)*-4.15628))/( 15.5826+log10E*32.9272+pow(log10E,2)*-68.8799+pow(log10E,3)*45.2201+pow(log10E,4)*-12.5163+pow(log10E,5)*1.26381);
+ESENShowerLatDisp[1] = (ShowerLatDisp[1] * (AMSEventR::Head()->Version()<584?1.:(1.+VarLeakXA)) - (10.5906+log10E*31.8959+pow(log10E,2)*-35.8796+pow(log10E,3)*13.6127+pow(log10E,4)*-1.66184))/( 8.70862+log10E*17.5474+pow(log10E,2)*-34.899+pow(log10E,3)*22.0739+pow(log10E,4)*-6.09356+pow(log10E,5)*0.634846);
 // Remove additionnal correction 
-ESENShowerLatDisp[0] = (ShowerLatDisp[0] * (1.+VarLeakXA) - (29.8002+log10E*88.9076+pow(log10E,2)*-110.919+pow(log10E,3)*46.8499+pow(log10E,4)*-6.38335))/( 19.7325+log10E*41.8142+pow(log10E,2)*-87.4022+pow(log10E,3)*58.9758+pow(log10E,4)*-17.2272+pow(log10E,5)*1.87766);
+ESENShowerLatDisp[0] = (ShowerLatDisp[0] - (29.8002+log10E*88.9076+pow(log10E,2)*-110.919+pow(log10E,3)*46.8499+pow(log10E,4)*-6.38335))/( 19.7325+log10E*41.8142+pow(log10E,2)*-87.4022+pow(log10E,3)*58.9758+pow(log10E,4)*-17.2272+pow(log10E,5)*1.87766);
 if(S5tot[2]) ESENS3S5[2] = (S3tot[2]/S5tot[2] - (0.925137+log10E*-0.100376+pow(log10E,2)*0.125556+pow(log10E,3)*-0.0499635+pow(log10E,4)*0.0065578))/( 0.0537135+log10E*-0.00338936+pow(log10E,2)*-0.0120451+pow(log10E,3)*-0.0114605+pow(log10E,4)*0.0100869+pow(log10E,5)*-0.00179196);
 else ESENS3S5[2] = -20.;
 if(S5tot[1]) ESENS3S5[1] = (S3tot[1]/S5tot[1] - (0.931109+log10E*-0.0265477+pow(log10E,2)*0.0315243+pow(log10E,3)*-0.0115648+pow(log10E,4)*0.00144984))/( 0.0478292+log10E*-0.012534+pow(log10E,2)*-0.0458203+pow(log10E,3)*0.044711+pow(log10E,4)*-0.015465+pow(log10E,5)*0.00188226);
@@ -3699,8 +3843,13 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    mean = (5.23776+(-0.210765*log(EnergyE)))+(0.00721687*EnergyE);
    sigma = 1.54466+(-0.845935*atan(EnergyE*0.116966));
    ESENShowerFootprintYNorm = (sigma!=0.)?(ShowerFootprintY - mean)/sigma:-10.;
-   
 
+/*
+cout << ESENShowerMeanNorm << " " << ESENShowerSigmaNorm << endl;
+cout << ESENShowerSkewnessNorm << " " << ESENShowerKurtosisNorm << " " << ESENF2LEneDepNorm << " " << ESENL2LFracNorm << " " << ESENF2LFracNorm << " " << ESENR3cmFracNorm << " ";
+cout << ESENR5cmFracNorm << " " << ESENDifoSumNorm << " " << ESENS3totxNorm << " " << ESENS3totyNorm << " " << ESENS5totxNorm << " " << ESENS5totyNorm << endl;
+cout << ESENEcalHitsNorm << " " << ESENShowerFootprintXNorm << " " << ESENShowerFootprintYNorm << " ";
+*/
   if(isnan(ESENShowerMeanNorm)) ESENShowerMeanNorm = -10.;
    if(isnan(ESENShowerSigmaNorm)) ESENShowerSigmaNorm = -10.;
   if(isnan(ESENShowerSkewnessNorm)) ESENShowerSkewnessNorm = -10.;
@@ -3746,8 +3895,8 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         NESEreaderv2->AddVariable("N2S3S5",&ESENS3S5[0]);
                         NESEreaderv2->AddVariable("N2S3S5x",&ESENS3S5[1]);
                         NESEreaderv2->AddVariable("N2S3S5y",&ESENS3S5[2]);
-                        NESEreaderv2->AddVariable("N2ShowerLatDispx",&ESENShowerFootprint[1]);
-                        NESEreaderv2->AddVariable("N2ShowerLatDispy",&ESENShowerFootprint[2]);
+                        NESEreaderv2->AddVariable("N2ShowerLatDispx",&ESENShowerLatDisp[1]);
+                        NESEreaderv2->AddVariable("N2ShowerLatDispy",&ESENShowerLatDisp[2]);
                         NESEreaderv2->AddVariable("N2ShowerFootprint",&ESENShowerFootprint[0]);
                         NESEreaderv2->AddVariable("N2ShowerFootprintx",&ESENShowerFootprint[1]);
                         NESEreaderv2->AddVariable("N2ShowerFootprinty",&ESENShowerFootprint[2]);
@@ -3790,12 +3939,26 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         
         float vMean[11] = {0.,0.,0.0806513,0.0840544,0.101147,0.0780171,0.107208,0.164722,0.229185,0.230659,0.17618};
         float vRMS[11] = {1.,1.,0.0374293,0.0319869,0.0365631,0.0359361,0.0458087,0.0721709,0.0926243,0.116207,0.0721707};
-                                
+/*                        
+// Debug
+for(int a=0;a<18;a++){cout << ESENLayerSigma[a] << " " << ESENEnergyFractionLayer[a] << " ";}
+for(int a=0;a<3 ;a++){cout<< ESENS1tot[a] << " " << ESENS3tot[a] << " " << ESENS5tot[a] << " " << ESENShowerLatDisp[a] << " "<< ESENShowerFootprint[a] << " "<< ESENS1S3[a] << " " << ESENS3S5[a] << " ";}
+for(int a=0;a<4;a++)cout << ESENZprofile[a] << endl ;
+cout << ESENShowerLongDisp << " ";
+cout << ESENZprofileChi2 << " " << ESENZProfileMaxRatio << " ";
+cout << ESENS13R << " " << ESENEnergy3C2 << " " << ESENEnergy3C3 << " " << ESENShowerMeanNorm << " " << ESENShowerSigmaNorm << endl;
+cout << ESENShowerSkewnessNorm << " " << ESENShowerKurtosisNorm << " " << ESENF2LEneDepNorm << " " << ESENL2LFracNorm << " " << ESENF2LFracNorm << " " << ESENR3cmFracNorm << " ";
+cout << ESENR5cmFracNorm << " " << ESENDifoSumNorm << " " << ESENS3totxNorm << " " << ESENS3totyNorm << " " << ESENS5totxNorm << " " << ESENS5totyNorm << endl;
+cout << ESENEcalHitsNorm << " " << ESENShowerFootprintXNorm << " " << ESENShowerFootprintYNorm << " ";
+cout <<  nEnergyA << " ";
+*/
+        
         if(log10E>=2.5){        
                 log10E = 2.4;
                 nEnergyA = 250000.;
         }
         float output = NESEreaderv2->EvaluateMVA("BCat method");
+//	cout << output << endl ;
         if(log10E>2.){  
                 return (output-vMean[10])/vRMS[10];
         }               
