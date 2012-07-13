@@ -1881,7 +1881,13 @@ class RemoteClient:
         #
         gb=0
         outputpath='xyz'
-        rescue=self.CheckFS(1,360,path)
+        ct=360
+        if(idisk!=None):
+            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and disk ='%s'ORDER BY priority DESC, available " %(path,idisk)
+            ret=self.sqlserver.Query(sql)
+            if(len(ret)<=0):
+                ct=1
+        rescue=self.CheckFS(1,ct,path)
         if(idisk!=None):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and disk ='%s'ORDER BY priority DESC, available " %(path,idisk)
             ret=self.sqlserver.Query(sql)
