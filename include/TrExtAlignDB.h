@@ -1,10 +1,11 @@
-//  $Id: TrExtAlignDB.h,v 1.25 2012/07/06 11:54:26 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.25.2.1 2012/07/16 12:17:57 mdelgado Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
 #include <map>
 #include <vector>
 #include "TObject.h"
+#include "TrRecHit.h"
 
 /// Repesentation of the plane alignement pars
 class TrExtAlignPar: public TObject{
@@ -361,6 +362,10 @@ public:
   }
   /// Recalculate the coordinates of all the hits of external planes according to a given alignment (0=PG, 1=CIEMA,T 2=NO_ALIGNAMENT)
   static int RecalcAllExtHitCoo(int kind);
+
+  /// Return the difference in the hit position between PG and CIEMAT alignments (CIEMAT-PG)
+  static AMSPoint GetAlDist(TrRecHitR *hit);
+
 
   ClassDef(TrExtAlignDB,3);
 };

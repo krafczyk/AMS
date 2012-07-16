@@ -781,3 +781,23 @@ int TrExtAlignDB::UpdateTDV(uint brun, uint erun, int ver)
   tt->UpdateMe();
   return tt->write(AMSDATADIR.amsdatabase);
 }
+
+
+AMSPoint  TrExtAlignDB::GetAlDist(TrRecHitR *hit){
+  if(!hit) return AMSPoint(0,0,0);
+  if(hit->GetLayerJ()!=1 && hit->GetLayer()!=9) return AMSPoint(0,0,0);
+
+  TrExtAlignDB::SetAlKind(1);
+  UpdateExtLayer(1);
+  AMSPoint MDcoo=hit->GetGlobalCoordinate();
+
+
+  TrExtAlignDB::SetAlKind(0);
+  UpdateExtLayer(0);
+  AMSPoint PGcoo=hit->GetGlobalCoordinate();
+
+  AMSPoint dist=MDcoo-PGcoo;
+  return dist;
+} 
+
+
