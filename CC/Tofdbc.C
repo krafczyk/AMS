@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.7 2012/06/28 23:46:32 qyan Exp $
+//  $Id: Tofdbc.C,v 1.7.2.1 2012/07/16 23:51:36 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -442,7 +442,7 @@ geant TOFPMT::phriset(){
 }
 
 //----------------------------------------------------------
-geant TOFPMT::phseamp(){
+geant TOFPMT::phseamp(integer nph){
   //--SE Amplitude part
  geant semean = 2.8421*TFMCFFKEY.seamref;//amp Mean value~ 5mV*ref
  geant seres=semean*TFMCFFKEY.seamres;//amp RMS value 0.9*mean
@@ -451,11 +451,24 @@ geant TOFPMT::phseamp(){
  geant am=-1;
 
 //---SE Amp-Sample
- do{
-   am=semean+seres*rnormx();
-  }while(am<=0);
-
-  if(RNDM(-1)<selpec)am=am*selref;//low amp part
+ if(nph==1){
+   do{
+     am=semean+seres*rnormx();
+    }while(am<=0);
+    if(RNDM(-1)<selpec)am=am*selref;//low amp part
+  }
+  else {
+     number nphl=nph*selpec; 
+     number nphh=nph*(1.-selpec);
+//---low photon
+     number meanl=nphl*(semean*selref);
+     number sigmal=sqrt(nphl)*(seres*selref);
+//--high photon
+     number meanh=nphh*semean; 
+     number sigmah=sqrt(nphh)*seres;
+//--adding tow part
+     am=meanl+sigmal*rnormx()+meanh+sigmah*rnormx();
+  }
 
   return am;
 } 

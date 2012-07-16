@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.564.2.3 2012/07/11 07:34:10 choutko Exp $
+//  $Id: event.C,v 1.564.2.4 2012/07/16 23:51:37 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1535,8 +1535,16 @@ void AMSEvent::_siamsevent(){
   }
 #endif
   _siecalevent();
-  _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
+   try 
+   {
+    _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
   //                       (TOF+ECAL)-combined FastTrigger(FT), this flag may be used by other subr.
+   }
+   catch (bad_alloc& a){
+      cerr<<" AMSEvent::_sitofevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _sitofevent"<<endl;
+      seterror(2);
+      throw;
+   }
   _sianti2event();//Anti(as TOF) is digitized only by combined FT (checked inside of subr.!)
   _sitrdevent(); 
   _sirichevent();

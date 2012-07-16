@@ -1,10 +1,11 @@
-//  $Id: Tofsim02.C,v 1.5.2.1 2012/07/10 11:24:52 choutko Exp $
+//  $Id: Tofsim02.C,v 1.5.2.2 2012/07/16 23:51:37 qyan Exp $
 
 //Create by Qi Yan 2012/05/01
 // ------------------------------------------------------------
 //      History
 //        Modified:  Adding Geant3 Support 2012/05/16
 //        Modified:                        2012/06/01
+//        Modified:  Using Hist replace AMSlink to save memory  2012/07/17
 // -----------------------------------------------------------
 
 #include "tofdbc02.h"
@@ -36,6 +37,11 @@
 //
 using namespace std;
 //------------------------------------------------------------------
+map<integer,TH1D> TOF2TovtN::phmap;
+map<integer,TH1D>::iterator TOF2TovtN::phmapiter;
+map<integer,TH1D>::iterator TOF2TovtN::phmapitern;
+
+//------------------------------------------------------------------
 void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, geant tofdt,geant stepl,integer parentid){
 
   integer id,pmtid,ibar,ilay,is,ipm,ibtyp,cnum;
@@ -44,8 +50,11 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   geant nel0,nels,nelp;
   int neles,photongen=0;
   integer idivx,nwdivs,npmts;
-  geant phtiml=0,phtim=0,phtims=0,phtimd=0,phtral=0,phene=0,tfpos[3]={0,0,0},tfdir[3]={0,0,0};
+  geant phtral=0,phene=0,tfpos[3]={0,0,0},tfdir[3]={0,0,0};
+  number phtiml=0,phtim=0,phtims=0,phtimd=0;
   char vname[5];
+  char histn[100];
+  number histmax=TOF2GC::SCTBMX*TOF2DBc::fladctb();
   integer ierr(0);
   static geant bthick=0.5*TOF2DBc::plnstr(6);
   static geant convr =TOF2DBc::edep2ph();//
@@ -94,9 +103,21 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
       pmtid =ilay*1000+ibar*100+is*10+ipm;
       if(is==0)sharep=TOFWScanN::scmcscan1[ilay][ibar].getps1(ipm,idivx,r,i1,i2);//share 0side
       else    sharep=TOFWScanN::scmcscan1[ilay][ibar].getps2(ipm,idivx,r,i1,i2);
+      if(sharep>1){cout<<"<<----TOF Error Share"<<endl;sharep=1;}
       nelp=nels*sharep;
       //            cout<<"nelp="<<nelp<<endl;
       POISSN(nelp,neles,ierr);
+//----Add Map Check
+      if(neles>0){
+         phmapiter=phmap.find(pmtid);
+         if(phmapiter==phmap.end()){
+             sprintf(histn,"TOFPh_id%d",pmtid);
+             pair<integer,TH1D>phelem(pmtid,TH1D(histn,histn,TOF2GC::SCTBMX,0.,histmax));
+             phmap.insert(phelem);
+         }
+       }
+       TH1D *hph=&phmap[pmtid];
+//-----
       //            cout<<"pmt="<<ipm<<" sum pmt phton="<<neles<<endl;
       for(i=0;i<neles;i++){//for each side
          rand=RNDM(-1); 
@@ -107,14 +128,19 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
 	 phtimd=TOFPMT::phriset();//photon rise time+decay time
 	 if(is==0)phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm1(idivx,r,i1,i2);
 	 else     phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm2(idivx,r,i1,i2);
-	 if(G4FFKEY.TFNewGeant4>0)phtim=time+phtims+phtimd+phtiml;
-         else                     phtim=time+phtiml; 
+	 phtim=time+phtims+phtimd+phtiml;
 /*         if(phtim>500){
              cout<<"ilay ibar is ipm idiv i1 i2"<<ilay<<" "<<ibar<<" "<<is<<" "<<ipm<<" "<<idivx<<" "<<i1<<" "<<i2<<endl;
              cout<<" time="<<time<<" phtims="<<phtims<<" phtimd="<<phtimd<<" phtiml="<<phtiml<<endl;
           }*/
-	 AMSTOFMCPmtHit::sitofpmthits(pmtid,parentid,phtim,phtiml,phtral,phene,tfpos,tfdir);
-	 photongen++;
+//	AMSTOFMCPmtHit::sitofpmthits(pmtid,parentid,phtim,phtiml,phtral,phene,tfpos,tfdir);
+//---Adding PMT Transmmit Time
+          phtim+=TOFPMT::pmttm[ilay][ibar][is][ipm];//Transmit time Mean about 7.2ns
+          phtim+=TOFPMT::pmtts[ilay][ibar][is][ipm]*rnormx()-1.9;//Transmit time Spread (-1.9) convert to pulse begin time  
+//          phmap[pmtid]
+          hph->Fill(phtim);
+//----
+	  photongen++;
       }
     }//end pmt
   }//end side
@@ -125,7 +151,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
 void TOF2TovtN::build()
 {
   integer id,idd,ibar,ilay,is,ipm,prbar=-1,nowbar=-1;
-  integer i,j,ij;
+  integer i,j,ij,iph,nph;
   uinteger ii;
   geant edep,edepb=-1,time,pmtime,am;
   geant tslice[TOF2GC::PMTSMX][TOF2GC::SCTBMX+1]; //  flash ADC array
@@ -133,6 +159,7 @@ void TOF2TovtN::build()
   geant dummy(-1);int ierr(0);
   integer nhitl[TOF2GC::SCLRS];
   static geant ifadcb=1./TOF2DBc::fladctb();
+  static integer eleth=200;
   static int prlevel=1;
 
   if(prlevel==1){
@@ -145,6 +172,7 @@ void TOF2TovtN::build()
    AMSTOFMCCluster *ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->
                                     getheadC("AMSTOFMCCluster",0,1);
 
+
     for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
        for(i=0;i<=TOF2GC::SCTBMX;i++){
          tslice[ipm][i]=0;
@@ -152,6 +180,8 @@ void TOF2TovtN::build()
     }
     //cout<<"begin totovtn build"<<endl;
     int nphoton=0;
+
+  if(G4FFKEY.TFNewGeant4==1){
     while(ptrpm){
       time=ptrpm->getphtime();//ns
       id=  ptrpm->getpmtid();
@@ -162,10 +192,8 @@ void TOF2TovtN::build()
       nphoton++;
       if(ptrpm==0)cout<<"Error TOF PMT Hit loop"<<endl;
       pmtime=0;
-      if(G4FFKEY.TFNewGeant4>0){//LTRANS already include this item
-        pmtime+=TOFPMT::pmttm[ilay][ibar][is][ipm];//Transmit time Mean about 7.2ns
-        pmtime+=TOFPMT::pmtts[ilay][ibar][is][ipm]*rnormx()-1.9;//Transmit time Spread (-1.9) convert to pulse begin time  
-      }
+      pmtime+=TOFPMT::pmttm[ilay][ibar][is][ipm];//Transmit time Mean about 7.2ns
+      pmtime+=TOFPMT::pmtts[ilay][ibar][is][ipm]*rnormx()-1.9;//Transmit time Spread (-1.9) convert to pulse begin time  
       time+=pmtime;
 //--
       //cout<<"phtime="<<time<<endl;
@@ -208,10 +236,80 @@ void TOF2TovtN::build()
 //---
       ptrpm=ptrpm->next();//to next
     }//out of loop
+  }
 
+//---Table
+  else {
 
-         
+    for(phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++){
+        id=  (*phmapiter).first;
+        ilay=id/1000%10;
+        ibar=id/100%10;
+        is=  id/10%10;
+        ipm= id%10;
+//        cout<<"id="<<id<<endl;
+//--for pmt bin
+        for(ii=1;ii<=(*phmapiter).second.GetNbinsX();ii++){
+           nph=integer((*phmapiter).second.GetBinContent(ii));
+           nphoton+=nph;
+           if(nph<1)continue;//zero photon
+//------sum pulse
+           if(nph<eleth){//few photon
+             for(iph=0;iph<nph;iph++){
+               am=TOFPMT::phseamp();
+               uinteger npulseb=TOFPMT::pmpulse.getnb();
+               for(i=0;i<npulseb;i++){
+                  ij=ii+i;
+                  if(ij>TOF2GC::SCTBMX)continue;
+                  tslice[ipm][ij]+=am*TOFPMT::pmpulse.gety(i+1);
+              }
 //-------
+            }
+          } 
+          else {//too many photon 
+              am=TOFPMT::phseamp(nph);
+              uinteger npulseb=TOFPMT::pmpulse.getnb();
+              for(i=0;i<npulseb;i++){
+                 ij=ii+i;
+                 if(ij>TOF2GC::SCTBMX)continue;
+                 tslice[ipm][ij]+=am*TOFPMT::pmpulse.gety(i+1);
+             }
+          }
+//--end sum onebin
+        }
+
+//---another side
+          phmapitern=phmapiter;
+          phmapitern++;
+         if((phmapitern==phmap.end())||((*(phmapitern)).first/10!=(*phmapiter).first/10)){
+           nowbar=100*(ilay+1)+ibar+1;
+           if(nowbar!=prbar){//recount Edep
+             edepb=0.;//GeV
+             while(ptr){
+               id=ptr->idsoft;
+               if(id>nowbar)break;
+               else if(id==nowbar)edepb+=ptr->edep*1000;//GeV->MeV
+               ptr=ptr->next();
+             }
+             prbar=nowbar;
+             if(edepb>0.)TOF2JobStat::addmc(4);//count fired bars
+           }
+           idd=1000*(ilay+1)+10*(ibar+1)+(is+1);//LBBS
+           if(edepb>TFMCFFKEY.Thr)TOF2TovtN::totovtn(idd,edepb,tslice);//put PMT for side
+           for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
+              for(i=0;i<=TOF2GC::SCTBMX;i++)tslice[ipm][i]=0;
+            }
+         }
+//-----
+     } //another map
+//--
+   } //end all if
+       
+//    cout<<"TFNew MC photon="<<nphoton<<endl;
+//--ready clear phmap
+     phmap.clear();  
+//-------
+
 // <--- arrange in incr.order TOF2TovtN::SumHT/SumSHT-arrays,created by all calls to TOF2TovtN::totovt(...)-routine:
   int nhth;
   for(int ic=0;ic<TOF2GC::SCCRAT;ic++){
