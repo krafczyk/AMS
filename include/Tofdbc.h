@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.6 2012/06/29 08:03:44 qyan Exp $
+//  $Id: Tofdbc.h,v 1.6.2.1 2012/07/16 23:52:37 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -128,7 +128,7 @@ class TOFPMT{
      static geant ansat[TOF2GC::SCLRS][TOF2GC::SCMXBR][2][2];//Anode 2saturation par
      static geant emitt[2];
      static geant phriset();
-     static geant phseamp();
+     static geant phseamp(integer nph=1);
 };  
 
 //=======================================================================
