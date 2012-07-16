@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.26 2012/07/16 12:12:22 mdelgado Exp $
+//  $Id: TrExtAlignDB.h,v 1.27 2012/07/16 12:17:36 mdelgado Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -364,6 +364,7 @@ public:
   /// Recalculate the coordinates of all the hits of external planes according to a given alignment (0=PG, 1=CIEMA,T 2=NO_ALIGNAMENT)
   static int RecalcAllExtHitCoo(int kind);
 
+  /// Return the difference in the hit position between PG and CIEMAT alignments (CIEMAT-PG)
   static AMSPoint  GetAlDist(TrRecHitR *hit);
 
   ClassDef(TrExtAlignDB,3);
