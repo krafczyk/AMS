@@ -1,3 +1,4 @@
+//  $Id: TrdSCalib.h,v 1.20 2012/07/17 21:18:57 choutko Exp $
 #ifndef _TrdSCalib_
 #define _TrdSCalib_
 
@@ -12,7 +13,9 @@
 #include "TrdRawHit.h"
 #include "TrdHRecon.h"
 #include "TrdHTrack.h"
+#ifdef __PGTRACK__
 #include "TrExtAlignDB.h"
+#endif
 #include "TrdKCalib.h"
 //#include "TrdZCalib.h"
 #include "TrdHCalib.h"
