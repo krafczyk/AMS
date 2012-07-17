@@ -1,4 +1,4 @@
-//  $Id: Tofsim02.h,v 1.2 2012/06/25 02:56:02 qyan Exp $
+//  $Id: Tofsim02.h,v 1.3 2012/07/17 00:09:53 qyan Exp $
 // Author Qi Yan. 2010.05.01.
 #ifndef __NEWAMSTOF2SIM__
 #define __NEWAMSTOF2SIM__
@@ -9,9 +9,14 @@
 #include "tofdbc02.h"
 #include <stdlib.h>
 #include <time.h>
+#include <map>
+#include "TH1D.h"
 //===========================================================================
 class TOF2TovtN: public AMSlink{
 public:
+ static map<integer,TH1D>phmap;//photon number map for bar 
+ static map<integer,TH1D>::iterator phmapiter;
+ static map<integer,TH1D>::iterator phmapitern;
  TOF2TovtN(){};
 //
  ~TOF2TovtN(){};
