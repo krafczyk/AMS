@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.22 2012/05/13 21:59:47 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.23 2012/07/17 13:09:08 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2012/05/13 21:59:47 $
+///$Date: 2012/07/17 13:09:08 $
 ///
-/// $Revision: 1.22 $
+/// $Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -245,21 +245,25 @@ int TkSens::GetSens(){
 
   // PZ Add local Z correction for high precision on z-unaligned cases 
   //Get the global coo from the geometry
+  // We donot want this correction for the MC where the Truth rules
   AMSPoint g2;
-  if(IsMC())
-    g2=TkCoo::GetGlobalT(lad_tkid,SensCoo[0],SensCoo[1]);
-  else
-    g2=TkCoo::GetGlobalA(lad_tkid,SensCoo[0],SensCoo[1]);
-  
-  double dz=g2[2]-GlobalCoo[2];
-  if(GlobalDir[2]!=0){
-    g2[0]=GlobalDir[0]/GlobalDir[2]*dz+GlobalCoo[0];
-    g2[1]=GlobalDir[1]/GlobalDir[2]*dz+GlobalCoo[1];
-  }else   {
-    g2[0]=GlobalCoo[0];
-    g2[1]=GlobalCoo[1];
-  }
+  if(IsMC()){
+    
+    g2=GlobalCoo;   //TkCoo::GetGlobalT(lad_tkid,SensCoo[0],SensCoo[1]);
 
+  } else{
+
+    g2=TkCoo::GetGlobalA(lad_tkid,SensCoo[0],SensCoo[1]);
+    
+    double dz=g2[2]-GlobalCoo[2];
+    if(GlobalDir[2]!=0){
+      g2[0]=GlobalDir[0]/GlobalDir[2]*dz+GlobalCoo[0];
+      g2[1]=GlobalDir[1]/GlobalDir[2]*dz+GlobalCoo[1];
+    }else   {
+      g2[0]=GlobalCoo[0];
+      g2[1]=GlobalCoo[1];
+    }
+  }
   //Convolute with the Plane pos in the space
   oo = PRotG*(g2-PPosG);
 
