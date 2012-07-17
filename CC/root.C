@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.418 2012/07/12 17:45:15 afiasson Exp $
+//  $Id: root.C,v 1.419 2012/07/17 18:04:27 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3982,7 +3982,7 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
                         
                                 
                         char name[801]="";
-                        sprintf(name,"%s/%s/TMVA_ePrej_V3_12_BCat.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
+                        sprintf(name,"%s/%s/TMVA_ePrej_V3_12_BCat.vc.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
                         NESEreaderv2->BookMVA("BCat method" , name);
                 }       
    
@@ -7675,6 +7675,7 @@ double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
 return AMSEventR::getsetup()->getISSAtt(roll,pitch,yaw,xtime);
 
 }
+
 int HeaderR::getISSAtt(){
 unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
@@ -7683,6 +7684,15 @@ double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
 return AMSEventR::getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime);
 
 }
+
+int AMSEventR::IsBadRun(const char * reason){
+
+string ss(reason);
+if(!AMSEventR::getsetup())return 2;
+return AMSEventR::getsetup()->IsBadRun(ss,UTime());
+
+}
+
 
    ///<get solar beta angle via geometrical calculation
 double HeaderR::getBetaSun(){

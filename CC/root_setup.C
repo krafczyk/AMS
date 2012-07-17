@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.85 2012/07/04 13:00:07 mduranti Exp $
+//  $Id: root_setup.C,v 1.86 2012/07/17 18:04:27 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -152,9 +152,17 @@ return true;
 }
 void AMSSetupR::Reset(){
 fGPS.clear();
+fGPSWGS84.clear();
 fISSData.clear();
+fISSAtt.clear();
+fDSPError.clear();
+fISSCTRS.clear();
+fISSGTOD.clear();
 fScalers.clear();
+fScalersReturn.clear();
 fLVL1Setup.clear();
+fDynAlignment.clear();
+fBadRun.clear();
 Header a;
 fHeader=a;
 SlowControlR b;
@@ -1377,6 +1385,10 @@ k--;
 
 }
 
+
+
+
+
 int AMSSetupR::getISSAtt(float &roll, float&pitch,float &yaw,double xtime){
 
 if(fISSAtt.size()==0){
@@ -1683,9 +1695,138 @@ a=GPSWGS84R(b);
 
 
 
+int AMSSetupR::IsBadRun(string & reason, unsigned int time){
+int retn=0;
+string mr=reason;
+reason="";
+if(fBadRun.size()==0){
+#ifdef __ROOTSHAREDLIBRARY__
+static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+if(stime!=time){
+stime=time;
+LoadISSBadRun();
+}
+
+#endif
+}
+if (fBadRun.size()==0)return 2;
+pair <BadRun_i,BadRun_i> ret;
+ret=fBadRun.equal_range(fHeader.Run);
+for (BadRun_i it=ret.first;it!=ret.second;++it){
+  BadRun f=it->second;
+  int pos=-1;
+  if(mr.size()>0){
+       pos=f.reason.find(mr);
+  }
+  else pos=0;
+  if(it->first!=f.run){
+     cerr<<"AMSSetupR::IsBadRun-E-LogicError" <<it->first<<" "<<f.run<<endl;
+     return 3;
+  }
+  if((!time || time>=f.begin && time<=f.end) && pos>=0){
+   retn=1;
+   reason+=f.reason;
+   reason+=" ";  
+  }
+ }
+ return retn;
 
 
+}
+#include <dirent.h>
+bool AMSSetupR::LoadISSBadRun(){
+  fBadRun.clear();
+  char AMSl[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+ char * AMSDD=getenv("AMSDataDir");
+ if(!AMSDD || !strlen(AMSDD))AMSDD=AMSl;
+  string amsdd=AMSDD;
+  amsdd+="/BadRuns/"; 
+  int total=0;
+#ifdef __LINUXGNU__
+	dirent64 ** namelistsubdir;
+	int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
+#endif
+#ifdef __DARWIN__
+	dirent ** namelistsubdir;
+	int nptrdir=scandir(amsdd.c_str(),&namelistsubdir,NULL,NULL);
+#endif
+	for(int is=0;is<nptrdir;is++){
+	  TString b(amsdd.c_str());
+	  b+=namelistsubdir[is]->d_name;
+          while(b.Index("_")>=0){b=b(b.Index("_")+1,b.Length());}
+          if(b.Index(":")>=0 && TString(b(0,b.Index(":"))).IsDigit() && TString(b(b.Index(":")+1,b.Length())).IsDigit()){
+           unsigned int bi=atoll(TString(b(0,b.Index(":"))).Data());
+           unsigned int be=atoll(TString(b(b.Index(":")+1,b.Length())));
+           string c=amsdd;
+           c+=  namelistsubdir[is]->d_name;          
+           ifstream ftxt;
+           ftxt.clear();
+           ftxt.open(c.c_str());
+           if(ftxt){
+             cout<<"AMSSetupR::LoadISSBadRuns-I-OpenedFile "<<c<<endl;
+             int totr=0;
+             while(ftxt.get()=='#')ftxt.ignore(1024,'\n');
+             ftxt.seekg(int(ftxt.tellg())-sizeof(char));
+             string ss;
+             ftxt>>ss;
+             while(ss.find(',')<ss.size()){
+              int pos=ss.find(',');
+              TString rg(ss.substr(0,pos).c_str());
+              ss=ss.substr(ss.find(',')+1,ss.size());
+              if(rg.IsDigit()){
+                //  foundrun
+                unsigned int run=atoll(rg.Data());
+                if(run>=bi && run<=be){
+                 fBadRun.insert(make_pair(run,BadRun((c.substr(c.rfind('/')+1,c.rfind('_'))).c_str(),run)));
+                 totr++;
+                 total++; 
+               }
+                else{
+                 cerr<<"AMSSetupR::LoadISSBadRuns-E-runOutOfRange "<<run<<" "<<bi<<" "<<be<<endl;
+                }
+              }
+              else{
+               bool ok=false;
+               TString srun=TString(rg(0,rg.Index("_")));
+               TString sbeg= TString(rg(rg.Index("_")+1,rg.Index(":")-rg.Index("_")-1));
+               TString send=TString(rg(rg.Index(":")+1,rg.Length()-rg.Index(":")-1));
+//               cout <<" srun "<<srun<<endl;
+//               cout <<" sbeg "<<sbeg<<endl;
+//               cout <<" send "<<send<<endl;
+               if(srun.IsDigit() && sbeg.IsDigit() && send.IsDigit()){
+                unsigned int run=atoll(srun);  
+                unsigned int beg=atoll(sbeg);  
+                unsigned int end=atoll(send);  
+//               cout <<"ber "<<beg<<" "<<end<<" "<<run<<" "<<bi<<" "<<be<<" "<<endl;
+                if(beg<=end && run>=bi && run<=be){
+                  fBadRun.insert(make_pair(run,BadRun((c.substr(c.rfind('/')+1,c.rfind('_'))).c_str(),run)));
+                  ok=true;
+                  totr++;
+                  total++; 
+                }         
+               
+               }
+               if(!ok)cerr<<"AMSSetupR::LoadISSBadRuns-E-BadEntryFor "<<c<<" "<<rg<<endl;
+              }
+             
+             } 
+           if(totr){
+                  cout<<"AMSSetupR::LoadISSBadRuns-I-TotalOf "<<totr<<" LoadedFor "<<c<<endl;
+           }  
+           }
+           ftxt.close();
 
+        }
+	  free( namelistsubdir[is]);
+        }
+	if(nptrdir>0){
+	  free (namelistsubdir);
+	}
+                  cout<<"AMSSetupR::LoadISSBadRuns-I-GrandTotalOf "<<total<<" BadRunsLoaded "<<endl;
+
+return total>0;
+}       
 
 int AMSSetupR::getISSGTOD(AMSSetupR::ISSGTOD & a, double xtime){
 if(fISSGTOD.size()==0){

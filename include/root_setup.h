@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.49 2012/07/04 13:27:35 mduranti Exp $
+//  $Id: root_setup.h,v 1.50 2012/07/17 18:04:33 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -269,6 +269,17 @@ ISSCTRSR(const ISSCTRS &a);
 ClassDef(ISSCTRSR,1)       //ISS Solar Arrays Data
 };
 
+class BadRun{
+public:
+ string reason;   // reason why it is bad
+ unsigned int begin; //First Second (unix time)is bad 
+ unsigned int end;   // Last second (unix time) is bad
+ unsigned int run;   // Run number
+BadRun(const char* str, unsigned int r, unsigned int b=0,unsigned int e=4294967295):reason(str),run(r),begin(b),end(e){};
+BadRun():reason(""),begin(0),end(0),run(0){};
+ClassDef(BadRun,1)       //BadRun
+};
+
 class ISSGTOD{
 public:
 float r; ///< r (cm) in GTOD
@@ -400,6 +411,9 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSCTRS> ISSCTRS_m;
  typedef map <unsigned int,ISSGTOD> ISSGTOD_m;
  typedef map <double,ISSAtt> ISSAtt_m;
+ typedef multimap <unsigned int,BadRun> BadRun_m;
+ typedef multimap <unsigned int,BadRun>::iterator BadRun_i;
+  
  //---------------DSP Errors-------------------------
  typedef map <unsigned int, DSPError> DSPError_m;
  //--------------------------------------------------
@@ -413,6 +427,7 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  //--------------------------------------------------
 typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
 typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
+    BadRun_m fBadRun; ///< BadRuns 
     GPS_m fGPS;    ///< GPS Epoch Time
     GPSWGS84_m fGPSWGS84;  ///<  GPS Coo Data        
   ISSData_m fISSData;    ///< ISS Aux Data map
@@ -454,6 +469,25 @@ static int _select ( dirent * entry);
 static int _select (const dirent64 * entry);
 #endif
 public:
+         bool LoadISSBadRun(); ///< Load badruns from $AMSDataDir/Badruns
+         //! BadRuns accessor
+	/*! 
+            
+	 \param unsigned int utime=0 (unix time)
+         \param string  reason input ;  input=="" means any reason ; on output return all reasons matched        
+	     
+             
+           \return 
+               0   GoodRun
+               1   BadRun
+               2   UnableToLoadBadRunList                  
+	 */
+
+  int IsBadRun( string &reason,unsigned int utime=0);
+
+
+         //! ISS Coo & Velocity CTRS accessor
+
          //! ISS Att roll,pitch,yaw accessor
 	/*! 
             
@@ -512,6 +546,9 @@ public:
                1   ok  (extrapolation)
                2   no data                  
 	 */
+
+
+
   int getISSGTOD(ISSGTOD & a, double xtime); 
          //! ISS Solar Angles Accessor
 	/*! 

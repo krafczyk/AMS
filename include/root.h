@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.452 2012/07/09 22:23:47 qyan Exp $
+//  $Id: root.h,v 1.453 2012/07/17 18:04:33 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -318,6 +318,8 @@ public:
   void   Set(EventNtuple02 *ptr);
 #endif
   friend class AMSEventR;
+
+
 
 int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, float dt=0); ///<get AMSSetupR::ISSSA values for the current event time;
 
@@ -4074,6 +4076,8 @@ time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time
                1   bit  set
                2   unable to access root_setup
       */
+
+int IsBadRun(const char * reason); ///< Call AMSSetupR::IsBadRun(string & reason, unsignet in time for the current event time
 int  CheckRunTag(unsigned int bit);///<  Check run tag  
 
 ///

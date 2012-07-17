@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.47 2012/05/04 13:46:49 qyan Exp $
+//  $Id: g4physics.C,v 1.48 2012/07/17 18:04:27 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.47 2012/05/04 13:46:49 qyan Exp $
+// $Id: g4physics.C,v 1.48 2012/07/17 18:04:27 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1104,8 +1104,8 @@ G4int AMSG4Physics::G4toG3(const G4String & particle){
   if(found>0){
     return _pg4tog3[found-1].getid();
   }
-  else if(GetVerboseLevel()){
-    cerr<<"AMSG4Physics::G4toG3-I-NoG3ParticleFoundFor"<<(const char *)(particle)<<endl;
+  else {
+    if(GetVerboseLevel())cerr<<"AMSG4Physics::G4toG3-I-NoG3ParticleFoundFor"<<(const char *)(particle)<<endl;
     return _G3DummyParticle;
   }
 
@@ -1183,7 +1183,7 @@ void AMSG4Physics::_init(){
       }
       else{
 	g3tog4p[ipart]=ppart->FindParticle("xrayphoton");
-	         } 
+     } 
       //       cout <<" b "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
     }
     else{

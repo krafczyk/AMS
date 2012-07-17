@@ -13,6 +13,31 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+
+if(ev->getsetup()){
+string reason="";
+cout <<ev->getsetup()->fHeader.Run<<endl;
+cout << " badrun "<<ev->getsetup()->IsBadRun(reason,ev->UTime())<<" "<<reason<<endl;
+cout << " badrun3 "<<ev->IsBadRun("")<<" "<<endl;
+return true;
+}
+if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
+
+   TrTrackPar algref;
+  Int_t Trfcode[5]={-1,-1,-1,-1,-1};
+  int itrktr = ev->Particle(0).iTrTrack();
+    TrTrackR trktr=ev->TrTrack(itrktr);
+  for (int k=1;k<4;k++){
+  Trfcode[k]=trktr.iTrTrackPar(k,0,2);
+  if(Trfcode[k]>=0){
+    algref=trktr.gTrTrackPar(Trfcode[k]);
+    cout <<" fit "<<k<<" "<<algref.Rigidity<<" "<<algref.Chisq<<" "<<trktr.GetRigidity(4)<<endl;
+  }
+  }
+  return 1;
+}
+else return 0;
+
 if(ev){
 cout<<ev->LiveTime()<<" lt "<<endl;
 return 1;
