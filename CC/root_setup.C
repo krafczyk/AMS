@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.85 2012/07/04 13:00:07 mduranti Exp $
+//  $Id: root_setup.C,v 1.85.2.1 2012/07/17 11:17:15 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -152,9 +152,17 @@ return true;
 }
 void AMSSetupR::Reset(){
 fGPS.clear();
+fGPSWGS84.clear();
 fISSData.clear();
+fISSAtt.clear();
+fDSPError.clear();
+fISSCTRS.clear();
+fISSGTOD.clear();
 fScalers.clear();
+fScalersReturn.clear();
 fLVL1Setup.clear();
+fDynAlignment.clear();
+fRichConfig.clear();
 Header a;
 fHeader=a;
 SlowControlR b;

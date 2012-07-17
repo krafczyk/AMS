@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.564.2.4 2012/07/16 23:51:37 qyan Exp $
+//  $Id: event.C,v 1.564.2.5 2012/07/17 11:17:15 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3373,6 +3373,8 @@ void AMSEvent::Recovery(bool finish){
       int ntry=0;
       const int maxtry=10;
       if(AMSJob::gethead()->isSimulation()){
+        // throw bad memory in any case;
+        throw std::bad_alloc();
         ntry=maxtry;
          mresort=1;
        } 
