@@ -95,10 +95,17 @@ void TrPdfDB::Clear(Option_t* option) {
 
 
 void TrPdfDB::LoadDefaults() {
+static int ld=0;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (ld)
+#endif
+if(ld==0){
   printf("TrPdfDB::LoadDefaults-V Loading default PDFs.\n");
   LoadPierrePdf01(Form("%s/v5.00/tkpdf001mc.root",getenv("AMSDataDir")));
   LoadPierrePdf02();
   // Info();
+  ld=1; 
+}
 }
 
 
