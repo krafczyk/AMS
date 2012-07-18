@@ -1,4 +1,4 @@
-// $Id: TrGainDB.h,v 1.4 2012/04/21 09:29:30 oliva Exp $
+// $Id: TrGainDB.h,v 1.5 2012/07/18 09:40:56 oliva Exp $
 
 #ifndef __TrGainDB__
 #define __TrGainDB__
@@ -177,9 +177,9 @@ class TrGainDB : public TObject {
   void PrintLinear(); 
 
   //! Save in TDV 
-  bool SaveInTDV(long int start_time, long int validity = 31536000);
+  bool SaveInTDV(long int start_time, long int validity = 31536000, int isReal = 1);
   //! Load from TDV
-  int  LoadFromTDV(long int time);
+  int  LoadFromTDV(long int time, int isReal = 1);
 
   //! Apply correction to a strip (very bad VA are excluded)
   float GetGainCorrected(float adc, int tkid, int iva); 

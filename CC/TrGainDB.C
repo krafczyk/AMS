@@ -1,4 +1,4 @@
-// $Id: TrGainDB.C,v 1.3 2012/04/21 09:29:29 oliva Exp $
+// $Id: TrGainDB.C,v 1.4 2012/07/18 09:40:51 oliva Exp $
 
 #include "TrGainDB.h"
 
@@ -212,7 +212,7 @@ void TrGainDB::PrintLinear() {
 }
 
 
-bool TrGainDB::SaveInTDV(long int start_time, long int validity) {
+bool TrGainDB::SaveInTDV(long int start_time, long int validity,int isReal) {
   Init();
   time_t statime = time_t(start_time);
   time_t endtime = time_t(start_time+validity); 
@@ -221,7 +221,7 @@ bool TrGainDB::SaveInTDV(long int start_time, long int validity) {
   localtime_r(&statime,&beg);
   localtime_r(&endtime,&end);
   AMSTimeID* tdv = new AMSTimeID(
-    AMSID("TrackerVAGains",1),beg,end,TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),AMSTimeID::Standalone,1
+    AMSID("TrackerVAGains",isReal),beg,end,TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),AMSTimeID::Standalone,1
   );
   tdv->UpdateMe();
   tdv->write(AMSDATADIR.amsdatabase);
@@ -230,7 +230,7 @@ bool TrGainDB::SaveInTDV(long int start_time, long int validity) {
 } 
 
 
-int TrGainDB::LoadFromTDV(long int time) {
+int TrGainDB::LoadFromTDV(long int time, int isReal) {
   Init();
   time_t tt = time_t(time);
   tm begin;
@@ -242,7 +242,7 @@ int TrGainDB::LoadFromTDV(long int time) {
   end.  tm_mday  = end.  tm_mon = end.  tm_year = 0;
   TkDBc::CreateLinear();
   AMSTimeID *tdv = new AMSTimeID(
-    AMSID("TrackerVAGains",1),begin,end,TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),AMSTimeID::Standalone,1,FunctionLinearToGainDB 
+    AMSID("TrackerVAGains",isReal),begin,end,TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),AMSTimeID::Standalone,1,FunctionLinearToGainDB 
   );
   int ret = tdv->validate(tt);
   if (tdv) delete tdv;
