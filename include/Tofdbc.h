@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.8 2012/07/17 00:09:53 qyan Exp $
+//  $Id: Tofdbc.h,v 1.9 2012/07/19 13:17:53 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -13,6 +13,8 @@
 #include "tofanticonst.h"
 #include "point.h"
 #include <map>
+
+class AMSTimeID;
 
 //--TOF Const 
 namespace TOFCSN{
@@ -317,15 +319,41 @@ class TofRecPar: public TofTDVTool<float>{
      static const  float LHMPV=4.5;  //(LT-HT-MPV) pair window ns
      static const  int   PUXMXCH=3700; //MAX. value of PUX-chip//an(dy)adc chan
      static const  int   MaxCharge=6;     
+     static const  int   BetaHLMatch=0;//require Longitude match or not
+     static const  float BetaHReg[2];//Seach Region of TMatch LMatch(N Sigma)
+     static const  int   BetaHMinL[2];//Min X+Y Match Layer//U+D Match Layer
      static float TimeSigma[MaxCharge];
      static float CooSigma[MaxCharge][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static int   iLay;
      static int   iBar;
+     static int   Idsoft;
  public:
      TofRecPar(){};
      static void  IdCovert(int id){iLay=id/1000%10;iBar=id/100%10;}
+     static void  IdCovert(int ilay,int ibar,int is=0,int ipm=0){Idsoft=1000*ilay+100*ibar+is*10+ipm;}
      static float GetTimeSigma(int id, int icha=1);
      static float GetCooSigma(int id, int icha=1);
 };
+
+//===========================================================
+/// class to Manager All Tof Align
+class TofAlignManager {
+  public:
+   /// all tdv map
+    map<string,AMSTimeID*> tdvmap; 
+    int isreal;//real par or mc
+   
+  public:
+   TofAlignManager(int real);
+   ~TofAlignManager(){};
+   static TofAlignManager *Head;
+   static TofAlignManager *GetHead(int real);
+   static void ClearHead(){if(Head){Head->Clear();delete Head;Head=0;}}
+
+  public:
+    int    Validate(unsigned int time);
+    void   Clear();  
+};
+
 //===========================================================
 #endif

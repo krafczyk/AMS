@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.453 2012/07/17 18:04:33 choutko Exp $
+//  $Id: root.h,v 1.454 2012/07/19 13:17:47 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -934,7 +934,8 @@ ClassDef(TofClusterR,1)       //TofClusterR
 /*
   \author qyan@cern.ch
 */
-class TofClusterHR {
+#include "TrElem.h"
+class TofClusterHR :public TrElem {
    static char _Info[255];
  public:
    /// TOF Counter Bad tag  
@@ -953,6 +954,8 @@ class TofClusterHR {
    float Dadc[2][3];
    /// Non Correct Time(ns)(FT-LT) Side 0-1
    float Rtime[2];
+   /// Correct Time(ns) (FT-LT) Side 0-1 (LT Real Time -Stime)
+   float Stime[2];
    /// Counter Hit Time(ns)(After Caliberation LT-FT+Const)
    float Time;
    /// Counter Hit Time Error(ns)
@@ -982,6 +985,8 @@ class TofClusterHR {
 
   TofClusterHR(){};
   TofClusterHR(int ilay,int ibar):Layer(ilay),Bar(ibar){};
+  TofClusterHR(unsigned int sstatus[2],unsigned int status,int pattern,int idsoft,double adca[2],double adcd[2][3],
+               double sdtm[2],double times[2],double timer,double etimer,AMSPoint coo,AMSPoint ecoo,double edepa,double edepd,TofRawSideR *tfraws[2]);
   TofClusterHR(AMSTOFClusterH *ptr);
   virtual ~TofClusterHR(){};
 
@@ -996,14 +1001,11 @@ class TofClusterHR {
   bool IsGoodTime()     {return (Status&TOFDBcN::BADTIME)==0;}
   /// Recover Time from Hit Position+ one Side Time // Bad Time or Side Lost
   /*!
-    *\1: Init TofTDV:  TofTAlignPar *TPar=TofTAlignPar::GetHead();
-    *\2: ReadTDV:      TPar->ReadTDV(runno);//run No
-    *\3: After 1 2:    Then use this Function
-    *\4: tklcoo[Input]:  longitide hit position to recover 
-    *\5: useside[Input]: Side1 bad(lost)=>useside=0   Side0 bad(lost)=>useside=1
-    *\6: tm etm[Output]: Recover Time+ETime for this Counter
+    *\1: tklcoo[Input]:  longitide hit position to recover 
+    *\2: useside[Input]: Side1 bad(lost)=>useside=0   Side0 bad(lost)=>useside=1
+    *\3: tm etm[Output]: Recover Time+ETime for this Counter
   */
-  int TRecover(double  tklcoo,int useside,double &tm,double &etm);
+  int TRecover(float  tklcoo,int useside,float &tm,float &etm);
   /// Number of BetaHs use this Counter to build 
   /*! 
     *\return 0--this counter not belong to any BetaH  (Matched by zero track)
@@ -1035,14 +1037,33 @@ class TofClusterHR {
   ///\ z=0 don't use z information,  z!=0 include z judgment.
   bool IsInSideBar(float x, float y, float z=0){return  TOFGeom::IsInSideBar(Layer,Bar,x,y,z);}
   //------
+  bool operator<(const TofClusterHR &right){
+    return Layer*1000+Bar*100<(right.Layer*1000+right.Bar*100);
+  }
+  void _PrepareOutput(int opt=0){
+    sout.clear();
+    sout.append("TofClusterHR Info");
+  };
+
+  void Print(int opt=0){
+    _PrepareOutput();
+    cout<<sout<<endl;
+  }
+
   char * Info(int number=-1){
     sprintf(_Info,"TofClusterHR Info");
     return _Info;
   }
+  
+   std::ostream& putout(std::ostream &ostr = std::cout){
+    _PrepareOutput(1);
+    return ostr << sout  << std::endl;
+  };
+
 //-------
   friend class AMSTOFClusterH;
   friend class AMSEventR;
-  ClassDef(TofClusterHR,3)       //TofRawClusterR
+  ClassDef(TofClusterHR,5)       //TofRawClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -2502,7 +2523,7 @@ public:
 /*!
  \author qyan@cern.ch
 */
-class BetaHR {
+class BetaHR: public TrElem{
 
  protected:
 /// BetaH Data
@@ -2512,8 +2533,6 @@ class BetaHR {
   int   fTrTrack;
 /// index to Matched TrdTrack
   int   fTrdTrack;
-/// index to Matched Charge
-  int   fCharge;
 /// indexes of TofClusterHR's used
   vector<int> fTofClusterH;
 /// indexes of 4Layer TofClusterHR's used
@@ -2522,6 +2541,7 @@ class BetaHR {
  public:
   BetaHR(){};
   BetaHR(AMSBetaH *ptr);
+  BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,TofBetaPar betapar);
   virtual ~BetaHR(){};
 
  public:
@@ -2537,9 +2557,6 @@ class BetaHR {
   /// access function to TrdTrackR object Matched
   /// \return pointer to TrdTrackR object or 0
   TrdTrackR * pTrdTrack();
-  /// access function to ChargeR object Matched
-  /// \return index of ChargeR object in collection or -1
-  int iCharge()const {return fCharge;}
     
   /// access function to TofClusterHR objects used
   /// \return number of TofClusterHR used
@@ -2680,11 +2697,32 @@ class BetaHR {
    * \return    Nearest Counter Bar Number
   */
    int FindNearBar(int ilay,float x, float y,float &dis,bool &isinbar,float z=0){return TOFGeom::FindNearBar(ilay,x,y,dis,isinbar,z);}
-//
+
+  void _PrepareOutput(int opt=0){
+    sout.clear();
+    sout.append("BetaHR Info");
+  };
+
+  void Print(int opt=0){
+    _PrepareOutput();
+    cout<<sout<<endl;
+  }
+
+  char * Info(int number=-1){
+    sprintf(_Info,"BetaHR Info");
+    return _Info;
+  }
+
+  std::ostream& putout(std::ostream &ostr = std::cout){
+    _PrepareOutput(1);
+    return ostr << sout  << std::endl;
+  };
+
+  
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,2)
+  ClassDef(BetaHR,3)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        
@@ -2969,6 +3007,8 @@ public:
   /// access function to BetaHR object used
   /// \return pointer to BetaHR object or 0
   BetaHR * pBetaH();
+   // Set BetaH index
+  void setBetaH(int iBetaH){fBetaH=iBetaH;}
 
   /// access function to ChargeR object used
   /// \return index of ChargeR object in collection or -1
