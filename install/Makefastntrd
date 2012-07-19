@@ -163,7 +163,7 @@ $(BIN)RichTools_s.o:	 $(SCC)RichTools.C
 
 $(BIN)rootdict_s.C:    ../include/point.h ../include/linkdefs.h  ../include/root_RVS.h ../include/root.h  ../include/TrElem.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/point.h ../include/root_RVS.h  ../include/amschain.h ../include/VCon.h ../include/TrElem.h  ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/pfunction.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/linkdefs.h 
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/point.h ../include/root_RVS.h  ../include/amschain.h ../include/VCon.h ../include/TrElem.h  ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/pfunction.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h ../include/linkdefs.h 
 	@echo "OK"
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C

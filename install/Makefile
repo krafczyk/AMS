@@ -306,7 +306,7 @@ COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofuser02.C \
 		$(SCC)tofsim02.C   $(SCC)tofdbc02.C   $(SCC)tofcalib02.C \
 		$(SCC)tofid.C      $(SCC)antidbc02.C  $(SCC)antirec02.C \
 		$(SCC)anticalib02.C $(SCC)Tofsim02.C $(SCC)Tofdbc.C \
-		$(SCC)Tofrec02_ihep.C
+		$(SCC)Tofrec02_ihep.C $(SCC)tofhit.C
 
 #ECAL
 COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C \
@@ -377,7 +377,7 @@ ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h ../include/trigger102_set
 
 ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/TrdHCalib.h ../include/TrdHCharge.h ../include/TrdTFit.h ../include/SlowControlDB.h
 
-ROOTDICTFILES += ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h
+ROOTDICTFILES += ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h
 
 ifdef PGTRACK
 ROOTDICTFILES += ../include/TrdSCalib.h ../include/TrdKCalib.h ../include/TrdKHit.h ../include/TrdKCluster.h ../include/TrdKPDF.h
@@ -671,12 +671,12 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/a
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 else
-$(BIN)rootdict.C: ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/root_setup.h ../include/trigger102_setup.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h  ../include/linkdef.h
+$(BIN)rootdict.C: ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/root_setup.h ../include/trigger102_setup.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h  ../include/Tofrec02_ihep.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/linkdef.h
+$(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
 	@echo "OK"
