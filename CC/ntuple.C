@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.254 2012/04/30 09:35:13 choutko Exp $
+//  $Id: ntuple.C,v 1.255 2012/07/19 10:39:15 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -846,6 +846,10 @@ TCanvas* AMSNtuple::TRDPlot(int mode){
 uinteger AMSNtuple::writeRSetup(){
 if( _treesetup){
    try{
+#ifdef __G4AMS__
+        UPool.ReleaseLastResort();
+        OPool.ReleaseLastResort();
+#endif
 	_treesetup->Fill();
 }
     catch(std::bad_alloc a){
