@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.50 2012/07/17 18:04:33 choutko Exp $
+//  $Id: root_setup.h,v 1.51 2012/07/19 10:39:07 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -636,7 +636,7 @@ void Purge();
  //---------------------------------------
 
 
-ClassDef(AMSSetupR,17)       //AMSSetupR
+ClassDef(AMSSetupR,18)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
