@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.6 2012/07/19 13:16:03 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.7 2012/07/19 19:20:15 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -10,38 +10,30 @@
 //        Modified:      2012-july-18  Adding lib refit support module
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
-#include "tofsim02.h"
 #include "tofrec02.h"
-#include "Tofdbc.h"
 #include "tofdbc02.h"
-#include "tofanticonst.h"
 #include "job.h"
 #include "commons.h"
 #include <limits.h>
-#include "amsgobj.h"
-#include "extC.h"
-#include "upool.h"
-#include "ntuple.h"
-#include "trigger302.h"
-#include "event.h"
-#include "trdrec.h"
-#include "charge.h"
+#include "tofsim02.h"
+#include "tofhit.h"
+#include "cern.h"
 #ifdef _PGTRACK_
 #include "tkpatt.h"
 #include "TrRecon.h"
 #endif
 #endif
 #include <math.h>
-#include "cern.h"
 #include "VCon.h"
 #include <algorithm>
+#include "Tofdbc.h"
 #include "Tofrec02_ihep.h"
 
 #ifndef __ROOTSHAREDLIBRARY__
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 #endif
 //========================================================
-//ClassImp(TofRecH)
+ClassImp(TofRecH)
 
 TofBetaPar TofRecH::betapar;
 AMSEventR *TofRecH::ev=0;
@@ -97,13 +89,35 @@ int TofRecH::Init(){
 }
 
 //========================================================
+int TofRecH::ClearBuildTofClH(){
+   tfraws.clear();
+#ifndef __ROOTSHAREDLIBRARY__
+   tf2raws.clear();
+#endif   
+  return 0;
+}
+
+//========================================================
+int TofRecH::ClearBuildBetaH(){
+    for(int ilay=0;ilay<4;ilay++)tofclh[ilay].clear();
+    track.clear();
+    trdtrack.clear();
+#ifndef __ROOTSHAREDLIBRARY__
+    amstrack.clear();
+    amstrdtrack.clear();
+#endif
+   return 0;
+}
+
+//========================================================
 int TofRecH::BuildTofClusterH(){
 
+  ClearBuildTofClH();
 //---  
   cout<<"begin tofclusterh"<<endl;
   integer i,j,hassid;
   integer idd=0,il=0,ib=0,is=0,idsoft=-1,pattern=0,nraws=0,rawindex[2]={-1};
-  int16u stat[2];
+  integer stat[2];
   uinteger sstatus[2]={0},status=0,recovsid[2];
   integer nadcd[2]={0};
   number sdtm[2]={0},adca[2]={0},timers[2]={0},timer=0,etimer=0,edepa=0,edepd=0,edep=0;
@@ -112,15 +126,13 @@ int TofRecH::BuildTofClusterH(){
   vector<number>htdcw[2];
   vector<number>shtdcw[2];
   AMSPoint coo,ecoo;
- 
+
 //---
-  tfraws.clear();
   vector<TofRawClusterR>tfrawcl;
 //-----new cont
   VCon* cont = GetVCon()->GetCont("AMSTOFClusterH");
 
 #ifndef __ROOTSHAREDLIBRARY__
-  tf2raws.clear();
   TOF2RawSide *ptr=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0,1);
   while (ptr){
     tfraws.push_back(TofRawSideR(ptr)); 
@@ -235,6 +247,7 @@ int TofRecH::BuildTofClusterH(){
 
  } //end loop
  delete cont;    
+
  return 0;
 }
 
@@ -343,11 +356,12 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
          if(!ltok)sstatus|=(TOFDBcN::BAD|TOFDBcN::NOMATCHRECOVCAD);
        }
     }
+
    return 0;
 }
 
 //========================================================
-int TofRecH::LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>ltdcw,int hassid){
+int TofRecH::LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>&ltdcw,int hassid){
 
     if((adca[0]<=0)||(adca[1]<=0)||ltdcw.size()<=0)return -1;
 
@@ -431,6 +445,9 @@ int TofRecH::EdepRec(){
 
 //========================================================
 int TofRecH::BuildBetaH(int mode){
+
+    ClearBuildBetaH();
+   
     integer i;
     AMSPoint tkcoo,tfcoo,tfecoo;
     number theta,phi,sleng,mscoo,mlcoo,dscoo,dlcoo,mintm,barw;
@@ -440,12 +457,7 @@ int TofRecH::BuildBetaH(int mode){
     int found=0;//
     int ntracks=0;
 
-//--clear part
-    for(int ilay=0;ilay<4;ilay++)tofclh[ilay].clear();
-    track.clear();
-
     VCon* cont=0;
-
 //--Track Part V5
 #ifdef _PGTRACK_
     cont = GetVCon()->GetCont("AMSTrTrack");
@@ -461,7 +473,6 @@ int TofRecH::BuildBetaH(int mode){
 //--V4 Part
 #else
 #ifndef __ROOTSHAREDLIBRARY__
-    amstrack.clear();
     AMSTrTrack  *ptrack= (AMSTrTrack*)  AMSEvent::gethead()->getheadC("AMSTrTrack",0);
     while (ptrack){
        amstrack.push_back(ptrack);
@@ -475,9 +486,7 @@ int TofRecH::BuildBetaH(int mode){
 #endif
 
 //--Then TrdTrack
-   trdtrack.clear();
 #ifndef __ROOTSHAREDLIBRARY__
-   amstrdtrack.clear();
    AMSTRDTrack *ptrackT=(AMSTRDTrack *)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1);
    while(ptrackT){ 
       trdtrack.push_back(TrdTrackR(ptrackT));
@@ -902,92 +911,5 @@ int  TofRecH::BetaHLink(TrTrackR* ptrack,TrdTrackR *trdtrack){
    }
    return 0;
 }
-//========================================================
-
-
-#ifndef __ROOTSHAREDLIBRARY__
-//========================================================
-void AMSTOFClusterH::_writeEl(){
-#ifdef __WRITEROOT__
-    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
-}
 
 //========================================================
-void AMSTOFClusterH::_copyEl(){
-#ifdef __WRITEROOT__
- if(PointerNotSet())return;
- TofClusterHR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->TofClusterH(_vpos);
-   for(int i=0;i<2;i++){
-      if(_tfraws[i])ptr.fTofRawSide.push_back(_tfraws[i]->GetClonePointer());
-    }
-#endif
-}
-//=======================================================
-integer AMSTOFClusterH::Out(integer status){
-static integer init=0;
-static integer WriteAll=1;
-if(init == 0){
- init=1;
- integer ntrig=AMSJob::gethead()->gettriggerN();
- for(int n=0;n<ntrig;n++){
-   if(strcmp("AMSTOFClusterH",AMSJob::gethead()->gettriggerC(n))==0){
-     WriteAll=1;
-     break;
-   }
- }
-} 
-return (WriteAll || status);
-}
- 
-//======================================================
-void AMSBetaH::_writeEl(){
-#ifdef __WRITEROOT__
-    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
-}
-
-//======================================================
-void AMSBetaH::_copyEl(){
-#ifdef __WRITEROOT__
- if(PointerNotSet())return;
-    BetaHR & ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->BetaH(_vpos);
-    if(_ptrack){
-         ptr.fTrTrack=_ptrack->GetClonePointer();
-     }
-    else {ptr.fTrTrack=-1;}
-//-----
-    if(_ptrdtrack){
-         ptr.fTrdTrack=_ptrdtrack->GetClonePointer();
-     }
-    else {ptr.fTrdTrack=-1;}
-//-----
-    ptr.fTofClusterH.clear(); 
-    for  (int i=0; i<4; i++) {
-      if(_phith[i]){
-         ptr.fTofClusterH.push_back(_phith[i]->GetClonePointer());
-         ptr.fLayer[i]=_phith[i]->GetClonePointer();
-        }
-      else ptr.fLayer[i]=-1;
-    }
-#endif
-}
-
-//======================================================
-integer AMSBetaH::Out(integer status){
-static integer init=0;
-static integer WriteAll=1;
-if(init == 0){
- init=1;
- integer ntrig=AMSJob::gethead()->gettriggerN();
- for(int n=0;n<ntrig;n++){
-   if(strcmp("AMSBetaH",AMSJob::gethead()->gettriggerC(n))==0){
-     WriteAll=1;
-     break;
-   }
- }
-}
-return (WriteAll || status);
-}
-//======================================================
-#endif

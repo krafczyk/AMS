@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.420 2012/07/19 13:17:00 qyan Exp $
+//  $Id: root.C,v 1.421 2012/07/19 19:20:15 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -45,6 +45,7 @@
 #include "trigger302.h"
 #include "trrec.h"
 #include "charge.h"
+#include "tofhit.h"
 #ifndef _PGTRACK_
 #include "vtx.h"
 #else 

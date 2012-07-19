@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.12 2012/07/19 13:16:00 qyan Exp $
+//  $Id: Tofdbc.C,v 1.13 2012/07/19 19:20:14 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -8,6 +8,7 @@
 //        Modified:  TOF New Caliberation TDV Template 2012/06/12
 //        Modified:  Simple Geometry Adding            2012/06/23
 //        Modified:  Reconstruction  Par Adding        2012/07/08
+//        Modified:  TDV Manager         Adding        2012/07/19
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.567 2012/07/19 13:16:29 qyan Exp $
+//  $Id: event.C,v 1.568 2012/07/19 19:20:15 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -70,6 +70,7 @@ extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *v
 #ifdef __G4AMS__
 #include "g4util.h"
 #endif
+#include "tofhit.h"
 #include "Tofrec02_ihep.h"
 
 static geant   Tcpu0 = 0; 
