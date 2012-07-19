@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.28 2012/06/17 16:17:18 qyan Exp $
+//  $Id: charge.h,v 1.29 2012/07/19 19:22:19 qyan Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -21,7 +21,7 @@
 #include "richrec.h"
 #include "trdrec.h"
 #include "TString.h"
-#include "Tofrec02_ihep.h"
+#include "tofhit.h"
 
 using namespace AMSChargConst;
 

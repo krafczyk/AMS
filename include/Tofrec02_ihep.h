@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.4 2012/07/19 13:17:52 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.5 2012/07/19 19:22:19 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -6,11 +6,11 @@
 #include "root.h"
 #include "TObject.h"
 #ifndef __ROOTSHAREDLIBRARY__
-#include "link.h"
-//#include "tofrec02.h"
 //////////////////////////////////////////////////////////////////////////
-class AMSTOFClusterH;
+class TOF2RawSide;
 class AMSCharge;
+class AMSTrTrack;
+class AMSTRDTrack;
 #endif
 class TofBetaPar;
 
@@ -63,6 +63,11 @@ public:
   static int  BuildTofClusterH();
 /// Build BetaH function
   static int  BuildBetaH(int mode=0);
+/// Clear TofClusterH build vector
+  static int  ClearBuildTofClH();
+/// Clear BetaH build vector
+  static int  ClearBuildBetaH();
+
 
 /// TofClusterH Build Part
 public:
@@ -74,7 +79,7 @@ public:
 /// Energy build Module
   static int  EdepRec();
 /// ReFind LT if many LT not Associate with HT
-  static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>ltdcw,int hassid);
+  static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>&ltdcw,int hassid);
 
 /// BetaH Build Part
 public:
@@ -108,88 +113,12 @@ public:
   static bool IdCompare(const pair<integer,integer> &a,const pair<integer,integer> &b){return a.second<b.second;}
 /// ParticleR ChargeR Build Link index to BetaH
   static int  BetaHLink(TrTrackR* ptrack,TrdTrackR *trdtrack);
-#ifdef __WRITEROOT__
+/// friend access
   friend class BetaHR; 
   friend class TofBetaPar; 
-#endif
 
   ClassDef(TofRecH,1)
 };
 
-//////////////////////////////////////////////////////////////////////////
-#ifndef __ROOTSHAREDLIBRARY__
-class AMSTOFClusterH: public AMSlink,public TofClusterHR {
-
-protected:
-    integer  _idsoft;
-    TOF2RawSide *_tfraws[2]; 
-public:
-    AMSTOFClusterH(){};
-    AMSTOFClusterH(uinteger sstatus[2],uinteger status,integer pattern,integer idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],
-                   number sdtm[],number timers[],number timer,number etimer,
-                    AMSPoint coo,AMSPoint ecoo,number edepa,number edepd,TOF2RawSide *tfraws[2]): AMSlink(status)
-                 {
-                      TofRawSideR *raws[2]={0};
-                      TofClusterHR(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,raws);
-                     for(int i=0;i<2;i++)_tfraws[i]=tfraws[i]; _idsoft=idsoft;
-                  }
-     ~AMSTOFClusterH(){};
-     AMSTOFClusterH * next(){ return (AMSTOFClusterH *)_next;}
-      
-public:
-   void _printEl(ostream &stream){stream <<"AMSTOFClusterH "<<_idsoft<<" "<<_status<<endl;}
-   void _writeEl();
-   void _copyEl();
-   static integer Out(integer);
-   integer operator < (AMSlink & o)const{
-      return _idsoft < ((AMSTOFClusterH*)(&o)) ->_idsoft;
-  }
-
-#ifdef __WRITEROOT__
- friend class TofClusterHR;
- friend class AMSBetaH;
- friend class TofRecH;
-#endif
-};
-
-//////////////////////////////////////////////////////////////////////////
-class AMSBetaH: public AMSlink,public BetaHR {
-
-protected:
-   AMSTOFClusterH * _phith[4];
-   AMSTrTrack *     _ptrack;//trdtrack delete not exis/should be careful
-   AMSTRDTrack *    _ptrdtrack;
-   AMSCharge  *     _pcharge;
-
-public:
-    AMSBetaH(){};
-    AMSBetaH(TofClusterHR *phith[4],AMSTrTrack *ptrack,AMSTRDTrack *trdtrack,TofBetaPar betapar):
-         AMSlink(), _ptrack(ptrack),_ptrdtrack(trdtrack),BetaHR(){
-        if((betapar.Status&TOFDBcN::TRDTRACK)==TOFDBcN::TRDTRACK)_ptrack=0;//aleady delete next
-        for(int ilay=0;ilay<4;ilay++){
-           _phith[ilay]=dynamic_cast<AMSTOFClusterH *>(phith[ilay]);
-          if(_phith[ilay]){_phith[ilay]->Status|=TOFDBcN::USED;_phith[ilay]->Pattern+=1000;}
-        }
-        BetaPar=betapar;
-        _pcharge=0;
-       }
-    ~AMSBetaH(){};
-    AMSBetaH *        next(){ return (AMSBetaH *)_next;}
-    AMSTrTrack *      gettrack(){return _ptrack;}
-    AMSTRDTrack*      gettrdtrack(){return _ptrdtrack;} 
-    void              settrdtrack(AMSTRDTrack* ptrdtrack){_ptrdtrack=ptrdtrack;}
-    void              setcharge(AMSCharge *amscharge){_pcharge=amscharge;}
-    const TofBetaPar& getbetapar(){return BetaPar;}   
-public:
-   void  MassRec(number rig=0,number charge=0,number evrig=0,int isubetac=0){TofRecH::MassRec(BetaPar,rig,charge,evrig,isubetac);}
-   void _printEl(ostream &stream){stream <<"BetaH "<<endl;}
-   void _writeEl();
-   void _copyEl();
-   static integer Out(integer);
-   friend class TofRecH;
-};
-#endif
-
-
-
+/////////////////////////////////////////////////////////////////////////
 #endif

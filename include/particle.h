@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.69 2012/06/17 16:17:18 qyan Exp $
+//  $Id: particle.h,v 1.70 2012/07/19 19:22:19 qyan Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -20,6 +20,7 @@
 #include "trdrec.h"
 #include "trdhrec.h"
 #include "richrec.h"
+#include "tofhit.h"
 #include "Tofrec02_ihep.h"
 class AMSVtx;
 

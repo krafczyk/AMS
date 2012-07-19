@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.125 2012/07/17 18:04:33 choutko Exp $
+//  $Id: linkdef.h,v 1.126 2012/07/19 19:22:19 qyan Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -87,15 +87,15 @@
 #pragma link C++ class TrClusterR+;
 #pragma link C++ class TrRecHitR+;
 #pragma link C++ class TrTrackR+;
+//////////////////////////////////////
+#pragma link C++ class TofRecH++;
+//#pragma link C++ class TofTDVTool++;
+//#pragma link C++ class TofTAlignPar++;
+//////////////////////////////////////
 
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class AMSChain+;
 #pragma link C++ class AMSEventList+;
-//////////////////////////////////////
-//#pragma link C++ class TofRecH++
-//#pragma link C++ class TofTDVTool++
-//#pragma link C++ class TofTAlignPar++
-//////////////////////////////////////
 #ifndef _PGTRACK_
 #pragma link C++ class TrHitA+;
 #pragma link C++ class TrTrackA+;
