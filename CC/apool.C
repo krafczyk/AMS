@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.25 2012/03/21 15:43:09 choutko Exp $
+//  $Id: apool.C,v 1.25.8.1 2012/07/19 10:34:35 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -6,7 +6,7 @@
 #include <new>
 
 
-AMSaPool APool(524288);
+//AMSaPool APool(524288);
 #ifndef __UPOOL__
 AMSaPool UPool(524288);
 #endif
@@ -115,7 +115,8 @@ void * AMSaPool::insert(size_t st){
 #pragma omp critical (g1)
         cerr <<" AMSaPool-F-Memory exhausted: Was "<<(_Nblocks-1)*_size<<
 	  " Requested "<<st<<" bytes"<<endl;
-	throw AMSaPoolError("AMSaPool-F-Memory exhausted");
+        ReleaseLastResort();
+	throw; 
 	return 0;
       }
     }
@@ -124,7 +125,8 @@ void * AMSaPool::insert(size_t st){
 #pragma omp critical (g1)
       cerr <<" AMSaPool-F-Memory exhausted bad_alloc: Was "<<(_Nblocks-1)*_size<<
         " Requested "<<st<<" bytes "<<endl;
-      throw AMSaPoolError("AMSaPool-F-Memory exhausted bad alloca");
+      ReleaseLastResort();
+      throw;
       return 0;
     }
   }
@@ -251,9 +253,9 @@ AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),_LRS(0),
 
 
 #ifdef __G4AMS__
-   SetLastResort(100000*30);
+   SetLastResort(20000000);
 #else 
-  SetLastResort(100000);
+  SetLastResort(500000);
 #endif
 
 
@@ -276,16 +278,23 @@ void AMSaPool::SetLastResort(integer i){
   // sets back some memoryheap
   if(_LRS==0){
     _LRS= new integer[i];
+     _LRS[0]=1;
+     _LRS[i-1]=1;
     if(!_LRS){
       cerr<<"AMSaPool::SetLastResort-E-Resort Not Set"<<endl;
     }
+    else{
+    cout<<"AMSaPool::SetLastResort-I-ResortSet "<<i*sizeof(integer)<<endl;
+  }
+   
   }
 }
 
 void AMSaPool::ReleaseLastResort(){
   // Release  memory setted by SetLastResort
   if(_LRS){
-    delete[] _LRS;
+   cout<< "AMSaPool::ReleaseLastResort-I- last resort released "<<endl;
+   delete[] _LRS;
     _LRS=0;
   }
 }
