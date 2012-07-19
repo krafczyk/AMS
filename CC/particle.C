@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.252 2012/06/17 16:15:21 qyan Exp $
+//  $Id: particle.C,v 1.253 2012/07/19 13:16:50 qyan Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -159,7 +159,8 @@ integer AMSParticle::build(integer refit){
           _build(rid,err,charge,beta,ebeta,mass,emass,momentum,emomentum);
 //--Qi Yan
           if(pbetah){
-             TofRecH::MassRec(pbetah->_betapar,rid,charge,err);
+              pbetah->MassRec(rid,charge,err);
+//             TofRecH::MassRec(pbetah->BetaPar,rid,charge,err);
            }
 //----
           ppart=new AMSParticle(pbeta,pbetah, pcharge, ptrack,

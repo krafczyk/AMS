@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.11 2012/07/17 00:12:16 qyan Exp $
+//  $Id: Tofdbc.C,v 1.12 2012/07/19 13:16:00 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -25,8 +25,8 @@
 #include "job.h"
 #endif
 #include "Tofdbc.h"
-#include "timeid.h"
 #include "commonsi.h"
+#include "timeid.h"
 #include <fstream>
 //Overlap
 const float TOFGeom::Overlapw=0.5;//cm
@@ -861,9 +861,13 @@ void TofTAlignPar::PrintTDV(){
 //==========================================================
 int   TofRecPar::iLay=0;
 int   TofRecPar::iBar=0;
+int   TofRecPar::Idsoft=0;
 const float TofRecPar::FTgate[2]={40,640};
 const float TofRecPar::FTgate2[2]={40,640};
 const float TofRecPar::LHgate[2]={3,11};
+const float TofRecPar::BetaHReg[2]={3,3};
+const int   TofRecPar::BetaHMinL[2]={2,2};
+
 float TofRecPar::TimeSigma[MaxCharge]={
  0.154481, 0.0773964, 0.0586908, 0.0499433, 0.0476004, 0.0478878,
 };
@@ -910,4 +914,57 @@ float TofRecPar::GetCooSigma(int id,int icha){
    IdCovert(id);
    return (icha<=MaxCharge)?CooSigma[icha-1][iLay][iBar]:CooSigma[MaxCharge-1][iLay][iBar];
 }
+
 //==========================================================
+TofAlignManager *TofAlignManager::Head=0;
+
+TofAlignManager *TofAlignManager::GetHead(int real){
+    if(!Head){Head = new TofAlignManager(real);}
+    else if(real!=Head->isreal){
+        delete Head;
+        Head = new TofAlignManager(real);
+     }
+    return Head;
+}
+//==========================================================
+TofAlignManager::TofAlignManager(int real){
+//---validate time
+    isreal=real;
+    time_t brun=1;
+    time_t erun=0;
+    tm begin;
+    tm end;
+    gmtime_r(&brun, &begin);
+    gmtime_r(&erun, &end);
+    AMSTimeID::CType server=AMSTimeID::Standalone;
+
+//----Insert
+    TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
+    AMSTimeID *tdv=new AMSTimeID(AMSID(TofTAlign->TDVName,isreal),begin,end,
+                              TofTAlign->TDVSize,
+                              TofTAlign->TDVBlock,
+                              server,1,TofTAlignPar::HeadLoadTDVPar);
+    tdvmap.insert(pair<string,AMSTimeID*>(TofTAlign->TDVName,tdv));
+}
+
+//==========================================================
+int  TofAlignManager::Validate(unsigned int time){
+  int tdvstat=0;
+  time_t vtime=time;
+  for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
+        if(!it->second->validate(vtime))tdvstat=-1;
+  return tdvstat;
+}
+
+//==========================================================
+void  TofAlignManager::Clear(){
+   for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++){
+     delete it->second;
+   }
+   tdvmap.clear();
+}
+
+//=========================================================
+
+
+

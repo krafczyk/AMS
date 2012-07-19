@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.566 2012/07/17 18:04:27 choutko Exp $
+//  $Id: event.C,v 1.567 2012/07/19 13:16:29 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1000,8 +1000,9 @@ void AMSEvent::_retof2initevent(){
        new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
 
 //--TOFClusterH
-   for( i=0;i<TOF2GC::SCLRS;i++)  ptr = add (
-     new AMSContainer(AMSID("AMSContainer:AMSTOFClusterH",i),0));
+//   for( i=0;i<TOF2GC::SCLRS;i++)  
+    ptr = add (
+     new AMSContainer(AMSID("AMSContainer:AMSTOFClusterH",0),0));
 
 //
 //  DAQS2Block::clrtbll();//clear sc.data length

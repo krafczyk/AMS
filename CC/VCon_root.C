@@ -17,7 +17,9 @@ VCon* VCon_root::GetCont(const char * name){
      strstr(name,"AMSTRDRawHit")||
      strstr(name,"AMSTRDHSegment")||
      strstr(name,"AMSTRDHTrack")||
-     strstr(name,"Vtx")
+     strstr(name,"Vtx") ||
+     strstr(name,"AMSTOFClusterH") ||
+     strstr(name,"AMSBetaH")
      ){
     sprintf(contname,"%s",name);
     return       (VCon*)(this);
@@ -85,6 +87,19 @@ void VCon_root::removeEl(TrElem* aa, integer res)
     for(int ii=0;ii<index;ii++) it++;
     ev->TrdRawHit().erase(it);
   }
+  if( strstr(contname,"AMSTOFCluterH")){
+    int index=(aa)?getindex(aa)+1:0;
+    vector<TofClusterHR>::iterator it=ev->TofClusterH().begin();
+    for(int ii=0;ii<index;ii++) it++;
+    ev->TofClusterH().erase(it);
+  }
+  if( strstr(contname,"AMSBetaH")){
+    int index=(aa)?getindex(aa)+1:0;
+    vector<BetaHR>::iterator it=ev->BetaH().begin();
+    for(int ii=0;ii<index;ii++) it++;
+    ev->BetaH().erase(it);
+  }
+
 }
 
 
@@ -110,6 +125,11 @@ int VCon_root::getnelem(){
     return ev->NTrdHTrack();
   if( strstr(contname,"AMSTRDRawHit"))
     return ev->NTrdRawHit();
+  if( strstr(contname,"AMSTOFCluterH"))
+    return ev->NTofClusterH();
+  if( strstr(contname,"AMSBetaH"))
+    return ev->NBetaH();
+
   return 0;
 }
 
@@ -153,6 +173,17 @@ void VCon_root::eraseC(){
     ev->fHeader.TrdRawHits = 0;
     ev->TrdRawHit().clear();
   }
+  if( strstr(contname,"AMSTOFClusterH")) {
+    ev->fHeader.TofClusterHs = 0;
+    ev->TofClusterH().clear();
+  }
+  if( strstr(contname,"AMSBetaH")) {
+    ev->fHeader.BetaHs = 0;
+    for(int ii=0;ii<ev->NCharge();ii++)  {ev->pCharge(ii)->setBetaH(-1);}
+    for(int ii=0;ii<ev->NParticle();ii++){ev->pParticle(ii)->setBetaH(-1);}
+    ev->BetaH().clear();
+  }
+
 }
 
 TrElem* VCon_root::getelem(int ii){
@@ -177,6 +208,12 @@ TrElem* VCon_root::getelem(int ii){
     return  (TrElem*) ev->pTrdHSegment(ii);
   if( strstr(contname,"AMSTRDHTrack"))
     return  (TrElem*) ev->pTrdHTrack(ii);
+
+  if( strstr(contname,"AMSTOFClusterH"))
+    return  (TrElem*) ev->pTofClusterH(ii);
+  if( strstr(contname,"AMSBetaH"))
+    return  (TrElem*) ev->pBetaH(ii);
+ 
   return 0;
 }
 
@@ -214,6 +251,15 @@ void  VCon_root::addnext(TrElem* aa){
     ev->TrdHTrack().push_back(*(TrdHTrackR*)aa);
   if( strstr(contname,"AMSTRDRawHit"))
     ev->TrdRawHit().push_back(*(TrdRawHitR*)aa);
+
+  if( strstr(contname,"AMSTOFClusterH")){
+    ev->TofClusterH().push_back(*(TofClusterHR*)aa);
+    delete (TofClusterHR*)aa;
+  }
+  if( strstr(contname,"AMSBetaH")){
+    ev->BetaH().push_back(*(BetaHR*)aa);
+    delete (BetaHR*)aa;
+  }
 }
 
 
@@ -248,6 +294,14 @@ int  VCon_root::getindex(TrElem* aa){
   if( strstr(contname,"AMSTRDRawHit"))
    for(int ii=0;ii<ev->NTrdRawHit();ii++)
      if(ev->pTrdRawHit(ii)==aa) return ii;
+
+  if( strstr(contname,"AMSTOFClusterH"))
+   for(int ii=0;ii<ev->NTofClusterH();ii++)
+     if(ev->pTofClusterH(ii)==aa) return ii;
+  if( strstr(contname,"AMSBetaH"))
+    for(int ii=0;ii<ev->NBetaH();ii++)
+      if(ev->pBetaH(ii)==aa) return ii;
+
   return 0;
 }
 
@@ -331,5 +385,24 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     if ( (i1<0)||(i2<0) ) return;
     swap(ev->TrdRawHit().at(i1),ev->TrdRawHit().at(i2));
   }
+
+  if (strstr(contname,"AMSTOFClusterH")) {
+    for(int ii=0;ii<ev->NTofClusterH();ii++) {
+      if (ev->pTofClusterH(ii)==el1) i1=ii;
+      if (ev->pTofClusterH(ii)==el2) i2=ii;
+    }
+    if ( (i1<0)||(i2<0) ) return;
+    swap(ev->TofClusterH().at(i1),ev->TofClusterH().at(i2));
+  }
+  if (strstr(contname,"AMSBetaH")) {
+    for(int ii=0;ii<ev->NBetaH();ii++) {
+      if (ev->pBetaH(ii)==el1) i1=ii;
+      if (ev->pBetaH(ii)==el2) i2=ii;
+    }
+    if ( (i1<0)||(i2<0) ) return;
+    swap(ev->BetaH().at(i1),ev->BetaH().at(i2));
+  }
+
+
 }
 

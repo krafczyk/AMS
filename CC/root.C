@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.419 2012/07/17 18:04:27 choutko Exp $
+//  $Id: root.C,v 1.420 2012/07/19 13:17:00 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3107,8 +3107,43 @@ BetaR::BetaR(AMSBeta *ptr){
 
 BetaHR::BetaHR(AMSBetaH *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  BetaPar=ptr->_betapar;
+  BetaPar=ptr->getbetapar();
 #endif
+}
+
+BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,TofBetaPar betapar){
+    BetaPar=betapar;
+//--TofClusterHR assamble
+    AMSEventR *ev=AMSEventR::Head();
+   for(int il=0;il<4;il++){
+     fLayer[il]=-1;
+     if(phith[il]){
+        for(int ii=0;ii<ev->NTofClusterH();ii++){if(ev->pTofClusterH(ii)==phith[il]){fLayer[il]==ii;break;};}
+        phith[il]->Status|=TOFDBcN::USED; phith[il]->Pattern+=1000;
+        fTofClusterH.push_back(fLayer[il]);
+       }
+   }
+//--Track assamble
+   double mass,emass,rigidity,charge,evrig;
+   fTrTrack=-1;fTrdTrack=-1;
+   if(ptrack){
+      for(int ii=0;ii<ev->NTrTrack();ii++)   {if(ev->pTrTrack(ii)==ptrack){fTrTrack=ii;break;}}
+      for(int ii=0;ii<ev->NParticle();ii++)  {if(ev->pParticle(ii)->pTrTrack()==ptrack){fTrdTrack=ev->pParticle(ii)->iTrdTrack();break;}}
+#ifdef _PGTRACK_
+      for(int ii=0;ii<ev->NCharge();ii++)    {
+         if(ev->pCharge(ii)->pBeta()->pTrTrack()==ptrack){
+          rigidity=ptrack->GetRigidity();
+          evrig=   ptrack->GetErrRinv();
+          charge=double(ev->pCharge(ii)->Charge());
+          MassReFit(mass,emass,rigidity,charge,evrig,0,1);break;
+        }
+      }
+#endif
+    }
+   if(trdtrack){
+      for(int ii=0;ii<ev->NTrdTrack();ii++)  {if(ev->pTrdTrack(ii)==trdtrack){fTrdTrack=ii;break;}}
+   }
+
 }
 
 
@@ -4415,26 +4450,51 @@ TofClusterR::TofClusterR(AMSTOFCluster *ptr){
 #endif
 }
 
+TofClusterHR::TofClusterHR(unsigned int sstatus[2],unsigned int status,int pattern,int idsoft,double adca[2],double adcd[2][3],
+               double sdtm[2],double times[2],double timer,double etimer,AMSPoint coo,AMSPoint ecoo,double edepa,double edepd,TofRawSideR *tfraws[2]):
+         Status(status),Pattern(pattern),Time(timer),ETime(etimer),AEdep(edepa),DEdep(edepd)
+{
+   Layer= idsoft/1000%10;
+   Bar  = idsoft/100%10;
+   int index[2]={-1};
+   for(int is=0;is<2;is++){
+    Aadc[is]= adca[is];
+    Rtime[is]=sdtm[is];
+    Stime[is]=times[is];
+    SideBitPat[is]=sstatus[is];
+    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=adcd[is][ipm];}
+    if(tfraws[is]){
+      for(int ii=0;ii<AMSEventR::Head()->NTofRawSide();ii++){if(AMSEventR::Head()->pTofRawSide(ii)==tfraws[is]){index[is]=ii;}}
+    }
+    fTofRawSide.push_back(index[is]);
+  }
+  for(int i=0;i<3;i++){
+    Coo[i]= coo[i];
+    ECoo[i]=ecoo[i];
+  }
+}
+
 TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  Status = ptr->_status;
-  Pattern= ptr->_pattern;
-  Layer  = ptr->_idsoft/1000%10;
-  Bar    = ptr->_idsoft/100%10;
+  Status = ptr->Status;
+  Pattern= ptr->Pattern;
+  Layer  = ptr->Layer;
+  Bar    = ptr->Bar;
   for(int is=0;is<2;is++){
-    Aadc[is]= ptr->_adca[is];
-    Rtime[is]=ptr->_sdtm[is];
-    SideBitPat[is]=ptr->_sstatus[is];
-    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=ptr->_adcd[is][ipm];}
+    Aadc[is]= ptr->Aadc[is];
+    Rtime[is]=ptr->Rtime[is];
+    Stime[is]=ptr->Stime[is];
+    SideBitPat[is]=ptr->SideBitPat[is];
+    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=ptr->Dadc[is][ipm];}
   }
-  Time= ptr->_timer;
-  ETime=ptr->_etimer;
+  Time= ptr->Time;
+  ETime=ptr-> ETime;
   for(int i=0;i<3;i++){
-    Coo[i]= ptr->_coo[i];
-    ECoo[i]=ptr->_ecoo[i];
+    Coo[i]= ptr->Coo[i];
+    ECoo[i]=ptr->ECoo[i];
   }
-  AEdep=ptr->_edepa;
-  DEdep=ptr->_edepd;
+  AEdep=ptr->AEdep;
+  DEdep=ptr->DEdep;
 #endif
 }
 
@@ -6160,11 +6220,11 @@ TrTrackR* BetaR::pTrTrack(){
 }
 
 //---TofClusterH
-int TofClusterHR::TRecover(double  tklcoo,int useside,double &tm,double &etm){
+int TofClusterHR::TRecover(float  tklcoo,int useside,float &tm,float &etm){
   int idsoft=Layer*1000+Bar*100;
   unsigned int status=Status;
-  double tms[2];
-  return  TofRecH::TRecover(idsoft,tklcoo,tms,tm,etm,status,useside);
+  TofRecH::Init(); 
+  return  TofRecH::TRecover(idsoft,tklcoo,Rtime,tm,etm,status,useside);
 }
 
 //-------TofBetaPar
