@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.9 2012/07/20 07:35:27 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.10 2012/07/20 07:58:59 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -111,7 +111,7 @@ int TofRecH::ClearBuildBetaH(){
 
 //========================================================
 int TofRecH::BuildTofClusterH(){
-
+ return; 
   ClearBuildTofClH();
 //---  
   integer i,j,hassid;
