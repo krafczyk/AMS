@@ -87,7 +87,7 @@ void VCon_root::removeEl(TrElem* aa, integer res)
     for(int ii=0;ii<index;ii++) it++;
     ev->TrdRawHit().erase(it);
   }
-  if( strstr(contname,"AMSTOFCluterH")){
+  if( strstr(contname,"AMSTOFClusterH")){
     int index=(aa)?getindex(aa)+1:0;
     vector<TofClusterHR>::iterator it=ev->TofClusterH().begin();
     for(int ii=0;ii<index;ii++) it++;
@@ -125,7 +125,7 @@ int VCon_root::getnelem(){
     return ev->NTrdHTrack();
   if( strstr(contname,"AMSTRDRawHit"))
     return ev->NTrdRawHit();
-  if( strstr(contname,"AMSTOFCluterH"))
+  if( strstr(contname,"AMSTOFClusterH"))
     return ev->NTofClusterH();
   if( strstr(contname,"AMSBetaH"))
     return ev->NBetaH();

@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.7 2012/07/19 19:20:15 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.8 2012/07/20 00:05:12 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -236,9 +236,9 @@ int TofRecH::BuildTofClusterH(){
         tfhraws[is]=0; 
         rawindex[is]=-1;
         ltdcw[is].clear();htdcw[is].clear();shtdcw[is].clear();
-        sstatus[i]=0;
+        sstatus[is]=0;
         timers[is]=adca[is]=sdtm[is]=0;
-        nadcd[i]=0;
+        nadcd[is]=0;
         for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++){adcd[is][ipm]=0;}
       }
 
