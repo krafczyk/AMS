@@ -14,9 +14,9 @@
 #include "TrdHTrack.h"
 #ifdef _PGTRACK_
 #include "TrExtAlignDB.h"
-#endif
 #include "TrdKCalib.h"
 #include "TrdKCluster.h"
+#endif
 //#include "TrdZCalib.h"
 #include "TrdHCalib.h"
 #include "TrdHCharge.h"
@@ -1104,8 +1104,9 @@ class TrdSCalibR {
   void ClearTrdSHits(){for(vector<AC_TrdHits*>::iterator i= TrdSHits.begin(); i != TrdSHits.end(); ++i) if(*i) delete *i;}
   
   /// Trd Alignment: TrdAlignMethod = 2 from Z.Weng  
-  TrdKCalib _DB_instance;  //== TrdAlignMethod = 2 from Z.Weng 
-
+ #ifdef __PGTRACK__
+ TrdKCalib _DB_instance;  //== TrdAlignMethod = 2 from Z.Weng 
+#endif
   /// Trd Alignment: TrdAlignMethod = 3 from V.Zhukov
   //TRDZCalib thetrdz;
 
