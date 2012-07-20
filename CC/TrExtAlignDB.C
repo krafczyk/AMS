@@ -410,11 +410,12 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   if (GetSize(9) == 2) { ti9 = GetTmin(9); te9 = GetTmax(9); }
 
   static int nor = 0;
-  if (nor++ < 20 && (time < ti8 || time < ti9 || 
-		     time > te8 || time > te9)) {
-    std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is out of range: "
-	      << ti8 << " " << ti9 << " " << time << " "
-	      << te8 << " " << te9  << std::endl;
+  if (time < ti8 || time < ti9 || 
+      time > te8 || time > te9) {
+    if (nor++ < 20)
+      std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is out of range: "
+		<< ti8 << " " << ti9 << " " << time << " "
+		<< te8 << " " << te9  << std::endl;
     out_of_range = 1;
   }
 #endif
