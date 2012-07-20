@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.8 2012/07/20 00:05:12 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.9 2012/07/20 07:35:27 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -114,7 +114,6 @@ int TofRecH::BuildTofClusterH(){
 
   ClearBuildTofClH();
 //---  
-  cout<<"begin tofclusterh"<<endl;
   integer i,j,hassid;
   integer idd=0,il=0,ib=0,is=0,idsoft=-1,pattern=0,nraws=0,rawindex[2]={-1};
   integer stat[2];
