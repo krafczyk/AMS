@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.11 2012/07/20 08:14:44 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.12 2012/07/20 10:46:44 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -111,7 +111,7 @@ int TofRecH::ClearBuildBetaH(){
 
 //========================================================
 int TofRecH::BuildTofClusterH(){
- return 0; 
+  
   ClearBuildTofClH();
 //---  
   integer i,j,hassid;
@@ -139,6 +139,7 @@ int TofRecH::BuildTofClusterH(){
     ptr=ptr->next();
   }
   TOF2RawSide *tfhraws[2]={0};
+  TofRawSideR *tfhraws1[2]={0};
 //----   
    tfrawcl.clear();
    TOF2RawCluster *ptrc=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
@@ -222,7 +223,7 @@ int TofRecH::BuildTofClusterH(){
         }
 //----  
 #ifndef __ROOTSHAREDLIBRARY__
-        cont->addnext(new AMSTOFClusterH(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,tfhraws));
+        cont->addnext(new AMSTOFClusterH(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,tfhraws,tfhraws1));
 #else
         cont->addnext(new TofClusterHR(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,tfhraws));
 #endif
