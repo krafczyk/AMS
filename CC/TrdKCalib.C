@@ -46,7 +46,11 @@ void TrdKCalib::fillDB(TString s_type,  T *_db, Double_t time_start, Double_t ti
 
 template <class T>
 int TrdKCalib::readDB(TString s_type,  T *db, Double_t asktime){
-    time_t time=(time_t) asktime;
+   static  AMSTimeID* tid=0;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (tid)
+#endif
+   time_t time=(time_t) asktime;
     //	if(!tid){
     time_t endtime=time;
     time_t starttime=time+1;
@@ -54,9 +58,8 @@ int TrdKCalib::readDB(TString s_type,  T *db, Double_t asktime){
     tm end;
     tm* mtim=localtime_r(&starttime,&begin);
     tm* mtim2=localtime_r(&endtime,&end);
-    AMSTimeID* tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
+     if(!tid)tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
     int read=tid->validate(time);
-    delete tid;
     return 0;
 }
 

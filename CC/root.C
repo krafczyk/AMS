@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.421 2012/07/19 19:20:15 qyan Exp $
+//  $Id: root.C,v 1.422 2012/07/20 07:12:19 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6667,7 +6667,6 @@ Int_t AMSEventR::Fill()
     
     
     // save root setup here
-    
     TDirectory *gdir=gDirectory;
     if (_ClonedTreeSetup[thr]==NULL) {
       if(_TreeSetup){
