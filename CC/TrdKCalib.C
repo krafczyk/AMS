@@ -51,14 +51,15 @@ int TrdKCalib::readDB(TString s_type,  T *db, Double_t asktime){
 #pragma omp threadprivate (tid)
 #endif
    time_t time=(time_t) asktime;
-    //	if(!tid){
+    	if(!tid){
     time_t endtime=time;
     time_t starttime=time+1;
     tm begin;
     tm end;
     tm* mtim=localtime_r(&starttime,&begin);
     tm* mtim2=localtime_r(&endtime,&end);
-     if(!tid)tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
+     tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
+     }
     int read=tid->validate(time);
     return 0;
 }
