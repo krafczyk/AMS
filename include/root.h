@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.454 2012/07/19 13:17:47 qyan Exp $
+//  $Id: root.h,v 1.455 2012/07/20 07:25:14 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -345,7 +345,7 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,20)       //HeaderR
+  ClassDef(HeaderR,21)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
