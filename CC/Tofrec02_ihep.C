@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.12 2012/07/20 10:46:44 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.13 2012/07/22 19:55:23 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -214,7 +214,7 @@ int TofRecH::BuildTofClusterH(){
 
 //-----energy temp from RawCluster
          for(j=0;j<tfrawcl.size();j++){
-           if((tfrawcl[j].Layer==il)&&(tfrawcl[j].Bar==ib)){
+           if((tfrawcl[j].Layer-1==il)&&(tfrawcl[j].Bar-1==ib)){
             edepa=tfrawcl[j].edepa;
             edepd=tfrawcl[j].edepd;
             edep=edepa;
