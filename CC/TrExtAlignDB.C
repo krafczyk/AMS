@@ -784,17 +784,21 @@ int TrExtAlignDB::UpdateTDV(uint brun, uint erun, int ver)
 }
 
 AMSPoint  TrExtAlignDB::GetAlDist(TrRecHitR *hit){
-  if(!hit) return AMSPoint(0,0,0);
+#ifndef MAXFLOAT
+#define MAXFLOAT 1.0e30
+#endif
+  if(!hit) return AMSPoint(MAXFLOAT,MAXFLOAT,MAXFLOAT);
   if(hit->GetLayerJ()!=1 && hit->GetLayer()!=9) return AMSPoint(0,0,0);
 
   TrExtAlignDB::SetAlKind(1);
-  UpdateExtLayer(1);
-  AMSPoint MDcoo=hit->GetGlobalCoordinate();
-
+  int l1=hit->GetLayerJ()==1?1+hit->GetSlotSide()*10+hit->lad()*100:-1;
+  int l9=hit->GetLayerJ()==9?1+hit->GetSlotSide()*10+hit->lad()*100:-1;
+  if(UpdateExtLayer(1,l1,l9)) return AMSPoint(MAXFLOAT,MAXFLOAT,MAXFLOAT);
+  AMSPoint MDcoo=hit->GetGlobalCoordinate(hit->GetResolvedMultiplicity());
 
   TrExtAlignDB::SetAlKind(0);
-  UpdateExtLayer(0);
-  AMSPoint PGcoo=hit->GetGlobalCoordinate();
+  if(UpdateExtLayer(0)) return AMSPoint(MAXFLOAT,MAXFLOAT,MAXFLOAT);
+  AMSPoint PGcoo=hit->GetGlobalCoordinate(hit->GetResolvedMultiplicity());
 
   AMSPoint dist=MDcoo-PGcoo;
   return dist;
