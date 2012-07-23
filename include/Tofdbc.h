@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.9 2012/07/19 13:17:53 qyan Exp $
+//  $Id: Tofdbc.h,v 1.10 2012/07/23 22:51:17 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -310,9 +310,28 @@ class TofTAlignPar: public TofTDVTool<float>{
 };
 
 //===========================================================
+class TofTdcCorN{
+private:
+  int _bmap;//bit-map of abs.chan.numbers presented in calib.data ( lsb -> 1st ch.)
+  geant _icor[TOF2GC::SCTDCCH-2][1024];//integr.nonlin. corrections, based on 10 lsb of TDC-count(bin#)
+public:
+  TofTdcCorN(){};
+  geant getcor(int time, int ch){ 
+    int t10=(time&(0x3FFL));//10 lsb of TDC-count(time measurement)
+    if(t10<=0)return(0);
+    return _icor[ch][t10-1];
+  }
+//
+  bool truech(int ch){
+    return ((_bmap & (1<<ch))!=0);
+  }
+  static TofTdcCorN tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
+};
+
+//===========================================================
 class TofRecPar: public TofTDVTool<float>{
   public:
-     static const  float Tdcbin=0.0244141;
+     static const  double Tdcbin=0.0244141;
      static const  float FTgate[2];//LT HT relate FTtime age-window(ns) //(FT-LT)ns [80, 200] 
      static const  float FTgate2[2];//Tight cut windows  if no HT SHT
      static const  float LHgate[2]; //LT relate HT MPV //(LT-HT)ns [3, 12]    

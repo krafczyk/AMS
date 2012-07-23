@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.5 2012/07/19 19:22:19 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.6 2012/07/23 22:51:17 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -31,7 +31,8 @@ protected:
   static TofBetaPar betapar;
 /// Process Event
   static AMSEventR *ev;
- 
+/// Real or MC
+  static int realdata; 
 /// TofRawSideR vector for TofClusterH build
   static vector<TofRawSideR> tfraws;
 #ifndef __ROOTSHAREDLIBRARY__

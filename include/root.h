@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.455 2012/07/20 07:25:14 choutko Exp $
+//  $Id: root.h,v 1.456 2012/07/23 22:51:17 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -975,13 +975,11 @@ class TofClusterHR :public TrElem {
  public:
    /// access function to TofRawSideR objects used
    /// \return number of TofRawSideR used(Fired Side Number)
-   int  NTofRawSide(){return fTofRawSide.size();}
-   /// access function to TofRawSideR objects used
-   /// \return index of TofRawSideR object in collection or -1
-   int iTofRawSide(unsigned int i){return i<fTofRawSide.size()?fTofRawSide[i]:-1;}
-   /// access function to TofRawSideR objects used// i=0 NSide i=1 PSide
-   /// \return pointer to TofRawSideR object or 0
-   TofRawSideR * pTofRawSide(unsigned int i);
+   int  NTofRawSide(){int sums=0;for(int is=0;is<2;is++)if(fTofRawSide[is]>=0)sums++;return sums;}
+   /// access function to TofRawSie// is=0 NSide is=1 PSide return 0 if not exist
+   TofRawSideR*  GetRawSideHS(int is);
+   /// if  TofClusterH TofRawSide iside(0-1) exists Return true
+   bool          TestExistHS(int is){return (is>=0&&is<2)&&(fTofRawSide[is]>=0);}
 
   TofClusterHR(){};
   TofClusterHR(int ilay,int ibar):Layer(ilay),Bar(ibar){};
@@ -2589,7 +2587,7 @@ class BetaHR: public TrElem{
         return (left&&right);
      }
   ///  Return BetaH ClusterH nearest Fired Counter Bar Number(exclude the BetaH Counter Used)
-  ///  \return -1 if Not Found any other Cluster is lr direction /*lr=-1 left direction search, lr=1 right direction search*/
+  ///  \return -1 if Not Found any other Cluster is lr direction //lr=-1 left direction search, lr=1 right direction search
   int           GetNearbyHLNo (int ilay,int lr)   {
       if(TestExistHL(ilay)==0)return -1;
       if(lr<0)return ((BetaPar.Pattern[ilay]/100%10)==0)?-1:GetClusterHL(ilay)->Bar-BetaPar.Pattern[ilay]/100%10;
