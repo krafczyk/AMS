@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.13 2012/07/19 19:20:14 qyan Exp $
+//  $Id: Tofdbc.C,v 1.14 2012/07/23 22:50:15 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
@@ -860,6 +860,9 @@ void TofTAlignPar::PrintTDV(){
 }
 
 //==========================================================
+TofTdcCorN TofTdcCorN::tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
+
+//==========================================================
 int   TofRecPar::iLay=0;
 int   TofRecPar::iBar=0;
 int   TofRecPar::Idsoft=0;
@@ -946,6 +949,14 @@ TofAlignManager::TofAlignManager(int real){
                               TofTAlign->TDVBlock,
                               server,1,TofTAlignPar::HeadLoadTDVPar);
     tdvmap.insert(pair<string,AMSTimeID*>(TofTAlign->TDVName,tdv));
+//---tdc correction
+    integer TOFCRSL=TOF2GC::SCCRAT*(TOF2GC::SCFETA-1);
+    tdv= new AMSTimeID(AMSID("TofTdcCor",isreal),begin,end,
+                           TOFCRSL*sizeof(TofTdcCorN::tdccor[0][0]),
+                           (void*)&TofTdcCorN::tdccor[0][0],
+                           server,1);
+     tdvmap.insert(pair<string,AMSTimeID*>("TofTdcCor",tdv));
+
 }
 
 //==========================================================

@@ -254,10 +254,12 @@ void  VCon_root::addnext(TrElem* aa){
 
   if( strstr(contname,"AMSTOFClusterH")){
     ev->TofClusterH().push_back(*(TofClusterHR*)aa);
+    ev->fHeader.TofClusterHs++;
     delete (TofClusterHR*)aa;
   }
   if( strstr(contname,"AMSBetaH")){
     ev->BetaH().push_back(*(BetaHR*)aa);
+    ev->fHeader.BetaHs++;
     delete (BetaHR*)aa;
   }
 }

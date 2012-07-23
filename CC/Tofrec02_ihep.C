@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.13 2012/07/22 19:55:23 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.14 2012/07/23 22:50:15 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -37,7 +37,7 @@ ClassImp(TofRecH)
 
 TofBetaPar TofRecH::betapar;
 AMSEventR *TofRecH::ev=0;
-
+int        TofRecH::realdata=1;
 //--Cluster
 vector<TofRawSideR>   TofRecH::tfraws;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -60,7 +60,6 @@ vector<AMSTRDTrack*> TofRecH::amstrdtrack;
 
 //========================================================
 int TofRecH::ReBuild(){
-  if(Init()!=0)return -1;
    BuildTofClusterH();
    BuildBetaH();  
    return 0;
@@ -69,21 +68,19 @@ int TofRecH::ReBuild(){
 //========================================================
 int TofRecH::Init(){
   int tdvstat=0;
-  int real;
   unsigned int time,trun;
 //----Initial TDV
 #ifndef __ROOTSHAREDLIBRARY__
-  real=AMSJob::gethead()->isRealData();
+  realdata=AMSJob::gethead()->isRealData();
   time=AMSEvent::gethead()->gettime();
   trun=AMSEvent::gethead()->getrun();
 #else
   ev=AMSEventR::Head();
-  real=(ev->nMCEventg()==0)?1:0;
+  realdata=(ev->nMCEventg()==0)?1:0;
   time=ev->UTime();
   trun=ev->Run();
-
+  tdvstat=TofAlignManager::GetHead(realdata)->Validate(trun);
 #endif
-  tdvstat=TofAlignManager::GetHead(real)->Validate(trun);
   if(tdvstat!=0)cerr<<"Error TofRecH TDV Par Init Error"<<endl;
   return tdvstat;
 }
@@ -112,6 +109,7 @@ int TofRecH::ClearBuildBetaH(){
 //========================================================
 int TofRecH::BuildTofClusterH(){
   
+  Init(); 
   ClearBuildTofClH();
 //---  
   integer i,j,hassid;
@@ -257,8 +255,8 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
 //---
      integer i,j;
      integer ltok=0;
-     integer ftdch[TOF2GC::SCTHMX1],ltdch[TOF2GC::SCTHMX3],htdch[TOF2GC::SCTHMX2],shtdch[TOF2GC::SCTHMX2];
-     number  ftdc[TOF2GC::SCTHMX1], ltdc[TOF2GC::SCTHMX3], htdc[TOF2GC::SCTHMX2], shtdc[TOF2GC::SCTHMX2];
+     number ftdch[TOF2GC::SCTHMX1],ltdch[TOF2GC::SCTHMX3],htdch[TOF2GC::SCTHMX2],shtdch[TOF2GC::SCTHMX2];
+     number ftdc[TOF2GC::SCTHMX1], ltdc[TOF2GC::SCTHMX3], htdc[TOF2GC::SCTHMX2], shtdc[TOF2GC::SCTHMX2];
      geant radcd[TOF2GC::PMTSMX];
 //---init
      sstatus=0;
@@ -272,13 +270,63 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
 
 //---Get Tdc
      integer nft=ptr->nftdc;
-     for(i=0;i<nft;i++)ftdch[i]=ptr->fftdc[i];//FT
+     for(i=0;i<nft;i++)ftdch[i]=number(ptr->fftdc[i]);//FT
      integer nlt=ptr->nstdc;
-     for(i=0;i<nlt;i++)ltdch[i]=ptr->fstdc[i];//LT
+     for(i=0;i<nlt;i++)ltdch[i]=number(ptr->fstdc[i]);//LT
      integer nht=ptr->nsumh;
-     for(i=0;i<nht;i++)htdch[i]=ptr->fsumht[i];//SumHT
+     for(i=0;i<nht;i++)htdch[i]=number(ptr->fsumht[i]);//SumHT
      integer nsht=ptr->nsumsh;
-     for(i=0;i<nsht;i++)shtdch[i]=ptr->fsumsht[i];
+     for(i=0;i<nsht;i++)shtdch[i]=number(ptr->fsumsht[i]);
+
+//---TDC No-Lin correction
+      integer hwidt=ptr->hwidt;//CSIIII
+      integer crat=hwidt/100000;//1-4
+      integer sslot=(hwidt%100000)/10000;//1-5
+      integer tdcch[4];
+      tdcch[0]=(hwidt%10000)/1000;//LTch#(1-5), 0 if missing
+      tdcch[1]=(hwidt%1000)/100;//FTch#(6), 0 if missing
+      tdcch[2]=(hwidt%100)/10;//SumHTch#(7), 0 if missing
+      tdcch[3]=(hwidt%10);//SumSHTch#(8), 0 if missing
+      number ftcor=0,ltcor=0,htcor=0,shtcor=0;
+//---LT
+  if(realdata>0){
+      for(i=0;i<nlt;i++){
+#ifndef __ROOTSHAREDLIBRARY__
+         if(tdcch[0]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[0]-1))ltcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fstdc[i],tdcch[0]-1);
+#else
+         if(tdcch[0]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[0]-1))ltcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fstdc[i],tdcch[0]-1);
+#endif
+         ltdch[i]-=ltcor;
+      }
+//---FT
+      for(i=0;i<nft;i++){
+#ifndef __ROOTSHAREDLIBRARY__
+         if(tdcch[1]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[1]-1))ftcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fftdc[i],tdcch[1]-1);
+#else
+         if(tdcch[1]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[1]-1))ftcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fftdc[i],tdcch[1]-1);
+#endif
+         ftdch[i]-=ftcor;
+      }
+//---HT
+      for(i=0;i<nht;i++){
+#ifndef __ROOTSHAREDLIBRARY__
+         if(tdcch[2]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[2]-1))htcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fsumht[i],tdcch[2]-1);
+#else
+         if(tdcch[2]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[2]-1))htcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fsumht[i],tdcch[2]-1);
+#endif
+         htdch[i]-=htcor;
+      }
+//---SHT
+      for(i=0;i<nsht;i++){
+#ifndef __ROOTSHAREDLIBRARY__
+         if(tdcch[3]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[3]-1))shtcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fsumsht[i],tdcch[3]-1);
+#else
+         if(tdcch[3]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[3]-1))shtcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fsumsht[i],tdcch[3]-1);
+#endif
+         shtdch[i]-=shtcor;
+      }
+   }
+
 //---Get Ref Tdc
       for(i=0;i<nft;i++)  ftdc[i]=ftdch[i]*TofRecPar::Tdcbin;//FTtime TDCch->ns
       number fttm=ftdc[nft-1];//choose last because this triggers LVL1 
@@ -445,8 +493,10 @@ int TofRecH::EdepRec(){
 
 //========================================================
 int TofRecH::BuildBetaH(int mode){
-
+//---
+    Init();
     ClearBuildBetaH();
+//---
    
     integer i;
     AMSPoint tkcoo,tfcoo,tfecoo;

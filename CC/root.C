@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.422 2012/07/20 07:12:19 choutko Exp $
+//  $Id: root.C,v 1.423 2012/07/23 22:50:15 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3119,7 +3119,7 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,TofBe
    for(int il=0;il<4;il++){
      fLayer[il]=-1;
      if(phith[il]){
-        for(int ii=0;ii<ev->NTofClusterH();ii++){if(ev->pTofClusterH(ii)==phith[il]){fLayer[il]==ii;break;};}
+        for(int ii=0;ii<ev->NTofClusterH();ii++){if(ev->pTofClusterH(ii)==phith[il]){fLayer[il]=ii;break;};}
         phith[il]->Status|=TOFDBcN::USED; phith[il]->Pattern+=1000;
         fTofClusterH.push_back(fLayer[il]);
        }
@@ -6141,8 +6141,9 @@ TofRawSideR* TofRawClusterR::pTofRawSide(unsigned int i){
   return (AMSEventR::Head() && i<fTofRawSide.size())?AMSEventR::Head()->pTofRawSide(fTofRawSide[i]):0;
 }
 
-TofRawSideR* TofClusterHR::pTofRawSide(unsigned int i){
-  return (AMSEventR::Head() && i<fTofRawSide.size())?AMSEventR::Head()->pTofRawSide(fTofRawSide[i]):0;
+
+TofRawSideR* TofClusterHR::GetRawSideHS(int is){
+  return (AMSEventR::Head() && is<fTofRawSide.size()&&fTofRawSide[is]>=0)?AMSEventR::Head()->pTofRawSide(fTofRawSide[is]):0;
 }
 
 #ifndef _PGTRACK_
@@ -6301,7 +6302,7 @@ TofClusterHR* BetaHR::pTofClusterH(unsigned int i){
 //-------BetaH Function
 TofClusterHR* BetaHR::GetClusterHL(int ilay){
   if(ilay<0||ilay>=4||fLayer[ilay]<0)return 0;
-  return (AMSEventR::Head() && fLayer[ilay]<fTofClusterH.size())?AMSEventR::Head()->pTofClusterH(fLayer[ilay]):0;
+  return (AMSEventR::Head())?AMSEventR::Head()->pTofClusterH(fLayer[ilay]):0;
 }
 
 int BetaHR::MassReFit(double &mass, double &emass,double rig,double charge,double erigv,int isbetac,int update){
