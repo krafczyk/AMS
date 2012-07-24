@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.456 2012/07/23 22:51:17 qyan Exp $
+//  $Id: root.h,v 1.457 2012/07/24 22:05:58 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -976,6 +976,13 @@ class TofClusterHR :public TrElem {
    /// access function to TofRawSideR objects used
    /// \return number of TofRawSideR used(Fired Side Number)
    int  NTofRawSide(){int sums=0;for(int is=0;is<2;is++)if(fTofRawSide[is]>=0)sums++;return sums;}
+   /// access function to TofRawSideR objects used
+   /// \return index of TofRawSideR object in collection or -1
+   int iTofRawSide(unsigned int i);
+   /// access function to TofRawSideR objects used
+   /// \return pointer to TofRawSideR object or 0
+   TofRawSideR*  pTofRawSide(unsigned int i);
+
    /// access function to TofRawSie// is=0 NSide is=1 PSide return 0 if not exist
    TofRawSideR*  GetRawSideHS(int is);
    /// if  TofClusterH TofRawSide iside(0-1) exists Return true
@@ -999,9 +1006,9 @@ class TofClusterHR :public TrElem {
   bool IsGoodTime()     {return (Status&TOFDBcN::BADTIME)==0;}
   /// Recover Time from Hit Position+ one Side Time // Bad Time or Side Lost
   /*!
-    *\1: tklcoo[Input]:  longitide hit position to recover 
-    *\2: useside[Input]: Side1 bad(lost)=>useside=0   Side0 bad(lost)=>useside=1
-    *\3: tm etm[Output]: Recover Time+ETime for this Counter
+    \1: tklcoo[Input]:  longitide hit position to recover 
+    \2: useside[Input]: Side1 bad(lost)=>useside=0   Side0 bad(lost)=>useside=1
+    \3: tm etm[Output]: Recover Time+ETime for this Counter
   */
   int TRecover(float  tklcoo,int useside,float &tm,float &etm);
   /// Number of BetaHs use this Counter to build 
@@ -2647,32 +2654,31 @@ class BetaHR: public TrElem{
 //---Using Function 
   /// ReFit Mass using Rigidity Charge
   /*!
-    * \[mass]    Output Fit Mass
-    * \[emass]   Output Fit Mass Error
-    * \[rig]     Input Rigidity
-    * \[charge]  Input Charge
-    * \[erigv]   Input Error of 1/Rigidity
-    * \[isbetac] (1)Using BetaC(ask Vitaly)  (0)Using Beta //For Fit Mass
-    * \[update]  BetaPar update (1)Update Mass (0)Not Update
-    *
+    \[mass]    Output Fit Mass
+    \[emass]   Output Fit Mass Error
+    \[rig]     Input Rigidity
+    \[charge]  Input Charge
+    \[erigv]   Input Error of 1/Rigidity
+    \[isbetac] (1)Using BetaC(ask Vitaly)  (0)Using Beta //For Fit Mass
+    \[update]  BetaPar update (1)Update Mass (0)Not Update
   */
   int  MassReFit(double &mass, double &emass,double rig=0,double charge=0,double erigv=0,int isbetac=0,int update=0);
    /// Beta ReFit
    /*!
-     * \[mass]    Output Fit Beta
-     *\ [emass]   Output Fit Error 1/Beta
-     * \[pattern] Input  mmmm: m=1 or 0 or 2,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1. 2022 force to use Time recover hit to Fit
-     * \[mode]    Input  mode=1 or 0,  different time err or same time err for 4 Tof Layers
-     * \[update]  Input  BetaPar update (1)Update Beta (0)Not Update
+     \[mass]    Output Fit Beta
+     \[emass]   Output Fit Error 1/Beta
+     \[pattern] Input  mmmm: m=1 or 0 or 2,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1. 2022 force to use Time recover hit to Fit
+     \[mode]    Input  mode=1 or 0,  different time err or same time err for 4 Tof Layers
+     \[update]  Input  BetaPar update (1)Update Beta (0)Not Update
    */
   int  BetaReFit(double &beta,double &ebetav,int pattern=1111,int mode=1,int update=0);
   /// TOF Time Interpolation to posZ
   /*!
-   * \[zpl]  Input  Interpolate to Z position (Z=zpl)
-   * \[pnt]  Output BetaH's Track position at Z=zpl
-   * \[dir]  Output BetaH's Track direction at Z=zpl
-   * \[time] Output TOF Time at Z=zpl(ns)
-   * \return BetaH's Track Path length at Z=zpl
+     \[zpl]  Input  Interpolate to Z position (Z=zpl)
+     \[pnt]  Output BetaH's Track position at Z=zpl
+     \[dir]  Output BetaH's Track direction at Z=zpl
+     \[time] Output TOF Time at Z=zpl(ns)
+     \return BetaH's Track Path length at Z=zpl
    */
 #ifdef _PGTRACK_
   double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time);
@@ -2689,10 +2695,10 @@ class BetaHR: public TrElem{
   bool IsInOverlap(int ilay,float x, float y,int nexcl=1){return TOFGeom::IsInOverlap(ilay,x,y,nexcl);}
   /// Find Global Coo nearest ilay TOF Counter
   /*!
-   * \[xyz]     Input   Global Coo // z=0 don't use z information,  z!=0 include z judgment.
-   * \[dis]     Output  Distance from Global Coo to it's Nearest TOF Counter Central
-   * \[isinbar] Output  (1)if Global Coo is inside nearest Counter (0)Not
-   * \return    Nearest Counter Bar Number
+    \[xyz]     Input   Global Coo // z=0 don't use z information,  z!=0 include z judgment.
+    \[dis]     Output  Distance from Global Coo to it's Nearest TOF Counter Central
+    \[isinbar] Output  (1)if Global Coo is inside nearest Counter (0)Not
+    \return    Nearest Counter Bar Number
   */
    int FindNearBar(int ilay,float x, float y,float &dis,bool &isinbar,float z=0){return TOFGeom::FindNearBar(ilay,x,y,dis,isinbar,z);}
 
