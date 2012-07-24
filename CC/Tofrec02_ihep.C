@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.14 2012/07/23 22:50:15 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.15 2012/07/24 22:05:13 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -289,7 +289,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
       tdcch[3]=(hwidt%10);//SumSHTch#(8), 0 if missing
       number ftcor=0,ltcor=0,htcor=0,shtcor=0;
 //---LT
-  if(realdata>0){
+  if(realdata>0&&nlt>0&&nft>0){
       for(i=0;i<nlt;i++){
 #ifndef __ROOTSHAREDLIBRARY__
          if(tdcch[0]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[0]-1))ltcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fstdc[i],tdcch[0]-1);

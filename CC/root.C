@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.423 2012/07/23 22:50:15 qyan Exp $
+//  $Id: root.C,v 1.424 2012/07/24 22:05:13 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6141,6 +6141,17 @@ TofRawSideR* TofRawClusterR::pTofRawSide(unsigned int i){
   return (AMSEventR::Head() && i<fTofRawSide.size())?AMSEventR::Head()->pTofRawSide(fTofRawSide[i]):0;
 }
 
+int TofClusterHR::iTofRawSide(unsigned int i){
+   vector<int>fraws;
+   for(int is=0;is<2;is++)if(fTofRawSide[is]>=0)fraws.push_back(fTofRawSide[is]);
+   return i<fraws.size()?fraws[i]:-1;
+}
+
+TofRawSideR* TofClusterHR::pTofRawSide(unsigned int i){
+   vector<int>fraws;
+   for(int is=0;is<2;is++)if(fTofRawSide[is]>=0)fraws.push_back(fTofRawSide[is]);
+   return (AMSEventR::Head() && i<fraws.size())?AMSEventR::Head()->pTofRawSide(fraws[i]):0;
+}
 
 TofRawSideR* TofClusterHR::GetRawSideHS(int is){
   return (AMSEventR::Head() && is<fTofRawSide.size()&&fTofRawSide[is]>=0)?AMSEventR::Head()->pTofRawSide(fTofRawSide[is]):0;
