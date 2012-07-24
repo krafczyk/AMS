@@ -39,6 +39,7 @@
 //  2012.06.25 fix a bug in AC_ModAlign 
 //  2012.07.10 move TrdCalDBs into $AMSDataDir/v5.00/TRD/
 //  2012.07.11 update PDFs (p,e,He) in rigidity bin instead of momentum bin
+//  2012.07.20 released version 6 
 //--------------------------------------------------------------------------------------------------
 
 #include "TrdSCalib.h"
@@ -72,8 +73,6 @@ TrdSCalibR* TrdSCalibR::gethead()
     head->InitNewTrdSCalib(TRDCALIB.TrdSCalibVersion, TRDCALIB.TrdSCalibTrack, 
 			      TRDCALIB.TrdSCalibGainMethod, TRDCALIB.TrdSCalibAlignMethod, 
 			      TRDCALIB.TrdSCalibDebug);
-#else
-head->InitNewTrdSCalib(5, 0,1,1,0);
 #endif    
 }    
   }
@@ -138,6 +137,7 @@ const char *TrdSCalibR::TrdElectronProtonHeliumLFname[] =
     //"TrdScalibPdfs_v12.root",                                                 //== 7
     //"TrdScalibPdfs_v13.root"                                                 //== 7
     //"TrdScalibPdfs_v16.root"                                                 //== 7
+    //"TrdScalibPdfs_v20.root"                                                 //== 7
     "TrdScalibPdfs_v21.root"                                                 //== 7
   };
 
@@ -178,7 +178,7 @@ std::vector<double> TrdSCalibR::zTrks(7);
 
 //--------------------------------------------------------------------------------------------------
 
-TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(1), iFlag(3), 
+TrdSCalibR::TrdSCalibR(): SCalibLevel(6), TrdTrackLevel(1), iFlag(3), 
 			  iPabs(0), iQabs(0), iRsigned(0),iRerrinv(0), iRabs(0), iChisq(-1), 
 			  TrdTkD(0), TrdTkDa(0), 
 			  algo(1), patt(0), refit(0),grTrdS_Xe(0),
@@ -835,7 +835,6 @@ int TrdSCalibR::AC_ModAlign(AC_TrdHits* &ACHit, int Debug){
   XYZ[2] = ACHit->hitZ;
  
   /// along the wire position
-  //if( fabs(AC_Interpolate2Z(XYZ[2], 1-D))>(Z_l1+1.)) return 1; 
   XYZ[1-D] = AC_Interpolate2Z(XYZ[2], 1-D);
   
   Float_t Dx=0,Dy=0,Dz=0;
@@ -1363,6 +1362,9 @@ bool TrdSCalibR::Init(int CalibLevel, int Debug){
   /// get TRD calibration graphs / each module level (v5)
   else if(CalibLevel < 6) ok_gain = GetTrdV5CalibHistos(Debug);
 
+  /// get TRD calibration graphs / each module level (v6)
+  else if(CalibLevel < 7) ok_gain = GetTrdV5CalibHistos(Debug);
+
   else return false;
   if(!ok_gain) Error("TrdSCalibR::Init", "Fail Trd Gain/Align Calibration");
 
@@ -1870,6 +1872,49 @@ int TrdSCalibR::GetXeInterval(double xDay) {
 }
 
 //--------------------------------------------------------------------------------------------------
+float TrdSCalibR::PathLenCorr(int iXe, float EadcCS, float Len3D) {
+
+  static float par_Xe_0[6]={  2.0061E+02, -1.6242E+02,  6.7361E+01, -1.4213E+01,  1.5740E+00, -7.1921E-02};
+  static float par_Xe_1[6]={  2.0841E+02, -1.6918E+02,  7.0184E+01, -1.5019E+01,  1.7025E+00, -7.9701E-02};
+  static float par_Xe_2[6]={  2.1589E+02, -1.7224E+02,  7.1600E+01, -1.5710E+01,  1.8396E+00, -8.8564E-02};
+  static float par_Xe_3[6]={  2.1663E+02, -1.7184E+02,  7.1737E+01, -1.6149E+01,  1.9678E+00, -9.8553E-02};
+  static float par_Xe_4[6]={  2.2346E+02, -1.7919E+02,  7.5057E+01, -1.6650E+01,  1.9651E+00, -9.4950E-02};
+  static float par_Xe_5[6]={  1.8856E+02, -1.4539E+02,  5.6280E+01, -1.1047E+01,  1.1788E+00, -5.3757E-02};
+  
+  if (Len3D<=0.0) return EadcCS;
+  
+  // 0. order path len correction dE => dE/dx
+  float  Eadc 	= EadcCS * 2.0*trdconst::TrdStrawRadius/Len3D;
+  
+  float  Len3D_MM = Len3D*10.0;
+  if (Len3D_MM< (trdconst::TrdMinPathLen3D*10.) || Len3D_MM>(trdconst::TrdMinPathLen3D*10.)) return Eadc;
+  
+  // 1. order path len correction, i.e. correct for non-linearities in dE/dx
+  float Corr =  60.;
+  switch (iXe) {
+  case 0: 
+    Corr = par_Xe_0[0] + par_Xe_0[1]*Len3D_MM + par_Xe_0[2]*pow(Len3D_MM,2) + par_Xe_0[3]*pow(Len3D_MM,3) + 
+      par_Xe_0[4]*pow(Len3D_MM,4) + par_Xe_0[5]*pow(Len3D_MM,5); break;
+  case 1: 
+    Corr = par_Xe_1[0] + par_Xe_1[1]*Len3D_MM + par_Xe_1[2]*pow(Len3D_MM,2) + par_Xe_1[3]*pow(Len3D_MM,3) + 
+      par_Xe_1[4]*pow(Len3D_MM,4) + par_Xe_1[5]*pow(Len3D_MM,5); break;
+  case 2: 
+    Corr = par_Xe_2[0] + par_Xe_2[1]*Len3D_MM + par_Xe_2[2]*pow(Len3D_MM,2) + par_Xe_2[3]*pow(Len3D_MM,3) + 
+      par_Xe_2[4]*pow(Len3D_MM,4) + par_Xe_2[5]*pow(Len3D_MM,5); break;
+  case 3: 
+    Corr = par_Xe_3[0] + par_Xe_3[1]*Len3D_MM + par_Xe_3[2]*pow(Len3D_MM,2) + par_Xe_3[3]*pow(Len3D_MM,3) + 
+      par_Xe_3[4]*pow(Len3D_MM,4) + par_Xe_3[5]*pow(Len3D_MM,5); break;
+  case 4: 
+    Corr = par_Xe_4[0] + par_Xe_4[1]*Len3D_MM + par_Xe_4[2]*pow(Len3D_MM,2) + par_Xe_4[3]*pow(Len3D_MM,3) + 
+      par_Xe_4[4]*pow(Len3D_MM,4) + par_Xe_4[5]*pow(Len3D_MM,5); break;
+  case 5: 
+    Corr = par_Xe_5[0] + par_Xe_5[1]*Len3D_MM + par_Xe_5[2]*pow(Len3D_MM,2) + par_Xe_5[3]*pow(Len3D_MM,3) + 
+      par_Xe_5[4]*pow(Len3D_MM,4) + par_Xe_5[5]*pow(Len3D_MM,5); break;
+  }
+  return Eadc * trdconst::TrdMeanMPV/Corr;
+
+
+}
 //--------------------------------------------------------------------------------------------------
 int TrdSCalibR::TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug) {
 
@@ -1877,7 +1922,7 @@ int TrdSCalibR::TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug) {
   TrdLPs.assign(3, 0.0);
   TrdLRs.assign(3,-1.0);
   
-  if( Rabs<CalMomMin || Rabs>CalMomMax ) return 21;
+  if( Rabs < trdconst::CalMomMin || Rabs > trdconst::CalMomMax ) return 21;
 
   /// Which Rigidity Bin for Protons & Helium ?
   int iR        = -1;
@@ -1918,18 +1963,21 @@ int TrdSCalibR::TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug) {
 	      << " for day " << xDay << std::endl;
     return 24;		
   }
-
+  
   int nCount = 0;
-  vector<AC_TrdHits*>::iterator iter;
-  for (iter = TrdSHits.begin(); iter != TrdSHits.end(); ++iter) {
+  for (vector<AC_TrdHits*>::iterator iter = TrdSHits.begin(); iter != TrdSHits.end(); ++iter) {
     int 	  Layer = (*iter)->Lay;
     double	  Len   = (*iter)->Len2D;
     if (iFlag==3) Len   = (*iter)->Len3D;
+      
     if (Len < trdconst::TrdMinPathLen3D) continue;
+    if ((*iter)->EadcCS < trdconst::TrdMinAdc) continue;
     double	scale 	= 2.0*trdconst::TrdStrawRadius/Len;
     double 	Eadc	= (*iter)->EadcCS*scale;
     
-
+    /// nonlinear path length correction
+    //double 	Eadc	= PathLenCorr(iXe, (*iter)->EadcCS, Len);
+    
     x[0] 		= Eadc;
     par[0] 	        = iXe; 
     par[1] 	        = iR;	
@@ -1943,21 +1991,24 @@ int TrdSCalibR::TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug) {
     myPair <double> myElectronL(1E-8, fabs(TrdSCalibR::TrdS_PDF_fElectron(x,par)));
     double L_Electron   = myElectronL.GetMax();
 
+    if(L_Proton==1 || L_Helium==1 || L_Electron==1) continue;
+
     if(Debug > 1) 
-      std::cout << Form("i=%3d EadcR=%4d EadcCS=%4d EadcPL=%4d L_Proton=%12.4E L_Helium=%12.4f L_Electron=%12.4f",
-			nCount, (int)(*iter)->EadcR, (int)(*iter)->EadcCS, (int) Eadc,L_Proton,L_Helium,L_Electron) << std::endl;
+      std::cout << Form("%3d Len=%+5.1f EadcR=%4d EadcCS=%4d EadcPL=%4d L_Proton=%12.4E L_Helium=%12.4f L_Electron=%12.4f",
+			nCount, Len, (int)(*iter)->EadcR, (int)(*iter)->EadcCS, (int) Eadc,L_Proton,L_Helium,L_Electron) << std::endl;
 
     Lprod_Proton 	*= L_Proton;
     Lprod_Helium 	*= L_Helium;
     Lprod_Electron 	*= L_Electron;
+
     nCount++;
   }
-   
+  if(nCount < 4) return 25;
+ 
   if(Debug > 1) 
-    std::cout << Form("Step 1. |R|=%6.2f(GeV/c) nCount=%d Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
-		      Rabs, nCount, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
+    std::cout << Form("Step 1. N=%3d |R|=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
+		      nCount, Rabs, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
 
-  if(nCount==0) return 25;
   if(Lprod_Electron == 1.0 && Lprod_Proton == 1.0 && Lprod_Helium == 1.0)  return 26;
 
   Lprod_Proton 		= TMath::Power(Lprod_Proton,  1.0/float(nCount));
@@ -2067,11 +2118,12 @@ int TrdSCalibR::TrdLR_MC_CalcXe(double xDay, float Rabs, vector<bool> PartId, in
 
   if(FirstMCCall) return 1;
   
-  if( Rabs<CalMomMin || Rabs>CalMomMax ) return 2;
+  if( Rabs<trdconst::CalMomMin || Rabs>trdconst::CalMomMax ) return 2;
 
   /// Which Momentum Bin for Protons & Helium ?
   int iR 	= -1;
   int iMax      = TrdS_PDF_xProt.size()-1;
+ 
   if (iMax<=0) {
     _ierror++;
     Error("TrdSCalibR::TrdLR_MC_CalcXe-E- ", "iMax<=0 is wrong");
@@ -2471,15 +2523,17 @@ bool TrdSCalibR::GetTrdV4CalibHistos(int CalibLevel, int Debug) {
 //--------------------------------------------------------------------------------------------------
 bool TrdSCalibR::GetTrdV5CalibHistos(int Debug) {
 
-  TrdGain_01 = false;  TrdGain_02 = false;  TrdGain_03 = false;
-  TrdAlign_01 = false; TrdAlign_02 = false; TrdAlign_03 = false;
+  TrdGain_00 = false, TrdGain_01 = false;  TrdGain_02 = false;  TrdGain_03 = false;
+  TrdAlign_00 = false, TrdAlign_01 = false; TrdAlign_02 = false; TrdAlign_03 = false;
 
   if(SCalibLevel < 5) return false;
-  if(TrdGainMethod  < 1 || TrdGainMethod  > 3) return false;
-  if(TrdAlignMethod < 1 || TrdAlignMethod > 3) return false;
+  if(TrdGainMethod  < 0 || TrdGainMethod  > 3) return false;
+  if(TrdAlignMethod < 0 || TrdAlignMethod > 3) return false;
 
   char tdname[200]=""; 
-  if(TrdGainMethod == 1) {  //== method from S.Schael
+  if (TrdGainMethod == 0) { 
+    /// no gain correction
+  }else if(TrdGainMethod == 1) {  //== method from S.Schael
     /// Call TRD Calibration Histograms 
     sprintf(tdname, "%s/%s/%s", pPath, TrdDBUpdateDir[0], TrdCalDBUpdate[5]);
     TrdGain_01 = Get04TrdCalibration(tdname, Debug);  
@@ -2493,14 +2547,15 @@ bool TrdSCalibR::GetTrdV5CalibHistos(int Debug) {
   } else if(TrdGainMethod ==2 ) {
     TrdGain_02 = true;
   } else if(TrdGainMethod ==3 ) {
-
     TrdGain_03 = true;
   } else return false;
 
   if(SetTrdAlign) 
     {
-      /// Call Trd Alignment DB 
-      if(TrdAlignMethod == 1) { //== method from S.Schael & T.Siedenburg
+      
+      if(TrdAlignMethod == 0) { 
+	TrdAlign_00 = true;
+      } else if(TrdAlignMethod == 1) { //== method from S.Schael & T.Siedenburg
 	sprintf(tdname, "%s/%s/%s", pPath, TrdDBUpdateDir[0], TrdAlignDBUpdate[1]); 
 	TrdAlign_01 = GetTrdAlignment(tdname, Debug);
 	
@@ -2529,7 +2584,7 @@ bool TrdSCalibR::GetTrdV5CalibHistos(int Debug) {
   
   FirstCall = false;
   
-  if ( (TrdGain_01 || TrdGain_02 || TrdGain_03) && (TrdAlign_01 || TrdAlign_02 || TrdAlign_03) ) 
+  if ( (TrdGain_00 || TrdGain_01 || TrdGain_02 || TrdGain_03) && (TrdAlign_00 || TrdAlign_01 || TrdAlign_02 || TrdAlign_03) ) 
     return true;
   else return false;
     
@@ -2746,20 +2801,16 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
  
   s1 = s2 = s3 = 0.0;
 
-  //== disable momentum limits on 2012.02.21 
-  //if(fMom < CalMomMin || fMom > CalMomMax)  return 1;
-
-  if( !GetdTrd(TrdHtrk) ||  !GetcTrd(TrdHtrk) || !GetcTrkdTrk(Trtrk) ) return 2;
-  
-  if(TrdHtrk->NTrdHSegment() != 2) return 3;
+  if( !GetdTrd(TrdHtrk) ||  !GetcTrd(TrdHtrk) ) return 2;
+  if( !GetcTrkdTrk(Trtrk) ) return 3;
 	   
   Htime = GetEvthTime(evut, Debug); 
   Xtime = GetEvtxTime(evut, Debug); 
 
   if ( SCalibLevel == 3 && (Xtime < FirstCalRunTime || Xtime > LastCalRunTime) ) 
-    return 4;
+    return 5;
   if ( SCalibLevel >  3 && (Xtime < FirstCalXday    || Xtime > LastCalXday) ) 
-    return 4;
+    return 6;
 
   if(Debug > 1) {
     int thread=0;
@@ -2775,8 +2826,6 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
   TrdSHits.clear();
 
-  /// initiate 
-  AC_InitInterpolate2Z(1.0, 1.0, 0.0, 0.0);
 
   double TrdCalibMPV, TrdMPVofTheDay, ModMPVofTheDay;
   AC_TrdHits * AC = 0;
@@ -2795,30 +2844,12 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
 	  AC->GetHitInfo(rhit);
 	  AC->SetHitPos();
 	  AC->TrkDraw = AC->GetTrdHitTrkDistance(AC, cTrk, dTrk);
-	  AC->TrdDraw = AC->GetTrdHitTrkDistance(AC, cTrd, dTrd);
-
-	  if( AC_ModAlign(AC, Debug) ) continue; 
+	  AC->TrdDraw = AC->GetTrdHitTrkDistance(AC, cTrd, dTrd);	
 	  
+	  /// apply gain and time-dep. alignment correction
 	  if( GetThisTrdHit(AC, Debug) ) continue;
 	  	
-	  if (AC->EadcCS < trdconst::TrdMinAdc || AC->EadcCS > trdconst::TrdMaxAdc) continue;
-	  AC->Dxy  = AC->hitXY - AC->hitXYraw;
-	  AC->Dz   = AC->hitZ  - AC->hitZraw;
-	  AC->TrkD = AC->GetTrdHitTrkDistance(AC, cTrk, dTrk);
-	 
-	  if (fabs(AC->TrkD)>1.0*trdconst::CutTrdTrkD) continue;
-
-	  if(fabs(AC->TrdD) > trdconst::TrdStrawRadius) 
-	    AC->TrdD = trdconst::TrdStrawRadius * TMath::Sign(1.0, AC->TrdD);  
-	  if(fabs(AC->TrkD) > trdconst::TrdStrawRadius) 
-	    AC->TrkD = trdconst::TrdStrawRadius * TMath::Sign(1.0, AC->TrkD);
-	  
-	  if (AC->TrkD < trdconst::TrdStrawRadius) {
-	    AC->Len2D = 2.0*TMath::Sqrt(TMath::Power(trdconst::TrdStrawRadius,2) - TMath::Power(AC->TrkD,2));
-	    AC->Len3D = AC->GetTrdPathLen3D(AC->Lay,AC->hitXY, AC->hitZ, cTrk, dTrk);	    
-	  } 
-	  
-	  if( AC->Len3D < trdconst::TrdMinPathLen3D ) continue; 
+	  AC->Len3D = AC->GetTrdPathLen3D(AC->Lay,AC->hitXY, AC->hitZ, cTrd, dTrd);	    
 
 	  if(Debug > 1) std::cout << Form("*** Len2D=%5.2f Len3D=%5.2f ", AC->Len2D, AC->Len3D);
 	  if( AC->Len3D < trdconst::TrdMinPathLen3D ) continue; 
@@ -2832,41 +2863,118 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
 	}
     }
   
-  /// clear TG, TS
-  AC_ClearInterpolate2Z();
-
-  if( TrdLR_CalcXe(Xtime, fMom, iFlag, Debug) ) return 7; 
+  delete AC; AC = 0;
+  
+  int ilr = TrdLR_CalcXe(Xtime, fMom, iFlag, Debug);
   
   s1 = TrdLRs[0]; //TrdLRLprod_Proton;
   s2 = TrdLRs[1]; //Lprod_Helium;
-  s3 = TrdLRs[2]; //Lprod_Electron;
- 
-  delete AC; AC = 0;
+  s3 = TrdLRs[2]; //Lprod_Electron; 
 
   ClearTrdSHits();
+
+  if(ilr >0) return ilr;
 
   return 0;
 }
 
 //--------------------------------------------------------------------------------------------------
-int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, int Debug){
+//--------------------------------------------------------------------------------------------------
+int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTrackR *Trtrk, double &s1, double &s2, double &s3, int Debug){
+ 
+  s1 = s2 = s3 = 0.0;
 
-  //if(TrdHtrk->NTrdHSegment() != 2) return 10;
+  if( !GetdTrd(Trdtrk) ||  !GetcTrd(Trdtrk) ) return 2;
+  if( !GetcTrkdTrk(Trtrk) ) return 3;
+	   
+  Htime = GetEvthTime(evut, Debug); 
+  Xtime = GetEvtxTime(evut, Debug); 
+
+  if ( SCalibLevel == 3 && (Xtime < FirstCalRunTime || Xtime > LastCalRunTime) ) 
+    return 5;
+  if ( SCalibLevel >  3 && (Xtime < FirstCalXday    || Xtime > LastCalXday) ) 
+    return 6;
+
+  if(Debug > 1) {
+    int thread=0;
+#ifdef _OPENMP
+    thread=omp_get_thread_num();
+#endif
+    std::cout << Form("TrdSCalibLevel=%d TrdTrackLevel=%d TrdiFlag=%d ", SCalibLevel, TrdTrackLevel, iFlag)
+	      << Form("Pabs=%6.3f Htime=%6d Xtime=%8.4f", fMom, Htime, Xtime)
+	      << std::endl;
+  }
   
-  if( !GetdTrd(TrdHtrk) ||  !GetcTrd(TrdHtrk) ) return 11;
 
-  if(Debug > 1) 
-    std::cout << Form("TrdSCalibR::ProcessTrdHit-I- TrdHTrack Coo=(%+5.2f, %5.2f %5.2f)",
-		      TrdHtrk->Coo[0],TrdHtrk->Coo[1],TrdHtrk->Coo[2]) << std::endl;
+  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
+  TrdSHits.clear();
+
+  double TrdCalibMPV, TrdMPVofTheDay, ModMPVofTheDay;
+  AC_TrdHits * AC = 0;
+
+  int itrdhit = 0;
+
+  for (int iseg = 0; iseg < Trdtrk->NTrdSegment(); iseg++)
+    {		
+      TrdSegmentR *trdseg = Trdtrk->pTrdSegment(iseg);
+      if(!trdseg) continue;
+      
+      int itrdhit = 0;
+      for (int j = 0; j <  trdseg->NTrdCluster(); j++)
+	{
+	  TrdClusterR  *trdcl = trdseg->pTrdCluster(j);
+	  if(!trdcl) continue;
+	  
+	  TrdRawHitR  *rhit  = trdcl->pTrdRawHit();
+	  if(!rhit) continue;	 
+	  
+	  AC = new AC_TrdHits();	  
+	  AC->GetHitInfo(rhit);
+	  AC->SetHitPos();
+	  AC->TrkDraw = AC->GetTrdHitTrkDistance(AC, cTrk, dTrk);
+	  AC->TrdDraw = AC->GetTrdHitTrkDistance(AC, cTrd, dTrd);
+	  
+	  /// apply gain and time-dep. alignment correction
+	  if( GetThisTrdHit(AC, Debug) ) continue;
+	  
+	  AC->Len3D = AC->GetTrdPathLen3D(AC->Lay,AC->hitXY, AC->hitZ, cTrd, dTrd);
+	  
+	  if(Debug > 1) std::cout << Form("*** Len2D=%5.2f Len3D=%5.2f ", AC->Len2D, AC->Len3D);
+	  if( AC->Len3D < trdconst::TrdMinPathLen3D ) continue; 
+	  
+
+	  TrdSHits.push_back(AC);
+
+	  AC = 0;
+	  
+	  itrdhit++;
+	}
+    }
+
+  delete AC; AC = 0;
+  
+  int ilr = TrdLR_CalcXe(Xtime, fMom, iFlag, Debug);
+  
+  s1 = TrdLRs[0]; //TrdLRLprod_Proton;
+  s2 = TrdLRs[1]; //Lprod_Helium;
+  s3 = TrdLRs[2]; //Lprod_Electron; 
+
+  ClearTrdSHits();
+
+  if(ilr >0) return ilr;
+
+  return 0;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+
+int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, int Debug){
 
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
 
-
   ClearTrdSHits();
   TrdSHits.clear();
-
-  /// initiate 
-  AC_InitInterpolate2Z(1.0, 1.0, 0.0, 0.0);
 
   double TrdCalibMPV, TrdMPVofTheDay, ModMPVofTheDay;
   
@@ -2883,42 +2991,15 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, int Debug){
 	  
 	  if(!rhit) continue;
 	  
-	  if( rhit->Amp < trdconst::TrdMinAdc || rhit->Amp > trdconst::TrdMaxAdc) continue;
-	  if( ExtTrdMinAdc > 0 && rhit->Amp < ExtTrdMinAdc ) continue;
-	  
 	  AC = new AC_TrdHits();	  
 	  AC->GetHitInfo(rhit);
 	  AC->SetHitPos();
 	  AC->TrkDraw = AC->GetTrdHitTrkDistance(AC, cTrk, dTrk);
 	  AC->TrdDraw = AC->GetTrdHitTrkDistance(AC, cTrd, dTrd);
-
-
-	  if( AC_ModAlign(AC, Debug) ) continue; 
 	  
 	  if( GetThisTrdHit(AC, Debug) ) continue;
 	  	
-	  if (AC->EadcCS < trdconst::TrdMinAdc || AC->EadcCS > trdconst::TrdMaxAdc) continue;
-	  if( ExtTrdMinAdc > 0 &&  (AC->EadcR < ExtTrdMinAdc) ) continue;
-	  AC->Dxy  = AC->hitXY - AC->hitXYraw;
-	  AC->Dz   = AC->hitZ  - AC->hitZraw;
-	  AC->TrkD = AC->GetTrdHitTrkDistance(AC, cTrk, dTrk);
-	 
-	  if (fabs(AC->TrkD)>1.0*trdconst::CutTrdTrkD) continue;
-
-	  if(fabs(AC->TrdD) > trdconst::TrdStrawRadius) 
-	    AC->TrdD = trdconst::TrdStrawRadius * TMath::Sign(1.0, AC->TrdD);  
-	  if(fabs(AC->TrkD) > trdconst::TrdStrawRadius) 
-	    AC->TrkD = trdconst::TrdStrawRadius * TMath::Sign(1.0, AC->TrkD);
-	  
-	  if (AC->TrkD < trdconst::TrdStrawRadius) {
-	    AC->Len2D = 2.0*TMath::Sqrt(TMath::Power(trdconst::TrdStrawRadius,2) - TMath::Power(AC->TrkD,2));
-	    AC->Len3D = AC->GetTrdPathLen3D(AC->Lay,AC->hitXY, AC->hitZ, cTrk, dTrk);	    
-	  } 
-	  
-	  if( AC->Len3D < trdconst::TrdMinPathLen3D ) continue; 
-
-
-	  if(Debug > 1) std::cout << Form("*** Len2D=%5.2f Len3D=%5.2f ", AC->Len2D, AC->Len3D);
+	  AC->Len3D = AC->GetTrdPathLen3D(AC->Lay,AC->hitXY, AC->hitZ, cTrd, dTrd);
 	  if( AC->Len3D < trdconst::TrdMinPathLen3D ) continue; 
 	  
 	  nTrdHitLayer[AC->Lay]++; 
@@ -2931,21 +3012,19 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, int Debug){
 	}
     }
 
-  /// clear TG, TS
-  AC_ClearInterpolate2Z();
+  delete AC; AC = 0;
 
   GetnTrdHitLayer(TrdSHits, Debug);
 
-  if( TrdSHits.size() < trdconst::nTrdMinHits) return 14; 
-  
+  /*
+  if( TrdSHits.size() < trdconst::nTrdMinHits ) return 14; 
   if( GetTrdSum8(Debug) ) return 15;
-  
-  if( GetTruncatedMean(Debug) ) return 16;
-  
-  if( TrdLR_CalcXe(Xtime, iRabs, iFlag, Debug) ) return 17; 
- 
+  if( GetTrdMedian(Debug) ) return 16;
+  if( GetTruncatedMean(Debug) ) return 17;
+  */
 
-  delete AC; AC = 0;
+  int ilr = TrdLR_CalcXe(Xtime, iRabs, iFlag, Debug);
+  if(ilr >0) return ilr;
   
   return 0;
 }
@@ -2954,18 +3033,11 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, int Debug){
 
 int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, int Debug){
   
-  //if(Trdtrk->NTrdSegment() != 4 ) return 10;   
-  
-  //if (!MatchingTrdTKtrack(iRabs, Debug) ) return 11; 
-
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
  
   ClearTrdSHits();
   TrdSHits.clear();
 
-  /// initiate 
-  AC_InitInterpolate2Z(1.0, 1.0, 0.0, 0.0);
- 
   double TrdCalibMPV, TrdMPVofTheDay, ModMPVofTheDay;
   
   AC_TrdHits * AC = NULL;
@@ -2989,42 +3061,11 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, int Debug){
 	  AC->SetHitPos();
 	  AC->TrkDraw = AC->GetTrdHitTrkDistance(AC, cTrk, dTrk);
 	  AC->TrdDraw = AC->GetTrdHitTrkDistance(AC, cTrd, dTrd);
-
-	  if( AC_ModAlign(AC, Debug) ) continue; 
 	  
 	  if( GetThisTrdHit(AC, Debug) ) continue;
-	  	
-	  if (AC->EadcCS < trdconst::TrdMinAdc || AC->EadcCS > trdconst::TrdMaxAdc) continue;
-	  if( ExtTrdMinAdc > 0 &&  (AC->EadcR < ExtTrdMinAdc) ) continue;
-	  AC->Dxy  = AC->hitXY - AC->hitXYraw;
-	  AC->Dz   = AC->hitZ  - AC->hitZraw;
-	  AC->TrkD = AC->GetTrdHitTrkDistance(AC, cTrk, dTrk);
-	 
-	  if (fabs(AC->TrkD)>1.0*trdconst::CutTrdTrkD) continue;
-
-	  if(fabs(AC->TrdD) > trdconst::TrdStrawRadius) 
-	    AC->TrdD = trdconst::TrdStrawRadius * TMath::Sign(1.0, AC->TrdD);  
-	  if(fabs(AC->TrkD) > trdconst::TrdStrawRadius) 
-	    AC->TrkD = trdconst::TrdStrawRadius * TMath::Sign(1.0, AC->TrkD);
-	  
-	  if (AC->TrkD < trdconst::TrdStrawRadius) {
-	    AC->Len2D = 2.0*TMath::Sqrt(TMath::Power(trdconst::TrdStrawRadius,2) - TMath::Power(AC->TrkD,2));
-	    AC->Len3D = AC->GetTrdPathLen3D(AC->Lay,AC->hitXY, AC->hitZ, cTrk, dTrk);	    
-	  } 
-	  
+	  		  
+	  AC->Len3D = AC->GetTrdPathLen3D(AC->Lay,AC->hitXY, AC->hitZ, cTrd, dTrd);	    	 
 	  if( AC->Len3D < trdconst::TrdMinPathLen3D ) continue; 
-
-	  if(Debug > 1) { 
-	    std::cout << std::endl
-		      << Form("+-+ [%02d] iSeg=%d Layer=%2d Ladder=%2d Tube=%2d D=%d XY=%5.1f Z=%5.1f ", 
-			      itrdhit, iseg, AC->Lay, AC->Lad, AC->Tub, AC->hitD, AC->hitXY, AC->hitZ); 
-	    std::cout << Form("DHitTrk=%5.2f DHitTrd=%5.2f ", AC->TrkD, AC->TrdD);	   
-	    std::cout << Form("StrawNr=%4d Mod=%3d GasCir=%2d ", AC->Straw, AC->Mod, AC->GC );
-	    std::cout << Form("Len2D=%5.2f Len3D=%5.2f ", AC->Len2D, AC->Len3D);
-	    std::cout << Form("EadcR=%4d EadcCS=%4d ", (int)AC->EadcR, (int) AC->EadcCS) 
-		      << std::endl;
-	    
-	  }
 	  
 	  nTrdHitLayer[AC->Lay]++; 
 
@@ -3036,25 +3077,20 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, int Debug){
 	  itrdhit++;
 	  
 	}
-    }
-
-   
-  /// clear TG, TS
-  AC_ClearInterpolate2Z();
-
+    }  
+  delete AC; AC = 0;
 
   GetnTrdHitLayer(TrdSHits, Debug);
 
+  /*
   if( TrdSHits.size() < trdconst::nTrdMinHits ) return 14; 
-
   if( GetTrdSum8(Debug) ) return 15;
-  if( GetTrdMedian(Debug) ) return 15;
+  if( GetTrdMedian(Debug) ) return 16;
+  if( GetTruncatedMean(Debug) ) return 17;
+  */
 
-  if( GetTruncatedMean(Debug) ) return 16;
-  
-  if( TrdLR_CalcXe(Xtime, iRabs, iFlag, Debug) ) return 17; 
-
-  delete AC; AC = 0;
+  int ilr = TrdLR_CalcXe(Xtime, iRabs, iFlag, Debug);
+  if(ilr >0) return ilr;
 
   return 0;
 }
@@ -3145,22 +3181,16 @@ int TrdSCalibR::ProcessTrdHit(TrTrackR *Trtrk, int Debug){
 
   if(Debug) std::cout << Form("*** nHitOnStrk=%3d nHitNearStrk=%3d ", nHitOnStrk, nHitNearStrk) << std::endl;
 
-  
-  //if (nHitNearStrk-nHitOnStrk > 12)  return 13;
- 
+  /*
+  if (nHitNearStrk-nHitOnStrk > 12)  return 13;
   if( TrdSHits.size() < trdconst::nTrdMinHits ) return 14; 
-
   if( GetTrdSum8(Debug) ) return 15;
-  if( GetTrdMedian(Debug) ) return 15;
+  if( GetTrdMedian(Debug) ) return 16;
+  if( GetTruncatedMean(Debug) ) return 17;
+  */
 
-  if( GetTruncatedMean(Debug) ) return 16;
- 
+  return TrdLR_CalcXe(Xtime, iRabs, iFlag, Debug); 
 
-  if( TrdLR_CalcXe(Xtime, iRabs, iFlag, Debug) ) return 17; 
-
-  
-
-  return 0;
 }
 //--------------------------------------------------------------------------------------------------
 
@@ -3168,16 +3198,10 @@ int TrdSCalibR::GetnTrdHitLayer(vector<AC_TrdHits*> &TrdHits, int Debug){
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
 
   for (unsigned int i=0; i<TrdHits.size(); i++) {
-    if(Debug) cout << Form("*C* %3d Lay=%02d Lad=%02d Tub=%02d Amp=%6.1f / %6.1f XY=%+8.3f Z=%8.3f --> XY=%+8.3f Z=%8.3f TrkD=%+8.3f, Len3D=%8.3f", 
-			   i,  TrdHits.at(i)->Lay, TrdHits.at(i)->Lad, TrdHits.at(i)->Tub, TrdHits.at(i)->EadcR, TrdHits.at(i)->EadcCS, 
-			   TrdHits.at(i)->hitXYraw, TrdHits.at(i)->hitZraw, TrdHits.at(i)->hitXY, TrdHits.at(i)->hitZ, 
-			   TrdHits.at(i)->TrkD, TrdHits.at(i)->Len3D)  << endl;  
-    
     if ((fabs(TrdHits.at(i)->Len3D)<trdconst::TrdMinPathLen3D)) continue;
     nTrdHitLayer[TrdHits.at(i)->Lay]++; 
   }
   
-
   int TrdNlayer = 0;
   int TrdNhits  = 0;
   int ihitlayer[3];
@@ -3195,8 +3219,9 @@ int TrdSCalibR::GetnTrdHitLayer(vector<AC_TrdHits*> &TrdHits, int Debug){
   }	  
   
   if(Debug)
-  std::cout << Form("*** TrdNlayer=%d  TrdNhits=%d HitLayer=(%2d %2d %2d)", 
-  		    TrdNlayer, TrdNhits, ihitlayer[0],ihitlayer[1],ihitlayer[2] ) << std::endl;
+    std::cout << Form("*** TrdNlayer=%d  TrdNhits=%d HitLayer=(%2d %2d %2d)", 
+		      TrdNlayer, TrdNhits, ihitlayer[0],ihitlayer[1],ihitlayer[2] ) 
+	      << std::endl;
   
   return 0;
  
@@ -3212,10 +3237,6 @@ vector<int> TrdSCalibR::TrdFillHits( vector<AC_TrdHits*> &TrdHits, int Debug) {
   Elay1.assign(trdconst::nTrdLayers,0);
   Elay2.assign(trdconst::nTrdLayers,0);
 
-  if(Debug)
-    std::cout << Form("*** TrdSCalibR::TrdFillHits-I Before TrdHits.size=%d", (int)TrdHits.size()) << std::endl;
- 
-  int ii = 0;
   for (vector<AC_TrdHits*>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
     {
       int   iD       = (*iter)->hitD;
@@ -3237,14 +3258,8 @@ vector<int> TrdSCalibR::TrdFillHits( vector<AC_TrdHits*> &TrdHits, int Debug) {
 	  nTrdHitsOnTrk ++;
 	  Elay2.at(iLay) ++;
 	}
-
       }
 
-      if(Debug)
-      cout << Form("*** %3d Lay=%02d Lad=%02d Tub=%02d Amp=%6.1f / %6.1f XY=%+8.3f Z=%8.3f --> XY=%+8.3f Z=%8.3f TrkD=%+8.3f, Len3D=%8.3f", 
-		   ii++,  (*iter)->Lay, (*iter)->Lad, (*iter)->Tub, (*iter)->EadcR, (*iter)->EadcCS, 
-		   (*iter)->hitXYraw, (*iter)->hitZraw, (*iter)->hitXY, (*iter)->hitZ, (*iter)->TrkD, (*iter)->Len3D)  << endl;      
-      
     }
   
 
@@ -3288,10 +3303,6 @@ vector<int> TrdSCalibR::TrdFillHits2( vector<AC_TrdHits*> &TrdHits, int Debug) {
   Elay1.assign(trdconst::nTrdLayers,0);
   Elay2.assign(trdconst::nTrdLayers,0);
 
-  if(Debug)
-    std::cout << Form("*** TrdSCalibR::TrdFillHits2-I Before TrdHits.size=%d", (int) TrdHits.size()) << std::endl;
- 
-  int ii = 0;
   for (vector<AC_TrdHits*>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
     {
       int   iD       = (*iter)->hitD;
@@ -3314,13 +3325,7 @@ vector<int> TrdSCalibR::TrdFillHits2( vector<AC_TrdHits*> &TrdHits, int Debug) {
 	  nTrdHitsOnTrk ++;
 	  Elay2.at(iLay) ++;
 	}
-
-      }
-
-      if(Debug)
-      cout << Form("*** %3d Lay=%02d Lad=%02d Tub=%02d Amp=%6.1f / %6.1f XY=%+8.3f Z=%8.3f --> XY=%+8.3f R=%+8.3f Z=%8.3f TrkD=%+8.3f, Len3D=%8.3f", 
-		   ii++,  (*iter)->Lay, (*iter)->Lad, (*iter)->Tub, (*iter)->EadcR, (*iter)->EadcCS, 
-		   (*iter)->hitXYraw, (*iter)->hitZraw, (*iter)->hitXY, (*iter)->hitR, (*iter)->hitZ, (*iter)->TrkD, (*iter)->Len3D)  << endl;      
+      }   
       
     }
   
@@ -3335,7 +3340,8 @@ vector<int> TrdSCalibR::TrdFillHits2( vector<AC_TrdHits*> &TrdHits, int Debug) {
   }
 
   if(Debug)
-    std::cout << Form("*** TrdSCalibR::TrdFillHits2-I After  TrdHits.size=%d  Erased=%d", (int) TrdHits.size(), nerase) << std::endl;
+    std::cout << Form("*** TrdSCalibR::TrdFillHits2-I After  TrdHits.size=%d  Erased=%d", 
+		      (int) TrdHits.size(), nerase) << std::endl;
   
   int nTrdLayNearTrk = 0, nTrdLayOnTrk = 0;
   for (int i=0; i<trdconst::nTrdLayers; i++) {
@@ -3702,12 +3708,12 @@ int TrdSCalibR::GetLocalTrkVec(float zTrdCor,
   ldTrk[1] = sin(TrkTht)*sin(TrkPhi);
   ldTrk[2] = cos(TrkTht);
 
-  /*
-  std::cout << Form("*** lcTrk=%+8.3f %+8.3f %+8.3f ldTrk=%+8.3f %+8.3f %+8.3f",
-		    lcTrk[0],lcTrk[1],lcTrk[2], ldTrk[0],ldTrk[1],ldTrk[2]) << std::endl;
-  std::cout << Form("***  cTrk=%+8.3f %+8.3f %+8.3f  dTrk=%+8.3f %+8.3f %+8.3f",
-		    cTrk[0],cTrk[1],cTrk[2], dTrk[0],dTrk[1],dTrk[2]) << std::endl;
-  */
+  if(Debug) {
+    std::cout << Form("*** lcTrk=%+8.3f %+8.3f %+8.3f ldTrk=%+8.3f %+8.3f %+8.3f",
+		      lcTrk[0],lcTrk[1],lcTrk[2], ldTrk[0],ldTrk[1],ldTrk[2]) << std::endl;
+    std::cout << Form("***  cTrk=%+8.3f %+8.3f %+8.3f  dTrk=%+8.3f %+8.3f %+8.3f",
+		      cTrk[0],cTrk[1],cTrk[2], dTrk[0],dTrk[1],dTrk[2]) << std::endl;
+  }
   
   return 0;
 }
@@ -3720,7 +3726,7 @@ int TrdSCalibR::GetTrdNewHits_ms(vector<AC_TrdHits*> TrdHits, int Debug) {
   for (vector<AC_TrdHits*>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
     {	   
       
-      if( AC_ModAlign(*iter, Debug) ) return 1; 
+      //if( AC_ModAlign(*iter, Debug) ) return 1; 
 
       double iTrkD  = (*iter)->GetTrdHitTrkDistance(*iter, cTrk, dTrk);
       (*iter)->TrkD = iTrkD;
@@ -3751,7 +3757,7 @@ int TrdSCalibR::GetTrdNewHits(vector<AC_TrdHits*> TrdHits, int Debug) {
 
   for (vector<AC_TrdHits*>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
     {	   
-      if( AC_ModAlign(*iter, Debug) ) return 1; 
+      //if( AC_ModAlign(*iter, Debug) ) return 1; 
       
       double iTrkD  = (*iter)->GetTrdHitTrkDistance(*iter, cTrk, dTrk);
       (*iter)->TrkD = iTrkD;
@@ -3783,7 +3789,10 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
   int iMod = TrdHit->Mod;
   
   /// apply gain correction
-  if(TrdGainMethod == 1) {         //== Default from AC
+  if(TrdGainMethod == 0) {
+    TrdHit->EadcCS = TrdHit->EadcR;
+
+  } else if(TrdGainMethod == 1) {         //== Default from AC
 
     TrdCalibMPV = TrdMPVofTheDay = ModMPVofTheDay = 0;
     if(SCalibLevel < 3) {
@@ -3799,20 +3808,16 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
 	if (ModMPVofTheDay>=10 && ModMPVofTheDay<=200.0) 
 	  TrdHit->EadcCS = TrdHit->EadcC1 * trdconst::TrdMeanMPVSC / ModMPVofTheDay; 
       }
-    } else if (SCalibLevel < 4) /// CalibLevel = 3 for version 3
-      {
-	TrdCalibMPV = g_TrdCalibMPV.at(TrdHit->Mod)->Eval(Xtime);
-	if (TrdCalibMPV>10 && TrdCalibMPV<200.0) 
-	  TrdHit->EadcCS = TrdHit->EadcR * trdconst::TrdMeanMPV / TrdCalibMPV; 
-      }
-    
-    else if (SCalibLevel < 6) { /// CalibLevel = 4 and 5
+    } else if (SCalibLevel < 4){ /// CalibLevel = 3 for version 3
+      TrdCalibMPV = g_TrdCalibMPV.at(TrdHit->Mod)->Eval(Xtime);
+      if (TrdCalibMPV>10 && TrdCalibMPV<200.0) 
+	TrdHit->EadcCS = TrdHit->EadcR * trdconst::TrdMeanMPV / TrdCalibMPV; 
+    } else {                     /// CalibLevel = 4 and 5 and 6
       TrdCalibMPV = TrdScalibInterpolate(Xtime, aP.at(iMod), TrdScalibXdaysMpv[iMod],TrdScalibMpv[iMod], Debug);
       if (TrdCalibMPV>10 && TrdCalibMPV<200.0) 
 	TrdHit->EadcCS = TrdHit->EadcR * trdconst::TrdMeanMPV / TrdCalibMPV;	    
     }
       
-    
   } else if(TrdGainMethod == 2) {  //== MIT
 
     if(_DB_instance.readDB_Calibration(Atime))
@@ -3834,7 +3839,11 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
   }
 
   /// apply alignment correction
-  if(TrdAlignMethod == 1) {
+  if(TrdAlignMethod == 0) { //== no alignment
+    
+    TrdHit->hitXY = TrdHit->hitXYraw;
+
+  } else if(TrdAlignMethod == 1) {
     
     double TrdAlignDxy = 0.0;
     
@@ -3843,9 +3852,9 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
     
     if(Debug > 1)
       std::cout << Form(" ==> TrdAlignDxy=%+8.3f hitXY=%+8.3f", TrdAlignDxy, TrdHit->hitXY) << std::endl;
-  }
-  else if (TrdAlign_02) {
 
+  } else if (TrdAlign_02) {
+    
     AMSPoint TRDTube_Center, TRDTube_Dir, temp_TRDHit;
     if( TrdHit->hitD==1 ) { //== YZ plane
       TRDTube_Center[0]=0; TRDTube_Center[1]=TrdHit->hitXYraw; TRDTube_Center[2]=TrdHit->hitZraw; 
@@ -3881,8 +3890,7 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
       Warning("TrdSCalibR::GetThisTrdHit-W- ","ZW AlignDB::Warning out of time=%d", (int) Atime);
     }
     
-  }
-  else if (TrdAlign_03) {
+  } else if (TrdAlign_03) {
     // to be implemented asap.
     
   } else {
@@ -3931,221 +3939,7 @@ int TrdSCalibR::GetUnknownHitPos(TrdHTrackR *TrdHtrk, float &alx, float &aly, fl
   return 0;
 }
 //--------------------------------------------------------------------------------------------------
-int TrdSCalibR::ProcessAlignCorrection(unsigned int iTrdAlignMethod, TrdTrackR *Trdtrk, AC_TrdHits *ACHit, int Debug) {
- 
-  float alx=0, aly=0;
-  float TRD_Ax=0, TRD_Ay=0;
-
-  if( GetUnknownHitPos(Trdtrk, alx, aly, ACHit->hitZraw) ) return 1;
-
-  if( ACHit->hitD==1 ) ACHit->hitR = alx;
-  else ACHit->hitR = aly;
-
-  if(Debug > 1)
-  std::cout << Form("rawhit(%+8.3f %+8.3f) --> trdpnt(%+8.3f %+8.3f %8.3f) trddir(%+8.3f %+8.3f %+8.3f) hitXYZ(%+8.3f %+8.3f %+8.3f)", 
-		    ACHit->hitXYraw, ACHit->hitZraw,
-		    Trdtrk->Coo[0], Trdtrk->Coo[1], Trdtrk->Coo[2], dTrd[0], dTrd[1], dTrd[2], 
-		    ACHit->hitXY,  ACHit->hitR, ACHit->hitZ) << std::endl;
-
-
-  if(iTrdAlignMethod == 1) {
-    /// correction Z coord. imported from ACroot3.h 
-    ACHit->hitZ   = ACHit->hitZraw + trdconst::TRD_Dz;   	    
-    if( ACHit->hitD==1 ){                                                  // y-measurement
-      TRD_Ay      = trdconst::TRD_Ay0 + ACHit->GetXY()/100.0*trdconst::TRD_Ay1 + ACHit->GetXY()/100.0*ACHit->GetXY()/100.0*trdconst::TRD_Ay2;
-      ACHit->hitZ += alx*sin(TRD_Ay);                                      // TRD Y-Rot (XZ-Tilt)	
-      TRD_Ax      = trdconst::TRD_Ax0 + alx/100.0*trdconst::TRD_Ax1 + alx/100.0*alx/100.0*trdconst::TRD_Ax2;
-      ACHit->hitZ += ACHit->GetXY()*sin(TRD_Ax);                          // TRD X-Rot (YZ-Tilt)
-    }else{                                                                 // x-measurement     	
-      TRD_Ay      = trdconst::TRD_Ay0 + aly/100.0*trdconst::TRD_Ay1 + aly/100.0*aly/100.0*trdconst::TRD_Ay2;
-      ACHit->hitZ +=  ACHit->GetXY()*sin(TRD_Ay);                         // TRD Y-Rot (XZ-Tilt)
-      TRD_Ax      = trdconst::TRD_Ax0 + ACHit->GetXY()/100.0*trdconst::TRD_Ax1 + ACHit->GetXY()/100.0*ACHit->GetXY()/100.0*trdconst::TRD_Ax2;
-      ACHit->hitZ +=  aly*sin(TRD_Ax);                                     // TRD X-Rot (YZ-Tilt)
-    }
-    
-    /// correction XY coord.	
-    if( ACHit->hitD==1 ){                                                   // y-measurement
-      ACHit->hitXY = ACHit->hitXYraw + trdconst::TRD_Dy;                    // global TRD Y-Shift
-      TRD_Ax      = trdconst::TRD_Ax0 + alx/100.0*trdconst::TRD_Ax1 + alx/100.0*alx/100.0*trdconst::TRD_Ax2;
-      ACHit->hitXY += -(ACHit->GetZ() - trdconst::Ztrd)*sin(TRD_Ax);       // TRD X-Rotation (YZ-Tilt)	
-      ACHit->hitXY += alx*sin(trdconst::TRD_Az - trdconst::TRD_As/2.);      // TRD Z-Rotation
-      ACHit->hitR  = alx;                                                   // Coor. along the wire
-    }else{                                                                  // x-measurement     
-      ACHit->hitXY = ACHit->hitXYraw + trdconst::TRD_Dx;                                     // global TRD X-Shift	
-      TRD_Ay     = trdconst::TRD_Ay0 + aly/100.0*trdconst::TRD_Ay1 + aly/100.0*aly/100.0*trdconst::TRD_Ay2;
-      ACHit->hitXY += -(ACHit->GetZ() - trdconst::Ztrd)*sin(TRD_Ay);       // TRD Y-Rotation (XZ-Tilt)	
-      ACHit->hitXY +=  -aly*sin(trdconst::TRD_Az + trdconst::TRD_As/2.);    // TRD Z-Rotation
-      ACHit->hitR  = aly;                                                   // Coor. along the wire
-    }     
-  }
-
-
-  if(iTrdAlignMethod == 2) {
-    
-    AMSPoint TRDTube_Center, TRDTube_Dir, temp_TRDHit;
-    if( ACHit->hitD==1 ) { //== YZ plane
-      TRDTube_Center[0]=0; TRDTube_Center[1]=ACHit->hitXYraw; TRDTube_Center[2]=ACHit->hitZraw; 
-      TRDTube_Dir[0]=0; TRDTube_Dir[1]=1; TRDTube_Dir[2]=0;
-      temp_TRDHit[0]=ACHit->hitR; temp_TRDHit[1]=ACHit->hitXYraw; temp_TRDHit[2]=ACHit->hitZraw; 
-    } else  {              //== XZ plane
-      TRDTube_Center[0]=ACHit->hitXYraw; TRDTube_Center[1]=0; TRDTube_Center[2]=ACHit->hitZraw; 
-      TRDTube_Dir[0]=1; TRDTube_Dir[1]=0; TRDTube_Dir[2]=0;
-      temp_TRDHit[0]=ACHit->hitXYraw; temp_TRDHit[1]=ACHit->hitR; temp_TRDHit[2]=ACHit->hitZraw; 
-    }
-
-    TRDAlignmentPar par =_DB_instance.GetAlignmentPar(ACHit->Lay, (int) Atime); 
-
-    AMSPoint  T(par.dX, par.dY, par.dZ);
-    AMSRotMat R;
-    R.SetRotAngles(-1*par.alpha, -1*par.beta, -1*par.gamma);
-    
-    AMSPoint Center(par.RotationCenter_X, par.RotationCenter_Y, par.RotationCenter_Z);
-
-    AMSPoint TRDTube_Local = TRDTube_Center - Center;
-    TRDTube_Center = R*TRDTube_Local + T + Center;
-    TRDTube_Dir    = R*TRDTube_Dir;
-
-    AMSPoint TRDHit_Local   = temp_TRDHit - Center;
-    AMSPoint TRDHit_Aligned = R*TRDHit_Local + T + Center;
-
-    if( ACHit->hitD==1 ) { ACHit->hitXY = TRDHit_Aligned.y(); ACHit->hitR = TRDHit_Aligned.x();}
-    else { ACHit->hitXY = TRDHit_Aligned.x(); ACHit->hitR = TRDHit_Aligned.y(); } 
-    ACHit->hitZ = TRDHit_Aligned.z();
-
-  } 
-
-  if(iTrdAlignMethod == 3) {
-    /*
-    thetrdz.updatelayparameters(Atime, ACHit->Lay);
-    vector<double> vpar=thetrdz.getparams();
-    
-    AMSPoint T(vpar.at(0),vpar.at(1),vpar.at(2));
-    AMSRotMat R;
-    R.SetRotAngles(-1*vpar.at(5), -1*vpar.at(4), -1*vpar.at(3));    
-    AMSPoint Center(0,0, ZTRDc);
-
-   
-    if(ACHit->hitD==1)
-      thetrdz.alignhit((int) Atime, &ACHit->hitR, &ACHit->hitXY, &ACHit->hitZ);
-    else thetrdz.alignhit((int) Atime, &ACHit->hitXY, &ACHit->hitR, &ACHit->hitZ);
-    */
-
-  }
-
-    
-  if(Debug > 1) {
-    if(ACHit->hitD==1) std::cout << Form("==> RawHit=(%+8.3f %+8.3f %+8.3f) ", alx, ACHit->hitXYraw, ACHit->hitZraw);
-    else  std::cout << Form("==> RawHit=(%+8.3f %+8.3f %+8.3f) ", ACHit->hitXYraw, aly, ACHit->hitZraw);
-    std::cout << Form(" ==> hitXY=%+8.3f hitR=%+8.3f hitZ=%+8.3f ", ACHit->hitXY, ACHit->hitR, ACHit->hitZ) << std::endl;
-  }
-  
-  
-  if( fabs(ACHit->hitXYraw - ACHit->hitXY) > 0.2 ) return 2;
-  if( fabs(ACHit->hitZraw  - ACHit->hitZ)  > 0.2 ) return 3; 
-  
-  return 0;
-
-}
 //--------------------------------------------------------------------------------------------------
-int TrdSCalibR::ProcessAlignCorrection(TrdTrackR *Trdtrk, AC_TrdHits *ACHit, int Debug) {
-  
-  float alx, aly, TRD_Ax, TRD_Ay;
-  alx = aly = TRD_Ax = TRD_Ay = 0.;
-  if(dTrd[2] == 0) return 1;
-  alx = Trdtrk->Coo[0]+dTrd[0]/dTrd[2]*(ACHit->hitZraw - Trdtrk->Coo[2]);
-  aly = Trdtrk->Coo[1]+dTrd[1]/dTrd[2]*(ACHit->hitZraw - Trdtrk->Coo[2]);
-  
-  /// correction Z coord. imported from ACroot3.h 
-  ACHit->hitZ   = ACHit->hitZraw + trdconst::TRD_Dz;   	    
-  if( ACHit->hitD==1 ){                                                  // y-measurement
-    TRD_Ay      = trdconst::TRD_Ay0 + ACHit->GetXY()/100.0*trdconst::TRD_Ay1 + ACHit->GetXY()/100.0*ACHit->GetXY()/100.0*trdconst::TRD_Ay2;
-    ACHit->hitZ += alx*sin(TRD_Ay);                                      // TRD Y-Rot (XZ-Tilt)	
-    TRD_Ax      = trdconst::TRD_Ax0 + alx/100.0*trdconst::TRD_Ax1 + alx/100.0*alx/100.0*trdconst::TRD_Ax2;
-    ACHit->hitZ += ACHit->GetXY()*sin(TRD_Ax);                          // TRD X-Rot (YZ-Tilt)
-  }else{                                                                 // x-measurement     	
-    TRD_Ay      = trdconst::TRD_Ay0 + aly/100.0*trdconst::TRD_Ay1 + aly/100.0*aly/100.0*trdconst::TRD_Ay2;
-    ACHit->hitZ +=  ACHit->GetXY()*sin(TRD_Ay);                         // TRD Y-Rot (XZ-Tilt)
-    TRD_Ax      = trdconst::TRD_Ax0 + ACHit->GetXY()/100.0*trdconst::TRD_Ax1 + ACHit->GetXY()/100.0*ACHit->GetXY()/100.0*trdconst::TRD_Ax2;
-    ACHit->hitZ +=  aly*sin(TRD_Ax);                                     // TRD X-Rot (YZ-Tilt)	
-  }
-
-  /// correction XY coord.	
-  if( ACHit->hitD==1 ){                                                   // y-measurement
-    ACHit->hitXY = ACHit->hitXYraw + trdconst::TRD_Dy;                    // global TRD Y-Shift
-    TRD_Ax      = trdconst::TRD_Ax0 + alx/100.0*trdconst::TRD_Ax1 + alx/100.0*alx/100.0*trdconst::TRD_Ax2;
-    ACHit->hitXY += -(ACHit->GetZ() - trdconst::Ztrd)*sin(TRD_Ax);       // TRD X-Rotation (YZ-Tilt)	
-    ACHit->hitXY += alx*sin(trdconst::TRD_Az - trdconst::TRD_As/2.);      // TRD Z-Rotation
-    ACHit->hitR  = alx;                                                   // Coor. along the wire
-  }else{                                                                  // x-measurement     
-    ACHit->hitXY = ACHit->hitXYraw + trdconst::TRD_Dx;                                     // global TRD X-Shift	
-    TRD_Ay     = trdconst::TRD_Ay0 + aly/100.0*trdconst::TRD_Ay1 + aly/100.0*aly/100.0*trdconst::TRD_Ay2;
-    ACHit->hitXY += -(ACHit->GetZ() - trdconst::Ztrd)*sin(TRD_Ay);       // TRD Y-Rotation (XZ-Tilt)	
-    ACHit->hitXY +=  -aly*sin(trdconst::TRD_Az + trdconst::TRD_As/2.);    // TRD Z-Rotation
-    ACHit->hitR  = aly;                                                   // Coor. along the wire
-  }    
-  
-  if(Debug > 1) {
-    if(ACHit->hitD==1) std::cout << Form("==> RawHit=(%+8.3f %+8.3f) ", alx, ACHit->hitXYraw);
-    else  std::cout << Form("==> RawHit=(%+8.3f %+8.3f) ", ACHit->hitXYraw, aly);
-    std::cout << Form(" ==> hitXY=%+8.3f hitR=%+8.3f hitZ=%+8.3f ", ACHit->hitXY, ACHit->hitR, ACHit->hitZ) << std::endl;
-  }
-
-  if( fabs(ACHit->hitXYraw - ACHit->hitXY) > 0.2 ) return 2;
-  if( fabs(ACHit->hitZraw  - ACHit->hitZ)  > 0.2 ) return 3; 
-
-  return 0;
-
-}
-
-//--------------------------------------------------------------------------------------------------
-int TrdSCalibR::ProcessAlignCorrection(TrdHTrackR *TrdHtrk, AC_TrdHits *ACHit, int Debug) {
-  
-  float alx, aly, TRD_Ax, TRD_Ay;
-  alx = aly = TRD_Ax = TRD_Ay = 0.;	
-  TrdHtrk->propagateToZ(ACHit->hitZraw, alx, aly); 
-
-  /// correction Z coord. imported from ACroot3.h 
-  ACHit->hitZ   = ACHit->hitZraw + trdconst::TRD_Dz;   	    
-  if( ACHit->hitD==1 ){                                                  // y-measurement
-    TRD_Ay      = trdconst::TRD_Ay0 + ACHit->GetXY()/100.0*trdconst::TRD_Ay1 + ACHit->GetXY()/100.0*ACHit->GetXY()/100.0*trdconst::TRD_Ay2;
-    ACHit->hitZ += alx*sin(TRD_Ay);                                      // TRD Y-Rot (XZ-Tilt)	
-    TRD_Ax      = trdconst::TRD_Ax0 + alx/100.0*trdconst::TRD_Ax1 + alx/100.0*alx/100.0*trdconst::TRD_Ax2;
-    ACHit->hitZ += ACHit->GetXY()*sin(TRD_Ax);                          // TRD X-Rot (YZ-Tilt)
-  }else{                                                                 // x-measurement     	
-    TRD_Ay      = trdconst::TRD_Ay0 + aly/100.0*trdconst::TRD_Ay1 + aly/100.0*aly/100.0*trdconst::TRD_Ay2;
-    ACHit->hitZ +=  ACHit->GetXY()*sin(TRD_Ay);                         // TRD Y-Rot (XZ-Tilt)
-    TRD_Ax      = trdconst::TRD_Ax0 + ACHit->GetXY()/100.0*trdconst::TRD_Ax1 + ACHit->GetXY()/100.0*ACHit->GetXY()/100.0*trdconst::TRD_Ax2;
-    ACHit->hitZ +=  aly*sin(TRD_Ax);                                     // TRD X-Rot (YZ-Tilt)	
-  }
-  
-  /// correction XY coord.	
-  if( ACHit->hitD==1 ){                                                   // y-measurement
-    ACHit->hitXY = ACHit->hitXYraw + trdconst::TRD_Dy;                    // global TRD Y-Shift
-    TRD_Ax      = trdconst::TRD_Ax0 + alx/100.0*trdconst::TRD_Ax1 + alx/100.0*alx/100.0*trdconst::TRD_Ax2;
-    ACHit->hitXY += -(ACHit->GetZ() - trdconst::Ztrd)*sin(TRD_Ax);       // TRD X-Rotation (YZ-Tilt)	
-    ACHit->hitXY += alx*sin(trdconst::TRD_Az - trdconst::TRD_As/2.);      // TRD Z-Rotation
-    ACHit->hitR  = alx;                                                   // Coor. along the wire
-  }else{                                                                  // x-measurement     
-    ACHit->hitXY = ACHit->hitXYraw + trdconst::TRD_Dx;                                     // global TRD X-Shift	
-    TRD_Ay     = trdconst::TRD_Ay0 + aly/100.0*trdconst::TRD_Ay1 + aly/100.0*aly/100.0*trdconst::TRD_Ay2;
-    ACHit->hitXY += -(ACHit->GetZ() - trdconst::Ztrd)*sin(TRD_Ay);       // TRD Y-Rotation (XZ-Tilt)	
-    ACHit->hitXY +=  -aly*sin(trdconst::TRD_Az + trdconst::TRD_As/2.);    // TRD Z-Rotation
-    ACHit->hitR  = aly;                                                   // Coor. along the wire
-  }    
-  
-  if(Debug > 1) {
-    if(ACHit->hitD==1) std::cout << Form("==> RawHit=(%+8.3f %+8.3f) ", alx, ACHit->hitXYraw);
-    else  std::cout << Form("==> RawHit=(%+8.3f %+8.3f) ", ACHit->hitXYraw, aly);
-    std::cout << Form(" ==> hitXY=%+8.3f hitR=%+8.3f hitZ=%+8.3f ", ACHit->hitXY, ACHit->hitR, ACHit->hitZ) << std::endl;
-  }
-
-  if( fabs(ACHit->hitXYraw - ACHit->hitXY) > 0.2 ) return 2;
-  if( fabs(ACHit->hitZraw - ACHit->hitZ)   > 0.2 ) return 3; 
-
-  return 0;
-}	   
-//--------------------------------------------------------------------------------------------------
-
 
 int TrdSCalibR::InitiateTrdRawHit(AMSEventR *pev, vector<AC_TrdHits> &TrdHits, int Debug){  
 
@@ -4317,9 +4111,6 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
   TrdHTrackR  *TrdHtrk = NULL;
   TrdTrackR   *Trdtrk = NULL;
 
-  /// clean vector
-  Clear();
-
   /// check tracker object
   Trtrk   = pev->pParticle(0)->pTrTrack();
   if(Trtrk) {
@@ -4330,6 +4121,9 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
   /// get tracker track point and direction
   /// global cTrk, dTrk from given fitcode
   if( !GetcTrkdTrk(Trtrk) ) return 5;
+
+  /// clean vector
+  Clear();
 
   switch ( TrdTrackLevel ) {
 
@@ -4440,7 +4234,6 @@ int TrdSCalibR::ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int De
   /// clean vector
   Clear();
 
-  
   /// extract trd geom. parameters from TrTrack 
   /// assign TrkXcors[], TrkYcors[] to manage multiple scattering
   if( GetTrkCoordinates(Trtrk, Debug) ) return 5;

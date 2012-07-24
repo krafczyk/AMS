@@ -59,7 +59,8 @@ namespace trdconst{
   const number  TrdMeanMPVSC     = 56.0;
   const number  TrdEadcMin       =  7.0;
   const number  TrdEadcMax       = 4048.0;
-  const number  TrdMinPathLen3D  = 0.1;
+  const number  TrdMinPathLen3D  = 0.10;
+  const number  TrdMaxPathLen3D  = 0.68;
 
   const integer	TrdLR_Prot_nPar	 = 12;
   const integer	TrdLR_Heli_nPar	 = 10;
@@ -612,7 +613,7 @@ class TrdSCalibR {
   bool FirstCall, TrdCalib_01, TrdCalib_02, TrdCalib_03, TrdCalib_04;
 
   /// booliean for selected gain / align method
-  bool TrdGain_01, TrdGain_02, TrdGain_03, TrdAlign_01, TrdAlign_02,  TrdAlign_03;
+  bool TrdGain_00, TrdGain_01, TrdGain_02, TrdGain_03, TrdAlign_00, TrdAlign_01, TrdAlign_02,  TrdAlign_03;
   
   /// booliean for AC alignment correction
   bool SetTrdGeom, SetTrdAlign; 
@@ -982,6 +983,9 @@ class TrdSCalibR {
   /// initiate likelihood calculation 
   bool TrdLR_CalcIniPDF(int Debug=0);
 
+  /// nonlinear pathlength correction
+  float PathLenCorr(int iXe, float EadcCS, float Len3D);
+
   /// calculate likelihoods
   int TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug=0);
 
@@ -995,10 +999,6 @@ class TrdSCalibR {
   int GetUnknownHitPos(TrTrackR *Trtrk, float &alx, float &aly, float gz);
   int GetUnknownHitPos(TrdTrackR *Trdtrk, float &alx, float &aly, float gz);
   int GetUnknownHitPos(TrdHTrackR *TrdHtrk, float &alx, float &aly, float gz);
-  int ProcessAlignCorrection(TrdHTrackR *TrdHtrk, AC_TrdHits *ACHit, int Debug=0);
-  int ProcessAlignCorrection(TrdTrackR *Trdtrk, AC_TrdHits *ACHit, int Debug=0);
-  /// add new align correction based on layer level on 2012.02.22
-  int ProcessAlignCorrection(unsigned int iTrdAlignMethod, TrdTrackR *Trdtrk, AC_TrdHits *ACHit, int Debug=0);
   
   int RootTGraph2VectorX(TGraph *gr, vector<double> &vx);
   int RootTGraph2VectorY(TGraph *gr, vector<double> &vy);
@@ -1044,8 +1044,11 @@ class TrdSCalibR {
   /// process tracker track
   int ProcessTrTrack(TrTrackR* Trtrk);
 
-  /// calculate particle likelihoods in gbatch
+  /// calculate particle likelihoods in gbatch from TrdHTrack
   int BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug=0);
+
+  /// calculate particle likelihoods in gbatch from TrdTrack
+  int BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug=0);
 
   /// get nr. of hits per layer ontrack 
   int GetnTrdHitLayer( vector<AC_TrdHits*> &TrdHits, int Debug=0);
@@ -1103,9 +1106,9 @@ class TrdSCalibR {
   /// clear TrdSHits memory
   void ClearTrdSHits(){for(vector<AC_TrdHits*>::iterator i= TrdSHits.begin(); i != TrdSHits.end(); ++i) if(*i) delete *i;}
   
-  /// Trd Alignment: TrdAlignMethod = 2 from Z.Weng  
- #ifdef _PGTRACK_
- TrdKCalib _DB_instance;  //== TrdAlignMethod = 2 from Z.Weng 
+   /// Trd Alignment: TrdAlignMethod = 2 from Z.Weng 
+#ifdef _PGTRACK_
+  TrdKCalib _DB_instance;  //== TrdAlignMethod = 2 from Z.Weng 
 #endif
   /// Trd Alignment: TrdAlignMethod = 3 from V.Zhukov
   //TRDZCalib thetrdz;

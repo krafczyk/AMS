@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.386 2012/07/09 22:27:31 qyan Exp $
+#  $Id: datacards.doc,v 1.387 2012/07/24 10:50:08 chchung Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -764,11 +764,11 @@ TIME (See geant3 manual)
 R1 time        // max time allowd for prog execution 
                // NB NOT included : initialization & termination
 
-TRDCALIB                // trd calibration
-I 7TrdSCalibVersion(5)     // current version = 5 relesed on Apr.26 2012
-I 8 TrdSCalibTrack(0)       // trd track for likelihoods 0:trdhtrack, 1:trdtrack
-I 9 TrdSCalibGainMethod(1)  // 1:AC, 2:MIT, 3:AC
-I 10 TrdSCalibAlignMethod(1) // 1:AC, 2:MIT, 3:AC
+TRDCALIB                     // trd calibration
+I 7TrdSCalibVersion(6)       // current version = 6 relesed on July.20th 2012
+I 8 TrdSCalibTrack(1)        // 0: trdS, 1: trdS, 2:trdhtrack, 3:trdtrack, 4:trdK
+I 9 TrdSCalibGainMethod(1)   // 0: no gain, 1:AC, 2:MIT, 3:AC
+I 10 TrdSCalibAlignMethod(1) // 0: no align, 1:AC, 2:MIT, 3:AC
 I 11 TrdSCalibDebug(0)       // debug 
 
 //-----------------------------------------------------------------
