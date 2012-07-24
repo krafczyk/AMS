@@ -3,6 +3,8 @@
 #include "../include/root_setup.h"
 #include "../include/DynAlignment.h"
 #include <fstream>
+#include "../include/TrdSCalib.h"
+#include "../include/TrdKCluster.h"
 static AMSNtupleHelper * fgHelper=0;
 
 extern "C" AMSNtupleHelper * gethelper();
@@ -13,6 +15,123 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->nTrTrack()==1 && ev->nTrdTrack()==1){
+
+ParticleR & part=ev->Particle(0);
+TrTrackR & track=ev->TrTrack(part.iTrTrack());
+TrdTrackR &trdt=ev->TrdTrack(part.iTrdTrack());
+cout <<" trdlikh "<<part.TrdSH_E2P_Likelihood<<" "<<part.TRDHLikelihood<<" "<<" "<<part.TrdSH_E2He_Likelihood<<endl;
+
+if(part.iTrdHTrack()<0){
+cerr<< " notrdhtrack"<<endl;
+}
+else{
+TrdHTrackR &trdht=ev->TrdHTrack(part.iTrdHTrack());
+double s1,s2,s3;
+double fmom=fabs(part.Momentum);
+if(fmom<2)fmom=2.00001;
+if(fmom>600)fmom=600-0000.1;
+TrdSCalibR *h=TrdSCalibR::gethead();
+if(h){
+int ret=h->BuildTrdSCalib(ev->UTime(),fmom,&trdht,&track,s1,s2,s3,0);
+cout <<" trdscalib ret "<<ret<<" "<<s1<<endl;
+}
+else cerr<<"trdscalibgetheaqd zero "<<endl;
+}
+ 
+cout<<" trdcha "<<trdt.Charge[0]<<" "<<trdt.ChargeP[0]<<endl;
+
+
+
+int NTRDHit=ev->NTrdRawHit();
+int Track_Fitcode_Max=track.iTrTrackPar(1,0,0); // Get any prefered fit code
+
+if(Track_Fitcode_Max>0 && NTRDHit>0){
+
+double LikelihoodRatio[3]={-1,-1,-1};  //To be filled with 3 LikelihoodRatio :  e/P, e/H, P/H
+int NHits=0;  //To be filled with number of hits taken into account in Likelihood Calculation
+float threshold=15;  //ADC above which will be taken into account in Likelihood Calculation,  15 ADC is the recommended value for the moment.
+
+TrdKCluster _trdcluster= TrdKCluster(ev,&track,Track_Fitcode_Max);  
+
+// Get the status of the Calculation
+int IsReadAlignmentOK=_trdcluster.IsReadAlignmentOK;  // 0: Alignment not performed,  1: Static Alignment of Layer level,  2: Dynamic Alignment for entire TRD 
+int IsReadCalibOK=_trdcluster.IsReadCalibOK;  // 0: Gain Calibration not performed,  1: Gain Calibration Succeeded
+
+// Calculate Likelihood Ratio, Fill the LikelihoodRatio, NHits according to Track selection, and return validity 
+int isvalid = _trdcluster.GetLikelihoodRatio_TrTrack(threshold,LikelihoodRatio,NHits); 
+//Get Number of surrounding fired tubes, excluding the ones crossed by the current TrTrack predic
+cout<<" trdk "<<isvalid<<" "<<LikelihoodRatio[0]<<" "<<LikelihoodRatio[1]<<" "<<LikelihoodRatio[2]<<endl;
+
+double e,p,h;
+e=1/(exp(LikelihoodRatio[0])+exp(LikelihoodRatio[1])-1);
+cout <<" eprob "<<e<<endl;
+}
+
+    // Get hits on the track in outer layers
+    TrRecHitR *hit1=track.GetHitLJ(1);
+    TrRecHitR *hit9=track.GetHitLJ(9);
+
+    // Get the difference between the two alignments
+    AMSPoint diff1,diff9;
+    if(hit1) {
+        diff1=TrExtAlignDB::GetAlDist(hit1);
+        cout <<" hi1 "<<diff1*10000<<endl;
+    }
+    if(hit9) {
+      diff9=TrExtAlignDB::GetAlDist(hit9);
+        cout <<" hi9 "<<diff9*10000<<endl;
+    }
+      int it1=-1;
+      int it2=-1;
+      int it3=-1;
+      int it4=-1;
+      int it5=-1;
+      int it6=-1;
+      int it7=-1;
+      int it8=-1;
+      int it9=-1;
+      int it10=-1;
+{
+       TrTrackR & tr=track;
+       it1=tr.iTrTrackPar(11,1,1);
+       it2=tr.iTrTrackPar(11,2,1);
+       it3=tr.iTrTrackPar(1,3,1);
+       it4=tr.iTrTrackPar(2,3,1);
+       it5=tr.iTrTrackPar(4,3,1);
+       it6=tr.iTrTrackPar(11,3,1);
+       int pattern=tr.Pattern(1111111);
+       it7=tr.iTrTrackPar(21,pattern,1);
+       pattern=tr.Pattern(11111111);
+       it8=tr.iTrTrackPar(21,pattern,1);
+       pattern=tr.Pattern(101111111);
+       it9=tr.iTrTrackPar(21,pattern,1);
+       pattern=tr.Pattern(111111111);
+       it10=tr.iTrTrackPar(21,pattern,1);
+       int it11=tr.iTrTrackPar(21,pattern,11);
+      double Rigidity=it3>=0?tr.gTrTrackPar(it3).Rigidity:-1;
+      double Rigidity8=it8>=0?tr.gTrTrackPar(it8).Rigidity:-1;
+      double Rigidity9=it9>=0?tr.gTrTrackPar(it9).Rigidity:-1;
+      double Rigidity10=it10>=0?tr.gTrTrackPar(it10).Rigidity:-1;
+      double erig=it3>=0?tr.gTrTrackPar(it3).ErrRinv*Rigidity:-1;
+      double PiRigidity=it4>=0?tr.gTrTrackPar(it4).Rigidity:-1;
+      double GRigidity=it5>=0?tr.gTrTrackPar(it5).Rigidity:-1;
+      double rpi=PiRigidity/Rigidity;
+      double rchi=GRigidity/Rigidity;
+      double rmd=it11>=0?tr.gTrTrackPar(it11).Rigidity:-1;
+      cout <<" Rigidity "<<Rigidity8<< " "<<Rigidity9<<" "<<Rigidity10<<" "<<Rigidity<<" "<<rmd<<endl;
+
+
+}
+    cout <<" processsetup "<<AMSEventR::ProcessSetup<<endl;
+cout <<"AMSSetupR::ReadHeader-I-"<<ev->getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
+        cout<<"AMSSetupR::ReadHeader-I-"<<ev->getsetup()->getAllTDV(ev->UTime())<<" TDVNamesFound"<<endl;
+
+return true;
+}
+
+return false;
+
 
 if(ev->getsetup()){
 string reason="";
@@ -22,7 +141,7 @@ cout << " badrun3 "<<ev->IsBadRun("")<<" "<<endl;
 return true;
 }
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
-
+   
    TrTrackPar algref;
   Int_t Trfcode[5]={-1,-1,-1,-1,-1};
   int itrktr = ev->Particle(0).iTrTrack();
