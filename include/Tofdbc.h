@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.10 2012/07/23 22:51:17 qyan Exp $
+//  $Id: Tofdbc.h,v 1.11 2012/07/25 22:41:48 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -41,15 +41,16 @@ namespace TOFDBcN{
   const uinteger BADTIME=512;   //Bad Time
   const uinteger NOWINDOWLT=1024;//NoLT (>40ns befFT)&&(<640 befFT)
   const uinteger NOWINDOWHT=2048;
-  const uinteger LTMANY=4096;
-  const uinteger HTMANY=8192;
-  const uinteger NOADC=16384; 
-  const uinteger LHMATCHMANY=16384*4; //HT LT Match Too Many
-  const uinteger RECOVERED=16384*2;
-  const uinteger LTREFIND=16384*4;
+  const uinteger NOWINDOWSHT=4096;
+  const uinteger LTMANY=8192;
+  const uinteger HTMANY=16384;
+  const uinteger NOADC=16384*2; 
+  const uinteger RECOVERED=16384*4;//RECOVER
+  const uinteger LTREFIND=16384*8; //LTREFIND for RECOVERCAD
   const uinteger DOVERFLOW=16384*2*2*2*2*2*2*2;// Dynode overflow
   const uinteger AOVERFLOW=16384*2*2*2*2*2*2*2*2;//Anode overflow
   const uinteger TRDTRACK=16384*2*2*2*2*2*2*2*2*2;
+  const uinteger BETAOVERFLOW=16384*2*2*2*2*2*2*2*2*2*2;//Beta Fit overflow
 }
 
 //---TOF Simple Geometry

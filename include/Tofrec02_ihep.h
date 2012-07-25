@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.6 2012/07/23 22:51:17 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.7 2012/07/25 22:41:48 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -31,6 +31,8 @@ protected:
   static TofBetaPar betapar;
 /// Process Event
   static AMSEventR *ev;
+/// Use Normalize Chis Charge 
+  static int normcharge;
 /// Real or MC
   static int realdata; 
 /// TofRawSideR vector for TofClusterH build
@@ -58,8 +60,8 @@ public:
   TofRecH(){};
 /// TDV initial function
   static int  Init();
-/// Root Mode Refit //if want to rebuild BetaH in Root Mode, Only need one function
-  static int  ReBuild();
+/// Root Mode Refit //if want to rebuild BetaH in Root Mode, Only need this function//(charge par used to normalize chis)
+  static int  ReBuild(int charge=1);
 /// Build TofClusterH function
   static int  BuildTofClusterH();
 /// Build BetaH function
