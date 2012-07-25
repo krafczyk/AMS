@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.29 2012/04/23 05:20:16 pzuccon Exp $
+//  $Id: TrFit.h,v 1.29.6.1 2012/07/25 12:04:38 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2012/04/23 05:20:16 $
+///$Date: 2012/07/25 12:04:38 $
 ///
-///$Revision: 1.29 $
+///$Revision: 1.29.6.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -339,9 +339,10 @@ public:
    \param charge charge of the fitted particle
    \param mass   mass of the particle (calculated if mass==0 && beta!=0)
    \param beta   used to calculate mass if mass==0 && beta!=0
+   \param fixrig fix the rigidity for the fit (available only with ALCARAZ algo)
   */
   double DoFit(int method = CHOUTKO, int mscat = 1, int eloss = 1,
-	       float charge = 1, float mass = Mproton, float beta = 0);
+	       float charge = 1, float mass = Mproton, float beta = 0,float fixrig=0);
 
   /// Linear fitting in X-Z and Y-Z planes
   double LinearFit(void);

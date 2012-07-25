@@ -8,6 +8,10 @@
 #include "TrRecHit.h"
 #include "VCon.h"
 
+#include "DynAlignment.h"
+#ifdef __ROOTSHAREDLIBRARY__
+#include "root.h"
+#endif
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
@@ -18,12 +22,25 @@ int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;
 
 int TrExtAlignDB::version = 2;
+int TrExtAlignDB::NoCiematLocal=0;
 
 
 int TrExtAlignDB::Ciemat=0;
-float TrExtAlignDB::SL1[12]={0,0,0,0,0,0,0,0,0,0,0,0 };
-float TrExtAlignDB::SL9[12]={0,0,0,0,0,0,0,0,0,0,0,0 };
+float TrExtAlignDB::SL1[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+float TrExtAlignDB::SL9[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
+
+
+
+void ForceLatestAlignmentFromTDV(int pgversion=2,char* CIEMAT_name="DynamicPG"){
+/*
+  TrExtAlignDB::ForceFromTDV=1;
+  TkDBc::ForceFromTDV=1;
+  DynAlManager::need2bookTDV=true;
+  DynAlManager::SetTDVName(CIEMAT_name,1);
+  TrExtAlignDB::version = 2;
+*/
+}
 void TrExtAlignPar::Print(Option_t *) const
 {
   cout << Form("dpos %6.1f %6.1f %6.1f",
@@ -175,10 +192,6 @@ Bool_t  TrExtAlignDB::Load(const char *fname)
 }
 
 
-#include "DynAlignment.h"
-#ifdef __ROOTSHAREDLIBRARY__
-#include "root.h"
-#endif
 int TrExtAlignDB::UpdateTkDBcDyn(int plane){
 #ifdef __ROOTSHAREDLIBRARY__
   if(!AMSEventR::Head()){
@@ -359,8 +372,8 @@ int TrExtAlignDB::RecalcAllExtHitCoo(int kind){
 void TrExtAlignDB::ResetExtAlign() 
 {
 
-  memset(SL1,0,12*sizeof(SL1[0]));
-  memset(SL9,0,12*sizeof(SL9[0]));
+  memset(SL1,0,18*sizeof(SL1[0]));
+  memset(SL9,0,18*sizeof(SL9[0]));
 //   for (int layer = 8; layer <= 9; layer++) {
 //     int plane = (layer == 8) ? 5 : 6;
 //     TkPlane* pl = TkDBc::Head->GetPlane(plane);

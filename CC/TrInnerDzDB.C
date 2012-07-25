@@ -16,6 +16,7 @@ ClassImp (TrInnerDzDB::DzElem);
 TrInnerDzDB* TrInnerDzDB::Head=0;
 float TrInnerDzDB::TDVSwap[2*(1+kLaynum)];
 
+int TrInnerDzDB::ForceFromTDV=0;
 
 float TrInnerDzDB::LDZA[kLaynum]={0.,0.,0.,0.,0.,0.,0.};
 

@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.23.4.3 2012/05/29 12:14:27 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.23.4.4 2012/07/25 12:04:38 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -168,13 +168,18 @@ public:
 #pragma omp threadprivate (ForceLocalAlign)
 #endif
 
+  static int NoCiematLocal;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (NoCiematLocal)
+#endif
+
   /// TDV version (1: no errors,  2: with errors) 
   static int version;  // It should be thread-common
 
 
-  static float SL1[12];
+  static float SL1[18];
 #pragma omp threadprivate(SL1)
-  static float SL9[12];
+  static float SL9[18];
 #pragma omp threadprivate(SL9)
 private:
   static int Ciemat;
@@ -343,7 +348,9 @@ public:
   static long long GetDt(float rate);
   static float GetDynCorr(int layerJ,int par){
     int off=0;
-    if(Ciemat) off=6;
+    if(Ciemat==1) off=6;
+    else if(Ciemat==2) off=12;
+    else off=0;
     float* ll=SL1;
     if(layerJ==9) ll=SL9;
     if(par>=6){
@@ -355,7 +362,8 @@ public:
 
   /// Sets the kind of alignment to be use to calculate ext coo (0 PG 1 CIEMAT)
   static void  SetAlKind(int ii){
-    if(ii!=0) Ciemat=1;
+    if(ii==1) Ciemat=1;
+    else if(ii==2) Ciemat=2;
     else Ciemat=0;
     return;
   }

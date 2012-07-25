@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.61 2012/05/13 21:59:47 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.61.4.1 2012/07/25 12:04:17 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/05/13 21:59:47 $
+///$Date: 2012/07/25 12:04:17 $
 ///
-///$Revision: 1.61 $
+///$Revision: 1.61.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,6 +30,7 @@ TkDBc* TkDBc::Head=0;
 float* TkDBc::linear=0;
 char   TkDBc::_setupname[4][30]={"Unknown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
 int    TkDBc::_setup=3;
+int    TkDBc::ForceFromTDV=0;
  
 TkDBc::TkDBc(){
   for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
