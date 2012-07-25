@@ -71,21 +71,25 @@ int TrInnerDzDB::GetEntry(uint Timeid, float* Dz, int kind){
 
 int TrInnerDzDB::GetFromTDV( uint Timeid){
   time_t starttime=0;
-  time_t endtime=0;
+  time_t endtime=0; 
   tm begin;
   tm end;
   tm* mtim=gmtime_r(&starttime,&begin);
   tm* mtim2=gmtime_r(&endtime,&end);
     
-  AMSTimeID *tid= new AMSTimeID(
-				AMSID("TrInnerDzAlign",1),
-				begin,
-				end,
-				TrInnerDzDB::GetTDVSwapSize(),
-				TrInnerDzDB::TDVSwap,
-				AMSTimeID::Standalone,
-				1,
-				TrInnerLin2DB);
+  static AMSTimeID *tid=0;
+#pragma omp threadprivate (tid)
+  if(!tid){
+    tid= new AMSTimeID(
+		       AMSID("TrInnerDzAlign",1),
+		       begin,
+		       end,
+		       TrInnerDzDB::GetTDVSwapSize(),
+		       TrInnerDzDB::TDVSwap,
+		       AMSTimeID::Standalone,
+		       1,
+		       TrInnerLin2DB);
+  }
   memset(TDVSwap,0,GetTDVSwapSize());
   time_t tt=Timeid;
   int ret=tid->validate(tt);

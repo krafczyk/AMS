@@ -739,35 +739,39 @@ const char *TrExtAlignDB::GetTDVName()
 int TrExtAlignDB::GetFromTDV(uint time, int ver)
 {
   time_t tt=time;
-  tm begin;
-  tm end;
+  static AMSTimeID* db=0;
+#pragma omp threadprivate(db)
+  if(!db) {
+    tm begin;
+    tm end;
   
-  begin.tm_isdst=0;
-  end.tm_isdst=0;    
-  begin.tm_sec  =0;
-  begin.tm_min  =0;
-  begin.tm_hour =0;
-  begin.tm_mday =0;
-  begin.tm_mon  =0;
-  begin.tm_year =0;
+    begin.tm_isdst=0;
+    end.tm_isdst=0;    
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
       
-  end.tm_sec=0;
-  end.tm_min=0;
-  end.tm_hour=0;
-  end.tm_mday=0;
-  end.tm_mon=0;
-  end.tm_year=0;
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
 
-  version = ver;
+    version = ver;
 
-  TrExtAlignDB::CreateLinear();
+    TrExtAlignDB::CreateLinear();
 
-  AMSTimeID* db=new AMSTimeID(AMSID(GetTDVName(),1),begin,end,
-			      TrExtAlignDB::GetLinearSize(),
-			      TrExtAlignDB::fLinear,
-			      AMSTimeID::Standalone,1,SLin2ExAlign);
+    db=new AMSTimeID(AMSID(GetTDVName(),1),begin,end,
+		     TrExtAlignDB::GetLinearSize(),
+		     TrExtAlignDB::fLinear,
+		     AMSTimeID::Standalone,1,SLin2ExAlign);
+  }
   int ret=db->validate(tt);
-  if(db) delete db;
+
   return ret;
 }
 
@@ -777,7 +781,7 @@ int TrExtAlignDB::UpdateTDV(uint brun, uint erun, int ver)
   CreateLinear();
 
   cout << "Updating " << GetTDVName() << endl;
-
+ 
   TrExtAlignDB::GetHead()->ExAlign2Lin();
 
   time_t br = brun+3600;

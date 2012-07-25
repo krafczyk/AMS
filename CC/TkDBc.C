@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.61.4.1 2012/07/25 12:04:17 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.61.4.2 2012/07/25 13:11:40 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/07/25 12:04:17 $
+///$Date: 2012/07/25 13:11:40 $
 ///
-///$Revision: 1.61.4.1 $
+///$Revision: 1.61.4.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1375,6 +1375,9 @@ int TkDBc::readAlignmentSensor(const char* filename, int pri){
 int TkDBc::GetFromTDV(unsigned int time, int ver)
 {
   time_t tt = time;
+  static  AMSTimeID *db=0;
+#pragma omp threadprivate (db)
+ if(!db){
   tm begin;
   tm end;
   
@@ -1397,9 +1400,9 @@ int TkDBc::GetFromTDV(unsigned int time, int ver)
   AMSTimeID *db = new AMSTimeID(AMSID(stn, 1), begin, end,
 				TkDBc::GetLinearSize(), TkDBc::linear,
 				AMSTimeID::Standalone, 1, SLin2Align);
-
+ }
   int ret = db->validate(tt);
-  if (db) delete db;
+  
   return ret;
 }
 
