@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.15 2012/07/24 22:05:13 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.16 2012/07/25 22:39:35 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -38,6 +38,7 @@ ClassImp(TofRecH)
 TofBetaPar TofRecH::betapar;
 AMSEventR *TofRecH::ev=0;
 int        TofRecH::realdata=1;
+int        TofRecH::normcharge=1;
 //--Cluster
 vector<TofRawSideR>   TofRecH::tfraws;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -59,7 +60,8 @@ vector<AMSTRDTrack*> TofRecH::amstrdtrack;
 
 
 //========================================================
-int TofRecH::ReBuild(){
+int TofRecH::ReBuild(int charge){
+   normcharge=charge; 
    BuildTofClusterH();
    BuildBetaH();  
    return 0;
@@ -353,10 +355,11 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
       }
 
 //----Set Bad Status
-       if(ltdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWLT;}
-       if(htdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWHT;}
-       if(ltdcw.size()>1){sstatus|=TOFDBcN::LTMANY;}
-       if(htdcw.size()>1){sstatus|=TOFDBcN::HTMANY;}//HT MANY bad(due to 300ns block)
+       if(ltdcw.size()<1) {sstatus|=TOFDBcN::NOWINDOWLT;}
+       if(htdcw.size()<1) {sstatus|=TOFDBcN::NOWINDOWHT;}
+       if(shtdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWSHT;}
+       if(ltdcw.size()>1) {sstatus|=TOFDBcN::LTMANY;}
+       if(htdcw.size()>1) {sstatus|=TOFDBcN::HTMANY;}//HT MANY bad(due to 300ns block)
        if((sstatus&(TOFDBcN::NOWINDOWLT|TOFDBcN::HTMANY|TOFDBcN::NOADC)>0)){sstatus|=TOFDBcN::BAD;}
 
 //---Get Time imformation----BAD Time
@@ -472,8 +475,8 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
 //--time
     tm=0.5*(tms[0]+tms[1]);
     tm=-tm;//convert to pos
-    if((status&TOFDBcN::LTREFIND)>0)etm=3*TofRecPar::GetTimeSigma(idsoft);
-    else                            etm=TofRecPar::GetTimeSigma(idsoft);
+    if((status&TOFDBcN::LTREFIND)>0)etm=3*TofRecPar::GetTimeSigma(idsoft,normcharge);
+    else                            etm=TofRecPar::GetTimeSigma(idsoft,normcharge);
     
 
 //--coo
@@ -481,8 +484,8 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
     tmsc[0]=tms[0]-2*dsl/pow(adca[0],index);//coo compensate
     tmsc[1]=tms[1]+2*dsl/pow(adca[1],index);//coo compensate
     lcoo=0.5*(tmsc[0]-tmsc[1])*vel;
-    if((status&TOFDBcN::LTREFIND)>0)elcoo=3*TofRecPar::GetCooSigma(idsoft);
-    else                            elcoo=TofRecPar::GetCooSigma(idsoft);
+    if((status&TOFDBcN::LTREFIND)>0)elcoo=3*TofRecPar::GetCooSigma(idsoft,normcharge);
+    else                            elcoo=TofRecPar::GetCooSigma(idsoft,normcharge);
     return 0;
 }
 
@@ -643,7 +646,7 @@ int  TofRecH::BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR **tfhit,nu
 int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern){
 #endif
 //---init
-    int nowbar=0,prebar=-1000,nextbar=-1000,tminbar=0,layhit=0;
+    int nowbar=0,prebar=-1000,nextbar=-1000,tminbar=0,layhit=0,npattern=0;
     uinteger tfhstat;
     number mscoo=1000,mlcoo=100,mintm=1000,barw=0,dscoo=1000,dlcoo=1000,tfhtime;
     number theta,phi,sleng;
@@ -657,7 +660,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
        nowbar=         tofclh[ilay].at(i)->Bar;
        tfhstat=        tofclh[ilay].at(i)->Status;
        tfhtime=        tofclh[ilay].at(i)->Time;
-       pattern=        tofclh[ilay].at(i)->Pattern%10;
+       npattern=       tofclh[ilay].at(i)->Pattern%10;
        if(i==tofclh[ilay].size()-1)nextbar=-1000;
        else                        nextbar=tofclh[ilay].at(i+1)->Bar;
 
@@ -684,6 +687,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
              (*tfhit)=tofclh[ilay].at(i);tklen=sleng;
              dlcoo=fabs(tkcoo[1-iscoo]-tfcoo[1-iscoo]);
              tklcoo=tkcoo[1-iscoo];
+             pattern=npattern;
 //------------
              for(int ip=0;ip<2;ip++){
                 cres[ip]=tkcoo[ip]-tfcoo[ip];
@@ -764,8 +768,8 @@ int TofRecH::BetaFitT(TofClusterHR *tfhit[4],number lenr[4],int pattern[4], TofB
 //---select+Fit
   for(int ilay=0;ilay<4;ilay++){
      par.Pattern[ilay]=pattern[ilay];
-     if(tfhit[ilay]==0)par.Pattern[ilay]=0;
-     if(par.Pattern[ilay]!=0)par.SumHit++;
+//     if(tfhit[ilay]==0)par.Pattern[ilay]=0;
+     if(par.Pattern[ilay]%10>0)par.SumHit++;
      if(par.Pattern[ilay]%10!=4)continue;
 //--fill to par
      par.Time[ilay]= tfhit[ilay]->Time;//ns
@@ -801,7 +805,7 @@ int TofRecH::TRecover(int idsoft,geant tklcoo,geant tms[2],geant &tm,geant &etm,
   else         {tms[0]=tms[1]+phdt;}
   tm=0.5*(tms[0]+tms[1]);
   tm=-tm;
-  etm=3*TofRecPar::GetTimeSigma(idsoft)*sqrt(2.);//1sid sqrt(2)
+  etm=3*TofRecPar::GetTimeSigma(idsoft,normcharge)*sqrt(2.);//1sid sqrt(2)
   status|=TOFDBcN::RECOVERED;
   return 0;
 }
@@ -892,11 +896,7 @@ int TofRecH::BetaFitT(number time[],number etime[],number len[],const int nhits,
 
 //========================================================
 int  TofRecH::BetaFitCheck(TofBetaPar &par){
-/* if(par.Beta
- else {
-    par.Beta
- }
-*/
+  if(fabs(par.Beta)>1.99){par.Status|=(TOFDBcN::BAD|TOFDBcN::BETAOVERFLOW);}
   return 0;
 }
 
