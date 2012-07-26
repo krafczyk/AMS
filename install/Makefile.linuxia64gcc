@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64gcc,v 1.2 2012/07/26 11:47:58 mkrafczy Exp $
+#  $Id: Makefile.linuxia64gcc,v 1.3 2012/07/26 17:20:14 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -57,8 +57,12 @@ RH9add=-pthread $(BIN)ctype.o
 ########################################################################
 #Compilers
 ########################################################################
-  CC  ?= gcc  
-  CXX ?= g++ 
+ifneq "$(origin CC)" "environment"
+  CC  = gcc  
+endif
+ifneq "$(origin CXX)" "environment"
+  CXX = g++ 
+endif
 ifdef VERGCC 
   FF  = gfortran  
   FORTRAN_LIBS=  -lgfortran 
@@ -67,7 +71,9 @@ else
   FORTRAN_LIBS=
 endif
   FFOLD=$(FF)
-  LD  ?= g++ 
+ifneq "$(origin LD)" "environment"
+  LD  = g++ 
+endif
   FORTRAN2_LIBS=
 
 

@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.32 2012/07/26 11:47:57 mkrafczy Exp $
+#  $Id: Makefile.linux,v 1.33 2012/07/26 17:20:14 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -57,8 +57,12 @@ RH9add=-pthread $(BIN)ctype.o
 ########################################################################
 #Compilers
 ########################################################################
-  CC  ?= gcc -m32 
-  CXX ?= g++ -m32
+ifneq "$(origin CC)" "environment"
+  CC  = gcc -m32 
+endif
+ifneq "$(origin CXX)" "environment"
+  CXX = g++ -m32
+endif
 ifdef VERGCC 
   FF  = gfortran -m32 
   FORTRAN_LIBS= -lg2c -lgfortran 
@@ -67,7 +71,9 @@ else
   FORTRAN_LIBS=-lg2c 
 endif
   FFOLD=$(FF)
-  LD  ?= g++ -m32
+ifneq "$(origin LD)" "environment"
+  LD  = g++ -m32
+endif
   FORTRAN2_LIBS=
 
 ifdef VERGCCH 
