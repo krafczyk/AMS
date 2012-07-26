@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.63 2012/06/28 22:04:46 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.64 2012/07/26 11:47:56 mkrafczy Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -23,8 +23,9 @@
 #include "TrExtAlignDB.h"
 #endif
 
-
-#include "omp.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////////////////

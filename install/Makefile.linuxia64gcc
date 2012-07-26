@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64gcc,v 1.1 2011/01/11 18:41:07 choutko Exp $
+#  $Id: Makefile.linuxia64gcc,v 1.2 2012/07/26 11:47:58 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -57,8 +57,8 @@ RH9add=-pthread $(BIN)ctype.o
 ########################################################################
 #Compilers
 ########################################################################
-  CC  = gcc  
-  CXX = g++ 
+  CC  ?= gcc  
+  CXX ?= g++ 
 ifdef VERGCC 
   FF  = gfortran  
   FORTRAN_LIBS=  -lgfortran 
@@ -67,7 +67,7 @@ else
   FORTRAN_LIBS=
 endif
   FFOLD=$(FF)
-  LD  = g++ 
+  LD  ?= g++ 
   FORTRAN2_LIBS=
 
 
@@ -105,6 +105,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -173,7 +176,11 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
+ifndef NOCASTOR
  SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lTree -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+endif
 endif
 endif
 

@@ -117,6 +117,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 CPPFLAGS+=  -D__AMSDEBUG__
@@ -183,7 +186,11 @@ ifdef SLC4system
 ifdef VER
 echo 'blia'
 else
+ifndef NOCASTOR
  SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lHist -lHistPainter -lGraf -lMatrix 
+endif
 endif
 endif
 

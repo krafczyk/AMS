@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64ecc,v 1.2 2011/01/26 20:47:36 choutko Exp $
+#  $Id: Makefile.linuxia64ecc,v 1.3 2012/07/26 11:47:57 mkrafczy Exp $
 
 # General clean up and reorganization
 #
@@ -99,6 +99,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -161,7 +164,11 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
+ifndef NOCASTOR
  SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/ia64/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad -lSQL  -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix 
+else
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/ia64/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad -lSQL  -lHist -lMinuit -lHistPainter -lGraf -lMatrix 
+endif
 endif
 endif
 

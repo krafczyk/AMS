@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxicc26,v 1.4 2011/09/27 23:44:01 pzuccon Exp $
+#  $Id: Makefile.linuxicc26,v 1.5 2012/07/26 11:47:58 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -96,6 +96,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -158,7 +161,11 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
+ifndef NOCASTOR
  SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/ia32/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix 
+else
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/ia32/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lHist -lMinuit -lHistPainter -lGraf -lMatrix 
+endif
 endif
 endif
 

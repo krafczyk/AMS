@@ -44,6 +44,10 @@ NAGDIR  =
 # Compilers FLAGS
 ########################################################################
 
+ifndef NOCASTOR
+CPPFLAGS+=  -D__NOCASTOR__
+endif
+
 ifdef AMSDEBUG
 CPPFLAGS+=  -D__AMSDEBUG__
 endif
@@ -96,7 +100,11 @@ else
 endif
 
 #SOFLAGS = -shared
+ifndef NOCASTOR
 SOFLAGS = -dynamiclib -undefined dynamic_lookup -L/$(ROOTSYS)/lib   -lRIO -lTree -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+else
+SOFLAGS = -dynamiclib -undefined dynamic_lookup -L/$(ROOTSYS)/lib   -lRIO -lTree -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+endif
 
  SHLDFLAGS=   
 

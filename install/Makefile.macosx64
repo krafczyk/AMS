@@ -65,6 +65,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -126,12 +129,20 @@ SOFLAGS = --dynamic --shared --dynamiclib -undefined dynamic_lookup
 ifdef SLC4system
 ifdef VER
 else
+ifndef NOCASTOR
  SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lHist -lHistPainter -lGraf -lMatrix 
+endif
 endif
 endif
 
 #SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx -lRFIO -lTMVA
+ifndef NOCASTOR
 SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx -lTMVA
+else
+SHLDFLAGS=`root-config --libs`   -lMinuit -lTMVA
+endif
 
 ########################################################################
 # Output dirs

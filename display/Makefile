@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.98 2012/07/24 07:51:42 choutko Exp $
+#  $Id: Makefile,v 1.99 2012/07/26 11:47:57 mkrafczy Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -70,7 +70,11 @@ else
 LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 endif
 
+ifndef NOCASTOR
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lTreePlayer -lXMLIO -lMLP -lRCastor -lNetx -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lTreePlayer -lXMLIO -lMLP -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
@@ -100,7 +104,11 @@ endif
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
+ifndef NOCASTOR
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lTreePlayer -lXMLIO -lMLP -lRCastor -lNetx -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lTreePlayer -lXMLIO -lMLP -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil -lncurses $(LFORT)
@@ -155,7 +163,11 @@ LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_gcc32/2005/lib -lgeant321
 endif
 
 
+ifndef NOCASTOR
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx  -lTMVA -lTreePlayer -lXMLIO -lMLP -lRCastor -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx  -lTMVA -lTreePlayer -lXMLIO -lMLP -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
@@ -189,8 +201,11 @@ else
 LFORT =  -L/afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib  -lgfortran
 endif
 
-
+ifndef NOCASTOR
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lTMVA -lTreePlayer -lXMLIO -lMLP -lRCastor -lNetx -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lTMVA -lTreePlayer -lXMLIO -lMLP -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil $(LFORT)
