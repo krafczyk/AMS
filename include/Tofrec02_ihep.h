@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.7 2012/07/25 22:41:48 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.8 2012/07/26 22:25:44 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -87,7 +87,7 @@ public:
 /// BetaH Build Part
 public:
 /// Find TofClusterH for ilay with Track
-#if (defined _PGTRACK_) || (defined __ROOTSHAREDLIBRARY__)
+#if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
   static int  BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern);
 #else
   static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern);

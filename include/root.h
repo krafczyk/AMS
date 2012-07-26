@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.457 2012/07/24 22:05:58 qyan Exp $
+//  $Id: root.h,v 1.458 2012/07/26 22:25:44 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2584,7 +2584,7 @@ class BetaHR: public TrElem{
  /*!
    * \idis    distance to BetaH used TOF Counter, idis=3 => Judge if there is any of Left 3Counter or right 3Counter fired
    */
-  bool           IsIsolaionHL (int ilay,int idis=1){
+  bool           IsIsolationHL (int ilay,int idis=1){
         bool left=0;
         if((BetaPar.Pattern[ilay]/100%10)==0)left=1;
         else if((BetaPar.Pattern[ilay]/100%10)>idis)left=1;

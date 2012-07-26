@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.16 2012/07/25 22:39:35 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.17 2012/07/26 22:25:59 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -572,10 +572,10 @@ int TofRecH::BuildBetaH(int mode){
      for(int itr=0;itr<ntracks;itr++){
        uinteger status=(itr==0)?0:TOFDBcN::TRDTRACK;
 
-#if (defined _PGTRACK_) || (defined __ROOTSHAREDLIBRARY__)
+#if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
        TrTrackR *ptrack;  TrTrackR *usetr=0;
        if(iktr==0){ptrack=track.at(itr);usetr=ptrack;}
-#if (defined _PGTRACK_)
+#if defined (_PGTRACK_)
        else        ptrack=new TrTrackR(number(trdtrack.at(itr).Theta),number(trdtrack.at(itr).Phi),AMSPoint(trdtrack.at(itr).Coo));
 #else
        else        return -1;
@@ -640,7 +640,7 @@ int TofRecH::BuildBetaH(int mode){
 
 }
 //========================================================
-#if (defined _PGTRACK_) || (defined __ROOTSHAREDLIBRARY__)
+#if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
 int  TofRecH::BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern){
 #else
 int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern){
@@ -666,7 +666,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
 
 //---Intepolate 
        AMSDir tkdir(0,0,1);AMSPoint tkcoo;   
-#if (defined _PGTRACK_) || (! defined __ROOTSHAREDLIBRARY__)
+#if defined (_PGTRACK_) || ! defined (__ROOTSHAREDLIBRARY__)
        ptrack->interpolate(tfcoo,tkdir,tkcoo,theta,phi,sleng);
 #else
       return -1;
