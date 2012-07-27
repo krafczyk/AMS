@@ -268,9 +268,9 @@ c!$OMP threadprivate(/rktrk/)
 *------------------------------------------------------------------
       z1=z(1)        ! if so Par(4)=x(1), Par(5)=y(1)
       rad = sqrt((x(2)-x(1))**2+(y(2)-y(1))**2+(z(2)-z(1))**2)
-      Par(1)=Rini*(x(2)-x(1))/rad                     ! Px0
-      Par(2)=Rini*(y(2)-y(1))/rad                     ! Py0
-      Par(3)=Rini*(z(2)-z(1))/rad                     ! Pz0
+      Par(1)=abs(Rini)*(x(2)-x(1))/rad                     ! Px0
+      Par(2)=abs(Rini)*(y(2)-y(1))/rad                     ! Py0
+      Par(3)=abs(Rini)*(z(2)-z(1))/rad                     ! Pz0
       Par(4)=x(1) + (z1-z(1))/(z(2)-z(1))*(x(2)-x(1)) !  x0
       Par(5)=y(1) + (z1-z(1))/(z(2)-z(1))*(y(2)-y(1)) !  y0
 
