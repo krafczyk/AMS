@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.568 2012/07/19 19:20:15 qyan Exp $
+//  $Id: event.C,v 1.569 2012/07/27 12:33:22 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1318,11 +1318,13 @@ void  AMSEvent::write(int trig){
       if(AMSProducer::gethead()->FreeSpace()>=0 && AMSProducer::gethead()->FreeSpace()<IOPA.MaxFileSize/2/1024){
 	NoMoreSpace=true;
 	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
+        cerr<<" AMSEvent-W-SpaceProblem "<<AMSProducer::gethead()->FreeSpace()<<" "<<IOPA.MaxFileSize/2/1024<<endl;
       }
 #endif
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
 	 || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
 	{
+         cerr<<" AMSEvent-W-ClosingFile "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<" "<<GCFLAG.ITEST<<" "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
 	  AMSEvent::ResetThreadWait(1);
 	  Barrier()=true;
 #pragma omp barrier 
@@ -3368,7 +3370,8 @@ void AMSEvent::Recovery(bool finish){
       int ntry=0;
       const int maxtry=10;
       if(AMSJob::gethead()->isSimulation()){
-        ntry=maxtry;
+        throw std::bad_alloc();
+         ntry=maxtry;
          mresort=1;
        } 
       if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;

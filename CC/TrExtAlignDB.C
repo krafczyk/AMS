@@ -725,8 +725,12 @@ const char *TrExtAlignDB::GetTDVName()
 
 int TrExtAlignDB::GetFromTDV(uint time, int ver)
 {
+
   time_t tt=time;
-  tm begin;
+ static AMSTimeID *db=0;
+#pragma omp threadprivate  (db)
+if(!db){
+   tm begin;
   tm end;
   
   begin.tm_isdst=0;
@@ -749,12 +753,12 @@ int TrExtAlignDB::GetFromTDV(uint time, int ver)
 
   TrExtAlignDB::CreateLinear();
 
-  AMSTimeID* db=new AMSTimeID(AMSID(GetTDVName(),1),begin,end,
+  db=new AMSTimeID(AMSID(GetTDVName(),1),begin,end,
 			      TrExtAlignDB::GetLinearSize(),
 			      TrExtAlignDB::fLinear,
 			      AMSTimeID::Standalone,1,SLin2ExAlign);
-  int ret=db->validate(tt);
-  if(db) delete db;
+ }
+ int ret=db->validate(tt);
   return ret;
 }
 

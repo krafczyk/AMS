@@ -73,6 +73,8 @@ TrdSCalibR* TrdSCalibR::gethead()
     head->InitNewTrdSCalib(TRDCALIB.TrdSCalibVersion, TRDCALIB.TrdSCalibTrack, 
 			      TRDCALIB.TrdSCalibGainMethod, TRDCALIB.TrdSCalibAlignMethod, 
 			      TRDCALIB.TrdSCalibDebug);
+#else
+head->InitNewTrdSCalib(6, 1,1,1,0);
 #endif    
 }    
   }

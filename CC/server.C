@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.200 2012/06/25 10:21:45 choutko Exp $
+//  $Id: server.C,v 1.201 2012/07/27 12:33:23 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -692,12 +692,16 @@ for(ACLI li= _acl.begin();li!=_acl.end();++li){
 //    lxplus=strstr((const char*)((*li)->id.HostName),"lxplus");
     if(++ina>maxina || !lxplus){
         ret=true;
+        cout <<ina<<" of "<<maxina<<" inactive clients found will not start "<<endl;
         break;
 }
   }
 }
 if(getType() == DPS::Client::DBServer && getType()!=ctype){
-  if(_parent->DBServerExists() && !_acl.size())return true;
+  if(_parent->DBServerExists() && !_acl.size()){
+       cout <<"  return true in db ... "<<endl;
+       return true;
+  }
 }
 return ret;
 }

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.179 2012/06/27 14:56:44 choutko Exp $
+//  $Id: producer.C,v 1.180 2012/07/27 12:33:23 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -713,6 +713,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
   else{
     i=(i>>8);
     if(i/128 && ( !AMSEvent::_checkUpdate())){
+     cerr<<"  AMSProducer::sendNtupleEnd-E-Ntuple failure "<<i<<" "<< AMSEvent::_checkUpdate()<<endl;
      ntend->Status=DPS::Producer::Failure;
     }
     else{
