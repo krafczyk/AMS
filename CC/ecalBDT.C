@@ -5,14 +5,34 @@ TMVA::Reader *ecalpisareader = NULL;
 const unsigned int nPISABDTVARs = 61;
 float pisanormvar[nPISABDTVARs + 1];
 float pisainputvar[nPISABDTVARs + 1];
+char *pisavarname[nPISABDTVARs + 1] = {
+   "ShowerMean", "ShowerSigma",
+   "L2LFrac", "R3cmFrac", "S3totx", "S3toty",
+   "NEcalHits",
+   "ShowerFootprintX", "ShowerFootprintY",
+   "LayerEneFrac0", "LayerEneFrac1", "LayerEneFrac2", "LayerEneFrac3", "LayerEneFrac4", "LayerEneFrac5",
+      "LayerEneFrac6", "LayerEneFrac7", "LayerEneFrac8", "LayerEneFrac9", "LayerEneFrac10", "LayerEneFrac11",
+      "LayerEneFrac12", "LayerEneFrac13", "LayerEneFrac14", "LayerEneFrac15", "LayerEneFrac16", "LayerEneFrac17",
+   "LayerSigma1", "LayerSigma2", "LayerSigma3", "LayerSigma4", "LayerSigma5", "LayerSigma6",
+      "LayerSigma7", "LayerSigma8", "LayerSigma9", "LayerSigma10", "LayerSigma11", "LayerSigma12",
+      "LayerSigma13", "LayerSigma14", "LayerSigma15", "LayerSigma16", "LayerSigma17",
+   "LayerS3Frac1", "LayerS3Frac2", "LayerS3Frac3", "LayerS3Frac4", "LayerS3Frac5", "LayerS3Frac6",
+      "LayerS3Frac7", "LayerS3Frac8", "LayerS3Frac9", "LayerS3Frac10", "LayerS3Frac11", "LayerS3Frac12",
+      "LayerS3Frac13", "LayerS3Frac14", "LayerS3Frac15", "LayerS3Frac16", "LayerS3Frac17",
+   "EnergyD"
+};
 
-const bool DEBUG = false;
+bool BDT_DEBUG = false;
 
 float EcalShowerR::GetEcalBDT()
 {
-   //******************************
-   //*****Compute the variables****
-   //******************************
+   if (BDT_DEBUG)
+   {
+      std::cout << " ??? EcalShowerR::GetEcalBDT() \n";
+      std::cout << " ??? ******************************\n";
+      std::cout << " ??? *****Compute the variables****\n";
+      std::cout << " ??? ******************************\n" << flush;
+   }
 
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
@@ -67,6 +87,7 @@ float EcalShowerR::GetEcalBDT()
    {
       ClusterEnergy[ilayer] = 0.;
       LayerEneDep[ilayer]   = 0.;
+      LayerEneFrac[ilayer]  = 0.;
 
       LayerMean[ilayer]  = 0.;
       LayerSigma[ilayer] = 0.;
@@ -217,8 +238,72 @@ float EcalShowerR::GetEcalBDT()
 
    float energyd = EnergyD/1000.;
 
-   unsigned int ivar;
+   if (BDT_DEBUG) std::cout << " ??? BDT variables computed\n" << flush;
 
+   unsigned int ivar = 0;
+      
+   pisainputvar[ivar++] = ShowerMean;
+   pisainputvar[ivar++] = ShowerSigma;
+   pisainputvar[ivar++] = L2LFrac;
+   pisainputvar[ivar++] = R3cmFrac;
+   pisainputvar[ivar++] = S3totx;
+   pisainputvar[ivar++] = S3toty;
+   pisainputvar[ivar++] = NEcalHits;
+   pisainputvar[ivar++] = ShowerFootprint[1];
+   pisainputvar[ivar++] = ShowerFootprint[2];
+   pisainputvar[ivar++] = LayerEneFrac[0];
+   pisainputvar[ivar++] = LayerEneFrac[1];
+   pisainputvar[ivar++] = LayerEneFrac[2];
+   pisainputvar[ivar++] = LayerEneFrac[3];
+   pisainputvar[ivar++] = LayerEneFrac[4];
+   pisainputvar[ivar++] = LayerEneFrac[5];
+   pisainputvar[ivar++] = LayerEneFrac[6];
+   pisainputvar[ivar++] = LayerEneFrac[7];
+   pisainputvar[ivar++] = LayerEneFrac[8];
+   pisainputvar[ivar++] = LayerEneFrac[9];
+   pisainputvar[ivar++] = LayerEneFrac[10];
+   pisainputvar[ivar++] = LayerEneFrac[11];
+   pisainputvar[ivar++] = LayerEneFrac[12];
+   pisainputvar[ivar++] = LayerEneFrac[13];
+   pisainputvar[ivar++] = LayerEneFrac[14];
+   pisainputvar[ivar++] = LayerEneFrac[15];
+   pisainputvar[ivar++] = LayerEneFrac[16];
+   pisainputvar[ivar++] = LayerEneFrac[17];
+   pisainputvar[ivar++] = LayerSigma[1];
+   pisainputvar[ivar++] = LayerSigma[2];
+   pisainputvar[ivar++] = LayerSigma[3];
+   pisainputvar[ivar++] = LayerSigma[4];
+   pisainputvar[ivar++] = LayerSigma[5];
+   pisainputvar[ivar++] = LayerSigma[6];
+   pisainputvar[ivar++] = LayerSigma[7];
+   pisainputvar[ivar++] = LayerSigma[8];
+   pisainputvar[ivar++] = LayerSigma[9];
+   pisainputvar[ivar++] = LayerSigma[10];
+   pisainputvar[ivar++] = LayerSigma[11];
+   pisainputvar[ivar++] = LayerSigma[12];
+   pisainputvar[ivar++] = LayerSigma[13];
+   pisainputvar[ivar++] = LayerSigma[14];
+   pisainputvar[ivar++] = LayerSigma[15];
+   pisainputvar[ivar++] = LayerSigma[16];
+   pisainputvar[ivar++] = LayerSigma[17];
+   pisainputvar[ivar++] = LayerS3Frac[1];
+   pisainputvar[ivar++] = LayerS3Frac[2];
+   pisainputvar[ivar++] = LayerS3Frac[3];
+   pisainputvar[ivar++] = LayerS3Frac[4];
+   pisainputvar[ivar++] = LayerS3Frac[5];
+   pisainputvar[ivar++] = LayerS3Frac[6];
+   pisainputvar[ivar++] = LayerS3Frac[7];
+   pisainputvar[ivar++] = LayerS3Frac[8];
+   pisainputvar[ivar++] = LayerS3Frac[9];
+   pisainputvar[ivar++] = LayerS3Frac[10];
+   pisainputvar[ivar++] = LayerS3Frac[11];
+   pisainputvar[ivar++] = LayerS3Frac[12];
+   pisainputvar[ivar++] = LayerS3Frac[13];
+   pisainputvar[ivar++] = LayerS3Frac[14];
+   pisainputvar[ivar++] = LayerS3Frac[15];
+   pisainputvar[ivar++] = LayerS3Frac[16];
+   pisainputvar[ivar++] = LayerS3Frac[17];
+   pisainputvar[ivar++] = energyd;
 
 
    //********************************
@@ -304,34 +389,12 @@ float EcalShowerR::GetEcalBDT()
    }
 
 
-
    //*******************************
    //*****Reject without BDT********
    //*******************************
 
-   const UInt_t nENERGYBINs = 14;
-   Float_t EnergyBin[nENERGYBINs + 1] = { 2.00, 3.12, 4.86, 7.57, 11.81, 18.41, 28.69,
-      44.72, 69.71, 108.66, 169.38, 264.03, 411.56, 641.53, 1000.00 };
-
-   // 90% efficiency cut in energy bins defined above
-   Float_t cuts[nENERGYBINs] = { 0.550000, 0.710000, 0.812000, 0.866000, 0.896000, 0.898000,
-      0.916000, 0.908000, 0.928000, 0.948000, 0.966000, 0.968000, 0.970000, 0.968000 };
- 
-   Float_t offset;
-
-   if (energyd < EnergyBin[0]) offset = cuts[0];
-   for (unsigned int ibin = 0; ibin < nENERGYBINs; ++ibin)
-   {
-      if (EnergyBin[ibin] <= energyd && energyd < EnergyBin[ibin + 1])
-      {
-         offset = cuts[ibin];
-         break;
-      }
-   }
-   if (energyd >= EnergyBin[nENERGYBINs]) offset = cuts[nENERGYBINs - 1];
-
    //Check the energy deposit in the first 2 superlayers
-   if (F2SLEneDep < -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00)) return (-0.9991 - offset);
+   if (F2SLEneDep < TMath::Max(0.2, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
 
    //Check S1/S3 per layer
    int first_lay = -1; //first layer in which we want to estimate S1/S3
@@ -355,7 +418,7 @@ float EcalShowerR::GetEcalBDT()
 
    for (unsigned int ilayer = first_lay; ilayer <= last_lay; ++ilayer)
    {
-      if (LayerS1S3[ilayer] < 0 || LayerS1S3[ilayer] > 0.995) return (-0.9993 - offset);
+      if (LayerS1S3[ilayer] < 0 || LayerS1S3[ilayer] > 0.995) return -0.9993;
    }
 
 
@@ -368,7 +431,7 @@ float EcalShowerR::GetEcalBDT()
    float mean, sigma;
    float x = log(energyd);
 
-   if (DEBUG) std::cerr << Form(" ??? x=%f\n", x);
+   if (BDT_DEBUG) std::cout << Form(" ??? x=%f\n", x) << flush;
 
    ivar = 0;
 
@@ -618,93 +681,28 @@ float EcalShowerR::GetEcalBDT()
 
    pisanormvar[ivar++] = energyd;
 
-   if (DEBUG)
-   {
-      ivar = 0;
-
-      pisainputvar[ivar++] = ShowerMean;
-      pisainputvar[ivar++] = ShowerSigma;
-      pisainputvar[ivar++] = L2LFrac;
-      pisainputvar[ivar++] = R3cmFrac;
-      pisainputvar[ivar++] = S3totx;
-      pisainputvar[ivar++] = S3toty;
-      pisainputvar[ivar++] = NEcalHits;
-      pisainputvar[ivar++] = ShowerFootprint[1];
-      pisainputvar[ivar++] = ShowerFootprint[2];
-      pisainputvar[ivar++] = LayerEneFrac[0];
-      pisainputvar[ivar++] = LayerEneFrac[1];
-      pisainputvar[ivar++] = LayerEneFrac[2];
-      pisainputvar[ivar++] = LayerEneFrac[3];
-      pisainputvar[ivar++] = LayerEneFrac[4];
-      pisainputvar[ivar++] = LayerEneFrac[5];
-      pisainputvar[ivar++] = LayerEneFrac[6];
-      pisainputvar[ivar++] = LayerEneFrac[7];
-      pisainputvar[ivar++] = LayerEneFrac[8];
-      pisainputvar[ivar++] = LayerEneFrac[9];
-      pisainputvar[ivar++] = LayerEneFrac[10];
-      pisainputvar[ivar++] = LayerEneFrac[11];
-      pisainputvar[ivar++] = LayerEneFrac[12];
-      pisainputvar[ivar++] = LayerEneFrac[13];
-      pisainputvar[ivar++] = LayerEneFrac[14];
-      pisainputvar[ivar++] = LayerEneFrac[15];
-      pisainputvar[ivar++] = LayerEneFrac[16];
-      pisainputvar[ivar++] = LayerEneFrac[17];
-      pisainputvar[ivar++] = LayerSigma[1];
-      pisainputvar[ivar++] = LayerSigma[2];
-      pisainputvar[ivar++] = LayerSigma[3];
-      pisainputvar[ivar++] = LayerSigma[4];
-      pisainputvar[ivar++] = LayerSigma[5];
-      pisainputvar[ivar++] = LayerSigma[6];
-      pisainputvar[ivar++] = LayerSigma[7];
-      pisainputvar[ivar++] = LayerSigma[8];
-      pisainputvar[ivar++] = LayerSigma[9];
-      pisainputvar[ivar++] = LayerSigma[10];
-      pisainputvar[ivar++] = LayerSigma[11];
-      pisainputvar[ivar++] = LayerSigma[12];
-      pisainputvar[ivar++] = LayerSigma[13];
-      pisainputvar[ivar++] = LayerSigma[14];
-      pisainputvar[ivar++] = LayerSigma[15];
-      pisainputvar[ivar++] = LayerSigma[16];
-      pisainputvar[ivar++] = LayerSigma[17];
-      pisainputvar[ivar++] = LayerS3Frac[1];
-      pisainputvar[ivar++] = LayerS3Frac[2];
-      pisainputvar[ivar++] = LayerS3Frac[3];
-      pisainputvar[ivar++] = LayerS3Frac[4];
-      pisainputvar[ivar++] = LayerS3Frac[5];
-      pisainputvar[ivar++] = LayerS3Frac[6];
-      pisainputvar[ivar++] = LayerS3Frac[7];
-      pisainputvar[ivar++] = LayerS3Frac[8];
-      pisainputvar[ivar++] = LayerS3Frac[9];
-      pisainputvar[ivar++] = LayerS3Frac[10];
-      pisainputvar[ivar++] = LayerS3Frac[11];
-      pisainputvar[ivar++] = LayerS3Frac[12];
-      pisainputvar[ivar++] = LayerS3Frac[13];
-      pisainputvar[ivar++] = LayerS3Frac[14];
-      pisainputvar[ivar++] = LayerS3Frac[15];
-      pisainputvar[ivar++] = LayerS3Frac[16];
-      pisainputvar[ivar++] = LayerS3Frac[17];
-      pisainputvar[ivar++] = energyd;
-   }
-
    for (ivar = 0; ivar < nPISABDTVARs; ++ivar)
    {
-      if (!(pisanormvar[ivar] == pisanormvar[ivar]))
+      if (pisanormvar[ivar] != pisanormvar[ivar])
       {
-         if (!(pisainputvar[ivar] == pisainputvar[ivar]))
+         if (pisainputvar[ivar] != pisainputvar[ivar])
          { //the input variable is a NaN.
-            std::cerr << Form("GetEcalBDT() -> pisainputvar[%.2d] NaN. Input variable is a NaN. Unpredictable BDT output expected\n", ivar) << endl;
+            std::cerr << Form(" !!! GetEcalBDT() -> pisainputvar[%.2d] (%s) NaN. Input variable is a NaN. Returning -9999\n", ivar, pisavarname[ivar]) << endl << flush;
+            return -9999.;
          }
          else
          { //only the output variable is a Nan. There should be a problem in the normalization
-            std::cerr << Form("GetEcalBDT() -> pisanormvar[%.2d] NaN. Normalized variable is a NaN. Unpredictable BDT output expected\n", ivar) << endl;
+            std::cerr << Form(" !!! GetEcalBDT() -> pisanormvar[%.2d] (%sNorm) NaN. Normalized variable is a NaN (Before normalization = %f). Returning -9999\n", ivar, pisavarname[ivar], pisainputvar[ivar]) << endl << flush;
+            return -9999.;
          }
       }
    }
 
-   if (DEBUG)
+   if (BDT_DEBUG)
    {
       for (ivar = 0; ivar < nPISABDTVARs + 1; ++ivar)
-         std::cerr << Form("ivar:%02d \t input:%f \t norm:%f\n", ivar, pisainputvar[ivar], pisanormvar[ivar]);
+         std::cout << Form(" ??? ivar:%02d \t %-20s \t input:%f \t norm:%f\n", ivar, pisavarname[ivar], pisainputvar[ivar], pisanormvar[ivar]);
+      std::cout << flush;
    }
 
 
@@ -712,7 +710,7 @@ float EcalShowerR::GetEcalBDT()
    //********************************
    //*****  Calculate BDT    ********
    //********************************
-   float bdt = ecalpisareader->EvaluateMVA("BDTG_LAYERS") - offset;
+   float bdt = ecalpisareader->EvaluateMVA("BDTG_LAYERS");
 
    return bdt;
 }
