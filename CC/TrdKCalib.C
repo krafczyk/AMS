@@ -82,7 +82,7 @@ void TrdKCalib::fillDB_Alignment_Global(TRDAlignmentDB_Global *_db, Double_t tim
 
 int TrdKCalib::readDB_Calibration(Double_t asktime){
 
-    if(asktime>=_trddb.Time_E){
+    if(asktime <_trddb.Time_S || asktime>=_trddb.Time_E){
         //        printf("Ask time: %f ,  Previos End Time: %f\n",asktime,_trddb.Time_E);
         readDB("TRDCalibration",&_trddb,asktime);
     }
@@ -95,7 +95,7 @@ int TrdKCalib::readDB_Calibration(Double_t asktime){
 
 
 int TrdKCalib::readDB_Alignment_Plane(Double_t asktime){
-    if(asktime>_trdaligndb_Plane.time_end){
+    if(asktime<_trdaligndb_Plane.time_start || asktime>_trdaligndb_Plane.time_end){
         readDB("TRDAlignmentPlane",&_trdaligndb_Plane,asktime);
         //        printf("TRDAlignmentPlane DB read, Validity: %i - %i \n",_trdaligndb_Plane.time_start,_trdaligndb_Plane.time_end);
         TRDAlignmentPar * par= _trdaligndb_Plane.getplaneparp(0);
@@ -110,11 +110,11 @@ int TrdKCalib::readDB_Alignment_Plane(Double_t asktime){
 
 int TrdKCalib::readDB_Alignment_Global(Double_t asktime){
     //   printf("Asking: %.0f , Current DB valid until: %.0f\n",asktime,_trdaligndb_Global.time_end);
-    if(asktime>_trdaligndb_Global.time_end){
+    if(asktime<_trdaligndb_Global.time_start || asktime>_trdaligndb_Global.time_end){
         _trdaligndb_Global=TRDAlignmentDB_Global();
         readDB("TRDAlignmentGlobal",&_trdaligndb_Global,asktime);
-        //        printf("TRDAlignmentGlobal Asking: %.0f \n",asktime);
-        //        printf("TRDAlignmentGlobal DB read, Validity: %f - %f \n",_trdaligndb_Global.time_start,_trdaligndb_Global.time_end);
+//               printf("TRDAlignmentGlobal Asking: %.0f \n",asktime);
+//                printf("TRDAlignmentGlobal DB read, Validity: %f - %f \n",_trdaligndb_Global.time_start,_trdaligndb_Global.time_end);
 
         if(!_trdaligndb_Global.size)return 0;
         float average[6]={0,0,0,0,0,0};
