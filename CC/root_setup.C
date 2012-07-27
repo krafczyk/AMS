@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.79.4.7 2012/07/04 12:41:31 mduranti Exp $
+//  $Id: root_setup.C,v 1.79.4.8 2012/07/27 16:57:36 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1116,9 +1116,13 @@ return fScalersReturn.size();
 
 int AMSSetupR::LoadISSAtt(unsigned int t1, unsigned int t2){
 
- char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
-char * AMSISS=getenv("AMSISS");
-if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
+  
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/");
+  
+  char * AMSISS=getenv("AMSISS");
+  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSAtt-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -1793,9 +1797,13 @@ a=b;
 
 int AMSSetupR::LoadISSSA(unsigned int t1, unsigned int t2){
 
- char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
-char * AMSISS=getenv("AMSISSSA");
-if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
+  
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/isssa/");
+  
+  char * AMSISS=getenv("AMSISSSA");
+  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSSA-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -1946,9 +1954,13 @@ return ret;
 
 int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
 
- char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
-char * AMSISS=getenv("AMSISSSA");
-if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
+  
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/isssa/");
+  
+  char * AMSISS=getenv("AMSISSSA");
+  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSCTRS-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -2130,9 +2142,14 @@ return ret;
 
 
 int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
-char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
-char * AMSISS=getenv("AMSISS");
-if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+
+  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
+
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/");
+  
+  char * AMSISS=getenv("AMSISS");
+  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
 
   if (t1>t2) {
     cerr<< "AMSSetupR::LoadGPSWGS84-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -2284,10 +2301,15 @@ if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
 
 
 int AMSSetupR::LoadISSGTOD(unsigned int t1, unsigned int t2){
- char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
-char * AMSISS=getenv("AMSISS");
-if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
 
+  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
+
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/");
+  
+  char * AMSISS=getenv("AMSISS");
+  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
+  
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSGTOD-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
 return 2;
@@ -2643,16 +2665,21 @@ int AMSSetupR::LoadDSPErrors(unsigned int t1, unsigned int t2){
   const char DSPPathlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/";
   
   char DSPPath[256];
-  char* AMSDSPEnv=getenv("AMSDSP");
-  if(!AMSDSPEnv || !strlen(AMSDSPEnv)) strcpy(DSPPath, DSPPathlocal);
-  else strcpy(DSPPath, getenv("AMSDSP"));
-  //  printf("%s\n", DSPPath);//only for debug
-  
   char amsdsp_add[256];
+  
+  char* AMSDataDir=getenv("AMSDataDir");//if you defined a "custom" AMSDataDir
+  if (!AMSDataDir || !strlen(AMSDataDir)) strcpy(DSPPath, DSPPathlocal);
+  else strcpy(DSPPath, AMSDataDir);
   sprintf(amsdsp_add, "%s/altec/DSP/", DSPPath);
   strcpy(DSPPath, amsdsp_add);
   //  printf("%s\n", DSPPath);//only for debug
   
+  char* AMSDSPEnv=getenv("AMSDSP");//if you defined a "custom" dir just for DSP stuff
+  if (!(!AMSDSPEnv || !strlen(AMSDSPEnv))) strcpy(DSPPath, AMSDSPEnv);
+  
+  // printf("%s\n", DSPPath);//only for debug
+  // sleep(10);//only for debug
+
   if (t2<(unsigned int)(1305500000)){
     cerr<< "AMSSetupR::LoadDSPErrors-S-TimeEndLessThanLaunch "<<t1<<" "<<t2<<" "<<endl;
     return -2;
@@ -2666,6 +2693,7 @@ int AMSSetupR::LoadDSPErrors(unsigned int t1, unsigned int t2){
   int oldsize=fDSPError.size();
 
   //when a new file will be produced we will have to implement the loop over files...
+  //or maybe is simpler to keep this as "history" but then create a new one "extended"...
   const char fpath[256]="DSPPERIODS_1305911355_1339661827.csv";
   
   string fname=DSPPath;
