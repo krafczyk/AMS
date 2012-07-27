@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.564.2.5 2012/07/17 11:17:15 choutko Exp $
+//  $Id: event.C,v 1.564.2.6 2012/07/27 11:34:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1313,6 +1313,7 @@ void  AMSEvent::write(int trig){
 #ifdef __CORBA__
       if(AMSProducer::gethead()->FreeSpace()>=0 && AMSProducer::gethead()->FreeSpace()<IOPA.MaxFileSize/2/1024){
 	NoMoreSpace=true;
+        cerr<<" AMSEvent-W-SpaceProblem "<<AMSProducer::gethead()->FreeSpace()<<" "<<IOPA.MaxFileSize/2/1024<<endl;
 	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       }
 #endif
@@ -1321,6 +1322,7 @@ void  AMSEvent::write(int trig){
 	{
 	  AMSEvent::ResetThreadWait(1);
 	  Barrier()=true;
+         cerr<<" AMSEvent-W-ClosingFile "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<" "<<GCFLAG.ITEST<<" "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
 #pragma omp barrier 
 	  cout <<"AMSAEvent::writefile in barrier "<<AMSEvent::get_thread_num()<<endl;
 	  
