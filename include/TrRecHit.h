@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.41 2012/05/16 14:37:52 shaino Exp $
+//  $Id: TrRecHit.h,v 1.41.6.1 2012/07/27 08:17:36 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -33,7 +33,7 @@
 #include "point.h"
 #include "TkCoo.h"
 #include "TrElem.h"
-
+#include "point.h"
 #include "amsdbc.h"
 
 #include "TMath.h"
@@ -144,15 +144,56 @@ public:
   int GetMultiplicity()      { return _mult; }
   /// Get the resolved multiplicity index (-1 if not resolved)
   int   GetResolvedMultiplicity() { return _imult; }
-  /// Returns the computed global coordinate (if resolved)
-  const AMSPoint GetCoord() { return _coord; }
-  /// Get the computed global coordinate by multiplicity index
-  const AMSPoint GetCoord(int imult, int force=0){
-    if(imult<0||imult>=_mult) return AMSPoint(0,0,0);
-    if(force)                 return GetGlobalCoordinate(imult);
-    if(imult==_imult)         return _coord;
-    else                      return GetGlobalCoordinate(imult);
+
+  /// Returns the hit coordinate
+  /// \li if  force=0 and imult=-1 (default)options, it returns the stored coordinate as it is (with multiplicity 0 if mult is not resolved by track)
+  /// \li if  force=0 and imult>0, it returns the calculated requested multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS PG
+  /// \li if  force=1 and imult=-1, it returns the calculated resolved  multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS PG
+  /// \li if  force=1 and imult>0,  it returns the calculated requested multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS PG
+  /// \li if  force=2 and imult=-1, it returns the calculated resolved multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS CIEMAT
+  /// \li if  force=2 and imult>0,  it returns the calculated requested multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS CIEMAT
+  /// \li if  force=3 and imult=-1, it returns the calculated resolved  multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS (CIEMAT+PG)/2
+  /// \li if  force=3 and imult>0,  it returns the calculated requested multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS (CIEMAT+PG)/2
+  /// \li if  force=4 and imult=-1, it returns the calculated resolved  multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS (CIEMAT-PG)
+  /// \li if  force=4 and imult>0,  it returns the calculated requested multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS (CIEMAT-PG)
+  /// \li if  force=5 and imult=-1, it returns the calculated resolved  multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS NO EXT ALINGN
+  /// \li if  force=5 and imult>0,  it returns the calculated requested multiplicty coordinates IF HIT IS ON EXT LAYERS the POSITION IS NO EXT ALINGN
+
+  const AMSPoint GetCoord(int imult=-1, int force=0){
+    //sanity check on input pars
+    if(imult>=_mult|| imult<-1) return AMSPoint(0,0,0);
+    if(force<0|| force>4) return AMSPoint(0,0,0);
+    
+    int reqmult=imult;
+    if(imult==-1) reqmult=GetResolvedMultiplicity();
+    if(GetLayer()<8 && force>=1) force =1;
+
+    if(force ==0){
+      if(imult<0) return _coord;
+      else   return GetGlobalCoordinate(imult);
+    }
+    if(force==1){//PG recalculated
+      return GetGlobalCoordinate(reqmult);
+
+    }else if(force ==2){ //CIEMAT recalculated
+      return GetGlobalCoordinate(reqmult,"AM");
+  
+    }else if( force ==3){ //(PG+CIEMAT)/2
+      AMSPoint pg=GetGlobalCoordinate(reqmult);
+      AMSPoint md=GetGlobalCoordinate(reqmult,"AM");
+      AMSPoint av=pg+md;
+      return av*0.5;
+    }else if( force ==4){ //(PG+CIEMAT)/2
+      AMSPoint pg=GetGlobalCoordinate(reqmult);
+      AMSPoint md=GetGlobalCoordinate(reqmult,"AM");
+      AMSPoint av=md-pg;
+      return av;
+    }else if( force ==5){ //No Ext Align
+      return GetGlobalCoordinate(reqmult,"AZ");
+    }else 
+      return AMSPoint (0,0,0);
   } 
+
   /// Returns the errors on the computed global coordinate (if resolved)
   AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
   /// Get X local coordinate (ladder reference frame)
@@ -215,7 +256,7 @@ public:
   /**@name Reconstruction & Special methods */			
   /**@{*/		
   /// Get global coordinate (AMS reference system) 
-  /// default: nominal position, A: with alignement correction
+  /// default: nominal position, A: with alignement correction MA: Aligned but CIEMAT ext alignment AZ: alingned but no ext layers dyn alignment
   AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
 			       int nstripsx = TrClusterR::DefaultUsedStrips,
 			       int nstripsy = TrClusterR::DefaultUsedStrips);

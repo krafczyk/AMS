@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.58 2012/07/06 11:54:25 pzuccon Exp $
+//  $Id: amschain.C,v 1.58.2.1 2012/07/27 08:17:35 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -46,6 +46,7 @@ AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr,unsigned 
 {
   fout=0;
   amsnew=0;
+  rsetup=0;
   Init(event);
 }
 

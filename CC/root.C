@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.416.2.1 2012/07/12 17:45:22 afiasson Exp $
+//  $Id: root.C,v 1.416.2.2 2012/07/27 08:17:35 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1634,7 +1634,7 @@ void AMSEventR::GetBranch(TTree *fChain){
     strcat(tmp,"fTofCluster");
     bTofCluster=fChain->GetBranch(tmp);
   }
- 
+
   {
     strcpy(tmp,_Name);
     strcat(tmp,"fTofClusterH");
@@ -1736,8 +1736,8 @@ void AMSEventR::GetBranch(TTree *fChain){
     strcat(tmp,"fBetaB");
     bBetaB=fChain->GetBranch(tmp);
   }
-  
-   {
+
+  {
     strcpy(tmp,_Name);
     strcat(tmp,"fBetaH");
     bBetaH=fChain->GetBranch(tmp);
@@ -1908,8 +1908,8 @@ void AMSEventR::GetBranchA(TTree *fChain){
     strcat(tmp,"fTofCluster");
     vTofCluster=fChain->GetBranch(tmp)->GetAddress();
   }
- 
-   {
+
+  {
     strcpy(tmp,_Name);
     strcat(tmp,"fTofClusterH");
     vTofClusterH=fChain->GetBranch(tmp)->GetAddress();
@@ -2012,7 +2012,7 @@ void AMSEventR::GetBranchA(TTree *fChain){
     vBetaB=fChain->GetBranch(tmp)->GetAddress();
   }
 
-   {
+  {
     strcpy(tmp,_Name);
     strcat(tmp,"fBetaH");
     vBetaH=fChain->GetBranch(tmp)->GetAddress();
@@ -2192,8 +2192,8 @@ bool AMSEventR::ReadHeader(int entry){
   {
     i=bHeader->GetEntry(entry);
   }
-        badrun=isBadRun(Run());      
-        bool rts=RunTypeSelected(fHeader.RunType);
+  badrun=isBadRun(Run());      
+  bool rts=RunTypeSelected(fHeader.RunType);
 
   if(badrun || !rts)return false;
   clear();
@@ -2201,68 +2201,76 @@ bool AMSEventR::ReadHeader(int entry){
 #pragma omp threadprivate (local_pfile)
   if(i>0){
     if( local_pfile!=_Tree->GetCurrentFile() || entry==0){
-  int thr=0;
-  int nthr=1;
+      int thr=0;
+      int nthr=1;
 #ifdef _OPENMP
-  thr=omp_get_thread_num();
-  nthr=omp_get_num_threads();
+      thr=omp_get_thread_num();
+      nthr=omp_get_num_threads();
 #endif
 
-//#pragma omp atomic 
-//_Lock-=(1<<thr);
-//cout <<" LockBefore "<<_Lock<<" "<<thr<<endl;
+      //#pragma omp atomic 
+      //_Lock-=(1<<thr);
+      //cout <<" LockBefore "<<_Lock<<" "<<thr<<endl;
 #pragma omp critical (readsetup)
-{
-//#pragma omp atomic 
-//_Lock+=0x100000000;
-//while(!(_Lock&0xFFFFFFFF)){
-//}
-static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+      {
+	//#pragma omp atomic 
+	//_Lock+=0x100000000;
+	//while(!(_Lock&0xFFFFFFFF)){
+	//}
+	static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
       
-      local_pfile=_Tree->GetCurrentFile();
-// workaround root static bug
-      if(!gDirectory ||  !dynamic_cast<TDirectoryFile*>(gDirectory)){
+	local_pfile=_Tree->GetCurrentFile();
+	// workaround root static bug
+	if(!gDirectory ||  !dynamic_cast<TDirectoryFile*>(gDirectory)){
           cout <<" Open "<<_Tree->GetCurrentFile()->GetName()<<endl;
           TFile::Open(_Tree->GetCurrentFile()->GetName());
           cout <<"AMSEventR::ReadHeader-I-SettinggDirectory "<<endl;
-      }
-      if(!InitSetup(local_pfile,"AMSRootSetup",Run())){
-      cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
-      }
-      else{
-      cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
-      cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
-        cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
-        for(AMSSetupR::GPS_i i=getsetup()->fGPS.begin();i!=getsetup()->fGPS.end();i++){
-              //cout << " GPS "<<i->first<<" "<<i->second.Run<<endl;
-        }
-        badrun=isBadRun(getsetup()->fHeader.Run);
-        //getsetup()->printAllTDV_Time();
-        //getsetup()->fSlowControl.print();
-   for(AMSSetupR::Scalers_i i=getsetup()->fScalers.begin();i!=getsetup()->fScalers.end();i++){
+	}
+	if(!InitSetup(local_pfile,"AMSRootSetup",Run())){
+	  cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+	}
+	else{
+	  cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+	  cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
+	  cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
+	  for(AMSSetupR::GPS_i i=getsetup()->fGPS.begin();i!=getsetup()->fGPS.end();i++){
+	    //cout << " GPS "<<i->first<<" "<<i->second.Run<<endl;
+	  }
+	  badrun=isBadRun(getsetup()->fHeader.Run);
+	  //getsetup()->printAllTDV_Time();
+	  //getsetup()->fSlowControl.print();
+	  for(AMSSetupR::Scalers_i i=getsetup()->fScalers.begin();i!=getsetup()->fScalers.end();i++){
         
-       //cout<< "FT " <<i->first<<" "<<i->second.FTtrig(0)<<endl; 
-   }
-      }     
-//#pragma omp atomic 
-//_Lock-=0x100000000;
-//#pragma omp atomic 
-//_Lock+=(1<<thr);
-//cout <<" Lock "<<_Lock<<" "<<omp_get_thread_num()<<endl;
-      if(!initdone[thr] || nthr==1){
-       InitDB(local_pfile);
-       initdone[thr]=1;
-       cout <<"  InitDB Init done "<<thr<<endl;
-     }
+	    //cout<< "FT " <<i->first<<" "<<i->second.FTtrig(0)<<endl; 
+	  }
+	}     
+	//#pragma omp atomic 
+	//_Lock-=0x100000000;
+	//#pragma omp atomic 
+	//_Lock+=(1<<thr);
+	//cout <<" Lock "<<_Lock<<" "<<omp_get_thread_num()<<endl;
+	if(!initdone[thr] || nthr==1){
+	  InitDB(local_pfile);
+	  initdone[thr]=1;
+	  cout <<"  InitDB Init done "<<thr<<endl;
+	}
 
-     }
-//cout <<" LockAfter "<<_Lock<<" "<<thr<<endl;
+      }
+      //cout <<" LockAfter "<<_Lock<<" "<<thr<<endl;
 
 #ifndef _PGTRACK_
-TrTrackFitR::InitMF(UTime());
+      TrTrackFitR::InitMF(UTime());
 #endif
 
-}
+    }
+#ifdef _PGTRACK_
+    // update the tracker Databases
+    if(TrExtAlignDB::GetHead()){
+      TrExtAlignDB::GetHead()->UpdateTkDBc(UTime());
+      TrExtAlignDB::GetHead()->UpdateTkDBcDyn(0,UTime(),3);
+    }
+    if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
+#endif
 
     if(Version()<160){
       // Fix rich rings
@@ -2341,17 +2349,17 @@ TrTrackFitR::InitMF(UTime());
     // Rich Dynamic Calibration
     RichRingR::_isCalibrationEvent=false;
     if(!RichBetaUniformityCorrection::getHead())
-    if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
+      if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
 #pragma omp critical (rd)
-	 RichRingR::updateCalibration(*this); 
-    }
-
+	RichRingR::updateCalibration(*this); 
+      }
+    
 
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
       if(!UpdateSetup(fHeader.Run)){
-         cerr<<"AMSEventR::UpdateSetup-E-UnabletofindSetupEntryfor "<<fHeader.Run<<endl;
-       }
+	cerr<<"AMSEventR::UpdateSetup-E-UnabletofindSetupEntryfor "<<fHeader.Run<<endl;
+      }
       runo=fHeader.Run;
       if(evento>0){
 #pragma omp critical (rd) 
@@ -3481,6 +3489,7 @@ void fcnv1(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
   } 
   f = chisq;
 } 
+
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
         float NewESEv2;
@@ -3666,7 +3675,7 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
     }
   
 }
-    
+
 
   ESENEnergyFractionLayer[0] = (EnergyFractionLayer[0] - (0.0293281+log10E*-0.0209319+pow(log10E,2)*-0.00743863+pow(log10E,3)*0.0118679+pow(log10E,4)*-0.00407401+pow(log10E,5)*0.000455905))/( 0.0142375+log10E*0.00526443+pow(log10E,2)*-0.0359919+pow(log10E,3)*0.0329761+pow(log10E,4)*-0.0133547+pow(log10E,5)*0.00258324+pow(log10E,6)*-0.000194743);
   ESENEnergyFractionLayer[1] = (EnergyFractionLayer[1] - (0.0589512+log10E*-0.0105698+pow(log10E,2)*-0.0538665+pow(log10E,3)*0.0424683+pow(log10E,4)*-0.0121717+pow(log10E,5)*0.00123329))/( 0.0227113+log10E*0.0268896+pow(log10E,2)*-0.0854598+pow(log10E,3)*0.0720737+pow(log10E,4)*-0.028848+pow(log10E,5)*0.00569079+pow(log10E,6)*-0.000445795);
@@ -6782,7 +6791,6 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
 
         double deg2rad =3.141592654/180.;
 
-
         ic=0;
         //cout<<"\n----------------------New Event --------------------"<<endl;
 
@@ -6863,6 +6871,7 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         dv[0]=-dv0[1];
         dv[1]=-dv0[0];
         dv[2]=-dv0[2];
+
         //................................Incident Particle
         //.....incident point of particle in AMS Coo
         AMSPoint coo0(part.Coo);
@@ -6903,6 +6912,7 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         double da = fabs(ab-aa)/2.;
         double db1 = fabs(ba1-bb1)/2.;
         double db3 = fabs(ba3-bb3)/2.;
+
 
      if(s3==2 || s1==2 || s2==2){
         alpha=fHeader.Alpha;
@@ -6981,7 +6991,7 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
                 }
 
         //We need 3 points to define the plane in local coo: 
-        xyz0[k][0][0]= s*dx ;
+         xyz0[k][0][0]= s*dx ;
          xyz0[k][0][1]= 0.  ;
          xyz0[k][0][2]= dz ;
 
@@ -7022,7 +7032,7 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         //if(k==1)cout<<" 3A........ "<<endl;
 
         for(int i=0 ; i<3 ; i++){
-               for(int j=0 ; j<3 ; j++){
+                for(int j=0 ; j<3 ; j++){
                                 P[k][i][j]=  xyzRba[k][i][j] ;
                 }
         }
@@ -7054,7 +7064,7 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         if(den!=0){
         r[k]=-num/den;
         }
-       else{
+        else{
         //....No intersection because the plane and the particle directions are parallel.
         r[k]=0;
         }
@@ -7134,6 +7144,8 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         double sigmax= sqrt( dxdb2*db2 + dxda2*da2 + dxdr2*dr2 +dxdt2*dt2  );
         double sigmay= sqrt( dydb2*db2 + dyda2*da2 + dydr2*dr2 +dydt2*dt2  );
         double sigmaz= sqrt( dzdb2*db2 + dzda2*da2 + dzdr2*dr2 +dzdt2*dt2  );
+
+
         if(r[k]>0 && Int[k][2]<0 ){
 
                 //...............................all uncertainties together
@@ -7176,7 +7188,7 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
 }
 
 //----------------------------------------------------------------------
-
+  
 char * HeaderR::Info(unsigned long long status){
 	if(Pitch==0 && Yaw==0 && Roll==0){
 		int ret=getISSAtt();
@@ -7293,22 +7305,28 @@ static int master=0;
   if (_FILE){
     if(TrCalDB::Head) delete TrCalDB::Head;
     TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
+ 
     if(!TkDBc::Head){
       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
 	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
-         int setup=0;
-           if(Run()>=1300000000)setup=3;
-         else if(Run()>=1257416200)setup=2;
+	int setup=0;
+	if(Run()>=1300000000)setup=3;
+	else if(Run()>=1257416200)setup=2;
          else setup=1;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp master
 #endif
 	TkDBc::Head->init(setup);
       }
+      if(TkDBc::ForceFromTDV) TkDBc::GetFromTDV(UTime(),  3);
     }
     if(!TrExtAlignDB::ForceFromTDV) 
       TrExtAlignDB::Load(_FILE);
+    if(!TrInnerDzDB::ForceFromTDV) 
     TrInnerDzDB::Load(_FILE);
+
+    
+
 try{
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
@@ -7708,9 +7726,9 @@ sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTh
 
 //--------DSP Errors-----------------------
 int HeaderR::getDSPError(AMSSetupR::DSPError& dsperr){
-
+  
   if(!AMSEventR::getsetup()) return 2;
-   
+  
   return AMSEventR::getsetup()->getDSPError(dsperr, Time[0]);
 }
 
@@ -7723,7 +7741,6 @@ AMSSetupR::DSPError* HeaderR::pDSPError(){
     return &a;
 }
 //-----------------------------------------
-
 
 float AMSEventR::LiveTime(){
 
@@ -8263,7 +8280,6 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   time=AMSEvent::gethead()->gettime();
   run=AMSEvent::gethead()->getrun();
 #endif
-
 //   if(TrExtAlignDB::ForceLocalAlign){
 //     int ret2=0;
 //     char filenam[400];
@@ -8281,10 +8297,16 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   int ret=0;
   if(type==0)
     ret=TrExtAlignDB::GetHead()->UpdateTkDBc(time);
-  else{
+  else  if(type==1){
     //    printf("updating withh l1 %d ln%d \n",lad1,lad9);
     ret=TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time,3,lad1,lad9);
   }
+  else  {
+    //    printf("updating withh l1 %d ln%d \n",lad1,lad9);
+    ret=TrExtAlignDB::GetHead()->UpdateTkDBc(time);
+    ret=TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time,3,lad1,lad9);
+  }
+
   return ret;
 } 
 

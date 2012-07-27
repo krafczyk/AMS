@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.451 2012/07/06 07:50:13 afiasson Exp $
+//  $Id: root.h,v 1.451.2.1 2012/07/27 08:17:36 pzuccon Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -332,7 +332,7 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 //--------DSP Errors-----------------------
  int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
-//-----------------------------------------
+ //-----------------------------------------
 
   //#ifdef _PGTRACK_
   friend class VCon_root;
@@ -392,6 +392,14 @@ public:
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
+  /// Checks the error bits (0x7F00) on the four JINJStatus word and return True if any of these bit is up
+  bool HasHWError(){
+   return ( (JINJStatus[0]&0x7F00)>0 ||
+            (JINJStatus[1]&0x7F00)>0 ||
+            (JINJStatus[2]&0x7F00)>0 ||
+            (JINJStatus[3]&0x7F00)>0
+	  );
+  }
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
 ClassDef(DaqEventR,8)       //DaqEventR
@@ -548,9 +556,6 @@ friend class AMSEventR;
 };
 
 
-
-
-
 /*!
   \class EcalShowerR
   \brief 3d ecal shower description
@@ -688,10 +693,10 @@ public:
   ///< Updated June 2012 -
   ///< 90% efficiency cut (based on electron-like flight events) is -1.23
   ///< Relies on normalised variables (Nxxx) -
-  ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
-  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()  
+  ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to 
+  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
 
-
+ 
   /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
   /// trained on ISS.B552 data. The 90% efficiency cut on electrons is BDT>0. 
   /// The training has been done in bins of EnergyD: 

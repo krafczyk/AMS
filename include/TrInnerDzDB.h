@@ -115,6 +115,12 @@ public:
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (TDVSwap)
 #endif
+
+ static int ForceFromTDV;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (ForceFromTDV)
+#endif
+
   /// TDV Swap Space Size
   static int   GetTDVSwapSize(){return 2*(1+kLaynum)*sizeof(float);}
  /// Load the DB from a file and make it available

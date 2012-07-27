@@ -16,6 +16,7 @@ ClassImp (TrInnerDzDB::DzElem);
 TrInnerDzDB* TrInnerDzDB::Head=0;
 float TrInnerDzDB::TDVSwap[2*(1+kLaynum)];
 
+int TrInnerDzDB::ForceFromTDV=0;
 
 float TrInnerDzDB::LDZA[kLaynum]={0.,0.,0.,0.,0.,0.,0.};
 
@@ -70,22 +71,25 @@ int TrInnerDzDB::GetEntry(uint Timeid, float* Dz, int kind){
 
 int TrInnerDzDB::GetFromTDV( uint Timeid){
   time_t starttime=0;
-  time_t endtime=0;
+  time_t endtime=0; 
   tm begin;
   tm end;
   tm* mtim=gmtime_r(&starttime,&begin);
   tm* mtim2=gmtime_r(&endtime,&end);
     
-  printf("TrInnerDzDB::GetFromTDV -W-  111 Loading from TDV\n");  
-  AMSTimeID *tid= new AMSTimeID(
-				AMSID("TrInnerDzAlign",1),
-				begin,
-				end,
-				TrInnerDzDB::GetTDVSwapSize(),
-				TrInnerDzDB::TDVSwap,
-				AMSTimeID::Standalone,
-				1,
-				TrInnerLin2DB);
+  static AMSTimeID *tid=0;
+#pragma omp threadprivate (tid)
+  if(!tid){
+    tid= new AMSTimeID(
+		       AMSID("TrInnerDzAlign",1),
+		       begin,
+		       end,
+		       TrInnerDzDB::GetTDVSwapSize(),
+		       TrInnerDzDB::TDVSwap,
+		       AMSTimeID::Standalone,
+		       1,
+		       TrInnerLin2DB);
+  }
   memset(TDVSwap,0,GetTDVSwapSize());
   time_t tt=Timeid;
   int ret=tid->validate(tt);
@@ -125,7 +129,7 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
   tm end;
   tm* mtim=gmtime_r(&starttime,&begin);
   tm* mtim2=gmtime_r(&endtime,&end);
-  printf("TrInnerDB2Lin2TDV-W- 2222 Loading from TDV\n");  
+    
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),
 		begin,
@@ -177,7 +181,6 @@ int TrInnerDzDB::TDV2DB(){
   tm* mtim=gmtime_r(&starttime,&begin);
   tm* mtim2=gmtime_r(&endtime,&end);
     
-  printf("-WTrInnerDzDB::TDV2DB-333  Loading from TDV\n");  
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),
 		begin,

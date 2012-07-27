@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.158.2.1 2012/07/10 13:15:40 pzuccon Exp $
+// $Id: TrTrack.C,v 1.158.2.2 2012/07/27 08:17:35 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/07/10 13:15:40 $
+///$Date: 2012/07/27 08:17:35 $
 ///
-///$Revision: 1.158.2.1 $
+///$Revision: 1.158.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -328,6 +328,16 @@ AMSPoint TrTrackR::GetPlayerO(int ilay, int id) const
 }
 
 
+AMSPoint TrTrackR::GetPG_CIEMAT_diff(int layJ){
+  if(layJ!=1 && layJ!=9) return AMSPoint(0,0,0);
+  TrRecHitR* hit=GetHitLJ(layJ);
+  if(!hit)return AMSPoint(0,0,0);
+  return hit->GetCoord(-1,4);
+}
+  
+
+
+
 AMSPoint TrTrackR::GetPlayerJ(int ilayJ, int id) const
 {
   AMSPoint pres = GetResidualJ(ilayJ, id);
@@ -381,19 +391,20 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   if(imult>-1) hit->SetResolvedMultiplicity(imult);
   int ll=hit->GetLayer();
   if(ll==8||ll==9){
-    TrExtAlignDB::SetAlKind(1);
-    int l1=-1;
-    int l9=-1;
-    if(ll==8)
-      l1=!hit?-1:1+hit->GetSlotSide()*10+hit->lad()*100;
-    else
-      l9=!hit?-1:9+hit->GetSlotSide()*10+hit->lad()*100;
-    int rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
-    hit->BuildCoordinate();
-    _HitCoo[ll+10]=hit->GetCoord();
-    TrExtAlignDB::SetAlKind(0);
-    hit->BuildCoordinate();
-    _HitCoo[ll]=hit->GetCoord();
+    // TrExtAlignDB::SetAlKind(1);
+    // int l1=-1;
+    // int l9=-1;
+    // if(ll==8)
+    //   l1=!hit?-1:1+hit->GetSlotSide()*10+hit->lad()*100;
+    // else
+    //   l9=!hit?-1:9+hit->GetSlotSide()*10+hit->lad()*100;
+    // int rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
+    // hit->BuildCoordinate();
+    _HitCoo[ll+10]=hit->GetCoord(-1,2);
+    _HitCoo[ll+20]=hit->GetCoord(-1,3);
+    // TrExtAlignDB::SetAlKind(0);
+    // hit->BuildCoordinate();
+    _HitCoo[ll]=hit->GetCoord(-1,3);
   }else 
     _HitCoo[ll]=hit->GetCoord();
 
@@ -401,16 +412,9 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   delete cont2;
 
   if (MagFieldOn()){
-    float coo[3], bf[3];
-    coo[0]=hit->GetCoord().x();
-    coo[1]=hit->GetCoord().y();
-    coo[2]=hit->GetCoord().z();
-    //GUFLD(coo, bf);
-    //_BField[ihit] = AMSPoint(bf);
     _MagFieldOn = 1;
   }
   else {
-    //    _BField[ihit] = AMSPoint(0, 0, 0);
     _MagFieldOn = 0;
   }
 
@@ -760,7 +764,7 @@ TrRecHitR & TrTrackR::TrRecHit(int i)
 
 
 float TrTrackR::FitT(int id2, int layer, bool update, const float *err, 
-		     float mass, float chrg, float beta)
+		     float mass, float chrg, float beta, float fixrig)
 {
   int mscat;
   int id=id2;
@@ -903,36 +907,26 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
 
   //  Update External DB alignment
-  int rret =0;
-  int UsedCiemat=0;
-  int UpdateCoo=0;
+  int cookind=1;
   if( (id & kAltExtAl) ){
     // Set TkPlaneExt to CIEMAT
-    TrExtAlignDB::SetAlKind(1);
-     TrRecHitR *hit1=GetHitLJ(1);
-     TrRecHitR *hit9=GetHitLJ(9);
-     int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
-     int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
-     rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
-     UsedCiemat=1;
-     UpdateCoo=1;
+    // TrExtAlignDB::SetAlKind(1);
+    //  TrRecHitR *hit1=GetHitLJ(1);
+    //  TrRecHitR *hit9=GetHitLJ(9);
+    //  int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
+    //  int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+    //  rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
+    //  UsedCiemat=1;
+     //     UpdateCoo=1;
+    cookind=2;
+  }else if(id & kExtAverage){
+    cookind=3;
+  }else  if(id & kDisExtAlCorr){
+    cookind=4;
   }else{
- //   rret=UpdateExtLayer(0); //PG
-    TrExtAlignDB::SetAlKind(0);
+    cookind=1;
   }
-  if(id & kDisExtAlCorr){
-    TrExtAlignDB::ResetExtAlign();
-    TrExtAlignDB::SetAlKind(0);
-    UsedCiemat=0;
-    UpdateCoo=1;
-  }
-  if (rret != 0) return -6;
 
-  // update hit coo
-  if (UpdateCoo) {
-    for (int ii=0;ii<getnhits () ;ii++)
-      if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
-  }  
 
   int i1 = 0, i2 = nhit;
 
@@ -977,7 +971,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
 
-    AMSPoint coo =  hit->GetCoord();
+    AMSPoint coo =  hit->GetCoord(-1,cookind);
+    // printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
 
     double fmscx = 1;
     double fmscy = 1;
@@ -1009,7 +1004,9 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     double bf[3] = { 0, 0, 0 };
     TrFit::GuFld(coo[0], coo[1], coo[2], bf);
     //PZ Print
-   // printf("Adding Hit %d %+7.4f %+7.4f %+7.4f\n", hit->GetLayerJ(),coo[0],coo[1],coo[2]);
+    // printf("Adding Hit %d %+7.4f, %+7.4f, %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f \n", 
+    //     hit->GetLayerJ(),coo[0],coo[1],coo[2], ferx*errx*fmscx, fery*erry*fmscy, errz, 
+    //	       bf[0], bf[1], bf[2]);
     _TrFit.Add(coo, ferx*errx*fmscx, fery*erry*fmscy, errz, 
 	       bf[0], bf[1], bf[2]);
 
@@ -1029,7 +1026,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   if (beta > 1 || beta < -1) beta = 0;
 
   // Perform fitting
-  float fdone = _TrFit.DoFit(method,mscat,0, chrg,mass,beta);
+  float fdone = _TrFit.DoFit(method,mscat,0, chrg,mass,beta,fixrig);
 
   bool done = (fdone >= 0 && _TrFit.GetChisqX() >= 0 && 
 	                     _TrFit.GetChisqY() >= 0);
@@ -1045,17 +1042,17 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   if (!update) retbad= _TrFit.GetChisq();
 
 
-  if (!update || !done){
-    /// Restore deafult PG alignment if CIEMAT one was used
-    if (UpdateCoo) {
-      // Set TkPlaneExt to PG
-      TrExtAlignDB::SetAlKind(0);
-      rret=UpdateExtLayer(0); //PG
-      for (int ii=0;ii<getnhits () ;ii++)
-	if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
-    }
-    return retbad;
-  }
+  // if (!update || !done){
+  //   /// Restore deafult PG alignment if CIEMAT one was used
+  //   if (UpdateCoo) {
+  //     // Set TkPlaneExt to PG
+  //     TrExtAlignDB::SetAlKind(0);
+  //     rret=UpdateExtLayer(0); //PG
+  //     for (int ii=0;ii<getnhits () ;ii++)
+  // 	if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
+  //   }
+  //   return retbad;
+  // }
 
 
   // Fill fittng parameters
@@ -1098,8 +1095,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       TrRecHitR *hit = GetHitLO(i+1);
       AMSPoint pint  = InterpolateLayerO(i+1, id);
       if (hit){
-        par.Residual[i][0] = (hit->GetCoord()-pint)[0];
-        par.Residual[i][1] = (hit->GetCoord()-pint)[1];
+        par.Residual[i][0] = (hit->GetCoord(-1,cookind)-pint)[0];
+        par.Residual[i][1] = (hit->GetCoord(-1,cookind)-pint)[1];
       }else{
 	par.Residual[i][0] = pint[0];
 	par.Residual[i][1] = pint[1];
@@ -1107,14 +1104,14 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     }
   }
 
-  /// Restore deafult PG alignment if CIEMAT one was used
-  if(UsedCiemat){
-    // Set TkPlaneExt to PG
-    TrExtAlignDB::SetAlKind(0);
-    //rret=UpdateExtLayer(0); //PG
-    for (int ii=0;ii<getnhits () ;ii++)
-      if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
-  }
+  // /// Restore deafult PG alignment if CIEMAT one was used
+  // if(UsedCiemat){
+  //   // Set TkPlaneExt to PG
+  //   TrExtAlignDB::SetAlKind(0);
+  //   //rret=UpdateExtLayer(0); //PG
+  //   for (int ii=0;ii<getnhits () ;ii++)
+  //     if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
+  // }
 
   return GetChisq(id);
 }
@@ -1501,7 +1498,7 @@ void TrTrackR::PrintFitNames() const {
 }
 
 
-int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  chrg, float beta){
+int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  chrg, float beta,float  fixrig){
   int type=algo%10;
   bool mscat=((algo/10)==1);
   bool wsame=((algo/20)==1);
@@ -1510,7 +1507,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   int DisableFlag=refit/100;
   refit=refit%100;
 
-  if (refit==14 ||refit >13||refit <0||(refit>5&&refit<10)) return -1;
+  if (refit==14 ||(refit >13&&refit<20)|| refit>23 ||refit <0||(refit>5&&refit<10)) return -1;
 
   // Load alignment in case of explicit refit
   int ret1 = 0;
@@ -1609,7 +1606,8 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     return -1;
 
 
-  if( CIEMATFlag) fittype|=kAltExtAl;
+  if( CIEMATFlag==1) fittype|=kAltExtAl;
+  if( CIEMATFlag==2) fittype|=kExtAverage;
  
 
  if( (
@@ -1623,21 +1621,23 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   if(refit>=2 || (!FitExists && refit==1)) { 
     int rret=0;
     
-    if (refit >= 3 || CIEMATFlag){
-      if(CIEMATFlag){
+    //    if (refit >= 3 || CIEMATFlag){
+    if (refit >= 3 ){
+      if(CIEMATFlag==1){
 	TrRecHitR *hit1=GetHitLJ(1);
 	TrRecHitR *hit9=GetHitLJ(9);
 	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
 	int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
 	rret=UpdateExtLayer(1,l1,l9);
+	if(CIEMATFlag>1)UpdateExtLayer(0);
       }
-      else rret=UpdateExtLayer(0);
-
+      else 
+	rret=UpdateExtLayer(0);
       int ret0=UpdateInnerDz();
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();
     }
-    float ret=FitT(fittype,-1,true,0,mass,chrg,beta);
+    float ret=FitT(fittype,-1,true,0,mass,chrg,beta,fixrig);
     if (ret>=0) 
       return fittype; 
     else 
@@ -1792,17 +1792,17 @@ void TrTrackR::RecalcHitCoordinates(int id) {
 
     int ll = hit->GetLayer();
     if (ll == 8 || ll == 9) {
-      TrExtAlignDB::SetAlKind(1);
-      hit->BuildCoordinate();
-      int l1=-1;
-      int l9=-1;
-      if(ll==8)
-	l1=!hit?-1:1+hit->GetSlotSide()*10+hit->lad()*100;
-      else
-	l9=!hit?-1:9+hit->GetSlotSide()*10+hit->lad()*100;
-      int rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
-      _HitCoo[ll+10] = hit->GetCoord();
-      TrExtAlignDB::SetAlKind(0);
+      // TrExtAlignDB::SetAlKind(1);
+      // hit->BuildCoordinate();
+      // int l1=-1;
+      // int l9=-1;
+      // if(ll==8)
+      // 	l1=!hit?-1:1+hit->GetSlotSide()*10+hit->lad()*100;
+      // else
+      // 	l9=!hit?-1:9+hit->GetSlotSide()*10+hit->lad()*100;
+      // int rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
+      _HitCoo[ll+10] = hit->GetCoord(-1,2);
+      _HitCoo[ll+20] = hit->GetCoord(-1,3);
     }
 
     hit->BuildCoordinate();

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.73 2012/07/06 11:54:25 pzuccon Exp $
+//  $Id: TrFit.C,v 1.73.2.1 2012/07/27 08:17:35 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/07/06 11:54:25 $
+///$Date: 2012/07/27 08:17:35 $
 ///
-///$Revision: 1.73 $
+///$Revision: 1.73.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -87,7 +87,7 @@ int TrFit::Add(double x,  double y,  double z,
 }
 
 double TrFit::DoFit(int method, int mscat, int eloss, 
-		    float charge, float mass, float beta)
+		    float charge, float mass, float beta,float fixrig)
 {
   // Check number of hits
   if (_nhit < 3) return -1;
@@ -104,15 +104,18 @@ double TrFit::DoFit(int method, int mscat, int eloss,
 
   SetMultScat(mscat, eloss);
   SetMassChrg(mass, charge);
-
+  if(fixrig!=0. && method!= ALCARAZ){
+    printf("TrFit::DoFit-E- Error !! Fix rigidity requested (%f) and fit method is NOT kAlcaraz\n",fixrig);
+    return -22;
+  }
   double ret = 0;
   if (method ==    LINEAR)  ret = LinearFit();
-  if (method ==    CIRCLE)  ret = CircleFit();
-  if (method ==    SIMPLE)  ret = SimpleFit();
-  if (method ==   ALCARAZ)  ret = AlcarazFit();
-  if (method ==   CHOUTKO)  ret = ChoutkoFit();
-  if (method == CHIKANIANC) ret = ChikanianFitCInt(1);
-  if (method == CHIKANIANF) ret = ChikanianFitF();
+  else if (method ==    CIRCLE)  ret = CircleFit();
+  else if (method ==    SIMPLE)  ret = SimpleFit();
+  else if (method ==   ALCARAZ) {int fix=0; if(fixrig!=0.){SetRigidity(fixrig); fix=1;}  ret = AlcarazFit(fix);}
+  else if (method ==   CHOUTKO)  ret = ChoutkoFit();
+  else if (method == CHIKANIANC) ret = ChikanianFitCInt(1);
+  else if (method == CHIKANIANF) ret = ChikanianFitF();
 
   ParLimits();
   return ret;
