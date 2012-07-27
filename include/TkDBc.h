@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.39 2012/05/15 16:38:56 choutko Exp $
+// $Id: TkDBc.h,v 1.40 2012/07/27 15:00:01 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -502,7 +502,10 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-
+ static int ForceFromTDV;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (ForceFromTDV)
+#endif
 
   ClassDef(TkDBc, 10);
 };

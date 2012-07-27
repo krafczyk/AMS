@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.94 2012/06/06 15:05:23 shaino Exp $
+//  $Id: TrTrack.h,v 1.95 2012/07/27 15:00:01 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/06/06 15:05:23 $
+///$Date: 2012/07/27 15:00:01 $
 ///
-///$Revision: 1.94 $
+///$Revision: 1.95 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -230,7 +230,9 @@ public:
     /// Should  Ext Aligment corr be loaded ( default YES aka this bit =0)
     kDisExtAlCorr= 0x200000,
     /// Alternative Ext aligment = Active CIEMAT - NotActive PG
-    kAltExtAl    = 0x400000
+    kAltExtAl    = 0x400000,
+    /// Average between the tow external alignments
+    kExtAverage  = 0x800000
   };
 
 #define DEF_ADVFIT_NUM 8
@@ -391,6 +393,11 @@ public:
     if (it == _HitCoo.end()) return AMSPoint(0, 0, 0);
     return it->second;
   }
+
+  /// Returns the difference between the points on ext layer calculated with PG or CIEMAT alignment
+  AMSPoint GetPG_CIEMAT_diff(int layJ);
+
+
   /// Return true if the track hit on lajer layJ (J-scheme) exists
   bool TestHitLayerJ(int layJ) const {
     int lay=TkDBc::Head->GetLayerFromJ(layJ);
@@ -449,6 +456,11 @@ public:
     \li  11  refit if does not exist 
     \li  12  force refit 
     \li  13  refit and rebuild also INNER coordinates (useful for tricked alignment)
+    \li +20  Average (PG+CIEMAT)/2 Aligment if meaningful for the pattern
+    \li  20  do not refit 
+    \li  21  refit if does not exist 
+    \li  22  force refit 
+    \li  23  refit and rebuild also INNER coordinates (useful for tricked alignment)
     \li  DEPRECATED OPT (kept for compatibility)			\
     \li  4  same as 3
     \li  5  same as 13
@@ -465,6 +477,8 @@ public:
 
     \param beta (optional) if specified and if >0 and <=1, it is used and an effective mass value is calculated from it
 
+    \param fixrig (optional) if specified and !=0 it request a fit with fixed rigidty. It is available only with the kAlcaraz algorithm
+
     \return  the code to access the TrTrackPar object corresponding to the selected fit or <0  if errors
     \retval  >=0  --> The code corresponding to the requested fittype
     \retval -1 --> The requested fit cannot be performed on this track
@@ -475,7 +489,7 @@ public:
 
     
     !*/
-  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = DefaultMass, float chrg = DefaultCharge, float beta=999);
+  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = DefaultMass, float chrg = DefaultCharge, float beta=999,float fixrig=0.);
 
   /*!\brief it returns the TrTrackPar object selected with the code given by  iTrTrackPar(...)
  
@@ -856,11 +870,13 @@ public:
     \param[in] beta  if <=0 or >1 is ignored. Otherwise the specified beta is used to compute an effective mass.
                Ignored if kMultScat option is not set
     
+    \param[in] fixrig  if!=0 do the fit fixing the rigidity to the passed value. It can be used only with the Alcaraz fit.
+    
     \return          Chisq(X+Y)/Ndof if succeeded, or -1 if failed
   */
   float FitT(int id = 0,
 	     int layer = -1, bool update = true, const float *err = 0, 
-	     float mass = DefaultMass, float chrg = DefaultCharge, float beta=999.);
+	     float mass = DefaultMass, float chrg = DefaultCharge, float beta=999.,float fixrig=0.);
 /*! \brief Performs again the existing fits with a different particle evaluation
     \param[in] err   Fitting errors (0:x,1:y,2:z) to be used. 
         If they are not specified, default values 

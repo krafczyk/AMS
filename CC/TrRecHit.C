@@ -20,7 +20,9 @@
 #include "TrTasCluster.h"
 #include "MagField.h"
 #include "TMath.h"
+#include "TrExtAlignDB.h"
 
+int UpdateExtLayer(int,int,int);
 ClassImp(TrRecHitR);
 
 #include "VCon.h"
@@ -309,16 +311,30 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
 					int nstripsx, int nstripsy) {
   // parsing options
   bool ApplyAlignement = false;
+  bool ApplyCiemat = false;
+  bool NoExtAlignment = false;
   char character = ' ';
   int  cc = 0;
   while (character!='\0') {
     character = *(options+cc);
+    if ( (character=='Z')||(character=='z') ) NoExtAlignment= true;
     if ( (character=='A')||(character=='a') ) ApplyAlignement = true;
+    if ( (character=='M')||(character=='m') ) ApplyCiemat = true;
     cc++;
   }
   // calculation
   AMSPoint loc = GetLocalCoordinate(imult, nstripsx, nstripsy);
-  
+  if(ApplyCiemat){
+    if (GetLayer()==8)
+      UpdateExtLayer(1,GetSlotSide()*10+lad()*100,-1);
+    else if(GetLayer()==9)
+      UpdateExtLayer(1,-1,GetSlotSide()*10+lad()*100);
+    TrExtAlignDB::SetAlKind(1);
+  }else if(NoExtAlignment){
+    TrExtAlignDB::SetAlKind(2);
+  }else
+    TrExtAlignDB::SetAlKind(0);
+
   AMSPoint glo;
   if (!ApplyAlignement) {
     glo = TkCoo::GetGlobalN(GetTkId(),loc);
@@ -327,6 +343,7 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
     glo = TkCoo::GetGlobalA(GetTkId(),loc);
     if (TasHit()) glo = glo-TrTasClusterR::Align(GetXCluster(), GetYCluster());
   }
+  TrExtAlignDB::SetAlKind(0);
   return glo;
 }
 

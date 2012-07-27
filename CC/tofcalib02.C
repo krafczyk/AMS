@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.59 2012/05/05 19:44:04 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.60 2012/07/27 15:00:11 pzuccon Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -1322,7 +1322,12 @@ void TofTmAmCalib::select(){  // calibr. event selection
 	  TrkTrPart=true;
 	  TOF2JobStat::addre(23);
           trpatt=ptrack->getpattern();//TRK-track pattern
-	  if(trpatt>=0){//trk-track ok
+#ifdef _PGTRACK_
+	  if(!(ptrack->IsFake()))
+#else
+	  if(trpatt>=0)
+#endif
+	  {//trk-track ok
             GoodTrkTrack=true;
 #ifdef _PGTRACK_
 	    //PZ FIXME UNUSED traddr=ptrack->getaddress();//TRK-track ladders combination id

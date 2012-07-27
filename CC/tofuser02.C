@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.49 2012/04/05 07:14:22 choumilo Exp $
+//  $Id: tofuser02.C,v 1.50 2012/07/27 15:00:11 pzuccon Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -520,7 +520,12 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 	  TOF2JobStat::addre(41);
           for(i=0;i<TOF2GC::SCLRS;i++)toftrlen[i]=ppart->gettoftlen(i);//exists only for trk-track
           trpatt=ptrack->getpattern();//TRK-track pattern
-	  if(trpatt>=0){//trk-track ok
+#ifdef _PGTRACK_
+	  if(!(ptrack->IsFake()))
+#else
+	  if(trpatt>=0)
+#endif
+	  {//trk-track ok
             GoodTrkTrack=true;
 #ifdef _PGTRACK_
 	    //PZ FIXME UNUSED 	    traddr=ptrack->getaddress();//TRK-track ladders combination id

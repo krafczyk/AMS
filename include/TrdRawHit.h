@@ -1,4 +1,4 @@
-//  $Id: TrdRawHit.h,v 1.10 2012/05/15 17:26:37 choutko Exp $
+//  $Id: TrdRawHit.h,v 1.11 2012/07/27 15:00:01 pzuccon Exp $
 #ifndef __AMSTRDRhit__
 #define __AMSTRDRhit__
 //  below is the gift from VC to MM
@@ -22,7 +22,7 @@ class TrdRawHitR: public TrElem{
   
   TrdRawHitR():Layer(-1),Ladder(-1),Tube(-1),Amp(0.),Haddr(-1){};
   TrdRawHitR(int lay, int lad, int tub, float amp):Layer(lay),Ladder(lad),Tube(tub),Amp(amp),Haddr(0){};
-   unsigned int getid();  ///< return channel number in TRDPedestals, TRDSigmas,TRDGains structures 
+  unsigned int getid();  ///< return channel number in TRDPedestals, TRDSigmas,TRDGains structures 
   float getped(int &error);   ///< return ped
   float getsig(int &error);   ///< return sigma
   float getgain(int &error);  ///< return gain  from TRDGains

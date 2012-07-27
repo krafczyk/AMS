@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.890 2012/07/24 10:50:07 chchung Exp $
+// $Id: job.C,v 1.891 2012/07/27 15:00:11 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3570,7 +3570,6 @@ void AMSJob::_timeinitjob(){
       //TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
       //   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
       //   (void*)AMSTrIdSoft::indnoise,server,NeededByDefault));
-
 
       DynAlManager::need2bookTDV=false;
       if(isRealData()){
