@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.564.2.6 2012/07/27 11:34:34 choutko Exp $
+//  $Id: event.C,v 1.564.2.7 2012/07/27 11:39:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1322,7 +1322,7 @@ void  AMSEvent::write(int trig){
 	{
 	  AMSEvent::ResetThreadWait(1);
 	  Barrier()=true;
-         cerr<<" AMSEvent-W-ClosingFile "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<" "<<GCFLAG.ITEST<<" "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
+         cerr<<" AMSEvent-W-ClosingFile "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<" "<<GCFLAG.ITEST<<" "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<AMSJob::gethead()->GetNtupleFileTime()<<" "<<IOPA.MaxFileTime <<endl;
 #pragma omp barrier 
 	  cout <<"AMSAEvent::writefile in barrier "<<AMSEvent::get_thread_num()<<endl;
 	  
