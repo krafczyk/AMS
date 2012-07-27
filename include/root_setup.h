@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.51 2012/07/19 10:39:07 choutko Exp $
+//  $Id: root_setup.h,v 1.52 2012/07/27 17:29:28 mduranti Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -298,6 +298,7 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
   AMSSetupR::DSPError objects are created by AMSSetupR::LoadDSPErrors() starting from .csv files (stored in $AMSDataDir/altec/DSP/). \n
   The .csv files are created by a standalone program that scans the HKBPB stream.
   \sa http://ams.cern.ch/AMS/DAQ/eCos/jap/node_addresses.xls
+  The default path could be customized defining the AMSDSP environment variable: this will overhide $AMSDataDir/altec/DSP/.
   \author matteo.duranti@cern.ch
 */
  class DSPError{
@@ -468,131 +469,135 @@ static int _select ( dirent * entry);
 #ifdef __LINUXGNU__
 static int _select (const dirent64 * entry);
 #endif
-public:
-         bool LoadISSBadRun(); ///< Load badruns from $AMSDataDir/Badruns
-         //! BadRuns accessor
-	/*! 
-            
-	 \param unsigned int utime=0 (unix time)
-         \param string  reason input ;  input=="" means any reason ; on output return all reasons matched        
-	     
-             
-           \return 
-               0   GoodRun
-               1   BadRun
-               2   UnableToLoadBadRunList                  
-	 */
+ public:
+ bool LoadISSBadRun(); ///< Load badruns from $AMSDataDir/Badruns
+ 
+ //! BadRuns accessor
+ /*! 
+   
+   \param unsigned int utime=0 (unix time)
+   \param string  reason input ;  input=="" means any reason ; on output return all reasons matched        
+   
+   
+   \return 
+   0   GoodRun
+   1   BadRun
+   2   UnableToLoadBadRunList                  
+ */
+ int IsBadRun( string &reason,unsigned int utime=0);
+ 
+ 
+ //! ISS Att roll,pitch,yaw accessor
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   \param roll,pitch,yaw interpolated values      
+   
+   
+   \return 
+   0   ok (interpolation)
+   1   ok  (extrapolation)
+   2   no data
+   
+   The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
+ */
+ int getISSAtt( float& roll,float&pitch,float&yaw, double xtime); 
+ 
+ 
+ //! ISS Coo & Velocity CTRS accessor
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   \param ISSSCTRSR a  interpolated values      
+   
+   
+   \return 
+   0   ok (interpolation)
+   1   ok  (extrapolation)
+   2   no data
+   
+   The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
+ */
+ int getISSCTRS(ISSCTRSR & a, double xtime); 
+ 
+ //! ISS Coo & Velocity GPS accessor
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   \param GPSWGS84R a  interpolated values      
+   
+   
+   \return 
+   0   ok (interpolation)
+   1   ok  (extrapolation)
+   2   no data
 
-  int IsBadRun( string &reason,unsigned int utime=0);
-
-
-         //! ISS Coo & Velocity CTRS accessor
-
-         //! ISS Att roll,pitch,yaw accessor
-	/*! 
-            
-
-	 \param double xtime (unix time + fraction of second)
-         \param roll,pitch,yaw interpolated values      
-	   
-             
-           \return 
-               0   ok (interpolation)
-               1   ok  (extrapolation)
-               2   no data                  
-	 */
-  int getISSAtt( float& roll,float&pitch,float&yaw, double xtime); 
-         //! ISS Coo & Velocity CTRS accessor
-	/*! 
-            
-
-	 \param double xtime (unix time + fraction of second)
-         \param ISSSCTRSR a  interpolated values      
-	   
-             
-           \return 
-               0   ok (interpolation)
-               1   ok  (extrapolation)
-               2   no data                  
-	 */
-  int getISSCTRS(ISSCTRSR & a, double xtime); 
-
-         //! ISS Coo & Velocity GPS accessor
-	/*! 
-            
-
-	 \param double xtime (unix time + fraction of second)
-         \param GPSWGS84R a  interpolated values      
-	   
-             
-           \return 
-               0   ok (interpolation)
-               1   ok  (extrapolation)
-               2   no data                  
-	 */
-  int getGPSWGS84(GPSWGS84R & a, double xtime); 
-
-
-         //! ISS Coo & Velocity GTOD accessor
-	/*! 
-            
-
-	 \param double xtime (unix time + fraction of second)
-         \param ISSSGTOD a  interpolated values      
-	   
-             
-           \return 
-               0   ok (interpolation)
-               1   ok  (extrapolation)
-               2   no data                  
-	 */
-
-
-
-  int getISSGTOD(ISSGTOD & a, double xtime); 
-         //! ISS Solar Angles Accessor
-	/*! 
-            
-
-	 \param double xtime (unix time + fraction of second)
-         \param ISSSSA a  interpolated values for the angles      
-	   
-             
-           \return 
-               0   ok (interpolation)
-               1   ok  (extrapolation)
-               2   no data                  
-	 */
-  int getISSSA(ISSSA & a, double xtime); 
-  
-  //---------------DSP Errors-------------------------
-  //! DSP Errors accessor
-  /*! 
-
-    \param unsigned int time : unix time
-    \param DSPError dsperror : object containing (if any DSP error affecting 'time') time interval of NOT validity and nodes affected
-    
-    \retval  0 -->  OK (NO nodes affected by DSP errors)
-    \retval  1 -->  KO (SOME nodes affected by DSP errors)
-  */
-  int getDSPError(DSPError& dsperror, unsigned int time); 
-  //--------------------------------------------------
-
-         //! Scalers Accessor
-	/*! 
-            
-
-	 \param timestamp (unix time)
-	 \param usec       second fraction after in mksec
-              
-      NB return vector<Scalers_i> fScalersReturn  of Nearest Scalers iterators
-           fScalers[0]->first < time < fScalers[1]->first
-	
-             
-           \return Nearest Scalers iterators vector length                  
-	 */
-int getScalers(unsigned int time,unsigned int usec );
-void Purge();
+   The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
+ */
+ int getGPSWGS84(GPSWGS84R & a, double xtime); 
+ 
+ 
+ //! ISS Coo & Velocity GTOD accessor
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   \param ISSSGTOD a  interpolated values      
+   
+   
+   \return 
+   0   ok (interpolation)
+   1   ok  (extrapolation)
+   2   no data
+   
+   The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
+ */
+ int getISSGTOD(ISSGTOD & a, double xtime); 
+ 
+ 
+ //! ISS Solar Angles Accessor
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   \param ISSSSA a  interpolated values for the angles      
+   
+   
+   \return 
+   0   ok (interpolation)
+   1   ok  (extrapolation)
+   2   no data
+   
+   The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
+ */
+ int getISSSA(ISSSA & a, double xtime); 
+ 
+ 
+ //---------------DSP Errors-------------------------
+ //! DSP Errors accessor
+ /*! 
+   
+   \param unsigned int time : unix time
+   \param DSPError dsperror : object containing (if any DSP error affecting 'time') time interval of NOT validity and nodes affected
+   
+   \retval  0 -->  OK (NO nodes affected by DSP errors)
+   \retval  1 -->  KO (SOME nodes affected by DSP errors)
+ */
+ int getDSPError(DSPError& dsperror, unsigned int time); 
+ //--------------------------------------------------
+ 
+ //! Scalers Accessor
+ /*! 
+   
+   \param timestamp (unix time)
+   \param usec       second fraction after in mksec
+   
+   NB return vector<Scalers_i> fScalersReturn  of Nearest Scalers iterators
+   fScalers[0]->first < time < fScalers[1]->first
+   
+   
+   \return Nearest Scalers iterators vector length                  
+ */
+ int getScalers(unsigned int time,unsigned int usec );
+ void Purge();
  static    AMSSetupR * & gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
