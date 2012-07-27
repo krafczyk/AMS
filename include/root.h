@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437.2.8 2012/07/06 06:49:23 afiasson Exp $
+//  $Id: root.h,v 1.437.2.9 2012/07/27 14:39:18 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -693,18 +693,11 @@ public:
   ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
 
 
-  /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
-  /// trained on ISS.B552 data. The 90% efficiency cut on electrons is BDT>0. 
-  /// The training has been done in bins of EnergyD: 
-  /// {0.,3.12,4.86,7.57,11.81,18.41,28.69,44.72,69.71,108.66,169.38,264.03,
-  /// 411.56,641.53,1000.00=infinity}. To define electrons at 90% with BDT>0 
-  /// at any energy, the BDT value has been shifted by an offset in each 
-  /// EnergyD bin:
-  /// {0.55,0.71,0.812,0.866,0.896,0.898,0.916,0.908,0.928,0.948,0.966,0.968,
-  /// 0.97,0.968}
-  /// There is no more need to set ECALBDT environment variable to use GetEcalBDT
+  /// Pisa function to obtain the Boosted Decision Tree Classifier for shower, trained on ISS.B552 data.
+  /// An How To for selecting electrons with 90%, 80% and 70% efficieny is availble at <a href="https://twiki.cern.ch/twiki/bin/view/AMS/ClassMethods">this page</a>.
+  /// There is no more need to set ECALBDT environment variable to use GetEcalBDT.
   /// Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
-  /// call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() EcalShowerR::EcalStandaloneEstimatorV2()
+  /// call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator(), EcalShowerR::EcalStandaloneEstimatorV2()
   float GetEcalBDT();
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
