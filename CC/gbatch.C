@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.124 2011/11/27 17:44:51 choutko Exp $
+//  $Id: gbatch.C,v 1.124.10.1 2012/07/28 12:24:07 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -131,7 +131,11 @@ catch (std::bad_alloc aba){
   #endif
 
     cerr <<"gbatch-catch-F-NoMemoryAvailable "<<endl;
+try{
     if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
+}
+catch (std::bad_alloc abab){
+}
     UGLAST("catch-F-NoMemoryAvailable ");
     exit(1);
     return 1;
