@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.52 2012/07/27 17:29:28 mduranti Exp $
+//  $Id: root_setup.h,v 1.53 2012/07/30 17:38:02 mduranti Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -296,9 +296,13 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
 /*!
   Object containing the information about DSP errors.\n
   AMSSetupR::DSPError objects are created by AMSSetupR::LoadDSPErrors() starting from .csv files (stored in $AMSDataDir/altec/DSP/). \n
-  The .csv files are created by a standalone program that scans the HKBPB stream.
-  \sa http://ams.cern.ch/AMS/DAQ/eCos/jap/node_addresses.xls
-  The default path could be customized defining the AMSDSP environment variable: this will overhide $AMSDataDir/altec/DSP/.
+  The .csv files are created by a standalone program that scans the HKBPB stream. \n
+  
+  \sa http://ams.cern.ch/AMS/DAQ/eCos/jap/node_addresses.xls \n
+  
+  \note
+  The default path could be customized defining the AMSDSP environment variable: this will overhide $AMSDataDir/altec/DSP/. \n
+  
   \author matteo.duranti@cern.ch
 */
  class DSPError{
@@ -328,11 +332,11 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
    unsigned int Nodes_1A0_1BF; ///< Bitted map of affected nodes (from NA=0x1A0 [LSB] to NA=0x1BF [MSB])
    unsigned int Nodes_1C0_1DF; ///< Bitted map of affected nodes (from NA=0x1C0 [LSB] to NA=0x1DF [MSB])
    unsigned int Nodes_1E0_1FF; ///< Bitted map of affected nodes (from NA=0x1E0 [LSB] to NA=0x1FF [MSB])
-   bool SetNA(unsigned int NA); ///< Set the NA affected by DSP error (erase any previous set nodes!). \return true in case of positive inception.
-   bool AddNA(unsigned int NA); ///< Add a NA affected by DSP error (keep previous nodes!). \return true in case of positive inception.
-   bool AddNA(DSPError dsperr); ///< Add a NA affected by DSP error (keep previous nodes!) taking by a DSPError object (neglecting its timestart,timend). \return true in case of positive inception.
+   bool SetNA(unsigned int NA); ///< Set the NA affected by DSP error (erase any previous set nodes!). \retval true in case of positive inception.
+   bool AddNA(unsigned int NA); ///< Add a NA affected by DSP error (keep previous nodes!). \retval true in case of positive inception.
+   bool AddNA(DSPError dsperr); ///< Add a NA affected by DSP error (keep previous nodes!) taking by a DSPError object (neglecting its timestart,timend). \retval true in case of positive inception.
    int GetFirstNA(); ///< Gives NA affected by DSP error (in case of multiple nodes return the first [the one with lower NA] with negative sign)
-   bool SearchNA(unsigned int NA); ///< Search if the passed NA is affected by the problem. \return true if that NA is affected
+   bool SearchNA(unsigned int NA); ///< Search if the passed NA is affected by the problem. \retval true if that NA is affected
    ClassDef(DSPError,2)       //DSP Error
  };
 //-------------------------------------------------
@@ -478,11 +482,9 @@ static int _select (const dirent64 * entry);
    \param unsigned int utime=0 (unix time)
    \param string  reason input ;  input=="" means any reason ; on output return all reasons matched        
    
-   
-   \return 
-   0   GoodRun
-   1   BadRun
-   2   UnableToLoadBadRunList                  
+   \retval 0   GoodRun
+   \retval 1   BadRun
+   \retval 2   UnableToLoadBadRunList                  
  */
  int IsBadRun( string &reason,unsigned int utime=0);
  
@@ -493,12 +495,11 @@ static int _select (const dirent64 * entry);
    \param double xtime (unix time + fraction of second)
    \param roll,pitch,yaw interpolated values      
    
+   \retval 0   ok (interpolation)
+   \retval 1   ok  (extrapolation)
+   \retval 2   no data
    
-   \return 
-   0   ok (interpolation)
-   1   ok  (extrapolation)
-   2   no data
-   
+   \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
  */
  int getISSAtt( float& roll,float&pitch,float&yaw, double xtime); 
@@ -510,12 +511,11 @@ static int _select (const dirent64 * entry);
    \param double xtime (unix time + fraction of second)
    \param ISSSCTRSR a  interpolated values      
    
+   \retval 0   ok (interpolation)
+   \retval 1   ok  (extrapolation)
+   \retval 2   no data
    
-   \return 
-   0   ok (interpolation)
-   1   ok  (extrapolation)
-   2   no data
-   
+   \note
    The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
  */
  int getISSCTRS(ISSCTRSR & a, double xtime); 
@@ -524,14 +524,13 @@ static int _select (const dirent64 * entry);
  /*! 
    
    \param double xtime (unix time + fraction of second)
-   \param GPSWGS84R a  interpolated values      
+   \param GPSWGS84R a  interpolated values        
    
-   
-   \return 
-   0   ok (interpolation)
-   1   ok  (extrapolation)
-   2   no data
+   \retval 0   ok (interpolation)
+   \retval 1   ok  (extrapolation)
+   \retval 2   no data
 
+   \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
  */
  int getGPSWGS84(GPSWGS84R & a, double xtime); 
@@ -543,12 +542,11 @@ static int _select (const dirent64 * entry);
    \param double xtime (unix time + fraction of second)
    \param ISSSGTOD a  interpolated values      
    
+   \retval 0   ok (interpolation)
+   \retval 1   ok  (extrapolation)
+   \retval 2   no data
    
-   \return 
-   0   ok (interpolation)
-   1   ok  (extrapolation)
-   2   no data
-   
+   \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
  */
  int getISSGTOD(ISSGTOD & a, double xtime); 
@@ -560,12 +558,11 @@ static int _select (const dirent64 * entry);
    \param double xtime (unix time + fraction of second)
    \param ISSSSA a  interpolated values for the angles      
    
+   \retval 0   ok (interpolation)
+   \retval 1   ok  (extrapolation)
+   \retval 2   no data
    
-   \return 
-   0   ok (interpolation)
-   1   ok  (extrapolation)
-   2   no data
-   
+   \note
    The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
  */
  int getISSSA(ISSSA & a, double xtime); 
@@ -580,6 +577,9 @@ static int _select (const dirent64 * entry);
    
    \retval  0 -->  OK (NO nodes affected by DSP errors)
    \retval  1 -->  KO (SOME nodes affected by DSP errors)
+   
+   \note
+   The default path could be customized defining the AMSDSP environment variable: this will overhide $AMSDataDir/altec/DSP/.
  */
  int getDSPError(DSPError& dsperror, unsigned int time); 
  //--------------------------------------------------
