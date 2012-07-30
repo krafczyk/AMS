@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404.2.9 2012/07/30 16:42:33 mduranti Exp $
+//  $Id: root.C,v 1.404.2.10 2012/07/30 17:11:03 mduranti Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2226,14 +2226,14 @@ bool AMSEventR::ReadHeader(int entry){
 #endif
 
     }
-// #ifdef _PGTRACK_
-//     // update the tracker Databases
-//     if(TrExtAlignDB::GetHead()){
-//       TrExtAlignDB::GetHead()->UpdateTkDBc(UTime());
-//       TrExtAlignDB::GetHead()->UpdateTkDBcDyn(0,UTime(),3);
-//     }
-//     if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
-// #endif
+#ifdef _PGTRACK_
+    // update the tracker Databases
+    if(TrExtAlignDB::GetHead()){
+      TrExtAlignDB::GetHead()->UpdateTkDBc(UTime());
+      TrExtAlignDB::GetHead()->UpdateTkDBcDyn(0,UTime(),3);
+    }
+    if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
+#endif
 
     if(Version()<160){
       // Fix rich rings

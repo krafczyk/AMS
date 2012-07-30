@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.151.4.10 2012/07/30 16:42:32 mduranti Exp $
+// $Id: TrTrack.C,v 1.151.4.11 2012/07/30 17:13:02 mduranti Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/07/30 16:42:32 $
+///$Date: 2012/07/30 17:13:02 $
 ///
-///$Revision: 1.151.4.10 $
+///$Revision: 1.151.4.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -973,9 +973,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     
     AMSPoint coo =  hit->GetCoord(-1,cookind);
     //    printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
-    if (hit->GetYCluster()) {
-      //      printf("CorrOpt = 0x%x\n", hit->GetYCluster()->GetDefaultCorrOpt());
-    }
     
     double fmscx = 1;
     double fmscy = 1;
@@ -1018,7 +1015,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }
   
   if (mscat) {
-    //   printf("Mscat!\n");
     double rini = 0;
     int idr = kChoutko;
     int idl = id & (kFitLayer8 | kFitLayer9);
@@ -1031,7 +1027,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   
   // Perform fitting
   float fdone = _TrFit.DoFit(method,mscat,0, chrg,mass,beta,fixrig);
-  //  printf("DoFit...\n");  
 
   bool done = (fdone >= 0 && _TrFit.GetChisqX() >= 0 && 
 	                     _TrFit.GetChisqY() >= 0);
