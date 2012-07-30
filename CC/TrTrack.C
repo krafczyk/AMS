@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.151.4.9 2012/07/25 12:04:17 pzuccon Exp $
+// $Id: TrTrack.C,v 1.151.4.10 2012/07/30 16:42:32 mduranti Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/07/25 12:04:17 $
+///$Date: 2012/07/30 16:42:32 $
 ///
-///$Revision: 1.151.4.9 $
+///$Revision: 1.151.4.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -769,9 +769,9 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   int mscat;
   int id=id2;
   if (id2==0) id=trdefaultfit;
-
+  
   if (id < 0) return -1;
-
+  
   int idf = id&0xf;
   if (idf == kGEANE || idf == kGEANE_Kalman) {
     cerr << "Error in TrTrack::Fit Fitting method not implemented: "
@@ -782,11 +782,11 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     cerr << "Warning in TrTrack::Fit Dummy fit is ignored " << endl;
     return -2;
   }
-
+  
   // Force to use Linear fit if magnet is off
   if (_MagFieldOn==0) id = (id&0xfff0)+kLinear;
   idf = id&0xf;
-
+  
   // Select fitting method
   int method = TrFit::CHOUTKO;
   if      (idf == kAlcaraz)    method = TrFit::ALCARAZ;
@@ -795,14 +795,14 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   else if (idf == kLinear)     method = TrFit::LINEAR;
   else if (idf == kCircle)     method = TrFit::CIRCLE;
   else if (idf == kSimple)     method = TrFit::SIMPLE;
-
+  
   // Set multiple scattering option and assumed mass
   if (((id & kMultScat) && !(id & kSameWeight)) || idf == kChikanian ||
                                                    idf == kChikanianF)
     mscat = 1;
   else
     mscat = 0;
-
+  
   // HIT Selection Section
 
   // One drop fitting
@@ -822,7 +822,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (ihmin < 0) return -4;
     layer = GetHit(ihmin)->GetLayer();
   }
-
+  
   // Noise drop fitting
   if (id & kNoiseDrop) {
     double snmin = 0;
@@ -839,9 +839,9 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (ihmin < 0) return -5;
     layer = GetHit(ihmin)->GetLayer();
   }
-
   
-
+  
+  
   // Sort hits in the ascending order of the layer number
   int idx[trconst::maxlay], nhit = 0;
   int bhit[2] = { 0, 0 };
@@ -849,7 +849,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   for (int i = 0; i < _Nhits && nhit < trconst::maxlay; i++) {
     TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
-
+    
     // Inner halves
     if ((id & kUpperHalf) && hit->GetLayer() >= 6) continue;
     if ((id & kLowerHalf) && hit->GetLayer() == 1) continue;
@@ -869,12 +869,12 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       idx[nhit++] = lyr*10+i;
     }
     // For AMS02P
-
+    
     // For AMS02-Ass1/PreInt with S.C. magnet
     else
       idx[nhit++] = hit->GetLayer()*10+i;
   }
-
+  
   // AMS02P
   if (TkDBc::Head->GetSetup() == 3) {
     if ((id & kFitLayer8) && !bhit[0]) return -6;
@@ -894,18 +894,18 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     nhit=4;
     for(int kk=0;kk<4;kk++)idx[kk]=idx2[kk];
   }  
-
+  
   // Selected Pattern fit
   if(id & kPattern){
-     int idx2[9];
-     int nhit2=0;
-     for (int kk=0;kk<nhit;kk++)
-       if(CheckLayFit(id,idx[kk]/10)) idx2[nhit2++]=idx[kk];
-     for(int kk=0;kk<nhit2;kk++)idx[kk]=idx2[kk];
-     nhit=nhit2;
+    int idx2[9];
+    int nhit2=0;
+    for (int kk=0;kk<nhit;kk++)
+      if(CheckLayFit(id,idx[kk]/10)) idx2[nhit2++]=idx[kk];
+    for(int kk=0;kk<nhit2;kk++)idx[kk]=idx2[kk];
+    nhit=nhit2;
   }
-
-
+  
+  
   //  Update External DB alignment
   int cookind=1;
   if( (id & kAltExtAl) ){
@@ -917,7 +917,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     //  int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
     //  rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
     //  UsedCiemat=1;
-     //     UpdateCoo=1;
+    //     UpdateCoo=1;
     cookind=2;
   }else if(id & kExtAverage){
     cookind=3;
@@ -926,10 +926,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }else{
     cookind=1;
   }
-
-
+  
+  
   int i1 = 0, i2 = nhit;
-
+  
   // Set fitting errors
   double errx = (err) ? err[0] : TRFITFFKEY.ErrX;
   double erry = (err) ? err[1] : TRFITFFKEY.ErrY;
@@ -970,13 +970,16 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     int j = idx[i]%10;
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
-
+    
     AMSPoint coo =  hit->GetCoord(-1,cookind);
-    // printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
-
+    //    printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
+    if (hit->GetYCluster()) {
+      //      printf("CorrOpt = 0x%x\n", hit->GetYCluster()->GetDefaultCorrOpt());
+    }
+    
     double fmscx = 1;
     double fmscy = 1;
-
+    
     // Tune fitting weight
     if (!mscat && !(id & kSameWeight)) {
       int    ily  = hit->GetLayer()-1;
@@ -987,46 +990,48 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	fmscy = std::sqrt(1+fitw*fitw/rrgt/rrgt);
       }
     }
-
+    
     // Small Z-correction (charge dependent)
     if (TkDBc::Head && dxdz != 0 && dydz != 0) {
       TkLadder *lad = TkDBc::Head->FindTkId(hit->GetTkId());
       coo[0] += (lad) ? lad->GetRotMat().GetEl(2, 2)*zdxc*dxdz : 0;
       coo[1] += (lad) ? lad->GetRotMat().GetEl(2, 2)*zdyc*dydz : 0;
     }
-
+    
     float ferx = (hit->OnlyY()) ? 0 : 1;
     float fery = (hit->OnlyX()) ? 0 : 1;
-
+    
     if (((id & kUpperHalf) || 
 	 (id & kLowerHalf)) && ferx == 0) ferx = 10;
-
+    
     double bf[3] = { 0, 0, 0 };
     TrFit::GuFld(coo[0], coo[1], coo[2], bf);
     //PZ Print
-    // printf("Adding Hit %d %+7.4f, %+7.4f, %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f \n", 
-    //     hit->GetLayerJ(),coo[0],coo[1],coo[2], ferx*errx*fmscx, fery*erry*fmscy, errz, 
-    //	       bf[0], bf[1], bf[2]);
+    //    printf("Adding Hit %d %+7.4f, %+7.4f, %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f \n", 
+    //	   hit->GetLayerJ(),coo[0],coo[1],coo[2], ferx*errx*fmscx, fery*erry*fmscy, errz, 
+    //	   bf[0], bf[1], bf[2]);
     _TrFit.Add(coo, ferx*errx*fmscx, fery*erry*fmscy, errz, 
 	       bf[0], bf[1], bf[2]);
-
+    
     hitbits |= (1 << (hit->GetLayer()-1));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
-
+  
   if (mscat) {
+    //   printf("Mscat!\n");
     double rini = 0;
     int idr = kChoutko;
     int idl = id & (kFitLayer8 | kFitLayer9);
-
+    
     if (ParExists(idr | idl)) idr = idr | idl;
     if (ParExists(idr)) rini = GetRigidity(idr);
     _TrFit.SetRigidity(rini);
   }
   if (beta > 1 || beta < -1) beta = 0;
-
+  
   // Perform fitting
   float fdone = _TrFit.DoFit(method,mscat,0, chrg,mass,beta,fixrig);
+  //  printf("DoFit...\n");  
 
   bool done = (fdone >= 0 && _TrFit.GetChisqX() >= 0 && 
 	                     _TrFit.GetChisqY() >= 0);

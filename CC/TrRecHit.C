@@ -275,9 +275,9 @@ float TrRecHitR::GetYloc(int nstrips) {
   TrClusterR *cls = GetYCluster();
   if (!cls) return -1000;
   if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
+  //  printf("GetYloc = %f\n", cls->GetXCofG(nstrips));
   return cls->GetXCofG(nstrips);
 }
-
 
 void TrRecHitR::SetUsed() {
   setstatus(AMSDBc::USED);
