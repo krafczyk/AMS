@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.63 2012/06/28 22:04:46 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.63.2.1 2012/07/30 11:41:38 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -2182,29 +2182,28 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       AMSSetupR *setup=AMSSetupR::gethead();
       if(!setup) TDVUPDATE;
 
-      // Find the TDV prefix in TDV names
-      bool failed=true;
-      AMSSetupR::TDVR tdv;
-      for(AMSSetupR::TDVRC_i it=setup->fTDVRC.lower_bound(SEARCHPREFIX);it!=setup->fTDVRC.end();it++){
-	if(it->first.find(SEARCHPREFIX)!=string::npos){
-	  if(setup->getTDV (it->first.c_str(),time, tdv)) TDVUPDATE;
-	  failed=false;
-	  break;
+      if(time<begin || time>end){
+	// Find the TDV prefix in TDV names
+	bool failed=true;
+	AMSSetupR::TDVR tdv;
+	for(AMSSetupR::TDVRC_i it=setup->fTDVRC.lower_bound(SEARCHPREFIX);it!=setup->fTDVRC.end();it++){
+	  if(it->first.find(SEARCHPREFIX)!=string::npos){
+	    if(setup->getTDV (it->first.c_str(),time, tdv)) TDVUPDATE;
+	    failed=false;
+	    break;
+	  }
 	}
-      }
-
-      if(failed) TDVUPDATE;
-
-      // Search for the proper TDV
-      //      if(setup->getTDV (TDVNAME,time, tdv)) TDVUPDATE;
-
-      // Check that we have to copy out everything again
-      if(tdv.Begin!=begin || tdv.End!=end || tdv.Insert!=insert){
-	begin=tdv.Begin;
-	end=tdv.End;
-	insert=tdv.Insert;
-	tdv.CopyOut(&tdvBuffer);
-	_ToAlign();
+	
+	if(failed) TDVUPDATE;
+	
+	// Check that we have to copy out everything again
+	if(tdv.Begin!=begin || tdv.End!=end || tdv.Insert!=insert){
+	  begin=tdv.Begin;
+	  end=tdv.End;
+	  insert=tdv.Insert;
+	  tdv.CopyOut(&tdvBuffer);
+	  _ToAlign();
+	}
       }
       return true;
     }
