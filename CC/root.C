@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.427 2012/07/27 15:00:11 pzuccon Exp $
+//  $Id: root.C,v 1.428 2012/07/31 09:36:59 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3549,7 +3549,7 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
 
 
         float log10E = TMath::Log10(nEnergyA/1000.);
-        if(log10E<0.4 || log10E>3.){
+        if(log10E<0.4 || log10E>3.6){
                 return -30.;
         }
 
