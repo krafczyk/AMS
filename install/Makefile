@@ -84,7 +84,7 @@ INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
 #----Qi Yan
 ifdef G4AMS
 DPMDIR=../DPMJET/
-DPMBIN=$(DPMDIR)/bin/$(MARCH)/
+DPMBIN=$(AMSWD)/bin/$(MARCH)/
 DPMSCC=$(DPMDIR)/src/
 DPMFF= $(DPMDIR)/dpmjet2_5/
 
