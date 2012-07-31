@@ -7,7 +7,9 @@ ClassImp(TrdKCalib)
 //#include <TRDDBClass_ROOT.h>
 
 
-
+//AMSTimeID* TrdKCalib::tid_Calib = 0;
+//AMSTimeID* TrdKCalib::tid_Align_Plane = 0;
+//AMSTimeID* TrdKCalib::tid_Align_Global = 0;
 
 TString TrdKCalib::GetEnv( const string & var ) {
     const char * val = getenv( var.c_str() );
@@ -46,22 +48,48 @@ void TrdKCalib::fillDB(TString s_type,  T *_db, Double_t time_start, Double_t ti
 
 template <class T>
 int TrdKCalib::readDB(TString s_type,  T *db, Double_t asktime){
-   static  AMSTimeID* tid=0;
+
+    static  AMSTimeID* tid_Calib=0;
+    static  AMSTimeID* tid_Align_Plane=0;
+    static  AMSTimeID* tid_Align_Global=0;
+
 #ifdef __ROOTSHAREDLIBRARY__
-#pragma omp threadprivate (tid)
+#pragma omp threadprivate (tid_Calib,tid_Align_Plane,tid_Align_Global)
 #endif
-   time_t time=(time_t) asktime;
-    	if(!tid){
-    time_t endtime=time;
-    time_t starttime=time+1;
-    tm begin;
-    tm end;
-    tm* mtim=localtime_r(&starttime,&begin);
-    tm* mtim2=localtime_r(&endtime,&end);
-     tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
-     }
-    int read=tid->validate(time);
-    return 0;
+
+
+    AMSTimeID **tid;
+
+    if(s_type=="TRDCalibration")tid=&tid_Calib;
+    else     if(s_type=="TRDAlignmentPlane")tid=&tid_Align_Plane;
+    else     if(s_type=="TRDAlignmentGlobal")tid=&tid_Align_Global;
+    else{
+        Error("TrdKCalib::readDB -E-", "No DB recode found for name: %s", s_type.Data());
+        return -999;
+    }
+
+    time_t time=(time_t) asktime;
+    if(!(*tid)){
+//        cout<<"Pointer to tid not exist yet, create onece: "<<s_type<<endl;
+        time_t endtime=time;
+        time_t starttime=time+1;
+        tm begin;
+        tm end;
+        tm* mtim=localtime_r(&starttime,&begin);
+        tm* mtim2=localtime_r(&endtime,&end);
+        *tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
+
+//        cout<<"DEBUG: tid: " <<(*tid)<<endl;
+//        cout<<"DEBUG: tid_Calib: " <<tid_Calib<<endl;
+//        cout<<"DEBUG: tid_Align_Plane: " <<tid_Align_Plane<<endl;
+//        cout<<"DEBUG: tid_Align_Global: " <<tid_Align_Global<<endl;
+
+    }
+
+
+//    cout<<"tid->Validate: "<<time<<endl;
+    int read=(*tid)->validate(time);
+    return read;
 }
 
 
@@ -82,41 +110,67 @@ void TrdKCalib::fillDB_Alignment_Global(TRDAlignmentDB_Global *_db, Double_t tim
 
 int TrdKCalib::readDB_Calibration(Double_t asktime){
 
-    if(asktime <_trddb.Time_S || asktime>=_trddb.Time_E){
-        //        printf("Ask time: %f ,  Previos End Time: %f\n",asktime,_trddb.Time_E);
-        readDB("TRDCalibration",&_trddb,asktime);
-    }
+    //    if(asktime>=_trddb.Time_E){
+    //        printf("Ask time: %f ,  Previos End Time: %f\n",asktime,_trddb.Time_E);
 
-    if(_trddb.Time_A==0){
-        return 0;
-    }
+//    if(asktime <_trddb.Time_S || asktime>=_trddb.Time_E){
+//        _trddb=TRDCalibPar();
+        readDB("TRDCalibration",&_trddb,asktime);
+
+        if(_trddb.Time_A==0){
+            Error("TrdKCalib::readDB_GainCalibration-E-", "Gain Calibration Period average time return zero : %f", asktime);
+
+            return 0;
+        }
+
+//    }
+
+
     return 1;
 }
 
 
 int TrdKCalib::readDB_Alignment_Plane(Double_t asktime){
-    if(asktime<_trdaligndb_Plane.time_start || asktime>_trdaligndb_Plane.time_end){
+
+    //    if(asktime>_trdaligndb_Plane.time_end){
+
+//    if(asktime<_trdaligndb_Plane.time_start || asktime>_trdaligndb_Plane.time_end){
+//        _trdaligndb_Plane=TRDAlignmentDB_Plane();
         readDB("TRDAlignmentPlane",&_trdaligndb_Plane,asktime);
+
+
         //        printf("TRDAlignmentPlane DB read, Validity: %i - %i \n",_trdaligndb_Plane.time_start,_trdaligndb_Plane.time_end);
         TRDAlignmentPar * par= _trdaligndb_Plane.getplaneparp(0);
         if(par->dX==0){
             //            printf("****ERROR****** Plane Alignment parameter return zero within validity period,  %f\n",asktime);
-            Error("TrdKCalib::readDB_Alignment_Plane-E-", "Plane Alignment non validity period: %f", asktime);
+            Error("TrdKCalib::readDB_Alignment_Plane-E-", "Plane Alignment return zero : %f", asktime);
             return 0;
         }
-    }
+//    }
     return 1;
 }
 
 int TrdKCalib::readDB_Alignment_Global(Double_t asktime){
-    //   printf("Asking: %.0f , Current DB valid until: %.0f\n",asktime,_trdaligndb_Global.time_end);
-    if(asktime<_trdaligndb_Global.time_start || asktime>_trdaligndb_Global.time_end){
-        _trdaligndb_Global=TRDAlignmentDB_Global();
-        readDB("TRDAlignmentGlobal",&_trdaligndb_Global,asktime);
-//               printf("TRDAlignmentGlobal Asking: %.0f \n",asktime);
-//                printf("TRDAlignmentGlobal DB read, Validity: %f - %f \n",_trdaligndb_Global.time_start,_trdaligndb_Global.time_end);
 
-        if(!_trdaligndb_Global.size)return 0;
+
+    //   printf("Asking: %.0f , Current DB valid until: %.0f\n",asktime,_trdaligndb_Global.time_end);
+    //    if(asktime>_trdaligndb_Global.time_end){
+    //
+//    if(asktime<_trdaligndb_Global.time_start || asktime>_trdaligndb_Global.time_end){
+
+//        _trdaligndb_Global=TRDAlignmentDB_Global();
+        readDB("TRDAlignmentGlobal",&_trdaligndb_Global,asktime);
+        //        printf("TRDAlignmentGlobal Asking: %.0f \n",asktime);
+        //        printf("TRDAlignmentGlobal DB read, Validity: %f - %f \n",_trdaligndb_Global.time_start,_trdaligndb_Global.time_end);
+
+        if(!_trdaligndb_Global.size){
+            Error("TrdKCalib::readDB_Alignment_Global-E-", "Global Alignment size zero : %f", asktime);
+
+            return 0;
+
+        }
+            //    }
+    /**
         float average[6]={0,0,0,0,0,0};
         int count=0;
         for(int i=0;i<_trdaligndb_Global.size;i++){
@@ -135,6 +189,8 @@ int TrdKCalib::readDB_Alignment_Global(Double_t asktime){
         //        printf("TRDAlignmentGlobla, Average Alignment Parameter based on %i measurement \n",count);
         TRDAlignmentPar_Global_average=TRDAlignmentPar(-1,average[0],average[1],average[2],average[3],average[4],average[5],_trdaligndb_Global.globalpar[0].RotationCenter_X,_trdaligndb_Global.globalpar[0].RotationCenter_Y,_trdaligndb_Global.globalpar[0].RotationCenter_Z);
     }
+    **/
+
     return 1;
 }
 
@@ -167,13 +223,14 @@ double TrdKCalib::GetGainCorrectionFactorModule(int Moduleid, double asktime){
 
 TRDAlignmentPar * TrdKCalib::GetAlignmentPar_Global(int t){
     TRDAlignmentPar * par= _trdaligndb_Global.GetPar(t);
-    if(par->dX!=0){
+    if(par->dX!=0 && par->dY!=0 && par->dZ!=0 ){
         //            printf("DX: %f \n",par->dX);
         return par;
     }
     else {
         //            printf("****WARNING****** Alignment parameter return zero within validity period, try to return average value %i \n",t);
-        return &TRDAlignmentPar_Global_average;
+        //        return &TRDAlignmentPar_Global_average;
+        return 0;
     }
 }
 
@@ -192,9 +249,10 @@ TRDAlignmentPar TrdKCalib::GetAlignmentPar(int plane,int t){
     TRDAlignmentPar * plane0_par= GetAlignmentPar_Plane(0);
     TRDAlignmentPar *global_par=GetAlignmentPar_Global(t);
 
-    if(global_par->dX==0 && global_par->dY==0 && global_par->dZ==0){
-        return *plane_par;
-    }
+    if(!global_par)return *plane_par;
+    //    if(global_par->dX==0 && global_par->dY==0 && global_par->dZ==0){
+    //        return *plane_par;
+    //    }
 
 
     AMSRotMat RGlobal=GetRotationMatrix(global_par->alpha,global_par->beta,global_par->gamma);
