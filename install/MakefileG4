@@ -1,4 +1,4 @@
-#  $Id: MakefileG4,v 1.5 2012/07/31 16:11:41 qyan Exp $
+#  $Id: MakefileG4,v 1.6 2012/07/31 16:57:18 qyan Exp $
 
 #P.Zuccon june 2005
 
@@ -75,7 +75,7 @@ INCDIRS  += -I$(G4INCLUDE) -I$(G4INSTALL)/source/geometry/management/include -I$
 
 #----Qi Yan
 DPMDIR=../DPMJET/
-DPMBIN=$(AMSWD)/bin/$(MARCH)/
+DPMBIN=$(AMSWD)/bin/$(MARCH)/DPMJET/
 DPMSCC=$(DPMDIR)/src/
 DPMFF= $(DPMDIR)/dpmjet2_5/
 
