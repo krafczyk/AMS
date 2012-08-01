@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.428 2012/07/31 09:36:59 afiasson Exp $
+//  $Id: root.C,v 1.429 2012/08/01 22:30:55 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6254,8 +6254,6 @@ int TofClusterHR::TRecover(float  tklcoo,int useside,float &tm,float &etm){
 //-------TofBetaPar
 void TofBetaPar::Init(){
   Status=SumHit=UseHit=0;
-  Beta=BetaC=0;
-  UseHit=0;
   for(int ilay=0;ilay<4;ilay++){
     Pattern[ilay]=0;
     Len[ilay]=0;
@@ -6264,14 +6262,14 @@ void TofBetaPar::Init(){
     TResidual[ilay]=1000;
     for(int is=0;is<2;is++){CResidual[ilay][is]=0;}
    }
-   Beta=Beta=InvErrBeta=InvErrBetaC=Chi2T=T0=Chi2C=0;
+   Beta=BetaC=InvErrBeta=InvErrBetaC=Chi2T=T0=Chi2C=0;
    Mass=EMass=0;
 };
 
 const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
   Status=right.Status;
   SumHit=right.SumHit;
-  UseHit=right.SumHit;
+  UseHit=right.UseHit;
   for(int ilay=0;ilay<4;ilay++){
     Pattern[ilay]=right.Pattern[ilay];
     Len[ilay]=right.Len[ilay];
@@ -6284,7 +6282,7 @@ const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
   Beta=right.Beta;
   BetaC=right.BetaC;
   InvErrBeta=right.InvErrBeta;
-  InvErrBetaC=right.InvErrBeta;
+  InvErrBetaC=right.InvErrBetaC;
   Chi2T=right.Chi2T;
   Chi2C=right.Chi2C;
 //---
