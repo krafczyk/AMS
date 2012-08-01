@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.174 2012/07/17 18:04:27 choutko Exp $
+//  $Id: mceventg.C,v 1.175 2012/08/01 17:04:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -44,7 +44,7 @@ extern TGeant3* geant3;
 #if  defined __G4AMS__ 
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
-#include <iostream.h>
+#include <iostream>
 #endif
 
 #if defined __AMSVMC__

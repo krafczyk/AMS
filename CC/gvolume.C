@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.63 2011/05/04 18:57:15 mmilling Exp $
+//  $Id: gvolume.C,v 1.64 2012/08/01 17:04:09 choutko Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -9,7 +9,7 @@
 #include "G4MaterialTable.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4LogicalBorderSurface.hh"
-#include <new.h>
+#include <new>
 #include "commons.h"
 #include "astring.h"
 #include "G4LogicalVolume.hh"

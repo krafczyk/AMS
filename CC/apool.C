@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.26 2012/07/19 10:39:15 choutko Exp $
+//  $Id: apool.C,v 1.27 2012/08/01 17:04:08 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -116,7 +116,7 @@ void * AMSaPool::insert(size_t st){
         cerr <<" AMSaPool-F-Memory exhausted: Was "<<(_Nblocks-1)*_size<<
 	  " Requested "<<st<<" bytes"<<endl;
         ReleaseLastResort();
-	throw; 
+	throw AMSaPoolError("AMSaPool-F-Memory exhausted");
 	return 0;
       }
     }

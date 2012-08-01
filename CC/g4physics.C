@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.48 2012/07/17 18:04:27 choutko Exp $
+//  $Id: g4physics.C,v 1.49 2012/08/01 17:04:09 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.48 2012/07/17 18:04:27 choutko Exp $
+// $Id: g4physics.C,v 1.49 2012/08/01 17:04:09 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -37,13 +37,13 @@
 #include "G4Material.hh"
 #include "G4MaterialTable.hh"
 #include "G4ios.hh"
-#include <iomanip.h>   
+#include <iomanip>   
 #include "G4UserSpecialCuts.hh"
 #include "G4FastSimulationManagerProcess.hh"
 #include "G4EmStandardPhysics.hh"
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSP_BERT.hh"
-#include "HadronPhysicsQGSC.hh"
+//#include "HadronPhysicsQGSC.hh"
 #include "G4IonPhysics.hh"
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 899 
@@ -237,7 +237,7 @@ void AMSG4Physics::ConstructProcess()
 #include "G4LowEnergyIonisation.hh"
 #include "G4LowEnergyBremsstrahlung.hh"
 
-#include "G4MultipleScattering.hh"
+#include "G4hMultipleScattering.hh"
 
 #include "G4eIonisation.hh"
 #include "G4eBremsstrahlung.hh"

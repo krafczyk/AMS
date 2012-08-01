@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.90 2012/07/31 16:10:56 qyan Exp $
+//  $Id: geant4.C,v 1.91 2012/08/01 17:04:09 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -43,6 +43,7 @@
 #ifdef G4VIS_USE
 #include "g4visman.h"
 #endif
+#include <malloc.h>
  extern "C" void getfield_(geant& a);
 
 AMSG4Physics * pph = new AMSG4Physics();
@@ -382,9 +383,30 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
 void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 //   cout <<" guout in"<<endl;
-   if(AMSJob::gethead()->isSimulation())
+   if(AMSJob::gethead()->isSimulation()){
    AMSgObj::BookTimer.stop("GEANTTRACKING");
+    struct mallinfo m=mallinfo();
+   static unsigned int minit=0;
+    unsigned int mall=m.uordblks+m.arena;
+    if(minit==0){
+      minit=mall;
+      cout<<"  AMSG4EventAction::EndOfEventAction-I-InitialMemoryAllocation "<<m.arena<<" "<<m.uordblks<<" "<<minit<<" "<<G4FFKEY.MemoryLimit<<endl;
+      
+    }
+    if(G4FFKEY.MemoryLimit>0 && mall-minit>G4FFKEY.MemoryLimit){
+      GCFLAG.IEORUN=1;
+      GCFLAG.IEOTRI=1;
+      cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<m.arena<<" "<<m.uordblks<<endl;
+      G4EventManager::GetEventManager()->trackContainer->clear();
+      G4EventManager::GetEventManager()->trackContainer->ClearPostponeStack();
+      G4StackedTrack::ResetMemory();
+      m=mallinfo();
+      cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<m.arena+m.uordblks<<endl;
+      cerr<<"  AMSG4EventAction::EndOfEventAction-W-TerminatingRun "<<m.arena+m.uordblks<<" "<<G4FFKEY.MemoryLimit<<endl;
 
+      
+    } 
+}
       CCFFKEY.curtime=AMSEvent::gethead()->gettime();
    try{
           if(anEvent && AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
@@ -677,7 +699,7 @@ AMSG4DummySDI::~AMSG4DummySDI(){
 #include "G4ParticleTypes.hh"
 
 void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
-
+if(!Step)return;
   // just do as in example N04
   // don't really understand the stuff
      
