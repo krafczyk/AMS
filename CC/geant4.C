@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.91 2012/08/01 17:04:09 choutko Exp $
+//  $Id: geant4.C,v 1.92 2012/08/01 17:18:17 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -397,11 +397,13 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
       cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<m.arena<<" "<<m.uordblks<<endl;
+#ifdef __G4MODIFIED__
       G4EventManager::GetEventManager()->trackContainer->clear();
       G4EventManager::GetEventManager()->trackContainer->ClearPostponeStack();
       G4StackedTrack::ResetMemory();
       m=mallinfo();
       cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<m.arena+m.uordblks<<endl;
+#endif
       cerr<<"  AMSG4EventAction::EndOfEventAction-W-TerminatingRun "<<m.arena+m.uordblks<<" "<<G4FFKEY.MemoryLimit<<endl;
 
       
