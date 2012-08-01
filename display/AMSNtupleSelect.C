@@ -2,32 +2,42 @@
 #include "AMSNtupleHelper.h"
 #include "../include/root_setup.h"
 #include "../include/DynAlignment.h"
-#include <fstream>
+#include <fstream.h>
 #include "../include/TrdSCalib.h"
 #include "../include/TrdKCluster.h"
-static AMSNtupleHelper * fgHelper=0;
+ AMSNtupleHelper * fgHelper=0;
 
 extern "C" AMSNtupleHelper * gethelper();
 
 void* __dso_handle=0;
-
+static ofstream iftxtp("./positrons.txt");
+static ofstream iftxte("./electorns.txt");
 class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+static int begin=1;
+if(begin==0){
+cout << " open a"<<endl;
+iftxtp.open("./positrons.txt");
+cout << " open b"<<endl;
+iftxte.open("./electrons.txt");
+begin=1;
+}
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->nTrTrack()==1 && ev->nTrdTrack()==1){
 
+EcalShowerR & ecal=ev->EcalShower(0);
 ParticleR & part=ev->Particle(0);
 TrTrackR & track=ev->TrTrack(part.iTrTrack());
 TrdTrackR &trdt=ev->TrdTrack(part.iTrdTrack());
 cout <<" trdlikh "<<part.TrdSH_E2P_Likelihood<<" "<<part.TRDHLikelihood<<" "<<" "<<part.TrdSH_E2He_Likelihood<<endl;
 
+double s1,s2,s3;
 if(part.iTrdHTrack()<0){
-cerr<< " notrdhtrack"<<endl;
+cout<< " notrdhtrack"<<endl;
 }
 else{
 TrdHTrackR &trdht=ev->TrdHTrack(part.iTrdHTrack());
-double s1,s2,s3;
 double fmom=fabs(part.Momentum);
 if(fmom<2)fmom=2.00001;
 if(fmom>600)fmom=600-0000.1;
@@ -36,19 +46,48 @@ if(h){
 int ret=h->BuildTrdSCalib(ev->UTime(),fmom,&trdht,&track,s1,s2,s3,0);
 cout <<" trdscalib ret "<<ret<<" "<<s1<<endl;
 }
-else cerr<<"trdscalibgetheaqd zero "<<endl;
+else cout<<"trdscalibgetheaqd zero "<<endl;
 }
  
+
 cout<<" trdcha "<<trdt.Charge[0]<<" "<<trdt.ChargeP[0]<<endl;
 
+if(trdt.Charge[0]>1)return false;
 
+   double energyd=ecal.EnergyD/1000;
+   const UInt_t nENERGYBINs = 14;
+   Float_t EnergyBin[nENERGYBINs + 1] = { 2.00, 3.12, 4.86, 7.57, 11.81, 18.41, 28.69,
+      44.72, 69.71, 108.66, 169.38, 264.03, 411.56, 641.53, 1000.00 };
+
+   // 90% efficiency cut in energy bins defined above
+   Float_t cuts[nENERGYBINs] = { 0.550000, 0.710000, 0.812000, 0.866000, 0.896000, 0.898000,
+      0.916000, 0.908000, 0.928000, 0.948000, 0.966000, 0.968000, 0.970000, 0.968000 };
+ 
+   Float_t offset;
+
+   if (energyd < EnergyBin[0]) offset = cuts[0];
+   for (unsigned int ibin = 0; ibin < nENERGYBINs; ++ibin)
+   {
+      if (EnergyBin[ibin] <= energyd && energyd < EnergyBin[ibin + 1])
+      {
+         offset = cuts[ibin];
+         break;
+      }
+   }
+   if (energyd >= EnergyBin[nENERGYBINs]) offset = cuts[nENERGYBINs - 1];
+
+
+float ecalbdt=ecal.GetEcalBDT();
+float v2=ecal.EcalStandaloneEstimatorV2();
+
+cout <<"  ecal bdt "<<ecalbdt-offset<<" "<<v2<<" "<<ecal.RearLeak<<endl;
 
 int NTRDHit=ev->NTrdRawHit();
 int Track_Fitcode_Max=track.iTrTrackPar(1,0,0); // Get any prefered fit code
 
+double LikelihoodRatio[3]={-1,-1,-1};  //To be filled with 3 LikelihoodRatio :  e/P, e/H, P/H
 if(Track_Fitcode_Max>0 && NTRDHit>0){
 
-double LikelihoodRatio[3]={-1,-1,-1};  //To be filled with 3 LikelihoodRatio :  e/P, e/H, P/H
 int NHits=0;  //To be filled with number of hits taken into account in Likelihood Calculation
 float threshold=15;  //ADC above which will be taken into account in Likelihood Calculation,  15 ADC is the recommended value for the moment.
 
@@ -66,21 +105,30 @@ cout<<" trdk "<<isvalid<<" "<<LikelihoodRatio[0]<<" "<<LikelihoodRatio[1]<<" "<<
 double e,p,h;
 e=1/(exp(LikelihoodRatio[0])+exp(LikelihoodRatio[1])-1);
 cout <<" eprob "<<e<<endl;
+if(e<0.5)return false;
 }
 
     // Get hits on the track in outer layers
     TrRecHitR *hit1=track.GetHitLJ(1);
     TrRecHitR *hit9=track.GetHitLJ(9);
-
+    int l19=0;
     // Get the difference between the two alignments
-    AMSPoint diff1,diff9;
+    AMSPoint diff1,diff9,diff1a,diff9a;
     if(hit1) {
+         l19=1;
         diff1=TrExtAlignDB::GetAlDist(hit1);
         cout <<" hi1 "<<diff1*10000<<endl;
+        diff1a=hit1->GetCoord(-1,4);
+        cout <<" hi1a "<<diff1a*10000<<endl;
+        if(fabs(diff1a[1])>30e-4)return false;
     }
     if(hit9) {
+      l19+=10;
       diff9=TrExtAlignDB::GetAlDist(hit9);
         cout <<" hi9 "<<diff9*10000<<endl;
+        diff9a=hit9->GetCoord(-1,4);
+        cout <<" hi9a "<<diff9a*10000<<endl;
+        if(fabs(diff9a[1])>30e-4)return false;
     }
       int it1=-1;
       int it2=-1;
@@ -94,38 +142,70 @@ cout <<" eprob "<<e<<endl;
       int it10=-1;
 {
        TrTrackR & tr=track;
-       it1=tr.iTrTrackPar(11,1,1);
+       it1=tr.iTrTrackPar(21,1,1);
        it2=tr.iTrTrackPar(11,2,1);
        it3=tr.iTrTrackPar(1,3,1);
        it4=tr.iTrTrackPar(2,3,1);
        it5=tr.iTrTrackPar(4,3,1);
        it6=tr.iTrTrackPar(11,3,1);
        int pattern=tr.Pattern(1111111);
-       it7=tr.iTrTrackPar(21,pattern,1);
+       it7=tr.iTrTrackPar(1,pattern,1);
        pattern=tr.Pattern(11111111);
        it8=tr.iTrTrackPar(21,pattern,1);
        pattern=tr.Pattern(101111111);
        it9=tr.iTrTrackPar(21,pattern,1);
        pattern=tr.Pattern(111111111);
        it10=tr.iTrTrackPar(21,pattern,1);
-       int it11=tr.iTrTrackPar(21,pattern,11);
+       int it11=tr.iTrTrackPar(1,pattern,11);
+       int it12=tr.iTrTrackPar(3,pattern,21);
+       int itav=tr.iTrTrackPar(1,pattern,21);
+       int itplus=tr.iTrTrackPar(2,pattern,21,TrFit::Mproton,1,0,ecal.EnergyC);
       double Rigidity=it3>=0?tr.gTrTrackPar(it3).Rigidity:-1;
       double Rigidity8=it8>=0?tr.gTrTrackPar(it8).Rigidity:-1;
       double Rigidity9=it9>=0?tr.gTrTrackPar(it9).Rigidity:-1;
       double Rigidity10=it10>=0?tr.gTrTrackPar(it10).Rigidity:-1;
       double erig=it3>=0?tr.gTrTrackPar(it3).ErrRinv*Rigidity:-1;
+      double ChiRigidity=it12>=0?tr.gTrTrackPar(it12).Rigidity:-1;
       double PiRigidity=it4>=0?tr.gTrTrackPar(it4).Rigidity:-1;
       double GRigidity=it5>=0?tr.gTrTrackPar(it5).Rigidity:-1;
       double rpi=PiRigidity/Rigidity;
       double rchi=GRigidity/Rigidity;
       double rmd=it11>=0?tr.gTrTrackPar(it11).Rigidity:-1;
-      cout <<" Rigidity "<<Rigidity8<< " "<<Rigidity9<<" "<<Rigidity10<<" "<<Rigidity<<" "<<rmd<<endl;
-
+      double rav=itav>=0?tr.gTrTrackPar(itav).Rigidity:-1;
+      double rplus=itplus>=0?tr.gTrTrackPar(itplus).Rigidity:-1;
+      double chisq=itav>=0?tr.gTrTrackPar(itav).Chisq:-1;
+      if(chisq>5)return false;
+      cout <<" chisq "<<chisq<<" "<<tr.gTrTrackPar(it11).Chisq<<" "<<tr.gTrTrackPar(it3).Chisq<<" "<<tr.gTrTrackPar(it7).Chisq<<endl;
+      double chisq_plus=itplus>=0?tr.gTrTrackPar(itplus).Chisq:-1;
+      double chisqx_plus=itplus>=0?tr.gTrTrackPar(itplus).ChisqX:-1;
+      double chisqy_plus=itplus>=0?tr.gTrTrackPar(itplus).ChisqY:-1;
+      int itminus=tr.iTrTrackPar(2,pattern,22,TrFit::Mproton,1,0,-ecal.EnergyC);
+      double rminus=itminus>=0?tr.gTrTrackPar(itminus).Rigidity:-1;
+      double chisqx_minus=itminus>=0?tr.gTrTrackPar(itminus).ChisqX:-1;
+      double chisqy_minus=itminus>=0?tr.gTrTrackPar(itminus).ChisqY:-1;
+      double chisq_minus=itminus>=0?tr.gTrTrackPar(itminus).Chisq:-1;
+      double r=fabs(ecal.EnergyC/ChiRigidity);
+      if(r<0.5 || r>10)return false;
+      cout <<"qwa "<<tr.GetChisq(itminus)<<endl;
+         if(Rigidity8/Rigidity9<0)return false;
+      cout <<" Rigidity "<<Rigidity8<< " "<<Rigidity9<<" "<<Rigidity10<<" "<<Rigidity<<" "<<rmd<<" "<<rav<<" "<<ChiRigidity<<endl;
+      cout <<" chisq "<<ecal.EnergyC<<" "<<rplus<< " "<<rminus<<" "<<chisq_plus<<" "<<chisq_minus<<endl;
+      if(fabs(chisq_minus-chisq_plus)<1)return false;
+if(0){
+      if(rav>0){
+        cerr<<ev->Run()<<" "<<ev->Event()<<" "<<ecal.EnergyC<<" "<<rav<<" "<<l19<<" "<<endl;
+      }
+      else{
+        cerr<<ev->Run()<<" "<<ev->Event()<<" "<<ecal.EnergyC<<" "<<rav<<" "<<l19<<" "<<endl;
+      }
+}
+        cerr<<ev->Run()-1305600000<<" "<<ev->Event()<<" "<<ecal.EnergyC<<" "<<rav<<" "<<l19<<" "<<ecalbdt<<" "<<v2<<" "<<ecal.RearLeak<<" "<<LikelihoodRatio[0]<<" "<<s1<<" "<<chisq<<" "<<ev->fHeader.RunType<<" "<<ev->LiveTime()<<endl;
 
 }
     cout <<" processsetup "<<AMSEventR::ProcessSetup<<endl;
 cout <<"AMSSetupR::ReadHeader-I-"<<ev->getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<ev->getsetup()->getAllTDV(ev->UTime())<<" TDVNamesFound"<<endl;
+
 
 return true;
 }
@@ -136,8 +216,8 @@ return false;
 if(ev->getsetup()){
 string reason="";
 cout <<ev->getsetup()->fHeader.Run<<endl;
-cout << " badrun "<<ev->getsetup()->IsBadRun(reason,ev->UTime())<<" "<<reason<<endl;
-cout << " badrun3 "<<ev->IsBadRun("")<<" "<<endl;
+//cout << " badrun "<<ev->getsetup()->IsBadRun(reason,ev->UTime())<<" "<<reason<<endl;
+//cout << " badrun3 "<<ev->IsBadRun("")<<" "<<endl;
 return true;
 }
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
