@@ -1,7 +1,7 @@
 #include "TRD_SimUtil.h"
 
 TrdSimUtil trdSimUtil;
-#pragma omp threadprivate(trdSimUtil);
+#pragma omp threadprivate(trdSimUtil)
 
 
 void TrdSimUtil::DefineTubeGas( void ) {

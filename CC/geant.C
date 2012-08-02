@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.135 2012/05/04 13:46:49 qyan Exp $
+//  $Id: geant.C,v 1.136 2012/08/02 09:21:54 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -43,6 +43,8 @@
 #include "amsgobj.h"
 #include "commons.h"
 #include <math.h>
+#include <sys/resource.h>
+#include <sys/sysinfo.h>
 #ifndef _PGTRACK_
 #include "trid.h"
 #else
@@ -290,6 +292,43 @@ GPHYSI();
 AMSJob::map(1);
 }
 
+
+int gams::mem_not_enough(int Threshold)
+{
+   using std::ios_base;
+   using std::ifstream;
+   using std::string;
+   using std::cout;
+   using std::endl;
+
+   unsigned long page_size = sysconf(_SC_PAGE_SIZE) / 1024;
+
+   ifstream statm_stream("/proc/self/statm",ios_base::in);
+   unsigned long vmsize=0;
+   if(statm_stream){
+    statm_stream >> vmsize;
+   }
+   statm_stream.close();
+   unsigned long vm_usage = vmsize*page_size;
+
+   struct rlimit ulimit_v;
+   getrlimit(RLIMIT_AS, &ulimit_v);
+   unsigned long ulimit_size = ulimit_v.rlim_cur / 1024;
+
+   struct sysinfo info;
+   sysinfo(&info);
+   unsigned long free_mem = (info.freeram + info.freeswap)*info.mem_unit/1024;
+
+   if ( ulimit_size - vm_usage < Threshold ) {
+     cerr << "gams::mem_not_enough-E-Not enough memory: ULIMIT=" << ulimit_size << ", CUR_USAGE=" << vm_usage << ". Trying to terminate gracefully..." << endl;
+     return 1;
+   }
+   if ( free_mem < 102400 ) {
+     cerr << "gams::mem_not_enough-E-Not enough memory: FREE PHY+SWAP=" << ulimit_size << ", CUR_USAGE=" << vm_usage << ". Trying to terminate gracefully..." << endl;
+     return 1;
+   }
+   return 0;
+}
 
 
 void gams::UGLAST(const char *message){

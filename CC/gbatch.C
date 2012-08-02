@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.125 2012/07/27 12:33:23 choutko Exp $
+//  $Id: gbatch.C,v 1.126 2012/08/02 09:21:54 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -149,7 +149,11 @@ catch (ams_g4exception &){
  }
 #endif
     cerr <<"gbatch-catch-F-G4ExceptionRaised "<<endl;
+try{
     if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
+}
+catch (std::bad_alloc abab){
+}
     UGLAST("catch-F-G4ExceptionRaised");
     exit(1);
     return 1;
@@ -219,7 +223,11 @@ void (handler)(int sig){
 	}
 #endif
 	cerr <<"gbatch-Job Cpu limit exceeded "<<endl;
+try{
 	if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
+}
+catch (std::bad_alloc abab){
+}
 	gams::UGLAST("SIGXCPU");
         exit(1);
 #endif

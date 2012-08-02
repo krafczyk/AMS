@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.92 2012/08/01 17:18:17 choutko Exp $
+//  $Id: geant4.C,v 1.93 2012/08/02 09:21:54 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -392,6 +392,10 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       minit=mall;
       cout<<"  AMSG4EventAction::EndOfEventAction-I-InitialMemoryAllocation "<<m.arena<<" "<<m.uordblks<<" "<<minit<<" "<<G4FFKEY.MemoryLimit<<endl;
       
+    }
+    if(gams::mem_not_enough()){
+      GCFLAG.IEORUN=1;
+      GCFLAG.IEOTRI=1;
     }
     if(G4FFKEY.MemoryLimit>0 && mall-minit>G4FFKEY.MemoryLimit){
       GCFLAG.IEORUN=1;
