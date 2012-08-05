@@ -1,4 +1,4 @@
-// $Id: TrGainDB.C,v 1.5 2012/07/18 10:09:44 choutko Exp $
+// $Id: TrGainDB.C,v 1.6 2012/08/05 22:35:09 oliva Exp $
 
 #include "TrGainDB.h"
 
@@ -364,7 +364,6 @@ bool TrLadGain::LinearToGainDB(float* offset) {
 
 float TrLadGain::GetGainCorrected(float adc, int iva) { 
   if ( (iva<0)||(iva>15) ) return 0;
-  if (!IsSilver(iva)) return 0;
   return (adc + GetOffset(iva))*GetGain(iva);
 }
 
