@@ -8,9 +8,9 @@
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2012/04/22 23:40:34 $
+ $Date: 2012/08/05 22:34:39 $
 
- $Revision: 1.8 $
+ $Revision: 1.8.10.1 $
 */
 
 #include "VCon.h"
@@ -22,6 +22,7 @@
 #include "TrTrack.h"
 #include "TrPdf.h"
 #include "TrPdfDB.h"
+#include "TrGainDB.h"
 
 #include "TFile.h"
 #include "TMath.h"

@@ -67,27 +67,47 @@ double TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
 bool TrCharge::GoodChargeReconCluster(TrClusterR* cluster) {
   // pointer check
   if (cluster==0) return false;
+  // check dead and noise strip inside and around the cluster
   int ndead = 0;
   int nbad  = 0;
-  // loop on cluster strips + one before + one after
   for (int i=-1; i<cluster->GetNelem()+1; i++) {
     int iside   = cluster->GetSide();
     int address = i + cluster->GetAddress();
+    int iva     = int(address/64);
     if (cluster->IsK7()) address = cluster->GetAddress(i);   // cycl.
-    if ( (iside==0)&&(address<640)&&(address>1023) ) continue; // out-of-bounds
-    if ( (iside==1)&&(address<  0)&&(address> 639) ) continue; // out-of-bounds
+    if (
+      ( (iside==0)&&(address<640)&&(address>1023) ) ||
+      ( (iside==1)&&(address<  0)&&(address> 639) ) 
+    ) {
+      printf("TrCharge::GoodChargeReconCluster-W address out of bounds (%d). This must not happen!\n",address);
+      continue; 
+    }
     short status = cluster->GetStatus(i); 
-    ndead += ( (status>>0)&0x1 ) | ( (status>>2)&0x1 ); // dead strips
+    ndead += ( (status>>0)&0x1 ) | ( (status>>2)&0x1 ); 
     nbad  += status!=0;
+  }
+  // check gain calibration status for these strips 
+  int nbadgain = 0;
+  for (int i=0; i<cluster->GetNelem(); i++) {
+    int address = i + cluster->GetAddress();
+    int iva     = int(address/64);
+    TrLadGain* ladgain = TrGainDB::GetHead()->FindGainTkId(cluster->GetTkId());
+    if (ladgain==0) {
+      printf("TrCharge::GoodChargeReconCluster-W gain not found (tkid=%+4d). This must not happen!\n",cluster->GetTkId());
+      continue;
+    }
+    if (!ladgain->IsSilver(iva)) nbadgain++;
   }
   // dead strip  
   bool dead = (ndead>0);
-  // no noisy cluster 
+  // no noisy cluster (disabled)
   bool bad  = false; // (nbad>3); // good
-  // good cluster shape: not implemented for now
+  // no bad VAs
+  bool badgain = (nbadgain>0);
+  // good cluster shape (not implemented for now)
   bool badshape = false;
   // return
-  return (!dead)&&(!bad)&&(!badshape);
+  return (!dead)&&(!bad)&&(!badgain)&&(!badshape);
 }
 
 
@@ -186,9 +206,9 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
   }
 
   // rigidity
-//  cout << "rigidity...fit_id=" << fit_id << flush;
+  // cout << "rigidity...fit_id=" << fit_id << flush;
   float rigidity = track->GetRigidity(fit_id);
- // cout << "rigidity=" << rigidity << endl;
+  // cout << "rigidity=" << rigidity << endl;
 
   // track hit loop
   vector<float> signal;

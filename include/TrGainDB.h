@@ -1,4 +1,4 @@
-// $Id: TrGainDB.h,v 1.5 2012/07/18 09:40:56 oliva Exp $
+// $Id: TrGainDB.h,v 1.5.2.1 2012/08/05 22:34:39 oliva Exp $
 
 #ifndef __TrGainDB__
 #define __TrGainDB__
@@ -181,7 +181,7 @@ class TrGainDB : public TObject {
   //! Load from TDV
   int  LoadFromTDV(long int time, int isReal = 1);
 
-  //! Apply correction to a strip (very bad VA are excluded)
+  //! Apply correction to a strip
   float GetGainCorrected(float adc, int tkid, int iva); 
 
   //! Display gains as a 2D histogram 
