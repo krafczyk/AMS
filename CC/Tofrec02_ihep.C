@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.17 2012/07/26 22:25:59 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.17.2.1 2012/08/07 13:34:54 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -852,8 +852,8 @@ int TofRecH::BetaFitT(number time[],number etime[],number len[],const int nhits,
        cout<<"<--- AMSBeta::SimpleFit BetaOut-OfRange "<<Beta<<endl;
        cout<<"TimeRec=";for(i=0;i<nhits;i++)cout<<y[i]<<" ";cout<<endl;
      }
-     if(Beta>0)Beta=2;
-     else Beta=-2;
+//     if(Beta>0)Beta=2;
+//     else Beta=-2;
    }
   T0=b/cvel;
 
