@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.459 2012/07/27 14:20:17 sdifalco Exp $
+//  $Id: root.h,v 1.459.2.1 2012/08/07 08:21:29 pzuccon Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -319,8 +319,6 @@ public:
 #endif
   friend class AMSEventR;
 
-
-
 int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, float dt=0); ///<get AMSSetupR::ISSSA values for the current event time;
 
 int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSCTRS values for the current event time;
@@ -334,7 +332,7 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 //--------DSP Errors-----------------------
  int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
-//-----------------------------------------
+ //-----------------------------------------
 
   //#ifdef _PGTRACK_
   friend class VCon_root;
@@ -394,6 +392,14 @@ public:
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
+  /// Checks the error bits (0x7F00) on the four JINJStatus word and return True if any of these bit is up
+  bool HasHWError(){
+   return ( (JINJStatus[0]&0x7F00)>0 ||
+            (JINJStatus[1]&0x7F00)>0 ||
+            (JINJStatus[2]&0x7F00)>0 ||
+            (JINJStatus[3]&0x7F00)>0
+	  );
+  }
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
 ClassDef(DaqEventR,8)       //DaqEventR
@@ -550,9 +556,6 @@ friend class AMSEventR;
 };
 
 
-
-
-
 /*!
   \class EcalShowerR
   \brief 3d ecal shower description
@@ -690,10 +693,10 @@ public:
   ///< Updated June 2012 -
   ///< 90% efficiency cut (based on electron-like flight events) is -1.23
   ///< Relies on normalised variables (Nxxx) -
-  ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
-  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()  
+  ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to 
+  ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
 
-
+ 
 
   /// Pisa function to obtain the Boosted Decision Tree Classifier for shower, trained on ISS.B552 data.
   /// An How To for selecting electrons with 90%, 80% and 70% efficieny is availble at <a href="https://twiki.cern.ch/twiki/bin/view/AMS/ClassMethods">this page</a>.
