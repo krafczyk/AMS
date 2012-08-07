@@ -1,10 +1,19 @@
-#  $Id: Makefile.linux,v 1.33 2012/07/26 17:20:14 mkrafczy Exp $
+#  $Id: Makefile.linux,v 1.34 2012/08/07 11:01:23 ams Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
 #
 
 #   Architecture linux g++
+#
+# List of SLC6 changes
+#
+#[ae-2012.08.02] - ORBIT2DIR=/opt/Orbit2 changed to /afs/ams.cern.ch/opt/Orbit2 
+#[ae-2012.08.02] - change local /usr/X11R6 to afs location
+ifndef 
+  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+endif
+#
 
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
@@ -43,6 +52,11 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 endif
 
+SLC6system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+endif
+
 SLC4system=1
 RH9=1
 RH9add=
@@ -53,16 +67,11 @@ endif
 RH9add=-pthread $(BIN)ctype.o 
 
 
-
 ########################################################################
 #Compilers
 ########################################################################
-ifneq "$(origin CC)" "environment"
   CC  = gcc -m32 
-endif
-ifneq "$(origin CXX)" "environment"
   CXX = g++ -m32
-endif
 ifdef VERGCC 
   FF  = gfortran -m32 
   FORTRAN_LIBS= -lg2c -lgfortran 
@@ -71,18 +80,15 @@ else
   FORTRAN_LIBS=-lg2c 
 endif
   FFOLD=$(FF)
-ifneq "$(origin LD)" "environment"
   LD  = g++ -m32
-endif
   FORTRAN2_LIBS=
-
-ifdef VERGCCH 
+ifdef VERGCCH
   FORTRAN_LIBS=  -lgfortran 
 endif
 
-ORBIT2DIR=/opt/Orbit2
-IDL=$(ORBIT2DIR)/bin/orbit-idl-2
-IDLCPP=orbit-idl-2 -l cpp
+ORBIT2DIR=/afs/ams.cern.ch/opt/Orbit2
+IDL=/usr/bin/orbit-idl-2
+IDLCPP=$(IDL) -l cpp
 
 
 ########################################################################
@@ -90,37 +96,61 @@ IDLCPP=orbit-idl-2 -l cpp
 ########################################################################
 CERNLIBS= -lgeant321 -lpacklib_noshift -lmathlib -lkernlib_noshift
 
-ifndef CERN_LEVEL
-CERN_LEVEL = pro
-endif
+ifndef SLC6system
+  ifndef CERN_LEVEL
+    CERN_LEVEL = pro
+  endif
 
-ifndef CERNDIR
-CERNSRCDIR = /cern/$(CERN_LEVEL)
-CERNDIR = /cern/$(CERN_LEVEL)
+  ifndef CERNDIR
+    CERNDIR = /cern/$(CERN_LEVEL)
+    CERNSRCDIR = /cern/$(CERN_LEVEL)
+  else
+    CERNSRCDIR = $(CERNDIR)
+  endif
+  CERNDIRLIB = $(CERNDIR)/lib
 else
-CERNSRCDIR = $(CERNDIR)
+  ifndef CERN_LEVEL
+    CERN_LEVEL = 2005
+  endif
+
+  ifndef CERNDIR
+    acerndir =/afs/cern.ch/exp/ams/Offline/CERN
+    CERNDIR = $(acerndir)/$(CERN_LEVEL)
+    CERNSRCDIR = $(acerndir)/$(CERN_LEVEL)
+    # no includes here
+    CERNDIRLIB = $(acerndir)/2006.gcc32.43/lib
+  else
+    CERNSRCDIR = $(CERNDIR)
+    CERNDIRLIB = $(CERNDIR)/lib
+  endif
 endif
 
 ifndef AMSLIB
-AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
-ifdef VERGCC
-AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc4
-endif
+  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
+  ifdef VERGCC
+    ifndef SLC6system
+      AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc4
+    else
+      AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc32.43
+    endif
+  endif
 endif
 
+NAGLIB = -lnag
 ifndef NAGDIR
-NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
+  ifndef SLC6system
+    NAGDIR = /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
+  else
+    NAGDIR = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+	NAGLIB = -lnaggfortran32
+  endif
 endif
-
 
 
 ########################################################################
 # Compilers FLAGS
 ########################################################################
 
-ifdef NOCASTOR
-DEFINES+=  -D__NOCASTOR__
-endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -190,11 +220,7 @@ ifdef SLC4system
 ifdef VER
 else
 # SOFLAGS+=$(shell root-config --libs ) 
-ifndef NOCASTOR
  SOFLAGS+=   -L/$(ROOTSYS)/lib -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer -lPhysics
-else
- SOFLAGS+=   -L/$(ROOTSYS)/lib -lRIO -lTree -lThread -lGpad   -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer -lPhysics
-endif
 # -L$(CERNDIR)/lib -lmathlib -lgeant -lpacklib -lgfortran
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2
@@ -220,19 +246,19 @@ F11ADD= -ltinfo
 endif 
 
 LDFLAGSI=    -static $(G4LIBS)  $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag \
+-L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
--L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
- -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
+-L$(IMPORTS_X11R6)/lib  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -lncurses $(F11ADD) -ldl -lpcre   \
- $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 
 LDFLAGS=   $(G4LIBS)   $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag   \
+-L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB)  -lamsut   \
--L$(CERNDIR)/lib   $(CERNLIBS) \
+-L$(CERNDIRLIB) $(CERNLIBS) \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -lncurses $(F11ADD) -ldl -lpcre\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
@@ -255,15 +281,17 @@ endif
 
 TIMEL=
 
-LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
+ifndef SLC6system
+  LDFLAGSIDL= -L$(ORBIT2DIR)/lib -L/lib -pthread -lORBit-2-cpp 
+else
+  LDFLAGSIDL= -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp 
+endif
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
-
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
-
+CXX_ORBIT=$(CXX) -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbit-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/orbit-2.0 -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g

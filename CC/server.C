@@ -1,9 +1,9 @@
-//  $Id: server.C,v 1.201 2012/07/27 12:33:23 choutko Exp $
+//  $Id: server.C,v 1.202 2012/08/07 11:02:15 ams Exp $
 //
 #include <stdlib.h>
 #include "server.h"
-#include <fstream.h>
-#include <iostream.h>
+#include <fstream>
+#include <iostream>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
@@ -3384,7 +3384,9 @@ table= vtable._retn();
 return length;
 }
 }
-#include <new.h>
+
+#include <new>
+
 Producer_impl::TIDI & Producer_impl::_findTDV(const DPS::Producer::TDVName & tdv){
 AMSID id((const char*)tdv.Name,tdv.DataMC);
 cout <<"findtdv "<<id<<" F "<<(const char*)tdv.File<<" S "<<tdv.Size<<endl;

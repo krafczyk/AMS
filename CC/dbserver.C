@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.31 2008/06/27 10:36:34 choutko Exp $
+//  $Id: dbserver.C,v 1.32 2012/08/07 11:02:15 ams Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -10,7 +10,7 @@
 
 #include <stdlib.h>
 #include "server.h"
-#include <fstream.h>
+#include <fstream>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>

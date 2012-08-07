@@ -1,8 +1,30 @@
-#  $Id: Makefile.linuxx8664icc,v 1.21 2012/07/26 11:47:58 mkrafczy Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.22 2012/08/07 11:01:23 ams Exp $
 
 # General clean up and reorganization
 #
 #   LINUX intel64 architecture ICC compiler
+#
+# List of SLC6 changes
+#
+SLC6system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+endif
+#
+#[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
+#    libcrypt.a  libexpat.a  libfontconfig.a  libshift.a      
+#
+IMPORTS_SLC5_LIBS=
+ifdef SLC6system
+  IMPORTS_SLC5_LIBS= -L/afs/ams.cern.ch/opt/lib64
+endif
+#
+#[ae-2012.08.02] - ORBIT2DIR=/opt/Orbit2 changed to /afs/ams.cern.ch/opt/Orbit2 
+#[ae-2012.08.02] - change local /usr/X11R6 to afs location
+ifndef 
+  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+endif
+#
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
@@ -20,11 +42,6 @@ ifneq "$(wildcard /etc/redhat-release)" ""
  SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
 endif
 
-SLC6system=
-ifneq "$(wildcard /etc/redhat-release)" ""
- SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
-endif
-
 ifdef SLC4system
 else
 ifneq "$(wildcard /etc/redhat-release)" ""
@@ -37,6 +54,11 @@ RH9=1
 RH9add=
 ifdef RH9
  RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+endif
+
+SLC6system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
 
 RH9add=-pthread $(BIN)ctype.o 
@@ -67,17 +89,17 @@ endif
 #  INTELVER=composer_xe_2011_sp1.9.293/compiler/
   INTELOPT=-axsse4.2,ssse3 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) -vec-report0  $(PARALLEL)
-  CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc    $(INTELOPT) $(PARALLEL)
-  LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc   $(INTELOPT)  $(PARALLEL) 
+  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(INTELOPT) -vec-report0  $(PARALLEL)
+  CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) $(PARALLEL) 
+  LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save
   FFLAGSSAVE= -save
   FORTRAN_LIBS=
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
 
-ORBIT2DIR=/opt/Orbit2
-IDL=$(ORBIT2DIR)/bin/orbit-idl-2
-IDLCPP=orbit-idl-2 -l cpp
+ORBIT2DIR=/afs/ams.cern.ch/opt/Orbit2
+IDL=/usr/bin/orbit-idl-2
+IDLCPP=$(IDL) -l cpp
 
 
 ########################################################################
@@ -89,31 +111,27 @@ CERN_LEVEL =2005
 
 CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib 
 
-
 ifndef CERNDIR
-CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
-ifdef DEBUGFLAG
-CERNDIR =/f2users/choutko/cernlib_64g/$(CERN_LEVEL)
+  CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
+  ifdef DEBUGFLAG
+    CERNDIR =/f2users/choutko/cernlib_64g/$(CERN_LEVEL)
+  endif
 endif
-endif
-
 
 CERNSRCDIR = $(CERNDIR)
 
 ifndef AMSLIB
-AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc64
+  AMSLIB = /afs/cern.ch/exp/ams/Offline/lib/linux/icc64
 endif
+
 ifndef NAGDIR
-NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+  NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 endif
 
 ########################################################################
 # Compilers FLAGS
 ########################################################################
 
-ifdef NOCASTOR
-DEFINES+=  -D__NOCASTOR__
-endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -127,12 +145,13 @@ ifdef TFAPEDC
 DEFINES+=  -D__TFAPEDC__
 endif
 
-
 CFLAGSB= -Wno-deprecated -fPIC  
-DEFINES+= -D__root_$(NEW) -D__LINUXGNU__ -D__ICC__
 
+DEFINES += -D__root_$(NEW) -D__ICC__
 ifdef SLC6system
- DEFINES+= -D__LINUXSLC6__
+  DEFINES += -D__LINUXSLC6__ -D__LINUXGNU__
+else
+  DEFINES += -D__LINUXGNU__
 endif
 
 ifdef AMSPROFILE
@@ -179,11 +198,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
-ifndef NOCASTOR
  SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
-else
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
-endif
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2
 endif
@@ -203,21 +218,20 @@ endif
 
 TIMEL=
 
-
 LDFLAGSI=    -static $(G4LIBS)  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag64 \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype -lncurses\
- -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre   \
- $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add) 
+-L$(IMPORTS_X11R6)/lib64  -lXmu -lXt -lXext -lX11 \
+$(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre   \
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add) 
 
 LDFLAGS=     $(G4LIBS)  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype -lncurses  -ldl -lpcre\
+-L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -lfreetype -lncurses  -ldl -lpcre\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
@@ -226,11 +240,7 @@ endif
 
 LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
 
-
-
 LDFLAGS+= -lcxa -lcprts
-
-
 
 
 #--------------------------------------------------------------------------------------------------
@@ -239,15 +249,12 @@ LDFLAGS+= -lcxa -lcprts
 
 TIMEL=
 
-LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp -lORBit-2 
+LDFLAGSIDL= -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp -lORBit-2
 
-LDFLAGSSTATICIDL= -static  $(LDFLAGSIDL)   -lgobject-2.0 -lgthread-2.0 \
--lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt -lnsl   
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2 -lrt -lnsl   
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
-
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
-
+CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/orbit-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/orbit-2.0 -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g

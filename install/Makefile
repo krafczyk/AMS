@@ -48,6 +48,14 @@
 #  AMSLIB AMSICCLIB  directory for where ams libraries (amsutil.a)
 #  NAGDIR            directory for NAG 
 
+# List of SLC6 changes
+#
+SLC6system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+endif
+#
+
 SHELL=/bin/sh
 
 #-----------------------DEFAULTS------------------------------
@@ -953,44 +961,46 @@ cleanlibs:
 	cd ../python; gmake clean
 	cd ../install
 all:
-	$(MAKE) -j 
-	$(MAKE) -j lib 
-	$(MAKE) -j gxint
+	$(MAKE) -j8 
+	$(MAKE) -j8 lib 
+	$(MAKE) -j8 gxint
 	$(MAKE) -i producer
-	$(MAKE) -j -C../online
-	$(MAKE) -j -C../online osdepend
-	$(MAKE) -j -C../display
-	$(MAKE) -j -C../display osdepend
+	$(MAKE) -j8 -C../online
+	$(MAKE) -j8 -C../online osdepend
+	$(MAKE) -j8 -C../display
+	$(MAKE) -j8 -C../display osdepend
 allg4:
-	$(MAKE) -j 
-	$(MAKE) -j lib 
-	$(MAKE) -j gxint
+	$(MAKE) -j8 
+	$(MAKE) -j8 lib 
+	$(MAKE) -j8 gxint
 	$(MAKE) -i producer
-	$(MAKE) -j -C../online
-	$(MAKE) -j -C../online osdepend
-	$(MAKE) -j -C../display
-	$(MAKE) -j -C../display osdepend
-	$(MAKE) -j -f Moptg4
+	$(MAKE) -j8 -C../online
+	$(MAKE) -j8 -C../online osdepend
+	$(MAKE) -j8 -C../display
+	$(MAKE) -j8 -C../display osdepend
+ifndef SLC6system
+	$(MAKE) -j8 -f Moptg4
 	$(MAKE)  producer -f Moptg4 -i
+endif
 allp:
-	$(MAKE) -j 
-	$(MAKE) -j lib 
-	$(MAKE) -j gxint
+	$(MAKE) -j8 
+	$(MAKE) -j8 lib 
+	$(MAKE) -j8 gxint
 	$(MAKE) -i producer
-	$(MAKE) -j -C../online
-	$(MAKE) -j -C../online osdepend
-	$(MAKE) -j -C../display
-	$(MAKE) -j -C../display osdepend
+	$(MAKE) -j8 -C../online
+	$(MAKE) -j8 -C../online osdepend
+	$(MAKE) -j8 -C../display
+	$(MAKE) -j8 -C../display osdepend
 	$(MAKE) server
 allold:
-	$(MAKE) -j 
-	$(MAKE) -j lib 
+	$(MAKE) -j8 
+	$(MAKE) -j8 lib 
 	$(MAKE) -i producer
 	$(MAKE) -f Makefastntrdicc
-	$(MAKE) -j -C../online
-	$(MAKE) -j -C../online osdepend
-	$(MAKE) -j -C../display
-	$(MAKE) -j -C../display osdepend
+	$(MAKE) -j8 -C../online
+	$(MAKE) -j8 -C../online osdepend
+	$(MAKE) -j8 -C../display
+	$(MAKE) -j8 -C../display osdepend
 
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"

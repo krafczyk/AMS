@@ -1,10 +1,31 @@
-#  $Id: Makefile,v 1.55 2012/04/27 17:03:13 choutko Exp $
+#  $Id: Makefile,v 1.56 2012/08/07 11:01:40 ams Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
 
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
+#
+# List of SLC6 changes
+#
+SLC6system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+endif
+#
+#[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
+#    libcrypt.a  libexpat.a  libfontconfig.a  libshift.a     
+#
+IMPORTS_SLC5_LIBS=
+ifdef SLC6system
+  IMPORTS_SLC5_LIBS= -L/afs/ams.cern.ch/opt/lib64
+endif
+#
+#[ae-2012.08.02] - change local /usr/X11R6 to afs location
+ifndef 
+  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+endif
+#
 
 
 ifndef AMSWD
@@ -29,7 +50,6 @@ else
 endif
 
 
-
 # display compiles only with customized ROOT, at the moment v5.21
 NEW         :=_new
 
@@ -37,6 +57,7 @@ VER          := $(shell $(ROOTSYS)/bin/root-config --version )
 
 
 ifeq ($(ARCH),linuxicc)
+
 CXX           =  /opt/intel/Compiler/11.1/073/bin/ia32/icc 
 CPPFLAGS      =   -m32  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
@@ -57,47 +78,63 @@ LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 
 endif
 
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
-ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
-	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
+ROOTLIBSA     =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+	             -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
+                 -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
-LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
+LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm -Bdynamic -ldl 
 
 endif
 ifeq ($(ARCH),linuxx8664icc)
-CXX           =  /opt/intel/Compiler/11.1/073/bin/intel64/icc 
-CPPFLAGS      =     -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
-		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
+
+ifndef SLC6system
+  INTELVER=/opt/intel/Compiler/11.1/073/
+else
+  INTELVER=/opt/intel/composer_xe_2011_sp1.9.293/
+endif
+CXX           =  $(INTELVER)/bin/intel64/icc
+CPPFLAGS      =  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2
 CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
+ifdef SLC6system
+  CPPFLAGS += -D__LINUXNEW__
+endif
 OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
-LD            = /opt/intel/Compiler/11.1/073/bin/intel64/icpc  -axssse3 -openmp -static-intel
+LD            = $(INTELVER)/bin/intel64/icpc  -axssse3 -openmp -static-intel
 ifdef PGTRACK
-LDFLAGS       = 
-LFORT= -lifcore
+  LDFLAGS       = 
+  LFORT= -lifcore
 else
-LDFLAGS = 
-LFORT =  -L/afs/cern.ch/exp/ams/Offline/CERN/2005/lib -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/intel64 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+  LDFLAGS = 
+  CERNDIRLIB = /afs/cern.ch/exp/ams/Offline/CERN/2005/lib
+  LFORT =  -L$(CERNDIRLIB) -lgeant321  -lminuit -lpacklib -lmathlib -lkernlib  -L$(INTELVER)/lib/intel64 -lifport -lifcoremt -limf  -lipgo -lirc_s
+  ifndef SLC6system
+    LFORT += -lguide
+  endif
 endif
 LDS	= 	$(LD) -Bstatic
 LDD	= 	$(LD) -Bdynamic
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
-ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
-	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat  -lncurses \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
+ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
+ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+	            $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat  -lncurses \
+                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet 
+ifndef SLC6system
+  ROOTLIBSA += -lXrdNetUtil
+endif
+ROOTLIBSA += -lXrdOuc -lXrdSys $(LFORT)
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl 
-LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
+LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm -Bstatic -ldl 
 
 endif
 ifeq ($(ARCH),linux)
 
 CXX           =  g++ -m32 
-CPPFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 OPTC          = -g
@@ -114,19 +151,22 @@ LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_gcc32/2005/lib -lgeant321
 endif
 
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF $(LFORT)
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
-	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
+ROOTLIBSA     =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+	             -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
+                 -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
-endif
 
+endif
 ifeq ($(ARCH),linuxx8664gcc)
 
 CXX           =  g++
-CPPFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+ifdef SLC6system
+  CPPFLAGS += -D__LINUXNEW__
+endif
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -O2
 OPTC          = -O0
@@ -136,20 +176,24 @@ LDFLAGS       = -g
 ifdef PGTRACK
 LFORT= -lgfortran
 else
-LFORT =  -L/afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib  -lgfortran
+  ifndef SLC6system
+    CERNDIRLIB = /afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib
+  else  
+    CERNDIRLIB = /afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64.44/lib
+  endif  
+  LFORT = -L$(CERNDIRLIB) -lgeant321 -lpacklib -lmathlib -lkernlib  -lgfortran
 endif
 LDS	= 	$(LD) -static
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF $(LFORT)
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
-	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
+ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+	            $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
+                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
-
-LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
-LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
+LIBS          = -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
+LIBSA         = $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
 endif
 
 
@@ -238,7 +282,7 @@ MAINOC         = $(MAINC:.cxx=.o)
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
 
 
-ALLDICT       = $(DICT) $(DICTH) 
+ALLDICT       = $(DICT) $(DICTH) 8
 ALLSRCS       = $(SRCS  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
 ALLOBJS       = $(OBJS) $(MAINO) 
 
@@ -287,7 +331,7 @@ $(DICT):        $(HDRS) LinkDef.h
 
 
 
-../include/root_methods$(PG).h:      ../perl/root.perl
+../include/root_methods$(P$(IMPORTS_SLC5_LIBS) G).h:      ../perl/root.perl
 	perl ../perl/root.perl
 
 AMSEverything$(PG).cxx:      ../perl/online.perl ../include/root_methods$(PG).h
