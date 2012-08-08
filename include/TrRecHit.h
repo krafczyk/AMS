@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.41.4.1 2012/07/25 12:04:38 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.41.4.2 2012/08/08 16:39:15 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -162,7 +162,7 @@ public:
   const AMSPoint GetCoord(int imult=-1, int force=0){
     //sanity check on input pars
     if(imult>=_mult|| imult<-1) return AMSPoint(0,0,0);
-    if(force<0|| force>4) return AMSPoint(0,0,0);
+    if(force<0|| force>5) return AMSPoint(0,0,0);
     
     int reqmult=imult;
     if(imult==-1) reqmult=GetResolvedMultiplicity();
