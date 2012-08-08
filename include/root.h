@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.460 2012/08/07 08:20:42 pzuccon Exp $
+//  $Id: root.h,v 1.461 2012/08/08 17:17:39 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -466,13 +466,13 @@ static char _Info[255];
 public:
   unsigned int Status;    ///<  Statusword
                  /*!< valid values are:\n
-                                                     WIDE=2   \n
-                                                     BAD =16  \n
-                                                     USED=32  \n
-                                                     NEAR=102 \n
-                                                     LEAK=16777216  \n
-                                                     CATASTROPHICLEAK=33554432 \n
-                                                     JUNK=67108864 \n
+           widecluster >4 hits                       WIDE=2   \n
+           no signal or noise                        BAD =16  \n
+           used in shower                            USED=32  \n
+           next cluster just nearby                  NEAR=102 \n
+           side leak detected and corrected          LEAK=16777216  \n
+           side leak detected and not corrected      CATASTROPHICLEAK=33554432 \n
+            isolated clusters below threshold - will not be used for shower                                          JUNK=67108864 \n
                 */
 
   int Proj;   ///< projection (0x, 1y)
@@ -524,7 +524,10 @@ ClassDef(EcalClusterR,1)       //EcalClusterR
 
 class Ecal2DClusterR{
 public:
-  unsigned int Status;   ///< statusword
+  unsigned int Status;   ///< statusword 
+                 /*!< valid values are:\n
+           used in shower                            USED=32  \n
+                */
   int Proj;     ///< projection 0-x 1-y
   float Edep;   ///< energy (mev)
   float Coo;    ///< str line fit coo (cm)
@@ -569,6 +572,10 @@ class EcalShowerR {
 static char _Info[255];
 public:
   unsigned int   Status;    ///< status word \sa EcalHitR status
+                 /*!< valid values are:\n
+           used in particle                            USED=32  \n
+           energy estimatation not reliable      CATASTROPHICLEAK=33554432 \n
+                */
   ///
   float Dir[3];    ///< direction cos array
   float EMDir[3];  ///< direction cos array for emag type shower
