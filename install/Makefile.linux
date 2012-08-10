@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.34 2012/08/07 11:01:23 ams Exp $
+#  $Id: Makefile.linux,v 1.35 2012/08/10 14:44:13 ams Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -88,7 +88,11 @@ endif
 
 ORBIT2DIR=/afs/ams.cern.ch/opt/Orbit2
 IDL=/usr/bin/orbit-idl-2
-IDLCPP=$(IDL) -l cpp
+ifndef SLC6system
+  IDLCPP=$(IDL) -l cpp
+else
+  IDLCPP=$(IDL) --backenddir=$(ORBIT2DIR)/idl-backends -l cpp
+endif
 
 
 ########################################################################

@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.22 2012/08/07 11:01:23 ams Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.23 2012/08/10 14:44:14 ams Exp $
 
 # General clean up and reorganization
 #
@@ -99,7 +99,11 @@ endif
 
 ORBIT2DIR=/afs/ams.cern.ch/opt/Orbit2
 IDL=/usr/bin/orbit-idl-2
-IDLCPP=$(IDL) -l cpp
+ifndef SLC6system
+  IDLCPP=$(IDL) -l cpp
+else
+  IDLCPP=$(IDL) --backenddir=$(ORBIT2DIR)/idl-backends -l cpp
+endif
 
 
 ########################################################################
