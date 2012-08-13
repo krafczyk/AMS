@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rdlastraw.perl,v 1.2 2012/08/13 16:59:57 choutko Exp $
+#  $Id: rdlastraw.perl,v 1.3 2012/08/13 17:07:15 choutko Exp $
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
@@ -33,7 +33,11 @@ unshift @ARGV, "-Fpdb_ams";
                  my $phone="164733";
                  my $dl=10800;
                  my $dlr=3600;
+my $nook=0;
 my $okonly=0;
+my $nowarning=0;
+my $nowarning2=0;
+my $sci="";
    my $run2p="";
    foreach my $chop  (@ARGV){
    if ($chop =~/^-dl/) {
@@ -49,6 +53,19 @@ my $okonly=0;
    if ($chop =~/^-ok/) {
        $okonly=1;
    }
+   if ($chop =~/^-sci/) {
+       $sci="and type like 'SCI%'";
+   }
+   if ($chop =~/^-nook/) {
+       $nook=1;
+   }
+   if ($chop =~/^-nowarning/) {
+       $nowarning=1;
+   }
+   if ($chop =~/^-nowarning2/) {
+       $nowarning=1;
+       $nowarning2=1;
+   }
 }
 
     my $o=new DBSQLServer();
@@ -56,10 +73,11 @@ my $okonly=0;
 my @good=();
 my @goodplus=();
 my @goodtime=();
-if($ok){
+my @gooddelay=(0,0,0);
+if($ok && !$nook){
     my $timenow=time();
-    $timenow-=3600*24;
-    my $sql = "SELECT path,timestamp,run fROM amsdes.datafiles  where  timestamp>$timenow and type not like 'MC%' ORDER BY timestamp desc";
+    $timenow-=3600*24;  
+    my $sql = "SELECT path,timestamp,run fROM amsdes.datafiles  where  timestamp>$timenow and type not like 'MC%' $sci ORDER BY timestamp desc";
          my $ret=$o->Query($sql);
     my $delay=3600*24;
     $goodtime[0]=0;
@@ -68,10 +86,13 @@ if($ok){
          if (defined $ret->[0][0]) {
             $delay=$timenow+3600*24-$ret->[0][1];
             $goodtime[0]=$ret->[0][1];
+            $gooddelay[0]=$delay;
          }
-             if(!$okonly){
+             if(!$okonly ){
+         if (defined $ret->[0][0]) {
                 print "$ret->[0][0] $ret->[0][1] $delay \n";
             }
+         }
              else{
  
          $sql = "SELECT path,run,timestamp fROM amsdes.ntuples  where datamc=1 and version like 'v5.00%' and path not like '%hbk' and timestamp>$timenow-3600 and path like '%/std%'  $run2p  ORDER BY timestamp desc";
@@ -83,20 +104,22 @@ if($ok){
          $good[0]=$delay<$dl?"OK":"NORAWFILES";
          $goodplus[0]=$delay<$dl+$dlr?"OK":"NORAWFILES";
          if(defined $rdlast->[0][0]){
-           my $delayroot=$timenow+3600*24-$ret->[0][2];
-                 $good[1]=$delayroot<$dl+$dlr?"OK":"NOROOTFILES";
-                 $goodplus[1]=$delay<$dl+$dlr+$dlr?"OK":"NORAWFILES";
-                 $goodtime[1]=$ret->[0][2];
+           my $delayroot=$timenow+3600*24-$rdlast->[0][2];
+                 $good[1]=$delayroot<$dl+$dlr*2?"OK":"NOROOTFILES";
+                 $goodplus[1]=$delay<$dl+$dlr+$dlr*2?"OK":"NOROOTFILES";
+                 $goodtime[1]=$rdlast->[0][2];
+                 $gooddelay[1]=$delayroot;
          }
          else{
           $good[1]="NOROOTFILES";
           $goodplus[1]="NOROOTFILES";
          } 
          if(defined $rdlastr->[0][0]){
-           my $delayrun=$timenow+3600*24-$ret->[0][2];
-                 $good[2]=$delayrun<$dl+$dlr*3?"OK":"NOFRESHRUNS";
-                 $goodplus[2]=$delayrun<$dl+$dlr*3+$dlr?"OK":"NOFRESHRUNS";
-                 $goodtime[2]=$ret->[0][2];
+           my $delayrun=$timenow+3600*24-$rdlastr->[0][2];
+                 $good[2]=$delayrun<$dl+$dlr*5?"OK":"NOFRESHRUNS";
+                 $goodplus[2]=$delayrun<$dl+$dlr*5+$dlr?"OK":"NOFRESHRUNS";
+                 $goodtime[2]=$rdlastr->[0][2];
+                 $gooddelay[2]=$delayrun;
          }
          else{
           $good[2]="NOFRESHRUNS";
@@ -104,17 +127,21 @@ if($ok){
          } 
 #                 print "$good[0] $good[1] $good[2] \n";
                  my $mess=",";
-                 my $warn=0;                 
+                 my $warn=0;
+                 my $i=0;                 
                  foreach my $gd (@good){
-                     if($gd ne 'OK'){
+                     if($gd ne 'OK' and not $nowarning){
                          $warn=1;
                      }
                      $mess=$mess." $gd";
+                     if($nowarning2){
+                       $mess=$mess."$gooddelay[$i++] ";
+                     }
                      
                  }
                  my $warnplus=0;                 
                  foreach my $gd (@goodplus){
-                     if($gd ne 'OK'){
+                     if($gd ne 'OK' and not $nowarning){
                          $warnplus=1;
                      }
                      
@@ -131,7 +158,7 @@ if($ok){
              my $expert_notified=0;
              my $addmessage="Call Expert  $phone";
          if($time>$goodtime[0] or $time>$goodtime[1] or $time>$goodtime[2]){
-             $addmessage="Expert Notified ";
+             $addmessage="Expert Was Notified ";
              $expert_notified=1;
           } 
              if(not $expert_notified){
@@ -149,13 +176,17 @@ if($ok){
              }
          
              $mess=$addmessage.$mess;               
+        }
+        else{
+             $mess="SOC Status $mess";               
         }        
                  print "$mess \n";
      }
       
 }
     else{
-        print "NODB \n";
+        my $addmessage="Call Expert  $phone";
+        print "$addmessage,NODB \n";
     }
 
 
