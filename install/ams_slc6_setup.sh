@@ -1,5 +1,14 @@
 #!/bin/tcsh
 
+# Prepare an slc6 computer to build the AMS components,
+# currently for 64-bit compilation, except amsprodserver
+
+setenv CXXVERS `g++ -dumpversion | tr -d "."`
+if ( "$CXXVERS" < "440" || "$CXXVERS" >= "450") then
+  echo "We are not on SLC6 computer"
+  exit
+endif
+
 ln -s /afs/cern.ch/ams/Offline /Offline
 ln -s /afs/cern.ch/asis /asis
 ln -s /afs/cern.ch/asis/i386_redhat72/cern /cern
