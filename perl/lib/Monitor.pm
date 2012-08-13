@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.162 2012/06/29 12:24:31 ams Exp $
+# $Id: Monitor.pm,v 1.163 2012/08/13 10:22:04 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -2861,7 +2861,7 @@ warn "   ***evrthing finished***\n";
 
 sub DeleteValidatedDst{
  my $ref=shift;
- return;
+ #return;
 
 #
 # Find ntuples without runs and delete them

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.741 2012/07/27 12:33:39 choutko Exp $
+# $Id: RemoteClient.pm,v 1.742 2012/08/13 10:22:05 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14142,7 +14142,7 @@ foreach my $block (@blocks) {
         }
         else{
           $sql = "SELECT disk   FROM filesystems WHERE 
-                   status='Full' and  Allowed=0 and isonline=1 and path='$path' and disk='$disk' ORDER BY priority DESC, available ";
+                   status='Full' and  Allowed=0  and path='$path' and disk='$disk' ORDER BY priority DESC, available ";
         $ret=$self->{sqlserver}->Query($sql);
         if(defined $ret->[0][0] and $ret->[0][0] eq $disk){
             $outputpath=$disk;
@@ -19504,7 +19504,7 @@ again:
 sub CheckNTUnique{
 #check and optionally remove identical ntuples
     my ($self,$dir,$update,$verbose,$run2p)=@_;
-    my $sql="select path,jid,run from ntuples where path like '%$dir%'";    
+    my $sql="select path,jid,run,castortime from ntuples where path like '%$dir%'";    
     if($run2p!=0){
         $sql=$sql." and run=$run2p";
     }
@@ -19514,12 +19514,13 @@ sub CheckNTUnique{
               my @junk=split $dir,$path;
               my $run=$ntuple->[2];
               my $jid=$ntuple->[1];
+              my $ct=$ntuple->[3];
               foreach my $nt1 (@{$ret_nt}){
                   if(($nt1->[0] ne $path) and ($nt1->[0] =~/$junk[1]/)and ($jid=$nt1->[1])){
+                      if(not $path=~/^\/castor/ and ($path lt $nt1->[0] or $nt1->[0]=~/^\/castor/)){
                       if($verbose){
-                          print "duplicate ntuple found $path $nt1->[0]\n";
+                          print " duplicate ntuple found $run $path $nt1->[0]\n $ct";
                       }
-                      if($path lt $nt1->[0]){
                           if($update){
                               my $datamc=0;
                               if($path=~/\/Data/){
@@ -19527,10 +19528,15 @@ sub CheckNTUnique{
                               }
                               my $ret=$self->CheckCRC($verbose,0,$update,$run,0,$path,0,$datamc);
                               if($ret==1){
+                              if($ct==0 and $nt1->[0]=~/^\/castor/){
+                                  $sql="update ntuples set castortime=$nt1->[3] where path=$path";
+                                  $self->{sqlserver}->Update($sql);
+                                  print " setting castortime $nt1->[3] for $path \n";
+                               } 
                                   my $sql1="delete from ntuples where path='$nt1->[0]'";
                                   my $cmd="rm $nt1->[0]";
                                   my $i=system($cmd);
-                                  if($i==0){
+                                  if($i==0 or $nt1->[0]=~/^\/castor/ ){
                                      $self->{sqlserver}->Update($sql1);
                                      $self->{sqlserver}->Commit();
                                   }
@@ -19999,13 +20005,22 @@ sub CastorPrestage{
     if($run2p eq 0){
     $sql = "SELECT path  from $ntuples where castortime>0 and path like '%$dir%'";
 }
-   else{ 
-    $sql = "SELECT path  from $ntuples where castortime>0 and path like '%$dir%' and run=$run2p";
+   else{
+    my $srun=" and run=$run2p";
+    if($run2p=~/-/){
+     my @junk=split '-',$run2p;
+     $srun=" and run>=$junk[0] and run<=$junk[1] ";        
+ }
+
+    $sql = "SELECT path  from $ntuples where castortime>0 and path like '%$dir%' $srun";
 
 }
+    if ($ntuples=~/datafiles/){
+        $sql=$sql." and type like 'SCI%' order by run desc";
+    }
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $path (@{$ret}){
-        if($path->[0]=~/^castor/){
+        if($path->[0]=~/^\/castor/){
             my $cmd=$rfcp.$path->[0] ;
             my $i=system($cmd);
             if($verbose){
