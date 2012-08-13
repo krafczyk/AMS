@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.87 2012/07/27 17:29:28 mduranti Exp $
+//  $Id: root_setup.C,v 1.88 2012/08/13 16:59:46 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -155,6 +155,7 @@ fGPS.clear();
 fGPSWGS84.clear();
 fISSData.clear();
 fISSAtt.clear();
+fAMSSTK.clear();
 fDSPError.clear();
 fISSCTRS.clear();
 fISSGTOD.clear();
@@ -632,6 +633,7 @@ else{
    system(systemc);
    fISSData.clear();
    fISSAtt.clear();
+   fAMSSTK.clear();
    fISSCTRS.clear();
    fISSGTOD.clear();
    fGPSWGS84.clear();
@@ -642,6 +644,7 @@ else{
    LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
    LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
    LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
+   LoadAMSSTK(fHeader.Run-60,fHeader.Run+3600);
    LoadDSPErrors(fHeader.Run-60,fHeader.Run+3600);
    LoadDynAlignment(fHeader.Run);
    if(!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
@@ -677,12 +680,14 @@ else{
    fISSData.clear();
    fISSAtt.clear();
    fDSPError.clear();
+   fAMSSTK.clear();
    LoadISS(fHeader.FEventTime,fHeader.LEventTime);
    LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
    LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
+   LoadAMSSTK(fHeader.FEventTime-60,fHeader.LEventTime+60);
    LoadDSPErrors(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadDynAlignment(fHeader.Run);
    if (!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
@@ -1120,6 +1125,181 @@ return fScalersReturn.size();
 
 
 
+int AMSSetupR::LoadAMSSTK(unsigned int t1, unsigned int t2){
+
+  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/STK/";
+  
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/STK/");
+  
+  char * AMSISS=getenv("AMSISS");
+  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
+
+if(t1>t2){
+cerr<< "AMSSetupR::LoadAMSSTK-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
+return 2;
+}
+else if(t2-t1>864000){
+    cerr<< "AMSSetupR::LoadAMSSTK-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+   t2=t1+864000;
+}
+const char fpatb[]="ECI_STK_";
+const char fpate[]=".csv";
+
+    tm tmf;
+
+   char tmp[255];
+    time_t utime=t1;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int yb=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int db=atol(tmp);
+    utime=t2;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int ye=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int de=atol(tmp);
+    
+    unsigned int yc=yb;
+    unsigned int dc=db;
+    int bfound=0;
+    int efound=0;
+    while(yc<ye || dc<=de){
+     string fname=AMSISS;
+     fname+=fpatb;
+     char utmp[255];
+     sprintf(utmp,"%u/%s%u%03u",yc,fpatb,yc,dc);
+     fname+=utmp;
+     fname+=fpate;
+     ifstream fbin;
+     fbin.close();    
+     fbin.clear();
+     fbin.open(fname.c_str());
+     if(fbin){
+      while(fbin.good() && !fbin.eof()){
+
+
+ string line;
+ while(getline(fbin,line)){
+  vector<string>vout;
+  istringstream str(line);
+  string word;
+  while(getline(str,word,',')){
+   vout.push_back(word);
+  }
+// cout <<vout.size()<<endl;
+   if(vout.size()==23){
+    AMSSTK a;
+    if(vout[0][0]=='S' && vout[0][1]=='T' &&vout[0][2]=='K'){
+    int solved=0;
+    istringstream convert;
+    convert.str(vout[1]);
+    convert>>solved;
+    if(solved==1){
+     double tc=0;
+     convert.clear();
+     convert.str(vout[2]);
+     convert>>tc;
+     convert.clear();
+     convert.str(vout[3]);
+     convert>>a.cam_id;
+     convert.clear();
+     convert.str(vout[5]);
+     convert>>a.cam_ra;     
+     convert.clear();
+     convert.str(vout[6]);
+     convert>>a.cam_dec;     
+     convert.clear();
+     convert.str(vout[7]);
+     convert>>a.cam_or;     
+     convert.clear();
+     convert.str(vout[13]);
+     convert>>a.ams_ra;     
+     convert.clear();
+     convert.str(vout[14]);
+     convert>>a.ams_dec;
+     convert.clear();
+     convert.str(vout[20]);
+     strptime(vout[20].c_str(),"%Y-%j-%H-%M-%S",&tmf);
+     time_t tf=mktime(&tmf);
+     istringstream ct(vout[20]);
+     string smsec;
+     int msec=0;
+     while(getline(ct,smsec,'-')){
+      istringstream ismsec(smsec);
+      ismsec>>msec;  
+     }     
+
+
+// check tz
+   unsigned int tzd=tc;
+{
+char tmp2[255];
+   time_t tz=tzd;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+
+}
+
+
+    double dt2=tf+double(msec)/1000.+tzd;   
+    if(tc==dt2){
+      fAMSSTK.insert(make_pair(tc,a));      
+          if(tc>=t1 && tc<=t2){
+           if(abs(bfound)!=2){
+               fAMSSTK.clear();
+               fAMSSTK.insert(make_pair(tc,a));
+ //          cout<<setprecision(14);
+ //          cout <<t1<<" "<<tc<<"  "<<t2<<endl;
+               bfound=bfound?2:-2;
+           }
+          }
+         else if(tc<t1)bfound=1;
+         else if(tc>t2){
+             efound=1;
+//           cout<<setprecision(14);
+//           cout <<t1<<" "<<tc<<"  "<<t2<<endl;
+             goto nah;
+         }
+
+
+    }
+    else{
+     static int xer=0;
+     if(xer++<100){
+       cerr<<"AMSSetupR:::LoadAMSSTK-E-TimesAreDifferent "<<tc-dt2<<endl;
+     }
+    }
+   }
+  }
+}
+}
+
+}
+}
+     else{
+       cerr<<"AMSSetupR::LoadAMSSTK-E-UnabletoOpenFile "<<fname<<endl;
+     }
+     dc++;
+     if(dc>366){
+      dc=1;
+      yc++;
+     }
+
+}
+nah:
+int ret;
+if(bfound>0 &&efound)ret=0;
+else if(!bfound && !efound )ret=2;
+else ret=1;
+    cout<< "AMSSetupR::LoadAMSSTK-I- "<<fAMSSTK.size()<<" Entries Loaded "<<ret<<endl;
+
+return ret;
+
+}
 
 
 int AMSSetupR::LoadISSAtt(unsigned int t1, unsigned int t2){
@@ -1850,6 +2030,7 @@ if (fISSGTOD.size()==0)return 2;
 
 
 
+
 AMSSetupR::ISSGTOD_i k=fISSGTOD.lower_bound(xtime);
 if(k==fISSGTOD.begin()){
 a=(k->second);
@@ -1932,6 +2113,113 @@ a=b;
 }
 
 
+
+int AMSSetupR::getAMSSTK(AMSSetupR::AMSSTK & a, double xtime){
+if(fAMSSTK.size()==0){
+#ifdef __ROOTSHAREDLIBRARY__
+static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+if(stime!=floor(xtime)){
+stime=xtime;
+if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
+LoadAMSSTK(fHeader.FEventTime-60,fHeader.LEventTime+1);
+}
+else LoadAMSSTK(fHeader.Run-60,fHeader.Run+3600);
+}
+#endif
+}
+if (fAMSSTK.size()==0)return 2;
+
+
+AMSSetupR::AMSSTK_i k=fAMSSTK.lower_bound(xtime);
+if(k==fAMSSTK.begin()){
+a=(k->second);
+return 1;
+}
+if(k==fAMSSTK.end()){
+k--;
+a=(k->second);
+return 1;
+}
+
+if(xtime==k->first){
+a=(k->second);
+return 0;
+}
+  k--;
+  float s0[2]={-1.,-1};
+  double tme[2]={0,0};
+  tme[0]=k->first;
+  AMSSetupR::AMSSTK_i l=k;
+  l++;
+  tme[1]=l->first;
+{
+  double ang1=k->second.cam_or;
+  double ang2=l->second.cam_or;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  a.cam_or=atan2(s1,c1)*180/3.1415926;
+
+}
+
+
+{
+  double ang1=k->second.cam_dec;
+  double ang2=l->second.cam_dec;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  a.cam_dec=atan2(s1,c1)*180/3.1415926;
+
+}
+
+{
+  double ang1=k->second.cam_ra;
+  double ang2=l->second.cam_ra;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  a.cam_ra=atan2(s1,c1)*180/3.1415926;
+
+}
+{
+  double ang1=k->second.ams_ra;
+  double ang2=l->second.ams_ra;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  a.ams_ra=atan2(s1,c1)*180/3.1415926;
+
+}
+{
+  double ang1=k->second.ams_dec;
+  double ang2=l->second.ams_dec;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  a.ams_dec=atan2(s1,c1)*180/3.1415926;
+
+}
+  a.cam_id=k->second.cam_id;
+  if(k->second.cam_id!=l->second.cam_id)return 3;
+  else return 0;
+}
 
 
 

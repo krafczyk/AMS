@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.429 2012/08/01 22:30:55 qyan Exp $
+//  $Id: root.C,v 1.430 2012/08/13 16:59:46 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7327,13 +7327,26 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 		if(pev){
 			BetaR bta=pev->Beta(iBeta());
 			btof=bta.Beta;
-		}}
+                        
+		}
+        }
+	float btofh=0;
+	if(iBetaH()>=0){
+		if(pev){
+			BetaHR bta=pev->BetaH(iBetaH());
+			btofh=bta.GetBeta();
+                        
+		}
+        }
+
+
+
 	if(pev && pev->Version()<566){
 		int k=Loc2Gl(pev);
 	}
 	if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
 	float lt=pev?pev->LiveTime():1;
-	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
+	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,btofh,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
 	return _Info;
 
 

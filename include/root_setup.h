@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.53 2012/07/30 17:38:02 mduranti Exp $
+//  $Id: root_setup.h,v 1.54 2012/08/13 16:59:53 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -245,6 +245,19 @@ float b3b; ///< beta 3b  --
 ClassDef(ISSSA,1)       //ISS Solar Arrays Data
 };
 
+class AMSSTK{
+public:
+float ams_ra;    ///< ams right ascension (degrees)
+float ams_dec;    ///< ams declination (degrees)
+int cam_id;       ///< stk camera is 0,1 
+float cam_ra;     ///< stk camera right ascension degrees
+float cam_dec;    ///< stk declination degrees       
+float cam_or;     ///<  stk orientatoin
+AMSSTK():ams_ra(0),ams_dec(0),cam_id(-1),cam_ra(0),cam_dec(0),cam_or(0){};
+ClassDef(AMSSTK,1)     // AMS Star Tracker Data
+};
+
+
 class ISSCTRS{
 public:
 float x; ///< x (km) in CTRS
@@ -414,6 +427,7 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSData> ISSData_m;
  typedef map <unsigned int,ISSSA> ISSSA_m;
  typedef map <unsigned int,ISSCTRS> ISSCTRS_m;
+ typedef map <double,AMSSTK> AMSSTK_m;
  typedef map <unsigned int,ISSGTOD> ISSGTOD_m;
  typedef map <double,ISSAtt> ISSAtt_m;
  typedef multimap <unsigned int,BadRun> BadRun_m;
@@ -427,6 +441,7 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSCTRS>::iterator ISSCTRS_i;
  typedef map <unsigned int,ISSGTOD>::iterator ISSGTOD_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
+ typedef map <double,AMSSTK>::iterator AMSSTK_i;
  //---------------DSP Errors-------------------------
  typedef map <unsigned int, DSPError>::iterator DSPError_i;
  //--------------------------------------------------
@@ -440,6 +455,7 @@ typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
  //---------------DSP Errors-------------------------
   DSPError_m fDSPError; ///< DSP Error map (key is the start time of NOT validity period due to DSP Errors). Map 'second' contains DSPError object with start/end NOT validity and affected nodes
  //--------------------------------------------------
+  AMSSTK_m fAMSSTK;      ///< AMS STK pointing
   ISSSA_m fISSSA;      ///< ISS Solar Array angles map
   ISSCTRS_m fISSCTRS;      ///< ISS CTRS coordinates & velocity vector map
   ISSGTOD_m fISSGTOD;      ///< ISS GTOD coordinates & velocity vector map
@@ -519,6 +535,25 @@ static int _select (const dirent64 * entry);
    The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
  */
  int getISSCTRS(ISSCTRSR & a, double xtime); 
+
+
+
+ 
+ //! AMS STK Orientation Accessor
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   \param  AMSSTK  interpolated values      
+   
+   \retval 0   ok (interpolation)
+   \retval 1   ok  (extrapolation)
+   \retval 2   no data
+   
+   
+  
+ */
+ int getAMSSTK(AMSSTK & a, double xtime); 
+
  
  //! ISS Coo & Velocity GPS accessor
  /*! 
@@ -529,6 +564,7 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
+   \retval 3   different cam ids for interpolation
 
    \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
@@ -615,6 +651,7 @@ static int _select (const dirent64 * entry);
  int LoadISSSA(unsigned int t1, unsigned int t2);
  int LoadGPSWGS84(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
+ int LoadAMSSTK(unsigned int t1, unsigned int t2);
  int LoadISSGTOD(unsigned int t1, unsigned int t2);
  int LoadDynAlignment(unsigned int run);
  bool BuildRichConfig(unsigned int run);

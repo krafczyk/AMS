@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.742 2012/08/13 10:22:05 ams Exp $
+# $Id: RemoteClient.pm,v 1.743 2012/08/13 16:59:59 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8209,7 +8209,7 @@ if(defined $dataset->{buildno} ){
          print FILE $buf;
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
-             print FILE 'rm  /tmp/gbatch-orbit.exe.$RUN'."\n";
+             print FILE 'rm  $TMP/gbatch-orbit.exe.$RUN'."\n";
          }
          close FILE;
          my $j=system("chmod +x  $root");
@@ -9541,7 +9541,7 @@ if(defined $dataset->{buildno} ){
     }
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
-             print FILE 'rm  /tmp/gbatch-orbit.exe.$RUN'."\n";
+             print FILE 'rm  $TMP/gbatch-orbit.exe.$RUN'."\n";
          }
          close FILE;
          my $j=system("chmod +x  $root");
