@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.160 2012/07/27 15:00:11 pzuccon Exp $
+// $Id: TrTrack.C,v 1.161 2012/08/14 14:43:43 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/07/27 15:00:11 $
+///$Date: 2012/08/14 14:43:43 $
 ///
-///$Revision: 1.160 $
+///$Revision: 1.161 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1381,7 +1381,7 @@ int TrTrackR::DoAdvancedFit(int add_flag)
  
  int kmax=1;
  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-   kmax=2;
+   kmax=TRFITFFKEY.MultipleAlign;
 
  DefaultMass   = TrFit::Mproton;
  DefaultCharge = 1;
@@ -1389,27 +1389,30 @@ int TrTrackR::DoAdvancedFit(int add_flag)
    DefaultMass   = TrFit::Mhelium;
    DefaultCharge = 2;
  }
- 
+int add_flagplus; 
  for (int kk=0;kk<kmax;kk++){
-   if(kk==1) add_flag|=kAltExtAl;
+   if(kk==1)      add_flagplus=add_flag|kAltExtAl;
+   else if(kk==2) add_flagplus=add_flag|kExtAverage;
+   else           add_flagplus=add_flag;
+   
    for(int ii=0;ii<DEF_ADVFIT_NUM;ii++) {
      
      // SameWeight fit only with ext. layers
      if ((DefaultAdvancedFitFlags[ii] & kSameWeight) &&
-	 !(add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
+	 !(add_flagplus & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
        continue;
      
      if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
-       FitT(DefaultAdvancedFitFlags[ii]| add_flag);
-       if (add_flag == 0) {
+       FitT(DefaultAdvancedFitFlags[ii]| add_flagplus);
+       if (add_flagplus == 0) {
 	 FitT(DefaultAdvancedFitFlags[ii]| kUpperHalf);
 	 FitT(DefaultAdvancedFitFlags[ii]| kLowerHalf);
        }
       //  else if (ii < 4)
        // 	 FitT(DefaultAdvancedFitFlags[ii]| add_flag);
        
-       if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
-	 FitT(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
+       if (add_flagplus == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
+	 FitT(DefaultAdvancedFitFlags[ii]| add_flagplus| kExternal);
      }
    }
  }

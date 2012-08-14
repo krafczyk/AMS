@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.54 2012/07/10 10:09:41 pzuccon Exp $
+// $Id: tkdcards.h,v 1.55 2012/08/14 14:43:44 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -352,6 +352,7 @@ public:
   //! BuildTrTracksSimple: charge cut during track finding
   int   TrackFindChargeCutActive;
 
+
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
   ClassDef(TRCLFFKEY_DEF,4);
@@ -396,6 +397,8 @@ public:
   /// R [19,20] Factor on ErrX/ErrY for He
   float ErcHeX;
   float ErcHeY;
+  /// I 21 Activates the multiple Alignmnet fitting during the reconstruction (1=PG 2=PG+MD 3=PG+MD+Averagae)
+  int  MultipleAlign;
 
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
@@ -403,7 +406,7 @@ public:
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,5);
+  ClassDef(TRFITFFKEY_DEF,6);
 };
 //
 
