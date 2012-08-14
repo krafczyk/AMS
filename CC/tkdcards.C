@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.78 2012/07/05 14:06:26 pzuccon Exp $
+// $Id: tkdcards.C,v 1.78.4.1 2012/08/14 14:42:43 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -431,6 +431,9 @@ void TRFITFFKEY_DEF::init(){
   /// R [19,20] Factor on ErrX/ErrY for He
   ErcHeX = 0.65;
   ErcHeY = 0.65;
+  /// I 21 Activates the multiple Alignmnet fitting during the reconstruction (1=PG 2=PG+MD 3=PG+MD+Averagae)
+  MultipleAlign=2;
+
 }
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 

@@ -153,17 +153,25 @@ I 4  EnableHisto (Default: 0) fill histograms during reconstruction
                               !=0 active
 
 
+
 //==============================
-
 //=============================
-void TRFITFFKEY_DEF::init(){
-F  1 	ErrX 		fit point error 
-F  2 	ErrY 		fit point error 
-F  3 	ErrZ 		fit point error 
-F  4-12 FitwMsc[9];	Error term for Multiple scattering per layer (1-9)
-F  13  	MergeExtLimX;	max dist to add external planes hits X
-F  14  	MergeExtLimY;	max dist to add external planes hits Y
+TRFIT
+R  1 	ErrX 		fit point error 
+R  2 	ErrY 		fit point error  /// R 1 fit point error
+R  3 	ErrZ 		fit point error 
+R  4-12 FitwMsc[9];	Error term for Multiple scattering per layer (1-9)
+R  13  	MergeExtLimX;	max dist to add external planes hits X
+R  14  	MergeExtLimY;	max dist to add external planes hits Y
+R  15   DefaultMass;    default mass for the fitting
+R  16   DefaultCharge;  default charge for the fitting
+R [17,18] RthdDropX[2];  thresholds for TrRecon::TryDropX
+R [19,20] ErcHeX; ErcHeY; Factors on ErrX/ErrY for He
+I 21 	MultipleAlign;  Activates the multiple Alignmnet fitting 
+                         during the reconstriuction (1=PG 2=PG+MD 3=PG+MD+Averagae)
 
+
+//==============================
 
 
 void TRMCFFKEY_DEF::init(){
@@ -302,9 +310,8 @@ void TRCALIB_DEF::init(){
   }
 }
 
-TRCALIB_DEF TRCALIB;
 //=============================
-void TRALIG_DEF::init(){
+TRALIG
 I 1  		InitDB(0);
 I 2  		ReWriteDB=0;
 I 3  		UpdateDB=0;
@@ -322,13 +329,3 @@ D 79		GlobalGoodLimit=0.085;
   One=1.025;
 
 
-}
-
-TRALIG_DEF TRALIG;
-
-//=============================
-
-TRCLFFKEY_DEF TRCLFFKEY;
-
-TRFITFFKEY_DEF TRFITFFKEY;
-//=============================
