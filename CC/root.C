@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.430 2012/08/13 16:59:46 choutko Exp $
+//  $Id: root.C,v 1.431 2012/08/14 11:03:15 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7332,7 +7332,7 @@ char * ParticleR::Info(int number, AMSEventR* pev){
         }
 	float btofh=0;
 	if(iBetaH()>=0){
-		if(pev){
+		if(pev && pev->nBetaH()>iBetaH()){
 			BetaHR bta=pev->BetaH(iBetaH());
 			btofh=bta.GetBeta();
                         
