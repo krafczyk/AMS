@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.9 2012/08/13 16:59:53 choutko Exp $
+//  $Id: Tofrec02_ihep.h,v 1.10 2012/08/14 08:01:18 choutko Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -50,7 +50,6 @@ protected:
   static vector<TofClusterHR*>tofclh[4];
 /// Track vector pointer
   static vector<TrTrackR*> track;
-  #pragma omp threadprivate (track)
 #ifndef __ROOTSHAREDLIBRARY__
   static vector<AMSTrTrack*> amstrack;
   
