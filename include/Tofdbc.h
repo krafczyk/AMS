@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.11 2012/07/25 22:41:48 qyan Exp $
+//  $Id: Tofdbc.h,v 1.11.2.1 2012/08/14 08:33:30 choutko Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -303,6 +303,9 @@ class TofTAlignPar: public TofTDVTool<float>{
      TofTAlignPar();
      TofTAlignPar(float *arr,int brun,int erun);//load 
      static TofTAlignPar *Head;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)   
+#endif
      static TofTAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadTDVPar();//copy TDV to class 
@@ -347,6 +350,7 @@ class TofRecPar: public TofTDVTool<float>{
      static int   iLay;
      static int   iBar;
      static int   Idsoft;
+#pragma omp threadprivate (iLay,iBar,Idsoft)
  public:
      TofRecPar(){};
      static void  IdCovert(int id){iLay=id/1000%10;iBar=id/100%10;}

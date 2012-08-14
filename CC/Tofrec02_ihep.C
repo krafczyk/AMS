@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.17.2.1 2012/08/07 13:34:54 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.17.2.2 2012/08/14 08:32:44 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -43,19 +43,24 @@ int        TofRecH::normcharge=1;
 vector<TofRawSideR>   TofRecH::tfraws;
 #ifndef __ROOTSHAREDLIBRARY__
 vector<TOF2RawSide*>  TofRecH::tf2raws;
+  #pragma omp threadprivate (TofRecH::tf2raws)
 #endif
 
 vector<TofClusterHR*> TofRecH::tofclh[4];
+  #pragma omp threadprivate (TofRecH::tofclh)
 
 //--Track
 vector<TrTrackR*>     TofRecH::track;
+  #pragma omp threadprivate ( TofRecH::track)
 #ifndef __ROOTSHAREDLIBRARY__
 vector<AMSTrTrack*>   TofRecH::amstrack;
+  #pragma omp threadprivate ( TofRecH::amstrack)
 #endif
 
 vector<TrdTrackR>   TofRecH::trdtrack;
 #ifndef __ROOTSHAREDLIBRARY__
 vector<AMSTRDTrack*> TofRecH::amstrdtrack;
+  #pragma omp threadprivate (TofRecH::amstrdtrack)
 #endif
 
 

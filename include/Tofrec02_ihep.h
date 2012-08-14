@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.8 2012/07/26 22:25:44 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.8.2.1 2012/08/14 08:33:30 choutko Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -29,14 +29,19 @@ protected:
   static const double cvel=29.9792;//c vel(cm/ns)
 /// Fit Beta Par
   static TofBetaPar betapar;
+  #pragma omp threadprivate (betapar)
 /// Process Event
   static AMSEventR *ev;
+  #pragma omp threadprivate (ev)
 /// Use Normalize Chis Charge 
   static int normcharge;
+  #pragma omp threadprivate (normcharge)
 /// Real or MC
   static int realdata; 
+  #pragma omp threadprivate (realdata)
 /// TofRawSideR vector for TofClusterH build
   static vector<TofRawSideR> tfraws;
+  #pragma omp threadprivate (tfraws)
 #ifndef __ROOTSHAREDLIBRARY__
   static vector<TOF2RawSide*> tf2raws;
 #endif
@@ -47,9 +52,11 @@ protected:
   static vector<TrTrackR*> track;
 #ifndef __ROOTSHAREDLIBRARY__
   static vector<AMSTrTrack*> amstrack;
+  
 #endif
 /// TrdTrack vector
   static vector<TrdTrackR>trdtrack;
+  #pragma omp threadprivate (trdtrack)
 #ifndef __ROOTSHAREDLIBRARY__
   static vector<AMSTRDTrack*>amstrdtrack;
 #endif

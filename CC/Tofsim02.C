@@ -1,4 +1,4 @@
-//  $Id: Tofsim02.C,v 1.7 2012/07/17 00:12:16 qyan Exp $
+//  $Id: Tofsim02.C,v 1.7.2.1 2012/08/14 08:32:45 choutko Exp $
 
 //Create by Qi Yan 2012/05/01
 // ------------------------------------------------------------
@@ -103,7 +103,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
       pmtid =ilay*1000+ibar*100+is*10+ipm;
       if(is==0)sharep=TOFWScanN::scmcscan1[ilay][ibar].getps1(ipm,idivx,r,i1,i2);//share 0side
       else    sharep=TOFWScanN::scmcscan1[ilay][ibar].getps2(ipm,idivx,r,i1,i2);
-      if(sharep>1){cout<<"<<----TOF Error Share"<<endl;sharep=1;}
+      if(sharep>1){sharep=1;}
       nelp=nels*sharep;
       //            cout<<"nelp="<<nelp<<endl;
       POISSN(nelp,neles,ierr);

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.175 2012/08/01 17:04:13 choutko Exp $
+//  $Id: mceventg.C,v 1.175.2.1 2012/08/14 08:32:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1993,7 +1993,8 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    //
    int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
    if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle ){
-      G4cout << "AMSmceventg::FillMCInfoG4-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
+      static int mpr=100;
+      if(--mpr>0)G4cout << "AMSmceventg::FillMCInfoG4-W-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
       // too bad, could be nuclei
    }
    if(g3code==AMSG4Physics::_G3DummyParticle)return;
