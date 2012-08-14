@@ -14,6 +14,8 @@ ln -s /afs/cern.ch/asis /asis
 ln -s /afs/cern.ch/asis/i386_redhat72/cern /cern
 ln -s /afs/cern.ch/ams/Offline/intel /opt/intel
 
+yum install -y imake
+
 wget ftp://fr2.rpmfind.net/linux/centos/6.3/os/i386/Packages/glib2-static-2.22.5-7.el6.i686.rpm
 yum install -y glib2-static-2.22.5-7.el6.i686.rpm
 rm -f glib2-static-2.22.5-7.el6.i686.rpm
