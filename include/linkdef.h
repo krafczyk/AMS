@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.127 2012/08/13 16:59:53 choutko Exp $
+//  $Id: linkdef.h,v 1.128 2012/08/15 11:46:55 kaiwu Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -42,6 +42,7 @@
 #pragma link C++ class TrExtAlignDB+;
 #pragma link C++ class TrExtAlignPar+;
 #pragma link C++ class TrExtAlignFit+;
+#pragma link C++ class EcalAxis+;
 #pragma link C++ class TrHistoManHeader;
 #pragma link C++ class TrHistoMan;
 #pragma link C++ class TrOnlineMonitor;
