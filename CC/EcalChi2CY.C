@@ -1,3 +1,4 @@
+//  $Id: EcalChi2CY.C,v 1.2 2012/08/15 12:07:21 choutko Exp $
 #include "EcalChi2CY.h"
 #define SIZE  0.9
 

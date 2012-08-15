@@ -1,3 +1,4 @@
+//  $Id: EcalChi2CY.h,v 1.2 2012/08/15 12:07:30 choutko Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -5,8 +6,6 @@
 #include <string>
 #include <iostream>
 #include "root.h"
-#include "root_RVSP.h"
-#include "amschain.h"
 #include "math.h"
 #include "TH1F.h"
 #include "TFile.h"
