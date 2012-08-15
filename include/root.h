@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.461 2012/08/08 17:17:39 choutko Exp $
+//  $Id: root.h,v 1.462 2012/08/15 18:35:04 sdellato Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -333,6 +333,14 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 //--------DSP Errors-----------------------
  int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
  //-----------------------------------------
+
+
+
+//-----------Coordinates -------------------
+int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelTP[2], double YPR[3], double  time, bool gtod=true);/// Get galactic coordinates using ISS position, velocity and LVLH attitude
+int get_gal_coo(double & gal_long, double & gal_lat, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);/// Get galactic coordinates using Star Tracker
+int GetGalCoo(int & result, float & glong, float & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true);/// Get galactic coordinates
+//-----------------------------------------
 
   //#ifdef _PGTRACK_
   friend class VCon_root;
