@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.39 2012/08/15 12:07:30 choutko Exp $
+//  $Id: linkdefs.h,v 1.40 2012/08/15 12:22:29 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -24,8 +24,9 @@
 #pragma link C++ class VCon;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class VCon_root;
-#pragma link C++ class EcalAxis+;
 #endif
+#pragma link C++ class EcalAxis+;
+
 #pragma link C++ class TrTrackPar+;
 #else
 #pragma link C++ class TrTrackFitR+;

@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.129 2012/08/15 12:07:30 choutko Exp $
+//  $Id: linkdef.h,v 1.130 2012/08/15 12:22:29 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -80,8 +80,8 @@
 #pragma link C++ class TrElem+;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class VCon_root;
-#pragma link C++ class EcalAxis+;
 #endif
+#pragma link C++ class EcalAxis+;
 
 #pragma link C++ class TrMCClusterR+;
 #pragma link C++ class TrRawClusterR+;
