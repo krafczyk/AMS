@@ -16,8 +16,9 @@
 #include "TrExtAlignDB.h"
 #include "TrdKCalib.h"
 #include "TrdKCluster.h"
+//#include "TrdAlign.h"
 #endif
-//#include "TrdZCalib.h"
+
 #include "TrdHCalib.h"
 #include "TrdHCharge.h"
 
@@ -51,6 +52,8 @@ namespace trdconst{
   const integer nTrdGasGroups    = 41;
   const integer	nTrdLadders      = 18;
   const integer nTrdLayers       = 20;
+  const integer nTrdStrawsUFE    = 64;
+  const integer nTrdHVChannel    = 82;
   const integer nTrdModules      = 328;
   const integer nTrdStraws       = 5248;
   const integer nTrdTubes        = 16;
@@ -71,8 +74,8 @@ namespace trdconst{
   
   const integer	TrdMinAdc	 = 12; 
   const integer	TrdMaxAdc	 = 4096; //3500;//4096;
-  const integer nTrdMaxHits      = 200;
-  const integer nTrdMinHits      = 8;
+  const integer nTrdMaxHits      = 1000;
+  const integer nTrdMinHits      = 6;
 
   const integer mTrdHits	 = 30;
   const integer	mTofHits  	 = 10;
@@ -138,28 +141,19 @@ namespace trdconst{
     -0.8837, 0.0000, 0.0000, 0.0000}; 
 
   //== imported from ACroot3.h on 2011.01.10
-  const number Zutof   = +63.65;  	// for extrapolation to Z-UTOF
+  const number Zutof   =   63.65;  	// for extrapolation to Z-UTOF
   const number Zecup   = -142.8;        // for extrapolation to ECAL-TOP
   const number Zecal   = -150.0;  	// for extrapolation to ECAL-COG
   const number Zrich   =  -73.6;   	// for extrapolation to RICH-Radiator
-  const number Z_l1    = +159.10;//+159.067;   	// for extrapolation to Tracker JLayer-1
-  const number Z_l9    = -136.041 ;  	// for extrapolation to Tracker JLayer-9
-  const number Ztrd    = 113.55;  	// for extrapolation to TRD Center
-  const number ZtrdU   = 136.75;  	// for extrapolation to TRD Upper
-  const number ZtrdC  =  113.55;        // for extrapolation to TRD Center
-  const number ZtrdL   =  90.35;  	// for extrapolation to TRD Lower
-
-  /*  
-      #define Geom_AMS_Utof_Z	63.65  	// for extrapolation to Z-UTOF
-      #define Geom_AMS_L1N_Z   159.10   // for extrapolation to Tracker Layer-1n
-      #define Geom_AMS_TRD_ZC  113.55  	// for extrapolation to TRD Center
-      #define Geom_AMS_TRD_ZU  136.75  	// for extrapolation to TRD Upper
-      #define Geom_AMS_TRD_ZL   90.35  	// for extrapolation to TRD Lower
-  */
-
+  const number Z_l1    =  159.10;//+159.067;   	// for extrapolation to Tracker JLayer-1
+  const number Z_l9    = -136.041;  	// for extrapolation to Tracker JLayer-9
+  const number Ztrd    =  113.55;  	// for extrapolation to TRD Center
+  const number ZtrdU   =  136.75;  	// for extrapolation to TRD Upper
+  const number ZtrdC   =  113.55;       // for extrapolation to TRD Center
+  const number ZtrdL   =   90.35;  	// for extrapolation to TRD Lower
   const number ZL1N    = 159.10;
 
-  const number TRD_Dx  = -220.e-4;    // global TRD X-Shift/cm        -220 mu
+  const number TRD_Dx  = -220.e-4;      // global TRD X-Shift/cm        -220 mu
   const number TRD_Dy  = -240.e-4;      // global TRD Y-Shift/cm        -240 mu
   const number TRD_Dz  = 1100.e-4;      // global TRD Z-Shift/cm        1100 mu 
     
@@ -233,8 +227,8 @@ class AC_TrdHits {
   /// hit positions after alignment correction
   float hitXY, hitZ, hitR;   
 
-  /// deposited energy: raw, corrected at gas-circuit level, corrected at straw module level
-  float	EadcR, EadcC1, EadcCS;
+  /// deposited energy: raw, corrected at gas-circuit level, corrected at straw module level, pathlength corrected.
+  float	EadcR, EadcC1, EadcCS, corrEadc;
 
   /// hit residuals: based on trd track, track track before and after calibration
   double TrdDraw, TrkDraw, TrdD, TrkD;
@@ -247,7 +241,7 @@ class AC_TrdHits {
 
  AC_TrdHits(): Lad(-1), Lay(-1), Tub(-1), Mod(-1), Straw(-1), GC(-1),GG(-1), 
     hitD(-1), hitXY(0), hitZ(0), hitR(0), hitXYraw(0), hitZraw(0),
-    EadcR(0), EadcC1(0), EadcCS(0),
+    EadcR(0), EadcC1(0), EadcCS(0),corrEadc(0),
     TrdD(0), TrkD(0), TrdDraw(0), TrkDraw(0), Dxy(0), Dz(0),
     Len2D(0), Len3D(0) {
    
@@ -256,6 +250,11 @@ class AC_TrdHits {
     _iamp=0.;
     _iTrdD=_iTrkD=_iLen2D=_iLen3D=0.;
   };
+
+  AC_TrdHits(TrdRawHitR* rhit){
+    GetHitInfo(rhit);
+    SetHitPos();
+  }
   
   ~AC_TrdHits() {};
 
@@ -280,6 +279,9 @@ class AC_TrdHits {
 
   /// get hit hardware address: cufhh  c crate[0-1],u udr[0-6] f ufe [0-7] hh channel[0-63]
   float GetHaddr()  {return _ihaddr;}
+
+  /// get highvoltage id: 0-81
+  int GetHVID() { return (int)_istraw/nTrdStrawsUFE;}
   
   /// call AC hits from TrdRawHit
   void GetHitInfo(TrdRawHitR *rhit) {
@@ -424,11 +426,11 @@ class AC_TrdHits {
 
   /// get hit residual from tracker track or trd track 
   double GetTrdHitTrkDistance(int d, float xy, float z, AMSPoint cPtrk, AMSDir dPtrk);
-  double GetTrdHitTrkDistance(AC_TrdHits *AC, AMSPoint cPtrk, AMSDir dPtrk); 
+  double GetTrdHitTrkDistance(AC_TrdHits AC, AMSPoint cPtrk, AMSDir dPtrk); 
 
   /// get pathlength 3D after alignment correction
   double GetTrdPathLen3D(int lay, float xy, float z, AMSPoint cP, AMSDir dP);
-  double GetTrdPathLen3D(AC_TrdHits *AC, AMSPoint cP, AMSDir dP);
+  double GetTrdPathLen3D(AC_TrdHits AC, AMSPoint cP, AMSDir dP);
 
   friend class TrdSCalib;
 
@@ -442,7 +444,7 @@ class AC_TrdHits {
 
 class TrdSChi2Fit{
  public:
-  vector<AC_TrdHits*> TrdHits;
+  vector<AC_TrdHits> TrdHits;
   double RmsX;
   double RmsY;
   int nTrdHits;
@@ -457,11 +459,21 @@ class TrdSChi2Fit{
 class TrdSCalibR { 
 
  private:
-  int algo,patt,refit, pmass, pcharge, _ierror;
+  
+  /// tracker track fit parameters
+  int algo, patt, refit;
+
+  /// counting error messages
+  int _ierror;
+
+  /// nr. of hits ontrack and offtrack
   int _nOntrackhit, _nOfftrackhit;
+
   static TrdSCalibR* head;
   #pragma omp threadprivate (head)
-  vector<AC_TrdHits*> TrdNHits;
+
+  /// trd raw hit contents
+  vector<AC_TrdHits> TrdNHits;
  
  private:
   /// filename for Trd Calibration
@@ -499,17 +511,21 @@ class TrdSCalibR {
 
 
  public:
+
+  /// trd track chisq fit using TMinuit2
   TrdSChi2Fit fit;
-  TF1 *fBetheBlochProton,*fBetheBlochHelium;
 
-  /// version of TrdSCalib: curret version = 5
-  unsigned int SCalibLevel;
+  /// BetheBlock functions for proton and helium
+  TF1 *fBetheBlochProton, *fBetheBlochHelium;
 
-  /// trd track methods (0: TrdHTrack, 1:TrdTrack)
-  unsigned int TrdTrackLevel;
+  /// version of TrdSCalib (6)
+  int SCalibLevel;
 
-  /// trd gain correction methods (0: AC, 1:MIT, 2:AC optional)
-  unsigned int TrdGainMethod, TrdAlignMethod;
+  /// trd track methods (0: TrdS, 1:TrdS, 2:TrdHTrack, 3:TrdTrack, 4:TrdK)
+  int TrdTrackLevel;
+
+  /// trd gain correction methods (0: no gain, 1:TrdS, 2:TrdK, 2:AC optional)
+  int TrdGainMethod, TrdAlignMethod;
 
   /// general particle stuffs
   float iPabs, iQabs, iRsigned, iRerrinv, iRabs, iChisq;
@@ -531,7 +547,6 @@ class TrdSCalibR {
 
   /// time parameters to access MIT gain correction factor
   double Xtime, Atime; 
-
 
   /// gain calibration db time period
   unsigned int FirstCalRunTime, LastCalRunTime;     
@@ -564,7 +579,6 @@ class TrdSCalibR {
   //vector<TF1*> fTrdLR_fElectron, fTrdLR_fProton, fTrdLR_fHelium;
 
   /// use for Toy MC (v6)
-  //vector<TF1*> fTrdLR_fProton[nBinfPXe], fTrdLR_fHelium[nBinfPXe], fTrdLR_fElectron[nBinfPXe];
   vector< vector<TF1*> > fTrdLR_fProton;
   vector< vector<TF1*> > fTrdLR_fHelium;
   vector< vector<TF1*> > fTrdLR_fElectron;
@@ -572,8 +586,9 @@ class TrdSCalibR {
   /// use for CalibLevel= 3 for gain correction
   vector<TGraphErrors*> g_TrdCalibMPV;
 
-  /// use for CalibLevel= 4,5 for ontrack trd hits
-  vector<AC_TrdHits*> TrdSHits;
+  /// use for CalibLevel= 4,5,6 for processed trd hits
+  vector<AC_TrdHits> TrdSHits;
+
 
   /// use for CalibLevel= 5
   TSpline3 grTrkXZ, grTrkYZ;
@@ -687,9 +702,6 @@ class TrdSCalibR {
     TrdLPs.clear();    
     TrdLRs.clear();    
     TrdLRs_MC.clear(); 
-
-    TrdSHits.clear();
-
   }
   
   int Isitsame (TrdSCalibR& ObjRawHit) {
@@ -704,7 +716,7 @@ class TrdSCalibR {
   int GetnOffTrackHit() {return _nOfftrackhit;};
 
    /// assign mStraw[ladder][layer] and nTrdMoudlesPerLayer[layer]
-  void GenmStrawMatrix(int Debug);
+  void GenmStrawMatrix(int Debug=0);
   
   /// external assignment of the minimum hit amplitude 
   void SetExtTrdMinAdc(float trdamp){ ExtTrdMinAdc = trdamp;};
@@ -915,6 +927,7 @@ class TrdSCalibR {
     int     iXe 	= (int) par[0];
     int     iR 	        = (int) par[1];
     double   L 		= 0.0;	
+    iXe = 5;            //== compulsory enable
     if (x[0]<TrdMinAdc) {
       L = grTrdS_PDF_Prot[iXe].at(iR)->Eval(TrdMinAdc) * 1.0/(1.0+TMath::Exp(-10.0*(x[0]-TrdMinAdc)));	
     } else if (x[0]>TrdMaxAdcLen) {
@@ -1020,14 +1033,29 @@ class TrdSCalibR {
   /// initiate TrdSCalib ver.4
   int InitTrdSCalib(int CalVer, int TrdTrackType, int Debug=0);
 
-  /// initiate TrdSCalib ver.5
-  int InitNewTrdSCalib(int CalVer, int TrdTrackType, int GainMethod, int AlignMethod, int Debug=0);
+  /// initiate TrdSCalib ver >= 5
+  int InitNewTrdSCalib(int CalVer=6, int TrdTrackType=1, int GainMethod=1, int AlignMethod=1, int Debug=0);
+
+  /// set parameters of TrdSCalib ( CalVer=6, TrackType=1,GainMethod=1,AignMethod=1);
+  void SetParsTrdSCalib(int CalVer=6, int TrackType=1, int GainMethod=1, int AlignMethod=1);
+
+  /// get parameters of TrdSCalib
+  void GetParsTrdSCalib(int &CalVer, int &TrackType, int &GainMethod, int &AlignMethod);
+
+  /// set trtrack fit parameters
+  void SetParsTrTrack(int ia, int ip, int ir) {algo=ia; patt=ip; refit=ir;}
+
+  /// get trtrack fit parameters
+  void GetParsTrTrack(int &ia, int &ip, int &ir){ia=algo; ip=patt; ir=refit;}
 
   /// process trd event at given particle event
   int ProcessTrdEvt(AMSEventR *pev, int Debug=0);
  
-  /// process trd event with tracker track instead of trd standalone
-  int ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int Debug=0);
+  /// check event is included in the calibration period
+  bool CheckEvtMatchingTimePeriodCalDB(AMSEventR *pev, int Debug=0); 
+
+  /// process trdS event with tracker track instead of trd standalone
+  int ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int &fitcode, int Debug=0);
 
   /// process trdZ event with tracker track instead of trd standalone
   int ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int Debug=0);
@@ -1042,7 +1070,7 @@ class TrdSCalibR {
   int ProcessTrdHit(TrTrackR *Trtrk, int Debug=0);
 
   /// process tracker track
-  int ProcessTrTrack(TrTrackR* Trtrk);
+  int ProcessTrTrack(TrTrackR* Trtrk, int &fitcode);
 
   /// calculate particle likelihoods in gbatch from TrdHTrack
   int BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug=0);
@@ -1050,23 +1078,29 @@ class TrdSCalibR {
   /// calculate particle likelihoods in gbatch from TrdTrack
   int BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug=0);
 
+  /// build TrdSHits from TrdHTrack
+  int BuildTrdSHits(TrdHTrackR *TrdHtrk, int Debug=0);
+
+  /// build TrdSHits from TrdTrack
+  int BuildTrdSHits(TrdTrackR *Trdtrk, int Debug=0);
+
   /// get nr. of hits per layer ontrack 
-  int GetnTrdHitLayer( vector<AC_TrdHits*> &TrdHits, int Debug=0);
+  int GetnTrdHitLayer( vector<AC_TrdHits> &TrdHits, int Debug=0);
   
   /// fill TrdSHits which passing starw tube gas volume without MS correction
-  vector<int> TrdFillHits( vector<AC_TrdHits*> &TrdHits, int Debug=0);
+  vector<int> TrdFillHits( vector<AC_TrdHits> &TrdHits, int Debug=0);
 
   /// fill TrdSHits which passing starw tube gas volume with MS correction
-  vector<int> TrdFillHits2( vector<AC_TrdHits*> &TrdHits, int Debug=0);
+  vector<int> TrdFillHits2( vector<AC_TrdHits> &TrdHits, int Debug=0);
 
   /// get 3D path length
-  vector<int> CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trtrk, int TrdStrkLevel, int Debug=0);
+  vector<int> CalPathLen3D(vector<AC_TrdHits> &TrdHits, TrTrackR *Trtrk, int TrdStrkLevel, int Debug=0);
 
   /// multiple-scattering(MS) correction
-  int IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits*> &TrdHits, vector<float> &Results, int Debug=0);
+  int IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits> &TrdHits, vector<float> &Results, int Debug=0);
 
   /// chisq routine for MS correction
-  int TrdTrkChi2(vector<AC_TrdHits*> TrdHits, double DeltaX, double DeltaY, double &Chi2, int &nTrdHits, int Debug=0);
+  int TrdTrkChi2(vector<AC_TrdHits> TrdHits, double DeltaX, double DeltaY, double &Chi2, int &nTrdHits, int Debug=0);
 
   /// check tracker layer 1 hit
   bool NeedTrkSpline(TrTrackR *Trtrk, int Debug=0);
@@ -1078,13 +1112,13 @@ class TrdSCalibR {
   int GetLocalTrkVec(float zTrdCor, AMSPoint &cTrk, AMSDir &bTrk, double DeltaX, double DeltaY, int Debug=0);
   
   /// get TrdHits with MS correction
-  int GetTrdNewHits_ms(vector<AC_TrdHits*> TrdHits, int Debug=0);
+  int GetTrdNewHits_ms(vector<AC_TrdHits> TrdHits, int Debug=0);
 
   /// get TrdHits without MS correction
-  int GetTrdNewHits(vector<AC_TrdHits*> TrdHits, int Debug=0);
+  int GetTrdNewHits(vector<AC_TrdHits> TrdHits, int Debug=0);
 
   /// apply gain & alignment correction factor to hit 
-  int GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug=0);
+  int GetThisTrdHit(AC_TrdHits &TrdHit, int iGainMethod=1, int iAlignMethod=1, int Debug=0);
 
   /// get track extrapolation at various position 
   int GetTrkCoordinates(TrTrackR *Trtrk, int Debug=0);
@@ -1101,14 +1135,17 @@ class TrdSCalibR {
   int InitiateTrdRawHit(AMSEventR *pev, int Debug=0);
  
   /// clear TrdNHits memory
-  void ClearTrdNHits(){for(vector<AC_TrdHits*>::iterator i= TrdNHits.begin(); i != TrdNHits.end(); ++i) if(*i) delete *i;}
+  //void ClearTrdNHits(){for(vector<AC_TrdHits>::iterator i= TrdNHits.begin(); i != TrdNHits.end(); ++i) if(*i) delete *i;}
+  void ClearTrdNHits(){TrdNHits.clear();}
 
   /// clear TrdSHits memory
-  void ClearTrdSHits(){for(vector<AC_TrdHits*>::iterator i= TrdSHits.begin(); i != TrdSHits.end(); ++i) if(*i) delete *i;}
-  
+  //void ClearTrdSHits(){for(vector<AC_TrdHits>::iterator i= TrdSHits.begin(); i != TrdSHits.end(); ++i) if(*i) delete *i;}
+  void ClearTrdSHits(){TrdSHits.clear();}
+
    /// Trd Alignment: TrdAlignMethod = 2 from Z.Weng 
 #ifdef _PGTRACK_
-  TrdKCalib _DB_instance;  //== TrdAlignMethod = 2 from Z.Weng 
+  TrdKCalib _DB_instance;    //== TrdAlignMethod = 2 from Z.Weng 
+  //TrdAlign  _DZ_instance;  //== TrdAlignMethod = 3 from V.Zukov
 #endif
   /// Trd Alignment: TrdAlignMethod = 3 from V.Zhukov
   //TRDZCalib thetrdz;
@@ -1172,7 +1209,7 @@ class TrdSCalibR {
   void  AC_ClearInterpolate2Z();
 
   /// apply module movement
-  int   AC_ModAlign(AC_TrdHits* &ACHit, int Debug=0);
+  int   AC_ModAlign(AC_TrdHits &ACHit, int Debug=0);
 
 
 
@@ -1184,7 +1221,7 @@ class TrdSCalibR {
   }
  
 
-  ClassDef(TrdSCalibR,7)
+  ClassDef(TrdSCalibR,8)
     };
 
 #endif
