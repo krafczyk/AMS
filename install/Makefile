@@ -355,6 +355,8 @@ endif
 #SunPosition
  COMMON_FILES +=  $(SCC)Sunposition.C
 
+#Coordinate Transforamtion
+ COMMON_FILES +=  $(SCC)FrameTrans.C
 
 #Root Interface
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   

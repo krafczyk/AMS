@@ -1,4 +1,4 @@
-#  $Id: MakefileG4,v 1.6 2012/07/31 16:57:18 qyan Exp $
+#  $Id: MakefileG4,v 1.7 2012/08/15 18:35:33 sdellato Exp $
 
 #P.Zuccon june 2005
 
@@ -302,6 +302,9 @@ endif
 
 #SunPosition
  COMMON_FILES +=  $(SCC)Sunposition.C
+
+#Coordinate Transforamtion
+ COMMON_FILES +=  $(SCC)FrameTrans.C
 
 
 #Root Interface
