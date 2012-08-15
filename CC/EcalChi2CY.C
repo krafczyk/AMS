@@ -1,4 +1,3 @@
-//  $Id: EcalChi2CY.C,v 1.2 2012/08/15 12:07:21 choutko Exp $
 #include "EcalChi2CY.h"
 #define SIZE  0.9
 
@@ -602,7 +601,7 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 	int i1=0;
         double cell_mean[72],cell_rms[72], cell_prob[72],cell_probbar[72];
         double summ=0.,sumxm=0.;
-	double chisq_prob,chisq_chi2,delta;
+	double chisq_prob,chisq_chi2,delta,chisq;
         int k1,k2;
         int count=0;
         if(start_cell<0)
@@ -660,15 +659,18 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 			chisq_chi2=delta*delta/2.0/cell_rms[i1] ;
 			chisq_prob=-1.*log(cell_prob[i1])	;
 		}
-		if(!(chisq_prob>=0.||chisq_prob<50.))
+		if(!(chisq_prob>=0.&&chisq_prob<50.))
 			chisq_prob=50.;
-		if(!(chisq_chi2>=0.||chisq_chi2<50.))
+		if(!(chisq_chi2>=0.&&chisq_chi2<50.))
 			chisq_chi2=50.;
 		//cout<<"+"<<cell_mean[i1]<<","<<Edep_raw[layer][i1]*summ/sumxm<<","<<cell_rms[i1]<<"; "<<cell_probbar[i1]<<", "<<-1.*log(cell_prob[i1])<<endl;
-		chi2 +=(chisq_chi2+chisq_prob);
-		chi22+=(chisq_chi2+chisq_prob)*(chisq_chi2+chisq_prob);
-		chi23+=(chisq_chi2+chisq_prob)*(chisq_chi2+chisq_prob)*(chisq_chi2+chisq_prob);
-		chi24+=(chisq_chi2+chisq_prob)*(chisq_chi2+chisq_prob)*(chisq_chi2+chisq_prob)*(chisq_chi2+chisq_prob);
+		chisq =chisq_chi2+chisq_prob;
+		if(chisq>50.)
+			chisq=50.;
+		chi2 +=chisq;
+		chi22+=chisq*chisq;
+		chi23+=chisq*chisq*chisq;
+		chi24+=chisq*chisq*chisq*chisq;
 	}
 	return count;	
 }
