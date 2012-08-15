@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.431 2012/08/14 11:03:15 choutko Exp $
+//  $Id: root.C,v 1.432 2012/08/15 18:33:42 sdellato Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -62,6 +62,7 @@
 #endif
 #endif
 #include "Sunposition.h"
+#include "FrameTrans.h"
 #include "Tofrec02_ihep.h"
 using namespace root;
 #ifdef __WRITEROOT__
@@ -7848,6 +7849,86 @@ AMSSetupR::DSPError* HeaderR::pDSPError(){
     return &a;
 }
 //-----------------------------------------
+
+
+//-----------Coordinates -------------------
+
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelTP[2], double YPR[3], double  time, bool gtod){
+/*
+input  AMSTheta (rad) in AMS coo system
+           AMSPhi       (rad) in AMS coo system
+           RPT  coordinates in GTOD/CTRS coordinate system (RPT[0]==Radius -> in cm; RPT[1]==Phi (rad); RPT[2]==Theta(rad)
+	   VelPT velocity in GTOD/CTRS coordinate system  (VelPT[0]= VelPhi  ; VelPT[1]=VelTheta )
+           YPR yaw-pitch-roll in radians in LVLH
+           gtod  true if gtod coo system
+           time UTC time
+output
+           gal_long  galactic longitude in degrees
+           gal_lat      galactic latitude   in degrees
+return values
+0  success
+1...n  error (if any)
+*/
+
+double azim=AMSPhi;
+double elev=AMSTheta;
+
+get_ams_l_b_fromGTOD( RPT,  VelTP,  YPR, azim, elev, time);
+
+gal_long=azim;
+gal_lat=elev;
+
+return 0;
+
+}
+
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient){
+/*
+input   AMSTheta (rad) in AMS coo system
+           AMSPhi       (rad) in AMS coo system
+           AMS_RA AMS right ascension (rad)
+          AMS_DEC  AMS declination (rad)
+           time UTC time
+output
+           gal_long  galactic longitude in degrees
+           gal_lat      galactic latitude   in degrees
+return values
+0  success
+1...n  error (if any)
+*/
+return 1;
+}
+
+int HeaderR::GetGalCoo(int & result, float & glong, float & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time){
+/*
+input
+          theta (rad)  in ams coo system
+           phi     (rad)  in ams coo system
+           use_ams_stk  ->  use info from ams startracker
+           use_ams_gps_time ->  use ams gps time, and not a iss  gps time
+
+output
+             Galactic coordinates glong,glat (degrees) glong, glat
+             result    bit 0 ams_stk info had been used
+                                 1  ams_gps_time had been used
+                                 2  gtod coo system + lvlh ypr had been used
+                                 3   ctrs coo  system  + -------------------------------
+                                 4   twoline element estimator of gtod + --------------------------
+
+
+return value
+
+ 0 success
+ 1 failure
+ -1 use of ams_stk was not possible, other info had  been used
+ -2 use of ams gps time was not possible , iss gps time had been used instead
+
+*/
+return 1;
+}
+//------------------------------------------
+
+
 
 float AMSEventR::LiveTime(){
 
