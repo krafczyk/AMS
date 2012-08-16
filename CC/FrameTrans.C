@@ -48,7 +48,7 @@ int get_ams_ra_dec_fromGTOD(double PosISS[3], double VelISS[2], double rpy[3], d
   FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
   FT_GTOD2Equat(x,y,z,xtime);                                              // Parameters: xtime is GPS
   FT_Cart2Angular( x,  y,  z,r, dec,  ra);
-  
+  return 0;
 }
 
 int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double rpy[3], double & Azim, double &Elev, double xtime){
@@ -77,7 +77,7 @@ int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double rpy[3], doub
   Azim=l;
   Elev=b;
   
-  
+  return 0;
 }
 /** **************** STAR TRACKER *************************/
 
@@ -102,6 +102,21 @@ void	FT_Angular2Cart(double r, double theta, double phi, double& x, double& y, d
   y=r*sin(pi/2.-theta)*sin(phi);
   z=r*cos(pi/2.-theta);
 }
+
+double FT_Modulus(double arg1, double arg2)
+{
+	/* Returns arg1 mod arg2 */
+	int i;
+	double ret_val;
+	ret_val=arg1;
+	i=(int)(ret_val/arg2);
+	ret_val-=i*arg2;
+	if (ret_val<0.0)
+		ret_val+=arg2;
+	return ret_val;
+}
+
+
 /*****************************************************************************/
 void	FT_AMS2Body(double &x, double &y, double &z){
     /* convert from AMS-02 Ref System to ISS-Body ref System */
@@ -235,7 +250,7 @@ void	FT_GTOD2LVLH(double &x, double &y, double &z, double ISSaltitude,double ISS
   /* define the ISS coordinates and velocity*/
   double ISSpos_x,ISSpos_y, ISSpos_z, ISSpos_mag;
   //const double Re=6378.137; /*Earth Equatorial radius in km*/
-  Angular2Cart(ISSaltitude,ISSdec,ISSasc,ISSpos_x,ISSpos_y,ISSpos_z);
+  FT_Angular2Cart(ISSaltitude,ISSdec,ISSasc,ISSpos_x,ISSpos_y,ISSpos_z);
   ISSpos_mag=sqrt(ISSpos_x*ISSpos_x+ISSpos_y*ISSpos_y+ISSpos_z*ISSpos_z);
    /* unity vectors */
   double R_x = cos(ISSasc ) * sin( pi/2.- ISSdec );
@@ -294,7 +309,7 @@ void	FT_GTOD2LVLH(double &x, double &y, double &z, double ISSaltitude,double ISS
 
 void	FT_LVLH2GTOD(double &x, double &y, double &z, double ISSaltitude,double ISSasc,double ISSdec,double ISSVelPhi, double ISSVelTheta ){
    double ISSpos_x,ISSpos_y, ISSpos_z, ISSpos_mag;
-   Angular2Cart(ISSaltitude,ISSdec,ISSasc,ISSpos_x,ISSpos_y,ISSpos_z);
+   FT_Angular2Cart(ISSaltitude,ISSdec,ISSasc,ISSpos_x,ISSpos_y,ISSpos_z);
    ISSpos_mag=sqrt(ISSpos_x*ISSpos_x+ISSpos_y*ISSpos_y+ISSpos_z*ISSpos_z);
    /* define the ISS coordinates and velocity*/
    double R_x = cos(ISSasc ) * sin( pi/2.- ISSdec );
@@ -345,15 +360,15 @@ void	FT_LVLH2GTOD(double &x, double &y, double &z, double ISSaltitude,double ISS
 /*****************************************************************************/
 
 double FT_GMST_rad(double timeUnix){
- time=  FT_UTC_JD(double timeUnix); //convert from unixtime (UTC) to Julian days
- //time=  FT_GPS_JD(double timeUnix); //convert from unixtime (GPS) to Julian days
+ double time=  FT_UTC_JD( timeUnix); //convert from unixtime (UTC) to Julian days
+ //double time=  FT_GPS_JD( timeUnix); //convert from unixtime (GPS) to Julian days
  /* Greenwich mean sidereal time  in radians */
  double T=(time-2451545.0)/36525.0 ;/*Interval of time, measured in Julian centuries of 36525 days of UT (mean solar day), elapsed since the epoch 2000 Jan 1d12hUT*/
  double d=(time-2451545.0);
  double GMST_deg;/*greenwich mean sidereal time in degree (i.e. the Greenwich hour angle of the mean equinox of date)*/
  /* GMST from Meeus, J., 2000. Astronomical Algorithms. Willman-Bell, Richmond,VA, 2nd ed.  p 84 (eq.11-4)
     adapdet from IDL procedure http://idlastro.gsfc.nasa.gov/ftp/pro/astro/ct2lst.pro */
- GMST_deg=Modulus(( 280.46061837 + 360.98564736629*d +T*T*(0.000387933-T/38710000.0)),360);
+ GMST_deg=FT_Modulus(( 280.46061837 + 360.98564736629*d +T*T*(0.000387933-T/38710000.0)),360);
  double GMSTrad= GMST_deg*pi/180.; /* greenwich mean sidereal time  in radians*/
  return GMSTrad;
 }
@@ -364,7 +379,7 @@ void	FT_GTOD2Equat(double &x, double &y, double &z, double time){
   double oldZ=z;
   double alpha_g=0;
   
-  alpha_g=GMST_rad(time);
+  alpha_g=FT_GMST_rad(time);
   
   x=oldX*cos(alpha_g)-oldY*sin(alpha_g);
   y=oldX*sin(alpha_g)+oldY*cos(alpha_g);
@@ -380,7 +395,7 @@ void	FT_Equat2GTOD(double &x, double &y, double &z, double time){
   double oldZ=z;
   double alpha_g=0;
   
-  alpha_g=GMST_rad(time);
+  alpha_g=FT_GMST_rad(time);
   
   x=oldX*cos(alpha_g)+oldY*sin(alpha_g);
   y=-oldX*sin(alpha_g)+oldY*cos(alpha_g);
@@ -471,8 +486,8 @@ int  FT_Gal2Equat(double &azimut, double &elev){
  double GalCen_AscendingNode=33./180.*pi;  /*  33°  0' */
  
  
- Dec=asin(cos(b)*cos(GalCen_Dec)*sin(l-GalCen_AscendingNode) + sin(b)*sin(GalCen_Dec));
- RA=atan2( (cos(b)*cos(l-GalCen_AscendingNode)),(sin(b)cos(GalCen_Dec)-cos(b)*sin(GalCen_Dec)*sin(l-GalCen_AscendingNode) )  )+GalCen_RA;
+ Dec=asin(cos(b)*cos(GalCen_Dec)*sin(l-GalCen_AscendingNode) + sin(b)*sin(GalCen_Dec) );
+ RA=atan2( (cos(b)*cos(l-GalCen_AscendingNode) ),  ( sin(b)*cos(GalCen_Dec)-cos(b)*sin(GalCen_Dec)*sin(l-GalCen_AscendingNode) )  )+GalCen_RA;
  
  azimut=RA;
  elev=Dec;
