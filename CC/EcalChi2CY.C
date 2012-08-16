@@ -484,6 +484,7 @@ int   EcalChi2::set_edep(float edeps[18][72], float erg){
 	return 0;
 }
 float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
+#ifdef _PGTRACK_
 	float sign=-1.;
 	if(iTrTrackPar<0){
 		cout<<"Error : iTrTrackPar= "<<iTrTrackPar<<endl;
@@ -584,6 +585,10 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
 	cal_f2dep();
 	
 	return _chi2;
+#else
+return -1;
+#endif
+
 }
 float EcalChi2::cal_f2dep(){
         _f2dep=0.;

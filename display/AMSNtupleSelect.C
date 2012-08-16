@@ -205,9 +205,8 @@ if(0){
     cout <<" processsetup "<<AMSEventR::ProcessSetup<<endl;
 cout <<"AMSSetupR::ReadHeader-I-"<<ev->getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<ev->getsetup()->getAllTDV(ev->UTime())<<" TDVNamesFound"<<endl;
-
-
-return true;
+static int iqq=0;
+return iqq++%100==0?true:false;
 }
 
 return false;

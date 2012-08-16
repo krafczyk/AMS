@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.157 2012/06/07 07:48:24 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.158 2012/08/16 14:52:45 choutko Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/06/07 07:48:24 $
+/// $Date: 2012/08/16 14:52:45 $
 ///
-/// $Revision: 1.157 $
+/// $Revision: 1.158 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3403,7 +3403,7 @@ void TrRecon::PrintStats()
   
   if (hman.Get("TrTimH")) {
     float trtime = _CpuTimeTotal/fTrackCounter[0];
-    cout << Form(" Average cpu time     (s/ev) :    %6.4f", trtime)
+    cout << Form(" TrRecon::Average cpu time     (s/ev) :    %6.4f", trtime)
 	 << endl;
   }
   cout << endl;
