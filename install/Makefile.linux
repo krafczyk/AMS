@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.35 2012/08/10 14:44:13 ams Exp $
+#  $Id: Makefile.linux,v 1.36 2012/08/16 14:53:18 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -86,7 +86,7 @@ ifdef VERGCCH
   FORTRAN_LIBS=  -lgfortran 
 endif
 
-ORBIT2DIR=/afs/ams.cern.ch/opt/Orbit2
+ORBIT2DIR=/afs/cern.ch/ams/local2/opt/Orbit2
 IDL=/usr/bin/orbit-idl-2
 ifndef SLC6system
   IDLCPP=$(IDL) -l cpp
@@ -294,8 +294,8 @@ endif
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
 
-CXX_ORBIT=$(CXX) -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbit-2.0 -I$(BIN)
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/orbit-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX) -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g

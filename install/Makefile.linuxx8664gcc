@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.11 2012/08/10 14:44:14 ams Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.12 2012/08/16 14:53:20 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -20,9 +20,6 @@ IMPORTS_SLC5_LIBS=
 ifdef SLC6system
   IMPORTS_SLC5_LIBS= -L/afs/ams.cern.ch/opt/lib64
 endif
-#
-#[ae-2012.08.02] - ORBIT2DIR=/opt/Orbit2 changed to /afs/ams.cern.ch/opt/Orbit2 
-#[ae-2012.08.02] - change local /usr/X11R6 to afs location
 ifndef 
   IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
 endif
@@ -90,7 +87,7 @@ endif
   LD  = g++ 
   FORTRAN2_LIBS=
 
-ORBIT2DIR=/afs/ams.cern.ch/opt/Orbit2
+ORBIT2DIR=/afs/cern.ch/ams/local2/opt/Orbit2
 IDL=/usr/bin/orbit-idl-2
 ifndef SLC6system
   IDLCPP=$(IDL) -l cpp
@@ -256,8 +253,8 @@ LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbit-2.0 -I$(BIN)
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/orbit-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g
