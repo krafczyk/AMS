@@ -7,7 +7,7 @@
  *           SDT - Stefano Della Torre - INFN Milano Bicocca - stefano.dellatorre@mib.infn.it
  *  Date: Aug 2012 - first version (SDT)
  *  ---- report here main changes ----
- *
+ *  SDT 16 aug 2012 - add FT_modulus function
  */
 
 #include <iostream>
@@ -48,6 +48,7 @@ int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double rpy[3], doub
 
 void	FT_Cart2Angular(double x, double y, double z, double& r, double& theta, double& phi);
 void	FT_Angular2Cart(double r, double theta, double phi, double& x, double& y, double& z );
+double  FT_Modulus(double arg1, double arg2);
 /*****************************************************************************/
 void	FT_AMS2Body(double &x, double &y, double &z);
 void	FT_Body2AMS(double &x, double &y, double &z);
