@@ -15,41 +15,9 @@ setenv CXXVERS `g++ -dumpversion | tr -d "."`
 
 setenv PREFIX /Offline/vdev/install
 setenv TESTFLAG 
-
+unsetenv G4AMS
 unsetenv MARCH
-unsetenv PGTRACK
 setenv ECALBDT 1
-source $PREFIX/amsvar$TESTFLAG.icc64
-source  $PREFIX/g4i$TESTFLAG.icc64
-gmake allg4
-#exit
-
-source  $PREFIX/amsvar$TESTFLAG.gcc64
-gmake allp
-gmake server
-#exit
-
-source  $PREFIX/amsvar$TESTFLAG.icc32
-if ( "$CXXVERS" < "430" ) then
-  gmake allold 
-endif
-#exit
-
-setenv MARCH linuxicc26
-#gmake -j
-#exit
-#gmake producer -i
-#exit
-
-unsetenv MARCH
-source  $PREFIX/amsvar$TESTFLAG.gcc32
-source  $PREFIX/g4i$TESTFLAG.gcc32
-if ( "$CXXVERS" < "430" ) then
-  # errors on 'g++ -m32 -o ../exe/Linux-g++/gbatch-orbit.exe'
-  gmake allg4
-endif
-gmake server
-#exit
 
 echo
 echo "******** setenv PGTRACK 1 ********"
@@ -58,40 +26,80 @@ echo
 setenv PGTRACK 1
 source  $PREFIX/amsvar$TESTFLAG.icc64
 source  $PREFIX/g4i$TESTFLAG.icc64
-gmake allg4
-#exit
+gmake all
 
 source  $PREFIX/amsvar$TESTFLAG.gcc32
 source  $PREFIX/g4i$TESTFLAG.gcc32
 if ( "$CXXVERS" < "430" ) then
-  gmake allg4
+  gmake allp
 endif
-#exit
 
 source  $PREFIX/amsvar$TESTFLAG.gcc64
 source  $PREFIX/g4i$TESTFLAG.gcc64
 gmake allp
-#exit
+
 
 source $PREFIX/amsvar$TESTFLAG.icc32
 if ( "$CXXVERS" < "430" ) then
   gmake allold 
-endif
-#exit
-
 setenv MARCH linuxicc26
-#gmake -j
-#gmake producer -i
-#exit
+gmake -j
+gmake producer -i
+endif
+
+
 
 unsetenv MARCH
 setenv PGTRACK 1
 setenv G4AMS 1
 source $PREFIX/amsvar$TESTFLAG.icc64
 source $PREFIX/g4i$TESTFLAG.icc64
-gmake  -j8
+gmake  -j
+gmake producer -i
+unsetenv MARCH
+setenv PGTRACK 1
+setenv G4AMS 1
+source $PREFIX/amsvar$TESTFLAG.gcc64
+source $PREFIX/g4i$TESTFLAG.gcc64
+gmake  -j
 gmake producer -i
 unsetenv G4AMS
 unsetenv PGTRACK
+
+unsetenv G4AMS
+unsetenv PGTRACK
+
+
+unsetenv G4AMS
+unsetenv MARCH
+unsetenv PGTRACK
+setenv ECALBDT 1
+source $PREFIX/amsvar$TESTFLAG.icc64
+source  $PREFIX/g4i$TESTFLAG.icc64
+gmake allg4
+
+source  $PREFIX/amsvar$TESTFLAG.gcc64
+gmake allp
+
+source  $PREFIX/amsvar$TESTFLAG.icc32
+if ( "$CXXVERS" < "430" ) then
+  gmake allold 
+  setenv MARCH linuxicc26
+  gmake -j
+  gmake producer -i
+endif
+
+
+unsetenv MARCH
+source  $PREFIX/amsvar$TESTFLAG.gcc32
+source  $PREFIX/g4i$TESTFLAG.gcc32
+if ( "$CXXVERS" < "430" ) then
+  # errors on 'g++ -m32 -o ../exe/Linux-g++/gbatch-orbit.exe'
+  gmake allp
+endif
+gmake server
+
+
+
 
 
