@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.101 2012/08/17 16:59:17 choutko Exp $
+#  $Id: Makefile,v 1.102 2012/08/17 19:41:31 ams Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -8,6 +8,12 @@
 SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+endif
+#
+#[ae-2012.08.17] - can't take from ../install/Makefile
+#
+ifndef AMSDEPLIB
+  AMSDEPLIB := /afs/cern.ch/ams/local2/opt/
 endif
 #
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
