@@ -20,11 +20,19 @@ endif
 ########################################################################
 #Compilers
 ########################################################################
+ifneq "$(origin CC )" "environment" 
   CC  = gcc  -m64
+endif
+ifneq "$(origin CXX)" "environment" 
   CXX = g++ -m64
+endif
+ifneq "$(origin FF )" "environment" 
   FF  = gfortran -m64 
+endif
   FFOLD=$(FF)
+ifneq "$(origin LD )" "environment" 
   LD  = g++ -m64 -v
+endif
   FORTRAN2_LIBS=
   FORTRAN_LIBS+= -L/usr/local/gfortran/lib -lgfortran 
 

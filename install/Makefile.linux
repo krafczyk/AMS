@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.36 2012/08/16 14:53:18 choutko Exp $
+#  $Id: Makefile.linux,v 1.37 2012/08/17 13:56:04 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -70,17 +70,27 @@ RH9add=-pthread $(BIN)ctype.o
 ########################################################################
 #Compilers
 ########################################################################
+ifneq "$(origin CC )" "environment" 
   CC  = gcc -m32 
+endif
+ifneq "$(origin CXX)" "environment" 
   CXX = g++ -m32
+endif
 ifdef VERGCC 
+ifneq "$(origin FF )" "environment" 
   FF  = gfortran -m32 
+endif
   FORTRAN_LIBS= -lg2c -lgfortran 
 else  
+ifneq "$(origin FF )" "environment" 
   FF  = g77 -m32 
+endif
   FORTRAN_LIBS=-lg2c 
 endif
   FFOLD=$(FF)
+ifneq "$(origin LD )" "environment" 
   LD  = g++ -m32
+endif
   FORTRAN2_LIBS=
 ifdef VERGCCH
   FORTRAN_LIBS=  -lgfortran 
@@ -155,6 +165,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -224,8 +237,12 @@ ifdef SLC4system
 ifdef VER
 else
 # SOFLAGS+=$(shell root-config --libs ) 
+ifndef NOCASTOR
  SOFLAGS+=   -L/$(ROOTSYS)/lib -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer -lPhysics
 # -L$(CERNDIR)/lib -lmathlib -lgeant -lpacklib -lgfortran
+else
+ SOFLAGS+=   -L/$(ROOTSYS)/lib -lRIO -lTree -lThread -lGpad   -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer -lPhysics
+endif
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2
 endif

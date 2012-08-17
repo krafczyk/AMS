@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.54 2012/08/13 16:59:53 choutko Exp $
+//  $Id: root_setup.h,v 1.55 2012/08/17 13:56:04 mkrafczy Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -19,6 +19,9 @@ class RichConfigContainer;
 class AMSEventR;
 class AMSTimeID;
 #ifdef __LINUXGNU__
+struct dirent64;
+#endif
+#ifdef __LINUXNEW__
 struct dirent64;
 #endif
 #ifdef __DARWIN__
@@ -487,6 +490,9 @@ static AMSSetupR * _Head;
 static int _select ( dirent * entry);
 #endif
 #ifdef __LINUXGNU__
+static int _select (const dirent64 * entry);
+#endif
+#ifdef __LINUXNEW__
 static int _select (const dirent64 * entry);
 #endif
  public:

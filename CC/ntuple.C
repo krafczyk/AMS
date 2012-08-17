@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.255 2012/07/19 10:39:15 choutko Exp $
+//  $Id: ntuple.C,v 1.256 2012/08/17 13:56:03 mkrafczy Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -1059,6 +1059,10 @@ char name[256]="";
       dirent64 ** namelist=0;
       int nptr=scandir64(dir.c_str(),&namelist,_select,NULL);
 #endif
+#ifdef __LINUXNEW__
+      dirent64 ** namelist=0;
+      int nptr=scandir64(dir.c_str(),&namelist,_select,NULL);
+#endif
        time_t tnow;
        time(&tnow);
 	for(int i=0;i<nptr;i++) {
@@ -1136,6 +1140,9 @@ char name[256]="";
 integer AMSNtuple::_select(  dirent *entry)
 #endif
 #ifdef __LINUXGNU__
+integer AMSNtuple::_select(  const dirent64 *entry)
+#endif
+#ifdef __LINUXNEW__
 integer AMSNtuple::_select(  const dirent64 *entry)
 #endif
 {

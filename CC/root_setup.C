@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.88 2012/08/13 16:59:46 choutko Exp $
+//  $Id: root_setup.C,v 1.89 2012/08/17 13:56:03 mkrafczy Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -806,6 +806,10 @@ slc+="/SlowControlDir";
     dirent64 ** namelist;
     int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
 #endif
+#ifdef __LINUXNEW__
+    dirent64 ** namelist;
+    int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
+#endif
 
 
     bool found=false;
@@ -1052,6 +1056,9 @@ void AMSSetupR::SlowControlR::printElementNames(const char *name){
 integer AMSSetupR::_select( dirent *entry)
 #endif
 #ifdef __LINUXGNU__
+integer AMSSetupR::_select(  const dirent64 *entry)
+#endif
+#ifdef __LINUXNEW__
 integer AMSSetupR::_select(  const dirent64 *entry)
 #endif
 {
@@ -1928,6 +1935,10 @@ bool AMSSetupR::LoadISSBadRun(){
   amsdd+="/BadRuns/"; 
   int total=0;
 #ifdef __LINUXGNU__
+	dirent64 ** namelistsubdir;
+	int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
+#endif
+#ifdef __LINUXNEW__
 	dirent64 ** namelistsubdir;
 	int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
 #endif

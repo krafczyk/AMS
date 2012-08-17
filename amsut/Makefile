@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.11 2010/11/10 16:37:53 pzuccon Exp $
+#  $Id: Makefile,v 1.12 2012/08/17 13:56:04 mkrafczy Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -49,8 +49,20 @@ DEFINES=
   FC       = ifort  -m32
   CXX      = icc -m32 
   LD       = icc   -m32
-
-
+endif
+ifeq "$(ARCH)" "linuxx8664gcc"
+DEFINES=
+### Compilers ###
+  FC       = gfortran
+  CXX      = g++ 
+  LD       = g++
+endif
+ifeq "$(ARCH)" "linuxx8664icc"
+DEFINES=
+### Compilers ###
+  FC       = ifort
+  CXX      = icpc 
+  LD       = icpc
 endif
 ifeq ($(ARCH), Darwin)
 DEFINES  = -D__DARWIN__

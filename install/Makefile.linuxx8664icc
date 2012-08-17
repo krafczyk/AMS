@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.24 2012/08/16 14:53:20 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.25 2012/08/17 13:56:04 mkrafczy Exp $
 
 # General clean up and reorganization
 #
@@ -133,6 +133,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -199,7 +202,11 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
+ifndef NOCASTOR
  SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
+else
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
+endif
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2
 endif

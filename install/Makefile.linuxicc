@@ -123,6 +123,9 @@ endif
 # Compilers FLAGS
 ########################################################################
 
+ifdef NOCASTOR
+DEFINES+=  -D__NOCASTOR__
+endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
@@ -186,7 +189,11 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
+ifndef NOCASTOR
  SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lTMVA -lMLP -lXMLIO -lTreePlayer -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO -lPhysics -lgfortran 
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lHist -lTMVA -lMLP -lXMLIO -lTreePlayer -lMinuit -lHistPainter -lGraf -lMatrix -lPhysics -lgfortran 
+endif
 endif
 endif
 
