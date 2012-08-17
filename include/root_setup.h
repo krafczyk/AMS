@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.55 2012/08/17 13:56:04 mkrafczy Exp $
+//  $Id: root_setup.h,v 1.56 2012/08/17 21:11:16 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -493,7 +493,7 @@ static int _select ( dirent * entry);
 static int _select (const dirent64 * entry);
 #endif
 #ifdef __LINUXNEW__
-static int _select (const dirent64 * entry);
+//static int _select (const dirent64 * entry);
 #endif
  public:
  bool LoadISSBadRun(); ///< Load badruns from $AMSDataDir/Badruns
