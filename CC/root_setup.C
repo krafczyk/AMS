@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.89 2012/08/17 13:56:03 mkrafczy Exp $
+//  $Id: root_setup.C,v 1.90 2012/08/17 21:41:45 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -807,8 +807,8 @@ slc+="/SlowControlDir";
     int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
 #endif
 #ifdef __LINUXNEW__
-    dirent64 ** namelist;
-    int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
+    //dirent64 ** namelist;
+    //int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
 #endif
 
 
@@ -1059,7 +1059,7 @@ integer AMSSetupR::_select( dirent *entry)
 integer AMSSetupR::_select(  const dirent64 *entry)
 #endif
 #ifdef __LINUXNEW__
-integer AMSSetupR::_select(  const dirent64 *entry)
+//integer AMSSetupR::_select(  const dirent64 *entry)
 #endif
 {
  return strstr(entry->d_name,"SCDB.")!=NULL;
@@ -1939,8 +1939,8 @@ bool AMSSetupR::LoadISSBadRun(){
 	int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
 #endif
 #ifdef __LINUXNEW__
-	dirent64 ** namelistsubdir;
-	int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
+	//dirent64 ** namelistsubdir;
+	//int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
 #endif
 #ifdef __DARWIN__
 	dirent ** namelistsubdir;

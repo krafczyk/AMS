@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.240 2012/08/17 13:56:03 mkrafczy Exp $
+//  $Id: daqevt.C,v 1.241 2012/08/17 21:41:45 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2620,7 +2620,7 @@ integer DAQEvent::_select(dirent64 *entry)
   integer DAQEvent::_select(const dirent64 *entry)
 #endif
 #ifdef __LINUXNEW__
-  integer DAQEvent::_select(const dirent64 *entry)
+  //integer DAQEvent::_select(const dirent64 *entry)
 #endif
 #ifdef __DARWIN__
   integer DAQEvent::_select( dirent *entry)
