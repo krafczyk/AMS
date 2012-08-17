@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.25 2012/08/17 13:56:04 mkrafczy Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.26 2012/08/17 17:46:22 ams Exp $
 
 # General clean up and reorganization
 #
@@ -16,10 +16,10 @@ endif
 #
 IMPORTS_SLC5_LIBS=
 ifdef SLC6system
-  IMPORTS_SLC5_LIBS= -L/afs/ams.cern.ch/opt/lib64
+  IMPORTS_SLC5_LIBS= -L$(AMSDEPLIB)/lib64
 endif
 ifndef 
-  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+  IMPORTS_X11R6= $(AMSDEPLIB)/X11R6
 endif
 #
 
@@ -94,7 +94,7 @@ endif
   FORTRAN_LIBS=
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
 
-ORBIT2DIR=/afs/cern.ch/ams/local2/opt/Orbit2
+ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=/usr/bin/orbit-idl-2
 ifndef SLC6system
   IDLCPP=$(IDL) -l cpp
