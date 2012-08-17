@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.218 2012/08/17 16:59:26 choutko Exp $
+#  $Id: Makefile,v 1.219 2012/08/17 18:23:39 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -967,46 +967,46 @@ cleanlibs:
 	cd ../python; gmake clean
 	cd ../install
 all:
-	$(MAKE) -j10 
-	$(MAKE) -j10 lib 
-	$(MAKE) -j10 gxint
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
 	$(MAKE) -i producer
-	$(MAKE) -j10 -C../online
-	$(MAKE) -j10 -C../online osdepend
-	$(MAKE) -j10 -C../display
-	$(MAKE) -j10 -C../display osdepend
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
 allg4:
-	$(MAKE) -j10 
-	$(MAKE) -j10 lib 
-	$(MAKE) -j10 gxint
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
 	$(MAKE) -i producer
-	$(MAKE) -j10 -C../online
-	$(MAKE) -j10 -C../online osdepend
-	$(MAKE) -j10 -C../display
-	$(MAKE) -j10 -C../display osdepend
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
 ifndef SLC6system
-	$(MAKE) -j10 -f Moptg4
+	$(MAKE) -j -f Moptg4
 	$(MAKE)  producer -f Moptg4 -i
 endif
 allp:
-	$(MAKE) -j10 
-	$(MAKE) -j10 lib 
-	$(MAKE) -j10 gxint
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
 	$(MAKE) -i producer
-	$(MAKE) -j10 -C../online
-	$(MAKE) -j10 -C../online osdepend
-	$(MAKE) -j10 -C../display
-	$(MAKE) -j10 -C../display osdepend
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
 	$(MAKE) server
 allold:
-	$(MAKE) -j10 
-	$(MAKE) -j10 lib 
+	$(MAKE) -j 
+	$(MAKE) -j lib 
 	$(MAKE) -i producer
 	$(MAKE) -f Makefastntrdicc
-	$(MAKE) -j10 -C../online
-	$(MAKE) -j10 -C../online osdepend
-	$(MAKE) -j10 -C../display
-	$(MAKE) -j10 -C../display osdepend
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
 
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
