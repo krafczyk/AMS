@@ -6,7 +6,7 @@
 # List of SLC6 changes
 #
 ifndef 
-  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+  IMPORTS_X11R6= $(AMSDEPLIB)/X11R6
 endif
 #
 
@@ -88,7 +88,7 @@ endif
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/../../lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 
 
-ORBIT2DIR=/afs/cern.ch/ams/local2/opt/Orbit2
+ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=/usr/bin/orbit-idl-2
 ifndef SLC6system
   IDLCPP=$(IDL) -l cpp

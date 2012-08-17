@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.37 2012/08/17 13:56:04 mkrafczy Exp $
+#  $Id: Makefile.linux,v 1.38 2012/08/17 17:57:06 ams Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -11,7 +11,7 @@
 #[ae-2012.08.02] - ORBIT2DIR=/opt/Orbit2 changed to /afs/ams.cern.ch/opt/Orbit2 
 #[ae-2012.08.02] - change local /usr/X11R6 to afs location
 ifndef 
-  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+  IMPORTS_X11R6= $(AMSDEPLIB)/X11R6
 endif
 #
 
@@ -96,7 +96,7 @@ ifdef VERGCCH
   FORTRAN_LIBS=  -lgfortran 
 endif
 
-ORBIT2DIR=/afs/cern.ch/ams/local2/opt/Orbit2
+ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=/usr/bin/orbit-idl-2
 ifndef SLC6system
   IDLCPP=$(IDL) -l cpp
