@@ -3244,6 +3244,34 @@ class RemoteClient:
         else:
             print " found / while did -1 , return "
             return
+
+        if(self.update):
+            for file in files:
+                if(df==0):
+                    self.linkdataset(file[0],"/Offline/DataSetsDir",0)
+                else:
+                    self.linkdataset(file[0],"/Offline/RunsDir",0)
+                cmd="rm "+file[0]
+                i=0
+                i=os.system(cmd)
+                if(i and self.force==-1 ):
+                    print " Command Failed ",cmd
+                    return
+                else:
+                    if(self.verbose):
+                        print "deleted ",file[0]
+                if(file[1]>0):
+                    castorPrefix='/castor/cern.ch/ams/'
+                    delimiter='Data'
+                    if(datamc==0):
+                        delimiter='MC'
+                    junk=file[0].split(delimiter)
+                    if len(junk)>=2:
+                        castorfile=castorPrefix+delimiter+junk[1]
+                        castordel="/usr/bin/rfrm "+castorfile
+                        i=os.system(castordel)
+                        if(i):
+                            print " CastorCommand Failed ",castordel
         if(len(files)==0):
             if(datamc==0):
                 if(donly==0):
