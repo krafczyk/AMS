@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.13 2012/08/17 13:56:04 mkrafczy Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.14 2012/08/17 16:59:26 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -18,10 +18,10 @@ endif
 #
 IMPORTS_SLC5_LIBS=
 ifdef SLC6system
-  IMPORTS_SLC5_LIBS= -L/afs/ams.cern.ch/opt/lib64
+  IMPORTS_SLC5_LIBS= -L$(AMSDEPLIB)/lib64
 endif
 ifndef 
-  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+  IMPORTS_X11R6= $(AMSDEPLIB)/X11R6
 endif
 #
 
@@ -97,7 +97,7 @@ ifneq "$(origin LD )" "environment"
 endif
   FORTRAN2_LIBS=
 
-ORBIT2DIR=/afs/cern.ch/ams/local2/opt/Orbit2
+ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=/usr/bin/orbit-idl-2
 ifndef SLC6system
   IDLCPP=$(IDL) -l cpp

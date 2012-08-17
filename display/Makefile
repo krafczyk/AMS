@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.100 2012/08/07 11:01:56 ams Exp $
+#  $Id: Makefile,v 1.101 2012/08/17 16:59:17 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -15,12 +15,12 @@ endif
 #
 IMPORTS_SLC5_LIBS=
 ifdef SLC6system
-  IMPORTS_SLC5_LIBS= -L/afs/ams.cern.ch/opt/lib64
+  IMPORTS_SLC5_LIBS= -L$(AMSDEPLIB)/lib64
 endif
 #
 #[ae-2012.08.02] - change local /usr/X11R6 to afs location
 ifndef 
-  IMPORTS_X11R6= /afs/ams.cern.ch/opt/X11R6
+  IMPORTS_X11R6= $(AMSDEPLIB)/X11R6
 endif
 #
 

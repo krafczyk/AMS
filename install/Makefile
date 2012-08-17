@@ -1,4 +1,4 @@
-#P.Zuccon june 2005
+#  $Id: Makefile,v 1.218 2012/08/17 16:59:26 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -67,6 +67,10 @@ ifndef AMSWD
 AMSWD := ..
 endif
 #
+ifndef AMSDEPLIB
+AMSDEPLIB := /afs/cern.ch/ams/local2/opt/
+endif
+
 G4LIBS=
 G4=
 ifdef G4AMS
