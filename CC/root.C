@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.432 2012/08/15 18:33:42 sdellato Exp $
+//  $Id: root.C,v 1.433 2012/08/17 18:18:25 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7882,12 +7882,14 @@ return 0;
 
 }
 
-int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient){
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double  theta , double phi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient){
 /*
-input   AMSTheta (rad) in AMS coo system
-           AMSPhi       (rad) in AMS coo system
-           AMS_RA AMS right ascension (rad)
-          AMS_DEC  AMS declination (rad)
+input       theta (rad) in AMS coo system
+            phi       (rad) in AMS coo system
+           CamID   camera id
+           CAM_RA   camera right ascension (degrees)
+           CAM_DEC   camera declination (degrees)
+           CAM_Orient   camera orientation (degrees)
            time UTC time
 output
            gal_long  galactic longitude in degrees
@@ -7899,14 +7901,26 @@ return values
 return 1;
 }
 
-int HeaderR::GetGalCoo(int & result, float & glong, float & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time){
+
+
+
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat,double ams_ra, double ams_dec){
+  ams_ra=ams_ra/180.*3.1415926;
+  ams_dec=ams_dec/180.*3.1415926;
+  FT_Equat2Gal(ams_ra, ams_dec);
+  gal_long=ams_ra;
+  gal_lat=ams_dec;
+return 0;
+}
+
+int AMSEventR::GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod){
 /*
 input
           theta (rad)  in ams coo system
            phi     (rad)  in ams coo system
            use_ams_stk  ->  use info from ams startracker
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
-
+           use_gtod         ->  use gtod coordinates
 output
              Galactic coordinates glong,glat (degrees) glong, glat
              result    bit 0 ams_stk info had been used
@@ -7922,10 +7936,204 @@ return value
  1 failure
  -1 use of ams_stk was not possible, other info had  been used
  -2 use of ams gps time was not possible , iss gps time had been used instead
-
+ -3 use of ams_stk and ams_gps_time was not possible
 */
-return 1;
+
+ unsigned int gpsdiff=15;
+ int ret=0;
+ result=0;
+ double  xtime=double(UTime())+Frac()-gpsdiff;    
+ if(use_ams_gps_time){
+   unsigned int time,nanotime;
+   if(GetGPSTime( time, nanotime) )ret=-2;
+   else {
+    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    result|=(1<<1);
+  }
+ }
+ if(use_ams_stk){
+   AMSSetupR::AMSSTK a;
+  if(!getsetup() || getsetup()->getAMSSTK(a,xtime)){
+   ret=-1;
+  }
+  else{
+  if(!fHeader.get_gal_coo(glong,glat,theta,phi,a.cam_id,a.cam_ra,a.cam_dec,a.cam_or)){
+      result|=(1<<0);
+      return ret;
+  }
+  else ret-=1;
+  }  
+ }
+ double RPT[3],VelPT[2],YPR[3];
+ bool gtod=false;
+ // YPR
+YPR[0]=fHeader.Yaw;
+YPR[1]=fHeader.Pitch;
+YPR[2]=fHeader.Roll;
+RPT[0]=fHeader.RadS;
+RPT[1]=fHeader.PhiS;
+RPT[2]=fHeader.ThetaS;
+VelPT[0]=fHeader.VelPhi;
+VelPT[0]=fHeader.VelTheta;
+
+if(getsetup()){
+  float Roll,Pitch,Yaw;
+  if(!getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
+   YPR[0]=Yaw;
+   YPR[1]=Pitch;
+   YPR[2]=Roll;
+  }
+ AMSSetupR::ISSGTOD a;
+ AMSSetupR::ISSCTRSR b; 
+ if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
+  RPT[0]=a.r;
+  RPT[1]=a.phi;
+  RPT[2]=a.theta;
+  VelPT[0]=a.vphi;
+  VelPT[1]=a.vtheta;
+  gtod=true;
+  result|=(1<<2);
+ }
+ else if(!getsetup()->getISSCTRS(b,xtime)){
+  RPT[0]=b.r;
+  RPT[1]=b.phi;
+  RPT[2]=b.theta;
+  VelPT[0]=b.vphi;
+  VelPT[1]=b.vtheta;
+  gtod=false;
+  result|=(1<<3);
+ }
+ else{
+  gtod=true;
+  result|=(1<<4);
+ }
+
 }
+else{
+  gtod=true;
+  result|=(1<<4); 
+}  
+ int ret2=fHeader.get_gal_coo(glong, glat, theta, phi,  RPT, VelPT,  YPR,  xtime, gtod);
+ return ret2==0?ret:ret2;
+
+
+
+}
+
+
+
+
+
+
+int AMSEventR::GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod){
+/*
+input
+           use_ams_stk  ->  use info from ams startracker
+           use_ams_gps_time ->  use ams gps time, and not a iss  gps time
+           use_gtod          -> use gtod coo
+output
+             Galactic coordinates glong,glat (degrees) glong, glat
+             result    bit 0 ams_stk info had been used
+                                 1  ams_gps_time had been used
+                                 2  gtod coo system + lvlh ypr had been used
+                                 3   ctrs coo  system  + -------------------------------
+                                 4   twoline element estimator of gtod + --------------------------
+
+
+return value
+
+ 0 success
+ 1 failure
+ -1 use of ams_stk was not possible, other info had  been used
+ -2 use of ams gps time was not possible , iss gps time had been used instead
+ -3 use of ams_stk and ams_gps_time was not possible
+*/
+
+  float theta=3.1415926;
+  float phi=0;
+ result=0;
+ unsigned int gpsdiff=15;
+ int ret=0;
+ double  xtime=double(UTime())+Frac()-gpsdiff;    
+ if(use_ams_gps_time){
+   unsigned int time,nanotime;
+   if(GetGPSTime( time, nanotime) )ret=-2;
+   else {
+    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    result|=(1<<1);
+  }
+ }
+ if(use_ams_stk){
+   AMSSetupR::AMSSTK a;
+  if(!getsetup() || getsetup()->getAMSSTK(a,xtime)){
+   ret=-1;
+  }
+  else{
+  if(!fHeader.get_gal_coo(glong,glat,a.ams_ra,a.ams_dec)){
+      result|=(1<<0);
+      return ret;
+  }
+  else ret-=1;
+  }  
+ }
+ double RPT[3],VelPT[2],YPR[3];
+ bool gtod=false;
+ // YPR
+YPR[0]=fHeader.Yaw;
+YPR[1]=fHeader.Pitch;
+YPR[2]=fHeader.Roll;
+RPT[0]=fHeader.RadS;
+RPT[1]=fHeader.PhiS;
+RPT[2]=fHeader.ThetaS;
+VelPT[0]=fHeader.VelPhi;
+VelPT[0]=fHeader.VelTheta;
+
+if(getsetup()){
+  float Roll,Pitch,Yaw;
+  if(!getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
+   YPR[0]=Yaw;
+   YPR[1]=Pitch;
+   YPR[2]=Roll;
+  }
+ AMSSetupR::ISSGTOD a;
+ AMSSetupR::ISSCTRSR b; 
+ if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
+  RPT[0]=a.r;
+  RPT[1]=a.phi;
+  RPT[2]=a.theta;
+  VelPT[0]=a.vphi;
+  VelPT[1]=a.vtheta;
+  gtod=true;
+  result|=(1<<2);
+ }
+ else if(!getsetup()->getISSCTRS(b,xtime)){
+  RPT[0]=b.r;
+  RPT[1]=b.phi;
+  RPT[2]=b.theta;
+  VelPT[0]=b.vphi;
+  VelPT[1]=b.vtheta;
+  gtod=false;
+  result|=(1<<3);
+ }
+ else{
+  gtod=true;
+  result|=(1<<4);
+ }
+
+}
+else{
+  gtod=true;
+  result|=(1<<4); 
+}  
+ int ret2=fHeader.get_gal_coo(glong, glat, theta, phi,  RPT, VelPT,  YPR,  xtime, gtod);
+ return ret2==0?ret:ret2;
+
+
+
+}
+
+
+
 //------------------------------------------
 
 

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.462 2012/08/15 18:35:04 sdellato Exp $
+//  $Id: root.h,v 1.463 2012/08/17 18:18:30 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -338,8 +338,8 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 //-----------Coordinates -------------------
 int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelTP[2], double YPR[3], double  time, bool gtod=true);/// Get galactic coordinates using ISS position, velocity and LVLH attitude
-int get_gal_coo(double & gal_long, double & gal_lat, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);/// Get galactic coordinates using Star Tracker
-int GetGalCoo(int & result, float & glong, float & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true);/// Get galactic coordinates
+int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);/// Get galactic coordinates using Star Tracker
+int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);/// Get galactic coordinates of ams senith using Star Tracker
 //-----------------------------------------
 
   //#ifdef _PGTRACK_
@@ -4119,7 +4119,39 @@ float LiveTime(); ///< trying to get livetime from scalers map return -1 if erro
 
 
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
-time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time
+
+         //! Convert AMS Local Frame Direction to Galalcti Longitude and Latitude
+        /*!
+\param
+   
+input   
+          theta (rad)  in ams coo system
+           phi     (rad)  in ams coo system
+           use_ams_stk  ->  use info from ams startracker
+           use_ams_gps_time ->  use ams gps time, and not a iss  gps time
+
+output
+             Galactic coordinates glong,glat (degrees) glong, glat
+             result    bit 0 ams_stk info had been used
+                                 1  ams_gps_time had been used
+                                 2  gtod coo system + lvlh ypr had been used
+                                 3   ctrs coo  system  + -------------------------------
+                                 4   twoline element estimator of gtod + --------------------------
+
+
+\return 
+
+ 0 success
+ 1 failure
+ -1 use of ams_stk was not possible, other info had  been used
+ -2 use of ams gps time was not possible , iss gps time had been used instead
+ -3 use of ams_stk and ams_gps_time was not possible
+
+*/
+int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false);///< Get galactic coordinates
+
+int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false);///< Get galactic coordinates for ams zenith;
+time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time
       //! RunTagChecker
         /*!
 
