@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.148 2012/08/17 21:02:48 choutko Exp $
+//  $Id: ntuple.h,v 1.149 2012/08/18 12:02:06 mkrafczy Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -1014,11 +1014,8 @@ public:
 #ifdef __DARWIN__
   static  int _select( dirent *entry);
 #endif
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
   static  int _select(  const dirent64 *entry);
-#endif
-#ifdef __LINUXNEW__
-  //static  int _select(  const dirent64 *entry);
 #endif
   static void UnLock();
   static int Lock(unsigned int tmout);

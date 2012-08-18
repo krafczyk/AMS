@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.56 2012/08/17 21:11:16 choutko Exp $
+//  $Id: root_setup.h,v 1.57 2012/08/18 12:02:06 mkrafczy Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -18,10 +18,7 @@ class DynAlFitContainer;
 class RichConfigContainer;
 class AMSEventR;
 class AMSTimeID;
-#ifdef __LINUXGNU__
-struct dirent64;
-#endif
-#ifdef __LINUXNEW__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 struct dirent64;
 #endif
 #ifdef __DARWIN__
@@ -489,11 +486,8 @@ static AMSSetupR * _Head;
 #ifdef __DARWIN__
 static int _select ( dirent * entry);
 #endif
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 static int _select (const dirent64 * entry);
-#endif
-#ifdef __LINUXNEW__
-//static int _select (const dirent64 * entry);
 #endif
  public:
  bool LoadISSBadRun(); ///< Load badruns from $AMSDataDir/Badruns

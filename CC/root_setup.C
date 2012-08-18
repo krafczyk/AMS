@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.90 2012/08/17 21:41:45 choutko Exp $
+//  $Id: root_setup.C,v 1.91 2012/08/18 12:02:06 mkrafczy Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -802,15 +802,10 @@ slc+="/SlowControlDir";
     dirent ** namelist;
     int nptr=scandir(sdir.c_str(),&namelist,_select,NULL);
 #endif
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
     dirent64 ** namelist;
     int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
 #endif
-#ifdef __LINUXNEW__
-    //dirent64 ** namelist;
-    //int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
-#endif
-
 
     bool found=false;
         vector <trio> tv;
@@ -1055,11 +1050,8 @@ void AMSSetupR::SlowControlR::printElementNames(const char *name){
 #ifdef __DARWIN__
 integer AMSSetupR::_select( dirent *entry)
 #endif
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 integer AMSSetupR::_select(  const dirent64 *entry)
-#endif
-#ifdef __LINUXNEW__
-//integer AMSSetupR::_select(  const dirent64 *entry)
 #endif
 {
  return strstr(entry->d_name,"SCDB.")!=NULL;
@@ -1934,13 +1926,9 @@ bool AMSSetupR::LoadISSBadRun(){
   string amsdd=AMSDD;
   amsdd+="/BadRuns/"; 
   int total=0;
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	dirent64 ** namelistsubdir;
 	int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
-#endif
-#ifdef __LINUXNEW__
-	//dirent64 ** namelistsubdir;
-	//int nptrdir=scandir64(amsdd.c_str(),&namelistsubdir,NULL,NULL);
 #endif
 #ifdef __DARWIN__
 	dirent ** namelistsubdir;

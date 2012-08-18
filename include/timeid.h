@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.49 2012/08/17 21:02:48 choutko Exp $
+//  $Id: timeid.h,v 1.50 2012/08/18 12:02:06 mkrafczy Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -199,13 +199,9 @@ protected:
   static integer _select(   dirent * entry=0);
   static integer _selectsdir(  dirent * entry=0);
 #endif
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
   static integer _select(  const dirent64 * entry=0);
   static integer _selectsdir(  const dirent64 * entry=0);
-#endif
-#ifdef __LINUXNEW__
-  //static integer _select(  const dirent64 * entry=0);
-  //static integer _selectsdir(  const dirent64 * entry=0);
 #endif
 
 

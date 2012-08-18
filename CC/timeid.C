@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.144 2012/08/17 21:41:45 choutko Exp $
+//  $Id: timeid.C,v 1.145 2012/08/18 12:02:06 mkrafczy Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -592,11 +592,8 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #ifdef __DARWIN__
       integer AMSTimeID::_select(  dirent *entry)
 #endif
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	integer AMSTimeID::_select(  const dirent64 *entry)
-#endif
-#ifdef __LINUXNEW__
-//	integer AMSTimeID::_select(  const dirent64 *entry)
 #endif
       {
 	return strstr(entry->d_name,(const char*)*_selectEntry)!=NULL;    
@@ -605,11 +602,8 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #ifdef __DARWIN__
       integer AMSTimeID::_selectsdir( dirent *entry)
 #endif
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	integer AMSTimeID::_selectsdir(  const dirent64 *entry)
-#endif
-#ifdef __LINUXNEW__
-//	integer AMSTimeID::_selectsdir(  const dirent64 *entry)
 #endif
       {
 	return (entry->d_name)[0] != '.';   
@@ -635,13 +629,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	if(statbuf_dir.st_mtime>tm){
 	  tm=statbuf_dir.st_mtime;
 	}
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	dirent64 ** namelistsubdir;
 	int nptrdir=scandir64(dir,&namelistsubdir,NULL,NULL);
-#endif
-#ifdef __LINUXNEW__
-	//dirent64 ** namelistsubdir;
-	//int nptrdir=scandir64(dir,&namelistsubdir,NULL,NULL);
 #endif
 #ifdef __DARWIN__
 	dirent ** namelistsubdir;
@@ -776,13 +766,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      _DataBaseSize=0;
 	      cout <<"AMSTimeId::_fillDB-I-DataBaseSizeZeroedAgain "<<getname()<<endl;
 
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	      dirent64 ** namelistsubdir;
 	      int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
-#endif
-#ifdef __LINUXNEW__
-	 //     dirent64 ** namelistsubdir;
-	 //     int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
 #endif
 #ifdef __DARWIN__
 	      dirent ** namelistsubdir;
@@ -793,13 +779,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		AString fsdir(fdir);
 		fsdir+=namelistsubdir[is]->d_name;
 		fsdir+="/";     
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 		dirent64 ** namelist;
 		int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
-#endif
-#ifdef __LINUXNEW__
-	//	dirent64 ** namelist;
-//		int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
 #endif
 #ifdef __DARWIN__
 		dirent ** namelist;
@@ -1018,13 +1000,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      }
 	      _DataBaseSize=0;
 
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	      dirent64 ** namelistsubdir;
 	      int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
-#endif
-#ifdef __LINUXNEW__
-	 //     dirent64 ** namelistsubdir;
-	   //   int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
 #endif
 #ifdef __DARWIN__
 	      dirent ** namelistsubdir;
@@ -1035,13 +1013,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		AString fsdir(fdir);
 		fsdir+=namelistsubdir[is]->d_name;
 		fsdir+="/";     
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 		dirent64 ** namelist;
 		int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
-#endif
-#ifdef __LINUXNEW__
-	//	dirent64 ** namelist;
-//		int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
 #endif
 #ifdef __DARWIN__
 		dirent ** namelist;
@@ -1186,13 +1160,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    fnam+= getid()==0?".0":".1";
 	    _selectEntry=&fnam;
 
-#ifdef __LINUXGNU__
+#if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	    dirent64 ** namelist;
 	    int nptr=scandir64((const char *)fdir,&namelist,&_select,NULL);     
-#endif
-#ifdef __LINUXNEW__
-	    //dirent64 ** namelist;
-	    //int nptr=scandir64((const char *)fdir,&namelist,&_select,NULL);     
 #endif
 #ifdef __DARWIN__
 	    dirent ** namelist;
