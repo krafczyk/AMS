@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64gcc,v 1.3 2012/07/26 17:20:14 mkrafczy Exp $
+#  $Id: Makefile.linuxia64gcc,v 1.4 2012/08/19 12:10:31 ams Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -133,13 +133,15 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 ifdef VERGCCH
-DEFINES+=  -D__LINUXNEW__
+  DEFINES+=  -D__LINUXNEW__
+else
+  DEFINES+=  -D__LINUXGNU__
 endif
 
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
 CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC
-DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
+DEFINES+= -D__root_$(NEW) 
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
