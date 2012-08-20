@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.161 2012/08/14 14:43:43 pzuccon Exp $
+// $Id: TrTrack.C,v 1.162 2012/08/20 07:36:59 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/08/14 14:43:43 $
+///$Date: 2012/08/20 07:36:59 $
 ///
-///$Revision: 1.161 $
+///$Revision: 1.162 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1023,7 +1023,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (ParExists(idr)) rini = GetRigidity(idr);
     _TrFit.SetRigidity(rini);
   }
-  if (beta > 1 || beta < -1) beta = 0;
+  if (beta > 1 || beta < -1) beta = (mass > 0) ? 0 : 1;
 
   // Perform fitting
   float fdone = _TrFit.DoFit(method,mscat,0, chrg,mass,beta,fixrig);
