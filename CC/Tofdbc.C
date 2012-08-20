@@ -1,14 +1,15 @@
-//  $Id: Tofdbc.C,v 1.14 2012/07/23 22:50:15 qyan Exp $
+//  $Id: Tofdbc.C,v 1.15 2012/08/20 12:34:55 qyan Exp $
 
-//Athor Qi Yan 2012/01/05 new Tof database
+//Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
 //      History
 //        Modified:  Adding phseamp  2012/05/16
 //        Modified:  DB update       2010/05/28
-//        Modified:  TOF New Caliberation TDV Template 2012/06/12
+//        Modified:  TOF New Calibration TDV Template 2012/06/12
 //        Modified:  Simple Geometry Adding            2012/06/23
 //        Modified:  Reconstruction  Par Adding        2012/07/08
 //        Modified:  TDV Manager         Adding        2012/07/19
+//        Modified:  Attnuation Calibration+Anode Gain 2012/08/20
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
@@ -770,7 +771,9 @@ int TofTDVTool<T1>::WriteTDV(int brun,int erun,int real){
      return status;
 }
 
-//===========================================================
+// **************************************************************
+// Tof Time+TCoo Calbration 15days per Calibration
+// **************************************************************
 TofTAlignPar* TofTAlignPar::Head=0;
 
 TofTAlignPar *TofTAlignPar::GetHead(){
@@ -859,10 +862,155 @@ void TofTAlignPar::PrintTDV(){
  cout<<"<<----end of Print TofTAlignPar"<<endl;
 }
 
-//==========================================================
+// **************************************************************
+// Tof TDC Non_linear Calibration
+// **************************************************************
 TofTdcCorN TofTdcCorN::tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
 
+// **************************************************************
+// Tof Scintillator Attenutation Calbration 15days per Calibration
+// **************************************************************
+TofAttAlignPar* TofAttAlignPar::Head=0;
+
+TofAttAlignPar *TofAttAlignPar::GetHead(){
+  if(!Head)Head = new TofAttAlignPar();
+  return Head;
+}
+
+//===========================================================
+TofAttAlignPar::TofAttAlignPar(){
+  TDVName="TofAttAlign";
+  TDVParN=(TOFCSN::NBARN*TOFCSN::NSIDE*nattpar);
+  TDVBlock=new float[TDVParN];
+  TDVSize=TDVParN*sizeof(float);
+}
+
+//===========================================================
+TofAttAlignPar::TofAttAlignPar(float *arr,int brun,int erun){
+  TDVName="TofAttAlign";
+  TDVParN=(TOFCSN::NBARN*TOFCSN::NSIDE*nattpar);
+  TDVBlock=arr;
+  TDVSize=TDVParN*sizeof(float);
+  BRun=brun;
+  ERun=erun;
+  LoadTDVPar();
+}
+//===========================================================
+void   TofAttAlignPar::LoadTDVPar(){
+   int iblock=0;
+//----load par
+  for(int ipar=0;ipar<nattpar;ipar++){
+//----npar
+    for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+      for(int isid=0;isid<TOFCSN::NSIDE;isid++){
+        for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+            int id=ilay*1000+ibar*100+isid*10;
+            attpar[ipar][id]=TDVBlock[iblock++];;
+        }
+      }
+    }
+//---
+  }
+  Isload=1;
+}
 //==========================================================
+int  TofAttAlignPar::LoadFromFile(char *file){
+   ifstream vlfile(file,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
+    return -1;
+   }
+//---load
+   vlfile>>BRun>>ERun;
+   int ib=0;
+   for(int i=0;i<TDVParN;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   LoadTDVPar();
+   vlfile.close();
+   return 0;
+}
+
+//==========================================================
+void TofAttAlignPar::PrintTDV(){
+ cout<<"<<----Print "<<TDVName<<endl;
+ for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+ cout<<'\n';
+ cout<<"<<----end of Print "<<TDVName<<endl;
+}
+
+// **************************************************************
+// Tof PMT Calibration 
+//     1: Anode Gain 3days per calibration
+// **************************************************************
+TofPMAlignPar* TofPMAlignPar::Head=0;
+
+TofPMAlignPar* TofPMAlignPar::GetHead(){
+  if(!Head)Head = new TofPMAlignPar();
+  return Head;
+}
+
+//===========================================================
+TofPMAlignPar::TofPMAlignPar(){
+  TDVName="TofPMAlign";
+  TDVParN=(TOFCSN::NBARN*TOFCSN::NSIDE*nalign);
+  TDVBlock=new float[TDVParN];
+  TDVSize=TDVParN*sizeof(float);
+}
+
+//===========================================================
+TofPMAlignPar::TofPMAlignPar(float *arr,int brun,int erun){
+  TDVName="TofPMAlign";
+  TDVParN=(TOFCSN::NBARN*TOFCSN::NSIDE*nalign);
+  TDVBlock=arr;
+  TDVSize=TDVParN*sizeof(float);
+  BRun=brun;
+  ERun=erun;
+  LoadTDVPar();
+}
+//===========================================================
+void  TofPMAlignPar::LoadTDVPar(){
+   int iblock=0;
+//----load par
+   for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+      for(int isid=0;isid<TOFCSN::NSIDE;isid++){
+        for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+            int id=ilay*1000+ibar*100+isid*10;
+            gaina[id]=TDVBlock[iblock++];;
+        }
+      }
+  }
+  Isload=1;
+}
+//==========================================================
+int  TofPMAlignPar::LoadFromFile(char *file){
+   ifstream vlfile(file,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
+    return -1;
+   }
+//---load
+   vlfile>>BRun>>ERun;
+   int ib=0;
+   for(int i=0;i<TDVParN;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   LoadTDVPar();
+   vlfile.close();
+   return 0;
+}
+
+//==========================================================
+void TofPMAlignPar::PrintTDV(){
+ cout<<"<<----Print "<<TDVName<<endl;
+ for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+ cout<<'\n';
+ cout<<"<<----end of Print "<<TDVName<<endl;
+}
+
+// **************************************************************
+// Tof BetaH Reconstruction Par
+// **************************************************************
 int   TofRecPar::iLay=0;
 int   TofRecPar::iBar=0;
 int   TofRecPar::Idsoft=0;
