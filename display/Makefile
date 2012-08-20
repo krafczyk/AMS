@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.102 2012/08/17 19:41:31 ams Exp $
+#  $Id: Makefile,v 1.103 2012/08/20 07:11:02 ams Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -181,7 +181,7 @@ endif
 ifeq ($(ARCH),linux)
 
 CXX           =  g++ -m32 
-CPPFLAGS      =  -D__LINUXGNU__  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 NOOPT         = -g 
@@ -201,7 +201,7 @@ endif
 
 
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx  -lTMVA -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
 LIBS          =   -Bstatic $(ROOTLIBSA)   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm -Bdynamic -ldl
@@ -209,14 +209,16 @@ LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -l
 LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS)  
 
 ifdef VERGCCH
-CPPFLAGS+= -D__LINUXNEW__
+  CPPFLAGS+= -D__LINUXNEW__
+else
+  CPPFLAGS+= -D__LINUXGNU__
 endif
 
 endif
 ifeq ($(ARCH),linuxx8664gcc)
 
 CXX           =  g++ 
-CPPFLAGS      =  -D__LINUXGNU__  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 NOOPT         = -g
@@ -249,11 +251,11 @@ LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -ls
 LIBSD         =  -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBS) 
 
 ifdef VERGCCH
-CPPFLAGS+= -D__LINUXNEW__
+  CPPFLAGS+= -D__LINUXNEW__
+else
+  CPPFLAGS+= -D__LINUXGNU__ 
 endif
 endif
-
-
 
 
 ifdef PGTRACK
