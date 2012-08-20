@@ -75,7 +75,7 @@ namespace trdconst{
   const integer	TrdMinAdc	 = 12; 
   const integer	TrdMaxAdc	 = 4096; //3500;//4096;
   const integer nTrdMaxHits      = 1000;
-  const integer nTrdMinHits      = 6;
+  const integer nTrdMinHits      = 8;
 
   const integer mTrdHits	 = 30;
   const integer	mTofHits  	 = 10;
@@ -519,13 +519,13 @@ class TrdSCalibR {
   TF1 *fBetheBlochProton, *fBetheBlochHelium;
 
   /// version of TrdSCalib (6)
-  int SCalibLevel;
+  unsigned int SCalibLevel;
 
   /// trd track methods (0: TrdS, 1:TrdS, 2:TrdHTrack, 3:TrdTrack, 4:TrdK)
-  int TrdTrackLevel;
+  unsigned int TrdTrackLevel;
 
   /// trd gain correction methods (0: no gain, 1:TrdS, 2:TrdK, 2:AC optional)
-  int TrdGainMethod, TrdAlignMethod;
+  unsigned int TrdGainMethod, TrdAlignMethod;
 
   /// general particle stuffs
   float iPabs, iQabs, iRsigned, iRerrinv, iRabs, iChisq;
@@ -927,7 +927,7 @@ class TrdSCalibR {
     int     iXe 	= (int) par[0];
     int     iR 	        = (int) par[1];
     double   L 		= 0.0;	
-    iXe = 5;            //== compulsory enable
+
     if (x[0]<TrdMinAdc) {
       L = grTrdS_PDF_Prot[iXe].at(iR)->Eval(TrdMinAdc) * 1.0/(1.0+TMath::Exp(-10.0*(x[0]-TrdMinAdc)));	
     } else if (x[0]>TrdMaxAdcLen) {
@@ -1055,10 +1055,10 @@ class TrdSCalibR {
   bool CheckEvtMatchingTimePeriodCalDB(AMSEventR *pev, int Debug=0); 
 
   /// process trdS event with tracker track instead of trd standalone
-  int ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int &fitcode, int Debug=0);
+  int ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int Debug=0);
 
   /// process trdZ event with tracker track instead of trd standalone
-  int ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int Debug=0);
+  int ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int Debug=0);
 
   /// process trdHtrack hits 
   int ProcessTrdHit(TrdHTrackR *TrdHtrk, int Debug=0);
@@ -1070,7 +1070,7 @@ class TrdSCalibR {
   int ProcessTrdHit(TrTrackR *Trtrk, int Debug=0);
 
   /// process tracker track
-  int ProcessTrTrack(TrTrackR* Trtrk, int &fitcode);
+  int ProcessTrTrack(TrTrackR* Trtrk, int fitcode);
 
   /// calculate particle likelihoods in gbatch from TrdHTrack
   int BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug=0);

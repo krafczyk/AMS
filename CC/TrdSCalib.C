@@ -141,7 +141,8 @@ const char *TrdSCalibR::TrdElectronProtonHeliumLFname[] =
     //"TrdScalibPdfs_v13.root"                                                 //== 7
     //"TrdScalibPdfs_v16.root"                                                 //== 7
     //"TrdScalibPdfs_v20.root"                                                 //== 7
-    "TrdScalibPdfs_v21.root"                                                 //== 7
+    //"TrdScalibPdfs_v21.root"                                                 //== 7
+    "TrdScalibPdfs_v22.root"   
   };
 
 const char *TrdSCalibR::TrdLLname[] =
@@ -1975,15 +1976,19 @@ int TrdSCalibR::TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug) {
     double	  Len   = (*iter).Len2D;
     if (iFlag==3) Len   = (*iter).Len3D;
     
-    if (fabs((*iter).TrkD)>trdconst::TrdStrawRadius) continue;
+    //if (fabs((*iter).TrdD)>trdconst::TrdStrawRadius) continue;
     //if (Len < trdconst::TrdMinPathLen3D) continue;
     if ((*iter).EadcCS < trdconst::TrdMinAdc) continue;
 
     //double	scale 	= 2.0*trdconst::TrdStrawRadius/Len;
     //double 	Eadc	= (*iter).EadcCS*scale;
-    
+    //if (Len< (trdconst::TrdMinPathLen3D) || Len > (trdconst::TrdMaxPathLen3D)) Eadc = (*iter).EadcCS;
+   
     /// nonlinear path length correction
     double 	Eadc	= PathLenCorr(iXe, (*iter).EadcCS, Len);
+
+    
+
 
     (*iter).corrEadc    = Eadc;
     
@@ -2774,7 +2779,7 @@ double TrdSCalibR::TrdScalibInterpolate(double xDayRef, int &xP,
     xP = TrdScalibBinarySearch(xDayRef,TrdScalibXdays, Debug);				
   }
   if(Debug > 1) std::cout << "2++++++++++++++++++++++++++++ xP=" << xP << std::endl;
-  if (xP<0 || xP>TrdScalibXdays.size()-1) return -1E99;
+  if (xP<0 || xP>TrdScalibXdays.size()-1) return 1;
 
   double val = TrdScalibVal.at(xP);
   if(Debug > 1) std::cout << "3++++++++++++++++++++++++++++ val=" << val << std::endl;
@@ -2808,6 +2813,8 @@ double TrdSCalibR::TrdScalibInterpolate(double xDayRef, int &xP,
 int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1, double &s2, double &s3, int Debug){
  
   s1 = s2 = s3 = 0.0;
+
+  if(!TrdHtrk || !Trtrk) return 1;	
 
   if( !GetdTrd(TrdHtrk) ||  !GetcTrd(TrdHtrk) ) return 2;
   if( !GetcTrkdTrk(Trtrk) ) return 3;
@@ -2918,7 +2925,8 @@ int TrdSCalibR::BuildTrdSHits(TrdHTrackR *TrdHtrk, int Debug){
     
     (*iter).Len3D = (*iter).GetTrdPathLen3D((*iter).Lay,(*iter).hitXY, (*iter).hitZ, cTrd, dTrd);    
     if(Debug > 1) std::cout << Form("*** Len2D=%5.2f Len3D=%5.2f ",(*iter).Len2D, (*iter).Len3D);
-    if( (*iter).Len3D < trdconst::TrdMinPathLen3D ) continue; 
+    //if( (*iter).Len3D < trdconst::TrdMinPathLen3D ) continue; 
+    //if (fabs((*iter).TrdD)>trdconst::TrdStrawRadius) continue;
     
     nTrdHitLayer[(*iter).Lay]++; 
     
@@ -2973,8 +2981,9 @@ int TrdSCalibR::BuildTrdSHits(TrdTrackR *Trdtrk, int Debug){
     
     (*iter).Len3D = (*iter).GetTrdPathLen3D((*iter).Lay,(*iter).hitXY, (*iter).hitZ, cTrd, dTrd);    
     if(Debug > 1) std::cout << Form("*** Len2D=%5.2f Len3D=%5.2f ",(*iter).Len2D, (*iter).Len3D);
-    if( (*iter).Len3D < trdconst::TrdMinPathLen3D ) continue; 
-    
+    //if( (*iter).Len3D < trdconst::TrdMinPathLen3D ) continue; 
+    //if (fabs((*iter).TrdD)>trdconst::TrdStrawRadius) continue;    
+
     nTrdHitLayer[(*iter).Lay]++; 
     
     TrdSHits.push_back(*iter);
@@ -3133,7 +3142,8 @@ int TrdSCalibR::GetnTrdHitLayer(vector<AC_TrdHits> &TrdHits, int Debug){
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
 
   for (vector<AC_TrdHits>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) { 
-    if ( fabs( (*iter).Len3D ) <trdconst::TrdMinPathLen3D ) continue;
+    //if ( fabs( (*iter).Len3D ) <trdconst::TrdMinPathLen3D ) continue;
+    if (fabs((*iter).TrkD)>trdconst::TrdStrawRadius) continue;
     nTrdHitLayer[(*iter).Lay]++; 
   }
   
@@ -3666,8 +3676,7 @@ int TrdSCalibR::GetTrdNewHits_ms(vector<AC_TrdHits> TrdHits, int Debug) {
       if( AC_ModAlign(*iter, Debug) ) return 1; 
 
       double iTrkD  = (*iter).GetTrdHitTrkDistance(*iter, cTrk, dTrk);
-      (*iter).TrkD = iTrkD;
-      if (fabs(iTrkD)>1.0*trdconst::CutTrdTrkD) continue;
+      (*iter).TrkD = iTrkD; (*iter).TrdD = iTrkD;
       
       if( ((*iter).EadcR < trdconst::TrdMinAdc) || ((*iter).EadcR > trdconst::TrdMaxAdc) ) continue;
       if( ExtTrdMinAdc > 0 &&  ((*iter).EadcR < ExtTrdMinAdc) ) continue;
@@ -3702,7 +3711,7 @@ int TrdSCalibR::GetTrdNewHits(vector<AC_TrdHits> TrdHits, int Debug) {
       if( AC_ModAlign(*iter, Debug) ) return 1; 
       
       double iTrkD  = (*iter).GetTrdHitTrkDistance(*iter, cTrk, dTrk);
-      (*iter).TrkD = iTrkD;
+      (*iter).TrkD = iTrkD; (*iter).TrdD = iTrkD;
       if (fabs(iTrkD)>1.0*trdconst::CutTrdTrkD) continue;
          
       if( ((*iter).EadcR < trdconst::TrdMinAdc) || ((*iter).EadcR > trdconst::TrdMaxAdc) ) continue;
@@ -4080,7 +4089,7 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
   TrdHTrackR  *TrdHtrk = NULL;
   TrdTrackR   *Trdtrk = NULL;
 
-  int ifitcode, jfitcode, iret;
+  int ifitcode, iret;
   /// check tracker object
   Trtrk   = pev->pParticle(0)->pTrTrack();
   if(Trtrk) {
@@ -4098,14 +4107,12 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
   switch ( TrdTrackLevel ) {
 
   case 0: //== TrdS track from tracker track (AC)            
-    iret = ProcessTrdEvtWithTrTrack(pev, Trtrk, jfitcode, Debug);
-    if(ifitcode != jfitcode) return 6; //== cross check TrTrack fitID
-    else return iret;
+    iret = ProcessTrdEvtWithTrTrack(pev, Trtrk, ifitcode, Debug);
+    return iret;
     break;   
 
   case 1: //== TrdS track from tracker track (AC)   same as case 0         
-    iret = ProcessTrdEvtWithTrTrack(pev, Trtrk, jfitcode, Debug);
-    if(ifitcode != jfitcode) return 6; //== cross check TrTrack fitID
+    iret = ProcessTrdEvtWithTrTrack(pev, Trtrk, ifitcode, Debug);
     return iret;
     break;
 
@@ -4126,7 +4133,7 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
     break;
 
   case 4: //== TrdZ track from tracker track (MIT)           
-    return ProcessTrdZ(pev, Trtrk, Debug);
+    return ProcessTrdZ(pev, Trtrk, ifitcode, Debug);
     break;
 
   default:            //
@@ -4137,35 +4144,29 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
 
 }
 //--------------------------------------------------------------------------------------------------
-int TrdSCalibR::ProcessTrTrack(TrTrackR* Trtrk, int &fitcode){
+int TrdSCalibR::ProcessTrTrack(TrTrackR* Trtrk, int fitcode){
 
-  fitcode = Trtrk->iTrTrackPar(algo, patt, refit); 
-  
+  if(!Trtrk || fitcode < 0) return 1;
+
   iRsigned=1000, iRerrinv=0;
-  if( fitcode>=0) {iRsigned = Trtrk->GetRigidity(fitcode); iRerrinv = Trtrk->GetErrRinv(fitcode);} 
-  else {
-    _ierror++;
-    if(_ierror<trdconst::nMaxError)
-      std::cout << Form("TrdSCalibR::ProcessTrTrack-E- TrackFit Fails (algo=%d patt=%d refit=%d fitcode=%d)",
-			algo,patt,refit,fitcode) << std::endl;
-    return 3;
-  }
-
+  iRsigned = Trtrk->GetRigidity(fitcode); 
+  iRerrinv = Trtrk->GetErrRinv(fitcode);
   iRabs = fabs(iRsigned);
+
   if (iRabs <= CalMomMin) iRabs = CalMomMin + 1E-5;
   if (iRabs >= CalMomMax) iRabs = CalMomMax - 1E-5;
-
   
   return 0;
 
-
 }
 //--------------------------------------------------------------------------------------------------
-int TrdSCalibR::ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int Debug) {
+int TrdSCalibR::ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int Debug) {
   	 
-  
-  int fitcode = Trtrk->iTrTrackPar(algo, patt, refit); 
-  if(fitcode<0) return 2;
+  /// check event matching calibration time
+  if( !CheckEvtMatchingTimePeriodCalDB(pev, Debug) ) return 1; 
+ 
+  /// check trtrack fitcode	
+  if( !Trtrk || fitcode < 0) return 2;
 
   float threshold=15; 
   TrdKCluster _trdcluster = TrdKCluster(pev, Trtrk, fitcode);  
@@ -4202,7 +4203,7 @@ int TrdSCalibR::ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int Debug) {
 
 //--------------------------------------------------------------------------------------------------
 
-int TrdSCalibR::ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int &ifitcode, int Debug){
+int TrdSCalibR::ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int Debug){
 
   int itrdcalib = 0;
 
@@ -4216,11 +4217,8 @@ int TrdSCalibR::ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int &i
   /// global cTrk, dTrk from given fitcode
   if( !GetcTrkdTrk(Trtrk) ) return 4;
  
-  /// cross check trtrack fitID
-  if(Trtrk) {
-    int itr = ProcessTrTrack(Trtrk, ifitcode);
-    if(itr || ifitcode<0 ) return itr;
-  } else return 6;
+  /// check trtrack
+  if( ProcessTrTrack(Trtrk, fitcode) ) return 6;
 
   /// extract trd geom. parameters from TrTrack 
   /// assign TrkXcors[], TrkYcors[] to manage multiple scattering
