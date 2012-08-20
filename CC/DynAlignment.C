@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.65 2012/07/30 11:59:40 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.66 2012/08/20 07:36:13 shaino Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1473,7 +1473,9 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
 	largeErrorSet[0]=largeErrorSet[1]=true;
       }
 #endif
-    cerr <<" DynAlFitContainer::Find-F-Alignment parameters too distant in the past."<<lower->first<<" "<<seconds<<" "<<abs(lower->first-seconds)<<endl;
+    static int nerr = 0;
+    if (nerr++ < 10)
+      cerr <<" DynAlFitContainer::Find-F-Alignment parameters too distant in the past."<<lower->first<<" "<<seconds<<" "<<abs(lower->first-seconds)<<endl;
     return false; // Not found
   }
 
