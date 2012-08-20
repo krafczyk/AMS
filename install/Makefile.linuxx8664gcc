@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.14 2012/08/17 16:59:26 choutko Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.15 2012/08/20 07:00:20 ams Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -163,13 +163,15 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 ifdef VERGCCH
-DEFINES+=  -D__LINUXNEW__
+  DEFINES+=  -D__LINUXNEW__
+else
+  DEFINES+=  -D__LINUXGNU__
 endif
 
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
 CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC 
-DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) -D__X8664__
+DEFINES+= -D__root_$(NEW) -D__X8664__
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
