@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.12 2012/08/13 16:59:53 choutko Exp $
+//  $Id: Tofdbc.h,v 1.13 2012/08/20 12:33:28 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -332,7 +332,43 @@ public:
   static TofTdcCorN tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
 };
 
-//===========================================================
+//==========================================================
+class TofAttAlignPar: public TofTDVTool<float>{ //Scintillator Attenuation Algin
+  public:
+     static const int nattpar=7;
+     std::map<int, float>attpar[nattpar]; //id LBS0 ///attenuation correction
+//----
+  public:
+     TofAttAlignPar();
+     TofAttAlignPar(float *arr,int brun,int erun);//load 
+     static TofAttAlignPar *Head;
+#pragma omp threadprivate (Head)   
+     static TofAttAlignPar *GetHead();
+     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+     void LoadTDVPar();//copy TDV to class 
+     int  LoadFromFile(char *file);//read data from file->Block data
+     void PrintTDV();
+};
+
+//==========================================================
+class TofPMAlignPar: public TofTDVTool<float>{// PMT Gain Align
+   public:
+     static const int nalign=1; 
+     std::map<int, float>gaina; //id LBS0 ///anode gain
+//----
+  public:
+     TofPMAlignPar();
+     TofPMAlignPar(float *arr,int brun,int erun);//load 
+     static TofPMAlignPar *Head;
+#pragma omp threadprivate (Head)   
+     static TofPMAlignPar *GetHead();
+     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+     void LoadTDVPar();//copy TDV to class 
+     int  LoadFromFile(char *file);//read data from file->Block data
+     void PrintTDV();
+};
+
+//==========================================================
 class TofRecPar: public TofTDVTool<float>{
   public:
      static const  double Tdcbin=0.0244141;
