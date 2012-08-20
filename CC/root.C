@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.433 2012/08/17 18:18:25 choutko Exp $
+//  $Id: root.C,v 1.434 2012/08/20 07:36:41 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7939,6 +7939,13 @@ return value
  -3 use of ams_stk and ams_gps_time was not possible
 */
 
+  // Always assume down-going particle
+  AMSDir dir(theta, phi);
+  if (dir.z() < 0) dir = dir*(-1);
+
+  float elev=3.1415926/2-dir.gettheta();
+  float azim=dir.getphi();
+
  unsigned int gpsdiff=15;
  int ret=0;
  result=0;
@@ -7957,7 +7964,7 @@ return value
    ret=-1;
   }
   else{
-  if(!fHeader.get_gal_coo(glong,glat,theta,phi,a.cam_id,a.cam_ra,a.cam_dec,a.cam_or)){
+  if(!fHeader.get_gal_coo(glong,glat,elev,azim,a.cam_id,a.cam_ra,a.cam_dec,a.cam_or)){
       result|=(1<<0);
       return ret;
   }
@@ -8013,7 +8020,7 @@ else{
   gtod=true;
   result|=(1<<4); 
 }  
- int ret2=fHeader.get_gal_coo(glong, glat, theta, phi,  RPT, VelPT,  YPR,  xtime, gtod);
+int ret2=fHeader.get_gal_coo(glong, glat, elev, azim,  RPT, VelPT,  YPR,  xtime, gtod);
  return ret2==0?ret:ret2;
 
 
@@ -8049,7 +8056,7 @@ return value
  -3 use of ams_stk and ams_gps_time was not possible
 */
 
-  float theta=3.1415926;
+  float theta=3.1415926/2;
   float phi=0;
  result=0;
  unsigned int gpsdiff=15;
