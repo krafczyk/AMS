@@ -732,6 +732,9 @@ class TrdSCalibR {
   /// get AMSPoint and AMSDir of TrTrack at Z= upper TOF
   bool GetcTrkdTrk(TrTrackR *trt);
 
+  /// get AMSPoint and AMSDir of TrTrack at Z= upper TOF with fitcode
+  bool GetcTrkdTrk(TrTrackR *trt, int fitcode);
+
   /// check matching trd and track track 
   bool MatchingTrdTKtrack(float Rabs, int Debug=0); 
   
