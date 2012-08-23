@@ -197,7 +197,6 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
             par_alignment=*(_DB_instance->GetAlignmentPar_Plane(layer));
             GetHit(i)->DoAlignment(&par_alignment);
         }
-
     }
     return read;
 }
@@ -830,11 +829,11 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AM
     for(int i=0;i<NHits();i++){
         TrdKHit *hit=GetHit(i);
 
-        if(hit->IsCalibrated ==0 ){
+        if(ForceReadCalibration>0 && hit->IsCalibrated ==0 ){
             if(DebugOn)  cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
             continue;
         }
-        if(hit->IsAligned==0) {
+        if(ForceReadAlignment>0 && hit->IsAligned==0) {
             if(DebugOn) cout<<"~~~WARNING~~~, Hit Not Aligned: , "<<_event->Run()<<", "<<_event->Event()<<endl;
             continue;
         }
