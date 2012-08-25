@@ -17,17 +17,22 @@ EcalPDF::EcalPDF(){
 }
 bool EcalPDF::init(char* fdatabase){
 	bool ret=true;
+	char tempname[100];
 	for(int layer=0;layer<18;layer++){
 		for(int i1=0;i1<6;i1++){
-			param_rms_lf[layer][i1] =new TH1F(Form("hrms_lay%.2d_%d_2",layer,i1),Form("hrms_lay%.2d_%d_2",layer,i1),710, -31.905, 31.995) ;
-			param_mean_lf[layer][i1]=new TH1F(Form("hmean_lay%.2d_%d_2",layer,i1),Form("hmean_lay%.2d_%d_2",layer,i1),710, -31.905, 31.995);
+			sprintf(tempname,"hrms_lay%.2d_%d_2",layer,i1);
+			param_rms_lf[layer][i1] =new TH1F(tempname,tempname,710, -31.905, 31.995) ;
+			sprintf(tempname,"hmean_lay%.2d_%d_2",layer,i1);
+			param_mean_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
 		}
 		for(int i1=0;i1<2;i1++){
-			param_prob_lf[layer][i1]=new TH1F(Form("hprob_lay%.2d_%d_2",layer,i1),Form("hprob_lay%.2d_%d_2",layer,i1),710, -31.905, 31.995);
+			sprintf(tempname,"hprob_lay%.2d_%d_2",layer,i1);
+			param_prob_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
 		}
 	}
 	TH1F* hdummy;
 	TFile* _fdatabase=TFile::Open(fdatabase);
+	
 	if(fdatabase==NULL){
         	cout<<"Error happens when loading ECALChi2CY database file : "<<fdatabase<<endl;
         	ret=false;
@@ -35,9 +40,10 @@ bool EcalPDF::init(char* fdatabase){
         else{
                 for(int layer=0;layer<18;layer++){
                         for(int i1=0;i1<6;i1++){
-				hdummy=(TH1F*)_fdatabase->Get(Form("param_rms_%d_lay%.2d",i1,layer));
+				sprintf(tempname,"param_rms_%d_lay%.2d",i1,layer);
+				hdummy=(TH1F*)_fdatabase->Get(tempname);
                                 if(hdummy==NULL){
-                                        cout<<"Can not find ECALChi2CY hist "<<Form("param_rms_%dlay%.2d",i1,layer)<<" in "<<fdatabase<<endl;
+                                        cout<<"Can not find ECALChi2CY hist "<<tempname<<" in "<<fdatabase<<endl;
                                         has_init=false;
                                 }
 				else{
@@ -45,9 +51,10 @@ bool EcalPDF::init(char* fdatabase){
 						param_rms_lf[layer][i1]->SetBinContent(i2,hdummy->GetBinContent(i2));
 				}
 				hdummy=NULL;
-				hdummy=(TH1F*)_fdatabase->Get(Form("param_mean_%d_lay%.2d",i1,layer));
+				sprintf(tempname,"param_mean_%d_lay%.2d",i1,layer);
+				hdummy=(TH1F*)_fdatabase->Get(tempname);
 				if(hdummy==NULL){
-                                        cout<<"Can not find ECALChi2CY hist "<<Form("param_mean_%dlay%.2d",i1,layer)<<" in "<<fdatabase<<endl;
+                                        cout<<"Can not find ECALChi2CY hist "<<tempname<<" in "<<fdatabase<<endl;
                                         has_init=false;
 				}
 				else{
@@ -60,9 +67,10 @@ bool EcalPDF::init(char* fdatabase){
 		
 		for(int layer=0;layer<18;layer++){
                         for(int i1=0;i1<2;i1++){
-                		hdummy=(TH1F*)_fdatabase->Get(Form("param_prob_%d_lay%.2d",i1,layer));
+				sprintf(tempname,"param_prob_%d_lay%.2d",i1,layer);
+                		hdummy=(TH1F*)_fdatabase->Get(tempname);
                                 if(hdummy==NULL){
-                                        cout<<"Can not find ECALChi2CY hist "<<Form("param_prob_%d_lay%.2d",i1,layer)<<" in "<<fdatabase<<endl;
+                                        cout<<"Can not find ECALChi2CY hist "<<tempname<<" in "<<fdatabase<<endl;
                                         has_init=false;
                                 }
                                 else{
@@ -73,6 +81,7 @@ bool EcalPDF::init(char* fdatabase){
 			}
                 }
 	}
+	cout<<"EcalPDF init OK! DataBase file is "<<fdatabase<<endl;
 	_fdatabase->Close();
 	return ret;
 }
@@ -880,6 +889,37 @@ void EcalAxis::get_z(){
 	for(int i1=0;i1<18;i1++){
 		ecalz[i1]=ecalz0[i1]+shiftz[i1];
 	}
+}
+int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
+	float fedep[1296];
+	int   fcell[1296], fplane[1296],nEcalHits,ret;
+	float EnergyD, _EnergyE, sign;
+	nEcalHits=ev->nEcalHit()     ;
+	for(int i1=0;i1<nEcalHits;i1++){
+		fedep[i1] =ev->pEcalHit(i1)->Edep;
+		fcell[i1] =ev->pEcalHit(i1)->Cell;
+		fplane[i1]=ev->pEcalHit(i1)->Plane;
+	}
+	float maxe=-1;
+	int  nmax =-1;
+	if(ev->nEcalShower()<1)
+		return -1;
+	for(int i1=0;i1<ev->nEcalShower();i1++){
+		if(ev->pEcalShower(i1)->EnergyE>maxe){
+			maxe =ev->pEcalShower(i1)->EnergyE;
+			nmax =i1                          ;
+		}
+	}	
+	_EnergyE=ev->pEcalShower(nmax)->EnergyE;
+	EnergyD =ev->pEcalShower(nmax)->EnergyD;
+	if(trtrack!=NULL)
+		sign=trtrack->GetRigidity()>0?1.:-1.;	
+	else	
+		sign=-1;
+	ret= process(fedep,fcell,fplane,nEcalHits,EnergyD,_EnergyE,algorithm,sign);
+
+
+	return ret;	
 }
 int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float EnergyD, float _EnergyE,int algorithm,float sign){
 	_sign=sign;

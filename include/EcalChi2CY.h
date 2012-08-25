@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.2 2012/08/15 12:07:30 choutko Exp $
+//  $Id: EcalChi2CY.h,v 1.3 2012/08/25 17:11:02 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -173,6 +173,13 @@ class EcalAxis: public TObject{
 		\param[in] sign        Particle sign, default -1 (electron)
 		*/
 		int   process      (EcalShowerR* esh,int algorithm=2,float sign=-1);
+		///Process AMSEventR. Use all hits of Ecal to calculate the chi2
+		/*!
+		\param[in] ev           AMSEventr*, the event needed to be processed
+		\param[in] algorithm    3bits, 0bzyx x: Cell Ratio method, y: Lateral Fit method, z: Simple CoG method
+		\param[in] trtrack      Tracker track which will be associated to the Ecalshower to determine the sign of the particle. If it is null, program will try to find the best tracker track. 
+		*/
+		int   process     (AMSEventR* ev, int algorithm=2, TrTrackR* trtrack=NULL);
 		///Interface for testing
 		int   process      (float* fedep,int* fcell,int* fplane, int nEcalhits,float EnergyD, float _EnergyE,int algorithm,float sign);
 		///Interpolate function, interpolate shower axis to plane z
