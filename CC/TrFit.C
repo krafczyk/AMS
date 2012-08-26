@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.74 2012/07/27 15:00:11 pzuccon Exp $
+//  $Id: TrFit.C,v 1.75 2012/08/26 19:35:24 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/07/27 15:00:11 $
+///$Date: 2012/08/26 19:35:24 $
 ///
-///$Revision: 1.74 $
+///$Revision: 1.75 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -87,7 +87,7 @@ int TrFit::Add(double x,  double y,  double z,
 }
 
 double TrFit::DoFit(int method, int mscat, int eloss, 
-		    float charge, float mass, float beta,float fixrig)
+		    float charge, float mass, float beta, float fixrig)
 {
   // Check number of hits
   if (_nhit < 3) return -1;
@@ -104,15 +104,25 @@ double TrFit::DoFit(int method, int mscat, int eloss,
 
   SetMultScat(mscat, eloss);
   SetMassChrg(mass, charge);
-  if(fixrig!=0. && method!= ALCARAZ){
-    printf("TrFit::DoFit-E- Error !! Fix rigidity requested (%f) and fit method is NOT kAlcaraz\n",fixrig);
-    return -22;
+
+  int rfix = 0;
+  if (fixrig != 0.) {
+    if (method != ALCARAZ) {
+      static int nerr = 0;
+      if (nerr++ < 20)
+	cerr << "TrFit::DoFit-E- Error !! Fix rigidity requested ("
+	     << fixrig << ") and fit method is NOT kAlcaraz" << endl;
+      return -22;
+    }
+    SetRigidity(fixrig);
+    rfix = 1;
   }
+
   double ret = 0;
-  if (method ==    LINEAR)  ret = LinearFit();
+  if      (method ==    LINEAR)  ret = LinearFit();
   else if (method ==    CIRCLE)  ret = CircleFit();
   else if (method ==    SIMPLE)  ret = SimpleFit();
-  else if (method ==   ALCARAZ) {int fix=0; if(fixrig!=0.){SetRigidity(fixrig); fix=1;}  ret = AlcarazFit(fix);}
+  else if (method ==   ALCARAZ)  ret = AlcarazFit(rfix);
   else if (method ==   CHOUTKO)  ret = ChoutkoFit();
   else if (method == CHIKANIANC) ret = ChikanianFitCInt(1);
   else if (method == CHIKANIANF) ret = ChikanianFitF();
@@ -522,6 +532,9 @@ int TrFit::GetLayer(double z)
       dzmin = std::abs(z-TkDBc()->GetZlayer(i+1));
       ilay = i+1;
     }
+
+  if (ilay == 0 && z >  100) ilay = 8;
+  if (ilay == 0 && z < -100) ilay = 9;
 
   return ilay;
 }
@@ -1076,6 +1089,7 @@ int TrFit::FillDmsc(double *dmsc, double fact,
       for (int k = k1+dk; k != i+dk; k += dk) {
 	double wl = 0, ln = 0;
 	l2 = ilay[k];
+	dl = (l1 < l2) ? 1 : -1;
 	for (int l =  k; l !=  i+dk; l += dk) ln += len[l];
 	for (int l = l1; l != l2+dl; l += dl) wl += WLEN[l];
 
