@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.743 2012/08/13 16:59:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.744 2012/08/27 16:46:03 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14276,7 +14276,33 @@ foreach my $block (@blocks) {
                 if($outputpath=~/^\/castor/){
                     $castortime=time();
                 }
-             $self->insertNtuple(
+# add to castor immediately
+                if($castortime==0){
+
+#get dir name
+                 my $castorPrefix = '/castor/cern.ch/ams/Data';
+                 if(    $startingrun[21]%2 ==0){
+                  $castorPrefix = '/castor/cern.ch/ams/MC';
+              }
+                  my @junk=split '\/',$outputpath;
+                  my $castordir=$castorPrefix;
+                  for my $i  (1...$#junk-1){
+                      $castordir=$castordir.'/'.$junk[$i];
+                  }
+                 my $sys="/usr/bin/nsmkdir -p $castordir";
+                 my $i=system($sys);
+                 my $rfcp="/usr/bin/rfcp $outputpath $castordir";
+                 my $failure=system($rfcp);
+                 if($failure){
+                     if($verbose){
+                         print " $rfcp failed \n";
+                     }
+                 }
+                 else{
+                     $castortime=time();
+                 }
+             }
+              $self->insertNtuple(
                                $run,
                                $version,
                                $nttype,
@@ -14290,7 +14316,7 @@ foreach my $block (@blocks) {
                                $ntstatus,
                                $outputpath,
                                $ntcrc,
-                               $timestamp, 1, $castortime,$startingrun[21],$feti,$leti);
+                               $timestamp, 1, $castortime,$startingrun[21]%2,$feti,$leti);
 
              print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
              $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
