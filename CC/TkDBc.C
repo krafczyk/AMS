@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.61.4.2 2012/07/25 13:11:40 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.61.4.3 2012/08/27 06:26:19 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/07/25 13:11:40 $
+///$Date: 2012/08/27 06:26:19 $
 ///
-///$Revision: 1.61.4.2 $
+///$Revision: 1.61.4.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1397,7 +1397,7 @@ int TkDBc::GetFromTDV(unsigned int time, int ver)
   TkDBc::Head->init(3);
 
   TkDBc::CreateLinear();
-  AMSTimeID *db = new AMSTimeID(AMSID(stn, 1), begin, end,
+  db = new AMSTimeID(AMSID(stn, 1), begin, end,
 				TkDBc::GetLinearSize(), TkDBc::linear,
 				AMSTimeID::Standalone, 1, SLin2Align);
  }
