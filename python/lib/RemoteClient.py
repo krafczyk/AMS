@@ -389,7 +389,7 @@ class RemoteClient:
             mutex.release()
         exitmutexes[fs].acquire()
 
-    def CheckFS(self,updatedb=0,cachetime=60,path='/'):
+    def CheckFS(self,updatedb=0,cachetime=60,path='/',vrb=0):
         #
         #  check  filesystems, update the tables accordingly if $updatedb is set
         #  status: Active  :  May be used 
@@ -491,7 +491,13 @@ class RemoteClient:
                             status='Full'
                         if ava1< ava: ava=ava1;
                         if ava<0: ava=0
-                        sql="update filesystems set isonline=1, totalsize="+str(tot)+", status='"+status+"',occupied="+str(occ)+",available="+str(ava)+",timestamp="+str(timestamp) +" where disk='"+fs[0]+"'"
+                        if(path == ""):
+                            sql="update filesystems set isonline=1, totalsize="+str(tot)+", status='"+status+"',occupied="+str(occ)+",available="+str(ava)+",timestamp="+str(timestamp) +" where disk='"+fs[0]+"'"
+                        else:
+                            sql="update filesystems set isonline=1, totalsize="+str(tot)+", status='"+status+"',occupied="+str(occ)+",available="+str(ava)+",timestamp="+str(timestamp) +" where disk='"+fs[0]+"'"+ " and path like '"+path+"%'"
+                        
+                        if(vrb):
+                            print sql," ava ",ava1,ava,rused,tot,fs[3]
                    else:
                     sql="update filesystems set isonline=0 where disk='"+fs[0]+"'"
                    if updatedb>0:

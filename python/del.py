@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: del.py,v 1.7 2012/04/30 11:36:03 ams Exp $
+#  $Id: del.py,v 1.8 2012/08/28 11:48:18 ams Exp $
 # this script suppose to delete datasets
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
@@ -29,6 +29,8 @@ for x in sys.argv:
         run2p=int(x[2:len(x)])
     elif x[0:2] == "-b" :
         b=int(x[2:len(x)])
+    elif x[0:7] =="-datamc" :
+        datamc=int(x[7:len(x)])
     elif x[0:2] == "-c" :
         castortime=int(x[2:len(x)])
     elif x[0:2] == "-d" :
