@@ -5525,16 +5525,20 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
 ****************
 
 
-      subroutine richaccbypmt
+      subroutine richaccbypmt(thetac)
 **********************************************************************
 * Returns acceptance and efficiency values for each PMT
 * using a uniform ring sampling in photon phi
 *
 * Created: 10/16-Apr-2012 by L. Arruda, R. Pereira
+* Modified: 29-Aug-2012 by R. Pereira (thetac passed by argument)
 *
 *********************************************************************
 
 #include "../include/richrec_lipf.h"
+
+* ... argument
+      real thetac
 
 * ... patrace variables
       real vdet(3),vdir(3)
@@ -5775,8 +5779,11 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
       call vfill(effbypix_ref2_smear,nbpmtlip*16,0.)
       call vfill(effbypix_ref2ms_smear,nbpmtlip*16*3,0.)
 
-      if(ipthetac.eq.0) return
-      thetac=cangrec(ipthetac)
+*      print*,'RICHACCBYPMT called'
+
+      if(thetac.lt.0.) return
+
+*      print*,'thetac = ',thetac
 
 * ... perform ring sampling and store data for each point
 

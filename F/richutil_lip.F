@@ -14,14 +14,14 @@
 *  Subroutine probchg(chg0,sig0,chgm,prob0)
 *  subroutine richpkolm(dphistep,probkol)
 *  double precision function normg(x)
+*  real function betaresLIP(Z)
+*  subroutine getacceptance(thetac)
 *
 *  added cernlib numerical libs on 23 Oct 2010
+*  - rzero
+*  - dgmlt1
+*  - dgmlt2
 *
-*  rzero
-*  dgmlt1
-*  dgmlt2
-*
-*  Function betaresLIP(Z)
 ***************************************************************************************
 
 *****************************
@@ -2164,3 +2164,54 @@ C
    12 INDEX (1) = I3
       RETURN
       END
+
+
+*------------------------------------------------------------------
+      subroutine getacceptance(thetac)
+*------------------------------------------------------------------
+*******************************************************************
+*     Obtain acceptance/efficiency data by PMT/pixel
+*     assuming a given Cerenkov angle and store them in I/O commons
+*     (it is assumed that track data and refractive index
+*     are already set in commons)
+*
+*     R. Pereira  29-Aug-2012
+*******************************************************************
+
+#include "../include/richrec_lipf.h"
+#include "../include/richrec_lipc.h"
+
+      real thetac
+
+* ... Calling acceptance procedure
+      call richaccbypmt(thetac)
+
+* ... Fill shared C++/Fotran common data
+
+      resc_nrseg(1) = nringseg_smear
+      do i=1,nringseg_smear
+         resc_pmtrseg(i,1) = ipmtringseg_smear(i)
+         resc_refrseg(i,1) = irefringseg_smear(i)
+         do j=1,2
+            resc_angrseg(j,i,1) = angringseg_smear(i,j)
+         enddo
+         do j=1,3
+            resc_effrseg(j,i,1) = effringseg_smear(i,j)
+         enddo
+      enddo
+
+      resc_npseg(1) = nringsegpix_smear
+      do i=1,nringsegpix_smear
+         resc_pixpseg(i,1) = ipixringsegpix_smear(i)
+         resc_refpseg(i,1) = irefringsegpix_smear(i)
+         do j=1,2
+            resc_angpseg(j,i,1) = angringsegpix_smear(i,j)
+         enddo
+         do j=1,3
+            resc_effpseg(j,i,1) = effringsegpix_smear(i,j)
+         enddo
+      enddo
+
+      return
+
+      end

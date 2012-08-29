@@ -20,8 +20,9 @@
 * IN: ievt    = event number
 *     irec2do = initialization or reconstruction to do
 *                INITIALIZATIONS
-*                   -1 = global (start of job)
-*                   -2 = event data (start of event)
+*                    0 = track, ref index data (once per track)
+*                   -1 = global/geometry (start of job)
+*                   -2 = event data / hits (start of event)
 *                RECONSTRUCTIONS
 *                 velocity only:
 *                   1 = choose 2 or 3 from track error

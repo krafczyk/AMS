@@ -347,7 +347,7 @@ C         if ( iflghit(i).ne.1 .and.                !hits not associated to part
 *      print*,'sin2thc_rec = ',sin2thc_rec
 
 * ... new call to get PMT-by-PMT data
-      call richaccbypmt
+      call richaccbypmt(thetac)
 
 * ... compute reconstructed charge
       if ( ipartpat.eq.0 ) then         !is particle near the pattern?
