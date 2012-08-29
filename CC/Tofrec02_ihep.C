@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.19 2012/08/13 16:59:46 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.20 2012/08/29 17:44:44 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -63,6 +63,7 @@ vector<AMSTRDTrack*> TofRecH::amstrdtrack;
   #pragma omp threadprivate (TofRecH::amstrdtrack)
 #endif
 
+bool  TofRecH::BuildKey=1;
 
 //========================================================
 int TofRecH::ReBuild(int charge){
@@ -74,6 +75,9 @@ int TofRecH::ReBuild(int charge){
 
 //========================================================
 int TofRecH::Init(){
+
+  if(!BuildKey)return -1;
+//---
   int tdvstat=0;
   unsigned int time,trun;
 //----Initial TDV
@@ -115,8 +119,9 @@ int TofRecH::ClearBuildBetaH(){
 
 //========================================================
 int TofRecH::BuildTofClusterH(){
-  
-  Init(); 
+
+//--  
+  if(Init()!=0)return -1; 
   ClearBuildTofClH();
 //---  
   integer i,j,hassid;
@@ -502,8 +507,8 @@ int TofRecH::EdepRec(){
 //========================================================
 int TofRecH::BuildBetaH(int mode){
 //---
-    Init();
-    ClearBuildBetaH();
+   if(Init()!=0)return -1;
+   ClearBuildBetaH();
 //---
    
     integer i;
