@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.92 2012/08/28 14:33:45 mduranti Exp $
+//  $Id: root_setup.C,v 1.93 2012/08/29 10:27:53 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -3121,16 +3121,6 @@ int AMSSetupR::LoadDSPErrors(unsigned int t1, unsigned int t2){
 
   int oldsize=fDSPError.size();
 
-  //------------------------------------ALERT----------------------------------------------------------
-  //The 28/Aug/2012 happened that NA=195 suffered for a DSP errors and this caused the board itself
-  //to not reply to the getstatus. The dsp_test procedure, so, was not able to detect the problem.
-  //0415/271  241 20120828 01:29:58.000 (1346117398) NA 195 TDR-5-01-B STATUS          OK sta=0000 ()
-  //0415/286  241 20120828 01:53:12.000 (1346118792) NA 195 TDR-5-01-B STATUS          OK sta=0000 ()
-  //0415/493  241 20120828 08:05:38.000 (1346141138) NA 195 TDR-5-01-B STATUS          OK sta=0000 ()
-  //0415/495  241 20120828 08:11:48.000 (1346141508) NA 195 TDR-5-01-B STATUS          OK sta=0000 ()
-  //next time I will produce the DSPPERIODS_XXX_YYY.csv (either if I will produce a new file from the begininning,
-  //either if I will produce only a second file [I have to implement the loop over files]) I have to add, by hand,
-  //a DSPERROR between 01:53 and 08:05 to consider, correctly, the whole 'no-status' window as NOT-VALID
   //when a new file will be produced we will have to implement the loop over files...
   const char fpath[256]="DSPPERIODS_1305911355_1339661827.csv";
   
