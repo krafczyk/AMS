@@ -1,3 +1,4 @@
+//  $Id: EcalChi2CY.C,v 1.6 2012/08/29 17:40:58 choutko Exp $
 #include "EcalChi2CY.h"
 #define SIZE  0.9
 
@@ -891,6 +892,7 @@ void EcalAxis::get_z(){
 	}
 }
 int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
+#ifdef _PGTRACK_
 	float fedep[1296];
 	int   fcell[1296], fplane[1296],nEcalHits,ret;
 	float EnergyD, _EnergyE, sign;
@@ -920,6 +922,9 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
 
 
 	return ret;	
+#else
+return -1;
+#endif
 }
 int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float EnergyD, float _EnergyE,int algorithm,float sign){
 	_sign=sign;
