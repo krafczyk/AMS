@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.10 2012/08/14 08:01:18 choutko Exp $
+//  $Id: Tofrec02_ihep.h,v 1.11 2012/08/29 17:45:17 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -65,6 +65,8 @@ protected:
 public:
 /// default construction
   TofRecH(){};
+/// TDV Build Control Key
+  static bool BuildKey;
 /// TDV initial function
   static int  Init();
 /// Root Mode Refit //if want to rebuild BetaH in Root Mode, Only need this function//(charge par used to normalize chis)
