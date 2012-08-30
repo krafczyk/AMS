@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.569 2012/07/27 12:33:22 choutko Exp $
+//  $Id: event.C,v 1.570 2012/08/30 07:50:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1271,6 +1271,9 @@ void  AMSEvent::write(int trig){
     for (AMSlink* pptr=getheadC("AMSTrTrack",0);pptr!=0&&pptr!=pptr->next();pptr=pptr->next()){
       //    printf("Adding TrTrack to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrTrack*)pptr);
+    }
+    for (AMSlink* pptr=getheadC("AMSVtx",0);pptr!=0&&pptr!=pptr->next();pptr=pptr->next()){
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSVtx*)pptr);
     }
     if(!AMSJob::gethead()->isRealData())
       for (AMSlink* pptr=getheadC("AMSTrMCCluster",0);pptr!=0;pptr=pptr->next()){
