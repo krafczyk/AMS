@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.253 2012/07/19 13:16:50 qyan Exp $
+//  $Id: particle.C,v 1.254 2012/08/30 07:50:51 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -107,10 +107,10 @@ integer AMSParticle::build(integer refit){
   AMSAntiMCCluster * pcl(0);
   AMSCharge *pcharge=(AMSCharge*)AMSEvent::gethead()->getheadC("AMSCharge",0);
   int partfound=0;
-
+  // make particle with charge>1
 
   //   Make vertex particle
-
+  
   number mbig=100000;
   AMSVtx *pcand=0;
   for( AMSVtx *pvert=(AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",0);pvert!=NULL;pvert=pvert->next()){   
@@ -123,18 +123,12 @@ integer AMSParticle::build(integer refit){
     }
   }
   if(pcand){
-    ppart=new AMSParticle(pcand);
-    pcand->setstatus(AMSDBc::USED);
-    ppart->pid();
-    AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-    
-    //cerr <<"  Added a VERTEX Particle cont number "<<ppart->contnumber()<<endl;
     partfound++;
   }
   //
   //  change here if other particles after vtx particles should be allowed
   //
-  if(!partfound){      
+  if(!partfound || 1){      
     int evt=AMSEvent::gethead()->getid();
     while(pcharge) {
       {
@@ -154,6 +148,10 @@ integer AMSParticle::build(integer refit){
           
           int index;
           charge=pcharge->getvotedcharge(index);
+          if(charge<2 && partfound){
+            pcharge=pcharge->next();
+            continue;
+          }
           number beta=pbeta->getbeta();
           number ebeta=pbeta->getebeta()*beta*beta;
           _build(rid,err,charge,beta,ebeta,mass,emass,momentum,emomentum);
@@ -179,6 +177,14 @@ integer AMSParticle::build(integer refit){
       pcharge=pcharge->next();
     }
     
+  }
+  if(pcand){
+    ppart=new AMSParticle(pcand);
+    pcand->setstatus(AMSDBc::USED);
+    ppart->pid();
+    AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
+    
+    //cerr <<"  Added a VERTEX Particle cont number "<<ppart->contnumber()<<endl;
   }
 
   if(!partfound){
