@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.162 2012/08/20 07:36:59 shaino Exp $
+// $Id: TrTrack.C,v 1.163 2012/08/31 17:49:29 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/08/20 07:36:59 $
+///$Date: 2012/08/31 17:49:29 $
 ///
-///$Revision: 1.162 $
+///$Revision: 1.163 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1158,7 +1158,7 @@ void TrTrackR::_PrepareOutput(int full )
   sout.clear();
   int fcode=iTrTrackPar(2,0,0);
   float RAlcaraz=1;
-  if(fcode>0) RAlcaraz=GetRigidity(fcode);
+  if(fcode>=0) RAlcaraz=GetRigidity(fcode);
   sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d  %s,   DefFit: %d, Chi2 %6.3f Pirig %6.3f",
 		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),HitBitsString(GetBitPatternJ()),
 		   trdefaultfit,Chi2FastFitf(),RAlcaraz));

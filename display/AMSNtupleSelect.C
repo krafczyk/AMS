@@ -24,6 +24,27 @@ cout << " open b"<<endl;
 iftxte.open("./electrons.txt");
 begin=1;
 }
+DynAlManager::ignoreAlignment=true;
+if(ev && ev->nParticle()  && ev->Particle(0).iTrdTrack()>=0&& ev->Particle(0).iTrTrack()<0 && ev->nTrdTrack()==1 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>100 )
+{
+int ret=-1;
+int ret2=-1;
+cout <<ev->Particle(0).iTrTrack()<< "begore"<<ev->Particle(0).iVertex()<<" "<<ev->Particle(0).iCharge()<<" "<<ev->Particle(0).iBeta()<<endl;
+ret=ev->Particle(0).ReBuildTrdEcal();
+cout <<ev->Particle(0).iTrTrack()<< "after"<<endl;
+  cout <<" ret "<<ret<<endl;
+bool rtn=ret!=7 || ret2>=0;
+return rtn; 
+	}
+else return 0;
+if(  ev && ev->nParticle()){
+  int ret=0;
+  TkDBc::GetFromTDV(1311300000,3);
+//  ret=ev->Particle(0).ReBuildTrdEcal(50,10,1,2,true);
+  ret=ev->Particle(0).ReBuildTrdEcal(20,10,1,3);
+  cout <<" ret "<<ret<<endl;
+  return 1;
+}
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->nTrTrack()==1 && ev->nTrdTrack()==1){
 
 EcalShowerR & ecal=ev->EcalShower(0);

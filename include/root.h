@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.464 2012/08/31 02:33:56 cconsola Exp $
+//  $Id: root.h,v 1.465 2012/08/31 17:49:34 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -208,7 +208,7 @@ class AMSEventR;
 
 */
 class HeaderR{
-static char _Info[255];
+static char _Info[1024];
  public:
 
 
@@ -3008,6 +3008,9 @@ protected:
   int  fEcalShower;   ///<index of  EcalShowerR used
   int  fVertex;       ///<index of  VertexR used
   int  fRichRingB;     ///<index of  RichringBR used
+  static void _calcmass(float momentum,float emom, float beta, float ebeta, float &mass, float &emass);
+  static void _build(double rid, double err, float charge,float beta, float ebeta,float &mass, float &emass, float &mom, float &emom);
+
 
 public:
   /// access function to BetaR object used
@@ -3081,9 +3084,13 @@ public:
   /// access function to VertexR object used
   /// \return pointer to VertexR object or 0
   VertexR * pVertex();
+
+///
+int ReBuildTrdEcal(float DisMax=20, float DirMax=10, float DistX=1,float DistY=2,bool force=false); ///<  Rebuild particle if both Trd and EcalShower present
+
   int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 
-  char * pType(){
+ char * pType(){
    static char type[63];
    if(iTrTrack()>=0){
      strcpy(type,"Tr");
@@ -5834,6 +5841,7 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
 
 AMSEventR();
 AMSEventR(const AMSEventR &o);
+friend class ParticleR;
 
 #ifdef __ROOTSHAREDLIBRARY__
 virtual ~AMSEventR(){
