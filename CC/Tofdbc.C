@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.15 2012/08/20 12:34:55 qyan Exp $
+//  $Id: Tofdbc.C,v 1.16 2012/08/31 08:33:46 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -10,6 +10,7 @@
 //        Modified:  Reconstruction  Par Adding        2012/07/08
 //        Modified:  TDV Manager         Adding        2012/07/19
 //        Modified:  Attnuation Calibration+Anode Gain 2012/08/20
+//        Modified:  Dynode Gain Calibration           2012/08/31
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
@@ -1007,6 +1008,99 @@ void TofPMAlignPar::PrintTDV(){
  cout<<'\n';
  cout<<"<<----end of Print "<<TDVName<<endl;
 }
+
+// **************************************************************
+// Tof PMT Dynode Calibration //Using Carbon 
+//     1: Dynode Gain 7.5days per calibration 
+//        gaind=0 Mean Mask Bad Channel
+// **************************************************************
+TofPMDAlignPar* TofPMDAlignPar::Head=0;
+const int TofPMDAlignPar::dpmid[ndead]={2011};
+
+TofPMDAlignPar* TofPMDAlignPar::GetHead(){
+  if(!Head)Head = new TofPMDAlignPar();
+  return Head;
+}
+
+//===========================================================
+TofPMDAlignPar::TofPMDAlignPar(){
+  TDVName="TofPMDAlign";
+  TDVParN=(TOFCSN::NBARN*TOFCSN::NSIDE*TOFCSN::NPMTM)*2;//mean+sigma
+  TDVBlock=new float[TDVParN];
+  TDVSize=TDVParN*sizeof(float);
+}
+
+//===========================================================
+TofPMDAlignPar::TofPMDAlignPar(float *arr,int brun,int erun){
+  TDVName="TofPMDAlign";
+  TDVParN=(TOFCSN::NBARN*TOFCSN::NSIDE*TOFCSN::NPMTM)*2;
+  TDVBlock=arr;
+  TDVSize=TDVParN*sizeof(float);
+  BRun=brun;
+  ERun=erun;
+  LoadTDVPar();
+}
+//===========================================================
+void  TofPMDAlignPar::LoadTDVPar(){
+   int iblock=0;
+//----load carbon mip mean
+   for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+      for(int isid=0;isid<TOFCSN::NSIDE;isid++){
+        for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+          for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+            int id=ilay*1000+ibar*100+isid*10+ipm;
+//----mask dead PMT gaind to 0
+            for(int idead=0;idead<ndead;idead++){
+              if(id==dpmid[idead])TDVBlock[iblock]=0;
+            }
+//------
+            gaind[id]=TDVBlock[iblock++];
+//------
+          }
+        }
+     }
+  }
+//---load carbon mip sigma
+  for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+      for(int isid=0;isid<TOFCSN::NSIDE;isid++){
+        for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+          for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+            int id=ilay*1000+ibar*100+isid*10+ipm;
+            gainds[id]=TDVBlock[iblock++];
+          }
+        }
+     }
+  }
+//---
+
+  Isload=1;
+}
+//==========================================================
+int  TofPMDAlignPar::LoadFromFile(char *file){
+   ifstream vlfile(file,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
+    return -1;
+   }
+//---load
+   vlfile>>BRun>>ERun;
+   int ib=0;
+   for(int i=0;i<TDVParN;i++){
+     vlfile>>TDVBlock[ib++];
+     if(TDVBlock[i]<0)cerr<<"<<-----Error Load Minus Par"<<endl;
+   }
+   LoadTDVPar();
+   vlfile.close();
+   return 0;
+}
+//==========================================================
+void TofPMDAlignPar::PrintTDV(){
+ cout<<"<<----Print "<<TDVName<<endl;
+ for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+ cout<<'\n';
+ cout<<"<<----end of Print "<<TDVName<<endl;
+}
+
 
 // **************************************************************
 // Tof BetaH Reconstruction Par
