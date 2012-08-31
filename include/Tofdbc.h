@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.13 2012/08/20 12:33:28 qyan Exp $
+//  $Id: Tofdbc.h,v 1.14 2012/08/31 08:34:32 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -26,6 +26,7 @@ namespace TOFCSN{
    const integer SCANMX=10;
    const integer NBARN=34;
    const integer NSIDE=2;
+   const integer NPMTM=3;
 }
 
 namespace TOFDBcN{
@@ -351,10 +352,10 @@ class TofAttAlignPar: public TofTDVTool<float>{ //Scintillator Attenuation Algin
 };
 
 //==========================================================
-class TofPMAlignPar: public TofTDVTool<float>{// PMT Gain Align
+class TofPMAlignPar: public TofTDVTool<float>{// PMT Anode Gain Align
    public:
      static const int nalign=1; 
-     std::map<int, float>gaina; //id LBS0 ///anode gain
+     std::map<int, float>gaina; //id LBS0 ///anode gain //reference to 1
 //----
   public:
      TofPMAlignPar();
@@ -362,6 +363,26 @@ class TofPMAlignPar: public TofTDVTool<float>{// PMT Gain Align
      static TofPMAlignPar *Head;
 #pragma omp threadprivate (Head)   
      static TofPMAlignPar *GetHead();
+     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+     void LoadTDVPar();//copy TDV to class 
+     int  LoadFromFile(char *file);//read data from file->Block data
+     void PrintTDV();
+};
+
+//==========================================================
+class TofPMDAlignPar: public TofTDVTool<float>{// PMT Dynode Gain Align
+   public:
+     static const int ndead=1;//Dead Dynode PMT Number
+     static const int dpmid[ndead];//Dynode PMT-ID
+     std::map<int, float>gaind; //id LBS0 ///dynode gain //refer to carbon
+     std::map<int, float>gainds;//dynode MIP sigma
+//----
+  public:
+     TofPMDAlignPar();
+     TofPMDAlignPar(float *arr,int brun,int erun);//load 
+     static TofPMDAlignPar *Head;
+#pragma omp threadprivate (Head)   
+     static TofPMDAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadTDVPar();//copy TDV to class 
      int  LoadFromFile(char *file);//read data from file->Block data
