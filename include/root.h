@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.463 2012/08/17 18:18:30 choutko Exp $
+//  $Id: root.h,v 1.464 2012/08/31 02:33:56 cconsola Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4062,18 +4062,30 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
   */
    int  GetGPSTime( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);
 
-
-
-//!   Says if particle pass thru the ISS Solar Array
-
+//--------------------------------------------------------------------------------------------------
+//!   Says if particle pass through the ISS Solar Array
 /*!
        input ipart index (default);
-
        output Coordinate of the particle crossing SA Arrays in StationAnalysisCooSystem
 
        \return 0 if not in shadow ;  1  if in ; -1 if no particle; -2 if upgoing particle, -3 if no SA data
 */
-int isInShadow(AMSPoint & ic,int ipart=0); ///< Says if particle pass thru the ISS Solar Array
+        int isInShadow(AMSPoint & ic,int ipart=0); ///< Says if particle has passed through  ISS Solar Array
+
+//--------------------------------------------------------------------------------------------------
+
+// Calculates the AMS solind Angle in Shadow and returns it in [sr]
+
+        // input paramenter AMSfov ==AMS field of view in [deg]
+        double SolidAngleInShadow(double ANSfov0);
+
+//.....Transforms ISS coordinates into AMS reference system
+        void FromISStoAMS(double iss[3],double ams[3] );
+
+//--------------------------------------------------------------------------------------------------
+
+
+
 ///
 
 //! Fast TDVR Element Accessor
