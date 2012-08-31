@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.434 2012/08/20 07:36:41 shaino Exp $
+//  $Id: root.C,v 1.435 2012/08/31 02:33:34 cconsola Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7270,7 +7270,270 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
 
    return 0;
 }
+//----------------------------------------------------------------------
+void AMSEventR::FromISStoAMS(double iss[3],double ams[3] ){
 
+        double pi = 3.141592654;
+        double deg2rad=pi/180.;
+
+
+// AMS Coo central point in SSACS [cm]
+        double x_ams=-85.73;
+        double y_ams=2136.4;
+        double z_ams=-388.29;
+
+        double tilt =12.*deg2rad;
+        double iss0[3];
+        double isst[3];
+
+        iss0[0]= iss[0]-x_ams;
+        iss0[1]= iss[1]-y_ams;
+        iss0[2]= iss[2]-z_ams;
+
+        isst[0]= -iss0[1];
+        isst[1]= -iss0[0];
+        isst[2]= -iss0[2];
+
+
+        double cost=cos(tilt);
+        double sint=sin(tilt);
+
+
+        ams[0]=isst[0]*cost - isst[2]*sint;
+        ams[1]=isst[1];
+        ams[2]=isst[0]*sint + isst[2]*cost;
+
+
+}
+//----------------------------------------------------------------------
+double  AMSEventR::SolidAngleInShadow(double AMSfov0){
+
+        float alpha, beta1,beta3,b1b, b3b;
+
+        //....Set Alpha and beta angles
+        int getAngles=fHeader.getISSSA(alpha,beta1,beta3,b1b,b3b);
+
+        //.....no data:
+        if(getAngles==2){ cerr<< " AMSEventR::SolidAngleInShadow --> No ISSSA data!"<<endl;
+        return -1;
+        }
+
+
+	//cout<<"MA ALLORA!!!! :< "<<endl;
+
+        //..from deg to rad:
+        double pi = 3.141592654;
+        double deg2rad=pi/180.;
+        double AMSfov=AMSfov0*deg2rad;
+        alpha*=deg2rad;
+        beta1*=deg2rad;
+        beta3*=deg2rad;
+
+                //.............the quantity to be calculated:
+                double solidAngle[2];
+
+        //define Aolar Arrays coordinates and dimensions............
+        double  x_A1=1982.51;//cm
+        double  y_A1=3417.32 ; //cm
+        double  z_A1=-23.77;//cm
+
+        double  x_A3=-1982.51;//cm
+        double  y_A3=3418.02 ; //cm
+        double  z_A3=110.11;//cm
+
+        double  dx=1306.*2.54;
+        double  dy= 0.5*2.54;
+        double  dz= 453.9*2.54;
+
+        double xyzC[3];
+         xyzC[0]=0;
+         xyzC[1]=0;
+         xyzC[2]=0;
+
+
+        dx/=2.;
+        dy/=2.;
+        dz/=2.;
+
+        //......................check if there is intersection:
+        int check[2][4];// 2 Solar Arrays x 4 corners
+
+        //...........................................do it for both SA 
+        for(int p=0 ; p<2 ; p++){
+        //...... 1) check if there is intersection or not!
+        //int check[4];
+        double AMSp[4][3];
+        double P[4][3];
+
+        double theta=alpha;
+
+        double xyz0[4][3];
+        double xyzRb[4][3];
+        double xyzRba[4][3];
+        double beta=0; //----> to be define according to the Solar Array
+        double s;
+
+        //..........1A
+        if(p==0){
+        beta=beta1;
+        s=1.;
+        xyzC[0]=x_A1;
+        xyzC[1]=y_A1;
+        xyzC[2]=z_A1;
+        }
+        //.........3A
+        if(p==1){
+        beta=beta3;
+        s=-1.;
+        xyzC[0]=x_A3;
+        xyzC[1]=y_A3;
+        xyzC[2]=z_A3;
+        }
+
+       //........corners positions in local SA 
+        xyz0[0][0]= s*dx ;
+        xyz0[0][1]= dy  ;
+        xyz0[0][2]= dz ;
+
+        xyz0[1][0]= s*dx ;
+        xyz0[1][1]= dy  ;
+        xyz0[1][2]= -dz;
+
+        xyz0[2][0]=s*dx;
+        xyz0[2][1]=-dy;
+        xyz0[2][2]= dz ;
+
+        xyz0[3][0]= s*dx ;
+        xyz0[3][1]= -dy  ;
+        xyz0[3][2]= -dz;
+
+
+        //.............................transform to ISS coordinate system:
+       //...beta rotation:
+        for(int i=0 ; i <4 ; i++){
+        xyzRb[i][0]=  xyz0[i][0]                                    + xyzC[0];
+        xyzRb[i][1]=  xyz0[i][1]*cos(beta) - s*xyz0[i][2]*sin(beta) + xyzC[1];
+        xyzRb[i][2]=s*xyz0[i][1]*sin(beta) +   xyz0[i][2]*cos(beta) + xyzC[2];
+
+        }
+
+        //---alpha rotation:
+        for(int i=0 ; i <4 ; i++){
+
+        xyzRba[i][0]=  xyzRb[i][0]*cos(theta) + xyzRb[i][2]*sin(theta)  ;
+        xyzRba[i][1]=  xyzRb[i][1] ;
+        xyzRba[i][2]= -xyzRb[i][0]*sin(theta) + xyzRb[i][2]*cos(theta) ;
+
+        }
+        //......................................Corners coordinates in ISS 
+        for(int i=0 ; i<4 ; i++){
+                for(int j=0 ; j<3 ; j++){
+                                P[i][j]=  xyzRba[i][j] ;
+                }
+        }
+
+
+
+        //............................form ISS to AMS
+        for(int i=0; i<4;i++){
+                check[p][i]=0;//----------------> set to zero check
+                FromISStoAMS(P[i], AMSp[i] );//--->from ISS--to AMS coord.Sis.
+
+       }
+
+
+ 	//------------------------------Check if there is intersection:
+               for(int i=0; i<4;i++){
+                //-------------------> if corners Z>0
+                              if(AMSp[i][2]>=0 ){
+                                if(AMSfov0!=90.){
+                                double rconeP=AMSp[i][2]*tan(AMSfov);
+                                double rp=std::sqrt( AMSp[i][0]*AMSp[i][0] + AMSp[i][1]*AMSp[i][1] );
+
+                                        if(rp<=rconeP ){
+                                        check[p][i]=1;
+                                        }else check[p][i]=0;
+                                }else if (AMSfov0==90)  check[p][i]=1;
+                }else check[p][i]=0;
+
+                        }//-------------------------end check
+
+
+
+
+              //..............if there is no intersection:
+                if(check[p][0]!=1 && check[p][1]!=1 && check[p][2]!=1 &&  check[p][3]!=1){
+
+                //.......................Set to Zeto the solid angle! 
+                         solidAngle[p]=0;
+                //.............if there is intersection:
+                }else if(check[p][0]==1 || check[p][1]==1 || check[p][2]==1 ||  check[p][3]==1 ){
+
+                double phi[4];
+                double t[4];
+                        //-------------------calculate theta and phi of 4 corners
+                        for(int i=0; i<4;i++){
+                        double x0=AMSp[i][0];
+                        double y0=AMSp[i][1];
+                        double z0=AMSp[i][2];
+
+                         phi[i]=atan(y0/x0);
+                        double R0=sqrt(x0*x0 + y0*y0 + z0*z0);
+                         t[i]=acos(z0/R0);
+                        }
+
+
+               //--------------the higher dphi and the lower theta
+              double dphi[]={ fabs(phi[0] - phi[1] ),
+                                fabs(phi[0] - phi[2] ),
+                                fabs(phi[0] - phi[3] ),
+                                fabs(phi[1] - phi[2] ),
+                                fabs(phi[1] - phi[3] ),
+                                fabs(phi[3] - phi[2] ),
+                                   };
+                //------dpdi.........
+              double dphimax=dphi[0] ;//--> choose the first and then check
+                for(int j=0 ; j<6 ; j++ ){
+                        if(dphi[j]>dphimax ) dphimax=dphi[j];
+                }
+
+                //---the same for theta.....
+                double tmin=t[0];//--> choose the first then check:
+                for(int i=0; i<4;i++){
+                        if(t[i] < tmin ) tmin=t[i];//---this is the min! 
+                }
+        //---------------- AMSfov in shadow ====>  ;
+       double cosAMSfov2=cos(AMSfov)*cos(AMSfov);
+        double costmin2=cos( tmin)*cos( tmin) ;
+
+
+                        //...this is the solid angle!!
+                        solidAngle[p]= - dphimax* ( cosAMSfov2 - costmin2 )/2.;
+			//if  (solidAngle[p]!=0) cout<<"----AMSEventR::SolidAngleInShadow() "<<  solidAngle[p] <<endl;
+
+                }//..........end if
+
+        }//................................................................end for p
+
+       //----------------------------Return the Intersection solid angle ;       
+
+
+                if( solidAngle[0]==0 && solidAngle[1]==0 ){
+                        return 0;
+                }else if (solidAngle[0]!=0 ){
+
+                        return solidAngle[0];
+
+                }else if (solidAngle[1]!=0 ){
+                        return solidAngle[1];
+
+                }
+
+
+
+ return 0;
+
+}
 //----------------------------------------------------------------------
   
 char * HeaderR::Info(unsigned long long status){
