@@ -826,28 +826,37 @@ bool EcalAxis::init_lf(){
     	float init_y0=0;
     	float init_dxdz=0;
     	float init_dydz=0;
-	
-	if((_status&4)!=4){
-		if(init_cg())
-                        _status+=4;
-		else
-			return false;
+	if(use_ext==0){	
+		if((_status&4)!=4){
+			if(init_cg())
+                	        _status+=4;
+			else
+				return false;
+		}
+		init_x0  =p0_cg[0];
+		init_y0  =p0_cg[1];
+		if(dir_cg[2]==0.)
+			dir_cg[2]=1.;
+		init_dxdz=dir_cg[0]/dir_cg[2];
+		init_dydz=dir_cg[1]/dir_cg[2];
 	}
-	
-	init_x0  =p0_cg[0];
-	init_y0  =p0_cg[1];
-	init_dxdz=dir_cg[0]/dir_cg[2];
-	init_dydz=dir_cg[1]/dir_cg[2];
-	
+	else{
+		if(ext_d0[2]==0)
+			ext_d0[2]=1.0;
+		init_dxdz=ext_d0[0]/ext_d0[2];
+                init_dydz=ext_d0[1]/ext_d0[2];
+                init_x0  =ext_p0[0]+init_dxdz*(ecalz[8]-ext_p0[2]);
+                init_y0  =ext_p0[1]+init_dydz*(ecalz[8]-ext_p0[2]);
+	}
 	gMinuit_EcalAxis->SetParameter(0,  "x0"  ,init_x0  ,0.2  ,init_x0-0.9 ,init_x0+0.9 );
     	gMinuit_EcalAxis->SetParameter(1,  "y0"  ,init_y0  ,0.2  ,init_y0-0.9 ,init_y0+0.9 );
-    	gMinuit_EcalAxis->SetParameter(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.2,init_dxdz+.2);
-    	gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.2,init_dydz+.2);
+    	gMinuit_EcalAxis->SetParameter(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.4,init_dxdz+.4);
+    	gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.4,init_dydz+.4);
 
 	if(_erg>5)	
 		arglist[0]=300;
 	else
-		arglist[0]=10 ;
+		arglist[0]=100 ;
 	arglist[1]=10.;
 	//Test before call Minuit
 	int cflag=0 ;
@@ -863,8 +872,8 @@ bool EcalAxis::init_lf(){
 	for(int i1=0;i1<10;i1++){
 		p[0]=init_x0+(rand()%200-100.)/200.*0.9  ;
 		p[1]=init_y0+(rand()%200-100.)/200.*0.9	 ;
-		p[2]=init_dxdz+(rand()%200-100.)/200.*0.2;
-		p[3]=init_dydz+(rand()%200-100.)/200.*0.2;
+		p[2]=init_dxdz+(rand()%200-100.)/200.*0.4;
+		p[3]=init_dydz+(rand()%200-100.)/200.*0.4;
 		chi21=GetChi2(p);
 		if(fabs(chi20-chi21)>0.1)
 			cflag++;
@@ -987,12 +996,20 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
 	}	
 	_EnergyE=ev->pEcalShower(nmax)->EnergyE;
 	EnergyD =ev->pEcalShower(nmax)->EnergyD;
+	ext_d0[0]=ev->pEcalShower(nmax)->EMDir[0];
+        ext_d0[1]=ev->pEcalShower(nmax)->EMDir[1];
+        ext_d0[2]=ev->pEcalShower(nmax)->EMDir[2];
+
+        ext_p0[0]=ev->pEcalShower(nmax)->CofG[0];
+        ext_p0[1]=ev->pEcalShower(nmax)->CofG[1];
+        ext_p0[2]=ev->pEcalShower(nmax)->CofG[2];
+	use_ext=1;
 	if(trtrack!=NULL)
 		sign=trtrack->GetRigidity()>0?1.:-1.;	
 	else	
 		sign=-1;
 	ret= process(fedep,fcell,fplane,nEcalHits,EnergyD,_EnergyE,algorithm,sign);
-
+	
 
 	return ret;	
 #else
@@ -1056,7 +1073,7 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
                 if(init_cr())
                         _status+=1;
         }       
-
+	use_ext=0;
 	return _status;
 }
 int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
@@ -1064,6 +1081,14 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
 		return -1;
 	_sign=sign;
 	_algorithm=algorithm;
+	use_ext=1;
+        ext_d0[0]=esh->EMDir[0];
+        ext_d0[1]=esh->EMDir[1];
+        ext_d0[2]=esh->EMDir[2];
+
+        ext_p0[0]=esh->CofG[0];
+        ext_p0[1]=esh->CofG[1];
+        ext_p0[2]=esh->CofG[2];
 	for(int i1=0;i1<18;i1++){
                 for(int i2=0;i2<72;i2++){
                         Edep_raw[i1][i2]=0.;
@@ -1126,6 +1151,7 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
 		if(init_cr())
 			_status+=1;
 	}
+	use_ext=0;
 	return _status;	
 }
 bool EcalAxis::init_cg(){
