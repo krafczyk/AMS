@@ -1,4 +1,3 @@
-//  $Id: EcalChi2CY.C,v 1.6 2012/08/29 17:40:58 choutko Exp $
 #include "EcalChi2CY.h"
 #define SIZE  0.9
 
@@ -9,8 +8,10 @@ EcalPDF::EcalPDF(char* fdatabase){
 }
 EcalPDF::EcalPDF(){
 	char* amsdatadir=getenv("AMSDataDir");
+	char tempname[100];
 	if(amsdatadir){
-		has_init=init(Form("%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir));
+		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir);
+		has_init=init(tempname);
 	}
 	else{
 		has_init=init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20120814.1.root");
@@ -111,6 +112,8 @@ float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
 		cout<<"EcalPDF has not been loaded!"<<endl;
 		return -1;
 	}
+	if(flayer<0||flayer>17)
+		return -1;
 	float ret,ret0,ret1 ;
 	int binx0,binx1     ;
 	float x,x0,x1       ;
@@ -160,6 +163,8 @@ float EcalPDF::get_rms (int flayer,float coo,float Erg,int type){
         int binx0,binx1     ;
         float x,x0,x1       ;
         float param_lf[6]   ;
+	if(flayer<0||flayer>17)
+		return -1;
 	switch(type){
 		case 0:
 			x=log(Erg);
@@ -201,6 +206,8 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
 		cout<<"EcalPDF has not been loaded!"<<endl;
 		return -1;
 	}
+	if(flayer<0||flayer>17)
+		return -1;
 	float ret,ret0,ret1 ;
         int binx0,binx1     ;
         float x,x0,x1       ;
@@ -343,8 +350,10 @@ double EcalPDF::myfunc_lf(float x,float* par,int type){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 EcalChi2::EcalChi2(int ftype){
 	char* amsdatadir=getenv("AMSDataDir");
+	char tempname[100];
         if(amsdatadir){
-                init(Form("%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir),ftype);
+		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir);
+                init(tempname,ftype);
         }
         else{
                 init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20120814.1.root",ftype);
@@ -405,6 +414,7 @@ void EcalChi2::init(char* database,int _type){
                 fdead_cell[6 ][17]=1;
                 fdead_cell[7 ][16]=1;
                 fdead_cell[7 ][17]=1;	
+                fdead_cell[6 ][50]=1;
 	}
 	//Test Beam
 	
@@ -440,7 +450,7 @@ float EcalChi2::process(float* coo,float sign){
         tot_ndof =0;
         tot_ndofx=0;
         tot_ndofy=0;
-        for(int i1=0;i1<18;i1++){
+        for(int i1=1;i1<18;i1++){
                 _chi2     +=_chi2_layer [i1];
                 if(i1%4<2){
                         _chi2y    +=_chi2_layer [i1];
@@ -551,7 +561,7 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
 	tot_ndof =0;
 	tot_ndofx=0;
 	tot_ndofy=0;
-	for(int i1=0;i1<18;i1++){
+	for(int i1=1;i1<18;i1++){
 		_chi2     +=_chi2_layer [i1];
 		if(i1%4<2){
 			_chi2y    +=_chi2_layer [i1];
@@ -612,7 +622,7 @@ float EcalChi2::cal_f2dep(){
 }
 
 int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& chi2,float& chi22,float& chi23,float& chi24,float sign){
-        
+	bool flag;
 	int i1=0;
         double cell_mean[72],cell_rms[72], cell_prob[72],cell_probbar[72];
         double summ=0.,sumxm=0.;
@@ -621,17 +631,48 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
         int count=0;
         if(start_cell<0)
                 start_cell=0;
+	if(start_cell>71)
+		start_cell=71;
+	if(end_cell<0)
+		end_cell=0;
         if(end_cell>71)
                 end_cell=71;
-        
- 	for(k1=start_cell;k1<=end_cell;k1++){
-                if(Edep_raw[layer][k1]>0)
+        k1=(int)((coo-shiftxy[layer]+0.45)/SIZE);
+	k2=k1;
+	flag=false;
+	if(k1<start_cell)
+		k1=start_cell;
+	else{
+ 	for(;k1>=start_cell;k1--){
+		if(k1>0&&k1<72){
+			if(Edep_raw[layer][k1-1]==0.0){
+				if(k1>1){
+					if(Edep_raw[layer][k1-2]==0.0)
+						flag=true;
+				}
+			}
+		}
+                if(flag)
 			break;
         }
-        for(k2=end_cell;k2>=start_cell;k2--){
-                if(Edep_raw[layer][k2]>0)
+	}
+	flag=false;
+	if(k2>end_cell)
+		k2=end_cell;
+	else{
+        for(;k2<=end_cell;k2++){
+		if(k2<71&&k2>-1){
+                        if(Edep_raw[layer][k2+1]==0.0){
+                                if(k2<70){
+                                        if(Edep_raw[layer][k2+2]==0.0)
+                                                flag=true;
+                                }
+                        }
+                }
+                if(flag)
                         break;
         }
+	}
         start_cell=k1;
         end_cell=k2;
 	
@@ -701,8 +742,10 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 TVirtualFitter* EcalAxis::gMinuit_EcalAxis = NULL;
 EcalAxis::EcalAxis(int ftype){
 	char* amsdatadir=getenv("AMSDataDir");
+	char tempname[100];
         if(amsdatadir){
-                init(Form("%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir),ftype);
+		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir);
+                init(tempname,ftype);
         }
         else{
                 init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20120814.1.root",ftype);
@@ -802,19 +845,49 @@ bool EcalAxis::init_lf(){
     	gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.2,init_dydz+.2);
 
 	if(_erg>5)	
-		arglist[0]=400;
+		arglist[0]=300;
 	else
 		arglist[0]=10 ;
 	arglist[1]=10.;
-    	ret=gMinuit_EcalAxis->ExecuteCommand("MINI", arglist, 2);
-    	//ret=gMinuit_EcalAxis->ExecuteCommand("SIMPLEX",0, 0);
+	//Test before call Minuit
+	int cflag=0 ;
+	double p[4] ;
+	double chi20;
+	double chi21;
+	srand(time(NULL));
+	p[0]=init_x0  ;
+	p[1]=init_y0  ;
+	p[2]=init_dxdz;
+	p[3]=init_dydz;
+	chi20=GetChi2(p);
+	for(int i1=0;i1<10;i1++){
+		p[0]=init_x0+(rand()%200-100.)/200.*0.9  ;
+		p[1]=init_y0+(rand()%200-100.)/200.*0.9	 ;
+		p[2]=init_dxdz+(rand()%200-100.)/200.*0.2;
+		p[3]=init_dydz+(rand()%200-100.)/200.*0.2;
+		chi21=GetChi2(p);
+		if(fabs(chi20-chi21)>0.1)
+			cflag++;
+	}
+	if(cflag>0){
+	    	ret=gMinuit_EcalAxis->ExecuteCommand("MINI", arglist, 2);
+    		//ret=gMinuit_EcalAxis->ExecuteCommand("SIMPLEX",0, 0);
 	
-	p0_lf[0]=gMinuit_EcalAxis->GetParameter(0);
-	p0_lf[1]=gMinuit_EcalAxis->GetParameter(1);
-	p0_lf[2]=ecalz[8];
-	dir_lf[0]=gMinuit_EcalAxis->GetParameter(2);
-	dir_lf[1]=gMinuit_EcalAxis->GetParameter(3);
-	dir_lf[2]=1.0;
+		p0_lf[0]=gMinuit_EcalAxis->GetParameter(0);
+		p0_lf[1]=gMinuit_EcalAxis->GetParameter(1);
+		p0_lf[2]=ecalz[8];
+		dir_lf[0]=gMinuit_EcalAxis->GetParameter(2);
+		dir_lf[1]=gMinuit_EcalAxis->GetParameter(3);
+		dir_lf[2]=1.0;
+	}
+	else{
+		p0_lf[0]=init_x0 ;
+		p0_lf[1]=init_y0 ;
+		p0_lf[2]=ecalz[8];
+		dir_lf[0]=init_dxdz;
+		dir_lf[1]=init_dydz;
+		dir_lf[2]=1.0	   ;
+	}
 	double r=sqrt(dir_lf[0]*dir_lf[0]+dir_lf[1]*dir_lf[1]+dir_lf[2]*dir_lf[2]);
 	dir_lf[0]/=r;
 	dir_lf[1]/=r;
@@ -892,7 +965,7 @@ void EcalAxis::get_z(){
 	}
 }
 int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
-#ifdef _PGTRACK_
+#ifdef _PGTRACK_ 
 	float fedep[1296];
 	int   fcell[1296], fplane[1296],nEcalHits,ret;
 	float EnergyD, _EnergyE, sign;
@@ -923,8 +996,8 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
 
 	return ret;	
 #else
-return -1;
-#endif
+	return -1;
+#endif	
 }
 int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float EnergyD, float _EnergyE,int algorithm,float sign){
 	_sign=sign;
@@ -973,10 +1046,8 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
         }
         get_z();
         _status=0;
-        if((algorithm&4)==4){
-                if(init_cg())
-                        _status+=4;
-        }
+        if(init_cg())
+            _status+=4;
         if((algorithm&2)==2){
                 if(init_lf())
                         _status+=2;
@@ -1245,11 +1316,11 @@ bool EcalAxis::straight_line_fit(float *x ,float*y, int npoints,float &a, float&
 		else
 			w=1.;
 		Ax[0][0]+=w;
-		Ax[0][1]+=x[i1]*w;
-		Ax[1][0]+=x[i1]*w;
-		Ax[1][1]+=x[i1]*x[i1]*w;
-		Bx[0]+=y[i1]*w;
-		Bx[1]+=x[i1]*y[i1]*w;
+		Ax[0][1]+=double(x[i1])*w;
+		Ax[1][0]+=double(x[i1])*w;
+		Ax[1][1]+=double(x[i1])*double(x[i1])*w;
+		Bx[0]+=double(y[i1])*w;
+		Bx[1]+=double(x[i1])*double(y[i1])*w;
 	}
         detx=Ax[0][0]*Ax[1][1]-Ax[0][1]*Ax[1][0];
 	if(detx==0)
@@ -1293,7 +1364,7 @@ bool EcalAxis::straight_line_fit(float *x ,float*y, int npoints,float &a, float&
 	
 	int count=0;
 	for(int i1=0;i1<npoints;i1++){	
-		if(f[i1]>2*errrms&&npoints-count>4){
+		if(f[i1]>2*errrms&&(npoints-count)>4){
 			flag[f_ind[i1]]=0;
 			count++;
 		}
@@ -1311,11 +1382,11 @@ bool EcalAxis::straight_line_fit(float *x ,float*y, int npoints,float &a, float&
                 else
                         w=1.;
                 Ax[0][0]+=w;
-                Ax[0][1]+=x[i1]*w;
-                Ax[1][0]+=x[i1]*w;
-                Ax[1][1]+=x[i1]*x[i1]*w;
-                Bx[0]+=y[i1]*w;
-                Bx[1]+=x[i1]*y[i1]*w;
+                Ax[0][1]+=double(x[i1])*w;
+                Ax[1][0]+=double(x[i1])*w;
+                Ax[1][1]+=double(x[i1])*double(x[i1])*w;
+                Bx[0]+=double(y[i1])*w;
+                Bx[1]+=double(x[i1])*double(y[i1])*w;
         }
         detx=Ax[0][0]*Ax[1][1]-Ax[0][1]*Ax[1][0];
         if(detx==0)
