@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.3 2012/08/25 17:11:02 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.4 2012/09/02 15:52:10 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -204,6 +204,10 @@ class EcalAxis: public TObject{
 		float	GetChi2(double* par);
 		bool     init_lf()         ;
 		float    _sign		   ;
+		float   ext_d0[3]          ;
+                float   ext_p0[3]          ;
+                int     use_ext            ;
+
 
 		AMSPoint p0_cr             ;
 		AMSDir   dir_cr            ;
