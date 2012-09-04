@@ -32,15 +32,16 @@ float TrExtAlignDB::SL9[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 
 
-void ForceLatestAlignmentFromTDV(int pgversion=2,char* CIEMAT_name="DynamicPG"){
+void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,char* CIEMAT_name){
 /*
   TrExtAlignDB::ForceFromTDV=1;
   TkDBc::ForceFromTDV=1;
   DynAlManager::need2bookTDV=true;
-  DynAlManager::SetTDVName(CIEMAT_name,1);
   TrExtAlignDB::version = 2;
 */
+  DynAlManager::SetTDVName(CIEMAT_name,1);
 }
+
 void TrExtAlignPar::Print(Option_t *) const
 {
   cout << Form("dpos %6.1f %6.1f %6.1f",

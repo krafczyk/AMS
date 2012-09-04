@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.66 2012/08/20 07:36:13 shaino Exp $
+//  $Id: DynAlignment.C,v 1.67 2012/09/04 15:58:32 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1907,7 +1907,8 @@ bool DynAlManager::ignoreAlignment=false;
 #define SEARCHPREFIX "DynAlignment"
 #ifdef _PGTRACK_
 // Default TDVNAME
-#define TDVNAME "DynAlignmentPG"
+//#define TDVNAME "DynAlignmentPG"
+#define TDVNAME "DynAlignmentV5T120628"
 #define TDVNAMEPREFIX "DynAlignmentV5T"
 #else
 #define TDVNAME "DynAlignment"
