@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.28 2012/07/27 15:00:01 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.28.2.1 2012/09/04 16:13:11 mdelgado Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -375,7 +375,10 @@ public:
   /// Return the difference in the hit position between PG and CIEMAT alignments (CIEMAT-PG)
   static AMSPoint  GetAlDist(TrRecHitR *hit);
 
-  ClassDef(TrExtAlignDB,3);
+  // Force using the latest alignment fomr TDV
+  static void ForceLatestAlignmentFromTDV(int pgversion=2,char* CIEMAT_name="DynAlignmentV5T120628");
+
+  ClassDef(TrExtAlignDB,4);
 };
 
 void SLin2ExAlign();
