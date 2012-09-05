@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.103 2012/08/20 07:11:02 ams Exp $
+#  $Id: Makefile,v 1.104 2012/09/05 12:36:13 mkrafczy Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -47,18 +47,23 @@ AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsed
 AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedc
 SLC4=y
 
-GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
-GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
-GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+#GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+#GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+#GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+GCC_VER_MAJOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c1 )
+GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
+GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
 
 ifeq ($(GCC_VER_MAJOR),4) 
- VERGCC:=1
-
+VERGCC :=1
 ifeq ($(GCC_VER_MIDDLE),4) 
-VERGCCH      := 1
+VERGCCHi := 1
+else ifeq ($(GCC_VER_MIDDLE),5)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),6)
+VERGCCH := 1
 endif
 endif 
-
 
 ifdef PGTRACK
 PREFIX        = $(AMSWD)/bin/$(ARCH)/display/PG/
@@ -99,7 +104,11 @@ else
 LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 endif
 
+ifndef NOCASTOR
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	              -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
@@ -141,7 +150,11 @@ endif
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
+ifndef NOCASTOR
 ROOTLIBS  =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS  =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	         $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
              -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys #!!!!!-lXrdNetUtil -lncurses $(LFORT)
@@ -171,8 +184,13 @@ LDS	= 	$(LD)
 LDD	= 	$(LD) 
 
 
+ifndef NOCASTOR
 ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx  -lTMVA
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx  -lTMVA
+else
+ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit  -lTMVA
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit  -lTMVA
+endif
 LIBS          =  -L$(AMSWD)/lib/macosx64/  -l$(AMSLIB) $(ROOTLIBS) -lgfortran
 LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA) -lgfortran
 LIBSD         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBS)  -lgfortran
@@ -200,7 +218,11 @@ LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_gcc32/2005/lib -lgeant321
 endif
 
 
+ifndef NOCASTOR
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx  -lTMVA -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
@@ -241,7 +263,11 @@ else
   LFORT =  -L$(CERNDIRLIB) -lgeant321 -lpacklib -lmathlib -lkernlib  -lgfortran
 endif
 
+ifndef NOCASTOR
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+else
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lTMVA -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+endif
 ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	             $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil $(LFORT)

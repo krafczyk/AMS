@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.12 2012/08/17 13:56:04 mkrafczy Exp $
+#  $Id: Makefile,v 1.13 2012/09/05 12:36:13 mkrafczy Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -14,17 +14,23 @@
 ### Architecture ###
 ARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
 
-GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
-GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
-GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+#GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+#GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+#GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+GCC_VER_MAJOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c1 )
+GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
+GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
 
-ifeq ($(GCC_VER_MAJOR),4)
-VERGCC:=1
-
-ifeq ($(GCC_VER_MIDDLE),4)
-VERGCCH      := 1
+ifeq ($(GCC_VER_MAJOR),4) 
+VERGCC :=1
+ifeq ($(GCC_VER_MIDDLE),4) 
+VERGCCHi := 1
+else ifeq ($(GCC_VER_MIDDLE),5)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),6)
+VERGCCH := 1
 endif
-endif
+endif 
 
 ifndef AMSWD
 AMSWD := ..

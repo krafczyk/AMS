@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.138 2012/08/16 14:53:21 choutko Exp $
+#  $Id: Moptg4,v 1.139 2012/09/05 12:36:14 mkrafczy Exp $
 #
 SHELL=/bin/sh
 #
@@ -17,13 +17,15 @@ GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
 GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
 
 ifeq ($(GCC_VER_MAJOR),4) 
-VERGCC:=1
-
+VERGCC :=1
 ifeq ($(GCC_VER_MIDDLE),4) 
-VERGCCH      := 1
+VERGCCHi := 1
+else ifeq ($(GCC_VER_MIDDLE),5)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),6)
+VERGCCH := 1
 endif
 endif 
-
 
 
 
