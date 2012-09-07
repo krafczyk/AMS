@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.65 2012/07/30 11:59:40 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.65.2.1 2012/09/07 16:59:03 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1473,7 +1473,10 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
 	largeErrorSet[0]=largeErrorSet[1]=true;
       }
 #endif
-    cerr <<" DynAlFitContainer::Find-F-Alignment parameters too distant in the past."<<lower->first<<" "<<seconds<<" "<<abs(lower->first-seconds)<<endl;
+
+    static int nerr = 0;
+    if (nerr++ < 10)
+      cerr <<" DynAlFitContainer::Find-W-Alignment parameters too distant in the past by "<<abs(lower->first-seconds)<<" seconds."<<endl;
     return false; // Not found
   }
 
@@ -1905,7 +1908,7 @@ bool DynAlManager::ignoreAlignment=false;
 #define SEARCHPREFIX "DynAlignment"
 #ifdef _PGTRACK_
 // Default TDVNAME
-#define TDVNAME "DynAlignmentPG"
+#define TDVNAME "DynAlignmentV5T120628"
 #define TDVNAMEPREFIX "DynAlignmentV5T"
 #else
 #define TDVNAME "DynAlignment"
