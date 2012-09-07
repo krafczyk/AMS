@@ -207,10 +207,17 @@ return -5;
 
 int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   if(DynAlManager::ignoreAlignment) return 0;
+
+#ifdef __ROOTSHAREDLIBRARY__
+  // Deal with MC properly
+  if(AMSEventR::Head() && AMSEventR::Head()->nMCEventg()) return 0;
+#endif 
+
+
 // PZ -- FIXME -- TO be removed and replaced by TDV entry with years validity and zero content
 static int nprint=0;
-  if(time > 1337450000 ){
-    if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBcDyn-W- Warning no dyn alignment available after 1337450000, this message will be repeted only 10 times \n");
+  if(time > 1337450000 || time<1305499000){
+    if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBcDyn-W- Warning no dyn alignment available after 1337450000 nor before 1305499000, this message will be repeted only 10 times \n");
     SL1[6]=SL1[7]=SL1[8]=SL1[9]=SL1[10]=SL1[11]=0.;
     SL9[6]=SL9[7]=SL9[8]=SL9[9]=SL9[10]=SL9[11]=0.;
     return 0;
