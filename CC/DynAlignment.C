@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.65.2.1 2012/09/07 16:59:03 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.65.2.2 2012/09/09 08:21:35 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -84,6 +84,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   TrRecHitR *hitp=0;
 
 #ifdef _PGTRACK_
+  if(track.IsFake()) return false;
   //  hitp=track.GetHitLJ(layer);
 
   // Try to avoid biasing due to a wrong window in pattern recognition by building our own pattern recognition
@@ -97,9 +98,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
     TrRecHitR &hit=ev.TrRecHit(hi);
     if(hit.GetLayerJ()!=layer) continue;
     if(hit.FalseX() || hit.OnlyY() || hit.OnlyX()) continue;
-    int imult=hit.GetResolvedMultiplicity();	
-    //    TrExtAlignDB::RecalcAllExtHitCoo(2);
-    AMSPoint punto=hit.GetCoord();
+    AMSPoint punto=hit.GetCoord(-1,5); // raw coordinates
     AMSPoint pnt;
     AMSDir dir;
     track.Interpolate(punto[2],pnt,dir,trId);
@@ -126,8 +125,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   AMSPoint pnt;
   AMSDir dir;
 #ifdef _PGTRACK_
-  int imult=hit.GetResolvedMultiplicity();
-  pnt=hit.GetCoord();
+  pnt=hit.GetCoord(-1,5);
 #else
   TrTrackFitR fitAll(0,0,3,1);    // Full span with alignment
   int idAll=track.iTrTrackFit(fitAll);
@@ -215,8 +213,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event){
 
     AMSPoint pnt;
 #ifdef _PGTRACK_
-  int imult=hit.GetResolvedMultiplicity();
-  pnt=hit.GetGlobalCoordinate(imult,"A");
+    pnt=hit.GetCoord(-1,5);
 #else
   for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
 #endif
@@ -855,19 +852,42 @@ int DynAlContinuity::getPreviousBin(int run){
   return (run/magicNumber)*magicNumber-magicNumber;
 }
 
+//////////////////////// HELPER FUNCTIONS TO WATCH THE EFFICIENCY
+vector<TString> _order;
+map<TString,int > _cuts;
+
+void _push(const TString &name){
+  if(_cuts.find(name)!=_cuts.end()){_cuts[name]++;  return;}
+  _order.push_back(name);
+  _cuts[name]=1;
+}
+
+void _summary(int counter=1000){
+  static int mycounter=0;
+  if(mycounter++!=counter) return;
+  cout<<"SUMMARY"<<endl;
+  for(int i=0;i<_order.size();i++)
+    cout<<"CUT: "<<_order[i]<<" SELECTED "<<_cuts[_order[i]]<<endl;
+  cout<<endl<<endl;
+  mycounter=0;
+}
+
+
 
 bool DynAlContinuity::select(AMSEventR *ev,int layer){
-#define SELECT(_name,_condition) {if(!(_condition)) return false;}
+  _summary(10000000);
+  //#define SELECT(_name,_condition) {if(!(_condition)) return false;}
+#define SELECT(_name,_condition) {if(!(_condition)) return false;else _push(_name);}
   // For some reason, fStatus does not longer stores the number of tracks 
   //SELECT("1 Tracker+RICH particle",(fStatus&0x13)==0x11);
   //  SELECT("At most 1 anti",((fStatus>>21)&0x3)<=1);
   //  SELECT("At most 4 tof clusters",(fStatus&(0x7<<10))<=(0x4<<10));
   //  SELECT("At least 1 tr track",fStatus&(0x3<<13));
-
+  SELECT("all",1);
   SELECT("1 Tracker particle",ev->nParticle()==1 && ev->pParticle(0)->pTrTrack());
   SELECT("At most 1 anti",ev->nAntiCluster()<=1);
   SELECT("At most 4 tof clusters",ev->nTofCluster()<=4);
-  SELECT("At least 1 tr track",ev->nTrTrack()==1);
+  SELECT("Only 1 tr track",ev->nTrTrack()==1);
 
 
 #ifndef _PGTRACK_
@@ -893,12 +913,11 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
 
   // Finally use the implicit cuts in DynAlEvent::buildEvent
   DynAlEvent event;
-  if(!DynAlEvent::buildEvent(*ev,layer,event)) return false;
-  if(event.Id<0) return false;
+  SELECT("Implicit DynAlEvent::buildEvent cuts",DynAlEvent::buildEvent(*ev,layer,event));
+  SELECT("Event.id larger than zero",event.Id>=0);
   event.extrapolateTrack();
-  if(fabs(event.RawHit[0]-event.TrackHit[0])>EXCLUSION ||
-     fabs(event.RawHit[1]-event.TrackHit[1])>EXCLUSION) return false;
-
+  SELECT("WITHIN GOOD LIMITS",fabs(event.RawHit[0]-event.TrackHit[0])<EXCLUSION && fabs(event.RawHit[1]-event.TrackHit[1])<EXCLUSION);
+  
   return true;
 #undef SELECT
 }
@@ -938,9 +957,7 @@ void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString 
   int events = ch.GetEntries();
   for (int entry=0; entry<events; entry++) {
     AMSEventR *pev = ch.GetEvent(entry);
-#ifdef _PGTRACK_
-    TrExtAlignDB::RecalcAllExtHitCoo(2);
-#endif
+
     if(!select(pev,layer)) continue;
     if(pev->fHeader.Run!=current_run) break;
     
@@ -1538,9 +1555,7 @@ void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,do
   // Get the coordinates
   AMSPoint pnt;
 #ifdef _PGTRACK_
-  int imult=hit.GetResolvedMultiplicity();
-  //  pnt=hit.GetGlobalCoordinate(imult,"");
-  pnt=hit.GetGlobalCoordinate(imult,"A");
+  pnt=hit.GetCoord(-1,5);
 #else
   for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
 #endif
