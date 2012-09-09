@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.892 2012/08/01 17:04:13 choutko Exp $
+// $Id: job.C,v 1.893 2012/09/09 16:27:38 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3740,7 +3740,7 @@ void AMSJob::_timeinitjob(){
     end.tm_mon=0;
     end.tm_year=0;
 
-//----TOF ClusterH TDV/ version //temp only realdata
+//----TOF IHEP BetaH ClusterH TDV/ version //temp only realdata
     if(isRealData()){
       if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
        TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
@@ -3748,6 +3748,24 @@ void AMSJob::_timeinitjob(){
                               TofTAlign->TDVSize,
                               TofTAlign->TDVBlock,
                               server,needval,TofTAlignPar::HeadLoadTDVPar));
+      //---Attunation correction
+      TofAttAlignPar *TofAttAlign=TofAttAlignPar::GetHead();
+      TID.add ( new AMSTimeID(AMSID(TofAttAlign->TDVName,isRealData()),begin,end,
+                           TofAttAlign->TDVSize,
+                           TofAttAlign->TDVBlock,
+                           server,1,TofAttAlignPar::HeadLoadTDVPar));
+//---Anode Gain
+      TofPMAlignPar *TofPMAlign=TofPMAlignPar::GetHead();
+      TID.add (new AMSTimeID(AMSID(TofPMAlign->TDVName,isRealData()),begin,end,
+                           TofPMAlign->TDVSize,
+                           TofPMAlign->TDVBlock,
+                           server,1,TofPMAlignPar::HeadLoadTDVPar));
+//---Dynode Gain
+      TofPMDAlignPar *TofPMDAlign=TofPMDAlignPar::GetHead();
+      TID.add (new AMSTimeID(AMSID(TofPMDAlign->TDVName,isRealData()),begin,end,
+                           TofPMDAlign->TDVSize,
+                           TofPMDAlign->TDVBlock,
+                           server,1,TofPMDAlignPar::HeadLoadTDVPar));
       }
     }
     //

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.436 2012/08/31 17:49:30 choutko Exp $
+//  $Id: root.C,v 1.437 2012/09/09 16:27:38 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4469,7 +4469,7 @@ TofClusterR::TofClusterR(AMSTOFCluster *ptr){
 }
 
 TofClusterHR::TofClusterHR(unsigned int sstatus[2],unsigned int status,int pattern,int idsoft,double adca[2],double adcd[2][3],
-               double sdtm[2],double times[2],double timer,double etimer,AMSPoint coo,AMSPoint ecoo,double edepa,double edepd,TofRawSideR *tfraws[2]):
+               double sdtm[2],double times[2],double timer,double etimer,AMSPoint coo,AMSPoint ecoo,double q2pa[2],double q2pd[2][3],double edepa,double edepd,TofRawSideR *tfraws[2]):
          Status(status),Pattern(pattern),Time(timer),ETime(etimer),AEdep(edepa),DEdep(edepd)
 {
    Layer= idsoft/1000%10;
@@ -4480,7 +4480,8 @@ TofClusterHR::TofClusterHR(unsigned int sstatus[2],unsigned int status,int patte
     Rtime[is]=sdtm[is];
     Stime[is]=times[is];
     SideBitPat[is]=sstatus[is];
-    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=adcd[is][ipm];}
+    AQ2[is]=q2pa[is];
+    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=adcd[is][ipm];DQ2[is][ipm]=q2pd[is][ipm];}
     if(tfraws[is]){
       for(int ii=0;ii<AMSEventR::Head()->NTofRawSide();ii++){if(AMSEventR::Head()->pTofRawSide(ii)==tfraws[is]){index[is]=ii;}}
     }
@@ -4503,7 +4504,8 @@ TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
     Rtime[is]=ptr->Rtime[is];
     Stime[is]=ptr->Stime[is];
     SideBitPat[is]=ptr->SideBitPat[is];
-    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=ptr->Dadc[is][ipm];}
+    AQ2[is]=ptr->AQ2[is];
+    for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=ptr->Dadc[is][ipm];DQ2[is][ipm]=ptr->DQ2[is][ipm];}
   }
   Time= ptr->Time;
   ETime=ptr-> ETime;
@@ -6174,6 +6176,77 @@ TofRawSideR* TofClusterHR::GetRawSideHS(int is){
   return (AMSEventR::Head() && is<fTofRawSide.size()&&fTofRawSide[is]>=0)?AMSEventR::Head()->pTofRawSide(fTofRawSide[is]):0;
 }
 
+int TofClusterHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
+int TofClusterHR::DefaultQ2Opt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kBetaCor);
+
+float TofClusterHR::GetEdepPM  (int pmtype, int is,int pm)  {
+
+  double q2=pmtype==1?AQ2[is]:DQ2[is][pm];
+  TofRecPar::IdCovert(Layer,Bar,is,pm);
+  float edep=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
+  return edep;
+}
+
+
+float TofClusterHR::GetQSignalPM(int pmtype,int is,int pm,int opt,float cosz,float beta){
+   
+   double q2=pmtype==1?AQ2[is]:DQ2[is][pm];
+   TofRecPar::IdCovert(Layer,Bar,is,pm);
+   float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,double(cosz),double(beta));
+   return signal;
+}
+
+float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
+
+    if(pattern==111111&&optw==1)return pmtype==1?AEdep:DEdep;
+///---rawqd
+    double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
+    for(int is=0;is<TOFCSN::NSIDE;is++){
+       int patterns=pattern/int(pow(1000.,is));
+       rawqa[is]=(patterns%10==0)?0:AQ2[is];
+       for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+          int patternp=patterns/int(pow(10.,ipm));
+          rawqd[is][ipm]=(patternp%10==0)?0:DQ2[is][ipm];
+      }
+    }
+
+///---Anode Or Dynode Sum Information+BirkCor
+    TofRecPar::IdCovert(Layer,Bar);
+    float signal=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),signal);
+    return signal;
+}
+
+float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pattern,int optw){
+
+///---rawqd
+    double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
+    for(int is=0;is<TOFCSN::NSIDE;is++){
+       int patterns=pattern/int(pow(1000.,is));
+       rawqa[is]=(patterns%10==0)?0:AQ2[is];
+       for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+          int patternp=patterns/int(pow(10.,ipm));
+          rawqd[is][ipm]=(patternp%10==0)?0:DQ2[is][ipm];
+      }
+    }
+///---Anode Or Dynode Sum Information+Theta// BirkCor+Beta Corr
+    TofRecPar::IdCovert(Layer,Bar);
+    float q2=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,double(cosz),double(beta));
+    return signal;
+}
+
+int TofClusterHR::GetNPMTQ(int pmtype){
+     int npmtd=0,npmta=0;
+     for(int is=0;is<TOFCSN::NSIDE;is++){
+       if(AQ2[is]>0)npmta++;
+       for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+          if(DQ2[is][ipm]>0)npmtd++;
+      }
+    }
+   return pmtype==1?npmta:npmtd; 
+}
+
 #ifndef _PGTRACK_
 TrClusterR* TrRecHitR::pTrCluster(char xy){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrCluster(xy=='x'?fTrClusterX:fTrClusterY):0;
@@ -6266,7 +6339,13 @@ void TofBetaPar::Init(){
     Time[ilay]=0;
     ETime[ilay]=1000;
     TResidual[ilay]=1000;
-    for(int is=0;is<2;is++){CResidual[ilay][is]=0;}
+    CosZ[ilay]=1;
+    AEdepL[ilay]=0;
+    DEdepL[ilay]=0;
+    for(int is=0;is<2;is++){
+      CResidual[ilay][is]=0;AQ2L[ilay][is]=0;
+      for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){DQ2L[ilay][is][ipm]=0;}
+     }
    }
    Beta=BetaC=InvErrBeta=InvErrBetaC=Chi2T=T0=Chi2C=0;
    Mass=EMass=0;
@@ -6282,7 +6361,13 @@ const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
     Time[ilay]=right.Time[ilay];
     ETime[ilay]=right.ETime[ilay];
     TResidual[ilay]=right.TResidual[ilay];
-    for(int is=0;is<2;is++){CResidual[ilay][is]=right.CResidual[ilay][is];}
+    CosZ[ilay]=right.CosZ[ilay];
+    AEdepL[ilay]=right.AEdepL[ilay];
+    DEdepL[ilay]=right.DEdepL[ilay];
+    for(int is=0;is<2;is++){
+       CResidual[ilay][is]=right.CResidual[ilay][is];AQ2L[ilay][is]=right.AQ2L[ilay][is];
+       for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){DQ2L[ilay][is][ipm]=right.DQ2L[ilay][is][ipm];}
+      }
   }
   T0=right.T0;
   Beta=right.Beta;
@@ -6373,6 +6458,67 @@ double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time){
   return path;
 }
 #endif
+
+float BetaHR::GetEdepLPM(int ilay,int pmtype, int is,int pm){
+  if(!TestExistHL(ilay))return 0;
+  double q2=pmtype==1?BetaPar.AQ2L[ilay][is]:BetaPar.DQ2L[ilay][is][pm];
+  TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar,is,pm);
+  float edep=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
+  return edep;
+}
+
+
+float BetaHR::GetQLPM(int ilay,int pmtype,int is,int pm,int opt){
+   if(!TestExistHL(ilay))return 0;
+    double q2=pmtype==1?BetaPar.AQ2L[ilay][is]:BetaPar.DQ2L[ilay][is][pm];
+    TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar,is,pm);
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,double(BetaPar.CosZ[ilay]),double(BetaPar.Beta));
+    return signal;
+}
+
+float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
+     if(!TestExistHL(ilay))return 0;
+     if(pattern==111111&&optw==1)return pmtype==1?BetaPar.AEdepL[ilay]:BetaPar.DEdepL[ilay];
+///---rawqd
+    double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
+    for(int is=0;is<TOFCSN::NSIDE;is++){
+       int patterns=pattern/int(pow(1000.,is));
+       rawqa[is]=(patterns%10==0)?0:BetaPar.AQ2L[ilay][is];
+       for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+          int patternp=patterns/int(pow(10.,ipm));
+          rawqd[is][ipm]=(patternp%10==0)?0:BetaPar.DQ2L[ilay][is][ipm];
+      }
+    }
+
+///---Anode Or Dynode Sum Information+BirkCor
+    TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
+    float signal=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),signal);
+    return signal;
+}
+
+
+float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
+   if(!TestExistHL(ilay))return 0;
+///---rawqd
+   double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
+    for(int is=0;is<TOFCSN::NSIDE;is++){
+       int patterns=pattern/int(pow(1000.,is));
+       rawqa[is]=(patterns%10==0)?0:BetaPar.AQ2L[ilay][is];
+       for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+          int patternp=patterns/int(pow(10.,ipm));
+          rawqd[is][ipm]=(patternp%10==0)?0:BetaPar.DQ2L[ilay][is][ipm];
+      }
+    }
+
+///---Anode Or Dynode Sum Information+Theta// BirkCor+Beta Corr
+    TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
+    float q2=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,BetaPar.CosZ[ilay],BetaPar.Beta);
+    return signal;
+}
+
+
 //---end of BetaH
 
 BetaR* ChargeR::pBeta(){
@@ -7615,7 +7761,7 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 	}
 	if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
 	float lt=pev?pev->LiveTime():1;
-	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,btofh,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
+	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f/#betah=%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,btofh,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
 	return _Info;
 
 
