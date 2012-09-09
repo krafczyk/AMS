@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.465 2012/08/31 17:49:34 choutko Exp $
+//  $Id: root.h,v 1.466 2012/09/09 16:28:47 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -976,13 +976,22 @@ class TofClusterHR :public TrElem {
    float Coo[3];
    /// Counter Fired Time Estimate Coo Error(cm) 
    float ECoo[3];
-  /// Anode Estimate Energy dep(MeV)
+   /// Anode Estimate Energy dep(MeV)
    float AEdep;
    /// Dynode Estimate Energy dep(MeV)
    float DEdep;
+   /// Anode Q^2 Estimate for 2Sides PMTs (NonL+AttCor No-Birk-Cor) 
+   float AQ2[2];
+   /// Dynode Q^2 Estimate for 2Sides 2~3PMTs(NonL+AttCor No-Birk-Cor)
+   float DQ2[2][3];
+
 
  protected:
     vector<int> fTofRawSide;
+
+ public:
+     static int DefaultQOpt;
+     static int DefaultQ2Opt;
 
  public:
    /// access function to TofRawSideR objects used
@@ -1003,7 +1012,7 @@ class TofClusterHR :public TrElem {
   TofClusterHR(){};
   TofClusterHR(int ilay,int ibar):Layer(ilay),Bar(ibar){};
   TofClusterHR(unsigned int sstatus[2],unsigned int status,int pattern,int idsoft,double adca[2],double adcd[2][3],
-               double sdtm[2],double times[2],double timer,double etimer,AMSPoint coo,AMSPoint ecoo,double edepa,double edepd,TofRawSideR *tfraws[2]);
+               double sdtm[2],double times[2],double timer,double etimer,AMSPoint coo,AMSPoint ecoo,double q2pa[2],double q2pd[2][3],double edepa,double edepd,TofRawSideR *tfraws[2]);
   TofClusterHR(AMSTOFClusterH *ptr);
   virtual ~TofClusterHR(){};
 
@@ -1023,6 +1032,46 @@ class TofClusterHR :public TrElem {
     \3: tm etm[Output]: Recover Time+ETime for this Counter
   */
   int TRecover(float  tklcoo,int useside,float &tm,float &etm);
+  /// Get Counter Edep From One PMT Estimate (MeV)
+  /*! 
+    *\pmtype:  1-Anode 0-Dynode
+    *\is:      PMT Side: 0-NSide 1-PSide
+    *\pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
+    *\return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
+  */
+  float GetEdepPM  (int pmtype, int is,int pm=0);
+  /// Q Or Q^2 Estimate From One PMT
+   /*!
+    \1: pmtype:  1-Anode 0-Dynode
+    \2: is:      PMT Side:  0-NSide 1-PSide
+    \3: pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
+    \4: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    \5: cosz:    PathLength Corr
+    \6: beta:    Beta Corr
+  */
+  float GetQSignalPM(int pmtype,int is,int pm=0,int opt=DefaultQOpt,float cosz=1,float beta=1);
+  /// Edep Measurement Combine From All Good PMTs (MeV)
+   /*!
+    \1: pmtype:  1-Anode 0-Dynode
+    \2: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    \3: optw:    1-Using weight factor according to PMT resolution. 0-Same weight for All PMT 
+  */
+  float GetEdep(int pmtype,int pattern=111111,int optw=1);
+   /// Q Or Q^2 Estimate  From All Good PMTs
+   /*!
+    \1: pmtype:  1-Anode 0-Dynode
+    \2: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    \3: cosz:    PathLength Corr
+    \4: beta:    Beta Corr
+    \5: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    \6: optw:    1-Different weight for PMTs. 0-Same weight for PMTs
+  */
+  float GetQSignal(int pmtype,int opt=DefaultQOpt,float cosz=1,float beta=1, int pattern=111111,int optw=1);
+  /// Number of Good PMTs Used For Measurement
+  /*!
+     \1: pmtype:  1-Anode 0-Dynode
+  */
+  int   GetNPMTQ(int pmtype);
   /// Number of BetaHs use this Counter to build 
   /*! 
     *\return 0--this counter not belong to any BetaH  (Matched by zero track)
@@ -1080,7 +1129,7 @@ class TofClusterHR :public TrElem {
 //-------
   friend class AMSTOFClusterH;
   friend class AMSEventR;
-  ClassDef(TofClusterHR,5)       //TofRawClusterR
+  ClassDef(TofClusterHR,6)       //TofRawClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -2523,6 +2572,19 @@ public:
   /// Fit Mass Error
   float  EMass;
 
+///--Charge ReCor Par
+  /// TOF iLayer CosZ
+  float CosZ[4];
+  /// TOF iLayer One Anode Q2 for 2Sides PMTs(TkCoo Attenuation Cor,No-Birk-Cor)//iLayer iSide
+  float AQ2L[4][2];
+  /// TOF iLayer One Dynode Q2 for 2Side 3PMTs(TkCoo Attenuation Cor,No-Birk-Cor) //iLayer iSide iPM
+  float DQ2L[4][2][3];
+  /// TOF iLayer Anode Estimate Energy dep(MeV) //TkCoo Attenuation Cor
+  float AEdepL[4];
+  /// TOF iLayer Dynode Estimate Energy dep(MeV) //TkCoo Attenuation Cor
+  float DEdepL[4];
+ 
+ 
 public:
   TofBetaPar(){Init();}
   const TofBetaPar& operator=(const TofBetaPar &right);
@@ -2531,7 +2593,7 @@ public:
                  float _Chi2T, float _T0);
   void CalFitRes();//calculate residual
   void Init();
-  ClassDef(TofBetaPar,2);//
+  ClassDef(TofBetaPar,3);//
 };
 
 /// Tof BetaH structure
@@ -2695,6 +2757,44 @@ class BetaHR: public TrElem{
 #ifdef _PGTRACK_
   double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time);
 #endif
+///  iLay TOF Edep(MeV) From One PMT Estimate ///Attenuation ReCorr
+  /*! 
+    *\ilay:    TOF layer(0-3)
+    *\pmtype:  1-Anode 0-Dynode
+    *\is:      PMT Side: 0-NSide 1-PSide
+    *\pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
+    *\return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
+  */
+   float GetEdepLPM  (int ilay,int pmtype, int is,int pm=0);
+/// iLay TOF Q Or Q^2 Measurement from One PMT Estimate ///Adding BetaH PathLength+Birk+Beta+Attenuation ReCorr
+   /*!
+    \1: ilay:    TOF layer(0-3)
+    \2: pmtype:  1-Anode 0-Dynode
+    \3: is:      PMT Side:  0-NSide 1-PSide
+    \4: pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
+    \5: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    \return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
+  */
+   float GetQLPM(int ilay,int pmtype,int is,int pm=0,int opt=TofClusterHR::DefaultQOpt);
+/// iLay TOF Edep(MeV) with Combinition of All Good PMTs //Attnuation ReCorr
+   /*!
+    \1: ilay:    TOF layer(0-3)
+    \2: pmtype:  1-Anode 0-Dynode
+    \3: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    \4: optw:    1-different weight for different PMTs. 0-Same weight for All PMT 
+  */
+  float GetEdepL(int ilay,int pmtype,int pattern=111111,int optw=1);
+/// iLay TOF Q Or Q^2 Estimator with Combinition of All Good PMTs /// Adding BetaH PathLength+Birk+Beta+Attnuation ReCorr
+   /*!
+    \1: ilay:    TOF layer(0-3)
+    \2: pmtype:  1-Anode 0-Dynode
+    \3: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    \4: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    \5: optw:    1-different weight for different PMTs. 0-Same weight for All PMT
+  */
+///--Charge Part
+  float GetQL(int ilay,int pmtype,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,int optw=1);
+
 
 //---Geometry information
   /// TOF ilay Edge(All Counter Dimension) x[3](xyz)[2](low high edge)
@@ -2738,7 +2838,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,3)
+  ClassDef(BetaHR,4)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        

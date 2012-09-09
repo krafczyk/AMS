@@ -1,4 +1,4 @@
-//  $Id: tofhit.h,v 1.2 2012/07/20 10:48:20 qyan Exp $
+//  $Id: tofhit.h,v 1.3 2012/09/09 16:28:47 qyan Exp $
 
 //Author Qi Yan 2012/Jul/19 10:03 qyan@cern.ch
 #ifndef __AMSTOFHIT__
@@ -23,9 +23,9 @@ protected:
 public:
     AMSTOFClusterH(){};
     AMSTOFClusterH(uinteger sstatus[2],uinteger status,integer pattern,integer idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],
-                   number sdtm[],number timers[],number timer,number etimer,
-                    AMSPoint coo,AMSPoint ecoo,number edepa,number edepd,TOF2RawSide *tfraws[2],TofRawSideR *raws[2]): AMSlink(status),
-                   TofClusterHR(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,raws)
+                   number sdtm[],number timers[],number timer,number etimer,AMSPoint coo,AMSPoint ecoo,
+                   number q2pa[],number q2pd[][TOF2GC::PMTSMX],number edepa,number edepd,TOF2RawSide *tfraws[2],TofRawSideR *raws[2]): AMSlink(status),
+                   TofClusterHR(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,q2pa,q2pd,edepa,edepd,raws)
       {
           for(int i=0;i<2;i++)_tfraws[i]=tfraws[i]; _idsoft=idsoft;
        }

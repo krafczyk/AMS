@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.11 2012/08/29 17:45:17 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.12 2012/09/09 16:28:46 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -60,7 +60,32 @@ protected:
 #ifndef __ROOTSHAREDLIBRARY__
   static vector<AMSTRDTrack*>amstrdtrack;
 #endif
-  
+
+/// Charge Signal Type
+public:
+  enum  QSignalType{
+    /// Convert to MIP Unit
+    kQ2=0x1,
+    /// Q2(ADC) Non Linear Corr
+    kLinearCor=0x2,
+    /// Attnueation Corr
+    kAttCor=  0x4,
+    /// Path Length dz/dl Cor
+    kThetaCor=0x8,
+    /// Birk Saturation Corr
+    kBirkCor= 0x10,
+    /// Invert Birk Saturation Corr
+    kVBirkCor=0x20,
+    /// Convert From Q2 To MeV
+    kQ2MeV =  0x40, 
+    /// Convert From MeV to Q2
+    kMeVQ2 =  0x80,
+    /// Conver From Q2 to Q
+    kQ2Q =    0x100,
+    /// Beta Cor
+    kBetaCor= 0x200,
+ };
+
 /// Sum Build Part
 public:
 /// default construction
@@ -89,21 +114,43 @@ public:
 /// Time build from TofRawSide
   static int  TimeCooRec(int idsoft,number sdtm[],number adca[],number tms[2],number &tm,number &etm,number &lcoo,number &elcoo,uinteger &status);
 /// Energy build Module
-  static int  EdepRec();
+  static int  EdepRec(int idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],number lcoo,number q2pa[],number q2pd[][TOF2GC::PMTSMX],number &edepa,number &edepd,uinteger sstatus[2]);
+/// Energy build Module-1
+  static int  EdepRecR(int ilay,int ibar,geant adca[],geant adcd[][TOF2GC::PMTSMX],number lcoo,geant q2pa[],geant q2pd[][TOF2GC::PMTSMX],geant &edepa,geant &edepd);
 /// ReFind LT if many LT not Associate with HT
   static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>&ltdcw,int hassid);
+
+/// Get QSignal with different Correction
+  static number GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo=0,number cosz=1,number beta=1);
+/// Adding Gain to Convert To Q*Q (Proton Mip Unit)
+  static number CoverToQ2(int idsoft,int isanode,number adc);
+/// Q2(ADC) Non-Linear Correction
+  static number NonLinearCor(int idsoft,int isanode,number q2);
+/// Scintillator Attunation Correction To Counter Central
+  static number SciAttCor(int idsoft,number lpos,number q2);
+/// Scintillator Birk Correction (opt=1 normal 0 invert)
+  static number BirkCor(int idsoft,number q2,int opt=1);
+/// Sum Anode Signal To Counter Signal
+  static number SumSignalA(int idsoft,number signal[],int useweight=1);
+/// Sum Dynode Signal To Counter Signal
+  static number SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweight=1,bool minpmcut=1);
+/// Get Proton Anode Mip Adc for local lpos
+  static number GetProMipAdc(int idsoft,number lpos);
+
 
 /// BetaH Build Part
 public:
 /// Find TofClusterH for ilay with Track
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
-  static int  BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern);
+  static int  BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern);
 #else
-  static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern);
+  static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern);
 #endif
 /// Recover Time information if One Side lost Signal
   static int  TRecover(TofClusterHR *tfhit[4],number tklcoo[4]);//using hassid to recover other side
   static int  TRecover(int idsoft,geant trlcoo,geant tms[2],geant &tm,geant &etm,uinteger &status,int hassid);
+/// ReBuild Attenuation Correction From TkCoo 
+  static int EdepTkAtt(TofClusterHR *tfhit[4],number tklcoo[4],number tkcosz[4],TofBetaPar &par);
 /// Coo Chi2 Fit function 
   static int  BetaFitC(TofClusterHR *tfhit[4],number res[4][2],int partten[4],TofBetaPar &par,int mode);//
 /// Beta Fit function
@@ -129,7 +176,7 @@ public:
   friend class BetaHR; 
   friend class TofBetaPar; 
 
-  ClassDef(TofRecH,1)
+  ClassDef(TofRecH,2)
 };
 
 /////////////////////////////////////////////////////////////////////////

@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.14 2012/08/31 08:34:32 qyan Exp $
+//  $Id: Tofdbc.h,v 1.15 2012/09/09 16:28:46 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -52,6 +52,13 @@ namespace TOFDBcN{
   const uinteger AOVERFLOW=16384*2*2*2*2*2*2*2*2;//Anode overflow
   const uinteger TRDTRACK=16384*2*2*2*2*2*2*2*2*2;
   const uinteger BETAOVERFLOW=16384*2*2*2*2*2*2*2*2*2*2;//Beta Fit overflow
+  const uinteger DOVERFLOWA=  16384*2*2*2*2*2*2*2*2*2*2*2;//All Dnode Overflow
+  const uinteger AOVERFLOWA=      16384*2*2*2*2*2*2*2*2*2*2*2*2;//All Anode Overflow
+  const uinteger DOVERFLOWNONLC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2;//Dynode NonLear-Correction Overflow
+  const uinteger AOVERFLOWNONLC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2;//Aynode NonLear-Correction Overflow
+  const uinteger DOVERFLOWBIRKC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;//Dynode Birk-Correction Overflow
+  const uinteger AOVERFLOWBIRKC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;//Aynode Birk-Correction Overflow
+
 }
 
 //---TOF Simple Geometry
@@ -355,7 +362,7 @@ class TofAttAlignPar: public TofTDVTool<float>{ //Scintillator Attenuation Algin
 class TofPMAlignPar: public TofTDVTool<float>{// PMT Anode Gain Align
    public:
      static const int nalign=1; 
-     std::map<int, float>gaina; //id LBS0 ///anode gain //reference to 1
+     std::map<int, float>gaina; //id LBSP ///anode gain //reference to 1
 //----
   public:
      TofPMAlignPar();
@@ -390,6 +397,37 @@ class TofPMDAlignPar: public TofTDVTool<float>{// PMT Dynode Gain Align
 };
 
 //==========================================================
+class TofCAlignPar: public TofTDVTool<float>{
+  public:
+     static const int nansat=3;// Anode Saturation Par Number
+     static const float ProEdep=1.67;//Proton Edep Norm to 1.67MeV
+     static const int   RecMinPmD=2; //Min Dynode PM Requirement
+     std::map<int, float>dycor; //id LBSP DynodeQ=dycor*Z^2/(1+birk*Z^2);
+     std::map<int, float>birk;  //id LB00 Birk Const
+//--Dynode PMT Resolution weight factor for Counter Edep Calculation//Tunning According to Carbon
+     std::map<int, float>dypmw;
+     std::map<int, float>ansat[nansat];
+//--default par 
+     static const float def_birk[TOFCSN::SCLRS][TOFCSN::SCMXBR];
+     static const float def_dycor[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
+     static const float def_dypmw[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
+     static const float def_ansat[nansat][TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR];
+//----
+  public:
+     TofCAlignPar();
+     TofCAlignPar(float *arr,int brun,int erun);//load 
+     static TofCAlignPar *Head;
+#pragma omp threadprivate (Head)   
+     static TofCAlignPar *GetHead();
+     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+     void LoadOptPar(int opt=0);//copy TDV to class 0 From TDV 1 Read From Default
+     void LoadTDVPar();//copy TDV to class
+     int  LoadFromFile(char *file);//read data from file->Block data
+     void PrintTDV();
+};
+
+
+//==========================================================
 class TofRecPar: public TofTDVTool<float>{
   public:
      static const  double Tdcbin=0.0244141;
@@ -406,11 +444,12 @@ class TofRecPar: public TofTDVTool<float>{
      static float CooSigma[MaxCharge][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static int   iLay;
      static int   iBar;
+     static int   iSide;   
      static int   Idsoft;
-#pragma omp threadprivate (iLay,iBar,Idsoft)
+#pragma omp threadprivate (iLay,iBar,iSide,Idsoft)
  public:
      TofRecPar(){};
-     static void  IdCovert(int id){iLay=id/1000%10;iBar=id/100%10;}
+     static void  IdCovert(int id){iLay=id/1000%10;iBar=id/100%10;iSide=id/10%10;}
      static void  IdCovert(int ilay,int ibar,int is=0,int ipm=0){Idsoft=1000*ilay+100*ibar+is*10+ipm;}
      static float GetTimeSigma(int id, int icha=1);
      static float GetCooSigma(int id, int icha=1);
