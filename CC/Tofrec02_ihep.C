@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.20 2012/08/29 17:44:44 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.21 2012/09/09 16:26:45 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -129,7 +129,7 @@ int TofRecH::BuildTofClusterH(){
   integer stat[2];
   uinteger sstatus[2]={0},status=0,recovsid[2];
   integer nadcd[2]={0};
-  number sdtm[2]={0},adca[2]={0},timers[2]={0},timer=0,etimer=0,edepa=0,edepd=0,edep=0;
+  number sdtm[2]={0},adca[2]={0},timers[2]={0},timer=0,etimer=0,edepa=0,edepd=0,edep=0,q2pa[2]={0},q2pd[2][TOF2GC::PMTSMX]={{0}};
   number adcd[2][TOF2GC::PMTSMX]={{0}};
   vector<number>ltdcw[2];
   vector<number>htdcw[2];
@@ -189,7 +189,7 @@ int TofRecH::BuildTofClusterH(){
 
 //--already check get data
      TofSideRec(&tfraws[i],adca[is],nadcd[is],adcd[is],sdtm[is],sstatus[is],ltdcw[is],htdcw[is],shtdcw[is]);
-
+ 
 //--different LBB// combine to one bar
      if((i==tfraws.size()-1)||(tfraws[i+1].swid/10!=tfraws[i].swid/10)){
         idsoft=il*1000+ib*100;
@@ -204,7 +204,6 @@ int TofRecH::BuildTofClusterH(){
    
 //Reconstruction
       else {
-
 //-- ReFind Lost  LT using other GOOD Side /*due to 30ns LT deadtime, it's enough to use other Side to ReFind LT
          if(((sstatus[0]|sstatus[1])&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0){
             if((sstatus[0]&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0)hassid=1;
@@ -222,20 +221,13 @@ int TofRecH::BuildTofClusterH(){
          coo[2]=barco[2];
          ecoo[2]=TOFGeom::Sci_t[il][ib]/2./3.;//z 3sigma out
 
-//-----energy temp from RawCluster
-         for(j=0;j<tfrawcl.size();j++){
-           if((tfrawcl[j].Layer-1==il)&&(tfrawcl[j].Bar-1==ib)){
-            edepa=tfrawcl[j].edepa;
-            edepd=tfrawcl[j].edepd;
-            edep=edepa;
-            break;
-         }
-        }
+//---q2pa+q2pd are MIP unit Q^Q no birk corr, edepa+edepd unit MeV birk corr
+        EdepRec(idsoft,adca,adcd,coo[TOFGeom::Proj[il]],q2pa,q2pd,edepa,edepd,sstatus);
 //----  
 #ifndef __ROOTSHAREDLIBRARY__
-        cont->addnext(new AMSTOFClusterH(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,tfhraws,tfhraws1));
+        cont->addnext(new AMSTOFClusterH(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,q2pa,q2pd,edepa,edepd,tfhraws,tfhraws1));
 #else
-        cont->addnext(new TofClusterHR(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,edepa,edepd,tfhraws));
+        cont->addnext(new TofClusterHR(sstatus,status,pattern,idsoft,adca,adcd,sdtm,timers,timer,etimer,coo,ecoo,q2pa,q2pd,edepa,edepd,tfhraws));
 #endif
       }//at lease one side good build
 
@@ -249,7 +241,8 @@ int TofRecH::BuildTofClusterH(){
         sstatus[is]=0;
         timers[is]=adca[is]=sdtm[is]=0;
         nadcd[is]=0;
-        for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++){adcd[is][ipm]=0;}
+        q2pa[is]=0;
+        for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++){adcd[is][ipm]=0;q2pd[is][ipm]=0;}
       }
 
 //----
@@ -370,7 +363,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
        if(shtdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWSHT;}
        if(ltdcw.size()>1) {sstatus|=TOFDBcN::LTMANY;}
        if(htdcw.size()>1) {sstatus|=TOFDBcN::HTMANY;}//HT MANY bad(due to 300ns block)
-       if((sstatus&(TOFDBcN::NOWINDOWLT|TOFDBcN::HTMANY|TOFDBcN::NOADC)>0)){sstatus|=TOFDBcN::BAD;}
+       if((sstatus&(TOFDBcN::NOWINDOWLT|TOFDBcN::HTMANY|TOFDBcN::NOADC))>0){sstatus|=TOFDBcN::BAD;}
 
 //---Get Time imformation----BAD Time
        sdtm=0;
@@ -488,7 +481,6 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
     if((status&TOFDBcN::LTREFIND)>0)etm=3*TofRecPar::GetTimeSigma(idsoft,normcharge);
     else                            etm=TofRecPar::GetTimeSigma(idsoft,normcharge);
     
-
 //--coo
     number tmsc[2];
     tmsc[0]=tms[0]-2*dsl/pow(adca[0],index);//coo compensate
@@ -500,11 +492,245 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
 }
 
 //========================================================
-int TofRecH::EdepRec(){
+int TofRecH::EdepRec(int idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],number lcoo,number q2pa[],number q2pd[][TOF2GC::PMTSMX],number &edepa,number &edepd,uinteger sstatus[2]){
+
+  number QD[TOFCSN::NSIDE][TOFCSN::NPMTM]={{0}},QA[TOFCSN::NSIDE]={0};
+  int uid;
+  edepa=edepd=0;
+  for(int is=0;is<TOFCSN::NSIDE;is++){
+     q2pa[is]=0;
+     for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){q2pd[is][ipm]=0;}
+  }
+
+  for(int is=0;is<TOFCSN::NSIDE;is++){
+//  anode Q*Q covertion+adc-non-linear-correction+attnuation correction
+     uid=idsoft+is*10;
+//--mark adc chip overflow
+     if     (adca[is]>=TofRecPar::PUXMXCH){sstatus[is]|=TOFDBcN::AOVERFLOW;edepa=q2pa[is]=-3;}
+     else if(adca[is]>0){
+        QA[is]=GetQSignal(uid,1,(kQ2|kLinearCor|kAttCor),adca[is],lcoo);
+        if(QA[is]==-1)   {sstatus[is]|=TOFDBcN::AOVERFLOWNONLC;}//Marking Non-Linear Correction Overflow
+        edepa=q2pa[is]=QA[is];
+     }
+
+//--dynode Q*Q covertion+adc-non-linear-correction+attnuation correction
+     for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+         uid=idsoft+is*10+ipm; 
+//--mark adc chip overflow
+         if     (adcd[is][ipm]>=TofRecPar::PUXMXCH){sstatus[is]|=TOFDBcN::DOVERFLOW;edepd=q2pd[is][ipm]=-3;}
+         else if(adcd[is][ipm]>0){
+           QD[is][ipm]=GetQSignal(uid,0,(kQ2|kLinearCor|kAttCor),adcd[is][ipm],lcoo);
+           if(QD[is][ipm]==-1){sstatus[is]|=TOFDBcN::DOVERFLOWNONLC;}//Marking Non-Linear Correction Overflow
+           edepd=q2pd[is][ipm]=QD[is][ipm];
+        }
+     }
+  }
+
+/// Sum Anode Signal Dynode Signal
+   number QSA=SumSignalA(idsoft,QA);
+   number QSD=SumSignalD(idsoft,QD);
+///--Birk Saturation Correction
+   if(QSA>0)edepa=GetQSignal(idsoft,1,(kBirkCor|kQ2MeV),QSA);
+   if(QSD>0)edepd=GetQSignal(idsoft,0,(kBirkCor|kQ2MeV),QSD);
+
   return 0;
 }
 
 //========================================================
+int  TofRecH::EdepRecR(int ilay,int ibar,geant adca[],geant adcd[][TOF2GC::PMTSMX],number lcoo,geant q2pa[],geant q2pd[][TOF2GC::PMTSMX],geant &edepa,geant &edepd){
+  number adca1[2]={0},adcd1[2][TOF2GC::PMTSMX]={0};
+  number q2pa1[2]={0},q2pd1[2][TOF2GC::PMTSMX]={0};
+  number edepa1=0,edepd1=0;
+  uinteger sstatus[2]={0};
+  TofRecPar::IdCovert(ilay,ibar);
+  for(int is=0;is<2;is++){
+     adca1[is]=adca[is];
+     for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++){adcd1[is][ipm]=adcd[is][ipm];}
+   }
+   EdepRec(TofRecPar::Idsoft,adca1,adcd1,lcoo,q2pa1,q2pd1,edepa1,edepd1,sstatus);
+///--Copy Par
+   for(int is=0;is<2;is++){
+     q2pa[is]=q2pa1[is];
+     for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++){q2pd[is][ipm]=q2pd1[is][ipm];}
+   }
+   edepa=edepa1;edepd=edepd1;
+   return 0;
+}
+
+//========================================================
+number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo,number cosz,number beta){
+  
+  if(TofPMAlignPar::Head==0||TofPMAlignPar::GetHead()->Isload!=1)return 0;
+  if(TofPMDAlignPar::Head==0||TofPMDAlignPar::GetHead()->Isload!=1)return 0;
+  if(TofAttAlignPar::Head==0||TofAttAlignPar::GetHead()->Isload!=1)return 0;
+  if(TofCAlignPar::Head==0||TofCAlignPar::GetHead()->Isload!=1)return 0;
+  if(signal<0)return signal;//negtive singal overflow
+
+  number signalc=signal;
+//--Adding Gain to Convert To Q*Q (Proton Mip Unit) 0 Mean MaskBad
+  if(optc&kQ2)       {signalc=CoverToQ2(idsoft,isanode,signalc);if(signalc<=0)return signalc;}
+//--ADC Non Linear Correction -1 mean Overflow Non-Linear Correction faild
+  if(optc&kLinearCor){signalc=NonLinearCor(idsoft,isanode,signalc);if(signalc<=0)return signalc;}
+//--Attenuation Correction
+  if(optc&kAttCor)   {signalc=SciAttCor(idsoft,lcoo,signalc);if(signalc<=0)return signalc;}
+//---Path Length Theta Correction
+  if(optc&kThetaCor) {cout<<"cosz="<<fabs(cosz)<<endl;signalc*=fabs(cosz);}
+//--Birk Correction -2 mean Overflow Birk Correction faild
+  if(optc&kBirkCor)  {signalc=BirkCor(idsoft,signalc,1);if(signalc<=0)return signalc;}
+//--Conver from MeV to Q2
+  if(optc&kMeVQ2)    signalc=signalc/TofCAlignPar::ProEdep;
+//--Inverse Birk Correction
+  if(optc&kVBirkCor)  {signalc=BirkCor(idsoft,signalc,0);if(signalc<=0)return signalc;}
+//--Conver from Q2 To MeV
+  if(optc&kQ2MeV)    signalc=signalc*TofCAlignPar::ProEdep;
+//--Conver from MeV to Q2
+  if(optc&kQ2Q)      signalc=sqrt(signalc);
+
+  return signalc;
+
+}
+
+//========================================================
+number TofRecH::NonLinearCor(int idsoft,int isanode,number q2){//PM Level
+
+  TofCAlignPar   *CPar=TofCAlignPar::GetHead();
+
+///--Dynode Temp No ADC NonLinear Correction
+   if(!isanode)return q2;
+
+///--Anode 
+   else {
+     if(q2>=CPar->ansat[2][idsoft])return -1;
+//--Non Linear expect
+     double nlcq=log((q2-CPar->ansat[2][idsoft])/(-CPar->ansat[0][idsoft]))/(-CPar->ansat[1][idsoft]);
+//--Linear expect //birk compensate  Let Scale QDynode=QAnode
+     double lcq=q2/(1.+CPar->birk[idsoft]);
+//---Choose much larger one to decide non-saturation range
+     double cq=lcq>nlcq?lcq:nlcq; 
+     return cq;
+   }
+}
+
+//========================================================
+number TofRecH::CoverToQ2(int idsoft,int isanode,number adc){//PM Level
+
+///-- Adding  Gain Correction+Normalizetion To Q*Q (Central MIP Unit)
+  TofPMAlignPar  *PMPar= TofPMAlignPar::GetHead();
+  TofPMDAlignPar *PMDPar=TofPMDAlignPar::GetHead(); 
+  TofCAlignPar   *CPar=TofCAlignPar::GetHead();
+
+//--Anode And Dynode Scale // QAnode=(1+k)*QDynode
+  if(isanode){
+      if(PMPar->gaina[idsoft]==0)return 0;//bad dynode mask not use
+      return adc/PMPar->gaina[idsoft]/GetProMipAdc(idsoft,0); 
+   }
+
+//--Dynode Due to use Carbon Mip To Calib should*36
+   else {
+      if(PMDPar->gaind[idsoft]==0)return 0;//bad dynode mask not use
+      return adc/(PMDPar->gaind[idsoft])/CPar->dycor[idsoft]*36.;
+   }
+}
+
+//========================================================
+number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
+
+  if(q2<=0)return q2;
+
+  TofCAlignPar   *CPar=TofCAlignPar::GetHead();
+  idsoft=idsoft/100*100;//Counter Bar lever 
+ 
+ //--Birk Saturation Correction
+  if(opt==1){
+    //--Birk Saturation Overflow 
+    if(1.-CPar->birk[idsoft]*q2<=0)return -2;
+    return q2/(1.-CPar->birk[idsoft]*q2);
+  }
+  else {
+     return q2/(1.+CPar->birk[idsoft]*q2);
+  }
+
+}
+
+//========================================================
+number TofRecH::GetProMipAdc(int idsoft,number lpos){//Side Level
+
+//---Attenuation TDV
+   TofAttAlignPar *AttPar=TofAttAlignPar::GetHead();
+//    AttPar->PrintTDV();
+//---Geometry
+   idsoft=idsoft/10*10;//Anode Two Side
+   TofRecPar::IdCovert(idsoft);
+   bool istrap=TOFGeom::IsTrapezoid(TofRecPar::iLay,TofRecPar::iBar);
+   number lpos1=(TofRecPar::iSide==0?lpos:-lpos);
+
+//---Fast +Slow Photon Component
+   number sci_hl=AttPar->attpar[0][idsoft]/2;
+   number decayl=sci_hl+lpos1;
+   number direct=AttPar->attpar[1][idsoft]*((AttPar->attpar[2][idsoft])*exp(-decayl/AttPar->attpar[3][idsoft])
+                +(1.-AttPar->attpar[2][idsoft])*exp(-decayl/AttPar->attpar[4][idsoft]));
+   if(!istrap){ return direct;}
+//--Adding Reflection Part
+   else  {
+      number decayl2=sci_hl-lpos1;
+      number reflect=AttPar->attpar[5][idsoft]*exp(-decayl2/AttPar->attpar[6][idsoft]);
+      return direct+reflect;
+    }
+}
+
+//========================================================
+number TofRecH::SumSignalA(int idsoft,number signal[],int useweight){//Counter Level
+
+///--Temp No weight For Anode
+     double sums=0,sumw=0;
+     int usesid=0;
+     for(int is=0;is<TOFCSN::NSIDE;is++){
+        if(signal[is]>0){sums+=signal[is];sumw+=1;usesid++;}
+     }
+     if(usesid==0)return 0;
+     return  sums/sumw;
+}
+
+//========================================================
+number TofRecH::SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweight,bool minpmcut){//Counter Level
+
+  TofCAlignPar *CPar=TofCAlignPar::GetHead();
+///--Dynode weight
+   double sums=0,sumw=0,ww=0;
+   int usepm=0,uid;
+   for(int is=0;is<TOFCSN::NSIDE;is++){
+     for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+       uid=idsoft+is*10+ipm;
+       if(signal[is][ipm]>0){
+          if(useweight)ww=1./(CPar->dypmw[uid]*CPar->dypmw[uid]);
+          else         ww=1.;
+          sums+=ww*signal[is][ipm];
+          sumw+=ww;
+          usepm++;
+       }
+     }
+  }
+//--Dynode Need Min PMT //cut due to dynode not-linear for begin
+  if(minpmcut&&usepm<CPar->RecMinPmD)return 0;
+  return sums/sumw;
+}
+
+//========================================================
+number TofRecH::SciAttCor(int idsoft,number lpos,number q2){//Side Level
+
+//---
+   number  attpos=lpos;
+//--Att For Two Side
+   idsoft=idsoft/10*10;
+   TofRecPar::IdCovert(idsoft);
+//--Out Range Check
+   if     (attpos> TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){attpos= TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;}
+   else if(attpos<-TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){attpos=-TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;}
+   return q2*GetProMipAdc(idsoft,0.)/GetProMipAdc(idsoft,attpos);
+}
+
+//========================================================
+
 int TofRecH::BuildBetaH(int mode){
 //---
    if(Init()!=0)return -1;
@@ -605,10 +831,10 @@ int TofRecH::BuildBetaH(int mode){
       if(iktr==1)usetrd=amstrdtrack.at(itr);
 #endif
 //--- 
-         TofClusterHR *phit[4]={0}; int pattern[4]={0};number len[4]={0};number tklcoo[4]={1000};
+         TofClusterHR *phit[4]={0}; int pattern[4]={0};number len[4]={0},tklcoo[4]={1000},tkcosz[4]={1.};
          number cres[4][2]={{1000}}; 
          for(int ilay=0;ilay<4;ilay++){
-            BetaFindTOFCl(ptrack,ilay,&phit[ilay],len[ilay],tklcoo[ilay],cres[ilay],pattern[ilay]);
+            BetaFindTOFCl(ptrack,ilay,&phit[ilay],len[ilay],tklcoo[ilay],tkcosz[ilay],cres[ilay],pattern[ilay]);
         }
 //----then select+Fit
        int xylay[2]={0,0};//x y direction check
@@ -629,6 +855,7 @@ int TofRecH::BuildBetaH(int mode){
            BetaFitC(phit,cres,pattern,betapar,1);
            BetaFitT(phit,len,pattern,betapar,1);
            BetaFitCheck(betapar);
+           EdepTkAtt(phit,tklcoo,tkcosz,betapar);
            betapar.Status|=status;
 #ifndef __ROOTSHAREDLIBRARY__
           cont->addnext(new AMSBetaH(phit,dynamic_cast<AMSTrTrack *>(usetr),usetrd,betapar));
@@ -651,9 +878,9 @@ int TofRecH::BuildBetaH(int mode){
 }
 //========================================================
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
-int  TofRecH::BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern){
+int  TofRecH::BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern){
 #else
-int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number cres[2],int &pattern){
+int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern){
 #endif
 //---init
     int nowbar=0,prebar=-1000,nextbar=-1000,tminbar=0,layhit=0,npattern=0;
@@ -696,12 +923,12 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
           if(mscoo<TofRecPar::BetaHReg[0]*tfecoo[iscoo]){//0.5cm offset tof+tkhit match in same counter 3sigma S flag
              (*tfhit)=tofclh[ilay].at(i);tklen=sleng;
              dlcoo=fabs(tkcoo[1-iscoo]-tfcoo[1-iscoo]);
-             tklcoo=tkcoo[1-iscoo];
+             tklcoo=tkcoo[1-iscoo]; tkcosz=cos(theta);//tkcosz=fabs(tkdir[2]);
              pattern=npattern;
 //------------
              for(int ip=0;ip<2;ip++){
                 cres[ip]=tkcoo[ip]-tfcoo[ip];
-                if(((tfhstat&TOFDBcN::BADTCOO)>0)&&(ip==1-iscoo)){cres[ip]=TOFGeom::Sci_l[ilay][nowbar]/2.;};
+                if(((tfhstat&TOFDBcN::BADTCOO)>0)&&(ip==1-iscoo)){cres[ip]=TOFGeom::Sci_l[ilay][nowbar]/2.;}
               }
              if(TofRecPar::BetaHLMatch==0||dlcoo<TofRecPar::BetaHReg[1]*tfecoo[1-iscoo]){
                if((pattern%10)==3)pattern=4;
@@ -740,6 +967,15 @@ int TofRecH::TRecover(TofClusterHR *tfhit[4],number tklcoo[4]){
   return 0;
 }
 
+//======================================================== 
+int TofRecH::EdepTkAtt(TofClusterHR *tfhit[4],number tklcoo[4],number tkcosz[4],TofBetaPar &par){
+  for(int ilay=0;ilay<4;ilay++){
+    if(!tfhit[ilay])continue;
+    par.CosZ[ilay]=tkcosz[ilay];
+    EdepRecR(ilay,tfhit[ilay]->Bar,tfhit[ilay]->Aadc,tfhit[ilay]->Dadc,tklcoo[ilay],par.AQ2L[ilay],par.DQ2L[ilay],par.AEdepL[ilay],par.DEdepL[ilay]);
+  }
+  return 0;
+}
 
 //========================================================
 int TofRecH::BetaFitC(TofClusterHR *tfhit[4],number res[4][2],int pattern[4], TofBetaPar &par,int mode){
