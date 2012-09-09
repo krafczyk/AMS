@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.21 2012/09/09 16:26:45 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.22 2012/09/09 16:31:00 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -574,7 +574,7 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
 //--Attenuation Correction
   if(optc&kAttCor)   {signalc=SciAttCor(idsoft,lcoo,signalc);if(signalc<=0)return signalc;}
 //---Path Length Theta Correction
-  if(optc&kThetaCor) {cout<<"cosz="<<fabs(cosz)<<endl;signalc*=fabs(cosz);}
+  if(optc&kThetaCor) {signalc*=fabs(cosz);}
 //--Birk Correction -2 mean Overflow Birk Correction faild
   if(optc&kBirkCor)  {signalc=BirkCor(idsoft,signalc,1);if(signalc<=0)return signalc;}
 //--Conver from MeV to Q2
