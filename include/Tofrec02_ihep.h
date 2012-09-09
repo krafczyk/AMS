@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.12 2012/09/09 16:28:46 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.13 2012/09/09 19:19:01 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -15,7 +15,7 @@ class AMSTRDTrack;
 class TofBetaPar;
 
 /*!
-  IHEP Recontruction Code both Support Production and Root Mode Refit(B584 or earier production data)
+ *  IHEP Recontruction Code both Support Production and Root Mode Refit(B584 or earier production data)
 */
 /*!
  \author qyan@cern.ch

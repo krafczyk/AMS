@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.466 2012/09/09 16:28:47 qyan Exp $
+//  $Id: root.h,v 1.467 2012/09/09 19:19:01 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -940,10 +940,10 @@ ClassDef(TofClusterR,1)       //TofClusterR
 
 /// TofClusterHR structure
 /*!  IHEP TOF Recontruction: TofClusterH is rectructed from TofRawSide, which contains new independent calibration of each fired TOF Counter.
-   IHEP New TOF Beta Measument BetaH: TofRawSide->TofClusterH(only 1 Fired TOF Counter)->BetaH(New Calibration+Software)
+  *  IHEP New TOF Beta Measument BetaH: TofRawSide->TofClusterH(only 1 Fired TOF Counter)->BetaH(New Calibration+Software)
 */
 
-/*
+/*!
   \author qyan@cern.ch
 */
 #include "TrElem.h"
@@ -1027,56 +1027,58 @@ class TofClusterHR :public TrElem {
   bool IsGoodTime()     {return (Status&TOFDBcN::BADTIME)==0;}
   /// Recover Time from Hit Position+ one Side Time // Bad Time or Side Lost
   /*!
-    \1: tklcoo[Input]:  longitide hit position to recover 
-    \2: useside[Input]: Side1 bad(lost)=>useside=0   Side0 bad(lost)=>useside=1
-    \3: tm etm[Output]: Recover Time+ETime for this Counter
-  */
+   * @param[in]  tklcoo  longitide hit position to recover 
+   * @param[in]  useside Side1 bad(lost)=>useside=0   Side0 bad(lost)=>useside=1
+   * @param[out] tm  Recover Time
+   * @param[out] etm Recover Time Error
+   */
   int TRecover(float  tklcoo,int useside,float &tm,float &etm);
   /// Get Counter Edep From One PMT Estimate (MeV)
   /*! 
-    *\pmtype:  1-Anode 0-Dynode
-    *\is:      PMT Side: 0-NSide 1-PSide
-    *\pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
-    *\return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
+    * @param[in] pmtype  1-Anode 0-Dynode
+    * @param[in] is PMT Side: 0-NSide 1-PSide
+    * @param[in] pm PMTid For Each Side: Dyndoe 0~2  Anode=0
+    * @return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
   */
   float GetEdepPM  (int pmtype, int is,int pm=0);
   /// Q Or Q^2 Estimate From One PMT
    /*!
-    \1: pmtype:  1-Anode 0-Dynode
-    \2: is:      PMT Side:  0-NSide 1-PSide
-    \3: pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
-    \4: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
-    \5: cosz:    PathLength Corr
-    \6: beta:    Beta Corr
+    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] is  PMT Side:  0-NSide 1-PSide
+    * @param[in] pm  PMTid For Each Side: Dyndoe 0~2  Anode=0
+    * @param[in] opt DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    * @param[in] cosz PathLength Corr
+    * @param[in] beta Beta Corr
+    * @return  =0  No Response or Bad PMT(mask)  <0 PMT Saturation
   */
   float GetQSignalPM(int pmtype,int is,int pm=0,int opt=DefaultQOpt,float cosz=1,float beta=1);
   /// Edep Measurement Combine From All Good PMTs (MeV)
    /*!
-    \1: pmtype:  1-Anode 0-Dynode
-    \2: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
-    \3: optw:    1-Using weight factor according to PMT resolution. 0-Same weight for All PMT 
+    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
   float GetEdep(int pmtype,int pattern=111111,int optw=1);
    /// Q Or Q^2 Estimate  From All Good PMTs
    /*!
-    \1: pmtype:  1-Anode 0-Dynode
-    \2: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
-    \3: cosz:    PathLength Corr
-    \4: beta:    Beta Corr
-    \5: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
-    \6: optw:    1-Different weight for PMTs. 0-Same weight for PMTs
-  */
+    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    * @param[in] cosz PathLength Corr
+    * @param[in] beta Beta Corr
+    * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
+   */
   float GetQSignal(int pmtype,int opt=DefaultQOpt,float cosz=1,float beta=1, int pattern=111111,int optw=1);
   /// Number of Good PMTs Used For Measurement
   /*!
-     \1: pmtype:  1-Anode 0-Dynode
+    * @param[in] pmtype 1-Anode 0-Dynode
   */
   int   GetNPMTQ(int pmtype);
   /// Number of BetaHs use this Counter to build 
   /*! 
-    *\return 0--this counter not belong to any BetaH  (Matched by zero track)
-    *\return 1--this counter belong to 1 BetaH        (Matched by one track)//indicate clear events
-    *\return >=2(N)...--this counter belong to N BetaH(Matched by N track)  //indicate many Tracker many Counter Fired
+    * @return 0--this counter not belong to any BetaH  (Matched by zero track)
+    * @return 1--this counter belong to 1 BetaH        (Matched by one track)//indicate clear events
+    * @return >=2(N)...--this counter belong to N BetaH(Matched by N track)  //indicate many Tracker many Counter Fired
   */
   int  NBetaHUsed( )              {return (Pattern/1000);}
   /// Counter Shape is Trapezoid(1) or Rectangle(0)
@@ -2572,7 +2574,6 @@ public:
   /// Fit Mass Error
   float  EMass;
 
-///--Charge ReCor Par
   /// TOF iLayer CosZ
   float CosZ[4];
   /// TOF iLayer One Anode Q2 for 2Sides PMTs(TkCoo Attenuation Cor,No-Birk-Cor)//iLayer iSide
@@ -2597,10 +2598,11 @@ public:
 };
 
 /// Tof BetaH structure
-/*! IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
+/*! 
+  *IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
 */
 /*!
- \author qyan@cern.ch
+  \author qyan@cern.ch
 */
 class BetaHR: public TrElem{
 
@@ -2655,8 +2657,8 @@ class BetaHR: public TrElem{
   int            GetAllFireHL (int ilay){return BetaPar.Pattern[ilay]/1000;}
   /// Return True if BetaH Cluster is Isolation Fire Counter
   /// \return 0 if neighbor Counter Fire, idis distance to  Central Counter
- /*!
-   * \idis    distance to BetaH used TOF Counter, idis=3 => Judge if there is any of Left 3Counter or right 3Counter fired
+  /*!
+   * @param[in] idis  distance to BetaH used TOF Counter, idis=3 => Judge if there is any of Left 3Counter or right 3Counter fired
    */
   bool           IsIsolationHL (int ilay,int idis=1){
         bool left=0;
@@ -2728,71 +2730,70 @@ class BetaHR: public TrElem{
 //---Using Function 
   /// ReFit Mass using Rigidity Charge
   /*!
-    \[mass]    Output Fit Mass
-    \[emass]   Output Fit Mass Error
-    \[rig]     Input Rigidity
-    \[charge]  Input Charge
-    \[erigv]   Input Error of 1/Rigidity
-    \[isbetac] (1)Using BetaC(ask Vitaly)  (0)Using Beta //For Fit Mass
-    \[update]  BetaPar update (1)Update Mass (0)Not Update
+   * @param[out] mass Fit Mass
+   * @param[out] emass Fit Mass Error
+   * @param[in] rig Rigidity
+   * @param[in] charge Charge
+   * @param[in] erigv   Error of 1/Rigidity
+   * @param[in] isbetac (1)Using BetaC(ask Vitaly)  (0)Using Beta //For Fit Mass
+   * @param[in] update  BetaPar(1)Update Mass (0)Not Update
   */
   int  MassReFit(double &mass, double &emass,double rig=0,double charge=0,double erigv=0,int isbetac=0,int update=0);
    /// Beta ReFit
    /*!
-     \[mass]    Output Fit Beta
-     \[emass]   Output Fit Error 1/Beta
-     \[pattern] Input  mmmm: m=1 or 0 or 2,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1. 2022 force to use Time recover hit to Fit
-     \[mode]    Input  mode=1 or 0,  different time err or same time err for 4 Tof Layers
-     \[update]  Input  BetaPar update (1)Update Beta (0)Not Update
+    * @param[out] beta Fit Beta
+    * @param[out] ebetav Fit Error 1/Beta
+    * @param[in] pattern  mmmm: m=1 or 0 or 2,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1. 2022 force to use Time recover hit to Fit
+    * @param[in] mode =1(4 Tof layers same time err)  =0(different time err)
+    * @param[in] update  BetaPar update (1)Update Beta (0)Not Update
    */
   int  BetaReFit(double &beta,double &ebetav,int pattern=1111,int mode=1,int update=0);
   /// TOF Time Interpolation to posZ
   /*!
-     \[zpl]  Input  Interpolate to Z position (Z=zpl)
-     \[pnt]  Output BetaH's Track position at Z=zpl
-     \[dir]  Output BetaH's Track direction at Z=zpl
-     \[time] Output TOF Time at Z=zpl(ns)
-     \return BetaH's Track Path length at Z=zpl
+   * @param[in] zpl Interpolate to Z position (Z=zpl)
+   * @param[out] pnt BetaH's Track position at Z=zpl
+   * @param[out] dir BetaH's Track direction at Z=zpl
+   * @param[out] time TOF Time at Z=zpl(ns)
+   * @return BetaH's Track Path length at Z=zpl
    */
 #ifdef _PGTRACK_
   double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time);
 #endif
 ///  iLay TOF Edep(MeV) From One PMT Estimate ///Attenuation ReCorr
   /*! 
-    *\ilay:    TOF layer(0-3)
-    *\pmtype:  1-Anode 0-Dynode
-    *\is:      PMT Side: 0-NSide 1-PSide
-    *\pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
-    *\return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
+   * @param[in] ilay TOF layer(0-3)
+   * @param[in] pmtype 1-Anode 0-Dynode
+   * @param[in] is  PMT Side: 0-NSide 1-PSide
+   * @param[in] pm  PMTid For Each Side: Dyndoe 0~2  Anode=0
+   * @return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
   */
    float GetEdepLPM  (int ilay,int pmtype, int is,int pm=0);
 /// iLay TOF Q Or Q^2 Measurement from One PMT Estimate ///Adding BetaH PathLength+Birk+Beta+Attenuation ReCorr
    /*!
-    \1: ilay:    TOF layer(0-3)
-    \2: pmtype:  1-Anode 0-Dynode
-    \3: is:      PMT Side:  0-NSide 1-PSide
-    \4: pm:      PMTid For Each Side: Dyndoe 0~2  Anode=0
-    \5: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
-    \return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
+    * @param[in] ilay TOF layer(0-3)
+    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] is  PMT Side: 0-NSide 1-PSide
+    * @param[in] pm  PMTid For Each Side: Dyndoe 0~2  Anode=0
+    * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    * @return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
   */
    float GetQLPM(int ilay,int pmtype,int is,int pm=0,int opt=TofClusterHR::DefaultQOpt);
 /// iLay TOF Edep(MeV) with Combinition of All Good PMTs //Attnuation ReCorr
    /*!
-    \1: ilay:    TOF layer(0-3)
-    \2: pmtype:  1-Anode 0-Dynode
-    \3: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
-    \4: optw:    1-different weight for different PMTs. 0-Same weight for All PMT 
+    * @param[in] ilay TOF layer(0-3)
+    * @param[in] pmtype  1-Anode 0-Dynode 
+    * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
   float GetEdepL(int ilay,int pmtype,int pattern=111111,int optw=1);
 /// iLay TOF Q Or Q^2 Estimator with Combinition of All Good PMTs /// Adding BetaH PathLength+Birk+Beta+Attnuation ReCorr
    /*!
-    \1: ilay:    TOF layer(0-3)
-    \2: pmtype:  1-Anode 0-Dynode
-    \3: opt:     DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
-    \4: pattern: 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
-    \5: optw:    1-different weight for different PMTs. 0-Same weight for All PMT
+    * @param[in] ilay TOF layer(0-3)
+    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
-///--Charge Part
   float GetQL(int ilay,int pmtype,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,int optw=1);
 
 
@@ -2807,10 +2808,10 @@ class BetaHR: public TrElem{
   bool IsInOverlap(int ilay,float x, float y,int nexcl=1){return TOFGeom::IsInOverlap(ilay,x,y,nexcl);}
   /// Find Global Coo nearest ilay TOF Counter
   /*!
-    \[xyz]     Input   Global Coo // z=0 don't use z information,  z!=0 include z judgment.
-    \[dis]     Output  Distance from Global Coo to it's Nearest TOF Counter Central
-    \[isinbar] Output  (1)if Global Coo is inside nearest Counter (0)Not
-    \return    Nearest Counter Bar Number
+   * @param[in] xyz Global Coo // z=0 don't use z information,  z!=0 include z judgment
+   * @param[out] dis Distance from Global Coo to it's Nearest TOF Counter Central
+   * @param[out] isinbar 1)if Global Coo is inside nearest Counter (0)Not
+   * @return    Nearest Counter Bar Number
   */
    int FindNearBar(int ilay,float x, float y,float &dis,bool &isinbar,float z=0){return TOFGeom::FindNearBar(ilay,x,y,dis,isinbar,z);}
 
