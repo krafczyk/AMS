@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.17.2.2 2012/08/14 08:32:44 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.17.2.3 2012/09/09 16:45:19 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -365,7 +365,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
        if(shtdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWSHT;}
        if(ltdcw.size()>1) {sstatus|=TOFDBcN::LTMANY;}
        if(htdcw.size()>1) {sstatus|=TOFDBcN::HTMANY;}//HT MANY bad(due to 300ns block)
-       if((sstatus&(TOFDBcN::NOWINDOWLT|TOFDBcN::HTMANY|TOFDBcN::NOADC)>0)){sstatus|=TOFDBcN::BAD;}
+       if((sstatus&(TOFDBcN::NOWINDOWLT|TOFDBcN::HTMANY|TOFDBcN::NOADC))>0){sstatus|=TOFDBcN::BAD;}
 
 //---Get Time imformation----BAD Time
        sdtm=0;
