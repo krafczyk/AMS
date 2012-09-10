@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.570 2012/08/30 07:50:26 choutko Exp $
+//  $Id: event.C,v 1.571 2012/09/10 08:27:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1321,6 +1321,8 @@ void  AMSEvent::write(int trig){
       if(AMSProducer::gethead()->FreeSpace()>=0 && AMSProducer::gethead()->FreeSpace()<IOPA.MaxFileSize/2/1024){
 	NoMoreSpace=true;
 	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
+        GCFLAG.IEORUN=1;
+        GCFLAG.IEOTRI=1; 
         cerr<<" AMSEvent-W-SpaceProblem "<<AMSProducer::gethead()->FreeSpace()<<" "<<IOPA.MaxFileSize/2/1024<<endl;
       }
 #endif

@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.32 2012/07/06 11:54:27 pzuccon Exp $
+//  $Id: amschain.h,v 1.33 2012/09/10 08:27:30 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -65,7 +65,9 @@ public:
    Int_t     Add(const char* name, Long64_t nentries = kBigNumber);
    using TChain::Add;
   /// Add TFiles to the chain from a text file 
-  int AddFromFile(const char* rootfilelist);
+  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,char *pattern=0);
+  /// Get number of TFiles in  a text file 
+  int ValidateFromFile(const char* rootfilelist,bool stage=false);
 
   ///Set event branch and links; called after reading of all trees; called automatically in GetEvent
   void Init(AMSEventR* event=0); 

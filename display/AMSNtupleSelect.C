@@ -24,8 +24,18 @@ cout << " open b"<<endl;
 iftxte.open("./electrons.txt");
 begin=1;
 }
+unsigned long long status =ev->fStatus;
+
+/*
+bool skip = !(status & 3) ||  !((status>>2)&1) || !((status>>3)&1)   || ((status>>4)&1) || !((status>>6)&1)  || !((status>>17)&1) ;
+if(skip){
+cout <<" sta "<<status<<" "<<(status & 3) <<  "  "<<((status>>2)&1) <<" "<<((status>>3)&1)   <<" "<< ((status>>4)&1) <<" "<<((status>>6)&1)  <<" "<<((status>>17)&1)<<endl ;
+return true;
+}
+else return false;
+*/
 DynAlManager::ignoreAlignment=true;
-if(ev && ev->nParticle()  && ev->Particle(0).iTrdTrack()>=0&& ev->Particle(0).iTrTrack()<0 && ev->nTrdTrack()==1 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>100 )
+if(ev && ev->nParticle()  && ev->Particle(0).iTrdTrack()>=0&& ev->Particle(0).iTrTrack()>=0 && ev->nTrdTrack()==1 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>100 )
 {
 int ret=-1;
 int ret2=-1;

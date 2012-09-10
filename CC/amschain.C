@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.59 2012/07/27 15:00:11 pzuccon Exp $
+//  $Id: amschain.C,v 1.60 2012/09/10 08:27:26 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -186,15 +186,83 @@ AMSEventR* AMSChain::GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind){
   return _EVENT; 
 };
 
-int AMSChain::AddFromFile(const char *fname){
+int AMSChain::ValidateFromFile(const char *fname,bool stage){
+  FILE* listfile = fopen(fname,"r");
+  int i=0;
+  bool castor=false;
+  if (listfile) {
+    char rname[1024];
+    while (1){
+      fscanf(listfile,"%s\n", rname );
+       if(feof(listfile)) { fclose(listfile); break;}
+       else if(strstr(rname,"/castor/") && stage){
+       string rn=rname;
+       int pos=rn.find("/castor/");
+       string stager_get="stager_get -M ";
+       stager_get+=(rname+pos);
+       stager_get+=" 1>/dev/null 2>&1 &";
+       system(stager_get.c_str());
+       }
+      i++; 
+    }
+  }
+  else {
+    cerr << "AMSChain::AddFromFile-E-  Error opening file '" << fname << "';";
+    return -1;
+  }
+  
+  return i;
+}
+int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,char *pattern){
+  ofstream  rejfile;
   FILE* listfile = fopen(fname,"r");
   if (listfile) {
-    char rname[600];
+    char rname[1024];
+    int i=0;
     while (1){
       fscanf(listfile,"%s\n", rname );
       if(feof(listfile)) { fclose(listfile); break;}
-      Add(rname);
+      if(i>=first && i<last &&(!pattern || strstr(rname,pattern))){
+          bool staged=true;
+          if(strstr(rname,"/castor/") ){
+           string rn=rname;
+           int pos=rn.find("/castor/");
+           string stager_get="stager_get -M ";
+           stager_get+=(rname+pos);
+           stager_get+=" 1>/dev/null 2>&1 ";
+           system(stager_get.c_str());
+           stager_get="stager_qry -M ";
+           stager_get+=(rname+pos);
+           stager_get+=" | grep -c STAGED 2>&1";
+           FILE *fp=popen(stager_get.c_str(),"r");
+           char path[1024];
+           if(fp==NULL){
+             staged=false;
+           }
+           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
+             staged=true;  
+           }
+           else staged=false;
+           pclose(fp);
+           }
+          if(staged || !stagedonly)Add(rname);
+          else {
+            cerr<<"AMSChain::AddFromFile-W-FileNotStagedAndWillNotBeProcessed"<<rname<<endl;
+             char rejfilename[4095];
+             sprintf(rejfilename,"%s_%06d_%06d_STAGEIN",fname,first,last);
+            if(!rejfile){
+             rejfile.clear();
+             rejfile.open(rejfilename);
+            }
+            if(rejfile){
+              rejfile<<rname<<endl;
+            }
+            else cerr<<"AMSChain::AddFromFile-W_UnableToOpenRejFile "<<rejfilename<<endl;
+          } 
+         }       
+      i++; 
     }
+    if(rejfile)rejfile.close();
   }
   else {
     cerr << "AMSChain::AddFromFile-E-  Error opening file '" << fname << "';";
