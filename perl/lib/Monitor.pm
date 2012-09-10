@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.164 2012/09/10 11:05:36 choutko Exp $
+# $Id: Monitor.pm,v 1.165 2012/09/10 11:06:44 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -670,7 +670,7 @@ sub getdbok{
   if($text[2]<2000 and $text[2]>=0 and $text[3]<10){
       push @text ,2;
   }  
-elsif(($text[1]<0 or $text[2]<0 or $text[2]<10000) and not text[0]=~/\/castor/){
+elsif(($text[1]<0 or $text[2]<0 or $text[2]<10000) and not $text[0]=~/\/castor/){
       push @text ,1;
   }
 else{
