@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.94 2012/09/10 10:01:02 choutko Exp $
+//  $Id: geant4.C,v 1.95 2012/09/10 10:04:31 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -270,6 +270,7 @@ if(iq++==0){
 
   pph->_init();
 
+}
 }
 void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
