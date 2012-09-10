@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.93 2012/08/02 09:21:54 choutko Exp $
+//  $Id: geant4.C,v 1.94 2012/09/10 10:01:02 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -263,7 +263,9 @@ delete[] _particleGun;
 
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
 
+static unsigned int iq=0;
 
+if(iq++==0){ 
   cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
 
   pph->_init();
