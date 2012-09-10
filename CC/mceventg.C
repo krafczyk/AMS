@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.175 2012/08/01 17:04:13 choutko Exp $
+//  $Id: mceventg.C,v 1.176 2012/09/10 19:18:45 vaurynov Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1861,39 +1861,13 @@ else
 
 #endif
 
-double find_ecal_z()
-{
-   double ECALZ = -140; ///FLT_MAX;
-   AMSgvolume * p
-      = AMSJob::gethead()->getgeomvolume(AMSID("PMS1",1));
-   if( p != NULL ){
-      ECALZ = p->getcooA(2) * 0.95;
-      cout << "AMSmceventg::FillMCInfo-I-LowestZSetTo " << ECALZ << endl;
-   }
-   else{
-      cerr << "AMSmceventg::FillMCInfo-W-NoPMS1VolumeFound" << endl;
-   }
-   return ECALZ;
-}
-
-
 extern "C" void getscanfl_(int &scan);
 void AMSmceventg::FillMCInfo(){
 static number radl=0;
 static number absl=0;
 static integer init=0;
-static number ECALZ=-FLT_MAX;
-if(!init){
- init=1;
- AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("PMS1",1));
-if(p){
- ECALZ=p->getcooA(2)*0.95;
- cout <<"AMSmceventg::FillMCInfo-I-LowestZSetTo "<<ECALZ<<endl;
-}
-else{
- cerr<<"AMSmceventg::FillMCInfo-W-NoPMS1VolumeFound"<<endl;
-}
-}
+static number ECALZ=ECALDBc::ZOfEcalTopHoneycombSurface();
+if(!init) init=1;
 
 if(GCTRAK.sleng==0){
  radl=0;
@@ -1962,7 +1936,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    //
    // simple postional cut value of ecal top
    //
-   static double ECAL_Z = find_ecal_z();
+   static double ECAL_Z = ECALDBc::ZOfEcalTopHoneycombSurface();
    //G4cerr << "ecal_z = " << ECAL_Z << G4endl;
 
    G4ThreeVector pos = aTrack->GetPosition();
@@ -2022,18 +1996,8 @@ void AMSmceventg::FillMCInfoVMC(int vmc_ipart,int vmc_inwvol,int CurrentLevel,co
 static number radl=0;
 static number absl=0;
 static integer init=0;
-static number ECALZ=-FLT_MAX;
-if(!init){
- init=1;
- AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("PMS1",1));
-if(p){
- ECALZ=p->getcooA(2)*0.95;
- cout <<"AMSmceventg::FillMCInfo-I-LowestZSetTo "<<ECALZ<<endl;
-}
-else{
- cerr<<"AMSmceventg::FillMCInfo-W-NoPMS1VolumeFound"<<endl;
-}
-}
+static number ECALZ=ECALDBc::ZOfEcalTopHoneycombSurface();
+if(!init) init=1;
 
 if(gMC->TrackLength()==0){
  radl=0;
