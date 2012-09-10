@@ -20,15 +20,17 @@ EcalPDF::EcalPDF(){
 bool EcalPDF::init(char* fdatabase){
 	bool ret=true;
 	char tempname[100];
+	srand(time(NULL));	
+	int fid=rand();
 	for(int layer=0;layer<18;layer++){
 		for(int i1=0;i1<6;i1++){
-			sprintf(tempname,"hrms_lay%.2d_%d_2",layer,i1);
+			sprintf(tempname,"hrms_lay%.2d_%d_2_%d",layer,i1,fid);
 			param_rms_lf[layer][i1] =new TH1F(tempname,tempname,710, -31.905, 31.995) ;
-			sprintf(tempname,"hmean_lay%.2d_%d_2",layer,i1);
+			sprintf(tempname,"hmean_lay%.2d_%d_2_%d",layer,i1,fid);
 			param_mean_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
 		}
 		for(int i1=0;i1<2;i1++){
-			sprintf(tempname,"hprob_lay%.2d_%d_2",layer,i1);
+			sprintf(tempname,"hprob_lay%.2d_%d_2_%d",layer,i1,fid);
 			param_prob_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
 		}
 	}
@@ -450,7 +452,7 @@ float EcalChi2::process(float* coo,float sign){
         tot_ndof =0;
         tot_ndofx=0;
         tot_ndofy=0;
-        for(int i1=1;i1<18;i1++){
+        for(int i1=0;i1<18;i1++){
                 _chi2     +=_chi2_layer [i1];
                 if(i1%4<2){
                         _chi2y    +=_chi2_layer [i1];
@@ -561,7 +563,7 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
 	tot_ndof =0;
 	tot_ndofx=0;
 	tot_ndofy=0;
-	for(int i1=1;i1<18;i1++){
+	for(int i1=0;i1<18;i1++){
 		_chi2     +=_chi2_layer [i1];
 		if(i1%4<2){
 			_chi2y    +=_chi2_layer [i1];
@@ -637,7 +639,7 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 		end_cell=0;
         if(end_cell>71)
                 end_cell=71;
-        k1=(int)((coo-shiftxy[layer]+0.45)/SIZE);
+        /*k1=(int)((coo-shiftxy[layer]+0.45)/SIZE);
 	k2=k1;
 	flag=false;
 	if(k1<start_cell)
@@ -675,7 +677,7 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 	}
         start_cell=k1;
         end_cell=k2;
-	
+	*/
         for(i1=start_cell;i1<=end_cell;i1++){
                 cell_mean[i1]=ecalpdf->get_mean(layer,-1.*sign*(i1*SIZE+shiftxy[layer]-coo),_erg,0);
                 cell_rms[i1]=ecalpdf->get_rms(layer,-1.*sign*(i1*SIZE+shiftxy[layer]-coo),_erg,0);
@@ -850,11 +852,11 @@ bool EcalAxis::init_lf(){
 	}
 	gMinuit_EcalAxis->SetParameter(0,  "x0"  ,init_x0  ,0.2  ,init_x0-0.9 ,init_x0+0.9 );
     	gMinuit_EcalAxis->SetParameter(1,  "y0"  ,init_y0  ,0.2  ,init_y0-0.9 ,init_y0+0.9 );
-    	gMinuit_EcalAxis->SetParameter(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.4,init_dxdz+.4);
-    	gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.4,init_dydz+.4);
+    	gMinuit_EcalAxis->SetParameter(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.2,init_dxdz+.2);
+    	gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.2,init_dydz+.2);
 
 	if(_erg>5)	
-		arglist[0]=300;
+		arglist[0]=400;
 	else
 		arglist[0]=100 ;
 	arglist[1]=10.;
