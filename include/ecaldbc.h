@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.49 2011/11/18 11:16:53 sdifalco Exp $
+//  $Id: ecaldbc.h,v 1.50 2012/09/10 18:51:53 vaurynov Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -91,6 +91,11 @@ class ECALDBc {
   static number segarea(number r, number ds);
   static number CellCoo(integer plane, integer cell, integer icoo);
   static number CellSize(integer plane, integer cell, integer icoo);
+
+  // If you go from the top of AMS to the bottom,
+  // the function tells you at what z-coordinate the top
+  // ECAL honeycomb begins.
+  static geant ZOfEcalTopHoneycombSurface(void) throw() { return gendim(7) + gendim(8); }
 	 
 	 
   //  
