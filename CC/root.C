@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.437 2012/09/09 16:27:38 qyan Exp $
+//  $Id: root.C,v 1.438 2012/09/11 16:59:59 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3305,6 +3305,7 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   Orp2DEnergy = ptr->_Orp2DEnergy;
 
   Chi2Profile = ptr->_ProfilePar[4+ptr->_Direction*5];
+  Chi2ProfileBack=ptr->_ProfilePar[4+(1-ptr->_Direction)*5];
   for (int i=0; i<4; i++) ParProfile[i] = fabs(ptr->_ProfilePar[i+ptr->_Direction*5])>FLT_MAX?FLT_MAX:ptr->_ProfilePar[i+ptr->_Direction*5];
   Chi2Trans = ptr->_TransFitChi2;
   for (int i=0; i<3; i++) SphericityEV[i] = ptr->_SphericityEV[i];

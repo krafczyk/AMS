@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.467 2012/09/09 19:19:01 qyan Exp $
+//  $Id: root.h,v 1.468 2012/09/11 17:00:01 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -647,6 +647,7 @@ public:
 
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
   float Chi2Profile;  ///< chi2 profile fit (by gamma function)
+  float Chi2ProfileBack; ///< chi2 profile fit in back direction
   float ParProfile[4]; ///< normalization, shower max (cm), rad length, rel rear leak ) for profile fit
   float Chi2Trans;     ///< chi2 transverse fit (sum of two exp)
   float SphericityEV[3]; ///< sphericity tensor eigen values
@@ -744,7 +745,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,12)       //EcalShowerR
+  ClassDef(EcalShowerR,13)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
