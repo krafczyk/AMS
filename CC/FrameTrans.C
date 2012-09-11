@@ -1,63 +1,64 @@
 /**
-   this is library to convert from/to AMS reference using
-   ground measurementrs or startracker.
-   
- *  Author Stefano Della Torre - INFN Milano Bicocca
- *  Mail: stefano.dellatorre@mib.infn.it
- *  Date: Aug 2012
+ *  this is library to convert from/to AMS reference using
+ *  ground measurementrs or startracker.
+ * 
+ *  see FrameTrans.h for additiona comments and reference
+ * 
+ *   developers:
+ *   SDT - Stefano Della Torre - INFN Milano Bicocca - stefano.dellatorre@mib.infn.it
+ *   AL  - Alexey Lebedev - MIT - alexey.lebedev@cern.ch     
+ *        
+ *  
  */
-
 #include <iostream>
 #include <stdio.h>
 #include <string>
 #include <cstdlib>
 #include <fstream>
 #include <math.h>
+#include "FrameTrans.h"
+
 using namespace std;
+//Pi value obtained with Wolfram-Mathematica 8
+#define twopi  6.2831853071795864769252867665590057683943387987502    // 2*Pi
+#define pi     3.1415926535897932384626433832795028841971693993751    // Pi
+#define pio2   1.5707963267948966192313216916397514420985846996876    // Pi/2
+#define x3pio2 4.7123889803846898576939650749192543262957540990627    // 3*Pi/2
+//#define AU  1.49597870691E8  // Astronomical unit - km (IAU 76)
+#define AU  14959787070030   // Astronomical unit - cm - Particle Physics booklet 2010
 
-#include <FrameTrans.h>
+//~------------ TO BE USED BY USER ------------
 
-/************************************** Constant **************************/
-#define twopi		6.28318530717958623	/* 2*Pi  */
-#define pi		3.14159265358979323846	/* Pi */
-#define pio2		1.57079632679489656	/* Pi/2 */
-#define x3pio2		4.71238898038468967	/* 3*Pi/2 */
+//~============================================================================
 
-//#define AU		1.49597870691E8	/* Astronomical unit - km (IAU 76) */
-#define AU		14959787070030  /*Astronomical unit - cm - Particle Physics booklet 2010*/
+int get_ams_ra_dec_fromGTOD(double PosISS[3], double VelISS[2], double ypr[3], double & ra, double &dec, double xtime){
+// SDT(aug2012) - generic trasformation from AMS frame to J2000 frame passing via GTOD (or ~ctrs)
+// PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
+// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
+// xtime     = UTC time (in unix format)
 
-/** *************** TO BE USED BY USER ********************/
-
-
-
-
-int get_ams_ra_dec_fromGTOD(double PosISS[3], double VelISS[2], double rpy[3], double & ra, double &dec, double xtime){
-  /* generic trasformation from AMS frame to J2000 frame passing via GTOD (or ~ctrs)
-   * PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
-   * VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
-   * rpy[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
-   * ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
-   * xtime     = UTC time (in unix format)*/
   
   double x=0.; double y=0.; double z=1.;
   double r=1.;//dummy for check
   
-  FT_Angular2Cart( r,  dec,  ra,  x,  y,  z );
-  FT_AMS2Body(x,y,z);
-  FT_Body2LVLH(x,y,z,rpy[0],rpy[1],rpy[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
-  FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
-  FT_GTOD2Equat(x,y,z,xtime);                                              // Parameters: xtime is GPS
-  FT_Cart2Angular( x,  y,  z,r, dec,  ra);
+  FT_Angular2Cart(r,  dec,  ra,  x,  y,  z );
+  FT_AMS2Body(x, y, z);
+  FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);                                  // Parameters: ISSyaw,  ISSpitch,  ISSroll
+  FT_LVLH2GTOD(x, y, z, PosISS[0], PosISS[1], PosISS[2] , VelISS[0], VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+  FT_GTOD2Equat(x, y, z, xtime);                                                  // Parameters: xtime is GPS
+  FT_Cart2Angular(x, y, z,r, dec,  ra);
   return 0;
 }
 
-int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double rpy[3], double & Azim, double &Elev, double xtime){
-  /* generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
-   * PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
-   * VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
-   * rpy[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
-   * ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
-   * xtime     = UTC time (in unix format)*/
+int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double ypr[3], double & Azim, double &Elev, double xtime){
+// SDT(aug2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
+// PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
+// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
+// xtime     = UTC time (in unix format)
   
   double x=0.; double y=0.; double z=1.;
   double r=1.;//dummy for check
@@ -66,7 +67,7 @@ int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double rpy[3], doub
   
   FT_Angular2Cart( r,  Elev,  Azim,  x,  y,  z );
   FT_AMS2Body(x,y,z);
-  FT_Body2LVLH(x,y,z,rpy[0],rpy[1],rpy[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
+  FT_Body2LVLH(x,y,z,ypr[0],ypr[1],ypr[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
   FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
   FT_GTOD2Equat(x,y,z,xtime);                                              // Parameters: xtime is GPS
   FT_Cart2Angular( x,  y,  z,r, dec,  ra);
@@ -314,7 +315,7 @@ void	FT_LVLH2GTOD(double &x, double &y, double &z, double ISSaltitude,double ISS
    /* define the ISS coordinates and velocity*/
    double R_x = cos(ISSasc ) * sin( pi/2.- ISSdec );
    double R_y = sin( ISSasc ) * sin( pi/2.-ISSdec );
-   double R_z = cos( pi/2.-ISSdec );  /* %%%%%%%%%%%%% corretto -> controlla bastian*/
+   double R_z = cos( pi/2.-ISSdec );  
    double V_x = cos( ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
    double V_y = sin(ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
    double V_z = cos( pi/2.-ISSVelTheta );
@@ -360,8 +361,8 @@ void	FT_LVLH2GTOD(double &x, double &y, double &z, double ISSaltitude,double ISS
 /*****************************************************************************/
 
 double FT_GMST_rad(double timeUnix){
- double time=  FT_UTC_JD( timeUnix); //convert from unixtime (UTC) to Julian days
- //double time=  FT_GPS_JD( timeUnix); //convert from unixtime (GPS) to Julian days
+ double time=  FT_UTC_JD((double) timeUnix); //convert from unixtime (UTC) to Julian days
+ //double time=  FT_GPS_JD((double) timeUnix); //convert from unixtime (GPS) to Julian days
  /* Greenwich mean sidereal time  in radians */
  double T=(time-2451545.0)/36525.0 ;/*Interval of time, measured in Julian centuries of 36525 days of UT (mean solar day), elapsed since the epoch 2000 Jan 1d12hUT*/
  double d=(time-2451545.0);
@@ -369,6 +370,7 @@ double FT_GMST_rad(double timeUnix){
  /* GMST from Meeus, J., 2000. Astronomical Algorithms. Willman-Bell, Richmond,VA, 2nd ed.  p 84 (eq.11-4)
     adapdet from IDL procedure http://idlastro.gsfc.nasa.gov/ftp/pro/astro/ct2lst.pro */
  GMST_deg=FT_Modulus(( 280.46061837 + 360.98564736629*d +T*T*(0.000387933-T/38710000.0)),360);
+ //GMST_deg = (int)(280.46061837 + 360.98564736629 * d + T * T * (0.000387933 -T /38710000.0)) % 360;  // AL - possible variant
  double GMSTrad= GMST_deg*pi/180.; /* greenwich mean sidereal time  in radians*/
  return GMSTrad;
 }
@@ -434,7 +436,7 @@ double  FT_GPS_JD(double itime){
 }
 
 
-double  FT_UTC_JD(double itime){
+double FT_UTC_JD(double itime){
  /* convert UTC time (given in unix time seconds) in JD day*/
  /** the difference between TAI and UTC is 
   *  [INTERNATIONAL EARTH ROTATION AND REFERENCE SYSTEMS SERVICE (IERS) - Bulletin C 43]
@@ -452,26 +454,32 @@ double  FT_UTC_JD(double itime){
 }
 
 
-/***********************************************************************/
+//~============================================================================
 
 int  FT_Equat2Gal(double &azimut, double &elev){
- /* converts from J2000 frame to Galactic:
-  * from Duffett-Smith & Zwart, Practical Astronomy, 4th edition 2011, pp56-59  */
+// SDT(Aug 2012) - converts from J2000 frame to Galactic:
+// from Duffett-Smith & Zwart, Practical Astronomy, 4th edition 2011, pp56-59  */
  double RA=azimut;
  double Dec=elev;
  double b;/* galactic latitude  */
  double l;/* galactic longitude */
- double GalCen_RA =(192.+15./60.)/180.*pi; /* 192° 15' */
- double GalCen_Dec=( 27.+24./60.)/180.*pi; /*  27° 24' */
- double GalCen_AscendingNode=33./180.*pi;  /*  33°  0' */
+ double GalCen_RA =(192.+15./60.)/180.*pi; /* 192deg 15' */
+ double GalCen_Dec=( 27.+24./60.)/180.*pi; /*  27deg 24' */
+ double GalCen_AscendingNode=33./180.*pi;  /*  33deg  0' */
  b=asin(cos(Dec)*cos(GalCen_Dec)*cos(RA-GalCen_RA) + sin(Dec)*sin(GalCen_Dec));
  l=atan2( (sin(Dec)-sin(b)*sin(GalCen_Dec)),(cos(Dec)*sin(RA-GalCen_RA)*cos(GalCen_Dec) )  )+GalCen_AscendingNode;
  
  azimut=l;
  elev=b;
+// SDT(sept2012) check if  galactic longitude is in the range [-180:180]
+ if (l>pi){ //if longitude is >180deg then substract 360deg
+ b+=-twopi;
+ }
  return 1;
  
 }
+
+//~----------------------------------------------------------------------------
 
 int  FT_Gal2Equat(double &azimut, double &elev){
  /* converts from Galactic to J2000 frame :
@@ -481,9 +489,9 @@ int  FT_Gal2Equat(double &azimut, double &elev){
  double b=azimut;/* galactic latitude  */
  double l=elev;  /* galactic longitude */
  
- double GalCen_RA =(192.+15./60.)/180.*pi; /* 192° 15' */
- double GalCen_Dec=( 27.+24./60.)/180.*pi; /*  27° 24' */
- double GalCen_AscendingNode=33./180.*pi;  /*  33°  0' */
+ double GalCen_RA =(192.+15./60.)/180.*pi; /* 192deg 15' */
+ double GalCen_Dec=( 27.+24./60.)/180.*pi; /*  27deg 24' */
+ double GalCen_AscendingNode=33./180.*pi;  /*  33deg  0' */
  
  
  Dec=asin(cos(b)*cos(GalCen_Dec)*sin(l-GalCen_AscendingNode) + sin(b)*sin(GalCen_Dec) );
@@ -491,6 +499,14 @@ int  FT_Gal2Equat(double &azimut, double &elev){
  
  azimut=RA;
  elev=Dec;
+ // SDT(sept2012) check if  right ascension is in the range [-180:180]
+ if (RA>pi){ //if RA is >180deg then substract 360deg
+ b+=-twopi;
+ }
  return 1;
  
 }
+
+//int main(){
+//return 0;
+//}
