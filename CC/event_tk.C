@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.55 2012/07/10 09:32:05 pzuccon Exp $
+//  $Id: event_tk.C,v 1.56 2012/09/11 17:21:06 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -36,7 +36,7 @@ void AMSEvent::_retkevent(integer refit){
   TrRecon rec;
   try{
     if (TrExtAlignDB::GetHead()->GetSize(8) > 0 &&
-	TrExtAlignDB::GetHead()->GetSize(9) > 0)
+	TrExtAlignDB::GetHead()->GetSize(9) > 0 && AMSJob::gethead()->isRealData() )
     {
         TrExtAlignDB::GetHead()->UpdateTkDBc(gettime());
         TrExtAlignDB::GetHead()->UpdateTkDBcDyn(getrun(),gettime(),3);
