@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.468 2012/09/11 17:00:01 choutko Exp $
+//  $Id: root.h,v 1.469 2012/09/12 14:30:30 chchung Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3231,7 +3231,7 @@ int ReBuildTrdEcal(float DisMax=20, float DirMax=10, float DistX=1,float DistY=2
   /// \return the difference in the reconstructed beta between the two RICH reconstrution algorithm, of inf if one reconstruction is missing. The value returned is RichRingR::Beta-RichRingBR::Beta.
   double RichBetasDiscrepancy();
 
-  /// \return true if position at z=(center of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
+  /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
 
   ClassDef(ParticleR,15)       //ParticleR

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.440 2012/09/12 13:31:31 mdelgado Exp $
+//  $Id: root.C,v 1.441 2012/09/12 14:30:29 chchung Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4418,15 +4418,22 @@ int ParticleR::Loc2Gl(AMSEventR *pev){
 
 bool ParticleR::IsInsideTRD()
 {
-  // 8 points of the acceptance octagon at z = zTrd
-  const int npoints = 8;
-  double acceptance_x[npoints] = {+40, +78, +78, +40, -40, -78, -78, -40};
-  double acceptance_y[npoints] = {+76, +35, -35, -76, -76, -35, +35, +76};
+  // check if particle passing inside acceptance of the 20 layers TRD
+  int nTrdCenter = 9;
+  float AccepCenterX[] = {-80.0, -47.0, 47.0, 80.0,  80.0,  47.0, -47.0, -80.0, -80.0};
+  float AccepCenterY[] = { 43.5,  75.5, 75.5, 43.5, -43.5, -75.5, -75.5, -43.5,  43.5};
 
-  // check if extrapolated point is inside acceptance octagon
-  double x = TRDCoo[0][0];
-  double y = TRDCoo[0][1];
-  return TMath::IsInside(x, y, npoints, acceptance_x, acceptance_y);
+  int nTrdTop = 37;
+  float AccepTopX[] = {-99.0,-89.0,-89.0,-78.7,-78.7,-67.8,-67.8,-57.7,-57.7, 57.7, 57.7, 67.8, 67.8, 78.7, 78.7, 89.0, 89.0, 99.0, 
+		 99.0, 89.0, 89.0, 78.7, 78.7, 67.8, 67.8, 57.7, 57.7,-57.7,-57.7,-67.8,-67.8,-78.7,-78.7,-89.0,-89.0,-99.0,-99.0};
+  float AccepTopY[] = { 54.5, 54.5, 62.5, 62.5, 74.0, 74.0, 84.0, 84.0, 95.3, 95.3, 84.0, 84.0, 74.0, 74.0, 62.5, 62.5, 54.5, 54.5,
+		-51.7,-51.7,-62.2,-62.2,-72.0,-72.0,-82.5,-82.5,-92.5,-92.5,-82.5,-82.5,-72.0,-72.0,-62.2,-62.2,-51.7,-51.7, 54.5};
+
+  bool passTrdCenter = TMath::IsInside(TRDCoo[0][0], TRDCoo[0][1], nTrdCenter, AccepCenterX, AccepCenterY);
+  bool passTrdTop    = TMath::IsInside(TRDCoo[1][0], TRDCoo[1][1], nTrdTop,    AccepTopX,    AccepTopY);
+  
+  return (passTrdCenter && passTrdTop);
+
 }
 
 double ParticleR::RichBetasAverage(){
