@@ -217,36 +217,33 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   if(AMSEventR::Head() && AMSEventR::Head()->nMCEventg()) return 0;
 #endif 
 
-
-// PZ -- FIXME -- TO be removed and replaced by TDV entry with years validity and zero content
-static int nprint=0;
-int mar=MAXALIGNEDRUN;
-  if(time > MAXALIGNEDRUN || time<1305499000){
-    if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBcDyn-W- Warning no dyn alignment available after %d nor before 1305499000, this message will be repeted only 10 times \n",mar);
-    SL1[6]=SL1[7]=SL1[8]=SL1[9]=SL1[10]=SL1[11]=0.;
-    SL9[6]=SL9[7]=SL9[8]=SL9[9]=SL9[10]=SL9[11]=0.;
-    return 0;
-  }
   if (!TkDBc::Head) {
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -2;
   }
 
+  
+  static int prevTimeWithError=-1;
+#pragma omp threadprivate(prevTimeWithError)
+
+#define WALLTIME (60*5)
+  int testTime=run>0?run:time;  // Use the run number as test if available, else the event time
+  if(run>0 && testTime==prevTimeWithError) return 0;
+  if(run<=0 && testTime-prevTimeWithError<WALLTIME) return 0; // Ensure that we are at least WALLTIME seconds away of problems 
+  if(testTime<prevTimeWithError) prevTimeWithError=-1; // Going backwards!!!!! reset
+
   // Update the alignment
   if(!DynAlManager::UpdateParameters(run,time)){
-    // Set the alignment to zero: useful to create the alignment
-    int plane[2]={5,6};
-    for(int i=0;i<2;i++){
-      if(!(pln & (1<<i)))continue;
-      TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
-      if (!pl) return i==0?-3:-13;
-      float *ll= (plane[i]==5)?SL1:SL9;
-      for(int ii=6;ii<12;ii++) ll[ii]=0;
-//       pl->UpdatePosA().setp(0,0,0);
-//       pl->UpdateRotA().Reset();
-    }
-    return 1;
+    // Inform of the error for the first time
+    if(run>0) cout<<"TrExtAlignDB::UpdateTkDBcDyn-W- Warning no dynamic alignment available for run "<<run<<". Waiting for next run."<<endl;
+    else cout<<"TrExtAlignDB::UpdateTkDBcDyn-W- Warning no dynamic alignment available for time "<<time<<". Waiting "<<WALLTIME<<" seconds of data to retry retrieving the alignment parameters."<<endl;
+    prevTimeWithError=testTime;
+    SL1[6]=SL1[7]=SL1[8]=SL1[9]=SL1[10]=SL1[11]=0.;
+    SL9[6]=SL9[7]=SL9[8]=SL9[9]=SL9[10]=SL9[11]=0.;
+    return 0;
   }
+#undef WALLTIME
+
   // Retrieve the parameters
   int layerJ[2]={1,9};
   int plane[2]={5,6};

@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.68 2012/09/09 08:29:23 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.69 2012/09/12 13:31:31 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -2210,7 +2210,9 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
 	    break;
 	  }
 	}
-	
+
+	// Check time validity
+	if(!failed) if(time<tdv.Begin || time>tdv.End) failed=true;  
 	if(failed) TDVUPDATE;
 	
 	// Search for the proper TDV

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.439 2012/09/11 17:21:06 pzuccon Exp $
+//  $Id: root.C,v 1.440 2012/09/12 13:31:31 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2272,7 +2272,7 @@ bool AMSEventR::ReadHeader(int entry){
       // update the tracker Databases
       if(TrExtAlignDB::GetHead()){
 	TrExtAlignDB::GetHead()->UpdateTkDBc(UTime());
-	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(0,UTime(),3);
+	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
       }
       if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
     }
