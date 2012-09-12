@@ -73,9 +73,9 @@ namespace trdconst{
   const integer nParLR           = 20;         // iP range[3-100 GeV/c] || 20 layers 
   
   const integer	TrdMinAdc	 = 12; 
-  const integer	TrdMaxAdc	 = 4096; //3500;//4096;
+  const integer	TrdMaxAdc	 = 4096; 
   const integer nTrdMaxHits      = 1000;
-  const integer nTrdMinHits      = 8;
+  const integer nTrdMinHits      = 4;
 
   const integer mTrdHits	 = 30;
   const integer	mTofHits  	 = 10;
@@ -100,7 +100,7 @@ namespace trdconst{
   const number	fPXeMax	         = 1000.0;
   const integer nBinfPXe 	 = 6;
 
-  const number  CutTrdTrkD       = 1.2;
+  const number  CutTrdTrkD       = 1.0;
   
   const number  mElec  		 = 0.51099892E-3;
   const number  mProt  		 = 0.93827203;
@@ -434,7 +434,7 @@ class AC_TrdHits {
 
   friend class TrdSCalib;
 
-  ClassDef(AC_TrdHits,3)
+  ClassDef(AC_TrdHits,4)
 };
 
 //--------------------------------------------------
@@ -1003,7 +1003,7 @@ class TrdSCalibR {
   float PathLenCorr(int iXe, float EadcCS, float Len3D);
 
   /// calculate likelihoods
-  int TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug=0);
+  int TrdLR_CalcXe(double xDay, float Rabs, int iFlag=3, int Debug=0);
 
   /// initiate toyMC likelihood calculation
   bool TrdLR_MC_CalcIniXe(int Debug=0);
@@ -1051,16 +1051,22 @@ class TrdSCalibR {
   /// get trtrack fit parameters
   void GetParsTrTrack(int &ia, int &ip, int &ir){ia=algo; ip=patt; ir=refit;}
 
-  /// process trd event at given particle event
-  int ProcessTrdEvt(AMSEventR *pev, int Debug=0);
- 
   /// check event is included in the calibration period
   bool CheckEvtMatchingTimePeriodCalDB(AMSEventR *pev, int Debug=0); 
 
-  /// process trdS event with tracker track instead of trd standalone
+  /// process trd event for signle particle event only
+  int ProcessTrdEvt(AMSEventR *pev, int Debug=0);
+ 
+  /// process trdS event with a standalone trdV track 
+  int ProcessTrdEvtWithTrdTrack(AMSEventR *pev, TrdTrackR *Trdtrk, TrTrackR *Trtrk, int fitcode, int Debug=0);
+
+  /// process trdS event with a standalone trdH track 
+  int ProcessTrdEvtWithTrdHTrack(AMSEventR *pev, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int fitcode, int Debug=0);
+
+  /// process trdS event with tracker track extrapolation instead of trd standalone track
   int ProcessTrdEvtWithTrTrack(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int Debug=0);
 
-  /// process trdZ event with tracker track instead of trd standalone
+  /// process trdZ event with tracker track extrapolation instead of trd standalone track
   int ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int Debug=0);
 
   /// process trdHtrack hits 
@@ -1224,7 +1230,7 @@ class TrdSCalibR {
   }
  
 
-  ClassDef(TrdSCalibR,8)
+  ClassDef(TrdSCalibR,9)
     };
 
 #endif
