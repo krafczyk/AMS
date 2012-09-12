@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.254 2012/08/30 07:50:51 choutko Exp $
+//  $Id: particle.C,v 1.255 2012/09/12 07:55:23 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -280,6 +280,17 @@ TrdSCalibR::gethead()->KillPointer();
 		AMSEvent::gethead()->seterror(2);
   }
 
+catch(std::exception const& e)
+    {
+
+cerr<<" AMSParticle::build-E-Exception Catched in  trdscalib "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<e.what()<<" "<< typeid(e).name()<<endl;
+AMSEvent::gethead()->seterror(2);
+    }
+
+  catch(...){
+cerr<<" AMSParticle::build-E-Exception Catched in  trdscalib "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
+AMSEvent::gethead()->seterror(2);
+}
 #endif
       AMSgObj::BookTimer.stop("ReTRDRefit");
       ppart=ppart->next();
