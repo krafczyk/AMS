@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.16 2012/09/13 13:50:54 qyan Exp $
+//  $Id: Tofdbc.h,v 1.17 2012/09/13 19:52:30 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -440,6 +440,7 @@ class TofRecPar: public TofTDVTool<float>{
      static const  int   BetaHLMatch=0;//require Longitude match or not
      static const  float BetaHReg[2];//Seach Region of TMatch LMatch(N Sigma)
      static const  int   BetaHMinL[2];//Min X+Y Match Layer//U+D Match Layer
+     static const  float Dynodegate=5;//Dynode ADC should >5
 //---BetaH Self Recontruction Par
      static const  float PairQDA=6;//Pair Energy Match Using Anode when Q<6
      static const  float PairQgate=0.8;//Pair Min Energy Q 
