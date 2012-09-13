@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.255.2.1 2012/09/13 09:13:50 choutko Exp $
+//  $Id: ntuple.C,v 1.255.2.2 2012/09/13 09:55:02 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -990,6 +990,8 @@ if (IOPA.BuildRichConfig>0 && !Get_setup02()->BuildRichConfig(ev?ev->getrun():0)
 string slc;
 if(!ev ||  !Get_setup02()->FillSlowcontrolDB(slc)){
 cerr<<"AMSNtuple::readRSetup-E-UnableToFillSlowControlDB "<<slc<<endl;
+ AMSSetupR::SlowControlR::ReadFromExternalFile=0;
+
 }
 else{
 //for(;;){
