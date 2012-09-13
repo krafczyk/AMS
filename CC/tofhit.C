@@ -1,4 +1,4 @@
-//  $Id: tofhit.C,v 1.1 2012/07/19 19:21:16 qyan Exp $
+//  $Id: tofhit.C,v 1.2 2012/09/13 13:55:31 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMSlink BetaH  Object
@@ -12,6 +12,7 @@
 #include "job.h"
 #include "event.h"
 #include "ntuple.h"
+#include "ecalrec.h"
 
 //========================================================
 void AMSTOFClusterH::_writeEl(){
@@ -68,6 +69,11 @@ void AMSBetaH::_copyEl(){
          ptr.fTrdTrack=_ptrdtrack->GetClonePointer();
      }
     else {ptr.fTrdTrack=-1;}
+//----ecal show
+    if(_pecalshower){
+        ptr.fEcalShower= _pecalshower->GetClonePointer();
+    }
+    else {ptr.fEcalShower=-1;}
 //-----
     ptr.fTofClusterH.clear();
     for  (int i=0; i<4; i++) {

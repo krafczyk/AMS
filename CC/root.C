@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.441 2012/09/12 14:30:29 chchung Exp $
+//  $Id: root.C,v 1.442 2012/09/13 13:52:36 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3125,7 +3125,7 @@ BetaHR::BetaHR(AMSBetaH *ptr){
 #endif
 }
 
-BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,TofBetaPar betapar){
+BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalShowerR *show,TofBetaPar betapar){
     BetaPar=betapar;
 //--TofClusterHR assamble
     AMSEventR *ev=AMSEventR::Head();
@@ -3139,10 +3139,16 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,TofBe
    }
 //--Track assamble
    double mass,emass,rigidity,charge,evrig;
-   fTrTrack=-1;fTrdTrack=-1;
+   fTrTrack=-1;fTrdTrack=-1,fEcalShower=-1;
    if(ptrack){
       for(int ii=0;ii<ev->NTrTrack();ii++)   {if(ev->pTrTrack(ii)==ptrack){fTrTrack=ii;break;}}
-      for(int ii=0;ii<ev->NParticle();ii++)  {if(ev->pParticle(ii)->pTrTrack()==ptrack){fTrdTrack=ev->pParticle(ii)->iTrdTrack();break;}}
+      for(int ii=0;ii<ev->NParticle();ii++)  {
+        if(ev->pParticle(ii)->pTrTrack()==ptrack){
+          fTrdTrack=ev->pParticle(ii)->iTrdTrack();
+          fEcalShower=ev->pParticle(ii)->iEcalShower();
+          break;
+        }
+      }
 #ifdef _PGTRACK_
       for(int ii=0;ii<ev->NCharge();ii++)    {
          if(ev->pCharge(ii)->pBeta()->pTrTrack()==ptrack){
@@ -3154,8 +3160,11 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,TofBe
       }
 #endif
     }
-   if(trdtrack){
-      for(int ii=0;ii<ev->NTrdTrack();ii++)  {if(ev->pTrdTrack(ii)==trdtrack){fTrdTrack=ii;break;}}
+   if(trdtrack){//trd betah
+      for(int ii=0;ii<ev->NTrdTrack();ii++)  {if(ev->pTrdTrack(ii)==trdtrack){fTrdTrack=ii;break;}}//Find Trd Index No Tk Index
+   }
+   if(show){ // ecal betah
+      for(int ii=0;ii<ev->NEcalShower();ii++)  {if(ev->pEcalShower(ii)==show){fEcalShower=ii;break;}}
    }
 
 }
@@ -6415,6 +6424,10 @@ TrdTrackR* BetaHR::pTrdTrack(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrdTrack(fTrdTrack):0;
 }
 
+EcalShowerR* BetaHR::pEcalShower(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pEcalShower(fEcalShower):0;
+}
+
 
 TofClusterHR* BetaHR::pTofClusterH(unsigned int i){
   return (AMSEventR::Head() && i<fTofClusterH.size())?AMSEventR::Head()->pTofClusterH(fTofClusterH[i]):0;
@@ -6450,24 +6463,54 @@ int BetaHR::BetaReFit(double &beta,double &ebetav,int pattern,int mode,int updat
      ndiv=ndiv/10;
    }
   TofRecH::betapar=BetaPar;
-  TofRecH::BetaFitT(time,etime,len,nhit,TofRecH::betapar,mode);
+  TofRecH::BetaFitT(time,etime,len,nhit,TofRecH::betapar,mode,1);
   beta=TofRecH::betapar.Beta;
   ebetav=TofRecH::betapar.InvErrBeta;
   if(update){BetaPar=TofRecH::betapar;BetaPar.UseHit=nhit;}
   return 0;
 }
 
-#ifdef _PGTRACK_
 double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time){
+
   double path=0;
+#ifdef _PGTRACK_
   if(fTrTrack>=0){
      path=pTrTrack()->Interpolate(zpl,pnt,dir);
-     time =path/GetBeta()/TofRecH::cvel+GetT0();
    }
-  else {time=0;}
+  else {///No TrTrack Then TofTrack
+#endif
+///--Find Coo
+     double coo[3][4]={{0}},ecoo[3][4]={{0}};//X Y Z 4Layer;
+     int nhits=0;
+     for(int ilay=0;ilay<4;ilay++){
+       if(!TestExistHL(ilay))continue;
+       if(GetPattern(ilay)%10!=4)continue;
+       coo[0][nhits]= GetClusterHL(ilay)->Coo[0];
+       coo[1][nhits]= GetClusterHL(ilay)->Coo[1];
+       coo[2][nhits]= GetClusterHL(ilay)->Coo[2];
+       ecoo[0][nhits]=GetClusterHL(ilay)->ECoo[0];
+       ecoo[1][nhits]=GetClusterHL(ilay)->ECoo[1];
+       ecoo[2][nhits]=GetClusterHL(ilay)->ECoo[2];
+       nhits++;
+     }
+///--Space Line Fit x=az+b y=az+b
+     double ax,bx,ay,by;
+     TofRecH::LineFit(nhits,coo[2],coo[0],ecoo[0],ax,bx);
+     TofRecH::LineFit(nhits,coo[2],coo[1],ecoo[1],ay,by);
+///---Copy Value
+     AMSPoint p1(ax*zpl+bx,ay*zpl+by,zpl);
+     AMSPoint p0(ax*0.+bx,ay*0.+by,0.);
+     AMSPoint p2(p1-p0);
+     AMSDir   d1(p2);
+     path=p2.norm();  
+     if(zpl<0)path*=-1;
+     dir=d1; pnt=p1;
+#ifdef _PGTRACK_
+  }
+#endif
+  time =path/GetBeta()/TofRecH::cvel+GetT0();
   return path;
 }
-#endif
 
 float BetaHR::GetEdepLPM(int ilay,int pmtype, int is,int pm){
   if(!TestExistHL(ilay))return 0;
@@ -7755,12 +7798,13 @@ char * ParticleR::Info(int number, AMSEventR* pev){
                         
 		}
         }
-	float btofh=0;
+	float btofh=0;float ebtofh=0;
 	if(iBetaH()>=0){
 		if(pev && pev->nBetaH()>iBetaH()){
 			BetaHR bta=pev->BetaH(iBetaH());
 			btofh=bta.GetBeta();
-                        
+                        ebtofh=bta.GetEBetaV();
+                        ebtofh=fabs(ebtofh/btofh/btofh);
 		}
         }
 
@@ -7771,7 +7815,7 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 	}
 	if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
 	float lt=pev?pev->LiveTime():1;
-	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f/#betah=%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,btofh,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
+	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f/ #betah=%6.3f#pm%6.3f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,btofh,ebtofh,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
 	return _Info;
 
 

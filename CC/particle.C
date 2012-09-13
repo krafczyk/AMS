@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.255 2012/09/12 07:55:23 choutko Exp $
+//  $Id: particle.C,v 1.256 2012/09/13 13:51:10 qyan Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -215,7 +215,15 @@ integer AMSParticle::build(integer refit){
          int charge=0;
          if(ptr2 && ptr2->TofFasTrigOK())charge=1;
 	ptrack->setstatus(AMSDBc::ECALTRACK); 
-	ppart=new AMSParticle(0,0,0, ptrack,
+///----Qi Yan Adding Ecal-BetaH
+        AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
+        AMSBetaH *pbetah=0;
+        while(betah){
+           if(betah->getecalshower()==pecal){pbetah=betah;break;}
+           betah=betah->next();
+        }
+///---        
+	ppart=new AMSParticle(0,pbetah,0, ptrack,
 			      pecal->getDirection(),1,0,100000,ecal_ene*i*pecal->getDirection(),ecal_ene_err,charge,pecal->getDir().gettheta(),pecal->getDir().getphi(),pecal->getEntryPoint());
 	//          cout <<" ecal particle done "<<AMSEvent::gethead()->getid()<<endl;
 	AMSgObj::BookTimer.start("ReAxPid");
