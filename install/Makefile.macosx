@@ -44,10 +44,6 @@ NAGDIR  =
 # Compilers FLAGS
 ########################################################################
 
-ifndef NOCASTOR
-CPPFLAGS+=  -D__NOCASTOR__
-endif
-
 ifdef AMSDEBUG
 CPPFLAGS+=  -D__AMSDEBUG__
 endif

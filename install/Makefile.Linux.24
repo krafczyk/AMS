@@ -86,10 +86,6 @@ NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 # Compilers FLAGS
 ########################################################################
 
-ifdef NOCASTOR
-DEFINES+=  -D__NOCASTOR__
-endif
-
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
 endif

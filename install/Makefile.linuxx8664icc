@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.27 2012/09/13 10:56:32 ams Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.28 2012/09/13 16:08:06 mkrafczy Exp $
 
 # General clean up and reorganization
 #
@@ -129,10 +129,6 @@ endif
 # Compilers FLAGS
 ########################################################################
 
-ifdef NOCASTOR
-DEFINES+=  -D__NOCASTOR__
-endif
-
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
 endif
@@ -198,10 +194,12 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
-ifndef NOCASTOR
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
-else
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ifndef NOXROOTD
+SOFLAGS += -lNetx
+endif
+ifndef NORFIOD
+SOFLAGS += -lRFIO
 endif
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2

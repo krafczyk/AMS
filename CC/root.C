@@ -1,13 +1,10 @@
-//  $Id: root.C,v 1.443 2012/09/13 15:52:01 oliva Exp $
+//  $Id: root.C,v 1.444 2012/09/13 16:08:05 mkrafczy Exp $
 
 #include "TRegexp.h"
 #include "root.h"
 #include "ntuple.h"
 #include <TRandom.h>
 #include "TSystem.h"
-#ifndef __NOCASTOR__
-#include "TXNetFile.h"
-#endif
 #include <TChainElement.h>
 #include "TFile.h"
 #include "TMinuit.h"

@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxicc26,v 1.5 2012/07/26 11:47:58 mkrafczy Exp $
+#  $Id: Makefile.linuxicc26,v 1.6 2012/09/13 16:08:06 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -95,10 +95,6 @@ endif
 ########################################################################
 # Compilers FLAGS
 ########################################################################
-
-ifdef NOCASTOR
-DEFINES+=  -D__NOCASTOR__
-endif
 
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__

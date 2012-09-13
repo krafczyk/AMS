@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.16 2012/09/05 12:36:14 mkrafczy Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.17 2012/09/13 16:08:06 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -144,10 +144,6 @@ endif
 # Compilers FLAGS
 ########################################################################
 
-ifdef NOCASTOR
-DEFINES+=  -D__NOCASTOR__
-endif
-
 ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
 endif
@@ -217,10 +213,12 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
-ifndef NOCASTOR
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
-else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+= -L/$(ROOTSYS)/lib -lRIO -lTree -lThread -lGpad -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA -lMLP -lXMLIO -lTreePlayer
+ifndef NOXROOTD
+SOFLAGS += -lNetx
+endif
+ifndef NORFIOD
+SOFLAGS += -lRFIO
 endif
 endif
 endif
