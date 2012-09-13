@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.14 2012/09/13 13:51:40 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.15 2012/09/13 22:57:18 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -99,8 +99,7 @@ public:
     kBetaCor= 0x200,
  };
 
-/*
- * @name Sum ReBuild Part
+/** @name Sum ReBuild Part
  * @{
  */
 public:
@@ -122,8 +121,7 @@ public:
   static int  ClearBuildBetaH();
 /**@}*/
 
-/*
- * @name TofClusterH Build Part
+/** @name TofClusterH Build Part
  * @{
  */
 public:
@@ -157,8 +155,7 @@ public:
   static number GetProMipAdc(int idsoft,number lpos);
 /**@}*/
 
-/*
- * @name BetaH Build Part
+/** @name BetaH Build Part
  * @{
  */
 public:

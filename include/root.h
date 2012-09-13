@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.470 2012/09/13 13:51:56 qyan Exp $
+//  $Id: root.h,v 1.471 2012/09/13 22:57:18 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -993,8 +993,7 @@ class TofClusterHR :public TrElem {
      static int DefaultQ2Opt;
 
  public:
-/*
- * @name Constructors and Index Accessors
+/** @name Constructors and Index Accessors
  * @{
  */
    /// access function to TofRawSideR objects used
@@ -1021,8 +1020,7 @@ class TofClusterHR :public TrElem {
 /**@}*/
 
 
-/*
- * @name User Function
+/** @name User Function
  * @{
  */
   /// check Counter Side is good or not //require A+T measure
@@ -1091,8 +1089,7 @@ class TofClusterHR :public TrElem {
   int  NBetaHUsed( )              {return (Pattern/1000);}
 /**@}*/
 
-/*
- * @name TOF Counter Geometry Information
+/** @name TOF Counter Geometry Information
  * @{
  */
   /// Counter Shape is Trapezoid(1) or Rectangle(0)
@@ -2634,8 +2631,7 @@ class BetaHR: public TrElem{
 
  public:
 
-/*
- * @name Constructors and Index Accessors
+/** @name Constructors and Index Accessors
  * @{
  */
   BetaHR(){};
@@ -2681,8 +2677,7 @@ class BetaHR: public TrElem{
 /**@}*/
 
 
-/*
- * @name General Information of TOF
+/** @name General Information of TOF
  * @{
  */
   /// Number of All Fired TOF Counters in iLayer
@@ -2713,8 +2708,7 @@ class BetaHR: public TrElem{
 /**@}*/   
 
 
-/*
- * @name BetaH  Data  Accessors
+/** @name BetaH  Data  Accessors
  * @{
  */
  public:
@@ -2765,8 +2759,7 @@ class BetaHR: public TrElem{
 /**@}*/
 
 
-/*
- * @name ReFit and Interpolation Function
+/** @name ReFit and Interpolation Function
  * @{
  */
   /// ReFit Mass using Rigidity Charge
@@ -2801,8 +2794,7 @@ class BetaHR: public TrElem{
 /**@}*/
 
 
-/*
- * @name TOF Charge Estimation
+/** @name TOF Charge Estimation
  * @{
  */
 ///  iLay TOF Edep(MeV) From One PMT Estimate ///Attenuation ReCorr
@@ -2844,8 +2836,7 @@ class BetaHR: public TrElem{
 /**@}*/
 
 
-/*
- * @name TOF Geometry Information
+/** @name TOF Geometry Information
  * @{
  */
   /// TOF ilay Edge(All Counter Dimension) x[3](xyz)[2](low high edge)
