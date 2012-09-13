@@ -115,16 +115,16 @@ I 62 Use Sensor Alignement 1=yes 0=no; must be 0 for MC
 I 63 ReconStats flag  0 no 1 yes
 
 // Additional datacard members for track finding improvement (Jan 2012)
-I 64 ChargeSeedTagActive            (Default: 0)  BuildRecHits: tagging hits and clusters compatible with charge seed 
+I 64 ChargeSeedTagActive            (Default: 1)  BuildRecHits: tagging hits and clusters compatible with charge seed 
                                                   0 inactive
                                                   !=0 active
 I 65 ChargeSeedSelActive            (Default: 0)  BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
                                                   0 inactive
                                                   !=0 active
-R 66 CorrelationProbThr             (Default: 0)  BuildRecHits: hit correlation probability threshold
-R 67 YClusterSNThr                  (Default: 0)  BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold
+R 66 CorrelationProbThr         (Default: 0.001)  BuildRecHits: hit correlation probability threshold
+R 67 YClusterSNThr                (Default: 4.5)  BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold
 I 68 YClusterNStripThr              (Default: 0)  BuildRecHits: minimum number of strips for only-Y hits
-I 69 ReorderTrClusters              (Default: 0)  Build: reorder cluster by signal
+I 69 ReorderTrClusters              (Default: 1)  Build: reorder cluster by signal
                                                   0 inactive
                                                   !=0 active
 I 70 ReorderTrRecHits               (Default: 0)  Build: reorder hits 
@@ -132,7 +132,7 @@ I 70 ReorderTrRecHits               (Default: 0)  Build: reorder hits
                                                   1 by correlation probability 
                                                   2 by y-signal and probability 
                                                   3 or by y-signal and x-signal 
-I 71 BuildTracksSimpleChargeSeedTag (Default: 0)  Build: reconstruct first a track with hits compatible with the unbiased charge seed (only for TrTracksSimple) 
+I 71 BuildTracksSimpleChargeSeedTag (Default: 1)  Build: reconstruct first a track with hits compatible with the unbiased charge seed (only for TrTracksSimple) 
                                                   0 inactive
                                                   !=0 active 
 I 72 TrackFindChargeCutActive       (Default: 0)  BuildTrTracksSimple: charge cut during track finding

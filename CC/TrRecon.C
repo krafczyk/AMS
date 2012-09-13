@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.158 2012/08/16 14:52:45 choutko Exp $ 
+/// $Id: TrRecon.C,v 1.159 2012/09/13 15:52:00 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/08/16 14:52:45 $
+/// $Date: 2012/09/13 15:52:00 $
 ///
-/// $Revision: 1.158 $
+/// $Revision: 1.159 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -808,9 +808,9 @@ int TrRecon::BuildTrRecHits(int rebuild)
 #else
         TrRecHitR* hit  = new TrRecHitR(tkid,clX,clY,0);
 #endif
-        // x/y association
-        float sigx = clX->GetTotSignal();
-        float sigy = clY->GetTotSignal();
+        // x/y association (the corrections are the same of TrRecHit::GetCorrelationProb)
+        float sigx = clX->GetTotSignal(TrClusterR::kAsym); 
+        float sigy = clY->GetTotSignal(TrClusterR::kAsym);
         float prob = hit->GetCorrelationProb();
         float logprob = (prob<=0.) ? -30 : log10(prob);
         hman.Fill("AmpyAmpx",sqrt(sigx),sqrt(sigy));
@@ -5261,17 +5261,9 @@ void TrRecon::ClearChargeSeeds() {
 }
 
 void TrRecon::FillChargeSeeds() {
-  // unbiased charge 
-  _htmx = TrCharge::GetMeanHighestFourClusters(
-    TrCharge::kInner|TrCharge::kTruncMean,
-    TrCharge::kX,
-    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss
-  ).Mean;
-  _htmy = TrCharge::GetMeanHighestFourClusters(
-    TrCharge::kInner|TrCharge::kTruncMean,
-    TrCharge::kY,
-    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss
-  ).Mean;
+  // unbiased charge (corrections indipendent from calibration procedure) 
+  _htmx = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kX).Mean;
+  _htmy = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kY).Mean;
   hman.Fill("CSxCSy",sqrt(_htmy),sqrt(_htmx));
   hman.Fill("CSrCSx",sqrt(_htmx),sqrt(_htmy)/sqrt(_htmx));
   hman.Fill("CSrCSy",sqrt(_htmy),sqrt(_htmx)/sqrt(_htmy));

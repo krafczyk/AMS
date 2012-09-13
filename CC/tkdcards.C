@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.79 2012/08/14 14:43:44 pzuccon Exp $
+// $Id: tkdcards.C,v 1.80 2012/09/13 15:52:02 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -114,7 +114,7 @@ for (int ii=0;ii<9;ii++){
   ChargeSeedTagActive = 1;
   ChargeSeedSelActive = 0; 
   CorrelationProbThr = 0.001; 
-  YClusterSNThr = 5.; 
+  YClusterSNThr = 4.5; 
   YClusterNStripThr = 0; 
   ReorderTrClusters = 1; 
   ReorderTrRecHits = 0; 

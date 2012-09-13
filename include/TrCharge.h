@@ -8,9 +8,9 @@
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2012/08/05 22:35:09 $
+ $Date: 2012/09/13 15:52:02 $
 
- $Revision: 1.9 $
+ $Revision: 1.10 $
 */
 
 #include "VCon.h"
@@ -209,16 +209,26 @@ class TrCharge {
   //! Gaussianized mean of n signals (discarding out-of-3-sigma signals)
   static mean_t GetGaussMean(vector<float> signal);
 
-  //! Truncated mean probability (inner tracker)
-  static like_t GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta = 1);
-  //! Truncated mean charge (inner tracker)
-  static int    GetTruncMeanCharge(TrTrackR* track, float beta = 1);
+  //! Truncated mean XY weighted combination based on number of points factors (part of type should be kTruncMean|kSqrt)
+  static mean_t GetCombinedQ(int type, TrTrackR* track, float beta = 1, int jlayer = -1, int fit_id = 0, float mass_on_Z = 0.938);
 
-  //! Best available Q evaluation, DEPRECATED, see TrTrack::GetQ()
+  /////////////////////////
+  // Old methods (still in use!)
+  /////////////////////////
+
+  //! Truncated mean probability (inner tracker), temporary solution for Z estimator
+  static like_t GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta = 1);
+  //! Truncated mean charge (inner tracker) (DEPRECATED)
+  static int    GetTruncMeanCharge(TrTrackR* track, float beta = 1);
+  //! A first attempt to get a Q evaluator (DEPRECATED) 
   static float  GetQ(TrTrackR* track, int iside, float beta = 1);
 
+  /////////////////////////
+  // Reconstruction used methods
+  /////////////////////////
+
   //! Get mean signal of 4 highest clusters 
-  static mean_t GetMeanHighestFourClusters(int type, int iside, int opt);
+  static mean_t GetMeanHighestFourClusters(int type, int iside, int opt = TrClusterR::DefaultCorrOpt);
 
   /////////////////////////
   // Likelihood methods

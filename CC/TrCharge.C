@@ -159,7 +159,7 @@ mean_t TrCharge::GetTruncMean(vector<float> signal) {
   if (n<=1) return mean_t();
   mean = (mean - maxampl)/(n-1);
   rms  = (rms - pow(maxampl,2))/(n-1);
-  rms  = sqrt(rms - mean*mean);    
+  rms  = sqrt(fabs(rms - mean*mean)); // avoids problem in case of zeroes    
   return mean_t(kTruncMean,-1,-1,n-1,mean,rms);
 }
 
@@ -252,6 +252,57 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
 
   return mean;
 }   
+
+
+// Database of sigma values come from truncated mean (very rough algorithm) 
+static float    z_sigma_trunc[14]   = {1,2,3,4,5,6,7,8,9,10,12,14,16,26};
+static float    sigma_trunc_x_6[14] = {0.0598,  0.0762,  0.0881,  0.0947,  0.1091,  0.1303,  0.1357,  0.1721,  0.2264,  0.2467,  0.3958,  0.5622,  1.1560,  0.7984};
+static float    sigma_trunc_y_6[14] = {0.0618,  0.0798,  0.0950,  0.1361,  0.2534,  0.5171,  1.2854,  0.8704,  0.7563,  0.4421,  0.4702,  0.5122,  1.0341,  0.9487};
+static TGraph*  sigma_trunc_spline[2] = {0,0};
+// Number of points from 0 to 8 (truncated mean is nmax-1, 0 if impossible or undetermined) 
+// - assumed to be independent from Z (approximately true)
+// - extrapolated for n_x = 1 and for for n_y = 1, 2 
+static float    sigma_scale_x[9] = {0., 1.6777, 1.4973,  1.2724,  1.1441,  1.0612,  1.0000,  0.9658,  0.9162};
+static float    sigma_scale_y[9] = {0., 1.4584, 1.3345,  1.2285,  1.1301,  1.0629,  1.0000,  0.9569,  0.9291};
+mean_t TrCharge::GetCombinedQ(int type, TrTrackR* track, float beta, int jlayer, int fit_id, float mass_on_Z) {
+  // check
+  // if the requested type does not require TruncatedMean is not valid 
+  if (!(type&kTruncMean)) return 0;
+  // if the requested type is not kSqrt is not valid
+  if (!(type&kSqrt)) return 0;
+  // MIP scale options
+  int opt = TrClusterR::DefaultChargeCorrOpt;
+  // Init spline if needed
+  if (!sigma_trunc_spline[0]) sigma_trunc_spline[0] = new TGraph(14,z_sigma_trunc,sigma_trunc_x_6);
+  if (!sigma_trunc_spline[1]) sigma_trunc_spline[1] = new TGraph(14,z_sigma_trunc,sigma_trunc_y_6);
+  // Calculate truncated mean
+  mean_t mean_x  = TrCharge::GetMean(type,track,TrCharge::kX,beta,jlayer,opt,fit_id,mass_on_Z); 
+  mean_t mean_y  = TrCharge::GetMean(type,track,TrCharge::kY,beta,jlayer,opt,fit_id,mass_on_Z);
+  float q_x      = mean_x.Mean;
+  float q_y      = mean_y.Mean;
+  int   n_x      = mean_x.NPoints;
+  int   n_y      = mean_y.NPoints;
+  float r_x      = (n_x>0) ? mean_x.RMS : 0;
+  float r_y      = (n_y>0) ? mean_y.RMS : 0;
+  // Calculate mean factors  
+  float factor_x = ( (n_x>0)&&(n_x<9) ) ? sigma_scale_x[n_x] : 0;
+  float factor_y = ( (n_y>0)&&(n_y<9) ) ? sigma_scale_y[n_y] : 0;
+  // Make a first approximate charge guess: is X, if existing, otherwise Y
+  float q_pre = (q_x>0) ? q_x : q_y;
+  // Very rough integer charge estimator
+  int   z_pre = floor(q_pre + 0.5);
+  if (z_pre<1) z_pre = 1;
+  // Now do the combination
+  float sigma_x = sigma_trunc_spline[0]->Eval(z_pre);
+  float sigma_y = sigma_trunc_spline[1]->Eval(z_pre);
+  float w_x     = (sigma_x*factor_x>0) ? 1.0/pow(sigma_x*factor_x,2) : 0;
+  float w_y     = (sigma_y*factor_y>0) ? 1.0/pow(sigma_y*factor_y,2) : 0;
+  float q_glb   = ((w_x + w_y)>0) ? (q_x*w_x + q_y*w_y)/(w_x + w_y) : 0;
+  // Calculate the RMS combination from error propagation 
+  float q_rms   = ((w_x + w_y)>0) ? (r_x*w_x + r_y*w_y)/(w_x + w_y) : 0;
+  // Result
+  return mean_t(type,opt,-1,n_x+n_y,q_glb,q_rms);
+}
 
 
 like_t TrCharge::GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta) { 

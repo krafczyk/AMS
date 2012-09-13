@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.219 2012/08/17 18:23:39 choutko Exp $
+#  $Id: Makefile,v 1.220 2012/09/13 15:51:59 oliva Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -281,7 +281,7 @@ TRACK_BASE= $(SCC)TkCoo.C 	\
 
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C   $(SCC)TkDBc.C $(SCC)TrTrack.C  \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
-	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)TrGainDB.C $(SCC)gufld.C $(SFF)rkms.F $(SCC)TrExtAlignDB.C \
+	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)TrGainDB.C $(SCC)TrChargeLossDB.C $(SCC)gufld.C $(SFF)rkms.F $(SCC)TrExtAlignDB.C \
 	   $(SCC)DynAlignment.C 
 
 TRACK_ADD+=$(SCC)OrbGen.C $(SCC)pfunction.C $(SCC)cgmmap.C
@@ -367,7 +367,7 @@ COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C
 
 ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
-		../include/TrCalDB.h ../include/TrGainDB.h \
+		../include/TrCalDB.h ../include/TrGainDB.h ../include/TrChargeLossDB.h \
 		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
 		../include/TrRecon.h 	  ../include/TkDBc.h  ../include/MagField.h \
 		../include/TrLadCal.h \
@@ -628,7 +628,8 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o $(BIN)TrTrack_s.o \
-        $(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)SlowControlDB_s.o $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)TrGainDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
+        $(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)SlowControlDB_s.o $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)TrGainDB_s.o $(BIN)TrChargeLossDB_s.o \
+        $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
         $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)commonsi.o $(BIN)EcalChi2CY.o \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o $(BIN)FrameTrans.o \
 	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o 

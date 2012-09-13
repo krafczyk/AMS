@@ -406,27 +406,35 @@ float TrRecHitR::GetSignalDifference() {
 
 
 /* 
-  Hit Correlation: 
+  Hit Correlation (updated on Sep 2012): 
   - Hypothesys: for a fixed x the y distribution is gaussian
-  - Plot sqrt(signal y) VS sqrt(signal x) with only basic corrections (gain, loss and asymmetry)
+  - Plot sqrt(signal y) VS sqrt(signal x) with only basic correction (to be independent from charge reconstruction)
   - Gaussian slice fit 
   - Polynomial fit of the mean (through 0,0) and sigma behaviour
 */
-
-static double HisCorrelation_XMax = 134; // after this value I give always 1 as probability
+/* Old parameters (2011)
+static double HitCorrelation_XMax = 134; // after this value I give always 1 as probability
 static double HitCorrelation_MeanPar[7] = {0,1.15735,-1.36923e-02,7.01365e-05,0,0,0};
 static double HitCorrelation_SigmPar[7] = {0.943443,-0.0388644,0.00313217,-5.64444e-06,-1.0751e-06,1.35689e-08,-4.64308e-11};
 static double HitCorrelation_SigmMin = 0.8; // evaluated by hand for very low x
-
+*/
+// options used for probability calculation
+static int    HitCorrelation_Opt = TrClusterR::kAsym;
+// mean position
+static double HitCorrelation_MeanPar[7] = {0, 1.10018e+00,-6.99183e-03,-1.92904e-04,3.55675e-06,-1.44755e-08,0};
+// monotonic function (explodes after 123 ADC counts)!
+static double HitCorrelation_XMax = 160;
+static double HitCorrelation_SigmPar[7] = {1,-5.50738e-02, 1.24566e-02,-4.60968e-04,7.55153e-06,-5.75738e-08,1.67042e-10}; 
+static double HitCorrelation_SigmMin = 1;
 float TrRecHitR::GetCorrelationProb() {
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();
   if ( (clx==0)||(cly==0) ) return -1; // no definition, default value!
   // cluster signal
-  double sig_x = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss);
+  double sig_x = clx->GetTotSignal(HitCorrelation_Opt); 
   double x = sqrt(sig_x);
-  if (x>HisCorrelation_XMax) return 1; // good if out of range
-  double sig_y = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss);
+  if (x>HitCorrelation_XMax) return 1; // good if out of range
+  double sig_y = cly->GetTotSignal(HitCorrelation_Opt);
   double y = sqrt(sig_y);
   // parameters for the test
   double mean = 0.;
@@ -436,7 +444,6 @@ float TrRecHitR::GetCorrelationProb() {
     mean  += HitCorrelation_MeanPar[ipar]*tmp;
     sigma += HitCorrelation_SigmPar[ipar]*tmp;
   }
-  sigma = TMath::Max(sigma,HitCorrelation_SigmMin);
   // gaussian p-value
   float n = fabs(y - mean)/sigma;
   return 1-TMath::Erf(n/sqrt(2));

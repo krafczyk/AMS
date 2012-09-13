@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.893 2012/09/09 16:27:38 qyan Exp $
+// $Id: job.C,v 1.894 2012/09/13 15:52:01 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -35,6 +35,7 @@
 #include "TrParDB.h"
 #include "TrPdfDB.h"
 #include "TrGainDB.h"
+#include "TrChargeLossDB.h"
 
 #include "trrec.h"
 #include "tkdcards.h"
@@ -2197,6 +2198,9 @@ void AMSJob::udata(){
 
   // create the gain database singleton, and linear array
   TrGainDB::GetHead()->Init();
+
+  // create and load from AMSDataDir the charge loss correction database
+  TrChargeLossDB::GetHead()->Init();
 
   TrRecon::Init();
   TrRecon::SetParFromDataCards();

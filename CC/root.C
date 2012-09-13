@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.442 2012/09/13 13:52:36 qyan Exp $
+//  $Id: root.C,v 1.443 2012/09/13 15:52:01 oliva Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7853,6 +7853,7 @@ char * DaqEventR::Info(int number){
 #include "TrParDB.h"
 #include "TrPdfDB.h"
 #include "TrGainDB.h"
+#include "TrChargeLossDB.h"
 #endif
 
 void AMSEventR::InitDB(TFile *_FILE){
@@ -7934,6 +7935,9 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
       TrGainDB::GetHead()->LoadFromTDV(Run()+30); 
       // if TDV load fails the default is used
     }
+
+    // create and load from AMSDataDir the charge loss correction database
+    TrChargeLossDB::GetHead()->Init();
 
 }
 master=1;  

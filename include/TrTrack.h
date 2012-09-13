@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.95 2012/07/27 15:00:01 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.96 2012/09/13 15:52:03 oliva Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/07/27 15:00:01 $
+///$Date: 2012/09/13 15:52:03 $
 ///
-///$Revision: 1.95 $
+///$Revision: 1.96 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -735,19 +735,19 @@ public:
   /** @name Track charge estimation (best available estimators shortcuts) */
   /**@{*/
   //! Get the track charge estimator
-  float   GetQ(float beta = 1);
+  float   GetQ(float beta = 1, int version = 1);
   //! Get the number of points used in the track charge estimator
-  int     GetQ_NPoints(float beta = 1);
+  int     GetQ_NPoints(float beta = 1, int version = 1);
   //! Get the RMS of the track charge estimator 
-  float   GetQ_RMS(float beta = 1);
+  float   GetQ_RMS(float beta = 1, int version = 1);
   //! Get the inner tracker estimator
-  float   GetInnerQ(float beta = 1);
+  float   GetInnerQ(float beta = 1, int version = 1);
   //! Get the number of points used in the inner tracker charge estimator
-  int     GetInnerQ_NPoints(float beta = 1);
+  int     GetInnerQ_NPoints(float beta = 1, int version = 1);
   //! Get the RMS of the inner tracker charge estimator  
-  float   GetInnerQ_RMS(float beta = 1);
+  float   GetInnerQ_RMS(float beta = 1, int version = 1);
   //! Get charge of a hit
-  float   GetLayerJQ(int jlayer, float beta = 1);
+  float   GetLayerJQ(int jlayer, float beta = 1, int version = 1);
   /**@}*/
 
 

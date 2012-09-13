@@ -7,9 +7,10 @@
 #include "TrElem.h"
 #include "TrCalDB.h"
 #include "TrLadCal.h"
-#include "TrParDB.h"
-#include "TrLadPar.h"
+#include "TrParDB.h" 
+#include "TrLadPar.h" 
 #include "TrGainDB.h"
+#include "TrChargeLossDB.h"
 
 
 #include "edep.h"
@@ -28,12 +29,12 @@
 
  TrClusterR, i.e. Tracker reconstructed cluster, is the core of the Tracker reconstruction. 
  This class gives accessors and memebers to retrieve all the reconstructed cluster 
- properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
- coordinates (via TkCoo). 
+ properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
+ charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2012/04/23 01:19:18 $
+ $Date: 2012/09/13 15:52:02 $
 
- $Revision: 1.30 $
+ $Revision: 1.31 $
 
 */
 
@@ -55,22 +56,24 @@ class TrClusterR :public TrElem{
     kGain         =     0x8, 
     /// Total Signal Corr.: Charge Loss Correction 
     kLoss         =    0x10,
-    /// Total Signal Corr.: Normalization to P-Side (not needed)    
-    kPN           =    0x20,
+    /// Total Signal Corr.: Charge Loss Correction (alternative to kLoss)
+    kLoss2        =    0x20, 
+    /// Total Signal Corr.: Normalization to P-Side (probably not working, however not really needed)    
+    kPN           =    0x40,
     /// Total Signal Corr.: Normalization to number of MIP
-    kMIP          =    0x40,
+    kMIP          =    0x80,
     /// Total Signal Corr.: Multiply by 300 um MIP energy deposition (estimated to be 81 keV)
-    kMeV          =    0x80,
+    kMeV          =   0x100,
     /// Total Signal Corr.: Beta correction 
-    kBeta         =   0x100,
+    kBeta         =   0x200,
     /// Total Signal Corr.: Rigidity correction 
-    kRigidity     =   0x200,
+    kRigidity     =   0x400,
     /// Coordinate Corr.: Flip the eta used strips
-    kFlip         =   0x400,
+    kFlip         =   0x800,
     /// Coordinate Corr.: Correct for the charge coupling (4%) (inactive)
-    kCoupl        =   0x800,
+    kCoupl        =  0x1000,
     /// Coordinate Corr.: Belau correction (inactive)
-    kBelau        =  0x1000
+    kBelau        =  0x2000,
   };
 
   enum { TASCLS = 0x400 };
@@ -107,6 +110,8 @@ class TrClusterR :public TrElem{
 
   /// Conversion between sqrt(ADC) and number of MIPs
   static TSpline3* sqrtadc_to_sqrtmip_spline[2];
+  /// Conversion between "almost" MIPs and MIPs (refinement of the previous) 
+  static TSpline3* sqrtref_to_sqrtmip_spline[2][9];
  
  public:
 
@@ -217,11 +222,11 @@ class TrClusterR :public TrElem{
   //! Convert an ADC signal to the ADC scale of n-side
   float         ConvertToNSideScale(float adc/*p-side*/);
   //! Conversion between ADC and MIPs 
-  float         GetNumberOfMIPs(float adc) { return GetNumberOfMIPs_ISS_2011(adc); }
+  float         GetNumberOfMIPs(float adc) { return GetNumberOfMIPs_ISS(adc); }
   //! Conversion between ADC and MIPs (derived from 2003 Ion Test Beam data)
   float         GetNumberOfMIPs_TB_2003(float adc);
-  //! Conversion between ADC and MIPs (derived from ISS data 2011, used as default)
-  float         GetNumberOfMIPs_ISS_2011(float adc);
+  //! Conversion between ADC and MIPs (derived from ISS data, used as default)
+  float         GetNumberOfMIPs_ISS(float adc);
   //! Beta correction 
   float         BetaCorrection(float beta) { return BetaCorrection_ISS_2011(beta); } 
   //! Beta correction (estimated with on ground Muons, 2010)

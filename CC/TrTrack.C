@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.163 2012/08/31 17:49:29 choutko Exp $
+// $Id: TrTrack.C,v 1.164 2012/09/13 15:52:00 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/08/31 17:49:29 $
+///$Date: 2012/09/13 15:52:00 $
 ///
-///$Revision: 1.163 $
+///$Revision: 1.164 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1917,35 +1917,79 @@ bool TrTrackR::ValidTrRecHitsPointers() {
   return (!invalid_pointers);
 }
 
-float TrTrackR::GetQ(float beta) {
-  return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+
+float TrTrackR::GetQ(float beta, int version) {
+  // ver0: X side only, no kLoss
+  if (version==0) 
+    return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta).Mean;
+  // ver1: X/Y truncated mean combination 
+  return TrCharge::GetCombinedQ(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta).Mean;
 }
 
-int TrTrackR::GetQ_NPoints(float beta) {
-  return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
+
+int TrTrackR::GetQ_NPoints(float beta, int version) {
+  // ver0: X side only, no kLoss
+  if (version==0) 
+    return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta).NPoints;
+  // ver1: X/Y truncated mean combination 
+  return TrCharge::GetCombinedQ(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta).NPoints;
 }
 
-float TrTrackR::GetQ_RMS(float beta) {
-  return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
+
+float TrTrackR::GetQ_RMS(float beta, int version) {
+  // ver0: X side only, no kLoss
+  if (version==0) 
+    return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta).RMS;
+  // ver1: X/Y truncated mean combination 
+  return TrCharge::GetCombinedQ(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta).RMS;  
 }
+
  
-float TrTrackR::GetInnerQ(float beta) {
-  return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+float TrTrackR::GetInnerQ(float beta, int version) {
+  // ver0: X side only, no kLoss
+  if (version==0) 
+    return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta).Mean;
+  // ver1: X/Y truncated mean combination 
+  return TrCharge::GetCombinedQ(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta).Mean;
 }
 
-int TrTrackR::GetInnerQ_NPoints(float beta) {
-  return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
+
+int TrTrackR::GetInnerQ_NPoints(float beta, int version) {
+  // ver0: X side only, no kLoss
+  if (version==0) 
+    return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta).NPoints;
+  // ver1: X/Y truncated mean combination 
+  return TrCharge::GetCombinedQ(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta).NPoints;
 }
+
   
-float TrTrackR::GetInnerQ_RMS(float beta) {
-  return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
+float TrTrackR::GetInnerQ_RMS(float beta, int version) {
+  // ver0: X side only, no kLoss
+  if (version==0)
+    return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta).RMS;
+  // ver1: X/Y truncated mean combination
+  return TrCharge::GetCombinedQ(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta).RMS; 
 }
+
   
-float TrTrackR::GetLayerJQ(int jlayer, float beta) {
-  // for the time being the best evaluation comes from X side. I simply discard OnlyY.
+float TrTrackR::GetLayerJQ(int jlayer, float beta, int version) {
+  // ver0: X side only, no kLoss
+  if (version==0) {
+    TrRecHitR* hit = (TrRecHitR*) GetHitLJ(jlayer);
+    if (hit==0) return 0;
+    if (hit->GetXCluster()==0) return 0;
+    return sqrt(hit->GetXCluster()->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta,beta)); 
+  }
+  // ver1: X side, but if no X side available Y side
   TrRecHitR* hit = (TrRecHitR*) GetHitLJ(jlayer);
   if (hit==0) return 0;
-  if (hit->GetXCluster()==0) return 0;
+  if (hit->GetXCluster()==0) return hit->GetYCluster()->GetQ(beta);
   return hit->GetXCluster()->GetQ(beta);
 }
 
