@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.24 2012/09/13 17:39:38 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.25 2012/09/13 19:51:57 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -208,7 +208,10 @@ int TofRecH::BuildTofClusterH(){
 
 //--already check get data
      TofSideRec(&tfraws[i],adca[is],nadcd[is],adcd[is],sdtm[is],sstatus[is],ltdcw[is],htdcw[is],shtdcw[is]);
- 
+     if(TOFGeom::Npmt[il][ib]==2&&adcd[is][TOFGeom::Npmt[il][ib]]>0){
+        cerr<<"<<---Error Dynode Non Exist PMT-ADC>0"<<endl;adcd[is][TOFGeom::Npmt[il][ib]]=0;
+     }
+
 //--different LBB// combine to one bar
      if((i==tfraws.size()-1)||(tfraws[i+1].swid/10!=tfraws[i].swid/10)){
         idsoft=il*1000+ib*100;
@@ -288,7 +291,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
 //----Get adca 
      adca=ptr->adca;
      nadcd=ptr->nadcd;
-     for(i=0;i<nadcd;i++){adcd[i]=ptr->adcd[i];}
+     for(i=0;i<TOF2GC::PMTSMX;i++){adcd[i]=ptr->adcd[i];}
      if(adca<=0)  {sstatus|=TOFDBcN::NOADC;}
      if(adca>=TofRecPar::PUXMXCH){adca=TofRecPar::PUXMXCH;sstatus|=TOFDBcN::AOVERFLOW;}//now just anode 
 
@@ -537,7 +540,7 @@ int TofRecH::EdepRec(int idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],numb
          uid=idsoft+is*10+ipm; 
 //--mark adc chip overflow
          if     (adcd[is][ipm]>=TofRecPar::PUXMXCH){sstatus[is]|=TOFDBcN::DOVERFLOW;edepd=q2pd[is][ipm]=-3;}
-         else if(adcd[is][ipm]>0){
+         else if(adcd[is][ipm]>TofRecPar::Dynodegate){
            QD[is][ipm]=GetQSignal(uid,0,(kQ2|kLinearCor|kAttCor),adcd[is][ipm],lcoo);
            if(QD[is][ipm]==-1){sstatus[is]|=TOFDBcN::DOVERFLOWNONLC;}//Marking Non-Linear Correction Overflow
            edepd=q2pd[is][ipm]=QD[is][ipm];
