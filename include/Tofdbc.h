@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.15 2012/09/09 16:28:46 qyan Exp $
+//  $Id: Tofdbc.h,v 1.16 2012/09/13 13:50:54 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -44,21 +44,21 @@ namespace TOFDBcN{
   const uinteger NOWINDOWHT=2048;
   const uinteger NOWINDOWSHT=4096;
   const uinteger LTMANY=8192;
-  const uinteger HTMANY=16384;
-  const uinteger NOADC=16384*2; 
-  const uinteger RECOVERED=16384*4;//RECOVER
-  const uinteger LTREFIND=16384*8; //LTREFIND for RECOVERCAD
-  const uinteger DOVERFLOW=16384*2*2*2*2*2*2*2;// Dynode overflow
-  const uinteger AOVERFLOW=16384*2*2*2*2*2*2*2*2;//Anode overflow
-  const uinteger TRDTRACK=16384*2*2*2*2*2*2*2*2*2;
-  const uinteger BETAOVERFLOW=16384*2*2*2*2*2*2*2*2*2*2;//Beta Fit overflow
-  const uinteger DOVERFLOWA=  16384*2*2*2*2*2*2*2*2*2*2*2;//All Dnode Overflow
-  const uinteger AOVERFLOWA=      16384*2*2*2*2*2*2*2*2*2*2*2*2;//All Anode Overflow
+  const uinteger HTMANY=          16384;
+  const uinteger NOADC=           16384*2; 
+  const uinteger RECOVERED=       16384*2*2;//RECOVER
+  const uinteger LTREFIND=        16384*2*2*2; //LTREFIND for RECOVERCAD
+  const uinteger TKTRACK=         16384*2*2*2*2; //TRACK BETAH
+  const uinteger DOVERFLOW=       16384*2*2*2*2*2*2*2;//Dynode ADC overflow
+  const uinteger AOVERFLOW=       16384*2*2*2*2*2*2*2*2;//Anode ADC overflow
+  const uinteger TRDTRACK=        16384*2*2*2*2*2*2*2*2*2;//TRD TRACK BetaH
+  const uinteger BETAOVERFLOW=    16384*2*2*2*2*2*2*2*2*2*2;//Beta Fit overflow
+  const uinteger ECALTRACK=       16384*2*2*2*2*2*2*2*2*2*2*2;//ECAL TRACK BetaH
+  const uinteger TOFTRACK=        16384*2*2*2*2*2*2*2*2*2*2*2*2;//TOF TRACK BetaH
   const uinteger DOVERFLOWNONLC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2;//Dynode NonLear-Correction Overflow
   const uinteger AOVERFLOWNONLC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2;//Aynode NonLear-Correction Overflow
   const uinteger DOVERFLOWBIRKC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;//Dynode Birk-Correction Overflow
   const uinteger AOVERFLOWBIRKC=  16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;//Aynode Birk-Correction Overflow
-
 }
 
 //---TOF Simple Geometry
@@ -440,6 +440,18 @@ class TofRecPar: public TofTDVTool<float>{
      static const  int   BetaHLMatch=0;//require Longitude match or not
      static const  float BetaHReg[2];//Seach Region of TMatch LMatch(N Sigma)
      static const  int   BetaHMinL[2];//Min X+Y Match Layer//U+D Match Layer
+//---BetaH Self Recontruction Par
+     static const  float PairQDA=6;//Pair Energy Match Using Anode when Q<6
+     static const  float PairQgate=0.8;//Pair Min Energy Q 
+     static const  float PairQRgate=1.8;//Q1/Q0<1.8
+     static const  float PairLSMatch=9.;//Longitude+Tran Coo 9.cm Match windows 
+     static const  float PairTMatch=0.5;//Time Match <0.5ns (3*0.16ns)
+     static const  float TFEcalAMatch=10.;//TOF EcalShow Max Match Angle(6 deg)
+     static const  float DPairChi2TCut=100;//ChisT Cut
+     static const  float DPairChi2CCut=200;//ChisC Cut
+     static const  float NonTkBetaCutL=0.3;//beta low
+     static const  float NonTkBetaCutU=1.5;//beta ligh
+//---
      static float TimeSigma[MaxCharge];
      static float CooSigma[MaxCharge][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static int   iLay;

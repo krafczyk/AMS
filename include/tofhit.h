@@ -1,4 +1,4 @@
-//  $Id: tofhit.h,v 1.3 2012/09/09 16:28:47 qyan Exp $
+//  $Id: tofhit.h,v 1.4 2012/09/13 13:54:42 qyan Exp $
 
 //Author Qi Yan 2012/Jul/19 10:03 qyan@cern.ch
 #ifndef __AMSTOFHIT__
@@ -14,6 +14,7 @@ class TOF2RawSide;
 class AMSCharge;
 class AMSTrTrack;
 class AMSTRDTrack;
+class AMSEcalShower;
 //////////////////////////////////////////////////////////////////////////
 class AMSTOFClusterH: public AMSlink,public TofClusterHR {
 
@@ -56,13 +57,15 @@ protected:
    AMSTOFClusterH * _phith[4];
    AMSTrTrack *     _ptrack;//trdtrack delete not exis/should be careful
    AMSTRDTrack *    _ptrdtrack;
+   AMSEcalShower *  _pecalshower;
    AMSCharge  *     _pcharge;
 
 public:
     AMSBetaH(){};
-    AMSBetaH(TofClusterHR *phith[4],AMSTrTrack *ptrack,AMSTRDTrack *trdtrack,TofBetaPar betapar):
-         AMSlink(), _ptrack(ptrack),_ptrdtrack(trdtrack),BetaHR(){
+    AMSBetaH(TofClusterHR *phith[4],AMSTrTrack *ptrack,AMSTRDTrack *trdtrack,AMSEcalShower *show,TofBetaPar betapar):
+         AMSlink(), _ptrack(ptrack),_ptrdtrack(trdtrack), _pecalshower(show),BetaHR(){
         if((betapar.Status&TOFDBcN::TRDTRACK)==TOFDBcN::TRDTRACK)_ptrack=0;//aleady delete next
+        if((betapar.Status&TOFDBcN::ECALTRACK)==TOFDBcN::ECALTRACK)_ptrack=0;
         for(int ilay=0;ilay<4;ilay++){
            _phith[ilay]=dynamic_cast<AMSTOFClusterH *>(phith[ilay]);
           if(_phith[ilay]){_phith[ilay]->Status|=TOFDBcN::USED;_phith[ilay]->Pattern+=1000;}
@@ -74,6 +77,7 @@ public:
     AMSBetaH *        next(){ return (AMSBetaH *)_next;}
     AMSTrTrack *      gettrack(){return _ptrack;}
     AMSTRDTrack*      gettrdtrack(){return _ptrdtrack;}
+    AMSEcalShower*    getecalshower(){return _pecalshower;}
     void              settrdtrack(AMSTRDTrack* ptrdtrack){_ptrdtrack=ptrdtrack;}
     void              setcharge(AMSCharge *amscharge){_pcharge=amscharge;}
     const TofBetaPar& getbetapar(){return BetaPar;}

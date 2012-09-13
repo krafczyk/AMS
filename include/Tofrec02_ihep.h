@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.13 2012/09/09 19:19:01 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.14 2012/09/13 13:51:40 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -11,14 +11,15 @@ class TOF2RawSide;
 class AMSCharge;
 class AMSTrTrack;
 class AMSTRDTrack;
+class AMSEcalShow;
 #endif
 class TofBetaPar;
 
 /*!
- *  IHEP Recontruction Code both Support Production and Root Mode Refit(B584 or earier production data)
-*/
-/*!
- \author qyan@cern.ch
+ *  TOF IHEP Recontruction+Calibration(BetaH version) Both Support Production and Root Mode Refit(B584 or earier production data)
+ *  Root Mode ReFit User Need One function:  TofRecH::ReBuild() 
+ *  Example of How to Use:  vdev/example/Tof_BetaH.C (AMSsoft)
+ * \author qyan@cern.ch
 */
 //////////////////////////////////////////////////////////////////////////
 class TofRecH{
@@ -48,17 +49,29 @@ protected:
 
 /// TofClusterH 4layer vector  pointer
   static vector<TofClusterHR*>tofclh[4];
+/// TofClusterH UpPair+DownPair BetaH Raw
+  static vector<pair <TofClusterHR*,TofClusterHR* > >tofclp[2];
+/// TofClusterH UpPair+DownPair BetaH Select Candidate
+  static vector<pair <TofClusterHR*,TofClusterHR* > >tofclc[2];
+
 /// Track vector pointer
   static vector<TrTrackR*> track;
 #ifndef __ROOTSHAREDLIBRARY__
-  static vector<AMSTrTrack*> amstrack;
-  
+  static vector<AMSTrTrack*> amstrack;  
 #endif
+
 /// TrdTrack vector
   static vector<TrdTrackR>trdtrack;
   #pragma omp threadprivate (trdtrack)
 #ifndef __ROOTSHAREDLIBRARY__
   static vector<AMSTRDTrack*>amstrdtrack;
+#endif
+
+/// EcalShower vector
+  static vector<EcalShowerR> ecalshow;
+  #pragma omp threadprivate (ecalshow)
+#ifndef __ROOTSHAREDLIBRARY__
+  static vector<AMSEcalShower*>amsecalshow;
 #endif
 
 /// Charge Signal Type
@@ -86,7 +99,10 @@ public:
     kBetaCor= 0x200,
  };
 
-/// Sum Build Part
+/*
+ * @name Sum ReBuild Part
+ * @{
+ */
 public:
 /// default construction
   TofRecH(){};
@@ -104,9 +120,12 @@ public:
   static int  ClearBuildTofClH();
 /// Clear BetaH build vector
   static int  ClearBuildBetaH();
+/**@}*/
 
-
-/// TofClusterH Build Part
+/*
+ * @name TofClusterH Build Part
+ * @{
+ */
 public:
 /// Finding LT from TofRawSide 
   static int  TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adcd[],number &sdtm,uinteger &sstatus,
@@ -136,9 +155,12 @@ public:
   static number SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweight=1,bool minpmcut=1);
 /// Get Proton Anode Mip Adc for local lpos
   static number GetProMipAdc(int idsoft,number lpos);
+/**@}*/
 
-
-/// BetaH Build Part
+/*
+ * @name BetaH Build Part
+ * @{
+ */
 public:
 /// Find TofClusterH for ilay with Track
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
@@ -154,8 +176,8 @@ public:
 /// Coo Chi2 Fit function 
   static int  BetaFitC(TofClusterHR *tfhit[4],number res[4][2],int partten[4],TofBetaPar &par,int mode);//
 /// Beta Fit function
-  static int  BetaFitT(TofClusterHR *tfhit[4],number len[4],int partten[4],TofBetaPar &par,int mode);//mode same etime weight(0) or not(1)
-  static int  BetaFitT(number time[],number etime[],number len[],const int nhits,TofBetaPar &par,int mode=1);//mode same etime weight(0) or not(1)
+  static int  BetaFitT(TofClusterHR *tfhit[4],number len[4],int partten[4],TofBetaPar &par,int mode=1,int verse=0);//mode same etime weight(0) or not(1)
+  static int  BetaFitT(number time[],number etime[],number len[],const int nhits,TofBetaPar &par,int mode=1,int verse=0);//mode same etime weight(0) or not(1)
 /// Beta Check function
   static int  BetaFitCheck(TofBetaPar &par);//if this is normal value
 #ifndef __ROOTSHAREDLIBRARY__
@@ -164,6 +186,27 @@ public:
 /// Mass Cal function
   static int  MassRec(TofBetaPar &par,number rig=0,number charge=0,number evrig=0,int isubetac=0);//evrig=E(1/rig)
 
+/// BetaH Self Track Build Part
+/// Up And Down TOFCluster Make Pair
+  static int TOFClMakePair(int ilay0,int ilay1,int isdown);
+/// Pair PreSelection
+  static int TOFPairPreSel(int ud,number coref[],AMSDir diref,number cutangle);
+/// Find TOFCl Algorithem
+  static int TOFPairSel(int ud,TofClusterHR* tfhit[2]);
+/// Ecal Search TOF Down Part
+  static int EcalSearchD(TofClusterHR* tfhitu[2], TofClusterHR* tfhitd[2],number cooshow[3]);  
+/// TofTrack Fit 
+  static int TofTrackFit(TofClusterHR *tfhit[4],TofBetaPar &par,int attrefit=0,int verse=0);
+/// Line Fit //y=ax+b
+  static int LineFit(int nhits,number x[],number y[],number ey[],number &a,number &b);
+/// Up Down Self Match Candidate
+  static bool PairMatchUD(pair<TofClusterHR*,TofClusterHR*> upair,pair<TofClusterHR*,TofClusterHR*> dpair);
+/// Up Down Best Match Pair
+  static int  PairSearchUD(pair<TofClusterHR*,TofClusterHR*> sedpair,int sedud);//sed to search
+/// Erase Hit From vector
+  static int  TOFClErase(TofClusterHR* tfhit[4]);
+/**@}*/ 
+
 /// Other function
 public:
 /// Sort TofRawSide accoding to BarId
@@ -171,12 +214,16 @@ public:
 /// Sort TofRawSide Index 
   static bool IdCompare(const pair<integer,integer> &a,const pair<integer,integer> &b){return a.second<b.second;}
 /// ParticleR ChargeR Build Link index to BetaH
-  static int  BetaHLink(TrTrackR* ptrack,TrdTrackR *trdtrack);
+  static int  BetaHLink(TrTrackR* ptrack,TrdTrackR *trdtrack,EcalShowerR *ecalshow);
+/// ParticleR ReBuild Link index to TofTrack BetaH
+  static int  BetaHReLink();
+
+
 /// friend access
   friend class BetaHR; 
   friend class TofBetaPar; 
 
-  ClassDef(TofRecH,2)
+  ClassDef(TofRecH,3)
 };
 
 /////////////////////////////////////////////////////////////////////////

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.469 2012/09/12 14:30:30 chchung Exp $
+//  $Id: root.h,v 1.470 2012/09/13 13:51:56 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -940,13 +940,11 @@ ClassDef(TofClusterR,1)       //TofClusterR
 };
 
 /// TofClusterHR structure
-/*!  IHEP TOF Recontruction: TofClusterH is rectructed from TofRawSide, which contains new independent calibration of each fired TOF Counter.
-  *  IHEP New TOF Beta Measument BetaH: TofRawSide->TofClusterH(only 1 Fired TOF Counter)->BetaH(New Calibration+Software)
-*/
-
-/*!
-  \author qyan@cern.ch
-*/
+/*! 
+ *  IHEP TOF Recontruction: TofClusterH is rectructed from TofRawSide, which contains new independent calibration of each fired TOF Counter.
+ *  IHEP New TOF Beta Measument BetaH: TofRawSide->TofClusterH(only 1 Fired TOF Counter)->BetaH(New Calibration+Software)
+ *  \author qyan@cern.ch
+ */
 #include "TrElem.h"
 class TofClusterHR :public TrElem {
    static char _Info[255];
@@ -995,6 +993,10 @@ class TofClusterHR :public TrElem {
      static int DefaultQ2Opt;
 
  public:
+/*
+ * @name Constructors and Index Accessors
+ * @{
+ */
    /// access function to TofRawSideR objects used
    /// \return number of TofRawSideR used(Fired Side Number)
    int  NTofRawSide(){int sums=0;for(int is=0;is<2;is++)if(fTofRawSide[is]>=0)sums++;return sums;}
@@ -1016,8 +1018,13 @@ class TofClusterHR :public TrElem {
                double sdtm[2],double times[2],double timer,double etimer,AMSPoint coo,AMSPoint ecoo,double q2pa[2],double q2pd[2][3],double edepa,double edepd,TofRawSideR *tfraws[2]);
   TofClusterHR(AMSTOFClusterH *ptr);
   virtual ~TofClusterHR(){};
+/**@}*/
 
-//-------user function
+
+/*
+ * @name User Function
+ * @{
+ */
   /// check Counter Side is good or not //require A+T measure
   bool IsGoodSide(int is){return (is==0)?((Status&TOFDBcN::BADN)==0):((Status&TOFDBcN::BADP)==0);}//Side 0 or 1
   /// check Side whether only 1 LT in FT windows
@@ -1082,6 +1089,12 @@ class TofClusterHR :public TrElem {
     * @return >=2(N)...--this counter belong to N BetaH(Matched by N track)  //indicate many Tracker many Counter Fired
   */
   int  NBetaHUsed( )              {return (Pattern/1000);}
+/**@}*/
+
+/*
+ * @name TOF Counter Geometry Information
+ * @{
+ */
   /// Counter Shape is Trapezoid(1) or Rectangle(0)
   bool IsTrapezoid()              {return TOFGeom::IsTrapezoid(Layer,Bar);}
   /// Counter Along Direction ->0(Along x)-1(Along y)
@@ -1103,9 +1116,10 @@ class TofClusterHR :public TrElem {
   /// Convert Counter Local Coo to Global Coo
   AMSPoint  LToGCoo(AMSPoint lpos){return TOFGeom::LToGCoo(Layer,Bar,lpos);}
   /// Global Coo Inside Counter or Not 
-  ///\ z=0 don't use z information,  z!=0 include z judgment.
+  /// z=0 don't use z information,  z!=0 include z judgment.
   bool IsInSideBar(float x, float y, float z=0){return  TOFGeom::IsInSideBar(Layer,Bar,x,y,z);}
-  //------
+/**@}*/
+
   bool operator<(const TofClusterHR &right){
     return Layer*1000+Bar*100<(right.Layer*1000+right.Bar*100);
   }
@@ -1120,7 +1134,7 @@ class TofClusterHR :public TrElem {
   }
 
   char * Info(int number=-1){
-    sprintf(_Info,"TofClusterHR Info");
+    sprintf(_Info,"TofClusterHR L%dB%d  Time(ns)=%3.1f#pm%3.1f, E_{Dep}(MeV)=%4.1f, Coo(%5.1f,%5.1f,%5.1f)#pm(%5.1f,%5.1f,%5.1f)",Layer,Bar,Time,ETime,AEdep,Coo[0],Coo[1],Coo[2],ECoo[0],ECoo[1],ECoo[2]);
     return _Info;
   }
   
@@ -2525,10 +2539,8 @@ public:
 
 /// TofBetaPar structure
 /*!
- IHEP Recontruction New Beta(BetaH) information is recorded by TofBataPar
-*/
-/*!
- \author qyan@cern.ch
+ * IHEP Recontruction New Beta(BetaH) information is recorded by TofBataPar
+ * \author qyan@cern.ch
 */
 //////////////////////////////////////////////////////////////////////////
 class  TofBetaPar: public TObject{
@@ -2536,7 +2548,7 @@ public:
 
   /// Status of BetaH.....
   int    Status;
-  /// Number of ClusterHs  (Pos Matched by Tracker or TRDTracker) 
+  /// Number of ClusterHs  (Pos Matched by Tracker or TRDTracker or TofTrack-Self) 
   int    SumHit;
   /// Number of ClusterHs for Beta Fit
   int    UseHit;
@@ -2600,10 +2612,8 @@ public:
 
 /// Tof BetaH structure
 /*! 
-  *IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
-*/
-/*!
-  \author qyan@cern.ch
+ * IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
+ * \author qyan@cern.ch
 */
 class BetaHR: public TrElem{
 
@@ -2615,15 +2625,22 @@ class BetaHR: public TrElem{
   int   fTrTrack;
 /// index to Matched TrdTrack
   int   fTrdTrack;
+/// index to Matched EcalShower
+  int   fEcalShower;
 /// indexes of TofClusterHR's used
   vector<int> fTofClusterH;
 /// indexes of 4Layer TofClusterHR's used
   int   fLayer[4];
 
  public:
+
+/*
+ * @name Constructors and Index Accessors
+ * @{
+ */
   BetaHR(){};
   BetaHR(AMSBetaH *ptr);
-  BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,TofBetaPar betapar);
+  BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalShowerR *show, TofBetaPar betapar);
   virtual ~BetaHR(){};
 
  public:
@@ -2639,7 +2656,14 @@ class BetaHR: public TrElem{
   /// access function to TrdTrackR object Matched
   /// \return pointer to TrdTrackR object or 0
   TrdTrackR * pTrdTrack();
-    
+  /// access function to EcalShowerR object Matched
+  /// \return index of EcalShowerR object in collection or -1
+  int iEcalShower()const {return fEcalShower;}
+  /// access function to EcalShowerR object Matched
+  /// \return pointer to EcalShowerR object or 0
+  EcalShowerR * pEcalShower();
+   
+ 
   /// access function to TofClusterHR objects used
   /// \return number of TofClusterHR used
   int NTofClusterH()const {return fTofClusterH.size();}
@@ -2654,8 +2678,17 @@ class BetaHR: public TrElem{
   TofClusterHR * GetClusterHL (int ilay);
   /// if TOF BetaH iLayer(0-3) ClusterH exists Return true
   bool           TestExistHL  (int ilay){return (ilay>=0&&ilay<4)&&(fLayer[ilay]>=0);}
+/**@}*/
+
+
+/*
+ * @name General Information of TOF
+ * @{
+ */
   /// Number of All Fired TOF Counters in iLayer
   int            GetAllFireHL (int ilay){return BetaPar.Pattern[ilay]/1000;}
+  /// Retrun True if TkTrack And TOF Geometry Match
+  bool           IsTkTofMatch()         {return fTrTrack>=0;}
   /// Return True if BetaH Cluster is Isolation Fire Counter
   /// \return 0 if neighbor Counter Fire, idis distance to  Central Counter
   /*!
@@ -2677,16 +2710,19 @@ class BetaHR: public TrElem{
       if(lr<0)return ((BetaPar.Pattern[ilay]/100%10)==0)?-1:GetClusterHL(ilay)->Bar-BetaPar.Pattern[ilay]/100%10;
       else    return ((BetaPar.Pattern[ilay]/10%10)==0)? -1:GetClusterHL(ilay)->Bar+BetaPar.Pattern[ilay]/10%10;
   }
-   
+/**@}*/   
 
-//---user function
+
+/*
+ * @name BetaH  Data  Accessors
+ * @{
+ */
  public:
   /// Access BetaH All Data
   const TofBetaPar&  gTofBetaPar()      {return BetaPar;}
   /// Set BetaH All Data
   void  SetTofBetaPar(TofBetaPar tofpar){BetaPar=tofpar;}
 
-//--Beta data
  public:
   /// Beta Value
   float GetBeta  () {return BetaPar.Beta; }
@@ -2721,14 +2757,18 @@ class BetaHR: public TrElem{
   /// Coo Residula for iLayer ixy 0-X 1-Y (Distance with Tracker)
   float GetCResidual (int ilay,int ixy){return BetaPar.CResidual[ilay][ixy];}
 
-//---Mass data
  public:
-    /// Mass Measument for Beta
+  /// Mass Measument for Beta
   float GetMass()      {return BetaPar.Mass;}
   /// Err Mass
   float GetEMass()     {return BetaPar.EMass;}
+/**@}*/
 
-//---Using Function 
+
+/*
+ * @name ReFit and Interpolation Function
+ * @{
+ */
   /// ReFit Mass using Rigidity Charge
   /*!
    * @param[out] mass Fit Mass
@@ -2749,7 +2789,7 @@ class BetaHR: public TrElem{
     * @param[in] update  BetaPar update (1)Update Beta (0)Not Update
    */
   int  BetaReFit(double &beta,double &ebetav,int pattern=1111,int mode=1,int update=0);
-  /// TOF Time Interpolation to posZ
+  /// TOF Time Interpolation to posZ (Using Matched TrTrack if exist, otherwise Using Tof Self Track)
   /*!
    * @param[in] zpl Interpolate to Z position (Z=zpl)
    * @param[out] pnt BetaH's Track position at Z=zpl
@@ -2757,9 +2797,14 @@ class BetaHR: public TrElem{
    * @param[out] time TOF Time at Z=zpl(ns)
    * @return BetaH's Track Path length at Z=zpl
    */
-#ifdef _PGTRACK_
   double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time);
-#endif
+/**@}*/
+
+
+/*
+ * @name TOF Charge Estimation
+ * @{
+ */
 ///  iLay TOF Edep(MeV) From One PMT Estimate ///Attenuation ReCorr
   /*! 
    * @param[in] ilay TOF layer(0-3)
@@ -2796,16 +2841,20 @@ class BetaHR: public TrElem{
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
   float GetQL(int ilay,int pmtype,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,int optw=1);
+/**@}*/
 
 
-//---Geometry information
+/*
+ * @name TOF Geometry Information
+ * @{
+ */
   /// TOF ilay Edge(All Counter Dimension) x[3](xyz)[2](low high edge)
   void GetTOFLayEdge(int ilay,float x[3][2])             {return TOFGeom::GetLayEdge(ilay,x);}
   /// Global Coo Inside ilay TOF Region or Not
-  ///\ z=0 don't use z information,  z!=0 include z judgment.
+  /// z=0 don't use z information,  z!=0 include z judgment.
   bool IsInSideTOF(int ilay, float x, float y, float z=0){return TOFGeom::IsInSideTOF(ilay,x,y,z);}
   /// Global Coo Inside ilay TOF Overlap Region or Not
-  ///\ nexcl=1 overlap=(Bar Overlap), nexcl=2 overlap=2*(Bar Overlap)
+  /// nexcl=1 overlap=(Bar Overlap), nexcl=2 overlap=2*(Bar Overlap)
   bool IsInOverlap(int ilay,float x, float y,int nexcl=1){return TOFGeom::IsInOverlap(ilay,x,y,nexcl);}
   /// Find Global Coo nearest ilay TOF Counter
   /*!
@@ -2815,6 +2864,7 @@ class BetaHR: public TrElem{
    * @return    Nearest Counter Bar Number
   */
    int FindNearBar(int ilay,float x, float y,float &dis,bool &isinbar,float z=0){return TOFGeom::FindNearBar(ilay,x,y,dis,isinbar,z);}
+/**@}*/
 
   void _PrepareOutput(int opt=0){
     sout.clear();
@@ -2827,7 +2877,7 @@ class BetaHR: public TrElem{
   }
 
   char * Info(int number=-1){
-    sprintf(_Info,"BetaHR Info");
+    sprintf(_Info,"BetaH #beta=%6.3f TOFHitUse=%d Chi2C=%7.3g Chi2T=%7.3g EdepL(MeV)=(%5.2f,%5.2f,%5.2f,%5.2f)",GetBeta(),GetUseHit(),GetChi2C(),GetChi2T(),GetEdepL(0,1),GetEdepL(1,1),GetEdepL(2,1),GetEdepL(3,1) );
     return _Info;
   }
 
@@ -2836,11 +2886,10 @@ class BetaHR: public TrElem{
     return ostr << sout  << std::endl;
   };
 
-  
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,4)
+  ClassDef(BetaHR,5)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        
