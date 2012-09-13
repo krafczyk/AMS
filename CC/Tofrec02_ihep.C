@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.23 2012/09/13 13:48:57 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.24 2012/09/13 17:39:38 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -623,7 +623,7 @@ number TofRecH::NonLinearCor(int idsoft,int isanode,number q2){//PM Level
 //--Non Linear expect
      double nlcq=log((q2-CPar->ansat[2][idsoft])/(-CPar->ansat[0][idsoft]))/(-CPar->ansat[1][idsoft]);
 //--Linear expect //birk compensate  Let Scale QDynode=QAnode
-     double lcq=q2/(1.+CPar->birk[idsoft]);
+     double lcq=q2/(1.+CPar->birk[idsoft/100*100]);
 //---Choose much larger one to decide non-saturation range
      double cq=lcq>nlcq?lcq:nlcq; 
      return cq;
