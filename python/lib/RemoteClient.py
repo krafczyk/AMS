@@ -1888,6 +1888,8 @@ class RemoteClient:
         gb=0
         outputpath='xyz'
         ct=360
+	if(idisk=='/castor'):
+		idisk=None
         if(idisk!=None):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and disk ='%s'ORDER BY priority DESC, available " %(path,idisk)
             ret=self.sqlserver.Query(sql)
