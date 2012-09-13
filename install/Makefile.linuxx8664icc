@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.26 2012/08/17 17:46:22 ams Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.27 2012/09/13 10:56:32 ams Exp $
 
 # General clean up and reorganization
 #
@@ -95,12 +95,8 @@ endif
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
 
 ORBIT2DIR=$(AMSDEPLIB)/Orbit2
-IDL=/usr/bin/orbit-idl-2
-ifndef SLC6system
-  IDLCPP=$(IDL) -l cpp
-else
-  IDLCPP=$(IDL) --backenddir=$(ORBIT2DIR)/idl-backends -l cpp
-endif
+IDL=$(ORBIT2DIR)/bin/orbit-idl-2
+IDLCPP=orbit-idl-2 -l cpp
 
 
 ########################################################################
@@ -261,8 +257,8 @@ LDFLAGSIDL= -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp -lORBit-2
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2 -lrt -lnsl   
 
-CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g
