@@ -496,14 +496,125 @@ float EcalChi2::process(float* coo,float sign){
 	cal_f2dep();
         return _chi2;
 }
-int   EcalChi2::set_edep(float edeps[18][72], float erg){
+int   EcalChi2::set_edep(float* edeps, float erg){
 	for(int i1=0;i1<18;i1++){
                 for(int i2=0;i2<72;i2++){
-                        Edep_raw[i1][i2]=edeps[i1][i2];
+                        Edep_raw[i1*72+i2]=edeps[i1*72+i2];
                 }
         }
         _erg=erg;
 	return 0;
+}
+float  EcalChi2::process(AMSEventR* ev, TrTrackR* trtrack, int iTrTrackPar){
+#ifdef _PGTRACK_
+	float sign=-1.;
+        if(iTrTrackPar<0){
+                cout<<"EcalChi2 Error : iTrTrackPar= "<<iTrTrackPar<<endl;
+                return -1;
+        }
+        if(trtrack==NULL||ev==NULL){
+                cout<<"EcalChi2 Error: trtrack= "<<trtrack<<" ev = "<<ev<<endl;
+                return -1;
+        }
+        AMSPoint pnt;
+        AMSDir   dir;
+        if(trtrack->GetRigidity(iTrTrackPar)>0)
+                sign=1.0;
+        for(int i1=0;i1<18;i1++){
+                trtrack->Interpolate(ecalz[i1],pnt,dir,iTrTrackPar);
+                if(i1%4<2)
+                        pos[i1]=pnt.y();
+                else
+                        pos[i1]=pnt.x();
+        }
+        for(int i1=0;i1<18;i1++){
+                for(int i2=0;i2<72;i2++){
+                        Edep_raw[i1*72+i2]=0.;
+                }
+        }
+	float maxe=-1;
+        int  nmax =-1;
+        if(ev->nEcalShower()<1)
+                return -1;
+        for(int i1=0;i1<ev->nEcalShower();i1++){
+                if(ev->pEcalShower(i1)->EnergyE>maxe){
+                        maxe =ev->pEcalShower(i1)->EnergyE;
+                        nmax =i1                          ;
+                }
+        }
+        _erg=ev->pEcalShower(nmax)->EnergyD/1000.;
+        for(int i1=0;i1<ev->NEcalHit();i1++){
+        	Edep_raw[ev->pEcalHit(i1)->Plane*72+ev->pEcalHit(i1)->Cell]=ev->pEcalHit(i1)->Edep;
+        }
+
+        float chi2,chi22,chi23,chi24;
+        int   ndof;
+        for(int i1=0;i1<18;i1++){
+                int bin=(int)((pos[i1]-shiftxy[i1]+0.45)/SIZE);
+                ndof             =cal_chi2(bin-20,bin+20,i1,pos[i1],chi2,chi22,chi23,chi24,sign);
+                _ndofs[i1]       =ndof;
+                _chi2_layer [i1] =chi2;
+                _chi22_layer[i1] =chi22;
+                _chi23_layer[i1] =chi23;
+                _chi24_layer[i1] =chi24;
+        }
+        _chi2    =0.;
+        _chi2x   =0.;
+        _chi2y   =0.;
+        _variance=0.;
+        _skewness=0.;
+        _kurtosis=0.;
+        tot_ndof =0 ;
+        tot_ndofx=0 ;
+        tot_ndofy=0 ;
+        for(int i1=1;i1<18;i1++){
+                _chi2     +=_chi2_layer [i1];
+                if(i1%4<2){
+                        _chi2y    +=_chi2_layer [i1];
+                        tot_ndofy +=_ndofs[i1];
+                }
+                else{
+                        _chi2x    +=_chi2_layer [i1];
+                        tot_ndofx +=_ndofs[i1];
+                }
+                tot_ndof  +=_ndofs[i1];
+                _variance +=_chi22_layer[i1];
+                _skewness +=_chi23_layer[i1];
+                _kurtosis +=_chi24_layer[i1];
+        }
+        if(tot_ndof>0){
+                _chi2  /=tot_ndof;
+                if(tot_ndofy>0)
+                        _chi2y/=tot_ndofy;
+                else
+                        _chi2y=50.;
+                if(tot_ndofx>0)
+                        _chi2x/=tot_ndofx;
+                else
+                        _chi2x=50.;
+                _variance/=tot_ndof;
+                _skewness/=tot_ndof;
+                _kurtosis/=tot_ndof;
+
+                _variance=sqrt(_variance-_chi2*_chi2);
+                _skewness=(_skewness-3.*_chi2*_variance*_variance-_chi2*_chi2*_chi2)/(_variance*_variance*_variance);
+                _kurtosis/=(_variance*_variance*_variance*_variance);
+        }
+        else{
+                _chi2         =50.;
+                _chi2x        =50.;
+                _chi2y        =50.;
+                _variance     =-1;
+                _skewness     =-1;
+                _kurtosis     =-1;
+        }
+        cal_f2dep();
+
+        return _chi2;
+#else
+	return -1;
+#endif
+
 }
 float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
 #ifdef _PGTRACK_
@@ -529,7 +640,7 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
 	}
 	for(int i1=0;i1<18;i1++){
 		for(int i2=0;i2<72;i2++){
-			Edep_raw[i1][i2]=0.;
+			Edep_raw[i1*72+i2]=0.;
 		}
 	}
 	_erg=esh->EnergyD/1000.;
@@ -538,7 +649,7 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
                 for(int i2=0;i2<ecal2d->NEcalCluster();i2++){
 			EcalClusterR* ecalclt=ecal2d->pEcalCluster(i2);
                         for(int i3=0;i3<ecalclt->NEcalHit();i3++){
-				Edep_raw[ecalclt->pEcalHit(i3)->Plane][ecalclt->pEcalHit(i3)->Cell]=ecalclt->pEcalHit(i3)->Edep;
+				Edep_raw[ecalclt->pEcalHit(i3)->Plane*72+ecalclt->pEcalHit(i3)->Cell]=ecalclt->pEcalHit(i3)->Edep;
 			}
 		}
 	}
@@ -615,10 +726,10 @@ return -1;
 float EcalChi2::cal_f2dep(){
         _f2dep=0.;
         for(int i1=0;i1<72;i1++){
-                _f2dep+=Edep_raw[0][i1];
+                _f2dep+=Edep_raw[i1];
         }
         for(int i1=0;i1<72;i1++){
-                _f2dep+=Edep_raw[1][i1];
+                _f2dep+=Edep_raw[72+i1];
         }
         return _f2dep;
 }
@@ -683,9 +794,9 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
                 cell_rms[i1]=ecalpdf->get_rms(layer,-1.*sign*(i1*SIZE+shiftxy[layer]-coo),_erg,0);
                 cell_prob[i1]=ecalpdf->get_prob(layer,-1.*sign*(i1*SIZE+shiftxy[layer]-coo),_erg,0);
                 cell_probbar[i1]=ecalpdf->get_prob(layer,-1.*sign*(i1*SIZE+shiftxy[layer]-coo),_erg,1);
-		if(fdead_cell[layer][i1]==0&&Edep_raw[layer][i1]>0){
+		if(fdead_cell[layer][i1]==0&&Edep_raw[layer*72+i1]>0){
                         summ+=cell_mean[i1];
-                        sumxm+=Edep_raw[layer][i1];
+                        sumxm+=Edep_raw[layer*72+i1];
                         k1++;
                 }
         }
@@ -709,11 +820,11 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
                 count++;
                 chisq_prob=0.;
                 chisq_chi2=0.;
-                if(Edep_raw[layer][i1]<=0){
+                if(Edep_raw[layer*72+i1]<=0){
                         chisq_prob=cell_probbar[i1];
                 }
                 else{
-			delta=(cell_mean[i1]-Edep_raw[layer][i1]*summ/sumxm);
+			delta=(cell_mean[i1]-Edep_raw[layer*72+i1]*summ/sumxm);
 			chisq_chi2=delta*delta/2.0/cell_rms[i1] ;
 			chisq_prob=-1.*log(cell_prob[i1])	;
 		}
@@ -1023,7 +1134,7 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
         _algorithm=algorithm;
         for(int i1=0;i1<18;i1++){
                 for(int i2=0;i2<72;i2++){
-                        Edep_raw[i1][i2]=0.;
+                        Edep_raw[i1*72+i2]=0.;
                 }
                 Max_layer_edep[i1]= 0;
                 Max_layer_cell[i1]=-1;
@@ -1033,7 +1144,7 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
         _erg   =EnergyD/1000.;
         EnergyE=_EnergyE     ;
 	for(int i1=0;i1<nEcalhits;i1++){
-        	Edep_raw[fplane[i1]][fcell[i1]]=fedep[i1];
+        	Edep_raw[fplane[i1]*72+fcell[i1]]=fedep[i1];
               	if(Max_layer_edep[fplane[i1]]<fedep[i1]){
                       	Max_layer_edep[fplane[i1]]=fedep[i1];
                         Max_layer_cell[fplane[i1]]=fcell[i1];
@@ -1043,23 +1154,23 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
 
 	for(int i1=0;i1<18;i1++){       
                 if(Max_layer_cell[i1]-2>-1){
-                        if(Edep_raw[i1][Max_layer_cell[i1]-2]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]-2]>0)
                                 Layer_quality [i1]+=1;
                 }       
                 if(Max_layer_cell[i1]-1>-1){
-                        if(Edep_raw[i1][Max_layer_cell[i1]-1]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]-1]>0)
                                 Layer_quality [i1]+=2;
                 }
                 if(Max_layer_cell[i1]>-1){
-                        if(Edep_raw[i1][Max_layer_cell[i1]]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]]>0)
                                 Layer_quality [i1]+=4;
                 }
                 if(Max_layer_cell[i1]+1<72){
-                        if(Edep_raw[i1][Max_layer_cell[i1]+1]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]+1]>0)
                                 Layer_quality [i1]+=8;
                 }
                 if(Max_layer_cell[i1]+2<72){
-                        if(Edep_raw[i1][Max_layer_cell[i1]+2]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]+2]>0)
                                 Layer_quality [i1]+=16;
                 }
         }
@@ -1093,7 +1204,7 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
         ext_p0[2]=esh->CofG[2];
 	for(int i1=0;i1<18;i1++){
                 for(int i2=0;i2<72;i2++){
-                        Edep_raw[i1][i2]=0.;
+                        Edep_raw[i1*72+i2]=0.;
                 }
 		Max_layer_edep[i1]= 0;
 		Max_layer_cell[i1]=-1;
@@ -1107,7 +1218,7 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
                 for(int i2=0;i2<ecal2d->NEcalCluster();i2++){
                         EcalClusterR* ecalclt=ecal2d->pEcalCluster(i2);
                         for(int i3=0;i3<ecalclt->NEcalHit();i3++){
-                                Edep_raw[ecalclt->pEcalHit(i3)->Plane][ecalclt->pEcalHit(i3)->Cell]=ecalclt->pEcalHit(i3)->Edep;
+                                Edep_raw[ecalclt->pEcalHit(i3)->Plane*72+ecalclt->pEcalHit(i3)->Cell]=ecalclt->pEcalHit(i3)->Edep;
                         	if(Max_layer_edep[ecalclt->pEcalHit(i3)->Plane]<ecalclt->pEcalHit(i3)->Edep){
 						Max_layer_edep[ecalclt->pEcalHit(i3)->Plane]=ecalclt->pEcalHit(i3)->Edep;
 						Max_layer_cell[ecalclt->pEcalHit(i3)->Plane]=ecalclt->pEcalHit(i3)->Cell;
@@ -1119,23 +1230,23 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
 
 	for(int i1=0;i1<18;i1++){	
 		if(Max_layer_cell[i1]-2>-1){
-			if(Edep_raw[i1][Max_layer_cell[i1]-2]>0)
+			if(Edep_raw[i1*72+Max_layer_cell[i1]-2]>0)
 				Layer_quality [i1]+=1;
 		}	
 		if(Max_layer_cell[i1]-1>-1){
-                        if(Edep_raw[i1][Max_layer_cell[i1]-1]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]-1]>0)
                                 Layer_quality [i1]+=2;
                 }
 		if(Max_layer_cell[i1]>-1){
-                        if(Edep_raw[i1][Max_layer_cell[i1]]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]]>0)
                                 Layer_quality [i1]+=4;
                 }
 		if(Max_layer_cell[i1]+1<72){
-                        if(Edep_raw[i1][Max_layer_cell[i1]+1]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]+1]>0)
                                 Layer_quality [i1]+=8;
                 }
 		if(Max_layer_cell[i1]+2<72){
-                        if(Edep_raw[i1][Max_layer_cell[i1]+2]>0)
+                        if(Edep_raw[i1*72+Max_layer_cell[i1]+2]>0)
                                 Layer_quality [i1]+=16;
                 }
 	}
@@ -1166,24 +1277,24 @@ bool EcalAxis::init_cg(){
 	for(int i1=0;i1<18;i1++){
 		double n=0., sum=0.;
 		if((Layer_quality [i1]&1)==1){
-			n  +=Edep_raw[i1][Max_layer_cell[i1]-2];
-			sum+=(shiftxy[i1]+(Max_layer_cell[i1]-2)*SIZE)*Edep_raw[i1][Max_layer_cell[i1]-2];
+			n  +=Edep_raw[i1*72+Max_layer_cell[i1]-2];
+			sum+=(shiftxy[i1]+(Max_layer_cell[i1]-2)*SIZE)*Edep_raw[i1*72+Max_layer_cell[i1]-2];
 		}
 		if((Layer_quality [i1]&2)==2){
-                        n  +=Edep_raw[i1][Max_layer_cell[i1]-1];
-                        sum+=(shiftxy[i1]+(Max_layer_cell[i1]-1)*SIZE)*Edep_raw[i1][Max_layer_cell[i1]-1];
+                        n  +=Edep_raw[i1*72+Max_layer_cell[i1]-1];
+                        sum+=(shiftxy[i1]+(Max_layer_cell[i1]-1)*SIZE)*Edep_raw[i1*72+Max_layer_cell[i1]-1];
                 }
 		if((Layer_quality [i1]&4)==4){
-                        n  +=Edep_raw[i1][Max_layer_cell[i1]];
-                        sum+=(shiftxy[i1]+(Max_layer_cell[i1])*SIZE)*Edep_raw[i1][Max_layer_cell[i1] ];
+                        n  +=Edep_raw[i1*72+Max_layer_cell[i1]];
+                        sum+=(shiftxy[i1]+(Max_layer_cell[i1])*SIZE)*Edep_raw[i1*72+Max_layer_cell[i1] ];
                 }
 		if((Layer_quality [i1]&8)==8){
-                        n  +=Edep_raw[i1][Max_layer_cell[i1]+1];
-                        sum+=(shiftxy[i1]+(Max_layer_cell[i1]+1)*SIZE)*Edep_raw[i1][Max_layer_cell[i1]+1];
+                        n  +=Edep_raw[i1*72+Max_layer_cell[i1]+1];
+                        sum+=(shiftxy[i1]+(Max_layer_cell[i1]+1)*SIZE)*Edep_raw[i1*72+Max_layer_cell[i1]+1];
                 }
 		if((Layer_quality [i1]&16)==16){
-                        n  +=Edep_raw[i1][Max_layer_cell[i1]+2];
-                        sum+=(shiftxy[i1]+(Max_layer_cell[i1]+2)*SIZE)*Edep_raw[i1][Max_layer_cell[i1]+2];
+                        n  +=Edep_raw[i1*72+Max_layer_cell[i1]+2];
+                        sum+=(shiftxy[i1]+(Max_layer_cell[i1]+2)*SIZE)*Edep_raw[i1*72+Max_layer_cell[i1]+2];
                 }
 		if(n>0.)
 			init_raw[i1]=sum/n;	
@@ -1249,7 +1360,7 @@ bool EcalAxis::init_cr(){
             		delta[j] = get_deltaxy_cr(j);
 
 		        if(slope_cr[j]!=-999999.){
-              			Xminus1[j] =  (TMath::Log(Edep_raw[j][Max_layer_cell[j]-1]/Edep_raw[j][Max_layer_cell[j]+1])/slope_cr[j]) + ratio_cr[j];
+              			Xminus1[j] =  (TMath::Log(Edep_raw[j*72+Max_layer_cell[j]-1]/Edep_raw[j*72+Max_layer_cell[j]+1])/slope_cr[j]) + ratio_cr[j];
             		}
             		else {
              	 		Xminus1[j] = -999999.;

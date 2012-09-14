@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.4 2012/09/02 15:52:10 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.5 2012/09/14 15:13:43 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -72,7 +72,14 @@ class EcalChi2{
 		*/
 		EcalChi2(char* fdatabase,int ftype=0)			        	;
 		~EcalChi2()						        	;
-//		float process(AMSEvent* evt)						;
+		/// Prcess an AMSEvent, the shower axis is provided by trtrack
+                /*!
+                \param[in] ev            AMSEventR
+                \param[in] trtrack       Tracker Track
+                \param[in] iTrTrackPar   Tracker Track iTrTrackPar
+                ret chi2      if successful, return the normalized total chi2; else if iTrTrackPar<0, return -1
+                */
+		float process(AMSEventR* ev, TrTrackR* trtrack, int iTrTrackPar);
 		/// Prcess an ecalshower, the shower axis is provided by trtrack
 		/*!
 		\param[in] trtrack    Tracker Track
@@ -119,7 +126,7 @@ class EcalChi2{
 		 \param[in] erg    ecal deposted energy (GeV)
 		 ret 0
 		 */
-		int   set_edep(float edeps[18][72], float erg)		        ;
+		int   set_edep(float* edeps, float erg)		        ;
 	private:
 		void init(char* fdatabase,int type)				;
 		EcalPDF* ecalpdf						;
@@ -136,7 +143,7 @@ class EcalChi2{
 		float              ecalz0[18]                                    ;
 		float	  	   ecalz[18]					;
 		int		   cal_chi2(int start_cell,int end_cell,int layer,double coo,float& chi2,float& chi22,float& chi23, float& chi24, float sign=-1.);
-		float		   Edep_raw[18][72]				;
+		float		   Edep_raw[1296]				;
 		int		   fdead_cell[18][72]				;
 		int                Max_layer_cell[18]				;
 		float		   pos[18]					;
@@ -232,7 +239,7 @@ class EcalAxis: public TObject{
 		float    init_raw[18]      ;
 		
 
-		float    Edep_raw[18][72]  ;
+		float    Edep_raw[1296]  ;
 		int      fdead_cell[18][72];
 		int      Layer_quality[18] ;
 		float	 layer_Edep[18]    ;
