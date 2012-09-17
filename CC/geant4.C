@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.93 2012/08/02 09:21:54 choutko Exp $
+//  $Id: geant4.C,v 1.93.2.1 2012/09/17 08:08:06 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -263,11 +263,14 @@ delete[] _particleGun;
 
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
 
+static unsigned int iq=0;
 
+if(iq++==0){ 
   cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
 
   pph->_init();
 
+}
 }
 void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
@@ -385,6 +388,17 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 //   cout <<" guout in"<<endl;
    if(AMSJob::gethead()->isSimulation()){
    AMSgObj::BookTimer.stop("GEANTTRACKING");
+ {
+    float xx,yy;
+    TIMEX(xx);
+    TIMEL(yy);
+    if(GCTIME.TIMEND < xx || (yy>0 && yy<AMSFFKEY.CpuLimit) ){
+      GCFLAG.IEORUN=1;
+      GCFLAG.IEOTRI=1;
+      GCTIME.ITIME=1;
+    }
+  }
+
     struct mallinfo m=mallinfo();
    static unsigned int minit=0;
     unsigned int mall=m.uordblks+m.arena;
