@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.89 2011/05/02 21:34:02 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.90 2012/09/17 08:35:02 choutko Exp $
 
 #
 #
@@ -980,6 +980,9 @@ sub Commit{
 # this function sets up the necessary environement variables
 # to be able to connect to Oracle
 sub set_oracle_env {
+    if(defined $ENV{"NLS_LANG"}){
+         delete $ENV{"NLS_LANG"};
+    } 
     $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
     $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
 # $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';

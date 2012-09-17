@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.744 2012/08/27 16:46:03 choutko Exp $
+# $Id: RemoteClient.pm,v 1.745 2012/09/17 08:35:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8031,7 +8031,7 @@ print qq`
           my $cpus=$q->param("QCPUTime");
           my $cpusf=sprintf("%.3f",$cpus);
           if($q->param("ForceCpuLimit")){
-           $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/;
+           $tmpb=~ s/TIME 3=/TIME 1=$cpusf 2=100. 3=/;
           }
          }
          my $nickname=$q->param("QNick");
@@ -9360,7 +9360,7 @@ if(defined $dataset->{buildno} ){
           my $cpus=$q->param("QCPUTime");
           my $cpusf=sprintf("%.3f",$cpus);
           if($q->param("ForceCpuLimit")){
-           $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/;
+           $tmpb=~ s/TIME 3=/TIME 1=$cpusf 2=100. 3=/;
           }
          }
          my $nickname=$q->param("QNick");
