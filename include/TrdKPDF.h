@@ -23,6 +23,7 @@
 #include "TString.h"
 #include "TH1F.h"
 #include "TRandom3.h"
+#include "TSpline.h"
 using namespace std;
 
 class TrdKPDF:public TObject{
@@ -317,6 +318,19 @@ public:
     Double_t p04_c[80];
     Double_t p09_c[80];
     Double_t p10_c[80];
+
+    Double_t ichrg[8];
+    Double_t ip02_c[8];
+    Double_t ip03_c[8];
+    Double_t ip04_c[8];
+    Double_t ip09_c[8];
+    Double_t ip10_c[8];
+
+    TSpline3 *gs02;
+    TSpline3 *gs03;
+    TSpline3 *gs04;
+    TSpline3 *gs09;
+    TSpline3 *gs10;
 
     Double_t GetLikelihoodQ(double Amp);
     Double_t GetLikelihoodHA(Double_t Corr);

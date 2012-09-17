@@ -1336,6 +1336,13 @@ void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int
 
 void TrdKPDF::Init_Nuclei()
 {
+    Double_t _ichrg[8]   = {0.,   1.,   4.,   9.,   16.,  25.,  36.,  49.};
+    Double_t _ip02_c[8]  = {0.01, 0.14, 1.00, 2.56, 4.56, 7.12, 9.86, 12.3};
+    Double_t _ip03_c[8]  = {0.05, 0.34, 1.00, 2.00, 2.91, 3.59, 4.07, 4.40};
+    Double_t _ip04_c[8]  = {0.04, 0.65, 1.00, 1.13, 1.33, 1.56, 1.85, 2.14};
+    Double_t _ip09_c[8]  = {0.01, 0.16, 1.00, 1.76, 2.88, 4.16, 5.63, 7.04};
+    Double_t _ip10_c[8]  = {0.03, 0.31, 1.00, 1.36, 1.63, 1.95, 2.26, 2.56};
+
     Double_t _chrg[80]  = {0.00, 0.01, 0.04, 0.09, 0.16, 0.25, 0.36, 0.49, 0.64, 0.81,
                            1.00, 1.21, 1.44, 1.69, 1.96, 2.25, 2.56, 2.89, 3.24, 3.61,
                            4.00, 4.41, 4.84, 5.29, 5.76, 6.25, 6.76, 7.29, 7.84, 8.41,
@@ -1556,6 +1563,19 @@ void TrdKPDF::Init_Nuclei()
     Double_t _c11_x[18] = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
                            0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
 
+    gs02 = new TSpline3("gs02",_ichrg,_ip02_c,8);
+    gs03 = new TSpline3("gs03",_ichrg,_ip03_c,8);
+    gs04 = new TSpline3("gs04",_ichrg,_ip04_c,8);
+    gs09 = new TSpline3("gs09",_ichrg,_ip09_c,8);
+    gs10 = new TSpline3("gs10",_ichrg,_ip10_c,8);
+
+    memcpy(ichrg,_ichrg,sizeof(Double_t)*8);
+    memcpy(ip02_c,_ip02_c,sizeof(Double_t)*8);
+    memcpy(ip03_c,_ip03_c,sizeof(Double_t)*8);
+    memcpy(ip04_c,_ip04_c,sizeof(Double_t)*8);
+    memcpy(ip09_c,_ip09_c,sizeof(Double_t)*8);
+    memcpy(ip10_c,_ip10_c,sizeof(Double_t)*8);
+
     memcpy(chrg,_chrg,sizeof(Double_t)*80);
     memcpy(p02_c,_p02_c,sizeof(Double_t)*80);
     memcpy(p03_c,_p03_c,sizeof(Double_t)*80);
@@ -1621,14 +1641,10 @@ void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int
     Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n, i1_x, i1_c;
     Double_t dt_m, dt_l, dt_n, dt_x, dt_c;
 
-    // Rigidity correction
+    // Rigidity correction 
     if ( Charge < 0 )      Charge *= -1.;
-    if ( Charge < 1. )     Pmom   *= 0.5;
-    else if ( Charge < 2.) Pmom   *= 0.5*Charge;
-
-    i1_c = (Int_t)(10.*Charge);
-    if ( i1_c > 78 ) i1_c = 78;
-    dt_c = (Charge*Charge - chrg[i1_c])/(chrg[i1_c+1] - chrg[i1_c]);
+    if ( Charge < 1. )     Pmom   *= 2.0;
+    else if ( Charge < 2.) Pmom   *= (3-Charge);
 
     // momentum correction
     if ( Pmom < 0 ) Pmom *= -1.;
@@ -1684,12 +1700,34 @@ void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int
     Par[10]= (p11_m[i1_m] + dt_m*(p11_m[i2_m]-p11_m[i1_m]))*(p11_l[i1_l] + dt_l*(p11_l[i2_l]-p11_l[i1_l]))*p11_n[i1_n]
             + (c11_x[i1_l] + dt_l*(c11_x[i2_l]-c11_x[i1_l]))*(Press-0.800);
 
-    Par[1] *= p02_c[i1_c] + dt_c*(p02_c[i1_c+1]-p02_c[i1_c]);
-    Par[2] *= p03_c[i1_c] + dt_c*(p03_c[i1_c+1]-p03_c[i1_c]);
-    Par[3] *= p04_c[i1_c] + dt_c*(p04_c[i1_c+1]-p04_c[i1_c]);
-    Par[8] *= p09_c[i1_c] + dt_c*(p09_c[i1_c+1]-p09_c[i1_c]);
-    Par[9] *= p10_c[i1_c] + dt_c*(p10_c[i1_c+1]-p10_c[i1_c]);
-
+    if(Charge<2)
+    {
+      i1_c = (Int_t)(10.*Charge);
+      dt_c = (Charge*Charge - chrg[i1_c])/(chrg[i1_c+1] - chrg[i1_c]);
+      Par[1] *= p02_c[i1_c] + dt_c*(p02_c[i1_c+1]-p02_c[i1_c]);
+      Par[2] *= p03_c[i1_c] + dt_c*(p03_c[i1_c+1]-p03_c[i1_c]);
+      Par[3] *= p04_c[i1_c] + dt_c*(p04_c[i1_c+1]-p04_c[i1_c]);
+      Par[8] *= p09_c[i1_c] + dt_c*(p09_c[i1_c+1]-p09_c[i1_c]);
+      Par[9] *= p10_c[i1_c] + dt_c*(p10_c[i1_c+1]-p10_c[i1_c]);
+    }
+    else if(Charge<=7 && Charge>=2)
+    {
+      Par[1] *= gs02->Eval(Charge*Charge);
+      Par[2] *= gs03->Eval(Charge*Charge);
+      Par[3] *= gs04->Eval(Charge*Charge);
+      Par[8] *= gs09->Eval(Charge*Charge);
+      Par[9] *= gs10->Eval(Charge*Charge);
+    }
+    else
+    {
+      dt_c = (Charge*Charge - ichrg[6])/(ichrg[7] - ichrg[6]);
+      Par[1] *= ip02_c[6] + dt_c*(ip02_c[7]-ip02_c[6]);
+      Par[2] *= ip03_c[6] + dt_c*(ip03_c[7]-ip03_c[6]);
+      Par[3] *= ip04_c[6] + dt_c*(ip04_c[7]-ip04_c[6]);
+      Par[8] *= ip09_c[6] + dt_c*(ip09_c[7]-ip09_c[6]);
+      Par[9] *= ip10_c[6] + dt_c*(ip10_c[7]-ip10_c[6]);
+    }
+    
 }
 
 Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidity)
@@ -1855,7 +1893,6 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
         Par7c=p7c[8]+(p7c[9]-p7c[8])*(Charge-20)/6;
     }
     DAmpL=DAmpL*(1+Par1r*TMath::Exp(-Par2r*Rigidity));
-    if(Par4c>1) Par4c=1;
     if(Charge>=3)
     {
         PDFValue=Par4c*TMath::Exp(-(DAmpL-Par1c)/Par2c-Par3c*TMath::Exp(-(DAmpL-Par1c)/Par2c/Par3c)) + (1-Par4c)*TMath::Exp(-(DAmpL-Par5c)/Par6c-Par7c*TMath::Exp(-(DAmpL-Par5c)/Par6c/Par7c));

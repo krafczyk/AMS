@@ -1051,7 +1051,7 @@ void TrdKCluster::CalculateTRDCharge(int Option)
     double QTRDLikelihood,QTRDLikelihoodMin;
     double BigNumber=100000000;
     QTRDLikelihoodMin=BigNumber;
-    for(double Z=1;Z<=35;Z=Z+1)
+    for(double Z=1;Z<=49;Z=Z+1)
     {
         QTRDLikelihood=GetTRDChargeLikelihood(Z,Option);
         if(QTRDLikelihood>BigNumber) continue;
@@ -1250,8 +1250,8 @@ void TrdKCluster::HitSelectionBeforeRefit(double DistanceCut)
         TRDLayer=(*it).TRDHit_Layer;
         Distance=fabs((*it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir));
 
-        //Remove distance > DistanceCutBig and ADC <0
-        if(Distance>DistanceCut || ADC<0) continue;
+        //Remove distance > DistanceCutBig and ADC <= 0
+        if(Distance>DistanceCut || ADC<=0) continue;
 
         QTRDHitCollection.push_back(*it);
 
