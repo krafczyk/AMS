@@ -11,6 +11,7 @@
  *  SDT 16 aug 2012 - add FT_modulus function
  *  SDT 11 sept 2012 - implements few correction from AL
  *  SDT 11 sept 2012 - correct output range of galactic to celestial (and Viceversa) longitude (and RA)
+ *  SDT 18 sept 2012 - correct typos err in FT_Gal2Equat and FT_Equat2Gal
  */
 
 #include <iostream>
