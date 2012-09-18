@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxicc26,v 1.7 2012/09/18 11:02:09 choutko Exp $
+#  $Id: Makefile.linuxicc26,v 1.8 2012/09/18 11:56:22 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -66,7 +66,8 @@ endif
 
 ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
-IDLCPP=orbit-idl-2 --backenddir=$(AMSDEPLIB)/lib/orbit-2.0/idl-backends -l cpp
+IDLCPP=$(ORBIT2DIR)/bin/orbit-idl-2 -l cpp --backenddir=$(ORBIT2DIR)/lib/orbit-2.0/idl-backends
+
 
 
 ########################################################################
