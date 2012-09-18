@@ -89,12 +89,9 @@ endif
 
 
 ORBIT2DIR=$(AMSDEPLIB)/Orbit2
-IDL=/usr/bin/orbit-idl-2
-ifndef SLC6system
-  IDLCPP=$(IDL) -l cpp
-else
-  IDLCPP=$(IDL) --backenddir=$(ORBIT2DIR)/idl-backends -l cpp
-endif
+IDL=$(ORBIT2DIR)/bin/orbit-idl-2
+IDLCPP=orbit-idl-2 --backenddir=$(AMSDEPLIB)/lib/orbit-2.0/idl-backends -l cpp
+
 
 
 ########################################################################

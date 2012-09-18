@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxicc26,v 1.6 2012/09/13 16:08:06 mkrafczy Exp $
+#  $Id: Makefile.linuxicc26,v 1.7 2012/09/18 11:02:09 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -64,9 +64,9 @@ endif
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 
-ORBIT2DIR=/opt/Orbit2
+ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
-IDLCPP=orbit-idl-2 -l cpp
+IDLCPP=orbit-idl-2 --backenddir=$(AMSDEPLIB)/lib/orbit-2.0/idl-backends -l cpp
 
 
 ########################################################################
@@ -219,7 +219,7 @@ LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2 -lrt 
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
 
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
 
