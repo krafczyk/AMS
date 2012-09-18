@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.221 2012/09/18 08:20:05 ams Exp $
+#  $Id: Makefile,v 1.222 2012/09/18 09:47:12 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -968,46 +968,46 @@ cleanlibs:
 	cd ../python; gmake clean
 	cd ../install
 all:
-	$(MAKE) -j4 
-	$(MAKE) -j4 lib 
-	$(MAKE) -j4 gxint
-	$(MAKE) -i7 producer
-	$(MAKE) -j4 -C../online
-	$(MAKE) -j4 -C../online osdepend
-	$(MAKE) -j4 -C../display
-	$(MAKE) -j4 -C../display osdepend
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
+	$(MAKE) -i producer
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
 allg4:
-	$(MAKE) -j4 
-	$(MAKE) -j4 lib 
-	$(MAKE) -j4 gxint
-	$(MAKE) -j4 -i producer
-	$(MAKE) -j4 -C../online
-	$(MAKE) -j4 -C../online osdepend
-	$(MAKE) -j4 -C../display
-	$(MAKE) -j4 -C../display osdepend
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
+	$(MAKE) -j -i producer
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
 ifndef SLC6system
-	$(MAKE) -j4 -f Moptg4
-	$(MAKE)  producer -f Moptg4 -i -j4 
+	$(MAKE) -j -f Moptg4
+	$(MAKE)  producer -f Moptg4 -i -j 
 endif
 allp:
-	$(MAKE) -j4 
-	$(MAKE) -j4 lib 
-	$(MAKE) -j4 gxint
-	$(MAKE) -j4 -i producer
-	$(MAKE) -j4 -C../online
-	$(MAKE) -j4 -C../online osdepend
-	$(MAKE) -j4 -C../display
-	$(MAKE) -j4 -C../display osdepend
-	$(MAKE) -j4 server
-allold:
-	$(MAKE) -j4 
-	$(MAKE) -j4 lib 
-	$(MAKE) -j4 -i producer
-	$(MAKE) -j4 -f Makefastntrdicc
-	$(MAKE) -j4 -C../online
-	$(MAKE) -j4 -C../online osdepend
-	$(MAKE) -j4 -C../display
-	$(MAKE) -j4 -C../display osdepend
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
+	$(MAKE) -j -i producer
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
+	$(MAKE) -j server
+allold
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j -i producer
+	$(MAKE) -j -f Makefastntrdicc
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
 
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
