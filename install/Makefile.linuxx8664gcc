@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.18 2012/09/18 08:20:06 ams Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.19 2012/09/18 09:33:21 ams Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -19,7 +19,7 @@ endif
 IMPORTS_SLC5_LIBS=
 ifdef SLC6system
   IMPORTS_SLC5_LIBS= -L$(AMSDEPLIB)/lib64
-  DEFINES+=  -D__LINUXSLC6___
+  DEFINES+=  -D__LINUXSLC6__
 endif
 ifndef 
   IMPORTS_X11R6= $(AMSDEPLIB)/X11R6
