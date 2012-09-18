@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.107 2012/09/18 11:37:38 choutko Exp $
+#  $Id: Makefile,v 1.108 2012/09/18 11:42:41 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -57,7 +57,7 @@ GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
 ifeq ($(GCC_VER_MAJOR),4) 
 VERGCC :=1
 ifeq ($(GCC_VER_MIDDLE),4) 
-VERGCCHi := 1
+VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),5)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),6)
