@@ -92,8 +92,6 @@ ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
 IDLCPP=$(ORBIT2DIR)/bin/orbit-idl-2 -l cpp --backenddir=$(ORBIT2DIR)/lib/orbit-2.0/idl-backends
 
-
-
 ########################################################################
 # Libraries
 ########################################################################
