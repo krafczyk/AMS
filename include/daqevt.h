@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.94 2012/08/17 13:56:04 mkrafczy Exp $
+//  $Id: daqevt.h,v 1.95 2012/09/18 08:32:05 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -216,11 +216,7 @@ protected:
     for (int i=0;i<sizeof(_CalibDataS)/sizeof(_CalibDataS[0]);i++)_CalibDataS[i]=0;
     _CalibDataS[sizeof(_CalibDataS)/sizeof(_CalibDataS[0])-1]=run;
   }
-#ifdef __LINUXGNU__
-  static integer _select(const dirent64 * entry=0);
-  static int _sort(const dirent64 **e1, const dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
-#endif
-#ifdef __LINUXNEW__
+#if (defined  __LINUXNEW__ || defined  __LINUXGNU__)
   static integer _select(const dirent64 * entry=0);
   static int _sort(const dirent64 **e1, const dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
