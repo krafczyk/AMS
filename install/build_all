@@ -18,7 +18,7 @@ unsetenv PGTRACK
 setenv ECALBDT 1
 source $PREFIX/amsvar$TESTFLAG.icc64
 source  $PREFIX/g4i$TESTFLAG.icc64
-gmake allg4
+gmake all
 source  $PREFIX/amsvar$TESTFLAG.gcc64
 gmake allp
 gmake server
@@ -30,17 +30,17 @@ gmake producer -i
 unsetenv MARCH
 source  $PREFIX/amsvar$TESTFLAG.gcc32
 source  $PREFIX/g4i$TESTFLAG.gcc32
-gmake allg4
+gmake all
 gmake server
 
 setenv PGTRACK 1
 source  $PREFIX/amsvar$TESTFLAG.icc64
 source  $PREFIX/g4i$TESTFLAG.icc64
-gmake allg4
+gmake all
 echo "here"
 source  $PREFIX/amsvar$TESTFLAG.gcc32
 source  $PREFIX/g4i$TESTFLAG.gcc32
-gmake allg4
+gmake all
 source  $PREFIX/amsvar$TESTFLAG.gcc64
 source  $PREFIX/g4i$TESTFLAG.gcc64
 gmake allp
@@ -54,8 +54,8 @@ setenv PGTRACK 1
 setenv G4AMS 1
 source $PREFIX/amsvar$TESTFLAG.icc64
 source $PREFIX/g4i$TESTFLAG.icc64
-gmake  -j
-gmake producer -i
+#gmake  -j
+#gmake producer -i
 unsetenv G4AMS
 unsetenv PGTRACK
 
