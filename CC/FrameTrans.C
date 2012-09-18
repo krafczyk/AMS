@@ -473,7 +473,7 @@ int  FT_Equat2Gal(double &azimut, double &elev){
  elev=b;
 // SDT(sept2012) check if  galactic longitude is in the range [-180:180]
  if (l>pi){ //if longitude is >180deg then substract 360deg
- b+=-twopi;
+ l+=-twopi;
  }
  return 1;
  
@@ -501,7 +501,7 @@ int  FT_Gal2Equat(double &azimut, double &elev){
  elev=Dec;
  // SDT(sept2012) check if  right ascension is in the range [-180:180]
  if (RA>pi){ //if RA is >180deg then substract 360deg
- b+=-twopi;
+ RA+=-twopi;
  }
  return 1;
  
