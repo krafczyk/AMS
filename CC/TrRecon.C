@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.153.4.3 2012/06/07 07:55:25 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.153.4.4 2012/09/18 05:47:04 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/06/07 07:55:25 $
+/// $Date: 2012/09/18 05:47:04 $
 ///
-/// $Revision: 1.153.4.3 $
+/// $Revision: 1.153.4.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2617,7 +2617,18 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       }
       */
       }
-    }
+
+#ifndef __ROOTSHAREDLIBRARY__
+      AMSgObj::BookTimer.start("TrTrack3Extension");
+#endif
+      
+      // extend the tracks to the external planes
+      MergeExtHits(track, track->Gettrdefaultfit(), select_tag);
+
+#ifndef __ROOTSHAREDLIBRARY__
+      AMSgObj::BookTimer.stop("TrTrack3Extension");
+#endif
+    }  // ENDOF: if (ProcessTrack(track, 0, select_tag) > 0) {
     
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.stop ("TrTrack2Build");
@@ -2626,17 +2637,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
     if (ntrack >= RecPar.MaxNtrack) break;
     tracks_simple_stat[6]++;
 
-#ifndef __ROOTSHAREDLIBRARY__
-    AMSgObj::BookTimer.start("TrTrack3Extension");
-#endif
-      
-    // extend the tracks to the external planes
-    MergeExtHits(track, track->Gettrdefaultfit(), select_tag);
-
-#ifndef __ROOTSHAREDLIBRARY__
-    AMSgObj::BookTimer.stop("TrTrack3Extension");
-#endif
-    
   } // ENDOF: for (int jc = 0; jc < NC; jc++)
   
   tracks_simple_stat[7] = ntrack;
