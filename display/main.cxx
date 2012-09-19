@@ -1,8 +1,9 @@
-//  $Id: main.cxx,v 1.57 2011/09/27 23:48:20 pzuccon Exp $
+//  $Id: main.cxx,v 1.58 2012/09/19 08:41:38 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
 #include <TFile.h>
+#include <TChainElement.h>
 #include <TTree.h>
 #include <TCanvas.h>
 #include <TGeometry.h>
@@ -433,11 +434,16 @@ void OpenChain(AMSChain & chain, char * filenam){
            if(init==0){
             init=1;
             TObjString s("");
-            TFile * rfile=TFile::Open(filename,"READ");
+             TObjArray* arr=chain.GetListOfFiles();
+            TIter next(arr);
+            TChainElement* el=(TChainElement*) next();
+            if(el){
+            TFile * rfile=TFile::Open(el->GetTitle(),"READ");
             if(rfile){
               s.Read("DataCards");
               cout <<s.String()<<endl; 
             }
+           }
            }
     }
      }

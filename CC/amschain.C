@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.60 2012/09/10 08:27:26 choutko Exp $
+//  $Id: amschain.C,v 1.61 2012/09/19 08:41:35 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -937,8 +937,11 @@ Int_t AMSChain::Add(const char* name, Long64_t nentries){
             TIter next(arr);
             while(el=(TChainElement*) next()){
                string title=el->GetTitle();
-               title+=aname.c_str();
-               el->SetTitle(title.c_str());
+               int pos=title.find(aname);
+               if(pos<0){
+                 title+=aname.c_str();
+                 el->SetTitle(title.c_str());
+               }
  //              cout <<" title "<<el->GetTitle()<<endl;
              }
         }

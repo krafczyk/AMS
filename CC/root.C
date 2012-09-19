@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.444 2012/09/13 16:08:05 mkrafczy Exp $
+//  $Id: root.C,v 1.445 2012/09/19 08:41:36 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7736,21 +7736,25 @@ double  AMSEventR::SolidAngleInShadow(double AMSfov0){
 
 }
 //----------------------------------------------------------------------
-  
-char * HeaderR::Info(unsigned long long status){
-	if(Pitch==0 && Yaw==0 && Roll==0){
-		int ret=getISSAtt();
-	}
-	double  cb = cos(Pitch);
-	double  sb = sin(Pitch);
-	double  cg = cos(Roll);
-	double  sg = sin(Roll);
+double HeaderR::Zenith(){
 
-	const float angle=12./180*3.1415926;
-	double crp=cos(angle);
-	double srp=sin(angle);     
-	double cams=(sg*cb*srp+cg*cb*crp);
-	cams=acos(cams)*180/3.1415926; 
+        if(Pitch==0 && Yaw==0 && Roll==0){
+                int ret=getISSAtt();
+        }
+        double  cb = cos(Pitch);
+        double  sb = sin(Pitch);
+        double  cg = cos(Roll);
+        double  sg = sin(Roll);
+
+        const float angle=12./180*3.1415926;
+        double crp=cos(angle);
+        double srp=sin(angle);
+        double cams=(sg*cb*srp+cg*cb*crp);
+        cams=acos(cams)*180/3.1415926;
+        return cams;
+}  
+char * HeaderR::Info(unsigned long long status){
+	double cams=Zenith(); 
 	unsigned int comp=0;
 	unsigned long long one=1;
 	char bits[66];

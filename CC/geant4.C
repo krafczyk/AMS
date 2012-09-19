@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.95 2012/09/10 10:04:31 choutko Exp $
+//  $Id: geant4.C,v 1.96 2012/09/19 08:41:36 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -388,6 +388,17 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 //   cout <<" guout in"<<endl;
    if(AMSJob::gethead()->isSimulation()){
    AMSgObj::BookTimer.stop("GEANTTRACKING");
+ {
+    float xx,yy;
+    TIMEX(xx);
+    TIMEL(yy);
+    if(GCTIME.TIMEND < xx || (yy>0 && yy<AMSFFKEY.CpuLimit) ){
+      GCFLAG.IEORUN=1;
+      GCFLAG.IEOTRI=1;
+      GCTIME.ITIME=1;
+    }
+  }
+
     struct mallinfo m=mallinfo();
    static unsigned int minit=0;
     unsigned int mall=m.uordblks+m.arena;

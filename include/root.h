@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.471 2012/09/13 22:57:18 qyan Exp $
+//  $Id: root.h,v 1.472 2012/09/19 08:41:41 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -246,6 +246,7 @@ static char _Info[1024];
    float B3b;   ///< ISS Solar Array Beta (rad)
 
  public:
+    double Zenith();///< \return angle betwen ams z axis and zenith in degrees
    //--------DSP Errors-----------------------
    /// Access function to DSPError object
    /// \return pointer to DSPError object (if current event time is affected by a DSP error) or 0

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.745 2012/09/17 08:35:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.746 2012/09/19 08:41:43 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1143,7 +1143,8 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "SERVERNO", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
+       my @farray=("TOTALEVENTS","RUNMIN", "SERVERNO", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN","THREADS");
+          $template->{THREADS}=1;   
           $template->{TAG}=-1;   
           $template->{RUNMIN}=0;   
           $template->{RUNMAX}=4000000000;   
@@ -1178,7 +1179,7 @@ if($#{$self->{DataSetsT}}==-1){
 
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG" and $ent ne "SERVERNO")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG" and $ent ne "SERVERNO" and $ent ne "THREADS")){
                $template->{initok}=undef;
              }
            }
@@ -6201,7 +6202,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
              my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
              my $time=time();
              my $citedesc = "new cite";
-             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time,0,'0')";
+             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',0,$time,'0',0,1)";
              $self->{sqlserver}->Update($sql);
 
             }
@@ -6287,7 +6288,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
 # 4.12.03 $MAX_CITES changed from 16 to 32
 #            my $run=(($cid-1)<<27)+1;
              my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
-             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time,0,'0')";
+             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',0,$time,'0',0,1)";
              $self->{sqlserver}->Update($sql);
 # add responsible
              $sql="select MAX(mid) from Mails";
@@ -7434,7 +7435,10 @@ print qq`
                 $templatebuffer=$tmp->{filebody};
                 $templatehost=$tmp->{HOST};
                 $templateprio=$tmp->{PRIO};
-                $q->param("QSINGLEJOB",$dataset->{singlejob});
+                if(defined $tmp->{THREADS}){
+                $q->param("TTHREADS", $tmp->{THREADS});
+                }
+                $q->param("TFILENAME",$template);
                 if(not defined $q->param("QCPUPEREVENT")){
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
@@ -8037,7 +8041,15 @@ print qq`
          my $nickname=$q->param("QNick");
          $buf=~ s/JOB=/NICKNAME=$nickname \nJOB=/;
          $buf=~ s/JOB=/DATASETNAME=$dataset->{name} \nJOB=/;
-         $buf=~ s/JOB=/CPUTIME=$cpus \nJOB=/;
+         if(defined $q->param("TFILENAME")){
+         my @junk=split '\.',$q->param("TFILENAME");
+         $buf=~ s/JOB=/JOBNAME=$junk[0] \nJOB=/;
+         }
+         if(defined $q->param("TTHREADS")){
+         my $threads=$q->param("TTHREADS");
+         $buf=~ s/JOB=/THREADS=$threads \nJOB=/;
+         }
+          $buf=~ s/JOB=/CPUTIME=$cpus \nJOB=/;
          my $rootntuple=$q->param("RootNtuple");
 if(defined $dataset->{buildno} ){
     if($self->{Build}<0){
@@ -12850,7 +12862,17 @@ sub PrintDownloadTable {
     }
     print "<br><br>\n";
      print "<font color=#8b1a1a size=\"6\"><b> All executibles can also be found in /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux </b></font>\n";
+    
     print "<br><br>\n";
+     print "<font color=#8b1a1a size=\"5\"><b>To  download directly from outside CERN use </b></font>\n";
+    print "<br><br>\n";
+     print "<font color=#8b1a1a size=\"5\"><b>
+ssh my_user_name_at_lxplus\@lxplus.cern.ch -L20000:pcamss0.cern.ch:80 -N  </b></font>\n";
+    print "<br><br>\n";
+     print "<font color=#8b1a1a size=\"5\"><b>
+wget 'http://localhost:20000/file_name'  </b></font>\n";
+    print "<br><br>\n";
+
 #
 ##ams02mcdb tar
     my $download = 1;
@@ -17035,7 +17057,8 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN",  "SERVERNO", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
+       my @farray=("TOTALEVENTS","RUNMIN",  "SERVERNO", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN","THREADS");
+          $template->{THREADS}=1;   
           $template->{TAG}=-1;   
           $template->{RUNMIN}=0;   
           $template->{EVENTMIN}=1;   
@@ -17064,7 +17087,7 @@ sub calculateMipsVC {
        }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG" and $ent ne "SERVERNO")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG" and $ent ne "SERVERNO" and $ent ne "THREADS")){
                $template->{initok}=undef;
              }
            }
