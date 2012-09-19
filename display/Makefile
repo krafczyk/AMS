@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.108 2012/09/18 11:42:41 choutko Exp $
+#  $Id: Makefile,v 1.109 2012/09/19 16:30:02 mkrafczy Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -202,10 +202,10 @@ OPT           = -g
 NOOPT         = -g 
 
 LD            = g++ -m32
-LDFLAGS       = -g 
+LDFLAGS       = -g -Wl,--no-as-needed
 LDS	= 	$(LD) -static
 LD            = g++ -m32
-LDFLAGS       = -g 
+LDFLAGS       = -g -Wl,--no-as-needed
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 ifdef PGTRACK
@@ -242,10 +242,10 @@ OPT           = -g
 NOOPT         = -g
 
 LD            = g++ 
-LDFLAGS       = -g 
+LDFLAGS       = -g -Wl,--no-as-needed
 LDS	= 	$(LD) -static
 LD            = g++ 
-LDFLAGS       = -g 
+LDFLAGS       = -g -Wl,--no-as-needed
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 ifdef PGTRACK

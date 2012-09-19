@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.20 2012/09/18 11:56:22 choutko Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.21 2012/09/19 16:30:03 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -233,7 +233,7 @@ SHLDFLAGS=
 # Library list 
 TIMEL=
 
-LDFLAGSI= -static $(G4LIBS) $(FORTRAN2_LIBS) \
+LDFLAGSI= -static -Wl,--no-as-needed$(G4LIBS) $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS) \
@@ -242,7 +242,7 @@ LDFLAGSI= -static $(G4LIBS) $(FORTRAN2_LIBS) \
 $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre -lncurses -lcrypt -lssl  -lcom_err -lresolv  \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
-LDFLAGS=   $(G4LIBS)   $(FORTRAN2_LIBS) \
+LDFLAGS= -Wl,--no-as-needed  $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB)\
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIRLIB) $(CERNLIBS) \
@@ -257,7 +257,7 @@ ifdef WEBACCESS
   LDFLAGS+= -lcurl
 LDFLAGSSTATIC:=    $(LDFLAGS) -pthread 
 else
-LDFLAGSSTATIC:=  -static  $(LDFLAGS) $(RH9add) 
+LDFLAGSSTATIC:=  -static $(LDFLAGS) $(RH9add) 
 endif
 
 #--------------------------------------------------------------------------------------------------
@@ -268,7 +268,7 @@ TIMEL=
 
 LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
 
-LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
+LDFLAGSSTATICIDL= -static -Wl,--no-as-needed $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
 
 CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
