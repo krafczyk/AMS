@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.109 2012/09/19 16:30:02 mkrafczy Exp $
+#  $Id: Makefile,v 1.110 2012/09/19 17:04:15 mkrafczy Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -104,7 +104,10 @@ else
 LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 endif
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lRCastor -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ifndef NOCASTOR
+ROOTLIBS += -lRCastor
+endif
 ifndef NOXROOTD
 ROOTLIBS     += -lNetx 
 endif
@@ -149,7 +152,10 @@ endif
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS  =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lRCastor -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS  =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ifndef NOCASTOR
+ROOTLIBS += -lRCastor
+endif
 ifndef NOXROOTD
 ROOTLIBS += -lNetx
 endif
@@ -182,8 +188,12 @@ LDS	= 	$(LD)
 LDD	= 	$(LD) 
 
 
-ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lRCastor -lTreePlayer
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lRCastor -lTreePlayer
+ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer
+ifndef NOCASTOR
+ROOTLIBSA += -lRCastor
+ROOTLIBS += -lRCastor
+endif
 ifndef NOXROOTD
 ROOTLIBSA += -lNetx
 ROOTLIBS += -lNetx
@@ -215,7 +225,10 @@ LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_gcc32/2005/lib -lgeant321
 endif
 
 
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lRCastor -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ifndef NOCASTOR
+ROOTLIBS += -lRCastor
+endif
 ifndef NOXROOTD
 ROOTLIBS += -lNetx 
 endif
@@ -259,7 +272,10 @@ else
   LFORT =  -L$(CERNDIRLIB) -lgeant321 -lpacklib -lmathlib -lkernlib  -lgfortran
 endif
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lTreePlayer -lRCastor -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ifndef NOCASTOR
+ROOTLIBS += -lRCastor
+endif
 ifndef NOXROOTD
 ROOTLIBS     += -lNetx
 endif
