@@ -826,8 +826,12 @@ class RemoteClient:
         self.setprocessingflag(0,timenow,1)
         if(self.delete):
             for run in self.dbclient.rtb:
+                interrupt=self.isinterrupt()
+                if(interrupt):
+                        run2p=1
                 if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p) and not(run2p/10000000000>0 and run.Run<=(run2p%10000000000))):
                     continue
+        
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
                     uid=run.uid;
@@ -1608,6 +1612,17 @@ class RemoteClient:
         if(self.mt):
               exitmutexes[run.Run].acquire()
 
+    def isinterrupt(self):
+        sql="select interrupt from filesprocessing "
+        r4=self.sqlserver.Query(sql)
+        interrupt=0
+        if(len(r4)>0):
+                interrupt=r4[0][0]
+        if(interupt>0):
+                sql="update filesprocessing set interrupt=0"
+                self.sqlserver.Update(sql)                
+                self.sqlserver.Commit()  
+        return interrupt              
     def setprocessingflag(self,flag,timenow,which):
         sql="Update FilesProcessing set flag="+str(flag)+",timestamp="+str(timenow)
         if(which==1):
