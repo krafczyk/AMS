@@ -39,6 +39,13 @@ class DBSQLServer:
     def Query(self,string):
         self.dbcursor.execute(string)
         return self.dbcursor.fetchall()
+    def QuerySafe(self,string):
+        try:
+            self.dbcursor.execute(string)
+            return self.dbcursor.fetchall()
+        except cx_Oracle.Error,e:
+            print e
+            return None
     def Update(self,string):
 	try:
             return self.dbcursor.execute(string)

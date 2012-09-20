@@ -618,6 +618,7 @@ class RemoteClient:
         self.bad=0
         self.unchecked=0
         self.gbDST=0
+        self.run2p=run2p
         timenow=int(time.time())
         global rflag
         rglag=0
@@ -751,6 +752,7 @@ class RemoteClient:
         maxt=5
         rtb_tuples=sorted(self.dbclient.rtb,key=lambda rtb: rtb.Run,reverse=True)
         for run in rtb_tuples:
+            run2p=self.run2p
             if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p) and not(run2p/10000000000>0 and run.Run<=(run2p%10000000000))):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
@@ -826,9 +828,6 @@ class RemoteClient:
         self.setprocessingflag(0,timenow,1)
         if(self.delete):
             for run in self.dbclient.rtb:
-                interrupt=self.isinterrupt()
-                if(interrupt):
-                        run2p=1
                 if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p) and not(run2p/10000000000>0 and run.Run<=(run2p%10000000000))):
                     continue
         
@@ -993,6 +992,9 @@ class RemoteClient:
         outputpath=None
 	copyfailed=0
 	runupdate="update runs set "
+        interrupt=self.isinterrupt()
+        if(interrupt):
+            self.run2p=1
         ro=self.sqlserver.Query("select run, status from runs where run="+str(run.Run))
         if(len(ro)==0):
             self.InsertRun(run)
@@ -1298,7 +1300,7 @@ class RemoteClient:
     def validatedatarun(self,run):
         datamc=run.DataMC
         mutex.acquire()
-        #print "run started ",run.Run,run.uid
+        # print "run started ",run.Run,run.uid
         odisk=None
         rmdir=""
         rmcmd=[]
@@ -1308,6 +1310,10 @@ class RemoteClient:
         timestamp=int(time.time())
         outputpath=None
 	copyfailed=0
+        interrupt=self.isinterrupt()
+        #print "interrupt ",interrupt
+        if(interrupt):
+            self.run2p=1
         ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
         if(len(ro)==0):
             self.InsertDataRun(run)
@@ -1614,11 +1620,12 @@ class RemoteClient:
 
     def isinterrupt(self):
         sql="select interrupt from filesprocessing "
-        r4=self.sqlserver.Query(sql)
+        r4=self.sqlserver.QuerySafe(sql)
         interrupt=0
-        if(len(r4)>0):
+        if(r4!=None and len(r4)>0):
                 interrupt=r4[0][0]
-        if(interupt>0):
+        if(interrupt>0):
+                print " interrupted because interrupt is ",interrupt
                 sql="update filesprocessing set interrupt=0"
                 self.sqlserver.Update(sql)                
                 self.sqlserver.Commit()  
