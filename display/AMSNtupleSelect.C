@@ -2,7 +2,8 @@
 #include "AMSNtupleHelper.h"
 #include "../include/root_setup.h"
 #include "../include/DynAlignment.h"
-#include <fstream.h>
+#include "../include/TrInnerDzDB.h"
+#include <fstream>
 #include "../include/TrdSCalib.h"
 #include "../include/TrdKCluster.h"
  AMSNtupleHelper * fgHelper=0;
@@ -34,8 +35,9 @@ return true;
 }
 else return false;
 */
-DynAlManager::ignoreAlignment=true;
-if(ev && ev->nParticle()  && ev->Particle(0).iTrdTrack()>=0&& ev->Particle(0).iTrTrack()>=0 && ev->nTrdTrack()==1 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>100 )
+//DynAlManager::ignoreAlignment=true;
+TrInnerDzDB::ForceFromTDV=1;
+if(ev && ev->nParticle()  && ev->Particle(0).iTrdTrack()>=0&&   ev->nTrdTrack()==1 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>0 )
 {
 int ret=-1;
 int ret2=-1;

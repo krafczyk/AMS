@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.93 2012/08/29 10:27:53 mduranti Exp $
+//  $Id: root_setup.C,v 1.94 2012/09/20 14:12:45 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1125,15 +1125,20 @@ return fScalersReturn.size();
 
 
 int AMSSetupR::LoadAMSSTK(unsigned int t1, unsigned int t2){
-
-  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/STK/";
+   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char postfix[]="/altec/";
+   char * AMSDataDir=getenv("AMSDataDir");
+   if (AMSDataDir && strlen(AMSDataDir)){
+     AMSISSlocal=AMSDataDir;
+   }
   
-  char * AMSDataDir=getenv("AMSDataDir");
-  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/STK/");
-  
-  char * AMSISS=getenv("AMSISS");
-  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
-
+  AMSISSlocal+=postfix;
+  const char * AMSISS=getenv("AMSISS");
+   if (AMSISS && strlen(AMSISS)){ 
+    AMSISSlocal=AMSISS;   
+   }  
+ AMSISSlocal+="STK/";
+ AMSISS=AMSISSlocal.c_str();
 if(t1>t2){
 cerr<< "AMSSetupR::LoadAMSSTK-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
 return 2;
@@ -1303,13 +1308,18 @@ return ret;
 
 int AMSSetupR::LoadISSAtt(unsigned int t1, unsigned int t2){
 
-  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
+   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char postfix[]="/altec/";
+   char * AMSDataDir=getenv("AMSDataDir");
+   if (AMSDataDir && strlen(AMSDataDir)){
+     AMSISSlocal=AMSDataDir;
+   }
   
-  char * AMSDataDir=getenv("AMSDataDir");
-  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/");
-  
-  char * AMSISS=getenv("AMSISS");
-  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
+  AMSISSlocal+=postfix;
+  const char * AMSISS=getenv("AMSISS");
+   if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
+
+
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSAtt-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -2225,13 +2235,19 @@ return 0;
 
 int AMSSetupR::LoadISSSA(unsigned int t1, unsigned int t2){
 
-  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
+
+   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char postfix[]="/isssa/";
+   char * AMSDataDir=getenv("AMSDataDir");
+   if (AMSDataDir && strlen(AMSDataDir)){
+     AMSISSlocal=AMSDataDir;
+   }
   
-  char * AMSDataDir=getenv("AMSDataDir");
-  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/isssa/");
-  
-  char * AMSISS=getenv("AMSISSSA");
-  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
+  AMSISSlocal+=postfix;
+  const char * AMSISS=getenv("AMSISSSA");
+   if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
+
+
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSSA-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -2382,13 +2398,17 @@ return ret;
 
 int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
 
-  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
+   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char postfix[]="/isssa/";
+   char * AMSDataDir=getenv("AMSDataDir");
+   if (AMSDataDir && strlen(AMSDataDir)){
+     AMSISSlocal=AMSDataDir;
+   }
   
-  char * AMSDataDir=getenv("AMSDataDir");
-  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/isssa/");
-  
-  char * AMSISS=getenv("AMSISSSA");
-  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
+  AMSISSlocal+=postfix;
+  const char * AMSISS=getenv("AMSISSSA");
+   if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
+
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSCTRS-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -2571,13 +2591,17 @@ return ret;
 
 int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
 
-  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
-
-  char * AMSDataDir=getenv("AMSDataDir");
-  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/");
+   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char postfix[]="/altec/";
+   char * AMSDataDir=getenv("AMSDataDir");
+   if (AMSDataDir && strlen(AMSDataDir)){
+     AMSISSlocal=AMSDataDir;
+   }
   
-  char * AMSISS=getenv("AMSISS");
-  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
+  AMSISSlocal+=postfix;
+  const char * AMSISS=getenv("AMSISS");
+   if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
+
 
   if (t1>t2) {
     cerr<< "AMSSetupR::LoadGPSWGS84-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -2730,13 +2754,17 @@ int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
 
 int AMSSetupR::LoadISSGTOD(unsigned int t1, unsigned int t2){
 
-  char AMSISSlocal[256]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
-
-  char * AMSDataDir=getenv("AMSDataDir");
-  if (!AMSDataDir || !strlen(AMSDataDir)) strcat(AMSISSlocal, "/altec/");
+   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char postfix[]="/altec/";
+   char * AMSDataDir=getenv("AMSDataDir");
+   if (AMSDataDir && strlen(AMSDataDir)){
+     AMSISSlocal=AMSDataDir;
+   }
   
-  char * AMSISS=getenv("AMSISS");
-  if (!AMSISS || !strlen(AMSISS)) AMSISS=AMSISSlocal;
+  AMSISSlocal+=postfix;
+  const char * AMSISS=getenv("AMSISS");
+   if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
+
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadISSGTOD-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;

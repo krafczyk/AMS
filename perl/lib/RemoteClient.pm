@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.746 2012/09/19 08:41:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.747 2012/09/20 14:12:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -750,6 +750,9 @@ jjid=datafiles.run and datafiles.type like '%MC%'  and jpid=productionset.did an
         }
         if($max_jobs <= 0){
             $max_jobs = 0;
+            if(int($self->{CCTP})>10){
+             $max_jobs=$capacity_jobs;
+            }
         }
           }
         }
@@ -8085,7 +8088,7 @@ if(defined $dataset->{buildno} ){
         my $bufb;
         read(FILEI,$bufb,1638400) or next;
         close FILEI;
-      $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+      $tmpb=~ s/TERM\n!/$bufb\nTERM\n!/;
 
     }
          if($self->{CCT} eq "local"){
@@ -8119,7 +8122,7 @@ if(defined $dataset->{buildno} ){
              my @gbc=split "\/", $gbatch;
 
           $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc].64 -$self->{IORP} -U$job  -M -D1 -G$aft -S$stalone/;
-      }
+}
          my $script="$self->{CCA}.$job.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
          "$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
@@ -8210,6 +8213,26 @@ if(defined $dataset->{buildno} ){
              }
 
              $buf=~ s/export/$ssbuf[0]\nexport/;
+             if($buf=~/walltime=/){
+                     my $thr=1;
+                      if(defined $q->param("TTHREADS")){
+                        $thr=$q->param("TTHREADS");
+                        if($thr>8){
+                          $thr=8;
+                         }
+                        if($thr<1){
+                          $thr=1;
+                         }
+                    }
+                     my $cpuperevent=0.1;
+                     my $totaltime=($levent-$fevent)*$cpuperevent/$thr;
+                     $totaltime=int($totaltime/3600)+1;
+                     if($totaltime<1){
+                         $totaltime=1;
+                     }
+                         $buf=~s/walltime=/walltime=$totaltime:0:0/;
+                 }
+
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
          }
@@ -9277,7 +9300,7 @@ if(defined $dataset->{buildno} ){
               $self->ErrorPlus("Unable to tar readme to $file2tar ");
           }
         unlink $readme;
-     }
+}
         for my $i (1 ... $runno){
          #find buffer and patch it accordingly
          my $evts=$evperrun;
@@ -9378,6 +9401,12 @@ if(defined $dataset->{buildno} ){
          my $nickname=$q->param("QNick");
          $buf=~ s/PART=/NICKNAME=$nickname \nPART=/;
          $buf=~ s/PART=/DATASETNAME=$dataset->{name} \nPART=/;
+         if(defined $q->param("TFILENAME")){
+         my @junk=split '\.',$q->param("TFILENAME");
+         $buf=~ s/JOB=/JOBNAME=$junk[0] \nJOB=/;
+         }
+         my $threads=$q->param("TTHREADS");
+         $buf=~ s/JOB=/THREADS=1 \nJOB=/;
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/;
          $rootntuple=$q->param("RootNtuple");
          if($tmpb =~/DAQC 1=10/){
@@ -9409,7 +9438,10 @@ if(defined $dataset->{buildno} ){
              my @gbc=split "\/", $gbatch;
 
           $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
-      }
+
+
+
+}
          my $script="$self->{CCA}.$run.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
          "$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
@@ -9503,6 +9535,13 @@ if(defined $dataset->{buildno} ){
              }
 
              $buf=~ s/export/$ssbuf[0]\nexport/;
+             if($buf=~/walltime=/){
+                     my $totaltime=int($cpus/3600)+1;
+                     if($totaltime<2){
+                         $totaltime=2;
+                     }
+                         $buf=~s/walltime=/walltime=$totaltime\:0\:0/;
+}
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
 }

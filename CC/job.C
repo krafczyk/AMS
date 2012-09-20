@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.894 2012/09/13 15:52:01 oliva Exp $
+// $Id: job.C,v 1.895 2012/09/20 14:12:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3828,9 +3828,16 @@ void AMSJob::_timeinitjob(){
 			     (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
     }
     else if (TFCAFFKEY.newslew==1) {
+      if(!isRealData() && G4FFKEY.TFNewGeant4>0 ){
+      TID.add (new AMSTimeID(AMSID("Tofbarcal3MCNew",isRealData()),
+			     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
+			     (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
+     }
+      else{
       TID.add (new AMSTimeID(AMSID("Tofbarcal3",isRealData()),
 			     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
 			     (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
+      }
     }
 
     end.tm_year=TFREFFKEY.year[1];
