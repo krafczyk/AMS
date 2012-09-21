@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.93 2012/06/25 02:58:34 qyan Exp $
+//  $Id: charge.C,v 1.94 2012/09/21 17:08:57 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -1017,8 +1017,8 @@ int AMSChargeTracker::Fill(int refit) {
 
   // AMSChargeTrackerInner
   if (_ID.CompareTo(AMSChargeTrackerInner::ClassID())==0) {
-    _Q = _ptrtk->GetInnerQ(beta);
-    _TruncatedMean = _ptrtk->GetInnerQ(1);
+    _Q = _ptrtk->GetQ(beta);
+    _TruncatedMean = _ptrtk->GetQ(1);
   }
   // AMSChargeTrackerUpper
   else if (_ID.CompareTo(AMSChargeTrackerUpper::ClassID())==0) {
@@ -1051,7 +1051,6 @@ int AMSChargeTracker::Fill(int refit) {
     // Compute Sum Probabilities for all charges & check
     _ProbSum=0;
     for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
-    if (_ProbSum<=0) return 0; // GetTruncMeanProbToBeZ failed? 
     // Sort Likelihoods  
     _i=sortlkhd();
     // Assign Most likely charge
