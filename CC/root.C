@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.445 2012/09/19 08:41:36 choutko Exp $
+//  $Id: root.C,v 1.446 2012/09/21 17:56:25 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8267,6 +8267,7 @@ int AMSEventR::IsBadRun(const char * reason){
 
 string ss(reason);
 if(!AMSEventR::getsetup())return 2;
+if(!AMSEventR::getsetup()->fHeader.Run)AMSEventR::getsetup()->fHeader.Run=Run();
 return AMSEventR::getsetup()->IsBadRun(ss,UTime());
 
 }
