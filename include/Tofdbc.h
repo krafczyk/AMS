@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.17 2012/09/13 19:52:30 qyan Exp $
+//  $Id: Tofdbc.h,v 1.18 2012/09/22 18:24:26 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -83,7 +83,7 @@ class TOFGeom{
 
   public:
    TOFGeom(){};
-   static bool      IsTrapezoid(int ilay,int ibar){return ((ibar==0)||(ibar==Nbar[ibar]));}
+   static bool      IsTrapezoid(int ilay,int ibar){return ((ibar==0)||(ibar==Nbar[ibar]-1));}
    static AMSPoint  GetBarCoo(int ilay,int ibar);
    static AMSPoint  GToLCoo(int ilay,int ibar,AMSPoint gpos);//Global To Local Coo
    static AMSPoint  LToGCoo(int ilay,int ibar,AMSPoint lpos);//Local To Global Coo
@@ -403,12 +403,12 @@ class TofCAlignPar: public TofTDVTool<float>{
      static const float ProEdep=1.67;//Proton Edep Norm to 1.67MeV
      static const int   RecMinPmD=2; //Min Dynode PM Requirement
      std::map<int, float>dycor; //id LBSP DynodeQ=dycor*Z^2/(1+birk*Z^2);
-     std::map<int, float>birk;  //id LB00 Birk Const
+     std::map<int, float>birk[2];  //id LB00 Birk Const
 //--Dynode PMT Resolution weight factor for Counter Edep Calculation//Tunning According to Carbon
      std::map<int, float>dypmw;
      std::map<int, float>ansat[nansat];
 //--default par 
-     static const float def_birk[TOFCSN::SCLRS][TOFCSN::SCMXBR];
+     static const float def_birk[2][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static const float def_dycor[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
      static const float def_dypmw[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
      static const float def_ansat[nansat][TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR];
@@ -441,6 +441,7 @@ class TofRecPar: public TofTDVTool<float>{
      static const  float BetaHReg[2];//Seach Region of TMatch LMatch(N Sigma)
      static const  int   BetaHMinL[2];//Min X+Y Match Layer//U+D Match Layer
      static const  float Dynodegate=5;//Dynode ADC should >5
+     static const  float AttLenLimit=50.;//Attenuation Correction Limit Length
 //---BetaH Self Recontruction Par
      static const  float PairQDA=6;//Pair Energy Match Using Anode when Q<6
      static const  float PairQgate=0.8;//Pair Min Energy Q 

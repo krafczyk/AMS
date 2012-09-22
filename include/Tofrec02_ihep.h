@@ -1,10 +1,11 @@
-//  $Id: Tofrec02_ihep.h,v 1.15 2012/09/13 22:57:18 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.16 2012/09/22 18:24:26 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
 #define __AMSTOFREC02_IHEP__
 #include "root.h"
 #include "TObject.h"
+#include "TF1.h"
 #ifndef __ROOTSHAREDLIBRARY__
 //////////////////////////////////////////////////////////////////////////
 class TOF2RawSide;
@@ -153,6 +154,12 @@ public:
   static number SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweight=1,bool minpmcut=1);
 /// Get Proton Anode Mip Adc for local lpos
   static number GetProMipAdc(int idsoft,number lpos);
+/// Birk Function
+  static TF1 *BirkFun;
+#pragma omp threadprivate (BirkFun)
+/// Birk Function
+  static TF1 *GetBirkFun(int idsoft);
+
 /**@}*/
 
 /** @name BetaH Build Part
