@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.75 2012/08/26 19:35:24 shaino Exp $
+//  $Id: TrFit.C,v 1.76 2012/09/22 12:16:30 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/08/26 19:35:24 $
+///$Date: 2012/09/22 12:16:30 $
 ///
-///$Revision: 1.75 $
+///$Revision: 1.76 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -533,8 +533,14 @@ int TrFit::GetLayer(double z)
       ilay = i+1;
     }
 
-  if (ilay == 0 && z >  100) ilay = 8;
-  if (ilay == 0 && z < -100) ilay = 9;
+  static int nerr = 0;
+  if (ilay == 0) {
+    if (z > 0) ilay = 8;
+    if (z < 0) ilay = 9;
+    if (nerr++ < 100)
+      cerr << "TrFit::GetLayer-E-Error layer not identified for z= "
+	   << z << " Assuming outer layers, ilay= " << ilay << endl;
+  }
 
   return ilay;
 }
