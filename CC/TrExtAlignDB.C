@@ -408,7 +408,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -1;
   }
-
+#ifdef __ROOTSHAREDLIBRARY__
 // PZ -- FIXME -- TO be removed and replaced by TDV entry with years validity and zero content
   static int nprint=0;
   if(time > 1337450000 ){
@@ -417,7 +417,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     SL9[0]=SL9[1]=SL9[2]=SL9[3]=SL9[4]=SL9[5]=0.;
     return 0;
   }
-
+#endif
   int errlim=100;
   static int nwar = 0;
   static int first=1;
