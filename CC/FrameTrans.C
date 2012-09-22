@@ -31,61 +31,119 @@ using namespace std;
 
 //~============================================================================
 
-int get_ams_ra_dec_fromGTOD(double PosISS[3], double VelISS[2], double ypr[3], double & ra, double &dec, double xtime){
-// SDT(aug2012) - generic trasformation from AMS frame to J2000 frame passing via GTOD (or ~ctrs)
+int get_ams_ra_dec_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[2], double ypr[3], double xtime){
+// SDT(sept2012) - generic trasformation from AMS frame to J2000 frame passing via GTOD (or ~ctrs)
+// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+// ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
 // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
 // VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
 // ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
-// ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
 // xtime     = UTC time (in unix format)
 
   
-  double x=0.; double y=0.; double z=1.;
+  double x=AMS_x; double y=AMS_y; double z=AMS_z;
   double r=1.;//dummy for check
   
-  FT_Angular2Cart(r,  dec,  ra,  x,  y,  z );
+
   FT_AMS2Body(x, y, z);
   FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);                                  // Parameters: ISSyaw,  ISSpitch,  ISSroll
   FT_LVLH2GTOD(x, y, z, PosISS[0], PosISS[1], PosISS[2] , VelISS[0], VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
   FT_GTOD2Equat(x, y, z, xtime);                                                  // Parameters: xtime is GPS
   FT_Cart2Angular(x, y, z,r, dec,  ra);
+  dec=dec*180./pi;
+  ra=ra*180./pi;
   return 0;
 }
 
-int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double ypr[3], double & Azim, double &Elev, double xtime){
-// SDT(aug2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
+int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, double &b, double PosISS[3], double VelISS[2], double ypr[3], double xtime){
+// SDT(sept2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
+// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+// l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
 // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
 // VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
 // ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
-// ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
 // xtime     = UTC time (in unix format)
   
-  double x=0.; double y=0.; double z=1.;
+  double x=AMS_x; double y=AMS_y; double z=AMS_z;
   double r=1.;//dummy for check
   double ra,dec;
-  double l,b;
-  
-  FT_Angular2Cart( r,  Elev,  Azim,  x,  y,  z );
+
   FT_AMS2Body(x,y,z);
   FT_Body2LVLH(x,y,z,ypr[0],ypr[1],ypr[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
   FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
   FT_GTOD2Equat(x,y,z,xtime);                                              // Parameters: xtime is GPS
   FT_Cart2Angular( x,  y,  z,r, dec,  ra);
   FT_Equat2Gal(ra, dec);
-  l=ra;
-  b=dec;
-  /* result */
-  Azim=l;
-  Elev=b;
-  
+   /* result */ 
+  l=ra*180./pi;
+  b=dec*180./pi;
   return 0;
 }
-/** **************** STAR TRACKER *************************/
 
-/* To Be Check */
 
-/** **************** GROUND SEGMENT   ************************/
 
+
+int get_ams_ra_dec_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, double & ra, double &dec, int CamID, double ST_RA, double ST_dec, double ST_Orient){
+// SDT(sept2012) - trasformation from AMS frame to J2000 frame using the star Tracker data
+// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+// ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
+// CamID               = Identifier of Camera, 0(Port Camera), 1(starBoard)
+// ST_RA               = J2000 Right Ascension of Star Tracker pointing direction in degree;
+// ST_dec              = J2000 Declination of Star Tracker pointing direction in degree; 
+// ST_Orient           = orientation of top of the CCD wrt the celestial north in degree.
+  double r;
+  ST_RA=ST_RA/180.*pi;
+  ST_dec=ST_dec/180.*pi; 
+  ST_Orient=ST_Orient/180.*pi; 
+  ST_AMS2ECI( AMS_x,  AMS_y,  AMS_z, CamID,  ST_RA,  ST_dec,  ST_Orient);
+  FT_Cart2Angular( AMS_x,  AMS_y,  AMS_z,r,  dec,  ra);
+  dec=dec*180./pi;
+  ra=ra*180./pi;
+  return 0;
+}
+
+int get_ams_l_b_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, double & l, double &b, int CamID, double ST_RA, double ST_dec, double ST_Orient){
+// SDT(sept2012) - trasformation from AMS frame to galactic frame using the star Tracker data
+// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+// l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
+// CamID               = Identifier of Camera, 0(Port Camera), 1(starBoard)
+// ST_RA               = J2000 Right Ascension of Star Tracker pointing direction in degree;
+// ST_dec              = J2000 Declination of Star Tracker pointing direction in degree; 
+// ST_Orient           = orientation of top of the CCD wrt the celestial north in degree.
+  double r,ra,dec;
+  ST_RA=ST_RA/180.*pi;
+  ST_dec=ST_dec/180.*pi; 
+  ST_Orient=ST_Orient/180.*pi; 
+  ST_AMS2ECI( AMS_x,  AMS_y,  AMS_z, CamID,  ST_RA,  ST_dec,  ST_Orient);
+  FT_Cart2Angular( AMS_x,  AMS_y,  AMS_z,r,  dec,  ra);
+  FT_Equat2Gal(ra, dec);
+  l=ra*180./pi;
+  b=dec*180./pi;
+  return 0;
+}
+
+int get_ams_ra_dec_from_ALTEC_INTL(double AMS_x, double AMS_y,double AMS_z, double & ra, double &dec, double ISSyaw,double ISSpitch, double ISSroll){
+// SDT(sept2012) - trasformation from AMS frame to J2000 frame using the star Tracker data
+// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+// ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
+// ISSyaw,ISSpitch,ISSroll= attitude Information from ALTEC INTL data, i.e. the attitude with respect the J2000 frame, in degree.
+  double r;//dummy
+  ISSyaw=ISSyaw/180.*pi;
+  ISSpitch=ISSpitch/180.*pi;
+  ISSroll=ISSroll/180.*pi;
+  FT_AMS2Body(AMS_x, AMS_y, AMS_z);                  // move from AMS to ISS Body frame
+  FT_Body_to_J2000(AMS_x, AMS_y, AMS_z,  ISSyaw, ISSyaw,  ISSroll ); // move from ISS Body frame to J2000
+  FT_Cart2Angular( AMS_x,  AMS_y,  AMS_z, r, dec,  ra);
+  dec=dec/pi*180.;
+  ra=ra/pi*180.;
+  
+  
+}
+
+
+
+
+/** **************** COMMON *******************************/
 void	FT_Cart2Angular(double x, double y, double z, double& r, double& theta, double& phi){
   /* convert cartesian coordinates into spherical coordinates 
      theta is the latitude (i.e. the angle with the equator plane
@@ -116,6 +174,158 @@ double FT_Modulus(double arg1, double arg2)
 		ret_val+=arg2;
 	return ret_val;
 }
+
+
+/** **************** STAR TRACKER *************************/
+
+void ST_AMS2ECI(double& x, double& y, double& z,int CamID, double ST_RA, double ST_dec, double ST_Orient){
+// SDT (Sept 2012) - transformation of a point in XYZ from AMS-02 frame into ECI-J2000 celestial frame
+//                   using information from StarTracker
+// x,y,z: as input are in AMS-02 frame,
+//        as output are in J2000 frame.
+// CamID: Identifier of Camera, 0(Port Camera), 1(starBoard)
+// ST_RA: J2000 Right Ascension of Star Tracker pointing direction;
+// ST_dec: J2000 Declination of Star Tracker pointing direction;  
+  double CAM_Yaw,CAM_Roll;
+  if (CamID==0){ /*Port Camera*/
+    CAM_Yaw=235./180.*pi;   /* Nominal Value*/
+    CAM_Roll=-40./180.*pi;  /* nominal Value*/
+  }
+  if (CamID==1){ /*StarBoard Camera*/
+    CAM_Yaw=55./180.*pi;    /* Nominal Value*/
+    CAM_Roll=-40./180.*pi;  /* nominal Value*/
+  }
+  ST_AMS2CAM(x, y, z, CAM_Yaw, CAM_Roll);  
+  ST_CAM2tangPlane( x, y, z, -ST_Orient-pi);
+  ST_tangPlane2ECI( x, y, z, ST_RA, ST_dec);
+// the sequence is:
+// i)  move from AMS-frame to CCD frame using rotations defined by Star Tracker Position
+// ii) move from CCD to tangent plane using the info on image rotation wrt celestial north. this angle should correct by 180deg and negate. (under study)
+// iii)move from Tangent plane to Celestial frame using the pointing direction of Star tracker.  
+}
+
+void ST_ECI2AMS(double& x, double& y, double& z,int CamID, double ST_RA, double ST_dec, double ST_Orient){
+// SDT (Sept 2012) - transformation of a point in XYZ from  ECI-J2000 celestial  frame AMS-02 intoframe
+//                   using information from StarTracker
+// x,y,z: as input are in J2000 frame,
+//        as output are in AMS-02 frame.
+// CamID: Identifier of Camera, 0(Port Camera), 1(starBoard)
+// ST_RA: J2000 Right Ascension of Star Tracker pointing direction;
+// ST_dec: J2000 Declination of Star Tracker pointing direction;  
+  double CAM_Yaw,CAM_Roll;
+  if (CamID==0){ /*Port Camera*/
+    CAM_Yaw=235./180.*pi;   /* Nominal Value*/
+    CAM_Roll=-40./180.*pi;  /* nominal Value*/
+  }
+  if (CamID==1){ /*StarBoard Camera*/
+    CAM_Yaw=55./180.*pi;    /* Nominal Value*/
+    CAM_Roll=-40./180.*pi;  /* nominal Value*/
+  }
+  ST_CAM2AMS(x, y, z, CAM_Yaw, CAM_Roll);  
+  ST_tangPlane2CAM( x, y, z, -ST_Orient-pi);
+  ST_ECI2tangPlane( x, y, z, ST_RA, ST_dec);
+}
+
+
+void ST_ECI2tangPlane(double& x, double& y, double& z, double ST_RA, double ST_dec){
+// SDT (Sept 2012) - transformation of a point in XYZ from ECI frame to Plane tangent to celestial frame (i.e. plane of Star Tracker CCD)
+//                   using the zenit direction (in ECI) of such plane (defind by ST_RA and ST_dec, pointing direction of starTracker camera)
+// x,y,z: as input are in ECI frame,
+//        as output are in Tangent Plane frame
+// ST_RA: J2000 Right Ascension of zenit direction of tangent plane. i.e. the pointing direction of Star Tracker
+// ST_dec: J2000 Declination of zenit direction of tangent plane. i.e. the pointing direction of Star Tracker
+  double oldX=x;double oldY=y;double oldZ=z;
+  x=-sin(ST_RA)*oldX             + cos(ST_RA)*oldY;
+  y=-cos(ST_RA)*sin(ST_dec)*oldX - sin(ST_RA)*sin(ST_dec)*oldY   + (cos(ST_RA)*cos(ST_RA)* cos(ST_dec)+ cos(ST_dec) *sin(ST_RA)*sin(ST_RA))*oldZ;
+  z=cos(ST_dec)*cos(ST_RA)*oldX  + cos(ST_dec)*sin(ST_RA)*oldY   + sin(ST_dec)*oldZ;
+//explanation:
+//The transformation matrix is 
+//   | X |   | -sin(RA)          cos(RA)                           0                                  |
+//   | Y | = |-cos(RA)sin(Dec)   -sin(RA)sin(dec)                + cos^2(RA)cos(dec)+cos(dec)sin^2(RA)|
+//   | Z |   | cos(Dec)cos(RA)   +cos(dec)sin(RA)                + sin(dec)                           |
+// Z= is the unity vector of pointing direction in J2000 (x_eci=cos(Dec)cos(RA),y_eci=cos(dec)sin(RA),z_eci=sin(dec))
+// X= is a vector on ECI equatorial plane that is ortigonal to R, this is obtained by vector product between Z_eci axis (0,0,1) and
+//    the projection of R on ECI equatorial plane.(0,0,1)x(cos(RA),sin(RA),0)
+// Y= Z x Y  
+}
+void ST_tangPlane2ECI(double& x, double& y, double& z, double ST_RA, double ST_dec){
+// SDT (Sept 2012) - transformation of a point in XYZ from "Plane tangent to celestial frame" (i.e. plane of Star Tracker CCD) into ECI frame
+//                   using the zenit direction (in ECI) of such plane (defind by ST_RA and ST_dec, pointing direction of starTracker camera)
+// x,y,z: as input are in Tangent Plane frame,
+//        as output are in ECI frame
+// ST_RA: J2000 Right Ascension of zenit direction of tangent plane. i.e. the pointing direction of Star Tracker
+// ST_dec: J2000 Declination of zenit direction of tangent plane. i.e. the pointing direction of Star Tracker
+  double oldX=x;double oldY=y;double oldZ=z;
+  x=-sin(ST_RA)*oldX             - cos(ST_RA)*sin(ST_dec)*oldY                                                 + cos(ST_dec)*cos(ST_RA)*oldZ;
+  y= cos(ST_RA)*oldX             - sin(ST_RA)*sin(ST_dec)*oldY                                                 + cos(ST_dec)*sin(ST_RA)*oldZ;
+  z=                             (cos(ST_RA)*cos(ST_RA)* cos(ST_dec)+ cos(ST_dec) *sin(ST_RA)*sin(ST_RA))*oldY + sin(ST_dec)*oldZ;
+// explanation:
+// transpose matrix defined in ST_ECI2tangPlane()  
+}
+
+void ST_tangPlane2CAM(double& x, double& y, double& z, double ST_Orient){
+// SDT (Sept 2012) - transformation of a point in XYZ from "Plane tangent to celestial frame" (i.e. plane of Star Tracker CCD) into CCD frame
+//                   using the Orientation direction (in ECI) of such plane (defind by ST_Orient, i.e. orientation of top of the CCD wrt the celestial north)
+// x,y,z: as input are in Tangent Plane frame,
+//        as output are in CCD frame
+// ST_Orient: orientation of top of the CCD wrt the celestial north.
+  double oldX=x;double oldY=y;double oldZ=z;
+  x= cos(ST_Orient)*oldX   + sin(ST_Orient)*oldY;
+  y=-sin(ST_Orient)*oldX   + cos(ST_Orient)*oldY;
+  z=                                        oldZ;
+// explanation:
+// this matrix rotate the local frame on the camera (the "Plane tangent to celestial frame") to match the CCD frame definition.
+// the relation between the to frame is a rotation around the pointing direction (z axis) of the angle defined by  ST_Orient.
+// note that in this case ST_Orient is positive clockwise.
+}
+void ST_CAM2tangPlane(double& x, double& y, double& z, double ST_Orient){
+// SDT (Sept 2012) - transformation of a point in XYZ from  CCD frame into "Plane tangent to celestial frame" (i.e. plane of Star Tracker CCD)
+//                   using the Orientation direction (in ECI) of such plane (defind by ST_Orient, i.e. orientation of top of the CCD wrt the celestial north)
+// x,y,z: as input are in CCD frame,
+//        as output are in Tangent Plane frame
+// ST_Orient: orientation of top of the CCD wrt the celestial north.  
+  double oldX=x;double oldY=y;double oldZ=z; 
+  x= cos(ST_Orient)*oldX   - sin(ST_Orient)*oldY;
+  y= sin(ST_Orient)*oldX   + cos(ST_Orient)*oldY;
+  z=                                        oldZ;
+// explanation:
+// transpose matrix defined in  ST_tangPlane2CAM(); 
+}
+
+void ST_AMS2CAM(double& x, double& y, double& z, double Y, double R){
+// SDT (Sept 2012) - transformation of a point in XYZ from  AMS-02 frame int CCD
+//                   using the orientation of the camera given by a yaw-pitch(=0)-roll rotations
+// x,y,z: as input are in AMS-02 frame,
+//        as output are in CCD frame
+// Y: Yaw rotation angle.
+// R: Roll rotation angle.
+  double oldX=x;double oldY=y;double oldZ=z;
+ 
+  x= cos(Y)*oldX        + sin(Y)*oldY;
+  y=-cos(R)*sin(Y)*oldX + cos(R)*cos(Y)*oldY   + sin(R)*oldZ;
+  z= sin(R)*sin(Y)*oldX - cos(Y)*sin(R)*oldY   + cos(R)*oldZ;
+// explanation:
+// this is the common YPR matrix, where P=0. the CCD frame was measured during assembly procedure.
+}
+
+void ST_CAM2AMS(double& x, double& y, double& z, double Y, double R){
+// SDT (Sept 2012) - transformation of a point in XYZ from CCD frame int  AMS-02 frame
+//                   using the orientation of the camera given by a yaw-pitch(=0)-roll rotations
+// x,y,z: as input are in CCD frame,
+//        as output are in AMS-02 frame
+// Y: Yaw rotation angle.
+// R: Roll rotation angle.  
+  double oldX=x;double oldY=y;double oldZ=z;
+  x= cos(Y)*oldX        - cos(R)*sin(Y)*oldY   + sin(R)*sin(Y)*oldZ; 
+  y= sin(Y)*oldX        + cos(R)*cos(Y)*oldY   - cos(Y)*sin(R)*oldZ;
+  z=                    + sin(R)*oldY          + cos(R)*oldZ;
+// explanation:
+// this is the transpose of YPR matrix, where P=0. the CCD frame was measured during assembly procedure.  
+}
+
+
+/** **************** GROUND SEGMENT   ************************/
+
 
 
 /*****************************************************************************/
@@ -507,6 +717,80 @@ int  FT_Gal2Equat(double &azimut, double &elev){
  
 }
 
-//int main(){
-//return 0;
-//}
+void	FT_Body_to_J2000(double &x, double &y, double &z, double ISSyaw,double ISSpitch, double ISSroll )
+{
+  /* convert from body to J2000, 
+   * it require the euler angle for the attitude respect j2000
+   * to move from Body to j2000  is a simple roll pitch yaw rotation (YPR to move from J2000 to Body )*/
+    double oldX,oldY,oldZ;
+
+
+  /* rotation along X axis*/
+   oldX=x; oldY=y; oldZ=z;
+   x= oldX;
+   y= oldY*cos(ISSroll)-oldZ*sin(ISSroll);
+   z=+oldY*sin(ISSroll)+oldZ*cos(ISSroll);
+  /* rotation along Y axis*/
+   oldX=x; oldY=y; oldZ=z;
+   x= oldX*cos(ISSpitch)+oldZ*sin(ISSpitch);
+   y= oldY;
+   z=-oldX*sin(ISSpitch)+oldZ*cos(ISSpitch);
+  /* rotation along Z axis*/
+  oldX=x; oldY=y; oldZ=z;
+  x= oldX*cos(ISSyaw)-oldY*sin(ISSyaw);
+  y= oldX*sin(ISSyaw)+oldY*cos(ISSyaw);
+  z= oldZ;
+}
+
+
+// -------------------- old ----------------------
+// int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double ypr[3], double & Azim, double &Elev, double xtime){
+// // SDT(aug2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
+// // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+// // VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
+// // ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// // ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
+// // xtime     = UTC time (in unix format)
+//   
+//   double x=0.; double y=0.; double z=1.;
+//   double r=1.;//dummy for check
+//   double ra,dec;
+//   double l,b;
+//   
+//   FT_Angular2Cart( r,  Elev,  Azim,  x,  y,  z );
+//   FT_AMS2Body(x,y,z);
+//   FT_Body2LVLH(x,y,z,ypr[0],ypr[1],ypr[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
+//   FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+//   FT_GTOD2Equat(x,y,z,xtime);                                              // Parameters: xtime is GPS
+//   FT_Cart2Angular( x,  y,  z,r, dec,  ra);
+//   FT_Equat2Gal(ra, dec);
+//   l=ra;
+//   b=dec;
+//   /* result */
+//   Azim=l;
+//   Elev=b;
+//   
+//   return 0;
+// }
+
+
+// int get_ams_ra_dec_fromGTOD(double PosISS[3], double VelISS[2], double ypr[3], double & ra, double &dec, double xtime){
+// // SDT(aug2012) - generic trasformation from AMS frame to J2000 frame passing via GTOD (or ~ctrs)
+// // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+// // VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
+// // ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// // ra, dec   = azimut and elevation direction of arrival particle -> RA and DEC direction of arrival particle
+// // xtime     = UTC time (in unix format)
+// 
+//   
+//   double x=0.; double y=0.; double z=1.;
+//   double r=1.;//dummy for check
+//   
+//   FT_Angular2Cart(r,  dec,  ra,  x,  y,  z );
+//   FT_AMS2Body(x, y, z);
+//   FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);                                  // Parameters: ISSyaw,  ISSpitch,  ISSroll
+//   FT_LVLH2GTOD(x, y, z, PosISS[0], PosISS[1], PosISS[2] , VelISS[0], VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+//   FT_GTOD2Equat(x, y, z, xtime);                                                  // Parameters: xtime is GPS
+//   FT_Cart2Angular(x, y, z,r, dec,  ra);
+//   return 0;
+// }

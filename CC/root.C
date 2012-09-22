@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.447 2012/09/22 18:23:44 qyan Exp $
+//  $Id: root.C,v 1.448 2012/09/22 20:10:10 sdellato Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6214,13 +6214,7 @@ float TofClusterHR::GetQSignalPM(int pmtype,int is,int pm,int opt,float cosz,flo
 
 float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
 
-    if(pattern==111111&&optw==1){
-       if     (pmtype==1)return AEdep;//Anode
-       else if(pmtype==0)return DEdep;//Dynode
-       else if(AEdep>0&&AEdep<6*6*TofCAlignPar::ProEdep)return AEdep;//Anode Range
-       else              return DEdep;
-    }
-
+    if(pattern==111111&&optw==1)return pmtype==1?AEdep:DEdep;
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -6234,16 +6228,8 @@ float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
 
 ///---Anode Or Dynode Sum Information+BirkCor
     TofRecPar::IdCovert(Layer,Bar);
-    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
-    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
-    float q2;
-    if     (pmtype==1)q2=qa;//Anode
-    else if(pmtype==0)q2=qd;//Dynode
-    else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
-    }
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
+    float signal=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),signal);
     return signal;
 }
 
@@ -6261,15 +6247,7 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
     }
 ///---Anode Or Dynode Sum Information+Theta// BirkCor+Beta Corr
     TofRecPar::IdCovert(Layer,Bar);
-    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
-    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
-    float q2;
-    if     (pmtype==1)q2=qa;//Anode
-    else if(pmtype==0)q2=qd;//Dynode
-    else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
-    }
+    float q2=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,double(cosz),double(beta));
     return signal;
 }
@@ -6550,12 +6528,7 @@ float BetaHR::GetQLPM(int ilay,int pmtype,int is,int pm,int opt){
 
 float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
      if(!TestExistHL(ilay))return 0;
-     if(pattern==111111&&optw==1){
-        if     (pmtype==1)return BetaPar.AEdepL[ilay];//Anode
-        else if(pmtype==0)return BetaPar.DEdepL[ilay];//Dynode
-        else if(BetaPar.AEdepL[ilay]>0&&BetaPar.AEdepL[ilay]<6*6*TofCAlignPar::ProEdep)return BetaPar.AEdepL[ilay];//Anode Range
-        else              return BetaPar.DEdepL[ilay];//Dynode
-     }
+     if(pattern==111111&&optw==1)return pmtype==1?BetaPar.AEdepL[ilay]:BetaPar.DEdepL[ilay];
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -6569,24 +6542,16 @@ float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
 
 ///---Anode Or Dynode Sum Information+BirkCor
     TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
-    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
-    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
-    float q2;
-    if     (pmtype==1)q2=qa;//Anode
-    else if(pmtype==0)q2=qd;//Dynode
-    else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
-    }
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
+    float signal=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),signal);
     return signal;
 }
 
 
 float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
-    if(!TestExistHL(ilay))return 0;
+   if(!TestExistHL(ilay))return 0;
 ///---rawqd
-    double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
+   double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
        int patterns=pattern/int(pow(1000.,is));
        rawqa[is]=(patterns%10==0)?0:BetaPar.AQ2L[ilay][is];
@@ -6598,58 +6563,11 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
 
 ///---Anode Or Dynode Sum Information+Theta// BirkCor+Beta Corr
     TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
-    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
-    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
-    float q2;
-    if     (pmtype==1)q2=qa;//Anode
-    else if(pmtype==0)q2=qd;//Dynode
-    else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
-    }
+    float q2=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,BetaPar.CosZ[ilay],BetaPar.Beta);
     return signal;
 }
 
-
-float BetaHR::GetQ(int &nlay,int pmtype,int opt,int pattern){
-
-   vector<float >ql;
-   float qs;
-//----Fill Vector
-   for(int ilay=0;ilay<4;ilay++){
-      if(!TestExistHL(ilay))continue;
-      qs=GetQL(ilay,pmtype,opt);
-      if(qs<=0)continue;
-      if((pattern>0)&&((pattern/int(pow(10.,3-ilay)))%10==0))continue;
-      ql.push_back(qs);
-   }
-  
-//-----GetMean
-    float mean=0,sig=0,qmax=0,qmin=99999999;
-    for(int i=0; i<ql.size();i++){
-       mean+=ql.at(i); sig+=ql.at(i)*ql.at(i);
-       if(ql.at(i)>qmax){qmax=ql.at(i);}
-       if(ql.at(i)<qmin){qmin=ql.at(i);}
-    }
-
-//----Fill Var
-    if(ql.size()<=2||pattern>0){nlay=ql.size();return nlay==0? 0:mean/nlay;}
-    else {
-       float meanl=(mean-qmax)/(ql.size()-1); float sigl= (sig-qmax*qmax)/(ql.size()-1);
-       sigl=sqrt(fabs(sigl-meanl*meanl)); 
-       float dqh=fabs(qmax-meanl)/sigl;
-//----
-       float meanh=(mean-qmin)/(ql.size()-1); float sigh= (sig-qmin*qmin)/(ql.size()-1);
-       sigh=sqrt(fabs(sigh-meanh*meanh));
-       float dql=fabs(qmin-meanh)/sigh;
-//----
-       nlay=ql.size()-1;
-       if(pattern==-2)return meanl;
-       else           return dqh>dql?meanl:meanh;
-    }
-
-}
 
 //---end of BetaH
 
@@ -8409,51 +8327,58 @@ AMSSetupR::DSPError* HeaderR::pDSPError(){
 
 //-----------Coordinates -------------------
 
-int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelTP[2], double YPR[3], double  time, bool gtod){
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[2], double YPR[3], double  time, bool gtod){
 /*
-input  AMSTheta (rad) in AMS coo system
-           AMSPhi       (rad) in AMS coo system
-           RPT  coordinates in GTOD/CTRS coordinate system (RPT[0]==Radius -> in cm; RPT[1]==Phi (rad); RPT[2]==Theta(rad)
-	   VelPT velocity in GTOD/CTRS coordinate system  (VelPT[0]= VelPhi  ; VelPT[1]=VelTheta )
-           YPR yaw-pitch-roll in radians in LVLH
-           gtod  true if gtod coo system
-           time UTC time
+input  AMSTheta (rad) in AMS coo system (from ParticleR)
+       AMSPhi   (rad) in AMS coo system (from ParticleR)
+       RPT  coordinates in GTOD/CTRS coordinate system (RPT[0]==Radius -> in cm; RPT[1]==Phi (rad); RPT[2]==Theta(rad)
+       VelPT velocity in GTOD/CTRS coordinate system  (VelPT[0]= VelPhi  ; VelPT[1]=VelTheta )
+       YPR yaw-pitch-roll in radians in LVLH
+       gtod  true if gtod coo system
+       time UTC time
 output
-           gal_long  galactic longitude in degrees
-           gal_lat      galactic latitude   in degrees
+           gal_long  galactic longitude (l) in degrees
+           gal_lat   galactic latitude (b)  in degrees
 return values
 0  success
 1...n  error (if any)
 */
-
-double azim=AMSPhi;
-double elev=AMSTheta;
-
-get_ams_l_b_fromGTOD( RPT,  VelTP,  YPR, azim, elev, time);
-
-gal_long=azim;
-gal_lat=elev;
+ //Direction of incident particle in AMS coo - convert from spherical to cartesian
+ AMSDir dir(AMSTheta,AMSPhi);
+ double AMS_x=-dir[0];
+ double AMS_y=-dir[1];
+ double AMS_z=-dir[2];
+ // use the conversion procedure described in FrameTrans.h
+ get_ams_l_b_fromGTOD( AMS_x,  AMS_y, AMS_z,gal_long, gal_lat, RPT, VelPT, YPR, time);
 
 return 0;
 
 }
 
-int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double  theta , double phi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient){
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double  AMSTheta , double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient){
 /*
-input       theta (rad) in AMS coo system
-            phi       (rad) in AMS coo system
-           CamID   camera id
-           CAM_RA   camera right ascension (degrees)
-           CAM_DEC   camera declination (degrees)
-           CAM_Orient   camera orientation (degrees)
-           time UTC time
+input   AMSTheta (rad) in AMS coo system (from ParticleR)
+        AMSPhi   (rad) in AMS coo system (from ParticleR)
+        CamID   camera id
+        CAM_RA   camera right ascension (degrees)
+        CAM_DEC   camera declination (degrees)
+        CAM_Orient   camera orientation (degrees)
+        time UTC time
 output
-           gal_long  galactic longitude in degrees
-           gal_lat      galactic latitude   in degrees
+        gal_long  galactic longitude (l) in degrees
+        gal_lat   galactic latitude (b)  in degrees
 return values
 0  success
 1...n  error (if any)
 */
+ //Direction of incident particle in AMS coo - convert from spherical to cartesian
+ AMSDir dir(AMSTheta,AMSPhi);
+ double AMS_x=-dir[0];
+ double AMS_y=-dir[1];
+ double AMS_z=-dir[2];
+ // use the conversion procedure described in FrameTrans.h
+ get_ams_l_b_from_StarTracker(AMS_x,  AMS_y, AMS_z, gal_long, gal_lat,  CamID, CAM_RA, CAM_DEC, CAM_Orient);
+
 return 1;
 }
 
@@ -8497,9 +8422,10 @@ return value
 
   // Always assume down-going particle
   AMSDir dir(theta, phi);
-  if (dir.z() < 0) dir = dir*(-1);
+  // if (dir.z() < 0) dir = dir*(-1);      // already done in get_gal_coo()
 
-  float elev=3.1415926/2-dir.gettheta();
+  //float elev=3.1415926/2-dir.gettheta(); // no more need
+  float elev=dir.gettheta();               // common definition
   float azim=dir.getphi();
 
  unsigned int gpsdiff=15;
