@@ -559,19 +559,19 @@ void TrDAQMC::builddaq(integer i, integer length, int16u *p){
 
 static int check_that_nothing_happens = 0;
 void TrDAQMC::buildraw(integer n, int16u *p) {
-  // test new reading format (this is not 100 percent sure for old version)
-  // best should be with build number,is it available?
-  // however a message is delivered in case of request of different kinds of decoding
-  if ( (int16u(p[0])==(n&0xFFFF))&&(int16u(p[1])==TrDAQMC::onesize_new+1) ) { 
+  if (n<1) return;
+  // test new reading format (this is not 100 percent sure, but I do not have the build number of the production)
+  // however a message is delivered in case of change of different kinds of decoding
+  if ( (int16u(p[0])==(n&0xFFFF))&&(int16u(p[n-1]==getdaqid()))&&((n<3)||(int16u(p[1])==TrDAQMC::onesize_new+1)) ) { 
     if (check_that_nothing_happens==0) check_that_nothing_happens = 2;
-    if (check_that_nothing_happens==1)
-      cerr << "TrDAQMC::buildraw-E Wrong format decoding requested (old requested, new was used)" << endl;  
+    if (check_that_nothing_happens==1) 
+      cerr << "TrDAQMC::buildraw-E unexpected format switch: old format (prod<592) was used at the beginning, new format (prod>=592) requested for this event." << endl;  
     TrDAQMC::buildraw_new(n,p);
   }
   else {
     if (check_that_nothing_happens==0) check_that_nothing_happens = 1;
-    if (check_that_nothing_happens==2) 
-      cerr << "TrDAQMC::buildraw-E Wrong format decoding requested (old requested, new was used)" << endl;
+    if (check_that_nothing_happens==2)  
+      cerr << "TrDAQMC::buildraw-E unexpected format switch: new format (prod>=592) was used at the beginning, old format (prod<592) requested for this event." << endl;
     TrDAQMC::buildraw_old(n,p);
   }
 }
