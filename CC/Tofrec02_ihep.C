@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.25 2012/09/13 19:51:57 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.26 2012/09/22 18:23:44 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -78,6 +78,7 @@ vector<AMSEcalShower*> TofRecH::amsecalshow;
   #pragma omp threadprivate (TofRecH::amsecalshow)
 #endif
 
+TF1  *TofRecH::BirkFun=0;
 
 bool  TofRecH::BuildKey=1;
 
@@ -626,7 +627,8 @@ number TofRecH::NonLinearCor(int idsoft,int isanode,number q2){//PM Level
 //--Non Linear expect
      double nlcq=log((q2-CPar->ansat[2][idsoft])/(-CPar->ansat[0][idsoft]))/(-CPar->ansat[1][idsoft]);
 //--Linear expect //birk compensate  Let Scale QDynode=QAnode
-     double lcq=q2/(1.+CPar->birk[idsoft/100*100]);
+//     double lcq=q2/(1.+CPar->birk[idsoft/100*100]);
+     double lcq=q2*GetBirkFun(idsoft)->Eval(1);
 //---Choose much larger one to decide non-saturation range
      double cq=lcq>nlcq?lcq:nlcq; 
      return cq;
@@ -654,6 +656,19 @@ number TofRecH::CoverToQ2(int idsoft,int isanode,number adc){//PM Level
    }
 }
 
+//=======================================================
+TF1  *TofRecH::GetBirkFun(int idsoft){
+
+   if(!BirkFun)BirkFun=new TF1("TOF_birkfun","x/(1.+[1]*atan([0]/[1]*x))",0,10000);
+
+   TofCAlignPar   *CPar=TofCAlignPar::GetHead();
+   idsoft=idsoft/100*100;
+
+   BirkFun->SetParameter(0,CPar->birk[0][idsoft]);
+   BirkFun->SetParameter(1,CPar->birk[1][idsoft]); 
+   return BirkFun;
+};
+
 //========================================================
 number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
 
@@ -664,14 +679,13 @@ number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
  
  //--Birk Saturation Correction
   if(opt==1){
+    return GetBirkFun(idsoft)->GetX(q2);
     //--Birk Saturation Overflow 
-    if(1.-CPar->birk[idsoft]*q2<=0)return -2;
-    return q2/(1.-CPar->birk[idsoft]*q2);
+    // if(1.-CPar->birk[idsoft]*q2<=0)return -2;
   }
   else {
-     return q2/(1.+CPar->birk[idsoft]*q2);
+    return GetBirkFun(idsoft)->Eval(q2);
   }
-
 }
 
 //========================================================
@@ -748,6 +762,11 @@ number TofRecH::SciAttCor(int idsoft,number lpos,number q2){//Side Level
 //--Out Range Check
    if     (attpos> TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){attpos= TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;}
    else if(attpos<-TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){attpos=-TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;}
+   if     (TOFGeom::IsTrapezoid(TofRecPar::iLay,TofRecPar::iBar)){
+          if     (attpos>TofRecPar::AttLenLimit){attpos=TofRecPar::AttLenLimit;}
+          else if(attpos<-TofRecPar::AttLenLimit){attpos=-TofRecPar::AttLenLimit;}
+   }
+//---
    return q2*GetProMipAdc(idsoft,0.)/GetProMipAdc(idsoft,attpos);
 }
 

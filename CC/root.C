@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.446 2012/09/21 17:56:25 choutko Exp $
+//  $Id: root.C,v 1.447 2012/09/22 18:23:44 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6214,7 +6214,13 @@ float TofClusterHR::GetQSignalPM(int pmtype,int is,int pm,int opt,float cosz,flo
 
 float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
 
-    if(pattern==111111&&optw==1)return pmtype==1?AEdep:DEdep;
+    if(pattern==111111&&optw==1){
+       if     (pmtype==1)return AEdep;//Anode
+       else if(pmtype==0)return DEdep;//Dynode
+       else if(AEdep>0&&AEdep<6*6*TofCAlignPar::ProEdep)return AEdep;//Anode Range
+       else              return DEdep;
+    }
+
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -6228,8 +6234,16 @@ float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
 
 ///---Anode Or Dynode Sum Information+BirkCor
     TofRecPar::IdCovert(Layer,Bar);
-    float signal=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
-    signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),signal);
+    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
+    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float q2;
+    if     (pmtype==1)q2=qa;//Anode
+    else if(pmtype==0)q2=qd;//Dynode
+    else  {
+       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
+       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+    }
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
     return signal;
 }
 
@@ -6247,7 +6261,15 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
     }
 ///---Anode Or Dynode Sum Information+Theta// BirkCor+Beta Corr
     TofRecPar::IdCovert(Layer,Bar);
-    float q2=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
+    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float q2;
+    if     (pmtype==1)q2=qa;//Anode
+    else if(pmtype==0)q2=qd;//Dynode
+    else  {
+       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
+       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+    }
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,double(cosz),double(beta));
     return signal;
 }
@@ -6528,7 +6550,12 @@ float BetaHR::GetQLPM(int ilay,int pmtype,int is,int pm,int opt){
 
 float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
      if(!TestExistHL(ilay))return 0;
-     if(pattern==111111&&optw==1)return pmtype==1?BetaPar.AEdepL[ilay]:BetaPar.DEdepL[ilay];
+     if(pattern==111111&&optw==1){
+        if     (pmtype==1)return BetaPar.AEdepL[ilay];//Anode
+        else if(pmtype==0)return BetaPar.DEdepL[ilay];//Dynode
+        else if(BetaPar.AEdepL[ilay]>0&&BetaPar.AEdepL[ilay]<6*6*TofCAlignPar::ProEdep)return BetaPar.AEdepL[ilay];//Anode Range
+        else              return BetaPar.DEdepL[ilay];//Dynode
+     }
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -6542,16 +6569,24 @@ float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
 
 ///---Anode Or Dynode Sum Information+BirkCor
     TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
-    float signal=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
-    signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),signal);
+    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
+    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float q2;
+    if     (pmtype==1)q2=qa;//Anode
+    else if(pmtype==0)q2=qd;//Dynode
+    else  {
+       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
+       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+    }
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
     return signal;
 }
 
 
 float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
-   if(!TestExistHL(ilay))return 0;
+    if(!TestExistHL(ilay))return 0;
 ///---rawqd
-   double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
+    double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
        int patterns=pattern/int(pow(1000.,is));
        rawqa[is]=(patterns%10==0)?0:BetaPar.AQ2L[ilay][is];
@@ -6563,11 +6598,58 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
 
 ///---Anode Or Dynode Sum Information+Theta// BirkCor+Beta Corr
     TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
-    float q2=pmtype==1?TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw):TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
+    float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
+    float q2;
+    if     (pmtype==1)q2=qa;//Anode
+    else if(pmtype==0)q2=qd;//Dynode
+    else  {
+       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
+       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+    }
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,BetaPar.CosZ[ilay],BetaPar.Beta);
     return signal;
 }
 
+
+float BetaHR::GetQ(int &nlay,int pmtype,int opt,int pattern){
+
+   vector<float >ql;
+   float qs;
+//----Fill Vector
+   for(int ilay=0;ilay<4;ilay++){
+      if(!TestExistHL(ilay))continue;
+      qs=GetQL(ilay,pmtype,opt);
+      if(qs<=0)continue;
+      if((pattern>0)&&((pattern/int(pow(10.,3-ilay)))%10==0))continue;
+      ql.push_back(qs);
+   }
+  
+//-----GetMean
+    float mean=0,sig=0,qmax=0,qmin=99999999;
+    for(int i=0; i<ql.size();i++){
+       mean+=ql.at(i); sig+=ql.at(i)*ql.at(i);
+       if(ql.at(i)>qmax){qmax=ql.at(i);}
+       if(ql.at(i)<qmin){qmin=ql.at(i);}
+    }
+
+//----Fill Var
+    if(ql.size()<=2||pattern>0){nlay=ql.size();return nlay==0? 0:mean/nlay;}
+    else {
+       float meanl=(mean-qmax)/(ql.size()-1); float sigl= (sig-qmax*qmax)/(ql.size()-1);
+       sigl=sqrt(fabs(sigl-meanl*meanl)); 
+       float dqh=fabs(qmax-meanl)/sigl;
+//----
+       float meanh=(mean-qmin)/(ql.size()-1); float sigh= (sig-qmin*qmin)/(ql.size()-1);
+       sigh=sqrt(fabs(sigh-meanh*meanh));
+       float dql=fabs(qmin-meanh)/sigh;
+//----
+       nlay=ql.size()-1;
+       if(pattern==-2)return meanl;
+       else           return dqh>dql?meanl:meanh;
+    }
+
+}
 
 //---end of BetaH
 
