@@ -12,6 +12,10 @@
 #ifdef __ROOTSHAREDLIBRARY__
 #include "root.h"
 #endif
+
+#define  MAXALIGNEDRUN 1347160405
+
+
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
@@ -217,6 +221,7 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -2;
   }
+
   
   static int prevTimeWithError=-1;
 #pragma omp threadprivate(prevTimeWithError)
@@ -257,7 +262,6 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     // Retrieve alignment parameters
     DynAlFitParameters pars;
     if(!DynAlManager::dynAlFitContainers[layerJ[i]].Find(time,pars)) return i==0?-4:-14;
-
     AMSPoint pos;
     AMSRotMat rot;
     pars.GetParameters(time,0,pos,rot);
@@ -415,10 +419,18 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     return -1;
   }
 
+#ifdef __ROOTSHAREDLIBRARY__
+  // Deal with MC properly
+  if(AMSEventR::Head() && AMSEventR::Head()->nMCEventg()) return 0;
+#endif 
+
+
 // PZ -- FIXME -- TO be removed and replaced by TDV entry with years validity and zero content
   static int nprint=0;
-  if(time > 1337450000 ){
-    if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBc-W- Warning no dyn alignment available after 1337450000, this message will be repeted only 10 times \n");
+
+  int mar=MAXALIGNEDRUN;
+  if(time > MAXALIGNEDRUN  ){
+    if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBc-W- Warning no dyn alignment available after %d, this message will be repeted only 10 times \n",mar);
     SL1[0]=SL1[1]=SL1[2]=SL1[3]=SL1[4]=SL1[5]=0.;
     SL9[0]=SL9[1]=SL9[2]=SL9[3]=SL9[4]=SL9[5]=0.;
     return 0;
