@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.67.4.6 2012/07/25 12:04:17 pzuccon Exp $
+//  $Id: TrFit.C,v 1.67.4.7 2012/09/22 11:16:39 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/07/25 12:04:17 $
+///$Date: 2012/09/22 11:16:39 $
 ///
-///$Revision: 1.67.4.6 $
+///$Revision: 1.67.4.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -522,6 +522,15 @@ int TrFit::GetLayer(double z)
       dzmin = std::abs(z-TkDBc()->GetZlayer(i+1));
       ilay = i+1;
     }
+
+  static int nerr = 0;
+  if (ilay == 0) {
+    if (z > 0) ilay = 8;
+    if (z < 0) ilay = 9;
+    if (nerr++ < 100)
+      cerr << "TrFit::GetLayer-E-Error layer not identified for z= "
+	   << z << " Assuming outer layers, ilay= " << ilay << endl;
+  }
 
   return ilay;
 }
@@ -1076,6 +1085,7 @@ int TrFit::FillDmsc(double *dmsc, double fact,
       for (int k = k1+dk; k != i+dk; k += dk) {
 	double wl = 0, ln = 0;
 	l2 = ilay[k];
+	dl = (l1 < l2) ? 1 : -1;
 	for (int l =  k; l !=  i+dk; l += dk) ln += len[l];
 	for (int l = l1; l != l2+dl; l += dl) wl += WLEN[l];
 
