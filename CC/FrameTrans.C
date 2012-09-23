@@ -137,7 +137,7 @@ int get_ams_ra_dec_from_ALTEC_INTL(double AMS_x, double AMS_y,double AMS_z, doub
   dec=dec/pi*180.;
   ra=ra/pi*180.;
   
-  
+return 0; 
 }
 
 
