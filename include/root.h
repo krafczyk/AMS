@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.474 2012/09/22 20:10:34 sdellato Exp $
+//  $Id: root.h,v 1.475 2012/09/24 10:30:15 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1061,21 +1061,21 @@ class TofClusterHR :public TrElem {
   float GetQSignalPM(int pmtype,int is,int pm=0,int opt=DefaultQOpt,float cosz=1,float beta=1);
   /// Edep Measurement Combine From All Good PMTs (MeV)
    /*!
-    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] pmtype 2-Default(Best Between Anode and Dynode) 1-Anode 0-Dynode
     * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
-  float GetEdep(int pmtype,int pattern=111111,int optw=1);
+  float GetEdep(int pmtype=2,int pattern=111111,int optw=1);
    /// Q Or Q^2 Estimate  From All Good PMTs
    /*!
-    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] pmtype  2-Default(Best Between Anode and Dynode) 1-Anode 0-Dynode
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] cosz PathLength Corr
     * @param[in] beta Beta Corr
     * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
    */
-  float GetQSignal(int pmtype,int opt=DefaultQOpt,float cosz=1,float beta=1, int pattern=111111,int optw=1);
+  float GetQSignal(int pmtype=2,int opt=DefaultQOpt,float cosz=1,float beta=1, int pattern=111111,int optw=1);
   /// Number of Good PMTs Used For Measurement
   /*!
     * @param[in] pmtype 1-Anode 0-Dynode
@@ -2683,6 +2683,8 @@ class BetaHR: public TrElem{
  */
   /// Number of All Fired TOF Counters in iLayer
   int            GetAllFireHL (int ilay){return BetaPar.Pattern[ilay]/1000;}
+  /// Retrun True if Beta is Good Meaurement Candidate/// require match with track and 4Layer TOF Measument
+  bool           IsGoodBeta()           {return ((fTrTrack>=0)&&(GetUseHit()==4));}
   /// Retrun True if TkTrack And TOF Geometry Match
   bool           IsTkTofMatch()         {return fTrTrack>=0;}
   /// Return True if BetaH Cluster is Isolation Fire Counter
@@ -2820,20 +2822,29 @@ class BetaHR: public TrElem{
 /// iLay TOF Edep(MeV) with Combinition of All Good PMTs //Attnuation ReCorr
    /*!
     * @param[in] ilay TOF layer(0-3)
-    * @param[in] pmtype  1-Anode 0-Dynode 
+    * @param[in] pmtype  2-Default(Best Between Anode and Dynode) 1-Anode  0-Dynode 
     * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
-  float GetEdepL(int ilay,int pmtype,int pattern=111111,int optw=1);
+  float GetEdepL(int ilay,int pmtype=2,int pattern=111111,int optw=1);
 /// iLay TOF Q Or Q^2 Estimator with Combinition of All Good PMTs /// Adding BetaH PathLength+Birk+Beta+Attnuation ReCorr
    /*!
     * @param[in] ilay TOF layer(0-3)
-    * @param[in] pmtype 1-Anode 0-Dynode
+    * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
-  float GetQL(int ilay,int pmtype,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,int optw=1);
+  float GetQL(int ilay,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,int optw=1);
+/// TOF Q Mean
+   /*!
+    * @param[out] nlay Number of TOF Layers Used For Q-Measument
+    * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
+    * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
+    * @param[in] pattern -1: Remove Max-dQ(Q deviation) Layer; -2: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer1...
+    * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
+    */
+  float GetQ(int &nlay,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2);
 /**@}*/
 
 
@@ -2881,7 +2892,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,5)
+  ClassDef(BetaHR,6)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        
