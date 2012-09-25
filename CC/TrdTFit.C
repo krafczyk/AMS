@@ -1,3 +1,4 @@
+//  $Id: TrdTFit.C,v 1.4 2012/09/25 08:00:26 choutko Exp $
 #include "TrdTFit.h"
 #include <fstream>
 #include "root.h"
@@ -302,7 +303,7 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
     }
   }
 
-  inline bool TrdTFit::GlobalTFit(Tfunc* fitfunc, ownvector *posTvec){
+   bool TrdTFit::GlobalTFit(Tfunc* fitfunc, ownvector *posTvec){
   {
   
     begin=posTvec->begin();

@@ -1,3 +1,4 @@
+//  $Id: TrdTFit.h,v 1.2 2012/09/25 08:00:30 choutko Exp $
 #ifndef _TRDTFIT_
 #define _TRDTFIT_
 #include <iostream>

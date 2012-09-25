@@ -85,7 +85,7 @@ bool EcalPDF::init(char* fdatabase){
 			}
                 }
 	}
-	cout<<"EcalPDF init OK! DataBase file is "<<fdatabase<<endl;
+	cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<endl;
 	_fdatabase->Close();
 	return ret;
 }
@@ -111,7 +111,7 @@ EcalPDF::~EcalPDF(){
 }
 float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
 	if(!has_init){
-		cout<<"EcalPDF has not been loaded!"<<endl;
+		cerr<<"EcalPDF::get_mean-E-EcalPDF has not been loaded!"<<endl;
 		return -1;
 	}
 	if(flayer<0||flayer>17)
