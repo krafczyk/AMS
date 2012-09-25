@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.15 2011/06/28 11:27:39 choutko Exp $
+#  $Id: status02.doc,v 1.16 2012/09/25 14:36:57 choutko Exp $
 status word definition
 
 0
@@ -103,7 +103,7 @@ status word definition
  41   
  42
 
-26 trd hmult <1 <2 <4 >4
+26 ecalshower  direction <18; 18 to 25 ; 25 to 37; >37 degrees cone around z
  43
  44
 

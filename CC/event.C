@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.571 2012/09/10 08:27:26 choutko Exp $
+//  $Id: event.C,v 1.572 2012/09/25 14:36:54 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4040,7 +4040,7 @@ else{
          __status1|=(z1<<9);
        }
 
-
+/*
        if(ptr){
         int z1=0;
         if(ptr->getptrd()){
@@ -4055,7 +4055,25 @@ else{
         }
          __status1|=(z1<<11);
        }
-
+*/
+       if(ptr){
+         int z1=0;
+         if(ptr->getpshower()){
+          float cosa[3]={0.95,0.91,0.8}; //18,25,37 degrees cones
+          double cs=fabs(ptr->getpshower()->getDir()[2]);
+          if(cs>cosa[0]){
+            z1=0;
+          }
+          else if(cs>cosa[1]){
+           z1=1;
+          }
+          else if(cs>cosa[2]){
+           z1=2;
+          }
+          else z1=3;
+         }
+         __status1|=(z1<<11);
+        }
 
 //
 //
