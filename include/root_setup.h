@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.57 2012/08/18 12:02:06 mkrafczy Exp $
+//  $Id: root_setup.h,v 1.58 2012/09/25 10:35:45 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -678,7 +678,7 @@ static int _select (const dirent64 * entry);
  //---------------------------------------
 
 
-ClassDef(AMSSetupR,18)       //AMSSetupR
+ClassDef(AMSSetupR,19)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
