@@ -1200,6 +1200,22 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
         return TRDChargeLikelihood;
     }
 
+    //Preparation for finding the hit with least likelihood
+    double max_one=0;
+    double max_two=0;
+    double Lvalue;
+    for(vector<TrdKHit>::iterator it=QTRDHitCollectionNuclei.begin();it!=QTRDHitCollectionNuclei.end();it++)
+    {
+      //Some parameters in TrdKPDF
+      TRDLayer=(*it).TRDHit_Layer;
+      ADC=(*it).TRDHit_Amp;
+      Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+      Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
+
+      Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+      if(Lvalue>max_one) max_one=Lvalue;
+    }
+
     //Only dE/dX PDF
     if(Option==1)
     {
@@ -1211,8 +1227,11 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
             Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
             Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-            TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+            Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+            TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
+	    if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
         }
+        TRDChargeLikelihood=TRDChargeLikelihood-max_one-max_two;
         return TRDChargeLikelihood;
     }
 
@@ -1225,13 +1244,17 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
         Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
         Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+	Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+	TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
+	if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
     }
+    TRDChargeLikelihood=TRDChargeLikelihood-max_one-max_two;
     double DAmpL=DAmp/20.0;
     TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
 
     return TRDChargeLikelihood;
 }
+
 
 /////////////////////////////////////////////////////////////////////
 
