@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64gcc,v 1.6 2012/09/13 16:08:06 mkrafczy Exp $
+#  $Id: Makefile.linuxia64gcc,v 1.7 2012/09/25 21:10:28 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -23,6 +23,8 @@ VERGCCHi := 1
 else ifeq ($(GCC_VER_MIDDLE),5)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),6)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),7)
 VERGCCH := 1
 endif
 endif 

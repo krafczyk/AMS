@@ -1,4 +1,4 @@
-//  $Id: TrdTFit.C,v 1.4 2012/09/25 08:00:26 choutko Exp $
+//  $Id: TrdTFit.C,v 1.5 2012/09/25 21:10:23 mkrafczy Exp $
 #include "TrdTFit.h"
 #include <fstream>
 #include "root.h"
@@ -304,7 +304,6 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
   }
 
    bool TrdTFit::GlobalTFit(Tfunc* fitfunc, ownvector *posTvec){
-  {
   
     begin=posTvec->begin();
     end=posTvec->end();
@@ -431,7 +430,6 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
 
 	
     return true;
-  }
   }
 
   //PDF (simple pdf to test minimisation algorithm)

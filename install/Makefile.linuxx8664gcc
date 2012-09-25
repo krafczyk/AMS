@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.21 2012/09/19 16:30:03 mkrafczy Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.22 2012/09/25 21:10:28 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -43,6 +43,8 @@ VERGCCHi := 1
 else ifeq ($(GCC_VER_MIDDLE),5)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),6)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),7)
 VERGCCH := 1
 endif
 endif 

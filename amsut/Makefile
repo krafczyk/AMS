@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.13 2012/09/05 12:36:13 mkrafczy Exp $
+#  $Id: Makefile,v 1.14 2012/09/25 21:10:24 mkrafczy Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -28,6 +28,8 @@ VERGCCHi := 1
 else ifeq ($(GCC_VER_MIDDLE),5)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),6)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),7)
 VERGCCH := 1
 endif
 endif 
