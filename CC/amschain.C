@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.59 2012/07/27 15:00:11 pzuccon Exp $
+//  $Id: amschain.C,v 1.59.2.1 2012/09/26 08:20:21 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -190,11 +190,11 @@ int AMSChain::AddFromFile(const char *fname){
   FILE* listfile = fopen(fname,"r");
   if (listfile) {
     char rname[600];
-    while (1){
+    while (!feof(listfile)){
       fscanf(listfile,"%s\n", rname );
-      if(feof(listfile)) { fclose(listfile); break;}
       Add(rname);
     }
+    fclose(listfile); 
   }
   else {
     cerr << "AMSChain::AddFromFile-E-  Error opening file '" << fname << "';";
