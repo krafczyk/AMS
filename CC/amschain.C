@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.61 2012/09/19 08:41:35 choutko Exp $
+//  $Id: amschain.C,v 1.62 2012/09/26 08:17:31 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -192,10 +192,9 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
   bool castor=false;
   if (listfile) {
     char rname[1024];
-    while (1){
+    while (!feof(listfile)){
       fscanf(listfile,"%s\n", rname );
-       if(feof(listfile)) { fclose(listfile); break;}
-       else if(strstr(rname,"/castor/") && stage){
+       if(strstr(rname,"/castor/") && stage){
        string rn=rname;
        int pos=rn.find("/castor/");
        string stager_get="stager_get -M ";
@@ -205,9 +204,10 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
        }
       i++; 
     }
+    fclose(listfile); 
   }
   else {
-    cerr << "AMSChain::AddFromFile-E-  Error opening file '" << fname << "';";
+    cerr << "AMSChain::ValidateFromFile-E-  Error opening file '" << fname << "';";
     return -1;
   }
   
@@ -219,9 +219,8 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
   if (listfile) {
     char rname[1024];
     int i=0;
-    while (1){
+    while (!feof(listfile)){
       fscanf(listfile,"%s\n", rname );
-      if(feof(listfile)) { fclose(listfile); break;}
       if(i>=first && i<last &&(!pattern || strstr(rname,pattern))){
           bool staged=true;
           if(strstr(rname,"/castor/") ){
@@ -262,6 +261,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
          }       
       i++; 
     }
+    fclose(listfile);
     if(rejfile)rejfile.close();
   }
   else {
