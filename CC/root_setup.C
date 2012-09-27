@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.95 2012/09/27 16:18:15 choutko Exp $
+//  $Id: root_setup.C,v 1.96 2012/09/27 16:32:01 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1896,6 +1896,7 @@ if(fBadRun.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
 static unsigned int stime=0;
 #pragma omp threadprivate (stime)
+if(!time && run)time=run;
 if(stime!=time){
 stime=time;
 LoadISSBadRun();
