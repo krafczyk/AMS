@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.748 2012/09/25 08:00:36 choutko Exp $
+# $Id: RemoteClient.pm,v 1.749 2012/09/27 16:18:24 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3362,6 +3362,7 @@ CheckCite:            if (defined $q->param("QCite")) {
      my $cite={};
      my @runs=();
      my @jids=();
+     my @jidsnt=();
      my @submits=();
      my @jobnames=();
      my @datasets=();
@@ -3446,7 +3447,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
 
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
-                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent,ntuples.jid
                  FROM runs, jobs, runcatalog, ntuples
                    WHERE runs.jid=jobs.jid and runs.run=ntuples.run  AND runs.status='Completed'";
        $sql=$sql.$sqlmom;
@@ -4426,7 +4427,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
 
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
-                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent,ntuples.jid
                  FROM dataruns, jobs, datasetsdesc, datasets, ntuples
                    WHERE dataruns.jid=jobs.jid and dataruns.run=ntuples.run  AND dataruns.status='Completed' and dataruns.jid=ntuples.jid";
        $sql=$sql.$sqlmom;
@@ -4455,6 +4456,14 @@ CheckCite:            if (defined $q->param("QCite")) {
       $sqlamom=$sqlamom.$sqlamom1;
        $sqlNT = $sqlNT.$sqlmom1." ".$pps."ORDER BY dataRuns.Run";
        my $r1=$self->{sqlserver}->Query($sql);
+       my $r2=$self->{sqlserver}->Query($sqlNT);
+        if (defined $r2->[0][0]) {
+         foreach my $r (@{$r2}){
+             if($#jidsnt<0 or $jidsnt[$#jidsnt]!=$r->[10]){
+               push @jidsnt,$r->[10];
+           }
+         }
+     }
         if (defined $r1->[0][0]) {
          foreach my $r (@{$r1}){
                push @runs,$r->[0];
@@ -4481,7 +4490,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                      WHERE Jobs.DID=$did AND Jobs.JID=dataRuns.JID 
                              AND dataRuns.Status='Completed'";
       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
-                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent,ntuples.jid
                     FROM dataRuns, Jobs, NTuples
                      WHERE Jobs.DID=$did AND Jobs.JID=dataRuns.JID AND
                             dataRuns.run=Ntuples.run AND
@@ -4516,6 +4525,14 @@ CheckCite:            if (defined $q->param("QCite")) {
             $sql = $sql.$pps." ORDER BY dataRuns.Run";
             $sqlNT = $sqlNT.$pps." ORDER BY dataRuns.Run";
             my $r1=$self->{sqlserver}->Query($sql);
+       my $r2=$self->{sqlserver}->Query($sqlNT);
+        if (defined $r2->[0][0]) {
+         foreach my $r (@{$r2}){
+             if($#jidsnt<0 or $jidsnt[$#jidsnt]!=$r->[10]){
+               push @jidsnt,$r->[10];
+           }
+         }
+        }
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
                push @runs,$r->[0];
@@ -4531,7 +4548,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                     FROM dataRuns, Jobs
                      WHERE dataRuns.JID=Jobs.JID AND dataRuns.Status='Completed'  ";
         $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
-                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
+                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent,ntuples.jid
                     FROM dataRuns, Jobs, Ntuples
                      WHERE
                         dataRuns.JID=Jobs.JID AND
@@ -4566,6 +4583,14 @@ CheckCite:            if (defined $q->param("QCite")) {
             $sql = $sql.$pps." ORDER BY dataRuns.Run";
             $sqlNT = $sqlNT.$pps." ORDER BY dataRuns.Run";
             my $r1=$self->{sqlserver}->Query($sql);
+       my $r2=$self->{sqlserver}->Query($sqlNT);
+        if (defined $r2->[0][0]) {
+         foreach my $r (@{$r2}){
+             if($#jidsnt<0 or $jidsnt[$#jidsnt]!=$r->[10]){
+               push @jidsnt,$r->[10];
+           }
+         }
+        }
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
                push @runs,$r->[0];
@@ -4753,7 +4778,24 @@ CheckCite:            if (defined $q->param("QCite")) {
     print "<td><b><font color=\"blue\" >File Path </font></b></td>";
     print "</tr>\n";
      my $i =0;
-       foreach my $run (@jids){
+    my $addf="";
+         if (defined $q->param("ROOTACCESS")) {
+             $rootfileaccess = $q->param("ROOTACCESS");
+         } else {
+             $rootfileaccess = "NFS";
+         }
+      if ($rootfileaccess=~/NFSONLY/ ) {
+           $addf=" and castortime=0 ";
+       }
+      elsif ($rootfileaccess=~/NFS/ ) {
+           $addf=" and path not like '/castor%'";
+       }
+      elsif ($rootfileaccess=~/CASTOR/ ) {
+           $addf=" and castortime>0";
+      }
+#    die " $rootfileaccess  qwa  $addf ";
+       
+       foreach my $run (@jidsnt){
                if ($accessmode eq "REMOTE") {
                 $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
                 my $r0=$self->{sqlserver}->Query($sql);
@@ -4763,14 +4805,27 @@ CheckCite:            if (defined $q->param("QCite")) {
             } else {
              my $jobname = $jobnames[$i];
              my $submit  = localtime($submits[$i]);
-             $i++;
-             $sql = "SELECT path From Ntuples WHERE jid=$run";
+#             die "$sqlmom1";
+             $sql = "SELECT path From Ntuples WHERE jid=$run".$addf;
              my $r1=$self->{sqlserver}->Query($sql);
              foreach my $path (@{$r1}) {
-             print "<td><b><font color=$color> $path->[0] </font></td></b></font></tr>\n";
+             $i++;
+             my $file="";
+             if((not $rootfileaccess=~/CASTOR/) || $path->[0]=~/^\/castor/ ){
+                 $file=$path->[0];
+             }
+             else{
+                 my @junk=split '\/',$path->[0];
+                 $file="/castor/cern.ch/ams";
+                 for my $i (2...$#junk){
+                     $file=$file."/$junk[$i]";
+                 }
+             }
+             print "<td><b><font color=$color> $file </font></td></b></font></tr>\n";
            }
          }
-      }
+           }
+             print "<td><b><font color=$color> Total of $i  </font></td></b></font></tr>\n";
       htmlTableEnd();
    } elsif ($q->param("NTOUT") eq "SUMM") {
 # ... print summary

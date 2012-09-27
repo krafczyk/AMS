@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.58 2012/09/25 10:35:45 choutko Exp $
+//  $Id: root_setup.h,v 1.59 2012/09/27 16:18:21 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -496,13 +496,14 @@ static int _select (const dirent64 * entry);
  /*! 
    
    \param unsigned int utime=0 (unix time)
+   \param unsigned int run=0  run to be checked; if 0 run from the setup header will be taken
    \param string  reason input ;  input=="" means any reason ; on output return all reasons matched        
    
    \retval 0   GoodRun
    \retval 1   BadRun
    \retval 2   UnableToLoadBadRunList                  
  */
- int IsBadRun( string &reason,unsigned int utime=0);
+ int IsBadRun( string &reason,unsigned int utime=0,unsigned int run=0);
  
  
  //! ISS Att roll,pitch,yaw accessor

@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.94 2012/09/20 14:12:45 choutko Exp $
+//  $Id: root_setup.C,v 1.95 2012/09/27 16:18:15 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1888,7 +1888,7 @@ a=GPSWGS84R(b);
 
 
 
-int AMSSetupR::IsBadRun(string & reason, unsigned int time){
+int AMSSetupR::IsBadRun(string & reason, unsigned int time,unsigned int run){
 int retn=0;
 string mr=reason;
 reason="";
@@ -1905,7 +1905,7 @@ LoadISSBadRun();
 }
 if (fBadRun.size()==0)return 2;
 pair <BadRun_i,BadRun_i> ret;
-ret=fBadRun.equal_range(fHeader.Run);
+ret=fBadRun.equal_range(run?run:fHeader.Run);
 for (BadRun_i it=ret.first;it!=ret.second;++it){
   BadRun f=it->second;
   int pos=-1;

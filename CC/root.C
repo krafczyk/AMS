@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.449 2012/09/24 10:29:48 qyan Exp $
+//  $Id: root.C,v 1.450 2012/09/27 16:18:14 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8349,8 +8349,10 @@ int AMSEventR::IsBadRun(const char * reason){
 
 string ss(reason);
 if(!AMSEventR::getsetup())return 2;
-if(!AMSEventR::getsetup()->fHeader.Run)AMSEventR::getsetup()->fHeader.Run=Run();
-return AMSEventR::getsetup()->IsBadRun(ss,UTime());
+if(!AMSEventR::getsetup()->fHeader.Run!=Run()){
+AMSEventR::getsetup()->fHeader.Run=Run();
+}
+return AMSEventR::getsetup()->IsBadRun(ss,UTime(),Run());
 
 }
 
@@ -8709,10 +8711,12 @@ else{
 
 
 
-float AMSEventR::LiveTime(){
+float AMSEventR::LiveTime(unsigned int ut){
 
 if(getsetup()){
- int k=getsetup()->getScalers(fHeader.Time[0],fHeader.Time[1]);
+int k=0;
+ if(!ut)k=getsetup()->getScalers(fHeader.Time[0],fHeader.Time[1]);
+else k=getsetup()->getScalers(ut,0);
  if(!k)return -1;
  else if(getsetup()->fScalersReturn.size()==1 ){
 //  cout <<"one "<<getsetup()->fScalersReturn[0]->second._LiveTime[0]<<endl;

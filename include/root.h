@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.475 2012/09/24 10:30:15 qyan Exp $
+//  $Id: root.h,v 1.476 2012/09/27 16:18:21 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4286,7 +4286,7 @@ int GetTDVEl(const string & tdvname,unsigned int index, if_t &value);
         */
 int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
 
-float LiveTime(); ///< trying to get livetime from scalers map return -1 if error
+float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers map return -1 if error
 
 
 
