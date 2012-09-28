@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.104 2012/05/05 19:44:07 choumilo Exp $
+//  $Id: trigger102.C,v 1.105 2012/09/28 15:43:56 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -269,27 +269,33 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //---> create "central trigger"-like flag FTCT1(lut1)(exists in Lin's paper, useless):    
     if(ftpatt&1>0){
       if(tofcpcode%10>0){//lut1
+        integer nsc=0;
         ns1=0;
         ns2=0;
         for(int il=0;il<TOF2DBc::getnplns();il++){   // <-------- loop over layers
+	  if(il!=2)continue;//outer Pads (1,10) are excluded in L3 only
           ibmx=TOF2DBc::getbppl(il);
           cbt=lsbit<<(ibmx-1);//last(in current il) paddle bit
           if((tofpatt1[il] & 1)>0 || (tofpatt1[il] & cbt)>0)ns1+=1;//s1 fired   
           if((tofpatt1[il] & 1<<16)>0 || (tofpatt1[il] & cbt<<16)>0)ns2+=1;//s2 fired
         }
-        toftcp1=(ns1==0 && ns2==0);//no outer counters, central trig, 
+	nsc=(tofpatt1[2]&0x1FE01FEL);//check central counters in L3 
+        toftcp1=(nsc>0 || toftrcode1==3);//(L3 missing or at least central counters present in layer-trig)==central trig OK 
       }
 //   
       if(tofcpcode/10>0){//lut2
+        integer nsc=0;
         ns1=0;
         ns2=0;
         for(int il=0;il<TOF2DBc::getnplns();il++){   // <-------- loop over layers
+	  if(il!=2)continue;//outer Pads (1,10) are excluded in L3 only
           ibmx=TOF2DBc::getbppl(il);
           cbt=lsbit<<(ibmx-1);//last(in current il) paddle bit
           if((tofpatt1[il] & 1)>0 || (tofpatt1[il] & cbt)>0)ns1+=1;//s1 fired   
           if((tofpatt1[il] & 1<<16)>0 || (tofpatt1[il] & cbt<<16)>0)ns2+=1;//s2 fired
         }
-        toftcp2=(ns1==0 && ns2==0);//no outer counters, central trig, 
+	nsc=(tofpatt1[2]&0x1FE01FEL);//check central counters in L3 
+        toftcp2=(nsc>0 || toftrcode1==3);//(L3 missing or at least central counters present in layer-trig)==central trig OK 
       }
     }
 //
@@ -302,10 +308,13 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     if(toftcp2)JMembPatt|=(1<<4);//FTCT1
     if((ftpatt&(1<<1)) > 0)JMembPatt|=(1<<5);//FTZ
     if((ftpatt&(1<<2)) > 0)JMembPatt|=(1<<6);//FTE
-    if(nanti<=antismx[0])JMembPatt|=(1<<7);//ACC0(equat:1)
-    if(nanti<=antismx[1])JMembPatt|=(1<<8);//ACC1(polar:0)
+    if(nanti<=antismx[0])JMembPatt|=(1<<7);//ACC0(<1)
+    if(nanti<=antismx[1])JMembPatt|=(1<<8);//ACC1(<5sectors)
     if(tofbzflag==1)JMembPatt|=(1<<9);//BZ
-    if(ectrconf/10==2)JMembPatt|=(1<<10);//ECAL=F_and
+    if(ectrconf/10==2){
+      JMembPatt|=(1<<10);//ECAL=F_and
+      JMembPatt|=(1<<11);//set also ECAL=F_or when "and"
+    }
     if(ectrconf/10==1)JMembPatt|=(1<<11);//ECAL=F_or
     if(ectrconf%10==2)JMembPatt|=(1<<12);//ECAL=A_and
     if(ectrconf%10==1)JMembPatt|=(1<<13);//ECAL=A_or

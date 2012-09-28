@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.476 2012/09/27 16:18:21 choutko Exp $
+//  $Id: root.h,v 1.477 2012/09/28 15:46:04 choumilo Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2312,6 +2312,10 @@ public:
 ///  \return true if any tof related level1 was set
  bool isTOFTrigger(int level=-1);
  void RestorePhysBPat();
+ 
+ int RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt);///< Rebuid JMembPatt/PhysBPatt according to Flight tr.setup(mainly for old MC root-files)
+/// \return 1/0 (was physical/unbiased trigger)
+ 
   Level1R(Trigger2LVL1 *ptr);
   /// \param number index in container
   /// \return human readable info about Level1R
@@ -2320,7 +2324,7 @@ public:
 
 
   virtual ~Level1R(){};
-ClassDef(Level1R,8)       //Level1R
+ClassDef(Level1R,9)       //Level1R
 #pragma omp threadprivate(fgIsA)
 };
 
