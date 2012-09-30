@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.16 2012/09/22 18:24:26 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.17 2012/09/30 16:36:18 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -98,6 +98,8 @@ public:
     kQ2Q =    0x100,
     /// Beta Cor
     kBetaCor= 0x200,
+    /// Rigidity Cor
+    kRigidityCor=0x400,
  };
 
 /** @name Sum ReBuild Part
@@ -139,7 +141,7 @@ public:
   static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>&ltdcw,int hassid);
 
 /// Get QSignal with different Correction
-  static number GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo=0,number cosz=1,number beta=1);
+  static number GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo=0,number cosz=1,number beta=0.95,number rig=0);
 /// Adding Gain to Convert To Q*Q (Proton Mip Unit)
   static number CoverToQ2(int idsoft,int isanode,number adc);
 /// Q2(ADC) Non-Linear Correction
@@ -148,6 +150,12 @@ public:
   static number SciAttCor(int idsoft,number lpos,number q2);
 /// Scintillator Birk Correction (opt=1 normal 0 invert)
   static number BirkCor(int idsoft,number q2,int opt=1);
+/// Beta Correction
+  static number BetaCor(int idsoft,number q2,number beta,number rig=0);
+/// Beta Correction Factor For Charge(opt=0) or Cal Edep Beta(opt=1)
+  static number GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge);
+/// Beta Q2-Correction Factor For ChargeIndex(opt=0) or Cal Edep Beta(opt=1)
+  static number GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex);
 /// Sum Anode Signal To Counter Signal
   static number SumSignalA(int idsoft,number signal[],int useweight=1);
 /// Sum Dynode Signal To Counter Signal

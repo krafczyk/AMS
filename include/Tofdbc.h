@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.18 2012/09/22 18:24:26 qyan Exp $
+//  $Id: Tofdbc.h,v 1.19 2012/09/30 16:36:18 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -406,8 +406,13 @@ class TofCAlignPar: public TofTDVTool<float>{
      std::map<int, float>birk[2];  //id LB00 Birk Const
 //--Dynode PMT Resolution weight factor for Counter Edep Calculation//Tunning According to Carbon
      std::map<int, float>dypmw;
-     std::map<int, float>ansat[nansat];
-//--default par 
+     std::map<int, float>ansat[nansat];//Saturation Par
+//---BetaCor
+     static const int nBetaCh=14;
+     static const int BetaCh[nBetaCh];
+     std::map<int, float>betacor[nBetaCh][3];
+//--default par
+     static const float def_betac[nBetaCh][3][TOFCSN::SCLRS][TOFCSN::SCMXBR]; 
      static const float def_birk[2][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static const float def_dycor[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
      static const float def_dypmw[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.477 2012/09/28 15:46:04 choumilo Exp $
+//  $Id: root.h,v 1.478 2012/09/30 16:36:18 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2843,12 +2843,21 @@ class BetaHR: public TrElem{
 /// TOF Q Mean
    /*!
     * @param[out] nlay Number of TOF Layers Used For Q-Measument
+    * @param[out] qrms Q-RMS of TOF Layers Used
     * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] pattern -1: Remove Max-dQ(Q deviation) Layer; -2: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer1...
     * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
     */
-  float GetQ(int &nlay,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2);
+  float GetQ(int &nlay,float &qrms,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2);
+/// TOF QBeta of 4Layers from TOF Dedx measument /*validate form beta~0.3~0.94*/
+   /*!
+    * @param[in] ilay TOF layer(0-3)
+    * @param[in] charge Particle charge
+    * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
+    * @return =1 or =0.3 Edep Reach Charge unvalidate Boundary Region,=0 BetaH don't has This Layer, (0.3,0.94) normal measuremtnt
+    */
+  float GetQBetaL(int ilay,int charge,int pmtype=2);
 /**@}*/
 
 
@@ -2896,7 +2905,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,6)
+  ClassDef(BetaHR,7)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        
