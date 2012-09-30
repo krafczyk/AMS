@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.27 2012/09/30 16:32:59 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.28 2012/09/30 18:06:56 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -787,27 +787,27 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
    TF1 *fun=0;
    if(lay<2){ //Up TOF
       if(TofCAlignPar::BetaCh[chindex]<=6){//pow
-         fun=new TF1("TOF_VE","pow(x,[0])",0.3,0.95);
+         fun=new TF1("TOF_VE","pow(x,[0])",0.2,1);
          fun->SetParameter(0,-CPar->betacor[chindex][1][idsoft]);    
        }
       else  {//pol2
-         fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.3,0.95);
+         fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.2,1);
          fun->SetParameter(0,CPar->betacor[chindex][1][idsoft]); 
          fun->SetParameter(1,CPar->betacor[chindex][2][idsoft]);
       }
    }
    else { //Down TOF
       if(TofCAlignPar::BetaCh[chindex]<=2){//pow
-        fun=new TF1("TOF_VE","pow(x,[0])",0.3,0.95);
+        fun=new TF1("TOF_VE","pow(x,[0])",0.2,1);
         fun->SetParameter(0,-CPar->betacor[chindex][1][idsoft]);
       }
       else if(TofCAlignPar::BetaCh[chindex]<=16){//bloch
-        fun=new TF1("TOF_VE","0.307/2.*[0]/x/x*(log(2.*0.511/0.165*x*x/(1.-x*x))-x*x+[1]/2.)",0.3,0.95);
+        fun=new TF1("TOF_VE","0.307/2.*[0]/x/x*(log(2.*0.511/0.165*x*x/(1.-x*x))-x*x+[1]/2.)",0.2,1);
         fun->SetParameter(0,CPar->betacor[chindex][0][idsoft]);
         fun->SetParameter(1,CPar->betacor[chindex][1][idsoft]);
       }
       else {//pol2
-        fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.3,0.95);
+        fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.2,1);
         fun->SetParameter(0,CPar->betacor[chindex][1][idsoft]);
         fun->SetParameter(1,CPar->betacor[chindex][2][idsoft]);
      }
