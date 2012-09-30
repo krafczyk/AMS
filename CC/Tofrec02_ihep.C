@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.26 2012/09/22 18:23:44 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.27 2012/09/30 16:32:59 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -581,7 +581,7 @@ int  TofRecH::EdepRecR(int ilay,int ibar,geant adca[],geant adcd[][TOF2GC::PMTSM
 }
 
 //========================================================
-number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo,number cosz,number beta){
+number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo,number cosz,number beta,number rig){
   
   if(TofPMAlignPar::Head==0||TofPMAlignPar::GetHead()->Isload!=1)return 0;
   if(TofPMDAlignPar::Head==0||TofPMDAlignPar::GetHead()->Isload!=1)return 0;
@@ -600,6 +600,9 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
   if(optc&kThetaCor) {signalc*=fabs(cosz);}
 //--Birk Correction -2 mean Overflow Birk Correction faild
   if(optc&kBirkCor)  {signalc=BirkCor(idsoft,signalc,1);if(signalc<=0)return signalc;}
+//--Beta Correction
+   if(optc&kBetaCor)  {signalc=BetaCor(idsoft,signalc,beta,rig);}
+      
 //--Conver from MeV to Q2
   if(optc&kMeVQ2)    signalc=signalc/TofCAlignPar::ProEdep;
 //--Inverse Birk Correction
@@ -686,6 +689,140 @@ number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
   else {
     return GetBirkFun(idsoft)->Eval(q2);
   }
+}
+
+//========================================================
+number TofRecH::BetaCor(int idsoft,number q2,number beta,number rig){
+ 
+   if(fabs(beta)>0.96||q2<=0)return q2;
+   if(rig>15)return q2;
+
+//--protection  
+   if(fabs(beta)<0.3)beta=beta>0?0.3:-0.3;
+
+///--Finding Algorithem
+   int nowch=1;
+   number cor1,cor2,ch1,ch2;
+   number betacor=1;
+   while (1){
+      cor1=GetBetaCalCh(idsoft,0,beta,0,nowch);
+      cor2=GetBetaCalCh(idsoft,0,beta,0,nowch+1);
+      ch1=sqrt(q2/cor1);
+      ch2=sqrt(q2/cor2);
+///--Find LowLimit
+      if(ch1<1||ch2<1||nowch==0){
+        betacor=cor1;break;
+      }
+///--Find Gap
+      else if((ch1>=nowch&&ch2<=nowch+1)||(ch1<=nowch&&ch2>=nowch+1)){
+         number ww1=fabs(ch1*ch1-nowch*nowch);number ww2=fabs(ch2*ch2-(nowch+1)*(nowch+1));
+         betacor=(ww2*cor1+ww1*cor2)/(ww1+ww2);break;
+      }
+      else if(ch1>=nowch+1||ch2>=nowch+1){nowch=(ch1>ch2)? int(ch1):int(ch2);}
+      else if(ch1<=nowch||ch2<=nowch)    {nowch--;}
+      else {cerr<<"Error Beta Correction"<<endl;}
+   }
+
+    return q2/betacor;
+}
+
+//========================================================
+number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge){
+
+  if(charge<=0)return 1;
+
+   number corvar=1;
+   for(int ich=0;ich<TofCAlignPar::nBetaCh;ich++){
+///---Find in arr or at end
+      if(charge==TofCAlignPar::BetaCh[ich]||ich==TofCAlignPar::nBetaCh-1){
+         if(opt==0)corvar=GetBetaCalI(idsoft,0,beta,0.,ich); 
+         else      {
+            q2=q2/(charge*charge);
+            corvar=GetBetaCalI(idsoft,1,beta,q2,ich);
+          }
+         break;
+      }
+///---Find In middle need interpolation
+      else if(charge>TofCAlignPar::BetaCh[ich]&&charge<TofCAlignPar::BetaCh[ich+1]){
+        number  ww1=charge*charge-TofCAlignPar::BetaCh[ich]*TofCAlignPar::BetaCh[ich];
+        number  ww2=TofCAlignPar::BetaCh[ich+1]*TofCAlignPar::BetaCh[ich+1]-charge*charge;
+        if(opt==0)corvar=(ww2*GetBetaCalI(idsoft,0,beta,0.,ich)+ww1*GetBetaCalI(idsoft,0,beta,0.,ich+1))/(ww1+ww2);
+        else     {
+            q2=q2/(charge*charge);
+            corvar=(ww2*GetBetaCalI(idsoft,1,beta,q2,ich)+ww1*GetBetaCalI(idsoft,1,beta,q2,ich+1))/(ww1+ww2);
+        }
+        break;
+      }
+   }
+
+   return corvar;
+}
+
+//========================================================
+number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex){//Counter Level
+
+   TofCAlignPar   *CPar=TofCAlignPar::GetHead();
+   idsoft=idsoft/100*100;
+///----
+   TofRecPar::IdCovert(idsoft);
+   int lay=TofRecPar::iLay; int bar=TofRecPar::iBar;
+
+//--Minus case Invert Layer
+   if(beta<0){
+     if(lay==1||lay==2){
+       if     (lay==1&&bar==TOFGeom::Nbar[lay]-1){bar=TOFGeom::Nbar[2]-1;}
+       else if(lay==2&&bar==TOFGeom::Nbar[lay]-1){bar=TOFGeom::Nbar[1]-1;}
+       else if(lay==2&&bar>=TOFGeom::Nbar[1]-1)  {bar=TOFGeom::Nbar[1]-2;}
+     }
+     lay=(TOFGeom::NLAY-1)-lay;
+     TofRecPar::IdCovert(lay,bar);
+     idsoft=TofRecPar::Idsoft/100*100;
+   }
+   
+//---Normal Beta
+   number betap=fabs(beta)>1?1:fabs(beta);
+   number betacv=1;
+
+//---Correction
+   TF1 *fun=0;
+   if(lay<2){ //Up TOF
+      if(TofCAlignPar::BetaCh[chindex]<=6){//pow
+         fun=new TF1("TOF_VE","pow(x,[0])",0.3,0.95);
+         fun->SetParameter(0,-CPar->betacor[chindex][1][idsoft]);    
+       }
+      else  {//pol2
+         fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.3,0.95);
+         fun->SetParameter(0,CPar->betacor[chindex][1][idsoft]); 
+         fun->SetParameter(1,CPar->betacor[chindex][2][idsoft]);
+      }
+   }
+   else { //Down TOF
+      if(TofCAlignPar::BetaCh[chindex]<=2){//pow
+        fun=new TF1("TOF_VE","pow(x,[0])",0.3,0.95);
+        fun->SetParameter(0,-CPar->betacor[chindex][1][idsoft]);
+      }
+      else if(TofCAlignPar::BetaCh[chindex]<=16){//bloch
+        fun=new TF1("TOF_VE","0.307/2.*[0]/x/x*(log(2.*0.511/0.165*x*x/(1.-x*x))-x*x+[1]/2.)",0.3,0.95);
+        fun->SetParameter(0,CPar->betacor[chindex][0][idsoft]);
+        fun->SetParameter(1,CPar->betacor[chindex][1][idsoft]);
+      }
+      else {//pol2
+        fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.3,0.95);
+        fun->SetParameter(0,CPar->betacor[chindex][1][idsoft]);
+        fun->SetParameter(1,CPar->betacor[chindex][2][idsoft]);
+     }
+   }
+
+//-----
+  if(opt==0)betacv=fun->Eval(betap);//Q2 Beta Correction
+  else      {  //Edpe Beta
+     number q2=q2norm;
+     if     (q2<fun->Eval(0.94))betacv=beta>0?1:-1;
+     else if(q2>fun->Eval(0.3)) betacv=beta>0?0.3:-0.3;
+     else                       betacv=beta>0?fun->GetX(q2):-fun->GetX(q2);
+  }
+  delete fun;
+  return betacv;
 }
 
 //========================================================

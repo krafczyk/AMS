@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.451 2012/09/28 15:43:41 choumilo Exp $
+//  $Id: root.C,v 1.452 2012/09/30 16:33:00 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2356,7 +2356,18 @@ bool AMSEventR::ReadHeader(int entry){
 #pragma omp critical (rd)
 	RichRingR::updateCalibration(*this); 
       }
-    
+   
+///--Tof BetaHs Init
+    if(Version()<592){
+       fHeader.TofClusterHs = 0;
+       TofClusterH().clear();
+///---
+       fHeader.BetaHs = 0;
+       for(int i=0;i<NParticle();i++)pParticle(i)->setBetaH(-1);
+       for(int i=0;i<NCharge();i++)pCharge(i)->setBetaH(-1);
+       BetaH().clear();
+     }
+
 
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
@@ -4253,6 +4264,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   Phi      = phi;
   PhiGl    = phigl;
   fBeta   = -1;
+  fBetaH  = -1;
   fCharge = -1;
   fTrTrack  = -1;
   fTrdTrack    = -1;
@@ -4260,6 +4272,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   fRichRing   = -1;
   fEcalShower = -1;
   fVertex = -1;
+  fRichRingB = -1;
   Particle     = ptr->_gpart[0];
   ParticleVice = ptr->_gpart[1];
   for (int i=0; i<2; i++) {Prob[i] = (float)ptr->_prob[i];}
@@ -6607,12 +6620,16 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
        if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
        else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,BetaPar.CosZ[ilay],BetaPar.Beta);
+    double rig=0;
+#ifdef _PGTRACK_
+    if(fTrTrack>=0){rig=pTrTrack()->GetRigidity();}
+#endif
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,double(q2),0,double(BetaPar.CosZ[ilay]),double(BetaPar.Beta),rig);
     return signal;
 }
 
 
-float BetaHR::GetQ(int &nlay,int pmtype,int opt,int pattern){
+float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
 
    vector<float >ql;
    float qs;
@@ -6634,7 +6651,15 @@ float BetaHR::GetQ(int &nlay,int pmtype,int opt,int pattern){
     }
 
 //----Fill Var
-    if(ql.size()<=2||pattern>0){nlay=ql.size();return nlay==0? 0:mean/nlay;}
+    if(ql.size()<=2||pattern>0){
+       nlay=ql.size();
+       if(nlay==0){qrms=0;return 0.;}
+       else       {
+         mean=mean/ql.size();sig=sig/ql.size();
+         sig=sqrt(fabs(sig*sig-mean*mean));
+         qrms=sig;return mean;
+       }
+     }
     else {
        float meanl=(mean-qmax)/(ql.size()-1); float sigl= (sig-qmax*qmax)/(ql.size()-1);
        sigl=sqrt(fabs(sigl-meanl*meanl)); 
@@ -6645,10 +6670,24 @@ float BetaHR::GetQ(int &nlay,int pmtype,int opt,int pattern){
        float dql=fabs(qmin-meanh)/sigh;
 //----
        nlay=ql.size()-1;
-       if(pattern==-2)return meanl;
-       else           return dqh>dql?meanl:meanh;
+       if(pattern==-2){qrms=sigl;return meanl;}
+       else           {
+         if(dqh>dql)  {qrms=sigl;return meanl;}
+         else         {qrms=sigh;return meanh;}
+       }
     }
 
+}
+
+float BetaHR::GetQBetaL(int ilay,int charge,int pmtype){
+
+   if(!TestExistHL(ilay))return 0;
+
+   double q2=GetQL(ilay,pmtype,(TofRecH::kThetaCor|TofRecH::kBirkCor));
+   TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
+   float qbeta=TofRecH::GetBetaCalCh(TofRecPar::Idsoft,1,BetaPar.Beta,q2,charge);
+
+   return qbeta;
 }
 
 //---end of BetaH
