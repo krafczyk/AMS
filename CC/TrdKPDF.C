@@ -1893,6 +1893,7 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
         Par7c=p7c[8]+(p7c[9]-p7c[8])*(Charge-20)/6;
     }
     DAmpL=DAmpL*(1+Par1r*TMath::Exp(-Par2r*Rigidity));
+    if(Par4c>0.999999999) Par4c=Par4c>0.999999999;
     if(Charge>=3)
     {
         PDFValue=Par4c*TMath::Exp(-(DAmpL-Par1c)/Par2c-Par3c*TMath::Exp(-(DAmpL-Par1c)/Par2c/Par3c)) + (1-Par4c)*TMath::Exp(-(DAmpL-Par5c)/Par6c-Par7c*TMath::Exp(-(DAmpL-Par5c)/Par6c/Par7c));
