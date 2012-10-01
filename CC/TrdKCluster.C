@@ -1036,7 +1036,7 @@ double TrdKCluster::TRDTrack_ImpactChi2_Charge(Double_t *par)
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::CalculateTRDCharge(int Option)
+int TrdKCluster::CalculateTRDCharge(int Option)
 {
     //Refit TRD track
     if(QTRDHitCollection.size()==0)
@@ -1078,7 +1078,7 @@ void TrdKCluster::CalculateTRDCharge(int Option)
     {
         TRDChargeValue=0;
         TRDChargeError=BigNumber;
-        return;
+        return -1;
     }
 
     //Estimate error using a simple parabola fit
@@ -1160,7 +1160,7 @@ void TrdKCluster::CalculateTRDCharge(int Option)
     {
         TRDChargeValue=0;
         TRDChargeError=BigNumber;
-        return;
+        return -2;
     }
     a11 = m22*m33 - m23*m23;
     a12 = m13*m23 - m12*m33;
@@ -1177,11 +1177,21 @@ void TrdKCluster::CalculateTRDCharge(int Option)
     {
         TRDChargeValue=0;
         TRDChargeError=BigNumber;
-        return;
+        return -3;
     }
 
     TRDChargeValue=X0-0.5*beta/alpha;
     TRDChargeError=sqrt(DD/2/alpha);
+
+    if(TRDChargeValue<0)
+    {
+      TRDChargeValue=0;
+      TRDChargeError=BigNumber;
+      return -4;
+    }
+
+    return 0;
+
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1191,6 +1201,9 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
     double ADC,Length,Corr;
     int TRDLayer;
     double TRDChargeLikelihood=0;
+
+    //If too many dE/dX tubes are saturated, then use delta ray PDF only
+    if(NBelowThreshold<3 && Option==0) Option=2;
 
     //Only delta electron PDF
     if(Option==2)
@@ -1328,12 +1341,20 @@ void TrdKCluster::HitSelectionAfterRefit()
 {
     double Length;
     int TRDLayer;
+    double ADC,Corr;
     DAmp=0;
+    NBelowThreshold=0;
     for(vector<TrdKHit>::iterator it=QTRDHitCollection.begin();it!=QTRDHitCollection.end();it++)
     {
         Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
         TRDLayer=(*it).TRDHit_Layer;
-        if(Length>0) QTRDHitCollectionNuclei.push_back(*it);
+	ADC=(*it).TRDHit_Amp;
+	Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
+        if(Length>0) 
+	{
+	  if(3400*Corr>ADC) NBelowThreshold++;
+	  QTRDHitCollectionNuclei.push_back(*it);
+	}
         else
         {
             QTRDHitCollectionDeltaRay.push_back(*it);

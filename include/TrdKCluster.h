@@ -159,7 +159,7 @@ public:
     double GetTRDChargeLikelihood(double Z,int Option);
 
     //Calculate TRD charge value and error
-    void CalculateTRDCharge(int Option=0);
+    int CalculateTRDCharge(int Option=0);
 
     //Get TRD charge value and error
     double GetTRDCharge() {return TRDChargeValue;}
@@ -303,6 +303,8 @@ private:
     double TRDChargeValue;
     double TRDChargeError;
 
+    //Number of dE/dX tubes not saturated
+    int NBelowThreshold;
 
 
 
