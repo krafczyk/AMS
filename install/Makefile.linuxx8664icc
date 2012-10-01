@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.31 2012/09/30 12:57:19 weisun Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.32 2012/10/01 08:21:43 weisun Exp $
 
 # General clean up and reorganization
 #
@@ -78,7 +78,7 @@ endif
 #Compilers
 ########################################################################
 
-  INTELDIR=/afs/ams.cern.ch/opt/intel/
+  INTELDIR=/opt/intel/
   INTELVER=Compiler/11.1/073/
 ifdef SLC6system
   INTELVER=composer_xe_2011_sp1.9.293/compiler/
