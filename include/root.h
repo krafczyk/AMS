@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.478 2012/09/30 16:36:18 qyan Exp $
+//  $Id: root.h,v 1.479 2012/10/02 09:32:27 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2615,6 +2615,8 @@ public:
 /// Tof BetaH structure
 /*! 
  * IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
+ * Root Mode ReFit User Need One function:  TofRecH::ReBuild() 
+ * Example of How to Use:  vdev/example/Tof_BetaH.C (AMSsoft)
  * \author qyan@cern.ch
 */
 class BetaHR: public TrElem{
