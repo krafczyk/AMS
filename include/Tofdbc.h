@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.19 2012/09/30 16:36:18 qyan Exp $
+//  $Id: Tofdbc.h,v 1.20 2012/10/02 09:19:33 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -411,8 +411,10 @@ class TofCAlignPar: public TofTDVTool<float>{
      static const int nBetaCh=14;
      static const int BetaCh[nBetaCh];
      std::map<int, float>betacor[nBetaCh][3];
+     std::map<int, float>betacor1[2][nBetaCh];
 //--default par
      static const float def_betac[nBetaCh][3][TOFCSN::SCLRS][TOFCSN::SCMXBR]; 
+     static const float def_betac1[2][nBetaCh][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static const float def_birk[2][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static const float def_dycor[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
      static const float def_dypmw[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];

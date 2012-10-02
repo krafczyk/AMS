@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.17 2012/09/30 16:36:18 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.18 2012/10/02 09:19:33 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -153,9 +153,9 @@ public:
 /// Beta Correction
   static number BetaCor(int idsoft,number q2,number beta,number rig=0);
 /// Beta Correction Factor For Charge(opt=0) or Cal Edep Beta(opt=1)
-  static number GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge);
+  static number GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge,number rig=0);
 /// Beta Q2-Correction Factor For ChargeIndex(opt=0) or Cal Edep Beta(opt=1)
-  static number GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex);
+  static number GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex,number rig=0);
 /// Sum Anode Signal To Counter Signal
   static number SumSignalA(int idsoft,number signal[],int useweight=1);
 /// Sum Dynode Signal To Counter Signal
