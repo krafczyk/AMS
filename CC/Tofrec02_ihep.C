@@ -1,8 +1,7 @@
-//  $Id: Tofrec02_ihep.C,v 1.28 2012/09/30 18:06:56 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.29 2012/10/02 09:20:16 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
-//      Not All finish: (BetaH BetaHC)
 // ------------------------------------------------------------
 //      History
 //        Created:       2012-June-10  Q.Yan  qyan@cern.ch
@@ -10,6 +9,7 @@
 //        Modified:      2012-july-18  Adding lib refit support module
 //        Modified:      2012-Sep      Adding New Charge Reconstruction
 //        Modified:      2012-Sep -12  Adding Tof Self Track Reconstruction
+//        Modified:      2012-Oct -1   Update TOF Charge Part
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "tofrec02.h"
@@ -156,8 +156,6 @@ int TofRecH::BuildTofClusterH(){
   vector<number>shtdcw[2];
   AMSPoint coo,ecoo;
 
-//---
-  vector<TofRawClusterR>tfrawcl;
 //-----new cont
   VCon* cont = GetVCon()->GetCont("AMSTOFClusterH");
 
@@ -170,13 +168,6 @@ int TofRecH::BuildTofClusterH(){
   }
   TOF2RawSide *tfhraws[2]={0};
   TofRawSideR *tfhraws1[2]={0};
-//----   
-   tfrawcl.clear();
-   TOF2RawCluster *ptrc=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
-   while(ptrc){
-      tfrawcl.push_back(TofRawClusterR(ptrc));
-      ptrc=ptrc->next(); 
-   }
 
 #else
     cont->eraseC();
@@ -188,7 +179,6 @@ int TofRecH::BuildTofClusterH(){
 //--increase id
     sort(tfraws.begin(),tfraws.end(),SideCompare);
     sort(sideid.begin(),sideid.end(),IdCompare);
-    tfrawcl=ev->TofRawCluster();
     TofRawSideR *tfhraws[2]={0};
 #endif  
 //-----   
@@ -694,19 +684,15 @@ number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
 //========================================================
 number TofRecH::BetaCor(int idsoft,number q2,number beta,number rig){
  
-   if(fabs(beta)>0.96||q2<=0)return q2;
-   if(rig>15)return q2;
-
-//--protection  
-   if(fabs(beta)<0.3)beta=beta>0?0.3:-0.3;
+   if(q2<=0)return q2;
 
 ///--Finding Algorithem
    int nowch=1;
    number cor1,cor2,ch1,ch2;
    number betacor=1;
    while (1){
-      cor1=GetBetaCalCh(idsoft,0,beta,0,nowch);
-      cor2=GetBetaCalCh(idsoft,0,beta,0,nowch+1);
+      cor1=GetBetaCalCh(idsoft,0,beta,0,nowch,rig);
+      cor2=GetBetaCalCh(idsoft,0,beta,0,nowch+1,rig);
       ch1=sqrt(q2/cor1);
       ch2=sqrt(q2/cor2);
 ///--Find LowLimit
@@ -727,7 +713,7 @@ number TofRecH::BetaCor(int idsoft,number q2,number beta,number rig){
 }
 
 //========================================================
-number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge){
+number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge,number rig){
 
   if(charge<=0)return 1;
 
@@ -735,10 +721,10 @@ number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge
    for(int ich=0;ich<TofCAlignPar::nBetaCh;ich++){
 ///---Find in arr or at end
       if(charge==TofCAlignPar::BetaCh[ich]||ich==TofCAlignPar::nBetaCh-1){
-         if(opt==0)corvar=GetBetaCalI(idsoft,0,beta,0.,ich); 
+         if(opt==0)corvar=GetBetaCalI(idsoft,0,beta,0.,ich,rig); //Beta Correction
          else      {
             q2=q2/(charge*charge);
-            corvar=GetBetaCalI(idsoft,1,beta,q2,ich);
+            corvar=GetBetaCalI(idsoft,1,beta,q2,ich,rig);//Edep Beta
           }
          break;
       }
@@ -746,10 +732,10 @@ number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge
       else if(charge>TofCAlignPar::BetaCh[ich]&&charge<TofCAlignPar::BetaCh[ich+1]){
         number  ww1=charge*charge-TofCAlignPar::BetaCh[ich]*TofCAlignPar::BetaCh[ich];
         number  ww2=TofCAlignPar::BetaCh[ich+1]*TofCAlignPar::BetaCh[ich+1]-charge*charge;
-        if(opt==0)corvar=(ww2*GetBetaCalI(idsoft,0,beta,0.,ich)+ww1*GetBetaCalI(idsoft,0,beta,0.,ich+1))/(ww1+ww2);
+        if(opt==0)corvar=(ww2*GetBetaCalI(idsoft,0,beta,0.,ich,rig)+ww1*GetBetaCalI(idsoft,0,beta,0.,ich+1,rig))/(ww1+ww2);//Beta Correction
         else     {
             q2=q2/(charge*charge);
-            corvar=(ww2*GetBetaCalI(idsoft,1,beta,q2,ich)+ww1*GetBetaCalI(idsoft,1,beta,q2,ich+1))/(ww1+ww2);
+            corvar=(ww2*GetBetaCalI(idsoft,1,beta,q2,ich,rig)+ww1*GetBetaCalI(idsoft,1,beta,q2,ich+1,rig))/(ww1+ww2);//Edep Beta
         }
         break;
       }
@@ -759,7 +745,7 @@ number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge
 }
 
 //========================================================
-number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex){//Counter Level
+number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex,number rig){//Counter Level
 
    TofCAlignPar   *CPar=TofCAlignPar::GetHead();
    idsoft=idsoft/100*100;
@@ -779,8 +765,16 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
      idsoft=TofRecPar::Idsoft/100*100;
    }
    
-//---Normal Beta
-   number betap=fabs(beta)>1?1:fabs(beta);
+
+//--Normal Beta 
+   const number rigcut=20;//>20GeV not Apply Beta Correction
+   const number betacut=0.96;
+   number betap=fabs(beta)>betacut? betacut :fabs(beta);
+//--Protection
+   if(betap<0.3)betap=0.3;
+
+
+//---beta correction var
    number betacv=1;
 
 //---Correction
@@ -813,10 +807,25 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
      }
    }
 
-//-----
-  if(opt==0)betacv=fun->Eval(betap);//Q2 Beta Correction
-  else      {  //Edpe Beta
-     number q2=q2norm;
+//-----Beta Correction
+  if(opt==0){
+//---Global Scale For Low Beta
+     if(fabs(beta)>=1||fabs(rig)>rigcut){
+//     if(fabs(beta)>=betacut||fabs(rig)>rigcut){
+        betacv=CPar->betacor1[1][chindex][idsoft];   
+     }
+     else {
+        betacv=fun->Eval(betap)*CPar->betacor1[0][chindex][idsoft];//Q2 Beta Correction*factor
+        if(fabs(beta)>betacut){
+          number ww1=fabs(beta)-betacut;number ww2=1.-fabs(beta);
+          betacv=(betacv*ww2+CPar->betacor1[1][chindex][idsoft]*ww1)/(ww1+ww2);
+        }
+     }
+//---
+  }
+  else   {  //Edpe Beta
+//---Global Scale For Low Beta
+     number q2=q2norm/CPar->betacor1[0][chindex][idsoft];
      if     (q2<fun->Eval(0.94))betacv=beta>0?1:-1;
      else if(q2>fun->Eval(0.3)) betacv=beta>0?0.3:-0.3;
      else                       betacv=beta>0?fun->GetX(q2):-fun->GetX(q2);

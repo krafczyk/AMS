@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.452 2012/09/30 16:33:00 qyan Exp $
+//  $Id: root.C,v 1.453 2012/10/02 09:20:16 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6685,7 +6685,7 @@ float BetaHR::GetQBetaL(int ilay,int charge,int pmtype){
 
    double q2=GetQL(ilay,pmtype,(TofRecH::kThetaCor|TofRecH::kBirkCor));
    TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
-   float qbeta=TofRecH::GetBetaCalCh(TofRecPar::Idsoft,1,BetaPar.Beta,q2,charge);
+   float qbeta=TofRecH::GetBetaCalCh(TofRecPar::Idsoft,1,BetaPar.Beta,q2,charge,0.);
 
    return qbeta;
 }
