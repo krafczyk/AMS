@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.429.2.3 2012/09/27 16:14:46 choutko Exp $
+//  $Id: root.C,v 1.429.2.4 2012/10/04 10:03:10 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7400,6 +7400,22 @@ static int master=0;
 #endif
 	TkDBc::Head->init(setup);
       }
+
+      ///// SH: Workaround to take care of the wrong TrackerAlignPM3
+      else {
+	if (getsetup()) {
+	  AMSSetupR::TDVR tdv;
+	  getsetup()->getTDV("TrackerAlignPM3", UTime(), tdv);
+	  if (tdv.Insert == 1342182208) {
+	    cout << "AMSEventR::InitDB-W-Remove wrong TrackerAlignPM3: " 
+		 << tdv.Insert << " "
+		 << tdv.FilePath.Data() << endl;
+	    TkDBc::ForceFromTDV = 1;
+	  }
+	}
+      }
+      ///// SH: Workaround to take care of the wrong TrackerAlignPM3
+
       if(TkDBc::ForceFromTDV) TkDBc::GetFromTDV(UTime(),  3);
     }
     if(!TrExtAlignDB::ForceFromTDV) 
