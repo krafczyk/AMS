@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.29 2012/10/02 09:20:16 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.30 2012/10/04 13:38:13 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -41,7 +41,6 @@ ClassImp(TofRecH)
 TofBetaPar TofRecH::betapar;
 AMSEventR *TofRecH::ev=0;
 int        TofRecH::realdata=1;
-int        TofRecH::normcharge=1;
 //--Cluster
 vector<TofRawSideR>   TofRecH::tfraws;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -84,7 +83,6 @@ bool  TofRecH::BuildKey=1;
 
 //========================================================
 int TofRecH::ReBuild(int charge){
-   normcharge=charge; 
    BuildTofClusterH();
    BuildBetaH();  
    return 0;
@@ -491,16 +489,16 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
 //--time
     tm=0.5*(tms[0]+tms[1]);
     tm=-tm;//convert to pos
-    if((status&TOFDBcN::LTREFIND)>0)etm=3*TofRecPar::GetTimeSigma(idsoft,normcharge);
-    else                            etm=TofRecPar::GetTimeSigma(idsoft,normcharge);
+    if((status&TOFDBcN::LTREFIND)>0)etm=3*TofRecPar::GetTimeSigma(idsoft,1);
+    else                            etm=TofRecPar::GetTimeSigma(idsoft,1);
     
 //--coo
     number tmsc[2];
     tmsc[0]=tms[0]-2*dsl/pow(adca[0],index);//coo compensate
     tmsc[1]=tms[1]+2*dsl/pow(adca[1],index);//coo compensate
     lcoo=0.5*(tmsc[0]-tmsc[1])*vel;
-    if((status&TOFDBcN::LTREFIND)>0)elcoo=3*TofRecPar::GetCooSigma(idsoft,normcharge);
-    else                            elcoo=TofRecPar::GetCooSigma(idsoft,normcharge);
+    if((status&TOFDBcN::LTREFIND)>0)elcoo=3*TofRecPar::GetCooSigma(idsoft,1);
+    else                            elcoo=TofRecPar::GetCooSigma(idsoft,1);
     return 0;
 }
 
@@ -706,7 +704,7 @@ number TofRecH::BetaCor(int idsoft,number q2,number beta,number rig){
       }
       else if(ch1>=nowch+1||ch2>=nowch+1){nowch=(ch1>ch2)? int(ch1):int(ch2);}
       else if(ch1<=nowch||ch2<=nowch)    {nowch--;}
-      else {cerr<<"Error Beta Correction"<<endl;}
+      else {cerr<<"Error Beta Correction"<<endl;break;}
    }
 
     return q2/betacor;
@@ -1611,7 +1609,7 @@ int TofRecH::TRecover(int idsoft,geant tklcoo,geant tms[2],geant &tm,geant &etm,
   else         {tms[0]=tms[1]+phdt;}
   tm=0.5*(tms[0]+tms[1]);
   tm=-tm;
-  etm=3*TofRecPar::GetTimeSigma(idsoft,normcharge)*sqrt(2.);//1sid sqrt(2)
+  etm=3*TofRecPar::GetTimeSigma(idsoft,1)*sqrt(2.);//1sid sqrt(2)
   status|=TOFDBcN::RECOVERED;
   return 0;
 }

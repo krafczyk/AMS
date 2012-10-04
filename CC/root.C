@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.454 2012/10/04 10:13:31 shaino Exp $
+//  $Id: root.C,v 1.455 2012/10/04 13:38:13 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6230,7 +6230,7 @@ float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
     if(pattern==111111&&optw==1){
        if     (pmtype==1)return AEdep;//Anode
        else if(pmtype==0)return DEdep;//Dynode
-       else if(AEdep>0&&AEdep<6*6*TofCAlignPar::ProEdep)return AEdep;//Anode Range
+       else if((AEdep>0&&AEdep<6*6*TofCAlignPar::ProEdep)||DEdep<=0)return AEdep;//Anode Range
        else              return DEdep;
     }
 
@@ -6253,8 +6253,8 @@ float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
     if     (pmtype==1)q2=qa;//Anode
     else if(pmtype==0)q2=qd;//Dynode
     else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+       if((qa>0&&qa<6*6)||qd<=0){q2=qa; pmtype=1;}//Anode  Range
+       else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
     return signal;
@@ -6280,8 +6280,8 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
     if     (pmtype==1)q2=qa;//Anode
     else if(pmtype==0)q2=qd;//Dynode
     else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+       if((qa>0&&qa<6*6)||qd<=0){q2=qa; pmtype=1;}//Anode  Range
+       else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,double(cosz),double(beta));
     return signal;
@@ -6471,6 +6471,64 @@ TofClusterHR* BetaHR::GetClusterHL(int ilay){
   return (AMSEventR::Head())?AMSEventR::Head()->pTofClusterH(fLayer[ilay]):0;
 }
 
+
+float BetaHR::GetNormChi2T(){
+    
+   int nhit=0;
+   double time[4],etime[4],len[4];
+//----GetQ
+   int nlay;float qrms;
+   float tfq=GetQ(nlay,qrms,2,(TofRecH::kBirkCor|TofRecH::kQ2Q));
+//---
+   int ch1=int(tfq)>1?int(tfq):1;
+   int ch2=ch1+1;
+   double ww1=fabs(tfq-ch1),ww2=fabs(ch2-tfq);
+//---
+   for(int ilay=0;ilay<4;ilay++){
+       if(!TestExistHL(ilay))continue;
+       if(GetPattern(ilay)%10!=4)continue;
+       time [nhit]=GetTime(ilay);
+       len  [nhit]=GetTkTFLen(ilay);
+//---
+       TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
+       if((ch1<=1)||(ch1==tfq)){etime[nhit]=TofRecPar::GetTimeSigma(TofRecPar::Idsoft,ch1);}
+       else  etime[nhit]=(ww2*TofRecPar::GetTimeSigma(TofRecPar::Idsoft,ch1)+ww1*TofRecPar::GetTimeSigma(TofRecPar::Idsoft,ch2))/(ww2+ww1);
+       nhit++;
+    }
+   TofBetaPar fitpar;
+   TofRecH::BetaFitT(time,etime,len,nhit,fitpar);
+   return fitpar.Chi2T;
+}
+
+float BetaHR::GetNormChi2C(){
+
+   float chisl=0,ecoo,res; 
+   int nhitl=0;
+   int nlay;float qrms;
+//----GetQ
+   float tfq=GetQ(nlay,qrms,2,(TofRecH::kBirkCor|TofRecH::kQ2Q));
+//---
+   int ch1=int(tfq)>1?int(tfq):1;
+   int ch2=ch1+1;
+   double ww1=fabs(tfq-ch1),ww2=fabs(ch2-tfq);
+//---
+   for(int ilay=0;ilay<4;ilay++){
+       if(!TestExistHL(ilay))continue;
+       if(GetPattern(ilay)%10!=4)continue;
+       res=GetCResidual(ilay,TOFGeom::Proj[ilay]);
+//--
+       TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
+       if((ch1<=1)||(ch1==tfq))ecoo=TofRecPar::GetCooSigma(TofRecPar::Idsoft,ch1);
+       else ecoo=(ww2*TofRecPar::GetCooSigma(TofRecPar::Idsoft,ch1)+ww1*TofRecPar::GetCooSigma(TofRecPar::Idsoft,ch2))/(ww2+ww1);
+//---
+       chisl+=res*res/(ecoo*ecoo);
+       nhitl++;
+    }
+   return chisl/nhitl; 
+}
+
+
+
 int BetaHR::MassReFit(double &mass, double &emass,double rig,double charge,double erigv,int isbetac,int update){
   TofRecH::betapar=BetaPar;
   TofRecH::MassRec(TofRecH::betapar,rig,charge,erigv,isbetac);
@@ -6481,24 +6539,70 @@ int BetaHR::MassReFit(double &mass, double &emass,double rig,double charge,doubl
 }
 
 int BetaHR::BetaReFit(double &beta,double &ebetav,int pattern,int mode,int update){
-  double time[4],etime[4],len[4];
-  int nhit=0;
-  int ndiv=1000;
+
+  TofBetaPar betapar;
+  int stat=BetaReFit(betapar,pattern,mode,update);
+  beta=betapar.Beta; 
+  ebetav=betapar.InvErrBeta;
+  return stat;
+}
+
+int BetaHR::BetaReFit(TofBetaPar &betapar,int pattern,int mode,int update){
+  
+  vector<int> layc;
+  double maxtres=0;int maxltres=-1;
+///--Candidate
   for(int ilay=0;ilay<4;ilay++){
-      bool pass1=(((pattern/ndiv)%10>=2)&&(GetClusterHL(ilay))&&((GetClusterHL(ilay)->Status&TOFDBcN::RECOVERED)>0));
-      if(pass1||((GetPattern(ilay))%10==4&&((pattern/ndiv)%10>0))){
-        time [nhit]=GetTime(ilay);
-        etime[nhit]=GetETime(ilay);
-        len  [nhit]=GetTkTFLen(ilay);
-        nhit++;
+     if(!TestExistHL(ilay))continue;
+     bool pass1=((pattern/int(pow(10., 3-ilay))%10>=2)&&((GetClusterHL(ilay)->Status&TOFDBcN::RECOVERED)>0));
+     bool pass2=((pattern/int(pow(10., 3-ilay))%10==1)&&(GetPattern(ilay)%10==4));
+     if(pattern>0){if(!(pass1||pass2))continue;} 
+     else if(GetPattern(ilay)%10!=4)continue;
+//---Select Good,Using Recursion If Bad Time Beta
+     if((pattern<0)&&(fabs(GetBeta())>1.3||fabs(GetBeta())<0.35)){
+       TofBetaPar betaparT; int patT=1111-int (pow(10.,3-ilay));//Try To Remove this Layer To Fit
+       BetaReFit(betaparT,patT);
+       if(fabs(betaparT.Beta)>0.35&&fabs(betaparT.Beta)<1.3){//Find Windows Counter
+         maxtres=FLT_MAX ;maxltres=ilay;
+         continue;//not put this layer to candidate
+       }
+     }
+//---Try ReFit
+     if(fabs(GetTResidual(ilay))>maxtres){maxtres=fabs(GetTResidual(ilay));maxltres=ilay;}
+     layc.push_back(ilay);
+  }
+
+
+ 
+//---Further Selction
+  double time[4],etime[4],len[4],chisl=0,cres,ecoo; int nhit=0,layc1[4];
+  for(int il=0;il<layc.size();il++){
+     int ilay=layc.at(il);
+     if((pattern==-1)&&(ilay==maxltres))continue;//Using TResidual
+     else if(pattern==-2){//Optimize Using CResidual
+         if(fabs(GetCResidual(ilay,TOFGeom::Proj[ilay]))>15)continue;//15cm out tracker 5sigma
+         if(fabs(GetClusterHL(ilay)->Coo[TOFGeom::Proj[ilay]])>TOFGeom::Sci_l[ilay][GetClusterHL(ilay)->Bar]/2.+10)continue;//10cm out TOF
       }
-     ndiv=ndiv/10;
-   }
-  TofRecH::betapar=BetaPar;
-  TofRecH::BetaFitT(time,etime,len,nhit,TofRecH::betapar,mode,1);
-  beta=TofRecH::betapar.Beta;
-  ebetav=TofRecH::betapar.InvErrBeta;
-  if(update){BetaPar=TofRecH::betapar;BetaPar.UseHit=nhit;}
+      time [nhit]=GetTime(ilay);
+      etime[nhit]=GetETime(ilay);
+      len  [nhit]=GetTkTFLen(ilay);
+      layc1 [nhit]=ilay;
+      cres=fabs(GetCResidual(ilay,TOFGeom::Proj[ilay]));
+      ecoo =GetClusterHL(ilay)->ECoo[TOFGeom::Proj[ilay]];
+      chisl+=cres*cres/(ecoo*ecoo); 
+      nhit++;     
+  }
+
+  betapar.Init();
+  if(nhit<2)return -1;
+  else if((nhit==2)&&(layc1[0]/2==layc1[1]/2)){return -1;}//Same Up||Same Down
+
+//---Then Fill
+  betapar=BetaPar;
+  TofRecH::BetaFitT(time,etime,len,nhit,betapar,mode); 
+  betapar.UseHit=nhit;
+  betapar.Chi2C=chisl/nhit;
+  if(update){BetaPar=betapar;}
   return 0;
 }
 
@@ -6566,7 +6670,7 @@ float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
      if(pattern==111111&&optw==1){
         if     (pmtype==1)return BetaPar.AEdepL[ilay];//Anode
         else if(pmtype==0)return BetaPar.DEdepL[ilay];//Dynode
-        else if(BetaPar.AEdepL[ilay]>0&&BetaPar.AEdepL[ilay]<6*6*TofCAlignPar::ProEdep)return BetaPar.AEdepL[ilay];//Anode Range
+        else if((BetaPar.AEdepL[ilay]>0&&BetaPar.AEdepL[ilay]<6*6*TofCAlignPar::ProEdep)||BetaPar.DEdepL[ilay]<=0)return BetaPar.AEdepL[ilay];//Anode Range
         else              return BetaPar.DEdepL[ilay];//Dynode
      }
 ///---rawqd
@@ -6588,8 +6692,8 @@ float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
     if     (pmtype==1)q2=qa;//Anode
     else if(pmtype==0)q2=qd;//Dynode
     else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+       if((qa>0&&qa<6*6)||qd<=0){q2=qa; pmtype=1;}//Anode  Range
+       else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,(TofRecH::kBirkCor|TofRecH::kQ2MeV),q2);
     return signal;
@@ -6617,8 +6721,8 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
     if     (pmtype==1)q2=qa;//Anode
     else if(pmtype==0)q2=qd;//Dynode
     else  {
-       if(qa>0&&qa<6*6){q2=qa; pmtype=1;}//Anode  Range
-       else            {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+       if((qa>0&&qa<6*6)||qd<=0){q2=qa; pmtype=1;}//Anode  Range
+       else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
     double rig=0;
 #ifdef _PGTRACK_
@@ -6656,7 +6760,7 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
        if(nlay==0){qrms=0;return 0.;}
        else       {
          mean=mean/ql.size();sig=sig/ql.size();
-         sig=sqrt(fabs(sig*sig-mean*mean));
+         sig=sqrt(fabs(sig-mean*mean));
          qrms=sig;return mean;
        }
      }

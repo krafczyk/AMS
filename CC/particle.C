@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.256 2012/09/13 13:51:10 qyan Exp $
+//  $Id: particle.C,v 1.257 2012/10/04 13:38:13 qyan Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -862,8 +862,6 @@ void AMSParticle::_copyEl(){
   ParticleR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Particle(_vpos);
   if (_pbeta)   ptr.fBeta  =_pbeta  ->GetClonePointer();
   else ptr.fBeta=-1;
-  if (_pbetah)   ptr.fBetaH  =_pbetah  ->GetClonePointer();
-  else ptr.fBetaH=-1;
   if (_pcharge) ptr.fCharge=_pcharge->GetClonePointer();
   else ptr.fCharge=-1;
   if (_ptrack)  ptr.fTrTrack =_ptrack ->GetClonePointer();
