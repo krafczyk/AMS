@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404.2.10 2012/07/30 17:11:03 mduranti Exp $
+//  $Id: root.C,v 1.404.2.11 2012/10/04 09:57:30 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2212,6 +2212,7 @@ bool AMSEventR::ReadHeader(int entry){
 	//#pragma omp atomic 
 	//_Lock+=(1<<thr);
 	//cout <<" Lock "<<_Lock<<" "<<omp_get_thread_num()<<endl;
+
 	if(!initdone[thr] || nthr==1){
 	  InitDB(local_pfile);
 	  initdone[thr]=1;
@@ -7135,6 +7136,22 @@ static int master=0;
 #endif
 	TkDBc::Head->init(setup);
       }
+
+      ///// SH: Workaround to take care of the wrong TrackerAlignPM3
+      else {
+	if (getsetup()) {
+	  AMSSetupR::TDVR tdv;
+	  getsetup()->getTDV("TrackerAlignPM3", UTime(), tdv);
+	  if (tdv.Insert == 1342182208) {
+	    cout << "AMSEventR::InitDB-W-Remove wrong TrackerAlignPM3: " 
+		 << tdv.Insert << " "
+		 << tdv.FilePath.Data() << endl;
+	    TkDBc::ForceFromTDV = 1;
+	  }
+	}
+      }
+      ///// SH: Workaround to take care of the wrong TrackerAlignPM3
+
       if(TkDBc::ForceFromTDV) TkDBc::GetFromTDV(UTime(),  3);
     }
     if(!TrExtAlignDB::ForceFromTDV) 
