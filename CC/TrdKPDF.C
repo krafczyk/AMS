@@ -1563,6 +1563,12 @@ void TrdKPDF::Init_Nuclei()
     Double_t _c11_x[18] = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
                            0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
 
+
+    Double_t _p01_b[31] = {1.399, 1.3867, 1.35913, 1.34042, 1.30968, 1.28553, 1.26026, 1.24748,
+    			   1.22578, 1.2015, 1.17804, 1.15815, 1.14074, 1.12598, 1.11076, 1.09702,
+		           1.08546, 1.07747, 1.06761, 1.05813, 1.05229, 1.04607, 1.0398, 1.034,
+		           1.02801, 1.02337, 1.01774, 1.01158, 1.00564, 1.00098, 1};
+
     gs02 = new TSpline3("gs02",_ichrg,_ip02_c,8);
     gs03 = new TSpline3("gs03",_ichrg,_ip03_c,8);
     gs04 = new TSpline3("gs04",_ichrg,_ip04_c,8);
@@ -1634,12 +1640,23 @@ void TrdKPDF::Init_Nuclei()
     memcpy(c10_x,_c10_x,sizeof(Double_t)*18);
     memcpy(c11_x,_c11_x,sizeof(Double_t)*18);
 
+    memcpy(p01_b,_p01_b,sizeof(Double_t)*31);
 }
 
-void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press){
+void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press, Double_t Beta){
 
     Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n, i1_x, i1_c;
     Double_t dt_m, dt_l, dt_n, dt_x, dt_c;
+
+    //Beta correction
+    if(Beta<0) Beta=Beta*(-1);
+    if(Beta>1) Beta=1;
+    if(Beta<0.4) Beta=0.4;
+    int ib = (int)((Beta-0.4)*50);
+    double BetaCorrFactor;
+    if(Beta==1) BetaCorrFactor=1;
+    else BetaCorrFactor = p01_b[ib]+(p01_b[ib+1]-p01_b[ib])/0.02*(Beta-0.4-ib*0.02);
+    Charge=Charge*BetaCorrFactor;
 
     // Rigidity correction 
     if ( Charge < 0 )      Charge *= -1.;

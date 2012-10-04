@@ -84,7 +84,7 @@ public:
     void GetPar_Proton(Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press);
     void GetPar_Electron(Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press);
     void GetPar_Helium(Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press);
-    void GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press);   //Added by Wei Sun
+    void GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press, Double_t Beta); 
 
 
 
@@ -332,11 +332,13 @@ public:
     TSpline3 *gs09;
     TSpline3 *gs10;
 
+    Double_t p01_b[31];
+
     Double_t GetLikelihoodQ(double Amp);
     Double_t GetLikelihoodHA(Double_t Corr);
     Double_t GetLikelihoodLA(Double_t Corr);
-    Double_t GetLikelihood(Double_t Amp,Double_t Charge,Double_t Corr,Double_t Pmom,Double_t Length,Int_t Layer,Double_t Press){
-        GetPar_Nuclei(Charge,Pmom,Length,Layer,Press);
+    Double_t GetLikelihood(Double_t Amp,Double_t Charge,Double_t Corr,Double_t Pmom,Double_t Length,Int_t Layer,Double_t Press,Double_t Beta){
+        GetPar_Nuclei(Charge,Pmom,Length,Layer,Press,Beta);
         if(Amp>3400*Corr) return GetLikelihoodHA(Corr);
         else if(Amp<15*Corr) return GetLikelihoodLA(Corr);
         else return GetLikelihoodQ(Amp);

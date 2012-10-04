@@ -1036,8 +1036,11 @@ double TrdKCluster::TRDTrack_ImpactChi2_Charge(Double_t *par)
 
 /////////////////////////////////////////////////////////////////////
 
-int TrdKCluster::CalculateTRDCharge(int Option)
+int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
 {
+    //For beta correction
+    Beta=Velocity;
+
     //Refit TRD track
     if(QTRDHitCollection.size()==0)
     {
@@ -1225,7 +1228,7 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
       Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
       Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-      Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+      Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
       if(Lvalue>max_one) max_one=Lvalue;
     }
 
@@ -1240,7 +1243,7 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
             Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
             Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-            Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+            Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
             TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
 	    if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
         }
@@ -1257,7 +1260,7 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
         Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
         Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-	Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+	Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
 	TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
 	if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
     }
