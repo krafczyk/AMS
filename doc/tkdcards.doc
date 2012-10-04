@@ -122,7 +122,7 @@ I 65 ChargeSeedSelActive            (Default: 0)  BuildRecHits: eliminate hits n
                                                   0 inactive
                                                   !=0 active
 R 66 CorrelationProbThr         (Default: 0.001)  BuildRecHits: hit correlation probability threshold
-R 67 YClusterSNThr                  (Default: 5)  BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold
+R 67 YClusterSNThr                (Default: 3.5)  BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold
 I 68 YClusterNStripThr              (Default: 0)  BuildRecHits: minimum number of strips for only-Y hits
 I 69 ReorderTrClusters              (Default: 1)  Build: reorder cluster by signal
                                                   0 inactive
