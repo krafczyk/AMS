@@ -81,6 +81,29 @@ int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, do
 }
 
 
+int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & theta, double &phi, double PosISS[3], double VelISS[2], double ypr[3], double xtime){
+// SDT(sept2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
+// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+// l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
+// PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
+// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// xtime     = UTC time (in unix format)
+  
+  double x=AMS_x; double y=AMS_y; double z=AMS_z;
+  double r=1.;//dummy for check
+  double ra,dec;
+
+  FT_AMS2Body(x,y,z);
+  FT_Body2LVLH(x,y,z,ypr[0],ypr[1],ypr[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
+  FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+   /* result */ 
+  theta=acos(z)*180./pi;
+  phi=atan2(y,x)*180./pi;
+  return 0;
+}
+
+
 
 
 int get_ams_ra_dec_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, double & ra, double &dec, int CamID, double ST_RA, double ST_dec, double ST_Orient){

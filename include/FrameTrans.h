@@ -48,6 +48,7 @@ int get_ams_ra_dec_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double &ra,
 /// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
 /// xtime     = UTC time (in unix format)
 int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, double &b, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
+int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & htod_theta, double &gtod_phi, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
 
 /// SDT(sept2012) - trasformation from AMS frame to J2000 frame using the star Tracker data
 /// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 

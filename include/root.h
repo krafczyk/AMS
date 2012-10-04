@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.480 2012/10/04 13:36:46 qyan Exp $
+//  $Id: root.h,v 1.481 2012/10/04 15:15:23 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -338,10 +338,13 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 
 //-----------Coordinates -------------------
-int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);/// Get galactic coordinates using ISS position, velocity and LVLH attitude
-int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);/// Get galactic coordinates using Star Tracker
-int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);/// convert celestial coordinates into galactic coordinates
+int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get galactic coordinates using ISS position, velocity and LVLH attitude
+int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);///< Get galactic coordinates using Star Tracker
+int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);///< convert celestial coordinates into galactic coordinates
 //-----------------------------------------
+int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
+
+
 
   //#ifdef _PGTRACK_
   friend class VCon_root;
@@ -4352,6 +4355,8 @@ output
 
 */
 int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false);///< Get galactic coordinates
+
+int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false);///< Get galactic coordinates
 
 int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false);///< Get galactic coordinates for ams zenith;
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time

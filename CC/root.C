@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.455 2012/10/04 13:38:13 qyan Exp $
+//  $Id: root.C,v 1.456 2012/10/04 15:15:17 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8598,6 +8598,37 @@ return 0;
 
 }
 
+
+int HeaderR::get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[2], double YPR[3], double  time, bool gtod){
+/*
+input  AMSTheta (rad) in AMS coo system (from ParticleR)
+       AMSPhi   (rad) in AMS coo system (from ParticleR)
+       RPT  coordinates in GTOD/CTRS coordinate system (RPT[0]==Radius -> in cm; RPT[1]==Phi (rad); RPT[2]==Theta(rad)
+       VelPT velocity in GTOD/CTRS coordinate system  (VelPT[0]= VelPhi  ; VelPT[1]=VelTheta )
+       YPR yaw-pitch-roll in radians in LVLH
+       gtod  true if gtod coo system
+       time UTC time
+output
+           gtod_theta  in degrees
+           gtod_phi    in degrees
+return values
+0  success
+1...n  error (if any)
+*/
+ //Direction of incident particle in AMS coo - convert from spherical to cartesian
+ AMSDir dir(AMSTheta,AMSPhi);
+ double AMS_x=-dir[0];
+ double AMS_y=-dir[1];
+ double AMS_z=-dir[2];
+ // use the conversion procedure described in FrameTrans.h
+ get_ams_gtod_fromGTOD( AMS_x,  AMS_y, AMS_z,gtod_theta, gtod_phi, RPT, VelPT, YPR, time);
+
+return 0;
+
+}
+
+
+
 int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double  AMSTheta , double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient){
 /*
 input   AMSTheta (rad) in AMS coo system (from ParticleR)
@@ -8746,6 +8777,112 @@ else{
   result|=(1<<4); 
 }  
 int ret2=fHeader.get_gal_coo(glong, glat, elev, azim,  RPT, VelPT,  YPR,  xtime, gtod);
+ return ret2==0?ret:ret2;
+
+
+
+}
+int AMSEventR::GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod){
+/*
+input
+          theta (rad)  in ams coo system
+           phi     (rad)  in ams coo system
+           use_ams_stk  ->  use info from ams startracker
+           use_ams_gps_time ->  use ams gps time, and not a iss  gps time
+           use_gtod         ->  use gtod coordinates
+output
+             Gtod gtheta,gphi (degrees) gtheta,gphi
+             result    bit 0 ams_stk info had been used
+                                 1  ams_gps_time had been used
+                                 2  gtod coo system + lvlh ypr had been used
+                                 3   ctrs coo  system  + -------------------------------
+                                 4   twoline element estimator of gtod + --------------------------
+
+
+return value
+
+ 0 success
+ 1 failure
+ -1 use of ams_stk was not possible, other info had  been used
+ -2 use of ams gps time was not possible , iss gps time had been used instead
+ -3 use of ams_stk and ams_gps_time was not possible
+*/
+
+  // Always assume down-going particle
+  AMSDir dir(theta, phi);
+  // if (dir.z() < 0) dir = dir*(-1);      // already done in get_gal_coo()
+
+  //float elev=3.1415926/2-dir.gettheta(); // no more need
+  float elev=dir.gettheta();               // common definition
+  float azim=dir.getphi();
+
+ unsigned int gpsdiff=15;
+ int ret=0;
+ result=0;
+ double  xtime=double(UTime())+Frac()-gpsdiff;    
+ if(use_ams_gps_time){
+   unsigned int time,nanotime;
+   if(GetGPSTime( time, nanotime) )ret=-2;
+   else {
+    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    result|=(1<<1);
+  }
+ }
+ if(use_ams_stk){
+// not supported
+   ret=-1;
+ }
+
+ double RPT[3],VelPT[2],YPR[3];
+ bool gtod=false;
+ // YPR
+YPR[0]=fHeader.Yaw;
+YPR[1]=fHeader.Pitch;
+YPR[2]=fHeader.Roll;
+RPT[0]=fHeader.RadS;
+RPT[1]=fHeader.PhiS;
+RPT[2]=fHeader.ThetaS;
+VelPT[0]=fHeader.VelPhi;
+VelPT[0]=fHeader.VelTheta;
+
+if(getsetup()){
+  float Roll,Pitch,Yaw;
+  if(!getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
+   YPR[0]=Yaw;
+   YPR[1]=Pitch;
+   YPR[2]=Roll;
+  }
+ AMSSetupR::ISSGTOD a;
+ AMSSetupR::ISSCTRSR b; 
+ if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
+  RPT[0]=a.r;
+  RPT[1]=a.phi;
+  RPT[2]=a.theta;
+  VelPT[0]=a.vphi;
+  VelPT[1]=a.vtheta;
+  gtod=true;
+  result|=(1<<2);
+ }
+ else if(!getsetup()->getISSCTRS(b,xtime)){
+  RPT[0]=b.r;
+  RPT[1]=b.phi;
+  RPT[2]=b.theta;
+  VelPT[0]=b.vphi;
+  VelPT[1]=b.vtheta;
+  gtod=false;
+  result|=(1<<3);
+ }
+ else{
+  gtod=true;
+  result|=(1<<4);
+ }
+
+}
+else{
+  gtod=true;
+  result|=(1<<4); 
+}  
+int ret2=fHeader.get_gtod_coo(gtheta, gphi, elev, azim,  RPT, VelPT,  YPR,  xtime, gtod);
  return ret2==0?ret:ret2;
 
 

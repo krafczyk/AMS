@@ -36,8 +36,19 @@ return true;
 else return false;
 */
 //DynAlManager::ignoreAlignment=true;
+ev->getsetup()->getAllTDV("TrackerAlignPM3");
+bool BAD=false;
+try{
+if(ev->getsetup()->fTDV_Name[0].FilePath.Contains("1342182208"))BAD=true;
+}
+catch(...){
+
+}
+cout <<" BAD "<<BAD<<endl;
+return true;
 TrInnerDzDB::ForceFromTDV=1;
-if(ev && ev->nParticle()  && ev->Particle(0).iTrdTrack()>=0&&   ev->nTrdTrack()==1 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>0 )
+/*
+(if(ev && ev->nParticle()  && ev->Particle(0).iTrdTrack()>=0&&   ev->nTrdTrack()==1 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>0 )
 {
 int ret=-1;
 int ret2=-1;
@@ -57,6 +68,7 @@ if(  ev && ev->nParticle()){
   cout <<" ret "<<ret<<endl;
   return 1;
 }
+*/
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->nTrTrack()==1 && ev->nTrdTrack()==1){
 
 EcalShowerR & ecal=ev->EcalShower(0);
