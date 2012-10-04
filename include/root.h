@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.479 2012/10/02 09:32:27 qyan Exp $
+//  $Id: root.h,v 1.480 2012/10/04 13:36:46 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2617,6 +2617,7 @@ public:
  * IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
  * Root Mode ReFit User Need One function:  TofRecH::ReBuild() 
  * Example of How to Use:  vdev/example/Tof_BetaH.C (AMSsoft)
+ * include file:  #include "Tofrec02_ihep.h"
  * \author qyan@cern.ch
 */
 class BetaHR: public TrElem{
@@ -2714,18 +2715,18 @@ class BetaHR: public TrElem{
       if(lr<0)return ((BetaPar.Pattern[ilay]/100%10)==0)?-1:GetClusterHL(ilay)->Bar-BetaPar.Pattern[ilay]/100%10;
       else    return ((BetaPar.Pattern[ilay]/10%10)==0)? -1:GetClusterHL(ilay)->Bar+BetaPar.Pattern[ilay]/10%10;
   }
+
+ public:
+   /// Access BetaH All Data
+  const TofBetaPar&  gTofBetaPar()      {return BetaPar;}
+  /// Set BetaH All Data
+  void  SetTofBetaPar(TofBetaPar tofpar){BetaPar=tofpar;}
 /**@}*/   
 
 
 /** @name BetaH  Data  Accessors
  * @{
  */
- public:
-  /// Access BetaH All Data
-  const TofBetaPar&  gTofBetaPar()      {return BetaPar;}
-  /// Set BetaH All Data
-  void  SetTofBetaPar(TofBetaPar tofpar){BetaPar=tofpar;}
-
  public:
   /// Beta Value
   float GetBeta  () {return BetaPar.Beta; }
@@ -2739,9 +2740,13 @@ class BetaHR: public TrElem{
   float GetChi2T()  {return BetaPar.Chi2T; }
   /// Fitting Coo Chis On Beta(Match with Tracker)
   float GetChi2C()  {return BetaPar.Chi2C; }
-  /// Number of ClusterHs  (Pos Matched by Tracker) 
+  /// Fitting Time Normlized Chis on Beta(Normalized)
+  float GetNormChi2T();
+  /// Fitting Coo  Normlized Chis On Beta(Match with Tracker Normalized)
+  float GetNormChi2C();
+  /// Number of ClusterHs  (Positon Matched by Tracker) 
   int   GetSumHit() {return BetaPar.SumHit;}
-  /// Number of ClusterHs for Beta Fit  (require counter 2side Ok)
+  /// Number of ClusterHs for Beta Fit  (more strict require counter 2side Ok)
   int   GetUseHit() {return BetaPar.UseHit;}
   /// Cluster Status
   int   GetStatus() {return BetaPar.Status;}
@@ -2771,7 +2776,7 @@ class BetaHR: public TrElem{
 /** @name ReFit and Interpolation Function
  * @{
  */
-  /// ReFit Mass using Rigidity Charge
+  /// ReFit Mass using Rigidity+Charge
   /*!
    * @param[out] mass Fit Mass
    * @param[out] emass Fit Mass Error
@@ -2779,19 +2784,29 @@ class BetaHR: public TrElem{
    * @param[in] charge Charge
    * @param[in] erigv   Error of 1/Rigidity
    * @param[in] isbetac (1)Using BetaC(ask Vitaly)  (0)Using Beta //For Fit Mass
-   * @param[in] update  BetaPar(1)Update Mass (0)Not Update
+   * @param[in] update 1:Copy Mass ReFit Result to BetaH; 0:No Copy
   */
   int  MassReFit(double &mass, double &emass,double rig=0,double charge=0,double erigv=0,int isbetac=0,int update=0);
-   /// Beta ReFit
+   /// Beta Measurement ReFit Using different-TOF Layers
    /*!
     * @param[out] beta Fit Beta
     * @param[out] ebetav Fit Error 1/Beta
-    * @param[in] pattern  mmmm: m=1 or 0 or 2,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1. 2022 force to use Time recover hit to Fit
-    * @param[in] mode =1(4 Tof layers same time err)  =0(different time err)
-    * @param[in] update  BetaPar update (1)Update Beta (0)Not Update
+    * @param[in] pattern  mmmm: m=1 or 0 or 2,  1011 using Tof Lay0 2 3 for Beta Fit,exclude Lay1. 2022 force to use Time recover hit to Fit. -2: ReSelect Good-Layer To Fit(Good Coo+Time)  -1: Remove Max-dT(T deviation) Layer to Fit.
+    * @param[in] mode =1(using same time weight)  =0(different time weight) for Fit
+    * @param[in] update 1:Copy Beta ReFit Result to BetaH; 0:No Copy
+    * @return    -1: Bad Time  0: Normal Measument
    */
   int  BetaReFit(double &beta,double &ebetav,int pattern=1111,int mode=1,int update=0);
-  /// TOF Time Interpolation to posZ (Using Matched TrTrack if exist, otherwise Using Tof Self Track)
+   /// Beta Measurement ReFit Using different-TOF Layers
+   /*
+    * @param[out]  Fit betapar(Include New Fit-ChisT, Fit-ChisC, Fit-UseHit, Beta...)
+    * @param[in]   pattern  mmmm: m=1 or 0 or 2, 1011 using TOF Lay0 2 3 for Beta Fit. 2022 include Time recover hit For Fit. -2: ReSelect Good-Layer To Fit(Good Coo+Time). -1: Remove Max-dT(T deviation) Layer to Fit
+    * @param[in]   mode =1(using same time weight)  =0(different time weight) for Fit
+    * @param[in] update 1:Copy Beta ReFit Result to BetaH; 0:No Copy
+    * @return    -1: Bad Time  0: Normal Measument
+   */
+  int  BetaReFit(TofBetaPar &betapar,int pattern=-2,int mode=1,int update=0); 
+  /// TOF BetaH Measurement Time Interpolation to posZ (Using Matched TrTrack if exist, otherwise Using Tof Self Track)
   /*!
    * @param[in] zpl Interpolate to Z position (Z=zpl)
    * @param[out] pnt BetaH's Track position at Z=zpl
@@ -2803,10 +2818,10 @@ class BetaHR: public TrElem{
 /**@}*/
 
 
-/** @name TOF Charge Estimation
+/** @name TOF Charge Estimation And TOF-Dedx-Measure-Beta
  * @{
  */
-///  iLay TOF Edep(MeV) From One PMT Estimate ///Attenuation ReCorr
+///  iLay TOF Edep(MeV) /*Proton-Mip 1.67MeV */ From One PMT Estimate ///Attenuation ReCorr
   /*! 
    * @param[in] ilay TOF layer(0-3)
    * @param[in] pmtype 1-Anode 0-Dynode
@@ -2825,7 +2840,7 @@ class BetaHR: public TrElem{
     * @return   =0  No Response or Bad PMT(mask)  <0 PMT Saturation
   */
    float GetQLPM(int ilay,int pmtype,int is,int pm=0,int opt=TofClusterHR::DefaultQOpt);
-/// iLay TOF Edep(MeV) with Combinition of All Good PMTs //Attnuation ReCorr
+/// iLay TOF Edep(MeV)/*Proton-Mip 1.67MeV */ with Combinition of All Good PMTs //Attnuation ReCorr
    /*!
     * @param[in] ilay TOF layer(0-3)
     * @param[in] pmtype  2-Default(Best Between Anode and Dynode) 1-Anode  0-Dynode 
@@ -2848,11 +2863,11 @@ class BetaHR: public TrElem{
     * @param[out] qrms Q-RMS of TOF Layers Used
     * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
-    * @param[in] pattern -1: Remove Max-dQ(Q deviation) Layer; -2: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer1...
+    * @param[in] pattern -1: Remove Max-dQ(Q deviation) Layer; -2: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
     * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
     */
   float GetQ(int &nlay,float &qrms,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2);
-/// TOF QBeta of 4Layers from TOF Dedx measument /*validate form beta~0.3~0.94*/
+/// TOF Beta Measument of 4Layers from TOF Dedx /*validate form beta~0.3~0.94*/
    /*!
     * @param[in] ilay TOF layer(0-3)
     * @param[in] charge Particle charge
@@ -2907,7 +2922,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,7)
+  ClassDef(BetaHR,8)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        
