@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.59 2012/09/27 16:18:21 choutko Exp $
+//  $Id: root_setup.h,v 1.60 2012/10/05 14:17:32 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -515,6 +515,7 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
+   \retval 3   bad extrapolation ( gap > 60 sec)
    
    \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
@@ -531,6 +532,7 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
+   \retval 3   bad extrapolation ( gap > 60 sec)
    
    \note
    The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
@@ -549,6 +551,7 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
+   \retval 3   bad extrapolation ( gap > 60 sec)
    
    
   
@@ -566,6 +569,7 @@ static int _select (const dirent64 * entry);
    \retval 1   ok  (extrapolation)
    \retval 2   no data
    \retval 3   different cam ids for interpolation
+   \retval 4   bad extrapolation ( gap > 60 sec)
 
    \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
@@ -582,6 +586,7 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
+   \retval 3   bad extrapolation ( gap > 60 sec)
    
    \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
@@ -598,6 +603,7 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
+   \retval 3   bad extrapolation ( gap > 60 sec)
    
    \note
    The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
