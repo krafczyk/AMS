@@ -169,7 +169,7 @@ R [17,18] RthdDropX[2];  thresholds for TrRecon::TryDropX
 R [19,20] ErcHeX; ErcHeY; Factors on ErrX/ErrY for He
 I 21 	MultipleAlign;  Activates the multiple Alignmnet fitting 
                          during the reconstriuction (1=PG 2=PG+MD 3=PG+MD+Averagae)
-
+R 22    EcalMaxX        Determine the max |X| accepted to associate a layer 9 hit to the track
 
 //==============================
 

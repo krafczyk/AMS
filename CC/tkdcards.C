@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.82 2012/10/04 16:07:45 oliva Exp $
+// $Id: tkdcards.C,v 1.83 2012/10/05 00:52:17 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -433,7 +433,8 @@ void TRFITFFKEY_DEF::init(){
   ErcHeY = 0.65;
   /// I 21 Activates the multiple Alignmnet fitting during the reconstruction (1=PG 2=PG+MD 3=PG+MD+Averagae)
   MultipleAlign=2;
-
+  /// R 22 Determine the max |X| accepted to associate a layer 9 hit to the track
+  EcalMaxX=45.;
 }
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 

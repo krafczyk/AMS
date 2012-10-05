@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.55 2012/08/14 14:43:44 pzuccon Exp $
+// $Id: tkdcards.h,v 1.56 2012/10/05 00:52:17 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -331,27 +331,27 @@ public:
   int statflag;
 
   // New parameters for reconstruction (2012)
-  //! BuildRecHits: tagging hits and clusters compatible with charge seed 
+  //! I 64 BuildRecHits: tagging hits and clusters compatible with charge seed 
   int   ChargeSeedTagActive;
-  //! BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
+  //! I 65 BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
   int   ChargeSeedSelActive;
-  //! BuildRecHits: hit correlation probability threshold
+  //! R 66 BuildRecHits: hit correlation probability threshold
   geant CorrelationProbThr;
-  //! BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold 
+  //! R 67 BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold 
   geant YClusterSNThr;
-  //! BuildRecHits: minimum number of strips for only-Y hits 
+  //! I 68 BuildRecHits: minimum number of strips for only-Y hits 
   int   YClusterNStripThr;
 
-  //! Build: reorder cluster by signal 
+  //! I 69 Build: reorder cluster by signal 
   int   ReorderTrClusters;
-  //! Build: reorder hits by correlation probability (1), by y-signal and probability (2) or by y-signal and x-signal 
+  //! I 70 Build: reorder hits by correlation probability (1), by y-signal and probability (2) or by y-signal and x-signal 
   int   ReorderTrRecHits;
-  //! Build: reconstruct first a track with hits compatible with the unbiased charge seed (only for TrTracksSimple) 
+  //! I 71 Build: reconstruct first a track with hits compatible with the unbiased charge seed (only for TrTracksSimple) 
   int   BuildTracksSimpleChargeSeedTag;
  
-  //! BuildTrTracksSimple: charge cut during track finding
+  //! I 72 BuildTrTracksSimple: charge cut during track finding
   int   TrackFindChargeCutActive;
-
+ 
 
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
@@ -399,6 +399,8 @@ public:
   float ErcHeY;
   /// I 21 Activates the multiple Alignmnet fitting during the reconstruction (1=PG 2=PG+MD 3=PG+MD+Averagae)
   int  MultipleAlign;
+  /// I 22 Determine the max |X| accepted to associate a layer 9 hit to the track
+  float EcalMaxX;
 
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
