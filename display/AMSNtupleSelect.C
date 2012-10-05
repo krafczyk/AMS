@@ -79,7 +79,7 @@ else return false;
  
            phi=dir.getphi();
            theta=dir.gettheta();
-        GalCoo_Return= pev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir2.gettheta(),dir2.getphi(),false,true,false);
+        GalCoo_Return= pev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir2.gettheta(),dir2.getphi(),false,true,true);
         float glat=GalCoo_AMS_Lat;
         float glong=GalCoo_AMS_Long;
         int gret=GalCoo_Return;
@@ -109,9 +109,9 @@ else return false;
         cout << gtheta[0]<<" "<<gtheta[1]<<" "<<gphi[0]<<" "<<gphi[1]<<" "<<part.Theta<<" "<<part.Phi<<" "<<dir.gettheta()<<" "<<dir.getphi()<<" cc "<<cc<<" "<<zenith<<" "<<cc1<<" "<<cc2<<" "<<Pitch<<" "<<Yaw<<" "<<Roll<<" "<<ok<<" "<<pev->fHeader.Pitch<<" "<<pev->fHeader.Yaw<<" "<<pev->fHeader.Roll<<endl; 
  AMSSetupR::ISSCTRSR b; 
  if(!pev->getsetup()->getISSCTRS(b,xtime)){
-     AMSSetupR::ISSCTRS aa(b);
-   cout <<" ctrs "<<b.r<<" "<<b.phi<<" "<<b.theta<<" "<<b.vphi<<" "<<b.vtheta<<" endl; 
+   cout <<" ctrs "<<b.r<<" "<<b.phi<<" "<<b.theta<<" "<<b.vphi<<" "<<b.vtheta<<" "<<endl; 
   }
+  
     cout <<"header "<<pev->fHeader.ThetaS<<" "<<pev->fHeader.PhiS<<" "<<pev->fHeader.RadS<<endl; 
 
        }

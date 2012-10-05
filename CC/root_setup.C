@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.96 2012/09/27 16:32:01 choutko Exp $
+//  $Id: root_setup.C,v 1.97 2012/10/05 14:17:44 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1573,7 +1573,9 @@ k--;
 }
 
 
-  return 0;
+  const float dmax=60;
+  if(fabs(tme[1]-tme[0])>dmax)return 3;
+  else return 0;
 
 
 }
@@ -1634,7 +1636,9 @@ if(xtime==k->first){
   s0[0]=k->second.Yaw;
   s0[1]=l->second.Yaw;
   yaw=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  return 0;
+  const float dmax=60;
+  if(fabs(tme[1]-tme[0])>dmax)return 3;
+  else return 0;
 
 
 }
@@ -1761,8 +1765,10 @@ return 0;
   b.vz=s1;
 }
 
-a=ISSCTRSR(b);
-  return 0;
+  a=ISSCTRSR(b);
+  const float dmax=60;
+  if(fabs(tme[1]-tme[0])>dmax)return 3;
+  else return 0;
 
 
 }
@@ -2117,7 +2123,9 @@ return 0;
 }
 
 a=b;
-  return 0;
+  const float dmax=60;
+  if(fabs(tme[1]-tme[0])>dmax)return 3;
+  else return 0;
 
 
 }
@@ -2228,6 +2236,8 @@ return 0;
 }
   a.cam_id=k->second.cam_id;
   if(k->second.cam_id!=l->second.cam_id)return 3;
+  const float dmax=60;
+  if(fabs(tme[1]-tme[0])>dmax)return 4;
   else return 0;
 }
 
