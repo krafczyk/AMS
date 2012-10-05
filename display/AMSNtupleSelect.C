@@ -36,15 +36,89 @@ return true;
 else return false;
 */
 //DynAlManager::ignoreAlignment=true;
-ev->getsetup()->getAllTDV("TrackerAlignPM3");
-bool BAD=false;
-try{
-if(ev->getsetup()->fTDV_Name[0].FilePath.Contains("1342182208"))BAD=true;
-}
-catch(...){
+       AMSEventR*pev=ev;
+       float dxy[2]={0,0};
+       float gtheta[2]={0,0};
+       float gphi[2]={0,0};
+       if(pev && pev->nParticle()){
+       ParticleR & part=pev->Particle(0);
+//       part.ReBuildTrdEcal();
+       if(part.iTrTrack()>=0){
+       float charge=part.Charge;
+       float cf=part.Cutoff;
+       int ntr=pev->nTrTrack();
+       int ntrd=pev->nTrdTrack();
+       int ntof=pev->nTofCluster();
+       int nanti=pev->nAntiCluster();
+       TrTrackR & tr=pev->TrTrack(part.iTrTrack());
+            
 
+                Double_t GalCoo_AMS_Long=0;
+                Double_t GalCoo_AMS_Lat=0;
+
+                Int_t GalCoo_Result;
+                Int_t GalCoo_Return;
+        float theta=0;
+        float phi=0;
+        float coo[3]={0,0,0};
+        int pattern=tr.Pattern(111111111);
+        int itav=tr.iTrTrackPar(1,pattern,21);
+        if(itav>=0){
+           AMSPoint a;
+           AMSDir dir;
+           double z=160;
+           tr.Interpolate(z,a,dir,itav);
+           for(int k=0;k<3;k++)coo[k]=a[k];
+           gtheta[0]=part.ThetaGl*180/3.1415926;
+           gphi[0]=part.PhiGl*180/3.1415926;
+           if(dir[2]*cos(part.Theta)>0){
+              for(int k=0;k<3;k++)dir[k]=-dir[k];
+            }
+           AMSDir dir2;
+              for(int k=0;k<3;k++)dir2[k]=-dir[k];
+ 
+           phi=dir.getphi();
+           theta=dir.gettheta();
+        GalCoo_Return= pev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir2.gettheta(),dir2.getphi(),false,true,false);
+        float glat=GalCoo_AMS_Lat;
+        float glong=GalCoo_AMS_Long;
+        int gret=GalCoo_Return;
+        double gt1,gp1;
+          float Roll,Pitch,Yaw;
+           double  xtime=double(pev->UTime())+pev->Frac()-15;    
+          bool ok=pev->getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime);
+
+        pev->GetGTODCoo(GalCoo_Result,gt1, gp1,dir.gettheta(),dir.getphi(),false,false,false);
+           if(gp1<0)gp1=gp1+360;
+        gtheta[1]=gt1;
+        gphi[1]=gp1;
+        double zenith=pev->fHeader.Zenith();
+        if(part.iEcalShower()>=0){
+           EcalShowerR & ecal=pev->EcalShower(part.iEcalShower());
+           float dirz=ecal.Dir[2]; 
+           z=dirz<0?ecal.Entry[2]:ecal.Exit[2];
+           for(int k=0;k<2;k++)dxy[k]=dirz<0?ecal.Entry[k]:ecal.Exit[k];
+           tr.Interpolate(z,a,dir,itav);
+           for(int k=0;k<2;k++)dxy[k]-=a[k];
+           
+         }
+         double r=3.1415926/180;
+         double cc=cos(gtheta[0]*r)*cos(gtheta[1]*r)+sin(gtheta[0]*r)*sin(gtheta[1]*r)*cos(gphi[0]*r-gphi[1]*r);
+         double cc1=sin(pev->fHeader.ThetaS)*cos(gtheta[0]*r)+cos(pev->fHeader.ThetaS)*sin(gtheta[0]*r)*cos(pev->fHeader.PhiS-gphi[0]*r);
+         double cc2=sin(pev->fHeader.ThetaS)*cos(gtheta[1]*r)+cos(pev->fHeader.ThetaS)*sin(gtheta[1]*r)*cos(pev->fHeader.PhiS-gphi[1]*r);
+        cout << gtheta[0]<<" "<<gtheta[1]<<" "<<gphi[0]<<" "<<gphi[1]<<" "<<part.Theta<<" "<<part.Phi<<" "<<dir.gettheta()<<" "<<dir.getphi()<<" cc "<<cc<<" "<<zenith<<" "<<cc1<<" "<<cc2<<" "<<Pitch<<" "<<Yaw<<" "<<Roll<<" "<<ok<<" "<<pev->fHeader.Pitch<<" "<<pev->fHeader.Yaw<<" "<<pev->fHeader.Roll<<endl; 
+ AMSSetupR::ISSCTRSR b; 
+ if(!pev->getsetup()->getISSCTRS(b,xtime)){
+     AMSSetupR::ISSCTRS aa(b);
+   cout <<" ctrs "<<b.r<<" "<<b.phi<<" "<<b.theta<<" "<<b.vphi<<" "<<b.vtheta<<" endl; 
+  }
+    cout <<"header "<<pev->fHeader.ThetaS<<" "<<pev->fHeader.PhiS<<" "<<pev->fHeader.RadS<<endl; 
+
+       }
+
+     }
 }
-cout <<" BAD "<<BAD<<endl;
+
 return true;
 TrInnerDzDB::ForceFromTDV=1;
 /*

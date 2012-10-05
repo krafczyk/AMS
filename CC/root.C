@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.456 2012/10/04 15:15:17 choutko Exp $
+//  $Id: root.C,v 1.457 2012/10/05 13:47:20 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8918,7 +8918,7 @@ return value
  -3 use of ams_stk and ams_gps_time was not possible
 */
 
-  float theta=3.1415926/2;
+  float theta=3.1415926;
   float phi=0;
  result=0;
  unsigned int gpsdiff=15;

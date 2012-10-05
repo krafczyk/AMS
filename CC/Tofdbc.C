@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.22 2012/10/02 09:20:16 qyan Exp $
+//  $Id: Tofdbc.C,v 1.23 2012/10/05 13:47:20 choutko Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -31,7 +31,14 @@
 #include "commonsi.h"
 #include "timeid.h"
 #include <fstream>
+
+const float TofRecPar::AttLenLimit=50;
+
+
 //Overlap
+
+
+
 const float TOFGeom::Overlapw=0.5;//cm
 const float TOFGeom::Normw=12.;//cm
 const float TOFGeom::Nthick=1.;//cm
