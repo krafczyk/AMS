@@ -1038,6 +1038,8 @@ double TrdKCluster::TRDTrack_ImpactChi2_Charge(Double_t *par)
 
 int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
 {
+    double BigNumber=100000000; 
+
     //For beta correction
     Beta=Velocity;
 
@@ -1049,10 +1051,16 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
         HitSelectionAfterRefit();
     }
 
+    if(QTRDHitCollectionNuclei.size()<3)
+    {
+        TRDChargeValue=0;
+  	TRDChargeError=BigNumber;
+  	return -5;
+    }
+
     //Find minimum of likelihood
     double QTRD,QTRD1;
     double QTRDLikelihood,QTRDLikelihoodMin;
-    double BigNumber=100000000;
     QTRDLikelihoodMin=BigNumber;
     for(double Z=1;Z<=49;Z=Z+1)
     {
@@ -1346,7 +1354,11 @@ void TrdKCluster::HitSelectionAfterRefit()
     int TRDLayer;
     double ADC,Corr;
     DAmp=0;
+    DAmpUpper=0; 
+    DAmpLower=0; 
     NBelowThreshold=0;
+    NBelowThresholdUpper=0; 
+    NBelowThresholdLower=0; 
     for(vector<TrdKHit>::iterator it=QTRDHitCollection.begin();it!=QTRDHitCollection.end();it++)
     {
         Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
@@ -1357,11 +1369,372 @@ void TrdKCluster::HitSelectionAfterRefit()
 	{
 	  if(3400*Corr>ADC) NBelowThreshold++;
 	  QTRDHitCollectionNuclei.push_back(*it);
+	  if(TRDLayer<10)
+	  {
+	    if(3400*Corr>ADC) NBelowThresholdLower++;
+	    QTRDHitCollectionNucleiLower.push_back(*it);
+	  }
+	  else
+	  {
+	    if(3400*Corr>ADC) NBelowThresholdUpper++;
+	    QTRDHitCollectionNucleiUpper.push_back(*it);
+	  }
 	}
         else
         {
             QTRDHitCollectionDeltaRay.push_back(*it);
             DAmp=DAmp+(*it).TRDHit_Amp;
+	    if(TRDLayer<10) DAmpLower=DAmpLower+(*it).TRDHit_Amp;
+	    else DAmpUpper=DAmpUpper+(*it).TRDHit_Amp;
         }
     }
 }
+
+/////////////////////////////////////////////////////////////////////
+
+double TrdKCluster::GetTRDChargeLikelihoodUpper(double Z)
+{
+    double ADC,Length,Corr;
+    int TRDLayer;
+    double TRDChargeLikelihood=0;
+
+    //If too many dE/dX tubes are saturated, then use delta ray PDF only
+    if(NBelowThresholdUpper<2)
+    {
+        double DAmpL=DAmpUpper/10.0;
+        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
+        return TRDChargeLikelihood;
+    }
+
+    //Both delta electron and dE/dX PDF
+    double max_one=0; //Remove the least likelihood for each charge assumption
+    double Lvalue;
+    for(vector<TrdKHit>::iterator it=QTRDHitCollectionNucleiUpper.begin();it!=QTRDHitCollectionNucleiUpper.end();it++)
+    {
+        //Some parameters in TrdKPDF
+        TRDLayer=(*it).TRDHit_Layer;
+        ADC=(*it).TRDHit_Amp;
+        Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+        Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
+
+        Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
+        TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
+        if(Lvalue>max_one) max_one=Lvalue;
+    }
+    TRDChargeLikelihood=TRDChargeLikelihood-max_one;
+    double DAmpL=DAmpUpper/10.0;
+    TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
+    return TRDChargeLikelihood;
+}
+
+/////////////////////////////////////////////////////////////////////
+
+double TrdKCluster::GetTRDChargeLikelihoodLower(double Z)
+{
+    double ADC,Length,Corr;
+    int TRDLayer;
+    double TRDChargeLikelihood=0;
+
+    //If too many dE/dX tubes are saturated, then use delta ray PDF only
+    if(NBelowThresholdLower<2)
+    {
+        double DAmpL=DAmpLower/10.0;
+        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
+        return TRDChargeLikelihood;
+    }
+
+    //Both delta electron and dE/dX PDF
+    double max_one=0; //Remove the least likelihood for each charge assumption
+    double Lvalue;
+    for(vector<TrdKHit>::iterator it=QTRDHitCollectionNucleiLower.begin();it!=QTRDHitCollectionNucleiLower.end();it++)
+    {
+        //Some parameters in TrdKPDF
+        TRDLayer=(*it).TRDHit_Layer;
+        ADC=(*it).TRDHit_Amp;
+        Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+        Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
+
+        Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
+        TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
+        if(Lvalue>max_one) max_one=Lvalue;
+    }
+    TRDChargeLikelihood=TRDChargeLikelihood-max_one;
+    double DAmpL=DAmpLower/10.0;
+    TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
+    return TRDChargeLikelihood;
+}
+
+/////////////////////////////////////////////////////////////////////
+
+double TrdKCluster::GetTRDChargeUpper()
+{
+    double TRDChargeValueUpper;
+
+    if(QTRDHitCollectionNucleiUpper.size()<2) return 0;
+
+    //Find minimum of likelihood
+    double QTRD,QTRD1;
+    double QTRDLikelihood,QTRDLikelihoodMin;
+    double BigNumber=100000000;
+    QTRDLikelihoodMin=BigNumber;
+    for(double Z=1;Z<=49;Z=Z+1)
+    {
+        QTRDLikelihood=GetTRDChargeLikelihoodUpper(Z);
+        if(QTRDLikelihood>BigNumber) continue;
+        if(QTRDLikelihood<QTRDLikelihoodMin)
+        {
+            QTRD1=Z;
+            QTRDLikelihoodMin=QTRDLikelihood;
+        }
+    }
+    QTRDLikelihoodMin=BigNumber;
+    for(double Z=QTRD1-1;Z<=QTRD1+1;Z=Z+0.1)
+    {
+        if(Z==0) continue;
+        QTRDLikelihood=GetTRDChargeLikelihoodUpper(Z);
+        if(QTRDLikelihood>BigNumber) continue;
+        if(QTRDLikelihood<QTRDLikelihoodMin)
+        {
+            QTRD=Z;
+            QTRDLikelihoodMin=QTRDLikelihood;
+        }
+    }
+
+    if(QTRD==0) return 0;
+
+    //Estimate error using a simple parabola fit
+    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    x0=QTRD;
+    ExpErr=0.1*x0;
+    if(ExpErr>3) ExpErr=3;
+    if(ExpErr<0.3) ExpErr=0.3;
+    if(x0<ExpErr) x1=0;
+    else x1=x0-ExpErr;
+    x2=x0+ExpErr;
+    y0=QTRDLikelihoodMin;
+    y1=GetTRDChargeLikelihoodUpper(x1);
+    y2=GetTRDChargeLikelihoodUpper(x2);
+    a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
+    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
+    c=y0-a*x0*x0-b*x0;
+    //  TRDChargeValue=-b/a/2;
+    //  TRDChargeError=1/sqrt(2*a);
+    ErrorTemp=1/sqrt(2*a);
+
+    //Parabola fit to get minimum and error
+    double X[7],Y[7],NFitPoint;
+    double X0,DD,alpha,beta,gamma;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+
+    X[3]=QTRD;
+    Y[3]=QTRDLikelihoodMin;
+
+    double Sigma=0.1*((int)(ErrorTemp*10));
+    if(Sigma<0.2) Sigma=0.2;
+    if(Sigma>3) Sigma=3;
+    X[0]=QTRD-0.1*((int)(Sigma*15));
+    X[6]=QTRD+0.1*((int)(Sigma*15));
+    X[1]=QTRD-0.1*((int)(Sigma*10));
+    X[5]=QTRD+0.1*((int)(Sigma*10));
+    X[2]=QTRD-0.1*((int)(Sigma*5));
+    X[4]=QTRD+0.1*((int)(Sigma*5));
+
+    X0=0;
+    NFitPoint=0;
+    for(int i=0;i<7;i++)
+    {
+        if(i==3)
+        {
+            NFitPoint++;
+            continue;
+        }
+        if(X[i]<=0) continue;
+        X0=X0+X[i];
+        Y[i]=GetTRDChargeLikelihoodUpper(X[i]);
+        NFitPoint++;
+    }
+    X0=X0/NFitPoint; //Average X
+
+    m11=0;
+    m12=0;
+    m13=0;
+    m23=0;
+    b1=0;
+    b2=0;
+    b3=0;
+    for(int i=0;i<7;i++) //Build matrix
+    {
+        if(X[i]<=0) continue;
+        X[i]=X[i]-X0;
+        m11=m11+X[i]*X[i]*X[i]*X[i];
+        m12=m12+X[i]*X[i]*X[i];
+        m13=m13+X[i]*X[i];
+        m23=m23+X[i];
+        b1=b1+Y[i]*X[i]*X[i];
+        b2=b2+Y[i]*X[i];
+        b3=b3+Y[i];
+    }
+    m22=m13;
+    m33=NFitPoint;
+    DD=m11*m22*m33+2*m12*m13*m23-m13*m13*m22-m12*m12*m33-m11*m23*m23;
+
+    if(DD==0) return 0;
+
+    a11 = m22*m33 - m23*m23;
+    a12 = m13*m23 - m12*m33;
+    a13 = m12*m23 - m13*m22;
+    a22 = m11*m33 - m13*m13;
+    a23 = m12*m13 - m11*m23;
+    a33 = m11*m22 - m12*m12;
+
+    alpha = b1*a11 + b2*a12 + b3*a13;
+    beta  = b1*a12 + b2*a22 + b3*a23;
+    gamma = b1*a13 + b2*a23 + b3*a33;
+
+    if(alpha/DD<=0) return 0;
+
+    TRDChargeValueUpper=X0-0.5*beta/alpha;
+
+    if(TRDChargeValueUpper<0) return 0;
+
+    return TRDChargeValueUpper;
+}
+
+/////////////////////////////////////////////////////////////////////
+
+double TrdKCluster::GetTRDChargeLower()
+{
+    double TRDChargeValueLower;
+
+    if(QTRDHitCollectionNucleiLower.size()<2) return 0;
+
+    //Find minimum of likelihood
+    double QTRD,QTRD1;
+    double QTRDLikelihood,QTRDLikelihoodMin;
+    double BigNumber=100000000;
+    QTRDLikelihoodMin=BigNumber;
+    for(double Z=1;Z<=49;Z=Z+1)
+    {
+        QTRDLikelihood=GetTRDChargeLikelihoodLower(Z);
+        if(QTRDLikelihood>BigNumber) continue;
+        if(QTRDLikelihood<QTRDLikelihoodMin)
+        {
+            QTRD1=Z;
+            QTRDLikelihoodMin=QTRDLikelihood;
+        }
+    }
+    QTRDLikelihoodMin=BigNumber;
+    for(double Z=QTRD1-1;Z<=QTRD1+1;Z=Z+0.1)
+    {
+        if(Z==0) continue;
+        QTRDLikelihood=GetTRDChargeLikelihoodLower(Z);
+        if(QTRDLikelihood>BigNumber) continue;
+        if(QTRDLikelihood<QTRDLikelihoodMin)
+        {
+            QTRD=Z;
+            QTRDLikelihoodMin=QTRDLikelihood;
+        }
+    }
+
+    if(QTRD==0) return 0;
+
+    //Estimate error using a simple parabola fit
+    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    x0=QTRD;
+    ExpErr=0.1*x0;
+    if(ExpErr>3) ExpErr=3;
+    if(ExpErr<0.3) ExpErr=0.3;
+    if(x0<ExpErr) x1=0;
+    else x1=x0-ExpErr;
+    x2=x0+ExpErr;
+    y0=QTRDLikelihoodMin;
+    y1=GetTRDChargeLikelihoodLower(x1);
+    y2=GetTRDChargeLikelihoodLower(x2);
+    a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
+    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
+    c=y0-a*x0*x0-b*x0;
+    //  TRDChargeValue=-b/a/2;
+    //  TRDChargeError=1/sqrt(2*a);
+    ErrorTemp=1/sqrt(2*a);
+
+    //Parabola fit to get minimum and error
+    double X[7],Y[7],NFitPoint;
+    double X0,DD,alpha,beta,gamma;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+
+    X[3]=QTRD;
+    Y[3]=QTRDLikelihoodMin;
+
+    double Sigma=0.1*((int)(ErrorTemp*10));
+    if(Sigma<0.2) Sigma=0.2;
+    if(Sigma>3) Sigma=3;
+    X[0]=QTRD-0.1*((int)(Sigma*15));
+    X[6]=QTRD+0.1*((int)(Sigma*15));
+    X[1]=QTRD-0.1*((int)(Sigma*10));
+    X[5]=QTRD+0.1*((int)(Sigma*10));
+    X[2]=QTRD-0.1*((int)(Sigma*5));
+    X[4]=QTRD+0.1*((int)(Sigma*5));
+
+    X0=0;
+    NFitPoint=0;
+    for(int i=0;i<7;i++)
+    {
+        if(i==3)
+        {
+            NFitPoint++;
+            continue;
+        }
+        if(X[i]<=0) continue;
+        X0=X0+X[i];
+        Y[i]=GetTRDChargeLikelihoodLower(X[i]);
+        NFitPoint++;
+    }
+    X0=X0/NFitPoint; //Average X
+
+    m11=0;
+    m12=0;
+    m13=0;
+    m23=0;
+    b1=0;
+    b2=0;
+    b3=0;
+    for(int i=0;i<7;i++) //Build matrix
+    {
+        if(X[i]<=0) continue;
+        X[i]=X[i]-X0;
+        m11=m11+X[i]*X[i]*X[i]*X[i];
+        m12=m12+X[i]*X[i]*X[i];
+        m13=m13+X[i]*X[i];
+        m23=m23+X[i];
+        b1=b1+Y[i]*X[i]*X[i];
+        b2=b2+Y[i]*X[i];
+        b3=b3+Y[i];
+    }
+    m22=m13;
+    m33=NFitPoint;
+    DD=m11*m22*m33+2*m12*m13*m23-m13*m13*m22-m12*m12*m33-m11*m23*m23;
+
+    if(DD==0) return 0;
+
+    a11 = m22*m33 - m23*m23;
+    a12 = m13*m23 - m12*m33;
+    a13 = m12*m23 - m13*m22;
+    a22 = m11*m33 - m13*m13;
+    a23 = m12*m13 - m11*m23;
+    a33 = m11*m22 - m12*m12;
+
+    alpha = b1*a11 + b2*a12 + b3*a13;
+    beta  = b1*a12 + b2*a22 + b3*a23;
+    gamma = b1*a13 + b2*a23 + b3*a33;
+
+    if(alpha/DD<=0) return 0;
+
+    TRDChargeValueLower=X0-0.5*beta/alpha;
+
+    if(TRDChargeValueLower<0) return 0;
+
+    return TRDChargeValueLower;
+}
+
+/////////////////////////////////////////////////////////////////////
+
