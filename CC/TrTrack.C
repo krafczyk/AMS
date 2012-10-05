@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.164 2012/09/13 15:52:00 oliva Exp $
+// $Id: TrTrack.C,v 1.165 2012/10/05 00:53:14 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/09/13 15:52:00 $
+///$Date: 2012/10/05 00:53:14 $
 ///
-///$Revision: 1.164 $
+///$Revision: 1.165 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -473,6 +473,9 @@ bool TrTrackR::RemoveHitOnLayer( int layer){
   if (phit->GetXCluster()) _NhitsX--;
   if (phit->GetYCluster()) _NhitsY--;
   if (phit->GetXCluster() && phit->GetYCluster()) _NhitsXY--;
+  //unmark the used status bit
+  phit->ClearUsed();
+
   // Update the bitted pattern
 
 #ifdef __DARWIN__
