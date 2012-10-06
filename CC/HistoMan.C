@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.45 2012/05/28 09:05:10 qyan Exp $ 
+/// $Id: HistoMan.C,v 1.46 2012/10/06 20:02:37 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -266,12 +266,19 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqXh", "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqYh", "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrCsqXi", "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrCsqYi", "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrCsqXf", "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrCsqYf", "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrEriC", "ErRinvC VS RGT", 40, 0.1, 1e3,   80, 1e-2, 1e2, 1, 1));
   Add(TH2D_L("TrResX", "ResX/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
   Add(TH2D_L("TrResY", "ResY/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
   Add(TH2D_L("TrChgP", "ChargeP VS RGT", 40, 0.1, 1e3,  200,    0,  10, 1, 0));
   Add(TH2D_L("TrChgN", "ChargeN VS RGT", 40, 0.1, 1e3,  200,    0,  10, 1, 0));
 
+  Add(new TH2D("TrPtkL1", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
+  Add(new TH2D("TrPtkL4", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
+  Add(new TH2D("TrPtkL7", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
   Add(new TH2D("TrPtkL8", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
   Add(new TH2D("TrPftL8", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
   Add(new TH2D("TrPtkL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
@@ -315,6 +322,7 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfCsq4", "CsqY2 (No L1)", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq5", "CsqY3 VS Rgt3", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfMrg1", "Rmrg VS CsqY1", 100, 1e-7, 1e3, 120, 1e-5, 1e1));
+  Add(TH2D_L("TfDty1", "TRD match-Y",   120, 1e-2, 1e4, 100, 1e-7, 1e3));
   Add(TH2D_L("TfPsX1", "Pre-sel X(c)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
   Add(TH2D_L("TfPsX2", "Pre-sel X(m)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
   Add(TH2D_L("TfMrg2", "Rmrg VS CsqY2", 100, 1e-7, 1e3, 120, 1e-5, 1e1));
@@ -333,6 +341,8 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfCsn5", "ClsSN mrgY",    120,   10, 1e4, 120, 1e-2, 1e2));
   Add(TH2D_L("TfCsn6", "ClsSN ntcl",    120,   10, 1e4, 120, 1e-2, 1e2));
   Add(TH2D_L("XvsR1",  "XvsR1",         100, 1e-2, 1e3, 120, 1e-2, 1e4));
+  Add(new TH2D("TfDtm1", "TRD matchDY", 100,  -10,  10, 100,  -10,  10));
+  Add(new TH2D("TfDtm2", "TRD matchXY", 100,  -10,  10, 100,  -10,  10));
 
   // Alignment
   for (int i = 0; i < 9; i++) {
