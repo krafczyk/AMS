@@ -1866,9 +1866,7 @@ class RemoteClient:
         if(cmdstatus):
             print "Error uploadToCastor ",input,output,cmdstatus
             cmd="nsrm "+output
-            cmdstatus=os.system(cmd)
-            cmd="/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" root://castorpublic.cern.ch//"+output
-            cmdstatus=os.system(cmd)
+            cmdstatus1=os.system(cmd)
             if(cmdstatus):
                 print "Error uploadToCastor ",input,output,cmdstatus
                 return 0                        
