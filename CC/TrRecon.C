@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.162 2012/10/06 20:02:37 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.163 2012/10/07 14:08:56 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/10/06 20:02:37 $
+/// $Date: 2012/10/07 14:08:56 $
 ///
-/// $Revision: 1.162 $
+/// $Revision: 1.163 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2095,13 +2095,20 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
   //////////////////// Loop on pattern candidates ////////////////////
   
   for (int j = 0; j < 4*9; j++) BTSdebug[j] = 0; 
-  
-  for (int jj = 0; jj < NC*2; jj++) {
+
+  for (int jj = 0; jj < NC*4; jj++) {
+
+    int trdh = 0;
+    if (jj >= NC*2) {
+      if (ntrack > 0 || TRCLFFKEY.NhitXForTRDTrackHelp <= 0) break;
+      trdh = 1;
+    }
+
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.start("TrTrack1Eval");
 #endif
     
-    int jc = jci[jj];
+    int jc = jci[jj%(NC*2)];
     if (tmin[jc].csq < 0 || tmin[jc].csqf < 0) continue;
     tracks_simple_stat[2]++;
     
@@ -2180,6 +2187,15 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	}
       }
     }
+
+    int nlx = 0;
+    for (int k = 0; k < NL; k++) if (nhx[k] > 0) nlx++;
+    if (nlx < 2) continue;
+    TR_DEBUG_CODE_110;
+
+    if (trdh &&
+	!((nhx[0] == 0 && nhc <= TRCLFFKEY.NhitXForTRDTrackHelp) ||
+	  (nhx[0] == 1 && nhc <= TRCLFFKEY.NhitXForTRDTrackHelp-1))) continue;
     
     //////////////////// Search on TrRecHits ////////////////////
     
@@ -2196,14 +2212,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
     
     for (int k = 0; k < NL; k++) imin[k] = 0;
 
-    int nlx = 0;
-    for (int k = 0; k < NL; k++) if (nhx[k] > 0) nlx++;
-    if (nlx < 2) continue;
-    TR_DEBUG_CODE_110;
-
     //// Use help of TRD if Tracker cannot solve multiplicity by itself
-    if ((nhx[0] == 0 && nhc <= 4) ||
-	(nhx[0] == 1 && nhc <= 3)) {
+    if (trdh) {
       AMSPoint ptrd;
       AMSDir   dtrd;
       double   xtrd_match = 6;

@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.83 2012/10/05 00:52:17 pzuccon Exp $
+// $Id: tkdcards.C,v 1.84 2012/10/07 14:08:56 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -120,6 +120,7 @@ for (int ii=0;ii<9;ii++){
   ReorderTrRecHits = 0; 
   BuildTracksSimpleChargeSeedTag = 1; 
   TrackFindChargeCutActive = 0; 
+  NhitXForTRDTrackHelp = 3;
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;

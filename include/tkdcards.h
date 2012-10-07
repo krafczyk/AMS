@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.56 2012/10/05 00:52:17 pzuccon Exp $
+// $Id: tkdcards.h,v 1.57 2012/10/07 14:08:59 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -352,10 +352,12 @@ public:
   //! I 72 BuildTrTracksSimple: charge cut during track finding
   int   TrackFindChargeCutActive;
  
+  //! I 73 BuildTrTracksSimple: Numver of x candidates to use help of TRD
+  int   NhitXForTRDTrackHelp;
 
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,4);
+  ClassDef(TRCLFFKEY_DEF,5);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
