@@ -32,9 +32,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2012/09/13 15:52:02 $
+ $Date: 2012/10/07 21:12:22 $
 
- $Revision: 1.31 $
+ $Revision: 1.32 $
 
 */
 
@@ -175,6 +175,8 @@ class TrClusterR :public TrElem{
   int   GetAddress()       const { return _address; }
   /// Get i-th strip address
   int   GetAddress(int ii);
+  /// Get the i-th strip address on sensor (S: 0-640, K5: 0-192, K7: 0-224)
+  int   GetSensorAddress(int& sens, int ii = 0, int mult = 0);
   /// Get the local coordinate for i-th strip
   float GetX(int ii, int imult = 0) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetAddress(ii),imult); 
@@ -183,6 +185,13 @@ class TrClusterR :public TrElem{
   int   GetNelem()         const { return _nelem; }
   /// Get the cluster strip multiplicity
   int   GetLength()              { return GetNelem(); }
+
+  /// Test if the cluster touches one of the sensor edges
+  bool  IsOnSensorEdge(int mult = 0, int extra = 0);
+  /// Test if the cluster touches the VA edges 
+  bool  IsOnVAEdge(int extra = 0);
+  /// Test if the cluster has some dead strips 
+  int   GetNDeadStrips(int extra = 0); 
 
   /// Get the seed index 
   int   GetSeedIndex(int opt = DefaultCorrOpt);

@@ -1,4 +1,4 @@
-/// $Id: TkCoo.h,v 1.3 2011/11/06 18:51:55 pzuccon Exp $ 
+/// $Id: TkCoo.h,v 1.4 2012/10/07 21:12:22 oliva Exp $ 
 #ifndef  _TKCOO_
 #define  _TKCOO_
 
@@ -15,9 +15,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position  
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2011/11/06 18:51:55 $
+///$Date: 2012/10/07 21:12:22 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -69,6 +69,9 @@ class TkCoo{
   /// \brief Returns the Global coordinate (MC DisAlignment Corrected) for the point on ladder 
   /// \param tkid with local given by the AMSPoint loc (Z value is ignored)
   static AMSPoint GetGlobalT(int tkid,AMSPoint& loc);
+
+  /// Get the strip address on sensor (S: 0-640, K5: 0-192, K7: 0-224), and sensor number from tkid, channel and multiplicity
+  static int GetSensorAddress(int tkid, int readchann, int mult, int& sens);
 
  private:
 

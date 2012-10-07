@@ -82,14 +82,11 @@ int TrClusterR::GetMultiplicity()  {
 
 
 float TrClusterR::GetNoise(int ii) {
-  if (_trcaldb==0) {
-    printf("TrClusterRs::GetStatus Error, no _trcaldb specified.\n");
-    return -9999.; 
-  }
+  if (_trcaldb==0) { printf("TrClusterR::GetNoise-E no _trcaldb specified.\n"); return -9999.; }
   int tkid = GetTkId();
   TrLadCal* ladcal = GetTrCalDB()->FindCal_TkId(tkid);
-  if (!ladcal) { printf ("TrClusterR::GetNoise, WARNING calibration not found!!\n"); return -9999; }
-  int address = _address+ii;
+  if (!ladcal) { printf ("TrClusterR::GetNoise-W calibration not found.\n"); return -9999; }
+  int address = GetAddress(ii); 
   return (float) ladcal->GetSigma(address);
 }
 
@@ -104,6 +101,56 @@ short TrClusterR::GetStatus(int ii) {
   if (!ladcal) {printf ("TrClusterR::GetNoise, WARNING calibration not found!!\n"); return -9999;}
   int address = _address+ii;
   return (short) ladcal->GetStatus(address);
+}
+
+
+int TrClusterR::GetSensorAddress(int& sens, int ii, int mult) {
+  int iside = GetSide(); 
+  int address = GetAddress() + ii; // cyclicity accounted in the multiplicity
+  // detect multiplicity jump in case of K7
+  while ( (GetSide()==0)&&(IsK7())&&(address>1023) ) { address -= 384; mult++; }
+  while ( (GetSide()==0)&&(IsK7())&&(address< 640) ) { address += 384; mult--; }
+  if ( ( (GetSide()==0)&&(address<640)&&(address>1023) ) ||
+       ( (GetSide()==1)&&(address<  0)&&(address> 639) ) ) {
+    printf("TrClusterR::GetSensorAddress-E address out of bounds (%d) for side %1d. This must not happen!\n",address,GetSide());
+    return -1;
+  }
+  return TkCoo::GetSensorAddress(GetTkId(),address,mult,sens);
+}
+
+
+bool TrClusterR::IsOnSensorEdge(int mult, int extra) {
+  int sens = 0;
+  int first = 0;
+  int last = 639;
+  if (GetSide()==0) last = (IsK7()) ? 223 : 191;
+  for (int istrip=-extra; istrip<GetNelem()+extra; istrip++) {
+    int strip_in_sensor = GetSensorAddress(sens,istrip,mult);
+    if ( (strip_in_sensor==first)||(strip_in_sensor==last) ) return true;
+  }
+  return false;
+}
+
+
+bool TrClusterR::IsOnVAEdge(int extra) {
+  for (int istrip=-extra; istrip<GetNelem()+extra; istrip++) {
+    int strip_in_va = GetAddress(istrip)%64;
+    if (strip_in_va==0) return true;
+  }
+  return false;
+}
+
+
+int TrClusterR::GetNDeadStrips(int extra) {
+  int ndead = 0;
+  for (int istrip=-extra; istrip<GetNelem()+extra; istrip++) {
+    int iside = GetSide();
+    int address = GetAddress(istrip); // cycl.
+    int iva = int(address/64);
+    short status = GetStatus(istrip); 
+    ndead += ( (status>>0)&0x1 ) | ( (status>>2)&0x1 ); 
+  }
+  return ndead;
 }
 
 

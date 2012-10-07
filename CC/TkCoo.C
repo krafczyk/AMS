@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.15 2012/05/13 21:59:47 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.16 2012/10/07 21:12:22 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2012/05/13 21:59:47 $
+///$Date: 2012/10/07 21:12:22 $
 ///
-/// $Revision: 1.15 $
+/// $Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -315,6 +315,52 @@ int TkCoo::ImplantedFromReadK7(int channel){
   return strip;
 }
 
+//--------------------------------------------------
+// Conversion (Readout Channel, Multiplicity) -> (Sensor, StripInSensor)
+//             0, 1024          0, MaxMult      0, MaxSens   S:0,640 K5:0,192 K7:0,224
+// Once more the readout scheme:
+// S: No multiplicity     
+// K5: NReadoutChannels = 384, NReadoutPerSensor = 192
+//     Sens #0       Sens #1         Sens #2       Sens #3
+//     | 0, ..., 191 |   0, ..., 191 | 0, ..., 191 |   0, ..., 191 | ...
+//     | 0, ..., 191 | 192, ..., 383 | 0, ..., 191 | 192, ..., 383 | ...
+//     | 0, ..., 191,  192, ..., 383 | 0, ..., 191,  192, ..., 383 | ... 
+//     | 0, ...,            ..., 383 | 0, ...,            ..., 383 | ...
+//     Mult #0                       Mult #1       
+// K7: NReadoutChannels = 384, NReadoutPerSensor = 224
+//     Sens #0       Sens#1                        Sens #2                                      Sens #3
+//     | 0, ..., 223 |   0, ...,          ..., 223 |  0, ...,                          ..., 223 | ...
+//     | 0, ..., 223 | 224, ..., 383,  0, ...,  63 | 64, ..., 287 | 288, ..., 383,  0, ..., 127 | ...
+//     | 0, ..., 223,  224, ..., 383 | 0, ...,  63,  64, ..., 287,  288, ..., 383 | 0, ..., 127,  ...
+//     | 0, ...,                 383 | 0, ...,                           ..., 383 | 0, ...,       ...
+//     Mult #0                       Mult #1                                      Mult #2
+// Sensor = int( (Channel + Multiplicity*NReadoutChannels)/NReadoutPerSensor) 
+// Strip  = Channel + Multiplicity*NReadoutChannels - Sensor*NReadoutPerSensor
+int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens) {
+  // default for failure
+  sens = -1;
+  // if S nothing to do 
+  if ((readchann>=0)&&(readchann<640)) { sens = 0; return readchann; }
+  // K address between 0 and 383
+  readchann -= 640;
+  // take ladder to decide K5 or K7 
+  TkLadder* ladder = TkDBc::GetHead()->FindTkId(tkid);
+  if (!ladder) { printf("TkCoo::GetSensorNumber-E cannot find ladder %d into the database\n",tkid); sens = -1; return -1; }
+  // check multiplicity
+  int max_mult = GetMaxMult(tkid,readchann+640); // needed channel 0-1023
+  if ( (mult<0)||(mult>max_mult) ) { printf("TkCoo::GetSensorNumber-E requested multiplicity %d out of range (0,%d)\n",mult,max_mult); sens = -1; return -1; }
+  // calculate sensor 
+  int nread = TkDBc::GetHead()->_NReadoutChanK;
+  int nread_per_sens = (ladder->IsK7()) ? TkDBc::GetHead()->_NReadStripK7 : TkDBc::GetHead()->_NReadStripK5;
+  sens = int((readchann + mult*nread)/nread_per_sens);
+  // check sensor_number
+  int max_sens = ladder->GetNSensors();
+  if ( (sens<0)||(sens>max_sens) ) { printf("TkCoo::GetSensorNumber-E calculated sensor number %d out of range (0,%d)\n",sens,max_sens); sens = -1; return -1; }
+  // calculate strip on sensor 
+  int strip = readchann + mult*nread - sens*nread_per_sens;
+  if ( (strip<0)||(strip>nread_per_sens) ) { printf("TkCoo::GetSensorNumber-E calculated strip number %d out of range (0,%d)\n",strip,nread_per_sens); sens = -1; return -1; }
+  return strip;
+}
 
 //--------------------------------------------------
 double TkCoo::GetLadderLength(int tkid) {
