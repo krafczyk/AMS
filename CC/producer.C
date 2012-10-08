@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.180 2012/07/27 12:33:23 choutko Exp $
+//  $Id: producer.C,v 1.181 2012/10/08 08:05:13 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -822,7 +822,7 @@ againcp:
  if(!suc && means){
    if(!_Solo)sendid(3600);
    cerr <<"SendNtupleEnd-E-UnabletoCopyDSTSuccesfully "<<" Tried "<<(const char*)fcopy<<endl;
-  if(getenv("TransferRawByB") and strlen(getenv("TransferRawByB"))){
+  if(getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
     setenv("TransferBy",getenv("TransferRawByB"),1);
     unsetenv("TransferRawByB");
     goto againcp;
@@ -832,8 +832,9 @@ againcp:
   char *nd20=getenv("NtupleDestDir00");
   char *td2=getenv("TransferRawBy2");
   if(nd2 &&strlen(nd2)){
+   string nd2s=nd2;
    char tmp[1024];
-   sprintf(tmp,"%s/%d.%d",nd2,_pid.uid,_pid.pid);
+   sprintf(tmp,"/%d.%d",_pid.uid,_pid.pid);
    fmake="mkdir -p ";
    fmake+=tmp;  
    int i=system((const char*)fmake);
@@ -841,6 +842,7 @@ againcp:
    fcopy="cp ";
    fcopy+=(const char*)a(bstart);
    fcopy+="  ";
+   fcopy+=nd2s.c_str(); 
    fcopy+=tmp; 
    suc=true;
    destdir=nd2;
