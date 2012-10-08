@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.459 2012/10/08 16:19:58 choutko Exp $
+//  $Id: root.C,v 1.460 2012/10/08 16:24:43 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -9697,7 +9697,7 @@ again:
   Theta=newtrack->GetTheta(iddflt);
   Phi=newtrack->GetPhi(iddflt);
   AMSDir dir(Theta,Phi);
-  if((beta<0 && dir[2]<0) || (beta>0 && dir[2]>0)){
+  if((Beta<0 && dir[2]<0) || (Beta>0 && dir[2]>0)){
      for(int i=0;i<3;i++)dir[i]=-dir[i];
      Theta=dir.gettheta();
      Phi=dir.getphi();
@@ -9988,7 +9988,7 @@ if(change){
 //  update particle pars
   Theta=newtrack->GetTheta(iddflt);
   Phi=newtrack->GetPhi(iddflt);
-  if((beta<0 && dir[2]<0) || (beta>0 && dir[2]>0)){
+  if((Beta<0 && dir[2]<0) || (Beta>0 && dir[2]>0)){
      for(int i=0;i<3;i++)dir[i]=-dir[i];
      Theta=dir.gettheta();
      Phi=dir.getphi();

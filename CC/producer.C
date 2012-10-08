@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.182 2012/10/08 08:12:57 choutko Exp $
+//  $Id: producer.C,v 1.183 2012/10/08 16:20:19 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -744,6 +744,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  char *means=getenv("TransferBy");
  AString fmake;
  AString fcopy;
+againcpmeans:
  if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
@@ -825,15 +826,18 @@ againcp:
   if(getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
     setenv("TransferBy",getenv("TransferRawByB"),1);
     unsetenv("TransferRawByB");
-    goto againcp;
+    means=getenv("TransferBy");
+    goto againcpmeans;
   }
   
   char *nd2=getenv("NtupleDestDirBackup");
   char *nd20=getenv("NtupleDestDir00");
   char *td2=getenv("TransferRawBy2");
+  means=NULL;
   if(nd2 &&strlen(nd2)){
    char tmp[1024];
    sprintf(tmp,"%s/%d.%d",nd2,_pid.uid,_pid.pid);
+   unsetenv("NtupleDestDirBackup");
    fmake="mkdir -p ";
    fmake+=tmp;  
    int i=system((const char*)fmake);
@@ -842,7 +846,6 @@ againcp:
    fcopy+=(const char*)a(bstart);
    fcopy+="  ";
    fcopy+=tmp; 
-   suc=true;
    destdir=nd2;
    goto againcp;
    }
