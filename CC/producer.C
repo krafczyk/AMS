@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.181 2012/10/08 08:05:13 choutko Exp $
+//  $Id: producer.C,v 1.182 2012/10/08 08:12:57 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -832,9 +832,8 @@ againcp:
   char *nd20=getenv("NtupleDestDir00");
   char *td2=getenv("TransferRawBy2");
   if(nd2 &&strlen(nd2)){
-   string nd2s=nd2;
    char tmp[1024];
-   sprintf(tmp,"/%d.%d",_pid.uid,_pid.pid);
+   sprintf(tmp,"%s/%d.%d",nd2,_pid.uid,_pid.pid);
    fmake="mkdir -p ";
    fmake+=tmp;  
    int i=system((const char*)fmake);
@@ -842,7 +841,6 @@ againcp:
    fcopy="cp ";
    fcopy+=(const char*)a(bstart);
    fcopy+="  ";
-   fcopy+=nd2s.c_str(); 
    fcopy+=tmp; 
    suc=true;
    destdir=nd2;
