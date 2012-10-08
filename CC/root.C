@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.457 2012/10/05 13:47:20 choutko Exp $
+//  $Id: root.C,v 1.458 2012/10/08 13:25:53 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8737,7 +8737,7 @@ RPT[0]=fHeader.RadS;
 RPT[1]=fHeader.PhiS;
 RPT[2]=fHeader.ThetaS;
 VelPT[0]=fHeader.VelPhi;
-VelPT[0]=fHeader.VelTheta;
+VelPT[1]=fHeader.VelTheta;
 
 if(getsetup()){
   float Roll,Pitch,Yaw;
@@ -8843,7 +8843,7 @@ RPT[0]=fHeader.RadS;
 RPT[1]=fHeader.PhiS;
 RPT[2]=fHeader.ThetaS;
 VelPT[0]=fHeader.VelPhi;
-VelPT[0]=fHeader.VelTheta;
+VelPT[1]=fHeader.VelTheta;
 
 if(getsetup()){
   float Roll,Pitch,Yaw;
@@ -8955,7 +8955,7 @@ RPT[0]=fHeader.RadS;
 RPT[1]=fHeader.PhiS;
 RPT[2]=fHeader.ThetaS;
 VelPT[0]=fHeader.VelPhi;
-VelPT[0]=fHeader.VelTheta;
+VelPT[1]=fHeader.VelTheta;
 
 if(getsetup()){
   float Roll,Pitch,Yaw;
