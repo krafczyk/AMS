@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.458 2012/10/08 13:25:53 choutko Exp $
+//  $Id: root.C,v 1.459 2012/10/08 16:19:58 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -9696,6 +9696,13 @@ again:
   int iddflt=newtrack->Gettrdefaultfit();
   Theta=newtrack->GetTheta(iddflt);
   Phi=newtrack->GetPhi(iddflt);
+  AMSDir dir(Theta,Phi);
+  if((beta<0 && dir[2]<0) || (beta>0 && dir[2]>0)){
+     for(int i=0;i<3;i++)dir[i]=-dir[i];
+     Theta=dir.gettheta();
+     Phi=dir.getphi();
+   }
+  
   if(iCharge()<0){
      fCharge=AMSEventR::Head()->NCharge()-1;
      if(fCharge>=0){
@@ -9973,6 +9980,7 @@ if(change){
       Charge=AMSEventR::Head()->fCharge[fCharge].Charge();
      } 
   }
+
   _build(newtrack->GetRigidity(iddflt),newtrack->GetErrRinv(iddflt),Charge,Beta,ErrBeta,Mass,ErrMass,Momentum,ErrMomentum);
   newtrack->setstatus(AMSDBc::USED);
    
@@ -9980,6 +9988,13 @@ if(change){
 //  update particle pars
   Theta=newtrack->GetTheta(iddflt);
   Phi=newtrack->GetPhi(iddflt);
+  if((beta<0 && dir[2]<0) || (beta>0 && dir[2]>0)){
+     for(int i=0;i<3;i++)dir[i]=-dir[i];
+     Theta=dir.gettheta();
+     Phi=dir.getphi();
+   }
+
+
   for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0(iddflt)[k];
   Loc2Gl(AMSEventR::Head());
   for(int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
@@ -10066,6 +10081,7 @@ void  ParticleR::_build(double rid,double err,float charge,float beta, float ebe
   emomentum=err*rid*rid*charge;
   _calcmass(momentum,emomentum,beta,ebeta,mass,emass);
   if(beta<0)momentum=-momentum;
+  
 }
 
 
