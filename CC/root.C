@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.429.2.4 2012/10/04 10:03:10 shaino Exp $
+//  $Id: root.C,v 1.429.2.5 2012/10/09 16:30:21 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2267,12 +2267,14 @@ bool AMSEventR::ReadHeader(int entry){
 
     }
 #ifdef _PGTRACK_
-    // update the tracker Databases
-    if(TrExtAlignDB::GetHead()){
-      TrExtAlignDB::GetHead()->UpdateTkDBc(UTime());
-      TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
+    if(!AMSEventR::Head()->nMCEventg()){ // not active for MC events!!
+      // update the tracker Databases
+      if(TrExtAlignDB::GetHead()){
+	TrExtAlignDB::GetHead()->UpdateTkDBc(UTime());
+	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
+      }
+      if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
     }
-    if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
 #endif
 
     if(Version()<160){
