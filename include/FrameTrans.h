@@ -15,6 +15,7 @@
  *  SDT 22 sept 2012 - add starTracker rotations function
  *  SDT 22 sept 2012 - modify for user functions in order to align angle definition with those in AMSsoftware
  *  SDT 22 sept 2012 - add get_ams_ra_dec_from_ALTEC_INTL that use attitude angle in INTL frame from altec.
+ *  SDT 09 oct 2012 - correct bugs in FT_Gal2Equat and FT_Equat2Gal
  */
 
 #include <iostream>
