@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.87.2.2 2012/08/29 10:28:56 mduranti Exp $
+//  $Id: root_setup.C,v 1.87.2.3 2012/10/09 16:35:31 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1160,6 +1160,17 @@ char tmp2[255];
     cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
 
 }
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
+
+}
 
    char tmp[255];
     time_t utime=t1;
@@ -1974,6 +1985,17 @@ char tmp2[255];
     cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
 
 }
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
+
+}
 
    char tmp[255];
     time_t utime=t1;
@@ -2121,6 +2143,17 @@ const char fpate2[]="-24h.csv";
 // check tz
    unsigned int tzd=0;
     tm tmf;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
+
+}
 {
 char tmp2[255];
    time_t tz=t1;
@@ -2318,6 +2351,16 @@ int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
     tzd=tz-tc;
     cout<< "AMSSetupR::LoadGPSWGS84-I-TZDSeconds "<<tzd<<endl;
   }
+  {
+    char tmp2[255];
+    time_t tz=t1;
+    strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+    strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadGPSWGS84-I-TZDSeconds "<<tzd<<endl;
+  }
   
   char tmp[255];
   time_t utime=t1;
@@ -2469,6 +2512,17 @@ const char fpate2[]="-24h.csv";
 // check tz
    unsigned int tzd=0;
     tm tmf;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSGTOD-I-TZDSeconds "<<tzd<<endl;
+
+}
 {
 char tmp2[255];
    time_t tz=t1;
