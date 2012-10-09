@@ -520,7 +520,7 @@ class RemoteClient:
                        sql="update ntuples set sizemb=%d where path like '%s' " %(fs,disk[0])
                        self.sqlserver.Update(sql)
                except:
-                   print "enable to stat",disk[0]
+                   print "unable to stat",disk[0]
            sql="select disk from filesystems where isonline=1 and status='Full' and path='%s' order by totalsize-occupied desc" %(path)
            ret=self.sqlserver.Query(sql)
            if(len(ret)<=0):
@@ -1853,7 +1853,18 @@ class RemoteClient:
         output=output+buf2[1]
         cmd="nsrm "+output
         cmdstatus=os.system(cmd)
-        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=amscdr'"
+        ossize=10000000000
+        try:
+            ossize=os.stat(input)[ST_SIZE]
+        except:
+            print "unable to get size for ",input
+        timeout=int(3600.*ossize/10000000000)
+        if(timeout<30):
+            timeout=30
+        if(timeout>1800):
+            timeout=1800
+        tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 %d " %(timeout) 
+        cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=amscdr'" 
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
@@ -1861,7 +1872,7 @@ class RemoteClient:
             cmdstatus=os.system(cmd)
         else:
             return int(time.time())
-        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp "+input+" "+output
+        cmd=tmout+" /usr/bin/rfcp "+input+" "+output
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor ",input,output,cmdstatus
