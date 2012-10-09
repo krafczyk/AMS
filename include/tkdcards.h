@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.58 2012/10/09 14:57:17 choutko Exp $
+// $Id: tkdcards.h,v 1.59 2012/10/09 15:58:36 choutko Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -410,7 +410,7 @@ public:
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,6);
+  ClassDef(TRFITFFKEY_DEF,7);
 };
 //
 

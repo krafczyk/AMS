@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.97 2012/10/05 14:17:44 choutko Exp $
+//  $Id: root_setup.C,v 1.98 2012/10/09 15:55:13 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1248,6 +1248,17 @@ char tmp2[255];
 
 }
 
+{
+char tmp2[255];
+   time_t tz=tzd;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+
+}
+
 
     double dt2=tf+double(msec)/1000.+tzd;   
     if(tc==dt2){
@@ -1338,6 +1349,17 @@ const char fpate2[]="-24h.csv";
 // check tz
    unsigned int tzd=0;
 tm tmf;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
+
+}
 {
 char tmp2[255];
    time_t tz=t1;
@@ -2288,6 +2310,17 @@ char tmp2[255];
     cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
 
 }
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
+
+}
 
    char tmp[255];
     time_t utime=t1;
@@ -2441,6 +2474,7 @@ const char fpate2[]="-24h.csv";
     tm tmf;
 {
 char tmp2[255];
+{
    time_t tz=t1;
           strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
           strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
@@ -2448,6 +2482,16 @@ char tmp2[255];
     tc=mktime(&tmf);
     tzd=tz-tc;
     cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
+}
+{
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
+}
 
 }
 
@@ -2640,6 +2684,16 @@ int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
     tzd=tz-tc;
     cout<< "AMSSetupR::LoadGPSWGS84-I-TZDSeconds "<<tzd<<endl;
   }
+  {
+    char tmp2[255];
+    time_t tz=t1;
+    strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+    strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadGPSWGS84-I-TZDSeconds "<<tzd<<endl;
+  }
   
   char tmp[255];
   time_t utime=t1;
@@ -2795,6 +2849,17 @@ const char fpate2[]="-24h.csv";
 // check tz
    unsigned int tzd=0;
     tm tmf;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSGTOD-I-TZDSeconds "<<tzd<<endl;
+
+}
 {
 char tmp2[255];
    time_t tz=t1;
