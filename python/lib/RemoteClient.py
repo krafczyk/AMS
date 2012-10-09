@@ -1187,10 +1187,10 @@ class RemoteClient:
                                                         output.write("failed to copy or wrong crc for %s" %(fpath))
                                                         copyfailed=1
                                                         self.nBadCopiesInRow=self.nBadCopiesInRow+1
-                                                        if(self.nBadCopiesInRow>3):
+                                                        if(self.nBadCopiesInRow>30):
                                                             output.write("too many docopy failures")
                                                             print "too many docopy failurs"
-                                                            sys.exit()
+                                                            return 
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
@@ -1514,10 +1514,10 @@ class RemoteClient:
                                                         output.write("failed to copy or wrong crc for %s" %(fpath))
                                                         copyfailed=1
                                                         self.nBadCopiesInRow=self.nBadCopiesInRow+1
-                                                        if(self.nBadCopiesInRow>3):
+                                                        if(self.nBadCopiesInRow>30):
                                                             output.write("too many docopy failures")
                                                             print "too many docopy failurs"
-                                                            sys.exit()
+                                                            return 
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
