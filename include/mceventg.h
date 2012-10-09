@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.50 2011/11/29 13:18:53 choutko Exp $
+//  $Id: mceventg.h,v 1.51 2012/10/09 16:27:55 nnikonov Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -91,6 +91,8 @@ number _mass;
 number _charge;
 number _delay;
 integer _ipart;
+integer _trkid;
+integer _parentid;
 integer _seed[2];
 integer _nskip;
 integer _tbline;
@@ -148,7 +150,8 @@ static integer debug;
 
 static integer Out(integer status=0);
 AMSmceventg(integer ip, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip=0);
-AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);_tbline=0;}
+AMSmceventg(integer ip, number trkid, number parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip=0);
+ AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);_tbline=0;_trkid=1;_parentid=0;}
 AMSmceventg( const AMSIO & io);
 ~AMSmceventg(){}
 void init(integer);

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.460 2012/10/08 16:24:43 choutko Exp $
+//  $Id: root.C,v 1.461 2012/10/09 16:27:56 nnikonov Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4222,6 +4222,8 @@ MCEventgR::MCEventgR(AMSmceventg *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Nskip    = ptr->_nskip;
   Particle = ptr->_ipart;
+  trkID    = ptr->_trkid;
+  parentID = ptr->_parentid;
   for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
   for (int i=0; i<3; i++) Dir[i] = ptr->_dir[i];
   Momentum = ptr->_mom;

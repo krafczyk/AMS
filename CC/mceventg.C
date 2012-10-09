@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.176 2012/09/10 19:18:45 vaurynov Exp $
+//  $Id: mceventg.C,v 1.177 2012/10/09 16:27:57 nnikonov Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -84,6 +84,8 @@ for(i=0;i<3;i++){
  _dir[i]=io._dir[i];
 }
  _tbline=0;
+ _trkid=1;
+ _parentid=0;
 InitSeed();
 if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
    io.getvelphi(),io.getstheta(),io.getsphi());
@@ -91,9 +93,14 @@ if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
 
 
 AMSmceventg::AMSmceventg(integer ipart, geant mom, const AMSPoint & coo,
-			 const AMSDir & dir, integer nskip):_nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
+			 const AMSDir & dir, integer nskip):_trkid(-2),_parentid(-2),_nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
 init(ipart);
 }
+
+AMSmceventg::AMSmceventg(integer ipart, number trackid, number parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip):_trkid(trackid), _parentid(parentid), _nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
+init(ipart);
+
+ }
 
 double AMSmceventg::extract(float m, float s){
   if (s==0)  return m;
@@ -1980,7 +1987,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    //
    AMSEvent::gethead()->addnext(
          AMSID("AMSmceventg",0),
-         new AMSmceventg( -g3code, ekin/GeV, point/cm, dir ) // negetive code for secondary
+         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir ) // negetive code for secondary
          );
 
 

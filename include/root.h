@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.481 2012/10/04 15:15:23 choutko Exp $
+//  $Id: root.h,v 1.482 2012/10/09 16:27:54 nnikonov Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3567,6 +3567,8 @@ public:
         particle=-g3pid means secondary particle produced with
         dir&momentum at coo
 */
+  int   trkID;    ///< G4 trk id. Not implemented for G3 (-2) is dummy value
+  int   parentID; ///< parent G4 trk id. Not implemented for G3 (-2) is dummy value
   float Coo[3];   ///< coo (cm)
   float Dir[3];   ///< dir cos
   float Momentum;  ///< momentum (gev)
@@ -3578,11 +3580,11 @@ public:
   /// \param number index in container
   /// \return human readable info about McEventgR
   char * Info(int number=-1){
-    sprintf(_Info,"McParticle No %d Pid=%d Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f Momentum(Gev)=%7.2g Mass=%7.2g Q=%4.0f",number,Particle,Coo[0],Coo[1],Coo[2],acos(Dir[2]),atan2(Dir[1],Dir[0]),Momentum,Mass,Charge);
+    sprintf(_Info,"McParticle No %d Pid=%d, TrkId=%i, ParentId=%i, Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f Momentum(Gev)=%7.2g Mass=%7.2g Q=%4.0f",number,Particle, trkID, parentID, Coo[0],Coo[1],Coo[2],acos(Dir[2]),atan2(Dir[1],Dir[0]),Momentum,Mass,Charge);
   return _Info;
   }
   virtual ~MCEventgR(){};
-ClassDef(MCEventgR,2)       //MCEventgR
+ClassDef(MCEventgR,3)       //MCEventgR
 #pragma omp threadprivate(fgIsA)
 };
 
