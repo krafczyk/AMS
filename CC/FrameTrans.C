@@ -702,12 +702,14 @@ int  FT_Equat2Gal(double &azimut, double &elev){
  b=asin(cos(Dec)*cos(GalCen_Dec)*cos(RA-GalCen_RA) + sin(Dec)*sin(GalCen_Dec));
  l=atan2( (sin(Dec)-sin(b)*sin(GalCen_Dec)),(cos(Dec)*sin(RA-GalCen_RA)*cos(GalCen_Dec) )  )+GalCen_AscendingNode;
  
- azimut=l;
- elev=b;
+
 // SDT(sept2012) check if  galactic longitude is in the range [-180:180]
  if (l>pi){ //if longitude is >180deg then substract 360deg
  l+=-twopi;
  }
+ // SDT(oct2012) - correct output
+ azimut=l;
+ elev=b;
  return 1;
  
 }
@@ -730,12 +732,14 @@ int  FT_Gal2Equat(double &azimut, double &elev){
  Dec=asin(cos(b)*cos(GalCen_Dec)*sin(l-GalCen_AscendingNode) + sin(b)*sin(GalCen_Dec) );
  RA=atan2( (cos(b)*cos(l-GalCen_AscendingNode) ),  ( sin(b)*cos(GalCen_Dec)-cos(b)*sin(GalCen_Dec)*sin(l-GalCen_AscendingNode) )  )+GalCen_RA;
  
- azimut=RA;
- elev=Dec;
+
  // SDT(sept2012) check if  right ascension is in the range [-180:180]
  if (RA>pi){ //if RA is >180deg then substract 360deg
  RA+=-twopi;
  }
+ // SDT(oct2012) - correct output
+ azimut=RA;
+ elev=Dec; 
  return 1;
  
 }
