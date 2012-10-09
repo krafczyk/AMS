@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.57 2012/10/07 14:08:59 shaino Exp $
+// $Id: tkdcards.h,v 1.58 2012/10/09 14:57:17 choutko Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -55,7 +55,7 @@ public:
   integer MdExAlignTag;
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
-  ClassDef(TKGEOMFFKEY_DEF,6);
+  ClassDef(TKGEOMFFKEY_DEF,7);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
