@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.183 2012/10/08 16:20:19 choutko Exp $
+//  $Id: producer.C,v 1.184 2012/10/09 08:16:49 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -738,7 +738,7 @@ else{
 
 
 // Move ntuple to the dest directory
-
+string destdirc="";
 char *destdir=getenv("NtupleDestDir");
 if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  char *means=getenv("TransferBy");
@@ -835,8 +835,10 @@ againcp:
   char *td2=getenv("TransferRawBy2");
   means=NULL;
   if(nd2 &&strlen(nd2)){
+   
    char tmp[1024];
    sprintf(tmp,"%s/%d.%d",nd2,_pid.uid,_pid.pid);
+    destdirc=tmp; 
    unsetenv("NtupleDestDirBackup");
    fmake="mkdir -p ";
    fmake+=tmp;  
@@ -846,7 +848,8 @@ againcp:
    fcopy+=(const char*)a(bstart);
    fcopy+="  ";
    fcopy+=tmp; 
-   destdir=nd2;
+//   destdir=nd2;
+   destdir=destdirc.c_str(); 
    goto againcp;
    }
    else{
