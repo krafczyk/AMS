@@ -42,7 +42,7 @@ else return false;
        float gphi[2]={0,0};
        if(pev && pev->nParticle()){
        ParticleR & part=pev->Particle(0);
-//       part.ReBuildTrdEcal();
+       part.ReBuildTrdEcal();
        if(part.iTrTrack()>=0){
        float charge=part.Charge;
        float cf=part.Cutoff;
@@ -50,6 +50,8 @@ else return false;
        int ntrd=pev->nTrdTrack();
        int ntof=pev->nTofCluster();
        int nanti=pev->nAntiCluster();
+//       pev->getsetup()->fISSCTRS.clear();
+//       pev->getsetup()->fISSGTOD.clear();
        TrTrackR & tr=pev->TrTrack(part.iTrTrack());
             
 
@@ -71,6 +73,9 @@ else return false;
            for(int k=0;k<3;k++)coo[k]=a[k];
            gtheta[0]=part.ThetaGl*180/3.1415926;
            gphi[0]=part.PhiGl*180/3.1415926;
+           cout <<"  old gtheta "<<gtheta[0]<<" "<<gphi[0]<<" "<<pev->Run()<<" "<<pev->Event()<<endl;
+           part.Loc2Gl(pev);
+           cout <<"  new gtheta "<<part.ThetaGl*180/3.1415926<<" "<<part.PhiGl*180/3.1415926<<endl;
            if(dir[2]*cos(part.Theta)>0){
               for(int k=0;k<3;k++)dir[k]=-dir[k];
             }
@@ -79,19 +84,19 @@ else return false;
  
            phi=dir.getphi();
            theta=dir.gettheta();
-        GalCoo_Return= pev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir2.gettheta(),dir2.getphi(),false,true,true);
+        GalCoo_Return= pev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir2.gettheta(),dir2.getphi(),false,false,false);
         float glat=GalCoo_AMS_Lat;
         float glong=GalCoo_AMS_Long;
         int gret=GalCoo_Return;
         double gt1,gp1;
-          float Roll,Pitch,Yaw;
-           double  xtime=double(pev->UTime())+pev->Frac()-15;    
-          bool ok=pev->getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime);
-
-        pev->GetGTODCoo(GalCoo_Result,gt1, gp1,dir.gettheta(),dir.getphi(),false,false,false);
+        pev->GetGTODCoo(GalCoo_Result,gt1, gp1,dir.gettheta(),dir.getphi(),false,true,false);
            if(gp1<0)gp1=gp1+360;
         gtheta[1]=gt1;
         gphi[1]=gp1;
+          float Roll,Pitch,Yaw;
+           double  xtime=double(pev->UTime())+pev->Frac()-15;    
+          int ok=pev->getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime);
+          cout <<"  rpt "<<ok<<endl;     
         double zenith=pev->fHeader.Zenith();
         if(part.iEcalShower()>=0){
            EcalShowerR & ecal=pev->EcalShower(part.iEcalShower());
@@ -108,9 +113,34 @@ else return false;
          double cc2=sin(pev->fHeader.ThetaS)*cos(gtheta[1]*r)+cos(pev->fHeader.ThetaS)*sin(gtheta[1]*r)*cos(pev->fHeader.PhiS-gphi[1]*r);
         cout << gtheta[0]<<" "<<gtheta[1]<<" "<<gphi[0]<<" "<<gphi[1]<<" "<<part.Theta<<" "<<part.Phi<<" "<<dir.gettheta()<<" "<<dir.getphi()<<" cc "<<cc<<" "<<zenith<<" "<<cc1<<" "<<cc2<<" "<<Pitch<<" "<<Yaw<<" "<<Roll<<" "<<ok<<" "<<pev->fHeader.Pitch<<" "<<pev->fHeader.Yaw<<" "<<pev->fHeader.Roll<<endl; 
  AMSSetupR::ISSCTRSR b; 
- if(!pev->getsetup()->getISSCTRS(b,xtime)){
-   cout <<" ctrs "<<b.r<<" "<<b.phi<<" "<<b.theta<<" "<<b.vphi<<" "<<b.vtheta<<" "<<endl; 
+ AMSSetupR::ISSGTOD ab; 
+ AMSPoint d2l;
+ d2l[0]=pev->fHeader.RadS*cos(pev->fHeader.ThetaS)*cos(pev->fHeader.PhiS);
+ d2l[1]=pev->fHeader.RadS*cos(pev->fHeader.ThetaS)*sin(pev->fHeader.PhiS);
+ d2l[2]=pev->fHeader.RadS*sin(pev->fHeader.ThetaS);
+ cout <<" fh "<<pev->fHeader.RadS<<" "<<pev->fHeader.ThetaS<<" "<<pev->fHeader.PhiS<<endl; 
+//       pev->getsetup()->fISSCTRS.clear();
+//       pev->getsetup()->fISSGTOD.clear();
+if(!pev->getsetup()->getISSCTRS(b,xtime+2)){
+ AMSPoint dc;
+   dc[0]=b.r*cos(b.theta)*cos(b.phi);
+   dc[1]=b.r*cos(b.theta)*sin(b.phi);
+   dc[2]=b.r*sin(b.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   cout <<" ctrs "<<diff<<" "<<b.r<<" "<<b.phi<<" "<<b.theta<<" "<<b.vphi<<" "<<b.vtheta<<" "<<" "<<pev->fHeader.VelTheta<<" "<<pev->fHeader.VelPhi<<endl; 
   }
+ if(!pev->getsetup()->getISSGTOD(ab,xtime)){
+    AMSPoint dc;
+   dc[0]=ab.r*cos(ab.theta)*cos(ab.phi);
+   dc[1]=ab.r*cos(ab.theta)*sin(ab.phi);
+   dc[2]=ab.r*sin(ab.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   cout <<"  gtod "<<diff<<" "<<ab.r<<" "<<ab.phi<<" "<<ab.theta<<" "<<ab.vphi<<" "<<ab.vtheta<<" "<<ab.v<<" "<<pev->fHeader.VelTheta<<" "<<pev->fHeader.VelPhi<<endl; 
+  }
+
+  else cerr<<"gtod err "<<pev->getsetup()->getISSGTOD(ab,xtime)<<endl;
   
     cout <<"header "<<pev->fHeader.ThetaS<<" "<<pev->fHeader.PhiS<<" "<<pev->fHeader.RadS<<endl; 
 

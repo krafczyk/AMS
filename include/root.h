@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.482 2012/10/09 16:27:54 nnikonov Exp $
+//  $Id: root.h,v 1.483 2012/10/10 09:04:48 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4337,6 +4337,8 @@ input
            phi     (rad)  in ams coo system
            use_ams_stk  ->  use info from ams startracker
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
+           use_gtod         ->  use gtod coordinates
+           use_ctrs         ->  use gtod coordinates
 
 output
              Galactic coordinates glong,glat (degrees) glong, glat
@@ -4356,11 +4358,11 @@ output
  -3 use of ams_stk and ams_gps_time was not possible
 
 */
-int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false);///< Get galactic coordinates
+int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false);///< Get galactic coordinates
 
-int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false);///< Get galactic coordinates
+int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates
 
-int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false);///< Get galactic coordinates for ams zenith;
+int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates for ams zenith;
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time
       //! RunTagChecker
         /*!

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.461 2012/10/09 16:27:56 nnikonov Exp $
+//  $Id: root.C,v 1.462 2012/10/10 09:04:28 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8670,7 +8670,7 @@ int HeaderR::get_gal_coo(double & gal_long, double & gal_lat,double ams_ra, doub
 return 0;
 }
 
-int AMSEventR::GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod){
+int AMSEventR::GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs){
 /*
 input
           theta (rad)  in ams coo system
@@ -8678,6 +8678,7 @@ input
            use_ams_stk  ->  use info from ams startracker
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
            use_gtod         ->  use gtod coordinates
+           use_ctrs         ->  use ctrs coordinates
 output
              Galactic coordinates glong,glat (degrees) glong, glat
              result    bit 0 ams_stk info had been used
@@ -8695,7 +8696,7 @@ return value
  -2 use of ams gps time was not possible , iss gps time had been used instead
  -3 use of ams_stk and ams_gps_time was not possible
 */
-
+   static int mprint=0;
   // Always assume down-going particle
   AMSDir dir(theta, phi);
   // if (dir.z() < 0) dir = dir*(-1);      // already done in get_gal_coo()
@@ -8731,7 +8732,14 @@ return value
  }
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
- // YPR
+ // YPR 
+
+AMSPoint d2l;
+
+ d2l[0]=fHeader.RadS*cos(fHeader.ThetaS)*cos(fHeader.PhiS);
+ d2l[1]=fHeader.RadS*cos(fHeader.ThetaS)*sin(fHeader.PhiS);
+ d2l[2]=fHeader.RadS*sin(fHeader.ThetaS);
+
 YPR[0]=fHeader.Yaw;
 YPR[1]=fHeader.Pitch;
 YPR[2]=fHeader.Roll;
@@ -8751,6 +8759,14 @@ if(getsetup()){
  AMSSetupR::ISSGTOD a;
  AMSSetupR::ISSCTRSR b; 
  if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
+    double prec=20;
+    AMSPoint dc;
+   dc[0]=a.r*cos(a.theta)*cos(a.phi);
+   dc[1]=a.r*cos(a.theta)*sin(a.phi);
+   dc[2]=a.r*sin(a.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
   RPT[0]=a.r;
   RPT[1]=a.phi;
   RPT[2]=a.theta;
@@ -8758,15 +8774,41 @@ if(getsetup()){
   VelPT[1]=a.vtheta;
   gtod=true;
   result|=(1<<2);
+  }
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
  }
- else if(!getsetup()->getISSCTRS(b,xtime)){
-  RPT[0]=b.r;
-  RPT[1]=b.phi;
-  RPT[2]=b.theta;
-  VelPT[0]=b.vphi;
-  VelPT[1]=b.vtheta;
-  gtod=false;
-  result|=(1<<3);
+ else if(use_ctrs &&!getsetup()->getISSCTRS(b,xtime)){
+    double prec=80;
+    AMSPoint dc;
+   dc[0]=b.r*cos(b.theta)*cos(b.phi);
+   dc[1]=b.r*cos(b.theta)*sin(b.phi);
+   dc[2]=b.r*sin(b.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
+    RPT[0]=b.r;
+    RPT[1]=b.phi;
+    RPT[2]=b.theta;
+    VelPT[0]=b.vphi;
+    VelPT[1]=b.vtheta;
+    gtod=false;
+    result|=(1<<3);
+   }
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
  }
  else{
   gtod=true;
@@ -8784,7 +8826,7 @@ int ret2=fHeader.get_gal_coo(glong, glat, elev, azim,  RPT, VelPT,  YPR,  xtime,
 
 
 }
-int AMSEventR::GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod){
+int AMSEventR::GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs){
 /*
 input
           theta (rad)  in ams coo system
@@ -8792,6 +8834,7 @@ input
            use_ams_stk  ->  use info from ams startracker
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
            use_gtod         ->  use gtod coordinates
+           use_ctrs         ->  use ctrs coordinates
 output
              Gtod gtheta,gphi (degrees) gtheta,gphi
              result    bit 0 ams_stk info had been used
@@ -8837,6 +8880,12 @@ return value
 
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
+AMSPoint d2l;
+static int mprint=0;
+ d2l[0]=fHeader.RadS*cos(fHeader.ThetaS)*cos(fHeader.PhiS);
+ d2l[1]=fHeader.RadS*cos(fHeader.ThetaS)*sin(fHeader.PhiS);
+ d2l[2]=fHeader.RadS*sin(fHeader.ThetaS);
+
  // YPR
 YPR[0]=fHeader.Yaw;
 YPR[1]=fHeader.Pitch;
@@ -8857,6 +8906,14 @@ if(getsetup()){
  AMSSetupR::ISSGTOD a;
  AMSSetupR::ISSCTRSR b; 
  if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
+    double prec=20;
+    AMSPoint dc;
+   dc[0]=a.r*cos(a.theta)*cos(a.phi);
+   dc[1]=a.r*cos(a.theta)*sin(a.phi);
+   dc[2]=a.r*sin(a.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
   RPT[0]=a.r;
   RPT[1]=a.phi;
   RPT[2]=a.theta;
@@ -8864,8 +8921,26 @@ if(getsetup()){
   VelPT[1]=a.vtheta;
   gtod=true;
   result|=(1<<2);
+}
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::GetGTODCoo-E-GTODCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
+
  }
- else if(!getsetup()->getISSCTRS(b,xtime)){
+ else if(use_ctrs && !getsetup()->getISSCTRS(b,xtime)){
+    double prec=80;
+    AMSPoint dc;
+   dc[0]=b.r*cos(b.theta)*cos(b.phi);
+   dc[1]=b.r*cos(b.theta)*sin(b.phi);
+   dc[2]=b.r*sin(b.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
   RPT[0]=b.r;
   RPT[1]=b.phi;
   RPT[2]=b.theta;
@@ -8874,6 +8949,15 @@ if(getsetup()){
   gtod=false;
   result|=(1<<3);
  }
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::GetGTODCoo-E-CTRSCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
+}
  else{
   gtod=true;
   result|=(1<<4);
@@ -8896,12 +8980,13 @@ int ret2=fHeader.get_gtod_coo(gtheta, gphi, elev, azim,  RPT, VelPT,  YPR,  xtim
 
 
 
-int AMSEventR::GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod){
+int AMSEventR::GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs){
 /*
 input
            use_ams_stk  ->  use info from ams startracker
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
            use_gtod          -> use gtod coo
+           use_ctrs          -> use ctrs coo
 output
              Galactic coordinates glong,glat (degrees) glong, glat
              result    bit 0 ams_stk info had been used
@@ -8949,6 +9034,11 @@ return value
  }
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
+AMSPoint d2l;
+static int mprint=0;
+ d2l[0]=fHeader.RadS*cos(fHeader.ThetaS)*cos(fHeader.PhiS);
+ d2l[1]=fHeader.RadS*cos(fHeader.ThetaS)*sin(fHeader.PhiS);
+ d2l[2]=fHeader.RadS*sin(fHeader.ThetaS);
  // YPR
 YPR[0]=fHeader.Yaw;
 YPR[1]=fHeader.Pitch;
@@ -8969,6 +9059,14 @@ if(getsetup()){
  AMSSetupR::ISSGTOD a;
  AMSSetupR::ISSCTRSR b; 
  if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
+    double prec=20;
+    AMSPoint dc;
+   dc[0]=a.r*cos(a.theta)*cos(a.phi);
+   dc[1]=a.r*cos(a.theta)*sin(a.phi);
+   dc[2]=a.r*sin(a.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
   RPT[0]=a.r;
   RPT[1]=a.phi;
   RPT[2]=a.theta;
@@ -8976,8 +9074,26 @@ if(getsetup()){
   VelPT[1]=a.vtheta;
   gtod=true;
   result|=(1<<2);
+  }
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
+
  }
- else if(!getsetup()->getISSCTRS(b,xtime)){
+ else if(use_ctrs && !getsetup()->getISSCTRS(b,xtime)){
+    double prec=80;
+    AMSPoint dc;
+   dc[0]=b.r*cos(b.theta)*cos(b.phi);
+   dc[1]=b.r*cos(b.theta)*sin(b.phi);
+   dc[2]=b.r*sin(b.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
   RPT[0]=b.r;
   RPT[1]=b.phi;
   RPT[2]=b.theta;
@@ -8985,6 +9101,15 @@ if(getsetup()){
   VelPT[1]=b.vtheta;
   gtod=false;
   result|=(1<<3);
+  }
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
  }
  else{
   gtod=true;
