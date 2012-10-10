@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.462 2012/10/10 09:04:28 choutko Exp $
+//  $Id: root.C,v 1.463 2012/10/10 13:46:19 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8759,7 +8759,7 @@ if(getsetup()){
  AMSSetupR::ISSGTOD a;
  AMSSetupR::ISSCTRSR b; 
  if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
-    double prec=20;
+    double prec=80;
     AMSPoint dc;
    dc[0]=a.r*cos(a.theta)*cos(a.phi);
    dc[1]=a.r*cos(a.theta)*sin(a.phi);
@@ -8906,7 +8906,7 @@ if(getsetup()){
  AMSSetupR::ISSGTOD a;
  AMSSetupR::ISSCTRSR b; 
  if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
-    double prec=20;
+    double prec=80;
     AMSPoint dc;
    dc[0]=a.r*cos(a.theta)*cos(a.phi);
    dc[1]=a.r*cos(a.theta)*sin(a.phi);
@@ -9059,7 +9059,7 @@ if(getsetup()){
  AMSSetupR::ISSGTOD a;
  AMSSetupR::ISSCTRSR b; 
  if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
-    double prec=20;
+    double prec=80;
     AMSPoint dc;
    dc[0]=a.r*cos(a.theta)*cos(a.phi);
    dc[1]=a.r*cos(a.theta)*sin(a.phi);

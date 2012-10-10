@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.98 2012/10/09 15:55:13 choutko Exp $
+//  $Id: root_setup.C,v 1.99 2012/10/10 13:46:19 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2102,14 +2102,25 @@ return 0;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.r=s1;
 }
+   double bc=0;
+   double bs=0;
 {
-  double ang1=k->second.phi;
-  double ang2=l->second.phi;
+  double ang1=cos(k->second.phi);
+  double ang2=cos(l->second.phi);
   s0[0]=ang1;
   s0[1]=ang2;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  b.phi=s1;
+  bc=s1;
 }
+{
+  double ang1=sin(k->second.phi);
+  double ang2=sin(l->second.phi);
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  bs=s1;
+}
+  b.phi=atan2(bs,bc);
 {
   double ang1=k->second.theta;
   double ang2=l->second.theta;
@@ -2119,13 +2130,22 @@ return 0;
   b.theta=s1;
 }
 {
-  double ang1=k->second.vphi;
-  double ang2=l->second.vphi;
+  double ang1=cos(k->second.vphi);
+  double ang2=cos(l->second.vphi);
   s0[0]=ang1;
   s0[1]=ang2;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  b.vphi=s1;
+  bc=s1;
 }
+{
+  double ang1=sin(k->second.vphi);
+  double ang2=sin(l->second.vphi);
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+  bs=s1;
+}
+  b.vphi=atan2(bs,bc);
 {
   double ang1=k->second.vtheta;
   double ang2=l->second.vtheta;
