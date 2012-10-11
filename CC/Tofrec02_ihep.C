@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.30 2012/10/04 13:38:13 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.31 2012/10/11 17:48:48 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -80,6 +80,8 @@ vector<AMSEcalShower*> TofRecH::amsecalshow;
 TF1  *TofRecH::BirkFun=0;
 
 bool  TofRecH::BuildKey=1;
+
+int   TofRecH::BuildOpt=0;
 
 //========================================================
 int TofRecH::ReBuild(int charge){
@@ -999,6 +1001,10 @@ int TofRecH::BuildBetaH(int mode){
 #endif
    
    for(int iktr=0;iktr<2;iktr++){
+//---Not Use Track
+     if((BuildOpt==1)&&(iktr==0))continue;
+//---Not Use Track+TRD
+     if(BuildOpt==2)break;
 //---if trdtrack
      if(iktr==1){ntracks=trdtrack.size();}
 //----
@@ -1066,7 +1072,7 @@ int TofRecH::BuildBetaH(int mode){
         
        if(iktr==1)delete ptrack;
      }//ntrack;
-    if(found>0)break;//for track or trd has found all
+    if((found>0)&&(BuildOpt!=3))break;//for track or trd has found all //Opt=3 Build Continue After Track Find 
   }//2 type
 
 
