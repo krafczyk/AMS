@@ -7,6 +7,7 @@
 */
 // -----------------------------------------------------------
 //        Created:       2012-Aug-17  Q.Yan  qyan@cern.ch
+//        Add:           2010-Oct-11  Adding BetaHR charge example GetQ GetQL
 // -----------------------------------------------------------
 
 #include <signal.h>
@@ -113,6 +114,7 @@ class AMSAnalysis{
    float        tof_tkdir[NTOFL][3];
    float        tof_adca[NTOFL][NTOFS];
    float        tof_adcd[NTOFL][NTOFS];
+//----
    float        tof_q;
    int          tof_charge;
 //--calibration 
@@ -133,6 +135,12 @@ class AMSAnalysis{
    int          tof_hsumh;
    int          tof_hsumhu;
    int          tof_nhithl[4];
+
+//---BetaH Charge
+   float        tof_hqt;
+   float        tof_hqg;
+   float        tof_hql[4];
+
 //--Time
    float        tof_t0;
    float        tof_tmin[4];
@@ -202,12 +210,13 @@ void AMSAnalysis::BookFile(char *ofile){
   tout->Branch("tk_dedx",tk_dedx,"tk_dedx[9][2]/F");
   tout->Branch("tk_dedx_ns",tk_dedx_ns,"tk_dedx_ns[9][2][4]/F");
   tout->Branch("tk_dir",tk_dir,"tk_dir[9]/F");
-//--Tof
+//--Tof 
   tout->Branch("tof_barid",tof_barid,"tof_barid[4]/I");
   tout->Branch("tof_status",tof_status,"tof_status[4]/i");
   tout->Branch("tof_bstatus",tof_bstatus,"tof_bstatus[4][2]/i");
   tout->Branch("tof_tkco",tof_tkco,"tof_tkco[4][3]/F");  
   tout->Branch("tof_tkdir",tof_tkdir,"tof_tkdir[4][3]/F");
+   
 //----
   tout->Branch("tof_adcar",tof_adcar,"tof_adcar[4][2]/F");
   tout->Branch("tof_adcdr",tof_adcdr,"tof_adcdr[4][2][3]/F");
@@ -225,6 +234,12 @@ void AMSAnalysis::BookFile(char *ofile){
   tout->Branch("tof_hsumh",&tof_hsumh,"tof_hsumh/I"); //BetaH
   tout->Branch("tof_hsumhu",&tof_hsumhu,"tof_hsumhu/I");//
   tout->Branch("tof_nhithl",tof_nhithl,"tof_nhithl[4]/I");
+
+//---BetaH Charge
+  tout->Branch("tof_hqt",&tof_hqt, "tof_hqt/F");//Q- Truncate Mean //Better For Low Charge(Pr He Li)
+  tout->Branch("tof_hqg",&tof_hqg, "tof_hqg/F");//Q- Global Gaus Mean  //Better For High Charge
+  tout->Branch("tof_hql", tof_hql, "tof_hql[4]/F");//Q for each Layer
+
 //---Time
   tout->Branch("tof_t0",   &tof_t0,    "tof_t0/F");
   tout->Branch("tof_time", tof_time,   "tof_time[4]/F");
@@ -454,12 +469,17 @@ bool AMSAnalysis::Select_Tof(){
 
      AMSPoint tofpnt;AMSDir tofdir;
 //---
-     TofRecH::ReBuild(tk_charge);
+     TofRecH::ReBuild();
      tof_nhith=pev->nTofClusterH();
      BetaHR *betah=pev->pParticle(iparindex)->pBetaH();
 //     if(!betah)return false;
      if(betah){
        tof_betah=betah->GetBeta();
+///--BetaH TOF Q
+       int nlay; float qrms;
+       tof_hqt=betah->GetQ(nlay,qrms);//Trancate Mean
+       tof_hqg=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOpt,-1);//Gaus Mean
+//---
        tof_chist=betah->GetChi2T();
        tof_chisc=betah->GetChi2C();
        tof_hsumh=betah->GetSumHit();
@@ -468,6 +488,8 @@ bool AMSAnalysis::Select_Tof(){
        for(int ilay=0;ilay<NTOFL;ilay++){
 //--begin test
          if(betah->TestExistHL(ilay)){
+///---TOF QLayer
+           tof_hql[ilay]=betah->GetQL(ilay);
            tof_lenr[ilay]=betah->GetTkTFLen(ilay);
            tof_cres[ilay][0]=betah->GetCResidual(ilay,0);
            tof_cres[ilay][1]=betah->GetCResidual(ilay,1);
@@ -572,6 +594,9 @@ void AMSAnalysis::InitEvent(AMSEventR *ev){
    tk_rigidity=0;
    tof_beta=-3;
    tof_betah=-3;
+   tof_hqt=-1;
+   tof_hqg=-1;
+//---
    ecal_edep=0;
    for(int itkl=0;itkl<NTKL;itkl++){
      tk_dir[itkl]=0;
@@ -583,6 +608,7 @@ void AMSAnalysis::InitEvent(AMSEventR *ev){
    
    for(int itrdv=0;itrdv<5;itrdv++){trdcle[itrdv]=0;}
    for(int itfl=0;itfl<NTOFL;itfl++){
+      tof_hql[itfl]=-1;
       tof_nrawcl[itfl]=0;
       tof_barid[itfl]=-1;
       tof_status[itfl]=0;
