@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.19 2012/10/04 13:36:46 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.20 2012/10/11 17:49:39 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -107,6 +107,8 @@ public:
   TofRecH(){};
 /// TDV Build Control Key
   static bool BuildKey;
+/// Build Option //0-normal Build, 1-Exclude Track-Association Build, 2-Exclude Track+Trd Association, 3-Build Continue After Track Association Finding
+  static int  BuildOpt;
 /// TDV initial function
   static int  Init();
 /// Root Mode Refit //if want to rebuild BetaH in Root Mode, Only need this function//(charge is dummy)
@@ -232,7 +234,7 @@ public:
   friend class BetaHR; 
   friend class TofBetaPar; 
 
-  ClassDef(TofRecH,4)
+  ClassDef(TofRecH,5)
 };
 
 /////////////////////////////////////////////////////////////////////////
