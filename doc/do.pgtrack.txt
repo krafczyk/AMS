@@ -524,12 +524,11 @@ FILE_PATTERNS          = root.h \
                          TrCalDB.h TrLadCal.h Vertex.h \
 			 TkObject.h TkPlane.h TkLadder.h TkDBc.h TkCoo.h \
 			 TkSens.h TrFit.h MagField.h \
-			 TrLadPar.h TrParDB.h \
                          TrdRawHit.h \
 			 TrdHSegment.h TrdHTrack.h TrdHCalib.h TrdHCharge.h TrdHRecon.h \
 			 TrCharge.h \
 			 TrTrackSelection.h \ 
-                         TofGeometry.h TofRecon.h TofTrack.h \ 
+                         TofTrack.h \ 
                          TrInnerDzDB.h TrExtAlignDB.h \
 			 TrdKCalib.h TrdKCluster.h TrdKHit.h TrdKPDF.h TrdKSimpleHit.h \
 			 TrdSCalib.h Tofrec02_ihep.h EcalChi2CY.h \
