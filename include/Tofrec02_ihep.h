@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.20 2012/10/11 17:49:39 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.21 2012/10/13 09:48:54 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -107,7 +107,7 @@ public:
   TofRecH(){};
 /// TDV Build Control Key
   static bool BuildKey;
-/// Build Option //0-normal Build, 1-Exclude Track-Association Build, 2-Exclude Track+Trd Association, 3-Build Continue After Track Association Finding
+/// Build Option //0-normal Build, 1-Exclude Track-Association Build, 2-Exclude Track+Trd Association, 3-Build Continue After Track Association Finding, 11110 Trk-Trd-Ecal-TOF-Other, 31110 Trk(Track Find Continue)-Trd-Ecal-TOF-Other
   static int  BuildOpt;
 /// TDV initial function
   static int  Init();
