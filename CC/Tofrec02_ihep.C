@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.31 2012/10/11 17:48:48 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.32 2012/10/13 09:48:02 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -145,7 +145,7 @@ int TofRecH::BuildTofClusterH(){
   ClearBuildTofClH();
 //---  
   integer i,j,hassid;
-  integer idd=0,il=0,ib=0,is=0,idsoft=-1,pattern=0,nraws=0,rawindex[2]={-1};
+  integer idd=0,il=0,ib=0,is=0,idsoft=-1,pattern=0,nraws=0;
   integer stat[2];
   uinteger sstatus[2]={0},status=0,recovsid[2];
   integer nadcd[2]={0};
@@ -193,7 +193,6 @@ int TofRecH::BuildTofClusterH(){
     if(!TOF2Brcal::scbrcal[il][ib].SideOK(is)||!TOFBPeds::scbrped[il][ib].PedAchOK(is)){continue;}
     tfhraws[is]=tf2raws[i];
 #else
-//    rawindex[is]=i;
     tfhraws[is]=ev->pTofRawSide(sideid[i].first);
 #endif
 
@@ -249,7 +248,6 @@ int TofRecH::BuildTofClusterH(){
       timer=etimer=edepa=edepd=edep=0;
       for(is=0;is<2;is++){
         tfhraws[is]=0; 
-        rawindex[is]=-1;
         ltdcw[is].clear();htdcw[is].clear();shtdcw[is].clear();
         sstatus[is]=0;
         timers[is]=adca[is]=sdtm[is]=0;
@@ -391,7 +389,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
 
 //----For One HT many LT //may not accurate
        else  {
-         number minhldt=999999,dt=0;
+         number minhldt=FLT_MAX,dt=0;
           //----if no HT and no SHT try to narrow
          if((htdcw.size()==0)&&(shtdcw.size()==0)){
            for(i=0;i<ltdcw.size();i++){//tight guide
@@ -433,7 +431,7 @@ int TofRecH::LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uin
     if((adca[0]<=0)||(adca[1]<=0)||ltdcw.size()<=0)return -1;
 
 //---Find Best LT
-    number sdtm1[2],tms[2],tm,etm,lcoo,elcoo,mindis=999999;
+    number sdtm1[2],tms[2],tm,etm,lcoo,elcoo,mindis=FLT_MAX;
     uinteger ustatus=0;
     int iminlt=-1;
     sdtm1[hassid]=sdtm[hassid];
@@ -1003,6 +1001,9 @@ int TofRecH::BuildBetaH(int mode){
    for(int iktr=0;iktr<2;iktr++){
 //---Not Use Track
      if((BuildOpt==1)&&(iktr==0))continue;
+     if((BuildOpt>=10&&(BuildOpt/10000%10==0))&&(iktr==0))continue;
+//---Not Use TRD
+     if((BuildOpt>=10&&(BuildOpt/1000%10==0))&&(iktr==1))continue;
 //---Not Use Track+TRD
      if(BuildOpt==2)break;
 //---if trdtrack
@@ -1034,7 +1035,7 @@ int TofRecH::BuildBetaH(int mode){
       if(iktr==1)usetrd=amstrdtrack.at(itr);
 #endif
 //--- 
-         TofClusterHR *phit[4]={0}; int pattern[4]={0};number len[4]={0},tklcoo[4]={1000},tkcosz[4]={1.};
+         TofClusterHR *phit[4]={0}; int pattern[4]={0};number len[4]={0},tklcoo[4]={0},tkcosz[4]={1.,1.,1.,1.};
          number cres[4][2]={{1000}}; 
          for(int ilay=0;ilay<4;ilay++){
             BetaFindTOFCl(ptrack,ilay,&phit[ilay],len[ilay],tklcoo[ilay],tkcosz[ilay],cres[ilay],pattern[ilay]);
@@ -1072,7 +1073,12 @@ int TofRecH::BuildBetaH(int mode){
         
        if(iktr==1)delete ptrack;
      }//ntrack;
-    if((found>0)&&(BuildOpt!=3))break;//for track or trd has found all //Opt=3 Build Continue After Track Find 
+
+//---After Track Find Continue
+    if(iktr==0&&((BuildOpt==3)||(BuildOpt/10000%10==3)))found=0;//Opt=3 Build Continue After Track Find
+//----
+    if(found>0)break;
+    
   }//2 type
 
 
@@ -1086,7 +1092,7 @@ int TofRecH::BuildBetaH(int mode){
   
   if(found==0&&(npairu>=1||npaird>=1)){   
 ///---If EcalShower
-    if(ecalshow.size()>0){
+    if((ecalshow.size()>0)&&(!(BuildOpt>=10&&(BuildOpt/100%10==0)))){
        number cooshow[3];
        for(int ish=0;ish<ecalshow.size();ish++){
          if(ecalshow.at(ish).Entry[2]>ecalshow.at(ish).Exit[2]){
@@ -1131,7 +1137,8 @@ int TofRecH::BuildBetaH(int mode){
     }//end if
 
 ///---Dump Track Tof Self Reconstruction
-    if(found==0){
+    if(found==0&&(!(BuildOpt>=10&&(BuildOpt/10%10==0)))){
+
        for(int iclu=0;iclu<tofclp[0].size();iclu++){
 
 //----Up Search Down
@@ -1252,7 +1259,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
 int TofRecH::TOFPairSel(int ud,TofClusterHR* tfhit[2]){
 
     int candid=-1,qmaxid=-1,tminid=-1;//
-    number qmax[2]={0.},tmin=999999999;
+    number qmax[2]={0.},tmin=FLT_MAX;
     int mysize=tofclc[ud].size();
     for(int icl=0;icl<tofclc[ud].size();icl++){//Up part
        TofClusterHR *cl0=tofclc[ud].at(icl).first;
@@ -1301,7 +1308,7 @@ int  TofRecH::TOFPairPreSel(int ud,number coref[],AMSDir diref,number cutangle){
 //========================================================
 int TofRecH::EcalSearchD(TofClusterHR* tfhitu[2], TofClusterHR* tfhitd[2],number cooshow[3]){
 
-    number cop[3],timeup,coodis[2],tmind[2]={99999999};
+    number cop[3],timeup,coodis[2],tmind[2]={FLT_MAX,FLT_MAX};
     bool tmatch[2];
     cop[tfhitu[0]->GetDirection()]=tfhitu[0]->Coo[tfhitu[0]->GetDirection()];
     cop[tfhitu[1]->GetDirection()]=tfhitu[1]->Coo[tfhitu[1]->GetDirection()];
@@ -1362,7 +1369,7 @@ int TofRecH::TofTrackFit(TofClusterHR *tfhit[4],TofBetaPar &par,int attrefit,int
    LineFit(nhits,coo[2],coo[0],ecoo[0],ax,bx);
    LineFit(nhits,coo[2],coo[1],ecoo[1],ay,by);
 ///--Length+Time Fit
-   number len[4]={0},res[4][2]={0},tklcoo[4]={0},tkcosz[4]={1000};
+   number len[4]={0},res[4][2]={0},tklcoo[4]={0},tkcosz[4]={1,1,1,1};
    for(int ihit=0;ihit<nhits;ihit++){
      AMSPoint  p1(ax*coo[2][ihit]+bx,ay*coo[2][ihit]+by,coo[2][ihit]);
      AMSPoint  p0(ax*0.+bx,ay*0.+by,0.);
