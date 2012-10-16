@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.483 2012/10/10 09:04:48 choutko Exp $
+//  $Id: root.h,v 1.484 2012/10/16 19:37:50 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -341,6 +341,23 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get galactic coordinates using ISS position, velocity and LVLH attitude
 int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);///< Get galactic coordinates using Star Tracker
 int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);///< convert celestial coordinates into galactic coordinates
+
+//-----------Backtracing -------------------
+/*!
+ Get galactic coordinates with backtracing using ISS position, velocity and LVLH attitude
+ \return 0 unercutoff i.e. particle is likely of atmoepheric origin ;
+         1 overcutoff i.e. particle is likely coming from space ;
+        -1 error
+*/
+int get_gal_coo(double & gal_long, double & gal_lat, double & time_trace, double AMSTheta, double AMSPhi, double rigidity, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);
+/*!
+ Get celestial (R.A. and Dec.) coordinates with backtracing using ISS position, velocity and LVLH attitude
+ \return 0 unercutoff i.e. particle is likely of atmoepheric origin ;
+         1 overcutoff i.e. particle is likely coming from space ;
+        -1 error
+*/
+int get_cel_coo(double & ams_ra, double & ams_dec, double & time_trace, double AMSTheta, double AMSPhi, double rigidity, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);
+
 //-----------------------------------------
 int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
 

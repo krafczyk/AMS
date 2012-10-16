@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.463 2012/10/10 13:46:19 choutko Exp $
+//  $Id: root.C,v 1.464 2012/10/16 19:37:46 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -60,6 +60,8 @@
 #endif
 #include "Sunposition.h"
 #include "FrameTrans.h"
+#include "GeoMagField.h"
+#include "GeoMagTrace.h"
 #include "Tofrec02_ihep.h"
 using namespace root;
 #ifdef __WRITEROOT__
@@ -8600,6 +8602,50 @@ return 0;
 
 }
 
+
+//-----------Backtracing -------------------
+int HeaderR::get_cel_coo(double &ams_ra, double &ams_dec, double &time_trace,
+			 double AMSTheta, double AMSPhi, double rigidity,
+			 double RPT[3] ,double VelPT[2], double YPR[3],
+			 double xtime, bool gtod)
+{
+  // InitModel check
+  if (GeoMagField::GetInitStat() == 0) GeoMagField::GetHead();
+  if (GeoMagField::GetInitStat() <  0) return -1;
+
+  GeoMagTrace gp(RPT, VelPT, YPR, AMSTheta, AMSPhi, rigidity);
+  int stat = gp.Propagate(100);
+
+  time_trace = gp.GetTof();
+
+  if (stat == GeoMagTrace::SPACE) {
+    double x = gp.GetDx(), y = gp.GetDy(), z = gp.GetDz(), r = 1;
+    FT_GTOD2Equat  (x, y, z, xtime);
+    FT_Cart2Angular(x, y, z, r, ams_dec, ams_ra);
+    ams_dec *= 180./M_PI;
+    ams_ra  *= 180./M_PI;
+    return 1;
+  }
+  else return 0;
+}
+
+int HeaderR::get_gal_coo(double &gal_long, double &gal_lat, double &time_trace,
+			 double AMSTheta, double AMSPhi, double rigidity,
+			 double RPT[3] ,double VelPT[2], double YPR[3],
+			 double xtime, bool gtod)
+{
+  double ra, dec;
+  int ret = get_cel_coo(ra, dec, time_trace, AMSTheta, AMSPhi,
+			rigidity, RPT, VelPT, YPR, xtime, gtod);
+  if (ret == 1) {
+    gal_long = ra /180*M_PI;
+    gal_lat  = dec/180*M_PI;
+    FT_Equat2Gal(gal_long, gal_lat);
+    gal_long *= 180./M_PI;
+    gal_lat  *= 180./M_PI;
+  }
+  return ret;
+}
 
 int HeaderR::get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[2], double YPR[3], double  time, bool gtod){
 /*
