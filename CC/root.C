@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.464 2012/10/16 19:37:46 shaino Exp $
+//  $Id: root.C,v 1.465 2012/10/17 10:21:30 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8045,7 +8045,7 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 	}
 	if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
 	float lt=pev?pev->LiveTime():1;
-	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f/ #betah=%6.3f#pm%6.3f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,btofh,ebtofh,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
+	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f/ #betah=%6.3f#pm%6.3f  #theta_M %4.1f^{o} Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,btofh,ebtofh,pev->fHeader.ThetaM/3.1415926*180,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
 	return _Info;
 
 
@@ -8716,6 +8716,144 @@ int HeaderR::get_gal_coo(double & gal_long, double & gal_lat,double ams_ra, doub
 return 0;
 }
 
+
+int AMSEventR::DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double & TraceTime,float theta, float phi, double Momentum, double Velocity, int Charge, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod,bool use_ctrs){
+  static int mprint=0;
+  AMSDir dir(theta, phi);
+
+  float elev=dir.gettheta();               // common definition
+  float azim=dir.getphi();
+
+ unsigned int gpsdiff=15;
+ int ret=0;
+ result=0;
+ double  xtime=double(UTime())+Frac()-gpsdiff;    
+ if(use_ams_gps_time){
+   unsigned int time,nanotime;
+   if(GetGPSTime( time, nanotime) )ret=-2;
+   else {
+    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    result|=(1<<1);
+  }
+ }
+ if(use_ams_stk){
+   AMSSetupR::AMSSTK a;
+  if(!getsetup() || getsetup()->getAMSSTK(a,xtime)){
+   ret=-1;
+  }
+  else{
+   // not supported 
+    
+  if(0){
+      result|=(1<<0);
+      return ret;
+  }
+  else ret-=1;
+  }  
+ }
+ double RPT[3],VelPT[2],YPR[3];
+ bool gtod=false;
+ // YPR 
+
+AMSPoint d2l;
+
+ d2l[0]=fHeader.RadS*cos(fHeader.ThetaS)*cos(fHeader.PhiS);
+ d2l[1]=fHeader.RadS*cos(fHeader.ThetaS)*sin(fHeader.PhiS);
+ d2l[2]=fHeader.RadS*sin(fHeader.ThetaS);
+
+YPR[0]=fHeader.Yaw;
+YPR[1]=fHeader.Pitch;
+YPR[2]=fHeader.Roll;
+RPT[0]=fHeader.RadS;
+RPT[1]=fHeader.PhiS;
+RPT[2]=fHeader.ThetaS;
+VelPT[0]=fHeader.VelPhi;
+VelPT[1]=fHeader.VelTheta;
+
+if(getsetup()){
+  float Roll,Pitch,Yaw;
+  if(!getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
+   YPR[0]=Yaw;
+   YPR[1]=Pitch;
+   YPR[2]=Roll;
+  }
+ AMSSetupR::ISSGTOD a;
+ AMSSetupR::ISSCTRSR b; 
+ if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
+    double prec=80;
+    AMSPoint dc;
+   dc[0]=a.r*cos(a.theta)*cos(a.phi);
+   dc[1]=a.r*cos(a.theta)*sin(a.phi);
+   dc[2]=a.r*sin(a.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
+  RPT[0]=a.r;
+  RPT[1]=a.phi;
+  RPT[2]=a.theta;
+  VelPT[0]=a.vphi;
+  VelPT[1]=a.vtheta;
+  gtod=true;
+  result|=(1<<2);
+  }
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::DoBackTracing-E-GTODCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::DoBackTracing-E-GTODCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
+ }
+ else if(use_ctrs &&!getsetup()->getISSCTRS(b,xtime)){
+    double prec=80;
+    AMSPoint dc;
+   dc[0]=b.r*cos(b.theta)*cos(b.phi);
+   dc[1]=b.r*cos(b.theta)*sin(b.phi);
+   dc[2]=b.r*sin(b.theta);
+   AMSPoint da=dc-d2l;
+   double diff=sqrt(da.prod(da))/1e5;
+   if(fabs(diff)<prec){
+    RPT[0]=b.r;
+    RPT[1]=b.phi;
+    RPT[2]=b.theta;
+    VelPT[0]=b.vphi;
+    VelPT[1]=b.vtheta;
+    gtod=false;
+    result|=(1<<3);
+   }
+   else{
+    if(mprint++<=10){
+      cerr<<"AMSEventR::DoBackTracing-E-CTRSCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+    if(mprint==10)cerr<<"AMSEventR::DoBackTracing-E-CTRSCooTooDistantFrom2Ele LastMessage "<<endl;        
+    }
+    gtod=true;
+    result|=(1<<4);
+   }
+ }
+ else{
+  gtod=true;
+  result|=(1<<4);
+ }
+
+}
+else{
+  gtod=true;
+  result|=(1<<4); 
+}  
+
+int ret2=fHeader.get_gal_coo(glong, glat, TraceTime,elev, azim,  Momentum/Charge,RPT, VelPT,  YPR,  xtime, gtod);
+if(ret2==1)result|=(1<<5);  //over
+else if(ret2==0)result|=(1<<6);  //under
+else if(ret2==2)result|=(1<<7);  //trapped
+ return ret2>=0?ret:-ret2;
+
+
+
+
+}
+
+
 int AMSEventR::GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs){
 /*
 input
@@ -8743,11 +8881,8 @@ return value
  -3 use of ams_stk and ams_gps_time was not possible
 */
    static int mprint=0;
-  // Always assume down-going particle
   AMSDir dir(theta, phi);
-  // if (dir.z() < 0) dir = dir*(-1);      // already done in get_gal_coo()
 
-  //float elev=3.1415926/2-dir.gettheta(); // no more need
   float elev=dir.gettheta();               // common definition
   float azim=dir.getphi();
 

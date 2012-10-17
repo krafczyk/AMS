@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.484 2012/10/16 19:37:50 shaino Exp $
+//  $Id: root.h,v 1.485 2012/10/17 10:21:36 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -413,7 +413,7 @@ public:
   unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block
   unsigned int L3Version() const {return (L3VEvent>>24)&255;};
   unsigned int L3Event()const {return (L3VEvent&16777215);}
-  unsigned int L3NodeError(int i); ///< Return number of nodes with errors for (ETRG<LV1,SDR,EDR,RDR,UDR,TDR 0...6
+  unsigned int L3NodeError(int i); ///< Return number of nodes with errors for (ETRG,LV1,SDR,EDR,RDR,UDR,TDR 0...6
   bool L3ProcError(){return (L3Error & (1ULL<<63))?true:false;}
   bool L3RunError(){return (L3Error & (1ULL<<62))?true:false;}
   bool L3EventError(){return (L3Error & (1ULL<<61))?true:false;}
@@ -4345,7 +4345,7 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
 
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 
-         //! Convert AMS Local Frame Direction to Galalcti Longitude and Latitude
+         //! Convert AMS Local Frame Direction to Galalctic Longitude and Latitude
         /*!
 \param
    
@@ -4376,6 +4376,47 @@ output
 
 */
 int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false);///< Get galactic coordinates
+
+         //! Do Backtracing
+        /*!
+\param
+   
+input   
+          theta (rad)  in ams coo system
+           phi     (rad)  in ams coo system
+           Momentum  (not signed gev/c)
+           Charge    (signed, integer)
+           Velocity (not signed v/speed_of_light)
+           use_ams_stk  ->  use info from ams startracker
+           use_ams_gps_time ->  use ams gps time, and not a iss  gps time
+           use_gtod         ->  use gtod coordinates
+           use_ctrs         ->  use gtod coordinates
+
+output
+             Galactic coordinates glong,glat (degrees) glong, glat
+             GTOD coordinates RPTO[3] Rad (cm), Phi(rad), Theta(rad)
+             TraceTime        back tracing time
+             result    bit 0 ams_stk info had been used
+                                 1  ams_gps_time had been used
+                                 2  gtod coo system + lvlh ypr had been used
+                                 3   ctrs coo  system  + -------------------------------
+                                 4   twoline element estimator of gtod + --------------------------
+                                 5   overcutoff particle
+                                 6   undercutoff particle 
+                                 7   trapped particle
+
+\return 
+
+ 0 success
+ 1 failure
+ -1 use of ams_stk was not possible, other info had  been used
+ -2 use of ams gps time was not possible , iss gps time had been used instead
+ -3 use of ams_stk and ams_gps_time was not possible
+
+*/
+int DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double &TraceTime, float theta, float phi, double Momentum,  double Velocity, int Charge,bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false);///< Do Backtracing
+
+
 
 int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates
 

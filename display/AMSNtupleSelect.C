@@ -42,6 +42,18 @@ else return false;
        float gphi[2]={0,0};
        if(pev && pev->nParticle()){
        ParticleR & part=pev->Particle(0);
+        int result;
+        double glat,glong,time;
+        double rpto[3];
+        double momentum=fabs(part.Momentum);
+        int charge=part.Momentum>0?part.Charge:-part.Charge;
+        double beta=fabs(part.Beta);
+        int GalCoo_Return= pev->DoBacktracing(result,glat,glong,rpto,time,part.Theta,part.Phi,momentum,beta,charge,false,false,false);
+         bool over=(result>>5)&1;
+        bool under=(result>>6)&1;
+        bool trap=(result>>7)&1;
+        cout << "result "<<result<<" "<<GalCoo_Return<<" "<<glat<<" "<<glong<<" "<<time<<" "<<over<<" "<<under<<" "<<trap<<endl;
+       return true;
        part.ReBuildTrdEcal();
        if(part.iTrTrack()>=0){
        float charge=part.Charge;
@@ -50,8 +62,11 @@ else return false;
        int ntrd=pev->nTrdTrack();
        int ntof=pev->nTofCluster();
        int nanti=pev->nAntiCluster();
-//       pev->getsetup()->fISSCTRS.clear();
-//       pev->getsetup()->fISSGTOD.clear();
+       static int clear=0;
+       if(!clear++){
+       pev->getsetup()->fISSCTRS.clear();
+       pev->getsetup()->fISSGTOD.clear();
+       }
        TrTrackR & tr=pev->TrTrack(part.iTrTrack());
             
 
@@ -121,13 +136,50 @@ else return false;
  cout <<" fh "<<pev->fHeader.RadS<<" "<<pev->fHeader.ThetaS<<" "<<pev->fHeader.PhiS<<endl; 
 //       pev->getsetup()->fISSCTRS.clear();
 //       pev->getsetup()->fISSGTOD.clear();
-if(!pev->getsetup()->getISSCTRS(b,xtime+2)){
+if(!pev->getsetup()->getISSCTRS(b,xtime)){
  AMSPoint dc;
    dc[0]=b.r*cos(b.theta)*cos(b.phi);
    dc[1]=b.r*cos(b.theta)*sin(b.phi);
    dc[2]=b.r*sin(b.theta);
+ 
    AMSPoint da=dc-d2l;
    double diff=sqrt(da.prod(da))/1e5;
+   double eps=0.1;
+   pev->getsetup()->getISSCTRS(b,xtime+eps);
+   dc[0]=b.r*cos(b.theta)*cos(b.phi);
+   dc[1]=b.r*cos(b.theta)*sin(b.phi);
+   dc[2]=b.r*sin(b.theta);
+   da=dc-d2l;
+   double diffp=sqrt(da.prod(da))/1e5;
+   double grad=-(diffp-diff)/eps;
+   double dt=diffp/grad;
+   int ntry=0;
+   double xtimed=xtime;
+   cout <<" ntry "<<ntry<<" "<<diffp<<" "<<dt<<" "<<xtimed-xtime<<endl;
+
+   while(fabs(dt)>0.0001  && ntry<20){
+     diff=diffp;
+     ntry++;
+     pev->getsetup()->getISSCTRS(b,xtimed+dt);
+     dc[0]=b.r*cos(b.theta)*cos(b.phi);
+     dc[1]=b.r*cos(b.theta)*sin(b.phi);
+     dc[2]=b.r*sin(b.theta);
+     da=dc-d2l;
+     diffp=sqrt(da.prod(da))/1e5;
+     grad=-(diffp-diff)/dt/2;
+     xtimed+=dt;
+     double dt2=diffp/grad;
+     if(dt2>fabs(dt)){
+        dt2=fabs(dt*0.5);
+      }
+        else if(dt2<-fabs(dt)){
+        dt2=-fabs(dt*0.5);
+     }
+     dt=dt2;
+     cout <<" ntry "<<ntry<<" "<<diffp<<" "<<dt<<" "<<xtimed-xtime<<endl;
+     
+   }
+   cout <<"  xtimed "<<xtimed-xtime<<" "<<diffp<<" "<<ntry<<" "<<endl; 
    cout <<" ctrs "<<diff<<" "<<b.r<<" "<<b.phi<<" "<<b.theta<<" "<<b.vphi<<" "<<b.vtheta<<" "<<" "<<pev->fHeader.VelTheta<<" "<<pev->fHeader.VelPhi<<endl; 
   }
  if(!pev->getsetup()->getISSGTOD(ab,xtime)){
@@ -137,6 +189,46 @@ if(!pev->getsetup()->getISSCTRS(b,xtime+2)){
    dc[2]=ab.r*sin(ab.theta);
    AMSPoint da=dc-d2l;
    double diff=sqrt(da.prod(da))/1e5;
+   cout <<" gtod "<<ab.r<<" "<<ab.theta<<" "<<ab.phi<<endl;
+   double eps=0.1;
+   pev->getsetup()->getISSGTOD(ab,xtime+eps);
+   dc[0]=ab.r*cos(ab.theta)*cos(ab.phi);
+   dc[1]=ab.r*cos(ab.theta)*sin(ab.phi);
+   dc[2]=ab.r*sin(ab.theta);
+   da=dc-d2l;
+   double diffp=sqrt(da.prod(da))/1e5;
+   double grad=-(diffp-diff)/eps;
+   double dt=diffp/grad;
+   diff=diffp;
+   int ntry=0;
+   double xtimed=xtime;
+   cout <<" ntry "<<ntry<<" "<<diff<<" "<<diffp<<" "<<dt<<" "<<xtimed-xtime<<endl;
+   cout <<" header " <<d2l<<endl;
+   cout <<" grod " <<dc<<" frac "<<pev->Frac()<<" "<<pev->UTime()<<endl;
+   while(fabs(dt)>0.0001 && diff>0.05 && ntry<100){
+     ntry++;
+     pev->getsetup()->getISSGTOD(ab,xtimed+dt);
+     dc[0]=ab.r*cos(ab.theta)*cos(ab.phi);
+     dc[1]=ab.r*cos(ab.theta)*sin(ab.phi);
+     dc[2]=ab.r*sin(ab.theta);
+     da=dc-d2l;
+     diffp=sqrt(da.prod(da))/1e5;
+     grad=-(diffp-diff)/dt/2;
+     xtimed+=dt;
+     double dt2=diffp/grad;
+     if(dt2>fabs(dt)){
+        dt2=fabs(dt*0.5);
+      }
+        else if(dt2<-fabs(dt)){
+        dt2=-fabs(dt*0.5);
+     }
+     dt=dt2;
+     diff=diffp;
+     cout <<" ntry "<<ntry<<" "<<diffp<<" "<<dt<<" "<<xtimed-xtime<<endl;
+     
+   }
+   cout <<"  xtimed "<<xtimed-xtime<<" "<<diffp<<" "<<ntry<<" "<<endl; 
+
    cout <<"  gtod "<<diff<<" "<<ab.r<<" "<<ab.phi<<" "<<ab.theta<<" "<<ab.vphi<<" "<<ab.vtheta<<" "<<ab.v<<" "<<pev->fHeader.VelTheta<<" "<<pev->fHeader.VelPhi<<endl; 
   }
 
