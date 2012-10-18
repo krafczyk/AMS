@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.h,v 1.1 2012/10/16 19:37:49 shaino Exp $
+//  $Id: GeoMagTrace.h,v 1.2 2012/10/18 18:13:49 shaino Exp $
 #ifndef __GeoMagTrace__
 #define __GeoMagTrace__
 
@@ -22,9 +22,6 @@ public:
   static double StepCv;   ///< Step size per curvature
   static double MinStep;  ///< Minimum step size
   static double MaxStep;  ///< Maximum step size
-
-  static double Mproton;  ///< Proton  mass in GeV/c^2
-  static double Mhelium;  ///< Helium4 mass in GeV/c^2
   static double Clight;   ///< Speed of light in m/s
 
   static Int_t  DEBUG;    ///< Debug switch
@@ -40,22 +37,22 @@ public:
   GeoMagTrace(double pos[3], double vel[2], double ypr[3],
 	      double theta,  double phi,    double rigidity,
 	                                    double charge = 1,
+	                                    double beta   = 1,
 	                                    int stat = 0);
 
   /// Constructor with ISS lng(deg), lat(deg), alt(km) and track direction
   GeoMagTrace(double lng,   double lat, double alt,
 	      double theta, double phi, double rigidity,
-	                                double charge = 1, int stat = 0);
-
-  /// Constructor with ISS longitude(deg), latitude(deg) and altitude(km)
-  GeoMagTrace(double lng, double lat, double alt, double rigidity,
-	                              double charge = 1, int stat = 0);
+	                                double charge = 1,
+	                                double beta   = 1,
+	                                int stat = 0);
 
  ~GeoMagTrace() {}
 
   void Init(double pos[3], double vel[2], double ypr[3],
 	    double theta,  double phi,    double rigidity,
-	    double charge = 1, int stat = 0, bool deg = false);
+	    double charge = 1, double beta = 1,
+	    int stat = 0, bool deg = false);
 
   double GetX () const { return _x;  }
   double GetY () const { return _y;  }
@@ -71,19 +68,20 @@ public:
   void SetDir(double dx, double dy, double dz);
   void SetDir(double th, double ph, bool deg = false);
 
-  void SetMass  (double   mass) { _mass   = mass;   }
+  void SetBeta  (double   beta) { _beta   = beta;   }
   void SetCharge(double charge) { _charge = charge; }
 
   double GetTof()      const { return _tof; }
-  double GetMass()     const { return _mass; }
+  double GetBeta()     const { return _beta; }
   double GetCharge()   const { return _charge; }
   double GetRigidity() const { return _rigidity; }
-  double GetBeta()     const { return GetBeta(_rigidity, _charge, _mass); }
 
   double GetLong (bool deg = true) const;
   double GetLati (bool deg = true) const;
   double GetLongM(bool deg = true) const;
   double GetLatiM(bool deg = true) const;
+  double GetDlong(bool deg = true) const;
+  double GetDlati(bool deg = true) const;
   double GetRadi() const;
   double GetAlt () const { return GetRadi()-Re; }
   AMSDir GetVloc() const;
@@ -135,7 +133,7 @@ protected:
   double _dy;            ///< Track direction dY
   double _dz;            ///< Track direction dZ
   double _tof;           ///< Time of flight (s)
-  double _mass;          ///< Partile mass (GeV/c^2)
+  double _beta;          ///< Velocity /c
   double _charge;        ///< Partile signed charge
   double _rigidity;      ///< Rigidity (GV)
 
@@ -161,8 +159,6 @@ public:
   static void GeoMatrix(double *m, double lat, double lng, bool deg = false);
 
   static double GetThetaG(int time = UTime);
-
-  static double GetBeta(double rgt, double chrg, double mass);
 
   /// Return true if inside the Reference ellipsoid (+ specific height)
   static bool GeoBoundary(double x, double y, double z, double h = 0);

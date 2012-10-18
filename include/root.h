@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.485 2012/10/17 10:21:36 choutko Exp $
+//  $Id: root.h,v 1.486 2012/10/18 18:13:50 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -343,21 +343,35 @@ int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMS
 int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);///< convert celestial coordinates into galactic coordinates
 
 //-----------Backtracing -------------------
+//! Do Backtracing
 /*!
  Get galactic coordinates with backtracing using ISS position, velocity and LVLH attitude
+\param
+   
+input   
+          AMSTheta(rad)  in ams coo system
+          AMSPhi  (rad)  in ams coo system
+	  momentum  (not signed gev/c)
+          velocity  (not signed v/speed_of_light)
+          charge    (signed, integer)
+	  RPT[3]    ISS coordinates (Rs,PhiS,ThetaS)
+          VelPT[2]  ISS velocity (VelPhi,VelTheta)
+	  YPR[3]    ISS attitude (Yaw,Pitch,Roll)
+	  xtime     time
+	  gtod      Use gtod or not
+	  galactic  Galactic or Celestial coordinates
+output
+          gal_long   Galctic longigude (deg)
+          gal_lat    Galctic latitude  (deg)
+	  time_trace time of flight in sec
+          RPTO[3]    Particle final GTOD coordinate (R,Phi,Theta)
+	  GPT[2]     Particle final GTOD direction  (Phi,Theta)
  \return 0 unercutoff i.e. particle is likely of atmoepheric origin ;
          1 overcutoff i.e. particle is likely coming from space ;
+	 2 trapped ;
         -1 error
 */
-int get_gal_coo(double & gal_long, double & gal_lat, double & time_trace, double AMSTheta, double AMSPhi, double rigidity, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);
-/*!
- Get celestial (R.A. and Dec.) coordinates with backtracing using ISS position, velocity and LVLH attitude
- \return 0 unercutoff i.e. particle is likely of atmoepheric origin ;
-         1 overcutoff i.e. particle is likely coming from space ;
-        -1 error
-*/
-int get_cel_coo(double & ams_ra, double & ams_dec, double & time_trace, double AMSTheta, double AMSPhi, double rigidity, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);
-
+int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[2], double YPR[3], double  xtime, bool gtod=true, bool galactic=true);
 //-----------------------------------------
 int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
 

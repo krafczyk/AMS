@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.C,v 1.1 2012/10/16 19:37:46 shaino Exp $
+//  $Id: GeoMagTrace.C,v 1.2 2012/10/18 18:13:53 shaino Exp $
 
 #include "GeoMagTrace.h"
 #include "GeoMagField.h"
@@ -16,14 +16,12 @@ double GeoMagTrace::Rp = 6356.7523142;          // Earth polar   radius in km
 double GeoMagTrace::Ha = 100;                   // Atmospheric boundary in km
 double GeoMagTrace::Rs = GeoMagTrace::Re*20;    // Escape limit         in km
 
-double GeoMagTrace::Mproton = 0.938272297;      // Proton  mass in GeV/c^2
-double GeoMagTrace::Mhelium = 3.727379240;      // Helium4 mass in GeV/c^2
-double GeoMagTrace::Clight  = 2.99792458e+08;   // Speed of light in m/s
+double GeoMagTrace::Clight = 2.99792458e+08;    // Speed of light in m/s
 
 
 GeoMagTrace::GeoMagTrace(double pos[3], double vel[2], double ypr[3],
 			 double theta,  double phi,    double rigidity,
-		                                       double charge, int stat)
+			 double charge, double beta,   int stat)
 /*
  * pos[3] = position of ISS in r(cm), longitude(rad), latitude(rad)
  * vel[2] = velocity of ISS in phi, theta (rad)
@@ -33,27 +31,20 @@ GeoMagTrace::GeoMagTrace(double pos[3], double vel[2], double ypr[3],
  */
 {
   double pp[3] = { pos[0]*1e-5, pos[1], pos[2] };
-  Init(pp, vel, ypr, theta, phi, rigidity, charge, stat, false);
+  Init(pp, vel, ypr, theta, phi, rigidity, charge, beta, stat, false);
 }
 
-GeoMagTrace::GeoMagTrace(double lng,   double lat, double alt,
-			 double theta, double phi, double rigidity,
-		                                   double charge, int stat)
+GeoMagTrace::GeoMagTrace(double lng,    double lat,  double alt,
+			 double theta,  double phi,  double rigidity,
+			 double charge, double beta, int stat)
 {
   double pos[3] = { alt+Re, lng, lat };
-  Init(pos, 0, 0, theta, phi, rigidity, charge, stat, true);
-}
-
-GeoMagTrace::GeoMagTrace(double lng, double lat, double alt,
-			 double rigidity, double charge, int stat)
-{
-  double pos[3] = { alt+Re, lng, lat };
-  Init(pos, 0, 0, 0, 0, rigidity, charge, stat, true);
+  Init(pos, 0, 0, theta, phi, rigidity, charge, beta, stat, true);
 }
 
 void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
 		       double theta,  double phi,    double rigidity,
-		       double charge, int    stat,   bool deg)
+		       double charge, double beta, int stat, bool deg)
 {
   AngToCart(pos[0], pos[2], pos[1], _x, _y, _z, deg);
 
@@ -65,7 +56,7 @@ void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
     double x = -dams.x(), y = -dams.y(), z = -dams.z();
     FT_AMS2Body (x, y, z);
     FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);
-    FT_LVLH2GTOD(x, y, z, pos[0], pos[1], pos[2] , vel[0], vel[1] );
+    FT_LVLH2GTOD(x, y, z, pos[0], pos[1], pos[2] , vel[0], vel[1]);
     _dx = x; _dy = y; _dz = z;
   }
 
@@ -82,7 +73,7 @@ void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
   }
 
   _tof      = 0;
-  _mass     = Mproton;
+  _beta     = beta;
   _charge   = charge;
   _rigidity = rigidity;
   _stat     = (1 <= stat && stat <= Nstat) ? stat : TRACE;
@@ -106,7 +97,8 @@ int GeoMagTrace::Propagate(double step)
    _x = vout[0];  _y = vout[1];  _z = vout[2];
   _dx = vout[3]; _dy = vout[4]; _dz = vout[5];
 
-  double beta = GetBeta();
+  double beta = TMath::Abs(_beta);
+  if (beta < 0.1) beta = 0.1;
   _tof += step*1e3/Clight/beta;
 
   if      (ret == 1)                    _stat = TRAPP;
@@ -306,6 +298,20 @@ double GeoMagTrace::GetLatiM(bool deg) const
   return thm;
 }
 
+double GeoMagTrace::GetDlong(bool deg) const
+{
+  double r = 1, th = 0, ph = 0;
+  CartToAng(_dx, _dy, _dz, r, th, ph, deg);
+  return ph;
+}
+
+double GeoMagTrace::GetDlati(bool deg) const
+{
+  double r = 1, th = 0, ph = 0;
+  CartToAng(_dx, _dy, _dz, r, th, ph, deg);
+  return th;
+}
+
 double GeoMagTrace::GetRadi(void) const
 {
   return TMath::Sqrt(_x*_x+_y*_y+_z*_z);
@@ -383,13 +389,6 @@ void GeoMagTrace::GeoMatrix(double *m, double lat, double lng, bool deg)
   *(m++) = -ct*cp; *(m++) = -ct*sp; *(m++) =  st;
   *(m++) =    -sp; *(m++) =     cp; *(m++) =   0;
   *(m++) = -st*cp; *(m++) = -st*sp; *(m++) = -ct;
-}
-
-double GeoMagTrace::GetBeta(double rgt, double chrg, double mass)
-{
-  double p   = rgt*chrg;
-  double bi2 = (p != 0) ? 1+mass*mass/p/p : 0;
-  return (bi2 > 0) ? 1/std::sqrt(bi2) : 0;
 }
 
 bool GeoMagTrace::GeoBoundary(double x, double y, double z, double h)

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.465 2012/10/17 10:21:30 choutko Exp $
+//  $Id: root.C,v 1.466 2012/10/18 18:13:57 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8604,46 +8604,42 @@ return 0;
 
 
 //-----------Backtracing -------------------
-int HeaderR::get_cel_coo(double &ams_ra, double &ams_dec, double &time_trace,
-			 double AMSTheta, double AMSPhi, double rigidity,
-			 double RPT[3] ,double VelPT[2], double YPR[3],
-			 double xtime, bool gtod)
+int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
+			    double &time_trace, double RPTO[3], double GPT[2],
+			    double AMSTheta, double AMSPhi,
+			    double momentum, double velocity, int charge,
+			    double RPT[3], double VelPT[2], double YPR[3],
+			    double  xtime, bool gtod, bool galactic)
 {
   // InitModel check
   if (GeoMagField::GetInitStat() == 0) GeoMagField::GetHead();
   if (GeoMagField::GetInitStat() <  0) return -1;
 
-  GeoMagTrace gp(RPT, VelPT, YPR, AMSTheta, AMSPhi, rigidity);
+  if (charge == 0) return -1;
+
+  GeoMagTrace gp(RPT, VelPT, YPR, AMSTheta, AMSPhi, momentum/charge, velocity);
   int stat = gp.Propagate(100);
 
   time_trace = gp.GetTof();
 
-  if (stat == GeoMagTrace::SPACE) {
-    double x = gp.GetDx(), y = gp.GetDy(), z = gp.GetDz(), r = 1;
-    FT_GTOD2Equat  (x, y, z, xtime);
-    FT_Cart2Angular(x, y, z, r, ams_dec, ams_ra);
-    ams_dec *= 180./M_PI;
-    ams_ra  *= 180./M_PI;
-    return 1;
-  }
-  else return 0;
-}
+  RPTO[0] = gp.GetRadi()*1e5;
+  RPTO[1] = gp.GetLong (false);
+  RPTO[2] = gp.GetLati (false);
+  GPT [0] = gp.GetDlong(false);
+  GPT [1] = gp.GetDlati(false);
 
-int HeaderR::get_gal_coo(double &gal_long, double &gal_lat, double &time_trace,
-			 double AMSTheta, double AMSPhi, double rigidity,
-			 double RPT[3] ,double VelPT[2], double YPR[3],
-			 double xtime, bool gtod)
-{
-  double ra, dec;
-  int ret = get_cel_coo(ra, dec, time_trace, AMSTheta, AMSPhi,
-			rigidity, RPT, VelPT, YPR, xtime, gtod);
-  if (ret == 1) {
-    gal_long = ra /180*M_PI;
-    gal_lat  = dec/180*M_PI;
-    FT_Equat2Gal(gal_long, gal_lat);
-    gal_long *= 180./M_PI;
-    gal_lat  *= 180./M_PI;
-  }
+  int ret = 2;
+  if (stat == GeoMagTrace::ATMOS) ret = 0;
+  if (stat == GeoMagTrace::SPACE) ret = 1;
+  if (stat == GeoMagTrace::TRAPP) ret = 2;
+
+  double x = gp.GetDx(), y = gp.GetDy(), z = gp.GetDz(), r = 1;
+  FT_GTOD2Equat  (x, y, z, xtime-time_trace);
+  FT_Cart2Angular(x, y, z, r, gal_lat, gal_long);
+  if (galactic) FT_Equat2Gal(gal_long, gal_lat);
+  gal_long *= 180./M_PI;
+  gal_lat  *= 180./M_PI;
+
   return ret;
 }
 
@@ -8842,7 +8838,8 @@ else{
   result|=(1<<4); 
 }  
 
-int ret2=fHeader.get_gal_coo(glong, glat, TraceTime,elev, azim,  Momentum/Charge,RPT, VelPT,  YPR,  xtime, gtod);
+double GPT[2];
+int ret2=fHeader.do_backtracing(glong, glat, TraceTime, RPTO, GPT, elev, azim, Momentum, Velocity, Charge, RPT, VelPT, YPR,  xtime, gtod);
 if(ret2==1)result|=(1<<5);  //over
 else if(ret2==0)result|=(1<<6);  //under
 else if(ret2==2)result|=(1<<7);  //trapped
