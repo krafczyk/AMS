@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.257 2012/10/04 13:38:13 qyan Exp $
+//  $Id: particle.C,v 1.257.2.1 2012/10/19 16:16:23 qyan Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -128,8 +128,21 @@ integer AMSParticle::build(integer refit){
   //
   //  change here if other particles after vtx particles should be allowed
   //
+
   if(!partfound || 1){      
     int evt=AMSEvent::gethead()->getid();
+
+///---search BetaH whether exist in any Charge
+     bool chbetah=0;
+     while(pcharge) {
+       if(pcharge->getpbetah()){chbetah=1;break;}
+       pcharge=pcharge->next();
+     }
+     
+    pcharge=(AMSCharge*)AMSEvent::gethead()->getheadC("AMSCharge",0);
+    AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
+///----
+
     while(pcharge) {
       {
 	AMSBeta * pbeta=pcharge->getpbeta();
@@ -155,12 +168,18 @@ integer AMSParticle::build(integer refit){
           number beta=pbeta->getbeta();
           number ebeta=pbeta->getebeta()*beta*beta;
           _build(rid,err,charge,beta,ebeta,mass,emass,momentum,emomentum);
-//--Qi Yan
+//--Qi Yan BetaH
           if(pbetah){
               pbetah->MassRec(rid,charge,err);
 //             TofRecH::MassRec(pbetah->BetaPar,rid,charge,err);
            }
-//----
+
+//----Self Put Defalut //Self Reconstruct BetaH
+         if(!pbetah&&!chbetah&&betah){
+            pbetah=betah;
+            betah=betah->next();
+         }
+///-----
           ppart=new AMSParticle(pbeta,pbetah, pcharge, ptrack,
 				beta,ebeta,mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
@@ -217,8 +236,8 @@ integer AMSParticle::build(integer refit){
 	ptrack->setstatus(AMSDBc::ECALTRACK); 
 ///----Qi Yan Adding Ecal-BetaH
         AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
-        AMSBetaH *pbetah=0;
-        while(betah){
+        AMSBetaH *pbetah=betah;//Put Default in case Ecal is Faild/// Put BetaH Self Reconstruct BetaH
+        while(betah){//
            if(betah->getecalshower()==pecal){pbetah=betah;break;}
            betah=betah->next();
         }
@@ -1435,6 +1454,32 @@ AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
       if(_pbeta)break;
     }
   }
+
+///-Adding BetaH Vertex Association   
+#ifdef _PGTRACK_
+     for (i=0;i<pvert->NTrTrack();i++)
+#else 
+     for (i=0;i<pvert->getntracks();i++)
+#endif
+    {
+       AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
+       _pbetah=betah;//Put Default in case Track is Faild // incase Track is wrong //put BetaH Self Reconstruction
+       number maxhq=-FLT_MAX;
+       while(betah){//Then Find Best
+#ifdef _PGTRACK_
+         if (betah->gettrack()==pvert->pTrTrack(i))
+#else 
+         if (betah->gettrack()==pvert->gettrack(i))
+#endif
+         {
+            int hql=0; float hqrms=0;
+            number nowhq=betah->GetQ(hql,hqrms); //Using High Edep
+            if(nowhq>maxhq){_pbetah=betah;maxhq=nowhq;}
+         }
+         betah=betah->next();
+      }
+  }
+///--Ending BetaH
   
   //try to find richring beta
   number oldbeta=_Beta;

@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.32 2012/10/13 09:48:02 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.30.2.1 2012/10/19 16:16:23 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -80,8 +80,6 @@ vector<AMSEcalShower*> TofRecH::amsecalshow;
 TF1  *TofRecH::BirkFun=0;
 
 bool  TofRecH::BuildKey=1;
-
-int   TofRecH::BuildOpt=0;
 
 //========================================================
 int TofRecH::ReBuild(int charge){
@@ -999,13 +997,6 @@ int TofRecH::BuildBetaH(int mode){
 #endif
    
    for(int iktr=0;iktr<2;iktr++){
-//---Not Use Track
-     if((BuildOpt==1)&&(iktr==0))continue;
-     if((BuildOpt>=10&&(BuildOpt/10000%10==0))&&(iktr==0))continue;
-//---Not Use TRD
-     if((BuildOpt>=10&&(BuildOpt/1000%10==0))&&(iktr==1))continue;
-//---Not Use Track+TRD
-     if(BuildOpt==2)break;
 //---if trdtrack
      if(iktr==1){ntracks=trdtrack.size();}
 //----
@@ -1073,12 +1064,7 @@ int TofRecH::BuildBetaH(int mode){
         
        if(iktr==1)delete ptrack;
      }//ntrack;
-
-//---After Track Find Continue
-    if(iktr==0&&((BuildOpt==3)||(BuildOpt/10000%10==3)))found=0;//Opt=3 Build Continue After Track Find
-//----
-    if(found>0)break;
-    
+    if(found>0)break;//for track or trd has found all
   }//2 type
 
 
@@ -1092,7 +1078,7 @@ int TofRecH::BuildBetaH(int mode){
   
   if(found==0&&(npairu>=1||npaird>=1)){   
 ///---If EcalShower
-    if((ecalshow.size()>0)&&(!(BuildOpt>=10&&(BuildOpt/100%10==0)))){
+    if(ecalshow.size()>0){
        number cooshow[3];
        for(int ish=0;ish<ecalshow.size();ish++){
          if(ecalshow.at(ish).Entry[2]>ecalshow.at(ish).Exit[2]){
@@ -1137,8 +1123,7 @@ int TofRecH::BuildBetaH(int mode){
     }//end if
 
 ///---Dump Track Tof Self Reconstruction
-    if(found==0&&(!(BuildOpt>=10&&(BuildOpt/10%10==0)))){
-
+    if(found==0){
        for(int iclu=0;iclu<tofclp[0].size();iclu++){
 
 //----Up Search Down
