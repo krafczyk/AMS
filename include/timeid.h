@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.50 2012/08/18 12:02:06 mkrafczy Exp $
+//  $Id: timeid.h,v 1.50.2.1 2012/10/19 13:14:07 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -159,7 +159,8 @@ protected:
    typedef map <string,AMSTimeID> timeid_m;
     typedef map <string,AMSTimeID>::iterator timeid_i;
     static timeid_m timeid_f;
-
+    int _updateable;
+    string map_dir; //  Directory for store the map:  changed to separate one for the convineince of multiple users access/ read-only fs etc
   IBE _ibe;
   time_t _Insert;    //! insert time
   time_t _Begin;     //! validity starts
@@ -208,16 +209,18 @@ protected:
 
 public:
   static const uinteger CRC32;
+  void      setmapdir(const char *dir=0);
+  bool      setupdateablemapdir(const char*dir);
 
 
   AMSTimeID():AMSNode(),_trigfun(0),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),
-	      _CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone)
-  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";}
+	      _CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone),_updateable(-1)
+  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";setmapdir();}
   
   AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,bool verify=true,CType server=Standalone,trigfun_type fun=0):
     AMSNode(id),_Insert(0),_Begin(0),_End(0),_Nbytes(nbytes),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),
-    _DataBaseSize(0),_Type(server)
-  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";}
+    _DataBaseSize(0),_Type(server),_updateable(-1)
+  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";setmapdir();}
   
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);
   
@@ -274,5 +277,6 @@ friend class AMSSetupR;
 #endif
 
 };
+
 
 #endif
