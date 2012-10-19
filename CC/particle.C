@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.258 2012/10/19 16:15:01 qyan Exp $
+//  $Id: particle.C,v 1.259 2012/10/19 16:52:50 qyan Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1458,29 +1458,24 @@ AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
   }
 
 ///-Adding BetaH Vertex Association   
+    number maxhq=-FLT_MAX;
+    AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
+    _pbetah=betah;////Put Default in case Track is Faild // incase Track is wrong //put BetaH Self Reconstruction
+    while(betah){
 #ifdef _PGTRACK_
-     for (i=0;i<pvert->NTrTrack();i++)
+       for (i=0;i<pvert->NTrTrack();i++){
+          if (betah->gettrack()==pvert->pTrTrack(i)){
 #else
-     for (i=0;i<pvert->getntracks();i++)
+       for (i=0;i<pvert->getntracks();i++){
+          if (betah->gettrack()==pvert->gettrack(i)){
 #endif
-    {
-       AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
-       _pbetah=betah;////Put Default in case Track is Faild // incase Track is wrong //put BetaH Self Reconstruction
-       number maxhq=-FLT_MAX;
-       while(betah){
-#ifdef _PGTRACK_
-         if (betah->gettrack()==pvert->pTrTrack(i))
-#else
-         if (betah->gettrack()==pvert->gettrack(i))
-#endif
-         {
             int hql=0; float hqrms=0;
             number nowhq=betah->GetQ(hql,hqrms); //Using High Edep
             if(nowhq>maxhq){_pbetah=betah;maxhq=nowhq;}
-         }
-         betah=betah->next();
-      }
-  }
+        }
+      }  
+       betah=betah->next();
+   }
 ///--Ending BetaH
  
  
