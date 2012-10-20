@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.99.2.1 2012/10/19 12:51:54 choutko Exp $
+//  $Id: root_setup.C,v 1.99.2.2 2012/10/20 19:33:23 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -614,7 +614,7 @@ else{
    systemc+=".so";
   }
   else if(strstr(nvr,"2.6")){
-   systemc+=".6";
+   systemc+=".so";
   }
   char u[128];
   sprintf(u," -r %u",fHeader.Run);
