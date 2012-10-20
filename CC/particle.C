@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.257.2.2 2012/10/19 16:47:03 qyan Exp $
+//  $Id: particle.C,v 1.257.2.3 2012/10/20 18:53:35 qyan Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1467,8 +1467,16 @@ AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
        for (i=0;i<pvert->getntracks();i++){
           if (betah->gettrack()==pvert->gettrack(i)){
 #endif
-            int hql=0; float hqrms=0;
-            number nowhq=betah->GetQ(hql,hqrms); //Using High Edep
+//            int hql=0; float hqrms=0;
+            //number nowhq=betah->GetQ(hql,hqrms); //Using High Edep
+            number nowhq=0;
+            TofBetaPar betapar=betah->gTofBetaPar();
+            for(int ilay=0;ilay<4;ilay++){
+               number lhq;
+               if((betapar.AEdepL[ilay]>0&&betapar.AEdepL[ilay]<6*6*TofCAlignPar::ProEdep)||betapar.DEdepL[ilay]<=0)lhq=betapar.AEdepL[ilay];
+               else lhq=betapar.DEdepL[ilay]; 
+               if(lhq>=0)nowhq+=lhq;
+            }
             if(nowhq>maxhq){_pbetah=betah;maxhq=nowhq;}
          }
        }
