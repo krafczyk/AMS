@@ -50,6 +50,7 @@ TrdMTrack::~TrdMTrack(){
   
   phitlen.clear();
   TrdMHits.clear(); 
+  hitres.clear(); 
   xetime.clear();
   xe.clear();
   //xenon->Clear();
@@ -95,7 +96,7 @@ float TrdMTrack::GetLogLikelihood(AMSEventR *_evt, ParticleR *par){
  
   TrTrackR *_track=par->pTrTrack();
   if(!_track) return -1;
-  _id=_track->iTrTrackPar(1,0,1);
+  _id=_track->iTrTrackPar(1,0,3);
   if(_id<0) return -1;
   _rig=_track->GetRigidity(_id);
 
@@ -238,7 +239,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	    AMSPoint check=trdtk_pnt-TRDGap_0;
 	    AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
 	    float abstand = (check.prod(check2))/check2.norm();
-	    float z_res=abstand*check2.z()/check2.norm();
+	    //	    float z_res=abstand*check2.z()/check2.norm();
 	    
 	    AMSDir zdir(0,0,1);
 	    AMSDir anti=zdir.crossp(TRDTube_Dir);;
@@ -299,7 +300,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	    AMSPoint check=trdtk_pnt-TRDGap_0;
 	    AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
 	    float abstand = (check.prod(check2))/check2.norm();
-	    float z_res=abstand*check2.z()/check2.norm();
+	    // float z_res=abstand*check2.z()/check2.norm();
 	    
 	    AMSDir zdir(0,0,1);
 	    AMSDir anti=zdir.crossp(TRDTube_Dir);
@@ -367,7 +368,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	AMSPoint check=trdtk_pnt-TRDGap_0;
 	AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
 	float abstand = (check.prod(check2))/check2.norm();
-	float z_res=abstand*check2.z()/check2.norm();
+	//	float z_res=abstand*check2.z()/check2.norm();
 	 
 	AMSDir zdir(0,0,1);
 	AMSDir anti=zdir.crossp(TRDTube_Dir);
@@ -514,11 +515,11 @@ void TrdMTrack::MakeHitSelection(){
     
     AMSPoint check=pnt-TRDTube_Center_check;
     AMSPoint check2=dir.crossp(TRDTube_Dir_check);
-    //  float abstand = (check.prod(check2))/check2.norm();
     
     float abstand;
     abstand = (check.prod(check2))/check2.norm();
-    
+    AMSPoint res=check2/check2.norm()*abstand;
+
     if(fabs(abstand)<0.5) {
       
       float pl=GetPathLength3D(TRDTube_Center_check, TRDTube_Dir_check, pnt, dir);
@@ -526,6 +527,7 @@ void TrdMTrack::MakeHitSelection(){
       if(pl>0.05){
 	TrdMHits.push_back(hit);
 	phitlen.push_back(pl);
+	hitres.push_back(res);
       }
       
     }
@@ -855,7 +857,7 @@ void TrdMTrack::Init_GainCorrection(){
 void TrdMTrack::Init_Alignment(){
   
   if(TrdAlignType==2){
-    const char *amsdatadir="/afs/cern.ch/work/m/mheil/DataBase";
+    const char *amsdatadir="/afs/cern.ch/work/m/mheil/public/DataBase";
     
   // TString name=TString(amsdatadir)+"/v5.00/TRD/Modul_alignment_pass3.root";
     TString name=TString(amsdatadir)+"/Modul_alignment_pass3.root";
@@ -929,7 +931,7 @@ void TrdMTrack::Init_Alignment(){
     TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibAlign_v10.root";
     TFile* f=new TFile(name);
    
-    TString zname="/afs/cern.ch/work/m/mheil/DataBase/Modul_alignment_pass3.root";
+    TString zname="/afs/cern.ch/work/m/mheil/public/DataBase/Modul_alignment_pass3.root";
     cout<<"TrdMTrack::Init_Alignment: Read TRD Alignment from: "<< name <<endl;
     TFile* fi=new TFile(zname);
     
@@ -1281,7 +1283,7 @@ double TrdMTrack::GetElProb(int xeindex, int sindex, float amp){
   return elprob;
 }
 
-double TrdMTrack::GetElProb(float amp, float rig, float pl, float lay, float xe ){
+double TrdMTrack::GetElProb(float amp, float rig, float pl, int lay, float xe ){
 
   double elprob=Epdf->GetLikelihood(amp, fabs(rig), pl, lay, xe/1000);
 
@@ -1310,7 +1312,7 @@ double TrdMTrack::GetProProb(int xeindex, int sindex, float amp){
   return proprob;
 }
 
-double TrdMTrack::GetProProb(float amp, float rig, float pl, float lay, float xe ){
+double TrdMTrack::GetProProb(float amp, float rig, float pl, int lay, float xe ){
 
   double proprob=Ppdf->GetLikelihood(amp, fabs(rig), pl, lay, xe/1000);
 
