@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.5 2012/09/14 15:13:43 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.6 2012/10/22 14:03:40 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -127,6 +127,13 @@ class EcalChi2{
 		 ret 0
 		 */
 		int   set_edep(float* edeps, float erg)		        ;
+		///Get Chi2 of each layer
+		/*!
+		\param[in] ilayer
+		ret chi2 of layer ilayer
+		*/
+		float get_chi2 (int ilayer) { if(_ndofs[ilayer]!=0) return _chi2_layer[ilayer]/_ndofs[ilayer]; else return -1; };
+
 	private:
 		void init(char* fdatabase,int type)				;
 		EcalPDF* ecalpdf						;
