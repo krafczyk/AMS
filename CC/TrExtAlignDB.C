@@ -13,7 +13,7 @@
 #include "root.h"
 #endif
 
-#define  MAXALIGNEDRUN 1347160405
+#define  MAXALIGNEDRUN 1350450000
 
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
@@ -768,11 +768,16 @@ const char *TrExtAlignDB::GetTDVName()
   return stn.Data();
 }
 
-int TrExtAlignDB::GetFromTDV(uint time, int ver)
+int TrExtAlignDB::GetFromTDV(uint time, int ver, bool force)
 {
   time_t tt=time;
   static AMSTimeID* db=0;
 #pragma omp threadprivate(db)
+  if (db && force) {
+    delete db;
+    db = 0;
+  }
+
   if(!db) {
     tm begin;
     tm end;

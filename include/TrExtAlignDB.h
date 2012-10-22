@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.29 2012/09/04 15:58:33 mdelgado Exp $
+//  $Id: TrExtAlignDB.h,v 1.30 2012/10/22 21:03:18 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -311,7 +311,7 @@ public:
   static const char *GetTDVName();
 
   /// Load from TDV (ver= 1: no errors,  2: with errors) 
-  static int GetFromTDV(uint time, int ver = 1);
+  static int GetFromTDV(uint time, int ver = 1, bool force = false);
 
   /// Update TDV (ver= 1: no errors,  2: with errors) 
   static int UpdateTDV(uint begin, uint end, int ver = 1);
