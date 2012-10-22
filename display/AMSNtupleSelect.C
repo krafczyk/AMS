@@ -45,6 +45,11 @@ else return false;
         int result;
         double glat,glong,time;
         double rpto[3];
+        if(part.iBeta()>=0){
+            BetaR& beta=pev->Beta(part.iBeta());
+            cout <<"  **beta** "<<beta.Beta<<" "<<beta.Pattern<<endl;
+            return true;
+        }
         double momentum=fabs(part.Momentum);
         int charge=part.Momentum>0?part.Charge:-part.Charge;
         double beta=fabs(part.Beta);

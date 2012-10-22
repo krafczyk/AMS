@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.145 2012/08/18 12:02:06 mkrafczy Exp $
+//  $Id: timeid.C,v 1.146 2012/10/22 08:06:47 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -60,7 +60,8 @@ uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
                      void *pdata, AMSTimeID::CType server,bool verify,trigfun_type fun):
-  AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),_Type(server){
+  AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),_Type(server),_updateable(-1){
+  setmapdir();
   _fname="";
   _trigfun=fun;
 
@@ -267,9 +268,17 @@ bool AMSTimeID::write(const char * dir, int slp){
 	ibe[2][_DataBaseSize]=_Begin;
 	ibe[3][_DataBaseSize]=_End;
 	fillDB(_DataBaseSize+1,ibe);
-
-      
-	updatemap(dir,true);       
+        string _map_dir=dir;
+        if(map_dir.size()>0){
+           if(map_dir[0]=='/'){
+               _map_dir=map_dir;
+           }
+           else{
+               _map_dir+='/';
+               _map_dir+=map_dir;
+           }
+        }
+	updatemap(_map_dir.c_str(),true);       
 	return fbin.good();
       }
       else{
@@ -673,7 +682,20 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	}else
 #endif
 	  {
-	    fmap+=dir;
+
+        string _map_dir=dir;
+        if(map_dir.size()>0){
+           if(map_dir[0]=='/'){
+               _map_dir=map_dir;
+           }
+           else{
+               _map_dir+='/';
+               _map_dir+=map_dir;
+           }
+        }
+
+	    fmap+=_map_dir.c_str();
+            setupdateablemapdir(_map_dir.c_str());           
 	    fdir+=dir;
 	  }
 	fdir+=getname();
@@ -705,8 +727,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    url_fgets(buf,100,ffbin);
 	    _DataBaseSize=atoi(buf);
 #else
-	    if((!stat64((const char *)fmap,&statbuf_map)&&
-		mtime < statbuf_map.st_mtime) && !force){
+	    if((_updateable!=1 || (!stat64((const char *)fmap,&statbuf_map)&& mtime < statbuf_map.st_mtime))  && !force ){
 	    usemap:    
 	      char buf[100];
 	      fbin.clear();
@@ -880,8 +901,18 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		delete[] tmp;
 	      }
 	      // Rewrite map file;
+        string _map_dir=dir;
+        if(map_dir.size()>0){
+           if(map_dir[0]=='/'){
+               _map_dir=map_dir;
+           }
+           else{
+               _map_dir+='/';
+               _map_dir+=map_dir;
+           }
+        }
 
-	      if(!updatemap(dir,true)){
+	      if(!updatemap(_map_dir.c_str(),true)){
 		cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
 #ifdef __CORBASERVER__
 		if(!_DataBaseSize && !zero){
@@ -914,7 +945,17 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    AString fmap("");
 	    AString fdir("");
 	    {
-	      fmap+=dir;
+        string _map_dir=dir;
+        if(map_dir.size()>0){
+           if(map_dir[0]=='/'){
+               _map_dir=map_dir;
+           }
+           else{
+               _map_dir+='/';
+               _map_dir+=map_dir;
+           }
+        }
+	      fmap+=_map_dir.c_str();
 	      fdir+=dir;
 	    }
 	    fdir+=getname();
@@ -945,13 +986,33 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		    goto again;
 		  }
 		  else{
-		    updatemap(dir,true);
+        string _map_dir=dir;
+        if(map_dir.size()>0){
+           if(map_dir[0]=='/'){
+               _map_dir=map_dir;
+           }
+           else{
+               _map_dir+='/';
+               _map_dir+=map_dir;
+           }
+        }
+		    updatemap(_map_dir.c_str(),true);
 		    return;
 		  }
 		}
 		else if(dbs<_DataBaseSize){
 		  cerr <<"AMSTimeId::_fillDBServer-E-DataBaseSizeShrinked "<<getname()<<" "<<fmap<<" "<<statbuf_map.st_mtime<<" "<<dbs<<" "<<_DataBaseSize<<endl;
-		  updatemap(dir,true);
+        string _map_dir=dir;
+        if(map_dir.size()>0){
+           if(map_dir[0]=='/'){
+               _map_dir=map_dir;
+           }
+           else{
+               _map_dir+='/';
+               _map_dir+=map_dir;
+           }
+        }
+		  updatemap(_map_dir.c_str(),true);
 		  return;
 		}
 		_DataBaseSize=dbs;
@@ -1115,7 +1176,17 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      }
 	      // Rewrite map file;
 
-	      if(!updatemap(dir,true)){
+        string _map_dir=dir;
+        if(map_dir.size()>0){
+           if(map_dir[0]=='/'){
+               _map_dir=map_dir;
+           }
+           else{
+               _map_dir+='/';
+               _map_dir+=map_dir;
+           }
+        }
+	      if(!updatemap(_map_dir.c_str(),true)){
 		cerr <<"AMSTimeID::_fillDBServer-S-CouldNot update map file "<<fmap<<endl; 
 		if(!_DataBaseSize && !zero){
 		  cerr <<"AMSTimeID::_fillDBServer-W-using old map file "<<fmap<<endl; 
@@ -1338,6 +1409,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	  bool AMSTimeID::updatemap(const char *dir,bool slp){
 	    if(slp)sleep(1);
 	    AString fmap(dir);
+            if(!setupdateablemapdir(dir))return false;           
 	    fmap+=".";
 	    fmap+=getname();
 	    fmap+=getid()==0?".0.map":".1.map";
@@ -1421,3 +1493,45 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    delete[] tmp;
 	    return true;
 	  }
+
+void AMSTimeID::setmapdir(const char *dir){
+if(dir)map_dir=dir;
+else{
+ if(getenv("AMSDataDirMap") && strlen(getenv("AMSDataDirMap"))){
+  map_dir=getenv("AMSDataDirMap");
+ }
+else{
+map_dir="Map";
+}
+}
+//cerr<<"   map dir setted to "<<map_dir<<endl;
+map_dir+='/';
+
+
+}
+
+bool AMSTimeID::setupdateablemapdir(const char *dir){
+
+            if(_updateable==-1){
+             string mkdir="mkdir -p ";
+             mkdir+=dir;
+             mkdir+=" 1>/dev/null 2>/dev/null  ";
+             system(mkdir.c_str());       
+             string touch="touch ";
+             string file=dir;
+             file+="/touch."; 
+             char tmp[80];
+             sprintf(tmp,"%d",getpid());
+             file+=tmp;
+             touch+=file;
+             int i=system(touch.c_str());
+             if(i){
+               _updateable=0;
+ 	       cerr <<"AMSTimeID::setupdateablemapdir-E-Unable to initialize  map dir "<<file<<endl; 
+             }
+             else _updateable=1;
+             unlink(file.c_str());
+            }
+
+           return _updateable==1; 
+}
