@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.101 2012/10/22 14:54:11 choutko Exp $
+//  $Id: root_setup.C,v 1.102 2012/10/22 16:32:40 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1245,6 +1245,7 @@ char tmp2[255];
     time_t tc=mktime(&tmf);
     tc=mktime(&tmf);
     tzd=tz-tc;
+    cout<< "AMSSetupR::LoadAMSSTK-I-TZDSeconds "<<tzd<<endl;
 
 }
 
@@ -1256,6 +1257,7 @@ char tmp2[255];
     time_t tc=mktime(&tmf);
     tc=mktime(&tmf);
     tzd=tz-tc;
+    cout<< "AMSSetupR::LoadAMSSTK-I-TZDSeconds "<<tzd<<endl;
 
 }
 
