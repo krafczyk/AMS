@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.44 2012/07/24 07:51:42 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.45 2012/10/22 13:57:53 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -575,9 +575,11 @@ for(int i=0;i<fDaqV.size();i++){
 
  bool AMSNtupleV::GetEvent(unsigned int run, unsigned int event){
  int entry=0;
- if(Run()==run && Event() <event){
+ if(!run)run=Run();
+ if(Run()==run   && Event() >=event){
    gAMSDisplay->getchain()->Rewind();
  }
+entry=gAMSDisplay->getchain()->Entry();
 int prcs=AMSEventR::ProcessSetup;
 if(run!=Run())AMSEventR::ProcessSetup=1; 
 while(gAMSDisplay->getchain()->ReadOneEvent(entry++)!=-1){
