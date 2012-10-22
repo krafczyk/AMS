@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.100 2012/10/22 08:06:47 choutko Exp $
+//  $Id: root_setup.C,v 1.101 2012/10/22 14:54:11 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1147,7 +1147,7 @@ else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadAMSSTK-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
    t2=t1+864000;
 }
-const char fpatb[]="v0.09.ECI_STK_";
+const char fpatb[]="ECI_STK_";
 const char fpate[]=".csv";
 
     tm tmf;
