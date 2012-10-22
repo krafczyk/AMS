@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.99.2.5 2012/10/22 16:32:28 choutko Exp $
+//  $Id: root_setup.C,v 1.99.2.6 2012/10/22 21:26:49 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -614,7 +614,7 @@ else{
    systemc+=".so";
   }
   else if(strstr(nvr,"2.6")){
-   systemc+=".so";
+   systemc+=".6";
   }
   char u[128];
   sprintf(u," -r %u",fHeader.Run);
@@ -1152,6 +1152,35 @@ const char fpate[]=".csv";
 
     tm tmf;
 
+
+// check tz
+   unsigned int tzd=0;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadAMSSTK-I-TZDSeconds "<<tzd<<endl;
+
+}
+
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadAMSSTK-I-TZDSeconds "<<tzd<<endl;
+
+}
+
+
+
    char tmp[255];
     time_t utime=t1;
     strftime(tmp, 40, "%Y", gmtime(&utime));
@@ -1235,32 +1264,6 @@ const char fpate[]=".csv";
      }     
 
 
-// check tz
-   unsigned int tzd=tc;
-{
-char tmp2[255];
-   time_t tz=tzd;
-          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
-    time_t tc=mktime(&tmf);
-    tc=mktime(&tmf);
-    tzd=tz-tc;
-    cout<< "AMSSetupR::LoadAMSSTK-I-TZDSeconds "<<tzd<<endl;
-
-}
-
-{
-char tmp2[255];
-   time_t tz=tzd;
-          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
-    time_t tc=mktime(&tmf);
-    tc=mktime(&tmf);
-    tzd=tz-tc;
-    cout<< "AMSSetupR::LoadAMSSTK-I-TZDSeconds "<<tzd<<endl;
-
-}
-
 
     double dt2=tf+double(msec)/1000.+tzd;   
     if(tc==dt2){
@@ -1287,7 +1290,7 @@ char tmp2[255];
     else{
      static int xer=0;
      if(xer++<100){
-       cerr<<"AMSSetupR:::LoadAMSSTK-E-TimesAreDifferent "<<tc-dt2<<endl;
+       cerr<<"AMSSetupR:::LoadAMSSTK-E-TimesAreDifferent "<<tc-dt2<<" "<<vout[20]<<" "<<tc<<endl;
      }
     }
    }
