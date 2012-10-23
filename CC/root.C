@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.466 2012/10/18 18:13:57 shaino Exp $
+//  $Id: root.C,v 1.467 2012/10/23 07:53:12 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6610,11 +6610,11 @@ int BetaHR::BetaReFit(TofBetaPar &betapar,int pattern,int mode,int update){
   return 0;
 }
 
-double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time){
+double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, bool usetrtr){
 
   double path=0;
 #ifdef _PGTRACK_
-  if(fTrTrack>=0){
+  if(fTrTrack>=0 && usetrtr){
      path=pTrTrack()->Interpolate(zpl,pnt,dir);
    }
   else {///No TrTrack Then TofTrack
@@ -10357,6 +10357,486 @@ if(change){
 }
 else{
  return 6;
+}
+#else
+return 10;
+#endif
+}
+
+
+
+
+int ParticleR::ReBuildTrdTOF(float distmax,float dirmax,float DistX,float DistY,bool force){
+#ifdef _PGTRACK_
+if(iVertex()>=0 )return 6; // vertex
+if(iBetaH()<0)return 1; // no betah
+//if(iTrdTrack()<0 && iTrdHTrack()<0)return 2;
+bool usetrdh=false;
+if(iTrdTrack()<0 && iTrdHTrack()>=0)usetrdh=true;
+BetaHR *ph=pBetaH();
+if(!ph)return 3; // Logic error betah not present while should be
+float zcofg=-130;
+float ztcofg=130;
+AMSPoint ecfg;
+  AMSDir ecal_dir;
+  double tm=0;
+  ph->TInterpolate(zcofg,ecfg,ecal_dir,tm,false);
+  if(ecal_dir[2]>0){
+    ecal_dir=AMSDir(-ecal_dir[0],-ecal_dir[1],-ecal_dir[2]);
+  } 
+if(1){
+  TrdTrackR *ptrd=pTrdTrack();
+  const int minAmp=5; //  Here the minimal amp for the tracker to take into account;
+   int nlay;
+   float qrms; 
+   float q=ph->GetQ(nlay,qrms);
+   if(q>6)q=6;  
+  float thr=minAmp*q*q;
+again_notrd:
+  AMSDir trd_dir;
+  AMSPoint tcfg;
+  if(ptrd){
+   trd_dir=AMSDir(ptrd->Theta,ptrd->Phi);
+   tcfg=AMSPoint(ptrd->Coo[0],ptrd->Coo[1],ptrd->Coo[2]);
+  }
+  else{
+   ph->TInterpolate(ztcofg,tcfg,trd_dir,tm,false);
+   DistX*=1.4;
+   DistY*=1.4;
+  }
+ if(trd_dir[2]>0){
+    trd_dir=AMSDir(-trd_dir[0],-trd_dir[1],-trd_dir[2]);
+  }
+
+  double ct=ecal_dir.prod(trd_dir);
+  if(acos(ct)>dirmax*180/3.1415926 )return -2;
+  double x=trd_dir[0]*(ecfg[2]-tcfg[2])/trd_dir[2]+tcfg[0]-ecfg[0];  
+  double y=trd_dir[1]*(ecfg[2]-tcfg[2])/trd_dir[2]+tcfg[1]-ecfg[1];
+  if(sqrt(x*x+y*y)>=distmax ){
+    if(ptrd){
+      ptrd=0;
+      goto again_notrd;  
+     }
+     else return -1;
+   } 
+  bool trdecal=true;
+again:
+  AMSDir newdircommon=trdecal?AMSDir(-tcfg[0]+ecfg[0],-tcfg[1]+ecfg[1],-tcfg[2]+ecfg[2]):trd_dir;
+  AMSPoint newcoocommon=trdecal?AMSPoint((tcfg[0]+ecfg[0])/2,(tcfg[1]+ecfg[1])/2,(tcfg[2]+ecfg[2])/2):AMSPoint(tcfg[0],tcfg[1],tcfg[2]);
+  AMSDir newdirtrd=trd_dir;
+  AMSPoint newcootrd=AMSPoint(tcfg[0],tcfg[1],tcfg[2]);
+  AMSDir newdirecal=ecal_dir;
+  AMSPoint newcooecal=ecfg;
+  bool done=false;
+  double chisq_thr=10000; 
+  if(AMSEventR::Head()->nTrTrack()>1){
+    double cosmax=cos(dirmax/180*3.1415926);
+    double cosmax_dmax=cosmax;
+    double dmax=distmax;
+    double dmax_cosmax=distmax;
+    int j=-1;
+    int jspace=-1;
+   for(int i=0;i<AMSEventR::Head()->NTrTrack();i++){
+     try{
+       TrTrackR &trk= AMSEventR::Head()->TrTrack(i);
+       if(trk.GetChisq()>chisq_thr)continue;
+       AMSDir dir;
+       AMSPoint pnt;
+       double zpl=zcofg;
+          
+       trk.Interpolate(zpl,pnt,dir);
+       double cosc=dir.prod(newdircommon);
+       double dentry=sqrt((pnt[0]-ecfg[0])*(pnt[0]-ecfg[0])+(pnt[1]-ecfg[1])*(pnt[1]-ecfg[1])+(pnt[2]-ecfg[2])*(pnt[2]-ecfg[2]));
+        double dd=dentry;
+       if(fabs(cosc)>cosmax){
+         cosmax=fabs(cosc);
+         dmax_cosmax=dd;             
+         j=i;
+       } 
+       if(dd<dmax){
+         dmax=dd;
+         cosmax_dmax=fabs(cosc);            
+         jspace=i;
+       }
+     }
+     catch (...){
+       cerr<<"ReBuildTrdTOF-S-TrTrackelementOutOfSize "<<i<<" "<<AMSEventR::Head()->NTrTrack()<<endl;
+     }    
+    }
+    if(j>=0 &&jspace>=0 ){
+      if(jspace!=j){
+       static int mprint=0;
+       if(mprint++<100){
+        cerr<<"ParticleR::ReBuldTrdTOF-W-SpaceDirMatchDisagree "<<dmax_cosmax<<" "<<dmax<<" "<<cosmax<<" "<<cosmax_dmax<<" "<<j<<" "<<jspace<<endl;
+       }
+       double dcos=fabs(AMSEventR::Head()->pTrTrack(j)->GetDir().prod(AMSEventR::Head()->pTrTrack(jspace)->GetDir()));
+       if(dcos>0.999)j=jspace;
+       j=fabs(AMSEventR::Head()->pTrTrack(j)->GetRigidity())>fabs(AMSEventR::Head()->pTrTrack(jspace)->GetRigidity())?j:jspace;
+      }
+       force=false;
+}
+    if(j>=0 && jspace>=0 && iTrTrack()!=j){
+      TrTrackR *newtrack=AMSEventR::Head()->pTrTrack(j);
+      //  update particle pars
+  int iddflt=newtrack->Gettrdefaultfit();
+  Theta=newtrack->GetTheta(iddflt);
+  Phi=newtrack->GetPhi(iddflt);
+  AMSDir dir(Theta,Phi);
+  if((Beta<0 && dir[2]<0) || (Beta>0 && dir[2]>0)){
+     for(int i=0;i<3;i++)dir[i]=-dir[i];
+     Theta=dir.gettheta();
+     Phi=dir.getphi();
+   }
+  
+  if(iCharge()<0){
+     fCharge=AMSEventR::Head()->NCharge()-1;
+     if(fCharge>=0){
+      Charge=AMSEventR::Head()->fCharge[fCharge].Charge();
+     } 
+  }
+ 
+  _build(newtrack->GetRigidity(iddflt),newtrack->GetErrRinv(iddflt),Charge,Beta,ErrBeta,Mass,ErrMass,Momentum,ErrMomentum);
+  for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0(iddflt)[k];
+  Loc2Gl(AMSEventR::Head());
+  for(int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TOFCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(EcalCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TrCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TRDCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(RichCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)RichCoo[k][l]=pnt[l];
+  }  
+  fTrTrack= j;
+//  cout <<" fTrTrack "<<fTrTrack<<endl;
+  TofRecH::ReBuild(Charge);
+  done=true;
+
+    } 
+  }
+  if(iTrTrack()>=0 && !force){
+    
+    return done?0:7; 
+ }
+  else{
+     TrTrackR* track=0;
+  if(iTrTrack()>=0){
+     track=AMSEventR::Head()->pTrTrack(iTrTrack());
+//     for(int k=0;k<track->NTrRecHit();k++){
+//       cout <<" k hit "<<AMSEventR::Head()->TrRecHit(track->iTrRecHit(k)).GetCoord()<<endl;
+//     }
+//     for(int k=1;k<4;k++){
+//         int id=track->iTrTrackPar(k,0,1);
+//         if(id>=0)cout<<" k "<<k<<" "<<track->gTrTrackPar(id).Rigidity<<endl;
+//          id=track->iTrTrackPar(k,0,2);
+//         if(id>=0)cout<<" kewfit "<<k<<" "<<track->gTrTrackPar(id).Rigidity<<endl;
+//     }
+         
+  } 
+// no track should construct it
+   TrTrackR *newtrack= new TrTrackR();
+   int mfit1 = TrTrackR::kChoutko;
+   int mfitext = TrTrackR::DefaultFitID;
+   int nhits=0;
+   int p[10]; 
+   int p2[10]; 
+   int pmulti[10]; 
+   int pmulti2[10]; 
+    int masky = 0x7f, maskc = 0x7f;
+  for(int layer=0;layer<9;layer++){
+   p[layer]=-1;
+   pmulti[layer]=-1;
+   p2[layer]=-1;
+   pmulti2[layer]=-1;
+   double mdistx=1e10;
+   double mdisty=1e10;
+     AMSDir newdir=newdircommon;
+     AMSPoint newcoo=newcoocommon;
+     if(layer==0 || layer==1){
+        newdir=newdirtrd;
+         newcoo=newcootrd;
+     }
+      else if(layer==8){
+        newdir=newdirecal;
+         newcoo=newcooecal;
+      }
+      else if(0){
+       int ibeg=-1;
+       int iend=-1;
+       for(int j=layer-1;j>=1;j--){
+         if(p[j]>=0){
+           if(iend<0)iend=j;
+           else{
+             ibeg=j;
+             break;
+           }
+        } 
+       }
+       if(iend>=0 && ibeg>=0){
+         AMSPoint beg=AMSEventR::Head()->pTrRecHit(p[ibeg])->GetCoord(pmulti[ibeg]);
+         AMSPoint end=AMSEventR::Head()->pTrRecHit(p[iend])->GetCoord(pmulti[iend]);
+         newcoo=AMSPoint((beg[0]+end[0])/2,(beg[1]+end[1])/2,(beg[2]+end[2])/2);
+         newdir=AMSDir((beg[0]-end[0])/2,(beg[1]-end[1])/2,(beg[2]-end[2])/2);
+      }
+       ibeg=-1;
+       iend=-1;
+     }
+   for(int i=0;i<AMSEventR::Head()->NTrRecHit();i++){
+     TrRecHitR &trh= AMSEventR::Head()->TrRecHit(i);
+     if(trh.GetLayerJ()!=layer+1)continue;
+     if(trh.Sum()<thr)continue;
+     int mult=-1;
+     AMSPoint ap;
+     ap[2]=trh.GetCoord(0)[2];
+     ap[0]=newdir[0]/newdir[2]*(ap[2]-newcoo[2])+newcoo[0];
+     ap[1]=newdir[1]/newdir[2]*(ap[2]-newcoo[2])+newcoo[1];
+     AMSPoint dist=trh.HitPointDist(ap,mult);
+     ap[2]=trh.GetCoord(mult)[2];
+     ap[0]=newdir[0]/newdir[2]*(ap[2]-newcoo[2])+newcoo[0];
+     ap[1]=newdir[1]/newdir[2]*(ap[2]-newcoo[2])+newcoo[1];
+     dist=trh.HitPointDist(ap,mult);
+     if(fabs(dist[0])<DistX && fabs(dist[1])<DistY){
+       double r=sqrt((dist[0]/DistX)*(dist[0]/DistX)+(dist[1]/DistY)*(dist[1]/DistY));
+       if(fabs(dist[0])<mdistx && fabs(dist[1])<=mdisty+100e-4){
+         p2[layer]=p[layer];
+         p[layer]=i;
+         pmulti2[layer]=pmulti[layer];
+         pmulti[layer]=mult;
+         mdistx=fabs(dist[0]);
+         mdisty=fabs(dist[1]);
+         //cout <<" layer "<<layer<<" "<<i<<" "<<ap<<" "<<dist<<" "<<mdistx<<" "<<mdisty<<" "<<trh.GetCoord(mult)<<endl;
+       }
+       if (!patt) {
+       int nn = (TkDBc::Head->GetSetup()==3) ? 7 : 8;
+       patt = new tkpatt(nn);
+       patt->Init(nn);
+       
+     }
+     }
+    }
+     if(p[layer]>=0){
+      AMSEventR::Head()->pTrRecHit(p[layer])->SetResolvedMultiplicity(pmulti[layer]);
+       newtrack->AddHit(AMSEventR::Head()->pTrRecHit(p[layer]),pmulti[layer]);
+    
+       if(layer!=0 && layer!=8)nhits++;
+       else if (layer==0)mfitext|=TrTrackR::kFitLayer8;
+       else  mfitext|=TrTrackR::kFitLayer9;
+
+    }
+}
+   
+  if(nhits>=3){
+      float ret = newtrack->FitT(mfit1);
+
+
+      if (ret < 0 ||
+      newtrack->GetChisqX(mfit1) <= 0 || newtrack->GetChisqY(mfit1) <= 0 ||
+      newtrack->GetNdofX (mfit1) <0 || newtrack->GetNdofY (mfit1) < 0) {
+      //cout <<" ret  "<<ret<<" "<<nhits<<" "<<newtrack->GetChisqX(mfit1)<<" "<<" "<<newtrack->GetNdofY(mfit1)<<" "<<newtrack->GetNdofX(mfit1)<<" "<<newtrack->GetChisqY(mfit1)<<endl;
+      delete newtrack;
+      return -3;
+      
+     }
+     else{
+
+//    try to test add hits in the vicinity
+      bool change=false;
+      for(int i=1;i<8;i++){
+        if(p2[i]>=0){
+         change=true;
+         break;
+        }
+      }
+if(change){
+      TrTrackR *newtrack2=new TrTrackR(*newtrack);
+      double chisq=newtrack->GetChisq(mfit1);
+      for(int i=1;i<8;i++){
+        if(p2[i]>=0){
+           newtrack2->RemoveHitOnLayer(AMSEventR::Head()->pTrRecHit(p2[i])->GetLayer());
+           newtrack2->AddHit(AMSEventR::Head()->pTrRecHit(p2[i]),pmulti2[i]);
+      float ret2 = newtrack2->FitT(mfit1);
+      if (ret2 < 0 ||
+       newtrack2->GetChisqX(mfit1) <= 0 || newtrack2->GetChisqY(mfit1) <= 0 ||
+       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2) {
+           newtrack2->RemoveHitOnLayer(AMSEventR::Head()->pTrRecHit(p2[i])->GetLayer());
+           newtrack2->AddHit(AMSEventR::Head()->pTrRecHit(p[i]),pmulti[i]);
+       }
+       else{
+         chisq= newtrack2->GetChisq(mfit1);
+       }       
+
+       }
+          
+      }
+      if(chisq<newtrack->GetChisq(mfit1)){
+       delete newtrack;
+       newtrack=newtrack2;
+      }
+      else delete newtrack2;
+}
+
+      if(newtrack->GetChisq(mfit1)>chisq_thr && nhits>4){
+      for(int i=1;i<8;i++){
+        if(p[i]>=0){
+           newtrack->RemoveHitOnLayer(AMSEventR::Head()->pTrRecHit(p[i])->GetLayer());
+      float ret2 = newtrack->FitT(mfit1);
+      if (ret2 < 0 ||
+       newtrack->GetChisqX(mfit1) <= 0 || newtrack->GetChisqY(mfit1) <= 0 ||
+       newtrack->GetNdofX (mfit1) <0 || newtrack->GetNdofY (mfit1) < 0 || newtrack->GetChisq(mfit1)>chisq_thr/2 || fabs(newtrack->GetRigidity(mfit1))<0.2) {
+           newtrack->AddHit(AMSEventR::Head()->pTrRecHit(p[i]),pmulti[i]);
+       }
+       else{
+         break;
+       }       
+
+       }
+          
+      }
+        
+      }
+        if(mfit1!=mfitext){
+          newtrack->FillExRes();
+          newtrack->FitT(mfitext);
+        }
+          newtrack->RecalcHitCoordinates(mfitext); 
+          newtrack->Settrdefaultfit(mfitext);
+          newtrack->EstimateDummyX(mfitext);
+          newtrack->UpdateBitPattern();
+          newtrack->DoAdvancedFit();
+        if (newtrack->GetRigidity() == 0 || newtrack->GetChisq() <= 0) {
+             delete newtrack;
+              return -4;
+  }
+  // Add the track to the collection
+  // set used hits
+  for(int layer=0;layer<9;layer++){
+   if(p[layer]>=0)AMSEventR::Head()->pTrRecHit(p[layer])->SetUsed();
+  }
+  int iddflt=-1;
+  for(int k=1;k<4;k++){
+        int id=newtrack->iTrTrackPar(k,0,1);
+        if(iddflt<0 && id>=0 && newtrack->GetChisq(id)<1000000000){
+           newtrack->Settrdefaultfit(id);
+           iddflt=id;
+        }
+//         if(id>=0)cout<<" k new track "<<k<<" "<<newtrack->gTrTrackPar(id).Rigidity<<" "<<newtrack->GetRigidity()<<endl;
+   
+ }
+ if(iddflt<0){
+   delete newtrack;
+   return -5;
+ }
+       AMSDir dir;
+       AMSPoint pnt;
+       double zpl=zcofg;
+          
+       newtrack->Interpolate(zpl,pnt,dir);
+       double dentry=sqrt((pnt[0]-ecfg[0])*(pnt[0]-ecfg[0])+(pnt[1]-ecfg[1])*(pnt[1]-ecfg[1])+(pnt[2]-ecfg[2])*(pnt[2]-ecfg[2]));
+        double dd=dentry;
+        if(dd>distmax){
+         delete newtrack;
+         return -6;
+        }
+  if(iCharge()<0){
+     fCharge=AMSEventR::Head()->NCharge()-1;
+     if(fCharge>=0){
+      Charge=AMSEventR::Head()->fCharge[fCharge].Charge();
+     } 
+  }
+
+  _build(newtrack->GetRigidity(iddflt),newtrack->GetErrRinv(iddflt),Charge,Beta,ErrBeta,Mass,ErrMass,Momentum,ErrMomentum);
+  newtrack->setstatus(AMSDBc::USED);
+   
+  AMSEventR::Head()->fTrTrack.push_back(*newtrack);
+//  update particle pars
+  Theta=newtrack->GetTheta(iddflt);
+  Phi=newtrack->GetPhi(iddflt);
+  if((Beta<0 && dir[2]<0) || (Beta>0 && dir[2]>0)){
+     for(int i=0;i<3;i++)dir[i]=-dir[i];
+     Theta=dir.gettheta();
+     Phi=dir.getphi();
+   }
+
+
+  for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0(iddflt)[k];
+  Loc2Gl(AMSEventR::Head());
+  for(int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TOFCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(EcalCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TrCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TRDCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
+  }  
+  for(int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(RichCoo[k][2],pnt,dir,iddflt);
+   for(int l=0;l<3;l++)RichCoo[k][l]=pnt[l];
+  }  
+  delete newtrack;
+  fTrTrack= AMSEventR::Head()->fTrTrack.size()-1;
+//  cout <<" fTrTrack "<<fTrTrack<<endl;
+  TofRecH::ReBuild(Charge);
+    
+    
+  return 0;
+ 
+     }
+   }
+   else{
+      delete newtrack;
+      if(trdecal){
+           trdecal=false;
+
+           goto again;
+      }
+      return -7;
+   }   
+
+      
+   
+}
+}
+else{
+ return 16;
 }
 #else
 return 10;
