@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.467 2012/10/23 07:53:12 choutko Exp $
+//  $Id: root.C,v 1.468 2012/10/23 14:51:07 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8697,7 +8697,7 @@ return values
  // use the conversion procedure described in FrameTrans.h
  get_ams_l_b_from_StarTracker(AMS_x,  AMS_y, AMS_z, gal_long, gal_lat,  CamID, CAM_RA, CAM_DEC, CAM_Orient);
 
-return 1;
+return 0;
 }
 
 
