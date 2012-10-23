@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.468 2012/10/23 14:51:07 shaino Exp $
+//  $Id: root.C,v 1.469 2012/10/23 17:50:07 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6209,8 +6209,8 @@ TofRawSideR* TofClusterHR::GetRawSideHS(int is){
   return (AMSEventR::Head() && is<fTofRawSide.size()&&fTofRawSide[is]>=0)?AMSEventR::Head()->pTofRawSide(fTofRawSide[is]):0;
 }
 
-int TofClusterHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
-int TofClusterHR::DefaultQ2Opt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kBetaCor);
+int TofClusterHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
+int TofClusterHR::DefaultQ2Opt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor);
 
 float TofClusterHR::GetEdepPM  (int pmtype, int is,int pm)  {
 
@@ -6287,7 +6287,7 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
        if((qa>0&&qa<6*6)||qd<=0){q2=qa; pmtype=1;}//Anode  Range
        else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,0,double(cosz),double(beta));
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,Coo[GetDirection()],double(cosz),double(beta));
     return signal;
 }
 
@@ -6732,7 +6732,10 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
 #ifdef _PGTRACK_
     if(fTrTrack>=0){rig=pTrTrack()->GetRigidity();}
 #endif
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,double(q2),0,double(BetaPar.CosZ[ilay]),double(BetaPar.Beta),rig);
+    AMSPoint pnt;AMSDir dir; double time; 
+    TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);   
+ 
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),double(BetaPar.Beta),rig);
     return signal;
 }
 
@@ -6740,7 +6743,9 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
 float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
 
    vector<float >ql;
+   vector<bool >qg;//Geometry Check
    float qs;
+   int qbn=0;//Q-Bad Number
 //----Fill Vector
    for(int ilay=0;ilay<4;ilay++){
       if(!TestExistHL(ilay))continue;
@@ -6748,18 +6753,40 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
       if(qs<=0)continue;
       if((pattern>0)&&((pattern/int(pow(10.,3-ilay)))%10==0))continue;
       ql.push_back(qs);
+//-----Good Path Length Geometry Check
+      AMSPoint pnt;AMSDir dir; double time;
+      TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);
+      bool qgl=TOFGeom::IsGoodQGeom(ilay,GetClusterHL(ilay)->Bar,pnt);
+      qg.push_back(qgl);
+      if(!qgl){qbn++;}
+ //----
    }
-  
+
+//---Pool PathLength ReMove Candiadte  For Default-Q
+     if(pattern<0&&ql.size()>2&&qbn>0&&fTrTrack>=0&&(pattern>=-10)){
+//----
+         for(int i=0; i<qg.size();i++){
+            if(qg.at(i))continue;//Good Keep
+            ql.erase(ql.begin()+i);
+            qg.erase(qg.begin()+i);
+            i--;//Go To Again
+            if(ql.size()<=2)break;
+          }
+//-----
+      }
+
+
 //-----GetMean
     float mean=0,sig=0,qmax=0,qmin=99999999;
+    int imin=0;int imax=0;
     for(int i=0; i<ql.size();i++){
        mean+=ql.at(i); sig+=ql.at(i)*ql.at(i);
-       if(ql.at(i)>qmax){qmax=ql.at(i);}
-       if(ql.at(i)<qmin){qmin=ql.at(i);}
+       if(ql.at(i)>qmax){qmax=ql.at(i);imax=i;}
+       if(ql.at(i)<qmin){qmin=ql.at(i);imin=i;}
     }
 
 //----Fill Var
-    if(ql.size()<=2||pattern>0){
+    if(ql.size()<=2||pattern>0||pattern==-10){
        nlay=ql.size();
        if(nlay==0){qrms=0;return 0.;}
        else       {
@@ -6769,6 +6796,7 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
        }
      }
     else {
+       
        float meanl=(mean-qmax)/(ql.size()-1); float sigl= (sig-qmax*qmax)/(ql.size()-1);
        sigl=sqrt(fabs(sigl-meanl*meanl)); 
        float dqh=fabs(qmax-meanl)/sigl;
@@ -6778,7 +6806,8 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
        float dql=fabs(qmin-meanh)/sigh;
 //----
        nlay=ql.size()-1;
-       if(pattern==-2){qrms=sigl;return meanl;}
+//-----        
+       if(pattern%10==-2){qrms=sigl;return meanl;}
        else           {
          if(dqh>dql)  {qrms=sigl;return meanl;}
          else         {qrms=sigh;return meanh;}
@@ -6791,11 +6820,22 @@ float BetaHR::GetQBetaL(int ilay,int charge,int pmtype){
 
    if(!TestExistHL(ilay))return 0;
 
-   double q2=GetQL(ilay,pmtype,(TofRecH::kThetaCor|TofRecH::kBirkCor));
+   double q2=GetQL(ilay,pmtype,(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor));
    TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
    float qbeta=TofRecH::GetBetaCalCh(TofRecPar::Idsoft,1,BetaPar.Beta,q2,charge,0.);
 
    return qbeta;
+}
+
+bool  BetaHR::IsGoodQPathL(int ilay){
+  
+    if(!TestExistHL(ilay)||fTrTrack<0)return 0;  
+
+     AMSPoint pnt;AMSDir dir; double time;
+     TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);
+     bool qgl=TOFGeom::IsGoodQGeom(ilay,GetClusterHL(ilay)->Bar,pnt);
+
+     return qgl;
 }
 
 //---end of BetaH

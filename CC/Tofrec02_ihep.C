@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.32 2012/10/13 09:48:02 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.33 2012/10/23 17:50:07 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -588,9 +588,11 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
   if(optc&kThetaCor) {signalc*=fabs(cosz);}
 //--Birk Correction -2 mean Overflow Birk Correction faild
   if(optc&kBirkCor)  {signalc=BirkCor(idsoft,signalc,1);if(signalc<=0)return signalc;}
+ //--ReAtt Correction
+   if(optc&kReAttCor){signalc=SciReAttCor(idsoft,lcoo,signalc,1);}
 //--Beta Correction
    if(optc&kBetaCor)  {signalc=BetaCor(idsoft,signalc,beta,rig);}
-      
+ 
 //--Conver from MeV to Q2
   if(optc&kMeVQ2)    signalc=signalc/TofCAlignPar::ProEdep;
 //--Inverse Birk Correction
@@ -599,6 +601,7 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
   if(optc&kQ2MeV)    signalc=signalc*TofCAlignPar::ProEdep;
 //--Conver from MeV to Q2
   if(optc&kQ2Q)      signalc=sqrt(signalc);
+//---
 
   return signalc;
 
@@ -762,70 +765,34 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
      TofRecPar::IdCovert(lay,bar);
      idsoft=TofRecPar::Idsoft/100*100;
    }
-   
 
 //--Normal Beta 
    const number rigcut=20;//>20GeV not Apply Beta Correction
-   const number betacut=0.96;
+//   const number betacut=0.96;
+   const number betacut=1.;
    number betap=fabs(beta)>betacut? betacut :fabs(beta);
+   if(fabs(rig)>rigcut)betap=1;
 //--Protection
-   if(betap<0.3)betap=0.3;
-
+   if(betap<0.38)betap=0.38;
 
 //---beta correction var
    number betacv=1;
 
 //---Correction
-   TF1 *fun=0;
-   if(lay<2){ //Up TOF
-      if(TofCAlignPar::BetaCh[chindex]<=6){//pow
-         fun=new TF1("TOF_VE","pow(x,[0])",0.2,1);
-         fun->SetParameter(0,-CPar->betacor[chindex][1][idsoft]);    
-       }
-      else  {//pol2
-         fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.2,1);
-         fun->SetParameter(0,CPar->betacor[chindex][1][idsoft]); 
-         fun->SetParameter(1,CPar->betacor[chindex][2][idsoft]);
-      }
-   }
-   else { //Down TOF
-      if(TofCAlignPar::BetaCh[chindex]<=2){//pow
-        fun=new TF1("TOF_VE","pow(x,[0])",0.2,1);
-        fun->SetParameter(0,-CPar->betacor[chindex][1][idsoft]);
-      }
-      else if(TofCAlignPar::BetaCh[chindex]<=16){//bloch
-        fun=new TF1("TOF_VE","0.307/2.*[0]/x/x*(log(2.*0.511/0.165*x*x/(1.-x*x))-x*x+[1]/2.)",0.2,1);
-        fun->SetParameter(0,CPar->betacor[chindex][0][idsoft]);
-        fun->SetParameter(1,CPar->betacor[chindex][1][idsoft]);
-      }
-      else {//pol2
-        fun=new TF1("TOF_VE","1.+[0]*(x-1.)+[1]*(x*x-1.)",0.2,1);
-        fun->SetParameter(0,CPar->betacor[chindex][1][idsoft]);
-        fun->SetParameter(1,CPar->betacor[chindex][2][idsoft]);
-     }
-   }
+    TF1 *fun=0;
+    fun=new TF1("TOF_VE","pol4",0.2,1.1);
+    for(int ipar=0;ipar<=4;ipar++){
+       fun->SetParameter(ipar,CPar->betacorn[chindex][ipar][idsoft]);
+    }
 
 //-----Beta Correction
   if(opt==0){
-//---Global Scale For Low Beta
-     if(fabs(beta)>=1||fabs(rig)>rigcut){
-//     if(fabs(beta)>=betacut||fabs(rig)>rigcut){
-        betacv=CPar->betacor1[1][chindex][idsoft];   
-     }
-     else {
-        betacv=fun->Eval(betap)*CPar->betacor1[0][chindex][idsoft];//Q2 Beta Correction*factor
-        if(fabs(beta)>betacut){
-          number ww1=fabs(beta)-betacut;number ww2=1.-fabs(beta);
-          betacv=(betacv*ww2+CPar->betacor1[1][chindex][idsoft]*ww1)/(ww1+ww2);
-        }
-     }
-//---
+    betacv=fun->Eval(betap);
   }
   else   {  //Edpe Beta
-//---Global Scale For Low Beta
-     number q2=q2norm/CPar->betacor1[0][chindex][idsoft];
+     number q2=q2norm;
      if     (q2<fun->Eval(0.94))betacv=beta>0?1:-1;
-     else if(q2>fun->Eval(0.3)) betacv=beta>0?0.3:-0.3;
+     else if(q2>fun->Eval(0.38))betacv=beta>0?0.38:-0.38;
      else                       betacv=beta>0?fun->GetX(q2):-fun->GetX(q2);
   }
   delete fun;
@@ -907,11 +874,48 @@ number TofRecH::SciAttCor(int idsoft,number lpos,number q2){//Side Level
    if     (attpos> TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){attpos= TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;}
    else if(attpos<-TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){attpos=-TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;}
    if     (TOFGeom::IsTrapezoid(TofRecPar::iLay,TofRecPar::iBar)){
-          if     (attpos>TofRecPar::AttLenLimit){attpos=TofRecPar::AttLenLimit;}
-          else if(attpos<-TofRecPar::AttLenLimit){attpos=-TofRecPar::AttLenLimit;}
+//          if     (attpos>TofRecPar::AttLenLimit){attpos=TofRecPar::AttLenLimit;}
+//          else if(attpos<-TofRecPar::AttLenLimit){attpos=-TofRecPar::AttLenLimit;}
+//---Each Tune
+         if     (TofRecPar::iLay==0&&attpos>50.5) attpos=50.5;
+         else if(TofRecPar::iLay==0&&attpos<-50.5)attpos=-50.5;
+//----
+         else if(TofRecPar::iLay==1&&attpos>46.) attpos=46.;
+         else if(TofRecPar::iLay==1&&attpos<-46.)attpos=-46.;
+//---
+         else if(TofRecPar::iLay==2&&attpos>45.) attpos=45.;
+         else if(TofRecPar::iLay==2&&attpos<-45.)attpos=-45.;
+//---
+         else if(TofRecPar::iLay==3&&attpos>50.) attpos=50.;
+         else if(TofRecPar::iLay==3&&attpos<-50.)attpos=-50.;
    }
 //---
    return q2*GetProMipAdc(idsoft,0.)/GetProMipAdc(idsoft,attpos);
+}
+
+//========================================================
+number TofRecH::SciReAttCor(int idsoft,number lpos,number q2,int qopt){//Attuantion Global ReCorrection
+
+   if(lpos==0)return q2;///Default No Correction
+   TofCAlignPar *CPar=TofCAlignPar::GetHead();
+//----
+   number attpos=lpos;
+//--Att For Counter
+   idsoft=idsoft/100*100;//Counter Level
+   TofRecPar::IdCovert(idsoft);
+//--Attnuation Range Check and Protection
+   if     (attpos>60) {attpos=60;}
+   else if(attpos<-60){attpos=-60;}
+   if     (TOFGeom::IsTrapezoid(TofRecPar::iLay,TofRecPar::iBar)){
+          if     (attpos>45) {attpos=45;}
+          else if(attpos<-45){attpos=-45;}
+   }
+//---
+   number recor=CPar->reanti[0][idsoft]+CPar->reanti[1][idsoft]*attpos+CPar->reanti[2][idsoft]*pow(attpos,2)
+               +CPar->reanti[3][idsoft]*pow(attpos,3)+CPar->reanti[4][idsoft]*pow(attpos,4);
+   recor=recor/6.;//Carbon Q-Scale Due to Use Carbon To Tune
+   if(qopt==0)return q2/recor;//Q Correction
+   else       return q2/recor/recor;//Q2 Correction
 }
 
 //========================================================
