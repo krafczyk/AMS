@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.487 2012/10/23 07:53:23 choutko Exp $
+//  $Id: root.h,v 1.488 2012/10/23 17:51:21 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2897,7 +2897,7 @@ class BetaHR: public TrElem{
     * @param[out] qrms Q-RMS of TOF Layers Used
     * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
-    * @param[in] pattern -1: Remove Max-dQ(Q deviation) Layer; -2: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+    * @param[in] pattern -1: Remove Max-dQ(Q deviation)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer;  1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
     * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
     */
   float GetQ(int &nlay,float &qrms,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2);
@@ -2909,6 +2909,8 @@ class BetaHR: public TrElem{
     * @return =1 or =0.3 Edep Reach Charge unvalidate Boundary Region,=0 BetaH don't has This Layer, (0.3,0.94) normal measuremtnt
     */
   float GetQBetaL(int ilay,int charge,int pmtype=2);
+  /// Retrun True if TOF-ilay Q PathLength is Good ///First Require Track-Match-TOF
+  bool  IsGoodQPathL(int ilay);
 /**@}*/
 
 
@@ -2956,7 +2958,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,8)
+  ClassDef(BetaHR,9)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        

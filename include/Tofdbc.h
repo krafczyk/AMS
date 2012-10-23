@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.21 2012/10/05 13:47:23 choutko Exp $
+//  $Id: Tofdbc.h,v 1.22 2012/10/23 17:51:21 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -93,6 +93,10 @@ class TOFGeom{
    static bool      IsInOverlap(int ilay,float x, float y,int nexcl=1);//
    static void      GetBarEdge(int ilay,int ibar,float x[3][2]);//first 3 xyz //second 2 lh
    static void      GetLayEdge(int ilay,float x[3][2]);//first 3 xyz //second 2 lh(max size)
+
+//---Judge Pool Charge PathLength Geometry Region
+   static bool      IsGoodQGeom(int ilay,int ibar,AMSPoint tkpos);
+
 };
 
 
@@ -407,18 +411,23 @@ class TofCAlignPar: public TofTDVTool<float>{
 //--Dynode PMT Resolution weight factor for Counter Edep Calculation//Tunning According to Carbon
      std::map<int, float>dypmw;
      std::map<int, float>ansat[nansat];//Saturation Par
+//--Re-Attenuation Correction
+     std::map<int, float>reanti[5];///Attuantion Re-Correcion Using Carbon
 //---BetaCor
      static const int nBetaCh=14;
      static const int BetaCh[nBetaCh];
      std::map<int, float>betacor[nBetaCh][3];
      std::map<int, float>betacor1[2][nBetaCh];
+     std::map<int, float>betacorn[nBetaCh][5];
 //--default par
      static const float def_betac[nBetaCh][3][TOFCSN::SCLRS][TOFCSN::SCMXBR]; 
      static const float def_betac1[2][nBetaCh][TOFCSN::SCLRS][TOFCSN::SCMXBR];
+     static const float def_betacn[nBetaCh][5][TOFCSN::SCLRS][TOFCSN::SCMXBR];//now correction
      static const float def_birk[2][TOFCSN::SCLRS][TOFCSN::SCMXBR];
      static const float def_dycor[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
      static const float def_dypmw[TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR][TOFCSN::NPMTM];
      static const float def_ansat[nansat][TOFCSN::SCLRS][TOFCSN::NSIDE][TOFCSN::SCMXBR];
+     static const float def_reanti[5][TOFCSN::SCLRS][TOFCSN::SCMXBR];
 //----
   public:
      TofCAlignPar();

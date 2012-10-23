@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.21 2012/10/13 09:48:54 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.22 2012/10/23 17:51:21 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -97,6 +97,8 @@ public:
     kBetaCor= 0x200,
     /// Rigidity Cor
     kRigidityCor=0x400,
+    /// Attnueation ReCor
+    kReAttCor=0x800,
  };
 
 /** @name Sum ReBuild Part
@@ -140,13 +142,15 @@ public:
   static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>&ltdcw,int hassid);
 
 /// Get QSignal with different Correction
-  static number GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo=0,number cosz=1,number beta=0.95,number rig=0);
+  static number GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo=0,number cosz=1,number beta=0.98,number rig=0);
 /// Adding Gain to Convert To Q*Q (Proton Mip Unit)
   static number CoverToQ2(int idsoft,int isanode,number adc);
 /// Q2(ADC) Non-Linear Correction
   static number NonLinearCor(int idsoft,int isanode,number q2);
 /// Scintillator Attunation Correction To Counter Central
   static number SciAttCor(int idsoft,number lpos,number q2);
+/// Scintillator Re-Attunation Correction Using Carbon to ReTune
+  static number SciReAttCor(int idsoft,number lpos,number q2,int qopt=0);
 /// Scintillator Birk Correction (opt=1 normal 0 invert)
   static number BirkCor(int idsoft,number q2,int opt=1);
 /// Beta Correction
