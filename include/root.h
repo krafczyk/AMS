@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.486 2012/10/18 18:13:50 shaino Exp $
+//  $Id: root.h,v 1.487 2012/10/23 07:53:23 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2848,7 +2848,7 @@ class BetaHR: public TrElem{
    * @param[out] time TOF Time at Z=zpl(ns)
    * @return BetaH's Track Path length at Z=zpl
    */
-  double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time);
+  double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, bool usetrtrack=true);
 /**@}*/
 
 
@@ -3305,6 +3305,7 @@ public:
 
 ///
 int ReBuildTrdEcal(float DisMax=20, float DirMax=10, float DistX=1,float DistY=2,bool force=false); ///<  Rebuild particle if both Trd and EcalShower present
+int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=3.5,bool force=false); ///<  Rebuild particle if both Trd and TOF present
 
   int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 

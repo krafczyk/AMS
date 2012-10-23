@@ -6,6 +6,7 @@
 #include <fstream>
 #include "../include/TrdSCalib.h"
 #include "../include/TrdKCluster.h"
+#include "../include/Tofrec02_ihep.h"
  AMSNtupleHelper * fgHelper=0;
 
 extern "C" AMSNtupleHelper * gethelper();
@@ -41,7 +42,26 @@ else return false;
        float gtheta[2]={0,0};
        float gphi[2]={0,0};
        if(pev && pev->nParticle()){
+        
+//       cout <<" here "<<endl;
        ParticleR & part=pev->Particle(0);
+
+//int res;
+//    double gln,gla;
+//    float th= part.Theta;
+//    float ph= part.Phi;
+//    cout << "STK:  ret= " << pev->GetGalCoo(res,gln,gla,th,ph, true)<<endl;;
+//    cout << "STKF:  ret= " << pev->GetGalCoo(res,gln,gla,th,ph, false)<<endl;;
+int a=1;
+    if(part.Charge>2 && part.iTrTrack()<0){
+     TofRecH::ReBuild();
+    int r2=   part.ReBuildTrdTOF();
+    if(!r2)return true ;
+    //cout <<r2<<endl;
+    
+    }
+    return false;
+
         int result;
         double glat,glong,time;
         double rpto[3];
