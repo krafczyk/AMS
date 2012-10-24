@@ -110,7 +110,7 @@ int get_ams_ra_dec_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, dou
 // SDT(sept2012) - trasformation from AMS frame to J2000 frame using the star Tracker data
 // AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 // ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
-// CamID               = Identifier of Camera, 0(Port Camera), 1(starBoard)
+// CamID               = Identifier of Camera, 1(Port Camera), 0(starBoard)
 // ST_RA               = J2000 Right Ascension of Star Tracker pointing direction in degree;
 // ST_dec              = J2000 Declination of Star Tracker pointing direction in degree; 
 // ST_Orient           = orientation of top of the CCD wrt the celestial north in degree.
@@ -129,7 +129,7 @@ int get_ams_l_b_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, double
 // SDT(sept2012) - trasformation from AMS frame to galactic frame using the star Tracker data
 // AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 // l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
-// CamID               = Identifier of Camera, 0(Port Camera), 1(starBoard)
+// CamID               = Identifier of Camera, 1(Port Camera), 0(starBoard)
 // ST_RA               = J2000 Right Ascension of Star Tracker pointing direction in degree;
 // ST_dec              = J2000 Declination of Star Tracker pointing direction in degree; 
 // ST_Orient           = orientation of top of the CCD wrt the celestial north in degree.
@@ -206,15 +206,15 @@ void ST_AMS2ECI(double& x, double& y, double& z,int CamID, double ST_RA, double 
 //                   using information from StarTracker
 // x,y,z: as input are in AMS-02 frame,
 //        as output are in J2000 frame.
-// CamID: Identifier of Camera, 0(Port Camera), 1(starBoard)
+// CamID: Identifier of Camera, 1(Port Camera), 0(starBoard)
 // ST_RA: J2000 Right Ascension of Star Tracker pointing direction;
 // ST_dec: J2000 Declination of Star Tracker pointing direction;  
   double CAM_Yaw,CAM_Roll;
-  if (CamID==0){ /*Port Camera*/
+  if (CamID==1){ /*Port Camera*/
     CAM_Yaw=235./180.*pi;   /* Nominal Value*/
     CAM_Roll=-40./180.*pi;  /* nominal Value*/
   }
-  if (CamID==1){ /*StarBoard Camera*/
+  if (CamID==0){ /*StarBoard Camera*/
     CAM_Yaw=55./180.*pi;    /* Nominal Value*/
     CAM_Roll=-40./180.*pi;  /* nominal Value*/
   }
@@ -232,15 +232,15 @@ void ST_ECI2AMS(double& x, double& y, double& z,int CamID, double ST_RA, double 
 //                   using information from StarTracker
 // x,y,z: as input are in J2000 frame,
 //        as output are in AMS-02 frame.
-// CamID: Identifier of Camera, 0(Port Camera), 1(starBoard)
+// CamID: Identifier of Camera, 1(Port Camera), 0(starBoard)
 // ST_RA: J2000 Right Ascension of Star Tracker pointing direction;
 // ST_dec: J2000 Declination of Star Tracker pointing direction;  
   double CAM_Yaw,CAM_Roll;
-  if (CamID==0){ /*Port Camera*/
+  if (CamID==1){ /*Port Camera*/
     CAM_Yaw=235./180.*pi;   /* Nominal Value*/
     CAM_Roll=-40./180.*pi;  /* nominal Value*/
   }
-  if (CamID==1){ /*StarBoard Camera*/
+  if (CamID==0){ /*StarBoard Camera*/
     CAM_Yaw=55./180.*pi;    /* Nominal Value*/
     CAM_Roll=-40./180.*pi;  /* nominal Value*/
   }
