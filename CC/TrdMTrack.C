@@ -244,13 +244,13 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	    AMSDir zdir(0,0,1);
 	    AMSDir anti=zdir.crossp(TRDTube_Dir);;
 	    
-	    if( trdtk_pnt.x()-TubePos.x()> 0.303 && tube!=15) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube+1,0));tube+=1;}
+	    if( trdtk_pnt.x()-TubePos.x()> 0.303 && tube!=14) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube+1,0));tube+=1;}
 	    else if(trdtk_pnt.x()-TubePos.x()<-0.303 && tube!=0){ TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube-1,0));tube-=1;}
 	    
 	    if(fabs(trdtk_pnt.x()-TubePos.x())<0.303){
 	      trdtk_pntvec.push_back(TubePos);
 	      dirvec.push_back(i);
-	      if(tube==1 || tube==4 || tube==7 || tube==9 || tube==12 || tube==15) gaptype.push_back(1);
+	      if(tube==0 || tube==3 || tube==6 || tube==8 || tube==11 || tube==14) gaptype.push_back(1);
 	      else gaptype.push_back(0);
 	      misshit=true;
 	      n_mhX++;
@@ -305,13 +305,13 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	    AMSDir zdir(0,0,1);
 	    AMSDir anti=zdir.crossp(TRDTube_Dir);
 	    
-	    if( trdtk_pnt.y()-TubePos.y()> 0.303 && tube!=15) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube+1,0));tube+=1;}
+	    if( trdtk_pnt.y()-TubePos.y()> 0.303 && tube!=14) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube+1,0));tube+=1;}
 	    else if(trdtk_pnt.y()-TubePos.y()<-0.303 && tube!=0) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube-1,0));tube-=1;}
 	    
 	    if( fabs(trdtk_pnt.y()-TubePos.y())<0.303){
 	      trdtk_pntvec.push_back(TubePos);
 	      dirvec.push_back(i);
-	      if(tube==1 || tube==4 || tube==7 || tube==9 || tube==12 || tube==15) gaptype.push_back(1);
+	      if(tube==0 || tube==3 || tube==6 || tube==8 || tube==11 || tube==14) gaptype.push_back(1);
 	      else gaptype.push_back(0);
 	      misshit=true;
 	      n_mhY++;
@@ -373,13 +373,13 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	AMSDir zdir(0,0,1);
 	AMSDir anti=zdir.crossp(TRDTube_Dir);
 	
-	if( trdtk_pnt.y()-TubePos.y()> 0.303 && tube!=15) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube+1,0));tube+=1;}
+	if( trdtk_pnt.y()-TubePos.y()> 0.303 && tube!=14) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube+1,0));tube+=1;}
 	else if(trdtk_pnt.y()-TubePos.y()<-0.303 && tube!=0) {TubePos=TubePos+anti*(get_trd_rz(i, ladder, tube,0)-get_trd_rz(i, ladder, tube-1,0));tube-=1;}
 	
 	if( fabs(trdtk_pnt.y()-TubePos.y())<0.303){
 	  trdtk_pntvec.push_back(TubePos);
 	  dirvec.push_back(i);
-	  if(tube==1 || tube==4 || tube==7 || tube==9 || tube==12 || tube==15) gaptype.push_back(1);
+	  if(tube==0 || tube==3 || tube==6 || tube==8 || tube==11 || tube==14) gaptype.push_back(1);
 	  else gaptype.push_back(0);
 	  misshit=true;
 	  n_mhY++;
@@ -786,8 +786,8 @@ void TrdMTrack::Init_Xe(){
   delete g;
   g=0;
   
-  if((float)(xetime[0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(float)(xetime[0]*(60*60*24)+1293840000);
-  if((float)(xetime[(int)xetime.size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(float)(xetime[(int)xetime.size()-1]*(60*60*24)+1293840000);
+  if((unsigned int)(xetime[0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(unsigned int)(xetime[0]*(60*60*24)+1293840000);
+  if((unsigned int)(xetime[(int)xetime.size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(unsigned int)(xetime[(int)xetime.size()-1]*(60*60*24)+1293840000);
   
   cout<<"TrdMTrack::Init_Xe: Pressure read..."<<endl;
   
@@ -836,8 +836,8 @@ void TrdMTrack::Init_GainCorrection(){
     f->Close();
     delete f;
   
-    if((float)(gaintime[6][0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(float)(gaintime[6][0]*(60*60*24)+1293840000);
-    if((float)(gaintime[6][(int)gaintime[6].size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(float)(gaintime[6][(int)gaintime[6].size()-1]*(60*60*24)+1293840000);
+    if((unsigned int)(gaintime[6][0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(unsigned int)(gaintime[6][0]*(60*60*24)+1293840000);
+    if((unsigned int)(gaintime[6][(int)gaintime[6].size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(unsigned int)(gaintime[6][(int)gaintime[6].size()-1]*(60*60*24)+1293840000);
     
   }
   else if(TrdGainType==1){
@@ -981,8 +981,8 @@ void TrdMTrack::Init_Alignment(){
   }
 
   if(TrdAlignType==0 || TrdAlignType==2){
-    if((float)(mod_time[6][0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(float)(mod_time[6][0]*(60*60*24)+1293840000);
-    if((float)(mod_time[6][(int)mod_time[6].size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(float)(mod_time[6][(int)mod_time[6].size()-1]*(60*60*24)+1293840000);
+    if((unsigned int)(mod_time[6][0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(unsigned int)(mod_time[6][0]*(60*60*24)+1293840000);
+    if((unsigned int)(mod_time[6][(int)mod_time[6].size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(unsigned int)(mod_time[6][(int)mod_time[6].size()-1]*(60*60*24)+1293840000);
   }
 
   cout<<"TrdMTrack::Init_Alignment: Alignment read..."<<endl;
@@ -1219,8 +1219,9 @@ void TrdMTrack::SetAlignment(){
     if(read!=0){
 
       for(int d=0; d<20; d++){
-	TRDAlignmentPar *para;
-	para=&trdk_db->GetAlignmentPar(d,evt->Run());
+
+	TRDAlignmentPar param=trdk_db->GetAlignmentPar(d,evt->Run());
+	TRDAlignmentPar* para=&param;
 	T[d].setp(para->dX,para->dY,para->dZ);
 	R[d].SetRotAngles(-1*para->alpha,-1*para->beta,-1*para->gamma);
 	Center[d].setp(para->RotationCenter_X,para->RotationCenter_Y,para->RotationCenter_Z);
