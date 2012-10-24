@@ -721,8 +721,8 @@ int  FT_Gal2Equat(double &azimut, double &elev){
   * from Duffett-Smith & Zwart, Practical Astronomy, 4th edition 2011, pp56-59  */
  double RA;
  double Dec;
- double b=azimut;/* galactic latitude  */
- double l=elev;  /* galactic longitude */
+ double b=elev;/* galactic latitude  */
+ double l=azimut;  /* galactic longitude */
  
  double GalCen_RA =(192.+15./60.)/180.*pi; /* 192deg 15' */
  double GalCen_Dec=( 27.+24./60.)/180.*pi; /*  27deg 24' */
