@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.60 2012/10/05 14:17:32 choutko Exp $
+//  $Id: root_setup.h,v 1.61 2012/10/24 13:21:16 shaino Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -11,10 +11,9 @@
 #include "TTree.h"
 #include "trigger102_setup.h"
 #include "RichConfig.h"
-
+#include "DynAlignment.h"
 
 class SlowControlDB;
-class DynAlFitContainer;
 class RichConfigContainer;
 class AMSEventR;
 class AMSTimeID;
