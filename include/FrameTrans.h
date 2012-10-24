@@ -16,6 +16,7 @@
  *  SDT 22 sept 2012 - modify for user functions in order to align angle definition with those in AMSsoftware
  *  SDT 22 sept 2012 - add get_ams_ra_dec_from_ALTEC_INTL that use attitude angle in INTL frame from altec.
  *  SDT 09 oct 2012 - correct bugs in FT_Gal2Equat and FT_Equat2Gal
+ *  SDT 24 oct 2012 - swapped CamID odf star tracker: correct definition is STB=0 Port =1
  */
 
 #include <iostream>
@@ -54,7 +55,7 @@ int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & htod
 /// SDT(sept2012) - trasformation from AMS frame to J2000 frame using the star Tracker data
 /// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 /// ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
-/// CamID               = Identifier of Camera, 0(Port Camera), 1(starBoard)
+/// CamID               = Identifier of Camera, 1(Port Camera), 0(starBoard)
 /// ST_RA               = J2000 Right Ascension of Star Tracker pointing direction in degree;
 /// ST_dec              = J2000 Declination of Star Tracker pointing direction in degree; 
 /// ST_Orient           = orientation of top of the CCD wrt the celestial north in degree.
@@ -63,7 +64,7 @@ int get_ams_ra_dec_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, dou
 /// trasformation from AMS frame to galactic frame using the star Tracker data
 /// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 /// l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
-/// CamID               = Identifier of Camera, 0(Port Camera), 1(starBoard)
+/// CamID               = Identifier of Camera, 1(Port Camera), 0(starBoard)
 /// ST_RA               = J2000 Right Ascension of Star Tracker pointing direction in degree;
 /// ST_dec              = J2000 Declination of Star Tracker pointing direction in degree; 
 /// ST_Orient           = orientation of top of the CCD wrt the celestial north in degree.
@@ -91,7 +92,7 @@ double  FT_Modulus(double arg1, double arg2);
 /// using information from StarTracker. 
 /// x,y,z: as input are in AMS-02 frame,
 ///        as output are in J2000 frame.
-/// CamID: Identifier of Camera, 0(Port Camera), 1(starBoard)
+/// CamID: Identifier of Camera, 1(Port Camera), 0(starBoard)
 /// ST_RA: J2000 Right Ascension of Star Tracker pointing direction;
 /// ST_dec: J2000 Declination of Star Tracker pointing direction; 
 void ST_AMS2ECI(double& x, double& y, double& z,int CamID, double ST_RA, double ST_dec, double ST_Orient);
@@ -102,7 +103,7 @@ void ST_AMS2ECI(double& x, double& y, double& z,int CamID, double ST_RA, double 
 /// using information from StarTracker
 /// x,y,z: as input are in J2000 frame,
 ///        as output are in AMS-02 frame.
-/// CamID: Identifier of Camera, 0(Port Camera), 1(starBoard)
+/// CamID: Identifier of Camera, 1(Port Camera), 0(starBoard)
 /// ST_RA: J2000 Right Ascension of Star Tracker pointing direction;
 /// ST_dec: J2000 Declination of Star Tracker pointing direction; 
 void ST_ECI2AMS(double& x, double& y, double& z,int CamID, double ST_RA, double ST_dec, double ST_Orient);
