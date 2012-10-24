@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.99.2.6 2012/10/22 21:26:49 choutko Exp $
+//  $Id: root_setup.C,v 1.99.2.7 2012/10/24 13:21:34 shaino Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2219,8 +2219,8 @@ return 0;
   l++;
   tme[1]=l->first;
 {
-  double ang1=k->second.cam_or;
-  double ang2=l->second.cam_or;
+  double ang1=k->second.cam_or*3.1415926/180;
+  double ang2=l->second.cam_or*3.1415926/180;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
@@ -2233,8 +2233,8 @@ return 0;
 
 
 {
-  double ang1=k->second.cam_dec;
-  double ang2=l->second.cam_dec;
+  double ang1=k->second.cam_dec*3.1415926/180;
+  double ang2=l->second.cam_dec*3.1415926/180;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
@@ -2246,8 +2246,8 @@ return 0;
 }
 
 {
-  double ang1=k->second.cam_ra;
-  double ang2=l->second.cam_ra;
+  double ang1=k->second.cam_ra*3.1415926/180;
+  double ang2=l->second.cam_ra*3.1415926/180;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
@@ -2258,8 +2258,8 @@ return 0;
 
 }
 {
-  double ang1=k->second.ams_ra;
-  double ang2=l->second.ams_ra;
+  double ang1=k->second.ams_ra*3.1415926/180;
+  double ang2=l->second.ams_ra*3.1415926/180;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
@@ -2267,11 +2267,10 @@ return 0;
   s0[1]=cos(ang2);
   double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   a.ams_ra=atan2(s1,c1)*180/3.1415926;
-
 }
 {
-  double ang1=k->second.ams_dec;
-  double ang2=l->second.ams_dec;
+  double ang1=k->second.ams_dec*3.1415926/180;
+  double ang2=l->second.ams_dec*3.1415926/180;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
