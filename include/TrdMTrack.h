@@ -62,7 +62,7 @@ class TrdMTrack : public TObject
   AMSPoint HitResidual(int i){if(i>NHits() || i<0){AMSPoint err(0.,0., 0.); return err;} return hitres.at(i);}
  
   // for processing
-  float GetGainCorrection(int module, int tube=0);
+  float GetGainCorrection(int layer, int ladder, int tube=0);
   float GetXePressure();
   
   // Globlal Validity flag

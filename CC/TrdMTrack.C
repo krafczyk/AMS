@@ -586,9 +586,8 @@ float TrdMTrack::CalcLogLikelihood(){
     int lay= TrdMHits[i]->Layer;
     int lad= TrdMHits[i]->Ladder;
     int tub= TrdMHits[i]->Tube;
-    int module = mStraw[lad][lay];
-    
-    float gaincorr=GetGainCorrection(module, tub);
+        
+    float gaincorr=GetGainCorrection(lay, lad, tub);
     
     float pl=phitlen[i];
     float ampcorr=TrdMHits[i]->Amp*0.6/pl*gaincorr;
@@ -1098,8 +1097,9 @@ void TrdMTrack::generate_modul_matrix(){
 
 /////////////////////////////////////////////////////////////////////
 
-float TrdMTrack::GetGainCorrection(int module, int tube){
+float TrdMTrack::GetGainCorrection(int layer, int ladder, int tube){
    
+  int module = mStraw[ladder][layer];
   if(module<0 || module>327) return 0;
 
   float gaincorr, fix=60.;
@@ -1118,6 +1118,7 @@ float TrdMTrack::GetGainCorrection(int module, int tube){
       cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Gain Calibration, Returning 0"<<endl;
       return 0;
     }
+   
     int tubeid=module*16+tube;
     gaincorr= trdk_db->GetGainCorrectionFactorTube(tubeid,_Time);
   }
@@ -1221,7 +1222,7 @@ void TrdMTrack::SetAlignment(){
       for(int d=0; d<20; d++){
 
 	TRDAlignmentPar param=trdk_db->GetAlignmentPar(d,evt->Run());
-	TRDAlignmentPar* para=&param;
+       	TRDAlignmentPar* para=&param;
 	T[d].setp(para->dX,para->dY,para->dZ);
 	R[d].SetRotAngles(-1*para->alpha,-1*para->beta,-1*para->gamma);
 	Center[d].setp(para->RotationCenter_X,para->RotationCenter_Y,para->RotationCenter_Z);
