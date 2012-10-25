@@ -1213,9 +1213,6 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
     int TRDLayer;
     double TRDChargeLikelihood=0;
 
-    //If too many dE/dX tubes are saturated, then use delta ray PDF only
-    if(NBelowThreshold<3 && Option==0) Option=2;
-
     //Only delta electron PDF
     if(Option==2)
     {
@@ -1398,14 +1395,6 @@ double TrdKCluster::GetTRDChargeLikelihoodUpper(double Z)
     int TRDLayer;
     double TRDChargeLikelihood=0;
 
-    //If too many dE/dX tubes are saturated, then use delta ray PDF only
-    if(NBelowThresholdUpper<2)
-    {
-        double DAmpL=DAmpUpper/10.0;
-        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
-        return TRDChargeLikelihood;
-    }
-
     //Both delta electron and dE/dX PDF
     double max_one=0; //Remove the least likelihood for each charge assumption
     double Lvalue;
@@ -1434,14 +1423,6 @@ double TrdKCluster::GetTRDChargeLikelihoodLower(double Z)
     double ADC,Length,Corr;
     int TRDLayer;
     double TRDChargeLikelihood=0;
-
-    //If too many dE/dX tubes are saturated, then use delta ray PDF only
-    if(NBelowThresholdLower<2)
-    {
-        double DAmpL=DAmpLower/10.0;
-        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
-        return TRDChargeLikelihood;
-    }
 
     //Both delta electron and dE/dX PDF
     double max_one=0; //Remove the least likelihood for each charge assumption

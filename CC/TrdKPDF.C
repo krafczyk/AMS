@@ -1868,21 +1868,6 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
         Par6c=p6c[6]+(p6c[7]-p6c[6])*(Charge-12)/2;
         Par7c=p7c[6]+(p7c[7]-p7c[6])*(Charge-12)/2;
     }
-    /*
-  else
-  {
-    Par1r=p1r[7]+(p1r[9]-p1r[7])*(Charge-14)/12;
-    Par2r=p2r[7]+(p2r[9]-p2r[7])*(Charge-14)/12;
-
-    Par1c=p1c[7]+(p1c[9]-p1c[7])*(Charge-14)/12;
-    Par2c=p2c[7]+(p2c[9]-p2c[7])*(Charge-14)/12;
-    Par3c=p3c[7]+(p3c[9]-p3c[7])*(Charge-14)/12;
-    Par4c=p4c[7]+(p4c[9]-p4c[7])*(Charge-14)/12;
-    Par5c=p5c[7]+(p5c[9]-p5c[7])*(Charge-14)/12;
-    Par6c=p6c[7]+(p6c[9]-p6c[7])*(Charge-14)/12;
-    Par7c=p7c[7]+(p7c[9]-p7c[7])*(Charge-14)/12;
-  }
-  */
     else if(Charge<20)
     {
         Par1r=p1r[7]+(p1r[8]-p1r[7])*(Charge-14)/6;
@@ -1910,12 +1895,21 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
         Par7c=p7c[8]+(p7c[9]-p7c[8])*(Charge-20)/6;
     }
     DAmpL=DAmpL*(1+Par1r*TMath::Exp(-Par2r*Rigidity));
-    if(Par4c>0.999999999) Par4c=Par4c>0.999999999;
-    if(Charge>=3)
+    if(Par4c>0.99999999999) Par4c=0.99999999999;
+    if(Charge>=3 && Charge<=16)
     {
         PDFValue=Par4c*TMath::Exp(-(DAmpL-Par1c)/Par2c-Par3c*TMath::Exp(-(DAmpL-Par1c)/Par2c/Par3c)) + (1-Par4c)*TMath::Exp(-(DAmpL-Par5c)/Par6c-Par7c*TMath::Exp(-(DAmpL-Par5c)/Par6c/Par7c));
         PDFNormalization=Par4c*Par2c*TMath::Power(Par3c,1-Par3c)*TMath::Gamma(Par3c) + (1-Par4c)*Par6c*TMath::Power(Par7c,1-Par7c)*TMath::Gamma(Par7c);
         return PDFValue/PDFNormalization;
+    }
+    if(Charge>16)
+    {
+      double Step; //Used for removing lower tail for high charge delta ray PDF
+      if(DAmpL>Par1c) Step=1;
+      else Step=0;
+      PDFValue=Par4c*TMath::Exp(-(DAmpL-Par1c)/Par2c-Par3c*TMath::Exp(-(DAmpL-Par1c)/Par2c/Par3c)) + Step*(1-Par4c)*TMath::Exp(-(DAmpL-Par5c)/Par6c-Par7c*TMath::Exp(-(DAmpL-Par5c)/Par6c/Par7c));
+      PDFNormalization=Par4c*Par2c*TMath::Power(Par3c,1-Par3c)*TMath::Gamma(Par3c) + (1-Par4c)*Par6c*TMath::Power(Par7c,1-Par7c)*TMath::Gamma(Par7c)*TMath::Gamma(Par7c,Par7c*TMath::Exp(-(Par1c-Par5c)/Par6c/Par7c));
+      return PDFValue/PDFNormalization;
     }
 
     //Charge and rigidity PDF for Z<3, fit points: 1, 2, also use fit at Z=3
