@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.33 2012/10/23 17:50:07 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.34 2012/10/25 14:48:31 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -574,7 +574,7 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
   if(TofPMAlignPar::Head==0||TofPMAlignPar::GetHead()->Isload!=1)return 0;
   if(TofPMDAlignPar::Head==0||TofPMDAlignPar::GetHead()->Isload!=1)return 0;
   if(TofAttAlignPar::Head==0||TofAttAlignPar::GetHead()->Isload!=1)return 0;
-  if(TofCAlignPar::Head==0||TofCAlignPar::GetHead()->Isload!=1)return 0;
+  if(TofCAlignPar::GetHead()->Isload!=1)return 0;
   if(signal<0)return signal;//negtive singal overflow
 
   number signalc=signal;

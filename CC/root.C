@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.469 2012/10/23 17:50:07 qyan Exp $
+//  $Id: root.C,v 1.470 2012/10/25 14:48:31 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2369,6 +2369,35 @@ bool AMSEventR::ReadHeader(int entry){
        for(int i=0;i<NCharge();i++)pCharge(i)->setBetaH(-1);
        BetaH().clear();
      }
+//---Fix For Gbatch
+    else if(Version()==610&&nMCEventg()==0){
+      TofRecH::Init();
+//---TofClusterHR
+      for(int i=0;i<NTofClusterH();i++){
+        TofClusterHR *tfclh=pTofClusterH(i);
+        if(!tfclh)continue;
+        TofRecH::EdepRecR(tfclh->Layer,tfclh->Bar,tfclh->Aadc,tfclh->Dadc,tfclh->Coo[tfclh->GetDirection()],tfclh->AQ2,tfclh->DQ2,tfclh->AEdep,tfclh->DEdep);
+      }
+//----BetaHR
+      for(int i=0;i<NBetaH();i++){
+        BetaHR *betah=pBetaH(i);
+        if(!betah)continue;
+        TofClusterHR *tfhit[4]={0};        
+        double tklcoo[4]={0},tkcosz[4]={1,1,1,1};
+        double zpl,time;AMSPoint pnt;AMSDir dir;
+        for(int ilay=0;ilay<4;ilay++){
+          tfhit[ilay]=betah->GetClusterHL(ilay);
+          if(tfhit[ilay]){
+            betah->TInterpolate(tfhit[ilay]->Coo[2],pnt,dir,time);
+            tklcoo[ilay]=pnt[tfhit[ilay]->GetDirection()];
+            tkcosz[ilay]=fabs(dir[2]);
+          }
+        } 
+        TofBetaPar par=betah->gTofBetaPar();
+        TofRecH::EdepTkAtt(tfhit,tklcoo,tkcosz,par);
+        betah->SetTofBetaPar(par);
+     }
+   }
 
 
     if(fHeader.Run!=runo){

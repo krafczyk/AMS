@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.895 2012/09/20 14:12:45 choutko Exp $
+// $Id: job.C,v 1.896 2012/10/25 14:48:31 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3770,6 +3770,8 @@ void AMSJob::_timeinitjob(){
                            TofPMDAlign->TDVSize,
                            TofPMDAlign->TDVBlock,
                            server,1,TofPMDAlignPar::HeadLoadTDVPar));
+//---Charge Par
+      TofCAlignPar *TofCAlign=TofCAlignPar::GetHead();
       }
     }
     //
