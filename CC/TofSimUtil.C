@@ -1,4 +1,4 @@
-//  $Id: TofSimUtil.C,v 1.4 2012/06/25 02:56:13 qyan Exp $
+//  $Id: TofSimUtil.C,v 1.4.4.1 2012/10/26 20:21:40 pzuccon Exp $
 
 //Author Qi Yan 2012/Feb/09 23:14
 // ------------------------------------------------------------
@@ -633,6 +633,12 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
 //--set id
          pm_log1=G4ReflectionFactory::Instance()->GetReflectedLV(pm_log);
          lgc_log1=G4ReflectionFactory::Instance()->GetReflectedLV(lgc_log);
+//--set id
+	 G4LogicalVolume*  lgp_log1=G4ReflectionFactory::Instance()->GetReflectedLV(lgp_log);
+	 //--set id
+	 G4LogicalVolume*  lgt_log1=G4ReflectionFactory::Instance()->GetReflectedLV(lgt_log);
+	 G4LogicalVolume*  lgb_log1=G4ReflectionFactory::Instance()->GetReflectedLV(lgb_log);
+
          int Barid=ilay*1000+ibar*100;//id lbsp//lay bar side pmt
          std::vector<G4VPhysicalVolume*>::iterator Barphv=AsBar->GetVolumesIterator();
          int ipm=0;
@@ -656,8 +662,38 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
               G4String Lgname=lgcname;
               Lgname=Lgname+(*(Barphv+ivo))->GetName();
               (*(Barphv+ivo))->SetName(Lgname);
+	      G4int nn= (*(Barphv+ivo))->GetCopyNo();
+	      nn+=10000*(ilay+1)+1000*(ibar+1);
+	      (*(Barphv+ivo))->SetCopyNo(nn);
             }
-            //G4cout<<"Barid="<<Barid<<" ivo="<<ivo<<" name="<<(*(Barphv+ivo))->GetName()<<" copy="<<(*(Barphv+ivo))->GetCopyNo()<<G4endl;
+           else if((*(Barphv+ivo))->GetLogicalVolume()==lgp_log||((*(Barphv+ivo))->GetLogicalVolume()==lgp_log1)){
+//               sprintf(lgcname,"TOFLG%d",sciid);
+//               G4String Lgname=lgcname;
+//               Lgname=Lgname+(*(Barphv+ivo))->GetName();
+//               (*(Barphv+ivo))->SetName(Lgname);
+	      G4int nn= (*(Barphv+ivo))->GetCopyNo();
+	      nn+=10000*(ilay+1)+1000*(ibar+1);
+	      (*(Barphv+ivo))->SetCopyNo(nn);
+            }
+           else if((*(Barphv+ivo))->GetLogicalVolume()==lgt_log||((*(Barphv+ivo))->GetLogicalVolume()==lgt_log1)){
+//               sprintf(lgcname,"TOFLG%d",sciid);
+//               G4String Lgname=lgcname;
+//               Lgname=Lgname+(*(Barphv+ivo))->GetName();
+//               (*(Barphv+ivo))->SetName(Lgname);
+	      G4int nn= (*(Barphv+ivo))->GetCopyNo();
+	      nn+=10000*(ilay+1)+1000*(ibar+1);
+	      (*(Barphv+ivo))->SetCopyNo(nn);
+            }
+           else if((*(Barphv+ivo))->GetLogicalVolume()==lgb_log||((*(Barphv+ivo))->GetLogicalVolume()==lgb_log1)){
+//               sprintf(lgcname,"TOFLG%d",sciid);
+//               G4String Lgname=lgcname;
+//               Lgname=Lgname+(*(Barphv+ivo))->GetName();
+//               (*(Barphv+ivo))->SetName(Lgname);
+	      G4int nn= (*(Barphv+ivo))->GetCopyNo();
+	      nn+=10000*(ilay+1)+1000*(ibar+1);
+	      (*(Barphv+ivo))->SetCopyNo(nn);
+            }
+	    //G4cout<<"Barid="<<Barid<<" ivo="<<ivo<<" name="<<(*(Barphv+ivo))->GetName()<<" copy="<<(*(Barphv+ivo))->GetCopyNo()<<G4endl;
            
 //---convert to gvol
            if((*(Barphv+ivo))->GetLogicalVolume()==sci_log){
@@ -701,12 +737,12 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
    PCarbon[0][0]=0.;  PCarbon[0][1]=0.;   PCarbon[0][2]=(Zc[0]-Zshift-Nthick+Zc[1])/2.;
    new G4PVPlacement(0,G4ThreeVector(PCarbon[0][0],PCarbon[0][1],PCarbon[0][2]),Carbon_log,"CarbonP1",mvol,false,0);
    PCarbon[1][0]=0.;  PCarbon[1][1]=0.;   PCarbon[1][2]=Zc[1]-Zshift-Nthick-Nthick;
-   new G4PVPlacement(0,G4ThreeVector(PCarbon[1][0],PCarbon[1][1],PCarbon[1][2]),Carbon_log,"CarbonP2",mvol,false,0);
+   new G4PVPlacement(0,G4ThreeVector(PCarbon[1][0],PCarbon[1][1],PCarbon[1][2]),Carbon_log,"CarbonP2",mvol,false,1);
 //--DOWN
    PCarbon[2][0]=0.;  PCarbon[2][1]=0.;   PCarbon[2][2]=Zc[2]+Zshift+Nthick+Nthick;
-   new G4PVPlacement(0,G4ThreeVector(PCarbon[2][0],PCarbon[2][1],PCarbon[2][2]),Carbon_log,"CarbonP3",mvol,false,0);
+   new G4PVPlacement(0,G4ThreeVector(PCarbon[2][0],PCarbon[2][1],PCarbon[2][2]),Carbon_log,"CarbonP3",mvol,false,2);
    PCarbon[3][0]=0.;  PCarbon[3][1]=0.;   PCarbon[3][2]=(Zc[3]+Zshift+Nthick+Zc[2])/2.;
-   new G4PVPlacement(0,G4ThreeVector(PCarbon[3][0],PCarbon[3][1],PCarbon[3][2]),Carbon_log,"CarbonP4",mvol,false,0);
+   new G4PVPlacement(0,G4ThreeVector(PCarbon[3][0],PCarbon[3][1],PCarbon[3][2]),Carbon_log,"CarbonP4",mvol,false,3);
 
    AMSJob::map(1);
    G4cout<<"<<----------End of TOF Geant4 Geometry Init"<<G4endl;   
