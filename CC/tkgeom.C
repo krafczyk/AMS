@@ -458,8 +458,8 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
   geant par[3];
   geant coo[3];
   number nrm[3][3];
-  char name[5];
-  char name2[5];
+  char name[8];
+  char name2[8];
   float pi=atan(1.)*4;
   std::ostrstream ost(name,sizeof(name));
   ost << "PLA" << plane << std::ends;
@@ -633,7 +633,7 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     }
     // add long Spacers
     for(int kk=-1;kk<2;kk+=2){
-      sprintf(name,"SPC%+d",kk );
+      sprintf(name,"SPC%d",(kk>0)?1:2 );
       
       //       Spacer X size/2.
       par[0]= 72.0 /2.;
