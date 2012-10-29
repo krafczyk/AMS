@@ -16,7 +16,9 @@
  *  SDT 22 sept 2012 - modify for user functions in order to align angle definition with those in AMSsoftware
  *  SDT 22 sept 2012 - add get_ams_ra_dec_from_ALTEC_INTL that use attitude angle in INTL frame from altec.
  *  SDT 09 oct 2012 - correct bugs in FT_Gal2Equat and FT_Equat2Gal
- *  SDT 24 oct 2012 - swapped CamID odf star tracker: correct definition is STB=0 Port =1
+ *  SDT 24 oct 2012 - swapped CamID of star tracker: correct definition is STB=0 Port =1
+ *  SDT 28 oct 2012 - add degree_to_Rad & rad_to_degree functions
+ *  SDT 28 oct 2012 - correct bug in get_ams_ra_dec_from_ALTEC_INTL
  */
 
 #include <iostream>
@@ -77,6 +79,11 @@ int get_ams_l_b_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, double
 /// ISSyaw,ISSpitch,ISSroll= attitude Information from ALTEC INTL data, i.e. the attitude with respect the J2000 frame, in degree.
 int get_ams_ra_dec_from_ALTEC_INTL(double AMS_x, double AMS_y,double AMS_z, double & ra, double &dec, double ISSyaw,double ISSpitch, double ISSroll);
 
+
+/// convert angle from degree to radiant
+double degree_to_Rad(double angDeg);
+/// convert angle from radiant to degree
+double rad_to_degree(double angRad);
 // ** **************** COMMON *******************************/
 
 void	FT_Cart2Angular(double x, double y, double z, double& r, double& theta, double& phi);
