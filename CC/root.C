@@ -1,5 +1,6 @@
-//  $Id: root.C,v 1.470 2012/10/25 14:48:31 qyan Exp $
+//  $Id: root.C,v 1.471 2012/10/29 20:09:25 mkrafczy Exp $
 
+#include "TROOT.h"
 #include "TRegexp.h"
 #include "root.h"
 #include "ntuple.h"
@@ -2470,6 +2471,10 @@ AMSEventR::AMSEventR():TSelector(){
     cout <<"  thread "<<omp_get_thread_num()<<endl;
 #endif
 #ifdef __root__new
+    if(gROOT==0)
+    {
+      ROOT::GetROOT();
+    }
     TStreamerInfo::SetFactory(new TStreamerInfo()); 
 #endif
   }

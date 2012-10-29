@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.44 2012/09/25 21:10:28 mkrafczy Exp $
+#  $Id: Makefile.linux,v 1.45 2012/10/29 20:09:26 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -266,7 +266,7 @@ ifdef VERGCCH
 F11ADD= -ltinfo
 endif 
 
-LDFLAGSI=    -static -Wl,--no-as-needed $(G4LIBS)  $(FORTRAN2_LIBS) \
+LDFLAGSI=    -static $(G4LIBS)  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
@@ -276,7 +276,7 @@ LDFLAGSI=    -static -Wl,--no-as-needed $(G4LIBS)  $(FORTRAN2_LIBS) \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 
-LDFLAGS= -Wl,--no-as-needed  $(G4LIBS)   $(FORTRAN2_LIBS) \
+LDFLAGS= $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIRLIB) $(CERNLIBS) \
@@ -308,7 +308,7 @@ else
   LDFLAGSIDL= -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp 
 endif
 
-LDFLAGSSTATICIDL= -static -Wl,--no-as-needed $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
 
 CXX_ORBIT=$(CXX) -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
