@@ -155,7 +155,7 @@ int get_ams_ra_dec_from_ALTEC_INTL(double AMS_x, double AMS_y,double AMS_z, doub
   ISSpitch=ISSpitch/180.*pi;
   ISSroll=ISSroll/180.*pi;
   FT_AMS2Body(AMS_x, AMS_y, AMS_z);                  // move from AMS to ISS Body frame
-  FT_Body_to_J2000(AMS_x, AMS_y, AMS_z,  ISSyaw, ISSyaw,  ISSroll ); // move from ISS Body frame to J2000
+  FT_Body_to_J2000(AMS_x, AMS_y, AMS_z,  ISSyaw, ISSpitch,  ISSroll ); // move from ISS Body frame to J2000
   FT_Cart2Angular( AMS_x,  AMS_y,  AMS_z, r, dec,  ra);
   dec=dec/pi*180.;
   ra=ra/pi*180.;
@@ -164,7 +164,14 @@ return 0;
 }
 
 
-
+double degree_to_Rad(double angDeg){
+// SDT (nov 2012) - convert angle in degree to radiant
+return angDeg/180.*pi;
+}  
+double rad_to_degree(double angRad){
+// SDT (nov 2012) - convert angle in radiant to degree
+return angRad*180./pi;
+}  
 
 /** **************** COMMON *******************************/
 void	FT_Cart2Angular(double x, double y, double z, double& r, double& theta, double& phi){
