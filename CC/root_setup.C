@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.104 2012/10/23 14:51:07 shaino Exp $
+//  $Id: root_setup.C,v 1.105 2012/10/29 16:54:35 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -799,6 +799,33 @@ slc+="/SlowControlDir";
 //sprintf(tmps,"/%u",mktime(tmp)-3600-tzz);
     string sdir=slc;
 #ifdef __DARWIN__
+    //29 October 2012 found a compiling error in Mountain Lion (10.8.x)
+    //../CC/root_setup.C:803: error: invalid conversion from ‘int (*)(dirent*)’ to ‘int (*)(const dirent*)’
+    // this is due to /usr/include/dirent.h
+    //------------------------------------------
+    // Before Mountain Lion --
+    
+    //   /usr/include/dirent.h
+    
+    // #if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+    //   int scandir(const char *, struct dirent ***,
+    // 	      int (*)(struct dirent *), int (*)(const void *, const void *)) __DARWIN_INODE64(scandir);
+    //  #ifdef __BLOCKS__
+    //  int scandir_b(const char *, struct dirent ***,
+    // 	       int (^)(struct dirent *), int (^)(const void *, const void *)) __DARWIN_INODE64(scandir_b);
+    // #endif /* __BLOCKS__ */
+    // #endif /* not POSIX */
+    
+    //  In Mountain Lion --
+    
+    //    /usr/include/dirent.h
+    
+    //    int scandir(const char *, struct dirent ***,
+    // 	       int (*)(const struct dirent *), int (*)(const struct dirent **, const struct dirent **)) __DARWIN_INODE64(scandir);
+    //  #ifdef __BLOCKS__
+    //  int scandir_b(const char *, struct dirent ***,
+    // 	       int (^)(const struct dirent *), int (^)(const struct dirent **, const struct dirent **)) __DARWIN_INODE64(scandir_b) __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_3_2);
+    // #endif /* __BLOCKS__ */
     dirent ** namelist;
     int nptr=scandir(sdir.c_str(),&namelist,_select,NULL);
 #endif
