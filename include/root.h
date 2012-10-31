@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.488 2012/10/23 17:51:21 qyan Exp $
+//  $Id: root.h,v 1.489 2012/10/31 14:57:51 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -340,8 +340,8 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 //-----------Coordinates -------------------
 int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get galactic coordinates using ISS position, velocity and LVLH attitude
 int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);///< Get galactic coordinates using Star Tracker
+int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double YPR[3], double  time);///< Get galactic coordinates using YPR attitude with respect to J2000
 int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);///< convert celestial coordinates into galactic coordinates
-
 //-----------Backtracing -------------------
 //! Do Backtracing
 /*!
@@ -358,7 +358,7 @@ input
           VelPT[2]  ISS velocity (VelPhi,VelTheta)
 	  YPR[3]    ISS attitude (Yaw,Pitch,Roll)
 	  xtime     time
-	  gtod      Use gtod or not
+	  gtod      Use gtod or INTL
 	  galactic  Galactic or Celestial coordinates
 output
           gal_long   Galctic longigude (deg)
@@ -4373,6 +4373,7 @@ input
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
            use_gtod         ->  use gtod coordinates
            use_ctrs         ->  use gtod coordinates
+           use_intl         ->  use intl coordinates
 
 output
              Galactic coordinates glong,glat (degrees) glong, glat
@@ -4381,6 +4382,7 @@ output
                                  2  gtod coo system + lvlh ypr had been used
                                  3   ctrs coo  system  + -------------------------------
                                  4   twoline element estimator of gtod + --------------------------
+                                 8   INTL coo system + --------------------------
 
 
 \return 
@@ -4392,7 +4394,7 @@ output
  -3 use of ams_stk and ams_gps_time was not possible
 
 */
-int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false);///< Get galactic coordinates
+int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false, bool use_intl=false);///< Get galactic coordinates
 
          //! Do Backtracing
         /*!
@@ -4408,6 +4410,7 @@ input
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
            use_gtod         ->  use gtod coordinates
            use_ctrs         ->  use gtod coordinates
+           use_intl         ->  use intl coordinates
 
 output
              Galactic coordinates glong,glat (degrees) glong, glat
@@ -4421,7 +4424,7 @@ output
                                  5   overcutoff particle
                                  6   undercutoff particle 
                                  7   trapped particle
-
+                                 8   INTL coo system + --------------------------
 \return 
 
  0 success
@@ -4431,13 +4434,13 @@ output
  -3 use of ams_stk and ams_gps_time was not possible
 
 */
-int DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double &TraceTime, float theta, float phi, double Momentum,  double Velocity, int Charge,bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false);///< Do Backtracing
+  int DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double &TraceTime, float theta, float phi, double Momentum,  double Velocity, int Charge,bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false, bool use_intl=false);///< Do Backtracing
 
 
 
 int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates
 
-int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates for ams zenith;
+  int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false, bool use_ctrs=false, bool use_intl=false);///< Get galactic coordinates for ams zenith;
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time
       //! RunTagChecker
         /*!
