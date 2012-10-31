@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.573 2012/10/09 16:27:57 nnikonov Exp $
+//  $Id: event.C,v 1.574 2012/10/31 20:08:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4876,9 +4876,8 @@ void AMSEvent::SetTofSTemp(){
 
 
 void AMSEvent::LoadISS(){
-unsigned int gpsdiff=15;
 if(AMSNtuple::LoadISS(_time)){
-ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6-gpsdiff);
+ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6-AMSEventR::gpsdiff(_time));
 //double v_earth=2*3.1415926/24/3600;
 //double vz=fabs(_StationSpeed*sin(_VelTheta));
 //double vr=fabs(_StationSpeed*cos(_VelTheta));
@@ -4886,22 +4885,22 @@ ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_Vel
 //double vgtod=sqrt(vz*vz+vr*vr);
 _NorthPolePhi+=AMSmceventg::Orbit.PolePhiStatic;
 }
-int ret=AMSNtuple::ISSAtt(_Roll,_Pitch,_Yaw,double(_time)+_usec/1.e6-gpsdiff);
+int ret=AMSNtuple::ISSAtt(_Roll,_Pitch,_Yaw,double(_time)+_usec/1.e6-AMSEventR::gpsdiff(_time));
 static int print=0;
 if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSAtt Returns "<<ret<<" "<<_Roll<<" "<<_Pitch<<" "<<_Yaw<<" "<<_time<<endl;
 
-ret=AMSNtuple::ISSSA(_Alpha,_B1a,_B3a,_B1b,_B3b,double(_time)+_usec/1.e6-gpsdiff);
+ret=AMSNtuple::ISSSA(_Alpha,_B1a,_B3a,_B1b,_B3b,double(_time)+_usec/1.e6-AMSEventR::gpsdiff(_time));
 if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSSA Returns "<<ret<<" "<<_Alpha<<" "<<_B1a<<" "<<_B3a<<" "<<_time<<endl;
 
 float r,phi,theta,v,vphi,vtheta;
-ret=AMSNtuple::ISSCTRS(r,theta,phi,v,vtheta,vphi,double(_time)+_usec/1.e6-gpsdiff);
+ret=AMSNtuple::ISSCTRS(r,theta,phi,v,vtheta,vphi,double(_time)+_usec/1.e6-AMSEventR::gpsdiff(_time));
 if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSCTRS Returns "<<ret<<" "<<r<<" "<<theta<<" "<<phi<<" "<<v<<" "<<_time<<endl;
 if(!ret){
 // replace?
 //cout<< "tbd "<<endl;
 
 }
-ret=AMSNtuple::ISSGTOD(r,theta,phi,v,vtheta,vphi,double(_time)+_usec/1.e6-gpsdiff);
+ret=AMSNtuple::ISSGTOD(r,theta,phi,v,vtheta,vphi,double(_time)+_usec/1.e6-AMSEventR::gpsdiff(_time));
 if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSGTOD Returns "<<ret<<" "<<r<<" "<<theta<<" "<<phi<<" "<<v<<" "<<_time<<endl;
 
 }

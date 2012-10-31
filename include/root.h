@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.490 2012/10/31 15:28:54 shaino Exp $
+//  $Id: root.h,v 1.491 2012/10/31 20:08:33 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -217,11 +217,11 @@ static char _Info[1024];
 // general info block
 
   unsigned int Run;         ///<run  number
-  unsigned int RunType;     ///<runtype(data), RNDM(1) MC
+  unsigned int RunType;     ///<runtype(data)
   unsigned int Event;      ///<event number
   int Raw;            ///<raw event length in bytes
   int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
-  unsigned int Time[2];        ///<unix time + usec time(data)/RNDM(2) MC
+  unsigned int Time[2];        ///<unix time + usec time(data) 
   int RNDMSeed[2];  ///< MC Only RNDM(1)/RNDM(2) seeds
 
 
@@ -239,11 +239,6 @@ static char _Info[1024];
    float ThetaM;        ///< magnetic (calculated for an eccentric dipole coo system) theta  rad
    float PhiM;          ///< magnetic (calculated for an eccentric dipole coo system)phi  rad
 
-   float Alpha; ///<ISS Solar Array Alpha (rad)
-   float B1a;   ///< ISS Solar Array Beta (rad)
-   float B1b;   ///< ISS Solar Array Beta (rad)
-   float B3a;   ///< ISS Solar Array Beta (rad)
-   float B3b;   ///< ISS Solar Array Beta (rad)
 
  public:
     double Zenith();///< \return angle betwen ams z axis and zenith in degrees
@@ -326,6 +321,9 @@ int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, flo
 int getISSGTOD(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSGTOD values for the current event time;
 int getGPSWGS84(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::GPSWGS84 values for the current event time;
 
+int getISSTLE(double dt=0);///<update TLE values for the current event time and replace in fHeader;
+double TimeCorr(double& error, unsigned int time=0);///< Correction to be added to JMDC time to get correct gps time (sec) ; error : error estimation (sec) 
+double UTCTime();///< Returns Best Known UTCTime for  currentevent 
 int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
 int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and replace roll,pitch,yaw in the fHeader
 double getBetaSun();///<get solar beta angle via geometrical calculation
@@ -386,7 +384,7 @@ int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,21)       //HeaderR
+  ClassDef(HeaderR,22)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -3664,6 +3662,7 @@ ClassDef(MCEventgR,3)       //MCEventgR
 #include <map>
 class AMSEventR: public  TSelector {
 public:
+static int gpsdiff(unsigned int time);///< Return gps-utc difference for the time time
 static vector<unsigned int>RunType;
 static vector<unsigned int>BadRunList;
 static unsigned int MinRun;
@@ -6170,7 +6169,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,18)       //AMSEventR
+ClassDef(AMSEventR,19)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 

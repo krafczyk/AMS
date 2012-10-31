@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.473 2012/10/31 15:28:51 shaino Exp $
+//  $Id: root.C,v 1.474 2012/10/31 20:08:27 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2400,7 +2400,9 @@ bool AMSEventR::ReadHeader(int entry){
      }
    }
 
-
+     
+     fHeader.getISSTLE();
+     fHeader.getISSAtt();
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
       if(!UpdateSetup(fHeader.Run)){
@@ -3072,11 +3074,6 @@ void HeaderR::Set(EventNtuple02* ptr){
   ThetaM=    ptr->ThetaM;
   PhiM =     ptr->PhiM;
       TrStat=ptr->TrStat;
-  Alpha=ptr->Alpha;    
-  B1a=ptr->B1a;    
-  B3a=ptr->B3a;    
-  B1b=ptr->B1b;    
-  B3b=ptr->B3b;
 }
 #endif
 
@@ -7503,9 +7500,6 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
 
 
      if(s3==2 || s1==2 || s2==2){
-        alpha=fHeader.Alpha;
-        beta1=fHeader.B1a;
-        beta3=fHeader.B3a;
         //.....................if no values only d-alpha 
         //mean variation of alpha in 5 seconds during one orbit:
         da=360.*deg2rad/(90.*60)*5;
@@ -8489,10 +8483,9 @@ else return 5;
 
 
 int HeaderR::getISSSA(float & alpha, float &b1a, float &b3a, float &b1b,float &b3b,float dt){
-unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
 AMSSetupR::ISSSA a;
-double xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
+double xtime=UTCTime()+dt;
 int ret=AMSEventR::getsetup()->getISSSA(a,xtime);
 alpha=a.alpha;
 b1a=a.b1a;
@@ -8508,10 +8501,9 @@ if(!getsetup())return 2;
 return getsetup()->fHeader.CheckRTB(UTime(),bit)?1:0;
 }
 int HeaderR::getISSCTRS(float & r, float &theta, float &phi, float &v,float &vtheta,float &vphi,float dt){
-unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
 AMSSetupR::ISSCTRSR a;
-double xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
+double xtime=UTCTime()+dt;
 int ret=AMSEventR::getsetup()->getISSCTRS(a,xtime);
 r=a.r;
 theta=a.theta;
@@ -8526,10 +8518,9 @@ return ret;
 
 
 int HeaderR::getISSGTOD(float & r, float &theta, float &phi, float &v,float &vtheta,float &vphi,float dt){
-unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
 AMSSetupR::ISSGTOD a;
-double xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
+double xtime=UTCTime()+dt;
 int ret=AMSEventR::getsetup()->getISSGTOD(a,xtime);
 r=a.r;
 theta=a.theta;
@@ -8544,7 +8535,6 @@ return ret;
 
 int HeaderR::getGPSWGS84(float & r, float &theta, float &phi, float &v,float &vtheta,float &vphi,float dt){
 if(!AMSEventR::getsetup())return 2;
-unsigned int gpsdiff=15;
 AMSSetupR::GPSWGS84R a;
 unsigned int sec,nsec;
 int ok=AMSEventR::Head()->GetGPSTime(sec,nsec);
@@ -8552,7 +8542,7 @@ double xtime=sec+double(nsec)/1e9+dt;
 if(!ok){
   static int nprint=0;
   if(nprint++<100)cerr<<"HeaderR::getGPSWGS84-GetGPSTimeRetuens "<<ok<<endl;
-  xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
+  xtime=UTCTime()+dt;
 }
 int ret=AMSEventR::getsetup()->getGPSWGS84(a,xtime);
 r=a.r;
@@ -8567,16 +8557,14 @@ return ret;
 
 
 int HeaderR::getISSAtt(float & roll, float &pitch, float &yaw){
-unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
-double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
+double xtime=UTCTime();
 return AMSEventR::getsetup()->getISSAtt(roll,pitch,yaw,xtime);
 
 }
 int HeaderR::getISSAtt(){
-unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
-double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
+double xtime=UTCTime();
 
 return AMSEventR::getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime);
 
@@ -8794,15 +8782,14 @@ int AMSEventR::DoBacktracing(int & result, double & glong, double & glat, double
   float elev=dir.gettheta();               // common definition
   float azim=dir.getphi();
 
- unsigned int gpsdiff=15;
  int ret=0;
  result=0;
- double  xtime=double(UTime())+Frac()-gpsdiff;    
+ double  xtime=fHeader.UTCTime();
  if(use_ams_gps_time){
    unsigned int time,nanotime;
    if(GetGPSTime( time, nanotime) )ret=-2;
    else {
-    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    xtime=double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
     result|=(1<<1);
   }
  }
@@ -8957,15 +8944,14 @@ return value
   float elev=dir.gettheta();               // common definition
   float azim=dir.getphi();
 
- unsigned int gpsdiff=15;
  int ret=0;
  result=0;
- double  xtime=double(UTime())+Frac()-gpsdiff;    
+ double  xtime=fHeader.UTCTime();
  if(use_ams_gps_time){
    unsigned int time,nanotime;
    if(GetGPSTime( time, nanotime) )ret=-2;
    else {
-    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    xtime=double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
     result|=(1<<1);
   }
  }
@@ -9113,15 +9099,14 @@ return value
   float elev=dir.gettheta();               // common definition
   float azim=dir.getphi();
 
- unsigned int gpsdiff=15;
  int ret=0;
  result=0;
- double  xtime=double(UTime())+Frac()-gpsdiff;    
+ double  xtime=fHeader.UTCTime();
  if(use_ams_gps_time){
    unsigned int time,nanotime;
    if(GetGPSTime( time, nanotime) )ret=-2;
    else {
-    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    xtime=double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
     result|=(1<<1);
   }
  }
@@ -9260,14 +9245,13 @@ return value
   float theta=3.1415926;
   float phi=0;
  result=0;
- unsigned int gpsdiff=15;
  int ret=0;
- double  xtime=double(UTime())+Frac()-gpsdiff;    
+ double  xtime=fHeader.UTCTime();
  if(use_ams_gps_time){
    unsigned int time,nanotime;
    if(GetGPSTime( time, nanotime) )ret=-2;
    else {
-    xtime=double(time)+double(nanotime)/1.e9-gpsdiff;
+    xtime=double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
     result|=(1<<1);
   }
  }
@@ -11001,3 +10985,38 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
 } 
 
 #endif
+
+double HeaderR::UTCTime(){
+double error=0;
+return double(Time[0])+double(Time[1])/1000000.+TimeCorr(error,Time[0])-AMSEventR::gpsdiff(Time[0]);
+}
+
+double HeaderR::TimeCorr(double & error,unsigned int time){
+error=10;
+double dt=0;
+return dt;
+}
+
+int AMSEventR::gpsdiff(unsigned int time){
+unsigned int t16=1341100786;
+if(time<t16)return 15;
+else return 16;
+}
+
+int HeaderR::getISSTLE(double dt){
+if(!AMSEventR::getsetup())return 2;
+double xtime=UTCTime()+dt;
+float RTP[3],VelTP[3];
+
+int ret= AMSEventR::getsetup()->getISSTLE(RTP,VelTP,xtime);
+if(!ret){
+ RadS=RTP[0];
+ ThetaS=RTP[1];
+ PhiS=RTP[1];
+ VelocityS=VelTP[0];
+ VelTheta=VelTP[1];
+ VelPhi=VelTP[2];
+}
+return ret;
+}
+

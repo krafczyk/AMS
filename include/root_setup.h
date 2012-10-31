@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.63 2012/10/31 15:28:54 shaino Exp $
+//  $Id: root_setup.h,v 1.64 2012/10/31 20:08:33 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -593,7 +593,25 @@ static int _select (const dirent64 * entry);
  int getISSGTOD(ISSGTOD & a, double xtime); 
  
  
- //! ISS Solar Angles Accessor
+ //! ISS TLE Prediction Accessor
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   \param RTP[3] Rad (cm), Theta(rad), Phi (rad) (GTOD)
+   \param VelTP[3] Velocity [rad/sec], Velocity_Theta(Rad), Velocity_Phi(Rad);
+   
+   \retval 0   ok 
+   \retval 1   problem in TLE prediction
+   \retval 2   TLE elements buffer empty
+   \retval 3   No TLE element found for xtime
+   
+   \note
+   The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
+ */
+ int getISSTLE(float RTP[3],float VelTP[3], double xtime); 
+ 
+ 
+ //! ISS Solar Arrays Position accessor
  /*! 
    
    \param double xtime (unix time + fraction of second)

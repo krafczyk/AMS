@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.112 2012/10/29 20:09:26 mkrafczy Exp $
+#  $Id: Makefile,v 1.113 2012/10/31 20:08:31 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -169,7 +169,8 @@ ifndef SLC6system
 endif
 ROOTLIBSA += -lncurses $(LFORT)
 
-LIBS          =   -Bstatic $(ROOTLIBSA)  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm   -Bdynamic -ldl 
+#LIBS          =   -Bstatic $(ROOTLIBSA)  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm   -Bdynamic -ldl 
+LIBS          =   -Bstatic $(ROOTLIBSA)   -lm   -Bdynamic -lshift -ldl 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm -ldl 
 LIBSD         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBS) 
 

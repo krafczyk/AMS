@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.107 2012/10/31 15:28:51 shaino Exp $
+//  $Id: root_setup.C,v 1.108 2012/10/31 20:08:27 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -13,6 +13,8 @@
 #include "commons.h"
 #include "commonsi.h"
 #endif
+extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *vp, float *grmedphi, double time);
+extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #include "timeid.h"
         class trio{
            public: 
@@ -614,7 +616,7 @@ else{
    systemc+=".so";
   }
   else if(strstr(nvr,"2.6")){
-   systemc+=".6";
+   systemc+=".so";
   }
   char u[128];
   sprintf(u," -r %u",fHeader.Run);
@@ -626,7 +628,8 @@ else{
   int i=system(systemc);
   if(i){
    cerr <<"  AMSSetupR::FillHeader-E-UnableTo "<<systemc<<endl;
-   fHeader.FEventTime=fHeader.Run-60;
+   const int dt=120;
+   fHeader.FEventTime=fHeader.Run-dt;
    fHeader.LEventTime=fHeader.Run+3600;
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
@@ -638,14 +641,14 @@ else{
    fISSGTOD.clear();
    fGPSWGS84.clear();
    fDSPError.clear();
-   LoadISS(fHeader.Run,fHeader.Run);
-   LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
-   LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
-   LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
-   LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
-   LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
-   LoadAMSSTK(fHeader.Run-60,fHeader.Run+3600);
-   LoadDSPErrors(fHeader.Run-60,fHeader.Run+3600);
+   LoadISS(fHeader.Run-dt,fHeader.Run+3600);
+   LoadISSAtt(fHeader.Run-dt,fHeader.Run+3600);
+   LoadISSSA(fHeader.Run-dt,fHeader.Run+3600);
+   LoadISSCTRS(fHeader.Run-dt,fHeader.Run+3600);
+   LoadGPSWGS84(fHeader.Run-dt,fHeader.Run+3600);
+   LoadISSGTOD(fHeader.Run-dt,fHeader.Run+3600);
+   LoadAMSSTK(fHeader.Run-dt,fHeader.Run+3600);
+   LoadDSPErrors(fHeader.Run-dt,fHeader.Run+3600);
    LoadDynAlignment(fHeader.Run);
    if(!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return false; 
@@ -669,8 +672,9 @@ else{
    fbin.close();
    }
    else {
+      const int dt=120;
       cerr<<"AMSSetupR::FillHeader-E-UnableToOpenfile "<<systemc<<endl;
-      fHeader.FEventTime=fHeader.Run-60;
+      fHeader.FEventTime=fHeader.Run-dt;
       fHeader.LEventTime=fHeader.Run+3600;
 
    }
@@ -681,14 +685,15 @@ else{
    fISSAtt.clear();
    fDSPError.clear();
    fAMSSTK.clear();
-   LoadISS(fHeader.FEventTime,fHeader.LEventTime);
-   LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
-   LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
-   LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
-   LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
-   LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
-   LoadAMSSTK(fHeader.FEventTime-60,fHeader.LEventTime+60);
-   LoadDSPErrors(fHeader.FEventTime-60,fHeader.LEventTime+1);
+   const int dt=120;
+   LoadISS(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
+   LoadISSAtt(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
+   LoadISSSA(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
+   LoadISSCTRS(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
+   LoadGPSWGS84(fHeader.Run-dt,fHeader.LEventTime+dt);
+   LoadISSGTOD(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
+   LoadAMSSTK(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
+   LoadDSPErrors(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadDynAlignment(fHeader.Run);
    if (!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return true;
@@ -1085,16 +1090,12 @@ integer AMSSetupR::_select(  const dirent64 *entry)
 }
 
 void AMSSetupR::LoadISS(unsigned int t1, unsigned int t2){
-#ifdef __ROOTSHAREDLIBRARY__
-}
-#else
 char amsdatadir[]="/afs/cern.ch/ams/Offline/AMSDataDir";
 char *amsd=getenv("AMSDataDir");
 if(!amsd || !strlen(amsd))amsd=amsdatadir;
 string ifile=amsd;
-ifile+="/";
-ifile+=AMSCommonsI::getversion();
-ifile+="/ISS_tlefile.txt";
+ifile+="/v5.00/";
+ifile+="ISS_tlefile.txt";
 ifstream ifbin;
 ifbin.clear();
 ifbin.open(ifile.c_str());
@@ -1122,10 +1123,13 @@ ifbin.open(ifile.c_str());
                         }
                        }
                        ifbin.close();
+                       cout<< "AMSSetupR::LoadISS-I- "<<fISSData.size()<<" Entries Loaded"<<endl;
+                    }
+                    else{
+                       cerr<< "AMSSetupR::LoadISS-E-UnableToOpenFile "<<ifile<<endl;
                     }
                 }
 
-#endif
 
 
 int AMSSetupR::getScalers(unsigned int time, unsigned int usec){
@@ -1509,19 +1513,31 @@ return ret;
 //#endif
 
 int AMSSetupR::getISSSA(AMSSetupR::ISSSA & a, double xtime){
-if (fISSSA.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
-static unsigned int stime=0;
+static unsigned int ssize=0;
+static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
-if(stime!=floor(xtime)){
-stime=xtime;
-if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSSA.clear();
+if(fISSSA.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
 }
-else LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+
 }
-#endif
+LoadISSSA(stime[0],stime[1]);
+ssize=fISSSA.size();
 }
+#endif 
+
+
 if (fISSSA.size()==0)return 2;
 
 
@@ -1639,21 +1655,35 @@ k--;
 
 
 int AMSSetupR::getISSAtt(float &roll, float&pitch,float &yaw,double xtime){
-
-if(fISSAtt.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
-static unsigned int stime=0;
+static unsigned int ssize=0;
+static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
-if(stime!=floor(xtime)){
-stime=xtime;
-if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSAtt.clear();
+if(fISSAtt.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
 }
-else LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+
 }
-#endif
+LoadISSAtt(stime[0],stime[1]);
+ssize=fISSAtt.size();
+}
+#endif 
+
+
+
+
 if(fISSAtt.size()==0)return 2;
-}
+
 AMSSetupR::ISSAtt_i k=fISSAtt.lower_bound(xtime);
 if(k==fISSAtt.begin()){
 roll=k->second.Roll;
@@ -1710,22 +1740,92 @@ r*=100000;
 }
 
 
+int AMSSetupR::getISSTLE(float RTP[3],float VelTP[3],double xtime){
+#ifdef __ROOTSHAREDLIBRARY__
+static unsigned int ssize=0;
+static unsigned int stime[2]={1,1};
+#pragma omp threadprivate (stime)
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSData.clear();
+if(fISSData.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
+}
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+
+}
+LoadISS(stime[0],stime[1]);
+ssize=fISSData.size();
+}
+#endif 
+static unsigned int time=0;
+#pragma omp threadprivate (time)
+const double pi2= 3.1415926535*2;
+if (fISSData.size()==0)return 2;
+	unsigned int tl=0;
+	for(ISSData_i i=fISSData.begin();i!=fISSData.end();i++){
+	 if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
+	}
+	if(tl!=time && tl){
+  	 time=tl;
+	 ISSData_i i=fISSData.find(time);
+	if(i!=fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
+	 float NPhi;
+         ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
+         RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
+         VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
+	 return 0;
+	}
+	else{
+	static int print=0;
+	time=0;
+	if(print++<10)cerr<<"AMSSetupR::getISSTLE-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
+	return 1 ;
+	}
+	}
+        if(time!=0){
+	 float NPhi;
+         ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
+         RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
+         VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
+         return 0;
+        }
+	return 3;
+
+}
+
 
 
 int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR & a, double xtime){
-if(fISSCTRS.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
-static unsigned int stime=0;
+static unsigned int ssize=0;
+static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
-if(stime!=floor(xtime)){
-stime=xtime;
-if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+60);
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSCTRS.clear();
+if(fISSCTRS.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
 }
-else LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+
 }
-#endif
+LoadISSCTRS(stime[0],stime[1]);
+ssize=fISSCTRS.size();
 }
+#endif 
 if (fISSCTRS.size()==0)return 2;
 
 
@@ -1833,19 +1933,31 @@ return 0;
 
 
 int AMSSetupR::getGPSWGS84(AMSSetupR::GPSWGS84R & a, double xtime){
-if(fGPSWGS84.size()==0){
+//  gpswgs84 time is gps time
+xtime+=AMSEventR::gpsdiff(floor(xtime));
 #ifdef __ROOTSHAREDLIBRARY__
-static unsigned int stime=0;
+static unsigned int ssize=0;
+static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
-if(stime!=floor(xtime)){
-stime=xtime;
-if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadGPSWGS84(fHeader.FEventTime-60,fHeader.LEventTime+1);
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fGPSWGS84.clear();
+if(fGPSWGS84.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
 }
-else LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+
 }
-#endif
+LoadGPSWGS84(stime[0],stime[1]);
+ssize=fGPSWGS84.size();
 }
+#endif 
 if (fGPSWGS84.size()==0)return 2;
 
 
@@ -2083,19 +2195,29 @@ return total>0;
 }       
 
 int AMSSetupR::getISSGTOD(AMSSetupR::ISSGTOD & a, double xtime){
-if(fISSGTOD.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
-static unsigned int stime=0;
+static unsigned int ssize=0;
+static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
-if(stime!=floor(xtime)){
-stime=xtime;
-if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSGTOD.clear();
+if(fISSGTOD.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
 }
-else LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+
 }
-#endif
+LoadISSGTOD(stime[0],stime[1]);
+ssize=fISSGTOD.size();
 }
+#endif 
 if (fISSGTOD.size()==0)return 2;
 
 
@@ -2207,19 +2329,35 @@ a=b;
 
 
 int AMSSetupR::getAMSSTK(AMSSetupR::AMSSTK & a, double xtime){
-if(fAMSSTK.size()==0){
+// 
+// note amsstk table is in  GPS time
+//
+xtime+=AMSEventR::gpsdiff(floor(xtime));
 #ifdef __ROOTSHAREDLIBRARY__
-static unsigned int stime=0;
+static unsigned int ssize=0;
+static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
-if(stime!=floor(xtime)){
-stime=xtime;
-if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadAMSSTK(fHeader.FEventTime-60,fHeader.LEventTime+1);
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fAMSSTK.clear();
+if(fAMSSTK.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
 }
-else LoadAMSSTK(fHeader.Run-60,fHeader.Run+3600);
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+
 }
-#endif
+LoadAMSSTK(stime[0],stime[1]);
+ssize=fAMSSTK.size();
 }
+#endif 
+
+
 if (fAMSSTK.size()==0)return 2;
 
 
@@ -2311,6 +2449,7 @@ return 0;
   if(k->second.cam_id!=l->second.cam_id)return 3;
   const float dmax=60;
   if(fabs(tme[1]-tme[0])>dmax)return 4;
+   
   else return 0;
 }
 
@@ -3615,18 +3754,19 @@ int AMSSetupR::getDSPError(DSPError& dsperror, unsigned int time){
 #pragma omp threadprivate (stime)
     if(stime!=floor(time)){
       stime=time;
+     const int dt=120;
       if(fHeader.FEventTime==0 && fHeader.Run==0 && fHeader.LEventTime==0){//"dummy" AMSSetupR
-	tstartloaded=min(tstartloaded, time-60);
-	tendloaded=max(tendloaded, time+1);
+	tstartloaded=min(tstartloaded, time-dt);
+	tendloaded=max(tendloaded, time+dt);
 	LoadDSPErrors(tstartloaded, tendloaded);
       }
-      else if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-	tstartloaded=min(tstartloaded, fHeader.FEventTime-60);
-	tendloaded=max(tendloaded, fHeader.LEventTime+1);
+      else if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+dt>fHeader.Run){
+	tstartloaded=min(tstartloaded, fHeader.FEventTime-dt);
+	tendloaded=max(tendloaded, fHeader.LEventTime+dt);
 	LoadDSPErrors(tstartloaded, tendloaded);
       }
       else {
-	tstartloaded=min(tstartloaded, fHeader.Run-60);
+	tstartloaded=min(tstartloaded, fHeader.Run-dt);
 	tendloaded=max(tendloaded, fHeader.Run+3600);
 	LoadDSPErrors(tstartloaded, tendloaded);
       }
