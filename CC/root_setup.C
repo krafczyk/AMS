@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.106 2012/10/31 14:57:47 shaino Exp $
+//  $Id: root_setup.C,v 1.107 2012/10/31 15:28:51 shaino Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -157,7 +157,6 @@ fISSData.clear();
 fISSAtt.clear();
 fAMSSTK.clear();
 fDSPError.clear();
-fISSINTL.clear();
 fISSCTRS.clear();
 fISSGTOD.clear();
 fScalers.clear();
@@ -179,7 +178,6 @@ Reset();
 }
   ClassImp(AMSSetupR::ISSAtt)
   ClassImp(AMSSetupR::ISSSA)
-  ClassImp(AMSSetupR::ISSINTL)
   ClassImp(AMSSetupR::ISSCTRS)
   ClassImp(AMSSetupR::ISSGTOD)
   ClassImp(AMSSetupR::TDVR)
@@ -245,7 +243,7 @@ else{
 }
 */
 
-    void AMSSetupR::Add(SlowControlDB *p, int verb){
+ void AMSSetupR::Add(SlowControlDB *p){
 if(!p){
  cerr<<"AMSSetupR::add-E-SlowcontrolPointerIsNull"<<endl;
 }
@@ -278,7 +276,7 @@ else{
         fSlowControl.fEnd=p->end;
     }
 }
-if(verb)fSlowControl.print();
+fSlowControl.print();
 }
 
 int AMSSetupR::LoadExt(){
@@ -636,7 +634,6 @@ else{
    fISSData.clear();
    fISSAtt.clear();
    fAMSSTK.clear();
-   fISSINTL.clear();
    fISSCTRS.clear();
    fISSGTOD.clear();
    fGPSWGS84.clear();
@@ -644,7 +641,6 @@ else{
    LoadISS(fHeader.Run,fHeader.Run);
    LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
    LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
-   LoadISSINTL(fHeader.Run-60,fHeader.Run+3600);
    LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
    LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
    LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
@@ -688,7 +684,6 @@ else{
    LoadISS(fHeader.FEventTime,fHeader.LEventTime);
    LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
-   LoadISSINTL(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
    LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
@@ -1048,17 +1043,17 @@ return false;
 
 
 
-bool AMSSetupR::LoadSlowcontrolDB(const char* file, int verb){
+bool AMSSetupR::LoadSlowcontrolDB(const char* file){
   SlowControlDB::KillPointer();
-if(verb)cout <<"AMSSetupR::LoadSlowcontrolDB-I-ResetSCDBPointer "<<file<<endl;
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-ResetSCDBPointer "<<file<<endl;
   SlowControlDB* scdb=SlowControlDB::GetPointer();
-if(verb)cout <<"AMSSetupR::LoadSlowcontrolDB-I-GetSCDBPointer "<<file<<endl;
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-GetSCDBPointer "<<file<<endl;
   if(scdb && scdb->Load(file,fHeader.FEventTime,fHeader.LEventTime)){
-if(verb)cout <<"AMSSetupR::LoadSlowcontrolDB-I-LoadSCDBFile "<<file<<endl;
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-LoadSCDBFile "<<file<<endl;
     scdb->BuildSearchIndex(0);
-if(verb)cout <<"AMSSetupR::LoadSlowcontrolDB-I-AddSearchIndex "<<file<<endl;
-  Add(scdb, verb);
-if(verb)cout <<"AMSSetupR::LoadSlowcontrolDB-I-fillSlowControl "<<file<<endl;
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-AddSearchIndex "<<file<<endl;
+    Add(scdb);
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-fillSlowControl "<<file<<endl;
   }
   else{
     cerr<<"AMSSetupR::LoadSlowcontrolDB-E-UnabletoLoadFile "<<scdb<<" "<<file<<endl;
@@ -1252,6 +1247,7 @@ char tmp2[255];
   while(getline(str,word,',')){
    vout.push_back(word);
   }
+// cout <<vout.size()<<endl;
    if(vout.size()==23){
     AMSSTK a;
     if(vout[0][0]=='S' && vout[0][1]=='T' &&vout[0][2]=='K'){
@@ -1702,66 +1698,6 @@ if(xtime==k->first){
 }
 
 
-int AMSSetupR::getISSINTL(float &roll, float&pitch,float &yaw,double xtime){
-
-if(fISSINTL.size()==0){
-#ifdef __ROOTSHAREDLIBRARY__
-static unsigned int stime=0;
-#pragma omp threadprivate (stime)
-if(stime!=floor(xtime)){
-stime=xtime;
-if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadISSINTL(fHeader.FEventTime-60,fHeader.LEventTime+1);
-}
-else LoadISSINTL(fHeader.Run-60,fHeader.Run+3600);
-}
-#endif
-if(fISSINTL.size()==0)return 2;
-}
-AMSSetupR::ISSINTL_i k=fISSINTL.lower_bound(xtime);
-if(k==fISSINTL.begin()){
-roll=k->second.Roll;
-pitch=k->second.Pitch;
-yaw=k->second.Yaw;
-return 1;
-}
-if(k==fISSINTL.end()){
-k--;
-roll=k->second.Roll;
-pitch=k->second.Pitch;
-yaw=k->second.Yaw;
-return 1;
-}
-if(xtime==k->first){
- roll=k->second.Roll;
- pitch=k->second.Pitch;
- yaw=k->second.Yaw;
- return 0;
-}
-  k--;
-  float s0[2]={-1.,-1};
-  double tme[2]={0,0};
-  tme[0]=k->first;
-  AMSSetupR::ISSINTL_i l=k;
-  l++;
-  tme[1]=l->first;
-  s0[0]=k->second.Roll;
-  s0[1]=l->second.Roll;
-  roll=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  s0[0]=k->second.Pitch;
-  s0[1]=l->second.Pitch;
-  pitch=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  s0[0]=k->second.Yaw;
-  s0[1]=l->second.Yaw;
-  yaw=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  const float dmax=60;
-  if(fabs(tme[1]-tme[0])>dmax)return 3;
-  else return 0;
-
-
-}
-
-
 AMSSetupR::ISSCTRSR::ISSCTRSR(const  AMSSetupR::ISSCTRS &a){
 r=sqrt(a.x*a.x+a.y*a.y+a.z*a.z);
 phi=atan2(a.y,a.x);
@@ -2082,7 +2018,7 @@ bool AMSSetupR::LoadISSBadRun(){
            ftxt.clear();
            ftxt.open(c.c_str());
            if(ftxt){
-           //cout<<"AMSSetupR::LoadISSBadRuns-I-OpenedFile "<<c<<endl;
+             cout<<"AMSSetupR::LoadISSBadRuns-I-OpenedFile "<<c<<endl;
              int totr=0;
              while(ftxt.get()=='#')ftxt.ignore(1024,'\n');
              ftxt.seekg(int(ftxt.tellg())-sizeof(char));
@@ -2130,7 +2066,7 @@ bool AMSSetupR::LoadISSBadRun(){
              
              } 
            if(totr){
-	     //cout<<"AMSSetupR::LoadISSBadRuns-I-TotalOf "<<totr<<" LoadedFor "<<c<<endl;
+                  cout<<"AMSSetupR::LoadISSBadRuns-I-TotalOf "<<totr<<" LoadedFor "<<c<<endl;
            }  
            }
            ftxt.close();
@@ -2552,168 +2488,6 @@ else ret=1;
 
 return ret;
 }
-
-
-
-int AMSSetupR::LoadISSINTL(unsigned int t1, unsigned int t2){
-
-   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
-   char postfix[]="/altec/";
-   char * AMSDataDir=getenv("AMSDataDir");
-   if (AMSDataDir && strlen(AMSDataDir)){
-     AMSISSlocal=AMSDataDir;
-   }
-  
-  AMSISSlocal+=postfix;
-  const char * AMSISS=getenv("AMSISS");
-   if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
-
-
-
-if(t1>t2){
-cerr<< "AMSSetupR::LoadISSINTL-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
-return 2;
-}
-else if(t2-t1>864000){
-    cerr<< "AMSSetupR::LoadISSINTL-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
-   t2=t1+864000;
-}
-const char fpatb[]="ISS_ATT_EULR_INTL-";
-const char fpate[]="-24H.csv";
-const char fpate2[]="-24h.csv";
-
-// convert time to GMT format
-
-// check tz
-   unsigned int tzd=0;
-tm tmf;
-{
-char tmp2[255];
-   time_t tz=t1;
-          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
-    time_t tc=mktime(&tmf);
-    tc=mktime(&tmf);
-    tzd=tz-tc;
-    cout<< "AMSSetupR::LoadISSINTL-I-TZDSeconds "<<tzd<<endl;
-
-}
-{
-char tmp2[255];
-   time_t tz=t1;
-          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
-    time_t tc=mktime(&tmf);
-    tc=mktime(&tmf);
-    tzd=tz-tc;
-    cout<< "AMSSetupR::LoadISSINTL-I-TZDSeconds "<<tzd<<endl;
-
-}
-
-   char tmp[255];
-    time_t utime=t1;
-    strftime(tmp, 40, "%Y", gmtime(&utime));
-    unsigned int yb=atol(tmp);
-    strftime(tmp, 40, "%j", gmtime(&utime));
-    unsigned int db=atol(tmp);
-    utime=t2;
-    strftime(tmp, 40, "%Y", gmtime(&utime));
-    unsigned int ye=atol(tmp);
-    strftime(tmp, 40, "%j", gmtime(&utime));
-    unsigned int de=atol(tmp);
-    
-    unsigned int yc=yb;
-    unsigned int dc=db;
-    int bfound=0;
-    int efound=0;
-    while(yc<ye || dc<=de){
-     string fname=AMSISS;
-     fname+=fpatb;
-     char utmp[80];
-     sprintf(utmp,"%u-%03u",yc,dc);
-     fname+=utmp;
-     fname+=fpate;
-     ifstream fbin;
-     fbin.close();    
-     fbin.clear();
-     fbin.open(fname.c_str());
-     if(!fbin){
-// change 24H to 24h
-      fname=AMSISS;
-      fname+=fpatb;
-      char utmp[80];
-      sprintf(utmp,"%u-%03u",yc,dc);
-      fname+=utmp;
-      fname+=fpate2;
-      fbin.close();    
-      fbin.clear();
-      fbin.open(fname.c_str());
-     }
-     if(fbin){
-      while(fbin.good() && !fbin.eof()){
-        char line[120];
-        fbin.getline(line,119);
-        
-        if(isdigit(line[0])){
-         char *pch;
-         pch=strtok(line,".");
-         ISSINTL a;
-         if(pch){
-          strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
-          time_t tf=mktime(&tmf)+tzd;
-          pch=strtok(NULL,",");
-          char tm1[80];
-          sprintf(tm1,".%s",pch);
-          double tc=tf+atof(tm1);
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          a.Yaw=atof(pch)*3.14159267/180;
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          a.Pitch=atof(pch)*3.14159267/180;
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          a.Roll=atof(pch)*3.14159267/180;
-	  fISSINTL.insert(make_pair(tc,a));
-          
-          if(tc>=t1 && tc<=t2){
-           if(abs(bfound)!=2){
-               fISSINTL.clear();
-               fISSINTL.insert(make_pair(tc,a));
-               bfound=bfound?2:-2;
-//               cout <<" line "<<line<<" "<<tc<<endl;
-           }
-          }
-         else if(tc<t1)bfound=1;
-         else if(tc>t2){
-             efound=1;
-             break;
-         }
-      }   
-     }
-     }
-     }
-     else{
-       cerr<<"AMSSetupR::LoadISSINTL-E-UnabletoOpenFile "<<fname<<endl;
-     }
-     dc++;
-     if(dc>366){
-      dc=1;
-      yc++;
-     }
-    }
-
-
-int ret;
-if(bfound>0 &&efound)ret=0;
-else if(!bfound && !efound )ret=2;
-else ret=1;
-    cout<< "AMSSetupR::LoadISSINTL-I- "<<fISSINTL.size()<<" Entries Loaded"<<endl;
-
-return ret;
-}
-//#endif
-
 
 
 

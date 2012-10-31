@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.62 2012/10/31 14:57:51 shaino Exp $
+//  $Id: root_setup.h,v 1.63 2012/10/31 15:28:54 shaino Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -265,7 +265,7 @@ float z; ///< z
 float vx; ///< v_x km/s
 float vy; ///< v_y km/s
 float vz; ///< v_z km/s
-ClassDef(ISSCTRS,1)       //ISS CTRS coordinates data
+ClassDef(ISSCTRS,1)       //ISS Solar Arrays Data
 };
 
 class ISSCTRSR{
@@ -279,15 +279,6 @@ float vtheta; ///< (rad)
 ISSCTRSR():r(0),phi(0),theta(0),v(0),vphi(0),vtheta(0){};
 ISSCTRSR(const ISSCTRS &a);
 ClassDef(ISSCTRSR,1)       //ISS Solar Arrays Data
-};
-
-class ISSINTL{
-public:
-float Roll;  ///< Roll  in INTL, Rad
-float Pitch; ///< Pitch in INTL, Rad
-float Yaw;   ///< Yaw   in INTL, Rad
-ISSINTL():Roll(0),Pitch(0),Yaw(0){}
-ClassDef(ISSINTL,1)       //ISS Attitude data (INTL coordinate system)
 };
 
 class BadRun{
@@ -435,7 +426,6 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSData> ISSData_m;
  typedef map <unsigned int,ISSSA> ISSSA_m;
  typedef map <unsigned int,ISSCTRS> ISSCTRS_m;
- typedef map <double,ISSINTL> ISSINTL_m;
  typedef map <double,AMSSTK> AMSSTK_m;
  typedef map <unsigned int,ISSGTOD> ISSGTOD_m;
  typedef map <double,ISSAtt> ISSAtt_m;
@@ -449,7 +439,6 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSSA>::iterator ISSSA_i;
  typedef map <unsigned int,ISSCTRS>::iterator ISSCTRS_i;
  typedef map <unsigned int,ISSGTOD>::iterator ISSGTOD_i;
- typedef map <double,ISSINTL>::iterator ISSINTL_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
  typedef map <double,AMSSTK>::iterator AMSSTK_i;
  //---------------DSP Errors-------------------------
@@ -467,7 +456,6 @@ typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
  //--------------------------------------------------
   AMSSTK_m fAMSSTK;      ///< AMS STK pointing
   ISSSA_m fISSSA;      ///< ISS Solar Array angles map
-  ISSINTL_m fISSINTL;      ///< ISS INTL attitude angles map
   ISSCTRS_m fISSCTRS;      ///< ISS CTRS coordinates & velocity vector map
   ISSGTOD_m fISSGTOD;      ///< ISS GTOD coordinates & velocity vector map
    typedef map <unsigned long long ,ScalerMon> Scalers_m;
@@ -487,7 +475,7 @@ typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
 void TDVRC_Purge(); ///< Purge TDVRC map
 void TDVRC_Add(unsigned int time,AMSTimeID * tdv);
 protected:
-void Add(SlowControlDB *s, int verb=1);
+void Add(SlowControlDB *s);
 friend class AMSTimeID;
 friend class SlowControlDB;
 static AMSSetupR * _Head;
@@ -532,23 +520,6 @@ static int _select (const dirent64 * entry);
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
  */
  int getISSAtt( float& roll,float&pitch,float&yaw, double xtime); 
- 
- 
- //! ISS Att roll,pitch,yaw (INTL coordinate system) accessor
- /*! 
-   
-   \param double xtime (unix time + fraction of second)
-   \param roll,pitch,yaw interpolated values      
-   
-   \retval 0   ok (interpolation)
-   \retval 1   ok  (extrapolation)
-   \retval 2   no data
-   \retval 3   bad extrapolation ( gap > 60 sec)
-   
-   \note
-   The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
- */
- int getISSINTL(float &roll, float &pitch, float &yaw, double xtime); 
  
  
  //! ISS Coo & Velocity CTRS accessor
@@ -677,13 +648,12 @@ static int _select (const dirent64 * entry);
  int LoadExt();
  void getSlowControlFilePath( string & file);
  void updateSlowControlFilePath( string & file);
-  bool LoadSlowcontrolDB(const char *file, int verb=1);
+ bool LoadSlowcontrolDB(const char *file);
  void UpdateHeader(AMSEventR* ev);
  void Reset();
  AMSSetupR();
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);
- int LoadISSINTL(unsigned int t1, unsigned int t2);
  int LoadISSSA(unsigned int t1, unsigned int t2);
  int LoadGPSWGS84(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
@@ -714,7 +684,7 @@ static int _select (const dirent64 * entry);
  //---------------------------------------
 
 
-ClassDef(AMSSetupR,20)       //AMSSetupR
+ClassDef(AMSSetupR,19)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

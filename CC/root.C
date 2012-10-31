@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.472 2012/10/31 14:57:47 shaino Exp $
+//  $Id: root.C,v 1.473 2012/10/31 15:28:51 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8775,44 +8775,19 @@ return 0;
 }
 
 
-int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double YPR[3], double  time)
-{
-// Get galactic coordinates using YPR attitude with respect to J2000
-/*
-input  AMSTheta (rad) in AMS coo system (from ParticleR)
-       AMSPhi   (rad) in AMS coo system (from ParticleR)
-       YPR yaw-pitch-roll in radians in INTL
-       time UTC time
-output
-           gal_long  galactic longitude (l) in degrees
-           gal_lat   galactic latitude (b)  in degrees
-return values
-0  success
-1...n  error (if any)
-*/
- //Direction of incident particle in AMS coo - convert from spherical to cartesian
- AMSDir dir(AMSTheta,AMSPhi);
- double AMS_x=-dir[0];
- double AMS_y=-dir[1];
- double AMS_z=-dir[2];
- // use the conversion procedure described in FrameTrans.h
- double ra=0, dec=0;
- get_ams_ra_dec_from_ALTEC_INTL(AMS_x,  AMS_y, AMS_z, ra, dec,YPR[0]*180./3.1415926, YPR[1]*180./3.1415926, YPR[2]*180./3.1415926);
- get_gal_coo(gal_long, gal_lat, ra, dec);
- return 0;
-}
+
 
 int HeaderR::get_gal_coo(double & gal_long, double & gal_lat,double ams_ra, double ams_dec){
   ams_ra=ams_ra/180.*3.1415926;
   ams_dec=ams_dec/180.*3.1415926;
   FT_Equat2Gal(ams_ra, ams_dec);
-  gal_long=ams_ra*180./3.1415926;
-  gal_lat=ams_dec*180./3.1415926;
+  gal_long=ams_ra;
+  gal_lat=ams_dec;
 return 0;
 }
 
 
-int AMSEventR::DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double & TraceTime,float theta, float phi, double Momentum, double Velocity, int Charge, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod,bool use_ctrs, bool use_intl){
+int AMSEventR::DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double & TraceTime,float theta, float phi, double Momentum, double Velocity, int Charge, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod,bool use_ctrs){
   static int mprint=0;
   AMSDir dir(theta, phi);
 
@@ -8846,19 +8821,6 @@ int AMSEventR::DoBacktracing(int & result, double & glong, double & glat, double
   else ret-=1;
   }  
  }
- if(use_intl) {
-   float Roll,Pitch,Yaw;
-   if(getsetup() && !getsetup()->getISSINTL(Roll,Pitch,Yaw,xtime)){
-     double YPR[3];
-     YPR[0]=Yaw;
-     YPR[1]=Pitch;
-     YPR[2]=Roll;
-     result|=(1<<8);
-     int ret2=fHeader.get_gal_coo(glong, glat, elev, azim, YPR, xtime);
-     return ret2==0?ret:ret2;
-   }
- }
-
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
  // YPR 
@@ -8963,7 +8925,7 @@ else if(ret2==2)result|=(1<<7);  //trapped
 }
 
 
-int AMSEventR::GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs, bool use_intl){
+int AMSEventR::GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs){
 /*
 input
           theta (rad)  in ams coo system
@@ -8972,7 +8934,6 @@ input
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
            use_gtod         ->  use gtod coordinates
            use_ctrs         ->  use ctrs coordinates
-           use_intl         ->  use intl coordinates
 output
              Galactic coordinates glong,glat (degrees) glong, glat
              result    bit 0 ams_stk info had been used
@@ -9021,19 +8982,6 @@ return value
   else ret-=1;
   }  
  }
- if(use_intl) {
-   float Roll,Pitch,Yaw;
-   if(getsetup() && !getsetup()->getISSINTL(Roll,Pitch,Yaw,xtime)){
-     double YPR[3];
-     YPR[0]=Yaw;
-     YPR[1]=Pitch;
-     YPR[2]=Roll;
-     result|=(1<<8);
-     int ret2=fHeader.get_gal_coo(glong, glat, elev, azim, YPR, xtime);
-     return ret2==0?ret:ret2;
-   }
- }
-
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
  // YPR 
@@ -9114,7 +9062,6 @@ if(getsetup()){
     result|=(1<<4);
    }
  }
-
  else{
   gtod=true;
   result|=(1<<4);
@@ -9285,14 +9232,13 @@ int ret2=fHeader.get_gtod_coo(gtheta, gphi, elev, azim,  RPT, VelPT,  YPR,  xtim
 
 
 
-int AMSEventR::GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs, bool use_intl){
+int AMSEventR::GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs){
 /*
 input
            use_ams_stk  ->  use info from ams startracker
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
-           use_gtod         ->  use gtod coo
-           use_ctrs         ->  use ctrs coo
-           use_intl         ->  use intl coordinates
+           use_gtod          -> use gtod coo
+           use_ctrs          -> use ctrs coo
 output
              Galactic coordinates glong,glat (degrees) glong, glat
              result    bit 0 ams_stk info had been used
@@ -9338,19 +9284,6 @@ return value
   else ret-=1;
   }  
  }
- if(use_intl) {
-   float Roll,Pitch,Yaw;
-   if(getsetup() && !getsetup()->getISSINTL(Roll,Pitch,Yaw,xtime)){
-     double YPR[3];
-     YPR[0]=Yaw;
-     YPR[1]=Pitch;
-     YPR[2]=Roll;
-     result|=(1<<8);
-     int ret2=fHeader.get_gal_coo(glong, glat, theta, phi, YPR, xtime);
-     return ret2==0?ret:ret2;
-   }
- }
-
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
 AMSPoint d2l;
