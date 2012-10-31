@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.46 2012/10/06 20:02:37 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.47 2012/10/31 15:49:46 oliva Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -241,12 +241,17 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH2D("TrNclsHt", "nCls VS Evt HiDt", 1000, 0,  1e6, 500, 0,  2000));
   Add(new TH2D("TrNhitHt", "nHit VS Evt HiDt", 1000, 0,  1e6, 500, 0,  2000));
   Add(new TH1D("TrRecon",  "TrRecon status", 32, 0, 32));
+  
+  // TrRawCluster
+  Add(new TH2D("TrOccRaw","; Ladder Index; Address",192,-0.5,191.5,1024,-0.5,1023.5));
 
   // TrCluster
   Add(new TH2D("TrClsSigP", "TotSig(P) VS OnTrack", 2, 0, 2, 500, 0, 500));
   Add(new TH2D("TrClsSigN", "TotSig(N) VS OnTrack", 2, 0, 2, 500, 0, 500));
   Add(new TH3D("TrClsStrP", "Rsig(P)", 10, 0, 10, 100, 0, 0.5, 100, 0, 1));
   Add(new TH3D("TrClsStrN", "Rsig(P)", 10, 0, 10, 100, 0, 0.5, 100, 0, 1));
+  Add(new TH2D("TrOccSeed","; Ladder Index; Address",192,-0.5,191.5,1024,-0.5,1023.5));
+  Add(new TH2D("TrOccStri","; Ladder Index; Address",192,-0.5,191.5,1024,-0.5,1023.5));
 
   // TrRecHit
   Add(new TH2D("TrLadTrk", "Ladder on track",   33, -16.5, 16.5, 9, 0.5, 9.5));

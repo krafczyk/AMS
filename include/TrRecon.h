@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.52 2012/01/31 19:37:24 oliva Exp $ 
+// $Id: TrRecon.h,v 1.53 2012/10/31 15:49:44 oliva Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2012/01/31 19:37:24 $
+/// $Date: 2012/10/31 15:49:44 $
 ///
-/// $Revision: 1.52 $
+/// $Revision: 1.53 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -240,7 +240,7 @@ public:
   /// Search for the addresses of the boundaries (cyclicity if !=0), returns 10000*leftaddress+rightaddress 
   int  GetBoundariesInSubBuffer(int index, int first, int last, int cyclicity = 0);
   /// Get a well defined address inside an interval (imposing cyclicity if !=0) 
-  int  GetAddressInSubBuffer(int address, int first, int last, int ciclicity = 0);
+  int  GetAddressInSubBuffer(int address, int first, int last, int cyclicity = 0);
 
   /// Set the correlation probability threshold (DEPRECATED)
   void  SetThrProb(float prob) { RecPar.ThrProb = prob; }

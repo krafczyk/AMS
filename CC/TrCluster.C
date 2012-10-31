@@ -709,3 +709,28 @@ float TrClusterR::GetClusterSN(int opt) {
   }
   return sum/sqrt(sigma);
 }
+
+
+bool TrClusterR::Check(int verbosity) {
+  if (IsK7()) return true; 
+  for (int istrip=0; istrip<GetNelem(); istrip++) {
+    int address = GetAddress() + istrip;
+    // no cluster out-of-bounds S (outside or between X and Y)
+    if ( (GetSide()==1)&&((address<0)||(address>639))) {
+      if (verbosity>0) printf("TrClusterR::Check-E cluster on S-side out of bounds (tkid=%+4d, strip=%4d, address=%4d, nelem=%2d)\n",GetTkId(),address,GetAddress(),GetNelem());
+      return false;
+    }
+    // no cluster out-of-bounds K5 (outside or between X and Y)
+    if ( (!IsK7())&&(GetSide()==0)&&((address>1023)||(address<640))) { 
+      if (verbosity>0) printf("TrClusterR::Check-E cluster on K-side out of bounds (tkid=%+4d, strip=%4d, address=%4d, nelem=%2d)\n",GetTkId(),address,GetAddress(),GetNelem());
+      return false;
+    }
+    if (istrip==GetNelem()-1) continue;
+    // no cluster between sensors (for K5)
+    if ( (!IsK7())&&(GetSide()==0)&&(int((address-640)/192)!=int((address-640+1)/192)) ) {
+      if (verbosity>0) printf("TrClusterR::Check-E cluster on K-side across sensors (tkid=%+4d, strip=%4d, address=%4d, nelem=%2d)\n",GetTkId(),address,GetAddress(),GetNelem());
+      return false;
+    }
+  }
+  return true;
+}

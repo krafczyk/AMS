@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.163 2012/10/07 14:08:56 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.164 2012/10/31 15:49:45 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/10/07 14:08:56 $
+/// $Date: 2012/10/31 15:49:45 $
 ///
-/// $Revision: 1.163 $
+/// $Revision: 1.164 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -494,11 +494,11 @@ int TrRecon::ExpandClusterInBuffer(TrRawClusterR* cluster) {
 }
 
 
-int TrRecon::GetAddressInSubBuffer(int address, int first, int last, int ciclicity) {
+int TrRecon::GetAddressInSubBuffer(int address, int first, int last, int cyclicity) {
   // by default returns the address
   if ( (address<last)&&(address>=first) ) return address;
-  // if not cyclic returns the first strip in case of underflow and the last-1 in case of overflow  
-  if (ciclicity==0) return TMath::Max(first,TMath::Min(address,last-1));
+  // if not cyclic and out-of-bounds return out-of-bounds value
+  if (cyclicity==0) return -1;
   // if cyclic adds the interval (last-first)
   return (address>=last) ? (address-(last-first)) : (address+(last-first));
 }
@@ -555,6 +555,14 @@ int TrRecon::BuildTrClusters(int rebuild) {
     for (int iclus=0; iclus<(int)lad->second.size(); iclus++) 
       ExpandClusterInBuffer( lad->second.at(iclus) );
     
+    // for (int istrip=0; istrip<1024; istrip++) {
+    //  if (_adcbuf[istrip]!=0) {
+    //    printf("%+4d %4d %7.2f %7.2f %7.2f %6d\n",
+    //      lad->first,istrip,_adcbuf[istrip],_sigbuf[istrip],_adcbuf[istrip]/_sigbuf[istrip],_stabuf[istrip]
+    //    ); 
+    //  }
+    //}
+ 
     int TkId = lad->first;
     int layer = abs(TkId/100);
     ncls += BuildTrClustersInSubBuffer(TkId,0,640,0);      // S
@@ -607,9 +615,10 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
   TrLadCal* cal = GetTrCalDB()->FindCal_TkId(tkid);
   if (!cal) {printf ("TrRecon::BuildTrClustersInSubBuffer, WARNING calibration not found!!\n"); return -9999;}
   // create a list of seeds 
-  int nseeds = BuildSeedListInSubBuffer(tkid,first, last, cyclicity);
-//   printf("Found %d seeds\n",nseeds);
-//   for (int jj=0;jj<nseeds;jj++) printf("seed %d  %d\n",jj,_seedaddresses.at(jj));
+  int nseeds = BuildSeedListInSubBuffer(tkid,first,last,cyclicity);
+
+  // printf("Found %d seeds\n",nseeds);
+  // for (int jj=0;jj<nseeds;jj++) printf("seed %d  %d\n",jj,_seedaddresses.at(jj));
 
   VCon* cont=GetVCon()->GetCont("AMSTrCluster");
 
@@ -622,6 +631,9 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
     int length       = (leftaddress<=rightaddress) ? rightaddress-leftaddress+1 : last-leftaddress+rightaddress-first+1;
     int seedind      = (seedaddress>=leftaddress)  ? seedaddress-leftaddress    : last-leftaddress+seedaddress-first;  
     float sigg[1024];
+    // printf("tkid: %+4d  iseed: %2d  seedadd: %4d  lenght: %3d  seedindex: %4d  left: %4d  right: %4d\n",
+    //  tkid,ss,seedaddress,length,seedind,leftaddress,rightaddress
+    // );
     for (int jj=0; jj<length; jj++) { 
       int address = GetAddressInSubBuffer(leftaddress+jj,first,last,cyclicity);
       sigg[jj]=_adcbuf[address];
@@ -631,6 +643,8 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
     if(cont) cont->addnext(new AMSTrCluster(tkid,side,leftaddress,length,seedind,sigg,0));
 #else
     if(cont) cont->addnext(new TrClusterR(tkid,side,leftaddress,length,seedind,sigg,0));
+    TrClusterR* cluster = (TrClusterR*) cont->getelem((int)cont->getnelem()-1);
+    if (!cluster->Check(1)) cluster->Print(10);
 #endif
     ntrclusters++;   
   }
@@ -684,14 +698,17 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
   int rightaddress = seedaddress;
 
   /// the strip perimeter for the searching algorithm (from left to right)
-  int left  = (index<=0) ? first : _seedaddresses.at(index-1);
+  /// move first --> (first-1) and (last-1) --> last to avoid border effects
+  int left  = (index<=0) ? first-1 : _seedaddresses.at(index-1);
   if ( (cyclicity!=0)&&(index<=0) ) left = _seedaddresses.at(nseeds-1);
-  int right = (index>=(nseeds-1)) ? last-1 : _seedaddresses.at(index+1);
+  int right = (index>=(nseeds-1)) ? last : _seedaddresses.at(index+1);
   if ((cyclicity!=0)&&(index>=(nseeds-1))) right = _seedaddresses.at(0);
+
+  // printf("boundary search, left: %4d  right: %4d  cycl: %1d  iseed: %2d   seedadd: %4d\n",left,right,cyclicity,index,seedaddress);
 
   // search for the left boundary
   int address = GetAddressInSubBuffer(leftaddress-1,first,last,cyclicity); 
-  while (address!=left) { 
+  while ( (address!=left)&&(address!=-1) ) { 
     // the neighboring strip must be defined
     if (_sigbuf[address]<1.e-6) break;
     // the neighboring strip must exceed the ThrNeig S/N threshold
@@ -701,13 +718,13 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
     // the strip is good
     leftaddress--;
     // new strip under analysis
-    address = GetAddressInSubBuffer(leftaddress-1,first,last,cyclicity);
+    address = GetAddressInSubBuffer(leftaddress-1,first,last,cyclicity);    
   } 
   leftaddress = GetAddressInSubBuffer(leftaddress,first,last,cyclicity);
 
   // search for the right boundary
-  address = GetAddressInSubBuffer(rightaddress+1,first,last,cyclicity); 
-  while (address!=right) { 
+  address = GetAddressInSubBuffer(rightaddress+1,first,last,cyclicity);
+  while ( (address!=right)&&(address!=-1) ) { 
     // the neighboring strip must be defined
     if (_sigbuf[address]<1.e-6) break;
     // the neighboring strip must exceed the ThrNeig S/N threshold
@@ -3242,11 +3259,34 @@ int TrRecon::FillHistos(int trstat, int refit)
   hman.Fill("TrTimT",  ntrk, tcp);
   hman.Fill("TrRecon", trstat);
 
-  ////////// Cluster signal //////////
+  ////////// Raw cluster occupancy //////////
+  for (int i = 0; i < nraw; i++) {
+    TrRawClusterR *cls = (TrRawClusterR *)cont0->getelem(i);
+    // strip SN>4 occupancy
+    int index = TkDBc::GetHead()->TkId2Entry(cls->GetTkId());
+    for (int istrip=0; istrip<cls->GetNelem(); istrip++) {
+      int add = cls->GetAddress()+istrip;
+      float sn = cls->GetSN(istrip);
+      if (sn>4) hman.Fill("TrOccRaw",index,add);
+    }
+  }
+
+  ////////// Cluster signal and occupancy //////////
   for (int i = 0; i < ncls; i++) {
     TrClusterR *cls = (TrClusterR *)cont1->getelem(i);
+    // signal
     hman.Fill(((cls->GetSide() == 1) ? "TrClsSigP" : "TrClsSigN"),
 	      0, cls->GetTotSignal());
+    // seed occupancy
+    int seedadd = cls->GetSeedAddress(); 
+    int index = TkDBc::GetHead()->TkId2Entry(cls->GetTkId());
+    hman.Fill("TrOccSeed",index,seedadd);
+    // strip SN>4 occupancy
+    for (int istrip=0; istrip<cls->GetNelem(); istrip++) {
+      int add = cls->GetAddress(istrip);
+      float sn = cls->GetSN(istrip);
+      if (sn>4) hman.Fill("TrOccStri",index,add);
+    }
   }
 
   delete cont0;

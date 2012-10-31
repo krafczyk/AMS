@@ -32,9 +32,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2012/10/07 21:12:22 $
+ $Date: 2012/10/31 15:49:43 $
 
- $Revision: 1.32 $
+ $Revision: 1.33 $
 
 */
 
@@ -217,7 +217,9 @@ class TrClusterR :public TrElem{
   bool  TasCls() const { return checkstatus(TASCLS); }
   /// Used for track AMSDBc::USED = 32; (0x0020)
   bool  Used() const { return checkstatus(AMSDBc::USED); }	
-	
+
+  /// Check cluster consistency 
+  bool  Check(int verosity=0);	
   /**@}*/
 
 
