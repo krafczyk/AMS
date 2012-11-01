@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.475 2012/11/01 11:58:36 choutko Exp $
+//  $Id: root.C,v 1.476 2012/11/01 15:23:07 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8763,14 +8763,39 @@ return 0;
 }
 
 
-
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double YPR[3], double  time)
+{
+// Get galactic coordinates using YPR attitude with respect to J2000
+/*
+input  AMSTheta (rad) in AMS coo system (from ParticleR)
+       AMSPhi   (rad) in AMS coo system (from ParticleR)
+       YPR yaw-pitch-roll in radians in INTL
+       time UTC time
+output
+           gal_long  galactic longitude (l) in degrees
+           gal_lat   galactic latitude (b)  in degrees
+return values
+0  success
+1...n  error (if any)
+*/
+ //Direction of incident particle in AMS coo - convert from spherical to cartesian
+ AMSDir dir(AMSTheta,AMSPhi);
+ double AMS_x=-dir[0];
+ double AMS_y=-dir[1];
+ double AMS_z=-dir[2];
+ // use the conversion procedure described in FrameTrans.h
+ double ra=0, dec=0;
+ get_ams_ra_dec_from_ALTEC_INTL(AMS_x,  AMS_y, AMS_z, ra, dec,YPR[0]*180./3.1415926, YPR[1]*180./3.1415926, YPR[2]*180./3.1415926);
+ get_gal_coo(gal_long, gal_lat, ra, dec);
+ return 0;
+}
 
 int HeaderR::get_gal_coo(double & gal_long, double & gal_lat,double ams_ra, double ams_dec){
   ams_ra=ams_ra/180.*3.1415926;
   ams_dec=ams_dec/180.*3.1415926;
   FT_Equat2Gal(ams_ra, ams_dec);
-  gal_long=ams_ra;
-  gal_lat=ams_dec;
+  gal_long=ams_ra*180./3.1415926;
+  gal_lat=ams_dec*180./3.1415926;
 return 0;
 }
 
@@ -8808,6 +8833,7 @@ int AMSEventR::DoBacktracing(int & result, double & glong, double & glat, double
   else ret-=1;
   }  
  }
+
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
  // YPR 
@@ -8968,6 +8994,7 @@ return value
   else ret-=1;
   }  
  }
+
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
  // YPR 
@@ -9222,8 +9249,8 @@ int AMSEventR::GetGalCoo(int & result, double & glong, double & glat,  bool use_
 input
            use_ams_stk  ->  use info from ams startracker
            use_ams_gps_time ->  use ams gps time, and not a iss  gps time
-           use_gtod          -> use gtod coo
-           use_ctrs          -> use ctrs coo
+           use_gtod         ->  use gtod coo
+           use_ctrs         ->  use ctrs coo
 output
              Galactic coordinates glong,glat (degrees) glong, glat
              result    bit 0 ams_stk info had been used
@@ -9268,6 +9295,7 @@ return value
   else ret-=1;
   }  
  }
+
  double RPT[3],VelPT[2],YPR[3];
  bool gtod=false;
 AMSPoint d2l;
@@ -9364,6 +9392,171 @@ else{
 
 }
 
+
+int AMSEventR::GetGalCoo(double& glong, double& glat, int &result, 
+			 int use_att, int use_coo, int use_time, double dt)
+{
+  float theta = 3.1415926;
+  float phi   = 0;
+
+  int ret = result = 0;
+
+  double xtime = fHeader.UTCTime();
+  if (use_time == 2) {
+    unsigned int time,nanotime;
+    if (GetGPSTime(time, nanotime))ret = -2;
+    else {
+      xtime = double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
+      result |= (1<<1);
+    }
+  }
+
+  if (use_att == 3) {
+    AMSSetupR::AMSSTK a;
+    if (!getsetup() || getsetup()->getAMSSTK(a, xtime+dt)) {
+      ret = -1;
+    }
+    else{
+      if (!fHeader.get_gal_coo(glong, glat, a.ams_ra, a.ams_dec)) {
+	result |= (1<<0);
+	return ret;
+      }
+      else ret = -1;
+    }
+  }
+  else if (use_att == 2) {
+    float Roll, Pitch, Yaw;
+    if (getsetup() && !getsetup()->getISSINTL(Roll, Pitch, Yaw, xtime+dt)) {
+      double YPR[3];
+      YPR[0] = Yaw;
+      YPR[1] = Pitch;
+      YPR[2] = Roll;
+      result |= (1<<8);
+      int ret2 = fHeader.get_gal_coo(glong, glat, theta, phi, YPR, xtime);
+      return (ret2 == 0) ? ret : ret2;
+    }
+  }
+
+  double RPT[3], VelPT[2], YPR[3];
+  bool gtod = false;
+  AMSPoint d2l;
+  static int mprint=0;
+  d2l[0] = fHeader.RadS*cos(fHeader.ThetaS)*cos(fHeader.PhiS);
+  d2l[1] = fHeader.RadS*cos(fHeader.ThetaS)*sin(fHeader.PhiS);
+  d2l[2] = fHeader.RadS*sin(fHeader.ThetaS);
+
+  // YPR
+  YPR[0]=fHeader.Yaw;
+  YPR[1]=fHeader.Pitch;
+  YPR[2]=fHeader.Roll;
+  RPT[0]=fHeader.RadS;
+  RPT[1]=fHeader.PhiS;
+  RPT[2]=fHeader.ThetaS;
+  VelPT[0]=fHeader.VelPhi;
+  VelPT[1]=fHeader.VelTheta;
+
+  if(getsetup()){
+    float Roll,Pitch,Yaw;
+    if(!getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
+      YPR[0]=Yaw;
+      YPR[1]=Pitch;
+      YPR[2]=Roll;
+    }
+    AMSSetupR::ISSGTOD a;
+    AMSSetupR::ISSCTRSR b; 
+    AMSSetupR::GPSWGS84R c;
+    if (use_coo == 3 && !getsetup()->getISSGTOD(a,xtime+dt)){
+      double prec=80;
+      AMSPoint dc;
+      dc[0]=a.r*cos(a.theta)*cos(a.phi);
+      dc[1]=a.r*cos(a.theta)*sin(a.phi);
+      dc[2]=a.r*sin(a.theta);
+      AMSPoint da=dc-d2l;
+      double diff=sqrt(da.prod(da))/1e5;
+      if(fabs(diff)<prec){
+	RPT[0]=a.r;
+	RPT[1]=a.phi;
+	RPT[2]=a.theta;
+	VelPT[0]=a.vphi;
+	VelPT[1]=a.vtheta;
+	gtod=true;
+	result|=(1<<2);
+      }
+      else{
+	if(mprint++<=10){
+	  cerr<<"AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+	  if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele LastMessage "<<endl;        
+	}
+	gtod=true;
+	result|=(1<<4);
+      }
+    }
+    else if(use_coo == 2 && !getsetup()->getISSCTRS(b,xtime+dt)){
+      double prec=80;
+      AMSPoint dc;
+      dc[0]=b.r*cos(b.theta)*cos(b.phi);
+      dc[1]=b.r*cos(b.theta)*sin(b.phi);
+      dc[2]=b.r*sin(b.theta);
+      AMSPoint da=dc-d2l;
+      double diff=sqrt(da.prod(da))/1e5;
+      if(fabs(diff)<prec){
+	RPT[0]=b.r;
+	RPT[1]=b.phi;
+	RPT[2]=b.theta;
+	VelPT[0]=b.vphi;
+	VelPT[1]=b.vtheta;
+	gtod=false;
+	result|=(1<<3);
+      }
+      else{
+	if(mprint++<=10){
+	  cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+	  if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele LastMessage "<<endl;        
+	}
+	gtod=true;
+	result|=(1<<4);
+      }
+    }
+    else if(use_coo == 4 && !getsetup()->getGPSWGS84(c, xtime+dt)) {
+      double prec=80;
+      AMSPoint dc;
+      dc[0]=c.r*cos(c.theta)*cos(c.phi);
+      dc[1]=c.r*cos(c.theta)*sin(c.phi);
+      dc[2]=c.r*sin(c.theta);
+      AMSPoint da=dc-d2l;
+      double diff=sqrt(da.prod(da))/1e5;
+      if(fabs(diff)<prec){
+	RPT[0]=c.r;
+	RPT[1]=c.phi;
+	RPT[2]=c.theta;
+	VelPT[0]=c.vphi;
+	VelPT[1]=c.vtheta;
+	gtod=false;
+	result|=(1<<16);
+      }
+      else{
+	if(mprint++<=10){
+	  cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
+	  if(mprint==10)cerr<<"AMSEventR::GetGalCoo-E-CTRSCooTooDistantFrom2Ele LastMessage "<<endl;        
+	}
+	gtod=true;
+	result|=(1<<4);
+      }
+    }
+    else{
+      gtod=true;
+      result|=(1<<4);
+    }
+  }
+  else{
+    gtod=true;
+    result|=(1<<4); 
+  } 
+
+  int ret2 = fHeader.get_gal_coo(glong, glat, theta, phi,
+				 RPT, VelPT, YPR, xtime, gtod);
+  return (ret2 == 0) ? ret : ret2;
+}
 
 
 //------------------------------------------
