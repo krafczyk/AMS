@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.493 2012/11/01 15:23:06 shaino Exp $
+//  $Id: root.h,v 1.494 2012/11/01 17:03:40 incaglim Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -748,12 +748,16 @@ public:
 
  
 
-  /// Pisa function to obtain the Boosted Decision Tree Classifier for shower, trained on ISS.B552 data.
+  /// Pisa function to obtain the Boosted Decision Tree Classifier for shower.
+  /// The classifier has a version number:
+  /// iBDTVERSION=3           trained with B552
+  /// iBDTVERSION=4 (default) trained with B610
   /// An How To for selecting electrons with 90%, 80% and 70% efficieny is availble at <a href="https://twiki.cern.ch/twiki/bin/view/AMS/ClassMethods">this page</a>.
-  /// There is no more need to set ECALBDT environment variable to use GetEcalBDT.
-  /// Due to a bug in the version of TMVA used in the current AMS software, it is not possible to
-  /// call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator(), EcalShowerR::EcalStandaloneEstimatorV2()
-  float GetEcalBDT();
+  float GetEcalBDT(unsigned int i=4);
+  /// Function that combines GetEcalBDT and GetChi2 .
+  /// It has two arguments: a pointer to the event (AMSEventR *pev) and a version number
+  /// iBDTCHI2VERSION = 1 (default) trained with B610
+  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int i=1);
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
   int NEcal2DCluster()const {return fEcal2DCluster.size();}
