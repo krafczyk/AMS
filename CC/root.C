@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.474 2012/10/31 20:08:27 choutko Exp $
+//  $Id: root.C,v 1.475 2012/11/01 11:58:36 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10986,12 +10986,12 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
 
 #endif
 
-double HeaderR::UTCTime(){
+double HeaderR::UTCTime() const{
 double error=0;
 return double(Time[0])+double(Time[1])/1000000.+TimeCorr(error,Time[0])-AMSEventR::gpsdiff(Time[0]);
 }
 
-double HeaderR::TimeCorr(double & error,unsigned int time){
+double HeaderR::TimeCorr(double & error,unsigned int time) const{
 error=10;
 double dt=0;
 return dt;
@@ -11012,7 +11012,7 @@ int ret= AMSEventR::getsetup()->getISSTLE(RTP,VelTP,xtime);
 if(!ret){
  RadS=RTP[0];
  ThetaS=RTP[1];
- PhiS=RTP[1];
+ PhiS=RTP[2];
  VelocityS=VelTP[0];
  VelTheta=VelTP[1];
  VelPhi=VelTP[2];

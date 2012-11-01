@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.491 2012/10/31 20:08:33 choutko Exp $
+//  $Id: root.h,v 1.492 2012/11/01 11:58:38 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -322,8 +322,8 @@ int getISSGTOD(float & r,float & theta, float &phi, float &v, float &vtheta, flo
 int getGPSWGS84(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::GPSWGS84 values for the current event time;
 
 int getISSTLE(double dt=0);///<update TLE values for the current event time and replace in fHeader;
-double TimeCorr(double& error, unsigned int time=0);///< Correction to be added to JMDC time to get correct gps time (sec) ; error : error estimation (sec) 
-double UTCTime();///< Returns Best Known UTCTime for  currentevent 
+double TimeCorr(double& error, unsigned int time=0) const;///< Correction to be added to JMDC time to get correct gps time (sec) ; error : error estimation (sec) 
+double UTCTime()const ;///< Returns Best Known UTCTime for  currentevent 
 int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
 int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and replace roll,pitch,yaw in the fHeader
 double getBetaSun();///<get solar beta angle via geometrical calculation
@@ -4438,6 +4438,7 @@ int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float 
 
 int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates for ams zenith;
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time
+double UTCTime() const {return fHeader.UTCTime();}///< return best known event UTCTime
       //! RunTagChecker
         /*!
 

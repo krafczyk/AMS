@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.108 2012/10/31 20:08:27 choutko Exp $
+//  $Id: root_setup.C,v 1.109 2012/11/01 11:58:36 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2052,7 +2052,9 @@ k--;
 }
 
 a=GPSWGS84R(b);
-  return 0;
+  const float dmax=600;
+  if(fabs(tme[1]-tme[0])>dmax)return 3;
+  else return 0;
 
 
 }

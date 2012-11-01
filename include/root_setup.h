@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.64 2012/10/31 20:08:33 choutko Exp $
+//  $Id: root_setup.h,v 1.65 2012/11/01 11:58:38 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -196,7 +196,7 @@ ClassDef(GPSWGS84,1)
 
 class GPSWGS84R{
 public:
-  float r; ///< r (km) in CTRS
+  float r; ///< r (cm) in CTRS
   float phi; ///< (rad)
   float theta; ///< (rad) 0 == equator
   float v; ///< velocity in rad/s
@@ -550,7 +550,8 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
-   \retval 3   bad extrapolation ( gap > 60 sec)
+   \retval 3   different cam ids for interpolation
+   \retval 4   bad extrapolation ( gap > 60 sec)
    
    
   
@@ -563,12 +564,11 @@ static int _select (const dirent64 * entry);
    
    \param double xtime (unix time + fraction of second)
    \param GPSWGS84R a  interpolated values        
-   
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
-   \retval 3   different cam ids for interpolation
-   \retval 4   bad extrapolation ( gap > 60 sec)
+   \retval 3   bad extrapolation ( gap > 600 sec)
+   
 
    \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
