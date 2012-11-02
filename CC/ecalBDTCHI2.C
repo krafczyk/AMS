@@ -24,7 +24,7 @@ EcalChi2 *ecalchi2 = NULL;
 
 bool BCHI2_DEBUG = false;
 
-int get_track(AMSEventR *pev, EcalShowerR *shower, TrTrackR *track)
+int get_track(AMSEventR *pev, EcalShowerR *shower, TrTrackR *&track)
 {
    int id_maxspan = -1;
    TrTrackR *TheTrack;
