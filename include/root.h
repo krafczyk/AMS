@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.494 2012/11/01 17:03:40 incaglim Exp $
+//  $Id: root.h,v 1.495 2012/11/02 07:34:00 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -336,9 +336,9 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 
 //-----------Coordinates -------------------
-int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get galactic coordinates using ISS position, velocity and LVLH attitude
-int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient);///< Get galactic coordinates using Star Tracker
-int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double YPR[3], double  time);///< Get galactic coordinates using YPR attitude with respect to J2000
+  int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true, bool gal_coo=true);///< Get galactic coordinates using ISS position, velocity and LVLH attitude
+  int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient, bool gal_coo=true);///< Get galactic coordinates using Star Tracker
+  int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double YPR[3], double time, bool gal_coo=true);///< Get galactic coordinates using YPR attitude with respect to J2000
 int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);///< convert celestial coordinates into galactic coordinates
 
 //-----------Backtracing -------------------
@@ -4366,36 +4366,36 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
 
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 
-         //! Convert AMS Local Frame Direction to Galalctic Longitude and Latitude
-        /*!
-\param
-   
-input   
-          theta (rad)  in ams coo system
-           phi     (rad)  in ams coo system
-           use_ams_stk  ->  use info from ams startracker
-           use_ams_gps_time ->  use ams gps time, and not a iss  gps time
-           use_gtod         ->  use gtod coordinates
-           use_ctrs         ->  use gtod coordinates
+  //! Calculate distance between two RPT coordinates used in GetGalCoo
+  static double get_coo_diff(double RPT[3], double r, double phi, double theta);
 
-output
-             Galactic coordinates glong,glat (degrees) glong, glat
-             result    bit 0 ams_stk info had been used
-                                 1  ams_gps_time had been used
-                                 2  gtod coo system + lvlh ypr had been used
-                                 3   ctrs coo  system  + -------------------------------
-                                 4   twoline element estimator of gtod + --------------------------
-
-\return 
-
- 0 success
- 1 failure
- -1 use of ams_stk was not possible, other info had  been used
- -2 use of ams gps time was not possible , iss gps time had been used instead
- -3 use of ams_stk and ams_gps_time was not possible
-
-*/
-int GetGalCoo(int & result, double & glong, double & glat, float theta, float phi, bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false);///< Get galactic coordinates
+  /*!
+    \brief Convert AMS Local Zenith to Galactic coordinates
+    \param output
+      result bits with 0:STK used   1:GPS time used  2:GTOD used
+                       3:CTRS used  4:TLE used  5:INTL used 6:GPS coo.used
+      glong Galactic longitude (degree)
+      glat  Galactic latitude  (degree)
+    \param input
+      theta     (rad) in ams coo system (pi: down-going 0: up-going)
+      phi       (rad) in ams coo system
+      use_att   1:Use LVLH, 2:Use INTL, 3: Use STK
+      use_coo   1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS coord.
+      use_time  1:UTCTime(), 2:AMS GPS time
+      dt        time jitter (sec) for coordinates input
+      out_type  1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
+    \return 
+      0 success
+     -1 failure
+      1 specified use_att  data not available; instead used TLE+LVLH
+      2 specified use_coo  data not available; instead used TLE
+      3 specified use_coo  data not reliable;  instead used TLE
+      4 specified use_time data not available; instead used UTCTime()
+    */
+  int GetGalCoo(int &result, double &glong, double &glat, 
+		double theta = 3.1415926,   double phi = 0,
+		int use_att= 1, int use_coo = 4, int use_time= 2,
+		double   dt= 0, int out_type= 1);
 
          //! Do Backtracing
         /*!
@@ -4438,24 +4438,7 @@ int DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], d
 
 
 int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates
-   //! Get galactic coordinates for ams zenith;
-   /*!
-     \param
-     output
-       glong, glat: Galactic coordinates glong,glat (degrees)
-       result:      bit 0:STK used  1:GPS time used  2:GTOD used
-                        3: CTRS used  4: TLE used  8: INTL used 9: GPS used
-     input
-       use_att:  1,2,3   (LVLH, INTL, STK)
-       use_coo:  1,2,3,4 (TLE,  CTRS, GTOD, GPS)
-       use_time: 1,2     (JMDC, GPS)
-       dt: time jitter (sec)
-    */
-  int GetGalCoo(double& glong, double& glat, int &result, 
-		int use_att= 1, int use_coo= 4, int use_time= 2,
-		double dt = 0);
 
-int GetGalCoo(int & result, double & glong, double & glat,  bool use_ams_stk=true,  bool use_ams_gps_time=true,bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates for ams zenith;
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time
 double UTCTime() const {return fHeader.UTCTime();}///< return best known event UTCTime
       //! RunTagChecker
