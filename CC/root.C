@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.477 2012/11/02 07:34:04 shaino Exp $
+//  $Id: root.C,v 1.478 2012/11/03 21:10:14 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8793,6 +8793,7 @@ return values
  double ra=0, dec=0;
  get_ams_ra_dec_from_ALTEC_INTL(AMS_x,  AMS_y, AMS_z, ra, dec,YPR[0]*180./3.1415926, YPR[1]*180./3.1415926, YPR[2]*180./3.1415926);
  if (gal_coo) get_gal_coo(gal_long, gal_lat, ra, dec);
+ else { gal_long = ra; gal_lat = dec; }
  return 0;
 }
 
@@ -8806,142 +8807,6 @@ return 0;
 }
 
 
-int AMSEventR::DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double & TraceTime,float theta, float phi, double Momentum, double Velocity, int Charge, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod,bool use_ctrs){
-  static int mprint=0;
-  AMSDir dir(theta, phi);
-
-  float elev=dir.gettheta();               // common definition
-  float azim=dir.getphi();
-
- int ret=0;
- result=0;
- double  xtime=fHeader.UTCTime();
- if(use_ams_gps_time){
-   unsigned int time,nanotime;
-   if(GetGPSTime( time, nanotime) )ret=-2;
-   else {
-    xtime=double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
-    result|=(1<<1);
-  }
- }
- if(use_ams_stk){
-   AMSSetupR::AMSSTK a;
-  if(!getsetup() || getsetup()->getAMSSTK(a,xtime)){
-   ret=-1;
-  }
-  else{
-   // not supported 
-    
-  if(0){
-      result|=(1<<0);
-      return ret;
-  }
-  else ret-=1;
-  }  
- }
-
- double RPT[3],VelPT[2],YPR[3];
- bool gtod=false;
- // YPR 
-
-AMSPoint d2l;
-
- d2l[0]=fHeader.RadS*cos(fHeader.ThetaS)*cos(fHeader.PhiS);
- d2l[1]=fHeader.RadS*cos(fHeader.ThetaS)*sin(fHeader.PhiS);
- d2l[2]=fHeader.RadS*sin(fHeader.ThetaS);
-
-YPR[0]=fHeader.Yaw;
-YPR[1]=fHeader.Pitch;
-YPR[2]=fHeader.Roll;
-RPT[0]=fHeader.RadS;
-RPT[1]=fHeader.PhiS;
-RPT[2]=fHeader.ThetaS;
-VelPT[0]=fHeader.VelPhi;
-VelPT[1]=fHeader.VelTheta;
-
-if(getsetup()){
-  float Roll,Pitch,Yaw;
-  if(!getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
-   YPR[0]=Yaw;
-   YPR[1]=Pitch;
-   YPR[2]=Roll;
-  }
- AMSSetupR::ISSGTOD a;
- AMSSetupR::ISSCTRSR b; 
- if(use_gtod && !getsetup()->getISSGTOD(a,xtime)){
-    double prec=80;
-    AMSPoint dc;
-   dc[0]=a.r*cos(a.theta)*cos(a.phi);
-   dc[1]=a.r*cos(a.theta)*sin(a.phi);
-   dc[2]=a.r*sin(a.theta);
-   AMSPoint da=dc-d2l;
-   double diff=sqrt(da.prod(da))/1e5;
-   if(fabs(diff)<prec){
-  RPT[0]=a.r;
-  RPT[1]=a.phi;
-  RPT[2]=a.theta;
-  VelPT[0]=a.vphi;
-  VelPT[1]=a.vtheta;
-  gtod=true;
-  result|=(1<<2);
-  }
-   else{
-    if(mprint++<=10){
-      cerr<<"AMSEventR::DoBackTracing-E-GTODCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
-    if(mprint==10)cerr<<"AMSEventR::DoBackTracing-E-GTODCooTooDistantFrom2Ele LastMessage "<<endl;        
-    }
-    gtod=true;
-    result|=(1<<4);
-   }
- }
- else if(use_ctrs &&!getsetup()->getISSCTRS(b,xtime)){
-    double prec=80;
-    AMSPoint dc;
-   dc[0]=b.r*cos(b.theta)*cos(b.phi);
-   dc[1]=b.r*cos(b.theta)*sin(b.phi);
-   dc[2]=b.r*sin(b.theta);
-   AMSPoint da=dc-d2l;
-   double diff=sqrt(da.prod(da))/1e5;
-   if(fabs(diff)<prec){
-    RPT[0]=b.r;
-    RPT[1]=b.phi;
-    RPT[2]=b.theta;
-    VelPT[0]=b.vphi;
-    VelPT[1]=b.vtheta;
-    gtod=false;
-    result|=(1<<3);
-   }
-   else{
-    if(mprint++<=10){
-      cerr<<"AMSEventR::DoBackTracing-E-CTRSCooTooDistantFrom2Ele "<<diff<<" km "<<endl;        
-    if(mprint==10)cerr<<"AMSEventR::DoBackTracing-E-CTRSCooTooDistantFrom2Ele LastMessage "<<endl;        
-    }
-    gtod=true;
-    result|=(1<<4);
-   }
- }
- else{
-  gtod=true;
-  result|=(1<<4);
- }
-
-}
-else{
-  gtod=true;
-  result|=(1<<4); 
-}  
-
-double GPT[2];
-int ret2=fHeader.do_backtracing(glong, glat, TraceTime, RPTO, GPT, elev, azim, Momentum, Velocity, Charge, RPT, VelPT, YPR,  xtime, gtod);
-if(ret2==1)result|=(1<<5);  //over
-else if(ret2==0)result|=(1<<6);  //under
-else if(ret2==2)result|=(1<<7);  //trapped
- return ret2>=0?ret:-ret2;
-
-
-
-
-}
 
 int AMSEventR::GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk,  bool use_ams_gps_time, bool use_gtod, bool use_ctrs){
 /*
@@ -9105,28 +8970,28 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
 			 int use_att, int use_coo, int use_time,
 			 double   dt, int out_type)
   /*!
-    \brief Convert AMS Local Zenith to Galactic coordinates
-    \param output
-      result bits with 0:STK used   1:GPS time used  2:GTOD used
-                       3:CTRS used  4:TLE used  5:INTL used 6:GPS coo.used
-      glong Galactic longitude (degree)
-      glat  Galactic latitude  (degree)
-    \param input
-      theta     (rad) in ams coo system (pi: down-going 0: up-going)
-      phi       (rad) in ams coo system
-      use_att   1:Use LVLH, 2:Use INTL, 3: Use STK
-      use_coo   1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS coord.
-      use_time  1:UTCTime(), 2:AMS GPS time
-      dt        time jitter (sec) for coordinates input
-      out_type  1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
-    \return 
-      0 success
-     -1 failure
-      1 specified use_att  data not available; instead used TLE+LVLH
-      2 specified use_coo  data not available; instead used TLE
-      3 specified use_coo  data not reliable;  instead used TLE
-      4 specified use_time data not available; instead used UTCTime()
-    */
+  \brief Convert direction in AMS coordinates into Galactic coordinates
+
+  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
+                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] glong       Galactic longitude (degree)
+  \param[out] glat        Galactic latitude  (degree)
+
+  \param[in]  theta (rad) in ams coo system (pi: down-going 0: up-going)
+  \param[in]  phi   (rad) in ams coo system
+  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  dt          time jitter (sec) for coordinates input
+  \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
+
+  \retval     0 success
+  \retval    -1 failure
+  \retval     1 specified use_att  data not available; instead used TLE+LVLH
+  \retval     2 specified use_coo  data not available; instead used TLE
+  \retval     3 specified use_coo  data not reliable;  instead used TLE
+  \retval     4 specified use_time data not available; instead used UTCTime()
+  */
 {
   enum { bSTK  = 0, bGPST = 1, bGTOD = 2, bCTRS = 3, bTLE = 4,
 	 bINTL = 5, bGPSW = 6 };
@@ -9285,6 +9150,206 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
   int ret2 = fHeader.get_gal_coo(glong, glat, theta, phi,
 				 RPT, VPT, YPR, xtime, gtod, gal_coo);
   return (ret2 == 0) ? ret : ret2;
+}
+
+int AMSEventR::DoBacktracing(int &result, int &status,
+			     double &glong, double &glat,
+			     double RPTO[3], double &TraceTime,
+			     double theta, double phi,
+			     double Momentum, double Velocity, int Charge, 
+			     int use_att, int use_coo, int use_time,
+			     double   dt, int out_type)
+  /*!
+  \brief Back trace charged particle into Galactic coordinates
+
+  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
+                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] status      1:Over cutoff, 2:Under cutoff, 3:Trapped
+  \param[out] glong       Galactic longitude (degree)
+  \param[out] glat        Galactic latitude  (degree)
+  \param[out] RPTO        GTOD coordinates Rad(cm), Phi(rad), Theta(rad)
+
+  \param[in]  theta (rad) in ams coo system (pi: down-going 0: up-going)
+  \param[in]  phi   (rad) in ams coo system
+  \param[in]  Momentum    (GeV/c) Not signed
+  \param[in]  Velocity    (=beta) Not signed
+  \param[in]  Charge      Signed charge
+  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  dt          time jitter (sec) for coordinates input
+  \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
+
+  \retval     0 success
+  \retval    -1 failure
+  \retval     1 specified use_att  data not available; instead used TLE+LVLH
+  \retval     2 specified use_coo  data not available; instead used TLE
+  \retval     3 specified use_coo  data not reliable;  instead used TLE
+  \retval     4 specified use_time data not available; instead used UTCTime()
+  */
+{
+  enum { bSTK  = 0, bGPST = 1, bGTOD = 2, bCTRS = 3, bTLE = 4,
+	 bINTL = 5, bGPSW = 6 };
+  enum { rNAtt = 1, rNCoo = 2, rBCoo = 3, rNTim = 4 };
+
+  enum { uLVLH = 1, uINTL = 2, uSTK  = 3,
+	 uTLE  = 1, uCTRS = 2, uGTOD = 3, uGPSW = 4,
+	 uUTCT = 1, uGPST = 2 };
+
+  int ret = result = 0;
+
+  bool gal_coo = (out_type == 2) ? false : true;
+
+  double xtime = fHeader.UTCTime();
+
+  // Check and use AMS GPS TIme if OK
+  if (use_time == uGPST) {
+    unsigned int time,nanotime;
+    if (GetGPSTime(time, nanotime)) ret = rNTim;
+    else {
+      xtime = double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
+      result |= (1<<bGPST);
+    }
+  }
+
+  // Check and use AMS STK if OK
+
+  if (use_att == uSTK) {
+    AMSSetupR::AMSSTK stk;
+    if (getsetup() && !getsetup()->getAMSSTK(stk, xtime+dt)) {
+      result |= (1<<bSTK);
+      int ret2 = fHeader.get_gal_coo(glong, glat, theta, phi, stk.cam_id,
+				     stk.cam_ra, stk.cam_dec, stk.cam_or,
+				     gal_coo);
+      return (ret2 == 0) ? ret : ret2;
+    }
+    else ret = rNAtt;
+  }
+
+  // Check and use INTL if OK
+  else if (use_att == uINTL) {
+    float Roll, Pitch, Yaw;
+    if (getsetup() && !getsetup()->getISSINTL(Roll, Pitch, Yaw, xtime+dt)) {
+      double YPR[3];
+      YPR[0] = Yaw;
+      YPR[1] = Pitch;
+      YPR[2] = Roll;
+      result |= (1<<bINTL);
+      int ret2 = fHeader.get_gal_coo(glong, glat, theta, phi,
+				     YPR, xtime, gal_coo);
+      return (ret2 == 0) ? ret : ret2;
+    }
+    else ret = rNAtt;
+  }
+
+  double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
+  double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
+  double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
+
+  bool gtod = true;
+
+  float Roll, Pitch, Yaw;
+  if (getsetup() && !getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
+    YPR[0] = Yaw;
+    YPR[1] = Pitch;
+    YPR[2] = Roll;
+  }
+
+  static int mprint = 0;
+  double prec = 80e5;
+
+  // Check and use GTOD if OK
+  if (use_coo == uGTOD) {
+    AMSSetupR::ISSGTOD gtod;
+    if (getsetup() && !getsetup()->getISSGTOD(gtod, xtime+dt)) {
+      double diff = get_coo_diff(RPT, gtod.r, gtod.theta, gtod.phi);
+      if (diff < prec) {
+	RPT[0] = gtod.r;    RPT[1] = gtod.phi; RPT[2] = gtod.theta;
+	VPT[0] = gtod.vphi; VPT[1] = gtod.vtheta;
+	result |= (1<<bGTOD);
+      }
+      else {
+	if (mprint++ <= 10) {
+	  cerr << "AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele "
+	       << diff << " km";
+	  if (mprint == 10) cerr << " (LastMessage)";
+	  cerr << endl;
+	}
+	result |= (1<<bTLE);
+	ret = 3;
+      }
+    }
+    else {
+      result |= (1<<bTLE);
+      ret = 2;
+    }
+  }
+
+  // Check and use CTRS if OK
+  else if (use_coo == uCTRS) {
+    AMSSetupR::ISSCTRSR ctrs; 
+    if (getsetup() && !getsetup()->getISSCTRS(ctrs, xtime+dt)) {
+      double diff = get_coo_diff(RPT, ctrs.r, ctrs.theta, ctrs.phi);
+      if (diff < prec) {
+	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
+	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
+	result |= (1<<bCTRS);
+	gtod = false;
+      }
+      else {
+	if (mprint++ <= 10) {
+	  cerr << "AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele "
+	       << diff << " km";
+	  if (mprint == 10) cerr << " (LastMessage)";
+	  cerr << endl;
+	}
+	result |= (1<<bTLE);
+	ret = 3;
+      }
+    }
+    else {
+      result |= (1<<bTLE);
+      ret = 2;
+    }
+  }
+
+  // Check and use GPS if OK
+  else if (use_coo == uGPSW) {
+    AMSSetupR::GPSWGS84R gpsw;
+    if (getsetup() && !getsetup()->getGPSWGS84(gpsw, xtime+dt)) {
+      double diff = get_coo_diff(RPT, gpsw.r, gpsw.theta, gpsw.phi);
+      if (diff < prec) {
+	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
+	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
+	result |= (1<<bGPSW);
+	gtod = false;
+      }
+      else {
+	if (mprint++ <= 10) {
+	  cerr << "AMSEventR::GetGalCoo-E-GTODCooTooDistantFrom2Ele "
+	       << diff << " km";
+	  if (mprint == 10) cerr << " (LastMessage)";
+	  cerr << endl;
+	}
+	result |= (1<<bTLE);
+	ret = 3;
+      }
+    }
+    else {
+      result |= (1<<bTLE);
+      ret = 2;
+    }
+  }
+  else result |= (1<<bTLE);
+
+  double GPT[2];
+  int ret2 = fHeader.do_backtracing(glong, glat, TraceTime, RPTO, GPT,
+				    theta, phi, Momentum, Velocity, Charge,
+				    RPT, VPT, YPR, xtime, gtod, gal_coo);
+  if      (ret2 == 1) status = 1;  // Over  cutoff
+  else if (ret2 == 0) status = 2;  // Under cutoff
+  else if (ret2 == 2) status = 3;  // Trapped
+  return  (ret2 >= 0) ? ret : ret2;
 }
 
 
