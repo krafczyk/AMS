@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.495 2012/11/02 07:34:00 shaino Exp $
+//  $Id: root.h,v 1.496 2012/11/03 21:10:32 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4370,71 +4370,68 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   static double get_coo_diff(double RPT[3], double r, double phi, double theta);
 
   /*!
-    \brief Convert AMS Local Zenith to Galactic coordinates
-    \param output
-      result bits with 0:STK used   1:GPS time used  2:GTOD used
-                       3:CTRS used  4:TLE used  5:INTL used 6:GPS coo.used
-      glong Galactic longitude (degree)
-      glat  Galactic latitude  (degree)
-    \param input
-      theta     (rad) in ams coo system (pi: down-going 0: up-going)
-      phi       (rad) in ams coo system
-      use_att   1:Use LVLH, 2:Use INTL, 3: Use STK
-      use_coo   1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS coord.
-      use_time  1:UTCTime(), 2:AMS GPS time
-      dt        time jitter (sec) for coordinates input
-      out_type  1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
-    \return 
-      0 success
-     -1 failure
-      1 specified use_att  data not available; instead used TLE+LVLH
-      2 specified use_coo  data not available; instead used TLE
-      3 specified use_coo  data not reliable;  instead used TLE
-      4 specified use_time data not available; instead used UTCTime()
-    */
+  \brief Convert direction in AMS coordinates into Galactic coordinates
+
+  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
+                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] glong       Galactic longitude (degree)
+  \param[out] glat        Galactic latitude  (degree)
+
+  \param[in]  theta (rad) in ams coo system (pi: down-going 0: up-going)
+  \param[in]  phi   (rad) in ams coo system
+  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  dt          time jitter (sec) for coordinates input
+  \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
+
+  \retval     0 success
+  \retval    -1 failure
+  \retval     1 specified use_att  data not available; instead used TLE+LVLH
+  \retval     2 specified use_coo  data not available; instead used TLE
+  \retval     3 specified use_coo  data not reliable;  instead used TLE
+  \retval     4 specified use_time data not available; instead used UTCTime()
+  */
   int GetGalCoo(int &result, double &glong, double &glat, 
 		double theta = 3.1415926,   double phi = 0,
 		int use_att= 1, int use_coo = 4, int use_time= 2,
 		double   dt= 0, int out_type= 1);
 
-         //! Do Backtracing
-        /*!
-\param
-   
-input   
-          theta (rad)  in ams coo system
-           phi     (rad)  in ams coo system
-           Momentum  (not signed gev/c)
-           Charge    (signed, integer)
-           Velocity (not signed v/speed_of_light)
-           use_ams_stk  ->  use info from ams startracker
-           use_ams_gps_time ->  use ams gps time, and not a iss  gps time
-           use_gtod         ->  use gtod coordinates
-           use_ctrs         ->  use gtod coordinates
 
-output
-             Galactic coordinates glong,glat (degrees) glong, glat
-             GTOD coordinates RPTO[3] Rad (cm), Phi(rad), Theta(rad)
-             TraceTime        back tracing time
-             result    bit 0 ams_stk info had been used
-                                 1  ams_gps_time had been used
-                                 2  gtod coo system + lvlh ypr had been used
-                                 3   ctrs coo  system  + -------------------------------
-                                 4   twoline element estimator of gtod + --------------------------
-                                 5   overcutoff particle
-                                 6   undercutoff particle 
-                                 7   trapped particle
-\return 
+  /*!
+  \brief Back trace charged particle into Galactic coordinates
 
- 0 success
- 1 failure
- -1 use of ams_stk was not possible, other info had  been used
- -2 use of ams gps time was not possible , iss gps time had been used instead
- -3 use of ams_stk and ams_gps_time was not possible
+  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
+                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] status      1:Over cutoff, 2:Under cutoff, 3:Trapped
+  \param[out] glong       Galactic longitude (degree)
+  \param[out] glat        Galactic latitude  (degree)
+  \param[out] RPTO        GTOD coordinates Rad(cm), Phi(rad), Theta(rad)
 
-*/
-int DoBacktracing(int & result, double & glong, double & glat, double RPTO[3], double &TraceTime, float theta, float phi, double Momentum,  double Velocity, int Charge,bool use_ams_stk=true,  bool use_ams_gps_time=true, bool use_gtod=false,bool use_ctrs=false);///< Do Backtracing
+  \param[in]  theta (rad) in ams coo system (pi: down-going 0: up-going)
+  \param[in]  phi   (rad) in ams coo system
+  \param[in]  Momentum    (GeV/c) Not signed
+  \param[in]  Velocity    (=beta) Not signed
+  \param[in]  Charge      Signed charge
+  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  dt          time jitter (sec) for coordinates input
+  \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
+  \retval     0 success
+  \retval    -1 failure
+  \retval     1 specified use_att  data not available; instead used TLE+LVLH
+  \retval     2 specified use_coo  data not available; instead used TLE
+  \retval     3 specified use_coo  data not reliable;  instead used TLE
+  \retval     4 specified use_time data not available; instead used UTCTime()
+  */
+  int DoBacktracing(int &result, int &status, double &glong, double &glat,
+		    double RPTO[3], double &TraceTime,
+		    double theta, double phi,
+		    double Momentum, double Velocity, int Charge, 
+		    int use_att= 1, int use_coo = 4, int use_time= 2,
+		    double   dt= 0, int out_type= 1);
 
 
 int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates
