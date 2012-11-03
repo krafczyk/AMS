@@ -13,7 +13,7 @@
 #include "root.h"
 #endif
 
-#define  MAXALIGNEDRUN 1350450000
+#define  MAXALIGNEDRUN 1351750000
 
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
