@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.479 2012/11/04 18:28:42 choutko Exp $
+//  $Id: root.C,v 1.480 2012/11/04 19:11:10 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8972,16 +8972,19 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
   /*!
   \brief Convert direction in AMS coordinates into Galactic coordinates
 
-  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
-                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] result bits (1<<0 =  1): STK used, (1<<1 = 2):INTL used,
+			  (1<<2 =  4): TLE used, (1<<3 = 8):GTOD used,
+			  (1<<4 = 16):CTRS used, (1<<5 =32):AMS-GPS coo.used,
+			  (1<<6 = 64):GPS time used,
+			  (1<<7 =128):GPS time corrected used
   \param[out] glong       Galactic longitude (degree)
   \param[out] glat        Galactic latitude  (degree)
 
   \param[in]  theta (rad) in ams coo system (pi: down-going 0: up-going)
   \param[in]  phi   (rad) in ams coo system
-  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
-  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time, 3: AMS GPS Time corrected
+  \param[in]  use_att     1:Use LVLH,  2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMSGPS time, 3:AMSGPS Time corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
@@ -8993,13 +8996,14 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
   \retval     4 specified use_time data not available; instead used UTCTime()
   */
 {
-  enum { bSTK  = 0, bGPST = 1, bGTOD = 2, bCTRS = 3, bTLE = 4,
-	 bINTL = 5, bGPSW = 6 };
+  enum { bSTK  = 0, bINTL = 1, bTLE  = 2, bGTOD = 3, bCTRS = 4, bGPSW = 5,
+	 bGPST = 6, bGPSC = 7 };
+
   enum { rNAtt = 1, rNCoo = 2, rBCoo = 3, rNTim = 4 };
 
   enum { uLVLH = 1, uINTL = 2, uSTK  = 3,
 	 uTLE  = 1, uCTRS = 2, uGTOD = 3, uGPSW = 4,
-	 uUTCT = 1, uGPST = 2 };
+	 uUTCT = 1, uGPST = 2, uGPSC = 3 };
 
   int ret = result = 0;
 
@@ -9007,7 +9011,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
 
   double xtime = fHeader.UTCTime();
 
-  // Check and use AMS GPS TIme if OK
+  // Check and use AMS GPS Time if OK
   if (use_time == uGPST) {
     unsigned int time,nanotime;
     if (GetGPSTime(time, nanotime)) ret = rNTim;
@@ -9016,11 +9020,12 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       result |= (1<<bGPST);
     }
   }
-  else if(use_time==3){
+
+  // Check and use AMS GPS Time if OK
+  else if (use_time == uGPSC){
     double err;
-    if(UTCTime(xtime,err))ret = rNTim;
-    else  result |= (1<<bGPST);
-    
+    if (UTCTime(xtime, err)) ret = rNTim;
+    else result |= (1<<bGPSC);
   }
 
   // Check and use AMS STK if OK
@@ -9168,8 +9173,11 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   /*!
   \brief Back trace charged particle into Galactic coordinates
 
-  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
-                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] result bits (1<<0 =  1): STK used, (1<<1 = 2):INTL used,
+			  (1<<2 =  4): TLE used, (1<<3 = 8):GTOD used,
+			  (1<<4 = 16):CTRS used, (1<<5 =32):AMS-GPS coo.used,
+			  (1<<6 = 64):GPS time used,
+			  (1<<7 =128):GPS time corrected used
   \param[out] status      1:Over cutoff, 2:Under cutoff, 3:Trapped
   \param[out] glong       Galactic longitude (degree)
   \param[out] glat        Galactic latitude  (degree)
@@ -9180,9 +9188,9 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   \param[in]  Momentum    (GeV/c) Not signed
   \param[in]  Velocity    (=beta) Not signed
   \param[in]  Charge      Signed charge
-  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
-  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time. 3: AMS GPS time Corrected
+  \param[in]  use_att     1:Use LVLH,  2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMSGPS time, 3:AMSGPS Time corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
@@ -9194,13 +9202,14 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   \retval     4 specified use_time data not available; instead used UTCTime()
   */
 {
-  enum { bSTK  = 0, bGPST = 1, bGTOD = 2, bCTRS = 3, bTLE = 4,
-	 bINTL = 5, bGPSW = 6 };
+  enum { bSTK  = 0, bINTL = 1, bTLE  = 2, bGTOD = 3, bCTRS = 4, bGPSW = 5,
+	 bGPST = 6, bGPSC = 7 };
+
   enum { rNAtt = 1, rNCoo = 2, rBCoo = 3, rNTim = 4 };
 
   enum { uLVLH = 1, uINTL = 2, uSTK  = 3,
 	 uTLE  = 1, uCTRS = 2, uGTOD = 3, uGPSW = 4,
-	 uUTCT = 1, uGPST = 2 };
+	 uUTCT = 1, uGPST = 2, uGPSC = 3 };
 
   int ret = result = 0;
 
@@ -9217,11 +9226,11 @@ int AMSEventR::DoBacktracing(int &result, int &status,
       result |= (1<<bGPST);
     }
   }
-  else if(use_time==3){
+  // Check and use AMS GPS Time if OK
+  else if (use_time == uGPSC){
     double err;
-    if(UTCTime(xtime,err))ret = rNTim;
-    else  result |= (1<<bGPST);
-    
+    if (UTCTime(xtime, err)) ret = rNTim;
+    else result |= (1<<bGPSC);
   }
 
   // Check and use AMS STK if OK

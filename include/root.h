@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.497 2012/11/04 18:28:46 choutko Exp $
+//  $Id: root.h,v 1.498 2012/11/04 19:11:12 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4372,16 +4372,19 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   /*!
   \brief Convert direction in AMS coordinates into Galactic coordinates
 
-  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
-                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] result bits (1<<0 =  1): STK used, (1<<1 = 2):INTL used,
+			  (1<<2 =  4): TLE used, (1<<3 = 8):GTOD used,
+			  (1<<4 = 16):CTRS used, (1<<5 =32):AMS-GPS coo.used,
+			  (1<<6 = 64):GPS time used,
+			  (1<<7 =128):GPS time corrected used
   \param[out] glong       Galactic longitude (degree)
   \param[out] glat        Galactic latitude  (degree)
 
   \param[in]  theta (rad) in ams coo system (pi: down-going 0: up-going)
   \param[in]  phi   (rad) in ams coo system
-  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
-  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time 3:AMSGPS Time Corrected
+  \param[in]  use_att     1:Use LVLH,  2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time, 3:AMSGPS Time Corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
@@ -4401,8 +4404,11 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   /*!
   \brief Back trace charged particle into Galactic coordinates
 
-  \param[out] result bits 0:STK used,  1:GPS time used, 2:GTOD used,
-                          3:CTRS used, 4:TLE used, 5:INTL used, 6:GPS coo.used
+  \param[out] result bits (1<<0 =  1): STK used, (1<<1 = 2):INTL used,
+			  (1<<2 =  4): TLE used, (1<<3 = 8):GTOD used,
+			  (1<<4 = 16):CTRS used, (1<<5 =32):AMS-GPS coo.used,
+			  (1<<6 = 64):GPS time used,
+			  (1<<7 =128):GPS time corrected used
   \param[out] status      1:Over cutoff, 2:Under cutoff, 3:Trapped
   \param[out] glong       Galactic longitude (degree)
   \param[out] glat        Galactic latitude  (degree)
@@ -4413,9 +4419,9 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   \param[in]  Momentum    (GeV/c) Not signed
   \param[in]  Velocity    (=beta) Not signed
   \param[in]  Charge      Signed charge
-  \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
-  \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time 3:AMS GPS Time corrected
+  \param[in]  use_att     1:Use LVLH,  2:Use INTL, 3: Use STK
+  \param[in]  use_coo     1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time, 3:AMS GPS Time corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
