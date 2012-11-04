@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.478 2012/11/03 21:10:14 shaino Exp $
+//  $Id: root.C,v 1.479 2012/11/04 18:28:42 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8981,7 +8981,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
   \param[in]  phi   (rad) in ams coo system
   \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
   \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time, 3: AMS GPS Time corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
@@ -9015,6 +9015,12 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       xtime = double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
       result |= (1<<bGPST);
     }
+  }
+  else if(use_time==3){
+    double err;
+    if(UTCTime(xtime,err))ret = rNTim;
+    else  result |= (1<<bGPST);
+    
   }
 
   // Check and use AMS STK if OK
@@ -9176,7 +9182,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   \param[in]  Charge      Signed charge
   \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
   \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time. 3: AMS GPS time Corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
@@ -9210,6 +9216,12 @@ int AMSEventR::DoBacktracing(int &result, int &status,
       xtime = double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(time);
       result |= (1<<bGPST);
     }
+  }
+  else if(use_time==3){
+    double err;
+    if(UTCTime(xtime,err))ret = rNTim;
+    else  result |= (1<<bGPST);
+    
   }
 
   // Check and use AMS STK if OK
@@ -10973,19 +10985,52 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
 
 #endif
 
-double HeaderR::UTCTime() const{
-double error=0;
-return double(Time[0])+double(Time[1])/1000000.+TimeCorr(error,Time[0])-AMSEventR::gpsdiff(Time[0]);
+double HeaderR::UTCTime(int mode) const {
+
+double error=10;
+double etime=double(Time[0])+double(Time[1])/1000000.+TimeCorr(error,Time[0])-AMSEventR::gpsdiff(Time[0]);
+if(mode==1){
+    unsigned int time,nanotime;
+    if (AMSEventR::Head() && !AMSEventR::Head()->GetGPSTime(time, nanotime)){
+      double xtime= double(time)+double(nanotime)/1.e9-AMSEventR::gpsdiff(Time[0]);
+      if(fabs(etime-xtime)<3*error){
+       return xtime;
+      }
+    }
+}
+return etime;
+}
+int AMSEventR::UTCTime(double &xtime, double &error) {
+int ret=0;
+error=10;
+xtime=double(UTime())+Frac()+fHeader.TimeCorr(error,UTime())-gpsdiff(UTime());
+    unsigned int time,nanotime;
+    if (!GetGPSTime(time, nanotime)){
+           
+      double etime= double(time)+double(nanotime)/1.e9-gpsdiff(UTime());
+      if(fabs(etime-xtime)<3*error){
+       xtime=etime;
+      }
+      else ret=1;
+    }
+    else ret=2;
+  
+    return ret;
 }
 
 double HeaderR::TimeCorr(double & error,unsigned int time) const{
+if(!AMSEventR::getsetup()){
 error=10;
-double dt=0;
-return dt;
+return 0;
+}
+double corr;
+
+int ret=AMSEventR::getsetup()->GetJMDCGPSCorr(corr,error,time);
+return corr;
 }
 
 int AMSEventR::gpsdiff(unsigned int time){
-unsigned int t16=1341100786;
+unsigned int t16=1341100786+43200;
 if(time<t16)return 15;
 else return 16;
 }

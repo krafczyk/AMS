@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.184 2012/10/09 08:16:49 choutko Exp $
+//  $Id: producer.C,v 1.185 2012/11/04 18:28:41 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2093,7 +2093,7 @@ else{
    systemc+=".so";
   }
   else if(strstr(nvr,"2.6")){
-   systemc+=".6";
+   systemc+=".so";
   }
   if(strstr(version,"v4.00")){
     systemc+=" -m ";

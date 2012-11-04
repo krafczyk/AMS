@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.496 2012/11/03 21:10:32 shaino Exp $
+//  $Id: root.h,v 1.497 2012/11/04 18:28:46 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -321,9 +321,9 @@ int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, flo
 int getISSGTOD(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSGTOD values for the current event time;
 int getGPSWGS84(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::GPSWGS84 values for the current event time;
 
-int getISSTLE(double dt=0);///<update TLE values for the current event time and replace in fHeader;
+int getISSTLE(double dt=0.5);///<update TLE values for the current event time and replace in fHeader;
 double TimeCorr(double& error, unsigned int time=0) const;///< Correction to be added to JMDC time to get correct gps time (sec) ; error : error estimation (sec) 
-double UTCTime()const ;///< Returns Best Known UTCTime for  currentevent 
+double UTCTime(int mode=0)const ;///< Returns Best Known UTCTime for  curren tevent 
 int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
 int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and replace roll,pitch,yaw in the fHeader
 double getBetaSun();///<get solar beta angle via geometrical calculation
@@ -2342,7 +2342,7 @@ public:
   float TrigRates[19]; ///< TrigCompRates(Hz):FT,FTC,FTZ,FTE,NonPH,LVL1,L1M1-M8,CPmx,BZmx,ACmx,EFTmx,EANmx
   unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec
 
-  int GetGPSTime(unsigned int & gps_sec, unsigned int & gps_nsec); // return 0 if success
+  int GetGPSTime(unsigned int & gps_sec, unsigned int & gps_nsec) ; // return 0 if success
 
   Level1R(){};
 /// \param level -1 any tof level
@@ -4381,7 +4381,7 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   \param[in]  phi   (rad) in ams coo system
   \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
   \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time 3:AMSGPS Time Corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
@@ -4394,7 +4394,7 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   */
   int GetGalCoo(int &result, double &glong, double &glat, 
 		double theta = 3.1415926,   double phi = 0,
-		int use_att= 1, int use_coo = 4, int use_time= 2,
+		int use_att= 1, int use_coo = 4, int use_time= 3,
 		double   dt= 0, int out_type= 1);
 
 
@@ -4415,7 +4415,7 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   \param[in]  Charge      Signed charge
   \param[in]  use_att     1:Use LVLH, 2:Use INTL, 3: Use STK
   \param[in]  use_coo     1:Use TLE,  2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
-  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time
+  \param[in]  use_time    1:UTCTime(), 2:AMS GPS time 3:AMS GPS Time corrected
   \param[in]  dt          time jitter (sec) for coordinates input
   \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
 
@@ -4430,13 +4430,14 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
 		    double RPTO[3], double &TraceTime,
 		    double theta, double phi,
 		    double Momentum, double Velocity, int Charge, 
-		    int use_att= 1, int use_coo = 4, int use_time= 2,
+		    int use_att= 1, int use_coo = 4, int use_time= 3,
 		    double   dt= 0, int out_type= 1);
 
 
 int GetGTODCoo(int & result, double & gtheta, double & gphi, float theta, float phi, bool use_ams_stk=false,  bool use_ams_gps_time=true, bool use_gtod=false, bool use_ctrs=false);///< Get galactic coordinates
 
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time
+int  UTCTime(double &time, double &err ) ;///< Best Known UTCTime for  curren tevent; return 0 if gps time was used, 2 if no gps time was found, 1 if gpstime is too far from jmdc time; err approximative error  
 double UTCTime() const {return fHeader.UTCTime();}///< return best known event UTCTime
       //! RunTagChecker
         /*!

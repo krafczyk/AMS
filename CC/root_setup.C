@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.110 2012/11/01 15:22:25 shaino Exp $
+//  $Id: root_setup.C,v 1.111 2012/11/04 18:28:42 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1094,6 +1094,113 @@ integer AMSSetupR::_select(  const dirent64 *entry)
  return strstr(entry->d_name,"SCDB.")!=NULL;
 }
 
+int AMSSetupR::GetJMDCGPSCorr(double &corr, double &err, unsigned int time){
+static int hint=-1;
+static int init_error=0;
+const double ti=1306000000;
+#pragma omp threadprivate(hint)
+#pragma omp threadprivate(init_error)
+ if(init_error==0 && !fJGC.size()){
+   init_error=LoadJMDCGPSCorr();
+ }
+ if(!fJGC.size())return 2;
+ if(time<fJGC[0].Validity[0]){
+   corr=0;
+   err=10;
+   hint=-1;
+   return 3;
+ }
+ else if (time>fJGC[fJGC.size()-1].Validity[1]){
+   corr=0;
+   err=0.3;
+   hint=-1;
+   return 3;
+ }
+ else{
+  if(hint>=0 && hint<fJGC.size() && time>=fJGC[hint].Validity[0] && time<fJGC[hint].Validity[1]){
+   JGC &a=fJGC[hint];
+   corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
+   err=a.Err[1];
+   return 0;
+  } 
+  for(hint=0;hint<fJGC.size();hint++){
+  if(time>=fJGC[hint].Validity[0] && time<fJGC[hint].Validity[1]){
+   JGC &a=fJGC[hint];
+   corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
+   err=a.Err[1];
+   return 0;
+  }  
+ }
+}
+corr=0;
+err=10;
+return 1;
+}
+
+int AMSSetupR::LoadJMDCGPSCorr(){
+char amsdatadir[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+char *amsd=getenv("AMSDataDir");
+if(!amsd || !strlen(amsd))amsd=amsdatadir;
+string ifile=amsd;
+ifile+="/v5.00/";
+ifile+="gps.csv";
+ifstream fbin;
+fbin.clear();
+fbin.open(ifile.c_str());
+     if(fbin){
+      fJGC.clear();
+      while(fbin.good() && !fbin.eof()){
+        string line;
+         while(getline(fbin,line)){
+         vector<string>vout;
+         istringstream str(line);
+         string word;
+         while(getline(str,word,',')){
+          vout.push_back(word);
+          if(vout.size()==9){
+           JGC a;
+           istringstream convert;
+           convert.clear();
+           convert.str(vout[0]);
+           convert>>a.Validity[0]; 
+           convert.clear();
+           convert.str(vout[1]);
+           convert>>a.Validity[1]; 
+           convert.clear();
+           convert.str(vout[2]);
+           convert>>a.A[0]; 
+           convert.clear();
+           convert.str(vout[3]);
+           convert>>a.A[1]; 
+           convert.clear();
+           convert.str(vout[4]);
+           convert>>a.Par[0]; 
+           convert.clear();
+           convert.str(vout[5]);
+           convert>>a.Par[1]; 
+           convert.clear();
+           convert.str(vout[6]);
+           convert>>a.Par[2]; 
+           convert.clear();
+           convert.str(vout[7]);
+           convert>>a.Err[0]; 
+           convert.clear();
+           convert.str(vout[8]);
+           convert>>a.Err[1]; 
+           fJGC.push_back(a);    
+          }
+        }
+       }
+     }
+    }
+     else{
+       cerr<<"AMSSetupR::LoadJMDCGPSCorr-E-UnabletoOpenFile "<<ifile<<endl;
+     }
+     
+    cout<< "AMSSetupR::LoadJMDCGPSCorr-I- "<<fJGC.size()<<" Entries Loaded "<<endl;
+    return fJGC.size()?0:2;
+}
+
 void AMSSetupR::LoadISS(unsigned int t1, unsigned int t2){
 char amsdatadir[]="/afs/cern.ch/ams/Offline/AMSDataDir";
 char *amsd=getenv("AMSDataDir");
@@ -1535,10 +1642,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadISSSA(stime[0],stime[1]);
 ssize=fISSSA.size();
+
+}
 }
 #endif 
 
@@ -1677,10 +1784,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadISSAtt(stime[0],stime[1]);
 ssize=fISSAtt.size();
+
+}
 }
 #endif 
 
@@ -1725,7 +1832,7 @@ if(xtime==k->first){
   s0[0]=k->second.Yaw;
   s0[1]=l->second.Yaw;
   yaw=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  const float dmax=60;
+  const float dmax=301;
   if(fabs(tme[1]-tme[0])>dmax)return 3;
   else return 0;
 
@@ -1751,10 +1858,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadISSINTL(stime[0],stime[1]);
 ssize=fISSINTL.size();
+
+}
 }
 #endif 
 
@@ -1837,10 +1944,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadISS(stime[0],stime[1]);
 ssize=fISSData.size();
+
+}
 }
 #endif 
 static unsigned int time=0;
@@ -1899,10 +2006,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadISSCTRS(stime[0],stime[1]);
 ssize=fISSCTRS.size();
+
+}
 }
 #endif 
 if (fISSCTRS.size()==0)return 2;
@@ -2031,10 +2138,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadGPSWGS84(stime[0],stime[1]);
 ssize=fGPSWGS84.size();
+
+}
 }
 #endif 
 if (fGPSWGS84.size()==0)return 2;
@@ -2293,10 +2400,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadISSGTOD(stime[0],stime[1]);
 ssize=fISSGTOD.size();
+
+}
 }
 #endif 
 if (fISSGTOD.size()==0)return 2;
@@ -2431,10 +2538,10 @@ if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHea
 }
 if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
-
-}
 LoadAMSSTK(stime[0],stime[1]);
 ssize=fAMSSTK.size();
+
+}
 }
 #endif 
 

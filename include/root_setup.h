@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.66 2012/11/01 15:22:24 shaino Exp $
+//  $Id: root_setup.h,v 1.67 2012/11/04 18:28:46 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -217,6 +217,16 @@ public:
   }
 ClassDef(GPSWGS84R,1)
 };
+
+class JGC{
+//  JMDC- GPS Correction
+public:
+unsigned int Validity[2];  ///< validity range unix time
+double A[2]; ///< A[0]+A[1]*x correction
+double Par[3]; ///<Par[0]*sin(Par[1]*x+Par[2]) add correction
+double Err[2]; ///< residial error estimation (rms, gaussian (sec)
+};
+
 
 class ISSData{
 public:
@@ -457,6 +467,7 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  //--------------------------------------------------
 typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
 typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
+vector<JGC> fJGC;
     BadRun_m fBadRun; ///< BadRuns 
     GPS_m fGPS;    ///< GPS Epoch Time
     GPSWGS84_m fGPSWGS84;  ///<  GPS Coo Data        
@@ -526,7 +537,7 @@ static int _select (const dirent64 * entry);
    \retval 0   ok (interpolation)
    \retval 1   ok  (extrapolation)
    \retval 2   no data
-   \retval 3   bad extrapolation ( gap > 60 sec)
+   \retval 3   bad extrapolation ( gap > 300 sec)
    
    \note
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
@@ -603,6 +614,26 @@ static int _select (const dirent64 * entry);
    The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
  */
  int getGPSWGS84(GPSWGS84R & a, double xtime); 
+
+
+ 
+ //! JMDC GPS ad hoc correcton
+ /*! 
+   
+   \param unsigned int time (JMDC time[0])
+   \param double corr time correction (sec)        
+   \param double error estimated error (sec)      
+   \retval 0   ok 
+   \retval 1   reserved
+   \retval 2   no data
+   \retval 3   outside of limits
+   
+
+ */
+ int GetJMDCGPSCorr(double& corr,double& err,unsigned int time); 
+ int LoadJMDCGPSCorr();  ///< Load Correction Vector into memory; 
+
+
  
  
  //! ISS Coo & Velocity GTOD accessor
@@ -732,7 +763,7 @@ static int _select (const dirent64 * entry);
  //---------------------------------------
 
 
-ClassDef(AMSSetupR,20)       //AMSSetupR
+ClassDef(AMSSetupR,21)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
