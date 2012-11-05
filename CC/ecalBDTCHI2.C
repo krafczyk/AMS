@@ -35,9 +35,10 @@ int get_track(AMSEventR *pev, EcalShowerR *shower, TrTrackR *&track)
       {
          ParticleR *particle = pev->pParticle(iparticle);
 
-         if (particle->pEcalShower() == shower) //trovata la traccia associata alla shower secondo la Particle
+         if (particle->pEcalShower() == shower) //Found Track associated to Shower according to Particle
          {
-            track = particle->pTrTrack();
+	    track = particle->pTrTrack();
+	    if ( track == NULL ) break; // no track associated
             id_maxspan = track->iTrTrackPar(1, 0, 1);
             break;
          }
@@ -81,7 +82,9 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    }
 
    TrTrackR *trk_track = NULL;
-   int id_maxspan = get_track(pev, this, trk_track);
+   int id_maxspan = -1;
+
+   if( pev->nTrTrack()>0 ) id_maxspan=get_track(pev, this, trk_track);
 
    if (id_maxspan == -1)
    {
