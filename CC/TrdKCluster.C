@@ -789,30 +789,64 @@ void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 
 /////////////////////////////////////////////////////////////////////
 
-int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, int fitmethod, int particle_hypothesis){
 
-    if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
-
-    return GetLikelihoodRatio(threshold,LLR,nhits,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits){
+    float ECAL_Energy_Hypothesis=0;
+    double dummy_L[3];
+    int fitmethod=1;
+    int particle_hypothesis=1;
+    return GetLikelihoodRatio_TRDRefit(threshold,LLR,nhits,ECAL_Energy_Hypothesis,dummy_L,fitmethod,particle_hypothesis);
 }
 
+int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod, int particle_hypothesis){
+    if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
+    double dummy_L[3];
+    float dummy_length;
+    float dummy_amp;
+    if(!LL)return GetLikelihoodRatio(threshold,LLR,dummy_L,nhits,dummy_length,dummy_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,ECAL_Energy_Hypothesis);
+    else return GetLikelihoodRatio(threshold,LLR,LL,nhits,dummy_length,dummy_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,ECAL_Energy_Hypothesis);
+}
+
+int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, double* L, int &nhits,float &total_pathlength, float &total_amp , int fitmethod, int particle_hypothesis,int flag_debug, float ECAL_Energy_Hypothesis){
+    if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
+    if(flag_debug<0)return GetLikelihoodRatio(threshold,LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+    else return GetLikelihoodRatio_DEBUG(threshold,LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);
+}
 
 /////////////////////////////////////////////////////////////////////
+
 
 int TrdKCluster::GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits){
-    return GetLikelihoodRatio(threshold,LLR,nhits,&track_extrapolated_P0,&track_extrapolated_Dir);
+    float ECAL_Energy_Hypothesis=0;
+    double dummy_L[3];
+    return GetLikelihoodRatio_TrTrack(threshold,LLR,nhits,ECAL_Energy_Hypothesis,dummy_L);
+}
+
+int TrdKCluster::GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL){
+    double dummy_L[3];
+    float dummy_length;
+    float dummy_amp;
+    if(!LL) return GetLikelihoodRatio(threshold,LLR,dummy_L,nhits,dummy_length,dummy_amp,&track_extrapolated_P0,&track_extrapolated_Dir,ECAL_Energy_Hypothesis);
+    else return GetLikelihoodRatio(threshold,LLR,LL,nhits,dummy_length,dummy_amp,&track_extrapolated_P0,&track_extrapolated_Dir,ECAL_Energy_Hypothesis);
+
+}
+
+int TrdKCluster::GetLikelihoodRatio_TrTrack(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp,int flag_debug, float ECAL_Energy_Hypothesis){
+    if(flag_debug<0)return GetLikelihoodRatio(threshold,LLR,L,nhits,total_pathlength,total_amp,&track_extrapolated_P0,&track_extrapolated_Dir);
+    else return GetLikelihoodRatio_DEBUG(threshold,LLR,L,nhits,total_pathlength,total_amp,&track_extrapolated_P0,&track_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);
 }
 
 
 /////////////////////////////////////////////////////////////////////
 
-int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AMSPoint* P0, AMSDir* Dir){
+int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, double * L , int &nhits, float &total_pathlength, float &total_amp, AMSPoint* P0, AMSDir* Dir,float ECAL_Energy_Hypothesis){
 
     LLR[0]=-1;
     LLR[1]=-1;
     LLR[2]=-1;
     nhits=0;
-
+    total_pathlength=0;
+    total_amp=0;
 
     if(threshold>0){
         kpdf_e->SetNormalization(1,threshold);
@@ -841,18 +875,31 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AM
         float path_length=hit->Tube_Track_3DLength(P0,Dir);
         int Layer=hit->TRDHit_Layer;
         float Amp=hit->TRDHit_Amp;
+
+
+
         if(Amp>threshold && path_length>0){
             Track_nhits++;
-            kpdf_e->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
-            kpdf_p->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
-            kpdf_h->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+            total_amp+=Amp;
+            total_pathlength+=path_length;
+
+            if(ECAL_Energy_Hypothesis<2){
+                kpdf_e->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_p->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_h->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+            }else{
+                if(DebugOn)   cout<<"Using ECAL Energy Hypothesis for electron/positron,  *2 for proton/Helium: "<<ECAL_Energy_Hypothesis<<endl;
+                kpdf_e->GetPar(fabs(ECAL_Energy_Hypothesis),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_p->GetPar(fabs(ECAL_Energy_Hypothesis*2),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_h->GetPar(fabs(ECAL_Energy_Hypothesis*2),path_length,Layer,Pressure_Xe/1000.);
+            }
+
             double kp=kpdf_p->GetLikelihood(Amp);
             double kh=kpdf_h->GetLikelihood(Amp);
             double ke=kpdf_e->GetLikelihood(Amp);
             LL_pdf_track_particle[0]*=(ke);
             LL_pdf_track_particle[1]*=(kp);
             LL_pdf_track_particle[2]*=(kh);
-
         }
     }
 
@@ -864,9 +911,111 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AM
     LLR[2]=-1*log( Likelihood_pdf_track_particle[1]/( Likelihood_pdf_track_particle[1]+Likelihood_pdf_track_particle[2]));
     nhits=Track_nhits;
 
+
+    L[0]=Likelihood_pdf_track_particle[0];
+    L[1]=Likelihood_pdf_track_particle[1];
+    L[2]=Likelihood_pdf_track_particle[2];
+
     return 1;
 }
 
+
+int TrdKCluster::GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double * L , int &nhits, float &total_pathlength, float &total_amp, AMSPoint* P0, AMSDir* Dir, int start_index,float ECAL_Energy_Hypothesis){
+
+    LLR[0]=-1;
+    LLR[1]=-1;
+    LLR[2]=-1;
+    nhits=0;
+    total_pathlength=0;
+    total_amp=0;
+
+    if(threshold>0){
+        kpdf_e->SetNormalization(1,threshold);
+        kpdf_p->SetNormalization(1,threshold);
+        kpdf_h->SetNormalization(1,threshold);
+    }
+
+
+    if(NHits()<=0) return -10;
+
+    int Track_nhits=0;
+    double LL_pdf_track_particle[3]={1,1,1};
+    double Likelihood_pdf_track_particle[3]={0,0,0};
+    vector<LikelihoodObject> v_p,v_e,v_h;
+    for(int i=0;i<NHits();i++){
+        TrdKHit *hit=GetHit(i);
+
+        if(ForceReadCalibration>0 && hit->IsCalibrated ==0 ){
+            if(DebugOn)  cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
+            continue;
+        }
+        if(ForceReadAlignment>0 && hit->IsAligned==0) {
+            if(DebugOn) cout<<"~~~WARNING~~~, Hit Not Aligned: , "<<_event->Run()<<", "<<_event->Event()<<endl;
+            continue;
+        }
+
+        float path_length=hit->Tube_Track_3DLength(P0,Dir);
+        int Layer=hit->TRDHit_Layer;
+        float Amp=hit->TRDHit_Amp;
+
+        if(Amp>threshold && path_length>0){
+            Track_nhits++;
+            if(ECAL_Energy_Hypothesis<2){
+                kpdf_e->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_p->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_h->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+            }else{
+                if(DebugOn)   cout<<"Using ECAL Energy Hypothesis for electron/positron,  *2 for proton/Helium: "<<ECAL_Energy_Hypothesis<<endl;
+                kpdf_e->GetPar(fabs(ECAL_Energy_Hypothesis),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_p->GetPar(fabs(ECAL_Energy_Hypothesis*2),path_length,Layer,Pressure_Xe/1000.);
+                kpdf_h->GetPar(fabs(ECAL_Energy_Hypothesis*2),path_length,Layer,Pressure_Xe/1000.);
+            }
+            double kp=kpdf_p->GetLikelihood(Amp);
+            double kh=kpdf_h->GetLikelihood(Amp);
+            double ke=kpdf_e->GetLikelihood(Amp);
+            LikelihoodObject lp(1,Amp,path_length,kp);
+            LikelihoodObject lh(2,Amp,path_length,kh);
+            LikelihoodObject le(0,Amp,path_length,ke);
+
+            v_p.push_back(lp);
+            v_e.push_back(le);
+            v_h.push_back(lh);
+        }
+    }
+
+    if(Track_nhits<=start_index)  return -9;
+    //    cout<<"Original vector: "<<endl;
+    //    for(int i=0;i<v_p.size();i++){cout<<i<<", "<<v_p.at(i).likelihood<<endl;}
+    sort(v_p.begin(),v_p.end(),LikelihoodObject::comp_likelihood);
+    sort(v_e.begin(),v_e.end(),LikelihoodObject::comp_likelihood);
+    sort(v_h.begin(),v_h.end(),LikelihoodObject::comp_likelihood);
+    //    cout<<"Sorted vector: "<<endl;
+    //    for(int i=0;i<v_p.size();i++){cout<<i<<", "<<v_p.at(i).likelihood<<endl;}
+
+    Track_nhits=0;
+    for(int i=start_index;i<v_p.size();i++){
+        LL_pdf_track_particle[0]*=(v_e.at(i).likelihood);
+        LL_pdf_track_particle[1]*=(v_p.at(i).likelihood);
+        LL_pdf_track_particle[2]*=(v_h.at(i).likelihood);
+        total_amp+=v_p.at(i).amp;
+        total_pathlength+=v_p.at(i).l;
+        Track_nhits++;
+    }
+
+
+    if(Track_nhits<=0)  return -9;
+    for(int i=0;i<3;i++) Likelihood_pdf_track_particle[i]=pow(LL_pdf_track_particle[i],(double)(1./(double)Track_nhits));
+    LLR[0]=-1*log( Likelihood_pdf_track_particle[0]/( Likelihood_pdf_track_particle[0]+Likelihood_pdf_track_particle[1]));
+    LLR[1]=-1*log( Likelihood_pdf_track_particle[0]/( Likelihood_pdf_track_particle[0]+Likelihood_pdf_track_particle[2]));
+    LLR[2]=-1*log( Likelihood_pdf_track_particle[1]/( Likelihood_pdf_track_particle[1]+Likelihood_pdf_track_particle[2]));
+    nhits=Track_nhits;
+
+    L[0]=Likelihood_pdf_track_particle[0];
+    L[1]=Likelihood_pdf_track_particle[1];
+    L[2]=Likelihood_pdf_track_particle[2];
+
+    return 1;
+}
 
 /////////////////////////////////////////////////////////////////////
 
@@ -882,8 +1031,8 @@ void TrdKCluster::InitXePressure(){
 
     const char *amsdatadir=getenv("AMSDataDir");
     char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
-     if(!(amsdatadir && strlen(amsdatadir))){
-         amsdatadir=local;
+    if(!(amsdatadir && strlen(amsdatadir))){
+        amsdatadir=local;
     }
 
     TString name=TString(amsdatadir)+"/v5.00/trd_pressures.root";
