@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.67 2012/11/04 18:28:46 choutko Exp $
+//  $Id: root_setup.h,v 1.68 2012/11/05 15:10:07 shaino Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -726,7 +726,7 @@ static int _select (const dirent64 * entry);
  int LoadExt();
  void getSlowControlFilePath( string & file);
  void updateSlowControlFilePath( string & file);
- bool LoadSlowcontrolDB(const char *file, int verb=1);
+ bool LoadSlowcontrolDB(const char *file, int verb=0);
  void UpdateHeader(AMSEventR* ev);
  void Reset();
  AMSSetupR();
