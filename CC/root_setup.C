@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.111 2012/11/04 18:28:42 choutko Exp $
+//  $Id: root_setup.C,v 1.112 2012/11/05 16:32:56 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1966,6 +1966,7 @@ if (fISSData.size()==0)return 2;
          ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
          RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
          VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
+         _CorrectTLE(RTP,VelTP);
 	 return 0;
 	}
 	else{
@@ -1980,13 +1981,28 @@ if (fISSData.size()==0)return 2;
          ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
          RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
          VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
+         _CorrectTLE(RTP,VelTP);
          return 0;
         }
 	return 3;
 
 }
 
-
+void AMSSetupR::_CorrectTLE(float RTP[3], float VelTP[3]){
+         double t2=asin(1.04118*sin(VelTP[1]));
+         double c1=sin(RTP[1])*sin(VelTP[1])+cos(RTP[1])*cos(VelTP[1])*cos(-RTP[2]+VelTP[2]);
+         double c2=(c1-sin(RTP[1])*sin(t2))/cos(RTP[1])/cos(t2);
+         if(c2>1)c2=1;
+         if(c2<-1)c2=-1;   
+         VelTP[1]=t2;
+         if(sin(-RTP[2]+VelTP[2])>0){
+          VelTP[2]=acos(c2)+RTP[2];
+         }
+         else{
+          VelTP[2]=-acos(c2)+RTP[2];
+         }
+                 
+}
 
 int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR & a, double xtime){
 #ifdef __ROOTSHAREDLIBRARY__

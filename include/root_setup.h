@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.68 2012/11/05 15:10:07 shaino Exp $
+//  $Id: root_setup.h,v 1.69 2012/11/05 16:32:59 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -669,7 +669,7 @@ static int _select (const dirent64 * entry);
    The default path could be customized defining the AMSISSSA environment variable: this will overhide $AMSDataDir/isssa/
  */
  int getISSTLE(float RTP[3],float VelTP[3], double xtime); 
- 
+ void _CorrectTLE (float RTP[3],float VelTP[3]); ///< Empirically correct TLE
  
  //! ISS Solar Arrays Position accessor
  /*! 
