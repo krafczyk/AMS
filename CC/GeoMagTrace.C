@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.C,v 1.2 2012/10/18 18:13:53 shaino Exp $
+//  $Id: GeoMagTrace.C,v 1.3 2012/11/05 22:50:36 shaino Exp $
 
 #include "GeoMagTrace.h"
 #include "GeoMagField.h"
@@ -34,12 +34,27 @@ GeoMagTrace::GeoMagTrace(double pos[3], double vel[2], double ypr[3],
   Init(pp, vel, ypr, theta, phi, rigidity, charge, beta, stat, false);
 }
 
+GeoMagTrace::GeoMagTrace(double pos[3], double ypr[3], double xtime,
+			 double theta,  double phi,    double rigidity,
+			 double charge, double beta,   int stat)
+/*
+ * pos[3] = position of ISS in r(cm), longitude(rad), latitude(rad)
+ * ypr[3] = attitude of ISS in yaw, pitch, roll(rad) in J2000 frame
+ * xtime  = UTC time in sec
+ * theta  = track theta
+ * phi    = track phi
+ */
+{
+  double pp[3] = { pos[0]*1e-5, pos[1], pos[2] };
+  Init(pp, ypr, xtime, theta, phi, rigidity, charge, beta, stat, false);
+}
+
 GeoMagTrace::GeoMagTrace(double lng,    double lat,  double alt,
 			 double theta,  double phi,  double rigidity,
 			 double charge, double beta, int stat)
 {
   double pos[3] = { alt+Re, lng, lat };
-  Init(pos, 0, 0, theta, phi, rigidity, charge, beta, stat, true);
+  Init(pos, 0, (double*)0, theta, phi, rigidity, charge, beta, stat, true);
 }
 
 void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
@@ -49,8 +64,6 @@ void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
   AngToCart(pos[0], pos[2], pos[1], _x, _y, _z, deg);
 
   if (vel && ypr) {
-    //ISSAtt::GetGTOD(theta, phi, pos, vel, ypr, _dx, _dy, _dz);
-
     // theta, phi are defined as of ParticleR::Theta and Phi
     AMSDir dams(theta, phi);
     double x = -dams.x(), y = -dams.y(), z = -dams.z();
@@ -71,6 +84,27 @@ void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
     _dy = vd.y();
     _dz = vd.z();
   }
+
+  _tof      = 0;
+  _beta     = beta;
+  _charge   = charge;
+  _rigidity = rigidity;
+  _stat     = (1 <= stat && stat <= Nstat) ? stat : TRACE;
+}
+
+void GeoMagTrace::Init(double pos[3], double ypr[3], double xtime,
+		       double theta,  double phi,    double rigidity,
+		       double charge, double beta, int stat, bool deg)
+{
+  AngToCart(pos[0], pos[2], pos[1], _x, _y, _z, deg);
+
+  // theta, phi are defined as of ParticleR::Theta and Phi
+  AMSDir dams(theta, phi);
+  double x = -dams.x(), y = -dams.y(), z = -dams.z();
+  FT_AMS2Body(x, y, z);
+  FT_Body_to_J2000(x, y, z, ypr[0], ypr[1], ypr[2]);
+  FT_Equat2GTOD(x, y, z, xtime);
+  _dx = x; _dy = y; _dz = z;
 
   _tof      = 0;
   _beta     = beta;

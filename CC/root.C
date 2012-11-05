@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.481 2012/11/05 15:10:33 shaino Exp $
+//  $Id: root.C,v 1.482 2012/11/05 22:50:37 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8674,7 +8674,7 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
 			    double AMSTheta, double AMSPhi,
 			    double momentum, double velocity, int charge,
 			    double RPT[3], double VelPT[2], double YPR[3],
-			    double  xtime, bool gtod, bool galactic)
+			    double  xtime, int iatt, bool galactic)
 {
   // InitModel check
   if (GeoMagField::GetInitStat() == 0) GeoMagField::GetHead();
@@ -8682,7 +8682,11 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
 
   if (charge == 0) return -1;
 
-  GeoMagTrace gp(RPT, VelPT, YPR, AMSTheta, AMSPhi, momentum/charge, velocity);
+  double rgt = momentum/charge;
+  GeoMagTrace gp = (iatt == 3)
+    ? GeoMagTrace(RPT, YPR, xtime, AMSTheta, AMSPhi, rgt, velocity)
+    : GeoMagTrace(RPT, VelPT, YPR, AMSTheta, AMSPhi, rgt, velocity);
+
   int stat = gp.Propagate(100);
 
   time_trace = gp.GetTof();
@@ -8884,7 +8888,6 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
   }
 
   // Check and use AMS STK if OK
-
   if (use_att == uSTK) {
     AMSSetupR::AMSSTK stk;
     if (getsetup() && !getsetup()->getAMSSTK(stk, xtime+dt)) {
@@ -9092,41 +9095,11 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     else result |= (1<<bGPSC);
   }
 
-  // Check and use AMS STK if OK
-
-  if (use_att == uSTK) {
-    AMSSetupR::AMSSTK stk;
-    if (getsetup() && !getsetup()->getAMSSTK(stk, xtime+dt)) {
-      result |= (1<<bSTK);
-      int ret2 = fHeader.get_gal_coo(glong, glat, theta, phi, stk.cam_id,
-				     stk.cam_ra, stk.cam_dec, stk.cam_or,
-				     gal_coo);
-      return (ret2 == 0) ? ret : ret2;
-    }
-    else ret = rNAtt;
-  }
-
-  // Check and use INTL if OK
-  else if (use_att == uINTL) {
-    float Roll, Pitch, Yaw;
-    if (getsetup() && !getsetup()->getISSINTL(Roll, Pitch, Yaw, xtime+dt)) {
-      double YPR[3];
-      YPR[0] = Yaw;
-      YPR[1] = Pitch;
-      YPR[2] = Roll;
-      result |= (1<<bINTL);
-      int ret2 = fHeader.get_gal_coo(glong, glat, theta, phi,
-				     YPR, xtime, gal_coo);
-      return (ret2 == 0) ? ret : ret2;
-    }
-    else ret = rNAtt;
-  }
-
   double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
   double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
   double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
 
-  bool gtod = true;
+  int iatt = 1; // GTOD
 
   float Roll, Pitch, Yaw;
   if (getsetup() && !getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime)){
@@ -9174,7 +9147,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
 	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
 	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
 	result |= (1<<bCTRS);
-	gtod = false;
+	iatt = 2;
       }
       else {
 	if (mprint++ <= 10) {
@@ -9202,7 +9175,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
 	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
 	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
 	result |= (1<<bGPSW);
-	gtod = false;
+	iatt = 2;
       }
       else {
 	if (mprint++ <= 10) {
@@ -9222,10 +9195,26 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   }
   else result |= (1<<bTLE);
 
+  // STK is not implemented
+  if (use_att == uSTK) ret = rNAtt;
+
+  // Check and use INTL if OK
+  else if (use_att == uINTL) {
+    float Roll, Pitch, Yaw;
+    if (getsetup() && !getsetup()->getISSINTL(Roll, Pitch, Yaw, xtime+dt)) {
+      YPR[0] = Yaw;
+      YPR[1] = Pitch;
+      YPR[2] = Roll;
+      result |= (1<<bINTL);
+      iatt = 3;
+    }
+    else ret = rNAtt;
+  }
+
   double GPT[2];
   int ret2 = fHeader.do_backtracing(glong, glat, TraceTime, RPTO, GPT,
 				    theta, phi, Momentum, Velocity, Charge,
-				    RPT, VPT, YPR, xtime, gtod, gal_coo);
+				    RPT, VPT, YPR, xtime, iatt, gal_coo);
   if (out_type == 3) {
     glong = GPT[0]*180./M_PI;
     glat  = GPT[1]*180./M_PI;

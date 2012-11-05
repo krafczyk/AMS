@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.499 2012/11/05 15:10:32 shaino Exp $
+//  $Id: root.h,v 1.500 2012/11/05 22:50:45 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -357,7 +357,7 @@ input
           VelPT[2]  ISS velocity (VelPhi,VelTheta)
 	  YPR[3]    ISS attitude (Yaw,Pitch,Roll)
 	  xtime     time
-	  gtod      Use gtod or INTL
+	  att       1:GTOD, 2:CTRS, 3:INTL
 	  galactic  Galactic or Celestial coordinates
 output
           gal_long   Galctic longigude (deg)
@@ -370,7 +370,7 @@ output
 	 2 trapped ;
         -1 error
 */
-int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[2], double YPR[3], double  xtime, bool gtod=true, bool galactic=true);
+int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[2], double YPR[3], double  xtime, int att=1, bool galactic=true);
 //-----------------------------------------
 int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
 
@@ -4414,6 +4414,7 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   \param[out] glong       Galactic longitude (degree)
   \param[out] glat        Galactic latitude  (degree)
   \param[out] RPTO        GTOD coordinates Rad(cm), Phi(rad), Theta(rad)
+  \param[out] TraceTime   Time of flight (sec) for the back tracing
 
   \param[in]  theta (rad) in ams coo system (pi: down-going 0: up-going)
   \param[in]  phi   (rad) in ams coo system
