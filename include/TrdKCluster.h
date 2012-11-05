@@ -63,7 +63,29 @@ public:
 };
 
 
+class LikelihoodObject{
+public:
+    LikelihoodObject(){}
+    LikelihoodObject(int _type, float _amp, float _l, double _likelihood):type(_type),amp(_amp),l(_l),likelihood(_likelihood){}
+    ~LikelihoodObject(){};
 
+
+    int type;
+    float amp;
+    float l;
+    double likelihood;
+
+
+
+//   static bool comp_l(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).l < (*j).l;}
+//   static bool comp_amp(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).amp < (*j).amp;}
+//   static bool comp_likelihood(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).likelihood < (*j).likelihood;}
+
+//    bool operator > ( const LikelihoodObject rhs) { return (likelihood > rhs.likelihood); }
+//    bool operator < ( const LikelihoodObject rhs) { return (likelihood < rhs.likelihood); }
+    static bool  comp_likelihood (LikelihoodObject i ,LikelihoodObject j){ return (i.likelihood < j.likelihood); }
+
+};
 
 class TrdKCluster : public TObject
 {
@@ -100,10 +122,23 @@ public:
     // Wrapper method to do TRD Refit
     void FitTRDTrack(int method=1, int hypothesis=1);
 
+
     // GetLikelihoodRatio and Event Properties
-    int GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AMSPoint *P0, AMSDir *Dir);
+    int GetLikelihoodRatio(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir,float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir, int start_index=0, float ECAL_Energy_Hypothesis=0);
+
     int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits);
-    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, int fitmethod=1, int particle_hypothesis=1);
+    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL);
+
+    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits);
+    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod=1, int particle_hypothesis=1);
+
+
+    // GetLikelihoodRatio and Event Properties,  Debug version
+    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, int flag_debug=-1, float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp , int fitmethod=1, int particle_hypothesis=1, int flag_debug=-1,  float ECAL_Energy_Hypothesis=0);
+
+
 
     // Number of Hits and Total Amplitude of Off-Track Tubes
     void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
@@ -144,6 +179,10 @@ public:
 
     // Default TrTrack fit parameters
     static int Default_TrPar[3];
+
+    // Set Minimum Distance between Track and Tube that will be taken into the cluster
+    void SetMinDistance(float r){MinimumDistance=r;return;}
+
 
 
 
@@ -192,6 +231,7 @@ public:
     static Double_t LastProcessedRun_Calibration;
     static Double_t LastProcessedRun_Alignment;
 
+     static bool DebugOn;
 
 private:
 
@@ -276,7 +316,7 @@ private:
 
     // Static object
 
-    static bool DebugOn;
+
 
     static TRD_ImpactParameter_Likelihood *TRDImpactlikelihood;
     static vector <TrdKHit> TRDTubeCollection;
@@ -329,5 +369,11 @@ private:
     ClassDef(TrdKCluster,1)
 
 };
+
+
+
+
+
+
 
 #endif // TrdKCLUSTER_H
