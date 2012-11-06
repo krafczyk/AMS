@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.34 2012/10/25 14:48:31 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.35 2012/11/06 20:42:26 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -570,7 +570,10 @@ int  TofRecH::EdepRecR(int ilay,int ibar,geant adca[],geant adcd[][TOF2GC::PMTSM
 
 //========================================================
 number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo,number cosz,number beta,number rig){
-  
+
+//---
+  if(Init()!=0)return -1;
+
   if(TofPMAlignPar::Head==0||TofPMAlignPar::GetHead()->Isload!=1)return 0;
   if(TofPMDAlignPar::Head==0||TofPMDAlignPar::GetHead()->Isload!=1)return 0;
   if(TofAttAlignPar::Head==0||TofAttAlignPar::GetHead()->Isload!=1)return 0;
