@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.487 2012/11/06 18:31:33 choutko Exp $
+//  $Id: root.C,v 1.488 2012/11/06 18:37:56 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9192,7 +9192,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       if (diff < prec) {
 	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
 	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
-//        CTRS2GTOD(RPT,ctrs.v,VPT);
+        CTRS2GTOD(RPT,ctrs.v,VPT);
 	result |= (1<<bCTRS);
 	gtod = false;
       }
@@ -9221,7 +9221,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       if (diff < prec) {
 	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
 	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
-//        CTRS2GTOD(RPT,gpsw.v,VPT);
+        CTRS2GTOD(RPT,gpsw.v,VPT);
 	result |= (1<<bGPSW);
 	gtod = false;
       }
@@ -9374,6 +9374,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
       if (diff < prec) {
 	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
 	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
+        CTRS2GTOD(RPT,ctrs.v,VPT);
 	result |= (1<<bCTRS);
 	iatt = 2;
       }
@@ -9402,6 +9403,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
       if (diff < prec) {
 	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
 	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
+        CTRS2GTOD(RPT,gpsw.v,VPT);
 	result |= (1<<bGPSW);
 	iatt = 2;
       }
@@ -11144,7 +11146,11 @@ return ret;
 
 
 void AMSEventR::GTOD2CTRS(double RPT[3], double v,double  VelPT[2]){
-         
+//
+// only one function GTOD2CTRS or CTRS2GTOD should be active 
+//
+
+         return;         
          const double ve=3.1415926535*2./86400.;
          double vx=v*cos(VelPT[1])*cos(VelPT[0]);
          double vy=v*cos(VelPT[1])*sin(VelPT[0]);
