@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.47 2012/10/31 15:49:46 oliva Exp $ 
+/// $Id: HistoMan.C,v 1.48 2012/11/06 23:11:17 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -458,6 +458,19 @@ void HistoMan::BookHistos(int simmode){
     printf("HistoMan::BookHistos: histograms for MC-gen booked\n");
   }
 
+  // Back tracing and cutoff
+  Add(new TH2F("GgIss",  "ISS pos (GTOD)",  180, -180, 180, 90, -90, 90));
+  Add(new TH2F("GMIss",  "ISS pos (GMag)",  180, -180, 180, 90, -90, 90));
+  Add(new TH2F("GgCutD", "RcutG(Dipole)",   180, -180, 180, 90, -90, 90));
+  Add(new TH2F("GmCutD", "RcutM(Dipole)",   180, -180, 180, 90, -90, 90));
+  Add(new TH2F("GgCutS", "RcutG(Stoermer)", 180, -180, 180, 90, -90, 90));
+  Add(new TH2F("GmCutS", "RcutM(Stoermer)", 180, -180, 180, 90, -90, 90));
+  Add(new TH3F("GgBTS",  "BTG Over",  180, -180, 180, 90, -90, 90, 20, 0, 2));
+  Add(new TH3F("GmBTS",  "BTM Over",  180, -180, 180, 90, -90, 90, 20, 0, 2));
+  Add(new TH3F("GgBTA",  "BTG Under", 180, -180, 180, 90, -90, 90, 20, 0, 2));
+  Add(new TH3F("GmBTA",  "BTM Under", 180, -180, 180, 90, -90, 90, 20, 0, 2));
+  Add(new TH3F("GgBTT",  "BTG Trapp", 180, -180, 180, 90, -90, 90, 20, 0, 2));
+  Add(new TH3F("GmBTT",  "BTM Trapp", 180, -180, 180, 90, -90, 90, 20, 0, 2));
 
   if (dsave) dsave->cd();
   booked = true;

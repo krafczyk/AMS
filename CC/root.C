@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.489 2012/11/06 21:55:37 shaino Exp $
+//  $Id: root.C,v 1.490 2012/11/06 23:11:17 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -63,6 +63,7 @@
 #include "FrameTrans.h"
 #include "GeoMagField.h"
 #include "GeoMagTrace.h"
+#include "HistoMan.h"
 #include "Tofrec02_ihep.h"
 #include "GM_SubLibrary.h"
 
@@ -4381,6 +4382,8 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   TrdSH_He2P_Likelihood = ptr->_TrdSH_He2P_lik;
   TrdSH_E2He_Likelihood = ptr->_TrdSH_E2He_lik;
 
+  CutoffS = GetGeoCutoff(0);
+
   BT_result = BT_status = -1;
   BT_glong = BT_glat = BT_RPTO[0] = BT_RPTO[1] = BT_RPTO[2] = BT_time = 0;
 
@@ -4481,6 +4484,26 @@ int ParticleR::DoBacktracing()
   BT_RPTO[1] = gp.GetLong (false);
   BT_RPTO[2] = gp.GetLati (false);
   BT_time    = gp.GetTof();
+
+  if (rgt != 0&& icharge != 0) {
+    double phg = RPT[1]*180./M_PI;
+    double thg = RPT[2]*180./M_PI;
+    double phm = ptr->  PhiM*180./M_PI;
+    double thm = ptr->ThetaM*180./M_PI;
+    double lrg = log10(abs(rgt));
+    hman.Fill("GgIss",  phg, thg);
+    hman.Fill("GmIss",  phm, thm);
+    hman.Fill("GgCutD", phg, thg, Cutoff /icharge);
+    hman.Fill("GmCutD", phm, thm, Cutoff /icharge);
+    hman.Fill("GgCutS", phg, thg, CutoffS/icharge);
+    hman.Fill("GmCutS", phm, thm, CutoffS/icharge);
+    if (BT_status == 1) { hman.Fill("GgBTS", phg, thg, lrg);
+                          hman.Fill("GmBTS", phm, thm, lrg); }
+    if (BT_status == 2) { hman.Fill("GgBTA", phg, thg, lrg);
+                          hman.Fill("GmBTA", phm, thm, lrg); }
+    if (BT_status == 3) { hman.Fill("GgBTT", phg, thg, lrg);
+                          hman.Fill("GmBTT", phm, thm, lrg); }
+  }
 
   if (BACKTRACEFFKEY.out_type == 3) {
     BT_glong = gp.GetDlong(true);
@@ -4615,12 +4638,23 @@ double ParticleR::GetGeoCutoff(AMSEventR *pev){
 
         double deg2rad = TMath::DegToRad();
         double Re =  6371.2; //km Earth radius
+#ifndef __ROOTSHAREDLIBRARY__
+	EventNtuple02 *ptr = AMSJob::gethead()->getntuple()->Get_event02();
+	if (!ptr) return 0;
+        time_t Utime = ptr->Time[0];
+        //...km
+        double Altitude = ptr->RadS/1.e5-Re;
+        //...ISS rad
+	double ThetaISS=  ptr->ThetaS;
+	double PhiISS=    ptr->PhiS;
+#else
         time_t Utime =pev->UTime() ;
         //...km
         double Altitude = pev->fHeader.RadS/1.e5-Re;
         //...ISS rad
         double ThetaISS=  pev->fHeader.ThetaS;
         double PhiISS=    pev->fHeader.PhiS;
+#endif
        //...ISS deg 
         double thetaISS =ThetaISS/deg2rad ;
         double phiISS = PhiISS/deg2rad;
