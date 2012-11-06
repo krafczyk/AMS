@@ -13,7 +13,7 @@ endif
 unsetenv SLC6system
 setenv CXXVERS `g++ -dumpversion | tr -d "."`
 
-setenv PREFIX /Offline/vdev/install
+setenv PREFIX $Offline/vdev/install
 setenv TESTFLAG 
 unsetenv G4AMS
 unsetenv MARCH
