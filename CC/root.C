@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.483 2012/11/06 17:33:39 cconsola Exp $
+//  $Id: root.C,v 1.484 2012/11/06 18:13:05 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -64,7 +64,7 @@
 #include "GeoMagField.h"
 #include "GeoMagTrace.h"
 #include "Tofrec02_ihep.h"
-#include "GM_SubLibrary.h"
+//#include "GM_SubLibrary.h"
 
 
 using namespace root;
@@ -9143,6 +9143,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
   double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
   double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
   double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
+  TLE2GTOD(RPT,fHeader.VelocityS,VPT);
 
   bool gtod = true;
 
@@ -9322,6 +9323,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
   double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
   double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
+  TLE2GTOD(RPT,fHeader.VelocityS,VPT);
 
   int iatt = 1; // GTOD
 
@@ -11138,3 +11140,32 @@ if(!ret){
 return ret;
 }
 
+
+void AMSEventR::TLE2GTOD(double RPT[3], double v,double  VelPT[2]){
+         
+         const double ve=3.1415926535*2./86400.;
+         double vx=v*cos(VelPT[1])*cos(VelPT[0]);
+         double vy=v*cos(VelPT[1])*sin(VelPT[0]);
+         double vz=v*sin(VelPT[1]);
+         double vxe=-ve*cos(RPT[2])*sin(RPT[1]);
+         double vye=ve*cos(RPT[2])*cos(RPT[1]);
+         vx-=vxe;
+         vy-=vye;
+         v=sqrt(vz*vz+vx*vx+vy*vy);
+         VelPT[1]=asin(vz/v);
+         VelPT[0]=atan2(vy,vx);
+}
+void AMSEventR::GTOD2TLE(double RPT[3], double v,double  VelPT[2]){
+         
+         const double ve=3.1415926535*2./86400.;
+         double vx=v*cos(VelPT[1])*cos(VelPT[0]);
+         double vy=v*cos(VelPT[1])*sin(VelPT[0]);
+         double vz=v*sin(VelPT[1]);
+         double vxe=-ve*cos(RPT[2])*sin(RPT[1]);
+         double vye=ve*cos(RPT[2])*cos(RPT[1]);
+         vx+=vxe;
+         vy+=vye;
+         v=sqrt(vz*vz+vx*vx+vy*vy);
+         VelPT[1]=asin(vz/v);
+         VelPT[0]=atan2(vy,vx);
+}
