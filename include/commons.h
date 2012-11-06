@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.352 2012/08/01 17:22:13 choutko Exp $
+//  $Id: commons.h,v 1.353 2012/11/06 21:55:43 shaino Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -936,6 +936,24 @@ class TGL1FFKEY_DEF {
 };
 #define TGL1FFKEY COMMON_BLOCK(TGL1FFKEY,tgl1ffkey)
 COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);
+//================================================================
+class BACKTRACEFFKEY_DEF {
+ public:
+  integer enable;   // Enable DoBacktracing during the production
+  integer use_att;  // 1:Use LVLH,  2:Use INTL, 3: Use STK
+  integer use_coo;  // 1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+  integer use_time; // 1:UTCTime(), 2:AMSGPS time, 3:AMSGPS Time corrected
+  geant   t_jitter; // time jitter (sec) for coordinates input
+  integer out_type; // 1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
+                    // 3:GTOD coord.(use_att forced to 1)
+  integer debug;    // Debug switch of GeoMagTrace
+  integer nmax;     // Maximum number of steps
+  geant   stepdv;   // Step size per curvature
+  geant   minstep;  // Minimum step size (Re)
+  geant   maxstep;  // Maximum step size (Re)
+};
+#define BACKTRACEFFKEY COMMON_BLOCK(BACKTRACEFFKEY,tbacffkey)
+COMMON_BLOCK_DEF(BACKTRACEFFKEY_DEF,BACKTRACEFFKEY);
 //================================================================
 
 

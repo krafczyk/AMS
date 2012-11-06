@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.h,v 1.3 2012/11/05 22:50:45 shaino Exp $
+//  $Id: GeoMagTrace.h,v 1.4 2012/11/06 21:55:43 shaino Exp $
 #ifndef __GeoMagTrace__
 #define __GeoMagTrace__
 
@@ -23,8 +23,8 @@ public:
   static double MinStep;  ///< Minimum step size
   static double MaxStep;  ///< Maximum step size
   static double Clight;   ///< Speed of light in m/s
-
-  static Int_t  DEBUG;    ///< Debug switch
+  static int    NmaxStep; ///< Maximum number of steps
+  static int    DEBUG;    ///< Debug switch
 
   /// Constructor with ISS pos,vel,ypr and track dir,rigidity
   /*

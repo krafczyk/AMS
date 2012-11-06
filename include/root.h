@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.503 2012/11/06 18:20:26 choutko Exp $
+//  $Id: root.h,v 1.504 2012/11/06 21:55:43 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3220,6 +3220,14 @@ endif
   float TrdSH_He2P_Likelihood; ///< TrdSCalib He/p likelihood using TrdHTrack
   float TrdSH_E2He_Likelihood; ///< TrdSCalib e/He likelihood using TrdHTrack
 
+  // Outputs of DoBacktracing
+  int   BT_result;  ///< Result bits; see DoBacktracing
+  int   BT_status;  ///< Status 1:Over cutoff, 2:Under cutoff, 3:Trapped
+  float BT_glong;   ///< Galactic longitude(deg)
+  float BT_glat;    ///< Galactic latitude (deg)
+  float BT_RPTO[3]; ///< GTOD coordinates Rad(cm), Phi(rad), Theta(rad)
+  float BT_time;    ///< Time of flight (sec) for the back tracing
+
 protected:
   int  fBeta;          ///<index of  BetaR used
   int  fBetaH;          ///<index of  BetaHR used
@@ -3314,6 +3322,8 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
 
   int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 
+  int DoBacktracing();  ///< Fill BT_glong,BT_glat etc.
+
  char * pType(){
    static char type[63];
    if(iTrTrack()>=0){
@@ -3362,7 +3372,7 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
   double GetGeoCutoff(AMSEventR* pev);
 //-----------------------------------------------------------------------------------------------------------
 
-  ClassDef(ParticleR,15)       //ParticleR
+  ClassDef(ParticleR,16)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 

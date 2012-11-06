@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.C,v 1.3 2012/11/05 22:50:36 shaino Exp $
+//  $Id: GeoMagTrace.C,v 1.4 2012/11/06 21:55:37 shaino Exp $
 
 #include "GeoMagTrace.h"
 #include "GeoMagField.h"
@@ -8,8 +8,9 @@
 
 #include <iostream>
 
-int GeoMagTrace::UTime = GeoMagTrace::T2012;
-int GeoMagTrace::DEBUG = 0;
+int GeoMagTrace::UTime    = GeoMagTrace::T2012;
+int GeoMagTrace::DEBUG    = 0;
+int GeoMagTrace::NmaxStep = 100;
 
 double GeoMagTrace::Re = 6378.137;              // Earth equator radius in km
 double GeoMagTrace::Rp = 6356.7523142;          // Earth polar   radius in km

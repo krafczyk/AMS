@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.488 2012/11/06 18:37:56 choutko Exp $
+//  $Id: root.C,v 1.489 2012/11/06 21:55:37 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4381,7 +4381,125 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   TrdSH_He2P_Likelihood = ptr->_TrdSH_He2P_lik;
   TrdSH_E2He_Likelihood = ptr->_TrdSH_E2He_lik;
 
+  BT_result = BT_status = -1;
+  BT_glong = BT_glat = BT_RPTO[0] = BT_RPTO[1] = BT_RPTO[2] = BT_time = 0;
+
+  if (BACKTRACEFFKEY.enable) {
+    if (BACKTRACEFFKEY.enable != 1 ||
+	(ptr->_ptrack && !ptr->_ptrack->IsFake())) DoBacktracing();
+  }
 #endif
+}
+
+int ParticleR::DoBacktracing()
+{
+#ifndef __ROOTSHAREDLIBRARY__
+  EventNtuple02 *ptr = AMSJob::gethead()->getntuple()->Get_event02();
+  if (!ptr) return -1;
+
+  double momentum = Momentum;
+  double velocity = Beta;
+  int    icharge  = (int)Charge;
+  if (momentum < 0) {
+    momentum = -momentum;
+    icharge  = icharge;
+  }
+
+  // Force as photons
+  if (BACKTRACEFFKEY.enable == 3) icharge = 0;
+
+  GeoMagTrace::DEBUG    = BACKTRACEFFKEY.debug;
+  GeoMagTrace::StepCv   = BACKTRACEFFKEY.stepdv;
+  GeoMagTrace::MinStep  = BACKTRACEFFKEY.minstep*GeoMagTrace::Re;
+  GeoMagTrace::MaxStep  = BACKTRACEFFKEY.maxstep*GeoMagTrace::Re;
+  GeoMagTrace::NmaxStep = BACKTRACEFFKEY.nmax;
+
+  if (GeoMagField::GetInitStat() == 0) GeoMagField::GetHead();
+  if (GeoMagField::GetInitStat() <  0) return -2;
+
+  AMSgObj::BookTimer.start("DoBacktracing");
+
+  int    utime  =        ptr->Time[0];
+  double tfrac  = double(ptr->Time[1])/1000000;
+  double xtime  = double(utime)+tfrac-AMSEventR::gpsdiff(utime);
+  double YPR[3] = { ptr->Yaw,    ptr->Pitch, ptr->Roll };
+  double RPT[3] = { ptr->RadS,   ptr->PhiS,  ptr->ThetaS };
+  double VPT[2] = { ptr->VelPhi, ptr->VelTheta };
+
+  if (AMSEventR::getsetup()) {
+    double tcorr = 0, terr = 0;
+    AMSEventR::getsetup()->GetJMDCGPSCorr(tcorr, terr, utime);
+    xtime += tcorr;
+
+    double dt = 0.5;
+    float RTP[3], VTP[3];
+    if (AMSEventR::getsetup()->getISSTLE(RTP, VTP, xtime+dt) == 0) {
+      RPT[0] = RTP[0];
+      RPT[1] = RTP[2];
+      RPT[2] = RTP[1];
+      VPT[0] = VTP[2];
+      VPT[1] = VTP[1];
+    }
+
+    float roll = 0, pitch = 0, yaw = 0;
+    if (AMSEventR::getsetup()->getISSAtt(roll, pitch, yaw, xtime) == 0) {
+      YPR[0] = yaw;
+      YPR[1] = pitch;
+      YPR[2] = roll;
+    }
+  }
+
+  if (icharge == 0) {
+    AMSDir dir(Theta, Phi);
+    double x = -dir[0], y = -dir[1], z = -dir[2];
+    double glon = 0, glat = 0;
+    if (BACKTRACEFFKEY.out_type == 1)
+      get_ams_l_b_fromGTOD   (x, y, z, glon, glat, RPT, VPT, YPR, xtime);
+    else if (BACKTRACEFFKEY.out_type == 2)
+      get_ams_ra_dec_fromGTOD(x, y, z, glon, glat, RPT, VPT, YPR, xtime);
+    else if (BACKTRACEFFKEY.out_type == 3)
+      get_ams_gtod_fromGTOD  (x, y, z, glon, glat, RPT, VPT, YPR, xtime);
+    else return -1;
+
+    BT_glong = glon;
+    BT_glat  = glat;
+    return 0;
+  }
+
+  enum { bTLE = 2 };
+  BT_result = (1<<bTLE);
+
+  double rgt = momentum/icharge;
+  GeoMagTrace gp(RPT, VPT, YPR, Theta, Phi, rgt, velocity);
+
+  int stat = gp.Propagate(gp.NmaxStep);
+  BT_status = 3;
+  if (stat == GeoMagTrace::SPACE) BT_status = 1;
+  if (stat == GeoMagTrace::ATMOS) BT_status = 2;
+
+  BT_RPTO[0] = gp.GetRadi()*1e5;
+  BT_RPTO[1] = gp.GetLong (false);
+  BT_RPTO[2] = gp.GetLati (false);
+  BT_time    = gp.GetTof();
+
+  if (BACKTRACEFFKEY.out_type == 3) {
+    BT_glong = gp.GetDlong(true);
+    BT_glat  = gp.GetDlati(true);
+  }
+  else {
+    double x = gp.GetDx(), y = gp.GetDy(), z = gp.GetDz(), r = 1;
+    double glon = 0, glat = 0;
+    FT_GTOD2Equat  (x, y, z, xtime-BT_time);
+    FT_Cart2Angular(x, y, z, r, glon, glat);
+    if (BACKTRACEFFKEY.out_type == 1) FT_Equat2Gal(glon, glat);
+    BT_glong = glon*180./M_PI;
+    BT_glat  = glat*180./M_PI;
+  }
+
+  AMSgObj::BookTimer.stop("DoBacktracing");
+#endif
+
+  return 0;
 }
 
 int ParticleR::Loc2Gl(AMSEventR *pev){
@@ -8912,7 +9030,7 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
     ? GeoMagTrace(RPT, YPR, xtime, AMSTheta, AMSPhi, rgt, velocity)
     : GeoMagTrace(RPT, VelPT, YPR, AMSTheta, AMSPhi, rgt, velocity);
 
-  int stat = gp.Propagate(100);
+  int stat = gp.Propagate(gp.NmaxStep);
 
   time_trace = gp.GetTof();
 

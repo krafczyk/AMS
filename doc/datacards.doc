@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.388 2012/08/01 17:08:29 choutko Exp $
+#  $Id: datacards.doc,v 1.389 2012/11/06 21:55:41 shaino Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -643,6 +643,24 @@ I 1  status[34](34*0)    //
 
 I35  sword                   // service word
 I36  base(10)                base to calculate bit<->status correspondance
+
+
+TRACEBACK  // Control back tracing
+I 1  enable  (0)   // 1:Backtrace only for particles with TrTrackR
+	           // 2:Backtrace all the particles
+                   // 3:No backtrace but only pointing (assuming photons)
+I 2  use_att (1)   // 1:Use LVLH,  2:Use INTL, 3: Use STK
+I 3  use_coo (1)   // 1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
+I 4  use_time(1)   // 1:UTCTime(), 2:AMSGPS time, 3:AMSGPS Time corrected
+F 5  t_jitter(0.)  // time jitter (sec) for coordinates input
+I 6  out_type(1)   // 1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
+                   // 3:GTOD coord.(use_att forced to 1)
+I 7  debug  (0)    // Debug switch of GeoMagTrace
+I 8  nmax   (100)  // Maximum number of steps
+F 9  stepdv (0.1)  // Step size per curvature
+F10  minstep(0.1)  // Minimum step size (Re)
+F11  maxstep(5.0)  // Maximum step size (Re)
+
 
 
 MISC   // misc
@@ -1351,6 +1369,10 @@ R 7 pedlim(400)             //      hi-lim ...............
 R 8 siglim(0.4)             // PedSig low-lim ............
 R 9 siglim(15)              //         hi-lim ............
 R 10 mev2mv(150)            // spare, not used now
+
+
+ Back tracing
+TBAC
 
 //------------------------------------------------------------------------------
 

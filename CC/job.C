@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.897 2012/10/31 20:08:27 choutko Exp $
+// $Id: job.C,v 1.898 2012/11/06 21:55:37 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1810,6 +1810,19 @@ void AMSJob::_reaxdata(){
   BETAFITFFKEY.HBetaChis=1000.;//check chis<
   FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
   FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
+//----BACKTRACE
+  BACKTRACEFFKEY.enable   =   0;
+  BACKTRACEFFKEY.use_att  =   1;
+  BACKTRACEFFKEY.use_coo  =   1;
+  BACKTRACEFFKEY.use_time =   1;
+  BACKTRACEFFKEY.t_jitter =   0.;
+  BACKTRACEFFKEY.out_type =   1;
+  BACKTRACEFFKEY.debug    =   0;
+  BACKTRACEFFKEY.nmax     = 100;
+  BACKTRACEFFKEY.stepdv   = 0.1;
+  BACKTRACEFFKEY.minstep  = 0.1;
+  BACKTRACEFFKEY.maxstep  = 5.0;
+  FFKEY("BACKTRACEK",(float*)&BACKTRACEFFKEY,sizeof(BACKTRACEFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_retrddata(){
@@ -2992,6 +3005,7 @@ void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("ReTOFRefit"); 
   AMSgObj::BookTimer.book("ReAxPid");
   AMSgObj::BookTimer.book("part::loc2gl");
+  AMSgObj::BookTimer.book("DoBacktracing");
 
 
   if (AMSJob::gethead()->isMonitoring()) {

@@ -1,4 +1,4 @@
-//  $Id: GeoMagCoord.C,v 1.1 2012/10/16 19:37:45 shaino Exp $
+//  $Id: GeoMagCoord.C,v 1.2 2012/11/06 21:55:37 shaino Exp $
 
 #include "GeoMagCoord.h"
 #include "GeoMagTrace.h"
@@ -82,57 +82,3 @@ void GeoMagCoord::MagToGeog(double rs,  double  tm, double  pm,
   AMSPoint ps = AMSPoint(px, py, pz)+dpc*r;
   GeoMagTrace::CartToAng(ps.x(), ps.y(), ps.z(), rs, th, ph, deg);
 }
-
-
-
-/*
- if (1) {
-  double dtr          = TMath::DegToRad();
-  double DipoleR      = 567.946;           // Dipole Shift Distance  (km)
-  double DipoleTheta  =  22.596*dtr;       //              Latitude  (rad)
-  double DipolePhi    = 151.365*dtr;       //              Longitude (rad)
-  double PoleTheta    = -80.130*dtr;       // Dipole Direction Lat.  (rad)
-  double PolePhi      = 107.622*dtr;       //                  Lon.  (rad) 
-  double NorthPolePhi = 108.392*dtr;
-
-  if (deg) {
-    ph *= TMath::DegToRad();
-    th *= TMath::DegToRad();
-  }
-
-  // Station GTOD coordinates referred to dipole center
-  AMSPoint StationGTOD(TMath::Cos(th)*TMath::Cos(ph),
-                       TMath::Cos(th)*TMath::Sin(ph),
-		       TMath::Sin(th));
-  AMSPoint DipoleGTOD (TMath::Cos(DipoleTheta)*TMath::Cos(DipolePhi),
-                       TMath::Cos(DipoleTheta)*TMath::Sin(DipolePhi),
-		       TMath::Sin(DipoleTheta));
-
-  AMSDir StationRedDirGTOD = AMSDir(StationGTOD*r-DipoleGTOD*DipoleR);
-
-  // Dipole direction
-  AMSDir DipoleDirGTOD = AMSDir(TMath::Cos(PoleTheta)*TMath::Cos(PolePhi),
-				TMath::Cos(PoleTheta)*TMath::Sin(PolePhi),
-				TMath::Sin(PoleTheta));
-
-  AMSDir GTODs = AMSDir(0, 0, -1);
-  AMSDir GEOMz = DipoleDirGTOD*(-1);
-  AMSDir GEOMy = GEOMz.cross(GTODs);
-  AMSDir GEOMx = GEOMy.cross(GEOMz);
-
-  AMSDir StationGEOM(GEOMx.prod(StationRedDirGTOD),
-		     GEOMy.prod(StationRedDirGTOD),
-		     GEOMz.prod(StationRedDirGTOD));
-
-  double tm1 = TMath::Pi()/2-StationGEOM.gettheta();
-  double pm1 = StationGEOM.getphi();
-  if (deg) {
-    tm1 *= TMath::RadToDeg();
-    pm1 *= TMath::RadToDeg();
-  }
-
-  if (TMath::Abs(tm1-tm) > 1e-6 || TMath::Abs(pm1-pm) > 1e-6)
-    cout << "BOKE CHK "<< tm << " " << tm1 << " "
-	 << pm << " " << pm1 << " " << pm-pm1 << endl;
- }
-*/

@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.113 2012/11/06 18:13:05 choutko Exp $
+//  $Id: root_setup.C,v 1.114 2012/11/06 21:55:38 shaino Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -643,6 +643,7 @@ else{
    fISSCTRS.clear();
    fISSGTOD.clear();
    fGPSWGS84.clear();
+   fJGC.clear();
    fDSPError.clear();
    LoadISS(fHeader.Run-dt,fHeader.Run+3600);
    LoadISSAtt(fHeader.Run-dt,fHeader.Run+3600);
@@ -654,6 +655,7 @@ else{
    LoadAMSSTK(fHeader.Run-dt,fHeader.Run+3600);
    LoadDSPErrors(fHeader.Run-dt,fHeader.Run+3600);
    LoadDynAlignment(fHeader.Run);
+   LoadJMDCGPSCorr();
    if(!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return false; 
   }
@@ -689,6 +691,7 @@ else{
    fISSAtt.clear();
    fDSPError.clear();
    fAMSSTK.clear();
+   fJGC.clear();
    const int dt=120;
    LoadISS(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadISSAtt(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
@@ -700,6 +703,7 @@ else{
    LoadAMSSTK(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadDSPErrors(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadDynAlignment(fHeader.Run);
+   LoadJMDCGPSCorr();
    if (!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return true;
    }
