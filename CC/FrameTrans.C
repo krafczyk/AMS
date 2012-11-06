@@ -251,9 +251,11 @@ void ST_ECI2AMS(double& x, double& y, double& z,int CamID, double ST_RA, double 
     CAM_Yaw=55./180.*pi;    /* Nominal Value*/
     CAM_Roll=-40./180.*pi;  /* nominal Value*/
   }
-  ST_CAM2AMS(x, y, z, CAM_Yaw, CAM_Roll);  
-  ST_tangPlane2CAM( x, y, z, -ST_Orient-pi);
   ST_ECI2tangPlane( x, y, z, ST_RA, ST_dec);
+  ST_tangPlane2CAM( x, y, z, -ST_Orient-pi);
+  ST_CAM2AMS(x, y, z, CAM_Yaw, CAM_Roll);  
+ 
+ 
 }
 
 
