@@ -19,6 +19,7 @@
  *  SDT 24 oct 2012 - swapped CamID of star tracker: correct definition is STB=0 Port =1
  *  SDT 28 oct 2012 - add degree_to_Rad & rad_to_degree functions
  *  SDT 28 oct 2012 - correct bug in get_ams_ra_dec_from_ALTEC_INTL
+ *  SDT  6 nov 2012 - coorect bun in ST_ECI2AMS(), the transformation are correct but in a wrong order
  */
 
 #include <iostream>
