@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.485 2012/11/06 18:20:31 choutko Exp $
+//  $Id: root.C,v 1.486 2012/11/06 18:24:15 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9192,6 +9192,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       if (diff < prec) {
 	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
 	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
+//        CTRS2GTOD(RPT,ctrs.v,VPT);
 	result |= (1<<bCTRS);
 	gtod = false;
       }
@@ -9220,6 +9221,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       if (diff < prec) {
 	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
 	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
+//        CTRS2GTOD(RPT,gpsw.v,VPT);
 	result |= (1<<bGPSW);
 	gtod = false;
       }
