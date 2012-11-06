@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.486 2012/11/06 18:24:15 choutko Exp $
+//  $Id: root.C,v 1.487 2012/11/06 18:31:33 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -64,7 +64,7 @@
 #include "GeoMagField.h"
 #include "GeoMagTrace.h"
 #include "Tofrec02_ihep.h"
-//#include "GM_SubLibrary.h"
+#include "GM_SubLibrary.h"
 
 
 using namespace root;
