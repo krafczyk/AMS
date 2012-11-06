@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.500 2012/11/05 22:50:45 shaino Exp $
+//  $Id: root.h,v 1.501 2012/11/06 17:35:42 cconsola Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3355,6 +3355,12 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
 
   /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
+//----------------------------------------------------------------------------------------------------------
+ /// returns  Stoermer Rigidity cutoff [GV]: the method performs a linear interpolation of Gauss coefficients, 
+ /// finds location of Geomegnetic Poles and Dipole Center at event Utime , 
+ /// Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
+  double GetGeoCutoff(AMSEventR* pev);
+//-----------------------------------------------------------------------------------------------------------
 
   ClassDef(ParticleR,15)       //ParticleR
 #pragma omp threadprivate(fgIsA)
@@ -4297,24 +4303,58 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
    int  GetGPSTime( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);
 
 //--------------------------------------------------------------------------------------------------
-//!   Says if particle pass through the ISS Solar Array
+///
+        //!   Says if particle pass through the ISS Solar Array;
 /*!
-       input ipart index (default);
-       output Coordinate of the particle crossing SA Arrays in StationAnalysisCooSystem
-
-       \return 0 if not in shadow ;  1  if in ; -1 if no particle; -2 if upgoing particle, -3 if no SA data
+       input parameter: ipart= ParticleR index (default==0);
+       output: AMSPoint ic== Coordinates of the particle crossing Solar Arrays in Station-Analysis-Coo.System [cm];
+       returns: 0 if not in shadow ;  
+                1 if in shadow; 
+               -1 if no particle; 
+               -2 if upgoing particle; 
+               -3 if no Solar Array data; 
+               -4 if BetaHR* betaH does not exist.      
 */
-        int isInShadow(AMSPoint & ic,int ipart=0); ///< Says if particle has passed through  ISS Solar Array
+
+
+        int isInShadow(AMSPoint & ic,int ipart=0); 
+
+
+//--------------------------------------------------------------------------------------------------
+///
+  //! Calculates the AMS solid Angle in Shadow and returns its value [sr];
+
+  /*!
+         input parameter: AMSfov ==AMS field of view in [deg];
+  */
+        double SolidAngleInShadow(double ANSfov0);
+
+
+///
+   //! Transforms xzy [cm] ISS coordinates into AMS reference system
+/*!
+       input parameter: iss[3] ==ISS coo. [cm] ; 
+       output         : ams[3] ==AMS coo. [cm] (filled value);
+*/
+        void FromISStoAMS(double iss[3],double ams[3] );
+
+//--------------------------------------------------------------------------------------------------
+///
+        //! Returns Maximum Rcutoff [GV] for Charge (+/-)1 particles in a fixed AMS field of view. 
+        /*! return  0: if success;
+	    retrun -1: if failure;	
+            input parameters : AMSfov = AMS field of view in deg. ;
+		             : degbin = binning precision (theta x phi) deg >> Example degbin=5 -> (5 x 5 )deg
+            output           : cutoff[0] = Max. Rcut [GV] for negative particles (Z==-1); 
+                               cutoff[1] = Max. Rcut [GV] for positive particles (Z== 1).
+        */
+        int GetMaxGeoCutoff( double AMSfov,double degbin ,double  cutoff[2]);
+
+
 
 //--------------------------------------------------------------------------------------------------
 
-// Calculates the AMS solind Angle in Shadow and returns it in [sr]
 
-        // input paramenter AMSfov ==AMS field of view in [deg]
-        double SolidAngleInShadow(double ANSfov0);
-
-//.....Transforms ISS coordinates into AMS reference system
-        void FromISStoAMS(double iss[3],double ams[3] );
 
 //--------------------------------------------------------------------------------------------------
 

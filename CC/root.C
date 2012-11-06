@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.482 2012/11/05 22:50:37 shaino Exp $
+//  $Id: root.C,v 1.483 2012/11/06 17:33:39 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -64,6 +64,9 @@
 #include "GeoMagField.h"
 #include "GeoMagTrace.h"
 #include "Tofrec02_ihep.h"
+#include "GM_SubLibrary.h"
+
+
 using namespace root;
 #ifdef __WRITEROOT__
 /*
@@ -4489,6 +4492,63 @@ bool ParticleR::IsInsideTRD()
   return (passTrdCenter && passTrdTop);
 
 }
+//--------------------------------------------------------------------------------------------
+double ParticleR::GetGeoCutoff(AMSEventR *pev){
+
+        double deg2rad = TMath::DegToRad();
+        double Re =  6371.2; //km Earth radius
+        time_t Utime =pev->UTime() ;
+        //...km
+        double Altitude = pev->fHeader.RadS/1.e5-Re;
+        //...ISS rad
+        double ThetaISS=  pev->fHeader.ThetaS;
+        double PhiISS=    pev->fHeader.PhiS;
+       //...ISS deg 
+        double thetaISS =ThetaISS/deg2rad ;
+        double phiISS = PhiISS/deg2rad;
+        //----to be centered in 0!!
+                //............................ZeroCentered
+                if(phiISS > 180)  phiISS-=360.;
+
+
+
+       //.....particle direction in GTOD:
+        double dirTheta = ThetaGl;//----------COLATITUDINE!  lat = colat -90
+        double dirPhi   = PhiGl ;//------------LONG!
+      //from polar to cos dir.
+        AMSDir dir(dirTheta ,dirPhi);
+         dir[0] = - dir[0] ;
+         dir[1] = - dir[1] ;
+         dir[2] = - dir[2] ;
+
+//      cout<<" ParticleR::GetGeoCutoff -dir "<< dir[0]<< "\t"<< dir[1]<< "\t" << dir[2]<< endl;        
+
+        //....particle coordinates in GTOD deg  
+        double theta = dir.gettheta()/deg2rad;
+       //theta is colatitude --> I need Latitude:
+        theta=90.- theta;
+        double phi = dir.getphi()/deg2rad ;
+
+//        cout<<" ParticleR::GetGeoCutoff theta= lat "<< theta << " phi=long "<< phi<< endl;
+
+        int pos = -1;
+        int sign = Momentum>0?1:-1;//sign
+        if (sign ==-1) pos = 0 ;//...negative perticles         
+        if (sign == 1) pos = 1 ;//...positive perticles         
+
+        //...GV!!
+        double R =Charge * GeoMagCutoff( Utime,  Altitude , theta,  phi, thetaISS,  phiISS,  pos ) ;
+        //Charge is part.Charge!        
+
+return R;
+}
+//----------------------------------------------------------------------------------------
+
+
+
+
+
+
 
 double ParticleR::RichBetasAverage(){
   if(pRichRing() && pRichRingB()){
@@ -7386,7 +7446,15 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
 
 
         ParticleR part=Particle(ipart);
-                if(part.Beta<0)return -2;
+        //-------------------------------TOF New tof 23/10/2012
+        //.... TofRecH::ReBuild(1); only one per event!!!
+        if(nBetaH()==0 && nMCEventg()==0)TofRecH::ReBuild();
+        BetaHR* betaH = part.pBetaH();
+        if(!betaH ) return -4;
+        double newbetaH = betaH->GetBeta();
+        if(newbetaH<0)return -2;
+
+
 
         // AMS Coo central point in SSACS [cm]
         double x_ams=-85.73;
@@ -7434,7 +7502,15 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         double tilt=12.*deg2rad;
 
         // add some error due to the mscattering
-        double addon=13.6e-3/fabs(part.Momentum)*part.Charge*sqrt(0.35)*5/sqrt(2.);
+        TrTrackR * trk=part.pTrTrack();
+        //.....refit
+        int fitID=trk->iTrTrackPar(1,3,3);//--- 1=Choutko ; 3=Inner Tracker only; 3=refit and rebuild ALSO coordinates
+        //... rigidity == momentum --------------------> New R --> refit
+        double R= trk->GetRigidity(fitID);
+        double Momentum = R;
+        //..... important only for low momentum particles:
+        double addon=13.6e-3/fabs(Momentum)*part.Charge*sqrt(0.35)*5/sqrt(2.);
+
 
         //Direction of incident particle in AMS coo
         AMSDir dir(part.Theta,part.Phi);
@@ -8032,6 +8108,155 @@ double  AMSEventR::SolidAngleInShadow(double AMSfov0){
  return 0;
 
 }
+//------------------------------------------------------------------------------
+int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2]){
+
+	if(degbin<=0){
+	cerr<<" AMSEventR::GetMaxGeoCutoff degbin parameter must be >0 !"<<endl;
+	return -1;
+	}
+       //...set to zero
+        cutoff[0] =0;
+        cutoff[1] =0;
+
+        double Re =  6371.2; //km Earth radius 
+        double deg2rad = TMath::DegToRad();
+        double AMSfovrad = deg2rad * AMSfov;
+
+        //..... 1x1 deg [theta, phi] 
+     //   double degbin =1. ;
+
+        double Thetamin =0;
+        double Thetamax =AMSfovrad;
+        double dTheta = degbin *deg2rad;
+        double dimt = (Thetamax - Thetamin )/dTheta +1;
+        int dimtheta = (int) dimt;
+
+	if(dimtheta==0) return -1; 
+
+        double Phimin =0;
+        double Phimax= 360.*deg2rad;
+        double dPhi =  dTheta;
+        double dimp= (Phimax - Phimin )/dPhi +1;
+        int dimphi = (int) dimp;
+
+
+       // double Theta[dimtheta];//Colat==angle between ams zenith and direction!
+       // double Phi[dimphi];
+
+	//-----------------------------------
+      	//---directions 
+        vector <double>  xv;
+        vector <double>  yv;
+        vector <double>  zv;
+
+
+
+        for (int i = 0 ; i < dimtheta ; i++){
+         double      Theta = Thetamin + dTheta*i;
+                for (int j = 0 ; j < dimphi ; j++){
+         double      Phi = Phimin + dPhi*j;
+
+
+                double x = sin( Theta  )* cos( Phi );
+                double y = sin( Theta  )* sin( Phi );
+                double z = cos( Theta  );
+
+                double r0 = sqrt( x*x + y*y +z*z);
+                x/=r0;
+                y/=r0;
+                z/=r0;
+                if (Theta <= AMSfovrad ){
+
+                        //select only directions in AMSfov 
+                xv.push_back(x);
+                yv.push_back(y);
+                zv.push_back(z);
+
+
+                }//---end if in AMSfov
+        }//.........end for j
+        }//.........end for i
+
+
+        //-----------------vector dimension
+        int dim = xv.size();
+        for(int i =0 ; i < dim ; i++){//........only in AMSfov, select Max Rcutoff
+
+       //...invert direction to simulate ParticleR dir in ams ref. system 
+        AMSDir ams;
+        ams[0] =- xv[i];
+        ams[1] =- yv[i];
+        ams[2] =- zv[i];
+
+
+        // From AMS to GTOD
+        //...out:
+        int result ;
+
+        //.............in deg!!!!
+        double  theta_deg ; //GTOD
+        double  phi_deg ;
+
+        //..in :--->      
+        double  theta = ams.gettheta();
+        double  phi =  ams.getphi();
+
+
+        //...This function inverts particle dir of ams system and returns particle dir in GTOD  deg!!!
+	// Parameters:   use_att= 1, use_coo = 1, use_time= 2, dt= 0, out_type= 3
+        int gtodT =  GetGalCoo(result, theta_deg , phi_deg, theta, phi, 1,1,2,0.,3 );
+	if (gtodT!=0) return  -1;
+
+
+        //...gtheta is colatitude --> I need Latitude:
+        theta_deg=90.- theta_deg;
+
+        //....from deg to rad
+        //gtheta*=deg2rad;
+        //gphi*=deg2rad;        
+
+        //cout<< " AMSEventR::GetMaxGeoCutoff -> gtheta "<< gtheta/deg2rad << " gphi "<< gphi/deg2rad << endl;
+        //......Geographic coo.................................................
+                double ThetaISS=    fHeader.ThetaS;
+                double PhiISS=      fHeader.PhiS;
+                //..from rad to deg:
+                double ThetaISS_deg=ThetaISS/deg2rad;
+                double PhiISS_deg=PhiISS/deg2rad;
+                //----to be centered in 0!!
+                //............................ZeroCentered
+                if(PhiISS_deg > 180)  PhiISS_deg-=360.;
+        //        cout<< " ISS pos theta "<< Theta_deg << " Phi "<< Phi_deg << endl;
+                time_t Time = UTime();
+                double Altitude = fHeader.RadS/1.e5-Re;//km
+                // cout << "AMSEventR::GetMaxGeoCutoff Altitude =  ok in km! " << Altitude << endl;     
+                // this function needs GTOD coo. in deg and Altitude in km
+                //..........................................................................................pos part            
+                double Rcutoff_pos =  GeoMagCutoff( Time, Altitude , theta_deg, phi_deg, ThetaISS_deg, PhiISS_deg, 1 );
+                //..........................................................................................neg part            
+                double Rcutoff_neg =  GeoMagCutoff( Time, Altitude , theta_deg, phi_deg, ThetaISS_deg, PhiISS_deg, 0 );
+
+                //.....maximum Rcut off 
+                if ( Rcutoff_pos > cutoff[1]  ) {
+                        cutoff[1] = Rcutoff_pos ;
+                        }
+                if (fabs(Rcutoff_neg ) > fabs(cutoff[0] ) ) {
+                        cutoff[0] =Rcutoff_neg ;
+                }
+        }//....................................//end for i 
+
+
+
+//cout << "AMSEventR::GetMaxGeoCutoff Negative cutoff[0] " << cutoff[0] << " Positive cutoff[1] "<< cutoff[1] << endl;  
+
+
+
+
+return 0;
+}
+
+
+
 //----------------------------------------------------------------------
 double HeaderR::Zenith(){
 
@@ -8809,7 +9034,6 @@ int HeaderR::get_gal_coo(double & gal_long, double & gal_lat,double ams_ra, doub
   gal_lat=ams_dec*180./3.1415926;
 return 0;
 }
-
 
 double AMSEventR::get_coo_diff(double RPT[3],
 			       double r, double theta, double phi)
