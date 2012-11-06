@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.137 2012/11/01 15:22:24 shaino Exp $
+//  $Id: linkdef.h,v 1.138 2012/11/06 20:40:47 qyan Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -95,6 +95,10 @@
 #pragma link C++ class TrTrackR+;
 //////////////////////////////////////
 #pragma link C++ class TofRecH++;
+#pragma link C++ class TofChargePar++;
+#pragma link C++ class TofLikelihoodPar++;
+#pragma link C++ class TofChargeHR++;
+#pragma link C++ class TofPDFH++;
 //#pragma link C++ class TofTDVTool++;
 //#pragma link C++ class TofTAlignPar++;
 //////////////////////////////////////
