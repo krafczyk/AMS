@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.491 2012/11/07 09:02:27 shaino Exp $
+//  $Id: root.C,v 1.492 2012/11/07 10:11:59 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -7676,17 +7676,9 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         // AMS tilt angle 
         double tilt=12.*deg2rad;
 
-#ifdef _PGTRACK_
         // add some error due to the mscattering
-        TrTrackR * trk=part.pTrTrack();
-        //.....refit
-        int fitID=trk->iTrTrackPar(1,3,3);//--- 1=Choutko ; 3=Inner Tracker only; 3=refit and rebuild ALSO coordinates
-        //... rigidity == momentum --------------------> New R --> refit
-        double R= trk->GetRigidity(fitID);
-        double Momentum = R;
-#else
+ 	//... rigidity == momentum
         double Momentum = part.Momentum;
-#endif
         //..... important only for low momentum particles:
         double addon=13.6e-3/fabs(Momentum)*part.Charge*sqrt(0.35)*5/sqrt(2.);
 
