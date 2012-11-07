@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
-#  $Id: parsejf.o.cgi,v 1.4 2011/03/31 13:29:07 choutko Exp $
+#  $Id: parsejf.o.cgi,v 1.5 2012/11/07 10:01:17 ams Exp $
 #use Gtk;
 use strict;
 use lib;
-use lib qw(/var/www/cgi-bin/mon);
+#use lib qw(/var/www/cgi-bin/mon);
 use lib::RemoteClient;
 
 $SIG{INT}=sub{exit()};

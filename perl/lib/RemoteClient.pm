@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.749 2012/09/27 16:18:24 choutko Exp $
+# $Id: RemoteClient.pm,v 1.750 2012/11/07 10:01:19 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14400,13 +14400,10 @@ foreach my $block (@blocks) {
                 if($castortime==0){
 
 #get dir name
-                 my $castorPrefix = '/castor/cern.ch/ams/Data';
-                 if(    $startingrun[21]%2 ==0){
-                  $castorPrefix = '/castor/cern.ch/ams/MC';
-              }
+                 my $castorPrefix = '/castor/cern.ch/ams';
                   my @junk=split '\/',$outputpath;
                   my $castordir=$castorPrefix;
-                  for my $i  (1...$#junk-1){
+                  for my $i  (2...$#junk-1){
                       $castordir=$castordir.'/'.$junk[$i];
                   }
                  my $sys="/usr/bin/nsmkdir -p $castordir";
@@ -16265,7 +16262,7 @@ sub getOutputPath {
         $path='/MC';
     }
 #
-$self->CheckFS(1,60,0,$path);
+$self->CheckFS(1,120,1,$path);
 print "CheckFS ok \n";
 # get production set path
      my $tme=time();
@@ -19283,6 +19280,9 @@ sub CheckFS{
                   $rused+=$sizemb->[0][0];
                  } 
                  my $ava=$bavail*$fac-20000;
+                 if($rused<0){
+                    $rused=0;
+                 }
                  my $ava1=$tot*$fs->[3]/100-$rused;
                  if($fs->[2]=~'Reserved'){
                   $status='Reserved';
@@ -20815,7 +20815,7 @@ sub RemoveFromDisks{
     my $datamc=0;
     my $runsn='runs';
   my $castorPrefix = '/castor/cern.ch/ams/MC';
-    if ($dir=~'/Data/'){
+    if ($dir=~'Data/'){
      $castorPrefix = '/castor/cern.ch/ams/Data';
      $datamc=1;
      $runsn='dataruns';
@@ -20852,7 +20852,7 @@ sub RemoveFromDisks{
        }
     }
  if($did>0){   
-    $sql = "SELECT $runsn.run,$runsn.jid from $runsn,jobs,ntuples where $runsn.jid=jobs.jid and jobs.pid=$did and $runsn.jid=ntuples.jid and ntuples.datamc=$datamc and ntuples.path like '%$dir%'";
+    $sql = "SELECT $runsn.run,$runsn.jid from $runsn,jobs,ntuples where $runsn.jid=jobs.jid and jobs.pid=$did and $runsn.jid=ntuples.jid and ntuples.datamc=$datamc and ntuples.path like '%$dir/%'";
 }
     else{
         printf "Unable to find Dataset $dir \n";
@@ -20884,7 +20884,7 @@ sub RemoveFromDisks{
       my $sys="$irm $tmp/*";
       my $i=system($sys);
       foreach my $ntuple (@{$ret_nt}){
-         if($ntuple->[0]=~/^#/){
+         if($ntuple->[0]=~/^#/ ){
           next;
          }
          my @junk=split $name_s,$ntuple->[0];
