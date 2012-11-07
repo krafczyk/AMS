@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.492 2012/11/07 10:11:59 cconsola Exp $
+//  $Id: root.C,v 1.493 2012/11/07 10:59:42 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4508,6 +4508,7 @@ int ParticleR::DoBacktracing()
     double trm = ptr->ThetaM;
     double arg = abs(rgt);
     double lrg = log10(arg);
+#ifdef _PGTRACK_
     hman.Fill("GgIss",  phg, thg);
     hman.Fill("GmIss",  phm, thm);
     hman.Fill("GgCutD", phg, thg, Cutoff /icharge);
@@ -4526,6 +4527,7 @@ int ParticleR::DoBacktracing()
                           hman.Fill("GmBTT",  phm, thm, lrg);
 			  hman.Fill("GmBTrT", trm, arg);
 			  hman.Fill("GmBTmT", arg, BT_time); }
+#endif
   }
 
   if (BACKTRACEFFKEY.out_type == 3) {

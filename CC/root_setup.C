@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.114 2012/11/06 21:55:38 shaino Exp $
+//  $Id: root_setup.C,v 1.115 2012/11/07 10:59:43 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1103,9 +1103,16 @@ static int hint=-1;
 static int init_error=0;
 const double ti=1306000000;
 #pragma omp threadprivate(hint)
+#ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(init_error)
+#endif
  if(init_error==0 && !fJGC.size()){
-   init_error=LoadJMDCGPSCorr();
+#ifndef __ROOTSHAREDLIBRARY__
+#pragma omp critical (loadjmdc)
+#endif
+{
+init_error=LoadJMDCGPSCorr();
+}
  }
  if(!fJGC.size())return 2;
  if(time<fJGC[0].Validity[0]){

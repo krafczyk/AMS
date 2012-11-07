@@ -28,7 +28,7 @@ int get_track(AMSEventR *pev, EcalShowerR *shower, TrTrackR *&track)
 {
    int id_maxspan = -1;
    TrTrackR *TheTrack;
-
+   int id_part=-1;
    if (pev->nParticle() > 0)
    {
       for (int iparticle = 0; iparticle < pev->nParticle(); ++iparticle)
@@ -38,8 +38,11 @@ int get_track(AMSEventR *pev, EcalShowerR *shower, TrTrackR *&track)
          if (particle->pEcalShower() == shower) //Found Track associated to Shower according to Particle
          {
 	    track = particle->pTrTrack();
+            id_part=iparticle;
 	    if ( track == NULL ) break; // no track associated
+#ifdef _PGTRACK_
             id_maxspan = track->iTrTrackPar(1, 0, 1);
+#endif
             break;
          }
       }
@@ -54,8 +57,12 @@ int get_track(AMSEventR *pev, EcalShowerR *shower, TrTrackR *&track)
          // associazione traccia - cluster
 	 AMSPoint point;
 	 AMSDir dir;
+#ifdef _PGTRACK_
          id_maxspan = track->iTrTrackPar(1, 0, 1);
 	 track->Interpolate(shower->CofG[2], point, dir, id_maxspan);
+#else
+          if(id_part>=0)point=AMSPoint( pev->Particle(id_part).EcalCoo[1][0], pev->Particle(id_part).EcalCoo[1][1], pev->Particle(id_part).EcalCoo[1][2]);
+#endif
 	 float DeltaX = TMath::Abs( point[0] - shower->CofG[0] );
 	 float DeltaY = TMath::Abs( point[1] - shower->CofG[1] );
 	 float DeltaXY = TMath::Sqrt( DeltaX*DeltaX + DeltaY*DeltaY );
