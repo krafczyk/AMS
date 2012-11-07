@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.55 2012/06/10 10:39:58 choutko Exp $
+//  $Id: status.C,v 1.56 2012/11/07 15:47:28 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -37,12 +37,17 @@ else{
 }
 
 integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,bool force){
+  const int howmany=20;
   static time_t oldtime=0;
   integer timechanged= time!=oldtime?1:0;
   if(AMSEvent::get_num_threads()==1 && run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
     cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
 #pragma omp critical (st1)
    _Errors++;
+   if(_Errors>howmany){
+       cerr<<"AMSStatus::isFull-F-EventSequenceBroken-TooManyTimesExiting"<< " "<<_Errors<<endl; 
+       exit(1);
+   }
    return 2;
   }
   if(_Nelem>=MAXDAQRATE+STATUSSIZE){
