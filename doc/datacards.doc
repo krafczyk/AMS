@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.389 2012/11/06 21:55:41 shaino Exp $
+#  $Id: datacards.doc,v 1.390 2012/11/07 11:17:50 shaino Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -656,11 +656,11 @@ F 5  t_jitter(0.)  // time jitter (sec) for coordinates input
 I 6  out_type(1)   // 1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
                    // 3:GTOD coord.(use_att forced to 1)
 I 7  debug  (0)    // Debug switch of GeoMagTrace
-I 8  nmax   (100)  // Maximum number of steps
+I 8  nmax   (200)  // Maximum number of steps
 F 9  stepdv (0.1)  // Step size per curvature
-F10  minstep(0.1)  // Minimum step size (Re)
-F11  maxstep(5.0)  // Maximum step size (Re)
-
+F10  minstep(0.05) // Minimum step size (Re)
+F11  maxstep(2.0)  // Maximum step size (Re)
+F12  thengd (0.5)  // Minimum EnergyD to use EnergyE instead of Momentum
 
 
 MISC   // misc

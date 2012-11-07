@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.493 2012/11/07 10:59:42 choutko Exp $
+//  $Id: root.C,v 1.494 2012/11/07 11:17:43 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4392,9 +4392,23 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 #ifdef _PGTRACK_
     bool istrack = (ptr->_ptrack && !ptr->_ptrack->IsFake());
 #else
-    bool istrack = ptr->_ptrack;
+    bool istrack =  ptr->_ptrack;
 #endif
-    if (BACKTRACEFFKEY.enable != 1 || istrack) DoBacktracing();
+    bool isshwr  = (ptr->_pShower &&
+		    ptr->_pShower->getEnergy()*1e-3 > BACKTRACEFFKEY.thengd);
+
+    BT_result = 0;
+    enum { bENGY = 8 };
+
+    double msave = Momentum;
+    if (!istrack && isshwr) {
+      Momentum = (Momentum > 0) ?  ptr->_pShower->getEnergyPIC()
+	                        : -ptr->_pShower->getEnergyPIC();
+      BT_result |= (1<<bENGY);
+    }
+    if (BACKTRACEFFKEY.enable != 1 || istrack || isshwr) DoBacktracing();
+    if (BT_status < 0) BT_result = -1;
+    Momentum = msave;
   }
 #endif
 }
@@ -4404,6 +4418,9 @@ int ParticleR::DoBacktracing()
 #ifndef __ROOTSHAREDLIBRARY__
   EventNtuple02 *ptr = AMSJob::gethead()->getntuple()->Get_event02();
   if (!ptr) return -1;
+
+  enum { bSTK  = 0, bINTL = 1, bTLE  = 2, bGTOD = 3, bCTRS = 4, bGPSW = 5,
+	 bGPST = 6, bGPSC = 7 };
 
   double momentum = Momentum;
   double velocity = Beta;
@@ -4479,13 +4496,13 @@ int ParticleR::DoBacktracing()
       get_ams_gtod_fromGTOD  (x, y, z, glon, glat, RPT, VPT, YPR, xtime);
     else return -1;
 
-    BT_glong = glon;
-    BT_glat  = glat;
+    BT_glong  = glon;
+    BT_glat   = glat;
+    BT_status = 4;
     return 0;
   }
 
-  enum { bTLE = 2 };
-  BT_result = (1<<bTLE);
+  BT_result |= (1<<bTLE);
 
   double rgt = momentum/icharge;
   GeoMagTrace gp(RPT, VPT, YPR, Theta, Phi, rgt, velocity);
@@ -11349,4 +11366,19 @@ void AMSEventR::CTRS2GTOD(double RPT[3], double v,double  VelPT[2]){
          v=sqrt(vz*vz+vx*vx+vy*vy);
          VelPT[1]=asin(vz/v);
          VelPT[0]=atan2(vy,vx);
+}
+
+void AMSEventR::CTRS2GTOD(double theta, double phi, double v, double &vtheta, double &vphi)
+{         
+         const double ve=3.1415926535*2./86400.;
+         double vx=v*cos(vtheta)*cos(vphi);
+         double vy=v*cos(vtheta)*sin(vphi);
+         double vz=v*sin(vtheta);
+         double vxe=-ve*cos(theta)*sin(phi);
+         double vye=ve*cos(theta)*cos(phi);
+         vx+=vxe;
+         vy+=vye;
+         v=sqrt(vz*vz+vx*vx+vy*vy);
+         vtheta=asin(vz/v);
+         vphi=atan2(vy,vx);
 }

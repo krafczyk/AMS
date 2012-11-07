@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.505 2012/11/06 23:11:21 shaino Exp $
+//  $Id: root.h,v 1.506 2012/11/07 11:17:54 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4417,6 +4417,13 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
 
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);
 void CTRS2GTOD(double RPT[3],double v, double VelPT[2]);
+void CTRS2GTOD(double theta, double phi, double v, double &vtheta, double &vphi);
+void CTRS2GTOD(double theta, double phi, double v, float &vtheta, float &vphi){
+  double vth = vtheta, vph = vphi;
+  CTRS2GTOD(theta, phi, v, vth, vph);
+  vtheta = vth; vphi = vph;
+}
+
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 
   //! Calculate distance between two RPT coordinates used in GetGalCoo

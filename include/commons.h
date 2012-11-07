@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.353 2012/11/06 21:55:43 shaino Exp $
+//  $Id: commons.h,v 1.354 2012/11/07 11:17:54 shaino Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -951,6 +951,7 @@ class BACKTRACEFFKEY_DEF {
   geant   stepdv;   // Step size per curvature
   geant   minstep;  // Minimum step size (Re)
   geant   maxstep;  // Maximum step size (Re)
+  geant   thengd;   // Minimum EnergyD to use EnergyE instead of Momentum
 };
 #define BACKTRACEFFKEY COMMON_BLOCK(BACKTRACEFFKEY,tbacffkey)
 COMMON_BLOCK_DEF(BACKTRACEFFKEY_DEF,BACKTRACEFFKEY);
