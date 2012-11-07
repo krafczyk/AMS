@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.900 2012/11/07 09:02:27 shaino Exp $
+// $Id: job.C,v 1.901 2012/11/07 09:27:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1902,8 +1902,8 @@ void AMSJob::udata(){
 #ifndef __G4AMS__
  if(MISCFFKEY.G4On){
    cerr<<"<---- AMSJob::udata-F-Geant4SelectedWhileGeant3ExecWasUsed"<<endl<<endl;
+   abort();
  }
- abort();
 #endif
   if(MISCFFKEY.BZCorr !=1){
     cout <<"<---- AMSJob::udata-W-magneticFieldRescaleModeOnWithFactor "<<MISCFFKEY.BZCorr<<endl<<endl;
