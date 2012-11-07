@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.6 2012/10/22 14:03:40 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.7 2012/11/07 14:47:05 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -9,6 +9,7 @@
 #include "math.h"
 #include "TH1F.h"
 #include "TFile.h"
+#include "TMath.h"
 #include "TObject.h"
 #include "TVirtualFitter.h"
 using namespace std;
@@ -50,14 +51,56 @@ class EcalPDF{
                 \param[out] probability     if successful, probability>=0; if database has not been loaded, probability=-1
                 */
                 float get_prob(int flayer, float coo, float Erg, int type=0)    ;
-
-        private:
+		
+		///Normalize Chi2 and remove Energy Dependence. If EnergyE< 15.GeV, will use paramters of 15 GeV. If EnergyE>200 GeV, will use parameters of 200 GeV.
+		/*!
+		\param[in]  Chi2  	Ecal Chi2
+		\param[in]  EnergyE     Reconstructed EcalShower Energy(GeV)
+		\param[in]  algorithm   Algorithm to get Ecal Chi2 
+		return nChi2	Normalized Chi2
+		*/
+		float normalize_chi2(float _chi2, float _EnergyE,int algorithm=2)				;
+		///Normalize fisrt 2 layers' deposited energy and remove Energy Dependence. If EnergyE< 15.GeV, will use paramters of 15 GeV. If EnergyE>200 GeV, will use parameters of 200 GeV.
+                /*!
+                \param[in]  _f2edep     First 2 layers' deposited energy (MeV)
+		\param[in] _EnergyE	EcalShower's EnergyE
+                return nf2edep	Normalized f2edep	
+                */
+                float normalize_f2edep(float _f2edep, float _EnergyE)						;
+		///EcalChi2_plus: Combination of Lateral Fit's EcalChi2 and First 2 layers' energy
+		/*!
+		\param[in] 	_chi2		Lateral Fit's Ecal Chi2
+		\param[in] 	_f2edep		First 2 Layer deposited energy
+		\param[in]	_has_normalized Has the variables already been normalized? in case they have not been normalized, you need to provide erg information
+		\param[in]      _EnergyE		Ecal Shower EnergyE
+		Return	chi2_plus EcalChi2 Plus	
+		*/
+		float get_chi2plus(float _chi2, float _f2edep, bool _has_normalized=true, float _EnergyE=0.)	;
+		///EcalChi2_plus_BDT: Combination of EcalChi2_Plus and BDT
+		/*!
+                \param[in]      _chi2plus       Lateral Fit's Ecal Chi2 Plus
+                \param[in]      _bdt         	EcalShower BDT
+                Return elik  Ecal electron likelihood  
+                */
+                float get_elik(float _chi2plus, float _bdt)	;
+	
+        public:
 		bool   init(char* fdatabase)			  ;
-                TH1F*  param_mean_lf[18][6]                       ;
-                TH1F*  param_rms_lf[18][6]                        ;
-                TH1F*  param_prob_lf[18][2]                       ;
-                bool   has_init                                   ;
-                double myfunc_lf(float x,float* par,int type=0) ;
+                static TH1F*  param_mean_lf[18][6]                ;
+                static TH1F*  param_rms_lf[18][6]                 ;
+                static TH1F*  param_prob_lf[18][2]                ;
+		static TH1F*  hprofele_Chi2_Erg_rms		  ;
+    		static TH1F*  hprofele_F2Edep_Erg_rms		  ;
+    		static TF1*       f_Chi2_Erg			  ;
+    		static TF1*       f_F2Edep_Erg			  ;
+    		static TH2D* hpdfele_Chi2_F2Edep		  ;
+    		static TH2D* hpdfpro_Chi2_F2Edep		  ;
+    		static TH2D* hpdfele_Chi2plus_BDT		  ;
+    		static TH2D* hpdfpro_Chi2plus_BDT		  ;	
+                static bool   has_init                            ;
+	private:
+                double myfunc_lf(float x,float* par,int type=0)   ;
+		double nns(TH2D* hsig,TH2D* hbkg,double range,double x,double y,double order);
 
 };
 
@@ -133,10 +176,13 @@ class EcalChi2{
 		ret chi2 of layer ilayer
 		*/
 		float get_chi2 (int ilayer) { if(_ndofs[ilayer]!=0) return _chi2_layer[ilayer]/_ndofs[ilayer]; else return -1; };
+		///EcalPDF pointer
+		EcalPDF* ecalpdf						;
+		///Z coordinates of each layer
+		float	  	   ecalz[18]					;
 
 	private:
 		void init(char* fdatabase,int type)				;
-		EcalPDF* ecalpdf						;
 		int		      _ndofs[18]				;
 		float		      _chi2_layer[18]				;
 		float		      _chi22_layer[18]				;
@@ -147,8 +193,7 @@ class EcalChi2{
 		
 		float      	   shiftxy[18]					;
 		float      	   shiftz[18]					;
-		float              ecalz0[18]                                    ;
-		float	  	   ecalz[18]					;
+		float              ecalz0[18]                                   ;
 		int		   cal_chi2(int start_cell,int end_cell,int layer,double coo,float& chi2,float& chi22,float& chi23, float& chi24, float sign=-1.);
 		float		   Edep_raw[1296]				;
 		int		   fdead_cell[18][72]				;
@@ -204,9 +249,37 @@ class EcalAxis: public TObject{
 		\param[in]  algorithm  1: Cell Ratio method, 2: Lateral Fit method, 4: Simple CoG method
 		if corresponding lagorithm has been performed at process function, will return 0; else will return -1; if algorithm doesn't exist, will return -2
 		*/
-		int interpolate    (float zpl       ,AMSPoint& p0   ,AMSDir  &dir, int algorithm=2);  	
+		int interpolate    (float zpl       ,AMSPoint& p0   ,AMSDir  &dir, int algorithm=2);
+
+		///Get EcalChi2_plus, Validated for energy range 15.~200GeV, below 15 GeV samples will use the pdf of 15 GeV, above 200 GeV will use the pdf of 200 GeV.
+		/*!
+		\param[in]  ev		AMSEventR pointer
+		\param[out] _nchi2      Normalized Chi2
+                \param[out] _nf2edep    Normalized First 2 layer deposted energy
+		\param[out] _chi2plus	EcalChi2 Plus
+		return chi2 plus
+		*/
+		float get_chi2plus(AMSEventR* ev,float& _nchi2,float& _nf2edep,float& _chi2plus);
+		///Get Ecal Electron Likelihood by combining BDT and EcalChi2_plus. BDT is version 4 BDT. For multi-shower event, BDT of most energetic shower will be used.
+		/*!
+                \param[in]  ev          AMSEventR pointer
+		\param[out] _nchi2	Normalized Chi2
+		\param[out] _nf2edep	Normalized First 2 layer deposted energy
+		\param[out] _chi2plus	Chi2 plus by combining Chi2 and F2Edep 
+                \param[out] _elik	Ecal Electron likelihood
+		return electron likelihood
+                */
+		float get_elik(AMSEventR* ev,float& _nchi2,float& _nf2edep,float& _chi2plus, float& _elik)	;
+
 		///Ecal Chi2 Object, can be used to access chi2, f2dep
-		EcalChi2* ecalchi2         ;
+		EcalChi2* ecalchi2		;
+
+		///Get Normalized Ecal Chi2
+		/*!
+                \param[in]  ev          AMSEventR pointer
+                \param[out] nchi2    	Normalized EcalChi2 
+                */
+		float get_nchi2(AMSEventR* ev)	;
 	private:
 		void init(char* fdatabase, int ftype=0);
 		AMSPoint p0_lf             ;
