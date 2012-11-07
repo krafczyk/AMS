@@ -105,8 +105,16 @@ short TrClusterR::GetStatus(int ii) {
 
 
 int TrClusterR::GetSensorAddress(int& sens, int ii, int mult) {
-  int iside = GetSide(); 
-  int address = GetAddress() + ii; // cyclicity accounted in the multiplicity
+  // mult, by XCofG method convention, is referred to seed strip
+  int seedadd = GetAddress() + GetSeedIndex(); 
+  // here I convert multiplicity of seed to multiplicity of first strip
+  if ( (GetSide()==0)&&(IsK7())&&(seedadd>1023) ) mult--; // if seed > left margin the mult of first strip is mult-1 
+  if ( (GetSide()==0)&&(IsK7())&&(seedadd< 640) ) {
+    printf("TrClusterR::GetSensorAddress-E seed address (%d) < right margin. This must not happen!\n",seedadd);
+    mult++; // if seed < right margin the mult of first strip is mult+1 (this case is not possible)
+  }
+  // now take the address without regarding of cyclicity accounted in the following algorithm
+  int address = GetAddress() + ii; 
   // detect multiplicity jump in case of K7
   while ( (GetSide()==0)&&(IsK7())&&(address>1023) ) { address -= 384; mult++; }
   while ( (GetSide()==0)&&(IsK7())&&(address< 640) ) { address += 384; mult--; }
