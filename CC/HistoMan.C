@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.48 2012/11/06 23:11:17 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.49 2012/11/07 09:02:27 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -460,7 +460,7 @@ void HistoMan::BookHistos(int simmode){
 
   // Back tracing and cutoff
   Add(new TH2F("GgIss",  "ISS pos (GTOD)",  180, -180, 180, 90, -90, 90));
-  Add(new TH2F("GMIss",  "ISS pos (GMag)",  180, -180, 180, 90, -90, 90));
+  Add(new TH2F("GmIss",  "ISS pos (GMag)",  180, -180, 180, 90, -90, 90));
   Add(new TH2F("GgCutD", "RcutG(Dipole)",   180, -180, 180, 90, -90, 90));
   Add(new TH2F("GmCutD", "RcutM(Dipole)",   180, -180, 180, 90, -90, 90));
   Add(new TH2F("GgCutS", "RcutG(Stoermer)", 180, -180, 180, 90, -90, 90));
@@ -471,6 +471,13 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH3F("GmBTA",  "BTM Under", 180, -180, 180, 90, -90, 90, 20, 0, 2));
   Add(new TH3F("GgBTT",  "BTG Trapp", 180, -180, 180, 90, -90, 90, 20, 0, 2));
   Add(new TH3F("GmBTT",  "BTM Trapp", 180, -180, 180, 90, -90, 90, 20, 0, 2));
+
+  Add(TH2D_L("GmBTrS", "BTM Over",  48, -1.2, 1.2, 60, 0.1, 100, 0, 1));
+  Add(TH2D_L("GmBTrA", "BTM Under", 48, -1.2, 1.2, 60, 0.1, 100, 0, 1));
+  Add(TH2D_L("GmBTrT", "BTM Trapp", 48, -1.2, 1.2, 60, 0.1, 100, 0, 1));
+  Add(TH2D_L("GmBTmS", "BTT Over",  60,  0.1, 100, 80, 0.001, 1, 1, 1));
+  Add(TH2D_L("GmBTmA", "BTT Under", 60,  0.1, 100, 80, 0.001, 1, 1, 1));
+  Add(TH2D_L("GmBTmT", "BTT Trapp", 60,  0.1, 100, 80, 0.001, 1, 1, 1));
 
   if (dsave) dsave->cd();
   booked = true;

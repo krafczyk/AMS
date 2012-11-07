@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.490 2012/11/06 23:11:17 shaino Exp $
+//  $Id: root.C,v 1.491 2012/11/07 09:02:27 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4388,8 +4388,13 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   BT_glong = BT_glat = BT_RPTO[0] = BT_RPTO[1] = BT_RPTO[2] = BT_time = 0;
 
   if (BACKTRACEFFKEY.enable) {
-    if (BACKTRACEFFKEY.enable != 1 ||
-	(ptr->_ptrack && !ptr->_ptrack->IsFake())) DoBacktracing();
+
+#ifdef _PGTRACK_
+    bool istrack = (ptr->_ptrack && !ptr->_ptrack->IsFake());
+#else
+    bool istrack = ptr->_ptrack;
+#endif
+    if (BACKTRACEFFKEY.enable != 1 || istrack) DoBacktracing();
   }
 #endif
 }
@@ -4419,6 +4424,16 @@ int ParticleR::DoBacktracing()
 
   if (GeoMagField::GetInitStat() == 0) GeoMagField::GetHead();
   if (GeoMagField::GetInitStat() <  0) return -2;
+
+  static bool first = true;
+#pragma omp critical (DoBacktracing)
+  if (first) {
+    cout << "ParticleR::DoBacktracing-I-Parameters= "
+	 << BACKTRACEFFKEY.stepdv  << " "
+	 << BACKTRACEFFKEY.minstep << " " << BACKTRACEFFKEY.maxstep << " "
+	 << BACKTRACEFFKEY.nmax << endl;
+    first = false;
+  }
 
   AMSgObj::BookTimer.start("DoBacktracing");
 
@@ -4490,19 +4505,27 @@ int ParticleR::DoBacktracing()
     double thg = RPT[2]*180./M_PI;
     double phm = ptr->  PhiM*180./M_PI;
     double thm = ptr->ThetaM*180./M_PI;
-    double lrg = log10(abs(rgt));
+    double trm = ptr->ThetaM;
+    double arg = abs(rgt);
+    double lrg = log10(arg);
     hman.Fill("GgIss",  phg, thg);
     hman.Fill("GmIss",  phm, thm);
     hman.Fill("GgCutD", phg, thg, Cutoff /icharge);
     hman.Fill("GmCutD", phm, thm, Cutoff /icharge);
     hman.Fill("GgCutS", phg, thg, CutoffS/icharge);
     hman.Fill("GmCutS", phm, thm, CutoffS/icharge);
-    if (BT_status == 1) { hman.Fill("GgBTS", phg, thg, lrg);
-                          hman.Fill("GmBTS", phm, thm, lrg); }
-    if (BT_status == 2) { hman.Fill("GgBTA", phg, thg, lrg);
-                          hman.Fill("GmBTA", phm, thm, lrg); }
-    if (BT_status == 3) { hman.Fill("GgBTT", phg, thg, lrg);
-                          hman.Fill("GmBTT", phm, thm, lrg); }
+    if (BT_status == 1) { hman.Fill("GgBTS",  phg, thg, lrg);
+                          hman.Fill("GmBTS",  phm, thm, lrg);
+			  hman.Fill("GmBTrS", trm, arg);
+			  hman.Fill("GmBTmS", arg, BT_time); }
+    if (BT_status == 2) { hman.Fill("GgBTA",  phg, thg, lrg);
+                          hman.Fill("GmBTA",  phm, thm, lrg);
+			  hman.Fill("GmBTrA", trm, arg);
+			  hman.Fill("GmBTmA", arg, BT_time); }
+    if (BT_status == 3) { hman.Fill("GgBTT",  phg, thg, lrg);
+                          hman.Fill("GmBTT",  phm, thm, lrg);
+			  hman.Fill("GmBTrT", trm, arg);
+			  hman.Fill("GmBTmT", arg, BT_time); }
   }
 
   if (BACKTRACEFFKEY.out_type == 3) {
@@ -7653,6 +7676,7 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         // AMS tilt angle 
         double tilt=12.*deg2rad;
 
+#ifdef _PGTRACK_
         // add some error due to the mscattering
         TrTrackR * trk=part.pTrTrack();
         //.....refit
@@ -7660,6 +7684,9 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         //... rigidity == momentum --------------------> New R --> refit
         double R= trk->GetRigidity(fitID);
         double Momentum = R;
+#else
+        double Momentum = part.Momentum;
+#endif
         //..... important only for low momentum particles:
         double addon=13.6e-3/fabs(Momentum)*part.Charge*sqrt(0.35)*5/sqrt(2.);
 

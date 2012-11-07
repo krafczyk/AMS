@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.899 2012/11/06 23:11:17 shaino Exp $
+// $Id: job.C,v 1.900 2012/11/07 09:02:27 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1818,9 +1818,9 @@ void AMSJob::_reaxdata(){
   BACKTRACEFFKEY.t_jitter =   0.;
   BACKTRACEFFKEY.out_type =   1;
   BACKTRACEFFKEY.debug    =   0;
-  BACKTRACEFFKEY.nmax     = 100;
-  BACKTRACEFFKEY.stepdv   = 0.05;
-  BACKTRACEFFKEY.minstep  = 0.01;
+  BACKTRACEFFKEY.nmax     = 200;
+  BACKTRACEFFKEY.stepdv   = 0.1;
+  BACKTRACEFFKEY.minstep  = 0.05;
   BACKTRACEFFKEY.maxstep  = 2.0;
   FFKEY("BACKTRACEK",(float*)&BACKTRACEFFKEY,sizeof(BACKTRACEFFKEY_DEF)/sizeof(integer),"MIXED");
 }
