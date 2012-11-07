@@ -4,42 +4,66 @@
 ClassImp(EcalAxis);
 
 EcalPDF::EcalPDF(char* fdatabase){
-	has_init=init(fdatabase);
+	if(!has_init)
+		has_init=init(fdatabase);
 }
 EcalPDF::EcalPDF(){
 	char* amsdatadir=getenv("AMSDataDir");
-	char tempname[100];
+	char tempname[300];
 	if(amsdatadir){
-		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir);
-		has_init=init(tempname);
+		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121106.1.root",amsdatadir);
+		if(!has_init)
+			has_init=init(tempname);
 	}
 	else{
-		has_init=init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20120814.1.root");
+		if(!has_init)
+			has_init=init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121106.1.root");
 	}
 }
+bool EcalPDF::has_init=false;
+TH1F*  EcalPDF::param_mean_lf[18][6];
+TH1F*  EcalPDF::param_rms_lf[18][6]                 ;
+TH1F*  EcalPDF::param_prob_lf[18][2]                ;
+TH1F*  EcalPDF::hprofele_Chi2_Erg_rms               ;
+TH1F*  EcalPDF::hprofele_F2Edep_Erg_rms             ;
+TF1*   EcalPDF::f_Chi2_Erg                      ;
+TF1*   EcalPDF::f_F2Edep_Erg                    ;
+TH2D*  EcalPDF::hpdfele_Chi2_F2Edep                  ;
+TH2D*  EcalPDF::hpdfpro_Chi2_F2Edep                  ;
+TH2D*  EcalPDF::hpdfele_Chi2plus_BDT                 ;
+TH2D*  EcalPDF::hpdfpro_Chi2plus_BDT      ;
+
 bool EcalPDF::init(char* fdatabase){
-	bool ret=true;
-	char tempname[100];
-	srand(time(NULL));	
-	int fid=rand();
+	has_init=true	  ;
+	char tempname[300];
 	for(int layer=0;layer<18;layer++){
 		for(int i1=0;i1<6;i1++){
-			sprintf(tempname,"hrms_lay%.2d_%d_2_%d",layer,i1,fid);
+			sprintf(tempname,"hrms_lay%.2d_%d_2",layer,i1);
 			param_rms_lf[layer][i1] =new TH1F(tempname,tempname,710, -31.905, 31.995) ;
-			sprintf(tempname,"hmean_lay%.2d_%d_2_%d",layer,i1,fid);
+			sprintf(tempname,"hmean_lay%.2d_%d_2",layer,i1);
 			param_mean_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
 		}
 		for(int i1=0;i1<2;i1++){
-			sprintf(tempname,"hprob_lay%.2d_%d_2_%d",layer,i1,fid);
+			sprintf(tempname,"hprob_lay%.2d_%d_2",layer,i1);
 			param_prob_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
 		}
 	}
-	TH1F* hdummy;
+	hpdfele_Chi2_F2Edep=new TH2D("hpdfele_Chi2_F2Edep1","hpdfele_Chi2_F2Edep1",512,-6.,6.,512,-6.,6.);
+	hpdfpro_Chi2_F2Edep=new TH2D("hpdfpro_Chi2_F2Edep1","hpdfpro_Chi2_F2Edep1",512,-6.,6.,512,-6.,6.);
+	hpdfele_Chi2plus_BDT=new TH2D("hpdfele_Chi2plus_BDT1","hpdfele_Chi2plus_BDT1",256,-0.001,1.001,256,-1.001,1.001);	
+	hpdfpro_Chi2plus_BDT=new TH2D("hpdfpro_Chi2plus_BDT1","hpdfpro_Chi2plus_BDT1",256,-0.001,1.001,256,-1.001,1.001);	
+	f_Chi2_Erg=new TF1("f_Chi2_Erg1","pol1")	;
+	f_F2Edep_Erg=new TF1("f_F2Edep_Erg","pol1")	;
+	hprofele_Chi2_Erg_rms=new TH1F("hprofele_Chi2_Erg_rms","hprofele_Chi2_Erg_rms",40,log10(15),log10(200))		;
+	hprofele_F2Edep_Erg_rms=new TH1F("hprofele_F2Edep_Erg_rms","hprofele_F2Edep_Erg_rms",40,log10(15),log10(200))	;
+	TH1F* hdummy ;
+	TH2D* hdummy2;
+	TProfile* hdummyp;
 	TFile* _fdatabase=TFile::Open(fdatabase);
 	
 	if(fdatabase==NULL){
         	cout<<"Error happens when loading ECALChi2CY database file : "<<fdatabase<<endl;
-        	ret=false;
+        	has_init=false;
 	}
         else{
                 for(int layer=0;layer<18;layer++){
@@ -84,12 +108,104 @@ bool EcalPDF::init(char* fdatabase){
 				hdummy=NULL;
 			}
                 }
+		TF1* f	;
+		f=(TF1*)_fdatabase->Get("f_Chi2_Erg");
+		if(f==NULL){
+			cout<<"Can not load f_Chi2_Erg from "<<fdatabase<<endl;
+			has_init=false;
+		}
+		else{
+			f_Chi2_Erg->SetParameter(0,f->GetParameter(0));
+			f_Chi2_Erg->SetParameter(1,f->GetParameter(1));
+		}
+		f=(TF1*)_fdatabase->Get("f_F2Edep_Erg");
+                if(f==NULL){
+                        cout<<"Can not load f_F2Edep_Erg from "<<fdatabase<<endl;
+                        has_init=false;
+                }
+                else{
+                        f_F2Edep_Erg->SetParameter(0,f->GetParameter(0));
+                        f_F2Edep_Erg->SetParameter(1,f->GetParameter(1));
+                }
+		hdummy2=(TH2D*)_fdatabase->Get("hpdfele_Chi2_F2Edep");
+		if(hdummy2==NULL){
+			cout<<"Can not load hpdfele_Chi2_F2Edep from "<<fdatabase<<endl;
+			has_init=false;
+		}
+		else{
+			for(int i1=1;i1<=hdummy2->GetNbinsX();i1++){
+				for(int i2=1;i2<=hdummy2->GetNbinsY();i2++){
+					hpdfele_Chi2_F2Edep->SetBinContent(i1,i2,hdummy2->GetBinContent(i1,i2));
+				}
+			}
+		}
+		hdummy2=(TH2D*)_fdatabase->Get("hpdfpro_Chi2_F2Edep");
+                if(hdummy2==NULL){
+                        cout<<"Can not load hpdfpro_Chi2_F2Edep from "<<fdatabase<<endl;
+                        has_init=false;
+                }
+                else{
+                        for(int i1=1;i1<=hdummy2->GetNbinsX();i1++){
+                                for(int i2=1;i2<=hdummy2->GetNbinsY();i2++){
+                                        hpdfpro_Chi2_F2Edep->SetBinContent(i1,i2,hdummy2->GetBinContent(i1,i2));
+                                }                                               
+                        }                                                       
+                }
+		hdummy2=(TH2D*)_fdatabase->Get("hpdfele_Chi2_plus_BDT");
+                if(hdummy2==NULL){
+                        cout<<"Can not load hpdfele_Chi2_plus_BDT from "<<fdatabase<<endl;
+                        has_init=false;
+                }
+                else{
+                        for(int i1=1;i1<=hdummy2->GetNbinsX();i1++){
+                                for(int i2=1;i2<=hdummy2->GetNbinsY();i2++){
+                                        hpdfele_Chi2plus_BDT->SetBinContent(i1,i2,hdummy2->GetBinContent(i1,i2));
+                                }                                               
+                        }                                                       
+                }                                                               
+                hdummy2=(TH2D*)_fdatabase->Get("hpdfpro_Chi2_plus_BDT");
+                if(hdummy2==NULL){             
+                        cout<<"Can not load hpdfpro_Chi2_plus_BDT from "<<fdatabase<<endl;
+                        has_init=false;        
+                }                              
+                else{                  
+                        for(int i1=1;i1<=hdummy2->GetNbinsX();i1++){
+                                for(int i2=1;i2<=hdummy2->GetNbinsY();i2++){
+                                        hpdfpro_Chi2plus_BDT->SetBinContent(i1,i2,hdummy2->GetBinContent(i1,i2));
+                                }                                               
+                        }                                                       
+                }
+		hdummyp=(TProfile*)_fdatabase->Get("profele_Chi2_Erg");
+		if(hdummyp==NULL){
+			cout<<"Can not load profele_Chi2_Erg from "<<fdatabase<<endl;
+			has_init=false;
+		}
+		else{
+			for(int i1=1;i1<=hdummyp->GetNbinsX();i1++){
+				hprofele_Chi2_Erg_rms->SetBinContent(i1,hdummyp->GetBinError(i1));
+			}
+		}
+		hdummyp=(TProfile*)_fdatabase->Get("profele_F2Edep_Erg");
+                if(hdummyp==NULL){
+                        cout<<"Can not load profele_F2Edep_Erg from "<<fdatabase<<endl;
+                        has_init=false;
+                }                                                      
+                else{                                                  
+                        for(int i1=1;i1<=hdummyp->GetNbinsX();i1++){    
+                                hprofele_F2Edep_Erg_rms->SetBinContent(i1,hdummyp->GetBinError(i1));
+                        }
+                }
+			
 	}
-	cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<endl;
+	if(has_init)
+		cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<endl;
+	else
+		cout<<"EcalPDF::init-EcalPDF init BAD! DataBase file is "<<fdatabase<<endl;
 	_fdatabase->Close();
-	return ret;
+	return has_init;
 }
 EcalPDF::~EcalPDF(){
+	/*
 	for(int layer=0;layer<18;layer++){
                 for(int i1=0;i1<6;i1++){
 			if(param_rms_lf[layer][i1]!=NULL){
@@ -108,6 +224,24 @@ EcalPDF::~EcalPDF(){
 			}
 		}
 	}
+	if(hprofele_Chi2_Erg_rms!=NULL)
+		delete hprofele_Chi2_Erg_rms;
+	if(hprofele_F2Edep_Erg_rms!=NULL)
+		delete hprofele_F2Edep_Erg_rms;
+	if(f_Chi2_Erg!=NULL)
+		delete f_Chi2_Erg;
+	if(f_F2Edep_Erg!=NULL)
+		delete f_F2Edep_Erg;
+	if(hpdfele_Chi2_F2Edep!=NULL)
+		delete hpdfele_Chi2_F2Edep;
+	if(hpdfpro_Chi2_F2Edep!=NULL)
+		delete hpdfpro_Chi2_F2Edep;
+	if(hpdfele_Chi2plus_BDT!=NULL)
+		delete hpdfele_Chi2plus_BDT;
+	if(hpdfpro_Chi2plus_BDT!=NULL)
+		delete hpdfpro_Chi2plus_BDT;
+	*/
+	has_init=false;
 }
 float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
 	if(!has_init){
@@ -343,7 +477,105 @@ double EcalPDF::myfunc_lf(float x,float* par,int type){
         }
         return ret;
 }
+float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
+	float ret;
+	if(algorithm!=2){
+		cout<<"EcalPDF-Warn:Currently only normalization of chi2 from lateral fit is provided!"<<endl;
+		return _chi2;
+	}
+	if(_EnergyE<=15)
+		_EnergyE=15.01	;
+	if(_EnergyE>=200.)
+		_EnergyE=199.99	;
+	if(!has_init){
+		cout<<"EcalPDF-Warn: EcalPDF has not been successfully initialized!\n";
+		return _chi2;
+	}	
+	ret=(_chi2-f_Chi2_Erg->Eval(log10(_EnergyE)))/hprofele_Chi2_Erg_rms->GetBinContent(hprofele_Chi2_Erg_rms->FindBin(log10(_EnergyE)));
+	return ret;
+}
 
+float EcalPDF::normalize_f2edep(float _f2edep, float _EnergyE){
+        float ret;       
+	if(_EnergyE<=15)
+		_EnergyE=15.01;
+	if(_EnergyE>=200.)
+		_EnergyE=199.99;
+	if(!has_init){
+		cout<<"EcalPDF-Warn: EcalPDF has not been successfully initialized!\n";
+		return _f2edep;
+	}	
+        ret=(_f2edep-f_F2Edep_Erg->Eval(log10(_EnergyE)))/hprofele_F2Edep_Erg_rms->GetBinContent(hprofele_F2Edep_Erg_rms->FindBin(log10(_EnergyE)));
+        return ret;
+}
+float EcalPDF::get_chi2plus(float _chi2, float _f2edep, bool _has_normalized, float _EnergyE){
+	float ret;
+	double psig,pbkg;
+	double range=2.;
+    	double factor=2.;
+	if(!_has_normalized){
+		if(_EnergyE==0){
+			cout<<"EcalPDF-Warn: Warn you need give the EnergyE to get chi2plus!"<<endl;
+			return -1;
+		}
+		_chi2	=normalize_chi2(_chi2,_EnergyE)		;
+		_f2edep	=normalize_f2edep(_f2edep,_EnergyE)	;
+	}
+	if(!has_init){
+		cout<<"EcalPDF-Warn: EcalPDF has not been successfully initialized!\n";
+		return _chi2;
+	}
+	if(fabs(_chi2)>5.99||fabs(_f2edep)>5.99)
+		ret=0;
+	else{
+		psig=hpdfele_Chi2_F2Edep->Interpolate(_chi2,_f2edep);
+        	pbkg=hpdfpro_Chi2_F2Edep->Interpolate(_chi2,_f2edep);
+        	if(psig>0)
+            		ret=1./(1.0+pow(pbkg/psig,factor));
+        	else if (pbkg>0.)
+            		ret=0.;
+        	else
+            		ret=nns(hpdfele_Chi2_F2Edep, hpdfpro_Chi2_F2Edep ,range,_chi2,_f2edep,factor);	
+	}
+	return ret;
+}
+float EcalPDF::get_elik(float _chi2plus, float _bdt){
+	float ret;
+        double psig,pbkg;
+        double range=2.;
+        double factor=2.;
+	if(!has_init){
+		cout<<"EcalPDF-Warn: EcalPDF has not been successfully initialized!\n";
+		return -1;
+	}	
+        psig=hpdfele_Chi2plus_BDT->Interpolate(_chi2plus,_bdt);
+        pbkg=hpdfpro_Chi2plus_BDT->Interpolate(_chi2plus,_bdt);
+        if(psig>0)
+            ret=1./(1.0+pow(pbkg/psig,factor));
+        else if (pbkg>0.)
+            ret=0.;
+        else                                 
+            ret=nns(hpdfele_Chi2plus_BDT, hpdfpro_Chi2plus_BDT,range,_chi2plus,_bdt,factor);              
+        return ret;
+}
+double EcalPDF::nns(TH2D* hsig,TH2D* hbkg,double range,double x,double y,double order){
+	double xmin=x-range>hsig->GetXaxis()->GetXmin()?x-range:hsig->GetXaxis()->GetXmin();
+        double xmax=x+range<hsig->GetXaxis()->GetXmax()?x+range:hsig->GetXaxis()->GetXmax();
+        double ymin=y-range>hsig->GetXaxis()->GetXmin()?y-range:hsig->GetXaxis()->GetXmin();
+        double ymax=y+range<hsig->GetXaxis()->GetXmax()?y+range:hsig->GetXaxis()->GetXmax();
+        double psig,pbkg;
+        psig=0.;pbkg=0.;
+        double h=0.1;
+        for(double rx=xmin;rx<xmax;rx+=h){
+                for(double ry=ymin;ry<ymax;ry+=h){
+                        psig+=hsig->Interpolate(rx,ry);
+                        pbkg+=hbkg->Interpolate(rx,ry);
+                }
+        }
+        if(psig>0.0)
+                return 1./(1.+pow(pbkg/psig,order));
+        return 0.;	
+}
 //End of Ecal PDF Class
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -352,13 +584,13 @@ double EcalPDF::myfunc_lf(float x,float* par,int type){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 EcalChi2::EcalChi2(int ftype){
 	char* amsdatadir=getenv("AMSDataDir");
-	char tempname[100];
+	char tempname[300];
         if(amsdatadir){
-		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir);
+		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121106.1.root",amsdatadir);
                 init(tempname,ftype);
         }
         else{
-                init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20120814.1.root",ftype);
+                init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121106.1.root",ftype);
         }		
 }
 EcalChi2::EcalChi2(char* fdatabase,int ftype){
@@ -423,8 +655,7 @@ void EcalChi2::init(char* database,int _type){
 	//Simualtion
 	if(_type==0){
                 fdead_cell[14][65]=1;
-	}
-	
+	}	
 }
 float EcalChi2::process(float* coo,float sign){
 	if(coo==NULL)
@@ -493,7 +724,7 @@ float EcalChi2::process(float* coo,float sign){
                 _skewness     =-1;
                 _kurtosis     =-1;
         }
-	cal_f2dep();
+	//cal_f2dep();
         return _chi2;
 }
 int   EcalChi2::set_edep(float* edeps, float erg){
@@ -608,7 +839,7 @@ float  EcalChi2::process(AMSEventR* ev, TrTrackR* trtrack, int iTrTrackPar){
                 _skewness     =-1;
                 _kurtosis     =-1;
         }
-        cal_f2dep();
+        //cal_f2dep();
 
         return _chi2;
 #else
@@ -715,7 +946,7 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
 		_skewness     =-1;
 		_kurtosis     =-1;
 	}
-	cal_f2dep();
+	//cal_f2dep();
 	
 	return _chi2;
 #else
@@ -855,13 +1086,13 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 TVirtualFitter* EcalAxis::gMinuit_EcalAxis = NULL;
 EcalAxis::EcalAxis(int ftype){
 	char* amsdatadir=getenv("AMSDataDir");
-	char tempname[100];
+	char tempname[300];
         if(amsdatadir){
-		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20120814.1.root",amsdatadir);
+		sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121106.1.root",amsdatadir);
                 init(tempname,ftype);
         }
         else{
-                init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20120814.1.root",ftype);
+                init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121106.1.root",ftype);
         }
 }
 EcalAxis::EcalAxis(char* fdatabase, int ftype){
@@ -1542,7 +1773,75 @@ bool EcalAxis::straight_line_fit(float *x ,float*y, int npoints,float &a, float&
 	return true;
 }
 
-
+///2012/11/07 Add EcalChi2 Plus, Ecal Electron Likelihood function
+float EcalAxis::get_chi2plus(AMSEventR* ev,float& _nchi2,float& _nf2edep,float& _chi2plus){
+	float _erg		;
+	int   maxi,maxe         ;
+        maxi=-1                 ;
+        maxe=0                  ;
+        for(int i1=0;i1<ev->nEcalShower();i1++){
+                if(maxe<ev->pEcalShower(i1)->EnergyE){
+                        maxi=i1;
+                        maxe=ev->pEcalShower(i1)->EnergyE;
+                }
+        }
+        if(maxi==-1){
+                cout<<"EcalAxis-get_chi2plus: Seems No Ecalshower in this event!"<<endl;
+                return -1.;
+        }
+	_erg=ev->pEcalShower(maxi)->EnergyE;
+	process(ev,2);
+	_nchi2	=ecalchi2->get_chi2();
+	_nchi2	=ecalchi2->ecalpdf->normalize_chi2(_nchi2,_erg);
+	_nf2edep=layer_Edep[0]+layer_Edep[1];
+	_nf2edep=ecalchi2->ecalpdf->normalize_f2edep(_nf2edep,_erg);
+	_chi2plus=ecalchi2->ecalpdf->get_chi2plus(_nchi2,_nf2edep);	
+	return _chi2plus;
+}
+float EcalAxis::get_elik(AMSEventR* ev,float& _nchi2,float& _nf2edep,float& _chi2plus, float& _elik){
+	float 		_bdt	;       
+        int   maxi,maxe 	;
+        maxi=-1         	;
+        maxe=0          	;
+        for(int i1=0;i1<ev->nEcalShower();i1++){
+                if(maxe<ev->pEcalShower(i1)->EnergyE){
+                        maxi=i1;
+                        maxe=ev->pEcalShower(i1)->EnergyE;
+                }
+        }
+        if(maxi==-1){
+                cout<<"EcalAxis-get_elik: Seems No Ecalshower in this event!"<<endl;
+                return -1.;
+        } 
+        _bdt	 =ev->pEcalShower(maxi)->GetEcalBDT(4);
+	get_chi2plus(ev, _nchi2,_nf2edep,_chi2plus);
+	if(_chi2plus==-1){
+		cout<<"EcalAxis-get_elik: Can not get chi2plus"<<endl;
+		return -1;
+	}
+	_elik=ecalchi2->ecalpdf->get_elik(TMath::TanH(0.3*TMath::ATanH(_chi2plus)),TMath::TanH(0.3*TMath::ATanH(_bdt)));	
+	return _elik;	
+}
+float EcalAxis::get_nchi2(AMSEventR* ev){
+	int   maxi,maxe         ;
+        maxi=-1                 ;
+        maxe=0                  ;
+	float _chi2,_erg	;
+        for(int i1=0;i1<ev->nEcalShower();i1++){
+                if(maxe<ev->pEcalShower(i1)->EnergyE){
+                        maxi=i1;
+                        maxe=ev->pEcalShower(i1)->EnergyE;
+                }
+        }
+        if(maxi==-1){
+                cout<<"EcalAxis-get_chi2plus: Seems No Ecalshower in this event!"<<endl;
+                return -1.;
+        }
+        _erg=ev->pEcalShower(maxi)->EnergyE;
+	process(ev,2);
+	_chi2=ecalchi2->get_chi2();
+	return ecalchi2->ecalpdf->normalize_chi2(_chi2,_erg);
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //End of Ecal Axis 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
