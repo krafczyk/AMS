@@ -87,7 +87,7 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY,  int imult, int
   _dummyX   = 0;
   int xaddr =  640;
   if(clX!=0)
-	xaddr =  clX->GetAddress();
+	xaddr =  clX->GetAddress(); // maybe better to use clX->GetSeedAddress();
   else if(_dummyX>=0)
 	xaddr += _dummyX;
 	  

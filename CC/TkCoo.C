@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.16 2012/10/07 21:12:22 oliva Exp $ 
+/// $Id: TkCoo.C,v 1.17 2012/11/07 14:29:22 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2012/10/07 21:12:22 $
+///$Date: 2012/11/07 14:29:22 $
 ///
-/// $Revision: 1.16 $
+/// $Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -345,20 +345,37 @@ int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens) {
   readchann -= 640;
   // take ladder to decide K5 or K7 
   TkLadder* ladder = TkDBc::GetHead()->FindTkId(tkid);
-  if (!ladder) { printf("TkCoo::GetSensorNumber-E cannot find ladder %d into the database\n",tkid); sens = -1; return -1; }
+  if (!ladder) {  
+    printf("TkCoo::GetSensorAddress-E cannot find ladder %d into the database\n",tkid); 
+    sens = -1; 
+    return -1; 
+  }
   // check multiplicity
   int max_mult = GetMaxMult(tkid,readchann+640); // needed channel 0-1023
-  if ( (mult<0)||(mult>max_mult) ) { printf("TkCoo::GetSensorNumber-E requested multiplicity %d out of range (0,%d)\n",mult,max_mult); sens = -1; return -1; }
+  if ( (mult<0)||(mult>max_mult) ) { 
+    // this could actually happen for last sensors of K7 (max multiplicity is taken from first strip, not from seed strip)
+    printf("TkCoo::GetSensorAddress-W requested multiplicity %d out of range (0,%d), for channel %d on ladder %+04d\n",mult,max_mult,readchann+640,tkid);   
+    sens = -1;
+    return -1; 
+  }
   // calculate sensor 
   int nread = TkDBc::GetHead()->_NReadoutChanK;
   int nread_per_sens = (ladder->IsK7()) ? TkDBc::GetHead()->_NReadStripK7 : TkDBc::GetHead()->_NReadStripK5;
   sens = int((readchann + mult*nread)/nread_per_sens);
   // check sensor_number
   int max_sens = ladder->GetNSensors();
-  if ( (sens<0)||(sens>max_sens) ) { printf("TkCoo::GetSensorNumber-E calculated sensor number %d out of range (0,%d)\n",sens,max_sens); sens = -1; return -1; }
+  if ( (sens<0)||(sens>max_sens) ) { 
+    printf("TkCoo::GetSensorAddress-E calculated sensor number %d out of range (0,%d)\n",sens,max_sens); 
+    sens = -1; 
+    return -1; 
+  }
   // calculate strip on sensor 
   int strip = readchann + mult*nread - sens*nread_per_sens;
-  if ( (strip<0)||(strip>nread_per_sens) ) { printf("TkCoo::GetSensorNumber-E calculated strip number %d out of range (0,%d)\n",strip,nread_per_sens); sens = -1; return -1; }
+  if ( (strip<0)||(strip>nread_per_sens) ) { 
+    printf("TkCoo::GetSensorAddress-E calculated strip number %d out of range (0,%d)\n",strip,nread_per_sens); 
+    sens = -1; 
+    return -1; 
+  }
   return strip;
 }
 

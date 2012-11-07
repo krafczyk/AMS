@@ -76,7 +76,7 @@ TrClusterR::~TrClusterR() {
 
 
 int TrClusterR::GetMultiplicity()  {
-  if (_mult==0) _mult = TkCoo::GetMaxMult(GetTkId(),GetAddress())+1;
+  if (_mult==0) _mult = TkCoo::GetMaxMult(GetTkId(),GetAddress())+1; // maybe better to use GetSeedAddress();
   return _mult;
 }
 
@@ -105,6 +105,9 @@ short TrClusterR::GetStatus(int ii) {
 
 
 int TrClusterR::GetSensorAddress(int& sens, int ii, int mult) {
+  // it could happen that multiplicity exceeds by one the max (only in case of cluster on the last sensor of K7)
+  int max_mult = TkCoo::GetMaxMult(GetTkId(),GetSeedAddress());
+  if ( (IsK7())&&((mult-max_mult)==1) ) mult = max_mult; 
   // mult, by XCofG method convention, is referred to seed strip
   int seedadd = GetAddress() + GetSeedIndex(); 
   // here I convert multiplicity of seed to multiplicity of first strip
