@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.97 2008/12/10 17:50:25 choutko Exp $
+//  $Id: timeid.C,v 1.98 2012/11/08 16:06:58 nzimmerm Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -467,7 +467,7 @@ void AMSTimeID::_getDefaultEnd(uinteger time, time_t & end){
 AString * AMSTimeID::_selectEntry=0;
 
 #ifdef __DARWIN__
-integer AMSTimeID::_select(  dirent *entry)
+integer AMSTimeID::_select(  const dirent *entry)
 #endif
 #ifdef __LINUXGNU__
 integer AMSTimeID::_select(  const dirent64 *entry)
@@ -477,7 +477,7 @@ integer AMSTimeID::_select(  const dirent64 *entry)
 }
 
 #ifdef __DARWIN__
-integer AMSTimeID::_selectsdir( dirent *entry)
+integer AMSTimeID::_selectsdir( const dirent *entry)
 #endif
 #ifdef __LINUXGNU__
 integer AMSTimeID::_selectsdir(  const dirent64 *entry)

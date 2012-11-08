@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.70 2012/11/06 18:13:25 choutko Exp $
+//  $Id: root_setup.h,v 1.71 2012/11/08 16:06:58 nzimmerm Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -506,7 +506,7 @@ static AMSSetupR * _Head;
 #pragma omp threadprivate (_Head)
 #endif
 #ifdef __DARWIN__
-static int _select ( dirent * entry);
+static int _select ( const dirent * entry);
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 static int _select (const dirent64 * entry);
