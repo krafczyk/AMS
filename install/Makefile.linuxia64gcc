@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64gcc,v 1.7 2012/09/25 21:10:28 mkrafczy Exp $
+#  $Id: Makefile.linuxia64gcc,v 1.8 2012/11/08 10:02:45 chchung Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -223,6 +223,13 @@ $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS)
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg
+endif
+
+ifdef AMS_ACQT_INTERFACE
+QT_STATIC_LIBRARY := $(QTDIR)/lib/libQtCore.a
+LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
+LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt
+SOFLAGS += $(QT_STATIC_LIBRARY) -lrt
 endif
 
 ifdef WEBACCESS

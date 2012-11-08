@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.58 2012/08/17 19:44:19 ams Exp $
+#  $Id: Makefile,v 1.59 2012/11/08 10:02:46 chchung Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -241,6 +241,11 @@ endif
 #LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
 #ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
 #endif
+
+ifdef AMS_ACQT_INTERFACE
+LIBS+=-lrt
+LIBSA+=-lrt
+endif
 
 ifdef CASTOSTATIC
 CPPFLAGS+= -DCASTORSTATIC

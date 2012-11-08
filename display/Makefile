@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.113 2012/10/31 20:08:31 choutko Exp $
+#  $Id: Makefile,v 1.114 2012/11/08 10:02:45 chchung Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -297,6 +297,11 @@ else
 endif
 endif
 
+
+ifdef AMS_ACQT_INTERFACE
+LIBS+=-lrt
+LIBSA+=-lrt
+endif
 
 ifdef PGTRACK
 CPPFLAGS+= -D_PGTRACK_

@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.45 2012/10/29 20:09:26 mkrafczy Exp $
+#  $Id: Makefile.linux,v 1.46 2012/11/08 10:02:45 chchung Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -285,6 +285,13 @@ $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS)
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg
+endif
+
+ifdef AMS_ACQT_INTERFACE
+QT_STATIC_LIBRARY := $(QTDIR32)/lib/libQtCore.a
+LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
+LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt
+SOFLAGS += $(QT_STATIC_LIBRARY) -lrt
 endif
 
 ifdef WEBACCESS

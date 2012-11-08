@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.138 2012/11/06 20:40:47 qyan Exp $
+//  $Id: linkdef.h,v 1.139 2012/11/08 10:02:45 chchung Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -230,5 +230,9 @@
 #pragma link C++ class std::map<std::string,unsigned int>+;
 #pragma link C++ class std::pair<std::string,unsigned int>+;
 #pragma link C++ class std::map<unsigned short,std::vector<RichRingBSegmentR> >+;
+
+#ifdef AMS_ACQT_INTERFACE
+#include "../ACsoft/ACsoftLinkdef.h"
+#endif
 
 #endif
