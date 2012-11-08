@@ -1,0 +1,2 @@
+TrdQt usage example based on AMS/examples/verysimple.
+QTDIR needs to point to a Qt > 4.6 installation.
