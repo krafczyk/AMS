@@ -148,7 +148,7 @@ endif
 
 # Static builds not supported with ACsoft on Mac yet.
 ifdef AMS_ACQT_INTERFACE
-SOFLAGS += -F$(QTDIR)/lib -framework QtCore 
+SOFLAGS += -F$(QTDIR_STATIC)/lib -framework QtCore 
 endif
 
 ########################################################################

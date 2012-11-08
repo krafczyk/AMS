@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.46 2012/11/08 10:02:45 chchung Exp $
+#  $Id: Makefile.linux,v 1.47 2012/11/08 15:23:20 beischer Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -288,7 +288,7 @@ ifdef AMSPROFILE
 endif
 
 ifdef AMS_ACQT_INTERFACE
-QT_STATIC_LIBRARY := $(QTDIR32)/lib/libQtCore.a
+QT_STATIC_LIBRARY := $(QTDIR_STATIC_32)/lib/libQtCore.a
 LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
 LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt
 SOFLAGS += $(QT_STATIC_LIBRARY) -lrt

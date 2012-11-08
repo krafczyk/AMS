@@ -36,5 +36,5 @@ limit stack 32000
 setenv AMS_ACQT_INTERFACE 1
 setenv ACROOTSOFTWARE $AMSDataDir/v5.00/TRD
 setenv ACROOTLOOKUPS $ACROOTSOFTWARE/acroot/data/
-setenv QTDIR /afs/cern.ch/user/n/nzimmerm/public/AMSQtCore/qt-4.8.3/
-setenv QTDIR32 /afs/cern.ch/user/n/nzimmerm/public/AMSQtCore/qt-4.8.3-32bit/
+setenv QTDIR_STATIC /afs/cern.ch/user/n/nzimmerm/public/AMSQtCore/qt-4.8.3/
+setenv QTDIR_STATIC_32 /afs/cern.ch/user/n/nzimmerm/public/AMSQtCore/qt-4.8.3-32bit/

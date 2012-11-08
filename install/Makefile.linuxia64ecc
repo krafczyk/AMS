@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64ecc,v 1.6 2012/11/08 10:02:45 chchung Exp $
+#  $Id: Makefile.linuxia64ecc,v 1.7 2012/11/08 15:23:21 beischer Exp $
 
 # General clean up and reorganization
 #
@@ -203,7 +203,7 @@ ifdef AMSPROFILE
 endif
 
 ifdef AMS_ACQT_INTERFACE
-QT_STATIC_LIBRARY := $(QTDIR)/lib/libQtCore.a
+QT_STATIC_LIBRARY := $(QTDIR_STATIC)/lib/libQtCore.a
 LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
 LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt
 SOFLAGS += $(QT_STATIC_LIBRARY) -lrt
