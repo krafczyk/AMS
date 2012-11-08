@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.37 2012/11/08 17:05:12 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.38 2012/11/08 19:57:26 nzimmerm Exp $
 
 # General clean up and reorganization
 #
@@ -241,6 +241,7 @@ ifdef AMSPROFILE
 endif
 
 ifdef AMS_ACQT_INTERFACE
+ACSOFT_BUILDFLAGS := -wd873 -wd2089 
 QT_STATIC_LIBRARY := $(QTDIR_STATIC)/lib/libQtCore.a
 LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
 LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt

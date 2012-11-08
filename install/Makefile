@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.234 2012/11/08 15:23:19 beischer Exp $
+#  $Id: Makefile,v 1.235 2012/11/08 19:57:26 nzimmerm Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -468,12 +468,12 @@ ACSOFT_OBJECTS:=$(ACSOFT_OBJECTS_TRDCALIBRATION)
 $(BIN)%.AC.o : ../ACsoft/*/%.cpp
 	@echo Compiling $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(ACSOFT_INCDIRS) $(CFLAGS) $< -o $@
+	$(CXX) -c $(ACSOFT_INCDIRS) $(ACSOFT_BUILDFLAGS) $(CFLAGS) $< -o $@
 
 $(BIN)%.AC.o : ../ACsoft/*/%.C
 	@echo Compiling $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(ACSOFT_INCDIRS) $(CFLAGS) $< -o $@
+	$(CXX) -c $(ACSOFT_INCDIRS) $(ACSOFT_BUILDFLAGS) $(CFLAGS) $< -o $@
 endif
 
 #TOF + ACC
