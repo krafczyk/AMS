@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.26 2012/11/08 15:23:22 beischer Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.27 2012/11/08 16:41:20 nzimmerm Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -257,8 +257,8 @@ endif
 
 ifdef AMS_ACQT_INTERFACE
 QT_STATIC_LIBRARY := $(QTDIR_STATIC)/lib/libQtCore.a
-LDFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
-LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt -lPhysics
+LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
+LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt
 SOFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
 endif
 

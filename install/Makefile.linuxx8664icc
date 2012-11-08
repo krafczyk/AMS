@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.35 2012/11/08 15:23:23 beischer Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.36 2012/11/08 16:41:22 nzimmerm Exp $
 
 # General clean up and reorganization
 #
@@ -242,8 +242,8 @@ endif
 
 ifdef AMS_ACQT_INTERFACE
 QT_STATIC_LIBRARY := $(QTDIR_STATIC)/lib/libQtCore.a
-LDFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
-LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt -lPhysics
+LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
+LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt
 SOFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
 endif
 
