@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.232 2012/11/08 11:36:49 chchung Exp $
+#  $Id: Makefile,v 1.233 2012/11/08 12:55:06 nzimmerm Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -660,9 +660,7 @@ OBJECTSC += $(BIN)TrackFit_utils_c.o
 endif
 
 ifdef AMS_ACQT_INTERFACE
-OBJECTS+
-
-=$(ACSOFT_OBJECTS)
+OBJECTS+=$(ACSOFT_OBJECTS)
 OBJECTSI+=$(ACSOFT_OBJECTS)
 OBJECTSC+=$(ACSOFT_OBJECTS)
 endif
