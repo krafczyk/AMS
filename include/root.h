@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.506 2012/11/07 11:17:54 shaino Exp $
+//  $Id: root.h,v 1.507 2012/11/09 00:36:06 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -49,6 +49,7 @@
 #include "root_setup.h"
 #include "SlowControlDB.h"
 #include "Tofdbc.h"
+#include "Tofcharge_ihep.h"
 
 #ifdef __AMSVMC__
 #include "amsvmc_MCApplication.h"
@@ -2758,6 +2759,8 @@ class BetaHR: public TrElem{
   const TofBetaPar&  gTofBetaPar()      {return BetaPar;}
   /// Set BetaH All Data
   void  SetTofBetaPar(TofBetaPar tofpar){BetaPar=tofpar;}
+  ///  Access PDF-Charge All Data
+   TofChargeHR  gTofCharge()            {return TofChargeHR(this);}
 /**@}*/   
 
 
@@ -2912,8 +2915,22 @@ class BetaHR: public TrElem{
     * @return =1 or =0.3 Edep Reach Charge unvalidate Boundary Region,=0 BetaH don't has This Layer, (0.3,0.94) normal measuremtnt
     */
   float GetQBetaL(int ilay,int charge,int pmtype=2);
-  /// Retrun True if TOF-ilay Q PathLength is Good ///First Require Track-Match-TOF
+  /// Return True if TOF-ilay Q PathLength is Good ///First Require Track-Match-TOF
   bool  IsGoodQPathL(int ilay);
+  /// PDF-LikeLihood Integer Z Cover All Charge Z=1=>Z>26(PDF-Part Recommend To Use gTofCharge() To Access All Data)
+  /*!
+    * @param[out] nlay Number of TOF Layers Used For Charge Z-Measument
+    * @param[out] Z Likelihood-Prob
+    * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+    * @return Charge Z (<0 Faild)
+  */
+   int GetZ(int &nlay,float &Prob,int pattern=-10){return gTofCharge().GetZ(nlay,Prob,0,pattern);}
+  /// Likehood Q-Estimator
+ /*!
+    * @param[out] nlay Number of TOF Layers Used For Q-Measument
+    * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+  */
+   float GetLikeQ(int &nlay,int pattern=-10)     {return gTofCharge().GetLikeQ(nlay,pattern);}  
 /**@}*/
 
 
@@ -2961,7 +2978,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,9)
+  ClassDef(BetaHR,10)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        

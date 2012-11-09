@@ -1,13 +1,16 @@
-//  $Id: Tofcharge_ihep.h,v 1.1 2012/11/06 20:43:09 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.2 2012/11/09 00:36:06 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
 #define __TOFCHARGE_IHEP__
-#include "root.h"
+//#include "root.h"
 #include "TObject.h"
 #include "TF1.h"
 #include "TrElem.h"
 #include "Tofdbc.h"
+//////////////////////////////////////////////////////////////////////////
+class BetaHR;
+//////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
 /// TofChargePar structure
@@ -66,9 +69,9 @@ class TofLikelihoodPar: public TObject{
   public: 
 /// Use TOF Layer Pattern =>1001 110 or Other
    int  LPattern;
-/// Charge Z
+/// Charge Z (<0 Means No Measurement)
    int  Z;
-/// Likelihood
+/// Log Likelihood
    float Likelihood;
 /// Prob
    float Prob;
@@ -80,7 +83,7 @@ class TofLikelihoodPar: public TObject{
   public:
    TofLikelihoodPar(){}
    TofLikelihoodPar(int  _LPattern,int _Z, float _Likelihood):
-                  LPattern(_LPattern),Z(_Z),  Likelihood(_Likelihood){}
+                  LPattern(_LPattern),Z(_Z),  Likelihood(_Likelihood){Prob=0;}
 
   bool operator <(const TofLikelihoodPar &right) const {//put likehood lagest to the first
     return (-Likelihood<-right.Likelihood);
@@ -117,12 +120,15 @@ public:
     * @param[in] pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
     */
     void UpdateZ(int pattern=-10);
+/// TOF Charge_Size /// Number of Max-Prob Charge in Likelihood
+    int GetNZ(int pattern=-10);
 /// TOF Charge Z 
    /*!
     * @param[out] nlay Number of TOF Layers Used For Charge Z-Measument
     * @param[out] Z Prob Var
     * @param[in]  IZ  =0 Max-Prob Z, =1 Second-Max-Prob Z...
     * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+    * @return Charge Z (<0 Faild)
     */
     int GetZ(int &nlay,float &Prob,int IZ=0,int pattern=-10);
  /// TOF Charge LikehoodQ
@@ -147,7 +153,14 @@ public:
     return _Info;
   }
 
+  std::ostream& putout(std::ostream &ostr = std::cout){
+    _PrepareOutput(1);
+    return ostr << sout  << std::endl;
+  };
+
+
   ClassDef(TofChargeHR,1);
+#pragma omp threadprivate(fgIsA)
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -182,11 +195,13 @@ public:
 ///---ProbZI from PDF
   static number GetProbZI(int ilay,int ibar,int ZI,number QL,number betah,int isanode);
 ///---Choose Anode or Dynode From PDF
-  static int ChooseDA(int ilay,int ibar,int Z, number QLARaw,number QLDRaw,number &QL);
+  static int ChooseDA(int ilay,int ibar,number Z,number QLA,number QLD, number QLARaw,number QLDRaw,number &QL);
 ///---PDF Function For Proton+Helium
   static Double_t PDFPrHe(Double_t *x, Double_t *par);
 ///---PDF Fuction For BZ
   static Double_t PDFBZ(Double_t *x, Double_t *par);
+///---PDF Function for HBZ(>=16)
+  static Double_t PDFHBZ(Double_t *x, Double_t *par);
 
   ClassDef(TofPDFH,1)
 };
@@ -202,8 +217,8 @@ public:
 class  TofPDFPar:public TofTDVTool<float>{
   public:
       static const int   ZType=3;
-//      static const int   nPDFCh=14;
-      static const int    nPDFCh=8;
+      static const int   ZPDFgate[ZType];
+      static const int   nPDFCh=19;
       static const int   PDFCh[nPDFCh];
       static const int   nPDFVel=6; 
       static const int   nPDFPar=7;
@@ -222,8 +237,9 @@ class  TofPDFPar:public TofTDVTool<float>{
    #pragma omp threadprivate (Head)   
       static TofPDFPar *GetHead();
       static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+      void LoadOptPar(int opt=0);//copy TDV to class 0 From TDV 1 Read From Default
       void LoadTDVPar();//copy TDV to class
-      int  LoadFromFile(char *fpdfa,char *fpdfd);//read data from file->Block data
+      int  LoadFromFile(const char *fpdf,int ida,int ichl,int ichh,int nv,int np);//read data from file->Block data
       void PrintTDV();
 };
 
