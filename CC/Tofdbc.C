@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.24 2012/10/23 17:50:07 qyan Exp $
+//  $Id: Tofdbc.C,v 1.25 2012/11/09 00:37:45 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -31,6 +31,7 @@
 #include "commonsi.h"
 #include "timeid.h"
 #include <fstream>
+#include "Tofcharge_ihep.h"
 
 const float TofRecPar::AttLenLimit=50;
 
@@ -2271,6 +2272,14 @@ TofAlignManager::TofAlignManager(int real){
                            server,1,TofCAlignPar::HeadLoadTDVPar);
      tdvmap.insert(pair<string,AMSTimeID*>(TofCAlign->TDVName,tdv));
   */
+//---Charge PDF Par
+    TofPDFPar *TofPDFAlign=TofPDFPar::GetHead();
+    tdv= new AMSTimeID(AMSID(TofPDFAlign->TDVName,isreal),begin,end,
+                           TofPDFAlign->TDVSize,
+                           TofPDFAlign->TDVBlock,
+                           server,1,TofPDFPar::HeadLoadTDVPar);
+    tdvmap.insert(pair<string,AMSTimeID*>(TofPDFAlign->TDVName,tdv));
+
 
 }
 

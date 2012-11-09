@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.35 2012/11/06 20:42:26 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.36 2012/11/09 00:37:45 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -94,6 +94,7 @@ int TofRecH::ReBuild(int charge){
 int TofRecH::Init(){
 
   if(!BuildKey)return -1;
+  static int nerr=0;
 //---
   int tdvstat=0;
   unsigned int time,trun;
@@ -107,9 +108,12 @@ int TofRecH::Init(){
   realdata=(ev->nMCEventg()==0)?1:0;
   time=ev->UTime();
   trun=ev->Run();
-  tdvstat=TofAlignManager::GetHead(realdata)->Validate(trun);
+  if(nerr<100){
+    tdvstat=TofAlignManager::GetHead(realdata)->Validate(trun);
+  }
+  else tdvstat=-1;
 #endif
-  if(tdvstat!=0)cerr<<"Error TofRecH TDV Par Init Error"<<endl;
+  if(tdvstat!=0&&nerr++<100)cerr<<"<<-----Error TofRecH TDV Par Init Error"<<endl;
   return tdvstat;
 }
 
