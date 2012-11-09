@@ -42,7 +42,10 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
  
 
         GMtype_Date date;
-        GMtype_Data G10, G11, H11, G20, G21, H21, G22, H22;
+        static GMtype_Data G10, G11, H11, G20, G21, H21, G22, H22;
+        static bool scanned=false;
+#pragma omp threadprivate  (G10, G11, H11, G20, G21, H21, G22, H22)                 
+#pragma omp threadprivate  (scanned)
         GMtype_Pole Pole;
         GMtype_Ellipsoid Ellip;
         GMtype_Model Model;
@@ -51,7 +54,10 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
 
         //--------------------------Att!! path file IGRF.tab
         //...fill from IGRF.tab file:
-        GM_ScanIGRF(&G10, &G11, &H11, &G20, &G21, &H21, &G22, &H22 );
+        if(!scanned){
+         scanned=true;
+         GM_ScanIGRF(&G10, &G11, &H11, &G20, &G21, &H21, &G22, &H22 );
+        }
         //This function sets the WGS84 reference ellipsoid to its default values:
         GM_SetEllipsoid(&Ellip);
 
