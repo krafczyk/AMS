@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.2 2012/11/09 00:37:45 qyan Exp $
+//  $Id: Tofcharge_ihep.C,v 1.3 2012/11/09 15:17:14 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -67,6 +67,8 @@ void TofChargeHR::Init(){
    cpar.clear();
    like.clear();
    likeQ.clear();
+   Q.clear();
+   RQ.clear();
    fTrTrack=-1;
 }
 
@@ -96,10 +98,51 @@ void TofChargeHR::UpdateZ(int pattern){
   like.insert(pair<int,vector<TofLikelihoodPar> >(pattern,plike));
 
 //---LikeLihood Q
-  float plikeQ=TofPDFH::GetLikelihoodQ(cparu);
+  number MeanQ,RMSQ;
+  float plikeQ=TofPDFH::GetLikelihoodQ(cparu,MeanQ,RMSQ);
   likeQ.insert(pair<int,float >(pattern,plikeQ));
-  
+  Q.insert(pair<int,float>(pattern,float(MeanQ)));
+  RQ.insert(pair<int,float>(pattern,float(RMSQ)));
+ 
 }
+
+///=======================================================
+bool  TofChargeHR::TestExistHL(int ilay){
+   
+   bool flay=0;
+   for(int im=0;im<cpar.size();im++){
+     if(cpar.at(im).Layer==ilay){flay=1;break;}
+   }
+   return flay;
+}
+
+///=======================================================
+TofChargePar  TofChargeHR::gTofChargePar(int ilay){
+    
+   for(int im=0;im<cpar.size();im++){
+     if(cpar.at(im).Layer==ilay){return cpar.at(im);}
+   }
+   return TofChargePar(); 
+}
+
+///=======================================================
+bool  TofChargeHR::IsGoodQPathL(int ilay){
+  
+   return gTofChargePar(ilay).IsGoodPath; 
+}
+
+///=======================================================
+float TofChargeHR::GetQL(int ilay){
+  
+   return gTofChargePar(ilay).GetQ();
+}
+
+///=======================================================
+int TofChargeHR::GetNL(){
+
+   return cpar.size();
+}
+
 
 ///=======================================================
 int TofChargeHR::GetNZ(int pattern){
@@ -108,6 +151,20 @@ int TofChargeHR::GetNZ(int pattern){
   UpdateZ(pattern);
 /// Number of Most ProbZ
   return like[pattern].size();  
+}
+
+///=======================================================
+int   TofChargeHR::GetZI(int Z,int pattern){
+
+// First Update and Check
+  UpdateZ(pattern);
+
+/// Try To Find
+  int indexz=-1;
+  for(int iz=0;iz<like[pattern].size();iz++){
+    if(like[pattern].at(iz).Z==Z){indexz=iz;break;}
+  }
+  return indexz;
 }
 
 ///=======================================================
@@ -122,6 +179,50 @@ int TofChargeHR::GetZ(int &nlay,float &Prob,int IZ,int pattern){
   return like[pattern].at(IZ).Z; 
 }
 
+///=======================================================
+TofLikelihoodPar  TofChargeHR::gTofLikelihoodPar(int IZ, int pattern){
+  
+/// First Update and Check
+  UpdateZ(pattern);
+
+  return like[pattern].at(IZ);
+}
+
+///=======================================================
+float TofChargeHR::GetProbZ(int Z,int pattern){
+
+/// Find Index
+  int indexz=GetZI(Z,pattern);
+ 
+/// Try To Find
+  if(indexz<0){return 0;}
+  else        {return like[pattern].at(indexz).Prob;}
+}
+
+///=======================================================
+float  TofChargeHR::GetLkh(int Z,int &nlay,int pattern){
+
+// First Update and Check
+   UpdateZ(pattern);   
+   nlay=like[pattern].at(0).GetnLayer();
+/// Find Index
+  int indexz=GetZI(Z,pattern);
+
+  if(indexz<0){return  nlay*log(TofPDFPar::ProbLimit);}
+  else        {return  like[pattern].at(indexz).Likelihood;}  
+}
+
+//=======================================================
+float TofChargeHR::GetQ(int &nlay,float &qrms,int pattern){
+
+/// First Update and Check
+   UpdateZ(pattern);
+/// Find
+   nlay=like[pattern].at(0).GetnLayer();
+   qrms=RQ[pattern];
+   return Q[pattern]; 
+}
+
 //=======================================================
 float TofChargeHR::GetLikeQ(int &nlay,int pattern){
    
@@ -131,7 +232,6 @@ float TofChargeHR::GetLikeQ(int &nlay,int pattern){
 //---Get Z Par
   nlay=like[pattern].at(0).GetnLayer();
   return likeQ[pattern];
-
 }
 
 
@@ -154,7 +254,7 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
    vector<TofChargePar> cpar;
 
 //---push_back of cpar
-   int  MinZ=2*TofPDFPar::ZHLim,MaxZ=1,MinIZ=0,MaxIZ=0;
+   int  MinZ=2*TofPDFPar::ZHLim,MaxZ=0,MinIZ=0,MaxIZ=0;
    float LProb=FLT_MAX,HProb=FLT_MAX;
    float Beta=betah->GetBeta(); 
    int  fTrTrack=betah->iTrTrack();
@@ -191,10 +291,12 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
 //--- Most Prob Z push_back Prob
   const int ZEXTM=4;//MAX-STEP
   for(int Z=MinZ-1;Z>=1;Z--){
+     if(Z==1){MinZ=1;break;}
      float ProbZ=cpar.at(MinIZ).GetProbZ(float(Z));
      if(ProbZ<=TofPDFPar::ProbLimit||MinZ-Z>=ZEXTM){MinZ=Z;break;}
   }
   for(int Z=MaxZ+1;Z<TofPDFPar::ZHLim;Z++){
+     if(Z==TofPDFPar::ZHLim-1){MaxZ=TofPDFPar::ZHLim-1;break;}
      float ProbZ=cpar.at(MaxIZ).GetProbZ(float(Z));
      if(ProbZ<=TofPDFPar::ProbLimit||Z-MaxZ>=ZEXTM){MaxZ=Z;break;}
   }
@@ -259,22 +361,25 @@ number TofPDFH::GetLikelihood(int IZ,vector<TofChargePar> cpars){
 
 
 //=======================================================
-number TofPDFH::GetLikelihoodQ(vector<TofChargePar> cpars){
+number TofPDFH::GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &RMSQ){
 
 //---GetLimit And Imformation
     number DZ=0,LZ=2*TofPDFPar::ZHLim,HZ=0,QL;
     int nm=0;
+    RMSQ=0;
     for(int im=0;im<cpars.size();im++){
        QL=cpars.at(im).GetQ();
        if(QL<=0){cout<<"<<----Error Q"<<endl;continue;}
        if(QL<LZ)LZ=QL;
        if(QL>HZ)HZ=QL;
        DZ+=QL;
+       RMSQ+=QL*QL;
        nm++;
     }
     DZ/=nm;
-    if     (nm==0)return -1;//Field
-    else if(nm==1)return DZ;;
+    MeanQ=(nm==0)?-1:DZ;
+    RMSQ=(nm==0)?-1:sqrt(RMSQ/nm-MeanQ*MeanQ);
+    if(nm<=1){return MeanQ;}
 
 ///---
     chargepar=cpars;
@@ -308,7 +413,6 @@ number TofPDFH::GetLikelihoodQ(vector<TofChargePar> cpars){
    return Q;
 }
 
-
 //=======================================================
 void TofPDFH::GetLikelihoodF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */ ){
  
@@ -319,6 +423,7 @@ void TofPDFH::GetLikelihoodF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &f
    }
    fval=-likelihood;
 }
+
 
 
 //=======================================================
@@ -583,164 +688,4 @@ Double_t TofPDFH::PDFHBZ(Double_t *x, Double_t *par){
   return TMath::Gaus(x[0],par[1],par[2],1);
 }
 
-
-// **************************************************************
-// Tof PDF-TDV-Par
-// **************************************************************
-TofPDFPar* TofPDFPar::Head=0;
-
-TofPDFPar* TofPDFPar::GetHead(){
-  if(!Head)Head = new TofPDFPar();
-  return Head;
-}
-
 //=======================================================
-TofPDFPar::TofPDFPar(){
-  TDVName="TofPDFAlign";
-  TDVParN=0;
-  TDVParN+=2*nPDFCh*nPDFVel*nPDFPar*TOFCSN::NBARN;//Anode+Dynode PDF Par
-  TDVBlock=new float[TDVParN];
-  TDVSize=TDVParN*sizeof(float);
-//---Load
-  for(int iblock=0;iblock<TDVParN;iblock++)TDVBlock[iblock++]=0;
-  LoadOptPar(0);
-  Isload=0;
-};
-
-//=======================================================
-void   TofPDFPar::LoadOptPar(int opt){
-
-   int iblock=0;
-//--Anode PDF Par
-   for (int ich=0;ich<nPDFCh;ich++){//Charge 
-     for(int iv=0;iv<nPDFVel;iv++){//Vel
-       for(int ipar=0;ipar<nPDFPar;ipar++){ //Par
-        for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
-          for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
-///----
-           if(opt==0)pdfpara[ich][iv][ilay][ibar][ipar]=TDVBlock[iblock++];
-           else      TDVBlock[iblock++]=pdfpara[ich][iv][ilay][ibar][ipar];
-///----
-         }
-        }
-      }
-    }
-  }
-//--Dyndoe PDF Par
-   for (int ich=0;ich<nPDFCh;ich++){//Charge 
-     for(int iv=0;iv<nPDFVel;iv++){//Vel
-       for(int ipar=0;ipar<nPDFPar;ipar++){ //Par
-        for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
-          for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
-            if(opt==0)pdfpard[ich][iv][ilay][ibar][ipar]=TDVBlock[iblock++];
-            else      TDVBlock[iblock++]=pdfpard[ich][iv][ilay][ibar][ipar]; 
-         }
-        }
-      }
-    }
-  }
-
-  Isload=1;
-}
-
-//=======================================================
-void   TofPDFPar::LoadTDVPar(){
-   return LoadOptPar(0);
-}
-
-//=======================================================
-int  TofPDFPar::LoadFromFile(const char *fpdf,int ida,int ichl,int ichh,int nv,int npar){//ida Dnode0 Anode1
-
-//--PDFPar
-   ifstream vlfile(fpdf,ios::in);
-   if(!vlfile){
-    cerr <<"<---- Error: missing "<<fpdf<<"--file !!: "<<endl;
-    return -1;
-   }
-
-   for(int ich=ichl;ich<=ichh;ich++){
-     for(int iv=0;iv<nv;iv++){
-       for(int ipar=0;ipar<npar;ipar++){
-         for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
-           for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){
-              if(ida==1)vlfile>>pdfpara[ich][iv][ilay][ibar][ipar];
-              else      vlfile>>pdfpard[ich][iv][ilay][ibar][ipar];
-           }
-         }
-       }
-     }
-   }
-   vlfile.close();
-
-   return 0;
-}
-
-//==========================================================
-void TofPDFPar::PrintTDV(){
- cout<<"<<----Print TofPDFAlign"<<endl;
- for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
- cout<<'\n';
- cout<<"<<----end of Print TofPDFAlign"<<endl;
-}
-
-//==========================================================
-const int TofPDFPar::ZPDFgate[ZType]={2,14,1000};
-
-//==========================================================
-const int TofPDFPar::PDFCh[nPDFCh]={
- 1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,26,
-};
-
-//=======================================================
-const float TofPDFPar::pdfvel[nPDFCh][nPDFVel]={
-//Z=1
- 0.975, 0.929, 0.878, 0.826, 0.753, 0.570,//>0.95 0.9~0.95 0.85~0.9 0.8~0.85 0.7~0.8 <0.7
-//Z=2
- 0.976, 0.928, 0.877, 0.827, 0.756, 0.615,
-//Z=3
- 0.975, 0.927, 0.876, 0.826, 0.756, 0.630,
-//Z=4
- 0.975, 0.927, 0.876, 0.826, 0.758, 0.633,
-//Z=5
- 0.975, 0.927, 0.876, 0.826, 0.756, 0.625,
-//Z=6
- 0.975, 0.927, 0.876, 0.826, 0.756, 0.625,
-//Z=7
- 0.973, 0.926, 0.876, 0.826, 0.754, 0.630,
-//Z=8
- 0.972, 0.926, 0.876, 0.825, 0.753, 0.633,
-//Z=9 (One Bin)
-  1., 2, 2, 2, 2, 2,
-//Z=10
-  0.972, 0.926, 0.876, 0.826, 0.730,  2., //>0.95 0.9~0.95 0.85~0.9 0.8~0.85 <0.8
-//Z=11
-  1,  2, 2, 2, 2, 2,
-//Z=12 
-  0.972, 0.926, 0.876, 0.826, 0.728, 2.,
-//Z=13
-  1,  2, 2, 2, 2, 2,
-//Z=14
-  0.972, 0.926, 0.854, 0.726, 2., 2, //>0.95 0.9~0.95 0.8~0.9 <0.8
-//Z=16
-  1,  2, 2, 2, 2, 2,
-//Z=18
-  1,  2, 2, 2, 2, 2,
-//Z=20
-  1,  2, 2, 2, 2, 2,
-//Z=22
-  1,  2, 2, 2, 2, 2,
-//Z=26
-  0.974, 0.927, 0.850, 2., 2, 2., //>0.95 0.9~0.95 <0.9
-};
-
-//==========================================================
-const float TofPDFPar::DAgate[TOFCSN::SCLRS][TOFCSN::SCMXBR]={
-//--Gaus
- 36.1924508, 25.,        59.1081215,     16.,        36.2870294, 64.,        36.,       36.3128519,  0., 0.,
- 15.3553412, 25.,        25.,            36.4819246, 40.9775920, 27.8336000, 25.,       25.,         0., 0.,
- 36.,        25.,        25.,            20.1030702, 25.,        34.3711522, 33.,       30.,36.9542741, 38.2348669,
- 36.,        25.,        22.,            25.,        25.,        22.,        25.,       25.,         0., 0.,
-};
-
-//==========================================================
-

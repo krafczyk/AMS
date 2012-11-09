@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.25 2012/11/09 00:37:45 qyan Exp $
+//  $Id: Tofdbc.C,v 1.26 2012/11/09 15:17:15 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -2143,6 +2143,167 @@ void TofCAlignPar::PrintTDV(){
   cout<<'\n';
   cout<<"<<----end of Print "<<TDVName<<endl;
 }
+
+
+// **************************************************************
+// Tof PDF-TDV-Par
+// **************************************************************
+TofPDFPar* TofPDFPar::Head=0;
+
+TofPDFPar* TofPDFPar::GetHead(){
+  if(!Head)Head = new TofPDFPar();
+  return Head;
+}
+
+//=======================================================
+TofPDFPar::TofPDFPar(){
+  TDVName="TofPDFAlign";
+  TDVParN=0;
+  TDVParN+=2*nPDFCh*nPDFVel*nPDFPar*TOFCSN::NBARN;//Anode+Dynode PDF Par
+  TDVBlock=new float[TDVParN];
+  TDVSize=TDVParN*sizeof(float);
+//---Load
+  for(int iblock=0;iblock<TDVParN;iblock++)TDVBlock[iblock++]=0;
+  LoadOptPar(0);
+  Isload=0;
+};
+
+//=======================================================
+void   TofPDFPar::LoadOptPar(int opt){
+
+   int iblock=0;
+//--Anode PDF Par
+   for (int ich=0;ich<nPDFCh;ich++){//Charge 
+     for(int iv=0;iv<nPDFVel;iv++){//Vel
+       for(int ipar=0;ipar<nPDFPar;ipar++){ //Par
+        for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+          for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+///----
+           if(opt==0)pdfpara[ich][iv][ilay][ibar][ipar]=TDVBlock[iblock++];
+           else      TDVBlock[iblock++]=pdfpara[ich][iv][ilay][ibar][ipar];
+///----
+         }
+        }
+      }
+    }
+  }
+//--Dyndoe PDF Par
+   for (int ich=0;ich<nPDFCh;ich++){//Charge 
+     for(int iv=0;iv<nPDFVel;iv++){//Vel
+       for(int ipar=0;ipar<nPDFPar;ipar++){ //Par
+        for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+          for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+            if(opt==0)pdfpard[ich][iv][ilay][ibar][ipar]=TDVBlock[iblock++];
+            else      TDVBlock[iblock++]=pdfpard[ich][iv][ilay][ibar][ipar];
+         }
+        }
+      }
+    }
+  }
+
+  Isload=1;
+}
+
+//=======================================================
+void   TofPDFPar::LoadTDVPar(){
+   return LoadOptPar(0);
+}
+
+//=======================================================
+int  TofPDFPar::LoadFromFile(const char *fpdf,int ida,int ichl,int ichh,int nv,int npar){//ida Dnode0 Anode1
+
+//--PDFPar
+   ifstream vlfile(fpdf,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<fpdf<<"--file !!: "<<endl;
+    return -1;
+   }
+
+   for(int ich=ichl;ich<=ichh;ich++){
+     for(int iv=0;iv<nv;iv++){
+       for(int ipar=0;ipar<npar;ipar++){
+         for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+           for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){
+              if(ida==1)vlfile>>pdfpara[ich][iv][ilay][ibar][ipar];
+              else      vlfile>>pdfpard[ich][iv][ilay][ibar][ipar];
+           }
+         }
+       }
+     }
+   }
+   vlfile.close();
+
+   return 0;
+}
+
+//==========================================================
+void TofPDFPar::PrintTDV(){
+ cout<<"<<----Print TofPDFAlign"<<endl;
+ for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+ cout<<'\n';
+ cout<<"<<----end of Print TofPDFAlign"<<endl;
+}
+
+//==========================================================
+const int TofPDFPar::ZPDFgate[ZType]={2,14,1000};
+
+//==========================================================
+const int TofPDFPar::PDFCh[nPDFCh]={
+ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,26,
+};
+
+//=======================================================
+const float TofPDFPar::pdfvel[nPDFCh][nPDFVel]={
+//Z=1
+ 0.975, 0.929, 0.878, 0.826, 0.753, 0.570,//>0.95 0.9~0.95 0.85~0.9 0.8~0.85 0.7~0.8 <0.7
+//Z=2
+ 0.976, 0.928, 0.877, 0.827, 0.756, 0.615,
+//Z=3
+ 0.975, 0.927, 0.876, 0.826, 0.756, 0.630,
+//Z=4
+ 0.975, 0.927, 0.876, 0.826, 0.758, 0.633,
+//Z=5
+ 0.975, 0.927, 0.876, 0.826, 0.756, 0.625,
+//Z=6
+ 0.975, 0.927, 0.876, 0.826, 0.756, 0.625,
+//Z=7
+ 0.973, 0.926, 0.876, 0.826, 0.754, 0.630,
+//Z=8
+ 0.972, 0.926, 0.876, 0.825, 0.753, 0.633,
+//Z=9 (One Bin)
+  1., 2, 2, 2, 2, 2,
+//Z=10
+  0.972, 0.926, 0.876, 0.826, 0.730,  2., //>0.95 0.9~0.95 0.85~0.9 0.8~0.85 <0.8
+//Z=11
+  1,  2, 2, 2, 2, 2,
+//Z=12 
+  0.972, 0.926, 0.876, 0.826, 0.728, 2.,
+//Z=13
+  1,  2, 2, 2, 2, 2,
+//Z=14
+  0.972, 0.926, 0.854, 0.726, 2., 2, //>0.95 0.9~0.95 0.8~0.9 <0.8
+//Z=16
+  1,  2, 2, 2, 2, 2,
+//Z=18
+  1,  2, 2, 2, 2, 2,
+//Z=20
+  1,  2, 2, 2, 2, 2,
+//Z=22
+  1,  2, 2, 2, 2, 2,
+//Z=26
+  0.974, 0.927, 0.850, 2., 2, 2., //>0.95 0.9~0.95 <0.9
+};
+
+//==========================================================
+const float TofPDFPar::DAgate[TOFCSN::SCLRS][TOFCSN::SCMXBR]={
+//--Gaus
+ 36.1924508, 25.,        59.1081215,     16.,        36.2870294, 64.,        36.,       36.3128519,  0., 0.,
+ 15.3553412, 25.,        25.,            36.4819246, 40.9775920, 27.8336000, 25.,       25.,         0., 0.,
+ 36.,        25.,        25.,            20.1030702, 25.,        34.3711522, 33.,       30.,36.9542741, 38.2348669,
+ 36.,        25.,        22.,            25.,        25.,        22.,        25.,       25.,         0., 0.,
+};
+
+//==========================================================
 
 
 // **************************************************************
