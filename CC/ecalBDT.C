@@ -94,7 +94,7 @@ float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION)
       LayerMean[ilayer]  = 0.;
       LayerSigma[ilayer] = 0.;
 
-      LayerS1S3[ilayer]   = -1.;
+      LayerS1S3[ilayer]   = 1.;
       LayerS3Frac[ilayer] = -1.;
 
       for (unsigned int icell = 0; icell < nCELLs; ++icell)
@@ -431,7 +431,7 @@ float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION)
    //*******************************
 
    //Check the energy deposit in the first 2 superlayers
-   if (F2SLEneDep < TMath::Max(0.2, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
+   if (F2SLEneDep < TMath::Max(0.1, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
 
    //Check S1/S3 per layer
    int first_lay = -1; //first layer in which we want to estimate S1/S3
@@ -453,9 +453,10 @@ float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION)
       last_lay = 11;
    }
 
-   for (unsigned int ilayer = first_lay; ilayer <= last_lay; ++ilayer)
+   //request 2 consecutive layers with MIP like energy deposit
+   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
    {
-      if (LayerS1S3[ilayer] < 0 || LayerS1S3[ilayer] > 0.995) return -0.9993;
+      if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
    }
 
 
@@ -465,8 +466,8 @@ float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION)
        //********************************
        //*****Normalize the Variables****
        //********************************
-       // fix: normalization may be NaN below 2 GeV or above 1000 GeV;
-       energyd = energyd < 2. ? 2. : (energyd > 1000. ? 1000. : energyd);
+       // fix: normalization may be NaN below 0.5 GeV or above 1000 GeV;
+       energyd = energyd < 0.5 ? 0.5 : (energyd > 1000. ? 1000. : energyd);
        float mean, sigma;
        float x = log(energyd);
 
