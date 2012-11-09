@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.45 2012/11/06 20:41:38 qyan Exp $
+//  $Id: linkdefs.h,v 1.46 2012/11/09 17:47:43 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -27,7 +27,6 @@
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class VCon_root;
 #endif
-#pragma link C++ class EcalAxis+;
 
 #pragma link C++ class TrTrackPar+;
 #else
@@ -139,6 +138,7 @@
 #pragma link C++ class AMSEventR::Service+;
 #pragma link C++ class AMSSetupR+; 
 #pragma link C++ class AMSSetupR::Header+;
+#pragma link C++ class EcalAxis+;
 
 #pragma link C++ class SlowControlDB+;
 #pragma link C++ class std::pair<unsigned int,std::vector<float> >+;

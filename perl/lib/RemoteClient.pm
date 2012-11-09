@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.750 2012/11/07 10:01:19 ams Exp $
+# $Id: RemoteClient.pm,v 1.751 2012/11/09 17:47:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8279,7 +8279,7 @@ if(defined $dataset->{buildno} ){
                           $thr=1;
                          }
                     }
-                     my $cpuperevent=0.15;
+                     my $cpuperevent=0.18;
                      my $totaltime=($levent-$fevent)*$cpuperevent/$thr;
                      $totaltime=int($totaltime/3600.+0.5)+1;
                      if($totaltime<2){
