@@ -1,3 +1,5 @@
+#include <iostream>
+using namespace std;
 //--------------------------------------------------------
 //    
 //   Library Functions to Calculate Stoermer Rigidity cutoff
@@ -18,6 +20,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include "GM_SubLibrary.h"
+        static GMtype_Data G10, G11, H11, G20, G21, H21, G22, H22;
+        static int scanned=0;
+#pragma omp threadprivate  (G10, G11, H11, G20, G21, H21, G22, H22,scanned) 
 
 
 double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phiPart, double thetaISS, double phiISS, int pos  ){
@@ -42,10 +47,6 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
  
 
         GMtype_Date date;
-        static GMtype_Data G10, G11, H11, G20, G21, H21, G22, H22;
-        static bool scanned=false;
-#pragma omp threadprivate  (G10, G11, H11, G20, G21, H21, G22, H22)                 
-#pragma omp threadprivate  (scanned)
         GMtype_Pole Pole;
         GMtype_Ellipsoid Ellip;
         GMtype_Model Model;
@@ -55,8 +56,9 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
         //--------------------------Att!! path file IGRF.tab
         //...fill from IGRF.tab file:
         if(!scanned){
-         scanned=true;
+         scanned=1;
          GM_ScanIGRF(&G10, &G11, &H11, &G20, &G21, &H21, &G22, &H22 );
+         cout <<" GeoMagCutoff-I-IGRFRead "<<endl;
         }
         //This function sets the WGS84 reference ellipsoid to its default values:
         GM_SetEllipsoid(&Ellip);
@@ -653,7 +655,7 @@ void GM_ScanIGRF(GMtype_Data *G10, GMtype_Data *G11, GMtype_Data *H11, GMtype_Da
 	double temp;
 	char buffer[200]; 		/*check buffer!*/
 	FILE *IGRF;
-        char pathFile[100];
+        char pathFile[2048];
         sprintf( pathFile,"%s/v5.00/%s", getenv("AMSDataDir"), "IGRF.tab" );
         IGRF = fopen( pathFile, "r");
 
