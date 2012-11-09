@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.235 2012/11/08 19:57:26 nzimmerm Exp $
+#  $Id: Makefile,v 1.236 2012/11/09 09:09:07 nzimmerm Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -831,7 +831,7 @@ static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $(SHLIBBO)
-	mkdir -p qt_tmp; cd qt_tmp; $(AR) x $(QT_STATIC_LIBRARY); cd ..; $(AR) q $(NTLD) `ls qt_tmp/*.o | xargs`; rm -Rf qt_tmp
+	@if ! [ -z $(QT_STATIC_LIBRARY) ] ; then mkdir -p qt_tmp; cd qt_tmp; $(AR) x $(QT_STATIC_LIBRARY); cd ..; $(AR) q $(NTLD) `ls qt_tmp/*.o | xargs`; rm -Rf qt_tmp; fi
 else
 static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)

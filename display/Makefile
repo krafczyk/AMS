@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.114 2012/11/08 10:02:45 chchung Exp $
+#  $Id: Makefile,v 1.115 2012/11/09 09:09:07 nzimmerm Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -205,6 +205,12 @@ LIBS          =  -L$(AMSWD)/lib/macosx64/  -l$(AMSLIB) $(ROOTLIBS) -lgfortran
 LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA) -lgfortran
 LIBSD         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBS)  -lgfortran
 
+# On Mac only shared ACsoft builds are supported, otherwise anyone has to build its own custom static Qt version on Mac.
+# To avoid that we have to explicitely link against the libQtCore shared library here.
+ifdef AMS_ACQT_INTERFACE
+AMS_ACQT_NO_LIBRT := 1
+LIBSA = -F$(QTDIR)/lib -framework QtCore $(LIBS)
+endif
 endif
 ifeq ($(ARCH),linux)
 
@@ -297,10 +303,11 @@ else
 endif
 endif
 
-
+ifndef AMS_ACQT_NO_LIBRT
 ifdef AMS_ACQT_INTERFACE
 LIBS+=-lrt
 LIBSA+=-lrt
+endif
 endif
 
 ifdef PGTRACK
