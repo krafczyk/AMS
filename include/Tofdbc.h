@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.22 2012/10/23 17:51:21 qyan Exp $
+//  $Id: Tofdbc.h,v 1.23 2012/11/09 15:16:39 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -442,6 +442,35 @@ class TofCAlignPar: public TofTDVTool<float>{
      void PrintTDV();
 };
 
+//==========================================================
+class  TofPDFPar:public TofTDVTool<float>{
+  public:
+      static const int   ZType=3;
+      static const int   ZPDFgate[ZType];
+      static const int   nPDFCh=19;
+      static const int   PDFCh[nPDFCh];
+      static const int   nPDFVel=6;
+      static const int   nPDFPar=7;
+      static const float ProbLimit=1e-4;//Not Possible Case
+      static const int   ZHLim=150;//Limit of High Z
+      static const float DAgate[TOFCSN::SCLRS][TOFCSN::SCMXBR];//Dynode+Anode Switch Gate
+//---
+      static const float pdfvel[nPDFCh][nPDFVel];
+//----PDF Par
+      double pdfpara[nPDFCh][nPDFVel][TOFCSN::SCLRS][TOFCSN::SCMXBR][nPDFPar];
+      double pdfpard[nPDFCh][nPDFVel][TOFCSN::SCLRS][TOFCSN::SCMXBR][nPDFPar];
+  public:
+      TofPDFPar();
+      TofPDFPar(float *arr,int brun,int erun);//load 
+      static TofPDFPar *Head;
+   #pragma omp threadprivate (Head)   
+      static TofPDFPar *GetHead();
+      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+      void LoadOptPar(int opt=0);//copy TDV to class 0 From TDV 1 Read From Default
+      void LoadTDVPar();//copy TDV to class
+      int  LoadFromFile(const char *fpdf,int ida,int ichl,int ichh,int nv,int np);//read data from file->Block data
+      void PrintTDV();
+};
 
 //==========================================================
 class TofRecPar: public TofTDVTool<float>{
