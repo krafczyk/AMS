@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494 2012/11/07 11:17:43 shaino Exp $
+//  $Id: root.C,v 1.495 2012/11/12 10:17:55 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2409,10 +2409,10 @@ bool AMSEventR::ReadHeader(int entry){
      fHeader.getISSAtt();
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
+      runo=fHeader.Run;
       if(!UpdateSetup(fHeader.Run)){
 	cerr<<"AMSEventR::UpdateSetup-E-UnabletofindSetupEntryfor "<<fHeader.Run<<endl;
       }
-      runo=fHeader.Run;
       if(evento>0){
 #pragma omp critical (rd) 
 	if(pService)(*pService).TotalTrig+=(int)dif/2; 

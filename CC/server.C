@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.202 2012/08/07 11:02:15 ams Exp $
+//  $Id: server.C,v 1.203 2012/11/12 10:17:55 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3584,7 +3584,8 @@ int crun=0;
                      if(li!=_nhl.end()){
                          maxn=(*li)->CPUNumber;
                     }
-       if(threads>maxn && strstr((const char *)cid.HostName,lxplus5))threads=maxn;        
+//       if(threads>maxn && strstr((const char *)cid.HostName,lxplus5))threads=maxn;        
+       if(threads>maxn)threads=maxn;        
                     
                
    

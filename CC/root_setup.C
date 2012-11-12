@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.116 2012/11/08 16:06:57 nzimmerm Exp $
+//  $Id: root_setup.C,v 1.117 2012/11/12 10:17:55 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2528,9 +2528,8 @@ a=b;
 
 int AMSSetupR::getAMSSTK(AMSSetupR::AMSSTK & a, double xtime){
 // 
-// note amsstk table is in  GPS time
+// note amsstk table is in  POCC time
 //
-xtime+=AMSEventR::gpsdiff(floor(xtime));
 #ifdef __ROOTSHAREDLIBRARY__
 static unsigned int ssize=0;
 static unsigned int stime[2]={0,0};
