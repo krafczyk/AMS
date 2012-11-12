@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.116 2012/11/08 16:06:57 nzimmerm Exp $
+//  $Id: root_setup.C,v 1.115.2.1 2012/11/12 10:18:44 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1089,7 +1089,7 @@ void AMSSetupR::SlowControlR::printElementNames(const char *name){
 }
 
 #ifdef __DARWIN__
-integer AMSSetupR::_select( const dirent *entry)
+integer AMSSetupR::_select( dirent *entry)
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 integer AMSSetupR::_select(  const dirent64 *entry)
@@ -2528,9 +2528,8 @@ a=b;
 
 int AMSSetupR::getAMSSTK(AMSSetupR::AMSSTK & a, double xtime){
 // 
-// note amsstk table is in  GPS time
+// note amsstk table is in  POCC time
 //
-xtime+=AMSEventR::gpsdiff(floor(xtime));
 #ifdef __ROOTSHAREDLIBRARY__
 static unsigned int ssize=0;
 static unsigned int stime[2]={0,0};
