@@ -856,10 +856,11 @@ void TrdMTrack::Init_GainCorrection(){
 void TrdMTrack::Init_Alignment(){
   
   if(TrdAlignType==2){
-    const char *amsdatadir="/afs/cern.ch/work/m/mheil/public/DataBase";
+    // const char *amsdatadir="/afs/cern.ch/work/m/mheil/public/DataBase";
+    const char *amsdatadir="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
     
-  // TString name=TString(amsdatadir)+"/v5.00/TRD/Modul_alignment_pass3.root";
-    TString name=TString(amsdatadir)+"/Modul_alignment_pass3.root";
+    TString name=TString(amsdatadir)+"/v5.00/TRD/Modul_alignment_pass3.root";
+  //  TString name=TString(amsdatadir)+"/Modul_alignment_pass3.root";
     cout<<"TrdMTrack::Init_Alignment: Read TRD Alignment from: "<< name <<endl;
     TFile* f=new TFile(name);
     
