@@ -1190,19 +1190,19 @@ void TrdMTrack::SetAlignment(){
 
       while(time>mod_time[module][index+1] && index<((int)mod_time[module].size()-1)) index++;
       if(i>55 && i<256){
-	xycorr[i][0]=mod_corr[module][0][index];
+	xycorr[i][0]=0-mod_corr[module][0][index];
 	xycorr[i][1]=0;
 	xycorr[i][2]=0;
 	xycorr[i][3]=0;
-	xycorr[i][4]=z_corr[i][0]/pow(10.,4);
+	xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
 	xycorr[i][5]=z_corr[i][1]/pow(10.,6);
       }
       else {
 	xycorr[i][0]=0;
 	xycorr[i][1]=0;
-	xycorr[i][2]=mod_corr[module][0][index];
+	xycorr[i][2]=0-mod_corr[module][0][index];
 	xycorr[i][3]=0;
-	xycorr[i][4]=z_corr[i][0]/pow(10.,4);
+	xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
 	xycorr[i][5]=z_corr[i][1]/pow(10.,6);
       }
     }
