@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.4 2012/11/15 10:46:14 qyan Exp $
+//  $Id: Tofcharge_ihep.C,v 1.5 2012/11/15 10:49:05 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -173,7 +173,7 @@ int TofChargeHR::GetZ(int &nlay,float &Prob,int IZ,int pattern){
 /// First Update and Check
   UpdateZ(pattern);
 
-  if(IZ>=like[pattern].size())return -1;//Not Found
+  if(IZ>=like[pattern].size()||IZ<0)return -1;//Not Found
 
 //---Get Z Par
   Prob=like[pattern].at(IZ).Prob;
@@ -187,7 +187,7 @@ TofLikelihoodPar  TofChargeHR::gTofLikelihoodPar(int IZ, int pattern){
 /// First Update and Check
   UpdateZ(pattern);
 
-  if(IZ>=like[pattern].size())return TofLikelihoodPar();
+  if(IZ>=like[pattern].size()||IZ<0)return TofLikelihoodPar();
 
   return like[pattern].at(IZ);
 }
