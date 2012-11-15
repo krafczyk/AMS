@@ -497,6 +497,7 @@ INPUT                  = ../doc \
                          ../include \
                          ../CC \
                          ../examples \
+			 ../ACsoft/interface \
 			 /
 
 # This tag can be used to specify the character encoding of the source files that 
@@ -532,7 +533,7 @@ FILE_PATTERNS          = root.h \
                          TrInnerDzDB.h TrExtAlignDB.h \
 			 TrdKCalib.h TrdKCluster.h TrdKHit.h TrdKPDF.h TrdKSimpleHit.h \
 			 TrdSCalib.h Tofrec02_ihep.h Tofcharge_ihep.h EcalChi2CY.h \
-			 FrameTrans.h
+			 FrameTrans.h TrdMTrack.h TrdQt.hh
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
