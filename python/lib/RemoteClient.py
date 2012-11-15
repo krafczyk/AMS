@@ -3029,12 +3029,15 @@ class RemoteClient:
     def CheckDataSet(self,run2p,dataset,v,f,tab=0):
         self.verbose=v
         self.run2p=run2p
-        self.force=f
+        self.force=0         
+        if(f==1):
+           self.force=1
         rundd=""
         rund=""
         runn=""
         runst=""
-        typess=["SCI","0LAS","0CAL","0CMD","0CAB"]
+        typess=["0SCI","0LAS","0CAL","0CMD","0CAB"]
+
         for type in typess:
            sql="select path,paths,run from datafiles where   type like '%s%%' " %(type)
            sql=sql+" and status not like '%BAD%'"
@@ -3065,6 +3068,11 @@ class RemoteClient:
             ds=self.sqlserver.Query(sql)
             if(len(ds)==1):
                 did=ds[0][0]
+                if(f==2):
+                        sql="select path from ntuples where path like '%%%s/%%' and datamc=1  and path not like '/castor%%' " %(datapath)
+                        files=self.sqlserver.Query(sql)
+                        for file in files:
+                                self.linkdataset(file[0],"/afs/cern.ch/ams/Offline/DataSetsDir",1)
             else:
                 sql="select did from datasets where name like '%s' " %(dataset)
 	        ds=self.sqlserver.Query(sql) 
