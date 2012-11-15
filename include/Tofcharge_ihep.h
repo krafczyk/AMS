@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.3 2012/11/09 15:16:31 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.4 2012/11/15 10:47:06 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -47,7 +47,7 @@ class TofChargePar: public TObject{
   void  FillProbZ(int ZL,int ZH);
 
   public:
-    TofChargePar(){Layer=Bar=QLA=QLD=QLARaw=QLDRaw=Beta=-1; IsGoodPath=0; ProbZ.clear();}
+    TofChargePar(){QLA=QLD=QLARaw=QLDRaw=Beta=Layer=Bar=-1; IsGoodPath=0; ProbZ.clear();}
     TofChargePar(int _Layer,int _Bar,float _QLA,float _QLD,float _QLARaw,float _QLDRaw,float _Beta,bool _IsGoodPath):
                    Layer(_Layer), Bar(_Bar), QLA(_QLA), QLD(_QLD), QLARaw(_QLARaw), QLDRaw(_QLDRaw),  Beta(_Beta), IsGoodPath(_IsGoodPath){
                       ProbZ.clear();
@@ -81,7 +81,7 @@ class TofLikelihoodPar: public TObject{
   bool IsUsedL  (int iLayer);
 
  public:
-  TofLikelihoodPar(){LPattern=Z=Likelihood=Prob=-1;}
+  TofLikelihoodPar(){Likelihood=Prob=LPattern=Z=-1;}
   TofLikelihoodPar(int  _LPattern,int _Z, float _Likelihood):
                   LPattern(_LPattern),Z(_Z),  Likelihood(_Likelihood){Prob=0;}
   virtual ~TofLikelihoodPar(){};
