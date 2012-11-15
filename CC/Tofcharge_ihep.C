@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.3 2012/11/09 15:17:14 qyan Exp $
+//  $Id: Tofcharge_ihep.C,v 1.4 2012/11/15 10:46:14 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -173,6 +173,8 @@ int TofChargeHR::GetZ(int &nlay,float &Prob,int IZ,int pattern){
 /// First Update and Check
   UpdateZ(pattern);
 
+  if(IZ>=like[pattern].size())return -1;//Not Found
+
 //---Get Z Par
   Prob=like[pattern].at(IZ).Prob;
   nlay=like[pattern].at(IZ).GetnLayer();
@@ -184,6 +186,8 @@ TofLikelihoodPar  TofChargeHR::gTofLikelihoodPar(int IZ, int pattern){
   
 /// First Update and Check
   UpdateZ(pattern);
+
+  if(IZ>=like[pattern].size())return TofLikelihoodPar();
 
   return like[pattern].at(IZ);
 }
@@ -286,7 +290,7 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
   }
 
 //--- Not Exist Layer Exist
-  if(cpar.size()==0)return -1;
+  if(cpar.size()==0){tofch.UpdateZ();return -1;}
 
 //--- Most Prob Z push_back Prob
   const int ZEXTM=4;//MAX-STEP
