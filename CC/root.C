@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494 2012/11/07 11:17:43 shaino Exp $
+//  $Id: root.C,v 1.494.2.1 2012/11/15 15:30:18 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4525,6 +4525,8 @@ int ParticleR::DoBacktracing()
     double trm = ptr->ThetaM;
     double arg = abs(rgt);
     double lrg = log10(arg);
+    if (phg > 180) phg -= 360;
+    if (phm > 180) phm -= 360;
 #ifdef _PGTRACK_
     hman.Fill("GgIss",  phg, thg);
     hman.Fill("GmIss",  phm, thm);
