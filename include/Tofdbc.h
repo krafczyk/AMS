@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.22 2012/10/23 17:51:21 qyan Exp $
+//  $Id: Tofdbc.h,v 1.22.2.1 2012/11/15 20:10:43 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -354,7 +354,9 @@ class TofAttAlignPar: public TofTDVTool<float>{ //Scintillator Attenuation Algin
      TofAttAlignPar();
      TofAttAlignPar(float *arr,int brun,int erun);//load 
      static TofAttAlignPar *Head;
-#pragma omp threadprivate (Head)   
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif 
      static TofAttAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadTDVPar();//copy TDV to class 
@@ -372,7 +374,9 @@ class TofPMAlignPar: public TofTDVTool<float>{// PMT Anode Gain Align
      TofPMAlignPar();
      TofPMAlignPar(float *arr,int brun,int erun);//load 
      static TofPMAlignPar *Head;
-#pragma omp threadprivate (Head)   
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif  
      static TofPMAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadTDVPar();//copy TDV to class 
@@ -392,7 +396,9 @@ class TofPMDAlignPar: public TofTDVTool<float>{// PMT Dynode Gain Align
      TofPMDAlignPar();
      TofPMDAlignPar(float *arr,int brun,int erun);//load 
      static TofPMDAlignPar *Head;
-#pragma omp threadprivate (Head)   
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif   
      static TofPMDAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadTDVPar();//copy TDV to class 
@@ -433,7 +439,9 @@ class TofCAlignPar: public TofTDVTool<float>{
      TofCAlignPar();
      TofCAlignPar(float *arr,int brun,int erun);//load 
      static TofCAlignPar *Head;
-#pragma omp threadprivate (Head)   
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif   
      static TofCAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadOptPar(int opt=0);//copy TDV to class 0 From TDV 1 Read From Default
