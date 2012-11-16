@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.35.2.2 2012/11/16 13:38:34 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.35.2.3 2012/11/16 13:49:38 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -786,8 +786,18 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
 #pragma omp threadprivate(fun)
     if(!fun){
 #pragma omp critical (fun)
-     fun=new TF1("TOF_VE","pol4",0.2,1.1);
-     }
+{
+int thread=0;
+#ifdef _OPENMP
+    thread=omp_get_thread_num();
+#endif
+     char title[80];
+     char name[80];
+     sprintf(title,"TOF_VE_%d",thread);
+     sprintf(name,"plo4%d",thread);
+     fun=new TF1(title,name,0.2,1.1);
+}
+}
     for(int ipar=0;ipar<=4;ipar++){
        fun->SetParameter(ipar,CPar->betacorn[chindex][ipar][idsoft]);
     }
