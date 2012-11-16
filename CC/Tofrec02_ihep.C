@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.35.2.5 2012/11/16 14:02:52 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.35.2.6 2012/11/16 18:49:27 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -656,8 +656,18 @@ number TofRecH::CoverToQ2(int idsoft,int isanode,number adc){//PM Level
 //=======================================================
 TF1  *TofRecH::GetBirkFun(int idsoft){
 
-   if(!BirkFun)BirkFun=new TF1("TOF_birkfun","x/(1.+[1]*atan([0]/[1]*x))",0,10000);
+   if(!BirkFun)
+#pragma omp critical(fun)
+{
+int thread=0;
+#ifdef _OPENMP
+    thread=omp_get_thread_num();
+#endif
+     char title[80];
+     sprintf(title,"TOF_birkfun%d",thread);
 
+BirkFun=new TF1(title,"x/(1.+[1]*atan([0]/[1]*x))",0,10000);
+}
    TofCAlignPar   *CPar=TofCAlignPar::GetHead();
    idsoft=idsoft/100*100;
 
