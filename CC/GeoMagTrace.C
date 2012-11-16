@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.C,v 1.4 2012/11/06 21:55:37 shaino Exp $
+//  $Id: GeoMagTrace.C,v 1.5 2012/11/16 15:55:19 sdellato Exp $
 
 #include "GeoMagTrace.h"
 #include "GeoMagField.h"
@@ -68,9 +68,14 @@ void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
     // theta, phi are defined as of ParticleR::Theta and Phi
     AMSDir dams(theta, phi);
     double x = -dams.x(), y = -dams.y(), z = -dams.z();
-    FT_AMS2Body (x, y, z);
-    FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);
-    FT_LVLH2GTOD(x, y, z, pos[0], pos[1], pos[2] , vel[0], vel[1]);
+    //FT_AMS2Body (x, y, z);
+    //FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);
+    //FT_LVLH2GTOD(x, y, z, pos[0], pos[1], pos[2] , vel[0], vel[1]);
+    // see get_ams_gtod_fromGTOD from FrameTrans.C for the procedure    
+        
+
+
+
     _dx = x; _dy = y; _dz = z;
   }
 

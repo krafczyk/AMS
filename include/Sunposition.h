@@ -1,7 +1,7 @@
 /** Class to obtain the Sun Position in different coordinates Frames
  *  Author Stefano Della Torre
  *  Mail: stefano.dellatorre@mib.infn.it
- *  Date: Feb. 2012
+ *  Date: Feb. 2012 - rev. Nov 2012
  */
 
 #include <iostream>
@@ -18,57 +18,84 @@ class SunPosition
        > GetBetaAngle results is in degree, it get 999 if some error occurs,
      */
 public:
-  /** Constructor */
+  /// general Constructor 
   SunPosition();
-
-  /** Destructor  */
-  ~SunPosition();
-  double getTime(); /* get Time in Julian Day*/
-  void   setJDTime(double itime); /* Set time in Julian Day*/
-  void   setGPSTime(double itime); /* Set GPS unix time (s)*/
-  void   setUTCTime(double itime); /* Set UTC unix time (s)*/
-  void	 setISSGTOD( float ialtitude, float idec, float iasc, float iveltheta, float ivelphi, float iyaw, float ipitch, float iroll); /* set the ISS position in GTOD*/
-  int	 GetSunFromAMS(double &elev, double &azimut); 	   /*Get Sun from AMS frame*/
+  /// Constructor that inizialize the object
+  SunPosition(double itime, float ialtitude, float ilatitude, float ilongitude, float ivelAng, float iveltheta, float ivelphi, float iyaw, float ipitch, float iroll);
+  /// Get Sun from AMS frame. it return 0 if ISS attitude is not defined
+  int	 GetSunFromAMS(double &elev, double &azimut); 	 
+  /// Get Sun position from LVLH frame. it return 0 if ISS attitude is not defined
   int	 GetSunFromLVLH(double &elev, double &azimut);	   /*Get Sun from LVLH frame*/
+  /// Get Sun from GTOD frame
   int	 GetSunFromGTOD(double &lat, double &longi);       /*Get Sun from GTOD frame*/
+  /// Get Sun from ECI J2000 frame
   int	 GetSunFromEquat(double &edec, double &eRA);       /*Get Sun from ECI J2000 frame */
-  void	 calculate_Sun(double &LongSolar, double  &distSolar); /*Get Sun in ecliptic coordinates*/
-  double GetBetaAngle(); /* Evaluate the Beta Angle (in degree)*/
-  int    ISSday_night(); /* Day(1)/night(0) flag, in spherical approximation, */
+  /// Evaluate the Beta Angle (in degree). if ISS position is not defined return 999.
+  double GetBetaAngle();
+  ///  Day(1)/night(0) flag, in spherical approximation. if ISS position is not defined return -1.
+  int    ISSday_night(); 
+  /// Destructor 
+  ~SunPosition();
+  /// get Time converted in in Julian Day 
+  double getTime(); 
+  /// Set time in Julian Day
+  void   setJDTime(double itime); 
+  /// Set GPS unix time (s)
+  void   setGPSTime(double itime);
+  /// Set UTC unix time (s)
+  void   setUTCTime(double itime); 
+  /// set the ISS position, velocity and attitude in GTOD
+  void	 setISSGTOD( float ialtitude, float ilatitude, float ilongitude, float ivelAng, float iveltheta, float ivelphi, float iyaw, float ipitch, float iroll); 
+  /// Get Sun in ecliptic coordinates (solar latitude is 0 by definition, LongSolar= Solar Longitude, distSolar= Distance Earth-Sun) at the time setted in the object
+  void calculate_Sun(double& LongSolar, double& distSolar);
+  
+  
+
+
 protected:
 
 
 
 private:
-  int 	 ISSdef;
-  double time; 
-  double ISSaltitude; /* in cm !! */
-  double ISSdec;
-  double ISSasc;
-  double ISSVelPhi;
-  double ISSVelTheta;
+  /// control Flag set "1" if ISS position is stored into the object
+  int 	 ISSdef; 
+  /// Time in second as Julian Day definition
+  double time;
+  /// Time in UTC Seconds
+  double timeUTC;
+  /// Iss x position in inertial J2000 Frame
+  double ISSx;
+  /// Iss y position in inertial J2000 Frame
+  double ISSy;
+  /// Iss z position in inertial J2000 Frame
+  double ISSz;
+  /// Iss Vx velocity in inertial J2000 Frame
+  double ISSvx;
+  /// Iss Vy velocity in inertial J2000 Frame
+  double ISSvy;
+  /// Iss Vz velocity in inertial J2000 Frame
+  double ISSvz; 
+  /// ISS attitude in LVLH: yaw angle
   double ISSyaw;
+  /// ISS attitude in LVLH: pitch angle
   double ISSpitch;
-  double ISSroll;
+  /// ISS attitude in LVLH: roll angle
+  double ISSroll; 
+  /// routine that calculate the solution of kepler equation
+  double RoutineR2(double M, double e);
+  /// nutation correction to MeanObliquityEclipt
+  double  NutatObl_obliq(double time);
+  /// nutation correction to Ecliptic longitude
+  double NutatObl_long(double time);
+  /// Mean Obliquity for the convertion from Ecliptic to ECI
+  double MeanObliquityEclipt(double time);
+  /// Conversion from Ecliptic to ECI coordinates
+  void	Eclipt2Equat(double time, double EclipLong, double EclipLat, double &RA, double &dec);
+  /// convert GPS time (given in unix time seconds) in Julian seconds
+  double  GPS_JD(double itime);
+  /// convert UTC time (given in unix time seconds) in Julian seconds
+  double  UTC_JD(double itime);
+  /// 
   
-  int Sign(double arg);/* Returns sign of a double */
-  double AcTan(double sinx, double cosx);/* Four-quadrant arctan function */
-  double ArcSin(double arg);/* Returns the arcsine of the argument */
-  double ArcCos(double arg);/* Returns arccosine of argument */
-  double Modulus(double arg1, double arg2);/* Returns arg1 mod arg2 */
-  void	 Cart2Angular(double x, double y, double z, double &r, double &theta, double &phi);/* convert cartesian coordinates into spherical coordinates  */
-  void	 Angular2Cart(double r, double theta, double phi, double& x, double& y, double& z );/* convert spherical coordinates into cartesian coordinates */ 
-  double GPS_JD(double itime);/*convert GPS time (s) in JD day*/ 
-  double UTC_JD(double itime);/* convert UTC time (given in unix time seconds) in JD day*/
-  double RoutineR2(double M, double e);/* routine to calculate the solution of kepler equation*/
-  double NutatObl_obliq(double time);/*nutation correction to MeanObliquityEclipt*/
-  double NutatObl_long(double time);/*nutation correction to Ecliptic longitude*/  
-  double MeanObliquityEclipt(double time);/* Mean Obliquity for the convertion from Ecliptic to ECI*/
-  double GMST_rad(double time);/* Greenwich mean sidereal time  in radians */
-  void	 Eclipt2Equat(double time, double EclipLong, double EclipLat, double &RA, double &dec);/* Conversion from Ecliptic to ECI coordinates */
-  void	 Equat2GTOD(double &x, double &y, double &z);/* Conversion from ECI to GTOD coordinates */
-  void	 GTOD2LVLH(double &x, double &y, double &z);/* convert the position from GTOD to LVLH*/
-  void	 LVLH2Body(double &x, double &y, double &z);/* move from LVLH to ISS ref System*/
-  void	 Body2AMS(double &x, double &y, double &z);/* convert from ISS-Body ref System to AMS-02 reference System*/
-  
+   
 };

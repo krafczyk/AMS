@@ -31,48 +31,60 @@ using namespace std;
 
 //~============================================================================
 
-int get_ams_ra_dec_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[2], double ypr[3], double xtime){
+int get_ams_ra_dec_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[3], double ypr[3], double xtime){
 // SDT(sept2012) - generic trasformation from AMS frame to J2000 frame passing via GTOD (or ~ctrs)
 // AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 // ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
 // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
-// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
-// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
+// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll  [rad]
 // xtime     = UTC time (in unix format)
 
   
   double x=AMS_x; double y=AMS_y; double z=AMS_z;
   double r=1.;//dummy for check
   
-
+  //convert position  of ISS into J2000 frame
+  double ISSx,ISSy,ISSz;
+  double ISSvx,ISSvy,ISSvz;
+  FT_Angular2Cart(PosISS[0],  PosISS[2],PosISS[1],ISSx, ISSy, ISSz);
+  FT_Angular2Cart(VelISS[0]*PosISS[0],  VelISS[2],VelISS[1],ISSvx, ISSvy, ISSvz);
+  FT_GTOD2Equat(ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz, xtime);
+  //convert  
   FT_AMS2Body(x, y, z);
-  FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);                                  // Parameters: ISSyaw,  ISSpitch,  ISSroll
-  FT_LVLH2GTOD(x, y, z, PosISS[0], PosISS[1], PosISS[2] , VelISS[0], VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
-  FT_GTOD2Equat(x, y, z, xtime);                                                  // Parameters: xtime is GPS
+  FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);            // Parameters: ISSyaw,  ISSpitch,  ISSroll  (in rad)          
+  FT_LVLH2ECI(x, y, z,ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz ); // Parameters: x,y,z,vx,vy,z
   FT_Cart2Angular(x, y, z,r, dec,  ra);
   dec=dec*180./pi;
   ra=ra*180./pi;
   return 0;
 }
 
-int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, double &b, double PosISS[3], double VelISS[2], double ypr[3], double xtime){
+
+
+int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, double &b, double PosISS[3], double VelISS[3], double ypr[3], double xtime){
 // SDT(sept2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
 // AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 // l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
 // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
-// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
-// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
+// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll [in rad]
 // xtime     = UTC time (in unix format)
   
   double x=AMS_x; double y=AMS_y; double z=AMS_z;
   double r=1.;//dummy for check
   double ra,dec;
-
-  FT_AMS2Body(x,y,z);
-  FT_Body2LVLH(x,y,z,ypr[0],ypr[1],ypr[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
-  FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
-  FT_GTOD2Equat(x,y,z,xtime);                                              // Parameters: xtime is GPS
-  FT_Cart2Angular( x,  y,  z,r, dec,  ra);
+  //convert position  of ISS into J2000 frame
+  double ISSx,ISSy,ISSz;
+  double ISSvx,ISSvy,ISSvz;
+  FT_Angular2Cart(PosISS[0],  PosISS[2],PosISS[1],ISSx, ISSy, ISSz);
+  FT_Angular2Cart(VelISS[0]*PosISS[0],  VelISS[2],VelISS[1],ISSvx, ISSvy, ISSvz);
+  FT_GTOD2Equat(ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz, xtime);
+  //convert  
+  FT_AMS2Body(x, y, z);
+  FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);            // Parameters: ISSyaw,  ISSpitch,  ISSroll  (in rad)          
+  FT_LVLH2ECI(x, y, z,ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz ); // Parameters: x,y,z,vx,vy,z
+  FT_Cart2Angular(x, y, z,r, dec,  ra);
   FT_Equat2Gal(ra, dec);
    /* result */ 
   l=ra*180./pi;
@@ -81,25 +93,33 @@ int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, do
 }
 
 
-int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & theta, double &phi, double PosISS[3], double VelISS[2], double ypr[3], double xtime){
+int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & theta, double &phi, double PosISS[3], double VelISS[3], double ypr[3], double xtime){
 // SDT(sept2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
 // AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 // l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
 // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
-// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
-// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
+// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll [in rad]
 // xtime     = UTC time (in unix format)
   
   double x=AMS_x; double y=AMS_y; double z=AMS_z;
   double r=1.;//dummy for check
-  double ra,dec;
-
-  FT_AMS2Body(x,y,z);
-  FT_Body2LVLH(x,y,z,ypr[0],ypr[1],ypr[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
-  FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+  //convert position  of ISS into J2000 frame
+  double ISSx,ISSy,ISSz;
+  double ISSvx,ISSvy,ISSvz;
+  FT_Angular2Cart(PosISS[0],  PosISS[2],PosISS[1],ISSx, ISSy, ISSz);
+  FT_Angular2Cart(VelISS[0]*PosISS[0],  VelISS[2],VelISS[1],ISSvx, ISSvy, ISSvz);
+  FT_GTOD2Equat(ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz, xtime);
+  //convert  
+  FT_AMS2Body(x, y, z);
+  FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);            // Parameters: ISSyaw,  ISSpitch,  ISSroll  (in rad)          
+  FT_LVLH2ECI(x, y, z,ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz ); // Parameters: x,y,z,vx,vy,z
+  FT_Equat2GTOD(x, y,z,xtime);
    /* result */ 
   theta=acos(z)*180./pi;
   phi=atan2(y,x)*180./pi;
+  
+  
   return 0;
 }
 
@@ -162,6 +182,46 @@ int get_ams_ra_dec_from_ALTEC_INTL(double AMS_x, double AMS_y,double AMS_z, doub
   
 return 0; 
 }
+
+
+// from galactic longitude and latitude calculates ams coordinates
+// INVERSE TO FRAMETRANS from galactic longitude,latitude to AMS coordinates
+int get_ams_l_b_inverse_fromGTOD(double &AMS_x, double &AMS_y,double &AMS_z, double l, double b, double PosISS[3], double VelISS[3], double ypr[3], double xtime){
+  // C.Pizzolotto(Nov2012) - generic trasformation from galactic frame to AMS frame passing via via GTOD (or ~ctrs)
+  // l, b                = galactic longitude and latitude in J2000 frame in degree
+  // AMS_x, AMS_y, AMS_z = Particle direction in AMS frame (cartesian): output 
+  // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+  // VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
+  // ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll [in rad]
+  // xtime     = UTC time (in unix format)
+  
+  double ra,dec;
+  double x,y,z;
+  double r=1.; 
+  
+  ra = l/180.*pi; //LONGITUDE radiants
+  dec = b/180.*pi;//LATITUDE radiants
+ 
+  //convert position  of ISS into J2000 frame
+  double ISSx,ISSy,ISSz;
+  double ISSvx,ISSvy,ISSvz;
+  FT_Angular2Cart(PosISS[0],  PosISS[2],PosISS[1],ISSx, ISSy, ISSz);
+  FT_Angular2Cart(VelISS[0]*PosISS[0],  VelISS[2],VelISS[1],ISSvx, ISSvy, ISSvz);
+  FT_GTOD2Equat(ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz, xtime);
+  
+  FT_Gal2Equat(ra,dec);
+  FT_Angular2Cart(r,  dec,  ra,  x,  y,  z ); 
+  FT_ECI2LVLH(x, y, z,ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz ); // Parameters: x,y,z,vx,vy,z
+  FT_LVLH2Body(x,y,z,ypr[0],ypr[1],ypr[2]);   // Parameters: ISSyaw,  ISSpitch,  ISSroll
+  FT_Body2AMS(x,y,z);
+  AMS_x = x;
+  AMS_y = y;
+  AMS_z = z;
+
+  return 0;
+}
+
+
 
 
 double degree_to_Rad(double angDeg){
@@ -472,11 +532,12 @@ void	FT_Body2LVLH(double &x, double &y, double &z, double ISSyaw, double ISSpitc
     
 }
 /*****************************************************************************/
-void	FT_GTOD2LVLH(double &x, double &y, double &z, double ISSaltitude,double ISSasc,double ISSdec,double ISSVelPhi, double ISSVelTheta ){
-  /** convert the position from GTOD to LVLH
+                   
+void	FT_ECI2LVLH(double &x, double &y, double &z, double ISSx,double ISSy,double ISSz,double ISSVelx, double ISSVely,double ISSVelz ){
+  /** convert the position from ECI to LVLH
       note: for the purpose of this procedure ISS 
       and SUN MUST be given in the same ref sistem
-      - in this case GTOD -*/
+      - in this case ECI -*/
   /** Ref: H. Suter (1998) AMS internal Report "Space shuttle flight parameters for mission STS-91"*/
   /*  let define: 
    *  V_v = unity vector along the direction of velocity vector of ISS , 
@@ -491,18 +552,24 @@ void	FT_GTOD2LVLH(double &x, double &y, double &z, double ISSaltitude,double ISS
    * P1_v= R_m x (SunPos_v - ISSpos)
    */
   /* define the ISS coordinates and velocity*/
-  double ISSpos_x,ISSpos_y, ISSpos_z, ISSpos_mag;
-  //const double Re=6378.137; /*Earth Equatorial radius in km*/
-  FT_Angular2Cart(ISSaltitude,ISSdec,ISSasc,ISSpos_x,ISSpos_y,ISSpos_z);
-  ISSpos_mag=sqrt(ISSpos_x*ISSpos_x+ISSpos_y*ISSpos_y+ISSpos_z*ISSpos_z);
-   /* unity vectors */
-  double R_x = cos(ISSasc ) * sin( pi/2.- ISSdec );
-  double R_y = sin( ISSasc ) * sin( pi/2.-ISSdec );
-  double R_z = cos( pi/2.-ISSdec );  /* %%%%%%%%%%%%% corretto -> controlla bastian*/
-//std::cout<<ISSpos_y/ISSpos_mag<<" "<<R_y<<std::endl;
-  double V_x = cos( ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
-  double V_y = sin(ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
-  double V_z = cos( pi/2.-ISSVelTheta );
+
+   double ISSpos_x,ISSpos_y, ISSpos_z, ISSpos_mag;
+   ISSpos_x=ISSx; ISSpos_y=ISSy;ISSpos_z=ISSz;
+   ISSpos_mag=sqrt(ISSpos_x*ISSpos_x+ISSpos_y*ISSpos_y+ISSpos_z*ISSpos_z);
+   double ISSVel_mag=sqrt(ISSVelx*ISSVelx+ISSVely*ISSVely+ISSVelz*ISSVelz);
+   /* define the ISS coordinates and velocity*/
+//    double R_x = cos(ISSasc ) * sin( pi/2.- ISSdec );
+//    double R_y = sin( ISSasc ) * sin( pi/2.-ISSdec );
+//    double R_z = cos( pi/2.-ISSdec );  
+//    double V_x = cos( ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
+//    double V_y = sin(ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
+//    double V_z = cos( pi/2.-ISSVelTheta );
+   double R_x = ISSx/ISSpos_mag;
+   double R_y = ISSy/ISSpos_mag;
+   double R_z = ISSz/ISSpos_mag;  
+   double V_x = ISSVelx/ISSVel_mag;
+   double V_y = ISSVely/ISSVel_mag;
+   double V_z = ISSVelz/ISSVel_mag;
   /* define the solar vertor*/
   double SunPos_x,SunPos_y,SunPos_z;
   SunPos_x=x;
@@ -550,17 +617,25 @@ void	FT_GTOD2LVLH(double &x, double &y, double &z, double ISSaltitude,double ISS
 }
 
 
-void	FT_LVLH2GTOD(double &x, double &y, double &z, double ISSaltitude,double ISSasc,double ISSdec,double ISSVelPhi, double ISSVelTheta ){
+void	FT_LVLH2ECI(double &x, double &y, double &z, double ISSx,double ISSy,double ISSz,double ISSVelx, double ISSVely,double ISSVelz ){
    double ISSpos_x,ISSpos_y, ISSpos_z, ISSpos_mag;
-   FT_Angular2Cart(ISSaltitude,ISSdec,ISSasc,ISSpos_x,ISSpos_y,ISSpos_z);
+   ISSpos_x=ISSx; ISSpos_y=ISSy;ISSpos_z=ISSz;
    ISSpos_mag=sqrt(ISSpos_x*ISSpos_x+ISSpos_y*ISSpos_y+ISSpos_z*ISSpos_z);
+   double ISSVel_mag=sqrt(ISSVelx*ISSVelx+ISSVely*ISSVely+ISSVelz*ISSVelz);
    /* define the ISS coordinates and velocity*/
-   double R_x = cos(ISSasc ) * sin( pi/2.- ISSdec );
-   double R_y = sin( ISSasc ) * sin( pi/2.-ISSdec );
-   double R_z = cos( pi/2.-ISSdec );  
-   double V_x = cos( ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
-   double V_y = sin(ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
-   double V_z = cos( pi/2.-ISSVelTheta );
+//    double R_x = cos(ISSasc ) * sin( pi/2.- ISSdec );
+//    double R_y = sin( ISSasc ) * sin( pi/2.-ISSdec );
+//    double R_z = cos( pi/2.-ISSdec );  
+//    double V_x = cos( ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
+//    double V_y = sin(ISSVelPhi ) * sin(pi/2.- ISSVelTheta );
+//    double V_z = cos( pi/2.-ISSVelTheta );
+   double R_x = ISSx/ISSpos_mag;
+   double R_y = ISSy/ISSpos_mag;
+   double R_z = ISSz/ISSpos_mag;  
+   double V_x = ISSVelx/ISSVel_mag;
+   double V_y = ISSVely/ISSVel_mag;
+   double V_z = ISSVelz/ISSVel_mag;
+
    
    /* define the pointing object vertor*/
    double Pos_x,Pos_y,Pos_z;
@@ -646,6 +721,75 @@ void	FT_Equat2GTOD(double &x, double &y, double &z, double time){
   z=oldZ;
   
 }
+
+void	FT_GTOD2Equat(double &x, double &y, double &z, double &vx, double &vy, double &vz, double time){
+  /* Conversion from ECI to GTOD coordinates */
+  double oldX=x;
+  double oldY=y;
+  double oldZ=z;
+  double alpha_g=0;
+  
+  alpha_g=FT_GMST_rad(time);
+  
+  x=oldX*cos(alpha_g)-oldY*sin(alpha_g);
+  y=oldX*sin(alpha_g)+oldY*cos(alpha_g);
+  z=oldZ;
+  
+  
+  double oldVX=vx;
+  double oldVY=vy;
+  double oldVZ=vz;
+  double Omega= 2*pi /86400.; /* a complete round during a mean solar day*/
+  
+  vx= oldVX*cos(alpha_g)-oldVY*sin(alpha_g)   + Omega*( -oldY*cos(alpha_g)-oldX*sin(alpha_g) );
+  vy= oldVX*sin(alpha_g)+oldVY*cos(alpha_g)   + Omega*( oldX*cos(alpha_g)-oldY*sin(alpha_g));
+  vz= oldVZ;
+  
+  
+  
+}
+
+
+void	FT_Equat2GTOD(double &x, double &y, double &z, double &vx, double &vy, double &vz, double time){
+  /* Conversion from ECI to GTOD coordinates */
+  double oldX=x;
+  double oldY=y;
+  double oldZ=z;
+  double alpha_g=0;
+  
+  alpha_g=FT_GMST_rad(time);
+  
+  x=oldX*cos(alpha_g)+oldY*sin(alpha_g);
+  y=-oldX*sin(alpha_g)+oldY*cos(alpha_g);
+  z=oldZ;
+  
+  /* to transform the velocity
+   * 
+   *        |cos(alpha_g)   sin(alpha_g)   0  |    |vx|           | 0  1  0 | |cos(alpha_g)   sin(alpha_g)   0  | |x|
+   * V_GTOD=|-sin(alpha_g)  cos(alpha_g)   0  |  * |vy| + Omega * |-1  0  0 |*|-sin(alpha_g)  cos(alpha_g)   0  |*|y|
+   *        |    0              0          1  |    |vz|           | 0  0  0 | |    0              0          1  | |z|
+   *                                                           
+   *                                                              |y*cos(alpha_g)-x*sin(alpha_g) |
+   *                   ....                             + Omega * |-x*cos(alpha_g)-y*sin(alpha_g)|
+   *                                                              |             0                | 
+   */
+  double oldVX=vx;
+  double oldVY=vy;
+  double oldVZ=vz;
+  double Omega= 2*pi /86400.; /* a complete round during a mean solar day*/
+  
+  vx= oldVX*cos(alpha_g)+oldVY*sin(alpha_g)   + Omega*( oldY*cos(alpha_g)-oldX*sin(alpha_g) );
+  vy=-oldVX*sin(alpha_g)+oldVY*cos(alpha_g)   + Omega*( -oldX*cos(alpha_g)-oldY*sin(alpha_g));
+  vz= oldVZ;
+  
+  
+  
+  
+}
+
+
+
+
 /**************************************************************/
 
 double  FT_GPS_JD(double itime){
@@ -779,6 +923,7 @@ void	FT_Body_to_J2000(double &x, double &y, double &z, double ISSyaw,double ISSp
 }
 
 
+
 // -------------------- old ----------------------
 // int get_ams_l_b_fromGTOD(double PosISS[3], double VelISS[2], double ypr[3], double & Azim, double &Elev, double xtime){
 // // SDT(aug2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
@@ -796,7 +941,7 @@ void	FT_Body_to_J2000(double &x, double &y, double &z, double ISSyaw,double ISSp
 //   FT_Angular2Cart( r,  Elev,  Azim,  x,  y,  z );
 //   FT_AMS2Body(x,y,z);
 //   FT_Body2LVLH(x,y,z,ypr[0],ypr[1],ypr[2]);                                // Parameters: ISSyaw,  ISSpitch,  ISSroll
-//   FT_LVLH2GTOD(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+//   FT_LVLH2ECI(x,y,z,PosISS[0],PosISS[1],PosISS[2] ,VelISS[0],VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
 //   FT_GTOD2Equat(x,y,z,xtime);                                              // Parameters: xtime is GPS
 //   FT_Cart2Angular( x,  y,  z,r, dec,  ra);
 //   FT_Equat2Gal(ra, dec);
@@ -825,8 +970,36 @@ void	FT_Body_to_J2000(double &x, double &y, double &z, double ISSyaw,double ISSp
 //   FT_Angular2Cart(r,  dec,  ra,  x,  y,  z );
 //   FT_AMS2Body(x, y, z);
 //   FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);                                  // Parameters: ISSyaw,  ISSpitch,  ISSroll
-//   FT_LVLH2GTOD(x, y, z, PosISS[0], PosISS[1], PosISS[2] , VelISS[0], VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+//   FT_LVLH2ECI(x, y, z, PosISS[0], PosISS[1], PosISS[2] , VelISS[0], VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
 //   FT_GTOD2Equat(x, y, z, xtime);                                                  // Parameters: xtime is GPS
 //   FT_Cart2Angular(x, y, z,r, dec,  ra);
 //   return 0;
 // }
+
+
+// int get_ams_ra_dec_fromGTOD_ref(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[2], double ypr[3], double xtime){
+// // SDT(sept2012) - generic trasformation from AMS frame to J2000 frame passing via GTOD (or ~ctrs)
+// // AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+// // ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
+// // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+// // VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
+// // ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+// // xtime     = UTC time (in unix format)
+// 
+//   
+//   double x=AMS_x; double y=AMS_y; double z=AMS_z;
+//   double r=1.;//dummy for check
+//   
+// 
+//   FT_AMS2Body(x, y, z);
+//   FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);                                  // Parameters: ISSyaw,  ISSpitch,  ISSroll
+//   FT_LVLH2ECI(x, y, z, PosISS[0], PosISS[1], PosISS[2] , VelISS[0], VelISS[1] ); // Parameters: r,azimut,elev,ISSVelPhi,ISSVelTheta
+//   FT_GTOD2Equat(x, y, z, xtime);                                                  // Parameters: xtime is GPS
+//   FT_Cart2Angular(x, y, z,r, dec,  ra);
+//   dec=dec*180./pi;
+//   ra=ra*180./pi;
+//   return 0;
+// }
+
+// int main(){
+//  return 0;}

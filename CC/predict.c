@@ -34,7 +34,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
-
+//#include <FrameTrans.h> //add by SDT for coordiante transformation from ECI to GTOD
 //#include "predict.h"
 
 /* Constants used by SGP4/SDP4 code */
@@ -3091,6 +3091,29 @@ int ISSLoad(const char *name,const char *line1, const char *line2){
 
 }
 
+int Pr_FT_Equat2GTOD(double *x, double *y, double *z, double *vx, double *vy, double *vz, double jul_utc){
+  double oldX=*x;
+  double oldY=*y;
+  double oldZ=*z;
+  
+  double oldVX=*vx;
+  double oldVY=*vy;
+  double oldVZ=*vz;
+  double Omega= 2*pi /86400.; /* a complete round during a mean solar day*/
+
+double alpha_g=ThetaG_JD(jul_utc);
+
+  *x=oldX*cos(alpha_g)+oldY*sin(alpha_g);
+  *y=-oldX*sin(alpha_g)+oldY*cos(alpha_g);
+  *z=oldZ;
+
+  *vx= oldVX*cos(alpha_g)+oldVY*sin(alpha_g)   + Omega*( oldY*cos(alpha_g)-oldX*sin(alpha_g) );
+  *vy=-oldVX*sin(alpha_g)+oldVY*cos(alpha_g)   + Omega*( -oldX*cos(alpha_g)-oldY*sin(alpha_g));
+  *vz= oldVZ;
+return 0;
+
+}
+
 int ISSGTOD(float *r, float *theta, float *phi, float *v, float *vtheta, float *vphi, float *grmedphi, double time){
 
 
@@ -3143,12 +3166,18 @@ int ISSGTOD(float *r, float *theta, float *phi, float *v, float *vtheta, float *
 
 	Convert_Sat_State(&pos, &vel);
 
+        // SDT - Convert From ECI to GTOD
+        // equivalent to FT_Equat2GTOD(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, time);
+        Pr_FT_Equat2GTOD(&pos.x, &pos.y, &pos.z, &vel.x, &vel.y, &vel.z, jul_utc);
+        
+        
 	/* Calculate velocity of satellite */
 
 	Magnitude(&vel);
 	*v=vel.w/pos.w;
         *r=pos.w*100000;
-        *grmedphi=ThetaG_JD(jul_utc);
+        //*grmedphi=ThetaG_JD(jul_utc);
+        *grmedphi=0.; // SDT - in GTOD the greenwich merdian is alway at zero by definition
         *phi=AcTan(pos.y,pos.x);
         *theta=asin(pos.z/pos.w);
         *vtheta=asin(vel.z/vel.w);

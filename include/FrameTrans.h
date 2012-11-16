@@ -19,7 +19,9 @@
  *  SDT 24 oct 2012 - swapped CamID of star tracker: correct definition is STB=0 Port =1
  *  SDT 28 oct 2012 - add degree_to_Rad & rad_to_degree functions
  *  SDT 28 oct 2012 - correct bug in get_ams_ra_dec_from_ALTEC_INTL
- *  SDT  6 nov 2012 - coorect bun in ST_ECI2AMS(), the transformation are correct but in a wrong order
+ *  SDT  6 nov 2012 - correct bug in ST_ECI2AMS(), the transformation are correct but in a wrong order
+ *  SDT 10 nov 2012 - redefined the tranformation from LVLH to GTOD into LVLH to ECI since the LVLH frame is defined into the inertial frame
+ *  SDT 11 nov 2012 - add "get_ams_l_b_inverse_fromGTOD" developed by C. Pizzolotto
  */
 
 #include <iostream>
@@ -30,7 +32,7 @@
 #include <math.h>
 using namespace std;
 
-
+int get_ams_ra_dec_fromGTOD_ref(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
 
 //~------------ TO BE USED BY USER ------------
 
@@ -40,20 +42,20 @@ using namespace std;
 /// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 /// ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
 /// PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
-/// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
-/// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+/// VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
+/// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll  [rad]
 /// xtime     = UTC time (in unix format)
-int get_ams_ra_dec_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
+int get_ams_ra_dec_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[3], double ypr[3], double xtime);
 
 ///  generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
 /// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
 /// l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
 /// PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
-/// VelISS[2] = Velocity of ISS in  ISSVelPhi, ISSVelTheta
-/// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll 
+/// VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
+/// ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll  [rad]
 /// xtime     = UTC time (in unix format)
-int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, double &b, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
-int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & htod_theta, double &gtod_phi, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
+int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, double &b, double PosISS[3], double VelISS[3], double ypr[3], double xtime);
+int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & htod_theta, double &gtod_phi, double PosISS[3], double VelISS[3], double ypr[3], double xtime);
 
 /// SDT(sept2012) - trasformation from AMS frame to J2000 frame using the star Tracker data
 /// AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
@@ -79,6 +81,16 @@ int get_ams_l_b_from_StarTracker(double AMS_x, double AMS_y,double AMS_z, double
 /// ra, dec             = Right Ascension and Declination of Particle/Photon arrival direction in J2000 frame in degree
 /// ISSyaw,ISSpitch,ISSroll= attitude Information from ALTEC INTL data, i.e. the attitude with respect the J2000 frame, in degree.
 int get_ams_ra_dec_from_ALTEC_INTL(double AMS_x, double AMS_y,double AMS_z, double & ra, double &dec, double ISSyaw,double ISSpitch, double ISSroll);
+
+
+/** generic trasformation from Galactic frame to AMS frame passing via GTOD (or ~ctrs)
+ *  [out] AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
+ *  [in]  l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
+ *  PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
+ *  VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
+ *  ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll  [rad]
+ *  xtime     = UTC time (in unix format) */
+int get_ams_l_b_inverse_fromGTOD(double &AMS_x, double &AMS_y,double &AMS_z, double l, double b, double PosISS[3], double VelISS[3], double ypr[3], double xtime);
 
 
 /// convert angle from degree to radiant
@@ -170,12 +182,14 @@ void	FT_Body2AMS(double &x, double &y, double &z);
 void	FT_LVLH2Body(double &x, double &y, double &z, double ISSyaw, double ISSpitch, double ISSroll);
 void	FT_Body2LVLH(double &x, double &y, double &z, double ISSyaw, double ISSpitch, double ISSroll);
 /* ****************************************************************************/
-void	FT_GTOD2LVLH(double &x, double &y, double &z, double ISSaltitude,double ISSasc,double ISSdec,double ISSVelPhi, double ISSVelTheta );
-void	FT_LVLH2GTOD(double &x, double &y, double &z, double ISSaltitude,double ISSasc,double ISSdec,double ISSVelPhi, double ISSVelTheta );
+void	FT_ECI2LVLH(double &x, double &y, double &z, double ISSx,double ISSy,double ISSz,double ISSVelx, double ISSVely,double ISSVelz );
+void	FT_LVLH2ECI(double &x, double &y, double &z, double ISSx,double ISSy,double ISSz,double ISSVelx, double ISSVely,double ISSVelz );
 /* ****************************************************************************/
 double  FT_GMST_rad(double timeUnix);
 void	FT_GTOD2Equat(double &x, double &y, double &z, double time);
 void	FT_Equat2GTOD(double &x, double &y, double &z, double time);
+void    FT_GTOD2Equat(double &x, double &y, double &z, double &vx, double &vy, double &vz, double time);
+void    FT_Equat2GTOD(double &x, double &y, double &z, double &vx, double &vy, double &vz, double time);
 /* *************************************************************/
 double  FT_GPS_JD(double itime);
 double  FT_UTC_JD(double itime);

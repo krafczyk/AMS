@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.508 2012/11/16 15:15:11 qyan Exp $
+//  $Id: root.h,v 1.509 2012/11/16 15:55:20 sdellato Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -337,7 +337,7 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 
 //-----------Coordinates -------------------
-  int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true, bool gal_coo=true);///< Get galactic coordinates using ISS position, velocity and LVLH attitude
+  int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[3], double YPR[3], double  time, bool gtod=true, bool gal_coo=true);///< Get galactic coordinates using ISS position, velocity and LVLH attitude
   int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, int CamID, double CAM_RA, double CAM_DEC, double CAM_Orient, bool gal_coo=true);///< Get galactic coordinates using Star Tracker
   int get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double YPR[3], double time, bool gal_coo=true);///< Get galactic coordinates using YPR attitude with respect to J2000
 int get_gal_coo(double & gal_long, double & gal_lat,  double ams_ra, double ams_dec);///< convert celestial coordinates into galactic coordinates
@@ -373,7 +373,7 @@ output
 */
 int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[2], double YPR[3], double  xtime, int att=1, bool galactic=true);
 //-----------------------------------------
-int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[2], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
+int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[3], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
 
 
 
@@ -2773,7 +2773,7 @@ class BetaHR: public TrElem{
   /// Fitting Error on 1/Beta
   float GetEBetaV () {return BetaPar.InvErrBeta; }
   /// Good-Time Selected Layer Fitting Beta Value //return -1 if no Good-Time Counter (Serious BackSplash-Recommend to Use This Beta)
-  float GetBetaS ();
+  float GetBetaS ();  
   /// Convert Beta Value(BetaC Convert fabs(Beta)>1 to <1 for Mass Calculation)
   float GetBetaC () {return BetaPar.BetaC;}
   /// Fitting Error on 1/BetaC

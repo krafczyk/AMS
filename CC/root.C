@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.497 2012/11/16 15:14:42 qyan Exp $
+//  $Id: root.C,v 1.498 2012/11/16 15:55:19 sdellato Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9011,33 +9011,78 @@ return AMSEventR::getsetup()->IsBadRun(ss,UTime(),Run());
 
    ///<get solar beta angle via geometrical calculation
 double HeaderR::getBetaSun(){
- SunPosition sunPos;
- unsigned int time,nanoTime;
- double Beta;
- if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
-   time=HeaderR::Time[0];
-   sunPos.setUTCTime((double)time);
-   }
- else{
- sunPos.setGPSTime((double)time);
+// SunPosition sunPos;
+// unsigned int time,nanoTime;
+// double Beta;
+// if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
+//   time=HeaderR::Time[0];
+//   sunPos.setUTCTime((double)time);
+//   }
+// else{
+// sunPos.setGPSTime((double)time);
+// }
+// sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll);
+//Beta=sunPos.GetBetaAngle();
+// return Beta;
+
+ unsigned int time,err;
+ float ialtitude=RadS; 
+ float ilatitude=ThetaS; 
+ float ilongitude=PhiS;
+ float ivelAng=VelocityS; 
+ float iveltheta=VelTheta; 
+ float ivelphi=VelPhi;
+ float iyaw=Yaw; 
+ float ipitch=Pitch;
+ float iroll=Roll;
+ 
+ time=(double)UTCTime();
+ AMSSetupR::GPSWGS84R gpsw;
+ if (AMSEventR::getsetup() && !AMSEventR::getsetup()->getGPSWGS84(gpsw, time)) {
+      ialtitude = gpsw.r; ilongitude = gpsw.phi; ilatitude = gpsw.theta;
+      ivelAng = gpsw.v;   ivelphi = gpsw.vphi;   iveltheta = gpsw.vtheta;
  }
- sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll);
-Beta=sunPos.GetBetaAngle();
+
+ SunPosition sunPos(time, ialtitude, ilatitude, ilongitude, ivelAng, iveltheta, ivelphi, iyaw, ipitch, iroll);
+
+ double Beta=sunPos.GetBetaAngle();
+
  return Beta;
 }
    ///<get sun position in AMS coordinate
 int HeaderR::getSunAMS(double & azimut, double & elevation ){
- SunPosition sunPos;
- unsigned int time,nanoTime;
- int res;
- if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
-   time=HeaderR::Time[0];
-   sunPos.setUTCTime((double)time);
-   }
- else{
- sunPos.setGPSTime((double)time);
+// SunPosition sunPos;
+// unsigned int time,nanoTime;
+// int res;
+// if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
+//   time=HeaderR::Time[0];
+//   sunPos.setUTCTime((double)time);
+//   }
+// else{
+// sunPos.setGPSTime((double)time);
+// }
+// sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll); 
+// if (!sunPos.GetSunFromAMS(elevation,azimut)) return -1;
+// return sunPos.ISSday_night();
+ unsigned int time,err;
+ float ialtitude=RadS; 
+ float ilatitude=ThetaS; 
+ float ilongitude=PhiS;
+ float ivelAng=VelocityS; 
+ float iveltheta=VelTheta; 
+ float ivelphi=VelPhi;
+ float iyaw=Yaw; 
+ float ipitch=Pitch;
+ float iroll=Roll;
+ 
+ time=(double)UTCTime();
+ AMSSetupR::GPSWGS84R gpsw;
+ if (AMSEventR::getsetup() && !AMSEventR::getsetup()->getGPSWGS84(gpsw, time)) {
+      ialtitude = gpsw.r; ilongitude = gpsw.phi; ilatitude = gpsw.theta;
+      ivelAng = gpsw.v;   ivelphi = gpsw.vphi;   iveltheta = gpsw.vtheta;
  }
-sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll); 
+
+ SunPosition sunPos(time, ialtitude, ilatitude, ilongitude, ivelAng, iveltheta, ivelphi, iyaw, ipitch, iroll);
  if (!sunPos.GetSunFromAMS(elevation,azimut)) return -1;
  return sunPos.ISSday_night();
 }
@@ -9063,12 +9108,12 @@ AMSSetupR::DSPError* HeaderR::pDSPError(){
 
 //-----------Coordinates -------------------
 
-int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[2], double YPR[3], double  time, bool gtod, bool gal_coo){
+int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[3], double YPR[3], double  time, bool gtod, bool gal_coo){
 /*
 input  AMSTheta (rad) in AMS coo system (from ParticleR)
        AMSPhi   (rad) in AMS coo system (from ParticleR)
        RPT  coordinates in GTOD/CTRS coordinate system (RPT[0]==Radius -> in cm; RPT[1]==Phi (rad); RPT[2]==Theta(rad)
-       VelPT velocity in GTOD/CTRS coordinate system  (VelPT[0]= VelPhi  ; VelPT[1]=VelTheta )
+       VelPT velocity in GTOD/CTRS coordinate system  (VelPT[0]= Angular Velocity; VelPT[1]=VelPhi  ; VelPT[2]=VelTheta )
        YPR yaw-pitch-roll in radians in LVLH
        gtod  true if gtod coo system
        time UTC time
@@ -9139,12 +9184,12 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
   return ret;
 }
 
-int HeaderR::get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[2], double YPR[3], double  time, bool gtod){
+int HeaderR::get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[3], double YPR[3], double  time, bool gtod){
 /*
 input  AMSTheta (rad) in AMS coo system (from ParticleR)
        AMSPhi   (rad) in AMS coo system (from ParticleR)
        RPT  coordinates in GTOD/CTRS coordinate system (RPT[0]==Radius -> in cm; RPT[1]==Phi (rad); RPT[2]==Theta(rad)
-       VelPT velocity in GTOD/CTRS coordinate system  (VelPT[0]= VelPhi  ; VelPT[1]=VelTheta )
+       VelPT velocity in GTOD/CTRS coordinate system   (VelPT[0]= Angular Velocity; VelPT[1]=VelPhi  ; VelPT[2]=VelTheta )
        YPR yaw-pitch-roll in radians in LVLH
        gtod  true if gtod coo system
        time UTC time
@@ -9344,9 +9389,9 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
 
   double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
   double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
-  double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
-  GTOD2CTRS(RPT,fHeader.VelocityS,VPT);
-
+  double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
+  //GTOD2CTRS(RPT,fHeader.VelocityS,VPT);
+   
   bool gtod = true;
 
   float Roll, Pitch, Yaw;
@@ -9366,7 +9411,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       double diff = get_coo_diff(RPT, gtod.r, gtod.theta, gtod.phi);
       if (diff < prec) {
 	RPT[0] = gtod.r;    RPT[1] = gtod.phi; RPT[2] = gtod.theta;
-	VPT[0] = gtod.vphi; VPT[1] = gtod.vtheta;
+	VPT[0] = gtod.v;    VPT[1] = gtod.vphi;VPT[2] = gtod.vtheta;
 	result |= (1<<bGTOD);
       }
       else {
@@ -9393,8 +9438,8 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       double diff = get_coo_diff(RPT, ctrs.r, ctrs.theta, ctrs.phi);
       if (diff < prec) {
 	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
-	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
-        CTRS2GTOD(RPT,ctrs.v,VPT);
+	VPT[0] = ctrs.v;    VPT[1] = ctrs.vphi;VPT[2] = ctrs.vtheta;
+        //CTRS2GTOD(RPT,ctrs.v,VPT);
 	result |= (1<<bCTRS);
 	gtod = false;
       }
@@ -9422,8 +9467,8 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
       double diff = get_coo_diff(RPT, gpsw.r, gpsw.theta, gpsw.phi);
       if (diff < prec) {
 	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
-	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
-        CTRS2GTOD(RPT,gpsw.v,VPT);
+	VPT[0] = gpsw.v;    VPT[1] = gpsw.vphi;VPT[2] = gpsw.vtheta;
+        //CTRS2GTOD(RPT,gpsw.v,VPT);
 	result |= (1<<bGPSW);
 	gtod = false;
       }
