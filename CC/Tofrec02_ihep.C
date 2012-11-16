@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.37 2012/11/16 14:48:19 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.38 2012/11/16 15:14:42 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -78,6 +78,8 @@ vector<AMSEcalShower*> TofRecH::amsecalshow;
 #endif
 
 TF1  *TofRecH::BirkFun=0;
+
+TF1  *TofRecH::BetaFun=0;
 
 bool  TofRecH::BuildKey=1;
 
@@ -753,6 +755,13 @@ number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge
 }
 
 //========================================================
+TF1 *TofRecH::GetBetaFun(){
+
+   if(!BetaFun)BetaFun=new TF1("TOF_VE","pol4",0.2,1.1);
+   return BetaFun;
+}
+
+//========================================================
 number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex,number rig){//Counter Level
 
    TofCAlignPar   *CPar=TofCAlignPar::GetHead();
@@ -786,10 +795,8 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
    number betacv=1;
 
 //---Correction
-
-static    TF1 *fun=0;
-#pragma omp threadprivate (fun)
-    if(!fun)fun=new TF1("TOF_VE","pol4",0.2,1.1);
+    TF1 *fun=GetBetaFun();
+//    fun=new TF1("TOF_VE","pol4",0.2,1.1);
     for(int ipar=0;ipar<=4;ipar++){
        fun->SetParameter(ipar,CPar->betacorn[chindex][ipar][idsoft]);
     }
@@ -1712,9 +1719,10 @@ int TofRecH::BetaFitT(number time[],number etime[],number len[],const int nhits,
     BetaC=Beta;
     InvErrBetaC=InvErrBeta;
   }
-#else 
-   InvErrBetaC=0;
-   BetaC=0;
+#else
+   if(fabs(Beta)<=1){BetaC=Beta;}
+   else             {BetaC=1./(2.-1./fabs(Beta));if(Beta<0)BetaC=-BetaC;}
+   InvErrBetaC=InvErrBeta;
 #endif
 //--now ready to par
   par.Status|=status;

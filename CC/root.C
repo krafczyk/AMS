@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.496 2012/11/16 14:48:19 choutko Exp $
+//  $Id: root.C,v 1.497 2012/11/16 15:14:42 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2375,7 +2375,7 @@ bool AMSEventR::ReadHeader(int entry){
        BetaH().clear();
      }
 //---Fix For Gbatch
-   else if((Version()>=610 && Version()<=621)&&nMCEventg()==0){
+    else if((Version()>=610&&Version()<=621)&&nMCEventg()==0){
       TofRecH::Init();
 //---TofClusterHR
       for(int i=0;i<NTofClusterH();i++){
@@ -2384,9 +2384,11 @@ bool AMSEventR::ReadHeader(int entry){
         TofRecH::EdepRecR(tfclh->Layer,tfclh->Bar,tfclh->Aadc,tfclh->Dadc,tfclh->Coo[tfclh->GetDirection()],tfclh->AQ2,tfclh->DQ2,tfclh->AEdep,tfclh->DEdep);
       }
 //----BetaHR
+      bool ftk=0;
       for(int i=0;i<NBetaH();i++){
         BetaHR *betah=pBetaH(i);
         if(!betah)continue;
+        if(betah->iTrTrack()>=0)ftk=1;
         TofClusterHR *tfhit[4]={0};        
         double tklcoo[4]={0},tkcosz[4]={1,1,1,1};
         double zpl,time;AMSPoint pnt;AMSDir dir;
@@ -2401,6 +2403,9 @@ bool AMSEventR::ReadHeader(int entry){
         TofBetaPar par=betah->gTofBetaPar();
         TofRecH::EdepTkAtt(tfhit,tklcoo,tkcosz,par);
         betah->SetTofBetaPar(par);
+     }
+     if(!ftk){
+       TofRecH::BuildBetaH(); 
      }
    }
 
@@ -6760,6 +6765,13 @@ TofClusterHR* BetaHR::GetClusterHL(int ilay){
   return (AMSEventR::Head())?AMSEventR::Head()->pTofClusterH(fLayer[ilay]):0;
 }
 
+
+float BetaHR::GetBetaS(){
+
+   double beta,ebetav;
+   BetaReFit(beta,ebetav,-2);
+   return float(beta);
+}
 
 float BetaHR::GetNormChi2T(){
     
