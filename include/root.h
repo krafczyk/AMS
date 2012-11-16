@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.507 2012/11/09 00:36:06 qyan Exp $
+//  $Id: root.h,v 1.508 2012/11/16 15:15:11 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2772,6 +2772,8 @@ class BetaHR: public TrElem{
   float GetBeta  () {return BetaPar.Beta; }
   /// Fitting Error on 1/Beta
   float GetEBetaV () {return BetaPar.InvErrBeta; }
+  /// Good-Time Selected Layer Fitting Beta Value //return -1 if no Good-Time Counter (Serious BackSplash-Recommend to Use This Beta)
+  float GetBetaS ();
   /// Convert Beta Value(BetaC Convert fabs(Beta)>1 to <1 for Mass Calculation)
   float GetBetaC () {return BetaPar.BetaC;}
   /// Fitting Error on 1/BetaC
@@ -2978,7 +2980,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,10)
+  ClassDef(BetaHR,11)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        

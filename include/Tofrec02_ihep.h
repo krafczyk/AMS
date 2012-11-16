@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.22 2012/10/23 17:51:21 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.23 2012/11/16 15:15:11 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -170,6 +170,12 @@ public:
 #pragma omp threadprivate (BirkFun)
 /// Birk Function
   static TF1 *GetBirkFun(int idsoft);
+/// BetaCor Function
+  static TF1 *BetaFun;
+#pragma omp threadprivate (BetaFun)
+/// BetaCor Function
+  static TF1 *GetBetaFun();
+
 
 /**@}*/
 
@@ -238,7 +244,7 @@ public:
   friend class BetaHR; 
   friend class TofBetaPar; 
 
-  ClassDef(TofRecH,5)
+  ClassDef(TofRecH,6)
 };
 
 /////////////////////////////////////////////////////////////////////////
