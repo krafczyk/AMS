@@ -55,8 +55,11 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
 
         //--------------------------Att!! path file IGRF.tab
         //...fill from IGRF.tab file:
-        if(!scanned){
+        if(!scanned)
+#omp critical (scan)
+{
          scanned=1;
+         cout <<" GeoMagCutoff-I-IGRFToBeRead "<<endl;
          GM_ScanIGRF(&G10, &G11, &H11, &G20, &G21, &H21, &G22, &H22 );
          cout <<" GeoMagCutoff-I-IGRFRead "<<endl;
         }
