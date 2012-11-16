@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.495 2012/11/12 10:17:55 choutko Exp $
+//  $Id: root.C,v 1.496 2012/11/16 14:48:19 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2375,7 +2375,7 @@ bool AMSEventR::ReadHeader(int entry){
        BetaH().clear();
      }
 //---Fix For Gbatch
-    else if(Version()==610&&nMCEventg()==0){
+   else if((Version()>=610 && Version()<=621)&&nMCEventg()==0){
       TofRecH::Init();
 //---TofClusterHR
       for(int i=0;i<NTofClusterH();i++){

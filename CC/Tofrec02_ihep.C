@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.36 2012/11/09 00:37:45 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.37 2012/11/16 14:48:19 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -786,8 +786,10 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
    number betacv=1;
 
 //---Correction
-    TF1 *fun=0;
-    fun=new TF1("TOF_VE","pol4",0.2,1.1);
+
+static    TF1 *fun=0;
+#pragma omp threadprivate (fun)
+    if(!fun)fun=new TF1("TOF_VE","pol4",0.2,1.1);
     for(int ipar=0;ipar<=4;ipar++){
        fun->SetParameter(ipar,CPar->betacorn[chindex][ipar][idsoft]);
     }
@@ -802,7 +804,6 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
      else if(q2>fun->Eval(0.38))betacv=beta>0?0.38:-0.38;
      else                       betacv=beta>0?fun->GetX(q2):-fun->GetX(q2);
   }
-  delete fun;
   return betacv;
 }
 
