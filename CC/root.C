@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494.2.1 2012/11/15 15:30:18 shaino Exp $
+//  $Id: root.C,v 1.494.2.2 2012/11/16 09:01:13 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2375,7 +2375,7 @@ bool AMSEventR::ReadHeader(int entry){
        BetaH().clear();
      }
 //---Fix For Gbatch
-    else if(Version()==610&&nMCEventg()==0){
+    else if((Version()>=610 && Vestion()<=621)&&nMCEventg()==0){
       TofRecH::Init();
 //---TofClusterHR
       for(int i=0;i<NTofClusterH();i++){
@@ -2409,10 +2409,10 @@ bool AMSEventR::ReadHeader(int entry){
      fHeader.getISSAtt();
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
+      runo=fHeader.Run;
       if(!UpdateSetup(fHeader.Run)){
 	cerr<<"AMSEventR::UpdateSetup-E-UnabletofindSetupEntryfor "<<fHeader.Run<<endl;
       }
-      runo=fHeader.Run;
       if(evento>0){
 #pragma omp critical (rd) 
 	if(pService)(*pService).TotalTrig+=(int)dif/2; 
