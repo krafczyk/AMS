@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.36 2012/11/09 00:37:45 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.35.2.1 2012/11/16 13:34:42 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -94,7 +94,6 @@ int TofRecH::ReBuild(int charge){
 int TofRecH::Init(){
 
   if(!BuildKey)return -1;
-  static int nerr=0;
 //---
   int tdvstat=0;
   unsigned int time,trun;
@@ -108,12 +107,9 @@ int TofRecH::Init(){
   realdata=(ev->nMCEventg()==0)?1:0;
   time=ev->UTime();
   trun=ev->Run();
-  if(nerr<100){
-    tdvstat=TofAlignManager::GetHead(realdata)->Validate(trun);
-  }
-  else tdvstat=-1;
+  tdvstat=TofAlignManager::GetHead(realdata)->Validate(trun);
 #endif
-  if(tdvstat!=0&&nerr++<100)cerr<<"<<-----Error TofRecH TDV Par Init Error"<<endl;
+  if(tdvstat!=0)cerr<<"Error TofRecH TDV Par Init Error"<<endl;
   return tdvstat;
 }
 
@@ -786,8 +782,9 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
    number betacv=1;
 
 //---Correction
-    TF1 *fun=0;
-    fun=new TF1("TOF_VE","pol4",0.2,1.1);
+    static TF1 *fun=0;
+#pragma omp threadprivate(fun)
+    if(!fun)fun=new TF1("TOF_VE","pol4",0.2,1.1);
     for(int ipar=0;ipar<=4;ipar++){
        fun->SetParameter(ipar,CPar->betacorn[chindex][ipar][idsoft]);
     }
@@ -802,7 +799,6 @@ number TofRecH::GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chi
      else if(q2>fun->Eval(0.38))betacv=beta>0?0.38:-0.38;
      else                       betacv=beta>0?fun->GetX(q2):-fun->GetX(q2);
   }
-  delete fun;
   return betacv;
 }
 
