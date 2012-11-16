@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.22.2.3 2012/11/16 09:01:38 choutko Exp $
+//  $Id: Tofdbc.h,v 1.22.2.4 2012/11/16 09:07:59 choutko Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -398,7 +398,7 @@ class TofPMDAlignPar: public TofTDVTool<float>{// PMT Dynode Gain Align
      static TofPMDAlignPar *Head;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (Head)   
-#ndif
+#endif
      static TofPMDAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadTDVPar();//copy TDV to class 
