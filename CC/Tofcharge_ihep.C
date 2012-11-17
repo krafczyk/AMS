@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.5 2012/11/15 10:49:05 qyan Exp $
+//  $Id: Tofcharge_ihep.C,v 1.6 2012/11/17 22:21:42 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -79,12 +79,23 @@ TofChargeHR::TofChargeHR(BetaHR *betah){
 }
 
 ///=======================================================
-void TofChargeHR::UpdateZ(int pattern){
+void TofChargeHR::UpdateZ(int pattern,int opt){
 
 /// First Check Whether Pattern exist
-  map<int, vector<TofLikelihoodPar> >::iterator it;
-  it=like.find(pattern);
-  if(it!=like.end())return;
+  bool upi=0,upf=0;
+  if(opt%10==1){ //Integer
+    map<int, vector<TofLikelihoodPar> >::iterator it;
+    it=like.find(pattern);
+    if(it==like.end()){upi=1;}//Not Found -- Request To Build Integer
+  }
+  if(opt/10%10==1){ //Float Likelihood
+     map<int, float >::iterator it;
+     it=likeQ.find(pattern);
+     if(it==likeQ.end()){upf=1;}//Not Found --Request To Build Float
+  }
+
+//---Both Not Need To Update
+  if(!upi&&!upf)return;
 
 /// Charge Measument Par Of Select Good Layer 
   vector<TofChargePar> cparu;
@@ -92,17 +103,21 @@ void TofChargeHR::UpdateZ(int pattern){
 ///--Select Matched-TOF Layer
   int nsel=TofPDFH::SelectM(pattern,cpar,fTrTrack,cparu);
 
-///--LikeLihood -Calculation
-  vector<TofLikelihoodPar> plike;
-  TofPDFH::LikelihoodCal(cparu,plike); 
-  like.insert(pair<int,vector<TofLikelihoodPar> >(pattern,plike));
-
-//---LikeLihood Q
   number MeanQ,RMSQ;
-  float plikeQ=TofPDFH::GetLikelihoodQ(cparu,MeanQ,RMSQ);
-  likeQ.insert(pair<int,float >(pattern,plikeQ));
-  Q.insert(pair<int,float>(pattern,float(MeanQ)));
-  RQ.insert(pair<int,float>(pattern,float(RMSQ)));
+///--LikeLihood -Calculation
+  if(upi){
+    vector<TofLikelihoodPar> plike;
+    TofPDFH::LikelihoodCal(cparu,plike); 
+    like.insert(pair<int,vector<TofLikelihoodPar> >(pattern,plike));
+    TofPDFH::GetLikelihoodQ(cparu,MeanQ,RMSQ,0);
+    Q.insert(pair<int,float>(pattern,float(MeanQ)));
+    RQ.insert(pair<int,float>(pattern,float(RMSQ)));
+  }
+  if(upf){
+//---LikeLihood Q
+    float plikeQ=TofPDFH::GetLikelihoodQ(cparu,MeanQ,RMSQ,1);
+    likeQ.insert(pair<int,float >(pattern,plikeQ));
+  }
  
 }
 
@@ -221,6 +236,7 @@ float TofChargeHR::GetQ(int &nlay,float &qrms,int pattern){
 
 /// First Update and Check
    UpdateZ(pattern);
+
 /// Find
    nlay=like[pattern].at(0).GetnLayer();
    qrms=RQ[pattern];
@@ -229,11 +245,11 @@ float TofChargeHR::GetQ(int &nlay,float &qrms,int pattern){
 
 //=======================================================
 float TofChargeHR::GetLikeQ(int &nlay,int pattern){
-   
-/// First Update and Check
-  UpdateZ(pattern);
 
-//---Get Z Par
+/// First Update and Check For Both Integer and Float
+  UpdateZ(pattern,11);
+
+//---Get LikelihoodQ Par
   nlay=like[pattern].at(0).GetnLayer();
   return likeQ[pattern];
 }
@@ -365,7 +381,7 @@ number TofPDFH::GetLikelihood(int IZ,vector<TofChargePar> cpars){
 
 
 //=======================================================
-number TofPDFH::GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &RMSQ){
+number TofPDFH::GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &RMSQ,int opt){
 
 //---GetLimit And Imformation
     number DZ=0,LZ=2*TofPDFPar::ZHLim,HZ=0,QL;
@@ -384,6 +400,9 @@ number TofPDFH::GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &
     MeanQ=(nm==0)?-1:DZ;
     RMSQ=(nm==0)?-1:sqrt(RMSQ/nm-MeanQ*MeanQ);
     if(nm<=1){return MeanQ;}
+
+///---Only Want to MeanQ
+    if(opt==0){return MeanQ;}
 
 ///---
     chargepar=cpars;
