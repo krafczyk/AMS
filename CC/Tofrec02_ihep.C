@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.35.2.6 2012/11/16 18:49:27 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.35.2.7 2012/11/17 15:03:02 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -944,7 +944,7 @@ number TofRecH::SciReAttCor(int idsoft,number lpos,number q2,int qopt){//Attuant
 
 //========================================================
 
-int TofRecH::BuildBetaH(int mode){
+int TofRecH::BuildBetaH(int verse){
 //---
    if(Init()!=0)return -1;
    ClearBuildBetaH();
@@ -1038,7 +1038,7 @@ int TofRecH::BuildBetaH(int mode){
      if(iktr==1){ntracks=trdtrack.size();}
 //----
      for(int itr=0;itr<ntracks;itr++){
-       uinteger status=(itr==0)?(TOFDBcN::TKTRACK):(TOFDBcN::TRDTRACK);
+       uinteger status=(iktr==0)?(TOFDBcN::TKTRACK):(TOFDBcN::TRDTRACK);
 
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
        TrTrackR *ptrack;  TrTrackR *usetr=0;
@@ -1085,7 +1085,7 @@ int TofRecH::BuildBetaH(int mode){
 //---first to recover
            TRecover(phit,tklcoo);
            BetaFitC(phit,cres,pattern,betapar,1);
-           BetaFitT(phit,len,pattern,betapar,1,1);
+           BetaFitT(phit,len,pattern,betapar,1,verse);
            BetaFitCheck(betapar);
            EdepTkAtt(phit,tklcoo,tkcosz,betapar);
            betapar.Status|=status;
