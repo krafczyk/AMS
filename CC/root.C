@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.499 2012/11/17 15:00:03 qyan Exp $
+//  $Id: root.C,v 1.500 2012/11/17 22:48:36 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4451,7 +4451,7 @@ int ParticleR::DoBacktracing()
   int    icharge  = (int)Charge;
   if (momentum < 0) {
     momentum = -momentum;
-    icharge  = icharge;
+    icharge  = -icharge;
   }
 
   // Force as photons
@@ -4481,9 +4481,10 @@ int ParticleR::DoBacktracing()
   int    utime  =        ptr->Time[0];
   double tfrac  = double(ptr->Time[1])/1000000;
   double xtime  = double(utime)+tfrac-AMSEventR::gpsdiff(utime);
-  double YPR[3] = { ptr->Yaw,    ptr->Pitch, ptr->Roll };
-  double RPT[3] = { ptr->RadS,   ptr->PhiS,  ptr->ThetaS };
-  double VPT[2] = { ptr->VelPhi, ptr->VelTheta };
+
+  double YPR[3] = { ptr->Yaw,       ptr->Pitch,  ptr->Roll };
+  double RPT[3] = { ptr->RadS,      ptr->PhiS,   ptr->ThetaS };
+  double VPT[3] = { ptr->VelocityS, ptr->VelPhi, ptr->VelTheta };
 
   if (AMSEventR::getsetup()) {
     double tcorr = 0, terr = 0;
@@ -4496,8 +4497,9 @@ int ParticleR::DoBacktracing()
       RPT[0] = RTP[0];
       RPT[1] = RTP[2];
       RPT[2] = RTP[1];
-      VPT[0] = VTP[2];
-      VPT[1] = VTP[1];
+      VPT[0] = VTP[0];
+      VPT[1] = VTP[2];
+      VPT[2] = VTP[1];
     }
 
     float roll = 0, pitch = 0, yaw = 0;
@@ -4529,7 +4531,7 @@ int ParticleR::DoBacktracing()
   BT_result |= (1<<bTLE);
 
   double rgt = momentum/icharge;
-  GeoMagTrace gp(RPT, VPT, YPR, Theta, Phi, rgt, velocity);
+  GeoMagTrace gp(RPT, VPT, YPR, xtime, Theta, Phi, rgt, icharge, velocity);
 
   int stat = gp.Propagate(gp.NmaxStep);
   BT_status = 3;
@@ -4549,6 +4551,8 @@ int ParticleR::DoBacktracing()
     double trm = ptr->ThetaM;
     double arg = abs(rgt);
     double lrg = log10(arg);
+    if (phg > 180) phg -= 360;
+    if (phm > 180) phm -= 360;
 #ifdef _PGTRACK_
     hman.Fill("GgIss",  phg, thg);
     hman.Fill("GmIss",  phm, thm);
@@ -4586,9 +4590,28 @@ int ParticleR::DoBacktracing()
   }
 
   AMSgObj::BookTimer.stop("DoBacktracing");
-#endif
-
   return 0;
+#else
+  AMSDir dir(Theta, Phi);
+  int    ichg = Charge;
+  double beta = Beta;
+  double momt = Momentum;
+  if (beta < 0) { dir  = dir*(-1); beta = -beta; }
+  if (momt < 0) { momt = -momt;    ichg = -ichg; }
+
+  double glong = 0, glat = 0, RPTO[3] = { 0, 0, 0 }, time;
+  int ret = AMSEventR::Head()
+    ->DoBacktracing(BT_result, BT_status, glong, glat, RPTO,
+		    time, dir.gettheta(), dir.getphi(), momt, beta, ichg);
+  BT_glong   = glong;
+  BT_glat    = glat;
+  BT_RPTO[0] = RPTO[0];
+  BT_RPTO[1] = RPTO[1];
+  BT_RPTO[2] = RPTO[2];
+  BT_time    = time;
+
+  return ret;
+#endif
 }
 
 int ParticleR::Loc2Gl(AMSEventR *pev){
@@ -9170,9 +9193,9 @@ return 0;
 //-----------Backtracing -------------------
 int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
 			    double &time_trace, double RPTO[3], double GPT[2],
-			    double AMSTheta, double AMSPhi,
+			    double theta, double phi,
 			    double momentum, double velocity, int charge,
-			    double RPT[3], double VelPT[2], double YPR[3],
+			    double RPT[3], double VelPT[3], double YPR[3],
 			    double  xtime, int iatt, bool galactic)
 {
   // InitModel check
@@ -9183,8 +9206,8 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
 
   double rgt = momentum/charge;
   GeoMagTrace gp = (iatt == 3)
-    ? GeoMagTrace(RPT, YPR, xtime, AMSTheta, AMSPhi, rgt, velocity)
-    : GeoMagTrace(RPT, VelPT, YPR, AMSTheta, AMSPhi, rgt, velocity);
+    ? GeoMagTrace(RPT,        YPR, xtime, theta, phi, rgt, charge, velocity)
+    : GeoMagTrace(RPT, VelPT, YPR, xtime, theta, phi, rgt, charge, velocity);
 
   int stat = gp.Propagate(gp.NmaxStep);
 
@@ -9414,10 +9437,9 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     else ret = rNAtt;
   }
 
-  double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
-  double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
+  double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
+  double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
   double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
-  //GTOD2CTRS(RPT,fHeader.VelocityS,VPT);
    
   bool gtod = true;
 
@@ -9437,8 +9459,8 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     if (getsetup() && !getsetup()->getISSGTOD(gtod, xtime+dt)) {
       double diff = get_coo_diff(RPT, gtod.r, gtod.theta, gtod.phi);
       if (diff < prec) {
-	RPT[0] = gtod.r;    RPT[1] = gtod.phi; RPT[2] = gtod.theta;
-	VPT[0] = gtod.v;    VPT[1] = gtod.vphi;VPT[2] = gtod.vtheta;
+	RPT[0] = gtod.r; RPT[1] = gtod.phi;  RPT[2] = gtod.theta;
+	VPT[0] = gtod.v; VPT[1] = gtod.vphi; VPT[2] = gtod.vtheta;
 	result |= (1<<bGTOD);
       }
       else {
@@ -9464,9 +9486,8 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     if (getsetup() && !getsetup()->getISSCTRS(ctrs, xtime+dt)) {
       double diff = get_coo_diff(RPT, ctrs.r, ctrs.theta, ctrs.phi);
       if (diff < prec) {
-	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
-	VPT[0] = ctrs.v;    VPT[1] = ctrs.vphi;VPT[2] = ctrs.vtheta;
-        //CTRS2GTOD(RPT,ctrs.v,VPT);
+	RPT[0] = ctrs.r; RPT[1] = ctrs.phi;  RPT[2] = ctrs.theta;
+	VPT[0] = ctrs.v; VPT[1] = ctrs.vphi; VPT[2] = ctrs.vtheta;
 	result |= (1<<bCTRS);
 	gtod = false;
       }
@@ -9493,9 +9514,8 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     if (getsetup() && !getsetup()->getGPSWGS84(gpsw, xtime+dt)) {
       double diff = get_coo_diff(RPT, gpsw.r, gpsw.theta, gpsw.phi);
       if (diff < prec) {
-	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
-	VPT[0] = gpsw.v;    VPT[1] = gpsw.vphi;VPT[2] = gpsw.vtheta;
-        //CTRS2GTOD(RPT,gpsw.v,VPT);
+	RPT[0] = gpsw.r; RPT[1] = gpsw.phi;  RPT[2] = gpsw.theta;
+	VPT[0] = gpsw.v; VPT[1] = gpsw.vphi; VPT[2] = gpsw.vtheta;
 	result |= (1<<bGPSW);
 	gtod = false;
       }
@@ -9596,10 +9616,9 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     else result |= (1<<bGPSC);
   }
 
-  double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
-  double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
-  double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
-  GTOD2CTRS(RPT,fHeader.VelocityS,VPT);
+  double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
+  double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
+  double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
 
   int iatt = 1; // GTOD
 
@@ -9619,8 +9638,8 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     if (getsetup() && !getsetup()->getISSGTOD(gtod, xtime+dt)) {
       double diff = get_coo_diff(RPT, gtod.r, gtod.theta, gtod.phi);
       if (diff < prec) {
-	RPT[0] = gtod.r;    RPT[1] = gtod.phi; RPT[2] = gtod.theta;
-	VPT[0] = gtod.vphi; VPT[1] = gtod.vtheta;
+	RPT[0] = gtod.r; RPT[1] = gtod.phi;  RPT[2] = gtod.theta;
+	VPT[0] = gtod.v; VPT[1] = gtod.vphi; VPT[2] = gtod.vtheta;
 	result |= (1<<bGTOD);
       }
       else {
@@ -9646,9 +9665,8 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     if (getsetup() && !getsetup()->getISSCTRS(ctrs, xtime+dt)) {
       double diff = get_coo_diff(RPT, ctrs.r, ctrs.theta, ctrs.phi);
       if (diff < prec) {
-	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
-	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
-        CTRS2GTOD(RPT,ctrs.v,VPT);
+	RPT[0] = ctrs.r; RPT[1] = ctrs.phi;  RPT[2] = ctrs.theta;
+	VPT[0] = ctrs.v; VPT[1] = ctrs.vphi; VPT[2] = ctrs.vtheta;
 	result |= (1<<bCTRS);
 	iatt = 2;
       }
@@ -9675,9 +9693,8 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     if (getsetup() && !getsetup()->getGPSWGS84(gpsw, xtime+dt)) {
       double diff = get_coo_diff(RPT, gpsw.r, gpsw.theta, gpsw.phi);
       if (diff < prec) {
-	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
-	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
-        CTRS2GTOD(RPT,gpsw.v,VPT);
+	RPT[0] = gpsw.r; RPT[1] = gpsw.phi;  RPT[2] = gpsw.theta;
+	VPT[0] = gpsw.v; VPT[1] = gpsw.vphi; VPT[2] = gpsw.vtheta;
 	result |= (1<<bGPSW);
 	iatt = 2;
       }

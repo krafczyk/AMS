@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.C,v 1.5 2012/11/16 15:55:19 sdellato Exp $
+//  $Id: GeoMagTrace.C,v 1.6 2012/11/17 22:48:36 shaino Exp $
 
 #include "GeoMagTrace.h"
 #include "GeoMagField.h"
@@ -20,19 +20,21 @@ double GeoMagTrace::Rs = GeoMagTrace::Re*20;    // Escape limit         in km
 double GeoMagTrace::Clight = 2.99792458e+08;    // Speed of light in m/s
 
 
-GeoMagTrace::GeoMagTrace(double pos[3], double vel[2], double ypr[3],
+GeoMagTrace::GeoMagTrace(double pos[3], double vel[3],
+			 double ypr[3], double xtime,
 			 double theta,  double phi,    double rigidity,
 			 double charge, double beta,   int stat)
 /*
  * pos[3] = position of ISS in r(cm), longitude(rad), latitude(rad)
- * vel[2] = velocity of ISS in phi, theta (rad)
+ * vel[3] = velocity of ISS in v(rad/sec), phi(rad), theta(rad)
  * ypr[3] = attitude of ISS in yaw, pitch, roll (rad)
+ * xtime  = UTC time in sec
  * theta  = track theta
  * phi    = track phi
  */
 {
   double pp[3] = { pos[0]*1e-5, pos[1], pos[2] };
-  Init(pp, vel, ypr, theta, phi, rigidity, charge, beta, stat, false);
+  Init(pp, vel, ypr, xtime, theta, phi, rigidity, charge, beta, stat, false);
 }
 
 GeoMagTrace::GeoMagTrace(double pos[3], double ypr[3], double xtime,
@@ -58,8 +60,9 @@ GeoMagTrace::GeoMagTrace(double lng,    double lat,  double alt,
   Init(pos, 0, (double*)0, theta, phi, rigidity, charge, beta, stat, true);
 }
 
-void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
-		       double theta,  double phi,    double rigidity,
+void GeoMagTrace::Init(double pos[3], double vel[3],
+		       double ypr[3], double xtime,
+		       double theta,  double phi,  double rigidity,
 		       double charge, double beta, int stat, bool deg)
 {
   AngToCart(pos[0], pos[2], pos[1], _x, _y, _z, deg);
@@ -68,13 +71,15 @@ void GeoMagTrace::Init(double pos[3], double vel[2], double ypr[3],
     // theta, phi are defined as of ParticleR::Theta and Phi
     AMSDir dams(theta, phi);
     double x = -dams.x(), y = -dams.y(), z = -dams.z();
-    //FT_AMS2Body (x, y, z);
-    //FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);
-    //FT_LVLH2GTOD(x, y, z, pos[0], pos[1], pos[2] , vel[0], vel[1]);
-    // see get_ams_gtod_fromGTOD from FrameTrans.C for the procedure    
-        
+    FT_AMS2Body (x, y, z);
+    FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);
 
-
+    double sx, sy, sz, vx, vy, vz;
+    FT_Angular2Cart(       pos[0], pos[2], pos[1], sx, sy, sz);
+    FT_Angular2Cart(vel[0]*pos[0], vel[2], vel[1], vx, vy, vz);
+    FT_GTOD2Equat(sx, sy, sz, vx, vy, vz, xtime);
+    FT_LVLH2ECI  (x, y, z, sx, sy, sz, vx, vy, vz);
+    FT_Equat2GTOD(x, y, z, xtime);
 
     _dx = x; _dy = y; _dz = z;
   }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.510 2012/11/17 15:00:54 qyan Exp $
+//  $Id: root.h,v 1.511 2012/11/17 22:48:39 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -355,7 +355,7 @@ input
           velocity  (not signed v/speed_of_light)
           charge    (signed, integer)
 	  RPT[3]    ISS coordinates (Rs,PhiS,ThetaS)
-          VelPT[2]  ISS velocity (VelPhi,VelTheta)
+          VelPT[3]  ISS velocity (Vel rad/sec,VelPhi rad,VelTheta rad)
 	  YPR[3]    ISS attitude (Yaw,Pitch,Roll)
 	  xtime     time
 	  att       1:GTOD, 2:CTRS, 3:INTL
@@ -371,7 +371,7 @@ output
 	 2 trapped ;
         -1 error
 */
-int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[2], double YPR[3], double  xtime, int att=1, bool galactic=true);
+int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[3], double YPR[3], double  xtime, int att=1, bool galactic=true);
 //-----------------------------------------
 int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[3], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
 

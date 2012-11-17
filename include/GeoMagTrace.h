@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.h,v 1.4 2012/11/06 21:55:43 shaino Exp $
+//  $Id: GeoMagTrace.h,v 1.5 2012/11/17 22:48:39 shaino Exp $
 #ifndef __GeoMagTrace__
 #define __GeoMagTrace__
 
@@ -31,10 +31,11 @@ public:
    * pos[3] = position of ISS in r(cm), longitude(rad), latitude(rad)
    * vel[2] = velocity of ISS in phi, theta (rad)
    * ypr[3] = attitude of ISS in yaw, pitch, roll (rad)
+   * xtime  = UTC time in sec
    * theta  = track theta
    * phi    = track phi
    */
-  GeoMagTrace(double pos[3], double vel[2], double ypr[3],
+  GeoMagTrace(double pos[3], double vel[3], double ypr[3], double xtime,
 	      double theta,  double phi,    double rigidity,
 	                                    double charge = 1,
 	                                    double beta   = 1,
@@ -64,7 +65,7 @@ public:
  ~GeoMagTrace() {}
 
   /// Initialize with GTOD pos,vel and att.
-  void Init(double pos[3], double vel[2], double ypr[3],
+  void Init(double pos[3], double vel[3], double ypr[3], double xtime, 
 	    double theta,  double phi,    double rigidity,
 	    double charge = 1, double beta = 1,
 	    int stat = 0, bool deg = false);
