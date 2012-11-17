@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494.2.4 2012/11/17 15:03:02 qyan Exp $
+//  $Id: root.C,v 1.494.2.5 2012/11/17 22:41:59 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4449,7 +4449,7 @@ int ParticleR::DoBacktracing()
   int    icharge  = (int)Charge;
   if (momentum < 0) {
     momentum = -momentum;
-    icharge  = icharge;
+    icharge  = -icharge;
   }
 
   // Force as photons
@@ -4586,9 +4586,28 @@ int ParticleR::DoBacktracing()
   }
 
   AMSgObj::BookTimer.stop("DoBacktracing");
-#endif
-
   return 0;
+#else
+  AMSDir dir(Theta, Phi);
+  int    ichg = Charge;
+  double beta = Beta;
+  double momt = Momentum;
+  if (beta < 0) { dir  = dir*(-1); beta = -beta; }
+  if (momt < 0) { momt = -momt;    ichg = -ichg; }
+
+  double glong = 0, glat = 0, RPTO[3] = { 0, 0, 0 }, time;
+  int ret = AMSEventR::Head()
+    ->DoBacktracing(BT_result, BT_status, glong, glat, RPTO,
+		    time, dir.gettheta(), dir.getphi(), momt, beta, ichg);
+  BT_glong   = glong;
+  BT_glat    = glat;
+  BT_RPTO[0] = RPTO[0];
+  BT_RPTO[1] = RPTO[1];
+  BT_RPTO[2] = RPTO[2];
+  BT_time    = time;
+
+  return ret;
+#endif
 }
 
 int ParticleR::Loc2Gl(AMSEventR *pev){
@@ -9123,8 +9142,8 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
 
   double rgt = momentum/charge;
   GeoMagTrace gp = (iatt == 3)
-    ? GeoMagTrace(RPT, YPR, xtime, AMSTheta, AMSPhi, rgt, velocity)
-    : GeoMagTrace(RPT, VelPT, YPR, AMSTheta, AMSPhi, rgt, velocity);
+    ? GeoMagTrace(RPT, YPR, xtime, AMSTheta, AMSPhi, rgt, charge, velocity)
+    : GeoMagTrace(RPT, VelPT, YPR, AMSTheta, AMSPhi, rgt, charge, velocity);
 
   int stat = gp.Propagate(gp.NmaxStep);
 
