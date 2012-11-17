@@ -4,10 +4,12 @@
   BetaHR and TofClusterHR can be accessed from AMSEventR, ParticleR or ChargeR  \n
   BetaH Version Software Based on IHEP version Calibration and Reconstruction \n
   Both Support gbatch and Root-Mode  \n
+  Provide both best TOF-Charge and Beta Measurment \n
 */
 // -----------------------------------------------------------
 //        Created:       2012-Aug-17  Q.Yan  qyan@cern.ch
-//        Add:           2010-Oct-11  Adding BetaHR charge example GetQ GetQL
+//        Add:           2012-Oct-11  Adding BetaHR charge example GetQ GetQL
+//        Add:           2012-Nov-17  Adding example TofChargeHR Likelihood Charge-Z Prob-Z:  PDF validate for all charge Z=1~Z>26
 // -----------------------------------------------------------
 
 #include <signal.h>
@@ -27,6 +29,7 @@
 #include "root_RVSP.h"
 #include "amschain.h"
 #include "Tofrec02_ihep.h"
+#include "Tofcharge_ihep.h"
 #include "readfile.C"
 
 
@@ -140,7 +143,13 @@ class AMSAnalysis{
    float        tof_hqt;
    float        tof_hqg;
    float        tof_hql[4];
-
+   int          tof_hz;
+   float        tof_hprobz;
+   int          tof_hzu;//Up Tof Z: TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
+   int          tof_hzd;//Dow Tof Z
+   float        tof_hq;
+   float        tof_hlikq;
+   float        tof_hprobz6;//Prob to be Carbon Z=6: User Can Use Prob Select Each Nucleus
 //--Time
    float        tof_t0;
    float        tof_tmin[4];
@@ -239,7 +248,15 @@ void AMSAnalysis::BookFile(char *ofile){
   tout->Branch("tof_hqt",&tof_hqt, "tof_hqt/F");//Q- Truncate Mean //Better For Low Charge(Pr He Li)
   tout->Branch("tof_hqg",&tof_hqg, "tof_hqg/F");//Q- Global Gaus Mean  //Better For High Charge
   tout->Branch("tof_hql", tof_hql, "tof_hql[4]/F");//Q for each Layer
-
+  tout->Branch("tof_hz", &tof_hz, "tof_hz/I");// TOF-Most Prob Charge
+  tout->Branch("tof_hprobz", &tof_hprobz, "tof_hprobz/F");//TOF-Mose Prob Charge ProbZ
+  tout->Branch("tof_hzu", &tof_hzu, "tof_hzu/I");// Up-TOF-Most Prob Charge ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
+  tout->Branch("tof_hzd", &tof_hzd, "tof_hzd/I");// Dow-TOF-Most Prob Charge
+  tout->Branch("tof_hq", &tof_hq, "tof_hq/F");//Q From TofChargeHR should be better than From BetaH For Z~3-8, Due to tuning better Threshold Between Anode and Dynode)
+  tout->Branch("tof_hlikq", &tof_hlikq, "tof_hlikq/F");//Q-Using Likelihood Method to Get Float-Q(More Gaus)
+  tout->Branch("tof_hprobz6", &tof_hprobz6, "tof_hprobz6/F");// User Can Use Prob Select Each Nucleus
+   
+   
 //---Time
   tout->Branch("tof_t0",   &tof_t0,    "tof_t0/F");
   tout->Branch("tof_time", tof_time,   "tof_time[4]/F");
@@ -475,10 +492,19 @@ bool AMSAnalysis::Select_Tof(){
 //     if(!betah)return false;
      if(betah){
        tof_betah=betah->GetBeta();
-///--BetaH TOF Q
+///--BetaH TOF Q and Access To TOFChargeHR Likelihood integer Z , Prob, LikelihoodQ
        int nlay; float qrms;
        tof_hqt=betah->GetQ(nlay,qrms);//Trancate Mean
        tof_hqg=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOpt,-1);//Gaus Mean
+       TofChargeHR tofcharge=betah->gTofCharge();//tofcharge
+       tof_hz=tofcharge.GetZ(nlay,tof_hprobz); 
+       float probu,probd;
+       tof_hzu=tofcharge.GetZ(nlay,probu,0,1100); //Using Up Two Layer To PID ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
+       tof_hzd=tofcharge.GetZ(nlay,probd,0,11); //Using Down Two Layer To PID
+       tof_hq=tofcharge.GetQ(nlay,qrms);//Q From TofChargeHR should be better than From BetaH For Z~3-8, Due to tuning better Threshold Between Anode and Dynode)
+       tof_hlikq=tofcharge.GetLikeQ(nlay);//Q-Using Likelihood Method to Get Float-Q(More Gaus)
+       tof_hprobz6=tofcharge.GetProbZ(6); //Can Using Prob>Th to Select Carbon
+       
 //---
        tof_chist=betah->GetChi2T();
        tof_chisc=betah->GetChi2C();
@@ -596,6 +622,7 @@ void AMSAnalysis::InitEvent(AMSEventR *ev){
    tof_betah=-3;
    tof_hqt=-1;
    tof_hqg=-1;
+   tof_hprobz=tof_hprobz6=tof_hq=tof_hlikq=tof_hzu=tof_hzd=tof_hz=-1;
 //---
    ecal_edep=0;
    for(int itkl=0;itkl<NTKL;itkl++){
