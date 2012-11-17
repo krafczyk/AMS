@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.509 2012/11/16 15:55:20 sdellato Exp $
+//  $Id: root.h,v 1.510 2012/11/17 15:00:54 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2732,6 +2732,11 @@ class BetaHR: public TrElem{
   bool           IsGoodBeta()           {return ((fTrTrack>=0)&&(GetUseHit()==4));}
   /// Retrun True if TkTrack And TOF Geometry Match
   bool           IsTkTofMatch()         {return fTrTrack>=0;}
+  /// Return Beta TOF-Layer Pattern
+  /// \return 4144: TOF-Layer0,2,3 Used For Beta-Fit, not Use Layer1. 4: Two-Side Time Good && Used, 1: Side-N Good, 2: Side-P Good, 0: BAD
+  int            GetBetaPattern();
+  /// Return True if TOF ilay is Used For Beta-Fit
+  bool           IsBetaUseHL(int ilay)  {return (BetaPar.Pattern[ilay]%10==4);}
   /// Return True if BetaH Cluster is Isolation Fire Counter
   /// \return 0 if neighbor Counter Fire, idis distance to  Central Counter
   /*!
@@ -2980,7 +2985,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,11)
+  ClassDef(BetaHR,12)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        
