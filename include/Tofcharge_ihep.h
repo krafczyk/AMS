@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.4 2012/11/15 10:47:06 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.5 2012/11/17 22:22:30 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -125,8 +125,9 @@ public:
 /// Update All Charge-Measurement Likelihood in Class Using Using Fix Pattern
    /*!
     * @param[in] pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+    * @param[in] opt%10=1 Update Integer Likelihood--- opt/10%10=1 Update LikelihoodQ 
     */
-  void UpdateZ(int pattern=-10);
+  void UpdateZ(int pattern=-10,int opt=1);
 
 /** @name TOF Layer Charge Measurment
  * @{
@@ -187,7 +188,7 @@ public:
    * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
    */
   float GetQ(int &nlay,float &qrms,int pattern=-2); 
-  /// TOF Charge LikehoodQ
+  /// TOF Charge LikehoodQ //CPU Consuming
   /*!
    * @param[out] nlay Number of TOF Layers Used For Q-Measument
    * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
@@ -242,8 +243,8 @@ public:
   static void LikelihoodCal(vector<TofChargePar> cpars,vector<TofLikelihoodPar> &like);
   /// Calculate Likelihood for index IZ
   static number GetLikelihood(int IZ,vector<TofChargePar> cpars);
-  /// LikelihoodQ Estimator
-  static number GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &RMSQ);
+  /// LikelihoodQ Estimator opt=0 QMean-QRMS opt=1 LikelihoodQ
+  static number GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &RMSQ,int opt=0);
   /// LikelihoodQ Minuit Fun
   static void   GetLikelihoodF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */ );
   /// Select Measurment TOF Charge Measurement
