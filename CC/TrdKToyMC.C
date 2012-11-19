@@ -145,7 +145,10 @@ int TrdKToyMC::GenerateToyMCEvent(int Time, int particle){
 
     if(particle>=0)  MCParticle=particle;
 
-    if(MCParticle>=3)cout<<"Warning, Particle Type Not Supported:  "<<MCParticle<<endl;
+    if(MCParticle>=3){
+        cout<<"Warning, Particle Type Not Supported:  "<<MCParticle<<endl;
+    return -9;
+    }
 
     mc_Rigidity=f_rigidity[MCParticle]->GetRandom();
     MCTrack_Rigidity=mc_Rigidity;
