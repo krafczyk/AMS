@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.500 2012/11/17 22:48:36 shaino Exp $
+//  $Id: root.C,v 1.501 2012/11/19 10:21:59 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8456,8 +8456,8 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
 
 
         //...This function inverts particle dir of ams system and returns particle dir in GTOD  deg!!!
-	// Parameters:   use_att= 1, use_coo = 1, use_time= 2, dt= 0, out_type= 3
-        int gtodT =  GetGalCoo(result, theta_deg , phi_deg, theta, phi, 1,1,2,0.,3 );
+	// Parameters:   use_att= 1, use_coo = 1, use_time= 1, dt= 0, out_type= 3
+        int gtodT =  GetGalCoo(result, theta_deg , phi_deg, theta, phi, 1,1,1,0.,3 );
 	if (gtodT!=0) return  -1;
 
 
