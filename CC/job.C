@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.902 2012/11/07 11:17:43 shaino Exp $
+// $Id: job.C,v 1.903 2012/11/19 17:17:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1355,7 +1355,7 @@ void AMSJob::_sitrddata(){
   TRDCALIB.Validity[0]=1;
   TRDCALIB.Validity[1]=86400;
   TRDCALIB.BadChanThr=3.3;
-  TRDCALIB.TrdSCalibVersion=6;
+  TRDCALIB.TrdSCalibVersion=0;
   TRDCALIB.TrdSCalibTrack=1;	
   TRDCALIB.TrdSCalibGainMethod=1;
   TRDCALIB.TrdSCalibAlignMethod=1;			
