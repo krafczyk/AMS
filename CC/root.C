@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.501 2012/11/19 10:21:59 cconsola Exp $
+//  $Id: root.C,v 1.502 2012/11/19 11:03:38 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4737,7 +4737,7 @@ double ParticleR::GetGeoCutoff(AMSEventR *pev){
 	double ThetaISS=  ptr->ThetaS;
 	double PhiISS=    ptr->PhiS;
 #else
-        time_t Utime =pev->UTime() ;
+        time_t Utime =pev->UTCTime() ;
         //...km
         double Altitude = pev->fHeader.RadS/1.e5-Re;
         //...ISS rad
@@ -8479,7 +8479,7 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
                 //............................ZeroCentered
                 if(PhiISS_deg > 180)  PhiISS_deg-=360.;
         //        cout<< " ISS pos theta "<< Theta_deg << " Phi "<< Phi_deg << endl;
-                time_t Time = UTime();
+                time_t Time = UTCTime();
                 double Altitude = fHeader.RadS/1.e5-Re;//km
                 // cout << "AMSEventR::GetMaxGeoCutoff Altitude =  ok in km! " << Altitude << endl;     
                 // this function needs GTOD coo. in deg and Altitude in km
