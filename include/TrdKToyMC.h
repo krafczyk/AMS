@@ -25,11 +25,13 @@ public:
 
     TrdKCluster GetKCluster(int TrackType=1);
 
+
+    TRandom3* gRandom;
     TRandom3 *GetRandom(){return gRandom;}
+
 private:
 
     int Seed;
-    TRandom3* gRandom;
     TF1 *f_rigidity[3];
     double norm_rigidity[3];
 
