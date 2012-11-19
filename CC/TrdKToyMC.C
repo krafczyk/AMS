@@ -67,7 +67,7 @@ void TrdKToyMC::PrepareToyMC(int _seed, float Rigidity_Min,float Rigidity_Max){
 
     SetSpectrum(f_myrigidity);
 
-    MDR=1500;
+    SetMDR(1500);
 
 
     InitXePressure();
