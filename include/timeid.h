@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.52 2012/11/08 16:06:58 nzimmerm Exp $
+//  $Id: timeid.h,v 1.53 2012/11/20 11:29:19 mduranti Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -197,8 +197,13 @@ protected:
   static void   _InitTable();
 
 #ifdef __DARWIN__
+#if __OSXVER__ >= 1080
   static integer _select(   const dirent * entry=0);
   static integer _selectsdir(  const dirent * entry=0);
+#else
+  static integer _select(   dirent * entry=0);
+  static integer _selectsdir(  dirent * entry=0);
+#endif
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
   static integer _select(  const dirent64 * entry=0);

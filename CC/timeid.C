@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.147 2012/11/08 16:06:57 nzimmerm Exp $
+//  $Id: timeid.C,v 1.148 2012/11/20 11:29:19 mduranti Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -599,7 +599,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
       AString * AMSTimeID::_selectEntry=0;
 
 #ifdef __DARWIN__
+#if __OSXVER__ >= 1080
       integer AMSTimeID::_select(  const dirent *entry)
+#else
+      integer AMSTimeID::_select(  dirent *entry)
+#endif
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	integer AMSTimeID::_select(  const dirent64 *entry)
@@ -609,7 +613,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
       }
 
 #ifdef __DARWIN__
+#if __OSXVER__ >= 1080
       integer AMSTimeID::_selectsdir( const dirent *entry)
+#else
+      integer AMSTimeID::_selectsdir( dirent *entry)
+#endif
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 	integer AMSTimeID::_selectsdir(  const dirent64 *entry)

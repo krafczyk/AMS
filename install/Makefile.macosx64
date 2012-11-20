@@ -90,6 +90,9 @@ CFLAGSB=  -Wno-pragmas -Wno-deprecated -Wno-write-strings
 #CFLAGSB+= -Wall -Wfloat-equal -Wshadow -Wsign-compare -Winline 
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
+OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+DEFINES+=-D__OSXVER__=$(OSXVER)
+
 ifdef AMSPROFILE
   CFLAGSB+=-pg
 endif
