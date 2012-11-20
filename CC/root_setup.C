@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.115.2.1 2012/11/12 10:18:44 choutko Exp $
+//  $Id: root_setup.C,v 1.115.2.2 2012/11/20 14:06:48 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1089,7 +1089,11 @@ void AMSSetupR::SlowControlR::printElementNames(const char *name){
 }
 
 #ifdef __DARWIN__
+#if __OSXVER__ >= 1080
+integer AMSSetupR::_select( const dirent *entry)
+#else
 integer AMSSetupR::_select( dirent *entry)
+#endif
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 integer AMSSetupR::_select(  const dirent64 *entry)
