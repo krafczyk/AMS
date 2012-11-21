@@ -12,15 +12,12 @@ CXXFLAGS=-Wno-write-strings  $(CPPFLAGS)
 main: static
 static: trdqt_example
 
-EXTRA_FLAGS=""
 ifeq ($(MARCH),macosx64)
   EXTRA_FLAGS=-F$(QTDIR)/lib -framework QtCore 
-else
-  EXTRA_FLAGS=-L$(QTDIR)/lib -lQtCore
 endif
 
 trdqt_example: $(OBJS_U)
-	$(CXX) -o $@ $(CXXFLAGS) $^ $(EXTRA_FLAGS) -L$(AMSWD)/lib/$(MARCH)/ -lntuple_slc4_PG `root-config --libs` -lMinuit -lNetx -lProof -lProofPlayer -lTMVA -lXMLIO -lMLP -lTreePlayer
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(EXTRA_FLAGS) $(AMSWD)/lib/$(MARCH)/ntuple_slc4_PG.so `root-config --libs` -lMinuit -lNetx -lProof -lProofPlayer -lTMVA -lXMLIO -lMLP -lTreePlayer
 
 %.o: %.C
 	$(CXX) -o $@ $(CXXFLAGS) -c $^ $(EXTRA_FLAGS)
