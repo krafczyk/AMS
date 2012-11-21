@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.72 2012/11/20 11:29:19 mduranti Exp $
+//  $Id: root_setup.h,v 1.73 2012/11/21 17:33:57 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -178,6 +178,24 @@ unsigned int EventLast; ///<Last event with  the same Epoche
 vector<unsigned int> Epoche; ///< GPS Time Epoche Format
 GPS():Run(0),Event(0),EventLast(0){}
 ClassDef(GPS,3)
+};
+
+class RTI{
+public:
+unsigned int run;  ///< ruin
+float lf;  ///< life time
+float cf[4];  ///<  max cutoff for 25,30,35,40 degrees (gv)
+float cfc; ///< max calculated cutoff (gv)
+float mphe;///< most probable He rigidity;
+float theta;  ///< theta gtod degrees
+float phi;    ///<phi gtod , degrees
+float nev;    ///< events number
+float nerr;  ///<  absent events
+float ntrig; ///< events with trigger;
+float npart; ///< events with tof+trd+tracker+ecal
+int good;    ///<  0 if good
+ RTI():good(-1),run(0),mphe(0),lf(0),cfc(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0){cf[0]=cf[1]=cf[2]=cf[3]=0;}
+ClassDef(RTI,1)
 };
 
 class GPSWGS84{
@@ -465,11 +483,14 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  //---------------DSP Errors-------------------------
  typedef map <unsigned int, DSPError>::iterator DSPError_i;
  //--------------------------------------------------
+typedef map <unsigned int,RTI> RTI_m;
+
 typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
 typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
 vector<JGC> fJGC;
     BadRun_m fBadRun; ///< BadRuns 
     GPS_m fGPS;    ///< GPS Epoch Time
+    RTI_m fRTI;  ///<  runtimeInfo data
     GPSWGS84_m fGPSWGS84;  ///<  GPS Coo Data        
   ISSData_m fISSData;    ///< ISS Aux Data map
   ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
@@ -601,6 +622,23 @@ static int _select (const dirent64 * entry);
   
  */
  int getAMSSTK(AMSSTK & a, double xtime); 
+
+
+
+ //! RTI accessor
+ /*! 
+   
+   \param unsigned int time (JMDC Time[0]
+   \param RTI  value
+   \retval 0   ok 
+   \retval 1   no for this second
+   \retval 2   no data
+   
+
+   \note
+   The default path could be customized defining the AMSISS environment variable: this will overhide $AMSDataDir/altec/
+ */
+ int getRTI(RTI & a, unsigned int time); 
 
  
  //! ISS Coo & Velocity GPS accessor
@@ -736,6 +774,7 @@ static int _select (const dirent64 * entry);
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);
  int LoadISSSA(unsigned int t1, unsigned int t2);
+ int LoadRTI(unsigned int t1, unsigned int t2);
  int LoadGPSWGS84(unsigned int t1, unsigned int t2);
  int LoadISSINTL(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
@@ -766,7 +805,7 @@ static int _select (const dirent64 * entry);
  //---------------------------------------
 
 
-ClassDef(AMSSetupR,21)       //AMSSetupR
+ClassDef(AMSSetupR,22)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.238 2012/11/19 11:07:28 zweng Exp $
+#  $Id: Makefile,v 1.239 2012/11/21 17:34:01 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -1181,8 +1181,6 @@ allg4:
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
 ifndef SLC6system
-	$(MAKE) -j -f Moptg4
-	$(MAKE)  producer -f Moptg4 -i  
 endif
 allp:
 	$(MAKE) -j 

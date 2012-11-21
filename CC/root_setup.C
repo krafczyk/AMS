@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.118 2012/11/20 11:29:19 mduranti Exp $
+//  $Id: root_setup.C,v 1.119 2012/11/21 17:33:50 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -154,6 +154,7 @@ return true;
 }
 void AMSSetupR::Reset(){
 fGPS.clear();
+fRTI.clear();
 fGPSWGS84.clear();
 fISSData.clear();
 fISSAtt.clear();
@@ -642,6 +643,7 @@ else{
    fISSINTL.clear();
    fISSCTRS.clear();
    fISSGTOD.clear();
+   fRTI.clear();
    fGPSWGS84.clear();
    fJGC.clear();
    fDSPError.clear();
@@ -652,6 +654,7 @@ else{
    LoadISSCTRS(fHeader.Run-dt,fHeader.Run+3600);
    LoadGPSWGS84(fHeader.Run-dt,fHeader.Run+3600);
    LoadISSGTOD(fHeader.Run-dt,fHeader.Run+3600);
+   LoadRTI(fHeader.Run-dt,fHeader.Run+3600);
    LoadAMSSTK(fHeader.Run-dt,fHeader.Run+3600);
    LoadDSPErrors(fHeader.Run-dt,fHeader.Run+3600);
    LoadDynAlignment(fHeader.Run);
@@ -700,6 +703,7 @@ else{
    LoadISSCTRS(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadGPSWGS84(fHeader.Run-dt,fHeader.LEventTime+dt);
    LoadISSGTOD(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
+   LoadRTI(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadAMSSTK(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadDSPErrors(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadDynAlignment(fHeader.Run);
@@ -1280,7 +1284,9 @@ return fScalersReturn.size();
 }
 }
 
-
+int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2){
+return 2;
+}
 
 int AMSSetupR::LoadAMSSTK(unsigned int t1, unsigned int t2){
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
@@ -2528,7 +2534,9 @@ a=b;
 
 }
 
-
+int AMSSetupR::getRTI(AMSSetupR::RTI & a, unsigned int  xtime){
+return 2;
+}
 
 int AMSSetupR::getAMSSTK(AMSSetupR::AMSSTK & a, double xtime){
 // 

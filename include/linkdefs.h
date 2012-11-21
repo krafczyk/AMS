@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.46 2012/11/09 17:47:43 choutko Exp $
+//  $Id: linkdefs.h,v 1.47 2012/11/21 17:33:57 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -75,6 +75,7 @@
 #pragma link C++ class AMSSetupR::ISSAtt+;
 #pragma link C++ class AMSSetupR::AMSSTK+;
 #pragma link C++ class  AMSSetupR::GPS+;
+#pragma link C++ class  AMSSetupR::RTI+;
 #pragma link C++ class AMSSetupR::ISSSA+;
 #pragma link C++ class AMSSetupR::ISSINTL+;
 #pragma link C++ class AMSSetupR::ISSCTRS+;

@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.140 2012/11/19 11:07:14 zweng Exp $
+//  $Id: linkdef.h,v 1.141 2012/11/21 17:33:56 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -123,6 +123,7 @@
 #pragma link C++ class AMSSetupR::SlowControlR::Element+;
 #pragma link C++ class AMSSetupR::Header+;
 #pragma link C++ class AMSSetupR::GPS+;
+#pragma link C++ class AMSSetupR::RTI+;
 #pragma link C++ class EcalHitR+;
 #pragma link C++ class EcalClusterR+;
 #pragma link C++ class Ecal2DClusterR+;
