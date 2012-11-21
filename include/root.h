@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.511 2012/11/17 22:48:39 shaino Exp $
+//  $Id: root.h,v 1.512 2012/11/21 10:33:15 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2652,7 +2652,7 @@ public:
 
 /// Tof BetaH structure
 /*! 
- * IHEP New TOF Beta Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH(New Calibration+Software)
+ * IHEP New TOF Beta+Charge Measument BetaH TofRawSide->TofClusterH(only 1 TOF Counter)->BetaH+TofChargeH(New Calibration+Software)
  * Root Mode ReFit User Need One function:  TofRecH::ReBuild() 
  * Example of How to Use:  vdev/example/Tof_BetaH.C (AMSsoft)
  * include file:  #include "Tofrec02_ihep.h"
@@ -2928,10 +2928,11 @@ class BetaHR: public TrElem{
   /*!
     * @param[out] nlay Number of TOF Layers Used For Charge Z-Measument
     * @param[out] Z Likelihood-Prob
+    * @param[in]  IZ  =0 Max-Prob Z, =1 Second-Max-Prob Z...
     * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
     * @return Charge Z (<0 Faild)
   */
-   int GetZ(int &nlay,float &Prob,int pattern=-10){return gTofCharge().GetZ(nlay,Prob,0,pattern);}
+   int GetZ(int &nlay,float &Prob,int IZ=0,int pattern=-10){return gTofCharge().GetZ(nlay,Prob,IZ,pattern);}
   /// Likehood Q-Estimator
  /*!
     * @param[out] nlay Number of TOF Layers Used For Q-Measument

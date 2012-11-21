@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.5 2012/11/17 22:22:30 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.6 2012/11/21 10:33:15 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -96,7 +96,7 @@ class TofLikelihoodPar: public TObject{
 //////////////////////////////////////////////////////////////////////////
 /// TofChargeHR structure
 /*!
- *  TOF Charge Likelihood Manager which can be access From BetaH gTofCharge()
+ *  TOF Charge Likelihood Manager include all Tools of TOF-Charge determinition, which can be access From BetaH gTofCharge()
  *  \author qyan@cern.ch
 */
 ////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ public:
   map<int, float>Q;
   /// Q RMS
   map<int, float>RQ;
-  ///--Tk Index
+  /// Tk Index
   int fTrTrack;
 
 public:
@@ -163,12 +163,12 @@ public:
   /*!
    * @param[out] nlay Number of TOF Layers Used For Charge Z-Measument
    * @param[out] Prob Likelihood Prob
-   * @param[in]  IZ  =0 Max-Prob Z, =1 Second-Max-Prob Z (0~GetNZ()-1)
+   * @param[in]  IZ (0~GetNZ()-1):  =0 Max-Prob Z, =1 Second-Max-Prob Z
    * @param[in]  pattern: pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer;-2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer;-12: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
    * @return Charge Z (<0 Faild)
    */
   int  GetZ(int &nlay,float &Prob,int IZ=0,int pattern=-10);
-  /// Access Data Likelihood for IZ ///IZ  =0 Max-Prob Z, =1 Second-Max-Prob Z (0~GetNZ()-1
+  /// Access Data Likelihood for IZ ///IZ (0~GetNZ()-1):  =0 Max-Prob Z, =1 Second-Max-Prob Z
   TofLikelihoodPar  gTofLikelihoodPar(int IZ=0, int pattern=-10);
   /// TOF Likelihood-Prob For Charge Z ///Return 0 if Prob is neglectable
   float GetProbZ(int Z,int pattern=-10);
