@@ -486,7 +486,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     if(out_of_range || (dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){  // Try to fall back to TDV if data in memory are no good
       if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Trying to Access TDV directly\n");
       int ret=-1;
-      ret=GetFromTDV(time, version);
+      ret=GetFromTDV(time, version, 1);
       if(ret<=0) {
 	if(nwar++ <errlim)printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");
 	return -2;
