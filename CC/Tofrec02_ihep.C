@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.39 2012/11/17 15:00:03 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.40 2012/11/21 10:34:16 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -662,7 +662,17 @@ number TofRecH::CoverToQ2(int idsoft,int isanode,number adc){//PM Level
 //=======================================================
 TF1  *TofRecH::GetBirkFun(int idsoft){
 
-   if(!BirkFun)BirkFun=new TF1("TOF_birkfun","x/(1.+[1]*atan([0]/[1]*x))",0,10000);
+   if(!BirkFun)
+#pragma omp critical(fun)
+{
+    int thread=0;
+#ifdef _OPENMP
+    thread=omp_get_thread_num();
+#endif
+    char title[80];
+    sprintf(title,"TOF_birkfun%d",thread);
+    BirkFun=new TF1(title,"x/(1.+[1]*atan([0]/[1]*x))",0,10000);
+}
 
    TofCAlignPar   *CPar=TofCAlignPar::GetHead();
    idsoft=idsoft/100*100;
@@ -670,7 +680,7 @@ TF1  *TofRecH::GetBirkFun(int idsoft){
    BirkFun->SetParameter(0,CPar->birk[0][idsoft]);
    BirkFun->SetParameter(1,CPar->birk[1][idsoft]); 
    return BirkFun;
-};
+}
 
 //========================================================
 number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
@@ -757,7 +767,18 @@ number TofRecH::GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge
 //========================================================
 TF1 *TofRecH::GetBetaFun(){
 
-   if(!BetaFun)BetaFun=new TF1("TOF_VE","pol4",0.2,1.1);
+   if(!BetaFun)
+#pragma omp critical(fun)
+{ 
+    int thread=0;
+#ifdef _OPENMP
+    thread=omp_get_thread_num();
+#endif
+    char title[80];
+    sprintf(title,"TOF_VE%d",thread);
+    BetaFun=new TF1(title,"pol4",0.2,1.1);
+}
+
    return BetaFun;
 }
 
