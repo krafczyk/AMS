@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.26 2012/11/09 15:17:15 qyan Exp $
+//  $Id: Tofdbc.C,v 1.27 2012/11/21 19:55:16 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -2396,13 +2396,15 @@ TofAlignManager::TofAlignManager(int real){
                               TofTAlign->TDVBlock,
                               server,1,TofTAlignPar::HeadLoadTDVPar);
     tdvmap.insert(pair<string,AMSTimeID*>(TofTAlign->TDVName,tdv));
-//---Tdc correction
-    integer TOFCRSL=TOF2GC::SCCRAT*(TOF2GC::SCFETA-1);
-    tdv= new AMSTimeID(AMSID("TofTdcCor",isreal),begin,end,
+//---Tdc correction //Only For Real Data
+    if(real==1){
+      integer TOFCRSL=TOF2GC::SCCRAT*(TOF2GC::SCFETA-1);
+      tdv= new AMSTimeID(AMSID("TofTdcCor",isreal),begin,end,
                            TOFCRSL*sizeof(TofTdcCorN::tdccor[0][0]),
                            (void*)&TofTdcCorN::tdccor[0][0],
                            server,1);
-     tdvmap.insert(pair<string,AMSTimeID*>("TofTdcCor",tdv));
+      tdvmap.insert(pair<string,AMSTimeID*>("TofTdcCor",tdv));
+    }
 //---Attunation correction
      TofAttAlignPar *TofAttAlign=TofAttAlignPar::GetHead();
      tdv= new AMSTimeID(AMSID(TofAttAlign->TDVName,isreal),begin,end,

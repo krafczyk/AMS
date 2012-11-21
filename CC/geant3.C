@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.158 2012/07/05 23:21:54 oliva Exp $
+//  $Id: geant3.C,v 1.159 2012/11/21 19:55:16 qyan Exp $
 
 #include "Tofsim02.h"
 #include "typedefs.h"
@@ -280,7 +280,13 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //cout<<"  ----->TOF-Bef.Birks:Edep="<<dee<<"  Q="<<GCKINE.charge<<" step="<<GCTRAK.step<<endl;
 //---TOFNew Simulation Using Geant4 table
       number dedxcm=1000*dee/GCTRAK.step;
-      if(G4FFKEY.TFNewGeant4>0)dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
+      number cb1=1.1;
+//      if(G4FFKEY.TFNewGeant4>0)dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
+      if(G4FFKEY.TFNewGeant4>0){
+          dee=dee/(1.+cb1*atan(TFMCFFKEY.birk*dedxcm*0.1/cb1));
+//             dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1)
+      }
+
       else                     GBIRK(dee);
 //cout<<"  ----->Aft.Birks:Edep="<<dee<<endl;
     }
