@@ -29,25 +29,10 @@ public:
     TRandom3* gRandom;
     TRandom3 *GetRandom(){return gRandom;}
 
-private:
-
-    int Seed;
-    TF1 *f_rigidity[3];
-    double norm_rigidity[3];
-
-    float MDR;
-
-    vector<TrdKHit> select_tube;
-    vector<TrdKHit> Real_tube_collection;
-
-    TrdKPDF *pdf;
-    TrdKPDF *kpdf_p;
-    TrdKPDF *kpdf_e;
-    TrdKPDF *kpdf_h;
 
     int MCParticle;
     float mc_Rigidity,mc_Pressure,mc_EcalEnergy;
-
+    float MDR;
 
     AMSPoint MCTrack_P0;
     AMSDir MCTrack_Dir;
@@ -62,6 +47,24 @@ private:
 
 
     TrdKCluster _trdcluster;
+
+
+private:
+
+    int Seed;
+    TF1 *f_rigidity[3];
+    double norm_rigidity[3];
+
+
+    vector<TrdKHit> select_tube;
+    vector<TrdKHit> Real_tube_collection;
+
+    TrdKPDF *pdf;
+    TrdKPDF *kpdf_p;
+    TrdKPDF *kpdf_e;
+    TrdKPDF *kpdf_h;
+
+
 
 };
 
