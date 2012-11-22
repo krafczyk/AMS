@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.73 2012/11/21 17:33:57 choutko Exp $
+//  $Id: root_setup.h,v 1.74 2012/11/22 15:53:48 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -189,6 +189,8 @@ float cfc; ///< max calculated cutoff (gv)
 float mphe;///< most probable He rigidity;
 float theta;  ///< theta gtod degrees
 float phi;    ///<phi gtod , degrees
+float r;     ///< Rad (cm)
+float zenith; ///< ams zenith angle (degrees)
 float nev;    ///< events number
 float nerr;  ///<  absent events
 float ntrig; ///< events with trigger;
