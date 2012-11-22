@@ -980,6 +980,10 @@ class RemoteClient:
         output.close()
         
     def validaterun(self,run):
+        if(self.nBadCopiesInRow>30):
+            output.write("too many docopy failures")
+            print "too many docopy failurs"
+            return 
         mutex.acquire()
         print "run started ",run.Run,run.uid
         odisk=None
@@ -1187,10 +1191,6 @@ class RemoteClient:
                                                         output.write("failed to copy or wrong crc for %s" %(fpath))
                                                         copyfailed=1
                                                         self.nBadCopiesInRow=self.nBadCopiesInRow+1
-                                                        if(self.nBadCopiesInRow>30):
-                                                            output.write("too many docopy failures")
-                                                            print "too many docopy failurs"
-                                                            return 
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
@@ -1298,6 +1298,10 @@ class RemoteClient:
               exitmutexes[run.Run].acquire()
 
     def validatedatarun(self,run):
+        if(self.nBadCopiesInRow>30):
+            output.write("too many docopy failures")
+            print "too many docopy failurs"
+            return 
         datamc=run.DataMC
         mutex.acquire()
         # print "run started ",run.Run,run.uid
@@ -1514,10 +1518,6 @@ class RemoteClient:
                                                         output.write("failed to copy or wrong crc for %s" %(fpath))
                                                         copyfailed=1
                                                         self.nBadCopiesInRow=self.nBadCopiesInRow+1
-                                                        if(self.nBadCopiesInRow>30):
-                                                            output.write("too many docopy failures")
-                                                            print "too many docopy failurs"
-                                                            return 
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):

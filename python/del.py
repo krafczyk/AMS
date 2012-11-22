@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: del.py,v 1.9 2012/11/15 18:19:31 ams Exp $
+#  $Id: del.py,v 1.10 2012/11/22 09:24:52 ams Exp $
 # this script suppose to delete datasets
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
@@ -44,6 +44,6 @@ if(len(source)<2):
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
 #donly :  only delete data, not dataruns
-html.DeleteDataSet(run2p,source,u,v,f,donly,datamc,b,castortime,run2pm)
+html.DeleteDataSet(run2p,source,u,v,f,donly,datamc,b,castortime)
 
 
