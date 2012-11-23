@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494.2.5 2012/11/17 22:41:59 shaino Exp $
+//  $Id: root.C,v 1.494.2.6 2012/11/23 10:42:23 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4773,11 +4773,14 @@ double ParticleR::GetGeoCutoff(AMSEventR *pev){
         if (sign ==-1) pos = 0 ;//...negative perticles         
         if (sign == 1) pos = 1 ;//...positive perticles         
 
-        //...GV!!
-        double R =Charge * GeoMagCutoff( Utime,  Altitude , theta,  phi, thetaISS,  phiISS,  pos ) ;
-        //Charge is part.Charge!        
+        //...GV
+        double R = GeoMagCutoff( Utime,  Altitude , theta,  phi, thetaISS,  phiISS,  pos ) ;
+	//...GeV/c        
+	double pc = R*Charge;
+        //Charge is part.Charge
 
-return R;
+
+return pc;
 }
 //----------------------------------------------------------------------------------------
 
