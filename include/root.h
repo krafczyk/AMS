@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.512 2012/11/21 10:33:15 qyan Exp $
+//  $Id: root.h,v 1.513 2012/11/23 16:38:35 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3389,6 +3389,16 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
   double RichBetasAverage();
   /// \return the difference in the reconstructed beta between the two RICH reconstrution algorithm, of inf if one reconstruction is missing. The value returned is RichRingR::Beta-RichRingBR::Beta.
   double RichBetasDiscrepancy();
+  /// \return Find nearest TOF-BarId(0-7(9)) by Linear-Interpolation: -1 Lef Outside TOF Min-BarId=0. -2 Right Outside TOF Max-BarId
+   /*!
+   * @param[in] TOF ilay(0-3)
+   * @param[in] pnt reference point (can be shower position)
+   * @param[in] dir reference dir
+   * @param[out]  Interpolate to TOF-Plane position
+   * @param[out]  Min-distance to TOF-Edge
+   * @
+   */  
+  static int  InterpolateToTOF(int ilay, const AMSPoint pnt, const AMSDir dir, AMSPoint &tofpnt, double &disedge);
 
   /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();

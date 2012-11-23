@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.27 2012/11/21 19:55:16 qyan Exp $
+//  $Id: Tofdbc.C,v 1.28 2012/11/23 16:38:11 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -177,6 +177,15 @@ void TOFGeom::GetLayEdge(int ilay,float x[3][2]){
     }
   }
 }
+
+//--GetMeanZ of iLayer
+float TOFGeom::GetMeanZ(int ilay){
+  float  meanz=0;
+  for(int ibar=0;ibar<Nbar[ilay];ibar++){meanz+=Sci_pz[ilay][ibar];}
+  meanz=meanz/Nbar[ilay];
+  return meanz;
+}
+
 //--Judge Pool Charge PathLength Geometry Region
 bool TOFGeom::IsGoodQGeom(int ilay,int ibar,AMSPoint tkpos){
 

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.502 2012/11/19 11:03:38 cconsola Exp $
+//  $Id: root.C,v 1.503 2012/11/23 16:38:12 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4702,6 +4702,38 @@ int ParticleR::Loc2Gl(AMSEventR *pev){
 	PhiGl=global.getphi();
         return 0;
 }
+
+
+int  ParticleR::InterpolateToTOF(int ilay, const AMSPoint pnt, const AMSDir dir, AMSPoint &tofpnt, double &disedge){
+   
+   double tofz=TOFGeom::GetMeanZ(ilay);
+   float coo[3],dis;
+   bool isinbar=0;
+   coo[0]=(tofz-pnt[2])*dir[0]/dir[2]+pnt[0];
+   coo[1]=(tofz-pnt[2])*dir[1]/dir[2]+pnt[1];     
+   int barid=TOFGeom::FindNearBar(ilay,coo[0],coo[1],dis,isinbar);
+//----tofz
+   tofz=TOFGeom::Sci_pz[ilay][barid];
+   coo[0]=(tofz-pnt[2])*dir[0]/dir[2]+pnt[0];
+   coo[1]=(tofz-pnt[2])*dir[1]/dir[2]+pnt[1];
+   tofpnt[0]=coo[0];tofpnt[1]=coo[1];tofpnt[2]=tofz;
+//---
+   float bdcoo[3][2];
+   disedge=FLT_MAX;
+   TOFGeom::GetLayEdge(ilay,bdcoo);
+   for(int ipr=0;ipr<2;ipr++){     
+     for(int ilr=0;ilr<2;ilr++){
+       if(fabs(bdcoo[ipr][ilr]-coo[ipr])<disedge){disedge=fabs(bdcoo[ipr][ilr]-coo[ipr]);}
+     }
+   }
+  int ubarid=0;
+  if     (isinbar) ubarid=barid;
+  else if(barid==0)ubarid=-1;
+  else             ubarid=-2;
+  return ubarid;
+//---
+}
+
 
 bool ParticleR::IsInsideTRD()
 {

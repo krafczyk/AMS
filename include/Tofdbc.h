@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.24 2012/11/15 20:04:51 qyan Exp $
+//  $Id: Tofdbc.h,v 1.25 2012/11/23 16:38:35 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -93,6 +93,7 @@ class TOFGeom{
    static bool      IsInOverlap(int ilay,float x, float y,int nexcl=1);//
    static void      GetBarEdge(int ilay,int ibar,float x[3][2]);//first 3 xyz //second 2 lh
    static void      GetLayEdge(int ilay,float x[3][2]);//first 3 xyz //second 2 lh(max size)
+   static float     GetMeanZ(int ilay);
 
 //---Judge Pool Charge PathLength Geometry Region
    static bool      IsGoodQGeom(int ilay,int ibar,AMSPoint tkpos);
