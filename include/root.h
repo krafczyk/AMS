@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.513 2012/11/23 16:38:35 qyan Exp $
+//  $Id: root.h,v 1.514 2012/11/24 00:16:13 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1153,7 +1153,10 @@ class TofClusterHR :public TrElem {
   AMSPoint  LToGCoo(AMSPoint lpos){return TOFGeom::LToGCoo(Layer,Bar,lpos);}
   /// Global Coo Inside Counter or Not 
   /// z=0 don't use z information,  z!=0 include z judgment.
-  bool IsInSideBar(float x, float y, float z=0){return  TOFGeom::IsInSideBar(Layer,Bar,x,y,z);}
+  bool IsInSideBar(float x, float y, float z=0){
+       float bdis;
+       return  TOFGeom::IsInSideBar(Layer,Bar,x,y,bdis,z);
+    }
 /**@}*/
 
   bool operator<(const TofClusterHR &right){
@@ -3389,16 +3392,15 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
   double RichBetasAverage();
   /// \return the difference in the reconstructed beta between the two RICH reconstrution algorithm, of inf if one reconstruction is missing. The value returned is RichRingR::Beta-RichRingBR::Beta.
   double RichBetasDiscrepancy();
-  /// \return Find nearest TOF-BarId(0-7(9)) by Linear-Interpolation: -1 Lef Outside TOF Min-BarId=0. -2 Right Outside TOF Max-BarId
+  /// \return Pass-Through Nearest TOF-BarId(0-7(9)): -1  Outside TOF Geometry Region
    /*!
-   * @param[in] TOF ilay(0-3)
-   * @param[in] pnt reference point (can be shower position)
-   * @param[in] dir reference dir
-   * @param[out]  Interpolate to TOF-Plane position
-   * @param[out]  Min-distance to TOF-Edge
-   * @
+   * @param[in]  ilay:    TOF ilay(0-3)
+   * @param[in]  pnt:     reference point[cm](can be tk-or-shower position )
+   * @param[in]  dir:     reference dir      (can be tk-or-shower direction)
+   * @param[out] tofpnt:  interpolate to iLay TOF position
+   * @param[out] disedge: distance to the nearest TOF-geometry-edge, -1:outside TOF-geometry-edge
    */  
-  static int  InterpolateToTOF(int ilay, const AMSPoint pnt, const AMSDir dir, AMSPoint &tofpnt, double &disedge);
+  static int  IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSPoint &tofpnt, float &disedge);
 
   /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();

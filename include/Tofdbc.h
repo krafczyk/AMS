@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.25 2012/11/23 16:38:35 qyan Exp $
+//  $Id: Tofdbc.h,v 1.26 2012/11/24 00:16:13 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -80,6 +80,8 @@ class TOFGeom{
    static const float Sci_t[NLAY][NBAR];
    static const float Sci_pt[NLAY][NBAR];
    static const float Sci_pz[NLAY][NBAR];
+   static const float Sci_wc[NLAY][NBAR];
+   static const float Sci_lc[NLAY][NBAR];
 
   public:
    TOFGeom(){};
@@ -87,7 +89,7 @@ class TOFGeom{
    static AMSPoint  GetBarCoo(int ilay,int ibar);
    static AMSPoint  GToLCoo(int ilay,int ibar,AMSPoint gpos);//Global To Local Coo
    static AMSPoint  LToGCoo(int ilay,int ibar,AMSPoint lpos);//Local To Global Coo
-   static bool      IsInSideBar(int ilay,int ibar,float x, float y,float z=0);//z=0 z not use
+   static bool      IsInSideBar(int ilay,int ibar,float x, float y,float &trapdis,float z=0);//z=0 z not use
    static bool      IsInSideTOF(int ilay,float x, float y,float z=0);
    static int       FindNearBar(int ilay,float x, float y, float &dis,bool &isinbar,float z=0);
    static bool      IsInOverlap(int ilay,float x, float y,int nexcl=1);//
