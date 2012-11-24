@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.26 2012/11/24 00:16:13 qyan Exp $
+//  $Id: Tofdbc.h,v 1.27 2012/11/24 11:26:27 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -85,7 +85,7 @@ class TOFGeom{
 
   public:
    TOFGeom(){};
-   static bool      IsTrapezoid(int ilay,int ibar){return ((ibar==0)||(ibar==Nbar[ibar]-1));}
+   static bool      IsTrapezoid(int ilay,int ibar);
    static AMSPoint  GetBarCoo(int ilay,int ibar);
    static AMSPoint  GToLCoo(int ilay,int ibar,AMSPoint gpos);//Global To Local Coo
    static AMSPoint  LToGCoo(int ilay,int ibar,AMSPoint lpos);//Local To Global Coo
