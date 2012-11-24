@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.29 2012/11/24 00:17:00 qyan Exp $
+//  $Id: Tofdbc.C,v 1.30 2012/11/24 11:25:48 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -111,6 +111,11 @@ const float TOFGeom::Honshift[2][2]={//topxy +bowxy 0.1cm 0.1
   0., 0.,
   0., 0.
 };
+//---Trapzoid or not
+bool TOFGeom::IsTrapezoid(int ilay,int ibar){
+  return ((ibar==0)||(ibar==Nbar[ilay]-1));
+}
+
 //--Bar Coo(include shift)
 AMSPoint TOFGeom::GetBarCoo(int ilay,int ibar){
     AMSPoint coo(0,0,0);
@@ -145,13 +150,13 @@ bool TOFGeom::IsInSideBar(int ilay,int ibar,float x,float y,float &trapdis,float
       double y=coo[Proj[ilay]];//Y Project
 //---
       double x0,y0,x1,y1,kk,bb;
-      if(ibar==0){
-         x0=-Sci_w[ilay][ibar]/2.;
-         y0=Sci_l[ilay][ibar]/2.-Sci_lc[ilay][ibar]; 
-         x1=-(Sci_w[ilay][ibar]/2.-Sci_wc[ilay][ibar]);
-         y1=Sci_l[ilay][ibar]/2.; 
-       }
-      else {
+//----All Bar=0 
+       x0=-Sci_w[ilay][ibar]/2.;
+       y0=Sci_l[ilay][ibar]/2.-Sci_lc[ilay][ibar]; 
+       x1=-(Sci_w[ilay][ibar]/2.-Sci_wc[ilay][ibar]);
+       y1=Sci_l[ilay][ibar]/2.; 
+ //--Trapzoid
+      if(ibar==Nbar[ilay]-1){
         x0=-x0;
         x1=-x1;
       } 
@@ -191,7 +196,8 @@ int TOFGeom::FindNearBar(int ilay,float x,float y,float &dis,bool &isinbar,float
     AMSPoint gcoo(x,y,z),lcoo;
     for(int ibar=0;ibar<Nbar[ilay];ibar++){
       lcoo=GToLCoo(ilay,ibar,gcoo);
-      if(z!=0){ if(fabs(lcoo[1-Proj[ilay]])<mindis){dis=lcoo[1-Proj[ilay]],mindis=fabs(dis);minbar=ibar;} }
+      float nowdis=fabs(lcoo[1-Proj[ilay]])-Sci_w[ilay][ibar]/2.;
+      if(z==0){ if(nowdis<mindis){dis=lcoo[1-Proj[ilay]],mindis=nowdis;minbar=ibar;} }
       else    { if(lcoo.norm()<mindis){dis=lcoo.norm(),mindis=dis,minbar=ibar;}}
     }
     float bdis=0;

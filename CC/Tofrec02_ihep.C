@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.40 2012/11/21 10:34:16 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.41 2012/11/24 11:25:48 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -1258,10 +1258,10 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
           }
        }
 
-      dscoo=fabs(tkcoo[iscoo]-tfcoo[iscoo]);
+      dscoo=fabs(tkcoo[iscoo]-tfcoo[iscoo])-TOFGeom::Sci_w[ilay][nowbar]/2.;
       if(dscoo<mscoo){//first compare Trans
           mscoo=dscoo;
-          if(mscoo<TofRecPar::BetaHReg[0]*tfecoo[iscoo]){//0.5cm offset tof+tkhit match in same counter 3sigma S flag
+          if(fabs(tkcoo[iscoo]-tfcoo[iscoo])<TofRecPar::BetaHReg[0]*tfecoo[iscoo]){//0.5cm offset tof+tkhit match in same counter 3sigma S flag
              (*tfhit)=tofclh[ilay].at(i);tklen=sleng;
              dlcoo=fabs(tkcoo[1-iscoo]-tfcoo[1-iscoo]);
              tklcoo=tkcoo[1-iscoo]; tkcosz=cos(theta);//tkcosz=fabs(tkdir[2]);
