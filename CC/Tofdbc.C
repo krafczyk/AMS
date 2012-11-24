@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.28 2012/11/23 16:38:11 qyan Exp $
+//  $Id: Tofdbc.C,v 1.29 2012/11/24 00:17:00 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -68,6 +68,23 @@ const float TOFGeom::Sci_l[NLAY][NBAR]={
 110.0, 117.2, 127.0, 132.2, 132.2, 132.2, 132.2, 127.0, 117.2,  110.0,
        130.0, 134.0, 134.0, 134.0, 134.0, 134.0, 134.0, 130.0,  0.,  0.
 };
+
+//Sci_cut_width
+const float TOFGeom::Sci_wc[NLAY][NBAR]={
+      5.,  0.,0.,0.,0.,0.,0.,5.,  0., 0.,
+      13.5,0.,0.,0.,0.,0.,0.,13.5,0., 0.,
+ 6.5, 0.,  0.,0.,0.,0.,0.,0.,0.,  6.5,
+      8.5, 0.,0.,0.,0.,0.,0.,8.5, 0.,0.,
+};
+
+//Sci_cut_length
+const float TOFGeom::Sci_lc[NLAY][NBAR]={
+       25., 0.,0.,0.,0.,0.,0.,25., 0, 0.,
+       24.3,0.,0.,0.,0.,0.,0.,24.3,0, 0.,
+  20., 0.,  0.,0.,0.,0.,0.,0.,0.,  20.,
+       26.9,0.,0.,0.,0.,0.,0.,26.9,0.,0.
+};
+
 //Sci_thick
 const float TOFGeom::Sci_t[NLAY][NBAR]={//cm
    1., 1., 1., 1., 1., 1., 1., 1., 0., 0.,
@@ -116,19 +133,56 @@ AMSPoint  TOFGeom::LToGCoo(int ilay,int ibar,AMSPoint lpos){
    return coo;
 }
 //--to Judge whether Inside Counter
-bool TOFGeom::IsInSideBar(int ilay,int ibar,float x,float y,float z){
+bool TOFGeom::IsInSideBar(int ilay,int ibar,float x,float y,float &trapdis,float z){
    AMSPoint rcoo(x,y,z);
    AMSPoint coo=GToLCoo(ilay,ibar,rcoo);
-   bool lok=0,sok=0,zok=1;
-   if(fabs(coo[Proj[ilay]])<Sci_l[ilay][ibar]/2.)lok=1;
-   if(fabs(coo[1-Proj[ilay]])<Sci_w[ilay][ibar]/2.)sok=1;
+   bool lok=0,sok=0,zok=1,tok=1;
+   if(fabs(coo[Proj[ilay]])<Sci_l[ilay][ibar]/2.) lok=1;//y
+   if(fabs(coo[1-Proj[ilay]])<Sci_w[ilay][ibar]/2.)sok=1;//x
+//-----
+   if(IsTrapezoid(ilay,ibar)){//Trapzoid Case
+      double x=coo[1-Proj[ilay]];//X Project
+      double y=coo[Proj[ilay]];//Y Project
+//---
+      double x0,y0,x1,y1,kk,bb;
+      if(ibar==0){
+         x0=-Sci_w[ilay][ibar]/2.;
+         y0=Sci_l[ilay][ibar]/2.-Sci_lc[ilay][ibar]; 
+         x1=-(Sci_w[ilay][ibar]/2.-Sci_wc[ilay][ibar]);
+         y1=Sci_l[ilay][ibar]/2.; 
+       }
+      else {
+        x0=-x0;
+        x1=-x1;
+      } 
+      if(y<0){
+        y0=-y0;
+        y1=-y1;
+      }
+      kk=(y0-y1)/(x0-x1);
+      bb=(x0*y1-x1*y0)/(x0-x1);
+//---
+      if     (ibar==0&&y>=0)           tok=(kk*x+bb-y>0);//accept sy
+      else if(ibar==0&&y<0)            tok=(kk*x+bb-y<0);//accept by
+      else if(ibar==Nbar[ilay]-1&&y>=0)tok=(kk*x+bb-y>0);//accept sy
+      else if(ibar==Nbar[ilay]-1&&y<0) tok=(kk*x+bb-y<0);//accept by
+      double kk1=-1./kk; 
+      double bb1=y-kk1*x;
+      double xt=-(bb1-bb)/(kk1-kk);
+      double yt=(-bb1*kk+bb*kk1)/(kk1-kk);
+      trapdis=sqrt(pow(xt-x,2.)+pow(yt-y,2.));
+   }
+   else trapdis=-1;
+//-----
    if(z!=0){zok=(fabs(coo[2])<Sci_t[ilay][ibar]/2.)?1:0;}
-   return (lok&&sok&&zok);
+   bool sumok=(lok&&sok&&zok&&tok);
+   return sumok;
 }
 //--To Judge whether Inside TOF Layer
 bool TOFGeom::IsInSideTOF(int ilay,float x,float y,float z){
   bool inside=0;
-  for(int ibar=0;ibar<Nbar[ilay];ibar++){if(IsInSideBar(ilay,ibar,x,y,z)){inside=1;break;}}
+  float bdis;
+  for(int ibar=0;ibar<Nbar[ilay];ibar++){if(IsInSideBar(ilay,ibar,x,y,bdis,z)){inside=1;break;}}
   return inside;
 }
 //--Find Nearest Counter
@@ -140,7 +194,8 @@ int TOFGeom::FindNearBar(int ilay,float x,float y,float &dis,bool &isinbar,float
       if(z!=0){ if(fabs(lcoo[1-Proj[ilay]])<mindis){dis=lcoo[1-Proj[ilay]],mindis=fabs(dis);minbar=ibar;} }
       else    { if(lcoo.norm()<mindis){dis=lcoo.norm(),mindis=dis,minbar=ibar;}}
     }
-    isinbar=IsInSideBar(ilay,minbar,x,y,z);
+    float bdis=0;
+    isinbar=IsInSideBar(ilay,minbar,x,y,bdis,z);
     return minbar;
 }
 //--Is in  Overlap region

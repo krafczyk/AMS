@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.503 2012/11/23 16:38:12 qyan Exp $
+//  $Id: root.C,v 1.504 2012/11/24 00:17:08 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4704,7 +4704,7 @@ int ParticleR::Loc2Gl(AMSEventR *pev){
 }
 
 
-int  ParticleR::InterpolateToTOF(int ilay, const AMSPoint pnt, const AMSDir dir, AMSPoint &tofpnt, double &disedge){
+int  ParticleR::IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSPoint &tofpnt, float &disedge){
    
    double tofz=TOFGeom::GetMeanZ(ilay);
    float coo[3],dis;
@@ -4712,24 +4712,33 @@ int  ParticleR::InterpolateToTOF(int ilay, const AMSPoint pnt, const AMSDir dir,
    coo[0]=(tofz-pnt[2])*dir[0]/dir[2]+pnt[0];
    coo[1]=(tofz-pnt[2])*dir[1]/dir[2]+pnt[1];     
    int barid=TOFGeom::FindNearBar(ilay,coo[0],coo[1],dis,isinbar);
-//----tofz
+//----To TOF_Geometry Again
    tofz=TOFGeom::Sci_pz[ilay][barid];
    coo[0]=(tofz-pnt[2])*dir[0]/dir[2]+pnt[0];
    coo[1]=(tofz-pnt[2])*dir[1]/dir[2]+pnt[1];
+   barid=TOFGeom::FindNearBar(ilay,coo[0],coo[1],dis,isinbar);
    tofpnt[0]=coo[0];tofpnt[1]=coo[1];tofpnt[2]=tofz;
-//---
-   float bdcoo[3][2];
-   disedge=FLT_MAX;
-   TOFGeom::GetLayEdge(ilay,bdcoo);
-   for(int ipr=0;ipr<2;ipr++){     
-     for(int ilr=0;ilr<2;ilr++){
-       if(fabs(bdcoo[ipr][ilr]-coo[ipr])<disedge){disedge=fabs(bdcoo[ipr][ilr]-coo[ipr]);}
+
+//---Wether Inside
+   disedge=-1;
+  if(isinbar){
+      disedge=9999999;
+      float bdcoo[3][2];
+      TOFGeom::GetLayEdge(ilay,bdcoo);
+      for(int ipr=0;ipr<2;ipr++){     
+        for(int ilr=0;ilr<2;ilr++){
+          if(fabs(bdcoo[ipr][ilr]-coo[ipr])<disedge){disedge=fabs(bdcoo[ipr][ilr]-coo[ipr]);}
+      }
      }
-   }
+     if(TOFGeom::IsTrapezoid(ilay,barid)){
+       float trapdis;
+       TOFGeom::IsInSideBar(ilay,barid,coo[0],coo[1],trapdis);
+       if(trapdis<disedge){disedge=trapdis;}
+    }
+  }
   int ubarid=0;
-  if     (isinbar) ubarid=barid;
-  else if(barid==0)ubarid=-1;
-  else             ubarid=-2;
+  if(isinbar)ubarid=barid;
+  else       ubarid=-1;
   return ubarid;
 //---
 }
