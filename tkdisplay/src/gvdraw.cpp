@@ -1,4 +1,4 @@
-// $Id: gvdraw.cpp,v 1.3 2010/12/10 21:38:02 shaino Exp $
+// $Id: gvdraw.cpp,v 1.4 2012/11/25 15:10:06 shaino Exp $
 #include "gvconst.h"
 #include "gvdraw.h"
 #include "gvgeom.h"
@@ -149,7 +149,8 @@ void GVDraw::drawTrTracks(bool render, bool select, int idsel)
       AMSPoint pint[NPL+1];
       for (int j = 0; j <= NPL; j++) zpl[j] = -180.+360.*j/NPL;
 
-      TrProp trp(trk->GetP0(), trk->GetDir(), trk->GetRigidity());
+      fid = TrTrackR::kVertex;
+      TrProp trp(trk->GetP0(fid), trk->GetDir(fid), trk->GetRigidity(fid));
       trp.Interpolate(NPL+1, zpl, pint);
 
       double xp[NPL+1], yp[NPL+1], zp[NPL+1];

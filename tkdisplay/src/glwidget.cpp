@@ -1,4 +1,4 @@
-// $Id: glwidget.cpp,v 1.5 2010/12/13 21:43:08 shaino Exp $
+// $Id: glwidget.cpp,v 1.6 2012/11/25 15:10:06 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -214,8 +214,8 @@ void GLWidget::wheelEvent(QWheelEvent *event)
 {
 #ifdef Q_WS_MAC 
   int dx = 0, dy = 0;
-  if (event->orientation() == Qt::Horizontal) dx = -event->delta()/10;
-  if (event->orientation() == Qt::Vertical  ) dy =  event->delta()/10;
+  if (event->orientation() == Qt::Horizontal) dx =  event->delta()/10;
+  if (event->orientation() == Qt::Vertical  ) dy = -event->delta()/10;
   processTruck(dx, dy);
 #else
   processZoom(event->delta());

@@ -1,4 +1,4 @@
-// $Id: swtrack.cpp,v 1.4 2010/12/13 21:43:08 shaino Exp $
+// $Id: swtrack.cpp,v 1.5 2012/11/25 15:10:06 shaino Exp $
 #include <QtGui>
 
 #include "swtrack.h"
@@ -145,13 +145,13 @@ void SWTrack::drawInfobar(QPainter *pnt)
       char cf1 = (hit->OnlyY()) ? 'G' : '_';
       char cf2 = (hit->checkstatus(AMSDBc::USED)) ? 'T' : '_';
 
-      int ily = hit->GetLayer()-1;
+      int lay = hit->GetLayer();
       drawText(pnt,  40, 70, Form("Hit [%d]", iht));
       drawText(pnt,  90, 70, Form("TkID: %d", hit->GetTkId()));
       drawText(pnt, 180, 70, Form("Flag: %c%c", cf1, cf2));
       drawText(pnt, 250, 70, Form("Residual: %.4f %.4f", 
-				  trk->GetResidual(ily, mfit).x(),
-				  trk->GetResidual(ily, mfit).y()));
+				  trk->GetResidualO(lay, mfit).x(),
+				  trk->GetResidualO(lay, mfit).y()));
     }
     else if (abs(lyrSta[ifc]) > 10) {
       int tkid = lyrSta[ifc];
@@ -397,7 +397,7 @@ void SWTrack::drawHits(QPainter *pnt)
     int ily = hit->GetLayer()-1;
     if (zly[ily] == 0) continue;
 
-    AMSPoint res = trk->GetResidual(hit->GetLayer()-1, mfit);
+    AMSPoint res = trk->GetResidualO(hit->GetLayer(), mfit);
     if (!hit->OnlyY() && abs(res.x()) > rscx) rscx = abs(res.x());
     if (!hit->OnlyX() && abs(res.y()) > rscy) rscy = abs(res.y());
   }
@@ -421,12 +421,13 @@ void SWTrack::drawHits(QPainter *pnt)
 
   for (int i = 0; i < nhit; i++) {
     TrRecHitR *hit = trk->GetHit(idx[i]);
-    int ily = hit->GetLayer()-1;
+    int lay = hit->GetLayer();
+    int ily = lay-1;
     if (zly[ily] == 0) continue;
 
     int x  = px-zly[ily];
-    int y1 = py1-RES_H*trk->GetResidual(ily, mfit).x()/rscx;
-    int y2 = py2-RES_H*trk->GetResidual(ily, mfit).y()/rscy;
+    int y1 = py1-RES_H*trk->GetResidualO(lay, mfit).x()/rscx;
+    int y2 = py2-RES_H*trk->GetResidualO(lay, mfit).y()/rscy;
 
     if (lyrSta[ily] == LSTA_HITT) {
       pnt->setPen(Qt::white);

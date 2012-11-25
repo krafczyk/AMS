@@ -1,4 +1,4 @@
-// $Id: infotext.cpp,v 1.4 2010/12/09 19:06:54 shaino Exp $
+// $Id: infotext.cpp,v 1.5 2012/11/25 15:10:06 shaino Exp $
 #include "infotext.h"
 
 #include "root.h"
@@ -207,11 +207,11 @@ QString &InfoText::TrackInfo(AMSEventR *event, int itrk)
   for (int i = 0; i < trk->GetNhits(); i++) {
     TrRecHitR *hit = trk->GetHit(i);
     if (!hit) continue;
-    int ily = hit->GetLayer()-1;
+    int lay = hit->GetLayer();
     str += Form("\nHit[%d]\n  ", i);
     str += hit->Info(i);
-    str += Form("Residual: %.4f %.4f\n", trk->GetResidual(ily).x(),
-		                         trk->GetResidual(ily).y());
+    str += Form("Residual: %.4f %.4f\n", trk->GetResidualO(lay).x(),
+		                         trk->GetResidualO(lay).y());
   }
 
   return str;

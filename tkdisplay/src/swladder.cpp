@@ -1,4 +1,4 @@
-// $Id: swladder.cpp,v 1.5 2010/12/13 21:43:08 shaino Exp $
+// $Id: swladder.cpp,v 1.6 2012/11/25 15:10:06 shaino Exp $
 #include <QtGui>
 
 #include "swladder.h"
@@ -208,10 +208,10 @@ void SWLadder::drawLadder(QPainter *pnt)
   if (!lad) return;
 
   int x0, x1, y0, y1, dx, dy;
-  if (lad->rot.GetEl(0, 0) > 0) { x0 =  0; x1 = 20; dx =  1; }
-  else                          { x0 = 20; x1 =  0; dx = -1; }
-  if (lad->rot.GetEl(1, 1) < 0) { y0 =  0; y1 = 20; dy =  1; }
-  else                          { y0 = 20; y1 =  0; dy = -1; }
+  if (lad->GetRotMat().GetEl(0, 0) > 0) { x0 =  0; x1 = 20; dx =  1; }
+  else                                  { x0 = 20; x1 =  0; dx = -1; }
+  if (lad->GetRotMat().GetEl(1, 1) < 0) { y0 =  0; y1 = 20; dy =  1; }
+  else                                  { y0 = 20; y1 =  0; dy = -1; }
 
   int ax = 10, ay = wHei-27;
   pnt->setPen(Qt::gray);

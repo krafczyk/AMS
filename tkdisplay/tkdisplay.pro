@@ -1,4 +1,4 @@
-# $Id: tkdisplay.pro,v 1.9 2010/12/10 21:38:01 shaino Exp $
+# $Id: tkdisplay.pro,v 1.10 2012/11/25 15:10:06 shaino Exp $
 #
 # Project file for TkDisplay on Qt4
 # Run qmake first to generate Makefile
@@ -47,7 +47,7 @@ DEFINES      += _PGTRACK_ _ROOTSHAREDLIBRARY_
 
 macx {
 LIBS         += ../lib/macosx64/libntuple_slc4_PG.a \
-                -L$(ROOTSYS)/lib -lCore -lCint -lRIO \
+                -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lTMVA \
                 -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint \
                 -lPostscript -lMatrix -lPhysics -lMathCore -lThread \
                 -pthread -Wl -lm -ldl -lMinuit -lTreePlayer -lNetx -lXrdClient
