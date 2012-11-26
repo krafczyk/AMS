@@ -486,8 +486,8 @@ float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
     }
     if(_EnergyE<=15)
         _EnergyE=15.01	;
-    if(_EnergyE>=200.)
-        _EnergyE=199.99	;
+    if(_EnergyE>=400.)
+        _EnergyE=399.99	;
     if(!has_init){
         cout<<"EcalPDF-Warn: EcalPDF has not been successfully initialized!\n";
         return _chi2;
@@ -500,8 +500,8 @@ float EcalPDF::normalize_f2edep(float _f2edep, float _EnergyE){
     float ret;
     if(_EnergyE<=15)
         _EnergyE=15.01;
-    if(_EnergyE>=200.)
-        _EnergyE=199.99;
+    if(_EnergyE>=400.)
+        _EnergyE=399.99;
     if(!has_init){
         cout<<"EcalPDF-Warn: EcalPDF has not been successfully initialized!\n";
         return _f2edep;
@@ -644,12 +644,19 @@ void EcalChi2::init(char* database,int _type){
     }
     //ISS
     if(_type==0){
+        fdead_cell[14][64]=1;
         fdead_cell[14][65]=1;
+        fdead_cell[15][64]=1;
+        fdead_cell[15][65]=1;
         fdead_cell[6 ][16]=1;
         fdead_cell[6 ][17]=1;
         fdead_cell[7 ][16]=1;
         fdead_cell[7 ][17]=1;
-        fdead_cell[6 ][50]=1;
+        fdead_cell[0][0]=1;
+        fdead_cell[0][1]=1;
+        fdead_cell[1][0]=1;
+        fdead_cell[1][1]=1;
+        fdead_cell[11][1]=1;
     }
     //Test Beam
 
@@ -668,7 +675,10 @@ float EcalChi2::process(float* coo,float sign){
     int   ndof;
     for(int i1=0;i1<18;i1++){
         int bin=(int)((coo[i1]-shiftxy[i1]+0.45)/SIZE);
-        ndof             =cal_chi2(bin-20,bin+20,i1,coo[i1],chi2,chi22,chi23,chi24,sign);
+	if(_erg>15.)
+        	ndof=cal_chi2(bin-20,bin+20,i1,coo[i1],chi2,chi22,chi23,chi24,sign);
+	else
+        ndof=cal_chi2(bin-3,bin+3,i1,coo[i1],chi2,chi22,chi23,chi24,sign);
         _ndofs[i1]       =ndof;
         _chi2_layer [i1] =chi2;
         _chi22_layer[i1] =chi22;
@@ -886,8 +896,8 @@ float EcalChi2::cal_f2dep(){
 int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& chi2,float& chi22,float& chi23,float& chi24,float sign){
     bool flag;
     int i1=0;
-    double cell_mean[72],cell_rms[72], cell_prob[72],cell_probbar[72];
-    double cell_mean_grad[72],cell_rms_grad[72], cell_prob_grad[72],cell_probbar_grad[72];
+    static double cell_mean[72],cell_rms[72], cell_prob[72],cell_probbar[72];
+    static double cell_mean_grad[72],cell_rms_grad[72], cell_prob_grad[72],cell_probbar_grad[72];
     double summ=0.,sumxm=0.;
     double chisq_prob,chisq_chi2,delta,chisq;
     int k1,k2;
@@ -939,6 +949,7 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
         start_cell=k1;
         end_cell=k2;
     */
+    k1=0;
     for(i1=start_cell;i1<=end_cell;i1++){
         cell_mean[i1]=ecalpdf->get_mean(layer,-1.*sign*(i1*SIZE+shiftxy[layer]-coo),_erg,0,cell_mean_grad[i1]);
         cell_rms[i1]=ecalpdf->get_rms(layer,-1.*sign*(i1*SIZE+shiftxy[layer]-coo),_erg,0,cell_rms_grad[i1]);
@@ -948,6 +959,7 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
             summ+=cell_mean[i1];
             sumxm+=Edep_raw[layer*72+i1];
             k1++;
+            k2=i1;
         }
     }
     for(i1=start_cell;i1<=end_cell;i1++){
@@ -970,6 +982,8 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
         scale=summ/sumxm;
     else
         scale=1.;
+    if(k1==1.&&_erg<15.)
+        scale=ecalpdf->get_mean(layer,-1.*sign*(k2*SIZE+shiftxy[layer]),_erg,0,cell_mean_grad[i1])/sumxm;
     for(i1=start_cell;i1<=end_cell;i1++){
         if(fdead_cell[layer][i1]==1)
             continue;
@@ -1083,11 +1097,19 @@ void EcalAxis::init(char* fdatabase, int ftype){
     }
     //ISS
     if(_type==0){
+        fdead_cell[14][64]=1;
         fdead_cell[14][65]=1;
+        fdead_cell[15][64]=1;
+        fdead_cell[15][65]=1;
         fdead_cell[6 ][16]=1;
         fdead_cell[6 ][17]=1;
         fdead_cell[7 ][16]=1;
         fdead_cell[7 ][17]=1;
+        fdead_cell[0][0]=1;
+        fdead_cell[0][1]=1;
+        fdead_cell[1][0]=1;
+        fdead_cell[1][1]=1;
+        fdead_cell[11][1]=1;
     }
     //Test Beam
 
@@ -1110,8 +1132,7 @@ bool EcalAxis::init_lf(){
     arglist[0]=-1;
     gMinuit_EcalAxis->ExecuteCommand("SET PRINT", arglist, 1);
     gMinuit_EcalAxis->ExecuteCommand("SET NOW", arglist, 0);
-    arglist[0]=0.1;
-    gMinuit_EcalAxis->ExecuteCommand("SET ERR",arglist, 1);
+
     arglist[0]=1;
     gMinuit_EcalAxis->ExecuteCommand("set grad",arglist, 1);
 
@@ -1146,11 +1167,7 @@ bool EcalAxis::init_lf(){
     gMinuit_EcalAxis->SetParameter(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.2,init_dxdz+.2);
     gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.2,init_dydz+.2);
 
-    if(_erg>15)
-        arglist[0]=400;
-    else
-        arglist[0]=50 ;
-    arglist[1]=10.;
+
     //Test before call Minuit
     int cflag=0 ;
     double p[4] ;
@@ -1168,14 +1185,33 @@ bool EcalAxis::init_lf(){
         p[2]=init_dxdz+(rand()%200-100.)/200.*0.4;
         p[3]=init_dydz+(rand()%200-100.)/200.*0.4;
         chi21=GetChi2(p);
-        if(fabs(chi20-chi21)>0.1)
+        if(fabs(chi20-chi21)>0.1){
             cflag++;
+            break;
+        }
     }
     if(cflag>0){
         fcncalls=0;
-        ret=gMinuit_EcalAxis->ExecuteCommand("MINI", arglist, 2);
-        //ret=gMinuit_EcalAxis->ExecuteCommand("SIMPLEX",0, 0);
-
+        if(_erg>15){
+            arglist[0]=0.1;
+            gMinuit_EcalAxis->ExecuteCommand("SET ERR",arglist, 1);
+            arglist[0]=1;
+            ret=gMinuit_EcalAxis->ExecuteCommand("SET STRATEGY", arglist, 1);
+            arglist[0]=400;;
+            arglist[1]=10.;
+            ret=gMinuit_EcalAxis->ExecuteCommand("MINI", arglist, 2);
+        }
+        else{
+            arglist[0]=1.;
+            gMinuit_EcalAxis->ExecuteCommand("SET ERR",arglist, 1);
+            arglist[0]=0;
+            ret=gMinuit_EcalAxis->ExecuteCommand("SET STRATEGY", arglist, 1);
+            arglist[0]=50  ;
+            arglist[1]=100.;
+            ret=gMinuit_EcalAxis->ExecuteCommand("SIMPLEX",arglist, 2);
+            //ret=gMinuit_EcalAxis->ExecuteCommand("SCAn", arglist, 0);
+        }
+        //cout<<"EnergyD= "<<_erg<<" GeV, Call fcns "<<fcncalls<<endl;
         p0_lf[0]=gMinuit_EcalAxis->GetParameter(0);
         p0_lf[1]=gMinuit_EcalAxis->GetParameter(1);
         p0_lf[2]=ecalz[8];
@@ -1184,12 +1220,28 @@ bool EcalAxis::init_lf(){
         dir_lf[2]=1.0;
     }
     else{
-        p0_lf[0]=init_x0 ;
-        p0_lf[1]=init_y0 ;
-        p0_lf[2]=ecalz[8];
-        dir_lf[0]=init_dxdz;
-        dir_lf[1]=init_dydz;
-        dir_lf[2]=1.0	   ;
+        /*if(init_cg()){
+            _status+=4;
+            double param[4]={p0_cg[0],p0_cg[1],dir_cg[0]/dir_cg[2],dir_cg[1]/dir_cg[2]};
+            GetChi2(param);
+            p0_lf[0]=p0_cg[0] ;
+            p0_lf[1]=p0_cg[1] ;
+            p0_lf[2]=ecalz[8];
+            dir_lf[0]=dir_cg[0]/dir_cg[2];
+            dir_lf[1]=dir_cg[1]/dir_cg[2];
+            dir_lf[2]=1.0	   ;
+        }
+        else{
+        */
+            double param[4]={init_x0 ,init_y0,init_dxdz,init_dydz};
+            GetChi2(param);
+            p0_lf[0]=init_x0 ;
+            p0_lf[1]=init_y0 ;
+            p0_lf[2]=ecalz[8];
+            dir_lf[0]=init_dxdz;
+            dir_lf[1]=init_dydz;
+            dir_lf[2]=1.0	   ;
+        //}
     }
     double r=sqrt(dir_lf[0]*dir_lf[0]+dir_lf[1]*dir_lf[1]+dir_lf[2]*dir_lf[2]);
     dir_lf[0]/=r;
@@ -1249,8 +1301,8 @@ void EcalAxis::fcn_EcalAxis_Chi2(Int_t &npar, Double_t *gin, Double_t &f, Double
     EcalAxis* ecalaxis=(EcalAxis*)gMinuit_EcalAxis->GetObjectFit();
     f=ecalaxis->GetChi2(par);
     if(iflag==2){
-        for(int i1=0;i1<4;i1++)
-            gin[i1]=ecalaxis->ecalchi2->grad[i1];
+            for(int i1=0;i1<4;i1++)
+                gin[i1]=ecalaxis->ecalchi2->grad[i1];
     }
 }
 float EcalAxis::GetChi2(double* par){
@@ -1274,8 +1326,8 @@ void EcalAxis::get_z(){
 }
 int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
 #ifdef _PGTRACK_ 
-    float fedep[1296];
-    int   fcell[1296], fplane[1296],nEcalHits,ret;
+    static float fedep[1296];
+    static int   fcell[1296], fplane[1296],nEcalHits,ret;
     float EnergyD, _EnergyE, sign;
     float maxe=-1;
     int  nmax =-1;
