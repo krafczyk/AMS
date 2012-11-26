@@ -11,13 +11,13 @@ EcalPDF::EcalPDF(){
     char* amsdatadir=getenv("AMSDataDir");
     char tempname[300];
     if(amsdatadir){
-        sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121106.1.root",amsdatadir);
+        sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121123.1.root",amsdatadir);
         if(!has_init)
             has_init=init(tempname);
     }
     else{
         if(!has_init)
-            has_init=init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121106.1.root");
+            has_init=init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121123.1.root");
     }
 }
 bool EcalPDF::has_init=false;
@@ -587,11 +587,11 @@ EcalChi2::EcalChi2(int ftype){
     char* amsdatadir=getenv("AMSDataDir");
     char tempname[300];
     if(amsdatadir){
-        sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121106.1.root",amsdatadir);
+        sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121123.1.root",amsdatadir);
         init(tempname,ftype);
     }
     else{
-        init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121106.1.root",ftype);
+        init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121123.1.root",ftype);
     }
 }
 EcalChi2::EcalChi2(char* fdatabase,int ftype){
@@ -1050,11 +1050,11 @@ EcalAxis::EcalAxis(int ftype){
     char* amsdatadir=getenv("AMSDataDir");
     char tempname[300];
     if(amsdatadir){
-        sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121106.1.root",amsdatadir);
+        sprintf(tempname,"%s/v5.00/EcalChi2CY_prof.20121123.1.root",amsdatadir);
         init(tempname,ftype);
     }
     else{
-        init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121106.1.root",ftype);
+        init("/afs/cern.ch/ams/Offline/AMSDataDir/v5.00/EcalChi2CY_prof.20121123.1.root",ftype);
     }
 }
 EcalAxis::EcalAxis(char* fdatabase, int ftype){
@@ -1117,7 +1117,10 @@ void EcalAxis::init(char* fdatabase, int ftype){
     if(_type==2){
         fdead_cell[14][65]=1;
     }
+    gEcalAxis_Simplex->SetFCN(fcn_EcalAxis_Chi2_Simplex);
+    gEcalAxis_Simplex->SetObjectFit(this);
 }
+TMinuit* EcalAxis::gEcalAxis_Simplex=new TMinuit(4);
 EcalAxis::~EcalAxis(){
     if(ecalchi2)
         delete ecalchi2;
@@ -1129,13 +1132,6 @@ bool EcalAxis::init_lf(){
     gMinuit_EcalAxis->SetObjectFit(this);
     double arglist[10];
     int ret;
-    arglist[0]=-1;
-    gMinuit_EcalAxis->ExecuteCommand("SET PRINT", arglist, 1);
-    gMinuit_EcalAxis->ExecuteCommand("SET NOW", arglist, 0);
-
-    arglist[0]=1;
-    gMinuit_EcalAxis->ExecuteCommand("set grad",arglist, 1);
-
     float init_x0=0;
     float init_y0=0;
     float init_dxdz=0;
@@ -1162,56 +1158,45 @@ bool EcalAxis::init_lf(){
         init_x0  =ext_p0[0]+init_dxdz*(ecalz[8]-ext_p0[2]);
         init_y0  =ext_p0[1]+init_dydz*(ecalz[8]-ext_p0[2]);
     }
-    gMinuit_EcalAxis->SetParameter(0,  "x0"  ,init_x0  ,0.2  ,init_x0-0.9 ,init_x0+0.9 );
-    gMinuit_EcalAxis->SetParameter(1,  "y0"  ,init_y0  ,0.2  ,init_y0-0.9 ,init_y0+0.9 );
-    gMinuit_EcalAxis->SetParameter(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.2,init_dxdz+.2);
-    gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.2,init_dydz+.2);
 
 
-    //Test before call Minuit
-    int cflag=0 ;
-    double p[4] ;
-    double chi20;
-    double chi21;
-    srand(time(NULL));
-    p[0]=init_x0  ;
-    p[1]=init_y0  ;
-    p[2]=init_dxdz;
-    p[3]=init_dydz;
-    chi20=GetChi2(p);
-    for(int i1=0;i1<10;i1++){
-        p[0]=init_x0+(rand()%200-100.)/200.*0.9  ;
-        p[1]=init_y0+(rand()%200-100.)/200.*0.9	 ;
-        p[2]=init_dxdz+(rand()%200-100.)/200.*0.4;
-        p[3]=init_dydz+(rand()%200-100.)/200.*0.4;
-        chi21=GetChi2(p);
-        if(fabs(chi20-chi21)>0.1){
-            cflag++;
-            break;
-        }
-    }
-    if(cflag>0){
+    //Test before call Minuit, use simples method 
+    double p0[4],p0e[4],chi20,chi21;
+    int ierflg       ;
+    p0[0]=init_x0;p0[1]=init_y0;p0[2]=init_dxdz;p0[3]=init_dydz;
+    chi20=GetChi2(p0);
+    gEcalAxis_Simplex->mnexcm("CLEar", arglist,0,ierflg);
+    gEcalAxis_Simplex->mnparm(0,  "x0"  ,p0[0]  ,9.  ,p0[0]-9. ,p0[0]+9.,ierflg)   ;
+    gEcalAxis_Simplex->mnparm(1,  "y0"  ,p0[1]  ,9.  ,p0[1]-9. ,p0[1]+9.,ierflg)   ;
+    gEcalAxis_Simplex->mnparm(2,  "dxdz",p0[2]	,1.5 ,p0[2]-1.5,p0[2]+1.5,ierflg)  ;
+    gEcalAxis_Simplex->mnparm(3,  "dydz",p0[3]	,1.5 ,p0[3]-1.5,p0[3]+1.5,ierflg)  ;
+		    arglist[0]=-1.;
+		    gEcalAxis_Simplex->mnexcm("SET PRINT", arglist, 1,ierflg);
+			//cout<<"MMMMMMMMMMMMMMMMMMM ierflg= "<<ierflg<<"  MMMMMMMMMMMMMMMMMMM"<<endl;
+		    gEcalAxis_Simplex->mnexcm("SET NOW", arglist ,0,ierflg);
+		    //gEcalAxis_Simplex->SetErrorDef(10.);
+		    //gEcalAxis_Simplex->SetMaxIterations(10);
+		    arglist[0]=50  ;
+        	    arglist[1]=100.;
+		    gEcalAxis_Simplex->mnexcm("SIMPLEX",arglist, 2,ierflg);   
+for(int i1=0;i1<4;i1++)
+	gEcalAxis_Simplex->GetParameter(i1,p0[i1],p0e[i1]);
+   chi21=GetChi2(p0);
+   if(chi21<1.5){
+        //cout<<"\nMMMMMMMMMMMMMMMMMMM  "<<chi20<<",  "<<(chi20-3.>0)<<"  MMMMMMMMMMMMMMMMMMMMMMMMMM"<<endl;
+    	gMinuit_EcalAxis->SetParameter(0,  "x0"  ,p0[0]  ,0.1  ,p0[0]-1. ,p0[0]+1. );
+    	gMinuit_EcalAxis->SetParameter(1,  "y0"  ,p0[1]  ,0.1 ,p0[1]-1. ,p0[1]+1. );
+    	gMinuit_EcalAxis->SetParameter(2,  "dxdz",p0[2]  ,0.02  ,p0[2]-0.2 ,p0[2]+0.2 );
+    	gMinuit_EcalAxis->SetParameter(3,  "dydz",p0[3]  ,0.02  ,p0[3]-0.2 ,p0[3]+0.2 );
         fcncalls=0;
-        if(_erg>15){
-            arglist[0]=0.1;
-            gMinuit_EcalAxis->ExecuteCommand("SET ERR",arglist, 1);
-            arglist[0]=1;
-            ret=gMinuit_EcalAxis->ExecuteCommand("SET STRATEGY", arglist, 1);
-            arglist[0]=400;;
-            arglist[1]=10.;
-            ret=gMinuit_EcalAxis->ExecuteCommand("MINI", arglist, 2);
-        }
-        else{
-            arglist[0]=1.;
-            gMinuit_EcalAxis->ExecuteCommand("SET ERR",arglist, 1);
-            arglist[0]=0;
-            ret=gMinuit_EcalAxis->ExecuteCommand("SET STRATEGY", arglist, 1);
-            arglist[0]=50  ;
-            arglist[1]=100.;
-            ret=gMinuit_EcalAxis->ExecuteCommand("SIMPLEX",arglist, 2);
-            //ret=gMinuit_EcalAxis->ExecuteCommand("SCAn", arglist, 0);
-        }
-        //cout<<"EnergyD= "<<_erg<<" GeV, Call fcns "<<fcncalls<<endl;
+    	arglist[0]=0;
+    	gMinuit_EcalAxis->ExecuteCommand("SET PRINT", arglist, 1);
+    	gMinuit_EcalAxis->ExecuteCommand("SET NOW", arglist, 0);
+        arglist[0]=1;
+        gMinuit_EcalAxis->ExecuteCommand("set grad",arglist, 1);
+        arglist[0]=400;
+        arglist[1]=1. ;
+        ret=gMinuit_EcalAxis->ExecuteCommand("MINI", arglist, 2);
         p0_lf[0]=gMinuit_EcalAxis->GetParameter(0);
         p0_lf[1]=gMinuit_EcalAxis->GetParameter(1);
         p0_lf[2]=ecalz[8];
@@ -1220,29 +1205,14 @@ bool EcalAxis::init_lf(){
         dir_lf[2]=1.0;
     }
     else{
-        /*if(init_cg()){
-            _status+=4;
-            double param[4]={p0_cg[0],p0_cg[1],dir_cg[0]/dir_cg[2],dir_cg[1]/dir_cg[2]};
-            GetChi2(param);
-            p0_lf[0]=p0_cg[0] ;
-            p0_lf[1]=p0_cg[1] ;
+            p0_lf[0]=p0[0] ;
+            p0_lf[1]=p0[1] ;
             p0_lf[2]=ecalz[8];
-            dir_lf[0]=dir_cg[0]/dir_cg[2];
-            dir_lf[1]=dir_cg[1]/dir_cg[2];
-            dir_lf[2]=1.0	   ;
-        }
-        else{
-        */
-            double param[4]={init_x0 ,init_y0,init_dxdz,init_dydz};
-            GetChi2(param);
-            p0_lf[0]=init_x0 ;
-            p0_lf[1]=init_y0 ;
-            p0_lf[2]=ecalz[8];
-            dir_lf[0]=init_dxdz;
-            dir_lf[1]=init_dydz;
-            dir_lf[2]=1.0	   ;
-        //}
+            dir_lf[0]=p0[2];
+            dir_lf[1]=p0[3];
+            dir_lf[2]=1.0;
     }
+    //cout<<chi20<<"---> "<<chi21<<"---> "<<ecalchi2->get_chi2()<<endl;
     double r=sqrt(dir_lf[0]*dir_lf[0]+dir_lf[1]*dir_lf[1]+dir_lf[2]*dir_lf[2]);
     dir_lf[0]/=r;
     dir_lf[1]/=r;
@@ -1304,6 +1274,10 @@ void EcalAxis::fcn_EcalAxis_Chi2(Int_t &npar, Double_t *gin, Double_t &f, Double
             for(int i1=0;i1<4;i1++)
                 gin[i1]=ecalaxis->ecalchi2->grad[i1];
     }
+}
+void EcalAxis::fcn_EcalAxis_Chi2_Simplex(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
+	EcalAxis* ecalaxis=(EcalAxis*)gEcalAxis_Simplex->GetObjectFit();
+	f=ecalaxis->GetChi2(par);
 }
 float EcalAxis::GetChi2(double* par){
     //par--->

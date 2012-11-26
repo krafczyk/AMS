@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.8 2012/11/25 16:32:40 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.9 2012/11/26 19:37:20 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -12,6 +12,7 @@
 #include "TMath.h"
 #include "TObject.h"
 #include "TVirtualFitter.h"
+#include "TMinuit.h"
 using namespace std;
 
 class EcalPDF{
@@ -340,7 +341,9 @@ private:
     int      _status	   ;
     double   SIZE		   ;
     static TVirtualFitter *gMinuit_EcalAxis;
+    static TMinuit*	gEcalAxis_Simplex  ;
     static void fcn_EcalAxis_Chi2(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
+    static void fcn_EcalAxis_Chi2_Simplex(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
 
     ClassDef(EcalAxis,1)
 };
