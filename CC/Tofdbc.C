@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.30 2012/11/24 11:25:48 qyan Exp $
+//  $Id: Tofdbc.C,v 1.31 2012/11/26 11:20:08 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -145,9 +145,9 @@ bool TOFGeom::IsInSideBar(int ilay,int ibar,float x,float y,float &trapdis,float
    if(fabs(coo[Proj[ilay]])<Sci_l[ilay][ibar]/2.) lok=1;//y
    if(fabs(coo[1-Proj[ilay]])<Sci_w[ilay][ibar]/2.)sok=1;//x
 //-----
-   if(IsTrapezoid(ilay,ibar)){//Trapzoid Case
-      double x=coo[1-Proj[ilay]];//X Project
-      double y=coo[Proj[ilay]];//Y Project
+   if(IsTrapezoid(ilay,ibar)&&lok){//Trapzoid Case
+      double xn=coo[1-Proj[ilay]];//X Project
+      double yn=coo[Proj[ilay]];//Y Project
 //---
       double x0,y0,x1,y1,kk,bb;
 //----All Bar=0 
@@ -160,24 +160,24 @@ bool TOFGeom::IsInSideBar(int ilay,int ibar,float x,float y,float &trapdis,float
         x0=-x0;
         x1=-x1;
       } 
-      if(y<0){
+      if(yn<0){
         y0=-y0;
         y1=-y1;
       }
       kk=(y0-y1)/(x0-x1);
       bb=(x0*y1-x1*y0)/(x0-x1);
 //---
-      if     (ibar==0&&y>=0)           tok=(kk*x+bb-y>0);//accept sy
-      else if(ibar==0&&y<0)            tok=(kk*x+bb-y<0);//accept by
-      else if(ibar==Nbar[ilay]-1&&y>=0)tok=(kk*x+bb-y>0);//accept sy
-      else if(ibar==Nbar[ilay]-1&&y<0) tok=(kk*x+bb-y<0);//accept by
+      if     (ibar==0&&yn>=0)           tok=(kk*xn+bb-yn>0);//accept sy
+      else if(ibar==0&&yn<0)            tok=(kk*xn+bb-yn<0);//accept by
+      else if(ibar==Nbar[ilay]-1&&yn>=0)tok=(kk*xn+bb-yn>0);//accept sy
+      else if(ibar==Nbar[ilay]-1&&yn<0) tok=(kk*xn+bb-yn<0);//accept by
       double kk1=-1./kk; 
-      double bb1=y-kk1*x;
+      double bb1=yn-kk1*xn;
       double xt=-(bb1-bb)/(kk1-kk);
       double yt=(-bb1*kk+bb*kk1)/(kk1-kk);
-      trapdis=sqrt(pow(xt-x,2.)+pow(yt-y,2.));
+      trapdis=sqrt(pow(xt-xn,2.)+pow(yt-yn,2.));
    }
-   else trapdis=-1;
+   else trapdis=9999999;
 //-----
    if(z!=0){zok=(fabs(coo[2])<Sci_t[ilay][ibar]/2.)?1:0;}
    bool sumok=(lok&&sok&&zok&&tok);
@@ -202,6 +202,10 @@ int TOFGeom::FindNearBar(int ilay,float x,float y,float &dis,bool &isinbar,float
     }
     float bdis=0;
     isinbar=IsInSideBar(ilay,minbar,x,y,bdis,z);
+    if(!isinbar){
+      if(minbar>0&&IsInSideBar(ilay,minbar-1,x,y,bdis,z)){isinbar=1;minbar=minbar-1;}
+      if(minbar<Nbar[ilay]-1&&IsInSideBar(ilay,minbar+1,x,y,bdis,z)){isinbar=1;minbar=minbar+1;}
+    }
     return minbar;
 }
 //--Is in  Overlap region

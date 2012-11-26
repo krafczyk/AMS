@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.504 2012/11/24 00:17:08 qyan Exp $
+//  $Id: root.C,v 1.505 2012/11/26 11:20:08 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4719,8 +4719,9 @@ int  ParticleR::IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSP
    barid=TOFGeom::FindNearBar(ilay,coo[0],coo[1],dis,isinbar);
    tofpnt[0]=coo[0];tofpnt[1]=coo[1];tofpnt[2]=tofz;
 
-//---Wether Inside
+//---Inside
    disedge=-1;
+//---Lay Edge
   if(isinbar){
       disedge=9999999;
       float bdcoo[3][2];
@@ -4730,12 +4731,44 @@ int  ParticleR::IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSP
           if(fabs(bdcoo[ipr][ilr]-coo[ipr])<disedge){disedge=fabs(bdcoo[ipr][ilr]-coo[ipr]);}
       }
      }
-     if(TOFGeom::IsTrapezoid(ilay,barid)){
-       float trapdis;
-       TOFGeom::IsInSideBar(ilay,barid,coo[0],coo[1],trapdis);
-       if(trapdis<disedge){disedge=trapdis;}
+//----Bar Edge
+     TOFGeom::GetBarEdge(ilay,barid,bdcoo);
+     for(int ilr=0;ilr<2;ilr++){
+       if(fabs(bdcoo[TOFGeom::Proj[ilay]][ilr]-coo[TOFGeom::Proj[ilay]])<disedge){disedge=fabs(bdcoo[TOFGeom::Proj[ilay]][ilr]-coo[TOFGeom::Proj[ilay]]);}
+     } 
+
+//---Additional  Trapdis
+     float trapdis;
+     TOFGeom::IsInSideBar(ilay,0,coo[0],coo[1],trapdis);
+     if(trapdis<disedge){disedge=trapdis;}
+     TOFGeom::IsInSideBar(ilay,TOFGeom::Nbar[ilay]-1,coo[0],coo[1],trapdis);
+     if(trapdis<disedge){disedge=trapdis;}
+
+//---Neighbor dis     
+   if(!TOFGeom::IsTrapezoid(ilay,barid)){
+      float bcoo[3][3][2];
+      TOFGeom::GetBarEdge(ilay,barid,  bcoo[0]);
+      TOFGeom::GetBarEdge(ilay,barid-1,bcoo[1]);
+      TOFGeom::GetBarEdge(ilay,barid+1,bcoo[2]);
+//--left
+      for(int lr=0;lr<2;lr++){
+//-----lrid
+        int lrid=(lr==0)?barid-1:barid+1;
+        if(TOFGeom::Sci_l[ilay][lrid]>=TOFGeom::Sci_l[ilay][barid])continue;
+//---Only Len<Now Len
+        float dt=fabs(bcoo[0][1-TOFGeom::Proj[ilay]][lr]-coo[1-TOFGeom::Proj[ilay]]);//T-Dis
+        float dl=fabs(coo[TOFGeom::Proj[ilay]])-TOFGeom::Sci_l[ilay][lrid]/2;
+        if(dl>0){
+           if(dt<disedge)disedge=dt;
+        }
+        else { 
+           float ds=sqrt(dt*dt+dl*dl);
+           if(ds<disedge)disedge=ds;
+         }
+      }
     }
-  }
+//----
+  }//End inside
   int ubarid=0;
   if(isinbar)ubarid=barid;
   else       ubarid=-1;
