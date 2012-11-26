@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.514 2012/11/24 00:16:13 qyan Exp $
+//  $Id: root.h,v 1.515 2012/11/26 11:20:43 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3392,13 +3392,14 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
   double RichBetasAverage();
   /// \return the difference in the reconstructed beta between the two RICH reconstrution algorithm, of inf if one reconstruction is missing. The value returned is RichRingR::Beta-RichRingBR::Beta.
   double RichBetasDiscrepancy();
-  /// \return Pass-Through Nearest TOF-BarId(0-7(9)): -1  Outside TOF Geometry Region
+  /// Check Whether Particle Pass-Through iLayer TOF-Geometry
    /*!
-   * @param[in]  ilay:    TOF ilay(0-3)
-   * @param[in]  pnt:     reference point[cm](can be tk-or-shower position )
-   * @param[in]  dir:     reference dir      (can be tk-or-shower direction)
-   * @param[out] tofpnt:  interpolate to iLay TOF position
-   * @param[out] disedge: distance to the nearest TOF-geometry-edge, -1:outside TOF-geometry-edge
+   * @param[in]  ilay    TOF ilay(0-3)
+   * @param[in]  pnt     reference point[cm](can be tk-or-shower position )
+   * @param[in]  dir     reference dir      (can be tk-or-shower direction)
+   * @param[out] tofpnt  interpolate to iLay TOF position
+   * @param[out] disedge distance to the nearest TOF-geometry-edge, -1:outside TOF-geometry-edge
+   * @return  Pass-Through Nearest TOF-BarId(0-7(9)), -1  Outside TOF Geometry Region
    */  
   static int  IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSPoint &tofpnt, float &disedge);
 
