@@ -1,4 +1,4 @@
-///  This is an example to use Root-Mode TofRecH::ReBuild: Select_Tof()
+///  This is an example to use Root-Mode TofRecH::ReBuild and TofH software : Select_Tof()
 /*!
   First need TofRecH::ReBuild() \n
   BetaHR and TofClusterHR can be accessed from AMSEventR, ParticleR or ChargeR  \n
@@ -111,29 +111,16 @@ class AMSAnalysis{
    float        tk_dedx_ns[9][2][NTKDIS]; //near 1cm +2cm+4cm+8cm sum all
    float        tk_dir[9];
 //---tof
-   int          tof_nrawcl[NTOFL];
    int          tof_barid[NTOFL];
-   float        tof_tkco[NTOFL][3];
    float        tof_tkdir[NTOFL][3];
    float        tof_adca[NTOFL][NTOFS];
    float        tof_adcd[NTOFL][NTOFS];
-//----
-   float        tof_q;
-   int          tof_charge;
 //--calibration 
-   unsigned int tof_status[NTOFL];
    unsigned int tof_bstatus[NTOFL][2];
-   float        tof_adcar[NTOFL][NTOFS];
    float        tof_adcdr[NTOFL][NTOFS][3];
-   float        tof_sdtr[NTOFL][NTOFS]; 
-   float        tof_lenr[NTOFL]; 
-   float        tof_edep[NTOFL][2];//anode+dynode
-   float        tof_edepm[2][NTOFL][2];//anode+dynode
-//---
-   int          tof_baridm[2][NTOFL];
 //--
-   float        tof_beta;
    float        tof_betah;
+   float        tof_betahs;
    int          tof_nhith;
    int          tof_hsumh;
    int          tof_hsumhu;
@@ -143,6 +130,7 @@ class AMSAnalysis{
    float        tof_hqt;
    float        tof_hqg;
    float        tof_hql[4];
+   float        tof_hqc[4];
    int          tof_hz;
    float        tof_hprobz;
    int          tof_hzu;//Up Tof Z: TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
@@ -152,18 +140,12 @@ class AMSAnalysis{
    float        tof_hprobz6;//Prob to be Carbon Z=6: User Can Use Prob Select Each Nucleus
 //--Time
    float        tof_t0;
-   float        tof_tmin[4];
-   int          tof_bartmin[4];
-   float        tof_tmax[4];
-   int          tof_bartmax[4];
-   float        tof_time[4];
+   float        tof_htl[4];
+   float        tof_htc[4];
 //---
-   float        tof_cres[4][2];
-   float        tof_tres[4];
    float        tof_temp[4][2];
    float        tof_tempC[4][2];
    float        tof_tempP[4][2];
-   float        tof_lcoo[4];
    float        tof_chist;
    float        tof_chisc;
 //---trd
@@ -221,24 +203,16 @@ void AMSAnalysis::BookFile(char *ofile){
   tout->Branch("tk_dir",tk_dir,"tk_dir[9]/F");
 //--Tof 
   tout->Branch("tof_barid",tof_barid,"tof_barid[4]/I");
-  tout->Branch("tof_status",tof_status,"tof_status[4]/i");
   tout->Branch("tof_bstatus",tof_bstatus,"tof_bstatus[4][2]/i");
   tout->Branch("tof_tkco",tof_tkco,"tof_tkco[4][3]/F");  
   tout->Branch("tof_tkdir",tof_tkdir,"tof_tkdir[4][3]/F");
    
 //----
-  tout->Branch("tof_adcar",tof_adcar,"tof_adcar[4][2]/F");
   tout->Branch("tof_adcdr",tof_adcdr,"tof_adcdr[4][2][3]/F");
-  tout->Branch("tof_sdtr",tof_sdtr,"tof_sdtr[4][2]/F");
-  tout->Branch("tof_lenr",tof_lenr,"tof_lenr[4]/F");
-  tout->Branch("tof_edep",tof_edep,"tof_edep[4][2]/F");
-//---
-  tout->Branch("tof_edepm",tof_edepm,"tof_edepm[2][4][2]/F");//layer max(not inclue betah counter) Anode+Dynode Edep
-  tout->Branch("tof_baridm",tof_baridm,"tof_baridm[2][4]/I");//anode or dynode max bar
 //---
   
-  tout->Branch("tof_beta",&tof_beta,"tof_beta/F");
   tout->Branch("tof_betah",&tof_betah,"tof_betah/F");
+  tout->Branch("tof_betahs",&tof_betahs,"tof_betahs/F");
   tout->Branch("tof_nhith",&tof_nhith,"tof_nhith/I");//ev->nTofClusterHs
   tout->Branch("tof_hsumh",&tof_hsumh,"tof_hsumh/I"); //BetaH
   tout->Branch("tof_hsumhu",&tof_hsumhu,"tof_hsumhu/I");//
@@ -248,6 +222,7 @@ void AMSAnalysis::BookFile(char *ofile){
   tout->Branch("tof_hqt",&tof_hqt, "tof_hqt/F");//Q- Truncate Mean //Better For Low Charge(Pr He Li)
   tout->Branch("tof_hqg",&tof_hqg, "tof_hqg/F");//Q- Global Gaus Mean  //Better For High Charge
   tout->Branch("tof_hql", tof_hql, "tof_hql[4]/F");//Q for each Layer
+  tout->Branch("tof_hqc", tof_hqc, "tof_hqc[4]/F");//Q for TofClusterHR(without Beta-Corr+Atten-Dis by Tof-TLCoo Self)
   tout->Branch("tof_hz", &tof_hz, "tof_hz/I");// TOF-Most Prob Charge
   tout->Branch("tof_hprobz", &tof_hprobz, "tof_hprobz/F");//TOF-Mose Prob Charge ProbZ
   tout->Branch("tof_hzu", &tof_hzu, "tof_hzu/I");// Up-TOF-Most Prob Charge ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
@@ -256,27 +231,17 @@ void AMSAnalysis::BookFile(char *ofile){
   tout->Branch("tof_hlikq", &tof_hlikq, "tof_hlikq/F");//Q-Using Likelihood Method to Get Float-Q(More Gaus)
   tout->Branch("tof_hprobz6", &tof_hprobz6, "tof_hprobz6/F");// User Can Use Prob Select Each Nucleus
    
-   
-//---Time
+//---BetaH Time
   tout->Branch("tof_t0",   &tof_t0,    "tof_t0/F");
-  tout->Branch("tof_time", tof_time,   "tof_time[4]/F");
-  tout->Branch("tof_tmin", tof_tmin,   "tof_tmin[4]/F");
-  tout->Branch("tof_bartmin", tof_bartmin,   "tof_bartmin[4]/I");
-  tout->Branch("tof_tmax", tof_tmax,   "tof_tmax[4]/F");
-  tout->Branch("tof_bartmax", tof_bartmax,   "tof_bartmax[4]/I");
+  tout->Branch("tof_htl", tof_htl,   "tof_htl[4]/F");
+  tout->Branch("tof_htc", tof_htc,   "tof_htc[4]/F");
 
 //---
-  tout->Branch("tof_cres", tof_cres,"tof_cres[4][2]/F");
-  tout->Branch("tof_tres", tof_tres,"tof_tres[4]/F");
   tout->Branch("tof_temp", tof_temp,"tof_temp[4][2]/F");
   tout->Branch("tof_tempC", tof_tempC,"tof_tempC[4][2]/F");
   tout->Branch("tof_tempP", tof_tempP,"tof_tempP[4][2]/F");
-  tout->Branch("tof_lcoo",  tof_lcoo, "tof_lcoo[4]/F");
   tout->Branch("tof_chist",&tof_chist,"tof_chist/F");
   tout->Branch("tof_chisc",&tof_chisc,"tof_chisc/F");
-
-  tout->Branch("tof_q",&tof_q,"tof_q/F");
-  tout->Branch("tof_charge",&tof_charge,"tof_charge/I");
 
 //---Trd  
   tout->Branch("trd_q",&trd_q,"trd_q/F");
@@ -481,111 +446,64 @@ bool AMSAnalysis::Select_Trd(){
 
 bool AMSAnalysis::Select_Tof(){
 
-//     BetaR *beta=pev->pParticle(iparindex)->pBeta();
-//     if(beta)tof_beta=beta->Beta; 
-
-     AMSPoint tofpnt;AMSDir tofdir;
 //---
      TofRecH::ReBuild();
-     tof_nhith=pev->nTofClusterH();
+     tof_nhith=pev->nTofClusterH();//Sum of TofClusterHR (Tof-Counter Number Fired)
      BetaHR *betah=pev->pParticle(iparindex)->pBetaH();
+
 //     if(!betah)return false;
-     if(betah){
-       tof_betah=betah->GetBeta();
-///--BetaH TOF Q and Access To TOFChargeHR Likelihood integer Z , Prob, LikelihoodQ
+     if(betah&&betah->IsTkTofMatch()){//Tk Not Match with TOF, Cut This Event
+
+       tof_betah=betah->GetBeta();//Beta Measurement
+       tof_betahs=betah->GetBetaS();//Reselect Good TOF-Layer For Beta Fit ->Serious Backsplish Recommend to Use This Beta
+///--BetaH TOF Q and TOFChargeHR Likelihood integer Z , Prob, LikelihoodQ
        int nlay; float qrms;
-       tof_hqt=betah->GetQ(nlay,qrms);//Trancate Mean
-       tof_hqg=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOpt,-1);//Gaus Mean
-       TofChargeHR tofcharge=betah->gTofCharge();//tofcharge
-       tof_hz=tofcharge.GetZ(nlay,tof_hprobz); 
+       tof_hqt=betah->GetQ(nlay,qrms);//TOF Trancate Mean Q
+       tof_hqg=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOpt,-1);//TOF Gaus Mean Q
+//--To TofChargeHR
+       TofChargeHR tofcharge=betah->gTofCharge();//Access To TofChargeHR
+       tof_hz=tofcharge.GetZ(nlay,tof_hprobz);//Max-Prob Integer Z+ProbZ
        float probu,probd;
-       tof_hzu=tofcharge.GetZ(nlay,probu,0,1100); //Using Up Two Layer To PID ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
-       tof_hzd=tofcharge.GetZ(nlay,probd,0,11); //Using Down Two Layer To PID
-       tof_hq=tofcharge.GetQ(nlay,qrms);//Q From TofChargeHR should be better than From BetaH For Z~3-8, Due to tuning better Threshold Between Anode and Dynode)
-       tof_hlikq=tofcharge.GetLikeQ(nlay);//Q-Using Likelihood Method to Get Float-Q(More Gaus)
+       tof_hzu=tofcharge.GetZ(nlay,probu,0,1100); //Using Up TOF-Two-Layer Likelihood To PID ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
+       tof_hzd=tofcharge.GetZ(nlay,probd,0,11); //Using Down TOF-Two-Layer Likelihood To PID
+       tof_hq=tofcharge.GetQ(nlay,qrms);//Float Q From TofChargeHR should be better than From BetaH For Z~3-8, Due to tuning better Threshold Between Anode and Dynode)
+       tof_hlikq=tofcharge.GetLikeQ(nlay);//Float Q-Using Likelihood Method (More Gaus)
        tof_hprobz6=tofcharge.GetProbZ(6); //Can Using Prob>Th to Select Carbon
        
-//---
-       tof_chist=betah->GetChi2T();
-       tof_chisc=betah->GetChi2C();
-       tof_hsumh=betah->GetSumHit();
-       tof_hsumhu=betah->GetUseHit();
-       tof_t0=betah->GetT0();
+//---TOF Useful cut
+       tof_chist=betah->GetChi2T();//Time Chis
+       tof_chisc=betah->GetChi2C();// Space Chis
+       tof_hsumh=betah->GetSumHit();// Sum Hit Match by BetaH
+       tof_hsumhu=betah->GetUseHit();//Use TOF-Layer For Beta-Fit
+
+//Layer Level
        for(int ilay=0;ilay<NTOFL;ilay++){
-//--begin test
+          tof_nhithl[ilay]=betah->GetAllFireHL(ilay);//Number of Bar of ilay-TOF fired
+//--Test if This Layer Exist-By BetaH
          if(betah->TestExistHL(ilay)){
-///---TOF QLayer
-           tof_hql[ilay]=betah->GetQL(ilay);
-           tof_lenr[ilay]=betah->GetTkTFLen(ilay);
-           tof_cres[ilay][0]=betah->GetCResidual(ilay,0);
-           tof_cres[ilay][1]=betah->GetCResidual(ilay,1);
-           tof_tres[ilay]=betah->GetTResidual(ilay);
-           tof_barid[ilay]=betah->GetClusterHL(ilay)->Bar;
-           tof_status[ilay]=betah->GetClusterHL(ilay)->Status;
-           tof_nhithl[ilay]=betah->GetAllFireHL(ilay);
-           tof_time[ilay]=betah->GetTime(ilay);
-           tof_edep[ilay][0]=betah->GetClusterHL(ilay)->AEdep;
-           tof_edep[ilay][1]=betah->GetClusterHL(ilay)->DEdep;
-           tof_tmin[ilay]=tof_time[ilay];
-           tof_tmax[ilay]=tof_time[ilay];
-           if(tof_nhithl[ilay]>1){
-             float maxedep[2]={0};
-             for(int iclh=0;iclh<tof_nhith;iclh++){
-               TofClusterHR *tofclh=pev->pTofClusterH(iclh);
-               if((tofclh->Layer==ilay)&&(tofclh->Bar!=tof_barid[ilay])){
-                 if(tofclh->AEdep>maxedep[0]){
-                   tof_baridm[0][ilay]=tofclh->Bar;
-                   maxedep[0]=tofclh->AEdep;
-                   tof_edepm[0][ilay][0]=maxedep[0];
-                   tof_edepm[0][ilay][1]=tofclh->DEdep;
-                  }
-                 if(tofclh->DEdep>maxedep[1]){
-                   tof_baridm[1][ilay]=tofclh->Bar;
-                   maxedep[1]=tofclh->AEdep;
-                   tof_edepm[1][ilay][0]=maxedep[1];
-                   tof_edepm[1][ilay][1]=tofclh->DEdep;
-                   }
-//---both side require
-                  if(tofclh->IsGoodSide(0)&&tofclh->IsGoodSide(1)&&tofclh->IsGoodTime()){
-                    if(tofclh->Time<tof_tmin[ilay]){tof_tmin[ilay]=tofclh->Time;tof_bartmin[ilay]=tofclh->Bar;}
-                    if(tofclh->Time>tof_tmax[ilay]){tof_tmax[ilay]=tofclh->Time;tof_bartmax[ilay]=tofclh->Bar;}
-                   }
-//-----
-                }
-              }
-           }
-           tof_lcoo[ilay]=betah->GetClusterHL(ilay)->Coo[TRANS[ilay]];
+           tof_hql[ilay]=betah->GetQL(ilay);//Q-Measurment for Each TOF-Layer
+           if(betah->IsBetaUseHL(ilay))tof_htl[ilay]=betah->GetTime(ilay);//Time-Measurment for Each TOF-Layer
+//---To TofClusterHR
+           TofClusterHR *tofclh=betah->GetClusterHL(ilay);//Access to TofClusterHR
+           tof_barid[ilay]=tofclh->Bar;//TOF-Barid
+           tof_hqc[ilay]=  tofclh->GetQSignal();//Q Measurement From TofClusterHR(From BetaH is much better)
+           if(tofclh->IsGoodTime())tof_htc[ilay]=tofclh->Time;//Time-Measurment From TofClusterHR
            for(int is=0;is<2;is++){
-             tof_bstatus[ilay][is]=betah->GetClusterHL(ilay)->SideBitPat[is];
-             tof_sdtr[ilay][is]=betah->GetClusterHL(ilay)->Rtime[is];
-             tof_adcar[ilay][is]=betah->GetClusterHL(ilay)->Aadc[is];
-             for(int ipm=0;ipm<3;ipm++)tof_adcdr[ilay][is][ipm]=betah->GetClusterHL(ilay)->Dadc[is][ipm];
+             tof_bstatus[ilay][is]=tofclh->SideBitPat[is];
+             for(int ipm=0;ipm<3;ipm++)tof_adcdr[ilay][is][ipm]=tofclh->Dadc[is][ipm];
+//--To TofRawSideHR
              if(betah->GetClusterHL(ilay)->TestExistHS(is)){
-                tof_temp[ilay][is]=betah->GetClusterHL(ilay)->GetRawSideHS(is)->temp;
-                tof_tempC[ilay][is]=betah->GetClusterHL(ilay)->GetRawSideHS(is)->tempC;
-                tof_tempP[ilay][is]=betah->GetClusterHL(ilay)->GetRawSideHS(is)->tempP;
+                tof_temp[ilay][is]= tofclh->GetRawSideHS(is)->temp;//Assess to TofRawSideR
+                tof_tempC[ilay][is]=tofclh->GetRawSideHS(is)->tempC;
+                tof_tempP[ilay][is]=tofclh->GetRawSideHS(is)->tempP;
               }
            }
-          pev->pParticle(iparindex)->pTrTrack()->Interpolate(betah->GetClusterHL(ilay)->Coo[2],tofpnt,tofdir);
-          for(int ic=0;ic<3;ic++){tof_tkdir[ilay][ic]=tofdir[ic]; tof_tkco[ilay][ic]=tofpnt[ic];}
         }
 //--Test
-      }
-   }
+      }//End Layer
 
-//---Tof Charge   
-     ChargeR *charge=pev->pParticle(iparindex)->pCharge();
-     if(!charge)return false;
-     ChargeSubDR *zTof=charge->getSubD("AMSChargeTOF");
-     if(zTof){
-         tof_charge = TMath::Max(Int_t(zTof->ChargeI[0]),1);
-         tof_q = zTof->Q;
-     }
-    else {
-      tof_charge=-1;
-      tof_q=-1;
-    }
- 
+//---
+   }
 
   return true; 
 }
@@ -618,8 +536,8 @@ void AMSAnalysis::InitEvent(AMSEventR *ev){
    tk_charge=-1;
    tk_q=-1.;
    tk_rigidity=0;
-   tof_beta=-3;
    tof_betah=-3;
+   tof_betahs=-3;
    tof_hqt=-1;
    tof_hqg=-1;
    tof_hprobz=tof_hprobz6=tof_hq=tof_hlikq=tof_hzu=tof_hzd=tof_hz=-1;
@@ -636,20 +554,13 @@ void AMSAnalysis::InitEvent(AMSEventR *ev){
    for(int itrdv=0;itrdv<5;itrdv++){trdcle[itrdv]=0;}
    for(int itfl=0;itfl<NTOFL;itfl++){
       tof_hql[itfl]=-1;
-      tof_nrawcl[itfl]=0;
+      tof_htl[itfl]=-1;
+      tof_hqc[itfl]=-1;
+      tof_htc[itfl]=-1;
       tof_barid[itfl]=-1;
-      tof_status[itfl]=0;
-      tof_lenr[itfl]=0;
-      tof_baridm[0][itfl]=-1;
-      tof_baridm[1][itfl]=-1;
-      tof_bartmin[itfl]=-1;
-      tof_bartmax[itfl]=-1;
       for(int itfs=0;itfs<NTOFS;itfs++){
-        tof_adcar[itfl][itfs]=-1;
-        tof_sdtr[itfl][itfs]=-1; 
         for(int ipm=0;ipm<3;ipm++)tof_adcdr[itfl][itfs][ipm]=-1;
        }
-      for(int itfc=0;itfc<3;itfc++){tof_tkco[itfl][itfc]=-1000;tof_tkdir[itfl][itfc]=-1000;}
    }
   pev=ev;
 }
