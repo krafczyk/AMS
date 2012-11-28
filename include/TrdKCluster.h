@@ -233,6 +233,10 @@ public:
 
      static bool DebugOn;
 
+
+       static TrdKCalib *_DB_instance;
+       TrdKCalib* GetTrdKDB(){return _DB_instance;}
+
 private:
 
     // Additinal Initilizationa
@@ -322,7 +326,7 @@ private:
     static vector <TrdKHit> TRDTubeCollection;
 
 
-    static TrdKCalib *_DB_instance;
+
 
     static TrdKPDF *kpdf_e;
     static TrdKPDF *kpdf_p;
