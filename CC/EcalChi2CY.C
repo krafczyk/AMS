@@ -1166,8 +1166,8 @@ bool EcalAxis::init_lf(){
     p0[0]=init_x0;p0[1]=init_y0;p0[2]=init_dxdz;p0[3]=init_dydz;
     chi20=GetChi2(p0);
     gEcalAxis_Simplex->mnexcm("CLEar", arglist,0,ierflg);
-    gEcalAxis_Simplex->mnparm(0,  "x0"  ,p0[0]  ,9.  ,p0[0]-9. ,p0[0]+9.,ierflg)   ;
-    gEcalAxis_Simplex->mnparm(1,  "y0"  ,p0[1]  ,9.  ,p0[1]-9. ,p0[1]+9.,ierflg)   ;
+    gEcalAxis_Simplex->mnparm(0,  "x0"  ,p0[0]  ,1.  ,p0[0]-2. ,p0[0]+2.,ierflg)   ;
+    gEcalAxis_Simplex->mnparm(1,  "y0"  ,p0[1]  ,1.  ,p0[1]-2. ,p0[1]+2.,ierflg)   ;
     gEcalAxis_Simplex->mnparm(2,  "dxdz",p0[2]	,1.5 ,p0[2]-1.5,p0[2]+1.5,ierflg)  ;
     gEcalAxis_Simplex->mnparm(3,  "dydz",p0[3]	,1.5 ,p0[3]-1.5,p0[3]+1.5,ierflg)  ;
 		    arglist[0]=-1.;
