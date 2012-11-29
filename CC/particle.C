@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.260 2012/10/20 18:54:22 qyan Exp $
+//  $Id: particle.C,v 1.261 2012/11/29 12:45:08 chchung Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -37,7 +37,6 @@
 #include "TMath.h"
 #include "TrdHRecon.h"
 #include "TrdHCharge.h"
-#include "TrdSCalib.h"
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -280,47 +279,6 @@ integer AMSParticle::build(integer refit){
       ppart->trdfit();
       ppart->trd_likelihood();
       if(TRDFITFFKEY.FitMethod)ppart->trd_Hlikelihood();
-#ifdef _PGTRACK_
-try{
-      if( TRDCALIB.TrdSCalibVersion && TrdSCalibR::gethead() && AMSEvent::gethead() ) {
-	int isdebug = 0;
-	ppart->_TrdSH_E2P_lik = ppart->_TrdSH_He2P_lik = ppart->_TrdSH_E2He_lik = 0;
-	if( ppart->_phtrd && ppart->_ptrack  && !ppart->_ptrack->IsFake()) 
-	  {
-// VC Dec-27-2011 No hardwired limits in user functionsw
-            double fmom=fabs(ppart->_Momentum);
-            if (fmom<=2)fmom=2+1e-5;
-            if (fmom>=600)fmom=600-1e-5;
- 	    if( !TrdSCalibR::gethead()->BuildTrdSCalib(AMSEvent::gethead()->gettime(), fmom,
-						       ppart->_phtrd, ppart->_ptrack,
-						       ppart->_TrdSH_E2P_lik, ppart->_TrdSH_He2P_lik, ppart->_TrdSH_E2He_lik, isdebug) )
-	      
-	      if(isdebug)
-		cout <<"### TrdSCalib Likelihood "<< AMSEvent::gethead()->gettime() <<" "  
-		     <<ppart->_TrdSH_E2P_lik<<" "<<ppart->_TrdSH_He2P_lik <<" "<<ppart->_TrdSH_E2He_lik 
-		     << endl; 
-      }
-}
-}
-  catch(std::bad_alloc a){
-    cerr<<" AMSParticle::build-E-BadALLOC in  trdscalib"<<endl;
-TrdSCalibR::gethead()->Clear();
-TrdSCalibR::gethead()->KillPointer();
-		AMSEvent::gethead()->seterror(2);
-  }
-
-catch(std::exception const& e)
-    {
-
-cerr<<" AMSParticle::build-E-Exception Catched in  trdscalib "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<e.what()<<" "<< typeid(e).name()<<endl;
-AMSEvent::gethead()->seterror(2);
-    }
-
-  catch(...){
-cerr<<" AMSParticle::build-E-Exception Catched in  trdscalib "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
-AMSEvent::gethead()->seterror(2);
-}
-#endif
       AMSgObj::BookTimer.stop("ReTRDRefit");
       ppart=ppart->next();
     }

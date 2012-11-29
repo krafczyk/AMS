@@ -67,6 +67,7 @@ TrdSCalibR* TrdSCalibR::gethead()
 {
 
     head = new TrdSCalibR();
+/*
 #ifndef __ROOTSHAREDLIBRARY__
     //== version 4
     //head->InitTrdSCalib(TRDCALIB.TrdSCalibVersion,TRDCALIB.TrdSCalibTrack,TRDCALIB.TrdSCalibDebug);
@@ -76,7 +77,9 @@ TrdSCalibR* TrdSCalibR::gethead()
 			   TRDCALIB.TrdSCalibDebug);
 #else
     head->InitNewTrdSCalib();
-#endif    
+#endif  
+*/
+    head->InitNewTrdSCalib();  
 }    
   }
   return head;
