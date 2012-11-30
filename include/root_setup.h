@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.74 2012/11/22 15:53:48 choutko Exp $
+//  $Id: root_setup.h,v 1.75 2012/11/30 13:55:25 spada Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -9,6 +9,7 @@
 #include "TObject.h"
 #include "TString.h"
 #include "TTree.h"
+#include "TMatrixD.h"
 #include "trigger102_setup.h"
 #include "RichConfig.h"
 #include "DynAlignment.h"
@@ -442,9 +443,9 @@ public:
 //#pragma omp threadprivate(fgIsA)
 };
 public:
-    Header fHeader;
-    SlowControlR fSlowControl;
-  typedef map <unsigned int,TDVR> TDVR_m;
+ Header fHeader;
+ SlowControlR fSlowControl;
+ typedef map <unsigned int,TDVR> TDVR_m;
  typedef map <unsigned int,TDVR>::iterator TDVR_i;
  typedef map <unsigned int,TDVR>::reverse_iterator TDVR_ri;
  typedef map <string,TDVR_m> TDVRC_m;
@@ -454,7 +455,7 @@ public:
  vector<TDVR> fTDV_Name; ///<Return of getAllTDV thanks to rootcint bug;
  void printAllTDV_Time(){for( int i=0;i<fTDV_Time.size();i++){cout <<fTDV_Time[i]<<endl;}}
  void printAllTDV_Name(){for (int i=0;i<fTDV_Name.size();i++){cout <<fTDV_Name[i]<<endl;}} 
-int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns fTDV_Time
+ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns fTDV_Time
  int getAllTDV(const string & name);  ///<Get All TDV for the current TDV name; Returns fTDV_Name 
  int getTDV(const string & name, unsigned int time, TDVR & tdv); ///<Return TDV tdv with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
  int getTDVi(const string & name, unsigned int time, TDVR_i & tdvi); ///<Return TDVR_i terator  tdvi with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
@@ -485,17 +486,17 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  //---------------DSP Errors-------------------------
  typedef map <unsigned int, DSPError>::iterator DSPError_i;
  //--------------------------------------------------
-typedef map <unsigned int,RTI> RTI_m;
+ typedef map <unsigned int,RTI> RTI_m;
 
-typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
-typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
-vector<JGC> fJGC;
-    BadRun_m fBadRun; ///< BadRuns 
-    GPS_m fGPS;    ///< GPS Epoch Time
-    RTI_m fRTI;  ///<  runtimeInfo data
-    GPSWGS84_m fGPSWGS84;  ///<  GPS Coo Data        
-  ISSData_m fISSData;    ///< ISS Aux Data map
-  ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
+ typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
+ typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
+ vector<JGC> fJGC;
+ BadRun_m fBadRun; ///< BadRuns 
+ GPS_m fGPS;    ///< GPS Epoch Time
+ RTI_m fRTI;  ///<  runtimeInfo data
+ GPSWGS84_m fGPSWGS84;  ///<  GPS Coo Data        
+ ISSData_m fISSData;    ///< ISS Aux Data map
+ ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
  //---------------DSP Errors-------------------------
   DSPError_m fDSPError; ///< DSP Error map (key is the start time of NOT validity period due to DSP Errors). Map 'second' contains DSPError object with start/end NOT validity and affected nodes
  //--------------------------------------------------
@@ -606,6 +607,15 @@ static int _select (const dirent64 * entry);
  int getISSCTRS(ISSCTRSR & a, double xtime); 
 
 
+ //! Get Rotation Matrix from CTRS to inertial (ICRS)   
+ /*! 
+   
+   \param double xtime (unix time + fraction of second)
+   
+   \retval Rotation Matrix from CTRS to inertial (ICRS)   
+
+ */
+ TMatrixD   getRotationMatrix(double xtime);
 
  
  //! AMS STK Orientation Accessor
@@ -630,7 +640,7 @@ static int _select (const dirent64 * entry);
  //! RTI accessor
  /*! 
    
-   \param unsigned int time (JMDC Time[0]
+   \param unsigned int time (JMDC Time[0])
    \param RTI  value
    \retval 0   ok 
    \retval 1   no for this second
@@ -780,6 +790,7 @@ static int _select (const dirent64 * entry);
  int LoadGPSWGS84(unsigned int t1, unsigned int t2);
  int LoadISSINTL(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
+ int LoadRotationMatrices(unsigned int t1, unsigned int t2);
  int LoadAMSSTK(unsigned int t1, unsigned int t2);
  int LoadISSGTOD(unsigned int t1, unsigned int t2);
  int LoadDynAlignment(unsigned int run);
@@ -807,7 +818,8 @@ static int _select (const dirent64 * entry);
  //---------------------------------------
 
 
-ClassDef(AMSSetupR,22)       //AMSSetupR
+ClassDef(AMSSetupR,23)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
+

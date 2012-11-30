@@ -416,6 +416,80 @@ void ST_CAM2AMS(double& x, double& y, double& z, double Y, double R){
 }
 
 
+/****************
+ * FSpada nov 2011 - Give extrapolated pos (ICRS) after dt
+ ****************/
+AMSPoint getOrbitPoint(double dt, double x0, double y0, double z0, double vx0, double vy0, double vz0, int is_circ)
+{
+
+  const double M = 5.97E24;          // Earth mass in kg
+  const double G = 6.67E-11;         // Newton const m3/kg/s2
+  const double GM = 398600.4418;     // GM = 398600.4418 +- 0.0008 km^3 s^(-2) 
+  const double T = 0.997269*24*3600; // Sidereal rot period s
+  const double toll = 1E-7;
+
+  double r0 = sqrt(x0*x0+y0*y0+z0*z0);
+  double v0 = sqrt(vx0*vx0+vy0*vy0+vz0*vz0);
+  cout<<fixed;
+  double m[3], A[3];
+  m[0] = y0*vz0-z0*vy0;
+  m[1] = z0*vx0-x0*vz0;
+  m[2] = x0*vy0-y0*vx0;
+  double mm = sqrt(m[0]*m[0]+m[1]*m[1]+m[2]*m[2]);
+  A[0] =  x0*vy0*vy0 - y0*vx0*vy0 - z0*vx0*vz0 + x0*vz0*vz0 - GM*x0/r0;
+  A[1] = -x0*vx0*vy0 + y0*vx0*vx0 + y0*vz0*vz0 - z0*vy0*vz0 - GM*y0/r0;
+  A[2] =  z0*vx0*vx0 - x0*vx0*vz0 - y0*vy0*vz0 + z0*vy0*vy0 - GM*z0/r0;
+  double a = (is_circ)? r0 : GM*r0/(2*GM-v0*v0*r0);
+  double p =  m[0]/(mm+m[2]);
+  double q = -m[1]/(mm+m[2]);
+  double k = (is_circ)? 0 : (A[0]*(1-p*p+q*q) + 2*A[1]*p*q - 2*A[2]*p) / (GM*(1+p*p+q*q));
+  double h = (is_circ)? 0 : (2*A[0]*p*q + A[1]*(1+p*p-q*q) + 2*A[2]*q) / (GM*(1+p*p+q*q));
+  double X1 = (x0*(1-p*p+q*q) + 2*y0*p*q - 2*z0*p) / (1+p*p+q*q);
+  double Y1 = (2*x0*p*q + y0*(1+p*p-q*q) + 2*z0*q) / (1+p*p+q*q);
+  double b = 1/(1+sqrt(1-h*h-k*k));
+  double F = atan3( k + ((1-k*k*b)*X1 - h*k*b*Y1)/(a*sqrt(1-h*h-k*k)), h + ((1-h*h*b)*Y1 - h*k*b*X1)/(a*sqrt(1-h*h-k*k)) );
+  double l = F - k*sin(F) + h*cos(F);
+  double F0 = l + dt*sqrt(GM/pow(a,3)), Fi, Fii, Ft;
+  int i = 0;
+  double dif;
+  do {                               // if is_circ will iterate just once and Ft = F0
+    if (i==0) Fi = F0;
+    Fii = Fi - ( Fi - k*sin(Fi) + h*cos(Fi) - F0 )/( 1 - k*cos(Fi) - h*sin(Fi));
+    dif=sqrt((Fii-Fi)*(Fii-Fi));
+    //cout<<"       i="<<i<<" Fi "<<Fi<<" Fii "<<Fii<<"  dF "<<dif<<endl;
+    i++; 
+    Fi = Fii;
+  } while (dif>toll);
+  Ft = Fi;
+  //cout<<"  getOrbitPoint:: F0 "<<F0<<" Ft "<<Ft<<endl;
+  double Xt = a*( (1-h*h*b)*cos(Ft) + h*k*b*sin(Ft) - k );
+  double Yt = a*( (1-k*k*b)*sin(Ft) + h*k*b*cos(Ft) - h );
+  //cout<<"  getOrbitPoint:: Xt "<<Xt<<" Yt "<<Yt<<endl;
+  double x = (Xt*(1-p*p+q*q) + 2*Yt*p*q) / (1+p*p+q*q);
+  double y = (Yt*(1+p*p-q*q) + 2*Xt*p*q) / (1+p*p+q*q);
+  double z = (-2*Xt*p + 2*Yt*q) / (1+p*p+q*q);
+  double x1 = (X1*(1-p*p+q*q) + 2*Y1*p*q) / (1+p*p+q*q);
+  double y1 = (Y1*(1+p*p-q*q) + 2*X1*p*q) / (1+p*p+q*q);
+  double z1 = (-2*X1*p + 2*Y1*q) / (1+p*p+q*q);
+  //cout<<"getOrbitPoint:: x "<<x<<" y "<<y<<" z "<<z<<endl;
+  //cout<<"getOrbitPoint:: x1 "<<x1<<" y1 "<<y1<<" z1 "<<z1<<endl;
+  AMSPoint _pos(x,y,z);
+  return _pos;
+}
+
+/************************************
+ * atan with range -PI/2:3PI/2
+ ************************************/
+double atan3(double x, double y)
+{
+  const double PI = 3.141599265;
+  double t = (x>0)? atan(y/x) : atan(y/x)+PI;
+  return t;
+}
+
+
+
+
 /** **************** GROUND SEGMENT   ************************/
 
 

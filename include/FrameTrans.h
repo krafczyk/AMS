@@ -22,6 +22,7 @@
  *  SDT  6 nov 2012 - correct bug in ST_ECI2AMS(), the transformation are correct but in a wrong order
  *  SDT 10 nov 2012 - redefined the tranformation from LVLH to GTOD into LVLH to ECI since the LVLH frame is defined into the inertial frame
  *  SDT 11 nov 2012 - add "get_ams_l_b_inverse_fromGTOD" developed by C. Pizzolotto
+ *  F.Spada 23 nov 2012 - add getOrbitPoint for position interpolation with Kepler orbit
  */
 
 #include <iostream>
@@ -30,6 +31,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <math.h>
+#include "point.h"
+
 using namespace std;
 
 int get_ams_ra_dec_fromGTOD_ref(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
@@ -173,6 +176,13 @@ void ST_AMS2CAM(double& x, double& y, double& z, double Y, double R);
 /// Y: Yaw rotation angle in radiant.
 /// R: Roll rotation angle in radiant. 
 void ST_CAM2AMS(double& x, double& y, double& z, double Y, double R) ;
+
+/// Give extrapolated pos (ICRS) after time interval dt according to a Kepler orbit
+AMSPoint getOrbitPoint(double dt, double x0, double y0, double z0, double vx0, double vy0, double vz0, int is_circ);
+double   atan3(double x, double y);
+
+
+
   
 // ** **************** GROUND SEGMENT   ************************/
 

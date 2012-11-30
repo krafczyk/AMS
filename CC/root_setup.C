@@ -1,4 +1,5 @@
-//  $Id: root_setup.C,v 1.119 2012/11/21 17:33:50 choutko Exp $
+//  $Id: root_setup.C,v 1.120 2012/11/30 13:55:25 spada Exp $
+
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -6,23 +7,44 @@
 #include "ntuple.h"
 #include "DynAlignment.h"
 #include "RichConfig.h"
+#include "FrameTrans.h"
 #include "dirent.h"
 #include <sys/stat.h>
+
 #ifndef __ROOTSHAREDLIBRARY__
 #include "job.h"
 #include "commons.h"
 #include "commonsi.h"
 #endif
+
 extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *vp, float *grmedphi, double time);
 extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
+
 #include "timeid.h"
-        class trio{
-           public: 
-           unsigned int t1;
-           unsigned int t2;
-           unsigned int tmod;
-           string filename;
-        };
+class trio{
+public: 
+  unsigned int t1;
+  unsigned int t2;
+  unsigned int tmod;
+  string filename;
+};
+
+class ISSICRS{
+public:
+  float x; ///< x (km) in ICRS
+  float y; ///< y
+  float z; ///< z
+  float vx; ///< v_x m/s
+  float vy; ///< v_y m/s
+  float vz; ///< v_z m/s
+};
+
+typedef map <unsigned int,ISSICRS> ISSICRS_m;
+typedef map <unsigned int,ISSICRS>::iterator ISSICRS_i;
+static ISSICRS_m fISSICRS;           ///< ISS ICRS coordinates & velocity vector map
+typedef map <unsigned int,TMatrixD> RotMatrices_m;
+typedef map <unsigned int,TMatrixD>::iterator RotMatrices_i;
+static RotMatrices_m fRotMatrices;   ///< CTRS->ICRS rotation matrices map
 
 
 AMSSetupR* AMSSetupR::_Head=0;
@@ -1949,192 +1971,449 @@ r*=100000;
 
 int AMSSetupR::getISSTLE(float RTP[3],float VelTP[3],double xtime){
 #ifdef __ROOTSHAREDLIBRARY__
-static unsigned int ssize=0;
-static unsigned int stime[2]={1,1};
+  static unsigned int ssize=0;
+  static unsigned int stime[2]={1,1};
 #pragma omp threadprivate (stime)
 #pragma omp threadprivate (ssize)
-if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSData.clear();
-if(fISSData.size()==0){
-const int dt=120;
-if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
- stime[0]=fHeader.FEventTime-dt;
- stime[1]=fHeader.LEventTime+dt;
-}
-if(xtime<stime[0])stime[0]=xtime-dt;
-if(xtime>stime[1])stime[1]=xtime+dt;
-LoadISS(stime[0],stime[1]);
-ssize=fISSData.size();
-
-}
-}
+  if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSData.clear();
+  if(fISSData.size()==0){
+    const int dt=120;
+    if(xtime<stime[0] || xtime>stime[1] || ssize){
+      stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+      stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+      if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+	stime[0]=fHeader.FEventTime-dt;
+	stime[1]=fHeader.LEventTime+dt;
+      }
+      if(xtime<stime[0])stime[0]=xtime-dt;
+      if(xtime>stime[1])stime[1]=xtime+dt;
+      LoadISS(stime[0],stime[1]);
+      ssize=fISSData.size();
+    }
+  }
 #endif 
-static unsigned int time=0;
+  static unsigned int time=0;
 #pragma omp threadprivate (time)
-const double pi2= 3.1415926535*2;
-if (fISSData.size()==0)return 2;
-	unsigned int tl=0;
-	for(ISSData_i i=fISSData.begin();i!=fISSData.end();i++){
-	 if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
-	}
-	if(tl!=time && tl){
-  	 time=tl;
-	 ISSData_i i=fISSData.find(time);
-	if(i!=fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
-	 float NPhi;
-         ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
-         RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
-         VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
-	 return 0;
-	}
-	else{
-	static int print=0;
-	time=0;
-	if(print++<10)cerr<<"AMSSetupR::getISSTLE-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
-	return 1 ;
-	}
-	}
-        if(time!=0){
-	 float NPhi;
-         ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
-         RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
-         VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
-         return 0;
-        }
-	return 3;
-
+  const double pi2= 3.1415926535*2;
+  if (fISSData.size()==0)return 2;
+  unsigned int tl=0;
+  for(ISSData_i i=fISSData.begin();i!=fISSData.end();i++){
+    if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
+  }
+  if(tl!=time && tl){
+    time=tl;
+    ISSData_i i=fISSData.find(time);
+    if(i!=fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
+      float NPhi;
+      ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
+      RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
+      VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
+      return 0;
+    }
+    else{
+      static int print=0;
+      time=0;
+      if(print++<10)cerr<<"AMSSetupR::getISSTLE-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
+      return 1 ;
+    }	}
+  if(time!=0){
+    float NPhi;
+    ::ISSGTOD(&RTP[0],&RTP[1],&RTP[2],&VelTP[0],&VelTP[1],&VelTP[2],&NPhi,xtime);
+    RTP[2]=fmod(RTP[2]-NPhi+3.1415926*2,3.1415926*2);
+    VelTP[2]=fmod(VelTP[2]-NPhi+pi2,pi2);
+    return 0;
+  }
+  return 3;
 }
 
 
-int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR & a, double xtime){
-#ifdef __ROOTSHAREDLIBRARY__
-static unsigned int ssize=0;
-static unsigned int stime[2]={0,0};
+
+int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR &a, double xtime)
+{
+  static int debug_level = 0;
+  if (debug_level>0) cout<<Form("====CALLING AMSSetupR::%s====",__func__)<<endl;
+
+  static int is_begin = 1;
+
+#ifdef __ROOTSHAREDLIBRARY__ 
+  static unsigned int ssize=0;
+  static unsigned int rotsize=0;
+  static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
 #pragma omp threadprivate (ssize)
-if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSCTRS.clear();
-if(fISSCTRS.size()==0){
-const int dt=120;
-if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
- stime[0]=fHeader.FEventTime-dt;
- stime[1]=fHeader.LEventTime+dt;
-}
-if(xtime<stime[0])stime[0]=xtime-dt;
-if(xtime>stime[1])stime[1]=xtime+dt;
-LoadISSCTRS(stime[0],stime[1]);
-ssize=fISSCTRS.size();
+#pragma omp threadprivate (rotsize)
+  if (debug_level>2) cout<<"AMSSetupR::getISSCTRS stime[0]="<<stime[0]<<" stime[1]="<<stime[1]<<" xtime="<<xtime<<endl;
+  if (debug_level>1) cout<<Form("1-    AMSSetupR::%s: ",__func__)<<" fISSCTRS.size()="<<fISSCTRS.size()<<endl;         
+  if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1])) {
+    fISSCTRS.clear();
+    fRotMatrices.clear();
+  }
 
-}
-}
+  // clear ISSCTRS map already in header
+  if (is_begin==1) {
+    fISSCTRS.clear();
+    is_begin=0;
+  }
+
+  if(fISSCTRS.size()==0 || fRotMatrices.size()==0){
+    const int dt=120;
+    if(xtime<stime[0] || xtime>stime[1] || ssize){
+      stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+      stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+      if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+	stime[0]=fHeader.FEventTime-dt;
+	stime[1]=fHeader.LEventTime+dt;
+      }
+      if(xtime<stime[0])stime[0]=xtime-dt;
+      if(xtime>stime[1])stime[1]=xtime+dt;
+      if(fISSCTRS.size()==0) {    
+	if (debug_level>1) cout<<"AMSSetupR::getISSCTRS Going to call LoadISSCTRS"<<endl;
+	LoadISSCTRS(stime[0],stime[1]);
+	ssize=fISSCTRS.size();
+      }
+      if(fRotMatrices.size()==0){
+	int rot=LoadRotationMatrices(stime[0],stime[1]);
+	rotsize=fRotMatrices.size();
+      }
+    }
+  }
 #endif 
-if (fISSCTRS.size()==0)return 2;
 
+  if (debug_level>1) cout<<Form("2-    AMSSetupR::%s: ",__func__)<<" fISSCTRS.size()="<<fISSCTRS.size()<<endl;
 
+  if (fISSCTRS.size()==0) {
+    cout<<"AMSSetupR::getISSCTRS-No-CTRS-Coord-Entries"<<endl; 
+    return 2;
+  }
+  if (fRotMatrices.size()==0) {
+    cout<<"AMSSetupR::getISSCTRS-No-RotMatrices-Entries"<<endl; 
+    return 4;
+  }
 
-AMSSetupR::ISSCTRS_i k=fISSCTRS.lower_bound(xtime);
-if(k==fISSCTRS.begin()){
-a=ISSCTRSR(k->second);
-return 1;
-}
-if(k==fISSCTRS.end()){
-k--;
-a=ISSCTRSR(k->second);
-return 1;
-}
+  ISSCTRS_i k=fISSCTRS.lower_bound(xtime);
 
-if(xtime==k->first){
-a=ISSCTRSR(k->second);
-return 0;
-}
+  // if CTRS exists for this time, no need to interpolate
+  if(k==fISSCTRS.begin()){
+    a=ISSCTRSR(k->second);
+    return 1;
+  }
+  if(k==fISSCTRS.end()){
+    k--;
+    a=ISSCTRSR(k->second);
+    return 1;
+  }
+  if(xtime==k->first){
+    a=ISSCTRSR(k->second);
+    return 0;
+  }
   k--;
-  AMSSetupR::ISSCTRS b;
+
+
+  // get rotation matrix interpolated at the time of every CTRS
+  // create map of (time,ICRS)
+  time_t ktime; struct tm *ktm;
+  int kk=0;
+  for( k = fISSCTRS.begin(); k != fISSCTRS.end(); k++){
+    ktime = k->first;
+    ktm = gmtime(&ktime);
+    TMatrixD RM = getRotationMatrix(ktime);
+    const double earth_w = 7.2921158553e-5; //!< Earth's angular velocity [1/s]
+
+    if (debug_level>1) {
+      if (kk<3 || kk>fISSCTRS.size()-3)
+	cout<<"===AMSSetupR::getISSCTRS::Looking for "<<fixed<<setprecision(3)<<(double) k->first<<" -- "
+	    <<(ktm->tm_year+1900)<<"-"<<(ktm->tm_mon+1)<<"-"<<ktm->tm_mday<<":"<<ktm->tm_hour
+	    <<":"<<ktm->tm_min<<":"<<ktm->tm_sec<<endl;
+      
+      if (kk<3 || kk>fISSCTRS.size()-3) { 
+	cout<<"===AMSSetupR::getISSCTRS::getRotationMatrix-Dump "<<ktime<<' ';
+	for(int r=0; r<3; r++) for(int c=0; c<3; c++) cout<<RM[r][c]<<' ';
+	cout<<endl;                         
+      }
+      if (kk==3) cout<<"[...]"<<endl; kk++;
+    }
+
+    double U[3][3]={0}, dUdt[3][3]={0}, w[3]={0};
+    double U_T[3][3]={0}, dUdt_T[3][3]={0};
+    if (debug_level>2) cout<<"AMSSetupR::U_T: ";      
+    for(int r=0; r<3; r++) for(int c=0; c<3; c++) {
+	U_T[r][c] = RM[r][c];
+	if (debug_level>2) cout<<U_T[r][c]<<' ';      
+      }
+    if (debug_level>2) cout<<endl;                    
+
+    // apply Coordinate Transformation and store results
+    ISSICRS k_icrs;
+    //Position
+    k_icrs.x = U_T[0][0]*k->second.x+U_T[0][1]*k->second.y+U_T[0][2]*k->second.z;
+    k_icrs.y = U_T[1][0]*k->second.x+U_T[1][1]*k->second.y+U_T[1][2]*k->second.z;
+    k_icrs.z = U_T[2][0]*k->second.x+U_T[2][1]*k->second.y+U_T[2][2]*k->second.z;
+
+    //Velocity
+    //Compute rotation matrix derivative
+    //1. Transpose the rotation matrix
+    for(int i=0; i<3; i++){
+      U[i][i]=U_T[i][i];
+      for(int j=i+1; j<3; j++){
+	U[i][j]=U_T[j][i];
+	U[j][i]=U_T[i][j];
+      }
+    }
+    //2. Compute the derivative
+    dUdt[0][0] = earth_w*(0*U[0][0]+1*U[1][0]+0*U[2][0]);
+    dUdt[0][1] = earth_w*(0*U[0][1]+1*U[1][1]+0*U[2][1]);
+    dUdt[0][2] = earth_w*(0*U[0][2]+1*U[1][2]+0*U[2][2]);
+    dUdt[1][0] = earth_w*(-1*U[0][0]+0*U[1][0]+0*U[2][0]);
+    dUdt[1][1] = earth_w*(-1*U[0][1]+0*U[1][1]+0*U[2][1]);
+    dUdt[1][2] = earth_w*(-1*U[0][2]+0*U[1][2]+0*U[2][2]);
+    dUdt[2][0] = earth_w*(0*U[0][0]+0*U[1][0]+0*U[1][0]);
+    dUdt[2][1] = earth_w*(0*U[0][1]+0*U[1][1]+0*U[1][1]);
+    dUdt[2][2] = earth_w*(0*U[0][2]+0*U[1][2]+0*U[1][2]);
+    //3. Transpose the derivative rotation matrix
+    for(int i=0; i<3; i++){
+      dUdt_T[i][i]=dUdt[i][i];
+      for(int j=i+1; j<3; j++){
+	dUdt_T[i][j]=dUdt[j][i];
+	dUdt_T[j][i]=dUdt[i][j];
+      }
+    }
+    //4. Apply the transformation to the velocity
+    k_icrs.vx = U_T[0][0]*k->second.vx+U_T[0][1]*k->second.vy+U_T[0][2]*k->second.vz;
+    k_icrs.vx += dUdt_T[0][0]*k->second.x+dUdt_T[0][1]*k->second.y+dUdt_T[0][2]*k->second.z;
+    k_icrs.vy = U_T[1][0]*k->second.vx+U_T[1][1]*k->second.vy+U_T[1][2]*k->second.vz;
+    k_icrs.vy += dUdt_T[1][0]*k->second.x+dUdt_T[1][1]*k->second.y+dUdt_T[1][2]*k->second.z;
+    k_icrs.vz = U_T[2][0]*k->second.vx+U_T[2][1]*k->second.vy+U_T[2][2]*k->second.vz;
+    k_icrs.vz += dUdt_T[2][0]*k->second.x+dUdt_T[2][1]*k->second.y+dUdt_T[2][2]*k->second.z;
+
+    fISSICRS.insert(make_pair(k->first,k_icrs));
+  }
+
+  // interpolate btw. previous and following for xtime's event
+  ISSICRS c;
+  ISSICRS_i i=fISSICRS.lower_bound(xtime);
+  
+  // if ICRS exists for this time, no need to interpolate
+  if(i==fISSICRS.begin()){
+    c=ISSICRS(i->second);
+  }
+  if(i==fISSICRS.end()){
+    i--;
+    c=ISSICRS(i->second);
+  }
+  if(xtime==i->first){
+    c=ISSICRS(i->second);
+  }
+  i--;
+
+  double tme_icrs[2]={0,0};
+  tme_icrs[0]=i->first;
+  ISSICRS_i m=i;
+  m++;
+  tme_icrs[1]=m->first;
+
+  // interpolate with orbit at xtime
+  // forward from tme_icrs[0]. backward from tme_icrs[1], then average with weight
+  double dt0 = xtime-tme_icrs[0];
+  double x0=i->second.x, y0=i->second.y, z0=i->second.z; 
+  double vx0=i->second.vx, vy0=i->second.vy, vz0=i->second.vz;
+  cout<<"AMSSetupR::getISSICRS:: xtime: "<<fixed<<xtime<<" - Found t0: "<<tme_icrs[0]<<" [dt0="<<dt0<<"]"<<endl;              // DEBUG
+  cout<<"AMSSetupR::getISSICRS:: using point in ICRS map: "<<x0<<' '<<y0<<' '<<z0<<' '<<vx0<<' '<<vy0<<' '<<vz0<<endl;   // DEBUG
+  double dt1 = xtime-tme_icrs[1];
+  double x1=m->second.x, y1=m->second.y, z1=m->second.z; 
+  double vx1=m->second.vx, vy1=m->second.vy, vz1=m->second.vz;
+
+  AMSPoint B, B1;
+  if (debug_level>2) cout<<"getISSICRS:: dt0-5/5dt0 "<<dt0-5./5.*dt0<<endl;
+  B = getOrbitPoint(dt0-5./5.*dt0, x0, y0, z0, vx0, vy0, vz0, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt0-4/5dt0 "<<dt0-4./5.*dt0<<endl;
+  B = getOrbitPoint(dt0-4./5.*dt0, x0, y0, z0, vx0, vy0, vz0, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt0-3/5dt0 "<<dt0-3./5.*dt0<<endl;
+  B = getOrbitPoint(dt0-3./5.*dt0, x0, y0, z0, vx0, vy0, vz0, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt0-2/5dt0 "<<dt0-2./5.*dt0<<endl;
+  B = getOrbitPoint(dt0-2./5.*dt0, x0, y0, z0, vx0, vy0, vz0, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt0-1/5dt0 "<<dt0-1./5.*dt0<<endl;
+  B = getOrbitPoint(dt0-1./5.*dt0, x0, y0, z0, vx0, vy0, vz0, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt0 "<<dt0<<endl;                 
+  B = getOrbitPoint(dt0, x0, y0, z0, vx0, vy0, vz0, 0);
+  x0=m->second.x, y0=m->second.y, z0=m->second.z; 
+  vx0=m->second.vx, vy0=m->second.vy, vz0=m->second.vz;
+  if (debug_level>1) cout<<"getISSICRS:: next point in ICRS map: "<<x0<<' '<<y0<<' '<<z0<<' '<<vx0<<' '<<vy0<<' '<<vz0<<endl;   // DEBUG
+
+  if (debug_level>2) cout<<"getISSICRS:: dt1-5/5dt1 "<<dt1-5./5.*dt1<<endl;
+  B1 = getOrbitPoint(dt1-5./5.*dt1, x1, y1, z1, vx1, vy1, vz1, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt1-4/5dt1 "<<dt1-4./5.*dt1<<endl;
+  B1 = getOrbitPoint(dt1-4./5.*dt1, x1, y1, z1, vx1, vy1, vz1, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt1-3/5dt1 "<<dt1-3./5.*dt1<<endl;
+  B1 = getOrbitPoint(dt1-3./5.*dt1, x1, y1, z1, vx1, vy1, vz1, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt1-2/5dt1 "<<dt1-2./5.*dt1<<endl;
+  B1 = getOrbitPoint(dt1-2./5.*dt1, x1, y1, z1, vx1, vy1, vz1, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt1-1/5dt1 "<<dt1-1./5.*dt1<<endl;
+  B1 = getOrbitPoint(dt1-1./5.*dt1, x1, y1, z1, vx1, vy1, vz1, 0);
+  if (debug_level>2) cout<<"getISSICRS:: dt1 "<<dt1<<endl;                 
+  B1 = getOrbitPoint(dt1, x1, y1, z1, vx1, vy1, vz1, 0);
+  float W  = (float)(tme_icrs[1]-tme_icrs[0]); 
+  float w0 = (tme_icrs[1]-xtime)/W;
+  float w1 = (xtime-tme_icrs[0])/W;
+
+  c.x = w0*B.x() + w1*B1.x();
+  c.y = w0*B.y() + w1*B1.y();
+  c.z = w0*B.z() + w1*B1.z();
+
+  // now go back to CTRS with inverse matrix
+  TMatrixD RMB = getRotationMatrix(xtime);
+  if (debug_level>2) {                     
+    cout<<"===getCTRSfromICRS::RotationMatrix-Dump "; 
+    for(int R=0; R<3; R++) for(int C=0; C<3; C++) cout<<RMB[R][C]<<' '; 
+    cout<<endl;
+  }                                        
+
+  Double_t det;
+  RMB.Invert(&det);
+  if (debug_level>2) {                     
+    cout<<"===getCTRSfromICRS::InvertedRotationMatrix-Dump ";
+    for(int R=0; R<3; R++) for(int C=0; C<3; C++) cout<<RMB[R][C]<<' '; 
+    cout<<endl;                                                         
+  }                                        
+
+  ISSCTRS b;
+  b.x = RMB[0][0]*c.x+RMB[0][1]*c.y+RMB[0][2]*c.z;
+  b.y = RMB[1][0]*c.x+RMB[1][1]*c.y+RMB[1][2]*c.z;
+  b.z = RMB[2][0]*c.x+RMB[2][1]*c.y+RMB[2][2]*c.z;
+
+  // for the moment keep velocities with linear interpolation of CTRS
   float s0[2]={-1.,-1};
   double tme[2]={0,0};
   tme[0]=k->first;
-  AMSSetupR::ISSCTRS_i l=k;
+  ISSCTRS_i l=k;
   l++;
   tme[1]=l->first;
-//  cout <<" alpha "<< k->second.alpha<<" "<<l->second.alpha<<endl;
-//   cout << int(k->first)<<" "<<int(l->first)<<" "<<int(xtime)<<endl;
-{
-  double ang1=k->second.x;
-  double ang2=l->second.x;
-  s0[0]=ang1;
-  s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-// try quadratic interpolation
-  double v1=k->second.vx;
-  double v2=l->second.vx;
-  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-16);
-  b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
-}
-{
-  double ang1=k->second.y;
-  double ang2=l->second.y;
-  s0[0]=ang1;
-  s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  double v1=k->second.vy;
-  double v2=l->second.vy;
-  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-16);
-  b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
 
-}
-{
-  double ang1=k->second.z;
-  double ang2=l->second.z;
-  s0[0]=ang1;
-  s0[1]=ang2;
+// OLD
+//   //  cout <<" alpha "<< k->second.alpha<<" "<<l->second.alpha<<endl;
+//   //  cout << int(k->first)<<" "<<int(l->first)<<" "<<int(xtime)<<endl;
+//   {
+//     double ang1=k->second.x;
+//     double ang2=l->second.x;
+//     s0[0]=ang1;
+//     s0[1]=ang2;
+//     double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+//     // try quadratic interpolation
+//     double v1=k->second.vx;
+//     double v2=l->second.vx;
+//     double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+//     double corr=(ang2-ang1)/(dx+1.e-16);
+//     b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
+//   }
+//   {
+//     double ang1=k->second.y;
+//     double ang2=l->second.y;
+//     s0[0]=ang1;
+//     s0[1]=ang2;
+//     double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+//     double v1=k->second.vy;
+//     double v2=l->second.vy;
+//     double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+//     double corr=(ang2-ang1)/(dx+1.e-16);
+//     b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
+
+//   }
+//   {
+//     double ang1=k->second.z;
+//     double ang2=l->second.z;
+//     s0[0]=ang1;
+//     s0[1]=ang2;
+//     double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+//     double v1=k->second.vz;
+//     double v2=l->second.vz;
+//     double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+//     double corr=(ang2-ang1)/(dx+1.e-16);
+//     b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
+//   }
+
+  {
+    double ang1=k->second.vx;
+    double ang2=l->second.vx;
+    s0[0]=ang1;
+    s0[1]=ang2;
     double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  double v1=k->second.vz;
-  double v2=l->second.vz;
-  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-16);
-  b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
-}
-{
-  double ang1=k->second.vx;
-  double ang2=l->second.vx;
-  s0[0]=ang1;
-  s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  b.vx=s1;
-}
-{
-  double ang1=k->second.vy;
-  double ang2=l->second.vy;
-  s0[0]=ang1;
-  s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  b.vy=s1;
-}
+    b.vx=s1;
+  }
+  {
+    double ang1=k->second.vy;
+    double ang2=l->second.vy;
+    s0[0]=ang1;
+    s0[1]=ang2;
+    double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+    b.vy=s1;
+  }
 
-{
-  double ang1=k->second.vz;
-  double ang2=l->second.vz;
-  s0[0]=ang1;
-  s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
-  b.vz=s1;
-}
+  {
+    double ang1=k->second.vz;
+    double ang2=l->second.vz;
+    s0[0]=ang1;
+    s0[1]=ang2;
+    double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
+    b.vz=s1;
+  }
 
   a=ISSCTRSR(b);
   const float dmax=60;
-  if(fabs(tme[1]-tme[0])>dmax)return 3;
+  if(fabs(tme[1]-tme[0])>dmax) return 3;
   else return 0;
-
-
 }
 
 
+TMatrixD AMSSetupR::getRotationMatrix(double xtime) 
+{
+  static int debug_level = 0;
+  if (debug_level>0) cout<<Form("====CALLING AMSSetupR::%s====",__func__)<<endl;
 
+  TMatrixD a(3,3);
+
+  if (fRotMatrices.size()==0) {
+    cout<<"AMSSetupR::getRotationMatrix-No-Matrix-Entries"<<endl; 
+    for(int r=0; r<3; r++) for(int c=0; c<3; c++) a[r][c]=0;	 
+    return a;
+  }
+
+  RotMatrices_i k;
+  for( k = fRotMatrices.begin(); k != fRotMatrices.end(); k++) {
+    if (k->first > xtime ) {
+      if (k == fRotMatrices.begin()) {
+	return k->second;
+      }
+      else { k--; break;}
+    }
+    else if (xtime==k->first) {
+      return k->second;
+    }
+  }
+
+  if (k==fRotMatrices.end()) {
+    k--;
+    return k->second;
+  }
+ 
+  float s0[2]={-1.,-1};
+  double tme[2]={0,0};
+  tme[0]=k->first;
+  RotMatrices_i l=k;
+  l++;
+  tme[1]=l->first;
+
+  // interpolate linearly
+  for(int r=0; r<3; r++) for(int c=0; c<3; c++) {
+      double par1=k->second[r][c];
+      double par2=l->second[r][c];
+      s0[0]=par1;
+      s0[1]=par2;
+      double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+      if (debug_level>2) cout<<Form("AMSSetupR::getRotationMatrix-- a[%d][%d]  par1 %f   par2 %f   s1 %f",r,c,par1,par2,s1)<<endl;
+      a[r][c]=s1;
+  }
+
+  return a;
+}
 
 
 
@@ -2997,90 +3276,278 @@ return ret;
 }
 
 
+
+int AMSSetupR::LoadRotationMatrices(unsigned int t1, unsigned int t2)
+{
+  static int debug_level = 0;
+  if (debug_level>0) cout<<Form("====CALLING AMSSetupR::%s====",__func__)<<endl;
+
+  string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+  char postfix[]="/altec/";
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (AMSDataDir && strlen(AMSDataDir)){
+    AMSISSlocal=AMSDataDir;
+  }
+  
+  AMSISSlocal+=postfix;
+  const char * AMSISS=getenv("AMSISS");
+  if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
+
+
+  if (t1>t2) {
+    cerr<< "AMSSetupR::LoadRotationMatrices-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
+    return 2;
+  }
+  else if (t2-t1>864000) {
+    cerr<< "AMSSetupR::LoadRotationMatrices-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+    t2=t1+864000;
+  }
+
+  const char fpatb[]="CTRS_ICRS_Matrices/CTRS_ICRS_Matrix_";
+  const char fpate[]="-24H.csv";
+
+  // convert time to GMT format
+  // check tz
+  unsigned int tzd=0;
+  tm tmf;
+  {
+    char tmp2[255];
+    time_t tz=t1;
+    strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+    strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    //tc=mktime(&tmf);
+    tzd=tz-tc;
+    if (debug_level>2) cout<< "1-AMSSetupR::LoadRotationMatrices-I-TZDSeconds "<<tzd<<endl;
+  }
+  {
+    char tmp2[255];
+    time_t tz=t1;
+    strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+    strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    //tc=mktime(&tmf);
+    tzd=tz-tc;
+    if (debug_level>2) cout<< "2-AMSSetupR::RotationMatrices-I-TZDSeconds "<<tzd<<endl;
+  }
+
+  char tmp[255];
+  time_t utime=t1;
+  strftime(tmp, 40, "%Y", gmtime(&utime));
+  unsigned int yb=atol(tmp);
+  strftime(tmp, 40, "%j", gmtime(&utime));
+  unsigned int db=atol(tmp);
+  if (debug_level>1) cout<<"Run-60   (t1) = "<<t1<<", corr. day of the year: "<<db<<endl;
+  utime=t2;
+  strftime(tmp, 40, "%Y", gmtime(&utime));
+  unsigned int ye=atol(tmp);
+  strftime(tmp, 40, "%j", gmtime(&utime));
+  unsigned int de=atol(tmp);
+  if (debug_level>1) cout<<"Run+3600 (t2) = "<<t2<<", corr. day of the year: "<<de<<endl;
+  
+  unsigned int yc=yb;
+  unsigned int dc=db;
+  int bfound=0;
+  int efound=0;
+
+  while(yc<ye || dc<=de){
+    
+    string fname=AMSISS;
+    fname+=fpatb;
+    char utmp[80];
+    sprintf(utmp,"%u_%03u",yc,dc);
+    fname+=utmp;
+    fname+=fpate;
+    if (debug_level>0) cout<<"RotationMatrices file: "<<fname<<endl; 
+
+    ifstream _rotmatrix_file;
+    if (_rotmatrix_file.is_open()) _rotmatrix_file.close();
+    _rotmatrix_file.clear();
+    _rotmatrix_file.open(fname.c_str(), ifstream::in );
+    _rotmatrix_file.seekg(0,ios::beg);
+    
+    if (_rotmatrix_file){
+      while(_rotmatrix_file.good() && !_rotmatrix_file.eof()){
+	char line[320];
+	_rotmatrix_file.getline(line,319);
+	
+	if (isdigit(line[0])) {
+ 	  TMatrixD CTRS2ICRS(3,3);
+	  double U_T[3][3]={0};
+	  char *pch;
+	  pch=strtok(line,".");
+	  if (pch) {
+	    strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
+	    time_t tf=mktime(&tmf)+tzd;
+	    pch=strtok(NULL,",");
+	    char tm1[80];
+	    sprintf(tm1,".%s",pch);
+	    double tc=tf+atof(tm1);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.') continue;
+	    U_T[0][0]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.') continue;
+	    U_T[0][1]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.') continue;
+	    U_T[0][2]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.') continue;
+	    U_T[1][0]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.') continue;
+	    U_T[1][1]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.') continue;
+	    U_T[1][2]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.') continue;
+	    U_T[2][0]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.') continue;
+	    U_T[2][1]=atof(pch);
+	    pch=strtok(NULL,",");
+	    if (!pch) continue;
+	    if (!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.') continue;
+	    U_T[2][2]=atof(pch);
+	    
+	    for(int r=0; r<3; r++) for(int c=0; c<3; c++) CTRS2ICRS[r][c]=U_T[r][c];
+	     
+	    fRotMatrices.insert(make_pair(tc,CTRS2ICRS));
+	    
+	    if (tc>=t1 && tc<=t2) {
+	      if (abs(bfound)!=2) {
+		fRotMatrices.clear();
+		fRotMatrices.insert(make_pair(tc,CTRS2ICRS));
+		bfound=bfound?2:-2;
+	      }
+	    }
+	    else if (tc<t1) bfound=1;
+	    else if (tc>t2) {
+	      efound=1;
+	      break;
+	    }
+	  }   
+	}
+      }
+    }
+    else {
+      cerr<<"AMSSetupR::LoadRotationMatrices-E-UnabletoOpenFile "<<fname<<endl;
+    }
+    dc++;
+    if (dc>366) {
+      dc=1;
+      yc++;
+    }
+  }
+
+  int ret;
+  if (bfound>0 && efound) ret=0;
+  else if (!bfound && !efound ) ret=2;
+  else ret=1;
+  if (debug_level>0) cout<< "AMSSetupR::LoadRotationMatrices-I- "<<fRotMatrices.size()<<" Entries Loaded"<<endl;
+
+  return ret;
+}
+
+
+
+
 int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
 
-   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
-   char postfix[]="/isssa/";
-   char * AMSDataDir=getenv("AMSDataDir");
-   if (AMSDataDir && strlen(AMSDataDir)){
-     AMSISSlocal=AMSDataDir;
-   }
+  string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+
+  char postfix[]="/isssa/";  
+  char * AMSDataDir=getenv("AMSDataDir");
+  if (AMSDataDir && strlen(AMSDataDir)){  
+    AMSISSlocal=AMSDataDir;
+  }
   
   AMSISSlocal+=postfix;
   const char * AMSISS=getenv("AMSISSSA");
-   if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
+  if (!AMSISS || strlen(AMSISS))AMSISS=AMSISSlocal.c_str();
 
 
-if(t1>t2){
-cerr<< "AMSSetupR::LoadISSCTRS-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
-return 2;
-}
-else if(t2-t1>864000){
+  if(t1>t2){
+    cerr<< "AMSSetupR::LoadISSCTRS-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
+    return 2;
+  }
+  else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSCTRS-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
-   t2=t1+864000;
-}
-const char fpatb[]="ISS_CTRS_Vectors_";
-const char fpatb2[]="ISS_CTRS_vectors_";
-const char fpate[]="-24H.csv";
-const char fpate2[]="-24h.csv";
+    t2=t1+864000;
+  }
+  const char fpatb[]="ISS_CTRS_Vectors_";
+  const char fpatb2[]="ISS_CTRS_vectors_";
+  const char fpate[]="-24H.csv";
+  const char fpate2[]="-24h.csv";
 
-// convert time to GMT format
+  // convert time to GMT format
 
-// check tz
-   unsigned int tzd=0;
-    tm tmf;
-{
-char tmp2[255];
-{
-   time_t tz=t1;
-          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
-    time_t tc=mktime(&tmf);
-    tc=mktime(&tmf);
-    tzd=tz-tc;
-    cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
-}
-{
-   time_t tz=t1;
-          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
-    time_t tc=mktime(&tmf);
-    tc=mktime(&tmf);
-    tzd=tz-tc;
-    cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
-}
+  // check tz
+  unsigned int tzd=0;
+  tm tmf;
+  {
+    char tmp2[255];
+    {
+      time_t tz=t1;
+      strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+      strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+      time_t tc=mktime(&tmf);
+      tc=mktime(&tmf);
+      tzd=tz-tc;
+      cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
+    }
+    {
+      time_t tz=t1;
+      strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+      strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+      time_t tc=mktime(&tmf);
+      tc=mktime(&tmf);
+      tzd=tz-tc;
+      cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
+    }
+  }
 
-}
-
-   char tmp[255];
-    time_t utime=t1;
-    strftime(tmp, 40, "%Y", gmtime(&utime));
-    unsigned int yb=atol(tmp);
-    strftime(tmp, 40, "%j", gmtime(&utime));
-    unsigned int db=atol(tmp);
-    utime=t2;
-    strftime(tmp, 40, "%Y", gmtime(&utime));
-    unsigned int ye=atol(tmp);
-    strftime(tmp, 40, "%j", gmtime(&utime));
-    unsigned int de=atol(tmp);
+  char tmp[255];
+  time_t utime=t1;
+  strftime(tmp, 40, "%Y", gmtime(&utime));
+  unsigned int yb=atol(tmp);
+  strftime(tmp, 40, "%j", gmtime(&utime));
+  unsigned int db=atol(tmp);
+  utime=t2;
+  strftime(tmp, 40, "%Y", gmtime(&utime));
+  unsigned int ye=atol(tmp);
+  strftime(tmp, 40, "%j", gmtime(&utime));
+  unsigned int de=atol(tmp);
     
-    unsigned int yc=yb;
-    unsigned int dc=db;
-    int bfound=0;
-    int efound=0;
-    while(yc<ye || dc<=de){
-     string fname=AMSISS;
-     fname+=fpatb;
-     char utmp[80];
-     sprintf(utmp,"%u_%03u",yc,dc);
-     fname+=utmp;
-     fname+=fpate;
-     ifstream fbin;
-     fbin.close();    
-     fbin.clear();
-     fbin.open(fname.c_str());
-     if(!fbin){
-// change 24H to 24h
+  unsigned int yc=yb;
+  unsigned int dc=db;
+  int bfound=0;
+  int efound=0;
+  while(yc<ye || dc<=de){
+    string fname=AMSISS;
+    fname+=fpatb;
+    char utmp[80];
+    sprintf(utmp,"%u_%03u",yc,dc);
+    fname+=utmp;
+    fname+=fpate;
+    cout<<"AMSSetupR::LoadISSCTRS-ISSCTRS file: "<<fname<<endl; 
+
+    ifstream fbin;
+    fbin.close();    
+    fbin.clear();
+    fbin.open(fname.c_str());
+    if(!fbin){
+      // change 24H to 24h
       fname=AMSISS;
       fname+=fpatb;
       char utmp[80];
@@ -3091,9 +3558,9 @@ char tmp2[255];
       fbin.close();    
       fbin.clear();
       fbin.open(fname.c_str());
-     }
-     if(!fbin){
-// change Vec to vec
+    }
+    if(!fbin){
+      // change Vec to vec
       fname=AMSISS;
       fname+=fpatb2;
       char utmp[80];
@@ -3104,9 +3571,9 @@ char tmp2[255];
       fbin.close();    
       fbin.clear();
       fbin.open(fname.c_str());
-     }
-     if(!fbin){
-// change 24h back
+    }
+    if(!fbin){
+      // change 24h back
       fname=AMSISS;
       fname+=fpatb2;
       char utmp[80];
@@ -3117,86 +3584,86 @@ char tmp2[255];
       fbin.close();    
       fbin.clear();
       fbin.open(fname.c_str());
-     }
-     if(fbin){
+    }
+    if(fbin){
       while(fbin.good() && !fbin.eof()){
         char line[120];
         fbin.getline(line,119);
         
         if(isdigit(line[0])){
-         char *pch;
-         pch=strtok(line,".");
-         ISSCTRS a;
-         if(pch){
-          strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
-          //cout <<" pch "<<pch<<endl;
-          time_t tf=mktime(&tmf)+tzd;
-          pch=strtok(NULL,",");
-          char tm1[80];
-          sprintf(tm1,".%s",pch);
-          double tc=tf+atof(tm1);
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          if(!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.')continue;
-          a.x=atof(pch);
-          //cout <<" alpha "<<a.x<<" "<<tf<<" "<<tc<<endl;
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.y=atof(pch);
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.z=atof(pch);
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.vx=atof(pch)/1000.;
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.vy=atof(pch)/1000.;
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.vz=atof(pch)/1000.;
-           fISSCTRS.insert(make_pair(tc,a));
+	  char *pch;
+	  pch=strtok(line,".");
+	  ISSCTRS a;
+	  if(pch){
+	    strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
+	    //cout <<" pch "<<pch<<endl;
+	    time_t tf=mktime(&tmf)+tzd;
+	    pch=strtok(NULL,",");
+	    char tm1[80];
+	    sprintf(tm1,".%s",pch);
+	    double tc=tf+atof(tm1);
+	    pch=strtok(NULL,",");
+	    if(!pch)continue;
+	    if(!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.')continue;
+	    a.x=atof(pch);
+	    //cout <<" alpha "<<a.x<<" "<<tf<<" "<<tc<<endl;
+	    pch=strtok(NULL,",");
+	    if(!pch)continue;
+	    if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+	    a.y=atof(pch);
+	    pch=strtok(NULL,",");
+	    if(!pch)continue;
+	    if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+	    a.z=atof(pch);
+	    pch=strtok(NULL,",");
+	    if(!pch)continue;
+	    if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+	    a.vx=atof(pch)/1000.;
+	    pch=strtok(NULL,",");
+	    if(!pch)continue;
+	    if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+	    a.vy=atof(pch)/1000.;
+	    pch=strtok(NULL,",");
+	    if(!pch)continue;
+	    if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+	    a.vz=atof(pch)/1000.;
+	    fISSCTRS.insert(make_pair(tc,a));
           
-          if(tc>=t1 && tc<=t2){
-           if(abs(bfound)!=2){
-               fISSCTRS.clear();
-               fISSCTRS.insert(make_pair(tc,a));
-               bfound=bfound?2:-2;
-//               cout <<" line "<<line<<" "<<tc<<endl;
-           }
-          }
-         else if(tc<t1)bfound=1;
-         else if(tc>t2){
-             efound=1;
-             break;
-         }
-      }   
-     }
-     }
-     }
-     else{
-       cerr<<"AMSSetupR::LoadISSCTRS-E-UnabletoOpenFile "<<fname<<endl;
-     }
-     dc++;
-     if(dc>366){
+	    if(tc>=t1 && tc<=t2){
+	      if(abs(bfound)!=2){
+		fISSCTRS.clear();
+		fISSCTRS.insert(make_pair(tc,a));
+		bfound=bfound?2:-2;
+		//               cout <<" line "<<line<<" "<<tc<<endl;
+	      }
+	    }
+	    else if(tc<t1)bfound=1;
+	    else if(tc>t2){
+	      efound=1;
+	      break;
+	    }
+	  }   
+	}
+      }
+    }
+    else{
+      cerr<<"AMSSetupR::LoadISSCTRS-E-UnabletoOpenFile "<<fname<<endl;
+    }
+    dc++;
+    if(dc>366){
       dc=1;
       yc++;
-     }
     }
+  }
 
 
-int ret;
-if(bfound>0 &&efound)ret=0;
-else if(!bfound && !efound )ret=2;
-else ret=1;
-    cout<< "AMSSetupR::LoadISSCTRS-I- "<<fISSCTRS.size()<<" Entries Loaded"<<endl;
+  int ret;
+  if(bfound>0 &&efound)ret=0;
+  else if(!bfound && !efound )ret=2;
+  else ret=1;
+  cout<< "AMSSetupR::LoadISSCTRS-I- "<<fISSCTRS.size()<<" Entries Loaded"<<endl;
 
-return ret;
+  return ret;
 }
 
 
