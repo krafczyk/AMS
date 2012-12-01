@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.18 2012/12/01 17:32:43 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.19 2012/12/01 17:34:54 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1089,7 +1089,7 @@ float EcalChi2::get_chi2(int ilayer){
         if(_ndofs[ilayer]!=0){
             double x=log10(_erge);
             double layer_mean=layerchi2_mean[ilayer][0]+layerchi2_mean[ilayer][1]*x+layerchi2_mean[ilayer][2]*x*x+layerchi2_mean[ilayer][3]*x*x*x;
-            return _chi2_layer[ilayer]/_ndofs[ilayer]-layer_mean;
+            return _chi2_layer[ilayer]/_ndofs[ilayer]-layer_mean+1.;
         }
         else return -1;
     }
