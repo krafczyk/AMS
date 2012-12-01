@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.31 2012/11/26 11:20:08 qyan Exp $
+//  $Id: Tofdbc.C,v 1.32 2012/12/01 19:56:44 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -2455,6 +2455,7 @@ TofAlignManager *TofAlignManager::GetHead(int real){
 TofAlignManager::TofAlignManager(int real){
 //---validate time
     isreal=real;
+    ntime=0;
     time_t brun=1;
     time_t erun=0;
     tm begin;
@@ -2522,11 +2523,17 @@ TofAlignManager::TofAlignManager(int real){
 
 //==========================================================
 int  TofAlignManager::Validate(unsigned int time){
-  int tdvstat=0;
-  time_t vtime=time;
-  for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
+
+  static int tdvstat=-1;
+  if(time==ntime){return tdvstat;}
+  else {
+    tdvstat=0;
+    time_t vtime=time;
+    for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
         if(!it->second->validate(vtime))tdvstat=-1;
-  return tdvstat;
+    ntime=time;    
+    return tdvstat;
+  }
 }
 
 //==========================================================

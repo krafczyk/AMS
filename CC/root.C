@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.505 2012/11/26 11:20:08 qyan Exp $
+//  $Id: root.C,v 1.506 2012/12/01 19:56:44 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6672,6 +6672,11 @@ float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
 
 float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pattern,int optw){
 
+//---Reconstruction
+    if(pmtype==-1){
+       if((AEdep>0&&AEdep<6*6*TofCAlignPar::ProEdep)||DEdep<=0){return  AEdep>=0?sqrt(AEdep/TofCAlignPar::ProEdep):AEdep;}//Anode Range
+       else                                                    {return  DEdep>=0?sqrt(DEdep/TofCAlignPar::ProEdep):DEdep;}
+    }
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -6888,6 +6893,15 @@ int   BetaHR::GetBetaPattern(){
      pattern+=(BetaPar.Pattern[ilay]%10)*int(pow(10.,3-ilay));
    }
    return pattern;
+}
+
+int  BetaHR::GetBuildType(){
+    
+   if     (fTrTrack>=0)      return 1;
+   else if(fTrdTrack>=0)     return 2;
+   else if(fEcalShower>=0)   return 3;
+   else if(BetaPar.SumHit==4)return 4;
+   else                      return 5;
 }
 
 float BetaHR::GetBetaS(){

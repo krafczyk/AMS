@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.41 2012/11/24 11:25:48 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.42 2012/12/01 19:56:44 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -187,7 +187,7 @@ int TofRecH::BuildTofClusterH(){
     sort(sideid.begin(),sideid.end(),IdCompare);
     TofRawSideR *tfhraws[2]={0};
 #endif  
-//-----   
+//-----  
   for(int i=0;i<tfraws.size();i++){
      idd=tfraws.at(i).swid;
      il=idd/10/100-1;
@@ -403,7 +403,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
              if(fabs(dt)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt);}
              if((ltdcw[i]>TofRecPar::FTgate2[0])&&(ltdcw[i]<TofRecPar::FTgate2[1])){ltok++;}
             }
-            if(ltok!=1){sstatus=(TOFDBcN::BAD|TOFDBcN::NOHTRECOVCAD);ltok=0;}
+            if(ltok!=1){sstatus|=(TOFDBcN::BAD|TOFDBcN::NOHTRECOVCAD);ltok=0;}
           }
 
           //---Using Ht Sht finding nearest as default match check
@@ -1178,15 +1178,15 @@ int TofRecH::BuildBetaH(int verse){
 
 ///---Dump Track Tof Self Reconstruction
     if(found==0&&(!(BuildOpt>=10&&(BuildOpt/10%10==0)))){
-
+//--Pair+Pair
        for(int iclu=0;iclu<tofclp[0].size();iclu++){
 
 //----Up Search Down
-         int bestdid=PairSearchUD(tofclp[0].at(iclu),0);
+         int bestdid=PairSearchUD(tofclp[0].at(iclu),0,0);
          if(bestdid<0)continue;
 
 //----Down Search Up again to see if up is the same best match
-         int bestuid=PairSearchUD(tofclp[1].at(bestdid),1);
+         int bestuid=PairSearchUD(tofclp[1].at(bestdid),1,0);
          if(bestuid!=iclu)continue;
 //---
          TofClusterHR *phit[4]={0};
@@ -1207,6 +1207,41 @@ int TofRecH::BuildBetaH(int verse){
          found++;
 //-----
        }//loop1
+
+//----Pair+1Counter
+      if(found==0&&(tofclp[0].size()>=1||tofclp[1].size()>=1)){
+//---
+       for(int iud=0;iud<2;iud++){
+//---sort by Time
+         if(tofclp[iud].size()==0)continue;
+         sort(tofclp[iud].begin(),tofclp[iud].end(),PairCompare);
+//---best Pair+1Layer
+         for(int icl=0;icl<tofclp[iud].size();icl++){
+           int bestdid=PairSearchUD(tofclp[iud].at(icl),iud,1);
+           if(bestdid<0)continue;
+
+//--found+prepare
+           TofClusterHR *phit[4]={0};
+           phit[iud*2]=tofclp[iud].at(icl).first;    phit[iud*2+1]=tofclp[iud].at(icl).second;
+           phit[bestdid/1000]=tofclh[bestdid/1000].at(bestdid%1000); 
+           betapar.Init();
+           TofTrackFit(phit,betapar,1,1);
+           betapar.Status|=TOFDBcN::TOFTRACK;
+#ifndef __ROOTSHAREDLIBRARY__
+           AMSTrTrack *usetr=0; AMSTRDTrack *usetrd=0; AMSEcalShower *useshow=0;
+           cont->addnext(new AMSBetaH(phit,dynamic_cast<AMSTrTrack *>(usetr),usetrd,useshow,betapar));
+#else
+           TrTrackR *usetr=0; TrdTrackR *usetrd=0; EcalShowerR *useshow=0;
+           cont->addnext(new  BetaHR(phit,usetr,usetrd,useshow,betapar));
+           BetaHLink(usetr,usetrd,useshow);
+#endif
+           TOFClErase(phit);icl=-1;//Vector size change-Go back to Re-search Best Match
+           found++;
+          }
+        }
+ //----
+      }
+//----
 #ifdef __ROOTSHAREDLIBRARY__
        if(found>0)BetaHReLink();
 #endif 
@@ -1305,10 +1340,9 @@ int TofRecH::TOFPairSel(int ud,TofClusterHR* tfhit[2]){
        TofClusterHR *cl0=tofclc[ud].at(icl).first;
        TofClusterHR *cl1=tofclc[ud].at(icl).second;
 ///--Find Emax
-       int isig=(cl0->GetQSignal(1)>TofRecPar::PairQDA||cl0->GetQSignal(1)<0)?0:1;
-       if(cl0->GetQSignal(isig)+cl1->GetQSignal(isig)>qmax[0]){
+       if(cl0->GetQSignal(-1)+cl1->GetQSignal(-1)>qmax[0]){
          qmaxid=icl;
-         qmax[1]=qmax[0];qmax[0]=cl0->GetQSignal(isig)+cl1->GetQSignal(isig);
+         qmax[1]=qmax[0];qmax[0]=cl0->GetQSignal(-1)+cl1->GetQSignal(-1);
        }
 ///--Find Tmin
        if((cl1->Time+cl0->Time)/2.<tmin){//earliest time to avoid backsplish
@@ -1458,16 +1492,11 @@ int TofRecH::TOFClMakePair(int il0,int il1,int isdown){
    for(int i=0;i<tofclh[il0].size();i++){
        if(!(tofclh[il0].at(i)->IsGoodSide(0))||!(tofclh[il0].at(i)->IsGoodSide(1)))continue;
        int isig=1;
-       q0=tofclh[il0].at(i)->GetQSignal(isig); //Anode 
-       if(q0==0)continue;
-       else if(q0>TofRecPar::PairQDA||q0<0){ //> Carbon Using Dynode
-         isig=0;
-         q0=tofclh[il0].at(i)->GetQSignal(isig);
-       }
+       q0=tofclh[il0].at(i)->GetQSignal(-1);
 ///--other laye
        for(int j=0;j<tofclh[il1].size();j++){
          if(!(tofclh[il1].at(j)->IsGoodSide(0))||!(tofclh[il1].at(j)->IsGoodSide(1)))continue;
-         q1=tofclh[il1].at(j)->GetQSignal(isig); 
+         q1=tofclh[il1].at(j)->GetQSignal(-1); 
 //--qgate cut  0
          if(q0<TofRecPar::PairQgate||q1<TofRecPar::PairQgate)continue;
 //--qmatch cut 1
@@ -1492,20 +1521,24 @@ int TofRecH::TOFClMakePair(int il0,int il1,int isdown){
 
 
 //========================================================
-bool TofRecH::PairMatchUD(pair <TofClusterHR*,TofClusterHR*>upair,pair <TofClusterHR*,TofClusterHR*>dpair){
+bool TofRecH::PairMatchUD(pair <TofClusterHR*,TofClusterHR*>upair,pair <TofClusterHR*,TofClusterHR*>dpair,number &edis){
 
      TofClusterHR *cl[4]={0};
      cl[0]=upair.first;cl[1]=upair.second;
      cl[2]=dpair.first;cl[3]=dpair.second;
-     int isig=1;
-     for(int ilay=0;ilay<4;ilay++){if(cl[ilay]->GetQSignal(isig)>TofRecPar::PairQDA||cl[ilay]->GetQSignal(isig)<0)isig=0;}
 //-----Get QT
-     number qu= cl[0]->GetQSignal(isig)+cl[1]->GetQSignal(isig);
-     number qd= cl[2]->GetQSignal(isig)+cl[3]->GetQSignal(isig);
-     number tu=(cl[0]->Time+cl[1]->Time)/2.;
-     number td=(cl[2]->Time+cl[3]->Time)/2.;
-     number cu=(cl[0]->Coo[2]+cl[1]->Coo[2])/2.;
-     number cd=(cl[2]->Coo[2]+cl[3]->Coo[2])/2.;
+     number qu=0,qd=0,tu=0,td=0,cu=0,cd=0;
+     int nu=0,nd=0;
+     for(int il=0;il<4;il++){//Glue Up2 or Down2
+       if(!cl[il])continue;
+       if(il<2){qu+=cl[il]->GetQSignal(-1);tu+=cl[il]->Time;cu+=cl[il]->Coo[2];nu++;}
+       else    {qd+=cl[il]->GetQSignal(-1);td+=cl[il]->Time;cd+=cl[il]->Coo[2];nd++;}  
+     }
+     if(nu==0||nd==0)return false;
+     qu/=nu; qd/=nd; 
+     tu/=nu; td/=nd; 
+     cu/=nu; cd/=nd;
+     edis=fabs(qu-qd)/(qu+qd);
 //----UP+Down Match
      bool tmatch[2];
      tmatch[0]=fabs(td-tu)<fabs(cu-cd)*1.414/(TofRecPar::NonTkBetaCutL*cvel)+TofRecPar::PairTMatch;
@@ -1514,14 +1547,19 @@ bool TofRecH::PairMatchUD(pair <TofClusterHR*,TofClusterHR*>upair,pair <TofClust
      return (ematch&&tmatch[0]&&tmatch[1]);
 }
 
+
 //=======================================================
-int  TofRecH::PairSearchUD(pair <TofClusterHR*,TofClusterHR* >sedpair,int sedud){
+int  TofRecH::PairSearchUD(pair <TofClusterHR*,TofClusterHR* >sedpair,int sedud,int opt){
   
-    number chistmax=TofRecPar::DPairChi2TCut;
-    int bestid=-1;
+   number chistmax=TofRecPar::DPairChi2TCut,edismin=1,betamax=0,edis;
+   int bestid=-1;
+
+//--pair+pair
+   if(opt==0){
     for(int icl=0;icl<tofclp[1-sedud].size();icl++){
-//--Begin Match
-       if(PairMatchUD(sedpair,tofclp[1-sedud].at(icl))){
+
+//--match
+       if(PairMatchUD(sedpair,tofclp[1-sedud].at(icl),edis)){
 	  TofClusterHR *phitc[4]={0};
 	  phitc[2*sedud]=      sedpair.first;
 	  phitc[2*sedud+1]=    sedpair.second;
@@ -1538,8 +1576,52 @@ int  TofRecH::PairSearchUD(pair <TofClusterHR*,TofClusterHR* >sedpair,int sedud)
 	  }
        }
     }
+
+  }
+
+//---pair+1 layer
+  else { 
+     int slay=2*(1-sedud);
+
+//--using ematch else using min-beta
+     bool emath=0;
+     if((sedpair.first->GetQSignal(-1)+sedpair.second->GetQSignal(-1))/2.>TofRecPar::PairQRgate)emath=1;
+     for(int ilay=slay;ilay<=slay+1;ilay++){
+
+//---all layer candidate
+       for(int i=0;i<tofclh[ilay].size();i++){
+         if(!(tofclh[ilay].at(i)->IsGoodSide(0))||!(tofclh[ilay].at(i)->IsGoodSide(1)))continue;//Side OK
+         if(fabs(tofclh[ilay].at(i)->Coo[TOFGeom::Proj[ilay]])>TOFGeom::Sci_l[ilay][tofclh[ilay].at(i)->Bar]/2.+15)continue;//5sigma 15cm
+         TofClusterHR *clnu=0; 
+
+///--check match
+         if(PairMatchUD(sedpair,make_pair(tofclh[ilay].at(i),clnu),edis)){
+            TofClusterHR *phitc[4]={0};
+            phitc[2*sedud]=      sedpair.first;
+            phitc[2*sedud+1]=    sedpair.second;
+            phitc[ilay]=tofclh[ilay].at(i);
+            betapar.Init();
+            TofTrackFit(phitc,betapar,0,0);
+            if(betapar.Chi2C>TofRecPar::DPairChi2CCut2)continue;
+            if(fabs(betapar.Beta)<TofRecPar::NonTkBetaCutL2)continue;//Too fast
+            if(fabs(betapar.Beta)>TofRecPar::NonTkBetaCutU2)continue;//Too slow
+            if(betapar.Chi2T>TofRecPar::DPairChi2TCut2)continue;
+//---emath
+            if(emath){
+               if(edis<edismin){edismin=edis; bestid=ilay*1000+i;} //Using Energy
+             }
+            else {//max beta
+               if(fabs(betapar.Beta)>betamax){betamax=fabs(betapar.Beta); bestid=ilay*1000+i;} //Using Max Beta
+            }
+//----
+         }
+       }
+//----
+     }
+
+   }
 //--
-    return bestid;
+   return bestid;
 }
 
 
@@ -1563,6 +1645,25 @@ int TofRecH::TOFClErase(TofClusterHR *tfhit[4]){
       }
     }
    return 0;
+}
+
+//========================================================
+bool TofRecH::PairCompare(const pair<TofClusterHR*,TofClusterHR*> &a,const pair<TofClusterHR*,TofClusterHR*> &b){
+
+//--Time
+    float dta=(a.first)->Time-(a.second)->Time;
+    float dtd=(b.first)->Time-(b.second)->Time;
+//--Edep
+    float qp[2][2];
+    qp[0][0]=(a.first)->GetQSignal(-1);qp[0][1]=(a.second)->GetQSignal(-1);
+    qp[1][0]=(b.first)->GetQSignal(-1);qp[1][1]=(b.second)->GetQSignal(-1);
+    bool emath=0;
+    for(int ip=0;ip<2;ip++){
+      if((qp[ip][0]+qp[ip][1])/2.>TofRecPar::PairQRgate){emath=1;break;}
+    }
+//--- 
+   if(emath){return (qp[0][0]+qp[0][1])>(qp[1][0]+qp[1][1]);}//Largest
+   return fabs(dta)<fabs(dtd);//Small
 }
 
 //======================================================== 
