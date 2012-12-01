@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.19 2012/12/01 17:34:54 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.20 2012/12/01 20:02:42 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -317,9 +317,9 @@ int EcalPDF::init(const char* fdatabase){
         }
     }
     if(has_init==1)
-        cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<endl;
+        cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<", Version is "<<Version<<endl;
     else
-        cout<<"EcalPDF::init-EcalPDF init BAD! Warn message "<<warn_messages<<" in "<<fdatabase<<endl;
+        cout<<"EcalPDF::init-EcalPDF init BAD! Warn message "<<warn_messages<<" in "<<fdatabase<<", Version is "<<Version<<endl;
     _fdatabase->Close();
     //cout<<hpdfele_Chi2_F2Edep<<", "<<hpdfele_Chi2_F2Edep->GetXaxis()->GetNbins()<<", "<<hpdfpro_Chi2_F2Edep<<", "<<hpdfpro_Chi2_F2Edep->GetXaxis()->GetNbins()<<endl;
     return has_init;
