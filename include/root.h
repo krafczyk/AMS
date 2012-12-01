@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.515 2012/11/26 11:20:43 qyan Exp $
+//  $Id: root.h,v 1.516 2012/12/01 19:55:19 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1106,7 +1106,7 @@ class TofClusterHR :public TrElem {
   float GetEdep(int pmtype=2,int pattern=111111,int optw=1);
    /// Q Or Q^2 Estimate  From All Good PMTs
    /*!
-    * @param[in] pmtype  2-Default(Best Between Anode and Dynode) 1-Anode 0-Dynode
+    * @param[in] pmtype  2-Default(Best Between Anode and Dynode) 1-Anode 0-Dynode -1-For Reconstruction
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] cosz PathLength Corr
     * @param[in] beta Beta Corr
@@ -2738,6 +2738,9 @@ class BetaHR: public TrElem{
   /// Return Beta TOF-Layer Pattern
   /// \return 4144: TOF-Layer0,2,3 Used For Beta-Fit, not Use Layer1. 4: Two-Side Time Good && Used, 1: Side-N Good, 2: Side-P Good, 0: BAD
   int            GetBetaPattern();
+  /// Return BetaH Build Type
+  /// \return 1:Tracker-BetaH 2:Trd-BetaH 3:Ecal-BetaH 4:TOF-StandAlone(4Layer)-BetaH 5:TOF-StandAlone(3Layer)-BetaH
+  int            GetBuildType();
   /// Return True if TOF ilay is Used For Beta-Fit
   bool           IsBetaUseHL(int ilay)  {return (BetaPar.Pattern[ilay]%10==4);}
   /// Return True if BetaH Cluster is Isolation Fire Counter
@@ -2989,7 +2992,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,12)
+  ClassDef(BetaHR,13)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        

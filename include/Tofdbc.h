@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.27 2012/11/24 11:26:27 qyan Exp $
+//  $Id: Tofdbc.h,v 1.28 2012/12/01 19:55:19 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -511,6 +511,10 @@ class TofRecPar: public TofTDVTool<float>{
      static const  float DPairChi2CCut=200;//ChisC Cut
      static const  float NonTkBetaCutL=0.3;//beta low
      static const  float NonTkBetaCutU=1.5;//beta ligh
+     static const  float NonTkBetaCutL2=0.36;//3TOF beta low
+     static const  float NonTkBetaCutU2=1.2;//3TOF beta ligh
+     static const  float DPairChi2TCut2=10;//3TOF ChisT Cut
+     static const  float DPairChi2CCut2=10;//3TOF ChisC Cut
 //---
      static float TimeSigma[MaxCharge];
      static float CooSigma[MaxCharge][TOFCSN::SCLRS][TOFCSN::SCMXBR];
@@ -534,7 +538,8 @@ class TofAlignManager {
    /// all tdv map
     map<string,AMSTimeID*> tdvmap; 
     int isreal;//real par or mc
-   
+    unsigned int ntime; //Now Time
+
   public:
    TofAlignManager(int real);
    ~TofAlignManager(){};

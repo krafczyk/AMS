@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.24 2012/11/17 15:00:54 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.25 2012/12/01 19:55:19 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -221,9 +221,9 @@ public:
 /// Line Fit //y=ax+b
   static int LineFit(int nhits,number x[],number y[],number ey[],number &a,number &b);
 /// Up Down Self Match Candidate
-  static bool PairMatchUD(pair<TofClusterHR*,TofClusterHR*> upair,pair<TofClusterHR*,TofClusterHR*> dpair);
+  static bool PairMatchUD(pair<TofClusterHR*,TofClusterHR*> upair,pair<TofClusterHR*,TofClusterHR*> dpair,number &edis);
 /// Up Down Best Match Pair
-  static int  PairSearchUD(pair<TofClusterHR*,TofClusterHR*> sedpair,int sedud);//sed to search
+  static int  PairSearchUD(pair<TofClusterHR*,TofClusterHR*> sedpair,int sedud,int opt);//sed to search(opt=0 pair opt=1 counter)
 /// Erase Hit From vector
   static int  TOFClErase(TofClusterHR* tfhit[4]);
 /**@}*/ 
@@ -234,6 +234,8 @@ public:
   static bool SideCompare(const TofRawSideR& a,const TofRawSideR& b){return a.swid<b.swid;}
 /// Sort TofRawSide Index 
   static bool IdCompare(const pair<integer,integer> &a,const pair<integer,integer> &b){return a.second<b.second;}
+/// Sort TofClusterHR Pair-Index
+  static bool PairCompare(const pair<TofClusterHR*,TofClusterHR*> &a,const pair<TofClusterHR*,TofClusterHR*> &b);
 /// ParticleR ChargeR Build Link index to BetaH
   static int  BetaHLink(TrTrackR* ptrack,TrdTrackR *trdtrack,EcalShowerR *ecalshow);
 /// ParticleR ReBuild Link index to TofTrack BetaH
