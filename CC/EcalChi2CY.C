@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.20 2012/12/01 20:02:42 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.21 2012/12/02 13:47:27 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -667,7 +667,7 @@ double EcalPDF::nns(TH2D* hsig,TH2D* hbkg,double range,double x,double y,double 
             pbkg+=hbkg->Interpolate(rx,ry);
         }
     }
-    cout<<"EcalPDF::nns psig= "<<psig<<", pbkg= "<<pbkg<<endl;
+    //cout<<"EcalPDF::nns psig= "<<psig<<", pbkg= "<<pbkg<<endl;
     if(psig>0.0)
         return 1./(1.+pow(pbkg/psig,order));
     return 0.;
