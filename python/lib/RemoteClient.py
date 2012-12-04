@@ -2269,11 +2269,13 @@ class RemoteClient:
             dtype=1
         if(dtype!=None):
             mutex.release()
-            validatecmd="/exe/linux/fastntrd.exe %s %d %d %d " %(fname,nevents,dtype,levent)
+            if(fname.find('/castor/cern.ch')>=0):
+                prefix="rfio:"
+            else:
+                prefix=""   
+            validatecmd="/exe/linux/fastntrd64.exe %s%s %d %d %d " %(prefix,fname,nevents,dtype,levent)
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             vcode=os.system(validatecmd)
-            if(fname.find('/castor/cern.ch')>=0):
-                vcode=0
             print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
             print "got  mutex in validate", validatecmd

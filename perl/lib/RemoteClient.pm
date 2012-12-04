@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.751 2012/11/09 17:47:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.752 2012/12/04 14:34:10 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -15191,7 +15191,7 @@ my %CloseDSTPatterns = (
             if(defined $dir){
              $fnam=$dir.'/'.$junk[$#junk];
             }
-            my $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fnam 0 2 0 1";
+            my $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd64.exe  $fnam 0 2 0 1";
             system($validatecmd);
              $fnam=$fnam.'.jou'; 
              my $bufj="";
@@ -16629,12 +16629,18 @@ sub validateDST {
      } elsif ($ftype eq "RootFile") {
          $dtype = 1;
      }
+     my $prefix="";
      if($fname=~/^\/castor/){
-         return 1,0;
+         #return 1,0;
+        $prefix="rfio:"; 
      }
      if (defined $dtype) {
-      $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fname $nevents $dtype $levent";
+      $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd64.exe  $prefix$fname $nevents $dtype $levent";
       $vcode=system($validatecmd);
+     if($fname=~/^\/castor/ and $vcode==134){
+         return 1,0;
+     }
+
       if ($verbose == 1) {print "$validatecmd : $vcode \n";}
       $ret = 1;
      }

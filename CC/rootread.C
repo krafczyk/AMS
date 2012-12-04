@@ -5,9 +5,19 @@
 #include "TObjString.h"
 #include <fstream.h>
 #include <TStreamerInfo.h>
+#include <TRFIOFile.h>
+#include <TCastorFile.h>
+#include <TXNetFile.h>
+#include <TRegexp.h>
+#include <TEnv.h>
 using namespace std;
+//    TRFIOFile f("");
+//     TXNetFile g("");
+//     TCastorFile h("");
 int rootread(char * fname, int nev, int iver,  int & lastevent,bool jou){
 //TStreamerInfo::fgInfoFactory=new TStreamerInfo();
+ gEnv->SetValue("TFile.Recover", 0);
+
 
  int LastEvent=lastevent;
  int diff=0;
@@ -18,8 +28,64 @@ int firstevent=-1;
   cout.setstate(ios_base::failbit);
   cerr.setstate(ios_base::failbit);
  }
- TFile * rfile= new TFile(fname,"READ");
- if(!rfile){
+ //TFile * rfile= new TFile(fname,"READ");
+ //TFile *rfile=TFile::Open(fname,"READ");
+         TRegexp d("^-root:",false);
+        TRegexp e("^-rfio:",false);
+        TRegexp c("/castor/",false);
+ TFile *rfile=0;
+TString name(fname);
+if(name.Contains(c)){
+       string rn=fname;
+       int pos=rn.find("/castor/");
+       string stager_get="stager_get -M ";
+       stager_get+=(fname+pos);
+       stager_get+=" 1>/dev/null 2>&1 &";
+       system(stager_get.c_str());
+       bool staged=false;
+       bool stagein=false; 
+{
+           stager_get="stager_qry -M ";
+           stager_get+=(fname+pos);
+           stager_get+=" | grep -c STAGED 2>&1";
+           FILE *fp=popen(stager_get.c_str(),"r");
+           char path[1024];
+           if(fp==NULL){
+             staged=false;
+           }
+           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
+             staged=true;
+           }
+           else staged=false;
+           pclose(fp);
+
+}
+if(!staged){
+           stager_get="stager_qry -M ";
+           stager_get+=(fname+pos);
+           stager_get+=" | grep -c STAGEIN 2>&1";
+           FILE *fp=popen(stager_get.c_str(),"r");
+           char path[1024];
+           if(fp==NULL){
+             stagein=false;
+           }
+           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
+             stagein=true;
+           }
+           else stagein=false;
+           pclose(fp);
+}
+if(!staged && !stagein)return -1;
+else if(stagein)return -6; 
+}
+
+        if(name.Contains(d))rfile=new TXNetFile(fname,"READ");
+        else if(name.Contains(e)){
+       rfile=new TRFIOFile(fname,"READ");
+       rfile=new TCastorFile(fname,"READ");
+       }
+  else rfile=TFile::Open(fname,"READ");
+if(!rfile){
         if(iver>0)cout <<"problem to open file "<<fname<<" "<<endl;
 	return -1;
  }
@@ -70,10 +136,15 @@ int firstevent=-1;
   pev->Init(tree);
   pev->GetBranch(tree);
   bool fast=true;
+   bool castor=name.Contains(c);
 again:
   int nbadev=0;
   int nevread=0;
   for (int i=0;i<nevents;i++){
+   if(castor){
+      if(!pev->ReadHeader(i))break;
+      else return 0;
+    }
    if(fast && nevents>1001 && i>1 && i<nevents-1000){
     nevread++;
     continue; 

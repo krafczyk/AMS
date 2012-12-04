@@ -52,12 +52,12 @@ CFLAGS=     -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTP
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS=  -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2002/icc/lib    -lpacklib -lmathlib -lkernlib   -lshift -lnsl -L/usr/local/lib    -lm    -ldl -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys  -Bstatic -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins -Wl,--allow-multiple-definition -L/opt/intel/Compiler/11.1/073/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s --allow
-CC=/opt/intel/Compiler/11.1/073/bin/ia32/icc -m32 -openmp -gcc-version=340
-FF=/opt/intel/Compiler/11.1/073/bin/ia32/ifort -m32 -openmp -gcc-version=340
-LD=/opt/intel/Compiler/11.1/073/bin/ia32/icpc -m32 -openmp   $(PARALLEL) -gcc-version=340
-BIN=$(AMSWD)/bin/linuxicc/fastntrd/
-EXE=$(AMSWD)/exe/linuxicc/fastntrd/
+LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl  -Bstatic -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc  
+CC=/opt/intel/Compiler/11.1/073/bin/intel64/icc  -openmp -gcc-version=340
+FF=/opt/intel/Compiler/11.1/073/bin/intel64/ifort  -openmp -gcc-version=340
+LD=/opt/intel/Compiler/11.1/073/bin/intel64/icpc  -openmp   $(PARALLEL) -gcc-version=340
+BIN=$(AMSWD)/bin/linuxx8664icc/fastntrd/
+EXE=$(AMSWD)/exe/linuxx8664icc/fastntrd/
 TIMEL=
 endif
 
@@ -81,7 +81,7 @@ endif
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
 FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)astring.C $(SCC)root_setup.C $(SCC)predict.c $(SCC)ecalBDT.C $(SCC)ecalBDTCHI2.C $(SCC)EcalChi2CY.C  $(SCC)SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHCalib.C $(SCC)TrdHRecon.C $(SCC)TrdHCharge.C $(SCC)TrPdf.C $(SCC)commonsi.C  $(SCC)amsdbc.C $(SCC)timeid.C $(SCC)trfit.C $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C $(SCC)amschain.C $(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichConfig.C $(SCC)RichBeta.C $(SCC)RichTools.C $(SCC)Sunposition.C  $(SCC)FrameTrans.C  $(SCC)GM_SubLibrary.C  $(SCC)Tofdbc.C $(SCC)Tofrec02_ihep.C $(SCC)Tofcharge_ihep.C
-OBJECTS= $(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)trfit.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)predict.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o   $(BIN)SlowControlDB.o $(BIN)commonsi.o $(BIN)amsdbc.o $(BIN)timeid.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o  $(BIN)FrameTrans.o  $(BIN)GM_SubLibrary.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o  $(BIN)GeoMagField.o $(BIN)GeoMagTrace.o $(BIN)GeoMagCoord.o
+OBJECTS= $(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)trfit.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)predict.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o   $(BIN)SlowControlDB.o $(BIN)commonsi.o $(BIN)amsdbc.o $(BIN)timeid.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o  $(BIN)FrameTrans.o  $(BIN)GM_SubLibrary.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o  $(BIN)GeoMagField.o $(BIN)GeoMagTrace.o $(BIN)GeoMagCoord.o
 $(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o $(BIN)predict.o $(BIN)ecalBDT.o $(BIN)EcalChi2CY.o  $(BIN)ecalBDTCHI2.o $(BIN)SlowControlDB.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)trfit.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)commonsi.o $(BIN)timeid.o $(BIN)amsdbc.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o  $(BIN)FrameTrans.o $(BIN)GM_SubLibrary.o  $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o  $(BIN)GeoMagField.o $(BIN)GeoMagTrace.o $(BIN)GeoMagCoord.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
 	$(LD) -v -o $(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
