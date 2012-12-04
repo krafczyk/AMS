@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.42 2012/12/01 19:56:44 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.43 2012/12/04 21:27:50 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -224,13 +224,25 @@ int TofRecH::BuildTofClusterH(){
       else {
 //-- ReFind Lost  LT using other GOOD Side /*due to 30ns LT deadtime, it's enough to use other Side to ReFind LT
          if(((sstatus[0]|sstatus[1])&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0){
-            if((sstatus[0]&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0)hassid=1;
-            else                                                               hassid=0;
-            LTRefind(idsoft,0,sdtm,adca,status,ltdcw[1-hassid],hassid);
+            LTRefind(idsoft,0,sdtm,adca,status,ltdcw);
+            TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],status);///Time Rec
+//            if((status&TOFDBcN::BADTIME)==0)cout<<"refind LT="<<coo[TOFGeom::Proj[il]]<<endl;
           }
 
-//---Time Rec
-          TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],status);
+//-- NoNeed To ReFind Just Build
+         else {
+           uinteger ustatus=status;
+           int tstat=TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],ustatus);
+//--ReFind Again if also lost
+           if(tstat!=-1&&(ustatus&TOFDBcN::BADTIME)>0){
+             LTRefind(idsoft,0,sdtm,adca,status,ltdcw);
+//             cout<<"misfind good coo="<<coo[TOFGeom::Proj[il]]<<endl;
+             TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],status);
+//             if((status&TOFDBcN::BADTIME)==0)cout<<"recover="<<coo[TOFGeom::Proj[il]]<<endl;
+           }
+           else  status=ustatus; 
+//----
+         }
 
 //-----other coo
          AMSPoint barco=TOFGeom::GetBarCoo(il,ib);
@@ -351,7 +363,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
 
 //---Get Ref Tdc
       for(i=0;i<nft;i++)  ftdc[i]=ftdch[i]*TofRecPar::Tdcbin;//FTtime TDCch->ns
-      number fttm=ftdc[nft-1];//choose last because this triggers LVL1 
+      number fttm=(nft>0)?ftdc[nft-1]:0;//choose last because this triggers LVL1 
       for(i=0;i<nlt;i++)  ltdc[i]=fttm-ltdch[i]*TofRecPar::Tdcbin;//Rel.LTtime(+ means befor FTtime)(+TDCch->ns)
       for(i=0;i<nht;i++)  htdc[i]=fttm-htdch[i]*TofRecPar::Tdcbin;//Rel.SumHTtime +TDCch->ns
       for(i=0;i<nsht;i++)shtdc[i]=fttm-shtdch[i]*TofRecPar::Tdcbin;//Rel.SumSHTtime +TDCch->ns
@@ -374,13 +386,14 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
          }
       }
 
-//----Set Bad Status
+//----Set Bad Status 
+       if(nft<=0)         {sstatus|=TOFDBcN::NOFT;}
        if(ltdcw.size()<1) {sstatus|=TOFDBcN::NOWINDOWLT;}
        if(htdcw.size()<1) {sstatus|=TOFDBcN::NOWINDOWHT;}
        if(shtdcw.size()<1){sstatus|=TOFDBcN::NOWINDOWSHT;}
        if(ltdcw.size()>1) {sstatus|=TOFDBcN::LTMANY;}
-       if(htdcw.size()>1) {sstatus|=TOFDBcN::HTMANY;}//HT MANY bad(due to 300ns block)
-       if((sstatus&(TOFDBcN::NOWINDOWLT|TOFDBcN::HTMANY|TOFDBcN::NOADC))>0){sstatus|=TOFDBcN::BAD;}
+       if(htdcw.size()>1) {sstatus|=TOFDBcN::HTMANY;}//HT MANY bad(due to 300ns block) but due to PMT-together Find itself
+       if((sstatus&(TOFDBcN::NOFT|TOFDBcN::NOWINDOWLT|TOFDBcN::NOADC))>0){sstatus|=TOFDBcN::BAD;}
 
 //---Get Time imformation----BAD Time
        sdtm=0;
@@ -411,20 +424,24 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
          //---First using ht match
          if(htdcw.size()>0){
            for(i=0;i<ltdcw.size();i++){//real impossible two LT match HT due to 30ns LT lock
-             dt=ltdcw[i]-htdcw[0];//lt must >ht time
-             if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
-             if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ltok++;}//find LT should match in window
+              for(j=0;j<htdcw.size();j++){//With self associate j
+                dt=ltdcw[i]-htdcw[j];//lt must >ht time
+                if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
+                if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ltok++;}//find LT should match in window
+               }
             }
           }
          //---Otherwise try using sht
           if((!ltok)&&(shtdcw.size()>0)){
            for(i=0;i<ltdcw.size();i++){//to find LT should match in windows
-             dt=ltdcw[i]-shtdcw[0];//lt must >sht time 
-             if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
-             if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ ltok++;}
+              for(j=0;j<shtdcw.size();j++)     
+                dt=ltdcw[i]-shtdcw[j];//lt must >sht time 
+                if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
+                if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ ltok++;}
             }
           }
-         if(!ltok)sstatus|=(TOFDBcN::BAD|TOFDBcN::NOMATCHRECOVCAD);
+//         if(!ltok)sstatus|=(TOFDBcN::BAD|TOFDBcN::NOMATCHRECOVCAD);
+         if(!ltok)sstatus|=TOFDBcN::NOMATCHRECOVCAD;
        }
     }
 
@@ -432,29 +449,34 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
 }
 
 //========================================================
-int TofRecH::LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>&ltdcw,int hassid){
+int TofRecH::LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number> ltdcw[]){
 
-    if((adca[0]<=0)||(adca[1]<=0)||ltdcw.size()<=0)return -1;
+   if((adca[0]<=0)||(adca[1]<=0)||ltdcw[0].size()<=0||ltdcw[1].size()<=0)return -1;
 
 //---Find Best LT
     number sdtm1[2],tms[2],tm,etm,lcoo,elcoo,mindis=FLT_MAX;
     uinteger ustatus=0;
-    int iminlt=-1;
-    sdtm1[hassid]=sdtm[hassid];
-    for(int i=0;i<ltdcw.size();i++){
-       sdtm1[1-hassid]=ltdcw[i];
-       ustatus=0; 
-       TimeCooRec(idsoft,sdtm1,adca,tms,tm,etm,lcoo,elcoo,ustatus);
-       if(fabs(lcoo-trlcoo)<mindis){mindis=fabs(lcoo-trlcoo);iminlt=i;}
-    }
 
-//---Set Par
-    TofRecPar::IdCovert(idsoft);
-    if(mindis<TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.){
-      sdtm[1-hassid]=ltdcw[iminlt];
-      status|=(TOFDBcN::LTREFIND|TOFDBcN::RECOVERED);
+//--search by mindis
+    for(int i=0;i<ltdcw[0].size();i++){//side0
+      sdtm1[0]=ltdcw[0].at(i);
+
+      for(int j=0;j<ltdcw[1].size();j++){//side1
+        sdtm1[1]=ltdcw[1].at(j);
+        ustatus=0; 
+        TimeCooRec(idsoft,sdtm1,adca,tms,tm,etm,lcoo,elcoo,ustatus);
+        if((ustatus&TOFDBcN::BADTIME)>0)continue;//If In windows
+        if(fabs(lcoo-trlcoo)<mindis){ //already find Mindis
+           mindis=fabs(lcoo-trlcoo);
+           sdtm[0]=ltdcw[0].at(i);sdtm[1]=ltdcw[1].at(j);//best time
+           status|=(TOFDBcN::LTREFIND|TOFDBcN::RECOVERED);
+         }
+      }
+
     }
-    return 0;  
+//----
+
+   return 0;  
 }
 
 //========================================================
@@ -495,7 +517,7 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
 //--time
     tm=0.5*(tms[0]+tms[1]);
     tm=-tm;//convert to pos
-    if((status&TOFDBcN::LTREFIND)>0)etm=3*TofRecPar::GetTimeSigma(idsoft,1);
+    if((status&TOFDBcN::LTREFIND)>0)etm=TofRecPar::GetTimeSigma(idsoft,1);
     else                            etm=TofRecPar::GetTimeSigma(idsoft,1);
     
 //--coo
@@ -503,8 +525,17 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
     tmsc[0]=tms[0]-2*dsl/pow(adca[0],index);//coo compensate
     tmsc[1]=tms[1]+2*dsl/pow(adca[1],index);//coo compensate
     lcoo=0.5*(tmsc[0]-tmsc[1])*vel;
-    if((status&TOFDBcN::LTREFIND)>0)elcoo=3*TofRecPar::GetCooSigma(idsoft,1);
+    if((status&TOFDBcN::LTREFIND)>0)elcoo=TofRecPar::GetCooSigma(idsoft,1);
     else                            elcoo=TofRecPar::GetCooSigma(idsoft,1);
+
+//--New Adding Double Check
+   if(fabs(lcoo)>TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.+30.){//Still BAD
+      lcoo=0; elcoo=TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;
+      etm=fabs(elcoo/vel); 
+      status|=(TOFDBcN::BADTIME|TOFDBcN::BADTCOO);
+    }
+//----
+
     return 0;
 }
 
@@ -1092,13 +1123,15 @@ int TofRecH::BuildBetaH(int verse){
         }
 //-----then fit+Check
        if((xylay[0]>=1)&&(xylay[1]>=1)&&(udlay[0]>=1)&&(udlay[1]>=1)){//pattern found
-          if((xylay[0]+xylay[1]>=TofRecPar::BetaHMinL[0])&&(udlay[0]+udlay[1]>TofRecPar::BetaHMinL[1])){
+          if((xylay[0]+xylay[1]>=TofRecPar::BetaHMinL[0])&&(udlay[0]+udlay[1]>=TofRecPar::BetaHMinL[1])){
            betapar.Init();//first initial
 //---first to recover
            TRecover(phit,tklcoo);
            BetaFitC(phit,cres,pattern,betapar,1);
            BetaFitT(phit,len,pattern,betapar,1,verse);
-           BetaFitCheck(betapar);
+//--Addtional Check
+           BetaFitCheck(phit,cres,len,pattern,betapar);
+//--
            EdepTkAtt(phit,tklcoo,tkcosz,betapar);
            betapar.Status|=status;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -1260,7 +1293,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
 #endif
 //---init
     int nowbar=0,prebar=-1000,nextbar=-1000,tminbar=0,layhit=0,npattern=0;
-    uinteger tfhstat;
+    uinteger tfhstat=0;
     number mscoo=1000,mlcoo=100,mintm=1000,barw=0,dscoo=1000,dlcoo=1000,tfhtime;
     number theta,phi,sleng;
     bool leftf,rightf;
@@ -1307,7 +1340,8 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
                 if(((tfhstat&TOFDBcN::BADTCOO)>0)&&(ip==1-iscoo)){cres[ip]=TOFGeom::Sci_l[ilay][nowbar]/2.;}
               }
              if(TofRecPar::BetaHLMatch==0||dlcoo<TofRecPar::BetaHReg[1]*tfecoo[1-iscoo]){
-               if((pattern%10)==3)pattern=4;
+               if((tfhstat&TOFDBcN::BADTIME)==0)pattern=4;
+//               if((pattern%10)==3)pattern=4;
              }//3sigma L flag
              leftf=0;rightf=0;
 //----previous bar
@@ -1854,9 +1888,55 @@ int TofRecH::BetaFitT(number time[],number etime[],number len[],const int nhits,
 }
 
 //========================================================
-int  TofRecH::BetaFitCheck(TofBetaPar &par){
-  if(fabs(par.Beta)>1.99){par.Status|=(TOFDBcN::BAD|TOFDBcN::BETAOVERFLOW);}
-  return 0;
+int  TofRecH::BetaFitCheck(TofClusterHR *tfhit[4],number res[4][2],number lenr[4],int pattern[4],TofBetaPar &par){
+
+//----double check don't need recover or unable to recover
+  const float bcutl=0.3;
+  const float bcuth=1.5;
+
+//----set status
+  bool bstat=(fabs(par.Beta)>bcutl&&fabs(par.Beta)<bcuth);
+  bool cstat=(par.Chi2T<TofRecPar::DPairChi2TCut);
+  if(!bstat)par.Status|=(TOFDBcN::BETAOVERFLOW|TOFDBcN::BAD);
+  if(!cstat)par.Status|=(TOFDBcN::BETABADCHIT|TOFDBcN::BAD);
+
+//--try to recover
+  if((bstat&&cstat)||par.UseHit<=2){return 0;}
+//-----remove one to see whether much better
+  else {
+     number mbeta=FLT_MAX;   
+     TofBetaPar fitpar;
+     for(int ilay=0;ilay<4;ilay++){
+
+       if(pattern[ilay]%10!=4)continue;
+//----now remove
+       int npattern=pattern[ilay];
+       pattern[ilay]=tfhit[ilay]->Pattern%10+pattern[ilay]/10*10;
+       fitpar.Init();
+       BetaFitC(tfhit,res,pattern,fitpar,1);
+       BetaFitT(tfhit,lenr,pattern,fitpar,1,0);
+
+       bool bstat1=(fabs(fitpar.Beta)>bcutl&&fabs(fitpar.Beta)<bcuth);
+//----beta overflow
+      if(!bstat&&bstat1){//First order
+         par=fitpar;
+         par.Status|=(TOFDBcN::BETAOVERFLOW|TOFDBcN::RECOVERED);break;
+      }
+//----big chis
+      else if(!cstat&&bstat1&&fitpar.UseHit>=3){//too big chis-try to move---only for one-layer bad
+        if((fitpar.Chi2T<TofRecPar::DPairChi2TCut2)&&(fabs(fabs(fitpar.Beta)-1)<mbeta)){//big-improve+select fastest beta
+          par=fitpar;
+          par.Status|=(TOFDBcN::BETABADCHIT|TOFDBcN::RECOVERED); mbeta=fabs(fabs(fitpar.Beta)-1);
+        }
+      } 
+
+//----back pattern
+      pattern[ilay]=npattern;
+     }
+   }
+   
+
+  return 1;
 }
 
 //========================================================

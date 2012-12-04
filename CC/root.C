@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.507 2012/12/04 14:34:03 choutko Exp $
+//  $Id: root.C,v 1.508 2012/12/04 21:27:50 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6997,7 +6997,7 @@ int BetaHR::BetaReFit(TofBetaPar &betapar,int pattern,int mode,int update){
   for(int ilay=0;ilay<4;ilay++){
      if(!TestExistHL(ilay))continue;
      bool pass1=((pattern/int(pow(10., 3-ilay))%10>=2)&&((GetClusterHL(ilay)->Status&TOFDBcN::RECOVERED)>0));
-     bool pass2=((pattern/int(pow(10., 3-ilay))%10==1)&&(GetPattern(ilay)%10==4));
+     bool pass2=((pattern/int(pow(10., 3-ilay))%10==1)&&((GetClusterHL(ilay)->Status&TOFDBcN::BADTIME)==0));
      if(pattern>0){if(!(pass1||pass2))continue;} 
      else if(GetPattern(ilay)%10!=4)continue;
 //---Select Good,Using Recursion If Bad Time Beta
