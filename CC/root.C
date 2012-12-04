@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494.2.6 2012/11/23 10:42:23 cconsola Exp $
+//  $Id: root.C,v 1.494.2.7 2012/12/04 14:30:06 ams Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8,6 +8,7 @@
 #include "TSystem.h"
 #include <TChainElement.h>
 #include "TFile.h"
+#include "TEnv.h"
 #include "TMinuit.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -2505,7 +2506,9 @@ AMSEventR::AMSEventR():TSelector(){
     }
     TStreamerInfo::SetFactory(new TStreamerInfo()); 
 #endif
-  }
+ if(gEnv)gEnv->SetValue("TFile.Recover", 0);
+ else cerr<<"AMSEventR::ctor-E-gEnvNotDefined"<<endl;
+ }
   fEcalHit.reserve(MAXECHITS);
   fEcalCluster.reserve(MAXECCLUST);
   fEcal2DCluster.reserve(MAXEC2DCLUST);
