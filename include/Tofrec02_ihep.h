@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.25 2012/12/01 19:55:19 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.26 2012/12/04 21:26:06 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -138,8 +138,8 @@ public:
   static int  EdepRec(int idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],number lcoo,number q2pa[],number q2pd[][TOF2GC::PMTSMX],number &edepa,number &edepd,uinteger sstatus[2]);
 /// Energy build Module-1
   static int  EdepRecR(int ilay,int ibar,geant adca[],geant adcd[][TOF2GC::PMTSMX],number lcoo,geant q2pa[],geant q2pd[][TOF2GC::PMTSMX],geant &edepa,geant &edepd);
-/// ReFind LT if many LT not Associate with HT
-  static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status, vector<number>&ltdcw,int hassid);
+/// Refind LT if many LT not Associate with HT
+  static int  LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uinteger &status,vector<number> ltdcw[ ]);  
 
 /// Get QSignal with different Correction
   static number GetQSignal(int idsoft,int isanode,int optc,number signal,number lcoo=0,number cosz=1,number beta=0.98,number rig=0);
@@ -200,7 +200,7 @@ public:
   static int  BetaFitT(TofClusterHR *tfhit[4],number len[4],int partten[4],TofBetaPar &par,int mode=1,int verse=0);//mode same etime weight(0) or not(1)
   static int  BetaFitT(number time[],number etime[],number len[],const int nhits,TofBetaPar &par,int mode=1,int verse=0);//mode same etime weight(0) or not(1)
 /// Beta Check function
-  static int  BetaFitCheck(TofBetaPar &par);//if this is normal value
+  static int  BetaFitCheck(TofClusterHR *tfhit[4],number res[4][2],number lenr[4],int pattern[4],TofBetaPar &par);//if this is normal value
 #ifndef __ROOTSHAREDLIBRARY__
   static number BetaCorr(number zint,number z0,number part,uinteger &status);//to BetaC Vitaly
 #endif
@@ -246,7 +246,7 @@ public:
   friend class BetaHR; 
   friend class TofBetaPar; 
 
-  ClassDef(TofRecH,6)
+  ClassDef(TofRecH,7)
 };
 
 /////////////////////////////////////////////////////////////////////////

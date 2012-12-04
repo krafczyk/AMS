@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.516 2012/12/01 19:55:19 qyan Exp $
+//  $Id: root.h,v 1.517 2012/12/04 21:26:06 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2736,7 +2736,7 @@ class BetaHR: public TrElem{
   /// Retrun True if TkTrack And TOF Geometry Match
   bool           IsTkTofMatch()         {return fTrTrack>=0;}
   /// Return Beta TOF-Layer Pattern
-  /// \return 4144: TOF-Layer0,2,3 Used For Beta-Fit, not Use Layer1. 4: Two-Side Time Good && Used, 1: Side-N Good, 2: Side-P Good, 0: BAD
+  /// \return 4144: TOF-Layer0,2,3 Used For Beta-Fit, not Use Layer1. 4: Two-Side Time Good && Used, 1: Side-N Good, 2: Side-P Good, 3: Two-Side-Good(but Bad Time) 0: BAD
   int            GetBetaPattern();
   /// Return BetaH Build Type
   /// \return 1:Tracker-BetaH 2:Trd-BetaH 3:Ecal-BetaH 4:TOF-StandAlone(4Layer)-BetaH 5:TOF-StandAlone(3Layer)-BetaH

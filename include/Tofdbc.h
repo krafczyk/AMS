@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.28 2012/12/01 19:55:19 qyan Exp $
+//  $Id: Tofdbc.h,v 1.29 2012/12/04 21:26:06 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -27,6 +27,18 @@ namespace TOFCSN{
    const integer NBARN=34;
    const integer NSIDE=2;
    const integer NPMTM=3;
+   const integer CSId[SCLRS][NSIDE][SCMXBR]={  //Electronic: Create-4 Slot-7(4 SFET) ID
+      11, 12, 11, 12, 11, 12, 11, 12, 0,  0,//L0-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      21, 22, 21, 22, 21, 22, 21, 22, 0,  0,//L0-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      23, 24, 23, 24, 23, 24, 23, 24, 0,  0,//L1-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      13, 14, 13, 14, 13, 14, 13, 14, 0,  0,//L1-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+
+      43, 44, 43, 44, 43, 44, 43, 44, 43, 44,//L2-n //LT Channel 1 1 2 2 3 3 4 4 5 5//FT Channel 6 HT 7 SHT 8
+      33, 34, 33, 34, 33, 34, 33, 34, 33, 34,//L2-p //LT Channel 1 1 2 2 3 3 4 4 5 5//FT Channel 6 HT 7 SHT 8
+      41, 42, 41, 42, 41, 42, 41, 42, 0,  0, //L3-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      31, 32, 31, 32, 31, 32, 31, 32, 0,  0, //L3-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+   };
+
 }
 
 namespace TOFDBcN{
@@ -49,6 +61,8 @@ namespace TOFDBcN{
   const uinteger RECOVERED=       16384*2*2;//RECOVER
   const uinteger LTREFIND=        16384*2*2*2; //LTREFIND for RECOVERCAD
   const uinteger TKTRACK=         16384*2*2*2*2; //TRACK BETAH
+  const uinteger NOFT=            16384*2*2*2*2*2;//NO FT
+  const uinteger BETABADCHIT=     16384*2*2*2*2*2*2;//BAD Beta-ChisT
   const uinteger DOVERFLOW=       16384*2*2*2*2*2*2*2;//Dynode ADC overflow
   const uinteger AOVERFLOW=       16384*2*2*2*2*2*2*2*2;//Anode ADC overflow
   const uinteger TRDTRACK=        16384*2*2*2*2*2*2*2*2*2;//TRD TRACK BetaH
