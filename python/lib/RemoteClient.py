@@ -3199,7 +3199,21 @@ class RemoteClient:
         self.verbose=v
         self.run2p=run2p
         self.force=f
-        rund=""
+	arun2p=""
+        if(run2p.find(",")>=0):
+	    arun2p=" and ( run=-1 "
+            junk=run2p.split(',')
+	    run2p=0
+	    for run in junk:
+		srun2p=" or run=%s " %(run)
+                arun2p=arun2p+srun2p
+            arun2p=arun2p+" ) "
+	else:
+	    try:
+	        run2p=int(run2p)	
+ 	    except:
+                run2p=0
+	rund=""
         runn=""
         runnd=""
         runst=" "
@@ -3212,14 +3226,14 @@ class RemoteClient:
             runbuildd=" and ntuples_deleted.buildno=%d " %(buildno)
         if(castoronly!=0):
             buildno=1
-            if(castoronly>0):
+            if(casuoronly>0):
                 runbuild=runbuild+" and ntuples.castortime>0 "
                 runbuildd=runbuildd+" and ntuples_deleted.castortime>0 "
             if(castoronly<0):
                 runbuild=runbuild+" and ntuples.castortime=0 "
                 runbuildd=runbuildd+" and ntuples_deleted.castortime=0 "
         if(datamc==0):
-            sql="select run,jid from ntuples where path like '%%%s/%%' and datamc=%d  " %(dataset,datamc) 
+            sql="select run,jid from ntuples where path like '%%%s/%%' and datamc=%d  %s " %(dataset,datamc,arun2p) 
             check=self.sqlserver.Query(sql)
             if(len(check)>0):
                 if(check[0][0] != check[0][1]):
@@ -3261,7 +3275,7 @@ class RemoteClient:
                 rund=" and runs.run<%d " %(run2p)
                 runn=" and ntuples.run<%d " %(run2p)
                 runnd=" and ntuples_deleted.run<%d " %(run2p)
-        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s %s " %(dataset,datamc%10,runn,runbuild) 
+        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s" %(dataset,datamc%10,runn,runbuild,arun2p) 
         df=0
         files=self.sqlserver.Query(sql)
         datapath=dataset
@@ -3329,29 +3343,29 @@ class RemoteClient:
                     files=self.sqlserver.Query(sql)
         if(len(files)>0 or self.force!=0):
             if(buildno>0):
-                sql="insert into jobs_deleted select jobs.* from jobs,%s,ntuples where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid and ntuples.jid=jobs.jid %s %s  %s and ntuples.jid=%s.jid" %(runsname,dataset,runsname,runst,rund,runbuild,runsname)
+                sql="insert into jobs_deleted select jobs.* from jobs,%s,ntuples where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid and ntuples.jid=jobs.jid %s %s  %s and ntuples.jid=%s.jid %s" %(runsname,dataset,runsname,runst,rund,runbuild,runsname,arun2p)
             else:
-                sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid  %s %s " %(runsname,dataset,runsname,runst,rund)
+                sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid  %s %s %s " %(runsname,dataset,runsname,runst,rund,arun2p)
                 
             if(donly==0):
                 self.sqlserver.Update(sql)
             if(buildno>0):
-                sql=" delete from jobs where exists (select * from %s,ntuples where %s.jid=jobs.jid and jobs.jid=ntuples.jid and jobs.jobname like '%%%s.job' %s %s %s  and ntuples.jid=%s.jid)" %(runsname,runsname,dataset,runst,rund,runbuild,runsname)
+                sql=" delete from jobs where exists (select * from %s,ntuples where %s.jid=jobs.jid and jobs.jid=ntuples.jid and jobs.jobname like '%%%s.job' %s %s %s  and ntuples.jid=%s.jid %s)" %(runsname,runsname,dataset,runst,rund,runbuild,runsname,arun2p)
             else:
-                sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid  and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,dataset,runst,rund)
+                sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid  and jobs.jobname like '%%%s.job' %s %s %s)" %(runsname,runsname,dataset,runst,rund,arun2p)
                 
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s %s " %(datapath,datamc%10,runn,runbuild)
+            sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s " %(datapath,datamc%10,runn,runbuild,arun2p)
             if(df==0):
                 self.sqlserver.Update(sql)
                 timenow=int(time.time())
-                sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s %s " %(datapath,datamc%10,runnd,runbuildd)
+                sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s %s %s" %(datapath,datamc%10,runnd,runbuildd,arun2p)
                 self.sqlserver.Update(sql)
-                sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s %s " %(datapath,datamc%10,runn,runbuild)
+                sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s " %(datapath,datamc%10,runn,runbuild,arun2p)
                 self.sqlserver.Update(sql)
             else:
-                sql="DELETE from datafiles where path like '%%%s/%%' and type like 'MC%%' %s " %(datapath,runndf)
+                sql="DELETE from datafiles where path like '%%%s/%%' and type like 'MC%%' %s %s " %(datapath,runndf,arun2p)
 
                 self.sqlserver.Update(sql)
                 

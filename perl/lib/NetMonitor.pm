@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.70 2012/11/07 10:01:19 ams Exp $
+# $Id: NetMonitor.pm,v 1.71 2012/12/04 14:35:22 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -7,7 +7,7 @@ use Carp;
 use DBI;
 use POSIX  qw(strtod);
 @NetMonitor::EXPORT=qw(new Run); 
-$ENV{AMISERVER} = "http://pcamsj0.cern.ch:8081";
+$ENV{AMISERVER} = "http://pcamsj2.cern.ch:8081";
 use lib::DirMonitor;
 
 sub new{
