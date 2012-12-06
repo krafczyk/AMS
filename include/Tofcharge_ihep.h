@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.6 2012/11/21 10:33:15 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.7 2012/12/06 20:17:21 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -14,16 +14,16 @@ class BetaHR;
 /////////////////////////////////////////////////////////////////////////
 /// TofChargePar structure
 /*!
- *  Charge-Measurment for Each Layer
+ *  TOF Charge-Measurment for Each Layer (TOFH)
  * \author qyan@cern.ch
 */
 //////////////////////////////////////////////////////////////////////////
 class TofChargePar: public TObject{
 
    public:
-  /// Layer
+  /// TOF Layer
   int    Layer;
-  /// Bar
+  /// TOF Bar
   int    Bar;
   /// Anode Q2
   float  QLA;
@@ -41,13 +41,13 @@ class TofChargePar: public TObject{
   float GetQ();
   /// All Z and ProbZ in PDF
   vector <pair<int, float> > ProbZ;
-  /// Get Prob to Be Z 
+  /// Get Prob to be Z 
   float GetProbZ(float Z); 
   /// Push_back ProbZ-vector prob value from Z=ZL to Z=ZH 
   void  FillProbZ(int ZL,int ZH);
 
   public:
-    TofChargePar(){QLA=QLD=QLARaw=QLDRaw=Beta=Layer=Bar=-1; IsGoodPath=0; ProbZ.clear();}
+    TofChargePar(){Beta=Layer=Bar=-1; QLA=QLD=QLARaw=QLDRaw=0; IsGoodPath=0; ProbZ.clear();}
     TofChargePar(int _Layer,int _Bar,float _QLA,float _QLD,float _QLARaw,float _QLDRaw,float _Beta,bool _IsGoodPath):
                    Layer(_Layer), Bar(_Bar), QLA(_QLA), QLD(_QLD), QLARaw(_QLARaw), QLDRaw(_QLDRaw),  Beta(_Beta), IsGoodPath(_IsGoodPath){
                       ProbZ.clear();
@@ -60,7 +60,7 @@ class TofChargePar: public TObject{
 /////////////////////////////////////////////////////////////////////////
 /// TofLikelihoodPar structure
 /*!
- * Likelihood for Each Charge
+ * TOF Likelihood Par for Each Charge (TOFH)
  * \author qyan@cern.ch
 */
 //////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ class TofLikelihoodPar: public TObject{
 //////////////////////////////////////////////////////////////////////////
 /// TofChargeHR structure
 /*!
- *  TOF Charge Likelihood Manager include all Tools of TOF-Charge determinition, which can be access From BetaH gTofCharge()
+ *  TOF Charge Likelihood include all Tools of TOF-Charge determinition, which can be access From BetaH gTofCharge()
  *  \author qyan@cern.ch
 */
 ////////////////////////////////////////////////////////////////////////
@@ -116,31 +116,30 @@ public:
   /// Tk Index
   int fTrTrack;
 
+private:
+/// Update All Charge-Measurement Likelihood in Class Using Using Fix Pattern
+  void UpdateZ(int pattern=-10,int opt=1);
+
 public:
   /// Init Function
   void Init();
   TofChargeHR(){Init();}
   TofChargeHR(BetaHR *betah);
   virtual ~TofChargeHR(){};
-/// Update All Charge-Measurement Likelihood in Class Using Using Fix Pattern
-   /*!
-    * @param[in] pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
-    * @param[in] opt%10=1 Update Integer Likelihood--- opt/10%10=1 Update LikelihoodQ 
-    */
-  void UpdateZ(int pattern=-10,int opt=1);
 
 /** @name TOF Layer Charge Measurment
  * @{
  */
   /// Return True If TOF Charge iLayer(0-3) Measurment exists
   bool  TestExistHL (int ilay); 
-  /// Return True if TOF-ilay Q PathLength is Good ///First Require Track-Match-TOF
+  /// Return True if TOF-ilay Q PathLength is Good /// First Require Track-Match-TOF
   bool  IsGoodQPathL(int ilay);
-  /// iLay TOF Q ///If Not Exist Return -1
+  /// iLay TOF Q
+  /// \return 0: Bad iLayer Charge(may not exit)  >0: Normal TOF Charge
   float GetQL(int ilay);
-  /// Sum Measrument Number of Layer 
+  /// Number of TOF Layer for Charge Measrument 
   int  GetNL();
-  /// Access All TOF Charge Measurement Data-For iLayer ///Please First Check If ilay Exit TestExistHL
+  /// Access All TOF Charge Measurement Data-For iLayer /// Please First Check If ilay Exit TestExistHL
   TofChargePar  gTofChargePar(int ilay);
 /**@}*/
 
@@ -148,31 +147,36 @@ public:
 /** @name TOF Integer Charge Estimation
  * @{
  */
-  /// TOF Charge_Size /// Number of Charge in Likelihood-Measurment (Prob is neglectable will not keep)
+  /// TOF Charge_Size
   /*
    * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer;-2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer;1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+     @return Number of Charge in Likelihood-Measurment (Prob is neglectable will not keep)
    */     
   int  GetNZ(int pattern=-10);
-  /// Find TOF Charge Z Index IZ /// Return -1 if Prob is neglectable 
+  /// Find TOF Charge Z Index IZ
   /*
    * @param[in]  Z: Charge-Z
    * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer;-10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer;-12: Remove Max-Q Layer;  1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+   * @return  -1: No index Z prob is neglectable  >=0: Normal index for Z
    */  
   int  GetZI(int Z,int pattern=-10);
   /// TOF Likelihood Integer Charge Z 
   /*!
    * @param[out] nlay Number of TOF Layers Used For Charge Z-Measument
    * @param[out] Prob Likelihood Prob
-   * @param[in]  IZ (0~GetNZ()-1):  =0 Max-Prob Z, =1 Second-Max-Prob Z
+   * @param[in]  IZ 0~GetNZ()-1 :  =0 Max-Prob Z  =1 Second-Max-Prob Z ...
    * @param[in]  pattern: pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer;-2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer;-12: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
    * @return Charge Z (<0 Faild)
    */
   int  GetZ(int &nlay,float &Prob,int IZ=0,int pattern=-10);
-  /// Access Data Likelihood for IZ ///IZ (0~GetNZ()-1):  =0 Max-Prob Z, =1 Second-Max-Prob Z
+  /// Access Data Likelihood for IZ 
+  /// \param IZ 0~GetNZ()-1 :  =0 Max-Prob Z  =1 Second-Max-Prob Z ...
   TofLikelihoodPar  gTofLikelihoodPar(int IZ=0, int pattern=-10);
-  /// TOF Likelihood-Prob For Charge Z ///Return 0 if Prob is neglectable
+  /// TOF Likelihood Prob For Charge Z
+  /// \return  0: Porb is neglectable  >0: Normal Charge Prob
   float GetProbZ(int Z,int pattern=-10);
-  /// TOF Log(Likelihood) /// TOF Likelihood Inteface To Combine with Other Detector to Global-Charge determination
+  /// TOF Log(Likelihood) 
+  /// \return TOF Likelihood Inteface To Combine with Other Detector to Global-Charge determination
   float GetLkh  (int Z,int &nlay,int pattern=-10);
 /**@}*/
 
@@ -185,10 +189,10 @@ public:
    * @param[out] nlay Number of TOF Layers Used For Q-Measument
    * @param[out] qrms Q-RMS of TOF Layers Used
    * @param[in] pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer;  1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
-   * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
+   * @return =0 No Good TOF Layer for measurement  >0 Q value
    */
   float GetQ(int &nlay,float &qrms,int pattern=-2); 
-  /// TOF Charge LikehoodQ //CPU Consuming
+  /// TOF Charge LikehoodQ /// CPU Consuming
   /*!
    * @param[out] nlay Number of TOF Layers Used For Q-Measument
    * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
@@ -219,6 +223,7 @@ public:
 
 //----
   ClassDef(TofChargeHR,2);
+  friend class TofPDFH;
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -261,8 +266,10 @@ public:
   static Double_t PDFBZ(Double_t *x, Double_t *par);
   /// PDF Function for HBZ(>=16)
   static Double_t PDFHBZ(Double_t *x, Double_t *par);
+  /// PDF Function Type-Define
+  typedef Double_t (*pdffun)(Double_t *,Double_t *);
 
-  ClassDef(TofPDFH,1)
+  ClassDef(TofPDFH,2)
 };
 
 /////////////////////////////////////////////////////////////////////////
