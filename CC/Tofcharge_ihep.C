@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.6 2012/11/17 22:21:42 qyan Exp $
+//  $Id: Tofcharge_ihep.C,v 1.7 2012/12/06 20:17:54 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -44,7 +44,7 @@ ClassImp(TofLikelihoodPar)
 
 bool TofLikelihoodPar::IsUsedL (int iLayer){
 
-  if(LPattern/int(pow(10., 3-iLayer))==1)return 1;
+  if(LPattern/int(pow(10., 3-iLayer))%10==1)return 1;
   else   return 0;
 }
 
@@ -598,7 +598,6 @@ number TofPDFH::GetProbZI(int ilay,int ibar,int ZI,number QL,number betah,int is
  }
 
 //--Prepare PDF Function
- typedef Double_t (*pdffun)(Double_t *,Double_t *);
  pdffun  fun;
  if(TofPDFPar::PDFCh[ZI]<=TofPDFPar::ZPDFgate[0]){
     fun=TofPDFH::PDFPrHe;
