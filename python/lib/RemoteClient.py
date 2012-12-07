@@ -2274,8 +2274,10 @@ class RemoteClient:
             else:
                 prefix=""   
             validatecmd="/exe/linux/fastntrd64.exe %s%s %d %d %d " %(prefix,fname,nevents,dtype,levent)
-            validatecmd=self.env['AMSSoftwareDir']+validatecmd
             vcode=os.system(validatecmd)
+            if(fname.find('/castor/cern.ch')>=0 and vcode/256==134):
+                time.sleep(5)
+                vcode=os.system(validatecmd)
             print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
             print "got  mutex in validate", validatecmd
