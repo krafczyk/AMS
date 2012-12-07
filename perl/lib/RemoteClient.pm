@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.752 2012/12/04 14:34:10 choutko Exp $
+# $Id: RemoteClient.pm,v 1.753 2012/12/07 13:42:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16637,7 +16637,7 @@ sub validateDST {
      if (defined $dtype) {
       $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd64.exe  $prefix$fname $nevents $dtype $levent";
       $vcode=system($validatecmd);
-     if($fname=~/^\/castor/ and $vcode==134){
+     if($fname=~/^\/castor/ and $vcode/256==134){
          return 1,0;
      }
 
