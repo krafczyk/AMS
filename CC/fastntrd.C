@@ -82,7 +82,7 @@ catch (std::bad_alloc aba){
    else
    {
 //     cout<<"FastNtupleRead-Error: missing arguments ???"<<endl;
-     iflg=6+128; // abs(-6) + bit 8 for "-"
+     iflg=7+128; // abs(-6) + bit 8 for "-"
    }
      if(verbose)cout<<"Flag="<<iflg<<endl;
      return(iflg);

@@ -38,14 +38,17 @@ TString name(fname);
 if(name.Contains(c)){
        string rn=fname;
        int pos=rn.find("/castor/");
-       string stager_get="stager_get -M ";
+       string stager_get="/usr/bin/stager_get -M ";
        stager_get+=(fname+pos);
        stager_get+=" 1>/dev/null 2>&1 &";
        system(stager_get.c_str());
+       sleep(2);
        bool staged=false;
        bool stagein=false; 
+       int again=0;
 {
-           stager_get="stager_qry -M ";
+again2:
+           stager_get="/usr/bin/stager_qry -M ";
            stager_get+=(fname+pos);
            stager_get+=" | grep -c STAGED 2>&1";
            FILE *fp=popen(stager_get.c_str(),"r");
@@ -70,10 +73,19 @@ if(!staged){
              stagein=false;
            }
            else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
+              if(iver>0)cout<<" stagein again "<<again<<endl;
+             if(again<10){
+                again++;
+                pclose(fp);
+                goto again2;
+             }
              stagein=true;
            }
            else stagein=false;
            pclose(fp);
+}
+if(iver){
+cout <<" STAGEIN STAGED "<<stagein<<" "<<staged<<endl;
 }
 if(!staged && !stagein)return -1;
 else if(stagein)return -6; 

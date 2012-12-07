@@ -4,7 +4,7 @@ SHELL=/bin/sh
 ifeq  "$(shell uname)"  "AIX" 
 SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 ROOTLIBS=
-CFLAGS=   -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
+CFLAGS=    -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
 CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl
 FFLAGS=    -I../include -O -qextname 
 DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
@@ -48,11 +48,11 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
 #CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -g
-CFLAGS=     -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl  -Bstatic -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc  
+LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib -Bstatic -lRoot  -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl  -Bstatic -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc  
 CC=/opt/intel/Compiler/11.1/073/bin/intel64/icc  -openmp -gcc-version=340
 FF=/opt/intel/Compiler/11.1/073/bin/intel64/ifort  -openmp -gcc-version=340
 LD=/opt/intel/Compiler/11.1/073/bin/intel64/icpc  -openmp   $(PARALLEL) -gcc-version=340
