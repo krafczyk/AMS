@@ -7,6 +7,48 @@
 
 // Change all my assertions
 #define _assert(x) {if(0 && !(x))throw 1;}
+
+// Store the calibrations here
+UnifiedRichChannelCalibration UnifiedRichCalibration::calibration[RICmaxpmts*RICnwindows]={0}; 
+int   UnifiedRichCalibration::_status[RICmaxpmts*RICnwindows]={0};                  // Channel status word
+geant UnifiedRichCalibration::_pedestal[2*RICmaxpmts*RICnwindows]={0};              // Pedestal position (x2 gains) high,low
+geant UnifiedRichCalibration::_pedestal_sigma[2*RICmaxpmts*RICnwindows]={0};        // Pedestal width (x2 gains)
+geant UnifiedRichCalibration::_pedestal_threshold[2*RICmaxpmts*RICnwindows]={0};             // Pedestal threshold width (x2 gains)
+
+void UnifiedRichCalibration::fillArrays(){
+  if(!AMSJob::gethead()->isRealData() || AMSEvent::gethead()->getrun()<UnifiedRichCalibration::firstRun) return;
+  //  cout<<"FILLING ARRAYS NEW"<<endl;
+  int entries=sizeof(calibration)/sizeof(calibration[0]);
+  for(int index=0;index<entries;index++){
+    int pmt_geom_id,pixel_geom_id;
+    RichPMTsManager::UnpackGeom(index,pmt_geom_id,pixel_geom_id);
+    UnifiedRichChannelCalibration &current=UnifiedRichCalibration::calibration[index];
+
+    //    cout<<"INDEX "<<index<<" BEFORE "<<RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,1)<<" after "<<current.pedx5<<endl;
+
+    RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,0)=current.pedx1;
+    RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,1)=current.pedx5;
+    RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,0)=current.sigmax1;
+    RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,1)=current.sigmax5;
+    RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,0)=current.thresholdx1;
+    RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,1)=current.thresholdx5;
+    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=current.status;
+
+  }
+}
+
+void UnifiedRichCalibration::fillArraysOld(){
+  if(!AMSJob::gethead()->isRealData() || AMSEvent::gethead()->getrun()<UnifiedRichCalibration::firstRun){
+#define CP(_name,_size)  memcpy((void*)&RichPMTsManager::_name[0],(void*)&UnifiedRichCalibration::_name[0],sizeof(UnifiedRichCalibration::_name[0])*_size);
+    CP(_status,RICmaxpmts*RICnwindows);
+    CP(_pedestal,2*RICmaxpmts*RICnwindows);
+    CP(_pedestal_sigma,2*RICmaxpmts*RICnwindows);
+    CP(_pedestal_threshold,2*RICmaxpmts*RICnwindows);
+#undef CP
+  }
+}
+
+
 RichPMTChannel::RichPMTChannel(int packed_id){
   int pmt,channel;
   RichPMTsManager::UnpackGeom(packed_id,pmt,channel);

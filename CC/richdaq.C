@@ -467,6 +467,16 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,1)=thresholdx5;
     RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=status;
     //    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=(status &&  RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id))?status:0;  // Do not let channels to recover
+
+    int index=RichPMTsManager::PackGeom(pmt_geom_id,pixel_geom_id);
+    UnifiedRichChannelCalibration &current=UnifiedRichCalibration::calibration[index];
+    current.pedx1=pedx1;
+    current.pedx5=pedx5;
+    current.sigmax1=sigma_pedx1;
+    current.sigmax5=sigma_pedx5;
+    current.thresholdx1=thresholdx1;
+    current.thresholdx1=thresholdx1;
+    current.status=status;
   }
   
 
@@ -517,15 +527,33 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 
 #pragma omp single
   if(update){
-    AMSTimeID *ptdv;
+    uint runNumber=AMSEvent::gethead()->getrun();
+
+    AMSTimeID *ptdv;    
     time_t begin,end,insert;
-    const int ntdv=4;
-    const char* TDV2Update[ntdv]={"RichPMTChannelPedestal",
-				  "RichPMTChannelPedestalSigma",
-				  "RichPMTChannelPedestalThreshold",
-				  "RichPMTChannelStatus"};
-    for (int i=0;i<ntdv;i++){
-      ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+    if(!AMSJob::gethead()->isRealData() || runNumber<UnifiedRichCalibration::firstRun){
+      const int ntdv=4;
+      const char* TDV2Update[ntdv]={"RichPMTChannelPedestal",
+				    "RichPMTChannelPedestalSigma",
+				    "RichPMTChannelPedestalThreshold",
+				    "RichPMTChannelStatus"};
+      for (int i=0;i<ntdv;i++){
+	ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+	ptdv->UpdateMe()=1;
+	ptdv->UpdCRC();
+	time(&insert);
+	if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
+#define min(x,y) ((x)<(y)?(x):(y))
+	ptdv->SetTime(insert,min(AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->gettime()),AMSEvent::gethead()->getrun()-1+864000);
+#undef min
+	cout <<" RICH info has been updated for "<<*ptdv;
+	ptdv->gettime(insert,begin,end);
+	cout <<" Time Insert "<<ctime(&insert);
+	cout <<" Time Begin "<<ctime(&begin);
+	cout <<" Time End "<<ctime(&end);
+      }
+    }else{
+      ptdv = AMSJob::gethead()->gettimestructure(AMSID("RichPMTChannelCalibration",AMSJob::gethead()->isRealData()));
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
@@ -545,6 +573,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 	for (int j=0;j<24;j++)
 	  _Calib[i][j]=0;    
   }
+
   }catch(int){
     static bool first_call=true;
     if(first_call){
