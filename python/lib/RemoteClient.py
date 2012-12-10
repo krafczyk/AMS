@@ -4,6 +4,7 @@ from DBSQLServer import DBSQLServer
 from DBServer import DBServer
 import cgi
 import datetime
+from array import *
 def sorta(s,o):
     timenow=int(time.time())
     dts=timenow-s[2]
@@ -3045,6 +3046,8 @@ class RemoteClient:
         rund=""
         runn=""
         runst=""
+        bad1=array('i')
+        bad2=array('i')
         typess=["0SCI","0LAS","0CAL","0CMD","0CAB"]
 
         for type in typess:
@@ -3157,6 +3160,7 @@ class RemoteClient:
                     if(found==0):
                         if(tab==0):
                             print "Run ",run,"  not found in dataset ",dataset
+                            bad1.append(run[0])
                         else:
                             print "<tr>"
                             print "<td>Run %d  </td><td> not found in dataset %s</td>" %(run[0],dataset)
@@ -3174,6 +3178,7 @@ class RemoteClient:
                             found=1
                             if(run[2]!=file[1]):
                                 if(tab==0):
+                                    bad2.append(run[0])
                                     print "Run ",run," and ntuples disagree. run events=",run[2]," ntuple events=",file[1]
                                 else:
                                     print "<tr>"
@@ -3201,6 +3206,10 @@ class RemoteClient:
             </table>
             </HR>
             """
+        else:   
+           print bad1
+           print bad2       
+
     def DeleteDataSet(self,run2p,dataset,u,v,f,donly,datamc,buildno,castoronly):
         self.update=u
         self.verbose=v
