@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.90 2012/09/17 08:35:02 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.91 2012/12/10 09:17:54 choutko Exp $
 
 #
 #
@@ -983,7 +983,7 @@ sub set_oracle_env {
     if(defined $ENV{"NLS_LANG"}){
          delete $ENV{"NLS_LANG"};
     } 
-    $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
+    $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/10205';
     $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
 # $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
 #$ENV{"TNS_ADMIN"}='/opt/oracle/10g/network/admin';
