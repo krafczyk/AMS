@@ -1202,7 +1202,8 @@ class RemoteClient:
 
                         status="Failed"
                         if(odisk !=  None):
-                            fsmutexes[odisk].release()
+                            if(fsmutexes.has_key(odisk)):
+                                fsmutexes[odisk].release()
                         if(copyfailed==0):
                             warn="Validation done Run %d " %(run.Run)
                             print warn
@@ -1680,7 +1681,8 @@ class RemoteClient:
                odisk=None
                while(stime>60):
                    if(odisk!=None):
-                       fsmutexes[odisk].release()
+                       if(fsmutexes.has_key(odisk)):
+                           fsmutexes[odisk].release()
                    try:
                        (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
                    except IOError,e:
@@ -1700,7 +1702,8 @@ class RemoteClient:
                stime=100
                while(stime>60):
                    if(odisk!=None):
-                       fsmutexes[odisk].release()
+                       if(fsmutexes.has_key(odisk)):
+                           fsmutexes[odisk].release()
                    try:
                        (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
                    except IOError,e:
@@ -1797,7 +1800,8 @@ class RemoteClient:
                odisk=None
                while(stime>60):
                    if(odisk!=None):
-                       fsmutexes[odisk].release()
+                       if(fsmutexes.has_key(odisk)):
+                           fsmutexes[odisk].release()
                    (outputpatha,gb,odisk,stime)=self.getOutputPathRaw(period,path)
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
