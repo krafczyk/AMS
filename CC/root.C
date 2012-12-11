@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.508 2012/12/04 21:27:50 qyan Exp $
+//  $Id: root.C,v 1.509 2012/12/11 17:50:42 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2366,9 +2366,6 @@ bool AMSEventR::ReadHeader(int entry){
       }
 
 
-//---TDV
-    if(nMCEventg()==0){TofRecH::Init();}
-   
 ///--Tof BetaHs Init
     if(Version()<592){
        fHeader.TofClusterHs = 0;
@@ -2382,6 +2379,8 @@ bool AMSEventR::ReadHeader(int entry){
 
 //---Fix For Gbatch
     else if((Version()>=610&&Version()<=622)&&nMCEventg()==0){
+//---
+      TofRecH::Init();
 //---TofClusterHR
       if(Version()<=621){   
         for(int i=0;i<NTofClusterH();i++){
@@ -2428,6 +2427,9 @@ bool AMSEventR::ReadHeader(int entry){
     }//End 621 
 //---
   }//End 622
+  if(Version()<630){
+    for(int i=0;i<NBetaH();i++)pBetaH(i)->setChargeHI(-1);
+  }
 
      
      fHeader.getISSTLE();
@@ -2545,6 +2547,7 @@ AMSEventR::AMSEventR():TSelector(){
   fBeta.reserve(MAXBETA02);
   fBetaB.reserve(MAXBETA02);
   fBetaH.reserve(MAXBETAH);
+  fTofChargeH.reserve(MAXBETAH);
   fCharge.reserve(MAXCHARGE02);
   fVertex.reserve(2);
   fParticle.reserve(MAXPART02);
@@ -2596,6 +2599,7 @@ void AMSEventR::clear(){
   fBeta.clear();
   fBetaB.clear();
   fBetaH.clear();
+  fTofChargeH.clear();
   fCharge.clear();
   fVertex.clear();
   fParticle.clear();
@@ -3238,7 +3242,8 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalS
    if(show){ // ecal betah
       for(int ii=0;ii<ev->NEcalShower();ii++)  {if(ev->pEcalShower(ii)==show){fEcalShower=ii;break;}}
    }
-
+   fTofChargeH=-1;
+ 
 }
 
 
@@ -4933,6 +4938,7 @@ TofClusterHR::TofClusterHR(unsigned int sstatus[2],unsigned int status,int patte
     Coo[i]= coo[i];
     ECoo[i]=ecoo[i];
   }
+  QPar.clear();
 }
 
 TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
@@ -4957,6 +4963,7 @@ TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
   }
   AEdep=ptr->AEdep;
   DEdep=ptr->DEdep;
+  QPar=ptr->QPar;
 #endif
 }
 
@@ -6680,6 +6687,16 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
        if((AEdep>0&&AEdep<6*6*TofCAlignPar::ProEdep)||DEdep<=0){return  AEdep>=0?sqrt(AEdep/TofCAlignPar::ProEdep):AEdep;}//Anode Range
        else                                                    {return  DEdep>=0?sqrt(DEdep/TofCAlignPar::ProEdep):DEdep;}
     }
+
+///--Default 
+     if(opt==TofClusterHR::DefaultQOpt&&cosz==1&&beta==1){
+       int qpat=pmtype*100000000+pattern*100+optw;
+       map<int, float >::iterator it;
+       it=QPar.find(qpat); 
+       if(it!=QPar.end()){return QPar[qpat];}
+    }
+ 
+
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -6702,6 +6719,14 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
        else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,Coo[GetDirection()],double(cosz),double(beta));
+
+//--Default 
+     if(opt==TofClusterHR::DefaultQOpt&&cosz==1&&beta==1){
+       int qpat=pmtype*100000000+pattern*100+optw;
+       QPar[qpat]=signal;
+    }
+//---
+
     return signal;
 }
 
@@ -6815,9 +6840,11 @@ void TofBetaPar::Init(){
       CResidual[ilay][is]=0;AQ2L[ilay][is]=0;
       for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){DQ2L[ilay][is][ipm]=0;}
      }
+     QL[ilay].clear();//map
    }
    Beta=BetaC=InvErrBeta=InvErrBetaC=Chi2T=T0=Chi2C=0;
    Mass=EMass=0;
+   QPar.clear();
 };
 
 const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
@@ -6837,6 +6864,7 @@ const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
        CResidual[ilay][is]=right.CResidual[ilay][is];AQ2L[ilay][is]=right.AQ2L[ilay][is];
        for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){DQ2L[ilay][is][ipm]=right.DQ2L[ilay][is][ipm];}
       }
+    QL[ilay]=right.QL[ilay];//map
   }
   T0=right.T0;
   Beta=right.Beta;
@@ -6848,6 +6876,7 @@ const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
 //---
   Mass=right.Mass;
   EMass=right.EMass;
+  QPar=right.QPar;
   return *this;
 }
 
@@ -6887,6 +6916,21 @@ TofClusterHR* BetaHR::pTofClusterH(unsigned int i){
 TofClusterHR* BetaHR::GetClusterHL(int ilay){
   if(ilay<0||ilay>=4||fLayer[ilay]<0)return 0;
   return (AMSEventR::Head())?AMSEventR::Head()->pTofClusterH(fLayer[ilay]):0;
+}
+
+
+//------TofChargeH Function
+int  BetaHR::iTofChargeH() {
+  if(fTofChargeH<0){
+     AMSEventR::Head()->TofChargeH().push_back(TofChargeHR(this));
+     fTofChargeH=AMSEventR::Head()->TofChargeH().size()-1;
+   }
+   return fTofChargeH;
+}
+
+
+TofChargeHR *  BetaHR::pTofChargeH(){
+  return (AMSEventR::Head())?AMSEventR::Head()->pTofChargeH(iTofChargeH()):0; 
 }
 
 int   BetaHR::GetBetaPattern(){
@@ -7144,6 +7188,15 @@ float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
 
 float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
     if(!TestExistHL(ilay))return 0;
+
+//---Get Default
+    if(opt==TofClusterHR::DefaultQOpt){
+       int qpat=pmtype*100000000+pattern*100+optw;
+       map<int, float >::iterator it;
+       it=BetaPar.QL[ilay].find(qpat);
+       if(it!=BetaPar.QL[ilay].end()){return (BetaPar.QL[ilay])[qpat];}
+    }
+   
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -7174,11 +7227,33 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
     TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);   
  
     float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),double(BetaPar.Beta),rig);
+
+//---Default push_back
+    if(opt==TofClusterHR::DefaultQOpt){
+       int qpat=pmtype*100000000+pattern*100+optw;
+       (BetaPar.QL[ilay])[qpat]=signal;
+    }
+//---
+
     return signal;
 }
 
 
 float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
+
+//---Get Default
+    if(opt==TofClusterHR::DefaultQOpt){
+       int qpat=pmtype*100000000+pattern*100;
+//---
+       map<int,pair<int, pair<float,float> > >::iterator it;
+       it=BetaPar.QPar.find(qpat);
+       if(it!=BetaPar.QPar.end()){
+          nlay=(BetaPar.QPar)[qpat].first; 
+          qrms=(BetaPar.QPar)[qpat].second.second;
+          return (BetaPar.QPar)[qpat].second.first;
+       }
+   }
+//---
 
    vector<float >ql;
    vector<bool >qg;//Geometry Check
@@ -7215,7 +7290,7 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
 
 
 //-----GetMean
-    float mean=0,sig=0,qmax=0,qmin=99999999;
+    float mean=0,sig=0,qmax=0,qmean=0,qmin=99999999;
     int imin=0;int imax=0;
     for(int i=0; i<ql.size();i++){
        mean+=ql.at(i); sig+=ql.at(i)*ql.at(i);
@@ -7226,11 +7301,12 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
 //----Fill Var
     if(ql.size()<=2||pattern>0||pattern==-10){
        nlay=ql.size();
-       if(nlay==0){qrms=0;return 0.;}
+       if(nlay==0){qrms=0; qmean=0;}
        else       {
          mean=mean/ql.size();sig=sig/ql.size();
          sig=sqrt(fabs(sig-mean*mean));
-         qrms=sig;return mean;
+         qrms=sig;
+         qmean=mean;
        }
      }
     else {
@@ -7245,12 +7321,21 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
 //----
        nlay=ql.size()-1;
 //-----        
-       if(pattern%10==-2){qrms=sigl;return meanl;}
+       if(pattern%10==-2){qrms=sigl;qmean=meanl;}
        else           {
-         if(dqh>dql)  {qrms=sigl;return meanl;}
-         else         {qrms=sigh;return meanh;}
+         if(dqh>dql)  {qrms=sigl;qmean=meanl;}
+         else         {qrms=sigh;qmean=meanh;}
        }
     }
+
+//--Default
+      if(opt==TofClusterHR::DefaultQOpt){
+         int qpat=pmtype*100000000+pattern*100;
+         pair<float,float>qp(qmean,qrms);
+         (BetaPar.QPar)[qpat]=make_pair(nlay,qp);
+      }
+//---
+     return qmean; 
 
 }
 
@@ -7260,6 +7345,7 @@ float BetaHR::GetQBetaL(int ilay,int charge,int pmtype){
 
    double q2=GetQL(ilay,pmtype,(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor));
    TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
+   TofRecH::Init();
    float qbeta=TofRecH::GetBetaCalCh(TofRecPar::Idsoft,1,BetaPar.Beta,q2,charge,0.);
 
    return qbeta;
@@ -7731,7 +7817,7 @@ fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCl
 fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),
 fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),
 fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fTrdHSegment(o.fTrdHSegment),
-fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fCharge(o.fCharge),
+fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fTofChargeH(o.fTofChargeH),fCharge(o.fCharge),
 fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),
 fTofMCCluster(o.fTofMCCluster),fTofMCPmtHit(o.fTofMCPmtHit),fEcalMCHit(o.fEcalMCHit),fTrdMCCluster(o.fTrdMCCluster),
 fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux)
@@ -7769,6 +7855,7 @@ long long AMSEventR::Size(){
   size+=sizeof(BetaR)*fBeta.size();
   size+=sizeof(BetaR)*fBetaB.size();
   size+=sizeof(BetaHR)*fBetaH.size();
+  size+=sizeof(TofChargeHR)*fTofChargeH.size();
   size+=sizeof(ChargeR)*fCharge.size();
   size+=sizeof(VertexR)*fVertex.size();
   size+=sizeof(ParticleR)*fParticle.size();

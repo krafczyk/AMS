@@ -1,4 +1,4 @@
-//  $Id: tofhit.C,v 1.2 2012/09/13 13:55:31 qyan Exp $
+//  $Id: tofhit.C,v 1.3 2012/12/11 17:50:42 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMSlink BetaH  Object
@@ -83,6 +83,7 @@ void AMSBetaH::_copyEl(){
         }
       else ptr.fLayer[i]=-1;
     }
+    ptr.fTofChargeH=-1;
 #endif
 }
 

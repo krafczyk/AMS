@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.43 2012/12/04 21:27:50 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.44 2012/12/11 17:50:42 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -908,6 +908,7 @@ number TofRecH::SumSignalA(int idsoft,number signal[],int useweight){//Counter L
 //========================================================
 number TofRecH::SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweight,bool minpmcut){//Counter Level
 
+  if(Init()!=0)return -1;
   TofCAlignPar *CPar=TofCAlignPar::GetHead();
 ///--Dynode weight
    double sums=0,sumw=0,ww=0;
