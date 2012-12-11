@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.518 2012/12/11 17:49:04 qyan Exp $
+//  $Id: root.h,v 1.519 2012/12/11 18:44:53 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2733,7 +2733,7 @@ class BetaHR: public TrElem{
 
   /// access function to TofChargeHR object
   int iTofChargeH();
-  ///access function to TofChargeHR objects(this will replace gTofCharge)
+  ///access function to TofChargeHR objects(this suggest to replace gTofCharge)
   TofChargeHR * pTofChargeH(); 
   /// Set TofChargeH index
   void setChargeHI(int iChargeH) {fTofChargeH=iChargeH;}
@@ -2944,7 +2944,7 @@ class BetaHR: public TrElem{
   float GetQBetaL(int ilay,int charge,int pmtype=2);
   /// Return True if TOF-ilay Q PathLength is Good ///First Require Track-Match-TOF
   bool  IsGoodQPathL(int ilay);
-  /// PDF-LikeLihood Integer Z Cover All Charge Z=1=>Z>26(PDF-Part Recommend To Use gTofCharge() To Access All Data)
+  /// PDF-LikeLihood Integer Z Cover All Charge Z=1=>Z>26(PDF-Part Recommend To Use pTofChargeH() To Access All Data)
   /*!
     * @param[out] nlay Number of TOF Layers Used For Charge Z-Measument
     * @param[out] Z Likelihood-Prob
@@ -2952,13 +2952,13 @@ class BetaHR: public TrElem{
     * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
     * @return Charge Z (<0 Faild)
   */
-   int GetZ(int &nlay,float &Prob,int IZ=0,int pattern=-10){return gTofCharge().GetZ(nlay,Prob,IZ,pattern);}
+   int GetZ(int &nlay,float &Prob,int IZ=0,int pattern=-10){return pTofChargeH()->GetZ(nlay,Prob,IZ,pattern);}
   /// Likehood Q-Estimator
  /*!
     * @param[out] nlay Number of TOF Layers Used For Q-Measument
     * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
   */
-   float GetLikeQ(int &nlay,int pattern=-10)     {return gTofCharge().GetLikeQ(nlay,pattern);}  
+   float GetLikeQ(int &nlay,int pattern=-10)     {return pTofChargeH()->GetLikeQ(nlay,pattern);}  
 /**@}*/
 
 

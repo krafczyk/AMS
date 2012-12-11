@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.7 2012/12/06 20:17:21 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.8 2012/12/11 18:44:53 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -96,7 +96,7 @@ class TofLikelihoodPar: public TObject{
 //////////////////////////////////////////////////////////////////////////
 /// TofChargeHR structure
 /*!
- *  TOF Charge Likelihood include all Tools of TOF-Charge determinition, which can be access From BetaH gTofCharge()
+ *  TOF Charge Likelihood include all Tools of TOF-Charge determinition, which can be access From BetaH::pTofChargeH()
  *  \author qyan@cern.ch
 */
 ////////////////////////////////////////////////////////////////////////
