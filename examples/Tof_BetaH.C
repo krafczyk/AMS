@@ -461,14 +461,14 @@ bool AMSAnalysis::Select_Tof(){
        tof_hqt=betah->GetQ(nlay,qrms);//TOF Trancate Mean Q
        tof_hqg=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOpt,-1);//TOF Gaus Mean Q
 //--To TofChargeHR
-       TofChargeHR tofcharge=betah->gTofCharge();//Access To TofChargeHR
-       tof_hz=tofcharge.GetZ(nlay,tof_hprobz);//Max-Prob Integer Z+ProbZ
+       TofChargeHR *tofcharge=betah->pTofChargeH();//Access To TofChargeHR
+       tof_hz=tofcharge->GetZ(nlay,tof_hprobz);//Max-Prob Integer Z+ProbZ
        float probu,probd;
-       tof_hzu=tofcharge.GetZ(nlay,probu,0,1100); //Using Up TOF-Two-Layer Likelihood To PID ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
-       tof_hzd=tofcharge.GetZ(nlay,probd,0,11); //Using Down TOF-Two-Layer Likelihood To PID
-       tof_hq=tofcharge.GetQ(nlay,qrms);//Float Q From TofChargeHR should be better than From BetaH For Z~3-8, Due to tuning better Threshold Between Anode and Dynode)
-       tof_hlikq=tofcharge.GetLikeQ(nlay);//Float Q-Using Likelihood Method (More Gaus)
-       tof_hprobz6=tofcharge.GetProbZ(6); //Can Using Prob>Th to Select Carbon
+       tof_hzu=tofcharge->GetZ(nlay,probu,0,1100); //Using Up TOF-Two-Layer Likelihood To PID ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
+       tof_hzd=tofcharge->GetZ(nlay,probd,0,11); //Using Down TOF-Two-Layer Likelihood To PID
+       tof_hq=tofcharge->GetQ(nlay,qrms);//Float Q From TofChargeHR should be better than From BetaH For Z~3-8, Due to tuning better Threshold Between Anode and Dynode)
+       tof_hlikq=tofcharge->GetLikeQ(nlay);//Float Q-Using Likelihood Method (More Gaus)
+       tof_hprobz6=tofcharge->GetProbZ(6); //Can Using Prob>Th to Select Carbon
        
 //---TOF Useful cut
        tof_chist=betah->GetChi2T();//Time Chis
