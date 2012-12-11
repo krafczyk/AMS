@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.517 2012/12/04 21:26:06 qyan Exp $
+//  $Id: root.h,v 1.518 2012/12/11 17:49:04 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1022,7 +1022,8 @@ class TofClusterHR :public TrElem {
    float AQ2[2];
    /// Dynode Q^2 Estimate for 2Sides 2~3PMTs(NonL+AttCor No-Birk-Cor)
    float DQ2[2][3];
-
+   /// Q Par
+   map<int,float> QPar;
 
  protected:
     vector<int> fTofRawSide;
@@ -1185,7 +1186,7 @@ class TofClusterHR :public TrElem {
 //-------
   friend class AMSTOFClusterH;
   friend class AMSEventR;
-  ClassDef(TofClusterHR,6)       //TofRawClusterR
+  ClassDef(TofClusterHR,7)       //TofRawClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -2640,7 +2641,11 @@ public:
   float AEdepL[4];
   /// TOF iLayer Dynode Estimate Energy dep(MeV) //TkCoo Attenuation Cor
   float DEdepL[4];
- 
+  /// TOF iLayer Q+SumQ for Different Pattern 
+  map<int,float>QL[4];
+  /// TOF QNLayer+Q+QRMS  
+  map<int,pair<int, pair<float,float> > > QPar;
+  
  
 public:
   TofBetaPar(){Init();}
@@ -2650,7 +2655,7 @@ public:
                  float _Chi2T, float _T0);
   void CalFitRes();//calculate residual
   void Init();
-  ClassDef(TofBetaPar,3);//
+  ClassDef(TofBetaPar,4);//
 };
 
 /// Tof BetaH structure
@@ -2677,6 +2682,8 @@ class BetaHR: public TrElem{
   vector<int> fTofClusterH;
 /// indexes of 4Layer TofClusterHR's used
   int   fLayer[4];
+/// indexes of TofChargeHR
+  int  fTofChargeH;
 
  public:
 
@@ -2723,6 +2730,13 @@ class BetaHR: public TrElem{
   TofClusterHR * GetClusterHL (int ilay);
   /// if TOF BetaH iLayer(0-3) ClusterH exists Return true
   bool           TestExistHL  (int ilay){return (ilay>=0&&ilay<4)&&(fLayer[ilay]>=0);}
+
+  /// access function to TofChargeHR object
+  int iTofChargeH();
+  ///access function to TofChargeHR objects(this will replace gTofCharge)
+  TofChargeHR * pTofChargeH(); 
+  /// Set TofChargeH index
+  void setChargeHI(int iChargeH) {fTofChargeH=iChargeH;}
 /**@}*/
 
 
@@ -2992,7 +3006,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,13)
+  ClassDef(BetaHR,14)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        
@@ -4706,6 +4720,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   vector<BetaR> fBeta;
   vector<BetaR> fBetaB;
   vector<BetaHR> fBetaH;
+  vector<TofChargeHR> fTofChargeH;
   vector<ChargeR> fCharge;
   vector<VertexR> fVertex;
   vector<ParticleR> fParticle;
@@ -5718,6 +5733,28 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
         return l<fBetaH.size()?&(fBetaH[l]):0;
       }
 
+       ///  TofChargeHR accessor
+      ///  \return number of TofChargeHR
+      vector<TofChargeHR> & TofChargeH()  {
+         return  fTofChargeH;
+       }
+
+       ///  TofChargeHR accessor
+       /// \param l index of TofChargeHR Collection (l should from BetaH::iTofChargeH())
+      ///  \return reference to corresponding TofChargeHR element
+      ///
+       TofChargeHR &   TofChargeH(unsigned int l) {
+         return fTofChargeH.at(l);
+      }
+
+       ///  TofChargeHR accessor
+       /// \param l index of TofChargeHR Collection (l should from BetaH::iTofChargeH())
+      ///  \return pointer to corresponding TofChargeHR element
+      ///
+      TofChargeHR *   pTofChargeH(unsigned int l) {
+        return l<fTofChargeH.size()?&(fTofChargeH[l]):0;
+      }
+
 
 
        ///  ChargeR accessor
@@ -6277,7 +6314,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,19)       //AMSEventR
+ClassDef(AMSEventR,20)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
