@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.8 2012/12/11 18:44:53 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.9 2012/12/12 15:23:46 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -140,7 +140,9 @@ public:
   /// Number of TOF Layer for Charge Measrument 
   int  GetNL();
   /// Access All TOF Charge Measurement Data-For iLayer /// Please First Check If ilay Exit TestExistHL
-  TofChargePar  gTofChargePar(int ilay);
+  TofChargePar   gTofChargePar(int ilay);
+  /// Get pointer to Charge Measurement Data-For iLayer
+  TofChargePar * GetTofChargePar(int ilay);
 /**@}*/
 
 
@@ -171,7 +173,9 @@ public:
   int  GetZ(int &nlay,float &Prob,int IZ=0,int pattern=-10);
   /// Access Data Likelihood for IZ 
   /// \param IZ 0~GetNZ()-1 :  =0 Max-Prob Z  =1 Second-Max-Prob Z ...
-  TofLikelihoodPar  gTofLikelihoodPar(int IZ=0, int pattern=-10);
+  TofLikelihoodPar   gTofLikelihoodPar(int IZ=0, int pattern=-10);
+   /// Get pointer to Likelihood for IZ
+  TofLikelihoodPar * GetTofLikelihoodPar(int IZ=0, int pattern=-10);
   /// TOF Likelihood Prob For Charge Z
   /// \return  0: Porb is neglectable  >0: Normal Charge Prob
   float GetProbZ(int Z,int pattern=-10);
@@ -222,7 +226,7 @@ public:
   };
 
 //----
-  ClassDef(TofChargeHR,2);
+  ClassDef(TofChargeHR,3);
   friend class TofPDFH;
 #pragma omp threadprivate(fgIsA)
 };
