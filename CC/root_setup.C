@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.120 2012/11/30 13:55:25 spada Exp $
+//  $Id: root_setup.C,v 1.121 2012/12/12 15:17:53 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -2071,7 +2071,7 @@ int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR &a, double xtime)
 	LoadISSCTRS(stime[0],stime[1]);
 	ssize=fISSCTRS.size();
       }
-      if(fRotMatrices.size()==0){
+      if(!ssize && fRotMatrices.size()==0){
 	int rot=LoadRotationMatrices(stime[0],stime[1]);
 	rotsize=fRotMatrices.size();
       }
@@ -2080,13 +2080,13 @@ int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR &a, double xtime)
 #endif 
 
   if (debug_level>1) cout<<Form("2-    AMSSetupR::%s: ",__func__)<<" fISSCTRS.size()="<<fISSCTRS.size()<<endl;
-
+  static int prnt=0;
   if (fISSCTRS.size()==0) {
-    cout<<"AMSSetupR::getISSCTRS-No-CTRS-Coord-Entries"<<endl; 
+    if(prnt++<100)cerr<<"AMSSetupR::getISSCTRS-No-CTRS-Coord-Entries"<<endl; 
     return 2;
   }
   if (fRotMatrices.size()==0) {
-    cout<<"AMSSetupR::getISSCTRS-No-RotMatrices-Entries"<<endl; 
+    if(prnt++<100)cerr<<"AMSSetupR::getISSCTRS-No-RotMatrices-Entries"<<endl; 
     return 4;
   }
 
