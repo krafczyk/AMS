@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.509 2012/12/11 17:50:42 qyan Exp $
+//  $Id: root.C,v 1.510 2012/12/12 00:31:14 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6696,7 +6696,7 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
        if(it!=QPar.end()){return QPar[qpat];}
     }
  
-
+    int npmtype=pmtype;
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -6712,17 +6712,19 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
     float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
     float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
     float q2;
-    if     (pmtype==1)q2=qa;//Anode
-    else if(pmtype==0)q2=qd;//Dynode
+    if     (npmtype==1)q2=qa;//Anode
+    else if(npmtype==0)q2=qd;//Dynode
     else  {
-       if((qa>0&&qa<6*6)||qd<=0){q2=qa; pmtype=1;}//Anode  Range
-       else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+       if((qa>0&&qa<6*6)||qd<=0){q2=qa; npmtype=1;}//Anode  Range
+       else                     {q2=qd; npmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,q2,Coo[GetDirection()],double(cosz),double(beta));
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,q2,Coo[GetDirection()],double(cosz),double(beta));
 
 //--Default 
      if(opt==TofClusterHR::DefaultQOpt&&cosz==1&&beta==1){
        int qpat=pmtype*100000000+pattern*100+optw;
+       QPar[qpat]=signal;
+       qpat=npmtype*100000000+pattern*100+optw;
        QPar[qpat]=signal;
     }
 //---
@@ -7196,7 +7198,8 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
        it=BetaPar.QL[ilay].find(qpat);
        if(it!=BetaPar.QL[ilay].end()){return (BetaPar.QL[ilay])[qpat];}
     }
-   
+
+    int npmtype=pmtype;   
 ///---rawqd
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
@@ -7213,11 +7216,11 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
     float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
     float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
     float q2;
-    if     (pmtype==1)q2=qa;//Anode
-    else if(pmtype==0)q2=qd;//Dynode
+    if     (npmtype==1)q2=qa;//Anode
+    else if(npmtype==0)q2=qd;//Dynode
     else  {
-       if((qa>0&&qa<6*6)||qd<=0){q2=qa; pmtype=1;}//Anode  Range
-       else                     {q2=qd; pmtype=0;}//Overflow or Q2>6*6 using Dynode
+       if((qa>0&&qa<6*6)||qd<=0){q2=qa; npmtype=1;}//Anode  Range
+       else                     {q2=qd; npmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
     double rig=0;
 #ifdef _PGTRACK_
@@ -7226,11 +7229,13 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
     AMSPoint pnt;AMSDir dir; double time; 
     TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);   
  
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,pmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),double(BetaPar.Beta),rig);
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),double(BetaPar.Beta),rig);
 
 //---Default push_back
     if(opt==TofClusterHR::DefaultQOpt){
        int qpat=pmtype*100000000+pattern*100+optw;
+       (BetaPar.QL[ilay])[qpat]=signal;
+       qpat=npmtype*100000000+pattern*100+optw;
        (BetaPar.QL[ilay])[qpat]=signal;
     }
 //---

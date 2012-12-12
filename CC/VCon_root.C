@@ -182,6 +182,7 @@ void VCon_root::eraseC(){
     for(int ii=0;ii<ev->NCharge();ii++)  {ev->pCharge(ii)->setBetaH(-1);}
     for(int ii=0;ii<ev->NParticle();ii++){ev->pParticle(ii)->setBetaH(-1);}
     ev->BetaH().clear();
+    ev->TofChargeH().clear();
   }
 
 }
