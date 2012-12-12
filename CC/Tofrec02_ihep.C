@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.44 2012/12/11 17:50:42 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.45 2012/12/12 15:25:09 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -554,7 +554,7 @@ int TofRecH::EdepRec(int idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],numb
 //  anode Q*Q covertion+adc-non-linear-correction+attnuation correction
      uid=idsoft+is*10;
 //--mark adc chip overflow
-     if     (adca[is]>=TofRecPar::PUXMXCH){sstatus[is]|=TOFDBcN::AOVERFLOW;edepa=q2pa[is]=-3;}
+     if     (adca[is]>=TofRecPar::PUXMXCH){sstatus[is]|=TOFDBcN::AOVERFLOW; edepa=q2pa[is]=QA[is]=-3;}
      else if(adca[is]>0){
         QA[is]=GetQSignal(uid,1,(kQ2|kLinearCor|kAttCor),adca[is],lcoo);
         if(QA[is]==-1)   {sstatus[is]|=TOFDBcN::AOVERFLOWNONLC;}//Marking Non-Linear Correction Overflow
@@ -565,7 +565,7 @@ int TofRecH::EdepRec(int idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],numb
      for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
          uid=idsoft+is*10+ipm; 
 //--mark adc chip overflow
-         if     (adcd[is][ipm]>=TofRecPar::PUXMXCH){sstatus[is]|=TOFDBcN::DOVERFLOW;edepd=q2pd[is][ipm]=-3;}
+         if     (adcd[is][ipm]>=TofRecPar::PUXMXCH){sstatus[is]|=TOFDBcN::DOVERFLOW; edepd=q2pd[is][ipm]=QD[is][ipm]=-3;}
          else if(adcd[is][ipm]>TofRecPar::Dynodegate){
            QD[is][ipm]=GetQSignal(uid,0,(kQ2|kLinearCor|kAttCor),adcd[is][ipm],lcoo);
            if(QD[is][ipm]==-1){sstatus[is]|=TOFDBcN::DOVERFLOWNONLC;}//Marking Non-Linear Correction Overflow
@@ -615,7 +615,7 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
   if(TofPMDAlignPar::Head==0||TofPMDAlignPar::GetHead()->Isload!=1)return 0;
   if(TofAttAlignPar::Head==0||TofAttAlignPar::GetHead()->Isload!=1)return 0;
   if(TofCAlignPar::GetHead()->Isload!=1)return 0;
-  if(signal<0)return signal;//negtive singal overflow
+  if(signal<=0)return signal;//negtive singal overflow+No signal
 
   number signalc=signal;
 //--Adding Gain to Convert To Q*Q (Proton Mip Unit) 0 Mean MaskBad
@@ -897,11 +897,15 @@ number TofRecH::SumSignalA(int idsoft,number signal[],int useweight){//Counter L
 
 ///--Temp No weight For Anode
      double sums=0,sumw=0;
-     int usesid=0;
+     int usesid=0,overid=0;
      for(int is=0;is<TOFCSN::NSIDE;is++){
-        if(signal[is]>0){sums+=signal[is];sumw+=1;usesid++;}
+        if     (signal[is]>0){sums+=signal[is];sumw+=1;usesid++;}
+        else if(signal[is]<0){overid++;}
      }
-     if(usesid==0)return 0;
+     if(usesid==0){
+       if(overid>=1)return -1;
+       else         return 0;
+     } 
      return  sums/sumw;
 }
 
@@ -912,7 +916,7 @@ number TofRecH::SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweig
   TofCAlignPar *CPar=TofCAlignPar::GetHead();
 ///--Dynode weight
    double sums=0,sumw=0,ww=0;
-   int usepm=0,uid;
+   int usepm=0,overpm=0,uid;
    for(int is=0;is<TOFCSN::NSIDE;is++){
      for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
        uid=idsoft+is*10+ipm;
@@ -923,10 +927,14 @@ number TofRecH::SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweig
           sumw+=ww;
           usepm++;
        }
+       else if(signal[is][ipm]<0){overpm++;}
      }
   }
 //--Dynode Need Min PMT //cut due to dynode not-linear for begin
-  if(minpmcut&&usepm<CPar->RecMinPmD)return 0;
+  if((minpmcut&&usepm<CPar->RecMinPmD)||(usepm==0)){
+     if(overpm>=2)return -1;
+     else         return 0;
+  }
   return sums/sumw;
 }
 

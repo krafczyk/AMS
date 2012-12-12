@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.7 2012/12/06 20:17:54 qyan Exp $
+//  $Id: Tofcharge_ihep.C,v 1.8 2012/12/12 15:25:09 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -124,11 +124,7 @@ void TofChargeHR::UpdateZ(int pattern,int opt){
 ///=======================================================
 bool  TofChargeHR::TestExistHL(int ilay){
    
-   bool flay=0;
-   for(int im=0;im<cpar.size();im++){
-     if(cpar.at(im).Layer==ilay){flay=1;break;}
-   }
-   return flay;
+   return (GetTofChargePar(ilay))?1:0;
 }
 
 ///=======================================================
@@ -141,15 +137,29 @@ TofChargePar  TofChargeHR::gTofChargePar(int ilay){
 }
 
 ///=======================================================
+TofChargePar*  TofChargeHR::GetTofChargePar(int ilay){
+
+    TofChargePar *chpar=0;
+    for(int im=0;im<cpar.size();im++){
+       if(cpar.at(im).Layer==ilay){return &(cpar.at(im));}
+    }
+    return chpar;
+}
+
+///=======================================================
 bool  TofChargeHR::IsGoodQPathL(int ilay){
-  
-   return gTofChargePar(ilay).IsGoodPath; 
+ 
+   TofChargePar* chpar=GetTofChargePar(ilay);
+   if(chpar){return chpar->IsGoodPath;}
+   else     {return 0;} 
 }
 
 ///=======================================================
 float TofChargeHR::GetQL(int ilay){
-  
-   return gTofChargePar(ilay).GetQ();
+
+   TofChargePar* chpar=GetTofChargePar(ilay); 
+   if(chpar){return chpar->GetQ();}
+   else     {return 0;}
 }
 
 ///=======================================================
@@ -197,7 +207,7 @@ int TofChargeHR::GetZ(int &nlay,float &Prob,int IZ,int pattern){
 }
 
 ///=======================================================
-TofLikelihoodPar  TofChargeHR::gTofLikelihoodPar(int IZ, int pattern){
+TofLikelihoodPar TofChargeHR::gTofLikelihoodPar(int IZ, int pattern){
   
 /// First Update and Check
   UpdateZ(pattern);
@@ -206,6 +216,19 @@ TofLikelihoodPar  TofChargeHR::gTofLikelihoodPar(int IZ, int pattern){
 
   return like[pattern].at(IZ);
 }
+
+///=======================================================
+TofLikelihoodPar * TofChargeHR::GetTofLikelihoodPar(int IZ, int pattern){
+   
+/// First Update and Check
+  UpdateZ(pattern);
+
+  TofLikelihoodPar *likepar=0;
+  if(IZ>=like[pattern].size()||IZ<0)return likepar;
+//---
+  return &(like[pattern].at(IZ));
+}
+
 
 ///=======================================================
 float TofChargeHR::GetProbZ(int Z,int pattern){
@@ -526,6 +549,7 @@ number TofPDFH::GetProbZ(int ilay,int ibar,number Z,number QLA,number QLD,number
 //---Choose Dynode Or Anode
   number QL;
   int isanode=ChooseDA(ilay,ibar,Z,QLA,QLD,QLARaw,QLDRaw,QL);
+  if(QL<=0)return TofPDFPar::ProbLimit;
 
   number probv;
   for(int iz=0;iz<TofPDFPar::nPDFCh;iz++){
@@ -564,7 +588,7 @@ int TofPDFH::ChooseDA(int ilay,int ibar,number Z,number QLA,number QLD,number QL
   int isanode=1;//Default Anode 
   if(Z>=3){//Dynode Better Range
      if(Z>8){isanode=0;}//Dynode Range
-     if(QLDRaw>TofPDFPar::DAgate[ilay][ibar]&&(QLARaw>=TofPDFPar::DAgate[ilay][ibar]/1.5||QLARaw<0)){isanode=0;}
+     if(QLDRaw>TofPDFPar::DAgate[ilay][ibar]&&(QLARaw>=TofPDFPar::DAgate[ilay][ibar]/1.5||QLARaw<=0)){isanode=0;}
   }
 
 //--GetQ Var
