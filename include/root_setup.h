@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.75 2012/11/30 13:55:25 spada Exp $
+//  $Id: root_setup.h,v 1.76 2012/12/14 23:20:11 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -184,21 +184,24 @@ ClassDef(GPS,3)
 class RTI{
 public:
 unsigned int run;  ///< ruin
+unsigned int evno;//fist event no in one second //Time[0]
 float lf;  ///< life time
-float cf[4];  ///<  max cutoff for 25,30,35,40 degrees (gv)
-float cfc; ///< max calculated cutoff (gv)
+float cf[4][2];  ///<  max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
 float mphe;///< most probable He rigidity;
 float theta;  ///< theta gtod degrees
 float phi;    ///<phi gtod , degrees
 float r;     ///< Rad (cm)
 float zenith; ///< ams zenith angle (degrees)
-float nev;    ///< events number
+float nev;    ///< events 
 float nerr;  ///<  absent events
 float ntrig; ///< events with trigger;
 float npart; ///< events with tof+trd+tracker+ecal
 int good;    ///<  0 if good
- RTI():good(-1),run(0),mphe(0),lf(0),cfc(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0){cf[0]=cf[1]=cf[2]=cf[3]=0;}
-ClassDef(RTI,1)
+ RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0){
+        for(int ifv=0;ifv<4;ifv++){
+           for(int ipn=0;ipn<2;ipn++)cf[ifv][ipn]=0;}
+   }
+ClassDef(RTI,2)
 };
 
 class GPSWGS84{
@@ -482,6 +485,7 @@ public:
  typedef map <unsigned int,ISSGTOD>::iterator ISSGTOD_i;
  typedef map <double,ISSINTL>::iterator ISSINTL_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
+ typedef map <unsigned int, RTI>::iterator RTI_i;
  typedef map <double,AMSSTK>::iterator AMSSTK_i;
  //---------------DSP Errors-------------------------
  typedef map <unsigned int, DSPError>::iterator DSPError_i;
