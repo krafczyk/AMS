@@ -9,6 +9,9 @@
 #include "richdbc.h"
 #include "cfortran.h"
 
+// Disable privateness
+#define private public
+
 // Define the calls to richpmtlib
 PROTOCCALLSFFUN3(FLOAT,PDENS,pdens,FLOAT,FLOAT,FLOAT)
 #define PDENS(A1,A2,A3) CCALLSFFUN3(PDENS,pdens,FLOAT,FLOAT,FLOAT,A1,A2,A3)
@@ -29,6 +32,31 @@ PROTOCCALLSFSUB4(GETRLRS,getrlrs,FLOAT,FLOAT,PFLOAT,PFLOAT)
 // 
 
 class RichPMTChannel;
+class UnifiedRichChannelCalibration{
+ public:
+  geant pedx1;
+  geant pedx5;
+  geant sigmax1;
+  geant sigmax5;
+  geant thresholdx1;
+  geant thresholdx5;
+  geant status;
+};
+
+class UnifiedRichCalibration{
+ public:
+  static UnifiedRichChannelCalibration calibration[RICmaxpmts*RICnwindows];
+  static const uint firstRun=1356998400; // 00:00:00 Jan 1st 2013 GMT
+  //  static const uint firstRun=1300000000; // 00:00:00 Jan 1st 2013 GMT
+  static void fillArrays();
+  // A copy of the old data structure
+  static int   _status[RICmaxpmts*RICnwindows];                  // Channel status word (this is (good?1:0)+10*other information) other information could include all the stuff related to the calibration process
+  static geant _pedestal[2*RICmaxpmts*RICnwindows];              // Pedestal position (x2 gains) high,low
+  static geant _pedestal_sigma[2*RICmaxpmts*RICnwindows];        // Pedestal width (x2 gains)
+  static geant _pedestal_threshold[2*RICmaxpmts*RICnwindows];    // Pedestal threshold width in pedestal sigma units (x2 gains)
+  static void fillArraysOld();
+};
+
 
 class RichPMT{
  private:
@@ -258,6 +286,7 @@ class RichPMTChannel{
 void _Update_RICHPMT();
 
 #undef _assert
+#undef private
 #endif
 
 

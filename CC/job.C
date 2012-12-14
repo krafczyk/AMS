@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.902.2.1 2012/11/19 17:17:10 choutko Exp $
+// $Id: job.C,v 1.902.2.2 2012/12/14 12:01:05 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4089,38 +4089,45 @@ void AMSJob::_timeinitjob(){
     end.tm_mon=RICFFKEY.mon[1];
     end.tm_year=RICFFKEY.year[1];
 
+
     TID.add (new AMSTimeID(AMSID("RichPMTChannelStatus",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows
-			   *sizeof(RichPMTsManager::_status[0]),
-			   (void*)&RichPMTsManager::_status[0],server,1));
+			   *sizeof(UnifiedRichCalibration::_status[0]),
+			   (void*)&UnifiedRichCalibration::_status[0],server,1,UnifiedRichCalibration::fillArraysOld));
+    
+    TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestal",isRealData()),
+			   begin,end,RICmaxpmts*RICnwindows*2
+			   *sizeof(UnifiedRichCalibration::_pedestal[0]),
+			   (void*)&UnifiedRichCalibration::_pedestal[0],server,isRealData(),UnifiedRichCalibration::fillArraysOld));
+    
+    TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalSigma",isRealData()),
+			   begin,end,RICmaxpmts*RICnwindows*2
+			   *sizeof(UnifiedRichCalibration::_pedestal_sigma[0]),
+			   (void*)&UnifiedRichCalibration::_pedestal_sigma[0],server,isRealData(),UnifiedRichCalibration::fillArraysOld));
+    
+    TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalThreshold",isRealData()),
+			   begin,end,RICmaxpmts*RICnwindows*2
+			   *sizeof(UnifiedRichCalibration::_pedestal_threshold[0]),
+			   (void*)&UnifiedRichCalibration::_pedestal_threshold[0],server,isRealData(),UnifiedRichCalibration::fillArraysOld));
 
+    ////////////////// Unified approach
+    TID.add (new AMSTimeID(AMSID("RichPMTChannelCalibration",isRealData()),
+			   begin,end,sizeof(UnifiedRichCalibration::calibration),
+			   (void*)&UnifiedRichCalibration::calibration[0],server,isRealData(),UnifiedRichCalibration::fillArrays));
+
+      
     // A Mask to allow masking out few channels for the reconstruction
     TID.add (new AMSTimeID(AMSID("RichPMTChannelMask",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows
 			   *sizeof(RichPMTsManager::_mask[0]),
 			   (void*)&RichPMTsManager::_mask[0],server,1));
-
-    TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestal",isRealData()),
-			   begin,end,RICmaxpmts*RICnwindows*2
-			   *sizeof(RichPMTsManager::_pedestal[0]),
-			   (void*)&RichPMTsManager::_pedestal[0],server,isRealData()));
-
-    TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalSigma",isRealData()),
-			   begin,end,RICmaxpmts*RICnwindows*2
-			   *sizeof(RichPMTsManager::_pedestal_sigma[0]),
-			   (void*)&RichPMTsManager::_pedestal_sigma[0],server,isRealData()));
-
-    TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalThreshold",isRealData()),
-			   begin,end,RICmaxpmts*RICnwindows*2
-			   *sizeof(RichPMTsManager::_pedestal_threshold[0]),
-			   (void*)&RichPMTsManager::_pedestal_threshold[0],server,isRealData()));
-
-
+    
+    
     TID.add (new AMSTimeID(AMSID("RichPMTChannelGain",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows*2
 			   *sizeof(RichPMTsManager::_gain[0]),
 			   (void*)&RichPMTsManager::_gain[0],server,1,isRealData()?0:_Update_RICHPMT));
-
+    
     TID.add (new AMSTimeID(AMSID("RichPMTChannelGainSigma",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows*2
 			   *sizeof(RichPMTsManager::_gain_sigma[0]),
