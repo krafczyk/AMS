@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.121 2012/12/12 15:17:53 choutko Exp $
+//  $Id: root_setup.C,v 1.122 2012/12/14 23:20:39 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1307,7 +1307,115 @@ return fScalersReturn.size();
 }
 
 int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2){
+   return 2;
+   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char postfix[]="/altec/";
+   char * AMSDataDir=getenv("AMSDataDir");
+   if (AMSDataDir && strlen(AMSDataDir)){
+     AMSISSlocal=AMSDataDir;
+   }
+
+   AMSISSlocal+=postfix;
+    const char * AMSISS=getenv("AMSISS");
+   if (AMSISS && strlen(AMSISS)){
+    AMSISSlocal=AMSISS;
+   }
+ AMSISSlocal+="RTI/";
+ AMSISS=AMSISSlocal.c_str();
+if(t1>t2){
+cerr<< "AMSSetupR::LoadAMSRTI-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
 return 2;
+}
+else if(t2-t1>864000){
+    cerr<< "AMSSetupR::LoadAMSRTI-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+   t2=t1+864000;
+}
+
+const char fpatb[]="RTI";
+const char fpate[]="24H.csv";
+
+//----
+    char tmp[255];
+    time_t utime=t1;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int yb=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int db=atol(tmp);
+    utime=t2;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int ye=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int de=atol(tmp);
+
+//---
+    unsigned int yc=yb;
+    unsigned int dc=db;
+    int bfound=0;
+    int efound=0;
+    while(yc<ye || dc<=de){
+     char fname[1000];
+     sprintf(fname,"%s/%s_%u_%u-%s",AMSISS,fpatb,yc,dc,fpate); 
+     ifstream fbin;
+     fbin.close();
+     fbin.open(fname);
+//----
+     if(fbin){
+      string line;
+      getline(fbin,line);
+//--
+      while(fbin.good()&& !fbin.eof()){
+         unsigned int nt; RTI a;
+//---Input
+         fbin>>nt;
+         fbin>>a.run;
+         if(a.run!=0){//missing second
+            fbin>>a.evno;
+            fbin>>a.lf;//begin ev+ livetime
+            for(int ifv=0;ifv<4;ifv++){//cutoff
+              for(int ipn=0;ipn<2;ipn++)fbin>>a.cf[ifv][ipn];
+            } 
+           fbin>>a.mphe;//Helium Most Prob
+           fbin>>a.theta>>a.phi>>a.r>>a.zenith;//Position
+           fbin>>a.nev>>a.nerr>>a.ntrig>>a.npart;
+           fbin>>a.good;
+         }
+         if(!fbin.good())continue;
+
+//--Result
+         if(nt<t1){bfound=1;continue;}//beg found
+         else if(nt>=t1&&nt<=t2){
+            if(bfound!=2){
+               fRTI.clear();bfound=2;  
+            }
+            fRTI.insert(make_pair(nt,a));
+         }//found 
+         else if(nt>t2){efound=1;goto nah;}//end
+//----
+      }
+      fbin.close();
+     }//file exit
+
+//--
+     else{
+       cerr<<"AMSSetupR::LoadISSRTI-E-UnabletoOpenFile "<<fname<<endl;
+     }
+     dc++;
+     if(dc>366){
+        dc=1;
+        yc++;
+     }
+   }//end second while
+
+
+nah: 
+int ret;
+if(bfound&&efound)ret=0;//All found
+else if(!bfound&&!efound)ret=2;//All not found
+else ret=1;//Only One Found
+    cout<< "AMSSetupR::LoadAMSRTI-I- "<<fRTI.size()<<" Entries Loaded "<<ret<<endl;
+
+return ret;
+  
 }
 
 int AMSSetupR::LoadAMSSTK(unsigned int t1, unsigned int t2){
@@ -2814,6 +2922,49 @@ a=b;
 }
 
 int AMSSetupR::getRTI(AMSSetupR::RTI & a, unsigned int  xtime){
+
+ return 2;
+#ifdef __ROOTSHAREDLIBRARY__
+static unsigned int ssize=0;
+static unsigned int stime[2]={0,0};
+#pragma omp threadprivate (stime)
+#pragma omp threadprivate (ssize)
+if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fRTI.clear();
+if(fRTI.size()==0){
+const int dt=120;
+if(xtime<stime[0] || xtime>stime[1] || ssize){
+stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
+stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
+if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+ stime[0]=fHeader.FEventTime-dt;
+ stime[1]=fHeader.LEventTime+dt;
+}
+if(xtime<stime[0])stime[0]=xtime-dt;
+if(xtime>stime[1])stime[1]=xtime+dt;
+LoadRTI(stime[0],stime[1]);
+ssize=fRTI.size();
+
+}
+}
+#endif
+if (fRTI.size()==0)return 2;
+AMSSetupR::RTI_i k=fRTI.lower_bound(xtime);
+if(k==fRTI.begin()){//first
+a=(k->second);
+return 1;
+}
+if(k==fRTI.end()){//end goback
+k--;
+a=(k->second);
+return 1;
+}
+
+if(xtime==k->first){//find
+a=(k->second);
+return 0;
+}
+
+cerr<<"AMSSetupR::RTI- Missing Time Information"<<xtime<<endl;
 return 2;
 }
 
