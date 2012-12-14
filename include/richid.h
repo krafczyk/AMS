@@ -46,8 +46,7 @@ class UnifiedRichChannelCalibration{
 class UnifiedRichCalibration{
  public:
   static UnifiedRichChannelCalibration calibration[RICmaxpmts*RICnwindows];
-  static const uint firstRun=1356998400; // 00:00:00 Jan 1st 2013 GMT
-  //  static const uint firstRun=1300000000; // 00:00:00 Jan 1st 2013 GMT
+  static const uint firstRun=1356004800; // 12:00:00 Dec 20th 2012 GMT
   static void fillArrays();
   // A copy of the old data structure
   static int   _status[RICmaxpmts*RICnwindows];                  // Channel status word (this is (good?1:0)+10*other information) other information could include all the stuff related to the calibration process
