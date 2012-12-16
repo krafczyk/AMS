@@ -1074,6 +1074,13 @@ void TrdKCluster::InitXePressure(){
 
 int TrdKCluster::GetXePressure(){
     if(map_TRDOnline.size()==0)return -1;
+
+    //TB Pressure
+    if(Time<1300000000) {
+      Pressure_Xe = 1000;
+      return Pressure_Xe;
+    }
+
     map<int, TRDOnline>::iterator  it=map_TRDOnline.upper_bound((int)Time);
     map<int, TRDOnline>::iterator  ithigh=it;
     map<int, TRDOnline>::iterator  itlow=--it;
