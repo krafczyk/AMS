@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.122 2012/12/14 23:20:39 qyan Exp $
+//  $Id: root_setup.C,v 1.123 2012/12/16 11:21:55 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -2078,6 +2078,8 @@ r*=100000;
 
 
 int AMSSetupR::getISSTLE(float RTP[3],float VelTP[3],double xtime){
+bool notagain=true;
+again:
 #ifdef __ROOTSHAREDLIBRARY__
   static unsigned int ssize=0;
   static unsigned int stime[2]={1,1};
@@ -2100,6 +2102,7 @@ int AMSSetupR::getISSTLE(float RTP[3],float VelTP[3],double xtime){
     }
   }
 #endif 
+  bool resetmaybe=false;
   static unsigned int time=0;
 #pragma omp threadprivate (time)
   const double pi2= 3.1415926535*2;
@@ -2109,6 +2112,7 @@ int AMSSetupR::getISSTLE(float RTP[3],float VelTP[3],double xtime){
     if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
   }
   if(tl!=time && tl){
+    resetmaybe=true;
     time=tl;
     ISSData_i i=fISSData.find(time);
     if(i!=fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
@@ -2121,7 +2125,14 @@ int AMSSetupR::getISSTLE(float RTP[3],float VelTP[3],double xtime){
     else{
       static int print=0;
       time=0;
-      if(print++<10)cerr<<"AMSSetupR::getISSTLE-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
+#ifdef __ROOTSHAREDLIBRARY__
+      if(resetmaybe && notagain){
+       stime[1]=1;
+       notagain=false;
+       goto again;
+      }
+#endif      
+     if(print++<10)cerr<<"AMSSetupR::getISSTLE-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
       return 1 ;
     }	}
   if(time!=0){

@@ -87,7 +87,9 @@ if(!staged){
 if(iver){
 cout <<" STAGEIN STAGED "<<stagein<<" "<<staged<<endl;
 }
-if(!staged && !stagein)return -1;
+if(!staged && !stagein){
+//return -1;
+}
 else if(stagein)return -6; 
 }
 
