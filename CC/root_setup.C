@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.123 2012/12/16 11:21:55 choutko Exp $
+//  $Id: root_setup.C,v 1.124 2012/12/16 23:54:04 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1307,7 +1307,6 @@ return fScalersReturn.size();
 }
 
 int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2){
-   return 2;
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
    char * AMSDataDir=getenv("AMSDataDir");
@@ -1379,6 +1378,7 @@ const char fpate[]="24H.csv";
            fbin>>a.nev>>a.nerr>>a.ntrig>>a.npart;
            fbin>>a.good;
          }
+         else continue;
          if(!fbin.good())continue;
 
 //--Result
@@ -2933,11 +2933,9 @@ a=b;
 }
 
 int AMSSetupR::getRTI(AMSSetupR::RTI & a, unsigned int  xtime){
-
- return 2;
 #ifdef __ROOTSHAREDLIBRARY__
 static unsigned int ssize=0;
-static unsigned int stime[2]={0,0};
+static unsigned int stime[2]={1,1};
 #pragma omp threadprivate (stime)
 #pragma omp threadprivate (ssize)
 if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fRTI.clear();
@@ -2954,6 +2952,7 @@ if(xtime<stime[0])stime[0]=xtime-dt;
 if(xtime>stime[1])stime[1]=xtime+dt;
 LoadRTI(stime[0],stime[1]);
 ssize=fRTI.size();
+//cout <<" load rti "<<stime[0]<<" "<<stime[1]<<" "<<ssize<<endl;
 
 }
 }
