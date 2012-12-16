@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.510 2012/12/12 00:31:14 qyan Exp $
+//  $Id: root.C,v 1.511 2012/12/16 22:23:56 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -7885,15 +7885,11 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
 
 
         ParticleR part=Particle(ipart);
-        //-------------------------------TOF New tof 23/10/2012
-        //.... TofRecH::ReBuild(1); only one per event!!!
-        if(nBetaH()==0 && nMCEventg()==0)TofRecH::ReBuild();
-        BetaHR* betaH = part.pBetaH();
-        if(!betaH ) return -4;
-        double newbetaH = betaH->GetBeta();
-        if(newbetaH<0)return -2;
 
-
+        if(part.iBeta()>=0){
+          BetaR &beta=Beta(part.iBeta());
+          if(beta.Pattern<5 && beta.Beta<0)return -2;
+        }
 
         // AMS Coo central point in SSACS [cm]
         double x_ams=-85.73;
@@ -7949,7 +7945,11 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
 
         //Direction of incident particle in AMS coo
         AMSDir dir(part.Theta,part.Phi);
-
+        if(dir[2]>0){
+         dir[0]=-dir[0];
+         dir[1]=-dir[1];
+         dir[2]=-dir[2];
+        }                 
         dir[0]=-dir[0];
         dir[1]=-dir[1];
         dir[2]=-dir[2];
