@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.511 2012/12/16 22:23:56 choutko Exp $
+//  $Id: root.C,v 1.512 2012/12/16 23:59:22 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -7870,6 +7870,16 @@ long long AMSEventR::Size(){
 
 //----------------------------------------------------------------------
 int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
+        if(ipart>=nParticle()){
+                cerr<<"AMSEventR::isInShadow-E-NiSuchParticle "<<ipart<<endl;
+                return -1;
+        }
+
+
+        ParticleR part=Particle(ipart);
+        return isInShadow(ic,part);
+}
+int AMSEventR::isInShadow(AMSPoint&  ic,ParticleR & part){
 // Says if particle ipart is in shadow and returns also  AMSPoints of interception of particles 
 // with iss solar panel rotation plane (FLT_MAX if directed away);
 
@@ -7878,13 +7888,6 @@ int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
         ic=0;
         //cout<<"\n----------------------New Event --------------------"<<endl;
 
-        if(ipart>=nParticle()){
-                cerr<<"AMSEventR::isInShadow-E-NiSuchParticle "<<ipart<<endl;
-                return -1;
-        }
-
-
-        ParticleR part=Particle(ipart);
 
         if(part.iBeta()>=0){
           BetaR &beta=Beta(part.iBeta());

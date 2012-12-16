@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.520 2012/12/16 22:23:58 choutko Exp $
+//  $Id: root.h,v 1.521 2012/12/16 23:59:17 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4384,6 +4384,7 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 
 
         int isInShadow(AMSPoint & ic,int ipart=0); 
+        int isInShadow(AMSPoint & ic, ParticleR &part);
 
 
 //--------------------------------------------------------------------------------------------------
