@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.76 2012/12/14 23:20:11 qyan Exp $
+//  $Id: root_setup.h,v 1.77 2012/12/17 23:29:19 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -181,27 +181,34 @@ GPS():Run(0),Event(0),EventLast(0){}
 ClassDef(GPS,3)
 };
 
+//! AMS Exposure Time information for every second(JMDC Time[0])
+/*!
+\sa AMSSetupR
+\author vitali.choutko@cern.ch qyan@cern.ch
+*/
 class RTI{
 public:
 unsigned int run;  ///< ruin
-unsigned int evno;//fist event no in one second //Time[0]
+unsigned int evno;///< fist event no in one second
 float lf;  ///< life time
 float cf[4][2];  ///<  max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
 float mphe;///< most probable He rigidity;
-float theta;  ///< theta gtod degrees
-float phi;    ///<phi gtod , degrees
+float theta;  ///< theta gtod (degrees)
+float phi;    ///<phi gtod (degrees)
 float r;     ///< Rad (cm)
 float zenith; ///< ams zenith angle (degrees)
-float nev;    ///< events 
+float glat;  ///< ams pointing galatic latitude (degrees) -1 faild
+float glong; ///< ams pointing galatic longitude (degrees) -1 faild
+float nev;    ///< exist events  nev+nerr=sumev
 float nerr;  ///<  absent events
 float ntrig; ///< events with trigger;
 float npart; ///< events with tof+trd+tracker+ecal
-int good;    ///<  0 if good
- RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0){
+int good;    ///<  0 if good -1 no events(in this second)
+ RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2){
         for(int ifv=0;ifv<4;ifv++){
            for(int ipn=0;ipn<2;ipn++)cf[ifv][ipn]=0;}
    }
-ClassDef(RTI,2)
+ClassDef(RTI,3)
 };
 
 class GPSWGS84{
