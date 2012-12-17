@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.521 2012/12/16 23:59:17 choutko Exp $
+//  $Id: root.h,v 1.522 2012/12/17 19:23:24 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3992,6 +3992,7 @@ static  void hfill(int id, float a,float b, float w);
 static  void hf1(int id,float a, float w=1);
 ///  fill acc to cuts for 1d histos
 static  void hf1s(int id,float a, bool cuts[], int ncuts,int icut, int shift=100000,float w=1);
+static  void hf2s(int id,float a, float b,bool cuts[], int ncuts,int icut, int shift=100000,float w=1);
 /// fast fill for profile histos
 static  void hfp(int id,float a, float w);
 /// fast fill for 2d histos

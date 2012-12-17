@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.512 2012/12/16 23:59:22 choutko Exp $
+//  $Id: root.C,v 1.513 2012/12/17 19:23:31 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -587,13 +587,32 @@ void AMSEventR::hreset(int idd){
   }
 }
 
+void AMSEventR::hf2s(int id, float a, float b,bool cuts[], int ncuts, int icut,int shift,float w){
+  //  Fill the series of histos 
+  //  1st before cuts
+  //  before cut icut-1
+  //  before icut-1 as last cut
+  //  after icut-1 as last cut
+  //  after last cut as first cut : changed  after !icut-1 as last cut
+  //  after cut icut-1 as first cut
+  hf2(id,a,b,w);
+  bool cut=true;
+  if(icut-1>0)for(int k=0;k<icut-1;k++)cut=cut && cuts[k];
+  if(cut)hf2(id+shift,a,b,w);
+  for(int k=icut;k<ncuts;k++)cut=cut && cuts[k];
+  if(cut)hf2(id+shift+shift,a,b,w);
+  if(cut && cuts[icut-1])hf2(id+shift+shift+shift,a,b,w);             
+  if(cut && !cuts[icut-1])hf2(id+shift+shift+shift+shift,a,b,w);             
+//  if(cuts[ncuts-1])hf1(id+shift+shift+shift+shift,a,w);             
+  if(icut-1>=0 && cuts[icut-1])hf2(id+shift+shift+shift+shift+shift,a,b,w);             
+}
 void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift,float w){
   //  Fill the series of histos 
   //  1st before cuts
   //  before cut icut-1
   //  before icut-1 as last cut
   //  after icut-1 as last cut
-  //  after last cut as first cut
+  //  after last cut as first cut : changed  after !icut-1 as last cut
   //  after cut icut-1 as first cut
   hf1(id,a,w);
   bool cut=true;
@@ -602,7 +621,8 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
   for(int k=icut;k<ncuts;k++)cut=cut && cuts[k];
   if(cut)hf1(id+shift+shift,a,w);
   if(cut && cuts[icut-1])hf1(id+shift+shift+shift,a,w);             
-  if(cuts[ncuts-1])hf1(id+shift+shift+shift+shift,a,w);             
+  if(cut && !cuts[icut-1])hf1(id+shift+shift+shift+shift,a,w);             
+//  if(cuts[ncuts-1])hf1(id+shift+shift+shift+shift,a,w);             
   if(icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);             
 }
 
