@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.124 2012/12/16 23:54:04 choutko Exp $
+//  $Id: root_setup.C,v 1.125 2012/12/17 23:30:27 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1374,7 +1374,7 @@ const char fpate[]="24H.csv";
               for(int ipn=0;ipn<2;ipn++)fbin>>a.cf[ifv][ipn];
             } 
            fbin>>a.mphe;//Helium Most Prob
-           fbin>>a.theta>>a.phi>>a.r>>a.zenith;//Position
+           fbin>>a.theta>>a.phi>>a.r>>a.zenith>>a.glat>>a.glong;//Position
            fbin>>a.nev>>a.nerr>>a.ntrig>>a.npart;
            fbin>>a.good;
          }
