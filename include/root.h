@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.523 2012/12/18 08:52:05 incaglim Exp $
+//  $Id: root.h,v 1.524 2012/12/18 09:05:09 incaglim Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -757,7 +757,7 @@ public:
   float GetEcalBDT(unsigned int i=4);
   /// Function that combines GetEcalBDT and GetChi2 .
   /// It has two arguments: a pointer to the event (AMSEventR *pev) and a version number
-  /// iBDTCHI2VERSION = 1 (default) trained with B610
+  /// iBDTCHI2VERSION = 2 (default) trained with B620
   float GetEcalBDTCHI2(AMSEventR *pev, unsigned int i=2);
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
