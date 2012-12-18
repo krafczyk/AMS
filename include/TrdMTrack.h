@@ -46,7 +46,8 @@ class TrdMTrack : public TObject
   
   //  TRD Refit
   void SetupMHTrack(TrTrackR *track, TrdTrackR *trd);
-  
+  void SetupMHTrack(TrTrackR *track);
+ 
   //Setup Hit Selection
   void MakeHitSelection();
   
@@ -84,9 +85,9 @@ class TrdMTrack : public TObject
   void interpolate_trd_track(TrdTrackR* trdtrack, AMSPoint &pnt, AMSDir &dir, int z);
   float GetPathLength3D(AMSPoint trdpnt, AMSDir trddir, AMSPoint tpnt, AMSDir tdir );
   float get_trd_rz(int layer, int ladder, int tube, int mod);
-  double GetProProb(int xeindex, int sindex, float amp);
+  double GetProProb(int xeindex, int sindex, float pl, float amp);
   double GetProProb(float amp, float rig, float pl, int lay, float xe );
-  double GetElProb(int xeindex, int sindex, float amp);
+  double GetElProb(int xeindex, int sindex, float pl, float amp);
   double GetElProb(float amp, float rig, float pl, int lay, float xe );
 
   // additional Initalisation
@@ -116,20 +117,22 @@ class TrdMTrack : public TObject
   float xycorr[328][6];
   
   vector<float> mod_corr[328][4];
-  vector<float> mod_time[328];
+  vector<unsigned long> mod_time[328];
   float z_corr[328][2];
   
-  vector<float> gaintime[328];
+  vector<unsigned long> gaintime[328];
   vector<float> gain[328];
   
   //TGraph *xenon;
-  vector<float> xetime;
+  vector<unsigned long> xetime;
   vector<float> xe;
   
   TGraph *ElPDF[6][20];
   TGraph *ProPDF[6][30];
   
   float mStraw[18][20];
+  static float xbins[31];
+  static int nbins;
   
   vector<TrdRawHitR*> TrdMHits;
   vector<float> phitlen;

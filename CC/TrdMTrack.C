@@ -8,6 +8,9 @@ TrdKCalib *TrdMTrack::trdk_db = NULL;
 TrdKPDF *TrdMTrack::Epdf=NULL;
 TrdKPDF *TrdMTrack::Ppdf=NULL;
 
+int TrdMTrack::nbins=30;
+float TrdMTrack::xbins[31]={1., 1.24, 1.53, 1.90, 2.35, 2.90, 3.59, 4.45, 5.51, 6.81, 8.43, 10.44, 12.92, 15.99, 19.79, 24.49, 30.32, 37.52,  46.44, 57.48, 71.14, 88.05, 108.97, 134.87, 166.92, 206.60, 255.70, 316.47, 91.69, 484.78, 600.};
+
 /////////////////////////////////////////////////////////////////////
 
 TrdMTrack::TrdMTrack(){
@@ -69,7 +72,7 @@ TrdMTrack::~TrdMTrack(){
   }
   
   delete _fit;
-  delete trdk_db;
+  if(trdk_db) delete trdk_db;
   delete Epdf;
   delete Ppdf;
 
@@ -96,15 +99,16 @@ float TrdMTrack::GetLogLikelihood(AMSEventR *_evt, ParticleR *par){
  
   TrTrackR *_track=par->pTrTrack();
   if(!_track) return -1;
-  _id=_track->iTrTrackPar(1,0,3);
+  _id=_track->iTrTrackPar(1,0,1);
   if(_id<0) return -1;
   _rig=_track->GetRigidity(_id);
 
   TrdTrackR *_trd=par->pTrdTrack();
-  if(!_trd) return -1;
+  //if(!_trd) return -1;
   
   SetAlignment();
-  SetupMHTrack(_track, _trd);
+  if(!_trd) SetupMHTrack(_track);
+  else SetupMHTrack(_track, _trd);
   MakeHitSelection();
   float lik=CalcLogLikelihood();
  
@@ -482,6 +486,43 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 
   return;
 }
+//---------------------------------------------------------------------------- 
+
+void TrdMTrack::SetupMHTrack(TrTrackR *track){
+
+  vector<AMSPoint> trhit;
+  vector<AMSPoint> tr_err;
+
+  AMSPoint trerr;
+     
+  for(int l=1; l<9; l++){
+    trerr.setp(0.0020, 0.0013, 0.0200); 
+    
+    TrRecHitR *tr_hit=track->GetHitLJ(l); 
+    
+    if(tr_hit>0){
+      if(!track->TestHitLayerJHasXY(l)) {
+	trerr.setp(0.1, 0.0013, 0.0200);
+      }
+      
+      trhit.push_back(tr_hit->GetCoord());
+      tr_err.push_back(trerr); 
+    }
+  }
+  for(int l=0; l<trhit.size(); l++){
+    _fit->Add(trhit[l], tr_err[l]);
+    // printf("no mh: tracker hit added");
+    
+  }
+  
+  _fit->DoFit(4, 0, 0);
+
+  tr_err.clear();
+  trhit.clear();
+  
+  return;
+}
+
 /////////////////////////////////////////////////////////////////////
 
 void TrdMTrack::MakeHitSelection(){
@@ -524,7 +565,7 @@ void TrdMTrack::MakeHitSelection(){
       
       float pl=GetPathLength3D(TRDTube_Center_check, TRDTube_Dir_check, pnt, dir);
       
-      if(pl>0.05){
+      if(pl>0.1){
 	TrdMHits.push_back(hit);
 	phitlen.push_back(pl);
 	hitres.push_back(res);
@@ -532,7 +573,7 @@ void TrdMTrack::MakeHitSelection(){
       
     }
   }
-
+  
   return;
 }
 
@@ -567,17 +608,17 @@ float TrdMTrack::CalcLogLikelihood(){
   int xeindex=(int)((xe-700)/50);
   if(xeindex<0) xeindex=0; if(xeindex>5) xeindex=5;
 
-  Int_t nbins = 30;
-  Double_t xmin = 2.;
-  Double_t xmax = 600;
-  Double_t logxmin = TMath::Log10(xmin);
-  Double_t logxmax = TMath::Log10(xmax);
-  Double_t binwidth = (logxmax-logxmin)/nbins;
-  Double_t xbins[nbins+1];
-  xbins[0] = xmin;
-  for (Int_t i=1;i<=nbins;i++) {
-    xbins[i] = xmin + TMath::Power(10,logxmin+i*binwidth);
-  }
+ //  Int_t nbins = 30;
+//   Double_t xmin = 1.;
+//   Double_t xmax = 600;
+//   Double_t logxmin = TMath::Log10(xmin);
+//   Double_t logxmax = TMath::Log10(xmax);
+//   Double_t binwidth = (logxmax-logxmin)/nbins;
+//   Double_t xbins[nbins+1];
+//   xbins[0] = xmin;
+//   for (Int_t i=1;i<=nbins;i++) {
+//     xbins[i] = xmin + TMath::Power(10,logxmin+i*binwidth);
+//   }
   int pindex=0;
   for(int i=nbins-1; i>=0; i--) if(fabs(_rig)> xbins[i] && pindex==0) pindex=i;
 
@@ -590,20 +631,20 @@ float TrdMTrack::CalcLogLikelihood(){
     float gaincorr=GetGainCorrection(lay, lad, tub);
     
     float pl=phitlen[i];
-    float ampcorr=TrdMHits[i]->Amp*0.6/pl*gaincorr;
-    if(ampcorr>4047.) ampcorr=4047.;
-    if(ampcorr<20.) ampcorr=20.;
+    float ampcorr=TrdMHits[i]->Amp*gaincorr;
+    // if(ampcorr>4047.) ampcorr=4047.;
+    // if(ampcorr<20.) ampcorr=20.;
     
     double elik=1., plik=1.;
     if(TrdPdfType==0){
-      elik=GetElProb(xeindex,lay,ampcorr);
+      elik=GetElProb(xeindex,lay, pl, ampcorr);
       
-      plik=GetProProb(xeindex,pindex,ampcorr);
+      plik=GetProProb(xeindex,pindex, pl, ampcorr);
 
     }
     else if(TrdPdfType==1){
-      elik=GetElProb(TrdMHits[i]->Amp*gaincorr, _rig, pl, lay, xe);
-      plik=GetProProb(TrdMHits[i]->Amp*gaincorr, _rig, pl, lay, xe);
+      elik=GetElProb(ampcorr, _rig, pl, lay, xe);
+      plik=GetProProb(ampcorr, _rig, pl, lay, xe);
     }
     if(elik!=0 && plik!=0){
       elike*=elik;
@@ -612,7 +653,9 @@ float TrdMTrack::CalcLogLikelihood(){
     }
   }
   
-  if(nhits==0) return -1;
+  if(nhits==0) {
+      return -1;
+    }
   
   elike=pow(elike, (double)(1./(double)nhits));
   plike=pow(plike, (double)(1./(double)nhits));
@@ -759,22 +802,44 @@ void TrdMTrack::Init_Xe(){
     amsdatadir=local;
   }
   
-  TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibPdfs_v23.root";
+  TString name=TString(amsdatadir)+"/v5.00/TRD/acroot/data/TrdQt_slowcontrol_v02.root";
   cout<<"TrdMTrack::Init_Xe:Read TRD Pressure from: "<<name<<endl;
   TFile* f=new TFile(name);
   
   if(!f) {cout<<"TrdMTrack::Init_Xe: Could not read Xenon Pressure! "<<name<<endl; return;}
-    
-  TGraph *g;
-  g=(TGraph*)f->Get("grTrdSlowControl_Xe");
   
+  // get tree
+  TTree* tree = (TTree*)f->Get("trd_online");
+  if (!tree) {
+    cout << "ERROR reading tree 'trd_online' " << endl;
+    return;
+  }
+  // set branches
+  unsigned long long t; // should be of type time_t, but doesn't work well with CINT
+  double value;
+  tree->SetBranchAddress("time", &t);
+  tree->SetBranchAddress("xe", &value);
+
+  TGraph *g = new TGraph();
+  // g=(TGraph*)f->Get("grTrdSlowControl_Xe");
+  g->SetName("xe");
+  g->SetTitle("xe");
+
+  unsigned int nEntries = tree->GetEntries();
+
+  for (unsigned int i = 0; i < nEntries; i++) {
+    tree->GetEntry(i);
+
+    g->SetPoint(g->GetN(), t, value);
+  }
+
   int test;
   double time;
   double press;
   for(int i=0; i<g->GetN(); i++){
     test=g->GetPoint(i, time, press);
     if(test!=-1) {
-      xetime.push_back((float)time);
+      xetime.push_back((unsigned int)time);
       xe.push_back((float)press);
     }
   }
@@ -785,8 +850,8 @@ void TrdMTrack::Init_Xe(){
   delete g;
   g=0;
   
-  if((unsigned int)(xetime[0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(unsigned int)(xetime[0]*(60*60*24)+1293840000);
-  if((unsigned int)(xetime[(int)xetime.size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(unsigned int)(xetime[(int)xetime.size()-1]*(60*60*24)+1293840000);
+  if((unsigned int)(xetime[0])>FirstRun) FirstRun=(unsigned int)(xetime[0]);
+  if((unsigned int)(xetime[(int)xetime.size()-1])<LastRun) LastRun=(unsigned int)(xetime[(int)xetime.size()-1]);
   
   cout<<"TrdMTrack::Init_Xe: Pressure read..."<<endl;
   
@@ -806,7 +871,8 @@ void TrdMTrack::Init_GainCorrection(){
       amsdatadir=local;
     }
     
-    TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibGain_v10.root";
+    // TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibGain_v10.root";
+    TString name=TString(amsdatadir)+"/v5.00/TRD/acroot/data/TrdQt_gain_v03.root";
     cout<<"TrdMTrack::Init_GainCorrection: Read TRD Gain from: "<<name<<endl;
     TFile* f=new TFile(name);
     
@@ -815,7 +881,8 @@ void TrdMTrack::Init_GainCorrection(){
     char gname[80];
     int test;
     for(int j=0; j<328; j++){
-      sprintf(gname, "grTrdCalibMpv_%i", j);
+      // sprintf(gname, "grTrdCalibMpv_%i", j);
+      sprintf(gname, "fitMpvGraphGoodFit_%i", j);
       TGraph *g;
       g=(TGraph*)f->Get(gname);
       
@@ -824,7 +891,7 @@ void TrdMTrack::Init_GainCorrection(){
       for(int i=0; i<g->GetN(); i++){
 	test=g->GetPoint(i, time, ga);
 	if(test!=-1) {
-	  gaintime[j].push_back((float)time);
+	  gaintime[j].push_back((unsigned int)time);
 	  gain[j].push_back((float)ga);
 	}
       }
@@ -835,8 +902,8 @@ void TrdMTrack::Init_GainCorrection(){
     f->Close();
     delete f;
   
-    if((unsigned int)(gaintime[6][0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(unsigned int)(gaintime[6][0]*(60*60*24)+1293840000);
-    if((unsigned int)(gaintime[6][(int)gaintime[6].size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(unsigned int)(gaintime[6][(int)gaintime[6].size()-1]*(60*60*24)+1293840000);
+    if((unsigned int)(gaintime[6][0])>FirstRun) FirstRun=(unsigned int)(gaintime[6][0]);
+    if((unsigned int)(gaintime[6][(int)gaintime[6].size()-1])<LastRun) LastRun=(unsigned int)(gaintime[6][(int)gaintime[6].size()-1]);
     
   }
   else if(TrdGainType==1){
@@ -859,7 +926,7 @@ void TrdMTrack::Init_Alignment(){
     // const char *amsdatadir="/afs/cern.ch/work/m/mheil/public/DataBase";
     const char *amsdatadir="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
     
-    TString name=TString(amsdatadir)+"/v5.00/TRD/Modul_alignment_pass3.root";
+    TString name=TString(amsdatadir)+"/v5.00/TRD/Modul_alignment_pass3_newxaxis.root";
   //  TString name=TString(amsdatadir)+"/Modul_alignment_pass3.root";
     cout<<"TrdMTrack::Init_Alignment: Read TRD Alignment from: "<< name <<endl;
     TFile* f=new TFile(name);
@@ -869,7 +936,7 @@ void TrdMTrack::Init_Alignment(){
     char gname[80];
     double z;
     double time;
-    int test;
+    int test, t;
     
     for(int j=0; j<328; j++){
       sprintf(gname, "grModul_rres_%i", j);
@@ -878,7 +945,7 @@ void TrdMTrack::Init_Alignment(){
       for(int i=0; i<g1->GetN(); i++){
 	test=g1->GetPoint(i, time, z);
 	if(test!=-1) { 
-	  mod_time[j].push_back((float)time);
+	  mod_time[j].push_back((unsigned int)time);
 	  mod_corr[j][0].push_back((float)z);
 	}
       }
@@ -889,7 +956,7 @@ void TrdMTrack::Init_Alignment(){
       sprintf(gname, "grModul_rinc_%i", j);
       g2=(TGraph*)f->Get(gname);
       for(int i=0; i<g2->GetN(); i++){
-	test=g2->GetPoint(i, time, z);
+	t=g2->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][1].push_back((float)z);
       }
       g2->Clear();
@@ -899,7 +966,7 @@ void TrdMTrack::Init_Alignment(){
       sprintf(gname, "grModul_zres_%i", j);
       g3=(TGraph*)f->Get(gname);
       for(int i=0; i<g3->GetN(); i++){
-	test=g3->GetPoint(i, time, z);
+	t=g3->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][2].push_back((float)z);
       }
       g3->Clear();
@@ -909,7 +976,7 @@ void TrdMTrack::Init_Alignment(){
       sprintf(gname, "grModul_zinc_%i", j);
       g4=(TGraph*)f->Get(gname);
       for(int i=0; i<g4->GetN(); i++){
-	test=g4->GetPoint(i, time, z);
+	t=g4->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][3].push_back((float)z);
       }
       g4->Clear();
@@ -928,10 +995,12 @@ void TrdMTrack::Init_Alignment(){
       amsdatadir=local;
     }
     
-    TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibAlign_v10.root";
+    // TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibAlign_v10.root";
+    TString name=TString(amsdatadir)+"/v5.00/TRD/acroot/data/TrdQt_alignment_v03.root";
     TFile* f=new TFile(name);
    
-    TString zname="/afs/cern.ch/work/m/mheil/public/DataBase/Modul_alignment_pass3.root";
+    // TString zname="/afs/cern.ch/work/m/mheil/public/DataBase/Modul_alignment_pass3.root";
+    TString zname="/afs/cern.ch/exp/ams/Offline/AMSDataDir/v5.00/TRD/Modul_alignment_pass3.root";
     cout<<"TrdMTrack::Init_Alignment: Read TRD Alignment from: "<< name <<endl;
     TFile* fi=new TFile(zname);
     
@@ -943,13 +1012,13 @@ void TrdMTrack::Init_Alignment(){
     int test;
     
     for(int j=0; j<328; j++){
-      sprintf(gname, "grTrdCalibPos_%i", j);
+      sprintf(gname, "fitMpvGraphGoodFit_%i", j);
       TGraph *g;
       g=(TGraph*)f->Get(gname);
       for(int i=0; i<g->GetN(); i++){
 	test=g->GetPoint(i, time, z);
 	if(test!=-1) { 
-	  mod_time[j].push_back((float)time);
+	  mod_time[j].push_back((unsigned int)time);
 	  mod_corr[j][0].push_back((float)z);
 	}
       }
@@ -981,8 +1050,8 @@ void TrdMTrack::Init_Alignment(){
   }
 
   if(TrdAlignType==0 || TrdAlignType==2){
-    if((unsigned int)(mod_time[6][0]*(60*60*24)+1293840000)>FirstRun) FirstRun=(unsigned int)(mod_time[6][0]*(60*60*24)+1293840000);
-    if((unsigned int)(mod_time[6][(int)mod_time[6].size()-1]*(60*60*24)+1293840000)<LastRun) LastRun=(unsigned int)(mod_time[6][(int)mod_time[6].size()-1]*(60*60*24)+1293840000);
+    if((unsigned int)(mod_time[6][0])>FirstRun) FirstRun=(unsigned int)(mod_time[6][0]);
+    if((unsigned int)(mod_time[6][(int)mod_time[6].size()-1])<LastRun) LastRun=(unsigned int)(mod_time[6][(int)mod_time[6].size()-1]);
   }
 
   cout<<"TrdMTrack::Init_Alignment: Alignment read..."<<endl;
@@ -1001,7 +1070,8 @@ void TrdMTrack::Init_PDFs(){
       amsdatadir=local;
     }
     
-    TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibPdfs_v23.root";
+    // TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibPdfs_v23.root";
+    TString name=TString(amsdatadir)+"/v5.00/TRD/acroot/data/TrdQt_pdf_v11.root";
     cout<<"TrdMTrack::Init_PDFs: Read TRD PDFs from: "<<name<<endl;
     TFile* f=new TFile(name);
     
@@ -1012,11 +1082,13 @@ void TrdMTrack::Init_PDFs(){
     char gname[80], modname[80];
     for(int j=0; j<6; j++){
       for(int i=0; i<30; i++){
-	sprintf(gname, "grTrdS_Prot_%i_%i", j, i);
+	//	sprintf(gname, "grTrdS_Prot_%i_%i", j, i);
+	sprintf(gname, "grTrdQt_PDF_ADCVsRigidity_Proton_%i_%i", j, i);
 	ProPDF[j][i]=(TGraph*)f->Get(gname);
       }
       for(int i=0; i<20; i++){
-	sprintf(gname, "grTrdS_Elec_%i_%i", j, i);
+	//	sprintf(gname, "grTrdS_Elec_%i_%i", j, i);
+	sprintf(gname, "grTrdQt_PDF_ADCVsLayer_Electron_%i_%i", j, i);
 	ElPDF[j][i]=(TGraph*)f->Get(gname);
       }
     }
@@ -1103,14 +1175,15 @@ float TrdMTrack::GetGainCorrection(int layer, int ladder, int tube){
   int module = mStraw[ladder][layer];
   if(module<0 || module>327) return 0;
 
-  float gaincorr, fix=60.;
+  float gaincorr, fix=100.;
  
   if(TrdGainType==0){
     int index=0;
-    float time=(float)(_Time-1293840000)/(60*60*24);
+    unsigned int time=(unsigned int)(_Time);
     while(time>gaintime[module][index+1] && index<((int)gaintime[module].size()-1)) index++;
     
-    gaincorr=gain[module][index];
+    float inter = (time-gaintime[module][index])/(gaintime[module][index+1]-gaintime[module][index]);
+    gaincorr=gain[module][index]+(gain[module][index+1]-gain[module][index])*inter;
     gaincorr=fix/gaincorr;
   }
   else if(TrdGainType==1){
@@ -1136,10 +1209,10 @@ float TrdMTrack::GetXePressure(){
    
   int index=0;
   float xe_pressure;
-  float time=(float)(_Time-1293840000)/(60*60*24);
+  unsigned int time=(unsigned int)(_Time);
   while(time>xetime[index+1] && index<((int)xetime.size()-1)) index++;
-  
-  xe_pressure=xe[index];
+  float inter = (time-xetime[index])/(xetime[index+1]-xetime[index]);
+  xe_pressure=xe[index]+(xe[index+1]-xe[index])*inter;
   //xe_pressure=xenon->Eval(time);
   
   if(xe_pressure==0){ printf("TrdMTrack::GetXePressure: No Xe pressure available...\n"); return -1;}
@@ -1154,7 +1227,7 @@ void TrdMTrack::SetAlignment(){
 
   if(TrdAlignType==2){
     int index=0;
-    float time=(float)(_Time-1293840000)/(60*60*24);
+    unsigned int time=(unsigned int)(_Time);
     
     for( int i=0; i<328; i++){
       while(time>mod_time[i][index+1] && index<((int)mod_time[i].size()-1)) index++;
@@ -1178,7 +1251,7 @@ void TrdMTrack::SetAlignment(){
   }
   else if(TrdAlignType==0){
     int index=0;
-    float time=(float)(_Time-1293840000)/(60*60*24);
+    float time=(float)(_Time);
     
     for( int i=0; i<328; i++){
       int lay=0, lad=0;
@@ -1189,8 +1262,10 @@ void TrdMTrack::SetAlignment(){
       int module=mStraw[lad][lay];
 
       while(time>mod_time[module][index+1] && index<((int)mod_time[module].size()-1)) index++;
+      float inter = (time-mod_time[module][index])/(mod_time[module][index+1]-mod_time[module][index]);
+     
       if(i>55 && i<256){
-	xycorr[i][0]=0-mod_corr[module][0][index];
+	xycorr[i][0]=0-(mod_corr[module][0][index]+(mod_corr[module][0][index+1]-mod_corr[module][0][index])*inter);
 	xycorr[i][1]=0;
 	xycorr[i][2]=0;
 	xycorr[i][3]=0;
@@ -1200,7 +1275,7 @@ void TrdMTrack::SetAlignment(){
       else {
 	xycorr[i][0]=0;
 	xycorr[i][1]=0;
-	xycorr[i][2]=0-mod_corr[module][0][index];
+	xycorr[i][2]=0-(mod_corr[module][0][index]+(mod_corr[module][0][index+1]-mod_corr[module][0][index])*inter);
 	xycorr[i][3]=0;
 	xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
 	xycorr[i][5]=z_corr[i][1]/pow(10.,6);
@@ -1268,17 +1343,17 @@ void TrdMTrack::SetAlignment(){
 
 /////////////////////////////////////////////////////////////////////
 
-double TrdMTrack::GetElProb(int xeindex, int sindex, float amp){
+double TrdMTrack::GetElProb(int xeindex, int sindex, float pl, float amp){
   
-  double  elprob=ElPDF[xeindex][sindex]->Eval(amp);
+  double  elprob=ElPDF[xeindex][sindex]->Eval(amp/pl);
 
-  if(elprob==0 && amp>3000.) {
+  if(elprob==0 && amp/pl>3000.) {
 	int j=1;
-	while(elprob==0) {elprob=ElPDF[xeindex][sindex]->Eval(amp-j); j++;}
+	while(elprob==0) {elprob=ElPDF[xeindex][sindex]->Eval(amp/pl-j); j++;}
       }
-  else if(elprob==0 && amp<50.){
+  else if(elprob==0 && amp/pl<50.){
     int j=1;
-    while(elprob==0) {elprob=ElPDF[xeindex][sindex]->Eval(amp+j); j++;}
+    while(elprob==0) {elprob=ElPDF[xeindex][sindex]->Eval(amp/pl+j); j++;}
   }
   
   if(elprob==0){ printf("TrdMTrack::GetElProb: No Probability calculated...\n"); return -1;}
@@ -1297,17 +1372,17 @@ double TrdMTrack::GetElProb(float amp, float rig, float pl, int lay, float xe ){
 
 /////////////////////////////////////////////////////////////////////
 
-double TrdMTrack::GetProProb(int xeindex, int sindex, float amp){
+double TrdMTrack::GetProProb(int xeindex, int sindex, float pl, float amp){
    
-  double proprob=ProPDF[xeindex][sindex]->Eval(amp);
+  double proprob=ProPDF[xeindex][sindex]->Eval(amp/pl);
  
-  if(proprob==0 && amp>3000.) {
+  if(proprob==0 && amp/pl>3000.) {
 	int j=1;
-	while(proprob==0) {proprob=ProPDF[xeindex][sindex]->Eval(amp-j); j++;}
+	while(proprob==0) {proprob=ProPDF[xeindex][sindex]->Eval(amp/pl-j); j++;}
       }
-  else if(proprob==0 && amp<50.){
+  else if(proprob==0 && amp/pl<50.){
     int j=1;
-    while(proprob==0) {proprob=ProPDF[xeindex][sindex]->Eval(amp+j); j++;}
+    while(proprob==0) {proprob=ProPDF[xeindex][sindex]->Eval(amp/pl+j); j++;}
   }
   
   if(proprob==0){ printf("TrdMTrack::GetProProb: No Probability calculated...\n"); return -1;}
