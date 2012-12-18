@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.115.2.2 2012/11/20 14:06:48 mduranti Exp $
+//  $Id: root_setup.C,v 1.115.2.3 2012/12/18 09:25:51 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1986,6 +1986,7 @@ if (fISSData.size()==0)return 2;
 	else{
 	static int print=0;
 	time=0;
+        fISSData.clear(); 
 	if(print++<10)cerr<<"AMSSetupR::getISSTLE-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
 	return 1 ;
 	}
