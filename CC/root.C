@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.514 2012/12/18 11:01:37 lbasara Exp $
+//  $Id: root.C,v 1.514.2.1 2012/12/18 15:50:59 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -441,7 +441,8 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
   while (key = (TKey*)nextkey()) {
     TObject *to=(key->ReadObj());
     TH1D * f1 = dynamic_cast<TH1D*>(to);
-    if(f1){
+    TProfile * f1p = dynamic_cast<TProfile*>(to);
+    if(f1 &&!f1p){
       TString t(f1->GetName());
       if(t.BeginsWith("hb1")){
         for(int i=4;i<strlen(f1->GetName());i++){
