@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.513 2012/12/17 19:23:31 choutko Exp $
+//  $Id: root.C,v 1.514 2012/12/18 11:01:37 lbasara Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3597,6 +3597,7 @@ void EcalShowerR::NormaliseVariableLAPP(){
 
 TMVA::Reader *ecallappreader;
 TMVA::Reader *NESEreaderv2;
+TMVA::Reader *NESEreaderv3;
 
 float varBDT[23];
 float cEnergyC;
@@ -3604,10 +3605,34 @@ float cMomentum;
 
 float ESENLayerSigma[18],ESENS1tot[3],ESENS3tot[3],ESENS5tot[3],ESENShowerLatDisp[3],ESENShowerLongDisp;
 float ESENShowerFootprint[3],ESENZprofile[4],ESENZprofileChi2,ESENZProfileMaxRatio,ESENEnergyFractionLayer[18];
-float ESENS1S3[3],ESENS3S5[3],ESENS13R,ESENEnergy3C2,ESENEnergy3C3,ESENShowerMeanNorm,ESENShowerSigmaNorm;float ESENShowerSkewnessNorm,ESENShowerKurtosisNorm,ESENF2LEneDepNorm,ESENL2LFracNorm,ESENF2LFracNorm,ESENR3cmFracNorm;
+float ESENS1S3[3],ESENS3S5[3],ESENS13R,ESENEnergy3C2,ESENEnergy3C3,ESENShowerMeanNorm,ESENShowerSigmaNorm;
+float ESENShowerSkewnessNorm,ESENShowerKurtosisNorm,ESENF2LEneDepNorm,ESENL2LFracNorm,ESENF2LFracNorm,ESENR3cmFracNorm;
 float ESENR5cmFracNorm,ESENDifoSumNorm,ESENS3totxNorm,ESENS3totyNorm,ESENS5totxNorm,ESENS5totyNorm;
 float ESENEcalHitsNorm,ESENShowerFootprintXNorm,ESENShowerFootprintYNorm;
 float nEnergyA;
+
+
+// Declaration of global variables used for ESEv3
+
+float N5EnergyFractionLayer[18]={0};
+float N5LayerSigma[18]={0};
+float N5ShowerLongDisp=0;
+float N5S3S5[3]={0};
+float N5ShowerLatDisp[3]={0};
+float N5ShowerFootprint[3]={0};
+float N5ZProfileMaxRatio=0;
+float N5Zprofile=0;
+float ED_Nhits=0;
+float zprofile[5]={0};
+float hcount=0;
+float Rear1=0;
+float Ed_sqpixl=0;
+float Ed_sqpix=0;
+float Ed_pixl=0;
+float ESE3RearLeak=0;
+float ESEv3=0;
+
+
 
 
 namespace EcalShowerR_ZProf {
@@ -3636,7 +3661,635 @@ void fcnv1(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
     chisq += delta*delta;       
   } 
   f = chisq;
-} 
+}
+
+
+// Functions for ESEv3 fit using TMinuit
+
+namespace EcalShowerR_ZProf3 {
+  static TMinuit *fMinuit = 0;
+#pragma omp threadprivate(fMinuit)
+};
+
+
+float zv3[18],xv3[18],errorzv3[18];
+Int_t nbinsv3, bmin=3;
+
+
+void fcnv3(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
+{
+	const Int_t nbins = 18;
+	Int_t i;
+	//calculate chisquare
+	Double_t chisq = 0.;
+	Double_t delta;
+	nbinsv1=0; 
+	for (i=bmin;i<nbins; i++) {
+		Double_t fitfo= par[0]*par[1]*TMath::Exp(-par[1]*(xv3[i]-par[3]))*pow(par[1]*(xv3[i]-par[3]),par[1]*par[2])/TMath::Gamma(par[1]*par[2]+1.);
+		delta = (zv3[i]-fitfo)/errorzv3[i]; 
+		chisq += delta*delta;	
+		nbinsv3++;
+	}
+	f = chisq;
+}
+
+
+
+
+
+float EcalShowerR::EcalStandaloneEstimatorV3(){
+
+	
+
+	// Case Processing version <B584
+	if(AMSEventR::Head()->Version()<584) nEnergyA = EnergyA;
+	// Case Processing version >=B584
+	if(AMSEventR::Head()->Version()>=584) nEnergyA = EnergyA*1000.;
+
+
+
+
+	// Local variables;
+
+
+
+	float ShowerFootprint[3]={0};
+	float LayerSigma[18];
+	 
+	float _ShowerLongDisp={0};  
+	float _ShowerDepth;	  
+
+	int _NbLayerX;
+	int _NbLayerY;
+	float bcell_lat[18]={0};
+	float bcell2_lat[18]={0};
+	float bcell_latx[18]={0};
+	float bcell_laty[18]={0};
+	float s_cell_w[18]={0};
+	float s_cell2_w[18]={0};
+	float edep_cell[18][72]={{0}};
+	float edep_layer[18]={0};
+	int nhitcell[18]={0};
+	int necalcl;
+	float bplane;
+	float bplane2;
+	int cell,plane,proj;
+
+	float EcalEdepFrac[18];
+
+	int npix,npixl; 
+
+	float S1tot[3]={0};
+	float S3tot[3]={0};
+	float S5tot[3]={0};
+
+
+	float ShowerLatDisp[3]={0};
+
+	float EnergyDh;
+	float S3S5=0,S3S5x=0,S3S5y=0,S1S3=0;
+	
+	float hedepl[18];
+	float hedepc[18][72];
+	int   hcmax[18];
+	float adc_hi, adc_low;
+
+	float edep_h;
+	float s1,s3,s5;
+
+	Double_t epro[4]={0.};
+	Double_t zpro[4]={0.};
+
+
+	// Variables initialisation
+		
+		// FractionLayer, LayerSigma
+		for (int jj=0; jj<18; jj++){
+			zv3[jj]=0.;
+			errorzv3[jj]=0.;	 
+			EcalEdepFrac[jj]=0.;  
+			LayerSigma [jj]=0.;
+			bcell_lat[jj]=0.;
+			bcell2_lat[jj]=0.;
+			bcell_latx[jj]=0.;
+			bcell_laty[jj]=0.;
+			s_cell_w[jj]=0.;
+			s_cell2_w[jj]=0.;
+			
+			edep_layer[jj]=0.;
+			nhitcell[jj]=0;
+			 hedepl[jj]=0;
+				
+			for (int ii=0; ii<72; ii++) {
+				edep_cell[jj][ii]=0.;
+				hedepc[jj][ii]=0.;
+			}
+		}
+		necalcl=0;
+
+		
+		
+
+		float bcell_latmx=0., bcell_latmy=0.;
+		float edep_tot=0., edep_totx=0., edep_toty=0.;
+		int contained_flag=1;
+		
+		float S1=0.;
+		float S3=0.;
+		float S5=0.; 
+		
+		int bcell_i=0;
+		int nbcellx=0,nbcelly=0;
+		int nblayer = 0;
+
+		
+		EnergyDh=0.;
+		npix=0; npixl=0;
+		//	
+		// loop on the hits
+
+		//
+
+	// Effective computing
+	// ___________________________________________________________
+	
+
+			int nhits=AMSEventR::Head()->NEcalHit();
+			if (nhits>0) {
+			for (int ihit=0; ihit<nhits; ihit++){
+				EcalHitR hit=AMSEventR::Head()->EcalHit(ihit);
+				cell=hit.Cell;
+				plane=hit.Plane;
+				//
+				adc_hi=hit.ADC[0];
+				adc_low=hit.ADC[1];						
+				//
+				
+				 proj = hit.Proj;			
+				//
+				
+				edep_layer[plane]      += hit.Edep;
+				edep_cell[plane][cell]  =  hit.Edep;
+				s_cell_w[plane]        += (cell+1)*hit.Edep;
+				s_cell2_w[plane]       += pow((cell+1),2.)*hit.Edep;
+				//
+				nhitcell[plane]++;			
+				//
+				if (adc_low>4) npixl+=1;
+				if ( (adc_hi>4&&adc_low<=4) || adc_low>4 ) npix+=1; 
+				
+				EnergyDh		+= hit.Edep;
+				
+				edep_h=0.;
+				if (adc_hi>4)  {
+					edep_h=hit.Edep;
+					hedepl[plane]		+=	edep_h;
+					hedepc[plane][cell]=	edep_h;
+				}
+
+
+				ED_Nhits=EnergyDh/nhits;
+				
+			}
+			//
+			//
+			//
+			
+			
+		
+			
+			if (npixl>0) Ed_pixl    =EnergyDh/npixl; 			else  Ed_pixl=1000000;
+			if (npixl>0) Ed_sqpixl  =EnergyDh/sqrt(npixl);	else  Ed_sqpixl=1000000;
+			if (npix>0)  Ed_sqpix   =EnergyDh/sqrt(npix); 	else  Ed_sqpix=1000000;
+
+			// 
+			//position of the cell with the maximum deposit energy
+			//
+			hcount=0;
+			
+			for (int il=0; il<18; il++) {
+				float emax=0.1;
+				for (int ic=0; ic<72; ic++) if (hedepc[il][ic]>emax) {
+					hcmax[il]= (ic);
+					emax = hedepc[il][ic];
+				}
+				
+				if (hcmax[il]>0 && hcmax[il]<71 && emax>0.1) {
+					s1=hedepc[il][hcmax[il]];
+					s3=hedepc[il][hcmax[il]-1]+hedepc[il][hcmax[il]]+hedepc[il][hcmax[il]+1];
+					s5 = s3;
+					if (hcmax[il]>1&&hcmax[il]<70) s5+=hedepc[il][hcmax[il]+2]+hedepc[il][hcmax[il]-2];
+					if (s1>4 && s5>4 && s3>4 && (s1/s3>=.99 || s3/s5>=.99))	{
+						hcount+=1;				
+					}
+				}
+			}
+			
+			
+			
+			// Variance, Footprint, S3/Sy from the hits 
+			
+			
+			ShowerLatDisp[2]=0.; 
+			ShowerLatDisp[1]=0.;
+			bplane2=0.;
+			bplane=0.; 
+			bcell_latmy=0.;
+			bcell_latmx=0.;
+			edep_toty=0.; 	
+			edep_totx=0.; 
+			float shower_depth_op=0.;
+			
+				for (int jj=0; jj<18; jj++){
+					EcalEdepFrac[jj] = edep_layer[jj]/EnergyDh;
+					S1=0;S3=0;S5=0; 
+					if (edep_layer[jj]!=0.){				
+						// Calculate shower longitudinal dispersion
+						bplane2+=pow((jj+1),2.)*edep_layer[jj];  
+						bplane+=(jj+1)*edep_layer[jj]; 
+						// Calculate shower lateral dispersion  
+						bcell_lat[jj]=s_cell_w[jj]/edep_layer[jj];
+						bcell2_lat[jj]=s_cell2_w[jj]/edep_layer[jj];
+						// Calculate shower depth term  
+						shower_depth_op+=(jj+1)*(1./pow(edep_layer[jj],2));
+						if (((jj/2)%2)==0){
+							ShowerLatDisp[2]+=(bcell2_lat[jj]-pow((bcell_lat[jj]),2));
+							bcell_latmy+=bcell_lat[jj]*edep_layer[jj];
+							edep_toty+=edep_layer[jj];
+							nbcelly++;
+						}
+						else{
+							ShowerLatDisp[1]+=bcell2_lat[jj]-pow((bcell_lat[jj]),2);
+							bcell_latmx+=bcell_lat[jj]*edep_layer[jj];
+							edep_totx+=edep_layer[jj];
+							nbcellx++;      
+						}				
+						bcell_i=(int) (bcell_lat[jj]-1.);
+						if ((bcell_lat[jj]-1-bcell_i)>0.5)  bcell_i++;
+						S1=edep_cell[jj][bcell_i];
+						S3=S1; 
+						if (((bcell_i-1)>=0)&&((bcell_i+1)<=71)) S3=edep_cell[jj][bcell_i-1]+edep_cell[jj][bcell_i+1]+S1;	
+						S5=S3; 
+						if (((bcell_i-2)>=0)&&((bcell_i+2)<=71)) S5=edep_cell[jj][bcell_i-2]+edep_cell[jj][bcell_i+2]+S3;				
+						//
+						if (((jj/2)%2)==0){
+							S1tot[2]+=S1;
+							S3tot[2]+=S3;
+							S5tot[2]+=S5;               
+						}
+						else{
+							S1tot[1]+=S1;
+							S3tot[1]+=S3;
+							S5tot[1]+=S5;
+						}				
+					}
+				}
+			_NbLayerX = nbcellx;
+			_NbLayerY = nbcelly;
+		
+		
+			_ShowerLongDisp =bplane2/EnergyDh-pow((bplane/EnergyDh),2);
+			
+			if (contained_flag==1){
+				S1tot[0]=S1tot[1]+S1tot[2];
+				S3tot[0]=S3tot[1]+S3tot[2];
+				S5tot[0]=S5tot[1]+S5tot[2];			
+			}
+			edep_tot=edep_totx+edep_toty;
+			//Calculate shower depth
+			_ShowerDepth = TMath::Log(shower_depth_op);
+			
+			//Calculate shower shower Cofg_z
+			bplane=bplane/edep_tot;
+				//Calculate shower CofG x,y 
+				if (edep_totx>0.){
+					bcell_latmx=bcell_latmx/edep_totx;
+					S1tot[1]=S1tot[1]/edep_totx;
+					S3tot[1]=S3tot[1]/edep_totx; 
+					S5tot[1]=S5tot[1]/edep_totx;
+				}
+				if (edep_toty>0.){
+					bcell_latmy=bcell_latmy/edep_toty;
+					S1tot[2]=S1tot[2]/edep_toty;
+					S3tot[2]=S3tot[2]/edep_toty; 
+					S5tot[2]=S5tot[2]/edep_toty;
+				}
+				if (edep_tot>0.){
+					S1tot[0]=S1tot[0]/EnergyDh;
+					S3tot[0]=S3tot[0]/EnergyDh; 
+					S5tot[0]=S5tot[0]/EnergyDh;
+				}
+		
+			//Calculate shower footprint
+			float sigmax2=0., sigmaxz=0., sigmay2=0., sigmayz=0., sigmaz2_x=0., sigmaz2_y=0.;
+			for (int jj=0; jj<18; jj++){
+				if (edep_layer[jj]!=0){
+					if (((jj/2)%2)==0){
+						for (int cc=0; cc<72; cc++){
+							if (edep_cell[jj][cc]>0){
+								sigmay2+=pow(((cc+1)-bcell_latmy),2)*edep_cell[jj][cc];
+								LayerSigma[jj] += pow(((cc+1)-bcell_latmy),2)*edep_cell[jj][cc];
+								sigmayz+=((cc+1)-bcell_latmy)*((jj+1)-bplane)*edep_cell[jj][cc];
+								sigmaz2_y+=pow(((jj+1)-bplane),2)*edep_cell[jj][cc];
+							}		     
+						}
+					}
+					else{
+						for (int cc=0; cc<72; cc++){
+							if (edep_cell[jj][cc]>0){
+								sigmax2+=pow(((cc+1)-bcell_latmx),2)*edep_cell[jj][cc];
+								LayerSigma[jj] += pow(((cc+1)-bcell_latmx),2)*edep_cell[jj][cc];
+								sigmaxz+=((cc+1)-bcell_latmx)*((jj+1)-bplane)*edep_cell[jj][cc];
+								sigmaz2_x+=pow(((jj+1)-bplane),2)*edep_cell[jj][cc];	
+							}
+						}
+					}
+				}
+			}
+				for (int jj=0; jj<18; jj++){
+				if (edep_layer[jj]!=0){
+					LayerSigma[jj] =LayerSigma[jj]/(edep_layer[jj]);
+				 }
+			}	
+			if (edep_totx>0.){
+				sigmax2=sigmax2/edep_totx;
+				sigmaxz=sigmaxz/edep_totx;
+				sigmaz2_x=sigmaz2_x/edep_totx;
+			}	
+			if (edep_toty>0.){
+				sigmay2=sigmay2/edep_toty;
+				sigmayz=sigmayz/edep_toty;
+				sigmaz2_y=sigmaz2_y/edep_toty;
+			}	
+
+				
+			//	
+			//FootPrint
+			//	
+			ShowerFootprint[1]=TMath::Sqrt(TMath::Abs(sigmax2*sigmaz2_x-pow(sigmaxz,2)));
+			ShowerFootprint[2]=TMath::Sqrt(TMath::Abs(sigmay2*sigmaz2_y-pow(sigmayz,2)));
+			ShowerFootprint[0]= ShowerFootprint[1] + ShowerFootprint[2];	 
+			
+			S1S3  = (S3tot[0]==0.)?0.:(S1tot[0]/S3tot[0]); 
+			S3S5  = (S5tot[0]==0.)?0.:(S3tot[0]/S5tot[0]); 
+			S3S5x = (S5tot[1]==0.)?0.:(S3tot[1]/S5tot[1]); 
+			S3S5y = (S5tot[2]==0.)?0.:(S3tot[2]/S5tot[2]); 
+
+			zprofile[0]=1;
+			zprofile[4]=0;
+
+			}
+		
+		// estimate impact correction in X and Y 
+		float ratio=1.; 
+		float cora,corx=1.,cory=1.; 
+		if (S3tot[1]>0.1) ratio=S1tot[1]/S3tot[1];
+		if (ratio<=0.5) ratio=0.5; 
+		if (ratio>=0.5&&ratio<0.75) corx=1./(0.379*ratio+0.717);
+		
+		if (S3tot[2]>0.1) ratio=S1tot[2]/S3tot[2];
+		if (ratio<0.5) ratio=0.5;
+		if (ratio>=0.5&&ratio<0.75) cory=1./(0.3749*ratio+0.7187);
+		//
+		float log10E = TMath::Log10(EnergyDh/1000.);
+		float exprearl= 0.3*log10E+0.4338*log10E*log10E;
+		float frac,err ;
+		//
+		Double_t par0, par1,par2, par3; 
+		par0=1.0;
+		par1=0.48;
+		par2=1.05*(log(EnergyDh/(8.)));
+		par3=1.0;
+		if (EnergyDh/1000>100) par0=0.95;
+		float zmax=-1;  
+		float xmax=18.;  
+		float xmin=3.5;
+		int   amax=19;
+
+		float az=0; 
+		//
+		for(int a=0;a<18;a++){
+			
+			cora=1.;
+			if (((a/2)%2)==1&&corx>0.7) cora=corx; 
+			if (((a/2)%2)==0&&cory>0.7) cora=cory;   
+
+			frac = EcalEdepFrac[a]*cora*(.975);//(shower->EnergyD);
+			
+			err=frac*0.07;	
+			//
+			zv3[a]=frac; 
+			if (zv3[a]>zmax) {
+				zmax=zv3[a];
+				amax=a;
+		
+			}
+
+			xv3[a]=0.5+a;
+			az+=zv3[a]; 
+
+			errorzv3[a]=err; 
+			
+			//
+			if (EnergyDh/1000<45.) err=frac*0.10;
+			if (err<.009&&EnergyDh<10000.) err=0.009;
+			if (err<.004&&EnergyDh>10000.) err=0.004;
+			if(frac) nblayer++;	
+
+		}
+
+		if(nblayer>5){
+
+			
+			// new bounds for the 
+			if (EnergyDh/1000.<=150) xmin=3;
+			if (EnergyDh/1000.<=100) xmin=2.8;
+			if (EnergyDh/1000.<=80) xmin=2.7;
+			if (EnergyDh/1000.<=50) xmin=2.5;
+			if (EnergyDh/1000.<=20) xmin=2.;
+			if (EnergyDh/1000.<=2) xmin=1.5;
+			//xmin+=1.;
+			 bmin=int (xmin)+1;
+			
+
+
+
+      if (!EcalShowerR_ZProf3::fMinuit) {
+#pragma omp critical (tminuit) 
+        EcalShowerR_ZProf3::fMinuit = new TMinuit(4);
+      }         
+      TMinuit *gMinuit = EcalShowerR_ZProf3::fMinuit;
+
+
+
+		// Fit Using minuit /// 
+		gMinuit->SetPrintLevel(-1); 
+		gMinuit->SetFCN(fcnv3);
+		Double_t arglist[10];
+		Int_t ierflg = 0;
+		arglist[0]   = 1;
+		gMinuit->mnexcm("SET ERR", arglist ,1,ierflg);
+		// Set starting values and step sizes for parameters
+		Double_t vstart[4] = {par0 , par1 , par2, par3};
+		Double_t step[4]   = {0.0001 , 0.05 , 0.005, 0.005};
+		gMinuit->mnparm(0, "a1", vstart[0], step[0],0.999*par0,2.*par0,ierflg);
+		gMinuit->mnparm(1, "a2", vstart[1], step[1],par1-0.2,par1+0.2,ierflg);
+		gMinuit->mnparm(2, "a3", vstart[2], step[2],par2-2.,par2+2.,ierflg);
+		gMinuit->mnparm(3, "a4", vstart[3], step[3],-1.-par3,par3+1,ierflg);
+		// Now ready for minimization step
+		arglist[0] = 4000;
+		arglist[1] = 0.5;
+		gMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+		//	gMinuit->mnexcm("MINIMIZE", arglist ,2,ierflg);
+		//gMinuit->mnexcm("MINOS", arglist ,2,ierflg);
+		// Print results
+		gMinuit->GetParameter(0,zpro[0],epro[0]);
+		gMinuit->GetParameter(1,zpro[1],epro[1]);
+		gMinuit->GetParameter(2,zpro[2],epro[2]);
+		gMinuit->GetParameter(3,zpro[3],epro[3]);
+		//
+		Double_t amin,edm,errdef;
+		Int_t nvpar,nparx,icstat;
+		gMinuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+		zprofile[1]=  zpro[0];
+		zprofile[2]=  amin/abs(float(nbinsv3-4)) ;
+			
+			if (abs(zpro[0]-0.999*par0)<=0.0001&&amin/abs(float(nbinsv3-4))>10)	{
+				par3=1.; 
+				gMinuit->mnparm(0, "a1", vstart[0], step[0],0.999*par0,2*par0,ierflg);
+				gMinuit->mnparm(1, "a2", vstart[1], step[1],par1-0.2,par1+0.2,ierflg);
+				gMinuit->mnparm(2, "a3", vstart[2], step[2],par2-3,par2+3,ierflg);
+				gMinuit->mnparm(3, "a4", vstart[3], step[3],-2-par3,par3+2,ierflg);
+				// Now ready for minimization step
+				arglist[0] = 1000;
+				arglist[1] = 2;
+				gMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+				// Print results
+				gMinuit->GetParameter(0,zpro[0],epro[0]);
+				gMinuit->GetParameter(1,zpro[1],epro[1]);
+				gMinuit->GetParameter(2,zpro[2],epro[2]);
+				gMinuit->GetParameter(3,zpro[3],epro[3]);
+			 }
+			 
+		
+						
+		 }
+
+		
+		if (exprearl<0.) exprearl=0.; 
+		Rear1= zprofile[0]-1-(exprearl/100);
+		ESE3RearLeak     = EnergyE/(EnergyD);
+		//
+		// Monte carlo reweighting 
+		//
+		float FP[3]={0.};
+		float LaD[3]={0.};
+		float scor[5]={0.} ; 
+		//
+
+
+
+	//Normalization
+	// ___________________________________________________________
+	
+	N5EnergyFractionLayer[2] = 	(EcalEdepFrac[2] - (0.117717+log10E*-0.0557136+pow(log10E,2)*-0.0363638+pow(log10E,3)*0.0340196+pow(log10E,4)*-0.00629447+pow(log10E,5)*-0.0017031+pow(log10E,6)*0.000756953+pow(log10E,7)*-7.50869e-05))/( 0.0449596+log10E*0.0187338+pow(log10E,2)*-0.167312+pow(log10E,3)*0.266869+pow(log10E,4)*-0.227821+pow(log10E,5)*0.115004+pow(log10E,6)*-0.0341334+pow(log10E,7)*0.00549858+pow(log10E,8)*-0.000370768);
+	N5EnergyFractionLayer[3] = 	(EcalEdepFrac[3] - (0.122652+log10E*0.00766922+pow(log10E,2)*-0.101206+pow(log10E,3)*0.0578433+pow(log10E,4)*-0.00802081+pow(log10E,5)*-0.00287953+pow(log10E,6)*0.00105391+pow(log10E,7)*-9.31137e-05))/( 0.0433186+log10E*0.0095601+pow(log10E,2)*-0.100888+pow(log10E,3)*0.162154+pow(log10E,4)*-0.144631+pow(log10E,5)*0.0764097+pow(log10E,6)*-0.0235361+pow(log10E,7)*0.00390039+pow(log10E,8)*-0.000268639);
+	N5EnergyFractionLayer[4] = 	(EcalEdepFrac[4] - (0.112716+log10E*0.0577118+pow(log10E,2)*-0.139899+pow(log10E,3)*0.106761+pow(log10E,4)*-0.0590897+pow(log10E,5)*0.0233228+pow(log10E,6)*-0.00528901+pow(log10E,7)*0.000495985))/( 0.0419591+log10E*-0.0144227+pow(log10E,2)*-0.0183758+pow(log10E,3)*0.0431453+pow(log10E,4)*-0.0434489+pow(log10E,5)*0.0240947+pow(log10E,6)*-0.00762918+pow(log10E,7)*0.00130046+pow(log10E,8)*-9.28814e-05);
+	N5EnergyFractionLayer[5] = 	(EcalEdepFrac[5] - (0.104347+log10E*0.0496673+pow(log10E,2)*-0.0530493+pow(log10E,3)*-0.000229837+pow(log10E,4)*0.00711337+pow(log10E,5)*0.000204625+pow(log10E,6)*-0.00104119+pow(log10E,7)*0.000180982))/( 0.0401334+log10E*-0.0080135+pow(log10E,2)*-0.061578+pow(log10E,3)*0.127282+pow(log10E,4)*-0.122023+pow(log10E,5)*0.0665909+pow(log10E,6)*-0.0213369+pow(log10E,7)*0.00374391+pow(log10E,8)*-0.000277328);
+	N5EnergyFractionLayer[6] = 	(EcalEdepFrac[6] - (0.0868197+log10E*0.0607891+pow(log10E,2)*-0.0877441+pow(log10E,3)*0.0977847+pow(log10E,4)*-0.0825915+pow(log10E,5)*0.03843+pow(log10E,6)*-0.00895267+pow(log10E,7)*0.000824875))/( 0.0428651+log10E*-0.0266892+pow(log10E,2)*-0.00459288+pow(log10E,3)*0.0158971+pow(log10E,4)*-0.00130077+pow(log10E,5)*-0.00575733+pow(log10E,6)*0.00285685+pow(log10E,7)*-0.000495459+pow(log10E,8)*2.5724e-05);
+	N5EnergyFractionLayer[7] = 	(EcalEdepFrac[7] - (0.0697327+log10E*0.0567299+pow(log10E,2)*-0.0630777+pow(log10E,3)*0.0776875+pow(log10E,4)*-0.0668012+pow(log10E,5)*0.0296779+pow(log10E,6)*-0.00651328+pow(log10E,7)*0.000565112))/( 0.0398095+log10E*-0.00855203+pow(log10E,2)*-0.0653081+pow(log10E,3)*0.105147+pow(log10E,4)*-0.0753072+pow(log10E,5)*0.0304956+pow(log10E,6)*-0.00730575+pow(log10E,7)*0.000986371+pow(log10E,8)*-5.99034e-05);
+	N5EnergyFractionLayer[8] = 	(EcalEdepFrac[8] - (0.0590261+log10E*0.0129066+pow(log10E,2)*0.0667625+pow(log10E,3)*-0.0888786+pow(log10E,4)*0.0576624+pow(log10E,5)*-0.0226273+pow(log10E,6)*0.0049167+pow(log10E,7)*-0.000448559))/( 0.0355086+log10E*-0.0155105+pow(log10E,2)*-0.0148033+pow(log10E,3)*0.0173165+pow(log10E,4)*-0.00263529+pow(log10E,5)*-0.00423263+pow(log10E,6)*0.00281308+pow(log10E,7)*-0.000704554+pow(log10E,8)*6.41519e-05);
+	N5EnergyFractionLayer[9] = 	(EcalEdepFrac[9] - (0.0462132+log10E*0.00755802+pow(log10E,2)*0.0712194+pow(log10E,3)*-0.0843512+pow(log10E,4)*0.0537969+pow(log10E,5)*-0.0214126+pow(log10E,6)*0.00478999+pow(log10E,7)*-0.000455303))/( 0.0314701+log10E*-0.00339465+pow(log10E,2)*-0.0501248+pow(log10E,3)*0.0904072+pow(log10E,4)*-0.0832657+pow(log10E,5)*0.0439392+pow(log10E,6)*-0.013195+pow(log10E,7)*0.00210129+pow(log10E,8)*-0.000138596);
+	N5EnergyFractionLayer[10] = 	(EcalEdepFrac[10] - (0.0327435+log10E*0.0207212+pow(log10E,2)*0.0273993+pow(log10E,3)*-0.0399982+pow(log10E,4)*0.0374554+pow(log10E,5)*-0.0204689+pow(log10E,6)*0.00559357+pow(log10E,7)*-0.00059946))/( 0.0237729+log10E*0.0329727+pow(log10E,2)*-0.177503+pow(log10E,3)*0.33496+pow(log10E,4)*-0.339496+pow(log10E,5)*0.197801+pow(log10E,6)*-0.0663207+pow(log10E,7)*0.0118999+pow(log10E,8)*-0.00088466);
+	N5EnergyFractionLayer[11] = 	(EcalEdepFrac[11] - (0.0259851+log10E*0.00579841+pow(log10E,2)*0.054978+pow(log10E,3)*-0.069826+pow(log10E,4)*0.0560591+pow(log10E,5)*-0.0266688+pow(log10E,6)*0.00664599+pow(log10E,7)*-0.000670043))/( 0.022419+log10E*0.0284611+pow(log10E,2)*-0.18077+pow(log10E,3)*0.375945+pow(log10E,4)*-0.40391+pow(log10E,5)*0.244971+pow(log10E,6)*-0.0846625+pow(log10E,7)*0.015541+pow(log10E,8)*-0.00117422);
+	N5EnergyFractionLayer[12] = 	(EcalEdepFrac[12] - (0.0192+log10E*0.0190229+pow(log10E,2)*-0.0131242+pow(log10E,3)*0.0412646+pow(log10E,4)*-0.0355404+pow(log10E,5)*0.0141007+pow(log10E,6)*-0.00258029+pow(log10E,7)*0.000162164))/( 0.0201373+log10E*0.0246926+pow(log10E,2)*-0.162918+pow(log10E,3)*0.342551+pow(log10E,4)*-0.363379+pow(log10E,5)*0.215997+pow(log10E,6)*-0.0729985+pow(log10E,7)*0.013094+pow(log10E,8)*-0.000966633);
+	N5EnergyFractionLayer[13] = 	(EcalEdepFrac[13] - (0.0158316+log10E*-0.000747075+pow(log10E,2)*0.0410723+pow(log10E,3)*-0.0403833+pow(log10E,4)*0.0271307+pow(log10E,5)*-0.0109399+pow(log10E,6)*0.00234798+pow(log10E,7)*-0.0002057))/( 0.0202022+log10E*-0.0230647+pow(log10E,2)*0.0451963+pow(log10E,3)*-0.04877+pow(log10E,4)*0.031169+pow(log10E,5)*-0.0120606+pow(log10E,6)*0.00269556+pow(log10E,7)*-0.000311649+pow(log10E,8)*1.40459e-05);
+	N5EnergyFractionLayer[14] = 	(EcalEdepFrac[14] - (0.010689+log10E*0.00998444+pow(log10E,2)*-0.0124396+pow(log10E,3)*0.0415384+pow(log10E,4)*-0.038319+pow(log10E,5)*0.0176013+pow(log10E,6)*-0.00403444+pow(log10E,7)*0.000366566))/( 0.0159339+log10E*-0.00310712+pow(log10E,2)*-0.0406471+pow(log10E,3)*0.114631+pow(log10E,4)*-0.13245+pow(log10E,5)*0.0820945+pow(log10E,6)*-0.028654+pow(log10E,7)*0.00531092+pow(log10E,8)*-0.000406877);
+	N5EnergyFractionLayer[15] = 	(EcalEdepFrac[15] - (0.00852021+log10E*0.00446952+pow(log10E,2)*-0.00880062+pow(log10E,3)*0.0466926+pow(log10E,4)*-0.0521305+pow(log10E,5)*0.0278772+pow(log10E,6)*-0.00726364+pow(log10E,7)*0.00074004))/( 0.0126971+log10E*-0.00453815+pow(log10E,2)*-0.0267632+pow(log10E,3)*0.10473+pow(log10E,4)*-0.146713+pow(log10E,5)*0.105603+pow(log10E,6)*-0.0414867+pow(log10E,7)*0.00843681+pow(log10E,8)*-0.000694534);
+	N5EnergyFractionLayer[16] = 	(EcalEdepFrac[16] - (0.00594504+log10E*0.0169632+pow(log10E,2)*-0.0616661+pow(log10E,3)*0.12899+pow(log10E,4)*-0.120375+pow(log10E,5)*0.0586744+pow(log10E,6)*-0.0143899+pow(log10E,7)*0.00140276))/( 0.0100516+log10E*0.0161364+pow(log10E,2)*-0.119965+pow(log10E,3)*0.293858+pow(log10E,4)*-0.349538+pow(log10E,5)*0.228811+pow(log10E,6)*-0.0840218+pow(log10E,7)*0.0162131+pow(log10E,8)*-0.00127901);
+	N5EnergyFractionLayer[17] = 	(EcalEdepFrac[17] - (0.00543798+log10E*-0.000388618+pow(log10E,2)*0.00392827+pow(log10E,3)*0.0115864+pow(log10E,4)*-0.0172803+pow(log10E,5)*0.0114815+pow(log10E,6)*-0.00363784+pow(log10E,7)*0.000443996))/( 0.00946958+log10E*-5.75087e-07+pow(log10E,2)*-0.0508399+pow(log10E,3)*0.166945+pow(log10E,4)*-0.228644+pow(log10E,5)*0.164857+pow(log10E,6)*-0.065183+pow(log10E,7)*0.0133383+pow(log10E,8)*-0.00110259);
+	
+	N5LayerSigma[2] = (LayerSigma[2] - (0.702918+log10E*0.1786+pow(log10E,2)*-1.16241+pow(log10E,3)*2.23334+pow(log10E,4)*-2.11692+pow(log10E,5)*1.04914+pow(log10E,6)*-0.255502+pow(log10E,7)*0.0244158))/( 0.616859+log10E*-0.760351+pow(log10E,2)*1.77054+pow(log10E,3)*-2.46145+pow(log10E,4)*1.97213+pow(log10E,5)*-0.97203+pow(log10E,6)*0.300171+pow(log10E,7)*-0.0536164+pow(log10E,8)*0.00420028);
+	N5LayerSigma[3] = (LayerSigma[3] - (0.82419+log10E*-0.242259+pow(log10E,2)*-0.0800595+pow(log10E,3)*0.410785+pow(log10E,4)*-0.44369+pow(log10E,5)*0.242512+pow(log10E,6)*-0.0629706+pow(log10E,7)*0.00633735))/( 0.656262+log10E*-1.13611+pow(log10E,2)*2.47654+pow(log10E,3)*-3.48344+pow(log10E,4)*2.77504+pow(log10E,5)*-1.27925+pow(log10E,6)*0.343322+pow(log10E,7)*-0.0503464+pow(log10E,8)*0.00316225);
+	N5LayerSigma[4] = (LayerSigma[4] - (1.83347+log10E*-1.54709+pow(log10E,2)*1.84444+pow(log10E,3)*-2.52728+pow(log10E,4)*2.0815+pow(log10E,5)*-0.878898+pow(log10E,6)*0.182369+pow(log10E,7)*-0.0147491))/( 1.9453+log10E*-3.46139+pow(log10E,2)*4.02991+pow(log10E,3)*-1.86499+pow(log10E,4)*-1.12621+pow(log10E,5)*1.77472+pow(log10E,6)*-0.847001+pow(log10E,7)*0.182611+pow(log10E,8)*-0.0151032);
+	N5LayerSigma[5] = (LayerSigma[5] - (1.77644+log10E*-0.678295+pow(log10E,2)*-0.304889+pow(log10E,3)*-0.170171+pow(log10E,4)*0.76153+pow(log10E,5)*-0.490884+pow(log10E,6)*0.126429+pow(log10E,7)*-0.0117894))/( 1.84562+log10E*-3.04313+pow(log10E,2)*3.92714+pow(log10E,3)*-3.51534+pow(log10E,4)*1.54177+pow(log10E,5)*-0.047457+pow(log10E,6)*-0.206695+pow(log10E,7)*0.0685405+pow(log10E,8)*-0.00692548);
+	N5LayerSigma[6] = (LayerSigma[6] - (1.05432+log10E*0.521258+pow(log10E,2)*-1.97244+pow(log10E,3)*2.18612+pow(log10E,4)*-1.1799+pow(log10E,5)*0.350946+pow(log10E,6)*-0.0564723+pow(log10E,7)*0.00398145))/( 0.800797+log10E*-0.701523+pow(log10E,2)*1.49897+pow(log10E,3)*-3.80614+pow(log10E,4)*4.6419+pow(log10E,5)*-2.92427+pow(log10E,6)*1.00127+pow(log10E,7)*-0.177885+pow(log10E,8)*0.0128835);
+	N5LayerSigma[7] = (LayerSigma[7] - (1.093+log10E*0.88296+pow(log10E,2)*-2.5981+pow(log10E,3)*2.52446+pow(log10E,4)*-1.16752+pow(log10E,5)*0.280114+pow(log10E,6)*-0.034342+pow(log10E,7)*0.00189455))/( 0.891791+log10E*-1.21896+pow(log10E,2)*3.37478+pow(log10E,3)*-7.52043+pow(log10E,4)*8.53863+pow(log10E,5)*-5.22234+pow(log10E,6)*1.77004+pow(log10E,7)*-0.314288+pow(log10E,8)*0.0228629);
+	N5LayerSigma[8] = (LayerSigma[8] - (1.62175+log10E*1.39471+pow(log10E,2)*-3.88343+pow(log10E,3)*2.75463+pow(log10E,4)*-0.506698+pow(log10E,5)*-0.186349+pow(log10E,6)*0.0841777+pow(log10E,7)*-0.00871717))/( 1.97328+log10E*-4.86273+pow(log10E,2)*11.944+pow(log10E,3)*-19.4281+pow(log10E,4)*17.9846+pow(log10E,5)*-9.57886+pow(log10E,6)*2.92712+pow(log10E,7)*-0.478324+pow(log10E,8)*0.032468);
+	N5LayerSigma[9] = (LayerSigma[9] - (1.63458+log10E*1.00863+pow(log10E,2)*-1.43988+pow(log10E,3)*-1.34877+pow(log10E,4)*2.72069+pow(log10E,5)*-1.51068+pow(log10E,6)*0.358252+pow(log10E,7)*-0.0313018))/( 1.97729+log10E*-4.87927+pow(log10E,2)*12.5553+pow(log10E,3)*-20.9223+pow(log10E,4)*19.5515+pow(log10E,5)*-10.4532+pow(log10E,6)*3.19819+pow(log10E,7)*-0.522441+pow(log10E,8)*0.0354107);
+	N5LayerSigma[10] = (LayerSigma[10] - (0.981196+log10E*1.80272+pow(log10E,2)*-0.336974+pow(log10E,3)*-4.17045+pow(log10E,4)*5.10048+pow(log10E,5)*-2.50978+pow(log10E,6)*0.567795+pow(log10E,7)*-0.0487528))/( 1.13463+log10E*-1.74101+pow(log10E,2)*5.45792+pow(log10E,3)*-11.11+pow(log10E,4)*11.3681+pow(log10E,5)*-6.3531+pow(log10E,6)*1.99244+pow(log10E,7)*-0.33076+pow(log10E,8)*0.0226998);
+	N5LayerSigma[11] = (LayerSigma[11] - (0.945712+log10E*1.42861+pow(log10E,2)*2.32749+pow(log10E,3)*-8.32047+pow(log10E,4)*8.03487+pow(log10E,5)*-3.57916+pow(log10E,6)*0.763202+pow(log10E,7)*-0.0629265))/( 1.15974+log10E*-0.907735+pow(log10E,2)*2.42115+pow(log10E,3)*-5.93494+pow(log10E,4)*6.41907+pow(log10E,5)*-3.59173+pow(log10E,6)*1.10336+pow(log10E,7)*-0.177867+pow(log10E,8)*0.011832);
+	N5LayerSigma[12] = (LayerSigma[12] - (0.898116+log10E*2.35149+pow(log10E,2)*2.73074+pow(log10E,3)*-10.9545+pow(log10E,4)*10.5565+pow(log10E,5)*-4.64497+pow(log10E,6)*0.977332+pow(log10E,7)*-0.0796054))/( 1.47042+log10E*0.0610641+pow(log10E,2)*-1.47669+pow(log10E,3)*0.241814+pow(log10E,4)*0.805002+pow(log10E,5)*-0.512059+pow(log10E,6)*0.10652+pow(log10E,7)*-0.00342691+pow(log10E,8)*-0.000859155);
+	N5LayerSigma[17] = (LayerSigma[17] - (0.308702+log10E*-1.73522+pow(log10E,2)*11.0309+pow(log10E,3)*-10.8216+pow(log10E,4)*3.20527+pow(log10E,5)*0.453786+pow(log10E,6)*-0.391585+pow(log10E,7)*0.0526038))/( 0.890523+log10E*-2.55857+pow(log10E,2)*22.7627+pow(log10E,3)*-49.8004+pow(log10E,4)*50.4153+pow(log10E,5)*-27.9049+pow(log10E,6)*8.72353+pow(log10E,7)*-1.44829+pow(log10E,8)*0.0993793);
+	N5LayerSigma[16] = (LayerSigma[16] - (0.376348+log10E*0.462789+pow(log10E,2)*5.41954+pow(log10E,3)*-4.69559+pow(log10E,4)*-0.677989+pow(log10E,5)*1.95871+pow(log10E,6)*-0.717756+pow(log10E,7)*0.0823458))/( 0.80633+log10E*2.02266+pow(log10E,2)*3.01267+pow(log10E,3)*-15.7756+pow(log10E,4)*19.5341+pow(log10E,5)*-11.8065+pow(log10E,6)*3.87536+pow(log10E,7)*-0.663902+pow(log10E,8)*0.0465962);
+	N5LayerSigma[15] = (LayerSigma[15] - (0.575321+log10E*-1.36862+pow(log10E,2)*13.3499+pow(log10E,3)*-19.5997+pow(log10E,4)*12.5961+pow(log10E,5)*-4.06388+pow(log10E,6)*0.63326+pow(log10E,7)*-0.036673))/( 0.858265+log10E*1.36459+pow(log10E,2)*1.15119+pow(log10E,3)*-8.66589+pow(log10E,4)*10.8749+pow(log10E,5)*-6.46994+pow(log10E,6)*2.0759+pow(log10E,7)*-0.347322+pow(log10E,8)*0.0238461);
+	N5LayerSigma[14] = (LayerSigma[14] - (0.593109+log10E*-0.813497+pow(log10E,2)*13.861+pow(log10E,3)*-24.0082+pow(log10E,4)*18.0811+pow(log10E,5)*-6.95453+pow(log10E,6)*1.33855+pow(log10E,7)*-0.102202))/( 0.825994+log10E*2.26472+pow(log10E,2)*-3.47585+pow(log10E,3)*-0.282446+pow(log10E,4)*3.12173+pow(log10E,5)*-2.37908+pow(log10E,6)*0.826907+pow(log10E,7)*-0.141498+pow(log10E,8)*0.00966065);
+	N5LayerSigma[13] = (LayerSigma[13] - (0.61302+log10E*2.89781+pow(log10E,2)*2.53619+pow(log10E,3)*-10.4992+pow(log10E,4)*9.74748+pow(log10E,5)*-4.12569+pow(log10E,6)*0.835666+pow(log10E,7)*-0.0655457))/( 1.13723+log10E*3.24568+pow(log10E,2)*-10.3725+pow(log10E,3)*12.9001+pow(log10E,4)*-9.4976+pow(log10E,5)*4.46162+pow(log10E,6)*-1.30037+pow(log10E,7)*0.211973+pow(log10E,8)*-0.0146471);
+	
+   N5ShowerLongDisp = 	LaD[0]+(_ShowerLongDisp- (11.8081+log10E*-0.936491+pow(log10E,2)*7.55407+pow(log10E,3)*-7.29086+pow(log10E,4)*2.23501+pow(log10E,5)*0.238421+pow(log10E,6)*-0.266485+pow(log10E,7)*0.0399966))/( 3.47107+log10E*-0.502491+pow(log10E,2)*-7.74648+pow(log10E,3)*17.2689+pow(log10E,4)*-18.3605+pow(log10E,5)*10.8724+pow(log10E,6)*-3.65372+pow(log10E,7)*0.652625+pow(log10E,8)*-0.0481742);
+	N5S3S5[0] = scor[0]+(S3S5 -  0.933152 );
+	N5S3S5[1] = scor[1]+(S3S5x - 0.932582 );
+	N5S3S5[2] = scor[2]+(S3S5y - 0.925783 );
+	N5ShowerLatDisp[1] = LaD[1]+(ShowerLatDisp[1] - (12.5426+log10E*-4.74202+pow(log10E,2)*90.3105+pow(log10E,3)*-174.116+pow(log10E,4)*137.685+pow(log10E,5)*-53.8503+pow(log10E,6)*10.308+pow(log10E,7)*-0.765736))/( 9.5461+log10E*4.01062+pow(log10E,2)*3.40718+pow(log10E,3)*-27.8418+pow(log10E,4)*28.3826+pow(log10E,5)*-12.6456+pow(log10E,6)*2.8295+pow(log10E,7)*-0.307295+pow(log10E,8)*0.0131647);
+	N5ShowerLatDisp[2] = LaD[2]+(ShowerLatDisp[2]- (27.5235+log10E*-11.918+pow(log10E,2)*84.0223+pow(log10E,3)*-123.902+pow(log10E,4)*68.2564+pow(log10E,5)*-13.3742+pow(log10E,6)*-0.425371+pow(log10E,7)*0.303984))/( 22.3648+log10E*8.75913+pow(log10E,2)*-84.2654+pow(log10E,3)*190.862+pow(log10E,4)*-225.388+pow(log10E,5)*145.746+pow(log10E,6)*-51.8595+pow(log10E,7)*9.54455+pow(log10E,8)*-0.71059);
+	N5ShowerFootprint[0]=FP[0]+(ShowerFootprint[0] - (11.7701+log10E*-2.18588+pow(log10E,2)*0.715416+pow(log10E,3)*-2.20044+pow(log10E,4)*1.69941+pow(log10E,5)*-0.0880537+pow(log10E,6)*-0.207168+pow(log10E,7)*0.042239))/( 5.21709+log10E*-6.77066+pow(log10E,2)*10.1759+pow(log10E,3)*-14.564+pow(log10E,4)*11.7963+pow(log10E,5)*-5.13228+pow(log10E,6)*1.20079+pow(log10E,7)*-0.140656+pow(log10E,8)*0.00633411);
+	N5ShowerFootprint[1]=FP[1]+(ShowerFootprint[1] - (4.0103+log10E*0.728578+pow(log10E,2)*0.215779+pow(log10E,3)*-1.86346+pow(log10E,4)*1.23615+pow(log10E,5)*-0.0529401+pow(log10E,6)*-0.136613+pow(log10E,7)*0.026924))/( 1.60146+log10E*-0.912229+pow(log10E,2)*0.130424+pow(log10E,3)*-0.990985+pow(log10E,4)*1.52236+pow(log10E,5)*-0.925456+pow(log10E,6)*0.287532+pow(log10E,7)*-0.046657+pow(log10E,8)*0.0032173);
+	N5ShowerFootprint[2]=FP[2]+(ShowerFootprint[2] - (6.57051+log10E*-0.757404+pow(log10E,2)*0.0631734+pow(log10E,3)*-1.7685+pow(log10E,4)*1.37394+pow(log10E,5)*-0.0626767+pow(log10E,6)*-0.161355+pow(log10E,7)*0.0318432))/( 3.13721+log10E*-3.59197+pow(log10E,2)*6.88893+pow(log10E,3)*-10.1701+pow(log10E,4)*6.90775+pow(log10E,5)*-1.9908+pow(log10E,6)*0.0841649+pow(log10E,7)*0.0661749+pow(log10E,8)*-0.00931509);
+	N5ZProfileMaxRatio = ( (Zprofile[2]/Zprofile[3]) - (1.0147+log10E*-1.24533+pow(log10E,2)*2.77027+pow(log10E,3)*-2.87956+pow(log10E,4)*1.63222+pow(log10E,5)*-0.506559+pow(log10E,6)*0.0785756+pow(log10E,7)*-0.00452505))/( 0.0523153+log10E*1.21012+pow(log10E,2)*-3.82707+pow(log10E,3)*5.68673+pow(log10E,4)*-4.71951+pow(log10E,5)*2.33578+pow(log10E,6)*-0.693652+pow(log10E,7)*0.11523+pow(log10E,8)*-0.00828294);
+	N5Zprofile = (Zprofile[0] - (1.03032+log10E*-0.448632+pow(log10E,2)*1.00227+pow(log10E,3)*-0.835511+pow(log10E,4)*0.250214+pow(log10E,5)*0.0340714+pow(log10E,6)*-0.034056+pow(log10E,7)*0.00507154))/(0.106574+log10E*0.196734+pow(log10E,2)*-1.12027+pow(log10E,3)*2.13524+pow(log10E,4)*-1.88636+pow(log10E,5)*0.818319+pow(log10E,6)*-0.154296+pow(log10E,7)*0.00297922+pow(log10E,8)*0.00178974 );
+
+
+	// Creating reader if needed
+	// ___________________________________________________________
+
+	if (!NESEreaderv3) {
+		NESEreaderv3 = new TMVA::Reader( "!Color:!Silent"	);
+				
+		for (int i=2; i<18; i++) NESEreaderv3->AddVariable(Form("N5EnergyFractionLayer[%i]", i), 	&N5EnergyFractionLayer[i]);
+		for (int i=2; i<18; i++) NESEreaderv3->AddVariable(Form("N5LayerSigma[%i]", i), 				&N5LayerSigma[i]);
+		NESEreaderv3->AddVariable("N5ShowerLongDisp"							, & N5ShowerLongDisp);
+		NESEreaderv3->AddVariable("N5S3S5[0]"									, & N5S3S5[0]);
+		NESEreaderv3->AddVariable("N5S3S5[1]"									, & N5S3S5[1]);
+		NESEreaderv3->AddVariable("N5S3S5[2]"									, & N5S3S5[2]);
+		NESEreaderv3->AddVariable("N5ShowerLatDisp[1]"						, & N5ShowerLatDisp[1]);
+		NESEreaderv3->AddVariable("N5ShowerLatDisp[2]"						, & N5ShowerLatDisp[2]);
+		NESEreaderv3->AddVariable("N5ShowerFootprint[0]"					, & N5ShowerFootprint[0]);
+		NESEreaderv3->AddVariable("N5ShowerFootprint[1]"					, & N5ShowerFootprint[1]);
+		NESEreaderv3->AddVariable("N5ShowerFootprint[2]"					, & N5ShowerFootprint[2]);
+		NESEreaderv3->AddVariable("N5ZProfileMaxRatio"						, & N5ZProfileMaxRatio);
+		NESEreaderv3->AddVariable("N5Zprofile"									, & N5Zprofile);
+		NESEreaderv3->AddVariable("ED_Nhits"									, & ED_Nhits);
+		NESEreaderv3->AddVariable("zprofile[4]"								, & zprofile[4]);
+		NESEreaderv3->AddVariable("hcount"										, & hcount		);
+		NESEreaderv3->AddVariable("Rear1"										, & Rear1		);
+		NESEreaderv3->AddVariable("Ed_sqpixl"									, & Ed_sqpixl	);
+		NESEreaderv3->AddVariable("Ed_sqpix"									, & Ed_sqpix	);
+		NESEreaderv3->AddVariable("Ed_pixl"										, & Ed_pixl		);
+		NESEreaderv3->AddVariable("RearLeak"									, & ESE3RearLeak);
+		NESEreaderv3->AddSpectator("EnergyA"									, & nEnergyA);
+		NESEreaderv3->AddSpectator("EnergyC"									, & EnergyC);
+		NESEreaderv3->AddSpectator("EnergyD"									, & EnergyD);
+		NESEreaderv3->AddSpectator("EnergyE"									, & EnergyE);
+		NESEreaderv3->AddSpectator("ESEv3"										, & ESEv3);
+		NESEreaderv3->AddSpectator("N5EnergyFractionLayer[0]"				, & N5EnergyFractionLayer[0]);
+		NESEreaderv3->AddSpectator("N5EnergyFractionLayer[1]"				, & N5EnergyFractionLayer[1]);
+		
+		char name[801]="";
+      sprintf(name,"%s/%s/TMVA_ePrej_V3_BCat.vc.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      NESEreaderv3->BookMVA("BCat method", name);
+
+	}
+
+
+
+	// Retrieving ESEv3 value
+	// ___________________________________________________________
+
+
+	return NESEreaderv3->EvaluateMVA("BCat method");
+
+}
+
 
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 

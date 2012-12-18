@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.524 2012/12/18 09:05:09 incaglim Exp $
+//  $Id: root.h,v 1.525 2012/12/18 11:01:37 lbasara Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -747,8 +747,17 @@ public:
   ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to 
   ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
 
+ float EcalStandaloneEstimatorV3();
+  ///< LAPP Ecal Estimator -
+  ///< Updated Dec 2012 -
+  ///< 90% efficiency cut (based on electron-like flight events) now Energy-Bin dependant
+  ///< for an Energy-Bin independant cut, you should use EcalShowerR::EcalStandaloneEstimatorV2()
+  ///< However, BDT value of -0.05 reasonable for 90% efficacity cut.
+  ///< EcalShowerR::GetEcalBDT() is now considered obsolete.
+  
+  
+  
  
-
   /// Pisa function to obtain the Boosted Decision Tree Classifier for shower.
   /// The classifier has a version number:
   /// iBDTVERSION=3           trained with B552
@@ -784,7 +793,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,13)       //EcalShowerR
+  ClassDef(EcalShowerR,14)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
