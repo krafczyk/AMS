@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.116 2012/12/19 18:12:23 mduranti Exp $
+#  $Id: Makefile,v 1.117 2012/12/19 18:23:41 mduranti Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -186,7 +186,7 @@ OPT           = -O3
 NOOPT         = -g
 
 LD            = g++ 
-LDFLAGS       = -g 
+LDFLAGS       = -g
 LDS	= 	$(LD) 
 LDS	= 	$(LD) 
 LDD	= 	$(LD) 
@@ -210,7 +210,9 @@ LIBSD         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBS)  -lgfortran
 # To avoid that we have to explicitely link against the libQtCore shared library here.
 ifdef AMS_ACQT_INTERFACE
 AMS_ACQT_NO_LIBRT := 1
-LIBSA = -F$(QTDIR)/lib -framework QtCore $(LIBS)
+LIBS += -F$(QTDIR)/lib -framework QtCore
+LIBSA += -F$(QTDIR)/lib -framework QtCore
+LIBSD += -F$(QTDIR)/lib -framework QtCore
 endif
 endif
 ifeq ($(ARCH),linux)
