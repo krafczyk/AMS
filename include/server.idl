@@ -198,11 +198,17 @@ module DPS{
     };
     typedef sequence<DSTInfo> DSTIS;
     long getDSTInfoS(in CID id, out DSTIS dsti);
+    long getSplitDSTInfoS(in CID id, out DSTIS dsti, in unsigned long pos, inout TransferStatus st);
     void sendDSTInfoS(in CID id, in DSTIS dsti);
+    long sendSplitDSTInfoS(in CID id, in DSTIS dsti, inout TransferStatus st);
+    
+    
     void sendDSTInfo(in DSTInfo info, in RecordChange rc)raises(DBProblem);
     typedef sequence<RunEvInfo> RES;
     long getRunEvInfoS(in CID id, out RES res, inout unsigned long maxr)raises(DBProblem); 
+    long getSplitRunEvInfoS(in CID id, out RES res, in unsigned long pos, inout unsigned long maxr, inout TransferStatus st) raises(DBProblem);
     void sendRunEvInfoS(in CID id, in RES res, in unsigned long maxr); 
+    long sendSplitRunEvInfoS(in CID id, in RES res, in unsigned long maxr, inout TransferStatus st); 
     void getRunEvInfo(in CID id, out RunEvInfo rv, out DSTInfo dv)raises(DBProblem);
     void sendRunEvInfo(in RunEvInfo ri, in RecordChange rch)raises(DBProblem);
 
@@ -231,8 +237,10 @@ module DPS{
     void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 
     typedef sequence<DST> DSTS;
     long getDSTS(in CID id, out DSTS dsts);     
+	long getSplitDSTS(in CID id, out DSTS dsts, in unsigned long pos, inout TransferStatus st);
     long getDSTSR(in CID id, in long run,out DSTS dsts);     
     void sendDSTS(in CID id, in DSTS dsts);     
+    long sendSplitDSTS(in CID id, in DSTS dsts, inout TransferStatus st);     
 
     typedef sequence<octet> RUN;
     exception FailedOp{
@@ -273,6 +281,7 @@ module DPS{
     };
     */
     long getACS(in CID id, out ACS acl, out unsigned long maxc)raises(DBProblem);
+    long getSplitACS(in CID id, inout unsigned long pos, out ACS acl, out unsigned long maxc, inout DPS::Producer::TransferStatus st);
     void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc)raises(DBProblem);
 
     void ping();

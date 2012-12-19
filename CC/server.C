@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.203 2012/11/12 10:17:55 choutko Exp $
+//  $Id: server.C,v 1.204 2012/12/19 12:31:52 ams Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1555,7 +1555,6 @@ int Server_impl::getACS(const DPS::Client::CID &cid, DPS::Server::ACS_out acs, u
      }
  }
 
-
 //_parent->IMessage(AMSClient::print(cid," type "));
 DPS::Server::ACS_var acv= new DPS::Server::ACS();
 unsigned int length=0;
@@ -1582,7 +1581,68 @@ return 0;
 
 }
 
+int Server_impl::getSplitACS(const DPS::Client::CID &cid, unsigned int & pos, DPS::Server::ACS_out acs, unsigned int & maxc, DPS::Producer::TransferStatus &st)
+	throw (CORBA::SystemException)
+{
+	if(_parent->DBServerExists()){
+	        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer());
+	     DPS::Client::CID pid=_parent->getcid();
+	     pid.Type=DPS::Client::DBServer;
+	     pid.Interface= (const char *) " ";
+	     DPS::Client::ARS * pars;
+	     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+	     DPS::Client::ARS_var arf=pars;
+	     for(unsigned int i=0;i<length;i++){
+	      try{
+	       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+	       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+	          return _pvar->getACS(cid,acs,maxc);
+	       }
+	       catch(DPS::DBProblem &dbl){
+	       _parent->EMessage((const char*)dbl.message);
+	       }
+	       catch (CORBA::SystemException &ex){
+	        // Have to Kill Servers Here
+	        _parent->EMessage("dbserver corba error during getacs" );
+	       }
+	     }
+	}
 
+	const int maxs=200;
+
+	st=DPS::Producer::Continue;
+	DPS::Server::ACS_var acv= new DPS::Server::ACS();
+	unsigned int length=0;
+	for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down())
+	{
+		if(pser->getType()==cid.Type){
+			maxc=pser->getmaxcl();
+			length=pser->getacl().size();
+			if (length-pos > maxs)
+				length = maxs;
+			if(length>0)
+			{
+				acv->length(length);
+				unsigned sz = length;
+				length=0;
+				ACLI li = pser->getacl().begin();
+				for(advance(li,pos); li!=pser->getacl().end()&&sz>0; ++li,sz--){
+					 acv[length++]=*li;
+					 _parent->IMessage(AMSClient::print(acv[length-1],"getacs"));
+				}
+				if (li == pser->getacl().end()) st=DPS::Producer::End;
+			}
+			else
+			{
+				length = 0;
+				st=DPS::Producer::End;
+			}
+			acs=acv._retn();
+			return length;
+		}
+	}
+	return 0;
+}
 
    void Server_impl::sendAC(const DPS::Client::CID &  cid,   DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
@@ -3445,6 +3505,37 @@ maxrun=_RunID;
 return length;
 }
 
+int Producer_impl::getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int pos, unsigned int &maxrun, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException)
+{
+	const int maxs=200;
+
+	st=DPS::Producer::Continue;
+	DPS::Producer::RES_var acv= new DPS::Producer::RES();
+	unsigned int length=_rl.size();
+	if(length>maxrun && maxrun>0)
+		length=maxrun;
+	if (length-pos > maxs)
+		length = maxs;
+	if(length>0)
+	{
+		unsigned sz = length;
+		acv->length(length);
+		length=0;
+		RLI li=_rl.begin();
+		for(advance(li,pos); li!=_rl.end()&&sz>0; ++li,sz--)
+			acv[length++]=*li;
+		if (li == _rl.end()) st=DPS::Producer::End;
+	}
+	else
+	{
+		length = 0;
+		st=DPS::Producer::End;
+	}
+	res=acv._retn();
+	maxrun=_RunID;
+	return length;
+}
+
  int Producer_impl::getDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res)throw (CORBA::SystemException){
  
 //         cout <<" entering Producer_impl::getDSTInfoS"<<endl;
@@ -3467,6 +3558,32 @@ return length;
 }
 
 
+int Producer_impl::getSplitDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res, unsigned int pos, DPS::Producer::TransferStatus &st)
+	throw (CORBA::SystemException)
+{
+	const int maxs=200;
+
+	st=DPS::Producer::Continue;
+	DPS::Producer::DSTIS_var acv= new DPS::Producer::DSTIS();
+	unsigned int length=0;
+	length=_dstinfo.size();
+	if (length-pos > maxs)
+		length = maxs;
+	if(length>0){
+		acv->length(length);
+		length=0;
+		for(DSTILI li=_dstinfo.begin();li!=_dstinfo.end();++li)
+			acv[length++]=*li;
+		if (li == _dstinfo.end()) st=DPS::Producer::End;
+	}
+	else
+	{
+		length = 0;
+		st=DPS::Producer::End;
+	}
+	res=acv._retn();
+	return length;
+}
 
 
 void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::RunEvInfo_out ro,DPS::Producer::DSTInfo_out dso)throw (CORBA::SystemException){
@@ -3842,6 +3959,40 @@ dsts=acv._retn();
 return length;
 }
 
+int Producer_impl::getSplitDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts, unsigned int pos, DPS::Producer::TransferStatus &st)
+	throw (CORBA::SystemException)
+{
+	const int maxs=200;
+
+	st=DPS::Producer::Continue;
+	DPS::Producer::DSTS_var acv= new DPS::Producer::DSTS();
+	unsigned int length=_dst.size();
+	int lm=ci.Mips;
+	if(lm<=0 || 1)lm=10000000;
+	if(length>lm)
+		length=lm;
+	if (length-pos > maxs)
+		length = maxs;
+	if (length > 0)
+	{
+		acv->length(length);
+		unsigned sz = length;
+		length=0;
+		DSTLI li = _dst.begin();
+		for(advance(li,pos); li!=_dst.end()&&sz>0; ++li,sz--) {
+			 acv[length++]=(*li).second;
+			 if(length+pos>=lm) break;
+		}
+		if (li == _dst.end()) st=DPS::Producer::End;
+	}
+	else
+	{
+		length = 0;
+		st=DPS::Producer::End;
+	}
+	dsts=acv._retn();
+	return length;
+}
 
 int Producer_impl::getDSTSR(const DPS::Client::CID & ci,   int  run, DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException){
 
@@ -6081,7 +6232,20 @@ void Producer_impl::sendRunEvInfoS(const DPS::Client::CID &cid, const DPS::Produ
    return;
   }
 
-
+int Producer_impl::sendSplitRunEvInfoS(const DPS::Client::CID &cid, const DPS::Producer::RES & acs, unsigned int  maxc, DPS::Producer::TransferStatus &st)throw (CORBA::SystemException)
+{
+	if (st == DPS::Producer::Begin)
+		_rl.clear();
+	else if (st != DPS::Producer::Continue)
+		return 0;
+	int length =acs.length();
+	for(int i=0;i<length;i++){
+	    DPS::Producer::RunEvInfo_var anh= new DPS::Producer::RunEvInfo(acs[i]);
+	    _rl.push_back(anh);
+	}
+	_RunID=maxc;
+	return length;
+}
 
 
 void Producer_impl::sendDSTS(const DPS::Client::CID & ci, const DPS::Producer::DSTS & acs)throw (CORBA::SystemException){
@@ -6095,17 +6259,43 @@ _dst.clear();
    return;
   }
 
+int Producer_impl::sendSplitDSTS(const DPS::Client::CID &ci, const DPS::Producer::DSTS &acs, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException)
+{
+	if (st == DPS::Producer::Begin)
+		_dst.clear();
+	else if (st != DPS::Producer::Continue)
+		return 0;
+	int length =acs.length();
+	for(int i=0;i<length;i++){
+	    DPS::Producer::DST_var anh= new DPS::Producer::DST(acs[i]);
+	    _dst.insert(make_pair(anh->Type,anh));
+	}
+	return length;
+}
 
 void Producer_impl::sendDSTInfoS(const DPS::Client::CID & ci, const DPS::Producer::DSTIS & acs)throw (CORBA::SystemException){
-
-_dstinfo.clear();
+   _dstinfo.clear();
    int length =acs.length();
    for(int i=0;i<length;i++){
     DPS::Producer::DSTInfo_var anh= new DPS::Producer::DSTInfo(acs[i]);
     _dstinfo.push_back(anh);
    }
    return;
-  }
+}
+
+int Producer_impl::sendSplitDSTInfoS(const DPS::Client::CID &ci, const DPS::Producer::DSTIS &acs, DPS::Producer::TransferStatus &st)throw (CORBA::SystemException){
+	if (st == DPS::Producer::Begin)
+		_dstinfo.clear();
+	else if (st != DPS::Producer::Continue)
+		return 0;
+	int length =acs.length();
+	for(int i=0;i<length;i++){
+		DPS::Producer::DSTInfo_var anh= new DPS::Producer::DSTInfo(acs[i]);
+		_dstinfo.push_back(anh);
+	}
+	return length;
+}
+
 /*
 extern "C" gpointer myrun(gpointer data){
 //((CORBA::ORB_ptr)data)->run();

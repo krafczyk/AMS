@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.32 2012/08/07 11:02:15 ams Exp $
+//  $Id: dbserver.C,v 1.33 2012/12/19 12:31:26 ams Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -1985,7 +1985,8 @@ int  DBServer_impl::getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)t
 
 int  DBServer_impl::getACS(const DPS::Client::CID &cid, DPS::Client::ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException){
 }
-
+int  DBServer_impl::getSplitACS(const DPS::Client::CID &cid, unsigned int & pos, DPS::Server::ACS_out acs, unsigned int & maxc, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException){
+}
 void  DBServer_impl::sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 }
 
@@ -2031,14 +2032,13 @@ int  DBServer_impl::getTDVTable(const DPS::Client::CID & cid,DPS::Producer::TDVN
 
 int  DBServer_impl::getDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res)throw (CORBA::SystemException){
 }
-
+int  DBServer_impl::getSplitDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res, unsigned int pos, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException){
+}
 int  DBServer_impl::getRun(const DPS::Client::CID &cid, const DPS::Producer::FPath & fpath, DPS::Producer::RUN_out run,DPS::Producer::TransferStatus & st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
 }
 int  DBServer_impl::getRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int & maxrun)throw (CORBA::SystemException){
-
-
-
-
+}
+int  DBServer_impl::getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int pos, unsigned int &maxrun, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException){
 }
 
 void  DBServer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::RunEvInfo_out rv, DPS::Producer::DSTInfo_out dv)throw (CORBA::SystemException){
@@ -2049,6 +2049,8 @@ void  DBServer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Ru
 
 
 int  DBServer_impl::getDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException){
+}
+int DBServer_impl::getSplitDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts, unsigned int pos, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException){
 }
 
 int  DBServer_impl::getDSTSR(const DPS::Client::CID & ci, int run,DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException){
