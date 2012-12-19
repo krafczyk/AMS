@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.59 2012/11/08 16:06:58 nzimmerm Exp $
+//  $Id: main.cxx,v 1.60 2012/12/19 18:12:24 mduranti Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -35,8 +35,13 @@ void OpenChain(AMSChain & chain, char * filename);
 
 #ifndef WIN32
 #ifdef __APPLE__
+#if __OSXVER__ >= 1080
 static int Selectsdir(const dirent *entry=0);
 static int Select(const dirent *entry=0);
+#else
+static int Selectsdir(dirent *entry=0);
+static int Select(dirent *entry=0);
+#endif
 static int Sort( dirent ** e1,   dirent ** e2);
 #else
 static int Selectsdir(const dirent64 *entry=0);
@@ -342,7 +347,11 @@ void OpenChain(AMSChain & chain, char * filenam){
 //                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
+#if __OSXVER__ >= 1080
                 int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent**, const dirent**)>(&Sort));
+#else
+		int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#endif
 #elif defined(__LINUXNEW__)
                 dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
@@ -387,7 +396,11 @@ void OpenChain(AMSChain & chain, char * filenam){
                 cout <<"  scanning wild"<<ts<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
+#if __OSXVER__ >= 1080
                 int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent**, const dirent**)>(&Sort));
+#else
+		int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#endif
 #elif defined(__LINUXNEW__)
                 dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
@@ -460,7 +473,11 @@ void OpenChain(AMSChain & chain, char * filenam){
 #ifndef WIN32
 
 #ifdef __APPLE__
-int Selectsdir(	 const dirent *entry)
+#if __OSXVER__ >= 1080
+int Selectsdir(const dirent *entry)
+#else
+int Selectsdir(dirent *entry)
+#endif
 #else
 int Selectsdir(  const dirent64 *entry)
 #endif
@@ -479,7 +496,11 @@ int Selectsdir(  const dirent64 *entry)
 #ifndef WIN32
 
 #ifdef __APPLE__
-int Select(  const dirent *entry)
+#if __OSXVER__ >= 1080
+int Select(const dirent *entry)
+#else
+int Select(dirent *entry)
+#endif
 #else
 int Select( const dirent64 *entry)
 #endif

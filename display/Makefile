@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.115 2012/11/09 09:09:07 nzimmerm Exp $
+#  $Id: Makefile,v 1.116 2012/12/19 18:12:23 mduranti Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -177,9 +177,10 @@ LIBSD         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBS)
 endif
 ifeq ($(ARCH),macosx64)
 
+OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
 
 CXX           =  g++  
-CPPFLAGS      =  -D__APPLE__ -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include  -I/usr/X11R6/include/ -I/usr/X11R6/include/freetype2
+CPPFLAGS      =  -D__APPLE__ -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -D__OSXVER__=$(OSXVER) -I. -I../include -I$(ROOTSYS)/include  -I/usr/X11R6/include/ -I/usr/X11R6/include/freetype2
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -O3
 NOOPT         = -g
@@ -215,7 +216,7 @@ endif
 ifeq ($(ARCH),linux)
 
 CXX           =  g++ -m32 
-CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 NOOPT         = -g 
