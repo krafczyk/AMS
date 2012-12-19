@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.204 2012/12/19 12:31:52 ams Exp $
+//  $Id: server.C,v 1.205 2012/12/19 17:48:15 ams Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1592,7 +1592,7 @@ int Server_impl::getSplitACS(const DPS::Client::CID &cid, unsigned int & pos, DP
 	     DPS::Client::ARS * pars;
 	     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
 	     DPS::Client::ARS_var arf=pars;
-	     for(unsigned int i=0;i<length;i++){
+	     for(int i=0;i<length;i++){
 	      try{
 	       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
 	       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
@@ -1612,18 +1612,19 @@ int Server_impl::getSplitACS(const DPS::Client::CID &cid, unsigned int & pos, DP
 
 	st=DPS::Producer::Continue;
 	DPS::Server::ACS_var acv= new DPS::Server::ACS();
-	unsigned int length=0;
+	int length=0;
 	for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down())
 	{
 		if(pser->getType()==cid.Type){
 			maxc=pser->getmaxcl();
-			length=pser->getacl().size();
-			if (length-pos > maxs)
+			length=static_cast<int>(pser->getacl().size());
+			length -= static_cast<int>(pos);
+			if (length > maxs)
 				length = maxs;
 			if(length>0)
 			{
+				int sz = length;
 				acv->length(length);
-				unsigned sz = length;
 				length=0;
 				ACLI li = pser->getacl().begin();
 				for(advance(li,pos); li!=pser->getacl().end()&&sz>0; ++li,sz--){
@@ -3511,14 +3512,15 @@ int Producer_impl::getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer
 
 	st=DPS::Producer::Continue;
 	DPS::Producer::RES_var acv= new DPS::Producer::RES();
-	unsigned int length=_rl.size();
-	if(length>maxrun && maxrun>0)
-		length=maxrun;
-	if (length-pos > maxs)
+	int length = static_cast<int>(_rl.size());
+	if(maxrun != 0 && length>static_cast<int>(maxrun))
+		length=static_cast<int>(maxrun);
+	length -= static_cast<int>(pos);
+	if (length > maxs)
 		length = maxs;
 	if(length>0)
 	{
-		unsigned sz = length;
+		int sz = length;
 		acv->length(length);
 		length=0;
 		RLI li=_rl.begin();
@@ -3565,14 +3567,15 @@ int Producer_impl::getSplitDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::
 
 	st=DPS::Producer::Continue;
 	DPS::Producer::DSTIS_var acv= new DPS::Producer::DSTIS();
-	unsigned int length=0;
-	length=_dstinfo.size();
-	if (length-pos > maxs)
+	int length=static_cast<int>(_dstinfo.size());
+	length -= static_cast<int>(pos);
+	if (length > maxs)
 		length = maxs;
 	if(length>0){
+		int sz = length;
 		acv->length(length);
 		length=0;
-		for(DSTILI li=_dstinfo.begin();li!=_dstinfo.end();++li)
+		for(DSTILI li=_dstinfo.begin(); li!=_dstinfo.end()&&sz>0; ++li,sz--)
 			acv[length++]=*li;
 		if (li == _dstinfo.end()) st=DPS::Producer::End;
 	}
@@ -3966,17 +3969,18 @@ int Producer_impl::getSplitDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS
 
 	st=DPS::Producer::Continue;
 	DPS::Producer::DSTS_var acv= new DPS::Producer::DSTS();
-	unsigned int length=_dst.size();
+	int length=static_cast<int>(_dst.size());
 	int lm=ci.Mips;
 	if(lm<=0 || 1)lm=10000000;
 	if(length>lm)
 		length=lm;
-	if (length-pos > maxs)
+	length -= static_cast<int>(pos);
+	if (length > maxs)
 		length = maxs;
 	if (length > 0)
 	{
+		int sz = length;
 		acv->length(length);
-		unsigned sz = length;
 		length=0;
 		DSTLI li = _dst.begin();
 		for(advance(li,pos); li!=_dst.end()&&sz>0; ++li,sz--) {
