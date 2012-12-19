@@ -111,6 +111,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    {
       Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
 
+      if (!cluster2d) return -2;
       if (!(cluster2d->Status & 32)) continue;
 
       int nCLUSTERs = cluster2d->NEcalCluster();
@@ -118,6 +119,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
       {
          EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
 
+	 if (!cluster) return -2;
          if (!(cluster->Status & 32)) continue;
 
          ClusterEnergy[cluster->Plane] += cluster->Edep;
@@ -126,7 +128,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
          for (int ihit = 0; ihit < nclHITs; ++ihit)
          {
             EcalHitR *hit = cluster->pEcalHit(ihit);
-
+	    
+	    if (!hit) return -2;
             if ((hit->Status & 32) && hit->ADC[0] > 4)
                MapEneDep[hit->Plane][hit->Cell] = hit->Edep;
          }
