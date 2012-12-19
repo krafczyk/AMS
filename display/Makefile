@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.117 2012/12/19 18:23:41 mduranti Exp $
+#  $Id: Makefile,v 1.118 2012/12/19 22:28:36 mduranti Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -306,11 +306,12 @@ else
 endif
 endif
 
-ifndef AMS_ACQT_NO_LIBRT
 ifdef AMS_ACQT_INTERFACE
-LIBS+=-lrt
-LIBSA+=-lrt
+ifndef AMS_ACQT_NO_LIBRT
+LIBS+= -lrt
+LIBSA+= -lrt
 endif
+LIBSD+= -L$(QTDIR)/lib -lQtCore 
 endif
 
 ifdef PGTRACK
