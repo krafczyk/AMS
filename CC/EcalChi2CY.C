@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.21 2012/12/02 13:47:27 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.22 2012/12/19 22:39:43 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1353,7 +1353,7 @@ bool EcalAxis::init_lf(){
     p[2]=init_dxdz;
     p[3]=init_dydz;
     chi20=GetChi2(p);
-    if(Version==2&&EnergyE<15){
+    if((Version==2&&EnergyE<15)||simple==1){
         p0_lf[0]=init_x0 ;
         p0_lf[1]=init_y0 ;
         p0_lf[2]=ecalz[8];
@@ -1364,6 +1364,8 @@ bool EcalAxis::init_lf(){
         dir_lf[0]/=r;
         dir_lf[1]/=r;
         dir_lf[2]/=r;
+	//reset simple to 0
+	simple=0;
         return true;
     }
     for(int i1=0;i1<10;i1++){
@@ -1643,18 +1645,25 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
         }
     }
     get_z();
+    ecalchi2->set_edep(Edep_raw,_erg,EnergyE);
     _status=0;
     if((algorithm&4)==4){
-        if(init_cg())
+        if(init_cg()){
             _status+=4;
+            double param[4]={p0_cg[0],p0_cg[1],dir_cg[0]/dir_cg[2],dir_cg[1]/dir_cg[2]};
+            GetChi2(param);
+        }
     }
     if((algorithm&2)==2){
         if(init_lf())
             _status+=2;
     }
     if((algorithm&1)==1){
-        if(init_cr())
+        if(init_cr()){
+            double param[4]={p0_cr[0],p0_cr[1],dir_cr[0]/dir_cr[2],dir_cr[1]/dir_cr[2]};
+            GetChi2(param);
             _status+=1;
+        }
     }
     use_ext=0;
     return _status;

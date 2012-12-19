@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.11 2012/12/01 17:33:15 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.12 2012/12/19 22:37:32 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -290,6 +290,8 @@ public:
     \param[out] nchi2    	Normalized EcalChi2
     */
     float get_nchi2(AMSEventR* ev)	;
+    ///default 0. if set to 1, use the EMDir & Ecal CoG as shower axis	 
+    int simple				;
 private:
     void init(const char* fdatabase, int ftype=0);
     AMSPoint p0_lf             ;
