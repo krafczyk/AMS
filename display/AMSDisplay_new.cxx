@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.19 2011/05/28 15:35:26 pzuccon Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.20 2012/12/21 16:40:35 kaiwu Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -27,6 +27,8 @@
 #include "AMSR_Axis.h"
 #include "AMSR_GeometrySetter.h"
 #include "TGRunEventDialog.h"
+#include "TObjArray.h"
+#include "TChainElement.h"
 #include "TLatex.h"
 #ifndef WIN32
 #include <dlfcn.h>
@@ -45,7 +47,7 @@ AMSDisplay *gAMSDisplay;
 
 
 AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec, bool monit=false):
-  m_chain(chain), m_sec(sec),m_nodate(false),TObject(){
+  m_chain(chain), m_sec(sec),m_nodate(false),TObject(),m_chain_Entries(0){
      m_sec=abs(sec);
      m_nodate=sec<0;
      fCooDef[0][0]=-115.;
@@ -104,8 +106,6 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
 
    Double_t xsep = 0.;
    m_Canvas->cd();
-
-
    //
    // Create title pad
    // ----------------------------
@@ -148,12 +148,35 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
 
 
 
-   if(!m_chain->GetFile())OpenFileCB();
+  if(!m_chain->GetFile())OpenFileCB();
   if(!m_chain->GetFile()){
    cerr <<"No file opened, exiting "<<endl;
    exit(1);
-  } 
-     m_chain->ReadOneEvent(0);
+  }
+   
+  //Record run, index of entry information
+  //clock_t start,end;
+  //start=clock();
+  AMSEventR* tevt; 
+  m_chain_Entries=m_chain->GetEntries();
+  //cout<<"Total entries "<< m_chain_Entries<<endl;
+  m_chain_EntryIndex.push_back(0);
+  tevt=m_chain->GetEvent(0);
+  m_chain_Runs.push_back(tevt->Run());
+  //cout<<"++++++++++++ 0 ++++++ "<<m_chain_EntryIndex[0]<<", "<<m_chain_Runs[0]<<endl;
+  for(int i1=1;i1<m_chain->GetListOfFiles()->GetEntries();i1++){
+      TChainElement* elem=(TChainElement*)m_chain->GetListOfFiles()->At(i1-1);
+      m_chain_EntryIndex.push_back(m_chain_EntryIndex[i1-1]+elem->GetEntries());
+      tevt=m_chain->GetEvent(m_chain_EntryIndex[i1]-1);
+      tevt=m_chain->GetEvent();
+      m_chain_Runs.push_back(tevt->Run());
+      //m_chain_Runs.push_back(0);
+      //cout<<"++++++++++++ "<<i1<<" ++++++ "<<m_chain_EntryIndex[i1]<<", "<<m_chain_Runs[i1]<<endl;
+  }
+  m_chain_EntryIndex.push_back(m_chain_Entries);
+  //end=clock();
+  //cout<<"This uses "<<double(end-start)/double(CLOCKS_PER_SEC)<<" seconds"<<endl;
+  m_chain->ReadOneEvent(0);
 
 }
 
@@ -653,8 +676,10 @@ bool AMSDisplay::ShowNextEvent(Int_t delta){
 
   int entry=m_chain->Entry()+delta;
   int res;     
-  unsigned static int lastrun=0;
+  static unsigned int lastrun=0;
   unsigned int run=0;
+  if(entry<0||entry>=m_chain_Entries)
+      return false;
   while((res=m_chain->ReadOneEvent(entry))==0){
     entry+=delta;
    if (res>=0 && m_monitor){

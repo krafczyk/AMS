@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.50 2011/08/24 17:14:16 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.51 2012/12/21 16:40:35 kaiwu Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -696,7 +696,7 @@ public:
   AMSNtupleV():AMSEventR(){TkMult=1; TkDispY=1;};
   void Draw(EAMSType type=kall);
   void Prepare(EAMSType type=kall);
-bool GetEvent(unsigned int run, unsigned int event);
+  bool GetEvent(unsigned int run, unsigned int event);
   char * GetObjInfo(int px,int py);
   void SetTkMult(int aa){TkMult=aa;}
   int GetTkMult(){return TkMult;}

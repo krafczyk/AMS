@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.45 2012/10/22 13:57:53 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.46 2012/12/21 16:40:35 kaiwu Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -438,7 +438,7 @@ if(type==kall || type==kusedonly || type==krichrings){
  fRichRingV.clear();
  fRichRingBV.clear();
  if(gAMSDisplay->DrawObject(krichrings)){
-  for(int i=0;i<NRichRing();i++){
+  for(int i=0;i<nRichRing();i++){
    if( (!gAMSDisplay->DrawUsedOnly() || ((pRichRing(i)->Status)/32)%2)){
     fRichRingV.push_back( RichRingV(this,i,false));
     if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingV(this,i,true));
@@ -526,8 +526,7 @@ for(int i=0;i<fDaqV.size();i++){
 
  for(int i=0;i<fEcalClusterV.size();i++){
    fEcalClusterV[i].AppendPad();
-  }
-
+  }     
  for(int i=0;i<fRichRingV.size();i++){
    fRichRingV[i].AppendPad();
   }
@@ -576,19 +575,92 @@ for(int i=0;i<fDaqV.size();i++){
  bool AMSNtupleV::GetEvent(unsigned int run, unsigned int event){
  int entry=0;
  if(!run)run=Run();
- if(Run()==run   && Event() >=event){
-   gAMSDisplay->getchain()->Rewind();
- }
+// if(Run()==run   && Event() >=event){
+//   gAMSDisplay->getchain()->Rewind();
+// }
+
+
 entry=gAMSDisplay->getchain()->Entry();
-int prcs=AMSEventR::ProcessSetup;
-if(run!=Run())AMSEventR::ProcessSetup=1; 
-while(gAMSDisplay->getchain()->ReadOneEvent(entry++)!=-1){
-   if(Run()==run && AMSEventR::ProcessSetup!=prcs){
-       AMSEventR::ProcessSetup=prcs;
-       UpdateSetup(Run());
-   }
-  if(Run() == run && Event()>=event)return true;
- }
+
+//Add Binary seach 
+//gAMSDisplay->getchain()->ReadOneEvent(entry);
+unsigned int fevent=Event();
+unsigned int frun=Run();
+int starti,endi;
+int startevt,endevt;
+//Find given run
+int i1;
+for(i1=0;i1<gAMSDisplay->m_chain_Runs.size();i1++){
+    if(run==gAMSDisplay->m_chain_Runs[i1]){
+        break;
+    }
+}
+if(i1==gAMSDisplay->m_chain_Runs.size())
+    return false;
+starti=gAMSDisplay->m_chain_EntryIndex[i1];
+i1++;
+for(;i1<gAMSDisplay->m_chain_Runs.size();i1++){
+    cout<<i1<<endl;
+    if(run!=gAMSDisplay->m_chain_Runs[i1])
+        break;
+}
+endi=gAMSDisplay->m_chain_EntryIndex[i1]-1;
+int maxn=int(ceil(log2(endi-starti)))+2;
+//Update root setup if search a different run
+//if(frun!=run){
+AMSEventR::ProcessSetup=1; 
+UpdateSetup(run);
+//}
+//if the event is very close to current entry, we just try one by one
+if(maxn>fabs(event-fevent)){
+    int inc=-1;
+    if(fevent<event)
+        inc=1;
+    while(gAMSDisplay->getchain()->ReadOneEvent(entry)!=-1&&Run()==run&&entry>=0&&entry<gAMSDisplay->m_chain_Entries){
+        if(inc*Event()>=inc*event)return true;
+        entry+=inc;
+    }
+    return true;
+}
+else{   
+    gAMSDisplay->getchain()->ReadOneEvent(starti);
+    startevt=Event();
+    if(Event()>=event){
+        return true;
+    }
+    gAMSDisplay->getchain()->ReadOneEvent(endi);
+    endevt=Event();
+    if(Event()<=event){
+        return true;
+    }
+    int endi2=starti+(event-startevt);
+    if(endi2<endi)
+        endi=endi2;
+    while(endi-1>starti){
+        gAMSDisplay->getchain()->ReadOneEvent(int(0.5*(starti+endi)));
+        if(Event()<event)
+            starti=int(0.5*(starti+endi));
+        else if(Event()>event)
+            endi=int(0.5*(starti+endi));
+        else
+            return true;      
+    }
+    return true;
+}
+
+//int prcs=AMSEventR::ProcessSetup;
+//
+//if(run!=Run())AMSEventR::ProcessSetup=1; 
+//
+//while(gAMSDisplay->getchain()->ReadOneEvent(entry++)!=-1){
+//   if(Run()==run && AMSEventR::ProcessSetup!=prcs){
+//       AMSEventR::ProcessSetup=prcs;
+//       UpdateSetup(Run());
+//   }
+//   //if()
+//   //cout<<"entry= "<<entry<<", event= "<<Event()<<", run= "<<Run()<<endl;
+//  if(Run() == run && Event()>=event)return true;
+// }
  return false;
  }
 
@@ -929,15 +1001,17 @@ for(int i=0;i<ev->nParticle();i++){
 
 RichRingBV::RichRingBV(AMSEventR *ev,int ref, bool drawplex):AMSDrawI(ev,ref),TPolyLine3D(){
 
- RichRingBR *pcl=ev->pRichRingB(ref);
+RichRingBR *pcl=ev->pRichRingB(ref);
 //
 // at the moment only rich rings ass with particles will be drawn
 //
 //  This should go to RichRingR  as soon as the latter will be updated
 //  (added theta, radiator etc) by Carlos
 //
+
 static TNode *mirror=gAMSDisplay->GetGeometry()->GetNode("OMIR1");
 static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
+
            TCONE * pcone= (TCONE*)mirror->GetShape();
            double r1=pcone->GetRmin2();
            double r2=pcone->GetRmin();

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.30 2011/05/28 15:35:26 pzuccon Exp $
+//  $Id: AMSDisplay.h,v 1.31 2012/12/21 16:40:35 kaiwu Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -26,6 +26,7 @@
 #include <TGFileDialog.h>
 #include "ControlFrame.h"
 #include <TChain.h>
+#include <vector>
 class AMSNtupleV;
 
 #include <TApplication.h>
@@ -45,14 +46,15 @@ class AMSR_GeometrySetter;
 enum EAMSR_View { kNoView=-1,kFrontView=0, kSideView=1, kTopView=2, kAllView=3, kTwoView=4 };
 enum EAMSType { kall=-1,kusedonly=0,ktrdtracks=1, ktrdhtracks=69, ktrdclusters=2,kanticlusters=3,ktofclusters=4,ktrtracks=5,ktrclusters=6,ktrclustersM=96,ktrclustersY=996,krichrings=7,krichhits=8,kecalshowers=9,kecalclusters=10,kparticles=11,kmcinfo=12,kgeometry=13,ktrig=14};
 
-
+using namespace std;
 class AMSDisplay : public TObject {
 
 private:
   Double_t               fCooCur[2][3];
   Double_t               fCooDef[2][3];
   AMSNtupleV *          m_ntuple;   
-  AMSChain *          m_chain;   
+  AMSChain *          m_chain;  
+
   bool                m_monitor;
   EAMSR_View            m_PrevView;		     //prevview
   EAMSR_View            m_View;		     //view
@@ -123,6 +125,13 @@ public:
   }
             
   AMSDisplay(const char *title, TGeometry * geo, AMSChain* chain,int sec, bool monit);
+  
+  //Variables to record index of each runs' entry index
+  int                 m_chain_Entries;
+  vector<unsigned int>         m_chain_EntryIndex;
+  vector<unsigned int>         m_chain_Runs;
+  /////////////////////////////////////////////////////
+  
   virtual                  ~AMSDisplay(){};
   Bool_t      AllViews() {return (m_View == kAllView);}
   EAMSR_View    GetView() {return m_View;}
