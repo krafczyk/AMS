@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.906 2012/12/09 22:16:58 mdelgado Exp $
+// $Id: job.C,v 1.907 2012/12/21 21:32:57 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2136,8 +2136,10 @@ void AMSJob::udata(){
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
+      char fname2[1601];
+      sprintf(fname2,"%s/%s",AMSDATADIR.amsdatadir,fname);
       //PZ FIXME metti a posto il path 
-      TkDBc::Head->init(pgtrack_DB_ver,fname);
+      TkDBc::Head->init(pgtrack_DB_ver,fname2);
     }
     else
       TkDBc::Head->init(pgtrack_DB_ver);
