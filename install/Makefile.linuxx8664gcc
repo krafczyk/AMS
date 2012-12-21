@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.27 2012/11/08 16:41:20 nzimmerm Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.27.2.1 2012/12/21 18:59:07 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -76,6 +76,9 @@ endif
 
 RH9add=-pthread $(BIN)ctype.o 
 
+ifdef SLC6system
+RH9add+= -ltinfo
+endif
 
 ########################################################################
 #Compilers
