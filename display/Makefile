@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.118 2012/12/19 22:28:36 mduranti Exp $
+#  $Id: Makefile,v 1.119 2012/12/24 23:04:29 mduranti Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -210,9 +210,9 @@ LIBSD         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBS)  -lgfortran
 # To avoid that we have to explicitely link against the libQtCore shared library here.
 ifdef AMS_ACQT_INTERFACE
 AMS_ACQT_NO_LIBRT := 1
-LIBS += -F$(QTDIR)/lib -framework QtCore
-LIBSA += -F$(QTDIR)/lib -framework QtCore
-LIBSD += -F$(QTDIR)/lib -framework QtCore
+LIBS += -F$(QTDIR) -framework QtCore
+LIBSA += -F$(QTDIR) -framework QtCore
+LIBSD += -F$(QTDIR) -framework QtCore
 endif
 endif
 ifeq ($(ARCH),linux)
@@ -297,7 +297,11 @@ ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/l
 LIBS          =  -Bstatic $(ROOTLIBSA)  -lm -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl
 
 LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm    -ldl 
-LIBSD         =  -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBS) 
+LIBSD         =  -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBS)
+
+ifdef AMS_ACQT_INTERFACE
+LIBSD+= -L$(QTDIR)/lib -lQtCore
+endif
 
 ifdef VERGCCH
   CPPFLAGS+= -D__LINUXNEW__
@@ -311,7 +315,6 @@ ifndef AMS_ACQT_NO_LIBRT
 LIBS+= -lrt
 LIBSA+= -lrt
 endif
-LIBSD+= -L$(QTDIR)/lib -lQtCore 
 endif
 
 ifdef PGTRACK
