@@ -26,11 +26,18 @@ LIBS           := -L$(AMSWD)/lib/$(ARCH)/ -lntuple_slc4_PG
 LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA
 ifneq ($(ARCH),macosx64)
 LIBS           += -lRFIO
+ifdef AMS_ACQT_INTERFACE
+LIBS += -L$(QTDIR)/lib -lQtCore
+endif
+else
+ifdef AMS_ACQT_INTERFACE
+LIBS += -F$(QTDIR) -framework QtCore
+endif
 endif
 
 ### Additional Classes Dictionary  
 CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI CalList
-CLASSES        += Predict 
+CLASSES        += Predict
 DICTINCNAMES   := $(CLASSES) LinkDef
 DICTINC        := $(addprefix $(PWD)/$(INCDIR)/, $(addsuffix .h, $(DICTINCNAMES)))
 DICTNAME       := tkonlinedict

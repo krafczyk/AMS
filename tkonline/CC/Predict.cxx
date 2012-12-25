@@ -99,7 +99,7 @@
 #define SAT_ECLIPSED_FLAG      0x004000
 
 /* Global variables for sharing data among functions... */
-double	tsince, jul_epoch, jul_utc, eclipse_depth=0,
+double	tsince, jul_epoch, jul_utc, __eclipse_depth=0,
   sat_azi, sat_ele, sat_range, sat_range_rate,
   sat_lat, sat_lon, sat_alt, sat_vel, phase,
   sun_azi, sun_ele, daynum, fm, fk, age, aostime,
@@ -108,9 +108,9 @@ double	tsince, jul_epoch, jul_utc, eclipse_depth=0,
   moon_az, moon_el, moon_dx, moon_ra, moon_dec, moon_gha, moon_dv;
 
 char	qthfile[50], tlefile[50], dbfile[50], temp[80], output[25],
-  serial_port[15], resave=0, reload_tle=0, netport[6],
-  once_per_second=0, ephem[5], sat_sun_status, findsun,
-  calc_squint, database=0, xterm, io_lat='N', io_lon='W';
+  serial_port[15], __resave=0, __reload_tle=0, netport[6],
+  __once_per_second=0, ephem[5], sat_sun_status, findsun,
+  calc_squint, __database=0, xterm, __io_lat='N', __io_lon='W';
 
 char	visibility_array[24], tracking_mode[30];
 
@@ -127,7 +127,7 @@ long rv, irk;
 
 unsigned char val[256];
 
-int indx, antfd, iaz, iel, ma256, isplat, isplong, socket_flag=0, Flags=0;
+int indx, antfd, iaz, iel, ma256, isplat, isplong, __socket_flag=0, __Flags=0;
 
 /* Two-line Orbital Elements for the satellite used by SGP4/SDP4 code. */
 tle_t tle;
@@ -162,7 +162,7 @@ void ISSPosition(double time, GeoCoo& pos){
   dbfile[0]=0;
   netport[0]=0;
   serial_port[0]=0;
-  once_per_second=0;
+  __once_per_second=0;
   
   antfd=-1;
 
@@ -353,14 +353,14 @@ char ReadDataFiles(){
     
     fclose(fd);
     flag+=2;
-    resave=0;
+    __resave=0;
     
     /* Load satellite database file */
     
     fd=fopen(dbfile,"r");
     
     if (fd!=NULL){
-      database=1;
+      __database=1;
       
       fgets(line1,40,fd);
       
@@ -629,13 +629,13 @@ void SingleTrack(int x, char speak, double time, GeoCoo& pos){
   
   pos.Lat=sat_lat;
   //  printf("Latitude: %f", pos.Lat);
-  //  printf("Latitude: %-6.2f (%.2f) ",(io_lat=='N'?+1:-1)*sat_lat, sat_lat);
-  //  printf("%s  ",(io_lat=='N'?"N":"S"));
+  //  printf("Latitude: %-6.2f (%.2f) ",(__io_lat=='N'?+1:-1)*sat_lat, sat_lat);
+  //  printf("%s  ",(__io_lat=='N'?"N":"S"));
   //  printf("  ");
   pos.Lon=180.0-sat_lon;
   //  printf("Longitude: %f", pos.Lon);
-  //  printf("Longitude: %-7.2f (%.2f) ",(io_lon=='W'?360.0-sat_lon:sat_lon), sat_lon);
-  //  printf("%s  ",(io_lon=='W'?"W":"E"));
+  //  printf("Longitude: %-7.2f (%.2f) ",(__io_lon=='W'?360.0-sat_lon:sat_lon), sat_lon);
+  //  printf("%s  ",(__io_lon=='W'?"W":"E"));
   //  printf("  ");
   
   fk=12756.33*acos(xkmper/(xkmper+sat_alt));
@@ -649,7 +649,7 @@ void SingleTrack(int x, char speak, double time, GeoCoo& pos){
   //    printf("Elevation: %+-6.2f ",sat_ele);
   //    printf("Velocity: %0.f ",(3600.0*sat_vel)*km2mi);
   //  printf("Velocity: %0.f km/h   ",3600.0*sat_vel);
-  //    printf("Eclipse: %+6.2f%c ",eclipse_depth/deg2rad,176);
+  //    printf("Eclipse: %+6.2f%c ",__eclipse_depth/deg2rad,176);
   //    printf("Phase: %5.1f ",256.0*(phase/twopi));
   //    printf("Model: %s",ephem);
   //  printf("\n");
@@ -841,7 +841,7 @@ void Calc(){
   Calculate_Solar_Position(jul_utc, &solar_vector);
   Calculate_Obs(jul_utc, &solar_vector, &zero_vector, &obs_geodetic, &solar_set);
   
-  if (Sat_Eclipsed(&pos, &solar_vector, &eclipse_depth))
+  if (Sat_Eclipsed(&pos, &solar_vector, &__eclipse_depth))
     SetFlag(SAT_ECLIPSED_FLAG);
   else
     ClearFlag(SAT_ECLIPSED_FLAG);
@@ -943,7 +943,7 @@ void FindSun(double daynum){
 
 void ClearFlag(int flag)
 {
-	Flags&=~flag;
+	__Flags&=~flag;
 }
 
 void select_ephemeris(tle_t *tle){
@@ -1033,11 +1033,11 @@ double Julian_Date_of_Epoch(double epoch){
 }
 
 int isFlagSet(int flag){
-  return (Flags&flag);
+  return (__Flags&flag);
 }
 
 void SetFlag(int flag){
-  Flags|=flag;
+  __Flags|=flag;
 }
 
 void SDP4(double tsince, tle_t * tle, vector_t * pos, vector_t * vel){
@@ -1772,7 +1772,7 @@ void Calculate_RADec(double time, vector_t *pos, vector_t *vel, geodetic_t *geod
 }
 
 int isFlagClear(int flag){
-  return (~Flags&flag);
+  return (~__Flags&flag);
 }
 
 void Deep(int ientry, tle_t * tle, deep_arg_t * deep_arg){
