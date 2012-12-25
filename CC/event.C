@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.575 2012/11/21 19:55:16 qyan Exp $
+//  $Id: event.C,v 1.576 2012/12/25 17:16:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1324,6 +1324,9 @@ void  AMSEvent::write(int trig){
         GCFLAG.IEORUN=1;
         GCFLAG.IEOTRI=1; 
         cerr<<" AMSEvent-W-SpaceProblem "<<AMSProducer::gethead()->FreeSpace()<<" "<<IOPA.MaxFileSize/2/1024<<endl;
+#ifdef __CORBA__
+      throw amsglobalerror("Space Problem ",3);
+#endif
       }
 #endif
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
