@@ -88,7 +88,7 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
     HasTRDTrack=0;
 
     int getpressure=GetXePressure();
-    if(getpressure==-1|| Pressure_Xe>1100 || Pressure_Xe<700){
+    if(getpressure==-1|| Pressure_Xe>1100 || Pressure_Xe<600){
         cout<<"~~~~~WARNING~~~~~~  Get Xe Pressure Failed, Putting into Default value, result NOT Valid"<<endl;
         Pressure_Xe=780;
         IsValid=0;
