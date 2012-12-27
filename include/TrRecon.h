@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.53 2012/10/31 15:49:44 oliva Exp $ 
+// $Id: TrRecon.h,v 1.54 2012/12/27 10:31:20 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2012/10/31 15:49:44 $
+/// $Date: 2012/12/27 10:31:20 $
 ///
-/// $Revision: 1.53 $
+/// $Revision: 1.54 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -484,6 +484,12 @@ public:
   /// Reconstruct tracks, simple version
   int BuildTrTracksSimple(int rebuild = 0, int select_tag = 0);
  
+  /// Reconstruct tracks, assuming photon vertex
+  int BuildTrTracksVertex(int rebuild = 0);
+
+  /// Event pre selection for photon vertex pattern
+  int PreselTrTracksVertex();
+
   /// Merge hits shared by two tracks
   //int MergeSharedHits(TrTrackR *track, int fit_method);
 
@@ -619,6 +625,41 @@ public:
           +(x-x1)*(x-x3)/(x2-x1)/(x2-x3)*y2
           +(x-x1)*(x-x2)/(x3-x1)/(x3-x2)*y3;
   }
+  /// Polynomial interpolation (pol2)
+  static double Intpol2(double *x1, double *y1, double x) {
+    return Intpol2(x1[0], x1[1], x1[2], y1[0], y1[1], y1[2], x);
+  }
+  /// Difference to pol2 interpolation
+  static double Intdiff(double *par, double x, double y, int abs = 1) {
+    if (abs) return TMath::Abs(par[0]+par[1]*x+par[2]*x*x-y);
+    else     return            par[0]+par[1]*x+par[2]*x*x-y;
+  }
+  /// Difference to pol2 interpolation
+  static double Intdiff(double *x1, double *y1,
+			double  x,  double  y, int abs = 1) {
+    if (abs) return TMath::Abs(Intpol2(x1, y1, x)-y);
+    else     return            Intpol2(x1, y1, x)-y;
+  }
+
+  /// Get par[2] of pol2
+  static double IntPar2(double *x, double *y) {
+    return IntPar2(x[0], x[1], x[2], y[0], y[1], y[2]);
+  }
+  /// Get par[2] of pol2
+  static double IntPar2(double x1, double x2, double x3,
+			double y1, double y2, double y3) {
+    return ((y1-y2)/(x1-x2)-(y2-y3)/(x2-x3))/(x1-x3);
+  }
+
+  /// Simple and fast linear fit
+  static double FitLin(int n, double *x,   double *y,
+		              double *par, double sig = 1.);
+
+  /// Simple and fast vertex fit (pol2 approximation)
+  static double FitVtx(int n1, double *x1,  double *y1,
+		       int n2, double *x2,  double *y2,
+		               double *par, double sig = 1.);
+
 
 //========================================================
 // Charge methods

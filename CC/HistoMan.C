@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.49 2012/11/07 09:02:27 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.50 2012/12/27 10:31:17 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -478,6 +478,31 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("GmBTmS", "BTT Over",  60,  0.1, 100, 80, 0.001, 1, 1, 1));
   Add(TH2D_L("GmBTmA", "BTT Under", 60,  0.1, 100, 80, 0.001, 1, 1, 1));
   Add(TH2D_L("GmBTmT", "BTT Trapp", 60,  0.1, 100, 80, 0.001, 1, 1, 1));
+
+  Add(new TH2D("TvDtfU", "DtofU", 200, -30,  30, 200, -30,  30));
+  Add(new TH2D("TvQtfU", "QtofU", 200,   0,   5, 200,   0,   5));
+  Add(new TH2D("TvDtrc", "DtrdC", 200, -30,  30, 200, -30,  30));
+  Add(new TH2D("TvDtrd", "DtrdT", 200, -30,  30, 200, -30,  30));
+  Add(new TH2D("TvLtrd", "Ltrd" ,  20,   0,  20, 200,   0,  40));
+  Add(new TH2D("TvNtrl", "NtrdL", 200,   0, 200, 200,   0, 200));
+  Add(new TH2D("TvNtrd", "NtrdT",   5,   0,   5, 200,   0, 200));
+  Add(new TH2D("TvNtrp", "NtrdP",   5,   0,   5, 200,   0, 200));
+
+  Add(TH2D_L("TvCsqXp", "CsqX(+)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TvCsqXn", "CsqX(-)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TvCsqYp", "CsqY(+)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TvCsqYn", "CsqY(-)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TvCsqXY", "CsqXY",  120, 1e-3,1e3, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TvRdfP",  "R1+R2:P", 60, 0.01, 10, 200,   -3,   3, 1, 0));
+  Add(TH2D_L("TvDV7P",  "dV0.7:p", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+
+  Add(TH2D_L("TpCsqXp", "CsqX(+)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TpCsqXn", "CsqX(-)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TpCsqYp", "CsqY(+)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TpCsqYn", "CsqY(-)", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TpCsqXY", "CsqXY",  120, 1e-3,1e3, 120, 1e-3, 1e3, 1, 1));
+  Add(TH2D_L("TpRdfP",  "R1+R2:P", 60, 0.01, 10, 200,   -3,   3, 1, 0));
+  Add(TH2D_L("TpDV7P",  "dV0.7:p", 60, 0.01, 10, 120, 1e-3, 1e3, 1, 1));
 
   if (dsave) dsave->cd();
   booked = true;
