@@ -20,14 +20,13 @@ public:
   number ErrMomentum;  ///< Error in 1 / Momentum Sum (1/GeV)
   number Theta;        ///< Theta (rad)
   number Phi;          ///< Phi  (rad)
-  int8   Charge;      ///< Charge at vertex
+  int8   Charge;       ///< Charge at vertex
   number Chi2;         ///< Chi2
-  uint8  Ndof;        ///< Number of degrees of freedom
-  float  Vertex[3];     ///< reconstructed vertex (cm)
+  uint8  Ndof;         ///< Number of degrees of freedom
+  float  Vertex [3];   ///< Vertex position (cm)
 
   /// Vector holding the index to tracks connected to the vertex
   vector <int16>          fTrTrack;
-  
 
   /// Build index vector (_fTrTrack) from hits vector (pTrTrack)
   void BuildTracksIndex();
@@ -45,6 +44,9 @@ public:
   VertexR(){Clear();}
   /// Explicit constructor it builds up a vertex
   VertexR(int ntracks, TrTrackR *ptrack[]);
+  /// Explicit constructor with two tracks (assuming photon vertex)
+  VertexR(TrTrackR *track1, TrTrackR *track2);
+
   ~VertexR(){Clear(); }
   /// Clean up the class to "zero" default  
   void Clear();
@@ -108,6 +110,10 @@ public:
 
   void set_vertex();
 
+  /// Fit vertex with two tracks
+  double FitV(TrTrackR *trk1, TrTrackR *trk2);
+
+  static double ZrefV;
  
   // Friends
   friend class AMSTrTrack;

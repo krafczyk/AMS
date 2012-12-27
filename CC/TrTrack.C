@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.165 2012/10/05 00:53:14 pzuccon Exp $
+// $Id: TrTrack.C,v 1.166 2012/12/27 10:09:53 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/10/05 00:53:14 $
+///$Date: 2012/12/27 10:09:53 $
 ///
-///$Revision: 1.165 $
+///$Revision: 1.166 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -299,7 +299,7 @@ long long TrTrackR::GetTrackPathID() const{
 TrTrackPar &TrTrackR::GetPar(int id)
 {
   int id2 = (id == 0) ? trdefaultfit : id;
-  if (ParExists(id2)) return _TrackPar[id2]; // Be careful of [] operator !
+  if (!ParExists(id2)) return _TrackPar[id2]; // Be careful of [] operator !
   static TrTrackPar parerr;
   return parerr;
 }
@@ -1386,11 +1386,13 @@ int TrTrackR::DoAdvancedFit(int add_flag)
  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
    kmax=TRFITFFKEY.MultipleAlign;
 
+ if (DefaultMass > 0.1) {
  DefaultMass   = TrFit::Mproton;
  DefaultCharge = 1;
  if (GetQ() > 1.5) {
    DefaultMass   = TrFit::Mhelium;
    DefaultCharge = 2;
+ }
  }
 int add_flagplus; 
  for (int kk=0;kk<kmax;kk++){

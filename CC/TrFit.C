@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.76 2012/09/22 12:16:30 shaino Exp $
+//  $Id: TrFit.C,v 1.77 2012/12/27 10:09:53 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/09/22 12:16:30 $
+///$Date: 2012/12/27 10:09:53 $
 ///
-///$Revision: 1.76 $
+///$Revision: 1.77 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1163,12 +1163,27 @@ int TrFit::JAFillFGmtx(double *fmtx, double *gmtx,
   int ic = GetPcen(pc);
   if (ic <= 0) return -1;
 
+  int mode = 1;  // mode 1:Center 2:First layer
+  int ns   = 1;
+  if (mode == 2) {
+    pc[0] = _xh[0];
+    pc[1] = _yh[0];
+    pc[2] = _zh[0];
+    ns    = 0;
+  }
+
   // Fill F and G matrices
-  for (int s = 0; s <= 1; s++) {
+  for (int s = 0; s <= ns; s++) {
    int i1 = (s == 0) ? ic-1 :    ic;
    int i2 = (s == 0) ?   -1 : _nhit;
    int di = (s == 0) ?   -1 :     1;
-   if ((i2-i1)/di < 0) return -1;
+
+   if (mode == 1 && (i2-i1)/di < 0) return -1;
+   if (mode == 2) {
+     i1 = 0;
+     i2 = _nhit;
+     di = 1;
+   }
 
    double mem[6] = { 1, 1, 0, 0, 0, 0 }, mel[4];
 
@@ -4147,6 +4162,16 @@ void TrProp::GuFld(double x, double y, double z, double *b)
 {
   double pp[3] = { x, y, z };
   GuFld(pp, b);
+}
+
+AMSPoint TrProp::GuFld(AMSPoint pnt)
+{
+  double pp[3] = { pnt.x(), pnt.y(), pnt.z() };
+  double bb[3];
+  GuFld(pp, bb);
+
+  AMSPoint b(bb[0], bb[1], bb[2]);
+  return b;
 }
 
 void TrProp::TkFld(double *p, double hxy[][3])

@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.123 2012/07/05 23:22:07 oliva Exp $
+//  $Id: trrec.h,v 1.124 2012/12/27 10:09:56 shaino Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -709,6 +709,9 @@ public:
   /// Explicit constructor it builds up a vertex
   AMSVtx(int ntracks, TrTrackR *ptrack[])
     :VertexR(ntracks, ptrack),AMSlink(){}
+  /// Explicit constructor with two tracks (assuming photon vertex)
+  AMSVtx(TrTrackR *track1, TrTrackR *track2)
+    :VertexR(track1, track2),AMSlink(){}
   ~AMSVtx(){ }
   
   void _copyEl(){}

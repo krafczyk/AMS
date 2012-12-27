@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.96 2012/09/13 15:52:03 oliva Exp $
+//  $Id: TrTrack.h,v 1.97 2012/12/27 10:09:56 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/09/13 15:52:03 $
+///$Date: 2012/12/27 10:09:56 $
 ///
-///$Revision: 1.96 $
+///$Revision: 1.97 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -152,6 +152,7 @@ public:
   void Print(int full=0) const;
   void Print_stream(std::string &ostr,int full=0) const;
   friend class TrTrackR;
+  friend class VertexR;
   ClassDef(TrTrackPar,4);
 } ; 
 
@@ -181,7 +182,8 @@ public:
     kChikanian     = 5,
     /// A. Chikanian algo (Original Fortran, available only with gbatch.exe)
     kChikanianF    = 6,
-    
+    /// Photon vertex
+    kVertex        = 7,
     /// Linear fit for non-magnetic-field runs
     kLinear        = 10,
     /// Circle fit for YZ plane, Linear fit fot XS plane

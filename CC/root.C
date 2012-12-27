@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.515 2012/12/19 15:29:48 choutko Exp $
+//  $Id: root.C,v 1.516 2012/12/27 10:09:53 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2453,8 +2453,10 @@ bool AMSEventR::ReadHeader(int entry){
   }
 
      
+    if(!AMSEventR::Head()->nMCEventg()){ // not for MC events
      fHeader.getISSTLE();
      fHeader.getISSAtt();
+    }
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
       runo=fHeader.Run;
@@ -5194,7 +5196,8 @@ int ParticleR::DoBacktracing()
 
   if (icharge == 0) {
     AMSDir dir(Theta, Phi);
-    double x = -dir[0], y = -dir[1], z = -dir[2];
+    if (dir.z() < 0) dir = dir*(-1);
+    double x = dir.x(), y = dir.y(), z = dir.z();
     double glon = 0, glat = 0;
     if (BACKTRACEFFKEY.out_type == 1)
       get_ams_l_b_fromGTOD   (x, y, z, glon, glat, RPT, VPT, YPR, xtime);
@@ -5207,6 +5210,8 @@ int ParticleR::DoBacktracing()
     BT_glong  = glon;
     BT_glat   = glat;
     BT_status = 4;
+
+    AMSgObj::BookTimer.stop("DoBacktracing");
     return 0;
   }
 

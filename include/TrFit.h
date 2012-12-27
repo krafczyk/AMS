@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.30 2012/07/27 15:00:01 pzuccon Exp $
+//  $Id: TrFit.h,v 1.31 2012/12/27 10:09:56 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2012/07/27 15:00:01 $
+///$Date: 2012/12/27 10:09:56 $
 ///
-///$Revision: 1.30 $
+///$Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -165,6 +165,9 @@ public:
 
   /// Wrapper to GuFld(double*, double*)
   static void GuFld(double x, double y, double z, double *b);
+
+  /// Wrapper to GuFld(double*, double*)
+  static AMSPoint GuFld(AMSPoint);
 
 protected:
   /// Wrapper to MagField::TKFLD
