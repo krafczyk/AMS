@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.165 2012/12/27 10:31:17 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.166 2012/12/27 17:21:43 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/12/27 10:31:17 $
+/// $Date: 2012/12/27 17:21:43 $
 ///
-/// $Revision: 1.165 $
+/// $Revision: 1.166 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -358,8 +358,6 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 #endif
 
     if (vertex) {
-      if (!simple) trstat |= 0x8000;
-
       _StartTimer();
       if (nhit > 200) trstat |= 0x08;
       else {
@@ -4344,7 +4342,7 @@ int TrRecon::FillHistos(int trstat, int refit)
     double csqx[2] = { trk1->GetNormChisqX(fid), trk2->GetNormChisqX(fid) };
     double csqy[2] = { trk1->GetNormChisqY(fid), trk2->GetNormChisqY(fid) };
     double momt    = vtx->Momentum;
-    double vchk    = vtx->Vertex[2]*std::pow(momt, 0.7);
+    double vchk    = trk1->GetP0().dist(trk2->GetP0())*std::pow(momt, 0.7);
     double rchk    = (rgt[0]+rgt[1])/(rgt[0]-rgt[1]);
 
     AMSPoint pntv(vtx->Vertex[0], vtx->Vertex[1], VertexR::ZrefV);
@@ -4451,8 +4449,6 @@ int TrRecon::FillHistos(int trstat, int refit)
 	trstat |= 0x2000;
 	fTrackCounter[9]++;
       }
-
-      trstat &= ~0x8000;
     }
 
     delete cont3;
