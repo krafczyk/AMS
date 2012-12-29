@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.239 2012/11/21 17:34:01 choutko Exp $
+#  $Id: Makefile,v 1.240 2012/12/29 18:42:05 mduranti Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -322,7 +322,7 @@ DEFINES += -DAMS_ACQT_INTERFACE -DAMS_ACQT_SILENCE_COMMON_WARNINGS \
            -DACROOTVERSION=52 -DACPASSTAG=\"5.2.0\" \
 		   -DACPRODUCTIONSHA=\"77e3fbcf5887a3c0a9669c9007ca384ec087b813\"
 
-ACSOFT_INCDIRS := -I$(QTDIR_STATIC)/include -I$(QTDIR_STATIC)/include/QtCore -I../ACsoft -I../ACsoft/acroot -I../ACsoft/cuts -I../ACsoft/platform -I../ACsoft/utilities -I../ACsoft/analysis \
+ACSOFT_INCDIRS := -I$(QTDIR_STATIC)/Headers -I$(QTDIR_STATIC)/include -I$(QTDIR_STATIC)/include/QtCore -I../ACsoft -I../ACsoft/acroot -I../ACsoft/cuts -I../ACsoft/platform -I../ACsoft/utilities -I../ACsoft/analysis \
 				  -I../ACsoft/producer -I../ACsoft/interface -I../ACsoft/io -I../ACsoft/detector -I../ACsoft/trdcalibration
 ROOTDICT_CPPFLAGS += -DAMS_ACQT_INTERFACE $(ACSOFT_INCDIRS)
 

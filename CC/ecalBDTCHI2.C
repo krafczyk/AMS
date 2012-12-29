@@ -35,7 +35,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    }
 
    EcalAxis::Version=2;
-   ecalaxis = new EcalAxis();
+   if (!ecalaxis) ecalaxis = new EcalAxis();
    ecalaxis->process(pev,2);
   
    const unsigned int nLAYERs = 18;
