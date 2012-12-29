@@ -20,7 +20,7 @@ char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
    "LayerChi213",   "LayerChi214",   "LayerChi215",   "LayerChi216",   "LayerChi217",
    "EnergyD"
 };
-EcalAxis *ecalaxis;
+EcalAxis *ecalaxis=0;
 
 bool BCHI2_DEBUG = false;
 
