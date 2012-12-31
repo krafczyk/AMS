@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.115.2.3 2012/12/18 09:25:51 choutko Exp $
+//  $Id: root_setup.C,v 1.115.2.4 2012/12/31 08:40:51 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1355,7 +1355,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[255];
@@ -1551,7 +1551,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
@@ -2730,7 +2730,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
@@ -2902,7 +2902,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
@@ -3061,7 +3061,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
@@ -3261,7 +3261,7 @@ int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
   unsigned int dc=db;
   int bfound=0;
   int efound=0;
-  while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
 
     string fname=AMSISS;
     fname+=fpatb;
@@ -3438,7 +3438,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
