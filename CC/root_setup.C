@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.125 2012/12/17 23:30:27 qyan Exp $
+//  $Id: root_setup.C,v 1.125.2.1 2012/12/31 08:43:20 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1351,7 +1351,7 @@ const char fpate[]="24H.csv";
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      char fname[1000];
      sprintf(fname,"%s/%s_%u_%u-%s",AMSISS,fpatb,yc,dc,fpate); 
      ifstream fbin;
@@ -1491,7 +1491,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[255];
@@ -1687,7 +1687,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
@@ -3177,7 +3177,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
@@ -3349,7 +3349,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
@@ -3511,7 +3511,7 @@ int AMSSetupR::LoadRotationMatrices(unsigned int t1, unsigned int t2)
   int bfound=0;
   int efound=0;
 
-  while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
     
     string fname=AMSISS;
     fname+=fpatb;
@@ -3694,7 +3694,7 @@ int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
   unsigned int dc=db;
   int bfound=0;
   int efound=0;
-  while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
     string fname=AMSISS;
     fname+=fpatb;
     char utmp[80];
@@ -3896,7 +3896,7 @@ int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
   unsigned int dc=db;
   int bfound=0;
   int efound=0;
-  while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
 
     string fname=AMSISS;
     fname+=fpatb;
@@ -4073,7 +4073,7 @@ char tmp2[255];
     unsigned int dc=db;
     int bfound=0;
     int efound=0;
-    while(yc<ye || dc<=de){
+    while(yc<ye || (dc<=de && yc==ye)){
      string fname=AMSISS;
      fname+=fpatb;
      char utmp[80];
