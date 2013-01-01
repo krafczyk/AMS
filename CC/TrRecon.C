@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.166 2012/12/27 17:21:43 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.167 2013/01/01 18:12:03 choutko Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/12/27 17:21:43 $
+/// $Date: 2013/01/01 18:12:03 $
 ///
-/// $Revision: 1.166 $
+/// $Revision: 1.167 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -6577,7 +6577,8 @@ int TrRecon::BuildVertex(integer refit){
   int ntr = 0;
   for (int ii = 0; ii < pctr->getnelem() && ntr < Nmax; ii++) {
     TrTrackR *ptr = (TrTrackR *)pctr->getelem(ii);
-    if (!ptr->checkstatus(AMSDBc::USED)) ptrack[ntr++] = ptr;
+//    if (!ptr->checkstatus(AMSDBc::USED)) ptrack[ntr++] = ptr;
+    ptrack[ntr++] = ptr;
   }
 
   int ret = 0;
