@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.907 2012/12/21 21:32:57 pzuccon Exp $
+// $Id: job.C,v 1.908 2013/01/02 19:41:41 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -35,6 +35,7 @@
 #include "TrParDB.h"
 #include "TrPdfDB.h"
 #include "TrGainDB.h"
+#include "TrOccDB.h"
 #include "TrChargeLossDB.h"
 
 #include "trrec.h"
@@ -2215,6 +2216,9 @@ void AMSJob::udata(){
   // create the gain database singleton, and linear array
   TrGainDB::GetHead()->Init();
 
+  // create the occupancy database singleton, and linear array
+  TrOccDB::GetHead()->Init();
+
   // create and load from AMSDataDir the charge loss correction database
   TrChargeLossDB::GetHead()->Init();
 
@@ -3435,46 +3439,34 @@ void AMSJob::_timeinitjob(){
       }
     }
     
-    
-    begin.tm_isdst=0;
-    end.tm_isdst=0;
-    begin.tm_sec  =0;
-    begin.tm_min  =0;
-    begin.tm_hour =0;
-    begin.tm_mday =0;
-    begin.tm_mon  =0;
-    begin.tm_year =0;
-    end.tm_sec=0;
-    end.tm_min=0;
-    end.tm_hour=0;
-    end.tm_mday=0;
-    end.tm_mon=0;
-    end.tm_year=0;
-    // if(isRealData()) 
+    // old parameters database (to be removed)
+    // both data and MC
+    begin.tm_isdst = end.  tm_isdst = 0;
+    begin.tm_sec   = begin.tm_min = begin.tm_hour = begin.tm_mday = begin.tm_mon = begin.tm_year = 0;
+    end.  tm_sec   = end.  tm_min = end.  tm_hour = end.  tm_mday = end.  tm_mon = end.tm_year   = 0;
     TID.add (new AMSTimeID(AMSID("TrackerPars",isRealData()),begin,end,
                            TrParDB::GetLinearSize(),TrParDB::linear,
                            server,need,SLin2ParDB));
 
-
     // new gain database (April 2012)
-    begin.tm_isdst=0;
-    end.tm_isdst=0;
-    begin.tm_sec  =0;
-    begin.tm_min  =0;
-    begin.tm_hour =0;
-    begin.tm_mday =0;
-    begin.tm_mon  =0;
-    begin.tm_year =0;
-    end.tm_sec=0;
-    end.tm_min=0;
-    end.tm_hour=0;
-    end.tm_mday=0;
-    end.tm_mon=0;
-    end.tm_year=0;
+    // both data and MC
+    begin.tm_isdst = end.  tm_isdst = 0;
+    begin.tm_sec   = begin.tm_min = begin.tm_hour = begin.tm_mday = begin.tm_mon = begin.tm_year = 0;
+    end.  tm_sec   = end.  tm_min = end.  tm_hour = end.  tm_mday = end.  tm_mon = end.tm_year   = 0;
     TID.add (new AMSTimeID(AMSID("TrackerVAGains",isRealData()),begin,end,
                            TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),
                            server,isRealData(),FunctionLinearToGainDB));
 
+    // occupancy database (Dec 2012)
+    // only data 
+    if (isRealData()) {
+      begin.tm_isdst = end.  tm_isdst = 0;
+      begin.tm_sec   = begin.tm_min = begin.tm_hour = begin.tm_mday = begin.tm_mon = begin.tm_year = 0;
+      end.  tm_sec   = end.  tm_min = end.  tm_hour = end.  tm_mday = end.  tm_mon = end.tm_year   = 0;
+      TID.add (new AMSTimeID(AMSID("TrackerOccupancy",isRealData()),begin,end,
+                             TrOccDB::GetLinearSize(),TrOccDB::GetLinear(),
+                             server,isRealData(),FunctionLinearToOccDB));
+    }
 
     if (isRealData() && TrRecon::TasRecon) {
       begin.tm_isdst=0;

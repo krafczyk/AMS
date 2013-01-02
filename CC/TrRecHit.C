@@ -391,6 +391,33 @@ float TrRecHitR::GetSignalCombination(int iside, int opt, float beta, float rigi
 }
 
 
+float TrRecHitR::GetEdep(int iside) {
+  float Ex = (GetXCluster()) ? GetXCluster()->GetEdep() : 0;
+  float Ey = (GetYCluster()) ? GetYCluster()->GetEdep() : 0;
+  if      (iside==0) return Ex;
+  else if (iside==1) return Ey;
+  else if (iside==2) return (GetXCluster()) ? Ex : Ey;
+  return 0;
+}
+
+
+float TrRecHitR::GetQ(int iside, float beta, float rigidity, float mass_on_Z) {
+  float Qx = (GetXCluster()) ? GetXCluster()->GetQ(beta,rigidity,mass_on_Z,GetResolvedMultiplicity()) : 0;
+  float Qy = (GetYCluster()) ? GetYCluster()->GetQ(beta,rigidity,mass_on_Z,GetResolvedMultiplicity()) : 0;
+  if      (iside==0) return Qx;
+  else if (iside==1) return Qy;
+  else if (iside==2) return (GetXCluster()) ? Qx : Qy;
+  return 0;
+}
+
+
+int TrRecHitR::GetQStatus(int nstrip_from_seed) { 
+  int Sx = (GetXCluster()) ? GetXCluster()->GetQStatus(nstrip_from_seed,GetResolvedMultiplicity()) : 0;
+  int Sy = (GetYCluster()) ? GetYCluster()->GetQStatus(nstrip_from_seed,GetResolvedMultiplicity()) : 0; 
+  return (Sy<<12)|Sx;
+}
+
+
 float TrRecHitR::GetSignalDifference() {
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();

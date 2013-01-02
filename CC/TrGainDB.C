@@ -1,4 +1,4 @@
-// $Id: TrGainDB.C,v 1.6 2012/08/05 22:35:09 oliva Exp $
+// $Id: TrGainDB.C,v 1.7 2013/01/02 19:41:41 oliva Exp $
 
 #include "TrGainDB.h"
 
@@ -242,7 +242,6 @@ int TrGainDB::LoadFromTDV(long int time, int isReal) {
   begin.tm_mday  = begin.tm_mon = begin.tm_year = 0;
   end.  tm_sec   = end.  tm_min = end.  tm_hour =
   end.  tm_mday  = end.  tm_mon = end.  tm_year = 0;
-  TkDBc::CreateLinear();
   AMSTimeID *tdv = new AMSTimeID(
     AMSID("TrackerVAGains",isReal),begin,end,TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),AMSTimeID::Standalone,1,FunctionLinearToGainDB 
   );
@@ -253,7 +252,7 @@ int TrGainDB::LoadFromTDV(long int time, int isReal) {
 
 
 void FunctionLinearToGainDB(){
-  if(!TrGainDB::IsNull()) TrGainDB::GetHead()->LinearToGainDB();
+  if (!TrGainDB::IsNull()) TrGainDB::GetHead()->LinearToGainDB();
 }
 
 

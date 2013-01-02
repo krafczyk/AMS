@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.43 2012/08/08 16:46:57 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.44 2013/01/02 19:41:41 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -232,20 +232,27 @@ public:
 
   /**@name Signals */			
   /**@{*/			
-  /// Returns the signal of the Y cluster 
+  /// Returns the hit signal (0: x, 1: y, 2: weighted mean (not fully implemented), 3: mean (not so reasonable))
+  float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0.938);
+  /// Get energy deposition (MeV) (iside = 0: x, 1: y, 2: x, y if no x)
+  float GetEdep(int iside);
+  /// Get floating charge estimation (iside = 0: x, 1: y, 2: x, y if no x)
+  float GetQ(int iside, float beta = 1, float rigidity = 0, float mass_on_Z = 0.938);
+  /// Get the signal status (0th, ..., 11th bit X-side, 12th, ..., 23rd Y-side. Bit explanation in TrClusterR::GetQStatus()) 
+  int   GetQStatus(int nstrip_from_seed = 1);
+  /// Returns the hit correlation for a gaussian p-value (test performed without corrections and used in reconstruction)
+  float GetCorrelationProb();
+
+  /// Returns the signal of the Y cluster (DEPRECATED) 
   float Sum() { return (GetYCluster()) ? GetYCluster()->GetTotSignal() : 0; }
-  /// Returns the signal sum of the X and Y clusters when they exist (or only X or only Y, or in the worse case 0)
+  /// Returns the signal sum of the X and Y clusters when they exist (or only X or only Y, or in the worse case 0) (DEPRECATED)
   float GetTotSignal() {
     return
       ((GetXCluster())? GetXCluster()->GetTotSignal():0) +
       ((GetYCluster())? GetYCluster()->GetTotSignal():0);
   }
-  /// Returns the hit signal (0: x, 1: y, 2: weighted mean, 3: simple mean)
-  float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0.938);
-  /// Returns the hit signal signal (on side p scale) 
+  /// Returns the hit signal signal (on side p scale) (DEPRECATED)
   float GetSignalDifference();
-  /// Returns the hit correlation for a gaussian p-value
-  float GetCorrelationProb();
   /// Get correlation between the X and Y clusters (DEPRECATED)
   float GetCorrelation();
   /// Get probability of correlation between the X and Y clusters (DEPRECATED)

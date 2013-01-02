@@ -11,7 +11,7 @@
 #include "TrLadPar.h" 
 #include "TrGainDB.h"
 #include "TrChargeLossDB.h"
-
+#include "TrOccDB.h"
 
 #include "edep.h"
 #include "amsdbc.h"
@@ -32,9 +32,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2012/10/31 15:49:43 $
+ $Date: 2013/01/02 19:41:41 $
 
- $Revision: 1.33 $
+ $Revision: 1.34 $
 
 */
 
@@ -175,8 +175,8 @@ class TrClusterR :public TrElem{
   int   GetAddress()       const { return _address; }
   /// Get i-th strip address
   int   GetAddress(int ii);
-  /// Get the i-th strip address on sensor (S: 0-640, K5: 0-192, K7: 0-224)
-  int   GetSensorAddress(int& sens, int ii = 0, int mult = 0);
+  /// Get the i-th strip address on sensor (S: 0-639, K5: 0-191, K7: 0-223), if wrong gives back -1
+  int   GetSensorAddress(int& sens, int ii = 0, int mult = 0, int verbose = 1);
   /// Get the local coordinate for i-th strip
   float GetX(int ii, int imult = 0) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetAddress(ii),imult); 
@@ -185,13 +185,6 @@ class TrClusterR :public TrElem{
   int   GetNelem()         const { return _nelem; }
   /// Get the cluster strip multiplicity
   int   GetLength()              { return GetNelem(); }
-
-  /// Test if the cluster touches one of the sensor edges
-  bool  IsOnSensorEdge(int mult = 0, int extra = 0);
-  /// Test if the cluster touches the VA edges 
-  bool  IsOnVAEdge(int extra = 0);
-  /// Test if the cluster has some dead strips 
-  int   GetNDeadStrips(int extra = 0); 
 
   /// Get the seed index 
   int   GetSeedIndex(int opt = DefaultCorrOpt);
@@ -219,7 +212,10 @@ class TrClusterR :public TrElem{
   bool  Used() const { return checkstatus(AMSDBc::USED); }	
 
   /// Check cluster consistency 
-  bool  Check(int verosity=0);	
+  bool Check(int verbosity=0);	
+  // Check if a K7 cluster is well shaped (it can happen that is not)
+  bool CheckK7(int mult, int verbosity=0);
+
   /**@}*/
 
 
@@ -227,7 +223,7 @@ class TrClusterR :public TrElem{
   /**@{*/	
 
   //! Get cluster amplitude, with corrections
-  float         GetTotSignal(int opt = DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0);
+  float         GetTotSignal(int opt = DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0, int res_mult = -1);
   //! Convert an ADC signal to the ADC scale of p-side 
   float         ConvertToPSideScale(float adc/*n-side*/);
   //! Convert an ADC signal to the ADC scale of n-side
@@ -252,7 +248,9 @@ class TrClusterR :public TrElem{
   //! Get energy deposition (MeV)
   float GetEdep() { return GetTotSignal(TrClusterR::DefaultEdepCorrOpt); }
   //! Get floating charge estimation
-  float GetQ(float beta = 1) { return sqrt(GetTotSignal(TrClusterR::DefaultChargeCorrOpt,beta)); }
+  float GetQ(float beta = 1, float rigidity = 0, float mass_on_Z = 0, int res_mult = -1) { 
+    return sqrt(GetTotSignal(TrClusterR::DefaultChargeCorrOpt,beta,rigidity,mass_on_Z,res_mult)); 
+  }
 
   /// Get i-th strip signal
   float GetSignal(int ii, int opt = DefaultCorrOpt);
@@ -374,6 +372,62 @@ class TrClusterR :public TrElem{
   void Print(int printopt =0);
   /// Return a string with some info (used for event display)
   char* Info(int iRef);
+
+  /**@}*/
+
+
+  /** @name More cluster quantities */
+  /**@{*/
+
+  // Get number of implant strips between the two highest readout strips (S: 3, K5: 1 or 2 (edges), K7: 1 or 0 ...)
+  int   GetNInterstrip(int mult = 0); 
+
+  // Get number of strips with a particular calibration status mask for this cluster (checks also outside of cluster) 
+  int   GetNStripWithCalibrationStatus(int nstrip_from_seed, int mask, int mult = 0);
+  // Get number of strips with a particular occupancy status mask for this cluster (checks also outside of cluster)
+  int   GetNStripWithOccupancyStatus(int nstrip_from_seed, int mask, int mult = 0);
+  // Get number of strips with a particular gain status mask for this cluster (checks also outside of cluster)
+  int   GetNStripWithGainStatus(int nstrip_from_seed, int mask, int mult = 0);
+  // Get number of strips on the edge of the sensor (checks also outside of cluster)
+  int   GetNStripOnTheEdgeOfSensor(int nstrip_from_seed, int mult = 0);
+  // Get number of strips on the edge of VA (checks also outside of cluster)
+  int   GetNStripOnTheEdgeOfVA(int nstrip_from_seed, int mult = 0);
+
+  // Check cluster morfology: monothonic behaviour? (extend to how many strips you want around the seed)
+  bool  IsMonotonic(int nstrip_from_seed);
+  // Check cluster morfology: monothonic behaviour? (extend to all the strips around seed over threshold)
+  bool  IsMonotonicWithThreshold(float threshold);
+  // Check cluster morfology: are the strips over threshold?
+  bool  IsOverThreshold(int nstrip_from_seed, float threshold = 1);
+
+  // Get the ratio between signal of few strips around seed with respect to total signal (no corrections).
+  float GetSignalToSignalRatio(int nstrip_from_seed);
+
+  // Create a cluster status with information about the cluster quality 
+  /* -  0-bit: >0 dead strips 
+   * -  1-bit: >0 noisy strips 
+   * -  2-bit: >0 second step bad strips
+   * -  3-bit: >0 strips with bad region flag
+   * -  4-bit: >0 dead occupancy strips 
+   * -  5-bit: >0 noisy occupancy strips
+   * -  6-bit: >0 bad strips from gain database (not gold)
+   * -  7-bit: >0 bad strips from gain database (not silver)
+   * -  8-bit: >0 strips on the edge of the sensor 
+   * -  9-bit: >0 strips on the edge of VA
+   * - 10-bit: check if the cluster is well constructed
+   * - 11-bit: check if the cluster K7 is well constructed
+   */
+  int   GetQStatus(int nstrip_from_seed = 1, int mult = 0);
+
+  // Create a cluster status with valuable information about cluster morfology
+  /* - 0-bit: 2 strip around the seed have a non-monotonic behaviour
+   * - 1-bit: 3 strip around the seed have a non-monotonic behaviour
+   * - 2-bit: strips over SN=0.0 thereshold have a non-monotonic behaviour
+   * - 3-bit: strips over SN=1.5 thereshold have a non-monotonic behaviour 
+   * - 4-bit: strips over SN=3.0 thereshold have a non-monotonic behaviour 
+   * - 5-bit: strips over SN=4.5 thereshold have a non-monotonic behaviour
+   */
+  int   GetMorfologyStatus();
 
   /**@}*/
 

@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.17 2012/11/07 14:29:22 oliva Exp $ 
+/// $Id: TkCoo.C,v 1.18 2013/01/02 19:41:41 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2012/11/07 14:29:22 $
+///$Date: 2013/01/02 19:41:41 $
 ///
-/// $Revision: 1.17 $
+/// $Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -336,7 +336,7 @@ int TkCoo::ImplantedFromReadK7(int channel){
 //     Mult #0                       Mult #1                                      Mult #2
 // Sensor = int( (Channel + Multiplicity*NReadoutChannels)/NReadoutPerSensor) 
 // Strip  = Channel + Multiplicity*NReadoutChannels - Sensor*NReadoutPerSensor
-int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens) {
+int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens, int verbose) {
   // default for failure
   sens = -1;
   // if S nothing to do 
@@ -346,7 +346,7 @@ int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens) {
   // take ladder to decide K5 or K7 
   TkLadder* ladder = TkDBc::GetHead()->FindTkId(tkid);
   if (!ladder) {  
-    printf("TkCoo::GetSensorAddress-E cannot find ladder %d into the database\n",tkid); 
+    if (verbose>0) printf("TkCoo::GetSensorAddress-W cannot find ladder %d into the database. Return -1.\n",tkid); 
     sens = -1; 
     return -1; 
   }
@@ -354,9 +354,9 @@ int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens) {
   int max_mult = GetMaxMult(tkid,readchann+640); // needed channel 0-1023
   if ( (mult<0)||(mult>max_mult) ) { 
     // this could actually happen for last sensors of K7 (max multiplicity is taken from first strip, not from seed strip)
-    printf("TkCoo::GetSensorAddress-W requested multiplicity %d out of range (0,%d), for channel %d on ladder %+04d\n",mult,max_mult,readchann+640,tkid);   
-    sens = -1;
-    return -1; 
+    if (verbose>0) printf("TkCoo::GetSensorAddress-W requested multiplicity %d out of range (0,%d), for channel %d on ladder %+04d. Return -2.\n",mult,max_mult,readchann+640,tkid);   
+    sens = -2;
+    return -2; 
   }
   // calculate sensor 
   int nread = TkDBc::GetHead()->_NReadoutChanK;
@@ -365,16 +365,16 @@ int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens) {
   // check sensor_number
   int max_sens = ladder->GetNSensors();
   if ( (sens<0)||(sens>max_sens) ) { 
-    printf("TkCoo::GetSensorAddress-E calculated sensor number %d out of range (0,%d)\n",sens,max_sens); 
-    sens = -1; 
-    return -1; 
+    if (verbose>0) printf("TkCoo::GetSensorAddress-W calculated sensor number %d out of range (0,%d). Return -3.\n",sens,max_sens); 
+    sens = -3; 
+    return -3; 
   }
   // calculate strip on sensor 
   int strip = readchann + mult*nread - sens*nread_per_sens;
   if ( (strip<0)||(strip>nread_per_sens) ) { 
-    printf("TkCoo::GetSensorAddress-E calculated strip number %d out of range (0,%d)\n",strip,nread_per_sens); 
-    sens = -1; 
-    return -1; 
+    if (verbose>0) printf("TkCoo::GetSensorAddress-W calculated strip number %d out of range (0,%d). Return -4.\n",strip,nread_per_sens); 
+    sens = -4; 
+    return -4; 
   }
   return strip;
 }

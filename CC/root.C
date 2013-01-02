@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.516 2012/12/27 10:09:53 shaino Exp $
+//  $Id: root.C,v 1.517 2013/01/02 19:41:41 oliva Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8292,14 +8292,14 @@ Int_t AMSEventR::Fill()
     if (_ClonedTree[thr]==NULL) {
       TFile * input=_Tree->GetCurrentFile();
       if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
-      char objlist[7][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB","TrInnerDzDB"};
-      TObject* obj[7]={0,0,0,0,0,0,0}; 
+      char objlist[8][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB","TrInnerDzDB","TrOccDB"};
+      TObject* obj[8]={0,0,0,0,0,0,0,0}; 
       TObjString* obj2=0;
       TObjString* obj3=0;
       if(!input){cerr<<"AMSEventR::Fill-E-cannot find input file "<<endl;}
       else{
 	cout <<input->GetName()<<endl;
-	for(int ii=6;ii>=0;ii--){
+	for(int ii=7;ii>=0;ii--){
 	  obj[ii]=input->Get(objlist[ii]);
 	}
 	obj2=(TObjString*)input->Get("AMS02Geometry");
@@ -9493,6 +9493,7 @@ char * DaqEventR::Info(int number){
 #include "TrParDB.h"
 #include "TrPdfDB.h"
 #include "TrGainDB.h"
+#include "TrOccDB.h"
 #include "TrChargeLossDB.h"
 #endif
 
@@ -9584,13 +9585,27 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     // if (TrPdfDB::IsNull()) TrPdfDB::Load(_FILE);
     TrPdfDB::GetHead()->LoadDefaults();
 
-    // TrGainDB load
+    // TrGainDB (if all attempts fail use default)
     // 1st attempt: file
     if (!TrGainDB::GetHead()->Load(_FILE)) { 
-      // 2 attempt: TDV
-      TrGainDB::GetHead()->LoadFromTDV(Run()+30); 
-      // if TDV load fails the default is used
+      // 2nd attempt: TDV
+      TrGainDB::GetHead()->LoadFromTDV(UTime()); 
     }
+
+    // TrOccDB (if all attempts fail use default)
+    // 1st attempt: file
+    if (!TrOccDB::GetHead()->Load(_FILE)) {
+      printf("InitDB::TrOccDB load from file failed. Try TDV... \n");
+      // 2nd attempt: TDV
+      if (!TrOccDB::GetHead()->LoadFromTDV(UTime(),1)) {
+        printf("InitDB::TrOccDB load from TDV failed. Try with histogram ... \n");
+        // 3rd attempt on-the-fly creation from histogram     
+        if (!TrOccDB::GetHead()->CreateFromRawOccupanciesHisto((TH2F*)_FILE->Get("HistoMan/TrOccStri"))) {
+          printf("InitDB::TrOccDB load with histogram failed. Use default.\n");
+        }
+      }
+    }
+    printf("InitDB::TrOccDB has %d bad strips.\n",TrOccDB::GetHead()->GetNBadStrips());
 
     // create and load from AMSDataDir the charge loss correction database
     TrChargeLossDB::GetHead()->Init();

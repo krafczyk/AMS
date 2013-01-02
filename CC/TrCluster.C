@@ -104,7 +104,7 @@ short TrClusterR::GetStatus(int ii) {
 }
 
 
-int TrClusterR::GetSensorAddress(int& sens, int ii, int mult) {
+int TrClusterR::GetSensorAddress(int& sens, int ii, int mult, int verbose) {
   // it could happen that multiplicity exceeds by one the max (only in case of cluster on the last sensor of K7)
   int max_mult = TkCoo::GetMaxMult(GetTkId(),GetSeedAddress());
   if ( (IsK7())&&((mult-max_mult)==1) ) mult = max_mult; 
@@ -112,56 +112,18 @@ int TrClusterR::GetSensorAddress(int& sens, int ii, int mult) {
   int seedadd = GetAddress() + GetSeedIndex(); 
   // here I convert multiplicity of seed to multiplicity of first strip
   if ( (GetSide()==0)&&(IsK7())&&(seedadd>1023) ) mult--; // if seed > left margin the mult of first strip is mult-1 
-  if ( (GetSide()==0)&&(IsK7())&&(seedadd< 640) ) {
-    printf("TrClusterR::GetSensorAddress-E seed address (%d) < right margin. This must not happen!\n",seedadd);
-    mult++; // if seed < right margin the mult of first strip is mult+1 (this case is not possible)
-  }
+  if ( (GetSide()==0)&&(IsK7())&&(seedadd< 640) ) mult++; // if seed < right margin the mult of first strip is mult+1 (this case is possible only if ii<0 & K7)
   // now take the address without regarding of cyclicity accounted in the following algorithm
   int address = GetAddress() + ii; 
   // detect multiplicity jump in case of K7
   while ( (GetSide()==0)&&(IsK7())&&(address>1023) ) { address -= 384; mult++; }
   while ( (GetSide()==0)&&(IsK7())&&(address< 640) ) { address += 384; mult--; }
-  if ( ( (GetSide()==0)&&(address<640)&&(address>1023) ) ||
-       ( (GetSide()==1)&&(address<  0)&&(address> 639) ) ) {
-    printf("TrClusterR::GetSensorAddress-E address out of bounds (%d) for side %1d. This must not happen!\n",address,GetSide());
-    return -1;
+  if ( ( (GetSide()==0)&&( (address<640)||(address>1023) ) ) ||
+       ( (GetSide()==1)&&( (address<  0)||(address> 639) ) ) ) {
+    if (verbose>0) printf("TrClusterR::GetSensorAddress-W address out of bounds (%d) for side %1d. Return -5.\n",address,GetSide());
+    return -5;
   }
-  return TkCoo::GetSensorAddress(GetTkId(),address,mult,sens);
-}
-
-
-bool TrClusterR::IsOnSensorEdge(int mult, int extra) {
-  int sens = 0;
-  int first = 0;
-  int last = 639;
-  if (GetSide()==0) last = (IsK7()) ? 223 : 191;
-  for (int istrip=-extra; istrip<GetNelem()+extra; istrip++) {
-    int strip_in_sensor = GetSensorAddress(sens,istrip,mult);
-    if ( (strip_in_sensor==first)||(strip_in_sensor==last) ) return true;
-  }
-  return false;
-}
-
-
-bool TrClusterR::IsOnVAEdge(int extra) {
-  for (int istrip=-extra; istrip<GetNelem()+extra; istrip++) {
-    int strip_in_va = GetAddress(istrip)%64;
-    if (strip_in_va==0) return true;
-  }
-  return false;
-}
-
-
-int TrClusterR::GetNDeadStrips(int extra) {
-  int ndead = 0;
-  for (int istrip=-extra; istrip<GetNelem()+extra; istrip++) {
-    int iside = GetSide();
-    int address = GetAddress(istrip); // cycl.
-    int iva = int(address/64);
-    short status = GetStatus(istrip); 
-    ndead += ( (status>>0)&0x1 ) | ( (status>>2)&0x1 ); 
-  }
-  return ndead;
+  return TkCoo::GetSensorAddress(GetTkId(),address,mult,sens,verbose);
 }
 
 
@@ -176,6 +138,7 @@ void TrClusterR::Clear() {
   _dxdz    =   0;  // vertical inclination by default 
   _dydz    =   0;  // vertical inclination by default 
 }
+
 
 void TrClusterR::push_back(float adc) {
   _signal.push_back(adc);
@@ -279,7 +242,7 @@ int TrClusterR::GetSeedIndex(int opt) {
 }
 
 
-float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_on_Z) {
+float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_on_Z, int res_mult) {
   float sum = 0.;
   for (int ii=0; ii<GetNelem(); ii++) {
     float signal = GetSignal(ii,opt);
@@ -722,6 +685,11 @@ float TrClusterR::GetClusterSN(int opt) {
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// More functions for cluster quality
+//////////////////////////////////////////////////////////////////////////////
+
+
 bool TrClusterR::Check(int verbosity) {
   if (IsK7()) return true; 
   for (int istrip=0; istrip<GetNelem(); istrip++) {
@@ -745,3 +713,294 @@ bool TrClusterR::Check(int verbosity) {
   }
   return true;
 }
+
+
+bool TrClusterR::CheckK7(int mult, int verbosity) {
+  if (!IsK7()) return true;
+  // check that seed and all the strips are in the same sensor
+  int seed_index = GetSeedIndex();
+  int seed_sensor;
+  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  for (int stri_index=0; stri_index<GetNelem(); stri_index++) {
+    int stri_sensor;
+    int stri_addsens = GetSensorAddress(stri_sensor,stri_index,mult,verbosity);
+    // is wrong?
+    if (stri_addsens<0) {
+      // no error message 
+      return false;
+    }
+    // is the strip on the same sensor of the seed? 
+    if (stri_sensor!=seed_sensor) {
+      if (verbosity>0) printf("TrClusterR::CheckK7-W cluster on K7-side across sensors (tkid=%+4d, strip=%4d, sens1=%4d, sens2=%2d)\n",
+        GetTkId(),stri_addsens,stri_sensor,seed_sensor);
+      return false;
+    }
+  }
+  return true;
+}
+
+
+int TrClusterR::GetNStripWithCalibrationStatus(int nstrip_from_seed, int mask, int mult) {
+  if (GetSide()==1) mult = 0;
+  int nstatus = 0;
+  int seed_index = GetSeedIndex();
+  int seed_sensor;
+  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  TrLadCal* ladcal = TrCalDB::Head->FindCal_TkId(GetTkId()); 
+  for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
+    // has the strip a valid position (address,mult) ?  
+    int stri_sensor;
+    // no error produced if wrong, just skip (error can produced if requested strip is outside from sensor)
+    int stri_addsens = GetSensorAddress(stri_sensor,stri_index,mult,0); 
+    if (stri_addsens<0) continue; 
+    // is the strip on the same sensor of the seed? 
+    if (stri_sensor!=seed_sensor) continue;
+    // condition 
+    int stri_address = GetAddress(stri_index);
+    short status = ladcal->GetStatus(stri_address);
+    if (status&mask) nstatus++;
+  }
+  return nstatus;
+}
+
+
+int TrClusterR::GetNStripWithOccupancyStatus(int nstrip_from_seed, int mask, int mult) {
+  if (GetSide()==1) mult = 0;
+  int nstatus = 0;
+  int seed_index = GetSeedIndex();
+  int seed_sensor;
+  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
+    // has the strip a valid position (address,mult) ?  
+    int stri_sensor;
+    int stri_addsens = GetSensorAddress(stri_sensor,stri_index,mult,0);
+    // no error produced if wrong, just skip (error can produced if requested strip is outside from sensor)
+    if (stri_addsens<0) continue;
+    // is the strip on the same sensor of the seed? 
+    if (stri_sensor!=seed_sensor) continue;
+    // condition 
+    int stri_address = GetAddress(stri_index);
+    int tkid = GetTkId();
+    TrLadOcc* ladocc = TrOccDB::GetHead()->FindOccTkId(tkid);
+    short status = ladocc->GetStatus(stri_address);
+    if (status&mask) nstatus++;
+  }
+  return nstatus;
+}
+
+
+int TrClusterR::GetNStripWithGainStatus(int nstrip_from_seed, int mask, int mult) {
+  if (GetSide()==1) mult = 0;
+  int nstatus = 0;
+  int seed_index = GetSeedIndex();
+  int seed_sensor;
+  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
+    // has the strip a valid position (address,mult) ?  
+    int stri_sensor;
+    // no error produced if wrong, just skip (error can produced if requested strip is outside from sensor)
+    int stri_addsens = GetSensorAddress(stri_sensor,stri_index,mult,0);
+    if (stri_addsens<0) continue;
+    // is the strip on the same sensor of the seed? 
+    if (stri_sensor!=seed_sensor) continue;
+    // condition 
+    int stri_address = GetAddress(stri_index);
+    int tkid = GetTkId();
+    int iva = int(stri_address/64);
+    int status = TrGainDB::GetHead()->FindGainTkId(tkid)->GetStatus(iva);
+    if (status&mask) nstatus++;
+  }
+  return nstatus;
+}
+
+
+int TrClusterR::GetNStripOnTheEdgeOfSensor(int nstrip_from_seed, int mult) {
+  int nstrip = 0;
+  int first = 0;
+  int last = 639;
+  if (GetSide()==0) last = (IsK7()) ? 223 : 191;
+  if (GetSide()==1) mult = 0;
+  int seed_index = GetSeedIndex();
+  int seed_sensor;
+  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
+    // has the strip a valid position (address,mult) ?  
+    int stri_sensor;
+    // no error produced if wrong, just skip (error can produced if requested strip is outside from sensor)
+    int stri_addsens = GetSensorAddress(stri_sensor,stri_index,mult,0);
+    if (stri_addsens<0) continue;
+    // is the strip on the same sensor of the seed? 
+    if (stri_sensor!=seed_sensor) continue;
+    // condition 
+    if ( (stri_addsens==first)||(stri_addsens==last) ) nstrip++;
+  }
+  return nstrip;
+}
+
+
+int TrClusterR::GetNStripOnTheEdgeOfVA(int nstrip_from_seed, int mult) {
+  int nstrip = 0;
+  if (GetSide()==1) mult = 0;
+  int seed_index = GetSeedIndex();
+  int seed_sensor;
+  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
+    // has the strip a valid position (address,mult) ?  
+    int stri_sensor;
+    // no error produced if wrong, just skip (error can produced if requested strip is outside from sensor)
+    int stri_addsens = GetSensorAddress(stri_sensor,stri_index,mult,0);
+    if (stri_addsens<0) continue;
+    // is the strip on the same sensor of the seed? 
+    if (stri_sensor!=seed_sensor) continue;
+    // condition 
+    int stri_address = GetAddress(stri_index);
+    int stri_addrva  = stri_address%64;
+    if (stri_addrva==63) nstrip++;
+  }
+  return nstrip;
+}
+
+
+bool TrClusterR::IsMonotonic(int nstrip_from_seed) { 
+  bool return_value = true;
+  // sub-cluster indexes
+  int seedadd = GetSeedIndex();
+  int leftadd = seedadd-nstrip_from_seed; 
+  if (leftadd<=0) leftadd = 0;
+  int righadd = seedadd+nstrip_from_seed;
+  if (righadd>=GetNelem()) righadd = GetNelem()-1;
+  // monotonic on the left
+  for (int istrip=seedadd; istrip>=leftadd+1; istrip--) 
+    if (GetSignal(istrip)<GetSignal(istrip-1)) return_value = false;
+  // monotonic on the right
+  for (int istrip=seedadd; istrip<=righadd-1; istrip++) 
+    if (GetSignal(istrip)<GetSignal(istrip+1)) return_value = false; 
+  return return_value;
+}
+
+
+bool TrClusterR::IsMonotonicWithThreshold(float threshold) {
+  bool return_value = true;
+  int seedadd = GetSeedIndex();
+  for (int istrip=seedadd; istrip>0; istrip--) {
+    if (GetSN(istrip)<threshold) break;
+    if (GetSignal(istrip)<GetSignal(istrip-1)) return_value = false;
+  }
+  for (int istrip=seedadd; istrip<GetNelem()-1; istrip++) {
+    if (GetSN(istrip)<threshold) break;
+    if (GetSignal(istrip)<GetSignal(istrip+1)) return_value = false;
+  }
+  return return_value;
+}
+
+
+bool TrClusterR::IsOverThreshold(int nstrip_from_seed, float threshold) {
+  bool return_value = true;
+  // sub-cluster indexes
+  int seedadd = GetSeedIndex();
+  int leftadd = seedadd-nstrip_from_seed;
+  if (leftadd<=0) leftadd = 0;
+  int righadd = seedadd+nstrip_from_seed;
+  if (righadd>=GetNelem()) righadd = GetNelem()-1;
+  // is everything over threshold?
+  for (int istrip=leftadd; istrip<=righadd; istrip++) 
+    if (GetSN(istrip)<threshold) return_value = false;
+  return return_value;
+}
+
+
+float TrClusterR::GetSignalToSignalRatio(int nstrip_from_seed) {
+  // sub-cluster indexes
+  int seedadd = GetSeedIndex();
+  int leftadd = seedadd-nstrip_from_seed;
+  if (leftadd<=0) leftadd = 0;
+  int righadd = seedadd+nstrip_from_seed;
+  if (righadd>=GetNelem()) righadd = GetNelem()-1;
+  // sum everything (GetTotSignal without corretions)
+  float sum_all = 0;
+  for (int istrip=0; istrip<GetNelem(); istrip++)
+    sum_all += GetSignal(istrip);
+  // sum sub-cluster     
+  float sum_sub = 0;
+  for (int istrip=leftadd; istrip<=righadd; istrip++) 
+    sum_sub += GetSignal(istrip);
+  if (sum_all>0) return sum_sub/sum_all;
+  return -1;
+}
+
+
+int TrClusterR::GetQStatus(int nstrip_from_seed, int mult) {
+  return    
+    ((GetNStripWithCalibrationStatus(nstrip_from_seed,0x1|0x4,mult)>0)*0x1) +  
+    ((GetNStripWithCalibrationStatus(nstrip_from_seed,0x2|0x8,mult)>0)*0x2) +
+    ((GetNStripWithCalibrationStatus(nstrip_from_seed,0x200,mult)>0)*0x4) +             
+    ((GetNStripWithCalibrationStatus(nstrip_from_seed,0x8000,mult)>0)*0x8) + 
+    ((GetNStripWithOccupancyStatus(nstrip_from_seed,0x1,mult)>0)*0x10) +
+    ((GetNStripWithOccupancyStatus(nstrip_from_seed,0x2,mult)>0)*0x20) +
+    ((GetNStripWithGainStatus(nstrip_from_seed,0x1F,mult)>0)*0x40) +
+    ((GetNStripWithGainStatus(nstrip_from_seed,0x01,mult)>0)*0x80) +
+    ((GetNStripOnTheEdgeOfSensor(nstrip_from_seed,mult)>0)*0x100) +
+    ((GetNStripOnTheEdgeOfVA(nstrip_from_seed,mult)>0)*0x200) + 
+    ((!Check(mult))*0x400) + 
+    ((!CheckK7(mult))*0x800);
+}
+
+
+int TrClusterR::GetMorfologyStatus() {
+  return
+    ((!IsMonotonic(2))*0x1) +
+    ((!IsMonotonic(3))*0x2) +
+    ((!IsMonotonicWithThreshold(0.0))*0x4) +
+    ((!IsMonotonicWithThreshold(1.5))*0x8) +
+    ((!IsMonotonicWithThreshold(3.0))*0x10) +
+    ((!IsMonotonicWithThreshold(4.5))*0x20);
+}
+
+
+int TrClusterR::GetNInterstrip(int mult) {
+  int nelem   = GetNelem();
+  if (nelem==1) return -1;
+  int seedadd = GetSeedIndex();
+  int leftadd = seedadd-1;
+  int righadd = seedadd+1;
+  int add1    = seedadd;
+  int add2    = seedadd;
+  if ( (leftadd< 0)&&(righadd< nelem) ) add2 = righadd;
+  if ( (leftadd>=0)&&(righadd>=nelem) ) add2 = leftadd;
+  if ( (leftadd>=0)&&(righadd< nelem) ) 
+    add2 = (GetSignal(leftadd)>GetSignal(righadd)) ? leftadd : righadd;
+  int index = (add2<add1) ? add2 : add1;
+  // sensor address 
+  int sens;
+  int add = GetSensorAddress(sens,index,mult); 
+  // S side
+  if (GetSide()==1) {
+    //  implantation 0000 0001 0002 0003 0004 0005 0006 0007 0008 0009 0010 0011 0012 ... 2555 2556 2557 2558 2559 2560 2561 2562 2563 2564 2565 2566 2567
+    //  readout       000                 xxx                 001                 002           638                 xxx                 639
+    if ( (add==0)||(add==638) ) return 7;
+    else                        return 3;
+  }
+  // K5 side
+  if ( (GetSide()==0)&&(!IsK7()) ) {
+    //  implantation  000 001 002 003 004 005 006 ... 378 379 380 381 382 383
+    //  readout         0       1       2       3     189     190         191
+    if (add==190) return 2;
+    else          return 1; 
+  }
+  // K7 side
+  if ( (GetSide()==0)&&(IsK7()) ) {
+    //  implantation  000 001 002 003 004 005 006 ... 092 093 094 095 | 096 097 098 ... 286 | 287 288 289 290 291 ... 380 381 382 383
+    //  readout         0       1   2       3   4      61  62      63 |  64      65     159 |     160     161 162     221 222     223
+    if      (add<= 63) return ((add%2)==0) ? 1 : 0;
+    else if (add<=159) return 1; 
+    else               return ((add%2)==0) ? 1 : 0;
+  }
+  return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Legacy part
+//////////////////////////////////////////////////////////////////////////////
+
+
