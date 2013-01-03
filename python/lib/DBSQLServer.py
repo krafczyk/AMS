@@ -46,6 +46,8 @@ class DBSQLServer:
             return 0
         return 1
     def set_oracle_env(self):
+        if(os.environ.has_key('NLS_LANG')):
+                del os.environ['NLS_LANG']
         if(not (os.environ.has_key('ORACLE_HOME'))):
             os.putenv('ORACLE_HOME','/afs/cern.ch/project/oracle/@sys/10205') 
             os.putenv('TNS_ADMIN','/afs/cern.ch/project/oracle/admin')
