@@ -32,6 +32,19 @@ class DBSQLServer:
             print e
             return 0
         return 1
+    def ConnectRO(self):
+        user="amsro"
+        pwd="eto_amsro"
+        self.set_oracle_env()
+        connstring=user+"/"+pwd+"@"+self.dbfile
+        try:
+
+            self.dbhandler=cx_Oracle.connect(connstring,twophase=self.one)
+            self.dbcursor=self.dbhandler.cursor()
+        except cx_Oracle.Error,e:
+            print e
+            return 0
+        return 1
     def set_oracle_env(self):
         if(not (os.environ.has_key('ORACLE_HOME'))):
             os.putenv('ORACLE_HOME','/afs/cern.ch/project/oracle/@sys/10205') 
