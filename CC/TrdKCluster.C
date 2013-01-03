@@ -1876,3 +1876,29 @@ double TrdKCluster::GetTRDChargeLower()
 
 /////////////////////////////////////////////////////////////////////
 
+double TrdKCluster::GetIPChi2()
+{
+  double Par[5];
+  Par[0]=TRDtrack_extrapolated_P0.x();
+  Par[1]=TRDtrack_extrapolated_P0.y();
+  Par[2]=TRDtrack_extrapolated_P0.z();
+  double theta=TRDtrack_extrapolated_Dir.gettheta();
+  double phi=TRDtrack_extrapolated_Dir.getphi();
+  Par[3]=sin(theta)*cos(phi);
+  Par[4]=sin(theta)*sin(phi);
+
+  double TotalAmpRefit=0;
+  for(vector<TrdKHit>::iterator it=QTRDHitCollectionRefit.begin();it!=QTRDHitCollectionRefit.end();it++)
+  {
+    TotalAmpRefit=TotalAmpRefit+(*it).TRDHit_Amp;
+  }
+
+  double IPChi2=TRDTrack_ImpactChi2_Charge(Par);
+  IPChi2=IPChi2/TotalAmpRefit;
+  IPChi2=IPChi2+8.982074956/10.0;
+
+  return IPChi2;
+}
+
+/////////////////////////////////////////////////////////////////////
+

@@ -214,6 +214,8 @@ public:
 
     double GetCleanliness() {return ((double)(QTRDHitCollection.size()))/((double)(_event->NTrdRawHit()));} 
 
+    //Get track refit (charge) IPChi2
+    double GetIPChi2();
 
     // TRD Partial Pressure
     float Pressure_Xe;
