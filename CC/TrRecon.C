@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.167 2013/01/01 18:12:03 choutko Exp $ 
+/// $Id: TrRecon.C,v 1.168 2013/01/05 22:02:04 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/01/01 18:12:03 $
+/// $Date: 2013/01/05 22:02:04 $
 ///
-/// $Revision: 1.167 $
+/// $Revision: 1.168 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -374,7 +374,7 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 
       _CpuTime = _CheckTimer();
     }
-    else if (simple) {
+    if (simple) {
       if (TRCLFFKEY.BuildTracksSimpleChargeSeedTag==1) { 
         if (GetNHitsWithTag(TrRecHitR::ZSEED)<RecPar.MaxNtrHit) 
           ntrk += BuildTrTracksSimple(rebuild,TrRecHitR::ZSEED); 
@@ -2625,7 +2625,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 		       patt->GetHitPatternIndex(masky));
     TR_DEBUG_CODE_113;
 
-    int vertex = (TRCLFFKEY.recflag%100000 >= 10000) ? 1 : 0;
+    int vertex = 0;//(TRCLFFKEY.recflag%100000 >= 10000) ? 1 : 0;
     if (vertex) {
       int fid = TrTrackR::kAlcaraz;
       if (track->FitT(fid) > 0) {
