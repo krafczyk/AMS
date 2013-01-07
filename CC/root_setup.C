@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.126 2012/12/31 08:47:19 choutko Exp $
+//  $Id: root_setup.C,v 1.127 2013/01/07 09:46:07 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1353,7 +1353,7 @@ const char fpate[]="24H.csv";
     int efound=0;
     while(yc<ye || (dc<=de && yc==ye)){
      char fname[1000];
-     sprintf(fname,"%s/%s_%u_%u-%s",AMSISS,fpatb,yc,dc,fpate); 
+     sprintf(fname,"%s/%s_%u_%03u-%s",AMSISS,fpatb,yc,dc,fpate); 
      ifstream fbin;
      fbin.close();
      fbin.open(fname);
