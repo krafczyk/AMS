@@ -1902,3 +1902,49 @@ double TrdKCluster::GetIPChi2()
 
 /////////////////////////////////////////////////////////////////////
 
+double TrdKCluster::GetAsyNormE()
+{
+  int Layer;
+  double ADC;
+  double Length;
+
+  double UpE=0;
+  double LowE=0;
+  double UpPL=0;
+  double LowPL=0;
+
+  for(vector<TrdKHit>::iterator it=QTRDHitCollectionNuclei.begin();it!=QTRDHitCollectionNuclei.end();it++)
+  {
+    ADC=(*it).TRDHit_Amp;
+    Layer=(*it).TRDHit_Layer;
+    Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+    if(Layer>=10)
+    {
+      UpE+=ADC;
+      UpPL+=Length;
+    }
+    else
+    {
+      LowE+=ADC;
+      LowPL+=Length;
+    }
+  }
+
+  if(UpPL) UpE=UpE/UpPL;
+  else UpE=0;
+  if(LowPL) LowE=LowE/LowPL;
+  else LowE=0;
+  if(UpE+LowE) return (UpE-LowE)/(UpE+LowE);
+  else return -100;
+}
+
+/////////////////////////////////////////////////////////////////////
+
+double TrdKCluster::GetAsyD()
+{
+  if(DAmpUpper+DAmpLower) return (DAmpUpper-DAmpLower)/(DAmpUpper+DAmpLower);
+  else return -100;
+}
+
+/////////////////////////////////////////////////////////////////////
+

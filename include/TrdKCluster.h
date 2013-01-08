@@ -217,6 +217,10 @@ public:
     //Get track refit (charge) IPChi2
     double GetIPChi2();
 
+    //Get TRD asymmetry for dE/dX and delta ray measurements
+    double GetAsyNormE(); //Normalized dE/dX
+    double GetAsyD(); //Delta ray
+
     // TRD Partial Pressure
     float Pressure_Xe;
 
