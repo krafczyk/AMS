@@ -324,7 +324,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    {
      cout<<" "<<endl;
      cout<<" ====================================================================="<<endl;
-     cout<<" [ecalBDTCHI2] ATTENTION    only version 1 of BDTCHI2 supported"<<endl;
+     cout<<" [ecalBDTCHI2] ATTENTION    only versions 1 and 2 of BDTCHI2 supported"<<endl;
      cout<<" [ecalBDTCHI2] ATTENTION    you have called it with version "<<iBDTCHI2VERSION<<endl;
      cout<<" [ecalBDTCHI2] ATTENTION    BDT will be set to -999 for all entries!!!"<<endl;
      cout<<" ====================================================================="<<endl;
@@ -498,7 +498,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 	{
 	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v2_ODD.weights.xml", WeightsDir));
 	  ecalBDTCHI2reader_v2_ODD = ecalBDTCHI2reader_ODD;
-	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v2.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v2.EVEN.weights.xml", WeightsDir));
 	  ecalBDTCHI2reader_v2_EVEN = ecalBDTCHI2reader_EVEN;
 	}
    }
