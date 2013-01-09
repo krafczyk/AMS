@@ -486,8 +486,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
       ecalBDTCHI2reader_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 
       char WeightsDir[100];
-      //sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
-      sprintf(WeightsDir,"/afs/cern.ch/user/i/incaglim/public/bdt-marco/WEIGHTS");
+      sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
       //
       if ( iBDTCHI2VERSION == 1 )
 	{
