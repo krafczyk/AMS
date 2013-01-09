@@ -21,7 +21,7 @@ char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
    "LayerChi213",   "LayerChi214",   "LayerChi215",   "LayerChi216",   "LayerChi217",
    "EnergyD"
 };
-EcalAxis *ecalaxis;
+
 
 bool BCHI2_DEBUG = false;
 
@@ -36,8 +36,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    }
 
    EcalAxis::Version=2;
-   ecalaxis = new EcalAxis();
-   ecalaxis->process(pev,2);
+   EcalAxis ecalaxis;
+   ecalaxis.process(pev,2);
   
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
@@ -142,7 +142,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
       if (ClusterEnergy[ilayer] == 0.) continue;
 
       //get Chi2 per layer
-      LayerChi2[ilayer] = ecalaxis->ecalchi2->get_chi2(ilayer);
+      LayerChi2[ilayer] = ecalaxis.ecalchi2->get_chi2(ilayer);
 
       UChar_t proj = !((ilayer/2) % 2);
 
