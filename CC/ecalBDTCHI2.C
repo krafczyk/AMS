@@ -3,7 +3,8 @@
 #include <EcalChi2CY.h>
 
 TMVA::Reader *ecalBDTCHI2reader_v1 = NULL;
-TMVA::Reader *ecalBDTCHI2reader_v2 = NULL;
+TMVA::Reader *ecalBDTCHI2reader_v2_ODD = NULL;
+TMVA::Reader *ecalBDTCHI2reader_v2_EVEN = NULL;
 const unsigned int nPIBCHI2VARs = 44;
 float piBCHI2normvar[nPIBCHI2VARs + 1];
 float piBCHI2inputvar[nPIBCHI2VARs + 1];
@@ -20,7 +21,7 @@ char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
    "LayerChi213",   "LayerChi214",   "LayerChi215",   "LayerChi216",   "LayerChi217",
    "EnergyD"
 };
-EcalAxis *ecalaxis=0;
+EcalAxis *ecalaxis;
 
 bool BCHI2_DEBUG = false;
 
@@ -35,7 +36,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    }
 
    EcalAxis::Version=2;
-   if (!ecalaxis) ecalaxis = new EcalAxis();
+   ecalaxis = new EcalAxis();
    ecalaxis->process(pev,2);
   
    const unsigned int nLAYERs = 18;
@@ -110,7 +111,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    {
       Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
 
-      if (!cluster2d || !(cluster2d->Status & 32)) continue;
+      if (!cluster2d) return -2;
+      if (!(cluster2d->Status & 32)) continue;
 
       int nCLUSTERs = cluster2d->NEcalCluster();
       for (int icluster = 0; icluster < nCLUSTERs; ++icluster)
@@ -126,7 +128,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
          for (int ihit = 0; ihit < nclHITs; ++ihit)
          {
             EcalHitR *hit = cluster->pEcalHit(ihit);
-
+	    
 	    if (!hit) return -2;
             if ((hit->Status & 32) && hit->ADC[0] > 4)
                MapEneDep[hit->Plane][hit->Cell] = hit->Edep;
@@ -306,6 +308,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    //********************************
 
    TMVA::Reader *ecalBDTCHI2reader = NULL;
+   TMVA::Reader *ecalBDTCHI2reader_ODD = NULL;
+   TMVA::Reader *ecalBDTCHI2reader_EVEN = NULL;
 
    if ( iBDTCHI2VERSION == 1 )
    {
@@ -313,13 +317,14 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    }
    else if ( iBDTCHI2VERSION == 2 )
    {
-     ecalBDTCHI2reader = ecalBDTCHI2reader_v2;
+     ecalBDTCHI2reader_ODD = ecalBDTCHI2reader_v2_ODD;
+     ecalBDTCHI2reader_EVEN = ecalBDTCHI2reader_v2_EVEN;
    }
    else
    {
      cout<<" "<<endl;
      cout<<" ====================================================================="<<endl;
-     cout<<" [ecalBDTCHI2] ATTENTION    only version 1 and 2 of BDTCHI2 supported"<<endl;
+     cout<<" [ecalBDTCHI2] ATTENTION    only versions 1 and 2 of BDTCHI2 supported"<<endl;
      cout<<" [ecalBDTCHI2] ATTENTION    you have called it with version "<<iBDTCHI2VERSION<<endl;
      cout<<" [ecalBDTCHI2] ATTENTION    BDT will be set to -999 for all entries!!!"<<endl;
      cout<<" ====================================================================="<<endl;
@@ -328,19 +333,17 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
      return -999;
    }
 
-   if (ecalBDTCHI2reader == NULL)     //if not already Init.....
+   if (ecalBDTCHI2reader==NULL && ecalBDTCHI2reader_ODD==NULL && ecalBDTCHI2reader_EVEN==NULL )     //if not already Init.....
    {
       std::cout << "##############################################################" << std::endl;
       std::cout << "                   Create GetEcalBDTCHI2 Reader   " << std::endl;
       std::cout << "##############################################################" << std::endl;
 
       //~ TMVA::Tools::Instance();
+      // 
       ecalBDTCHI2reader = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
-
       ecalBDTCHI2reader->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
-
       ivar = 0;
-
       ecalBDTCHI2reader->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("ShowerSigmaNorm",      &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("L2LFracNorm",          &piBCHI2normvar[ivar++]);
@@ -385,6 +388,102 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
       ecalBDTCHI2reader->AddVariable("LayerChi215",     &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
+      // 
+      ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+      ecalBDTCHI2reader_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
+      ivar = 0;
+      ecalBDTCHI2reader_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("ShowerSigmaNorm",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("L2LFracNorm",          &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("R3cmFracNorm",         &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("S3totxNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("S3totyNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("NEcalHitsNorm",        &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("ShowerFootprintXNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("ShowerFootprintYNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm0",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm1",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm2",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm3",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm4",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm5",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm6",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm7",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm8",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm9",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm10",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm11",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm12",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm13",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm14",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm15",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm16",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm17",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi21",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi22",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi23",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi24",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi25",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi26",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi27",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi28",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi29",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi210",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi211",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi212",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi213",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi214",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi215",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
+      // 
+      ecalBDTCHI2reader_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+      ecalBDTCHI2reader_EVEN->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
+      ivar = 0;
+      ecalBDTCHI2reader_EVEN->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("ShowerSigmaNorm",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("L2LFracNorm",          &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("R3cmFracNorm",         &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("S3totxNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("S3totyNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("NEcalHitsNorm",        &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("ShowerFootprintXNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("ShowerFootprintYNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm0",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm1",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm2",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm3",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm4",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm5",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm6",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm7",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm8",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm9",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm10",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm11",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm12",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm13",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm14",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm15",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm16",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm17",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi21",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi22",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi23",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi24",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi25",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi26",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi27",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi28",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi29",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi210",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi211",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi212",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi213",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi214",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi215",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 
       char WeightsDir[100];
       sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
@@ -396,8 +495,10 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 	}
       else if ( iBDTCHI2VERSION == 2 )
 	{
-	  ecalBDTCHI2reader->BookMVA("BDTG_LAYERS", Form("%s/ECAL_PISA_BDTCHI2_412_v2.weights.xml", WeightsDir));
-	  ecalBDTCHI2reader_v2 = ecalBDTCHI2reader;
+	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v2_ODD.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_v2_ODD = ecalBDTCHI2reader_ODD;
+	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v2.EVEN.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_v2_EVEN = ecalBDTCHI2reader_EVEN;
 	}
    }
 
@@ -856,7 +957,23 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    //********************************
    //*****  Calculate BDT    ********
    //********************************
-   float bdt = ecalBDTCHI2reader->EvaluateMVA("BDTG_LAYERS");
+   float bdt;
+   if ( iBDTCHI2VERSION == 1 )
+     {
+       bdt = ecalBDTCHI2reader->EvaluateMVA("BDTG_LAYERS");
+     }
+   else if ( iBDTCHI2VERSION == 2 )
+     {
+       if ( pev->Event()%2 == 1 ) 
+	 {
+	   bdt = ecalBDTCHI2reader_ODD->EvaluateMVA("BDTG_LAYERS_ODD");
+	 }
+       else
+	 {
+	   bdt = ecalBDTCHI2reader_EVEN->EvaluateMVA("BDTG_LAYERS_EVEN");
+	 }
+     }
+   else bdt=-999.;
 
    return bdt;
 }
