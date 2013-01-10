@@ -497,7 +497,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 	{
 	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v2_ODD.weights.xml", WeightsDir));
 	  ecalBDTCHI2reader_v2_ODD = ecalBDTCHI2reader_ODD;
-	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v2.EVEN.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v2_EVEN.weights.xml", WeightsDir));
 	  ecalBDTCHI2reader_v2_EVEN = ecalBDTCHI2reader_EVEN;
 	}
    }
