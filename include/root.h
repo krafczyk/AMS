@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.525 2012/12/18 11:01:37 lbasara Exp $
+//  $Id: root.h,v 1.526 2013/01/11 12:05:48 lbasara Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -435,7 +435,7 @@ public:
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
-  /// Checks the error bits (0x7F00) on the four JINJStatus word and return True if any of these bit is up
+  /// Checks the error bits (0x7F00)c on the four JINJStatus word and return True if any of these bit is up
   bool HasHWError(){
    return ( (JINJStatus[0]&0x7F00)>0 ||
             (JINJStatus[1]&0x7F00)>0 ||
@@ -748,13 +748,16 @@ public:
   ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
 
  float EcalStandaloneEstimatorV3();
-  ///< LAPP Ecal Estimator -
-  ///< Updated Dec 2012 -
-  ///< 90% efficiency cut (based on electron-like flight events) now Energy-Bin dependant
+  ///< LAPP Ecal Estimator V3
+  ///< Updated Jan 2013
+  ///< Efficiency bin-dependant ;matching efficiency / rejection retrieved via GetESEv3Efficiency() / GetESEv3Rejection()
   ///< for an Energy-Bin independant cut, you should use EcalShowerR::EcalStandaloneEstimatorV2()
-  ///< However, BDT value of -0.05 reasonable for 90% efficacity cut.
-  ///< EcalShowerR::GetEcalBDT() is now considered obsolete.
   
+ float GetESEv3Efficiency();
+  ///< Get the lepton efficiency for the current shower using LAPP Ecal Estimator V3 value and energy bin
+  
+ float GetESEv3Rejection();
+  ///< Get the proton rejection for the current shower using LAPP Ecal Estimator V3 value and energy bin
   
   
  
@@ -793,7 +796,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,14)       //EcalShowerR
+  ClassDef(EcalShowerR,15)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
