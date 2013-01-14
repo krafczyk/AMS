@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.46 2012/12/21 16:40:35 kaiwu Exp $
+//  $Id: AMSNtupleV.cxx,v 1.47 2013/01/14 10:01:20 kaiwu Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -598,13 +598,16 @@ for(i1=0;i1<gAMSDisplay->m_chain_Runs.size();i1++){
 if(i1==gAMSDisplay->m_chain_Runs.size())
     return false;
 starti=gAMSDisplay->m_chain_EntryIndex[i1];
+//Find same runs, assume the same run's root file are continuous
+//one run may have two root files
 i1++;
 for(;i1<gAMSDisplay->m_chain_Runs.size();i1++){
-    cout<<i1<<endl;
+//    cout<<i1<<endl;
     if(run!=gAMSDisplay->m_chain_Runs[i1])
         break;
 }
 endi=gAMSDisplay->m_chain_EntryIndex[i1]-1;
+//check binary's maximum search time
 int maxn=int(ceil(log2(endi-starti)))+2;
 //Update root setup if search a different run
 //if(frun!=run){
@@ -636,12 +639,15 @@ else{
     int endi2=starti+(event-startevt);
     if(endi2<endi)
         endi=endi2;
-    while(endi-1>starti){
-        gAMSDisplay->getchain()->ReadOneEvent(int(0.5*(starti+endi)));
+    //cout<<"start event= "<<
+    while(endi>starti){
+        int middle=int(ceil(0.5*(starti+endi)));
+        gAMSDisplay->getchain()->ReadOneEvent(middle);
+        //cout<<"starti= "<<starti<<", middle= "<<middle<<" endi= "<<endi<<" ev= "<<Event()<<" search= "<<event<<endl;
         if(Event()<event)
-            starti=int(0.5*(starti+endi));
+            starti=middle;
         else if(Event()>event)
-            endi=int(0.5*(starti+endi));
+            endi=middle;
         else
             return true;      
     }
