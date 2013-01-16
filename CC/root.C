@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.514.2.1 2012/12/18 15:50:59 choutko Exp $
+//  $Id: root.C,v 1.514.2.2 2013/01/16 17:57:41 sdellato Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9316,13 +9316,14 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
 
 
         //...This function inverts particle dir of ams system and returns particle dir in GTOD  deg!!!
-	// Parameters:   use_att= 1, use_coo = 1, use_time= 1, dt= 0, out_type= 3
-        int gtodT =  GetGalCoo(result, theta_deg , phi_deg, theta, phi, 1,1,1,0.,3 );
-	if (gtodT!=0) return  -1;
+        // Parameters:   use_att= 1, use_coo = 1, use_time= 1, dt= 0, out_type= 3
+        int gtodT =  GetGalCoo(result, phi_deg , theta_deg, theta, phi, 1,1,1,0.,3 ); //correct SDT inverted phi_deg and theta_deg
+        if (gtodT!=0) return  -1;
 
 
         //...gtheta is colatitude --> I need Latitude:
-        theta_deg=90.- theta_deg;
+        //theta_deg=90.- theta_deg; // SDT - Jan 2013 - GetGalCoo gives latitude instead of colatitude (prev Version)
+
 
         //....from deg to rad
         //gtheta*=deg2rad;
@@ -10094,7 +10095,7 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
   return ret;
 }
 
-int HeaderR::get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[3], double YPR[3], double  time, bool gtod){
+int HeaderR::get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[3], double YPR[3], double  time, bool gtod){
 /*
 input  AMSTheta (rad) in AMS coo system (from ParticleR)
        AMSPhi   (rad) in AMS coo system (from ParticleR)
@@ -10104,8 +10105,8 @@ input  AMSTheta (rad) in AMS coo system (from ParticleR)
        gtod  true if gtod coo system
        time UTC time
 output
-           gtod_theta  in degrees
-           gtod_phi    in degrees
+           gtod_long , phi   in degrees
+           gtod_lat  , theta in degrees
 return values
 0  success
 1...n  error (if any)
@@ -10116,11 +10117,12 @@ return values
  double AMS_y=-dir[1];
  double AMS_z=-dir[2];
  // use the conversion procedure described in FrameTrans.h
- get_ams_gtod_fromGTOD( AMS_x,  AMS_y, AMS_z,gtod_theta, gtod_phi, RPT, VelPT, YPR, time);
+ get_ams_gtod_fromGTOD( AMS_x,  AMS_y, AMS_z,gtod_lat, gtod_long, RPT, VelPT, YPR, time);
 
 return 0;
 
 }
+
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.525 2012/12/18 11:01:37 lbasara Exp $
+//  $Id: root.h,v 1.525.2.1 2013/01/16 17:57:42 sdellato Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -373,7 +373,7 @@ output
 */
 int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[3], double YPR[3], double  xtime, int att=1, bool galactic=true);
 //-----------------------------------------
-int get_gtod_coo(double & gtod_theta, double & gtod_phi, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[3], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
+int get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[3], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
 
 
 
@@ -3432,10 +3432,11 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
   /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
 //----------------------------------------------------------------------------------------------------------
- /// returns  Stoermer Rigidity cutoff [GV]: the method performs a linear interpolation of Gauss coefficients, 
- /// finds location of Geomegnetic Poles and Dipole Center at event Utime , 
+/// returns  Stoermer Rigidity cutoff multiply by ParticleR.Charge [GeV/c]:
+ /// The method performs a linear interpolation of Gauss coefficients,
+ /// finds location of Geomegnetic Poles and Dipole Center at event Utime ,
  /// Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
-  double GetGeoCutoff(AMSEventR* pev);
+ double GetGeoCutoff(AMSEventR* pev);
 //-----------------------------------------------------------------------------------------------------------
 
   ClassDef(ParticleR,16)       //ParticleR
