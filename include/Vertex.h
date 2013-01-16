@@ -54,7 +54,7 @@ public:
   
   /// access function to TrTrackR objects used
   /// \return number of TrTrackR used
-  int NTrTrack()const {return _pTrTrack.size();}
+  int NTrTrack() const { return fTrTrack.size(); }
    /// access function to TrTrackR objects used
   /// \param i index of fTrTrackR vector
   /// \return index of TrTrackR object in collection or -1
