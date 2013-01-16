@@ -96,7 +96,7 @@ int get_ams_l_b_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & l, do
 int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & theta, double &phi, double PosISS[3], double VelISS[3], double ypr[3], double xtime){
 // SDT(sept2012) - generic trasformation from AMS frame to galactic frame passing via GTOD (or ~ctrs)
 // AMS_x, AMS_y, AMS_z = Particle/Photon arrival direction in AMS frame (cartesian) 
-// l, b                = galactic longitude and latitude of Particle/Photon arrival direction in J2000 frame in degree
+// theta, phi          = GTOD latitude and longitude  of Particle/Photon arrival direction in J2000 frame in degree
 // PosISS[3] = posizion of ISS in r,azimut[i.e. longitude],elev[i.e. latitude] 
 // VelISS[3] = Velocity of ISS in VelocityS(angular velocity), ISSVelPhi, ISSVelTheta
 // ypr[3]    = attitude wtr LVLH in ISSyaw,  ISSpitch,  ISSroll [in rad]
@@ -115,9 +115,11 @@ int get_ams_gtod_fromGTOD(double AMS_x, double AMS_y,double AMS_z, double & thet
   FT_Body2LVLH(x, y, z, ypr[0], ypr[1], ypr[2]);            // Parameters: ISSyaw,  ISSpitch,  ISSroll  (in rad)          
   FT_LVLH2ECI(x, y, z,ISSx, ISSy, ISSz,ISSvx,ISSvy,ISSvz ); // Parameters: x,y,z,vx,vy,z
   FT_Equat2GTOD(x, y,z,xtime);
-   /* result */ 
-  theta=acos(z)*180./pi;
-  phi=atan2(y,x)*180./pi;
+   /* result */
+
+  FT_Cart2Angular(x, y, z,r, theta,  phi); 
+  theta=theta*180./pi;
+  phi=phi*180./pi;
   
   
   return 0;
