@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.166 2012/12/27 10:09:53 shaino Exp $
+// $Id: TrTrack.C,v 1.167 2013/01/17 13:56:12 beischer Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/12/27 10:09:53 $
+///$Date: 2013/01/17 13:56:12 $
 ///
-///$Revision: 1.166 $
+///$Revision: 1.167 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1460,6 +1460,7 @@ char * TrTrackR::GetFitNameFromID(int fitnum){
   if(basefit == kAlcaraz     ) strcat(out,"kAlcaraz");
   if(basefit == kChikanian   ) strcat(out,"kChikanian");
   if(basefit == kChikanianF  ) strcat(out,"kChikanianF");
+  if(basefit == kVertex      ) strcat(out,"kVertex");
   if(basefit == kLinear      ) strcat(out,"kLinear");
   if(basefit == kCircle      ) strcat(out,"kCircle");
   if(basefit == kSimple      ) strcat(out,"kSimple");
