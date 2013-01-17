@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.202 2012/08/07 11:02:15 ams Exp $
+//  $Id: server.C,v 1.202.4.1 2013/01/17 16:46:07 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2611,6 +2611,16 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       char pat[]="bsub -n ";
       int pos=s.find(pat);
       if(pos>=0){
+//   check also for -m
+    char pat1[]=" -m $1";
+      int p1=s.find(pat1); 
+      if(p1>=0){
+         char cmaxn[1024];
+         sprintf(cmaxn," -m %s ",(const char*)((ahlv)->HostName));
+         string s1=s.replace(p1,strlen(pat1)+1,cmaxn);
+         cout<<" replaced -m "<<s1<<endl;
+         submit=s1.c_str();
+      } 
        ac.TimeOut=ac.TimeOut*1.5;
        //   try also to change submit string to get a job id in /afs/cern.ch/ams/local/bsubs/uid
        AString badd=" 1>& /afs/cern.ch/ams/local/bsubs/";
@@ -2923,7 +2933,7 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
         char tmp[255];
         sprintf(tmp,"%s%s.bsub",add,uid);
         unlink(tmp);
-        sprintf(tmp,"ssh lxplus /afs/cern.ch/ams/local/bin/timeout --signal 9 120  bjobs %u 1>& %s%s.bsub",jid,add,uid);
+        sprintf(tmp,"ssh %s /afs/cern.ch/ams/local/bin/timeout --signal 9 120  bjobs %u 1>& %s%s.bsub",(const char*)(acv->id).HostName,jid,add,uid);
         int suc=system(tmp);
         if(suc){
             cerr<<" unable to "<<tmp<<endl;
