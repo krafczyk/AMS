@@ -145,15 +145,23 @@ void VertexR::BuildTracksIndex()
 }
 
 
+void VertexR::BuildTracksPointerVector()
+{
+  VCon* cont2 = GetVCon()->GetCont("AMSTrTrack");
+  if (!cont2) return;
+  _pTrTrack.clear();
+  for (unsigned int i = 0; i < fTrTrack.size(); i++) {
+    _pTrTrack.push_back(((TrTrackR*)cont2->getelem(fTrTrack[i])));
+  }
+  delete cont2;
+}
 
 TrTrackR *VertexR::pTrTrack(unsigned int i) 
 {
 
 //if(i>=fTrTrack.size()) return 0;
   if ((i >= _pTrTrack.size() || _pTrTrack[i] == 0) && fTrTrack[i] >= 0) {
-    VCon* cont2 = GetVCon()->GetCont("AMSTrTrack");
-    _pTrTrack[i] = (TrTrackR*)cont2->getelem(fTrTrack[i]);
-    delete cont2;
+    BuildTracksPointerVector();
   }
 
   return _pTrTrack[i];

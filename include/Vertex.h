@@ -30,6 +30,10 @@ public:
 
   /// Build index vector (_fTrTrack) from hits vector (pTrTrack)
   void BuildTracksIndex();
+
+  /// Build track pointer vector (_pTrTrack) from index vector
+  void BuildTracksPointerVector();
+
 protected:
   /// Vector holding the pointer to tracks connected to the vertex
   vector<TrTrackR *> _pTrTrack; //!
