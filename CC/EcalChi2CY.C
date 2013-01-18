@@ -1,9 +1,9 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.22 2012/12/19 22:39:43 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.23 2013/01/18 17:34:29 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
-int EcalPDF::Version =1 ;
+int EcalPDF::Version =2 ;
 int EcalPDF::has_init=-1;
 EcalPDF::EcalPDF(const char* fdatabase){
     if(has_init==-1)
@@ -317,7 +317,7 @@ int EcalPDF::init(const char* fdatabase){
         }
     }
     if(has_init==1)
-        cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<", Version is "<<Version<<endl;
+        cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<", Version is "<<Version<<" has_init= "<<has_init<<endl;
     else
         cout<<"EcalPDF::init-EcalPDF init BAD! Warn message "<<warn_messages<<" in "<<fdatabase<<", Version is "<<Version<<endl;
     _fdatabase->Close();
@@ -325,13 +325,14 @@ int EcalPDF::init(const char* fdatabase){
     return has_init;
 }
 EcalPDF::~EcalPDF(){
-    for(int i1=0;i1<pdf_names.size();i1++)
-        gDirectory->Delete(pdf_names[i1].c_str());
-    has_init=false;
+   //for(int i1=0;i1<pdf_names.size();i1++)
+   //    gDirectory->Delete(pdf_names[i1].c_str());
+   //cout<<"Call EcalPDF::~EcalPDF()"<<endl;
+   //exit(0);
 }
 float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
-    if(!has_init){
-        cerr<<"EcalPDF::get_mean-E-EcalPDF has not been loaded!"<<endl;
+    if(has_init==-1){
+        cerr<<"EcalPDF::get_mean-E-EcalPDF has not been loaded! "<<has_init<<" Version= "<<Version<<endl;
         return -1;
     }
     if(flayer<0||flayer>17)
@@ -377,8 +378,8 @@ float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
 }
 
 float EcalPDF::get_rms (int flayer,float coo,float Erg,int type){
-    if(!has_init){
-        cout<<"EcalPDF has not been loaded!"<<endl;
+    if(has_init==-1){
+        cout<<"EcalPDF::get_rms-E-EcalPDF has not been loaded!"<<endl;
         return -1;
     }
     float ret,ret0,ret1 ;
@@ -424,8 +425,8 @@ float EcalPDF::get_rms (int flayer,float coo,float Erg,int type){
 }
 
 float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
-    if(!has_init){
-        cout<<"EcalPDF has not been loaded!"<<endl;
+    if(has_init==-1){
+        cout<<"EcalPDF::get_prob-E-EcalPDF has not been loaded!"<<endl;
         return -1;
     }
     if(flayer<0||flayer>17)
@@ -506,8 +507,8 @@ double EcalPDF::myfunc_lf(float x,float* par,int type){
         return -1;
     if(x<log(5))
         x=log(5);
-    if(x>log(600))
-        x=log(600);
+    if(x>log(570))
+        x=log(570);
     if(type==0){
         double a0,a1,a2,a3,a4,a5;
         a0=par[0];a1=par[1];a2=par[2];
