@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.519 2013/01/16 17:00:02 sdellato Exp $
+//  $Id: root.C,v 1.520 2013/01/19 18:06:56 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9404,6 +9404,47 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
 return 0;
 }
 
+//----------------------------------------------------------------------
+int AMSEventR::GetRTIStat(){
+   
+   AMSSetupR::RTI a;
+   return getsetup()->getRTI(a,fHeader.Time[0]);
+}
+
+int AMSEventR::GetRTI(AMSSetupR::RTI & a){
+
+   return getsetup()->getRTI(a,fHeader.Time[0]);
+}
+
+int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
+
+#ifdef __ROOTSHAREDLIBRARY__
+  static AMSSetupR setupu;
+  static unsigned int stime[2]={1,1};
+#pragma omp threadprivate (setupu)
+#pragma omp threadprivate (stime)
+
+ const int dt=3600*24;
+ if(stime[0]==1||xtime>stime[1]){
+    stime[0]=xtime;
+    stime[1]=xtime+dt;
+    setupu.fRTI.clear();
+    setupu.LoadRTI(stime[0],stime[1]);
+ }
+//---Status
+  AMSSetupR::RTI b;
+  a=b;
+  AMSSetupR::RTI_i k=setupu.fRTI.lower_bound(xtime);
+  if (setupu.fRTI.size()==0)return 2;
+  if(k==setupu.fRTI.end())return 1;
+
+  if(xtime==k->first){//find
+    a=(k->second);
+    return 0;
+  }
+#endif
+  return 2;
+}
 
 
 //----------------------------------------------------------------------
