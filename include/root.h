@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.527 2013/01/16 17:00:02 sdellato Exp $
+//  $Id: root.h,v 1.528 2013/01/19 18:08:06 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4434,8 +4434,23 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 
 
 //--------------------------------------------------------------------------------------------------
-
-
+///
+       //! Return status of AMS Exposure-Time for each second
+       /*! return 0: if sucess
+           !=0: RIT second has problem(please not use this second for Flux Cal)
+       */  
+       int GetRTIStat();
+       //! get AMS Exposure-Time RTI information for each second
+       /*! return 0: if sucess
+           !=0: RIT second has problem 
+       */      
+       int GetRTI(AMSSetupR::RTI & a);
+       //!  AMS Exposure-Time RTI for each second off-rootfile mode
+       /*! return 0: if sucess
+           !=0: RIT second has problem 
+           \param[in] xtime JMDC Time
+       */
+       static int GetRTI(AMSSetupR::RTI & a, unsigned int  xtime);
 
 //--------------------------------------------------------------------------------------------------
 
@@ -6328,7 +6343,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,20)       //AMSEventR
+ClassDef(AMSEventR,21)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
