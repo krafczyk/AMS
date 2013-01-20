@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.520 2013/01/19 18:06:56 qyan Exp $
+//  $Id: root.C,v 1.521 2013/01/20 15:01:26 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10393,6 +10393,15 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
   double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
   double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
   double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
+    float RTP[3], VTP[3];
+    if (getsetup() &&AMSEventR::getsetup()->getISSTLE(RTP, VTP, xtime) == 0) {
+      RPT[0] = RTP[0];
+      RPT[1] = RTP[2];
+      RPT[2] = RTP[1];
+      VPT[0] = VTP[0];
+      VPT[1] = VTP[2];
+      VPT[2] = VTP[1];
+    }
    
   bool gtod = true;
 
