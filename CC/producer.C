@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.185 2012/11/04 18:28:41 choutko Exp $
+//  $Id: producer.C,v 1.186 2013/01/22 00:02:51 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2221,7 +2221,7 @@ else sprintf(tmpu,"%d",_pid.uid);
               AString afout="/tmp/";
               afout+=tmpu;
               afout+=".bjobs";
-              AString afscript="/afs/cern.ch/ams/local/lsf/bin/bjobs -J '";
+              AString afscript="bjobs -J '";
               afscript+=(const char *)fscript;
               afscript+="*'     1>";
               afscript+=(const char*)afout;

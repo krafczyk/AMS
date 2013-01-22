@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.528 2013/01/19 18:08:06 qyan Exp $
+//  $Id: root.h,v 1.529 2013/01/22 00:02:40 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3756,6 +3756,7 @@ public:
 static int gpsdiff(unsigned int time);///< Return gps-utc difference for the time time
 static vector<unsigned int>RunType;
 static vector<unsigned int>BadRunList;
+static bool LoadFromTDV;
 static unsigned int MinRun;
 static unsigned int MaxRun;
 static int ProcessSetup;
@@ -3984,9 +3985,10 @@ return 0;
 }
 static void ldir(){cout<<" Current Dir: "<<Dir<<endl;}
 /// fetch histos from TFile (to the dir dir)
-static  void hfetch(TFile & f, const char dir[]="",int id=0);
+static  void hfetch(TFile & f, const char dir[],int id,const char pat[]);
 /// fetch histos from TFile file (to the dir file)
 static  void hfetch(const char file[],int id=0);
+static  void hfetch(const char file[],const char pat[]);
 /// delete histogram by  id or all if id==0
 static  void hdelete(int id);
 /// copy hist id1 to id2
@@ -4588,7 +4590,7 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
 
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix GPS Time
 int  UTCTime(double &time, double &err ) ;///< Best Known UTCTime for  curren tevent; return 0 if gps time was used, 2 if no gps time was found, 1 if gpstime is too far from jmdc time; err approximative error  
-double UTCTime() const {return fHeader.UTCTime();}///< return best known event UTCTime
+double UTCTime() const {return fHeader.UTCTime();}///< return best known event UTCTime (without gps)
       //! RunTagChecker
         /*!
 

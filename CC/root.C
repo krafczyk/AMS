@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.521 2013/01/20 15:01:26 choutko Exp $
+//  $Id: root.C,v 1.522 2013/01/22 00:02:51 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -424,21 +424,32 @@ void AMSEventR::hcdir(const char dir[]){
 
 void AMSEventR::hfetch( const char file[],int id){
   TFile *f= new TFile(file);
-  hfetch(*f,file,id);
+  hfetch(*f,file,id,NULL);
   hcdir(file);
   // f->Close();
   // delete f;
 }
+void AMSEventR::hfetch( const char file[],const char pat[]){
+  TFile *f= new TFile(file);
+  hfetch(*f,file,0,pat);
+  hcdir(file);
+  // f->Close();
+  // delete f;
+}
+
 #include <TKey.h>
 
 
-void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
+void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
   int fetch1=0;
   int fetch2=0;
   int fetchp=0;
   TIter nextkey(f.GetListOfKeys());
   TKey *key;
   while (key = (TKey*)nextkey()) {
+    if(pat &&!strstr(key->GetName(),pat)){
+       continue;
+    }
     TObject *to=(key->ReadObj());
     TH1D * f1 = dynamic_cast<TH1D*>(to);
     TProfile * f1p = dynamic_cast<TProfile*>(to);
@@ -9662,7 +9673,7 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     // 1st attempt: file
     if (!TrGainDB::GetHead()->Load(_FILE)) { 
       // 2nd attempt: TDV
-      TrGainDB::GetHead()->LoadFromTDV(UTime()); 
+      if(LoadFromTDV)TrGainDB::GetHead()->LoadFromTDV(UTime()); 
     }
 
     // TrOccDB (if all attempts fail use default)
@@ -9670,7 +9681,7 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     if (!TrOccDB::GetHead()->Load(_FILE)) {
       printf("InitDB::TrOccDB load from file failed. Try TDV... \n");
       // 2nd attempt: TDV
-      if (!TrOccDB::GetHead()->LoadFromTDV(UTime(),1)) {
+      if (!LoadFromTDV ||!TrOccDB::GetHead()->LoadFromTDV(UTime(),1)) {
         printf("InitDB::TrOccDB load from TDV failed. Try with histogram ... \n");
         // 3rd attempt on-the-fly creation from histogram     
         if (!TrOccDB::GetHead()->CreateFromRawOccupanciesHisto((TH2F*)_FILE->Get("HistoMan/TrOccStri"))) {
@@ -12445,3 +12456,4 @@ void AMSEventR::CTRS2GTOD(double theta, double phi, double v, double &vtheta, do
          vtheta=asin(vz/v);
          vphi=atan2(vy,vx);
 }
+bool AMSEventR::LoadFromTDV=true;

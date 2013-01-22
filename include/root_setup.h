@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.77 2012/12/17 23:29:19 qyan Exp $
+//  $Id: root_setup.h,v 1.78 2013/01/22 00:03:08 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -188,7 +188,7 @@ ClassDef(GPS,3)
 */
 class RTI{
 public:
-unsigned int run;  ///< ruin
+unsigned int run;  ///< run
 unsigned int evno;///< fist event no in one second
 float lf;  ///< life time
 float cf[4][2];  ///<  max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
