@@ -74,7 +74,7 @@ I 607 ShieldingDensity=2.5;
 //  TRACKER RECONSTRUCTION
 //==============================
 TRCL
-I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks; =1111 with BuildTrTracksSimple; if negative the MC digitization is redone
+I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks; =1111 with BuildTrTracksSimple; =11111 photon vertex recon; if negative the MC digitization is redone
 R [2,19] Seed S/N Threshold per layer (1-9)  for 2-10:n(X) 11-19:p(Y) side
 R [20,21] expansion S/N Threshold for 4:n(X) 5:p(Y) side
 I [22,23] Min Distance between seeds for 6:n(X) 7:p(Y) side
