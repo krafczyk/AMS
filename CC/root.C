@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.522 2013/01/22 00:02:51 choutko Exp $
+//  $Id: root.C,v 1.523 2013/01/22 15:46:35 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5133,7 +5133,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   TrdSH_He2P_Likelihood = ptr->_TrdSH_He2P_lik;
   TrdSH_E2He_Likelihood = ptr->_TrdSH_E2He_lik;
 
-  CutoffS = GetGeoCutoff(0);
+  CutoffS = GetGeoCutoff(0,0); //---------> to be changed!
 
   BT_result = BT_status = -1;
   BT_glong = BT_glat = BT_RPTO[0] = BT_RPTO[1] = BT_RPTO[2] = BT_time = 0;
@@ -5527,7 +5527,7 @@ bool ParticleR::IsInsideTRD()
 
 }
 //--------------------------------------------------------------------------------------------
-double ParticleR::GetGeoCutoff(AMSEventR *pev){
+double ParticleR::GetGeoCutoff(int momOrR, int fitID){
 
         double deg2rad = TMath::DegToRad();
         double Re =  6371.2; //km Earth radius
@@ -5541,12 +5541,12 @@ double ParticleR::GetGeoCutoff(AMSEventR *pev){
 	double ThetaISS=  ptr->ThetaS;
 	double PhiISS=    ptr->PhiS;
 #else
-        time_t Utime =pev->UTCTime() ;
+        time_t Utime = (int)AMSEventR::Head()->UTCTime() ;
         //...km
-        double Altitude = pev->fHeader.RadS/1.e5-Re;
+        double Altitude = AMSEventR::Head()->fHeader.RadS/1.e5-Re;
         //...ISS rad
-        double ThetaISS=  pev->fHeader.ThetaS;
-        double PhiISS=    pev->fHeader.PhiS;
+        double ThetaISS=  AMSEventR::Head()->fHeader.ThetaS;
+        double PhiISS=    AMSEventR::Head()->fHeader.PhiS;
 #endif
        //...ISS deg 
         double thetaISS =ThetaISS/deg2rad ;
@@ -5555,37 +5555,54 @@ double ParticleR::GetGeoCutoff(AMSEventR *pev){
                 //............................ZeroCentered
                 if(phiISS > 180)  phiISS-=360.;
 
+        //----------------TrTrackR ---New!! 21/01/2013
+        TrTrackR * trk=  pTrTrack();
+        double R = trk->GetRigidity(fitID);
+        AMSDir dirNew = trk->GetPdir(fitID);
+        //--------in ams coo:
+         dirNew[0] = - dirNew[0] ;
+         dirNew[1] = - dirNew[1] ;
+         dirNew[2] = - dirNew[2] ;
 
 
-       //.....particle direction in GTOD:
-        double dirTheta = ThetaGl;//----------COLATITUDINE!  lat = colat -90
-        double dirPhi   = PhiGl ;//------------LONG!
-      //from polar to cos dir.
-        AMSDir dir(dirTheta ,dirPhi);
-         dir[0] = - dir[0] ;
-         dir[1] = - dir[1] ;
-         dir[2] = - dir[2] ;
+        // From AMS to GTOD
+        //... out:
+        int result ;
+        //...in AMS:--->      
+        double  thetaAMS = dirNew.gettheta();//colatitude of AMS
+        double  phiAMS =  dirNew.getphi();
 
-//      cout<<" ParticleR::GetGeoCutoff -dir "<< dir[0]<< "\t"<< dir[1]<< "\t" << dir[2]<< endl;        
+        //...out GTOD:---> 
+        double  theta_deg ; // latitude [deg]
+        double  phi_deg ;   // longitude[deg] 
+        // Parameters:   
+        //use_att = 1 (LVLH) 
+        //use_coo = 1,(TLE )
+        //Use_time= 1,(UTCTime)  
+        //dt      = 0,  time jitter (sec) 
+        //out_type= 3 (GTOD)
+        int gtodT =  AMSEventR::Head()->GetGalCoo(result, phi_deg , theta_deg, thetaAMS, phiAMS, 1,1,1,0.,3 );
 
-        //....particle coordinates in GTOD deg  
-        double theta = dir.gettheta()/deg2rad;
-       //theta is colatitude --> I need Latitude:
-        theta=90.- theta;
-        double phi = dir.getphi()/deg2rad ;
 
-//        cout<<" ParticleR::GetGeoCutoff theta= lat "<< theta << " phi=long "<< phi<< endl;
+//        cout<<" ParticleR::GetGeoCutoff theta= lat "<< theta_deg << " phi=long "<< phi_deg<< endl;
 
         int pos = -1;
-        int sign = Momentum>0?1:-1;//sign
+        int sign = R>0?1:-1;//sign
         if (sign ==-1) pos = 0 ;//...negative perticles         
         if (sign == 1) pos = 1 ;//...positive perticles         
 
-        //...GV!!
-        double R =Charge * GeoMagCutoff( Utime,  Altitude , theta,  phi, thetaISS,  phiISS,  pos ) ;
+       //-----------------New 
+        double Rcut =GeoMagCutoff( Utime,  Altitude , theta_deg,  phi_deg, thetaISS,  phiISS,  pos ) ;
+//        cout<<" ParticleR::GetGeoCutoff Old " <<RcutOld << " New "<< Rcut <<" ratio New/Old "<< Rcut/RcutOld<<endl;   
+        if(momOrR==0){
+        //---------------------[GeV/c]
+        Rcut *=Charge ;
+        }
         //Charge is part.Charge!        
 
-return R;
+return Rcut;
+
+
 }
 //----------------------------------------------------------------------------------------
 
