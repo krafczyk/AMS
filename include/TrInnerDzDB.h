@@ -76,7 +76,7 @@ public:
   int UpdateTkDBc(uint timeid);
 
   /// search on the TDV the data good for the requested time and update the DB
-  int GetFromTDV(uint timeid);
+  int GetFromTDV(uint timeid, bool force = false);
  
   /// Read the Dz values from a file (Format %u %e %e %e %e %e %e %e)
   int ReadFromFile(char * filename);

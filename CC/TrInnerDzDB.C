@@ -69,7 +69,7 @@ int TrInnerDzDB::GetEntry(uint Timeid, float* Dz, int kind){
 }
 
 
-int TrInnerDzDB::GetFromTDV( uint Timeid){
+int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
   time_t starttime=0;
   time_t endtime=0; 
   tm begin;
@@ -79,6 +79,8 @@ int TrInnerDzDB::GetFromTDV( uint Timeid){
     
   static AMSTimeID *tid=0;
 #pragma omp threadprivate (tid)
+  if (tid && force) { delete tid; tid = 0; }
+
   if(!tid){
     tid= new AMSTimeID(
 		       AMSID("TrInnerDzAlign",1),
