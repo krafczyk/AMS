@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.524 2013/01/22 19:16:42 shaino Exp $
+//  $Id: root.C,v 1.525 2013/01/22 19:30:36 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5133,7 +5133,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   TrdSH_He2P_Likelihood = ptr->_TrdSH_He2P_lik;
   TrdSH_E2He_Likelihood = ptr->_TrdSH_E2He_lik;
 
-  CutoffS = GetGeoCutoff(1);  /// Stoermer Geomagnetic Cutoff in GV
+  CutoffS = GetGeoCutoff(0);  /// Stoermer Geomagnetic Cutoff in GeV/c
 
   BT_result = BT_status = -1;
   BT_glong = BT_glat = BT_RPTO[0] = BT_RPTO[1] = BT_RPTO[2] = BT_time = 0;

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.530 2013/01/22 15:47:31 cconsola Exp $
+//  $Id: root.h,v 1.531 2013/01/22 19:30:41 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3277,7 +3277,7 @@ endif
   float TrdSH_He2P_Likelihood; ///< TrdSCalib He/p likelihood using TrdHTrack
   float TrdSH_E2He_Likelihood; ///< TrdSCalib e/He likelihood using TrdHTrack
 
-  float CutoffS;    ///<  geomag cutoff in GV, Stoermer model
+  float CutoffS;    ///<  geomag cutoff in GeV/c, Stoermer model
 
   // Outputs of DoBacktracing
   int   BT_result;  ///< Result bits; see DoBacktracing
