@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.529 2013/01/22 00:02:40 choutko Exp $
+//  $Id: root.h,v 1.530 2013/01/22 15:47:31 cconsola Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3435,11 +3435,18 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
   /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
 //----------------------------------------------------------------------------------------------------------
- /// returns  Stoermer Rigidity cutoff multiply by ParticleR.Charge [GeV/c]:
- /// The method performs a linear interpolation of Gauss coefficients,
- /// finds location of Geomegnetic Poles and Dipole Center at event Utime ,
- /// Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
-  double GetGeoCutoff(AMSEventR* pev);
+ /// Stoermer Geomagnetic Cutoff
+ /*!
+ * The method performs a linear interpolation of Gauss coefficients,
+ * finds location of Geomegnetic Poles and Dipole Center at event Utime ,
+ * Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
+ * 
+ * @param[in]   if momOrR==0 returns ---> Stoermer Rigidity cutoff multiply by ParticleR.Charge [GeV/c]:
+ * @param[in]   if momOrR==1 returns ---> Stoermer Rigidity cutoff [GV] 
+ * @param[in]   fitID == TrTrackR fitting id
+ */
+    double GetGeoCutoff(int momOrR,int fitID=0);
+
 //-----------------------------------------------------------------------------------------------------------
 
   ClassDef(ParticleR,16)       //ParticleR
