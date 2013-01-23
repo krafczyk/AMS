@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.142 2013/01/02 19:41:41 oliva Exp $
+//  $Id: linkdef.h,v 1.143 2013/01/23 18:17:45 shaino Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -89,6 +89,7 @@
 #pragma link C++ class EcalAxis+;
 #pragma link C++ class GeoMagField+;
 #pragma link C++ class GeoMagTrace+;
+#pragma link C++ class GeoMagCoord+;
 
 #pragma link C++ class TrMCClusterR+;
 #pragma link C++ class TrRawClusterR+;
