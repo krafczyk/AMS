@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.525 2013/01/22 19:30:36 shaino Exp $
+//  $Id: root.C,v 1.526 2013/01/23 13:48:19 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5557,12 +5557,19 @@ double ParticleR::GetGeoCutoff(int momOrR, int fitID){
 
         //----------------TrTrackR ---New!! 21/01/2013
         TrTrackR * trk=  pTrTrack();
+#ifdef _PGTRACK_
         double R = trk->GetRigidity(fitID);
         AMSDir dirNew = trk->GetPdir(fitID);
+#else
+        double R = trk->Rigidityf();
+        AMSDir dirNew = trk->GetDir();
+#endif
         //--------in ams coo:
+	if (dirNew.z() > 0) {
          dirNew[0] = - dirNew[0] ;
          dirNew[1] = - dirNew[1] ;
          dirNew[2] = - dirNew[2] ;
+	}
 
 
         // From AMS to GTOD
