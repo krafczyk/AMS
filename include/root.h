@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.525.2.1 2013/01/16 17:57:42 sdellato Exp $
+//  $Id: root.h,v 1.525.2.2 2013/01/23 13:28:38 lbasara Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -747,13 +747,18 @@ public:
   ///< Due to a bug in the version of TMVA used in the current AMS software, it is not possible to 
   ///< call in the same program EcalShowerR::GetEcalBDT() and EcalShowerR::EcalStandaloneEstimator() or EcalShowerR::EcalStandaloneEstimatorV2()
 
+
  float EcalStandaloneEstimatorV3();
-  ///< LAPP Ecal Estimator -
-  ///< Updated Dec 2012 -
-  ///< 90% efficiency cut (based on electron-like flight events) now Energy-Bin dependant
+  ///< LAPP Ecal Estimator V3
+  ///< Updated Jan 2013
+  ///< Efficiency bin-dependant ;matching efficiency / rejection retrieved via GetESEv3Efficiency() / GetESEv3Rejection()
   ///< for an Energy-Bin independant cut, you should use EcalShowerR::EcalStandaloneEstimatorV2()
-  ///< However, BDT value of -0.05 reasonable for 90% efficacity cut.
-  ///< EcalShowerR::GetEcalBDT() is now considered obsolete.
+  
+ float GetESEv3Efficiency();
+  ///< Get the lepton efficiency for the current shower using LAPP Ecal Estimator V3 value and energy bin
+  
+ float GetESEv3Rejection();
+  ///< Get the proton rejection for the current shower using LAPP Ecal Estimator V3 value and energy bin
   
   
   
@@ -793,7 +798,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,14)       //EcalShowerR
+  ClassDef(EcalShowerR,15)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
