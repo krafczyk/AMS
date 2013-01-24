@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.167 2013/01/17 13:56:12 beischer Exp $
+// $Id: TrTrack.C,v 1.168 2013/01/24 12:45:22 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/01/17 13:56:12 $
+///$Date: 2013/01/24 12:45:22 $
 ///
-///$Revision: 1.167 $
+///$Revision: 1.168 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -299,9 +299,14 @@ long long TrTrackR::GetTrackPathID() const{
 TrTrackPar &TrTrackR::GetPar(int id)
 {
   int id2 = (id == 0) ? trdefaultfit : id;
-  if (!ParExists(id2)) return _TrackPar[id2]; // Be careful of [] operator !
+  if (ParExists(id2)) return _TrackPar[id2]; // Be careful of [] operator !
   static TrTrackPar parerr;
   return parerr;
+}
+
+TrTrackPar &TrTrackR::AddPar(int id)
+{
+  return _TrackPar[id]; // Be careful of [] operator !
 }
 
 double TrTrackR::GetNormChisqX(int id) const

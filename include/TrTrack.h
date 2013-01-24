@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.97 2012/12/27 10:09:56 shaino Exp $
+//  $Id: TrTrack.h,v 1.98 2013/01/24 12:45:14 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/12/27 10:09:56 $
+///$Date: 2013/01/24 12:45:14 $
 ///
-///$Revision: 1.97 $
+///$Revision: 1.98 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -770,6 +770,9 @@ public:
 
   /// Get TrTrackPar with id (non-const operator, only for experts)
   TrTrackPar &GetPar(int id);
+
+  /// Add a new TrTrackPar with id (non-const operator, only for experts)
+  TrTrackPar &AddPar(int id);
   
   /// Get the pointer to the i-th in the track
   TrRecHitR *GetHit(int i);
