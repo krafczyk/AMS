@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.127 2013/01/07 09:46:07 choutko Exp $
+//  $Id: root_setup.C,v 1.128 2013/01/24 11:27:26 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1294,16 +1294,20 @@ unsigned long long utm;
 
 utm=t<<32;
 utm+= usec;
+//alway discard 1st scaler
 Scalers_i k=fScalers.lower_bound(utm);
 if(k==fScalers.begin()){
- fScalersReturn.push_back(k);
- return 1;
+if(++k!=fScalers.end())fScalersReturn.push_back(k);
+ else fScalersReturn.push_back(fScalers.begin());
+}
+else if(k!=fScalers.end()){
+ if(--k!=fScalers.begin())fScalersReturn.push_back(k);
+ fScalersReturn.push_back(++k);
 }
 else{
-fScalersReturn.push_back(--k);
-if(++k!=fScalers.end())fScalersReturn.push_back(k);
-return fScalersReturn.size();
+ fScalersReturn.push_back(--k);
 }
+return fScalersReturn.size();
 }
 
 int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2){
