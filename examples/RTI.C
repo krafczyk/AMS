@@ -113,7 +113,7 @@ bool PreEvent(AMSEventR *pev){
 
 //---RIT+Event Cutoff-Cut
    float rig=betah->pTrTrack()->GetRigidity();//no select for TkPattern
-   if(rig<1.2*a.cutoff[3][1])return false; //1.2*Cutoff (Positive 40 degree)
+   if(rig<1.2*a.cf[3][1])return false; //1.2*Cutoff (Positive 40 degree)
  
 //--Fill Above Cutoff Ev++
     hman1.Fill("HeEvent",rig);     
@@ -148,9 +148,9 @@ void ProcessTime(unsigned int time[2]){
      if(!TPreSelect(a))continue;//Abandon Second
 //--Time Cal
      double nt=a.lf*a.nev/(a.nev+a.nerr);
-     double urig=1.2*a.cutoff[3][1];//1.2*Cutoff (Positive 40 degree)
+     double urig=1.2*a.cf[3][1];//1.2*Cutoff (Positive 40 degree)
 //--Above Cutoff T+
-     for(int ibr=1;ibr<=th->GetNbins();ibr++){//Above CutOff Time++
+     for(int ibr=1;ibr<=th->GetNbinsX();ibr++){//Above CutOff Time++
         if(th->GetBinCenter(ibr)>urig)th->AddBinContent(ibr,nt);
      }
    }
