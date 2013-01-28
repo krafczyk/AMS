@@ -1,4 +1,4 @@
-// $Id: TrOccDB.C,v 1.1 2013/01/02 19:41:41 oliva Exp $
+// $Id: TrOccDB.C,v 1.2 2013/01/28 10:26:26 oliva Exp $
 
 
 #include "TrOccDB.h"
@@ -165,8 +165,6 @@ void TrOccDB::PrintLinear() {
 bool TrOccDB::CreateFromRawOccupanciesHisto(TH2F* histo, float norm) {
   Init();
   if (!histo) return false;
-  // init
-  Clear();
   printf("TrOccDB::CreateFromRawOccupanciesHisto-V creating TrOccDB from histogram %s (norm=%10.0f).\n",histo->GetName(),norm);
   vector<float> values;
   int   limits[3] = {0,640,1024};
@@ -394,8 +392,8 @@ void TrLadOcc::Clear(Option_t* option) {
 
 void TrLadOcc::Info(int verbosity) {
   printf("TrLadOcc::Info-V HwId: %03d\n",GetHwId());
-  printf("  MedianX: %8.3f   DeviationX: %8.3f\n",GetMedian(0),GetDeviation(0));
-  printf("  MedianY: %8.3f   DeviationY: %8.3f\n",GetMedian(1),GetDeviation(1));
+  printf("  MedianX: %10.6e   DeviationX: %10.6e\n",GetMedian(0),GetDeviation(0));
+  printf("  MedianY: %10.6e   DeviationY: %10.6e\n",GetMedian(1),GetDeviation(1));
   if (verbosity>0) {
     TrLadCal* ladcal = TrCalDB::Head->FindCal_HwId(GetHwId()); // additional infos
     for (int address=0; address<1024; address++) {
