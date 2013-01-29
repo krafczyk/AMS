@@ -2,6 +2,7 @@
 // -----------------------------------------------------------
 //        Created:       2013-Jan-26  Q.Yan  qyan@cern.ch (Example and Develop)
 //                       Time Cut by V.Choutko
+//        Run:           root -b -q RTI.C+
 // -----------------------------------------------------------
 
 #include <signal.h>
@@ -22,17 +23,26 @@
 #include "amschain.h"
 #include "Tofrec02_ihep.h"
 #include "Tofcharge_ihep.h"
-
+#include "HistoMan.h"
 
 HistoMan hman1;//Histo Hman
 void BookHistos();//Histo-Book
-void ProcessROOT(AMSChain *ch);//Event Cal
+void ProcessROOT(AMSChain *ch,unsigned int time[2]);//Event Cal
 void ProcessTime(unsigned int time[2]);//StandAlone Time Cal
+int RTI_CINT(AMSChain *ch,char *outfile);
 
 
 ///--Main Function 
+int RTI(){
+
+   AMSChain a;
+   a.Add("root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2011B/ISS.B620/pass4/1355244861.00000001.root");
+   RTI_CINT(&a,"./RTI_Test.root");
+   return 0;
+}
+
 //---------------------------------------------
-int RTI(AMSChain *ch,char *outfile){ 
+int RTI_CINT(AMSChain *ch,char *outfile){ 
 
    hman1.Clear();
    hman1.Enable();
@@ -42,14 +52,18 @@ int RTI(AMSChain *ch,char *outfile){
    BookHistos();
   
 //--Process ROOT
+   cout<<"Proces ROOT"<<endl;
    unsigned int time[2]={0};
    ProcessROOT(ch,time);
 
+  cout<<"ROOT Time="<<time[0]<<" "<<time[1]<<endl;
 //--Cal Exposure Time
    ProcessTime(time);
+   
 
 //--Hist Save
    hman1.Save();
+   return 0;
 }
 
 ///--Book Histo
@@ -126,11 +140,12 @@ void ProcessROOT(AMSChain *ch,unsigned int time[2]){
 
    Long64_t num2=ch->GetEntries();
    for(Long64_t entry=0; entry<num2; entry++){
-      AMSEventR *ev=(AMSEventR *)ams.GetEvent();
-      if(ev=NULL)continue;
+      AMSEventR *ev=(AMSEventR *)ch->GetEvent();
+      if(ev==NULL)continue;
+      if(entry%100000==0) printf("Processed %7ld out of %7ld\n",entry,num2);
       PreEvent(ev);
    }
-   time[0]=ch->GetEvent(0)->UTime()
+   time[0]=ch->GetEvent(0)->UTime();
    time[1]=ch->GetEvent(num2-1)->UTime();
   
 }
@@ -151,8 +166,11 @@ void ProcessTime(unsigned int time[2]){
      double urig=1.2*a.cf[3][1];//1.2*Cutoff (Positive 40 degree)
 //--Above Cutoff T+
      for(int ibr=1;ibr<=th->GetNbinsX();ibr++){//Above CutOff Time++
-        if(th->GetBinCenter(ibr)>urig)th->AddBinContent(ibr,nt);
+        if(th->GetBinCenter(ibr)>urig){
+          th->AddBinContent(ibr,nt);
+        }
      }
+     th->SetEntries(th->GetEntries()+1);
    }
 
 }
