@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.527 2013/01/26 08:28:41 oliva Exp $
+//  $Id: root.C,v 1.528 2013/01/29 08:06:32 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -138,34 +138,7 @@ void AMSEventR::hcopy(char dir[],int id1,int id2){
   char save[1024];
   strcpy(save,Dir.Data());
   hcdir(dir);
-  TH1D *h1p = h1(id1);
-  if(h1p){
-    float a=h1p->GetBinLowEdge(1); 
-    int n=h1p->GetNbinsX();
-    float b=h1p->GetBinLowEdge(n)+h1p->GetBinWidth(n); 
-    const char *title=h1p->GetTitle();
-    hcdir(save);
-    hbook1(id2,title,n,a,b);
-    TH1D *h2p = h1(id2);
-    if(h2p){
-      for (int i=0;i<n+2;i++){
-	h2p->SetBinContent(i,h1p->GetBinContent(i));
-	h2p->SetBinError(i,h1p->GetBinError(i));
-      
-      }
-    }
-  }
-  else{
-    TH2D *h2p = h2(id1);
-    if(h2p){
-    }
-    else{
-      TProfile *hpp=hp(id1);
-      if(hpp){
-      }
-    }
-  }
- 
+  hcopy(id1,id2); 
 }
 
 void AMSEventR::hcopy(int id1,int id2){
@@ -181,13 +154,34 @@ void AMSEventR::hcopy(int id1,int id2){
       for (int i=0;i<n+2;i++){
 	h2p->SetBinContent(i,h1p->GetBinContent(i));
 	h2p->SetBinError(i,h1p->GetBinError(i));
-      
       }
+      h2p->SetEntries(h1p->GetEntries());
+      return ;
     }
   }
   else{
     TH2D *h2p = h2(id1);
     if(h2p){
+    float ax=h2p->GetXaxis()->GetBinLowEdge(1); 
+    float ay=h2p->GetYaxis()->GetBinLowEdge(1); 
+    int nx=h2p->GetNbinsX();
+    int ny=h2p->GetNbinsY();
+    float bx=h2p->GetXaxis()->GetBinLowEdge(nx)+h2p->GetXaxis()->GetBinWidth(nx); 
+    float by=h2p->GetYaxis()->GetBinLowEdge(ny)+h2p->GetYaxis()->GetBinWidth(ny); 
+    const char *title=h2p->GetTitle();
+    hbook2(id2,title,nx,ax,bx,ny,ay,by);
+    TH2D *h3p = h2(id2);
+    if(h3p){
+      for (int i=0;i<nx+2;i++){
+       for (int j=0;j<ny+2;j++){
+	h3p->SetBinContent(i,j,h2p->GetBinContent(i,j));
+	h3p->SetBinError(i,j,h2p->GetBinError(i,j));
+       }       
+      }
+      h3p->SetEntries(h2p->GetEntries());
+      return ;
+    }
+
     }
     else{
       TProfile *hpp=hp(id1);
@@ -197,47 +191,192 @@ void AMSEventR::hcopy(int id1,int id2){
   }
 }
 void AMSEventR::hdivide(int id1,int id2,int id3){
+{
   TH1D *h2p = h1(id2);
   if(h2p){
     //   h2p->Sumw2();
-    hcopy(id1,id3);
+    if(id1!=id3){
+       if(id2!=id3)hcopy(id1,id3);
+       else{
+        hcopy(id1,INT_MAX-1);
+        id3=INT_MAX-1;
+       }
+    }
     TH1D *h1p = h1(id3);
     if(h1p){
       //    h1p->Sumw2();
       h1p->Divide(h2p);
-    }   
+      if(id3==INT_MAX-1){
+        hcopy(id3,id2);
+        hdelete(id3); 
+      }
+      return; 
+   }   
   }
 }
+
+
+{
+  TH2D *h2p = h2(id2);
+  if(h2p){
+    //   h2p->Sumw2();
+    if(id1!=id3){
+       if(id2!=id3)hcopy(id1,id3);
+       else{
+        hcopy(id1,INT_MAX-1);
+        id3=INT_MAX-1;
+       }
+    }
+    TH2D *h1p = h2(id3);
+    if(h1p){
+      //    h1p->Sumw2();
+      h1p->Divide(h2p);
+      if(id3==INT_MAX-1){
+        hcopy(id3,id2);
+        hdelete(id3); 
+      }
+      return; 
+   }   
+  }
+}
+
+
+}
 void AMSEventR::hscale(int id1,double fac,bool calcsumw2){
+{
   TH1D *h2p = h1(id1);
   if(h2p){
     if(calcsumw2)h2p->Sumw2();
     h2p->Scale(fac);
+    return;
   }
 }
+{
+  TH2D *h2p = h2(id1);
+  if(h2p){
+    if(calcsumw2)h2p->Sumw2();
+    h2p->Scale(fac);
+    return;
+  }
+}
+}
 void AMSEventR::hsub(int id1,int id2,int id3){
-  TH1D *h2p = h1(id2);
+    if(id1!=id3){
+      if(id2!=id3)hcopy(id2,id3);
+{
+  TH1D *h2p = h1(id1);
   if(h2p){
     h2p->Sumw2();
-    hcopy(id1,id3);
     TH1D *h1p = h1(id3);
     if(h1p){
       h1p->Sumw2();
       h1p->Add(h2p,-1);
+      return;
     }   
   }
 }
-void AMSEventR::hadd(int id1,int id2,int id3){
-  TH1D *h2p = h1(id1);
+{
+  TH2D *h2p = h2(id1);
   if(h2p){
     h2p->Sumw2();
-    if(id2!=id3)hcopy(id2,id3);
+    TH2D *h1p = h2(id3);
+    if(h1p){
+      h1p->Sumw2();
+      h1p->Add(h2p,-1);
+      return;
+    }   
+  }
+}
+}
+else{
+
+{
+  TH1D *h2p = h1(id2);
+  if(h2p){
+    h2p->Sumw2();
     TH1D *h1p = h1(id3);
     if(h1p){
       h1p->Sumw2();
-      h1p->Add(h2p,1);
+      h1p->Add(h2p,-1);
+      return;
     }   
   }
+}
+{
+  TH2D *h2p = h2(id1);
+  if(h2p){
+    h2p->Sumw2();
+    TH2D *h1p = h2(id3);
+    if(h1p){
+      h1p->Sumw2();
+      h1p->Add(h2p,-1);
+      return;
+    }   
+  }
+}
+
+
+
+}
+}
+void AMSEventR::hadd(int id1,int id2,int id3){
+    if(id1!=id3){
+      if(id2!=id3)hcopy(id2,id3);
+{
+  TH1D *h2p = h1(id1);
+  if(h2p){
+//    h2p->Sumw2();
+    TH1D *h1p = h1(id3);
+    if(h1p){
+//      h1p->Sumw2();
+      h1p->Add(h2p,1);
+      return;
+    }   
+  }
+}
+{
+  TH2D *h2p = h2(id1);
+  if(h2p){
+//    h2p->Sumw2();
+    TH2D *h1p = h2(id3);
+    if(h1p){
+//      h1p->Sumw2();
+      h1p->Add(h2p,1);
+      return;
+    }   
+  }
+}
+}
+else{
+
+{
+  TH1D *h2p = h1(id2);
+  if(h2p){
+//    h2p->Sumw2();
+    TH1D *h1p = h1(id3);
+    if(h1p){
+//      h1p->Sumw2();
+      h1p->Add(h2p,1);
+      return;
+    }   
+  }
+}
+{
+  TH2D *h2p = h2(id1);
+  if(h2p){
+ //   h2p->Sumw2();
+    TH2D *h1p = h2(id3);
+    if(h1p){
+ //     h1p->Sumw2();
+      h1p->Add(h2p,1);
+      return;
+    }   
+  }
+}
+
+
+
+}
 }
 void AMSEventR::hbook1s(int id,const char title[], int ncha, float  a, float b,int howmany,int shift){
   for (int i=0;i<howmany;i++){
@@ -5133,7 +5272,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   TrdSH_He2P_Likelihood = ptr->_TrdSH_He2P_lik;
   TrdSH_E2He_Likelihood = ptr->_TrdSH_E2He_lik;
 
-  CutoffS = GetGeoCutoff(0);  /// Stoermer Geomagnetic Cutoff in GeV/c
+  CutoffS = GetGeoCutoff(NULL);  /// Stoermer Geomagnetic Cutoff in GeV/c
 
   BT_result = BT_status = -1;
   BT_glong = BT_glat = BT_RPTO[0] = BT_RPTO[1] = BT_RPTO[2] = BT_time = 0;
@@ -5526,6 +5665,72 @@ bool ParticleR::IsInsideTRD()
   return (passTrdCenter && passTrdTop);
 
 }
+
+double ParticleR::GetGeoCutoff(AMSEventR *pev){
+
+        double deg2rad = TMath::DegToRad();
+        double Re =  6371.2; //km Earth radius
+#ifndef __ROOTSHAREDLIBRARY__
+	EventNtuple02 *ptr = AMSJob::gethead()->getntuple()->Get_event02();
+	if (!ptr) return 0;
+        time_t Utime = ptr->Time[0];
+        //...km
+        double Altitude = ptr->RadS/1.e5-Re;
+        //...ISS rad
+	double ThetaISS=  ptr->ThetaS;
+	double PhiISS=    ptr->PhiS;
+#else
+        time_t Utime =pev->UTCTime() ;
+        //...km
+        double Altitude = pev->fHeader.RadS/1.e5-Re;
+        //...ISS rad
+        double ThetaISS=  pev->fHeader.ThetaS;
+        double PhiISS=    pev->fHeader.PhiS;
+#endif
+       //...ISS deg 
+        double thetaISS =ThetaISS/deg2rad ;
+        double phiISS = PhiISS/deg2rad;
+        //----to be centered in 0!!
+                //............................ZeroCentered
+                if(phiISS > 180)  phiISS-=360.;
+
+
+
+       //.....particle direction in GTOD:
+        double dirTheta = ThetaGl;//----------COLATITUDINE!  lat = colat -90
+        double dirPhi   = PhiGl ;//------------LONG!
+      //from polar to cos dir.
+        AMSDir dir(dirTheta ,dirPhi);
+         dir[0] = - dir[0] ;
+         dir[1] = - dir[1] ;
+         dir[2] = - dir[2] ;
+
+//      cout<<" ParticleR::GetGeoCutoff -dir "<< dir[0]<< "\t"<< dir[1]<< "\t" << dir[2]<< endl;        
+
+        //....particle coordinates in GTOD deg  
+        double theta = dir.gettheta()/deg2rad;
+       //theta is colatitude --> I need Latitude:
+        theta=90.- theta;
+        double phi = dir.getphi()/deg2rad ;
+
+//        cout<<" ParticleR::GetGeoCutoff theta= lat "<< theta << " phi=long "<< phi<< endl;
+
+        int pos = -1;
+        int sign = Momentum>0?1:-1;//sign
+        if (sign ==-1) pos = 0 ;//...negative perticles         
+        if (sign == 1) pos = 1 ;//...positive perticles         
+
+        //...GV!!
+        double R =Charge * GeoMagCutoff( Utime,  Altitude , theta,  phi, thetaISS,  phiISS,  pos ) ;
+        //Charge is part.Charge!        
+
+return R;
+}
+//----------------------------------------------------------------------------------------
+
+
+
+
 //--------------------------------------------------------------------------------------------
 double ParticleR::GetGeoCutoff(int momOrR, int fitID){
 

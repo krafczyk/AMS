@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.531 2013/01/22 19:30:41 shaino Exp $
+//  $Id: root.h,v 1.532 2013/01/29 08:05:48 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3445,7 +3445,17 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
  * @param[in]   if momOrR==1 returns ---> Stoermer Rigidity cutoff [GV] 
  * @param[in]   fitID == TrTrackR fitting id
  */
-    double GetGeoCutoff(int momOrR,int fitID=0);
+    double GetGeoCutoff(int momOrR,int fitID);
+
+
+
+//----------------------------------------------------------------------------------------------------------
+/// returns  Stoermer Rigidity cutoff multiply by ParticleR.Charge [GeV/c]:
+ /// The method performs a linear interpolation of Gauss coefficients,
+ /// finds location of Geomegnetic Poles and Dipole Center at event Utime ,
+ /// Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
+ double GetGeoCutoff(AMSEventR* pev);
+
 
 //-----------------------------------------------------------------------------------------------------------
 
