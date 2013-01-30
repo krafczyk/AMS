@@ -73,7 +73,7 @@ class TrkLHVar: public TObject {
 #include <TObject.h>
 
 #ifndef _NOGBATCH_
-#include <root_RVSP.h>
+#include "root.h"
 #endif
 
 class TrkLH: public TObject {

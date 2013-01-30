@@ -30,9 +30,11 @@
 #include <TArrow.h>
 
 #ifndef _NOGBATCH_
-#include <root_RVSP.h>
-#include <TofTrack.h>
-#include <TrTrackSelection.h>
+#include "TrTrack.h"
+#include "root.h"
+#include "root_setup.h"
+#include "TofTrack.h"
+#include "TrTrackSelection.h"
 #endif
 
 #include "TrkLH.h"
