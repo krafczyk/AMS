@@ -529,6 +529,7 @@ FILE_PATTERNS          = root.h \
 			 TrdHSegment.h TrdHTrack.h TrdHCalib.h TrdHCharge.h TrdHRecon.h \
 			 TrCharge.h \
 			 TrTrackSelection.h \ 
+			 TrkLH.h \ 
                          TofTrack.h \ 
                          TrInnerDzDB.h TrExtAlignDB.h \
 			 TrdKCalib.h TrdKCluster.h TrdKHit.h TrdKPDF.h TrdKSimpleHit.h \
