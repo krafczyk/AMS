@@ -187,8 +187,8 @@ int TrkLH::TRLKINIT_v1(){
     if (dbdir!=NULL) {
       dbPath = Form("%s/v5.00/TrkLH", dbdir);
     }
-    else dbPath=".";
-    //    else dbPath="/afs/cern.ch/exp/ams/Offline/AMSDataDir/v5.00/TrkLH";
+    //    else dbPath=".";
+    else dbPath="/afs/cern.ch/exp/ams/Offline/AMSDataDir/v5.00/TrkLH";
   }
 
   char nfile[100];
