@@ -1,4 +1,4 @@
-// $Id: TrOccDB.h,v 1.1 2013/01/02 19:41:40 oliva Exp $
+// $Id: TrOccDB.h,v 1.2 2013/01/30 13:03:44 oliva Exp $
 
 #ifndef __TrOccDB__
 #define __TrOccDB__
@@ -61,6 +61,15 @@ class TrLadOcc : public TObject {
   //! Info
   void Info(int verbosity = 0);
  
+  //! Set the minimum occupancy level 
+  static float GetMinimumNormalizedOccupancy() { return MinimumNormalizedOccupancy; }
+  //! Set the maximum occupancy level 
+  static float GetMaximumNormalizedOccupancy() { return MaximumNormalizedOccupancy; }
+  //! Set the minimum occupancy level 
+  static void  SetMinimumNormalizedOccupancy(float value) { MinimumNormalizedOccupancy = value; }
+  //! Set the maximum occupancy level 
+  static void  SetMaximumNormalizedOccupancy(float value) { MaximumNormalizedOccupancy = value; }
+
   //! Get ladder HwId
   int   GetHwId()                 { return fHwId; }
   //! Get ladder occupancy median value
