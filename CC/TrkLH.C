@@ -1,5 +1,4 @@
 // routine for tracker based likelihood to reduce charge confusion             
-// F.N. 05/12/2012: created 
 
 #ifndef __TRKLK_CXX__
 #define __TRKLK_CXX__
@@ -227,8 +226,6 @@ int TrkLH::TRLKINIT_v1(){
       sprintf(nfile,"enh1_%d_%d",ij,ipp);
       //      printf(" %s\n", nfile);
       hlist1[ij][ip]= (TH2D*) pdffile->Get(nfile); // good R PDF
-      //      curazeri(hlist0[ij][ip]);
-      //      curazeri(hlist1[ij][ip]);
       varmask[ij]=1;
     }
   }
@@ -373,24 +370,6 @@ int TrkLH::fillvar(TrkLHVar & var1){
    return 0; 
 }
 
-void TrkLH::curazeri(TH2D* h){
-  // if PDF bin is empty (value is 0)
-  // the nonzero error of the bin will be used
-  double min = 1;
-  for (int ix = 0; ix<h->GetNbinsX()+1;ix++){
-    for (int iy = 0; iy<h->GetNbinsY()+1;iy++){
-      double val = h->GetBinContent(ix,iy);
-      double err = h->GetBinError(ix,iy);
-      if (val <= 0 && err>0) {
-	h->SetBinContent(ix,iy,err);
-      }
-      if (val <= 0 && err<=0) {
-	cout << val << " ERROR CURAZERI " << err << endl;
-      }
-    }
-  }
-}
-
 double TrkLH::bilinear(TH2D* h, double y, double x, int ilin){
   // from a TH2D interpolate/exptrapolate value at (x,y)             
   // ilin = 0 no interpolation                              
@@ -522,8 +501,8 @@ double TrkLH::normvar(TGraph* _low, TGraph* _upp, double var , double rigd){
   double norm;
   if (var <= -19.) return -19.; // underflow                                                                             
   if (var >= 19.) return 19.; // overflow                                                                                
-  double lv = _low->Eval(rigd);
-  double uv = _upp->Eval(rigd);
+  double lv = _low->Eval(fabs(rigd));
+  double uv = _upp->Eval(fabs(rigd));
   double cnt = (lv+uv)/2.;
   double dlt = fabs(lv-uv)/2.;  // the sigma width                                                                       
   if (dlt == 0) dlt = 1;

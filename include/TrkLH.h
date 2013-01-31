@@ -3,58 +3,97 @@
 
 #include <TObject.h>
 
+//! used to access to TrkLH internal variables
 class TrkLHVar: public TObject {
   /*!
     Object containing all the variables used by the Tracker Likelihood. \n
-    This class is mainly thought to be used internally but is needed if the user wants to use 
-    the likelihood on custom ntuples: the user should fill by itself the TrkLHVar object and call the 
-    trklk:trklkvarfromgbatch(TrkLHVar&, AMSEventR*, int).\n
+    This class is mainly thought to be used internally but is useful to access to used variables
+    and is needed if the user wants to use the likelihood on custom ntuples: \n 
+    the user should fill by itself the TrkLHVar object (take filltrklhvarfromgbatch() as example) \n
+    then call the trklk:fillvar(TrkLHVar & ) and call trklk:dotrklk((*varv).energy, (*varv).pat). \n
 
     \author
-    francesco.nozzoli@pg.infn.it
-    matteo.duranti@pg.infn.it
-    domenico.durso@pg.infn.it
+    francesco.nozzoli@pg.infn.it \n
+    matteo.duranti@pg.infn.it \n
+    domenico.durso@pg.infn.it \n
   */
+
  public:
 
   TrkLHVar();
   ~TrkLHVar();
   void init();
   
-  int btp;    //! tracker bitpattern
-  int ly1;     //! presence of ly1  (derived from btp) 
-  int ly2;     //! presence of ly2  (derived from btp) 
-  int ly9;     //! presence of ly9  (derived from btp) 
-  int pat;     //! human readable pattern   (derived from btp) 
-  double energy;       //! ecal energy
-  double rigidity_ch;  //! max span choutko (algo = 1) 
-  double rigidity_al;  //! max span alcaraz (algo = 2) 
-  double chix_ch;   //! max span choutko normalized chisquare x
-  double chiy_ch;   //! max span choutko normalized chisquare y
-  double err_ch;   //! max span choutko with same weight fitting (algo = 21) 
-  double rigidity_in;  //! inner only choutko   (pattern = 3) 
-  double rigidity_bt;  //! inner + Ly9 choutko  (pattern = 6) 
-  double rigidity_tp;  //! inner + Ly1 choutko  (pattern = 5) 
-  double rigidity_ibt;  //! inner bottom choutko(pattern = 2) 
-  double rigidity_itp;  //! inner top choutko   (pattern = 1) 
-  double trkqin;  //! inner tracker charge
-  double trkqrms;  //! tracker charge RMS 
-  double minoise1;  //! minimum noise hit distance in all layers
-  double minoise2;  //! minimum noise hit distance in all layers excluding the layer where minoise1 is 
-  double minoise3;  //! minimum noise hit distance excluding the layer where minoise1 and minoise2 are 
-  double minoise4;  //! minimum noise hit distance excluding the layer where minoise1,minoise2,minoise3 are 
-  double cosy; //! absolute value of cosine of angle of trk respect to Y axis 
-  double nlayer; //! number of layers used for the track
-  double tof_qd; //! lower tof charge
-  double tof_qu; //! upper tof charge 
-  double sinq_trk_ecal; //! squared sine of angle trk-ecal
-  double sinq_trk_trd; //! squared sine of angle trk-trd
-  double ecal_ecogx; //! ecal cog x coordinate
-  double ecal_ecogy; //! ecal cog y coordinate
-  double trk_ecogx; //! tracker extrapolation of ecal cog x coordinate
-  double trk_ecogy; //! tracker extrapolation of ecal cog y coordinate
-  double ntrk; //! number of tracks 
-  double nanti; //! number of anti fired
+//! tracker bitpattern
+  int btp;   
+ //! presence of ly1  (derived from btp) 
+  int ly1;    
+ //! presence of ly2  (derived from btp)  
+  int ly2;    
+ //! presence of ly9  (derived from btp) 
+  int ly9;    
+  /*! human readable pattern (derived from btp) \n
+  3 bit pattern code: L1L9L2 e.g. (001) = (noLy1;noLy9;Ly2 fired) \n
+  0 = 000; 1 = 001; 2 = 010; 3 = 011; 4 = 10x; 5 = 11x (full span) \n */
+  int pat;    
+ //! ecal energy
+  double energy;  
+ //! max span choutko (algo = 1) 
+  double rigidity_ch; 
+ //! max span alcaraz (algo = 2) 
+  double rigidity_al; 
+ //! max span choutko normalized chisquare x 
+  double chix_ch;  
+ //! max span choutko normalized chisquare y 
+  double chiy_ch;  
+//! max span choutko with same weight fitting (algo = 21) 
+  double err_ch;  
+//! inner only choutko   (pattern = 3) 
+  double rigidity_in;  
+//! inner + Ly9 choutko  (pattern = 6) 
+  double rigidity_bt;  
+//! inner + Ly1 choutko  (pattern = 5)  
+  double rigidity_tp;  
+//! inner bottom choutko(pattern = 2) 
+  double rigidity_ibt; 
+ //! inner top choutko   (pattern = 1) 
+  double rigidity_itp;
+//! inner tracker charge 
+  double trkqin;  
+ //! tracker charge RMS 
+  double trkqrms;  
+ //! minimum noise hit distance in all layers
+  double minoise1; 
+ //! minimum noise hit distance in all layers excluding the layer where minoise1 is 
+  double minoise2; 
+//! minimum noise hit distance excluding the layer where minoise1 and minoise2 are 
+  double minoise3; 
+ //! minimum noise hit distance excluding the layer where minoise1,minoise2,minoise3 are  
+  double minoise4; 
+//! absolute value of cosine of angle of trk respect to Y axis 
+  double cosy; 
+//! number of layers used for the track
+  double nlayer; 
+//! lower tof charge
+  double tof_qd; 
+//! upper tof charge 
+  double tof_qu; 
+//! squared sine of angle trk-ecal
+  double sinq_trk_ecal; 
+//! squared sine of angle trk-trd 
+  double sinq_trk_trd; 
+//! ecal cog x coordinate 
+  double ecal_ecogx;  
+//! ecal cog y coordinate 
+  double ecal_ecogy;  
+//! tracker extrapolation of ecal cog x coordinate
+  double trk_ecogx; 
+//! tracker extrapolation of ecal cog y coordinate
+  double trk_ecogy; 
+//! number of tracks 
+  double ntrk;  
+//! number of anti fired
+  double nanti;
 
  private:
 
@@ -76,12 +115,17 @@ class TrkLHVar: public TObject {
 #include "root.h"
 #endif
 
+//! Tracker Likelihood
 class TrkLH: public TObject {
   /*!
+  Evaluate tracker likelihood \n
+  include TrkLH.h and in the event loop \n
+  double lktrk = TrkLH::gethead()->GetLikelihoodRatioElectronWG(ipart); \n
+  where 'ipart' is the number of the ParticleR you want to use... \n
     \author
-    francesco.nozzoli@pg.infn.it
-    matteo.duranti@pg.infn.it
-    domenico.durso@pg.infn.it
+    francesco.nozzoli@pg.infn.it \n
+    matteo.duranti@pg.infn.it \n
+    domenico.durso@pg.infn.it \n
   */  
 
  private:
@@ -89,13 +133,13 @@ class TrkLH: public TObject {
   //! Default contructor
   TrkLH();
 
-  //! Clean a previous instance of the class. Use internallu
+  //! Clean a previous instance of the class. Use internally
   void clear();
 
   //! The head of the singleton
   static TrkLH* head;
 
-  //! Populate, from gbatch, the TrkLHVar used internally
+  //! Populate, from gbatch, the TrkLHVar used internally ipart is the particle number
   int PopulateTrkLHVar(int ipart);
 
  public:
@@ -116,7 +160,7 @@ class TrkLH: public TObject {
   // it behaves as...
   static void renewhead();
 
-  //! Initialize the Likelihood and this will need to access the database directory
+  //! Initialize the Likelihood and this will need to access the database directory (return 0 = ok)
   // (via $AMSDataDir/v5.00/TrkLH or $TrkLHDataDir) holding the root files for pdfs and normalizations
   int TRLKINIT(int _NVER=1);
 
@@ -124,40 +168,75 @@ class TrkLH: public TObject {
   int PATN;
   int NVER;
 
+  //! return the trk likelihood for the particle ipart
   double GetLikelihoodRatioElectronWG(int ipart=0);
 
+  //! to access to internally used variables for the particle ipart
   TrkLHVar GetTrkLHVar(int ipart);
 
   TrkLHVar* varv;
 
+  //! masking vector if varmask[3] = 0 => variable[3] not used in TrkLH
   int* varmask;
+  //! vector of not normalized variables  
   double* varlist;
+  //! vector of normalized (mean=0 sigma=1 when possible) variables  
   double* varnorm;
-  TH2D*** hlist0; //! PDFs for WRONG SIGN
-  TH2D*** hlist1; //! PDFs for GOOD SIGN
+//! PDFs for WRONG SIGN
+  TH2D*** hlist0; 
+//! PDFs for GOOD SIGN
+  TH2D*** hlist1; 
+  //! 16% lower threshold for variables 
   TGraph*** low;
-  TGraph*** upp;  
+  //! 16% upper threshold for variables 
+  TGraph*** upp;
+  //! numer of cases pdf wrong is empty and pdf good is below the pdf wrong error (uknown)   
   int ntail0;
+  //! numer of cases pdf good is empty and pdf wrong is below the pdf good error (uknown)   
   int ntail1;
+  //! numer of cases pdf wrong is empty and pdf good is empty (uknown)   
   int ntail2;
+  //! numer of cases pdf wrong is empty and pdf good is larger than the pdr wrong error (recovered as good-like)   
   int ntailc0;
+  //! numer of cases pdf good is empty and pdf wrong is larger than the pdf good error (recovered as wrong-like)   
   int ntailc1;
   
-  int fillvar(TrkLHVar&);
-  double dotrklk(double, int);
-  int replacemask(int*);
-  
-  static double bilinear(TH2D*, double, double, int);
-  static double normvar(TGraph*, TGraph*, double, double);
+  /*! fill the var1 data structure and normalize the variables                                                                starting from the pre-filled human readable data structure TrkLHVar */
+  int fillvar(TrkLHVar& var1);
+  //! internally evaluate tracker likelihood for energy and pattern
+  double dotrklk(double energy, int pat);
 
+  /*! set an user defined variable mask  (0 means variable not used)                      
+  to avoid use of some variables in TrkLH e.g. \n
+  int newmask[23]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0}; \n
+  TrkLH::replacemask(newmask); \n
+  use all variables but the last one (E/R) \n
+  see fillvar() for the meaning of variables */
+  int replacemask(int* newmask);
+  
+  /*!  from a TH2D interpolate value at (x,y) \n  
+    ilin = 0 no interpolation     \n                                                
+    ilin = 1 bilinear interpolation \n 
+    TH2D values expected in the interval [0,1] \n
+    normal return is expected in the range (0,1] \n
+    if interpolation result is zero return a negative sign 
+    value equal in size to the error in the TH2D bin (negative upper limit)*/ 
+  static double bilinear(TH2D* h, double y , double x, int ilin);
+
+  /*! low and upp TGraph are 1 sigma lower and upper thresholds of
+  the variable at different abs(rigidity) \n                 
+  return normalized variable thet is centered and the width is in number of sigma */
+  static double normvar(TGraph* low, TGraph* upp, double var, double rigid);
+
+  //! set the recommended mask 
   void SetDefaultMask(); //using default value of VARN=23
   
 #ifndef _NOGBATCH_
-  int filltrklhvarfromgbatch(TrkLHVar&, AMSEventR*, int);
+  //! fill the TrkLHVar&, variables from the ams rootuples, for the event and the ipart particle number
+  int filltrklhvarfromgbatch(TrkLHVar&, AMSEventR* evt, int ipart);
 #endif
 
  private:
-  void curazeri(TH2D*);
 
   int TRLKINIT_v1();
 
