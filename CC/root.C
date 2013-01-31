@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.528 2013/01/29 08:06:32 choutko Exp $
+//  $Id: root.C,v 1.529 2013/01/31 14:05:39 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5665,7 +5665,7 @@ bool ParticleR::IsInsideTRD()
   return (passTrdCenter && passTrdTop);
 
 }
-
+//---------------------------------------------------------------------------------
 double ParticleR::GetGeoCutoff(AMSEventR *pev){
 
         double deg2rad = TMath::DegToRad();
@@ -5720,108 +5720,101 @@ double ParticleR::GetGeoCutoff(AMSEventR *pev){
         if (sign ==-1) pos = 0 ;//...negative perticles         
         if (sign == 1) pos = 1 ;//...positive perticles         
 
-        //...GV!!
+        //...GeV/c
         double R =Charge * GeoMagCutoff( Utime,  Altitude , theta,  phi, thetaISS,  phiISS,  pos ) ;
-        //Charge is part.Charge!        
+        //Charge is part.Charge        
 
 return R;
 }
 //----------------------------------------------------------------------------------------
+int ParticleR::GetStoermerCutoff(double &Scut,int momOrR, int sign, AMSDir amsdir ){
 
+                // set to zero
+                Scut=0;
 
+       if(momOrR<0 || momOrR>1){
+        //cerr<< "ParticleR::GetStoermerCutoff momOrR must be 0 or 1 "<< endl;  
+        return -4 ;
+        }
 
+        if(sign<-1 || sign>1 ){
+        //cerr<< "ParticleR::GetStoermerCutoff wrong sign parameter"<<endl;
+        return -3;
+        }
 
-//--------------------------------------------------------------------------------------------
-double ParticleR::GetGeoCutoff(int momOrR, int fitID){
+        //-------------------check AMSEventR::Head()
+        if(!AMSEventR::Head()){
+        //cerr<< "ParticleR::GetStoermerCutoff No Header"<< endl;
+        return -2;
+        }
 
         double deg2rad = TMath::DegToRad();
         double Re =  6371.2; //km Earth radius
-#ifndef __ROOTSHAREDLIBRARY__
-	EventNtuple02 *ptr = AMSJob::gethead()->getntuple()->Get_event02();
-	if (!ptr) return 0;
-        time_t Utime = ptr->Time[0];
-        //...km
-        double Altitude = ptr->RadS/1.e5-Re;
-        //...ISS rad
-	double ThetaISS=  ptr->ThetaS;
-	double PhiISS=    ptr->PhiS;
-#else
         time_t Utime = (int)AMSEventR::Head()->UTCTime() ;
         //...km
         double Altitude = AMSEventR::Head()->fHeader.RadS/1.e5-Re;
         //...ISS rad
         double ThetaISS=  AMSEventR::Head()->fHeader.ThetaS;
         double PhiISS=    AMSEventR::Head()->fHeader.PhiS;
-#endif
        //...ISS deg 
         double thetaISS =ThetaISS/deg2rad ;
         double phiISS = PhiISS/deg2rad;
         //----to be centered in 0!!
-                //............................ZeroCentered
+               //............................ZeroCentered
                 if(phiISS > 180)  phiISS-=360.;
-
-        //----------------TrTrackR ---New!! 21/01/2013
-        TrTrackR * trk=  pTrTrack();
-#ifdef _PGTRACK_
-        double R = trk->GetRigidity(fitID);
-        AMSDir dirNew = trk->GetPdir(fitID);
-#else
-        double R = trk->Rigidityf();
-        AMSDir dirNew = trk->GetDir();
-#endif
-        //--------in ams coo:
-	if (dirNew.z() > 0) {
-         dirNew[0] = - dirNew[0] ;
-         dirNew[1] = - dirNew[1] ;
-         dirNew[2] = - dirNew[2] ;
-	}
-
 
         // From AMS to GTOD
         //... out:
         int result ;
         //...in AMS:--->      
-        double  thetaAMS = dirNew.gettheta();//colatitude of AMS
-        double  phiAMS =  dirNew.getphi();
+        double  thetaAMS = amsdir.gettheta();//colatitude in AMS reference frame (theta-->pi==out-going; theta-->0==up-going) 
+        double  phiAMS =   amsdir.getphi();  //longiture  in AMS reference frame 
 
         //...out GTOD:---> 
         double  theta_deg ; // latitude [deg]
         double  phi_deg ;   // longitude[deg] 
-        // Parameters:   
-        //use_att = 1 (LVLH) 
-        //use_coo = 1,(TLE )
-        //Use_time= 1,(UTCTime)  
-        //dt      = 0,  time jitter (sec) 
+        // Parameters:  
+        //use_att = 1 (LVLH)
+        //use_coo = 4,(Use AMS-GPS)
+        //Use_time= 3,(AMSGPS Time Corrected)
+        //dt      = 0,  time jitter (sec)
         //out_type= 3 (GTOD)
-        int gtodT =  AMSEventR::Head()->GetGalCoo(result, phi_deg , theta_deg, thetaAMS, phiAMS, 1,1,1,0.,3 );
 
+        int gtodT =  AMSEventR::Head()->GetGalCoo(result, phi_deg , theta_deg, thetaAMS, phiAMS, 1,4,3,0.,3 );
+        if(gtodT!=0){
+        return gtodT;
+        }
 
-//        cout<<" ParticleR::GetGeoCutoff theta= lat "<< theta_deg << " phi=long "<< phi_deg<< endl;
+//        cout<<" ParticleR::GetStoermerCutoff theta= lat "<< theta_deg << " phi=long "<< phi_deg<< endl;
 
+        //-------particle sign
         int pos = -1;
-        int sign = R>0?1:-1;//sign
-        if (sign ==-1) pos = 0 ;//...negative perticles         
-        if (sign == 1) pos = 1 ;//...positive perticles         
+        if (sign ==-1) pos = 0 ;//...force sign negative perticles         
+        if (sign == 1) pos = 1 ;//...force sign positive perticles         
 
-       //-----------------New 
+        if (sign == 0 ){
+
+        int  signP = Momentum>0?1:-1;// ParticleR sign
+        if (signP ==-1) pos = 0 ;//...negative perticles         
+        if (signP == 1) pos = 1 ;//...positive perticles 
+        }
+
+        //---------------------[GV]
         double Rcut =GeoMagCutoff( Utime,  Altitude , theta_deg,  phi_deg, thetaISS,  phiISS,  pos ) ;
-//        cout<<" ParticleR::GetGeoCutoff Old " <<RcutOld << " New "<< Rcut <<" ratio New/Old "<< Rcut/RcutOld<<endl;   
+//        cout<<" ParticleR::GetStoermerCutoff Old " <<RcutOld << " New "<< Rcut <<" ratio New/Old "<< Rcut/RcutOld<<endl;   
         if(momOrR==0){
         //---------------------[GeV/c]
         Rcut *=Charge ;
         }
         //Charge is part.Charge!        
 
-return Rcut;
+        //-----------------Stoermer
+        Scut=Rcut;
 
-
+return 0;
 }
+
 //----------------------------------------------------------------------------------------
-
-
-
-
-
 
 
 double ParticleR::RichBetasAverage(){
