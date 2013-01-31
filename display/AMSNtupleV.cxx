@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.47 2013/01/14 10:01:20 kaiwu Exp $
+//  $Id: AMSNtupleV.cxx,v 1.48 2013/01/31 11:01:17 kaiwu Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -644,12 +644,22 @@ else{
         int middle=int(ceil(0.5*(starti+endi)));
         gAMSDisplay->getchain()->ReadOneEvent(middle);
         //cout<<"starti= "<<starti<<", middle= "<<middle<<" endi= "<<endi<<" ev= "<<Event()<<" search= "<<event<<endl;
-        if(Event()<event)
+        if(Event()<event){
             starti=middle;
-        else if(Event()>event)
+	    startevt=Event();
+	}
+        else if(Event()>event){
             endi=middle;
+	    endevt=Event();
+	}
         else
             return true;      
+    	if(starti==endi-1){
+		if(endevt!=event&&startevt!=event){
+			gAMSDisplay->getchain()->ReadOneEvent(starti);	
+		}
+		return true;
+	}
     }
     return true;
 }
