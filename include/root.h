@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.532 2013/01/29 08:05:48 choutko Exp $
+//  $Id: root.h,v 1.533 2013/01/31 14:05:51 cconsola Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3434,20 +3434,6 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
 
   /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
-//----------------------------------------------------------------------------------------------------------
- /// Stoermer Geomagnetic Cutoff
- /*!
- * The method performs a linear interpolation of Gauss coefficients,
- * finds location of Geomegnetic Poles and Dipole Center at event Utime ,
- * Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
- * 
- * @param[in]   if momOrR==0 returns ---> Stoermer Rigidity cutoff multiply by ParticleR.Charge [GeV/c]:
- * @param[in]   if momOrR==1 returns ---> Stoermer Rigidity cutoff [GV] 
- * @param[in]   fitID == TrTrackR fitting id
- */
-    double GetGeoCutoff(int momOrR,int fitID);
-
-
 
 //----------------------------------------------------------------------------------------------------------
 /// returns  Stoermer Rigidity cutoff multiply by ParticleR.Charge [GeV/c]:
@@ -3455,6 +3441,32 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
  /// finds location of Geomegnetic Poles and Dipole Center at event Utime ,
  /// Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
  double GetGeoCutoff(AMSEventR* pev);
+
+//----------------------------------------------------------------------------------------------------------
+ /// Stoermer Geomagnetic Cutoff
+ /*!
+ * The method performs a linear interpolation of Gauss coefficients,
+ * finds location of Geomegnetic Poles and Dipole Center at event Utime ,
+ * Calculates Geomagnetic Coordinates in simple shifted tilted dipole model.
+ * 
+ * @param[in]   Scut is the Stoermer Cutoff value (in GeV/c or GV )
+ * @param[in]   if momOrR==0 returns ---> Stoermer Rigidity cutoff multiplied by ParticleR.Charge [GeV/c]:
+ * @param[in]   if momOrR==1 returns ---> Stoermer Rigidity cutoff [GV] 
+ * @param[in]   if sign ==  0 Particle sign given by ParticleR.Momentum   
+ * @param[in]   if sign == +1 force the Particle sign to be positive
+ * @param[in]   if sign == -1 force the Particle sign to be negative
+ * @param[in]   amsdir   particle direction in AMS reference frame (theta-->pi==out-going; theta-->0==up-going)
+
+ * @param[out]  -4 Error:  momOrR must be 0 or 1
+ * @param[out]  -3 Error:  parameter "sign" must be 0 , +1 or -1 
+ * @param[out]  -2 Error:  No  AMSEventR::Head()
+ * @param[out]  -1 Error:  AMSEventR::GetGalCoo failure
+ * @param[out]   0 Success
+ * @param[out]   from 1 to 4 equivalent to AMSEventR::GetGalCoo output
+
+ */
+    int GetStoermerCutoff( double &Scut ,int momOrR, int sign, AMSDir amsdir );
+
 
 
 //-----------------------------------------------------------------------------------------------------------
