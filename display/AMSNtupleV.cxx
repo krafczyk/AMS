@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.49 2013/01/31 15:03:49 kaiwu Exp $
+//  $Id: AMSNtupleV.cxx,v 1.50 2013/01/31 15:32:34 kaiwu Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -657,7 +657,10 @@ else{
             return true;      
     	if(starti==endi-1){
 		if(endevt!=event&&startevt!=event){
-			gAMSDisplay->getchain()->ReadOneEvent(starti);	
+			if(fevent<event)
+				gAMSDisplay->getchain()->ReadOneEvent(endi);	
+			else
+				gAMSDisplay->getchain()->ReadOneEvent(starti);
 		}
 		return true;
 	}
