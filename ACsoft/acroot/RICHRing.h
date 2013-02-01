@@ -3,6 +3,9 @@
 
 #include <TMath.h>
 #include "Tools.h"
+#include "RICHRing-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -17,20 +20,7 @@ public:
   /** A vector of float numbers */
   typedef Vector<Float_t, 3> ChargesProbabilityVector;
 
-  RICHRing()
-    : fStatus(0)
-    , fNumberOfHits(0)
-    , fBeta(0)
-    , fBetaError(0)
-    , fX(0)
-    , fY(0)
-    , fZ(0)
-    , fTheta(0)
-    , fPhi(0)
-    , fProbability(0)
-    , fChargeSquareEstimate(0) {
-
-  }
+  AC_RICHRing_Variables
 
   /** Helper method dumping an RICHRing object to the console
     */
@@ -101,34 +91,13 @@ public:
   /** Continuous Z^2 estimate for this ring.
     * \todo Find out which unit this uses.
     */
-  Float_t ChargeSquareEstimate() const { return fChargeSquareEstimate; }
-
-  /** Charge indexes sorted in descending probability (0:e, 1:H, 2:He ...)
-    * \todo Verify documentation.
-    */
-  const ChargesVector& Charges() const { return fCharges; }
-
-  /** Probabilities for the entries in the Charges() list.
-    */
-  const ChargesProbabilityVector& ChargesProbability() const { return fChargesProbability; }
+  Float_t ChargeEstimate() const { return fChargeEstimate; }
 
 private:
-  UInt_t fStatus;                               // RichRing->Status
-  UShort_t fNumberOfHits;                       // RichRing->Used
-  Float_t fBeta;                                // RichRing->Beta
-  Float_t fBetaError;                           // RichRing->ErrorBeta
-  Float_t fX;                                   // RichRing->AMSTrPars[0]
-  Float_t fY;                                   // RichRing->AMSTrPars[1]
-  Float_t fZ;                                   // RichRing->AMSTrPars[2]
-  Float_t fTheta;                               // RichRing->AMSTrPars[3]
-  Float_t fPhi;                                 // RichRing->AMSTrPars[4]  >0? -PI : +PI
-  Float_t fProbability;                         // RichRing.getProb()
-  Float_t fChargeSquareEstimate;                // RichRing.getCharge2Estimate()
-  ChargesVector fCharges;                       // Particle.pCharge.ChargeSubD("AMSChargeRich")->ChargeI[0..1]
-  ChargesProbabilityVector fChargesProbability; // Particle.pCharge.ChargeSubD("AMSChargeRich")->Prob[0..1]
-
   REGISTER_CLASS_WITH_TABLE(RICHRing)
 };
+
+}
 
 }
 

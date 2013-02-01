@@ -7,6 +7,8 @@
 
 #include <Rtypes.h>
 
+namespace ACsoft {
+
 namespace Analysis {
 
 class Particle;
@@ -46,7 +48,8 @@ public:
               Ecal    = 7 };
 
 
-  std::string SubdToString( SubD s ) { return EnumToSubDName[s]; }
+  std::string SubdToString( SubD s ) const;
+  SubD StringToSubd( std::string s ) const;
 
   int  AddBadRunList( const std::string& fileName );
 
@@ -79,6 +82,8 @@ private:
   bool BadStatus[nSubD];                             // Bad-Status   for nSubDs
 
 };
+
+}
 
 }
 

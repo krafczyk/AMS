@@ -2,6 +2,9 @@
 #define ECAL_h
 
 #include "ECALShower.h"
+#include "ECAL-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -13,7 +16,7 @@ public:
   /** A vector of ECALShower objects */
   typedef Vector<ECALShower, 5> ShowersVector;
 
-  ECAL() { }
+  AC_ECAL_Variables
 
   /** Helper method dumping an ECAL object to the console
     */
@@ -21,17 +24,17 @@ public:
 
   /** Clear ECAL to the initial empty state, as it was just constructed.
     */
-  void Clear(Option_t * /*option*/ ="");
+  void Clear();
 
   /** Accessors for the ECALShower objects.
     */
   const ShowersVector& Showers() const { return fShowers; }
 
 private:
-  ShowersVector fShowers;
-
   REGISTER_CLASS(ECAL)
 };
+
+}
 
 }
 

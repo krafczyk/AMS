@@ -2,6 +2,9 @@
 #define TRDHSegment_h
 
 #include "Tools.h"
+#include "TRDHSegment-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -15,7 +18,7 @@ public:
   /** A vector of unsigned char (8bit) numbers */
   typedef Vector<UChar_t, 40> RawHitIndexVector;
 
-  TRDHSegment() { }
+  AC_TRDHSegment_Variables
 
   /** Helper method dumping an TRDHSegment object to the console
     */
@@ -26,10 +29,10 @@ public:
   const RawHitIndexVector& RawHitIndex() const { return fRawHitIndex; }
 
 private:
-  RawHitIndexVector fRawHitIndex; // index to TRDrhit  ( pTrdRawHit )
-
   REGISTER_CLASS_WITH_TABLE(TRDHSegment)
 };
+
+}
 
 }
 

@@ -4,6 +4,9 @@
 #include <TMath.h>
 #include "Tools.h"
 #include "TRDRawHit.h"
+#include "TRDVTrack-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -22,17 +25,7 @@ public:
   /** A vector of float numbers */
   typedef Vector<Float_t, 3> ChargesNewVector;
 
-  TRDVTrack()
-    : fStatus(0)
-    , fChiSquare(0)
-    , fTheta(0)
-    , fPhi(0)
-    , fX(0)
-    , fY(0)
-    , fZ(0)
-    , fPattern(0) {
-
-  }
+  AC_TRDVTrack_Variables
 
   /** Helper method dumping an TRDVTrack object to the console
     */
@@ -79,14 +72,6 @@ public:
    */
   UInt_t Pattern() const { return fPattern; }
 
-  /** Charge indexes sorted in descending probability (0:e, 1:H, 2:He ...)
-    */
-  const ChargesVector& Charges() const { return fCharges; }
-
-  /** Probabilities for the entries in the Charges() list.
-    */
-  const ChargesProbabilityVector& ChargesProbability() const { return fChargesProbability; }
-
   /** Measured charges in layers.
     */
   const ChargesNewVector& ChargesNew() const { return fChargesNew; }
@@ -100,20 +85,10 @@ public:
   }
 
 private:
-  UShort_t fStatus;                             // TrdTrack->Status
-  Float_t fChiSquare;                           // TrdTrack->Chi2
-  Float_t fTheta;                               // TrdTrack->Theta
-  Float_t fPhi;                                 // TrdTrack->Phi
-  Float_t fX;                                   // TrdTrack->Coo[0]
-  Float_t fY;                                   // TrdTrack->Coo[1]
-  Float_t fZ;                                   // TrdTrack->Coo[2]
-  UInt_t fPattern;                              // TrdTrack->Pattern
-  ChargesVector fCharges;                       // Particle.pCharge.ChargeSubD("AMSChargeTRD")->ChargeI[0..1]
-  ChargesProbabilityVector fChargesProbability; // Particle.pCharge.ChargeSubD("AMSChargeTRD")->Prob[0..1]
-  ChargesNewVector fChargesNew;                 // Kunin ChargeProbs  0:e  1:p  2:He 3:Li 4:Be 5:B 6:C ...
-
   REGISTER_CLASS_WITH_TABLE(TRDVTrack)
 };
+
+}
 
 }
 

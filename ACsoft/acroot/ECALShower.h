@@ -3,6 +3,9 @@
 
 #include <TMath.h>
 #include "Tools.h"
+#include "ECALShower-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -14,29 +17,7 @@ public:
   /** A vector of float numbers */
   typedef Vector<Float_t, 1> EstimatorsVector;
 
-  ECALShower()
-    : fStatus(0)
-    , fNumberOfHits(0)
-    , fDepositedEnergy(0)
-    , fEnergyAt3CMRatio(0)
-    , fReconstructedEnergy(0)
-    , fReconstructedEnergyError(0)
-    , fRelativeRearLeak(0)
-    , fShowerMaximum(0)
-    , fChiSquareProfile(0)
-    , fTheta(0)
-    , fPhi(0)
-    , fX(0)
-    , fY(0)
-    , fZ(0)
-    , fEntryX(0)
-    , fEntryY(0)
-    , fEntryZ(0)
-    , fExitX(0)
-    , fExitY(0)
-    , fExitZ(0) {
-
-  }
+  AC_ECALShower_Variables
 
   /** Helper method dumping an ECALShower object to the console
     */
@@ -150,30 +131,10 @@ public:
   const EstimatorsVector& Estimators() const { return fEstimators; }
 
 private:
-  UInt_t fStatus;                    // EcalShower->Status
-  UShort_t fNumberOfHits;            // EcalShower->NHits
-  Float_t fDepositedEnergy;          // EcalShower->EnergyD
-  Float_t fEnergyAt3CMRatio;         // EcalShower->Energy3C[0]
-  Float_t fReconstructedEnergy;      // EcalShower->EnergyE
-  Float_t fReconstructedEnergyError; // EcalShower->ErEnergyE
-  Float_t fRelativeRearLeak;         // EcalShower->RearLeak
-  Float_t fShowerMaximum;            // EcalShower->ParProfile[1]
-  Float_t fChiSquareProfile;         // EcalShower->Chi2Profile
-  Float_t fTheta;                    // EcalShower->EMDir           acos(Dir[2])
-  Float_t fPhi;                      // EcalShower->EMDir           atan2(Dir[1],Dir[0])
-  Float_t fX;                        // EcalShower->CofG[0]
-  Float_t fY;                        // EcalShower->CofG[1]
-  Float_t fZ;                        // EcalShower->CofG[2]
-  Float_t fEntryX;                   // EcalShower->Entry[0]
-  Float_t fEntryY;                   // EcalShower->Entry[1]
-  Float_t fEntryZ;                   // EcalShower->Entry[2]
-  Float_t fExitX;                    // EcalShower->Exit[0]
-  Float_t fExitY;                    // EcalShower->Exit[1]
-  Float_t fExitZ;                    // EcalShower->Exit[2]
-  EstimatorsVector fEstimators;      // Estimators [0]:GetEcalBDT() [1]:EcalStandaloneEstimator()
-
   REGISTER_CLASS_WITH_TABLE(ECALShower)
 };
+
+}
 
 }
 

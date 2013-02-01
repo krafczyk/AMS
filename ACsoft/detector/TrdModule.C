@@ -17,11 +17,9 @@
 #define INFO_OUT_TAG "TrdModule> "
 #include <debugging.hh>
 
-Detector::TrdModule::TrdModule( int moduleNumber, TrdSublayer* mother ) :
+ACsoft::Detector::TrdModule::TrdModule( int moduleNumber, TrdSublayer* mother ) :
   fModuleNumber( moduleNumber ),
-  fMother(mother),
-  fAlignmentShiftHisto(0),
-  fDeDxHisto(0)
+  fMother(mother)
 {
 
   assert(moduleNumber >= 0 && moduleNumber < int(AC::AMSGeometry::TRDModules));
@@ -38,6 +36,7 @@ Detector::TrdModule::TrdModule( int moduleNumber, TrdSublayer* mother ) :
   if (fLayerNumber < 12) ++fTowerNumber;
   if (fLayerNumber < 4) ++fTowerNumber;
 
+  fDirection = ( fLayerNumber <= 3 || fLayerNumber >= 16 ? AC::YZMeasurement : AC::XZMeasurement );
 
   float deltaBulkhead = 0.0;
   if( ( layer >= 16 || layer <= 3 ) ){
@@ -47,9 +46,11 @@ Detector::TrdModule::TrdModule( int moduleNumber, TrdSublayer* mother ) :
   float xrel = AC::AMSGeometry::TrdModuleWidth*(float(fTowerNumber)-8.5) + deltaBulkhead;
 
   fNominalRelativePosition = TVector3(xrel,0.,0.);
+  fShimmingOffset = TVector3(0.,0.,0.);
   fOffsetRelativePosition = TVector3(0.,0.,0.);
 
   fNominalRelativeRotation.SetToIdentity();
+  fShimmingRotation.SetToIdentity();
   fExtraRelativeRotation.SetToIdentity();
 
   // set global values to dummy values, will be set by sublayer anyway
@@ -59,7 +60,7 @@ Detector::TrdModule::TrdModule( int moduleNumber, TrdSublayer* mother ) :
   ConstructStraws();
 }
 
-Detector::TrdModule::~TrdModule() {
+ACsoft::Detector::TrdModule::~TrdModule() {
 
   for( unsigned int i = 0 ; i < fStraws.size() ; ++i ){
     delete fStraws[i];
@@ -67,11 +68,11 @@ Detector::TrdModule::~TrdModule() {
 }
 
 
-void Detector::TrdModule::ConstructStraws() {
+void ACsoft::Detector::TrdModule::ConstructStraws() {
 
   for( unsigned int straw=0 ; straw<AC::AMSGeometry::TRDStrawsPerModule; ++straw ){
 
-    fStraws.push_back( new Detector::TrdStraw( fLayerNumber, fSublayerNumber, fLadderNumber, fModuleNumber, straw, this ) );
+    fStraws.push_back( new ACsoft::Detector::TrdStraw( fLayerNumber, fSublayerNumber, fLadderNumber, fModuleNumber, straw, this ) );
   }
 
 }
@@ -82,7 +83,7 @@ void Detector::TrdModule::ConstructStraws() {
   *
   * The nominal position and orientation will remain unchanged.
   */
-void Detector::TrdModule::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot ) {
+void ACsoft::Detector::TrdModule::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot ) {
 
   fOffsetRelativePosition = offsetPos;
   fExtraRelativeRotation  = extraRot;
@@ -93,78 +94,58 @@ void Detector::TrdModule::ChangeRelativePositionAndRotation( const TVector3& off
 /** Recalculate global position and rotation for this module and all its straws.
   *
   */
-void Detector::TrdModule::UpdateGlobalPositionAndDirection() {
+void ACsoft::Detector::TrdModule::UpdateGlobalPositionAndDirection() {
 
   SetGlobalPosition( fMother->GlobalPosition() + fMother->GlobalRotation()*RelativePosition() );
   SetGlobalRotation( fMother->GlobalRotation() * RelativeRotation() );
 
   for( unsigned int i = 0 ; i < fStraws.size() ; ++i ){
 
-    Detector::TrdStraw* straw = fStraws[i];
+    ACsoft::Detector::TrdStraw* straw = fStraws[i];
     straw->UpdateGlobalPositionAndDirection();
   }
 }
 
-TVector3 Detector::TrdModule::GlobalPosition() const {
+TVector3 ACsoft::Detector::TrdModule::GlobalPosition() const {
 
   return fGlobalPosition;
 }
 
 
-TRotation Detector::TrdModule::GlobalRotation() const {
+TRotation ACsoft::Detector::TrdModule::GlobalRotation() const {
 
   return fGlobalRotation;
 }
 
-void Detector::TrdModule::Dump() const {
+
+void ACsoft::Detector::TrdModule::SetShimmingRotation( const TRotation& matrix ) {
+
+  if( fShimmingRotation != TRotation() )
+    WARN_OUT << "Repeated call to SetShimmingRotation!" << std::endl;
+
+  fShimmingRotation = matrix;
+}
+
+void ACsoft::Detector::TrdModule::SetShimmingOffset( const TVector3& offset ) {
+
+  if( fShimmingOffset != TVector3(0.,0.,0.) )
+    WARN_OUT << "Repeated call to SetShimmingOffset!" << std::endl;
+
+  fShimmingOffset = offset;
+}
+
+void ACsoft::Detector::TrdModule::Dump() const {
 
   INFO_OUT << "TRD Module " << fLayerNumber << "," << fSublayerNumber << "," << fModuleNumber
            << " (lad " << fLadderNumber << " tower " << fTowerNumber << ")"
-           << " relative position " << fNominalRelativePosition << " + " << fOffsetRelativePosition << " rotation " << fExtraRelativeRotation << " * " << fNominalRelativeRotation
+           << " relative position " << fNominalRelativePosition << " + " << fShimmingOffset << " + "  << fOffsetRelativePosition
+           << " rotation " << fExtraRelativeRotation << " * " << fShimmingRotation << " * " << fNominalRelativeRotation
            << " global position " << GlobalPosition() << " rotation " << GlobalRotation() << std::endl;
 
-  for( unsigned int i = 0 ; i < fStraws.size() ; ++i ){
+//  for( unsigned int i = 0 ; i < fStraws.size() ; ++i ){
 
-    Detector::TrdStraw* straw = fStraws[i];
-    straw->Dump();
-  }
+//    ACsoft::Detector::TrdStraw* straw = fStraws[i];
+//    straw->Dump();
+//  }
 }
 
-
-void Detector::TrdModule::CreateAlignmentShiftHisto() {
-
-  std::stringstream name, title;
-  name << "AlignmentShiftHisto_" << fModuleNumber;
-  title << "Alignment shifts for module " << fModuleNumber;
-  fAlignmentShiftHisto = Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2I>( name.str(), title.str(), "#Delta R / cm", 100, -2.0, 2.0 );
-}
-
-void Detector::TrdModule::CreateDeDxHisto() {
-
-  std::stringstream name, title;
-  name << "DeDxHisto_" << fModuleNumber;
-  title << "dE/dx for module " << fModuleNumber;
-  fDeDxHisto = Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2I>( name.str(), title.str(), "dE/dx (ADC/cm)", 200, 0., 400. );
-}
-
-
-void Detector::TrdModule::StoreAlignmentShift( const TTimeStamp& time, Double_t shift ) {
-
-  if(!fAlignmentShiftHisto) CreateAlignmentShiftHisto();
-  fAlignmentShiftHisto->Fill(double(time),shift);
-}
-
-void Detector::TrdModule::StoreDeDx( const TTimeStamp& time, Double_t dedx ) {
-
-  if(!fDeDxHisto) CreateDeDxHisto();
-  fDeDxHisto->Fill(double(time),dedx);
-}
-
-void Detector::TrdModule::WriteHistogramsToCurrentFile() {
-
-  if( fAlignmentShiftHisto && fAlignmentShiftHisto->GetEntries() > 0 )
-    fAlignmentShiftHisto->Write();
-
-  if( fDeDxHisto && fDeDxHisto->GetEntries() > 0 )
-    fDeDxHisto->Write();
-}

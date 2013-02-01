@@ -22,7 +22,7 @@
   *
   * Ngraph=1000: number of points in Graph of PDFs, Nrandom=25000000: Number of Random Numbers to Calculate Rejection
   */
-Analysis::RejectionCalculator::RejectionCalculator(){
+ACsoft::Analysis::RejectionCalculator::RejectionCalculator(){
 
   fNpointsPdfGraph=1000;
   fNrandoms=25000000;
@@ -33,7 +33,7 @@ Analysis::RejectionCalculator::RejectionCalculator(){
   *
   * \param[in] Ngraph: number of points in Graph of PDFs, Nrandom: Number of Random Numbers to Calculate Rejection
   */
-Analysis::RejectionCalculator::RejectionCalculator(int Ngraph, int Nrandom){
+ACsoft::Analysis::RejectionCalculator::RejectionCalculator(int Ngraph, int Nrandom){
 
   fNpointsPdfGraph=Ngraph;
   fNrandoms=Nrandom;
@@ -43,7 +43,7 @@ Analysis::RejectionCalculator::RejectionCalculator(int Ngraph, int Nrandom){
 /** Default Destructor
   *
   */
-Analysis::RejectionCalculator::~RejectionCalculator(){
+ACsoft::Analysis::RejectionCalculator::~RejectionCalculator(){
 
 }
 
@@ -51,7 +51,7 @@ Analysis::RejectionCalculator::~RejectionCalculator(){
   *
   * Used to construct TF1 object to work with
   */
-double Analysis::RejectionCalculator::PpdfFunc(double *x, double *par) {
+double ACsoft::Analysis::RejectionCalculator::PpdfFunc(double *x, double *par) {
  int m =(int)par[0]; // pass
  int N =(int)par[1]; // total
  double epsilon = x[0]; // efficiency
@@ -70,7 +70,7 @@ double Analysis::RejectionCalculator::PpdfFunc(double *x, double *par) {
   *
   * pars in function:  par[0]:totalKeeper, par[1]:passKeeper par[2]:totalRejects par[3]:passRejects
   */
-double Analysis::RejectionCalculator::KoopmanFunc(double *x, double *par) {
+double ACsoft::Analysis::RejectionCalculator::KoopmanFunc(double *x, double *par) {
 
   double f=0;
 
@@ -87,7 +87,7 @@ double Analysis::RejectionCalculator::KoopmanFunc(double *x, double *par) {
   *
   *
   */
-TH1D* Analysis::RejectionCalculator::CalculateRejPDF(double passKeeper, double totalKeeper, double passRejects, double totalRejects){
+TH1D* ACsoft::Analysis::RejectionCalculator::CalculateRejPDF(double passKeeper, double totalKeeper, double passRejects, double totalRejects){
 
   // Random Number Generator
    time_t seconds;
@@ -104,7 +104,7 @@ TH1D* Analysis::RejectionCalculator::CalculateRejPDF(double passKeeper, double t
   double KRangeLow =(KeeperEff-5*KElower<0.0 ? 0.0:KeeperEff-5*KElower);
   double KRangeHigh=(KeeperEff+5*KEupper>1.0 ? 1.0:KeeperEff+5*KEupper);
 
-  TF1* Kpdf = new TF1("Kpdf",this,&Analysis::RejectionCalculator::PpdfFunc,KRangeLow,KRangeHigh,2,"RejectionCalculator","PpdfFunc");
+  TF1* Kpdf = new TF1("Kpdf",this,&ACsoft::Analysis::RejectionCalculator::PpdfFunc,KRangeLow,KRangeHigh,2,"RejectionCalculator","PpdfFunc");
   Kpdf->SetNpx(fNpointsPdfGraph);
   Kpdf->SetParameters(passKeeper,totalKeeper);
 
@@ -114,7 +114,7 @@ TH1D* Analysis::RejectionCalculator::CalculateRejPDF(double passKeeper, double t
   double RRangeLow =(RejectsEff-5*RElower<0.0 ? 0.0:RejectsEff-5*RElower);
   double RRangeHigh=(RejectsEff+5*REupper>1.0 ? 1.0:RejectsEff+5*REupper);
 
-  TF1* Rpdf = new TF1("Rpdf",this,&Analysis::RejectionCalculator::PpdfFunc,RRangeLow,RRangeHigh,2,"RejectionCalculator","PpdfFunc");
+  TF1* Rpdf = new TF1("Rpdf",this,&ACsoft::Analysis::RejectionCalculator::PpdfFunc,RRangeLow,RRangeHigh,2,"RejectionCalculator","PpdfFunc");
   Rpdf->SetNpx(fNpointsPdfGraph);
   Rpdf->SetParameters(passRejects,totalRejects);
 
@@ -153,7 +153,7 @@ TH1D* Analysis::RejectionCalculator::CalculateRejPDF(double passKeeper, double t
   * \param[in] pass, total
   * \param[out] TGraph of pdf with FNpointsPdfGraph datapoints in a -5..+5 sigma interval
   */
-TGraph* Analysis::RejectionCalculator::CalculateEfficiencyPDF(double pass, double total){
+TGraph* ACsoft::Analysis::RejectionCalculator::CalculateEfficiencyPDF(double pass, double total){
 
   TGraph* PDF = new TGraph(fNpointsPdfGraph);
 
@@ -164,7 +164,7 @@ TGraph* Analysis::RejectionCalculator::CalculateEfficiencyPDF(double pass, doubl
   double RangeHigh=(Eff+5*Eupper>1.0 ? 1.0:Eff+5*Eupper);
   double StepSize=(RangeHigh-RangeLow)/fNpointsPdfGraph;
 
-  TF1* Fpdf = new TF1("Fpdf",this,&Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
+  TF1* Fpdf = new TF1("Fpdf",this,&ACsoft::Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
   Fpdf->SetNpx(fNpointsPdfGraph);
   Fpdf->SetParameters(pass,total);
   double Int=Fpdf->Integral(RangeLow,RangeHigh);
@@ -184,7 +184,7 @@ TGraph* Analysis::RejectionCalculator::CalculateEfficiencyPDF(double pass, doubl
   * \param[in] passKeeper, totalKeeper, passRejects, totalRejects
   * \param[out] TGraph of pdf with FNpointsPdfGraph datapoints in a -5..+5 sigma interval
   */
-TGraph* Analysis::RejectionCalculator::CalculateRejectionPDF(double passKeeper, double totalKeeper, double passRejects, double totalRejects){
+TGraph* ACsoft::Analysis::RejectionCalculator::CalculateRejectionPDF(double passKeeper, double totalKeeper, double passRejects, double totalRejects){
 
   TH1D* Rhist = CalculateRejPDF(passKeeper,totalKeeper,passRejects,totalRejects);
 
@@ -205,7 +205,7 @@ TGraph* Analysis::RejectionCalculator::CalculateRejectionPDF(double passKeeper, 
   * \param[in] pass, total
   * Uses the BayesianDivide Method of Root.
   */
-void Analysis::RejectionCalculator::CalculateEfficiency(double pass, double total, double &Eff, double &dEff_upper, double &dEff_lower){
+void ACsoft::Analysis::RejectionCalculator::CalculateEfficiency(double pass, double total, double &Eff, double &dEff_upper, double &dEff_lower){
 
   TH1I* Htotal = new TH1I("Htotal","Htotal",1,0,1);
   Htotal->SetBinContent(1,total);
@@ -236,7 +236,7 @@ void Analysis::RejectionCalculator::CalculateEfficiency(double pass, double tota
   *
   * Uses the BayesianDivide Method of Root for each bin of pass.
   */
-TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateEfficiency(TH1I* pass, TH1I* total){
+TGraphAsymmErrors* ACsoft::Analysis::RejectionCalculator::CalculateEfficiency(TH1I* pass, TH1I* total){
 
   TGraphAsymmErrors* gEff = new TGraphAsymmErrors(pass->GetXaxis()->GetNbins());
 
@@ -251,7 +251,7 @@ TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateEfficiency(TH1I* pass
   *
   * This calculation is a helper to other functions of the RejectionCalculator, but can also be used for any input histogram.
   */
-void Analysis::RejectionCalculator::GetCCI(TH1D* histo, double &lower_bound, double &upper_bound){
+void ACsoft::Analysis::RejectionCalculator::GetCCI(TH1D* histo, double &lower_bound, double &upper_bound){
 
   double TargetIntegral=(1.0-0.6827)/2.0*histo->Integral();  // 1 sigma error
 
@@ -284,7 +284,7 @@ void Analysis::RejectionCalculator::GetCCI(TH1D* histo, double &lower_bound, dou
   *
   * This calculation is a helper to other functions of the RejectionCalculator, but can also be used for any input histogram.
   */
-void Analysis::RejectionCalculator::GetSCI(TH1D* histo, double Rej, double &lower_bound, double &upper_bound){
+void ACsoft::Analysis::RejectionCalculator::GetSCI(TH1D* histo, double Rej, double &lower_bound, double &upper_bound){
 
   //start with CCI
   GetCCI(histo,lower_bound,upper_bound);
@@ -344,7 +344,7 @@ void Analysis::RejectionCalculator::GetSCI(TH1D* histo, double Rej, double &lowe
   *
   * This calculation is slow. The CCI is not the smallest interval containing 1sigma of events, but is well defined.
   */
-void Analysis::RejectionCalculator::CalculateRejectionCCI(double passKeeper, double totalKeeper, double passRejects, double totalRejects, double &Rej, double &dRej_upper, double &dRej_lower){
+void ACsoft::Analysis::RejectionCalculator::CalculateRejectionCCI(double passKeeper, double totalKeeper, double passRejects, double totalRejects, double &Rej, double &dRej_upper, double &dRej_lower){
 
   Rej=(passKeeper/totalKeeper)/(passRejects/totalRejects);
 
@@ -367,7 +367,7 @@ void Analysis::RejectionCalculator::CalculateRejectionCCI(double passKeeper, dou
   *
   * This calculation is slow. The CCI is not the smallest interval containing 1sigma of events, but is well defined.
   */
-TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateRejectionCCI(TH1I* passKeeper, TH1I* totalKeeper, TH1I* passRejects, TH1I* totalRejects){
+TGraphAsymmErrors* ACsoft::Analysis::RejectionCalculator::CalculateRejectionCCI(TH1I* passKeeper, TH1I* totalKeeper, TH1I* passRejects, TH1I* totalRejects){
 
   TGraphAsymmErrors* gRej = new TGraphAsymmErrors();
 
@@ -389,7 +389,7 @@ TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateRejectionCCI(TH1I* pa
   *
   * This calculation is slow.
   */
-void Analysis::RejectionCalculator::CalculateRejection(double passKeeper, double totalKeeper, double passRejects, double totalRejects, double &Rej, double &dRej_upper, double &dRej_lower){
+void ACsoft::Analysis::RejectionCalculator::CalculateRejection(double passKeeper, double totalKeeper, double passRejects, double totalRejects, double &Rej, double &dRej_upper, double &dRej_lower){
 
   Rej=(passKeeper/totalKeeper)/(passRejects/totalRejects);
 
@@ -411,7 +411,7 @@ void Analysis::RejectionCalculator::CalculateRejection(double passKeeper, double
   * \param[out] TGraphAsymmErrors with Rejection and uncertainty in each point.
   * This calculation is slow.
   */
-TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateRejection(TH1I* passKeeper, TH1I* totalKeeper, TH1I* passRejects, TH1I* totalRejects){
+TGraphAsymmErrors* ACsoft::Analysis::RejectionCalculator::CalculateRejection(TH1I* passKeeper, TH1I* totalKeeper, TH1I* passRejects, TH1I* totalRejects){
 
   TGraphAsymmErrors* gRej = new TGraphAsymmErrors();
 
@@ -432,7 +432,7 @@ TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateRejection(TH1I* passK
   * \param[in] passKeeper, totalKeeper, passRejects, totalRejects
   *
   */
-void Analysis::RejectionCalculator::CalculateRejectionKoopman(double passKeeper, double totalKeeper, double passRejects, double totalRejects, double &Rej, double &dRej_upper, double &dRej_lower){
+void ACsoft::Analysis::RejectionCalculator::CalculateRejectionKoopman(double passKeeper, double totalKeeper, double passRejects, double totalRejects, double &Rej, double &dRej_upper, double &dRej_lower){
 
   Rej=(passKeeper/totalKeeper)/(passRejects/totalRejects);
   double sigma=1.0; // 1 sigma error
@@ -442,7 +442,7 @@ void Analysis::RejectionCalculator::CalculateRejectionKoopman(double passKeeper,
   double RangeHigh= Rej+(sigma+1.0)*Rej*sqrt(1/passKeeper + 1/passRejects);
 
   //pars in function:  par[0]:totalKeeper, par[1]:passKeeper par[2]:totalRejects par[3]:passRejects
-  TF1* U_R = new TF1("U_R",this,&Analysis::RejectionCalculator::KoopmanFunc,RangeLow,RangeHigh,4,"RejectionCalculator","PpdfFunc");
+  TF1* U_R = new TF1("U_R",this,&ACsoft::Analysis::RejectionCalculator::KoopmanFunc,RangeLow,RangeHigh,4,"RejectionCalculator","PpdfFunc");
   U_R->SetNpx(1000);
   U_R->SetParameters(totalKeeper,passKeeper,totalRejects,passRejects);
 
@@ -460,7 +460,7 @@ void Analysis::RejectionCalculator::CalculateRejectionKoopman(double passKeeper,
   * \param[out] TGraphAsymmErrors with Rejection and uncertainty in each point.
   * This calculation is fast.
   */
-TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateRejectionKoopman(TH1I* passKeeper, TH1I* totalKeeper, TH1I* passRejects, TH1I* totalRejects){
+TGraphAsymmErrors* ACsoft::Analysis::RejectionCalculator::CalculateRejectionKoopman(TH1I* passKeeper, TH1I* totalKeeper, TH1I* passRejects, TH1I* totalRejects){
 
   TGraphAsymmErrors* gRej = new TGraphAsymmErrors();
 
@@ -485,7 +485,7 @@ TGraphAsymmErrors* Analysis::RejectionCalculator::CalculateRejectionKoopman(TH1I
   *
   * fraction=(Npositrons/Epositrons/Eleptons - Nprotons*Eprotons)/(Nleptons/Eleptons - Nprotons*Eprotons);
   */
-TH1D* Analysis::RejectionCalculator::CalculatePositronFraction(double Nleptons, double Eleptons, double Npositrons, double Epositrons, double Nprotons, double Eprotons,double &fraction, double &dFrac_upper, double &dFrac_lower){
+TH1D* ACsoft::Analysis::RejectionCalculator::CalculatePositronFraction(double Nleptons, double Eleptons, double Npositrons, double Epositrons, double Nprotons, double Eprotons,double &fraction, double &dFrac_upper, double &dFrac_lower){
 
 	fraction=(Npositrons/Epositrons/Eleptons - Nprotons*Eprotons)/(Nleptons/Eleptons - Nprotons*Eprotons);
 	
@@ -496,7 +496,7 @@ TH1D* Analysis::RejectionCalculator::CalculatePositronFraction(double Nleptons, 
 	double RangeLow =(Eff-5*Elower<0.0 ? 0.0:Eff-5*Elower);
 	double RangeHigh=(Eff+5*Eupper>1.0 ? 1.0:Eff+5*Eupper);
 	
-	TF1* Fe_p = new TF1("Fe_p",this,&Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
+	TF1* Fe_p = new TF1("Fe_p",this,&ACsoft::Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
 	Fe_p->SetNpx(fNpointsPdfGraph);
 	Fe_p->SetParameters(Nprotons*Eprotons,Nprotons);
 	
@@ -505,7 +505,7 @@ TH1D* Analysis::RejectionCalculator::CalculatePositronFraction(double Nleptons, 
 	RangeLow =(Eff-5*Elower<0.0 ? 0.0:Eff-5*Elower);
 	RangeHigh=(Eff+5*Eupper>1.0 ? 1.0:Eff+5*Eupper);
 	
-	TF1* Fe_L = new TF1("Fe_L",this,&Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
+	TF1* Fe_L = new TF1("Fe_L",this,&ACsoft::Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
 	Fe_L->SetNpx(fNpointsPdfGraph);
 	Fe_L->SetParameters(Nleptons*Eleptons,Nleptons);
 	
@@ -514,11 +514,11 @@ TH1D* Analysis::RejectionCalculator::CalculatePositronFraction(double Nleptons, 
 	RangeLow =(Eff-5*Elower<0.0 ? 0.0:Eff-5*Elower);
 	RangeHigh=(Eff+5*Eupper>1.0 ? 1.0:Eff+5*Eupper);
 	
-	TF1* Fe_plus = new TF1("Fe_plus",this,&Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
+	TF1* Fe_plus = new TF1("Fe_plus",this,&ACsoft::Analysis::RejectionCalculator::PpdfFunc,RangeLow,RangeHigh,2,"RejectionCalculator","PpdfFunc");
 	Fe_plus->SetNpx(fNpointsPdfGraph);
 	Fe_plus->SetParameters(Npositrons*Epositrons,Npositrons);
 	
-	//Histogram for PDF of PositronFraction
+    //Histogram for PDF of PositronFraction
 	double poshistRangeLow=  -0.5*fraction; //0.0;
 	double poshistRangeHigh= 2.5*fraction; //0.3;
 	TH1D* posfrac = new TH1D("posfrac","posfrac",80000,poshistRangeLow,poshistRangeHigh);
@@ -552,10 +552,50 @@ TH1D* Analysis::RejectionCalculator::CalculatePositronFraction(double Nleptons, 
   return posfrac;
 }
 
+
+double ACsoft::Analysis::RejectionCalculator::CalculateSimpleFraction(double primary, double secondary, double &dYup, double &dYlow){
+
+  // Random Number Generator
+   time_t seconds;
+   seconds = time (NULL);
+   TRandom3* RGen = new TRandom3(seconds);
+   gRandom = RGen;
+
+  double Frac = secondary/(secondary+primary);
+
+  //Histogram for PDF of Fraction
+  double poshistRangeLow=  -0.5*Frac;
+  double poshistRangeHigh= 2.5*Frac;
+  TH1D* Hfrac = new TH1D("Hfrac","Hfrac",10000,poshistRangeLow,poshistRangeHigh);
+
+  for(int nR=0;nR<fNrandoms;nR++){
+      double r_sec=gRandom->PoissonD(secondary);
+      double r_pri=gRandom->PoissonD(primary);
+
+      //operate random numbers
+      double r_frac=r_sec/(r_sec+r_pri);
+
+      //Fill pos Frac Histogram
+      Hfrac->Fill(r_frac);
+  }
+
+  GetCCI(Hfrac,dYlow,dYup);
+  GetSCI(Hfrac,Frac,dYlow,dYup);
+
+  dYup=fabs(Frac-dYup);
+  dYlow=fabs(Frac-dYlow);
+
+  INFO_OUT << "CalculateSimpleFraction: " << secondary << "/(" << primary << "+" << secondary << ")=" << Frac << " +" << dYup << " -" << dYlow << std::endl;
+
+  delete Hfrac;
+  delete RGen;
+  return Frac;
+}
+
 /** Finds the Maximum in a given histogram by weighted mean algorythm.
   *
   */
-double Analysis::RejectionCalculator::FindTheMaximum(TH1D* histo){
+double ACsoft::Analysis::RejectionCalculator::FindTheMaximum(TH1D* histo){
 	
   double YtoEvaluate=histo->GetBinContent(1);
 	
@@ -572,5 +612,4 @@ double Analysis::RejectionCalculator::FindTheMaximum(TH1D* histo){
 	
 	return sum/sumweights;
 }
-
 

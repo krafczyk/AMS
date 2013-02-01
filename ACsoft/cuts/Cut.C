@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "Cut> "
@@ -39,9 +40,9 @@ Cuts::Cut::~Cut() {
 
 }
 
-bool Cuts::Cut::Passes( const Analysis::Particle& evt ) {
+bool Cuts::Cut::Passes( const ACsoft::Analysis::Particle& particle ) {
 
-  bool passes = TestCondition(evt);
+  bool passes = TestCondition(particle);
 
   ++fTotalCounter;
 
@@ -50,23 +51,23 @@ bool Cuts::Cut::Passes( const Analysis::Particle& evt ) {
     name << "PassedTimeHisto_" << TString(fDescription.c_str()).ReplaceAll(" ","_").ReplaceAll(":","").Data() << "_" << fCutCount;
     title << "Particles passed vs time: " << fDescription;
     DEBUG_OUT << "Book time histos for cut-count: " << fCutCount << ":" << name.str() << std::endl;
-    fPassedTimeHisto = Utilities::TimeHistogramManager::MakeNewTimeHistogram1D<TH1F>( name.str().c_str(), title.str().c_str() );
+    fPassedTimeHisto = ACsoft::Utilities::TimeHistogramManager::MakeNewTimeHistogram1D<TH1F>( name.str().c_str(), title.str().c_str() );
   }
   if(!fFailedTimeHisto){
     std::stringstream name, title;
     name << "FailedTimeHisto_" << TString(fDescription.c_str()).ReplaceAll(" ","_").ReplaceAll(":","").Data() << "_" << fCutCount;
     title << "Particles failed vs time: " << fDescription;
-    fFailedTimeHisto = Utilities::TimeHistogramManager::MakeNewTimeHistogram1D<TH1F>( name.str().c_str(), title.str().c_str() );
+    fFailedTimeHisto = ACsoft::Utilities::TimeHistogramManager::MakeNewTimeHistogram1D<TH1F>( name.str().c_str(), title.str().c_str() );
   }
 
   if( passes ) {
     ++fPassedCounter;
-    fPassedTimeHisto->Fill(evt.RawEvent()->EventHeader().TimeStamp());
+    fPassedTimeHisto->Fill(particle.EventTime());
     return true;
   }
   else{
     ++fFailedCounter;
-    fFailedTimeHisto->Fill(evt.RawEvent()->EventHeader().TimeStamp());
+    fFailedTimeHisto->Fill(particle.EventTime());
 
    return false;
   }
@@ -130,19 +131,27 @@ void Cuts::Cut::MergeStatisticsFrom( const Cut& other ) {
 }
 
 
-/** Replace time-histogram of passed particles. Needed by ac_merge." */
+/** Replace time-histogram of passed particles. Needed by ac_merge. */
 void Cuts::Cut::ReplacePassedHisto( TH1F* histo ) {
 
   if( fPassedTimeHisto ) delete fPassedTimeHisto;
   fPassedTimeHisto = histo;
 }
 
-/** Replace time-histogram of failed particles. Needed by ac_merge." */
+/** Replace time-histogram of failed particles. Needed by ac_merge. */
 void Cuts::Cut::ReplaceFailedHisto( TH1F* histo ) {
 
   if( fFailedTimeHisto ) delete fFailedTimeHisto;
   fFailedTimeHisto = histo;
 }
 
+void Cuts::Cut::AssureCutIsAppliedToACQtFile( const ACsoft::Analysis::Particle& p ) {
+
+  if (p.HasRawEventData())
+    return;
+
+  WARN_OUT << "Cut \"" << Description() << "\" can only be used on ACQt files. Aborting!" << std::endl;
+  throw std::runtime_error("Cut can only be used on ACQt files.");
+}
 
 ClassImp(Cuts::Cut)

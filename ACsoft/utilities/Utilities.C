@@ -2,6 +2,13 @@
 #include <iostream>
 #include <TMath.h>
 #include <TMatrixDEigen.h>
+
+#define DEBUG 0
+#define INFO_OUT_TAG "Utilities> "
+#include <debugging.hh>
+
+namespace ACsoft {
+
 namespace Utilities {
 
 std::vector<double> GenerateLogBinning(int nBinLog, double Tmin, double Tmax) {
@@ -14,6 +21,93 @@ std::vector<double> GenerateLogBinning(int nBinLog, double Tmin, double Tmax) {
   }
   return xMin;
 }
+
+double FastLineFit(std::vector<double> &x, std::vector<double> &y, std::vector<double> &ey, double &offset, double &e_offset, double &slope, double &e_slope, double &correlation) {
+
+  double s	 = 0.0;
+  double sx	 = 0.0;
+  double sy	 = 0.0;
+  double sxx	 = 0.0;
+  double sxy   = 0.0;
+
+  static int nWarnings    =  1;
+  static int maxWarnings  = 11;
+
+#ifdef AMS_ACQT_SILENCE_COMMON_WARNINGS
+  maxWarnings = 0;
+#endif
+
+  for (unsigned int i=0; i<x.size(); i++) {
+    if (ey.at(i) <= 0.0) {
+      nWarnings++;
+      if (nWarnings<maxWarnings) {
+        WARN_OUT << "Error for point i=" << i << " ey=" << ey.at(i) << "<=0.0" << std::endl;
+      } else if (nWarnings==maxWarnings) {
+        WARN_OUT << "Maximum number of warnings reached !!!" << std::endl;
+      }
+      return -1.0;
+    }
+    double InvError2 = 1.0/pow(ey.at(i),2);
+    s   += InvError2;
+    sx  += x.at(i)*InvError2;
+    sy  += y.at(i)*InvError2;;
+    sxx += pow(x.at(i),2)*InvError2;
+    sxy += (x.at(i)*y.at(i))*InvError2;
+  }
+
+  double delta = s*sxx - sx*sx;
+  if (delta == 0.0) {
+    nWarnings++;
+    if (nWarnings<maxWarnings) {
+      WARN_OUT << "Error delta==0, no solution for line fit!" <<  std::endl;
+      for (unsigned int i=0; i<x.size(); i++) {
+        printf("i=%3d x=%12.4E y=%12.4E ey=%12.4E \n",i,x.at(i),y.at(i),ey.at(i));
+      }
+    } else if (nWarnings==maxWarnings) {
+      WARN_OUT << "Maximum number of warnings reached !!!" << std::endl;
+    }
+    return -2.0;
+  }
+
+  offset 	    = (sxx*sy - sx*sxy)/delta;
+  slope 	    = (s*sxy - sx*sy)/delta;
+  e_offset	  = sqrt(sxx/delta);
+  e_slope	    = sqrt(s/delta);
+  correlation	= -sx/sqrt(s*sxx);
+
+  double chiq = 0.0;
+  for (unsigned int i=0; i<x.size(); i++) chiq += pow((y.at(i)-(offset+slope*x.at(i)))/ey.at(i),2);
+
+  return chiq;
+}
+
+
+void NormalizeHistogramXSlices(TH2* hist) {
+
+  int nBinX = hist->GetNbinsX();
+  int nBinY = hist->GetNbinsY();
+  const char* hName = hist->GetName();
+  for (int iBinX=1; iBinX<=nBinX; iBinX++) {
+    double xc = hist->GetXaxis()->GetBinCenter(iBinX);
+        char hpName[200];
+        sprintf(hpName,"hpDX_%s_%d_%d_%61f",hName,nBinX,nBinY,xc);
+        TH1* hp = hist->ProjectionY(hpName,iBinX,iBinX);
+        double sum = hp->Integral();
+        if (sum<=0.0) continue;
+        if (iBinX==1) hp->Sumw2();
+        hp->Scale(1.0/sum);
+        for (int iBinY=1; iBinY<=nBinY; iBinY++) {
+          double Value = hp->GetBinContent(iBinY);
+          double eValue = hp->GetBinError(iBinY);
+          double yc = hp->GetBinCenter(iBinY);
+          int iBin = hist->FindBin(xc,yc);
+          hist->SetBinContent(iBin,Value);
+          hist->SetBinError(iBin,eValue);
+        }
+        delete hp;
+  }
+}
+
 
 TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const double &roll, const double &altitude, const double &phi, const double &theta, const double &velPhi, const double &velTheta, const TVector3 &inputVector)
 {
@@ -159,6 +253,8 @@ TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const doubl
   TVector3 eventInMAG = GTODtoMAG*EventFromDipoleCentre;
 
   return eventInMAG;
+}
+
 }
 
 }

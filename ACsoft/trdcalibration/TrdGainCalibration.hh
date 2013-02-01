@@ -3,10 +3,15 @@
 
 #include <string>
 
-#include <SimpleGraphLookup.hh>
+#include <TTimeStamp.h>
+
+#include "SimpleGraphLookup.hh"
 #include "Settings.h"
 
+class TH1;
 class TH2I;
+
+namespace ACsoft {
 
 namespace Utilities {
   class ConfigHandler;
@@ -15,11 +20,6 @@ namespace Utilities {
 namespace Analysis {
   class Particle;
 }
-
-namespace Detector {
-  class Trd;
-}
-
 
 namespace Calibration {
 
@@ -52,13 +52,20 @@ public:
                                     std::string histogram,
                                     int requiredNumberOfEntries,
                                     bool interactive = false,
+                                    bool snapshot = false,
                                     std::string resultfile = "fitresults.root",
                                     int testbin = 0 );
+
+private:
+
+  void CreateDeDxHistos();
+  void StoreDeDx( unsigned int moduleNumber, const TTimeStamp& time, Double_t dedx );
+
+
 protected:
 
-  Detector::Trd* fTrd;
-
   bool fIsInitialized;
+  std::vector<TH1*> fDeDxHistos;
 
 };
 
@@ -86,17 +93,19 @@ public:
     * \returns MPV of Landau fit to dE/dx distribution of proton events at the reference momentum used by TrdGainCalibration (ADC/cm)
     */
   virtual Double_t GetGainValue( unsigned int module, double time ) const {
-    Quantity result = Utilities::SimpleGraphLookup::Query(module,time,false);
+    Utilities::Quantity result = Utilities::SimpleGraphLookup::Query(module,time,false);
     return result.value;
   }
 
 private:
   TrdGainParametersLookup()
-    : Utilities::SimpleGraphLookup(AC::Settings::gTrdQtGainFileName,
-                                   AC::Settings::gTrdQtGainFileNameExpectedGitSHA,
-                                   AC::Settings::gTrdQtGainFileNameExpectedVersion,
+    : Utilities::SimpleGraphLookup(::AC::Settings::gTrdQtGainFileName,
+                                   ::AC::Settings::gTrdQtGainFileNameExpectedGitSHA,
+                                   ::AC::Settings::gTrdQtGainFileNameExpectedVersion,
                                    "fitMpvGraphGoodFit", "", 0, 327) { }
 };
+
+}
 
 }
 

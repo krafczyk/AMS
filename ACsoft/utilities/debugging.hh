@@ -75,7 +75,7 @@ static inline void enableLocale() {
   #else
     // if we're on a Mac, at least enable locale support for (s)printf
     setlocale(LC_ALL, "");
-  #endif
+#endif
 }
 
 

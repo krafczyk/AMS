@@ -2,10 +2,19 @@
 #define ACQtProducer_h
 
 #include <vector>
+#include "TStopwatch.h"
+#include "TH3F.h"
+#include "TList.h"
 
 class AMSEventR;
 class ChargeR;
+class ParticleR;
 class TrTrackR;
+class TrdKCalib;
+class TrdKCluster;
+
+namespace ACsoft {
+
 struct TRDExtraHit;
 
 namespace AC {
@@ -51,7 +60,10 @@ namespace AC {
   * }
   */
 class ACQtProducer {
+
+
 public:
+
   ACQtProducer();
   ~ACQtProducer();
 
@@ -71,13 +83,13 @@ public:
     ProduceEventHeaderData,
     ProduceParticlesData,
     ProduceTriggerData,
+    ProduceDAQData,
     ProduceTOFData,
     ProduceACCData,
     ProduceTrackerData,
     ProduceTRDData,
     ProduceRICHData,
     ProduceECALData,
-    ProduceChargesData,
     ProduceMCData,
     ProduceLast = ProduceMCData + 1
   };
@@ -125,21 +137,68 @@ public:
     fRefit = refit;
   }
 
+  TStopwatch *timer_ini;
+  TStopwatch *timer_read;
+  TStopwatch *timer_head;
+  TStopwatch *timer_txal;
+  TStopwatch *timer_ami;
+  TStopwatch *timer_trig;
+  TStopwatch *timer_daq;
+  TStopwatch *timer_part;
+  TStopwatch *timer_btrc;
+  TStopwatch *timer_galc;
+  TStopwatch *timer_tof;
+  TStopwatch *timer_acc;
+  TStopwatch *timer_trk;
+  TStopwatch *timer_trd;
+  TStopwatch *timer_trdk;
+  TStopwatch *timer_ecal;
+  TStopwatch *timer_ebdt;
+  TStopwatch *timer_ese2;
+  TStopwatch *timer_rich;
+  TStopwatch *timer_chrg;
+  TStopwatch *timer_mc;
+  TStopwatch *timer_fill;
+  TStopwatch *timer_end;
+  int nBTRC;
+  int nGALC;
+  int nECAL12;
+  int nECAL3;
+
+  double MaxCutOffCone[2];    // Maximum Stoermer Cutoff inside AMS acceptance cone for neg/pos rigidity for UnixTime UTimeCutOffConeMax 
+  time_t UTimeCutOffConeMax;  // Unix-Time for last computation of CutOffConeMax
+
+  float CutOffNegPos[2];      // Stoermer CutOff for neg/pos rigidity
+
+  UChar_t  BT_status;
+
+#ifndef AMS_ACQT_SILENCE_COMMON_WARNINGS
+  // Control Histograms:
+  TList DB_Histograms;
+
+  TH1F *h1_nTrdRawHit_All;
+  TH1F *h1_nTrdRawHit_Used;
+  TH1F *h1_nTrdRawHit_Extra;
+  TH1F *h1_nTrdRawHit_UsPlEx;
+  TH1F *h1_nTrdRawHit_Saved;
+
+  TH1F *h1_TrRecHitResidJLay[9];
+#endif
+
 private:
   bool ProduceACC();
-  bool ProduceChargesForRICH(const AC::Particle&, ChargeR*);
-  bool ProduceChargesForTOF(const AC::Particle&, ChargeR*);
-  bool ProduceChargesForTRD(const AC::Particle&, ChargeR*);
-  bool ProduceChargesForTracker(const AC::Particle&, ChargeR*);
-  bool ProduceCharges();
+  bool ProduceDAQ();
   bool ProduceEventHeader();
   bool ProduceECAL();
   bool ProduceParticles();
   bool ProduceRICH();
+  bool AppendTrackerTrackFit(AC::TrackerTrack&, TrTrackR*, int algorithm, int pattern, int refit, int iTrTrackPar);
   bool ProduceTrackerTrackFit(AC::TrackerTrack&, TrTrackR*, int algorithm, int pattern, int refit, float beta);
   bool ProduceTrackerTrackFits(AC::TrackerTrack&, TrTrackR*, float beta);
   bool ProduceTrackerTrackCharges(AC::TrackerTrack&, TrTrackR*, float beta);
+  bool ProduceTrackerTrackTrdKCharges(AC::TrackerTrack&, TrTrackR*, AMSEventR*);
   bool ProduceTrackerTrackReconstructedHits(AC::TrackerTrack&, TrTrackR*, float beta);
+  bool ProduceTrackerTrackClusterDistances(AC::TrackerTrack&, TrTrackR*);
   bool ProduceTracker();
   bool ProduceTrigger();
   bool ProduceTOFBetas();
@@ -150,6 +209,9 @@ private:
   bool ProduceTRDVTracks();
   bool ProduceTRD();
   bool ProduceMC();
+
+  int DoCustomBacktracing(ParticleR*);
+  double GetCustomGeoCutoff(ParticleR*, AMSEventR*);
 
   AC::RunHeader* fRunHeader;
   AC::Event* fEvent;
@@ -163,7 +225,7 @@ private:
   short fMaxRICHRings;
   short fMaxECALShowers;
 
-  // ProduceTRD() specific data.
+  // Produce-TRD() specific data:
   std::vector<int> fTRDRawHitIndices;
   std::vector<TRDExtraHit> fTRDExtraHits;
 };
@@ -173,5 +235,7 @@ struct TRDExtraHit {
   float amplitude;
   float residual;
 };
+
+}
 
 #endif

@@ -32,7 +32,7 @@ void Cuts::Selector::RegisterCut( Cuts::Cut* cut )  {
 }
 
 
-bool Cuts::Selector::Passes( const Analysis::Particle& evt ) {
+bool Cuts::Selector::Passes( const ACsoft::Analysis::Particle& particle ) {
 
   ++fTotalCounter;
 
@@ -44,14 +44,14 @@ bool Cuts::Selector::Passes( const Analysis::Particle& evt ) {
   // this is for the N-1 statistics of the individual cuts:
   // if in the end, the number of passed cuts will be equal to
   // nCuts - 1, we know that the cut at this position is the one
-  // that exclusively caused the event to fail
+  // that exclusively caused the particle to fail
   unsigned int lastCutFailed = 0;
 
   for( unsigned int i=0 ; i<fCuts.size() ; ++i ) {
 
     Cuts::Cut* cut = fCuts[i];
 
-    bool passes = cut->Passes(evt);
+    bool passes = cut->Passes(particle);
     if( passes ) ++nCutsPassed;
     else lastCutFailed = i;
 
@@ -87,7 +87,7 @@ void Cuts::Selector::PrintSummary() const {
   sprintf( passedPercentage, "(%.2f%%)", ( fTotalCounter ? 100.*float(fPassedCounter)/float(fTotalCounter) : 0. ) );
   sprintf( failedPercentage, "(%.2f%%)", ( fTotalCounter ? 100.*float(fFailedCounter)/float(fTotalCounter) : 0. ) );
 
-  INFO_OUT << fDescription << ": " << fTotalCounter << " events, "
+  INFO_OUT << fDescription << ": " << fTotalCounter << " particles, "
            << fPassedCounter << " passed " << passedPercentage << ", "
            << fFailedCounter << " failed " << failedPercentage << "." << std::endl;
 

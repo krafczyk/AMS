@@ -10,11 +10,15 @@ namespace AC {
   static const char* Variable##ExpectedGitSHA; \
   static const unsigned short Variable##ExpectedVersion; \
 
-/** Global names of current version of all lookup files. */
+/** Global settings and names of current version of all lookup files. */
 struct Settings {
 
+  /** Minimal path length in TRD tubes [cm] */
+  static const Float_t TrdTubeDefaultMinPathLength = 0.1;
+
+
   // Text files
-  DECLARE_SETTING(gTrdQtGeometryFileName);
+  DECLARE_SETTING(gTrdQtGeometryFileName)
   DECLARE_SETTING(gTrdQtShimmingGlobalFileName)
   DECLARE_SETTING(gTrdQtShimmingModuleFileName)
 
@@ -24,8 +28,7 @@ struct Settings {
   DECLARE_SETTING(gTrdQtSlowControlFileName)
   DECLARE_SETTING(gTrdQtPdfFileName)
 
-  static const char* gACQtPassTag;
-  static const char gACQtVersion;
+  static const char* gACSoftGitSHA;
 };
 
 /** Helper class that's written to a ROOT file to identify its origin */
@@ -40,7 +43,7 @@ public:
   std::string fGitSHA;     ///> Git SHA used to produce this file
   unsigned short fVersion; ///> Version of the lookup file
 
-  ClassDef(AC::ACQtLookupFileIdentifier, 2)
+  ClassDef(AC::ACQtLookupFileIdentifier,2)
 };
 
 /** Helper class that's written to a ROOT file to identify its origin */
@@ -49,18 +52,18 @@ public:
   ACQtPDFLookupFileIdentifier()
     : TNamed("ACQtPDFVersion", "")
     , fVersion(0)
-    , fMinimumPathLengthForCandidateMatching(0)
-    , fUseActiveStrawsForCandidateMatching(false) {
+    , fAddNearTrackHits(false) {
 
   }
 
   std::string fGitSHA;     ///> Git SHA used to produce this file
   unsigned short fVersion; ///> Version of the lookup file
-  float fMinimumPathLengthForCandidateMatching;
-  bool fUseActiveStrawsForCandidateMatching;
+  bool fAddNearTrackHits;
 
-  ClassDef(AC::ACQtPDFLookupFileIdentifier, 1)
+  ClassDef(AC::ACQtPDFLookupFileIdentifier,2)
 };
+
+unsigned short& CurrentACQtVersion();
 
 }
 

@@ -11,6 +11,8 @@
 class TFile;
 class TGraph;
 
+namespace ACsoft {
+
 namespace Utilities {
 
 /** A lookup that operates on TGraph objects with common name prefix and stored in the same ROOT file.
@@ -76,6 +78,8 @@ protected:
     /// keep track of whether the last query had any problems (e.g. graph with zero number of points)
     mutable bool fLastQueryOk;
 };
+}
+
 }
 
 #endif // SIMPLEGRAPHLOOKUP_HH

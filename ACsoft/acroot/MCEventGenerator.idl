@@ -1,0 +1,15 @@
+[Description]
+Namespace = AC
+Class = MCEventGenerator
+Members = \
+  UShort_t fID             \
+  UShort_t fMotherParticle \
+  UChar_t fProcess         \
+  Float_t fMomentum        \
+  Float_t fMass            \
+  Float_t fCharge          \
+  Float_t fX0              \
+  Float_t fY0              \
+  Float_t fZ0              \
+  Float_t fTheta           \
+  Float_t fPhi

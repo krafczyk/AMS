@@ -1,25 +1,30 @@
 #include "TrdStraw.hh"
 
-#include "TrdModule.hh"
 #include "dumpstreamers.hh"
 #include "AMSGeometry.h"
+#include "TrdModule.hh"
+
+#include <TEllipse.h>
 
 #include <assert.h>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "TrdStraw> "
 #include <debugging.hh>
-Detector::TrdStraw::TrdStraw( int layerNumber, int sublayerNumber, int ladderNumber, int moduleNumber, int strawNumber,
+ACsoft::Detector::TrdStraw::TrdStraw( int layerNumber, int sublayerNumber, int ladderNumber, int moduleNumber, int strawNumber,
                               TrdModule* mother ) :
   fLayerNumber(layerNumber),
   fSublayerNumber(sublayerNumber),
   fLadderNumber(ladderNumber),
   fModuleNumber(moduleNumber),
   fStrawNumber(strawNumber),
-  fMother(mother)
+  fMother(mother),
+  fEllipse(0)
 {
 
   assert( strawNumber >= 0 && strawNumber < int(AC::AMSGeometry::TRDStrawsPerModule) );
+
+  fDirection = mother->Direction();
 
   fGlobalStrawNumber = fModuleNumber*16 + fStrawNumber;
 
@@ -43,23 +48,39 @@ Detector::TrdStraw::TrdStraw( int layerNumber, int sublayerNumber, int ladderNum
 }
 
 /** Call this function when the position and/or orientation of the mother module have been changed. */
-void Detector::TrdStraw::UpdateGlobalPositionAndDirection() {
+void ACsoft::Detector::TrdStraw::UpdateGlobalPositionAndDirection() {
 
   SetGlobalPosition( fMother->GlobalPosition() + fMother->GlobalRotation()*fNominalRelativePosition );
   SetGlobalWireDirection( fMother->GlobalRotation() * fNominalWireDirection );
 }
 
-void Detector::TrdStraw::Dump() const {
+/** Draw straw into current canvas. */
+void ACsoft::Detector::TrdStraw::Draw( bool rotatedSystem ) {
 
-  DEBUG_OUT << "TrdStraw " << fStrawNumber << " (global " << fGlobalStrawNumber << ")"
-            << " rel pos " << RelativePosition() << " nom wire dir " << NominalWireDirection()
-            << " global pos " << GlobalPosition() << " dir " << GlobalWireDirection()
-            << std::endl;
+  DEBUG_OUT << std::endl;
+
+  if(fEllipse) delete fEllipse;
+
+  float xy = fDirection == AC::XZMeasurement ? GlobalPosition().X() : GlobalPosition().Y();
+
+  float xPad = rotatedSystem ? -GlobalPosition().Z() : xy;
+  float yPad = rotatedSystem ? xy : GlobalPosition().Z();
+  fEllipse = new TEllipse(xPad,yPad,AC::AMSGeometry::TRDTubeRadius);
+  fEllipse->Draw();
+}
+
+void ACsoft::Detector::TrdStraw::Dump() const {
+
+  INFO_OUT << "TrdStraw " << fStrawNumber << " (global " << fGlobalStrawNumber << ")"
+           << " rel pos " << RelativePosition() << " nom wire dir " << NominalWireDirection()
+           << " global pos " << GlobalPosition() << " dir " << GlobalWireDirection()
+           << std::endl;
 
   if(DEBUG>=2){
     int direction;
     float xy, z;
-    AC::TRDStrawToCoordinates(fGlobalStrawNumber, direction, xy, z);
+
+    ACsoft::AC::TrdStrawToRawCoordinates(fGlobalStrawNumber, direction, xy, z);
     TVector3 amsgeoPos(0.,0.,z);
     if( direction == 1 ) amsgeoPos.SetY(xy);
     else amsgeoPos.SetX(xy);

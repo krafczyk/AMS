@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+namespace ACsoft {
+
 namespace AC {
 
 BEGIN_DEBUG_OUTPUT(TRD)
@@ -12,7 +14,7 @@ BEGIN_DEBUG_OUTPUT(TRD)
   DUMP(SortedRawHits)
 END_DEBUG_OUTPUT
 
-void TRD::Clear(Option_t *) {
+void TRD::Clear() {
 
   fNumberOfHits = 0;
   fVTracks.clear();
@@ -29,18 +31,6 @@ TRD::RawHitsVector TRD::SortedRawHits() const {
   return copy;
 }
 
-/** Writes this object into a QDataStream, which is used to produce ACQt files */
-QDataStream& operator<<(QDataStream& stream, const TRD& object) {
-
-  stream << object.fNumberOfHits << object.fVTracks << object.fHTracks << object.fHSegments << object.fRawHits;
-  return stream;
-}
-
-/** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
-QDataStream& operator>>(QDataStream& stream, TRD& object) {
-
-  stream >> object.fNumberOfHits >> object.fVTracks >> object.fHTracks >> object.fHSegments >> object.fRawHits;
-  return stream;
 }
 
 }

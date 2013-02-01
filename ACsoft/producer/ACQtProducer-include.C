@@ -23,4 +23,7 @@
 #include <amschain.h>
 #include <DynAlignment.h>
 #include <TofTrack.h>
-#include <TrdSCalib.h>
+#include <TrExtAlignDB.h>
+#include <TrdKCluster.h>
+#include <Tofrec02_ihep.h>
+#include <point.h>

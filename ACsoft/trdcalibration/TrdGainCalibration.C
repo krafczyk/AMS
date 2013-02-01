@@ -3,8 +3,6 @@
 
 #include <gain_functions.hh>
 #include <ConfigHandler.hh>
-#include <TrdDetector.hh>
-#include <TrdModule.hh>
 #include <TrdHit.hh>
 #include <SplineTrack.hh>
 #include <TimeHistogramManager.hh>
@@ -28,13 +26,13 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "TrdGainCalibration> "
 #include <debugging.hh>
 
-Calibration::TrdGainCalibration::TrdGainCalibration( Utilities::ConfigHandler* ) :
-  fTrd(0),
+ACsoft::Calibration::TrdGainCalibration::TrdGainCalibration( Utilities::ConfigHandler* ) :
   fIsInitialized(false) {
 
   // read options from cfghandler here and save them in the class if needed
@@ -43,27 +41,44 @@ Calibration::TrdGainCalibration::TrdGainCalibration( Utilities::ConfigHandler* )
 }
 
 
-void Calibration::TrdGainCalibration::Initialize() {
+void ACsoft::Calibration::TrdGainCalibration::Initialize() {
 
   assert(!fIsInitialized);
-
-  INFO_OUT << "Constructing TRD" << std::endl;
-
-  // construct TRD
-  fTrd = new Detector::Trd();
 
   // construct histograms
   // (...)
 
+  CreateDeDxHistos();
 
   fIsInitialized = true;
+}
+
+
+void ACsoft::Calibration::TrdGainCalibration::CreateDeDxHistos() {
+
+  assert(fDeDxHistos.empty());
+  fDeDxHistos.reserve(AC::AMSGeometry::TRDModules);
+
+  for( unsigned int moduleNumber = 0 ; moduleNumber < AC::AMSGeometry::TRDModules ; ++moduleNumber ) {
+
+    std::stringstream name, title;
+    name << "DeDxHisto_" << moduleNumber;
+    title << "dE/dx for module " << moduleNumber;
+    fDeDxHistos.push_back( Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2I>( name.str(), title.str(), "dE/dx (ADC/cm)", 200, 0., 400. ) );
+  }
+}
+
+
+void ACsoft::Calibration::TrdGainCalibration::StoreDeDx( unsigned int moduleNumber, const TTimeStamp& time, Double_t dedx ) {
+
+  fDeDxHistos.at(moduleNumber)->Fill(double(time),dedx);
 }
 
 
 /**
   * \todo fill interesting histograms: number of TRD hits on track, pathlengths, bethe-bloch corr factors, dE/dx vs pathlength ...
   */
-void Calibration::TrdGainCalibration::Process( const Analysis::Particle& particle ) {
+void ACsoft::Calibration::TrdGainCalibration::Process( const Analysis::Particle& particle ) {
 
   if(!fIsInitialized)
     Initialize();
@@ -103,23 +118,37 @@ void Calibration::TrdGainCalibration::Process( const Analysis::Particle& particl
     // -> done by selection in main event loop
 
     // check distance to track
-    Double_t trackResid = splineTrack->TrackResidual(hit.Direction(),hit.Z(),hit.R());
+//    Double_t trackResid = hit.DistanceToTrack();
+    Double_t deltaXY = hit.Orientation() == AC::XZMeasurement ? hit.R() - splineTrack->InterpolateToZ(hit.Z()).X() :
+                                                                hit.R() - splineTrack->InterpolateToZ(hit.Z()).Y();
+    Double_t trackResid = deltaXY;
 
     // cut on minimum pathlength, only fill histogram for first half of event sample
-    if( fabs(trackResid) < CutTrdTrkD && hit.Pathlength3D() > AC::AMSGeometry::TRDTubeMinPathLength ){
-      fTrd->GetTrdModule(hit.Module())->StoreDeDx(evttime, dEdX_corr);
+    if( fabs(trackResid) < CutTrdTrkD && hit.Pathlength3D() > ::AC::Settings::TrdTubeDefaultMinPathLength ){
+      StoreDeDx(hit.Module(), evttime, dEdX_corr);
     }
   }
 }
 
 
 
-void Calibration::TrdGainCalibration::WriteResultsToCurrentFile() {
+void ACsoft::Calibration::TrdGainCalibration::WriteResultsToCurrentFile() {
 
-  fTrd->WriteHistosToCurrentFile();
+  for( unsigned int i=0 ; i<fDeDxHistos.size() ; ++i )
+    fDeDxHistos.at(i)->Write();
+  }
+
+
+
+static inline void SaveCanvas(TCanvas* canvas, const std::string& prefix, const std::string& name, const std::string& postfix) {
+
+  assert(canvas);
+  std::stringstream fileName;
+  fileName << prefix << name << postfix;
+  canvas->Update();
+  canvas->SaveAs((fileName.str() + std::string(".root")).c_str());
+  canvas->SaveAs((fileName.str() + std::string(".png")).c_str());
 }
-
-
 
 
 /** Fit gain parameter time-histograms.
@@ -134,16 +163,18 @@ void Calibration::TrdGainCalibration::WriteResultsToCurrentFile() {
  * \param histogram Name of histogram to be analysed.
  * \param requiredNumberOfEntries Number of events required for fit and calculation of Mpv. Time bins are merged together until this number is exceeded.
  * \param interactive If \c true, draw canvases with results at the end, and do not write output file.
+ * \param snapshot If \c true, draw canvases with results at the end, write an output file and exit.
  * \param resultfile Name of output file.
  * \param testbin If different from zero, fit only the projection starting at that bin and show the histogram and fit function for debugging purposes.
  *
  * \return 0 if no errors, \>0 in case of errors
  */
-int Calibration::TrdGainCalibration::AnalyzeGainHistograms(
+int ACsoft::Calibration::TrdGainCalibration::AnalyzeGainHistograms(
   std::string inputfile,
   std::string histogram,
   int requiredNumberOfEntries,
   bool interactive,
+  bool snapshot,
   std::string resultfile,
   int testbin ) {
 
@@ -266,7 +297,7 @@ int Calibration::TrdGainCalibration::AnalyzeGainHistograms(
                 << constant << " " << mpv << " " << sigma << std::endl;
 
       fitFunc->SetParameters(constant,mpv,sigma);
-      if(interactive && testbin)
+      if((interactive || snapshot) && testbin)
         fitHisto->Fit(fitFunc,"BL0");
       else
         fitHisto->Fit(fitFunc,"BQLN");
@@ -359,6 +390,11 @@ int Calibration::TrdGainCalibration::AnalyzeGainHistograms(
     fitHisto->Draw();
     fitFunc->SetNpx(1000);
     fitFunc->Draw("L SAME");
+
+    std::stringstream stream;
+    stream << moduleId << "_timebin_" << testbin;
+    if (snapshot)
+      SaveCanvas(t, "fit_module_", stream.str(), "_results");
   }
 
   TCanvas* c = new TCanvas( "gainFitCanvas", "gain fits", 1400, 1000 );
@@ -404,6 +440,8 @@ int Calibration::TrdGainCalibration::AnalyzeGainHistograms(
   fitNentriesGraph->SetTitle("number of entries for fit");
   fitNentriesGraph->GetXaxis()->SetTimeDisplay(1);
   fitNentriesGraph->GetXaxis()->SetTimeFormat("%y-%m-%d%F1970-01-01 00:00:00");
+  if (snapshot && !testbin)
+    SaveCanvas(c, "fit_module_", moduleId, "_parameters");
 
   if( !testbin ){
     TCanvas* fc = new TCanvas( "gainFinalCanvas", "final gain parameters", 1400, 1000 );
@@ -431,9 +469,11 @@ int Calibration::TrdGainCalibration::AnalyzeGainHistograms(
     }
     fitMpvGraphBadFit->SetMarkerStyle(5);
     fitMpvGraphBadFit->SetMarkerColor(kRed);
+    if (snapshot)
+      SaveCanvas(fc, "fit_module_", moduleId, "_results");
   }
 
-  if( !interactive ){
+  if( !interactive && !snapshot ){
 
     TFile* outfile = new TFile( resultfile.c_str(), "RECREATE" );
     if( !outfile->IsOpen() ){

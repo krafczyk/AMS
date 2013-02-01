@@ -4,6 +4,9 @@
 #include <TVector3.h>
 #include "AMSGeometry.h"
 #include "Tools.h"
+#include "TRDRawHit-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -11,8 +14,8 @@ namespace AC {
   */
 enum MeasurementMode {
 
-  XZMeasurement,
-  YZMeasurement
+  XZMeasurement = 0,
+  YZMeasurement = 1
 };
 
 /** Transition Radiation %Detector raw hit data
@@ -20,34 +23,30 @@ enum MeasurementMode {
 class TRDRawHit {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  TRDRawHit()
-    : fHWAddress(0)
-    , fADC(0) {
+  AC_TRDRawHit_Variables
 
-  }
-
-  /** Helper method dumping an TRDRawHit object to the console
+  /** Helper method dumping a TRDRawHit object to the console
     */
   void Dump() const;
 
   /** Layer associated with this hit
     */
-  Short_t Layer() const { return GeometryForHardwareAddress()[0]; } // Layer  0..19               in +z    order 
+  Short_t Layer() const { return GeometryForHardwareAddress()[0]; } // Layer 0..19 in +z  order
 
   /** Ladder associated with this hit
     */
-  Short_t Ladder() const { return GeometryForHardwareAddress()[1]; } // Ladder 0..13/0..15/0..17   in +x/+y order
+  Short_t Ladder() const { return GeometryForHardwareAddress()[1]; } // Ladder 0..13/0..15/0..17 in +x/+y order
   
   /** Tube associated with this hit
     */
   Short_t Tube() const {
 
     if( !GeometryForHardwareAddress()[2] )
-      return ((fHWAddress % 100) % 16);     // Tube   0..15               in +x/+y order
+      return ((fHWAddress % 100) % 16);     // Tube 0..15 in +x/+y order
     return 15 - ((fHWAddress % 100) % 16);  // UFE on other side
   }
 
-  /** Straw associated with this hit
+  /** Global straw number for this hit
     */
   Short_t Straw() const {
 
@@ -58,53 +57,6 @@ public:
     */
   Float_t DepositedEnergy() const { return ((Float_t) fADC) / 8.0; }
 
-  /** Direction of this hit
-    * \todo Improve documentation.
-    */
-  MeasurementMode Direction() const {
-
-    int direction;
-    float xy, z;
-    TRDStrawToCoordinates(Straw(), direction, xy, z);
-    Q_ASSERT(direction == 0 || direction == 1);
-    return static_cast<MeasurementMode>(direction);
-  }
-
-  /** X coordinate of hit [cm].
-    */
-  Float_t X() const {
-
-    if (Direction() != XZMeasurement) return std::numeric_limits<float>::max() - 1;
-
-    int direction;
-    float xy, z;
-    TRDStrawToCoordinates(Straw(), direction, xy, z);
-    Q_ASSERT(direction == XZMeasurement);
-    return xy;
-   }
-
-  /** Y coordinate of hit [cm].
-    */
-  Float_t Y() const {
-  
-    if (Direction() != YZMeasurement) return std::numeric_limits<float>::max() - 1;
-
-    int direction;
-    float xy, z;
-    TRDStrawToCoordinates(Straw(), direction, xy, z);
-    Q_ASSERT(direction == YZMeasurement);
-    return xy;
-  }
-
-  /** Z coordinate of hit [cm].
-    */
-  Float_t Z() const {
-
-    int direction;
-    float xy, z;
-    TRDStrawToCoordinates(Straw(), direction, xy, z);
-    return z;
-  }
 
   /** Module number (0..327)
     */
@@ -160,9 +112,6 @@ private:
   }
 
 private:
-  UShort_t fHWAddress; // TrdRawHit->Haddr
-  UShort_t fADC;       // (int)(TrdRawHit->Amp*8+0.5)
-
   REGISTER_CLASS_WITH_TABLE(TRDRawHit)
 };
 
@@ -170,6 +119,8 @@ private:
   * It will sort by layer number, then ladder number, then straw number, and finally descending amplitude.
   */
 bool operator<(const TRDRawHit&, const TRDRawHit&);
+
+}
 
 }
 

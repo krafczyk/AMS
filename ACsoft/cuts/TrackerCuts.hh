@@ -16,9 +16,9 @@ class CutTrackerChargeAvailable : public Cut {
 public:
   CutTrackerChargeAvailable() : Cut( "Tracker charge available" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
-    if( !p.MainTrackerTrack() ) return true;
-    return p.MainTrackerTrack()->ChargesNew().size() > 0;
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+    if( !p.HasMainTrackerTrack() ) return true;
+    return p.HasMainTrackerCharge();
   }
 
   ClassDef(Cuts::CutTrackerChargeAvailable,1)
@@ -30,10 +30,10 @@ public:
   CutTrackerCharge( float minimum, float maximum )
     : TwoSidedCut( "Tracker charge", minimum, maximum) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
-    if( !p.MainTrackerTrack() ) return true;
-    if( !p.MainTrackerTrack()->ChargesNew().size() ) return true;
-    return ValueIsInRange(p.MainTrackerTrack()->ChargesNew()[0].charge);
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+    if( !p.HasMainTrackerTrack() ) return true;
+    if( !p.HasMainTrackerCharge() ) return true;
+    return ValueIsInRange(p.TrackerCharge());
   }
 
   CutTrackerCharge() : TwoSidedCut("",0.,0.) {}
@@ -45,9 +45,11 @@ class CutTrackerLayerOneOrNine : public Cut {
 public:
   CutTrackerLayerOneOrNine() : Cut( "Tracker Y hit on layers 1 or 9" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.MainTrackerTrack() ) return true;
+    AssureCutIsAppliedToACQtFile(p);
+
+    if( !p.HasMainTrackerTrack() ) return true;
     std::bitset<10> layers = p.MainTrackerTrack()->LayerYPatternBitset();
     return layers.test(1) || layers.test(9);
   }
@@ -56,13 +58,13 @@ public:
 };
 
 /** Make sure track associated with the selected particle is a good track (XY hit on layers 2 and (3 or 4) and (5 or 6) and (7 or 8)).
-  * \sa AC::TrackerTrack::IsGoodInnerTrack()
+  * \sa ACsoft::AC::TrackerTrack::IsGoodInnerTrack()
   */
 class CutIsGoodInnerTrackerTrack : public Cut {
 public:
   CutIsGoodInnerTrackerTrack() : Cut( "Good inner track (2&&(3||4)&&(5||6)&&(7||8))" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
     if( !p.MainTrackerTrack() ) return true;
     return p.MainTrackerTrack()->IsGoodInnerTrack();
@@ -72,13 +74,13 @@ public:
 };
 
 /** Make sure track associated with the selected particle is a good central track (XY hit on (3 or 4) and (5 or 6) and (7 or 8)).
-  * \sa AC::TrackerTrack::IsGoodCentralInnerTrack()
+  * \sa ACsoft::AC::TrackerTrack::IsGoodCentralInnerTrack()
   */
 class CutIsGoodCentralInnerTrackerTrack : public Cut {
 public:
   CutIsGoodCentralInnerTrackerTrack() : Cut( "Good central inner track ((3||4)&&(5||6)&&(7||8))" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
     if( !p.MainTrackerTrack() ) return true;
     return p.MainTrackerTrack()->IsGoodCentralInnerTrack();
@@ -90,25 +92,61 @@ public:
 /** %Cut on chisquared Y of track fit belonging to the selected track. */
 class CutTrackerTrackGoodnessOfFit : public TwoSidedCut {
 public:
-  CutTrackerTrackGoodnessOfFit(float minimumChi2, float maximumChi2 ) // FIXME remove defaults
-    : TwoSidedCut( "Tracker track goodness of fit (chi2)", minimumChi2, maximumChi2) { }
+  CutTrackerTrackGoodnessOfFit(float minimumChi2, float maximumChi2 )
+    : TwoSidedCut( "Tracker track goodness of fit (chi2 y)", minimumChi2, maximumChi2) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.MainTrackerTrackFit() ) return true;
-    return ValueIsInRange(p.MainTrackerTrackFit()->ChiSquareNormalizedY());
+    if( !p.HasMainTrackerTrackFit() ) return true;
+    return ValueIsInRange(p.Chi2TrackerY());
   }
   
   CutTrackerTrackGoodnessOfFit() : TwoSidedCut("",0.,0.) {}
   ClassDef(Cuts::CutTrackerTrackGoodnessOfFit,1)
 };
 
+/** %Cut on chisquared X of track fit belonging to the selected track. */
+class CutTrackerTrackXsideGoodnessOfFit : public TwoSidedCut {
+public:
+  CutTrackerTrackXsideGoodnessOfFit(float minimumChi2, float maximumChi2 )
+    : TwoSidedCut( "Tracker track goodness of fit (chi2 x)", minimumChi2, maximumChi2) { }
+
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+
+    if( !p.HasMainTrackerTrackFit() ) return true;
+    return ValueIsInRange(p.Chi2TrackerX());
+  }
+
+  CutTrackerTrackXsideGoodnessOfFit() : TwoSidedCut("",0.,0.) {}
+  ClassDef(Cuts::CutTrackerTrackXsideGoodnessOfFit,1)
+};
+
+
+/** %Cut on relative error of sagitta (inverse rigidity). */
+class CutTrackerRelativeSagittaError : public TwoSidedCut {
+public:
+  CutTrackerRelativeSagittaError(float minimum, float maximum )
+    : TwoSidedCut( "Tracker track relative sagitta error", minimum, maximum) { }
+
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+
+    if( !p.HasMainTrackerTrackFit() ) return true;
+    return ValueIsInRange(p.InverseRigidityError()*fabs(p.Rigidity()));
+  }
+
+  CutTrackerRelativeSagittaError() : TwoSidedCut("",0.,0.) {}
+  ClassDef(Cuts::CutTrackerRelativeSagittaError,1)
+};
+
+
 /** Make sure there are at least three X-hits for track of the selected particle. */
 class CutTrackerTrackHasAtLeastThreeXHits : public Cut {
 public:
   CutTrackerTrackHasAtLeastThreeXHits() : Cut( "Tracker track has three X-hits"){ }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+
+    AssureCutIsAppliedToACQtFile(p);
 
     if( !p.MainTrackerTrack() ) return true;
     return p.MainTrackerTrack()->NumberOfHitsX() >= 3;
@@ -123,10 +161,10 @@ public:
   CutTrackerTrackFitRigidity(float minimumRigidity, float maximumRigidity )
     : TwoSidedCut( "Track rigidity", minimumRigidity, maximumRigidity) { }
   
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
     
-    if( !p.MainTrackerTrackFit() ) return true;
-    return ValueIsInRange(p.MainTrackerTrackFit()->Rigidity());
+    if( !p.HasMainTrackerTrackFit() ) return true;
+    return ValueIsInRange(p.Rigidity());
   }
   
   CutTrackerTrackFitRigidity() : TwoSidedCut("",0.,0.) {}
@@ -139,10 +177,10 @@ public:
   CutTrackerTrackFitAbsoluteRigidity(float minimumRigidity, float maximumRigidity )
     : TwoSidedCut( "Track rigidity", minimumRigidity, maximumRigidity) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.MainTrackerTrackFit() ) return true;
-    return ValueIsInRange(fabs(p.MainTrackerTrackFit()->Rigidity()));
+    if( !p.HasMainTrackerTrackFit() ) return true;
+    return ValueIsInRange(fabs(p.Rigidity()));
   }
 
   CutTrackerTrackFitAbsoluteRigidity() : TwoSidedCut("",0.,0.) {}
@@ -163,15 +201,17 @@ static const float gMDRFullSpan = 2180;              // Maximum detectable rigid
   */
 class CutTrackerTrackReliableRigidity : public Cut {
 public:
-  CutTrackerTrackReliableRigidity( float f = 0.3 ) : // FIXME remove default (remember to introduce private constructor with zero arguments!)
+  CutTrackerTrackReliableRigidity( float f ) :
     Cut( "Reliable rigidity measurement" ),
     fMDRFraction(f)
   { }
   
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    const AC::TrackerTrack* track = p.MainTrackerTrack();
-    const AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
+    AssureCutIsAppliedToACQtFile(p);
+
+    const ACsoft::AC::TrackerTrack* track = p.MainTrackerTrack();
+    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
     if( !track || !trackFit ) return true;
     float absoluteRigidity = fabs(trackFit->Rigidity());
 
@@ -200,6 +240,7 @@ public:
   
   float fMDRFraction;
 
+  CutTrackerTrackReliableRigidity() : Cut("") { }
   ClassDef(Cuts::CutTrackerTrackReliableRigidity,1)
 };
 

@@ -3,6 +3,8 @@
 
 class TGraph;
 
+namespace ACsoft {
+
 namespace Utilities {
 
 class TrdPdfWrapper
@@ -17,6 +19,8 @@ private:
     TGraph* fPdfGraph;
 
 };
+
+}
 
 }
 

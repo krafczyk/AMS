@@ -1,0 +1,6 @@
+[Description]
+Namespace = AC
+Class = ACC
+Members = \
+ ClustersVector fClusters     \
+ [53+RawSideVector fRawSides]

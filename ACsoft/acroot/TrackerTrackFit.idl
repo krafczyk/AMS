@@ -1,0 +1,45 @@
+[Description]
+Namespace = AC
+Class = TrackerTrackFit
+Members = \
+  UChar_t fParameters             \
+  Float_t fRigidity               \
+  Float_t fInverseRigidityError   \
+  Float_t fChiSquareNormalizedX   \
+  Float_t fChiSquareNormalizedY   \
+                                  \
+  Float_t fThetaLayer1            \
+  Float_t fPhiLayer1              \
+  Float_t fXLayer1                \
+  Float_t fYLayer1                \
+  [53+Float_t fXLayer1Plus1cm]    \
+  [53+Float_t fYLayer1Plus1cm]    \
+                                  \
+  Float_t fXTRDUpper              \
+  Float_t fYTRDUpper              \
+  Float_t fXTRDCenter             \
+  Float_t fYTRDCenter             \
+  Float_t fXTRDLower              \
+  Float_t fYTRDLower              \
+                                  \
+  Float_t fThetaTOFUpper          \
+  Float_t fPhiTOFUpper            \
+  Float_t fXTOFUpper              \
+  Float_t fYTOFUpper              \
+  [53+Float_t fXTOFUpperMinus1cm] \
+  [53+Float_t fYTOFUpperMinus1cm] \
+                                  \
+  [53+Float_t fXLayer56]          \
+  [53+Float_t fYLayer56]          \
+                                  \
+  Float_t fThetaRICH              \
+  Float_t fPhiRICH                \
+  Float_t fXRICH                  \
+  Float_t fYRICH                  \
+                                  \
+  Float_t fThetaLayer9            \
+  Float_t fPhiLayer9              \
+  Float_t fXLayer9                \
+  Float_t fYLayer9                \
+  [53+Float_t fXLayer9Minus1cm]   \
+  [53+Float_t fYLayer9Minus1cm]

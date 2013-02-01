@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include "Tools.h"
+#include "RunHeader-Streamer.h"
+
+namespace ACsoft {
 
 class ACQtWriter;
 
@@ -13,19 +16,10 @@ namespace AC {
 class RunHeader {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  RunHeader()
-    : fRunTag(0)
-    , fRun(0)
-    , fTotalAMSEvents(0)
-    , fTRDHighVoltage(0)
-    , fAMSPatchVersion(0)
-    , fAMSPassNumber(0)
-    , fACRootVersion(0) {
-
-  }
- 
   /** A vector of strings */
   typedef Vector<std::string, 2> StreamsVector;
+
+  AC_RunHeader_Variables
 
   /** Helper method dumping an RunHeader object to the console
     */
@@ -103,26 +97,11 @@ public:
   const StreamsVector& SelectedStreams() const { return fSelectedStreams; }
 
 private:
-  friend class ::ACQtWriter;
-
-  UShort_t fRunTag;                 // Header->RunType
-  Int_t fRun;                       // AMSEvent->Run
-  Int_t fTotalAMSEvents;            // ams->GetEntries()
-  TTimeStamp fFirstEventTimeStamp;  // AMSsetup->fHeader.FEventTime;
-  TTimeStamp fLastEventTimeStamp;   // AMSsetup->fHeader.LEventTime;
-  UShort_t fTRDHighVoltage;         // from AMI?
-  UShort_t fAMSPatchVersion;        // Header->Versiong (example '584' for B584)
-  Char_t fAMSPassNumber;            // >=0: ISS-Data 0: std  +N: passN <0: MC
-  UChar_t fACRootVersion;           // 10*Major+Subversion
-  TTimeStamp fProducerJobTimeStamp; // AMSEvent->UTime    (UNIX-Time GMT/GPS/1553?)
-  std::string fAMSRootFileName;     // AMS-ROOT Filename
-  std::string fGitSHA;              // GIT Revision identifier
-  StreamsVector fSelectedStreams;   // ac_producer production stream categories
-
+  friend class ACsoft::ACQtWriter;
   REGISTER_CLASS_WITH_TABLE(RunHeader)
 };
 
-std::string calculateSoftwareVersionHash();
+}
 
 }
 

@@ -2,6 +2,9 @@
 #define Tracker_h
 
 #include "TrackerTrack.h"
+#include "Tracker-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -13,10 +16,7 @@ public:
   /** A vector of TrackerTrack objects */
   typedef Vector<TrackerTrack, 4> TracksVector;
 
-  Tracker()
-    : fClusters(0) {
-
-  }
+  AC_Tracker_Variables
 
   /** Helper method dumping a %Tracker object to the console
     */
@@ -24,7 +24,7 @@ public:
 
   /** Clear Tracker to the initial empty state, as it was just constructed.
     */
-  void Clear(Option_t * /*option*/ ="");
+  void Clear();
 
   /** Number of clusters
     */
@@ -35,11 +35,10 @@ public:
   const TracksVector& Tracks() const { return fTracks; }
 
 private:
-  Short_t fClusters;
-  TracksVector fTracks;
-
   REGISTER_CLASS(Tracker)
 };
+
+}
 
 }
 

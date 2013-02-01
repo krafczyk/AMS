@@ -5,6 +5,13 @@
 #include "AnalysisParticle.hh"
 #include "SplineTrack.hh"
 #include "TrdAlignment.hh"
+#include "TrdDetector.hh"
+#include "TrdStraw.hh"
+#include "TrdModule.hh"
+#include "TrdLayer.hh"
+#include "TrdSublayer.hh"
+#include "DetectorManager.hh"
+#include "pathlength_functions.hh"
 
 #include <math.h>
 #include <TCutG.h>
@@ -17,19 +24,39 @@
 #define INFO_OUT_TAG "TrdPreselection> "
 #include <debugging.hh>
 
-Analysis::TrdPreselection::TrdPreselection() :
+ACsoft::Analysis::TrdPreselection::TrdPreselection() :
   fSplineTrack(0)
 {
+    fMcEvent = false;
+    strawNumbers.reserve(20);
+    for (unsigned int i = 0; i < AC::AMSGeometry::TRDSubLayers; i++) {
+        CandidateHitsPerSubLayerOnTrack[i].reserve(5);
+        CandidateHitsPerSubLayerNearTrack[i].reserve(5);
+    }
+    CandidateHitsOnTrack.reserve(40);
+    CandidateHitsNearTrack.reserve(200);
+
+    deadStraws[ 0] =  324;    DeadStart[0] = -110.0; DeadEnd[0] = +110.0;
+    deadStraws[ 1] = 1438;    DeadStart[1] =   -5.0; DeadEnd[1] =  +10.0;
+    deadStraws[ 2] = 1439;    DeadStart[2] =   -2.0; DeadEnd[2] =  +16.0;
+    deadStraws[ 3] = 2145;    DeadStart[3] = -110.0; DeadEnd[3] = +110.0;
+    deadStraws[ 4] = 2575;    DeadStart[4] =  -20.0; DeadEnd[4] =   -5.0;
+    deadStraws[ 5] = 3296;    DeadStart[5] =   -5.0; DeadEnd[5] =   +5.0;
+    deadStraws[ 6] = 3297;    DeadStart[6] =  -10.0; DeadEnd[6] =  +10.0;
+    deadStraws[ 7] = 4800;    DeadStart[7] =  -40.0; DeadEnd[7] =  -20.0;
+    deadStraws[ 8] = 4831;    DeadStart[8] =    0.0; DeadEnd[8] =  +14.0;
 }
 
-Analysis::TrdPreselection::~TrdPreselection() {
+ACsoft::Analysis::TrdPreselection::~TrdPreselection() {
 
 }
 
 
-bool Analysis::TrdPreselection::Process( const Analysis::Particle& particle, float MinPathLength ) {
+bool ACsoft::Analysis::TrdPreselection::Process( const ACsoft::Analysis::Particle& particle, bool AddNearTrackHitsToCandidateList ) {
 
   // FIXME Explain return value! (is inside acceptance?)
+
+  Detector::DetectorManager::Self()->UpdateIfNeeded(particle.EventTime());
 
   fSplineTrack = particle.GetSplineTrack();
   assert(fSplineTrack);
@@ -38,29 +65,7 @@ bool Analysis::TrdPreselection::Process( const Analysis::Particle& particle, flo
     fCandidateHitsPerSubLayer[sublayer].clear();
 
   bool result = IsInsideTrdGeometricalAcceptance();
-
-  // If you set debug > 0 we'll compare two methods: a) with lookup table (fast mode), b) without lookup table (slow mode).
-  if(DEBUG){
-    DEBUG_OUT << "Processing event " << particle.RawEvent()->EventHeader().Event() << " without lookup table:" << std::endl;
-
-    ProcessWithoutLookupTable(particle, MinPathLength);
-    float pathLengthInGasVolumes1 = GetCandidatePathLength();
-    unsigned short candLayers1 = GetNumberOfCandidateLayers();
-    unsigned short candStraws1 = GetNumberOfCandidateStraws();
-
-    DEBUG_OUT << "Processing event " << particle.RawEvent()->EventHeader().Event() << " with lookup table:" << std::endl;
-
-    ProcessWithLookupTable(particle, MinPathLength);
-    float pathLengthInGasVolumes2 = GetCandidatePathLength();
-    unsigned short candLayers2 = GetNumberOfCandidateLayers();
-    unsigned short candStraws2 = GetNumberOfCandidateStraws();
-    assert(fabs(pathLengthInGasVolumes1 - pathLengthInGasVolumes2) < 1e-4);
-    assert(candLayers1 == candLayers2);
-    assert(candStraws1 == candStraws2);
-  }
-  else
-    ProcessWithLookupTable(particle, MinPathLength);
-
+  ProcessWithLookupTable(particle,AddNearTrackHitsToCandidateList);
   return result;
 }
 
@@ -86,21 +91,36 @@ void PushStrawToVectorIfNotPresent(unsigned short straw, std::vector<unsigned sh
   straws.push_back(straw);
 }
 
-void Analysis::TrdPreselection::ProcessWithLookupTable(const Analysis::Particle& particle, float MinPathLength) {
+
+bool ACsoft::Analysis::TrdPreselection::IsDeadStraw(const unsigned int straw, float SecondCoordinate) {
+
+  for (int i=0; i<nDeadStraws; i++) {
+    if (straw==deadStraws[i] && SecondCoordinate>=DeadStart[i] && SecondCoordinate<=DeadEnd[i]) return true;
+  }
+  return false;
+}
+
+
+void ACsoft::Analysis::TrdPreselection::ProcessWithLookupTable(const ACsoft::Analysis::Particle& particle, bool AddNearTrackHitsToCandidateList) {
 
   assert(fSplineTrack);
-  bool McEvent = false;
-  if (particle.RawEvent()->MC().EventGenerators().size() != 0) McEvent = true;
+  fMcEvent = false;
+  if (particle.RawEvent()->MC().EventGenerators().size() != 0) fMcEvent = true;
 
   TVector3 trackPos, trackDir;
   float coordinateOffset = AC::AMSGeometry::TRDMaximumStrawLength / 2.0;
   AC::AMSGeometry* geometry = AC::AMSGeometry::Self();
-  std::vector<unsigned short> strawNumbers;
-  std::vector<TRDCandidateHit> CandidateHitsPerSubLayerOnTrack[AC::AMSGeometry::TRDSubLayers];
-  std::vector<TRDCandidateHit> CandidateHitsPerSubLayerNearTrack[AC::AMSGeometry::TRDSubLayers];
+  Detector::Trd* alignedTrd = Detector::DetectorManager::Self()->GetAlignedTrd();
+  strawNumbers.clear();
+  CandidateHitsOnTrack.clear();
+  CandidateHitsNearTrack.clear();
+  for (unsigned int i = 0; i<AC::AMSGeometry::TRDSubLayers; i++) {
+      CandidateHitsPerSubLayerOnTrack[i].clear();
+      CandidateHitsPerSubLayerNearTrack[i].clear();
+  }
   for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; ++sublayer) {
-    float zLayer = geometry->TRDSubLayersZCoordinate[sublayer];
-    fSplineTrack->CalculateLocalPositionAndDirection(zLayer, trackPos, trackDir);
+    float zSublayer = alignedTrd->GetTrdSublayer(sublayer)->GlobalPosition().Z();
+    fSplineTrack->CalculateLocalPositionAndDirection(zSublayer, trackPos, trackDir);
 
     int xIntLower = floor(trackPos.x() + coordinateOffset);
     int xIntUpper = ceil(trackPos.x() + coordinateOffset);
@@ -129,76 +149,92 @@ void Analysis::TrdPreselection::ProcessWithLookupTable(const Analysis::Particle&
     if (!strawNumbersLL && !strawNumbersLU && !strawNumbersUL && !strawNumbersUU) continue;
 
     strawNumbers.clear();
-    for (unsigned int i = 0; i < (strawNumbersLL ? strawNumbersLL->size() : 0); ++i) PushStrawToVectorIfNotPresent(strawNumbersLL->at(i), strawNumbers);
-    for (unsigned int i = 0; i < (strawNumbersLU ? strawNumbersLU->size() : 0); ++i) PushStrawToVectorIfNotPresent(strawNumbersLU->at(i), strawNumbers);
-    for (unsigned int i = 0; i < (strawNumbersUL ? strawNumbersUL->size() : 0); ++i) PushStrawToVectorIfNotPresent(strawNumbersUL->at(i), strawNumbers);
-    for (unsigned int i = 0; i < (strawNumbersUU ? strawNumbersUU->size() : 0); ++i) PushStrawToVectorIfNotPresent(strawNumbersUU->at(i), strawNumbers);
-    if (strawNumbers.empty()) continue;
+    if (strawNumbersLL)
+      strawNumbers.insert(strawNumbers.end(), strawNumbersLL->begin(), strawNumbersLL->end());
+    
+    if (strawNumbersLU)
+      strawNumbers.insert(strawNumbers.end(), strawNumbersLU->begin(), strawNumbersLU->end());
+    
+    if (strawNumbersUL)
+      strawNumbers.insert(strawNumbers.end(), strawNumbersUL->begin(), strawNumbersUL->end());
+    
+    if (strawNumbersUU)
+      strawNumbers.insert(strawNumbers.end(), strawNumbersUU->begin(), strawNumbersUU->end());
 
-    std::vector<TRDCandidateHit> CandidateHitsOnTrack;
-    std::vector<TRDCandidateHit> CandidateHitsNearTrack;
+    std::sort(strawNumbers.begin(), strawNumbers.end());
+    std::vector<unsigned short>::iterator it = std::unique(strawNumbers.begin(), strawNumbers.end());
+    strawNumbers.resize(it - strawNumbers.begin());
+    if (strawNumbers.empty())
+      continue;
+
+    CandidateHitsOnTrack.clear();
+    CandidateHitsNearTrack.clear();
     TRDCandidateHit MinDistHit(0,0);
     double MinResidual = 1E99;
     bool found = false;
     for (unsigned short number = 0; number < strawNumbers.size(); ++number) {
+
       unsigned short straw = strawNumbers[number];
-      unsigned short module = AC::TRDStrawToModule(straw);
 
-      int direction;
-      float strawXY, strawZ;
-      AC::TRDStrawToCoordinates(straw, direction, strawXY, strawZ);
-      Q_ASSERT(direction != -1);
-      Q_ASSERT(fabs(strawZ - zLayer) < 1e-4);
-      TVector3 candidateHitPoint = TVector3(strawXY, trackPos.y(), strawZ);
-      if (direction == 1) candidateHitPoint = TVector3(trackPos.x(), strawXY, strawZ);
+      const Detector::TrdStraw* trdstraw = alignedTrd->GetTrdStraw(straw);
+      unsigned short module = trdstraw->ModuleNumber();
 
-      if (!McEvent) {
-          // Apply shimming correction.
-          float Dx, Dy, Dz;
-          float secondCoordinate = direction == 0 ? trackPos.y() : trackPos.x();
-          AC::AMSGeometry::Self()->ApplyShimmingCorrection(straw, secondCoordinate, Dx, Dy, Dz);
-          candidateHitPoint = TVector3(candidateHitPoint.X() + Dx, candidateHitPoint.Y() + Dy, candidateHitPoint.Z() + Dz);
+      AC::MeasurementMode direction = trdstraw->Direction();
+      TVector3 candidateHitPoint = trdstraw->GlobalPosition();
+      float secondCoordinate = direction == AC::XZMeasurement ? trackPos.y() : trackPos.x();
 
-          // Apply alignment.
-          Double_t shift = Calibration::TrdAlignmentShiftLookup::Self()->GetAlignmentShift(module, particle.RawEvent()->EventHeader().TimeStamp());
-          if(direction == 0) candidateHitPoint.SetX(candidateHitPoint.X() - shift);
-          else candidateHitPoint.SetY(candidateHitPoint.Y() - shift);
-      }
-      double residual = fSplineTrack->TrackResidual(direction, strawZ, strawXY);
+      // exclude dead straws from the candidate list
+      if (IsDeadStraw(straw,secondCoordinate)) continue;
+      // FIXME we should have an option for switching this mask on and off
+
+      // we ignore rotations here
+      if (direction == AC::XZMeasurement) candidateHitPoint.SetY(secondCoordinate);
+      else candidateHitPoint.SetY(secondCoordinate);
+
+      double residual = Distance(trdstraw->GlobalPosition(),trdstraw->GlobalWireDirection(),trackPos,trackDir);
       if (fabs(residual)<MinResidual) {
-          MinResidual = fabs(residual);
-          MinDistHit  = TRDCandidateHit(straw, 0.0);
+          MinResidual         = fabs(residual);
+          MinDistHit          = TRDCandidateHit(straw, 0.0);
           MinDistHit.residual = residual;
+          MinDistHit.d        = short(direction);
+          MinDistHit.xy       = candidateHitPoint.X();
+          if (direction==1) MinDistHit.xy = candidateHitPoint.Y();
+          MinDistHit.z        = candidateHitPoint.Z();
       }
-      float pathLength = fSplineTrack->PathLength3D(direction, candidateHitPoint);
-      if (pathLength <= AC::AMSGeometry::TRDTubeMinPathLength) continue;
-      CandidateHitsOnTrack.push_back(TRDCandidateHit(straw, pathLength));
-      CandidateHitsOnTrack.at(CandidateHitsOnTrack.size()-1).residual = residual;
+      float pathLength = Pathlength3d(AC::AMSGeometry::TRDTubeRadius,
+                                      trdstraw->GlobalPosition(),trdstraw->GlobalWireDirection(),trackPos,trackDir);
+      if (pathLength <= ::AC::Settings::TrdTubeDefaultMinPathLength) continue;
+
+      TRDCandidateHit hit(straw, pathLength);
+      hit.d        = direction;
+      hit.xy       = candidateHitPoint.X();
+      if (direction==1) hit.xy = candidateHitPoint.Y();
+      hit.z        = candidateHitPoint.Z();
+      hit.residual = residual;
+      CandidateHitsOnTrack.push_back(hit);
       found = true;
 
-      float xStraw = direction == 0 ? strawXY : trackPos.x();
-      float yStraw = direction == 0 ? trackPos.y() : strawXY;
-      DumpActiveStraw(straw, module, pathLength, xStraw, yStraw, strawZ);
+      float xStraw = direction == 0 ? trdstraw->GlobalPosition().X() : trackPos.x();
+      float yStraw = direction == 0 ? trackPos.y() : trdstraw->GlobalPosition().Y();
+      DumpActiveStraw(straw, module, pathLength, xStraw, yStraw, trdstraw->GlobalPosition().Z());
     }
 
-    if (!found && MinResidual<0.6) CandidateHitsNearTrack.push_back(MinDistHit);
+    if (!found && MinResidual < 2.*AC::AMSGeometry::TRDTubeRadius) CandidateHitsNearTrack.push_back(MinDistHit);
 
     StoreNeighboringStraws(CandidateHitsOnTrack,strawNumbers);
     StoreNeighboringStraws(CandidateHitsNearTrack,strawNumbers);
 
-    for (unsigned int iCan=0; iCan<CandidateHitsOnTrack.size(); iCan++) CandidateHitsPerSubLayerOnTrack[sublayer].push_back(CandidateHitsOnTrack.at(iCan));
-    for (unsigned int iCan=0; iCan<CandidateHitsNearTrack.size(); iCan++) CandidateHitsPerSubLayerNearTrack[sublayer].push_back(CandidateHitsNearTrack.at(iCan));
-
+    CandidateHitsPerSubLayerOnTrack[sublayer].insert(CandidateHitsPerSubLayerOnTrack[sublayer].end(), CandidateHitsOnTrack.begin(), CandidateHitsOnTrack.end());
+    CandidateHitsPerSubLayerNearTrack[sublayer].insert(CandidateHitsPerSubLayerNearTrack[sublayer].end(), CandidateHitsNearTrack.begin(), CandidateHitsNearTrack.end());
   }
 
   // first store on track hits
   for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; ++sublayer) {
-      for (unsigned int i=0; i<CandidateHitsPerSubLayerOnTrack[sublayer].size(); i++)
-        fCandidateHitsPerSubLayer[sublayer].push_back(CandidateHitsPerSubLayerOnTrack[sublayer].at(i));
+    fCandidateHitsPerSubLayer[sublayer].insert(fCandidateHitsPerSubLayer[sublayer].end(),CandidateHitsPerSubLayerOnTrack[sublayer].begin(),CandidateHitsPerSubLayerOnTrack[sublayer].end());
   }
 
   // if we have no on track hit in a layer, store the near track hits as candidate with a path length of 0
-  if (MinPathLength>0) return;
+  if (!AddNearTrackHitsToCandidateList) return;
 
   for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; sublayer += 2) {
       unsigned int CandidatesPerLayerOnTrack = CandidateHitsPerSubLayerOnTrack[sublayer].size() + CandidateHitsPerSubLayerOnTrack[sublayer+1].size();
@@ -228,100 +264,63 @@ void Analysis::TrdPreselection::ProcessWithLookupTable(const Analysis::Particle&
 }
 
 
-void Analysis::TrdPreselection::StoreNeighboringStraws(std::vector<TRDCandidateHit> &CandidateHits, std::vector<unsigned short> &strawNumbers) {
+void ACsoft::Analysis::TrdPreselection::StoreNeighboringStraws(std::vector<TRDCandidateHit>& CandidateHits, const std::vector<unsigned short>& strawNumbers) {
 
-    // determine for the candidates the neighboring straws
-    for (unsigned int iCan=0; iCan<CandidateHits.size(); iCan++) {
-        for (unsigned short number = 0; number < strawNumbers.size(); ++number) {
-            unsigned short straw = strawNumbers[number];
-            // is this straw a neighbor of the candidate straw and not used by another candidate
-            // (which happens if we have more than 1 hit per sublayer) ?
-            if (straw != CandidateHits.at(iCan).straw) {
-                bool hasBeenUsed = false;
-                for (unsigned int jCan=0; jCan<CandidateHits.size(); jCan++) {
-                    if (straw == CandidateHits.at(jCan).straw) {
-                        hasBeenUsed = true;
-                        break;
-                    }
-                }
-                if (!hasBeenUsed) CandidateHits.at(iCan).v_NeighborStraws.push_back(straw);
-            }
-        }
-    }
-}
+  // FIXME explain this function.
 
-void Analysis::TrdPreselection::ProcessWithoutLookupTable(const Analysis::Particle& particle, float MinPathLength) {
-
-  assert(fSplineTrack);
-  bool McEvent = false; // FIXME this can be improved
-  if (particle.RawEvent()->MC().EventGenerators().size() != 0) McEvent = true;
+  for (unsigned int iCan=0; iCan<CandidateHits.size(); iCan++) {
+    CandidateHits.at(iCan).v_NeighborXY.reserve(10);
+    CandidateHits.at(iCan).v_NeighborZ.reserve(10);
+    CandidateHits.at(iCan).v_NeighborStraws.reserve(10);
+  }
 
   TVector3 trackPos, trackDir;
-  AC::AMSGeometry* geometry = AC::AMSGeometry::Self();
 
-  std::vector<TRDCandidateHit> MinDistHits;
-  double MinResiduals[AC::AMSGeometry::TRDSubLayers];
-  for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; ++sublayer) {
-      TRDCandidateHit hit(0,0);
-      MinDistHits.push_back(hit);
-      MinResiduals[sublayer]=1E99;
-  }
+  Detector::Trd* trd = Detector::DetectorManager::Self()->GetAlignedTrd();
 
-  for (unsigned short straw = 0; straw < AC::AMSGeometry::TRDStraws; ++straw) {
-    int direction;
-    float strawXY, strawZ;
-    AC::TRDStrawToCoordinates(straw, direction, strawXY, strawZ);
-    Q_ASSERT(direction != -1);
+  // determine for the candidates the neighboring straws
+  for (unsigned int iCan=0; iCan<CandidateHits.size(); iCan++) {
+    float zLayer = CandidateHits.at(iCan).z;
+    for (unsigned short number = 0; number < strawNumbers.size(); ++number) {
+      unsigned short straw = strawNumbers[number];
+      // is this straw a neighbor of the candidate straw and not used by another candidate
+      // (which happens if we have more than 1 hit per sublayer) ?
+      if (straw == CandidateHits.at(iCan).straw)
+        continue;
+      bool hasBeenUsed = false;
+      for (unsigned int jCan=0; jCan<CandidateHits.size(); jCan++) {
+        if (straw == CandidateHits.at(jCan).straw) {
+          hasBeenUsed = true;
+          break;
+        }
+      }
+      if (hasBeenUsed)
+        continue;
+      CandidateHits.at(iCan).v_NeighborStraws.push_back(straw);
 
-    fSplineTrack->CalculateLocalPositionAndDirection(strawZ, trackPos, trackDir);
+      Detector::TrdStraw* trdstraw = trd->GetTrdStraw(straw);
+      AC::MeasurementMode direction = trdstraw->Direction();
+      fSplineTrack->CalculateLocalPositionAndDirection(zLayer, trackPos, trackDir);
 
-    unsigned short module = AC::TRDStrawToModule(straw);
-    if (!geometry->TRDModuleGeometries[module].contour->IsInside(trackPos.x(), trackPos.y())) continue;
+      TVector3 candidateHitPoint = trdstraw->GlobalPosition();
 
-    TVector3 candidateHitPoint = TVector3(strawXY, trackPos.y(), strawZ);
-    if (direction == 1) candidateHitPoint = TVector3(trackPos.x(), strawXY, strawZ);
+      // FIXME this is all rather ugly. with the new Trd structure, there is no need to do this x/y separation anymore
+      if (direction == AC::YZMeasurement) candidateHitPoint.SetX(trackPos.x());
+      else candidateHitPoint.SetY(trackPos.y());
 
-    if (!McEvent) {
-        // Apply shimming correction.
-        float Dx, Dy, Dz;
-        float secondCoordinate = direction == 0 ? trackPos.y() : trackPos.x();
-        AC::AMSGeometry::Self()->ApplyShimmingCorrection(straw, secondCoordinate, Dx, Dy, Dz);
-        candidateHitPoint = TVector3(candidateHitPoint.X() + Dx, candidateHitPoint.Y() + Dy, candidateHitPoint.Z() + Dz);
-
-        // Apply alignment.
-        Double_t shift = Calibration::TrdAlignmentShiftLookup::Self()->GetAlignmentShift(module, particle.RawEvent()->EventHeader().TimeStamp());
-        if(direction == 0) candidateHitPoint.SetX(candidateHitPoint.X() - shift);
-        else candidateHitPoint.SetY(candidateHitPoint.Y() - shift);
+      float xy = candidateHitPoint.X();
+      if (direction==AC::YZMeasurement) xy = candidateHitPoint.Y();
+      float z  = candidateHitPoint.Z();
+      CandidateHits.at(iCan).v_NeighborXY.push_back(xy);
+      CandidateHits.at(iCan).v_NeighborZ.push_back(z);
     }
-    double residual = fSplineTrack->TrackResidual(direction, strawZ, strawXY);
-    unsigned short sublayer = geometry->TRDModuleGeometries[module].sublayer;
-    if (fabs(residual)<MinResiduals[sublayer]) {
-        MinResiduals[sublayer] = fabs(residual);
-        MinDistHits[sublayer]  = TRDCandidateHit(straw, 0.0);
-    }
-    float pathLength = fSplineTrack->PathLength3D(direction, candidateHitPoint);
-    if (pathLength <= AC::AMSGeometry::TRDTubeMinPathLength) continue;
-
-    fCandidateHitsPerSubLayer[sublayer].push_back(TRDCandidateHit(straw, pathLength));
-
-    float xStraw = direction == 0 ? strawXY : trackPos.x();
-    float yStraw = direction == 0 ? trackPos.y() : strawXY;
-    DumpActiveStraw(straw, module, pathLength, xStraw, yStraw, strawZ);
   }
-
-  for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; ++sublayer) {
-      if (fCandidateHitsPerSubLayer[sublayer].size()>0) continue;
-      if (MinPathLength<=0 && MinResiduals[sublayer]<0.6) fCandidateHitsPerSubLayer[sublayer].push_back(MinDistHits[sublayer]);
-  }
-
-  //FIXME: No idea how to implement the concept of neighboring straws here
-
 }
 
-bool Analysis::TrdPreselection::IsInsideTrdGeometricalAcceptance() const {
+bool ACsoft::Analysis::TrdPreselection::IsInsideTrdGeometricalAcceptance() const {
         
-  TVector2 coordinatesFirst = Analysis::TrdPreselection::PointInLayer(0);
-  TVector2 coordinatesLast = Analysis::TrdPreselection::PointInLayer(AC::AMSGeometry::TRDLayers - 1);
+  TVector2 coordinatesFirst = ACsoft::Analysis::TrdPreselection::PointInLayer(0);
+  TVector2 coordinatesLast = ACsoft::Analysis::TrdPreselection::PointInLayer(AC::AMSGeometry::TRDLayers - 1);
   
   AC::AMSGeometry* geometry = AC::AMSGeometry::Self();
   if (!geometry->TRDFirstLayerContour->IsInside(coordinatesFirst.X(), coordinatesFirst.Y()))
@@ -331,7 +330,7 @@ bool Analysis::TrdPreselection::IsInsideTrdGeometricalAcceptance() const {
   return true;
 }
 
-float Analysis::TrdPreselection::GetCandidatePathLength() const {
+float ACsoft::Analysis::TrdPreselection::GetCandidatePathLength() const {
 
   float pathLengthSum = 0; 
   for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; ++sublayer) {
@@ -341,12 +340,11 @@ float Analysis::TrdPreselection::GetCandidatePathLength() const {
   return pathLengthSum;
 }
 
-unsigned short Analysis::TrdPreselection::GetNumberOfCandidateLayers() const {
+unsigned short ACsoft::Analysis::TrdPreselection::GetNumberOfCandidateLayers() const {
 
   bool SubLayers[AC::AMSGeometry::TRDSubLayers];
-  for (unsigned short sublayer=0; sublayer<AC::AMSGeometry::TRDSubLayers; ++sublayer) SubLayers[sublayer]=false;
   for (unsigned short sublayer=0; sublayer<AC::AMSGeometry::TRDSubLayers; ++sublayer) {
-      for (unsigned short iHit=0; iHit<fCandidateHitsPerSubLayer[sublayer].size(); iHit++) SubLayers[sublayer]=true;
+    SubLayers[sublayer] = (fCandidateHitsPerSubLayer[sublayer].size() > 0);
   }
 
   unsigned short candidateLayers = 0;
@@ -355,43 +353,40 @@ unsigned short Analysis::TrdPreselection::GetNumberOfCandidateLayers() const {
   return candidateLayers;
 }
 
-unsigned short Analysis::TrdPreselection::GetNumberOfCandidateStraws() const {
+unsigned short ACsoft::Analysis::TrdPreselection::GetNumberOfCandidateStraws() const {
 
   unsigned short candidateStraws = 0;
   for (unsigned short sublayer=0; sublayer<AC::AMSGeometry::TRDSubLayers; ++sublayer) {
-      for (unsigned short iHit=0; iHit<fCandidateHitsPerSubLayer[sublayer].size(); iHit++) candidateStraws++;
+    candidateStraws += fCandidateHitsPerSubLayer[sublayer].size();
   }
   return candidateStraws;
 }
 
-TVector2 Analysis::TrdPreselection::PointInLayer(unsigned short layer) const {
+TVector2 ACsoft::Analysis::TrdPreselection::PointInLayer(unsigned short layer) const {
 
   assert(fSplineTrack);
   assert(layer < AC::AMSGeometry::TRDLayers);
 
-  AC::AMSGeometry* geometry = AC::AMSGeometry::Self();
-  float zUpperLayer = geometry->TRDSubLayersZCoordinate[layer * 2];
-  float zLowerLayer = geometry->TRDSubLayersZCoordinate[layer * 2 + 1];
-  Q_ASSERT(zUpperLayer > zLowerLayer);
+  Detector::Trd* trd = Detector::DetectorManager::Self()->GetAlignedTrd();
+  float zLowerLayer = trd->GetTrdSublayer(layer * 2)->GlobalPosition().Z();
+  float zUpperLayer = trd->GetTrdSublayer(layer * 2 + 1)->GlobalPosition().Z();
  
   float zLayer = (zLowerLayer + zUpperLayer) / 2.0;
   TVector3 vector = fSplineTrack->InterpolateToZ(zLayer);
   return TVector2(vector.x(), vector.y());
 }
 
-std::vector<Analysis::TRDCandidateHit> Analysis::TrdPreselection::CandidateHits() const {
+void ACsoft::Analysis::TrdPreselection::GetCandidateHits(std::vector<ACsoft::Analysis::TRDCandidateHit>& result) const {
 
-  std::vector<TRDCandidateHit> result;
-  for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; ++sublayer) {
-      for (unsigned short iHit=0; iHit<fCandidateHitsPerSubLayer[sublayer].size(); iHit++)
-          result.push_back(fCandidateHitsPerSubLayer[sublayer].at(iHit));
-  }
-  return result;
+  result.reserve(40);
+  for (unsigned short sublayer = 0; sublayer < AC::AMSGeometry::TRDSubLayers; ++sublayer)
+    result.insert(result.end(), fCandidateHitsPerSubLayer[sublayer].begin(), fCandidateHitsPerSubLayer[sublayer].end());
 }
 
-bool Analysis::TrdPreselection::PassesPreselectionCuts() const {
+bool ACsoft::Analysis::TrdPreselection::PassesPreselectionCuts() const {
   if (GetNumberOfCandidateLayers() <= 15  ) return false;
   if (GetCandidatePathLength()     <=  7.0) return false;
   return true;
 }
+
 

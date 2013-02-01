@@ -3,8 +3,12 @@
 
 #include <vector>
 #include <TVector2.h>
-#include "AMSGeometry.h"
 
+#include "AMSGeometry.h"
+#include "Settings.h"
+
+
+namespace ACsoft {
 
 namespace Analysis {
 
@@ -17,16 +21,48 @@ struct TRDCandidateHit {
     , pathLength(_pathLength)
     , deDx(_deDx) {
       v_NeighborStraws.clear();
-      ActiveStraw = -1;
-      residual    = 0.0;
+      v_NeighborXY.clear();
+      v_NeighborZ.clear();
+      ActiveStraw        = -1;
+      residual           = 0.0;
+      xy                 = 0;
+      z                  = 0;
+      d                  = -1;
+      Chi2               = -1;
+      pathLengthTrdTrack = -1;
   }
+  // FIXME We do not really need this structure, TrdHit can easily be expanded to do the same!
 
   unsigned short straw;
   float pathLength;
+  float pathLengthTrdTrack;
   float deDx;
   float residual;
+  float xy, z;
+  short d;
+  float Chi2;
   std::vector<unsigned short> v_NeighborStraws;
-  short ActiveStraw;
+  std::vector<float> v_NeighborXY;
+  std::vector<float> v_NeighborZ;
+  short ActiveStraw; ///< number of a straw with an actual energy deposition, matched to this candidate
+};
+
+struct TRDMissingHit {
+  TRDMissingHit(float _x, float _y, float _z)
+    : x(_x)
+    , y(_y)
+    , z(_z) {
+    straw1 = -1;
+    straw2 = -1;
+    d      = -1;
+    Chi2   = -1;
+    sigma  = -1.;
+  }
+  float x, y, z;
+  short straw1, straw2;
+  short d;
+  float Chi2;
+  float sigma;
 };
 
 /** This class holds all data related to select "good" TRD particles for the use in alignment/calibration etc.
@@ -43,7 +79,7 @@ public:
     * Note: This function returns false if the extrapolated track position is not within
     * the geometrical TRD acceptance.
     */ 
-  bool Process( const Analysis::Particle& particle, float MinPathLength=AC::AMSGeometry::TRDTubeMinPathLength );
+  bool Process( const Analysis::Particle& particle, bool AddNearTrackHitsToCandidateList );
 
   /** Returns the sum of path length in all layers for a given track fit. */
   float GetCandidatePathLength() const;
@@ -66,10 +102,8 @@ public:
     */
   bool IsInsideSubLayer(unsigned short sublayer) const;
 
-  //typedef std::vector<std::pair<unsigned short, float> > StrawNumberAndPathLengths;
-
   /** Returns all straws with the associated path lengths that were determined in ProcessTrackerTrack(). */
-  std::vector<TRDCandidateHit> CandidateHits() const;
+  void GetCandidateHits(std::vector<Analysis::TRDCandidateHit>& result) const;
 
   /** Does the selected track track pass the TRD preselection cuts ? */
   bool PassesPreselectionCuts() const;
@@ -78,15 +112,29 @@ public:
   bool IsInsideTrdGeometricalAcceptance() const;
 
 private:
-
-  void ProcessWithLookupTable(const Analysis::Particle& particle, float MinPathLength);
-  void ProcessWithoutLookupTable(const Analysis::Particle& particle, float MinPathLength);
+  void ProcessWithLookupTable(const Analysis::Particle&, bool AddNearTrackHitsToCandidateList);
   void BuildIsInsideSubLayerInformation();
-  void StoreNeighboringStraws(std::vector<TRDCandidateHit> &CandidateHits, std::vector<unsigned short> &strawNumbers);
+  void StoreNeighboringStraws(std::vector<TRDCandidateHit>& CandidateHits, const std::vector<unsigned short>& strawNumbers);
 
   const Analysis::SplineTrack* fSplineTrack; // we only borrow this from high-level event, do not delete!
+
   std::vector<TRDCandidateHit> fCandidateHitsPerSubLayer[AC::AMSGeometry::TRDSubLayers];
+  bool fMcEvent;
+
+  std::vector<unsigned short> strawNumbers;
+  std::vector<TRDCandidateHit> CandidateHitsPerSubLayerOnTrack[AC::AMSGeometry::TRDSubLayers];
+  std::vector<TRDCandidateHit> CandidateHitsPerSubLayerNearTrack[AC::AMSGeometry::TRDSubLayers];
+  std::vector<TRDCandidateHit> CandidateHitsOnTrack;
+  std::vector<TRDCandidateHit> CandidateHitsNearTrack;
+
+  static const int  nDeadStraws = 9;
+  unsigned int      deadStraws[nDeadStraws];
+  float             DeadStart[nDeadStraws], DeadEnd[nDeadStraws];
+  bool IsDeadStraw(const unsigned int straw, float SecondCoordinate);
+
 };
+
+}
 
 }
 

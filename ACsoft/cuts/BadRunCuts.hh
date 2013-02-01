@@ -5,11 +5,9 @@
 #include "BadRunManager.hh"
 
 #ifndef __CINT__
+#include "AnalysisParticle.hh"
 #include "Event.h"
 #endif
-
-#include "AnalysisParticle.hh"
-
 
 namespace Cuts {
 
@@ -19,20 +17,21 @@ namespace Cuts {
  */
 class CutBadRun : public Cut {
 public:
-  CutBadRun( Analysis::BadRunManager::SubD subdetector ) : Cut(),
+  CutBadRun( ACsoft::Analysis::BadRunManager::SubD subdetector ) : Cut(),
     fSubd(subdetector)
   {
-    fDescription = std::string("Bad Runs: ") + Analysis::BadRunManager::Self()->SubdToString(subdetector);
+    fDescription = std::string("Bad Runs: ") + ACsoft::Analysis::BadRunManager::Self()->SubdToString(subdetector);
   }
 
-  virtual bool TestCondition(const Analysis::Particle& particle) {
-    return !Analysis::BadRunManager::Self()->IsBad(fSubd,particle);
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& particle) {
+
+    return !ACsoft::Analysis::BadRunManager::Self()->IsBad(fSubd, particle);
   }
 
   CutBadRun() : Cut() {} // default constructor needed by ROOT, do not use!
 
 protected:
-  Analysis::BadRunManager::SubD fSubd;
+  ACsoft::Analysis::BadRunManager::SubD fSubd;
   ClassDef(Cuts::CutBadRun,1)
 };
 

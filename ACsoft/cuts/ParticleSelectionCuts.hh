@@ -15,10 +15,8 @@ namespace Cuts {
 // FIXME add instructions how to reproduce and monitor these numbers!
 // FIXME move to tracker cuts
 const unsigned int gTrackerCharges = 8;
-const float gTrackerChargeMean[gTrackerCharges] =  {1.01520e+00, 2.04789e+00, 2.97638e+00, 3.94105e+00, 4.90228e+00, 5.86167e+00, 6.86606e+00, 7.90968e+00};
-const float gTrackerChargeSigma[gTrackerCharges] = {7.61764e-02, 9.97948e-02, 1.19361e-01, 1.40490e-01, 1.59359e-01, 1.87874e-01, 2.20618e-01, 2.56594e-01};
-
-
+const float gTrackerChargeMean[gTrackerCharges] =  {9.86033e-01, 1.99755e+00, 2.98898e+00, 3.96389e+00, 4.91655e+00, 5.90427e+00, 6.89230e+00, 7.87853e+00};
+const float gTrackerChargeSigma[gTrackerCharges] = {6.18135e-02, 8.61350e-02, 1.21828e-01, 1.29896e-01, 1.49056e-01, 1.70152e-01, 1.78035e-01, 2.29481e-01};
 
 // FIXME the following can be done via Selectors of existing cuts (almost....)
 
@@ -27,11 +25,11 @@ class CutProtonCandidate : public Cut {
 public:
   CutProtonCandidate() : Cut( "Proton candidate" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( p.MainTrackerTrack() && p.MainTrackerTrackFit() ){
-      if( p.MainTrackerTrackFit()->Rigidity() > 0. ){
-        return fabs(p.MainTrackerTrack()->GetChargeAndErrorNew(3).charge - gTrackerChargeMean[0]) < 3 * gTrackerChargeSigma[0];
+    if( p.HasMainTrackerTrack() && p.HasMainTrackerTrackFit() ){
+      if( p.Rigidity() > 0. ){
+        return fabs(p.TrackerCharge() - gTrackerChargeMean[0]) < 3 * gTrackerChargeSigma[0];
       }
     }
 
@@ -46,16 +44,14 @@ class CutRemoveAntiNuclei  : public Cut {
 public:
   CutRemoveAntiNuclei() : Cut("Remove anti-nuclei") { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    const AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
-    if( !trackFit ) return true;
-    if (trackFit->Rigidity() >= 0.0)
+    if( !p.HasMainTrackerTrackFit() ) return true;
+    if (p.Rigidity() >= 0.0)
       return true;
 
-    const AC::TrackerTrack* track = p.MainTrackerTrack();
-    if( !track ) return true;
-    return track->GetChargeAndErrorNew(3).charge < gTrackerChargeMean[0] + 3 * gTrackerChargeSigma[0];
+    if( !p.HasMainTrackerTrack() ) return true;
+    return p.TrackerCharge() < gTrackerChargeMean[0] + 3 * gTrackerChargeSigma[0];
   }
 
   ClassDef(Cuts::CutRemoveAntiNuclei,1)
@@ -66,12 +62,11 @@ class CutRemoveHeavyNuclei : public Cut {
 public:
   CutRemoveHeavyNuclei(): Cut("Remove heavy nuclei") { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    const AC::TrackerTrack* track = p.MainTrackerTrack();
-    if( !track ) return true;
+    if( !p.HasMainTrackerTrack() ) return true;
 
-    return track->GetChargeAndErrorNew(3).charge < gTrackerChargeMean[5] + 3 * gTrackerChargeSigma[5];
+    return p.TrackerCharge() < gTrackerChargeMean[5] + 3 * gTrackerChargeSigma[5];
   }
 
   ClassDef(Cuts::CutRemoveHeavyNuclei,1)
@@ -83,12 +78,14 @@ class CutRemovePositrons : public Cut {
 public:
   CutRemovePositrons() : Cut("Remove positrons") { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    const AC::ECALShower* shower = p.MainEcalShower();
+    AssureCutIsAppliedToACQtFile(p);
+
+    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
     if( !shower ) return true;
 
-    const AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
+    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
     if( !trackFit ) return true;
     if( trackFit->Rigidity() <= 0.0 )
       return true;
@@ -105,12 +102,14 @@ class CutRemoveAntiProtons  : public Cut {
 public:
   CutRemoveAntiProtons() : Cut("Remove antiprotons") { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    const AC::ECALShower* shower = p.MainEcalShower();
+    AssureCutIsAppliedToACQtFile(p);
+
+    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
     if( !shower ) return true;
 
-    const AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
+    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
     if( !trackFit ) return true;
     if (trackFit->Rigidity() >= 0.)
       return true;
@@ -138,23 +137,20 @@ class CutReduceMisidentifiedHelium : public Cut {
 public:
   CutReduceMisidentifiedHelium() : Cut("Reduce misidentified helium") { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if(!p.TofBeta()) return true;
+    if(!p.HasTofBeta()) return true;
 
-    const AC::TrackerTrack* track = p.MainTrackerTrack();
-    if( !track ) return true;
-    float trackerCharge = track->GetChargeAndErrorNew(3).charge;
+    if( !p.HasMainTrackerTrack() ) return true;
+    float trackerCharge = p.TrackerCharge();
     if (trackerCharge > gTrackerChargeMean[0] + 3 * gTrackerChargeSigma[0])
       return true;
 
-    const AC::TOFBeta* beta = p.TofBeta();
-    AC::ChargeAndError tofChargeAndError = beta->GetChargeAndErrorNew();
-    if (tofChargeAndError.charge > 1.8 && tofChargeAndError.error < 0.2)
+    if (p.TofCharge() > 1.8 && p.TofChargeError() < 0.2)
       return false;
 
-    float emean = p.RawEvent()->TOF().CalculateMeanEnergy(*beta);
-    float emax  = p.RawEvent()->TOF().CalculateMaximumEnergy(*beta);
+    float emean = p.TofMeanEnergy();
+    float emax  = p.TofMaxEnergy();
     return emean <= 4 && emax <= 6.5;
   }
 
@@ -168,11 +164,11 @@ public:
   CutEnergyOverRigidity(float minimumRatio, float maximumRatio)
     : TwoSidedCut( "E/R", minimumRatio, maximumRatio) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.MainEcalShower() ) return true;
-    if( !p.MainTrackerTrackFit()) return true;
-    return ValueIsInRange(p.MainEcalShower()->ReconstructedEnergy() / fabs(p.MainTrackerTrackFit()->Rigidity()));
+    if( !p.HasMainEcalShower() ) return true;
+    if( !p.HasMainTrackerTrackFit()) return true;
+    return ValueIsInRange(p.EcalEnergy() / fabs(p.Rigidity()));
   }
 
   CutEnergyOverRigidity() : TwoSidedCut( "", 0.0, 0.0 ) {}
@@ -202,13 +198,15 @@ public:
 
   virtual ~CutElectronCandidate() { delete fCut90PercentEfficiency; }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
-    
-    const AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+
+    AssureCutIsAppliedToACQtFile(p);
+
+    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
     if( !trackFit ) return true;
     if( trackFit->Rigidity() > -2.0 ) return true;
     
-    const AC::ECALShower* shower = p.MainEcalShower();
+    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
     if( !shower ) return true;
     if( !shower->Estimators().size() ) return true;
 

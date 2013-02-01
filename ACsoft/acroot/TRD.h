@@ -5,6 +5,9 @@
 #include "TRDHTrack.h"
 #include "TRDRawHit.h"
 #include "TRDVTrack.h"
+#include "TRD-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -25,10 +28,7 @@ public:
   /** A vector of TRDRawHit objects */
   typedef Vector<TRDRawHit, 260> RawHitsVector;
 
-  TRD()
-    : fNumberOfHits(0) {
-
-  }
+  AC_TRD_Variables
 
   /** Helper method dumping a %TRD object to the console
     */
@@ -36,7 +36,7 @@ public:
 
   /** Clear TRD to the initial empty state, as it was just constructed.
     */
-  void Clear(Option_t * /*option*/ ="");
+  void Clear();
 
   /** Number of hits in %TRD.
     */
@@ -66,14 +66,10 @@ public:
   RawHitsVector SortedRawHits() const;
 
 private:
-  Short_t fNumberOfHits;
-  VTracksVector fVTracks;
-  HTracksVector fHTracks;
-  HSegmentsVector fHSegments;
-  RawHitsVector fRawHits;
-
   REGISTER_CLASS(TRD)
 };
+
+}
 
 }
 

@@ -3,6 +3,13 @@
 
 #include <TMath.h>
 #include "Tools.h"
+#include "MCEventGenerator-Streamer.h"
+
+#ifndef __CINT__
+#include <QDataStream>
+#endif
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -21,25 +28,29 @@ enum MCProcess {
   CherenkovRadiation
 };
 
+#ifndef __CINT__
+// QDataStream operators
+inline QDataStream& operator<<(QDataStream& stream, const MCProcess& object) {
+
+  stream << (UChar_t) object;
+  return stream;
+}
+
+inline QDataStream& operator>>(QDataStream& stream, MCProcess& object) {
+
+  UChar_t process;
+  stream >> process;
+  object = (MCProcess) process;
+  return stream;
+}
+#endif
+
 /** Monte-Carlo event generator data
   */
 class MCEventGenerator {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  MCEventGenerator()
-    : fID(0)
-    , fMotherParticle(0)
-    , fProcess(Unknown)
-    , fMomentum(0)
-    , fMass(0)
-    , fCharge(0)
-    , fX0(0)
-    , fY0(0)
-    , fZ0(0)
-    , fTheta(0)
-    , fPhi(0) {
-
-  }
+  AC_MCEventGenerator_Variables
 
   /** Helper method dumping an MCEventGenerator object to the console
     */
@@ -59,7 +70,7 @@ public:
   /** Returns creation process of secondary particle
     * \todo Nobody uses this at the moment.
     */
-  MCProcess Process() const { return fProcess; }
+  MCProcess Process() const { return static_cast<MCProcess>(fProcess); }
 
   /** Momentum [GeV/c].
    */
@@ -96,20 +107,10 @@ public:
   Float_t Phi() const { return fPhi * TMath::RadToDeg(); }
 
 private:
-  UShort_t fID;            	// MCEventg->Particle
-  UShort_t fMotherParticle; // Index to Mother-Particle, not yet implemented
-  MCProcess fProcess;      	// Process, not yet implemented
-  Float_t fMomentum;       	// MCEventg->Momentum
-  Float_t fMass;           	// MCEventg->Mass
-  Float_t fCharge;         	// MCEventg->Charge
-  Float_t fX0;             	// MCEventg->Coo[0]
-  Float_t fY0;             	// MCEventg->Coo[1]
-  Float_t fZ0;             	// MCEventg->Coo[2]
-  Float_t fTheta;          	// MCEventg->acos(Dir[2])
-  Float_t fPhi;            	// MCEventg->atan2(Dir[1],Dir[0])
-
   REGISTER_CLASS_WITH_TABLE(MCEventGenerator)
 };
+
+}
 
 }
 

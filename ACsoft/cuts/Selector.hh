@@ -6,8 +6,12 @@
 
 #include <TNamed.h>
 
+namespace ACsoft {
+
 namespace Analysis {
   class Particle;
+}
+
 }
 
 namespace Cuts {
@@ -32,7 +36,7 @@ class Cut;
   * while (filemanager.GetNextEvent()) {
   *   AC::Event* event = fm.Event();
   *
-  * Analysis::Particle particle;
+  * ACsoft::Analysis::Particle particle;
   * particlefactory->PrepareWithDefaultObjects(*event,particle);
   *
   * if( !preselection.Passes(particle) ) continue;
@@ -59,10 +63,10 @@ public:
     */
   void RegisterCut( Cuts::Cut* cut );
 
-  /** Decide whether event passes all cuts and do the internal bookkeeping of the individual cuts.
+  /** Decide whether particle passes all cuts and do the internal bookkeeping of the individual cuts.
     *
     */
-  bool Passes( const Analysis::Particle& );
+  bool Passes( const ACsoft::Analysis::Particle& );
 
   /** Print a summary of cut statistics for all cuts.
     *
@@ -72,7 +76,7 @@ public:
   /** Merge cut statistics of this Selector and a second one.
     *
     * Sums the total numbers of passed and failed events and
-    * calls the Cuts::Cut::MergeStatisticsFrom() function
+    * calls the Cut::MergeStatisticsFrom(const Cut&) function
     * for all individual cuts.
     *
     */

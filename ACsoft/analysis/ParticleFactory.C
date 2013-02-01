@@ -1,6 +1,7 @@
 #include "ParticleFactory.hh"
 
 #include "Event.h"
+#include "ReducedEvent.hh"
 #include "AnalysisParticle.hh"
 
 #include "SplineTrack.hh"
@@ -15,19 +16,46 @@
 /** Constructor.
   *
   * \param[in]  stepsForTrdHits Steps to be taken in production of TrdHits (see TrdHitFactory).
+  * \param[in]  fullDetectorTrack: if false, SplineTrack only uses points between Upper TOF and Layer 1 for creation, if true, uses points from full detector
   */
-Analysis::ParticleFactory::ParticleFactory( int stepsForTrdHits ) :
-  fStepsForTrdHits(stepsForTrdHits)
+ACsoft::Analysis::ParticleFactory::ParticleFactory(int stepsForTrdHits , bool fullDetectorTrack) :
+  fStepsForTrdHits(stepsForTrdHits),
+  fFullDetectorTrack(fullDetectorTrack)
 {
-  fTrackFactory  = new Analysis::TrackFactory;
-  fTrdHitFactory = new Analysis::TrdHitFactory;
+  fTrackFactory  = new ACsoft::Analysis::TrackFactory;
+  fTrdHitFactory = new ACsoft::Analysis::TrdHitFactory;
 }
 
 
-Analysis::ParticleFactory::~ParticleFactory()
+ACsoft::Analysis::ParticleFactory::~ParticleFactory()
 {
   delete fTrackFactory;
   delete fTrdHitFactory;
+}
+
+/** Select default components for %particle: Take objects associated with first AMS %particle.
+  * You have to pass either an AC::Event or IO::ReducedEvent object.
+  *
+  * This will only fill those parts of the event that are needed for a preselection.
+  * You have to call FillHighLevelObjects() later.
+  */
+
+void ACsoft::Analysis::ParticleFactory::PrepareWithDefaultObjects( const AC::Event* event, const IO::ReducedEvent* reducedEvent, ACsoft::Analysis::Particle& particle ) {
+
+  assert(event || reducedEvent);
+  assert(!(!event && !reducedEvent));
+
+  // store pointer to raw event
+  particle.fRawEvent = event;
+  particle.fReducedEvent = reducedEvent;
+
+  DefaultMainAmsParticle( particle );
+  DefaultMainTrackerTrack( particle );
+  DefaultMainTrackerTrackFit( particle );
+  DefaultEcalShower( particle );
+  DefaultTofBeta( particle );
+  DefaultMainTrdVTrack( particle );
+  DefaultMainRichRing( particle );
 }
 
 
@@ -36,10 +64,11 @@ Analysis::ParticleFactory::~ParticleFactory()
   * This will only fill those parts of the event that are needed for a preselection.
   * You have to call FillHighLevelObjects() later.
   */
-void Analysis::ParticleFactory::PrepareWithDefaultObjects( const AC::Event& rawEvt, Analysis::Particle& particle ) {
+void ACsoft::Analysis::ParticleFactory::PrepareWithDefaultObjects( const AC::Event* event, ACsoft::Analysis::Particle& particle ) {
 
   // store pointer to raw event
-  particle.fRawEvent = &rawEvt;
+  particle.fRawEvent = event;
+  particle.fReducedEvent = 0;
 
   DefaultMainAmsParticle( particle );
   DefaultMainTrackerTrack( particle );
@@ -47,16 +76,38 @@ void Analysis::ParticleFactory::PrepareWithDefaultObjects( const AC::Event& rawE
   DefaultEcalShower( particle );
   DefaultTofBeta( particle );
   DefaultMainTrdVTrack( particle );
+  DefaultMainRichRing( particle );
 }
 
-bool Analysis::ParticleFactory::DefaultMainAmsParticle( Analysis::Particle& particle ) const {
+/** Select default components for %particle: Take objects associated with first AMS %particle.
+  *
+  * This will only fill those parts of the event that are needed for a preselection.
+  * You have to call FillHighLevelObjects() later.
+  */
+void ACsoft::Analysis::ParticleFactory::PrepareWithDefaultObjects( const IO::ReducedEvent* event, ACsoft::Analysis::Particle& particle ) {
 
+  // store pointer to raw event
+  particle.fRawEvent = 0;
+  particle.fReducedEvent = event;
+
+  DefaultMainAmsParticle( particle );
+  DefaultMainTrackerTrack( particle );
+  DefaultMainTrackerTrackFit( particle );
+  DefaultEcalShower( particle );
+  DefaultTofBeta( particle );
+  DefaultMainTrdVTrack( particle );
+  DefaultMainRichRing( particle );
+}
+
+bool ACsoft::Analysis::ParticleFactory::DefaultMainAmsParticle( ACsoft::Analysis::Particle& particle ) const {
+
+  if( !particle.RawEvent()) return false;
   if( !particle.RawEvent()->Particles().size() ) return false;
   particle.fMainAmsParticle = &(particle.RawEvent()->Particles().at(0));
   return true;
 }
 
-bool Analysis::ParticleFactory::DefaultMainTrackerTrack ( Analysis::Particle& particle ) const {
+bool ACsoft::Analysis::ParticleFactory::DefaultMainTrackerTrack ( ACsoft::Analysis::Particle& particle ) const {
 
   if( !particle.MainAmsParticle() ) return false;
   Short_t trackIndex = particle.MainAmsParticle()->TrackerTrackIndex();
@@ -67,20 +118,24 @@ bool Analysis::ParticleFactory::DefaultMainTrackerTrack ( Analysis::Particle& pa
   return true;
 }
 
-bool Analysis::ParticleFactory::DefaultMainTrackerTrackFit ( Analysis::Particle& particle ) const {
+bool ACsoft::Analysis::ParticleFactory::DefaultMainTrackerTrackFit ( ACsoft::Analysis::Particle& particle ) const {
 
   const AC::TrackerTrack* trk = particle.MainTrackerTrack();
   if( !trk ) return false;
 
   // preferred fit
-  int iFit = trk->GetFit(1,0,5); // Fit[0]  Choutko algorithm (P3=1)  All Hits (P4=0) with MA ext alignment (P5=5):
+  int iFit = trk->GetFit(0,0,0);
+  particle.fTrackerTrackFitID = 0;
+  if(iFit<0){
+    iFit = trk->GetFit(1,0,5); // Fit[0]  Choutko algorithm (P3=1)  All Hits (P4=0) with MA ext alignment (P5=5):
+  }
   particle.fTrackerTrackFitID = 1;
   if(iFit<0){
-    iFit = trk->GetFit(1,3,3);   // Fit[0]  Choutko algorithm (P3=1)  Inn Hits (P4=3) Refit with new alignment (P5=3)
-    particle.fTrackerTrackFitID = 2;
+    iFit = trk->GetFit(1,0,4); // Fit[0]  Choutko algorithm (P3=1)  All Hits (P4=0) with PG ext alignment (P5=4):
   }
+  particle.fTrackerTrackFitID = 2;
   if(iFit<0){
-    iFit = trk->GetFit(1,3,1);   // Fit[0]  Choutko algorithm (P3=1)  Inn Hits (P4=3) default (P5=1)
+    iFit = trk->GetFit(1,3,3);   // Fit[0]  Choutko algorithm (P3=1)  Inn Hits (P4=3) Refit with new alignment (P5=3)
     particle.fTrackerTrackFitID = 3;
   }
   if (iFit<0) {
@@ -94,7 +149,7 @@ bool Analysis::ParticleFactory::DefaultMainTrackerTrackFit ( Analysis::Particle&
   return true;
 }
 
-bool Analysis::ParticleFactory::DefaultEcalShower ( Analysis::Particle& particle ) const {
+bool ACsoft::Analysis::ParticleFactory::DefaultEcalShower ( ACsoft::Analysis::Particle& particle ) const {
 
   if( !particle.MainAmsParticle() ) return false;
 
@@ -106,7 +161,7 @@ bool Analysis::ParticleFactory::DefaultEcalShower ( Analysis::Particle& particle
   return true;
 }
 
-bool Analysis::ParticleFactory::DefaultTofBeta ( Analysis::Particle& particle ) const {
+bool ACsoft::Analysis::ParticleFactory::DefaultTofBeta ( ACsoft::Analysis::Particle& particle ) const {
 
   if( !particle.MainAmsParticle() ) return false;
 
@@ -118,7 +173,7 @@ bool Analysis::ParticleFactory::DefaultTofBeta ( Analysis::Particle& particle ) 
   return true;
 }
 
-bool Analysis::ParticleFactory::DefaultMainTrdVTrack ( Analysis::Particle& particle ) const {
+bool ACsoft::Analysis::ParticleFactory::DefaultMainTrdVTrack ( ACsoft::Analysis::Particle& particle ) const {
 
   if( !particle.MainAmsParticle() ) return false;
 
@@ -130,6 +185,17 @@ bool Analysis::ParticleFactory::DefaultMainTrdVTrack ( Analysis::Particle& parti
   return true;
 }
 
+bool ACsoft::Analysis::ParticleFactory::DefaultMainRichRing ( ACsoft::Analysis::Particle& particle ) const {
+
+  if( !particle.MainAmsParticle() ) return false;
+
+  Short_t index = particle.MainAmsParticle()->RICHRingIndex();
+
+  if( index < 0 || size_t(index) >= particle.RawEvent()->RICH().Rings().size() ) return false;
+
+  particle.fMainRichRing = &(particle.RawEvent()->RICH().Rings().at(index));
+  return true;
+}
 
 /** Calculate the high-level objects in particle.
   *
@@ -141,12 +207,15 @@ bool Analysis::ParticleFactory::DefaultMainTrdVTrack ( Analysis::Particle& parti
   * \param[out] particle Particle to be filled.
   *
   */
-void Analysis::ParticleFactory::FillHighLevelObjects( Analysis::Particle& particle ) {
+void ACsoft::Analysis::ParticleFactory::FillHighLevelObjects( ACsoft::Analysis::Particle& particle ) {
 
   if( !particle.IsEmpty() ){
     WARN_OUT << "Attempt to fill non-empty particle. Aborting!" << std::endl;
     return;
   }
+
+  if( !particle.HasRawEventData() )
+    return;
 
   if( !particle.RawEvent() ){
     WARN_OUT << "No raw event has been set in particle. Aborting!" << std::endl;
@@ -155,7 +224,12 @@ void Analysis::ParticleFactory::FillHighLevelObjects( Analysis::Particle& partic
 
   // store SplineTrack
   if( particle.MainTrackerTrackFit() ){
-    Analysis::SplineTrack* splineTrack = fTrackFactory->CreateSplineTrackFrom(*(particle.MainTrackerTrackFit()));
+    ACsoft::Analysis::SplineTrack* splineTrack;
+    if (fFullDetectorTrack)
+      splineTrack = fTrackFactory->CreateSplineTrackFullDetectorFrom(*(particle.MainTrackerTrackFit()));
+    else
+      splineTrack = fTrackFactory->CreateSplineTrackFrom(*(particle.MainTrackerTrackFit()));
+
     particle.fSplineTrack = splineTrack;
 
     // store TrdHits
@@ -163,7 +237,7 @@ void Analysis::ParticleFactory::FillHighLevelObjects( Analysis::Particle& partic
 
       const AC::TRDRawHit& rhit = particle.RawEvent()->TRD().RawHits()[i];
 
-      Analysis::TrdHit hit = fTrdHitFactory->ProduceTrdHitFrom(rhit,*splineTrack,
+      ACsoft::Analysis::TrdHit hit = fTrdHitFactory->ProduceTrdHitFrom(rhit,*splineTrack,
                                                                particle.RawEvent()->EventHeader(),fStepsForTrdHits);
       particle.fTrdHits.push_back(hit);
 
@@ -171,5 +245,4 @@ void Analysis::ParticleFactory::FillHighLevelObjects( Analysis::Particle& partic
     }
   }
 }
-
 

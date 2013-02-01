@@ -9,6 +9,8 @@
 #include "TableStream.h"
 #include "Serialization.h"
 
+namespace ACsoft {
+
 namespace AC {
 
 /** Helper structure.
@@ -35,7 +37,7 @@ public:
 /** Helper function to create a TTimeStamp from a unix time & time fraction in microsends */
 static inline TTimeStamp ConstructTimeStamp(time_t unixTime, float timeFraction) {
 
-  return TTimeStamp(unixTime, TMath::Nint(timeFraction * 1000.0));
+  return TTimeStamp(unixTime, TMath::Nint(timeFraction * 1e9));
 }
 
 }
@@ -353,9 +355,12 @@ private:
   ADD_DUMP_OPERATORS(ClassName) \
   struct ClassName##Ignore {
 
-#endif
+}
 
 }
 
 #endif
+
+#endif
+
 #endif

@@ -1,5 +1,7 @@
 #include "ECALShower.h"
 
+namespace ACsoft {
+
 namespace AC {
 
 BEGIN_DEBUG_TABLE(ECALShower)
@@ -26,44 +28,6 @@ BEGIN_DEBUG_TABLE(ECALShower)
   COL( "Estimators\t\t\t\t", EstimatorsVector, Estimators)
 END_DEBUG_TABLE
 
-/** Writes this object into a QDataStream, which is used to produce ACQt files */
-QDataStream& operator<<(QDataStream& stream, const ECALShower& object) {
-
-  stream << object.fStatus << object.fNumberOfHits << object.fDepositedEnergy << object.fEnergyAt3CMRatio
-         << object.fReconstructedEnergy << object.fReconstructedEnergyError << object.fRelativeRearLeak
-         << object.fShowerMaximum << object.fChiSquareProfile << object.fTheta << object.fPhi
-         << object.fX << object.fY << object.fZ << object.fEntryX << object.fEntryY << object.fEntryZ
-         << object.fExitX << object.fExitY << object.fExitZ << object.fEstimators;
-  return stream;
-}
-
-/** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
-QDataStream& operator>>(QDataStream& stream, ECALShower& object) {
-
-  stream >> object.fStatus >> object.fNumberOfHits;
-
-  FloatArrayStream<18> floatStream(stream);
-  object.fDepositedEnergy = floatStream.read();
-  object.fEnergyAt3CMRatio = floatStream.read();
-  object.fReconstructedEnergy = floatStream.read();
-  object.fReconstructedEnergyError = floatStream.read();
-  object.fRelativeRearLeak = floatStream.read();
-  object.fShowerMaximum = floatStream.read();
-  object.fChiSquareProfile = floatStream.read();
-  object.fTheta = floatStream.read();
-  object.fPhi = floatStream.read();
-  object.fX = floatStream.read();
-  object.fY = floatStream.read();
-  object.fZ = floatStream.read();
-  object.fEntryX = floatStream.read();
-  object.fEntryY = floatStream.read();
-  object.fEntryZ = floatStream.read();
-  object.fExitX = floatStream.read();
-  object.fExitY = floatStream.read();
-  object.fExitZ = floatStream.read();
- 
-  stream >> object.fEstimators;
-  return stream;
 }
 
 }

@@ -2,6 +2,9 @@
 #define TOFCluster_h
 
 #include "Tools.h"
+#include "TOFCluster-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -10,17 +13,7 @@ namespace AC {
 class TOFCluster {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  TOFCluster()
-    : fStatus(0)
-    , fLayerBar(0)
-    , fX(0)
-    , fY(0)
-    , fZ(0)
-    , fTime(0)
-    , fTimeError(0)
-    , fEnergy(0) {
-
-  }
+  AC_TOFCluster_Variables
 
   /** Helper method dumping an TOFCluster object to the console
     */
@@ -80,17 +73,10 @@ public:
   }
 
 private:
-  UInt_t fStatus;     // TofCluster->Status
-  UChar_t fLayerBar;  // TofCluster->Layer|Bar
-  Float_t fX;         // TofCluster->Coo[0]
-  Float_t fY;         // TofCluster->Coo[1]
-  Float_t fZ;         // TofCluster->Coo[2]
-  Float_t fTime;      // TofCluster->Time
-  Float_t fTimeError; // TofCluster->ErrTime
-  Float_t fEnergy;    // TofCluster->Edep
-
   REGISTER_CLASS_WITH_TABLE(TOFCluster)
 };
+
+}
 
 }
 

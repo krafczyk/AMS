@@ -4,6 +4,9 @@
 #include <bitset>
 
 #include "Tools.h"
+#include "Trigger-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -12,18 +15,7 @@ namespace AC {
 class Trigger {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  Trigger()
-    : fTimeDifference(0)
-    , fBits(0)
-    , fJMembPatt(0)
-    , fLiveTime(0)
-    , fTriggerRateFT(0)
-    , fTriggerRateFTC(0)
-    , fTriggerRateFTZ(0)
-    , fTriggerRateFTE(0)
-    , fTriggerRateLV1(0) {
-
-  }
+  AC_Trigger_Variables
 
   /** Returns whether trigger information are available.
     */
@@ -157,18 +149,10 @@ private:
   std::bitset<8> ECALFlagsBitset() const { return std::bitset<8>(ECALFlags()); }
  
 private:
-  UShort_t fTimeDifference; // Level1->TrigTime[4]
-  UInt_t fBits;             // Level1->PhysBPatt|TofFlag1|TofFlag2|AntiPatt|EcalFlag
-  UShort_t fJMembPatt;      // Level1->JMembPatt
-  Float_t  fLiveTime;       // Level1->LiveTime
-  UShort_t fTriggerRateFT;  // Level1->TrigRates[0]
-  UShort_t fTriggerRateFTC; // Level1->TrigRates[1]
-  UShort_t fTriggerRateFTZ; // Level1->TrigRates[2]
-  UShort_t fTriggerRateFTE; // Level1->TrigRates[3]
-  UShort_t fTriggerRateLV1; // Level1->TrigRates[5]
-
   REGISTER_CLASS_WITH_TABLE(Trigger)
 };
+
+}
 
 }
 

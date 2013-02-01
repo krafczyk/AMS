@@ -1,0 +1,5 @@
+[Description]
+Namespace = AC
+Class = ECAL
+Members = \
+ ShowersVector fShowers

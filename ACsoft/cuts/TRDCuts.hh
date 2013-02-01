@@ -13,11 +13,12 @@ namespace Cuts {
 /** Cut on TRD number of raw hits in the event. */
 class CutTrdNumberOfRawHits : public TwoSidedCut {
 public:
-  CutTrdNumberOfRawHits(float minimumHits = 12., float maximumHits = 100.) :// FIXME remove defaults (remember to introduce private constructor with zero arguments!)
+  CutTrdNumberOfRawHits(float minimumHits, float maximumHits ) :
     TwoSidedCut( "Number of TRD raw hits", minimumHits, maximumHits) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) { return ValueIsInRange(p.RawEvent()->TRD().RawHits().size()); }
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) { return ValueIsInRange(p.NumberOfTrdRawHits()); }
 
+  CutTrdNumberOfRawHits() : TwoSidedCut("",0.,0.) {}
   ClassDef(Cuts::CutTrdNumberOfRawHits,1)
 };
 

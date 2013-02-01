@@ -1,21 +1,23 @@
 #include "ACQtProducer-include.C"
 
-bool ACQtProducer::ProduceTrigger() {
+bool ACsoft::ACQtProducer::ProduceTrigger() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
 
+  // Don't raise the broken event counter if no level1 trigger information are available, to keep processing the file.
+  // Happens on some of the earlier runs, where we exit after 100 broken events. Instead keep processing the file
+  // and hope it will recover again, if not, we'll throw the problematic events away anyway with our trigger-info-available
+  // preselection cut.
   if (fAMSEvent->nLevel1() != 1) {
-    WARN_OUT << "Problem building AC::Trigger: AMS ROOT File is broken! "
-             << "nLevel1() returned: " << fAMSEvent->nLevel1() << " expected: 1." << std::endl;
-    return false;
+    fEvent->fTrigger.Clear();
+    return true;
   }
 
   Level1R* pLevel1 = fAMSEvent->pLevel1(0);
   if (!pLevel1) {
-    WARN_OUT << "Problem building AC::Trigger: AMS ROOT File is broken! "
-             << "pLevel1(0) is null." << std::endl;
-    return false;
+    fEvent->fTrigger.Clear();
+    return true;
   }
 
   fEvent->fTrigger.fBits = AC::Trigger::GenerateBitsFromFlags(pLevel1->PhysBPatt, pLevel1->TofFlag1, pLevel1->TofFlag2, pLevel1->AntiPatt, pLevel1->EcalFlag);

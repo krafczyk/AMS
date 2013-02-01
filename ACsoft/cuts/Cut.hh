@@ -7,61 +7,69 @@
 #include <TObject.h>
 #include <TH1F.h>
 
+namespace ACsoft {
+
 namespace Analysis {
   class Particle;
+}
+
 }
 
 namespace Cuts {
 
 class Selector;
 
-/** Base class for cuts on event data.
+/** Base class for cuts on event and particle data.
   *
-  * All cuts used to select events should inherit from this class
+  * All cuts used to select particles should inherit from this class
   * and implement the TestCondition() method.
   *
   * A Cut can either be used as part of an Selector or as a standalone cut.
   * In the former case, advanced bookkeeping is done including N-1 statistics to study the
   * overlap between different cuts. The latter case is useful in situations that are strictly
   * sequential, i.e. one condition can only be tested if another one has been fulfilled before.
-  * Example: First check that a track fit exists, then check the track fit chisquared. In a situation
-  * like that, the Selector is not very useful. Instead, a ManualCut will usually be used.
   *
-  * Every cut can be implemented as a thin sub-class that inherits from this class, for example:
+  * Every cut is implemented as a thin sub-class that inherits from this class, for example:
   * \code
   * class CutSingleParticle : public Cut {
   * public:
   * CutSingleParticle() : Cut("SingleParticle") { }
   *
-  * virtual bool TestCondition( const Analysis::Particle& p ) { return p.RawEvent()->Particles().size() == 1; }
+  * virtual bool TestCondition( const ACsoft::Analysis::Particle& p ) { return p.RawEvent()->Particles().size() == 1; }
+  *
+  * ClassDef(Cuts::CutSingleParticle,1)
   * };
   * \endcode
   *
+  * Cuts operate on ACsoft::Analysis::Particle objects to give the user fine-grained control over the analyis. While this is natural for
+  * most of the cuts that we do, a few (especially preselecion) cuts only make sense in the context of an entire event (e.g., a cut on the
+  * number of tracker tracks), but this is a minor logical inconsistency that should not hurt analyses in any way.
   *
-  * \attention Every time the PassesEvent() function is called, the cut does its internal bookkeeping. The function must
+  * \attention Every time the Passes() function is called, the cut does its internal bookkeeping. The function must
   * therefore only be called in the main event loop or by the Selector.
   *
-  * \note Often, a cut has to rely on certain conditions that the event has to fulfill before the cut can be applied.
+  * \note Often, a cut has to rely on certain conditions that the particle has to fulfill before the cut can be applied.
   * It is important that the TestCondition() functions returns \c true if these conditions are not fulfilled, lest we
-  * do not get meaningful cut statistics if the cut is registered with an Selector. The following example illustrates
-  * the point:
+  * do not get meaningful cut statistics if the cut is registered with a Selector. The following example regarding a cut on ECAL energy
+  * illustrates the point:
   * \code
-  * class CutDowngoing : public Cut {
-  * public:
-  * CutDowngoing() : Cut("Downward-going particle") { }
+  * class CutEcalEnergy : public TwoSidedCut {
+  * (...)
+  * virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
   *
-  * virtual bool TestCondition( const Analysis::Particle& p ) {
-  *   if( p.RawEvent()->Particles().size() > 0 )
-  *     return p.Particles()[0].Momentum() > 0.5;
-  *   return true;
+  *   if( !p.MainEcalShower() ) return true;
+  *   return ValueIsInRange( p.MainEcalShower()->ReconstructedEnergy());
   * }
+  * (...)
   * };
   * \endcode
-  * We want to check if the main particle in the event (\c evt.Particles()[0]) has a velocity that indicates the particle as
-  * down-going. However, we have to test before whether evt.Particles()[0] even exists. If it does, we can apply the test on velocity
-  * and let the event pass or fail based on the result. But if the particle does not exist, this cut has no meaning and should
-  * not interfere with the other cuts. Instead, we should use a dedicated cut before, e.g. a CutSingleParticle, which makes sure
-  * that we do have a main event in all events that eventually pass the event selection. This procedure makes the N-1 statistics
+  * We want to check if the %ECAL energy in the shower associated with the given particle velocity falls inside a predefined range.
+  * However, we have to test before whether there even exists an associated shower. If there is, we can apply the test on energy
+  * and let the particle pass or fail based on the result. But if the shower does not exist, this cut cannot be applied and should
+  * not interfere with the other cuts. (Imagine you want to select proton candidates: If they do not have an %ECAL shower, all the better. If they do, we can cut on the energy
+  * and get rid of particles with a high (not proton-like) energy deposition in the %ECAL.) Instead, if we only want to consider particles that have an %ECAL shower,
+  * we should use a dedicated cut before, e.g. a CutHasEcalShower, which makes sure
+  * that we do have a main shower in all particles that eventually pass the selection. This procedure also makes the N-1 statistics
   * that the Selector does much more meaningful and precise.
   *
   * \sa Cuts::Selector
@@ -78,11 +86,11 @@ public:
   /** Decide if a particle passes the cut.
     *
     * This function internally calls the TestCondition() function of
-    * the individual cut to see if the event survives the cut. In addition,
-    * it does the bookkeeping on event statistics.
+    * the individual cut to see if the particle survives the cut. In addition,
+    * it does the bookkeeping on particle statistics.
     *
     */
-  bool Passes( const Analysis::Particle& );
+  bool Passes( const ACsoft::Analysis::Particle& );
 
   /** Print a summary of the cut statistics.
     *
@@ -136,7 +144,12 @@ protected:
     *
     * This function has to be implemented by all sub-classes.
     */
-  virtual bool TestCondition( const Analysis::Particle& ) = 0;
+  virtual bool TestCondition( const ACsoft::Analysis::Particle& ) = 0;
+
+  /** Helper function which aborts the program if a Cut that needs
+    * full ACQt data structures is applied to ACROOT files.
+    */
+  void AssureCutIsAppliedToACQtFile( const ACsoft::Analysis::Particle& );
 
 protected:
 
@@ -147,7 +160,7 @@ protected:
   long fTotalCounter;
   /// number of particles that have passed the cut
   long fPassedCounter;
-  /// number of events that have failed the cut
+  /// number of particles that have failed the cut
   long fFailedCounter;
 
   /// number of particles that have failed this cut but passed all others (needs grouping

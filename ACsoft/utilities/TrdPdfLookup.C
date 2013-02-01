@@ -13,12 +13,12 @@
 #define INFO_OUT_TAG "TrdPdfLookup> "
 #include <debugging.hh>
 
-const std::string Utilities::TrdPdfLookup::fParticleNames[fNumberOfParticles] = {"Electron", "Proton", "Helium", "Lithium", "Beryllium", "Boron", "Carbon"};
-const float Utilities::TrdPdfLookup::fRigidityLowerLimits[fNumberOfParticles] = {         1,        1,        1,         1,           1,     1,        1};
-const float Utilities::TrdPdfLookup::fRigidityUpperLimits[fNumberOfParticles] = {        60,      600,      600,       600,         600,   600,      600};
-const int Utilities::TrdPdfLookup::fNumberOfRigidityBins[fNumberOfParticles] =  {        10,       30,       30,        20,          20,    20,       20};
+const std::string ACsoft::Utilities::TrdPdfLookup::fParticleNames[fNumberOfParticles] = {"Electron", "Proton", "Helium", "Lithium", "Beryllium", "Boron", "Carbon"};
+const float ACsoft::Utilities::TrdPdfLookup::fRigidityLowerLimits[fNumberOfParticles] = {         1,        1,        1,         1,           1,     1,        1};
+const float ACsoft::Utilities::TrdPdfLookup::fRigidityUpperLimits[fNumberOfParticles] = {        60,      600,      600,       600,         600,   600,      600};
+const int ACsoft::Utilities::TrdPdfLookup::fNumberOfRigidityBins[fNumberOfParticles] =  {        10,       30,       30,        20,          20,    20,       20};
 
-Utilities::TrdPdfLookup::TrdPdfLookup() {
+ACsoft::Utilities::TrdPdfLookup::TrdPdfLookup() : fIdentifier(0) {
 
   const char* acrootlookups = getenv("ACROOTLOOKUPS");
   if( !acrootlookups ){
@@ -42,69 +42,68 @@ Utilities::TrdPdfLookup::TrdPdfLookup() {
       grPvalueNames[i] = "grTrdQt_pValue_ADCVsRigidity_" + fParticleNames[i];
   }
 
-  std::string lookupfile = AC::Settings::gTrdQtPdfFileName;
-  std::string expectedGitSHA = AC::Settings::gTrdQtPdfFileNameExpectedGitSHA;
-  unsigned short expectedVersion = AC::Settings::gTrdQtPdfFileNameExpectedVersion;
+  std::string lookupfile = ::AC::Settings::gTrdQtPdfFileName;
+  std::string expectedGitSHA = ::AC::Settings::gTrdQtPdfFileNameExpectedGitSHA;
+  unsigned short expectedVersion = ::AC::Settings::gTrdQtPdfFileNameExpectedVersion;
 
   std::stringstream filename;
   filename << acrootlookups << "/" << lookupfile;
   INFO_OUT << "Opening lookup file " << filename.str() << std::endl;
   TFile* file = new TFile( filename.str().c_str(), "READ" );
   if( !file->IsOpen() ){
-    WARN_OUT << "ERROR opening lookup file " << filename <<  std::endl;
+    WARN_OUT << "ERROR opening lookup file " << filename.str() <<  std::endl;
     throw std::runtime_error("ERROR opening lookup file.");
   }
 
   // FIXME: Once we've produced new lookups, always rely on the existance of a 'ACQtVersion' object!
-  AC::ACQtPDFLookupFileIdentifier* acqtVersion = (AC::ACQtPDFLookupFileIdentifier*) file->Get("ACQtPDFVersion");
-  assert(acqtVersion);
-  if (acqtVersion->fGitSHA != expectedGitSHA) {
-    WARN_OUT << "ERROR validating lookup file " << filename << ". File mismatch! Expected Git SHA: \""
-             << expectedGitSHA << "\". Actual Git SHA: \"" << acqtVersion->fGitSHA << "\"" << std::endl;
+  fIdentifier = (::AC::ACQtPDFLookupFileIdentifier*) file->Get("ACQtPDFVersion");
+  assert(fIdentifier);
+  if (fIdentifier->fGitSHA != expectedGitSHA) {
+    WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected Git SHA: \""
+             << expectedGitSHA << "\". Actual Git SHA: \"" << fIdentifier->fGitSHA << "\"" << std::endl;
     throw std::runtime_error("ERROR validating lookup file.");
   }
 
-  if (acqtVersion->fVersion != expectedVersion) {
-    WARN_OUT << "ERROR validating lookup file " << filename << ". File mismatch! Expected version: \""
-            << expectedVersion << "\". Actual version: \"" << acqtVersion->fVersion << "\"" << std::endl;
+  if (fIdentifier->fVersion != expectedVersion) {
+    WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected version: \""
+            << expectedVersion << "\". Actual version: \"" << fIdentifier->fVersion << "\"" << std::endl;
     throw std::runtime_error("ERROR validating lookup file.");
   }
 
-  fMinimumPathLengthForCandidateMatching = acqtVersion->fMinimumPathLengthForCandidateMatching;
-  fUseActiveStrawsForCandidateMatching = acqtVersion->fUseActiveStrawsForCandidateMatching;
+  fAddNearTrackHits = fIdentifier->fAddNearTrackHits;
 
   // FIXME: Hand out the TFile to SimpleGraphLookup, instead of opening the same file NumberOfParticle * 2 times seperated!
   for (int i=0; i<fNumberOfParticles; i++) {
-      PdfLookup[i]    = new Utilities::SimpleGraphLookup(lookupfile, expectedGitSHA, expectedVersion, grPdfNames[i],   "",0,nGraphs[i]-1, nBin[i]);
-      pValueLookup[i] = new Utilities::SimpleGraphLookup(lookupfile, expectedGitSHA, expectedVersion, grPvalueNames[i],"",0,nGraphs[i]-1, nBin[i]);
+      PdfLookup[i]    = new ACsoft::Utilities::SimpleGraphLookup(lookupfile, expectedGitSHA, expectedVersion, grPdfNames[i],   "",0,nGraphs[i]-1, nBin[i]);
+      pValueLookup[i] = new ACsoft::Utilities::SimpleGraphLookup(lookupfile, expectedGitSHA, expectedVersion, grPvalueNames[i],"",0,nGraphs[i]-1, nBin[i]);
   }
 }
 
 
-double Utilities::TrdPdfLookup::QueryXenonPressure(const TTimeStamp& time) {
+double ACsoft::Utilities::TrdPdfLookup::QueryXenonPressure(const TTimeStamp& time) {
 
-  static Utilities::SimpleGraphLookup pXeLookup(AC::Settings::gTrdQtSlowControlFileName,
-                                                AC::Settings::gTrdQtSlowControlFileNameExpectedGitSHA,
-                                                AC::Settings::gTrdQtSlowControlFileNameExpectedVersion,
+  static ACsoft::Utilities::SimpleGraphLookup pXeLookup(::AC::Settings::gTrdQtSlowControlFileName,
+                                                ::AC::Settings::gTrdQtSlowControlFileNameExpectedGitSHA,
+                                                ::AC::Settings::gTrdQtSlowControlFileNameExpectedVersion,
                                                 std::string("trd_online"), std::string("xe"));
   return pXeLookup.QueryTreeGraph(time);
 }
 
 
-int Utilities::TrdPdfLookup::GetXenonBin(const TTimeStamp& time) {
+int ACsoft::Utilities::TrdPdfLookup::GetXenonBin(const TTimeStamp& time) {
 
   double pressureXe = QueryXenonPressure(time);
-  return std::min(Utilities::TrdPdfLookup::fNumberOfXenonBins - 1,std::max(0,int((pressureXe-700.0)/50.0)));
+  return std::min(ACsoft::Utilities::TrdPdfLookup::fNumberOfXenonBins - 1,std::max(0,int((pressureXe-700.0)/50.0)));
 }
 
 
-int Utilities::TrdPdfLookup::GetXenonBin(const double pressureXe) {
+int ACsoft::Utilities::TrdPdfLookup::GetXenonBin(const double pressureXe) {
 
-  return std::min(Utilities::TrdPdfLookup::fNumberOfXenonBins - 1,std::max(0,int((pressureXe-700.0)/50.0)));
+  return std::min(ACsoft::Utilities::TrdPdfLookup::fNumberOfXenonBins - 1,std::max(0,int((pressureXe-700.0)/50.0)));
 }
 
 
-std::vector<double> Utilities::TrdPdfLookup::GetBinningForParticle(int particle) {
+std::vector<double> ACsoft::Utilities::TrdPdfLookup::GetBinningForParticle(int particle) {
 
   if (particle < 0 || particle >= fNumberOfParticles)
    return std::vector<double>();
@@ -112,7 +111,7 @@ std::vector<double> Utilities::TrdPdfLookup::GetBinningForParticle(int particle)
 }
 
 
-Utilities::TrdPdfLookup::~TrdPdfLookup() {
+ACsoft::Utilities::TrdPdfLookup::~TrdPdfLookup() {
 
   for (int i=0; i<fNumberOfParticles; i++) {
     if (PdfLookup[i]) delete PdfLookup[i];
@@ -133,12 +132,12 @@ Utilities::TrdPdfLookup::~TrdPdfLookup() {
   *
   * \todo explain where the global binning for the input parameters is defined
   */
-double Utilities::TrdPdfLookup::GetTrdPdfValue( unsigned int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const {
+double ACsoft::Utilities::TrdPdfLookup::GetTrdPdfValue( unsigned int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const {
 
   DEBUG_OUT << "Query: xe " << XenonBin << " rigBin " << rigidityBin << " layer " << layer << " dEdx: " << dEdX << " particle id " << pid << std::endl;
 
 #ifndef AMS_ACQT_SILENCE_COMMON_WARNINGS
-  static int nWarnings = 0;
+  static long long nWarnings = 0;
 #endif
 
   unsigned int graphNumber = 0;
@@ -198,12 +197,12 @@ double Utilities::TrdPdfLookup::GetTrdPdfValue( unsigned int XenonBin, unsigned 
   *
   * \todo explain where the global binning for the input parameters is defined
   */
-double Utilities::TrdPdfLookup::GetTrdPvalue( unsigned int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const {
+double ACsoft::Utilities::TrdPdfLookup::GetTrdPvalue( unsigned int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const {
 
   DEBUG_OUT << "Query: xe " << XenonBin << " rigBin " << rigidityBin << " layer " << layer << " dEdx: " << dEdX << " particle id " << pid << std::endl;
 
 #ifndef AMS_ACQT_SILENCE_COMMON_WARNINGS
-  static int nWarnings = 0;
+  static long long nWarnings = 0;
 #endif
 
   unsigned int graphNumber = 0;

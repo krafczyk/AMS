@@ -1,5 +1,7 @@
 #include "TOF.h"
 
+namespace ACsoft {
+
 namespace AC {
 
 BEGIN_DEBUG_OUTPUT(TOF)
@@ -7,7 +9,7 @@ BEGIN_DEBUG_OUTPUT(TOF)
   DUMP(Clusters)
 END_DEBUG_OUTPUT
 
-void TOF::Clear(Option_t *) {
+void TOF::Clear() {
 
   fBetas.clear();
   fClusters.clear();
@@ -34,18 +36,6 @@ Float_t TOF::CalculateMaximumEnergy(const TOFBeta& beta) const {
   return max;
 }
 
-/** Writes this object into a QDataStream, which is used to produce ACQt files */
-QDataStream& operator<<(QDataStream& stream, const TOF& object) {
-
-  stream << object.fBetas << object.fClusters;
-  return stream;
-}
-
-/** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
-QDataStream& operator>>(QDataStream& stream, TOF& object) {
-
-  stream >> object.fBetas >> object.fClusters;
-  return stream;
 }
 
 }

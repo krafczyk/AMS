@@ -15,7 +15,14 @@ class CutTriggerInformationAvailable : public Cut {
 public:
   CutTriggerInformationAvailable() : Cut( "Trigger information available" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) { return p.RawEvent()->Trigger().HasData(); }
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+
+    if (p.HasRawEventData())
+      return p.RawEvent()->Trigger().HasData();
+
+    // For ACROOT files trigger information are available if both life time & rate is available.
+    return p.TriggerLiveTime() != -1 && p.TriggerRate() != -1;
+  }
 
   ClassDef(Cuts::CutTriggerInformationAvailable,1)
 };
@@ -25,12 +32,12 @@ public:
   */
 class CutTriggerLiveTime : public Cut {
 public:
-  CutTriggerLiveTime() : Cut( "Trigger livetime" ) { }
+  CutTriggerLiveTime() : Cut( "Trigger LiveTime" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.RawEvent()->Trigger().HasData() ) return true;
-    return p.RawEvent()->Trigger().LiveTime() > 0.65; }
+    return p.TriggerLiveTime() == -1 || p.TriggerLiveTime() > 0.65;
+  }
 
   ClassDef(Cuts::CutTriggerLiveTime,1)
 };
@@ -40,10 +47,9 @@ class CutTriggerRate : public Cut {
 public:
   CutTriggerRate() : Cut( "Trigger rate") { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.RawEvent()->Trigger().HasData() ) return true;
-    return p.RawEvent()->Trigger().LiveTime() > 0.5 && p.RawEvent()->Trigger().TriggerRateFT() < 4000.0;
+    return p.TriggerRate() == -1 || p.TriggerRate() < 4000.0;
   }
 
   ClassDef(Cuts::CutTriggerRate,1)

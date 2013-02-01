@@ -14,7 +14,7 @@
 #define INFO_OUT_TAG "TimeHistogramManager> "
 #include <debugging.hh>
 
-Utilities::TimeHistogramManager::TimeHistogramManager():
+ACsoft::Utilities::TimeHistogramManager::TimeHistogramManager():
   fTimeOfFirstEvent(TTimeStamp(0,0)),
   fTimeOfLastEvent(TTimeStamp(0,0)),
   fIsValid(false),
@@ -33,7 +33,7 @@ Utilities::TimeHistogramManager::TimeHistogramManager():
   *
   * \returns \c False if an error occurred.
   */
-bool Utilities::TimeHistogramManager::GetTimeBinning( int& nbins, double& xmin, double& xmax ) const {
+bool ACsoft::Utilities::TimeHistogramManager::GetTimeBinning( int& nbins, double& xmin, double& xmax ) const {
 
   if( !fIsValid ){
     WARN_OUT << "ERROR: Times of first and last event have not been set!" << std::endl;
@@ -61,7 +61,7 @@ bool Utilities::TimeHistogramManager::GetTimeBinning( int& nbins, double& xmin, 
   *
   * This function is called by the \c ac_merge tool.
   */
-TH1* Utilities::TimeHistogramManager::Merge1DTimeHistograms( std::vector<TH1*>& histos ) {
+TH1* ACsoft::Utilities::TimeHistogramManager::Merge1DTimeHistograms( std::vector<TH1*>& histos ) {
 
   if( histos.empty() ) return 0;
 
@@ -140,7 +140,7 @@ TH1* Utilities::TimeHistogramManager::Merge1DTimeHistograms( std::vector<TH1*>& 
   *
   * This function is called by the \c ac_merge tool.
   */
-TH2* Utilities::TimeHistogramManager::Merge2DTimeHistograms( std::vector<TH2*>& histos ) {
+TH2* ACsoft::Utilities::TimeHistogramManager::Merge2DTimeHistograms( std::vector<TH2*>& histos ) {
 
   if( histos.empty() ) return 0;
 
@@ -157,13 +157,16 @@ TH2* Utilities::TimeHistogramManager::Merge2DTimeHistograms( std::vector<TH2*>& 
 
     TH2* histo = histos[i];
 
+    DEBUG_OUT << "Histo " << i << ", name \"" << histo->GetName() << "\": " << histo->GetNbinsX() << " bins, width " << histo->GetXaxis()->GetBinWidth(1)
+	      << " from " << histo->GetXaxis()->GetXmin() << " to " << histo->GetXaxis()->GetXmax() << std::endl;
+ 
+
     assert( fabs(firstHisto->GetXaxis()->GetBinWidth(1) - histo->GetXaxis()->GetBinWidth(1)) < 1e-4 );
     assert( firstHisto->GetNbinsY() == histo->GetNbinsY() );
     assert( fabs( firstHisto->GetYaxis()->GetXmin() - histo->GetYaxis()->GetXmin() ) < 1e-4 );
     assert( fabs( firstHisto->GetYaxis()->GetXmax() - histo->GetYaxis()->GetXmax() ) < 1e-4 );
     assert( std::string(firstHisto->IsA()->GetName()) == std::string(histo->IsA()->GetName()) );
 
-    DEBUG_OUT << "Found histo: " << histo->GetNbinsX() << " bins, width " << histo->GetXaxis()->GetBinWidth(1) << " from " << histo->GetXaxis()->GetXmin() << " to " << histo->GetXaxis()->GetXmax() << std::endl;
 
     if( histo->GetXaxis()->GetXmin() < firstTime )
       firstTime = histo->GetXaxis()->GetXmin();
@@ -285,9 +288,7 @@ TH2* Utilities::TimeHistogramManager::Merge2DTimeHistograms( std::vector<TH2*>& 
   *
   * This function is called by the \c ac_merge tool.
   */
-TH3* Utilities::TimeHistogramManager::Merge3DTimeHistograms( std::vector<TH3*>& histos ) {
-
-  WARN_OUT << "Merging of 3D histos not really tested yet..." << std::endl;
+TH3* ACsoft::Utilities::TimeHistogramManager::Merge3DTimeHistograms( std::vector<TH3*>& histos ) {
 
   if( histos.empty() ) return 0;
 
@@ -404,7 +405,7 @@ TH3* Utilities::TimeHistogramManager::Merge3DTimeHistograms( std::vector<TH3*>& 
   * The time range for the current analysis will then be fixed and a time binning can be calculated.
   *
   */
-void Utilities::TimeHistogramManager::SetFirstAndLastEventTimes( TTimeStamp first, TTimeStamp last ) {
+void ACsoft::Utilities::TimeHistogramManager::SetFirstAndLastEventTimes( TTimeStamp first, TTimeStamp last ) {
 
   if(fIsValid)
     WARN_OUT << "Overriding existing timestamps!" << std::endl;
@@ -417,14 +418,14 @@ void Utilities::TimeHistogramManager::SetFirstAndLastEventTimes( TTimeStamp firs
 
 /** Reset TimeHistogramManager to initial state.
   */
-void Utilities::TimeHistogramManager::Reset() {
+void ACsoft::Utilities::TimeHistogramManager::Reset() {
 
   fTimeOfFirstEvent = TTimeStamp(0, 0);
   fTimeOfLastEvent = TTimeStamp(0, 0);
   fIsValid = false;
 }
 
-const TTimeStamp& Utilities::TimeHistogramManager::GetTimeOfFirstEvent() const {
+const TTimeStamp& ACsoft::Utilities::TimeHistogramManager::GetTimeOfFirstEvent() const {
 
   if( !fIsValid )
     WARN_OUT << "ERROR: Time of first event has not been set!" << std::endl;
@@ -432,12 +433,10 @@ const TTimeStamp& Utilities::TimeHistogramManager::GetTimeOfFirstEvent() const {
   return fTimeOfFirstEvent;
 }
 
-
-const TTimeStamp& Utilities::TimeHistogramManager::GetTimeOfLastEvent() const {
+const TTimeStamp& ACsoft::Utilities::TimeHistogramManager::GetTimeOfLastEvent() const {
 
   if( !fIsValid )
     WARN_OUT << "ERROR: Time of last event has not been set!" << std::endl;
 
   return fTimeOfLastEvent;
 }
-

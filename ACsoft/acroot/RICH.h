@@ -2,6 +2,9 @@
 #define RICH_h
 
 #include "RICHRing.h"
+#include "RICH-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -13,7 +16,7 @@ public:
   /** A vector of RICHRing objects */
   typedef Vector<RICHRing, 4> RingsVector;
 
-  RICH() { }
+  AC_RICH_Variables
 
   /** Helper method dumping an RICH object to the console
     */
@@ -21,17 +24,17 @@ public:
 
   /** Clear RICH to the initial empty state, as it was just constructed.
     */
-  void Clear(Option_t * /*option*/ ="");
+  void Clear();
 
   /** Accessors for the RICHRing objects.
     */
   const RingsVector& Rings() const { return fRings; }
 
 private:
-  RingsVector fRings;
-
   REGISTER_CLASS(RICH)
 };
+
+}
 
 }
 

@@ -11,7 +11,7 @@ public:
 
   Palette() { }
 
-  static void UseNicePaletteWithLessGreen();
+  static int UseNicePaletteWithLessGreen();
 
   ClassDef(Utilities::Palette,0)
 };

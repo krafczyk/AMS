@@ -6,6 +6,8 @@ class TGraph;
 class TGraphAsymmErrors;
 class TH1D;
 
+namespace ACsoft {
+
 namespace Analysis {
 
 /** Class that calculates efficiencies, rejections, and positron fractions with correct uncertainties.
@@ -59,12 +61,14 @@ public:
   }
   void CalculateRejectionKoopman(double passKeeper, double totalKeeper, double passRejects, double totalRejects, double &Rej, double &dRej_upper, double &dRej_lower);
   TGraphAsymmErrors* CalculateRejectionKoopman(TH1I* passKeeper, TH1I* totalKeeper, TH1I* passRejects, TH1I* totalRejects);
-	
-	TH1D* CalculatePositronFraction(double Nleptons, double Eleptons, double Npositrons, double Epositrons, double Nprotons, double Eprotons,double &fraction, double &dFrac_upper, double &dFrac_lower);
 
-	TH1D* CalculatePositronFraction(int Nleptons, double Eleptons, int Npositrons, double Epositrons, int Nprotons, double Eprotons,double &fraction, double &dFrac_upper, double &dFrac_lower){
+  TH1D* CalculatePositronFraction(double Nleptons, double Eleptons, double Npositrons, double Epositrons, double Nprotons, double Eprotons,double &fraction, double &dFrac_upper, double &dFrac_lower);
+
+  TH1D* CalculatePositronFraction(int Nleptons, double Eleptons, int Npositrons, double Epositrons, int Nprotons, double Eprotons,double &fraction, double &dFrac_upper, double &dFrac_lower){
 		return CalculatePositronFraction((double)Nleptons,Eleptons,(double)Npositrons,Epositrons,(double)Nprotons,Eprotons,fraction,dFrac_upper,dFrac_lower);
 	}
+
+  double CalculateSimpleFraction(double primary, double secondary, double &dYup, double &dYlow);
 
 private:
 
@@ -80,6 +84,8 @@ protected:
   int fNrandoms;       ///< Number of Random numbers sampled in calculation of dRejection
 
 };
+
+}
 
 }
 

@@ -43,13 +43,13 @@
   * \endcode
   *
   */
-Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string lookupfile, std::string expectedGitSHA, unsigned short expectedVersion, std::string namePrefix, std::string uncertaintyPrefix, unsigned int nMin, unsigned int nMax, unsigned int mod2D ) :
+ACsoft::Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string lookupfile, std::string expectedGitSHA, unsigned short expectedVersion, std::string namePrefix, std::string uncertaintyPrefix, unsigned int nMin, unsigned int nMax, unsigned int mod2D ) :
   fNumberOffset(nMin),
   fModulus2D(mod2D),
   fHasUncertainties(false),
   fLastQueryOk(true)
 {
-
+  // FIXME Document expectedGitSHA and expectedVersion parameters
   const char* acrootlookups = getenv("ACROOTLOOKUPS");
   if( !acrootlookups ){
     WARN_OUT << "ACROOTLOOKUPS variable not set!" << std::endl;
@@ -61,7 +61,7 @@ Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string lookupfile, std::st
   INFO_OUT << "Opening lookup file " << filename.str() << " to read \"" << namePrefix << "\"" << std::endl;
   TFile* file = new TFile( filename.str().c_str(), "READ" );
   if( !file->IsOpen() ){
-    WARN_OUT << "ERROR opening lookup file " << filename <<  std::endl;
+    WARN_OUT << "ERROR opening lookup file " << filename.str() <<  std::endl;
     throw std::runtime_error("ERROR opening lookup file.");
   }
 
@@ -69,15 +69,17 @@ Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string lookupfile, std::st
   AC::ACQtLookupFileIdentifier* acqtVersion = (AC::ACQtLookupFileIdentifier*) file->Get("ACQtVersion");
   if (acqtVersion) {
     if (acqtVersion->fGitSHA != expectedGitSHA) {
-      WARN_OUT << "ERROR validating lookup file " << filename << ". File mismatch! Expected Git SHA: \""
+      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected Git SHA: \""
                << expectedGitSHA << "\". Actual Git SHA: \"" << acqtVersion->fGitSHA << "\"" << std::endl;
-      throw std::runtime_error("ERROR validating lookup file.");
+      if( expectedGitSHA != std::string("0") )
+        throw std::runtime_error("ERROR validating lookup file.");
     }
 
     if (acqtVersion->fVersion != expectedVersion) {
-      WARN_OUT << "ERROR validating lookup file " << filename << ". File mismatch! Expected version: \""
+      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected version: \""
                << expectedVersion << "\". Actual version: \"" << acqtVersion->fVersion << "\"" << std::endl;
-      throw std::runtime_error("ERROR validating lookup file.");
+      if( expectedVersion != std::string("0") )
+        throw std::runtime_error("ERROR validating lookup file.");
     }
   }
 
@@ -96,7 +98,7 @@ Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string lookupfile, std::st
 /** Construct a lookup from a tree stored in a ROOT file.
  *
  */
-Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string treefile, std::string expectedGitSHA, unsigned short expectedVersion,
+ACsoft::Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string treefile, std::string expectedGitSHA, unsigned short expectedVersion,
                                                  std::string treename, std::string nameOfYBranch ) :
   fNumberOffset(0),
   fHasUncertainties(false),
@@ -126,13 +128,13 @@ Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string treefile, std::stri
   AC::ACQtLookupFileIdentifier* acqtVersion = (AC::ACQtLookupFileIdentifier*) file->Get("ACQtVersion");
   if (acqtVersion) {
     if (acqtVersion->fGitSHA != expectedGitSHA) {
-      WARN_OUT << "ERROR validating lookup file " << filename << ". File mismatch! Expected Git SHA: \""
+      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected Git SHA: \""
                << expectedGitSHA << "\". Actual Git SHA: \"" << acqtVersion->fGitSHA << "\"" << std::endl;
       throw std::runtime_error("ERROR validating lookup file.");
     }
 
     if (acqtVersion->fVersion != expectedVersion) {
-      WARN_OUT << "ERROR validating lookup file " << filename << ". File mismatch! Expected version: \""
+      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected version: \""
                << expectedVersion << "\". Actual version: \"" << acqtVersion->fVersion << "\"" << std::endl;
       throw std::runtime_error("ERROR validating lookup file.");
     }
@@ -179,7 +181,7 @@ Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string treefile, std::stri
 }
 
 
-Utilities::SimpleGraphLookup::~SimpleGraphLookup() {
+ACsoft::Utilities::SimpleGraphLookup::~SimpleGraphLookup() {
 
   for( unsigned int i=0 ; i<fGraphs.size() ; ++i )
     if( fGraphs[i] )
@@ -191,7 +193,7 @@ Utilities::SimpleGraphLookup::~SimpleGraphLookup() {
 }
 
 
-void Utilities::SimpleGraphLookup::LoadGraphs( TFile* file, std::string prefix, unsigned int nMin, unsigned int nMax, std::vector<TGraph*>& target ) {
+void ACsoft::Utilities::SimpleGraphLookup::LoadGraphs( TFile* file, std::string prefix, unsigned int nMin, unsigned int nMax, std::vector<TGraph*>& target ) {
 
   assert(nMin<=nMax);
 
@@ -223,7 +225,7 @@ void Utilities::SimpleGraphLookup::LoadGraphs( TFile* file, std::string prefix, 
   * This can be used to represent a 2D lookup structure in our 1D-vector of TGraphs.
   *
   */
-std::string Utilities::SimpleGraphLookup::Suffix( unsigned int graphNumber ) {
+std::string ACsoft::Utilities::SimpleGraphLookup::Suffix( unsigned int graphNumber ) {
 
   std::stringstream suf;
 
@@ -246,7 +248,7 @@ std::string Utilities::SimpleGraphLookup::Suffix( unsigned int graphNumber ) {
  *
  * Check that number of points in graphs and x positions match.
  */
-bool Utilities::SimpleGraphLookup::TestConsistency() {
+bool ACsoft::Utilities::SimpleGraphLookup::TestConsistency() {
 
   const Double_t tolerance = 1.e-4;
 
@@ -293,10 +295,15 @@ bool Utilities::SimpleGraphLookup::TestConsistency() {
   * Returns zero in case lookup graph has no entries.
   *
   */
-Quantity Utilities::SimpleGraphLookup::Query( unsigned int number, double x, bool needUncertainty ) const {
+ACsoft::Utilities::Quantity ACsoft::Utilities::SimpleGraphLookup::Query( unsigned int number, double x, bool needUncertainty ) const {
 
   unsigned int index = number - fNumberOffset;
   TGraph* gr    = fGraphs.at(index);
+  if(!gr) {
+    DEBUG_OUT << "Lookupg graph " << number << " missing." << std::endl;
+    fLastQueryOk = false;
+    return Quantity(0.,0.);
+  }
   TGraph* uncgr = ( fHasUncertainties && needUncertainty ? fUncertaintyGraphs.at(index) : 0 );
 
   if(!gr->GetN()){
@@ -391,7 +398,7 @@ Quantity Utilities::SimpleGraphLookup::Query( unsigned int number, double x, boo
   *
   * \returns Distance (in units of x-axis values), or a negative value if two neighbouring points cannot be found.
   */
-Double_t Utilities::SimpleGraphLookup::DistanceBetweenPoints( unsigned int number, double x ) const {
+Double_t ACsoft::Utilities::SimpleGraphLookup::DistanceBetweenPoints( unsigned int number, double x ) const {
 
   unsigned int index = number - fNumberOffset;
   TGraph* gr    = fGraphs.at(index);
@@ -430,7 +437,7 @@ Double_t Utilities::SimpleGraphLookup::DistanceBetweenPoints( unsigned int numbe
   *
   * \param number Integer used in the name of the lookup graph, i.e. must be within the interval [\c nMin,\c nMax] used when constructing the lookup.
   */
-Int_t Utilities::SimpleGraphLookup::NumberOfEntries( unsigned int number ) const {
+Int_t ACsoft::Utilities::SimpleGraphLookup::NumberOfEntries( unsigned int number ) const {
 
   unsigned int index = number - fNumberOffset;
   TGraph* gr = fGraphs.at(index);
@@ -443,7 +450,7 @@ Int_t Utilities::SimpleGraphLookup::NumberOfEntries( unsigned int number ) const
   *
   * \param number Integer used in the name of the lookup graph, i.e. must be within the interval [\c nMin,\c nMax] used when constructing the lookup.
   */
-Double_t Utilities::SimpleGraphLookup::FirstEntryX( unsigned int number ) const {
+Double_t ACsoft::Utilities::SimpleGraphLookup::FirstEntryX( unsigned int number ) const {
 
   unsigned int index = number - fNumberOffset;
   TGraph* gr = fGraphs.at(index);
@@ -466,7 +473,7 @@ Double_t Utilities::SimpleGraphLookup::FirstEntryX( unsigned int number ) const 
   *
   * \param number Integer used in the name of the lookup graph, i.e. must be within the interval [\c nMin,\c nMax] used when constructing the lookup.
   */
-Double_t Utilities::SimpleGraphLookup::LastEntryX( unsigned int number ) const {
+Double_t ACsoft::Utilities::SimpleGraphLookup::LastEntryX( unsigned int number ) const {
 
   unsigned int index = number - fNumberOffset;
   TGraph* gr = fGraphs.at(index);

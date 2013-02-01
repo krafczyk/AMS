@@ -4,6 +4,9 @@
 #include "MCEventGenerator.h"
 #include "MCTrack.h"
 #include "MCTRDHit.h"
+#include "MC-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -23,7 +26,7 @@ public:
   /** A vector of MCTRDHit objects */
   typedef Vector<MCTRDHit, 1> TRDHitsVector;
 
-  MC() { }
+  AC_MC_Variables
 
   /** Helper method dumping an MC object to the console
     */
@@ -31,7 +34,7 @@ public:
 
   /** Clear MC to the initial empty state, as it was just constructed.
     */
-  void Clear(Option_t * /*option*/ ="");
+  void Clear();
 
   /** Accessors for the MCEventGenerator objects.
     */
@@ -46,12 +49,10 @@ public:
   const TRDHitsVector& TRDHits() const { return fTRDHits; }
 
 private:
-  EventGeneratorsVector fEventGenerators;
-  TracksVector fTracks;
-  TRDHitsVector fTRDHits;
-
   REGISTER_CLASS(MC)
 };
+
+}
 
 }
 

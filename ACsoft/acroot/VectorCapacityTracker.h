@@ -63,6 +63,8 @@ static inline std::string currentBacktrace() {
 #define PRETTY_PRINT_TYPE(x) 
 #endif
 
+namespace ACsoft {
+
 namespace AC {
 
 class VectorCapacityTracker {
@@ -138,5 +140,8 @@ static inline void checkInlineCapacity(size_t size, size_t inlineCapacity) {
 
 }
 
+}
+
 #endif
+
 #endif

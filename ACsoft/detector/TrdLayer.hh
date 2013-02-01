@@ -6,6 +6,8 @@
 
 #include <vector>
 
+namespace ACsoft {
+
 namespace Detector {
 
 class TrdSublayer;
@@ -75,4 +77,6 @@ private:
   Trd* fMother;         ///< pointer to mother volume
 };
 }
+}
+
 #endif // TRDLAYER_HH

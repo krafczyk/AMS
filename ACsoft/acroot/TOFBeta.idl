@@ -1,0 +1,10 @@
+[Description]
+Namespace = AC
+Class = TOFBeta
+Members = \
+  Float_t fBeta                                     \
+  Float_t fBetaError                                \
+  [53-ChargesVector fCharges]                       \
+  [53-ChargesProbabilityVector fChargesProbability] \
+  ChargesNewVector fChargesNew                      \
+  ClusterIndexVector fTOFClusterIndex

@@ -1,0 +1,17 @@
+[Description]
+Namespace = AC
+Class = RunHeader
+Members = \
+  UShort_t fRunTag                 \
+  Int_t fRun                       \
+  Int_t fTotalAMSEvents            \
+  TTimeStamp fFirstEventTimeStamp  \
+  TTimeStamp fLastEventTimeStamp   \
+  UShort_t fTRDHighVoltage         \
+  UShort_t fAMSPatchVersion        \
+  Char_t fAMSPassNumber            \
+  UChar_t fACRootVersion           \
+  TTimeStamp fProducerJobTimeStamp \
+  std::string fAMSRootFileName     \
+  std::string fGitSHA              \
+  StreamsVector fSelectedStreams

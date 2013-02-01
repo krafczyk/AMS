@@ -1,5 +1,7 @@
 #include "Trigger.h"
 
+namespace ACsoft {
+
 namespace AC {
 
 BEGIN_DEBUG_TABLE(Trigger)
@@ -31,26 +33,6 @@ void Trigger::Clear() {
   fTriggerRateLV1 = 0;
 }
 
-/** Writes this object into a QDataStream, which is used to produce ACQt files */
-QDataStream& operator<<(QDataStream& stream, const Trigger& object) {
-
-  stream << object.fTimeDifference << object.fBits << object.fJMembPatt << object.fLiveTime << object.fTriggerRateFT
-         << object.fTriggerRateFTC << object.fTriggerRateFTZ << object.fTriggerRateFTE << object.fTriggerRateLV1;
-  return stream;
-}
-
-/** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
-QDataStream& operator>>(QDataStream& stream, Trigger& object) {
-
-  stream >> object.fTimeDifference >> object.fBits >> object.fJMembPatt >> object.fLiveTime;
-
-  UShortArrayStream<5> ushortStream(stream);
-  object.fTriggerRateFT = ushortStream.read();
-  object.fTriggerRateFTC = ushortStream.read();
-  object.fTriggerRateFTZ = ushortStream.read();
-  object.fTriggerRateFTE = ushortStream.read();
-  object.fTriggerRateLV1 = ushortStream.read();
-  return stream;
 }
 
 }

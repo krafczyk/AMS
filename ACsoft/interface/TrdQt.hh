@@ -6,6 +6,7 @@
 // DIRECTORIES NEEDED IN THE AMS MAKEFILES. USE CLASS FORWARDS ONLY!
 #include <vector>
 #include <TTimeStamp.h>
+#include <TVector3.h>
 #include <Settings.h>
 
 #ifdef AMS_ACQT_INTERFACE
@@ -13,9 +14,12 @@ class AMSEventR;
 class TrTrackR;
 #endif
 
+namespace ACsoft {
+
 namespace Analysis {
   class TrdHit;
   struct TRDCandidateHit;
+  struct TrackFitResult;
   class Particle;
 }
 
@@ -149,6 +153,9 @@ public:
   /** Returns the number of active layers, those candidate layers with straws that have a non-zero ADC count. */
   unsigned short GetNumberOfActiveLayers() const;
 
+  /** Returns the number of unassigned hits. Unlike GetUnassignedHits() this function is available on reduced ACROOT files. */
+  unsigned short GetNumberOfUnassignedHits() const;
+
   /** Returns the total expected path length in the TRD in cm. */
   float GetCandidatePathLength() const;
 
@@ -173,6 +180,16 @@ public:
   /** Returns the log-likelihood ratios for particle id N against protons. */
   const std::vector<double>& LogLikelihoodRatiosProtons() const;
 
+  /** Returns the log-likelihood ratios for protons against electrons.
+    * Unlike the general LogLikelihoodRatiosProtonToyMC() accessor this is available on ACROOT files as well.
+    **/
+  void GetLogLikelihoodRatiosElectronsProtonsToyMC(std::vector<float>&) const;
+
+  /** Returns the log-likelihood ratios for electrons against helium.
+    * Unlike the general LogLikelihoodRatiosElectronsToyMC() accessor this is available on ACROOT files as well.
+    **/
+  void GetLogLikelihoodRatiosHeliumElectronToyMC(std::vector<float>&) const;
+
   /** Returns the log-likelihood ratios for particle id N against electrons for toy MC.
     *
     * First index: i-th toyMC event
@@ -190,6 +207,22 @@ public:
   /** Returns the p-value for various particle hypotheses. (Still experimental.) */
   const std::vector<double>& GetPvalueVector() const;
 
+  /** Returns the result from the TRD internal track fit combined withe the seed tracker track in the XZ-Plane for direction=0 and in the YZ-Plane for direction=1*/
+  const Analysis::TrackFitResult& GetTrdTrackCombinedFit(unsigned int direction) const;
+
+  /** Returns the result from the TRD internal track fit in the XZ-Plane for direction=0 and in the YZ-Plane for direction=1*/
+  const Analysis::TrackFitResult& GetTrdTrackStandAloneFit(unsigned int direction) const;
+
+  /** Returns the result from the fit of the spline tracker track with a straight line XZ-Plane for direction=0 and in the YZ-Plane for direction=1*/
+  const Analysis::TrackFitResult& GetTrkTrackFit(unsigned int direction) const;
+
+  /** Returns the angle between the TRD stand alone track and the tracker track at the upper ToF in the XZ-Plane for direction=0 and in the YZ-Plane for direction=1*/
+  float GetTrdTrkAngle(unsigned int direction) const;
+
+  /** Returns \f$ -log(\frac{L_e}{L_e+L_p}) \f$, where \f$L_e\f$ is the electron likelihood and \f$L_p\f$ is the proton likelihood
+    * and the rigidity is following a uniform random distribution.*/
+  void GetLogLikelihoodRatioElectronProtonRandom(std::vector<float>&) const;
+
 private:
   friend class TrdQtPrivate;
   Double_t FunPDF(Double_t* x, Double_t* parameters);
@@ -200,9 +233,14 @@ private:
   void CalculateLikelihoods(float aRig, const TTimeStamp&);
   void CalculatePvalues(float aRig, const TTimeStamp&);
   void CalculateToyMcLikelihoods(float aRig, const TTimeStamp&, int particleId);
+  void CalculateRandomLikelihoods(const TTimeStamp& time);
 
   class TrdQtPrivate;
   TrdQtPrivate* d;
 };
+
+}
+
+using ACsoft::TrdQt;
 
 #endif // TrdQt_hh

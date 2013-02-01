@@ -3,16 +3,22 @@
 #include "pathlength_functions.hh"
 
 #include <TMath.h>
+#include <TGraph.h>
+
 #include <assert.h>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "SplineTrack> "
 #include <debugging.hh>
 
-Analysis::SplineTrack::SplineTrack() :
-  fSource(Analysis::none),
+bool ACsoft::Analysis::SplineTrack::WarnOutOfBounds = true;
+
+ACsoft::Analysis::SplineTrack::SplineTrack() :
+  fSource(ACsoft::Analysis::none),
   fRigidity(0.0),
-  fRigidityUncertainty(0.0)
+  fRigidityUncertainty(0.0),
+  fDrawGraphXZ(0),
+  fDrawGraphYZ(0)
 {
 }
 
@@ -20,7 +26,7 @@ Analysis::SplineTrack::SplineTrack() :
   *
   *  \param z z-coordinate (cm)
   */
-TVector3 Analysis::SplineTrack::InterpolateToZ( Double_t z ) const {
+TVector3 ACsoft::Analysis::SplineTrack::InterpolateToZ( Double_t z ) const {
 
   assert(fPoints.size()>2);
 
@@ -32,7 +38,7 @@ TVector3 Analysis::SplineTrack::InterpolateToZ( Double_t z ) const {
     zmin = zmax;
     zmax = ztmp;
   }
-  if( z > zmax || z < zmin ){
+  if(SplineTrack::WarnOutOfBounds && ( z > zmax || z < zmin )){
     WARN_OUT << "z value " << z << " out of range ("<<zmin<<".."<<zmax<<") !" << std::endl;
   }
 
@@ -52,7 +58,7 @@ TVector3 Analysis::SplineTrack::InterpolateToZ( Double_t z ) const {
   *  \param[out] pos interpolated position (x,y,z) (cm)
   *  \param[out] dir interpolated direction (unit vector in tangential direction to track)
   */
-void Analysis::SplineTrack::CalculateLocalPositionAndDirection( Double_t z, TVector3& pos, TVector3& dir ) const {
+void ACsoft::Analysis::SplineTrack::CalculateLocalPositionAndDirection( Double_t z, TVector3& pos, TVector3& dir ) const {
 
   /// \todo good value?
   static const Double_t dz = 0.1;
@@ -67,34 +73,6 @@ void Analysis::SplineTrack::CalculateLocalPositionAndDirection( Double_t z, TVec
   dir = diff.Unit();
 }
 
-/** Calculate 3D path length for a given position.
-  */
-float Analysis::SplineTrack::PathLength3D(int direction, const TVector3& position) const {
-
-  TVector3 trackPos, trackDir;
-  CalculateLocalPositionAndDirection(position.z(), trackPos, trackDir);
-  return pathlength3d(direction, trackPos, trackDir, position, AC::AMSGeometry::TRDTubeRadius);
-}
-
-/** Calculate smallest 2-D distance from given point.
-  *
-  * \param D 0: \p XY is X-coordinate, 1: \p XY is Y-coordinate.
-  * \param Z Z-coordinate of point.
-  * \param XY X- or Y-coordinate of point (depending on value of D).
-  */
-Double_t Analysis::SplineTrack::TrackResidual( int D, Double_t Z, Double_t XY ) const {
-
-  assert( !TMath::IsNaN(Z) );
-  Double_t XY2 	= ( D==0 ? InterpolateToZ(Z+0.1).X() : InterpolateToZ(Z+0.1).Y() );
-  Double_t XY1 	= ( D==0 ? InterpolateToZ(Z-0.1).X() : InterpolateToZ(Z-0.1).Y() );
-  Double_t XY3 	= ( D==0 ? InterpolateToZ(Z).X()     : InterpolateToZ(Z).Y() );
-  assert( !TMath::IsNaN(XY1) && !TMath::IsNaN(XY2) && !TMath::IsNaN(XY3) );
-  Double_t M     = (XY2-XY1)/(0.2);
-  Double_t Resid = (XY - XY3)*cos(atan(M));
-
-  return Resid;
-}
-
 
 /** Calculate distance of track and given point along a line perpendicular to the z-axis.
   *
@@ -102,7 +80,7 @@ Double_t Analysis::SplineTrack::TrackResidual( int D, Double_t Z, Double_t XY ) 
   * \param Z Z-coordinate of point.
   * \param XY X- or Y-coordinate of point (depending on value of D).
   */
-Double_t Analysis::SplineTrack::DeltaXY( int D, Double_t Z, Double_t XY ) const {
+Double_t ACsoft::Analysis::SplineTrack::DeltaXY( int D, Double_t Z, Double_t XY ) const {
 
   TVector3 trackPos = InterpolateToZ(Z);
 
@@ -113,15 +91,60 @@ Double_t Analysis::SplineTrack::DeltaXY( int D, Double_t Z, Double_t XY ) const 
 /** Print contents.
   *
   */
-void Analysis::SplineTrack::Dump() const {
+void ACsoft::Analysis::SplineTrack::Dump() const {
 
   INFO_OUT << "Source: " << fSource << " p=" << fRigidity << "+-" << fRigidityUncertainty << std::endl;
   std::cout << "     Points: " << std::endl;
   for( unsigned i=0 ; i<fPoints.size() ; ++i )
     std::cout << "       ["<<i<<"] " << "("<<fPoints[i].x()<<","<<fPoints[i].y()<<","<<fPoints[i].z()<<")" << std::endl;
-  std::cout << "     x-z spline: \n";
-  fSplineZX.Dump();
-  std::cout << "     y-z spline: \n";
-  fSplineZY.Dump();
-
+  if(DEBUG>1){
+    std::cout << "     x-z spline: \n";
+    fSplineZX.Dump();
+    std::cout << "     y-z spline: \n";
+    fSplineZY.Dump();
+  }
 }
+
+
+void ACsoft::Analysis::SplineTrack::DrawXZProjection( float zmin, float zmax, bool rotatedSystem, int nPoints ) {
+
+  if( fDrawGraphXZ ) delete fDrawGraphXZ;
+  fDrawGraphXZ = new TGraph(nPoints);
+
+  for( int i=0 ; i<nPoints ; ++i ){
+    float z    = zmin + i*(zmax-zmin)/(nPoints-1);
+    float x    = InterpolateToZ(z).X();
+    float xPad = rotatedSystem ? -z : x;
+    float yPad = rotatedSystem ?  x : z;
+    fDrawGraphXZ->SetPoint(i,xPad,yPad);
+  }
+
+  fDrawGraphXZ->Draw("P");
+}
+
+
+void ACsoft::Analysis::SplineTrack::DrawYZProjection( float zmin, float zmax, bool rotatedSystem, int nPoints ) {
+
+  if( fDrawGraphYZ ) delete fDrawGraphYZ;
+  fDrawGraphYZ = new TGraph(nPoints);
+
+  for( int i=0 ; i<nPoints ; ++i ){
+    float z    = zmin + i*(zmax-zmin)/(nPoints-1);
+    float y    = InterpolateToZ(z).Y();
+    float xPad = rotatedSystem ? -z : y;
+    float yPad = rotatedSystem ?  y : z;
+    fDrawGraphYZ->SetPoint(i,xPad,yPad);
+  }
+
+  fDrawGraphYZ->Draw("P");
+}
+
+/** Turn out-of-bounds warning on/off globally
+ *
+ * \param[in] value true to turn warnings on, false to turn warnings off
+ */
+
+void ACsoft::Analysis::SplineTrack::setWarnOutOfBounds(bool value) {
+  ACsoft::Analysis::SplineTrack::WarnOutOfBounds = value;
+}
+

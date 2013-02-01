@@ -3,16 +3,21 @@
 #include <assert.h>
 #include <iostream>
 
+#include <TEllipse.h>
+
 #include "TRDRawHit.h"
 #include "TRDVTrack.h"
 #include "TrackerTrack.h"
-
-#include <TrdAlignment.hh>
-#include <TrdGainCalibration.hh>
-#include <pathlength_functions.hh>
-#include <SplineTrack.hh>
-
+#include "AMSGeometry.h"
+#include "DetectorManager.hh"
+#include "TrdDetector.hh"
+#include "TrdStraw.hh"
+#include "TrdAlignment.hh"
+#include "TrdGainCalibration.hh"
+#include "pathlength_functions.hh"
+#include "SplineTrack.hh"
 #include "dumpstreamers.hh"
+#include "Palettes.hh"
 
 #define DEBUG 0
 #define INFO_OUT_TAG "TrdHit> "
@@ -21,31 +26,34 @@
 /** Initialize variables from hit.
   *
   */
-Analysis::TrdHit::TrdHit( const AC::TRDRawHit& rhit ) {
+ACsoft::Analysis::TrdHit::TrdHit( const AC::TRDRawHit& rhit ) :
+  fEllipse(0)
+{
 
   Lay = rhit.Layer();
   Lad = rhit.Ladder();
   Tub = rhit.Tube();
+  fGlobalStrawNumber = rhit.Straw();
   Mod = rhit.Module();
   GC  = rhit.GasCircuit();
   GG  = rhit.GasGroup();
-  D   = rhit.Direction();
+
+  fOrientation = ( Lay <= 3 || Lay >= 16 ? AC::YZMeasurement : AC::XZMeasurement ); // FIXME take from straw?
 
   Amp_raw = rhit.DepositedEnergy();
   Amp_calib = Amp_raw;
   IsGainCorrected = false;
 
-  XYZ_nom = TVector3(rhit.X(), rhit.Y(), rhit.Z());
-  XYZ_along = XYZ_nom;
-  XYZ_shim  = XYZ_nom;
-  XYZ_align = XYZ_nom;
+  Detector::DetectorManager* dm = Detector::DetectorManager::Self();
+  const Detector::TrdStraw* alignedStraw = dm->GetAlignedTrd()->GetTrdStraw(fGlobalStrawNumber);
+  TubeDir   = alignedStraw->GlobalWireDirection();
+  XYZ_align = alignedStraw->GlobalPosition();
 
+  XYZ_along = XYZ_align;
   IsSecondCoordSet = false;
-  IsShimmingApplied = false;
-  IsAligned = false;
 
-  fPathlength2D = 0.0;
   fPathlength3D = 0.0;
+  fTrackDistance = 0.0;
 }
 
 
@@ -60,7 +68,7 @@ Analysis::TrdHit::TrdHit( const AC::TRDRawHit& rhit ) {
   * \param referenceGain reference dE/dx (ADC/cm) as described above.
   *
   */
-void Analysis::TrdHit::ApplyGainCorrection( double time, Double_t referenceGain ) {
+void ACsoft::Analysis::TrdHit::ApplyGainCorrection( double time, Double_t referenceGain ) {
 
   assert(!IsGainCorrected);
 
@@ -77,85 +85,60 @@ void Analysis::TrdHit::ApplyGainCorrection( double time, Double_t referenceGain 
 }
 
 
-/** Set the coordinate along the wire from an external source.
+
+/** Fill pathlength, distance to track and coordinate along wire from track interpolation through tube.
   *
-  * The external source will usually be a tracker track.
-  *
-  * The internal bookkeeping is updated as well.
   */
-void Analysis::TrdHit::SetCoordinateAlongWire( Double_t xy ) {
+void ACsoft::Analysis::TrdHit::FillInformationFromTrack( const ACsoft::Analysis::SplineTrack& track ) {
 
-  assert( !IsSecondCoordSet && !IsShimmingApplied && !IsAligned );
+  assert( !IsSecondCoordSet );
 
-  if( D==0 )
-    XYZ_along.SetY(xy);
-  else
-    XYZ_along.SetX(xy);
+  ::TVector3 trackPos, trackDir;
+  track.CalculateLocalPositionAndDirection(Z(),trackPos,trackDir);
+
+  DEBUG_OUT << "track at z=" << Z() << " trackPos: " << trackPos << " trackDir: " << trackDir << std::endl;
+
+  fPathlength3D = Pathlength3d(AC::AMSGeometry::TRDTubeRadius,XYZ_align,TubeDir,trackPos,trackDir);
+
+  fTrackDistance = Distance(XYZ_align,TubeDir,trackPos,trackDir);
+
+  XYZ_along = BasePoint1(XYZ_align,TubeDir,trackPos,trackDir);
 
   IsSecondCoordSet = true;
-  XYZ_shim = XYZ_along;
-  XYZ_align = XYZ_shim;
+
+  DEBUG_OUT << *this << std::endl;
 }
 
 
-/** Apply shimming corrections and global TRD shift and rotation.
-  *
-  * The internal bookkeeping is updated as well.
-  */
-void Analysis::TrdHit::ApplyShimmingCorrection() {
+void ACsoft::Analysis::TrdHit::Draw( bool rotatedSystem ) {
 
-  assert( !IsShimmingApplied && !IsAligned );
+  static int FirstColor = ::Utilities::Palette::UseNicePaletteWithLessGreen();
+  static int nColors    = 255;
+  const static float maxAmp = 240.0; // ADC counts (corrected)
 
-  Float_t Dx,Dy,Dz;
-  float secondCoordinate = XYZ_along[1-D];
-  AC::AMSGeometry::Self()->ApplyShimmingCorrection(GetGlobalStrawNumber(), secondCoordinate, Dx, Dy, Dz);
+  if(fEllipse) delete fEllipse;
 
-  XYZ_shim = TVector3(XYZ_along.X() + Dx, XYZ_along.Y() + Dy, XYZ_along.Z() + Dz);
+  float xy = fOrientation == AC::XZMeasurement ? Position3D().X() : Position3D().Y();
 
-  IsShimmingApplied = true;
-  XYZ_align = XYZ_shim;
-}
-
-
-/** Apply alignment correction.
-  *
-  * Shift coordinate perpendicular to wire and z by effective alignment shift.
-  *
-  * \param time Event time (seconds since epoch).
-  */
-void Analysis::TrdHit::ApplyAlignmentCorrection( double time ) {
-
-  assert( !IsAligned );
-
-  Double_t shift = Calibration::TrdAlignmentShiftLookup::Self()->GetAlignmentShift(Mod,time);
-
-  DEBUG_OUT << "Mod " << Mod << ": applying shift " << shift << std::endl;
-
-  if(D==0)
-    XYZ_align.SetX(XYZ_align.X()-shift);
-  else
-    XYZ_align.SetY(XYZ_align.Y()-shift);
-
-  IsAligned = true;
-}
-
-/** Fill pathlength from track interpolation through tube.
-  *
-  */
-void Analysis::TrdHit::FillPathlengthFromTrack( const Analysis::SplineTrack& track ) {
-
-  /// \todo fill fPathlength2D
-  /// \todo get doxygen to print documentation of auxiliary functions
-  fPathlength3D = track.PathLength3D(D, XYZ_align);
+  float xPad = rotatedSystem ? -Position3D().Z() : xy;
+  float yPad = rotatedSystem ? xy : Position3D().Z();
+  fEllipse = new TEllipse(xPad,yPad,AC::AMSGeometry::TRDTubeRadius);
+  float colorFraction = GetAmplitude()/maxAmp;
+  if(colorFraction>1.0) colorFraction = 1.0;
+  if(colorFraction<0.0) colorFraction = 0.0;
+  int color = FirstColor + TMath::Nint(colorFraction*(nColors-1));
+  DEBUG_OUT << "Amp: " << GetAmplitude() << " frac " << colorFraction << " color " << color << std::endl;
+  fEllipse->SetFillColor(color);
+  fEllipse->Draw();
 }
 
 
 /** Sort function.
   *
-  * Sort by layer number, then ladder number, then straw number, and finally descending amplitude.
+  * Sort by layer number, then ladder number, then tube number, and finally descending amplitude.
   *
   */
-bool Analysis::operator<( const Analysis::TrdHit& left, const Analysis::TrdHit& right ){
+bool ACsoft::Analysis::operator<( const ACsoft::Analysis::TrdHit& left, const ACsoft::Analysis::TrdHit& right ){
 
   if( left.Lay < right.Lay ) return true;
   if( left.Lay > right.Lay ) return false;
@@ -169,61 +152,16 @@ bool Analysis::operator<( const Analysis::TrdHit& left, const Analysis::TrdHit& 
   return( left.Amp_raw > right.Amp_raw );
 }
 
-/** Find Distance of Hit to H Track in cm
- * \todo Simplify the three DistanceToTrack methods once TrackFactory is done.
- * \todo HTrack does not "exist" at the moment!
- * currently it is a dummy and simply returns 5000.0
- */
-Double_t Analysis::TrdHit::DistanceToTrack(const AC::TRDHTrack&){
 
-  // FIXME: Implement this!
-  return -666;
-}
+std::ostream& ACsoft::Analysis::operator<<( std::ostream& out, const ACsoft::Analysis::TrdHit& h ) {
 
-/** Find Distance of Hit to V Track in cm
- *
- */
-Double_t Analysis::TrdHit::DistanceToTrack(const AC::TRDVTrack& trk){
-
-  return (R() - trk.Extrapolate_to_z(Z(), (AC::MeasurementMode)D));
-}
-
-/** Find Distance of Hit to TRK Track in cm
- *
- */
-Double_t Analysis::TrdHit::DistanceToTrack(const Analysis::SplineTrack& trk) const {
-
- return trk.TrackResidual(D, Z(), R());
-}
-
-/** Calculate the global Straw number 0 to 5247 according to Hcalib.
- * \todo Obsolete, once geometry classes are fully implemented.
- */
-Int_t Analysis::TrdHit::GetGlobalStrawNumber() const {
-
-  Int_t StrawNumber=-1;
-
-  Int_t layer =Layer();
-  Int_t ladder=Ladder();
-  Int_t tube  =Tube();
-
-  if(layer>3)ladder+=14;
-  if(layer>7)ladder+=16;
-  if(layer>11)ladder+=16;
-  if(layer>15)ladder+=18;
-
-  StrawNumber = (ladder*4+layer%4)*16+tube;
-
-  return StrawNumber;
-}
-
-std::ostream& Analysis::operator<<( std::ostream& out, const Analysis::TrdHit& h ) {
-
-  out << "Lay " << h.Lay << " Lad " << h.Lad << " Tub " << h.Tub << " Mod " << h.Mod << " D: "
-      << ( h.D == 0 ? "XZ" : "YZ" ) << " AMP: raw " << h.Amp_raw << " calib " << h.Amp_calib << "\n"
-      << " POS: nom " << h.XYZ_nom << " along " << h.XYZ_along << " shim " << h.XYZ_shim
-      << " align " << h.XYZ_align << " pathlengths: 2D " << h.fPathlength2D << " 3D " << h.fPathlength3D;
+  out << "Lay " << h.Lay << " Lad " << h.Lad << " Tub " << h.Tub  << " Straw " << h.GlobalStrawNumber()
+      << " Mod " << h.Mod << " D: " << ( h.fOrientation == AC::XZMeasurement ? "XZ" : "YZ" )
+      << " AMP: raw " << h.Amp_raw << " calib " << h.Amp_calib << "\n"
+      << " POS: align " << h.XYZ_align << " along " << h.XYZ_along << " tube dir " << h.TubeDir
+      << " track dist " << h.fTrackDistance << " 3D pathlength " << h.fPathlength3D;
 
   return out;
 }
+
 

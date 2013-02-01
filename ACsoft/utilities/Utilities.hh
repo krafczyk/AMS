@@ -3,40 +3,39 @@
 
 #include <vector>
 #include <math.h>
+#include <string>
+#include <sstream>
 
 #include <TH1.h>
+#include <TH2.h>
 #include <TVector3.h>
+
+namespace ACsoft {
+
 namespace Utilities {
 
+/** Returns a vector with the lower edges for a logarithmic equidistant binning */
 std::vector<double> GenerateLogBinning(int nBinLog, double Tmin, double Tmax);
 
-  TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const double &roll, const double &altitude, const double &phi, const double &theta, const double &velPhi, const double &velTheta, const TVector3 &inputVector);
+/** Performs a line fit to a given set of points (x,y) with errors ey */
+double FastLineFit(std::vector<double> &x, std::vector<double> &y, std::vector<double> &ey, double &offset, double &e_offset, double &slope, double &e_slope, double &rho);
 
-template<typename TwoDHisto>
-static void NormalizeHistogramXSlices(TwoDHisto* hist) {
+/** Normalize each of the X-slices of a 2D-Histogram to 1 */
+void NormalizeHistogramXSlices(TH2* hist);
 
-  int nBinX = hist->GetNbinsX();
-  int nBinY = hist->GetNbinsY();
-  const char* hName = hist->GetName();
-  for (int iBinX=1; iBinX<=nBinX; iBinX++) {
-    double xc = hist->GetXaxis()->GetBinCenter(iBinX);
-        char hpName[200];
-        sprintf(hpName,"hpDX_%s_%d_%d_%61f",hName,nBinX,nBinY,xc);
-        TH1* hp = hist->ProjectionY(hpName,iBinX,iBinX);
-        double sum = hp->Integral();
-        if (sum<=0.0) continue;
-        if (iBinX==1) hp->Sumw2();
-        hp->Scale(1.0/sum);
-        for (int iBinY=1; iBinY<=nBinY; iBinY++) {
-          double Value = hp->GetBinContent(iBinY);
-          double eValue = hp->GetBinError(iBinY);
-          double yc = hp->GetBinCenter(iBinY);
-          int iBin = hist->FindBin(xc,yc);
-          hist->SetBinContent(iBin,Value);
-          hist->SetBinError(iBin,eValue);
-        }
-        delete hp;
-  }
+/** Transform from AMS02 to MAG coordinate system.
+  * \todo Add documentation! The inline comments inside the function aren't visible to doxygen!
+  */
+TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const double &roll, const double &altitude, const double &phi, const double &theta, const double &velPhi, const double &velTheta, const TVector3 &inputVector);
+
+template<typename T>
+std::string AnyToString( T anything ) { 
+
+  std::stringstream sstr;
+  sstr << anything;
+  return sstr.str();
+}
+
 }
 
 }

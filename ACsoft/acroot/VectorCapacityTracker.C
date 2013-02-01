@@ -1,5 +1,7 @@
 #include "VectorCapacityTracker.h"
 
+namespace ACsoft {
+
 namespace AC {
 
 void VectorCapacityTracker::reportCapacityExceededWarnings() {
@@ -18,6 +20,8 @@ void VectorCapacityTracker::reportCapacityExceededWarnings() {
     std::cerr << "  " << it->first << " => inline capacity " << std::setw(3) << it->second.second << " should be raised to at least " << std::setw(3) << *it->second.first << std::endl << std::endl;
 
   std::cerr << "******************************************************************************************************" << std::endl;
+}
+
 }
 
 }

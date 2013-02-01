@@ -1,6 +1,8 @@
 #include <RunTagDecoder.hh>
 #include <iostream>
 
+namespace ACsoft {
+
 namespace Utilities {
   RunTagDecoder::RunTagDecoder( const UShort_t& RunTag ) {
     fNominal = RunTagDecoder::IsNominal( RunTag );
@@ -45,3 +47,5 @@ namespace Utilities {
   }
 }
 
+
+}

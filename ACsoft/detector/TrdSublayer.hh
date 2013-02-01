@@ -6,6 +6,8 @@
 
 #include <vector>
 
+namespace ACsoft {
+
 namespace Detector {
 
 class TrdModule;
@@ -78,5 +80,7 @@ private:
 };
 }
 
+
+}
 
 #endif // TRDSUBLAYER_HH

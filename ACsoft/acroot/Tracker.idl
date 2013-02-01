@@ -1,0 +1,6 @@
+[Description]
+Namespace = AC
+Class = Tracker
+Members = \
+  Short_t fClusters    \
+  TracksVector fTracks

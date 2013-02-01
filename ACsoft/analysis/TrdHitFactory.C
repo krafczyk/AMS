@@ -3,13 +3,14 @@
 #include "TRDRawHit.h"
 #include "EventHeader.h"
 
-#include <SplineTrack.hh>
+#include "SplineTrack.hh"
+#include "DetectorManager.hh"
 
 #define DEBUG 0
 #define INFO_OUT_TAG "TrdHitFactory> "
 #include <debugging.hh>
 
-Analysis::TrdHitFactory::TrdHitFactory() :
+ACsoft::Analysis::TrdHitFactory::TrdHitFactory() :
   fReferenceGain(100.0)
 {
 }
@@ -23,40 +24,33 @@ Analysis::TrdHitFactory::TrdHitFactory() :
   * \param rhit TRD raw hit that provides the basic information for the TrdHit.
   * \param splineTrack SplineTrack that provides second coordinate and pathlength.
   * \param header Event header that provides event time for alignment correction.
-  * \param steps Bit-wise OR of TrdHitProductionSteps to be used in hit production. For example, in Calibration::TrdAlignment::ProcessEvent():
+  * \param steps Bit-wise OR of TrdHitProductionSteps to be used in hit production. For example:
   * \code
-  *  Analysis::TrdHit hit = fTrdHitFactory->ProduceTrdHitFrom(rhit,*splineTrack,header,
-  *                                                           Analysis::SecondCoord | Analysis::ShimGlobalAlign );
+  *  ACsoft::Analysis::TrdHit hit = fTrdHitFactory->ProduceTrdHitFrom(rhit,*splineTrack,header,
+  *                                                           ACsoft::Analysis::TrackInfo | ACsoft::Analysis::GainCorrection );
   * \endcode
   */
-Analysis::TrdHit Analysis::TrdHitFactory::ProduceTrdHitFrom( const AC::TRDRawHit& rhit, const Analysis::SplineTrack& splineTrack, const AC::EventHeader& header, int steps ) {
+ACsoft::Analysis::TrdHit ACsoft::Analysis::TrdHitFactory::ProduceTrdHitFrom( const AC::TRDRawHit& rhit, const ACsoft::Analysis::SplineTrack& splineTrack,
+                                                             const AC::EventHeader& header, int steps ) {
+
+  // update the TRD geometry if necessary
+  Detector::DetectorManager::Self()->UpdateIfNeeded(header.TimeStamp());
 
   // construct TrdHit for analysis step-by-step
-  Analysis::TrdHit hit(rhit);
+  ACsoft::Analysis::TrdHit hit(rhit);
 
-  // coordinate along wire
-  if( TestOption(steps,Analysis::SecondCoord) ){
-    float secondCoord = ( rhit.Direction() == AC::XZMeasurement ? splineTrack.InterpolateToZ(rhit.Z()).Y() : splineTrack.InterpolateToZ(rhit.Z()).X() );
-    hit.SetCoordinateAlongWire(secondCoord);
-  }
-
-  // global alignment and shimming
-  if( TestOption(steps,Analysis::ShimGlobalAlign) )
-    hit.ApplyShimmingCorrection();
-
-  double timestamp = double(header.TimeStamp());
-  // alignment correction
-  if( TestOption(steps,Analysis::AlignmentCorrection) )
-    hit.ApplyAlignmentCorrection(timestamp);
-
-  // calculate and set pathlength 2D / 3D
-  if( TestOption(steps,Analysis::Pathlength) )
-    hit.FillPathlengthFromTrack(splineTrack);
+  // coordinate along wire and distance and pathlength
+  if( TestOption(steps,ACsoft::Analysis::TrackInfo) )
+    hit.FillInformationFromTrack(splineTrack);
 
   // gain correction
-  if( TestOption(steps,Analysis::GainCorrection) )
+  if( TestOption(steps,ACsoft::Analysis::GainCorrection) ){
+
+    double timestamp = double(header.TimeStamp());
     hit.ApplyGainCorrection(timestamp,fReferenceGain);
+  }
 
   return hit;
 }
+
 

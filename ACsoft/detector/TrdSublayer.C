@@ -13,7 +13,7 @@
 #define INFO_OUT_TAG "TrdSublayer> "
 #include <debugging.hh>
 
-Detector::TrdSublayer::TrdSublayer( int layerNumber, int sublayerNumber, TrdLayer* mother ) :
+ACsoft::Detector::TrdSublayer::TrdSublayer( int layerNumber, int sublayerNumber, TrdLayer* mother ) :
   fLayerNumber(layerNumber),
   fSublayerNumber(sublayerNumber),
   fMother(mother)
@@ -37,24 +37,24 @@ Detector::TrdSublayer::TrdSublayer( int layerNumber, int sublayerNumber, TrdLaye
   ConstructModules();
 }
 
-Detector::TrdSublayer::~TrdSublayer() { }
+ACsoft::Detector::TrdSublayer::~TrdSublayer() { }
 
 
-void Detector::TrdSublayer::ConstructModules() {
+void ACsoft::Detector::TrdSublayer::ConstructModules() {
 
   std::vector<Short_t> modules = AC::AMSGeometry::Self()->TrdModulesOnSublayer( fLayerNumber, fSublayerNumber );
 
   for( unsigned int i=0 ; i<modules.size() ; ++i )
-    fTrdModules.push_back( new Detector::TrdModule(modules[i],this) );
+    fTrdModules.push_back( new ACsoft::Detector::TrdModule(modules[i],this) );
 }
 
 
-TVector3 Detector::TrdSublayer::GlobalPosition() const {
+TVector3 ACsoft::Detector::TrdSublayer::GlobalPosition() const {
 
   return fGlobalPosition;
 }
 
-TRotation Detector::TrdSublayer::GlobalRotation() const {
+TRotation ACsoft::Detector::TrdSublayer::GlobalRotation() const {
 
   return fGlobalRotation;
 }
@@ -66,7 +66,7 @@ TRotation Detector::TrdSublayer::GlobalRotation() const {
   *
   * The nominal position and orientation will remain unchanged.
   */
-void Detector::TrdSublayer::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot ) {
+void ACsoft::Detector::TrdSublayer::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot ) {
 
   fOffsetRelativePosition = offsetPos;
   fExtraRelativeRotation  = extraRot;
@@ -78,20 +78,20 @@ void Detector::TrdSublayer::ChangeRelativePositionAndRotation( const TVector3& o
 /** Recalculate global position and rotation for this sublayer and all its modules.
   *
   */
-void Detector::TrdSublayer::UpdateGlobalPositionAndDirection() {
+void ACsoft::Detector::TrdSublayer::UpdateGlobalPositionAndDirection() {
 
   SetGlobalPosition( fMother->GlobalPosition() + fMother->GlobalRotation()*RelativePosition() );
   SetGlobalRotation( fMother->GlobalRotation() * RelativeRotation() );
 
   for( unsigned int i = 0 ; i < fTrdModules.size() ; ++i ){
 
-    Detector::TrdModule* module = fTrdModules[i];
+    ACsoft::Detector::TrdModule* module = fTrdModules[i];
     module->UpdateGlobalPositionAndDirection();
   }
 }
 
 
-void Detector::TrdSublayer::Dump() const {
+void ACsoft::Detector::TrdSublayer::Dump() const {
 
   INFO_OUT << "TRD Sublayer " << fLayerNumber << "," << fSublayerNumber
            << " relative position " << fNominalRelativePosition << " + " << fOffsetRelativePosition << " rotation " << fExtraRelativeRotation << " * " << fNominalRelativeRotation
@@ -99,7 +99,8 @@ void Detector::TrdSublayer::Dump() const {
 
   for( unsigned int i = 0 ; i < fTrdModules.size() ; ++i ){
 
-    Detector::TrdModule* module = fTrdModules[i];
+    ACsoft::Detector::TrdModule* module = fTrdModules[i];
     module->Dump();
   }
 }
+

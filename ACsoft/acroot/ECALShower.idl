@@ -1,0 +1,25 @@
+[Description]
+Namespace = AC
+Class = ECALShower
+Members = \
+ UInt_t fStatus                    \
+ UShort_t fNumberOfHits            \
+ Float_t fDepositedEnergy          \
+ Float_t fEnergyAt3CMRatio         \
+ Float_t fReconstructedEnergy      \
+ Float_t fReconstructedEnergyError \
+ Float_t fRelativeRearLeak         \
+ Float_t fShowerMaximum            \
+ Float_t fChiSquareProfile         \
+ Float_t fTheta                    \
+ Float_t fPhi                      \
+ Float_t fX                        \
+ Float_t fY                        \
+ Float_t fZ                        \
+ Float_t fEntryX                   \
+ Float_t fEntryY                   \
+ Float_t fEntryZ                   \
+ Float_t fExitX                    \
+ Float_t fExitY                    \
+ Float_t fExitZ                    \
+ EstimatorsVector fEstimators

@@ -2,10 +2,13 @@
 #define AMSGeometry_h
 
 #include <string>
+#include <vector>
 
 #include <Rtypes.h>
 
 class TCutG;
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -13,93 +16,79 @@ namespace AC {
   */
 class AMSGeometry {
 public:
-  AMSGeometry();
-
   /** Returns a singleton of the AMSGeometry class */
-  static AMSGeometry* Self() {
-    static AMSGeometry* gInstance = 0;
-    if (!gInstance) {
-      gInstance = new AMSGeometry;
-      gInstance->Init();
-    }
-    return gInstance;
-  }
+  static AMSGeometry* Self();
 
 public:
   /** Number of TRD modules */
-  static const UInt_t TRDModules = 328;
+  static const unsigned int TRDModules = 328;
  
   /** Number of TRD layers */
-  static const UInt_t TRDLayers = 20;
+  static const unsigned int TRDLayers = 20;
 
   /** Number of TRD sub-layers.
     * Each TRD layer is divded into an upper and lower layer forming two sub-layers.
     */
-  static const UInt_t TRDSubLayers = 40;
+  static const unsigned int TRDSubLayers = 40;
 
-  /** Number of TRD ladders */
-  static const UInt_t TRDLadders = 18;
+  /** Number of TRD towers */
+  static const unsigned int TRDTowers = 18;
 
   /** Number of TRD straw tubes */
-  static const UInt_t TRDStraws = 5248;
+  static const unsigned int TRDStraws = 5248;
  
   /** Number of TRD straw tubes per module */
-  static const UInt_t TRDStrawsPerModule = 16;
+  static const unsigned int TRDStrawsPerModule = 16;
  
   /** Maximum ADC value reportable by electronics [#] */
-  static const UInt_t TRDMaxADCCount = 4096;
+  static const unsigned int TRDMaxADCCount = 4096;
 
   /** Radius of TRD tubes [cm] */
-  static const Float_t TRDTubeRadius = 0.3;
+  static const float TRDTubeRadius;
 
   /** Maximum length of TRD straw tube [cm] */
-  static const Float_t TRDMaximumStrawLength = 210.0;
+  static const float TRDMaximumStrawLength;
 
   /** Maximum length of TRD straw tube [cm] */
-  static const UInt_t TRDMaximumStrawLengthAsInteger = 210;
-
-  /** Minimal path length in TRD tubes [cm] */
-  static const Float_t TRDTubeMinPathLength = 0.1;
+  static const unsigned int TRDMaximumStrawLengthAsInteger = 210;
 
   /** Z coordinate [cm] of upper TOF */
-  static const Float_t ZTOFUpper = 63.65;
+  static const float ZTOFUpper;
 
   /** Z coordinate [cm] of upper ECAL */
-  static const Float_t ZECALUpper = -142.8;
+  static const float ZECALUpper;
+
+  /** Z coordinate [cm] of lower ECAL */
+  static const float ZECALLower;
 
   /** Z coordinate [cm] of RICH */
-  static const Float_t ZRICH = -73.6;
+  static const float ZRICH;
 
   /** Z coordinate [cm] of Tracker Layer 1 */
-  static const Float_t ZTrackerLayer1 = 159.067;
+  static const float ZTrackerLayer1;
+
+  /** Z coordinate [cm] of Tracker Layer 56 */
+  static const float ZTrackerLayer56;
 
   /** Z coordinate [cm] of Tracker Layer 9 */
-  static const Float_t ZTrackerLayer9 = -136.041; 
+  static const float ZTrackerLayer9;
   
   /** Z coordinate [cm] of TRD center */
-  static const Float_t ZTRDCenter = 113.55; 
+  static const float ZTRDCenter;
   
   /** Z coordinate [cm] of TRD upper */
-  static const Float_t ZTRDUpper = 136.75;
+  static const float ZTRDUpper;
 
   /** Z coordinate [cm] of TRD lower */
-  static const Float_t ZTRDLower = 90.35;
+  static const float ZTRDLower;
 
   /** Overall thickness of a TRD layer (cm). */
-  static const Float_t TrdLayerThickness = 2.9;
+  static const float TrdLayerThickness;
 
   /** Overall width of a TRD module (cm). */
-  static const Float_t TrdModuleWidth = 10.1;
+  static const float TrdModuleWidth;
 
-  /** Global TRD X/Y/Z shifts [cm]
-    * \todo Remove once TRD structure is in place.
-    */
-  float TRDShifts[3];
 
-  /** Global TRD X/Y/Z rotations [deg]
-    * \todo Remove once TRD structure is in place.
-    */
-  float TRDRotations[3];
 
   /** Map from crate, nudr, nufe, nute to layer, ladder, direction (0, 1)
     * \todo Add better documentation. Resolve acronyms
@@ -111,7 +100,7 @@ public:
     */
   std::vector<unsigned short int> TRDStrawLookupTable[TRDSubLayers][TRDMaximumStrawLengthAsInteger][TRDMaximumStrawLengthAsInteger];
 
-  struct TRDModuleGeometry {
+  struct TRDModuleGeometry { // FIXME move to TrdModule, keep only moduleLength and contour, align!
     TRDModuleGeometry()
       : layer(0)
       , sublayer(0)
@@ -129,20 +118,12 @@ public:
     std::vector<std::pair<float, float> > xyContour;
   };
 
-  float TRDSubLayersZCoordinate[TRDSubLayers];
-
-  TCutG* TRDFirstLayerContour;
+  TCutG* TRDFirstLayerContour; // FIXME move to TrdDetector, align!
   TCutG* TRDLastLayerContour;
 
-  // TRD module displacement from shimming:     
-  float Mod_Dz[TRDModules];         // Z-Offset/mu-m in Octagon from Shimming     
-  float Mod_Arz[TRDModules];        // Tilt/mu-rad   in Octagom from Shimming
-  
-  TRDModuleGeometry TRDModuleGeometries[TRDModules];
-  short TRDLadderLayerToModuleLookupTable[TRDLadders][TRDLayers];
+  TRDModuleGeometry TRDModuleGeometries[TRDModules]; // FIXME Move to TrdModule class
+  short TRDLadderLayerToModuleLookupTable[TRDTowers][TRDLayers];
   unsigned short TRDModulesPerLayer[TRDLayers];
-
-  void ApplyShimmingCorrection(unsigned short straw, float secondCoordinate, float& dx, float& dy, float& dz);
 
 public:
 
@@ -151,36 +132,36 @@ public:
 
   friend unsigned short TRDStrawToLayer(unsigned short);
   friend unsigned short TRDStrawToLadder(unsigned short);
-  friend void TRDStrawToCoordinates(unsigned short straw, int& direction, float& xy, float& z);
   void TRDStrawToLadderAndLayer(unsigned short straw, unsigned short& ladder, unsigned short& layer);
   void TRDModuleToLadderAndLayer(unsigned short Module, unsigned short &Lad, unsigned short &Lay);
 
 private:
+  AMSGeometry();
   void Init();
   void InitTRDLadderLayerToModuleLookupTable();
   void InitTRDStrawLookupTable();
   void InitTRDGeometryFile(const std::string& path);
-  void InitTRDShimmingGlobalFile(const std::string& path);
-  void InitTRDShimmingModuleFile(const std::string& path);
   void FillGeoArray();
   void BuildTRDLayerContours(unsigned int layer, std::vector<std::pair<float, float> >& positiveContours, std::vector<std::pair<float, float> >& negativeContours) const;
   TCutG* BuildTRDLayerPolygon(unsigned int layer) const;
 };
 
 /** Helper function to return the module associated with a straw 0-5247 */
-unsigned short TRDStrawToModule(unsigned short straw);
+unsigned short TRDStrawToModule(unsigned short straw); // FIXME remove
 
 /** Helper function to return the layer associated with a straw 0-5247 */
-unsigned short TRDStrawToLayer(unsigned short straw);
+unsigned short TRDStrawToLayer(unsigned short straw); // FIXME remove
 
 /** Helper function to return the ladder associated with a straw 0-5247 */
-unsigned short TRDStrawToLadder(unsigned short straw);
+unsigned short TRDStrawToLadder(unsigned short straw); // FIXME remove
 
 /** Helper function to return the tube associated with a straw 0-5247 */
-unsigned short TRDStrawToTube(unsigned short straw);
+unsigned short TRDStrawToTube(unsigned short straw); // FIXME remove
 
 /** Helper function to return the coordinates associated with a straw 0-5247 */
-void TRDStrawToCoordinates(unsigned short straw, int& direction, float& xy, float& z);
+void TrdStrawToRawCoordinates(unsigned short straw, int& direction, float& xy, float& z); // FIXME Rename to TrdStrawToRawCoordinates, then remove
+
+}
 
 }
 

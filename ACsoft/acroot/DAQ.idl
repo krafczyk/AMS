@@ -1,0 +1,7 @@
+[Description]
+Namespace = AC
+Class = DAQ
+Members = \
+  ULong64_t fL3Errors         \
+  JINJStatusVector fJINJStatus \
+  SlaveStatusVector fSlaveStatus

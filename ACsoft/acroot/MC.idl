@@ -1,0 +1,7 @@
+[Description]
+Namespace = AC
+Class = MC
+Members = \
+  EventGeneratorsVector fEventGenerators \
+  TracksVector fTracks                   \
+  TRDHitsVector fTRDHits

@@ -2,6 +2,9 @@
 #define TrackerReconstructedHit_h
 
 #include "Tools.h"
+#include "TrackerReconstructedHit-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -10,14 +13,7 @@ namespace AC {
 class TrackerReconstructedHit {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  TrackerReconstructedHit()
-    : fLayer(0)
-    , fX(0)
-    , fY(0)
-    , fSignalX(0)
-    , fSignalY(0) {
-
-  }
+  AC_TrackerReconstructedHit_Variables
 
   /** Helper method dumping an TrackerReconstructedHit object to the console
     */
@@ -45,19 +41,19 @@ public:
     */
   Float_t SignalY() const { return fSignalY; }
 
+  /** Cluster Y residal [microns] wrt to std fit iTrTrackPar(0)
+    */
+  Short_t ResidualY() const { return fResidualY; }
+
   /** Signal in X and Y?
     */
   bool IsXAndYSignal() const { return fSignalX>0. && fSignalY>0.; }
 
 private:
-  Char_t fLayer;    // TrRecHHit->GetLayerJ()    <0 if mult. unresolved
-  Float_t fX;       // TrRecHHit->GetCoord().x()
-  Float_t fY;       // TrRecHHit->GetCoord().y()
-  Float_t fSignalX; // TrRecHHit->GetSignalCombination(0)
-  Float_t fSignalY; // TrRecHHit->GetSignalCombination(1)
-
   REGISTER_CLASS_WITH_TABLE(TrackerReconstructedHit)
 };
+
+}
 
 }
 

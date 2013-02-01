@@ -3,6 +3,12 @@
 
 #include <TVector3.h>
 
+#include "TRDRawHit.h"
+
+class TEllipse;
+
+namespace ACsoft {
+
 namespace Detector {
 
 class TrdModule;
@@ -24,6 +30,7 @@ public:
     int ModuleNumber() const { return fModuleNumber; }
     int StrawNumber() const { return fStrawNumber; }
     int GlobalStrawNumber() const { return fGlobalStrawNumber; }
+    AC::MeasurementMode Direction() const { return fDirection; }
 
     TVector3 RelativePosition() const { return fNominalRelativePosition; }
     TVector3 NominalWireDirection() const { return fNominalWireDirection; }
@@ -34,6 +41,7 @@ public:
     void UpdateGlobalPositionAndDirection();
 
     void Dump() const;
+    void Draw( bool rotatedSystem );
 
 private:
 
@@ -54,9 +62,13 @@ private:
     int fModuleNumber;       ///< global module number (0..327)
     int fStrawNumber;        ///< straw number in module (0..15)
     int fGlobalStrawNumber;  ///< global straw number (0..5247)
+    AC::MeasurementMode fDirection; ///< describes how straw is oriented (before alignment)
 
     TrdModule* fMother;      ///< pointer to mother volume
+    TEllipse* fEllipse;    ///< ellipsis used for drawing
 };
+}
+
 }
 
 #endif // TRDSTRAW_HH

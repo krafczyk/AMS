@@ -1,6 +1,6 @@
 #include "ACQtProducer-include.C"
 
-bool ACQtProducer::ProduceMC() {
+bool ACsoft::ACQtProducer::ProduceMC() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);

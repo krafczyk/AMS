@@ -3,6 +3,10 @@
 
 #include <ostream>
 
+namespace ACsoft {
+
+namespace Utilities {
+
 /** A simple structure for a physical value with an uncertainty associated to it.
   *
   */
@@ -23,5 +27,9 @@ public:
 };
 
 std::ostream& operator<<( std::ostream& out, const Quantity& q );
+
+}
+
+}
 
 #endif // QUANTITY_HH

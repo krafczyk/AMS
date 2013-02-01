@@ -2,8 +2,13 @@
 #define TOFBeta_h
 
 #include "Tools.h"
+#include "TOFBeta-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
+
+class Event;
 
 /** Time-Of-Flight beta data
   */
@@ -22,54 +27,69 @@ public:
   /** A vector of short numbers */
   typedef Vector<Short_t, 4> ClusterIndexVector;
 
-  TOFBeta()
-    : fBeta(0)
-    , fBetaError(0) {
-
-  }
+  AC_TOFBeta_Variables
 
   /** Helper method dumping a TOFBeta object to the console.
     */
   void Dump() const;
 
-  /** Helper method to calulate the charge & error.
-    */
-  ChargeAndError GetChargeAndErrorNew() const;
+  /** Helper method to return charge in TOFlayer = 1..4
+    * sets 'charge' to sign*abs(Q), if there's a corresponding TOF hit for the TOFlayer and return true, otherwhise set charge to 0 and return false.
+    * sign: + good charge measurement (BetaHR::IsGoodQPathL(TOFlayer)==true
+    *       - weak charge measurement (BetaHR::IsGoodQPathL(TOFlayer)==false
+    */ 
+  bool ChargeInLayer(const AC::Event*, int TOFlayer, Float_t& charge) const;
 
-  /** Normalized velocity: beta.
+  /** Enumeration describing the GetChargeAndError() operation mode */
+  enum TOFChargeType {
+    AllLayers,
+    GoodLayers,
+    AllUpperTOFLayers,
+    AllLowerTOFLayers,
+    GoodUpperTOFLayers,
+    GoodLowerTOFLayers
+  };
+
+  /** Helper method to calculate charge & error for different entry selections:
+    * type =  AllLayers :          use  all entries
+    *         GoodLayers :         use only entries with BetaHR::IsGoodQPathL(ilay)==true   (DEFAULT)
+    *         AllUpperTOFLayers :  use  all entries from ilay 1 or 2
+    *         AllLowerTOFLayers :  use  all entries from ilay 3 or 4
+    *         GoodUpperTOFLayers : use good entries from ilay 1 or 2
+    *         GoodLowerTOFLayers : use good entries from ilay 3 or 4
+    */
+  ChargeAndError GetChargeAndErrorNew(const AC::Event*, TOFChargeType type = GoodLayers) const;
+
+  /** Velocity: BetaHR::GetBeta()
     */
   Float_t Beta() const { return fBeta; }
 
-  /** Beta error.
+  /** Error on Beta: BetaHR::GetEBetaV() * BetaHR::GetBeta()^2  
     */
   Float_t BetaError() const { return fBetaError; }
 
-  /** Charge indexes sorted in descending probability (0:e, 1:H, 2:He ...)
-    */
-  const ChargesVector& Charges() const { return fCharges; }
-
-  /** Probabilities for the entries in the Charges() list.
-    */
-  const ChargesProbabilityVector& ChargesProbability() const { return fChargesProbability; }
-
-  /** Measured charges in layers.
+  /** Measured charges in layers: BetaHR::GetQL(ilay)
+    * sign: >0 for BetaHR::IsGoodQPathL(ilay)==true 
+    *       <0 for BetaHR::IsGoodQPathL(ilay)==false
+    *
+    * vector index corresponds to TOFClusterIndex():
+    *        ilay(ChargesNew(i)) = TOF().Clusters()[TOFClusterIndex()[i]].Layer()
     */
   const ChargesNewVector& ChargesNew() const { return fChargesNew; }
 
-  /** Associated TOFCluster index.
+  /** Associated TOFCluster index: BetaHR::iTofClusterH(i(ilay))
     */
   const ClusterIndexVector& TOFClusterIndex() const { return fTOFClusterIndex; }
 
 private:
-  Float_t fBeta;                                // Beta(0).BetaC
-  Float_t fBetaError;                           // Beta(0).ErrorC
-  ChargesVector fCharges;                       // ChargeSubD("AMSChargeTOF")->ChargeI[0..1]
-  ChargesProbabilityVector fChargesProbability; // ChargeSubD("AMSChargeTOF")->Prob[0..1]
-  ChargesNewVector fChargesNew;                 // TOFtrack.GetQ
-  ClusterIndexVector fTOFClusterIndex;          // Index to TOFclu for Q[]
+  const AC::TOFBeta::ChargesNewVector& FilterChargesForType(const AC::Event*, TOFChargeType) const;
+  mutable ChargesNewVector fSelectedCharges; // for Upper/Lower TOF charge mean
 
   REGISTER_CLASS_WITH_TABLE(TOFBeta)
+
 };
+
+}
 
 }
 

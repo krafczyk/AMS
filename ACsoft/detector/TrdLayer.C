@@ -13,7 +13,7 @@
 #define INFO_OUT_TAG "TrdLayer> "
 #include <debugging.hh>
 
-Detector::TrdLayer::TrdLayer( int layerNumber, Trd* mother ) :
+ACsoft::Detector::TrdLayer::TrdLayer( int layerNumber, Trd* mother ) :
   fLayerNumber(layerNumber),
   fMother(mother)
 {
@@ -37,26 +37,26 @@ Detector::TrdLayer::TrdLayer( int layerNumber, Trd* mother ) :
   ConstructSublayers();
 }
 
-Detector::TrdLayer::~TrdLayer() {
+ACsoft::Detector::TrdLayer::~TrdLayer() {
 
   for( unsigned int i = 0 ; i < fSublayers.size() ; ++i )
     delete fSublayers[i];
 }
 
 
-void Detector::TrdLayer::ConstructSublayers() {
+void ACsoft::Detector::TrdLayer::ConstructSublayers() {
 
   for( int i=0 ; i<2 ; ++i )
-    fSublayers.push_back( new Detector::TrdSublayer(fLayerNumber,i,this) );
+    fSublayers.push_back( new ACsoft::Detector::TrdSublayer(fLayerNumber,i,this) );
 }
 
-void Detector::TrdLayer::FillConvenienceVectors() {
+void ACsoft::Detector::TrdLayer::FillConvenienceVectors() {
 
   fTrdModules.clear();
 
   for( unsigned int j=0 ; j<NumberOfSublayers() ; ++j ){
 
-    Detector::TrdSublayer* sublayer = GetSublayer(j);
+    ACsoft::Detector::TrdSublayer* sublayer = GetSublayer(j);
 
     for( unsigned int m = 0 ; m<sublayer->NumberOfModules() ; ++m ){
       TrdModule* module = sublayer->GetModule(m);
@@ -67,24 +67,24 @@ void Detector::TrdLayer::FillConvenienceVectors() {
 }
 
 
-TVector3 Detector::TrdLayer::GlobalPosition() const {
+TVector3 ACsoft::Detector::TrdLayer::GlobalPosition() const {
 
   return fGlobalPosition;
 }
 
-TRotation Detector::TrdLayer::GlobalRotation() const {
+TRotation ACsoft::Detector::TrdLayer::GlobalRotation() const {
 
   return fGlobalRotation;
 }
 
-void Detector::TrdLayer::Dump() const {
+void ACsoft::Detector::TrdLayer::Dump() const {
 
   INFO_OUT << "TRD Layer " << fLayerNumber << " relative position " << fNominalRelativePosition << " + " << fOffsetRelativePosition << " rotation " << fExtraRelativeRotation << " * " << fNominalRelativeRotation
            << " global position " << GlobalPosition() << " rotation " << GlobalRotation() << std::endl;
 
   for( unsigned int i = 0 ; i < fSublayers.size() ; ++i ){
 
-    Detector::TrdSublayer* sublayer = fSublayers[i];
+    ACsoft::Detector::TrdSublayer* sublayer = fSublayers[i];
     sublayer->Dump();
   }
 }
@@ -95,7 +95,7 @@ void Detector::TrdLayer::Dump() const {
   *
   * The nominal position and orientation will remain unchanged.
   */
-void Detector::TrdLayer::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot ) {
+void ACsoft::Detector::TrdLayer::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot ) {
 
   fOffsetRelativePosition = offsetPos;
   fExtraRelativeRotation  = extraRot;
@@ -106,7 +106,7 @@ void Detector::TrdLayer::ChangeRelativePositionAndRotation( const TVector3& offs
 /** Recalculate global position and rotation for this layer and all its sublayers.
   *
   */
-void Detector::TrdLayer::UpdateGlobalPositionAndDirection() {
+void ACsoft::Detector::TrdLayer::UpdateGlobalPositionAndDirection() {
 
   DEBUG_OUT << "mother pos: " << fMother->Position() << " my rel pos: " << RelativePosition() << std::endl;
 
@@ -115,7 +115,7 @@ void Detector::TrdLayer::UpdateGlobalPositionAndDirection() {
 
   for( unsigned int i = 0 ; i < fSublayers.size() ; ++i ){
 
-    Detector::TrdSublayer* sublayer = fSublayers[i];
+    ACsoft::Detector::TrdSublayer* sublayer = fSublayers[i];
     sublayer->UpdateGlobalPositionAndDirection();
   }
 }

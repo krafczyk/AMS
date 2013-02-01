@@ -5,21 +5,31 @@
 
 namespace Cuts {
 
-/** A specific Cut class that's intended to be used without Selector.
- *  \sa Cut
+/** A generic %cut class that is intended to be used for arbitrary user-defined cuts.
+  *
+  * FIXME add docu, logic will be like
+  * bool conditionFulfilled = manualCut.Examine( xy>0.5 );
+  * if( manualCut.Passes(particle) ) do something, or use EventSelector instead after call to Examine function of all ManualCuts
+  *
+ *  \sa Cuts::Cut
  */
 class ManualCut : public Cut {
 public:
-  ManualCut(std::string description);
+  explicit ManualCut(std::string description="");
 
-  void LetPass( const Analysis::Particle& );
-  void LetFail( const Analysis::Particle& );
+  virtual bool Examine( bool condition );
 
   virtual std::string Description() const { return fDescription; }
 
 private:
-  // not implemented since the user has to tell this cut manually if an event passes
-  virtual bool TestCondition( const Analysis::Particle& ) { return false; }
+  virtual bool TestCondition( const ACsoft::Analysis::Particle& );
+
+private:
+
+  bool fConditionFulfilled;  ///< store result of Examine(), until TestCondition called as usual
+  bool fConditionTested;     ///< make sure fConditionFulfilled is always up-to-date
+
+  ClassDef(Cuts::ManualCut,1)
 };
 
 }

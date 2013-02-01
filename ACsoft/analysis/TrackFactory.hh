@@ -1,6 +1,8 @@
 #ifndef TRACKFACTORY_HH
 #define TRACKFACTORY_HH
 
+namespace ACsoft {
+
 namespace AC {
   class Event;
   class TrackerTrackFit;
@@ -20,7 +22,10 @@ public:
   TrackFactory();
 
   SplineTrack* CreateSplineTrackFrom( const AC::TrackerTrackFit& );
+  SplineTrack* CreateSplineTrackFullDetectorFrom( const AC::TrackerTrackFit& );
 };
+
+}
 
 }
 

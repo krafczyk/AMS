@@ -1,6 +1,6 @@
 #include "ACQtProducer-include.C"
-
-bool ACQtProducer::ProduceECAL() {
+ 
+bool ACsoft::ACQtProducer::ProduceECAL() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -89,9 +89,15 @@ bool ACQtProducer::ProduceECAL() {
       return false;
     }
 
+    ++nECAL12;
+
+    timer_ebdt->Start(kFALSE);
     ecalShower.fEstimators.append(pEcalShower->GetEcalBDT());
-    // FIXME: Currently crashes. Needs ROOT > 5.27.
-    // ecalShower.fEstimators.append(pEcalShower->EcalStandaloneEstimator());
+    timer_ebdt->Stop();
+
+    timer_ese2->Start(kFALSE);
+    ecalShower.fEstimators.append(pEcalShower->EcalStandaloneEstimatorV2()); // ok with icc64
+    timer_ese2->Stop();
 
     fEvent->fECAL.fShowers.append(ecalShower);
   }

@@ -3,9 +3,12 @@
 
 #include "TrackerTrackFit.h"
 #include "TrackerReconstructedHit.h"
+#include "TrackerTrack-Streamer.h"
 
 #include <bitset>
 #include <math.h>
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -44,13 +47,16 @@ class TrackerTrack {
   WTF_MAKE_FAST_ALLOCATED;
 public:
   /** A vector of char (8bit) numbers */
-  typedef Vector<Char_t, 1> ChargesVector;
+  typedef Vector<Char_t, 11> ChargesVector;
 
   /** A vector of float numbers */
-  typedef Vector<Float_t, 1> ChargesProbabilityVector;
+  typedef Vector<Float_t, 11> ChargesProbabilityVector;
 
   /** A vector of float numbers */
   typedef Vector<Float_t, 3> SCalibProbabilityVector;
+
+  /** A vector of float numbers */
+  typedef Vector<Float_t, 3> TrdKChargeLikelihoodVector;
 
   /** A vector of PatternChargeAndError objects */
   typedef Vector<PatternChargeAndError, 3> ChargesNewVector;
@@ -64,12 +70,7 @@ public:
   /** A vector of unsigned short numbers */
   typedef Vector<UShort_t, 9> ClusterDistancesVector;
 
-  TrackerTrack()
-    : fStatus(0)
-    , fNumberOfHitsX(0)
-    , fNumberOfHitsY(0) {
- 
-  }
+  AC_TrackerTrack_Variables
 
   /** Helper method dumping an TrackerTrack object to the console
     */
@@ -88,23 +89,46 @@ public:
     */ 
   Int_t NumberOfHitsY() const { return fNumberOfHitsY; }
 
-  /** Charge indexes sorted in descending probability (0:e, 1:H, 2:He ...)
-    * \todo Verify documentation.
-    */
-  const ChargesVector& Charges() const { return fCharges; }
+  /** TRDK reconstructed charge.
+    * \todo Add units.
+    */ 
+  Float_t TrdKCharge() const { return fTrdKCharge; }
 
-  /** Probabilities for the entries in the Charges() list.
-    */
-  const ChargesProbabilityVector& ChargesProbability() const { return fChargesProbability; }
+  /** TRDK reconstructed charge error.
+    * \todo Add units.
+    */ 
+  Float_t TrdKChargeError() const { return fTrdKChargeError; }
 
-  /** Probabilities for this track extrapolted into TRD.
-    * Note: the e/p/He logLikelihoodRatios are taken from the TrdSCalib
-    * \todo Verify documentation.
-    */
-  const SCalibProbabilityVector& SCalibProbability() const { return fSCalibProbability; } // FIXME remove!
+  /** TRDK charge: number of used hits for charge determination
+    */ 
+  UChar_t TrdKChargeNumberOfHitsForCharge() const { return fTrdKChargeNumberOfHitsForCharge; }
 
-  /** Pattern, charge and error triplet.
-    * \todo Add documentation.
+  /** TRDK charge: umber of used hits for nuclei PDFs
+    */ 
+  UChar_t TrdKChargeNumberOfHitsForNucleiPDF() const { return fTrdKChargeNumberOfHitsForNucleiPDF; }
+
+  /** TRDK charge: number of used hits for delta-ray PDFs
+    */ 
+  UChar_t TrdKChargeNumberOfHitsForDeltaRayPDF() const { return fTrdKChargeNumberOfHitsForDeltaRayPDF; }
+
+  /** TRDK charge likelihood: e/p/he likelihoods
+    */
+  const TrdKChargeLikelihoodVector& TrdKChargeLikelihood() const { return fTrdKChargeLikelihood; }
+
+  /** TRDK charge: number of used hits for e/p/he likelihoods
+    */ 
+  UChar_t TrdKChargeNumberOfHitsForLikelihoods() const { return fTrdKChargeNumberOfHitsForLikelihoods; }
+
+  /** TRDK charge: number of off-track hits for e/p/he likelihoods
+    */ 
+  UChar_t TrdKChargeNumberOfOffTrackHitsForLikelihoods() const { return fTrdKChargeNumberOfOffTrackHitsForLikelihoods; }
+
+  /** Vector of {pattern, charge, error} triplet:
+    * pattern=3: TrTrackR::GetInnerQ(beta),    TrTrackR::GetInnerQ_RMS(beta)/sqrt(max(1,n-1))
+    * pattern=1: TrTrackR::GetLayerJQ(1,beta), n
+    * pattern=9: TrTrackR::GetLayerJQ(9,beta), n
+    * beta = associated BetaHR::GetBetaC()
+    * n    = TrTrackR::GetInnerQ_NPoints(beta) 
     */
   const ChargesNewVector& ChargesNew() const { return fChargesNew; }
 
@@ -116,12 +140,19 @@ public:
     */
   const ReconstructedHitsVector& ReconstructedHits() const { return fReconstructedHits; }
 
-  /** Distance to next cluster in each layer in micrometer (for layer 0-8).
+  /** Distance to closest unused Y-TrCluster in each Jlayer in micrometer (index 0-8 corresponds to Jlayer 1-9).
     */
   const ClusterDistancesVector& ClusterDistances() const { return fClusterDistances; }
 
   /** GetFit
-    * \todo Add documentation.
+    *
+    * \param kAlgo  1: Choutko fit, 2: Alcaraz fit
+    * \param kPatt  0: all hits, 3: inner tracker hits
+    * \param kRefit ...
+    *
+    * fit based on inner tracker alone: (1,3,3)
+    *
+    * \sa ACQtProducer::ProduceTrackerTrackFits()
     */
   int GetFit( int kAlgo, int kPatt, int kRefit ) const {
     int i;
@@ -299,20 +330,48 @@ public:
     return TrkBits;
   }
 
-private:
-  UInt_t fStatus;                               // TrTrack->Status
-  Int_t fNumberOfHitsX;                         // TrTrack->GetNhitsX()
-  Int_t fNumberOfHitsY;                         // TrTrack->GetNhitsY()
-  ChargesVector fCharges;                       // Particle.pCharge.ChargeSubD("AMSChargeTrackerInner")->ChargeI[0..1]
-  ChargesProbabilityVector fChargesProbability; // Particle.pCharge.ChargeSubD("AMSChargeTrackerInner")->Prob[0..1]
-  SCalibProbabilityVector fSCalibProbability;   // TrdSCalib.TrdCprobs[]  0:e  1:p  2:He
-  ChargesNewVector fChargesNew;                 // TrTrack.GetQ/ERR for Patt 3:inner 1:L1  9:L9
-  FitsVector fTrackFits;                        // TrTrack FitResults  [0]:default   [1]:inner-tracker only
-  ReconstructedHitsVector fReconstructedHits;   // used TrRecHitR
-  ClusterDistancesVector fClusterDistances;     // distances to next cluster
+  /** Classify tracker hit pattern.
+    *
+    * Only refers to layers 1, 2, and 9, but not inner tracker.
+    *
+    * Return values:
+    *  - Layer 1 and 9, and maybe 2: 0
+    *  - Layer 1 and 2, but not 9: 1
+    *  - Layer 2 and 9, but not 1: 2
+    *  - Layer 1: 3
+    *  - Layer 2: 4
+    *  - Layer 9: 5
+    *  - none of the above: -1
+    */
+  short TrackerLayerPatternClassification() const {
 
+    std::bitset<32> TrkBits = MakeBitPattern();
+
+    // MakeBitPattern() sets bit Layer-1 !
+
+    // Layer 1 and 9, and maybe 2
+    if (TrkBits.test(0) && TrkBits.test(8)) return 0;
+
+    // Layer 1 and 2, but not 9
+    if (TrkBits.test(0) && TrkBits.test(1)) return 1;
+
+    // Layer 2 and 9, but not 1
+    if (TrkBits.test(1) && TrkBits.test(8)) return 2;
+
+    if (TrkBits.test(0)) return 3;
+    if (TrkBits.test(1)) return 4;
+    if (TrkBits.test(8)) return 5;
+
+    return -1;
+  }
+
+
+
+private:
   REGISTER_CLASS_WITH_TABLE(TrackerTrack)
 };
+
+}
 
 }
 

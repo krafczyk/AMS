@@ -8,7 +8,6 @@
 
 static const quint32 gACQtChunkSizeInMegaByte = 1024 * 1024 * 5;
 static const quint32 gACQtIdentifier = 0xACBEEFAC;
-static const quint32 gACQtVersion = 5;
 static const int gACQtCompressionLevel = -1; // Use zlib default compression level (6 at the time of writing).
 
 static inline void writeChunkToFile( QDataStream& fileStream, QByteArray& chunk, qint64 position, quint32 events ) {
@@ -23,7 +22,7 @@ static inline void writeChunkToFile( QDataStream& fileStream, QByteArray& chunk,
   fileStream.device()->write(compressedData);
 }
 
-void ACQtWriter::Initialize( const QString& rootFileName ) {
+void ACsoft::ACQtWriter::Initialize( const QString& rootFileName ) {
 
   // ACQt File Format
   // -------------------------------------
@@ -49,7 +48,7 @@ void ACQtWriter::Initialize( const QString& rootFileName ) {
   fFileStream->setVersion(QDataStream::Qt_4_6);
   fFileStream->setFloatingPointPrecision(QDataStream::SinglePrecision);
   *fFileStream << gACQtIdentifier;
-  *fFileStream << gACQtVersion;
+  *fFileStream << ACROOTVERSION;
 
   fEventNumberPosition = fFile->pos();
   *fFileStream << (quint32) 0;
@@ -60,7 +59,7 @@ void ACQtWriter::Initialize( const QString& rootFileName ) {
   fChunkStream->setFloatingPointPrecision(QDataStream::SinglePrecision);
 }
 
-void ACQtWriter::WriteRunHeader( const AC::RunHeader& runHeader ) {
+void ACsoft::ACQtWriter::WriteRunHeader( const AC::RunHeader& runHeader ) {
 
   Q_ASSERT(fFile);
   fRunHeader = runHeader;
@@ -68,7 +67,7 @@ void ACQtWriter::WriteRunHeader( const AC::RunHeader& runHeader ) {
   *fFileStream << fRunHeader;
 }
 
-void ACQtWriter::WriteEvent( const AC::Event& event ) {
+void ACsoft::ACQtWriter::WriteEvent( const AC::Event& event ) {
 
   Q_ASSERT(fFile);
   QIODevice* chunkDevice = fChunkStream->device();
@@ -90,7 +89,7 @@ void ACQtWriter::WriteEvent( const AC::Event& event ) {
   chunkDevice->seek(0);
 }
 
-void ACQtWriter::Finish(const TTimeStamp& firstEventTime, const TTimeStamp& lastEventTime) {
+void ACsoft::ACQtWriter::Finish(const TTimeStamp& firstEventTime, const TTimeStamp& lastEventTime) {
 
   Q_ASSERT(fFile);
   writeChunkToFile(*fFileStream, *fChunk, fChunkStream->device()->pos(), fEventsInChunk);

@@ -3,8 +3,10 @@
 
 #include <TMath.h>
 #include "Tools.h"
-#include <AMSGeometry.h>
-#include <TRDRawHit.h>
+#include "TRDRawHit.h"
+#include "TrackerTrackFit-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -13,36 +15,7 @@ namespace AC {
 class TrackerTrackFit {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  TrackerTrackFit()
-    : fParameters(0)
-    , fRigidity(0)
-    , fInverseRigidityError(0)
-    , fChiSquareNormalizedX(0)
-    , fChiSquareNormalizedY(0)
-    , fThetaLayer1(0)
-    , fPhiLayer1(0)
-    , fXLayer1(0)
-    , fYLayer1(0)
-    , fXTRDUpper(0)
-    , fYTRDUpper(0)
-    , fXTRDCenter(0)
-    , fYTRDCenter(0)
-    , fXTRDLower(0)
-    , fYTRDLower(0)
-    , fThetaTOFUpper(0)
-    , fPhiTOFUpper(0)
-    , fXTOFUpper(0)
-    , fYTOFUpper(0)
-    , fThetaRICH(0)
-    , fPhiRICH(0)
-    , fXRICH(0)
-    , fYRICH(0)
-    , fThetaLayer9(0)
-    , fPhiLayer9(0)
-    , fXLayer9(0)
-    , fYLayer9(0) {
-
-  }
+  AC_TrackerTrackFit_Variables
 
   /** Helper method dumping an TrackerTrackFit object to the console
     */
@@ -101,6 +74,14 @@ public:
     */
   Float_t YLayer1() const { return fYLayer1; }
 
+  /** 1cm above Layer 1: X coordinate [cm].
+   */
+  Float_t XLayer1Plus1cm() const { return fXLayer1Plus1cm; }
+  
+  /** 1cm above Layer 1: Y coordinate [cm].
+   */
+  Float_t YLayer1Plus1cm() const { return fYLayer1Plus1cm; }
+  
   /** TRD Upper: X coordinate [cm].
     */
   Float_t XTRDUpper() const { return fXTRDUpper; }
@@ -143,6 +124,22 @@ public:
     */
   Float_t YTOFUpper() const { return fYTOFUpper; }
 
+  /** 1cm below TOF Upper: X coordinate [cm].
+   */
+  Float_t XTOFUpperMinus1cm() const { return fXTOFUpperMinus1cm; }
+  
+  /** 1cm below TOF Upper: Y coordinate [cm].
+   */
+  Float_t YTOFUpperMinus1cm() const { return fYTOFUpperMinus1cm; }
+  
+  /** Layer 56 (Z=0): X coordinate [cm].
+    */
+  Float_t XLayer56() const { return fXLayer56; }
+
+  /** Layer 56 (Z=0): Y coordinate [cm].
+    */
+  Float_t YLayer56() const { return fYLayer56; }
+
   /** RICH: Zenith angle theta [deg].
     * See AMSDir::gettheta() (http://ams.cern.ch/cgi-bin/viewcvs.cgi/AMS/include/point.h?view=markup).
     */
@@ -179,50 +176,31 @@ public:
     */
   Float_t YLayer9() const { return fYLayer9; }
   
+  /** 1cm below Layer 9: X coordinate [cm].
+   */
+  Float_t XLayer9Minus1cm() const { return fXLayer9Minus1cm; }
+  
+  /** Layer 9: Y coordinate [cm].
+   */
+  Float_t YLayer9Minus1cm() const { return fYLayer9Minus1cm; }
+  
   /** Extrapolation to zECAL coordinate from Tracker Layer 9. Returns either X or Y in cm depending on the MeasurementMode (0: X, 1: Y).
+    * FIXME: REMOVE THIS FUNCTION! DO NOT ADD ANY NON DATA ACCCESSOR TO ACROOT/ CLASSES IN FUTURE!
+    * THESE CLASSES ARE MEANT AS DATA CONTAINERS, NOT TO CONTAIN FUNCTIONALITY!
     */
   float Extrapolate_to_zECAL( float z, MeasurementMode mode ) const 
   {// D=0: return X   else return Y
-    if(mode == XZMeasurement) return fXLayer9 + (z - (AC::AMSGeometry::ZTrackerLayer9))*tan(fThetaLayer9)*cos(fPhiLayer9);
-    else return fYLayer9 + (z - (AC::AMSGeometry::ZTrackerLayer9))*tan(fThetaLayer9)*sin(fPhiLayer9);
+    TVector3 v0 = TVector3(fXLayer9,fYLayer9,AC::AMSGeometry::ZTrackerLayer9);
+    TVector3 v1 = TVector3(fXLayer9Minus1cm,fYLayer9Minus1cm,AC::AMSGeometry::ZTrackerLayer9 - 1.0);
+    TVector3 ex = v0 - (z-AC::AMSGeometry::ZTrackerLayer9)/1.0*(v1-v0);
+    if(mode == XZMeasurement) return ex.X();
+    else return ex.Y();
   }
-
 private:
-  UChar_t fParameters;           // kAlgo{0..2}<<6 | kPatt{0..7}<<3 | kRefit{0..5}
-  Float_t fRigidity;             // TrTrack->GetRigidity(kFit)
-  Float_t fInverseRigidityError; // TrTrack->GetErrRinv(kFit)  (error of 1/R)
-  Float_t fChiSquareNormalizedX; // TrTrack->GetNormChisqX(kFit)
-  Float_t fChiSquareNormalizedY; // TrTrack->GetNormChisqY(kFit)
-
-  Float_t fThetaLayer1;          // TrTrack->Theta  |
-  Float_t fPhiLayer1;            // TrTrack->Phi    |   Z = Layer-1N  +159.067 cm
-  Float_t fXLayer1;              // TrTrack->Coo[0] |
-  Float_t fYLayer1;              // TrTrack->Coo[1] /
-  
-  Float_t fXTRDUpper;            // TrTrack->Coo[0] |   Z =  TRD-Upper   +136.75 cm
-  Float_t fYTRDUpper;            // TrTrack->Coo[1] /
-  Float_t fXTRDCenter;           // TrTrack->Coo[0] |   Z =  TRD-Center  +113.55 cm
-  Float_t fYTRDCenter;           // TrTrack->Coo[1] /
-  Float_t fXTRDLower;            // TrTrack->Coo[0] |   Z =  TRD-Lower    +90.35 cm
-  Float_t fYTRDLower;            // TrTrack->Coo[1] /
-
-  Float_t fThetaTOFUpper;        // TrTrack->Theta  |
-  Float_t fPhiTOFUpper;          // TrTrack->Phi    |   Z = Upper-TOF  +63.65 cm (between Plane 1/2)
-  Float_t fXTOFUpper;            // TrTrack->Coo[0] |
-  Float_t fYTOFUpper;            // TrTrack->Coo[1] /
- 
-  Float_t fThetaRICH;            // TrTrack->Theta  |
-  Float_t fPhiRICH;              // TrTrack->Phi    |   Z =  RICH  -73.6 cm (Center of Radiator)
-  Float_t fXRICH;                // TrTrack->Coo[0] |
-  Float_t fYRICH;                // TrTrack->Coo[1] /
-
-  Float_t fThetaLayer9;          // TrTrack->Theta  |
-  Float_t fPhiLayer9;            // TrTrack->Phi    |   Z =  Layer-9   -136.041 cm
-  Float_t fXLayer9;              // TrTrack->Coo[0] |
-  Float_t fYLayer9;              // TrTrack->Coo[1] /
-
   REGISTER_CLASS_WITH_TABLE(TrackerTrackFit)
 };
+
+}
 
 }
 

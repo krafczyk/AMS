@@ -1,7 +1,12 @@
 
 #include "pathlength_functions.hh"
 
+#include "dumpstreamers.hh"
+
 #include <math.h>
+
+#define DEBUG 0
+#include <debugging.hh>
 
 /** Calculate three-dimensional pathlength of straight line through cylinder.
   *
@@ -43,7 +48,7 @@ Double_t pathlength3d( int D, TVector3 trackPos, TVector3 trackDir, TVector3 tub
   return len3d;
 }
 
-/** Calculate three-dimensional pathlength of straight line through cylinder.
+/** Calculate three-dimensional pathlength of straight line through a cylinder that is parallel to the x- or y-axis.
   *
   * See maple/pathlength3D.mw
   *
@@ -64,4 +69,123 @@ Double_t pathlength3d( int D, TVector3 trackPos, Double_t trackTheta, Double_t t
   return pathlength3d(D, trackPos, trackDir, tubePos, R );
 }
 
+
+
+/** Calculate three-dimensional pathlength of straight line through a cylinder.
+  *
+  * Both the cylinder center and the intersecting line are defined in the usual 3D parametrization:
+  * \f[
+  * t: \vec{t} = \vec{x} + \lambda\vec{a}
+  * \f]
+  *
+  * where \f$ \vec{x} \f$ is a point on the line and \f$ \vec{a} \f$ is a direction vector.
+  *
+  * \param[in] radius radius of cylinder
+  * \param[in] x1 point on cylinder center
+  * \param[in] dir1 vector parallel to cylinder axis
+  * \param[in] x2 point on intersecting line
+  * \param[in] dir2 direction vector of intersecting line
+  *
+  */
+double Pathlength3d( double radius, const TVector3& x1, const TVector3& dir1, const TVector3& x2, const TVector3& dir2 ){
+
+  TVector3 a1 = dir1.Unit();
+  TVector3 a2 = dir2.Unit();
+  TVector3 x12 = x2 - x1;
+
+  double a12 = a1*a2;
+  double denom = 1.0 - a12*a12;
+  if(denom<=0.0) return 0.0;
+
+  double a1x12 = a1*x12;
+
+  double p = ( (x12*a2)-(a1*x12)*a12 ) / denom;
+  double q = ( x12.Mag2() - a1x12*a1x12 - radius*radius ) / denom;
+
+  double radicand = p*p - q;
+  if( radicand <= 0.0 ) return 0.0;
+
+  double len = 2.0*sqrt(radicand);
+  return len;
+}
+
+/** Calculate distance between two skew lines.
+  *
+  * \param[in] x1 point on first line
+  * \param[in] dir1 direction vector of first line
+  * \param[in] x2 point on second line
+  * \param[in] dir2 direction vector of second line
+  *
+  */
+double Distance( const TVector3& x1, const TVector3& dir1, const TVector3& x2, const TVector3& dir2 ){
+
+  TVector3 a1 = dir1.Unit();
+  TVector3 a2 = dir2.Unit();
+
+  TVector3 a1xa2 = a1.Cross(a2);
+  TVector3 x12 = x2 - x1;
+
+  double denom = a1xa2.Mag();
+  if( denom <= 0.0 ) return 0.0; // not correct (lines are parallel)
+
+  double d = fabs( x12*a1xa2 ) / denom;
+  return d;
+}
+
+/** For two given skew lines, calculate the point of closest approach for the two lines that is located on the first line.
+  *
+  * \param[in] x1 point on first line
+  * \param[in] dir1 direction vector of first line
+  * \param[in] x2 point on second line
+  * \param[in] dir2 direction vector of second line
+  *
+  * \returns point of closest approach on first line
+  */
+TVector3 BasePoint1( const TVector3& x1, const TVector3& dir1, const TVector3& x2, const TVector3& dir2 ){
+
+  TVector3 a1 = dir1.Unit();
+  TVector3 a2 = dir2.Unit();
+
+  double a12 = a1*a2;
+  double D = -1.0 + a12*a12;
+
+  double lambda1 = 1.0/D * ( a12*(x2*a2-x1*a2) - (x2*a1-x1*a1) );
+
+  TVector3 bp1 = x1 + (lambda1*a1);
+
+//  // TEST
+//  double lambda2 = 1.0/D * ( (x2*a2-x1*a2) - ( a12*(x2*a1 - x1*a1) ) );
+//  TVector3 bp2 = x2 + (lambda2*a2);
+
+//  double lhs1 = x1*a1 + lambda1     - x2*a1 - lambda2*a12;
+//  double lhs2 = x1*a2 + lambda1*a12 - x2*a2 - lambda2;
+
+//  DEBUG_OUT << "lhs1: " << lhs1 << " lhs2: " << lhs2 << std::endl;
+//  DEBUG_OUT << "bp1: " << bp1 << " bp2: " << bp2 << std::endl;
+
+  return bp1;
+}
+
+/** For two given skew lines, calculate the point of closest approach for the two lines that is located on the second line.
+  *
+  * \param[in] x1 point on first line
+  * \param[in] dir1 direction vector of first line
+  * \param[in] x2 point on second line
+  * \param[in] dir2 direction vector of second line
+  *
+  * \returns point of closest approach on second line
+  */
+TVector3 BasePoint2( const TVector3& x1, const TVector3& dir1, const TVector3& x2, const TVector3& dir2 ){
+
+  TVector3 a1 = dir1.Unit();
+  TVector3 a2 = dir2.Unit();
+
+  double a12 = a1*a2;
+  double D = -1.0 + a12*a12;
+
+  double lambda2 = 1.0/D * ( (x2*a2-x1*a2) - ( a12*(x2*a1 - x1*a1) ) );
+
+  TVector3 bp2 = x2 + (lambda2*a2);
+  return bp2;
+}
 

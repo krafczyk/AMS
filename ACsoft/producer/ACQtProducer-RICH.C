@@ -1,6 +1,6 @@
 #include "ACQtProducer-include.C"
 
-bool ACQtProducer::ProduceRICH() {
+bool ACsoft::ACQtProducer::ProduceRICH() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -30,7 +30,7 @@ bool ACQtProducer::ProduceRICH() {
     richRing.fTheta = M_PI - pRichRing->AMSTrPars[3];    // Tracker Convention
     richRing.fPhi = pRichRing->AMSTrPars[4];  
     richRing.fPhi += richRing.fPhi > 0.0 ? -M_PI : M_PI; // Tracker Convention
-    richRing.fChargeSquareEstimate = sqrt(pRichRing->getCharge2Estimate());
+    richRing.fChargeEstimate = sqrt(pRichRing->getCharge2Estimate());
 
     if (pRichRing->IsClean() && pRichRing->getExpectedPhotoelectrons() > 2 && pRichRing->getPMTs() > 2)
       richRing.fProbability = fabs(pRichRing->getProb());

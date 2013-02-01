@@ -19,6 +19,8 @@
 #include "StringTools.hh"
 
 /// Utility classes.
+namespace ACsoft {
+
 namespace Utilities {
   typedef std::map < std::string, std::string > Dict_t;
   typedef std::map < std::string, Dict_t > SectionedDict_t;
@@ -591,5 +593,7 @@ std::ostream& operator<<(std::ostream& os,name& val)\
 {os << name##Vector[val];\
 return os;}
 #endif // __CINT__
+
+}
 
 #endif				// CONFIGHANDLER_HH

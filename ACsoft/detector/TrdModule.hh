@@ -8,8 +8,12 @@
 #include <TVector3.h>
 #include <TRotation.h>
 
+#include <TRDRawHit.h>
+
 class TH1;
 class TTimeStamp;
+
+namespace ACsoft {
 
 namespace Detector {
 
@@ -33,9 +37,10 @@ public:
   int SublayerNumber() const { return fSublayerNumber; }
   int LadderNumber() const { return fLadderNumber; }
   int TowerNumber() const { return fTowerNumber; }
+  AC::MeasurementMode Direction() const { return fDirection; }
 
-  TVector3 RelativePosition() const { return ( fNominalRelativePosition + fOffsetRelativePosition ); }
-  TRotation RelativeRotation() const { return ( fExtraRelativeRotation*fNominalRelativeRotation ); } // FIXME: Is this correct? Extra rot a good idea?
+  TVector3 RelativePosition() const { return ( fNominalRelativePosition + fShimmingOffset + fOffsetRelativePosition ); }
+  TRotation RelativeRotation() const { return ( fExtraRelativeRotation*fShimmingRotation*fNominalRelativeRotation ); } // FIXME: Is this correct? Extra rot a good idea?
 
   TVector3 GlobalPosition() const;
   TRotation GlobalRotation() const;
@@ -51,13 +56,13 @@ public:
     *
     */
   const Detector::TrdStraw* GetTrdStraw( int number ) const { return fStraws.at(number); }
-
-
-  void StoreAlignmentShift( const TTimeStamp& time, Double_t shift );
-  void StoreDeDx( const TTimeStamp& time, Double_t dedx );
-  void WriteHistogramsToCurrentFile();
+  /** Get the number of straws in module. */
+  unsigned int NumberOfStraws() const { return fStraws.size(); }
 
   void Dump() const;
+
+  void SetShimmingRotation( const TRotation& matrix );
+  void SetShimmingOffset( const TVector3& offset );
 
 private:
 
@@ -69,8 +74,10 @@ private:
 private:
 
   TVector3 fNominalRelativePosition;  ///< nominal position of module in sublayer frame (fixed with time)
+  TVector3 fShimmingOffset;           ///< shimming offset of module (fixed with time)
   TVector3 fOffsetRelativePosition;   ///< additional offset to fNominalRelativePosition from alignment (may change with time)
   TRotation fNominalRelativeRotation; ///< nominal rotation of module in sublayer frame (fixed with time)
+  TRotation fShimmingRotation;        ///< shimming rotation (fixed with time)
   TRotation fExtraRelativeRotation;   ///< additional rotation from alignment (may change with time)
 
   TVector3 fGlobalPosition; ///< current position in AMS tracker frame
@@ -81,17 +88,15 @@ private:
   int fSublayerNumber;  ///< sublayer in layer (0..1)
   int fLadderNumber;    ///< ladder position of module in layer (0..N-1)
   int fTowerNumber;     ///< tower number (0..17 for top row ,..., 2..15 for bottom row)
+  AC::MeasurementMode fDirection; ///< describes how module is oriented (before alignment)
 
   TrdSublayer* fMother; ///< pointer to mother volume
 
   std::vector<Detector::TrdStraw*> fStraws;
 
-  void CreateAlignmentShiftHisto();
-  void CreateDeDxHisto();
-  TH1* fAlignmentShiftHisto; // FIXME: Move this and related stuff to TrdAlignment?
-  TH1* fDeDxHisto; // FIXME: Move this and related stuff to TrdGainCalibration?
-
 };
+
+}
 
 }
 

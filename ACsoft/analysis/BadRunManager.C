@@ -17,7 +17,7 @@
 #include <debugging.hh>
 
 
-Analysis::BadRunManager::BadRunManager() {
+ACsoft::Analysis::BadRunManager::BadRunManager() {
 
   // initialize index map from enum SubD:
   SubDNameToEnum["General"] = General;
@@ -54,31 +54,45 @@ Analysis::BadRunManager::BadRunManager() {
   AddDefaultBadRunLists();
 }
 
-void Analysis::BadRunManager::AddDefaultBadRunLists() {
+std::string ACsoft::Analysis::BadRunManager::SubdToString( SubD s ) const
+{
+  std::map<SubD,std::string>::const_iterator it = EnumToSubDName.find(s);
+  assert(it != EnumToSubDName.end());
+  return it->second;
+}
+
+ACsoft::Analysis::BadRunManager::SubD ACsoft::Analysis::BadRunManager::StringToSubd( std::string s ) const
+{
+  std::map<std::string,SubD>::const_iterator it = SubDNameToEnum.find(s);
+  assert(it != SubDNameToEnum.end());
+  return it->second;
+}
+
+void ACsoft::Analysis::BadRunManager::AddDefaultBadRunLists() {
 
   INFO_OUT << "Adding default run lists..." << std::endl;
 
-  AddBadRunList("General_ShortRun_1305853512:1347160405");
+//  AddBadRunList("General_ShortRun_1305853512:1347160405");
   AddBadRunList("General_commissioning_1305853512:1337244535");
-  AddBadRunList("General_desync_1305853512:1337244535");
-  AddBadRunList("General_events_with_error_1305853512:1347158991");
-  AddBadRunList("General_events_without_particle_1305853512:1347158991");
-  AddBadRunList("General_missing_events_1305853512:1347158991");
-  AddBadRunList("General_not_vertical_1305853512:1347158991");
+//  AddBadRunList("General_desync_1305853512:1337244535");
+//  AddBadRunList("General_events_with_error_1305853512:1347158991");
+//  AddBadRunList("General_events_without_particle_1305853512:1347158991");
+//  AddBadRunList("General_missing_events_1305853512:1347158991");
+//  AddBadRunList("General_not_vertical_1305853512:1347158991");
 
   AddBadRunList("DAQ_pulser_on_1305853512:1337244535");
 
   AddBadRunList("Tracker_BadStrips_1305853512:1347160405");
 
   AddBadRunList("Ecal_E0_event_mismatch_1305853512:1337449847");
-  AddBadRunList("Ecal_EDR_1_0_A_wrong_config_1305853512:1337449847");
-  AddBadRunList("Ecal_EIB_RP3_LV_power_cycle_1305853512:1337449847");
-  AddBadRunList("Ecal_EIB_RP3_wrong_setting_1305853512:1337449847");
-  AddBadRunList("Ecal_Trigger_test_1305853512:1337449847");
+//  AddBadRunList("Ecal_EDR_1_0_A_wrong_config_1305853512:1337449847");
+//  AddBadRunList("Ecal_EIB_RP3_LV_power_cycle_1305853512:1337449847");
+//  AddBadRunList("Ecal_EIB_RP3_wrong_setting_1305853512:1337449847");
+//  AddBadRunList("Ecal_Trigger_test_1305853512:1337449847");
 
-  // AddBadRunList("TRD_BadForEPseparation_1305800727:1337450000");
-  // AddBadRunList("TRD_UnusableForAnalysis_1305800727:1337450000");
-  AddBadRunList("TRD_WeakForEPseparation_1305800727:1347199393");
+//  AddBadRunList("TRD_BadForEPseparation_1305800727:1354552232");
+  AddBadRunList("TRD_UnusableForAnalysis_1305800727:1354552232");
+//  AddBadRunList("TRD_WeakForEPseparation_1305800727:1354552232");
 //  AddBadRunList("TRD_Test");
 }
 
@@ -87,7 +101,7 @@ void Analysis::BadRunManager::AddDefaultBadRunLists() {
   *
   * \param[in] fileName bad run list file (WITHOUT DIRECTORY)
   */
-int Analysis::BadRunManager::AddBadRunList( const std::string& fileName ){
+int ACsoft::Analysis::BadRunManager::AddBadRunList( const std::string& fileName ){
 
   int nBadRuns = -1;
   std::string fnam = fBadRunFilesDir + fileName;
@@ -151,16 +165,19 @@ int Analysis::BadRunManager::AddBadRunList( const std::string& fileName ){
 
 
 
-bool Analysis::BadRunManager::IsBad( SubD subdetector, const Analysis::Particle& particle ){
+bool ACsoft::Analysis::BadRunManager::IsBad( SubD subdetector, const ACsoft::Analysis::Particle& particle ){
 
-  long Run     = particle.RawEvent()->RunHeader()->Run();
+  if( !particle.HasRawEventData() )
+    return particle.BadRunTag() & 1 << int(subdetector);
+
+  long Run = particle.RawEvent()->RunHeader()->Run();
   time_t UTime = particle.RawEvent()->EventHeader().TimeStamp().GetSec();
 
   return IsBad(subdetector,Run,UTime);
 }
 
 
-bool Analysis::BadRunManager::IsBad( SubD subdetector, long run, time_t UTime ){
+bool ACsoft::Analysis::BadRunManager::IsBad( SubD subdetector, long run, time_t UTime ){
 
   if( run   != fCurrentRun )   UpdateBadUTimes(run);   // get new bad-utime-ranges for this run for all SubDs
   if( UTime != fCurrentUTime ) UpdateBadStatus(UTime); // get bad-status for this UTime second  for all SubDs
@@ -169,7 +186,7 @@ bool Analysis::BadRunManager::IsBad( SubD subdetector, long run, time_t UTime ){
 }
 
 
-void Analysis::BadRunManager::UpdateBadStatus( const time_t UTime ){
+void ACsoft::Analysis::BadRunManager::UpdateBadStatus( const time_t UTime ){
 
   for( int iSubD=0; iSubD<nSubD; iSubD++){
     BadStatus[iSubD] = false;
@@ -181,7 +198,7 @@ void Analysis::BadRunManager::UpdateBadStatus( const time_t UTime ){
       }
     }
     DEBUG_OUT_L(2) << "UTime=" << UTime
-                   << " subD " << std::setw(10) << std::left << EnumToSubDName[Analysis::BadRunManager::SubD(iSubD)]
+                   << " subD " << std::setw(10) << std::left << EnumToSubDName[ACsoft::Analysis::BadRunManager::SubD(iSubD)]
                    << " status " << BadStatus[iSubD] << std::endl;
   }
 
@@ -189,7 +206,7 @@ void Analysis::BadRunManager::UpdateBadStatus( const time_t UTime ){
 }
 
 
-void Analysis::BadRunManager::UpdateBadUTimes( const long Run ){
+void ACsoft::Analysis::BadRunManager::UpdateBadUTimes( const long Run ){
 
   std::map<long,BadUTimeRangeVector>::iterator it;
 
@@ -202,7 +219,7 @@ void Analysis::BadRunManager::UpdateBadUTimes( const long Run ){
     // status message
     if(DEBUG){
       DEBUG_OUT << std::endl;
-      printf("BadRunManager::UpdateBadUTimes(  Run=%10li) %10s ", Run,EnumToSubDName[Analysis::BadRunManager::SubD(iSubD)].c_str());
+      printf("BadRunManager::UpdateBadUTimes(  Run=%10li) %10s ", Run,EnumToSubDName[ACsoft::Analysis::BadRunManager::SubD(iSubD)].c_str());
       if(BadUTimes[iSubD].size()>0) printf("%10li %10li\n",BadUTimes[iSubD][0].first,BadUTimes[iSubD][0].second);
       else printf("\n");
       for(int i=1; i<(int)BadUTimes[iSubD].size(); i++)
@@ -212,5 +229,3 @@ void Analysis::BadRunManager::UpdateBadUTimes( const long Run ){
 
   fCurrentRun = Run;
 }
-
-

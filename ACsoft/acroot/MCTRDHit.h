@@ -2,6 +2,9 @@
 #define MCTRDHit_h
 
 #include "Tools.h"
+#include "MCTRDHit-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -15,11 +18,7 @@ public:
   /** A vector of short numbers */
   typedef Vector<Float_t, 1> EnergyLossVector;
 
-  MCTRDHit()
-    : fID(0), fLLT(0), fKineticEnergy(0), fDepositedEnergy(0), fStep(0)
-  {
-
-  }
+  AC_MCTRDHit_Variables
 
   /** Helper method dumping an MCTRDHit object to the console
     */
@@ -56,15 +55,10 @@ public:
   Float_t StepSize() const {return fStep;}
 
 private:
-  Short_t fID;                  // TrdMCCluster->ParticleNo
-  UShort_t fLLT;                // TrdMCCluster-> (Layer<<11)+(Ladder)<<6+(Tube)
-  EnergyLossVector fEnergyLoss; // dE/Dx: E/keV*320 S/cm*32000  [+Eprim;[-Etr];+Step];[+Esec];[-Edray]
-  Float_t fKineticEnergy;       // TrdMCCluster->Ekin; Kinetic energy of particle [GeV]
-  Float_t fDepositedEnergy;     // TrdMCCluster->Edep; Deposited energy of particle [GeV]
-  Float_t fStep;                // TrdMCCluster->Step; Step size [cm] between processes
-
   REGISTER_CLASS_WITH_TABLE(MCTRDHit)
 };
+
+}
 
 }
 

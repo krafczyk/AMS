@@ -16,20 +16,20 @@ class CutTrackerTrackInEcalAcceptance : public Cut {
 public:
   CutTrackerTrackInEcalAcceptance() : Cut( "Tracker track in ECAL acceptance" ) {}
   
-  virtual bool TestCondition(const Analysis::Particle &p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle &p) {
 
-    const AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
-    if( !trackFit ) return true;
+    if( !p.HasMainTrackerTrackFit() ) return true;
 
     // Cut used in production of likelihoods up to now
     // FIXME make sure we can extrapolate tracker track to ECAL bottom (caveat: spline track does not
     // FIXME have enough points to do that in the lower half at the moment), then cut on 32.4 cm
-    return (fabs(trackFit->XLayer9())<30.0 && fabs(trackFit->YLayer9())<30.0);
+    return (fabs(p.TrackerXcoordinates()[5])<30.0 && fabs(p.TrackerYcoordinates()[5])<30.0);
 
 //    // Check if extrapolated tracker track fit is going into the ECAL
 //    // FIXME: the track should be extrapolated to the lower ECAL, but I don't know the z value
-//    float X = fabs(trackFit->Extrapolate_to_zECAL(AC::AMSGeometry::ZECALUpper, AC::XZMeasurement));
-//    float Y = fabs(trackFit->Extrapolate_to_zECAL(AC::AMSGeometry::ZECALUpper, AC::YZMeasurement));
+//    // FIXME: use only variables available for both reduced and raw events
+//    float X = fabs(trackFit->Extrapolate_to_zECAL(ACsoft::AC::AMSGeometry::ZECALUpper, ACsoft::AC::XZMeasurement));
+//    float Y = fabs(trackFit->Extrapolate_to_zECAL(ACsoft::AC::AMSGeometry::ZECALUpper, ACsoft::AC::YZMeasurement));
     
 //    return X <= 32.4 && Y <= 32.4; // FIXME why 32.4 cm ??
 }
@@ -45,9 +45,11 @@ class CutEcalShowerInFiducialVolume : public Cut {
 public:
   CutEcalShowerInFiducialVolume() : Cut( "ECAL shower in fiducial volume" ) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    const AC::ECALShower* shower = p.MainEcalShower();
+    AssureCutIsAppliedToACQtFile(p);
+
+    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
     if( !shower ) return true;
     return fabs(shower->ExitX()) <= 30.6 && fabs(shower->ExitY()) <= 30.6;
   }
@@ -61,10 +63,10 @@ public:
   CutEcalEnergy( float minimumEnergy, float maximumEnergy )
     : TwoSidedCut( "ECAL energy", minimumEnergy, maximumEnergy) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.MainEcalShower() ) return true;
-    return ValueIsInRange( p.MainEcalShower()->ReconstructedEnergy());
+    if( !p.HasMainEcalShower() ) return true;
+    return ValueIsInRange( p.EcalEnergy());
   }
 
   CutEcalEnergy() : TwoSidedCut( "", 0.0, 0.0 ) {}
@@ -74,16 +76,17 @@ public:
 /** %Cut on ECAL BDT estimator of selected shower in the event. */
 class CutEcalBdtEstimator : public TwoSidedCut {
 public:
-  CutEcalBdtEstimator( float minimumBDT = -1., float maximumBDT = 1. ) // FIXME remove defaults
+  CutEcalBdtEstimator( float minimumBDT, float maximumBDT )
     : TwoSidedCut( "ECAL BDT", minimumBDT, maximumBDT) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.MainEcalShower() ) return true;
-    if( !p.MainEcalShower()->Estimators().size() ) return true;
-    return ValueIsInRange(p.MainEcalShower()->Estimators()[0]);
+    if( !p.HasMainEcalShower() ) return true;
+    if( !p.HasMainEcalShowerEstimator() ) return true;
+    return ValueIsInRange(p.EcalBDT());
   }
 
+  CutEcalBdtEstimator() : TwoSidedCut("",0.0,0.0) { }
   ClassDef(Cuts::CutEcalBdtEstimator,1)
 };
 
@@ -93,22 +96,25 @@ public:
  */
 class CutEcalTrackerTrackMatch : public TwoSidedCut {
 public:
-  CutEcalTrackerTrackMatch(float minimumDistance = 0., float maximumDistance = 3.)  // FIXME remove defaults
+  CutEcalTrackerTrackMatch(float minimumDistance, float maximumDistance )
     : TwoSidedCut( "Positional match ECAL <-> tracker track", minimumDistance, maximumDistance) { }
 
-  virtual bool TestCondition(const Analysis::Particle& p) {
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    const AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
-    const AC::ECALShower* shower = p.MainEcalShower();
+    AssureCutIsAppliedToACQtFile(p);
+
+    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
+    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
 
     // Check if the direction of the ECAL shower corresponds to the Tracker track direction
     // The distance between the extrapolated X, Y position and the center of gravity of the ECAL shower is calculated and should be within a certain limit
-    float distanceX = fabs(shower->X() - trackFit->Extrapolate_to_zECAL(shower->Z(), AC::XZMeasurement));
-    float distanceY = fabs(shower->Y() - trackFit->Extrapolate_to_zECAL(shower->Z(), AC::YZMeasurement));
+    float distanceX = fabs(shower->X() - trackFit->Extrapolate_to_zECAL(shower->Z(), ACsoft::AC::XZMeasurement));
+    float distanceY = fabs(shower->Y() - trackFit->Extrapolate_to_zECAL(shower->Z(), ACsoft::AC::YZMeasurement));
 
     return ValueIsInRange( sqrt(distanceX*distanceX + distanceY*distanceY) );
   }
 
+  CutEcalTrackerTrackMatch() : TwoSidedCut( "", 0.0, 0.0 ) { }
   ClassDef(Cuts::CutEcalTrackerTrackMatch,1)
 };
 

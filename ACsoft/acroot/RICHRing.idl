@@ -1,0 +1,17 @@
+[Description]
+Namespace = AC
+Class = RICHRing
+Members = \
+  UInt_t fStatus                                    \
+  UShort_t fNumberOfHits                            \
+  Float_t fBeta                                     \
+  Float_t fBetaError                                \
+  Float_t fX                                        \
+  Float_t fY                                        \
+  Float_t fZ                                        \
+  Float_t fTheta                                    \
+  Float_t fPhi                                      \
+  Float_t fProbability                              \
+  Float_t fChargeEstimate                           \
+  [53-ChargesVector fCharges]                       \
+  [53-ChargesProbabilityVector fChargesProbability]

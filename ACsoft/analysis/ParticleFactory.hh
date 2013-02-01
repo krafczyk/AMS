@@ -1,9 +1,15 @@
 #ifndef PARTICLEFACTORY_HH
 #define PARTICLEFACTORY_HH
 
+namespace ACsoft {
+
 namespace AC {
-class Event;
-}
+  class Event;
+};
+
+namespace IO {
+  class ReducedEvent;
+};
 
 namespace Analysis {
 
@@ -24,9 +30,8 @@ class TrackFactory;
   *
   * (in event loop:)
   *
-  * AC::Event* event = filemanager.Event();
   * Analysis::Particle particle;
-  * pfactory->PrepareWithDefaultObjects(*event, particle); //optional step
+  * pfactory->PrepareWithDefaultObjects(fileManager.Event(), fileManager.EventReduced() particle); //optional step
   * // (use suitable Selector for preselection)
   * pfactory->FillHighLevelObjects(particle);
   * // (do analysis, more cuts)
@@ -36,20 +41,23 @@ class ParticleFactory
 {
 public:
 
-  ParticleFactory( int stepsForTrdHits );
+  ParticleFactory( int stepsForTrdHits, bool fullDetectorTrack = true );
   virtual ~ParticleFactory();
 
-  void PrepareWithDefaultObjects( const AC::Event& rawEvt, Analysis::Particle& particle );
-  void FillHighLevelObjects( Analysis::Particle& particle );
+  void PrepareWithDefaultObjects( const AC::Event*, const IO::ReducedEvent*, Analysis::Particle& );
+  void PrepareWithDefaultObjects( const AC::Event*, Analysis::Particle& );
+  void PrepareWithDefaultObjects( const IO::ReducedEvent*, Analysis::Particle& );
+  void FillHighLevelObjects( Analysis::Particle& );
 
 protected:
 
-  bool DefaultMainAmsParticle( Analysis::Particle& particle ) const;
-  bool DefaultMainTrackerTrack ( Analysis::Particle& particle ) const;
-  bool DefaultMainTrackerTrackFit ( Analysis::Particle& particle ) const;
-  bool DefaultEcalShower ( Analysis::Particle& particle ) const;
-  bool DefaultTofBeta ( Analysis::Particle& particle ) const;
-  bool DefaultMainTrdVTrack ( Analysis::Particle& particle ) const;
+  bool DefaultMainAmsParticle( Analysis::Particle& ) const;
+  bool DefaultMainTrackerTrack ( Analysis::Particle& ) const;
+  bool DefaultMainTrackerTrackFit ( Analysis::Particle& ) const;
+  bool DefaultEcalShower ( Analysis::Particle& ) const;
+  bool DefaultTofBeta ( Analysis::Particle& ) const;
+  bool DefaultMainTrdVTrack ( Analysis::Particle& ) const;
+  bool DefaultMainRichRing ( Analysis::Particle& ) const;
 
 
 protected:
@@ -58,7 +66,10 @@ protected:
   TrackFactory*  fTrackFactory;
 
   int fStepsForTrdHits;
+  bool fFullDetectorTrack;
 };
+}
+
 }
 
 #endif

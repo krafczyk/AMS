@@ -9,6 +9,8 @@ class QByteArray;
 class QDataStream;
 class QFile;
 
+namespace ACsoft {
+
 namespace AC {
   class Event;
   class RunHeader;
@@ -59,5 +61,7 @@ private:
   unsigned long long fRunHeaderPosition;
   AC::RunHeader fRunHeader;
 };
+
+}
 
 #endif

@@ -1,6 +1,7 @@
 #include "AMSGeometry.h"
 #include "Settings.h"
 
+#include <assert.h>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -18,23 +19,33 @@
 #define INFO_OUT_TAG "AMSGeom> "
 #include <debugging.hh>
 
+namespace ACsoft {
+
 namespace AC {
+
+const float AMSGeometry::TRDTubeRadius = 0.3;
+const float AMSGeometry::TRDMaximumStrawLength = 210.0;
+const float AMSGeometry::ZTOFUpper = 63.65;
+const float AMSGeometry::ZECALUpper = -142.792;
+const float AMSGeometry::ZECALLower = -158.457;
+const float AMSGeometry::ZRICH = -73.6;
+const float AMSGeometry::ZTrackerLayer1 = 159.067;
+const float AMSGeometry::ZTrackerLayer56 = 0.0;
+const float AMSGeometry::ZTrackerLayer9 = -136.041; 
+const float AMSGeometry::ZTRDCenter = 113.55; 
+const float AMSGeometry::ZTRDUpper = 136.75;
+const float AMSGeometry::ZTRDLower = 90.35;
+const float AMSGeometry::TrdLayerThickness = 2.9;
+const float AMSGeometry::TrdModuleWidth = 10.1;
 
 AMSGeometry::AMSGeometry() {
 
  TRDFirstLayerContour = 0;
  TRDLastLayerContour = 0;
 
- TRDShifts[0]    =     0.e-4;  // global TRD X-Shift/cm
- TRDShifts[1]    =     0.e-4;  // global TRD Y-Shift/cm
- TRDShifts[2]    =  1000.e-4;  // global TRD Z-Shift/cm (1mm)
- TRDRotations[0] =     0.e-6;  // global TRD X-Rot/rad  (YZ-Tilt)
- TRDRotations[1] =     0.e-6;  // global TRD Y-Rot/rad  (XZ-Tilt)
- TRDRotations[2] =     0.e-6;  // global TRD Z-Rot/rad
-
- for (unsigned int ladder = 0; ladder < TRDLadders; ++ladder) {
+ for (unsigned int tower = 0; tower < TRDTowers; ++tower) {
    for (unsigned int layer = 0; layer < TRDLayers; ++layer)
-     TRDLadderLayerToModuleLookupTable[ladder][layer] = -1;
+     TRDLadderLayerToModuleLookupTable[tower][layer] = -1;
  }
 
  for (unsigned int layer = 0; layer < TRDLayers; ++layer)
@@ -44,6 +55,15 @@ AMSGeometry::AMSGeometry() {
  FillGeoArray();
 }
 
+AMSGeometry* AMSGeometry::Self() {
+
+  static AMSGeometry* gInstance = 0;
+  if (!gInstance) {
+    gInstance = new AMSGeometry;
+    gInstance->Init();
+  }
+  return gInstance;
+}
 
 /** Get a list of %TRD module numbers on given \p layer.
   *
@@ -109,86 +129,12 @@ void AMSGeometry::Init() {
   filePath += "/acroot/data/";
 
   InitTRDGeometryFile(filePath);
-  InitTRDShimmingModuleFile(filePath);
-  InitTRDShimmingGlobalFile(filePath);
 
   InitTRDLadderLayerToModuleLookupTable();
   InitTRDStrawLookupTable();
 }
 
-static inline void VerifySettingsInFile(const std::string& fileIdentifier, std::ifstream& file, const std::string& expectedGitSHA, unsigned short expectedVersion) {
 
-  std::string gitSHA;
-  unsigned short version = 0;
-  file >> gitSHA >> version;
-
-  if (gitSHA != expectedGitSHA) {
-    WARN_OUT << "ERROR validating " << fileIdentifier << ". File mismatch! Expected Git SHA: \"" << expectedGitSHA << "\". Actual Git SHA: \"" << gitSHA << "\"" << std::endl;
-    throw std::runtime_error("ERROR validating " + fileIdentifier);
-  }
-
-  if (version != expectedVersion) {
-    WARN_OUT << "ERROR validating " << fileIdentifier << ". File mismatch! Expected version: \"" << expectedVersion << "\". Actual version: \"" << version << "\"" << std::endl;
-    throw std::runtime_error("ERROR validating " + fileIdentifier);
-  }
-}
-
-#define VALIDATE_LOOKUP_FILE(FileIdentifier, VariableName) \
-  VerifySettingsInFile(FileIdentifier, file, AC::Settings::VariableName##ExpectedGitSHA, AC::Settings::VariableName##ExpectedVersion)
-
-void AMSGeometry::InitTRDShimmingGlobalFile( const std::string& path) {
-
-  std::string fname = path + Settings::gTrdQtShimmingGlobalFileName;
-  INFO_OUT << "InitTRDShimmingGlobalFile from file " << fname << std::endl;
-
-  std::ifstream file(fname.c_str());
-  if (!file.good()){
-    WARN_OUT << "ERROR opening TRDShimmingGlobalFile " << fname << std::endl;
-    throw std::runtime_error("ERROR opening TRDShimmingGlobalFile.");
-  }
-
-  VALIDATE_LOOKUP_FILE("TRDShimmingGlobalFile", gTrdQtShimmingGlobalFileName);
-
-  // FIXME: This file should be validated, if it's complete.
-  file >> TRDShifts[0] >> TRDShifts[1] >> TRDShifts[2]
-       >> TRDRotations[0] >> TRDRotations[1] >> TRDRotations[2];
-
-  file.close();
-
-  DEBUG_OUT << "TRDShifts,    x=" << 1e4*TRDShifts[0] << " y=" << 1e4*TRDShifts[1] << " z=" << 1e4*TRDShifts[2] << std::endl;
-  DEBUG_OUT << "TRDRotations, x=" << 1e6*TRDRotations[0] << " y=" << 1e6*TRDRotations[1] << " z=" << 1e6*TRDRotations[2] << std::endl;
-}
-
-void AMSGeometry::InitTRDShimmingModuleFile( const std::string& path ) {
-
-  std::string fname = path + Settings::gTrdQtShimmingModuleFileName;
-  INFO_OUT << "InitTRDShimmingModuleFile from file " << fname << std::endl;
-
-  std::ifstream file(fname.c_str());
-  if (!file.good()){
-    WARN_OUT << "ERROR opening TRDShimmingModuleFile " << fname << std::endl;
-    throw std::runtime_error("ERROR opening TRDShimmingModuleFile.");
-  }
-
-  VALIDATE_LOOKUP_FILE("TRDShimmingModuleFile", gTrdQtShimmingModuleFileName);
-
-  int Imod;
-  float Imod_Dz, Imod_Arz;
-
-  while (file.good()) {
-    file >> Imod >> Imod_Dz >> Imod_Arz;
-    if (file.eof())
-      break;
-
-    Mod_Dz[ Imod-1] = Imod_Dz;   // shimming file still uses 1..328 convention
-    Mod_Arz[Imod-1] = Imod_Arz;
-
-    // FIXME: Use better names instad of Mod_Dz, Mod_Arz, also print out units etc.
-    DEBUG_OUT << "module number: " << Imod << " dz: " << std::setw(10) << Imod_Dz << std::setw(10) <<  " arz: " << Imod_Arz << std::endl;
-  }
-
-  file.close();
-}
 
 static inline unsigned short ParseTRDModuleContoursIdentifier(const QString& moduleIdentifier, unsigned int line, unsigned int sublayer) {
 
@@ -204,7 +150,7 @@ static inline unsigned short ParseTRDModuleContoursIdentifier(const QString& mod
 
 void AMSGeometry::InitTRDGeometryFile( const std::string& path ) {
 
-  std::string fname = path + Settings::gTrdQtGeometryFileName;
+  std::string fname = path + ::AC::Settings::gTrdQtGeometryFileName;
   INFO_OUT << "InitTRDModuleContoursFile from file " << fname << std::endl;
 
   QFile file(QString::fromStdString(fname));
@@ -310,7 +256,6 @@ void AMSGeometry::InitTRDGeometryFile( const std::string& path ) {
           throw std::runtime_error("ERROR processing TRD Module Contours file.");
         }
 
-        TRDSubLayersZCoordinate[sublayer] = geometry.z;
       } else {
         // Check that each line after the first corresponds to the right layer.
         QString expectedSubIdentifier = sublayerIdentifier + "." + QString::number(i + 1);
@@ -426,16 +371,13 @@ TCutG* AC::AMSGeometry::BuildTRDLayerPolygon(unsigned int layer) const {
   return polygon;
 }
 
-/** Apply shimming corrections and global TRD shift and rotation.
-  *
-  * The internal bookkeeping is updated as well.
-  */
+/*
 void AMSGeometry::ApplyShimmingCorrection(unsigned short straw, float secondCoordinate, float& dx, float& dy, float& dz) {
 
   int direction;
   float xy, z;
   TRDStrawToCoordinates(straw, direction, xy, z);
-  Q_ASSERT(direction != -1);
+  assert(direction != -1);
 
   int Mod = TRDStrawToModule(straw);
   float x = direction == 0 ? xy : secondCoordinate;
@@ -467,6 +409,7 @@ void AMSGeometry::ApplyShimmingCorrection(unsigned short straw, float secondCoor
   dz +=   (x+dx) * sin(TRDRotations[1])   // TRD Y-Rotation (XZ-Tilt)
         + (y+dy) * sin(TRDRotations[0]);  // TRD X-Rotation (YZ-Tilt)
 }
+*/
 
 void AMSGeometry::InitTRDLadderLayerToModuleLookupTable() {
 
@@ -586,67 +529,6 @@ void AMSGeometry::TRDModuleToLadderAndLayer(unsigned short Module, unsigned shor
   }
 }
 
-void TRDStrawToCoordinates(unsigned short straw, int& direction, float& xy, float& z) {
-  
-  static std::vector<int>* gStrawDirection = 0;
-  static std::vector<float>* gStrawXY = 0;
-  static std::vector<float>* gStrawZ = 0;
-
-  Q_ASSERT(straw < AMSGeometry::TRDStraws);
-
-  direction = -1;
-  xy = std::numeric_limits<float>::max() - 1;
-  z = std::numeric_limits<float>::max() - 1;
-
-  if (!gStrawDirection) {
-    gStrawDirection = new std::vector<int>();
-    gStrawDirection->assign(AMSGeometry::TRDStraws,-1);
-    
-    gStrawXY = new std::vector<float>();
-    gStrawXY->assign(AMSGeometry::TRDStraws,0.0);
-    
-    gStrawZ = new std::vector<float>();
-    gStrawZ->assign(AMSGeometry::TRDStraws,0.0);
-  }
-
-  if (gStrawDirection->at(straw) >= 0) {
-    direction = gStrawDirection->at(straw);
-    xy = gStrawXY->at(straw);
-    z = gStrawZ->at(straw);
-    return;
-  }
-
-  unsigned short ladder, layer;
-  AMSGeometry::Self()->TRDStrawToLadderAndLayer(straw, ladder, layer);
-
-  unsigned short tower = ladder;
-  if (layer < 12) ++tower;
-  if (layer < 4) ++tower;
-  direction = (layer >= 16 || layer <= 3);
-
-  z = 85.275 + 2.9 * (float) layer;
-  if (tower % 2 == 0) z += 1.45; // this means: even-numbered towers are on sublayer 1, odd-numbered layers are on sublayer 0
-
-  xy = 10.1 * (float)(tower - 9);
-
-  if ((direction==1) && (tower>=12)) xy += 0.78;
-  if ((direction==1) && (tower<= 5)) xy -= 0.78;
-
-  unsigned short tube = TRDStrawToTube(straw);
-  xy += 0.31 + 0.62 * (float) tube;
-
-  // Account TRD longitudinal stringers.
-  if(tube >=  1) xy += 0.03;
-  if(tube >=  4) xy += 0.03;
-  if(tube >=  7) xy += 0.03;
-  if(tube >=  9) xy += 0.03;
-  if(tube >= 12) xy += 0.03;
-  if(tube >= 15) xy += 0.03;
-
-  gStrawDirection->at(straw) = direction;
-  gStrawXY->at(straw) = xy;
-  gStrawZ->at(straw) = z;
-}
 
 void PushStrawToLookupTableIfNeeded(unsigned short int straw, unsigned short int sublayer, int x, int y) {
 
@@ -664,11 +546,11 @@ void AMSGeometry::InitTRDStrawLookupTable() {
     unsigned short sublayer = TRDModuleGeometries[module].sublayer;
     int direction;
     float xy, z;
-    TRDStrawToCoordinates(straw, direction, xy, z); 
-    Q_ASSERT(direction != -1);
+    TrdStrawToRawCoordinates(straw, direction, xy, z);
+    assert(direction != -1);
 
-    float dx, dy, dz;
-    ApplyShimmingCorrection(straw, 0, dx, dy, dz);
+    float dx=0., dy=0.;//, dz;
+    //ApplyShimmingCorrection(straw, 0, dx, dy, dz); // FIXME Shimming corrections are not available here!
     if (direction == 0) xy += dx;
     else xy += dy;
 
@@ -1106,35 +988,98 @@ void AMSGeometry::FillGeoArray() {
 
 }
 
-unsigned short TRDStrawToLayer(unsigned short straw) {
+void TrdStrawToRawCoordinates(unsigned short straw, int& direction, float& xy, float& z) {
 
-  Q_ASSERT(straw < AMSGeometry::TRDStraws);
+  static std::vector<int>* gStrawDirection = 0;
+  static std::vector<float>* gStrawXY = 0;
+  static std::vector<float>* gStrawZ = 0;
+
+  assert(straw < AC::AMSGeometry::TRDStraws);
+
+  direction = -1;
+  xy = std::numeric_limits<float>::max() - 1;
+  z = std::numeric_limits<float>::max() - 1;
+
+  if (!gStrawDirection) {
+    gStrawDirection = new std::vector<int>();
+    gStrawDirection->assign(AC::AMSGeometry::TRDStraws,-1);
+
+    gStrawXY = new std::vector<float>();
+    gStrawXY->assign(AC::AMSGeometry::TRDStraws,0.0);
+
+    gStrawZ = new std::vector<float>();
+    gStrawZ->assign(AC::AMSGeometry::TRDStraws,0.0);
+  }
+
+  if (gStrawDirection->at(straw) >= 0) {
+    direction = gStrawDirection->at(straw);
+    xy = gStrawXY->at(straw);
+    z = gStrawZ->at(straw);
+    return;
+  }
 
   unsigned short ladder, layer;
-  AMSGeometry::Self()->TRDStrawToLadderAndLayer(straw, ladder, layer);
+  AC::AMSGeometry::Self()->TRDStrawToLadderAndLayer(straw, ladder, layer);
+
+  unsigned short tower = ladder;
+  if (layer < 12) ++tower;
+  if (layer < 4) ++tower;
+  direction = (layer >= 16 || layer <= 3);
+
+  z = 85.275 + 2.9 * (float) layer;
+  if (tower % 2 == 0) z += 1.45; // this means: even-numbered towers are on sublayer 1, odd-numbered layers are on sublayer 0
+
+  xy = 10.1 * (float)(tower - 9);
+
+  if ((direction==1) && (tower>=12)) xy += 0.78;
+  if ((direction==1) && (tower<= 5)) xy -= 0.78;
+
+  unsigned short tube = ACsoft::AC::TRDStrawToTube(straw);
+  xy += 0.31 + 0.62 * (float) tube;
+
+  // Account TRD longitudinal stringers.
+  if(tube >=  1) xy += 0.03;
+  if(tube >=  4) xy += 0.03;
+  if(tube >=  7) xy += 0.03;
+  if(tube >=  9) xy += 0.03;
+  if(tube >= 12) xy += 0.03;
+  if(tube >= 15) xy += 0.03;
+
+  gStrawDirection->at(straw) = direction;
+  gStrawXY->at(straw) = xy;
+  gStrawZ->at(straw) = z;
+}
+
+unsigned short TRDStrawToLayer(unsigned short straw) {
+
+  assert(straw < AC::AMSGeometry::TRDStraws);
+
+  unsigned short ladder, layer;
+  AC::AMSGeometry::Self()->TRDStrawToLadderAndLayer(straw, ladder, layer);
   return layer;
 }
 
 unsigned short TRDStrawToLadder(unsigned short straw) {
 
-  Q_ASSERT(straw < AMSGeometry::TRDStraws);
+  assert(straw < AC::AMSGeometry::TRDStraws);
 
   unsigned short ladder, layer;
-  AMSGeometry::Self()->TRDStrawToLadderAndLayer(straw, ladder, layer);
+  AC::AMSGeometry::Self()->TRDStrawToLadderAndLayer(straw, ladder, layer);
   return ladder;
 }
 
 unsigned short TRDStrawToTube(unsigned short straw) {
 
-  Q_ASSERT(straw < AMSGeometry::TRDStraws);
-  return straw % AMSGeometry::TRDStrawsPerModule;
+  assert(straw < AC::AMSGeometry::TRDStraws);
+  return straw % AC::AMSGeometry::TRDStrawsPerModule;
 }
 
 unsigned short TRDStrawToModule(unsigned short straw) {
 
-  Q_ASSERT(straw < AMSGeometry::TRDStraws);
-  return straw / AMSGeometry::TRDStrawsPerModule;
+  assert(straw < AC::AMSGeometry::TRDStraws);
+  return straw / AC::AMSGeometry::TRDStrawsPerModule;
 }
 
 }
 
+}

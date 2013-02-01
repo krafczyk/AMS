@@ -1,0 +1,7 @@
+[Description]
+Namespace = AC
+Class = TRDHTrack
+Members = \
+  UShort_t fStatus                   \
+  ChargesNewVector fChargesNew       \
+  HSegmentIndexVector fHSegmentIndex

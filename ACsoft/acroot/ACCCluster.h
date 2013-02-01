@@ -2,6 +2,9 @@
 #define ACCCluster_h
 
 #include "Tools.h"
+#include "ACCCluster-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -10,14 +13,7 @@ namespace AC {
 class ACCCluster {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  ACCCluster()
-    : fStatus(0)
-    , fPhi(0)
-    , fZ(0)
-    , fTime(0)
-    , fEnergy(0) {
-
-  }
+  AC_ACCCluster_Variables
 
   /** Helper method dumping an ACCCluster object to the console
     */
@@ -49,14 +45,10 @@ public:
   Float_t Energy() const { return fEnergy; }
 
 private:
-  UInt_t fStatus;  // AntiCluster->Status
-  Float_t fPhi;    // AntiCluster->Coo[1]
-  Float_t fZ;      // AntiCluster->Coo[2]
-  Float_t fTime;   // AntiCluster->Times[i] closest to 0
-  Float_t fEnergy; // AntiCluster->Edep
-
   REGISTER_CLASS_WITH_TABLE(ACCCluster)
 };
+
+}
 
 }
 

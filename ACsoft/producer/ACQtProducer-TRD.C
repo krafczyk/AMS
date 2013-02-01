@@ -2,14 +2,18 @@
 
 #include "SplineTrack.hh"
 #include "TrackFactory.hh"
+#include "TrdDetector.hh"
+#include "TrdStraw.hh"
+#include "DetectorManager.hh"
+#include "pathlength_functions.hh"
 
-bool TRDExtraHitsSortAscending(const TRDExtraHit& h1, const TRDExtraHit& h2) {
+bool TRDExtraHitsSortAscending(const ACsoft::TRDExtraHit& h1, const ACsoft::TRDExtraHit& h2) {
 
   // sort smaller residual first
   return h1.residual < h2.residual ? true : false;
 }
 
-bool ACQtProducer::ProduceTRDHSegments() {
+bool ACsoft::ACQtProducer::ProduceTRDHSegments() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -46,7 +50,7 @@ bool ACQtProducer::ProduceTRDHSegments() {
   return true;
 }
 
-static inline bool LookupRigidityForTRDHTrackIndex(const AC::Event* event, AMSEventR* amsEvent, int htrackIndex, float& rigidity) {
+static inline bool LookupRigidityForTRDHTrackIndex(const ACsoft::AC::Event* event, AMSEventR* amsEvent, int htrackIndex, float& rigidity) {
 
   Q_ASSERT(event);
   Q_ASSERT(amsEvent);
@@ -55,7 +59,7 @@ static inline bool LookupRigidityForTRDHTrackIndex(const AC::Event* event, AMSEv
   // Lookup particle which is associated with the given htrackIndex.
   int nParticles = (int)event->fParticles.size();
   for (int particleIndex = 0; particleIndex < nParticles; ++particleIndex) {
-    const AC::Particle& particle = event->fParticles[particleIndex];
+    const ACsoft::AC::Particle& particle = event->fParticles[particleIndex];
     if (particle.TRDHTrackIndex() != htrackIndex)
       continue;
 
@@ -70,7 +74,7 @@ static inline bool LookupRigidityForTRDHTrackIndex(const AC::Event* event, AMSEv
   return false;
 }
 
-bool ACQtProducer::ProduceTRDHTracks() {
+bool ACsoft::ACQtProducer::ProduceTRDHTracks() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -120,7 +124,7 @@ bool ACQtProducer::ProduceTRDHTracks() {
   return true;
 }
 
-bool ACQtProducer::ProduceTRDVTracks() {
+bool ACsoft::ACQtProducer::ProduceTRDVTracks() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -188,7 +192,7 @@ bool ACQtProducer::ProduceTRDVTracks() {
   return true;
 }
 
-bool ACQtProducer::ProduceTRD() {
+bool ACsoft::ACQtProducer::ProduceTRD() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -207,7 +211,7 @@ bool ACQtProducer::ProduceTRD() {
     return false;
 
   static Analysis::TrackFactory fTrackFactory;
-
+  Detector::Trd* unalignedTrd = Detector::DetectorManager::Self()->GetUnalignedTrd();
   // Add more TrdRawHits if close to TrTrack - up to 50 in decreasing amplitude order
 
   // Map from TrackerTrack index to SplineTrack object, usable for z-interpolations.
@@ -272,8 +276,14 @@ bool ACQtProducer::ProduceTRD() {
         Analysis::SplineTrack* splineTrack = splineTracks[trackIndex];
         assert(splineTrack);
 
-        float residual = fabs(splineTrack->DeltaXY(trdRawHit.Direction(), trdRawHit.Z(), trdRawHit.Direction() == AC::XZMeasurement ? trdRawHit.X() : trdRawHit.Y()));
-        if (residual < 3.0) {
+        const Detector::TrdStraw* trdstraw = unalignedTrd->GetTrdStraw(trdRawHit.Straw());
+        assert(trdstraw);
+
+        TVector3 trackPos, trackDir;
+        splineTrack->CalculateLocalPositionAndDirection(trdstraw->GlobalPosition().Z(), trackPos, trackDir);
+        float residual = Distance(trdstraw->GlobalPosition(), trdstraw->GlobalWireDirection(), trackPos, trackDir);
+
+        if (residual < 3.0 + (float)pTrdRawHit->Layer / 9.5) { // 3 cm for TRD-Bottom (layer-0)    5 cm for TRD-Top (layer-19)
           trdExtraHit.hitIndex = rawHitIndex; // candidate
           trdExtraHit.residual = min(residual, trdExtraHit.residual);  // keep closest Resid to TrTrack
         }
@@ -284,14 +294,38 @@ bool ACQtProducer::ProduceTRD() {
     }
   }
 
-  // Add up to 50 eXtra hits from fTRDExtraHits
-  std::sort(fTRDExtraHits.begin(), fTRDExtraHits.end(), &TRDExtraHitsSortAscending);
+  // sort according to rising residual
+  std::sort(fTRDExtraHits.begin(), fTRDExtraHits.end(), &TRDExtraHitsSortAscending); 
 
-  int maximumExtraHits = min(50, (int)fTRDExtraHits.size());
-  for (int i = 0; i < maximumExtraHits; ++i)
-    fTRDRawHitIndices.push_back(fTRDExtraHits[i].hitIndex);
+  int NHused  = (int)fTRDRawHitIndices.size();
+  int NHtrack = (int)fTRDExtraHits.size();
+  int NHtot   = nRawHits;
+ 
+  // Add fTRDExtraHits
+  for (int i = 0; i < (int)fTRDExtraHits.size(); ++i) fTRDRawHitIndices.push_back(fTRDExtraHits[i].hitIndex);
 
-  // Save all used TrdRawHits
+
+  // if still less than 256 hits, add more:
+  if( (int)fTRDRawHitIndices.size() < 256 ) {
+
+    for (int rawHitIndex = 0; rawHitIndex < nRawHits; ++rawHitIndex) {
+      TrdRawHitR* pTrdRawHit = fAMSEvent->pTrdRawHit(rawHitIndex);
+
+      int k = 0, kmax = (int)fTRDRawHitIndices.size();
+      for (; k < kmax; ++k) {
+        if (fTRDRawHitIndices[k] == rawHitIndex)
+          break;
+      }
+
+      if (k == kmax) fTRDRawHitIndices.push_back(rawHitIndex);   // hit was not yet in fTRDRawHitIndices
+
+      if( (int)fTRDRawHitIndices.size() == 256 ) break;          // enough ...
+
+    }
+  }
+
+
+  // Save TrdRawHits:
   nRawHits = min(256, (int)fTRDRawHitIndices.size());
   for (int rawHitIndex = 0; rawHitIndex < nRawHits; ++rawHitIndex) {
     TrdRawHitR* pTrdRawHit = fAMSEvent->pTrdRawHit(rawHitIndex);
@@ -308,6 +342,16 @@ bool ACQtProducer::ProduceTRD() {
     trdRawHit.fADC = (UShort_t) (fAMSEvent->pTrdRawHit(fTRDRawHitIndices[rawHitIndex])->Amp * 8 + 0.5);
     fEvent->fTRD.fRawHits.append(trdRawHit);
   }
+
+#ifndef AMS_ACQT_SILENCE_COMMON_WARNINGS
+  h1_nTrdRawHit_All->Fill((float)NHtot);
+  h1_nTrdRawHit_Used->Fill((float)NHused);
+  h1_nTrdRawHit_Extra->Fill((float)NHtrack);
+  h1_nTrdRawHit_UsPlEx->Fill((float)(NHused+NHtrack));
+  h1_nTrdRawHit_Saved->Fill((float)nRawHits);
+#endif
+
+  // printf("TRD RawHits  used/extra/all %4d/%4d/%4d\n",NHused,NHtrack,NHtot);
 
   return true;
 }

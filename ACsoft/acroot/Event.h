@@ -2,6 +2,7 @@
 #define Event_h
 
 #include "ACC.h"
+#include "DAQ.h"
 #include "ECAL.h"
 #include "EventHeader.h"
 #include "MC.h"
@@ -12,12 +13,16 @@
 #include "TRD.h"
 #include "Tracker.h"
 #include "Trigger.h"
+#include "Event-Streamer.h"
 
-namespace Analysis {
+namespace ACsoft {
+
+namespace IO {
   class FileManager;
 }
 
 /// ACROOT event classes.
+
 namespace AC {
 
 /** AMS-02 reduced event data
@@ -28,7 +33,7 @@ public:
   /** A vector of Particle objects */
   typedef Vector<Particle, 1> ParticlesVector;
 
-  Event();
+  AC_Event_Variables
 
   /** Helper method dumping an event object to the console
     */
@@ -36,7 +41,7 @@ public:
 
   /** Clear event to the initial empty state, as it was just constructed.
     */
-  void Clear(Option_t * /*option*/ ="");
+  void Clear();
 
   /** Check internal consistency of the event.
     */
@@ -58,6 +63,10 @@ public:
   /** %Trigger data
     */
   const AC::Trigger& Trigger() const { return fTrigger; }
+
+  /** %DAQ data
+    */
+  const AC::DAQ& DAQ() const { return fDAQ; }
 
   /** %TOF data
     */
@@ -88,24 +97,15 @@ public:
   const AC::MC& MC() const { return fMC; }
 
 private:
-  friend class Analysis::FileManager;
+  friend class IO::FileManager;
   void SetRunHeader(AC::RunHeader* runHeader) { fRunHeader = runHeader; }
 
 private:
   AC::RunHeader* fRunHeader; //! Not stored in ROOT/ACQt file - the FileManager assigns this variable.
-  ParticlesVector fParticles;
-  AC::EventHeader fEventHeader;
-  AC::Trigger fTrigger;
-  AC::TOF fTOF;
-  AC::ACC fACC;
-  AC::TRD fTRD;
-  AC::Tracker fTracker;
-  AC::RICH fRICH;
-  AC::ECAL fECAL;
-  AC::MC fMC;
-
   REGISTER_CLASS(Event)
 };
+
+}
 
 }
 

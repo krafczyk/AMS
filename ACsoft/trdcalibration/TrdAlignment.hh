@@ -3,14 +3,15 @@
 
 #include <string>
 
+#include <TTimeStamp.h>
+
 #include <SimpleGraphLookup.hh>
 #include "Settings.h"
 
+class TH1;
 class TH2I;
 
-namespace Detector {
-  class Trd;
-}
+namespace ACsoft {
 
 namespace Utilities {
   class ConfigHandler;
@@ -48,14 +49,20 @@ public:
                                               std::string histogram,
                                               int requiredNumberOfEntries = 10000,
                                               bool interactive = false,
+                                              bool snapshot = false,
                                               std::string resultfile = "fitresults.root",
                                               int testbin = 0 );
-protected:
 
-  Detector::Trd* fTrd;
+private:
+
+  void CreateAlignmentShiftHistos();
+  void StoreAlignmentShift( unsigned int module, const TTimeStamp& time, Double_t shift );
+
+protected:
 
   bool fIsInitialized;
 
+  std::vector<TH1*> fAlignmentShiftHistos;
   TH2I* fNumberOfTrdHitsWithinCut;
   TH2I* fNumberOfTrdLayersWithHitWithinCut;
   TH2I* fNumberOfHitsOnLayersWithHitWithinCut;
@@ -91,17 +98,19 @@ public:
     * \returns effective alignment shift in transverse (y or x) direction (cm)
     */
   virtual Double_t GetAlignmentShift( unsigned int module, double time ) const {
-    Quantity result = Utilities::SimpleGraphLookup::Query(module,time,false);
+    Utilities::Quantity result = Utilities::SimpleGraphLookup::Query(module,time,false);
     return result.value;
   }
 
 private:
   TrdAlignmentShiftLookup()
-    : Utilities::SimpleGraphLookup(AC::Settings::gTrdQtAlignmentFileName,
-                                   AC::Settings::gTrdQtAlignmentFileNameExpectedGitSHA,
-                                   AC::Settings::gTrdQtAlignmentFileNameExpectedVersion,
+    : Utilities::SimpleGraphLookup(::AC::Settings::gTrdQtAlignmentFileName,
+                                   ::AC::Settings::gTrdQtAlignmentFileNameExpectedGitSHA,
+                                   ::AC::Settings::gTrdQtAlignmentFileNameExpectedVersion,
                                    "fitMeanGraphGoodFit", "", 0, 327) { }
 };
+
+}
 
 }
 

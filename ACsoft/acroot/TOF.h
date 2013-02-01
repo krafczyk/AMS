@@ -3,6 +3,9 @@
 
 #include "TOFBeta.h"
 #include "TOFCluster.h"
+#include "TOF-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -17,7 +20,7 @@ public:
   /** A vector of TOFCluster objects */
   typedef Vector<TOFCluster, 34> ClustersVector;
 
-  TOF() { }
+  AC_TOF_Variables
 
   /** Helper method dumping an TOF object to the console
     */
@@ -25,7 +28,7 @@ public:
 
   /** Clear TOF to the initial empty state, as it was just constructed.
     */
-  void Clear(Option_t * /*option*/ ="");
+  void Clear();
 
   /** Calculate mean energy deposited in TOF
     */
@@ -44,11 +47,10 @@ public:
   const ClustersVector& Clusters() const { return fClusters; }
 
 private:
-  BetasVector fBetas;
-  ClustersVector fClusters;
-
   REGISTER_CLASS(TOF)
 };
+
+}
 
 }
 

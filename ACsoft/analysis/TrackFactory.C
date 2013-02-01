@@ -8,13 +8,13 @@
 #define INFO_OUT_TAG "TrackFactory> "
 #include <debugging.hh>
 
-Analysis::TrackFactory::TrackFactory()
+ACsoft::Analysis::TrackFactory::TrackFactory()
 {
 }
 
 
 
-Analysis::SplineTrack* Analysis::TrackFactory::CreateSplineTrackFrom( const AC::TrackerTrackFit& TRKfit ) {
+ACsoft::Analysis::SplineTrack* ACsoft::Analysis::TrackFactory::CreateSplineTrackFrom( const AC::TrackerTrackFit& TRKfit ) {
 
   Double_t x[7];
   Double_t y[7];
@@ -62,7 +62,7 @@ Analysis::SplineTrack* Analysis::TrackFactory::CreateSplineTrackFrom( const AC::
   y[6] = TRKfit.YLayer1()   + Myt*dZ_L1 - Myt*dZ_L1*dY_L1/1000./TRKfit.Rigidity()*sqrt(1.+Myt*Myt);
 
 
-  Analysis::SplineTrack* track = new Analysis::SplineTrack;
+  ACsoft::Analysis::SplineTrack* track = new ACsoft::Analysis::SplineTrack;
   track->fRigidity = TRKfit.Rigidity();
   track->fRigidityUncertainty = (TRKfit.Rigidity() * TRKfit.Rigidity()) * TRKfit.InverseRigidityError();
 
@@ -77,3 +77,80 @@ Analysis::SplineTrack* Analysis::TrackFactory::CreateSplineTrackFrom( const AC::
 
   return track;
 }
+
+ACsoft::Analysis::SplineTrack* ACsoft::Analysis::TrackFactory::CreateSplineTrackFullDetectorFrom( const AC::TrackerTrackFit& TRKfit) {
+
+  /// \todo fix good values for dZ, dY...
+  const Float_t dZ_UT = 1.0;
+  const Float_t dZ_L1 = 1.0;
+
+  double z[12];
+  double y[12];
+  double x[12];
+  
+  // Extrapolate two points from layer z direction, assuming straight line
+  z[0] = -158.5;
+  y[0] = TRKfit.Extrapolate_to_zECAL(-158.5,AC::YZMeasurement);
+  x[0] = TRKfit.Extrapolate_to_zECAL(-158.5,AC::XZMeasurement);
+  
+  z[1] = -142.8;
+  y[1] = TRKfit.Extrapolate_to_zECAL(-142.8,AC::YZMeasurement);
+  x[1] = TRKfit.Extrapolate_to_zECAL(-142.8,AC::XZMeasurement);
+  
+  z[2] = AC::AMSGeometry::ZTrackerLayer9;
+  y[2] = TRKfit.YLayer9();
+  x[2] = TRKfit.XLayer9();
+  
+  z[3] = AC::AMSGeometry::ZRICH;
+  y[3] = TRKfit.YRICH();
+  x[3] = TRKfit.XRICH();
+  
+  z[4] = AC::AMSGeometry::ZTrackerLayer56;
+  y[4] = TRKfit.YLayer56();
+  x[4] = TRKfit.XLayer56();
+  
+  z[5] = AC::AMSGeometry::ZTOFUpper - dZ_UT;
+  y[5] = TRKfit.YTOFUpperMinus1cm();
+  x[5] = TRKfit.XTOFUpperMinus1cm();
+
+  z[6] = AC::AMSGeometry::ZTOFUpper;
+  y[6] = TRKfit.YTOFUpper();
+  x[6] = TRKfit.XTOFUpper();
+
+  z[7] = AC::AMSGeometry::ZTRDLower;
+  y[7] = TRKfit.YTRDLower();
+  x[7] = TRKfit.XTRDLower();
+  
+  z[8] = AC::AMSGeometry::ZTRDCenter;
+  y[8] = TRKfit.YTRDCenter();
+  x[8] = TRKfit.XTRDCenter();
+
+  z[9] = AC::AMSGeometry::ZTRDUpper;
+  y[9] = TRKfit.YTRDUpper();
+  x[9] = TRKfit.XTRDUpper();
+
+  z[10] = AC::AMSGeometry::ZTrackerLayer1;
+  y[10] = TRKfit.YLayer1();
+  x[10] = TRKfit.XLayer1();
+
+  z[11] = AC::AMSGeometry::ZTrackerLayer1 + dZ_L1;
+  y[11] = TRKfit.YLayer1Plus1cm();
+  x[11] = TRKfit.XLayer1Plus1cm();
+
+  ACsoft::Analysis::SplineTrack* track = new ACsoft::Analysis::SplineTrack;
+  track->fRigidity = TRKfit.Rigidity();
+  track->fRigidityUncertainty = (TRKfit.Rigidity() * TRKfit.Rigidity()) * TRKfit.InverseRigidityError();
+
+  track->fPoints.reserve(12);
+
+  for( int i=0 ; i<12 ; ++i )
+    track->fPoints.push_back(TVector3(x[i],y[i],z[i]));
+
+  track->fSplineZX = TSpline3("ZX",z,x,12);
+  track->fSplineZY = TSpline3("ZY",z,y,12);
+
+  /// \todo set source (from AC_TRKfit.Par ?)
+
+  return track;
+}
+

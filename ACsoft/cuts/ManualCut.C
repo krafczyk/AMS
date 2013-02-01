@@ -1,17 +1,35 @@
 #include "ManualCut.hh"
 
+#include <assert.h>
+
+#define DEBUG 0
+#define INFO_OUT_TAG "ManualCut> "
+#include <debugging.hh>
+
 Cuts::ManualCut::ManualCut( std::string description ) :
-  Cuts::Cut(description) {
+  Cuts::Cut(description),
+  fConditionFulfilled(false),
+  fConditionTested(false)
+{
 }
 
-void Cuts::ManualCut::LetPass( const Analysis::Particle&  ) {
+bool Cuts::ManualCut::Examine( bool condition ) {
 
-  ++fTotalCounter;
-  ++fPassedCounter;
+  fConditionFulfilled = condition;
+  fConditionTested = true;
+
+  return fConditionFulfilled;
 }
 
-void Cuts::ManualCut::LetFail( const Analysis::Particle&  ) {
+bool Cuts::ManualCut::TestCondition( const ACsoft::Analysis::Particle& ) {
 
-  ++fTotalCounter;
-  ++fFailedCounter;
+  if(!fConditionTested){
+    WARN_OUT << "You have forgotten the call to the Examine() function or called Passes() on this particle twice!";
+    assert(fConditionTested);
+  }
+
+  fConditionTested = false; // use only once...
+
+  return fConditionFulfilled;
 }
+

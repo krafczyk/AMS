@@ -4,7 +4,7 @@
 
 #include <math.h>
 
-Utilities::TrdPdfWrapper::TrdPdfWrapper( TGraph* pdfGraph ) :
+ACsoft::Utilities::TrdPdfWrapper::TrdPdfWrapper( TGraph* pdfGraph ) :
     fPdfGraph(pdfGraph)
 {
 }
@@ -13,7 +13,7 @@ Utilities::TrdPdfWrapper::TrdPdfWrapper( TGraph* pdfGraph ) :
 //**********************************************************************************************************************************
 //	x[0] = Eadc
 //
-double Utilities::TrdPdfWrapper::TrdQtPdf(double *x, double *par) {
+double ACsoft::Utilities::TrdPdfWrapper::TrdQtPdf(double *x, double *par) {
 
     double 	dEdX 	   = x[0];
     double  TrdMinDeDx = par[0];

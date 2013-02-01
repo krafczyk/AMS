@@ -26,7 +26,7 @@ using namespace std;
 extern char **environ; // environment variables
 #endif
 
-Utilities::ConfigHandler::ConfigHandler() :
+ACsoft::Utilities::ConfigHandler::ConfigHandler() :
   fEnableExceptions( true ) ,
   fWriteMode( WRITE_ALL_SECTIONS )
 {
@@ -45,7 +45,7 @@ Utilities::ConfigHandler::ConfigHandler() :
  * Set help string for a particular section, which is used when
  * writing out a configuration database to a text file.
  */
-void Utilities::ConfigHandler::SetSectionHelpText( std::string section, std::string text) {
+void ACsoft::Utilities::ConfigHandler::SetSectionHelpText( std::string section, std::string text) {
   fSectionHelp[section] = text;
 }
 
@@ -54,7 +54,7 @@ void Utilities::ConfigHandler::SetSectionHelpText( std::string section, std::str
  * is general for the specific program containing the
  * ConfigHandler. See hddst/src/hap.C for an example.
  */
-void Utilities::ConfigHandler::SetProgramHelpText( std::string program_name, std::string text ) {
+void ACsoft::Utilities::ConfigHandler::SetProgramHelpText( std::string program_name, std::string text ) {
   fProgramName = program_name;
   fProgramHelp = text;
 }
@@ -65,7 +65,7 @@ void Utilities::ConfigHandler::SetProgramHelpText( std::string program_name, std
  * text is always appended to any previously set help text for the
  * given key.
  */
-void Utilities::ConfigHandler::SetHelpText( std::string section,std::string key,std::string text ) {
+void ACsoft::Utilities::ConfigHandler::SetHelpText( std::string section,std::string key,std::string text ) {
   if (fHelp[section].count( key ) > 0)
     fHelp[section][key] += text;
   else 
@@ -96,7 +96,7 @@ void Utilities::ConfigHandler::SetHelpText( std::string section,std::string key,
  *    myprog --file data.dat --enable-analysis
  */
 
-void Utilities::ConfigHandler::AddHelpExample( std::string description, std::string example ) {
+void ACsoft::Utilities::ConfigHandler::AddHelpExample( std::string description, std::string example ) {
 
   fExampleDescriptions.push_back( description );
   fExamples.push_back( example );
@@ -107,7 +107,7 @@ void Utilities::ConfigHandler::AddHelpExample( std::string description, std::str
 /**
  * Get the help text for a particular keyword in a section
  */
-string Utilities::ConfigHandler::GetHelpText( string section, string key ){
+string ACsoft::Utilities::ConfigHandler::GetHelpText( string section, string key ){
   if ( fHelp.count( section ) != 0 && 
        fHelp[section].count( key ) != 0)  {
     return fHelp[section][key];
@@ -119,7 +119,7 @@ string Utilities::ConfigHandler::GetHelpText( string section, string key ){
 /**
  * Returns help string for specified section
  */
-string Utilities::ConfigHandler::GetSectionHelpText( std::string section ) {
+string ACsoft::Utilities::ConfigHandler::GetSectionHelpText( std::string section ) {
 
   if (fSectionHelp.count( section )) {
     return fSectionHelp[section];
@@ -139,7 +139,7 @@ string Utilities::ConfigHandler::GetSectionHelpText( std::string section ) {
  * \param level - used to determine recursion depth, leave unspecified
  *
  */
-void Utilities::ConfigHandler::Read( std::istream &stream, char linesep, int level ) {
+void ACsoft::Utilities::ConfigHandler::Read( std::istream &stream, char linesep, int level ) {
    
   string line;
   vector<string> tokens;
@@ -190,7 +190,7 @@ void Utilities::ConfigHandler::Read( std::istream &stream, char linesep, int lev
       if (line[0] == '[') {
 	int br = line.find("]");
 	cursection = line.substr(1,br-1);
-	cout << spacer << "  "<<cursection << endl;
+	//cout << spacer << "  "<<cursection << endl;
 	continue;
       }
 	 
@@ -239,9 +239,9 @@ void Utilities::ConfigHandler::Read( std::istream &stream, char linesep, int lev
       // recurse appropriately"
 	 
       if (key2 == "include" ) {
-	cout << spacer << "Including: "<< value << endl;
+	//cout << spacer << "Including: "<< value << endl;
 	Read(value, level+1);
-	cout << spacer << ". end: " << value << endl;
+	//cout << spacer << ". end: " << value << endl;
 	continue;
       }
 //       else if ( key2 == "config") {
@@ -317,7 +317,7 @@ void Utilities::ConfigHandler::Read( std::istream &stream, char linesep, int lev
  *
  * \param filename - name of file to read from
  */
-void Utilities::ConfigHandler::Read( std::string filename, int level ){
+void ACsoft::Utilities::ConfigHandler::Read( std::string filename, int level ){
 
   ifstream infile(filename.c_str());
   bool isopen = false;
@@ -364,7 +364,7 @@ void Utilities::ConfigHandler::Read( std::string filename, int level ){
 /**
  * \returns true if specified key has been registered as required.
  */
-bool Utilities::ConfigHandler::IsRequired(string section, string key ) {
+bool ACsoft::Utilities::ConfigHandler::IsRequired(string section, string key ) {
   if ( fDefaultValue.count( section ) != 0 && 
        fDefaultValue[section].count( key ) != 0)  {
     return true;
@@ -380,7 +380,7 @@ bool Utilities::ConfigHandler::IsRequired(string section, string key ) {
  * Example:
  *
  * \code
- *  Utilities::ConfigHandler conf;
+ *  ACsoft::Utilities::ConfigHandler conf;
  *
  *  conf.ReadEnvironment();
  *  string homedir = conf.GetStringValue("ENV","HOME");
@@ -398,7 +398,7 @@ bool Utilities::ConfigHandler::IsRequired(string section, string key ) {
  * // variable if it's not specified
  * \endcode
  */
-void Utilities::ConfigHandler::ReadEnvironment() {
+void ACsoft::Utilities::ConfigHandler::ReadEnvironment() {
   
   std::stringstream envstream;
 
@@ -417,7 +417,7 @@ void Utilities::ConfigHandler::ReadEnvironment() {
  * Calls Read() using the appropriate options for parsing the standard
  * command-line variables argc, argv.
  */
-void Utilities::ConfigHandler::ReadCommandLine( int argc, char* argv[] ) {
+void ACsoft::Utilities::ConfigHandler::ReadCommandLine( int argc, char* argv[] ) {
 
   string commandline;
 
@@ -460,7 +460,7 @@ void Utilities::ConfigHandler::ReadCommandLine( int argc, char* argv[] ) {
  *
  * \code
  *
- *    Utilities::ConfigHandler ch;
+ *    ACsoft::Utilities::ConfigHandler ch;
  *
  *    ch.ReadCommandLine( argc, argv );
  *
@@ -482,7 +482,7 @@ void Utilities::ConfigHandler::ReadCommandLine( int argc, char* argv[] ) {
  *
  * \endcode
  */
-void Utilities::ConfigHandler::PrintUsageMessage() {
+void ACsoft::Utilities::ConfigHandler::PrintUsageMessage() {
    
   const string BOLD="\033[01m";
   const string RESET="\033[0m";
@@ -610,7 +610,7 @@ void Utilities::ConfigHandler::PrintUsageMessage() {
  * WRITE_MARKED_SECTIONS then only marked sections will be written (or
  * returned by GetListOfSections())
  */
-void Utilities::ConfigHandler::MarkSection( std::string section ) {
+void ACsoft::Utilities::ConfigHandler::MarkSection( std::string section ) {
 
   fMarkedSections.push_back( section );
 
@@ -622,7 +622,7 @@ void Utilities::ConfigHandler::MarkSection( std::string section ) {
  * If a comma or space-separated list of section names is given in the
  * sections variable, only those sections will be written (otherwise all are).
  */
-void Utilities::ConfigHandler::Write(std::string filename ) {
+void ACsoft::Utilities::ConfigHandler::Write(std::string filename ) {
 
   ofstream outfile( filename.c_str(), std::ios::app );
 
@@ -638,7 +638,7 @@ void Utilities::ConfigHandler::Write(std::string filename ) {
 }
 
 
-void Utilities::ConfigHandler::Write( std::ostream &stream ) {
+void ACsoft::Utilities::ConfigHandler::Write( std::ostream &stream ) {
 
   const int HELPCOL=40;
   const int COLWIDTH=80;
@@ -728,7 +728,7 @@ void Utilities::ConfigHandler::Write( std::ostream &stream ) {
  * Add a directory to the list of  directories searched when finding
  * included files
  */
-void Utilities::ConfigHandler::AddIncludeDir( string dir ) {
+void ACsoft::Utilities::ConfigHandler::AddIncludeDir( string dir ) {
   
   fIncludeDirs.push_back( dir );
 
@@ -739,7 +739,7 @@ void Utilities::ConfigHandler::AddIncludeDir( string dir ) {
  * Set the path for includes (in standard path format, separated by
  * colons). This just calls AddIncludeDir() for each specified path.
  */
-void Utilities::ConfigHandler::SetIncludePath( std::string path ) {
+void ACsoft::Utilities::ConfigHandler::SetIncludePath( std::string path ) {
   
   vector<string> paths = split( path, ":" );
   vector<string>::iterator dir;
@@ -755,7 +755,7 @@ void Utilities::ConfigHandler::SetIncludePath( std::string path ) {
 
 }
 
-void Utilities::ConfigHandler::PrepareQuotedStrings( string &line ) {
+void ACsoft::Utilities::ConfigHandler::PrepareQuotedStrings( string &line ) {
 
   vector<int> quotes;
    
@@ -786,7 +786,7 @@ void Utilities::ConfigHandler::PrepareQuotedStrings( string &line ) {
    
 }
 
-void Utilities::ConfigHandler::FinishQuotedStrings( string &line ) {
+void ACsoft::Utilities::ConfigHandler::FinishQuotedStrings( string &line ) {
    
   for (unsigned int i=0; i<line.length(); i++) {
     if (line[i]==SPACE_PLACEHOLDER) line[i]=' ';
@@ -800,7 +800,7 @@ void Utilities::ConfigHandler::FinishQuotedStrings( string &line ) {
  * Variables will be read from the user's environment first, and then
  * from the current section otherwise.
  */
-string Utilities::ConfigHandler::ExpandVariables( std::string &line, std::string cursection ) {
+string ACsoft::Utilities::ConfigHandler::ExpandVariables( std::string &line, std::string cursection ) {
 
   size_t pos;
   size_t endpos;
@@ -862,7 +862,7 @@ string Utilities::ConfigHandler::ExpandVariables( std::string &line, std::string
  *
  * \endcode
  */
-bool Utilities::ConfigHandler::GetFlag( std::string section, std::string key, std::string helptext) {
+bool ACsoft::Utilities::ConfigHandler::GetFlag( std::string section, std::string key, std::string helptext) {
 
   string def;
 
@@ -907,7 +907,7 @@ bool Utilities::ConfigHandler::GetFlag( std::string section, std::string key, st
  * errors from being reported.
  *
  */
-bool Utilities::ConfigHandler::PrintUnusedKeywordWarning(bool pause_on_error) {
+bool ACsoft::Utilities::ConfigHandler::PrintUnusedKeywordWarning(bool pause_on_error) {
 
   vector<string>::iterator sect, key;
   vector<string> sections= GetListOfSections();  
@@ -962,7 +962,7 @@ bool Utilities::ConfigHandler::PrintUnusedKeywordWarning(bool pause_on_error) {
  *
  * \returns true if any keywords were deprecated
  */
-bool Utilities::ConfigHandler::PrintDeprecatedKeywordWarning() {
+bool ACsoft::Utilities::ConfigHandler::PrintDeprecatedKeywordWarning() {
 
   vector<string>::iterator sect, key;
   vector<string> sections= GetListOfSections();  
@@ -1000,7 +1000,7 @@ bool Utilities::ConfigHandler::PrintDeprecatedKeywordWarning() {
  * This method is typically called by every program after setting
  * the config options, before proceeding to do its thing ...
  */
-void Utilities::ConfigHandler::HandleHelpAndInvalidOptions
+void ACsoft::Utilities::ConfigHandler::HandleHelpAndInvalidOptions
 (int argc, std::string extra_message) {
   bool help = GetFlag("OPTIONS", "help", "Print help message");
   if( argc <= 1 || help) {
@@ -1026,14 +1026,14 @@ void Utilities::ConfigHandler::HandleHelpAndInvalidOptions
  * or remove a key. A warning message will then appear telling the
  * user to update his or her config file.
  */
-void Utilities::ConfigHandler::Deprecate(std::string section,std::string key, std::string reason) {
+void ACsoft::Utilities::ConfigHandler::Deprecate(std::string section,std::string key, std::string reason) {
   fDeprecated[section][key] = reason;
 }
 
 /**
  * \returns true if specified key has been registered as deprecated.
  */
-bool Utilities::ConfigHandler::IsDeprecated(string section, string key ) {
+bool ACsoft::Utilities::ConfigHandler::IsDeprecated(string section, string key ) {
   if ( fDeprecated.count( section ) != 0 && 
        fDeprecated[section].count( key ) != 0)  {
     return true;
@@ -1047,7 +1047,7 @@ bool Utilities::ConfigHandler::IsDeprecated(string section, string key ) {
 /**
  * Print deprecated keyword warning
  */
-bool Utilities::ConfigHandler::WarnIfDeprecated( std::string section,std::string key ) {
+bool ACsoft::Utilities::ConfigHandler::WarnIfDeprecated( std::string section,std::string key ) {
 
   bool ret = false;
 

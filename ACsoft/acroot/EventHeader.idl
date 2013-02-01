@@ -1,0 +1,25 @@
+[Description]
+Namespace = AC
+Class = EventHeader
+Members = \
+  qint64 fStatus                      \
+  UChar_t fRandom                     \
+  UChar_t fMCRandomSeed1              \
+  UChar_t fMCRandomSeed2              \
+  Int_t fEvent                        \
+  TTimeStamp fTimeStamp               \
+  [53+Double_t fUTCTime]              \
+  [53-Float_t fGalacticLatitude]      \
+  [53-Float_t fGalacticLongitude]     \
+  Float_t fMagneticLatitude           \
+  Float_t fMagneticLongitude          \
+  Float_t fISSLatitude                \
+  Float_t fISSLongitude               \
+  Float_t fISSDistanceFromEarthCenter \
+  Float_t fISSRoll                    \
+  Float_t fISSPitch                   \
+  Float_t fISSYaw                     \
+  Float_t fISSVelocityLatitude        \
+  Float_t fISSVelocityLongitude       \
+  [54+Float_t fMaxCutOffConeNegative] \
+  [54+Float_t fMaxCutOffConePositive]

@@ -4,6 +4,12 @@
 #include <TTimeStamp.h>
 #include "SimpleGraphLookup.hh"
 
+namespace AC {
+  class ACQtPDFLookupFileIdentifier;
+}
+
+namespace ACsoft {
+
 namespace Utilities {
 
 /** Particle id
@@ -46,13 +52,10 @@ public:
   /** Returns the Trd p-value for a given XenonBin, rigidityBin, TRD layer, measured dEdX and particle type pid */
   double GetTrdPvalue( unsigned int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const;
 
-  /** Returns the minimum path length that was used for the candidate matching in the PDF */
-  double GetMinimumPathLengthForCandidateMatching() const { return fMinimumPathLengthForCandidateMatching; }
-
-  /** Returns whether the activeStraws algorithm was chosen for the PDF generation
+   /** Returns whether the activeStraws algorithm was chosen for the PDF generation
     * \todo Add better documentation about the algorithm.
     */
-  bool UseActiveStrawsForCandidateMatching() const { return fUseActiveStrawsForCandidateMatching; }
+  bool AddNearTrackHitsForCandidateMatching() const { return fAddNearTrackHits; }
 
   static const int fNumberOfParticles = 7;
   static const int fNumberOfXenonBins = 6;
@@ -65,16 +68,23 @@ public:
   static int GetXenonBin(const TTimeStamp&);
   static int GetXenonBin(const double pressureXe);
 
+  /** Returns the settings as they are stored in the active PDF file
+    */
+  ::AC::ACQtPDFLookupFileIdentifier* Identifier() const { return fIdentifier; }
+
 private:
   TrdPdfLookup();
 
   SimpleGraphLookup* PdfLookup[fNumberOfParticles];
   SimpleGraphLookup* pValueLookup[fNumberOfParticles];
-  float fMinimumPathLengthForCandidateMatching;
-  bool fUseActiveStrawsForCandidateMatching;
+
+  bool fAddNearTrackHits;
+  ::AC::ACQtPDFLookupFileIdentifier* fIdentifier;
 };
 
 }
 
+
+}
 
 #endif // TRDPDFLOOKUP_HH

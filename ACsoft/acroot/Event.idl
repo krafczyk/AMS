@@ -1,0 +1,15 @@
+[Description]
+Namespace = AC
+Class = Event
+Members = \
+  AC::EventHeader fEventHeader \
+  ParticlesVector fParticles   \
+  AC::Trigger fTrigger         \
+  [53+AC::DAQ fDAQ]            \
+  AC::TOF fTOF                 \
+  AC::ACC fACC                 \
+  AC::TRD fTRD                 \
+  AC::Tracker fTracker         \
+  AC::RICH fRICH               \
+  AC::ECAL fECAL               \
+  AC::MC fMC

@@ -11,6 +11,8 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 // FIXME: Eventually document this, not yet sure.
+namespace ACsoft {
+
 namespace AC {
 
 namespace TableStream {
@@ -268,6 +270,8 @@ using AC::TableStream::column;
 using AC::TableStream::indentation;
 using AC::TableStream::row;
 using AC::TableStream::title_row;
+
+}
 
 #endif
 

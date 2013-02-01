@@ -2,8 +2,6 @@
 #include "TrdAlignment.hh"
 
 #include <ConfigHandler.hh>
-#include <TrdDetector.hh>
-#include <TrdModule.hh>
 #include <TrdHit.hh>
 #include <Event.h>
 #include <AnalysisParticle.hh>
@@ -12,6 +10,7 @@
 #include <SplineTrack.hh>
 #include <TimeHistogramManager.hh>
 #include <FileManager.hh>
+#include "dumpstreamers.hh"
 
 #include <assert.h>
 
@@ -26,13 +25,13 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "TrdAlignment> "
 #include <debugging.hh>
 
-Calibration::TrdAlignment::TrdAlignment( Utilities::ConfigHandler* ) :
-  fTrd(0),
+ACsoft::Calibration::TrdAlignment::TrdAlignment( Utilities::ConfigHandler* ) :
   fIsInitialized(false),
   fNumberOfTrdHitsWithinCut(0),
   fNumberOfTrdLayersWithHitWithinCut(0),
@@ -46,18 +45,15 @@ Calibration::TrdAlignment::TrdAlignment( Utilities::ConfigHandler* ) :
   // read options from cfghandler here and save them in the class if needed
   // ...
 
-  // TRD and histograms are not initialized here because we need the information from the TimeHistogramsManager, only available after FileManager has been initialized
+  // TRD and histograms are not initialized here because we need the information from the TimeHistogramManager, only available after FileManager has been initialized
 }
 
 
-void Calibration::TrdAlignment::Initialize() {
+void ACsoft::Calibration::TrdAlignment::Initialize() {
 
   assert(!fIsInitialized);
 
-  INFO_OUT << "Constructing TRD" << std::endl;
-
-  // construct TRD
-  fTrd = new Detector::Trd();
+  CreateAlignmentShiftHistos();
 
   // construct histograms
   fNumberOfTrdHitsWithinCut = Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2I>( "NumberOfTrdHitsWithinCut", "number of TRD hits within distance cut", "number", 50, 0., 50. );
@@ -79,11 +75,30 @@ void Calibration::TrdAlignment::Initialize() {
   fIsInitialized = true;
 }
 
+void ACsoft::Calibration::TrdAlignment::CreateAlignmentShiftHistos() {
+
+  assert(fAlignmentShiftHistos.empty());
+  fAlignmentShiftHistos.reserve(AC::AMSGeometry::TRDModules);
+
+  for( unsigned int moduleNumber = 0 ; moduleNumber < AC::AMSGeometry::TRDModules ; ++moduleNumber ) {
+
+    std::stringstream name, title;
+    name << "AlignmentShiftHisto_" << moduleNumber;
+    title << "Alignment shifts for module " << moduleNumber;
+    fAlignmentShiftHistos.push_back( Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2I>( name.str(), title.str(), "#Delta R / cm", 100, -2.0, 2.0 ) );
+  }
+}
+
+void ACsoft::Calibration::TrdAlignment::StoreAlignmentShift( unsigned int module, const TTimeStamp& time, Double_t shift ) {
+
+  fAlignmentShiftHistos.at(module)->Fill(double(time),shift);
+}
+
 
 /**
   * \todo what about using the external alignment for tracker layer 1?
   */
-void Calibration::TrdAlignment::Process( const Analysis::Particle& particle ) {
+void ACsoft::Calibration::TrdAlignment::Process( const Analysis::Particle& particle ) {
 
   if(!fIsInitialized)
     Initialize();
@@ -111,11 +126,14 @@ void Calibration::TrdAlignment::Process( const Analysis::Particle& particle ) {
     const Analysis::TrdHit& hit = particle.TrdHits().at(i);
 
     // check distance to track
-    /// \todo Use deltaXY here instead !?
-    Double_t trackResid = hit.DistanceToTrack(*splineTrack);
-
+//    Double_t trackResid = hit.DistanceToTrack();
+    Double_t deltaXY = hit.Orientation() == AC::XZMeasurement ? hit.R() - splineTrack->InterpolateToZ(hit.Z()).X() :
+                                                                hit.R() - splineTrack->InterpolateToZ(hit.Z()).Y();
+    Double_t trackResid = deltaXY;
     DEBUG_OUT << hit << std::endl;
-    DEBUG_OUT << "resid: " << trackResid << std::endl;
+    DEBUG_OUT << "track pos: " << splineTrack->InterpolateToZ(hit.Z())
+              << " deltaXY: " << deltaXY
+              << std::endl;
 
     if( fabs(trackResid) < CutTrdTrkD ){
 
@@ -126,7 +144,7 @@ void Calibration::TrdAlignment::Process( const Analysis::Particle& particle ) {
 
       if( pathlength3d > 0.0 )
         layerNumberToNhitsWithNonzeroPathlength[hit.Layer()]++;
-      if( pathlength3d > AC::AMSGeometry::TRDTubeMinPathLength )
+      if( pathlength3d > ::AC::Settings::TrdTubeDefaultMinPathLength )
         layerNumberToNhitsWithPathlengthAboveCut[hit.Layer()]++;
 
       fPathlengthHisto->Fill(evttime,pathlength3d);
@@ -145,7 +163,7 @@ void Calibration::TrdAlignment::Process( const Analysis::Particle& particle ) {
     DEBUG_OUT << "module " << moduleNumber << " hits " << nHitsInModule << std::endl;
 
     if( nHitsInModule == 1 )
-      fTrd->GetTrdModule(moduleNumber)->StoreAlignmentShift(evttime, moduleNumberToLastTrackResidual[moduleNumber]);
+      StoreAlignmentShift(moduleNumber, evttime, moduleNumberToLastTrackResidual[moduleNumber]);
   }
 
   // fill histograms
@@ -183,9 +201,12 @@ void Calibration::TrdAlignment::Process( const Analysis::Particle& particle ) {
 
 
 
-void Calibration::TrdAlignment::WriteResultsToCurrentFile() {
+void ACsoft::Calibration::TrdAlignment::WriteResultsToCurrentFile() {
 
-  fTrd->WriteHistosToCurrentFile();
+  if (!fIsInitialized)
+    return;
+  for( unsigned int i=0 ; i<fAlignmentShiftHistos.size() ; ++i )
+    fAlignmentShiftHistos.at(i)->Write();
 
   fNumberOfTrdHitsWithinCut->Write();
   fNumberOfTrdLayersWithHitWithinCut->Write();
@@ -200,6 +221,15 @@ void Calibration::TrdAlignment::WriteResultsToCurrentFile() {
 
 
 
+static inline void SaveCanvas(TCanvas* canvas, const std::string& prefix, const std::string& name, const std::string& postfix) {
+
+  assert(canvas);
+  std::stringstream fileName;
+  fileName << prefix << name << postfix;
+  canvas->Update();
+  canvas->SaveAs((fileName.str() + std::string(".root")).c_str());
+  canvas->SaveAs((fileName.str() + std::string(".png")).c_str());
+}
 
 /** Fit alignment shift time-histograms.
  *
@@ -215,16 +245,18 @@ void Calibration::TrdAlignment::WriteResultsToCurrentFile() {
  * \param requiredNumberOfEntries Number of events required for fit and calculation of mean. Time bins are merged together until this number is exceeded. The value is ignored and a fit is done regardless
  * if a given maximum number of time bins is reached before.
  * \param interactive If \c true, draw canvases with results at the end, and do not write output file.
+ * \param snapshot If \c true, draw canvases with results at the end, write an output file and exit.
  * \param resultfile Name of output file.
  * \param testbin If different from zero, fit only the projection starting at that bin and show the histogram and fit function for debugging purposes.
  *
  * \return 0 if no errors, \>0 in case of errors
  */
-int Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
+int ACsoft::Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
   std::string inputfile,
   std::string histogram,
   int requiredNumberOfEntries,
   bool interactive,
+  bool snapshot,
   std::string resultfile,
   int testbin ) {
 
@@ -510,6 +542,11 @@ int Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
     fitHisto->Draw();
     fitFunc->SetNpx(1000);
     fitFunc->Draw("L SAME");
+
+    std::stringstream stream;
+    stream << moduleId << "_timebin_" << testbin;
+    if (snapshot)
+      SaveCanvas(t, "fit_module_", stream.str(), "_results");
   }
 
   TCanvas* ac = new TCanvas( "auxCanvas", "aux canvas", 1400, 1000 );
@@ -605,9 +642,12 @@ int Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
     fitMeanGraphBadFit->SetMarkerColor(kRed);
     replacementMeanGraph->SetMarkerStyle(2);
     replacementMeanGraph->SetMarkerColor(kGreen);
+  
+    if (snapshot && !test)
+      SaveCanvas(fc, "fit_module_", moduleId, "_shifts");
   }
 
-  if( !interactive ){
+  if( !interactive && !snapshot ) {
 
     TFile* outfile = new TFile( resultfile.c_str(), "RECREATE" );
     if( !outfile->IsOpen() ){
@@ -636,7 +676,12 @@ int Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
     fitNentriesGraph->Write();
 
     outfile->Close();
+    return 0;
   }
 
+  if (snapshot && test) {
+    SaveCanvas(ac, "fit_module_", moduleId, "_parameters");
+    SaveCanvas(c, "fit_module_", moduleId, "_results");
+  }
   return 0;
 }

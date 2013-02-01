@@ -6,6 +6,10 @@
 
 #include <vector>
 
+class TGraph;
+
+namespace ACsoft {
+
 namespace Analysis {
 
 class TrackFactory;
@@ -25,15 +29,16 @@ public:
   TVector3 InterpolateToZ( Double_t z ) const;
 
   void CalculateLocalPositionAndDirection( Double_t z, TVector3& pos, TVector3& dir ) const;
-  float PathLength3D(int D, const TVector3& position) const;
 
-  Double_t TrackResidual( int D, Double_t Z, Double_t XY ) const;
   Double_t DeltaXY( int D, Double_t Z, Double_t XY ) const;
 
   bool SourceContains( TrackSource test ) const { return ((fSource & test) == test); }
 
   void Dump() const;
+  void DrawXZProjection( float zmin, float zmax, bool rotatedSystem = false, int nPoints=1000 );
+  void DrawYZProjection( float zmin, float zmax, bool rotatedSystem = false, int nPoints=1000 );
 
+  static void setWarnOutOfBounds(bool value);
 protected:
 
   friend class TrackFactory;
@@ -50,7 +55,14 @@ protected:
   Float_t fRigidity; ///< rigidity that was determined for the track (GeV)
   Float_t fRigidityUncertainty; ///< error on rigidity (GeV)
 
+  TGraph* fDrawGraphXZ; ///< graph used for drawing
+  TGraph* fDrawGraphYZ; ///< graph used for drawing
+  
+  static bool WarnOutOfBounds;
+
 };
+}
+
 }
 
 #endif // SPLINETRACK_HH

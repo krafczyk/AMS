@@ -9,6 +9,8 @@
 #include "VectorCapacityTracker.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+namespace ACsoft {
+
 namespace AC {
 
 // GenericReadArrayStream
@@ -103,12 +105,12 @@ public:
 
 // UCharArrayStream
 template<unsigned short BufferSize>
-class UCharArrayStream : public GenericArrayStream<quint8, 2, BufferSize> {
+class UCharArrayStream : public GenericArrayStream<quint8, 1, BufferSize> {
 public:
-  using GenericArrayStream<quint8, 2, BufferSize>::advance;
+  using GenericArrayStream<quint8, 1, BufferSize>::advance;
 
   UCharArrayStream(QDataStream& stream)
-    : GenericArrayStream<quint8, 2, BufferSize>(stream) {
+    : GenericArrayStream<quint8, 1, BufferSize>(stream) {
 
   }
 
@@ -118,11 +120,10 @@ public:
 
     union {
       quint8 result;
-      char bytes[2];
+      char bytes;
     } type;
 
-    type.bytes[0] = bytes[1];
-    type.bytes[1] = bytes[0];
+    type.bytes = bytes[0];
     return type.result;
   }
 };
@@ -315,6 +316,10 @@ inline QDataStream& operator>>(QDataStream& stream, Vector<float, inlineCapacity
 
 }
 
+}
+
 #endif
+
 #endif
+
 #endif

@@ -11,7 +11,7 @@ namespace AC {
 class TrackerExternalAlignment : public TObject {
 public:
   TrackerExternalAlignment()
-    : fID(0 ){
+    : fID(0) {
 
     for (unsigned int i = 0; i < 3; ++i) {
       fPositions[i] = 0;

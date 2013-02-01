@@ -1,5 +1,7 @@
 #include "TOFCluster.h"
 
+namespace ACsoft {
+
 namespace AC {
 
 BEGIN_DEBUG_TABLE(TOFCluster)
@@ -12,26 +14,6 @@ BEGIN_DEBUG_TABLE(TOFCluster)
   COL( "Energy [MeV]",         Float_t, Energy)
 END_DEBUG_TABLE
 
-/** Writes this object into a QDataStream, which is used to produce ACQt files */
-QDataStream& operator<<(QDataStream& stream, const TOFCluster& object) {
-
-  stream << object.fStatus << object.fLayerBar << object.fX << object.fY << object.fZ << object.fTime << object.fTimeError << object.fEnergy;
-  return stream;
-}
-
-/** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
-QDataStream& operator>>(QDataStream& stream, TOFCluster& object) {
-
-  stream >> object.fStatus >> object.fLayerBar;
-
-  FloatArrayStream<6> floatStream(stream);
-  object.fX = floatStream.read();
-  object.fY = floatStream.read();
-  object.fZ = floatStream.read();
-  object.fTime = floatStream.read();
-  object.fTimeError = floatStream.read();
-  object.fEnergy = floatStream.read();
-  return stream;
 }
 
 }

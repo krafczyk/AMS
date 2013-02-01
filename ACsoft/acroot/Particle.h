@@ -2,6 +2,10 @@
 #define Particle_h
 
 #include "Tools.h"
+#include "Particle-Streamer.h"
+#include <limits>
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -16,66 +20,138 @@ public:
   /** A vector of float numbers */
   typedef Vector<Float_t, 3> ChargesProbabilityVector;
 
-  Particle()
-    : fID(0)
-    , fIDProbability(0)
-    , fMomentum(0)
-    , fMomentumError(0)
-    , fMass(0)
-    , fMassError(0)
-    , fBeta(0)
-    , fBetaError(0)
-    , fTOFBetaIndex(0)
-    , fTRDVTrackIndex(0)
-    , fTRDHTrackIndex(0)
-    , fTrackerTrackIndex(0)
-    , fRICHRingIndex(0)
-    , fECALShowerIndex(0) {
-
-  }
+  AC_Particle_Variables
 
   /** Helper method dumping an %Particle object to the console
     */
   void Dump() const;
 
-  /** Return charge with the highest probability
+  /** Defines status bits that may be queried via the individual accessor functions below.
+    */
+  enum StatusBits {
+    FlagIsInSolarArrayShadow               = 1 << 0,
+    FlagTrackerTrackIndexFromBetaH         = 1 << 1,
+    FlagTRDVTrackIndexFromBetaH            = 1 << 2,
+    FlagECALShowerIndexFromBetaH           = 1 << 3,
+    FlagGalacticCoordinatesFromBacktracing = 1 << 4,
+    FlagGalacticCoordinatesFromStarTracker = 1 << 5,
+    FlagGalacticCoordinatesFromOrbit       = 1 << 6
+  };
+
+  /** Backtracing Status for negative rigidity
+    *  0: not available
+    *  1: from SPACE
+    *  2: from ATMOSPHERE
+    *  3: TRAPPED (neither 1 nor 2 after 100 steps) 
+    */
+  int BacktracingStatusNegativeRigidity() const { return (fStatus>>8)&3; }
+
+  /** Backtracing Status for positive rigidity
+    *  0: not available
+    *  1: from SPACE
+    *  2: from ATMOSPHERE
+    *  3: TRAPPED (neither 1 nor 2 after 100 steps) 
+    */
+  int BacktracingStatusPositiveRigidity() const { return (fStatus>>10)&3; }
+
+  /** Backtracing Status for negative energy
+    *  0: not available
+    *  1: from SPACE
+    *  2: from ATMOSPHERE
+    *  3: TRAPPED (neither 1 nor 2 after 100 steps) 
+    */
+  int BacktracingStatusNegativeEnergy() const { return (fStatus>>12)&3; }
+
+  /** Backtracing Status for positive energy
+    *  0: not available
+    *  1: from SPACE
+    *  2: from ATMOSPHERE
+    *  3: TRAPPED (neither 1 nor 2 after 100 steps) 
+    */
+  int BacktracingStatusPositiveEnergy() const { return (fStatus>>14)&3; }
+
+  /** Returns true if AMS is covered by ISS solar arrays.
+    */
+  bool IsInSolarArrayShadow() const { return (fStatus & FlagIsInSolarArrayShadow) == FlagIsInSolarArrayShadow; }
+
+  /** Returns true if the TrackerTrack index points to the one linked in the AMS BetaH class.
+    * This is always the case if the TOFBetaHIndex() is not equal to -1.
+    */
+  bool TrackerTrackIndexFromBetaH() const { return (fStatus & FlagTrackerTrackIndexFromBetaH) == FlagTrackerTrackIndexFromBetaH; }
+
+  /** Returns true if the TRDVTrack index points to the one linked in the AMS BetaH class.
+    * This is always the case if the TOFBetaHIndex() is not equal to -1.
+    */
+  bool TRDVTrackIndexFromBetaH() const { return (fStatus & FlagTRDVTrackIndexFromBetaH) == FlagTRDVTrackIndexFromBetaH; }
+
+  /** Returns true if the ECALShower index points to the one linked in the AMS BetaH class.
+   * This is always the case if the TOFBetaHIndex() is not equal to -1.
    */
-  Int_t MostProbableCharge() const;
+  bool ECALShowerIndexFromBetaH() const { return (fStatus & FlagECALShowerIndexFromBetaH) == FlagECALShowerIndexFromBetaH; }
 
-  /** %Particle Identifier a-la Geant3.
-    * See http://ams.cern.ch/cgi-bin/viewcvs.cgi/AMS/include/root.h?view=markup for details.
-    */
-  Int_t ID() const { return fID; }
+  /** Returns true if galactic coordinates were computed from backtracing with BTstatus==1.
+   */
+  bool GalacticCoordinatesFromBacktracing() const { return (fStatus & FlagGalacticCoordinatesFromBacktracing) == FlagGalacticCoordinatesFromBacktracing; }
 
-  /** Probability that the predicted type is correct.
-    */
-  Float_t IDProbability() const { return fIDProbability; }
+  /** Returns true if galactic coordinates originate from the star tracker.
+   */
+  bool GalacticCoordinatesFromStarTracker() const { return (fStatus & FlagGalacticCoordinatesFromStarTracker) == FlagGalacticCoordinatesFromStarTracker; }
 
-  /** Momentum [GeV/c].
-    * Note: particles with negative charge will have negative momentum.
-    */
-  Float_t Momentum() const { return fMomentum; }
+  /** Returns true if galactic coordinates were sucessfully computed from ISS-Orbit parameters (limited accurancy).
+   */
+  bool GalacticCoordinatesFromOrbit() const { return (fStatus & FlagGalacticCoordinatesFromOrbit) == FlagGalacticCoordinatesFromOrbit; }
 
-  /** Momentum error [GeV/c].
+  /** Stoermer cut off for negative rigidities/energies.
     */
-  Float_t MomentumError() const { return fMomentumError; }
+  Float_t StoermerCutoffNegative() const { return fStoermerCutoffNegative; }
 
-  /** Mass [GeV/c^2].
-    * Note: particles with abs(Beta())>1 will have negative mass.
+  /** Stoermer cut off for positive rigidities/energies.
     */
-  Float_t Mass() const { return fMass; }
+  Float_t StoermerCutoffPositive() const { return fStoermerCutoffPositive; }
 
-  /** Mass error [GeV/c^2].
+  /** Maximum Stoermer cutoff returns >0: from positive or <0: from negative particle
     */
-  Float_t MassError() const { return fMassError; }
+  Float_t StoermerMaxCutoff() const { return fabs(fStoermerCutoffNegative) > fStoermerCutoffPositive ? fStoermerCutoffNegative : fStoermerCutoffPositive;  }
 
-  /** Normalized velocity: beta.
+  /** Galactic Longitude from Backtracing [deg] if GalacticCoordinatesFromBacktracing() == true  -  else  Float_Max-1. 
+    * Particle.BT_glong   if BT_status==1 from AMSEventR::DoBacktracing(Particle Momentum/Beta/Charge/Theta/Phi) 
     */
-  Float_t Beta() const { return fBeta; }
+  Float_t GalacticLongitudeFromBacktracing() const {
 
-  /** Beta error.
+    if (GalacticCoordinatesFromBacktracing())
+       return fGalacticLongitudeFromBacktracing; 
+     return std::numeric_limits<float>::max() - 1.0;
+  }
+
+  /** Galactic Latitude from Backtracing [deg] if GalacticCoordinatesFromBacktracing() == true  -  else  Float_Max-1.
+    * Particle.BT_glat    if BT_status==1 from AMSEventR::DoBacktracing(Particle Momentum/Beta/Charge/Theta/Phi) 
     */
-  Float_t BetaError() const { return fBetaError; }
+  Float_t GalacticLatitudeFromBacktracing() const {
+
+    if (GalacticCoordinatesFromBacktracing())
+       return fGalacticLatitudeFromBacktracing; 
+     return std::numeric_limits<float>::max() - 1.0;
+  }
+
+  /** Galactic Longitude from Orbit [deg] if GalacticCoordinatesFromOrbit() == true  -  else  Float_max-1.
+    * glong from ISS orbit frame transformation AMSEvent::GetGalCoo(result, glong, glatt, Particle.Theta, Particle.Phi)
+    */
+  Float_t GalacticLongitudeFromOrbit() const {
+
+    if (GalacticCoordinatesFromOrbit())
+       return fGalacticLongitudeFromOrbit; 
+     return std::numeric_limits<float>::max() - 1.0;
+  }
+
+  /** Galactic Latitude from Orbit [deg] if GalacticCoordinatesFromOrbit() == true  -  else  Float_Max-1.
+    * glat from ISS orbit orame transformation AMSEvent::GetGalCoo(result, glong, glat, Particle.Theta, Particle.Phi)
+    */
+  Float_t GalacticLatitudeFromOrbit() const {
+
+    if (GalacticCoordinatesFromOrbit())
+       return fGalacticLatitudeFromOrbit;
+     return std::numeric_limits<float>::max() - 1.0;
+  }
 
   /** Associated TOFBeta index.
     */
@@ -101,35 +177,11 @@ public:
     */
   Short_t ECALShowerIndex() const { return fECALShowerIndex; }
 
-  /** Charge indexes sorted in descending probability (0:e, 1:H, 2:He ...)
-    * Our reduced data only contains the first two entries.
-    */
-  const ChargesVector& Charges() const { return fCharges; }
-
-  /** Probabilities for the entries in the Charges() list.
-    */
-  const ChargesProbabilityVector& ChargesProbability() const { return fChargesProbability; }
-
 private:
-  Int_t fID;                                    // Particle.Particle (Geant3-PID)
-  Float_t fIDProbability;                       // Particle.Prob[0] Probability for ID
-  Float_t fMomentum;                            // Particle.Momentum
-  Float_t fMomentumError;                       // Particle.ErrMomentum
-  Float_t fMass;                                // Particle.Mass
-  Float_t fMassError;                           // Particle.ErrMass
-  Float_t fBeta;                                // Particle.Beta   (Tof + Rich if available)
-  Float_t fBetaError;                           // Particle.ErrBeta
-  Short_t fTOFBetaIndex;                        // Particle.iBeta()
-  Short_t fTRDVTrackIndex;                      // Particle.iTrdTrack()
-  Short_t fTRDHTrackIndex;                      // Particle.iTrdHTrack()
-  Short_t fTrackerTrackIndex;                   // Particle.iTrTrack()
-  Short_t fRICHRingIndex;                       // Particle.iRichRingB()
-  Short_t fECALShowerIndex;                     // Particle.iEcalShower()
-  ChargesVector fCharges;                       // Particle.pCharge.ChargeI[0..1]
-  ChargesProbabilityVector fChargesProbability; // Particle.pCharge.Prob[0..1]
-
   REGISTER_CLASS_WITH_TABLE(Particle)
 };
+
+}
 
 }
 

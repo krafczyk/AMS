@@ -4,6 +4,9 @@
 #include <math.h>
 #include "Tools.h"
 #include "TRDRawHit.h"
+#include "TRDHTrack-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -22,10 +25,7 @@ public:
   /** A vector of unsigned char (8bit) numbers */
   typedef Vector<UChar_t, 2> HSegmentIndexVector;
 
-  TRDHTrack()
-    : fStatus(0) {
-
-  }
+  AC_TRDHTrack_Variables
 
   /** Helper method dumping an TRDHTrack object to the console
     */
@@ -45,12 +45,10 @@ public:
   const HSegmentIndexVector& HSegmentIndex() const { return fHSegmentIndex; }
 
 private:
-  UShort_t fStatus;                   // TrdHtrk->status
-  ChargesNewVector fChargesNew;       // Kunin ChargeProbs  0:e  1:p  2:He 3:Li 4:Be 5:B 6:C ...
-  HSegmentIndexVector fHSegmentIndex; // Index to TrdHSegment [0]:XZ [1]:YZ
-
   REGISTER_CLASS_WITH_TABLE(TRDHTrack)
 };
+
+}
 
 }
 

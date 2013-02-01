@@ -1,5 +1,7 @@
 #include <Rtypes.h>
 
+namespace ACsoft {
+
 namespace Utilities {
 
 /** Decoder class for AMS run tags
@@ -111,5 +113,7 @@ private:
   bool fUndefined;
   UShort_t fNumber;
 };
+
+}
 
 }

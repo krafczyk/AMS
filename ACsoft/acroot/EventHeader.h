@@ -2,6 +2,9 @@
 #define EventHeader_h
 
 #include "Tools.h"
+#include "EventHeader-Streamer.h"
+
+namespace ACsoft {
 
 namespace AC {
 
@@ -12,27 +15,8 @@ namespace AC {
 class EventHeader {
   WTF_MAKE_FAST_ALLOCATED;
 public:
-  EventHeader()
-    : fStatus(0)
-    , fRandom(0)
-    , fMCRandomSeed1(0)
-    , fMCRandomSeed2(0)
-    , fEvent(0)
-    , fGalacticLatitude(0)
-    , fGalacticLongitude(0)
-    , fMagneticLatitude(0)
-    , fMagneticLongitude(0)
-    , fISSLatitude(0)
-    , fISSLongitude(0)
-    , fISSAltitude(0)
-    , fISSRoll(0)
-    , fISSPitch(0)
-    , fISSYaw(0)
-    , fISSVelocityLatitude(0)
-    , fISSVelocityLongitude(0) {
+  AC_EventHeader_Variables
 
-  }
- 
   /** Helper method dumping an EventHeader object to the console
     */
   void Dump() const;
@@ -82,10 +66,10 @@ public:
     *  - 55+56 mass/charge  <0.5; <1.5; <3.0; >3.0
     *  - 57-59 track hit    <4   <5  <6 <7 <8 <9     ??
     *  - 60-63 trd charge *2
-    * 
+    *
     * \todo Verify documentation.
     */
-  Long_t Status() const { return fStatus; }
+  qint64 Status() const { return fStatus; }
 
   /** Random number (0..255).
     *
@@ -109,19 +93,16 @@ public:
     */
   const TTimeStamp& TimeStamp() const { return fTimeStamp; }
 
-  /** Galactic Latitude of event [deg].
+  /** %Event UTC time stamp
+    * \todo Add documentation.
     */
-  Float_t GalacticLatitude() const { return fGalacticLatitude * TMath::RadToDeg(); }
+  Double_t UTCTime() const { return fUTCTime; }
 
-  /** Galactic Longitude [deg].
-    */
-  Float_t GalacticLongitude() const { return fGalacticLongitude * TMath::RadToDeg(); }
-  
-  /** Magnetic Latitude [deg].
+  /** ISS Magnetic Latitude [deg].
     */
   Float_t MagneticLatitude() const { return fMagneticLatitude * TMath::RadToDeg(); }
 
-  /** Magnetic Longitude [deg].
+  /** ISS Magnetic Longitude [deg].
     */
   Float_t MagneticLongitude() const { return fMagneticLongitude * TMath::RadToDeg(); }
 
@@ -133,11 +114,15 @@ public:
     */
   Float_t ISSLongitude() const { return fISSLongitude * TMath::RadToDeg(); }
 
-  /** ISS Altitude [km] (prediction from Norad website).
+  /** ISS Distance From Earth's Center [km].
+    *
+    * The Distence between the ISS and the Earth's Center under the assumption of an perfectly spherical Earth
+    * with a radius of 6378.137 km.
     */
-  Float_t ISSAltitude() const { return fISSAltitude / 100000; }
+  Float_t ISSDistanceFromEarthCenter() const { return fISSDistanceFromEarthCenter / 100000; }
 
-  /** Approx. ISS Altitude above the ground [km].
+  /** ISS Altitude above the ground [km].
+    *
     * Note: The ISS coordinate system is GTOD (Greenwhich True Of Date).
     * To determine the position above the ground, the equatorial radius of
     * 6378137m (semi-major axis length of the GRS80 GPS coordinate system)
@@ -145,7 +130,14 @@ public:
     *
     * For more details, see: http://www.asi.org/adb/04/02/00/iss-coordinate-systems.pdf
     */
-  Float_t ISSAltitudeAboveGround() const { return ((fISSAltitude / 100) - 6378137) / 1000; }
+
+  Float_t ISSAltitude() const { return ((fISSDistanceFromEarthCenter / 100) - 6378137) / 1000; }
+
+  /** Distance ISS - center of earth's magnetic dipole [km].
+    *
+    * coordinates of the dipole's center are obtained from IGRF 2000.
+    */
+  float ISSDistanceFromDipoleCenter() const;
 
   /** ISS Roll [deg].
     */
@@ -166,6 +158,18 @@ public:
   /** ISS Velocity Longitude [deg].
     */
   Float_t ISSVelocityLongitude() const { return fISSVelocityLongitude * TMath::RadToDeg(); }
+
+  /** Maximum Stoermer cutoff in AMS acceptance-cone (35deg) for negative particles [GV].
+    */
+  Float_t MaxCutOffConeNegative() const { return fMaxCutOffConeNegative; }
+
+  /** Maximum Stoermer cutoff in AMS acceptance-cone (35deg) for positive particles [GV].
+    */
+  Float_t MaxCutOffConePositive() const { return fMaxCutOffConePositive; }
+
+  /** Maximum Stoermer cutoff in AMS acceptance-cone (35deg) [GV].
+    */
+  Float_t MaxCutOffCone() const { return fabs(fMaxCutOffConeNegative) > fMaxCutOffConePositive ? fMaxCutOffConeNegative : fMaxCutOffConePositive;  }
 
 private:
   // All these are private at the moment. If anyone needs those, please contact Niko first, so we can
@@ -198,27 +202,10 @@ private:
   bool not_SingleECALshwr() const {return (fStatus & 0x0000000000060040) ^ 0x0000000000020040;}
 
 private:
-  Long_t fStatus;             ///< AMSEvent->fStatus
-  UChar_t fRandom;            ///< Rndm() 0..255   (for sample splitting...)
-  UChar_t fMCRandomSeed1;     ///< MC Random Seeds
-  UChar_t fMCRandomSeed2;     ///< MC Random Seeds
-  Int_t fEvent;               ///< AMSEvent->Event
-  TTimeStamp fTimeStamp;      ///< AMSEvent->UTime    (UNIX-Time GMT/GPS/1553?)
-  Float_t fGalacticLatitude;  ///< Header->AMSGalLat  (Galactic Latitude StarTracker ?)
-  Float_t fGalacticLongitude; ///< Header->AMSGalLat  (Galactic Longitude StarTracker ?)
-  Float_t fMagneticLatitude;  ///< Header->ThetaM     (Magnetic Latitude)
-  Float_t fMagneticLongitude; ///< Header->PhiM       (Magnetic Longitude)
-  Float_t fISSLatitude;             ///< Header->ThetaS     (ISS Latitude in GTOD (-pi/2 < theta < pi/2))
-  Float_t fISSLongitude;            ///< Header->PhiS       (ISS Longitude in GTOD (0 < phi < 2pi))
-  Float_t fISSAltitude;       ///< Header->RadS       (ISS Altitude from Earth centre)
-  Float_t fISSRoll;           ///< Header->Roll
-  Float_t fISSPitch;          ///< Header->Pitch
-  Float_t fISSYaw;                    ///< Header->Yaw
-  Float_t fISSVelocityLatitude;     ///< Header->VelTheta   (ISS velocity vector: -pi/2 < theta < pi/2)
-  Float_t fISSVelocityLongitude;    ///< Header->VelPhi     (ISS velocity vector: 0 < phi < 2pi)
-
   REGISTER_CLASS_WITH_TABLE(EventHeader)
 };
+
+}
 
 }
 
