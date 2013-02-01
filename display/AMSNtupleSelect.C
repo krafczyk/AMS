@@ -1,5 +1,6 @@
 //#define _PGTRACK_
 #include "AMSNtupleHelper.h"
+#include "../include/EcalChi2CY.h"
 #include "../include/root_setup.h"
 #include "../include/DynAlignment.h"
 #include "../include/TrInnerDzDB.h"
@@ -18,6 +19,41 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+if(ev && ev->nParticle() && ev->nTrTrack()>0 && ev->Particle(0).iTrTrack()>=0){
+
+       ParticleR & part=ev->Particle(0);
+       double g1=part.GetGeoCutoff(ev);
+       double g2=part.GetGeoCutoff(0,0);
+       cout <<" mom event c1 c2  "<<part.Momentum<<" "<<ev->Event()<<" "<<g1<<" "<<g2<<endl;
+
+
+}
+if(ev && ev->nParticle() && ev->nEcalShower()==1&& ev->Particle(0).iEcalShower()>=0){
+AMSDir dir=AMSDir(ev->EcalShower(0).Dir[0],ev->EcalShower(0).Dir[1],ev->EcalShower(0).Dir[2]);
+double GalCoo_AMS_Long, GalCoo_AMS_Lat;
+int GalCoo_Result;
+   int     GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi());
+
+cout <<"glat glong  "<< GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+
+dir==AMSDir(ev->EcalShower(0).EMDir[0],ev->EcalShower(0).EMDir[1],ev->EcalShower(0).EMDir[2]);
+       GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi());
+
+cout <<"2glat glong  "<< GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+
+static EcalAxis*paxis =new EcalAxis;
+paxis->process(&(ev->EcalShower(0)),2);
+  float cogz=120;
+  AMSPoint pnt;
+  paxis->interpolate(cogz,pnt,dir);
+  for(int k=0;k<3;k++)dir[k]=-dir[k];
+       GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi());
+cout <<"3glat glong  "<< GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+}
+return 1;
+
+
+
 static int begin=1;
 if(begin==0){
 cout << " open a"<<endl;
@@ -73,7 +109,8 @@ int a=1;
         double momentum=fabs(part.Momentum);
         int charge=part.Momentum>0?part.Charge:-part.Charge;
         double beta=fabs(part.Beta);
-        int GalCoo_Return= pev->DoBacktracing(result,glat,glong,rpto,time,part.Theta,part.Phi,momentum,beta,charge,false,false,false);
+         int GalCoo_Return;
+//        int GalCoo_Return= pev->DoBacktracing(result,glat,glong,rpto,time,part.Theta,part.Phi,momentum,beta,charge,false,false,false);
          bool over=(result>>5)&1;
         bool under=(result>>6)&1;
         bool trap=(result>>7)&1;
@@ -129,7 +166,7 @@ int a=1;
         float glong=GalCoo_AMS_Long;
         int gret=GalCoo_Return;
         double gt1,gp1;
-        pev->GetGTODCoo(GalCoo_Result,gt1, gp1,dir.gettheta(),dir.getphi(),false,true,false);
+//        pev->GetGTODCoo(GalCoo_Result,gt1, gp1,dir.gettheta(),dir.getphi(),false,true,false);
            if(gp1<0)gp1=gp1+360;
         gtheta[1]=gt1;
         gphi[1]=gp1;
