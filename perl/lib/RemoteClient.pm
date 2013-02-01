@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.755 2012/12/07 20:39:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.756 2013/02/01 15:19:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -277,7 +277,7 @@ my %fields=(
         FileAttDBTimestamp=> [],
         FileDBLastLoad    => [],
         FileAttDBLastLoad => [],
-        LocalClientsDir=>"prod.log/scripts/",
+        LocalClientsDir=>"prod.log/scripts",
         Name=>'/cgi-bin/mon/rc.cgi',
         DataMC=>0,
         IOR=>undef,
