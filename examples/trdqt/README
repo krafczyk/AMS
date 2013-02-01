@@ -1,2 +1,26 @@
-TrdQt usage example based on AMS/examples/verysimple.
-QTDIR needs to point to a Qt > 4.6 installation.
+AMS <-> ACsoft integration Notes - 25. November 2012
+-------------------------------------------------------------
+
+Here are some notes on how to compile AMS with ACsoft enabled.
+This documentation assumes that you're working on lxplus, or any AMS pcamsr0.cern.ch machine.
+
+1. Checkout AMS software into $HOME/Software/AMS
+
+2. Set environment variables
+   > export AMSWD=$HOME/Software/AMS
+   > export ACROOTSOFTWARE=/afs/cern.ch/exp/ams/Offline/AMSDataDir/v5.00/TRD
+   > export ACROOTLOOKUPS=$ACROOTSOFTWARE/acroot/data
+ 
+3. Compile AMS software
+   > tcsh
+   > cd $AMSWD/install
+   > source amsvar
+   > gmake all
+
+4. Compile test program
+  > cd $AMSWD/examples/trdqt
+  > gmake
+
+5. Run test program
+  > cd $AMSWD/examples/trdqt
+  > ./trdqt_example root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2011B/ISS.B620/pass4/1323073267.00000001.root?svcClass=amsuser
