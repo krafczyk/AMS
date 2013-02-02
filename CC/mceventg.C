@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.177 2012/10/09 16:27:57 nnikonov Exp $
+//  $Id: mceventg.C,v 1.178 2013/02/02 17:46:24 shaino Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1355,12 +1355,12 @@ void AMSmceventg::run(integer ipart){
   do{
     gener();
 #ifdef _PGTRACK_
-    hman.Fill("Pgen", _mom);
+    hman.Fill("Pgen", _mom, _dir[2]);
 #endif
   }while(!accept());
 
 #ifdef _PGTRACK_
-  hman.Fill("Pacc", _mom);
+  hman.Fill("Pacc", _mom, _dir[2]);
 #endif
   
   // Set seed
@@ -1845,7 +1845,15 @@ void orbit::UpdateAxis(number vt, number vp, number t, number p){
    init(ipart);
     do{
       gener();
+#ifdef _PGTRACK_
+    hman.Fill("Pgen", _mom, _dir[2]);
+#endif
     }while(!accept());
+
+#ifdef _PGTRACK_
+  hman.Fill("Pacc", _mom, _dir[2]);
+#endif
+
     // Set seed
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){

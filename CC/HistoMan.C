@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.50 2012/12/27 10:31:17 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.51 2013/02/02 17:46:24 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -419,8 +419,8 @@ void HistoMan::BookHistos(int simmode){
   // Sim. generation
   if (simmode & 1) {
     // mceventg
-    Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
-    Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
+    Add(TH2D_L("Pgen", "Pgen", 100, 1e-1, 1e4, 200, -1, 1, 1, 0));
+    Add(TH2D_L("Pacc", "Pacc", 100, 1e-1, 1e4, 200, -1, 1, 1, 0));
 
     Add(new TH2D("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2D("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
