@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.529 2013/01/31 14:05:39 cconsola Exp $
+//  $Id: root.C,v 1.530 2013/02/02 16:43:24 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8073,6 +8073,7 @@ double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, b
      path=p2.norm();  
      if(zpl<0)path*=-1;
      dir=d1; pnt=p1;
+     if (zpl == 0) dir = AMSDir(ax, ay, 1);
 #ifdef _PGTRACK_
   }
 #endif
@@ -12508,6 +12509,8 @@ void  ParticleR::_build(double rid,double err,float charge,float beta, float ebe
 
 #ifdef _PGTRACK_
 int  UpdateInnerDz(){
+  // not active for MC events!!
+  if(AMSEventR::Head()->nMCEventg() > 0) return 0;
 
   uint time,run;
 #ifdef __ROOTSHAREDLIBRARY__ 
@@ -12517,11 +12520,13 @@ int  UpdateInnerDz(){
   time=AMSEvent::gethead()->gettime();
   run=AMSEvent::gethead()->getrun();
 #endif
-
   // PZ Update also the Inner DzDB
   return TrInnerDzDB::GetHead()->UpdateTkDBc(time);
 }
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
+  // not active for MC events!!
+  if(AMSEventR::Head()->nMCEventg() > 0) return 0;
+
   //type 0 PG; 1 Madrid
   uint time,run;
 #ifdef __ROOTSHAREDLIBRARY__ 
