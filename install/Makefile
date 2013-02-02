@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.245 2013/02/01 17:20:18 nzimmerm Exp $
+#  $Id: Makefile,v 1.246 2013/02/02 10:42:26 nzimmerm Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -420,7 +420,6 @@ ACSOFT_FILES = ../ACsoft/acroot/ACC.C \
                ../ACsoft/acroot/VectorCapacityTracker.C \
                ../ACsoft/analysis/AnalysisParticle.C \
                ../ACsoft/analysis/BadRunManager.C \
-               ../ACsoft/analysis/FileManager.C \
                ../ACsoft/analysis/ParticleFactory.C \
                ../ACsoft/analysis/pathlength_functions.C \
                ../ACsoft/analysis/RejectionCalculator.C \
