@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.77 2012/12/27 10:09:53 shaino Exp $
+//  $Id: TrFit.C,v 1.78 2013/02/02 16:43:54 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/12/27 10:09:53 $
+///$Date: 2013/02/02 16:43:54 $
 ///
-///$Revision: 1.77 $
+///$Revision: 1.78 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -970,13 +970,21 @@ double TrFit::AlcarazFit(int fixr)
     }
   }
 
+  double dmsc[LMAX];
+  if (_mscat) FillDmsc(dmsc);
+
   // Estimate chisquares
   _chisqx = _chisqy = 0;
-  for (int i = 0; i < _nhit; i++)
-    for (int j = 0; j < _nhit; j++) {
-      _chisqx += _xr[i]*vmtx[i*LMAX+j]*_xr[j];
-      _chisqy += _yr[i]*wmtx[i*LMAX+j]*_yr[j];
+  for (int i = 0; i < _nhit; i++) {
+    double wx = (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
+    double wy = (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
+    if (_mscat) {
+      wx += (_xs[i] > 0) ? dmsc[i]*2.5 : 0;
+      wy += (_ys[i] > 0) ? dmsc[i]     : 0;
     }
+    _chisqx += (wx > 0) ? _xr[i]*_xr[i]/wx : 0;
+    _chisqy += (wy > 0) ? _yr[i]*_yr[i]/wy : 0;
+  }
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : 0;
 
   // Fill parameters
@@ -1219,6 +1227,8 @@ int TrFit::JAFillFGmtx(double *fmtx, double *gmtx,
 }
 
 
+double TrFit::DmscFact = 16;
+
 int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
                        double *len,  double *cosz, int *ilay)
 {
@@ -1226,7 +1236,7 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
   for (int i = 0; i < LMAX*LMAX; i++) vmtx[i] = wmtx[i] = 0;
 
   double dmsc[LMAX];
-  if (_mscat && FillDmsc(dmsc, 1, len, cosz, ilay) < 0) return -1;
+  if (_mscat && FillDmsc(dmsc, DmscFact, len, cosz, ilay) < 0) return -1;
 
   // Fill V and W matrices
   for (int i = 0; i < _nhit; i++)
@@ -1370,7 +1380,7 @@ double TrFit::ChoutkoFit(void)
     for (int i = 0; i < _nhit; i++) dmsc[i] = 0;
     if (_mscat && _param[4] != 0) {
       _rigidity = 1/_param[4];
-      if (FillDmsc(dmsc) < 0) return -1;
+      if (FillDmsc(dmsc, DmscFact) < 0) return -1;
     }
 
     double len [LMAX];
@@ -1497,7 +1507,23 @@ double TrFit::ChoutkoFit(void)
   _param[4] = _param[4]*_chrg/std::fabs(_chrg);
   _rigidity = (_param[4] != 0) ? 1/_param[4] : 0;
 
-  _chisq = (_ndofx+_ndofy > 0) ? _chisq/(_ndofx+_ndofy) : 0;
+  double dmsc[LMAX];
+  if (_mscat) FillDmsc(dmsc);
+
+  // Estimate chisquares
+  _chisqx = _chisqy = 0;
+  for (int i = 0; i < _nhit; i++) {
+    double wx = (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
+    double wy = (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
+    if (_mscat) {
+      wx += (_xs[i] > 0) ? dmsc[i]*2.5 : 0;
+      wy += (_ys[i] > 0) ? dmsc[i]     : 0;
+    }
+    _chisqx += (wx > 0) ? _xr[i]*_xr[i]/wx : 0;
+    _chisqy += (wy > 0) ? _yr[i]*_yr[i]/wy : 0;
+  }
+  _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : 0;
+//_chisq = (_ndofx+_ndofy > 0) ? _chisq/(_ndofx+_ndofy) : 0;
 
   return _chisq;
 }

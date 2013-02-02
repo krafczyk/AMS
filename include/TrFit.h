@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.31 2012/12/27 10:09:56 shaino Exp $
+//  $Id: TrFit.h,v 1.32 2013/02/02 16:43:52 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2012/12/27 10:09:56 $
+///$Date: 2013/02/02 16:43:52 $
 ///
-///$Revision: 1.31 $
+///$Revision: 1.32 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -389,6 +389,9 @@ public:
   /// Fast propagation with JAStepPin
   void PropagateFast(int ih0, int ih1, int ndiv = 20);
 
+  /// Multiple scattering tuning factor
+  static double DmscFact;
+
 protected:
   /// Apply limits as min<abs(par)<max
   bool ParLimits(double &par, double min, double max);
@@ -424,7 +427,6 @@ protected:
 public:
   /// Startup routine (for Chikanian fit)
   void RkmsFit(double *out);
-
 
   /// Maximum number of layers for Chikanian fit
   enum { NPma = 9 };
