@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.26 2012/12/04 21:26:06 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.26.2.1 2013/02/06 15:21:20 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -117,8 +117,8 @@ public:
   static int  ReBuild(int charge=1);
 /// Build TofClusterH function
   static int  BuildTofClusterH();
-/// Build BetaH function
-  static int  BuildBetaH(int verse=1);
+/// Build BetaH function (0 mask output)
+  static int  BuildBetaH(int verse=0);
 /// Clear TofClusterH build vector
   static int  ClearBuildTofClH();
 /// Clear BetaH build vector
