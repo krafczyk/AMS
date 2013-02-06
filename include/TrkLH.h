@@ -32,6 +32,7 @@ class TrkLHVar: public TObject {
   int ly2;    
  //! presence of ly9  (derived from btp) 
   int ly9;    
+  //! human readable pattern (derived from btp)
   /*! human readable pattern (derived from btp) \n
   3 bit pattern code: L1L9L2 e.g. (001) = (noLy1;noLy9;Ly2 fired) \n
   0 = 000; 1 = 001; 2 = 010; 3 = 011; 4 = 10x; 5 = 11x (full span) \n */
@@ -116,6 +117,20 @@ class TrkLHVar: public TObject {
 #endif
 
 //! Tracker Likelihood
+  /*!
+  Evaluate tracker likelihood \n
+  include TrkLH.h and in the event loop \n
+  double lktrk = TrkLH::gethead()->GetLikelihoodRatioElectronWG(ipart); \n
+  where 'ipart' is the number of the ParticleR you want to use... \n
+  Existence of ECAL shower pointer for the particle is necessary \n
+  To avoid annoying messages: \n
+  Error in <TBufferFile::ReadObject>: trying to read an emulated class \n
+  (TPaletteAxis) to store in a compiled pointer (TObject) \n
+  #include <TApplication.h> \n
+  and then in the main function insert somewhere: \n
+  TApplication theApp("App", &argc, argv); \n
+
+  */  
 class TrkLH: public TObject {
   /*!
   Evaluate tracker likelihood \n
@@ -174,6 +189,7 @@ class TrkLH: public TObject {
   //! to access to internally used variables for the particle ipart
   TrkLHVar GetTrkLHVar(int ipart);
 
+  //! internally used variables for the particle ipart, (to access use GetTrkLHVar)
   TrkLHVar* varv;
 
   //! masking vector if varmask[3] = 0 => variable[3] not used in TrkLH
@@ -190,18 +206,19 @@ class TrkLH: public TObject {
   TGraph*** low;
   //! 16% upper threshold for variables 
   TGraph*** upp;
-  //! numer of cases pdf wrong is empty and pdf good is below the pdf wrong error (uknown)   
+  //! number of cases pdf wrong is empty and pdf good is below the pdf wrong error (uknown)   
   int ntail0;
-  //! numer of cases pdf good is empty and pdf wrong is below the pdf good error (uknown)   
+  //! number of cases pdf good is empty and pdf wrong is below the pdf good error (uknown)   
   int ntail1;
-  //! numer of cases pdf wrong is empty and pdf good is empty (uknown)   
+  //! number of cases pdf wrong is empty and pdf good is empty (uknown)   
   int ntail2;
-  //! numer of cases pdf wrong is empty and pdf good is larger than the pdr wrong error (recovered as good-like)   
+  //! number of cases pdf wrong is empty and pdf good is larger than the pdf wrong error (recovered as good-like)   
   int ntailc0;
-  //! numer of cases pdf good is empty and pdf wrong is larger than the pdf good error (recovered as wrong-like)   
+  //! number of cases pdf good is empty and pdf wrong is larger than the pdf good error (recovered as wrong-like)   
   int ntailc1;
   
-  /*! fill the var1 data structure and normalize the variables                                                                starting from the pre-filled human readable data structure TrkLHVar */
+  /* fill the var1 data structure and normalize the variables\n  
+     starting from the pre-filled human readable data structure TrkLHVar*/
   int fillvar(TrkLHVar& var1);
   //! internally evaluate tracker likelihood for energy and pattern
   double dotrklk(double energy, int pat);
@@ -232,7 +249,15 @@ class TrkLH: public TObject {
   void SetDefaultMask(); //using default value of VARN=23
   
 #ifndef _NOGBATCH_
-  //! fill the TrkLHVar&, variables from the ams rootuples, for the event and the ipart particle number
+  /* fill the TrkLHVar&, variables from the ams rootuples, for the event and the ipart particle number \n
+   ipart is the pre-selected particle number \n                                  
+   return -2 = event problem \n
+   return -1 = particle problem \n
+   return 1 = ok                 \n                                             
+   return 0 = trk problem        \n                                             
+   return 2*n = ecal problem     \n                                             
+   return 3*n = tof problem   \n 
+   */
   int filltrklhvarfromgbatch(TrkLHVar&, AMSEventR* evt, int ipart);
 #endif
 
