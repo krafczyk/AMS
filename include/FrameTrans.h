@@ -213,10 +213,40 @@ void    FT_Equat2GTOD(double &x, double &y, double &z, double &vx, double &vy, d
 double  FT_GPS_JD(double itime);
 double  FT_UTC_JD(double itime);
 /* *************************************************************/
-int  FT_Equat2Gal(double &azimut, double &elev);
+/**
+ @brief	To convert right ascension and declination to galactic longitude and latitude.
+ 
+ @param[in]	azimut	 Right ascension in radiant.
+ @param[in]	elev	 Declination in radiant.
+ @param[in]	alg	 Conversion algorithm: \par
+                         - 0: "Practical Astronomy" algorithm. HDuffett-Smith & Zwart, Practical Astronomy, 4th edition 2011, pp56-59
+                         - 1: Novas Library (Naval Observatory Vector Astrometry Software) Hipparcos and Tycho Catalogues, Vol. 1, Section 1.5.3.
+ @param[out]	azimut	 Galactic longitude in radiant.
+ @param[out]	elev	 Galactic latitude in radiant.
+ 
+*/
+int  FT_Equat2Gal(double &azimut, double &elev, int alg=1);
+
+
+
+/**
+ @brief	To convert ICRS right ascension and declination to galactic longitude and latitude.
+ 
+ @param[in]	rai	ICRS right ascension in radiant.
+ @param[in]	deci	ICRS declination in radiant.
+ @param[out]	glon	 Galactic longitude in radiant.
+ @param[out]	glat	 Galactic latitude in radiant.
+ 
+ \note 		Hipparcos and Tycho Catalogues, Vol. 1, Section 1.5.3.
+  http://aa.usno.navy.mil/software/novas/novas_c/novasc_info.php
+*/
+void Nova_equ2gal (double rai, double deci, double &glon, double &glat);
+
 int  FT_Gal2Equat(double &azimut, double &elev);
 /* *************************************************************/
 void FT_Body_to_J2000(double &x, double &y, double &z, double ISSyaw,double ISSpitch, double ISSroll );
+/* ************************************************************/
+
 
 
 
