@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.908 2013/01/02 19:41:41 oliva Exp $
+// $Id: job.C,v 1.909 2013/02/06 18:50:27 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -312,7 +312,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.SigTerm=0;
   G4FFKEY.ExEmPhysics=0;
   G4FFKEY.NeutronTkCut=0;
-  G4FFKEY.TFNewGeant4=0;
+  G4FFKEY.TFNewGeant4=2;
   G4FFKEY.MemoryLimit=-1;
   FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
