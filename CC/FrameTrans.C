@@ -918,9 +918,8 @@ double FT_UTC_JD(double itime){
 
 //~============================================================================
 
-int  FT_Equat2Gal(double &azimut, double &elev){
-// SDT(Aug 2012) - converts from J2000 frame to Galactic:
-// from Duffett-Smith & Zwart, Practical Astronomy, 4th edition 2011, pp56-59  */
+
+int  FT_Equat2Gal(double &azimut, double &elev, int alg){
  double RA=azimut;
  double Dec=elev;
  double b;/* galactic latitude  */
@@ -928,20 +927,153 @@ int  FT_Equat2Gal(double &azimut, double &elev){
  double GalCen_RA =(192.+15./60.)/180.*pi; /* 192deg 15' */
  double GalCen_Dec=( 27.+24./60.)/180.*pi; /*  27deg 24' */
  double GalCen_AscendingNode=33./180.*pi;  /*  33deg  0' */
- b=asin(cos(Dec)*cos(GalCen_Dec)*cos(RA-GalCen_RA) + sin(Dec)*sin(GalCen_Dec));
- l=atan2( (sin(Dec)-sin(b)*sin(GalCen_Dec)),(cos(Dec)*sin(RA-GalCen_RA)*cos(GalCen_Dec) )  )+GalCen_AscendingNode;
  
+ switch (alg){
+   case 0:
+      // SDT(Aug 2012) - converts from J2000 frame to Galactic:
+      // from Duffett-Smith & Zwart, Practical Astronomy, 4th edition 2011, pp56-59  */
 
-// SDT(sept2012) check if  galactic longitude is in the range [-180:180]
- if (l>pi){ //if longitude is >180deg then substract 360deg
- l+=-twopi;
+      b=asin(cos(Dec)*cos(GalCen_Dec)*cos(RA-GalCen_RA) + sin(Dec)*sin(GalCen_Dec));
+      l=atan2( (sin(Dec)-sin(b)*sin(GalCen_Dec)),(cos(Dec)*sin(RA-GalCen_RA)*cos(GalCen_Dec) )  )+GalCen_AscendingNode;
+     break;
+   case 1:
+      // SDT(Feb 2012) -  Hipparcos and Tycho Catalogues, Vol. 1, Section 1.5.3
+      // http://aa.usno.navy.mil/software/novas/novas_c/novasc_info.php
+      Nova_equ2gal ( RA, Dec, l, b);
+     break;
+     
+   
+   default: return 0;
  }
- // SDT(oct2012) - correct output
+ 
+ // SDT(sept2012) check if  galactic longitude is in the range [-180:180]
+ if (l>pi){ //if longitude is >180deg then substract 360deg
+    l+=-twopi;
+    }
+ // SDT(oct2012) - correct output    
  azimut=l;
  elev=b;
  return 1;
- 
 }
+
+
+void Nova_equ2gal ( double rai, double deci, double &glon, double &glat)
+/*
+SDT feb 2013 - adapted from Novas.c
+
+------------------------------------------------------------------------
+
+   PURPOSE:
+      To convert ICRS right ascension and declination to galactic
+      longitude and latitude.
+
+   REFERENCES:
+      Hipparcos and Tycho Catalogues, Vol. 1, Section 1.5.3.
+
+   INPUT
+   ARGUMENTS:
+      rai (double)
+         ICRS right ascension radiant.
+      deci (double)
+         ICRS declination in radiant.
+
+   OUTPUT
+   ARGUMENTS:
+      *glon (double)
+         Galactic longitude in degrees.
+      *glat (double)
+         Galactic latitude in degrees.
+
+   RETURNED
+   VALUE:
+      None.
+
+   GLOBALS
+   USED:
+      DEG2RAD, RAD2DEG   novascon.c
+
+   FUNCTIONS
+   CALLED:
+      sin                math.h
+      cos                math.h
+      sqrt               math.h
+      atan2              math.h
+
+   VER./DATE/
+   PROGRAMMER:
+      V1.0/11-03/JAB (USNO/AA)
+      V1.1/03-06/JAB (USNO/AA): Fixed initialization of 'ag'.
+      V1.2/03-11/WKP (USNO/AA): Added braces to 2-D array initialization
+                                to quiet gcc warnings.
+
+   NOTES:
+      1. This function uses the coordinate transformation specified
+      in the reference.
+      2. This function is the C version of NOVAS Fortran routine
+      'eqgal'.
+
+------------------------------------------------------------------------
+*/
+{
+   double r, d, pos1[3], pos2[3], xyproj, g;
+
+/*
+   Rotation matrix A_g from Hipparcos documentation eq. 1.5.11.
+*/
+
+   double ag[3][3] = {
+      {-0.0548755604, +0.4941094279, -0.8676661490},
+      {-0.8734370902, -0.4448296300, -0.1980763734},
+      {-0.4838350155, +0.7469822445, +0.4559837762}};
+
+/*
+   Form position vector in equatorial system from input coordinates.
+*/
+   r = rai;
+   d = deci;
+   pos1[0] = cos (d) * cos (r);
+   pos1[1] = cos (d) * sin (r);
+   pos1[2] = sin (d);
+
+/*
+   Rotate position vector to galactic system, using Hipparcos
+   documentation eq. 1.5.13.
+*/
+
+   pos2[0] = ag[0][0] * pos1[0] + ag[1][0] * pos1[1] +
+
+             ag[2][0] * pos1[2];
+
+   pos2[1] = ag[0][1] * pos1[0] + ag[1][1] * pos1[1] +
+
+             ag[2][1] * pos1[2];
+
+   pos2[2] = ag[0][2] * pos1[0] + ag[1][2] * pos1[1] +
+
+             ag[2][2] * pos1[2];
+
+/*
+   Decompose galactic vector into longitude and latitude.
+*/
+
+   xyproj = sqrt (pos2[0] * pos2[0] + pos2[1] * pos2[1]);
+
+   if (xyproj > 0.0)
+      g = atan2 (pos2[1], pos2[0]);
+    else
+      g = 0.0;
+   glon = g ;
+
+   g = atan2 (pos2[2], xyproj);
+   glat = g ;
+
+   return;
+}
+
+
+
+
+
 
 //~----------------------------------------------------------------------------
 
@@ -973,6 +1105,10 @@ int  FT_Gal2Equat(double &azimut, double &elev){
  
 }
 
+
+
+
+/* *********************************************************************************/
 void	FT_Body_to_J2000(double &x, double &y, double &z, double ISSyaw,double ISSpitch, double ISSroll )
 {
   /* convert from body to J2000, 
@@ -997,6 +1133,8 @@ void	FT_Body_to_J2000(double &x, double &y, double &z, double ISSyaw,double ISSp
   y= oldX*sin(ISSyaw)+oldY*cos(ISSyaw);
   z= oldZ;
 }
+
+/* ********************************************************************/
 
 
 
