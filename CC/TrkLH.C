@@ -38,6 +38,9 @@
 
 #include "TrkLH.h"
 
+static int maxerr = 0;
+static int errmax = 99;
+
 TrkLH* TrkLH::head=0;
 
 using namespace std;
@@ -62,7 +65,11 @@ TrkLH::TrkLH(){
   upp=0;
 
   int nm = TRLKINIT();
-  if (nm!=0) cerr << "TrkLH::TRLKINIT-E-Error in TrkLH inizialization: " << nm << endl;
+  if (nm!=0)
+    { if (maxerr<errmax) { 
+         cerr << "TrkLH::TrkLH-E-Error in TrkLH inizialization: " << nm << endl;
+	 maxerr++;}}
+
 
 };
 
@@ -128,13 +135,19 @@ int TrkLH::TRLKINIT(int _NVER){
 #define NVERMAX 1
 
   if (_NVER<NVERMIN)
+      { if (maxerr<errmax) { 
     cerr << "TrkLH::TRLKINIT-E-This version " << _NVER << " is no more supported. Ask for, at least, version " << NVERMIN << endl;  
+    maxerr++;}}
   else if (_NVER>NVERMAX)
+  { if (maxerr<errmax) { 
     cerr << "TrkLH::TRLKINIT-E-This version " << _NVER << " is not yet supported. Ask for, at most, version " << NVERMAX << endl;
+    maxerr++;}}
   else {
     if (_NVER==NVER) {
+     if (maxerr<errmax) { 
       cerr << "TrkLH::TRLKINIT-W-This version " << _NVER << " is the same already inited..." << endl;
-      return 0;
+      maxerr++;}
+     return 0;
     }
     else {//Now yes!
       //Let's clean the previous instance...
@@ -197,18 +210,22 @@ int TrkLH::TRLKINIT_v1(){
   sprintf(nfile, "%s/normfile_%d.root", dbPath, NVER);
   TFile* infile = new TFile(nfile);
   if (!infile || infile->IsZombie()) {
-    cerr << "TrkLH::TRKLKINIT-E-" << dbPath << "/normfile_" << NVER << ".root not found!" << endl;
+    if (maxerr<errmax) {   cerr << "TrkLH::TRKLKINIT-E-" << dbPath << "/normfile_" << NVER << ".root not found!" << endl;
+      maxerr++; }
     return 1;
   }
-  cout << "TrkLH::TRKLKINIT-M-Loaded " << nfile << endl; 
+  if (maxerr<errmax) {  cout << "TrkLH::TRKLKINIT-I-Loaded " << nfile << endl; 
+      maxerr++; }
 
   sprintf(nfile, "%s/pdffile_%d.root", dbPath, NVER);
   TFile* pdffile = new TFile(nfile);  
   if (!pdffile || pdffile->IsZombie()) {
-    cerr << "TrkLH::TRKLKINIT-E-" << dbPath << "/pdffile_" << NVER << ".root not found!" << endl;
+    if (maxerr<errmax) {  cerr << "TrkLH::TRKLKINIT-E-" << dbPath << "/pdffile_" << NVER << ".root not found!" << endl;
+      maxerr++; }
     return 2;
   }
-  cout << "TrkLH::TRKLKINIT-M-Loaded " << nfile << endl; 
+  if (maxerr<errmax) {  cout << "TrkLH::TRKLKINIT-I-Loaded " << nfile << endl; 
+      maxerr++; }
 
   for (int ij = 0;ij<VARN;ij++){
     for (int ip = 0;ip<PATN;ip++){ // 0 to be implemented
@@ -230,8 +247,9 @@ int TrkLH::TRLKINIT_v1(){
     }
   }
   varmask[22]=0; // E/P not used in TrkLH
-  cout << "TrkLH::TRKLKINIT-M-LoadedInfosForAll" << VARN << "VariablesForAll" << PATN << "TrackerPatterns" << endl; 
-  
+  if (maxerr<errmax) {  cout << "TrkLH::TRKLKINIT-I-LoadedInfosForAll " << VARN << " VariablesForAll " << PATN << " TrackerPatterns" << endl; 
+        maxerr++; }
+
   if (curr) curr->cd();
   
   return 0; 
@@ -251,14 +269,18 @@ int TrkLH::PopulateTrkLHVar(int ipart){
   
   int nm = filltrklhvarfromgbatch(*varv, AMSEventR::Head(), ipart);
   if (nm!=1) {
-    cerr << "TrkLH:GetLikelihoodRatioElectronWG:-E-TrkLHVarLoading: " << nm << endl;
+    if (maxerr<errmax) { 
+    cerr << "TrkLH::PopulateTrkLHVar-E-Problem in filltrklhvarfromgbatch code = " << nm << endl;
+    maxerr++; }
     return -9;
   }
   //   cout << " var loaded " << endl;
   
   nm = fillvar(*varv);
   if (nm!=0) {
-    cerr << "TrkLH:GetLikelihoodRatioElectronWG-E-TrkLHVarFilling: " << nm << endl;
+    if (maxerr<errmax) { 
+    cerr << "TrkLH::PopulateTrkLHVar-E-Problem in fillvar, code: " << nm << endl;
+    maxerr++; }
     return -8;
   }
   //   cout << " varv filled " << endl;
@@ -432,11 +454,13 @@ double TrkLH::bilinear(TH2D* h, double y, double x, int ilin){
     pes  = pes - pz12*(x2-x)*(y1-y);
     pes  = pes + pz22*(x1-x)*(y1-y);
     if (pes == 0) {
-      cout << " ERROR BILINEAR INTERPOLATION " << bil <<endl;
-      cout << z11 << " " << z12 << " " << z21 << " " << z22 << endl;
-      cout << pz11 << " " << pz12 << " " << pz21 << " " << pz22 << endl;
-      cout << x1 << " " << x << " " << x2 << endl;
-      cout << y1 << " " << y << " " << y2 << endl;}
+    if (maxerr<errmax) { 
+      cerr << "TrkLH::bilinear-E-ERROR IN BILINEAR INTERPOLATION weight is 0" << bil <<endl;
+      //  cout << z11 << " " << z12 << " " << z21 << " " << z22 << endl;
+      //  cout << pz11 << " " << pz12 << " " << pz21 << " " << pz22 << endl;
+      //  cout << x1 << " " << x << " " << x2 << endl;
+      //  cout << y1 << " " << y << " " << y2 << endl;
+      maxerr++;}}
     else bil = bil/pes;
     vret = bil;
   }
@@ -444,7 +468,11 @@ double TrkLH::bilinear(TH2D* h, double y, double x, int ilin){
   if (extrapy != 0) vret = h->GetBinContent(binx1,extrapy);
   if (extrapx != 0 && extrapy != 0) vret = h->GetBinContent(extrapx,extrapy);
 
-  if (vret > 1. || vret < 0) cout << extrapx << extrapy << " vret = " << vret << " binx1= " << binx1 << " ilin= " << ilin << " biny1= " << biny1 << endl;
+  if (vret > 1. || vret < 0){
+    if (maxerr<errmax) { 
+      cerr << "TrkLH::bilinear-E-ERROR IN Extrapolation PDF outside [0,1]" << vret <<endl;
+      // cout << extrapx << extrapy << " vret = " << vret << " binx1= " << binx1 << " ilin= " << ilin << " biny1= " << biny1 << endl;    
+      maxerr++;}}
 
   if (vret == 0) vret = -1.*fabs(h->GetBinError(bing1)); // upper limit is negative                                                                                     
 
@@ -462,6 +490,14 @@ double TrkLH::dotrklk(double ene, int ipat){
   ntail1 = 0;
   ntail0 = 0;
   ntail2 = 0;
+
+  /*
+         if (maxerr<errmax) { 
+      cerr << "Test = "  << maxerr << endl;
+      maxerr++;}
+      cout << maxerr << " maxerr " << endl;
+  */
+
   for (int ivar = 0; ivar<VARN; ivar++){
     if (varmask[ivar]==0) continue;
     //    cout << varlist[ivar] << endl;                                                                                                                                
@@ -480,10 +516,22 @@ double TrkLH::dotrklk(double ene, int ipat){
 
     tpr0 = tpr0*pr0;
     tpr1 = tpr1*pr1;
-    if (pr0 > 1.01) cout << ipat << " " << ivar << " error pdf0 " << varlist[ivar] << " ene = " << ene << " " << pr0 << endl;
-    if (pr1 > 1.01) cout << ipat << " " << ivar << " error pdf1 " << varlist[ivar] << " ene = " << ene << " " << pr1 << endl;
-    if (pr0 < 0) cout << ipat << " " << ivar << " error pdf0 " << varlist[ivar] << " ene = " << ene << " " << pr0 << endl;
-    if (pr1 < 0) cout << ipat << " " << ivar << " error pdf1 " << varlist[ivar] << " ene = " << ene << " " << pr1 << endl;
+    if (pr0 > 1.0){
+         if (maxerr<errmax) { 
+      cerr << "TrkLH::dotrklk-E-ERROR pattern = "  << ipat << " var = " << ivar << " value = " << varlist[ivar] << " ene = " << ene << " prob0 wrong (>1) = " << pr0 << endl;
+      maxerr++;}}
+   if (pr1 > 1.0){
+         if (maxerr<errmax) { 
+      cerr << "TrkLH::dotrklk-E-ERROR pattern = "  << ipat << " var = " << ivar << " value = " << varlist[ivar] << " ene = " << ene << " prob1 good (>1) = " << pr1 << endl;
+      maxerr++;}}
+    if (pr0 < 0.0){
+         if (maxerr<errmax) { 
+      cerr << "TrkLH::dotrklk-E-ERROR pattern = "  << ipat << " var = " << ivar << " value = " << varlist[ivar] << " ene = " << ene << " prob0 wrong (<0) = " << pr0 << endl;
+      maxerr++;}}
+   if (pr1 < 0.0){
+         if (maxerr<errmax) { 
+      cerr << "TrkLH::dotrklk-E-ERROR pattern = "  << ipat << " var = " << ivar << " value = " << varlist[ivar] << " ene = " << ene << " prob1 good (<0) = " << pr1 << endl;
+      maxerr++;}}
   }
   if(tpr0 <= 0 && tpr1>0) return 1.;  // signal                                                                                                                         
   if(tpr1 <= 0 && tpr0>0) return 0.;  // bkg                                                                                                                            
