@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.33 2012/09/10 08:27:30 choutko Exp $
+//  $Id: amschain.h,v 1.34 2013/02/07 09:26:26 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -65,6 +65,24 @@ public:
    Int_t     Add(const char* name, Long64_t nentries = kBigNumber);
    using TChain::Add;
   /// Add TFiles to the chain from a text file 
+
+ /*!
+   \brief Conditionally add the TFiles from the filelist to an  amschain
+   
+ 
+ \param[in]  rootfilelist  a (txt) file with full path names of the files to be chained. example is in /afs/cern.ch/work/c/choutko/txt/filelistexample.txt
+\param[in] beg first  file line  (started from 0) to be chained
+
+\param[in] end next to the last file line to be chained
+
+\param[in] stagedonly  if true only take staged files if files are on castor.  The rejected filenamea will be written in the rootfilelist_beg_end_STAGEIN 
+
+\param[in] pattern if not NULL only process file with names match with pattern
+
+\retval -1 if rootfilelist can not be open
+\retval 0  otherwise
+
+ */
   int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,char *pattern=0);
   /// Get number of TFiles in  a text file 
   int ValidateFromFile(const char* rootfilelist,bool stage=false);
