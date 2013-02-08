@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.514.2.4 2013/01/26 13:56:25 qyan Exp $
+//  $Id: root.C,v 1.514.2.5 2013/02/08 17:42:49 lbasara Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9,6 +9,7 @@
 #include <TChainElement.h>
 #include "TFile.h"
 #include "TMinuit.h"
+#include "TRandom3.h"
 #include "TEnv.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -3665,37 +3666,15 @@ void fcnv1(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 }
 
 
-// Functions for ESEv3 fit using TMinuit
-
-namespace EcalShowerR_ZProf3 {
-  static TMinuit *fMinuit = 0;
-#pragma omp threadprivate(fMinuit)
-};
+//______________________________________________________________________________ ESEv3
 
 
 float zv3[18],xv3[18],errorzv3[18];
-Int_t nbinsv3, bmin=3;
 
 
-void fcnv3(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
-{
-	const Int_t nbins = 18;
-	Int_t i;
-	//calculate chisquare
-	Double_t chisq = 0.;
-	Double_t delta;
-	nbinsv1=0; 
-	for (i=bmin;i<nbins; i++) {
-		Double_t fitfo= par[0]*par[1]*TMath::Exp(-par[1]*(xv3[i]-par[3]))*pow(par[1]*(xv3[i]-par[3]),par[1]*par[2])/TMath::Gamma(par[1]*par[2]+1.);
-		delta = (zv3[i]-fitfo)/errorzv3[i]; 
-		chisq += delta*delta;	
-		nbinsv3++;
-	}
-	f = chisq;
+Double_t fcnv3(Double_t *x, Double_t *par){ 
+	return par[0]*par[1]*TMath::Exp(-par[1]*(x[0]-par[3]))*pow(par[1]*(x[0]-par[3]),par[1]*par[2])/TMath::Gamma(par[1]*par[2]+1.);
 }
-
-
-
 
 
 float EcalShowerR::EcalStandaloneEstimatorV3(){
@@ -3706,9 +3685,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	if(AMSEventR::Head()->Version()<584) nEnergyA = EnergyA;
 	// Case Processing version >=B584
 	if(AMSEventR::Head()->Version()>=584) nEnergyA = EnergyA*1000.;
-
-
-
 
 	// Local variables;
 
@@ -3854,10 +3830,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			}
 			//
 			//
-			//
-			
-			
-		
+
 			
 			if (npixl>0) Ed_pixl    =EnergyDh/npixl; 			else  Ed_pixl=1000000;
 			if (npixl>0) Ed_sqpixl  =EnergyDh/sqrt(npixl);	else  Ed_sqpixl=1000000;
@@ -3889,8 +3862,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			
 			
 			// Variance, Footprint, S3/Sy from the hits 
-			
-			
+
 			ShowerLatDisp[2]=0.; 
 			ShowerLatDisp[1]=0.;
 			bplane2=0.;
@@ -4056,125 +4028,77 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 		float exprearl= 0.3*log10E+0.4338*log10E*log10E;
 		float frac,err ;
 		//
-		Double_t par0, par1,par2, par3; 
-		par0=1.0;
-		par1=0.48;
-		par2=1.05*(log(EnergyDh/(8.)));
-		par3=1.0;
-		if (EnergyDh/1000>100) par0=0.95;
-		float zmax=-1;  
-		float xmax=18.;  
-		float xmin=3.5;
-		int   amax=19;
 
-		float az=0; 
-		//
-		for(int a=0;a<18;a++){
-			
-			cora=1.;
-			if (((a/2)%2)==1&&corx>0.7) cora=corx; 
-			if (((a/2)%2)==0&&cory>0.7) cora=cory;   
-
-			frac = EcalEdepFrac[a]*cora*(.975);//(shower->EnergyD);
-			
-			err=frac*0.07;	
-			//
-			zv3[a]=frac; 
-			if (zv3[a]>zmax) {
-				zmax=zv3[a];
-				amax=a;
-		
-			}
-
-			xv3[a]=0.5+a;
-			az+=zv3[a]; 
-
-			errorzv3[a]=err; 
-			
-			//
-			if (EnergyDh/1000<45.) err=frac*0.10;
-			if (err<.009&&EnergyDh<10000.) err=0.009;
-			if (err<.004&&EnergyDh>10000.) err=0.004;
-			if(frac) nblayer++;	
-
-		}
 
 		if(nblayer>5){
 
-			
-			// new bounds for the 
+			Double_t par0, par1,par2, par3; 
+			par0=1.0;
+			par1=0.48;
+			par2=1.05*(log(EnergyDh/(8.)));
+			par3=1.0;
+			TH1F *h3 = new TH1F("h3","",18,0.,18.);
+			if (EnergyDh/1000>100) par0=0.95;
+			float zmax=-1;  
+			int   amax=19;
+			float az=0; 
+
+			for(int a=0;a<18;a++){
+				
+				cora=1.;
+				if (((a/2)%2)==1&&corx>0.7) cora=corx; 
+				if (((a/2)%2)==0&&cory>0.7) cora=cory;   
+
+				frac = EcalEdepFrac[a]*cora*(.975);//(shower->EnergyD);
+				
+				err=frac*0.07;	
+				//
+				zv3[a]=frac; 
+				if (zv3[a]>zmax) {
+					zmax=zv3[a];
+					amax=a;
+				}
+
+				xv3[a]=0.5+a;
+				az+=zv3[a]; 
+				errorzv3[a]=err; 
+				
+				//
+				if (EnergyDh/1000<45.) err=frac*0.10;
+				if (err<.009&&EnergyDh<10000.) err=0.009;
+				if (err<.004&&EnergyDh>10000.) err=0.004;
+				if(frac) nblayer++;
+				h3->SetBinContent(a+1,frac) ;
+				h3->SetBinError(a+1,err);
+			}
+
+			// new bounds for the
+			float xmin=3.5;
+			float xmax=18.;  
 			if (EnergyDh/1000.<=150) xmin=3;
 			if (EnergyDh/1000.<=100) xmin=2.8;
 			if (EnergyDh/1000.<=80) xmin=2.7;
 			if (EnergyDh/1000.<=50) xmin=2.5;
 			if (EnergyDh/1000.<=20) xmin=2.;
 			if (EnergyDh/1000.<=2) xmin=1.5;
-			//xmin+=1.;
-			 bmin=int (xmin)+1;
-			
 
+			TF1 *fitf = new TF1("fitf",fcnv3,0.,18.,4);
+			fitf->SetParameters(par0,par1,par2,par3);
+			fitf->SetParLimits(0,0.999*par0,2.*par0);
+			fitf->SetParLimits(1,par1-0.05,par1+0.05);
+			fitf->SetParLimits(2,par2-2,par2+2);
+			fitf->SetParLimits(3,-1-par3,par3+1);
 
+			h3->Fit("fitf","rQNM","",xmin,xmax);
+			zprofile[0]  =fitf->GetParameter(0);
+			zprofile[1]  =fitf->GetParameter(1);
+			zprofile[2]  =fitf->GetParameter(2);
+			zprofile[3]  =fitf->GetParameter(3);
+			zprofile[4] = fitf->GetChisquare()/fitf->GetNDF();
 
-      if (!EcalShowerR_ZProf3::fMinuit) {
-#pragma omp critical (tminuit) 
-        EcalShowerR_ZProf3::fMinuit = new TMinuit(4);
-      }         
-      TMinuit *gMinuit = EcalShowerR_ZProf3::fMinuit;
-
-
-
-		// Fit Using minuit /// 
-		gMinuit->SetPrintLevel(-1); 
-		gMinuit->SetFCN(fcnv3);
-		Double_t arglist[10];
-		Int_t ierflg = 0;
-		arglist[0]   = 1;
-		gMinuit->mnexcm("SET ERR", arglist ,1,ierflg);
-		// Set starting values and step sizes for parameters
-		Double_t vstart[4] = {par0 , par1 , par2, par3};
-		Double_t step[4]   = {0.0001 , 0.05 , 0.005, 0.005};
-		gMinuit->mnparm(0, "a1", vstart[0], step[0],0.999*par0,2.*par0,ierflg);
-		gMinuit->mnparm(1, "a2", vstart[1], step[1],par1-0.2,par1+0.2,ierflg);
-		gMinuit->mnparm(2, "a3", vstart[2], step[2],par2-2.,par2+2.,ierflg);
-		gMinuit->mnparm(3, "a4", vstart[3], step[3],-1.-par3,par3+1,ierflg);
-		// Now ready for minimization step
-		arglist[0] = 4000;
-		arglist[1] = 0.5;
-		gMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
-		//	gMinuit->mnexcm("MINIMIZE", arglist ,2,ierflg);
-		//gMinuit->mnexcm("MINOS", arglist ,2,ierflg);
-		// Print results
-		gMinuit->GetParameter(0,zpro[0],epro[0]);
-		gMinuit->GetParameter(1,zpro[1],epro[1]);
-		gMinuit->GetParameter(2,zpro[2],epro[2]);
-		gMinuit->GetParameter(3,zpro[3],epro[3]);
-		//
-		Double_t amin,edm,errdef;
-		Int_t nvpar,nparx,icstat;
-		gMinuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
-		zprofile[1]=  zpro[0];
-		zprofile[2]=  amin/abs(float(nbinsv3-4)) ;
-			
-			if (abs(zpro[0]-0.999*par0)<=0.0001&&amin/abs(float(nbinsv3-4))>10)	{
-				par3=1.; 
-				gMinuit->mnparm(0, "a1", vstart[0], step[0],0.999*par0,2*par0,ierflg);
-				gMinuit->mnparm(1, "a2", vstart[1], step[1],par1-0.2,par1+0.2,ierflg);
-				gMinuit->mnparm(2, "a3", vstart[2], step[2],par2-3,par2+3,ierflg);
-				gMinuit->mnparm(3, "a4", vstart[3], step[3],-2-par3,par3+2,ierflg);
-				// Now ready for minimization step
-				arglist[0] = 1000;
-				arglist[1] = 2;
-				gMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
-				// Print results
-				gMinuit->GetParameter(0,zpro[0],epro[0]);
-				gMinuit->GetParameter(1,zpro[1],epro[1]);
-				gMinuit->GetParameter(2,zpro[2],epro[2]);
-				gMinuit->GetParameter(3,zpro[3],epro[3]);
-			 }
-			 
-		
+			delete h3;	
 						
-		 }
+		}
 
 		
 		if (exprearl<0.) exprearl=0.; 
@@ -4182,21 +4106,75 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 		ESE3RearLeak     = EnergyE/(EnergyD);
 
 
+	//
+	// Monte carlo reweighting 
+	//
+	float FP[3]={0.};
+	float LaD[3]={0.};
+	float scor[5]={0.} ; 
+	//
+	
+	if(AMSEventR::Head()->nMCEventg()){
+
+		TRandom3 R;
+		// footprint
+		FP[0]=1.5; 
+		FP[1]=1.5;
+		FP[2]=1.5;
+		// Lat disp and long 
+		LaD[0]= 0.5; //long
+		LaD[1]= 1.; // 
+		LaD[2]= 1.5; //
+		// s3S5
+		scor[0]=R.Gaus(-0.005,0.005);
+		scor[1]=R.Gaus(-0.0025,0.0065); 
+		scor[2]=R.Gaus(-0.0025,0.007);
+		scor[3]=0.8;
+		scor[4]=0.8;
+		
+		// Ed_sqpixl 
+		float rndm1= 84.8333  -6.2193*EnergyE      + 0.0314263*EnergyE*EnergyE -0.000109152*EnergyE*EnergyE*EnergyE;
+		float rndm2= 6.83278  +1.12944*EnergyE   + 0.0134335*EnergyE*EnergyE -5.76413e-05*EnergyE*EnergyE*EnergyE; 
+		if (rndm2<0.) rndm2=0.;
+		Ed_sqpixl+=R.Gaus(rndm1,rndm2);
+		//Ed_sqpix 
+		rndm1= 38.7858  -3.4022*EnergyE   +0.00940488*EnergyE*EnergyE   -3.94327e-05*EnergyE*EnergyE*EnergyE  ;
+		rndm2=0.; 
+		if (EnergyE<=20) rndm2=40.; 
+		Ed_sqpix+=R.Gaus(rndm1,rndm2);
+		//Ed_pixl; 
+		rndm1 =     -1.44988  -0.472731*EnergyE   +0.00107027*EnergyE*EnergyE  -6.41228e-06*EnergyE*EnergyE*EnergyE  ;
+		rndm2 =     -14.5638  +0.934797*EnergyE  -0.0047743*EnergyE*EnergyE   + 6.10559e-06*EnergyE*EnergyE*EnergyE  ;
+		if (rndm2<0.) rndm2=0.;
+		Ed_pixl+=R.Gaus(rndm1,rndm2);
+		//ED_Nhits
+		rndm1=      0.21914  -0.44617*EnergyE   + 0.00197538*EnergyE*EnergyE  -4.96836e-06*EnergyE*EnergyE*EnergyE   ; 
+		rndm2=1.; 
+		ED_Nhits+=R.Gaus(rndm1,rndm2);
+	}	
+	
+
+
+
+
 	//Normalization
 	// ___________________________________________________________
 	
-
-   N5ShowerLongDisp = 	(_ShowerLongDisp- (11.8081+log10E*-0.936491+pow(log10E,2)*7.55407+pow(log10E,3)*-7.29086+pow(log10E,4)*2.23501+pow(log10E,5)*0.238421+pow(log10E,6)*-0.266485+pow(log10E,7)*0.0399966))/( 3.47107+log10E*-0.502491+pow(log10E,2)*-7.74648+pow(log10E,3)*17.2689+pow(log10E,4)*-18.3605+pow(log10E,5)*10.8724+pow(log10E,6)*-3.65372+pow(log10E,7)*0.652625+pow(log10E,8)*-0.0481742);
-	N5S3S5[0] = S3S5 -  0.933152 ;
-	N5S3S5[1] = S3S5x - 0.932582 ;
-	N5S3S5[2] = S3S5y - 0.925783 ;
-	N5ShowerLatDisp[1] = (ShowerLatDisp[1] - (12.5426+log10E*-4.74202+pow(log10E,2)*90.3105+pow(log10E,3)*-174.116+pow(log10E,4)*137.685+pow(log10E,5)*-53.8503+pow(log10E,6)*10.308+pow(log10E,7)*-0.765736))/( 9.5461+log10E*4.01062+pow(log10E,2)*3.40718+pow(log10E,3)*-27.8418+pow(log10E,4)*28.3826+pow(log10E,5)*-12.6456+pow(log10E,6)*2.8295+pow(log10E,7)*-0.307295+pow(log10E,8)*0.0131647);
-	N5ShowerLatDisp[2] = (ShowerLatDisp[2]- (27.5235+log10E*-11.918+pow(log10E,2)*84.0223+pow(log10E,3)*-123.902+pow(log10E,4)*68.2564+pow(log10E,5)*-13.3742+pow(log10E,6)*-0.425371+pow(log10E,7)*0.303984))/( 22.3648+log10E*8.75913+pow(log10E,2)*-84.2654+pow(log10E,3)*190.862+pow(log10E,4)*-225.388+pow(log10E,5)*145.746+pow(log10E,6)*-51.8595+pow(log10E,7)*9.54455+pow(log10E,8)*-0.71059);
-	N5ShowerFootprint[0]=(ShowerFootprint[0] - (11.7701+log10E*-2.18588+pow(log10E,2)*0.715416+pow(log10E,3)*-2.20044+pow(log10E,4)*1.69941+pow(log10E,5)*-0.0880537+pow(log10E,6)*-0.207168+pow(log10E,7)*0.042239))/( 5.21709+log10E*-6.77066+pow(log10E,2)*10.1759+pow(log10E,3)*-14.564+pow(log10E,4)*11.7963+pow(log10E,5)*-5.13228+pow(log10E,6)*1.20079+pow(log10E,7)*-0.140656+pow(log10E,8)*0.00633411);
-	N5ShowerFootprint[1]=(ShowerFootprint[1] - (4.0103+log10E*0.728578+pow(log10E,2)*0.215779+pow(log10E,3)*-1.86346+pow(log10E,4)*1.23615+pow(log10E,5)*-0.0529401+pow(log10E,6)*-0.136613+pow(log10E,7)*0.026924))/( 1.60146+log10E*-0.912229+pow(log10E,2)*0.130424+pow(log10E,3)*-0.990985+pow(log10E,4)*1.52236+pow(log10E,5)*-0.925456+pow(log10E,6)*0.287532+pow(log10E,7)*-0.046657+pow(log10E,8)*0.0032173);
-	N5ShowerFootprint[2]=(ShowerFootprint[2] - (6.57051+log10E*-0.757404+pow(log10E,2)*0.0631734+pow(log10E,3)*-1.7685+pow(log10E,4)*1.37394+pow(log10E,5)*-0.0626767+pow(log10E,6)*-0.161355+pow(log10E,7)*0.0318432))/( 3.13721+log10E*-3.59197+pow(log10E,2)*6.88893+pow(log10E,3)*-10.1701+pow(log10E,4)*6.90775+pow(log10E,5)*-1.9908+pow(log10E,6)*0.0841649+pow(log10E,7)*0.0661749+pow(log10E,8)*-0.00931509);
+	N5ShowerLongDisp = 	LaD[0]+(_ShowerLongDisp- (11.8081+log10E*-0.936491+pow(log10E,2)*7.55407+pow(log10E,3)*-7.29086+pow(log10E,4)*2.23501+pow(log10E,5)*0.238421+pow(log10E,6)*-0.266485+pow(log10E,7)*0.0399966))/( 3.47107+log10E*-0.502491+pow(log10E,2)*-7.74648+pow(log10E,3)*17.2689+pow(log10E,4)*-18.3605+pow(log10E,5)*10.8724+pow(log10E,6)*-3.65372+pow(log10E,7)*0.652625+pow(log10E,8)*-0.0481742);
+	N5S3S5[0] = scor[0]+(S3S5 -  0.933152 );
+	N5S3S5[1] = scor[1]+(S3S5x - 0.932582 );
+	N5S3S5[2] = scor[2]+(S3S5y - 0.925783 );
+	N5ShowerLatDisp[1] = LaD[1]+(ShowerLatDisp[1] - (12.5426+log10E*-4.74202+pow(log10E,2)*90.3105+pow(log10E,3)*-174.116+pow(log10E,4)*137.685+pow(log10E,5)*-53.8503+pow(log10E,6)*10.308+pow(log10E,7)*-0.765736))/( 9.5461+log10E*4.01062+pow(log10E,2)*3.40718+pow(log10E,3)*-27.8418+pow(log10E,4)*28.3826+pow(log10E,5)*-12.6456+pow(log10E,6)*2.8295+pow(log10E,7)*-0.307295+pow(log10E,8)*0.0131647);
+	N5ShowerLatDisp[2] = LaD[2]+(ShowerLatDisp[2]- (27.5235+log10E*-11.918+pow(log10E,2)*84.0223+pow(log10E,3)*-123.902+pow(log10E,4)*68.2564+pow(log10E,5)*-13.3742+pow(log10E,6)*-0.425371+pow(log10E,7)*0.303984))/( 22.3648+log10E*8.75913+pow(log10E,2)*-84.2654+pow(log10E,3)*190.862+pow(log10E,4)*-225.388+pow(log10E,5)*145.746+pow(log10E,6)*-51.8595+pow(log10E,7)*9.54455+pow(log10E,8)*-0.71059);
+	N5ShowerFootprint[0]=FP[0]+(ShowerFootprint[0] - (11.7701+log10E*-2.18588+pow(log10E,2)*0.715416+pow(log10E,3)*-2.20044+pow(log10E,4)*1.69941+pow(log10E,5)*-0.0880537+pow(log10E,6)*-0.207168+pow(log10E,7)*0.042239))/( 5.21709+log10E*-6.77066+pow(log10E,2)*10.1759+pow(log10E,3)*-14.564+pow(log10E,4)*11.7963+pow(log10E,5)*-5.13228+pow(log10E,6)*1.20079+pow(log10E,7)*-0.140656+pow(log10E,8)*0.00633411);
+	N5ShowerFootprint[1]=FP[1]+(ShowerFootprint[1] - (4.0103+log10E*0.728578+pow(log10E,2)*0.215779+pow(log10E,3)*-1.86346+pow(log10E,4)*1.23615+pow(log10E,5)*-0.0529401+pow(log10E,6)*-0.136613+pow(log10E,7)*0.026924))/( 1.60146+log10E*-0.912229+pow(log10E,2)*0.130424+pow(log10E,3)*-0.990985+pow(log10E,4)*1.52236+pow(log10E,5)*-0.925456+pow(log10E,6)*0.287532+pow(log10E,7)*-0.046657+pow(log10E,8)*0.0032173);
+	N5ShowerFootprint[2]=FP[2]+(ShowerFootprint[2] - (6.57051+log10E*-0.757404+pow(log10E,2)*0.0631734+pow(log10E,3)*-1.7685+pow(log10E,4)*1.37394+pow(log10E,5)*-0.0626767+pow(log10E,6)*-0.161355+pow(log10E,7)*0.0318432))/( 3.13721+log10E*-3.59197+pow(log10E,2)*6.88893+pow(log10E,3)*-10.1701+pow(log10E,4)*6.90775+pow(log10E,5)*-1.9908+pow(log10E,6)*0.0841649+pow(log10E,7)*0.0661749+pow(log10E,8)*-0.00931509);
 	N5ZProfileMaxRatio = ( (Zprofile[2]/Zprofile[3]) - (1.0147+log10E*-1.24533+pow(log10E,2)*2.77027+pow(log10E,3)*-2.87956+pow(log10E,4)*1.63222+pow(log10E,5)*-0.506559+pow(log10E,6)*0.0785756+pow(log10E,7)*-0.00452505))/( 0.0523153+log10E*1.21012+pow(log10E,2)*-3.82707+pow(log10E,3)*5.68673+pow(log10E,4)*-4.71951+pow(log10E,5)*2.33578+pow(log10E,6)*-0.693652+pow(log10E,7)*0.11523+pow(log10E,8)*-0.00828294);
 	N5Zprofile = (Zprofile[0] - (1.03032+log10E*-0.448632+pow(log10E,2)*1.00227+pow(log10E,3)*-0.835511+pow(log10E,4)*0.250214+pow(log10E,5)*0.0340714+pow(log10E,6)*-0.034056+pow(log10E,7)*0.00507154))/(0.106574+log10E*0.196734+pow(log10E,2)*-1.12027+pow(log10E,3)*2.13524+pow(log10E,4)*-1.88636+pow(log10E,5)*0.818319+pow(log10E,6)*-0.154296+pow(log10E,7)*0.00297922+pow(log10E,8)*0.00178974 );
+
+
+
+
 
 
 	// Creating reader if needed
@@ -4236,11 +4214,16 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	}
 
 
+
+	ESEv3=NESEreaderv3->EvaluateMVA("BCat method");
+
+
+
 	// Retrieving ESEv3 value
 	// ___________________________________________________________
 
 
-	return NESEreaderv3->EvaluateMVA("BCat method");
+	return ESEv3;
 
 }
 
