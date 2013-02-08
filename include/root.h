@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.525.2.3 2013/01/26 13:56:06 qyan Exp $
+//  $Id: root.h,v 1.525.2.4 2013/02/08 19:45:20 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1125,10 +1125,11 @@ class TofClusterHR :public TrElem {
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] cosz PathLength Corr
     * @param[in] beta Beta Corr
+    * @param[in] lcoo Longitudinal Coo-Attenuation Corr, Default -1000: Use Counter TCoo
     * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
    */
-  float GetQSignal(int pmtype=2,int opt=DefaultQOpt,float cosz=1,float beta=1, int pattern=111111,int optw=1);
+  float GetQSignal(int pmtype=2,int opt=DefaultQOpt,float cosz=1,float beta=1,float lcoo=-1000, int pattern=111111,int optw=1);
   /// Number of Good PMTs Used For Measurement
   /*!
     * @param[in] pmtype 1-Anode 0-Dynode

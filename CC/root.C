@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.514.2.5 2013/02/08 17:42:49 lbasara Exp $
+//  $Id: root.C,v 1.514.2.6 2013/02/08 19:45:16 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -7373,7 +7373,7 @@ float TofClusterHR::GetEdep(int pmtype,int pattern,int optw){
     return signal;
 }
 
-float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pattern,int optw){
+float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta,float lcoo,int pattern,int optw){
 
 //---Reconstruction
     if(pmtype==-1){
@@ -7382,25 +7382,43 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
     }
 
 ///--Default 
-     if(opt==TofClusterHR::DefaultQOpt&&cosz==1&&beta==1){
+     if(opt==TofClusterHR::DefaultQOpt&&cosz==1&&beta==1&&lcoo==-1000){
        int qpat=pmtype*100000000+pattern*100+optw;
        map<int, float >::iterator it;
        it=QPar.find(qpat); 
        if(it!=QPar.end()){return QPar[qpat];}
     }
- 
-    int npmtype=pmtype;
-///---rawqd
+
+//---Attenuation by external Coo 
+     float lcoo1=Coo[GetDirection()];
+     float rawqd1[2][TOFCSN::NPMTM]={{0}},rawqa1[2]={0};
+     if(lcoo!=-1000){
+       float aedep1,dedep1;
+       TofRecH::EdepRecR(Layer,Bar,Aadc,Dadc,lcoo,rawqa1,rawqd1,aedep1,dedep1);
+       lcoo1=lcoo;
+     }
+     else {
+        for(int is=0;is<TOFCSN::NSIDE;is++){
+          rawqa1[is]=AQ2[is];
+          for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+            rawqd1[is][ipm]=DQ2[is][ipm];
+         }
+       }
+     }
+
+//---Mask
     double rawqd[2][TOFCSN::NPMTM]={{0}},rawqa[2]={0};
     for(int is=0;is<TOFCSN::NSIDE;is++){
        int patterns=pattern/int(pow(1000.,is));
-       rawqa[is]=(patterns%10==0)?0:AQ2[is];
+       rawqa[is]=(patterns%10==0)?0:rawqa1[is];
        for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
           int patternp=patterns/int(pow(10.,ipm));
-          rawqd[is][ipm]=(patternp%10==0)?0:DQ2[is][ipm];
+          rawqd[is][ipm]=(patternp%10==0)?0:rawqd1[is][ipm];
       }
     }
+
 ///---Anode Or Dynode Sum Information+Theta// BirkCor+Beta Corr
+    int npmtype=pmtype;
     TofRecPar::IdCovert(Layer,Bar);
     float qa=TofRecH::SumSignalA(TofRecPar::Idsoft,rawqa,optw);
     float qd=TofRecH::SumSignalD(TofRecPar::Idsoft,rawqd,optw,1);
@@ -7411,10 +7429,10 @@ float TofClusterHR::GetQSignal(int pmtype,int opt,float cosz,float beta, int pat
        if((qa>0&&qa<6*6)||qd<=0){q2=qa; npmtype=1;}//Anode  Range
        else                     {q2=qd; npmtype=0;}//Overflow or Q2>6*6 using Dynode
     }
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,q2,Coo[GetDirection()],double(cosz),double(beta));
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,q2,lcoo1,double(cosz),double(beta));
 
 //--Default 
-     if(opt==TofClusterHR::DefaultQOpt&&cosz==1&&beta==1){
+     if(opt==TofClusterHR::DefaultQOpt&&cosz==1&&beta==1&&lcoo==-1000){
        int qpat=pmtype*100000000+pattern*100+optw;
        QPar[qpat]=signal;
        qpat=npmtype*100000000+pattern*100+optw;
