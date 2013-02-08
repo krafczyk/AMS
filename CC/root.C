@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.530 2013/02/02 16:43:24 shaino Exp $
+//  $Id: root.C,v 1.531 2013/02/08 18:19:30 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2378,9 +2378,11 @@ bool AMSEventR::ReadHeader(int entry){
   if(badrun || !rts)return false;
   clear();
   static TFile* local_pfile=0;
+  static string local_pfile_name="";
 #pragma omp threadprivate (local_pfile)
+#pragma omp threadprivate (local_pfile_name)
   if(i>0){
-    if( local_pfile!=_Tree->GetCurrentFile() || entry==0){
+    if( local_pfile!=_Tree->GetCurrentFile() || entry==0 || strcmp(local_pfile_name.c_str(),_Tree->GetCurrentFile()->GetName())){
       int thr=0;
       int nthr=1;
 #ifdef _OPENMP
@@ -2400,6 +2402,7 @@ bool AMSEventR::ReadHeader(int entry){
 	static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
       
 	local_pfile=_Tree->GetCurrentFile();
+	local_pfile_name=_Tree->GetCurrentFile()->GetName();
 	// workaround root static bug
 	if(!gDirectory ||  !dynamic_cast<TDirectoryFile*>(gDirectory)){
           cout <<" Open "<<_Tree->GetCurrentFile()->GetName()<<endl;
@@ -9949,6 +9952,7 @@ beg:
         if(!beg)goto beg;
      }
 */
+if(!_TreeSetup)return 2;
      _TreeSetup->SetBranchStatus("*",false);
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fHeader",true);
      if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
