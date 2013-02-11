@@ -1,4 +1,4 @@
-//  $Id: bcorr.h,v 1.5 2013/02/11 19:08:09 choutko Exp $
+//  $Id: bcorr.h,v 1.6 2013/02/11 19:34:03 choutko Exp $
 #ifndef __AMSMFIELD__
 #define __AMSMFIELD__
 #include "typedefs.h"
@@ -29,6 +29,19 @@ public:
 //
   static MagnetTemperature * getmagnettp(){return &mgtt;}
   static integer getmagnettsize(){return sizeof(mgtt);}
+  /*!
+  \brief Get "magnet" sensor temperature
+
+  \param[out] factor      Magnetic field correction to be multiplied to magnetic filed and/or rigidity
+  \param[in]  time        JMDC time (AMSEventR::UTime() will be used if time==0)
+  \param[in]  method      0..11  get sensor #0
+
+  \retval     0 success
+  \retval     1 time==0 and no AMSEventR found
+  \retval     2 unable to load temperature from slow control
+  \retval     3 wrong sensor number
+  \retval     4 no measurments available for given sensor
+  */
   static int getmagnettemp(float &temp,unsigned int time=0,unsigned int sensor=0); ///< getmagnettemp
   static int getmagfiled(float &b,unsigned int time=0,unsigned int sensor=0,unsigned int comp=0); ///< getmagfield sensor;
   /*!
