@@ -381,6 +381,7 @@ FILE_PATTERNS          = root.h \
                           TrdRawHit.h \
 			 root_methods.h \
                          tracking.h \
+                         bcorr.h \
                          tracking.C \
                          root.C \
                          trfit.C \

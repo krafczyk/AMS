@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.756 2013/02/01 15:19:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.757 2013/02/11 19:08:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9381,7 +9381,7 @@ if(defined $dataset->{buildno} ){
            $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
              #die " $subs $buf \n";
           }
-           if($timendu-$timbegu>86400*92){
+           if($timendu-$timbegu>86400*366){
                $timbegu=time();
                $timendu=$timbegu+3600*$runno;
            }

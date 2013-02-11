@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.909 2013/02/06 18:50:27 qyan Exp $
+// $Id: job.C,v 1.910 2013/02/11 19:08:01 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4329,19 +4329,6 @@ void AMSJob::_timeinitjob(){
 			     sizeof(TofSlowTemp::tofstemp),(void*)&TofSlowTemp::tofstemp,server,0));
     }  
   }
-  //-----------------------------
-  // { PZ FIXME OBSOLETE
-  //   // Magnet Temperature data
-
-  //    tm begin=AMSmceventg::Orbit.End;
-  //    tm end=AMSmceventg::Orbit.Begin;
-  //     if(strstr(getsetup(),"AMSSHUTTLE") ){    
-  //    TID.add (new AMSTimeID(AMSID("MagnetTemperature",isRealData()),
-  //                          begin,end,
-  //                          MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp(),server));
-  //     }
-   
-  // }
   //-----------------------------
   {
     // Scaler Data

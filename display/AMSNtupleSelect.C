@@ -8,6 +8,7 @@
 #include "../include/TrdSCalib.h"
 #include "../include/TrdKCluster.h"
 #include "../include/Tofrec02_ihep.h"
+#include "../include/bcorr.h"
  AMSNtupleHelper * fgHelper=0;
 
 extern "C" AMSNtupleHelper * gethelper();
@@ -19,13 +20,89 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+  float temp;
+  float bcorr;
+  MagnetVarp::btempcor(bcorr);
+  vector<float>value;
+if(ev && ev->nParticle() && ev->nEcalShower()==1&& ev->Particle(0).iEcalShower()>=0){
+int s2=  AMSSetupR::gethead()->fSlowControl.GetData("Port",ev->UTime(),0.5,value);
+ cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<endl;
+ for(int k=0;k<value.size();k++){
+cout << " k "<<k<<value[k]<<endl;
+ }
+s2=  AMSSetupR::gethead()->fSlowControl.GetData("Starboard",ev->UTime(),0.5,value);
+ cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<endl;
+ for(int k=0;k<value.size();k++){
+cout << " k "<<k<<value[k]<<endl;
+ }
+s2=  AMSSetupR::gethead()->fSlowControl.GetData("Ram",ev->UTime(),0.5,value);
+ cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<endl;
+ for(int k=0;k<value.size();k++){
+cout << " k "<<k<<value[k]<<endl;
+ }
+s2=  AMSSetupR::gethead()->fSlowControl.GetData("Wake",ev->UTime(),0.5,value);
+ cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<endl;
+ for(int k=0;k<value.size();k++){
+cout << " k "<<k<<value[k]<<endl;
+ }
+s2=  AMSSetupR::gethead()->fSlowControl.GetData("M-3X:31:UCF3",ev->UTime(),0.5,value);
+ cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<endl;
+ for(int k=0;k<value.size();k++){
+cout << " k "<<k<<value[k]<<endl;
+}
+return 1;
+AMSDir dir=AMSDir(ev->EcalShower(0).Dir[0],ev->EcalShower(0).Dir[1],ev->EcalShower(0).Dir[2]);
+double GalCoo_AMS_Long, GalCoo_AMS_Lat;
+int GalCoo_Result;
+AMSDir dir1=dir;
+int     GalCoo_Return;
+for(int k=0;k<1000;k++){
+ for(int j=0;j<1000;j++){
+  AMSPoint a(dir1[0]+0.001*(k-500),dir1[1]-0.001*(j-500),dir1[2]);
+  dir=AMSDir(a);
+        GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi(),1,4,3,0,2);
+if(fabs(GalCoo_AMS_Long+83.87)<0.05 && fabs(GalCoo_AMS_Lat+13.7)<0.05){
+  cout <<" i j"<<k<<" "<<j<<endl;
+  AMSDir dir2=dir;
+  for(int l=0;l<6;l++){
+    for(int m=0;m<6;m++){
+     AMSPoint a(dir2[0]+0.00005*(l-3),dir2[1]-0.00005*(m-3),dir2[2]);
+  dir=AMSDir(a);  
+cout<< "l m "<<l<<" "<<m<<endl;
+     GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi());
+cout<< "glat glong "<<GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+        GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi(),1,4,3,0,1);
+cout<< "glat glong "<<GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+        GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi(),1,4,3,0,2);
+cout<< "ra "<<GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+}
+}
+}
+}
+}
+        static EcalAxis*paxis =new EcalAxis;
+paxis->process(&(ev->EcalShower(0)),2);
+  ParticleR & part=ev->Particle(0);
+ float cogz=part.TRDCoo[0][2];
+  AMSPoint pnt;
+  paxis->interpolate(cogz,pnt,dir);
+    dir=AMSDir(-dir[0],-dir[1],-dir[2]);
+cout <<"run event "<< ev->Run()<<" "<<ev->Event()<<endl;
+cout<< "glat glong "<<GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+       GalCoo_Return= ev->GetGalCoo(GalCoo_Result,GalCoo_AMS_Long, GalCoo_AMS_Lat,dir.gettheta(),dir.getphi());
+ 
+cout <<"glat2 glong2  "<< GalCoo_AMS_Long<<" "<<GalCoo_AMS_Lat<<endl;
+
+return true;
+}
+
 if(ev && ev->nParticle() && ev->nTrTrack()>0 && ev->Particle(0).iTrTrack()>=0){
 
-       ParticleR & part=ev->Particle(0);
+/*       ParticleR & part=ev->Particle(0);
        double g1=part.GetGeoCutoff(ev);
        double g2=part.GetGeoCutoff(0,0);
        cout <<" mom event c1 c2  "<<part.Momentum<<" "<<ev->Event()<<" "<<g1<<" "<<g2<<endl;
-
+*/
 
 }
 if(ev && ev->nParticle() && ev->nEcalShower()==1&& ev->Particle(0).iEcalShower()>=0){

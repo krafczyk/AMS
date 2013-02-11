@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.26 2011/09/28 07:50:05 choutko Exp $
+//  $Id: extC.h,v 1.27 2013/02/11 19:08:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -101,5 +101,5 @@ extern "C" void cmend_();
 #define CMGENE2 cmgene2_
 #define CMINIT cminit_
 
-extern "C" void btempcor();
+extern "C" void btempcor_(float &factor);
 #define BTEMPCOR btempcor_
