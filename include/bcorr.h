@@ -1,4 +1,4 @@
-//  $Id: bcorr.h,v 1.6 2013/02/11 19:34:03 choutko Exp $
+//  $Id: bcorr.h,v 1.7 2013/02/12 15:50:07 choutko Exp $
 #ifndef __AMSMFIELD__
 #define __AMSMFIELD__
 #include "typedefs.h"
@@ -43,7 +43,7 @@ public:
   \retval     4 no measurments available for given sensor
   */
   static int getmagnettemp(float &temp,unsigned int time=0,unsigned int sensor=0); ///< getmagnettemp
-  static int getmagfiled(float &b,unsigned int time=0,unsigned int sensor=0,unsigned int comp=0); ///< getmagfield sensor;
+  static int getmagfield(float &b,unsigned int time=0,unsigned int sensor=0,unsigned int comp=0); ///< getmagfield sensor :  ;
   /*!
   \brief Get Magnetic field correction to be applied due to magnet temperarure change
 
@@ -60,6 +60,7 @@ public:
   \retval     2 unable to load temperature from slow control
   \retval     3 only one measurment sensor available when method 0..2
   \retval     4 no measurments available for sensors in range
+  \retval     5 measurments are outside of reasonable limits
   */
   static int btempcor(float &factor,unsigned int time=0,int method=1); ///< method 0..2 like in getmeanmagnettemp method 3 direct magfield estimation ; return 0 if ok
 
