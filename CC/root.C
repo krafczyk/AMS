@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.534 2013/02/12 12:25:27 choumilo Exp $
+//  $Id: root.C,v 1.535 2013/02/12 14:11:33 lbasara Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4192,45 +4192,45 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 		//
 
 
-		if(nblayer>5){
+		Double_t par0, par1,par2, par3; 
+		par0=1.0;
+		par1=0.48;
+		par2=1.05*(log(EnergyDh/(8.)));
+		par3=1.0;
+		TH1F *h3 = new TH1F("h3","",18,0.,18.);
+		if (EnergyDh/1000>100) par0=0.95;
+		float zmax=-1;  
+		int   amax=19;
+		float az=0; 
 
-			Double_t par0, par1,par2, par3; 
-			par0=1.0;
-			par1=0.48;
-			par2=1.05*(log(EnergyDh/(8.)));
-			par3=1.0;
-			TH1F *h3 = new TH1F("h3","",18,0.,18.);
-			if (EnergyDh/1000>100) par0=0.95;
-			float zmax=-1;  
-			int   amax=19;
-			float az=0; 
+		for(int a=0;a<18;a++){
+			
+			cora=1.;
+			if (((a/2)%2)==1&&corx>0.7) cora=corx; 
+			if (((a/2)%2)==0&&cory>0.7) cora=cory;   
 
-			for(int a=0;a<18;a++){
-				
-				cora=1.;
-				if (((a/2)%2)==1&&corx>0.7) cora=corx; 
-				if (((a/2)%2)==0&&cory>0.7) cora=cory;   
-
-				frac = EcalEdepFrac[a]*cora*(.975);//(shower->EnergyD);
-				
-				err=frac*0.07;	
-				//
-				zv3[a]=frac; 
-				if (zv3[a]>zmax) {
-					zmax=zv3[a];
-					amax=a;
-				}
-
-				az+=zv3[a]; 
-				
-				//
-				if (EnergyDh/1000<45.) err=frac*0.10;
-				if (err<.009&&EnergyDh<10000.) err=0.009;
-				if (err<.004&&EnergyDh>10000.) err=0.004;
-				if(frac) nblayer++;
-				h3->SetBinContent(a+1,frac) ;
-				h3->SetBinError(a+1,err);
+			frac = EcalEdepFrac[a]*cora*(.975);//(shower->EnergyD);
+			
+			err=frac*0.07;	
+			//
+			zv3[a]=frac; 
+			if (zv3[a]>zmax) {
+				zmax=zv3[a];
+				amax=a;
 			}
+
+			az+=zv3[a]; 
+			
+			//
+			if (EnergyDh/1000<45.) err=frac*0.10;
+			if (err<.009&&EnergyDh<10000.) err=0.009;
+			if (err<.004&&EnergyDh>10000.) err=0.004;
+			if(frac) nblayer++;
+			h3->SetBinContent(a+1,frac) ;
+			h3->SetBinError(a+1,err);
+		}
+
+		if(nblayer>5){
 
 			// new bounds for the
 			float xmin=3.5;
@@ -4256,10 +4256,11 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			zprofile[3]  =fitf->GetParameter(3);
 			zprofile[4] = fitf->GetChisquare()/fitf->GetNDF();
 
-			delete h3;	
+
 						
 		}
 
+		delete h3;	
 		
 		if (exprearl<0.) exprearl=0.; 
 		Rear1= zprofile[0]-1-(exprearl/100);
