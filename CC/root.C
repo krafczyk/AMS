@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.533 2013/02/11 12:31:24 lbasara Exp $
+//  $Id: root.C,v 1.534 2013/02/12 12:25:27 choumilo Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -11058,7 +11058,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
 //-----------------------------------------
 //------>FTC,FTCP0,FTCP1 rebuild:
 //
-  if(TOFTrigFl1<=4){
+  if(TOFTrigFl1<=4 && TOFTrigFl1>=0){
     L1TrMemPatt|=(1<<1);// set FTCP0(>=3of4)
     L1TrMemPatt|=1;// set FTC
   }
