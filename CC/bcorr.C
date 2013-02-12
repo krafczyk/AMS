@@ -1,4 +1,4 @@
-//  $Id: bcorr.C,v 1.8 2013/02/11 19:08:01 choutko Exp $
+//  $Id: bcorr.C,v 1.9 2013/02/12 15:50:13 choutko Exp $
 #include "root.h"
 #include "root_setup.h"
 #include "bcorr.h"
@@ -61,6 +61,8 @@ return;
 }
 
 int MagnetVarp::MagnetTemperature::getmeanmagnettemp(float &temp,int method){
+float tlow=-50;
+float thigh=+50;
 int beg=0;
 int end=0;
 if(method==0)end=sizeof(stemp)/sizeof(stemp[0]);
@@ -83,7 +85,8 @@ for(int k=beg;k<end;k++){
 }
 if(nmeas>1 || (nmeas==1 && method<0)){
  temp/=nmeas;
- return 0;
+ if(temp<tlow || temp>thigh)return 3;
+ else return 0;
 }
 else if(nmeas==1 )return 1;
 else return 2;
@@ -110,7 +113,7 @@ return 0;
 }
 else return 4;
 }
-int MagnetVarp::getmagfiled(float &temp,unsigned int time,unsigned int sensor,unsigned int comp){
+int MagnetVarp::getmagfield(float &temp,unsigned int time,unsigned int sensor,unsigned int comp){
 temp=0;
 if(time==0){
 #ifdef  __ROOTSHAREDLIBRARY__
