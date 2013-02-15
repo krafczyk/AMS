@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.10 2013/02/15 14:23:57 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.11 2013/02/15 14:27:29 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -202,12 +202,12 @@ public:
    * @param[in]  pattern -1: Remove Big-dQ(From PDF)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer; 1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
    */
    float GetLikeQ(int &nlay,int pattern=-10);  
-/**@}*/
   /// TOF Charge ReFit by new Parameters
   /*
    * @param[in]: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
    */
   int  ReFit(float fbeta=0);
+/**@}*/
 
   void _PrepareOutput(int opt=0){
     sout.clear();
