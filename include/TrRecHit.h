@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.44 2013/01/02 19:41:41 oliva Exp $
+//  $Id: TrRecHit.h,v 1.45 2013/02/15 15:10:47 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -197,15 +197,17 @@ public:
   /// Returns the errors on the computed global coordinate (if resolved)
   AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
   /// Get X local coordinate (ladder reference frame)
-  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
+  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips, int opt = TrClusterR::DefaultCorrOpt);
   /// Get Y local coordinate (ladder reference frame)
-  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips);
+  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips, int opt = TrClusterR::DefaultCorrOpt);
 	
   /// Get local coordinate (ladder reference frame, Z is zero by definition)
   AMSPoint GetLocalCoordinate(int imult = 0, 
 			      int nstripsx = TrClusterR::DefaultUsedStrips,
-			      int nstripsy = TrClusterR::DefaultUsedStrips) { 
-    return AMSPoint(GetXloc(imult, nstripsx), GetYloc(nstripsy),0.); }
+			      int nstripsy = TrClusterR::DefaultUsedStrips,
+                              int optx = TrClusterR::DefaultCorrOpt,
+                              int opty = TrClusterR::DefaultCorrOpt) { 
+    return AMSPoint(GetXloc(imult,nstripsx,optx),GetYloc(nstripsy,opty),0.); }
 
   /// Get global coordinate with ALIGNMENT (AMS reference system) 
   AMSPoint GetGlobalCoordinateA(int imult = 0){
@@ -266,7 +268,9 @@ public:
   /// default: nominal position, A: with alignement correction MA: Aligned but CIEMAT ext alignment AZ: alingned but no ext layers dyn alignment
   AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
 			       int nstripsx = TrClusterR::DefaultUsedStrips,
-			       int nstripsy = TrClusterR::DefaultUsedStrips);
+			       int nstripsy = TrClusterR::DefaultUsedStrips,
+                               int optx = TrClusterR::DefaultCorrOpt,
+                               int opty = TrClusterR::DefaultCorrOpt);
   /// Set the resolved multiplicity index (-1 if not resolved)
   void  SetResolvedMultiplicity(int im) { 
     if (im < 0) im = 0;

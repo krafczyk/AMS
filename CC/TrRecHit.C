@@ -263,19 +263,19 @@ std::ostream &TrRecHitR::putout(std::ostream &ostr)  {
 }
 
 
-float TrRecHitR::GetXloc(int imult, int nstrips) {
+float TrRecHitR::GetXloc(int imult, int nstrips, int opt) {
   TrClusterR *cls = GetXCluster();
   if (!cls) return TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult);
   if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
-  return cls->GetXCofG(nstrips, imult);
+  return cls->GetXCofG(nstrips, imult, opt);
 }
 
 
-float TrRecHitR::GetYloc(int nstrips) { 
+float TrRecHitR::GetYloc(int nstrips, int opt) { 
   TrClusterR *cls = GetYCluster();
   if (!cls) return -1000;
   if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
-  return cls->GetXCofG(nstrips);
+  return cls->GetXCofG(nstrips, opt);
 }
 
 
@@ -308,7 +308,7 @@ void TrRecHitR::ClearUsed() {
 
 
 AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
-					int nstripsx, int nstripsy) {
+					int nstripsx, int nstripsy, int optx, int opty) {
   // parsing options
   bool ApplyAlignement = false;
   bool ApplyCiemat = false;
@@ -323,7 +323,7 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
     cc++;
   }
   // calculation
-  AMSPoint loc = GetLocalCoordinate(imult, nstripsx, nstripsy);
+  AMSPoint loc = GetLocalCoordinate(imult, nstripsx, nstripsy, optx, opty);
   if(ApplyCiemat){
     if (GetLayer()==8)
       UpdateExtLayer(1,GetSlotSide()*10+lad()*100,-1);

@@ -32,8 +32,6 @@ TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   _tkid    = orig._tkid;
   _address = orig._address;
   _nelem   = orig._nelem;
-  _seedind = orig._seedind;
-  for (int i = 0; i<_nelem; i++) _signal.push_back(orig._signal.at(i));
   Status  = orig.Status;
   _mult    = orig._mult;
   _dxdz    = orig._dxdz;
@@ -210,8 +208,15 @@ std::ostream &TrClusterR::putout(std::ostream &ostr) {
 
 
 float TrClusterR::GetSignal(int ii, int opt) {
-  float signal = _signal.at(ii);
+  double signal = _signal.at(ii);
+  int tkid = GetTkId();
+  int iva = int(GetAddress(ii)/64);
+  // multiplexing effect
   if ( (kAsym&opt)&&(ii>0) ) signal = signal - _signal.at(ii-1)*GetAsymmetry(GetSide());
+  // gain 
+  if (kGain&opt) signal = TrGainDB::GetHead()->GetGainCorrected(signal,tkid,iva);
+  // p-side linearization
+  if ( (kPStrip&opt)&&(GetSide()==1) ) signal = TrLinearDB::GetHead()->GetLinearityCorrected(signal,tkid,iva);
   return signal;
 }
 
@@ -243,10 +248,10 @@ int TrClusterR::GetSeedIndex(int opt) {
 
 
 float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_on_Z, int res_mult) {
+  // total signal with signal corrections
   float sum = 0.;
   for (int ii=0; ii<GetNelem(); ii++) {
     float signal = GetSignal(ii,opt);
-    if (kGain&opt) signal = TrGainDB::GetHead()->GetGainCorrected(GetSignal(ii,opt),GetTkId(),int(GetAddress(ii)/64));
     sum += signal;
   }
   // if (kLoss&opt)  sum *= GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle()); // correction no longer in use

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.910 2013/02/11 19:08:01 choutko Exp $
+// $Id: job.C,v 1.911 2013/02/15 15:10:48 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -37,6 +37,7 @@
 #include "TrGainDB.h"
 #include "TrOccDB.h"
 #include "TrChargeLossDB.h"
+#include "TrLinearDB.h"
 
 #include "trrec.h"
 #include "tkdcards.h"
@@ -2221,6 +2222,9 @@ void AMSJob::udata(){
 
   // create and load from AMSDataDir the charge loss correction database
   TrChargeLossDB::GetHead()->Init();
+
+  // create and load from AMSDataDir the linearity correction database
+  TrLinearDB::GetHead()->Init();
 
   TrRecon::Init();
   TrRecon::SetParFromDataCards();

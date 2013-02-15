@@ -12,6 +12,7 @@
 #include "TrGainDB.h"
 #include "TrChargeLossDB.h"
 #include "TrOccDB.h"
+#include "TrLinearDB.h"
 
 #include "edep.h"
 #include "amsdbc.h"
@@ -32,9 +33,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2013/01/02 19:41:41 $
+ $Date: 2013/02/15 15:10:47 $
 
- $Revision: 1.34 $
+ $Revision: 1.35 $
 
 */
 
@@ -295,6 +296,11 @@ class TrClusterR :public TrElem{
   float GetEta(int opt = DefaultCorrOpt);
   /// Get eta (center of gravity with the two higher strips) by CofG algorythm  
   float GetEta_CofG(int opt = DefaultCorrOpt) { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
+
+  /// Set linearity correction for intermediate ions optimized resolution (2<Z<10)
+  static void SetLinearityCorrection() { DefaultCorrOpt = kAsym|kAngle|kGain|kPStrip; }
+  /// Unset linearity correction for intermediate ions optimized resolution (2<Z<10)
+  static void UnsetLinearityCorrection() { DefaultCorrOpt = kAsym|kAngle; } 
 
   /**@}*/ 
 

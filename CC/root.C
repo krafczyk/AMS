@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.536 2013/02/15 14:23:24 qyan Exp $
+//  $Id: root.C,v 1.537 2013/02/15 15:10:48 oliva Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9818,6 +9818,7 @@ char * DaqEventR::Info(int number){
 #include "TrGainDB.h"
 #include "TrOccDB.h"
 #include "TrChargeLossDB.h"
+#include "TrLinearDB.h"
 #endif
 
 void AMSEventR::InitDB(TFile *_FILE){
@@ -9932,6 +9933,9 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
 
     // create and load from AMSDataDir the charge loss correction database
     TrChargeLossDB::GetHead()->Init();
+
+    // create and load from AMSDataDir the linearity correction database
+    TrLinearDB::GetHead()->Init();
 
 }
 master=1;  
