@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.8 2012/12/12 15:25:09 qyan Exp $
+//  $Id: Tofcharge_ihep.C,v 1.9 2013/02/15 14:23:24 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -17,6 +17,7 @@
 ClassImp(TofChargePar)
 
 float TofChargePar::GetQ(){
+
   number QL; 
   TofPDFH::ChooseDA(Layer,Bar,6.,number(QLA),number(QLD),number(QLARaw),number(QLDRaw),QL);//Choose
   return QL>0?sqrt(QL):float(QL);
@@ -277,6 +278,34 @@ float TofChargeHR::GetLikeQ(int &nlay,int pattern){
   return likeQ[pattern];
 }
 
+//=======================================================
+int  TofChargeHR::ReFit(float fbeta){
+
+  if(fbeta==0)return -1;
+
+//----ReFit by new fbeta
+   number QLA1,QLD1;
+   for(int im=0;im<cpar.size();im++){
+     TofRecPar::IdCovert(cpar.at(im).Layer,cpar.at(im).Bar);
+     QLA1= TofRecH::GetQSignal(TofRecPar::Idsoft,1,TofRecH::kBetaCor,cpar.at(im).QLARaw,0,1,fbeta);
+     QLD1= TofRecH::GetQSignal(TofRecPar::Idsoft,0,TofRecH::kBetaCor,cpar.at(im).QLDRaw,0,1,fbeta);
+     cpar.at(im).QLA=QLA1; cpar.at(im).QLD=QLD1;
+     cpar.at(im).Beta=fbeta;
+   }
+   TofPDFH::FillProbV(cpar);
+
+//---Clean Raw
+   like.clear();
+   likeQ.clear();
+   Q.clear();
+   RQ.clear();
+
+//---Update Again
+  UpdateZ(); 
+
+  return 0;
+}
+
 
 // **************************************************************
 // TofPDFH TOF-Charge-Likelihood Reconstruction Engine
@@ -297,8 +326,6 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
    vector<TofChargePar> cpar;
 
 //---push_back of cpar
-   int  MinZ=2*TofPDFPar::ZHLim,MaxZ=0,MinIZ=0,MaxIZ=0;
-   float LProb=FLT_MAX,HProb=FLT_MAX;
    float Beta=betah->GetBeta(); 
    int  fTrTrack=betah->iTrTrack();
 //---Beta
@@ -317,13 +344,6 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
        if(QL<=0||QL>TofPDFPar::ZHLim)continue;//OverFlow Or <=0 Not Used
 //----Limit
        cpar.push_back(cparl);
-       int QZ=int(QL+0.5)>=1?int(QL+0.5):1;
-       if (QZ<MinZ||(QZ==MinZ&&cparl.GetProbZ(float(MinZ))<LProb)){
-           MinZ=QZ;MinIZ=cpar.size()-1; LProb=cparl.GetProbZ(float(MinZ));
-        } 
-       if (QZ>MaxZ||(QZ==MaxZ&&cparl.GetProbZ(float(MaxZ))<HProb)){
-           MaxZ=QZ;MaxIZ=cpar.size()-1; HProb=cparl.GetProbZ(float(MaxZ));
-        }
 //#endif
     }
   }
@@ -331,7 +351,42 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
 //--- Not Exist Layer Exist
   if(cpar.size()==0){tofch.UpdateZ();return -1;}
 
-//--- Most Prob Z push_back Prob
+///--Fill Prob
+  FillProbV(cpar);
+
+  
+//---Copy to TofChargeHR
+  tofch.cpar=cpar;
+  tofch.fTrTrack=fTrTrack;
+  tofch.UpdateZ(); 
+
+  return 0; 
+}
+
+//=======================================================
+int TofPDFH::FillProbV(vector<TofChargePar> &cpar){
+
+//---Find Limit and Clean
+   int  MinZ=2*TofPDFPar::ZHLim,MaxZ=0,MinIZ=0,MaxIZ=0;
+   float LProb=FLT_MAX,HProb=FLT_MAX;
+   for(int im=0;im<cpar.size();im++){
+//----Clear Prob
+       cpar.at(im).ProbZ.clear(); 
+//----GetQ
+       float QL=cpar.at(im).GetQ();
+//----Limit
+       int QZ=int(QL+0.5)>=1?int(QL+0.5):1;
+       if (QZ<MinZ||(QZ==MinZ&&cpar.at(im).GetProbZ(float(MinZ))<LProb)){
+           MinZ=QZ;MinIZ=im; LProb=cpar.at(im).GetProbZ(float(MinZ));
+       }
+       if (QZ>MaxZ||(QZ==MaxZ&&cpar.at(im).GetProbZ(float(MaxZ))<HProb)){
+           MaxZ=QZ;MaxIZ=im; HProb=cpar.at(im).GetProbZ(float(MaxZ));
+        }
+//#endif
+   }
+
+
+  //--- Most Prob Z push_back Prob
   const int ZEXTM=4;//MAX-STEP
   for(int Z=MinZ-1;Z>=1;Z--){
      if(Z==1){MinZ=1;break;}
@@ -350,17 +405,12 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
      cpar.at(im).FillProbZ(MinZ,MaxZ);
   }
 
-  
-//---Copy to TofChargeHR
-  tofch.cpar=cpar;
-  tofch.fTrTrack=fTrTrack;
-  tofch.UpdateZ(); 
+  return 0;
 
-  return 0; 
 }
 
 //=======================================================
-void TofPDFH::LikelihoodCal(vector<TofChargePar> cpars,vector<TofLikelihoodPar> &like){
+void TofPDFH::LikelihoodCal(const vector<TofChargePar> &cpars,vector<TofLikelihoodPar> &like){
 
 //---Cal Likehood
     like.clear();
@@ -392,7 +442,7 @@ void TofPDFH::LikelihoodCal(vector<TofChargePar> cpars,vector<TofLikelihoodPar> 
 }
 
 //=======================================================
-number TofPDFH::GetLikelihood(int IZ,vector<TofChargePar> cpars){
+number TofPDFH::GetLikelihood(int IZ,const vector<TofChargePar> &cpars){
 
    number likelihood=0;
    for(int im=0;im<cpars.size();im++){
@@ -404,7 +454,7 @@ number TofPDFH::GetLikelihood(int IZ,vector<TofChargePar> cpars){
 
 
 //=======================================================
-number TofPDFH::GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &RMSQ,int opt){
+number TofPDFH::GetLikelihoodQ(vector<TofChargePar> &cpars,number &MeanQ,number &RMSQ,int opt){
 
 //---GetLimit And Imformation
     number DZ=0,LZ=2*TofPDFPar::ZHLim,HZ=0,QL;
@@ -473,7 +523,7 @@ void TofPDFH::GetLikelihoodF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &f
 
 
 //=======================================================
-int TofPDFH::SelectM(int pattern,vector<TofChargePar> cpar,int fTrTrack,vector<TofChargePar> &cpars){
+int TofPDFH::SelectM(int pattern,const vector<TofChargePar> &cpar,int fTrTrack,vector<TofChargePar> &cpars){
    
 //---Copy     
    cpars=cpar;

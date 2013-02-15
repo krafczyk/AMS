@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.535 2013/02/12 14:11:33 lbasara Exp $
+//  $Id: root.C,v 1.536 2013/02/15 14:23:24 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8148,11 +8148,11 @@ float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
 }
 
 
-float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
+float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,float fbeta,int optw){
     if(!TestExistHL(ilay))return 0;
 
 //---Get Default
-    if(opt==TofClusterHR::DefaultQOpt){
+    if((opt==TofClusterHR::DefaultQOpt)&&(fbeta==0)){
        int qpat=pmtype*100000000+pattern*100+optw;
        map<int, float >::iterator it;
        it=BetaPar.QL[ilay].find(qpat);
@@ -8184,15 +8184,16 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
     }
     double rig=0;
 #ifdef _PGTRACK_
-    if(fTrTrack>=0){rig=pTrTrack()->GetRigidity();}
+    if(fTrTrack>=0&&fbeta==0){rig=pTrTrack()->GetRigidity();}
 #endif
     AMSPoint pnt;AMSDir dir; double time; 
     TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);   
  
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),double(BetaPar.Beta),rig);
+    double ubeta=(fbeta==0)?BetaPar.Beta:fbeta;
+    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),ubeta,rig);
 
 //---Default push_back
-    if(opt==TofClusterHR::DefaultQOpt){
+    if((opt==TofClusterHR::DefaultQOpt)&&(fbeta==0)){
        int qpat=pmtype*100000000+pattern*100+optw;
        (BetaPar.QL[ilay])[qpat]=signal;
        qpat=npmtype*100000000+pattern*100+optw;
@@ -8204,10 +8205,10 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,int optw){
 }
 
 
-float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
+float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern,float fbeta){
 
 //---Get Default
-    if(opt==TofClusterHR::DefaultQOpt){
+    if((opt==TofClusterHR::DefaultQOpt)&&(fbeta==0)){
        int qpat=pmtype*100000000+pattern*100;
 //---
        map<int,pair<int, pair<float,float> > >::iterator it;
@@ -8227,7 +8228,7 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
 //----Fill Vector
    for(int ilay=0;ilay<4;ilay++){
       if(!TestExistHL(ilay))continue;
-      qs=GetQL(ilay,pmtype,opt);
+      qs=GetQL(ilay,pmtype,opt,111111,fbeta);
       if(qs<=0)continue;
       if((pattern>0)&&((pattern/int(pow(10.,3-ilay)))%10==0))continue;
       ql.push_back(qs);
@@ -8294,7 +8295,7 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
     }
 
 //--Default
-      if(opt==TofClusterHR::DefaultQOpt){
+      if((opt==TofClusterHR::DefaultQOpt)&&(fbeta==0)){
          int qpat=pmtype*100000000+pattern*100;
          pair<float,float>qp(qmean,qrms);
          (BetaPar.QPar)[qpat]=make_pair(nlay,qp);
