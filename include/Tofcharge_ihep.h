@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.9 2012/12/12 15:23:46 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.10 2013/02/15 14:23:57 qyan Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -33,7 +33,7 @@ class TofChargePar: public TObject{
   float  QLARaw;//Before BetaCor
   /// Dynode RawQ2
   float  QLDRaw;
-  /// Beta 
+  /// BetaH Beta 
   float  Beta;
   /// PathLength
   bool  IsGoodPath;
@@ -203,7 +203,11 @@ public:
    */
    float GetLikeQ(int &nlay,int pattern=-10);  
 /**@}*/
-
+  /// TOF Charge ReFit by new Parameters
+  /*
+   * @param[in]: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
+   */
+  int  ReFit(float fbeta=0);
 
   void _PrepareOutput(int opt=0){
     sout.clear();
@@ -226,7 +230,7 @@ public:
   };
 
 //----
-  ClassDef(TofChargeHR,3);
+  ClassDef(TofChargeHR,4);
   friend class TofPDFH;
 #pragma omp threadprivate(fgIsA)
 };
@@ -248,16 +252,18 @@ public:
   TofPDFH(){};
   /// ReBuild For BetaH-Charge
   static int ReBuild(BetaHR *betah,TofChargeHR &tofch);
+  /// Fill ZProb to TofChargePar
+  static int FillProbV(vector<TofChargePar> &cpar);
   /// Calculate Likelihood and Prob for different Charge
-  static void LikelihoodCal(vector<TofChargePar> cpars,vector<TofLikelihoodPar> &like);
+  static void LikelihoodCal(const vector<TofChargePar> &cpars,vector<TofLikelihoodPar> &like);
   /// Calculate Likelihood for index IZ
-  static number GetLikelihood(int IZ,vector<TofChargePar> cpars);
+  static number GetLikelihood(int IZ,const vector<TofChargePar> &cpars);
   /// LikelihoodQ Estimator opt=0 QMean-QRMS opt=1 LikelihoodQ
-  static number GetLikelihoodQ(vector<TofChargePar> cpars,number &MeanQ,number &RMSQ,int opt=0);
+  static number GetLikelihoodQ(vector<TofChargePar> &cpars,number &MeanQ,number &RMSQ,int opt=0);
   /// LikelihoodQ Minuit Fun
   static void   GetLikelihoodF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */ );
   /// Select Measurment TOF Charge Measurement
-  static int SelectM(int pattern,vector<TofChargePar> cpar,int fTrTrack,vector<TofChargePar> &cpars);
+  static int SelectM(int pattern,const vector<TofChargePar> &cpar,int fTrTrack,vector<TofChargePar> &cpars);
   /// ProbZ from PDF
   static number GetProbZ(int ilay,int ibar,number Z,number QLA,number QLD,number QLARaw,number QLDRaw,number betah);
   /// ProbZI from PDF

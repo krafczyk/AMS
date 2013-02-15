@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.535 2013/02/08 19:40:19 qyan Exp $
+//  $Id: root.h,v 1.536 2013/02/15 14:23:57 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2934,9 +2934,10 @@ class BetaHR: public TrElem{
     * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
+    * @param[in] fbeta: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
-  float GetQL(int ilay,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,int optw=1);
+  float GetQL(int ilay,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,float fbeta=0,int optw=1);
 /// TOF Q Mean
    /*!
     * @param[out] nlay Number of TOF Layers Used For Q-Measument
@@ -2944,9 +2945,10 @@ class BetaHR: public TrElem{
     * @param[in] pmtype 2-Default(Best Between Anode and Dynode)  1-Anode  0-Dynode
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] pattern -1: Remove Max-dQ(Q deviation)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer;  1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
+    * @param[in] fbeta: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
     * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
     */
-  float GetQ(int &nlay,float &qrms,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2);
+  float GetQ(int &nlay,float &qrms,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2,float fbeta=0);
 /// TOF Beta Measument of 4Layers from TOF Dedx /*validate form beta~0.3~0.94*/
    /*!
     * @param[in] ilay TOF layer(0-3)
