@@ -245,7 +245,7 @@ void TrRecHitR::_PrepareOutput(int opt) {
 }
 
 
-char *  TrRecHitR::Info(int iRef){
+const char *  TrRecHitR::Info(int iRef){
   string aa;
   aa.append(Form("TrRecHit #%d ",iRef));
   _PrepareOutput(0);

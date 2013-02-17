@@ -33,9 +33,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2013/02/15 15:10:47 $
+ $Date: 2013/02/17 16:32:18 $
 
- $Revision: 1.35 $
+ $Revision: 1.36 $
 
 */
 
@@ -377,7 +377,7 @@ class TrClusterR :public TrElem{
   /// Print cluster strip variables (printop >0 --> verbose) 
   void Print(int printopt =0);
   /// Return a string with some info (used for event display)
-  char* Info(int iRef);
+  const char* Info(int iRef);
 
   /**@}*/
 

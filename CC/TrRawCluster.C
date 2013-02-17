@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.14 2010/11/03 13:32:34 pzuccon Exp $ 
+/// $Id: TrRawCluster.C,v 1.15 2013/02/17 16:32:18 mduranti Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/11/03 13:32:34 $
+/// $Date: 2013/02/17 16:32:18 $
 ///
-/// $Revision: 1.14 $
+/// $Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -146,7 +146,7 @@ void TrRawClusterR::_PrepareOutput(int full) {
 	       ii+GetAddress(),GetSignal(ii),GetSigma(ii),GetSN(ii),GetStatus(ii)));
 }
 
-char* TrRawClusterR::Info(int iRef){
+const char* TrRawClusterR::Info(int iRef){
   string aa;
   aa.append(Form("TrRawCluster #%d ",iRef));
   _PrepareOutput(0);

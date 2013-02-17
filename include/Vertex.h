@@ -109,7 +109,7 @@ public:
   /// Print cluster strip variables (printopt>0 --> verbose)
   void Print(int printopt =0);
   /// Return a string with some info (used for event display)
-  char* Info(int iRef);
+  const char* Info(int iRef);
 
 
   void set_vertex();

@@ -25,7 +25,7 @@ public:
   //! it Prints Infos to std output
   virtual void   Print(int opt=0)=0;
   //! Returns a string of max size MAXINFOSIZE with some info
-  virtual char* Info(int iRef=0)=0;
+  virtual const char* Info(int iRef=0)=0;
   //! Send the sout infos to a given channel
   virtual std::ostream& putout(std::ostream &ostr = std::cout)=0;
   ClassDef(TrElem,1);

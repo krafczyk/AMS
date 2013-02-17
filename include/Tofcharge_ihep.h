@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.11 2013/02/15 14:27:29 qyan Exp $
+//  $Id: Tofcharge_ihep.h,v 1.12 2013/02/17 16:32:18 mduranti Exp $
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -219,7 +219,7 @@ public:
    cout<<sout<<endl;
   }
 
-  char * Info(int number=-1){
+  const char * Info(int number=-1){
    sprintf(_Info,"TofChareHR");
    return _Info;
   }

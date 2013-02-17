@@ -109,7 +109,7 @@ class TrdHSegmentR: public TrElem {
     sout.append("TrdHSegment Info");
   };
 
-  char* Info(int iRef=0){return "TrdHSegment::Info";};
+  const char* Info(int iRef=0){return "TrdHSegment::Info";};
 
   std::ostream& putout(std::ostream &ostr = std::cout){
     _PrepareOutput(1);

@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.51 2013/02/02 17:46:24 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.52 2013/02/17 16:32:18 mduranti Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -41,7 +41,7 @@ void HistoMan::Save(){
   return;
 }
 
-void HistoMan::Save(TFile *file, char* dirname){
+void HistoMan::Save(TFile *file, const char* dirname){
   if(!enabled) return;
   if(!file)return;
   printf("HistoMan::Save ----> Saving %s\n",file->GetName());

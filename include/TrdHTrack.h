@@ -137,7 +137,7 @@ class TrdHTrackR:public TrElem{
     sout.append("TrdHTrack Info");
   };
 
-  char* Info(int iRef=0){
+  const char* Info(int iRef=0){
     sprintf(_Info,"TrdHTrack Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g NHits=%d chg %i elik %.2f",Coo[0],Coo[1],Coo[2],ex(),ey(),0.,Theta(),Phi(),Chi2,Nhits,(int)Charge[0],elikelihood);
     return _Info;
   };

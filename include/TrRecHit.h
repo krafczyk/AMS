@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.45 2013/02/15 15:10:47 oliva Exp $
+//  $Id: TrRecHit.h,v 1.46 2013/02/17 16:32:18 mduranti Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -115,7 +115,7 @@ public:
   TrClusterR* pTrCluster(char xy)  { return (xy=='x')?GetXCluster():GetYCluster(); }
 
   /// Return a string with hit infos (used for the event display)
-  char *Info(int iRef=0);
+  const char *Info(int iRef=0);
   
   /// Get the pointer to X cluster
   TrClusterR* GetXCluster();

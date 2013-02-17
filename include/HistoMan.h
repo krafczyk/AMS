@@ -43,7 +43,7 @@ public:
   /// Save histograms to file
   void Save();
   /// Save histograms to a specified file
-  void Save(TFile *file, char* dirname = "HistoMan");
+  void Save(TFile *file, const char* dirname = "HistoMan");
   /// Book default histograms (simmode 0: real data, 1: MC gen,  2: MC rec)
   void BookHistos(int simmode = 0);
   /// Is enabled or not

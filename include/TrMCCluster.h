@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.18 2012/07/11 06:58:57 oliva Exp $
+//  $Id: TrMCCluster.h,v 1.19 2013/02/17 16:32:18 mduranti Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -8,9 +8,9 @@
 ///\brief A class for the rapresentation of the MC stepping in Silicon active material. 
 ///\ingroup tksim
 ///
-///$Date: 2012/07/11 06:58:57 $
+///$Date: 2013/02/17 16:32:18 $
 ///
-///$Revision: 1.18 $
+///$Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -144,7 +144,7 @@ class TrMCClusterR : public TrElem {
   /// Print cluster strip variables 
   void Print(int printopt =0);
   /// Return a string with some info (used for event display)
-  char* Info(int iRef);
+  const char* Info(int iRef);
 
   friend class TrDAQMC;
 

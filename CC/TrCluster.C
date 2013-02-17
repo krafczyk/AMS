@@ -189,7 +189,7 @@ void TrClusterR::_PrepareOutput(int opt){
 }
 
 
-char* TrClusterR::Info(int iRef){
+const char* TrClusterR::Info(int iRef){
   string aa;
   aa.append(Form("TrCluster #%d ",iRef));
   _PrepareOutput(0);

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.536 2013/02/15 14:23:57 qyan Exp $
+//  $Id: root.h,v 1.537 2013/02/17 16:32:19 mduranti Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1186,7 +1186,7 @@ class TofClusterHR :public TrElem {
     cout<<sout<<endl;
   }
 
-  char * Info(int number=-1){
+  const char * Info(int number=-1){
     sprintf(_Info,"TofClusterHR L%dB%d  Time(ns)=%3.1f#pm%3.1f, E_{Dep}(MeV)=%4.1f, Coo(%5.1f,%5.1f,%5.1f)#pm(%5.1f,%5.1f,%5.1f)",Layer,Bar,Time,ETime,AEdep,Coo[0],Coo[1],Coo[2],ECoo[0],ECoo[1],ECoo[2]);
     return _Info;
   }
@@ -3008,7 +3008,7 @@ class BetaHR: public TrElem{
     cout<<sout<<endl;
   }
 
-  char * Info(int number=-1){
+  const char * Info(int number=-1){
     sprintf(_Info,"BetaH #beta=%6.3f TOFHitUse=%d Chi2C=%7.3g Chi2T=%7.3g EdepL(MeV)=(%5.2f,%5.2f,%5.2f,%5.2f)",GetBeta(),GetUseHit(),GetChi2C(),GetChi2T(),GetEdepL(0,1),GetEdepL(1,1),GetEdepL(2,1),GetEdepL(3,1) );
     return _Info;
   }

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.98 2013/01/24 12:45:14 shaino Exp $
+//  $Id: TrTrack.h,v 1.99 2013/02/17 16:32:18 mduranti Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2013/01/24 12:45:14 $
+///$Date: 2013/02/17 16:32:18 $
 ///
-///$Revision: 1.98 $
+///$Revision: 1.99 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -730,7 +730,7 @@ public:
   /// Print Track info (verbose if opt !=0 )
   void  Print(int opt=0);
   /// Return a string with hit infos (used for the event display)
-  char *Info(int iRef=0);
+  const char *Info(int iRef=0);
   /**@}*/
 
 

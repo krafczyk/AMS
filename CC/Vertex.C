@@ -109,7 +109,7 @@ void VertexR::Print(int opt) {
 }
 
 
-char* VertexR::Info(int iRef){
+const char* VertexR::Info(int iRef){
   string aa;
   aa.append(Form("Vtx #%d ",iRef));
   _PrepareOutput(0);

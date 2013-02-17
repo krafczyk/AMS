@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.16 2011/03/22 17:46:24 pzuccon Exp $ 
+// $Id: TrRawCluster.h,v 1.17 2013/02/17 16:32:18 mduranti Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2011/03/22 17:46:24 $
+/// $Date: 2013/02/17 16:32:18 $
 ///
-/// $Revision: 1.16 $
+/// $Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -181,7 +181,7 @@ class TrRawClusterR : public TrElem {
   /// Print raw cluster strip variables 
   void   Print(int full=0);
   /// Return a string with some info (used for event display)
-  char*  Info( int fRef=0);
+  const char*  Info( int fRef=0);
    
   /// ostream operator
   friend std::ostream &operator <<(std::ostream &ostr,  TrRawClusterR &cls) { 

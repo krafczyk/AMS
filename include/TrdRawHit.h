@@ -1,4 +1,4 @@
-//  $Id: TrdRawHit.h,v 1.11 2012/07/27 15:00:01 pzuccon Exp $
+//  $Id: TrdRawHit.h,v 1.12 2013/02/17 16:32:19 mduranti Exp $
 #ifndef __AMSTRDRhit__
 #define __AMSTRDRhit__
 //  below is the gift from VC to MM
@@ -41,7 +41,7 @@ class TrdRawHitR: public TrElem{
     sout.append("TrdRawHit _PrepareOutput");
   };
 
-  char* Info(int iRef=0){return "TrdRawHit::Info";};
+  const char* Info(int iRef=0){return "TrdRawHit::Info";};
 
   std::ostream& putout(std::ostream &ostr = std::cout){
     _PrepareOutput(1);

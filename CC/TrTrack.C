@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.168 2013/01/24 12:45:22 shaino Exp $
+// $Id: TrTrack.C,v 1.169 2013/02/17 16:32:18 mduranti Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/01/24 12:45:22 $
+///$Date: 2013/02/17 16:32:18 $
 ///
-///$Revision: 1.168 $
+///$Revision: 1.169 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1144,7 +1144,7 @@ bool TrTrackR::CheckLayFit(int fittype,int lay) const{
   return false;
 }
 
-char *  TrTrackR::Info(int iRef) {
+const char *  TrTrackR::Info(int iRef) {
   string aa;
   aa.append(Form("TrTrack #%d ",iRef));
   _PrepareOutput(0);
