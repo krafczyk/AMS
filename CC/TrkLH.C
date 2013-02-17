@@ -261,8 +261,12 @@ double TrkLH::GetLikelihoodRatioElectronWG(int ipart){
   
   int ret = PopulateTrkLHVar(ipart);
 
-  if (ret<0) return ret;
-  else return dotrklk((*varv).energy, (*varv).pat);
+  if (ret<=0) return ret;
+  if (ret == 1) { SetDefaultMask();
+    return dotrklk((*varv).energy, (*varv).pat);}
+  else {varmask[16]=0;     // patch for ecal missing energy replaced by rigidity
+    for (int ims=19;ims<23;ims++) varmask[ims]=0;
+    return dotrklk(fabs((*varv).rigidity_ch), (*varv).pat);}
 }
 
 int TrkLH::PopulateTrkLHVar(int ipart){
@@ -272,10 +276,10 @@ int TrkLH::PopulateTrkLHVar(int ipart){
     if (maxerr<errmax) { 
     cerr << "TrkLH::PopulateTrkLHVar-E-Problem in filltrklhvarfromgbatch code = " << nm << endl;
     maxerr++; }
-    return -9;
+    if (nm<=0) return -9;
   }
   //   cout << " var loaded " << endl;
-  
+  int iret = nm;
   nm = fillvar(*varv);
   if (nm!=0) {
     if (maxerr<errmax) { 
@@ -285,7 +289,7 @@ int TrkLH::PopulateTrkLHVar(int ipart){
   }
   //   cout << " varv filled " << endl;
   
-  return 0;
+  return iret;
 }
 
 TrkLHVar TrkLH::GetTrkLHVar(int ipart){
