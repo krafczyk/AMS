@@ -1,8 +1,9 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.23 2013/01/18 17:34:29 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.24 2013/02/18 14:47:20 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
+ClassImp(EcalCR);
 int EcalPDF::Version =2 ;
 int EcalPDF::has_init=-1;
 EcalPDF::EcalPDF(const char* fdatabase){
@@ -1242,6 +1243,7 @@ EcalAxis::EcalAxis(char* fdatabase, int ftype){
 void EcalAxis::init(const char* fdatabase, int ftype){
     EcalChi2::Version=EcalAxis::Version;
     ecalchi2=new EcalChi2(fdatabase,ftype);
+    ecalcr=new EcalCR(ftype);
     float _shiftxy_iss[]=   {0.049183,0.0547541,-0.127118,-0.129285,0.0567233,0.0589902,-0.125686,-0.12495,0.0588771,0.0580914,-0.13321,-0.135947,0.0553363,0.0543928,-0.132608,-0.130619,0.0509601,0.0504522};
     float _shiftxy_bt []=   {0.0649878,  0.0674102,    -0.18013,    -0.176749,   0.0684572,   0.0710825,   -0.175532,   -0.173065,   0.0631457,   0.0679332,   -0.172697,   -0.175777,   0.0636235,   0.0681259,  -0.166372,  -0.166112,  0.0657156,   0.0491425};
     float _shiftxy_sim[]=   {-0.036077,-0.0347022,-0.0483337,-0.0491348,0.0543024,0.0555286,-0.0786445,-0.0791036,0.00598481,0.00624232,-0.0977129,-0.0980029,0.0924151,0.0922796,-0.265521,-0.264891,0.131682,0.131873};
@@ -1312,18 +1314,18 @@ bool EcalAxis::init_lf(){
     float init_dxdz=0;
     float init_dydz=0;
     if(use_ext==0){
-        if((_status&4)!=4){
-            if(init_cg())
-                _status+=4;
+        if((_status&8)!=8){
+            if(init_cr2())
+                _status+=8;
             else
                 return false;
         }
-        init_x0  =p0_cg[0];
-        init_y0  =p0_cg[1];
-        if(dir_cg[2]==0.)
-            dir_cg[2]=1.;
-        init_dxdz=dir_cg[0]/dir_cg[2];
-        init_dydz=dir_cg[1]/dir_cg[2];
+        init_x0  =p0_cr2[0];
+        init_y0  =p0_cr2[1];
+        if(dir_cr2[2]==0.)
+            dir_cr2[2]=1.;
+        init_dxdz=dir_cr2[0]/dir_cr2[2];
+        init_dydz=dir_cr2[1]/dir_cr2[2];
     }
     else{
         if(ext_d0[2]==0)
@@ -1439,6 +1441,26 @@ int EcalAxis::interpolate(float zpl       ,AMSPoint& p0   ,AMSDir  &dir, int alg
         dir[1]=dir_lf[1];
         dir[2]=dir_lf[2];
     }
+    else if((algorithm&8)==8){
+	if((_status&8)!=8)
+            return -1;
+        x0    =p0_cr2[0];
+        y0    =p0_cr2[1];
+        dxdz  =dir_cr2[0]/dir_cr2[2];
+        dydz  =dir_cr2[1]/dir_cr2[2];
+        dir[0]=dir_cr2[0];
+        dir[1]=dir_cr2[1];
+        dir[2]=dir_cr2[2];
+    }
+    else if((algorithm&16)==16){
+	x0    =ext_p0[0];
+        y0    =ext_p0[1];
+        dxdz  =ext_d0[0]/ext_d0[2];
+        dydz  =ext_d0[1]/ext_d0[2];
+        dir[0]=ext_d0[0];
+        dir[1]=ext_d0[1];
+        dir[2]=ext_d0[2];	
+    }
     else
         return -2;
     p0[0]=x0+(zpl-ecalz[8])*dxdz;
@@ -1502,14 +1524,12 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
     ext_p0[0]=ev->pEcalShower(nmax)->CofG[0];
     ext_p0[1]=ev->pEcalShower(nmax)->CofG[1];
     ext_p0[2]=ev->pEcalShower(nmax)->CofG[2];
-    use_ext=1;
+    use_ext=0;
     if(trtrack!=NULL)
         sign=trtrack->GetRigidity()>0?1.:-1.;
     else
         sign=-1;
     ret= process(fedep,fcell,fplane,nEcalHits,EnergyD,_EnergyE,algorithm,sign);
-
-
     return ret;
 #else
     return -1;
@@ -1581,15 +1601,53 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
             _status+=1;
         }
     }
+    if((algorithm&8)==8){
+	if(init_cr2()){
+		//cout<<ecalchi2->get_chi2()<<"---> ";
+		double param[4]={p0_cr2[0],p0_cr2[1],dir_cr2[0]/dir_cr2[2],dir_cr2[1]/dir_cr2[2]};
+		GetChi2(param);
+		//cout<<ecalchi2->get_chi2()<<endl;
+        	_status+=8;
+	}		
+    }
+    if((algorithm&8)==16){
+	double param[4]={ext_p0[0],ext_p0[1],ext_d0[0]/ext_d0[2],ext_d0[1]/ext_d0[2]};
+        GetChi2(param);
+        //cout<<ecalchi2->get_chi2()<<endl;
+        _status+=16;	
+    }
     use_ext=0;
     return _status;
 }
+bool EcalAxis::init_cr2(){
+	ecalcr->get_esh_axis(Edep_raw,Max_layer_cell,init_raw_cr,Layer_quality,EnergyE);
+        double r=sqrt(ecalcr->scfit_v0[0]*ecalcr->scfit_v0[0]+ecalcr->scfit_v0[1]*ecalcr->scfit_v0[1]+ecalcr->scfit_v0[2]*ecalcr->scfit_v0[2]);
+        dir_cr2.setp(ecalcr->scfit_v0[0]/r,ecalcr->scfit_v0[1]/r,ecalcr->scfit_v0[2]/r);
+        p0_cr2.setp(ecalcr->scfit_x0[0]+(ecalz[8]-ecalcr->scfit_x0[2])*dir_cr2[0]/dir_cr2[2],ecalcr->scfit_x0[1]+(ecalz[8]-ecalcr->scfit_x0[2])*dir_cr2[1]/dir_cr2[2],ecalcr->scfit_x0[2]);
+	return true;
+}
 int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
-    if(esh==NULL)
-        return -1;
-    _sign=sign;
-    _algorithm=algorithm;
-    use_ext=1;
+    if(!esh)
+	return -1;
+    float fedep[1296];
+    int   fcell[1296], fplane[1296],nEcalHits,ret;
+    float EnergyD, _EnergyE;
+    nEcalHits=0;
+    for(int i1=0;i1<esh->NEcal2DCluster();i1++){
+        Ecal2DClusterR * ecal2d=esh->pEcal2DCluster(i1);
+        for(int i2=0;i2<ecal2d->NEcalCluster();i2++){
+            EcalClusterR* ecalclt=ecal2d->pEcalCluster(i2);
+            for(int i3=0;i3<ecalclt->NEcalHit();i3++){
+           	EcalHitR* hit=ecalclt->pEcalHit(i3);
+		fedep[nEcalHits] =hit->Edep;
+        	fcell[nEcalHits] =hit->Cell;
+        	fplane[nEcalHits]=hit->Plane;
+		nEcalHits++;	 
+	    }
+        }
+    }
+    _EnergyE=esh->EnergyE;
+    EnergyD =esh->EnergyD;
     ext_d0[0]=esh->EMDir[0];
     ext_d0[1]=esh->EMDir[1];
     ext_d0[2]=esh->EMDir[2];
@@ -1597,77 +1655,9 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
     ext_p0[0]=esh->CofG[0];
     ext_p0[1]=esh->CofG[1];
     ext_p0[2]=esh->CofG[2];
-    for(int i1=0;i1<18;i1++){
-        for(int i2=0;i2<72;i2++){
-            Edep_raw[i1*72+i2]=0.;
-        }
-        Max_layer_edep[i1]= 0;
-        Max_layer_cell[i1]=-1;
-        Layer_quality [i1]= 0;
-        layer_Edep    [i1]= 0;
-    }
-    _erg   =esh->EnergyD/1000.;
-    EnergyE=esh->EnergyE      ;
-    for(int i1=0;i1<esh->NEcal2DCluster();i1++){
-        Ecal2DClusterR * ecal2d=esh->pEcal2DCluster(i1);
-        for(int i2=0;i2<ecal2d->NEcalCluster();i2++){
-            EcalClusterR* ecalclt=ecal2d->pEcalCluster(i2);
-            for(int i3=0;i3<ecalclt->NEcalHit();i3++){
-                Edep_raw[ecalclt->pEcalHit(i3)->Plane*72+ecalclt->pEcalHit(i3)->Cell]=ecalclt->pEcalHit(i3)->Edep;
-                if(Max_layer_edep[ecalclt->pEcalHit(i3)->Plane]<ecalclt->pEcalHit(i3)->Edep){
-                    Max_layer_edep[ecalclt->pEcalHit(i3)->Plane]=ecalclt->pEcalHit(i3)->Edep;
-                    Max_layer_cell[ecalclt->pEcalHit(i3)->Plane]=ecalclt->pEcalHit(i3)->Cell;
-                }
-                layer_Edep[ecalclt->pEcalHit(i3)->Plane]+=ecalclt->pEcalHit(i3)->Edep;
-            }
-        }
-    }
-
-    for(int i1=0;i1<18;i1++){
-        if(Max_layer_cell[i1]-2>-1){
-            if(Edep_raw[i1*72+Max_layer_cell[i1]-2]>0)
-                Layer_quality [i1]+=1;
-        }
-        if(Max_layer_cell[i1]-1>-1){
-            if(Edep_raw[i1*72+Max_layer_cell[i1]-1]>0)
-                Layer_quality [i1]+=2;
-        }
-        if(Max_layer_cell[i1]>-1){
-            if(Edep_raw[i1*72+Max_layer_cell[i1]]>0)
-                Layer_quality [i1]+=4;
-        }
-        if(Max_layer_cell[i1]+1<72){
-            if(Edep_raw[i1*72+Max_layer_cell[i1]+1]>0)
-                Layer_quality [i1]+=8;
-        }
-        if(Max_layer_cell[i1]+2<72){
-            if(Edep_raw[i1*72+Max_layer_cell[i1]+2]>0)
-                Layer_quality [i1]+=16;
-        }
-    }
-    get_z();
-    ecalchi2->set_edep(Edep_raw,_erg,EnergyE);
-    _status=0;
-    if((algorithm&4)==4){
-        if(init_cg()){
-            _status+=4;
-            double param[4]={p0_cg[0],p0_cg[1],dir_cg[0]/dir_cg[2],dir_cg[1]/dir_cg[2]};
-            GetChi2(param);
-        }
-    }
-    if((algorithm&2)==2){
-        if(init_lf())
-            _status+=2;
-    }
-    if((algorithm&1)==1){
-        if(init_cr()){
-            double param[4]={p0_cr[0],p0_cr[1],dir_cr[0]/dir_cr[2],dir_cr[1]/dir_cr[2]};
-            GetChi2(param);
-            _status+=1;
-        }
-    }
-    use_ext=0;
-    return _status;
+    use_ext=1;
+    ret= process(fedep,fcell,fplane,nEcalHits,EnergyD,_EnergyE,algorithm,sign);
+    return ret;
 }
 bool EcalAxis::init_cg(){
     bool ret;
@@ -2006,6 +1996,372 @@ float EcalAxis::get_nchi2(AMSEventR* ev){
     _chi2=ecalchi2->get_chi2();
     return ecalchi2->ecalpdf->normalize_chi2(_chi2,_erg);
 }
+int    EcalCR::est_nrange = 2;
+double EcalCR::est_erange_low[2] = {10.,70.}    ;
+double EcalCR::est_erange_high[2] = {70.,600.}  ;
+double EcalCR::zCooEcal[18] = {-142.792496, -143.657501, -144.642502, -145.507507, -146.492508,
+      -147.357498, -148.342499, -149.207504, -150.192505, -151.057510,
+      -152.042496, -152.907501, -153.892502, -154.757507, -155.742508,
+      -156.607498, -157.592499, -158.457504};
+int    EcalCR::proj[18] = {1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1};
+double EcalCR::MCsmear=0.;
+
+EcalCR::EcalCR(int _runtype){
+	runtype=_runtype	;
+	init_est()		;
+}
+EcalCR::~EcalCR(){
+
+}
+
+double EcalCR::local_shower_center(int layer,double el, double ec, double er, double energy){
+  //***********************************************************************
+  // Find the shower center localtion by energy ratio method
+  // el, ec, er are the energy deposit of the 3 cells centered around maxcell.
+  // ec is the energy of the most energetic cell (cell 1-70)
+  // el is the energy in the left neighboring cell.(cell 0-69)
+  // er is the energy in the right neighboring cell.(cell 2-71)
+  // layer is the layer number (0-17)
+  // energy is the energy measured by ECAL
+  // The return value is the location of the shower center related to the
+  // center of the most energetic cell (with energy ec)
+  //***********************************************************************
+  //
+  if(ec<el || ec<er) {
+    printf("ec is not the shower maximum\n");
+    return -999.;
+  }
+  if(energy>550.) energy=550.;
+  if(energy<15. ) energy=15. ;
+  if(layer<0 || layer>=18){
+    printf("get_shower_center routine error: wrong layer %d\n",layer);
+    return -9999.;
+  }
+  if(ec==0 || (el==0 && er==0)){
+    return 0.;
+  }
+  double *p_est_int, *p_est_slope, *p_est_curve;
+  p_est_int=0;
+  p_est_slope = 0;
+  p_est_curve = 0;
+
+  if(energy > est_erange_high[est_nrange-1]*1.05) {
+    return 0.;
+  }
+  else {
+    for(int ir =0; ir<est_nrange; ir++){
+      if(energy>=est_erange_low[ir]*0.95 && energy<=est_erange_high[ir]*1.05){
+        p_est_int = &est_int[ir][0][0];
+        p_est_slope = &est_slope[ir][0][0];
+        p_est_curve = &est_curve[ir][0][0];
+        break;
+      }
+    }
+    if(p_est_int == 0) {
+    	return 0.;
+    }
+  }
+  double dele=log10(energy)-log10(100.0);
+
+  double xshower,rlr,cog,est;
+  rlr = (el-er)/(el+er);
+  cog = (el-er)/(el+er+ec);
+  est = rlr+cog;
+  const double est_binsize = 0.01;
+  const int n_est_bin = 301;
+  if(est<-1.5) est = -1.5;
+  else if (est>1.5) est = 1.5;
+
+  int ibin = floor((est+1.5)/est_binsize);
+  double estlow = -1.5+ibin*est_binsize;
+  int ib = layer*n_est_bin + ibin;
+  double xlow = *(p_est_int+ib) + *(p_est_slope+ib)*dele +
+                *(p_est_curve+ib)*dele*dele;
+  double xhigh = *(p_est_int+ib+1) + *(p_est_slope+ib+1)*dele +
+                *(p_est_curve+ib+1)*dele*dele;
+  double xest = xlow+(xhigh-xlow)/est_binsize*(est-estlow);
+  if(xest<0.0) xest=0.0;
+  if(xest>0.9) xest=0.9;
+  xshower = -xest+0.45;
+
+  //if(runtype==2) xshower += MCsmear*rdm->Gaus();   //MC add 300 micron
+  return xshower;
+}
+double EcalCR::ecalcoo_corrected(double tran_coo, double long_coo, double thetax, double thetay, int lay){
+  //**************************************************************************
+  //
+  // correction to the ECAL positions
+  //
+  // Return: corrected ecal coordinate (in the measureing direction)
+  // Input:
+  //     tran_coo: uncorrected ECAL coordinate: -32.4 - +32.4
+  //     long_coo: ECAL coordinate in the perpendicular direction.
+  //     lay: layer number
+  //     runtype: 0: iss, 1: mc 2: tb
+  //
+  //***************************************************************************
+
+  static double Slope[18] = {0.000489, 0.000402, 0.000845, 0.000708, 0.000159,
+                      0.000231, 0.000181, 0.000219,-0.000625,-0.000646,
+                      4.9e-5,   1.94e-5, -0.000239,-0.000159, 0.000334,
+                      0.000345,-0.001621,-0.001499};
+  /*
+  double Offset[18]= {-0.075785, -0.085085, 0.063735, 0.072154,-0.08138,
+                      -0.085716, 0.092481, 0.091874, -0.058069,-0.060580,
+                      0.09772,0.104093, -0.076070,-0.077813, 0.095522,
+                      0.090256,-0.027785, -0.034400};
+  */
+  static double Offset[18] = {-0.07324,  -0.08149,  0.10311,  0.11116,  -0.07378,
+                       -0.07702,  0.13018,  0.12953,  -0.04582,  -0.04731,
+                        0.13439,  0.14032,  -0.05948,  -0.06012,  0.13106,
+                       0.12534,  -0.00678,  -0.01242};
+
+  static double delz[18] = {
+    0.69878,  0.67685,  0.64967,  0.62664,  0.60627,  0.58448,
+    0.55146,  0.52856,  0.51396,  0.49263,  0.45312,  0.43028,
+    0.42159,  0.39966,  0.35460,  0.33199,  0.32901,  0.30764};
+
+  /*
+  const float Offset_mc[18] = {0.127,0.118,-0.0812,-0.0812,0.0227,0.0205,
+                              -0.0515,-0.0511,0.0681,0.067,-0.03255,-0.03215,
+                              -0.0201,-0.0201,0.1349,0.1346,-0.0614,-0.0628};
+  */
+
+  static float Offset_mc[18] = {
+         0.013700,  -0.001009,  -0.027872,  -0.006446,  -0.014031,  -0.023413,
+         0.056922,  0.069365,  -0.012313,  -0.019871,  0.117947,  0.137400,
+        -0.051909,  -0.058700,  0.173418,  0.179588,  -0.025248,  -0.036930};
+
+  static float delz_mc[18] = {
+         0.288954,  0.212326,  0.246985,  0.170729,  0.196804,  0.120077,
+         0.155832,  0.079470,  0.103800,  0.027058,  0.064383,  -0.011942,
+         0.010782,  -0.065958,  -0.040393,  -0.102736,  -0.081880,  -0.158245};
+
+  static float Offset_tb[18]= {-0.0792, -0.0670, 0.10205, 0.10553, -0.0728,
+                      -0.0756, 0.12897, 0.12789, -0.06094,-0.064320,
+                      0.132660,0.13932, -0.06639,-0.07077, 0.123455,
+                      0.120981,-0.03080, -0.036510};
+
+  double corr_coo = tran_coo;
+  if(runtype == 2){  //mc data
+    corr_coo += (long_coo+32.4)*Slope[lay]+ Offset_mc[lay];
+    if(proj[lay] == 1) {
+      corr_coo += delz_mc[lay]*thetay;
+    }
+    else {
+      corr_coo += delz_mc[lay]*thetax;
+    }
+  }
+  else if(runtype == 0) {   //iss
+    corr_coo += (long_coo+32.4)*Slope[lay]+ Offset[lay];
+    if(proj[lay] == 1) {
+      corr_coo += delz[lay]*thetay;
+    }
+    else {
+      corr_coo += delz[lay]*thetax;
+    }
+  }
+  else if (runtype ==1) {  //testbeam
+    if(proj[lay] == 1) {
+      corr_coo += (long_coo+32.4)*Slope[lay] + Offset_tb[lay]
+                   +  0.01268 + 0.4559*thetay;
+    }
+    else {
+      corr_coo += (long_coo+32.4)*Slope[lay] + Offset_tb[lay]
+                   + 0.03427 + 0.42076*thetax;
+    }
+  }
+  return corr_coo;
+}
+int EcalCR::fit_shower_center_line(double *x0, double *v0, double *shower_center, int *shower_center_quality)
+{
+  //**************************************************************************
+  //   Fit the shower center line, the coordinate of each layer obtained by cell-ratio
+  //
+  // Return: the status of the fit: 1:ok , -1:bad
+  // Input:
+  //       *shower_center: shower_center[18] - the shower center values obtained by
+  //                                           cell ratio mathod
+  //       *shower_center_quality: shower_center_quality[18] - quality of shower
+  //                               center value.
+  // Output:
+  //       *x0: x0[3] - the shower center coordinate at z = zCooEcal[0];
+  //       *v0: v0[3] - The direction vector of shower center line.
+  //                    (dx/dz, dy/dz, 1);
+  //
+  //***************************************************************************
+
+  const double std_weight[18] = {
+    10.33, 30.52, 102.03, 210.04, 277.8, 369.8, 625.0, 692.5,
+    540.8, 540.8, 540.8,  452.69, 297.26, 229.57, 198.37, 156.25,
+    89.0, 62.0};
+  double delta,sumz,sumz2,sumx,sumxz, sumw;
+  int nlayerfit;
+  double a[2],b[2];
+  int returnvalue = 0;
+  for(int iproj=0; iproj<2; iproj++){
+    a[iproj]=0.0;
+    b[iproj]=0.0;
+    delta=0.0;
+    sumz = 0.0;
+    sumz2=0.0;
+    sumx=0.0;
+    sumxz=0.0;
+    sumw = 0.0;
+    nlayerfit = 0;
+    for(int il=2; il<18; il++){
+      if((shower_center_quality[il]&4)!=4) continue;
+      if(proj[il]==iproj && fabs(shower_center[il])<100.){
+        sumx+=shower_center[il]*std_weight[il];
+        sumz+=zCooEcal[il]*std_weight[il];
+        sumxz += shower_center[il]*zCooEcal[il]*std_weight[il];
+        sumz2 += zCooEcal[il]*zCooEcal[il]*std_weight[il];
+        sumw += std_weight[il];
+        nlayerfit++;
+        //        printf("layer %d, z= %f, x= %f\n",il,zCooEcal[il],center_layer[il]);
+      }
+    }
+    //    printf("nlayer = %d \n",nlayerfit);
+    delta = sumw*sumz2 - sumz*sumz;
+    if(delta <=0.0||nlayerfit<2){
+      returnvalue -= (1+iproj);
+      continue;
+    }
+    a[iproj] = (sumx*sumz2 - sumz*sumxz)/delta;
+    b[iproj] = (sumw*sumxz - sumz*sumx)/delta;
+    //   printf("a,b = %f %f \n\n",a[iproj],b[iproj]);
+  }
+  *x0 = a[0]+b[0]*zCooEcal[0];
+  *v0 = b[0];
+  *(x0+1) = a[1] + b[1]*zCooEcal[0];
+  *(v0+1) = b[1];
+  *(x0+2) = zCooEcal[0];
+  *(v0+2) = 1.0;
+  return returnvalue;
+}
+
+void EcalCR::init_est(){
+  TFile *f;
+  char htitle[100];
+  for(int ir=0; ir<est_nrange; ir++){
+    if(ir==0) f = new TFile("~/est_inter_15_70.root");
+    else if(ir==1) f = new TFile("~/est_inter_70_600.root");
+
+    for(int il=0; il<18; il++){
+      sprintf(htitle,"est_int%2.2d",il);
+      TH1F *h = (TH1F*)f->Get(htitle);
+      for(int ib=0; ib<301; ib++){
+        est_int[ir][il][ib] = h->GetBinContent(ib+1);
+      }
+      sprintf(htitle,"est_slope%2.2d",il);
+      h = (TH1F*)f->Get(htitle);
+      for(int ib=0; ib<301; ib++){
+        est_slope[ir][il][ib] = h->GetBinContent(ib+1);
+      }
+      sprintf(htitle,"est_curve%2.2d",il);
+      h = (TH1F*)f->Get(htitle);
+      for(int ib=0; ib<301; ib++){
+        est_curve[ir][il][ib] = h->GetBinContent(ib+1);
+      }
+    }
+    f->Close();
+  }
+  rdm = new TRandom3();
+}
+
+int EcalCR::get_esh_axis(float* Edep_raw,int* Max_layer_cell,float* init_raw_cr,int* Layer_quality,float _erg){
+	erg=_erg;
+	sc_local_quality=Layer_quality;
+	sc_local_CoG=init_raw_cr;
+	//Simple check of max cell compatibility
+	bool goodsl[9];
+	bool goodl[18];
+	double dx=0.,dy=0.;
+	int    ndx=0,ndy=0;
+	for(int i1=0;i1<9;i1++){
+		if(fabs(Max_layer_cell[2*i1]-Max_layer_cell[2*i1+1])<2)
+			goodsl[i1]=true;
+		else
+			goodsl[i1]=false;
+	}
+		
+	for(int il=0;il<18;il++){	
+		if((sc_local_quality[il]&4)!=4)
+			continue;
+		if(!goodsl[il/2]){
+			sc_local_quality[il]-=4;
+			continue;
+		}
+		int icmax=Max_layer_cell[il];
+		double ec =Edep_raw[il*72+icmax];
+      		double el;
+      		double er;
+		if(icmax<1) el=0.;
+		else el=Edep_raw[il*72+icmax-1];
+		if(icmax>70)	er=0.;
+		else	er=Edep_raw[il*72+icmax+1];
+		sc_local[il] = local_shower_center(il, el, ec, er, erg)-31.95 + icmax*0.9;
+		//cout<<"icmax= "<<icmax<<", "<<el<<", "<<ec<<", "<<er<<", "<<sc_local[il]<<endl;
+		if(sc_local[il] < -100.) {
+          		sc_local[il] = sc_local_CoG[il];
+			if((sc_local_quality[il]&7)==4)
+          			sc_local_quality[il]-=4;
+        	}
+	}
+	int fit_status = fit_shower_center_line(scfit_x0, scfit_v0,sc_local, sc_local_quality);
+  	if(fit_status == -3){
+    		// printf("fit_shower_center_line failed\n");
+    		return -299;
+  	}
+  	Theta_x = scfit_v0[0];
+  	Theta_y = scfit_v0[1];
+	
+	/*cout<<"  sc_local= ";	
+	// Now we have the coordinate of both direction, correct them to global.
+	for(int i1=0;i1<18;i1++)
+		cout<<sc_local[i1]<<", ";
+	cout<<endl;
+	*/
+	for(int il=0; il<18; il++){
+    		double ylayer = shower_center_layer_orthogonal(il);
+    		sc_global[il] = ecalcoo_corrected(sc_local[il], ylayer,Theta_x,Theta_y,il);
+  	}
+	/*
+	cout<<"  sc_global= ";
+	for(int i1=0;i1<18;i1++)
+                cout<<sc_global[i1]<<", ";
+        cout<<endl;
+	cout<<" sc_local_quality= ";
+	for(int i1=0;i1<18;i1++)
+                cout<<sc_local_quality[i1]<<", ";
+        cout<<endl;
+	*/
+  	// Fit the shower center line again.
+  	fit_status = fit_shower_center_line(scfit_x0, scfit_v0,sc_global, sc_local_quality);
+	if(fit_status == -3){
+                // printf("fit_shower_center_line failed\n");
+                return -299;
+        }
+        Theta_x = scfit_v0[0];
+        Theta_y = scfit_v0[1];
+	//cout<<scfit_x0[0]<<", "<<scfit_x0[1]<<", "<<scfit_x0[2]<<", "<<scfit_v0[0]<<", "<<scfit_v0[1]<<", "<<scfit_v0[2]<<endl;	
+	return 0;
+}
+double EcalCR::shower_center_layer_orthogonal(int layer_number){
+  double a,b;
+  if(layer_number>=18 || layer_number<0) return -9999.;
+  if(proj[layer_number]==1){
+    a = scfit_x0[0];
+    b = scfit_v0[0];
+  }
+  else {
+    a = scfit_x0[1];
+    b = scfit_v0[1];
+  }
+  double xlayer = a+b*(zCooEcal[layer_number]-zCooEcal[0]);
+  return xlayer;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //End of Ecal Axis 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

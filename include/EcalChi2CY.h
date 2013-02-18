@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.12 2012/12/19 22:37:32 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.13 2013/02/18 14:47:51 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -13,6 +13,7 @@
 #include "TMath.h"
 #include "TObject.h"
 #include "TDirectory.h"
+#include "TRandom3.h"
 #include "TVirtualFitter.h"
 using namespace std;
 
@@ -92,7 +93,7 @@ public:
     float get_elik(float _chi2plus, float _bdt)	;
 
 public:
-    int   init(const char* fdatabase)    ;
+    int   init(const char* fdatabase)   ;
     //Profile for chi2 calculation
     static TH1F*  param_mean_lf[18][6]  ;
     static TH1F*  param_rms_lf[18][6]   ;
@@ -223,6 +224,43 @@ private:
     float   _erge   ;
 };
 
+class EcalCR:public TObject{
+public:
+	int runtype	;
+	EcalCR(int _runtype=0)	;
+	~EcalCR()	;
+public:
+	double est_int[2][18][301];
+	double est_slope[2][18][301];
+	double est_curve[2][18][301];
+	static int proj[18];
+	static double zCooEcal[18];
+	static int est_nrange;
+	static double est_erange_low[2]	;
+	static double est_erange_high[2];
+	Double_t scfit_x0[3],scfit_v0[3];
+	double	Theta_x;
+	double  Theta_y;
+	
+	float   erg;
+
+	double sc_local[18] ;
+	double sc_global[18];
+	int* sc_local_quality;
+	float* sc_local_CoG;
+	TRandom3 *rdm;
+	static double MCsmear;
+	
+	void init_est();
+	double local_shower_center(int layer,double el, double ec, double er, double energy);
+	int fit_shower_center_line(double *x0, double *v0, double *shower_center, int *shower_center_quality);	
+	double ecalcoo_corrected(double tran_coo, double long_coo, double thetax, double thetay, int lay);
+	int get_esh_axis(float* Edep_raw,int* Max_layer_cell,float* init_raw_cr,int* Layer_quality,float _erg);
+	double shower_center_layer_orthogonal(int layer_number);
+	
+	ClassDef(EcalCR,1)
+};
+
 class EcalAxis: public TObject{
 public:
     static int Version  ;
@@ -283,6 +321,7 @@ public:
 
     ///Ecal Chi2 Object, can be used to access chi2, f2dep
     EcalChi2* ecalchi2		;
+    EcalCR*   ecalcr		;
 
     ///Get Normalized Ecal Chi2
     /*!
@@ -292,6 +331,7 @@ public:
     float get_nchi2(AMSEventR* ev)	;
     ///default 0. if set to 1, use the EMDir & Ecal CoG as shower axis	 
     int simple				;
+    int     use_ext            ;
 private:
     void init(const char* fdatabase, int ftype=0);
     AMSPoint p0_lf             ;
@@ -305,7 +345,6 @@ private:
     float    _sign		   ;
     float   ext_d0[3]          ;
     float   ext_p0[3]          ;
-    int     use_ext            ;
 
 
     AMSPoint p0_cr             ;
@@ -320,6 +359,11 @@ private:
     float get_deltaxy_cr(int flayer) ;
     float    EnergyE	   ;
     float	init_raw_cr[18]    ;
+
+    //cell ratio 2
+    AMSPoint p0_cr2		;
+    AMSDir   dir_cr2            ;
+    bool     init_cr2()		;
 
     AMSPoint p0_cg             ;
     AMSDir   dir_cg            ;
@@ -358,5 +402,4 @@ private:
 
     ClassDef(EcalAxis,1)
 };
-
 #endif

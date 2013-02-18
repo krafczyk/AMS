@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.47 2012/11/21 17:33:57 choutko Exp $
+//  $Id: linkdefs.h,v 1.48 2013/02/18 14:47:51 kaiwu Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -140,6 +140,7 @@
 #pragma link C++ class AMSSetupR+; 
 #pragma link C++ class AMSSetupR::Header+;
 #pragma link C++ class EcalAxis+;
+#pragma link C++ class EcalCR+;
 
 #pragma link C++ class SlowControlDB+;
 #pragma link C++ class std::pair<unsigned int,std::vector<float> >+;
