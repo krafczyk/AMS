@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.52 2013/02/18 11:10:06 mduranti Exp $
+//  $Id: AMSNtupleV.h,v 1.53 2013/02/18 11:25:20 mduranti Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -453,7 +453,7 @@ public:
     SetLineWidth(1);
     SetLineStyle(1);
   }
-  char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?const_cast<char*>(fEv->pTrdHTrack(fRef)->Info(fRef)):0;}
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?const_cast<char*>(fEv->pTrdHTrack(fRef)->Info(fRef)):0;}
 };
 
 
