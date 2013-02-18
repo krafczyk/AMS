@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.51 2012/12/21 16:40:35 kaiwu Exp $
+//  $Id: AMSNtupleV.h,v 1.52 2013/02/18 11:10:06 mduranti Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -131,7 +131,7 @@ public:
 #else
   TrRecHitV(AMSEventR *ev,int ref);
 #endif
-  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrRecHit(fRef)->Info(fRef):0;}
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?const_cast<char*>(fEv->pTrRecHit(fRef)->Info(fRef)):0;}
   
 };
 
@@ -275,7 +275,7 @@ public:
     SetFillStyle(0);          // solid filling (not working now....)
 
   }
-  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrMCCluster(fRef)->Info(fRef):0;}
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?const_cast<char*>(fEv->pTrMCCluster(fRef)->Info(fRef)):0;}
 
 };
 
@@ -453,7 +453,7 @@ public:
     SetLineWidth(1);
     SetLineStyle(1);
   }
-  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrdHTrack(fRef)->Info(fRef):0;}
+  char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?const_cast<char*>(fEv->pTrdHTrack(fRef)->Info(fRef)):0;}
 };
 
 
@@ -557,7 +557,7 @@ public:
     SetLineStyle(1);
 
   }
-  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrTrack(fRef)->Info(fRef):0;}
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?const_cast<char*>(fEv->pTrTrack(fRef)->Info(fRef)):0;}
 
 
 };
