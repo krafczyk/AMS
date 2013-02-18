@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.24 2013/02/18 14:47:20 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.25 2013/02/18 17:39:38 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -19,7 +19,7 @@ EcalPDF::EcalPDF(){
     if(Version==1)
         tempname+="/v5.00/EcalChi2CY_prof.20121106.1.root";
     else if(Version==2)
-        tempname+="/v5.00/EcalChi2CY_prof.20121123.1.root";
+        tempname+="/v5.00/EcalChi2CY_prof.20130218.1.root";
     else{
         has_init=-1;
         warn_messages="EcalPDF-Error: Version ";
@@ -575,7 +575,7 @@ float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
         _EnergyE=15.01	;
     if(Version==1&&_EnergyE>=200.)
         _EnergyE=199.99	;
-    if(Version==2&&_EnergyE>=400.)
+    if((Version==2)&&_EnergyE>=400.)
         _EnergyE=399.99	;
     if(has_init==-1){
         cout<<warn_messages<<endl;
@@ -594,7 +594,7 @@ float EcalPDF::normalize_f2edep(float _f2edep, float _EnergyE){
         _EnergyE=15.01	;
     if(Version==1&&_EnergyE>=200.)
         _EnergyE=199.99	;
-    if(Version==2&&_EnergyE>=400.)
+    if((Version==2)&&_EnergyE>=400.)
         _EnergyE=399.99	;
     if(has_init==-1){
         cout<<warn_messages<<endl;
@@ -680,7 +680,7 @@ double EcalPDF::nns(TH2D* hsig,TH2D* hbkg,double range,double x,double y,double 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Class Ecal Chi2
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int EcalChi2::Version=1         ;
+int EcalChi2::Version=2         ;
 EcalChi2::EcalChi2(int ftype){
     char* amsdatadir=getenv("AMSDataDir");
     string tempname;
@@ -690,7 +690,7 @@ EcalChi2::EcalChi2(int ftype){
     if(Version==1)
         tempname+="/v5.00/EcalChi2CY_prof.20121106.1.root";
     else if(Version==2)
-        tempname+="/v5.00/EcalChi2CY_prof.20121123.1.root";
+	tempname+="/v5.00/EcalChi2CY_prof.20130218.1.root";
     init(tempname.c_str(),ftype);
 }
 EcalChi2::EcalChi2(const char* fdatabase,int ftype){
@@ -1223,7 +1223,7 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Class Ecal Axis
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int EcalAxis::Version=1         ;
+int EcalAxis::Version=2         ;
 TVirtualFitter* EcalAxis::gMinuit_EcalAxis = NULL;
 EcalAxis::EcalAxis(int ftype){
     char* amsdatadir=getenv("AMSDataDir");
@@ -1234,7 +1234,7 @@ EcalAxis::EcalAxis(int ftype){
     if(Version==1)
         tempname+="/v5.00/EcalChi2CY_prof.20121106.1.root";
     else if(Version==2)
-        tempname+="/v5.00/EcalChi2CY_prof.20121123.1.root";
+        tempname+="/v5.00/EcalChi2CY_prof.20130218.1.root";
     init(tempname.c_str(),ftype);
 }
 EcalAxis::EcalAxis(char* fdatabase, int ftype){
@@ -1243,7 +1243,7 @@ EcalAxis::EcalAxis(char* fdatabase, int ftype){
 void EcalAxis::init(const char* fdatabase, int ftype){
     EcalChi2::Version=EcalAxis::Version;
     ecalchi2=new EcalChi2(fdatabase,ftype);
-    ecalcr=new EcalCR(ftype);
+    ecalcr=new EcalCR(ftype,fdatabase);
     float _shiftxy_iss[]=   {0.049183,0.0547541,-0.127118,-0.129285,0.0567233,0.0589902,-0.125686,-0.12495,0.0588771,0.0580914,-0.13321,-0.135947,0.0553363,0.0543928,-0.132608,-0.130619,0.0509601,0.0504522};
     float _shiftxy_bt []=   {0.0649878,  0.0674102,    -0.18013,    -0.176749,   0.0684572,   0.0710825,   -0.175532,   -0.173065,   0.0631457,   0.0679332,   -0.172697,   -0.175777,   0.0636235,   0.0681259,  -0.166372,  -0.166112,  0.0657156,   0.0491425};
     float _shiftxy_sim[]=   {-0.036077,-0.0347022,-0.0483337,-0.0491348,0.0543024,0.0555286,-0.0786445,-0.0791036,0.00598481,0.00624232,-0.0977129,-0.0980029,0.0924151,0.0922796,-0.265521,-0.264891,0.131682,0.131873};
@@ -1622,7 +1622,8 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
 bool EcalAxis::init_cr2(){
 	ecalcr->get_esh_axis(Edep_raw,Max_layer_cell,init_raw_cr,Layer_quality,EnergyE);
         double r=sqrt(ecalcr->scfit_v0[0]*ecalcr->scfit_v0[0]+ecalcr->scfit_v0[1]*ecalcr->scfit_v0[1]+ecalcr->scfit_v0[2]*ecalcr->scfit_v0[2]);
-        dir_cr2.setp(ecalcr->scfit_v0[0]/r,ecalcr->scfit_v0[1]/r,ecalcr->scfit_v0[2]/r);
+        
+	dir_cr2.setp(ecalcr->scfit_v0[0]/r,ecalcr->scfit_v0[1]/r,ecalcr->scfit_v0[2]/r);
         p0_cr2.setp(ecalcr->scfit_x0[0]+(ecalz[8]-ecalcr->scfit_x0[2])*dir_cr2[0]/dir_cr2[2],ecalcr->scfit_x0[1]+(ecalz[8]-ecalcr->scfit_x0[2])*dir_cr2[1]/dir_cr2[2],ecalcr->scfit_x0[2]);
 	return true;
 }
@@ -2006,9 +2007,10 @@ double EcalCR::zCooEcal[18] = {-142.792496, -143.657501, -144.642502, -145.50750
 int    EcalCR::proj[18] = {1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1};
 double EcalCR::MCsmear=0.;
 
-EcalCR::EcalCR(int _runtype){
+EcalCR::EcalCR(int _runtype,const char* fdatabase){
 	runtype=_runtype	;
-	init_est()		;
+	cout<<"EcalCR--Init: "<<fdatabase<<endl; 
+	init_est(fdatabase)		;
 }
 EcalCR::~EcalCR(){
 
@@ -2031,8 +2033,8 @@ double EcalCR::local_shower_center(int layer,double el, double ec, double er, do
     printf("ec is not the shower maximum\n");
     return -999.;
   }
-  if(energy>550.) energy=550.;
-  if(energy<15. ) energy=15. ;
+  if(energy>600.) energy=600.;
+  if(energy<10. ) energy=10. ;
   if(layer<0 || layer>=18){
     printf("get_shower_center routine error: wrong layer %d\n",layer);
     return -9999.;
@@ -2240,32 +2242,36 @@ int EcalCR::fit_shower_center_line(double *x0, double *v0, double *shower_center
   return returnvalue;
 }
 
-void EcalCR::init_est(){
+void EcalCR::init_est(const char* fdatabase){
   TFile *f;
   char htitle[100];
+  f=new TFile(fdatabase);
   for(int ir=0; ir<est_nrange; ir++){
-    if(ir==0) f = new TFile("~/est_inter_15_70.root");
-    else if(ir==1) f = new TFile("~/est_inter_70_600.root");
-
     for(int il=0; il<18; il++){
-      sprintf(htitle,"est_int%2.2d",il);
+      sprintf(htitle,"est_int_%d_%2.2d",ir,il);
       TH1F *h = (TH1F*)f->Get(htitle);
+      if(!h)
+	cout<<"EcalCR::Error-Cann't-find-"<<htitle<<endl;
       for(int ib=0; ib<301; ib++){
         est_int[ir][il][ib] = h->GetBinContent(ib+1);
       }
-      sprintf(htitle,"est_slope%2.2d",il);
+      sprintf(htitle,"est_slope_%d_%2.2d",ir,il);
       h = (TH1F*)f->Get(htitle);
+      if(!h)
+	cout<<"EcalCR::Error-Cann't-find-"<<htitle<<endl;
       for(int ib=0; ib<301; ib++){
         est_slope[ir][il][ib] = h->GetBinContent(ib+1);
       }
-      sprintf(htitle,"est_curve%2.2d",il);
+      sprintf(htitle,"est_curve_%d_%2.2d",ir,il);
       h = (TH1F*)f->Get(htitle);
+      if(!h)
+	cout<<"EcalCR::Error-Cann't-find-"<<htitle<<endl;
       for(int ib=0; ib<301; ib++){
         est_curve[ir][il][ib] = h->GetBinContent(ib+1);
       }
     }
-    f->Close();
   }
+  f->Close();
   rdm = new TRandom3();
 }
 

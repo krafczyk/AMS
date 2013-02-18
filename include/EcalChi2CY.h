@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.13 2013/02/18 14:47:51 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.14 2013/02/18 17:39:09 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -227,7 +227,7 @@ private:
 class EcalCR:public TObject{
 public:
 	int runtype	;
-	EcalCR(int _runtype=0)	;
+	EcalCR(int _runtype=0,const char* fdatabase=NULL)	;
 	~EcalCR()	;
 public:
 	double est_int[2][18][301];
@@ -251,7 +251,7 @@ public:
 	TRandom3 *rdm;
 	static double MCsmear;
 	
-	void init_est();
+	void init_est(const char* fdatabase);
 	double local_shower_center(int layer,double el, double ec, double er, double energy);
 	int fit_shower_center_line(double *x0, double *v0, double *shower_center, int *shower_center_quality);	
 	double ecalcoo_corrected(double tran_coo, double long_coo, double thetax, double thetay, int lay);
