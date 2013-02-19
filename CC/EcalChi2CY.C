@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.25 2013/02/18 17:39:38 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.26 2013/02/19 15:00:56 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -2009,7 +2009,7 @@ double EcalCR::MCsmear=0.;
 
 EcalCR::EcalCR(int _runtype,const char* fdatabase){
 	runtype=_runtype	;
-	cout<<"EcalCR--Init: "<<fdatabase<<endl; 
+//	cout<<"EcalCR--Init: "<<fdatabase<<endl; 
 	init_est(fdatabase)		;
 }
 EcalCR::~EcalCR(){
