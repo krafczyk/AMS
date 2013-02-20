@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.538 2013/02/20 18:12:18 cconsola Exp $
+//  $Id: root.C,v 1.539 2013/02/20 18:26:19 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9938,9 +9938,9 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     TrLinearDB::GetHead()->Init();
 
     //------Initialize BacktracingMIB class
-    //if(BackTracingMIB::GetStatusBT()!=1){
+    if(BackTracingMIB::GetStatusBT()!=1){
                 BackTracingMIB::GetfBT()->Initialize();
-   // }
+    }
 
 
 
