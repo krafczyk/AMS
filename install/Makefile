@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.248 2013/02/15 15:10:48 oliva Exp $
+#  $Id: Makefile,v 1.249 2013/02/20 18:14:01 cconsola Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -588,6 +588,10 @@ endif
 #GeoMagneticCutoff 
  COMMON_FILES += $(SCC)GM_SubLibrary.C
 
+#BackTracing
+COMMON_FILES += $(SCC)BackTracingMIB.C
+COMMON_FILES += $(SFF)BackTracing.F
+
 
 #Root Interface
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
@@ -621,6 +625,8 @@ ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h ../include/trigger102_set
 ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/TrdHCalib.h ../include/TrdHCharge.h ../include/TrdTFit.h ../include/SlowControlDB.h
 
 ROOTDICTFILES += ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h  ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/GM_SubLibrary.h
+
+ROOTDICTFILES += ../include/BackTracingMIB.h
 
 ifdef PGTRACK
 ROOTDICTFILES += ../include/TrdSCalib.h ../include/TrdKCalib.h ../include/TrdKHit.h ../include/TrdMTrack.h ../include/TrdKPDF.h ../include/TrdKCluster.h ../include/TrdKToyMC.h
@@ -870,6 +876,10 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o   $(BIN)GM_SubLibrary.o \
 	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o
 SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)bcorr_s.o
+
+SHLIBO+=$(BIN)BackTracingMIB.o
+SHLIBO+=$(BIN)BackTracing.o
+
 SHLIBO+=$(ACSOFT_OBJECTS)
 SHLIBBO:=$(SHLIBO)
 else
@@ -992,6 +1002,9 @@ $(BIN)trd.o:   $(SFF)trd.F
 	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)trd.F -o $(BIN)trd.o                                                                                
 $(BIN)rkms.o:   $(SFF)rkms.F
 	$(FF) -c $(FFLAGS) $(FFLAGSOPT) -I$(CERNDIR)/include $(SFF)rkms.F -o $(BIN)rkms.o                                                                                
+$(BIN)BackTracing.o:   $(SFF)BackTracing.F
+	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)BackTracing.F -o $(BIN)BackTracing.o
+
 ifeq  "$(shell uname)"  "SunOS" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
