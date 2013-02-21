@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.540 2013/02/21 14:50:34 choutko Exp $
+//  $Id: root.C,v 1.541 2013/02/21 17:05:37 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5777,7 +5777,7 @@ int ParticleR::GetStoermerCutoff(double &Scut,int momOrR, int sign, AMSDir amsdi
         //out_type= 3 (GTOD)
 
         int gtodT =  AMSEventR::Head()->GetGalCoo(result, phi_deg , theta_deg, thetaAMS, phiAMS, 1,4,3,0.,3 );
-        if(gtodT!=0){
+        if(gtodT<0){
         return gtodT;
         }
 
@@ -9605,7 +9605,7 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
         //...This function inverts particle dir of ams system and returns particle dir in GTOD  deg!!!
 	// Parameters:   use_att= 1, use_coo = 1, use_time= 1, dt= 0, out_type= 3
         int gtodT =  GetGalCoo(result, phi_deg , theta_deg, theta, phi, 1,1,1,0.,3 ); //correct SDT inverted phi_deg and theta_deg
-	if (gtodT!=0) return  -1;
+	if (gtodT<0) return  -1;
 
 
         //...gtheta is colatitude --> I need Latitude:
