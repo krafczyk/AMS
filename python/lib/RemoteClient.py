@@ -3176,7 +3176,7 @@ class RemoteClient:
                     for file in files:
                         if(run[0]==file[0]):
                             found=1
-                            if(run[2]!=file[1]):
+                            if(run[2]!=file[1] and float(run[2])>float(file[1])):
                                 if(tab==0):
                                     bad2.append(run[0])
                                     print "Run ",run," and ntuples disagree. run events=",run[2]," ntuple events=",file[1]
@@ -3188,6 +3188,7 @@ class RemoteClient:
                     if(found==0):
                         if(tab==0):
                             print "Run ",run,"  not found in dataset ",dataset
+			    bad1.append(run[0])   		
                         else:
                             print "<tr>"
                             print "<td>Run %d Events %d  </td><td> Id %d </td><td>  not found in dataset %s</td>" %(run[0],run[2],run[1],dataset)
@@ -3207,8 +3208,8 @@ class RemoteClient:
             </HR>
             """
         else:   
-           print bad1
-           print bad2       
+           print "not found ",bad1
+           print "disagree ",bad2       
 
     def DeleteDataSet(self,run2p,dataset,u,v,f,donly,datamc,buildno,castoronly):
         self.update=u
