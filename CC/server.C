@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.206 2013/01/22 00:02:51 choutko Exp $
+//  $Id: server.C,v 1.207 2013/02/21 14:46:33 ams Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3506,36 +3506,47 @@ maxrun=_RunID;
 return length;
 }
 
-int Producer_impl::getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int pos, unsigned int &maxrun, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException)
+int Producer_impl::getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int pos, unsigned int len, unsigned int &maxrun, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException)
 {
-	const int maxs=200;
+ 	int maxs = static_cast<int>(len);
 
-	st=DPS::Producer::Continue;
-	DPS::Producer::RES_var acv= new DPS::Producer::RES();
-	int length = static_cast<int>(_rl.size());
-	if(maxrun != 0 && length>static_cast<int>(maxrun))
-		length=static_cast<int>(maxrun);
-	length -= static_cast<int>(pos);
-	if (length > maxs)
-		length = maxs;
-	if(length>0)
-	{
-		int sz = length;
-		acv->length(length);
-		length=0;
-		RLI li=_rl.begin();
-		for(advance(li,pos); li!=_rl.end()&&sz>0; ++li,sz--)
-			acv[length++]=*li;
-		if (li == _rl.end()) st=DPS::Producer::End;
-	}
-	else
-	{
-		length = 0;
-		st=DPS::Producer::End;
-	}
-	res=acv._retn();
-	maxrun=_RunID;
-	return length;
+ 	st=DPS::Producer::Continue;
+ 	DPS::Producer::RES_var acv= new DPS::Producer::RES();
+ 	int length = static_cast<int>(_rl.size());
+ 	if(maxrun && length>static_cast<int>(maxrun))
+ 		length=static_cast<int>(maxrun);
+ 	length -= static_cast<int>(pos);
+ 	if (length > maxs)
+ 		length = maxs;
+ 	if(length>0)
+ 	{
+ 		int sz = length;
+ 		acv->length(length);
+ 		length=0;
+ 		RLI li=_rl.begin();
+ 		for(advance(li,pos); li!=_rl.end()&&sz>0; ++li,sz--)
+ 			acv[length++]=*li;
+ 		if (li == _rl.end()) st=DPS::Producer::End;
+ 	}
+ 	else
+ 	{
+ 		length = 0;
+ 		st=DPS::Producer::End;
+ 	}
+ 	res=acv._retn();
+ 	maxrun=_RunID;
+ 	return length;
+}
+
+int Producer_impl::getRunsTotal() throw (CORBA::SystemException) { return static_cast<int>(_rl.size()); }
+
+int Producer_impl::getRunsNumber(DPS::Producer::RunStatus status) throw (CORBA::SystemException)
+{
+	int result = 0;
+	for(RLI li=_rl.begin();li!=_rl.end(); ++li)
+		if ((*li)->Status == status)
+			result++;
+	return result;
 }
 
  int Producer_impl::getDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res)throw (CORBA::SystemException){
@@ -3560,32 +3571,32 @@ return length;
 }
 
 
-int Producer_impl::getSplitDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res, unsigned int pos, DPS::Producer::TransferStatus &st)
-	throw (CORBA::SystemException)
+int Producer_impl::getSplitDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res, unsigned int pos, unsigned int len, DPS::Producer::TransferStatus &st)
+ 	throw (CORBA::SystemException)
 {
-	const int maxs=200;
+ 	int maxs = static_cast<int>(len);
 
-	st=DPS::Producer::Continue;
-	DPS::Producer::DSTIS_var acv= new DPS::Producer::DSTIS();
-	int length=static_cast<int>(_dstinfo.size());
-	length -= static_cast<int>(pos);
-	if (length > maxs)
-		length = maxs;
-	if(length>0){
-		int sz = length;
-		acv->length(length);
-		length=0;
-		for(DSTILI li=_dstinfo.begin(); li!=_dstinfo.end()&&sz>0; ++li,sz--)
-			acv[length++]=*li;
-		if (li == _dstinfo.end()) st=DPS::Producer::End;
-	}
-	else
-	{
-		length = 0;
-		st=DPS::Producer::End;
-	}
-	res=acv._retn();
-	return length;
+ 	st=DPS::Producer::Continue;
+ 	DPS::Producer::DSTIS_var acv= new DPS::Producer::DSTIS();
+ 	int length=static_cast<int>(_dstinfo.size()) - static_cast<int>(pos);
+ 	if (length > maxs)
+ 		length = maxs;
+ 	if(length>0){
+ 		int sz = length;
+ 		acv->length(length);
+ 		length=0;
+ 		DSTILI li = _dstinfo.begin();
+ 		for(advance(li,pos); li!=_dstinfo.end()&&sz>0; ++li,sz--)
+ 			acv[length++]=*li;
+ 		if (li == _dstinfo.end()) st=DPS::Producer::End;
+ 	}
+ 	else
+ 	{
+ 		length = 0;
+ 		st=DPS::Producer::End;
+ 	}
+ 	res=acv._retn();
+ 	return length;
 }
 
 
@@ -3962,10 +3973,10 @@ dsts=acv._retn();
 return length;
 }
 
-int Producer_impl::getSplitDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts, unsigned int pos, DPS::Producer::TransferStatus &st)
+int Producer_impl::getSplitDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts, unsigned int pos, unsigned int len, DPS::Producer::TransferStatus &st)
 	throw (CORBA::SystemException)
 {
-	const int maxs=200;
+	int maxs = static_cast<int>(len);
 
 	st=DPS::Producer::Continue;
 	DPS::Producer::DSTS_var acv= new DPS::Producer::DSTS();

@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.62 2012/12/19 12:33:44 ams Exp $
+//  $Id: server.h,v 1.63 2013/02/21 14:44:03 ams Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -391,14 +391,16 @@ public:
 
 
   int getDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res)throw (CORBA::SystemException);
-  int getSplitDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res, unsigned int pos, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException);
+  int getSplitDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res, unsigned int pos, unsigned int len, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException);
   void sendDSTInfoS(const DPS::Client::CID &cid, const DPS::Producer::DSTIS &res)throw (CORBA::SystemException);
   int sendSplitDSTInfoS(const DPS::Client::CID &ci, const DPS::Producer::DSTIS &acs, DPS::Producer::TransferStatus &st)throw (CORBA::SystemException);
  void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
   int getRun(const DPS::Client::CID &cid, const DPS::Producer::FPath & fpath, DPS::Producer::RUN_out run,DPS::Producer::TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
   int sendFile(const DPS::Client::CID &cid,  DPS::Producer::FPath & fpath, const  DPS::Producer::RUN & file,DPS::Producer::TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
   int getRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int & maxrun)throw (CORBA::SystemException);
-  int getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int pos, unsigned int &maxrun, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException);
+  int getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int pos, unsigned int len, unsigned int &maxrun, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException);
+  int getRunsTotal() throw (CORBA::SystemException);
+  int getRunsNumber(DPS::Producer::RunStatus status) throw (CORBA::SystemException);
 
   void sendRunEvInfoS(const DPS::Client::CID &cid, const DPS::Producer::RES & res, unsigned int  maxrun)throw (CORBA::SystemException);
   int sendSplitRunEvInfoS(const DPS::Client::CID &cid, const DPS::Producer::RES & res, unsigned int  maxrun, DPS::Producer::TransferStatus &st)throw (CORBA::SystemException);
@@ -408,7 +410,7 @@ public:
   void sendDSTInfo(const  DPS::Producer::DSTInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
 
   int getDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException);
-  int getSplitDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts, unsigned int pos, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException);
+  int getSplitDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts, unsigned int pos, unsigned int len, DPS::Producer::TransferStatus &st) throw (CORBA::SystemException);
   int getDSTSR(const DPS::Client::CID & ci,  int run,DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException);
   void sendDSTS(const DPS::Client::CID & ci, const DPS::Producer::DSTS & dsts)throw (CORBA::SystemException);
   int sendSplitDSTS(const DPS::Client::CID &ci, const DPS::Producer::DSTS &acs, DPS::Producer::TransferStatus &st)throw (CORBA::SystemException);

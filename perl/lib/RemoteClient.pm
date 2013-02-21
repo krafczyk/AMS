@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.757 2013/02/11 19:08:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.758 2013/02/21 14:47:54 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6982,7 +6982,19 @@ if( not defined $dbserver->{dbfile}){
      $dbserver=blessdb();
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
 }
-               my $rn=DBServer::GetRunsNumber($dbserver);
+               my $rn=0;
+			   if($#{$self->{arpref}} >=0){
+				 my $arsref=${$self->{arpref}}[0];
+				 try{
+				   $rn = $arsref->getRunsTotal();
+				 }
+				 catch CORBA::SystemException with{
+                   $self->ErrorPlus( "sendback corba exc on Producer::getRunsTotal");
+				 };
+			   }
+			   else{
+                 $rn=DBServer::GetRunsNumber($dbserver);
+			   }
                my $maxr=512;
                if($rn>=0){
                 if($rn<$maxr){
@@ -6992,8 +7004,22 @@ if( not defined $dbserver->{dbfile}){
                  }
                 }
                 else{
-                 my $rntbr=DBServer::GetRunsNumber($dbserver,"ToBeRerun");
-                 my $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
+                 my $rntbr=0;
+                 my $rntfi=0;
+				 if($#{$self->{arpref}} >=0){
+				   my $arsref=${$self->{arpref}}[0];
+				   try{
+				     $rntbr=$arsref->getRunsNumber("ToBeRerun");
+				     $rntfi=$arsref->getRunsNumber("Finished");
+				   }
+				   catch CORBA::SystemException with{
+                     $self->ErrorPlus( "sendback corba exc on Producer::getRunsNumber");
+				   };
+				 }
+				 else {
+                   $rntbr=DBServer::GetRunsNumber($dbserver,"ToBeRerun");
+                   $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
+				 }			 
                  if($rntbr>=0 and $rntfi>=0){
                    my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
                    $jbs=$maxr-$tot;
