@@ -257,8 +257,8 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
     sum += signal;
   }
   // if (kLoss&opt)  sum *= GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle()); // correction no longer in use
-  if      (kLoss &opt) sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle(),sum*GetCosTheta())/GetCosTheta();
-  else if (kLoss2&opt) sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle(),sum);
+  if      (kLoss &opt) sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),GetCofG(),GetImpactAngle(),sum*GetCosTheta())/GetCosTheta();
+  else if (kLoss2&opt) sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),GetCofG(),GetImpactAngle(),sum);
   if      (kPN&opt)    sum = ConvertToPSideScale(sum);   
   if      (kMIP&opt)   sum = GetNumberOfMIPs(sum);
   if      (kAngle&opt) sum *= GetCosTheta();
