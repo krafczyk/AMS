@@ -138,7 +138,7 @@ void VertexR::BuildTracksIndex()
   VCon *cont2 = GetVCon()->GetCont("AMSTrTrack");
   if (!cont2) return;
   fTrTrack.clear();
-  for (int i = 0; i < NTrTrack(); i++) {
+  for (int i = 0; i < _pTrTrack.size(); i++) {
     fTrTrack.push_back(cont2->getindex(_pTrTrack[i]));
   }
   delete cont2;
@@ -278,6 +278,25 @@ void VertexR::set_vertex(){
 }
 
 double VertexR::ZrefV = 80;
+
+#include "root.h"
+
+void VertexR::Recover()
+{
+  if (NTrTrack() > 0) return;
+
+  AMSEventR *evt = AMSEventR::Head();
+  if (!evt || evt->nTrTrack() < 2) return;
+
+  for (int i = 0; i < evt->nTrTrack(); i++) {
+    TrTrackR *trk = evt->pTrTrack(i);
+    if (!trk || !trk->ParExists(TrTrackR::kVertex)) continue;
+
+    double dz = trk->GetP0z(TrTrackR::kVertex)-Vertex[2];
+    if (fabs(dz) < 1) _pTrTrack.push_back(trk);
+  }
+  BuildTracksIndex();
+}
 
 double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2)
 {

@@ -111,6 +111,8 @@ public:
   /// Return a string with some info (used for event display)
   const char* Info(int iRef);
 
+  /// Recover track index
+  void Recover();
 
   void set_vertex();
 
