@@ -32,6 +32,8 @@ TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   _tkid    = orig._tkid;
   _address = orig._address;
   _nelem   = orig._nelem;
+  _seedind = orig._seedind;
+  for (int i = 0; i<_nelem; i++) _signal.push_back(orig._signal.at(i));
   Status  = orig.Status;
   _mult    = orig._mult;
   _dxdz    = orig._dxdz;
