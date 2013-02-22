@@ -5,7 +5,7 @@ ClassImp(TrdKCluster)
 using namespace TMath;
 
 
-TVirtualFitter *TrdKCluster::gMinuit_TRDTrack = NULL;
+TMinuit *TrdKCluster::gMinuit_TRDTrack = NULL;
 TrdKCalib *TrdKCluster::_DB_instance = NULL;
 TRD_ImpactParameter_Likelihood *TrdKCluster::TRDImpactlikelihood = NULL;
 TrdKPDF *TrdKCluster::kpdf_e=NULL;
@@ -26,6 +26,7 @@ Double_t TrdKCluster::LastProcessedRun_Calibration=0;
 vector <TrdKHit> TrdKCluster::TRDTubeCollection;
 map<int, TRDOnline> TrdKCluster::map_TRDOnline;
 float TrdKCluster::MinimumDistance=3;
+float TrdKCluster::DefaultRigidity=200;
 
 /////////////////////////////////////////////////////////////////////
 
@@ -39,12 +40,10 @@ TrdKCluster::TrdKCluster()
 TrdKCluster::~TrdKCluster(){
 }
 
-/////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+void TrdKCluster::Init(AMSEventR *evt){
 
-TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
-{
     _event=evt;
-    Init_Base();
 
     Time=evt->UTime();
 
@@ -68,7 +67,6 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
     }
 
 
-    SetTrTrack(track, fitcode);
 
     DoHitPreselection(MinimumDistance); //=======Select +/- MinimumDistance (cm) volumn around TrTrack=============
     AddEmptyTubes(MinimumDistance);  //===========Add empty tubes to complete the geometry==========
@@ -99,8 +97,73 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
     return;
 }
 
+/////////////////////////////////////////////////////////////////////
+
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
+{
+    Init_Base();
+    SetTrTrack(track, fitcode);
+    Init(evt);
+}
+
 
 /////////////////////////////////////////////////////////////////////
+
+TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir)
+{
+    Init_Base();
+    SetTrTrack(P0, Dir, DefaultRigidity);
+    Init(evt);
+}
+
+
+/////////////////////////////////////////////////////////////////////
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack){
+    AMSPoint *P0= new AMSPoint(trdtrack->Coo);
+    AMSDir *Dir = new AMSDir(trdtrack->Theta,trdtrack->Phi);
+    Init_Base();
+    SetTrTrack(P0, Dir, DefaultRigidity);
+    Init(evt);
+    delete P0;
+    delete Dir;
+}
+/////////////////////////////////////////////////////////////////////
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack){
+    AMSPoint *P0= new AMSPoint(trdtrack->Coo);
+    AMSDir *Dir = new AMSDir(trdtrack->Dir);
+    Init_Base();
+    SetTrTrack(P0, Dir, DefaultRigidity);
+    Init(evt);
+    delete P0;
+    delete Dir;
+
+}
+/////////////////////////////////////////////////////////////////////
+TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower){
+    AMSPoint *P0= new AMSPoint(shower->CofG);
+    AMSDir *Dir = new AMSDir(shower->Dir);
+    Init_Base();
+    SetTrTrack(P0, Dir, DefaultRigidity);
+    Init(evt);
+    delete P0;
+    delete Dir;
+
+}
+/////////////////////////////////////////////////////////////////////
+TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah){
+    AMSPoint *P0=0;
+    AMSDir *Dir=0;
+    double dummy_time;
+    betah->TInterpolate(TRDCenter,*P0,*Dir,dummy_time,false);
+    Init_Base();
+    SetTrTrack(P0, Dir, DefaultRigidity);
+    Init(evt);
+    delete P0;
+    delete Dir;
+
+}
+/////////////////////////////////////////////////////////////////////
+
 
 TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir):TRDHitCollection(_collection)
 {
@@ -448,7 +511,6 @@ double TRD_ImpactParameter_Likelihood::GetLikelihood(float Amp, float d0){
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::FitTRDTrack(int method, int hypothesis){
-
     if(method==1) FitTRDTrack_IPLikelihood();
     else  if(method==2) FitTRDTrack_Analytical();
     else  if(method==3) FitTRDTrack_PathLength(hypothesis);
@@ -463,9 +525,9 @@ void TrdKCluster::FitTRDTrack(int method, int hypothesis){
 
 void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 
-    TVirtualFitter::SetDefaultFitter("Minuit");
-    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
-
+    //    TVirtualFitter::SetDefaultFitter("Minuit");
+    //    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+    if(!gMinuit_TRDTrack)  gMinuit_TRDTrack=new TMinuit(4);
     //    gMinuit_TRDTrack->SetFCN(fcn_TRDTrack);
     //Changed by Wei Sun
     if(IsCharge==0) gMinuit_TRDTrack->SetFCN(fcn_TRDTrack);
@@ -473,10 +535,20 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 
     gMinuit_TRDTrack->SetObjectFit(this);
     double arglist[10];
-    arglist[0]=-1;
-    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
-    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
 
+
+    //    arglist[0]=-1;
+    //    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
+    //    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
+    //    arglist[0]=0;
+    //    gMinuit_TRDTrack->ExecuteCommand("SET NOWarnings",arglist,1);
+    //    gMinuit_TRDTrack->SetPrintLevel(-1);
+
+    arglist[0] = -1;
+    gMinuit_TRDTrack->SetPrintLevel(-1);
+    //    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist,1);
+    //    arglist[0] = 0;
+    //    gMinuit_TRDTrack->ExecuteCommand("SET NOW",   arglist,0);
 
     float init_z0=115;
     float init_x0=0;
@@ -492,28 +564,61 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
     init_dx=Dir.x();
     init_dy=Dir.y();
 
-    //    printf("TrTrack : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",P0.x(),P0.y(),P0.z(),Dir.x(),Dir.y(),Dir.z());
+    if(DebugOn){
+        cout<<"FitTRDTrack_IPLikelihood ,  TrTrack : "<<track_extrapolated_P0<<", "<<track_extrapolated_Dir<<endl;
+        printf("TrTrack : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",P0.x(),P0.y(),P0.z(),Dir.x(),Dir.y(),Dir.z());
+    }
 
-    gMinuit_TRDTrack->SetParameter(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10);
-    gMinuit_TRDTrack->SetParameter(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10);
-    gMinuit_TRDTrack->SetParameter(2,  "z0",  init_z0,0,init_z0,init_z0);
-    gMinuit_TRDTrack->SetParameter(3,  "dx0", init_dx,  0.1,  -1,1);
-    gMinuit_TRDTrack->SetParameter(4,  "dy0", init_dy,  0.1,  -1,1);
+    //
+    //    gMinuit_TRDTrack->SetParameter(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10);
+    //    gMinuit_TRDTrack->SetParameter(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10);
+    //    gMinuit_TRDTrack->SetParameter(2,  "z0",  init_z0,0,init_z0,init_z0);
+    //    gMinuit_TRDTrack->SetParameter(3,  "dx0", init_dx,  0.1,  -1,1);
+    //    gMinuit_TRDTrack->SetParameter(4,  "dy0", init_dy,  0.1,  -1,1);
+
+    int ierr=0;
+    gMinuit_TRDTrack->mnparm(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10,ierr);
+    gMinuit_TRDTrack->mnparm(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10,ierr);
+    gMinuit_TRDTrack->mnparm(2,  "z0",  init_z0,0,init_z0,init_z0,ierr);
+    gMinuit_TRDTrack->mnparm(3,  "dx0", init_dx,  0.1,  -1,1,ierr);
+    gMinuit_TRDTrack->mnparm(4,  "dy0", init_dy,  0.1,  -1,1,ierr);
 
     arglist[0]=0;
 
     gMinuit_TRDTrack->FixParameter(2);
-    gMinuit_TRDTrack->ExecuteCommand("MIGRAD", arglist, 0);
+    //    gMinuit_TRDTrack->ExecuteCommand("MIGRAD", arglist, 0);
+    gMinuit_TRDTrack->mnexcm("MIGRAD", arglist, 0,ierr);
 
 
-    float x0,y0,z0,dx,dy,dz;
+        float x0,y0,z0,dx,dy,dz;
+        float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
 
-    x0=gMinuit_TRDTrack->GetParameter(0);
-    y0=gMinuit_TRDTrack->GetParameter(1);
-    z0=gMinuit_TRDTrack->GetParameter(2);
-    dx=gMinuit_TRDTrack->GetParameter(3);
-    dy=gMinuit_TRDTrack->GetParameter(4);
+    //    x0=gMinuit_TRDTrack->GetParameter(0);
+    //    y0=gMinuit_TRDTrack->GetParameter(1);
+    //    z0=gMinuit_TRDTrack->GetParameter(2);
+    //    dx=gMinuit_TRDTrack->GetParameter(3);
+    //    dy=gMinuit_TRDTrack->GetParameter(4);
+
+    double out[5],err[5];
+    TString s_name[5]={"x0","y0","z0","dx0","dy0"};
+    for(int i=0;i<5;i++)   {
+        double bnd1, bnd2;
+        int ivar;
+        gMinuit_TRDTrack->mnpout(i, s_name[i], out[i], err[i], bnd1, bnd2, ivar);
+    }
+
+    x0=out[0];
+    y0=out[1];
+    z0=out[2];
+    dx=out[3];
+    dy=out[4];
+
+
     dz=TMath::Sqrt(1-dx*dx-dy*dy);
+
+    if(DebugOn){
+        printf("TRDTrack Refit : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",x0,y0,z0,dx,dy,dz);
+    }
 
 
     AMSDir TRDDir(dx,dy,dz);
@@ -619,15 +724,22 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
 void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
 
-    TVirtualFitter::SetDefaultFitter("Minuit");
-    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+//    TVirtualFitter::SetDefaultFitter("Minuit");
+//    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+
+    if(!gMinuit_TRDTrack)  gMinuit_TRDTrack=new TMinuit(4);
+
     Refit_hypothesis=particle_hypothesis;
     gMinuit_TRDTrack->SetFCN(fcn_TRDTrack_PathLength);
     gMinuit_TRDTrack->SetObjectFit(this);
     double arglist[10];
-    arglist[0]=-1;
-    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
-    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
+
+//    arglist[0]=-1;
+//    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
+//    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
+
+    arglist[0] = -1;
+    gMinuit_TRDTrack->SetPrintLevel(-1);
 
     float init_z0=115;
     float init_x0=0;
@@ -645,30 +757,58 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
     //    printf("TrTrack : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",P0.x(),P0.y(),P0.z(),Dir.x(),Dir.y(),Dir.z());
 
-    gMinuit_TRDTrack->SetParameter(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10);
-    gMinuit_TRDTrack->SetParameter(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10);
-    gMinuit_TRDTrack->SetParameter(2,  "z0",  init_z0,0,init_z0,init_z0);
-    gMinuit_TRDTrack->SetParameter(3,  "dx0", init_dx,  0.1,  -1,1);
-    gMinuit_TRDTrack->SetParameter(4,  "dy0", init_dy,  0.1,  -1,1);
+//    gMinuit_TRDTrack->SetParameter(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10);
+//    gMinuit_TRDTrack->SetParameter(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10);
+//    gMinuit_TRDTrack->SetParameter(2,  "z0",  init_z0,0,init_z0,init_z0);
+//    gMinuit_TRDTrack->SetParameter(3,  "dx0", init_dx,  0.1,  -1,1);
+//    gMinuit_TRDTrack->SetParameter(4,  "dy0", init_dy,  0.1,  -1,1);
+
+
+    int ierr=0;
+    gMinuit_TRDTrack->mnparm(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10,ierr);
+    gMinuit_TRDTrack->mnparm(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10,ierr);
+    gMinuit_TRDTrack->mnparm(2,  "z0",  init_z0,0,init_z0,init_z0,ierr);
+    gMinuit_TRDTrack->mnparm(3,  "dx0", init_dx,  0.1,  -1,1,ierr);
+    gMinuit_TRDTrack->mnparm(4,  "dy0", init_dy,  0.1,  -1,1,ierr);
 
     arglist[0]=0;
 
     gMinuit_TRDTrack->FixParameter(2);
-    gMinuit_TRDTrack->ExecuteCommand("MIGRAD", arglist, 0);
+    //    gMinuit_TRDTrack->ExecuteCommand("MIGRAD", arglist, 0);
+    gMinuit_TRDTrack->mnexcm("MIGRAD", arglist, 0,ierr);
 
 
     float x0,y0,z0,dx,dy,dz;
+    float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
 
-    x0=gMinuit_TRDTrack->GetParameter(0);
-    y0=gMinuit_TRDTrack->GetParameter(1);
-    z0=gMinuit_TRDTrack->GetParameter(2);
-    dx=gMinuit_TRDTrack->GetParameter(3);
-    dy=gMinuit_TRDTrack->GetParameter(4);
+//    x0=gMinuit_TRDTrack->GetParameter(0);
+//    y0=gMinuit_TRDTrack->GetParameter(1);
+//    z0=gMinuit_TRDTrack->GetParameter(2);
+//    dx=gMinuit_TRDTrack->GetParameter(3);
+//    dy=gMinuit_TRDTrack->GetParameter(4);
+
+    double out[5],err[5];
+    TString s_name[5]={"x0","y0","z0","dx0","dy0"};
+    for(int i=0;i<5;i++)   {
+        double bnd1, bnd2;
+        int ivar;
+        gMinuit_TRDTrack->mnpout(i, s_name[i], out[i], err[i], bnd1, bnd2, ivar);
+    }
+
+    x0=out[0];
+    y0=out[1];
+    z0=out[2];
+    dx=out[3];
+    dy=out[4];
+
+
     dz=TMath::Sqrt(1-dx*dx-dy*dy);
 
     AMSDir TRDDir(dx,dy,dz);
     AMSPoint TRDP0(x0,y0,z0);
     SetTRDTrack(&TRDP0,&TRDDir);
+
+
 }
 
 
@@ -765,8 +905,8 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
 
 void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 
-//if(fitcode>=0){
-  if(track->ParExists(fitcode)) {
+    //if(fitcode>=0){
+    if(track->ParExists(fitcode)) {
         track_extrapolated_Dir=  AMSDir(0,0,0);
         track_extrapolated_P0= AMSPoint(0,0,0);
         track->Interpolate(TRDCenter,track_extrapolated_P0,track_extrapolated_Dir,fitcode);
@@ -1078,8 +1218,8 @@ int TrdKCluster::GetXePressure(){
 
     //TB Pressure
     if(Time<1300000000) {
-      Pressure_Xe = 1000;
-      return Pressure_Xe;
+        Pressure_Xe = 1000;
+        return Pressure_Xe;
     }
 
     map<int, TRDOnline>::iterator  it=map_TRDOnline.upper_bound((int)Time);
@@ -1195,7 +1335,7 @@ double TrdKCluster::TRDTrack_ImpactChi2_Charge(Double_t *par)
 
 int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
 {
-    double BigNumber=100000000; 
+    double BigNumber=100000000;
 
     //For beta correction
     Beta=Velocity;
@@ -1211,8 +1351,8 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     if(QTRDHitCollectionNuclei.size()<3)
     {
         TRDChargeValue=0;
-  	TRDChargeError=BigNumber;
-  	return -5;
+        TRDChargeError=BigNumber;
+        return -5;
     }
 
     //Find minimum of likelihood
@@ -1353,9 +1493,9 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
 
     if(TRDChargeValue<0)
     {
-      TRDChargeValue=0;
-      TRDChargeError=BigNumber;
-      return -4;
+        TRDChargeValue=0;
+        TRDChargeError=BigNumber;
+        return -4;
     }
 
     return 0;
@@ -1384,14 +1524,14 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
     double Lvalue;
     for(vector<TrdKHit>::iterator it=QTRDHitCollectionNuclei.begin();it!=QTRDHitCollectionNuclei.end();it++)
     {
-      //Some parameters in TrdKPDF
-      TRDLayer=(*it).TRDHit_Layer;
-      ADC=(*it).TRDHit_Amp;
-      Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
-      Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
+        //Some parameters in TrdKPDF
+        TRDLayer=(*it).TRDHit_Layer;
+        ADC=(*it).TRDHit_Amp;
+        Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+        Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-      Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
-      if(Lvalue>max_one) max_one=Lvalue;
+        Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
+        if(Lvalue>max_one) max_one=Lvalue;
     }
 
     //Only dE/dX PDF
@@ -1407,7 +1547,7 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
 
             Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
             TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
-	    if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
+            if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
         }
         TRDChargeLikelihood=TRDChargeLikelihood-max_one-max_two;
         return TRDChargeLikelihood;
@@ -1422,9 +1562,9 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
         Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
         Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-	Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
-	TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
-	if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
+        Lvalue=-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0,Beta));
+        TRDChargeLikelihood=TRDChargeLikelihood+Lvalue;
+        if(Lvalue!=max_one && Lvalue>max_two) max_two=Lvalue;
     }
     TRDChargeLikelihood=TRDChargeLikelihood-max_one-max_two;
     double DAmpL=DAmp/20.0;
@@ -1508,38 +1648,38 @@ void TrdKCluster::HitSelectionAfterRefit()
     int TRDLayer;
     double ADC,Corr;
     DAmp=0;
-    DAmpUpper=0; 
-    DAmpLower=0; 
+    DAmpUpper=0;
+    DAmpLower=0;
     NBelowThreshold=0;
-    NBelowThresholdUpper=0; 
-    NBelowThresholdLower=0; 
+    NBelowThresholdUpper=0;
+    NBelowThresholdLower=0;
     for(vector<TrdKHit>::iterator it=QTRDHitCollection.begin();it!=QTRDHitCollection.end();it++)
     {
         Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
         TRDLayer=(*it).TRDHit_Layer;
-	ADC=(*it).TRDHit_Amp;
-	Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
-        if(Length>0) 
-	{
-	  if(3400*Corr>ADC) NBelowThreshold++;
-	  QTRDHitCollectionNuclei.push_back(*it);
-	  if(TRDLayer<10)
-	  {
-	    if(3400*Corr>ADC) NBelowThresholdLower++;
-	    QTRDHitCollectionNucleiLower.push_back(*it);
-	  }
-	  else
-	  {
-	    if(3400*Corr>ADC) NBelowThresholdUpper++;
-	    QTRDHitCollectionNucleiUpper.push_back(*it);
-	  }
-	}
+        ADC=(*it).TRDHit_Amp;
+        Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
+        if(Length>0)
+        {
+            if(3400*Corr>ADC) NBelowThreshold++;
+            QTRDHitCollectionNuclei.push_back(*it);
+            if(TRDLayer<10)
+            {
+                if(3400*Corr>ADC) NBelowThresholdLower++;
+                QTRDHitCollectionNucleiLower.push_back(*it);
+            }
+            else
+            {
+                if(3400*Corr>ADC) NBelowThresholdUpper++;
+                QTRDHitCollectionNucleiUpper.push_back(*it);
+            }
+        }
         else
         {
             QTRDHitCollectionDeltaRay.push_back(*it);
             DAmp=DAmp+(*it).TRDHit_Amp;
-	    if(TRDLayer<10) DAmpLower=DAmpLower+(*it).TRDHit_Amp;
-	    else DAmpUpper=DAmpUpper+(*it).TRDHit_Amp;
+            if(TRDLayer<10) DAmpLower=DAmpLower+(*it).TRDHit_Amp;
+            else DAmpUpper=DAmpUpper+(*it).TRDHit_Amp;
         }
     }
 }
@@ -1878,72 +2018,72 @@ double TrdKCluster::GetTRDChargeLower()
 
 double TrdKCluster::GetIPChi2()
 {
-  double Par[5];
-  Par[0]=TRDtrack_extrapolated_P0.x();
-  Par[1]=TRDtrack_extrapolated_P0.y();
-  Par[2]=TRDtrack_extrapolated_P0.z();
-  double theta=TRDtrack_extrapolated_Dir.gettheta();
-  double phi=TRDtrack_extrapolated_Dir.getphi();
-  Par[3]=sin(theta)*cos(phi);
-  Par[4]=sin(theta)*sin(phi);
+    double Par[5];
+    Par[0]=TRDtrack_extrapolated_P0.x();
+    Par[1]=TRDtrack_extrapolated_P0.y();
+    Par[2]=TRDtrack_extrapolated_P0.z();
+    double theta=TRDtrack_extrapolated_Dir.gettheta();
+    double phi=TRDtrack_extrapolated_Dir.getphi();
+    Par[3]=sin(theta)*cos(phi);
+    Par[4]=sin(theta)*sin(phi);
 
-  double TotalAmpRefit=0;
-  for(vector<TrdKHit>::iterator it=QTRDHitCollectionRefit.begin();it!=QTRDHitCollectionRefit.end();it++)
-  {
-    TotalAmpRefit=TotalAmpRefit+(*it).TRDHit_Amp;
-  }
+    double TotalAmpRefit=0;
+    for(vector<TrdKHit>::iterator it=QTRDHitCollectionRefit.begin();it!=QTRDHitCollectionRefit.end();it++)
+    {
+        TotalAmpRefit=TotalAmpRefit+(*it).TRDHit_Amp;
+    }
 
-  double IPChi2=TRDTrack_ImpactChi2_Charge(Par);
-  IPChi2=IPChi2/TotalAmpRefit;
-  IPChi2=IPChi2+8.982074956/10.0;
+    double IPChi2=TRDTrack_ImpactChi2_Charge(Par);
+    IPChi2=IPChi2/TotalAmpRefit;
+    IPChi2=IPChi2+8.982074956/10.0;
 
-  return IPChi2;
+    return IPChi2;
 }
 
 /////////////////////////////////////////////////////////////////////
 
 double TrdKCluster::GetAsyNormE()
 {
-  int Layer;
-  double ADC;
-  double Length;
+    int Layer;
+    double ADC;
+    double Length;
 
-  double UpE=0;
-  double LowE=0;
-  double UpPL=0;
-  double LowPL=0;
+    double UpE=0;
+    double LowE=0;
+    double UpPL=0;
+    double LowPL=0;
 
-  for(vector<TrdKHit>::iterator it=QTRDHitCollectionNuclei.begin();it!=QTRDHitCollectionNuclei.end();it++)
-  {
-    ADC=(*it).TRDHit_Amp;
-    Layer=(*it).TRDHit_Layer;
-    Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
-    if(Layer>=10)
+    for(vector<TrdKHit>::iterator it=QTRDHitCollectionNuclei.begin();it!=QTRDHitCollectionNuclei.end();it++)
     {
-      UpE+=ADC;
-      UpPL+=Length;
+        ADC=(*it).TRDHit_Amp;
+        Layer=(*it).TRDHit_Layer;
+        Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+        if(Layer>=10)
+        {
+            UpE+=ADC;
+            UpPL+=Length;
+        }
+        else
+        {
+            LowE+=ADC;
+            LowPL+=Length;
+        }
     }
-    else
-    {
-      LowE+=ADC;
-      LowPL+=Length;
-    }
-  }
 
-  if(UpPL) UpE=UpE/UpPL;
-  else UpE=0;
-  if(LowPL) LowE=LowE/LowPL;
-  else LowE=0;
-  if(UpE+LowE) return (UpE-LowE)/(UpE+LowE);
-  else return -100;
+    if(UpPL) UpE=UpE/UpPL;
+    else UpE=0;
+    if(LowPL) LowE=LowE/LowPL;
+    else LowE=0;
+    if(UpE+LowE) return (UpE-LowE)/(UpE+LowE);
+    else return -100;
 }
 
 /////////////////////////////////////////////////////////////////////
 
 double TrdKCluster::GetAsyD()
 {
-  if(DAmpUpper+DAmpLower) return (DAmpUpper-DAmpLower)/(DAmpUpper+DAmpLower);
-  else return -100;
+    if(DAmpUpper+DAmpLower) return (DAmpUpper-DAmpLower)/(DAmpUpper+DAmpLower);
+    else return -100;
 }
 
 /////////////////////////////////////////////////////////////////////

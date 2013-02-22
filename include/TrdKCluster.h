@@ -77,12 +77,12 @@ public:
 
 
 
-//   static bool comp_l(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).l < (*j).l;}
-//   static bool comp_amp(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).amp < (*j).amp;}
-//   static bool comp_likelihood(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).likelihood < (*j).likelihood;}
+    //   static bool comp_l(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).l < (*j).l;}
+    //   static bool comp_amp(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).amp < (*j).amp;}
+    //   static bool comp_likelihood(const vector<LikelihoodObject>::iterator i,const vector<LikelihoodObject>::iterator j){ return (*i).likelihood < (*j).likelihood;}
 
-//    bool operator > ( const LikelihoodObject rhs) { return (likelihood > rhs.likelihood); }
-//    bool operator < ( const LikelihoodObject rhs) { return (likelihood < rhs.likelihood); }
+    //    bool operator > ( const LikelihoodObject rhs) { return (likelihood > rhs.likelihood); }
+    //    bool operator < ( const LikelihoodObject rhs) { return (likelihood < rhs.likelihood); }
     static bool  comp_likelihood (LikelihoodObject i ,LikelihoodObject j){ return (i.likelihood < j.likelihood); }
 
 };
@@ -99,7 +99,12 @@ public:
     TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode);
     ~TrdKCluster();
 
+    TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir);
 
+    TrdKCluster(AMSEventR *evt,TrdTrackR *trdtrack);
+    TrdKCluster(AMSEventR *evt,TrdHTrackR *trdhtrack);
+    TrdKCluster(AMSEventR *evt,EcalShowerR *shower);
+    TrdKCluster(AMSEventR *evt, BetaHR *betah);
 
 
     // Cluster status
@@ -196,8 +201,8 @@ public:
 
     //Get likelihood from TrdKPDF
     double GetTRDChargeLikelihood(double Z,int Option);
-    double GetTRDChargeLikelihoodUpper(double Z); 
-    double GetTRDChargeLikelihoodLower(double Z); 
+    double GetTRDChargeLikelihoodUpper(double Z);
+    double GetTRDChargeLikelihoodLower(double Z);
 
     //Calculate TRD charge value and error
     int CalculateTRDCharge(int Option=0, double Velocity=1);
@@ -205,14 +210,14 @@ public:
     //Get TRD charge value and error
     double GetTRDCharge() {return TRDChargeValue;}
     double GetTRDChargeError() {return TRDChargeError;}
-    double GetTRDChargeUpper(); 
-    double GetTRDChargeLower(); 
+    double GetTRDChargeUpper();
+    double GetTRDChargeLower();
 
     int GetQNHit() {return QTRDHitCollectionNuclei.size();}
     int GetQNHitUpper() {return QTRDHitCollectionNucleiUpper.size();}
     int GetQNHitLower() {return QTRDHitCollectionNucleiLower.size();}
 
-    double GetCleanliness() {return ((double)(QTRDHitCollection.size()))/((double)(_event->NTrdRawHit()));} 
+    double GetCleanliness() {return ((double)(QTRDHitCollection.size()))/((double)(_event->NTrdRawHit()));}
 
     //Get track refit (charge) IPChi2
     double GetIPChi2();
@@ -237,16 +242,17 @@ public:
     static Double_t LastProcessedRun_Calibration;
     static Double_t LastProcessedRun_Alignment;
 
-     static bool DebugOn;
+    static bool DebugOn;
 
 
-       static TrdKCalib *_DB_instance;
-       TrdKCalib* GetTrdKDB(){return _DB_instance;}
+    static TrdKCalib *_DB_instance;
+    TrdKCalib* GetTrdKDB(){return _DB_instance;}
 
 private:
 
     // Additinal Initilizationa
     void Init_Base();
+    void Init(AMSEventR* evt);
     void Constrcut_TRDTube();
 
     void SelectClosest();
@@ -339,11 +345,13 @@ private:
     static TrdKPDF *kpdf_h;
     static TrdKPDF *kpdf_q;
 
-    static TVirtualFitter *gMinuit_TRDTrack;
+    static TMinuit *gMinuit_TRDTrack;
 
     static map<int, TRDOnline> map_TRDOnline;
 
     static float MinimumDistance;
+
+    static float DefaultRigidity;
 
     TRDAlignmentPar par_alignment;
 
@@ -355,13 +363,13 @@ private:
     vector<TrdKHit> QTRDHitCollectionRefit;
     vector<TrdKHit> QTRDHitCollectionNuclei;
     vector<TrdKHit> QTRDHitCollectionDeltaRay;
-    vector<TrdKHit> QTRDHitCollectionNucleiUpper; 
-    vector<TrdKHit> QTRDHitCollectionNucleiLower; 
+    vector<TrdKHit> QTRDHitCollectionNucleiUpper;
+    vector<TrdKHit> QTRDHitCollectionNucleiLower;
 
     //Total amplitude of delta ray tubes
     double DAmp;
-    double DAmpUpper; 
-    double DAmpLower; 
+    double DAmpUpper;
+    double DAmpLower;
 
     //TRD charge value and error
     double TRDChargeValue;
@@ -369,8 +377,8 @@ private:
 
     //Number of dE/dX tubes not saturated
     int NBelowThreshold;
-    int NBelowThresholdUpper; 
-    int NBelowThresholdLower; 
+    int NBelowThresholdUpper;
+    int NBelowThresholdLower;
 
     //For beta correction
     double Beta;
