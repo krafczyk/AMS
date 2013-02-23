@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.148 2013/02/18 14:47:51 kaiwu Exp $
+//  $Id: linkdef.h,v 1.149 2013/02/23 16:02:35 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -111,8 +111,6 @@
 //#pragma link C++ class TofTAlignPar++;
 //////////////////////////////////////
 
-#pragma link C++ class MagnetVarp++;
-#pragma link C++ class MagnetVarp::MagnetTemperature++;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class AMSChain+;
 #pragma link C++ class AMSEventList+;
@@ -122,6 +120,8 @@
 #endif
 #endif
 
+#pragma link C++ class MagnetVarp++;
+#pragma link C++ class MagnetVarp::MagnetTemperature++;
 #pragma link C++ class ScalerMon+;
 #pragma link C++ class Lvl1TrigConfig+;
 #pragma link C++ class AMSPoint+;
