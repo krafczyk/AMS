@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.15 2013/02/23 11:25:46 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.16 2013/02/23 15:43:23 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -185,8 +185,9 @@ public:
     /*!
      \param[in] ilayer, default -1 ,ret chi2   average of all hits' chi2. sum_{hit i}(chi2_i)/Nhits
                            ilayer!=-1,ret chi2 of layer ilayer
+     \param[in] _norm , 1: normalzied chi2(based on iss electron samples), 0: original chi2 
     */
-    float   get_chi2 (int ilayer=-1)    ;
+    float   get_chi2 (int ilayer=-1, int _norm=1)    ;
     ///EcalPDF pointer
     EcalPDF* ecalpdf    ;
     ///Z coordinates of each layer
@@ -277,14 +278,14 @@ public:
     ///Process Ecal Shower
     /*!
     \param[in] esh         EcalShowerR*
-    \param[in] algorithm   3bits, 0bzyx x: Cell Ratio method, y: Lateral Fit method, z: Simple CoG method
+    \param[in] algorithm   4bits, 0brzyx r:The new Cell Ration method, x: Cell Ratio method, y: Lateral Fit method, z: Simple CoG method
     \param[in] sign        Particle sign, default -1 (electron)
     */
     int   process      (EcalShowerR* esh,int algorithm=2,float sign=-1);
     ///Process AMSEventR. Use all hits of Ecal to calculate the chi2
     /*!
     \param[in] ev           AMSEventr*, the event needed to be processed
-    \param[in] algorithm    3bits, 0bzyx x: Cell Ratio method, y: Lateral Fit method, z: Simple CoG method
+    \param[in] algorithm    4bits, 0brzyx r:The new Cell Ration method,x: Cell Ratio method, y: Lateral Fit method, z: Simple CoG method
     \param[in] trtrack      Tracker track which will be associated to the Ecalshower to determine the sign of the particle. If it is null, program will try to find the best tracker track.
     */
     int   process     (AMSEventR* ev, int algorithm=2, TrTrackR* trtrack=NULL);
@@ -295,7 +296,7 @@ public:
     \param[in] zpl         Z coordinate
     \param[out] p0         position of shower axis at plane zpl
     \param[out] dir        direction of shower axis at plane zpl
-    \param[in]  algorithm  1: Cell Ratio method, 2: Lateral Fit method, 4: Simple CoG method
+    \param[in]  algorithm  1: Cell Ratio method, 2: Lateral Fit method, 4: Simple CoG method, 8: The new Cell ratio Method
     if corresponding lagorithm has been performed at process function, will return 0; else will return -1; if algorithm doesn't exist, will return -2
     */
     int interpolate    (float zpl       ,AMSPoint& p0   ,AMSDir  &dir, int algorithm=2);

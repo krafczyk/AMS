@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.27 2013/02/23 11:25:32 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.28 2013/02/23 15:42:37 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1054,7 +1054,7 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
     return -1;
 #endif
 }
-float EcalChi2::get_chi2(int ilayer){
+float EcalChi2::get_chi2(int ilayer, int _norm){
     const double layerchi2_mean[18][4]= {{0.556226, -0.755122, 0.451302, -0.0634034 },
                                         {0.459205, -0.605575, 0.409162, -0.06698   },
                                         {0.544575, -0.767518, 0.529796, -0.0956603 },
@@ -1084,16 +1084,22 @@ float EcalChi2::get_chi2(int ilayer){
             return _chi2_layer[ilayer]/_ndofs[ilayer];
     }
     if(Version==2){
-        if(_erge<15)
-            _erge=15;
-        if(_erge>400);
-        _erge=400;
-        if(_ndofs[ilayer]!=0){
-            double x=log10(_erge);
-            double layer_mean=layerchi2_mean[ilayer][0]+layerchi2_mean[ilayer][1]*x+layerchi2_mean[ilayer][2]*x*x+layerchi2_mean[ilayer][3]*x*x*x;
-            return _chi2_layer[ilayer]/_ndofs[ilayer]-layer_mean+1.;
-        }
-        else return -1;
+	if(_norm==0){
+		if(_ndofs[ilayer]!=0)  return _chi2_layer[ilayer]/_ndofs[ilayer];
+		else	return -1;
+	}
+	if(_norm==1){
+	        if(_erge<15)
+        	    _erge=15;
+	        if(_erge>400);
+        		_erge=400;
+	        if(_ndofs[ilayer]!=0){
+        	    double x=log10(_erge);
+            	    double layer_mean=layerchi2_mean[ilayer][0]+layerchi2_mean[ilayer][1]*x+layerchi2_mean[ilayer][2]*x*x+layerchi2_mean[ilayer][3]*x*x*x;
+            	    return _chi2_layer[ilayer]/_ndofs[ilayer]-layer_mean+1.;
+        	}
+        	else return -1;
+	}
     }
     return -1;
 }
