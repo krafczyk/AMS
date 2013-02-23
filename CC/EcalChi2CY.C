@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.26 2013/02/19 15:00:56 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.27 2013/02/23 11:25:32 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1224,7 +1224,8 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 //Class Ecal Axis
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int EcalAxis::Version=2         ;
-TVirtualFitter* EcalAxis::gMinuit_EcalAxis = NULL;
+//TVirtualFitter* EcalAxis::gMinuit_EcalAxis = NULL;
+TMinuit* EcalAxis::gMinuit_EcalAxis = NULL;
 EcalAxis::EcalAxis(int ftype){
     char* amsdatadir=getenv("AMSDataDir");
     string tempname;
@@ -1297,17 +1298,19 @@ EcalAxis::~EcalAxis(){
         delete ecalchi2;
 }
 bool EcalAxis::init_lf(){
-    TVirtualFitter::SetDefaultFitter("Minuit");
-    gMinuit_EcalAxis=TVirtualFitter::Fitter(0,3);
+    //TVirtualFitter::SetDefaultFitter("Minuit");
+    //gMinuit_EcalAxis=TVirtualFitter::Fitter(0,3);
+    gMinuit_EcalAxis=new TMinuit(4);
     gMinuit_EcalAxis->SetFCN(fcn_EcalAxis_Chi2);
     gMinuit_EcalAxis->SetObjectFit(this);
     double arglist[10];
     int ret;
+    int ierflg;
     arglist[0]=-1;
-    gMinuit_EcalAxis->ExecuteCommand("SET PRINT", arglist, 1);
-    gMinuit_EcalAxis->ExecuteCommand("SET NOW", arglist, 0);
+    gMinuit_EcalAxis->mnexcm("SET PRINT", arglist, 1,ierflg);
+    gMinuit_EcalAxis->mnexcm("SET NOW", arglist, 0,ierflg);
     arglist[0]=0.1;
-    gMinuit_EcalAxis->ExecuteCommand("SET ERR",arglist, 1);
+    gMinuit_EcalAxis->mnexcm("SET ERR",arglist, 1,ierflg);
 
     float init_x0=0;
     float init_y0=0;
@@ -1335,10 +1338,10 @@ bool EcalAxis::init_lf(){
         init_x0  =ext_p0[0]+init_dxdz*(ecalz[8]-ext_p0[2]);
         init_y0  =ext_p0[1]+init_dydz*(ecalz[8]-ext_p0[2]);
     }
-    gMinuit_EcalAxis->SetParameter(0,  "x0"  ,init_x0  ,0.2  ,init_x0-0.9 ,init_x0+0.9 );
-    gMinuit_EcalAxis->SetParameter(1,  "y0"  ,init_y0  ,0.2  ,init_y0-0.9 ,init_y0+0.9 );
-    gMinuit_EcalAxis->SetParameter(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.2,init_dxdz+.2);
-    gMinuit_EcalAxis->SetParameter(3,  "dydz",init_dydz,0.1   ,init_dydz-.2,init_dydz+.2);
+    gMinuit_EcalAxis->mnparm(0,  "x0"  ,init_x0  ,0.2  ,init_x0-0.9 ,init_x0+0.9 ,ierflg);
+    gMinuit_EcalAxis->mnparm(1,  "y0"  ,init_y0  ,0.2  ,init_y0-0.9 ,init_y0+0.9 ,ierflg);
+    gMinuit_EcalAxis->mnparm(2,  "dxdz",init_dxdz,0.1   ,init_dxdz-.2,init_dxdz+.2,ierflg);
+    gMinuit_EcalAxis->mnparm(3,  "dydz",init_dydz,0.1   ,init_dydz-.2,init_dydz+.2,ierflg);
 
     if(_erg>5)
         arglist[0]=400;
@@ -1355,6 +1358,7 @@ bool EcalAxis::init_lf(){
     p[1]=init_y0  ;
     p[2]=init_dxdz;
     p[3]=init_dydz;
+    double ep[4];
     chi20=GetChi2(p);
     if((Version==2&&EnergyE<15)||simple==1){
         p0_lf[0]=init_x0 ;
@@ -1381,14 +1385,14 @@ bool EcalAxis::init_lf(){
             cflag++;
     }
     if(cflag>0){
-        ret=gMinuit_EcalAxis->ExecuteCommand("MINI", arglist, 2);
+        gMinuit_EcalAxis->mnexcm("MINI", arglist, 2,ierflg);
         //ret=gMinuit_EcalAxis->ExecuteCommand("SIMPLEX",0, 0);
 
-        p0_lf[0]=gMinuit_EcalAxis->GetParameter(0);
-        p0_lf[1]=gMinuit_EcalAxis->GetParameter(1);
+        gMinuit_EcalAxis->GetParameter(0,p0_lf[0],ep[0]);
+        gMinuit_EcalAxis->GetParameter(1,p0_lf[1],ep[1]);
         p0_lf[2]=ecalz[8];
-        dir_lf[0]=gMinuit_EcalAxis->GetParameter(2);
-        dir_lf[1]=gMinuit_EcalAxis->GetParameter(3);
+        gMinuit_EcalAxis->GetParameter(2,dir_lf[0],ep[2]);
+        gMinuit_EcalAxis->GetParameter(3,dir_lf[1],ep[3]);
         dir_lf[2]=1.0;
     }
     else{
