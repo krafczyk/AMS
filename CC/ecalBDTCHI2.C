@@ -36,7 +36,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
    }
 
    EcalAxis::Version=2;
-   EcalAxis ecalaxis;
+   static EcalAxis ecalaxis;
    ecalaxis.process(pev,2);
   
    const unsigned int nLAYERs = 18;
