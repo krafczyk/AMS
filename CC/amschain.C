@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.63 2013/02/27 12:30:49 choutko Exp $
+//  $Id: amschain.C,v 1.64 2013/02/27 13:21:43 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -965,12 +965,14 @@ Int_t AMSChain::Add(const char* name, Long64_t nentries){
                if(pos<0){
                  title+=aname.c_str();
                  el->SetTitle(title.c_str());
+#ifdef CASTORSTATIC 
                  TXNetFile tfile((const char*)el->GetTitle());
                  if(tfile.IsZombie()){
                   arr->Remove(el);
 //                   cout<<"  zombie...  "<<el->GetTitle()<<" "<<endl;
                   return 0;
                  }
+#endif
               }
  //              cout <<" title "<<el->GetTitle()<<endl;
              }
