@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.62 2012/09/26 08:17:31 choutko Exp $
+//  $Id: amschain.C,v 1.63 2013/02/27 12:30:49 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -213,8 +213,13 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
   
   return i;
 }
-int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,char *pattern){
+int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,unsigned int timeout,char *pattern){
   ofstream  rejfile;
+  ofstream  rejfile2;
+  //TFile::SetOnlyStaged(stagedonly);
+  //stagedonly=false;
+  unsigned int ftimeout=TFile::GetOpenTimeout();
+  if(timeout)TFile::SetOpenTimeout(timeout);
   FILE* listfile = fopen(fname,"r");
   if (listfile) {
     char rname[1024];
@@ -244,7 +249,24 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
            else staged=false;
            pclose(fp);
            }
-          if(staged || !stagedonly)Add(rname);
+          if(staged || !stagedonly){
+            int radd=   Add(rname);
+            if(!radd){
+            cerr<<"AMSChain::AddFromFile-W-FileNotStagedOrTimeOutAndWillNotBeProcessed"<<rname<<endl;
+             char rejfilename[4095];
+             sprintf(rejfilename,"%s_%06d_%06d_TMOUT",fname,first,last);
+            if(!rejfile2){
+             rejfile2.clear();
+             rejfile2.open(rejfilename);
+            }
+            if(rejfile2){
+              rejfile2<<rname<<endl;
+            }
+            else cerr<<"AMSChain::AddFromFile-W_UnableToOpenRejFile2 "<<rejfilename<<endl;
+          } 
+
+            }
+          
           else {
             cerr<<"AMSChain::AddFromFile-W-FileNotStagedAndWillNotBeProcessed"<<rname<<endl;
              char rejfilename[4095];
@@ -266,9 +288,11 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
   }
   else {
     cerr << "AMSChain::AddFromFile-E-  Error opening file '" << fname << "';";
+    TFile::SetOpenTimeout( ftimeout);
     return -1;
   }
   
+  TFile::SetOpenTimeout( ftimeout);
   return 0;
 }
 
@@ -941,7 +965,13 @@ Int_t AMSChain::Add(const char* name, Long64_t nentries){
                if(pos<0){
                  title+=aname.c_str();
                  el->SetTitle(title.c_str());
-               }
+                 TXNetFile tfile((const char*)el->GetTitle());
+                 if(tfile.IsZombie()){
+                  arr->Remove(el);
+//                   cout<<"  zombie...  "<<el->GetTitle()<<" "<<endl;
+                  return 0;
+                 }
+              }
  //              cout <<" title "<<el->GetTitle()<<endl;
              }
         }
