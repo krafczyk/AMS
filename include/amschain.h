@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.36 2013/02/27 12:30:42 choutko Exp $
+//  $Id: amschain.h,v 1.37 2013/02/27 15:48:45 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -88,7 +88,7 @@ The rejected filenames will be written in the rootfilelist_beg_end_TMOUT file
 \retval 0  otherwise
 
  */
-  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,unsigned int timeout=10,char *pattern=0);
+  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,unsigned int timeout=0,char *pattern=0);
   /// Get number of TFiles in  a text file 
   int ValidateFromFile(const char* rootfilelist,bool stage=false);
 

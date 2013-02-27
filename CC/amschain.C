@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.64 2013/02/27 13:21:43 choutko Exp $
+//  $Id: amschain.C,v 1.65 2013/02/27 15:48:37 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -250,7 +250,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
            pclose(fp);
            }
           if(staged || !stagedonly){
-            int radd=   Add(rname);
+            int radd=   Add(rname,timeout?-kBigNumber:kBigNumber);
             if(!radd){
             cerr<<"AMSChain::AddFromFile-W-FileNotStagedOrTimeOutAndWillNotBeProcessed"<<rname<<endl;
              char rejfilename[4095];
@@ -931,8 +931,9 @@ int AMSChain::GenUFSkel(char* filename){
   return 0;
 }
 
-Int_t AMSChain::Add(const char* name, Long64_t nentries){
-
+Int_t AMSChain::Add(const char* name, Long64_t Nentries){
+Long64_t nentries=Nentries<-1?abs(Nentries):Nentries;
+bool timeout=Nentries<-1;
 //check if svcClass present in name
 
          string cname=name;
@@ -966,12 +967,14 @@ Int_t AMSChain::Add(const char* name, Long64_t nentries){
                  title+=aname.c_str();
                  el->SetTitle(title.c_str());
 #ifdef CASTORSTATIC 
+              if(timeout){
                  TXNetFile tfile((const char*)el->GetTitle());
                  if(tfile.IsZombie()){
                   arr->Remove(el);
 //                   cout<<"  zombie...  "<<el->GetTitle()<<" "<<endl;
                   return 0;
                  }
+               }
 #endif
               }
  //              cout <<" title "<<el->GetTitle()<<endl;
