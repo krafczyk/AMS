@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.35 2013/02/11 19:08:09 choutko Exp $
+//  $Id: amschain.h,v 1.36 2013/02/27 12:30:42 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -79,13 +79,16 @@ public:
 
 \param[in] stagedonly  if true only take staged files if files are on castor.  The rejected filenames will be written in the rootfilelist_beg_end_STAGEIN file
 
+\param[in] timeout  if>0 will reject files after timeout sec of trying to open.
+The rejected filenames will be written in the rootfilelist_beg_end_TMOUT file
+
 \param[in] pattern if not NULL only process files with names matched with pattern
 
 \retval -1 if rootfilelist can not be open
 \retval 0  otherwise
 
  */
-  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,char *pattern=0);
+  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,unsigned int timeout=10,char *pattern=0);
   /// Get number of TFiles in  a text file 
   int ValidateFromFile(const char* rootfilelist,bool stage=false);
 
