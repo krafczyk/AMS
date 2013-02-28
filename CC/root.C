@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.543 2013/02/28 15:07:25 choutko Exp $
+//  $Id: root.C,v 1.544 2013/02/28 15:34:48 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8501,6 +8501,12 @@ void AMSEventR::Terminate()
       // Function called at the end of the event loop.
       //_Tree->SetMakeClass(0);
       if(pService){
+      ofstream ofbrej;
+//      cout<<" filename "<<strlen(filename)<<" "<<filename<<(*pService).fProcessed.size()<<endl;
+      if(strlen(filename)>1){
+          ofbrej.clear();
+          ofbrej.open(filename);
+      }
       for(int k=0;k<fRequested.size();k++){
        bool found=false;
        for(int l=0;l<(*pService).fProcessed.size();l++){
@@ -8513,10 +8519,12 @@ void AMSEventR::Terminate()
           cerr<<"AMSEventR::Terminate-W-FileWasRequestedButNotProcessed "<<fRequested[k]<<endl;
           if(fRequested[k].size()<sizeof(filename)/sizeof(filename[0]))strcpy(filename,fRequested[k].c_str());
           else strncpy(filename,fRequested[k].c_str(),sizeof(filename)/sizeof(filename[0])-1);
+          if(ofbrej)ofbrej<<fRequested[k]<<endl;
           if(_pFiles)_pFiles->Fill();
      }
     }
-    }      
+      if(ofbrej)ofbrej.close();
+    }
       UTerminate();
       (*pService)._w.Stop();
       if(fgThickMemory)hjoin();

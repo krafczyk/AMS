@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.66 2013/02/28 15:07:24 choutko Exp $
+//  $Id: amschain.C,v 1.67 2013/02/28 15:34:48 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -215,6 +215,7 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
 }
 int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,unsigned int timeout,char *pattern){
   AMSEventR::fRequested.clear();
+  sprintf(AMSEventR::filename,"%s_%06d_%06d_RUNTIMETMOUT",fname,first,last);
   ofstream  rejfile;
   ofstream  rejfile2;
   //TFile::SetOnlyStaged(stagedonly);
@@ -259,7 +260,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
             if(!radd){
             cerr<<"AMSChain::AddFromFile-W-FileNotStagedOrTimeOutAndWillNotBeProcessed"<<rname<<endl;
              char rejfilename[4095];
-             sprintf(rejfilename,"%s_%06d_%06d_TMOUT",fname,first,last);
+             sprintf(rejfilename,"%s_%06d_%06d_STAGEINORTMOUT",fname,first,last);
             if(!rejfile2){
              rejfile2.clear();
              rejfile2.open(rejfilename);
