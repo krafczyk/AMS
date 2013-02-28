@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.541 2013/02/21 17:05:37 choutko Exp $
+//  $Id: root.C,v 1.542 2013/02/28 10:01:23 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -68,6 +68,7 @@
 #include "HistoMan.h"
 #include "Tofrec02_ihep.h"
 #include "GM_SubLibrary.h"
+#include "BackTracingMIB.h"
 
 
 using namespace root;
@@ -9937,6 +9938,14 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     // create and load from AMSDataDir the linearity correction database
     TrLinearDB::GetHead()->Init();
 
+    //------Initialize BacktracingMIB class
+        if(BackTracingMIB::GetStatusBT()!=1){
+    	      BackTracingMIB::GetfBT()->Initialize();
+     	}
+    
+
+
+
 }
 master=1;  
 }
@@ -10441,6 +10450,197 @@ int HeaderR::do_backtracing(double &gal_long, double &gal_lat,
 
   return ret;
 }
+//---------------------------------Backtracing MIB
+int HeaderR::backtracing_mib(  double &gal_long, double &gal_lat, double &time_trace,double RPTO[3], double GPT[2],
+                               double theta,  double phi, double Momentum, int Charge,
+                               double RPT[3], double VPT[3], double YPR[3], double UnixTime,
+                                int att ,  bool gal_coo, int bt_method, int Amass){
+
+
+        double output[8];
+        //------------set to zero
+        for(int i=0 ; i<8 ; i++ ){
+                output[i]=0;
+                }
+        RPTO[0]=0;
+        RPTO[1]=0;
+        RPTO[2]=0;
+        GPT[0]=0;
+        GPT[1]=0;
+        gal_long=0;
+        gal_lat=0;
+        time_trace=0;
+
+
+        int ext = bt_method -1;
+
+        //bt_method==1 --> ext==0 --> No external Field
+        //bt_method==2 --> ext==1 --> External Field T96
+        //bt_method==3 --> ext==2 --> External Field T05
+        //---------------err for ext par:
+        if( ext<0 || ext>=3  ){
+        cerr <<" HeaderR::backtracing_mib Error: bt_method  must be 1==no external field ; 2== External field T96 ;  3== External field T05  "<<endl;
+        output[0]=-4;
+        return  -4;
+        }
+        //------>BackTracingMIB self pointer already Initialized in AMSEventR::InitDB()
+        BackTracingMIB* ExternBT =  BackTracingMIB::GetfBT();
+
+
+
+        //-----> check if time has changed:
+        time_t time =(int) UnixTime;
+        int load= ExternBT->CheckParameters( time ,ext);
+        //---if ( == -3 )  Cannot update parameters : ext ==2 out of range 
+        //---if ( == -2 )  Cannot update parameters : ext ==1 out of range 
+        //---if ( == -1 )  Cannot update parameters : the file does not exists --->return -1;
+        //---if ( ==  0 )  not necessary to update parameters (the time has not changed)
+        //---if ( ==  1 )  the parameters were updated
+        //---if ( ==  2 )  ext0==0 no need to update PAR
+
+        if ( load< 0 ) {
+        //cerr<< "HeaderR::backtracing_mib Error: "<< load <<endl;
+        output[0]=load;
+        return load;
+        }
+
+        double deg2rad= TMath::DegToRad();
+
+        //... AMS  rad:--->      
+        double  thetaAMS = theta;//colatitude of AMS out going
+        double  phiAMS =  phi;
+
+        //... GTOD rad:---> 
+        double thetaGTOD;
+        double phiGTOD;
+
+        if(att==3){//----------->INTL attitude
+         ExternBT->PartDirGTOD_INTL(thetaGTOD, phiGTOD , YPR, UnixTime,thetaAMS, phiAMS);
+        }else{//---------------> LVLH attitude 1:GTOD, 2:CTRS
+         ExternBT->PartDirGTOD_LVLH(thetaGTOD, phiGTOD , RPT,YPR, VPT, UnixTime,thetaAMS, phiAMS);
+        }
+        //... GTOD deg:---> 
+        double  theta_deg =thetaGTOD/deg2rad ; // latitude [deg]
+        double  phi_deg  = phiGTOD/deg2rad;   // longitude[deg] 
+
+
+        //......Geographic coo ISS-----------------> 
+                //ALTITUDE cm (GTOD coo sys)
+                double r0= RPT[0];//      -->RadS
+                double oneRt =6.3712e+08;//  cm
+                // in unit of Earth radius
+               r0/=oneRt;
+
+                double fi0rad=  RPT[1];// --> PhiS;
+                double the0rad= RPT[2];// --> ThetaS;
+                //..from rad to deg:
+                double the0=the0rad/deg2rad;
+                double fi0=fi0rad/deg2rad;
+                //----to be centered in 0!!
+                //............................ZeroCentered 16/01/2013
+                if(fi0 > 180)  fi0-=360.;
+
+        //===============================================================
+        double zn =(double) -1.*Charge ;// charge (opposite sign)
+        double amass = (double)Amass;//mass number (0 for electrons)
+        double rig =0;
+        if(Charge!=0) rig = fabs(Momentum/Charge);
+        if(Charge==0) return -1;
+
+        //================================== Do backtracing =============================================
+       //............Set commons: 
+        BACKTRACINGPAR.r0=r0;
+        BACKTRACINGPAR.the0=the0;
+        BACKTRACINGPAR.fi0=fi0;
+        BACKTRACINGPAR.the1=theta_deg;
+        BACKTRACINGPAR.fi1=phi_deg;
+        BACKTRACINGPAR.rig=rig;
+        BACKTRACINGPAR.zn =zn;
+        BACKTRACINGPAR.amass = amass;
+        BACKTRACINGPAR.dflag =0 ;//------> 1 To force even if res=5 [to be used in future(?)]
+        BACKTRACINGPAR.rkflag = 6;//-----> RUNGE -KUTTA
+
+
+/*
+        cout<< "Inside -----------------BACKTRACINGPAR.PAR----"<<endl;
+
+       cout << BACKTRACINGPAR.PAR[0]<<" " <<BACKTRACINGPAR.PAR[1] <<" "
+             << BACKTRACINGPAR.PAR[2]<<" " <<BACKTRACINGPAR.PAR[3] <<" "
+             << BACKTRACINGPAR.PAR[4]<<" " <<BACKTRACINGPAR.PAR[5] <<" "
+             << BACKTRACINGPAR.PAR[6]<<" " <<BACKTRACINGPAR.PAR[7] <<" "
+             << BACKTRACINGPAR.PAR[8]<<" " <<BACKTRACINGPAR.PAR[9] <<" "
+             << BACKTRACINGPAR.PAR[10]<<" "<<endl;
+*/
+
+        //------------------------------------------------------------------------------
+
+        //...extern call-----------------> 
+                ExternBT->CallExternBacktracing();
+
+       //.....fill
+        output[0]=BACKTRACINGPAR.res;
+        output[1]=BACKTRACINGPAR.r;
+        output[2]=BACKTRACINGPAR.td;
+        output[3]=BACKTRACINGPAR.fei;
+        output[4]=BACKTRACINGPAR.ast;
+        output[5]=BACKTRACINGPAR.asf;
+        output[6]=BACKTRACINGPAR.time;
+        output[7]=BACKTRACINGPAR.alast;
+
+/*
+        cout << "BACKTRACING output: "<<endl;
+        for(int i =0 ; i <8 ; i++){
+        cout << output[i]<<endl;
+*/
+
+        //-----longitude Zero centered:
+        if(output[3]>180) output[3]-=360;
+        if(output[5]>180) output[5]-=360;
+
+        int out=output[0];             //: --0 secondary particle, 1 primary particle, 2 time limit (set at 10 seconds) + ....
+        RPTO[0]= output[1]* oneRt;     //: --final radius in Earth radi*OneRe --> [cm]
+        RPTO[2]= output[2]* deg2rad;   //: --final latitude  [deg] (GTOD) * deg2rad -->[rad]
+        RPTO[1]= output[3]* deg2rad;   //: --final longitude [deg] (GTOD) * deg2rad -->[rad]
+        GPT[1]=  output[4]* deg2rad;   //: --asymptotic latitude final pont  [deg] (GTOD)* deg2rad -->[rad]
+        GPT[0]=  output[5]* deg2rad;   //: --asymptotic longitude final point [deg] (GTOD)* deg2rad -->[rad]
+        time_trace= output[6];         //: --time spent by the particle in trajectory (in sec)
+        // output[7]: --length of trajectory in Earth radii
+
+        //----------------Galactic or Equatorial particle Directions
+        double rIn = 1;
+        double thetaIn=GPT[1] ;
+        double phiIn =GPT[0] ;
+
+        double lOut ,bOut;
+        double timeIn=time-time_trace;
+         ExternBT->FromGTODtoGAL(rIn,thetaIn,phiIn,timeIn,lOut,bOut,gal_coo);
+
+        //------> final :
+        gal_long =lOut/deg2rad;
+        gal_lat= bOut/deg2rad;
+
+
+
+return out;
+
+
+}
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int HeaderR::get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[3], double YPR[3], double  time, bool gtod){
 /*
@@ -10766,6 +10966,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
 			     double RPTO[3], double &TraceTime,
 			     double theta, double phi,
 			     double Momentum, double Velocity, int Charge, 
+			     int bt_method, int Amass,
 			     int use_att, int use_coo, int use_time,
 			     double   dt, int out_type)
   /*!
@@ -10776,7 +10977,14 @@ int AMSEventR::DoBacktracing(int &result, int &status,
 			  (1<<4 = 16):CTRS used, (1<<5 =32):AMS-GPS coo.used,
 			  (1<<6 = 64):GPS time used,
 			  (1<<7 =128):GPS time corrected used
-  \param[out] status      1:Over cutoff, 2:Under cutoff, 3:Trapped
+  \param[out] status      0: errors (see retuned value)
+                          1: Over cutoff, 
+                          2: Under cutoff, 
+                          3: Trapped 
+                          4: Calculated velocity greater than c
+                          5: External field model parameters out of validity range
+                          6: External field model Parameters do not exist
+                          7: All other cases where the program was exiting (max number of steps reached..)
   \param[out] glong       Galactic longitude (degree)
   \param[out] glat        Galactic latitude  (degree)
   \param[out] RPTO        GTOD coordinates Rad(cm), Phi(rad), Theta(rad)
@@ -10786,6 +10994,11 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   \param[in]  Momentum    (GeV/c) Not signed
   \param[in]  Velocity    (=beta) Not signed
   \param[in]  Charge      Signed charge
+  \param[in]  bt_method   0: Haino's  
+                          1:MIB No ext.Field  
+                          2:MIB ext.Field Tsyganenko 1996 (T96)  
+                          3:MIB ext.Field Tsyganenko 2005 (T05) 
+  \param[in]  Amass       atomic mass number(0:  e- , e+ ; 1:  p, anti-p ; 2: d , anti-d ; 3: He3...) 
   \param[in]  use_att     1:Use LVLH,  2:Use INTL, 3: Use STK
   \param[in]  use_coo     1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
   \param[in]  use_time    1:UTCTime(), 2:AMSGPS time, 3:AMSGPS Time corrected
@@ -10795,6 +11008,10 @@ int AMSEventR::DoBacktracing(int &result, int &status,
 
   \retval     0 success
   \retval    -1 failure
+  \retval    -2 error (if bt_method==2  particle UTime out of time limits for parameter file T96)
+  \retval    -3 error (if bt_method==3  particle UTime out of time limits for parameter file T05)
+  \retval    -4 error (if bt_method!=0) bt_method must be 1 || 2 || 3
+
   \retval     1 specified use_att  data not available; instead used TLE+LVLH
   \retval     2 specified use_coo  data not available; instead used TLE
   \retval     3 specified use_coo  data not reliable;  instead used TLE
@@ -10950,9 +11167,26 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   }
 
   double GPT[2];
+
+#ifndef __ROOTSHAREDLIBRARY__
   int ret2 = fHeader.do_backtracing(glong, glat, TraceTime, RPTO, GPT,
 				    theta, phi, Momentum, Velocity, Charge,
 				    RPT, VPT, YPR, xtime, iatt, gal_coo);
+
+#else
+  int ret2 = bt_method ==0?fHeader.do_backtracing(glong, glat, TraceTime, RPTO, GPT,
+                                    theta, phi, Momentum, Velocity, Charge,
+                                    RPT, VPT, YPR, xtime, iatt, gal_coo):
+                          fHeader.backtracing_mib(glong, glat, TraceTime, RPTO, GPT,
+                                    theta, phi, Momentum, Charge,
+                                    RPT, VPT, YPR, xtime , iatt, gal_coo,
+                                    bt_method, Amass);
+#endif
+
+
+
+
+
   if (out_type == 3) {
     glong = GPT[0]*180./M_PI;
     glat  = GPT[1]*180./M_PI;
@@ -10961,7 +11195,14 @@ int AMSEventR::DoBacktracing(int &result, int &status,
   if      (ret2 == 1) status = 1;  // Over  cutoff
   else if (ret2 == 0) status = 2;  // Under cutoff
   else if (ret2 == 2) status = 3;  // Trapped
+
+  else if (ret2 == 3) status = ret2+1;  // 4 calculated velocity greater than c
+  else if (ret2 == 4) status = ret2+1;  // 5 External field model parameters out of validity range
+  else if (ret2 == 5) status = ret2+1;  // 6 External field model Parameters do not exist
+  else if (ret2 == 6) status = ret2+1;  // 7 all other cases where the program was exiting (max number of steps reached..)
+  else if (ret2 <  0) status = 0;       //----> errors!
   return  (ret2 >= 0) ? ret : ret2;
+
 }
 
 

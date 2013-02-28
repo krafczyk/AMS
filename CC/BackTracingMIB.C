@@ -18,6 +18,15 @@
 
 using namespace std;
 
+
+
+//=====================================
+
+ BACKTRACINGPAR_DEF BACKTRACINGPAR;
+#pragma omp threadprivate(BACKTRACINGPAR)
+//=====================================
+
+
 extern "C" void mib_ascoor_();
 //----> extern function to Backtracing.F
 
@@ -27,10 +36,12 @@ BackTracingMIB* BackTracingMIB::fBT=0;
 int BackTracingMIB::LoadBTParametersFile=0;// 0:no, 1:ok , -1:err
 //----> Loading BTparameters from files
 
+
+
 //---------------------------------------------------
 BackTracingMIB::BackTracingMIB(){
 
-	fBT = this;
+//	fBT = this;
 	
 
 }
@@ -76,6 +87,8 @@ void BackTracingMIB::Initialize(){
 }
 //----------------------------------------------------
 int BackTracingMIB::CheckParameters(time_t Unix ,int ext){
+
+
 
 	if(ext==0){//----------only internal filed no need to load par.
 		for(int i=0 ; i < 11 ; i++){
@@ -281,9 +294,9 @@ int BackTracingMIB::UpdateParameters(time_t Unix ,int ext){
 	
 	int human[7];
 	FromUnixToHuman(Unix,  human );
-	int iy = human[0];
-	int id = human[3];
-	int ih = human[4];
+	int iyC = human[0];
+	int idC = human[3];
+	int ihC = human[4];
 
 
 //cout<< " BackTracingMIB::UpdateParameters Unix "<< Unix << " human : GMT "<< iy << "-"<< id<< " hh "<< ih<<endl;  
@@ -296,8 +309,7 @@ int BackTracingMIB::UpdateParameters(time_t Unix ,int ext){
         BACKTRACINGPAR.min=human[5];
         BACKTRACINGPAR.is= human[6];
 
-
-	 if(YearNow==iy && doyNow==id &&  hhNow==ih && ext==BACKTRACINGPAR.PAR[10] ){
+	 if(YearNow==iyC && doyNow==idC &&  hhNow==ihC && ext==BACKTRACINGPAR.PAR[10] ){
 	//cout<< "--------------------------------->Parameter already loaded :"<<endl;
         //cout<< " BackTracingMIB::UpdateParameters YearNow doyNow hhNow " << YearNow <<"-"<<doyNow<<" hh "<<hhNow<<endl;
 
@@ -305,9 +317,9 @@ int BackTracingMIB::UpdateParameters(time_t Unix ,int ext){
 	 }
 
      //---iupdate if the time has changed:
-                   YearNow=iy;
-                   doyNow= id ;
-                   hhNow= ih;
+                   YearNow=iyC;
+                   doyNow= idC ;
+                   hhNow= ihC;
 
 	//	cout<< " BackTracingMIB::UpdateParameters ......   Update ..... " << endl;
 //---Scan                       
@@ -361,7 +373,6 @@ int BackTracingMIB::UpdateParameters(time_t Unix ,int ext){
 
 
                          BACKTRACINGPAR.PAR[10]=(double)ext;
-
 
 
 return 1; // --> the time has changed
@@ -582,9 +593,4 @@ void BackTracingMIB::FromGTODtoGAL(double rIn ,double thetaIn, double phiIn, dou
 
 }
 //----------------------------------------------------
-//=====================================
-
- BACKTRACINGPAR_DEF BACKTRACINGPAR;
-#pragma opm theadprivate(BACKTRACINGPAR)
-//=====================================
 
