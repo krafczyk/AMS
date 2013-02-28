@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.544 2013/02/28 15:34:48 choutko Exp $
+//  $Id: root.C,v 1.545 2013/02/28 16:39:26 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8519,7 +8519,12 @@ void AMSEventR::Terminate()
           cerr<<"AMSEventR::Terminate-W-FileWasRequestedButNotProcessed "<<fRequested[k]<<endl;
           if(fRequested[k].size()<sizeof(filename)/sizeof(filename[0]))strcpy(filename,fRequested[k].c_str());
           else strncpy(filename,fRequested[k].c_str(),sizeof(filename)/sizeof(filename[0])-1);
-          if(ofbrej)ofbrej<<fRequested[k]<<endl;
+          int  ifound=fRequested[k].find("?svcClass=");
+          string aname=fRequested[k];
+         if(ifound>=0){
+          aname=fRequested[k].substr(0,ifound);
+        }
+          if(ofbrej)ofbrej<<aname<<endl;
           if(_pFiles)_pFiles->Fill();
      }
     }

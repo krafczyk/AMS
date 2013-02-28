@@ -23,6 +23,13 @@ public:
   float temp;
   float bcorr;
   MagnetVarp::btempcor(bcorr);
+cout<<" bcorr "<<bcorr<<endl;
+ MagnetVarp::btempcor(bcorr,0,2);
+cout<<" bcorr "<<bcorr<<endl;
+ MagnetVarp::btempcor(bcorr,0,0);
+
+cout<<" bcorr "<<bcorr<<endl;
+
   vector<float>value;
 if(ev && ev->nParticle() && ev->nEcalShower()==1&& ev->Particle(0).iEcalShower()>=0){
 int s2=  AMSSetupR::gethead()->fSlowControl.GetData("Port",ev->UTime(),0.5,value);

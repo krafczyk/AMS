@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.37 2013/02/27 15:48:45 choutko Exp $
+//  $Id: amschain.h,v 1.38 2013/02/28 16:39:29 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -86,6 +86,10 @@ The rejected filenames will be written in the rootfilelist_beg_end_TMOUT file
 
 \retval -1 if rootfilelist can not be open
 \retval 0  otherwise
+
+Recommended setup
+AddFromfile(file,bef,end,false,0,pattern);
+in this case the files will be prestaged if on castor but actual try will be done during runtime.  In case fileas are unaccessible by any reason, they will be bypassed and their names will be written in file_beg_end_RUNTIMETNOUT so can be reused for the subsequent attempt
 
  */
   int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,unsigned int timeout=0,char *pattern=0);
