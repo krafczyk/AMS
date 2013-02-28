@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.65 2013/02/27 15:48:37 choutko Exp $
+//  $Id: amschain.C,v 1.66 2013/02/28 15:07:24 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -214,11 +214,16 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
   return i;
 }
 int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,unsigned int timeout,char *pattern){
+  AMSEventR::fRequested.clear();
   ofstream  rejfile;
   ofstream  rejfile2;
   //TFile::SetOnlyStaged(stagedonly);
   //stagedonly=false;
   unsigned int ftimeout=TFile::GetOpenTimeout();
+  if(ftimeout==TFile::kEternalTimeout && timeout==0){
+    ftimeout=10;
+    cout<<"  AMSChain::AddFromFile-W-OpenTimeOutHasBeenChangedTo "<<ftimeout <<" sec.\n Please use TFile::SetOpenTimeout(reasonable_value_sec) to avoid this behavior "<<endl;
+  }
   if(timeout)TFile::SetOpenTimeout(timeout);
   FILE* listfile = fopen(fname,"r");
   if (listfile) {
@@ -416,6 +421,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
   typedef multimap<uinteger,TChainElement*> fmap_d;
   typedef multimap<uinteger,TChainElement*>::iterator fmapi;
   fmap_d fmap;
+  bool dofill=AMSEventR::fRequested.size()==0;
   for(int i=0;i<fNtrees;i++){
     TString t1("/");
     TString t2(".");
@@ -425,6 +431,8 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     TObjArray *ar1=s->GetString().Tokenize(t2);
     unsigned int k=atoi(((TObjString* )ar1->At(0))->GetString().Data());
     bool bad=false;
+    TChainElement *el=(TChainElement*) fFiles->At(i);
+    if(dofill && el)AMSEventR::fRequested.push_back(string((const char*)el->GetTitle()));
     for(int is=0;is<AMSEventR::BadRunList.size();is++){
          if(k==AMSEventR::BadRunList[is]){
            bad=true;
@@ -976,6 +984,7 @@ bool timeout=Nentries<-1;
                  }
                }
 #endif
+              AMSEventR::fRequested.push_back(string((const char*)el->GetTitle()));
               }
  //              cout <<" title "<<el->GetTitle()<<endl;
              }

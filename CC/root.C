@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.542 2013/02/28 10:01:23 cconsola Exp $
+//  $Id: root.C,v 1.543 2013/02/28 15:07:25 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -1648,6 +1648,9 @@ AMSEventR* AMSEventR::_Head=0;
 AMSEventR::Service*    AMSEventR::pService=0;
 int AMSEventR::_Count=0;
 int AMSEventR::_NFiles=-1;
+TTree* AMSEventR::_pFiles=0;
+char AMSEventR::filename[1024]="";
+vector<string> AMSEventR::fRequested;
 int AMSEventR::_Entry=-1;
 unsigned long long  AMSEventR::_Lock=0;
 int AMSEventR::_EntrySetup=-1;
@@ -2385,6 +2388,8 @@ bool AMSEventR::ReadHeader(int entry){
 #pragma omp threadprivate (local_pfile_name)
   if(i>0){
     if( local_pfile!=_Tree->GetCurrentFile() || entry==0 || strcmp(local_pfile_name.c_str(),_Tree->GetCurrentFile()->GetName())){
+      string f((const char*)_Tree->GetCurrentFile()->GetName());
+      if(pService)(*pService).fProcessed.push_back(f);
       int thr=0;
       int nthr=1;
 #ifdef _OPENMP
@@ -8411,6 +8416,7 @@ void AMSEventR::Begin(TTree *tree){
   // Function called before starting the event loop.
   // Initialize the tree branches.
   Init(tree);
+  _pFiles=0;
   TString option = GetOption();
   // open file if...
   gWDir=gSystem->WorkingDirectory();
@@ -8438,6 +8444,9 @@ void AMSEventR::Begin(TTree *tree){
 
 	  (fService)._pOut=new TFile(option,"RECREATE");
 	  (fService)._pDir=gDirectory;
+          _pFiles = new TTree("FILES","FILES");
+          _pFiles->Branch("file",(void*)filename,"file/C",1024);  
+           
 //	      cout <<" gdir "<<gDirectory<<" "<< " "<<gROOT<<" "<<gDirectory->GetFile()->GetName()<<endl;
 	  cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
 	}
@@ -8491,6 +8500,23 @@ void AMSEventR::Terminate()
     if(--_NFiles==0 && pService){
       // Function called at the end of the event loop.
       //_Tree->SetMakeClass(0);
+      if(pService){
+      for(int k=0;k<fRequested.size();k++){
+       bool found=false;
+       for(int l=0;l<(*pService).fProcessed.size();l++){
+          if(strstr(fRequested[k].c_str(),(*pService).fProcessed[l].c_str())){
+              found=true;
+              break;
+          }
+       }
+       if(!found){
+          cerr<<"AMSEventR::Terminate-W-FileWasRequestedButNotProcessed "<<fRequested[k]<<endl;
+          if(fRequested[k].size()<sizeof(filename)/sizeof(filename[0]))strcpy(filename,fRequested[k].c_str());
+          else strncpy(filename,fRequested[k].c_str(),sizeof(filename)/sizeof(filename[0])-1);
+          if(_pFiles)_pFiles->Fill();
+     }
+    }
+    }      
       UTerminate();
       (*pService)._w.Stop();
       if(fgThickMemory)hjoin();
@@ -8559,6 +8585,7 @@ void AMSEventR::Terminate()
 	cout <<"AMSEventR::Terminate-I-WriteFileClosed "<<GetOption()<<endl;
       }
     }
+    else cerr<<"AMSEventR::Terminate-W-_NFilesNotZero "<<_NFiles<<endl;
   }  
 }
 

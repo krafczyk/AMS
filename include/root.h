@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.540 2013/02/28 10:01:46 cconsola Exp $
+//  $Id: root.h,v 1.541 2013/02/28 15:07:15 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3841,6 +3841,9 @@ class Service{
 public:
  TFile *            _pOut;
 TDirectory *_pDir;
+vector<string> fProcessed; //<  Files processed during ops
+vector<string> fNotProcessed; //<  Files not processed during ops
+
 typedef map<AMSID,TH1D*> hb1_d;
 typedef map<AMSID,TH1D*>::iterator hb1i;
 typedef map<AMSID,TH2D*> hb2_d;
@@ -3856,7 +3859,7 @@ static  hbp_d hbp;
  unsigned long long       BadEv;
  unsigned long long        TotalTrig;
 
-Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){}
+Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){fNotProcessed.clear();fProcessed.clear();}
 ~Service(){
 }
 };
@@ -3986,6 +3989,9 @@ static unsigned long long  _Lock;
 static AMSEventR * _Head;
 static int         _Count;
 static int _NFiles;
+static TTree* _pFiles;
+static char filename[1024];
+static vector<string> fRequested; //< Files Requested
 static int         _Entry;
 static int _EntrySetup;
 
