@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.539 2013/02/21 14:51:11 choutko Exp $
+//  $Id: root.h,v 1.540 2013/02/28 10:01:46 cconsola Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -372,6 +372,45 @@ output
         -1 error
 */
 int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[3], double YPR[3], double  xtime, int att=1, bool galactic=true);
+
+//------------------------------------------------------
+/*
+input   
+          AMSTheta(rad)  in ams coo system
+          AMSPhi  (rad)  in ams coo system
+          momentum  (not signed gev/c)
+          charge    (signed, integer)
+          RPT[3]    ISS coordinates (Rs,PhiS,ThetaS)
+          VPT[3]    ISS velocity (Vel rad/sec,VelPhi rad,VelTheta rad)
+          YPR[3]    ISS attitude (Yaw,Pitch,Roll)
+          xtime     particle time used according to use_time of AMSEventR::DoBacktracing 
+          att       1:GTOD, 2:CTRS, 3:INTL
+          gal_coo   if true gal_long and gal_lat will be in Galactic reference frame, lese in Equatorial one
+          bt_method flag for external magnetic field (1 just internal, 2 Tsyganenko 96, 3 Tsyganenko 05)
+          Amass     atomic mass number  (0: for electrons and positrons  :1 for p anti-p  ...)
+output
+          gal_long   Galctic longigude (deg)
+          gal_lat    Galctic latitude  (deg)
+          time_trace backtracing time of flight in sec
+          RPTO[3]    Particle final GTOD coordinate (R [cm] ,Phi [rad], Theta [rad])
+          GPT[2]     Particle final GTOD direction  (Phi[rad],Theta[rad])
+
+\return  0 secondary particle (unercutoff i.e. particle is likely of atmospheric origin) ;
+         1 primary particle   (overcutoff i.e. particle is likely coming from space) ;
+         2 time limit (set at 10 seconds) ;
+         3 velocity greater than c
+         4 External field model parameters out of validity range
+         5 External field model parameters do not exist
+         6 all other cases where the program was exiting (max number of steps reached..)
+        -1 failure (Charge==0 or if bt_method!=0  prameters file not found) 
+        -2 error   (if bt_method==2  particle UTime out of time limits for parameter file T96)
+        -3 error   (if bt_method==3  particle UTime out of time limits for parameter file T05)
+        -4 error   bt_method must be 1 || 2 || 3
+         
+*/
+int backtracing_mib(double &gal_long, double &gal_lat, double &time_trace, double RPTO[3],double GPT[2] ,double AMSTheta, double AMSPhi, double momentum,int charge, double RPT[3],double VPT[3], double YPR[3],double xtime ,int att=1, bool gal_coo=true, int bt_method=1,int Amass=0);
+
+
 //-----------------------------------------
 int get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double AMSPhi, double RPT[3] ,double VelPT[3], double YPR[3], double  time, bool gtod=true);///< Get gtod coordinates using ISS position, velocity and LVLH attitude
 
@@ -4588,7 +4627,15 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
 			  (1<<4 = 16):CTRS used, (1<<5 =32):AMS-GPS coo.used,
 			  (1<<6 = 64):GPS time used,
 			  (1<<7 =128):GPS time corrected used
-  \param[out] status      1:Over cutoff, 2:Under cutoff, 3:Trapped
+  \param[out] status      0: errors (see retuned value)
+                          1: Over cutoff, 
+                          2: Under cutoff, 
+                          3: Trapped 
+                          4: Calculated velocity greater than c
+                          5: External field model parameters out of validity range
+                          6: External field model Parameters do not exist
+                          7: All other cases where the program was exiting (max number of steps reached..)
+
   \param[out] glong       Galactic longitude (degree)
   \param[out] glat        Galactic latitude  (degree)
   \param[out] RPTO        GTOD coordinates Rad(cm), Phi(rad), Theta(rad)
@@ -4599,6 +4646,12 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
   \param[in]  Momentum    (GeV/c) Not signed
   \param[in]  Velocity    (=beta) Not signed
   \param[in]  Charge      Signed charge
+  \param[in]  bt_method   0: Haino's  
+                          1:MIB No ext.Field  
+                          2:MIB ext.Field Tsyganenko 1996 (T96)  
+                          3:MIB ext.Field Tsyganenko 2005 (T05) 
+  \param[in]  Amass       atomic mass number(0:  e- , e+ ; 1:  p, anti-p ; 2: d , anti-d ; 3: He3...) 
+
   \param[in]  use_att     1:Use LVLH,  2:Use INTL, 3: Use STK
   \param[in]  use_coo     1:Use TLE,   2:Use CTRS, 3: Use GTOD, 4: Use AMS-GPS
   \param[in]  use_time    1:UTCTime(), 2:AMSGPS time, 3:AMSGPS Time corrected
@@ -4608,6 +4661,9 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
 
   \retval     0 success
   \retval    -1 failure
+  \retval    -2 error (if bt_method==2  particle UTime out of time limits for parameter file T96)
+  \retval    -3 error (if bt_method==3  particle UTime out of time limits for parameter file T05)
+  \retval    -4 error (if bt_method!=0) bt_method must be 1 || 2 || 3
   \retval     1 specified use_att  data not available; instead used TLE+LVLH
   \retval     2 specified use_coo  data not available; instead used TLE
   \retval     3 specified use_coo  data not reliable;  instead used TLE
@@ -4617,6 +4673,7 @@ char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return 
 		    double RPTO[3], double &TraceTime,
 		    double theta, double phi,
 		    double Momentum, double Velocity, int Charge, 
+                    int bt_method= 0, int Amass=0 ,
 		    int use_att= 1, int use_coo = 4, int use_time= 3,
 		    double   dt= 0, int out_type= 1);
 

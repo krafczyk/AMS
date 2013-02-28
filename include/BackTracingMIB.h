@@ -28,16 +28,18 @@ using namespace std;
 
 class BackTracingMIB {
 
-	public:
 
-	 BackTracingMIB();
-        static BackTracingMIB * fBT;
+	protected:
+
+         BackTracingMIB();
+         static BackTracingMIB * fBT;
        //--->  static self pointer:
 
+	public:
         static BackTracingMIB *GetfBT();
        //---> retruns static self pointer (fBT)
 
-	 ~BackTracingMIB(); 	
+	virtual ~BackTracingMIB(); 	
 
 	void Initialize();//--> called in root.C "void AMSEventR::InitDB();"
 
@@ -160,6 +162,7 @@ class BACKTRACINGPAR_DEF{
 
         //-----input:
         double PAR[11] ;
+// no #pragma omp threadprivate(PAR)
         double r0 ;
         double the0;
         double fi0 ;
@@ -172,14 +175,6 @@ class BACKTRACINGPAR_DEF{
 	double dflag;
 	double rkflag;
 
-        int iy;
-        int mes;
-        int ide;
-        int id;
-        int ih;
-        int min;
-        int is ;
-
         //----output:
         double res;
         double r;
@@ -190,9 +185,18 @@ class BACKTRACINGPAR_DEF{
         double time;
         double alast;
 
+	//.....in
+        int iy;
+        int mes;
+        int ide;
+        int id;
+        int ih;
+        int min;
+        int is ;
+
+// no #pragma omp threadprivate(PAR,r0,the0,fi0,the1, fi1,rig,zn,amass,dflag,rkflag, res,r,td,fei,ast,asf,time,alast,iy,mes,ide,id,ih,min,is)
 
 };
 #define BACKTRACINGPAR COMMON_BLOCK(BACKTRACINGPAR,backtracingpar)
 COMMON_BLOCK_DEF(BACKTRACINGPAR_DEF, BACKTRACINGPAR);
-
 #endif
