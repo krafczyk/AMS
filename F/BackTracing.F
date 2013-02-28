@@ -84,8 +84,9 @@ c     solar variables
       !real*8 r0,the0,fi0,the1,fi1,rig,zn,amass,dflag,rkflag
       common/backtracingpar/PAR,r0,the0,fi0,the1,fi1,
      $     rig,zn,amass,dflag,rkflag,
-     $     iy,mes,ide,id,ih,min,is,
-     $     res,r,td,fei,ast,asf,time,alast   !output
+     $     res,r,td,fei,ast,asf,time,alast,
+     $     iy,mes,ide,id,ih,min,is
+!$OMP THREADPRIVATE (/backtracingpar/)
 !-------------------------------------------------------------------
        
 !---COMMONS------------------------------------------------------
@@ -111,6 +112,8 @@ c      common/output/res,r,td,fei,ast,asf,time,alast
       dst   = PAR(2)
       byimf = PAR(3)
       bzimf = PAR(4)
+      
+      bzeta = PAR(4)
       
       w1 = PAR(5)
       w2 = PAR(6)
