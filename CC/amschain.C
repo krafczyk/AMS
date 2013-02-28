@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.67 2013/02/28 15:34:48 choutko Exp $
+//  $Id: amschain.C,v 1.68 2013/02/28 18:21:37 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -220,6 +220,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
   ofstream  rejfile2;
   //TFile::SetOnlyStaged(stagedonly);
   //stagedonly=false;
+  int stagein=0;
   unsigned int ftimeout=TFile::GetOpenTimeout();
   if(ftimeout==TFile::kEternalTimeout && timeout==0){
     ftimeout=10;
@@ -255,6 +256,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
            else staged=false;
            pclose(fp);
            }
+           if(!staged)stagein++; 
           if(staged || !stagedonly){
             int radd=   Add(rname,timeout?-kBigNumber:kBigNumber);
             if(!radd){
@@ -291,6 +293,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
     }
     fclose(listfile);
     if(rejfile)rejfile.close();
+    if(stagein)cout<<"AMSChain::AddFromFile-W-NotAllFilesStaged "<<stagein<<endl;
   }
   else {
     cerr << "AMSChain::AddFromFile-E-  Error opening file '" << fname << "';";
