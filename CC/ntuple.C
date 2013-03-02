@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.260 2013/01/02 19:41:41 oliva Exp $
+//  $Id: ntuple.C,v 1.261 2013/03/02 08:49:51 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -733,7 +733,7 @@ void AMSNtuple::TRDPlotInit(){
 TCanvas* AMSNtuple::TRDPlot(int mode){
   if(mode==0)return NULL;
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTNODRWAINGINGBATCHVC__
   TRDInfoNtuple02 *info=AMSJob::gethead()->getntuple()->Get_trdinfo02();
   if(!info)return NULL;
 
@@ -765,6 +765,7 @@ TCanvas* AMSNtuple::TRDPlot(int mode){
   }
 
   _rfile->cd();
+
   TCanvas* cnew=new TCanvas();
   cnew->SetFillColor(0);
   cnew->cd();
@@ -796,7 +797,6 @@ TCanvas* AMSNtuple::TRDPlot(int mode){
   tfr->GetListOfFunctions()->Add(palette,"br");
 
   gPad->Update();
-
   for(int lay=0;lay!=20;lay++){
     for(int j=0;j!=18;j++){
       for(int tub=0;tub!=16;tub++){
@@ -844,6 +844,7 @@ TCanvas* AMSNtuple::TRDPlot(int mode){
   return (TCanvas*)cnew;
 
 #endif
+return NULL;
 }
 
 uinteger AMSNtuple::writeRSetup(){
