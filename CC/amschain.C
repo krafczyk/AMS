@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.68 2013/02/28 18:21:37 choutko Exp $
+//  $Id: amschain.C,v 1.69 2013/03/04 10:52:13 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -200,7 +200,10 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
        string stager_get="stager_get -M ";
        stager_get+=(rname+pos);
        stager_get+=" 1>/dev/null 2>&1 &";
+       for(int i=0;i<3;i++){
        system(stager_get.c_str());
+       }       
+
        }
       i++; 
     }
@@ -241,7 +244,9 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
            string stager_get="stager_get -M ";
            stager_get+=(rname+pos);
            stager_get+=" 1>/dev/null 2>&1 ";
-           system(stager_get.c_str());
+           for(int s=0;s<3;s++){
+            system(stager_get.c_str());
+           }
            stager_get="stager_qry -M ";
            stager_get+=(rname+pos);
            stager_get+=" | grep -c STAGED 2>&1";
