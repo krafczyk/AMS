@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.71 2013/03/04 13:08:22 choutko Exp $
+//  $Id: amschain.C,v 1.72 2013/03/04 13:22:49 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -284,7 +284,8 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
              system(stager_get.c_str());
            }
            else break;
-           if(ktry==2)cerr<<"AMSChain::AddFromFile-W-UnableToStage "<<stager_get<<endl;
+           if(ktry==0)cerr<<"AMSChain::AddFromFile-E-TryingToStageHard "<<stager_get<<endl;
+           else if(ktry==2)cerr<<"AMSChain::AddFromFile-E-UnableToStage "<<stager_get<<endl;
            }
            }
           if(staged || !stagedonly){
