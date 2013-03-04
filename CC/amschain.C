@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.72 2013/03/04 13:22:49 choutko Exp $
+//  $Id: amschain.C,v 1.73 2013/03/04 13:44:16 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -259,21 +259,22 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
            if(!staged)stagein++; 
 //            stager_get bug workarond             
             for(int ktry=0;ktry<3;ktry++){
-            bool stagedin=true;
-            stager_get="stager_qry -M ";
-            stager_get+=(rname+pos);
-            stager_get+=" | grep -c STAGE 2>&1";
-            FILE *fp=popen(stager_get.c_str(),"r");
-            char path[1024];
-            if(fp==NULL){
-              stagedin=false;
-           }
-           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
-             stagedin=true;  
-           }
-           else stagedin=false;
-           pclose(fp);
+             bool stagedin=true;
+             stager_get="stager_qry -M ";
+             stager_get+=(rname+pos);
+             stager_get+=" | grep -c STAGE 2>&1";
+             FILE *fp=popen(stager_get.c_str(),"r");
+             char path[1024];
+             if(fp==NULL){
+               stagedin=false;
+             }
+             else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
+              stagedin=true;  
+             }
+             else stagedin=false;
+             pclose(fp);
            if(!stagedin){
+             if(ktry==0)cerr<<"AMSChain::AddFromFile-W-TryingToStageHard "<<stager_get<<endl;
              string stager_get="stager_get -M ";
              stager_get+=(rname+pos);
              stager_get+=" 1>/dev/null 2>&1 ";
@@ -284,8 +285,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
              system(stager_get.c_str());
            }
            else break;
-           if(ktry==0)cerr<<"AMSChain::AddFromFile-E-TryingToStageHard "<<stager_get<<endl;
-           else if(ktry==2)cerr<<"AMSChain::AddFromFile-E-UnableToStage "<<stager_get<<endl;
+           if(ktry==2)cerr<<"AMSChain::AddFromFile-E-UnableToStage "<<stager_get<<endl;
            }
            }
           if(staged || !stagedonly){
