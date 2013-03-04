@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.548 2013/03/04 09:51:25 choutko Exp $
+//  $Id: root.C,v 1.549 2013/03/04 12:55:17 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2340,13 +2340,13 @@ bool AMSEventR::ReadHeader(int entry){
   static unsigned int runo=0;
   static unsigned int evento=0;
   static const int probe=100;
-  static double dif;
-  static double difm;
-  static double dif2;
+  static double dif=0;
+  static double difm=0;
+  static double dif2=0;
 #pragma omp threadprivate(runo,evento,dif,difm,dif2)
   fStatus=0;
   if(bStatus){
-    int j;
+    int j=0;
     {
       j=bStatus->GetEntry(entry);
     }
