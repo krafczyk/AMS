@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.547 2013/03/04 07:36:39 choutko Exp $
+//  $Id: root.C,v 1.548 2013/03/04 09:51:25 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8504,10 +8504,6 @@ void AMSEventR::Terminate()
       ofstream ofbrej;
       int nrej=0;
 //      cout<<" filename "<<strlen(filename)<<" "<<filename<<(*pService).fProcessed.size()<<endl;
-      if(strlen(filename)>1){
-          ofbrej.clear();
-          ofbrej.open(filename);
-      }
       for(int k=0;k<fRequested.size();k++){
        bool found=false;
        for(int l=0;l<(*pService).fProcessed.size();l++){
@@ -8523,6 +8519,10 @@ void AMSEventR::Terminate()
          if(ifound>=0){
           aname=fRequested[k].substr(0,ifound);
         }
+      if(nrej==0 && strlen(filename)>1){
+          ofbrej.clear();
+          ofbrej.open(filename);
+      }
           if(ofbrej)ofbrej<<aname<<endl;
           nrej++;
      }
@@ -8534,7 +8534,6 @@ void AMSEventR::Terminate()
     }
       if(ofbrej){
         ofbrej.close();
-        if(!nrej)unlink(filename);
       }
            
     }
