@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.70 2013/03/04 12:14:08 choutko Exp $
+//  $Id: amschain.C,v 1.71 2013/03/04 13:08:22 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -587,7 +587,10 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 	//        cout <<" finished "<<i<<" "<<endl;
       }
     }
-	if(file)file->Close("R");
+	if(file){
+           file->Print();
+           file->Close("R");
+        }
         if(file)delete file;
 
 }  

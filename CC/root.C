@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.549 2013/03/04 12:55:17 choutko Exp $
+//  $Id: root.C,v 1.550 2013/03/04 13:07:17 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2693,7 +2693,10 @@ AMSEventR::AMSEventR():TSelector(){
     }
     TStreamerInfo::SetFactory(new TStreamerInfo()); 
 #endif
-     if(gEnv)gEnv->SetValue("TFile.Recover", 0);
+     if(gEnv){
+         gEnv->SetValue("TFile.Recover", 0);
+         gEnv->SetValue("XNet.RootdFallback", 0);
+     }
      else cerr<<"AMSEventR::ctor-E-gEnvNotDefined"<<endl;
   }
   fEcalHit.reserve(MAXECHITS);
