@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.27 2013/02/06 15:20:48 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.28 2013/03/04 19:49:20 choutko Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -44,7 +44,9 @@ protected:
 #ifndef __ROOTSHAREDLIBRARY__
   static vector<TOF2RawSide*> tf2raws;
 #endif
-
+public:
+  static bool RebuildBetaHInReadHeader;
+protected:
 /// TofClusterH 4layer vector  pointer
   static vector<TofClusterHR*>tofclh[4];
 /// TofClusterH UpPair+DownPair BetaH Raw

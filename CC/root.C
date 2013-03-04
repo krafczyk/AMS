@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.550 2013/03/04 13:07:17 choutko Exp $
+//  $Id: root.C,v 1.551 2013/03/04 19:49:16 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2546,72 +2546,9 @@ bool AMSEventR::ReadHeader(int entry){
 	RichRingR::updateCalibration(*this); 
       }
 
-
-///--Tof BetaHs Init
-    if(Version()<592){
-       fHeader.TofClusterHs = 0;
-       TofClusterH().clear();
-///---
-       fHeader.BetaHs = 0;
-       for(int i=0;i<NParticle();i++)pParticle(i)->setBetaH(-1);
-       for(int i=0;i<NCharge();i++)pCharge(i)->setBetaH(-1);
-       BetaH().clear();
-     }
-
-//---Fix For Gbatch
-    else if((Version()>=610&&Version()<=622)&&nMCEventg()==0){
-//---
-      TofRecH::Init();
-//---TofClusterHR
-      if(Version()<=621){   
-        for(int i=0;i<NTofClusterH();i++){
-           TofClusterHR *tfclh=pTofClusterH(i);
-           if(!tfclh)continue;
-           TofRecH::EdepRecR(tfclh->Layer,tfclh->Bar,tfclh->Aadc,tfclh->Dadc,tfclh->Coo[tfclh->GetDirection()],tfclh->AQ2,tfclh->DQ2,tfclh->AEdep,tfclh->DEdep);
-        }
-       }
-      if(nTrTrack()>=2){//Recover Index
-         TofRecH::BuildBetaH(0);
-      }
-//----BetaH
-      else if(Version()<=621){        
-        bool ftk=0;
-        for(int i=0;i<NBetaH();i++){//First Search if Trd-Track Mode
-           BetaHR *betah=pBetaH(i);
-           if(!betah)continue;
-           if(betah->iTrTrack()>=0||betah->iTrdTrack()>=0){ftk=1;break;}
-         }
-//----
-        if(ftk){  //Track Mode or Trd Mode only need Part Reconstruction
-         for(int i=0;i<NBetaH();i++){
-           BetaHR *betah=pBetaH(i);
-           if(!betah)continue;
-           TofClusterHR *tfhit[4]={0};        
-           double tklcoo[4]={0},tkcosz[4]={1,1,1,1};
-           double zpl,time;AMSPoint pnt;AMSDir dir;
-           for(int ilay=0;ilay<4;ilay++){
-             tfhit[ilay]=betah->GetClusterHL(ilay);
-             if(tfhit[ilay]){
-               betah->TInterpolate(tfhit[ilay]->Coo[2],pnt,dir,time);
-               tklcoo[ilay]=pnt[tfhit[ilay]->GetDirection()];
-               tkcosz[ilay]=fabs(dir[2]);
-            }
-         } 
-         TofBetaPar par=betah->gTofBetaPar();
-         TofRecH::EdepTkAtt(tfhit,tklcoo,tkcosz,par);
-         betah->SetTofBetaPar(par);
-        }
-      }
-      else {
-       TofRecH::BuildBetaH(0); 
-      }
-    }//End 621 
-//---
-  }//End 622
-  if(Version()<630){
-    for(int i=0;i<NBetaH();i++)pBetaH(i)->setChargeHI(-1);
-  }
-
+if(TofRecH::RebuildBetaHInReadHeader){
+    RebuildBetaH();
+}
      
     if(!AMSEventR::Head()->nMCEventg()){ // not for MC events
      fHeader.getISSTLE();
@@ -12996,3 +12933,69 @@ void AMSEventR::CTRS2GTOD(double theta, double phi, double v, double &vtheta, do
          vphi=atan2(vy,vx);
 }
 bool AMSEventR::LoadFromTDV=true;
+void AMSEventR::RebuildBetaH(){
+///--Tof BetaHs Init
+    if(Version()<592){
+       fHeader.TofClusterHs = 0;
+       TofClusterH().clear();
+///---
+       fHeader.BetaHs = 0;
+       for(int i=0;i<NParticle();i++)pParticle(i)->setBetaH(-1);
+       for(int i=0;i<NCharge();i++)pCharge(i)->setBetaH(-1);
+       BetaH().clear();
+     }
+
+//---Fix For Gbatch
+    else if( (Version()>=610&&Version()<=622)&&nMCEventg()==0){
+//---
+      TofRecH::Init();
+//---TofClusterHR
+      if(Version()<=621){   
+        for(int i=0;i<NTofClusterH();i++){
+           TofClusterHR *tfclh=pTofClusterH(i);
+           if(!tfclh)continue;
+           TofRecH::EdepRecR(tfclh->Layer,tfclh->Bar,tfclh->Aadc,tfclh->Dadc,tfclh->Coo[tfclh->GetDirection()],tfclh->AQ2,tfclh->DQ2,tfclh->AEdep,tfclh->DEdep);
+        }
+       }
+      if(nTrTrack()>=2){//Recover Index
+         TofRecH::BuildBetaH(0);
+      }
+//----BetaH
+      else if(Version()<=621){        
+        bool ftk=0;
+        for(int i=0;i<NBetaH();i++){//First Search if Trd-Track Mode
+           BetaHR *betah=pBetaH(i);
+           if(!betah)continue;
+           if(betah->iTrTrack()>=0||betah->iTrdTrack()>=0){ftk=1;break;}
+         }
+//----
+        if(ftk){  //Track Mode or Trd Mode only need Part Reconstruction
+         for(int i=0;i<NBetaH();i++){
+           BetaHR *betah=pBetaH(i);
+           if(!betah)continue;
+           TofClusterHR *tfhit[4]={0};        
+           double tklcoo[4]={0},tkcosz[4]={1,1,1,1};
+           double zpl,time;AMSPoint pnt;AMSDir dir;
+           for(int ilay=0;ilay<4;ilay++){
+             tfhit[ilay]=betah->GetClusterHL(ilay);
+             if(tfhit[ilay]){
+               betah->TInterpolate(tfhit[ilay]->Coo[2],pnt,dir,time);
+               tklcoo[ilay]=pnt[tfhit[ilay]->GetDirection()];
+               tkcosz[ilay]=fabs(dir[2]);
+            }
+         } 
+         TofBetaPar par=betah->gTofBetaPar();
+         TofRecH::EdepTkAtt(tfhit,tklcoo,tkcosz,par);
+         betah->SetTofBetaPar(par);
+        }
+      }
+      else {
+       TofRecH::BuildBetaH(0); 
+      }
+    }//End 621 
+//---
+  }//End 622
+  if(Version()<630){
+    for(int i=0;i<NBetaH();i++)pBetaH(i)->setChargeHI(-1);
+  }
+}

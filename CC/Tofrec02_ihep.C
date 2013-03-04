@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.45 2012/12/12 15:25:09 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.46 2013/03/04 19:49:14 choutko Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -47,6 +47,7 @@ vector<TofRawSideR>   TofRecH::tfraws;
 vector<TOF2RawSide*>  TofRecH::tf2raws;
   #pragma omp threadprivate (TofRecH::tf2raws)
 #endif
+  bool  TofRecH::RebuildBetaHInReadHeader=true;
 
 vector<TofClusterHR*> TofRecH::tofclh[4];
   #pragma omp threadprivate (TofRecH::tofclh)

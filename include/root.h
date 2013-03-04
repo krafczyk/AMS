@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.541 2013/02/28 15:07:15 choutko Exp $
+//  $Id: root.h,v 1.542 2013/03/04 19:49:20 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -6439,6 +6439,7 @@ void         AddAMSObject(TOF2RawSide *ptr);
 void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
+void RebuildBetaH();
 friend class AMSChain;
 ClassDef(AMSEventR,21)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
