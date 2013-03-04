@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.574 2012/10/31 20:08:26 choutko Exp $
+//  $Id: event.C,v 1.574.2.1 2013/03/04 19:55:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4115,7 +4115,7 @@ else{
          int z1=0;
          if(ptr->getpbeta()){
            if(ptr->getpbeta()->getpattern()==0)z1=3;
-           else if(ptr->getpbeta()->getpattern()<4)z1=2;
+           else if(ptr->getpbeta()->getpattern()<5)z1=2;
             else z1=1;
          }
          __status1|=(z1<<21);
