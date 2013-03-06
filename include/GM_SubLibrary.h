@@ -5,6 +5,9 @@
 //   Filename: GM_SubLibrary.h 
 //   Creation date: 05/11/2012      
 //
+//	06/03/2013 --> Added functiuon to calculate (ThetaM PhiM)
+//		       note: The North Magnetic Pole points toward the South Earth hemisphere
+//
 //   Implemented by : D. Grandi
 //                    C. Consolandi
 //                    S. Della Torre
@@ -106,6 +109,19 @@ typedef struct{
 // -----------  GMPOLE_last--> Geomagnetic Cut off with IGRF pos ==0 negative  pos=1 possitive
 double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phiPart, double thetaISS, double phiISS, int pos );
 
+
+// GM ThetaM & PhiM functions:
+// Utime    --> particle Unix time 
+// Altitude --> ISS distance from Earth center -Earth radious  GTOD
+// thetaISS --> ISS latitude in GTOD
+// phiISS   --> ISS longitude in GTOD
+// GMC[3]   --> ISS coordinates in Geomagnetic Reference frame (GM)
+//              GMC[0]= distance from GM center
+//              GMC[1]= PhiM   GM longitude 
+//              GMC[2]= ThetaM GM latitude
+void   GM_GeoMagSphericalCoo(time_t Utime, double Altitude , double thetaISS, double phiISS, double GMC[3]);
+double GM_GetThetaM(time_t Utime, double Altitude , double thetaISS, double phiISS);
+double GM_GetPhiM(time_t Utime, double Altitude , double thetaISS, double phiISS);
 
 //GM Cord functions
 void GM_CartesianToSpherical(GMtype_CoordCartesian CoordCartesian, GMtype_CoordSpherical *CoordSpherical);

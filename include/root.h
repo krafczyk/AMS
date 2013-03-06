@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.542 2013/03/04 19:49:20 choutko Exp $
+//  $Id: root.h,v 1.543 2013/03/06 15:18:19 cconsola Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -332,7 +332,23 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
 
 //--------DSP Errors-----------------------
  int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
- //-----------------------------------------
+//-----------------------------------------
+
+/// ISS Geomagnetic Latitude [rad]
+//
+/*! To keep the same convention as HeaderR::ThetaM
+ *  the North Magnetic Pole points toward North Earth Pole.
+ *  This latutude is calculated with IGRF coefficients   
+ */ 
+double GetThetaM();
+
+/// ISS Geomagnetic Longitude [rad]
+//
+/*! To keep the same convention as HeaderR::PhiM
+ *  the North Magnetic Pole points toward North Earth Pole.
+ *  This longitude is calculated with IGRF coefficients 
+ */
+double GetPhiM();
 
 
 
@@ -374,7 +390,10 @@ output
 int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[3], double YPR[3], double  xtime, int att=1, bool galactic=true);
 
 //------------------------------------------------------
-/*
+//! Function used in AMSEventR::DoBacktracing
+/*! Performes particle backtracing with external field models of Tsyganenko (T96 and T05)
+ *  (see:  bt_method flag) 
+ *
 input   
           AMSTheta(rad)  in ams coo system
           AMSPhi  (rad)  in ams coo system
