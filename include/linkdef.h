@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.149 2013/02/23 16:02:35 choutko Exp $
+//  $Id: linkdef.h,v 1.150 2013/03/06 22:18:28 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -83,7 +83,11 @@
 #pragma link C++ class RichPMTCalib;
 #pragma link C++ class RichConfigManager;
 #pragma link C++ class RichConfigContainer+;
-///////////////////////////////////////
+/////////////////////////////////////// Unfolding tools
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma link C++ class BayesianUnfolder;
+#endif
+///////////////////////////////////////////////////////
 #pragma link C++ class TrPdf+;
 #pragma link C++ class VCon;
 #pragma link C++ class TrElem+;
