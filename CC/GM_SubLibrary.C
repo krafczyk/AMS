@@ -224,6 +224,7 @@ double GM_GetPhiM(time_t Utime, double Altitude , double thetaISS, double phiISS
 
 return PhiM;
 }
+//--------------------------------------------------------------------------------------
 void GM_GeoMagSphericalCoo(time_t Utime, double Altitude , double thetaISS, double phiISS, double GMC[3]){
 
         //check IGRF coefficients
