@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.551 2013/03/04 19:49:16 choutko Exp $
+//  $Id: root.C,v 1.552 2013/03/06 15:18:54 cconsola Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10358,8 +10358,44 @@ AMSSetupR::DSPError* HeaderR::pDSPError(){
     return &a;
 }
 //-----------------------------------------
+double HeaderR::GetThetaM(){
 
+ double deg2rad = TMath::DegToRad();
+        time_t Utime =UTCTime() ;
+        //...km
+        double Re =  6371.2; //km Earth radius
+        double Altitude = RadS/1.e5-Re;
+        //...ISS rad-->deg
+        double ThetaISS=  ThetaS/deg2rad;
+        double PhiISS=    PhiS/deg2rad;
 
+        //--deg
+        double thetaM = GM_GetThetaM(Utime, Altitude, ThetaISS, PhiISS);
+        //--opposite sign and deg-->rad:
+        thetaM= thetaM*(-1)*deg2rad;
+
+return thetaM;
+
+}
+//-------------------------------------------------------------------------------------------
+double HeaderR::GetPhiM(){
+
+ double deg2rad = TMath::DegToRad();
+        time_t Utime =UTCTime() ;
+        //...km
+        double Re =  6371.2; //km Earth radius
+        double Altitude = RadS/1.e5-Re;
+        //...ISS rad-->deg
+        double ThetaISS=  ThetaS/deg2rad;
+        double PhiISS=    PhiS/deg2rad;
+
+        //--deg
+        double phiM = GM_GetPhiM(Utime, Altitude, ThetaISS, PhiISS);
+        //--opposite sign and deg-->rad
+         phiM= phiM*(-1)*deg2rad;
+
+return phiM;
+}
 //-----------Coordinates -------------------
 
 int HeaderR::get_gal_coo(double & gal_long, double & gal_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[3], double YPR[3], double  time, bool gtod, bool gal_coo){

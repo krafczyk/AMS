@@ -204,6 +204,84 @@ return pcut2;
 
 
 }
+//---------------------------------------------------------------------------------------
+double GM_GetThetaM(time_t Utime, double Altitude , double thetaISS, double phiISS){
+
+        double GMC[3];
+        GM_GeoMagSphericalCoo( Utime,  Altitude , thetaISS,  phiISS, GMC );
+        double ThetaM = GMC[2];
+
+
+return ThetaM;
+}
+//--------------------------------------------------------------------------------------
+double GM_GetPhiM(time_t Utime, double Altitude , double thetaISS, double phiISS){
+
+        double GMC[3];
+        GM_GeoMagSphericalCoo( Utime,  Altitude , thetaISS,  phiISS, GMC);
+        double PhiM = GMC[1];
+
+
+return PhiM;
+}
+void GM_GeoMagSphericalCoo(time_t Utime, double Altitude , double thetaISS, double phiISS, double GMC[3]){
+
+        //check IGRF coefficients
+        if(!scanned)
+#pragma omp critical (scan)
+{
+         scanned=1;
+         cout <<" GeoMagCutoff-I-IGRFtoBeRead "<<endl;
+         GM_ScanIGRF(&G10, &G11, &H11, &G20, &G21, &H21, &G22, &H22 );
+         cout <<" GeoMagCutoff-I-IGRFRead "<<endl;
+        }
+        //------------------
+        //------------------
+        GMtype_Date  date;
+        //set human time date
+        time_t utime=Utime;
+        struct tm * newTime = gmtime( &utime ); //convert unixtime
+                date.Year = newTime->tm_year +1900;// 0 is 1900 
+                date.Month = newTime->tm_mon +1; // from 0 to 11
+                date.Day = newTime->tm_mday;
+        // Decimal year
+        GM_DateToYear(&date);
+
+        //--------------------
+        GMtype_CoordSpherical CoordInput;
+        //input spherical coordinates GTOD
+        CoordInput.phig=thetaISS;//LAT. (deg)
+        CoordInput.lambda=phiISS;//LONG. (deg)
+        CoordInput.r=Altitude;//km
+
+        //---------------
+        GMtype_Model Model;
+        //linear interpolation of coeff
+        GM_TimeAdjustCoefs(date, G10, G11, H11, G20, G21, H21, G22, H22, &Model);
+
+        //----------------
+        GMtype_CoordSpherical DipoleSpherical;
+        // function for dipole center location
+        GM_DipoleLocation(Model, &DipoleSpherical);
+
+        //-----------------
+        GMtype_Pole Pole;
+        //Calculate Pole location
+        GM_PoleLocation(Model, &Pole);
+
+        //--------------------------    
+        GMtype_CoordSpherical MagSpherical;
+        // function for Geomagnetic coord
+        GM_GeomagCoordLocation(CoordInput, DipoleSpherical, Pole, &MagSpherical);
+
+                //ThetaM, PhiM, rM:
+           GMC[2]    = RAD2DEG(MagSpherical.phig);
+           GMC[1]    = RAD2DEG(MagSpherical.lambda);
+           GMC[0]    = MagSpherical.r;
+
+}
+//-------------------------------------------------------------------------------------------------------
+
 
 
 void GM_CartesianToSpherical(GMtype_CoordCartesian CoordCartesian, GMtype_CoordSpherical *CoordSpherical)
