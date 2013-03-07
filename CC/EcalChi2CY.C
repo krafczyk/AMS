@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.28 2013/02/23 15:42:37 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.29 2013/03/07 10:14:31 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -20,19 +20,21 @@ EcalPDF::EcalPDF(){
         tempname+="/v5.00/EcalChi2CY_prof.20121106.1.root";
     else if(Version==2)
         tempname+="/v5.00/EcalChi2CY_prof.20130218.1.root";
+    else if(Version==3)
+	tempname+="/v5.00/EcalChi2CY_prof.20130306.1.root";
     else{
         has_init=-1;
         warn_messages="EcalPDF-Error: Version ";
         warn_messages+=Version;
         warn_messages+=" hasn't been supported yet.";
     }
-    if(Version==1||Version==2)
+    if(Version==1||Version==2||Version==3)
         init(tempname.c_str());
 }
 
 TH1F*  EcalPDF::param_mean_lf[18][6];
 TH1F*  EcalPDF::param_rms_lf[18][6] ;
-TH1F*  EcalPDF::param_prob_lf[18][2]    ;
+TH1F*  EcalPDF::param_prob_lf[18][3]    ;
 TH1F*  EcalPDF::hprofele_Chi2_Erg_rms   ;
 TH1F*  EcalPDF::hprofele_F2Edep_Erg_rms ;
 TF1*   EcalPDF::f_F2Edep_Erg_RMS    ;
@@ -57,7 +59,7 @@ int EcalPDF::init(const char* fdatabase){
             param_mean_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
             pdf_names.push_back(string(tempname));
         }
-        for(int i1=0;i1<2;i1++){
+        for(int i1=0;i1<3;i1++){
             sprintf(tempname,"hprob_lay%.2d_%d_2",layer,i1);
             param_prob_lf[layer][i1]=new TH1F(tempname,tempname,710, -31.905, 31.995);
             pdf_names.push_back(string(tempname));
@@ -134,7 +136,10 @@ int EcalPDF::init(const char* fdatabase){
         }
     }
     for(int layer=0;layer<18;layer++){
-        for(int i1=0;i1<2;i1++){
+	int nparprob=2;
+	if(Version==3)
+		nparprob=3;
+        for(int i1=0;i1<nparprob;i1++){
             sprintf(tempname,"param_prob_%d_lay%.2d",i1,layer);
             hdummy=(TH1F*)_fdatabase->Get(tempname);
             if(hdummy==NULL){
@@ -326,9 +331,9 @@ int EcalPDF::init(const char* fdatabase){
     return has_init;
 }
 EcalPDF::~EcalPDF(){
-   //for(int i1=0;i1<pdf_names.size();i1++)
-   //    gDirectory->Delete(pdf_names[i1].c_str());
-   //cout<<"Call EcalPDF::~EcalPDF()"<<endl;
+   for(int i1=0;i1<pdf_names.size();i1++)
+       gDirectory->Delete(pdf_names[i1].c_str());
+   cout<<"Call EcalPDF::~EcalPDF()"<<endl;
    //exit(0);
 }
 float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
@@ -342,6 +347,7 @@ float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
     int binx0,binx1     ;
     float x,x0,x1       ;
     float param_lf[6]   ;
+    
     switch(type){
     case 0:
         x=log(Erg);
@@ -373,6 +379,7 @@ float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
             ret1=myfunc_lf(x,param_lf,0);
             ret=ret0*(x1-coo)/(x1-x0)+ret1*(coo-x0)/(x1-x0);
         }
+	//cout<<"ret0= "<<ret0<<", ret1= "<<ret1<<", Erg= "<<Erg<<", x= "<<x<<endl;
         break;
     }
     return ret;
@@ -435,7 +442,10 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
     float ret,ret0,ret1 ;
     int binx0,binx1     ;
     float x,x0,x1       ;
-    float param_lf[2]   ;
+    float param_lf[3]   ;
+    int nparamprob=2;
+    if(Version==3)
+	nparamprob=3;
     switch(type){
     case 0:
         x=log(Erg);
@@ -444,11 +454,11 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
         if(coo<x0){
             x1=param_prob_lf[flayer][0]->GetBinCenter(binx0-1);
             binx1=binx0-1;
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx0);
             }
             ret0=myfunc_lf(x,param_lf,1);
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx1);
             }
             ret1=myfunc_lf(x,param_lf,1);
@@ -457,11 +467,11 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
         else{
             x1=param_prob_lf[flayer][0]->GetBinCenter(binx0+1);
             binx1=binx0+1;
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx0);
             }
             ret0=myfunc_lf(x,param_lf,1);
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx1);
             }
             ret1=myfunc_lf(x,param_lf,1);
@@ -475,11 +485,11 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
         if(coo<x0){
             x1=param_prob_lf[flayer][0]->GetBinCenter(binx0-1);
             binx1=binx0-1;
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx0);
             }
             ret0=myfunc_lf(x,param_lf,2);
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx1);
             }
             ret1=myfunc_lf(x,param_lf,2);
@@ -488,11 +498,11 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
         else{
             x1=param_prob_lf[flayer][0]->GetBinCenter(binx0+1);
             binx1=binx0+1;
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx0);
             }
             ret0=myfunc_lf(x,param_lf,2);
-            for(int i2=0;i2<2;i2++){
+            for(int i2=0;i2<nparamprob;i2++){
                 param_lf[i2]=param_prob_lf[flayer][i2]->GetBinContent(binx1);
             }
             ret1=myfunc_lf(x,param_lf,2);
@@ -503,63 +513,88 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
     return ret;
 }
 double EcalPDF::myfunc_lf(float x,float* par,int type){
-    double ret;
+    double ret=11.;
     if(x<=0)
         return -1;
-    if(x<log(5))
-        x=log(5);
-    if(x>log(570))
-        x=log(570);
+    if(Version!=3){
+    	if(x<log(5))
+        	x=log(5);
+	if(x>log(570))
+        	x=log(570);
+    }
     if(type==0){
         double a0,a1,a2,a3,a4,a5;
         a0=par[0];a1=par[1];a2=par[2];
         a3=par[3];a4=par[4];a5=par[5];
         ret=a0+a1*x+a2*x*x+a3*x*x*x+a4*x*x*x*x+a5*x*x*x*x*x;
-        if(ret>1)
-            ret=1.0;
-        else if(ret<0.0)
-            ret=0.0;
-    }
-    else if(type==1){
-        double a0,a1,x0;
-        a0=par[0];
-        a1=par[1];
-        if(a1==0)
-            x0=1.5;
-        else
-            x0=(log(11.)-a0)/a1;
-        ret=11.0;
-        if(x<x0){
-            if(a0+a1*x>10)
-                ret=11.0;
-            else if(a0+a1*x<-10)
-                ret=0.0;
-            else
-                ret=exp(a0+a1*x);
+        if(Version!=3){
+		if(ret>1) ret=1.0;
         }
-        if(ret>=11.0)
-            ret=1.0;
-        else
-            ret=1.0-exp(-ret);
+	if(ret<0.0)
+            ret=0.0;
 
     }
-    else if (type==2){
-        double a0,a1,x0;
+    else if(type==1){
+        double a0,a1,a2,x0;
         a0=par[0];
         a1=par[1];
-        if(a1==0)
-            x0=1.5;
+	if(Version!=3){
+        	if(a1==0)
+            		x0=1.5;
+        	else
+            		x0=(log(11.)-a0)/a1;
+        	ret=11.0;
+        	if(x<x0){
+            	if(a0+a1*x>10)
+                	ret=11.0;
+            	else if(a0+a1*x<-10)
+                	ret=0.0;
+            	else
+                	ret=exp(a0+a1*x);
+        	}
+	}
+	else{
+    		a2=par[2];
+    		if(x<a0){
+        		if(fabs(a1+a2*x)<10)
+                		ret=exp(a1+a2*x);
+        		else
+                		ret=11.;
+    		}
+	}
+        if(ret>=11.0)
+            	ret=1.0;
         else
-            x0=(log(11.)-a0)/a1;
+            	ret=1.0-exp(-ret);
+    }
+    else if (type==2){
+        double a0,a1,a2,x0;
+        a0=par[0];
+        a1=par[1];
         ret=11.0;
-        if(x<x0){
-            if(a0+a1*x>10)
-                ret=11.0;
-            else if(a0+a1*x<-10)
-                ret=0.0;
-            else
-                ret=exp(a0+a1*x);
-        }
+	if(Version!=3){
+        	if(a1==0)
+            		x0=1.5;
+        	else
+            		x0=(log(11.)-a0)/a1;
+	        if(x<x0){
+        	    if(a0+a1*x>10)
+                	ret=11.0;
+            	else if(a0+a1*x<-10)
+                	ret=0.0;
+           	else
+                	ret=exp(a0+a1*x);
+        	}
+	}
+	else{
+		a2=par[2];
+                if(x<a0){
+                        if(fabs(a1+a2*x)<10)
+                                ret=exp(a1+a2*x);
+                        else
+                                ret=11.;
+                }
+	}
         if(ret>=11.0)
             ret=11.0;
     }
@@ -691,6 +726,8 @@ EcalChi2::EcalChi2(int ftype){
         tempname+="/v5.00/EcalChi2CY_prof.20121106.1.root";
     else if(Version==2)
 	tempname+="/v5.00/EcalChi2CY_prof.20130218.1.root";
+    else if(Version==3)
+	tempname+="/v5.00/EcalChi2CY_prof.20130306.1.root"; 
     init(tempname.c_str(),ftype);
 }
 EcalChi2::EcalChi2(const char* fdatabase,int ftype){
@@ -701,6 +738,41 @@ EcalChi2::~EcalChi2(){
         delete ecalpdf;
         ecalpdf=NULL;
     }
+}
+float EcalChi2::energyp(float ec_ec,float ec_rl,float phi,float theta,bool mcc){
+     double c_ec_ec=1;
+     if(mcc)c_ec_ec=1.04;
+     else c_ec_ec=0.985;
+     double ecd=ec_ec;
+     ec_ec=ec_ec>1650?ec_ec/(0.225+(1-0.225)*ec_ec/1650):ec_ec;
+     ec_ec*=c_ec_ec;
+     double fe=(2.65+0.25*log10(ecd/(1+ec_rl)))/3.1;
+     double c2=1/(1+ec_rl)/(1-fe*ec_rl/(1+ec_rl));
+     ec_ec*=c2;
+     double ea=0.0806;
+     double eb=812;
+     double c3=1;
+     double sq=1-4*ea*(1-ea)*ec_ec/eb;
+     if(sq>0 && ec_ec>0){
+     c3=eb/2/ea/ec_ec*(1-sqrt(sq));
+     if(c3<1)c3=1;
+     }
+      ec_ec*=c3;
+      if(cos(theta)>0){
+        double nx=cos(phi)*sin(theta);
+        double ny=sin(phi)*sin(theta);
+        double nz=cos(theta);
+        phi=atan2(-ny,-nx);
+        theta=acos(-nz);
+      }
+      static int k=0;
+      if(phi>3.1415926)phi=phi-2*3.1415926;
+      double cphi=(1+5.45e-3*cos(4*fabs(phi)));
+      ec_ec*=cphi;
+      double ctheta=(1-1.6e-1*(1+cos(theta)));
+      ec_ec*=ctheta;
+      //cout<<"EnergyP= "<<ec_ec<<endl;
+      return ec_ec;
 }
 void EcalChi2::init(const char* database,int _type){
     EcalPDF::Version=EcalChi2::Version;
@@ -1101,6 +1173,12 @@ float EcalChi2::get_chi2(int ilayer, int _norm){
         	else return -1;
 	}
     }
+    if(Version==3){
+	if(_norm==0){
+                if(_ndofs[ilayer]!=0)  return _chi2_layer[ilayer]/_ndofs[ilayer];
+                else    return -1;
+        }	
+    }
     return -1;
 }
 
@@ -1203,14 +1281,15 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
         }
         else{
             delta=(cell_mean[i1]-Edep_raw[layer*72+i1]*summ/sumxm);
-            chisq_chi2=delta*delta/2.0/cell_rms[i1] ;
+            
+	    chisq_chi2=delta*delta/2.0/cell_rms[i1] ;
             chisq_prob=-1.*log(cell_prob[i1])	;
         }
         if(!(chisq_prob>=0.&&chisq_prob<50.))
             chisq_prob=50.;
         if(!(chisq_chi2>=0.&&chisq_chi2<50.))
             chisq_chi2=50.;
-        //cout<<"+"<<cell_mean[i1]<<","<<Edep_raw[layer][i1]*summ/sumxm<<","<<cell_rms[i1]<<"; "<<cell_probbar[i1]<<", "<<-1.*log(cell_prob[i1])<<endl;
+        //cout<<"+ l "<<layer<<"c "<<i1<<", "<<cell_mean[i1]<<","<<Edep_raw[layer*72+i1]*summ/sumxm<<","<<cell_rms[i1]<<"; "<<cell_probbar[i1]<<", "<<-1.*log(cell_prob[i1])<<" tot "<<chisq_chi2<<" + "<<chisq_prob<<", Prob: x="<<-1.*sign*(i1*SIZE+shiftxy[layer]-coo)<<", Erg= "<<_erg<<endl;
         chisq =chisq_chi2+chisq_prob;
         if(chisq>50.)
             chisq=50.;
@@ -1242,7 +1321,9 @@ EcalAxis::EcalAxis(int ftype){
         tempname+="/v5.00/EcalChi2CY_prof.20121106.1.root";
     else if(Version==2)
         tempname+="/v5.00/EcalChi2CY_prof.20130218.1.root";
-    init(tempname.c_str(),ftype);
+    else if(Version==3)
+	tempname+="/v5.00/EcalChi2CY_prof.20130306.1.root";
+     init(tempname.c_str(),ftype);
 }
 EcalAxis::EcalAxis(char* fdatabase, int ftype){
     init(fdatabase,ftype);
@@ -1366,7 +1447,7 @@ bool EcalAxis::init_lf(){
     p[3]=init_dydz;
     double ep[4];
     chi20=GetChi2(p);
-    if((Version==2&&EnergyE<15)||simple==1){
+    if((Version>=2&&EnergyE<15)||simple==1){
         p0_lf[0]=init_x0 ;
         p0_lf[1]=init_y0 ;
         p0_lf[2]=ecalz[8];
@@ -1527,6 +1608,13 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
     }
     _EnergyE=ev->pEcalShower(nmax)->EnergyE;
     EnergyD =ev->pEcalShower(nmax)->EnergyD;
+    if(Version==3){
+	float theta1,phi1;
+        AMSDir dir1(ev->pEcalShower(nmax)->Dir[0],ev->pEcalShower(nmax)->Dir[1],ev->pEcalShower(nmax)->Dir[2]);
+        theta1=dir1.gettheta();
+      	phi1  =dir1.getphi();
+        EnergyD=1000*EcalChi2::energyp(ev->pEcalShower(nmax)->EnergyC,ev->pEcalShower(nmax)->RearLeak,phi1,theta1,1);	
+    }
     ext_d0[0]=ev->pEcalShower(nmax)->EMDir[0];
     ext_d0[1]=ev->pEcalShower(nmax)->EMDir[1];
     ext_d0[2]=ev->pEcalShower(nmax)->EMDir[2];
@@ -1659,6 +1747,13 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
     }
     _EnergyE=esh->EnergyE;
     EnergyD =esh->EnergyD;
+    if(Version==3){
+	float theta1,phi1;
+        AMSDir dir1(esh->Dir[0],esh->Dir[1],esh->Dir[2]);
+        theta1=dir1.gettheta();
+        phi1  =dir1.getphi();
+        EnergyD=1000*EcalChi2::energyp(esh->EnergyC,esh->RearLeak,phi1,theta1,1);	
+    }
     ext_d0[0]=esh->EMDir[0];
     ext_d0[1]=esh->EMDir[1];
     ext_d0[2]=esh->EMDir[2];
@@ -2019,7 +2114,7 @@ double EcalCR::MCsmear=0.;
 
 EcalCR::EcalCR(int _runtype,const char* fdatabase){
 	runtype=_runtype	;
-//	cout<<"EcalCR--Init: "<<fdatabase<<endl; 
+	cout<<"EcalCR--Init: "<<fdatabase<<endl; 
 	init_est(fdatabase)		;
 }
 EcalCR::~EcalCR(){

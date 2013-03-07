@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.16 2013/02/23 15:43:23 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.17 2013/03/07 10:14:53 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -98,7 +98,7 @@ public:
     //Profile for chi2 calculation
     static TH1F*  param_mean_lf[18][6]  ;
     static TH1F*  param_rms_lf[18][6]   ;
-    static TH1F*  param_prob_lf[18][2]  ;
+    static TH1F*  param_prob_lf[18][3]  ;
     //Version 1 normalization
     static TH1F*  hprofele_Chi2_Erg_rms ;
     static TH1F*  hprofele_F2Edep_Erg_rms;
@@ -192,6 +192,7 @@ public:
     EcalPDF* ecalpdf    ;
     ///Z coordinates of each layer
     float	  	   ecalz[18]    ;
+    static float energyp(float ec_ec,float ec_rl,float phi,float theta,bool mcc);
 
 private:
     void init(const char* fdatabase,int type) ;
