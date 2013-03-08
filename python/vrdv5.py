@@ -1,9 +1,9 @@
 #!/usr/bin/env python2.4
-#  $Id: vrdv5.py,v 1.4 2012/06/12 12:42:42 ams Exp $
+#  $Id: vrdv5.py,v 1.5 2013/03/08 15:28:02 bshan Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
-sys.path.insert(0,'/var/www/cgi-bin/mon/lib')
+sys.path.insert(0,'/afs/cern.ch/ams/Offline/vdev/python/lib')
 sys.path.insert(0,'./lib')
 import RemoteClient
 
