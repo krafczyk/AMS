@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-#  $Id: resetProcFlag.cgi,v 1.2 2012/04/04 09:50:09 ams Exp $
+#  $Id: resetProcFlag.cgi,v 1.3 2013/03/08 15:49:25 bshan Exp $
 use strict;
 
-
+use lib $ENV{Offline}.qw(/vdev/perl);
 use lib::RemoteClient;
 
 
