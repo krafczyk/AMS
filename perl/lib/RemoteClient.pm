@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.758 2013/02/21 14:47:54 ams Exp $
+# $Id: RemoteClient.pm,v 1.759 2013/03/08 12:17:52 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -277,7 +277,7 @@ my %fields=(
         FileAttDBTimestamp=> [],
         FileDBLastLoad    => [],
         FileAttDBLastLoad => [],
-        LocalClientsDir=>"prod.log/scripts",
+        LocalClientsDir=>"prod.log/scripts/",
         Name=>'/cgi-bin/mon/rc.cgi',
         DataMC=>0,
         IOR=>undef,
@@ -6982,19 +6982,7 @@ if( not defined $dbserver->{dbfile}){
      $dbserver=blessdb();
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
 }
-               my $rn=0;
-			   if($#{$self->{arpref}} >=0){
-				 my $arsref=${$self->{arpref}}[0];
-				 try{
-				   $rn = $arsref->getRunsTotal();
-				 }
-				 catch CORBA::SystemException with{
-                   $self->ErrorPlus( "sendback corba exc on Producer::getRunsTotal");
-				 };
-			   }
-			   else{
-                 $rn=DBServer::GetRunsNumber($dbserver);
-			   }
+               my $rn=DBServer::GetRunsNumber($dbserver);
                my $maxr=512;
                if($rn>=0){
                 if($rn<$maxr){
@@ -7004,22 +6992,8 @@ if( not defined $dbserver->{dbfile}){
                  }
                 }
                 else{
-                 my $rntbr=0;
-                 my $rntfi=0;
-				 if($#{$self->{arpref}} >=0){
-				   my $arsref=${$self->{arpref}}[0];
-				   try{
-				     $rntbr=$arsref->getRunsNumber("ToBeRerun");
-				     $rntfi=$arsref->getRunsNumber("Finished");
-				   }
-				   catch CORBA::SystemException with{
-                     $self->ErrorPlus( "sendback corba exc on Producer::getRunsNumber");
-				   };
-				 }
-				 else {
-                   $rntbr=DBServer::GetRunsNumber($dbserver,"ToBeRerun");
-                   $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
-				 }			 
+                 my $rntbr=DBServer::GetRunsNumber($dbserver,"ToBeRerun");
+                 my $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
                  if($rntbr>=0 and $rntfi>=0){
                    my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
                    $jbs=$maxr-$tot;
@@ -9407,7 +9381,7 @@ if(defined $dataset->{buildno} ){
            $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
              #die " $subs $buf \n";
           }
-           if($timendu-$timbegu>86400*366){
+           if($timendu-$timbegu>86400*92){
                $timbegu=time();
                $timendu=$timbegu+3600*$runno;
            }
@@ -20353,6 +20327,33 @@ sub UploadToDisks{
        my @files=();
        $#files=-1;
        foreach my $ntuple (@{$ret_nt}){
+         # Added by bshan to stager_get and stager_qry before copying
+         my $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
+         my $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>&1`;
+         chomp $staged;
+         if (not $staged) {
+             for (my $i = 0; $i < 3; $i++) {
+                 my $stagein = `stager_qry -M $ntuple->[0] | grep -c STAGE 2>&1`;
+                 chomp $stagein;
+                 if (not $stagein) {
+                     print "stager_get failed, retrying ...\n";
+                     $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
+                     sleep 1;
+                     $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
+                     sleep 2;
+                     $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
+                 }
+             }
+             $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>&1`; # check again if it is staged
+             chomp $staged;
+         }
+         if (not $staged) {
+             print "$ntuple->[0] is not staged yet, skipping ...\n";
+             last;              # will not continue if not staged
+         }
+         print "$ntuple->[0] staged=$staged, copying ...\n";
+         # End of modification by bshan
+
          my @junk=split '\/',$ntuple->[0];
          my $local=$dir."/$junk[$#junk]";
          my $sys=$rfcp.$ntuple->[0]." $local";
