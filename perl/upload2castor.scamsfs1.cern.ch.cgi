@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.scamsfs1.cern.ch.cgi,v 1.1 2013/03/08 15:21:32 bshan Exp $
+#  $Id: upload2castor.scamsfs1.cern.ch.cgi,v 1.2 2013/03/08 15:47:09 bshan Exp $
 use strict;
-use lib qw(/afs/cern.ch/ams/Offline/vdev/perl); 
+use lib $ENV{'Offline'}.qw(/vdev/perl);
 use lib::RemoteClient;
 my $debug="-d";
 unshift @ARGV, "-DOracle:";

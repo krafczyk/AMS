@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
-#  $Id: parsejf.data.cgi,v 1.1 2013/03/08 15:22:56 bshan Exp $
+#  $Id: parsejf.data.cgi,v 1.2 2013/03/08 15:47:09 bshan Exp $
 #use Gtk;
 use strict;
 use lib;
-use lib qw(/afs/cern.ch/ams/Offline/vdev/perl);
+use lib $ENV{'Offline'}.qw(/vdev/perl);
 use lib::RemoteClient;
 
 $SIG{INT}=sub{exit()};
