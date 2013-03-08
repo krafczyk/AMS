@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-#  $Id: upload2disks.cgi,v 1.5 2012/05/25 11:57:37 choutko Exp $
+#  $Id: upload2disks.cgi,v 1.6 2013/03/08 15:18:45 bshan Exp $
 use strict;
-use lib qw(/var/www/cgi-bin/mon); 
+use lib qw(/afs/cern.ch/ams/Offline/vdev/perl); 
 use lib::RemoteClient;
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
