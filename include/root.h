@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.543 2013/03/06 15:18:19 cconsola Exp $
+//  $Id: root.h,v 1.544 2013/03/09 21:09:00 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3602,13 +3602,14 @@ ClassDef(TrMCClusterR,1)       //TrMCClusterR
 class TofMCClusterR {
 public:
   int   Idsoft;  ///< software id  (ask E.Choumilov for details)
+  int   ParId;   ///< parent g4id
   float Coo[3];  ///< coo cm
   float TOF;     ///<  time of flight sec
   float Edep;    ///< energy dep mev
   TofMCClusterR(){};
   TofMCClusterR(AMSTOFMCCluster *ptr);
   virtual ~TofMCClusterR(){};
-ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
+ClassDef(TofMCClusterR,2)       //TOFMCClusterRoot
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3620,15 +3621,15 @@ ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
 class TofMCPmtHitR {
 public:
    int    Idsoft; ///< Idsoft  LBSP---L=Layer(0-3) B=Bar(0-9) S=Side(0-1) P=PMT(0-2)
-   int    ParId;   ///photon parent id 
+   int    ParId;   ///< photon parent g4id 
    float  TimeG;   ///< time of photon in pmt (nsec)
    float  TimeT;   ///< time of photon delay in SC+LG (nsec)
    float  Ekin;    ///< photon energy (eV)
    float  Length;  ///< photon transmit length in SC+LG
    float  Pos[3];  ///< photon gen vetex pos
    float  Dir[3];  ///< photon gen vetex dir
-   float  TimeP;   ///transmit time in PMT 
-   float  Amp;     ///SE amp
+   float  TimeP;   ///< transmit time in PMT 
+   float  Amp;     ///< SE amp
 
    TofMCPmtHitR(){};
    TofMCPmtHitR(AMSTOFMCPmtHit *ptr);

@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.97 2012/11/21 19:55:17 qyan Exp $
+//  $Id: geant4.C,v 1.98 2013/03/09 21:08:55 qyan Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1010,8 +1010,9 @@ if(!Step)return;
 //             dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
             }
 	    else                     dee=dee/(1+c*atan(rkb/c*dedxcm));
+            integer  pid=Track->GetParentID();
 	    //cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
-	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof);
+	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof,pid);
 	    //----
 	    if(G4FFKEY.TFNewGeant4>1){
 	      number tofdt= Step->GetStepLength()/((PostPoint->GetVelocity()+PrePoint->GetVelocity())/2.)/nanosecond;

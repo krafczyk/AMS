@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.40 2012/05/28 09:07:55 qyan Exp $
+//  $Id: mccluster.h,v 1.41 2013/03/09 21:09:00 qyan Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -24,14 +24,15 @@ class AMSTOFMCCluster: public AMSlink{
 public:
 
  integer  idsoft;
+ integer  parentid;
  AMSPoint xcoo;
  number   tof;
  number   edep;
  integer getid() const {return idsoft;}
  static integer Out(integer);
 
- AMSTOFMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof) :
- idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof){_next=0;};
+ AMSTOFMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof, integer _parentid) :
+ idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof),parentid(_parentid){_next=0;};
  AMSTOFMCCluster(){_next=0;};
  ~AMSTOFMCCluster(){};
  void _printEl(ostream &stream){stream <<"AMSTOFMCCluster "<<idsoft<<" "<<edep<<" "<<xcoo<<endl;}
@@ -40,7 +41,7 @@ public:
  integer operator < (AMSlink & o)const{
    return idsoft < ((AMSTOFMCCluster*)(&o)) ->idsoft ;
  }
- static void sitofhits(integer idsoft , geant vect[],geant edep, geant tofg);
+ static void sitofhits(integer idsoft , geant vect[],geant edep, geant tofg, integer parentid=0);
   AMSTOFMCCluster *  next(){return (AMSTOFMCCluster*)_next;}
 #ifdef __WRITEROOT__
    friend class TofMCClusterR;

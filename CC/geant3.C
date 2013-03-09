@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.159 2012/11/21 19:55:16 qyan Exp $
+//  $Id: geant3.C,v 1.160 2013/03/09 21:08:55 qyan Exp $
 
 #include "Tofsim02.h"
 #include "typedefs.h"
@@ -290,7 +290,8 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
       else                     GBIRK(dee);
 //cout<<"  ----->Aft.Birks:Edep="<<dee<<endl;
     }
-    AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+    int pid=0;
+    AMSTOFMCCluster::sitofhits(numv,coo,dee,tof,pid);
 //---TOFNew Simulation Using Geant4 table
     if(G4FFKEY.TFNewGeant4>0){
           number tofdt= 0;

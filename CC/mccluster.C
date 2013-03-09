@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.84 2012/07/11 23:04:02 mdelgado Exp $
+//  $Id: mccluster.C,v 1.85 2013/03/09 21:08:55 qyan Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -120,11 +120,11 @@ return (WriteAll || status);
 
 
 void AMSTOFMCCluster::sitofhits(integer idsoft , geant vect[],geant edep, 
-geant tofg){
+geant tofg, integer parentid){
   //        Very Temporary
   AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSEvent::gethead()->addnext(AMSID("AMSTOFMCCluster",0),
-   new AMSTOFMCCluster(idsoft,pnt,edep,tofg));
+   new AMSTOFMCCluster(idsoft,pnt,edep,tofg,parentid));
 }
 
 //----------------PMT hit
