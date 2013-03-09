@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.544 2013/03/09 21:09:00 qyan Exp $
+//  $Id: root.h,v 1.545 2013/03/09 21:22:23 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3606,6 +3606,8 @@ public:
   float Coo[3];  ///< coo cm
   float TOF;     ///<  time of flight sec
   float Edep;    ///< energy dep mev
+  int   GetLayer(){return Idsoft/100-1;} ///< TOF Counter Layer Number 0-3
+  int   GetBar()  {return Idsoft%100-1;} ///< TOF Counter Bar   Number 0-9
   TofMCClusterR(){};
   TofMCClusterR(AMSTOFMCCluster *ptr);
   virtual ~TofMCClusterR(){};
