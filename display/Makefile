@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.119 2012/12/24 23:04:29 mduranti Exp $
+#  $Id: Makefile,v 1.120 2013/03/10 12:47:46 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -88,7 +88,7 @@ VER          := $(shell $(ROOTSYS)/bin/root-config --version )
 
 ifeq ($(ARCH),linuxicc)
 
-CXX           =  /opt/intel/Compiler/11.1/073/bin/ia32/icc 
+CXX           =  /afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/bin/ia32/icc 
 CPPFLAGS      =    -m32 -D__LINUXGNU__ -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
 CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
@@ -96,14 +96,14 @@ OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
-LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -axsse4.2,ssse3 -openmp -static-intel
+LD            = /afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/bin/ia32/icpc -axsse4.2,ssse3 -openmp -static-intel
 LDFLAGS       = 
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 ifdef PGTRACK
 LFORT= -lifcore
 else
-LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 endif
 
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
@@ -125,10 +125,10 @@ endif
 ifeq ($(ARCH),linuxx8664icc)
 
 ifndef SLC6system
-  INTELVER=/opt/intel/Compiler/11.1/073/
+  INTELVER=/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/
   CPPFLAGS= -D__LINUXGNU__
 else
-  INTELVER=/opt/intel/composer_xe_2011_sp1.9.293/
+  INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2011_sp1.9.293/
   CPPFLAGS= -D__LINUXNEW__  
 endif
 
