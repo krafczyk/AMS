@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.59 2012/11/08 10:02:46 chchung Exp $
+#  $Id: Makefile,v 1.60 2013/03/10 12:58:30 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -64,7 +64,7 @@ VER          := $(shell $(ROOTSYS)/bin/root-config --version )
 
 ifeq ($(ARCH),linuxicc)
 
-CXX           =  /opt/intel/Compiler/11.1/073/bin/ia32/icc 
+CXX           =  $(AMSDEPLIB)/intel/Compiler/11.1/073/bin/ia32/icc 
 CPPFLAGS      =   -m32  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
 CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
@@ -72,7 +72,7 @@ OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
-LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -m32 -axssse3 -openmp
+LD            = $(AMSDEPLIB)/intel/Compiler/11.1/073/bin/ia32/icpc -m32 -axssse3 -openmp
 
 LDFLAGS       = 
 LDS	= 	$(LD) -Bstatic
@@ -80,7 +80,7 @@ LDD	= 	$(LD) -Bdynamic
 ifdef PGTRACK
 LFORT= -lifcore
 else
-LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L$(AMSDEPLIB)/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 endif
 
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
@@ -97,7 +97,7 @@ ifeq ($(ARCH),linuxx8664icc)
 ifndef SLC6system
   INTELVER=/opt/intel/Compiler/11.1/073/
 else
-  INTELVER=/opt/intel/composer_xe_2011_sp1.9.293/
+  INTELVER=$(AMSDEPLIB)/intel/composer_xe_2011_sp1.9.293/
 endif
 CXX           =  $(INTELVER)/bin/intel64/icc
 CPPFLAGS      =  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2
