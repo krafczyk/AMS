@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.98 2013/03/09 21:08:55 qyan Exp $
+//  $Id: geant4.C,v 1.99 2013/03/10 11:19:05 qyan Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1005,14 +1005,15 @@ if(!Step)return;
 	    number dedxcm=1000*dee/GCTRAK.step;
 //----Birk Retune
             number cb1=1.1;
+            geant deer=dee;
+            geant beta=(PostPoint->GetVelocity()+PrePoint->GetVelocity())/2./(29.9792*cm/nanosecond);//covert to beta
 	    if(G4FFKEY.TFNewGeant4>0){
                dee=dee/(1.+cb1*atan(TFMCFFKEY.birk*dedxcm*0.1/cb1));
 //             dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
             }
 	    else                     dee=dee/(1+c*atan(rkb/c*dedxcm));
-            integer  pid=Track->GetParentID();
 	    //cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
-	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof,pid);
+	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof,beta,deer,GCTRAK.step,GCKINE.itra,GCKINE.ipart);
 	    //----
 	    if(G4FFKEY.TFNewGeant4>1){
 	      number tofdt= Step->GetStepLength()/((PostPoint->GetVelocity()+PrePoint->GetVelocity())/2.)/nanosecond;

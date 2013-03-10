@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.553 2013/03/09 21:08:55 qyan Exp $
+//  $Id: root.C,v 1.554 2013/03/10 11:19:05 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5856,11 +5856,15 @@ TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
 
 TofMCClusterR::TofMCClusterR(AMSTOFMCCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  Idsoft = ptr->idsoft;
-  ParId  = ptr->parentid;
+  Idsoft =  ptr->idsoft;
+  Particle= ptr->particle;
+  ParentNo= ptr->parentid;
   for (int i=0; i<3; i++) {Coo[i] = ptr->xcoo[i];}
   TOF = ptr->tof;
+  Beta= ptr->beta;
   Edep= ptr->edep;
+  EdepR=ptr->edepr;
+  Step= ptr->step;
 #endif
 }
 

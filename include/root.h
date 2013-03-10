@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.545 2013/03/09 21:22:23 qyan Exp $
+//  $Id: root.h,v 1.546 2013/03/10 11:19:13 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3602,16 +3602,20 @@ ClassDef(TrMCClusterR,1)       //TrMCClusterR
 class TofMCClusterR {
 public:
   int   Idsoft;  ///< software id  (ask E.Choumilov for details)
-  int   ParId;   ///< parent g4id
+  int   ParentNo;///< parent no
+  int   Particle;///< particle id
   float Coo[3];  ///< coo cm
-  float TOF;     ///<  time of flight sec
-  float Edep;    ///< energy dep mev
+  float TOF;     ///< time of flight of incident particle sec
+  float Beta;    ///< velocity of incident particle
+  float Edep;    ///< energy dep for photon convention(=EdepR*birksat) mev
+  float EdepR;   ///< energy dep mev
+  float Step;    ///< step length cm
   int   GetLayer(){return Idsoft/100-1;} ///< TOF Counter Layer Number 0-3
   int   GetBar()  {return Idsoft%100-1;} ///< TOF Counter Bar   Number 0-9
   TofMCClusterR(){};
   TofMCClusterR(AMSTOFMCCluster *ptr);
   virtual ~TofMCClusterR(){};
-ClassDef(TofMCClusterR,2)       //TOFMCClusterRoot
+ClassDef(TofMCClusterR,3)       //TOFMCClusterRoot
 #pragma omp threadprivate(fgIsA)
 };
 
