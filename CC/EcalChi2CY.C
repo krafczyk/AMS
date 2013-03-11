@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.29 2013/03/07 10:14:31 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.30 2013/03/11 23:55:20 choutko Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1387,7 +1387,7 @@ EcalAxis::~EcalAxis(){
 bool EcalAxis::init_lf(){
     //TVirtualFitter::SetDefaultFitter("Minuit");
     //gMinuit_EcalAxis=TVirtualFitter::Fitter(0,3);
-    gMinuit_EcalAxis=new TMinuit(4);
+    if(!gMinuit_EcalAxis)gMinuit_EcalAxis=new TMinuit(4);
     gMinuit_EcalAxis->SetFCN(fcn_EcalAxis_Chi2);
     gMinuit_EcalAxis->SetObjectFit(this);
     double arglist[10];
@@ -2135,13 +2135,13 @@ double EcalCR::local_shower_center(int layer,double el, double ec, double er, do
   //***********************************************************************
   //
   if(ec<el || ec<er) {
-    printf("ec is not the shower maximum\n");
+    //printf("ec is not the shower maximum\n");
     return -999.;
   }
   if(energy>600.) energy=600.;
   if(energy<10. ) energy=10. ;
   if(layer<0 || layer>=18){
-    printf("get_shower_center routine error: wrong layer %d\n",layer);
+    //printf("get_shower_center routine error: wrong layer %d\n",layer);
     return -9999.;
   }
   if(ec==0 || (el==0 && er==0)){
