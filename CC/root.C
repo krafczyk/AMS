@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.554 2013/03/10 11:19:05 qyan Exp $
+//  $Id: root.C,v 1.555 2013/03/11 09:08:24 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5957,6 +5957,7 @@ TrdMCClusterR::TrdMCClusterR(AMSTRDMCCluster *ptr){
   Ladder = ptr->_idsoft.getladder();
   Tube   = ptr->_idsoft.gettube();
   ParticleNo= ptr->_ipart;
+  if(ptr->_itra!=0)ParticleNo= -ParticleNo;
   //  TrackNo= ptr->_itra;
   Edep   = ptr->_edep;
   Ekin   = ptr->_ekin;
