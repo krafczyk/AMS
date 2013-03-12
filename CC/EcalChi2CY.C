@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.30 2013/03/11 23:55:20 choutko Exp $
+//  $Id: EcalChi2CY.C,v 1.31 2013/03/12 14:39:30 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -323,9 +323,9 @@ int EcalPDF::init(const char* fdatabase){
         }
     }
     if(has_init==1)
-        cout<<"EcalPDF::init-EcalPDF init OK! DataBase file is "<<fdatabase<<", Version is "<<Version<<" has_init= "<<has_init<<endl;
+        cout<<"EcalPDF::init-I-EcalPDF init OK! DataBase file is "<<fdatabase<<", Version is "<<Version<<" has_init= "<<has_init<<endl;
     else
-        cout<<"EcalPDF::init-EcalPDF init BAD! Warn message "<<warn_messages<<" in "<<fdatabase<<", Version is "<<Version<<endl;
+        cout<<"EcalPDF::init-W-EcalPDF init BAD! Warn message "<<warn_messages<<" in "<<fdatabase<<", Version is "<<Version<<endl;
     _fdatabase->Close();
     //cout<<hpdfele_Chi2_F2Edep<<", "<<hpdfele_Chi2_F2Edep->GetXaxis()->GetNbins()<<", "<<hpdfpro_Chi2_F2Edep<<", "<<hpdfpro_Chi2_F2Edep->GetXaxis()->GetNbins()<<endl;
     return has_init;
@@ -333,7 +333,7 @@ int EcalPDF::init(const char* fdatabase){
 EcalPDF::~EcalPDF(){
    for(int i1=0;i1<pdf_names.size();i1++)
        gDirectory->Delete(pdf_names[i1].c_str());
-   cout<<"Call EcalPDF::~EcalPDF()"<<endl;
+   cout<<"EcalPDF::~EcalPDF-I-deconstruction function!"<<endl;
    //exit(0);
 }
 float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
@@ -387,7 +387,7 @@ float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
 
 float EcalPDF::get_rms (int flayer,float coo,float Erg,int type){
     if(has_init==-1){
-        cout<<"EcalPDF::get_rms-E-EcalPDF has not been loaded!"<<endl;
+        cerr<<"EcalPDF::get_rms-E-EcalPDF has not been loaded!"<<endl;
         return -1;
     }
     float ret,ret0,ret1 ;
@@ -434,7 +434,7 @@ float EcalPDF::get_rms (int flayer,float coo,float Erg,int type){
 
 float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
     if(has_init==-1){
-        cout<<"EcalPDF::get_prob-E-EcalPDF has not been loaded!"<<endl;
+        cerr<<"EcalPDF::get_prob-E-EcalPDF has not been loaded!"<<endl;
         return -1;
     }
     if(flayer<0||flayer>17)
@@ -603,7 +603,7 @@ double EcalPDF::myfunc_lf(float x,float* par,int type){
 float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
     float ret;
     if(algorithm!=2){
-        cout<<"EcalPDF-Warn:Currently only normalization of chi2 from lateral fit is provided!"<<endl;
+        cout<<"EcalPDF::normalize_chi2-W-Currently only normalization of chi2 from lateral fit is provided!"<<endl;
         return _chi2;
     }
     if(_EnergyE<=15)
@@ -613,7 +613,7 @@ float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
     if((Version==2)&&_EnergyE>=400.)
         _EnergyE=399.99	;
     if(has_init==-1){
-        cout<<warn_messages<<endl;
+        cout<<"EcalPDF::normalize_chi2-W-"<<warn_messages<<endl;
         return _chi2;
     }
     if(Version==1)
@@ -632,7 +632,7 @@ float EcalPDF::normalize_f2edep(float _f2edep, float _EnergyE){
     if((Version==2)&&_EnergyE>=400.)
         _EnergyE=399.99	;
     if(has_init==-1){
-        cout<<warn_messages<<endl;
+        cout<<"EcalPDF::normalize_f2edep-W-"<<warn_messages<<endl;
         return _f2edep;
     }
     if(Version==1)
@@ -648,14 +648,14 @@ float EcalPDF::get_chi2plus(float _chi2, float _f2edep, bool _has_normalized, fl
     //cout<<"EcalPDF::get_chi2plus _chi2= "<<_chi2<<", _f2edep= "<<_f2edep<<", _has_normalized= "<<_has_normalized<<", _EnergyE= "<<_EnergyE<<endl;
     if(!_has_normalized){
         if(_EnergyE==0){
-            cout<<"EcalPDF-Warn: Warn you need give the EnergyE to get chi2plus!"<<endl;
+            cout<<"EcalPDF::get_chi2plus-W-Warn you need give the EnergyE to get chi2plus!"<<endl;
             return _chi2;
         }
         _chi2	=normalize_chi2(_chi2,_EnergyE)		;
         _f2edep	=normalize_f2edep(_f2edep,_EnergyE)	;
     }
     if(has_init==-1){
-        cout<<warn_messages<<endl;
+        cout<<"EcalPDF::get_chi2plus-W-"<<warn_messages<<endl;
         return _chi2;
     }
     if(fabs(_chi2)>5.99||fabs(_f2edep)>5.99)
@@ -679,7 +679,7 @@ float EcalPDF::get_elik(float _chi2plus, float _bdt){
     double psig,pbkg;
     double range=.7,factor=2.;
     if(has_init==-1){
-        cout<<warn_messages<<endl;
+        cout<<"EcalPDF::get_elik-W-"<<warn_messages<<endl;
         return _chi2plus;
     }
     psig=hpdfele_Chi2plus_BDT->Interpolate(_chi2plus,_bdt);
@@ -913,11 +913,11 @@ float  EcalChi2::process(AMSEventR* ev, TrTrackR* trtrack, int iTrTrackPar){
 #ifdef _PGTRACK_
     float sign=-1.;
     if(iTrTrackPar<0){
-        cout<<"EcalChi2 Error : iTrTrackPar= "<<iTrTrackPar<<endl;
+        cerr<<"EcalChi2::process-E-iTrTrackPar= "<<iTrTrackPar<<endl;
         return -1;
     }
     if(trtrack==NULL||ev==NULL){
-        cout<<"EcalChi2 Error: trtrack= "<<trtrack<<" ev = "<<ev<<endl;
+        cerr<<"EcalChi2::process-E-trtrack= "<<trtrack<<" ev = "<<ev<<endl;
         return -1;
     }
     AMSPoint pnt;
@@ -1024,11 +1024,11 @@ float EcalChi2::process(TrTrackR*  trtrack, EcalShowerR* esh, int iTrTrackPar){
 #ifdef _PGTRACK_
     float sign=-1.;
     if(iTrTrackPar<0){
-        cout<<"Error : iTrTrackPar= "<<iTrTrackPar<<endl;
+        cerr<<"EcalChi2::process-E-iTrTrackPar= "<<iTrTrackPar<<endl;
         return -1;
     }
     if(trtrack==NULL||esh==NULL){
-        cout<<"Ecal Chi2  Error: trtrack= "<<trtrack<<" esh = "<<esh<<endl;
+        cerr<<"EcalChi2::process-E-trtrack= "<<trtrack<<" esh = "<<esh<<endl;
         return -1;
     }
     AMSPoint pnt;
@@ -2046,7 +2046,7 @@ float EcalAxis::get_chi2plus(AMSEventR* ev,float& _nchi2,float& _nf2edep,float& 
         }
     }
     if(maxi==-1){
-        cout<<"EcalAxis-get_chi2plus: Seems No Ecalshower in this event!"<<endl;
+        cerr<<"EcalAxis::get_chi2plus-E-: Seems No Ecalshower in this event!"<<endl;
         return -1.;
     }
     _erg=ev->pEcalShower(maxi)->EnergyE;
@@ -2070,13 +2070,13 @@ float EcalAxis::get_elik(AMSEventR* ev,float& _nchi2,float& _nf2edep,float& _chi
         }
     }
     if(maxi==-1){
-        cout<<"EcalAxis-get_elik: Seems No Ecalshower in this event!"<<endl;
+        cerr<<"EcalAxis::get_elik-E-Seems No Ecalshower in this event!"<<endl;
         return -1.;
     }
     _bdt	 =ev->pEcalShower(maxi)->GetEcalBDT(4);
     get_chi2plus(ev, _nchi2,_nf2edep,_chi2plus);
     if(_chi2plus==-1){
-        cout<<"EcalAxis-get_elik: Can not get chi2plus"<<endl;
+        cout<<"EcalAxis::get_elik-W-Can not get chi2plus"<<endl;
         return -1;
     }
     _elik=ecalchi2->ecalpdf->get_elik(TMath::TanH(0.3*TMath::ATanH(_chi2plus)),TMath::TanH(0.3*TMath::ATanH(_bdt)));
@@ -2094,7 +2094,7 @@ float EcalAxis::get_nchi2(AMSEventR* ev){
         }
     }
     if(maxi==-1){
-        cout<<"EcalAxis-get_chi2plus: Seems No Ecalshower in this event!"<<endl;
+        cout<<"EcalAxis::get_chi2plus-W-Seems No Ecalshower in this event!"<<endl;
         return -1.;
     }
     _erg=ev->pEcalShower(maxi)->EnergyE;
@@ -2114,7 +2114,7 @@ double EcalCR::MCsmear=0.;
 
 EcalCR::EcalCR(int _runtype,const char* fdatabase){
 	runtype=_runtype	;
-	cout<<"EcalCR--Init: "<<fdatabase<<endl; 
+	cout<<"EcalCR::Init-I-"<<fdatabase<<endl; 
 	init_est(fdatabase)		;
 }
 EcalCR::~EcalCR(){
@@ -2356,21 +2356,21 @@ void EcalCR::init_est(const char* fdatabase){
       sprintf(htitle,"est_int_%d_%2.2d",ir,il);
       TH1F *h = (TH1F*)f->Get(htitle);
       if(!h)
-	cout<<"EcalCR::Error-Cann't-find-"<<htitle<<endl;
+	cerr<<"EcalCR::init_est-E-Cann't-find-"<<htitle<<endl;
       for(int ib=0; ib<301; ib++){
         est_int[ir][il][ib] = h->GetBinContent(ib+1);
       }
       sprintf(htitle,"est_slope_%d_%2.2d",ir,il);
       h = (TH1F*)f->Get(htitle);
       if(!h)
-	cout<<"EcalCR::Error-Cann't-find-"<<htitle<<endl;
+	cerr<<"EcalCR::init_est-E-Cann't-find-"<<htitle<<endl;
       for(int ib=0; ib<301; ib++){
         est_slope[ir][il][ib] = h->GetBinContent(ib+1);
       }
       sprintf(htitle,"est_curve_%d_%2.2d",ir,il);
       h = (TH1F*)f->Get(htitle);
       if(!h)
-	cout<<"EcalCR::Error-Cann't-find-"<<htitle<<endl;
+	cerr<<"EcalCR::init_est-E-Cann't-find-"<<htitle<<endl;
       for(int ib=0; ib<301; ib++){
         est_curve[ir][il][ib] = h->GetBinContent(ib+1);
       }
