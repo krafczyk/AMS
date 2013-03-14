@@ -3819,10 +3819,10 @@ class RemoteClient:
                         orig=f1.split('/')
                         origpath=""
                         if(len(orig)>3):
-                             origpath+=orig[len(orig)-4]+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                             origpath+=orig[len(orig)-4]+"/"+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
                         orig=f2.split('/')
                         if(len(orig)>3):
-                             origpath+=" "+orig[len(orig)-4]+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                             origpath+=" "+orig[len(orig)-4]+"/"+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
                         status='OK'
                         if(type.find('SCI')>=0 and int(tlevent)-int(tfevent)<60):
                             status='SHORT'
