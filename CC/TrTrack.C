@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.170 2013/03/14 09:29:37 oliva Exp $
+// $Id: TrTrack.C,v 1.171 2013/03/14 15:36:37 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/03/14 09:29:37 $
+///$Date: 2013/03/14 15:36:37 $
 ///
-///$Revision: 1.170 $
+///$Revision: 1.171 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2035,7 +2035,7 @@ float TrTrackR::GetLayerJQ(int jlayer, float beta, int fit_id, float mass_on_z, 
   else if (version==1) 
     return sqrt(hit->GetSignalCombination(2,TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld,beta));
   // ver2: X side, but if no X side available Y side (new corrections, 2013) 
-  float rigidity = GetRigidity(fit_id);
+  float rigidity = (fit_id>=0) ? GetRigidity(fit_id) : 0; 
   return sqrt(hit->GetSignalCombination(2,TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kRigidity,beta,rigidity,mass_on_z));
 }
 

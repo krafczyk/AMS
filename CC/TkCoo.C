@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.18 2013/01/02 19:41:41 oliva Exp $ 
+/// $Id: TkCoo.C,v 1.19 2013/03/14 15:36:37 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2013/01/02 19:41:41 $
+///$Date: 2013/03/14 15:36:37 $
 ///
-/// $Revision: 1.18 $
+/// $Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -353,8 +353,9 @@ int TkCoo::GetSensorAddress(int tkid, int readchann, int mult, int& sens, int ve
   // check multiplicity
   int max_mult = GetMaxMult(tkid,readchann+640); // needed channel 0-1023
   if ( (mult<0)||(mult>max_mult) ) { 
-    // this could actually happen for last sensors of K7 (max multiplicity is taken from first strip, not from seed strip)
-    if (verbose>0) printf("TkCoo::GetSensorAddress-W requested multiplicity %d out of range (0,%d), for channel %d on ladder %+04d. Return -2.\n",mult,max_mult,readchann+640,tkid);   
+    // this could actually happen for last sensors of K7 (max multiplicity is taken from first strip, not from seed strip), disable error message
+    // if (verbose>0) printf("TkCoo::GetSensorAddress-W requested multiplicity %d out of range (0,%d), for channel %d on ladder %+04d. Return -2.\n",
+    //   mult,max_mult,readchann+640,tkid);   
     sens = -2;
     return -2; 
   }

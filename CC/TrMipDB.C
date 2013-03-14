@@ -169,7 +169,8 @@ int TrMipDB::CreateIndex(int tkid, int iva, int depth) {
 double TrMipDB::GetMipCorrectedValue(double Q, int tkid, int iva, int depth) {
   TrMipElem* elem = GetValidElem(tkid,iva,depth);  
   if (!elem) {
-    printf("TrMipDB::GetCorrection-E no correction element found (tkid=%+04d,iva=%02d,depth=%1d). Return unmodified value.\n",tkid,iva,depth);
+    // we have a couple of ladders with no available correction (-202, 405) disable error message 
+    // printf("TrMipDB::GetCorrection-E no correction element found (tkid=%+04d,iva=%02d,depth=%1d). Return unmodified value.\n",tkid,iva,depth);
     return Q;
   }
   return elem->GetMipCorrectedValue(Q);
