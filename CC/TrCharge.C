@@ -1,128 +1,51 @@
 #include "TrCharge.h"
 
+
+////////////////////////////////////////////
+// Settings 
+////////////////////////////////////////////
+
+
 // Histogramming stuff
 bool     TrCharge::EnabledHistograms = TRCHAFFKEY.EnableHisto;
 HistoMan TrCharge::Histograms;
 
 
-float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
-  return 1./sqrt(1.-pow(1.*mass/(rigidity*Z),2) ); 
-}
+////////////////////////////////////////////
+// Goodness of a single charge measurement
+////////////////////////////////////////////
 
 
-double TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
-  // pointer check
-  if (hit==0) {
-    printf("TrCharge::GetPropToBeZ-W hit with NULL pointer, returning 0\n");
-    return 0; 
-  }
-  // Z = 0 means electrons (approximately no rise)
-  if (Z==0) { Z = 1; beta = 1; }
-  // choose the pdf version 
-  switch (TRCHAFFKEY.PdfVersion) { 
-    case 1: { 
-      TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf01_SingleLayer);
-      if (pdf==0) {
-        // this frequently happens ... maybe is better to put a counter
-        // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d), returning 0.\n",
-        //   iside,Z,TRCHAFFKEY.PdfVersion);
-        return 0;
-      }
-      // in this version the pdf are in sqrt(ADC) scale
-      double signal = hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta);
-      return pdf->Eval(sqrt(signal));
-      break;
-    }
-    case 2: {
-      TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
-      // TMP (MAYBE BETTER)
-      // TrPdf* pdf = (Z<2) ? TrPdfDB::GetHead()->GetPdf(1,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) : 
-      //                      TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) ;
-      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
-      // TAKING JUST ONE PDF FOR EACH CHARGE AND EACH LAYER ... SEEMS BETTER!!!
-      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,2);
-      if (pdf==0) {
-        // this frequently happens ... maybe is better to put a counter
-        // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d, layer=%d), returning 0.\n",
-        //    iside,Z,TRCHAFFKEY.PdfVersion,hit->GetLayerJ());
-        return 0;
-      }
-      // in this version the pdf are in ADC/Z^2 scale
-      double signal = hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta);
-      return pdf->Eval(signal/pow(Z,2.),false,true); // interpolation x-logy (better for tails)  
-      break;
-    }
-    default: {
-      printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf version for a single measurement (iside=%d, Z=%d, version=%d), returning 0.\n",
-        iside,Z,TRCHAFFKEY.PdfVersion);
-      return 0;
-      break;
-    }
-  }
-  // default return 
-  return 0;
-}
-
-
-bool TrCharge::GoodChargeReconCluster(TrClusterR* cluster) {
-  // pointer check
-  if (cluster==0) return false;
-  // check dead and noise strip inside and around the cluster
-  int ndead = 0;
-  int nbad  = 0;
-  for (int i=-1; i<cluster->GetNelem()+1; i++) {
-    int iside   = cluster->GetSide();
-    int address = i + cluster->GetAddress();
-    int iva     = int(address/64);
-    if (cluster->IsK7()) address = cluster->GetAddress(i);   // cycl.
-    if (
-      ( (iside==0)&&(address<640)&&(address>1023) ) ||
-      ( (iside==1)&&(address<  0)&&(address> 639) ) 
-    ) {
-      printf("TrCharge::GoodChargeReconCluster-W address out of bounds (%d). This must not happen!\n",address);
-      continue; 
-    }
-    short status = cluster->GetStatus(i); 
-    ndead += ( (status>>0)&0x1 ) | ( (status>>2)&0x1 ); 
-    nbad  += status!=0;
-  }
-  // check gain calibration status for these strips 
-  int nbadgain = 0;
-  for (int i=0; i<cluster->GetNelem(); i++) {
-    int address = i + cluster->GetAddress();
-    int iva     = int(address/64);
-    TrLadGain* ladgain = TrGainDB::GetHead()->FindGainTkId(cluster->GetTkId());
-    if (ladgain==0) {
-      printf("TrCharge::GoodChargeReconCluster-W gain not found (tkid=%+4d). This must not happen!\n",cluster->GetTkId());
-      continue;
-    }
-    if (!ladgain->IsSilver(iva)) nbadgain++;
-  }
-  // dead strip  
-  bool dead = (ndead>0);
-  // no noisy cluster (disabled)
-  bool bad  = false; // (nbad>3); // good
-  // no bad VAs
-  bool badgain = (nbadgain>0);
-  // good cluster shape (not implemented for now)
-  bool badshape = false;
-  // return
-  return (!dead)&&(!bad)&&(!badgain)&&(!badshape);
-}
-
-
-bool TrCharge::GoodChargeReconHit(TrRecHitR* hit) {
+bool TrCharge::GoodChargeReconHit(TrRecHitR* hit, int iside) {
   // pointer check
   if (hit==0) return false;
   TrClusterR* clx = hit->GetXCluster();
   TrClusterR* cly = hit->GetYCluster();
   // no one of the two
-  if ( (clx==0)||(cly==0) ) return false;
-  // one of the two is not good
-  if ( (!GoodChargeReconCluster(clx)) ||
-       (!GoodChargeReconCluster(cly)) ) return false; 
-  // bad combination: not implemented for now
+  if ( (!clx)&&(!cly) ) return false;
+  // requested side exists
+  if ( (iside==0)&&(!clx) ) return false;
+  if ( (iside==1)&&(!cly) ) return false;
+  // existence of the clusters is taken into account, as well as multiplicity, in the TrRecHit::GetQStatus method
+  int status = hit->GetQStatus(); 
+  if      (iside==0) return ((status&0x1001FD)==0);
+  else if (iside==1) return ((status&0x1FD100)==0);
+  else               return ((status&0x1FD1FD)==0);
   return true;
+}
+
+
+//////////////////////////////////////////////
+// Averaging methods
+//////////////////////////////////////////////
+
+
+mean_t TrCharge::GetMean(int type, vector<float> signal) {
+  if      ( ( (type&kPlainMean))&&(!(type&kTruncMean))&&(!(type&kGaussMean)) ) return GetPlainMean(signal);
+  else if ( (!(type&kPlainMean))&&( (type&kTruncMean))&&(!(type&kGaussMean)) ) return GetTruncMean(signal);
+  else if ( (!(type&kPlainMean))&&(!(type&kTruncMean))&&( (type&kGaussMean)) ) return GetGaussMean(signal);
+  else    printf("TrCharge::GetMean-W not a valid mean type selected, returning empty mean_t, %2x.\n",type);
+  return mean_t();
 }
 
 
@@ -133,7 +56,7 @@ mean_t TrCharge::GetPlainMean(vector<float> signal) {
   for (int ii=0; ii<(int)signal.size(); ii++) {
     if (signal.at(ii)<0) continue;
     mean += signal.at(ii);
-    rms  += pow(signal.at(ii),2); 
+    rms  += pow(signal.at(ii),2);
     n++;
   }
   mean /= n;
@@ -204,12 +127,8 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
     printf("TrCharge::GetMean-W track with NULL pointer, return empty mean_t.\n");
     return mean_t();
   }
-
   // rigidity
-  // cout << "rigidity...fit_id=" << fit_id << flush;
-  float rigidity = track->GetRigidity(fit_id);
-  // cout << "rigidity=" << rigidity << endl;
-
+  float rigidity = (fit_id>=0) ? track->GetRigidity(fit_id) : 0;
   // track hit loop
   vector<float> signal;
   for (int ihit=0; ihit<track->GetNhits(); ihit++) {
@@ -218,90 +137,162 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
       printf("TrCharge::GetMean-W hit in the track with NULL pointer, skipping it.\n");
       continue;
     }
-
     // requested configuration (upper/inner/lower)
     int LayerJ = hit->GetLayerJ();
-    if ( !( ((type&kInner)&&(LayerJ>1)&&(LayerJ<9))||
-            ((type&kLower)&&(LayerJ==9))||
-            ((type&kUpper)&&(LayerJ==1)) )
-    ) continue;
+    if ( !( ((type&kInner)&&(LayerJ>1)&&(LayerJ<9))||((type&kLower)&&(LayerJ==9))||((type&kUpper)&&(LayerJ==1)) ) ) continue;
     // if excluded layer 
     if (LayerJ==layerj) continue;
-
     // selection
-    // - if hit analysis
-    if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
-    // - if cluster analysis
-    TrClusterR* cluster = (iside==0) ? hit->GetXCluster() : hit->GetYCluster();
-    if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
-
+    if (!GoodChargeReconHit(hit,iside)) continue;   
     // add signal to the vector 
-    float asignal = hit->GetSignalCombination(iside,opt,beta,rigidity,mass_on_Z); 
+    float asignal = hit->GetSignalCombination(iside,opt,beta,rigidity,mass_on_Z);
     if (type&kSqrt) asignal = (asignal>0) ? sqrt(asignal) : 0;
     signal.push_back(asignal);
   }
-  //cout << "signal size=" << signal.size() << endl;
-
   // computation
   mean_t mean = GetMean(type,signal);
-
   // set additional infos
   mean.Type = type;
   mean.Opt  = opt;
   mean.Side = iside;
-
   return mean;
-}   
+}
 
 
+// Weight factors for combined truncated mean 
+// - 2012 calibration: 
 // Database of sigma values come from truncated mean (very rough algorithm) 
-static float    z_sigma_trunc[14]   = {1,2,3,4,5,6,7,8,9,10,12,14,16,26};
-static float    sigma_trunc_x_6[14] = {0.0598,  0.0762,  0.0881,  0.0947,  0.1091,  0.1303,  0.1357,  0.1721,  0.2264,  0.2467,  0.3958,  0.5622,  1.1560,  0.7984};
-static float    sigma_trunc_y_6[14] = {0.0618,  0.0798,  0.0950,  0.1361,  0.2534,  0.5171,  1.2854,  0.8704,  0.7563,  0.4421,  0.4702,  0.5122,  1.0341,  0.9487};
-static TGraph*  sigma_trunc_spline[2] = {0,0};
+static float z_sigma_trunc[14]   = {1,2,3,4,5,6,7,8,9,10,12,14,16,26};
+static float sigma_trunc_x_6[14] = {0.0598,  0.0762,  0.0881,  0.0947,  0.1091,  0.1303,  0.1357,  0.1721,  0.2264,  0.2467,  0.3958,  0.5622,  1.1560,  0.7984};
+static float sigma_trunc_y_6[14] = {0.0618,  0.0798,  0.0950,  0.1361,  0.2534,  0.5171,  1.2854,  0.8704,  0.7563,  0.4421,  0.4702,  0.5122,  1.0341,  0.9487};
+static TGraph* sigma_trunc_spline[2] = {0,0};
 // Number of points from 0 to 8 (truncated mean is nmax-1, 0 if impossible or undetermined) 
 // - assumed to be independent from Z (approximately true)
 // - extrapolated for n_x = 1 and for for n_y = 1, 2 
-static float    sigma_scale_x[9] = {0., 1.6777, 1.4973,  1.2724,  1.1441,  1.0612,  1.0000,  0.9658,  0.9162};
-static float    sigma_scale_y[9] = {0., 1.4584, 1.3345,  1.2285,  1.1301,  1.0629,  1.0000,  0.9569,  0.9291};
-mean_t TrCharge::GetCombinedQ(int type, TrTrackR* track, float beta, int jlayer, int fit_id, float mass_on_Z) {
+static float sigma_scale_x[9] = {0., 1.6777, 1.4973,  1.2724,  1.1441,  1.0612,  1.0000,  0.9658,  0.9162};
+static float sigma_scale_y[9] = {0., 1.4584, 1.3345,  1.2285,  1.1301,  1.0629,  1.0000,  0.9569,  0.9291};
+// - 2013 calibration 
+static double z_sigma_trunc_2013[14] = {1,2,3,4,5,6,7,8,10,12,14,16,20,26}; 
+static double sigma_trunc_x_6_2013[14] = {
+  0.0582148,0.0767001,0.0869924,0.0945005,0.100936,0.108567,0.122822,
+  0.134392,0.209511,0.315384,0.42982,0.531301,0.61243,0.677021
+};
+static double sigma_trunc_y_6_2013[14] = {
+  0.0590583,0.0784018,0.0970621,0.153183,0.298174,0.422098,0.629828,
+  0.472116,0.406461,0.390868,0.395945,0.490878,0.641071,0.653275  
+};
+mean_t TrCharge::GetCombinedMean(int type, TrTrackR* track, float beta, int jlayer, int opt, int fit_id, float mass_on_Z) {
   // check
   // if the requested type does not require TruncatedMean is not valid 
   if (!(type&kTruncMean)) return 0;
   // if the requested type is not kSqrt is not valid
   if (!(type&kSqrt)) return 0;
-  // MIP scale options
-  int opt = TrClusterR::DefaultChargeCorrOpt;
-  // Init spline if needed
+  // init spline if needed
   if (!sigma_trunc_spline[0]) sigma_trunc_spline[0] = new TGraph(14,z_sigma_trunc,sigma_trunc_x_6);
   if (!sigma_trunc_spline[1]) sigma_trunc_spline[1] = new TGraph(14,z_sigma_trunc,sigma_trunc_y_6);
-  // Calculate truncated mean
-  mean_t mean_x  = TrCharge::GetMean(type,track,TrCharge::kX,beta,jlayer,opt,fit_id,mass_on_Z); 
-  mean_t mean_y  = TrCharge::GetMean(type,track,TrCharge::kY,beta,jlayer,opt,fit_id,mass_on_Z);
-  float q_x      = mean_x.Mean;
-  float q_y      = mean_y.Mean;
-  int   n_x      = mean_x.NPoints;
-  int   n_y      = mean_y.NPoints;
-  float r_x      = (n_x>0) ? mean_x.RMS : 0;
-  float r_y      = (n_y>0) ? mean_y.RMS : 0;
-  // Calculate mean factors  
+  // calculate truncated mean
+  mean_t mean_x = TrCharge::GetMean(type,track,TrCharge::kX,beta,jlayer,opt,fit_id,mass_on_Z);
+  mean_t mean_y = TrCharge::GetMean(type,track,TrCharge::kY,beta,jlayer,opt,fit_id,mass_on_Z);
+  float q_x = mean_x.Mean;
+  float q_y = mean_y.Mean;
+  int   n_x = mean_x.NPoints;
+  int   n_y = mean_y.NPoints;
+  float r_x = (n_x>0) ? mean_x.RMS : 0;
+  float r_y = (n_y>0) ? mean_y.RMS : 0;
+  // normalization at the number of points  
+  // in the old version I was determining factors from data
   float factor_x = ( (n_x>0)&&(n_x<9) ) ? sigma_scale_x[n_x] : 0;
   float factor_y = ( (n_y>0)&&(n_y<9) ) ? sigma_scale_y[n_y] : 0;
-  // Make a first approximate charge guess: is X, if existing, otherwise Y
+  if (!(opt&TrClusterR::kOld)) {
+    // in new version I use just point normalization 
+    factor_x = sqrt(1.*n_x)/sqrt(6);
+    factor_y = sqrt(1.*n_y)/sqrt(6);
+  }
+  // make a first approximate charge guess: is X, if existing, otherwise Y
   float q_pre = (q_x>0) ? q_x : q_y;
-  // Very rough integer charge estimator
+  // very rough integer charge estimator
   int   z_pre = floor(q_pre + 0.5);
   if (z_pre<1) z_pre = 1;
-  // Now do the combination
+  // now do the combination
+  // old calibration used the sline 
   float sigma_x = sigma_trunc_spline[0]->Eval(z_pre);
   float sigma_y = sigma_trunc_spline[1]->Eval(z_pre);
-  float w_x     = (sigma_x*factor_x>0) ? 1.0/pow(sigma_x*factor_x,2) : 0;
-  float w_y     = (sigma_y*factor_y>0) ? 1.0/pow(sigma_y*factor_y,2) : 0;
-  float q_glb   = ((w_x + w_y)>0) ? (q_x*w_x + q_y*w_y)/(w_x + w_y) : 0;
-  // Calculate the RMS combination from error propagation 
-  float q_rms   = ((w_x + w_y)>0) ? (r_x*w_x + r_y*w_y)/(w_x + w_y) : 0;
-  // Result
+  if (!(opt&TrClusterR::kOld)) {
+    // new calibration uses the monotonic spline 
+    sigma_x = monotonic_cubic_interpolation(1.*z_pre,14,z_sigma_trunc_2013,sigma_trunc_x_6_2013);
+    sigma_y = monotonic_cubic_interpolation(1.*z_pre,14,z_sigma_trunc_2013,sigma_trunc_y_6_2013);
+  }
+  float w_x = (sigma_x*factor_x>0) ? 1.0/pow(sigma_x*factor_x,2) : 0;
+  float w_y = (sigma_y*factor_y>0) ? 1.0/pow(sigma_y*factor_y,2) : 0;
+  float q_glb = ((w_x + w_y)>0) ? (q_x*w_x + q_y*w_y)/(w_x + w_y) : 0;
+  // calculate the RMS combination from error propagation 
+  float q_rms = ((w_x + w_y)>0) ? (r_x*w_x + r_y*w_y)/(w_x + w_y) : 0;
+  // result
   return mean_t(type,opt,-1,n_x+n_y,q_glb,q_rms);
+}
+
+
+//////////////////////////////////////////////
+// Probability method (OLD IMPLEMENTATION) 
+//////////////////////////////////////////////
+
+
+float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
+  return 1./sqrt(1.-pow(1.*mass/(rigidity*Z),2) ); 
+}
+
+
+double TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
+  // pointer check
+  if (hit==0) {
+    printf("TrCharge::GetPropToBeZ-W hit with NULL pointer, returning 0\n");
+    return 0; 
+  }
+  // Z = 0 means electrons (approximately no rise)
+  if (Z==0) { Z = 1; beta = 1; }
+  // choose the pdf version 
+  switch (TRCHAFFKEY.PdfVersion) { 
+    case 1: { 
+      TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf01_SingleLayer);
+      if (pdf==0) {
+        // this frequently happens ... maybe is better to put a counter
+        // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d), returning 0.\n",
+        //   iside,Z,TRCHAFFKEY.PdfVersion);
+        return 0;
+      }
+      // in this version the pdf are in sqrt(ADC) scale
+      double signal = hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta);
+      return pdf->Eval(sqrt(signal));
+      break;
+    }
+    case 2: {
+      TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
+      // TMP (MAYBE BETTER)
+      // TrPdf* pdf = (Z<2) ? TrPdfDB::GetHead()->GetPdf(1,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) : 
+      //                      TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) ;
+      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
+      // TAKING JUST ONE PDF FOR EACH CHARGE AND EACH LAYER ... SEEMS BETTER!!!
+      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,2);
+      if (pdf==0) {
+        // this frequently happens ... maybe is better to put a counter
+        // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d, layer=%d), returning 0.\n",
+        //    iside,Z,TRCHAFFKEY.PdfVersion,hit->GetLayerJ());
+        return 0;
+      }
+      // in this version the pdf are in ADC/Z^2 scale
+      double signal = hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta);
+      return pdf->Eval(signal/pow(Z,2.),false,true); // interpolation x-logy (better for tails)  
+      break;
+    }
+    default: {
+      printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf version for a single measurement (iside=%d, Z=%d, version=%d), returning 0.\n",
+        iside,Z,TRCHAFFKEY.PdfVersion);
+      return 0;
+      break;
+    }
+  }
+  // default return 
+  return 0;
 }
 
 
@@ -403,11 +394,7 @@ like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int
        if excluded layedd 
        if (LayerJ==layerj) continue; */
     // selection
-    // - if hit analysis
-    if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
-    // - if cluster analysis
-    TrClusterR* cluster = (iside==0) ? hit->GetXCluster() : hit->GetYCluster();
-    if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
+    if (!GoodChargeReconHit(hit,iside)) continue;
     // calculate probability 
     double prob = GetProbToBeZ(hit,iside,Z,beta);
     double logprob = (prob>1e-300) ? log10(prob) : -300; // double minimum 
@@ -448,13 +435,9 @@ like_t TrCharge::GetLogLikelihoodCharge(int type, TrTrackR* track, int iside, fl
 }
 
 
-mean_t TrCharge::GetMean(int type, vector<float> signal) {
-  if      ( ( (type&kPlainMean))&&(!(type&kTruncMean))&&(!(type&kGaussMean)) ) return GetPlainMean(signal);
-  else if ( (!(type&kPlainMean))&&( (type&kTruncMean))&&(!(type&kGaussMean)) ) return GetTruncMean(signal);
-  else if ( (!(type&kPlainMean))&&(!(type&kTruncMean))&&( (type&kGaussMean)) ) return GetGaussMean(signal);
-  else    printf("TrCharge::GetMean-W not a valid mean type selected, returning empty mean_t, %2x.\n",type);
-  return mean_t();
-}
+////////////////////////////////////////////
+// Reconstruction related methods
+//////////////////////////////////////////////
 
 
 mean_t TrCharge::GetMeanHighestFourClusters(int type, int iside, int opt) {

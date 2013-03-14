@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.46 2013/02/17 16:32:18 mduranti Exp $
+//  $Id: TrRecHit.h,v 1.47 2013/03/14 09:29:38 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -234,12 +234,12 @@ public:
 
   /**@name Signals */			
   /**@{*/			
-  /// Returns the hit signal (0: x, 1: y, 2: weighted mean (not fully implemented), 3: mean (not so reasonable))
-  float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0.938);
+  /// Returns the hit signal (0: x, 1: y, 2: x or y if no x, 3: weighted mean (not fully implemented), 4: mean (not so reasonable))
+  float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0);
   /// Get energy deposition (MeV) (iside = 0: x, 1: y, 2: x, y if no x)
-  float GetEdep(int iside);
+  float GetEdep(int iside) { return GetSignalCombination(iside,TrClusterR::DefaultEdepCorrOpt); }
   /// Get floating charge estimation (iside = 0: x, 1: y, 2: x, y if no x)
-  float GetQ(int iside, float beta = 1, float rigidity = 0, float mass_on_Z = 0.938);
+  float GetQ(int iside, float beta = 1, float rigidity = 0, float mass_on_Z = 0) { return sqrt(GetSignalCombination(iside,TrClusterR::DefaultChargeCorrOpt,beta,rigidity,mass_on_Z)); }
   /// Get the signal status (0th, ..., 11th bit X-side, 12th, ..., 23rd Y-side. Bit explanation in TrClusterR::GetQStatus()) 
   int   GetQStatus(int nstrip_from_seed = 1);
   /// Returns the hit correlation for a gaussian p-value (test performed without corrections and used in reconstruction)

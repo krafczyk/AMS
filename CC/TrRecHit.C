@@ -227,17 +227,17 @@ void TrRecHitR::Print(int opt){
 void TrRecHitR::_PrepareOutput(int opt) { 
   sout.clear();
   if(_imult>0) 
-    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d\n",
+    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d  QStatus: %8hX\n",
 		     _tkid,_imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z(),
 		     (GetYCluster()) ? GetYCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
 		     (GetXCluster()) ? GetXCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
-		     GetCorrelationProb(),getstatus()));
+		     GetCorrelationProb(),getstatus(),GetQStatus()));
   else 
-    sout.append(Form("tkid: %+03d Base  Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d\n",
+    sout.append(Form("tkid: %+03d Base  Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d  QStatus: %8hX\n",
 		     _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),
                      (GetYCluster()) ? GetYCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
                      (GetXCluster()) ? GetXCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
-		     GetCorrelationProb(),getstatus()));
+		     GetCorrelationProb(),getstatus(),GetQStatus()));
   if(!opt) return;
   for(int ii=0;ii<_mult;ii++)
     sout.append(Form("mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",
@@ -377,37 +377,19 @@ float TrRecHitR::GetProb()   {
 
 
 float TrRecHitR::GetSignalCombination(int iside, int opt, float beta, float rigidity, float mass_on_Z) {
+  int mult = GetResolvedMultiplicity();
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();
-  float sig_x = (clx!=0) ? clx->GetTotSignal(opt,beta,rigidity,mass_on_Z) : 0;
-  float sig_y = (cly!=0) ? cly->GetTotSignal(opt,beta,rigidity,mass_on_Z) : 0;
-  float wei_x = 1; // to be tuned (wei(adc) ...)
-  float wei_y = 1; // to be tuned (wei(adc) ...)
+  float sig_x = (clx!=0) ? clx->GetTotSignal(opt,beta,rigidity,mass_on_Z,mult) : 0;
+  float sig_y = (cly!=0) ? cly->GetTotSignal(opt,beta,rigidity,mass_on_Z,mult) : 0;
+  float wei_x = 1; // to be tuned 
+  float wei_y = 1; // to be tuned 
   if      (iside==0) return sig_x;
   else if (iside==1) return sig_y; 
-  else if (iside==2) return (sig_x*wei_x + sig_y*wei_y)/(wei_x + wei_y);
-  else if (iside==3) return (sig_x + sig_y)/2;
+  else if (iside==2) return (clx!=0) ? sig_x : sig_y;
+  else if (iside==3) return (sig_x*wei_x + sig_y*wei_y)/(wei_x + wei_y);
+  else if (iside==4) return (sig_x + sig_y)/2;
   return 0.;
-}
-
-
-float TrRecHitR::GetEdep(int iside) {
-  float Ex = (GetXCluster()) ? GetXCluster()->GetEdep() : 0;
-  float Ey = (GetYCluster()) ? GetYCluster()->GetEdep() : 0;
-  if      (iside==0) return Ex;
-  else if (iside==1) return Ey;
-  else if (iside==2) return (GetXCluster()) ? Ex : Ey;
-  return 0;
-}
-
-
-float TrRecHitR::GetQ(int iside, float beta, float rigidity, float mass_on_Z) {
-  float Qx = (GetXCluster()) ? GetXCluster()->GetQ(beta,rigidity,mass_on_Z,GetResolvedMultiplicity()) : 0;
-  float Qy = (GetYCluster()) ? GetYCluster()->GetQ(beta,rigidity,mass_on_Z,GetResolvedMultiplicity()) : 0;
-  if      (iside==0) return Qx;
-  else if (iside==1) return Qy;
-  else if (iside==2) return (GetXCluster()) ? Qx : Qy;
-  return 0;
 }
 
 

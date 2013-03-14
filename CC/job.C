@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.911 2013/02/15 15:10:48 oliva Exp $
+// $Id: job.C,v 1.912 2013/03/14 09:29:37 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -37,6 +37,8 @@
 #include "TrGainDB.h"
 #include "TrOccDB.h"
 #include "TrChargeLossDB.h"
+#include "TrEDepDB.h"
+#include "TrMipDB.h"
 #include "TrLinearDB.h"
 
 #include "trrec.h"
@@ -2216,13 +2218,15 @@ void AMSJob::udata(){
 
   // create the gain database singleton, and linear array
   TrGainDB::GetHead()->Init();
-
   // create the occupancy database singleton, and linear array
   TrOccDB::GetHead()->Init();
 
   // create and load from AMSDataDir the charge loss correction database
   TrChargeLossDB::GetHead()->Init();
-
+  // create and load from AMSDataDir the energy deposition correction database
+  TrEDepDB::GetHead()->Init();
+  // create and load from AMSDataDir the MIP correction database
+  TrMipDB::GetHead()->Init();
   // create and load from AMSDataDir the linearity correction database
   TrLinearDB::GetHead()->Init();
 

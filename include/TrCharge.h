@@ -5,12 +5,15 @@
  \file  TrCharge.h
  \brief Header file of TrCharge class
 
+ \class TrChargeR
+ \brief Full class for the Tracker charge reconstruction
+
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2012/09/13 15:52:02 $
+ $Date: 2013/03/14 09:29:38 $
 
- $Revision: 1.10 $
+ $Revision: 1.11 $
 */
 
 #include "VCon.h"
@@ -23,6 +26,7 @@
 #include "TrPdf.h"
 #include "TrPdfDB.h"
 #include "TrGainDB.h"
+#include "TrChargeLossDB.h"
 
 #include "TFile.h"
 #include "TMath.h"
@@ -34,6 +38,26 @@
 
 
 using namespace std;
+
+
+/*
+class TrChargeR : public TrElem {
+
+ protected:
+ 
+  //! Energy deposition estimation (MeV)
+  float EDep[3][9];
+  //! Energy deposition integral inside 2 cm 
+  float EDep2cm[3][9];
+  //! Charge estimation for every layer/side [sqrt(MIP)]
+  float Q[3][9];
+  //! Integer charge estimation for every layer/side
+  int   Z[9]; 
+  //! 
+  Hypothesis ... 
+
+}
+*/
 
 
 //! Class used to retrieve results of a mean calculation
@@ -181,25 +205,16 @@ class TrCharge {
   };
 
   /////////////////////////
-  // Cluster/Hit methods
+  // Goodness of a single charge measurement
   /////////////////////////
 
-  //! Good cluster for charge reconstruction
-  static bool   GoodChargeReconCluster(TrClusterR* cluster);
   //! Good hit for charge reconstruction
-  static bool   GoodChargeReconHit(TrRecHitR* hit);
-  //! The rigidity could be used to estimate beta  
-  static float  GetBetaFromRigidity(float rigidity, int Z, float mass);
-  //! Get the probability 
-  static double GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta = 1); 
+  static bool   GoodChargeReconHit(TrRecHitR* hit, int iside);
 
   /////////////////////////
   // Averaging methods
   /////////////////////////
 
-  //! Track mean generic method
-  static mean_t GetMean(int type, TrTrackR* track, int iside, float beta = 1, int jlayer = -1, 
-    int opt = TrClusterR::DefaultChargeCorrOpt, int fit_id = 0, float mass_on_Z = 0.938);
   //! Mean generic interface
   static mean_t GetMean(int type, vector<float> signal);
   //! Mean of n signals
@@ -208,14 +223,21 @@ class TrCharge {
   static mean_t GetTruncMean(vector<float> signal);
   //! Gaussianized mean of n signals (discarding out-of-3-sigma signals)
   static mean_t GetGaussMean(vector<float> signal);
-
-  //! Truncated mean XY weighted combination based on number of points factors (part of type should be kTruncMean|kSqrt)
-  static mean_t GetCombinedQ(int type, TrTrackR* track, float beta = 1, int jlayer = -1, int fit_id = 0, float mass_on_Z = 0.938);
+  //! Mean generic method
+  static mean_t GetMean(int type, TrTrackR* track, int iside, float beta = 1, int jlayer = -1,
+        int opt = TrClusterR::DefaultChargeCorrOpt, int fit_id = -1, float mass_on_Z = 0);
+  //! Weighted mean of two sides  
+  static mean_t GetCombinedMean(int type, TrTrackR* track, float beta = 1, int jlayer = -1, 
+        int opt = TrClusterR::DefaultChargeCorrOpt, int fit_id = -1, float mass_on_Z = 0);
 
   /////////////////////////
   // Old methods (still in use!)
   /////////////////////////
 
+  //! The rigidity could be used to estimate beta  
+  static float  GetBetaFromRigidity(float rigidity, int Z, float mass);
+  //! Get the probability 
+  static double GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta = 1);
   //! Truncated mean probability (inner tracker), temporary solution for Z estimator
   static like_t GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta = 1);
   //! Truncated mean charge (inner tracker) (DEPRECATED)

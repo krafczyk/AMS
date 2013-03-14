@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.150 2013/03/06 22:18:28 mdelgado Exp $
+//  $Id: linkdef.h,v 1.151 2013/03/14 09:29:38 oliva Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -22,6 +22,10 @@
 #pragma link C++ class TrChargeLossTable+;
 #pragma link C++ class TrOccDB+;
 #pragma link C++ class TrLadOcc+;
+#pragma link C++ class TrEDepDB+;
+#pragma link C++ class TrEDepTable+;
+#pragma link C++ class TrMipDB+;
+#pragma link C++ class TrMipElem+;
 #pragma link C++ class TrLinearDB+;
 #pragma link C++ class TrLinearElem+;
 #pragma link C++ class tkpatt;

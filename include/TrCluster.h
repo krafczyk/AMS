@@ -12,6 +12,8 @@
 #include "TrGainDB.h"
 #include "TrChargeLossDB.h"
 #include "TrOccDB.h"
+#include "TrEDepDB.h"
+#include "TrMipDB.h"
 #include "TrLinearDB.h"
 
 #include "edep.h"
@@ -33,9 +35,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2013/02/17 16:32:18 $
+ $Date: 2013/03/14 09:29:38 $
 
- $Revision: 1.36 $
+ $Revision: 1.37 $
 
 */
 
@@ -75,6 +77,8 @@ class TrClusterR :public TrElem{
     kCoupl        =  0x1000,
     /// Coordinate Corr.: Belau correction (inactive)
     kBelau        =  0x2000,
+    /// Use old charge calibration 
+    kOld          =  0x4000
   };
 
   enum { TASCLS = 0x400 };
@@ -215,7 +219,7 @@ class TrClusterR :public TrElem{
   /// Check cluster consistency 
   bool Check(int verbosity=0);	
   // Check if a K7 cluster is well shaped (it can happen that is not)
-  bool CheckK7(int mult, int verbosity=0);
+  bool CheckK7(int mult = -1, int verbosity=0);
 
   /**@}*/
 
@@ -423,7 +427,7 @@ class TrClusterR :public TrElem{
    * - 10-bit: check if the cluster is well constructed
    * - 11-bit: check if the cluster K7 is well constructed
    */
-  int   GetQStatus(int nstrip_from_seed = 1, int mult = 0);
+  int   GetQStatus(int nstrip_from_seed = 1, int mult = -1);
 
   // Create a cluster status with valuable information about cluster morfology
   /* - 0-bit: 2 strip around the seed have a non-monotonic behaviour

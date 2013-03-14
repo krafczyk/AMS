@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.99 2013/02/17 16:32:18 mduranti Exp $
+//  $Id: TrTrack.h,v 1.100 2013/03/14 09:29:38 oliva Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2013/02/17 16:32:18 $
+///$Date: 2013/03/14 09:29:38 $
 ///
-///$Revision: 1.99 $
+///$Revision: 1.100 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -737,19 +737,21 @@ public:
   /** @name Track charge estimation (best available estimators shortcuts) */
   /**@{*/
   //! Get the track charge estimator
-  float   GetQ(float beta = 1, int version = 1);
+  float   GetQ(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the number of points used in the track charge estimator
-  int     GetQ_NPoints(float beta = 1, int version = 1);
+  int     GetQ_NPoints(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the RMS of the track charge estimator 
-  float   GetQ_RMS(float beta = 1, int version = 1);
+  float   GetQ_RMS(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the inner tracker estimator
-  float   GetInnerQ(float beta = 1, int version = 1);
+  float   GetInnerQ(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the number of points used in the inner tracker charge estimator
-  int     GetInnerQ_NPoints(float beta = 1, int version = 1);
+  int     GetInnerQ_NPoints(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the RMS of the inner tracker charge estimator  
-  float   GetInnerQ_RMS(float beta = 1, int version = 1);
+  float   GetInnerQ_RMS(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get charge of a hit
-  float   GetLayerJQ(int jlayer, float beta = 1, int version = 1);
+  float   GetLayerJQ(int jlayer, float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
+  //! nuovo GetQ
+  // GetQ(int& npoints, float& rms, int pattern, float beta = 1, float rigidity = 0, float mass_on_z = 0, int version = 1);
   /**@}*/
 
 
