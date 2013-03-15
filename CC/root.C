@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.556 2013/03/14 09:29:37 oliva Exp $
+//  $Id: root.C,v 1.557 2013/03/15 09:27:24 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8441,6 +8441,7 @@ void AMSEventR::ProcessFill(int entry){
 
 void AMSEventR::Terminate()
 {
+string frej=filename;
 #pragma omp critical (cls)
   {
     if(--_NFiles==0 && pService){
@@ -8465,11 +8466,12 @@ void AMSEventR::Terminate()
          if(ifound>=0){
           aname=fRequested[k].substr(0,ifound);
         }
-      if(nrej==0 && strlen(filename)>1){
+      if(nrej==0 && strlen(frej.c_str())>1){
           ofbrej.clear();
-          ofbrej.open(filename);
+          ofbrej.open(frej.c_str());
       }
           if(ofbrej)ofbrej<<aname<<endl;
+          else cerr<<"AMSEventR::Terminate-E-UnableTopenRejFile "<<frej<<" "<<nrej<<endl;
           nrej++;
      }
      else{
