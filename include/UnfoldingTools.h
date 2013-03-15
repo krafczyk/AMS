@@ -128,5 +128,67 @@ class BayesianUnfolder{
 
 
 
+//! A general minimizer based on the differential evolution heuristic 
+/*!
+\author carlos.delgado@ciemat.es
+ */
+
+#include "TH1D.h"
+#include "TRandom.h"
+#include <vector>
+
+class DEMinimizer{
+ public:
+  DEMinimizer(){Function=NULL;Verbosity=1;}  //<Constructor
+  
+  /**
+     Sets the function to be minimized.
+     @param function: function pointer to the one to be minimized. The arguments are passed as the "visible" bin contents of a TH1D histogram
+  */
+  void setFunction(double (*function)(TH1D &)){Function=function;}
+
+  void setRandomSeed(unsigned int seed){Random.SetSeed(seed);} /// Sets the random seed for the minimizer
+
+  /**
+     Initialize the minimizer to search around the values
+     in the range histogram. The errors and mean in the histogram
+     are used to sample initial points, so errors should no be zero. 
+     @param range: parameters around where to start looking for the minimum. The errors give a clue of the search range. 
+     @multiplicationFactor: the number of test points is the number of parameters (bins in range) multiplied by this factor.
+  */
+  void initMinimizer(TH1D &range,double multiplicationFactor=10);
+  /**
+     Initialize the minimizer to search around the values
+     in the range histogram. The initial search region is given 
+     by the values in lower an upper histograms.
+  */
+  void initMinimizer(TH1D &lower,TH1D &upper,double multiplicationFactor=10);
+
+  /**
+     Run the minimizer and return the solution in output. 
+     @param ouput: Histogram to store the position of the minimum found
+     @param maxChangeAllowed: max change in the minimum value between tests to consider the minimizer has converged
+     @param batchSize: Number of function calls between evaluation of the convergence criteria
+     @param maxEvaluations: maximum allowed function calls
+     @return true if the minimization converged
+
+   */
+  bool searchMinimum(TH1D &output,double maxChangeAllowed=0,int batchSize=2000,int maxEvaluations=100000);
+
+
+
+
+  TRandom Random;
+  std::vector<TH1D> Population;           /// Vector with the current iteration population of agents
+  std::vector<double> PopulationValues;   /// Vector with the current iteration population of agents
+  double (*Function)(TH1D&);         /// Pointer to the function being minimized
+  int Verbosity;                     /// Verbosity level. 0 Means no messages. 
+  
+
+
+};
+
+
+
 #endif
 

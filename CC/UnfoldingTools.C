@@ -248,4 +248,151 @@ void BayesianUnfolder::computeAll(TH2F &jointPDF,TH1F &measured,             // 
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
 
+
+void DEMinimizer::initMinimizer(TH1D &range,double multiplicationFactor){
+  Population.clear();
+
+  int size=int(multiplicationFactor*range.GetNbinsX()+0.5);
+  for(int i=0;i<size;i++){
+    TH1D o=range; 
+    for(int j=1;j<=o.GetNbinsX();j++) o.SetBinContent(j,range.GetBinContent(j)+Random.Gaus()*range.GetBinError(j));
+    Population.push_back(o);
+  }
+}
+
+void DEMinimizer::initMinimizer(TH1D &lower,TH1D &upper,double multiplicationFactor){
+  Population.clear();
+ 
+  TH1D d=upper-lower;
+  int size=int(multiplicationFactor*upper.GetNbinsX()+0.5);
+  for(int i=0;i<size;i++){
+    TH1D o=d; 
+    for(int j=1;j<=o.GetNbinsX();j++) o.SetBinContent(j,lower.GetBinContent(j)+Random.Uniform()*d.GetBinContent(j));
+    Population.push_back(o);
+  }
+}
+
+
+bool DEMinimizer::searchMinimum(TH1D &output,double maxChangeAllowed,int batchSize,int maxEvaluations){
+  if(Function==NULL){
+    cerr<<"DEMinimizer::searchMinimum -- Function not declared. Use DEMinimizer::setFunction"<<endl;
+    return false;
+  }
+
+  if(!Population.size()){
+    cerr<<"DEMinimizer::searchMinimum -- Initial search space not defined. Use DEMinimizer::initMinimizer"<<endl;  
+    return false;
+  }
+
+  // Current best
+  double best=HUGE_VAL;
+  int bestIndex=-1;
+
+  // Compute the first round of values
+  PopulationValues.clear();
+  for(int i=0;i<Population.size();i++){
+    double value=(*Function)(Population[i]);
+    if(value!=value) value=HUGE_VAL;
+    PopulationValues.push_back(value);
+
+    if(value<best){best=value;bestIndex=i;}
+  }
+  
+
+  double prev_best=HUGE_VAL;
+  bool converged=false;
+
+  if(Verbosity){
+    cout<<"Starting DE Minimization."<<endl
+	<<"   Maximum number of function calls: "<<maxEvaluations<<endl
+	<<"   Checking convergence every "<<batchSize<<" calls"<<endl
+	<<"   Convergence when function change is smaller than "<<maxChangeAllowed<<endl
+	<<"   Population size "<<Population.size()<<endl;
+  }
+
+
+  // Start minimization
+  for(int call=0;call<maxEvaluations;call++){
+    
+    ///////////////////////
+    // Perform a DE step //
+    ///////////////////////
+
+    //Dither F parameters: This allows to explore several scales
+    double F=Random.Uniform(0.0,1.0);  
+    // Dither CR parameter: This allows to explore different correlation factors
+    double CR=Random.Uniform(0.1,0.9); 
+
+    // Select the agent being mutated
+    int current=Random.Integer(Population.size());
+
+    // Select the three crossing candidates
+    int candidates[3]={-1,-1,-1};
+
+    for(int i=0;i<3;i++){
+      int now=Random.Integer(Population.size());
+
+      if(now==current){i-=1; continue;}
+      bool repeat=false;
+      for(int j=0;j<3;j++) if(candidates[j]==now) repeat=true;
+      if(repeat){i-=1; continue;}
+      candidates[i]=now;
+    }
+
+    // Build the crossing vector
+    TH1D cr=Population[candidates[0]]+(Population[candidates[1]]-Population[candidates[2]])*F;
+    
+    // Create the candidate parameters
+    bool shouldCreate=true;
+    TH1D candidateH=Population[current];
+
+    for(int i=1;i<=candidateH.GetNbinsX();i++){
+      if(Random.Uniform()>CR) continue;
+      candidateH.SetBinContent(i,cr.GetBinContent(i));
+      shouldCreate=false;
+    }
+
+    // If unsuccesfull, force the minimum change
+    if(shouldCreate){
+      int i=Random.Integer(candidateH.GetNbinsX());
+      candidateH.SetBinContent(i,cr.GetBinContent(i));
+    }
+
+
+    //Evaluate the fit function
+    double candidateV=(*Function)(candidateH);
+    if(candidateV!=candidateV) candidateV=HUGE_VAL;
+
+    if(candidateV<PopulationValues[current]){
+      PopulationValues[current]=candidateV;
+      Population[current]=candidateH;
+
+      if(candidateV<best){
+        best=candidateV;
+        bestIndex=current;
+      }
+    }
+
+
+    ////////////////////////////////
+    // Check if we have converged //
+    ////////////////////////////////
+    if(Verbosity && call%500==0) cerr<<".";  // Show some heartbeat
+
+    if(call%batchSize==0){
+      // Say something
+      if(Verbosity) cout<<"Function calls: "<<call+Population.size()<<" CURRENT BEST VALUE: "<<best<<endl;
+      // Check if converged 
+      if(fabs(prev_best-best)<maxChangeAllowed){
+	converged=true;
+	break;
+      }
+      // Update current best
+      prev_best=best;
+    }
+  }
+  if(bestIndex>-1) output=Population[bestIndex];
+  return converged;
+}

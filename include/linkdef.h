@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.151 2013/03/14 09:29:38 oliva Exp $
+//  $Id: linkdef.h,v 1.152 2013/03/15 17:39:35 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -90,6 +90,7 @@
 /////////////////////////////////////// Unfolding tools
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class BayesianUnfolder;
+#pragma link C++ class DEMinimizer;
 #endif
 ///////////////////////////////////////////////////////
 #pragma link C++ class TrPdf+;
