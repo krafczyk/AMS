@@ -35,9 +35,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2013/03/14 09:29:38 $
+ $Date: 2013/03/15 08:04:29 $
 
- $Revision: 1.37 $
+ $Revision: 1.38 $
 
 */
 
@@ -51,7 +51,7 @@ class TrClusterR :public TrElem{
     kNoCorr       =     0x0,       
     /// Signal Corr.: Cluster Asymmetry Correction (left/right)
     kAsym         =     0x1, 
-    /// Signal Corr.: P-Strip Correction (inactive)
+    /// Signal Corr.: P-Strip Correction 
     kPStrip       =     0x2,
     /// Total Signal Corr.: Energy Loss Normalization at 300 um [cos(Theta)^-1]
     kAngle        =     0x4,
@@ -73,9 +73,9 @@ class TrClusterR :public TrElem{
     kRigidity     =   0x400,
     /// Coordinate Corr.: Flip the eta used strips
     kFlip         =   0x800,
-    /// Coordinate Corr.: Correct for the charge coupling (4%) (inactive)
+    /// Coordinate Corr.: Correct for the charge coupling (4%) 
     kCoupl        =  0x1000,
-    /// Coordinate Corr.: Belau correction (inactive)
+    /// Coordinate Corr.: Belau correction 
     kBelau        =  0x2000,
     /// Use old charge calibration 
     kOld          =  0x4000
@@ -218,7 +218,7 @@ class TrClusterR :public TrElem{
 
   /// Check cluster consistency 
   bool Check(int verbosity=0);	
-  // Check if a K7 cluster is well shaped (it can happen that is not)
+  /// Check if a K7 cluster is well shaped (it can happen that is not)
   bool CheckK7(int mult = -1, int verbosity=0);
 
   /**@}*/
@@ -227,32 +227,33 @@ class TrClusterR :public TrElem{
   /** @name   SIGNALS & AMPLITUDE */
   /**@{*/	
 
-  //! Get cluster amplitude, with corrections
+  /// Get cluster amplitude, with corrections
   float         GetTotSignal(int opt = DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0, int res_mult = -1);
-  //! Convert an ADC signal to the ADC scale of p-side 
+
+  /// Convert an ADC signal to the ADC scale of p-side
   float         ConvertToPSideScale(float adc/*n-side*/);
-  //! Convert an ADC signal to the ADC scale of n-side
+  /// Convert an ADC signal to the ADC scale of n-side 
   float         ConvertToNSideScale(float adc/*p-side*/);
-  //! Conversion between ADC and MIPs 
+  /// Conversion between ADC and MIPs 
   float         GetNumberOfMIPs(float adc) { return GetNumberOfMIPs_ISS(adc); }
-  //! Conversion between ADC and MIPs (derived from 2003 Ion Test Beam data)
+  /// Conversion between ADC and MIPs (derived from 2003 Ion Test Beam data)
   float         GetNumberOfMIPs_TB_2003(float adc);
-  //! Conversion between ADC and MIPs (derived from ISS data, used as default)
+  /// Conversion between ADC and MIPs (derived from ISS data)
   float         GetNumberOfMIPs_ISS(float adc);
-  //! Beta correction 
+  /// Beta correction 
   float         BetaCorrection(float beta) { return BetaCorrection_ISS_2011(beta); } 
-  //! Beta correction (estimated with on ground Muons, 2010)
+  /// Beta correction (estimated with on ground Muons, 2010)
   float         BetaCorrection_Muons_2010(float beta);
-  //! Beta correction (derived from ISS data 2011, used as default)
+  /// Beta correction (derived from ISS proton data 2011)
   float         BetaCorrection_ISS_2011(float beta);
-  //! Rigidity correction (estimated with ISS data), dependent on the A/Z guess
+  /// Rigidity correction (estimated with ISS data), dependent on the A/Z guess
   float         RigidityCorrection(float rigidity, float mass_on_Z = 0.938); 
-  //! Beta and rigidity correction (best ranges selected), dependent on the A/Z guess
+  /// Beta and rigidity correction (best ranges selected), dependent on the A/Z guess
   float         BetaRigidityCorrection(float beta, float rigidity, float mass_on_z = 0.938);
 
-  //! Get energy deposition (MeV)
+  /// Get energy deposition (MeV)
   float GetEdep() { return GetTotSignal(TrClusterR::DefaultEdepCorrOpt); }
-  //! Get floating charge estimation
+  /// Get floating charge estimation
   float GetQ(float beta = 1, float rigidity = 0, float mass_on_Z = 0, int res_mult = -1) { 
     return sqrt(GetTotSignal(TrClusterR::DefaultChargeCorrOpt,beta,rigidity,mass_on_Z,res_mult)); 
   }
@@ -269,7 +270,6 @@ class TrClusterR :public TrElem{
   }
   /// Get the signal-to-noise ratio of the cluster (sum-signals/sqrt(sum-sigma^2))
   float GetClusterSN(int opt = 0);
-
 
   /**@}*/	
 
@@ -389,54 +389,54 @@ class TrClusterR :public TrElem{
   /** @name More cluster quantities */
   /**@{*/
 
-  // Get number of implant strips between the two highest readout strips (S: 3, K5: 1 or 2 (edges), K7: 1 or 0 ...)
+  /// Get number of implant strips between the two highest readout strips (S: 3, K5: 1 or 2 (edges), K7: 1 or 0 ...)
   int   GetNInterstrip(int mult = 0); 
 
-  // Get number of strips with a particular calibration status mask for this cluster (checks also outside of cluster) 
+  /// Get number of strips with a particular calibration status mask for this cluster (checks also outside of cluster) 
   int   GetNStripWithCalibrationStatus(int nstrip_from_seed, int mask, int mult = 0);
-  // Get number of strips with a particular occupancy status mask for this cluster (checks also outside of cluster)
+  /// Get number of strips with a particular occupancy status mask for this cluster (checks also outside of cluster)
   int   GetNStripWithOccupancyStatus(int nstrip_from_seed, int mask, int mult = 0);
-  // Get number of strips with a particular gain status mask for this cluster (checks also outside of cluster)
+  /// Get number of strips with a particular gain status mask for this cluster (checks also outside of cluster)
   int   GetNStripWithGainStatus(int nstrip_from_seed, int mask, int mult = 0);
-  // Get number of strips on the edge of the sensor (checks also outside of cluster)
+  /// Get number of strips on the edge of the sensor (checks also outside of cluster)
   int   GetNStripOnTheEdgeOfSensor(int nstrip_from_seed, int mult = 0);
-  // Get number of strips on the edge of VA (checks also outside of cluster)
+  /// Get number of strips on the edge of VA (checks also outside of cluster)
   int   GetNStripOnTheEdgeOfVA(int nstrip_from_seed, int mult = 0);
 
-  // Check cluster morfology: monothonic behaviour? (extend to how many strips you want around the seed)
+  /// Check cluster morfology: monothonic behaviour? (extend to how many strips you want around the seed)
   bool  IsMonotonic(int nstrip_from_seed);
-  // Check cluster morfology: monothonic behaviour? (extend to all the strips around seed over threshold)
+  /// Check cluster morfology: monothonic behaviour? (extend to all the strips around seed over threshold)
   bool  IsMonotonicWithThreshold(float threshold);
-  // Check cluster morfology: are the strips over threshold?
+  /// Check cluster morfology: are the strips over threshold?
   bool  IsOverThreshold(int nstrip_from_seed, float threshold = 1);
 
-  // Get the ratio between signal of few strips around seed with respect to total signal (no corrections).
+  /// Get the ratio between signal of few strips around seed with respect to total signal (no corrections).
   float GetSignalToSignalRatio(int nstrip_from_seed);
 
-  // Create a cluster status with information about the cluster quality 
-  /* -  0-bit: >0 dead strips 
-   * -  1-bit: >0 noisy strips 
-   * -  2-bit: >0 second step bad strips
-   * -  3-bit: >0 strips with bad region flag
-   * -  4-bit: >0 dead occupancy strips 
-   * -  5-bit: >0 noisy occupancy strips
-   * -  6-bit: >0 bad strips from gain database (not gold)
-   * -  7-bit: >0 bad strips from gain database (not silver)
-   * -  8-bit: >0 strips on the edge of the sensor 
-   * -  9-bit: >0 strips on the edge of VA
-   * - 10-bit: check if the cluster is well constructed
-   * - 11-bit: check if the cluster K7 is well constructed
-   */
+  /// \brief Create a cluster status with information about the cluster quality 
+  /// \return 
+  /// \retval  0-bit: >0 dead strips 
+  /// \retval  1-bit: >0 noisy strips 
+  /// \retval  2-bit: >0 second step bad strips
+  /// \retval  3-bit: >0 strips with bad region flag
+  /// \retval  4-bit: >0 dead occupancy strips 
+  /// \retval  5-bit: >0 noisy occupancy strips
+  /// \retval  6-bit: >0 bad strips from gain database (not gold)
+  /// \retval  7-bit: >0 bad strips from gain database (not silver)
+  /// \retval  8-bit: >0 strips on the edge of the sensor 
+  /// \retval  9-bit: >0 strips on the edge of VA
+  /// \retval 10-bit: check if the cluster is well constructed
+  /// \retval 11-bit: check if the cluster K7 is well constructed
   int   GetQStatus(int nstrip_from_seed = 1, int mult = -1);
 
-  // Create a cluster status with valuable information about cluster morfology
-  /* - 0-bit: 2 strip around the seed have a non-monotonic behaviour
-   * - 1-bit: 3 strip around the seed have a non-monotonic behaviour
-   * - 2-bit: strips over SN=0.0 thereshold have a non-monotonic behaviour
-   * - 3-bit: strips over SN=1.5 thereshold have a non-monotonic behaviour 
-   * - 4-bit: strips over SN=3.0 thereshold have a non-monotonic behaviour 
-   * - 5-bit: strips over SN=4.5 thereshold have a non-monotonic behaviour
-   */
+  /// \brief Create a cluster status with valuable information about cluster morfology
+  /// \return 
+  /// \retval 0-bit: 2 strip around the seed have a non-monotonic behaviour
+  /// \retval 1-bit: 3 strip around the seed have a non-monotonic behaviour
+  /// \retval 2-bit: strips over SN=0.0 thereshold have a non-monotonic behaviour
+  /// \retval 3-bit: strips over SN=1.5 thereshold have a non-monotonic behaviour 
+  /// \retval 4-bit: strips over SN=3.0 thereshold have a non-monotonic behaviour 
+  /// \retval 5-bit: strips over SN=4.5 thereshold have a non-monotonic behaviour
   int   GetMorfologyStatus();
 
   /**@}*/
