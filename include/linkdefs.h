@@ -1,9 +1,10 @@
-//  $Id: linkdefs.h,v 1.48 2013/02/18 14:47:51 kaiwu Exp $
+//  $Id: linkdefs.h,v 1.49 2013/03/15 11:05:27 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;
 
+//#pragma link C++ class AMSDir++;
 #pragma link C++ class GeoMagField+;
 #pragma link C++ class GeoMagTrace+;
 #ifdef _PGTRACK_

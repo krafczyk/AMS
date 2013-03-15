@@ -148,14 +148,14 @@ class BackTracingMIB {
 //----------------------------------------------------
 
 
-
+#ifndef __FAST__
 #ifdef __ALPHA__
 #define DECFortran
 #else
 #define mipsFortran
 #endif
 #include "cfortran.h"
-
+#endif
 
 class BACKTRACINGPAR_DEF{
         public:
@@ -197,6 +197,8 @@ class BACKTRACINGPAR_DEF{
 // no #pragma omp threadprivate(PAR,r0,the0,fi0,the1, fi1,rig,zn,amass,dflag,rkflag, res,r,td,fei,ast,asf,time,alast,iy,mes,ide,id,ih,min,is)
 
 };
+#ifndef __FAST__
 #define BACKTRACINGPAR COMMON_BLOCK(BACKTRACINGPAR,backtracingpar)
 COMMON_BLOCK_DEF(BACKTRACINGPAR_DEF, BACKTRACINGPAR);
+#endif
 #endif

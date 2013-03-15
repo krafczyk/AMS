@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.255 2013/03/14 10:56:20 oliva Exp $
+#  $Id: Makefile,v 1.256 2013/03/15 11:05:32 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -1262,6 +1262,7 @@ allp:
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
 	$(MAKE)  -i producer
+	$(MAKE) -j -f Makefastntrd64
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
