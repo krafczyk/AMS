@@ -1,4 +1,4 @@
-// $Id: TrChargeLossDB.C,v 1.2 2013/03/14 09:29:37 oliva Exp $
+// $Id: TrChargeLossDB.C,v 1.3 2013/03/15 07:34:38 oliva Exp $
 
 #include "TrChargeLossDB.h"
 
@@ -171,8 +171,12 @@ double TrChargeLossDB::GetChargeLossCorrectedValue(int iside, int inter, double 
     z_previous = Z;
   }
   // error message
+  static int maxerr = 0;
   if (n<2) {
-    printf("TrChargeLossDB::GetChargeLossCorrectedValue-E no valid correction tables available for ip=%f ia=%f type=%d ver=%d, return 0!\n",ip,ia,type,ver);
+    if (maxerr<100) {
+      printf("TrChargeLossDB::GetChargeLossCorrectedValue-E no valid correction tables available for ip=%f ia=%f type=%d ver=%d, return 0 (only displayed 100 times).\n",ip,ia,type,ver);
+      maxerr++;
+    }
     return 0;
   }
   // interpolate 
