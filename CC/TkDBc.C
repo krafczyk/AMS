@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.67 2012/12/19 00:35:03 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.68 2013/03/17 16:19:26 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/12/19 00:35:03 $
+///$Date: 2013/03/17 16:19:26 $
 ///
-///$Revision: 1.67 $
+///$Revision: 1.68 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1431,7 +1431,7 @@ int TkDBc::UpdateTDV(unsigned int brun, unsigned int erun, int ver)
   cout << "End  : " <<(int)erun<<"  " <<asctime(&end  )<<endl;
 
   AMSTimeID *tt
-    = new AMSTimeID(AMSID("TrackerAlignPM3", 1), begin, end,
+    = new AMSTimeID(AMSID(stn, 1), begin, end,
 		    TkDBc::GetLinearSize(),
 		    TkDBc::linear, AMSTimeID::Standalone, 1);
 
