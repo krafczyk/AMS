@@ -13,7 +13,7 @@
 #include "root.h"
 #endif
 
-#define  MAXALIGNEDRUN 1355350000
+#define  MAXALIGNEDRUN 1363000000
 
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
@@ -446,6 +446,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 
   uint te8 = ti8+50000;  // Effective time range
   uint te9 = ti8+50000;  // Effective time range
+
+  if (time%50000 < 120) time += 120;
 
   // For default data
   if (GetSize(8) == 1) { ti8 = GetTmin(8); te8 = 2100000000; }
