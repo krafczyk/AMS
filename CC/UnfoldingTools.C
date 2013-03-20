@@ -2,10 +2,10 @@
 #include "TRandom.h"
 #include <iostream>
 #include "math.h"
+#include "TSpline.h"
 
 using namespace std;
 
-//ClassImp(BayesianUnfolder);
 
 int BayesianUnfolder::MaxIters=1000;
 
@@ -249,7 +249,7 @@ void BayesianUnfolder::computeAll(TH2F &jointPDF,TH1F &measured,             // 
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 void DEMinimizer::initMinimizer(TH1D &range,double multiplicationFactor){
   Population.clear();
@@ -394,5 +394,108 @@ bool DEMinimizer::searchMinimum(TH1D &output,double maxChangeAllowed,int batchSi
     }
   }
   if(bestIndex>-1) output=Population[bestIndex];
+  Parameters=output;
   return converged;
 }
+
+
+void DEMinimizer::computeMCErrors(TH1D &output,int samples, void (*init)(void) ){
+  // Accumulators
+  TH1D sum=Parameters; sum.Reset();
+  TH1D sum2=sum;
+  TH1D weights=sum;
+
+  // The sampler
+  MCSampler sampler;
+  sampler.Random=Random;
+  sampler.setMinimum(Parameters);
+  sampler.setFunction(Function);
+  sampler.initSampler();
+
+  for(int i=0;i<samples;i++){
+    TH1D local;
+    double w;
+    if(init) (*init)();
+    sampler.pickSample(local,w);
+
+    //Fill adders
+    for(int j=1;j<=Parameters.GetNbinsX();j++){
+      double y=local.GetBinContent(j);
+      weights.AddBinContent(j,w);
+      sum.AddBinContent(j,y*w);
+      sum2.AddBinContent(j,y*y*w);
+    }
+  }
+  
+  // Sets the error and inform the user  
+  for(int i=1;i<=Parameters.GetNbinsX();i++){
+    double mean=sum.GetBinContent(i)/weights.GetBinContent(i);
+    double mean2=sum2.GetBinContent(i)/weights.GetBinContent(i);
+    double error=mean2-mean*mean;
+    error=error<0?0:sqrt(error);
+    Parameters.SetBinError(i,error);
+  }
+
+  if(Verbosity){
+    cout<<endl<<"ERROR COMPUTATION FINISHED: "<<endl;
+    for(int i=1;i<=Parameters.GetNbinsX();i++){
+      cout<<"Parameter "<<i<<": "<<Parameters.GetBinContent(i)<<" +/- "<<Parameters.GetBinError(i)<<endl; 
+    }
+    cout<<endl;
+  }
+
+  output=Parameters;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+double MCSampler::scanParameter(int par,const double scale){
+  // Assume a cuadratix shape, centered in 0, and find the rest of parameters
+  double x[2]={0,scale}; // Initial guess
+  double y[2];
+  y[0]=(*Function)(Parameters);
+  double origin=y[0];
+  TH1D newpars=Parameters;
+  newpars.SetBinContent(par,Parameters.GetBinContent(par)*(1+x[1]));
+  y[1]=(*Function)(newpars);
+
+  double sigma=2*(y[1]-y[0])/Parameters.GetBinContent(par)/Parameters.GetBinContent(par)/x[1]/x[1];
+  if(sigma<=0) return 0;
+  return sqrt(1/sigma);
+}
+
+
+
+void MCSampler::initSampler(){
+  Sigmas=Parameters;
+  for(int i=1;i<=Parameters.GetNbinsX();i++){
+    Sigmas.SetBinContent(i,2*scanParameter(i));
+  }
+}
+
+
+void MCSampler::pickSample(TH1D &sample,double &weight){
+  if(Sigmas.GetNbinsX()!=Parameters.GetNbinsX()) initSampler(); 
+  sample=Parameters;
+  double logProb=(*Function)(Parameters);
+  double logProbGen=0;
+
+  for(int i=1;i<=Parameters.GetNbinsX();i++){
+    double sigma=Sigmas.GetBinContent(i);
+    if(sigma==0) continue;
+    double value=Random.Gaus();
+    logProbGen+=-0.5*value*value;
+    sample.SetBinContent(i,Parameters.GetBinContent(i)+value*sigma);
+  }
+  
+  weight=exp(logProb-(*Function)(sample)-logProbGen);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+

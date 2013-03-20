@@ -2,6 +2,7 @@
 #define __Unfold__
 #include "TH1F.h"
 #include "TH2F.h"
+#include "math.h"
 
 //! Bayesian unfolding tool
 /*!
@@ -128,14 +129,55 @@ class BayesianUnfolder{
 
 
 
+
+
+#include "TH1D.h"
+#include "TRandom.h"
+#include <vector>
+
+//! A MC sampler to compute errors after minimization using DEMinimizer 
+/*!
+\author carlos.delgado@ciemat.es
+ */
+
+class MCSampler{
+ public:
+  MCSampler(){};
+  /**
+     Sets the cost function to sample from 
+     @param function: function pointer to the one to be minimized. The arguments are passed as the "visible" bin contents of a TH1D histogram
+  */
+  void setFunction(double (*function)(TH1D &)){Function=function;}
+
+  /**
+     Sets the position of the minimum of the cost function .
+     @param parameters: histogram containing the parameters
+  */
+  void setMinimum(TH1D &parameters){Parameters=parameters;}
+
+  void setRandomSeed(unsigned int seed){Random.SetSeed(seed);} ///< Sets the random seed for the minimizer
+
+  void initSampler();                                          ///< Search for a range where to scan. Uses a rough approximation to start
+  double scanParameter(int par,const double scale=1e-2);       ///< Search for a range where to scan. Uses a rough approximation to start
+
+  /**
+     Pick a ramdon sample around the minimum.
+     \return sample: The random sample
+     \return weight: The weight for this sample
+  */
+  void pickSample(TH1D &sample,double &weight);
+  
+  TRandom Random;             ///< A random number generator
+  double (*Function)(TH1D&);  ///< Pointer to the function cost being sampled
+  TH1D Parameters;            ///< Poisition of the minimum 
+  TH1D Sigmas;                ///< Area being sampled
+};
+
 //! A general minimizer based on the differential evolution heuristic 
 /*!
 \author carlos.delgado@ciemat.es
  */
 
-#include "TH1D.h"
-#include "TRandom.h"
-#include <vector>
 
 class DEMinimizer{
  public:
@@ -175,19 +217,48 @@ class DEMinimizer{
    */
   bool searchMinimum(TH1D &output,double maxChangeAllowed=0,int batchSize=2000,int maxEvaluations=100000);
 
-
+  /**
+     Compute the errors for the minimized result assuming that
+     the function provided is the -logarithm of a probability (including
+     priors). The error is computed using the MC methof by sampling
+     from the probability function. A function init can be provided that
+     is called before a sample is taken from the distribution.
+   */
+  void computeMCErrors(TH1D &output,int samples=2000,void (*init)(void)=NULL);
 
 
   TRandom Random;
   std::vector<TH1D> Population;           /// Vector with the current iteration population of agents
   std::vector<double> PopulationValues;   /// Vector with the current iteration population of agents
   double (*Function)(TH1D&);         /// Pointer to the function being minimized
+  TH1D Parameters;                   /// Result of the last call to the minimizer
   int Verbosity;                     /// Verbosity level. 0 Means no messages. 
-  
-
-
 };
 
+
+#ifdef UNDER_DEVELOPMENT
+//! A base class for forward unfolding
+/*!
+\author carlos.delgado@ciemat.es
+ */
+class FUnfolding{
+ public:
+  FUnfoding(){};
+  virtual ~FUnfolding(){};
+  virtual double cost(TH1D &parameters);
+  void fold(TH1D &parameters,TH1F &output);
+  void unfold(TH1F &measured,TH1D &hintParameters,TH1D &output);
+
+
+  static *FUnfolding Current;
+  TH2F Joint;     ///< Joint distribution (kept for sampling)
+  TH2F Response;  ///< Response matrix        
+  TH1F Measured;  ///< Measured distribution (to be fit)
+  TH1D Parameters; ///< Result of the fit (with errors, hopefully)
+  double Cost;     ///< Cost of the result
+  static double costFunction(TH1D &parameters);  ///< Static handler for the minimizer
+};
+#endif
 
 
 #endif
