@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.759 2013/03/08 12:17:52 bshan Exp $
+# $Id: RemoteClient.pm,v 1.760 2013/03/22 12:53:57 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14273,6 +14273,7 @@ foreach my $block (@blocks) {
     my $dstsize = -1;
     if($dstfile=~/^\/castor/){
         unlink "/tmp/castor.$$";
+        system("stager_get -M $dstfile "); 
         my $cmd="/usr/bin/nsls -l $dstfile >/tmp/castor.$$";
         my $i=system($cmd);
         if(!$i){
