@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.153 2013/03/20 16:27:09 mdelgado Exp $
+//  $Id: linkdef.h,v 1.154 2013/03/22 15:02:30 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -92,6 +92,7 @@
 #pragma link C++ class BayesianUnfolder;
 #pragma link C++ class DEMinimizer;
 #pragma link C++ class MCSampler;
+#pragma link C++ class StochasticUnfolding;
 #endif
 ///////////////////////////////////////////////////////
 #pragma link C++ class TrPdf+;

@@ -236,6 +236,44 @@ class DEMinimizer{
 };
 
 
+//! A unfolding strategy without free parameters for distributions following
+//! Poisson statistics. It is based in the minimization of the stochastic complexity
+//! instead of relying in an explicit metric with a regularization term. The
+//! time it takes is linear in the number of entries in the measured distribution, so
+//! can only be used for histograms with no too many entries.
+//! NOTE: Innefficiencies are not yet taken into account
+/*!
+\author carlos.delgado@ciemat.es
+ */
+
+class StochasticUnfolding{
+ public:
+  StochasticUnfolding(){Counter=0;}
+  void setPrior(TH1F &prior);
+  void setResponseMatrixFromJoint(TH2F &joint);
+  void addEntry(double measured);
+  void unfold(TH1F &measured,TH1F &output,int samples=10);
+
+  /**
+     Main steering routine.
+     @param joint: unnormalize joint distribution. Used to compute the response matrix. Poissonian statistic for the bins error is assumed. The binning should be equal or finner than that of the measured and unfolded distributions 
+     @param measured: measured distribution
+     @param output: slot to store the unfolded distribution. The binning on the histogram is kept. 
+     @param samples: number of realizations used. The larger the more accurate are the errors, but the running time is linear in this quantity. 
+  */
+  void unfold(TH2F &joint, TH1F &measured,TH1F &output,int samples=10);
+
+
+  TRandom Random;
+  TH1F Prior;
+  TH1F EfficiencyCorrection; 
+  TH2F ResponseMatrix;
+  TH1F UnfoldingAccumulator;
+  int Counter;
+};
+
+
+
 #ifdef UNDER_DEVELOPMENT
 //! A base class for forward unfolding
 /*!
@@ -246,9 +284,9 @@ class FUnfolding{
   FUnfoding(){};
   virtual ~FUnfolding(){};
   virtual double cost(TH1D &parameters);
-  void fold(TH1D &parameters,TH1F &output);
+  virtual void fold(TH1D &parameters,TH1F &output);
   void unfold(TH1F &measured,TH1D &hintParameters,TH1D &output);
-
+  void setResponseMatrixFromJoint(TH2F &joint);
 
   static *FUnfolding Current;
   TH2F Joint;     ///< Joint distribution (kept for sampling)

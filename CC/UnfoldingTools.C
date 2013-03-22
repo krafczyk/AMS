@@ -55,7 +55,9 @@ void BayesianUnfolder::computeUnfoldingMatrix(){
   }
 
   TH1F *h=(TH1F*)UnfoldingMatrix.ProjectionY("_norma",1,UnfoldingMatrix.GetNbinsX());
+  h->SetBit(kMustCleanup);
   Measured=*h;
+  Measured.SetName("Measured");
   delete h;
 
   for(int j=1;j<=UnfoldingMatrix.GetNbinsY();j++){
@@ -494,8 +496,205 @@ void MCSampler::pickSample(TH1D &sample,double &weight){
   weight=exp(logProb-(*Function)(sample)-logProbGen);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+void StochasticUnfolding::setPrior(TH1F &prior){
+  Counter=1;
+  Prior=prior;
+  double norma=Prior.Integral(1,Prior.GetNbinsX());
+  if(norma!=0){
+    for(int i=1;i<=Prior.GetNbinsX();i++) Prior.SetBinContent(i,Prior.GetBinContent(i)/norma);
+  }else{
+    for(int i=1;i<=Prior.GetNbinsX();i++) Prior.SetBinContent(i,1.0/Prior.GetNbinsX());
+  }
+}
+
+#include "TROOT.h"
+
+
+void StochasticUnfolding::setResponseMatrixFromJoint(TH2F &joint){
+  ResponseMatrix=joint;  ResponseMatrix.Reset();
+  TH1F *normalization=    (TH1F*)joint.ProjectionX("_normalizatio",1,joint.GetNbinsY());
+  TH1F *fullNormalization=(TH1F*)joint.ProjectionX("_normalizationFull",0,joint.GetNbinsY()+1);
+
+  
+  for(int i=1;i<=ResponseMatrix.GetNbinsX();i++){
+    double sum=normalization->GetBinContent(i);
+    if(sum<=0) continue;
+    for(int j=1;j<=ResponseMatrix.GetNbinsY();j++) ResponseMatrix.SetBinContent(i,j,joint.GetBinContent(i,j)/sum);
+  }
+
+  EfficiencyCorrection=*normalization;
+  EfficiencyCorrection.SetName("EfficiencyCorrection");
+  for(int i=1;i<=EfficiencyCorrection.GetNbinsX();i++) 
+    if(fullNormalization->GetBinContent(i)) EfficiencyCorrection.SetBinContent(i,EfficiencyCorrection.GetBinContent(i)/fullNormalization->GetBinContent(i));
+    else EfficiencyCorrection.SetBinContent(i,1);
+
+  delete (TH1D*)normalization;
+  delete (TH1D*)fullNormalization;
+}
+
+
+void StochasticUnfolding::addEntry(double measured){
+  // Get the bin
+  int bin=ResponseMatrix.GetYaxis()->FindBin(measured);
+  if(bin<1 || bin>ResponseMatrix.GetNbinsY()) return;
+  
+  TH1F current=Prior;    current.Reset();
+
+  for(int i=1;i<=ResponseMatrix.GetNbinsX();i++){
+    double energy=ResponseMatrix.GetXaxis()->GetBinCenter(i);
+    int priorBin=Prior.GetXaxis()->FindBin(energy);
+
+    double weight=Prior.GetBinContent(priorBin)*ResponseMatrix.GetXaxis()->GetBinWidth(i)/Prior.GetXaxis()->GetBinWidth(priorBin)*ResponseMatrix.GetBinContent(i,bin)/Counter;
+    current.Fill(energy,weight);
+  }
+  
+  double normalization=current.Integral(1,current.GetNbinsX());
+  for(int i=1;i<=current.GetNbinsX();i++) current.SetBinContent(i,current.GetBinContent(i)/normalization);
+  Prior.Add(&current);
+  Counter++;
+}
+
+
+void StochasticUnfolding::unfold(TH1F &measured,TH1F &output,int samples){
+  TH1F accumulator=Prior; accumulator.Reset();
+  TH1F accumulator2=accumulator;
+
+  int entries=measured.Integral();
+  TH1F originalPrior=Prior;
+
+  for(int sample=0;sample<samples;sample++){
+    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
+    Prior=originalPrior;
+    Counter=1;
+    for(int i=0;i<entries;i++)addEntry(measured.GetRandom());
+    accumulator.Add(&Prior);
+    for(int i=1;i<=accumulator2.GetNbinsX();i++) accumulator2.AddBinContent(i,Prior.GetBinContent(i)*Prior.GetBinContent(i));
+  }
+
+  accumulator.Scale(1.0/samples);
+  accumulator2.Scale(1.0/samples);
+  output=accumulator;
+
+  for(int i=1;i<=output.GetNbinsX();i++){
+    double error=accumulator2.GetBinContent(i)-accumulator.GetBinContent(i)*accumulator.GetBinContent(i);
+    output.SetBinError(i,error>0?sqrt(error):0);
+  }
+
+}
+
+
+void StochasticUnfolding::unfold(TH2F &joint,TH1F &measured,TH1F &output,int samples){
+  TH1F accumulator=Prior; accumulator.Reset();
+  TH1F accumulator2=accumulator;
+
+  int entries=measured.Integral();
+  TH1F originalPrior=Prior;
+
+  for(int sample=0;sample<samples;sample++){
+    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
+    TH2F myJoint=joint;
+    for(int i=1;i<=myJoint.GetNbinsX();i++) for(int j=0;j<=myJoint.GetNbinsY()+1;j++) myJoint.SetBinContent(i,j,Random.Poisson(joint.GetBinContent(i,j)));
+    Prior=originalPrior;
+    Counter=1;
+    setResponseMatrixFromJoint(myJoint);
+    for(int i=0;i<entries;i++)addEntry(measured.GetRandom());
+    accumulator.Add(&Prior);
+    for(int i=1;i<=accumulator2.GetNbinsX();i++) accumulator2.AddBinContent(i,Prior.GetBinContent(i)*Prior.GetBinContent(i));
+  }
+
+  accumulator.Scale(1.0/samples);
+  accumulator2.Scale(1.0/samples);
+  output=accumulator;
+
+  for(int i=1;i<=output.GetNbinsX();i++){
+    double error=accumulator2.GetBinContent(i)-accumulator.GetBinContent(i)*accumulator.GetBinContent(i);
+    output.SetBinError(i,error>0?sqrt(error):0);
+  }
+}
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef UNDER_DEVELOPMENT
+FUnfolding *FUnfolding::Current=NULL;
 
+double FUnfolding::costFunction(TH1D &parameters){
+  return FUnfolding::Current->cost(parameters);
+}
+
+
+double FUnfolding::cost(TH1D &parameters){
+  // Build the energy spectrum
+  TH1D spectrum=parameters;
+  for(int i=1;i<=spectrum.GetNbinsX();i++) spectrum.SetBinContent(i,exp(parameters.GetBinContent(i)));
+
+  // Fold it with current Response Matrix
+  TH1F output=Measured;
+  fold(spectrum,output);
+
+  // Compute the likelihood
+  double sum=0;
+  for(int i=1;i<=Measured.GetNbinsX();i++) sum+=output.GetBinContent(i)-Measured.GetBinContent(i)?Measured.GetBinContent(i)*log(output.GetBinContent(i)):0;
+  
+  // Compute the regularization parameters
+  for(int i=1;i<=spectrum.GetNbinsX();i++) sum+=log(sqrt(spectrum)+1);
+  
+
+  return sum;
+}
+
+
+
+
+void FUnfolding::setResponseMatrixFromJoint(TH2F &joint){
+  Joint=joint;
+  ResponseMatrix=joint;  ResponseMatrix.Reset();
+  TH1F *normalization=    (TH1F*)joint.ProjectionX("_normalizatio",0,joint.GetNbinsY()+1);
+
+  
+  for(int i=1;i<=ResponseMatrix.GetNbinsX();i++){
+    double sum=normalization->GetBinContent(i);
+    if(sum<=0) continue;
+    for(int j=1;j<=ResponseMatrix.GetNbinsY();j++) ResponseMatrix.SetBinContent(i,j,joint.GetBinContent(i,j)/sum);
+  }
+}
+
+
+
+
+
+void FUnfolding::unfold(TH2F &jointPDF,TH1F &measured,TH1D &output){
+  Measured=measured;
+  
+  // I ignore the hint parameters and set mine by hand
+  for(int i=1;i<=output.GetNbinsX();i++){
+    double x=output.GetXaxis()->GetBinCenter(i);
+    int bin=measured.GetXaxis()->FindBin(x);
+    double value=measured.GetBinContent(bin);
+    output.SetBinContent(i,log(value));
+    output.SetBinError(i,1);
+  }
+  
+
+  // Start the minimizer
+
+  bool success=false;
+  do{
+    DEMinimizer minimizer;
+    minimizer.setFunction(FUnfolding::costFunction);
+    minimizer.initMinimizer(output);
+    success=searchMinimum(output);
+    if(success) minimizer.computeMCErrors(output);  // By the moment forget about matrix fluctuation
+  }while(!success);
+}
+
+
+void FUnfolding::fold(TH1D &parameters,TH1F &output){
+}
+
+#endif 
