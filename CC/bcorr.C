@@ -1,4 +1,4 @@
-//  $Id: bcorr.C,v 1.10 2013/03/19 14:49:02 choutko Exp $
+//  $Id: bcorr.C,v 1.11 2013/03/22 09:20:53 choutko Exp $
 #include "root.h"
 #include "root_setup.h"
 #include "bcorr.h"
@@ -23,7 +23,7 @@ extern "C" void btempcor_(float& factor) {
 }
 
 void MagnetVarp::MagnetTemperature::loadValues(unsigned int utime,bool ccebload){
-const string sensort[12]={"Port","Ram","StarBoard","Wake","M-3X:31:UCF3","M-3X:32:UCF4","M-3X:35:UCF7","M-3X:36:UCF8","M-3X:39:LCF3","M-3X:40:LCF4","M-3X:43:LCF7","M-3X:44:LCF8"};
+const string sensort[12]={"Port","Ram","Starboard","Wake","M-3X:31:UCF3","M-3X:32:UCF4","M-3X:35:UCF7","M-3X:36:UCF8","M-3X:39:LCF3","M-3X:40:LCF4","M-3X:43:LCF7","M-3X:44:LCF8"};
 const string sensorb[4][4]={"B-Field P0 Component X","B-Field P0 Component Y","B-Field P0 Component Z","B-Field P0 Sensor Tmp",
 "B-Field P1 Component X","B-Field P1 Component Y","B-Field P1 Component Z","B-Field P1 Sensor Tmp",
 "B-Field P2 Component X","B-Field P2 Component Y","B-Field P2 Component Z","B-Field P2 Sensor Tmp",
