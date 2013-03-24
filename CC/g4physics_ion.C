@@ -3,10 +3,12 @@
 //      Ion Eleastic for high Energy->DPM-JET
 // ------------------------------------------------------------
 //      History
-//        Created:       2012-Apr-09  Q.Yan
-//        Modified:
+//        Created:       2012-Apr-09   Q.Yan
+//        Modified:      2013-March-23 Q.Yan
+//                                Fix Gap of Cross-Section
 // -----------------------------------------------------------
 
+#include "commons.h"
 #include "g4physics_ion.h"
 #include "G4ParticleDefinition.hh"
 #include "G4ProcessManager.hh"
@@ -82,12 +84,9 @@ void IonDPMJETPhysics::ConstructProcess()
   fIonH = new G4IonProtonCrossSection();//proton Target <20GeV (Inject A>4)
   fShen = new G4IonsShenCrossSection();
 #ifdef G4_USE_DPMJET
-  dpmXS = new G4DPMJET2_5CrossSection;//<1000TeV Shen(Z >58)+ PMJET2.5 
-  dpmXS->SetMinKinEnergy(10.*MeV);
-  dpmXS->SetMaxKinEnergy(emax);
-  dpmXS->SetMaxShenEnergy(dpmemin);//< 5GeV-ShenCross >5GeV DPMJETCross
-//  dpmXS->SetVerboseLevel(100);
-  dpmXS->PrintMessage();
+  if(G4FFKEY.IonPhysicsModel==3){
+    dpmXS = new G4DPMJET2_5CrossSection;//<1000TeV Shen(Z >58)+ PMJET2.5 
+  }
 #endif  
   AddProcess("dInelastic", G4Deuteron::Deuteron(),false);
   AddProcess("tInelastic",G4Triton::Triton(),false);
@@ -107,7 +106,7 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   pManager->AddDiscreteProcess(hadi);
   hadi->AddDataSet(fShen);
 #ifdef G4_USE_DPMJET
-  hadi->AddDataSet(dpmXS);
+  if(G4FFKEY.IonPhysicsModel==3)hadi->AddDataSet(dpmXS);
 #endif
   hadi->AddDataSet(fTripathi);
 //fTripathiLight or fIonH first use

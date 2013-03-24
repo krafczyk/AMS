@@ -63,8 +63,7 @@
 
 #include "G4VCrossSectionDataSet.hh"
 #include "G4DPMJET2_5CrossSectionParamSet.hh"
-#include "G4DynamicParticle.hh"
-#include "G4IonsShenCrossSection.hh"
+
 #include <map>
 
 typedef std::map< G4int, G4DPMJET2_5CrossSectionParamSet *, std::less< G4int > >
@@ -93,12 +92,7 @@ class G4DPMJET2_5CrossSection : public G4VCrossSectionDataSet
     virtual void BuildPhysicsTable(const G4ParticleDefinition&);
 
     virtual void DumpPhysicsTable(const G4ParticleDefinition&);
-
-    inline void SetMinKinEnergy(G4double kmin){lowerLimit= kmin;}
-    inline void SetMaxKinEnergy(G4double kmax){upperLimit= kmax;}
-    inline void SetMaxShenEnergy(G4double kshen){shenLimit=kshen;}
-    void        PrintMessage() const; 
- 
+    
   private:
     void Initialise ();
 
@@ -107,16 +101,11 @@ class G4DPMJET2_5CrossSection : public G4VCrossSectionDataSet
     G4int ATmin;
     G4int ATmax;
 
-    G4double shenLimit;//<5GeV using shen cross
-    G4IonsShenCrossSection shencross;
-
     G4DPMJET2_5CrossSectionIndex theCrossSectionIndex;
-   
-    G4double upperLimit;
-    G4double lowerLimit;
-    G4int    maxA;
-    G4int    minA;
-
+    
+    const G4double upperLimit;
+    const G4double lowerLimit;
+    const G4int    maxA;
 };
 ///////////////////////////////////////////////////////////////////////////////
 //
