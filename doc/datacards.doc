@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.390 2012/11/07 11:17:50 shaino Exp $
+#  $Id: datacards.doc,v 1.391 2013/03/24 20:24:55 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -688,7 +688,8 @@ I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "sta
 I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 1: Binary Light Ion Cascade model(not supposed to be valid above few 10GeV/n)
 			// 2: Wilson abrasion model (not supposed to be valid above few 10GeV/n)
-                        // 3: Binary Light(<5GeV/n) +DPMJET2-5 Model(5GeV/n,1000TeV/n)
+                        // 3: Binary Light(<5GeV/n) +DPMJET2-5Model+DPMJETCrossSection(5GeV/n,1000TeV/n)
+                        // 4: Binary Light(<5GeV/n) +DPMJET2-5Model+ShenCrossSection(5GeV/n,1000TeV/n)
 I 8 UseEMDModel(0)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
