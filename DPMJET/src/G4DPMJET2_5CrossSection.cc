@@ -52,7 +52,9 @@
 
 #include "G4DPMJET2_5CrossSection.hh"
 #include "G4ParticleTable.hh"
+#include "G4DynamicParticle.hh"
 #include "G4IonTable.hh"
+
 #include "G4HadronicException.hh"
 #include "G4StableIsotopes.hh"
 #include "G4HadTmpUtil.hh"
@@ -68,11 +70,11 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 //
 G4DPMJET2_5CrossSection::G4DPMJET2_5CrossSection ():
-  upperLimit ( 1000.0 * TeV ), lowerLimit ( 10. * MeV ),minA(1) ,maxA(240), shenLimit(5.0 * GeV)
+  upperLimit ( 1000.0 * TeV ), lowerLimit ( 5.0 * GeV ), maxA(240)
 {
-  verboseLevel=1;
   theCrossSectionIndex.clear();
   Initialise();
+  verboseLevel=0;//lowest
 //
 //
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -91,10 +93,8 @@ G4DPMJET2_5CrossSection::~G4DPMJET2_5CrossSection ()
 //
 // Go through the list of cross-section fit parameters and delete the arrays.
 //
- if( verboseLevel>1 ){
-   G4cout << "G4DPMJET2_5CrossSection::~G4DPMJET2_5CrossSection" << G4endl;
-   G4cout << "Size: " << theCrossSectionIndex.size() << G4endl;
- }
+  G4cout << "G4DPMJET2_5CrossSection::~G4DPMJET2_5CrossSection" << G4endl;
+  G4cout << "Size: " << theCrossSectionIndex.size() << G4endl;
   /*  
   if(theCrossSectionIndex.size() > 0) {
 
@@ -155,11 +155,11 @@ G4bool G4DPMJET2_5CrossSection::IsApplicable
       result = IsZAApplicable(theProjectile, G4double(ZZ), AA);
     } while (result && ++i < nIso);
   }
- if(verboseLevel>1){
-   G4cout << "G4DPMJET2_5CrossSection::IsApplicable E(GeV)= "
+  if(verboseLevel>=1){
+    G4cout << "G4DPMJET2_5CrossSection::IsApplicable E(GeV)= "
 	 << theProjectile->GetKineticEnergy()/GeV << " off "
 	 << theTarget->GetName() << " - " << result << G4endl;
-   }
+  }
   return result;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,17 +171,10 @@ G4bool G4DPMJET2_5CrossSection::IsZAApplicable
   const G4int AP = G4lrint(theProjectile->GetDefinition()->GetBaryonNumber());
   G4double EPN   = theProjectile->GetKineticEnergy()/
     theProjectile->GetDefinition()->GetBaryonNumber();
-//--Ask Qi Yan for detail
-/*  G4bool result  = EPN >= lowerLimit && EPN <= upperLimit &&
+  G4bool result  = EPN >= lowerLimit && EPN <= upperLimit &&
                    AT  >= ATmin      && AT  <= ATmax &&
                    AP  >= APmin      && AP  <= APmax;
-*/
- G4bool result  = EPN >= lowerLimit && EPN <= upperLimit &&
-                  AT  >= minA      && AT  <= maxA &&
-                  AP  >= minA      && AP  <= maxA;
-
   return result;
-  
 }
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -197,25 +190,14 @@ G4double G4DPMJET2_5CrossSection::GetIsoZACrossSection
 // Get details of the projectile and target (nucleon number, atomic number,
 // kinetic enery and energy/nucleon.
 //
-
   const G4int AT    = G4lrint(AA);
   G4int AP          = G4lrint(theProjectile->GetDefinition()->GetBaryonNumber());
   const G4double TP = theProjectile->GetKineticEnergy();
   G4double EPN      = TP / AP;
 
-//--Qi Yan
-  if( (EPN < shenLimit ||  AT > ATmax || AP > APmax || AT<ATmin || AP <ATmin )//only if low enegy+ high Z
-     && AT >=minA && AT <= maxA && AP >= minA && AP <= maxA
-     && EPN >= lowerLimit && EPN <= upperLimit){
-       G4double temperature=0;
-       return shencross.GetIsoZACrossSection(theProjectile, ZZ, AA,temperature);
-   }
-//--
-
   if (AT < ATmin || AT > ATmax || AP < APmin || AP > APmax ||
       EPN < lowerLimit || EPN > upperLimit)
   {
-
     G4cout <<G4endl;
     G4cout <<"ERROR IN G4DPMJET2_5CrossSection::GetIsoZACrossSection" <<G4endl;
     G4cout <<"ATTEMPT TO USE CROSS-SECTION OUTSIDE OF RANGE"          <<G4endl;
@@ -340,7 +322,7 @@ G4double G4DPMJET2_5CrossSection::GetCrossSection
     }
   }
     
-  if (verboseLevel > 1) {
+  if (verboseLevel >= 1) {
     G4int AP          = G4lrint(theProjectile->GetDefinition()->GetBaryonNumber());
     const G4double TP = theProjectile->GetKineticEnergy();
     G4double EPN      = TP / AP;
@@ -519,16 +501,4 @@ void G4DPMJET2_5CrossSection::DumpPhysicsTable(const G4ParticleDefinition
   }
   G4cout.setf(std::ios::fixed);
 }
-
-void G4DPMJET2_5CrossSection::PrintMessage() const
-{
-  G4cout <<" *****************************************************************"<<G4endl;
-  G4cout <<"Ion G4DPMJET2_5CrossSection has been active" <<G4endl;
-  G4cout <<"Kinetic Energy/nuc >"<<lowerLimit/GeV<<"GeV"<<" <"<<upperLimit/GeV<<"GeV"<<G4endl;
-  G4cout <<"Target A Projet A >" <<ATmin<<" <"<<maxA<<G4endl; 
-  G4cout <<"When Kinetic/nuc<"<<shenLimit/GeV<<"GeV|| Target+Projet A>"<<ATmax<<G4endl;
-  G4cout <<"---->>Shen_Crossection replace G4DPMJET2_5CrossSection for calculation"<<G4endl;
-  G4cout <<" *****************************************************************"<<G4endl;
-}
-
 #endif
