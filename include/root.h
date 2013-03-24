@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.546 2013/03/10 11:19:13 qyan Exp $
+//  $Id: root.h,v 1.547 2013/03/24 20:37:16 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3778,7 +3778,8 @@ ClassDef(MCTrackR,1)       //MCTrackR
 class MCEventgR {
 static char _Info[255];
 public:
-  int Nskip;      ///<  reserved
+
+  int Nskip;      ///< geant4 partcle create process: bit-1 IonInelastic(He+Deturon+Triton+Ion) bit-2 ProtonInelastic bit-3 ConvertPhoton
   int Particle;   ///< geant3 particle id
                   /*!<
           (geant3 only) \n

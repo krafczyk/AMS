@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.178 2013/02/02 17:46:24 shaino Exp $
+//  $Id: mceventg.C,v 1.179 2013/03/24 20:37:12 qyan Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1990,12 +1990,30 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    float parr[3] = { pos.x(), pos.y(), pos.z() };
    AMSDir dir( mom.x(), mom.y(), mom.z() );
 
+///--Create Process Record Adding by Q.Yan
+   const G4VProcess *creator=aTrack->GetCreatorProcess();
+   G4String processn=creator->GetProcessName();
+   int nskip=0;
+   if(processn=="dInelastic"||processn=="tInelastic"||processn=="He3Inelastic"||processn=="alphaInelastic"||processn=="ionInelastic"){
+      nskip=(1<<0);//Nucleus Inelastic Process
+    }
+    else if(processn=="DeuteronInelastic"||processn=="TritonInelastic"||processn=="AlphaInelastic"||processn=="IonInelastic"){
+      nskip=(1<<0);//Nucleus Inelastic Process
+    }
+    else if(processn=="ProtonInelastic"){//Proton Inelastic
+      nskip=(1<<1);
+    }
+    else if(processn=="conv"){//Convert Photon  Process
+      nskip=(1<<2);
+    }
+//---
+
    //
    // just record it
    //
    AMSEvent::gethead()->addnext(
          AMSID("AMSmceventg",0),
-         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir ) // negetive code for secondary
+         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
          );
 
 
