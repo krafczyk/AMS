@@ -215,7 +215,7 @@ float TrClusterR::GetSignal(int ii, int opt) {
   int iva = int(GetAddress(ii)/64);
   // multiplexing effect
   if ( (kAsym&opt)&&(ii>0) ) signal = signal - _signal.at(ii-1)*GetAsymmetry(GetSide());
-  // gain 
+  // gain
   if (kGain&opt) signal = TrGainDB::GetHead()->GetGainCorrected(signal,tkid,iva);
   // p-side linearization
   if ( (kPStrip&opt)&&(GetSide()==1) ) signal = TrLinearDB::GetHead()->GetLinearityCorrected(signal,tkid,iva);
@@ -256,6 +256,8 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
     float signal = GetSignal(ii,opt);
     sum += signal;
   }
+  // no negative signals
+  if (sum<0) sum = 0;
   // old correction scheme
   if (kOld&opt) {
     // if (kLoss&opt) sum *= GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle()); // correction no longer in use
@@ -274,12 +276,12 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
   // new correction scheme
   else {
     // correct first for angle
-    sum *= GetCosTheta();
+    sum *= GetCosTheta();   
     // charge loss correction
     if (kLoss&opt) {
       int interstrip = (res_mult>=0) ? GetNInterstrip(res_mult) : -1; 
       sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),interstrip,GetCofG(),GetImpactAngle(),sum,1);
-    }
+    } 
     // beta/rigidity correction
     if ( (kBeta&opt)&&(kRigidity&opt)&&(fabs(rigidity)>1e-6) ) 
       sum = pow(TrEDepDB::GetHead()->GetEDepCorrectedValue(GetLayerJ(),sqrt(sum),beta,rigidity,mass_on_Z,GetSide(),1),2.); 

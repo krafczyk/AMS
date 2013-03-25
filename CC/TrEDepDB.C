@@ -1,4 +1,4 @@
-// $Id: TrEDepDB.C,v 1.2 2013/03/15 07:34:48 oliva Exp $
+// $Id: TrEDepDB.C,v 1.3 2013/03/25 18:49:25 oliva Exp $
 
 
 #include "TrEDepDB.h"
@@ -129,7 +129,9 @@ double TrEDepDB::GetEDepCorrectedValue(int jlayer, double Q, double beta, double
     return 0;
   }
   double value = table_upgoing->GetCorrectedValue(Q,beta,rigidity,mass_on_Z,type);
-  double gain = table_downgoing->GetCorrectedValue(Q,0.94,0,0,0)/table_upgoing->GetCorrectedValue(Q,0.94,0,0,0); 
+  double den = table_upgoing->GetCorrectedValue(Q,0.94,0,0,0);
+  double num = table_downgoing->GetCorrectedValue(Q,0.94,0,0,0);
+  double gain = (fabs(den)<1e-6) ? 1 : num/den; 
   // some stretching function to be implemented ... upside/down is not ok in scale ... 
   return value*gain; 
 }
