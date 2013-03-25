@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.79 2013/02/22 14:47:22 shaino Exp $
+//  $Id: root_setup.h,v 1.80 2013/03/25 15:46:16 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -204,11 +204,16 @@ float nerr;  ///<  absent events
 float ntrig; ///< events with trigger;
 float npart; ///< events with tof+trd+tracker+ecal
 int good;    ///<  0 if good -1 no events(in this second)
- RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2){
+///---
+unsigned int utime;///< JMDC Time
+float getthetam();///< PhiM (degrees)
+float getphim();///< ThetaM(degrees)
+//---
+ RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0){
         for(int ifv=0;ifv<4;ifv++){
            for(int ipn=0;ipn<2;ipn++)cf[ifv][ipn]=0;}
    }
-ClassDef(RTI,3)
+ClassDef(RTI,4)
 };
 
 class GPSWGS84{
