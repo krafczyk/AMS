@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.128 2013/01/24 11:27:26 choutko Exp $
+//  $Id: root_setup.C,v 1.129 2013/03/25 15:46:34 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1309,7 +1309,49 @@ else{
 }
 return fScalersReturn.size();
 }
+#include "TMath.h"
+#include "GM_SubLibrary.h"
+///---RTI function
+float AMSSetupR::RTI::getthetam(){
+  
+   double deg2rad = TMath::DegToRad();
+   time_t Utime =utime;
+        //...km
+        double Re =  6371.2; //km Earth radius
+        double Altitude = r/1.e5-Re;
+        //...ISS rad-->deg
+        double ThetaISS=  theta/deg2rad;
+        double PhiISS=    phi/deg2rad;
 
+        //--deg
+        float thetaM = GM_GetThetaM(Utime, Altitude, ThetaISS, PhiISS);
+        //--opposite sign and deg-->rad:
+        thetaM= thetaM*(-1)*deg2rad;
+
+      return thetaM;
+}
+
+float AMSSetupR::RTI::getphim(){
+
+   double deg2rad = TMath::DegToRad();
+   time_t Utime =utime;
+        //...km
+        double Re =  6371.2; //km Earth radius
+        double Altitude = r/1.e5-Re;
+        //...ISS rad-->deg
+        double ThetaISS=  theta/deg2rad;
+        double PhiISS=    phi/deg2rad;
+
+        //--deg
+        float phiM = GM_GetPhiM(Utime, Altitude, ThetaISS, PhiISS);
+        //--opposite sign and deg-->rad:
+        phiM= phiM*(-1)*deg2rad;
+
+      return phiM;
+}
+
+
+///----
 int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2){
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
@@ -1381,6 +1423,7 @@ const char fpate[]="24H.csv";
            fbin>>a.theta>>a.phi>>a.r>>a.zenith>>a.glat>>a.glong;//Position
            fbin>>a.nev>>a.nerr>>a.ntrig>>a.npart;
            fbin>>a.good;
+           a.utime=nt;
          }
          else continue;
          if(!fbin.good())continue;
