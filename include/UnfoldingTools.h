@@ -106,9 +106,9 @@ class BayesianUnfolder{
   */
   void computeAll(TH2F &jointPDF,TH1F &measured,             // Inputs
 		  TH1F &unfolded,                            // Output
-		  int errorComputationSamples=100,           // Samples for MC error computation    
+		  int errorComputationSamples=10,           // Samples for MC error computation    
 		  bool fluctuateMatrix=true,bool fluctuateInput=true,
-		  int regularization=100,double maxKLchange=1e-2,double maxChi2change=1e-2);
+		  int regularization=0,double maxKLchange=1e-1,double maxChi2change=1e-1);
 
 
   // Members
@@ -246,13 +246,18 @@ class DEMinimizer{
 \author carlos.delgado@ciemat.es
  */
 
+#include <map>
+
 class StochasticUnfolding{
  public:
   StochasticUnfolding(){Counter=0;}
-  void setPrior(TH1F &prior);
+  void setPrior(TH1F &prior,double dirichletHyperparameter=0.5);
   void setResponseMatrixFromJoint(TH2F &joint);
   void addEntry(double measured);
-  void unfold(TH1F &measured,TH1F &output,int samples=10);
+  void fold(TH1F &output);
+
+  std::vector<int> start;
+  std::vector<int> end;
 
   /**
      Main steering routine.
@@ -264,39 +269,35 @@ class StochasticUnfolding{
   void unfold(TH2F &joint, TH1F &measured,TH1F &output,int samples=10);
 
 
-  TRandom Random;
-  TH1F Prior;
-  TH1F EfficiencyCorrection; 
-  TH2F ResponseMatrix;
-  TH1F UnfoldingAccumulator;
-  int Counter;
+  TRandom Random;               ///< Random number generator for sampling
+  TH1F Prior;                   ///< The current unfolded distribution
+  TH2F ResponseMatrix;          ///< Response matrix   
+  double Counter;               ///< Integral of the unfolded distribution. 
+  TH1F Folded;                  ///< Latest folded distribution
 };
 
 
-
-#ifdef UNDER_DEVELOPMENT
-//! A base class for forward unfolding
+//! A base class for forward unfolding. Not really useful, but provided as an example
 /*!
 \author carlos.delgado@ciemat.es
  */
 class FUnfolding{
  public:
-  FUnfoding(){};
+  FUnfolding(){};
   virtual ~FUnfolding(){};
   virtual double cost(TH1D &parameters);
   virtual void fold(TH1D &parameters,TH1F &output);
-  void unfold(TH1F &measured,TH1D &hintParameters,TH1D &output);
+  virtual  void unfold(TH2F &jointPDF,TH1F &measured,TH1D &output);
   void setResponseMatrixFromJoint(TH2F &joint);
 
-  static *FUnfolding Current;
+  static FUnfolding* Current;
   TH2F Joint;     ///< Joint distribution (kept for sampling)
-  TH2F Response;  ///< Response matrix        
+  TH2F ResponseMatrix;  ///< Response matrix        
   TH1F Measured;  ///< Measured distribution (to be fit)
   TH1D Parameters; ///< Result of the fit (with errors, hopefully)
   double Cost;     ///< Cost of the result
   static double costFunction(TH1D &parameters);  ///< Static handler for the minimizer
 };
-#endif
 
 
 #endif
