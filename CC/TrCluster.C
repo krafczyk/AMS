@@ -254,10 +254,11 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
   float sum = 0.;
   for (int ii=0; ii<GetNelem(); ii++) {
     float signal = GetSignal(ii,opt);
-    sum += signal;
+    if (signal>0) sum += signal;
   }
-  // no negative signals
-  if (sum<0) sum = 0;
+  //// maybe a better solution should be (tried, not changed much):
+  //// for (int ii=0; ii<GetNelem(); ii++) { float signal = GetSignal(ii,TrClusterR::kAsym); if (signal>0) sum += signal; } 
+  //// if (kGain&opt) sum = TrGainDB::GetHead()->GetGainCorrected(sum,GetTkId(),int(GetSeedAddress()/64));
   // old correction scheme
   if (kOld&opt) {
     // if (kLoss&opt) sum *= GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle()); // correction no longer in use
