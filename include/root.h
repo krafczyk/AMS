@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.547 2013/03/24 20:37:16 qyan Exp $
+//  $Id: root.h,v 1.548 2013/03/27 13:14:45 incaglim Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -820,15 +820,26 @@ public:
   
  
   /// Pisa function to obtain the Boosted Decision Tree Classifier for shower.
-  /// The classifier has a version number:
-  /// iBDTVERSION=3           trained with B552
-  /// iBDTVERSION=4 (default) trained with B610
-  /// An How To for selecting electrons with 90%, 80% and 70% efficieny is availble at <a href="https://twiki.cern.ch/twiki/bin/view/AMS/ClassMethods">this page</a>.
+  /// It has three arguments: a pointer to the event (AMSEventR *pev), a version number and a Classifier number.
+  /// Version number:
+  /// iBDTVERSION=3           trained with B552 \ *pev is not required
+  /// iBDTVERSION=4           trained with B610 /      for these versions
+  /// iBDTVERSION=5 (default) trained with B620 -> NEEDS *pev as input
+  /// TMVA Classifier:
+  /// TMVAClassifier=0 (default) standard BDTG
+  /// TMVAClassifier=1           BDT with smoothing
   float GetEcalBDT(unsigned int i=4);
+  //float GetEcalBDT(AMSEventR *pev, unsigned int i=5);
+  float GetEcalBDT(AMSEventR *pev, unsigned int i=5, int TMVAClassifier=0);
   /// Function that combines GetEcalBDT and GetChi2 .
-  /// It has two arguments: a pointer to the event (AMSEventR *pev) and a version number
-  /// iBDTCHI2VERSION = 2 (default) trained with B620
-  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int i=2);
+  /// It has three arguments: a pointer to the event (AMSEventR *pev), a version number and a Classifier number.
+  /// Version number:
+  /// iBDTCHI2VERSION = 2           trained with B620 ecalaxis->process(pev,2)
+  /// iBDTCHI2VERSION = 3 (default) trained with B620 ecalaxis->process(pev,8) (cell center found with Neighbour Cell algorithm; much faster than process(pev,2)); 
+  /// TMVA Classifier:
+  /// TMVAClassifier=0 (default) standard BDTG
+  /// TMVAClassifier=1           BDT with smoothing
+  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int i=3, int TMVAClassifier=0);
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
   int NEcal2DCluster()const {return fEcal2DCluster.size();}
