@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.46 2013/03/04 19:49:14 choutko Exp $
+//  $Id: Tofrec02_ihep.C,v 1.47 2013/03/27 13:36:26 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -111,6 +111,11 @@ int TofRecH::Init(){
   realdata=(ev->nMCEventg()==0)?1:0;
   time=ev->UTime();
   trun=ev->Run();
+//--Adding Protection for MC
+  if(realdata==0){
+    if(trun<315532800||trun>1893456000)trun=1325376000;
+  }
+//--
   if(nerr<100){
     tdvstat=TofAlignManager::GetHead(realdata)->Validate(trun);
   }
