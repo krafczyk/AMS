@@ -1,4 +1,4 @@
-// $Id: TrEDepDB.C,v 1.3 2013/03/25 18:49:25 oliva Exp $
+// $Id: TrEDepDB.C,v 1.4 2013/03/27 10:12:13 oliva Exp $
 
 
 #include "TrEDepDB.h"
@@ -7,6 +7,7 @@
 
 #define EDEP_ZMAX 26
 #define BETA_MAX 0.999
+#define LOGBETAGAMMA_MIN -3
 
 
 ClassImp(TrEDepDB);
@@ -104,6 +105,9 @@ bool TrEDepDB::LoadDefaultTablesVer1(char* dirname) {
 
 
 double TrEDepDB::GetEDepCorrectedValue(int jlayer, double Q, double beta, double rigidity, double mass_on_Z, int iside, int ver) {
+  // protect in case of near to 0 values
+  // if (fabs(beta)<0.2) return Q; 
+
   // type
   TrEDepTable* table = GetTable(iside,jlayer,ver);
   static int maxerr = 0;
@@ -119,7 +123,7 @@ double TrEDepDB::GetEDepCorrectedValue(int jlayer, double Q, double beta, double
   // if rigidity not null use beta/rigidity correction
   if (fabs(rigidity)>1e-6) type = 1;
   // calculation delivered by table
-  if (beta>0) return table->GetCorrectedValue(Q,beta,rigidity,mass_on_Z,type);
+  if (beta>=0) return table->GetCorrectedValue(Q,beta,rigidity,mass_on_Z,type);
   // if up-going make the jlayer folding plus some gain correction between thee two layers
   int jlayer_upgoing = 9-jlayer+1;
   TrEDepTable* table_downgoing = table;
@@ -395,11 +399,11 @@ double TrEDepTable::GetLogBetaGamma(double beta, double rigidity, double mass_on
   beta = fabs(beta);
   if (beta>BETA_MAX) beta = BETA_MAX;
   double gamma = 1./sqrt(1-beta*beta); 
-  double logbg_beta = log10(beta*gamma);
+  double logbg_beta = (beta*gamma>0) ? log10(beta*gamma) : LOGBETAGAMMA_MIN;
   if (type==0) return logbg_beta;
   // log10(betagamma) from rigidity 
   rigidity = fabs(rigidity);
-  double logbg_rigi = (rigidity>0) ? log10(rigidity/mass_on_Z) : -10000;  
+  double logbg_rigi = (rigidity>0) ? log10(rigidity/mass_on_Z) : LOGBETAGAMMA_MIN;  
   // return log10(betagamma) from both 
   return ( (beta<0.95)&&(beta>0.01) ) ? logbg_beta : logbg_rigi;
 }
@@ -455,7 +459,7 @@ double line_to_line_fun(double *x, double *par) {
 double edep_correction_function(double *x, double *par) {
   double pars[] = {4,par[0],par[1],par[2],par[3],par[4],par[5],par[6]};
   double betagamma = pow(10.,x[0]);
-  double beta      = sqrt(1.0/(1.0/betagamma/betagamma + 1.0));
+  double beta = sqrt(1.0/(1.0/betagamma/betagamma + 1.0));
   return exp(par[7]*beta)*pow(10.,line_to_line_fun(x,pars));
 }
 
