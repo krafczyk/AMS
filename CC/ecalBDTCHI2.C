@@ -5,27 +5,27 @@
 TMVA::Reader *ecalBDTCHI2reader_v1 = NULL;
 TMVA::Reader *ecalBDTCHI2reader_v2_ODD = NULL;
 TMVA::Reader *ecalBDTCHI2reader_v2_EVEN = NULL;
+TMVA::Reader *ecalBDTCHI2reader_v3_ODD = NULL;
+TMVA::Reader *ecalBDTCHI2reader_v3_EVEN = NULL;
 const unsigned int nPIBCHI2VARs = 44;
 float piBCHI2normvar[nPIBCHI2VARs + 1];
 float piBCHI2inputvar[nPIBCHI2VARs + 1];
 char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
-   "ShowerMean", "ShowerSigma",
-   "L2LFrac", "R3cmFrac", "S3totx", "S3toty",
-   "NEcalHits",
-   "ShowerFootprintX", "ShowerFootprintY",
-   "LayerEneFrac0", "LayerEneFrac1", "LayerEneFrac2", "LayerEneFrac3", "LayerEneFrac4", "LayerEneFrac5",
-   "LayerEneFrac6", "LayerEneFrac7", "LayerEneFrac8", "LayerEneFrac9", "LayerEneFrac10","LayerEneFrac11",
-   "LayerEneFrac12","LayerEneFrac13","LayerEneFrac14","LayerEneFrac15","LayerEneFrac16","LayerEneFrac17",
-   "LayerChi21",    "LayerChi22",    "LayerChi23",    "LayerChi24",    "LayerChi25",    "LayerChi26",
-   "LayerChi27",    "LayerChi28",    "LayerChi29",    "LayerChi210",   "LayerChi211",   "LayerChi212",
-   "LayerChi213",   "LayerChi214",   "LayerChi215",   "LayerChi216",   "LayerChi217",
-   "EnergyD"
-};
+	 "ShowerMean",    "ShowerSigma",   "L2LFrac",       "R3cmFrac",      "S3totx",       "S3toty",
+	 "NEcalHits",     "ShowerFootprintX", "ShowerFootprintY",
+	 "LayerEneFrac0", "LayerEneFrac1", "LayerEneFrac2", "LayerEneFrac3", "LayerEneFrac4", "LayerEneFrac5",
+	 "LayerEneFrac6", "LayerEneFrac7", "LayerEneFrac8", "LayerEneFrac9", "LayerEneFrac10","LayerEneFrac11",
+	 "LayerEneFrac12","LayerEneFrac13","LayerEneFrac14","LayerEneFrac15","LayerEneFrac16","LayerEneFrac17",
+	 "LayerChi21",    "LayerChi22",    "LayerChi23",    "LayerChi24",    "LayerChi25",    "LayerChi26",
+	 "LayerChi27",    "LayerChi28",    "LayerChi29",    "LayerChi210",   "LayerChi211",   "LayerChi212",
+	 "LayerChi213",   "LayerChi214",   "LayerChi215",   "LayerChi216",   "LayerChi217",   "EnergyD"
+       };
 
 
 bool BCHI2_DEBUG = false;
+int iVersionNumberBDTCHI2=0;
 
-float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
+float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAVersion)
 {
    if (BCHI2_DEBUG)
    {
@@ -37,7 +37,15 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 
    EcalAxis::Version=2;
    static EcalAxis ecalaxis;
-   ecalaxis.process(pev,2);
+   if (iBDTCHI2VERSION<3)
+     {
+       ecalaxis.process(pev,2);//use Lateral Fit algorithm for finding COG in the layer->time consuming
+     }
+   else
+     {
+       ecalaxis.process(pev,8);//use Neighbour Cells algorithm for finding COG in the layer
+     }
+
   
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
@@ -182,7 +190,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
       if (!proj) S3totx += S3;
       else S3toty += S3;
 
-      if (S3 > 0.) LayerS1S3[ilayer] = S1/S3;
+      if (S1*S3 > 0.) LayerS1S3[ilayer] = S1/S3;
+      else  LayerS1S3[ilayer] = 0.;
 
       if (LayerEneDep[ilayer] > 0.)
       {
@@ -254,55 +263,6 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 
    if (BCHI2_DEBUG) std::cout << " ??? BDT variables computed\n" << flush;
 
-   unsigned int ivar = 0;
-
-   piBCHI2inputvar[ivar++] = ShowerMean;
-   piBCHI2inputvar[ivar++] = ShowerSigma;
-   piBCHI2inputvar[ivar++] = L2LFrac;
-   piBCHI2inputvar[ivar++] = R3cmFrac;
-   piBCHI2inputvar[ivar++] = S3totx;
-   piBCHI2inputvar[ivar++] = S3toty;
-   piBCHI2inputvar[ivar++] = NEcalHits;
-   piBCHI2inputvar[ivar++] = ShowerFootprint[1];
-   piBCHI2inputvar[ivar++] = ShowerFootprint[2];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[0];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[1];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[2];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[3];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[4];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[5];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[6];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[7];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[8];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[9];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[10];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[11];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[12];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[13];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[14];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[15];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[16];
-   piBCHI2inputvar[ivar++] = LayerEneFrac[17];
-   piBCHI2inputvar[ivar++] = LayerChi2[1];
-   piBCHI2inputvar[ivar++] = LayerChi2[2];
-   piBCHI2inputvar[ivar++] = LayerChi2[3];
-   piBCHI2inputvar[ivar++] = LayerChi2[4];
-   piBCHI2inputvar[ivar++] = LayerChi2[5];
-   piBCHI2inputvar[ivar++] = LayerChi2[6];
-   piBCHI2inputvar[ivar++] = LayerChi2[7];
-   piBCHI2inputvar[ivar++] = LayerChi2[8];
-   piBCHI2inputvar[ivar++] = LayerChi2[9];
-   piBCHI2inputvar[ivar++] = LayerChi2[10];
-   piBCHI2inputvar[ivar++] = LayerChi2[11];
-   piBCHI2inputvar[ivar++] = LayerChi2[12];
-   piBCHI2inputvar[ivar++] = LayerChi2[13];
-   piBCHI2inputvar[ivar++] = LayerChi2[14];
-   piBCHI2inputvar[ivar++] = LayerChi2[15];
-   piBCHI2inputvar[ivar++] = LayerChi2[16];
-   piBCHI2inputvar[ivar++] = LayerChi2[17];
-   piBCHI2inputvar[ivar++] = energyd;
-
-
    //********************************
    //*****Init the Reader************
    //********************************
@@ -320,30 +280,44 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
      ecalBDTCHI2reader_ODD = ecalBDTCHI2reader_v2_ODD;
      ecalBDTCHI2reader_EVEN = ecalBDTCHI2reader_v2_EVEN;
    }
+   else if ( iBDTCHI2VERSION == 3 )
+   {
+     ecalBDTCHI2reader_ODD = ecalBDTCHI2reader_v3_ODD;
+     ecalBDTCHI2reader_EVEN = ecalBDTCHI2reader_v3_EVEN;
+   }
    else
    {
-     cout<<" "<<endl;
-     cout<<" ====================================================================="<<endl;
-     cout<<" [ecalBDTCHI2] ATTENTION    only versions 1 and 2 of BDTCHI2 supported"<<endl;
-     cout<<" [ecalBDTCHI2] ATTENTION    you have called it with version "<<iBDTCHI2VERSION<<endl;
-     cout<<" [ecalBDTCHI2] ATTENTION    BDT will be set to -999 for all entries!!!"<<endl;
-     cout<<" ====================================================================="<<endl;
-     cout<<" "<<endl;
-
-     return -999;
+     if ( iVersionNumberBDTCHI2==0 )
+       {
+	 cout<<" "<<endl;
+	 cout<<" ====================================================================="<<endl;
+	 cout<<" [ecalBDTCHI2] ATTENTION    only versions 1, 2 and 3 of BDTCHI2 supported"<<endl;
+	 cout<<" [ecalBDTCHI2] ATTENTION    you have called it with version "<<iBDTCHI2VERSION<<endl;
+	 cout<<" [ecalBDTCHI2] ATTENTION    BDT will be set to -999 for all entries!!!"<<endl;
+	 cout<<" ====================================================================="<<endl;
+	 cout<<" "<<endl;
+	 iVersionNumberBDTCHI2 = 1;
+	 return -999;
+       }
    }
 
    if (ecalBDTCHI2reader==NULL && ecalBDTCHI2reader_ODD==NULL && ecalBDTCHI2reader_EVEN==NULL )     //if not already Init.....
    {
       std::cout << "##############################################################" << std::endl;
-      std::cout << "                   Create GetEcalBDTCHI2 Reader   " << std::endl;
+      std::cout << "                Create GetEcalBDTCHI2 v"<<iBDTCHI2VERSION<<" Reader   " << std::endl;
       std::cout << "##############################################################" << std::endl;
 
+      // 
+      char WeightsDir[100];
+      sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
+      //
+      if ( iBDTCHI2VERSION == 1 )
+	{
       //~ TMVA::Tools::Instance();
       // 
       ecalBDTCHI2reader = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
       ecalBDTCHI2reader->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
-      ivar = 0;
+      int ivar = 0;
       ecalBDTCHI2reader->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("ShowerSigmaNorm",      &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("L2LFracNorm",          &piBCHI2normvar[ivar++]);
@@ -388,10 +362,15 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
       ecalBDTCHI2reader->AddVariable("LayerChi215",     &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
-      // 
+      //
+	  ecalBDTCHI2reader->BookMVA("BDTG_LAYERS", Form("%s/ECAL_PISA_BDTCHI2_412_v1.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_v1 = ecalBDTCHI2reader;
+	}
+      else if ( iBDTCHI2VERSION == 2 )
+	{
       ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
       ecalBDTCHI2reader_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
-      ivar = 0;
+      int ivar = 0;
       ecalBDTCHI2reader_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader_ODD->AddVariable("ShowerSigmaNorm",      &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader_ODD->AddVariable("L2LFracNorm",          &piBCHI2normvar[ivar++]);
@@ -484,58 +463,164 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
       ecalBDTCHI2reader_EVEN->AddVariable("LayerChi215",     &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
       ecalBDTCHI2reader_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
-
-      char WeightsDir[100];
-      sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
       //
-      if ( iBDTCHI2VERSION == 1 )
-	{
-	  ecalBDTCHI2reader->BookMVA("BDTG_LAYERS", Form("%s/ECAL_PISA_BDTCHI2_412_v1.weights.xml", WeightsDir));
-	  ecalBDTCHI2reader_v1 = ecalBDTCHI2reader;
-	}
-      else if ( iBDTCHI2VERSION == 2 )
-	{
 	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v2_ODD.weights.xml", WeightsDir));
 	  ecalBDTCHI2reader_v2_ODD = ecalBDTCHI2reader_ODD;
 	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v2_EVEN.weights.xml", WeightsDir));
 	  ecalBDTCHI2reader_v2_EVEN = ecalBDTCHI2reader_EVEN;
+	}
+      else if ( iBDTCHI2VERSION == 3 )
+	{
+      ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+      ecalBDTCHI2reader_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
+      int ivar = 0;
+      ecalBDTCHI2reader_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("F2SLEneDep",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("L2LFracNorm",          &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("R3cmFracNorm",         &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("S3totxNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("S3totyNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("NEcalHitsNorm",        &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("ShowerFootprintXNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("ShowerFootprintYNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm0",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm1",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm2",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm3",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm4",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm5",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm6",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm7",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm8",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm9",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm10",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm11",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm12",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm13",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm14",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm15",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm16",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerEneFracNorm17",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi21",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi22",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi23",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi24",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi25",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi26",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi27",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi28",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi29",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi210",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi211",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi212",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi213",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi214",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi215",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_ODD->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
+      // 
+      ecalBDTCHI2reader_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+      ecalBDTCHI2reader_EVEN->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
+      ivar = 0;
+      ecalBDTCHI2reader_EVEN->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("F2SLEneDep",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("L2LFracNorm",          &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("R3cmFracNorm",         &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("S3totxNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("S3totyNorm",           &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("NEcalHitsNorm",        &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("ShowerFootprintXNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("ShowerFootprintYNorm", &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm0",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm1",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm2",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm3",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm4",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm5",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm6",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm7",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm8",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm9",    &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm10",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm11",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm12",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm13",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm14",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm15",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm16",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerEneFracNorm17",   &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi21",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi22",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi23",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi24",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi25",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi26",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi27",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi28",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi29",      &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi210",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi211",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi212",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi213",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi214",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi215",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
+      ecalBDTCHI2reader_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
+      //
+      //here different algorithms can be defined
+      if (TMVAVersion==0)
+	{
+	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v3_ODD.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v3_EVEN.weights.xml", WeightsDir));
+	}
+      else
+	{
+	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v3_ODD.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v3_EVEN.weights.xml", WeightsDir));
+	}
+
+      ecalBDTCHI2reader_v3_ODD = ecalBDTCHI2reader_ODD;
+      ecalBDTCHI2reader_v3_EVEN = ecalBDTCHI2reader_EVEN;
 	}
    }
 
 
    //*******************************
    //*****Reject without BDT********
+   //*****For versions <3 !!********
    //*******************************
 
-   //Check the energy deposit in the first 2 superlayers
-   if (F2SLEneDep < TMath::Max(0.1, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
+   if (iBDTCHI2VERSION<3)
+     {
+       //Check the energy deposit in the first 2 superlayers
+       if (F2SLEneDep < TMath::Max(0.1, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
 
-   //Check S1/S3 per layer
-   int first_lay = -1; //first layer in which we want to estimate S1/S3
-   int last_lay  = -1; //last  layer in which we want to estimate S1/S3
+       //Check S1/S3 per layer
+       int first_lay = -1; //first layer in which we want to estimate S1/S3
+       int last_lay  = -1; //last  layer in which we want to estimate S1/S3
 
-   if (energyd < 4 )
-   {
-      first_lay = 3;
-      last_lay = 6;
-   }
-   else if (energyd < 12)
-   {
-      first_lay = 2;
-      last_lay = 7;
-   }
-   else
-   {
-      first_lay = 2;
-      last_lay = 11;
-   }
+       if (energyd < 4 )
+	 {
+	   first_lay = 3;
+	   last_lay = 6;
+	 }
+       else if (energyd < 12)
+	 {
+	   first_lay = 2;
+	   last_lay = 7;
+	 }
+       else
+	 {
+	   first_lay = 2;
+	   last_lay = 11;
+	 }
 
-   //request 2 consecutive layers with MIP like energy deposit
-   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
-   {
-      if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
-   }
-
+       //request 2 consecutive layers with MIP like energy deposit
+       for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
+	 {
+	   if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
+	 }
+     }
 
 
    if ( iBDTCHI2VERSION == 1 )
@@ -550,7 +635,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 
        if (BCHI2_DEBUG) std::cout << Form(" ??? x=%f\n", x) << flush;
 
-       ivar = 0;
+       int ivar = 0;
 
        mean = 5.81753*(((((1+(-0.0652423*x))+(0.123152*pow(x,2)))+(-0.0309516*(pow(x,3))))+(0.00355938*(pow(x,4))))+(-0.000154605*(pow(x,5))));
        sigma = 0.654693*(((((1+(0.349885*x))+(-0.258381*pow(x,2)))+(0.0762609*(pow(x,3))))+(-0.0101505*(pow(x,4))))+(0.000480682*(pow(x,5))));
@@ -743,7 +828,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 
        if (BCHI2_DEBUG) std::cout << Form(" ??? x=%f\n", x) << flush;
 
-       ivar = 0;
+       int ivar = 0;
 
        mean = 5.81753*(((((1+(-0.0652423*x))+(0.123152*pow(x,2)))+(-0.0309516*(pow(x,3))))+(0.00355938*(pow(x,4))))+(-0.000154605*(pow(x,5))));
        sigma = 0.654693*(((((1+(0.349885*x))+(-0.258381*pow(x,2)))+(0.0762609*(pow(x,3))))+(-0.0101505*(pow(x,4))))+(0.000480682*(pow(x,5))));
@@ -752,6 +837,199 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
        mean = 3.19961*(((((1+(0.122833*x))+(-0.0515297*pow(x,2)))+(0.0142255*(pow(x,3))))+(-0.00216798*(pow(x,4))))+(0.000126187*(pow(x,5))));
        sigma = 0.550582*(((((1+(-0.436487*x))+(0.0995998*pow(x,2)))+(-0.00967967*(pow(x,3))))+(-1.31632e-05*(pow(x,4))))+(4.37799e-05*(pow(x,5))));
        piBCHI2normvar[ivar++] = (ShowerSigma-mean)/sigma;
+
+       mean = -0.00563546*(((((1+(-4.90888*x))+(3.06143*pow(x,2)))+(-1.19568*(pow(x,3))))+(0.200186*(pow(x,4))))+(-0.0124911*(pow(x,5))));
+       sigma = 0.0202379*(((((1+(-0.700595*x))+(0.315499*pow(x,2)))+(-0.0637316*(pow(x,3))))+(0.00687652*(pow(x,4))))+(-0.000297002*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (L2LFrac-mean)/sigma;
+
+       mean = 0.976096*(((((1+(-0.00594019*x))+(0.00626969*pow(x,2)))+(-0.00277484*(pow(x,3))))+(0.000469374*(pow(x,4))))+(-2.69748e-05*(pow(x,5))));
+       sigma = 0.0202693*(((((1+(-0.450749*x))+(0.156631*pow(x,2)))+(-0.0379591*(pow(x,3))))+(0.00471605*(pow(x,4))))+(-0.000217455*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (R3cmFrac-mean)/sigma;
+
+       mean = 0.947438*(((((1+(-0.0958179*x))+(0.0542999*pow(x,2)))+(-0.0149508*(pow(x,3))))+(0.00197748*(pow(x,4))))+(-9.96043e-05*(pow(x,5))));
+       sigma = 0.0514221*(((((1+(-0.191206*x))+(-0.081866*pow(x,2)))+(0.0396561*(pow(x,3))))+(-0.00606394*(pow(x,4))))+(0.000326768*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (S3totx-mean)/sigma;
+
+       mean = 0.894616*(((((1+(-0.0830502*x))+(0.0602628*pow(x,2)))+(-0.0178786*(pow(x,3))))+(0.00239022*(pow(x,4))))+(-0.000118785*(pow(x,5))));
+       sigma = 0.074716*(((((1+(-0.194879*x))+(-0.118629*pow(x,2)))+(0.0562894*(pow(x,3))))+(-0.00869822*(pow(x,4))))+(0.000470664*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (S3toty-mean)/sigma;
+
+       mean = 17.7832*(((((1+(4.11748*x))+(-1.32613*pow(x,2)))+(0.378096*(pow(x,3))))+(-0.0420122*(pow(x,4))))+(0.00192212*(pow(x,5))));
+       sigma = -7.45314*(((((1+(-4.362*x))+(3.04245*pow(x,2)))+(-0.998655*(pow(x,3))))+(0.144479*(pow(x,4))))+(-0.00759756*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (NEcalHits-mean)/sigma;
+
+       mean = 2.08418*(((((1+(1.53685*x))+(-0.960584*pow(x,2)))+(0.28049*(pow(x,3))))+(-0.037519*(pow(x,4))))+(0.00186672*(pow(x,5))));
+       sigma = 1.08555*(((((1+(0.301398*x))+(-0.486968*pow(x,2)))+(0.167722*(pow(x,3))))+(-0.0236229*(pow(x,4))))+(0.00120627*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (ShowerFootprintX-mean)/sigma;
+
+       mean = 3.06557*(((((1+(1.38162*x))+(-0.972884*pow(x,2)))+(0.288618*(pow(x,3))))+(-0.0381605*(pow(x,4))))+(0.00186877*(pow(x,5))));
+       sigma = 1.97309*(((((1+(0.0319007*x))+(-0.296926*pow(x,2)))+(0.108391*(pow(x,3))))+(-0.0151688*(pow(x,4))))+(0.000761558*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (ShowerFootprintY-mean)/sigma;
+
+       mean = 0.0154335*(((((1+(-0.0374406*x))+(-0.1801*pow(x,2)))+(0.0575964*(pow(x,3))))+(-0.00701209*(pow(x,4))))+(0.000309315*(pow(x,5))));
+       sigma = -0.0116612*(((((1+(-2.62644*x))+(1.4815*pow(x,2)))+(-0.352021*(pow(x,3))))+(0.0384267*(pow(x,4))))+(-0.00159106*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[0]-mean)/sigma;
+
+       mean = 0.0633498*(((((1+(-0.114734*x))+(-0.154378*pow(x,2)))+(0.0562252*(pow(x,3))))+(-0.00731868*(pow(x,4))))+(0.000337497*(pow(x,5))));
+       sigma = 0.0316538*(((((1+(-0.137904*x))+(-0.15952*pow(x,2)))+(0.0611123*(pow(x,3))))+(-0.00813668*(pow(x,4))))+(0.000378855*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[1]-mean)/sigma;
+
+       mean = 0.0981715*(((((1+(0.086794*x))+(-0.25229*pow(x,2)))+(0.076108*(pow(x,3))))+(-0.00930538*(pow(x,4))))+(0.000418156*(pow(x,5))));
+       sigma = 0.0584895*(((((1+(-0.518405*x))+(0.147205*pow(x,2)))+(-0.0279128*(pow(x,3))))+(0.00302415*(pow(x,4))))+(-0.000133801*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[2]-mean)/sigma;
+
+       mean = 0.0913995*(((((1+(0.606592*x))+(-0.534856*pow(x,2)))+(0.142581*(pow(x,3))))+(-0.0169281*(pow(x,4))))+(0.000761466*(pow(x,5))));
+       sigma = 0.0521775*(((((1+(-0.370914*x))+(0.102182*pow(x,2)))+(-0.0221373*(pow(x,3))))+(0.00253141*(pow(x,4))))+(-0.000108831*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[3]-mean)/sigma;
+
+       mean = 0.0900602*(((((1+(0.623416*x))+(-0.425984*pow(x,2)))+(0.097747*(pow(x,3))))+(-0.010668*(pow(x,4))))+(0.000463787*(pow(x,5))));
+       sigma = 0.0505887*(((((1+(-0.486493*x))+(0.195421*pow(x,2)))+(-0.0430779*(pow(x,3))))+(0.00438646*(pow(x,4))))+(-0.000166038*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[4]-mean)/sigma;
+
+       mean = 0.0820018*(((((1+(0.588403*x))+(-0.295374*pow(x,2)))+(0.0567273*(pow(x,3))))+(-0.00600898*(pow(x,4))))+(0.000280536*(pow(x,5))));
+       sigma = 0.0542134*(((((1+(-0.524149*x))+(0.136043*pow(x,2)))+(-0.00183907*(pow(x,3))))+(-0.00348656*(pow(x,4))))+(0.000309278*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[5]-mean)/sigma;
+
+       mean = 0.0647088*(((((1+(0.755927*x))+(-0.322877*pow(x,2)))+(0.0691826*(pow(x,3))))+(-0.00892412*(pow(x,4))))+(0.000476596*(pow(x,5))));
+       sigma = 0.0460868*(((((1+(-0.426239*x))+(0.0999163*pow(x,2)))+(-0.0125167*(pow(x,3))))+(0.00141731*(pow(x,4))))+(-0.000105953*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[6]-mean)/sigma;
+
+       mean = 0.0591098*(((((1+(0.490957*x))+(-0.117617*pow(x,2)))+(0.0186932*(pow(x,3))))+(-0.00285173*(pow(x,4))))+(0.000169852*(pow(x,5))));
+       sigma = 0.0441187*(((((1+(-0.424288*x))+(0.120773*pow(x,2)))+(-0.0303416*(pow(x,3))))+(0.00522312*(pow(x,4))))+(-0.000345832*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[7]-mean)/sigma;
+
+       mean = 0.0544055*(((((1+(0.185537*x))+(0.115868*pow(x,2)))+(-0.0463891*(pow(x,3))))+(0.00617888*(pow(x,4))))+(-0.000325102*(pow(x,5))));
+       sigma = 0.0358471*(((((1+(-0.404967*x))+(0.161259*pow(x,2)))+(-0.0523526*(pow(x,3))))+(0.00851722*(pow(x,4))))+(-0.000492585*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[8]-mean)/sigma;
+
+       mean = 0.0586046*(((((1+(-0.35631*x))+(0.418475*pow(x,2)))+(-0.123614*(pow(x,3))))+(0.0161746*(pow(x,4))))+(-0.000828849*(pow(x,5))));
+       sigma = 0.0195272*(((((1+(0.15923*x))+(-0.127709*pow(x,2)))+(0.0134291*(pow(x,3))))+(0.000637799*(pow(x,4))))+(-9.40079e-05*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[9]-mean)/sigma;
+
+       mean = 0.0384656*(((((1+(-0.106815*x))+(0.243958*pow(x,2)))+(-0.0433174*(pow(x,3))))+(0.00189987*(pow(x,4))))+(4.54321e-05*(pow(x,5))));
+       sigma = 0.0193138*(((((1+(0.109858*x))+(-0.222064*pow(x,2)))+(0.0902414*(pow(x,3))))+(-0.0161111*(pow(x,4))))+(0.00103071*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[10]-mean)/sigma;
+
+       mean = 0.0288085*(((((1+(-0.203208*x))+(0.392827*pow(x,2)))+(-0.0992274*(pow(x,3))))+(0.0124898*(pow(x,4))))+(-0.000668279*(pow(x,5))));
+       sigma = 0.0276025*(((((1+(-0.717605*x))+(0.363821*pow(x,2)))+(-0.0791709*(pow(x,3))))+(0.0067021*(pow(x,4))))+(-0.000146176*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[11]-mean)/sigma;
+
+       mean = 0.0113727*(((((1+(1.25241*x))+(-0.32621*pow(x,2)))+(0.160578*(pow(x,3))))+(-0.0269675*(pow(x,4))))+(0.00150497*(pow(x,5))));
+       sigma = -0.00706408*(((((1+(-4.56671*x))+(2.99638*pow(x,2)))+(-0.934686*(pow(x,3))))+(0.136241*(pow(x,4))))+(-0.00736457*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[12]-mean)/sigma;
+
+       mean = -0.0014262*(((((1+(-18.5479*x))+(8.50689*pow(x,2)))+(-2.91282*(pow(x,3))))+(0.428928*(pow(x,4))))+(-0.0233242*(pow(x,5))));
+       sigma = 0.000632082*(((((1+(29.7718*x))+(-20.4101*pow(x,2)))+(6.333*(pow(x,3))))+(-0.886025*(pow(x,4))))+(0.0453158*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[13]-mean)/sigma;
+
+       mean = 0.00206941*(((((1+(6.37561*x))+(-2.65265*pow(x,2)))+(1.07375*(pow(x,3))))+(-0.171301*(pow(x,4))))+(0.0102091*(pow(x,5))));
+       sigma = -0.0135454*(((((1+(-2.7593*x))+(1.80845*pow(x,2)))+(-0.554322*(pow(x,3))))+(0.0783147*(pow(x,4))))+(-0.0041224*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[14]-mean)/sigma;
+
+       mean = -0.00391276*(((((1+(-4.63399*x))+(2.29847*pow(x,2)))+(-0.803834*(pow(x,3))))+(0.122204*(pow(x,4))))+(-0.00712181*(pow(x,5))));
+       sigma = -0.0100079*(((((1+(-2.74935*x))+(1.60623*pow(x,2)))+(-0.42156*(pow(x,3))))+(0.0491247*(pow(x,4))))+(-0.002086*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[15]-mean)/sigma;
+
+       mean = 0.0118102*(((((1+(-0.976311*x))+(0.686435*pow(x,2)))+(-0.133816*(pow(x,3))))+(0.0104236*(pow(x,4))))+(-6.07892e-05*(pow(x,5))));
+       sigma = -0.0132099*(((((1+(-2.47328*x))+(1.61924*pow(x,2)))+(-0.501154*(pow(x,3))))+(0.0719867*(pow(x,4))))+(-0.0038697*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[16]-mean)/sigma;
+
+       mean = 0.018997*(((((1+(-1.46883*x))+(0.958373*pow(x,2)))+(-0.244195*(pow(x,3))))+(0.0286415*(pow(x,4))))+(-0.00117624*(pow(x,5))));
+       sigma = -0.00102647*(((((1+(-4.50726*x))+(0.00253443*pow(x,2)))+(0.603813*(pow(x,3))))+(-0.144358*(pow(x,4))))+(0.00928059*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (LayerEneFrac[17]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[1]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[2]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[3]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[4]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[5]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[6]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[7]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[8]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[9]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[10]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[11]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[12]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[13]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[14]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[15]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[16]-mean)/sigma;
+
+       mean = 0.;
+       sigma = 1.;
+       piBCHI2normvar[ivar++] = (LayerChi2[17]-mean)/sigma;
+
+       piBCHI2normvar[ivar++] = energyd;
+
+     }
+   else if ( iBDTCHI2VERSION == 3 )
+     {
+       //********************************
+       //*****Normalize the Variables****
+       //********************************
+       // NOTE: starting from version 3, variable 2 has changed from ShowerSigma to F2SLEneDep.
+       //       This last variable IS NOT normalized.
+       // fix: normalization may be NaN below 0.5 GeV or above 1000 GeV;
+       energyd = energyd < 0.5 ? 0.5 : (energyd > 1000. ? 1000. : energyd);
+       float mean, sigma;
+       float x = log(energyd);
+
+       if (BCHI2_DEBUG) std::cout << Form(" ??? x=%f\n", x) << flush;
+
+       int ivar = 0;
+
+       mean = 5.81753*(((((1+(-0.0652423*x))+(0.123152*pow(x,2)))+(-0.0309516*(pow(x,3))))+(0.00355938*(pow(x,4))))+(-0.000154605*(pow(x,5))));
+       sigma = 0.654693*(((((1+(0.349885*x))+(-0.258381*pow(x,2)))+(0.0762609*(pow(x,3))))+(-0.0101505*(pow(x,4))))+(0.000480682*(pow(x,5))));
+       piBCHI2normvar[ivar++] = (ShowerMean-mean)/sigma;
+
+       piBCHI2normvar[ivar++] = F2SLEneDep;
 
        mean = -0.00563546*(((((1+(-4.90888*x))+(3.06143*pow(x,2)))+(-1.19568*(pow(x,3))))+(0.200186*(pow(x,4))))+(-0.0124911*(pow(x,5))));
        sigma = 0.0202379*(((((1+(-0.700595*x))+(0.315499*pow(x,2)))+(-0.0637316*(pow(x,3))))+(0.00687652*(pow(x,4))))+(-0.000297002*(pow(x,5))));
@@ -930,7 +1208,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
        return -999;
      }
 
-   for (ivar = 0; ivar < nPIBCHI2VARs; ++ivar)
+   for (int ivar = 0; ivar < nPIBCHI2VARs; ++ivar)
      {
       if (piBCHI2normvar[ivar] != piBCHI2normvar[ivar])
       {
@@ -949,7 +1227,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 
    if (BCHI2_DEBUG)
    {
-      for (ivar = 0; ivar < nPIBCHI2VARs + 1; ++ivar)
+      for (int ivar = 0; ivar < nPIBCHI2VARs + 1; ++ivar)
          std::cout << Form(" ??? ivar:%02d \t %-20s \t input:%f \t norm:%f\n", ivar, piBCHI2vaname[ivar], piBCHI2inputvar[ivar], piBCHI2normvar[ivar]);
       std::cout << flush;
    }
@@ -963,6 +1241,17 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
        bdt = ecalBDTCHI2reader->EvaluateMVA("BDTG_LAYERS");
      }
    else if ( iBDTCHI2VERSION == 2 )
+     {
+       if ( pev->Event()%2 == 1 ) 
+	 {
+	   bdt = ecalBDTCHI2reader_ODD->EvaluateMVA("BDTG_LAYERS_ODD");
+	 }
+       else
+	 {
+	   bdt = ecalBDTCHI2reader_EVEN->EvaluateMVA("BDTG_LAYERS_EVEN");
+	 }
+     }
+   else if ( iBDTCHI2VERSION == 3 )
      {
        if ( pev->Event()%2 == 1 ) 
 	 {
