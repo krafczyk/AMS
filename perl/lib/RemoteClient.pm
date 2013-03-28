@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.760 2013/03/22 12:53:57 choutko Exp $
+# $Id: RemoteClient.pm,v 1.761 2013/03/28 08:55:37 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20907,7 +20907,10 @@ sub RemoveFromDisks{
     }
     foreach my $run (@{$ret}){
        my $timenow = time();
-    if($run2p ne 0 and $run2p ne $run->[0]){
+    if($run2p > 0 and $run2p ne $run->[0]){
+      next;
+    }
+    if($run2p < 0 and -$run2p < $run->[0]){
       next;
     }
         $sql="select path,crc from ntuples where  jid=$run->[1] and path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
