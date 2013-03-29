@@ -21,7 +21,7 @@ my $sth = $dbh->prepare($sql);
 my @journals = `ls $MERGEDIR/jou/*.jou`;
 foreach my $jou (@journals) {
     chomp $jou;
-    print "Examining $jour ...\n";
+    print "Examining $jou ...\n";
     open FH, "<$jou";
     my @buf = <FH>;
     close FH;
