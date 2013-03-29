@@ -21,6 +21,7 @@ my $sth = $dbh->prepare($sql);
 my @journals = `ls $MERGEDIR/jou/*.jou`;
 foreach my $jou (@journals) {
     chomp $jou;
+    print "Examining $jour ...\n";
     open FH, "<$jou";
     my @buf = <FH>;
     close FH;
@@ -62,6 +63,9 @@ foreach my $jou (@journals) {
         print "mv $MERGEDIR/$run $ARCHDIR && mv $jou $ARCHDIR/$run.jou.merged\n\n";
         my $ret = system("cp $MERGEDIR/$run $TRCDIR/ && cp $jou $TRCDIR/jou/ && mv $MERGEDIR/$run $ARCHDIR && mv $jou $ARCHDIR/$run.jou.merged");
         print "done, cp returned $ret.\n\n"
+    }
+    else {
+        system("mv $MERGEDIR/$run $ARCHDIR || mv $jou $ARCHDIR");
     }
 }
 
