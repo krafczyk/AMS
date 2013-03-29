@@ -65,7 +65,7 @@ foreach my $jou (@journals) {
         print "done, cp returned $ret.\n\n"
     }
     else {
-        system("mv $MERGEDIR/$run $ARCHDIR || mv $jou $ARCHDIR");
+        system("mv $MERGEDIR/$run $ARCHDIR || mv $jou $ARCHDIR/jou/");
     }
 }
 
