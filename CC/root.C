@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.558 2013/03/17 16:19:26 shaino Exp $
+//  $Id: root.C,v 1.559 2013/03/29 11:29:46 sdifalco Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -69,6 +69,7 @@
 #include "Tofrec02_ihep.h"
 #include "GM_SubLibrary.h"
 #include "BackTracingMIB.h"
+
 
 
 using namespace root;
@@ -3559,29 +3560,96 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 
 /// Second pass corrections on shower energy
 float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
-  float energy;
-  if (partid==1 ) {
-    // photon hypothesis
-  }
-  else{
-    // electron hypothesis
-  }
-  // temporary
-  switch (method){
-  case 0:
-    energy=EnergyC;
-    break;
-  case 1:
-    energy=EnergyA;
-    break;
-  case 2:
-    energy=EnergyE;
-    break;
-  default:
-    energy=EnergyE;    
-  }
 
-  return energy;
+  //variables
+  float energy;
+  float alpha;
+  float EnergyLayer[18]={0};
+  float energyfractionlast2layers = 0; // corrected for anode efficiency
+  float depositedenergy = 0; //corrected for andode efficiency
+  float edep_xy[2] ={0}; //energy in each side: 0 - x side, 1 - yside
+
+  int n2DCLUSTERs = NEcal2DCluster();
+  float kink;
+
+  if (method == 0 ) return EnergyC; // no correction implemented yet
+
+  if (method == 1 ) return EnergyA; // no correction implemented yet
+
+  if (method == 2){
+    //Computation of last 2 layer energy fraction, corrected for anode efficiency
+    //Loop on cluster2d and cluster 1d
+    for (int i2dcluster = 0; i2dcluster < n2DCLUSTERs; ++i2dcluster)
+      {
+	Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
+	//reject cluster NOT USED
+	if (!cluster2d || !(cluster2d->Status & 32)) continue;
+      
+	int nCLUSTERs = cluster2d->NEcalCluster();
+	for (int icluster = 0; icluster < nCLUSTERs; ++icluster)
+	  {
+	    EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
+	    //reject cluster NOT USED
+	    if (!cluster || !(cluster->Status & 32)) continue;
+	    EnergyLayer[cluster->Plane] += cluster->Edep;
+	    edep_xy[cluster->Proj] += cluster->Edep;
+	    
+	  }//end loop on 1d clusters
+      }//end loop on 2d clusters
+    
+ 
+    // Deposited energy corrected for anode efficiency (in GeV)
+    depositedenergy = (edep_xy[0]/(1+S13LeakXPI) + edep_xy[1]/(1+S13LeakYPI))/1000;
+    //depositedenergy is in GeV,  EnergyLayer are in MeV, S13LeakYPI is the correction factor for Y-side
+    energyfractionlast2layers = (EnergyLayer[16] +  EnergyLayer[17])/1000/(1+S13LeakYPI)/depositedenergy;
+    
+    
+    if (partid==2 ) {
+      // electron hypothesis
+      //define kink
+      kink = 850;
+      if(EnergyE<kink)
+	alpha = 1.037 - 0.0743/EnergyE-0.159/TMath::Power(EnergyE,2)-1.9186e-9*TMath::Power(EnergyE,2.189);  
+      else
+	alpha = 0.7628+460/EnergyE-1.988e5/TMath::Power(EnergyE,2)-6.1e-7*TMath::Power(EnergyE,-2.537);
+      energy = TMath::Abs(depositedenergy/(alpha -  0.752 * energyfractionlast2layers -  5.633 * TMath::Power(energyfractionlast2layers,2))); 
+      
+      //second iteration
+      if(energy<kink)
+	alpha = 1.037 - 0.0743/energy-0.159/TMath::Power(energy,2)-1.9186e-9*TMath::Power(energy,2.189);  
+      else
+	alpha = 0.7628+460/energy-1.988e5/TMath::Power(energy,2)-6.1e-7*TMath::Power(energy,-2.537);
+      
+      //
+      if(alpha<0) alpha =0;
+      
+      //corrected value
+      energy = TMath::Abs(depositedenergy/(alpha - 0.752 * energyfractionlast2layers - 5.633 * TMath::Power(energyfractionlast2layers,2)));
+    
+    //reconstructed energy never less than deposited energy corrected for anode efficiency
+      if(energy<depositedenergy)
+	energy =  depositedenergy;
+      return energy;
+    }//end if on partid of electrons
+  
+  
+    if(partid==1){
+      // photon hypothesis
+      if(EnergyE>700.) alpha = 1.022 + EnergyE * 1.943*TMath::Power(10, -4) - EnergyE*EnergyE* 1.947 * TMath::Power(10, -7) + EnergyE*EnergyE* EnergyE* 4.25 * TMath::Power(10, -11);
+      else if(EnergyE>100.) alpha = 1.0755 + EnergyE * 1.2*TMath::Power(10, -5) - EnergyE*EnergyE* 1.5 * TMath::Power(10, -8);
+      else alpha = 0.03881*(1-TMath::Exp(-EnergyE/18.74))+1.034;
+      
+      energy = depositedenergy/(alpha - 1.8*energyfractionlast2layers + 0.5*energyfractionlast2layers*energyfractionlast2layers);
+      energy = energy - 0.2*energy/100;
+      
+      //reconstructed energy never less than deposited energy corrected for anode efficiency
+      if(energy<depositedenergy)
+	energy =  depositedenergy;
+      return energy;
+    }//end if on partid of photons
+  }//end if of method 2
+  cerr << "EcalShowerR::GetCorrectedEnergy>>UNKNOWN PARTICLE ID OR METHOD FOR ENERGY CORRECTION" <<endl;
+  return -1.;
 }
 
 
