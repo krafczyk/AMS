@@ -47,6 +47,10 @@ foreach my $jou (@journals) {
     my ($ofe, $ole, $one);
     $sth->bind_columns(\$ofe, \$ole, \$one);
     $sth->fetch;
+    print "$run: Type $type\n";
+    printf "             %10s%10s%10s\n", "FEVENT", "LEVENT", "NEVENTS";
+    printf "Before Merge:%10d%10d%10d\n", $ofe, $ole, $one;
+    printf "After Merge: %10d%10d%10d\n\n", $fe, $le, $ne;
     if ($fe <= $ofe and $le >= $ole and $ne > $one and $type == 5 or $ne > $one and $type == 6) {
         if ($ne <= $one) {
             next;
