@@ -254,6 +254,7 @@ class StochasticUnfolding{
   void setPrior(TH1F &prior,double dirichletHyperparameter=0.5);
   void setResponseMatrixFromJoint(TH2F &joint);
   void addEntry(double measured);
+  void addEntries(TH1F &measured,double fraction);
   void fold(TH1F &output);
 
   std::vector<int> start;
@@ -267,6 +268,16 @@ class StochasticUnfolding{
      @param samples: number of realizations used. The larger the more accurate are the errors, but the running time is linear in this quantity. 
   */
   void unfold(TH2F &joint, TH1F &measured,TH1F &output,int samples=10);
+
+  /**
+     Fast approximation.
+     @param joint: unnormalize joint distribution. Used to compute the response matrix. Poissonian statistic for the bins error is assumed. The binning should be equal or finner than that of the measured and unfolded distributions 
+     @param measured: measured distribution
+     @param output: slot to store the unfolded distribution. The binning on the histogram is kept. 
+     @param samples: number of realizations used. The larger the more accurate are the errors, but the running time is linear in this quantity. 
+     @param fraction: fraction of events on each iteration for which the prior is considered to be constant.
+  */
+  void unfoldFast(TH2F &joint, TH1F &measured,TH1F &output,int samples=10,double fraction=0.1);
 
 
   TRandom Random;               ///< Random number generator for sampling

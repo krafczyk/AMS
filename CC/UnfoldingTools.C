@@ -576,6 +576,47 @@ void StochasticUnfolding::addEntry(double measured){
   Counter+=1;
 }
 
+#include "TCanvas.h"
+void StochasticUnfolding::addEntries(TH1F &measuredOrg,double fraction){
+  TH1F current=Prior; current.Reset();
+  double normalizationMeasured=measuredOrg.Integral(1,measuredOrg.GetNbinsX());
+  int entries=int(min(max(1.0,fraction*Counter),normalizationMeasured-Counter)+0.5); // entries to be added
+
+
+  // Account for realistic fluctuations
+  TH1F measured=measuredOrg;
+  for(int i=1;i<=measured.GetNbinsX();i++) measured.SetBinContent(i,Random.Poisson(entries*measuredOrg.GetBinContent(i)/normalizationMeasured));
+  normalizationMeasured=measured.Integral(1,measured.GetNbinsX());
+
+
+  TH1F folded=measured;
+  fold(folded);
+
+  for(int j=1;j<=ResponseMatrix.GetNbinsY();j++){
+    double measuredEnergy=ResponseMatrix.GetXaxis()->GetBinCenter(j);
+    int measuredBin=folded.GetXaxis()->FindBin(measuredEnergy);
+    if(measured.GetBinContent(measuredBin)==0) continue;
+    double mratio=measured.GetBinContent(measuredBin)/folded.GetBinContent(measuredBin);
+
+
+    for(int i=1;i<=ResponseMatrix.GetNbinsX();i++){
+      double energy=ResponseMatrix.GetXaxis()->GetBinCenter(i);
+      int energyBin=current.GetXaxis()->FindBin(energy);
+      double widthRatio=ResponseMatrix.GetXaxis()->GetBinWidth(i)/Prior.GetBinWidth(energyBin);
+
+      double weight=ResponseMatrix.GetBinContent(i,j)*
+	(Prior.GetBinContent(energyBin)*widthRatio)*
+	mratio;
+      
+      current.Fill(energy,weight);
+    }
+  }
+
+  current.Scale(entries/normalizationMeasured);
+  Prior.Add(&current);
+  Counter+=entries;  
+}
+
 
 void StochasticUnfolding::fold(TH1F &output){
   output.Reset();
@@ -621,6 +662,7 @@ void StochasticUnfolding::unfold(TH2F &joint,TH1F &measured,TH1F &output,int sam
       }
     }
     
+
     for(int i=1;i<=Prior.GetNbinsX();i++){
       if(seen.GetBinContent(i)<=0) continue;
       double correction=total.GetBinContent(i)/seen.GetBinContent(i);
@@ -642,8 +684,109 @@ void StochasticUnfolding::unfold(TH2F &joint,TH1F &measured,TH1F &output,int sam
 
   
   Prior=output; // Make a copy
+
+  // Correct for efficiency
+  TH1F total=Prior; total.Reset();
+  TH1F seen=total;
+  TH2F &myJoint=joint;
+  for(int i=1;i<=myJoint.GetNbinsX();i++){
+    double x=myJoint.GetXaxis()->GetBinCenter(i);
+    for(int j=0;j<=myJoint.GetNbinsX()+1;j++){
+      if(j!=0 && j!=myJoint.GetNbinsX()+1) seen.Fill(x,myJoint.GetBinContent(i,j));
+      total.Fill(x,myJoint.GetBinContent(i,j));
+    }
+  }
+  
+  
+  for(int i=1;i<=Prior.GetNbinsX();i++){
+    if(seen.GetBinContent(i)<=0) continue;
+    double correction=seen.GetBinContent(i)/total.GetBinContent(i);
+    Prior.SetBinContent(i,Prior.GetBinContent(i)*correction);
+  }
+
   TH1F final=measured;
   fold(final);
+  Prior=output;
+
+}
+
+
+
+void StochasticUnfolding::unfoldFast(TH2F &joint,TH1F &measured,TH1F &output,int samples,double fraction){
+  TH1F accumulator=Prior; accumulator.Reset();
+  TH1F accumulator2=accumulator;
+
+  int entries=measured.Integral();
+  TH1F originalPrior=Prior;
+  double originalCounter=Counter;
+
+  for(int sample=0;sample<samples;sample++){
+    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
+    TH2F myJoint=joint;
+    for(int i=1;i<=myJoint.GetNbinsX();i++) for(int j=0;j<=myJoint.GetNbinsY()+1;j++) myJoint.SetBinContent(i,j,Random.Poisson(joint.GetBinContent(i,j)));
+    Prior=originalPrior;
+    Counter=originalCounter;
+    setResponseMatrixFromJoint(myJoint);
+
+    do addEntries(measured,fraction);while(Counter<entries);
+
+    // Correct for efficiency
+    TH1F total=Prior; total.Reset();
+    TH1F seen=total;
+  
+    for(int i=1;i<=myJoint.GetNbinsX();i++){
+      double x=myJoint.GetXaxis()->GetBinCenter(i);
+      for(int j=0;j<=myJoint.GetNbinsX()+1;j++){
+	if(j!=0 && j!=myJoint.GetNbinsX()+1) seen.Fill(x,myJoint.GetBinContent(i,j));
+	total.Fill(x,myJoint.GetBinContent(i,j));
+      }
+    }
+    
+
+    for(int i=1;i<=Prior.GetNbinsX();i++){
+      if(seen.GetBinContent(i)<=0) continue;
+      double correction=total.GetBinContent(i)/seen.GetBinContent(i);
+      Prior.SetBinContent(i,Prior.GetBinContent(i)*correction);
+    }
+
+    accumulator.Add(&Prior);
+    for(int i=1;i<=accumulator2.GetNbinsX();i++) accumulator2.AddBinContent(i,Prior.GetBinContent(i)*Prior.GetBinContent(i));
+  }
+
+  accumulator.Scale(1.0/samples);
+  accumulator2.Scale(1.0/samples);
+  output=accumulator;
+
+  for(int i=1;i<=output.GetNbinsX();i++){
+    double error=accumulator2.GetBinContent(i)-accumulator.GetBinContent(i)*accumulator.GetBinContent(i);
+    output.SetBinError(i,error>0?sqrt(error):0);
+  }
+
+  
+  Prior=output; // Make a copy
+
+  // Correct for efficiency
+  TH1F total=Prior; total.Reset();
+  TH1F seen=total;
+  TH2F &myJoint=joint;
+  for(int i=1;i<=myJoint.GetNbinsX();i++){
+    double x=myJoint.GetXaxis()->GetBinCenter(i);
+    for(int j=0;j<=myJoint.GetNbinsX()+1;j++){
+      if(j!=0 && j!=myJoint.GetNbinsX()+1) seen.Fill(x,myJoint.GetBinContent(i,j));
+      total.Fill(x,myJoint.GetBinContent(i,j));
+    }
+  }
+  
+  
+  for(int i=1;i<=Prior.GetNbinsX();i++){
+    if(seen.GetBinContent(i)<=0) continue;
+    double correction=seen.GetBinContent(i)/total.GetBinContent(i);
+    Prior.SetBinContent(i,Prior.GetBinContent(i)*correction);
+  }
+
+  TH1F final=measured;
+  fold(final);
+  Prior=output;
 }
 
 
