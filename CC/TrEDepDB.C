@@ -1,4 +1,4 @@
-// $Id: TrEDepDB.C,v 1.4 2013/03/27 10:12:13 oliva Exp $
+// $Id: TrEDepDB.C,v 1.5 2013/04/02 06:17:35 oliva Exp $
 
 
 #include "TrEDepDB.h"
@@ -105,18 +105,15 @@ bool TrEDepDB::LoadDefaultTablesVer1(char* dirname) {
 
 
 double TrEDepDB::GetEDepCorrectedValue(int jlayer, double Q, double beta, double rigidity, double mass_on_Z, int iside, int ver) {
-  // protect in case of near to 0 values
-  // if (fabs(beta)<0.2) return Q; 
-
   // type
   TrEDepTable* table = GetTable(iside,jlayer,ver);
   static int maxerr = 0;
   if (!table) {
     if (maxerr<100) { 
-      printf("TrEDepDB::GetEDepCorrectedValue-E no table (iside=%d, jlayer=%d, ver=%d) found, return 0 (only displayed 100 times).\n",iside,jlayer,ver);
+      printf("TrEDepDB::GetEDepCorrectedValue-E no table (iside=%d, jlayer=%d, ver=%d) found, return unchanged value (only displayed 100 times).\n",iside,jlayer,ver);
       maxerr++;
     }
-    return 0; 
+    return Q; 
   }
   // use beta correction 
   int type = 0;
