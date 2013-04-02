@@ -21,7 +21,6 @@ my $sth = $dbh->prepare($sql);
 my @journals = `ls $MERGEDIR/jou/*.jou`;
 foreach my $jou (@journals) {
     chomp $jou;
-    print "Examining $jou ...\n";
     open FH, "<$jou";
     my @buf = <FH>;
     close FH;
@@ -47,25 +46,25 @@ foreach my $jou (@journals) {
     my ($ofe, $ole, $one);
     $sth->bind_columns(\$ofe, \$ole, \$one);
     $sth->fetch;
-    print "$run: Type $type\n";
-    printf "             %10s%10s%10s\n", "FEVENT", "LEVENT", "NEVENTS";
-    printf "Before Merge:%10d%10d%10d\n", $ofe, $ole, $one;
-    printf "After Merge: %10d%10d%10d\n\n", $fe, $le, $ne;
-    if ($fe <= $ofe and $le >= $ole and $ne > $one and $type == 5 or $ne > $one and $type == 6) {
+    if ($type == 5 or $type == 6) {
+        print "Examining $jou ...\n";
+        print "$run: Type $type\n";
+        printf "             %10s%10s%10s\n", "FEVENT", "LEVENT", "NEVENTS";
+        printf "Before Merge:%10d%10d%10d\n", $ofe, $ole, $one;
+        printf "After Merge: %10d%10d%10d\n\n", $fe, $le, $ne;
+    }
+    if (($fe <= $ofe or $ofe == 0) and $le >= $ole and $ne > $one and $type == 5 or $ne > $one and $type == 6) {
         if ($ne <= $one) {
             next;
         }
         if ($tag % 256 == 204) { # LAS run, ignore ...
             next;
         }
+        my $newrun = $ofe ? "" : "(new)";
 
-        print "$run: Type $type\n";
-        printf "             %10s%10s%10s\n", "FEVENT", "LEVENT", "NEVENTS";
-        printf "Before Merge:%10d%10d%10d\n", $ofe, $ole, $one;
-        printf "After Merge: %10d%10d%10d\n\n", $fe, $le, $ne;
+        print "Found run to MERGE: $run $newrun\n";
         print "Copying $run to $TRCDIR ...";
-        print "mv $MERGEDIR/$run $ARCHDIR && mv $jou $ARCHDIR/$run.jou.merged\n\n";
-        my $ret = system("cp $MERGEDIR/$run $TRCDIR/ && cp $jou $TRCDIR/jou/ && mv $MERGEDIR/$run $ARCHDIR && mv $jou $ARCHDIR/$run.jou.merged");
+        my $ret = system("cp $MERGEDIR/$run $TRCDIR/ && cp $jou $TRCDIR/jou/ && mv $MERGEDIR/$run $ARCHDIR && mv $jou $ARCHDIR/jou/$run.jou.merged");
         print "done, cp returned $ret.\n\n"
     }
     else {
@@ -73,3 +72,10 @@ foreach my $jou (@journals) {
     }
 }
 
+my @merged = `ls $ARCHDIR/jou/*.jou.merged | sed -e "s/.*\\///g" -e "s/\\..*//g"`;
+foreach my $run (@merged) {
+    chomp $run;
+    print "Removing old nutples for run $run ... \n\n";
+    my $ret = system("cd /Offline/vdev/python &&  ./del.py -dISS.B620/std -r$run");
+    print "done, del.py returned $ret.\n\n";
+}
