@@ -248,6 +248,37 @@ public:
     static TrdKCalib *_DB_instance;
     TrdKCalib* GetTrdKDB(){return _DB_instance;}
 
+    static int dir_to_k(double& kx,double& ky,bool& up,const AMSDir& dir) {
+    	kx = dir.x()/dir.z();
+	ky = dir.y()/dir.z();
+	if(dir.z()>=0) {
+		up = true;
+	} else {
+		up = false;
+	}
+	return 0;
+    }
+    static int k_to_dir(AMSDir& dir,const double& kx,const double& ky,const bool& up) {
+    	double b = TMath::Sqrt(1+kx*kx+ky*ky);
+	double dx;
+	double dy;
+	double dz;
+	if(up) {
+		dx = kx/b;
+		dy = ky/b;
+		dz = TMath::Sqrt(1-dx*dx-dy*dy);
+	} else {
+		dx = -kx/b;
+		dy = -ky/b;
+		dz = -TMath::Sqrt(1-dx*dx-dy*dy);
+	}
+	dir = AMSDir(dx,dy,dz);
+	return 0;
+    }
+    Double32_t GetTime() {
+        return Time;
+    }
+
 private:
 
     // Additinal Initilizationa
@@ -275,10 +306,16 @@ private:
 
     double TRDTrack_ImpactChi2(Double_t *par);
     double TRDTrack_PathLengthLikelihood(Double_t *par);
+
+    static Double_t trd_parabolic_fit(Int_t N, Double_t *X, Double_t *Y, Double_t *V);
+    void KounineRefit(AMSPoint& P_fit, AMSDir& D_fit,
+                      const AMSPoint& P_init, const AMSDir& D_init);
+
     void SetImpLikelihood(TRD_ImpactParameter_Likelihood *Likelihood){ TRDImpactlikelihood=Likelihood;}
 
     void FitTRDTrack_IPLikelihood(int IsCharge=0); //IsCharge==1 is used for charge
     void FitTRDTrack_PathLength(int particle_hypothesis);
+    void FitTRDTrack_PathLength_KFit(int particle_hypothesis);
     void FitTRDTrack_Analytical();
     void AnalyticalFit_2D(int direction, double x, double z , double dx, double dz, double &TRDTrack_x, double &TRDTrack_dx);
 

@@ -11,6 +11,7 @@ TrdKHit::~TrdKHit(){}
 TrdKHit::TrdKHit(TrdRawHitR *_trdhit, float zshit){
 
     TRDHit_Layer=_trdhit->Layer;
+    TRDHit_Ladder=_trdhit->Ladder;
     TrdHCalibR::gethead()->GetTubeIdFromLLT(_trdhit->Layer,_trdhit->Ladder,_trdhit->Tube,tubeid);
     mf=TrdHCalibR::gethead()->GetManifold(tubeid/128);
     if(TRDHit_Layer<=3 || TRDHit_Layer>=16)TRDHit_Direction=1;

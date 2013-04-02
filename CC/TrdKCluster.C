@@ -465,6 +465,243 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
     return result;
 }
 
+/////////////////////////////////////////////////////////////////////
+
+Double_t TrdKCluster::trd_parabolic_fit(Int_t N, Double_t *X, Double_t *Y, Double_t *V) {
+
+  Int_t    i, j;
+  Double_t X0, DD, x_min, x_max, y_min, alpha, beta, gamma;
+  Double_t m11, m12, m13, m22, m23, m33, a11, a12, a13, a22, a23, a33, b1, b2, b3;
+
+  if ( N < 4 ) return -1.;
+
+  X0    = 0.;
+  y_min = Y[0];
+
+
+  // define average X
+  V[0] = X[0];
+  for ( i=0; i<N; i++ ) {
+    X0 += X[i];
+    if ( Y[i] < y_min ) {
+      V[0]  = X[i];
+      y_min = Y[i];
+    }
+  }
+  X0   = X0 / N;
+
+  x_min = 0.;
+  x_max = 0.;
+
+  m11 = 0.;
+  m12 = 0.;
+  m13 = 0.;
+  m23 = 0.;
+  m33 = (Double_t)N;
+
+  b1  = 0.;
+  b2  = 0.;
+  b3  = 0.;
+
+  // build matrix
+  for ( i=0; i<N; i++ ) {
+
+    X[i] -= X0;
+
+    if ( X[i] > x_max ) x_max = X[i];
+    if ( X[i] < x_min ) x_min = X[i];
+
+    m11 += X[i]*X[i]*X[i]*X[i];
+    m12 += X[i]*X[i]*X[i];
+    m13 += X[i]*X[i];
+    m23 += X[i];
+
+    b1 += Y[i]*X[i]*X[i];
+    b2 += Y[i]*X[i];
+    b3 += Y[i];
+
+  }
+  m22 = m13;
+
+  V[1] = x_max - x_min;
+
+  //inverse matrix
+  DD  = m11*m22*m33 + 2.*m12*m13*m23 - m13*m13*m22 - m12*m12*m33 - m11*m23*m23;
+  if ( DD == 0. ) return y_min;
+    
+  a11 = m22*m33 - m23*m23;
+  a12 = m13*m23 - m12*m33;
+  a13 = m12*m23 - m13*m22;
+  a22 = m11*m33 - m13*m13;
+  a23 = m12*m13 - m11*m23;
+  a33 = m11*m22 - m12*m12;
+
+
+  // fitted parameters
+  alpha = b1*a11 + b2*a12 + b3*a13;
+  beta  = b1*a12 + b2*a22 + b3*a23;
+  gamma = b1*a13 + b2*a23 + b3*a33;
+
+  if ( alpha <= 0. ) return y_min;
+
+  if ( -0.5*beta/alpha > x_min && -0.5*beta/alpha < x_max ) {
+    V[0] = X0 - 0.5*beta/alpha;
+    V[1] = DD/alpha;
+    return (gamma - 0.25*beta*beta/alpha)/DD;
+  } 
+
+  if ( -0.5*beta/alpha <= x_min ) V[0] = X0 + x_min;
+  else                            V[0] = X0 + x_max;
+
+  return y_min;
+
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::KounineRefit(AMSPoint& P_fit, AMSDir& D_fit,
+                               const AMSPoint& P_init,
+                               const AMSDir& D_init) {
+      Double_t dDD  = 0.04;
+      Double_t dAA  = 0.004;
+      Double_t D_Tol = 0.03;
+      Double_t K_Tol = 0.002;
+      Int_t MaxItr = 4;
+
+      Double_t X_0  = P_init[0];
+      Double_t Y_0  = P_init[1];
+      Double_t Z = P_init[2];
+
+      Double_t kX_init, kY_init;
+      Bool_t Up;
+      dir_to_k(kX_init, kY_init, Up, D_init);
+
+      Double_t kX_0 = kX_init;
+      Double_t kY_0 = kY_init;
+      Double_t X_fit,Y_fit,kX_fit,kY_fit;
+      Double_t kX,kY;
+      Double_t V[10],W[10],Q[5];
+      Double_t par[5];
+      AMSDir temp_d;
+      Int_t Itr  = 0;
+
+      par[2] = Z;
+
+  refit:
+
+    ///////////////////////////
+    //         Fit X0        //
+    ///////////////////////////
+    par[1] = Y_0;
+    kX = kX_0;
+    kY = kY_0;
+    for (Int_t m=0; m<5; m++ ) {
+
+        par[0] = X_0 + dDD*(m-2.);
+	V[m] = par[0];
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+        
+	W[m] = TRDTrack_PathLengthLikelihood(par);
+    }
+
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+	X_fit = P_init[0];
+    } else {
+	X_fit = Q[0];
+    }
+
+    ///////////////////////////
+    //         Fit Y0        //
+    ///////////////////////////
+    par[0] = X_0;
+    kX = kX_0;
+    kY = kY_0;
+    for (Int_t m=0; m<5; m++ ) {
+
+        par[1] = Y_0 + dDD*(m-2.);
+	V[m] = par[1];
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+        
+	W[m] = TRDTrack_PathLengthLikelihood(par);
+    }
+
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+	Y_fit = P_init[1];
+    } else {
+	Y_fit = Q[0];
+    }
+
+    ///////////////////////////
+    //         Fit kX        //
+    ///////////////////////////
+    par[0] = X_0;
+    par[1] = Y_0;
+    kY = kY_0;
+    for (Int_t m=0; m<5; m++ ) {
+
+        kX = kX_0 + dAA*(m-2.);
+	V[m] = kX;
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+        
+	W[m] = TRDTrack_PathLengthLikelihood(par);
+    }
+
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+	kX_fit = kX_init;
+    } else {
+	kX_fit = Q[0];
+    }
+
+    ///////////////////////////
+    //         Fit kY        //
+    ///////////////////////////
+    par[0] = X_0;
+    par[1] = Y_0;
+    kX = kX_0;
+    for (Int_t m=0; m<5; m++ ) {
+
+        kY = kY_0 + dAA*(m-2.);
+	V[m] = kY;
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+        
+	W[m] = TRDTrack_PathLengthLikelihood(par);
+    }
+
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+	kY_fit = kY_init;
+    } else {
+	kY_fit = Q[0];
+    }
+
+    if ( TMath::Abs(X_fit-X_0)>D_Tol || TMath::Abs(Y_fit-Y_0)>D_Tol || TMath::Abs(kX_fit-kX_0)>K_Tol || TMath::Abs(kY_fit-kY_0)>K_Tol ) {
+
+	//	printf("Init: %f %f %f %f\n", X_0, Y_0,   kX_0,   kY_0);
+	//	printf("Fit:%f %f %f %f\n", X_fit, Y_fit, kX_fit, kY_fit);
+
+	dDD *= 0.7;
+	dAA *= 0.7;
+	X_0= X_fit;
+	Y_0= Y_fit;
+	kX_0 = kX_fit;
+	kY_0 = kY_fit;
+
+	if ( Itr++ < MaxItr) goto refit;
+
+    }
+
+    P_fit[0] = X_fit;
+    P_fit[1] = Y_fit;
+    P_fit[2] = Z;
+    k_to_dir(D_fit,kX_fit,kY_fit,Up);
+}
 
 /////////////////////////////////////////////////////////////////////
 
@@ -514,6 +751,7 @@ void TrdKCluster::FitTRDTrack(int method, int hypothesis){
     if(method==1) FitTRDTrack_IPLikelihood();
     else  if(method==2) FitTRDTrack_Analytical();
     else  if(method==3) FitTRDTrack_PathLength(hypothesis);
+    else  if(method==4) FitTRDTrack_PathLength_KFit(hypothesis);
     else{
         cout<<"~~~WARNING~~~TrdKCluster, Unrecognized Fit Method: "<<method<<endl;
         return ;
@@ -558,7 +796,7 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 
     Propogate_TrTrack(init_z0);
     AMSPoint P0=GetPropogated_TrTrack_P0();
-    AMSPoint Dir=GetPropogated_TrTrack_Dir();
+    AMSDir Dir=GetPropogated_TrTrack_Dir();
     init_x0=P0.x();
     init_y0=P0.y();
     init_dx=Dir.x();
@@ -749,7 +987,7 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
     Propogate_TrTrack(init_z0);
     AMSPoint P0=GetPropogated_TrTrack_P0();
-    AMSPoint Dir=GetPropogated_TrTrack_Dir();
+    AMSDir Dir=GetPropogated_TrTrack_Dir();
     init_x0=P0.x();
     init_y0=P0.y();
     init_dx=Dir.x();
@@ -815,8 +1053,27 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
 
 
+/////////////////////////////////////////////////////////////////////
 
+void TrdKCluster::FitTRDTrack_PathLength_KFit(int particle_hypothesis){
 
+    Refit_hypothesis=particle_hypothesis;
+    float init_z0=115;
+    float init_x0=0;
+    float init_y0=0;
+    float init_dx=0;
+    float init_dy=0;
+
+    Propogate_TrTrack(init_z0);
+    AMSPoint P0=GetPropogated_TrTrack_P0();
+    AMSDir Dir=GetPropogated_TrTrack_Dir();
+    AMSPoint TRDP0;
+    AMSDir   TRDDir;
+
+    KounineRefit(P0,Dir,TRDP0,TRDDir);
+
+    SetTRDTrack(&TRDP0,&TRDDir);
+}
 
 /////////////////////////////////////////////////////////////////////
 
