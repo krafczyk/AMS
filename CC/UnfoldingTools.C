@@ -588,6 +588,8 @@ void StochasticUnfolding::addEntries(TH1F &measuredOrg,double fraction){
   for(int i=1;i<=measured.GetNbinsX();i++) measured.SetBinContent(i,Random.Poisson(entries*measuredOrg.GetBinContent(i)/normalizationMeasured));
   normalizationMeasured=measured.Integral(1,measured.GetNbinsX());
 
+  if(normalizationMeasured==0) return;
+
 
   TH1F folded=measured;
   fold(folded);
@@ -612,9 +614,9 @@ void StochasticUnfolding::addEntries(TH1F &measuredOrg,double fraction){
     }
   }
 
-  current.Scale(entries/normalizationMeasured);
+  //  current.Scale(entries/normalizationMeasured);
   Prior.Add(&current);
-  Counter+=entries;  
+  Counter+=normalizationMeasured;  
 }
 
 
