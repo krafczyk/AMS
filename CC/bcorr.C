@@ -1,4 +1,4 @@
-//  $Id: bcorr.C,v 1.11 2013/03/22 09:20:53 choutko Exp $
+//  $Id: bcorr.C,v 1.12 2013/04/05 11:37:59 choutko Exp $
 #include "root.h"
 #include "root_setup.h"
 #include "bcorr.h"
@@ -156,9 +156,11 @@ float temp;
 int ret=MagnetVarp::mgtt.getmeanmagnettemp(temp,method);
 if(ret)return ret+2;
 //  const float dBdT=0.13e-2;    changed 2013-03-20 by VC
-    const float dBdT=0.09e-2;
+//    const float dBdT=0.09e-2;  changed by 2013-04-01 by VC
+  float dBdT=8.37e-4+5.07e-6*temp;
   const float TETH=18.5;
   factor = 1.-dBdT*(temp-TETH);
+  
 return 0;
 }
 

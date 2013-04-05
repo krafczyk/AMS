@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.49 2012/08/01 17:04:09 choutko Exp $
+//  $Id: g4physics.C,v 1.50 2013/04/05 11:37:59 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.49 2012/08/01 17:04:09 choutko Exp $
+// $Id: g4physics.C,v 1.50 2013/04/05 11:37:59 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1181,6 +1181,10 @@ void AMSG4Physics::_init(){
       else if(g3pid[ipart]==50){
 	g3tog4p[ipart]=ppart->FindParticle("opticalphoton");
       }
+      else if(g3pid[ipart]==51){
+	g3tog4p[ipart]=ppart->FindParticle("chargedgeantino");
+      }
+     
       else{
 	g3tog4p[ipart]=ppart->FindParticle("xrayphoton");
      } 
