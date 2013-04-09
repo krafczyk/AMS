@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.125.2.3 2013/01/24 11:39:54 choutko Exp $
+//  $Id: root_setup.C,v 1.125.2.4 2013/04/09 16:37:19 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -3928,8 +3928,11 @@ int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
 	    time_t tf=mktime(&tmf)+tzd;
 	    pch=strtok(NULL,",");
 	    char tm1[80];
-	    sprintf(tm1,".%s",pch);
-	    double tc=tf+atof(tm1);
+//	    sprintf(tm1,".%s",pch);
+//	    double tc=tf+atof(tm1);
+            double frac=atol(pch);
+            frac/=1000;
+	    double tc=tf+frac;
 	    pch=strtok(NULL,",");
 	    if (!pch) continue;
 	    if (!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.') continue;
