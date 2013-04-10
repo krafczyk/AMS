@@ -650,10 +650,11 @@ class RemoteClient:
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
                     uid=run.uid;
+                    
                     sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and dataruns.jid=%d " %(uid)
                     ret=self.sqlserver.Query(sql)
                     ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
-                    if(datamc==0):
+                    if(datamc==0 and uid==run.Run):
                         uid=run.uid
                         sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
                         ret=self.sqlserver.Query(sql)
@@ -838,7 +839,7 @@ class RemoteClient:
                     sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and dataruns.jid=%d " %(uid)
                     ret=self.sqlserver.Query(sql)
                     ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
-                    if(datamc==0):
+                    if(datamc==0 and uid==run.Run):
                         uid=run.uid
                         sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
                         ret=self.sqlserver.Query(sql)
@@ -864,7 +865,7 @@ class RemoteClient:
                     continue
                 status=self.dbclient.cr(run.Status)
                 dataruns="dataruns"
-                if(datamc==0):
+                if(datamc==0 and run.uid==run.Run):
                         dataruns="runs"
                 if(status=='Failed' and (datamc==1 or datamc==0)):
                     uid=run.uid;
@@ -903,7 +904,7 @@ class RemoteClient:
                     continue
                 status=self.dbclient.cr(run.Status)
                 dataruns="dataruns"
-                if(datamc==0):
+                if(datamc==0 and run.uid==run.Run):
                     dataruns="runs"
                 if(status=='Finished' and (datamc==0 or datamc==1)):
                     ro=self.sqlserver.Query("select run, status from "+dataruns+" where jid="+str(run.uid))
