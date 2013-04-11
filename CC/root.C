@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.559 2013/03/29 11:29:46 sdifalco Exp $
+//  $Id: root.C,v 1.560 2013/04/11 14:46:41 achen7 Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9868,7 +9868,8 @@ char * DaqEventR::Info(int number){
     int e=(L3dr>>13)&1;
     int p=(L3dr>>14)&1;
     int a=(L3dr>>15)&1;
-    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d L3counter %d L3Td %f7.1 msec",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767,L3Event(),double(L3TimeD)*0.64e-3);
+    int hwerr=HasHWError();
+    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d L3counter %d L3Td %f7.1 msec ; HasHWError %d",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767,L3Event(),double(L3TimeD)*0.64e-3,hwerr);
   return _Info;
   } 
 
