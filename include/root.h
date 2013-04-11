@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.548 2013/03/27 13:14:45 incaglim Exp $
+//  $Id: root.h,v 1.549 2013/04/11 21:52:46 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1815,7 +1815,7 @@ public:
 1- Ring has been rebuild after cleaning PMTs apparently crossed by a charged particle.
    If the rebuilding has been succesful it is stored in the next ring in the rings container.
    However to confirm that next ring is indeed a rebuilt one, both tracks, the one from the
-   current and the one from the next, should be the same. Otherwise the rebuilding was unsuccesful.
+   current and the one from the next, should be the same. Otherwise the crebuilding was unsuccesful.
 
 2- Ring reconstructed using the NaF radiator in the double radiator configuration
 
@@ -3789,6 +3789,7 @@ ClassDef(MCTrackR,1)       //MCTrackR
 class MCEventgR {
 static char _Info[255];
 public:
+static bool Rebuild;
 
   int Nskip;      ///< geant4 partcle create process: bit-1 IonInelastic(He+Deturon+Triton+Ion) bit-2 ProtonInelastic bit-3 ConvertPhoton
   int Particle;   ///< geant3 particle id
@@ -6478,6 +6479,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 void RebuildBetaH();
+void RebuildMCEventg();
 friend class AMSChain;
 ClassDef(AMSEventR,21)       //AMSEventR
 #pragma omp threadprivate(fgIsA)

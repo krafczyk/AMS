@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.179 2013/03/24 20:37:12 qyan Exp $
+//  $Id: mceventg.C,v 1.180 2013/04/11 21:52:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -95,10 +95,12 @@ if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
 AMSmceventg::AMSmceventg(integer ipart, geant mom, const AMSPoint & coo,
 			 const AMSDir & dir, integer nskip):_trkid(-2),_parentid(-2),_nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
 init(ipart);
+
 }
 
 AMSmceventg::AMSmceventg(integer ipart, number trackid, number parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip):_trkid(trackid), _parentid(parentid), _nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
 init(ipart);
+_mom=sqrt( (_mom+_mass)*(_mom+_mass)-_mass*_mass);
 
  }
 
@@ -2013,7 +2015,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    //
    AMSEvent::gethead()->addnext(
          AMSID("AMSmceventg",0),
-         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
+         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir,nskip,true) // negetive code for secondary
          );
 
 

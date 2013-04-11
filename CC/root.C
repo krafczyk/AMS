@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.560 2013/04/11 14:46:41 achen7 Exp $
+//  $Id: root.C,v 1.561 2013/04/11 21:52:41 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2549,6 +2549,9 @@ bool AMSEventR::ReadHeader(int entry){
 
 if(TofRecH::RebuildBetaHInReadHeader){
     RebuildBetaH();
+}
+if(MCEventgR::Rebuild){
+    RebuildMCEventg();
 }
      
     if(!AMSEventR::Head()->nMCEventg()){ // not for MC events
@@ -13117,4 +13120,17 @@ void AMSEventR::RebuildBetaH(){
   if(Version()<630){
     for(int i=0;i<NBetaH();i++)pBetaH(i)->setChargeHI(-1);
   }
+}
+
+bool MCEventgR::Rebuild=true;
+
+void AMSEventR::RebuildMCEventg(){
+if(Version()<645){
+for(int i=0;i<nMCEventg();i++){
+MCEventgR & mc=MCEventg(i);
+if(mc.Particle<0 && mc.parentID!=-2 ){
+mc.Momentum=sqrt( (mc.Momentum+mc.Mass)*(mc.Momentum+mc.Mass)-mc.Mass*mc.Mass);
+}
+}
+}
 }
