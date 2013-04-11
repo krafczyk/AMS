@@ -3881,7 +3881,10 @@ class RemoteClient:
         os.system("mkdir -p "+newdir)
         cmd=""
         if(crdel==1):
+                if(path.find('/castor/cern.ch/ams')>=0):
+                    path.replace('/castor/cern.ch/ams'.'/castor',1);
                 cmd="ln -sf "+path+" "+newdir
+                
         else:
                 cmd="rm "+file
                 i=os.system(cmd)
