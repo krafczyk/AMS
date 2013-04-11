@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.762 2013/04/11 07:38:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.763 2013/04/11 08:03:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -21480,7 +21480,8 @@ sub datasetlink{
     if($crdel==1){
         $cp=" ln -sf $path $newfile";
         if($path=~/^\/castor/){
-         $cp="ln -sf $path /dev/null/$newfile";
+            path=~s/\/cern.ch\/ams//;
+         $cp="ln -sf $path $newfile";
         } 
     }
     else{
