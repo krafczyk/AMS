@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494.2.8 2013/03/29 12:09:58 sdifalco Exp $
+//  $Id: root.C,v 1.494.2.9 2013/04/12 13:11:46 sdifalco Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3439,7 +3439,9 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
   float edep_xy[2] ={0}; //energy in each side: 0 - x side, 1 - yside
 
   int n2DCLUSTERs = NEcal2DCluster();
-  float kink;
+  float kink_lowenergy;
+  float kink_highenergy;
+  float correction_factor =1;
 
   if (method == 0 ) return EnergyC; // no correction implemented yet
 
@@ -3476,25 +3478,40 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
     if (partid==2 ) {
       // electron hypothesis
       //define kink
-      kink = 850;
-      if(EnergyE<kink)
-	alpha = 1.037 - 0.0743/EnergyE-0.159/TMath::Power(EnergyE,2)-1.9186e-9*TMath::Power(EnergyE,2.189);  
+      kink_highenergy = 850;
+      kink_lowenergy = 3;
+      if(EnergyE<kink_lowenergy)
+	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -EnergyE)));
       else
-	alpha = 0.7628+460/EnergyE-1.988e5/TMath::Power(EnergyE,2)-6.1e-7*TMath::Power(EnergyE,-2.537);
-      energy = TMath::Abs(depositedenergy/(alpha -  0.752 * energyfractionlast2layers -  5.633 * TMath::Power(energyfractionlast2layers,2))); 
+	if(EnergyE<kink_highenergy)
+	  alpha = 1.037 - 0.0743/EnergyE-0.159/TMath::Power(EnergyE,2)-1.9186e-9*TMath::Power(EnergyE,2.189);  
+	else
+	  alpha = 0.7628+460/EnergyE-1.988e5/TMath::Power(EnergyE,2)-6.1e-7*TMath::Power(EnergyE,-2.537);
+      
+      correction_factor = alpha -  0.752 * energyfractionlast2layers -  5.633 * TMath::Power(energyfractionlast2layers,2);
+      
+      if(correction_factor>0)
+	energy = depositedenergy/correction_factor;
+      else
+	energy = EnergyE;
       
       //second iteration
-      if(energy<kink)
-	alpha = 1.037 - 0.0743/energy-0.159/TMath::Power(energy,2)-1.9186e-9*TMath::Power(energy,2.189);  
+      if(energy<kink_lowenergy)
+	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -EnergyE)));
       else
-	alpha = 0.7628+460/energy-1.988e5/TMath::Power(energy,2)-6.1e-7*TMath::Power(energy,-2.537);
+	if(energy<kink_highenergy)
+	  alpha = 1.037 - 0.0743/energy-0.159/TMath::Power(energy,2)-1.9186e-9*TMath::Power(energy,2.189);  
+	else
+	  alpha = 0.7628+460/energy-1.988e5/TMath::Power(energy,2)-6.1e-7*TMath::Power(energy,-2.537);
       
-      //
-      if(alpha<0) alpha =0;
-      
-      //corrected value
-      energy = TMath::Abs(depositedenergy/(alpha - 0.752 * energyfractionlast2layers - 5.633 * TMath::Power(energyfractionlast2layers,2)));
+      correction_factor = alpha -  0.752 * energyfractionlast2layers -  5.633 * TMath::Power(energyfractionlast2layers,2);
     
+      //corrected value  
+      if(correction_factor>0)
+	energy = depositedenergy/correction_factor;
+      else
+	energy = depositedenergy;
+                
     //reconstructed energy never less than deposited energy corrected for anode efficiency
       if(energy<depositedenergy)
 	energy =  depositedenergy;
@@ -3518,7 +3535,7 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
     }//end if on partid of photons
   }//end if of method 2
   cerr << "EcalShowerR::GetCorrectedEnergy>>UNKNOWN PARTICLE ID OR METHOD FOR ENERGY CORRECTION" <<endl;
-  return -1.; 
+  return -1.;
 }
 
 
