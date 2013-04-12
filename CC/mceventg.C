@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.180 2013/04/11 21:52:41 choutko Exp $
+//  $Id: mceventg.C,v 1.181 2013/04/12 06:13:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -2015,7 +2015,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    //
    AMSEvent::gethead()->addnext(
          AMSID("AMSmceventg",0),
-         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir,nskip,true) // negetive code for secondary
+         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
          );
 
 
