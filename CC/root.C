@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.562 2013/04/12 12:57:04 sdifalco Exp $
+//  $Id: root.C,v 1.563 2013/04/15 14:54:23 lbasara Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3790,6 +3790,7 @@ TMVA::Reader *ecallappreader;
 TMVA::Reader *NESEreaderv2;
 TMVA::Reader *NESEreaderv3;
 
+
 float varBDT[23];
 float cEnergyC;
 float cMomentum;
@@ -3800,7 +3801,11 @@ float ESENS1S3[3],ESENS3S5[3],ESENS13R,ESENEnergy3C2,ESENEnergy3C3,ESENShowerMea
 float ESENShowerSkewnessNorm,ESENShowerKurtosisNorm,ESENF2LEneDepNorm,ESENL2LFracNorm,ESENF2LFracNorm,ESENR3cmFracNorm;
 float ESENR5cmFracNorm,ESENDifoSumNorm,ESENS3totxNorm,ESENS3totyNorm,ESENS5totxNorm,ESENS5totyNorm;
 float ESENEcalHitsNorm,ESENShowerFootprintXNorm,ESENShowerFootprintYNorm;
-float nEnergyA;
+
+float nEnergyA=0;
+float nEnergyC=0;
+float nEnergyD=0;
+float nEnergyE=0;
 
 
 // Declaration of global variables used for ESEv3
@@ -3822,6 +3827,7 @@ float Ed_sqpix=0;
 float Ed_pixl=0;
 float ESE3RearLeak=0;
 float ESEv3=0;
+float ghostESEv3=-20;
 
 
 
@@ -3875,11 +3881,10 @@ Double_t fcnv3(Double_t *x, Double_t *par){
 float EcalShowerR::EcalStandaloneEstimatorV3(){
 
 	
-
-	// Case Processing version <B584
-	if(AMSEventR::Head()->Version()<584) nEnergyA = EnergyA;
-	// Case Processing version >=B584
-	if(AMSEventR::Head()->Version()>=584) nEnergyA = EnergyA*1000.;
+	nEnergyA=EnergyA;
+	nEnergyC=EnergyC;
+	nEnergyD=EnergyD;
+	nEnergyE=EnergyE;
 
 	// Local variables;
 
@@ -4231,7 +4236,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 		par1=0.48;
 		par2=1.05*(log(EnergyDh/(8.)));
 		par3=1.0;
-		TH1F *h3 = new TH1F("h3","",18,0.,18.);
+		TH1F *hfitecal = new TH1F("hfitecal","",18,0.,18.);
 		if (EnergyDh/1000>100) par0=0.95;
 		float zmax=-1;  
 		int   amax=19;
@@ -4260,8 +4265,8 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			if (err<.009&&EnergyDh<10000.) err=0.009;
 			if (err<.004&&EnergyDh>10000.) err=0.004;
 			if(frac) nblayer++;
-			h3->SetBinContent(a+1,frac) ;
-			h3->SetBinError(a+1,err);
+			hfitecal->SetBinContent(a+1,frac) ;
+			hfitecal->SetBinError(a+1,err);
 		}
 
 		if(nblayer>5){
@@ -4283,7 +4288,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			fitf->SetParLimits(2,par2-2,par2+2);
 			fitf->SetParLimits(3,-1-par3,par3+1);
 
-			h3->Fit("fitf","rQNM","",xmin,xmax);
+			hfitecal->Fit("fitf","rQNM","",xmin,xmax);
 			zprofile[0]  =fitf->GetParameter(0);
 			zprofile[1]  =fitf->GetParameter(1);
 			zprofile[2]  =fitf->GetParameter(2);
@@ -4294,7 +4299,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 						
 		}
 
-		delete h3;	
+		delete hfitecal;	
 		
 		if (exprearl<0.) exprearl=0.; 
 		Rear1= zprofile[0]-1-(exprearl/100);
@@ -4370,8 +4375,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 
 
 
-
-
 	// Creating reader if needed
 	// ___________________________________________________________
 
@@ -4397,10 +4400,10 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 		NESEreaderv3->AddVariable("Ed_pixl"										, & Ed_pixl		);
 		NESEreaderv3->AddVariable("RearLeak"									, & ESE3RearLeak);
 		NESEreaderv3->AddSpectator("EnergyA"									, & nEnergyA);
-		NESEreaderv3->AddSpectator("EnergyC"									, & EnergyC);
-		NESEreaderv3->AddSpectator("EnergyD"									, & EnergyD);
-		NESEreaderv3->AddSpectator("EnergyE"									, & EnergyE);
-		NESEreaderv3->AddSpectator("ESEv3"										, & ESEv3);
+		NESEreaderv3->AddSpectator("EnergyC"									, & nEnergyC);
+		NESEreaderv3->AddSpectator("EnergyD"									, & nEnergyD);
+		NESEreaderv3->AddSpectator("EnergyE"									, & nEnergyE);
+		NESEreaderv3->AddSpectator("ESEv3"										, & ghostESEv3);
 		
 		char name[801]="";
       sprintf(name,"%s/%s/TMVA_ePrej_V3b_BCat.vc.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
@@ -4409,9 +4412,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	}
 
 
-
 	ESEv3=NESEreaderv3->EvaluateMVA("BCat method");
-
 
 
 	// Retrieving ESEv3 value
