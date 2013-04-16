@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.59.4.1 2013/04/16 11:45:49 pzuccon Exp $
+// $Id: tkdcards.h,v 1.59.4.2 2013/04/16 22:00:41 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -146,13 +146,17 @@ public:
   integer ActivateShielding;
   geant ShieldingDensity;
 
+
+  /// Read from AMSRoot file or not
+  static int ReadFromFile;
+
   TRMCFFKEY_DEF():TObject(){init();}
   void init();
   number ADC2KeV(){
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,3);
+  ClassDef(TRMCFFKEY_DEF,4);
 
 
 };

@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.84.4.1 2013/04/16 11:45:48 pzuccon Exp $
+// $Id: tkdcards.C,v 1.84.4.2 2013/04/16 22:00:39 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -269,6 +269,8 @@ void TRMCFFKEY_DEF::init(){
   ActivateShielding=1;
   ShieldingDensity=2.5;
 }
+
+int TRMCFFKEY_DEF::ReadFromFile = 1;
 
 TRMCFFKEY_DEF TRMCFFKEY;
 #ifdef __ROOTSHAREDLIBRARY__
