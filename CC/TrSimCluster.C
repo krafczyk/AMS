@@ -37,15 +37,15 @@ void TrSimCluster::Clear() {
 
 void TrSimCluster::SetSignal(int i, double s) {
   // no error: no effect if out of the cluster
-  if ( (i<0)||(i>=GetWidth()) ) return;
-  _signal.at(i) = s;
+   if ( (i<0)||(i>=GetWidth()) ) return;
+  _signal[i] = s;
 }
 
 
 double TrSimCluster::GetSignal(int i) {
   // no error: 0 if out of the cluster
   if ( (i<0)||(i>=GetWidth()) ) return 0.;
-  return _signal.at(i);
+  return _signal[i];//.at(i);
 }
 
 
@@ -55,7 +55,7 @@ void TrSimCluster::Info(int verbose) {
          GetWidth(),GetSeedIndex(),GetAddress(),GetTotSignal());
   if (verbose>0) {
     for (int i=0; i<GetWidth(); i++) {
-      printf("Address(p,n) %4d %4d   Signal %7.5f\n",i+GetAddress(),i+GetAddress()+640,GetSignal(i));
+      printf("Address(p,n) %4d %4d   Signal %11.9f\n",i+GetAddress(),i+GetAddress()+640,GetSignal(i));
     }
   }
   if (verbose>1) { 
@@ -81,9 +81,9 @@ int TrSimCluster::FindSeedIndex(double seed, int force) {
 double TrSimCluster::GetEta(){
   double eta    = 1.;
   int    cindex = FindSeedIndex();
-  double left   = GetSignal(cindex-1);
+  double left   = ((cindex-1)>=0)?GetSignal(cindex-1):0.;
   double center = GetSignal(cindex);
-  double right  = GetSignal(cindex+1);
+  double right  = ((cindex+1)<GetWidth())?GetSignal(cindex+1):0;
   if      (cindex==0)               eta = right/(center+right); // nleft = 0
   else if ((cindex-GetWidth())==0)  eta = center/(left+center); // nright = 0
   else if (right>left)              eta = right/(center+right);
@@ -154,6 +154,10 @@ void TrSimCluster::AddCluster(TrSimCluster& cluster) {
     if (WARNING) { printf("TrSimCluster::AddCluster-W the cluster to be added has address < 0:\n"); cluster.Info(1); }
     return;
   }
+  // if "that" cluster is empty don't take any action
+  if (cluster.GetWidth()==0) {
+    return;
+  } 
   // if the "this" cluster is empty make a copy of the passed cluster 
   if (GetWidth()==0) {
     _signal = cluster._signal;
@@ -161,29 +165,90 @@ void TrSimCluster::AddCluster(TrSimCluster& cluster) {
     _seedind = cluster._seedind;
     return;
   }
-  // if "that" cluster is empty don't take any action
-  if (cluster.GetWidth()==0) {
-    return;
-  } 
+
   // first and last address
   int add1 = min(cluster.GetAddress(),GetAddress());
   int add2 = max(cluster.GetAddress()+cluster.GetWidth(),GetAddress()+GetWidth());
   vector<double> acluster;
   acluster.clear();
   // fill
-  for (int i=add1; i<add2; i++) acluster.push_back(cluster.GetSignal(i-cluster.GetAddress()) + GetSignal(i-GetAddress()));
+  for (int i=add1; i<add2; i++){
+    float s0=0;
+    if(i>=GetAddress()&& i<(GetAddress()+GetWidth())) 
+      s0= GetSignal(i-GetAddress());
+    float s1=0;
+    if(i>=cluster.GetAddress()&& i<(cluster.GetAddress()+cluster.GetWidth())) 
+      s1= cluster.GetSignal(i-cluster.GetAddress());
+    acluster.push_back(s0+s1);
+  }
   // redefine the cluster
   _signal = acluster;
   _address = add1;
-  _seedind = -1;
+  _seedind = FindSeedIndex(0,1);
   return;
 }
 
 
-void TrSimCluster::GaussianizeFraction(double fraction) {
-  for (int i=0; i<GetWidth(); i++) {
-    SetSignal(i,GetSignal(i)*(1. + rnormx()*fraction));
+void TrSimCluster::GaussianizeFraction(int iside, int hcharge, double fraction,float IP) {
+
+  float ff[2][2][3]={
+    {{1.,  1., 8.},{1.4, 8., 14.}},
+    {{1.,  1., 8.},{1.4, 6.,  6.}}
+  };
+
+  //experimental version PZ
+  if (fraction ==0) return;
+  int iseed=FindSeedIndex(0,1);
+  double totsig=GetTotSignal();
+  int isl=iseed-1;
+  int isr=iseed+1;
+  float sr=0,sl=0;
+  if(isl>=0) sl=GetSignal(isl);
+  if(isr<GetWidth()) sr=GetSignal(isr);
+
+  int LL=iseed;
+  int RR=isr;
+  if(sl>=sr) {
+    LL=isl;
+    RR=iseed;
   }
+
+ 
+
+  float fra1=ff[hcharge][iside][0];
+  float fra2=ff[hcharge][iside][1];
+  float fra3=ff[hcharge][iside][2];
+
+  if((LL-1)>=0)
+    SetSignal(LL-1,GetSignal(LL-1)* fra1);
+  
+  if((LL-2)>=0)
+    SetSignal(LL-2,GetSignal(LL-2)*fra2*fra2);
+
+   
+  
+  if(RR+1<GetWidth())
+    SetSignal(RR+1,GetSignal(RR+1)* fra1);
+  
+  if(RR+2<GetWidth())
+    SetSignal(RR+2,GetSignal(RR+2)* fra2*fra2);
+  
+  
+  int kk=3;
+  if((LL-3)>=0)
+    for (int ii=LL-3;ii>=0;ii--){
+      SetSignal(ii,GetSignal(ii)* pow(fra3,kk++));
+    }
+  
+  kk=3;
+  if((RR+3)<GetWidth())
+    for (int ii=RR+3;ii<GetWidth();ii++){
+      SetSignal(ii,GetSignal(ii)* pow(fra3,kk++));
+      
+    }
+  
+  return;  
+    
 }
 
 
@@ -225,8 +290,22 @@ void TrSimCluster::ApplyGain(int iside, int tkid) {
 
 
 void TrSimCluster::ApplyAsymmetry(int iside) {
-  for (int ist=GetWidth()-1; ist>0; ist--) { // first channel is excluded
-    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
+  float asym[2]={0.04,0.01};
+  if(iside==0)
+    for (int ist=GetWidth()-1; ist>0; ist--) { // first channel is excluded
+    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*asym[iside]);
+	//        SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
+    //   SetSignal(ist,GetSignal(ist)+(GetSignal(ist-1)+500)*2.83E-4);
+  } 
+
+  if(iside==1)
+//     for (int ist=1; ist<GetWidth(); ist++) { // first channel is excluded
+//     SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*asym[iside]);
+
+    for (int ist=GetWidth()-1; ist>=0; ist--) { // first channel is excluded
+      SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*asym[iside]);
+	//        SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
+    //   SetSignal(ist,GetSignal(ist)+(GetSignal(ist-1)+500)*2.83E-4);
   } 
 }
 

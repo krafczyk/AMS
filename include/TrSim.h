@@ -101,7 +101,8 @@ class TrSim {
   static TrSimSensor* GetTrSimSensor(int side, int tkid); 
   //! Print buffer
   static void  PrintBuffer(double *_ladbuf);
-
+  static void MergeMCCluster();
+  
   //! See simulation parameters
   static void PrintSimPars();
 

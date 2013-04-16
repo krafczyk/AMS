@@ -164,6 +164,8 @@ class TrSimSensor {
   double GetImplantAddressFromReadoutAddress(double readoutadd);
   //! Returns true if the i-est implant is read 
   bool   IsReadoutStrip(int impl); 
+  //! Returns true if the i-est implant is metalized  
+  bool   IsMetalizedStrip(int impl); 
   //! Get readout address from implant strip (the sensor number is needed for K5 and K7 cases)
   int    GetReadoutAddressFromImplantAddress(int implantadd, int nsens = 0);
 
@@ -180,14 +182,14 @@ class TrSimSensor {
   // Cluster Construction Methods 
   ////////////////
 
-  //! Calculate implant-strip cluster from coordinate [cm] and angle [rad]
-  TrSimCluster MakeImplantCluster(double senscoo, double sensangle);
+  //! Calculate implant-strip cluster from coordinate [cm] and angle [rad] and DZ of the step (<=300 um)
+  TrSimCluster MakeImplantCluster(double senscoo, double sensangle, double DZStep=300);
   //! Calculate readout-strip cluster from a charge injection Q on the i-nth implant (the sensor number is needed for K5 and K7 case)
   TrSimCluster MakeClusterFromAChargeInjectionOnAnImplant(double Q, int impladd, int nsens = 0);
   //! Calculate readout-strip cluster from a implant-strip cluster (injects the modelized cluster in the capacitive net)
   TrSimCluster MakeClusterFromImplantCluster(TrSimCluster& implclus, int nsens = 0);
   //! Calculate readout-strip cluster from coordinate [cm] and angle [rad] (the sensor number is needed for K5 and K7 case)
-  TrSimCluster MakeCluster(double senscoo, double sensangle, int nsens = 0); 
+  TrSimCluster MakeCluster(double senscoo, double sensangle, int nsens = 0, double DZStep=300); 
 
   ////////////////
   // Cluster Sharing Pdf Library

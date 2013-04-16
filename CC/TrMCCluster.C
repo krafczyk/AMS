@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.31 2012/07/05 23:21:52 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.31.8.1 2013/04/16 11:45:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2012/07/05 23:21:52 $
+///$Date: 2013/04/16 11:45:47 $
 ///
-///$Revision: 1.31 $
+///$Revision: 1.31.8.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,6 +42,7 @@ extern "C" double rnormx();
 
 ClassImp(TrMCClusterR);
 
+double qlinfun(double X, double k);
 
 int TrMCClusterR::_NoiseMarker(555);
 
@@ -106,6 +107,25 @@ void TrMCClusterR::Copy(const TrMCClusterR& that) {
   }
 }
 
+TrMCClusterR& TrMCClusterR::operator+=(const TrMCClusterR& that){
+  if(_idsoft!= that._idsoft){
+    printf("TrMCClusterR::operator+= Error: cannot sum MCcluster on different sensors\n Sum not performed\n");
+    return *this;
+  }
+  _step += that._step;
+  //  _itra = that._itra; keep the original one
+  //  _xgl = ( _xgl*_edep + that._xgl*that._edep )/(_edep+that._edep);
+  _xgl = ( _xgl+ that._xgl )/2;
+  //  _dir = that._dir; keep the orginal one
+  //  _mom = that._mom; keep the original one
+  _edep +=that._edep;
+  Status |= that.Status;
+  for(int ii=0; ii<2; ii++)
+    if (that._simcl[ii]!=0) delete _simcl[ii];
+  
+  return *this;
+}
+
 
 int TrMCClusterR::GetTkId(){ 
   // int sensor = abs(_idsoft)/10000;
@@ -143,11 +163,11 @@ char* TrMCClusterR::Info(int iRef){
 void TrMCClusterR::_PrepareOutput(int full) {
   sout.clear();
   sout.append(
-    Form("Part: %3d  Mom(GeV): %12.6f TkId: %+04d  Sens: %2d  Edep(keV): %9.3f  Step(um): %7.1f   X:%8.3f Y:%8.3f Z:%8.3f   Cx: %8.5f Cy: %8.5f Cz: %8.5f\n",
+    Form("Part:%+3d Mom:%12.6f TkId:%+04d %2d Edep:%7.3f Step: %7.4f X:%8.3f Y:%8.3f Z:%8.3f THx:%+3.0f THy:%+3.0f\n",
       _itra,
       GetMomentum(),GetTkId(),GetSensor(),GetEdep()*1e+6,GetStep()*1e+4,
       GetXgl().x(),GetXgl().y(),GetXgl().z(),
-      GetDir().x(),GetDir().y(),GetDir().z()
+	 atan2(GetDir().x(),GetDir().z())*180/M_PI,atan2(GetDir().y(),GetDir().z())*180/M_PI
     )
   );
   return;
@@ -163,8 +183,10 @@ void TrMCClusterR::GenSimClusters(){
   AMSDir   dir = GetDir();            // direction 
   float    momentum = GetMomentum();  // momentum vector [GeV/c]
   float    edep = GetEdep()*1.e6;     // energy deposition [keV] 
+  int hcharge=0;
+  if(abs(_itra)>=47) hcharge=1;
   if (edep<1) return;                 // if energy deposition < 1 keV 
-  if (momentum<1e-6) return;          // if momentum < keV/c
+  //  if (momentum<1e-6) return;          // if momentum < keV/c
 
   TkSens _glo2loc(1);
   _glo2loc.SetGlobal(GetTkId(),glo,dir);                                    // from global to local
@@ -172,8 +194,12 @@ void TrMCClusterR::GenSimClusters(){
   int  nsensor = _glo2loc.GetSensor();                                      // sensor number
   double ip[2] = {_glo2loc.GetSensCoo().x(),_glo2loc.GetSensCoo().y()};     // sensor impact point
   double ia[2] = {_glo2loc.GetImpactAngleXZ(),_glo2loc.GetImpactAngleYZ()}; // sensor impact angle
+  double tip[2]= {_glo2loc.GetImpactPointX(),_glo2loc.GetImpactPointY()}; //true impact point [0,1]
   int imult = _glo2loc.GetMultIndex();
 
+  if(tip[0]<0)tip[0]+=1;
+  if(tip[1]<0)tip[1]+=1;
+  // Print();
   if (VERBOSE) {
     printf("TrSim::GenSimClusters-V  tkid = %+4d   loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",
            GetTkId(),ip[0],ip[1],ia[0],ia[1],nsensor);
@@ -181,19 +207,21 @@ void TrMCClusterR::GenSimClusters(){
            _glo2loc.GetLaddCoo().x(),_glo2loc.GetLaddCoo().y(),_glo2loc.GetStripX(),_glo2loc.GetStripY(),imult);
   }
 
+  //                         p_x     p_y       He_x  He_y
+  double SmearPos[2][2]={{0.0012,0.0009},{0.0012,0.0004}};
   // loop on two sides of the ladder
   for (int iside=0; iside<2; iside++) {
 
-    /*
-    if ( (ip[iside]<0.)||(ip[iside]>TkDBc::Head->_ssize_active[iside]) ) {
-      if (WARNING) printf("TrSim::GenSimClusters-W  %c coordinate out of the sensor (min=0, max=%7.4f, coo=%7.4f)\n",
-                          sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
-      continue;
-    }
-    */
-
+    if(step<1) ia[iside]=0;
     // create the simulated cluster
-    TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ip[iside],ia[iside],nsensor);
+
+    // SMEAR the position
+    float ipsmear=ip[iside];
+    ipsmear=ip[iside]+rnormx()*SmearPos[hcharge][iside];
+    
+
+    // Create the cluster
+    TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ipsmear,ia[iside],nsensor,step*dir[2]);
     // from time to time the cluster is empty
     if (simcluster.GetWidth()==0) continue;
 
@@ -202,50 +230,44 @@ void TrMCClusterR::GenSimClusters(){
     _simcl[iside] = new TrSimCluster(simcluster);
     // raw signal
     hman.Fill(Form("TrSimSig%c",sidename[iside]),_simcl[iside]->GetEta(),_simcl[iside]->GetTotSignal());
-
-    ///////// ALL THIS PART SHOULD BE MOVED AFTER CLUSTER LOCAL MERGING /////////
-
-    // from keV to ADC (using tb2003 data normalized to datacard value)
-    double ADC = TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC(edep);
-    // cluster strip values in ADC counts
-    _simcl[iside]->Multiply(ADC);
+    
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
-    _simcl[iside]->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
-    // simulation tuning parameter 2: add more noise 
-    _simcl[iside]->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
-    // apply asymmetry to strips
-    _simcl[iside]->ApplyAsymmetry(iside);
-    // apply the p-strip saturation
-    if (TRMCFFKEY.TrSim2010_PStripCorr==1) _simcl[iside]->ApplyStripNonLinearity();
-    // apply the gain table
-    _simcl[iside]->ApplyGain(iside,GetTkId());
-    // apply saturation
-    _simcl[iside]->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
+    _simcl[iside]->GaussianizeFraction(iside,hcharge,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
+      
 
-    // dump
-    if (VERBOSE) { printf("TrSim::GenSimClusters-V  ADC=%f\n",ADC); _simcl[iside]->Info(10);  }
-    // histograms
-    double adc = _simcl[iside]->GetTotSignal();
-    double eta = _simcl[iside]->GetEta();
-    double intr_res = 0.;
-    // intrinsic resolution with only 2 strips
-    if (iside==0) {
-      intr_res = 1e+04*(_glo2loc.GetLaddCoo().x() - _simcl[iside]->GetX(iside,GetTkId(),2,imult));
+    // Enegy smearing, scaling, and convert to ADC
+    double ADCMipValue[2][2]={ {46,30},{48,34}};
+    double edep_c2=edep;
+    if(iside==0) {
+      double edep_c=qlinfun(edep,0.00009); // 
+      edep_c2=ADCMipValue[hcharge][0]*edep_c/81;
+    }else{
+      double edep_c=edep* (1+rnormx()*0.20);
+      edep_c=qlinfun(edep_c,0.00030);	
+      edep_c2=ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
     }
-    else {
-      intr_res = 1e+04*(_glo2loc.GetLaddCoo().y() - _simcl[iside]->GetX(iside,GetTkId(),2,imult));
-    }
-    // check eta distribution
-    hman.Fill(Form("TrSimEta%c",sidename[iside]),fabs(ia[iside]),eta);
-    // dependence from angle 
-    hman.Fill(Form("TrSimResA%c",sidename[iside]),fabs(ia[iside]),intr_res);
-    // dependence from charge (edep)
-    hman.Fill(Form("TrSimResE%c",sidename[iside]),sqrt(edep),intr_res);
-    // energy deposition plot
-    hman.Fill(Form("TrSimEDep%c",sidename[iside]),sqrt(edep),sqrt(adc));
+    // if side Y some addtional edep vs eta dependence
+    double pc[5]={0.8169,2.23,-8.996,13.581,-6.849};	
+   //  if(iside==1 && tip[iside]>0.3 && tip[iside]<0.7) edep_c2*=pc[0]
+//       +pc[1]*tip[iside]
+//       +pc[2]*pow(tip[iside],2)
+//       +pc[3]*pow(tip[iside],3)
+//       +pc[4]*pow(tip[iside],4);
+    _simcl[iside]->Multiply(edep_c2);
+    //      if(iside==0){Print();      _simcl[iside]->Info(10);}
+    // cluster strip values in ADC counts
 
-    if (VERBOSE) printf("angle=%7.3f   eta=%7.3f   sqrt(edep)=%7.3f   intrres=%7.3f   totsig=%7.3f\n",
-                        ia[iside],_simcl[iside]->GetEta(),sqrt(edep),intr_res,_simcl[iside]->GetTotSignal());
+   //  // check eta distribution
+//     hman.Fill(Form("TrSimEta%c",sidename[iside]),fabs(ia[iside]),eta);
+//     // dependence from angle 
+//     hman.Fill(Form("TrSimResA%c",sidename[iside]),fabs(ia[iside]),intr_res);
+//     // dependence from charge (edep)
+//     hman.Fill(Form("TrSimResE%c",sidename[iside]),sqrt(edep),intr_res);
+//     // energy deposition plot
+//     hman.Fill(Form("TrSimEDep%c",sidename[iside]),sqrt(edep),sqrt(adc));
+
+//     if (VERBOSE) printf("angle=%7.3f   eta=%7.3f   sqrt(edep)=%7.3f   intrres=%7.3f   totsig=%7.3f\n",
+//                         ia[iside],_simcl[iside]->GetEta(),sqrt(edep),intr_res,_simcl[iside]->GetTotSignal());
   }
   return;
 }
@@ -413,3 +435,20 @@ double TrMCClusterR::fdiff(double a, int ialpha) {
 }
 */
 
+
+ double qlinfun(double X, double k){
+
+  double th=135*TMath::Pi()/180.;
+  double ss=sin(th);
+  double cc=cos(th);
+  double delta=cc*cc+4*k*ss*X;
+  if(delta>0){
+    double xip=(-cc+sqrt(delta))/(2*k*ss);
+    double xim=(-cc-sqrt(delta))/(2*k*ss);
+    double Ym=-xim*ss+k*xim*xim*cc;
+    double Yp=-xip*ss+k*xip*xip*cc;
+    return (Ym>0)?Ym:Yp;
+  } else
+  return 0;
+
+}

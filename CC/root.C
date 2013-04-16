@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494.2.9 2013/04/12 13:11:46 sdifalco Exp $
+//  $Id: root.C,v 1.494.2.10 2013/04/16 11:45:48 pzuccon Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2364,10 +2364,10 @@ bool AMSEventR::ReadHeader(int entry){
 #pragma omp critical (rd)
 	RichRingR::updateCalibration(*this); 
       }
-  
+
 //---TDV
     if(nMCEventg()==0){TofRecH::Init();}
- 
+
 ///--Tof BetaHs Init
     if(Version()<592){
        fHeader.TofClusterHs = 0;
@@ -2381,7 +2381,7 @@ bool AMSEventR::ReadHeader(int entry){
 //---Fix For Gbatch
     else if((Version()>=610&&Version()<=622)&&nMCEventg()==0){
 //---TofClusterHR
-      if(Version()<=621){
+      if(Version()<=621){   
         for(int i=0;i<NTofClusterH();i++){
            TofClusterHR *tfclh=pTofClusterH(i);
            if(!tfclh)continue;
@@ -2392,7 +2392,7 @@ bool AMSEventR::ReadHeader(int entry){
          TofRecH::BuildBetaH(0);
       }
 //----BetaH
-      else if(Version()<=621){
+      else if(Version()<=621){        
         bool ftk=0;
         for(int i=0;i<NBetaH();i++){//First Search if Trd-Track Mode
            BetaHR *betah=pBetaH(i);
@@ -2404,7 +2404,7 @@ bool AMSEventR::ReadHeader(int entry){
          for(int i=0;i<NBetaH();i++){
            BetaHR *betah=pBetaH(i);
            if(!betah)continue;
-           TofClusterHR *tfhit[4]={0};
+           TofClusterHR *tfhit[4]={0};        
            double tklcoo[4]={0},tkcosz[4]={1,1,1,1};
            double zpl,time;AMSPoint pnt;AMSDir dir;
            for(int ilay=0;ilay<4;ilay++){
@@ -2414,14 +2414,14 @@ bool AMSEventR::ReadHeader(int entry){
                tklcoo[ilay]=pnt[tfhit[ilay]->GetDirection()];
                tkcosz[ilay]=fabs(dir[2]);
             }
-         }
+         } 
          TofBetaPar par=betah->gTofBetaPar();
          TofRecH::EdepTkAtt(tfhit,tklcoo,tkcosz,par);
          betah->SetTofBetaPar(par);
         }
       }
       else {
-       TofRecH::BuildBetaH(0);
+       TofRecH::BuildBetaH(0); 
       }
     }//End 621 
 //---
@@ -2506,9 +2506,9 @@ AMSEventR::AMSEventR():TSelector(){
     }
     TStreamerInfo::SetFactory(new TStreamerInfo()); 
 #endif
- if(gEnv)gEnv->SetValue("TFile.Recover", 0);
- else cerr<<"AMSEventR::ctor-E-gEnvNotDefined"<<endl;
- }
+     if(gEnv)gEnv->SetValue("TFile.Recover", 0);
+     else cerr<<"AMSEventR::ctor-E-gEnvNotDefined"<<endl;
+  }
   fEcalHit.reserve(MAXECHITS);
   fEcalCluster.reserve(MAXECCLUST);
   fEcal2DCluster.reserve(MAXEC2DCLUST);
@@ -3236,7 +3236,7 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalS
    if(show){ // ecal betah
       for(int ii=0;ii<ev->NEcalShower();ii++)  {if(ev->pEcalShower(ii)==show){fEcalShower=ii;break;}}
    }
-
+ 
 }
 
 
@@ -3693,7 +3693,7 @@ void fcnv1(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
     chisq += delta*delta;       
   } 
   f = chisq;
-} 
+}
 
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
@@ -4566,8 +4566,8 @@ int ParticleR::DoBacktracing()
   int    utime  =        ptr->Time[0];
   double tfrac  = double(ptr->Time[1])/1000000;
   double xtime  = double(utime)+tfrac-AMSEventR::gpsdiff(utime);
-  double YPR[3] = { ptr->Yaw,    ptr->Pitch, ptr->Roll };
-  double RPT[3] = { ptr->RadS,   ptr->PhiS,  ptr->ThetaS };
+  double YPR[3] = { ptr->Yaw,       ptr->Pitch,  ptr->Roll };
+  double RPT[3] = { ptr->RadS,      ptr->PhiS,   ptr->ThetaS };
   double VPT[2] = { ptr->VelPhi, ptr->VelTheta };
 
   if (AMSEventR::getsetup()) {
@@ -7229,8 +7229,8 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern){
        else           {
          if(dqh>dql)  {qrms=sigl;return meanl;}
          else         {qrms=sigh;return meanh;}
-       }
     }
+      }
 
 }
 
@@ -8529,7 +8529,7 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
         //...This function inverts particle dir of ams system and returns particle dir in GTOD  deg!!!
 	// Parameters:   use_att= 1, use_coo = 1, use_time= 2, dt= 0, out_type= 3
         int gtodT =  GetGalCoo(result, theta_deg , phi_deg, theta, phi, 1,1,2,0.,3 );
-	if (gtodT!=0) return  -1;
+        if (gtodT!=0) return  -1;
 
 
         //...gtheta is colatitude --> I need Latitude:
@@ -9138,7 +9138,7 @@ double HeaderR::getBetaSun(){
  if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
    time=HeaderR::Time[0];
    sunPos.setUTCTime((double)time);
-   }
+ }
  else{
  sunPos.setGPSTime((double)time);
  }
@@ -9154,7 +9154,7 @@ int HeaderR::getSunAMS(double & azimut, double & elevation ){
  if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
    time=HeaderR::Time[0];
    sunPos.setUTCTime((double)time);
-   }
+ }
  else{
  sunPos.setGPSTime((double)time);
  }
@@ -9287,6 +9287,7 @@ return values
 return 0;
 
 }
+
 
 
 
@@ -9463,11 +9464,11 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     else ret = rNAtt;
   }
 
-  double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
-  double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
+  double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
+  double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
   double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
   GTOD2CTRS(RPT,fHeader.VelocityS,VPT);
-
+   
   bool gtod = true;
 
   float Roll, Pitch, Yaw;
@@ -9486,7 +9487,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     if (getsetup() && !getsetup()->getISSGTOD(gtod, xtime+dt)) {
       double diff = get_coo_diff(RPT, gtod.r, gtod.theta, gtod.phi);
       if (diff < prec) {
-	RPT[0] = gtod.r;    RPT[1] = gtod.phi; RPT[2] = gtod.theta;
+	RPT[0] = gtod.r; RPT[1] = gtod.phi;  RPT[2] = gtod.theta;
 	VPT[0] = gtod.vphi; VPT[1] = gtod.vtheta;
 	result |= (1<<bGTOD);
       }
@@ -9513,7 +9514,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     if (getsetup() && !getsetup()->getISSCTRS(ctrs, xtime+dt)) {
       double diff = get_coo_diff(RPT, ctrs.r, ctrs.theta, ctrs.phi);
       if (diff < prec) {
-	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
+	RPT[0] = ctrs.r; RPT[1] = ctrs.phi;  RPT[2] = ctrs.theta;
 	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
         CTRS2GTOD(RPT,ctrs.v,VPT);
 	result |= (1<<bCTRS);
@@ -9542,7 +9543,7 @@ int AMSEventR::GetGalCoo(int &result, double &glong, double &glat,
     if (getsetup() && !getsetup()->getGPSWGS84(gpsw, xtime+dt)) {
       double diff = get_coo_diff(RPT, gpsw.r, gpsw.theta, gpsw.phi);
       if (diff < prec) {
-	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
+	RPT[0] = gpsw.r; RPT[1] = gpsw.phi;  RPT[2] = gpsw.theta;
 	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
         CTRS2GTOD(RPT,gpsw.v,VPT);
 	result |= (1<<bGPSW);
@@ -9645,8 +9646,8 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     else result |= (1<<bGPSC);
   }
 
-  double YPR[3] = { fHeader.Yaw,    fHeader.Pitch, fHeader.Roll };
-  double RPT[3] = { fHeader.RadS,   fHeader.PhiS,  fHeader.ThetaS };
+  double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
+  double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
   double VPT[2] = { fHeader.VelPhi, fHeader.VelTheta };
   GTOD2CTRS(RPT,fHeader.VelocityS,VPT);
 
@@ -9668,7 +9669,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     if (getsetup() && !getsetup()->getISSGTOD(gtod, xtime+dt)) {
       double diff = get_coo_diff(RPT, gtod.r, gtod.theta, gtod.phi);
       if (diff < prec) {
-	RPT[0] = gtod.r;    RPT[1] = gtod.phi; RPT[2] = gtod.theta;
+	RPT[0] = gtod.r; RPT[1] = gtod.phi;  RPT[2] = gtod.theta;
 	VPT[0] = gtod.vphi; VPT[1] = gtod.vtheta;
 	result |= (1<<bGTOD);
       }
@@ -9695,7 +9696,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     if (getsetup() && !getsetup()->getISSCTRS(ctrs, xtime+dt)) {
       double diff = get_coo_diff(RPT, ctrs.r, ctrs.theta, ctrs.phi);
       if (diff < prec) {
-	RPT[0] = ctrs.r;    RPT[1] = ctrs.phi; RPT[2] = ctrs.theta;
+	RPT[0] = ctrs.r; RPT[1] = ctrs.phi;  RPT[2] = ctrs.theta;
 	VPT[0] = ctrs.vphi; VPT[1] = ctrs.vtheta;
         CTRS2GTOD(RPT,ctrs.v,VPT);
 	result |= (1<<bCTRS);
@@ -9724,7 +9725,7 @@ int AMSEventR::DoBacktracing(int &result, int &status,
     if (getsetup() && !getsetup()->getGPSWGS84(gpsw, xtime+dt)) {
       double diff = get_coo_diff(RPT, gpsw.r, gpsw.theta, gpsw.phi);
       if (diff < prec) {
-	RPT[0] = gpsw.r;    RPT[1] = gpsw.phi; RPT[2] = gpsw.theta;
+	RPT[0] = gpsw.r; RPT[1] = gpsw.phi;  RPT[2] = gpsw.theta;
 	VPT[0] = gpsw.vphi; VPT[1] = gpsw.vtheta;
         CTRS2GTOD(RPT,gpsw.v,VPT);
 	result |= (1<<bGPSW);
@@ -11347,14 +11348,16 @@ void  ParticleR::_build(double rid,double err,float charge,float beta, float ebe
 int  UpdateInnerDz(){
 
   uint time,run;
+  int nmc=0;
 #ifdef __ROOTSHAREDLIBRARY__ 
   time=AMSEventR::Head()->UTime();
   run=AMSEventR::Head()->Run();
+  nmc=AMSEventR::Head()->nMCEventg();
 #else
   time=AMSEvent::gethead()->gettime();
   run=AMSEvent::gethead()->getrun();
 #endif
-
+  if(nmc!=0) return 0;
   // PZ Update also the Inner DzDB
   return TrInnerDzDB::GetHead()->UpdateTkDBc(time);
 }

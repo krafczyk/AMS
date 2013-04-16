@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.84 2012/10/07 14:08:56 shaino Exp $
+// $Id: tkdcards.C,v 1.84.4.1 2013/04/16 11:45:48 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -245,26 +245,26 @@ void TRMCFFKEY_DEF::init(){
   TrSim2010_ADCSat[0] = 3500.;
   TrSim2010_ADCSat[1] = 3500.;
   // Interstrip capacitance (pF)
-  TrSim2010_Cint[0] = 80.;
-  TrSim2010_Cint[1] = 50.;  
+  TrSim2010_Cint[0] = 12.;
+  TrSim2010_Cint[1] = 60.;  
   // Backplane(+guardring) capacitance (pF)     
-  TrSim2010_Cbk[0] = 50.;
-  TrSim2010_Cbk[1] = 5.;
+  TrSim2010_Cbk[0] = 13.;
+  TrSim2010_Cbk[1] = 0.;
   // Readout capacitance (pF)
-  TrSim2010_Cdec[0] = 800.;
-  TrSim2010_Cdec[1] = 800.;
+  TrSim2010_Cdec[0] = 100.;
+  TrSim2010_Cdec[1] = 600.;
   // Charge diffusion model
   TrSim2010_DiffType[0] = 2;
   TrSim2010_DiffType[1] = 2;
   // Diffusion radium (um)
-  TrSim2010_DiffRadius[0] = 8.;
-  TrSim2010_DiffRadius[1] = 8.; 
+  TrSim2010_DiffRadius[0] = 10.;
+  TrSim2010_DiffRadius[1] = 7.; 
   // Tuning parameter: shaking a fraction
-  TrSim2010_FracNoise[0] = 0.1; 
-  TrSim2010_FracNoise[1] = 0.1; 
+  TrSim2010_FracNoise[0] = 1; 
+  TrSim2010_FracNoise[1] = 1; 
   // Tuning parameter: adding noise
-  TrSim2010_AddNoise[0] = 2.5; 
-  TrSim2010_AddNoise[1] = 2.5;
+  TrSim2010_AddNoise[0] = 0.; 
+  TrSim2010_AddNoise[1] = 0.;
   // for the ladder shielding
   ActivateShielding=1;
   ShieldingDensity=2.5;

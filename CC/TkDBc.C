@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.66 2012/08/27 06:18:28 choutko Exp $
+//  $Id: TkDBc.C,v 1.66.4.1 2013/04/16 11:45:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/08/27 06:18:28 $
+///$Date: 2013/04/16 11:45:47 $
 ///
-///$Revision: 1.66 $
+///$Revision: 1.66.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -618,13 +618,17 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {190,  191, 192, 193}};
     memcpy(_octant_JMDC,octant_JMDC,8*4*sizeof(octant_JMDC[0][0]));
 
-    
-
 
     //  Read or Generate the Geometry
 
     int ret = 0;
     if (inputfilename) {
+      for (int ii=0;ii<nplanes;ii++){
+	char name[255];
+	sprintf(name,"Plane%d",ii+1);
+	//	if(ii<4)  // internal planes
+	planes[ii]= new TkPlane(name,ii+1, _nslot[ii]);
+      }
       ret = read(inputfilename);
       if (ret == -1) { 
 	cerr<<"TkDBc:: FATAL Cannot open the requested Geometry file "<< inputfilename<<endl;
@@ -1497,6 +1501,7 @@ void SLin2Align(){
 
 TkDBc *TkDBc::Load(TFile *rfile)
 {
+  printf(" TkDBc::Load -------------------------------> from file %s\n",rfile->GetName());
   if (!rfile || !rfile->IsOpen()) return 0;
   TkDBc::Head = (TkDBc *)rfile->Get("TkDBc");
 

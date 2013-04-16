@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.902.2.2 2012/12/14 12:01:05 mdelgado Exp $
+// $Id: job.C,v 1.902.2.3 2013/04/16 11:45:48 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2141,21 +2141,27 @@ void AMSJob::udata(){
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
+      char fname2[1601];
+      sprintf(fname2,"%s/%s",AMSDATADIR.amsdatadir,fname);
       //PZ FIXME metti a posto il path 
-      TkDBc::Head->init(pgtrack_DB_ver,fname);
+      TkDBc::Head->init(pgtrack_DB_ver,fname2);
     }
     else
       TkDBc::Head->init(pgtrack_DB_ver);
 
     char disname[400];
-    if(TKGEOMFFKEY.LoadMCDisalign%10==1){
+    if(TKGEOMFFKEY.LoadMCDisalign%10>0){
       char disname[200];
-      sprintf(disname,"%s/MCDisaligment.txt",AMSDATADIR.amsdatadir);
-      TkDBc::Head->readDisalignment(disname);
+      char fname[1601];
+      if(TKGEOMFFKEY.LoadMCDisalign%10==2)
+	UHTOC(TKGEOMFFKEY.disfname,400,fname,1600);
+      else
+	sprintf(fname,"TkMCDis_4_4.txt");
+      sprintf(disname,"%s/%s",AMSDATADIR.amsdatadir,fname);
+      TkDBc::Head->read(disname);
       printf("Read MC Disaligment from %s \n",disname);
-    }else  if(TKGEOMFFKEY.LoadMCDisalign%10==2){
-      printf("The Tracker MC Disalign TDV interface is not yet implemented");
     }
+
 
 #else
     AMSTrIdGeom::init(STD_DB_ver);
@@ -2225,7 +2231,7 @@ void AMSJob::udata(){
   TrRecon::SetParFromDataCards();
   TrRecon::UsingTrCalDB(TrCalDB::Head);
 
-  if(isMCData()) TRCLFFKEY.UseSensorAlign=0;
+  //  if(isMCData()) TRCLFFKEY.UseSensorAlign=0;
   if (TrRecon::TasRecon) {
     TrTasDB *tasdb = new TrTasDB;
     tasdb->Init(0);
@@ -3792,7 +3798,7 @@ void AMSJob::_timeinitjob(){
                            server,1,TofPMDAlignPar::HeadLoadTDVPar));
 //---Charge Par
       TofCAlignPar *TofCAlign=TofCAlignPar::GetHead();
-      }
+     }
     }
     //
     if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
@@ -4088,7 +4094,6 @@ void AMSJob::_timeinitjob(){
     end.tm_mday=RICFFKEY.day[1];
     end.tm_mon=RICFFKEY.mon[1];
     end.tm_year=RICFFKEY.year[1];
-
 
     TID.add (new AMSTimeID(AMSID("RichPMTChannelStatus",isRealData()),
 			   begin,end,RICmaxpmts*RICnwindows

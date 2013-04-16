@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.18 2012/07/11 06:58:57 oliva Exp $
+//  $Id: TrMCCluster.h,v 1.18.6.1 2013/04/16 11:45:49 pzuccon Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -8,9 +8,9 @@
 ///\brief A class for the rapresentation of the MC stepping in Silicon active material. 
 ///\ingroup tksim
 ///
-///$Date: 2012/07/11 06:58:57 $
+///$Date: 2013/04/16 11:45:49 $
 ///
-///$Revision: 1.18 $
+///$Revision: 1.18.6.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +24,7 @@ class TrSimCluster;
 
 class TrMCClusterR : public TrElem {
 
- protected:
+ public:
 
   //! Sensor code [abs(TkId) + 1000*iSide + 10000*(iSensor + 1)]
   int         _idsoft; 
@@ -71,6 +71,13 @@ class TrMCClusterR : public TrElem {
   void Clear();
   //! Copy
   void Copy(const TrMCClusterR& that);
+  TrMCClusterR& operator+=(const TrMCClusterR& orig);
+  const TrMCClusterR operator+(const TrMCClusterR &other) const {
+    TrMCClusterR result = *this;     
+    result += other;            
+    return result;              
+  }
+
 
   // ####################  ACCESSORS  ###########################
 

@@ -273,6 +273,10 @@ void TrSim::sitkdigi() {
     // PrintSimPars();
     InitSensors();
   }
+ 
+    // Rework MCCluster list
+   MergeMCCluster();
+
 
   // Create the TrMCCluster map and make the simulated cluster (_shower(), GenSimCluster())
   CreateMCClusterTkIdMap();
@@ -329,7 +333,69 @@ void TrSim::sitkdigi() {
 #ifndef __ROOTSHAREDLIBRARY__
       AMSgObj::BookTimer.stop("SiTkDigiLadd");
 #endif
+      //  keV to ADC conversion
 
+      double pside_uncorr_pars[6] = { 2.07483, 30.2233, -0.895041, 0.0125374, -5.89888e-05, 70.2948};
+      double pside_corr_pars[4]   = { 18.4885, 20.2601, 0.00336957, -0.00016007};
+      double nside_nosat_pars[2]  = {-4.42436, 44.6219};
+      
+//       for (int ii=0;ii<639;ii++){
+// 	if(ladbuf[ii]==0. )continue;
+// 	double edep=ladbuf[ii]/81;
+// 	double mip=1;
+// 	double val= TrSimSensor::pside_uncorr_charge_dependence_function(&edep,pside_uncorr_pars);
+// 	val /= TrSimSensor::pside_uncorr_charge_dependence_function(&mip,pside_uncorr_pars);
+// 	val*= TRMCFFKEY.TrSim2010_ADCMipValue[1];
+
+// 	ladbuf[ii]=val;
+//       }
+
+     //  for (int ii=640;ii<1024;ii++){
+// 	if(ladbuf[ii]==0. )continue;
+// 	double edep=ladbuf[ii]/81;
+// 	double mip=1;
+
+// 	//	double val= TRMCFFKEY.TrSim2010_ADCMipValue[0]*edep;//*(edep-edep*edep*0.05);
+// 	double val= 0.6624+2.15*edep*edep+edep*41.4;//*(edep-edep*edep*0.05);
+// 	ladbuf[ii]=val;
+//       }
+
+      // Apply gain corection
+      TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
+      for (int ii=0;ii<1024;ii++){
+	if(ladbuf[ii]==0. )continue;
+	int iva=int(ii/64);
+	int iside=(ii>639)?0:1;
+	if ( (iva<0)||(iva>15) ) { 
+	  printf("TrSimCluster::ApplyGain-E wrong VA (va=%2d, tkid=%+4d, addr=%4d), skipping.\n",iva,tkid,ii);
+	  break;
+	}
+	// for the moment I leave the old code
+	float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
+	if      ( gain<0.02 )     ladbuf[ii]=0.;                 // VA with no gain!
+	else if ( (1./gain)<0.5 ) ladbuf[ii]/=10.; // VA with bad gain!
+	else                      ladbuf[ii]/=gain;
+      }
+
+      // apply asimmetry
+      float asym[2]={0.045,0.01};
+      for (int ii=1023;ii>640;ii--){
+	double sn=ladbuf[ii];
+	double snm1=ladbuf[ii-1];
+	ladbuf[ii]=sn+snm1*asym[0];
+      }
+
+      for (int ii=639;ii>0;ii--){
+	double sn=ladbuf[ii];
+	double snm1=ladbuf[ii-1];
+	ladbuf[ii]=sn+snm1*asym[1];
+      }
+
+      for (int ii=0;ii<1024;ii++){
+	int iside=(ii>639)?0:1;
+	ladbuf[ii]+=TRMCFFKEY.TrSim2010_AddNoise[iside]*rnormx();
+      }
+      
       // Add noise simulation  
       if ( (TRMCFFKEY.NoiseType==1) ||                 // noise on all ladders
   	   ( (TRMCFFKEY.NoiseType>=2)&&(nclu>0) ) ) {  // noise on ladders with some cluster 
@@ -341,6 +407,17 @@ void TrSim::sitkdigi() {
         AMSgObj::BookTimer.stop("SiTkDigiNoise");
 #endif
       } 
+
+
+
+
+ //      printf("Lad %+03d\n",tkid);
+//       for(int ii=0;ii<1024;ii++){
+// 	printf("%4d:%7.1f|",ladbuf[ii],ii);
+// 	if(((ii-640)%15)==0) printf("\n");
+//       }
+//       printf("\n\n");
+
 
       // DSP Simulation
       if ( (TRMCFFKEY.NoiseType==1) ||  // DSP on all ladders
@@ -488,7 +565,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
     // Left Loop
     int left = seed;
     for (int jj=seed-1; jj>=addmin[iside]; jj--) {
-      if ( (((ladbuf[jj]/ladcal->Sigma(jj))>TRMCFFKEY.DSPNeigThr[iside])||(ladcal->Status(jj)!=0)) && (used[jj]==0) ) {
+      if ( (ladbuf[jj]/ladcal->Sigma(jj)>TRMCFFKEY.DSPNeigThr[iside] ||(ladcal->Status(jj)!=0 && (ladcal->Status(jj)&0x8000)==0)) && used[jj]==0) {
         used[jj] = 1;
         left = jj;
       } 
@@ -499,7 +576,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
     // Right Loop
     int right = seed;
     for (int jj=seed+1; jj<addmax[iside]; jj++) {
-      if ( (((ladbuf[jj]/ladcal->Sigma(jj))>TRMCFFKEY.DSPNeigThr[iside]) || (ladcal->Status(jj)!=0)) && used[jj]==0) {
+      if ( (ladbuf[jj]/ladcal->Sigma(jj)>TRMCFFKEY.DSPNeigThr[iside] ||(ladcal->Status(jj)!=0 && (ladcal->Status(jj)&0x8000)==0)) && used[jj]==0) {
         used[jj] = 1;
         right = jj;
       } 
@@ -510,6 +587,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
     // at least 3 strips!
     if(left >addmin[iside])     left--;
     if(right<(addmax[iside]-1)) right++;
+
 
     // Preparing the cluster
     short int signal[128];
@@ -736,4 +814,76 @@ void TrSim::PrintSimPars() {
   cout << "TrSim2010_DiffRadius(n,p):  " << TRMCFFKEY.TrSim2010_DiffRadius[0] << " " << TRMCFFKEY.TrSim2010_DiffRadius[1] << endl;
   cout << "TrSim2010_FracNoise(n,p):   " << TRMCFFKEY.TrSim2010_FracNoise[0] << " " << TRMCFFKEY.TrSim2010_FracNoise[1] << endl;
   cout << "TrSim2010_AddNoise(n,p):    " << TRMCFFKEY.TrSim2010_AddNoise[0] << " " << TRMCFFKEY.TrSim2010_AddNoise[1] << endl;
+}
+
+
+
+void TrSim::MergeMCCluster(){
+#ifdef __ROOTSHAREDLIBRARY__
+  vector<TrMCClusterR> locstor;
+#else
+  vector<AMSTrMCCluster> locstor; 
+#endif
+
+ 
+ // Get the pointer to the TrMCCluster container
+  VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
+  if (container==0) {
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W no TrMCCluster container, skip.\n");
+    return;
+  }
+ int clen=container->getnelem();
+  if (clen==0) {
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty, skip.\n");
+    if (container!=0) delete container;
+    return;
+  }
+//   printf("\n\n List from Merge Cluster BEGIN\n");
+//   for (int ii=0;ii<clen;ii++)
+// #ifdef __ROOTSHAREDLIBRARY__
+//     ((TrMCClusterR*) container->getelem(ii))->Print();
+// #else
+//    ((AMSTrMCCluster*) container->getelem(ii))->Print();
+// #endif
+//   if(container) delete container;
+//   printf("List from Merge Cluster END\n\n");
+//   return;
+
+  int* used=new int[clen];
+  memset(used,0,clen*sizeof(int));
+  for (int jj=0; jj<clen; jj++){
+    if(used[jj]==1) continue;
+#ifdef __ROOTSHAREDLIBRARY__
+    TrMCClusterR* cl0 = (TrMCClusterR*) container->getelem(jj);
+#else
+    AMSTrMCCluster* cl0 = (AMSTrMCCluster*) container->getelem(jj);
+#endif
+    locstor.push_back(*cl0);
+    used[jj]=1;
+    for (int ii=jj+1; ii<clen; ii++) {
+      if(used[ii]==1) continue;
+#ifdef __ROOTSHAREDLIBRARY__
+      TrMCClusterR* cl = (TrMCClusterR*) container->getelem(ii);
+#else
+      AMSTrMCCluster* cl = (AMSTrMCCluster*) container->getelem(ii);
+#endif
+      AMSPoint dd=locstor.rbegin()->_xgl-cl->_xgl;
+      if((fabs(dd[0])+fabs(dd[1]))<0.015) {
+	*(locstor.rbegin())+=(*cl);
+	used[ii]=1;
+      }
+    }
+  }
+  if(locstor.size()>0){
+    container->eraseC();
+    for(int ii=0;ii<locstor.size();ii++)
+#ifdef __ROOTSHAREDLIBRARY__
+      container->addnext( new TrMCClusterR(locstor[ii]) );
+#else
+      container->addnext( new AMSTrMCCluster(locstor[ii]) );
+#endif
+  }
+
+  if (container!=0) delete container;
+  return;
 }
