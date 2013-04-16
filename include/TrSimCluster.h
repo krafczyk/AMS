@@ -88,7 +88,7 @@ class TrSimCluster {
   //! It returns a Cluster summed with another 
   void   AddCluster(TrSimCluster& cluster);
   //! Gaussianize a fraction of signal of each strip 
-  void   GaussianizeFraction(double fraction);
+  void   GaussianizeFraction(int iside, int hcharge,double fraction,float IP);
   //! Add gaussian noise to each strip 
   void   AddNoise(double noise);
   //! Apply a saturation value to the cluster (from datacard)

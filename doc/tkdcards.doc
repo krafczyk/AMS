@@ -19,7 +19,7 @@ I 6   fname   (400*'') file name for dbase from file
 I 406 disfname(400*'') Disalignment file name
 I 806 alignver(def 2)  Alignment version; 1 :preflight, >1 flight
 I 807 LoadMCDisalign   MN Enable MC disalign (
-                        N=0 disabled(default), N=1 from file, N=2 from TDV)
+                        N=0 disabled(default), N=1 from default file, N=2 from file specified at 406
                        M=0 no aligment loded M=1 Aligment from MC TDV
 I 808 EnableExtMov     Enable ext planes time dependent disalignment
 F [809,814] L1Amp[6]   L1 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ

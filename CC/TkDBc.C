@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.68 2013/03/17 16:19:26 shaino Exp $
+//  $Id: TkDBc.C,v 1.69 2013/04/16 22:29:34 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/03/17 16:19:26 $
+///$Date: 2013/04/16 22:29:34 $
 ///
-///$Revision: 1.68 $
+///$Revision: 1.69 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -617,8 +617,6 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {194,  195, 196, 197},
        {190,  191, 192, 193}};
     memcpy(_octant_JMDC,octant_JMDC,8*4*sizeof(octant_JMDC[0][0]));
-
-    
 
 
     //  Read or Generate the Geometry
@@ -1503,6 +1501,7 @@ void SLin2Align(){
 
 TkDBc *TkDBc::Load(TFile *rfile)
 {
+  printf(" TkDBc::Load -------------------------------> from file %s\n",rfile->GetName());
   if (!rfile || !rfile->IsOpen()) return 0;
   TkDBc::Head = (TkDBc *)rfile->Get("TkDBc");
 

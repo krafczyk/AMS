@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.59 2012/10/09 15:58:36 choutko Exp $
+// $Id: tkdcards.h,v 1.60 2013/04/16 22:29:37 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -37,7 +37,7 @@ public:
   integer disfname[400];
   ///[806] Alignment version; 1 :preflight, >1 flight
   integer alignver;
-  ///[807]; Enable MC disalign (0 disabled(default), 1 from file, 2 from TDV)
+  ///[807]; Enable MC disalign (0 disabled(default), 1 from default file, 2 from file specified in disfname)
   integer LoadMCDisalign;
   ///[808]; Enable ext planes time dependent disalignment
   integer EnableExtMov;
@@ -146,13 +146,17 @@ public:
   integer ActivateShielding;
   geant ShieldingDensity;
 
+
+  /// Read from AMSRoot file or not
+  static int ReadFromFile;
+
   TRMCFFKEY_DEF():TObject(){init();}
   void init();
   number ADC2KeV(){
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,3);
+  ClassDef(TRMCFFKEY_DEF,4);
 
 
 };

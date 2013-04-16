@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.563 2013/04/15 14:54:23 lbasara Exp $
+//  $Id: root.C,v 1.564 2013/04/16 22:29:35 pzuccon Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9965,7 +9965,7 @@ static int master=0;
 try{
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
-				 if (_FILE->Get("datacards/TRMCFFKEY_DEF"))
+      if (TRMCFFKEY.ReadFromFile  && _FILE->Get("datacards/TRMCFFKEY_DEF"))
     TRMCFFKEY   =*((TRMCFFKEY_DEF*)  _FILE->Get("datacards/TRMCFFKEY_DEF"));
 				 if (_FILE->Get("datacards/TRCALIB_DEF"))
     TRCALIB     =*((TRCALIB_DEF*)    _FILE->Get("datacards/TRCALIB_DEF"));
