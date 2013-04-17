@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.33 2013/04/16 22:29:34 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.34 2013/04/17 13:27:31 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/04/16 22:29:34 $
+///$Date: 2013/04/17 13:27:31 $
 ///
-///$Revision: 1.33 $
+///$Revision: 1.34 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -208,7 +208,7 @@ void TrMCClusterR::GenSimClusters(){
   }
 
   //                         p_x     p_y       He_x  He_y
-  double SmearPos[2][2]={{0.0012,0.0009},{0.0012,0.0004}};
+  double SmearPos[2][2]={{0.0012,0.00075},{0.0012,0.0004}};
   // loop on two sides of the ladder
   for (int iside=0; iside<2; iside++) {
 
@@ -236,7 +236,8 @@ void TrMCClusterR::GenSimClusters(){
       
 
     // Enegy smearing, scaling, and convert to ADC
-    double ADCMipValue[2][2]={ {46,30},{48,34}};
+    //                          p_x p_y  He_x  He_y
+    double ADCMipValue[2][2]={ {46, 32},{48,    36}};
     double edep_c2=edep;
     if(iside==0) {
       double edep_c=qlinfun(edep,0.00009); // 
