@@ -23,9 +23,33 @@ char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
 
 
 bool BCHI2_DEBUG = false;
+bool BCHI2_HISTOS = false;
+bool BCHI2_HISTOS_DECLARE = true;
 int iVersionNumberBDTCHI2=0;
+TH1F *hECALBCHI2[nPIBCHI2VARs];
 
-float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAVersion)
+float EcalShowerR::GetEcalBDTCHI2()
+{
+  AMSEventR *pev = AMSEventR::Head();
+  unsigned int iBDTCHI2VERSION = 3;
+  int TMVAClassifier=0;
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
+}
+
+float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION)
+{
+  AMSEventR *pev = AMSEventR::Head();
+  int TMVAClassifier=0;
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
+}
+
+float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier)
+{
+  AMSEventR *pev = AMSEventR::Head();
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
+}
+
+float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier)
 {
    if (BCHI2_DEBUG)
    {
@@ -34,6 +58,18 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       std::cout << " ??? ***************Compute the variables*************\n";
       std::cout << " ??? *************************************************\n" << flush;
    }
+
+   if (BCHI2_HISTOS)
+     {
+       if (BCHI2_HISTOS_DECLARE)
+	 {
+	   for (int i=0; i<nPIBCHI2VARs; i++)
+	     {
+	       hECALBCHI2[i] = new TH1F(Form("hECALBCHI2_%02d",i),Form("hECALBCHI2_%02d",i),100,-3.,3.);
+	     }
+	   BCHI2_HISTOS_DECLARE = false;
+	 }
+     }
 
    EcalAxis::Version=2;
    static EcalAxis ecalaxis;
@@ -297,8 +333,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 cout<<" ====================================================================="<<endl;
 	 cout<<" "<<endl;
 	 iVersionNumberBDTCHI2 = 1;
-	 return -999;
        }
+     return -999;
    }
 
    if (ecalBDTCHI2reader==NULL && ecalBDTCHI2reader_ODD==NULL && ecalBDTCHI2reader_EVEN==NULL )     //if not already Init.....
@@ -568,15 +604,15 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       ecalBDTCHI2reader_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
       //
       //here different algorithms can be defined
-      if (TMVAVersion==0)
+      if (TMVAClassifier==0)
 	{
 	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v3_ODD.weights.xml", WeightsDir));
 	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v3_EVEN.weights.xml", WeightsDir));
 	}
       else
 	{
-	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v3_ODD.weights.xml", WeightsDir));
-	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v3_EVEN.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_412_v3_ODD.weights.xml", WeightsDir));
+	  ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_412_v3_EVEN.weights.xml", WeightsDir));
 	}
 
       ecalBDTCHI2reader_v3_ODD = ecalBDTCHI2reader_ODD;
