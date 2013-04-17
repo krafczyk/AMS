@@ -1,5 +1,6 @@
 #include "root.h"
 #include "TMVA/Tools.h"
+#include "TH1F.h"
 
 TMVA::Reader *ecalpisareader_v3 = NULL;
 TMVA::Reader *ecalpisareader_v4 = NULL;
@@ -27,61 +28,57 @@ char *pisavarname[nPISABDTVARs + 1] = {
 };
 
 bool BDT_DEBUG = false;
-int iBackwardCompatibilityBDT=1;
+bool BDT_HISTOS = false;
+bool BDT_HISTOS_DECLARE = true;
 int iVersionNumberBDT=0;
+TH1F *hECALBDT[nPISABDTVARs];
+
+float EcalShowerR::GetEcalBDT()
+{
+  AMSEventR *pev = AMSEventR::Head();
+  unsigned int iBDTVERSION = 5;
+  int TMVAClassifier=0;
+  return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier);
+}
 
 float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION)
 {
-  AMSEventR *pev = NULL;
+  AMSEventR *pev = AMSEventR::Head();
   int TMVAClassifier=0;
+  return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier);
+}
+
+float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION, int TMVAClassifier)
+{
+  AMSEventR *pev = AMSEventR::Head();
   return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier);
 }
 
 float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier)
 {
-  //
-  // check for backward compatibility
-  // versions 3 and 4 did not require *pev as argument, while this is necessary since version 5
-  //
-  if ( pev == NULL )
-    {
-      if (iBDTVERSION>4)
-	{
-	  if (iBackwardCompatibilityBDT<10)
-	    {
-	      iBDTVERSION=4;
-	      cout<<" WARNINGWARNING::GetEcalBDT -"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT - Attention: you are using an old version of EcalBDT (version "<<iBDTVERSION<<")"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT - To use version 5 (march 2013) or bigger you _must_ include event pointer *pev as argument:"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT -      ecal_BDTvalue = GetEcalBDT(pev,iBDTVERSION);"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT -"<<endl;
-	      iBackwardCompatibilityBDT++;
-	    }
-	}
-      else
-	{
-	  if (iBackwardCompatibilityBDT<10)
-	    {
-	      cout<<" WARNINGWARNING::GetEcalBDT -"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT - Attention: you are using an old version of EcalBDT (version "<<iBDTVERSION<<")"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT - To use version 5 (march 2013) or bigger you _must_ include event pointer *pev as argument:"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT -      ecal_BDTvalue = GetEcalBDT(pev,iBDTVERSION);"<<endl;
-	      cout<<" WARNINGWARNING::GetEcalBDT -"<<endl;
-	      iBackwardCompatibilityBDT++;
-	    }
-	}
-    }
-  //
-  // End of compatibility check
-  //
-
+  
    if (BDT_DEBUG)
-   {
-      std::cout << " ??? EcalShowerR::GetEcalBDT() \n";
-      std::cout << " ??? ******************************\n";
-      std::cout << " ??? *****Compute the variables****\n";
-      std::cout << " ??? ******************************\n" << flush;
-   }
+     {
+       std::cout << " ??? EcalShowerR::GetEcalBDT() \n";
+       std::cout << " ??? ******************************\n";
+       std::cout << " ??? *****Compute the variables****\n";
+       std::cout << " ??? ******************************\n" << flush;
+     }
+
+   if (BDT_HISTOS)
+     {
+       std::cout<<" GetEcalBDT :: BDT_HISTOS_DECLARE ="<<BDT_HISTOS_DECLARE<<"\n"<<flush;
+       std::cout<<" GetEcalBDT :: BDT_HISTOS_DECLARE = "<<BDT_HISTOS_DECLARE<<endl;
+       if (BDT_HISTOS_DECLARE)
+	 {
+	   for (int i=0; i<nPISABDTVARs; i++)
+	     {
+	       std::cout<<" GetEcalBDT :: Defining histogram hECALBDT["<<i<<"]\n"<<flush;
+	       hECALBDT[i] = new TH1F(Form("hECALBDT_%02d",i),Form("hECALBDT_%02d",i),100,-3.,3.);
+	     }
+	   BDT_HISTOS_DECLARE = false;
+	 }
+     }
 
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
@@ -390,8 +387,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	 cout<<" =================================================================="<<endl;
 	 cout<<" "<<endl;
 	 iVersionNumberBDT = 1;
-	 return -999;
        }
+     return -999;
    }
 
    if (ecalpisareader == NULL && ecalpisareader_ODD==NULL && ecalpisareader_EVEN==NULL)     //if not already Init.....
@@ -405,6 +402,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
       //
       char WeightsDir[100];
       sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
+      //sprintf(WeightsDir,"/afs/cern.ch/user/i/incaglim/public/bdt-marco/WEIGHTS");
       
       if ( iBDTVERSION == 3 )
       {
@@ -1579,6 +1577,14 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	 }
      }
    else bdt=-999.;
+
+   if (BDT_HISTOS)
+     {
+       for (int i=0; i<nPISABDTVARs; i++)
+	 {
+	   hECALBDT[i]->Fill(pisanormvar[i]);
+	 }
+     }
 
    return bdt;
 }
