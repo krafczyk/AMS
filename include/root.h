@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.549 2013/04/11 21:52:46 choutko Exp $
+//  $Id: root.h,v 1.550 2013/04/17 10:27:53 incaglim Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -828,9 +828,10 @@ public:
   /// TMVA Classifier:
   /// TMVAClassifier=0 (default) standard BDTG
   /// TMVAClassifier=1           BDT with smoothing
-  float GetEcalBDT(unsigned int i=4);
-  //float GetEcalBDT(AMSEventR *pev, unsigned int i=5);
-  float GetEcalBDT(AMSEventR *pev, unsigned int i=5, int TMVAClassifier=0);
+  float GetEcalBDT();
+  float GetEcalBDT(unsigned int iBDTVERSION);
+  float GetEcalBDT(unsigned int iBDTVERSION, int TMVAClassifier);
+  float GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier);
   /// Function that combines GetEcalBDT and GetChi2 .
   /// It has three arguments: a pointer to the event (AMSEventR *pev), a version number and a Classifier number.
   /// Version number:
@@ -839,7 +840,10 @@ public:
   /// TMVA Classifier:
   /// TMVAClassifier=0 (default) standard BDTG
   /// TMVAClassifier=1           BDT with smoothing
-  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int i=3, int TMVAClassifier=0);
+  float GetEcalBDTCHI2();
+  float GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION);
+  float GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier);
+  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier);
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
   int NEcal2DCluster()const {return fEcal2DCluster.size();}
