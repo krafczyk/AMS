@@ -1,5 +1,5 @@
 #include "TrSimCluster.h"
-
+#include <stdexcept> 
 
 extern "C" double rnormx();
 
@@ -38,16 +38,20 @@ void TrSimCluster::Clear() {
 void TrSimCluster::SetSignal(int i, double s) {
   // no error: no effect if out of the cluster
    if ( (i<0)||(i>=GetWidth()) ) return;
-  _signal[i] = s;
+  _signal.at(i) = s;
 }
 
 
 double TrSimCluster::GetSignal(int i) {
-  // no error: 0 if out of the cluster
-  if ( (i<0)||(i>=GetWidth()) ) return 0.;
-  return _signal[i];//.at(i);
+  double out=0.;
+  try{
+    out=_signal.at(i);;
+  }
+  catch(const std::out_of_range& e){
+    out=0.;
+  }
+  return out;
 }
-
 
 void TrSimCluster::Info(int verbose) {
   if (GetWidth()==0) { printf("TrSimCluster - Empty!\n"); return; }
