@@ -38,19 +38,20 @@ void TrSimCluster::Clear() {
 void TrSimCluster::SetSignal(int i, double s) {
   // no error: no effect if out of the cluster
    if ( (i<0)||(i>=GetWidth()) ) return;
-  _signal.at(i) = s;
+   _signal.at(i) = s;
+
 }
 
 
 double TrSimCluster::GetSignal(int i) {
+
   double out=0.;
-  try{
-    out=_signal.at(i);;
-  }
-  catch(const std::out_of_range& e){
-    out=0.;
+  try{ out= _signal.at(i);}
+  catch( const std::out_of_range &e){
+    out=0;
   }
   return out;
+
 }
 
 void TrSimCluster::Info(int verbose) {

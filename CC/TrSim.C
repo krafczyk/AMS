@@ -17,7 +17,7 @@ extern "C" double rnormx();
 AMSPoint TrSim::sitkrefp[trconst::maxlay];
 AMSPoint TrSim::sitkangl[trconst::maxlay];
 
-TrMap<TrMCClusterR> TrSim::MCClusterTkIdMap;
+
 TrSimSensor TrSim::_sensors[3];
 
 
@@ -279,7 +279,34 @@ void TrSim::sitkdigi() {
 
 
   // Create the TrMCCluster map and make the simulated cluster (_shower(), GenSimCluster())
-  CreateMCClusterTkIdMap();
+
+  TrMap<TrMCClusterR> MCClusterTkIdMap;
+  // Generate the list of MC Cluster on each ladder
+  MCClusterTkIdMap.Clear();
+  // Get the pointer to the TrMCCluster container
+  VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
+  if (container==0) {
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W no TrMCCluster container, skip.\n");
+    return;
+  }
+  if (container->getnelem()==0) {
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty, skip.\n");
+    if (container!=0) delete container;
+    return;
+  }
+  for (int ii=0; ii<container->getnelem(); ii++) {
+    TrMCClusterR* cluster = (TrMCClusterR*) container->getelem(ii);
+    if (cluster) {
+      // Construct ideal clusters!!!    
+      if      (TRMCFFKEY.SimulationType==kRawSim)    cluster->_shower();
+      else if (TRMCFFKEY.SimulationType==kTrSim2010) cluster->GenSimClusters();
+      MCClusterTkIdMap.Add(cluster);
+    }
+  }
+  if (container!=0) delete container;
+
+
+
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("SiTkDigiShow");
@@ -443,7 +470,7 @@ void TrSim::sitkdigi() {
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.start("SiTkDigiFake");
 #endif
-    sitknoise(nsimladders);
+    sitknoise(nsimladders, &(MCClusterTkIdMap));
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.stop("SiTkDigiFake");
 #endif
@@ -457,32 +484,6 @@ void TrSim::sitkdigi() {
 }
 
 
-void TrSim::CreateMCClusterTkIdMap() {
-  // Generate the list of MC Cluster on each ladder
-  MCClusterTkIdMap.Clear();
-  // Get the pointer to the TrMCCluster container
-  VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
-  if (container==0) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W no TrMCCluster container, skip.\n");
-    return;
-  }
-  if (container->getnelem()==0) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty, skip.\n");
-    if (container!=0) delete container;
-    return;
-  }
-  for (int ii=0; ii<container->getnelem(); ii++) {
-    TrMCClusterR* cluster = (TrMCClusterR*) container->getelem(ii);
-    if (cluster) {
-      // Construct ideal clusters!!!    
-      if      (TRMCFFKEY.SimulationType==kRawSim)    cluster->_shower();
-      else if (TRMCFFKEY.SimulationType==kTrSim2010) cluster->GenSimClusters();
-      MCClusterTkIdMap.Add(cluster);
-    }
-  }
-  if (container!=0) delete container;
-  return;
-}
 
 
 void TrSim::AddNoiseOnBuffer(double* ladbuf, TrLadCal* ladcal) {
@@ -623,7 +624,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
 }
 
 
-void TrSim::sitknoise(int nsimladders) {
+void TrSim::sitknoise(int nsimladders,TrMap<TrMCClusterR> *MCClusterTkIdMap ) {
 
   // does the AMSTrRawCluster container exist?
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
@@ -696,7 +697,7 @@ void TrSim::sitknoise(int nsimladders) {
         int hwid = int(ientry/24)*100 + (ientry%24);
 	TkLadder* ladder = TkDBc::Head->FindHwId(hwid);
 	tkid = ladder->GetTkId();
-	if (MCClusterTkIdMap.GetNelem(tkid)<=0) ladderfound = true;
+	if (MCClusterTkIdMap->GetNelem(tkid)<=0) ladderfound = true;
       }
       int ilayer = int(fabs(tkid/100))-1;
 
@@ -824,12 +825,12 @@ void TrSim::MergeMCCluster(){
  // Get the pointer to the TrMCCluster container
   VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
   if (container==0) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W no TrMCCluster container, skip.\n");
+    if (WARNING) printf("TrSim::MergeMCCluster-W no TrMCCluster container, skip.\n");
     return;
   }
  int clen=container->getnelem();
   if (clen==0) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty, skip.\n");
+    if (WARNING) printf("TrSim::MergeMCCluster-W TrMCCluster container is empty, skip.\n");
     if (container!=0) delete container;
     return;
   }

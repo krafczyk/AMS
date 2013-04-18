@@ -1,6 +1,7 @@
 //
 //===============================================================================
 //
+#include "TrSim.h"
 void AMSJob::_sitkdata(){
 
   TKGEOMFFKEY.init();
@@ -239,7 +240,8 @@ void AMSJob::_sitkinitjob(){
   AMSgObj::BookTimer.book("SiTkDigiNoise");
   AMSgObj::BookTimer.book("SiTkDigiDsp");
   AMSgObj::BookTimer.book("SiTkDigiFake");
-
+  cout << "SiTkInitJob-I-Initialize TrSimSensors" << endl;
+  TrSim::InitSensors();
 }
 
 //------------------------------------------------------
