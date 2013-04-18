@@ -192,8 +192,10 @@ void TrSimCluster::AddCluster(TrSimCluster& cluster) {
 void TrSimCluster::GaussianizeFraction(int iside, int hcharge, double fraction,float IP) {
 
   float ff[2][2][3]={
+    //  p_x              He_x
     {{1.,  1., 8.},{1.4, 8., 14.}},
-    {{1.,  1., 8.},{1.4, 6.,  6.}}
+    // p_y              He_y
+    {{1.1,  1., 8.},{1.4, 6.,  6.}}
   };
 
   //experimental version PZ

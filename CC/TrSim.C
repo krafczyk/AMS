@@ -819,12 +819,7 @@ void TrSim::PrintSimPars() {
 
 
 void TrSim::MergeMCCluster(){
-#ifdef __ROOTSHAREDLIBRARY__
   vector<TrMCClusterR> locstor;
-#else
-  vector<AMSTrMCCluster> locstor; 
-#endif
-
  
  // Get the pointer to the TrMCCluster container
   VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
@@ -853,20 +848,12 @@ void TrSim::MergeMCCluster(){
   memset(used,0,clen*sizeof(int));
   for (int jj=0; jj<clen; jj++){
     if(used[jj]==1) continue;
-#ifdef __ROOTSHAREDLIBRARY__
     TrMCClusterR* cl0 = (TrMCClusterR*) container->getelem(jj);
-#else
-    AMSTrMCCluster* cl0 = (AMSTrMCCluster*) container->getelem(jj);
-#endif
     locstor.push_back(*cl0);
     used[jj]=1;
     for (int ii=jj+1; ii<clen; ii++) {
       if(used[ii]==1) continue;
-#ifdef __ROOTSHAREDLIBRARY__
       TrMCClusterR* cl = (TrMCClusterR*) container->getelem(ii);
-#else
-      AMSTrMCCluster* cl = (AMSTrMCCluster*) container->getelem(ii);
-#endif
       AMSPoint dd=locstor.rbegin()->_xgl-cl->_xgl;
       if((fabs(dd[0])+fabs(dd[1]))<0.015) {
 	*(locstor.rbegin())+=(*cl);
