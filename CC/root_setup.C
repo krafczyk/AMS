@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.130 2013/04/09 16:38:51 choutko Exp $
+//  $Id: root_setup.C,v 1.131 2013/04/19 18:54:50 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1489,6 +1489,7 @@ else if(t2-t1>864000){
    t2=t1+864000;
 }
 const char fpatb[]="ECI_STK_";
+const char fpatb2[]="ABL_STK_";
 const char fpate[]=".csv";
 
     tm tmf;
@@ -1549,6 +1550,18 @@ char tmp2[255];
      fbin.close();    
      fbin.clear();
      fbin.open(fname.c_str());
+     if(!fbin){
+//   change partially to fpatb2
+     fname=AMSISS;
+     fname+=fpatb;
+     char utmp[255];
+     sprintf(utmp,"%u/%s%u%03u",yc,fpatb2,yc,dc);
+     fname+=utmp;
+     fname+=fpate;
+     fbin.close();    
+     fbin.clear();
+     fbin.open(fname.c_str());
+     }
      if(fbin){
       while(fbin.good() && !fbin.eof()){
 
@@ -4074,7 +4087,7 @@ else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSGTOD-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
    t2=t1+864000;
 }
-const char fpatb[]="GTOD/ISS_SV_GTOD_01-";
+const char fpatb[]="GTOD/ISS_SV_GTOD-";
 const char fpatb2[]="GTOD/ISS_SV_GTOD_01_";
 const char fpate[]="-24H.csv";
 const char fpate2[]="-24h.csv";
@@ -4175,13 +4188,14 @@ char tmp2[255];
      }
      if(fbin){
       while(fbin.good() && !fbin.eof()){
-        char line[120];
-        fbin.getline(line,119);
+        char line[4096];
+        fbin.getline(line,4095);
         
         if(isdigit(line[0])){
          char *pch;
          pch=strtok(line,".");
          ISSGTOD a;
+         double vx,vy,vz,rx,ry,rz;
          if(pch){
           strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
           //cout <<" pch "<<pch<<endl;
@@ -4198,23 +4212,55 @@ char tmp2[255];
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.phi=atof(pch);
-          pch=strtok(NULL,",");
-          if(!pch)continue;
-          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
           a.theta=atof(pch);
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.v=atof(pch)/1000.;
+          a.phi=atof(pch);
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.vphi=atof(pch)/1000.;
+          a.v=atof(pch);
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.vtheta=atof(pch)/1000.;
+          a.vtheta=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.vphi=atof(pch);
+/*
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          rx=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          ry=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          rz=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          vx=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          vy=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          vz=atof(pch);
+          double v=sqrt(vx*vx+vy*vy+vz*vz);
+          double r=sqrt(rx*rx+ry*ry+rz*rz);
+          a.vtheta=asin(vz/v);
+          a.vphi=atan2(vy,vx);
+          a.theta=asin(rz/r);
+          a.phi=atan2(ry,rx); 
+*/
            fISSGTOD.insert(make_pair(tc,a));
           
           if(tc>=t1 && tc<=t2){
