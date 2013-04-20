@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.256 2013/03/15 11:05:32 choutko Exp $
+#  $Id: Makefile,v 1.257 2013/04/20 20:41:13 zhukov Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -595,6 +595,13 @@ COMMON_FILES += $(SFF)BackTracing.F
 # Unfolding
 #COMMON_FILES += $(SCC)UnfoldingTools.C
 
+#MVA
+COMMON_FILES += $(SCC)MVAmanager.C $(SCC)ConfigParser.C \
+		$(SCC)OutHistoManager.C  $(SCC)OutTreeManager.C
+
+#COMMON_FILES += $(SCC)ConfigParser.C
+
+
 #Root Interface
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
@@ -636,6 +643,12 @@ ROOTDICTFILES += ../include/TofGeometry.h  ../include/TofRecon.h  ../include/Tof
 endif
 
 ROOTDICTFILES += ../include/UnfoldingTools.h
+
+
+#MVA
+#ROOTDICTFILES +=../include/MVAmanager.h ../include/ConfigParser.h ../include/OutTreeManager.h ../include/OutHistoManager.h
+
+ROOTDICTFILES +=../include/MVAmanager.h ../include/ConfigParser.h  ../include/OutTreeManager.h  ../include/OutHistoManager.h
 
 ROOTDICTFILES += ../include/linkdef.h
 
@@ -885,6 +898,13 @@ SHLIBO+=$(BIN)BackTracingMIB.o
 SHLIBO+=$(BIN)BackTracing.o
 SHLIBO+=$(BIN)UnfoldingTools.o
 
+
+SHLIBO+=$(BIN)MVAmanager.o
+SHLIBO+=$(BIN)ConfigParser.o
+SHLIBO+=$(BIN)OutTreeManager.o
+SHLIBO+=$(BIN)OutHistoManager.o
+
+
 SHLIBO+=$(ACSOFT_OBJECTS)
 SHLIBBO:=$(SHLIBO)
 else
@@ -892,6 +912,13 @@ SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)r
 
 SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o
 SHLIBO+=$(BIN)UnfoldingTools.o
+
+
+SHLIBO+=$(BIN)MVAmanager.o
+SHLIBO+=$(BIN)ConfigParser.o
+SHLIBO+=$(BIN)OutTreeManager.o
+SHLIBO+=$(BIN)OutHistoManager.o
+
 
 SHLIBO+=$(ACSOFT_OBJECTS)
 SHLIBBO+=$(ACSOFT_OBJECTS)

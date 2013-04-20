@@ -1,4 +1,4 @@
-//  $Id: geantnamespace.h,v 1.10 2012/08/02 09:21:57 choutko Exp $
+//  $Id: geantnamespace.h,v 1.11 2013/04/20 20:41:13 zhukov Exp $
 #ifndef __GEANTNAMESPACE__
 #define __GEANTNAMESPACE__
 
@@ -22,6 +22,7 @@ namespace g4ams{
   
 }
 #include <CLHEP/Vector/Rotation.h>
+//typedef HepRotation  amsg4rm;
 typedef CLHEP::HepRotation  amsg4rm;
 #endif
 namespace gams{
