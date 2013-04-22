@@ -488,9 +488,13 @@ void TrSim::sitkdigi() {
 
 void TrSim::AddNoiseOnBuffer(double* ladbuf, TrLadCal* ladcal) {
   // Noise baseline 
-  for (int ii=0; ii<1024; ii++) {
+  for (int ii=0; ii<640; ii++) {
     if (ladcal->GetStatus(ii)&TrLadCal::dead) ladbuf[ii] = DEADSTRIPADC; // dead strip    
-    else                                      ladbuf[ii] += ladcal->Sigma(ii)*rnormx(); // normal/hot stri
+    else                                      ladbuf[ii] += ladcal->Sigma(ii)*rnormx()*1.5; // normal/hot stri
+  }
+ for (int ii=640; ii<1024; ii++) {
+    if (ladcal->GetStatus(ii)&TrLadCal::dead) ladbuf[ii] = DEADSTRIPADC; // dead strip    
+    else                                      ladbuf[ii] += ladcal->Sigma(ii)*rnormx()*1.3; // normal/hot stri
   }
 }
 
