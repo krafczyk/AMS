@@ -55,13 +55,14 @@ class TrSim {
 
   //! Impact positions
   static AMSPoint sitkrefp[trconst::maxlay];
+#pragma omp threadprivate (sitkrefp)
+
   //! Impact angles
   static AMSPoint sitkangl[trconst::maxlay];
+#pragma omp threadprivate (sitkangl)
 
  private:
 
-  //! A map for the MC Cluster search
-  static TrMap<TrMCClusterR> MCClusterTkIdMap;
   //! Sensors 
   static TrSimSensor _sensors[3]; 
 
@@ -81,11 +82,9 @@ class TrSim {
   //! Fast simulation TrRawCluster creation (generate TrRawCluster directly from step infos) 
   static void  gencluster(int idsoft, float vect[], float edep, float step, int itra);  
   //! Generate fake noise cluster (where there is no full simulation)
-  static void  sitknoise(int nsimladders);
+  static void  sitknoise(int nsimladders,TrMap<TrMCClusterR> *MCClusterTkIdMap );
   //! Generate the TrRawClusters from the TrMCCluster (calls the specific simulation type)
   static void  sitkdigi();
-  //! Create the MC Cluster TkId map and generate MC ideal clusters 
-  static void  CreateMCClusterTkIdMap();
   //! Add noise of the TkId ladder on the ladder buffer (from current calibration)
   static void  AddNoiseOnBuffer(double* ladbuf, TrLadCal * ladcal);
   //! Put MC ideal clusters on the ladder buffer (TrSim2010) 

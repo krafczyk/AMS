@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.34 2013/04/17 13:27:31 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.35 2013/04/22 13:56:18 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/04/17 13:27:31 $
+///$Date: 2013/04/22 13:56:18 $
 ///
-///$Revision: 1.34 $
+///$Revision: 1.35 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -207,8 +207,8 @@ void TrMCClusterR::GenSimClusters(){
            _glo2loc.GetLaddCoo().x(),_glo2loc.GetLaddCoo().y(),_glo2loc.GetStripX(),_glo2loc.GetStripY(),imult);
   }
 
-  //                         p_x     p_y       He_x  He_y
-  double SmearPos[2][2]={{0.0012,0.00075},{0.0012,0.0004}};
+  //                         p_x     p_y       He_x    He_y
+  double SmearPos[2][2]={{0.0008,      0.},{0.0008,  0.0002}};
   // loop on two sides of the ladder
   for (int iside=0; iside<2; iside++) {
 
@@ -237,14 +237,15 @@ void TrMCClusterR::GenSimClusters(){
 
     // Enegy smearing, scaling, and convert to ADC
     //                          p_x p_y  He_x  He_y
-    double ADCMipValue[2][2]={ {46, 32},{48,    36}};
+    double ADCMipValue[2][2]={ {42, 32},{48,    32.}};
+    double SigQuadLoss[2][2]={{0.0002,0.0004},{0.0001,0.00022}};
     double edep_c2=edep;
     if(iside==0) {
-      double edep_c=qlinfun(edep,0.00009); // 
+      double edep_c=qlinfun(edep,SigQuadLoss[hcharge][iside]); // 
       edep_c2=ADCMipValue[hcharge][0]*edep_c/81;
     }else{
-      double edep_c=edep* (1+rnormx()*0.20);
-      edep_c=qlinfun(edep_c,0.00030);	
+      double edep_c=edep* (1+rnormx()*0.15);
+      edep_c=qlinfun(edep_c,SigQuadLoss[hcharge][iside]);	
       edep_c2=ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
     }
     // if side Y some addtional edep vs eta dependence
