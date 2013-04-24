@@ -3882,7 +3882,7 @@ class RemoteClient:
         cmd=""
         if(crdel==1):
                 if(path.find('/castor/cern.ch/ams')>=0):
-                    path.replace('/castor/cern.ch/ams'.'/castor',1);
+                    path.replace('/castor/cern.ch/ams','/castor',1);
                 cmd="ln -sf "+path+" "+newdir
                 
         else:
@@ -3893,3 +3893,474 @@ class RemoteClient:
         if(i):
                 print "Problem with "+cmd
         return newfile
+
+
+    def UploadToCastorP(self,dir,verbose,update,cmp,run2p,mb,maxer=2,datamc=0,force=0,validate=1):
+        castorPrefix = '/castor/cern.ch/ams/MC'
+        $delim="MC"
+        $adelim="HZC"
+        if($datamc ==1 or $datamc==3):
+            castorPrefix = '/castor/cern.ch/ams/Data'
+            delim=""
+            adelim="MC"
+        errors=0
+        rfcp="/usr/bin/rfcp"
+        whoami = os.getlogin()
+        if not (whoami == None or whoami =='ams' ):
+            print "UploadToCastor -ERROR- script cannot be run from account : ",whoami
+            return 0
+        runs=0
+        bad_runs=0
+        sql ="select name,did from productionset"
+        ret=self.sqlserver.Query(sql)
+        did=-1
+        name=""
+        for ds in ret:
+            if ds.name in dir:
+                did = ds.did
+                name = ds.name
+                break
+        name_s = re.sub('/', '\\/', name)
+        if did < 0:
+            if verbose != 0:
+                print "No dasets found for ", dir;
+            return 0
+        sql = "SELECT ntuples.run,ntuples.path,ntuples.jid from ntuples where    ntuples.path like '%" + dir + "%' $castor and ntuples.datamc=$datamc and ntuples.path not like '%.hbk' order by ntuples.jid"
+        if datamc > 1:
+            sql = "SELECT run,path from datafiles where path like '%" + dir + "%'  $castor and type like '" + delim + "%' and type not like '" + adelim + "%' order by run"
+        ret=self.sqlserver.Query(sql)
+        uplsize=0
+        for run in ret:
+            timenow = int(time.time())
+            if (run2p != 0 and run2p != run.run):
+                continue
+            if uplsize > mb:
+                break
+            ok = (CheckCRCP(verbose, 0, update, run.run, 0, run.path, datamc) if validate else 1)
+            if not ok:
+                errors += 1
+                if errors >= maxer:
+                    print " Too Many Errors, Exiting "
+                    return 0
+            sql="select path,sizemb from ntuples where  jid=" + run.jid + " and path like '%" + dir + "%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=" + datamc
+            if datamc > 1:
+                sql="select path,sizemb from datafiles where  run=" + run.run + " and path like '%" + dir + "%' $castor and path not like '/castor%' and type like '" + delim + "%'"
+            ret_nt = self.sqlserver.Query(sql)
+            suc = 1
+            if len(ret_nt) == 0:
+                continue
+            else:
+                junk = string.split(ret_nt[0][0], name_s)
+                junk2 = string.split(junk[1], '/')
+                dir = castorPrefix + "/" + name
+                for i in range(0, len(junk2)-1):
+                    dir += "/" + junk2[i]
+                sys = "/usr/bin/nsmkdir -p " + dir
+#                i = os.system(sys);
+                i = 0
+            runs += 1;
+            for ntuple in ret_nt:
+                if re.search("^#", ntuple[0]):
+                    continue
+#
+#         check fs is active
+#
+                junk = ntuple[0].split('/')
+                if not self.DiskIsOnline('/' + junk[1]):
+                    print " Disk ", junk[1], " is Offline, skipped "
+                    suc = 0;
+                    break
+                junk = ntuple[0].split(name_s)
+                castor = castorPrefix + "/" + name + junk[1]
+                junk2 = castor.split('/')
+                junk3 = castor.split(junk2[-1])
+                if len(junk3) >= 1:
+                    sys = "/usr/bin/nsmkdir -p " + junk3[0]
+##                    os.system(sys)
+                sys = rfcp + ntuple[0] + " " + castor
+#                i = os.system(sys)
+                i = 0
+                if i:
+                    suc = 0
+                    if verbose:
+                        print " ", sys, " failed "
+                    break
+                else:
+                    if verbose:
+                        print " ", sys, " copied "
+                uplsize += ntuple[1]
+            if not suc:
+                if verbose:
+                    print " Run ", run[0], "  failed "
+                bad_runs += 1
+            else
+#
+# run successfully copied
+# 
+                if update:
+                    for ntuple in ret_nt:
+                        junk = ntuple[0].split(name_s)
+                        castor = castorPrefix + "/" + name + junk[1]
+                        tms = int(time.time())
+                        sql = "update ntuples set castortime=" + timenow + "where path='" + ntuple[0] + "'"
+                        if datamc > 1:
+                            sql = "update datafiles set castortime=" + timenow + "where path='" + ntuple[0] + "'"
+#                        self.sqlserver.Update(sql)
+#                    res = self.sqlserver.Commit()
+                    res = 1
+                    if not res:
+                        if verbose:
+                            print " Commit failed for run ", run[0], " "
+                    if verbose:
+                        print " Run ", run[0], "  processed. Total of ", uplsize, " mbytes uploaded"
+        print "Total of ", runs, " Selected.  Total Of ", bad_runs, "  Failed"
+#
+# now optionally compare castorfiles with data
+#
+
+        if cmp > 0:
+            self.CheckFS(1, 300, '/', 0)
+            sql = "select path,run from ntules where   path like '%" + dir + "%' and castortime>0 and path not like '/castor%' and datamc=" + datamc
+            if datamc > 1:
+                sql = "select path,run from datafiles where   path like '%" + dir + "%' and castortime>0 and path not like '/castor%' and type like '" + delim + "%' and type not like '" + adelim + "%' "
+            ret_nt = self.sqlserver.Query(sql)
+            for ntuple in ret_nt:
+                if re.search("^#", ntuple[0]):
+                    continue
+                j1 = ntuple[0].split('/')
+                sql = "select isonline from filesystems where disk='/'" + j1[1] + "'"
+                rtn = self.sqlserver.Query(sql)
+                if rtn and rtn[0][0] == 1:
+                    junk = ntuple[0].split(name_s)
+                    castor = castorPrefix + '/' + name + junk[1]
+                    ctmp = "/tmp/castor.tmp"
+                    ltmp = "/tmp/local.tmp"
+                    sys = "/usr/bin/nsls -l " + castor + " 1> " + ctmp + " 2>&1"
+                    os.system(sys)
+                    sys = "ls -l " + ntuple[0] + " 1> " + ltmp + " 2>&1"
+                    res = os.system(sys)
+                    if res:
+                        print "problem with ", sys
+                        os.system("sleep 1")
+                        res = os.system(sys)
+                        if res:
+                            print "problem with ", sys
+                            os.system("sleep 1")
+                    with open(ctmp, 'r') as f
+                        line_c = f.read()
+                    with open(ltmp, 'r') as f
+                        line_l = f.read()
+                    os.unlink ctmp
+                    os.unlink ltmp
+                    size_l = line_l.split(' ')
+                    size_c = line_c.split(' ')
+                    if len(size_c) < 5 or not re.search("^\d+$", size_c[4] or not re.search("^\d+$", size_l[4] or size_l[4] != size_c[4]:
+                        print "Problems with ", ntuple[0], " castorsize: ", size_c[4], " localsize: ", size_l[4], " ", castor, " ", line_c, " ", line_l
+                        if cmp > 1:
+                            self.UploadToCastor(ntuple[0], verbose, update, 0, ntuple[1], mb*10, maxer, datamc, 1)
+
+
+    def CheckCRCP(self,verbose,irm,update,run2p,force,dir,nocastoronly,datamc):
+        #
+        #  check crc of files on disks
+        #  copy from castor if bad crc found
+        #  remove from disk if castor copy is eq damaged
+        #  change ntuple status to 'Bad'
+        #  Updates catalogs
+        #  in case $datamc>1  check (and only check) crc from rawfiles
+        #
+        # input par: 
+        #                                     /dir are optional ones
+        #  verbose   verbose if 1
+        #  irm    
+        #  update    do sql/file rm  if 1
+        #  run2p   only process run $run2p if not 0
+        #  dir:   path to  files like /s0dat1
+        #  nocastoronly  only check crc for files without castor
+        #  datamc     0 for MC, 1 for data, and for raw if > 1
+        # output par:
+        #   1 if ok  0 otherwise
+        #
+        # 
+        self.v = verbose
+        if irm == 1: rm = "rm -i "
+        else: rm = "rm -f "
+        adress = "vitali.choutko@cern.ch"
+        castorPrefix = '/castor/cern.ch/ams'
+        delimiter = 'MC'
+        rfcp = "/usr/bin/rfcp "
+        whoami = os.getlogin()
+        if not (whoami == None or whoami =='ams' or whoami=='casadmva'):
+            print "castorPath -ERROR- script cannot be run from account : ",whoami
+            return 0
+        if datamc == None: datamc = 0
+        if datama > 1:
+            delimiter = '/Data'
+            if run20 <= 0:
+                print "CheckCRc withn datamc ", datamc, "and run ", run2p, "not supported "
+                return 0
+            sql =  "select path,crc,sizemb,castortime from datafiles where run=" + run2p + " and path  like '" + dir + "' "
+            if nocastoronly == 1: sql += " and castortime=0 "
+            ret_nt = self.sqlserver.Query(sql)
+            if ret_nt[0][0] != None:
+                for ntuple in ret_nt:
+                    crccmd = self.env['AMSSoftwareDir'] + "/exe/linux/crc " + ntuple[0]+" " + ntuple[1]
+                    rstatus = os.system(crccmd)
+                    rstatus >>= 8
+                    if rstatus != 1:
+                        if verbose:
+                            if verbose > 1:
+                                self.sendmailmessage(address, "crc   failed " + ntuple[0], " ")
+                            print ntuple[0], " crc error:  ", rstatus
+                        if ntuple[2] > 0:
+#
+# copy from castor
+#          
+                            suc = 1
+                            junk = string.split(ntuple[0], delimiter
+                            if len(junk) > 1:
+                                castornt = castorPrefix + "/" + delimiter + junk[1]
+                                sys = rfcp + " " + castornt + " " + ntuple[0] + ".castor"
+#                                i = os.system(sys)
+                                if i:
+                                    suc = 0
+                                    if verbose:
+                                        print sys, " failed for ", castornt
+#                                    os.system("rm " + ntuple[0] + ".castor")
+                                    return 0
+                                else:
+                                    crccmd = self.env['AMSSoftwareDir'] + "/exe/linux/crc " + ntuple[0] + ".castor " + ntuple[1]
+                                    rstatus = os.system(crccmd)
+                                    rstatus >>= 8
+                                if rstatus != 1:
+                                    suc = 0
+                                    if verbose:
+                                        if verbose > 1:
+                                            self.sendmailmessage(address, "crc   failed " + castornt, " ")
+                                        print castornt, " crc error:  ", rstatus
+
+                                    return 0
+                                if update:
+#                                    os.system("mv " + ntuple[0] + ".castor " + ntuple[0])
+                                else
+#                                    os.system("rm " + ntuple[0] + ".castor"
+                    return (rstatus == 1)
+            else
+                return 0
+        if datamc != 0:
+            delimiter = 'Data'
+        sql = "select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.jid,ntuples.fevent,ntuples.levent,ntuples.sizemb,ntuples.run from ntuples where  ntuples.path not like  '" + castorPrefix + "%' and datamc=" + datamc;
+        if force == 0:
+            sql += "  and ( ntuples.status='OK' or ntuples.status='Validated') "
+        if dir != None:
+            sql += " and ntuples.path like '%" + dir + "%' "
+        if run2p > 0:
+            sql += " and ntuples.run=" + run2p
+        if nocastoronly == 1:
+            sql += " and ntuples.castortime=0 "
+        sql += " order by ntuples.jid "
+        run = 0
+        jid = 0
+        runs = 0
+        ntp = 0
+        ntpb = 0
+        ntpf = 0
+        ntna = 0
+        ret_nt = self.sqlserver.Query(sql)
+        badfs=[]
+        totmb=0
+        cmb=0
+        if ret_nt[0][0] != None:
+            for ntuple in ret_nt:
+                totmb += ntuple[6]
+            times = time.time()
+            self.CheckFS(1,600,"/"+delimiter)
+            for ntuple in ret_nt:
+                if jid != ntuple[3]:
+                    junk = string.split(ntuple[0], delimiter)
+                    if len(junk) <= 1:
+                        print "fatal problem with $delimiter for ", ntuple[0], "  do nothing "
+                        ntna += 1
+                        continue
+                    disk = (junk[0])[0:len(junk[0])-1]
+                    sql = "select disk from filesystems where disk='" + disk + "' and isonline=1"
+                    ret_fs = self.sqlserver.Query(sql)
+                    if len(ret_fs) == 0:
+                        found = 0
+                        for bd in badfs:
+                            if bd == disk
+                                found = 1
+                                break
+                        if not found:
+                            badfs.append(disk)
+                            if verbose:
+                                print disk," is not online"
+                        ntna += 1
+                        continue
+                    run = ntuple[7]
+                    jid = ntuple[3]
+                    timc = time.time()-times
+                    speed = cmb / (timec + 1)
+                    timest = (totmb - cmb) / (speed + 0.001) / 3600
+                    if speed == 0:
+                        timest = 0
+                    timec /= 60
+                    timec = int((timec * 10) / 10)
+                    timest = int((timest*10) / 10)
+                    speed = int((speed * 10) / 10)
+                    if verbose:
+                        print "New run $run. ", ntp, " ntuples processed out of ", len(ret_nt), " for ", timec, " min ", speed, " mb/sec out of ", timest, " hrs "
+                    runs += 1
+                ntp += 1
+                cmb += ntuple[6]
+                crccmd = self.env['AMSSoftwareDir'] + "/exe/linux/crc " + ntuple[0] + " " + ntuple[1]
+                rstatus = os.system(crccmd)
+                rstatus >>= 8
+                calibhbk = 0
+                if 'calib' in ntuple[0] and re.search("\.hbk$", ntuple[0]:
+                    calibhbk = 1
+                if rstatus != 1 and calibhbk != 1:
+                    if verbose:
+                        self.sendmailmessage(address, "crc   failed " + ntuple[0], " ")
+                        print ntuple[0], " crc error:  ", rstatus
+                    ntpb += 1
+                    if ntuple[2] > 0:
+#
+# copy from castor
+#          
+                        junk = ntuple[0].split(delimiter)
+                        if len(junk) > 1:
+                            castornt = castorPrefix + "/" + delimiter + junk[1]
+                            sys = rfcp + " " + castornt + " " + ntuple[0] + ".castor"
+#                            i = os.system(sys)
+                            if i:
+                                suc = 0
+                                if verbose:
+                                    print sys, " failed for ", castornt
+                                ntpf += 1
+#                                os.system("rm " + ntuple[0] + ".castor")
+                                continue
+                            else:
+                                crccmd = self.env['AMSSoftwareDir'] + "/exe/linux/crc " + ntuple[0] + ".castor " + ntuple[1]
+                                rstatus = os.system(crccmd)
+                                rstatus >>= 8
+                            if rstatus != 1:
+                                suc = 0
+                                if verbose:
+                                    self.sendmailmessage(address, "crc castor  failed " + castornt, " ")
+                                    print castornt, " crc error:  ", rstatus
+                            if suc:
+                                if update:
+#                                    os.system("mv " + ntuple[0] + ".castor " + ntuple[0])
+                                else:
+#                                    os.system("rm " + ntuple[0] + ".castor "
+                            else:
+#
+#  castor file bad
+#
+#                                os.system("rm " + ntuple[0] + ".castor "
+                                ntpf += 1
+                                sql = "update ntuples set ntuples.status='BAD' where ntuples.path='" + ntuple[0] + "' "
+#                                self.sqlserver.Update(sql)
+                                if update:
+                                    fname = ntuple[0]
+#                                    res = self.sqlserver.Commit()
+                                    if not res:
+                                        if verbose:
+                                            print " Commit failed for run ", ntuple[0]
+                                    else:
+                                        sys = rm + " " + fname
+#                                        i = system(sys)
+                                        if i:
+                                            self.sendmailmessage(address, "unable to " + sys, " ")
+                                else:
+#                                    self.sqlserver.Commit(0)
+                        else:
+                            print "fatal problem with ", delimiter, " for ", ntuple[0], "  do nothing "
+                            ntna += 1
+                    else:
+                        ntpf += 1
+#
+#  no castor file found and bad crc  remove ntuple;
+#                           
+
+#
+#                               modify ntuple
+#                       
+                        if datamc == 0 and jid == run:
+                            sql = "insert into ntuples_deleted select * from ntuples where ntuples.path='" + ntuple[0] + "'"
+#                            self.sqlserver.Update(sql)
+                            timenow = int(time.time())
+                            sql = "update ntuples_deleted set timestamp=" + timenow + "  where path='" + ntuple[0] + "'"
+#                            self.sqlserver.Update(sql)
+                            sql = "delete from ntuples where ntuples.path='" + ntuple-0] + "' "
+#                            self.sqlserver.Update(sql)
+                            self.datasetlink(ntuple[0], "/Offline/DataSetsDir", 0)
+                            sql = " update jobs set realtriggers=realtriggers-" + ntuple[5] + "+" + ntuple[4] + "-1 where jid=" + ntuple[3]
+#                            self.sqlserver.Update(sql)
+                            sql = "select path from ntuples where jid=" + ntuple[3]
+                            r2 = self.sqlserver.Query(sql)
+                            sql = "select realtriggers from jobs where jid=" + ntuple[3]
+                            r3 = self.sqlserver.Query(sql)
+                            if r2[0] != None and r3[0][0] < 1:
+#                                sql = "delete from runs where run=" + ntuple[3]
+#                            self.sqlserver.Update(sql)
+                            if update:
+                                fname = ntuple[0]
+#                                res = self.sqlserver.Commit()
+                                if not res:
+                                    if verbose:
+                                        print " Commit failed for file ", fname
+                                else:
+                                    sys = rm + " " + fname
+#                                    i = os.system(sys)
+                                    if i:
+                                        self.sendmailmessage(address, "unable to " + sys, " ")
+                            else:
+#                                self.sqlserver.Commit(0)
+
+        if verbose and ntp > 0:
+            print "Total of ", runs, "  runs, ", ntp, " ntuples  processed. "
+            if ntpb:
+                print ntpb, " bad ntuples found. "
+            if ntpf:
+                print ntpf, "  ntuples could not be repared"
+        if ntpf > 0:
+            return 0
+        else:
+            return 1
+
+
+    def datasetlink(self, path, sdir, cdrel, predefined = 0)
+        # split path
+        junk = path.split('/')
+        file = sdir
+        newdir = sdir
+        dir = sdir
+        for j in range(2, len(junk)-1):
+            if re.search("\.root$", junk[j]:
+                rmrun = junk[j].split('.')
+                isdir = int(int(rmrun[0]/1000000)
+                newdir += "/" + isdir
+                newfile += "/" + isdir
+            file += "/" + junk[j]
+            newfile += "/" + junk[j]
+            if j < len(junk) - 1:
+                newdir += "/" + junk[j]
+                dir += "/" + junk[j]
+        if predefined:
+            newfile = predefined
+        else:
+            mkdir = "mkdir -p " + newdir
+ #           os.system(mkdir)
+        if crdel == 1:
+            cp = " ln -sf " + path + " " + newfile
+        else
+            cp = "rm " + file
+ #           i = os.system(cp)
+            cp = "rm " + newfile
+ #       i = os.system(cp)
+        if i:
+            print "Problem with ", cp
+        return newfile
+
