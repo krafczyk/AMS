@@ -1070,7 +1070,7 @@ void TrdKCluster::FitTRDTrack_PathLength_KFit(int particle_hypothesis){
     AMSPoint TRDP0;
     AMSDir   TRDDir;
 
-    KounineRefit(P0,Dir,TRDP0,TRDDir);
+    KounineRefit(TRDP0,TRDDir,P0,Dir);
 
     SetTRDTrack(&TRDP0,&TRDDir);
 }
