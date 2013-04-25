@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.236 2012/11/09 09:09:07 nzimmerm Exp $
+#  $Id: Makefile,v 1.230.2.1 2013/04/25 17:52:15 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -316,166 +316,6 @@ endif
 COMMON_FILES +=$(TRD_ADD) 
 COMMON_FILES +=$(TOF_ADD)
 
-#ACsoft
-ifdef AMS_ACQT_INTERFACE
-DEFINES += -DAMS_ACQT_INTERFACE -DAMS_ACQT_SILENCE_COMMON_WARNINGS \
-           -DACROOTVERSION=52 -DACPASSTAG=\"5.2.0\" \
-		   -DACPRODUCTIONSHA=\"77e3fbcf5887a3c0a9669c9007ca384ec087b813\"
-
-ACSOFT_INCDIRS := -I$(QTDIR_STATIC)/include -I$(QTDIR_STATIC)/include/QtCore -I../ACsoft -I../ACsoft/acroot -I../ACsoft/cuts -I../ACsoft/platform -I../ACsoft/utilities -I../ACsoft/analysis \
-				  -I../ACsoft/producer -I../ACsoft/interface -I../ACsoft/io -I../ACsoft/detector -I../ACsoft/trdcalibration
-ROOTDICT_CPPFLAGS += -DAMS_ACQT_INTERFACE $(ACSOFT_INCDIRS)
-
-ROOTDICTFILES += ../ACsoft/acroot/Database.h \
-                 ../ACsoft/acroot/Settings.h \
-                 ../ACsoft/acroot/TrackerExternalAlignment.h \
-                 ../ACsoft/acroot/TRDCalibration.h \
-                 ../ACsoft/acroot/TRDSensorData.h \
-                 ../ACsoft/acroot/TRDTubeCalibration.h \
-                 ../ACsoft/acroot/TRDModuleCalibration.h \
-                 ../ACsoft/analysis/TrdPdfHistogram.hh \
-                 ../ACsoft/analysis/BadRunManager.hh \
-                 ../ACsoft/cuts/BadRunCuts.hh \
-                 ../ACsoft/cuts/Cut.hh \
-                 ../ACsoft/cuts/TwoSidedCut.hh \
-                 ../ACsoft/cuts/ManualCut.hh \
-                 ../ACsoft/cuts/PreselectionCuts.hh \
-                 ../ACsoft/cuts/ECALCuts.hh \
-                 ../ACsoft/cuts/TOFCuts.hh \
-                 ../ACsoft/cuts/TriggerCuts.hh \
-                 ../ACsoft/cuts/TrackerCuts.hh \
-                 ../ACsoft/cuts/TRDCuts.hh \
-                 ../ACsoft/cuts/ParticleSelectionCuts.hh \
-                 ../ACsoft/cuts/Selector.hh \
-                 ../ACsoft/utilities/Palettes.hh
-
-ACSOFT_FILES = ../ACsoft/acroot/ACC.C \
-               ../ACsoft/acroot/ACCCluster.C \
-               ../ACsoft/acroot/AMSGeometry.C \
-               ../ACsoft/acroot/ECAL.C \
-               ../ACsoft/acroot/ECALShower.C \
-               ../ACsoft/acroot/Event.C \
-               ../ACsoft/acroot/EventHeader.C \
-               ../ACsoft/acroot/MC.C \
-               ../ACsoft/acroot/MCEventGenerator.C \
-               ../ACsoft/acroot/MCTRDHit.C \
-               ../ACsoft/acroot/MCTrack.C \
-               ../ACsoft/acroot/Particle.C \
-               ../ACsoft/acroot/RICH.C \
-               ../ACsoft/acroot/RICHRing.C \
-               ../ACsoft/acroot/RunHeader.C \
-               ../ACsoft/acroot/Settings.C \
-               ../ACsoft/acroot/TOF.C \
-               ../ACsoft/acroot/TOFBeta.C \
-               ../ACsoft/acroot/TOFCluster.C \
-               ../ACsoft/acroot/TRD.C \
-               ../ACsoft/acroot/TRDHSegment.C \
-               ../ACsoft/acroot/TRDHTrack.C \
-               ../ACsoft/acroot/TRDRawHit.C \
-               ../ACsoft/acroot/TRDVTrack.C \
-               ../ACsoft/acroot/Tracker.C \
-               ../ACsoft/acroot/TrackerExternalAlignment.C \
-               ../ACsoft/acroot/TrackerReconstructedHit.C \
-               ../ACsoft/acroot/TrackerTrack.C \
-               ../ACsoft/acroot/TrackerTrackFit.C \
-               ../ACsoft/acroot/Trigger.C \
-               ../ACsoft/acroot/VectorCapacityTracker.C \
-               ../ACsoft/analysis/AnalysisParticle.C \
-               ../ACsoft/analysis/BadRunManager.C \
-               ../ACsoft/analysis/CutoffCalculator.C \
-               ../ACsoft/analysis/ParticleFactory.C \
-               ../ACsoft/analysis/FileManager.C \
-               ../ACsoft/analysis/RejectionCalculator.C \
-               ../ACsoft/analysis/SplineTrack.C \
-               ../ACsoft/analysis/StandardPlots.C \
-               ../ACsoft/analysis/TrackFactory.C \
-               ../ACsoft/analysis/TrdCandidateMatching.C \
-               ../ACsoft/analysis/TrdHit.C \
-               ../ACsoft/analysis/TrdHitFactory.C \
-               ../ACsoft/analysis/TrdMCPlots.C \
-               ../ACsoft/analysis/TrdPdfHistogram.C \
-               ../ACsoft/analysis/TrdPerformancePlots.C \
-               ../ACsoft/analysis/TrdPreselection.C \
-               ../ACsoft/analysis/pathlength_functions.C \
-               ../ACsoft/cuts/Cut.C \
-               ../ACsoft/cuts/CutFactory.C \
-               ../ACsoft/cuts/Selector.C \
-               ../ACsoft/cuts/ManualCut.C \
-               ../ACsoft/cuts/TwoSidedCut.C \
-               ../ACsoft/detector/TrdDetector.C \
-               ../ACsoft/detector/TrdLayer.C \
-               ../ACsoft/detector/TrdModule.C \
-               ../ACsoft/detector/TrdStraw.C \
-               ../ACsoft/detector/TrdSublayer.C \
-               ../ACsoft/interface/TrdQt.C \
-               ../ACsoft/io/EventWriter.C \
-               ../ACsoft/platform/FastMalloc.cpp \
-               ../ACsoft/platform/TypeTraits.cpp \
-               ../ACsoft/producer/ACQtProducer-ACC.C \
-               ../ACsoft/producer/ACQtProducer-Charges.C \
-               ../ACsoft/producer/ACQtProducer-ECAL.C \
-               ../ACsoft/producer/ACQtProducer-EventHeader.C \
-               ../ACsoft/producer/ACQtProducer-MC.C \
-               ../ACsoft/producer/ACQtProducer-Particles.C \
-               ../ACsoft/producer/ACQtProducer-RICH.C \
-               ../ACsoft/producer/ACQtProducer-RunHeader.C \
-               ../ACsoft/producer/ACQtProducer-TOF.C \
-               ../ACsoft/producer/ACQtProducer-TRD.C \
-               ../ACsoft/producer/ACQtProducer-Tracker.C \
-               ../ACsoft/producer/ACQtProducer-Trigger.C \
-               ../ACsoft/producer/ACQtProducer-include.C \
-               ../ACsoft/producer/ACQtProducer.C \
-               ../ACsoft/producer/ACQtWriter.C \
-               ../ACsoft/trdcalibration/TrdAlignment.C \
-               ../ACsoft/trdcalibration/TrdGainCalibration.C \
-               ../ACsoft/trdcalibration/TrdLikelihood.C \
-               ../ACsoft/trdcalibration/gain_functions.C \
-               ../ACsoft/utilities/ConfigHandler.C \
-               ../ACsoft/utilities/Palettes.C \
-               ../ACsoft/utilities/Quantity.C \
-               ../ACsoft/utilities/RunTagDecoder.C \
-               ../ACsoft/utilities/SimpleGraphLookup.C \
-               ../ACsoft/utilities/StringTools.C \
-               ../ACsoft/utilities/TimeHistogramManager.C \
-               ../ACsoft/utilities/TrdPdfLookup.C \
-               ../ACsoft/utilities/TrdPdfWrapper.C \
-               ../ACsoft/utilities/Utilities.C \
-               ../ACsoft/utilities/dumpstreamers.C
-
-ACSOFT_DIR_PLATFORM=../ACsoft/platform
-ACSOFT_DIR_ACROOT=../ACsoft/acroot
-ACSOFT_DIR_CUTS=../ACsoft/cuts
-ACSOFT_DIR_UTILITIES=../ACsoft/utilities
-ACSOFT_DIR_ANALYSIS=../ACsoft/analysis
-ACSOFT_DIR_PRODUCER=../ACsoft/producer
-ACSOFT_DIR_INTERFACE=../ACsoft/interface
-ACSOFT_DIR_IO=../ACsoft/io
-ACSOFT_DIR_DETECTOR=../ACsoft/detector
-ACSOFT_DIR_TRDCALIBRATION=../ACsoft/trdcalibration
-
-ACSOFT_OBJECTS_PLATFORM:=$(ACSOFT_FILES:$(ACSOFT_DIR_PLATFORM)%.cpp=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_ACROOT:=$(ACSOFT_OBJECTS_PLATFORM:$(ACSOFT_DIR_ACROOT)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_CUTS:=$(ACSOFT_OBJECTS_ACROOT:$(ACSOFT_DIR_CUTS)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_UTILITIES:=$(ACSOFT_OBJECTS_CUTS:$(ACSOFT_DIR_UTILITIES)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_ANALYSIS:=$(ACSOFT_OBJECTS_UTILITIES:$(ACSOFT_DIR_ANALYSIS)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_PRODUCER:=$(ACSOFT_OBJECTS_ANALYSIS:$(ACSOFT_DIR_PRODUCER)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_INTERFACE:=$(ACSOFT_OBJECTS_PRODUCER:$(ACSOFT_DIR_INTERFACE)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_IO:=$(ACSOFT_OBJECTS_INTERFACE:$(ACSOFT_DIR_IO)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_DETECTOR:=$(ACSOFT_OBJECTS_IO:$(ACSOFT_DIR_DETECTOR)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_TRDCALIBRATION:=$(ACSOFT_OBJECTS_DETECTOR:$(ACSOFT_DIR_TRDCALIBRATION)%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS:=$(ACSOFT_OBJECTS_TRDCALIBRATION)
-
-$(BIN)%.AC.o : ../ACsoft/*/%.cpp
-	@echo Compiling $< ...
-	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(ACSOFT_INCDIRS) $(ACSOFT_BUILDFLAGS) $(CFLAGS) $< -o $@
-
-$(BIN)%.AC.o : ../ACsoft/*/%.C
-	@echo Compiling $< ...
-	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(ACSOFT_INCDIRS) $(ACSOFT_BUILDFLAGS) $(CFLAGS) $< -o $@
-endif
-
 #TOF + ACC
 COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofuser02.C \
 		$(SCC)tofsim02.C   $(SCC)tofdbc02.C   $(SCC)tofcalib02.C \
@@ -536,7 +376,7 @@ endif
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
 ifdef PGTRACK
-ROOTDICTFILES +=  ../include/TkPlane.h ../include/TkSens.h \
+ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrCalDB.h ../include/TrGainDB.h ../include/TrChargeLossDB.h \
 		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
 		../include/TrRecon.h 	  ../include/TkDBc.h  ../include/MagField.h \
@@ -554,7 +394,7 @@ ROOTDICTFILES +=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrTrackSelection.h \
 		../include/root_setup.h ../include/TrExtAlignDB.h ../include/TrInnerDzDB.h  ../include/pfunction.h
 else
-ROOTDICTFILES +=  ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h  ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h ../include/trfit.h 
+ROOTDICTFILES=  ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h  ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h ../include/trfit.h 
 endif
 
 ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h ../include/trigger102_setup.h  
@@ -657,12 +497,6 @@ OBJECTSC:=$(filter-out $(BIN)geant4.o,$(OBJECTSC))
 endif
 ifndef PGTRACK
 OBJECTSC += $(BIN)TrackFit_utils_c.o
-endif
-
-ifdef AMS_ACQT_INTERFACE
-OBJECTS+=$(ACSOFT_OBJECTS)
-OBJECTSI+=$(ACSOFT_OBJECTS)
-OBJECTSC+=$(ACSOFT_OBJECTS)
 endif
 
 #---Qi Yan
@@ -772,6 +606,7 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 # Client TARGET (producer)
 
 CLIENT=$(EXE)gbatch-orbit$(G4)$(PG).exe
+CLIENT6=$(EXE)gbatch-orbit$(G4)$(PG).exe.lxplus6
 
 producer: amswd	$(CLIENT)
 
@@ -779,6 +614,13 @@ producer: amswd	$(CLIENT)
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+
+producer6: amswd	$(CLIENT6)
+
+#                   Orbit-C      Orbit-C++   gbatch
+$(CLIENT6):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype_l6.o $(BIN)predict.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
+	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) $(BIN)ctype_l6.o
 
 
 #---------------------------------------------------------------------------------
@@ -791,7 +633,7 @@ test: $(OBJECTCO)
 
 server: amswd	$(SERVER)
 #               Orbit-C   Orbit-C++-Ser
-$(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
+$(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o .$(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL)  
 
@@ -810,15 +652,11 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o   $(BIN)GM_SubLibrary.o \
 	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o
 SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o
-SHLIBO+=$(ACSOFT_OBJECTS)
 SHLIBBO:=$(SHLIBO)
 else
 SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)predict.o
 
 SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o $(BIN)GM_SubLibrary.o $(BIN)predict.o
-
-SHLIBO+=$(ACSOFT_OBJECTS)
-SHLIBBO+=$(ACSOFT_OBJECTS)
 endif
 
 shared : amswd $(SHLD)
@@ -826,18 +664,11 @@ $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
 
-ifdef AMS_ACQT_INTERFACE
 static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $(SHLIBBO)
-	@if ! [ -z $(QT_STATIC_LIBRARY) ] ; then mkdir -p qt_tmp; cd qt_tmp; $(AR) x $(QT_STATIC_LIBRARY); cd ..; $(AR) q $(NTLD) `ls qt_tmp/*.o | xargs`; rm -Rf qt_tmp; fi
-else
-static : amswd $(NTLD)
-$(NTLD): $(SHLIBBO)
-	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(AR) rv   $(NTLD) $(SHLIBBO)
-endif
+
 
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
@@ -855,7 +686,8 @@ ifeq  "$(shell uname)"  "Linux"
 else 
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
-
+$(BIN)ctype_l6.o: $(SCC)ctype.c
+	$(CC) -c -D__LXPLUS6__ $< -o$@
 $(BIN)predict.o:  $(SCC)predict.c
 	$(CC) -c $(CFLAGS) $< -o$@
 
@@ -889,7 +721,7 @@ $(BIN)commonsi_time.C:      $(SCC)commonsi.C
 	sed "s_buildtime=[^buildtime=]*;_buildtime=$(shell date +%s);_" $(SCC)commonsi.C > $(BIN)commonsi_time.C
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
-	$(CXX) -c $(ACSOFT_INCDIRS) $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
+	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
 
 $(BIN)commonsi.o:	$(BIN)commonsi_time.C
 	$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o 
@@ -901,7 +733,7 @@ $(BIN)daqevt_c.o:         $(SCC)daqevt.C
 
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
-	$(CXX) -c $(ACSOFT_INCDIRS) $(CFLAGS)  $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
+	$(CXX) -c $(CFLAGS)  $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
 
 
 $(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods$(PG).h
