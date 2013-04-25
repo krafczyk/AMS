@@ -49,4 +49,9 @@ void feunsetexcept_(){
 fedisableexcept(FE_ALL_EXCEPT);
 }
 
+int __nss_next2 (void **ni, const char *fct_name,
+                        const char *fct2_name, void **fctp, int status,
+                        int all_values) {
+return 1;
+}
 
