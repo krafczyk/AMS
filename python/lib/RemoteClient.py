@@ -4,6 +4,7 @@ from DBSQLServer import DBSQLServer
 from DBServer import DBServer
 import cgi
 import datetime
+from array import *
 def sorta(s,o):
     timenow=int(time.time())
     dts=timenow-s[2]
@@ -649,10 +650,11 @@ class RemoteClient:
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
                     uid=run.uid;
+                    
                     sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and dataruns.jid=%d " %(uid)
                     ret=self.sqlserver.Query(sql)
                     ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
-                    if(datamc==0):
+                    if(datamc==0 and uid==run.Run):
                         uid=run.uid
                         sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
                         ret=self.sqlserver.Query(sql)
@@ -837,7 +839,7 @@ class RemoteClient:
                     sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and dataruns.jid=%d " %(uid)
                     ret=self.sqlserver.Query(sql)
                     ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
-                    if(datamc==0):
+                    if(datamc==0 and uid==run.Run):
                         uid=run.uid
                         sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
                         ret=self.sqlserver.Query(sql)
@@ -863,7 +865,7 @@ class RemoteClient:
                     continue
                 status=self.dbclient.cr(run.Status)
                 dataruns="dataruns"
-                if(datamc==0):
+                if(datamc==0 and run.uid==run.Run):
                         dataruns="runs"
                 if(status=='Failed' and (datamc==1 or datamc==0)):
                     uid=run.uid;
@@ -902,7 +904,7 @@ class RemoteClient:
                     continue
                 status=self.dbclient.cr(run.Status)
                 dataruns="dataruns"
-                if(datamc==0):
+                if(datamc==0 and run.uid==run.Run):
                     dataruns="runs"
                 if(status=='Finished' and (datamc==0 or datamc==1)):
                     ro=self.sqlserver.Query("select run, status from "+dataruns+" where jid="+str(run.uid))
@@ -980,6 +982,10 @@ class RemoteClient:
         output.close()
         
     def validaterun(self,run):
+        if(self.nBadCopiesInRow>30):
+            output.write("too many docopy failures")
+            print "too many docopy failurs"
+            return 
         mutex.acquire()
         print "run started ",run.Run,run.uid
         odisk=None
@@ -1187,10 +1193,6 @@ class RemoteClient:
                                                         output.write("failed to copy or wrong crc for %s" %(fpath))
                                                         copyfailed=1
                                                         self.nBadCopiesInRow=self.nBadCopiesInRow+1
-                                                        if(self.nBadCopiesInRow>30):
-                                                            output.write("too many docopy failures")
-                                                            print "too many docopy failurs"
-                                                            return 
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
@@ -1202,7 +1204,8 @@ class RemoteClient:
 
                         status="Failed"
                         if(odisk !=  None):
-                            fsmutexes[odisk].release()
+                            if(fsmutexes.has_key(odisk)):
+                                fsmutexes[odisk].release()
                         if(copyfailed==0):
                             warn="Validation done Run %d " %(run.Run)
                             print warn
@@ -1298,6 +1301,10 @@ class RemoteClient:
               exitmutexes[run.Run].acquire()
 
     def validatedatarun(self,run):
+        if(self.nBadCopiesInRow>30):
+            output.write("too many docopy failures")
+            print "too many docopy failurs"
+            return 
         datamc=run.DataMC
         mutex.acquire()
         # print "run started ",run.Run,run.uid
@@ -1514,10 +1521,6 @@ class RemoteClient:
                                                         output.write("failed to copy or wrong crc for %s" %(fpath))
                                                         copyfailed=1
                                                         self.nBadCopiesInRow=self.nBadCopiesInRow+1
-                                                        if(self.nBadCopiesInRow>30):
-                                                            output.write("too many docopy failures")
-                                                            print "too many docopy failurs"
-                                                            return 
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
@@ -1680,7 +1683,8 @@ class RemoteClient:
                odisk=None
                while(stime>60):
                    if(odisk!=None):
-                       fsmutexes[odisk].release()
+                       if(fsmutexes.has_key(odisk)):
+                           fsmutexes[odisk].release()
                    try:
                        (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
                    except IOError,e:
@@ -1700,7 +1704,8 @@ class RemoteClient:
                stime=100
                while(stime>60):
                    if(odisk!=None):
-                       fsmutexes[odisk].release()
+                       if(fsmutexes.has_key(odisk)):
+                           fsmutexes[odisk].release()
                    try:
                        (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
                    except IOError,e:
@@ -1797,7 +1802,8 @@ class RemoteClient:
                odisk=None
                while(stime>60):
                    if(odisk!=None):
-                       fsmutexes[odisk].release()
+                       if(fsmutexes.has_key(odisk)):
+                           fsmutexes[odisk].release()
                    (outputpatha,gb,odisk,stime)=self.getOutputPathRaw(period,path)
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
@@ -2269,11 +2275,17 @@ class RemoteClient:
             dtype=1
         if(dtype!=None):
             mutex.release()
-            validatecmd="/exe/linux/fastntrd.exe %s %d %d %d " %(fname,nevents,dtype,levent)
-            validatecmd=self.env['AMSSoftwareDir']+validatecmd
-            vcode=os.system(validatecmd)
             if(fname.find('/castor/cern.ch')>=0):
-                vcode=0
+                prefix="rfio:"
+            else:
+                prefix=""   
+            validatecmd="/exe/linux/fastntrd64.exe %s%s %d %d %d " %(prefix,fname,nevents,dtype,levent)
+            validatecmd=self.env['AMSSoftwareDir']+validatecmd
+            validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
+            vcode=os.system(validatecmd)
+            if(fname.find('/castor/cern.ch')>=0 and vcode/256==134):
+                time.sleep(5)
+                vcode=os.system(validatecmd)
             print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
             print "got  mutex in validate", validatecmd
@@ -3029,12 +3041,17 @@ class RemoteClient:
     def CheckDataSet(self,run2p,dataset,v,f,tab=0):
         self.verbose=v
         self.run2p=run2p
-        self.force=f
+        self.force=0         
+        if(f==1):
+           self.force=1
         rundd=""
         rund=""
         runn=""
         runst=""
-        typess=["SCI","0LAS","0CAL","0CMD","0CAB"]
+        bad1=array('i')
+        bad2=array('i')
+        typess=["0SCI","0LAS","0CAL","0CMD","0CAB"]
+
         for type in typess:
            sql="select path,paths,run from datafiles where   type like '%s%%' " %(type)
            sql=sql+" and status not like '%BAD%'"
@@ -3065,6 +3082,11 @@ class RemoteClient:
             ds=self.sqlserver.Query(sql)
             if(len(ds)==1):
                 did=ds[0][0]
+                if(f==2):
+                        sql="select path from ntuples where path like '%%%s/%%' and datamc=1  and path not like '/castor%%' " %(datapath)
+                        files=self.sqlserver.Query(sql)
+                        for file in files:
+                                self.linkdataset(file[0],"/afs/cern.ch/ams/Offline/DataSetsDir",1)
             else:
                 sql="select did from datasets where name like '%s' " %(dataset)
 	        ds=self.sqlserver.Query(sql) 
@@ -3140,6 +3162,7 @@ class RemoteClient:
                     if(found==0):
                         if(tab==0):
                             print "Run ",run,"  not found in dataset ",dataset
+                            bad1.append(run[0])
                         else:
                             print "<tr>"
                             print "<td>Run %d  </td><td> not found in dataset %s</td>" %(run[0],dataset)
@@ -3155,8 +3178,9 @@ class RemoteClient:
                     for file in files:
                         if(run[0]==file[0]):
                             found=1
-                            if(run[2]!=file[1]):
+                            if(run[2]!=file[1] and float(run[2])>float(file[1])):
                                 if(tab==0):
+                                    bad2.append(run[0])
                                     print "Run ",run," and ntuples disagree. run events=",run[2]," ntuple events=",file[1]
                                 else:
                                     print "<tr>"
@@ -3166,6 +3190,7 @@ class RemoteClient:
                     if(found==0):
                         if(tab==0):
                             print "Run ",run,"  not found in dataset ",dataset
+			    bad1.append(run[0])   		
                         else:
                             print "<tr>"
                             print "<td>Run %d Events %d  </td><td> Id %d </td><td>  not found in dataset %s</td>" %(run[0],run[2],run[1],dataset)
@@ -3184,12 +3209,30 @@ class RemoteClient:
             </table>
             </HR>
             """
+        else:   
+           print "not found ",bad1
+           print "disagree ",bad2       
+
     def DeleteDataSet(self,run2p,dataset,u,v,f,donly,datamc,buildno,castoronly):
         self.update=u
         self.verbose=v
         self.run2p=run2p
         self.force=f
-        rund=""
+	arun2p=""
+        if(run2p.find(",")>=0):
+	    arun2p=" and ( run=-1 "
+            junk=run2p.split(',')
+	    run2p=0
+	    for run in junk:
+		srun2p=" or run=%s " %(run)
+                arun2p=arun2p+srun2p
+            arun2p=arun2p+" ) "
+	else:
+	    try:
+	        run2p=int(run2p)	
+ 	    except:
+                run2p=0
+	rund=""
         runn=""
         runnd=""
         runst=" "
@@ -3202,14 +3245,14 @@ class RemoteClient:
             runbuildd=" and ntuples_deleted.buildno=%d " %(buildno)
         if(castoronly!=0):
             buildno=1
-            if(castoronly>0):
+            if(casuoronly>0):
                 runbuild=runbuild+" and ntuples.castortime>0 "
                 runbuildd=runbuildd+" and ntuples_deleted.castortime>0 "
             if(castoronly<0):
                 runbuild=runbuild+" and ntuples.castortime=0 "
                 runbuildd=runbuildd+" and ntuples_deleted.castortime=0 "
         if(datamc==0):
-            sql="select run,jid from ntuples where path like '%%%s/%%' and datamc=%d  " %(dataset,datamc) 
+            sql="select run,jid from ntuples where path like '%%%s/%%' and datamc=%d  %s " %(dataset,datamc,arun2p) 
             check=self.sqlserver.Query(sql)
             if(len(check)>0):
                 if(check[0][0] != check[0][1]):
@@ -3251,7 +3294,7 @@ class RemoteClient:
                 rund=" and runs.run<%d " %(run2p)
                 runn=" and ntuples.run<%d " %(run2p)
                 runnd=" and ntuples_deleted.run<%d " %(run2p)
-        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s %s " %(dataset,datamc%10,runn,runbuild) 
+        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s" %(dataset,datamc%10,runn,runbuild,arun2p) 
         df=0
         files=self.sqlserver.Query(sql)
         datapath=dataset
@@ -3319,29 +3362,29 @@ class RemoteClient:
                     files=self.sqlserver.Query(sql)
         if(len(files)>0 or self.force!=0):
             if(buildno>0):
-                sql="insert into jobs_deleted select jobs.* from jobs,%s,ntuples where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid and ntuples.jid=jobs.jid %s %s  %s and ntuples.jid=%s.jid" %(runsname,dataset,runsname,runst,rund,runbuild,runsname)
+                sql="insert into jobs_deleted select jobs.* from jobs,%s,ntuples where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid and ntuples.jid=jobs.jid %s %s  %s and ntuples.jid=%s.jid %s" %(runsname,dataset,runsname,runst,rund,runbuild,runsname,arun2p)
             else:
-                sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid  %s %s " %(runsname,dataset,runsname,runst,rund)
+                sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid  %s %s %s " %(runsname,dataset,runsname,runst,rund,arun2p)
                 
             if(donly==0):
                 self.sqlserver.Update(sql)
             if(buildno>0):
-                sql=" delete from jobs where exists (select * from %s,ntuples where %s.jid=jobs.jid and jobs.jid=ntuples.jid and jobs.jobname like '%%%s.job' %s %s %s  and ntuples.jid=%s.jid)" %(runsname,runsname,dataset,runst,rund,runbuild,runsname)
+                sql=" delete from jobs where exists (select * from %s,ntuples where %s.jid=jobs.jid and jobs.jid=ntuples.jid and jobs.jobname like '%%%s.job' %s %s %s  and ntuples.jid=%s.jid %s)" %(runsname,runsname,dataset,runst,rund,runbuild,runsname,arun2p)
             else:
-                sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid  and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,dataset,runst,rund)
+                sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid  and jobs.jobname like '%%%s.job' %s %s %s)" %(runsname,runsname,dataset,runst,rund,arun2p)
                 
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s %s " %(datapath,datamc%10,runn,runbuild)
+            sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s " %(datapath,datamc%10,runn,runbuild,arun2p)
             if(df==0):
                 self.sqlserver.Update(sql)
                 timenow=int(time.time())
-                sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s %s " %(datapath,datamc%10,runnd,runbuildd)
+                sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s %s %s" %(datapath,datamc%10,runnd,runbuildd,arun2p)
                 self.sqlserver.Update(sql)
-                sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s %s " %(datapath,datamc%10,runn,runbuild)
+                sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s " %(datapath,datamc%10,runn,runbuild,arun2p)
                 self.sqlserver.Update(sql)
             else:
-                sql="DELETE from datafiles where path like '%%%s/%%' and type like 'MC%%' %s " %(datapath,runndf)
+                sql="DELETE from datafiles where path like '%%%s/%%' and type like 'MC%%' %s %s " %(datapath,runndf,arun2p)
 
                 self.sqlserver.Update(sql)
                 
@@ -3690,16 +3733,24 @@ class RemoteClient:
 			cmd="mv "+pfilej+" "+pfilej+".0"
                         os.system(cmd)
 		        continue 
-                    sql="select path,run,nevents,type,fevent,levent from datafiles where path like '%"+file+"'"
+                    sql="select path,run,nevents,type,fevent,levent,pathb from datafiles where path like '%"+file+"'"
                     ret=self.sqlserver.Query(sql);
                     eventsi=int(events)
                     feventi=int(fevent)
                     leventi=int(levent)
                     calibnotfull=False
                     if(len(ret)>0):
-                        if(ret[0][3].find("CAL")>=0 and ret[0][2]<247 and eventsi==247):
+                        orig=f1.split('/')
+                        origpath=""
+                        if(len(orig)>2):
+                             origpath=origpath+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                        orig=f2.split('/')
+                        if(len(orig)>2):
+                             origpath=origpath+" "+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+
+                        if(ret[0][3].find("CAL")>=0 and (ret[0][2]<eventsi or (ret[0][2]==eventsi and ret[0][6] != origpath))):
                            calibnotfull=True
-                        if(ret[0][3].find("SCI")>=0 and ret[0][2]<eventsi and ret[0][4]>=feventi and ret[0][5]<=leventi):
+                        if(ret[0][3].find("SCI")>=0 and (ret[0][2]<eventsi or (ret[0][2]==eventsi and ret[0][6] != origpath) ) and ret[0][4]>=feventi and ret[0][5]<=leventi):
                            calibnotfull=True
                         if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
                             fd=ret[0][0] 
@@ -3769,11 +3820,11 @@ class RemoteClient:
                             type=type+" "+t0+" "+t1+" "+t2+" "+t3
                         orig=f1.split('/')
                         origpath=""
-                        if(len(orig)>2):
-                             origpath=origpath+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                        if(len(orig)>3):
+                             origpath+=orig[len(orig)-4]+"/"+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
                         orig=f2.split('/')
-                        if(len(orig)>2):
-                             origpath=origpath+" "+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                        if(len(orig)>3):
+                             origpath+=" "+orig[len(orig)-4]+"/"+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
                         status='OK'
                         if(type.find('SCI')>=0 and int(tlevent)-int(tfevent)<60):
                             status='SHORT'
@@ -3830,7 +3881,10 @@ class RemoteClient:
         os.system("mkdir -p "+newdir)
         cmd=""
         if(crdel==1):
+                if(path.find('/castor/cern.ch/ams')>=0):
+                    path.replace('/castor/cern.ch/ams','/castor',1);
                 cmd="ln -sf "+path+" "+newdir
+                
         else:
                 cmd="rm "+file
                 i=os.system(cmd)
@@ -3839,4 +3893,3 @@ class RemoteClient:
         if(i):
                 print "Problem with "+cmd
         return newfile
-
