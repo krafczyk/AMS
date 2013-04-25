@@ -656,7 +656,7 @@ class RemoteClient:
                     ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
                     if(datamc==0 and uid==run.Run):
                         uid=run.uid
-                        sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
+                        sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and ntuples.jid=%d " %(uid)
                         ret=self.sqlserver.Query(sql)
                         sql=" select datafiles.path from datafiles,runs where datafiles.run=runs.run and runs.status='Completed' and datafiles.type like 'MC%%' and runs.jid=%d " %(uid)
                         ret2=self.sqlserver.Query(sql)
@@ -836,12 +836,12 @@ class RemoteClient:
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
                     uid=run.uid;
-                    sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and dataruns.jid=%d " %(uid)
+                    sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and ntuples.jid=%d " %(uid)
                     ret=self.sqlserver.Query(sql)
                     ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
                     if(datamc==0 and uid==run.Run):
                         uid=run.uid
-                        sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
+                        sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and ntuples.jid=%d " %(uid)
                         ret=self.sqlserver.Query(sql)
                         sql=" select datafiles.path from datafiles,runs where datafiles.run=runs.run and runs.status='Completed' and datafiles.type like 'MC%%' and runs.jid=%d " %(uid)
                         ret2=self.sqlserver.Query(sql)
