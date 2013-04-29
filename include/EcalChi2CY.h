@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.17 2013/03/07 10:14:53 kaiwu Exp $
+//  $Id: EcalChi2CY.h,v 1.18 2013/04/29 21:38:50 kaiwu Exp $
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -193,7 +193,6 @@ public:
     ///Z coordinates of each layer
     float	  	   ecalz[18]    ;
     static float energyp(float ec_ec,float ec_rl,float phi,float theta,bool mcc);
-
 private:
     void init(const char* fdatabase,int type) ;
     int         _ndofs[18]    ;
@@ -225,6 +224,7 @@ private:
 
     float   _erg    ;
     float   _erge   ;
+    int     _ftype  ;
 };
 
 class EcalCR:public TObject{
@@ -403,6 +403,13 @@ private:
     static TMinuit* gMinuit_EcalAxis	;
     //static TVirtualFitter *gMinuit_EcalAxis;
     static void fcn_EcalAxis_Chi2(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
+    ///current run, event 
+    static int run	;
+    static int event	;
+    static int   algorithmHasCalculated;
+    static float d0Cached[5][3] ;
+    static float p0Cached[5][3] ;
+    int _ftype			; 
 
     ClassDef(EcalAxis,1)
 };

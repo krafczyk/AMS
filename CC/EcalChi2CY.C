@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.32 2013/04/29 16:55:07 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.33 2013/04/29 21:38:27 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -776,6 +776,7 @@ float EcalChi2::energyp(float ec_ec,float ec_rl,float phi,float theta,bool mcc){
 }
 void EcalChi2::init(const char* database,int _type){
     EcalPDF::Version=EcalChi2::Version;
+    _ftype=_type		      ;
     ecalpdf=new EcalPDF(database);
     float _shiftxy_iss[]=   {0.049183,0.0547541,-0.127118,-0.129285,0.0567233,0.0589902,-0.125686,-0.12495,0.0588771,0.0580914,-0.13321,-0.135947,0.0553363,0.0543928,-0.132608,-0.130619,0.0509601,0.0504522};
     float _shiftxy_bt []=   {0.0649878,  0.0674102,    -0.18013,    -0.176749,   0.0684572,   0.0710825,   -0.175532,   -0.173065,   0.0631457,   0.0679332,   -0.172697,   -0.175777,   0.0636235,   0.0681259,  -0.166372,  -0.166112,  0.0657156,   0.0491425};
@@ -1311,6 +1312,11 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
 int EcalAxis::Version=2         ;
 //TVirtualFitter* EcalAxis::gMinuit_EcalAxis = NULL;
 TMinuit* EcalAxis::gMinuit_EcalAxis = NULL;
+int EcalAxis::run=0			  ;
+int EcalAxis::event=0			  ;
+int EcalAxis::algorithmHasCalculated=0	  ;
+float EcalAxis::d0Cached[5][3]		  ;
+float EcalAxis::p0Cached[5][3]		  ;
 EcalAxis::EcalAxis(int ftype){
     char* amsdatadir=getenv("AMSDataDir");
     string tempname;
@@ -1329,6 +1335,7 @@ EcalAxis::EcalAxis(char* fdatabase, int ftype){
     init(fdatabase,ftype);
 }
 void EcalAxis::init(const char* fdatabase, int ftype){
+    _ftype=ftype;
     EcalChi2::Version=EcalAxis::Version;
     ecalchi2=new EcalChi2(fdatabase,ftype);
     ecalcr=new EcalCR(ftype,fdatabase);
@@ -1613,7 +1620,7 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
         AMSDir dir1(ev->pEcalShower(nmax)->Dir[0],ev->pEcalShower(nmax)->Dir[1],ev->pEcalShower(nmax)->Dir[2]);
         theta1=dir1.gettheta();
       	phi1  =dir1.getphi();
-	if(ftype==2)
+	if(_ftype==2)
         	EnergyD=1000*EcalChi2::energyp(ev->pEcalShower(nmax)->EnergyC,ev->pEcalShower(nmax)->RearLeak,phi1,theta1,1);	
     	else
 		EnergyD=1000*EcalChi2::energyp(ev->pEcalShower(nmax)->EnergyC,ev->pEcalShower(nmax)->RearLeak,phi1,theta1,0);	
@@ -1630,6 +1637,22 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
         sign=trtrack->GetRigidity()>0?1.:-1.;
     else
         sign=-1;
+    if(run==ev->Run()&&event==ev->Event()&&(algorithmHasCalculated&algorithm)==algorithm){
+	//cout<<"algo "<<algorithm<<" has been calculated!"<<endl;
+	for(int i1=0;i1<5;i1++){
+		int a=(1<<i1);
+		if((algorithm&a)==a){
+           		double param[4]={p0Cached[i1][0],p0Cached[i1][1],d0Cached[i1][0]/d0Cached[i1][2],d0Cached[i1][1]/d0Cached[i1][2]};
+            		GetChi2(param);
+            		_status+=a;
+        	}
+	}
+    }
+    else{
+	algorithmHasCalculated=0;
+	run=ev->Run()		;
+	event=ev->Event()	;	
+    }
     ret= process(fedep,fcell,fplane,nEcalHits,EnergyD,_EnergyE,algorithm,sign);
     return ret;
 #else
@@ -1687,19 +1710,29 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
     if((algorithm&4)==4){
         if(init_cg()){
             _status+=4;
+	    algorithmHasCalculated+=4;
             double param[4]={p0_cg[0],p0_cg[1],dir_cg[0]/dir_cg[2],dir_cg[1]/dir_cg[2]};
+	    p0Cached[2][0]=p0_cg[0] ;p0Cached[2][1]=p0_cg[1] ;p0Cached[2][2]=p0_cg[2] ;
+	    d0Cached[2][0]=dir_cg[0];d0Cached[2][1]=dir_cg[1];d0Cached[2][2]=dir_cg[2];
             GetChi2(param);
         }
     }
     if((algorithm&2)==2){
-        if(init_lf())
+        if(init_lf()){
             _status+=2;
+	    algorithmHasCalculated+=2;
+	    p0Cached[1][0]=p0_lf[0] ;p0Cached[1][1]=p0_lf[1] ;p0Cached[1][2]=p0_lf[2] ;
+            d0Cached[1][0]=dir_lf[0];d0Cached[1][1]=dir_lf[1];d0Cached[1][2]=dir_lf[2];
+	}
     }
     if((algorithm&1)==1){
         if(init_cr()){
             double param[4]={p0_cr[0],p0_cr[1],dir_cr[0]/dir_cr[2],dir_cr[1]/dir_cr[2]};
             GetChi2(param);
             _status+=1;
+	    algorithmHasCalculated+=1;
+	    p0Cached[0][0]=p0_cr[0] ;p0Cached[0][1]=p0_cr[1] ;p0Cached[0][2]=p0_cr[2] ;
+            d0Cached[0][0]=dir_cr[0];d0Cached[0][1]=dir_cr[1];d0Cached[0][2]=dir_cr[2];
         }
     }
     if((algorithm&8)==8){
@@ -1709,12 +1742,18 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
 		GetChi2(param);
 		//cout<<ecalchi2->get_chi2()<<endl;
         	_status+=8;
+		algorithmHasCalculated+=8;
+                p0Cached[3][0]=p0_cr2[0] ;p0Cached[3][1]=p0_cr2[1] ;p0Cached[3][2]=p0_cr2[2] ;
+                d0Cached[3][0]=dir_cr2[0];d0Cached[3][1]=dir_cr2[1];d0Cached[3][2]=dir_cr2[2];
 	}		
     }
-    if((algorithm&8)==16){
+    if((algorithm&16)==16){
 	double param[4]={ext_p0[0],ext_p0[1],ext_d0[0]/ext_d0[2],ext_d0[1]/ext_d0[2]};
         GetChi2(param);
         //cout<<ecalchi2->get_chi2()<<endl;
+	algorithmHasCalculated+=16;
+        p0Cached[4][0]=ext_p0[0] ;p0Cached[4][1]=ext_p0[1] ;p0Cached[4][2]=ext_p0[2] ;
+        d0Cached[4][0]=ext_d0[0];d0Cached[4][1]=ext_d0[1];d0Cached[4][2]=ext_d0[2];	
         _status+=16;	
     }
     use_ext=0;
@@ -1765,7 +1804,11 @@ int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
     ext_p0[1]=esh->CofG[1];
     ext_p0[2]=esh->CofG[2];
     use_ext=1;
+    run=0	;
+    event=0	;
+    algorithmHasCalculated=0;
     ret= process(fedep,fcell,fplane,nEcalHits,EnergyD,_EnergyE,algorithm,sign);
+    
     return ret;
 }
 bool EcalAxis::init_cg(){
