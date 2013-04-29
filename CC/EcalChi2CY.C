@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.31 2013/03/12 14:39:30 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.32 2013/04/29 16:55:07 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1613,7 +1613,10 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
         AMSDir dir1(ev->pEcalShower(nmax)->Dir[0],ev->pEcalShower(nmax)->Dir[1],ev->pEcalShower(nmax)->Dir[2]);
         theta1=dir1.gettheta();
       	phi1  =dir1.getphi();
-        EnergyD=1000*EcalChi2::energyp(ev->pEcalShower(nmax)->EnergyC,ev->pEcalShower(nmax)->RearLeak,phi1,theta1,1);	
+	if(ftype==2)
+        	EnergyD=1000*EcalChi2::energyp(ev->pEcalShower(nmax)->EnergyC,ev->pEcalShower(nmax)->RearLeak,phi1,theta1,1);	
+    	else
+		EnergyD=1000*EcalChi2::energyp(ev->pEcalShower(nmax)->EnergyC,ev->pEcalShower(nmax)->RearLeak,phi1,theta1,0);	
     }
     ext_d0[0]=ev->pEcalShower(nmax)->EMDir[0];
     ext_d0[1]=ev->pEcalShower(nmax)->EMDir[1];
