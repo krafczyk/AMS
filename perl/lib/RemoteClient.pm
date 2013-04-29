@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.767 2013/04/29 14:12:53 bshan Exp $
+# $Id: RemoteClient.pm,v 1.768 2013/04/29 14:19:34 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14351,12 +14351,9 @@ foreach my $block (@blocks) {
           last;
       }
       my $ret = 0;
-      ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent, $jobid);
-      print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent, $jobid) : Status : $i : Ret : $ret\n";
-      if ($ret ==2) {
-          findJob($jobid,$buf,$dirpath,$cid);
-      }
-      elsif ($ret !=1) {
+      ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent);
+      print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent) : Status : $i : Ret : $ret\n";
+      if ($ret !=1) {
        $unchecked++;
        $copyfailed = 1;
         print FILE " validateDST return code != 1. Quit. \n";
@@ -16618,7 +16615,6 @@ sub validateDST {
      my $nevents = shift;  # number of events
      my $ftype   = shift;  # file type : root / ntuple
      my $levent  = shift;  # last event number
-     my $jobid   = shift;  # cross-check with jobid
 
 
      my $dtype       = undef;
@@ -16634,9 +16630,6 @@ sub validateDST {
          $dtype = 0;
      } elsif ($ftype eq "RootFile") {
          $dtype = 1;
-         if (defined $jobid) {
-             $dtype = 2;    # root+jou
-         }
      }
      my $prefix="";
      if($fname=~/^\/castor/){
@@ -16645,35 +16638,15 @@ sub validateDST {
      }
      if (defined $dtype) {
       $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd64.exe  $prefix$fname $nevents $dtype $levent";
-      print "$validatecmd\n";
       $vcode=system($validatecmd);
      if($fname=~/^\/castor/ and $vcode/256==134){
+      sleep(5);   
       $vcode=system($validatecmd);
+       #return 1,0;
      }
 
-     if (defined $jobid and -f "$prefix$fname.jou") {
-         my $jobname;
-         my $sql = "SELECT jobname FROM Jobs WHERE jid=$jobid";
-         my $rs = $self->{sqlserver}->Query($sql);
-         if (defined $rs->[0][0]) {
-             $jobname = $rs->[0][0];
-             my $realjobname = `grep "^ScriptName=" $prefix$fname.jou | awk -F/ '{print \$NF}' | sed "s/\\.job.*/.job/g"`;
-             chomp $realjobname;
-             if ($realjobname ne $jobname) {
-                 print "validateDST: $jobname in DB, while should be $realjobname, removing DB entry of jid $jobid ...\n";
-                 $sql="delete from jobs_deleted where jid=$jobid";
-                 $self->{sqlserver}->Update($sql);
-                 $self->{sqlserver}->Commit();
-                 $ret = 2;      # Incositent job name between db and root journal
-             }
-         }
-         else {
-             $ret = 2;          # no records in db, should never happen here
-         }
-         system("rm -f $prefix$fname.jou");
-    }
-
       if ($verbose == 1) {print "$validatecmd : $vcode \n";}
+      $ret = 1;
      }
 
      my $time1 = time();
@@ -21545,50 +21518,4 @@ sub getactiveppstring{
         $jobspid="";
     }
     return $jobspid;
-}
-
-sub fastntrdtest{
-    my $self = shift;
-    my $fname = shift;
-    my $nevents = shift;
-    my $dtype = shift;
-    my $levent = shift;
-    my $jobid = shift;
-    my $prefix = "";
-    my $ret = 1;
-    if( not $self->Init()){
-      die "parseJournalFiles -F- Unable To Init";
-    }
-
-
-    system("rm -f $fname.jou");
-    my $validatecmd = "/afs/cern.ch/ams/Offline/AMSDataDirRW/DataManagement/exe/linux/fastntrd.exe  $fname $nevents $dtype $levent";
-    if (-f "$fname.jou") {
-        print "$fname.jou generated.\n";
-    }
-    print "$validatecmd";
-    my $vcode=system($validatecmd);
-    print " returned $vcode\n";
-    if (defined $jobid and -f "$fname.jou") {
-        my $jobname;
-        my $sql = "SELECT jobname FROM Jobs WHERE jid=$jobid";
-        my $rs = $self->{sqlserver}->Query($sql);
-        if (defined $rs->[0][0]) {
-            $jobname = $rs->[0][0];
-            my $realjobname = `grep "^ScriptName=" $prefix$fname.jou | awk -F/ '{print \$NF}' | sed "s/\\.job.*/.job/g"`;
-            chomp $realjobname;
-            if ($realjobname ne $jobname) {
-                print "validateDST: $jobname in DB, while should be $realjobname, removing DB entry of jid $jobid ...\n";
-                $sql="delete from jobs where jid=$jobid";
-                $self->{sqlserver}->Update($sql);
-                $self->{sqlserver}->Commit();
-                $ret = 2;      # Incositent job name between db and root journal
-            }
-        }
-        else {
-            $ret = 2;          # no records in db, should never happen here
-        }
-    }
-    print "returning $ret.\n";
-    return $ret;
 }
