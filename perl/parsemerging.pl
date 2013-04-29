@@ -60,7 +60,8 @@ foreach my $jou (@journals) {
         if ($tag % 256 == 204) { # LAS run, ignore ...
             next;
         }
-        my $newrun = $ofe ? "" : "(new)";
+        my $percentage = sprintf "(%.2f%%)", ($ne-$one)/$ne*100;
+        my $newrun = $ofe ? $percentage : "(new)";
 
         print "Found run to MERGE: $run $newrun\n";
         print "Copying $run to $TRCDIR ...";
