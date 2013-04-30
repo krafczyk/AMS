@@ -249,7 +249,7 @@ class TrkLH: public TObject {
   void SetDefaultMask(); //using default value of VARN=23
   
 #ifndef _NOGBATCH_
-  /* fill the TrkLHVar&, variables from the ams rootuples, for the event and the ipart particle number \n
+  /*! fill the TrkLHVar&, variables from the ams rootuples, for the event and the ipart particle number \n
    ipart is the pre-selected particle number \n                                  
    return -2 = event problem \n
    return -1 = particle problem \n
