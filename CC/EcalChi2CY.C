@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.33 2013/04/29 21:38:27 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.34 2013/04/30 21:51:37 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1736,7 +1736,18 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
         }
     }
     if((algorithm&8)==8){
-	if(init_cr2()){
+	if(EnergyE>500){
+		if(init_lf()){
+            		_status+=8;//fake cell ratio method
+			_status+=2;
+			p0_cr2[0]=p0_lf[0];p0_cr2[1]=p0_lf[1];p0_cr2[2]=p0_lf[2];
+			dir_cr2[0]=dir_lf[0];dir_cr2[1]=dir_lf[1];dir_cr2[2]=dir_lf[2];
+            		algorithmHasCalculated+=2;
+            		p0Cached[1][0]=p0_lf[0] ;p0Cached[1][1]=p0_lf[1] ;p0Cached[1][2]=p0_lf[2] ;
+           		d0Cached[1][0]=dir_lf[0];d0Cached[1][1]=dir_lf[1];d0Cached[1][2]=dir_lf[2];
+        	}
+	}
+	if(init_cr2()&&EnergyE<500){
 		//cout<<ecalchi2->get_chi2()<<"---> ";
 		double param[4]={p0_cr2[0],p0_cr2[1],dir_cr2[0]/dir_cr2[2],dir_cr2[1]/dir_cr2[2]};
 		GetChi2(param);
