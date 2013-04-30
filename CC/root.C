@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.564 2013/04/16 22:29:35 pzuccon Exp $
+//  $Id: root.C,v 1.565 2013/04/30 13:55:20 oliva Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9998,6 +9998,8 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     // if (TrPdfDB::IsNull()) TrPdfDB::Load(_FILE);
     TrPdfDB::GetHead()->LoadDefaults();
 
+    bool isReal = (AMSEventR::Head()->nMCEventg()==0);
+
     // TrGainDB (if all attempts fail use default)
     // 1st attempt: file
     if (!TrGainDB::GetHead()->Load(_FILE)) { 
@@ -10010,11 +10012,13 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     if (!TrOccDB::GetHead()->Load(_FILE)) {
       printf("InitDB::TrOccDB load from file failed. Try TDV... \n");
       // 2nd attempt: TDV
-      if ((!LoadFromTDV)||(!TrOccDB::GetHead()->LoadFromTDV(UTime(),1))||(TrOccDB::GetHead()->GetNBadStrips()==0)) {
-        printf("InitDB::TrOccDB load from TDV failed (or empty). Try with last resort histogram ... \n");
-        // 3rd attempt on-the-fly creation from histogram     
-        if (!TrOccDB::GetHead()->CreateFromRawOccupanciesHisto((TH2F*)_FILE->Get("HistoMan/TrOccStri"))) {
-          printf("InitDB::TrOccDB load with histogram failed. Use default.\n");
+      if ((!LoadFromTDV)||(!TrOccDB::GetHead()->LoadFromTDV(UTime(),isReal))||(TrOccDB::GetHead()->GetNBadStrips()==0)) {
+        if (isReal) {
+          printf("InitDB::TrOccDB load from TDV failed (or empty). Try with last resort histogram ... \n");
+          // 3rd attempt on-the-fly creation from histogram (only for real data)
+          if (!TrOccDB::GetHead()->CreateFromRawOccupanciesHisto((TH2F*)_FILE->Get("HistoMan/TrOccStri"))) {
+            printf("InitDB::TrOccDB load with histogram failed. Use default.\n");
+          }
         }
       }
     }
