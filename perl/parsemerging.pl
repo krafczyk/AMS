@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-
 use DBI;
 use strict;
 
@@ -70,7 +69,7 @@ foreach my $jou (@journals) {
         print "done, cp returned $ret.\n\n"
     }
     else {
-        system("mv $MERGEDIR/$run $ARCHDIR || mv $jou $ARCHDIR/jou/");
+        system("mv $MERGEDIR/$run $ARCHDIR ; mv $jou $ARCHDIR/jou/");
     }
 }
 
