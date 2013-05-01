@@ -41,19 +41,28 @@ sub refreshStatus{
  $clastupdate=localtime();
     $time = "Last update $clastupdate" ;
     $lastupdate = time();
-    $output = `timeout 30 ssh amslocal\@pcamsf4 "cd /Offline/vdev/perl/; ./rdlastraw.perl -ok @ARGV"`;
-    chomp $output;
+    while (time() - $lastupdate <= 600) {
+        $output = `timeout 30 ssh amslocal\@pcamsf41 "cd /Offline/vdev/perl/; ./rdlastraw.perl -ok @ARGV"`;
+        chomp $output;
+        if  ($output eq "") {
+            sleep 5;
+        }
+        else {
+            last;
+        }
+    }
     if ($output eq "") {
-        $statusLabel->configure(-background => "red");
-        my $pingmsg = `ping -c 3 pcamsf4 | grep transmitted | awk '{print \$4}'`;
+        my $pingmsg = `ping -c 3 pcamsf41 | grep transmitted | awk '{print \$4}'`;
         chomp($pingmsg);
         if ($pingmsg eq '0') {
-            $status = 'Cannot reach pcamsf4';
+            $statusLabel->configure(-background => "red");
+            $status = 'Cannot reach pcamsf41';
             $message = 'Call expert: 16 4733';
         }
         else {
             if ($ssherrorcount > 1) {
-                $status = 'Cannot ssh pcamsf4';
+                $statusLabel->configure(-background => "red");
+                $status = 'Cannot ssh pcamsf41';
                 $message = 'Call expert: 16 9642';
             }
             else {
@@ -77,6 +86,7 @@ sub refreshStatus{
             $statusLabel->configure(-background => "red");
             chomp($outarray[1]);
             $outarray[1] =~ s/ /\n/g;
+            $outarray[1] =~ s/_/ /g;
             $status = $outarray[1];
         }
     }
