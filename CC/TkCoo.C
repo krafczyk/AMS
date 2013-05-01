@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.17 2012/11/07 14:29:22 oliva Exp $ 
+/// $Id: TkCoo.C,v 1.17.2.1 2013/05/01 13:51:07 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2012/11/07 14:29:22 $
+///$Date: 2013/05/01 13:51:07 $
 ///
-/// $Revision: 1.17 $
+/// $Revision: 1.17.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -108,8 +108,16 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   // Set ladder local coo Z to zero
   loc2[2]=0;
 
-  // Alignment corrected Ladder Rotation matrix
   AMSRotMat RotG0  = ll->GetRotMatA();
+
+  // Strip pitch correction
+  if (TkLadder::version >= 3) {
+    double aa, ab, ac;
+    RotG0.GetRotAngles(aa, ab, ac); loc2[1] *= ac+1;
+    RotG0.SetRotAngles(aa, ab, 0);
+  }
+
+  // Alignment corrected Ladder Rotation matrix
   AMSRotMat RotG  = RotG0*ll->GetRotMat();
 
   // Alignment corrected Ladder postion

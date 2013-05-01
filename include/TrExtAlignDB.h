@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.30 2012/10/22 21:03:18 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.30.2.1 2013/05/01 13:51:01 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -178,6 +178,8 @@ public:
   /// TDV version (1: no errors,  2: with errors) 
   static int version;  // It should be thread-common
 
+  // Offset correction for PM4 alignment
+  static float Sofs[4];
 
   static float SL1[18];
 #pragma omp threadprivate(SL1)

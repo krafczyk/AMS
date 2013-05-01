@@ -33,6 +33,8 @@ int TrExtAlignDB::Ciemat=0;
 float TrExtAlignDB::SL1[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 float TrExtAlignDB::SL9[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
+float TrExtAlignDB::Sofs[4]={0, 0, 4.0e-4, 3.3e-4};
+
 
 
 
@@ -306,6 +308,7 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     ll[6]=pos[0]; ll[7]=pos[1];ll[8]=pos[2];
     ll[9]=a;ll[10]=b;ll[11]=c;
 
+    if (TkLadder::version >= 3) ll[7]+=Sofs[i+2];
   }
   return 0;
 }
@@ -447,6 +450,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   uint te8 = ti8+50000;  // Effective time range
   uint te9 = ti8+50000;  // Effective time range
 
+  if (time%50000 < 120) time += 120;
+
   // For default data
   if (GetSize(8) == 1) { ti8 = GetTmin(8); te8 = 2100000000; }
   if (GetSize(9) == 1) { ti9 = GetTmin(9); te9 = 2100000000; }
@@ -575,6 +580,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     ll[0]=par->dpos[0];  ll[1]=par->dpos[1];   ll[2]=par->dpos[2];
     ll[3]=par->angles[0];ll[4]=par->angles[1]; ll[5]=par->angles[2];
 
+    if (TkLadder::version >= 3) ll[1]+=(layer==8)?Sofs[0]:Sofs[1];
   }
 
   return 0;
