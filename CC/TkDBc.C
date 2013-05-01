@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.66.4.1 2013/04/16 11:45:47 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.66.4.2 2013/05/01 13:55:44 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/04/16 11:45:47 $
+///$Date: 2013/05/01 13:55:44 $
 ///
-///$Revision: 1.66.4.1 $
+///$Revision: 1.66.4.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1429,7 +1429,7 @@ int TkDBc::UpdateTDV(unsigned int brun, unsigned int erun, int ver)
   cout << "End  : " <<(int)erun<<"  " <<asctime(&end  )<<endl;
 
   AMSTimeID *tt
-    = new AMSTimeID(AMSID("TrackerAlignPM3", 1), begin, end,
+    = new AMSTimeID(AMSID(stn, 1), begin, end,
 		    TkDBc::GetLinearSize(),
 		    TkDBc::linear, AMSTimeID::Standalone, 1);
 
@@ -1547,3 +1547,17 @@ void TkDBc::RebuildMap()
        << "JN= " << JMDCNumMap   .size() << endl;
 }
 
+
+#include "TrExtAlignDB.h"
+
+void TkDBc::UseLatest()
+{
+  TkDBc       ::ForceFromTDV = 4;
+  TrExtAlignDB::ForceFromTDV = 1;
+  TrExtAlignDB::version      = 3;
+
+  cout << "TkDBc::UseLatest-I- "
+       << "TkDBc::ForceFromTDV= " << TkDBc::ForceFromTDV << " "
+       << "TrExtAlignDB::ForceFromTDV= " << TrExtAlignDB::ForceFromTDV << " "
+       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+}

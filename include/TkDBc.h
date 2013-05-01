@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.40 2012/07/27 15:00:01 pzuccon Exp $
+// $Id: TkDBc.h,v 1.40.6.1 2013/05/01 13:55:41 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -506,6 +506,9 @@ public:
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (ForceFromTDV)
 #endif
+
+  //! Use the latest alignment instead of the one stored in ROOT file
+  static void UseLatest();
 
   ClassDef(TkDBc, 10);
 };
