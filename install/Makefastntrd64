@@ -193,8 +193,11 @@ $(BIN)VCon_root.o:    	 $(SCC)VCon_root.C
 $(BIN)ctype.o:    	 $(SCC)ctype.c
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)ctype.c -o $(BIN)ctype.o
 
-$(BIN)rootread.o:    	 $(SCC)rootread.C
+$(BIN)rootread.o:    	 $(SCC)rootread.C ../include/root_methods.h
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o
+
+../include/root_methods.h:	 ../perl/root.perl
+	perl ../perl/root.perl
 
 $(BIN)amschain.o:	 $(SCC)amschain.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)amschain.C -o $(BIN)amschain.o
