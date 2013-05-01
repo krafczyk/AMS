@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.768 2013/04/29 14:19:34 bshan Exp $
+# $Id: RemoteClient.pm,v 1.769 2013/05/01 10:12:50 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13503,7 +13503,7 @@ sub parseJournalFiles {
                system("ls $dir 1>$stf 2>&1 &");
                my @stat =stat("$stf");
                unlink "$stf";
-               if($stat[7]==0){
+               if(not defined($stat[7]) or $stat[7]==0){
                system("ls $dir 1>$stf 2>&1 &");
                sleep (3); 
                my @stat =stat("$stf");
@@ -14351,9 +14351,18 @@ foreach my $block (@blocks) {
           last;
       }
       my $ret = 0;
+<<<<<<< RemoteClient.pm
+      ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent, $jobid);
+      print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent, $jobid) : Status : $i : Ret : $ret\n";
+      if ($ret ==2) {
+          $self->findJob($jobid,$buf,$dirpath,$cid);
+      }
+      elsif ($ret !=1) {
+=======
       ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent);
       print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent) : Status : $i : Ret : $ret\n";
       if ($ret !=1) {
+>>>>>>> 1.768
        $unchecked++;
        $copyfailed = 1;
         print FILE " validateDST return code != 1. Quit. \n";
@@ -15196,6 +15205,7 @@ my %CloseDSTPatterns = (
             my $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd64.exe  $fnam 0 2 0 1";
             system($validatecmd);
              $fnam=$fnam.'.jou'; 
+            system("sed -i \"s/\\.job.*/.job/g\" $fnam");
              my $bufj="";
              if(open(FILEJ,"<".$fnam)){
                read(FILEJ,$bufj,32768);
@@ -16645,6 +16655,32 @@ sub validateDST {
        #return 1,0;
      }
 
+<<<<<<< RemoteClient.pm
+     if (defined $jobid and -f "$prefix$fname.jou") {
+         system("sed -i \"s/\\.job.*/.job/g\" $prefix$fname.jou");
+         my $jobname;
+         my $sql = "SELECT jobname FROM Jobs WHERE jid=$jobid";
+         my $rs = $self->{sqlserver}->Query($sql);
+         if (defined $rs->[0][0]) {
+             $jobname = $rs->[0][0];
+             my $realjobname = `grep "^ScriptName=" $prefix$fname.jou | awk -F/ '{print \$NF}' | sed "s/\\.job.*/.job/g"`;
+             chomp $realjobname;
+             if ($realjobname ne $jobname) {
+                 print "validateDST: $jobname in DB, while should be $realjobname, removing DB entry of jid $jobid ...\n";
+                 $sql="delete from jobs where jid=$jobid";
+                 $self->{sqlserver}->Update($sql);
+                 $self->{sqlserver}->Commit();
+                 $ret = 2;      # Incositent job name between db and root journal
+             }
+         }
+         else {
+             $ret = 2;          # no records in db, should never happen here
+         }
+         system("rm -f $prefix$fname.jou");
+    }
+
+=======
+>>>>>>> 1.768
       if ($verbose == 1) {print "$validatecmd : $vcode \n";}
       $ret = 1;
      }
