@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.770 2013/05/01 14:00:38 bshan Exp $
+# $Id: RemoteClient.pm,v 1.771 2013/05/01 14:14:06 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14357,9 +14357,6 @@ foreach my $block (@blocks) {
           $self->findJob($jobid,$buf,$dirpath,$cid);
       }
       elsif ($ret !=1) {
-      ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent);
-      print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent) : Status : $i : Ret : $ret\n";
-      if ($ret !=1) {
        $unchecked++;
        $copyfailed = 1;
         print FILE " validateDST return code != 1. Quit. \n";
@@ -16622,7 +16619,7 @@ sub validateDST {
      my $nevents = shift;  # number of events
      my $ftype   = shift;  # file type : root / ntuple
      my $levent  = shift;  # last event number
-
+     my $jobid   = shift;  # job id
 
      my $dtype       = undef;
      my $validatecmd = undef;
@@ -16652,7 +16649,6 @@ sub validateDST {
        #return 1,0;
      }
 
-<<<<<<< RemoteClient.pm
      if (defined $jobid and -f "$prefix$fname.jou") {
          system("sed -i \"s/\\.job.*/.job/g\" $prefix$fname.jou");
          my $jobname;
@@ -16676,9 +16672,7 @@ sub validateDST {
          system("rm -f $prefix$fname.jou");
     }
 
-=======
->>>>>>> 1.768
-      if ($verbose == 1) {print "$validatecmd : $vcode \n";}
+     if ($verbose == 1) {print "$validatecmd : $vcode \n";}
       $ret = 1;
      }
 
