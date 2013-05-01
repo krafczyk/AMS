@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.69 2013/04/16 22:29:34 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.70 2013/05/01 13:54:33 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/04/16 22:29:34 $
+///$Date: 2013/05/01 13:54:33 $
 ///
-///$Revision: 1.69 $
+///$Revision: 1.70 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1547,3 +1547,17 @@ void TkDBc::RebuildMap()
        << "JN= " << JMDCNumMap   .size() << endl;
 }
 
+
+#include "TrExtAlignDB.h"
+
+void TkDBc::UseLatest()
+{
+  TkDBc       ::ForceFromTDV = 4;
+  TrExtAlignDB::ForceFromTDV = 1;
+  TrExtAlignDB::version      = 3;
+
+  cout << "TkDBc::UseLatest-I- "
+       << "TkDBc::ForceFromTDV= " << TkDBc::ForceFromTDV << " "
+       << "TrExtAlignDB::ForceFromTDV= " << TrExtAlignDB::ForceFromTDV << " "
+       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+}
