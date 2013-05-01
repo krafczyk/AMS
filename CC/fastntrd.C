@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <iostream.h>
 #include <fstream.h>
+#include <sys/stat.h>
 //
  PROTOCCALLSFFUN3(INT,IFNTREAD,ifntread,STRING,INT,INT)
 #define IFNTREAD(A2,A3,A4)  CCALLSFFUN3(IFNTREAD,ifntread,STRING,INT,INT,A2,A3,A4)
@@ -22,6 +23,7 @@
 //            =2->read probl; =3->NevIn>NevRead; =4->NevIn<NevRead;| 
 //            =5->LastEventProbablyWrong
 //            =6->miss.arguments)                                  |
+//            =7->ROOTSYS not set correctly                        |
 //       b) Bit 8 is not set --> bits 1-7 give % of events with    |
 //          EventStatus=bad;                                     |
 //-----------------------------------------------------------------|
@@ -53,6 +55,12 @@
      if(argc>5){
       verbose=true;
       iver=1;
+     }
+     struct stat sb;
+     char *pROOTSYS = std::getenv("ROOTSYS");
+     if (pROOTSYS == NULL || stat(strcat(pROOTSYS, "/etc/plugins/TVirtualStreamerInfo"), &sb) != 0) {
+         cerr << "ROOTSYS not properly set, cannot continue with rootread." << endl;
+         return -7;
      }
      if(iver)cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
