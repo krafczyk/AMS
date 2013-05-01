@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.34 2013/04/30 21:51:37 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.35 2013/05/01 13:18:50 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1410,7 +1410,7 @@ bool EcalAxis::init_lf(){
     float init_y0=0;
     float init_dxdz=0;
     float init_dydz=0;
-    if(use_ext==0){
+    if(use_ext==0&&EnergyE>5.&&EnergyE<500.){
         if((_status&8)!=8){
             if(init_cr2())
                 _status+=8;
@@ -1736,7 +1736,7 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
         }
     }
     if((algorithm&8)==8){
-	if(EnergyE>500){
+	if(EnergyE>500||EnergyE<5.){
 		if(init_lf()){
             		_status+=8;//fake cell ratio method
 			_status+=2;
