@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.769 2013/05/01 10:12:50 bshan Exp $
+# $Id: RemoteClient.pm,v 1.770 2013/05/01 14:00:38 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14351,18 +14351,15 @@ foreach my $block (@blocks) {
           last;
       }
       my $ret = 0;
-<<<<<<< RemoteClient.pm
       ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent, $jobid);
       print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent, $jobid) : Status : $i : Ret : $ret\n";
       if ($ret ==2) {
           $self->findJob($jobid,$buf,$dirpath,$cid);
       }
       elsif ($ret !=1) {
-=======
       ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent);
       print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent) : Status : $i : Ret : $ret\n";
       if ($ret !=1) {
->>>>>>> 1.768
        $unchecked++;
        $copyfailed = 1;
         print FILE " validateDST return code != 1. Quit. \n";
