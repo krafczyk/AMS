@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.566 2013/05/02 13:52:22 choutko Exp $
+//  $Id: root.C,v 1.567 2013/05/02 21:07:22 zhukov Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3285,6 +3285,7 @@ AntiMCClusterR::AntiMCClusterR(AMSAntiMCCluster *ptr)
 {
 #ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr->_idsoft;
+  GtrkID = ptr->_gtrkid;
   for (int i=0; i<3; i++) Coo[i]=ptr->_xcoo[i];
   TOF    = ptr->_tof;
   Edep   = ptr->_edep;
@@ -5948,6 +5949,7 @@ TofMCClusterR::TofMCClusterR(AMSTOFMCCluster *ptr){
   Idsoft =  ptr->idsoft;
   Particle= ptr->particle;
   ParentNo= ptr->parentid;
+  GtrkID = ptr->gtrkid;
   for (int i=0; i<3; i++) {Coo[i] = ptr->xcoo[i];}
   TOF = ptr->tof;
   Beta= ptr->beta;
@@ -6046,6 +6048,7 @@ TrdMCClusterR::TrdMCClusterR(AMSTRDMCCluster *ptr){
   Ladder = ptr->_idsoft.getladder();
   Tube   = ptr->_idsoft.gettube();
   ParticleNo= ptr->_ipart;
+  GtrkID = ptr->_gtrkid;
   if(ptr->_itra!=0)ParticleNo= -ParticleNo;
   //  TrackNo= ptr->_itra;
   Edep   = ptr->_edep;
@@ -6501,6 +6504,7 @@ TrMCClusterR::TrMCClusterR(AMSTrMCCluster *ptr){
       SS[i][j] = ptr->_ss[i][j];
     }
   }
+  GtrkID = ptr->_gtrkid;
 #endif
 }
 
@@ -6618,6 +6622,8 @@ RichMCClusterR::RichMCClusterR(AMSRichMCHit *ptr, int _numgen){
   Status       = ptr->_status;
   fRichHit = ptr->_hit;
   NumGen       = _numgen;
+  GtrkID = ptr->_gtrkid;
+  GparentID = ptr->_gparentid;
 #endif
 }
 

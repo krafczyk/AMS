@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.181 2013/04/12 06:13:58 choutko Exp $
+//  $Id: mceventg.C,v 1.182 2013/05/02 21:07:22 zhukov Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -98,7 +98,7 @@ init(ipart);
 
 }
 
-AMSmceventg::AMSmceventg(integer ipart, number trackid, number parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip):_trkid(trackid), _parentid(parentid), _nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
+AMSmceventg::AMSmceventg(integer ipart, integer trackid, integer parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip):_trkid(trackid), _parentid(parentid), _nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
 init(ipart);
 _mom=sqrt( (_mom+_mass)*(_mom+_mass)-_mass*_mass);
 
@@ -2019,6 +2019,8 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
          );
 
 
+   AMSG4EventAction* evt_act =(AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
+   evt_act->AddRegisteredTrack( aTrack->GetTrackID() );   
 }
 #endif
 

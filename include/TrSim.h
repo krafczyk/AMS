@@ -78,7 +78,7 @@ class TrSim {
   static TRMCFFKEY_DEF *GetFFKEY() { return &TRMCFFKEY; }
 
   //! Build the TrMCClusters (one per side) 
-  static void  sitkhits(int idsoft, float vect[], float edep, float step, int itra);
+  static void  sitkhits(int idsoft, float vect[], float edep, float step, int itra, int gtrkid=-2);
   //! Fast simulation TrRawCluster creation (generate TrRawCluster directly from step infos) 
   static void  gencluster(int idsoft, float vect[], float edep, float step, int itra);  
   //! Generate fake noise cluster (where there is no full simulation)

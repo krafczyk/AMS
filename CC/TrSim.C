@@ -21,7 +21,7 @@ AMSPoint TrSim::sitkangl[trconst::maxlay];
 TrSimSensor TrSim::_sensors[3];
 
 
-void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra) {
+void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra,  int gtrkid) {
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SiTkSimuAll"); // simulation counter
@@ -94,9 +94,9 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   VCon* aa = GetVCon()->GetCont("AMSTrMCCluster");
   if (aa!=0)
 #ifndef __ROOTSHAREDLIBRARY__
-    aa->addnext(new AMSTrMCCluster(idsoft,step,pgl,dirg,momentum,edep,itra));
+    aa->addnext(new AMSTrMCCluster(idsoft,step,pgl,dirg,momentum,edep,itra, gtrkid));
 #else
-    aa->addnext(new TrMCClusterR(idsoft,step,pgl,dirg,momentum,edep,itra));
+  aa->addnext(new TrMCClusterR(idsoft,step,pgl,dirg,momentum,edep,itra,gtrkid));
 #endif
   if (aa!=0) delete aa;
 #ifndef __ROOTSHAREDLIBRARY__

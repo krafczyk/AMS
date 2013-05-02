@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.86 2013/03/10 11:19:05 qyan Exp $
+//  $Id: mccluster.C,v 1.87 2013/05/02 21:07:22 zhukov Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -26,13 +26,13 @@ number AMSEcalMCHit::leadedep[ecalconst::ECSLMX];
 integer AMSTRDMCCluster::_NoiseMarker(555);
 
 void AMSTRDMCCluster::sitrdhits(
-integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer ipart, integer itra ){
+				integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer ipart, integer itra, integer gtrkid ){
 
 
         AMSPoint xgl(vect[0],vect[1],vect[2]);
         AMSDir xvec(vect[3],vect[4],vect[5]);
       AMSEvent::gethead()->addnext(AMSID("AMSTRDMCCluster",0),
-      new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,ipart,itra));
+      new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,ipart,itra, gtrkid));
 
 }
 
@@ -120,11 +120,11 @@ return (WriteAll || status);
 
 
 void AMSTOFMCCluster::sitofhits(integer idsoft , geant vect[],geant edep, 
-geant tofg, geant beta, geant edepr, geant step, integer parentid, integer particle){
+geant tofg, geant beta, geant edepr, geant step, integer parentid, integer particle, integer gtrkid){
   //        Very Temporary
   AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSEvent::gethead()->addnext(AMSID("AMSTOFMCCluster",0),
-   new AMSTOFMCCluster(idsoft,pnt,edep,tofg,beta,edepr,step,parentid,particle));
+   new AMSTOFMCCluster(idsoft,pnt,edep,tofg,beta,edepr,step,parentid,particle,gtrkid));
 }
 
 //----------------PMT hit
@@ -146,11 +146,11 @@ void AMSTOFMCPmtHit::sitofpmtpar(geant phtimp,geant phamp){
 //------------- ANTI -------------
 
 void AMSAntiMCCluster::siantihits(integer idsoft , geant vect[],geant edep, 
-geant tofg){
+geant tofg, integer gtrkid){
   //        Very Temporary
   AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSEvent::gethead()->addnext(AMSID("AMSAntiMCCluster",0),
-   new AMSAntiMCCluster(idsoft,pnt,edep,tofg));
+   new AMSAntiMCCluster(idsoft,pnt,edep,tofg, gtrkid));
 }
 
 //------------- ECAL --------------
@@ -182,7 +182,7 @@ void AMSEcalMCHit::_writeEl(){
 
 void AMSRichMCHit::sirichhits(integer id,
 			      integer pmt, geant position[], // used to compute channel
-			      geant origin[],geant momentum[],integer status)
+			      geant origin[],geant momentum[],integer status, integer gtrkid, integer gparentid)
 {
   AMSPoint r(origin[0],origin[1],origin[2]);
   double norma=sqrt(momentum[0]*momentum[0]+
@@ -227,7 +227,7 @@ void AMSRichMCHit::sirichhits(integer id,
      status==Status_primary_radb)
     AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 				 new AMSRichMCHit(id,-1,0,
-						  r,u,status));
+						  r,u,status, gtrkid, gparentid));
   
   
   else
@@ -238,7 +238,7 @@ void AMSRichMCHit::sirichhits(integer id,
       if(RNDM(dummy)<=channel.rel_eff)
 	AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 				     new AMSRichMCHit(id,channel.GetPacked(),adc,
-						      r,u,status));
+						      r,u,status, gtrkid, gparentid));
 }
 }
 
@@ -247,7 +247,7 @@ void AMSRichMCHit::noisyhit(integer channel,int mode){
   AMSPoint r(0,0,0);
   AMSPoint u(0,0,0);
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-			       new AMSRichMCHit(Noise,channel,AMSRichMCHit::noise(channel,mode),r,u,Status_Noise));
+			       new AMSRichMCHit(Noise,channel,AMSRichMCHit::noise(channel,mode),r,u,Status_Noise,-2,-2));
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.42 2013/03/10 11:19:13 qyan Exp $
+//  $Id: mccluster.h,v 1.43 2013/05/02 21:07:52 zhukov Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -26,6 +26,7 @@ public:
  integer  idsoft;
  integer  parentid;
  integer  particle;
+ integer  gtrkid;
  AMSPoint xcoo;
  number   tof;
  number   beta;
@@ -34,9 +35,11 @@ public:
  number   step;
  integer getid() const {return idsoft;}
  static integer Out(integer);
-
  AMSTOFMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof,number _beta,number _edepr,number _step, integer _parentid, integer _particle) :
- idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof),beta(_beta),edepr(_edepr),step(_step),parentid(_parentid),particle(_particle){_next=0;};
+ idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof),beta(_beta),edepr(_edepr),step(_step),parentid(_parentid),particle(_particle), gtrkid(-2){_next=0;};
+
+ AMSTOFMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof,number _beta,number _edepr,number _step, integer _parentid, integer _particle, integer _gtrkid) :
+ idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof),beta(_beta),edepr(_edepr),step(_step),parentid(_parentid),particle(_particle), gtrkid(_gtrkid){_next=0;};
  AMSTOFMCCluster(){_next=0;};
  ~AMSTOFMCCluster(){};
  void _printEl(ostream &stream){stream <<"AMSTOFMCCluster "<<idsoft<<" "<<edep<<" "<<xcoo<<endl;}
@@ -45,7 +48,7 @@ public:
  integer operator < (AMSlink & o)const{
    return idsoft < ((AMSTOFMCCluster*)(&o)) ->idsoft ;
  }
- static void sitofhits(integer idsoft , geant vect[],geant edep, geant tofg, geant beta=0, geant edepr=0, geant step=0, integer parentid=0,integer particle=0);
+ static void sitofhits(integer idsoft , geant vect[],geant edep, geant tofg, geant beta=0, geant edepr=0, geant step=0, integer parentid=0,integer particle=0, integer gtrkid=-2);
   AMSTOFMCCluster *  next(){return (AMSTOFMCCluster*)_next;}
 #ifdef __WRITEROOT__
    friend class TofMCClusterR;
@@ -107,17 +110,19 @@ protected:
  AMSPoint _xcoo;
  number _tof;
  number _edep;
+ integer _gtrkid;
 
 public:
- 
- AMSAntiMCCluster(integer idsoft,AMSPoint xcoo,number edep, number tof) :
- _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof){_next=0;};
+  AMSAntiMCCluster(integer idsoft,AMSPoint xcoo,number edep, number tof) :
+ _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof), _gtrkid(-2) {_next=0;};
+ AMSAntiMCCluster(integer idsoft,AMSPoint xcoo,number edep, number tof, integer gtrkid) :
+ _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof), _gtrkid(gtrkid) {_next=0;};
  AMSAntiMCCluster(){_next=0;};
  ~AMSAntiMCCluster(){};
  void _printEl(ostream &stream){stream <<"AMSAntiMCCluster "<<_idsoft<<" "<<_edep<<endl;}
  void _writeEl();
  void _copyEl(){};
- static void siantihits(integer idsoft , geant vect[],geant edep, geant tofg);
+ static void siantihits(integer idsoft , geant vect[],geant edep, geant tofg, integer _gtrkid=-2);
  AMSAntiMCCluster *  next(){return (AMSAntiMCCluster*)_next;}
  integer operator < (AMSlink & o)const{
  return _idsoft < ((AMSAntiMCCluster*)(&o)) ->_idsoft;}
@@ -125,6 +130,7 @@ public:
  integer getid() const {return _idsoft;}
  number getedep() const {return _edep;}
  number gettime() const {return _tof;}
+ integer getgtrkid() const { return _gtrkid; }
  number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
  static integer Out(integer);
 
@@ -182,13 +188,19 @@ protected:
   geant _angle;       // Entrance angle in the LG
   integer _status;    // photon status
   integer _hit;       // associated hit
-
+  integer _gtrkid;    // geant4 track id;
+  integer _gparentid; // geant4 parent track id;
 public:
 
-  AMSRichMCHit(integer id,integer channel,geant counts,AMSPoint origin,AMSPoint direction,integer status) :
+AMSRichMCHit(integer id,integer channel,geant counts,AMSPoint origin,AMSPoint direction,integer status) :
     AMSlink(),_id(id),_channel(channel),_counts(counts),_origin(origin),_direction(direction),
-    _status(status),_hit(-1){};
-  AMSRichMCHit():AMSlink(),_counts(0){};
+    _status(status),_hit(-1), _gtrkid(-2), _gparentid(-2){};
+
+AMSRichMCHit(integer id,integer channel,geant counts,AMSPoint origin,AMSPoint direction,integer status, integer gtrkid, integer gparentid) :
+    AMSlink(),_id(id),_channel(channel),_counts(counts),_origin(origin),_direction(direction),
+    _status(status),_hit(-1), _gtrkid(gtrkid), _gparentid(gparentid){};
+
+AMSRichMCHit():AMSlink(),_counts(0){};
   ~AMSRichMCHit(){};
 
   void _printEl(ostream &stream){stream <<"AMSRichMCHit "<<_channel<<endl;}
@@ -198,7 +210,7 @@ public:
   integer operator < (AMSlink & o)const{
     return _channel < ((AMSRichMCHit*)(&o)) ->_channel;}
 
-  static void sirichhits(integer id, integer pmt,geant position[],geant origin[],geant momentum[],integer status);
+  static void sirichhits(integer id, integer pmt,geant position[],geant origin[],geant momentum[],integer status, integer gtrkid=-2, integer gparentid=-2);
   static void noisyhit(integer channel,integer mode=1); // Add noise
   static geant adc_hit(integer n,integer channel=0,integer mode=1);   // Compute the adc counts
   static geant adc_empty(integer channel=0,integer mode=1);
@@ -211,6 +223,8 @@ public:
   integer getstatus() const {return _status;}
   integer gethit() const {return _hit;}
   void puthit(integer n) {_hit=n;};
+  integer getgtrkid() const {return _gtrkid;}
+  integer getgparentid() const {return _gparentid;}
 #ifdef __WRITEROOT__
   friend class RichMCClusterR;
 #endif
@@ -233,6 +247,7 @@ protected:
  AMSTRDIdGeom _idsoft;   // geant stray id
  integer _itra;     // geant itra
  integer _ipart;     // geant itra
+ integer _gtrkid;  //geant4 track id
  AMSPoint _xgl;     // global coo (cm)
  number _step;      // track length (cm)
  number   _edep;      // energy deposition (GeV)
@@ -244,13 +259,17 @@ protected:
  static integer Out(integer);
 public:
  // Constructor for noise and crosstalk
- AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra):AMSlink(),_idsoft(id),_xgl(0,0,0),_step(0),_edep(energy),_itra(itra),_ekin(0){};
+ AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra, integer gtrkid):AMSlink(),_idsoft(id),_xgl(0,0,0),_step(0),_edep(energy),_itra(itra),_ekin(0), _gtrkid(gtrkid){};
  // Constructor for geant track
- AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra):AMSlink(),
-_idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl){}
+   AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra):AMSlink(),
+     _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(-2){}
+
+// Constructor for geant track
+   AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra,integer gtrkid):AMSlink(),
+     _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(gtrkid){}
 
  static void    sitrdhits(integer idsoft ,geant vect[],
-        geant destep, geant ekin, geant step,integer ipart, integer itra);   
+			  geant destep, geant ekin, geant step,integer ipart, integer itra, integer gtrkid=-2);   
 
  // Constructor for daq
  AMSTRDMCCluster (AMSPoint xgl, integer itra): AMSlink(),
@@ -260,6 +279,7 @@ _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),
  ~AMSTRDMCCluster(){};
   integer IsNoise(){return _itra==_NoiseMarker;}
   AMSPoint getHit(){return _xgl;}
+  integer getgtrkid() const { return _gtrkid; }
   static integer noisemarker(){return _NoiseMarker;}
   geant getedep()const {return _edep;}
   geant getitra()const {return _itra;}

@@ -1,6 +1,9 @@
-//  $Id: geant4.h,v 1.12 2011/01/23 07:37:53 zweng Exp $
+//  $Id: geant4.h,v 1.13 2013/05/02 21:07:52 zhukov Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
+
+#include <vector>
+#include <algorithm>
 #include "cern.h"
 #include "geantnamespace.h"
 #include "point.h"
@@ -60,6 +63,16 @@ public:
     virtual void BeginOfEventAction(const G4Event*);
     virtual void EndOfEventAction(const G4Event*);
 
+    void AddRegisteredTrack(int gtrkid);
+    bool IsRegistered(int gtrkid);
+    void AddRegisteredParentChild(int gtrkid, int gparentid);
+    int  FindClosestParent(int gtrkid );
+ private:
+
+    vector<int> fvec_reg_tracks;
+    map<int,int> fmap_det_tracks; 
+    int flast_trkid;
+    int flast_parentid;
 };
 
 
@@ -91,8 +104,11 @@ static  void Test();
 class AMSG4SteppingAction : public G4UserSteppingAction
 {
   public:
-
     virtual void UserSteppingAction(const G4Step*);
+ private:
+    void FillBackSplash(const G4Step* Step);
+    void FillPrimaryInfo(const G4Step* Step);
+    static const double facc_pl[21];
 };
 
 

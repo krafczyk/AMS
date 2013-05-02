@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.552 2013/04/17 14:05:33 incaglim Exp $
+//  $Id: root.h,v 1.553 2013/05/02 21:07:52 zhukov Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3562,11 +3562,12 @@ public:
   float Coo[3];   ///< coo (cm)
   float TOF;      ///< time of flight (sec)
   float Edep;     ///< energy dep (GeV)
+  int GtrkID;    ///< G4 track id;
 
   AntiMCClusterR(){};
   AntiMCClusterR(AMSAntiMCCluster *ptr);
   virtual ~AntiMCClusterR(){};
-ClassDef(AntiMCClusterR,1)       //AntiMCClusterR
+ClassDef(AntiMCClusterR,2)       //AntiMCClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3586,6 +3587,7 @@ public:
                   Ifsoft/1000    sensor
                */
   int TrackNo;   ///< geant3 particle id or 555 if noise
+  int GtrkID;    ///< G4 track id;
   int Left[2];   ///< left strip no
   int Center[2];   ///< center strip no
   int Right[2]; ///< right strip no
@@ -3604,7 +3606,7 @@ public:
   return _Info;
   }
   virtual ~TrMCClusterR(){};
-ClassDef(TrMCClusterR,1)       //TrMCClusterR
+ClassDef(TrMCClusterR,2)       //TrMCClusterR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
@@ -3618,6 +3620,7 @@ class TofMCClusterR {
 public:
   int   Idsoft;  ///< software id  (ask E.Choumilov for details)
   int   ParentNo;///< parent no
+  int   GtrkID; ///< G4 trk id.  
   int   Particle;///< particle id
   float Coo[3];  ///< coo cm
   float TOF;     ///< time of flight of incident particle sec
@@ -3630,7 +3633,7 @@ public:
   TofMCClusterR(){};
   TofMCClusterR(AMSTOFMCCluster *ptr);
   virtual ~TofMCClusterR(){};
-ClassDef(TofMCClusterR,3)       //TOFMCClusterRoot
+ClassDef(TofMCClusterR,4)       //TOFMCClusterRoot
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3691,6 +3694,7 @@ public:
   int   Ladder;     ///< ladder  no
   int   Tube;   ///< tube no
   int   ParticleNo;   ///< particle id ala g3, (-) if secondary partilces
+  int   GtrkID;      ///< G4 track id
   float Edep;        ///<  energy dep gev
   float Ekin;        ///< part kin energy (gev)
   float Xgl[3];     ///< hit global coo(cm)
@@ -3699,7 +3703,7 @@ public:
   TrdMCClusterR(){};
   TrdMCClusterR(AMSTRDMCCluster *ptr);
   virtual ~TrdMCClusterR(){};
-ClassDef(TrdMCClusterR,1)       //TrdMCClusterR
+ClassDef(TrdMCClusterR,2)       //TrdMCClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3715,6 +3719,8 @@ public:
   float Origin[3];     ///< Particle origin coo
   float Direction[3];  ///< Particle direction coo
   int   Status;        ///< *******)
+  int   GtrkID;        ///< G4 track id
+  int   GparentID;    ///< G4 parent track id
 
                        /*!<
 *******) For geant4 this value is 0. For geant 3 it has several meanings:
@@ -3757,7 +3763,7 @@ NOTE: The information of the mother is only available if RICCONT=1 in
   RichMCClusterR(){};
   RichMCClusterR(AMSRichMCHit *ptr, int _numgen);
   virtual ~RichMCClusterR(){};
-  ClassDef(RichMCClusterR,2)       // RichMCClusterR
+  ClassDef(RichMCClusterR,3)       // RichMCClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3806,6 +3812,7 @@ static bool Rebuild;
 */
   int   trkID;    ///< G4 trk id. Not implemented for G3 (-2) is dummy value
   int   parentID; ///< parent G4 trk id. Not implemented for G3 (-2) is dummy value
+ 
   float Coo[3];   ///< coo (cm)
   float Dir[3];   ///< dir cos
   float Momentum;  ///< momentum (gev)
@@ -3821,7 +3828,7 @@ static bool Rebuild;
   return _Info;
   }
   virtual ~MCEventgR(){};
-ClassDef(MCEventgR,3)       //MCEventgR
+ClassDef(MCEventgR,4)       //MCEventgR
 #pragma omp threadprivate(fgIsA)
 };
 

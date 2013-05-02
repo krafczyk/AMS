@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.99 2013/03/10 11:19:05 qyan Exp $
+//  $Id: geant4.C,v 1.100 2013/05/02 21:07:22 zhukov Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -281,9 +281,14 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 }
 
 
-
-
+ 
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
+
+ fvec_reg_tracks.clear();
+ fmap_det_tracks.clear();
+ fvec_reg_tracks.push_back(1); //primary track
+ fmap_det_tracks.insert( std::pair<int,int>(1,0) );
+ flast_trkid=flast_parentid=-1;
 
 
  DAQEvent * pdaq=0;
@@ -385,6 +390,8 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
 
 void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
+
+
 //   cout <<" guout in"<<endl;
    if(AMSJob::gethead()->isSimulation()){
    AMSgObj::BookTimer.stop("GEANTTRACKING");
@@ -540,6 +547,61 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 
 
 
+void AMSG4EventAction::AddRegisteredTrack(int gtrkid)
+{
+  fvec_reg_tracks.push_back(gtrkid);
+}
+
+
+void AMSG4EventAction::AddRegisteredParentChild(int gtrkid, int gparentid)
+{
+  fmap_det_tracks.insert( std::pair<int,int>( gtrkid, gparentid ) );
+}
+
+bool AMSG4EventAction::IsRegistered(int gtrkid)
+{
+  vector<int>::iterator it = find(fvec_reg_tracks.begin(), fvec_reg_tracks.end(), gtrkid);
+  if( it==fvec_reg_tracks.end() ) return false;
+  return true;
+}
+
+int AMSG4EventAction::FindClosestParent( int gtrkid ){
+
+
+  if( gtrkid == flast_trkid ) return flast_parentid; //to speedup
+
+  bool found = false;
+  bool err = false;
+  int par_id = gtrkid;
+
+  /*  cout<<"Finding clsest track to: "<< gtrkid<<endl;
+  cout<<"Content of vector: ";
+  for( vector<int>::iterator it = fvec_reg_tracks.begin(); it!=fvec_reg_tracks.end(); ++it ) cout<<" "<<*it;
+  cout<<endl;
+
+  cout<<"Content of map: ";
+  for( map<int,int>::iterator itm = fmap_det_tracks.begin(); itm!=fmap_det_tracks.end(); ++itm ) cout<<" ("<<itm->first<<" "<<itm->second<<")";
+  cout<<endl;*/
+
+  while( (!found) && (!err)  ){
+    
+    std::map<int,int>::iterator it = fmap_det_tracks.find( par_id );
+    if( it==fmap_det_tracks.end() ){  
+      err = true;
+
+      //   cout<<"!!!Error, chain is broken on track: "<<par_id<<endl;
+    }
+    if( IsRegistered( it->second ) ) found = true;
+
+    //  cout<<"("<<par_id<<","<<it->second<<")="<<found<<endl;
+
+    par_id = it->second;
+
+  }
+  flast_trkid = gtrkid;
+  flast_parentid = par_id;
+  return par_id;
+}
 
  G4VPhysicalVolume* AMSG4DetectorInterface::Construct(){
 
@@ -783,6 +845,11 @@ if(!Step)return;
     G4Track * Track = Step->GetTrack();
     GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
     GCKINE.itra=Track->GetParentID();
+    int gtrkid = Track->GetTrackID();
+
+    FillPrimaryInfo(Step);
+    FillBackSplash(Step);
+
     //cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
     G4ParticleDefinition* particle =Track->GetDefinition();
     GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
@@ -909,6 +976,14 @@ if(!Step)return;
 
 
 	*/
+
+        //looging if given track is already registered in MCEventG. If not, find closest parent and change sign of gtrkid
+        AMSG4EventAction* evt_act = (AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
+        if( !evt_act->IsRegistered( gtrkid ) ) gtrkid = -evt_act->FindClosestParent( gtrkid );
+        
+
+
+
 	G4ParticleDefinition* particle =Track->GetDefinition();
 	GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
 	GCKINE.charge=particle->GetPDGCharge();
@@ -924,7 +999,7 @@ if(!Step)return;
 	     &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
 	    //cout <<" trd "<<GCKINE.itra<<" "<<GCKINE.ipart<<endl;
 	    AMSTRDMCCluster::sitrdhits(PrePV->GetCopyNo(),GCTRAK.vect,
-				       GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra);   
+				       GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra, gtrkid);   
 	  }
 
 
@@ -951,14 +1026,15 @@ if(!Step)return;
               GCTRAK.vect,
               GCTRAK.destep,
               GCTRAK.step,
-              sign*GCKINE.ipart
+              sign*GCKINE.ipart,
+              gtrkid
             );
 	  }
 #else
 	  if(GCTRAK.destep && GrandMother && GrandMother->GetName()(0)=='S' 
 	     &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K'){
 	    AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
-				     GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+				     GCTRAK.destep,GCTRAK.step,GCKINE.ipart,gtrkid);   
 	  }
 #endif
 	  //------------------------------------------------------------
@@ -1013,7 +1089,7 @@ if(!Step)return;
             }
 	    else                     dee=dee/(1+c*atan(rkb/c*dedxcm));
 	    //cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
-	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof,beta,deer,GCTRAK.step,GCKINE.itra,GCKINE.ipart);
+	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof,beta,deer,GCTRAK.step,GCKINE.itra,GCKINE.ipart,gtrkid);
 	    //----
 	    if(G4FFKEY.TFNewGeant4>1){
 	      number tofdt= Step->GetStepLength()/((PostPoint->GetVelocity()+PrePoint->GetVelocity())/2.)/nanosecond;
@@ -1110,7 +1186,7 @@ if(!Step)return;
 	    number dedxcm=1000*dee/GCTRAK.step;
 	    dee=dee/(1+c*atan(rkb/c*dedxcm));
 	    AMSAntiMCCluster::siantihits(isphys,GCTRAK.vect,
-					 dee,GCTRAK.tofg);
+					 dee,GCTRAK.tofg, gtrkid);
 	  }// <--- end of "in ANTS"
 	  //------------------------------------------------------------------
 	  //  ECAL :
@@ -1161,7 +1237,9 @@ if(!Step)return;
 				       GCKINE.vert,
 				       GCKINE.pvert,
 				       Status_Window-
-				       (GCKINE.itra!=1?100:0));
+				       (GCKINE.itra!=1?100:0),
+                                       gtrkid,
+                                       GCKINE.itra);
 	    }
       
 
@@ -1185,21 +1263,27 @@ if(!Step)return;
 					 vect,
 					 GCKINE.vert,
 					 GCKINE.pvert,
-					 Status_LG_origin);
+					 Status_LG_origin,
+                                         gtrkid,
+                                         GCKINE.itra);
 	      else
 		AMSRichMCHit::sirichhits(GCKINE.ipart,
 					 volume,
 					 vect,
 					 GCKINE.vert,
 					 GCKINE.pvert,
-					 0);
+					 0,
+                                         gtrkid,
+                                         GCKINE.itra);
 	    }else if(GCTRAK.nstep!=0){	 
 	      AMSRichMCHit::sirichhits(GCKINE.ipart,
 				       volume,
 				       GCTRAK.vect,
 				       GCKINE.vert,
 				       GCKINE.pvert,
-				       Status_No_Cerenkov);
+				       Status_No_Cerenkov,
+                                       gtrkid,
+                                       GCKINE.itra);
 	    }
 	  }
   
@@ -1270,8 +1354,111 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
     double e=aTrack->GetTotalEnergy()/GeV;
     if(!RICHDB::detcer(e)) return fKill; // Kill discarded Cerenkov photons
   }
-  AMSmceventg::FillMCInfoG4( aTrack );
+  if( !aTrack->GetCurrentStepNumber() ){ //don't fill twice for the same track
+      AMSmceventg::FillMCInfoG4( aTrack );
+      AMSG4EventAction* evt_act =(AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
+      evt_act->AddRegisteredParentChild( aTrack->GetTrackID(), aTrack->GetParentID() );
+  }  
+
   return fWaiting;
 }
 
 
+const double AMSG4SteppingAction::facc_pl[21] = {
+  158.92,  141.2, 86.1, 
+  64.425,  65.975, 61.325, 62.875,
+  53.06,   29.228, 25.212, 1.698, -2.318, -25.212, -29.228,
+  -62.875, -61.325, -64.425, -69.975, 
+  -135.882,
+  -142.792,
+  -158.457
+};
+
+void AMSG4SteppingAction::FillPrimaryInfo( const G4Step *Step){
+
+  G4Track * aTrack = Step->GetTrack();
+  if (aTrack->GetParentID()!=0) return;
+  
+  double z_post = Step->GetPostStepPoint()->GetPosition().z();
+  double z_pre = Step->GetPreStepPoint()->GetPosition().z();
+
+
+  int pl = 0;
+  int ipl = -1;
+
+
+  //if partcle is died, or go out of the mother volume, record it
+  if( aTrack->GetTrackStatus()!=fAlive ) ipl = 100;
+
+  while( (pl<21) && (ipl<0) ){
+    if(  ( (z_post < facc_pl[pl]*cm) && (z_pre > facc_pl[pl]*cm ) ) || //top-bottom
+         ( (z_pre < facc_pl[pl]*cm) && (z_post > facc_pl[pl]*cm ) ) ){ //bot-top
+
+      ipl = pl;
+    }
+    pl++;
+  }
+
+  if (ipl < 0 ) return;
+ 
+  G4double ekin = aTrack->GetKineticEnergy();
+  G4String name = aTrack -> GetDynamicParticle() -> GetDefinition() -> GetParticleName();
+  G4ThreeVector mom = aTrack->GetMomentumDirection();
+  int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
+  if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle ){
+    G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
+    // too bad, could be nuclei
+  }
+  if(g3code==AMSG4Physics::_G3DummyParticle)return;
+
+  G4ThreeVector pos = aTrack->GetPosition();
+  AMSPoint point( pos.x(), pos.y(), pos.z() );
+
+  AMSDir dir( mom.x(), mom.y(), mom.z() );
+  int nskip = -1000; //indicates that this is primary acceptance particle
+  nskip -= ipl;
+
+  AMSEvent::gethead()->addnext(
+                               AMSID("AMSmceventg",0),
+                               new AMSmceventg( g3code,  aTrack->GetTrackID(), aTrack->GetParentID(), ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
+                               );
+
+}
+
+
+void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
+  static double ECAL_Z = ECALDBc::ZOfEcalTopHoneycombSurface();
+  double z_post = Step->GetPostStepPoint()->GetPosition().z();
+  double z_pre = Step->GetPreStepPoint()->GetPosition().z();
+
+  if( (z_pre < ECAL_Z*cm) && (z_post >  ECAL_Z*cm) ){
+    G4Track * aTrack = Step->GetTrack();
+    G4ParticleDefinition * pdef = aTrack->GetDynamicParticle()->GetDefinition();
+    G4int pdgid = aTrack->GetDynamicParticle()->GetDefinition()->GetPDGEncoding();
+    bool isNeutrino = pdef->GetPDGCharge()==0 and pdef->GetLeptonNumber()!=0;
+    G4double ekin = aTrack->GetKineticEnergy();
+    if( ekin < 1*MeV or isNeutrino ) return;
+    G4String name = aTrack -> GetDynamicParticle() -> GetDefinition() -> GetParticleName();
+    G4ThreeVector mom = aTrack->GetMomentumDirection();
+    // 
+    // ams form of the track/particle information
+    //
+    int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
+    if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle ){
+      G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
+      // too bad, could be nuclei
+    }
+    if(g3code==AMSG4Physics::_G3DummyParticle)return;
+    G4ThreeVector pos = aTrack->GetPosition();
+    AMSPoint point( pos.x(), pos.y(), pos.z() );
+    float parr[3] = { pos.x(), pos.y(), pos.z() };
+    AMSDir dir( mom.x(), mom.y(), mom.z() );
+    int nskip = -2; //indicates that this is step of backsplashed particle
+    AMSEvent::gethead()->addnext(
+                                 AMSID("AMSmceventg",0),
+                                 new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(), ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
+                                 );
+    AMSG4EventAction* evt_act = (AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
+    evt_act->AddRegisteredTrack( aTrack->GetTrackID() );
+  }
+}

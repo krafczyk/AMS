@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.35 2013/04/22 13:56:18 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.36 2013/05/02 21:07:22 zhukov Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/04/22 13:56:18 $
+///$Date: 2013/05/02 21:07:22 $
 ///
-///$Revision: 1.35 $
+///$Revision: 1.36 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -47,8 +47,8 @@ double qlinfun(double X, double k);
 int TrMCClusterR::_NoiseMarker(555);
 
 
-TrMCClusterR::TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra)
-  : _idsoft(idsoft), _itra(itra), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep) {
+TrMCClusterR::TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, integer gtrkid)
+  : _idsoft(idsoft), _itra(itra), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep),_gtrkid(gtrkid) {
   Init();
   Status = 0;
 }
@@ -64,6 +64,7 @@ TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra, geant edep):
     _idsoft = abs(tkid) + 1000*side + 10000*pp.GetSensor();
   } 
   Status = 0;
+ _gtrkid = -2;
 }
 
 
@@ -100,6 +101,7 @@ void TrMCClusterR::Copy(const TrMCClusterR& that) {
   _dir = that._dir;
   _mom = that._mom;
   _edep =that._edep;
+  _gtrkid = that._gtrkid;
   Status = that.Status;
   for(int ii=0; ii<2; ii++){
     if (that._simcl[ii]!=0) _simcl[ii] = new TrSimCluster(*that._simcl[ii]);
