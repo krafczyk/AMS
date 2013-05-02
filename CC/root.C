@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.565 2013/04/30 13:55:20 oliva Exp $
+//  $Id: root.C,v 1.566 2013/05/02 13:52:22 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8642,8 +8642,36 @@ string frej=filename;
 	cout <<"AMSEventR::Terminate-I-WriteFileClosed "<<GetOption()<<endl;
       }
     }
-    else cerr<<"AMSEventR::Terminate-W-_NFilesNotZero "<<_NFiles<<endl;
-  }  
+    else {
+     cerr<<"AMSEventR::Terminate-W-_NFilesNotZero "<<_NFiles<<endl;
+     if(_NFiles ==0){
+      ofstream ofbrej;
+      int nrej=0;
+      for(int k=0;k<fRequested.size();k++){
+          cerr<<"AMSEventR::Terminate-W-FileWasRequestedButNotProcessed "<<fRequested[k]<<endl;
+          int  ifound=fRequested[k].find("?svcClass=");
+          string aname=fRequested[k];
+         if(ifound>=0){
+          aname=fRequested[k].substr(0,ifound);
+        }
+      if(nrej==0 && strlen(frej.c_str())>1){
+          ofbrej.clear();
+          ofbrej.open(frej.c_str());
+      }
+          if(ofbrej)ofbrej<<aname<<endl;
+          else cerr<<"AMSEventR::Terminate-E-UnableTopenRejFile "<<frej<<" "<<nrej<<endl;
+          nrej++;
+     }
+    
+      if(ofbrej){
+        ofbrej.close();
+      }
+           
+    }
+}
+
+     }
+    
 }
 
 Int_t AMSEventR::Fill()
