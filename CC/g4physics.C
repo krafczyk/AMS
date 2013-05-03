@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.50 2013/04/05 11:37:59 choutko Exp $
+//  $Id: g4physics.C,v 1.51 2013/05/03 15:36:54 bshan Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.50 2013/04/05 11:37:59 choutko Exp $
+// $Id: g4physics.C,v 1.51 2013/05/03 15:36:54 bshan Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -17,6 +17,7 @@
 
 #include "g4physics.h"
 #include "g4xray.h"
+#include "g4strangelet.h"
 #include "cern.h"
 #include "commons.h"
 #include "amsstl.h"
@@ -107,6 +108,7 @@ void AMSG4Physics::ConstructParticle()
   ConstructAllIons();
   ConstructAllShortLiveds();
   G4XRay::XRayDefinition();
+  G4Strangelet::StrangeletDefinition(CCFFKEY.StrMass, CCFFKEY.StrCharge);
   //   _init();                // We now construct Tables in Begin of Run Action, to avoid conflict of "GenericIon" implementation in Geant4
 }
 
@@ -972,6 +974,32 @@ void AMSG4Physics::ConstructXRay()
   }
 }
 
+void AMSG4Physics::ConstructStrangelet()
+{
+  G4cout << " Construction TR Processes "<<endl;
+  G4StrangeletTRDP*   pd = new G4StrangeletTRDP("StrangeletDiscrete");
+
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() ){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String particleName = particle->GetParticleName();
+    if (pd->IsApplicable(*particle))pmanager->AddDiscreteProcess(pd);
+    if (particleName == "strangelet") {
+      cout <<" Add Discrete Procs to strangelet "<<endl; 
+      //pmanager->AddDiscreteProcess(new G4LowEnergyPhotoElectric() );
+      //pmanager->AddDiscreteProcess(new G4LowEnergyCompton());
+      //pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
+      //pmanager->AddDiscreteProcess(new G4LowEnergyGammaConversion());
+      /*
+	pmanager->AddDiscreteProcess(new G4PhotoElectricEffect() );
+	pmanager->AddDiscreteProcess(new G4ComptonScattering());
+	pmanager->AddDiscreteProcess(new G4GammaConversion());
+      */
+    } 
+  }
+}
+
 
 
 #include "G4Decay.hh"
@@ -1184,7 +1212,9 @@ void AMSG4Physics::_init(){
       else if(g3pid[ipart]==51){
 	g3tog4p[ipart]=ppart->FindParticle("chargedgeantino");
       }
-     
+      else if(g3pid[ipart]==113) {
+          g3tog4p[ipart] = ppart->FindParticle("strangelet");
+      }
       else{
 	g3tog4p[ipart]=ppart->FindParticle("xrayphoton");
      } 

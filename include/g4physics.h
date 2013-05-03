@@ -1,4 +1,4 @@
-//  $Id: g4physics.h,v 1.12 2012/07/17 18:04:33 choutko Exp $
+//  $Id: g4physics.h,v 1.13 2013/05/03 15:37:10 bshan Exp $
 #ifndef __G4PHYSICS__
 #define __G4PHYSICS__
 
@@ -38,6 +38,7 @@ protected:
   virtual void ConstructHad();
   virtual void ConstructOp();
   void ConstructXRay();
+  void ConstructStrangelet();
   // these methods Construct all particles in each category
   virtual void ConstructAllBosons();
   virtual void ConstructAllLeptons();
