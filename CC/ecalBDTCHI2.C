@@ -71,7 +71,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
      }
 
-   EcalAxis::Version=2;
+   EcalAxis::Version=3;
    static EcalAxis ecalaxis;
    if (iBDTCHI2VERSION<3)
      {
@@ -186,7 +186,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       if (ClusterEnergy[ilayer] == 0.) continue;
 
       //get Chi2 per layer
-      LayerChi2[ilayer] = ecalaxis.ecalchi2->get_chi2(ilayer);
+      LayerChi2[ilayer] = ecalaxis.ecalchi2->get_chi2(ilayer,0);
 
       UChar_t proj = !((ilayer/2) % 2);
 
