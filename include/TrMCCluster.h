@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.20 2013/04/16 22:29:37 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.21 2013/05/03 10:50:11 zhukov Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -8,9 +8,9 @@
 ///\brief A class for the rapresentation of the MC stepping in Silicon active material. 
 ///\ingroup tksim
 ///
-///$Date: 2013/04/16 22:29:37 $
+///$Date: 2013/05/03 10:50:11 $
 ///
-///$Revision: 1.20 $
+///$Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,6 +30,8 @@ class TrMCClusterR : public TrElem {
   int         _idsoft; 
   //! Geant3 PID of the incident particle (negative for secondaries)
   short int   _itra;
+  //! Geant4 particle track id
+  int         _gtrkid;
   //! Step size in silicon (cm)
   Double32_t  _step;
   //! Middle point of the step (cm,cm,cm)
@@ -56,7 +58,7 @@ class TrMCClusterR : public TrElem {
   //! Std constructor build a dummy cluster
   TrMCClusterR() { Init(); }
   //! Constructor for a digitized hit
-  TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra);
+  TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, int gtrkid);
   //! Constructor for daq
   TrMCClusterR(AMSPoint xgl, integer itra, geant edep=0);
   //! Copy constructor
@@ -87,6 +89,8 @@ class TrMCClusterR : public TrElem {
   int      GetSensor() { return _idsoft/10000 - 1; }
   //! Get the GEANT3 particle ID 
   int      GetPart() { return abs(_itra); }
+ //! Get the GEANT4 track ID
+  int      GetGtrkID(){ return _gtrkid; }
   //! Is the particle a primary
   bool     IsPrimary() { return (_itra>0); }       
   //! Get energy released in Silicon (GeV)
@@ -156,7 +160,7 @@ class TrMCClusterR : public TrElem {
   friend class TrDAQMC;
 
   /// ROOT definition
-  ClassDef(TrMCClusterR,5);
+  ClassDef(TrMCClusterR,6);
 };
 
 #endif
