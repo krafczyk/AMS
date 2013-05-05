@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.258 2013/05/03 15:37:20 bshan Exp $
+#  $Id: Makefile,v 1.259 2013/05/05 10:16:56 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -854,6 +854,7 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 # Client TARGET (producer)
 
 CLIENT=$(EXE)gbatch-orbit$(G4)$(PG).exe
+CLIENT6=$(EXE)gbatch-orbit$(G4)$(PG).exe.lxplus6
 
 producer: amswd	$(CLIENT)
 
@@ -861,6 +862,14 @@ producer: amswd	$(CLIENT)
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+
+
+producer6: amswd	$(CLIENT6)
+
+#                   Orbit-C      Orbit-C++   gbatch
+$(CLIENT6):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype_l6.o $(BIN)predict.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
+	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) $(BIN)ctype_l6.o
 
 
 #---------------------------------------------------------------------------------
@@ -959,6 +968,8 @@ else
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
 
+$(BIN)ctype_l6.o: $(SCC)ctype.c
+	$(CC) -c -D__LXPLUS6__ $< -o$@
 $(BIN)predict.o:  $(SCC)predict.c
 	$(CC) -c $(CFLAGS) $< -o$@
 
