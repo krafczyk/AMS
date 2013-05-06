@@ -9,7 +9,98 @@ using namespace std;
 
 int BayesianUnfolder::MaxIters=1000;
 
-void BayesianUnfolder::setMigrationMatrixFromJoint(TH2F &joint){
+
+void BayesianUnfolder::copyH(TH2F &input,TH2D &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+  Double_t *ybins=new Double_t[input.GetNbinsY()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+
+  for(int i=1;i<=input.GetNbinsY();i++) ybins[i-1]=input.GetYaxis()->GetBinLowEdge(i);
+  ybins[input.GetNbinsY()]=input.GetYaxis()->GetBinUpEdge(input.GetNbinsY());
+
+  output.SetBins(input.GetNbinsX(),xbins,input.GetNbinsY(),ybins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++)
+    for(int j=0;j<=input.GetNbinsY()+1;j++){
+      output.SetBinContent(i,j,input.GetBinContent(i,j));
+      output.SetBinError(i,j,input.GetBinError(i,j));
+    }
+
+  delete[] xbins;
+  delete[] ybins;
+}
+
+void BayesianUnfolder::copyH(TH2D &input,TH2F &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+  Double_t *ybins=new Double_t[input.GetNbinsY()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+
+  for(int i=1;i<=input.GetNbinsY();i++) ybins[i-1]=input.GetYaxis()->GetBinLowEdge(i);
+  ybins[input.GetNbinsY()]=input.GetYaxis()->GetBinUpEdge(input.GetNbinsY());
+
+  output.SetBins(input.GetNbinsX(),xbins,input.GetNbinsY(),ybins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++)
+    for(int j=0;j<=input.GetNbinsY()+1;j++){
+      output.SetBinContent(i,j,input.GetBinContent(i,j));
+      output.SetBinError(i,j,input.GetBinError(i,j));
+    }
+
+  delete[] xbins;
+  delete[] ybins;
+}
+
+void BayesianUnfolder::copyH(TH1F &input,TH1D &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+  output.SetBins(input.GetNbinsX(),xbins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++){
+    output.SetBinContent(i,input.GetBinContent(i));
+    output.SetBinError(i,input.GetBinError(i));
+  }
+
+  delete[] xbins;
+}
+
+
+void BayesianUnfolder::copyH(TH1D &input,TH1F &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+  output.SetBins(input.GetNbinsX(),xbins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++){
+    output.SetBinContent(i,input.GetBinContent(i));
+    output.SetBinError(i,input.GetBinError(i));
+  }
+  
+  delete[] xbins;
+}
+
+
+
+
+void BayesianUnfolder::setMigrationMatrixFromJoint(TH2D &joint){
   MigrationMatrix=joint;  MigrationMatrix.Reset();
   TH1D *normalization=joint.ProjectionX("_normalization",0,joint.GetNbinsY()+1);
 
@@ -54,7 +145,7 @@ void BayesianUnfolder::computeUnfoldingMatrix(){
     for(int j=1;j<=MigrationMatrix.GetNbinsY();j++) UnfoldingMatrix.SetBinContent(i,j,MigrationMatrix.GetBinContent(i,j)*weight);
   }
 
-  TH1F *h=(TH1F*)UnfoldingMatrix.ProjectionY("_norma",1,UnfoldingMatrix.GetNbinsX());
+  TH1D *h=(TH1D*)UnfoldingMatrix.ProjectionY("_norma",1,UnfoldingMatrix.GetNbinsX());
   h->SetBit(kMustCleanup);
   Measured=*h;
   Measured.SetName("Measured");
@@ -68,7 +159,7 @@ void BayesianUnfolder::computeUnfoldingMatrix(){
 
 
 
-void BayesianUnfolder::BayesianUnfoldingStep(TH1F &measured){
+void BayesianUnfolder::BayesianUnfoldingStep(TH1D &measured){
   Prior=Posterior;
   computeUnfoldingMatrix();
 
@@ -145,14 +236,14 @@ void BayesianUnfolder::BayesianUnfoldingStep(TH1F &measured){
 }
 
 
-double BayesianUnfolder::estimateKL(TH1F &prior,TH1F &posterior){
+double BayesianUnfolder::estimateKL(TH1D &prior,TH1D &posterior){
   double sum=0;
   for(int i=1;i<=prior.GetNbinsX();i++) if(posterior.GetBinContent(i)) sum+=-posterior.GetBinContent(i)*log(prior.GetBinContent(i)/posterior.GetBinContent(i));
   return sum; // /posterior.Integral(1,posterior.GetNbinsX());
 }
 
 
-double BayesianUnfolder::getChi2(TH1F &measured){
+double BayesianUnfolder::getChi2(TH1D &measured){
   double sum=0;
   int counter=0;
   for(int i=1;i<=measured.GetNbinsX();i++){
@@ -164,7 +255,7 @@ double BayesianUnfolder::getChi2(TH1F &measured){
 }
 
 
-void BayesianUnfolder::run(TH1F &measured,TH1F &unfolded,int regularization,double maxKLchange,double maxChi2change){
+void BayesianUnfolder::run(TH1D &measured,TH1D &unfolded,int regularization,double maxKLchange,double maxChi2change){
   // Set a stupid prior
   Prior=unfolded;
   for(int i=1;i<=Prior.GetNbinsX();Prior.SetBinContent(i++,1));
@@ -177,7 +268,7 @@ void BayesianUnfolder::run(TH1F &measured,TH1F &unfolded,int regularization,doub
   // Main loop
   int ii=0;
   for(;ii<MaxIters;ii++){ 
-    TH1F prior=Posterior; // Store it without smoothing for real comparison
+    TH1D prior=Posterior; // Store it without smoothing for real comparison
     if(regularization>0) Posterior.Smooth(regularization);
     BayesianUnfoldingStep(measured);
     double chi2=getChi2(measured);
@@ -197,8 +288,8 @@ void BayesianUnfolder::run(TH1F &measured,TH1F &unfolded,int regularization,doub
 }
 
 
-void BayesianUnfolder::computeAll(TH2F &jointPDF,TH1F &measured,             // Inputs
-				  TH1F &unfolded,                            // Output
+void BayesianUnfolder::computeAll(TH2D &jointPDF,TH1D &measured,             // Inputs
+				  TH1D &unfolded,                            // Output
 				  int errorComputationSamples,           // Samples for MC error computation    
 				  bool fluctuateMatrix,bool fluctuateInput,
 				  int regularization,double maxKLchange,double maxChi2change){
@@ -207,16 +298,16 @@ void BayesianUnfolder::computeAll(TH2F &jointPDF,TH1F &measured,             // 
   run(measured,unfolded,regularization,maxKLchange,maxChi2change);
 
   // Start MC computation of errors
-  TH1F sum2=unfolded; sum2.Reset();
-  TH1F sum=unfolded; sum.Reset();
+  TH1D sum2=unfolded; sum2.Reset();
+  TH1D sum=unfolded; sum.Reset();
 
   cout<<"Computing errors"<<endl; 
   Verbose=false;
   for(int ii=0;ii<errorComputationSamples;ii++){
     cerr<<"#";
-    TH2F matrix=jointPDF;
-    TH1F input=measured;
-    TH1F output=unfolded;
+    TH2D matrix=jointPDF;
+    TH1D input=measured;
+    TH1D output=unfolded;
     
     // Fluctuare inputs
     if(fluctuateMatrix)

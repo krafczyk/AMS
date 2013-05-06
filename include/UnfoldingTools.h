@@ -2,6 +2,8 @@
 #define __Unfold__
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
 #include "math.h"
 
 //! Bayesian unfolding tool
@@ -14,25 +16,34 @@ class BayesianUnfolder{
  public:
   BayesianUnfolder(){Verbose=true;}; //< Constructor
 
+  void copyH(TH2F &input,TH2D &output);  //< Helper function
+  void copyH(TH1F &input,TH1D &output);  //< Helper function 
+  void copyH(TH2D &input,TH2F &output);  //< Helper function
+  void copyH(TH1D &input,TH1F &output);  //< Helper function 
+
+
   /**
      Sets the migration matrix to be used during unfolding
      @param migrationMatrix: the normlized migration matrix. X axis should be the true variable and Y axis for the measured one
    */
-  void setMigrationMatrix(TH2F &migrationMatrix){MigrationMatrix=migrationMatrix;}                 
+  void setMigrationMatrix(TH2D &migrationMatrix){MigrationMatrix=migrationMatrix;}                 
+  void setMigrationMatrix(TH2F &migrationMatrix){copyH(migrationMatrix,MigrationMatrix);}                 
 
   /**
      Sets the migration matrix from a histogram containing entries from MC or alike, without normalization.
      This is the recommended method, since  it takes into account the under and overflow in the right way.
      @param joint: The histogram with MC (or data) entries without normalization. 
    */
-  void setMigrationMatrixFromJoint(TH2F &joint);
+  void setMigrationMatrixFromJoint(TH2D &joint);
+  void setMigrationMatrixFromJoint(TH2F &joint){TH2D j;copyH(joint,j);setMigrationMatrixFromJoint(j);}
 
 
   /**
      Sets a prior for the unfolding procedure. The binning of the prior is the one used for the unfolded distribution.
      @param prior: The prior distribution.
    */
-  void setPrior(TH1F &prior){Prior=prior;Posterior=Prior;}
+  void setPrior(TH1D &prior){Prior=prior;Posterior=Prior;}
+  void setPrior(TH1F &prior){TH1D p;copyH(prior,p);setPrior(p);}
 
   /**
      For internal use. Checks is the migration matrix and the prior are initialized
@@ -52,7 +63,7 @@ class BayesianUnfolder{
       @see Posterior
       \param measured: The measured distribution
   */
-  void BayesianUnfoldingStep(TH1F &measured);
+  void BayesianUnfoldingStep(TH1D &measured);
 
   
   /**
@@ -60,7 +71,7 @@ class BayesianUnfolder{
      between the distributions, taking into account the numero of entries.
      \return The KL divergence between the tow distribution.
    */
-  double estimateKL(TH1F &prior,TH1F &posterior);               // Estimate the Kullback-Leibler divergence between prior and posterior
+  double estimateKL(TH1D &prior,TH1D &posterior);               // Estimate the Kullback-Leibler divergence between prior and posterior
 
   /**
      Compute the Kullback-Leibler divergence between the current prior and unfolded distribution.
@@ -72,22 +83,32 @@ class BayesianUnfolder{
      \param measured: Measured distribution
      \return Chi2/ndof assumming Poisson stadistic, and the mean given by the folding of the unfolded distribution stored in @see Posterior
    */
-  double getChi2(TH1F &measured);    // Get the chi2 per dof, assuming that the unfolding posteiors are a uniparametric family of functions   
+  double getChi2(TH1D &measured);    // Get the chi2 per dof, assuming that the unfolding posteiors are a uniparametric family of functions   
 
   /**
      Run the unfolding procedure until convergence. 
      @see MigrationMatrix has to be initialized.
      @param measured: Measured distribution
      @param unfolded: histogram where to store the unfolded result
-     @param regularization: the procedure is regularized by calling TH1F::Smooth on the Prior before executing an unfolding step
+     @param regularization: the procedure is regularized by calling TH1D::Smooth on the Prior before executing an unfolding step
      @param maxKLchange: change in the value of the KL divergence between the Prior and Posterior in a iteration to consider that the algorithm converged
      @param maxChi2change: change in the chi2/ndof value between iterations to consider the algorithm converged  
      \return The unfolded distribution in unfolded WITHOUT ERRORS
   */
-  void run(TH1F &measured,TH1F &unfolded,
+  void run(TH1D &measured,TH1D &unfolded,
 	   int regularization=100,
 	   double maxKLchange=1e-2,
 	   double maxChi2change=1e-2);
+
+  void run(TH1F &measured,TH1F &unfolded,
+	   int regularization=100,
+	   double maxKLchange=1e-2,
+	   double maxChi2change=1e-2){
+    TH1D m;copyH(measured,m);
+    TH1D u;copyH(unfolded,u);
+    run(m,u,regularization,maxKLchange,maxChi2change);
+    copyH(u,unfolded);
+  }
   
 
 
@@ -99,24 +120,36 @@ class BayesianUnfolder{
      @param errorComputationSamples: Number of samples used to estimate the errors
      @param fluctuateMatrix: set to true to propagate statistical fluctuations in the migration matrix
      @param fluctuateInput: set to true to propagate statistical fluctuations in the measured matrix
-     @param regularization: the procedure is regularized by calling TH1F::Smooth on the Prior before executing an unfolding step
+     @param regularization: the procedure is regularized by calling TH1D::Smooth on the Prior before executing an unfolding step
      @param maxKLchange: change in the value of the KL divergence between the Prior and Posterior in a iteration to consider that the algorithm converged
      @param maxChi2change: change in the chi2/ndof value between iterations to consider the algorithm converged  
      \return The unfolded distribution in unfolded WITH ERRORS
   */
+  void computeAll(TH2D &jointPDF,TH1D &measured,             // Inputs
+		  TH1D &unfolded,                            // Output
+		  int errorComputationSamples=10,           // Samples for MC error computation    
+		  bool fluctuateMatrix=true,bool fluctuateInput=true,
+		  int regularization=0,double maxKLchange=0.0,double maxChi2change=1e-1);
+
   void computeAll(TH2F &jointPDF,TH1F &measured,             // Inputs
 		  TH1F &unfolded,                            // Output
 		  int errorComputationSamples=10,           // Samples for MC error computation    
 		  bool fluctuateMatrix=true,bool fluctuateInput=true,
-		  int regularization=0,double maxKLchange=1e-1,double maxChi2change=1e-1);
+		  int regularization=0,double maxKLchange=0.0,double maxChi2change=1e-1){
+    TH2D j;copyH(jointPDF,j);
+    TH1D m;copyH(measured,m);
+    TH1D u;copyH(unfolded,u);
+    computeAll(j,m,u,errorComputationSamples,fluctuateMatrix,fluctuateInput,regularization,maxKLchange,maxChi2change);
+    copyH(u,unfolded);
+  }
 
 
   // Members
-  TH2F MigrationMatrix;   /// Migration matrix. It is an input, but it could require some preprocessing
-  TH1F Prior;             /// Prior, update after each iteration by @see run and @see computeAll 
-  TH2F UnfoldingMatrix;   /// Latest unfolding matrix, computed assuming the @see Prior 
-  TH1F Measured;          /// Measured posterior:result of folding the Posterior with the migration matrix  
-  TH1F Posterior;         /// Result of the last iteration
+  TH2D MigrationMatrix;   /// Migration matrix. It is an input, but it could require some preprocessing
+  TH1D Prior;             /// Prior, update after each iteration by @see run and @see computeAll 
+  TH2D UnfoldingMatrix;   /// Latest unfolding matrix, computed assuming the @see Prior 
+  TH1D Measured;          /// Measured posterior:result of folding the Posterior with the migration matrix  
+  TH1D Posterior;         /// Result of the last iteration
 
   // Status
   int Failed;             /// Status of last calls
