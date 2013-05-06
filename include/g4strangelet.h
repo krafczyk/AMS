@@ -6,38 +6,92 @@
 #include "G4ParticleDefinition.hh"
 #include "G4PhysicsTable.hh"
 #include "G4Step.hh"
+#include <string>
+
 // ######################################################################
 // ###                     strangelet                                 ###
 // ######################################################################
 
 
 
-class G4Strangelet : public G4Ions
-{
- private:
-   static G4Strangelet* theInstance;
 
- private: // hide constructor as private
-   G4Strangelet(){}
-
- public:
-   ~G4Strangelet(){}
-
-   static G4Strangelet* Definition(G4double mass, G4double charge);
-   static G4Strangelet* StrangeletDefinition(G4double mass, G4double charge);
-   static G4Strangelet* Strangelet(G4double mass, G4double charge);
-};
-
+#include "G4ParticleTable.hh"
 #include "G4VDiscreteProcess.hh"
-class G4StrangeletTRDP : public G4VDiscreteProcess {
+#include "G4VCrossSectionDataSet.hh"
+#include "G4HadronicInteraction.hh"
+#include "G4HadFinalState.hh"
+#include "G4Track.hh"
+#include "G4Nucleus.hh"
+#include "G4HadProjectile.hh"
+#include "G4Material.hh"
+#include "G4Element.hh"
+class TF1;
+class G4StrangeletP : public G4VDiscreteProcess {
     public:
-    G4StrangeletTRDP(G4String name) : G4VDiscreteProcess(name) {};
-    G4double GetMeanFreePath(const G4Track& track, G4double step, G4ForceCondition *) {return DBL_MAX;}
+    G4StrangeletP(G4String name) : G4VDiscreteProcess(name) {};
+    G4double GetMeanFreePath(const G4Track& track, G4double step, G4ForceCondition *);
     G4double PostStepGetPhysicalInteractionLength(const G4Track& track, G4double step, G4ForceCondition *);
-    virtual G4bool IsApplicable(const G4ParticleDefinition& p) {
-        return (p.GetPDGCharge() != 0 && ! p.IsShortLived());
-    }
+    virtual G4bool IsApplicable(const G4ParticleDefinition& p);
     G4VParticleChange* PostStepDoIt(const G4Track& track, const G4Step& stepData);
 };
 
+
+class StrHP:   public G4HadronicInteraction{
+  public:
+  StrHP();
+    G4bool IsApplicable (const G4HadProjectile &theTrack, G4Nucleus &theTarget);
+    virtual G4HadFinalState *ApplyYourself(const G4HadProjectile &, G4Nucleus &);
+    
+  protected:
+  int     g[25];
+  int     IsStr[25];
+  double n_S[25];
+  double n_I3[25];
+  double n_B[25];
+  double mass[25];
+  double number[25];
+  std::string name[25];
+  double total_S[25];
+  double total_I3[25];
+  double total_B[25];
+  double total_E[25];
+  int    GEANT_ID[25];
+  int particle_NUM;
+    static TF1 *f1;
+    static TF1 *fE;
+    G4ParticleTable         *theParticleTable;
+    G4IonTable              *theIonTable;
+    void Thermal(double m_s, double m_a, double targetA, double strZ, double strA, double strBetaIn[3], double &StrA_out , double &StrZ_out, double StrMom_out[4], int &n_out, int ID_out[1000], double mom_out[1000][4]);
+};
+class StrCS:  public G4VCrossSectionDataSet{
+  public:
+    StrCS();
+    ~StrCS();
+    virtual G4bool IsApplicable(const G4DynamicParticle* theProjectile,
+      const G4Element* theTarget);
+
+    virtual G4bool IsIsoApplicable(const G4DynamicParticle* theProjectile,
+                                   G4int ZZ, G4int AA);
+
+    virtual G4double GetCrossSection(const G4DynamicParticle* theProjectile,
+      const G4Element* theTarget, G4double theTemperature);
+
+    virtual
+    G4double GetZandACrossSection(const G4DynamicParticle* theProjectile,
+                                  G4int ZZ, G4int AA,
+                                  G4double theTemperature);
+
+    virtual void BuildPhysicsTable(const G4ParticleDefinition&)
+    {}
+
+    virtual void DumpPhysicsTable(const G4ParticleDefinition&)
+    {G4cout << "StrCS: uses formula"<<G4endl;}
+    void SetLowEnergyCheck(G4bool);
+
+  private:
+    G4bool         lowEnergyCheck;
+};
+
 #endif
+
+

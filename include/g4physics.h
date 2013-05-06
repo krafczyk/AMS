@@ -1,4 +1,4 @@
-//  $Id: g4physics.h,v 1.13 2013/05/03 15:37:10 bshan Exp $
+//  $Id: g4physics.h,v 1.14 2013/05/06 16:56:11 choutko Exp $
 #ifndef __G4PHYSICS__
 #define __G4PHYSICS__
 
@@ -20,11 +20,12 @@ public:
   // Construct particle and physics
   virtual void ConstructParticle();
   virtual void ConstructProcess();
-  
+  G4ParticleDefinition *ConstructStrangelet(double M, int Z,int A=0);
   // 
   virtual void SetCuts();
 public:  
   static G4int _G3DummyParticle;
+  
 protected:
   AMSIDi* _pg3tog4;
   AMSIDs* _pg4tog3;
@@ -38,7 +39,6 @@ protected:
   virtual void ConstructHad();
   virtual void ConstructOp();
   void ConstructXRay();
-  void ConstructStrangelet();
   // these methods Construct all particles in each category
   virtual void ConstructAllBosons();
   virtual void ConstructAllLeptons();

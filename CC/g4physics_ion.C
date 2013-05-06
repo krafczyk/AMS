@@ -37,7 +37,7 @@ using namespace std;
 IonDPMJETPhysics::IonDPMJETPhysics(G4bool val)
   : G4VHadronPhysics("ionInelasticDPMJET"),theIonBC(0),theIonBC1(0),useDPMJETXS(val)
 {
-  fTripathi = fTripathiLight = fShen = fIonH = 0;
+  fTripathi = fTripathiLight = fShen = fIonH =0;
 #ifdef G4_USE_DPMJET
    theDPM=0;
 #endif
@@ -60,7 +60,7 @@ void IonDPMJETPhysics::ConstructProcess()
   theIonBC1 = new G4BinaryLightIonReaction();
   theIonBC1->SetMinEnergy(dpmemin);
   theIonBC1->SetMaxEnergy(emax);
-
+ 
 #ifdef G4_USE_DPMJET
 //--Model DPMJET
   theDPM = new G4DPMJET2_5Model();

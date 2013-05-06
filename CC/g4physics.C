@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.51 2013/05/03 15:36:54 bshan Exp $
+//  $Id: g4physics.C,v 1.52 2013/05/06 16:55:36 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.51 2013/05/03 15:36:54 bshan Exp $
+// $Id: g4physics.C,v 1.52 2013/05/06 16:55:36 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -107,8 +107,8 @@ void AMSG4Physics::ConstructParticle()
   ConstructAllBarions();
   ConstructAllIons();
   ConstructAllShortLiveds();
-  G4XRay::XRayDefinition();
-  G4Strangelet::StrangeletDefinition(CCFFKEY.StrMass, CCFFKEY.StrCharge);
+
+ G4XRay::XRayDefinition();
   //   _init();                // We now construct Tables in Begin of Run Action, to avoid conflict of "GenericIon" implementation in Geant4
 }
 
@@ -176,6 +176,7 @@ void AMSG4Physics::ConstructProcess()
       //     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
       //     pem->ConstructProcess();
       ConstructEM2();
+
     }
     if(GCPHYS.IHADR){
       //      HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
@@ -974,31 +975,6 @@ void AMSG4Physics::ConstructXRay()
   }
 }
 
-void AMSG4Physics::ConstructStrangelet()
-{
-  G4cout << " Construction TR Processes "<<endl;
-  G4StrangeletTRDP*   pd = new G4StrangeletTRDP("StrangeletDiscrete");
-
-  theParticleIterator->reset();
-  while( (*theParticleIterator)() ){
-    G4ParticleDefinition* particle = theParticleIterator->value();
-    G4ProcessManager* pmanager = particle->GetProcessManager();
-    G4String particleName = particle->GetParticleName();
-    if (pd->IsApplicable(*particle))pmanager->AddDiscreteProcess(pd);
-    if (particleName == "strangelet") {
-      cout <<" Add Discrete Procs to strangelet "<<endl; 
-      //pmanager->AddDiscreteProcess(new G4LowEnergyPhotoElectric() );
-      //pmanager->AddDiscreteProcess(new G4LowEnergyCompton());
-      //pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
-      //pmanager->AddDiscreteProcess(new G4LowEnergyGammaConversion());
-      /*
-	pmanager->AddDiscreteProcess(new G4PhotoElectricEffect() );
-	pmanager->AddDiscreteProcess(new G4ComptonScattering());
-	pmanager->AddDiscreteProcess(new G4GammaConversion());
-      */
-    } 
-  }
-}
 
 
 
@@ -1140,6 +1116,14 @@ G4int AMSG4Physics::G4toG3(const G4String & particle){
 }
 
 void AMSG4Physics::_init(){
+
+ 
+
+
+
+
+
+
   integer g3part=0;
   int ipart;
   for(ipart=0;ipart<1000;ipart++){
@@ -1176,15 +1160,21 @@ void AMSG4Physics::_init(){
   }
 
 
+
+
+
+
+
   G4ParticleTable *ppart=G4ParticleTable::GetParticleTable();
   const G4IonTable *pIonT= ppart->GetIonTable();
   for(ipart=0;ipart<g3part;ipart++){
+    if(g3pid[ipart]==113)continue; 
     double fdelta=1000000;
     G4ParticleDefinition* cand=0;
     theParticleIterator->reset();
     while( (*theParticleIterator)() ){
       G4ParticleDefinition* particle = theParticleIterator->value();
-      if(g3charge[ipart] == particle->GetPDGCharge() && particle->GetParticleName()!=G4String("GenericIon")){
+      if(g3charge[ipart] == particle->GetPDGCharge() && particle->GetParticleName()!=G4String("GenericIon") ){
         if(fabs(g3mass[ipart]*GeV-particle->GetPDGMass())<fdelta){
           fdelta=fabs(g3mass[ipart]*GeV-particle->GetPDGMass());
           cand=particle;
@@ -1211,9 +1201,6 @@ void AMSG4Physics::_init(){
       }
       else if(g3pid[ipart]==51){
 	g3tog4p[ipart]=ppart->FindParticle("chargedgeantino");
-      }
-      else if(g3pid[ipart]==113) {
-          g3tog4p[ipart] = ppart->FindParticle("strangelet");
       }
       else{
 	g3tog4p[ipart]=ppart->FindParticle("xrayphoton");
@@ -1251,6 +1238,24 @@ void AMSG4Physics::_init(){
     }
   }
 
+
+
+G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCharge);
+
+
+  for(ipart=0;ipart<g3part;ipart++){
+       if(g3pid[ipart]==113){
+	g3tog4p[ipart]=ppart->FindParticle(thepart);
+        if(g3tog4p[ipart]){
+        cout <<"AMSG4Physics-I-G4StrangeletFound"<<g3tog4p[ipart]->GetParticleName()<<" "<<" "<<g3mass[ipart]*GeV<<endl;
+        }
+        break;
+  }
+ }  
+
+
+
+
   //  NowBuildTable
   _Ng3tog4=0;
   for(ipart=0;ipart<g3part;ipart++){
@@ -1282,9 +1287,11 @@ void AMSG4Physics::_init(){
 #endif
 
 
+    
+
+
 }
 
-    
 
 
 
@@ -1549,7 +1556,7 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "GenericIon"){
 
       G4ionIonisation* theIonIonisation = new G4ionIonisation();
-      if(TRDMCFFKEY.PAIModel){
+      if(TRDMCFFKEY.PAIModel ){
 	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
 	theIonIonisation->AddEmModel(0,pai,pai,gasregion);
       }
@@ -1630,4 +1637,67 @@ void AMSG4Physics::ConstructEM2( void ){
   opt.SetVerbose(debug);
 
   if(debug)G4cout << "Exit TrdSimUtil::ConstructEM" << G4endl;
+}
+
+
+G4ParticleDefinition * AMSG4Physics::ConstructStrangelet(double mass, int z, int a){
+// create strangelet
+
+
+
+  
+ G4double life = -1.0;
+  G4DecayTable* decayTable =0;
+  G4bool stable = true;
+  G4double mu = 0.0;
+  G4double charge =  G4double(z)*eplus;
+  if(a<=0)a=mass/0.930;
+  mass=a*0.930;
+  int J=0;
+  double E=0;  
+if(a>9999){
+     cerr<<"AMSG4Physics::ConstructStrangelet-E-UnableToCreateStrangeltWithA "<<a<<endl;
+     a=9999;
+     
+}
+  int encoding=z*100000+a*10+1000000000;
+  string name="strangelet";
+  char tmp[80];
+  sprintf(tmp,"%d",encoding);
+   name+="_";
+   name+=tmp;
+if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){   
+  // create an ion
+  //   spin, parity, isospin values are fixed
+  //
+  G4ParticleDefinition*ion = new G4Ions(   name.c_str(),            mass*GeV,       0.0*MeV,     charge,
+                         J,              +1,             0,
+                         0,               0,             0,
+                 "nucleus",               0,             a,    encoding,
+                    stable,            life,    decayTable,       false,
+                  "generic",              0,
+                      E                       );
+  ion->SetPDGMagneticMoment(mu);
+
+  //No Anti particle registered
+  ion->SetAntiPDGEncoding(0);
+  AddProcessManager(ion);
+  G4ProcessManager* ionMan=ion->GetProcessManager();
+  G4ProcessVector* plist=ionMan->GetProcessList() ;
+  for(int k=ionMan->GetProcessListLength()-1;k>=0;k--){
+   G4VProcess *process= (*plist)[k];
+//   cout<<process->GetProcessName()<< " "<<process->GetProcessType()<<endl;
+   if(process->GetProcessType()==4 || process->GetProcessType()==4){
+      cout << " AMSG4Physics-I-Removed "<<process->GetProcessName()<<"for "<<ion->GetParticleName()<<endl;
+     ionMan->RemoveProcess(process);
+  }
+}
+
+  G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess("strangeleteInelastic", ion);
+  ionMan->AddDiscreteProcess(hadi);
+  hadi->AddDataSet(new StrCS());
+  hadi->RegisterMe(new StrHP()); 
+  
+}
+  return G4ParticleTable::GetParticleTable()->FindParticle(name.c_str());
 }

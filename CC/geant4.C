@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.100 2013/05/02 21:07:22 zhukov Exp $
+//  $Id: geant4.C,v 1.101 2013/05/06 16:55:39 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1406,7 +1406,7 @@ void AMSG4SteppingAction::FillPrimaryInfo( const G4Step *Step){
   G4ThreeVector mom = aTrack->GetMomentumDirection();
   int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
   if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle ){
-    G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
+    //G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
     // too bad, could be nuclei
   }
   if(g3code==AMSG4Physics::_G3DummyParticle)return;
@@ -1445,7 +1445,7 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
     //
     int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
     if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle ){
-      G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
+      //G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
       // too bad, could be nuclei
     }
     if(g3code==AMSG4Physics::_G3DummyParticle)return;

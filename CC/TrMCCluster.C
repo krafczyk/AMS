@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.36 2013/05/02 21:07:22 zhukov Exp $
+//  $Id: TrMCCluster.C,v 1.37 2013/05/06 16:55:33 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/05/02 21:07:22 $
+///$Date: 2013/05/06 16:55:33 $
 ///
-///$Revision: 1.36 $
+///$Revision: 1.37 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -110,8 +110,10 @@ void TrMCClusterR::Copy(const TrMCClusterR& that) {
 }
 
 TrMCClusterR& TrMCClusterR::operator+=(const TrMCClusterR& that){
+static int mp=0;
   if(_idsoft!= that._idsoft){
-    printf("TrMCClusterR::operator+= Error: cannot sum MCcluster on different sensors\n Sum not performed\n");
+    if(mp++<100)printf("TrMCClusterR::operator+= Error: cannot sum MCcluster on different sensors\n Sum not performed\n");
+    else if(mp==101)printf("TrMCClusterR::operator+= Error: cannot sum MCcluster on different sensors\n Sum not performed\n Last Message\n");
     return *this;
   }
   _step += that._step;

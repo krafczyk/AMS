@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.567 2013/05/02 21:07:22 zhukov Exp $
+//  $Id: root.C,v 1.568 2013/05/06 16:55:40 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6504,7 +6504,9 @@ TrMCClusterR::TrMCClusterR(AMSTrMCCluster *ptr){
       SS[i][j] = ptr->_ss[i][j];
     }
   }
+#ifdef __PGTRACK__
   GtrkID = ptr->_gtrkid;
+#endif
 #endif
 }
 

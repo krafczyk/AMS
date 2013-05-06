@@ -11,7 +11,7 @@
 
 #include "G4VHadronPhysics.hh"
 #include "globals.hh"
-
+class G4StrangeletP;
 class G4BinaryLightIonReaction;
 class G4VCrossSectionDataSet;
 #ifdef G4_USE_DPMJET
