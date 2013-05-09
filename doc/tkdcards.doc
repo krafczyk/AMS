@@ -69,6 +69,7 @@ R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
              (def=2.5,2.5)
 I 606 ActivateShielding=1;
 I 607 ShieldingDensity=2.5;
+R [608,611]  OuterSmearing[2][2]       Outer smearing to simulate residual disalignment [0:L1,1:L9][0:X,1:Y]
 
 //==============================
 //  TRACKER RECONSTRUCTION
