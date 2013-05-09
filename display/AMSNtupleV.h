@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.53 2013/02/18 11:25:20 mduranti Exp $
+//  $Id: AMSNtupleV.h,v 1.54 2013/05/09 12:59:59 mduranti Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -174,11 +174,23 @@ public:
     AntiClusterR *pcl=ev->pAntiCluster(ref);
     if(pcl){
       double dr=180./3.1415926;
+#ifndef __USEANTICLUSTERPG__
       double x=pcl->Coo[0]*cos(pcl->Coo[1]/dr);
       double y=pcl->Coo[0]*sin(pcl->Coo[1]/dr);
       SetPosition(x,y,pcl->Coo[2]);
       SetSize(fabs(y)*pcl->ErrorCoo[1]/dr,fabs(x)*pcl->ErrorCoo[1]/dr,pcl->ErrorCoo[2]);
-  
+#else
+      pcl->ReBuildMe();
+      double x=pcl->AntiCoo.x();
+      double y=pcl->AntiCoo.y();
+      double z=pcl->AntiCoo.z();
+      double ex=fabs(y)*22.5/dr;
+      double ey=fabs(x)*22.5/dr;
+      double ez=6.;
+      if ((pcl->Npairs)<1 || pcl->chi>30) ez = 45.;
+      SetPosition(x,y,z);
+      SetSize(ex,ey,ez);
+#endif
       SetDirection(0,0);
     }
     SetLineWidth(3);

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.568 2013/05/06 16:55:40 choutko Exp $
+//  $Id: root.C,v 1.569 2013/05/09 12:59:59 mduranti Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -1617,7 +1617,6 @@ void* AMSEventR::vDaqEvent=0;
 void* AMSEventR::vAux=0;
 
 char   DaqEventR::_Info[255];
-char  AntiClusterR::_Info[255];
 char  TofClusterR::_Info[255];
 char  TofClusterHR::_Info[255];
 char  ParticleR::_Info[255];
@@ -3199,8 +3198,45 @@ void AMSEventR::AddAMSObject(AMSmctrack *ptr)
 
 #endif
 
+//---------------------------------------------------------------------
 
+#ifdef __USEANTICLUSTERPG__
 
+int AMSEventR::RebuildAntiClusters(int sect, float sect_zguess, float err_sect_zguess){
+  
+  AntiRecoPG* Acci = AntiRecoPG::gethead();
+  int nacc = Acci->BuildAllClusters(sect,sect_zguess,err_sect_zguess);
+  //  printf("Built %d AntiClusterR\n", nacc);
+
+  //  printf("Before: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
+  //  printf("Before: nAntiCluster()=%d\n", (int)nAntiCluster());
+  //  printf("Before: NAntiCluster()=%d\n", (int)NAntiCluster());
+  fAntiCluster.clear();
+  fHeader.AntiClusters = 0;
+
+  for (int ii=0; ii<nacc; ii++) {
+    AntiClusterR* clus = Acci->pAntiClusterPG(ii);
+    //printf("%d) Found one AntiClusterR...\n", ii);
+    if (clus) {
+      AntiClusterR clusderef = *clus;
+      fAntiCluster.push_back(clusderef);
+      //printf("Valid (%p, %d)", clus, clus->sector);
+      //printf(" (%d)\n", clusderef.sector);
+    }
+  }
+  //  printf("After: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
+  //  printf("After: nAntiCluster()=%d\n", (int)nAntiCluster());
+  //  printf("After: NAntiCluster()=%d\n", (int)NAntiCluster());
+  fHeader.AntiClusters = nacc;
+  //  printf("After2: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
+  //  printf("After2: nAntiCluster()=%d\n", (int)nAntiCluster());
+  //  printf("After2: NAntiCluster()=%d\n", (int)NAntiCluster());
+
+  return nacc;
+}
+#endif
+
+//---------------------------------------------------------------------
 
 #ifndef __ROOTSHAREDLIBRARY__
 void HeaderR::Set(EventNtuple02* ptr){
@@ -3254,30 +3290,6 @@ AntiRawSideR::AntiRawSideR(Anti2RawEvent *ptr)
   for(int i=0;i<nftdc;i++)ftdc[i] = ptr->_ftdc[i];
   ntdct = ptr->_ntdct<sizeof(tdct)/sizeof(tdct[0])?ptr->_ntdct:sizeof(tdct)/sizeof(tdct[0]);
   for(int i=0;i<ntdct;i++)tdct[i] = ptr->_tdct[i];
-#endif
-}
-
-
-AntiClusterR::AntiClusterR(AMSAntiCluster *ptr)
-{
-#ifndef __ROOTSHAREDLIBRARY__
-  Status = ptr->_status;
-  Sector = ptr->_sector;
-  //Npairs = ptr->_npairs;
-  //Time.clear();
-  //TimeE.clear();
-  //for(int i=0;i<ptr->_ntimes;i++){
-  //  Time.push_back(ptr->_times[i]);
-  //  TimeE.push_back(ptr->_etimes[i]);
-//  }
-  Ntimes = ptr->_ntimes;
-  Npairs = ptr->_npairs;
-  for(int i=0;i<sizeof(Times)/sizeof(Times[0]);i++)Times[i] = i<Ntimes?ptr->_times[i]:0;
-  for(int i=0;i<sizeof(Timese)/sizeof(Timese[0]);i++)Timese[i] = i<Ntimes?ptr->_etimes[i]:0;
-
-  Edep   = ptr->_edep;
-  for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
-  for (int i=0; i<3; i++) ErrorCoo[i] = ptr->_ecoo[i];
 #endif
 }
 

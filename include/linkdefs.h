@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.49 2013/03/15 11:05:27 choutko Exp $
+//  $Id: linkdefs.h,v 1.50 2013/05/09 13:00:00 mduranti Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -103,6 +103,9 @@
 #pragma link C++ class TofClusterHR+;
 #pragma link C++ class AntiRawSideR+;
 #pragma link C++ class AntiClusterR+;
+#ifdef __USEANTICLUSTERPG__
+#pragma link C++ class AntiRecoPG;
+#endif
 
 #pragma link C++ class RichHitR+;
 #pragma link C++ class RichRingR+;

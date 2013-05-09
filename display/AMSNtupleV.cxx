@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.50 2013/01/31 15:32:34 kaiwu Exp $
+//  $Id: AMSNtupleV.cxx,v 1.51 2013/05/09 12:59:59 mduranti Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -291,7 +291,8 @@ if(type==kall || type==kusedonly || type==kanticlusters){
  fAntiClusterV.clear();
  if(gAMSDisplay->DrawObject(kanticlusters)){
   for(int i=0;i<NAntiCluster();i++){
-   if(!gAMSDisplay->DrawUsedOnly() || ((pAntiCluster(i)->Status)/32)%2)fAntiClusterV.push_back( AntiClusterV(this,i));
+    //   if(!gAMSDisplay->DrawUsedOnly() || ((pAntiCluster(i)->Status)/32)%2) fAntiClusterV.push_back( AntiClusterV(this,i));
+   if(!gAMSDisplay->DrawUsedOnly()) fAntiClusterV.push_back( AntiClusterV(this,i));
   }
  }
 }

@@ -15,16 +15,16 @@ bool ACsoft::ACQtProducer::ProduceACC() {
     }
 
     AC::ACCCluster accCluster;
-    accCluster.fStatus = pAntiCluster->Status;
-    accCluster.fPhi = pAntiCluster->Coo[1];
-    accCluster.fZ = pAntiCluster->Coo[2];
+    //    accCluster.fStatus = pAntiCluster->Status;
+    //    accCluster.fPhi = pAntiCluster->Coo[1];
+    //    accCluster.fZ = pAntiCluster->Coo[2];
     accCluster.fEnergy = pAntiCluster->Edep;
 
     float minimumTime = std::numeric_limits<float>::max() - 1;
-    int nTimes = pAntiCluster->Ntimes;
-    for (int timeIndex = 0; timeIndex < nTimes; ++timeIndex)
-      minimumTime = fabs(pAntiCluster->Times[timeIndex]) < fabs(minimumTime) ? pAntiCluster->Times[timeIndex] : minimumTime;
-    accCluster.fTime = minimumTime;
+    //    int nTimes = pAntiCluster->Ntimes;
+    // for (int timeIndex = 0; timeIndex < nTimes; ++timeIndex)
+    //   minimumTime = fabs(pAntiCluster->Times[timeIndex]) < fabs(minimumTime) ? pAntiCluster->Times[timeIndex] : minimumTime;
+    // accCluster.fTime = minimumTime;
 
     fEvent->fACC.fClusters.append(accCluster);
   }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.553 2013/05/02 21:07:52 zhukov Exp $
+//  $Id: root.h,v 1.554 2013/05/09 13:00:00 mduranti Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -50,6 +50,8 @@
 #include "SlowControlDB.h"
 #include "Tofdbc.h"
 #include "Tofcharge_ihep.h"
+
+#include "AntiPG.h"
 
 #ifdef __AMSVMC__
 #include "amsvmc_MCApplication.h"
@@ -1276,46 +1278,12 @@ class TofClusterHR :public TrElem {
 #pragma omp threadprivate(fgIsA)
 };
 
-
-/// AntiClusterR structure
-
-/*!
- \author e.choumilov@cern.ch
-
-*/
-class AntiClusterR {
-static char _Info[255];
-public:
-  unsigned int   Status;   ///< Bit"128"->No FT-coinc. on 2 sides;"256"->1sideSector;"1024"->miss.side#
-  int   Sector;   ///< //Sector number(1-8)
-  int   Ntimes;  ///<Number of time-hits(1st come paired ones)
-  int   Npairs;   ///<Numb.of time-hits, made of 2 side-times(paired)
-  float Times[16];  ///<Time-hits(ns, wrt FT-time, "+" means younger hit)
-  float Timese[16]; ///<Time-hits errors(ns)
-
-  float Edep;    ///<Edep(mev)
-  float Coo[3];   ///<R(cm),Phi(degr),Z(cm)-coordinates
-  float ErrorCoo[3]; ///<Their errors
-
-  AntiClusterR(){};
-  AntiClusterR(AMSAntiCluster *ptr);
-  /// \param number index in container
-  /// \return human readable info about AnticlusterR
-  char * Info(int number=-1){
-    float xm=1.e9;
-//    for(int i=0;i<Time.size();i++){
-//      if(fabs(Time[i])<fabs(xm))xm=Time[i];
-//    }
-    for(int i=0;i<Ntimes;i++){
-      if(fabs(Times[i])<fabs(xm))xm=Times[i];
-    }
-    sprintf(_Info,"Anticluster No %d Sector=%d R=%5.2f#pm%5.2f #Phi=%5.2f#pm%5.2f Z=%5.2f#pm%5.2f E_{Dep}(MeV)=%7.3g CTime(nsec)=%7.2f",number,Sector,Coo[0],ErrorCoo[0],Coo[1],ErrorCoo[1],Coo[2],ErrorCoo[2],Edep,xm);
-  return _Info;
-  }
-  virtual ~AntiClusterR(){};
-ClassDef(AntiClusterR,2)       //AntiClusterR
-#pragma omp threadprivate(fgIsA)
-};
+#ifndef __USEANTICLUSTERPG__
+class AntiClusterR;
+#else
+class AntiRecoPG;
+class AntiClusterR;
+#endif
 
 #ifndef _PGTRACK_
 /// TrRawClusterR structure
@@ -6422,10 +6390,17 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
         return l<fMCEventg.size()?&(fMCEventg[l]):0;
       }
 
-
-
-
-
+ public:
+#ifdef __USEANTICLUSTERPG__
+      /*!
+	rebuild all clusters with PG code\n                                         
+	return the number of anticlusters \n                                                                                              
+	For a single defined sector (sect = 1-8) a particular zguess can be setted  
+      */
+      int RebuildAntiClusters(int sect = 0, float sect_zguess = 999, float err_sect_zguess = 999);
+      
+      //----------------------------------------------------------------
+#endif
 
 AMSEventR();
 AMSEventR(const AMSEventR &o);
