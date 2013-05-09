@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.59.4.2 2013/04/16 22:00:41 pzuccon Exp $
+// $Id: tkdcards.h,v 1.59.4.3 2013/05/09 18:49:23 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -146,6 +146,8 @@ public:
   integer ActivateShielding;
   geant ShieldingDensity;
 
+  // Outer smearing to simulate residual disalignment [0:L1,1:L9][0:X,1:Y]
+  geant OuterSmearing[2][2];
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;

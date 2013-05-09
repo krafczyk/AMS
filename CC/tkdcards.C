@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.84.4.2 2013/04/16 22:00:39 pzuccon Exp $
+// $Id: tkdcards.C,v 1.84.4.3 2013/05/09 18:49:18 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -268,6 +268,11 @@ void TRMCFFKEY_DEF::init(){
   // for the ladder shielding
   ActivateShielding=1;
   ShieldingDensity=2.5;
+  // Outer smearing to simulate residual disalignment
+  OuterSmearing[0][0]=8e-4; //L1 X
+  OuterSmearing[0][1]=8e-4; //L1 Y
+  OuterSmearing[1][0]=8e-4; //L9 X
+  OuterSmearing[1][0]=8e-4; //L9 Y
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;

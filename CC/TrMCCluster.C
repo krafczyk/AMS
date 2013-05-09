@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.31.8.4 2013/04/22 13:36:41 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.31.8.5 2013/05/09 18:49:18 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/04/22 13:36:41 $
+///$Date: 2013/05/09 18:49:18 $
 ///
-///$Revision: 1.31.8.4 $
+///$Revision: 1.31.8.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -218,7 +218,11 @@ void TrMCClusterR::GenSimClusters(){
     // SMEAR the position
     float ipsmear=ip[iside];
     ipsmear=ip[iside]+rnormx()*SmearPos[hcharge][iside];
-    
+
+    // SMEAR outer layers
+    int lay = abs(GetTkId())/100;
+    if (lay == 8 || lay == 9)
+      ipsmear+=rnormx()*TRMCFFKEY.OuterSmearing[lay-8][iside];
 
     // Create the cluster
     TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ipsmear,ia[iside],nsensor,step*dir[2]);
