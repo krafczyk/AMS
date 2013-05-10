@@ -5,9 +5,12 @@
 #endif
 #include "cfortran.h"
 #include <stdio.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+#include <sys/stat.h>
+
 //
+using namespace std;
  PROTOCCALLSFFUN3(INT,IFNTREAD,ifntread,STRING,INT,INT)
 #define IFNTREAD(A2,A3,A4)  CCALLSFFUN3(IFNTREAD,ifntread,STRING,INT,INT,A2,A3,A4)
 //input
@@ -30,6 +33,8 @@
  int main(int argc, char * argv[])
  {
 //
+  cout.clear();
+  cerr.clear();
    int iflg;
    char fname[256];
 //
@@ -54,6 +59,15 @@
       verbose=true;
       iver=1;
      }
+
+     struct stat sb;
+     char *pROOTSYS = getenv("ROOTSYS");
+     if (pROOTSYS == NULL || stat(strcat(pROOTSYS, "/etc/plugins/TVirtualStreamerInfo"), &sb) != 0) {
+         if(verbose)cerr << "ROOTSYS not properly set, cannot continue with rootread." << endl;
+         return -7;
+     }
+
+
      if(iver)cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
 try{
@@ -87,3 +101,4 @@ catch (std::bad_alloc aba){
      if(verbose)cout<<"Flag="<<iflg<<endl;
      return(iflg);
  }
+

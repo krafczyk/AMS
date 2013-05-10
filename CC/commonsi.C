@@ -1,4 +1,4 @@
-//  $Id: commonsi.C,v 1.223 2013/05/09 17:24:28 choutko Exp $
+//  $Id: commonsi.C,v 1.224 2013/05/10 12:37:12 choutko Exp $
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -40,6 +40,10 @@ AMSCommonsI::AMSCommonsI(){
 #include <sys/utsname.h>
 void AMSCommonsI::init(){ 
   if(_Count++==0){
+#ifdef __FASTNTRD__
+  cout.setstate(ios_base::failbit);
+  cerr.setstate(ios_base::failbit);
+#endif
    struct utsname u;
    uname(&u);
    strcpy(_osversion,"0.0");

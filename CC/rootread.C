@@ -11,6 +11,7 @@
 #include <TRegexp.h>
 #include <TEnv.h>
 using namespace std;
+
 //    TRFIOFile f("");
 //     TXNetFile g("");
 //     TCastorFile h("");
@@ -25,8 +26,13 @@ int rootread(char * fname, int nev, int iver,  int & lastevent,bool jou){
 int firstevent=-1;
  if(!iver){
   fclose(stderr);
+  fclose(stdout);
   cout.setstate(ios_base::failbit);
   cerr.setstate(ios_base::failbit);
+ }
+ else{
+  cout.clear();
+  cerr.clear();
  }
  //TFile * rfile= new TFile(fname,"READ");
  //TFile *rfile=TFile::Open(fname,"READ");
@@ -189,3 +195,5 @@ again:
   float rrr=100*float(nbadev)/float(nevread);
   return int(rrr); 
 }
+
+
