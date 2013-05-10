@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.569 2013/05/09 12:59:59 mduranti Exp $
+//  $Id: root.C,v 1.570 2013/05/10 20:08:05 mdelgado Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2507,6 +2507,11 @@ bool AMSEventR::ReadHeader(int entry){
     // Set default flag value
     RichRingR::pmtCorrectionsFailed = -1;
     // Rich Uniformity Beta Correction Loading. Only once per run
+    if(AMSEventR::Head()->nMCEventg()){
+      // Disable corrections for MC
+      RichRingR::shouldLoadCorrection=-1;
+      RichRingR::loadChargeUniformityCorrection=false;      
+    }
 #pragma omp critical(rd)
     if(RichRingR::shouldLoadCorrection==RichRingR::fullUniformityCorrection && 
        !RichBetaUniformityCorrection::getHead()){
