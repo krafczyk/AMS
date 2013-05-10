@@ -27,6 +27,7 @@ setenv PGTRACK 1
 source  $PREFIX/amsvar$TESTFLAG.icc64
 source  $PREFIX/g4i$TESTFLAG.icc64
 gmake all
+gmake fast64
 
 source  $PREFIX/amsvar$TESTFLAG.gcc32
 source  $PREFIX/g4i$TESTFLAG.gcc32
@@ -37,6 +38,7 @@ endif
 source  $PREFIX/amsvar$TESTFLAG.gcc64
 source  $PREFIX/g4i$TESTFLAG.gcc64
 gmake allp
+gmake fast64
 
 
 source $PREFIX/amsvar$TESTFLAG.icc32

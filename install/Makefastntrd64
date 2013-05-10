@@ -1,90 +1,61 @@
 #
 SHELL=/bin/sh
 #
-ifeq  "$(shell uname)"  "AIX" 
-SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
-ROOTLIBS=
-CFLAGS=    -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
-CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl
-FFLAGS=    -I../include -O -qextname 
-DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
-LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag $(ROOTLIBS)
-CC=xlC
-FF=xlf
-LD=xlC
-BIN=../bin/aix/
-EXE=/exe/aix
-LIB=/lib/aix
-TIMEL=../bin/aix/timel.o
+ifndef AMSWD
+AMSWD := ..
 endif
-ifeq  "$(shell uname)"  "OSF1" 
-SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
-ROOTLIBS =
-CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
-CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
-FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
-DFLAGS=  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
-LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys  
-CC=cxx
-FF=f77
-LD=cxx
-BIN=../bin/osf1/
-EXE=/exe/osf1
-LIB=/lib/osf1
-TIMEL=
-endif
-ifeq  "$(shell uname)"  "Linux"
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
+PLATFORM      =  Linux
+PREFIX        = $(AMSWD)/bin/$(ARCH)/fastntrd/
+DEPDIR        = $(PREFIX)/dep
+AMSPRG        = $(AMSWD)/exe/$(ARCH)/fastntrd.exe
+AMSLIB        = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a
+
+
+ifeq ($(ARCH),linuxx8664gcc)
+
 # DEFAULTS 
-RH9add=
-ifdef RH9
- RH9add=-pthread 
-endif
-
-ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
  RH9add=-pthread  
-endif
 
-ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
- RH9add=
-endif
-#CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -g
 CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib -Bstatic -lRoot  -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc  
-CC=/opt/intel/Compiler/11.1/073/bin/intel64/icc  -openmp -gcc-version=340
-FF=/opt/intel/Compiler/11.1/073/bin/intel64/ifort  -openmp -gcc-version=340
-LD=/opt/intel/Compiler/11.1/073/bin/intel64/icpc  -openmp   $(PARALLEL) -gcc-version=340
-BIN=$(AMSWD)/bin/linuxx8664icc/fastntrd/
-EXE=$(AMSWD)/exe/linuxx8664icc/fastntrd/
+LDFLAGS= -O -rdynamic -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG -lRoot  -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys   -lrt
+CC=g++ 
+FF=gfortran 
+LD=g++ 
+BIN=$(AMSWD)/bin/$(ARCH)/fastntrd/
+EXE=$(AMSWD)/exe/$(ARCH)
+TIMEL=
+endif
+ifeq ($(ARCH),linuxx8664icc)
+
+# DEFAULTS 
+ RH9add=-pthread  
+
+CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+FFLAGS=   -O -I../include
+DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
+#LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
+LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG  -lRoot -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc 
+CC=/opt/intel/Compiler/11.1/073/bin/intel64/icc  -openmp 
+FF=/opt/intel/Compiler/11.1/073/bin/intel64/ifort  -openmp 
+LD=/opt/intel/Compiler/11.1/073/bin/intel64/icpc  -openmp  
+BIN=$(AMSWD)/bin/$(ARCH)/fastntrd/
+EXE=$(AMSWD)/exe/$(ARCH)
 TIMEL=
 endif
 
-ifeq  "$(shell uname)"  "HP-UX" 
-CFLAGS=     -D__BATCH__   -D__HPUX__  -fhandle-exceptions  -I../include -I../include/stl  
-CFLAGSn=     -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl  
-FFLAGS=   -K +ppu  -I../include 
-DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=  -g  -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc -lshift 
-CC=g++
-FF=f77
-LD=g++
-BIN=../bin/hpux/
-EXE=/exe/hpux
-LIB=/lib/hpux
-TIMEL=
-endif
 #
 #
 #
 SCC=../CC/
-SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)astring.C $(SCC)root_setup.C $(SCC)predict.c $(SCC)ecalBDT.C $(SCC)ecalBDTCHI2.C $(SCC)EcalChi2CY.C  $(SCC)SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHCalib.C $(SCC)TrdHRecon.C $(SCC)TrdHCharge.C $(SCC)TrPdf.C $(SCC)commonsi.C  $(SCC)amsdbc.C $(SCC)timeid.C $(SCC)trfit.C $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C $(SCC)amschain.C $(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichConfig.C $(SCC)RichBeta.C $(SCC)RichTools.C $(SCC)Sunposition.C  $(SCC)FrameTrans.C  $(SCC)GM_SubLibrary.C  $(SCC)Tofdbc.C $(SCC)Tofrec02_ihep.C $(SCC)Tofcharge_ihep.C $(SCC)BackTracingMIB.C ../F/BackTracing.F
-OBJECTS= $(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)trfit.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)predict.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o   $(BIN)SlowControlDB.o $(BIN)commonsi.o $(BIN)amsdbc.o $(BIN)timeid.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o  $(BIN)FrameTrans.o  $(BIN)GM_SubLibrary.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o  $(BIN)GeoMagField.o $(BIN)GeoMagTrace.o $(BIN)GeoMagCoord.o $(BIN)BackTracingMIB.o $(BIN)BackTracing.o 
-$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o $(BIN)predict.o $(BIN)ecalBDT.o $(BIN)EcalChi2CY.o  $(BIN)ecalBDTCHI2.o $(BIN)SlowControlDB.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)trfit.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)commonsi.o $(BIN)timeid.o $(BIN)amsdbc.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o  $(BIN)FrameTrans.o $(BIN)GM_SubLibrary.o  $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o  $(BIN)GeoMagField.o $(BIN)GeoMagTrace.o $(BIN)GeoMagCoord.o $(BIN)BackTracingMIB.o $(BIN)BackTracing.o
+FILES= $(SCC)fastntrd.C ../F/fntread.F ../CC/rootread.C  ../CC/commonsi.C
+OBJECTS= $(BIN)fastntrd.o  $(BIN)fntread.o $(BIN)rootread.o $(BIN)commonsi.o
+$(AMSPRG):	$(BIN)fastntrd.o  $(BIN)fntread.o $(BIN)rootread.o $(BIN)commonsi.o $(AMSLLIB)
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
-	$(LD) -v -o $(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
+	$(LD) -v -o $(AMSPRG) $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 	chmod +x  $(EXE)/fastntrd.exe 
 
@@ -97,144 +68,12 @@ $(BIN)fastntrd.o:         $(SCC)fastntrd.C
 $(BIN)fntread.o:         ../F/fntread.F
 	$(FF) -c $(FFLAGS) ../F/fntread.F -o $(BIN)fntread.o
 
-$(BIN)BackTracing.o:    ../F/BackTracing.F
-	$(FF) -c  $(FFLAGS) ../F/BackTracing.F -o $(BIN)BackTracing.o 
-
-$(BIN)root_rs.o:    	 $(SCC)root.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
-
-$(BIN)root_setup.o:    	 $(SCC)root_setup.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root_setup.C -o $(BIN)root_setup.o
-
-$(BIN)predict.o:    	 $(SCC)predict.c
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)predict.c -o $(BIN)predict.o
-
-$(BIN)Sunposition.o:    	 $(SCC)Sunposition.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)Sunposition.C -o $(BIN)Sunposition.o
-
-$(BIN)FrameTrans.o:    	 $(SCC)FrameTrans.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)FrameTrans.C -o $(BIN)FrameTrans.o
-
-$(BIN)GM_SubLibrary.o:      $(SCC)GM_SubLibrary.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)GM_SubLibrary.C -o $(BIN)GM_SubLibrary.o
-
-$(BIN)BackTracingMIB.o:    $(SCC)BackTracingMIB.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)BackTracingMIB.C -o $(BIN)BackTracingMIB.o
+$(BIN)rootread.o:    	 $(SCC)rootread.C
+	$(CC) -c $(CFLAGS) $(SCC)rootread.C -o $(BIN)rootread.o
 
 $(BIN)commonsi.o:    	 $(SCC)commonsi.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)commonsi.C -o $(BIN)commonsi.o
+	$(CC) -c $(CFLAGS) -D__FASTNTRD__ $(SCC)commonsi.C -o $(BIN)commonsi.o
 
-$(BIN)amsdbc.o:    	 $(SCC)amsdbc.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)amsdbc.C -o $(BIN)amsdbc.o
-
-$(BIN)timeid.o:    	 $(SCC)timeid.C
-	$(CC) -c $(CFLAGS) -D__LINUXGNU__  -D__ROOTSHAREDLIBRARY__ $(SCC)timeid.C -o $(BIN)timeid.o
-
-$(BIN)ecalBDT.o:    	 $(SCC)ecalBDT.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)ecalBDT.C -o $(BIN)ecalBDT.o
-
-$(BIN)ecalBDTCHI2.o:     $(SCC)ecalBDTCHI2.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)ecalBDTCHI2.C -o $(BIN)ecalBDTCHI2.o
-
-$(BIN)EcalChi2CY.o:     $(SCC)EcalChi2CY.C
-	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)EcalChi2CY.C -o $(BIN)EcalChi2CY.o
-
-$(BIN)astring.o:    	 $(SCC)astring.C
-	$(CC) -c $(CFLAGS) $(SCC)astring.C -o $(BIN)astring.o
-
-$(BIN)SlowControlDB.o:    	 $(SCC)SlowControlDB.C
-	$(CC) -c $(CFLAGS) $(SCC)SlowControlDB.C -o $(BIN)SlowControlDB.o
-
-$(BIN)id.o:    	 $(SCC)id.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)id.C -o $(BIN)id.o
-
-$(BIN)point.o:    	 $(SCC)point.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)point.C -o $(BIN)point.o
-
-$(BIN)TrdHSegment.o:    	 $(SCC)TrdHSegment.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrdHSegment.C -o $(BIN)TrdHSegment.o
-
-$(BIN)TrdHCalib.o:    	 $(SCC)TrdHCalib.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrdHCalib.C -o $(BIN)TrdHCalib.o
-
-$(BIN)TrdHCharge.o:    	 $(SCC)TrdHCharge.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrdHCharge.C -o $(BIN)TrdHCharge.o
-
-$(BIN)TrPdf.o:    	 $(SCC)TrPdf.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrPdf.C -o $(BIN)TrPdf.o
-
-
-$(BIN)TrdHRecon.o:    	 $(SCC)TrdHRecon.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrdHRecon.C -o $(BIN)TrdHRecon.o
-
-$(BIN)TrdHTrack.o:    	 $(SCC)TrdHTrack.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrdHTrack.C -o $(BIN)TrdHTrack.o
-
-$(BIN)trfit.o:    	 $(SCC)trfit.C
-	$(CC) -c $(CFLAGS) $(SCC)trfit.C -o $(BIN)trfit.o
-
-$(BIN)TrElem.o:    	 $(SCC)TrElem.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrElem.C -o $(BIN)TrElem.o
-
-
-$(BIN)GeoMagField.o:    	 $(SCC)GeoMagField.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)GeoMagField.C -o $(BIN)GeoMagField.o
-
-
-$(BIN)GeoMagTrace.o:    	 $(SCC)GeoMagTrace.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)GeoMagTrace.C -o $(BIN)GeoMagTrace.o
-
-
-$(BIN)GeoMagCoord.o:    	 $(SCC)GeoMagCoord.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)GeoMagCoord.C -o $(BIN)GeoMagCoord.o
-
-
-$(BIN)VCon.o:    	 $(SCC)VCon.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)VCon.C -o $(BIN)VCon.o
-
-$(BIN)VCon_root.o:    	 $(SCC)VCon_root.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)VCon_root.C -o $(BIN)VCon_root.o
-
-$(BIN)ctype.o:    	 $(SCC)ctype.c
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)ctype.c -o $(BIN)ctype.o
-
-$(BIN)rootread.o:    	 $(SCC)rootread.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o
-
-$(BIN)amschain.o:	 $(SCC)amschain.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)amschain.C -o $(BIN)amschain.o
-
-$(BIN)DynAlignment_s.o:	 $(SCC)DynAlignment.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)DynAlignment.C -o $(BIN)DynAlignment_s.o
-
-$(BIN)RichCharge_s.o:	 $(SCC)RichCharge.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)RichCharge.C -o $(BIN)RichCharge_s.o
-
-$(BIN)RichConfig_s.o:	 $(SCC)RichConfig.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)RichConfig.C -o $(BIN)RichConfig_s.o
-
-$(BIN)RichBeta_s.o:	 $(SCC)RichBeta.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)RichBeta.C -o $(BIN)RichBeta_s.o
-
-$(BIN)RichTools_s.o:	 $(SCC)RichTools.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)RichTools.C -o $(BIN)RichTools_s.o
-
-$(BIN)Tofdbc_s.o:    $(SCC)Tofdbc.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)Tofdbc.C -o $(BIN)Tofdbc_s.o
-
-$(BIN)Tofrec02_ihep_s.o:    $(SCC)Tofrec02_ihep.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)Tofrec02_ihep.C -o $(BIN)Tofrec02_ihep_s.o
-
-$(BIN)Tofcharge_ihep_s.o:    $(SCC)Tofcharge_ihep.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)Tofcharge_ihep.C -o $(BIN)Tofcharge_ihep_s.o
-
-$(BIN)rootdict_s.C:    ../include/point.h    ../include/root_RVS.h ../include/root.h  ../include/TrElem.h ../include/trfit.h ../include/linkdefs.h
-	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c -D__FAST__ ../include/point.h ../include/root_RVS.h  ../include/amschain.h ../include/VCon.h ../include/TrElem.h  ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/TrdHCalib.h ../include/TrdHCharge.h ../include/TrPdf.h  ../include/TrdHRecon.h ../include/TrdHCharge.h ../include/trfit.h ../include/pfunction.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h  ../include/Tofcharge_ihep.h ../include/GeoMagField.h ../include/GeoMagCoord.h  ../include/GM_SubLibrary.h  ../include/GeoMagTrace.h ../include/EcalChi2CY.h  ../include/BackTracingMIB.h ../include/linkdefs.h 
-	@echo "OK"
-
-$(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
-	$(CC) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
  
 
 depend: 	
