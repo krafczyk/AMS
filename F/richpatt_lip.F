@@ -2750,7 +2750,10 @@ C TEMP the previous 4 sets can be put into a subroutine
 *     frame
       discont=0.8*twopi*degrad
       i=0
-      do xphi=0.,twopi+twopi/real(2*nrootmax),twopi/real(2*nrootmax)
+
+      nsphi = 2*nrootmax
+      do iphi = 0,nsphi
+         xphi = iphi*twopi/real(2*nrootmax)
          f=fphilmir_prot(xphi)
          i=i+1
          if(i.ge.2)then
@@ -2771,7 +2774,9 @@ C TEMP the previous 4 sets can be put into a subroutine
 * ==> search for reflection roots on the prototype written on the mirror
 *     frame
       i=0
-      do xphi=0.,twopi+twopi/real(2*nrootmax),twopi/real(2*nrootmax)
+      nsphi = 2*nrootmax
+      do iphi = 0,nsphi
+         xphi = iphi*twopi/real(2*nrootmax)
          f=fphilmir_prot(xphi)
          i=i+1
          if(i.ge.2)then
@@ -5316,7 +5321,10 @@ c      data idummy /0/
          allthetac=thetac+sigmathetac*(float(k)-(nk+1.)/2.)  ! rings at different sigmas
 * ...... ring sampling
          ierr = 0
-         do phig=0.,twopi,1.E-2
+
+         nsphig = int(twopi/1.E-2)
+         do iphig = 0,nsphig
+            phig = iphig*1.E-2
 
 * ......... trace photon to matrix and check if photon is LG gap
             call patrace_full_phimir(phig,allthetac,xdet,ydet,nmiref,
@@ -5525,13 +5533,14 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
 ****************
 
 
-      subroutine richaccbypmt(thetac)
+      subroutine richaccbypmt(thetac,ringsm)
 **********************************************************************
 * Returns acceptance and efficiency values for each PMT
 * using a uniform ring sampling in photon phi
 *
 * Created: 10/16-Apr-2012 by L. Arruda, R. Pereira
 * Modified: 29-Aug-2012 by R. Pereira (thetac passed by argument)
+* Modified: 28-Mar-2013 by R. Pereira (ringsm passed by argument)
 *
 *********************************************************************
 
@@ -5854,8 +5863,10 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
 * ...... get photon spread across PMTs
 
-         ringsm = sqrt(F1SIGMA2)  ! gaussian smearing (cm), value used here
-                                  ! is width of main gaussian given for likelihood
+         if(ringsm.lt.0.) then
+            ringsm = sqrt(F1SIGMA2) ! gaussian smearing (cm), value used here
+                                    ! is width of main gaussian given for likelihood
+         endif
 
 * ...... cycle over PMTs in point region
 
@@ -9943,8 +9954,9 @@ C      print*,'thi=',acos(costhi)
 *      print*,'thetac in richaccradwall = ',thetac
 
 * ... loop on radiator depth
-*      do ZFRAC=0,1.,0.1 ! radiator fraction
-      do ZFRAC=0.05,1.,0.1 ! radiator fraction
+
+      do NZFRAC = 0,9
+         ZFRAC = 0.05+0.1*NZFRAC
          ZTRIAL = ZTARG+HRAD*ZFRAC
 * ...... set photon vertex
          gamvtx(3) = ZTRIAL
@@ -9967,7 +9979,9 @@ C      print*,'thi=',acos(costhi)
 C         call uradlim(nxv,nyv,x1,x2,y1,y2,ig)
 C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
 * ...... loop on the photon azimuthal angle
-         do 1 phig=0.,twopi,1.E-2
+         nsphig = int(twopi/1.E-2)
+         do 1 iphig = 0,nsphig
+            phig = iphig*1.E-2
 * ......... check if photon is detected
             call patrace_full_phimir(phig,thetac,xdet,ydet,nmiref,nerr,
      +           verr,phimir)

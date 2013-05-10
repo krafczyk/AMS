@@ -159,7 +159,10 @@ CC      nbushits_buf = 0
       IPHIHINTFLAG = 0
 * --> scan
       nscan = 0
-      do xthet = cangrecup,cangreclow,-THCSTEP*DEGRAD
+
+      nxthet = int((cangrecup-cangreclow)/(THCSTEP*DEGRAD))
+      do ixthet = 0,nxthet
+         xthet = cangrecup-ixthet*THCSTEP*DEGRAD
          nscan = nscan + 1
          if (nscan.le.nscanmax) then
             fliketot_buf(nscan) = fliketotall(xthet)
@@ -596,7 +599,10 @@ C -----------------------------------------------------
 * ...... sampling the function fchi2hit (photon distance to pattern)
          nscan=0
          funcbuf_min=1.e9
-         do xphi=0.,365.,phisteplocal ! phistep
+
+         nxphi = int(365./phisteplocal)
+         do ixphi = 0,nxphi
+           xphi = ixphi*phisteplocal
            nscan=nscan+1
            if (nscan.gt.nscanmax) then
               print*,' (richgetphihint) array dim overflow '
@@ -697,7 +703,10 @@ C -----------------------------------------------------
          nscan = 0
          ipmin = 0
          funcbuf_min=1.e9
-         do xphi = 0.,360.,PHISTEP
+
+         nxphi = int(360./PHISTEP)
+         do ixphi = 0,nxphi
+           xphi = ixphi*PHISTEP
            nscan = nscan + 1
            if (nscan.gt.nscanmax) then
               print*,' (richgetphihint) array dim overflow '
@@ -2025,7 +2034,9 @@ C #include "../include/richrec_lipnew.h"
          nthchit_scan(i) = 0
       enddo
 
-      do xthet = cangrecup_alt,cangreclow_alt,-thcstep_alt
+      nxthet = int((cangrecup_alt-cangreclow_alt)/thcstep_alt)
+      do ixthet = 0,nxthet
+         xthet = cangrecup_alt-ixthet*thcstep_alt
 *         print*,'Scan in xthet: ',xthet*RADDEG,' deg'
          npscan = npscan+1
          if(npscan.le.npscanmax) then
@@ -2134,7 +2145,9 @@ C #include "../include/richrec_lipnew.h"
          nthchit_scan(i) = 0
       enddo
 
-      do xthet = cangrecup_alt,cangreclow_alt,-thcstep_alt
+      nxthet = int((cangrecup_alt-cangreclow_alt)/thcstep_alt)
+      do ixthet = 0,nxthet
+         xthet = cangrecup_alt-ixthet*thcstep_alt
          npscan = npscan+1
 *         print*,'Test angle ',npscan,' at ',xthet*RADDEG,' deg'
          if(npscan.le.npscanmax) then
@@ -2441,7 +2454,9 @@ C #include "../include/richrec_lipnew.h"
 
       nlikeval = 0
 
-      do xthet = cangreclow_lscan,cangrecup_lscan,thcstep_lscan
+      nxthet = int((cangrecup_lscan-cangreclow_lscan)/thcstep_lscan)
+      do ixthet = 0,nxthet
+         xthet = cangreclow_lscan+ixthet*thcstep_lscan
          if(nlikeval.lt.10000) then
             nlikeval = nlikeval+1
             vthe(nlikeval) = xthet

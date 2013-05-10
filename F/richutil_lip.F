@@ -2167,7 +2167,7 @@ C
 
 
 *------------------------------------------------------------------
-      subroutine getacceptance(thetac)
+      subroutine getacceptance(thetac,ringsm)
 *------------------------------------------------------------------
 *******************************************************************
 *     Obtain acceptance/efficiency data by PMT/pixel
@@ -2176,6 +2176,7 @@ C
 *     are already set in commons)
 *
 *     R. Pereira  29-Aug-2012
+*     updated: RP 28-Mar-2013 - argument ringsm added
 *******************************************************************
 
 #include "../include/richrec_lipf.h"
@@ -2184,7 +2185,8 @@ C
       real thetac
 
 * ... Calling acceptance procedure
-      call richaccbypmt(thetac)
+*      call richaccbypmt(thetac)
+      call richaccbypmt(thetac,ringsm)  ! negative ringsm means use default
 
 * ... Fill shared C++/Fotran common data
 
