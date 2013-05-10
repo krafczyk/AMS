@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.131 2013/04/19 18:54:50 choutko Exp $
+//  $Id: root_setup.C,v 1.132 2013/05/10 17:43:46 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1373,7 +1373,12 @@ return 2;
 }
 else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadAMSRTI-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
    t2=t1+864000;
+}
 }
 
 const char fpatb[]="RTI";
@@ -1485,8 +1490,13 @@ cerr<< "AMSSetupR::LoadAMSSTK-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl
 return 2;
 }
 else if(t2-t1>864000){
-    cerr<< "AMSSetupR::LoadAMSSTK-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+    cerr<< "AMSSetupR::LoadAMSSTK-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<" "<<t1<<" "<<t2<<endl;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
    t2=t1+864000;
+}
 }
 const char fpatb[]="ECI_STK_";
 const char fpatb2[]="ABL_STK_";
@@ -1697,7 +1707,12 @@ return 2;
 }
 else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSAtt-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
    t2=t1+864000;
+}
 }
 const char fpatb[]="ISS_ATT_EULR_LVLH-";
 const char fpate[]="-24H.csv";
@@ -3187,7 +3202,12 @@ return 2;
 }
 else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSSA-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
    t2=t1+864000;
+}
 }
 const char fpatb[]="ISS_solar_arrays_";
 const char fpate[]="-24H.csv";
@@ -3359,7 +3379,12 @@ return 2;
 }
 else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSINTL-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
    t2=t1+864000;
+}
 }
 const char fpatb[]="ISS_ATT_EULR_INTL-";
 const char fpate[]="-24H.csv";
@@ -3521,7 +3546,12 @@ int AMSSetupR::LoadRotationMatrices(unsigned int t1, unsigned int t2)
   }
   else if (t2-t1>864000) {
     cerr<< "AMSSetupR::LoadRotationMatrices-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
-    t2=t1+864000;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
+   t2=t1+864000;
+}
   }
 
   const char fpatb[]="CTRS_ICRS_Matrices/CTRS_ICRS_Matrix_";
@@ -3704,7 +3734,12 @@ int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
   }
   else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSCTRS-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
-    t2=t1+864000;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
+   t2=t1+864000;
+}
   }
   const char fpatb[]="ISS_CTRS_Vectors_";
   const char fpatb2[]="ISS_CTRS_vectors_";
@@ -3909,7 +3944,12 @@ int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
   }
   else if (t2-t1>864000) {
     cerr<< "AMSSetupR::LoadGPSWGS84-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
-    t2=t1+864000;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
+   t2=t1+864000;
+}
   }
   const char fpatb[]="GPS/GPS_WGS84_Vectors_";
   const char fpate[]="-24H.csv";
@@ -4085,7 +4125,12 @@ return 2;
 }
 else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSGTOD-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+if(t1<1305000000){
+  t1=t2-864000;
+}
+else{
    t2=t1+864000;
+}
 }
 const char fpatb[]="GTOD/ISS_SV_GTOD-";
 const char fpatb2[]="GTOD/ISS_SV_GTOD_01_";
