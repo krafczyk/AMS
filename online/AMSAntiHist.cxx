@@ -1,4 +1,4 @@
-//  $Id: AMSAntiHist.cxx,v 1.15 2010/12/06 01:12:51 choutko Exp $
+//  $Id: AMSAntiHist.cxx,v 1.16 2013/05/10 08:07:50 choutko Exp $
 // By V. Choutko & D. Casadei
 // Last changes: 27 Feb 1998 by D.C.
 #include <iostream>
@@ -458,7 +458,7 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     for(is=0;is<nasects;is++){//<-- loop over Clusters(fired sectors)
       p=ntuple->pAntiCluster(is);
       sect=p->Sector;//1-8
-      status=p->Status;// Bit"128"->No FT-coinc. on 2 sides;"256"->1sideSector;"1024"->miss.side#
+      //status=p->Status;// Bit"128"->No FT-coinc. on 2 sides;"256"->1sideSector;"1024"->miss.side#
       ftcok=((status&1<<7)==0);//FTcoins ok (on any side)
       miside=((status&1<<8)==1);//1-sided sector
       if(miside){
@@ -467,11 +467,11 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
       }
       if(ftcok)nasftc+=1;//count sectors with FTcoinc
       eanti=p->Edep;
-      nthits=p->Ntimes;
+      //nthits=p->Ntimes;
       ntpairs=p->Npairs;
       if(ntpairs>0)nasprd+=1;//count sectors with t-paired sides
       if(ftcok && ntpairs>0)nasftpr+=1;//count sectors with FTcoins+paired 
-      for(i=0;i<nthits;i++)htime[i]=p->Times[i];
+      //for(i=0;i<nthits;i++)htime[i]=p->Times[i];
       eantit+=eanti;
     
       _filled[2]->Fill(sect,1.);
