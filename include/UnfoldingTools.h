@@ -284,11 +284,22 @@ class DEMinimizer{
 class StochasticUnfolding{
  public:
   StochasticUnfolding(){Counter=0;}
-  void setPrior(TH1F &prior,double dirichletHyperparameter=0.5);
-  void setResponseMatrixFromJoint(TH2F &joint);
+
+  void copyH(TH2F &input,TH2D &output);  //< Helper function
+  void copyH(TH1F &input,TH1D &output);  //< Helper function 
+  void copyH(TH2D &input,TH2F &output);  //< Helper function
+  void copyH(TH1D &input,TH1F &output);  //< Helper function 
+
+  void setPrior(TH1D &prior,double dirichletHyperparameter=0.5);
+  void setResponseMatrixFromJoint(TH2D &joint);
   void addEntry(double measured);
-  void addEntries(TH1F &measured,double fraction);
-  void fold(TH1F &output);
+  void addEntries(TH1D &measured,double fraction,bool maxRegularization=true);
+  void fold(TH1D &output);
+
+
+  void setPrior(TH1F &prior,double dirichletHyperparameter=0.5){TH1D p;copyH(prior,p);setPrior(p,dirichletHyperparameter);}
+  void setResponseMatrixFromJoint(TH2F &joint){TH2D j;copyH(joint,j);setResponseMatrixFromJoint(j);}
+
 
   std::vector<int> start;
   std::vector<int> end;
@@ -300,24 +311,28 @@ class StochasticUnfolding{
      @param output: slot to store the unfolded distribution. The binning on the histogram is kept. 
      @param samples: number of realizations used. The larger the more accurate are the errors, but the running time is linear in this quantity. 
   */
-  void unfold(TH2F &joint, TH1F &measured,TH1F &output,int samples=10);
+  void unfold(TH2D &joint, TH1D &measured,TH1D &output,int samples=10);
+  void unfold(TH2F &joint, TH1F &measured,TH1F &output,int samples=10){TH2D j;TH1D m,o;copyH(joint,j);copyH(measured,m);copyH(output,o);unfold(j,m,o,samples);copyH(o,output);}
 
   /**
      Fast approximation.
      @param joint: unnormalize joint distribution. Used to compute the response matrix. Poissonian statistic for the bins error is assumed. The binning should be equal or finner than that of the measured and unfolded distributions 
      @param measured: measured distribution
      @param output: slot to store the unfolded distribution. The binning on the histogram is kept. 
+     @param maxRegularization: set to true to apply the maximum regularization method
+     @param fluctuateMigration: set to true to propagate statistica fluctuations of the response matrix in order
      @param samples: number of realizations used. The larger the more accurate are the errors, but the running time is linear in this quantity. 
      @param fraction: fraction of events on each iteration for which the prior is considered to be constant.
   */
-  void unfoldFast(TH2F &joint, TH1F &measured,TH1F &output,int samples=10,double fraction=0.1);
+  void unfoldFast(TH2D &joint, TH1D &measured,TH1D &output,bool maxRegularization=false,bool fluctuateMigration=true,int samples=10,double fraction=0.05);
+  void unfoldFast(TH2F &joint, TH1F &measured,TH1F &output,bool maxRegularization=false,bool fluctuateMigration=true,int samples=10,double fraction=0.05){TH2D j;TH1D m,o;copyH(joint,j);copyH(measured,m);copyH(output,o);unfoldFast(j,m,o,maxRegularization,fluctuateMigration,samples,fraction);copyH(o,output);}
 
 
   TRandom Random;               ///< Random number generator for sampling
-  TH1F Prior;                   ///< The current unfolded distribution
-  TH2F ResponseMatrix;          ///< Response matrix   
+  TH1D Prior;                   ///< The current unfolded distribution
+  TH2D ResponseMatrix;          ///< Response matrix   
   double Counter;               ///< Integral of the unfolded distribution. 
-  TH1F Folded;                  ///< Latest folded distribution
+  TH1D Folded;                  ///< Latest folded distribution
 };
 
 
