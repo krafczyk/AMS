@@ -10,13 +10,11 @@ class AMSAntiCluster;
 #define __USEANTICLUSTERPG__ //if we remove/comment this define the original class from Evgeni is used
 #ifdef __USEANTICLUSTERPG__
 
+//! Anti Coincidence Detector Clusters 
 /*! Offline Anti Coincidence Counter software \n
   --basic instructions:  \n
-  include AntiRecoPG.h \n
-  -outside the event loop:  \n
-  AntiRecoPG* Acci = new AntiRecoPG::gethead(); \n
-  -in the event loop: \n
-  Acci->RebuildAcc(); \n
+ event->RebuildAntiClusters() rebuild with PG code \n
+https://indico.cern.ch/conferenceDisplay.py?confId=251079
 */
 class AntiClusterR {
 
@@ -85,7 +83,7 @@ class AntiClusterR {
   /*! rebuild a single AntiCluster \n
     Sector should be already existing \n
     return 0 if no raw sides found \n
-    return npairs>0 (both sides) and nsingle<0 (single side)                      
+    return npairs>0 (both sides) or nsingle<0 (single side)                      
   */
   int ReBuildMe(float zzguess = 999, float err_zguess = 20, float ttguess=999 , float err_tguess = 30.);
 
@@ -103,13 +101,11 @@ class AntiClusterR {
 
 //---------------------------------------------------------------------------------------------
 
+//! reconstruction functions for AntiCluster
 /*! Offline Anti Coincidence Counter software \n
-  --basic instructions:  \n
-  include AntiRecoPG.h \n
-  -outside the event loop:  \n
+https://indico.cern.ch/conferenceDisplay.py?confId=251079 \n
+access with: \n
   AntiRecoPG* Acci = new AntiRecoPG::gethead(); \n
-  -in the event loop: \n
-  Acci->RebuildAcc(); \n
 */
 class AntiRecoPG {
 
@@ -187,7 +183,7 @@ virtual  ~AntiRecoPG(){};
     example for unfolding Zcoo from ADC (RMS 50cm): BayesEstimation(zadc,45,-40.,40.) \n
     example for unfolding Zcoo from TDC (RMS 20cm): BayesEstimation(ztdc,8,-40.,40.) \n
   */
-  float BayesEstimation(float value, float error, float low, float upp);
+static float BayesEstimation(float value, float error, float low, float upp);
   //! raw evaluation of energy deposition pairing ADC sides (for internal use large nonlinearity)
   float DoRawEdep(int sect);
   /*! re-build a cluster pairing list based on T&Z guess \n
@@ -199,7 +195,7 @@ virtual  ~AntiRecoPG(){};
   /*! rebuild all cluster with default Z&T guess (from Tof and ADC) \n
     clear all old clusters \n
     return the number of anticlusters \n
-    For a single defined sector sect a particular zguess can be setted   
+    For a single defined sector sect a particular zguess can be set   
   */
   int BuildAllClusters(int sect = 0, float sect_zguess = 999, float err_sect_zguess = 999);
 

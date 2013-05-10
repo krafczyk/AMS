@@ -26,7 +26,7 @@ AntiClusterR::AntiClusterR(AMSAntiCluster *ptr){
 #endif
 }
 
-/*! return distance, beta and cosine theta inclination respect to Acc pad \n
+/* return distance, beta and cosine theta inclination respect to Acc pad \n
   assuming External point hypothesis and straight line trajectory \n
   beta > 0 if Acc time is smaller than ExtTime */
 float AntiClusterR::DoBeta(AMSPoint* ExtCoo, float ExtTime, float& beta, float& costh){
@@ -40,7 +40,7 @@ float AntiClusterR::DoBeta(AMSPoint* ExtCoo, float ExtTime, float& beta, float& 
   return dist;
 }
 
-//! return the acc phi angle and fill AntiCoo AMSPoint with AntiCoo[2]=unfzeta 
+// return the acc phi angle and fill AntiCoo AMSPoint with AntiCoo[2]=unfzeta 
 float AntiClusterR::FillCoo(AMSPoint* AntiCoo){
   float phi = 22.5+45.*(Sector-1);
   float zz = unfzeta;
@@ -50,7 +50,7 @@ float AntiClusterR::FillCoo(AMSPoint* AntiCoo){
   return phi;
 }
 
-/*! return AntiCluster charge with corrections \n
+/* return AntiCluster charge with corrections \n
   costh = cosine track inclination respect to Anti Pad \n
   ztrue = true Zcoo (e.g. if known from tracker)
 */
@@ -88,7 +88,7 @@ float AntiClusterR::Charge(float costh, float beta, float ztrue){
   return qret;
 }
 
-/*! rebuild a single AntiCluster \n
+/* rebuild a single AntiCluster \n
 Sector should be already existing \n
 return 0 if no raw sides found \n
 return npairs>0 (both sides) and nsingle<0 (single side)
@@ -114,7 +114,7 @@ AntiRecoPG* AntiRecoPG::gethead() {
   return head;
 }
 
-/*! found the sector(1-8) you think (-hope) is crossed assuming straight line \n
+/* found the sector(1-8) you think (-hope) is crossed assuming straight line \n
     = 0 no crossing at all ;  -10 error (same points)\n
     <0 sector but crossing at |Z| > 40 cm \n
     if AntiCounters are crossed in both directions the nearest to Point1 is chosen*/ 
@@ -163,7 +163,7 @@ int AntiRecoPG::GetCrossing(AMSPoint* Point1, AMSPoint* Point2, AMSPoint* CrossP
  return rsec;
 }
 
-/*! file filename contains a correction to existing calibrations \n
+/* file filename contains a correction to existing calibrations \n
   still preliminary to be develop if necessary
 */
 int AntiRecoPG::CalOnTopOfCal(char* filename)
@@ -455,25 +455,28 @@ void AntiRecoPG::InitPar(){
   return;
 }
 
-/*! unfolding of Zcoo knowing that the real Zcoo are in the [-40,40] range \n
+/* unfolding of Zcoo knowing that the real Zcoo are in the [-40,40] range \n
   gaussian distribution assumption \n
   example for unfolding Zcoo from ADC (RMS 50cm): BayesEstimation(zadc,45,-40.,40.) \n
   example for unfolding Zcoo from TDC (RMS 20cm): BayesEstimation(ztdc,8,-40.,40.)
 */
 float AntiRecoPG::BayesEstimation(float value, float error, float low, float upp){
   if (error==0.) return 0.;
-  if (low==upp) return low;
+  if (low>=upp) return low;
   // variable normalization
   double xm=value/error;
   double xl=low/error-xm;  // lower integration edge
   double xu=upp/error-xm;  // upper integration edge
   double numerat = exp(-xl*xl/2.)-exp(-xu*xu/2.);
   double normaliz = sqrt(3.141592654/2.)*(erf(xu/sqrt(2.))-erf(xl/sqrt(2.)));
-  double vret = error*(numerat/normaliz)+value;
+  double vret = value;
+  if (normaliz != 0.) vret = error*(numerat/normaliz)+vret;
+  if (vret>upp) vret = upp;
+  if (vret<low) vret = low;
   return vret;
 }
 
-//! evaluate a guess of event time averaging tof times
+// evaluate a guess of event time averaging tof times
 float AntiRecoPG::GetTofTimeGuess(){
   AMSEventR* evt = AMSEventR::Head();
   
@@ -490,7 +493,7 @@ float AntiRecoPG::GetTofTimeGuess(){
   return tguess;
 }
 
-//! reload all info from AntiRawSides
+// reload all info from AntiRawSides
 //fill timetable and timeindex
 int AntiRecoPG::ReLoadAcc(){  
   int iret = 0; // no raw sides
@@ -540,7 +543,7 @@ int AntiRecoPG::ReLoadAcc(){
   return iret; // side loaded
 }
 
-//! scan the time history searching the best pairing respect to T&Z guess
+// scan the time history searching the best pairing respect to T&Z guess
 int  AntiRecoPG::ScanThePairs(int sect){
   npairs[sect-1]=0;
   for (int itt=0;itt<256;itt++){
@@ -578,7 +581,7 @@ int  AntiRecoPG::ScanThePairs(int sect){
   return npairs[sect-1];
 }
 
-//! evaluate a pair (or a single time) with chisquare minimization respect to T&Z guess
+// evaluate a pair (or a single time) with chisquare minimization respect to T&Z guess
 int  AntiRecoPG::DoThePair(double ttime, double zzeta, int sect){
   int iret = 1;
   if ((_etime == 0. ||  _ezeta[sect-1] == 0.) && (maxerr<errmax))  {
@@ -608,10 +611,10 @@ int  AntiRecoPG::DoThePair(double ttime, double zzeta, int sect){
     }
     if (tobeinsert==0) break;
   }
-  return iret;// return 0 if errors setted to 0
+  return iret;// return 0 if errors set to 0
 }  
 
-//! evaluate a guess to Zcoo from Anti ADC sides (50 cm RMS)
+// evaluate a guess to Zcoo from Anti ADC sides (50 cm RMS)
 float AntiRecoPG::GetAdcZGuess(int sect){
   float zguess = 0.;
   if (adctable[0][sect-1]<=3400. && adctable[1][sect-1]<=3400. && adctable[0][sect-1]>0. && adctable[1][sect-1]>0.){
@@ -627,7 +630,7 @@ float AntiRecoPG::GetAdcZGuess(int sect){
   return zguess;
 }
 
-//! raw evaluation of energy deposition pairing ADC sides (for internal use large nonlinearity)
+// raw evaluation of energy deposition pairing ADC sides (for internal use large nonlinearity)
 float AntiRecoPG::DoRawEdep(int sect){
   float e0=0.;
   float e1=0.;
@@ -638,7 +641,7 @@ float AntiRecoPG::DoRawEdep(int sect){
   return edep;
 }
 
-/*! re-build a cluster pairing list based on T&Z guess \n
+/* re-build a cluster pairing list based on T&Z guess \n
   ttguess = 999 and zzguess = 999 then use the default values (from ToF and ADC) \n 
   reccommended err_zguess>=20 cm (TDCZ RMS) for precise Zguess (from trk) \n
   reccommended err_zguess=50cm for minimal (default) zguess from ADC \n
@@ -679,10 +682,10 @@ int AntiRecoPG::BuildCluster(AntiClusterR* cluster, int sect, float zzguess, flo
   return npa;
 }
 
-/*! rebuild all cluster with default Z&T guess (from Tof and ADC) \n
+/* rebuild all cluster with default Z&T guess (from Tof and ADC) \n
   clear all old clusters \n
   return the number of anticlusters \n
-  For a single defined sect a partucular zguess can be setted
+  For a single defined sect a partucular zguess can be set
 */  
 int AntiRecoPG::BuildAllClusters(int sect, float sect_zguess, float err_sect_zguess){
 

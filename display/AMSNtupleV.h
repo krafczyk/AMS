@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.54 2013/05/09 12:59:59 mduranti Exp $
+//  $Id: AMSNtupleV.h,v 1.55 2013/05/10 21:37:33 mduranti Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -167,11 +167,12 @@ public:
 
 
 class AntiClusterV: public TMarker3DCl, public AMSDrawI{
-protected:
-public:
-  AntiClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
-  AntiClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
+ protected:
+ public:
+ AntiClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+ AntiClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
     AntiClusterR *pcl=ev->pAntiCluster(ref);
+    int icharge=0;
     if(pcl){
       double dr=180./3.1415926;
 #ifndef __USEANTICLUSTERPG__
@@ -179,21 +180,30 @@ public:
       double y=pcl->Coo[0]*sin(pcl->Coo[1]/dr);
       SetPosition(x,y,pcl->Coo[2]);
       SetSize(fabs(y)*pcl->ErrorCoo[1]/dr,fabs(x)*pcl->ErrorCoo[1]/dr,pcl->ErrorCoo[2]);
+      SetDirection(0,0);
 #else
+      double rr=54.95;
+      double phi = (pcl->Sector)*45.-22.5;
       pcl->ReBuildMe();
       double x=pcl->AntiCoo.x();
       double y=pcl->AntiCoo.y();
       double z=pcl->AntiCoo.z();
       double ex=fabs(y)*22.5/dr;
       double ey=fabs(x)*22.5/dr;
-      double ez=6.;
-      if ((pcl->Npairs)<1 || pcl->chi>30) ez = 45.;
+      double ez=8.;
+      if ((pcl->Npairs)<1 || pcl->chi>30) ez = 39.9;
       SetPosition(x,y,z);
-      SetSize(ex,ey,ez);
+      SetSize(rr*22.5/dr,0.4,ez);
+      icharge = (pcl->rawq)+0.5;
+      SetDirection(0,phi+90.);
 #endif
-      SetDirection(0,0);
     }
+#ifndef __USEANTICLUSTERPG__
     SetLineWidth(3);
+#else
+    if (icharge>4) icharge = 4;
+    SetLineWidth(1+icharge);
+#endif
     SetLineColor(30);             // purple
     SetFillColor(30);
     SetFillStyle(0);          // solid filling (not working now....)
