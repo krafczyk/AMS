@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.31 2013/05/01 13:35:20 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.32 2013/05/10 15:05:09 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -292,6 +292,9 @@ public:
 
   /// Set Ext align paremeters to 0
   static void ResetExtAlign();
+
+  /// Set Ext align paremeters to random number (supposed for MC)
+  static void SmearExtAlign();
 
   /// Read from AMSRoot file or not
   static int OverLoadFlag;
