@@ -1,4 +1,4 @@
-//  $Id: AMSAntiHist.cxx,v 1.16 2013/05/10 08:07:50 choutko Exp $
+//  $Id: AMSAntiHist.cxx,v 1.17 2013/05/11 11:52:08 mduranti Exp $
 // By V. Choutko & D. Casadei
 // Last changes: 27 Feb 1998 by D.C.
 #include <iostream>
@@ -440,6 +440,9 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
   AntiPars::addstat(1);//<--- Lev1 OK
 //
   Float_t eantit(0),eanti;
+#ifdef __USEANTICLUSTERPG__
+  ntuple->RebuildAntiClusters();
+#endif
   Int_t nasects=ntuple->NAntiCluster();
   Int_t nparts=ntuple->nParticle();
   Int_t ntrktrs=ntuple->nTrTrack();
@@ -458,22 +461,43 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     for(is=0;is<nasects;is++){//<-- loop over Clusters(fired sectors)
       p=ntuple->pAntiCluster(is);
       sect=p->Sector;//1-8
-      //status=p->Status;// Bit"128"->No FT-coinc. on 2 sides;"256"->1sideSector;"1024"->miss.side#
+
+#ifndef __USEANTICLUSTERPG__
+      status=p->Status;// Bit"128"->No FT-coinc. on 2 sides;"256"->1sideSector;"1024"->miss.side#
       ftcok=((status&1<<7)==0);//FTcoins ok (on any side)
       miside=((status&1<<8)==1);//1-sided sector
       if(miside){
         s1ok=((status&1<<10)==1);
         s2ok=((status&1<<10)==0);
       }
-      if(ftcok)nasftc+=1;//count sectors with FTcoinc
       eanti=p->Edep;
-      //nthits=p->Ntimes;
+      if(ftcok)nasftc+=1;//count sectors with FTcoinc
+      nthits=p->Ntimes;
       ntpairs=p->Npairs;
       if(ntpairs>0)nasprd+=1;//count sectors with t-paired sides
       if(ftcok && ntpairs>0)nasftpr+=1;//count sectors with FTcoins+paired 
+      for(i=0;i<nthits;i++)htime[i]=p->Times[i];
+#else
+      //      p->ReBuildMe();
+      status = 0;  // dummy 0
+      ftcok=(1==1);  // dummy true
+      miside=(p->Npairs<0);   // is true if 1-sides sector
+      if(miside){
+        s1ok=(1==1);        // always true no info for this 
+        s2ok=(1==0);        // alwais false no info for this 
+      }
+      eanti=p->Edep;
+      if(ftcok)nasftc+=1;   //count sectors with FTcoinc
+      nthits=abs(p->Npairs); // dummy is the number of pairs or number of 1-sides times
+      ntpairs=p->Npairs;     // if >0 is the number of pairs
+      if (ntpairs<0) ntpairs = 0;
+      if(ntpairs>0)nasprd+=1;//count sectors with t-paired sides
+      if(ftcok && ntpairs>0)nasftpr+=1;//count sectors with FTcoins+paired 
       //for(i=0;i<nthits;i++)htime[i]=p->Times[i];
+#endif
+
       eantit+=eanti;
-    
+       
       _filled[2]->Fill(sect,1.);
       if(s1ok)_filled[2]->Fill(sect+10,1.);
       if(s2ok)_filled[2]->Fill(sect+20,1.);
