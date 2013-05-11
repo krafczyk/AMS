@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.55 2013/05/10 21:37:33 mduranti Exp $
+//  $Id: AMSNtupleV.h,v 1.56 2013/05/11 10:59:35 mduranti Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -184,7 +184,7 @@ class AntiClusterV: public TMarker3DCl, public AMSDrawI{
 #else
       double rr=54.95;
       double phi = (pcl->Sector)*45.-22.5;
-      pcl->ReBuildMe();
+      //      pcl->ReBuildMe();
       double x=pcl->AntiCoo.x();
       double y=pcl->AntiCoo.y();
       double z=pcl->AntiCoo.z();

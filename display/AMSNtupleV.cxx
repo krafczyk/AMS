@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.51 2013/05/09 12:59:59 mduranti Exp $
+//  $Id: AMSNtupleV.cxx,v 1.52 2013/05/11 10:59:35 mduranti Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -286,17 +286,19 @@ return info;
 
 
 void AMSNtupleV::Prepare( EAMSType type){
-
-if(type==kall || type==kusedonly || type==kanticlusters){
- fAntiClusterV.clear();
- if(gAMSDisplay->DrawObject(kanticlusters)){
-  for(int i=0;i<NAntiCluster();i++){
-    //   if(!gAMSDisplay->DrawUsedOnly() || ((pAntiCluster(i)->Status)/32)%2) fAntiClusterV.push_back( AntiClusterV(this,i));
-   if(!gAMSDisplay->DrawUsedOnly()) fAntiClusterV.push_back( AntiClusterV(this,i));
+  
+  if(type==kall || type==kusedonly || type==kanticlusters){
+    fAntiClusterV.clear();
+    if(gAMSDisplay->DrawObject(kanticlusters)){
+      RebuildAntiClusters();
+      //      printf("RebuldAntiClusters called...\n");//Only for debug
+      for(int i=0;i<NAntiCluster();i++){
+	//   if(!gAMSDisplay->DrawUsedOnly() || ((pAntiCluster(i)->Status)/32)%2) fAntiClusterV.push_back( AntiClusterV(this,i));
+	if(!gAMSDisplay->DrawUsedOnly()) fAntiClusterV.push_back( AntiClusterV(this,i));
+      }
+    }
   }
- }
-}
-
+  
 if(type==kall){
   fDaqV.clear();
   for(int i=0;i<NDaqEvent();i++){
