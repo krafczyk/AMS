@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.771 2013/05/01 14:14:06 bshan Exp $
+# $Id: RemoteClient.pm,v 1.772 2013/05/12 11:06:48 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6983,7 +6983,17 @@ if( not defined $dbserver->{dbfile}){
      $dbserver=blessdb();
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
 }
-               my $rn=DBServer::GetRunsNumber($dbserver);
+               my $rn=-1;     
+               my $rntbr=-1;
+               my $rntfi=-1;
+        foreach my $arsref (@{$self->{arpref}}){
+            try{
+                $rn=$arsref->getRunsTotal();
+            }
+            catch CORBA::SystemException with{
+                $rn=DBServer::GetRunsNumber($dbserver);
+            };
+        }
                my $maxr=512;
                if($rn>=0){
                 if($rn<$maxr){
@@ -6993,8 +7003,17 @@ if( not defined $dbserver->{dbfile}){
                  }
                 }
                 else{
-                 my $rntbr=DBServer::GetRunsNumber($dbserver,"ToBeRerun");
-                 my $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
+        foreach my $arsref (@{$self->{arpref}}){
+            try{
+                $rntbr=$arsref->getRunsNumber("ToBeRerun");
+                $rntfi=$arsref->getRunsNumber("Finished");
+            }
+            catch CORBA::SystemException with{
+                 $rntbr=DBServer::GetRunsNumber($dbserver,"ToBeRerun");
+                 $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
+            };
+        }
+
                  if($rntbr>=0 and $rntfi>=0){
                    my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
                    $jbs=$maxr-$tot;
