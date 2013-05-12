@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.772 2013/05/12 11:06:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.773 2013/05/12 11:33:35 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6986,6 +6986,9 @@ if( not defined $dbserver->{dbfile}){
                my $rn=-1;     
                my $rntbr=-1;
                my $rntfi=-1;
+    if($#{$self->{arpref}} <0 ){
+        $self->ServerConnect($dataset->{serverno});
+     }
         foreach my $arsref (@{$self->{arpref}}){
             try{
                 $rn=$arsref->getRunsTotal();
