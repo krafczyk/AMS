@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.86 2013/05/09 15:25:23 shaino Exp $
+// $Id: tkdcards.C,v 1.87 2013/05/13 10:43:41 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -272,7 +272,7 @@ void TRMCFFKEY_DEF::init(){
   OuterSmearing[0][0]=8e-4; //L1 X
   OuterSmearing[0][1]=8e-4; //L1 Y
   OuterSmearing[1][0]=8e-4; //L9 X
-  OuterSmearing[1][0]=8e-4; //L9 Y
+  OuterSmearing[1][1]=8e-4; //L9 Y
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;
