@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.207 2013/02/21 14:46:33 ams Exp $
+//  $Id: server.C,v 1.208 2013/05/14 13:11:24 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3484,7 +3484,7 @@ cid=cvar._retn();
 }
 
  int Producer_impl::getRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int & maxrun)throw (CORBA::SystemException){
-//         cout <<" entering Producer_impl::getRunEvInfoS"<<endl;
+         //cout <<" entering Producer_impl::getRunEvInfoS"<<endl;
  
 DPS::Producer::RES_var acv= new DPS::Producer::RES();
 unsigned int length=0;
@@ -3538,7 +3538,12 @@ int Producer_impl::getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer
  	return length;
 }
 
-int Producer_impl::getRunsTotal() throw (CORBA::SystemException) { return static_cast<int>(_rl.size()); }
+int Producer_impl::getRunsTotal() throw (CORBA::SystemException) { 
+//cout << " enterinng Producer_impl::getRunsTotal():";
+int ret=_rl.size();
+//cout <<"  total "<<ret<<endl;
+return ret;
+}
 
 int Producer_impl::getRunsNumber(DPS::Producer::RunStatus status) throw (CORBA::SystemException)
 {
@@ -3669,7 +3674,7 @@ int crun=0;
 }
 }
           cout <<" found "<<crun<< " on "<<(const char *)cid.HostName<<endl;
-           if((*i)->ClientsAllowed<crun+cid.threads){
+           if((*i)->ClientsAllowed && (*i)->ClientsAllowed<crun+cid.threads){
               threads=(*i)->ClientsAllowed-crun;
               // add one more thread
                char *am=getenv("AMSAddOneMoreThread");

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.773 2013/05/12 11:33:35 choutko Exp $
+# $Id: RemoteClient.pm,v 1.774 2013/05/14 13:11:30 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1481,6 +1481,10 @@ sub ServerConnectDB{
 sub ServerConnect{
     my $ref = shift;
     my $ver=shift;
+    if($#{$ref->{arpref}}>=0){
+#        warn "  already connected $#{$ref->{arpref} \n";
+        return 1; 
+        }
 $ref->{cid}=new CID;
 $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
     my $tm={};
