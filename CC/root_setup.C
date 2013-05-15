@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.132 2013/05/10 17:43:46 choutko Exp $
+//  $Id: root_setup.C,v 1.133 2013/05/15 09:38:47 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1860,9 +1860,15 @@ if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSSA.clear();
 if(fISSSA.size()==0){
 const int dt=120;
 if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
  stime[0]=fHeader.FEventTime-dt;
  stime[1]=fHeader.LEventTime+dt;
 }
@@ -2002,9 +2008,15 @@ if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSAtt.clear();
 if(fISSAtt.size()==0){
 const int dt=120;
 if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
  stime[0]=fHeader.FEventTime-dt;
  stime[1]=fHeader.LEventTime+dt;
 }
@@ -2076,9 +2088,15 @@ if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSINTL.clear();
 if(fISSINTL.size()==0){
 const int dt=120;
 if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
  stime[0]=fHeader.FEventTime-dt;
  stime[1]=fHeader.LEventTime+dt;
 }
@@ -2164,9 +2182,15 @@ again:
   if(fISSData.size()==0){
     const int dt=120;
     if(xtime<stime[0] || xtime>stime[1] || ssize){
-      stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-      stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-      if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
 	stime[0]=fHeader.FEventTime-dt;
 	stime[1]=fHeader.LEventTime+dt;
       }
@@ -2252,9 +2276,15 @@ int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR &a, double xtime)
   if(fISSCTRS.size()==0 || fRotMatrices.size()==0){
     const int dt=120;
     if(xtime<stime[0] || xtime>stime[1] || ssize){
-      stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-      stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-      if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
 	stime[0]=fHeader.FEventTime-dt;
 	stime[1]=fHeader.LEventTime+dt;
       }
@@ -2623,9 +2653,15 @@ if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fGPSWGS84.clear();
 if(fGPSWGS84.size()==0){
 const int dt=120;
 if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
  stime[0]=fHeader.FEventTime-dt;
  stime[1]=fHeader.LEventTime+dt;
 }
@@ -2885,9 +2921,15 @@ if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fISSGTOD.clear();
 if(fISSGTOD.size()==0){
 const int dt=120;
 if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
  stime[0]=fHeader.FEventTime-dt;
  stime[1]=fHeader.LEventTime+dt;
 }
@@ -3017,9 +3059,15 @@ if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fRTI.clear();
 if(fRTI.size()==0){
 const int dt=120;
 if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
  stime[0]=fHeader.FEventTime-dt;
  stime[1]=fHeader.LEventTime+dt;
 }
@@ -3066,9 +3114,15 @@ if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fAMSSTK.clear();
 if(fAMSSTK.size()==0){
 const int dt=120;
 if(xtime<stime[0] || xtime>stime[1] || ssize){
-stime[0]=fHeader.Run?fHeader.Run-dt:xtime-dt;
-stime[1]=fHeader.Run?fHeader.Run+3600:xtime+3600;
-if(fHeader.FEventTime-dt<fHeader.Run && fHeader.LEventTime+1>fHeader.Run && fHeader.Run!=0){
+unsigned int ref=fHeader.Run;
+if(AMSEventR::Head()){
+  if(AMSEventR::Head()->nMCEventg()>0){
+     ref=fHeader.FEventTime;
+}
+}
+stime[0]=ref?ref-dt:xtime-dt;
+stime[1]=ref?ref+3600:xtime+3600;
+if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
  stime[0]=fHeader.FEventTime-dt;
  stime[1]=fHeader.LEventTime+dt;
 }
