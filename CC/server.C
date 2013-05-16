@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.208 2013/05/14 13:11:24 choutko Exp $
+//  $Id: server.C,v 1.209 2013/05/16 12:38:03 ams Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2984,7 +2984,7 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
         char tmp[255];
         sprintf(tmp,"%s%s.bsub",add,uid);
         unlink(tmp);
-        sprintf(tmp,"ssh %s /afs/cern.ch/ams/local/bin/timeout --signal 9 120  bjobs %u 1>& %s%s.bsub",(const char*)(acv->id).HostName,jid,add,uid);
+        sprintf(tmp,"/afs/cern.ch/ams/local/bin/timeout --signal 9 60 ssh %s bjobs %u 1>& %s%s.bsub",(const char*)(acv->id).HostName,jid,add,uid);
         int suc=system(tmp);
         if(suc){
             cerr<<" unable to "<<tmp<<endl;
