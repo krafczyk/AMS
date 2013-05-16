@@ -25,6 +25,7 @@ using namespace std;
 //            =2->read probl; =3->NevIn>NevRead; =4->NevIn<NevRead;| 
 //            =5->LastEventProbablyWrong
 //            =6->miss.arguments)                                  |
+//            =7->ROOTSYS not set correctly                        |
 //       b) Bit 8 is not set --> bits 1-7 give % of events with    |
 //          EventStatus=bad;                                     |
 //-----------------------------------------------------------------|
