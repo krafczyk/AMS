@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.570 2013/05/10 20:08:05 mdelgado Exp $
+//  $Id: root.C,v 1.571 2013/05/16 10:36:54 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10005,7 +10005,7 @@ static int master=0;
       }
       ///// SH: Workaround to take care of the wrong TrackerAlignPM3
 
-      if(TkDBc::ForceFromTDV)
+      if(TkDBc::ForceFromTDV && !AMSEventR::Head()->nMCEventg())
 	TkDBc::GetFromTDV(UTime(), (TkDBc::ForceFromTDV == 4) ? 4 : 3);
     }
     if(!TrExtAlignDB::ForceFromTDV) 
