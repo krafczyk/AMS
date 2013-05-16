@@ -420,10 +420,17 @@ extern "C" double rnormx();
 void TrExtAlignDB::SmearExtAlign()
 {
   ResetExtAlign();
+  // PG
   SL1[0] = rnormx()*TRMCFFKEY.OuterSmearing[0][0];
   SL1[1] = rnormx()*TRMCFFKEY.OuterSmearing[0][1];
   SL9[0] = rnormx()*TRMCFFKEY.OuterSmearing[1][0];
   SL9[1] = rnormx()*TRMCFFKEY.OuterSmearing[1][1];
+
+  // CIEMAT
+  SL1[6] = rnormx()*TRMCFFKEY.OuterSmearing[0][0];
+  SL1[7] = rnormx()*TRMCFFKEY.OuterSmearing[0][1];
+  SL9[6] = rnormx()*TRMCFFKEY.OuterSmearing[1][0];
+  SL9[7] = rnormx()*TRMCFFKEY.OuterSmearing[1][1];
 }
 
 int  TrExtAlignDB::UpdateTkDBc(uint time) const
