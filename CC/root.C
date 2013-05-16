@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.571 2013/05/16 10:36:54 shaino Exp $
+//  $Id: root.C,v 1.572 2013/05/16 11:09:02 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -13192,7 +13192,7 @@ void AMSEventR::RebuildBetaH(){
     }//End 621 
 //---
   }//End 622
-  if(Version()<630){
+  if(Version()<632){
     for(int i=0;i<NBetaH();i++)pBetaH(i)->setChargeHI(-1);
   }
 }
