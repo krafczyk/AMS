@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.209 2013/05/16 12:38:03 ams Exp $
+//  $Id: server.C,v 1.210 2013/05/17 07:16:32 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2981,10 +2981,10 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
         jid=atol(line+kstart+1);
         cout <<"  Check Client jid found "<<jid<<" "<<uid<<endl;         
         acv->id.pid=jid;
-        char tmp[255];
+        char tmp[1024];
         sprintf(tmp,"%s%s.bsub",add,uid);
         unlink(tmp);
-        sprintf(tmp,"/afs/cern.ch/ams/local/bin/timeout --signal 9 60 ssh %s bjobs %u 1>& %s%s.bsub",(const char*)(acv->id).HostName,jid,add,uid);
+        sprintf(tmp,"/afs/cern.ch/ams/local/bin/timeout --signal 9 60 ssh %s /afs/cern.ch/ams/local/bin/timeout --signal 9 120  bjobs %u 1>& %s%s.bsub",(const char*)(acv->id).HostName,jid,add,uid);
         int suc=system(tmp);
         if(suc){
             cerr<<" unable to "<<tmp<<endl;
@@ -3484,7 +3484,7 @@ cid=cvar._retn();
 }
 
  int Producer_impl::getRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int & maxrun)throw (CORBA::SystemException){
-         //cout <<" entering Producer_impl::getRunEvInfoS"<<endl;
+//         cout <<" entering Producer_impl::getRunEvInfoS"<<endl;
  
 DPS::Producer::RES_var acv= new DPS::Producer::RES();
 unsigned int length=0;
@@ -3538,12 +3538,7 @@ int Producer_impl::getSplitRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer
  	return length;
 }
 
-int Producer_impl::getRunsTotal() throw (CORBA::SystemException) { 
-//cout << " enterinng Producer_impl::getRunsTotal():";
-int ret=_rl.size();
-//cout <<"  total "<<ret<<endl;
-return ret;
-}
+int Producer_impl::getRunsTotal() throw (CORBA::SystemException) { return static_cast<int>(_rl.size()); }
 
 int Producer_impl::getRunsNumber(DPS::Producer::RunStatus status) throw (CORBA::SystemException)
 {
@@ -3674,7 +3669,7 @@ int crun=0;
 }
 }
           cout <<" found "<<crun<< " on "<<(const char *)cid.HostName<<endl;
-           if((*i)->ClientsAllowed && (*i)->ClientsAllowed<crun+cid.threads){
+           if((*i)->ClientsAllowed<crun+cid.threads){
               threads=(*i)->ClientsAllowed-crun;
               // add one more thread
                char *am=getenv("AMSAddOneMoreThread");
