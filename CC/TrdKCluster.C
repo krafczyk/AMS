@@ -5,7 +5,7 @@ ClassImp(TrdKCluster)
 using namespace TMath;
 
 
-TVirtualFitter *TrdKCluster::gMinuit_TRDTrack = NULL;
+TMinuit *TrdKCluster::gMinuit_TRDTrack = NULL;
 TrdKCalib *TrdKCluster::_DB_instance = NULL;
 TRD_ImpactParameter_Likelihood *TrdKCluster::TRDImpactlikelihood = NULL;
 TrdKPDF *TrdKCluster::kpdf_e=NULL;
@@ -463,8 +463,9 @@ void TrdKCluster::FitTRDTrack(int method, int hypothesis){
 
 void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 
-    TVirtualFitter::SetDefaultFitter("Minuit");
-    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+  //    TVirtualFitter::SetDefaultFitter("Minuit");
+  //    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+    if(!gMinuit_TRDTrack)  gMinuit_TRDTrack=new TMinuit(4);
 
     //    gMinuit_TRDTrack->SetFCN(fcn_TRDTrack);
     //Changed by Wei Sun
@@ -474,8 +475,9 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
     gMinuit_TRDTrack->SetObjectFit(this);
     double arglist[10];
     arglist[0]=-1;
-    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
-    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
+    gMinuit_TRDTrack->SetPrintLevel(-1);
+    //    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
+    //    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
 
 
     float init_z0=115;
@@ -493,6 +495,8 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
     init_dy=Dir.y();
 
     //    printf("TrTrack : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",P0.x(),P0.y(),P0.z(),Dir.x(),Dir.y(),Dir.z());
+
+    /**
 
     gMinuit_TRDTrack->SetParameter(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10);
     gMinuit_TRDTrack->SetParameter(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10);
@@ -513,7 +517,64 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
     z0=gMinuit_TRDTrack->GetParameter(2);
     dx=gMinuit_TRDTrack->GetParameter(3);
     dy=gMinuit_TRDTrack->GetParameter(4);
+**/
+
+
+    if(DebugOn){
+        cout<<"FitTRDTrack_IPLikelihood ,  TrTrack : "<<track_extrapolated_P0<<", "<<track_extrapolated_Dir<<endl;
+        printf("TrTrack : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",P0.x(),P0.y(),P0.z(),Dir.x(),Dir.y(),Dir.z());
+    }
+
+    //
+    //    gMinuit_TRDTrack->SetParameter(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10);
+    //    gMinuit_TRDTrack->SetParameter(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10);
+    //    gMinuit_TRDTrack->SetParameter(2,  "z0",  init_z0,0,init_z0,init_z0);
+    //    gMinuit_TRDTrack->SetParameter(3,  "dx0", init_dx,  0.1,  -1,1);
+    //    gMinuit_TRDTrack->SetParameter(4,  "dy0", init_dy,  0.1,  -1,1);
+
+    int ierr=0;
+    gMinuit_TRDTrack->mnparm(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10,ierr);
+    gMinuit_TRDTrack->mnparm(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10,ierr);
+    gMinuit_TRDTrack->mnparm(2,  "z0",  init_z0,0,init_z0,init_z0,ierr);
+    gMinuit_TRDTrack->mnparm(3,  "dx0", init_dx,  0.1,  -1,1,ierr);
+    gMinuit_TRDTrack->mnparm(4,  "dy0", init_dy,  0.1,  -1,1,ierr);
+
+    arglist[0]=0;
+
+    gMinuit_TRDTrack->FixParameter(2);
+    //    gMinuit_TRDTrack->ExecuteCommand("MIGRAD", arglist, 0);
+    gMinuit_TRDTrack->mnexcm("MIGRAD", arglist, 0,ierr);
+
+
+        float x0,y0,z0,dx,dy,dz;
+        float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
+
+    //    x0=gMinuit_TRDTrack->GetParameter(0);
+    //    y0=gMinuit_TRDTrack->GetParameter(1);
+    //    z0=gMinuit_TRDTrack->GetParameter(2);
+    //    dx=gMinuit_TRDTrack->GetParameter(3);
+    //    dy=gMinuit_TRDTrack->GetParameter(4);
+
+    double out[5],err[5];
+    TString s_name[5]={"x0","y0","z0","dx0","dy0"};
+    for(int i=0;i<5;i++)   {
+        double bnd1, bnd2;
+        int ivar;
+        gMinuit_TRDTrack->mnpout(i, s_name[i], out[i], err[i], bnd1, bnd2, ivar);
+    }
+
+    x0=out[0];
+    y0=out[1];
+    z0=out[2];
+    dx=out[3];
+    dy=out[4];
+
+
     dz=TMath::Sqrt(1-dx*dx-dy*dy);
+
+    if(DebugOn){
+        printf("TRDTrack Refit : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",x0,y0,z0,dx,dy,dz);
+    }
 
 
     AMSDir TRDDir(dx,dy,dz);
@@ -619,15 +680,20 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
 void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
 
-    TVirtualFitter::SetDefaultFitter("Minuit");
-    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+  //    TVirtualFitter::SetDefaultFitter("Minuit");
+  //    gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+    if(!gMinuit_TRDTrack)  gMinuit_TRDTrack=new TMinuit(4);
+
     Refit_hypothesis=particle_hypothesis;
     gMinuit_TRDTrack->SetFCN(fcn_TRDTrack_PathLength);
     gMinuit_TRDTrack->SetObjectFit(this);
     double arglist[10];
     arglist[0]=-1;
-    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
-    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
+    //    gMinuit_TRDTrack->ExecuteCommand("SET PRINT", arglist, 1);
+    //    gMinuit_TRDTrack->ExecuteCommand("SET NOW", arglist, 0);
+
+    gMinuit_TRDTrack->SetPrintLevel(-1);
+
 
     float init_z0=115;
     float init_x0=0;
@@ -645,6 +711,7 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
     //    printf("TrTrack : (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",P0.x(),P0.y(),P0.z(),Dir.x(),Dir.y(),Dir.z());
 
+    /**
     gMinuit_TRDTrack->SetParameter(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10);
     gMinuit_TRDTrack->SetParameter(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10);
     gMinuit_TRDTrack->SetParameter(2,  "z0",  init_z0,0,init_z0,init_z0);
@@ -664,7 +731,50 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
     z0=gMinuit_TRDTrack->GetParameter(2);
     dx=gMinuit_TRDTrack->GetParameter(3);
     dy=gMinuit_TRDTrack->GetParameter(4);
-    dz=TMath::Sqrt(1-dx*dx-dy*dy);
+    **/   
+
+
+
+
+    int ierr=0;
+    gMinuit_TRDTrack->mnparm(0,  "x0",  init_x0,  0.2,  init_x0-10,init_x0+10,ierr);
+    gMinuit_TRDTrack->mnparm(1,  "y0",  init_y0,  0.2,  init_y0-10,init_y0+10,ierr);
+    gMinuit_TRDTrack->mnparm(2,  "z0",  init_z0,0,init_z0,init_z0,ierr);
+    gMinuit_TRDTrack->mnparm(3,  "dx0", init_dx,  0.1,  -1,1,ierr);
+    gMinuit_TRDTrack->mnparm(4,  "dy0", init_dy,  0.1,  -1,1,ierr);
+
+    arglist[0]=0;
+
+    gMinuit_TRDTrack->FixParameter(2);
+    //    gMinuit_TRDTrack->ExecuteCommand("MIGRAD", arglist, 0);
+    gMinuit_TRDTrack->mnexcm("MIGRAD", arglist, 0,ierr);
+
+
+    float x0,y0,z0,dx,dy,dz;
+    float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
+
+//    x0=gMinuit_TRDTrack->GetParameter(0);
+//    y0=gMinuit_TRDTrack->GetParameter(1);
+//    z0=gMinuit_TRDTrack->GetParameter(2);
+//    dx=gMinuit_TRDTrack->GetParameter(3);
+//    dy=gMinuit_TRDTrack->GetParameter(4);
+
+    double out[5],err[5];
+    TString s_name[5]={"x0","y0","z0","dx0","dy0"};
+    for(int i=0;i<5;i++)   {
+        double bnd1, bnd2;
+        int ivar;
+        gMinuit_TRDTrack->mnpout(i, s_name[i], out[i], err[i], bnd1, bnd2, ivar);
+    }
+
+    x0=out[0];
+    y0=out[1];
+    z0=out[2];
+    dx=out[3];
+    dy=out[4];
+
+
+ dz=TMath::Sqrt(1-dx*dx-dy*dy);
 
     AMSDir TRDDir(dx,dy,dz);
     AMSPoint TRDP0(x0,y0,z0);

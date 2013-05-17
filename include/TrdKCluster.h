@@ -333,7 +333,7 @@ private:
     static TrdKPDF *kpdf_h;
     static TrdKPDF *kpdf_q;
 
-    static TVirtualFitter *gMinuit_TRDTrack;
+    static TMinuit *gMinuit_TRDTrack;
 
     static map<int, TRDOnline> map_TRDOnline;
 

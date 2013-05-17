@@ -157,8 +157,13 @@ public:
 
 class TRDCalibPar{
 public:
-    TRDCalibPar():Time_S(0),Time_E(0),Time_A(0),Theta(0),Phi(0){};
-    TRDCalibPar(int _time_start, int _time_end, double _time_average, double _theta, double _phi, float _par[5248], float _err[5248], float _gain[328], float _rate[328]):
+ TRDCalibPar():Time_S(0),Time_E(0),Time_A(0),Theta(0),Phi(0){
+        memset(Par,0,sizeof(float)*5248);
+        memset(Err,0,sizeof(float)*5248);
+        memset(Gain,0,sizeof(float)*328);
+        memset(Rate,0,sizeof(float)*328);
+    };
+ TRDCalibPar(int _time_start, int _time_end, double _time_average, double _theta, double _phi, float _par[5248], float _err[5248], float _gain[328], float _rate[328]):
         Time_S(_time_start),Time_E(_time_end),Time_A(_time_average),Theta(_theta),Phi(_phi){
         memcpy (Par,_par,sizeof(float)*5248);
         memcpy (Err,_err,sizeof(float)*5248);
@@ -180,15 +185,17 @@ public:
 
 
     double GetGainCorrectionFactorTube(int tubeid, double asktime){
-        if(tubeid>=5248)printf("******Error******TubeID exceed 5247******\n");
-        return Par[tubeid]+(asktime-Time_A)*Rate[int(tubeid/16)]*Par[tubeid]/Gain[int(tubeid/16)];
+      if(tubeid>=5248)printf("******Error******TubeID exceed 5247******\n");
+      if(!Gain[int(tubeid/16)])return 1;
+      return Par[tubeid]+(asktime-Time_A)*Rate[int(tubeid/16)]*Par[tubeid]/Gain[int(tubeid/16)];
     };
-
+    
     double GetGainCorrectionFactorModule(int Moduleid, double asktime){
-        if(Moduleid>=328)printf("******Error******ModuleId exceed 327******\n");
-        return Gain[Moduleid]+(asktime-Time_A)*Rate[Moduleid];
+      if(Moduleid>=328)printf("******Error******ModuleId exceed 327******\n");
+      if(!Gain[Moduleid])return 1;
+      return Gain[Moduleid]+(asktime-Time_A)*Rate[Moduleid];
     };
-
+    
 };
 
 class TrdKCalib{
