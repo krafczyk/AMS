@@ -1,0 +1,9 @@
+rtkqext    trkQext/trkQ                            0    0   10    1  0
+rtoftrkq   tofQ/trkQ                               0    0   10    1  0
+rtofrQ1    tofQ1/tofQ                              0    0   10    1  0
+rtofrQ2    tofQ2/tofQ                              0    0   10    1  0
+rtofrQ3    tofQ3/tofQ                              0    0   10    1  0
+rtofrQ4    tofQ4/tofQ                              0    0   10    1  0
+rntofcl    ntofcl                                  0    0   50   1  0
+rnacccl    nacccl                                  0    0   10   1  0
+rtofeQ     tofQe                                   0    0   10   -1  0
