@@ -352,8 +352,9 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 
    //check if reader already initialized
    bool InitReader = false;
-   if (iBDTCHI2VERSION<3 && ecalBDTCHI2reader==NULL) InitReader=true;
-   else if (iBDTCHI2VERSION==3&&TMVAClassifier==0&&ecalBDTCHI2reader_ODD==NULL) InitReader=true;
+   if (iBDTCHI2VERSION<2 && ecalBDTCHI2reader==NULL) InitReader=true;
+   else if (iBDTCHI2VERSION==2&&TMVAClassifier==0&&ecalBDTCHI2reader_v2_ODD==NULL) InitReader=true;
+   else if (iBDTCHI2VERSION==3&&TMVAClassifier==0&&ecalBDTCHI2reader_v3_ODD==NULL) InitReader=true;
    else if (iBDTCHI2VERSION==3&&TMVAClassifier==1&&ecalBDTCHI2readerS_ODD==NULL) InitReader=true;
 
    if (InitReader)     //if not already Init.....
