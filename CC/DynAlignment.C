@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.69 2012/09/12 13:31:31 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.69.6.1 2013/05/19 13:39:40 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -90,7 +90,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   // Try to avoid biasing due to a wrong window in pattern recognition by building our own pattern recognition
   // We delegate thet election of the proper range to the DoFit function  
   // This also guarantees that the alignment does not depend in such parameters
-  int trId=track.iTrTrackPar(1,3,1);
+  int trId=track.iTrTrackPar(1,3,3);
   if(trId<0) return false;
   int counter=0;
   double bestDist=HUGE_VAL;
