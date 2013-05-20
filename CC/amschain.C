@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.74 2013/03/04 19:49:16 choutko Exp $
+//  $Id: amschain.C,v 1.75 2013/05/20 08:33:32 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -197,7 +197,15 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
        if(strstr(rname,"/castor/") && stage){
        string rn=rname;
        int pos=rn.find("/castor/");
-       string stager_get="stager_get -M ";
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir")){
+    localbin=getenv("AMSDataDir");
+   }
+   else localbin=local;
+       string stager_get=localbin;
+       stager_get+="/DataManagement/exe/linux/timeout --signal 9 6 ";
+       stager_get+=" stager_get -M ";
        stager_get+=(rname+pos);
        stager_get+=" 1>/dev/null 2>&1 &";
        system(stager_get.c_str());
