@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.75 2013/05/20 08:33:32 choutko Exp $
+//  $Id: amschain.C,v 1.76 2013/05/20 08:46:04 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -247,7 +247,15 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
           if(strstr(rname,"/castor/") ){
            string rn=rname;
            int pos=rn.find("/castor/");
-           string stager_get="stager_get -M ";
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir")){
+    localbin=getenv("AMSDataDir");
+   }
+   else localbin=local;
+       string stager_get=localbin;
+       stager_get+="/DataManagement/exe/linux/timeout --signal 9 6 ";
+       stager_get+=" stager_get -M ";
            stager_get+=(rname+pos);
            stager_get+=" 1>/dev/null 2>&1 ";
             system(stager_get.c_str());
@@ -283,7 +291,15 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
              pclose(fp);
            if(!stagedin){
              if(ktry==0)cerr<<"AMSChain::AddFromFile-W-TryingToStageHard "<<stager_get<<endl;
-             string stager_get="stager_get -M ";
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir")){
+    localbin=getenv("AMSDataDir");
+   }
+   else localbin=local;
+       string stager_get=localbin;
+       stager_get+="/DataManagement/exe/linux/timeout --signal 9 30 ";
+       stager_get+=" stager_get -M ";
              stager_get+=(rname+pos);
              stager_get+=" 1>/dev/null 2>&1 ";
              system(stager_get.c_str());
