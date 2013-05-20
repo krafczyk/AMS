@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.572 2013/05/16 11:09:02 choutko Exp $
+//  $Id: root.C,v 1.573 2013/05/20 09:07:57 mdelgado Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2511,6 +2511,11 @@ bool AMSEventR::ReadHeader(int entry){
       // Disable corrections for MC
       RichRingR::shouldLoadCorrection=-1;
       RichRingR::loadChargeUniformityCorrection=false;      
+#ifdef _PGTRACK_
+	TString filename=Form("%s/v5.00/RichDefaultTileCorrectionMC.root",getenv("AMSDataDir"));
+	if(!RichRingTables::Load(filename)) cout<<"Problem loading "<<filename<<endl;
+	else cout<<"Rich Default Refractive Index correction loaded"<<endl; 
+#endif
     }
 #pragma omp critical(rd)
     if(RichRingR::shouldLoadCorrection==RichRingR::fullUniformityCorrection && 
