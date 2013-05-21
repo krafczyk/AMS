@@ -150,39 +150,38 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower){
 
 }
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah){
-    AMSPoint *P0=0;
-    AMSDir *Dir=0;
-    double dummy_time;
-    betah->TInterpolate(TRDCenter,*P0,*Dir,dummy_time,false);
-    Init_Base();
-    SetTrTrack(P0, Dir, DefaultRigidity);
-    Init(evt);
-    delete P0;
-    delete Dir;
 
+TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah, int UseTrTrack){
+  AMSPoint P0;
+  AMSDir Dir; 
+  double dummy_time;
+  betah->TInterpolate(TRDCenter,P0,Dir,dummy_time,UseTrTrack);
+  Init_Base();
+  SetTrTrack(&P0, &Dir, DefaultRigidity);
+  Init(evt);
 }
+
 /////////////////////////////////////////////////////////////////////
 
 
 TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir):TRDHitCollection(_collection)
 {
 
-    Init_Base();
+  Init_Base();
 
-    //    DoHitPreselection(MinimumDistance); //=======Select +/- 5cm volumn around TrTrack=============
-    //    AddEmptyTubes(MinimumDistance);  //===========Add empty tubes to complete the geometry==========
+  //    DoHitPreselection(MinimumDistance); //=======Select +/- 5cm volumn around TrTrack=============
+  //    AddEmptyTubes(MinimumDistance);  //===========Add empty tubes to complete the geometry==========
 
-    float TRDCenter=115;
-    Track_Rigidity=100000;
+  float TRDCenter=115;
+  Track_Rigidity=100000;
 
-    track_extrapolated_Dir= *Dir;
-    track_extrapolated_P0=  *P0;
-    TrTrack_Pro=TrProp(track_extrapolated_P0,track_extrapolated_Dir,Track_Rigidity);
+  track_extrapolated_Dir= *Dir;
+  track_extrapolated_P0=  *P0;
+  TrTrack_Pro=TrProp(track_extrapolated_P0,track_extrapolated_Dir,Track_Rigidity);
 
-    TRDtrack_extrapolated_P0=*TRDTrack_P0;
-    TRDtrack_extrapolated_Dir=*TRDTrack_Dir;
-    HasTRDTrack=1;
+  TRDtrack_extrapolated_P0=*TRDTrack_P0;
+  TRDtrack_extrapolated_Dir=*TRDTrack_Dir;
+  HasTRDTrack=1;
 
 
 
@@ -192,19 +191,19 @@ TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::Constrcut_TRDTube(){
-    cout<<"Construct TRD Tube: "<<endl;
-    TRDTubeCollection.clear();
-    for(int i=0;i<5248;i++){
-        int layer,ladder, tube;
-        TrdHCalibR::gethead()->GetLLTFromTubeId(layer,ladder,tube,i);
-        TrdRawHitR *_trdhit=new TrdRawHitR(layer,ladder,tube,0);
-        TrdKHit hit(_trdhit,Zshift);
-        TRDTubeCollection.push_back(hit);
-        delete _trdhit;
-    }
-    cout<<"Number of TRD Tube constructed: "<<TRDTubeCollection.size()<<endl;
+  cout<<"Construct TRD Tube: "<<endl;
+  TRDTubeCollection.clear();
+  for(int i=0;i<5248;i++){
+    int layer,ladder, tube;
+    TrdHCalibR::gethead()->GetLLTFromTubeId(layer,ladder,tube,i);
+    TrdRawHitR *_trdhit=new TrdRawHitR(layer,ladder,tube,0);
+    TrdKHit hit(_trdhit,Zshift);
+    TRDTubeCollection.push_back(hit);
+    delete _trdhit;
+  }
+  cout<<"Number of TRD Tube constructed: "<<TRDTubeCollection.size()<<endl;
 
-    return;
+  return;
 }
 
 
@@ -212,45 +211,45 @@ void TrdKCluster::Constrcut_TRDTube(){
 
 void TrdKCluster::Init_Base(){
 
-    IsValid=0;
-    Zshift=0.0;
-    Minimum_dR=2;
-    TRDCenter=115;
+  IsValid=0;
+  Zshift=0.0;
+  Minimum_dR=2;
+  TRDCenter=115;
 
-    if(TRDTubeCollection.size()!=5248)Constrcut_TRDTube();
-    if(map_TRDOnline.size()==0) InitXePressure();
-    if(!TRDImpactlikelihood)TRDImpactlikelihood=new TRD_ImpactParameter_Likelihood();
-    if(!_DB_instance) _DB_instance=new TrdKCalib();
-    if(!kpdf_e)kpdf_e=new TrdKPDF("Electron");
-    if(!kpdf_p)kpdf_p=new TrdKPDF("Proton");
-    if(!kpdf_h)kpdf_h=new TrdKPDF("Helium");
-    if(!kpdf_q)kpdf_q=new TrdKPDF("Nuclei");
+  if(TRDTubeCollection.size()!=5248)Constrcut_TRDTube();
+  if(map_TRDOnline.size()==0) InitXePressure();
+  if(!TRDImpactlikelihood)TRDImpactlikelihood=new TRD_ImpactParameter_Likelihood();
+  if(!_DB_instance) _DB_instance=new TrdKCalib();
+  if(!kpdf_e)kpdf_e=new TrdKPDF("Electron");
+  if(!kpdf_p)kpdf_p=new TrdKPDF("Proton");
+  if(!kpdf_h)kpdf_h=new TrdKPDF("Helium");
+  if(!kpdf_q)kpdf_q=new TrdKPDF("Nuclei");
 
 }
 
 /////////////////////////////////////////////////////////////////////
 
 int TrdKCluster::DoGainCalibration(){
-    int read=_DB_instance->readDB_Calibration(Time);
-    if(read==0){
-        cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Gain Calibration, Returning 0"<<endl;
-        return 0;
-    }for(int i=0;i<NHits();i++){
-        GetHit(i)->DoGainCalibration(_DB_instance->GetGainCorrectionFactorTube(GetHit(i)->tubeid,Time));
-    }
-    return read;
+  int read=_DB_instance->readDB_Calibration(Time);
+  if(read==0){
+    cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Gain Calibration, Returning 0"<<endl;
+    return 0;
+  }for(int i=0;i<NHits();i++){
+    GetHit(i)->DoGainCalibration(_DB_instance->GetGainCorrectionFactorTube(GetHit(i)->tubeid,Time));
+  }
+  return read;
 }
 
 /////////////////////////////////////////////////////////////////////
 
 int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
-    int read = _DB_instance->readDB_Alignment(Time,readplane,readglobal);
-    if(read==0){
-        cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Alignment, Returning 0"<<endl;
-        return 0;
-    }else if(read==2){
-        for(int i=0;i<NHits();i++){
-            int layer=GetHit(i)->TRDHit_Layer;
+  int read = _DB_instance->readDB_Alignment(Time,readplane,readglobal);
+  if(read==0){
+    cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Alignment, Returning 0"<<endl;
+    return 0;
+  }else if(read==2){
+    for(int i=0;i<NHits();i++){
+      int layer=GetHit(i)->TRDHit_Layer;
             par_alignment=_DB_instance->GetAlignmentPar(layer,(int)Time);
             GetHit(i)->DoAlignment(&par_alignment);
         }

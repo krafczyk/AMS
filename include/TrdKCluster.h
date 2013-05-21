@@ -104,7 +104,7 @@ public:
     TrdKCluster(AMSEventR *evt,TrdTrackR *trdtrack);
     TrdKCluster(AMSEventR *evt,TrdHTrackR *trdhtrack);
     TrdKCluster(AMSEventR *evt,EcalShowerR *shower);
-    TrdKCluster(AMSEventR *evt, BetaHR *betah);
+    TrdKCluster(AMSEventR *evt, BetaHR *betah, int UseTrTrack=0);
 
 
     // Cluster status
