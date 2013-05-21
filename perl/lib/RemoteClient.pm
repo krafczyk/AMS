@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.774 2013/05/14 13:11:30 choutko Exp $
+# $Id: RemoteClient.pm,v 1.775 2013/05/21 08:06:13 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -21009,6 +21009,33 @@ sub RemoveFromDisks{
              }
           }
          else{
+         # Added by bshan to stager_get and stager_qry before copying
+         my $ret = system("stager_get -M $castor 1>/dev/null 2>&1");
+         my $staged = `stager_qry -M $castor | grep -c STAGED 2>&1`;
+         chomp $staged;
+         if (not $staged) {
+             for (my $i = 0; $i < 3; $i++) {
+                 my $stagein = `stager_qry -M $castor | grep -c STAGE 2>&1`;
+                 chomp $stagein;
+                 if (not $stagein) {
+                     print "stager_get failed, retrying ...\n";
+                     $ret = system("stager_get -M $castor 1>/dev/null 2>&1");
+                     sleep 1;
+                     $ret = system("stager_get -M $castor 1>/dev/null 2>&1");
+                     sleep 2;
+                     $ret = system("stager_get -M $castor 1>/dev/null 2>&1");
+                 }
+             }
+             $staged = `stager_qry -M $castor | grep -c STAGED 2>&1`; # check again if it is staged
+             chomp $staged;
+         }
+         if (not $staged) {
+             print "$castor is not staged yet, skipping ...\n";
+             last;              # will not continue if not staged
+         }
+         print "$castor staged=$staged, copying ...\n";
+         # End of modification by bshan
+
           $i=system($sys);
          }
          if($i){
