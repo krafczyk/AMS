@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.32 2012/12/01 19:56:44 qyan Exp $
+//  $Id: Tofdbc.C,v 1.33 2013/05/21 19:29:39 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -1188,6 +1188,27 @@ void  TofPMDAlignPar::LoadTDVPar(){
 
   Isload=1;
 }
+//==========================================================
+int  TofPMDAlignPar::FindPMBlock(int fpmid){
+
+   int fblock=-1;
+   int iblock=0;
+//----find block pos
+   for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+      for(int isid=0;isid<TOFCSN::NSIDE;isid++){
+        for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+          for(int ipm=0;ipm<TOFCSN::NPMTM;ipm++){
+            int id=ilay*1000+ibar*100+isid*10+ipm;
+            if(id==fpmid){fblock=iblock;break;}
+            else          iblock++;
+          }
+        }
+     }
+  }
+//----
+  return fblock;
+}
+
 //==========================================================
 int  TofPMDAlignPar::LoadFromFile(char *file){
    ifstream vlfile(file,ios::in);

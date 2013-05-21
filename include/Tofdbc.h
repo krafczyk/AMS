@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.29 2012/12/04 21:26:06 qyan Exp $
+//  $Id: Tofdbc.h,v 1.30 2013/05/21 19:29:52 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -418,7 +418,8 @@ class TofPMDAlignPar: public TofTDVTool<float>{// PMT Dynode Gain Align
 #endif   
      static TofPMDAlignPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
-     void LoadTDVPar();//copy TDV to class 
+     void LoadTDVPar();//copy TDV to class
+     int  FindPMBlock(int fpmid);//Find Block by PMT-ID
      int  LoadFromFile(char *file);//read data from file->Block data
      void PrintTDV();
 };
