@@ -2005,6 +2005,7 @@ class RemoteClient:
         #
         gb=0
         outputpath='xyz'
+        outputdisk=None 
         rescue=self.CheckFS(1,300,path)
         hostname=socket.gethostname()
         tme=int(time.time())
