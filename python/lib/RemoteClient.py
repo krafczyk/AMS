@@ -1695,6 +1695,9 @@ class RemoteClient:
                        print e
                        print "Problem to getoutputpath file ",path
                        return None,0,None,0
+                   if(odisk==None):
+                       print "odisk Problem to getoutputpath file ",path
+                       return None,0,None,0
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
@@ -1715,6 +1718,9 @@ class RemoteClient:
                    except OSError,e:
                        print e
                        print "Problem to getoutputpath file ",path
+                       return None,0,None,0
+                   if(odisk==None):
+                       print "odisk Problem to getoutputpath file ",path
                        return None,0,None,0
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
@@ -1805,6 +1811,9 @@ class RemoteClient:
                        if(fsmutexes.has_key(odisk)):
                            fsmutexes[odisk].release()
                    (outputpatha,gb,odisk,stime)=self.getOutputPathRaw(period,path)
+                   if(odisk==None):
+                       print "odisk Problem to getoutputpathraw file ",path
+                       return None,0,None,0
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
@@ -1925,6 +1934,7 @@ class RemoteClient:
         gb=0
         outputpath='xyz'
         ct=360
+        outputdisk=None
 	if(idisk=='/castor'):
 		idisk=None
         if(idisk!=None):
