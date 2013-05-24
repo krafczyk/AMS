@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.38 2013/05/09 15:25:23 shaino Exp $
+//  $Id: TrMCCluster.C,v 1.39 2013/05/24 15:59:38 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/05/09 15:25:23 $
+///$Date: 2013/05/24 15:59:38 $
 ///
-///$Revision: 1.38 $
+///$Revision: 1.39 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -212,7 +212,7 @@ void TrMCClusterR::GenSimClusters(){
   }
 
   //                         p_x     p_y       He_x    He_y
-  double SmearPos[2][2]={{0.0008,      0.},{0.0008,  0.0002}};
+  // moved to dcard  double SmearPos[2][2]={{0.0008,      0.},{0.0008,  0.0}};
   // loop on two sides of the ladder
   for (int iside=0; iside<2; iside++) {
 
@@ -221,7 +221,7 @@ void TrMCClusterR::GenSimClusters(){
 
     // SMEAR the position
     float ipsmear=ip[iside];
-    ipsmear=ip[iside]+rnormx()*SmearPos[hcharge][iside];
+    ipsmear=ip[iside]+rnormx()*TRMCFFKEY.SmearPos[hcharge][iside];
 
     // SMEAR outer layers
     int lay = abs(GetTkId())/100;
@@ -242,19 +242,19 @@ void TrMCClusterR::GenSimClusters(){
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
     _simcl[iside]->GaussianizeFraction(iside,hcharge,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
       
-
-    // Enegy smearing, scaling, and convert to ADC
-    //                          p_x p_y  He_x  He_y
-    double ADCMipValue[2][2]={ {42, 32},{48,    32.}};
-    double SigQuadLoss[2][2]={{0.0002,0.0004},{0.0001,0.00022}};
+    // moved to datacard (PZ)
+    // // Enegy smearing, scaling, and convert to ADC
+    // //                          p_x p_y  He_x  He_y
+    // double ADCMipValue[2][2]={ {44, 32},{46,    32.}};
+    // double SigQuadLoss[2][2]={{0.0002,0.0004},{0.0001,0.00022}};
     double edep_c2=edep;
     if(iside==0) {
-      double edep_c=qlinfun(edep,SigQuadLoss[hcharge][iside]); // 
-      edep_c2=ADCMipValue[hcharge][0]*edep_c/81;
+      double edep_c=qlinfun(edep,TRMCFFKEY.SigQuadLoss[hcharge][iside]); // 
+      edep_c2=TRMCFFKEY.ADCMipValue[hcharge][0]*edep_c/81;
     }else{
       double edep_c=edep* (1+rnormx()*0.15);
-      edep_c=qlinfun(edep_c,SigQuadLoss[hcharge][iside]);	
-      edep_c2=ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
+      edep_c=qlinfun(edep_c,TRMCFFKEY.SigQuadLoss[hcharge][iside]);	
+      edep_c2=TRMCFFKEY.ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
     }
     // if side Y some addtional edep vs eta dependence
     double pc[5]={0.8169,2.23,-8.996,13.581,-6.849};	
