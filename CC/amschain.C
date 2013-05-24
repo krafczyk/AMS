@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.76 2013/05/20 08:46:04 choutko Exp $
+//  $Id: amschain.C,v 1.77 2013/05/24 17:45:06 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -204,7 +204,7 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
    }
    else localbin=local;
        string stager_get=localbin;
-       stager_get+="/DataManagement/exe/linux/timeout --signal 9 6 ";
+       stager_get+="/DataManagement/exe/linux/timeout --signal 9 9 ";
        stager_get+=" stager_get -M ";
        stager_get+=(rname+pos);
        stager_get+=" 1>/dev/null 2>&1 &";
@@ -254,7 +254,7 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
    }
    else localbin=local;
        string stager_get=localbin;
-       stager_get+="/DataManagement/exe/linux/timeout --signal 9 6 ";
+       stager_get+="/DataManagement/exe/linux/timeout --signal 9 9 ";
        stager_get+=" stager_get -M ";
            stager_get+=(rname+pos);
            stager_get+=" 1>/dev/null 2>&1 ";

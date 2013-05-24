@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.573 2013/05/20 09:07:57 mdelgado Exp $
+//  $Id: root.C,v 1.574 2013/05/24 17:45:06 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2507,7 +2507,7 @@ bool AMSEventR::ReadHeader(int entry){
     // Set default flag value
     RichRingR::pmtCorrectionsFailed = -1;
     // Rich Uniformity Beta Correction Loading. Only once per run
-    if(AMSEventR::Head()->nMCEventg()){
+    if(fHeader.Run!=runo && nMCEventg()){
       // Disable corrections for MC
       RichRingR::shouldLoadCorrection=-1;
       RichRingR::loadChargeUniformityCorrection=false;      
