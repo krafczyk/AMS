@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.59.4.4 2013/05/10 17:44:45 choutko Exp $
+// $Id: tkdcards.h,v 1.59.4.5 2013/05/24 16:03:26 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -149,6 +149,25 @@ public:
   // Outer smearing to simulate residual disalignment [0:L1,1:L9][0:X,1:Y]
   geant OuterSmearing[2][2];
 
+  // new stuff 2013 (PZ)
+
+  // Additional smearing of the MC true position
+  //                         p_x     p_y       He_x    He_y
+  geant SmearPos[2][2];//={{0.0008,      0.},{0.0008,  0.0}};
+
+  // Enegy smearing, scaling, and convert to ADC
+  //                          p_x p_y  He_x  He_y
+  geant ADCMipValue[2][2];//={ {44, 32},{46,    32.}};
+  geant SigQuadLoss[2][2];//={{0.0002,0.0004},{0.0001,0.00022}};
+
+  // multiplication of the strips nearbt the gap
+  float NearStripMult[2][2][3];//={{{1.,  8., 8.},{1.3, 6., 8.5}},    {{1.1,  6., 8.},{1.3, 5.,  5.}} };
+
+  // additional noise fraction in the signal region
+  double noise_fac[2];//={1.1,1.45};
+  // 1 sigma correction to tune the number of noise cluster
+  float GlobalNoiseFactor[2];//={1.08,1.037};
+
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
@@ -158,7 +177,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,5);
+  ClassDef(TRMCFFKEY_DEF,6);
 
 
 };

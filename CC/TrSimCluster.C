@@ -1,4 +1,5 @@
 #include "TrSimCluster.h"
+#include "tkdcards.h"
 #include <stdexcept> 
 
 extern "C" double rnormx();
@@ -196,12 +197,12 @@ void TrSimCluster::AddCluster(TrSimCluster& cluster) {
 
 void TrSimCluster::GaussianizeFraction(int iside, int hcharge, double fraction,float IP) {
 
-  float ff[2][2][3]={
-    //  p_x              p_y
-    {{1.,  8., 10.},{1.4, 8., 10.}},
-    // He_x              He_y
-    {{1.1,  6., 10.},{1.4, 6.,  6.}}
-  };
+  // float NearStripMult[2][2][3]={
+  //   //  p_x              p_y
+  //   {{1.,  8., 8.},{1.3, 6., 8.5}},
+  //   // He_x              He_y
+  //   {{1.1,  6., 8.},{1.3, 5.,  5.}}
+  // };
 
   //experimental version PZ
   if (fraction ==0) return;
@@ -222,35 +223,42 @@ void TrSimCluster::GaussianizeFraction(int iside, int hcharge, double fraction,f
 
  
 
-  float fra1=ff[hcharge][iside][0];
-  float fra2=ff[hcharge][iside][1];
-  float fra3=ff[hcharge][iside][2];
+  float fra1=TRMCFFKEY.NearStripMult[hcharge][iside][0];
+  float fra2=TRMCFFKEY.NearStripMult[hcharge][iside][1];
+  float fra3=TRMCFFKEY.NearStripMult[hcharge][iside][2];
 
-  if((LL-1)>=0)
-    SetSignal(LL-1,GetSignal(LL-1)* fra1);
-  
-  if((LL-2)>=0)
-    SetSignal(LL-2,GetSignal(LL-2)*fra2*fra2);
+  if((LL-1)>=0){
+    double ss=GetSignal(LL-1)* fra1;
+    SetSignal(LL-1,ss);
+  }
+  // if((LL-2)>=0)
+//     SetSignal(LL-2,GetSignal(LL-2)*fra2*fra2);
 
    
   
-  if(RR+1<GetWidth())
-    SetSignal(RR+1,GetSignal(RR+1)* fra1);
+  if(RR+1<GetWidth()){
+    double ss=GetSignal(RR+1)* fra1;
+    SetSignal(RR+1,ss);
+  }
   
-  if(RR+2<GetWidth())
-    SetSignal(RR+2,GetSignal(RR+2)* fra2*fra2);
+ //  if(RR+2<GetWidth())
+//     SetSignal(RR+2,GetSignal(RR+2)* fra2*fra2);
   
   
-  int kk=3;
-  if((LL-3)>=0)
-    for (int ii=LL-3;ii>=0;ii--){
-      SetSignal(ii,GetSignal(ii)* pow(fra3,kk++));
+  int kk=2;
+  if((LL-2)>=0)
+    for (int ii=LL-2;ii>=0;ii--){
+      double ss=GetSignal(ii)* pow(fra3,kk++);
+      //      ss*=(1+rnormx()*0.5);
+      SetSignal(ii,ss);
     }
   
-  kk=3;
-  if((RR+3)<GetWidth())
-    for (int ii=RR+3;ii<GetWidth();ii++){
-      SetSignal(ii,GetSignal(ii)* pow(fra3,kk++));
+  kk=2;
+  if((RR+2)<GetWidth())
+    for (int ii=RR+2;ii<GetWidth();ii++){
+      double ss=GetSignal(ii)* pow(fra3,kk++);
+      //      ss*=(1+rnormx()*0.5);
+      SetSignal(ii,ss);
       
     }
   

@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.84.4.4 2013/05/13 10:48:12 shaino Exp $
+// $Id: tkdcards.C,v 1.84.4.5 2013/05/24 16:03:26 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -206,13 +206,13 @@ void TRMCFFKEY_DEF::init(){
   ////////////////////////////////
 
   // Common Parameters
-
+ 
   // Simulation type  
   SimulationType = 2;
   // Minimum number of MC cluster required to trigger digitization
   MinMCClusters = 0;
   // Noise type 
-  NoiseType = 3;
+  NoiseType = 1;
   // DSP seed strip S/N threshold per layer (updated 03/03/2011)
   // Settings for test beam 
   /*
@@ -273,6 +273,56 @@ void TRMCFFKEY_DEF::init(){
   OuterSmearing[0][1]=8e-4; //L1 Y
   OuterSmearing[1][0]=8e-4; //L9 X
   OuterSmearing[1][1]=8e-4; //L9 Y
+
+  // new stuff 2013 (PZ)
+
+  // Additional smearing of the MC true position
+  // SmearPos[2][2]={{0.0008,      0.},{0.0008,  0.0}};
+   SmearPos[0][0]=8E-4; //p x
+   SmearPos[0][1]=0.;  //p y
+   SmearPos[1][0]=8E-4;  //He x
+   SmearPos[1][1]=0.;  //He y
+
+   // Enegy smearing, scaling, and convert to ADC
+   //                          p_x p_y  He_x  He_y
+   //  geant ADCMipValue[2][2];={ {44, 32},{46,    32.}};
+  ADCMipValue[0][0]=44; // p x
+  ADCMipValue[0][1]=32; // p y
+  ADCMipValue[1][0]=46; // He x
+  ADCMipValue[1][1]=32; // He y
+   //geant SigQuadLoss[2][2];//={{0.0002,0.0004},{0.0001,0.00022}};
+  SigQuadLoss[0][0]=2E-4; // p x
+  SigQuadLoss[0][1]=4E-4; // p y
+  SigQuadLoss[1][0]=1E-4; // He x
+  SigQuadLoss[1][1]=2.2E-4; // He y
+
+  // multiplication of the strips nearbt the gap
+  //NearStripMult[2][2][3];//={{{1.,  8., 8.},{1.3, 6., 8.5}},    {{1.1,  6., 8.},{1.3, 5.,  5.}} };
+  NearStripMult[0][0][0]=1.;
+  NearStripMult[0][0][1]=8.;
+  NearStripMult[0][0][2]=8.;
+
+  NearStripMult[0][1][0]=1.3;
+  NearStripMult[0][1][1]=6.;
+  NearStripMult[0][1][2]=8.5;
+
+  NearStripMult[1][0][0]=1.1;
+  NearStripMult[1][0][1]=6.;
+  NearStripMult[1][0][2]=8.5;
+
+  NearStripMult[1][1][0]=1.7;
+  NearStripMult[1][1][1]=5.;
+  NearStripMult[1][1][2]=5.;
+
+  // additional noise fraction in the signal region
+  //  double noise_fac[2];//={1.1,1.45};
+  noise_fac[0]=1.1;
+  noise_fac[1]=1.45;
+  // 1 sigma correction to tune the number of noise cluster
+  //  float GlobalNoiseFactor[2];//={1.08,1.037};
+  GlobalNoiseFactor[0]=1.08;  
+  GlobalNoiseFactor[1]=1.037;  
+
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;
