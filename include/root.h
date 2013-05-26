@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.554 2013/05/09 13:00:00 mduranti Exp $
+//  $Id: root.h,v 1.555 2013/05/26 09:46:36 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4594,6 +4594,21 @@ int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///
 
 float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers map return -1 if error
 
+  /*!
+   * @param[in]  ilay    Tracker  ilay(1-9) (J scheme)
+   * @param[in]  pntIn   Reference point[cm](can be tk-tof-or-shower position )
+   * @param[in]  dirIn   Reference dir      (can be tk-tof-or-shower direction)
+   * @param[in]  rigidity  Rigidity  (GV)   (0 in case of linear track)
+   * @param[in]  tolerance Tolerance (cm)
+   * @param[out] tkid    TkId  of crossed or nearest missed ladder
+   * @param[out] pntOut  Extrapolated position  to tracker ilay layer
+   * @param[out] pntDist Signed distance (dx,dy,0) to the (A) nearest edge of crossed or (B) nearest missed Tracker Ladder; incase of (A) it is positive, in case of (B) it is positive if the coordinate is outside and negative for inside
+   * @return     return  0: Out of Tracker 1: Inside tracker and ladder 2: Inside tracker but in the gap between ladders
+   */
+static int IsInsideTracker(int ilay, const AMSPoint &pntIn,
+			             const AMSDir   &dirIn,
+			   double rigidity, double tolerance,
+			   int &tkid, AMSPoint &PntOut, AMSPoint &pntDist);
 
 
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);

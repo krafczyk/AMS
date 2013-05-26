@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.574 2013/05/24 17:45:06 choutko Exp $
+//  $Id: root.C,v 1.575 2013/05/26 09:46:31 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -13085,6 +13085,87 @@ if(!ret){
 }
 return ret;
 }
+
+
+int AMSEventR::IsInsideTracker(int ilyJ, const AMSPoint &pntIn,
+			                 const AMSDir   &dirIn,
+			       double rigidity, double tolerance,
+			       int &tkidOut,   AMSPoint &pntOut,
+			                       AMSPoint &distOut)
+{
+  TrProp trp(pntIn, dirIn, rigidity);
+  AMSDir dir(0, 0, 1);
+
+  int ily = TkDBc::Head->GetLayerFromJ(ilyJ);
+  AMSPoint pnt(0, 0, TkDBc::Head->GetZlayer(ily));
+  trp.Interpolate(pnt, dir);
+
+  AMSPoint dmin;
+  AMSPoint pmin;
+  int      tmin = 0;
+  double   smin = 0;
+  double   dtol = 0.1;
+  double   xmin = 0, xmax = 0;
+  double   ymin = 0, ymax = 0;
+
+  double   hwid = TkDBc::Head->_ssize_active[1]/2;
+  double   ylad = TkDBc::Head->_ladder_Ypitch/2+0.1;
+
+  for (int s = -15; s <= 15; s++) {
+    Int_t    tkid = TMath::Sign(ily*100+TMath::Abs(s), s);
+    TkLadder *lad = TkDBc::Head->FindTkId(tkid);
+    if (!lad || !lad->IsActive()) continue;
+
+    AMSPoint pcen = TkCoo::GetLadderCenter(tkid);
+    AMSPoint pint = pnt+dir*(pcen.z()-pnt.z())/dir.z();
+    AMSPoint diff = pint-pcen;
+    double   hlen = TkCoo::GetLadderLength(tkid) /2;
+    double   difx = fabs(diff.x());
+    double   dify = fabs(diff.y());
+
+    if (difx < hlen-tolerance && dify < hwid-tolerance) {
+      tkidOut = tkid;
+       pntOut = pint;
+      distOut.setp(hlen-difx, hwid-dify, 0);
+      return 1;
+    }
+
+    if (dify < ylad) {
+      if (xmin == 0 || pcen.x()-hlen < xmin) xmin = pcen.x()-hlen;
+      if (xmax == 0 || pcen.x()+hlen > xmax) xmax = pcen.x()+hlen;
+    }
+    if (difx < hlen) {
+      if (ymin == 0 || pcen.y()-hwid < ymin) ymin = pcen.y()-hwid;
+      if (ymax == 0 || pcen.y()+hwid > ymax) ymax = pcen.y()+hwid;
+    }
+
+    double dist = std::max(difx-hlen, dify-hwid);
+    if (tkidOut==999)
+      cout<<Form("%4d | %5.1f %5.1f | %5.1f %5.1f %5.2f | %5.1f %5.1f",
+		 tkid,difx-hlen,dify-hwid,dist,smin, fabs(dist-smin),
+		 diff.norm(), dmin.norm());
+
+    if (tmin == 0 || (dist < smin-dtol || (fabs(dist-smin) <= dtol &&
+					   diff.norm() < dmin.norm()))) {
+      tmin = tkid; dmin = diff;
+      pmin = pint; smin = dist;
+
+      if (tkidOut==999)cout<<" Min";
+    }
+    if (tkidOut==999)cout<<endl;
+  }
+
+  double hlen = TkCoo::GetLadderLength(tmin)/2;
+  tkidOut = tmin;
+   pntOut = pmin;
+  distOut.setp(fabs(dmin.x())-hlen, fabs(dmin.y())-hwid, 0);
+
+  if (xmin+tolerance < pmin.x() && pmin.x() < xmax-tolerance &&
+      ymin+tolerance < pmin.y() && pmin.y() < ymax-tolerance) return 2;
+
+  return 0;
+}
+
 
 
 void AMSEventR::GTOD2CTRS(double RPT[3], double v,double  VelPT[2]){
