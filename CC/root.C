@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.575 2013/05/26 09:46:31 shaino Exp $
+//  $Id: root.C,v 1.576 2013/05/26 10:04:23 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -13086,7 +13086,7 @@ if(!ret){
 return ret;
 }
 
-
+#ifdef _PGTRACK_
 int AMSEventR::IsInsideTracker(int ilyJ, const AMSPoint &pntIn,
 			                 const AMSDir   &dirIn,
 			       double rigidity, double tolerance,
@@ -13165,7 +13165,7 @@ int AMSEventR::IsInsideTracker(int ilyJ, const AMSPoint &pntIn,
 
   return 0;
 }
-
+#endif
 
 
 void AMSEventR::GTOD2CTRS(double RPT[3], double v,double  VelPT[2]){

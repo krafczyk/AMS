@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.555 2013/05/26 09:46:36 shaino Exp $
+//  $Id: root.h,v 1.556 2013/05/26 10:04:28 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4594,6 +4594,7 @@ int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///
 
 float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers map return -1 if error
 
+#ifdef _PGTRACK_
   /*!
    * @param[in]  ilay    Tracker  ilay(1-9) (J scheme)
    * @param[in]  pntIn   Reference point[cm](can be tk-tof-or-shower position )
@@ -4609,7 +4610,7 @@ static int IsInsideTracker(int ilay, const AMSPoint &pntIn,
 			             const AMSDir   &dirIn,
 			   double rigidity, double tolerance,
 			   int &tkid, AMSPoint &PntOut, AMSPoint &pntDist);
-
+#endif
 
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);
 void CTRS2GTOD(double RPT[3],double v, double VelPT[2]);
