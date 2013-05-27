@@ -55,9 +55,10 @@ public:
   OutTreeManager();
  ~OutTreeManager();
  
-int   LoadTree(string aname, string trname="none");
-int   LoadTreeList(string aname, string trname="none");
-int   InitTree(string afname, string trname="none");
+int   LoadTree(string aname, string trname="MVA");
+int   LoadTreeList(string aname, string trname="MVA");
+int   InitTree(string afname, string trname="MVA");
+int   InitTree(string trname="MVA");
 int   AddPar(string aname);
 int   GetBranches(TChain* t);
 int   SetBranches(TTree* t);

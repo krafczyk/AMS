@@ -56,6 +56,18 @@ thefilei   = new TFile(aname.c_str(), "UPDATE" );
  GetBranches(thetreei);
  return 1;
 }
+
+//
+int   OutTreeManager::InitTree(string trname) {
+ if(npar==0) return 0;
+ thetreeo=new TTree(trname.c_str(),trname.c_str());
+ if(thetreeo==0) return 0;
+ SetBranches(thetreeo);
+ return 1;
+
+}
+
+
 //
 int   OutTreeManager::InitTree(string aname, string trname) {
  if(npar==0) return 0;
@@ -167,8 +179,6 @@ ppar=new  TreePar* [npar];
   Float_t* val=&t_par[ii];
   ppar[ii]=(*ip);
   string snam=(*ip)->name;
-   // string sformat=(*ip)->name+"/D";
-   //  tree->Branch(snam.c_str(),val,sformat.c_str() );
  tree->Branch(snam.c_str(),val);
    ii++;
  }
