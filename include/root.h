@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.556 2013/05/26 10:04:28 shaino Exp $
+//  $Id: root.h,v 1.557 2013/05/27 20:39:29 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -787,7 +787,7 @@ public:
 
   /// Function to obtain the best reconstructed energy for the shower according to a particle hyptothesis: partid=1(photon),2=(electron/positron). Using different methods to recover anode efficiency, rear leakage, lateral leakage and temperature effects. It's till dummy for the moment: just retrieves EnergyC (method=0), EnergyA (method=1) or EnergyE (method=2)
   float GetCorrectedEnergy(int partid=2,int method=2);
-
+  float EnergyP(int partid); ///< Method 0 in GetcorrectedEnergy above 
   void NormaliseVariableLAPP();
   ///< LAPP function to normalise several variables
   ///< Remove the energy dependence (Mean and RMS deduced from electron selection May19->August31)

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.577 2013/05/27 12:16:12 mdelgado Exp $
+//  $Id: root.C,v 1.578 2013/05/27 20:39:27 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3601,7 +3601,7 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
   float kink_highenergy;
   float correction_factor =1;
 
-  if (method == 0 ) return EnergyC; // no correction implemented yet
+  if (method == 0 ) return EnergyP(partid); // no correction implemented yet
 
   if (method == 1 ) return EnergyA; // no correction implemented yet
 
@@ -3694,6 +3694,58 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
   }//end if of method 2
   cerr << "EcalShowerR::GetCorrectedEnergy>>UNKNOWN PARTICLE ID OR METHOD FOR ENERGY CORRECTION" <<endl;
   return -1.;
+}
+
+
+float EcalShowerR::EnergyP(int partid){
+float ec_ec=EnergyC;
+float ec_rl=RearLeak;
+float phi=atan2(Dir[1],Dir[0]);
+float theta=acos(Dir[2]);
+bool mcc=false;
+#ifdef __ROOTSHAREDLIBRARY__
+if(AMSEventR::Head())mcc=AMSEventR::Head()->nMCEventg()>0;
+#else
+if(AMSJob::gethead())mcc=AMSJob::gethead()->isRealData()?false:true;
+#endif
+//           ec_ec energyC in gev
+//           ec _rl energyC rear leak 
+//           phi shower phi angle (rad)
+//            theta shower theta angle (rad)
+//           mcc true if mc events
+             double c_ec_ec=1;
+             if(mcc)c_ec_ec=1.04;
+             else c_ec_ec=0.985;
+             double ecd=ec_ec;
+             ec_ec=ec_ec>1650?ec_ec/(0.225+(1-0.225)*ec_ec/1650):ec_ec;
+             ec_ec*=c_ec_ec;
+             double fe=(2.65+0.25*log10(ecd/(1+ec_rl)))/3.1;
+             double c2=1/(1+ec_rl)/(1-fe*ec_rl/(1+ec_rl));
+             ec_ec*=c2;        
+             double ea=0.0806;
+             double eb=812;
+             double c3=1;
+             double sq=1-4*ea*(1-ea)*ec_ec/eb;
+             if(sq>0 && ec_ec>0){
+             c3=eb/2/ea/ec_ec*(1-sqrt(sq));
+             if(c3<1)c3=1;
+             }
+              ec_ec*=c3;
+              if(cos(theta)>0){
+                double nx=cos(phi)*sin(theta); 
+                double ny=sin(phi)*sin(theta); 
+                double nz=cos(theta);
+                phi=atan2(-ny,-nx);
+                theta=acos(-nz);
+              }
+              static int k=0;
+              if(phi>3.1415926)phi=phi-2*3.1415926;
+              double cphi=(1+5.45e-3*cos(4*fabs(phi)));
+              ec_ec*=cphi;
+              double ctheta=(1-1.6e-1*(1+cos(theta)));
+              ec_ec*=ctheta;
+              return ec_ec;
+
 }
 
 
