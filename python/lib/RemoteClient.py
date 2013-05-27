@@ -525,7 +525,7 @@ class RemoteClient:
            sql="select disk from filesystems where isonline=1 and status='Full' and path='%s' order by totalsize-occupied desc" %(path)
            ret=self.sqlserver.Query(sql)
            if(len(ret)<=0):
-               self.sendmailmessage('vitali.choutko@cern.ch','FileSystems are  Offline: Exited!!!',sql)
+               self.sendmailmessage('vitali.choutko@cern.ch,baosong.shan@cern.ch','FileSystems are  Offline: Exited!!!',sql)
                return None
         return ret[0][0]
 
