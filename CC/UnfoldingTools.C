@@ -759,9 +759,10 @@ void StochasticUnfolding::addEntry(double measured){
 #include "TCanvas.h"
 void StochasticUnfolding::addEntries(TH1D &measuredOrg,double fraction,bool maxRegularization){
   TH1D current=Prior; current.Reset();
+  double currentCounter=Prior.Integral(1,Prior.GetNbinsX());
   double normalizationMeasured=measuredOrg.Integral(1,measuredOrg.GetNbinsX());
-  int entries=int(min(max(1.0,fraction*Counter),normalizationMeasured-Counter)+0.5); // entries to be added
-  if(maxRegularization) entries=min(fraction*Counter,normalizationMeasured-Counter);
+  int entries=int(min(max(1.0,fraction*currentCounter),normalizationMeasured-Counter)+0.5); // entries to be added
+  if(maxRegularization) entries=min(fraction*currentCounter,normalizationMeasured-Counter);
 
   // Account for realistic fluctuations
   TH1D measured=measuredOrg;
@@ -827,7 +828,8 @@ void StochasticUnfolding::unfold(TH2D &joint,TH1D &measured,TH1D &output,int sam
   double originalCounter=Counter;
 
   for(int sample=0;sample<samples;sample++){
-    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
+    //    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
+    cout<<"#";
     TH2D myJoint=joint;
     for(int i=1;i<=myJoint.GetNbinsX();i++) for(int j=0;j<=myJoint.GetNbinsY()+1;j++) myJoint.SetBinContent(i,j,Random.Poisson(joint.GetBinContent(i,j)));
     Prior=originalPrior;
@@ -892,7 +894,7 @@ void StochasticUnfolding::unfold(TH2D &joint,TH1D &measured,TH1D &output,int sam
   TH1D final=measured;
   fold(final);
   Prior=output;
-
+  cout<<endl;
 }
 
 
@@ -906,15 +908,22 @@ void StochasticUnfolding::unfoldFast(TH2D &joint,TH1D &measured,TH1D &output,boo
   double originalCounter=Counter;
 
   for(int sample=0;sample<samples;sample++){
-    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
+    //    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
+    cout<<"#";
     TH2D myJoint=joint;
     if (fluctuateMigration) for(int i=1;i<=myJoint.GetNbinsX();i++) for(int j=0;j<=myJoint.GetNbinsY()+1;j++) myJoint.SetBinContent(i,j,Random.Poisson(joint.GetBinContent(i,j)));
     else for(int i=1;i<=myJoint.GetNbinsX();i++) for(int j=0;j<=myJoint.GetNbinsY()+1;j++) myJoint.SetBinContent(i,j,(joint.GetBinContent(i,j)));
     Prior=originalPrior;
-    Counter=originalCounter;
+    //    Counter=originalCounter;
+    Counter=0;
     setResponseMatrixFromJoint(myJoint);
 
     do addEntries(measured,fraction,maxRegularization);while(Counter<entries);
+
+
+    // Change the normalization
+    Prior.Scale(measured.Integral(1,measured.GetNbinsX())/Prior.Integral(1,Prior.GetNbinsX()));
+
 
     // Correct for efficiency
     TH1D total=Prior; total.Reset();
@@ -946,34 +955,13 @@ void StochasticUnfolding::unfoldFast(TH2D &joint,TH1D &measured,TH1D &output,boo
   for(int i=1;i<=output.GetNbinsX();i++){
     double error=accumulator2.GetBinContent(i)-accumulator.GetBinContent(i)*accumulator.GetBinContent(i);
     output.SetBinError(i,error>0?sqrt(error+output.GetBinContent(i)):0);
-    
   }
 
   
   Prior=output; // Make a copy
-
-  // Correct for efficiency
-  TH1D total=Prior; total.Reset();
-  TH1D seen=total;
-  TH2D &myJoint=joint;
-  for(int i=1;i<=myJoint.GetNbinsX();i++){
-    double x=myJoint.GetXaxis()->GetBinCenter(i);
-    for(int j=0;j<=myJoint.GetNbinsX()+1;j++){
-      if(j!=0 && j!=myJoint.GetNbinsX()+1) seen.Fill(x,myJoint.GetBinContent(i,j));
-      total.Fill(x,myJoint.GetBinContent(i,j));
-    }
-  }
-  
-  
-  for(int i=1;i<=Prior.GetNbinsX();i++){
-    if(seen.GetBinContent(i)<=0) continue;
-    double correction=seen.GetBinContent(i)/total.GetBinContent(i);
-    Prior.SetBinContent(i,Prior.GetBinContent(i)*correction);
-  }
-
   TH1D final=measured;
   fold(final);
-  Prior=output;
+  cout<<endl;
 }
 
 

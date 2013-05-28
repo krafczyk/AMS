@@ -280,6 +280,10 @@ class DEMinimizer{
  */
 
 #include <map>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
 
 class StochasticUnfolding{
  public:
@@ -305,7 +309,7 @@ class StochasticUnfolding{
   std::vector<int> end;
 
   /**
-     Main steering routine.
+     Main steering routine. Only kept for debugging, since it is very slow. 
      @param joint: unnormalize joint distribution. Used to compute the response matrix. Poissonian statistic for the bins error is assumed. The binning should be equal or finner than that of the measured and unfolded distributions 
      @param measured: measured distribution
      @param output: slot to store the unfolded distribution. The binning on the histogram is kept. 
@@ -315,7 +319,7 @@ class StochasticUnfolding{
   void unfold(TH2F &joint, TH1F &measured,TH1F &output,int samples=10){TH2D j;TH1D m,o;copyH(joint,j);copyH(measured,m);copyH(output,o);unfold(j,m,o,samples);copyH(o,output);}
 
   /**
-     Fast approximation.
+     Fast and accurate approximation.
      @param joint: unnormalize joint distribution. Used to compute the response matrix. Poissonian statistic for the bins error is assumed. The binning should be equal or finner than that of the measured and unfolded distributions 
      @param measured: measured distribution
      @param output: slot to store the unfolded distribution. The binning on the histogram is kept. 
@@ -326,6 +330,48 @@ class StochasticUnfolding{
   */
   void unfoldFast(TH2D &joint, TH1D &measured,TH1D &output,bool maxRegularization=false,bool fluctuateMigration=true,int samples=10,double fraction=0.05);
   void unfoldFast(TH2F &joint, TH1F &measured,TH1F &output,bool maxRegularization=false,bool fluctuateMigration=true,int samples=10,double fraction=0.05){TH2D j;TH1D m,o;copyH(joint,j);copyH(measured,m);copyH(output,o);unfoldFast(j,m,o,maxRegularization,fluctuateMigration,samples,fraction);copyH(o,output);}
+
+
+  /**
+     Run the unfolding procedure until convergence, and use a MC to propagate the statistical errors assuming Poisson statistics in the input spectrumm and the migration matrix 
+     @param jointPDF: unnormalized histogram contaning MC entries to build the migration matrix (X axis for true, Y axis for measured)   
+     @param measured: Measured distribution
+     @param unfolded: histogram where to store the unfolded result
+     @param errorComputationSamples: Number of samples used to estimate the errors
+     @param fluctuateMatrix: set to true to propagate statistical fluctuations in the migration matrix
+     @param fluctuateInput: unused. Kept for compability with the interface of BayesianUnfolder
+     @param regularization: the regularization parameter. A value of 0.5 is the minumum. The larger the smaller the errors, but the bias can increase
+     @param fraction: speed up factor. a number between 0 and 1.
+     \return The unfolded distribution in unfolded WITH ERRORS
+  */
+
+  void computeAll(TH2D &jointPDF,TH1D &measured,             // Inputs
+		  TH1D &unfolded,                            // Output
+		  int errorComputationSamples=10,           // Samples for MC error computation    
+		  bool fluctuateMatrix=false,bool fluctuateInput=true,
+		  double regularization=0.5,double fraction=0.5){
+    fraction=max(0.1,min(fraction,1.0));
+    regularization=max(0.5,regularization);
+    setPrior(unfolded,regularization);
+    std::cout<<"Stochastic unfolding initialization:"<<std::endl;
+    std::cout<<"Speed-up set to: "<<fraction<<std::endl
+	     <<"Prior hyperparameter set to: "<<regularization<<std::endl
+	     <<"     An empty bin will have a probability of "<<regularization/measured.Integral(1,measured.GetNbinsX())<<std::endl;
+
+    unfoldFast(jointPDF,measured,unfolded,false,fluctuateMatrix,errorComputationSamples,fraction);
+  };
+
+  void computeAll(TH2F &jointPDF,TH1F &measured,             // Inputs
+		  TH1F &unfolded,                            // Output
+		  int errorComputationSamples=10,           // Samples for MC error computation    
+		  bool fluctuateMatrix=false,bool fluctuateInput=true,
+		  double regularization=0.5,double fraction=0.5){
+    TH2D j;copyH(jointPDF,j);
+    TH1D m;copyH(measured,m);
+    TH1D u;copyH(unfolded,u);
+    computeAll(j,m,u,errorComputationSamples,fluctuateMatrix,fluctuateInput,regularization,fraction);
+    copyH(u,unfolded);
+  }
 
 
   TRandom Random;               ///< Random number generator for sampling
