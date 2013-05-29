@@ -38,7 +38,7 @@ LDFLAGS =        -shared  -O
 
 ###definitions
 
-TARGET  =    mainmvatest   
+TARGET  =    mainmvatest  mainintermva 
 ### implicit rules
 
 all: $(TARGET) 
@@ -62,8 +62,14 @@ mainmvatest :  $(TEST)mainmvatest.o $(TEST)MVAtest.o
 	$(LD) -O  -o $(BIN)$@  $^  $(LIBS) 
 
 
+mainintermva :  $(TEST)mainintermva.o $(TEST)InterMVA.o		
+	$(LD) -O  -o $(BIN)$@  $^  $(LIBS) 
 
 
 $(TEST)MVAtest.o :    $(TEST)MVAtest.C 
 $(TEST)mainmvatest.o:   $(TEST)mainmvatest.cpp 
 $(TEST)mainmvatest :    $(TEST)mainmvatest.o 
+
+$(TEST)InterMVA.o :      $(TEST)InterMVA.C 
+$(TEST)mainintermva.o:   $(TEST)mainintermva.cpp 
+$(TEST)mainintermva :    $(TEST)mainintermva.o 
