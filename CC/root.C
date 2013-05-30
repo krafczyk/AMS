@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.578 2013/05/27 20:39:27 choutko Exp $
+//  $Id: root.C,v 1.579 2013/05/30 07:54:28 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -386,6 +386,11 @@ void AMSEventR::hbook1s(int id,const char title[], int ncha, float  a, float b,i
     hbook1(id+shift*i,title,ncha,a,b);
   }
 }
+void AMSEventR::hbook1s(int id,const char title[], int ncha, double xbin[],int howmany,int shift){
+  for (int i=0;i<howmany;i++){
+    hbook1(id+shift*i,title,ncha,xbin);
+  }
+}
 
 void AMSEventR::hbook1(int idd,const char title[], int ncha, float  a, float b){ 
   AMSID id(idd,Dir);
@@ -397,6 +402,19 @@ void AMSEventR::hbook1(int idd,const char title[], int ncha, float  a, float b){
   char hid[1025];
   sprintf(hid,"hb1_%d_%s_%s",idd,title,Dir.Data()); 
   TH1D * p= new TH1D(hid,title,ncha,a,b);
+  (Service::hb1).insert(make_pair(id,p));
+}
+
+void AMSEventR::hbook1(int idd,const char title[], int ncha, double xbin[]){ 
+  AMSID id(idd,Dir);
+  if(Service::hb1.find(id) != Service::hb1.end()){
+    delete Service::hb1.find(id)->second;
+    Service::hb1.erase((Service::hb1.find(id)));
+    cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+  }
+  char hid[1025];
+  sprintf(hid,"hb1_%d_%s_%s",idd,title,Dir.Data()); 
+  TH1D * p= new TH1D(hid,title,ncha,xbin);
   (Service::hb1).insert(make_pair(id,p));
 }
 
@@ -8534,7 +8552,6 @@ void AMSEventR::Begin(TTree *tree){
   // Function called before starting the event loop.
   // Initialize the tree branches.
   Init(tree);
-  _pFiles=0;
   TString option = GetOption();
   // open file if...
   gWDir=gSystem->WorkingDirectory();
@@ -8632,7 +8649,7 @@ string frej=filename;
           }
        }
        if(!found){
-          cerr<<"AMSEventR::Terminate-W-FileWasRequestedButNotProcessed "<<fRequested[k]<<endl;
+          cerr<<"AMSEventR::Terminate-W-FileWasRequestedButNotProcessed "<<fRequested[k]<<" "<<k<<endl;
           int  ifound=fRequested[k].find("?svcClass=");
           string aname=fRequested[k];
          if(ifound>=0){
@@ -8649,7 +8666,11 @@ string frej=filename;
      else{
           if(fRequested[k].size()<sizeof(filename)/sizeof(filename[0]))strcpy(filename,fRequested[k].c_str());
           else strncpy(filename,fRequested[k].c_str(),sizeof(filename)/sizeof(filename[0])-1);
-          if(_pFiles)_pFiles->Fill();
+          if(_pFiles){
+             _pFiles->Fill();
+             cout<<"AMSEventR::Terminate-I-FileAddedtoFILESBranch"<<filename<<endl;
+          }  
+          else  cerr<<"  AMSEventR::Terminate-E-PFilesProblem "<<     filename<<endl;    
      }
     }
       if(ofbrej){
