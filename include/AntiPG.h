@@ -37,6 +37,8 @@ class AntiClusterR {
   int Npairs;
   //! 1-8 identify the sector
   int Sector;
+  //! adc measure of both sides
+  int adc[2];
   //! best time respect to the T&Z guess (1ns resolution 2ns RMS)
   float time;
   //! best Zcoo respect to the T&Z guess (8cm resolution 20cm RMS)
@@ -68,17 +70,25 @@ class AntiClusterR {
   //! evaluation of energy deposition (MeV) from rawq
   float Edep;
 
-  //! evaluate Edep
+  //! evaluate Edep in a simple but very raw way
   inline float GetEdep() {return 0.8*0.001*171.2*9.67*rawq*rawq;}
-  //! evaluate AntiCluster charge (adc saturation for Q>3)
+  /*! evaluate AntiCluster charge (adc saturation for Q>3) \n
+      (warning! adc saturation for Q>2 in MC; to be corrected in digitization) \n
+      if Error on Beta is large (e.g. use beta from DoBeta AntiCluster Standalone)\n
+      i suggest to not correct for beta. \n
+      correction with Zcoo signal extinction to be improved \n}
+    */
   float Charge(float costh = 0.45, float beta = 1., float ztrue = 0.);
   //! fill AntiCoo point and evaluate phi
   float FillCoo(AMSPoint* AntiCoo);
   /*! return distance, beta and cosine theta inclination respect to Acc pad \n
     assuming External point hypothesis and straight line trajectory \n
+    connecting to the Anti Counter point ForcedCoo \n
     beta > 0 if Acc time is smaller than ExtTime \n
-    useful for evaluation of charge correction */
-  float DoBeta(AMSPoint* ExtCoo, float ExtTime, float& beta, float& costh);
+    if !ForcedCoo (default) the AntiCluster standalone point is used \n
+    typ: ErrBeta = beta*beta*30.*ErrTime/dist, typ: ErrTime = 1.5ns is dominant \n
+    maybe useful for evaluation of charge correction */
+  float DoBeta(AMSPoint* ExtCoo, float ExtTime, float& beta, float& costh, AMSPoint* ForcedCoo = 0);
 
   /*! rebuild a single AntiCluster \n
     Sector should be already existing \n
@@ -95,7 +105,7 @@ class AntiClusterR {
     return _Info;
   }
   
-  ClassDef(AntiClusterR,3);
+  ClassDef(AntiClusterR,4);
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -162,8 +172,9 @@ virtual  ~AntiRecoPG(){};
     return = 0 no crossing at all -10 error (same points)\n       
     return <0 crossing at |Z|coo > 40 cm \n
     CrossPoint filled with the Hypo corssing point \n
+    phicross filled with the hypo crossing phi \n
     if 2 AntiCounters are crossed in opposite directions the nearest to Point1 is choosen*/
-  int GetCrossing(AMSPoint* Point1, AMSPoint* Point2, AMSPoint* CrossPoint);
+  int GetCrossing(AMSPoint* Point1, AMSPoint* Point2, AMSPoint* CrossPoint, float& phicross);
   /*! file filename contains a correction to existing calibrations \n                                             
     still preliminary to be develop if necessary                                                                
   */
@@ -184,6 +195,11 @@ virtual  ~AntiRecoPG(){};
     example for unfolding Zcoo from TDC (RMS 20cm): BayesEstimation(ztdc,8,-40.,40.) \n
   */
 static float BayesEstimation(float value, float error, float low, float upp);
+/*! return = 1 DATA \n
+ return = 2 pre-launch BT or Muons (pre 1305331200) \n
+ return = 99  MC 
+ */
+ static int SelectRun();
   //! raw evaluation of energy deposition pairing ADC sides (for internal use large nonlinearity)
   float DoRawEdep(int sect);
   /*! re-build a cluster pairing list based on T&Z guess \n
@@ -202,8 +218,8 @@ static float BayesEstimation(float value, float error, float low, float upp);
  private:
   //! set default parameters + calibrations initialization
   void InitPar();
-  //! set default calibration
-  void InitCal();
+  //! set calibration (run_type = 99 for MC)
+  void InitCal(int run_type = 1);
 
   //! 0.0244 tdc bin width from antidbc02.C 
   float _htdcbw;
@@ -250,6 +266,12 @@ static float BayesEstimation(float value, float error, float low, float upp);
   float zcorr[4];
   //! residual costheta correction parameters
   float ttcorr[4];
+  //! additional time smearing for MC
+  float tsme;
+  //! additional Zcoo smearing for MC
+  float zsme;
+  //! additional Z from ADC smearing for MC
+  float zgsme;
   //! event index
   int evto;
   //! run index
