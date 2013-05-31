@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.776 2013/05/28 06:59:50 bshan Exp $
+# $Id: RemoteClient.pm,v 1.777 2013/05/31 15:28:45 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19273,7 +19273,7 @@ sub CheckFS{
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0] and $cachetime>0){
               return $ret->[0][0];
             }
-            $sql="select disk,host,status,allowed  from filesystems where path like '$path%' and (allowed>0 or status='Active')";
+            $sql="select disk,host,status,allowed  from filesystems where path like '$path%' and (allowed>0 or status='Active' or  isonline!=1)";
             $ret=$self->{sqlserver}->Query($sql);
            foreach my $fs (@{$ret}){
 #
