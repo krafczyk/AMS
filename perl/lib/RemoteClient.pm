@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.777 2013/05/31 15:28:45 ams Exp $
+# $Id: RemoteClient.pm,v 1.778 2013/05/31 20:18:46 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8199,7 +8199,12 @@ if(defined $dataset->{buildno} ){
       }
          else{
           $buf=~ s/RUNDIR=/CRUNDIR=/;
-          $tmpb=~ s/\$RUNDIR/\$RUNDIR\/\$RUN/;
+          if(defined $dataset->{MC} and $dataset->{MC}==1) {
+              $tmpb=~ s/\$RUNDIR/\$RUNDIR\/\$RUN.raw/;
+          }
+          else {
+              $tmpb=~ s/\$RUNDIR/\$RUNDIR\/\$RUN/;
+          }
           $tmpb=~ s/END/SELECT 1=$run 2=$fevent 43=$run 44=$levent \n END/;
              my @gbc=split "\/", $gbatch;
 
