@@ -15,7 +15,7 @@ my $ARCHDIR = "$MERGEDIR/archive/$today";
 system("mkdir -p $ARCHDIR/jou");
 
 my $dbh = DBI->connect('dbi:Oracle:pdb_ams', 'amsro', 'eto_amsro') or die $DBI::errstr;
-my $sql = "select fevent,levent,nevents from amsdes.datafiles where run = ?";
+my $sql = "select fevent,levent,nevents from amsdes.datafiles where run = ? and status = 'OK'";
 my $sth = $dbh->prepare($sql);
 
 my @journals = `ls $MERGEDIR/jou/*.jou`;
