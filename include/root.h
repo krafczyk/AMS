@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.558 2013/05/30 07:54:32 choutko Exp $
+//  $Id: root.h,v 1.559 2013/06/04 18:47:09 lbasara Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -552,6 +552,7 @@ pm1(at -x/y)>> ------>> pm36(at +x/y) \n
   /// \return -1 if bad parameters, -2 if SlowControl error, value for RMS otherwise
  static float GetECALRms(int layer, int cell, int channel=0);
 
+
   EcalHitR(AMSEcalHit *ptr);
   EcalHitR(){};
   virtual ~EcalHitR(){};
@@ -785,6 +786,8 @@ public:
   float NEnergy3C2;
   float NEnergy3C3;
 
+  float EcalChargeEstimator(); ///< Charge estimator based on ECAl-only ; it is advised to discard low-rigidity events and to use events having only one EcalShower.
+
   /// Function to obtain the best reconstructed energy for the shower according to a particle hyptothesis: partid=1(photon),2=(electron/positron). Using different methods to recover anode efficiency, rear leakage, lateral leakage and temperature effects. It's till dummy for the moment: just retrieves EnergyC (method=0), EnergyA (method=1) or EnergyE (method=2)
   float GetCorrectedEnergy(int partid=2,int method=2);
   float EnergyP(int partid); ///< Method 0 in GetcorrectedEnergy above 
@@ -871,7 +874,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,15)       //EcalShowerR
+  ClassDef(EcalShowerR,16)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };

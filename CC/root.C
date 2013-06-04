@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.579 2013/05/30 07:54:28 choutko Exp $
+//  $Id: root.C,v 1.580 2013/06/04 18:47:09 lbasara Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -4601,6 +4601,7 @@ float EcalShowerR::GetESEv3Rejection(){
 
 
 
+
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
         float NewESEv2;
@@ -5218,6 +5219,182 @@ float EcalShowerR::EcalStandaloneEstimator(){
 
 	return estimator;
 }
+
+
+float EcalShowerR::EcalChargeEstimator() {
+
+
+	AMSEventR *ev=AMSEventR::Head();
+
+
+//	if (ev->NEcalShower() != 1 ) return 0;
+
+
+
+	// ----------  Number of layers at MIP
+
+
+	// Filling the Map
+
+	float hMap[18][72]={{0}};
+	int nbLay=0; // nbr layers hit
+	float aE[18]={0}; // energy 	for each layer
+	float aX[18]={0}; // PL 		for each layer
+
+	for (Int_t i2dcluster = 0; i2dcluster < NEcal2DCluster(); ++i2dcluster){
+		for (Int_t icluster = 0; icluster < pEcal2DCluster(i2dcluster)->NEcalCluster(); ++icluster){
+			for (Int_t ihit = 0; ihit < pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->NEcalHit(); ++ihit){
+				EcalHitR *hit = pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->pEcalHit(ihit);
+				hMap[hit->Plane][hit->Cell]=hit->ADC[0];
+				aE[hit->Plane] += hit->Edep;
+			}
+		}	
+	}
+
+	hMap[6][50]=0; // Noisy cell
+
+	// Tests on each layer
+
+
+	
+
+	int nLay=0;
+
+		
+	for (nLay=0; nLay<18; nLay++) {
+		float max =	3;
+		int cellmax = -1;
+		bool isAdj=false; // not 3 adjacent cells
+
+		for (int cell=0;cell<72;cell++) {
+			if (hMap[nLay][cell]>max) {
+				max=hMap[nLay][cell];
+				cellmax=cell;
+			}
+		}
+		if (cellmax==-1) break;
+
+		float S3=hMap[nLay][cellmax];
+
+		if (cellmax>0) { // not first cell
+			S3+=hMap[nLay][cellmax-1];
+			for (int cell=0;cell<cellmax-2;cell++ )
+				if (hMap[nLay][cell]>3) break;
+			if (hMap[nLay][cellmax-1]) isAdj=true;
+		}
+
+		if (cellmax<71) { // not last cell
+			S3+=hMap[nLay][cellmax+1];
+			for (int cell=cellmax+2;cell<72;cell++ ) 
+				if (hMap[nLay][cell]>3) break;
+			if (hMap[nLay][cellmax+1] && isAdj) break;
+		}
+
+		float S5=S3;
+		if (cellmax>1)  S5+=hMap[nLay][cellmax-2];
+		if (cellmax<70) S5+=hMap[nLay][cellmax+2];
+		if (S3/S5<0.98) break;
+
+	} // End loop on planes
+
+
+
+	
+
+	// Got MIP ?
+
+	if (nLay==0) return 0;
+
+
+	// ----------  We have nLay layers at MIP
+	
+	// Identifying particle pointer
+
+	ParticleR* part;
+	int particleid=-1;
+
+  	for (UInt_t iparticle = 0; iparticle < ev->nParticle(); ++iparticle)
+	{
+		part = ev->pParticle(iparticle);
+		if (part->pEcalShower() == this)
+		{
+			particleid = iparticle;
+			break;
+		}
+	}
+	if(particleid<0) return 0;
+
+
+	// Path length
+
+
+		
+
+	// Particle coordinates
+	float x0=part->EcalCoo[0][0];
+	float y0=part->EcalCoo[0][1];
+	float z0=part->EcalCoo[0][2];
+	float x1=part->EcalCoo[1][0];
+	float y1=part->EcalCoo[1][1];
+	float z1=part->EcalCoo[1][2];
+	float xe, ye, ze, xf, yf, zf;
+
+	float EMV=0;
+
+
+	int cnt=0;
+	
+	for (int il=0; il<nLay; il++) {
+		xe=(x1-x0)*il/18.; xf=(x1-x0)*(il+1)/18.;
+		ye=(y1-y0)*il/18.; yf=(y1-y0)*(il+1)/18.;
+		ze=(z1-z0)*il/18.; zf=(z1-z0)*(il+1)/18.;
+		aX[il]=sqrt( ((xe-xf)*(xe-xf)) +((ye-yf)*(ye-yf)) +((ze-zf)*(ze-zf)) )*0.3923 ;
+		if (aE[il]==0) break;
+		if (aX[il]==0 || isnan(aX[il])) continue;
+		cnt++;
+		EMV+=log10(aE[il]/aX[il]);
+	}
+
+	if (cnt==0) 	return 0;
+
+	
+	EMV/=float(cnt);
+
+	EMV=pow(10, (EMV-1.46)/2)/1.43;
+
+
+	if (EMV > 7) {
+
+		static const int nb=13;
+		float xk[nb]={ 1,				2,					3,				4,					5,					6, 			7, 			7.66, 				9.26, 		10.72, 			12.10, 		13.55, 		20.00};
+		float yk[nb]={ 1,				2,					3,				4,					5,					6, 			7, 			8, 				10,				12, 				14, 			16, 			26};
+		float b[nb]= {1.001827e+00, 9.990863e-01, 1.001827e+00, 9.936044e-01, 1.023755e+00, 9.113757e-01, 1.330742e+00, 1.505884e+00, 1.230221e+00, 1.451748e+00, 1.421522e+00, 1.350610e+00, 2.017511e+00};
+		float c[nb]={-2.740957e-03, 0.000000e+00, 2.740957e-03, -1.096383e-02, 4.111435e-02, -1.534936e-01, 5.728600e-01, -3.074936e-01, 1.352044e-01, 1.652662e-02, -3.842955e-02, -1.047562e-02, 6.450000e+00};
+		float d[nb]={9.136522e-04, 9.136522e-04, -4.568261e-03, 1.735939e-02, -6.486931e-02, 2.421178e-01, -4.446231e-01, 9.222871e-02, -2.709537e-02, -1.327444e-02, 6.426191e-03, 6.426191e-03, 6.380541e-01,};
+
+		int iquench=0;
+		if (EMV>xk[nb-1]) iquench=nb-1;
+		else while (EMV > xk[iquench+1]) iquench++;
+		float dx=EMV-xk[iquench];
+		
+		EMV=yk[iquench]+dx*(b[iquench]+dx*(c[iquench]+dx*(d[iquench])));
+			
+	}
+
+	return EMV;
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 Level1R::Level1R(Trigger2LVL1 *ptr){
