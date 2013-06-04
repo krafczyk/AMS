@@ -381,8 +381,8 @@ void GeomHash::grow_internal(int *pointers,int size,int *scratch,int parent){
     int n1=size-n0; 
     double rms1=(totalMean2-acc2)/n1-(totalMean-acc)/n1*(totalMean-acc)/n1; 
     double value=n0*rms0+n1*rms1-n01*rms01;
-
-    if(fabs(value/n01*rms01)<epsilon)  // Minimum improvement to split
+    
+    if(value<-0.05*n01*rms01 && n0>0.2*n01 && n1>0.2*n01)  // Large enough correction and enough entries on it
       if(value<bestValue){
 	bestValue=value;
 	splitCounter=n0;
