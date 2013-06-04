@@ -40,7 +40,8 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     Init_Default();
     
     // Read in database entries if needed
-    char filename[201];
+    char filename[201]="";
+#ifndef __ROOTSHAREDLIBRARY__
     UHTOC(RICRADSETUPFFKEY.tables_in,50,filename,200);
     
     for(int i=200;i>=0;i--){
@@ -49,11 +50,12 @@ void RichRadiatorTileManager::Init(){  // Default initialization
 	break;
       }
     } 
-    
     if(filename[0]!='\0'){
       RichRadiatorTileManager::_IgnoreDB=true;
       ReadFromFile(filename);
-    }else{
+    }else
+#endif    
+    {
       char name[801];
       //      sprintf(name,"%s/%s/RichDefaultAGLTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
       //      sprintf(name,"%s/%s/RichDefaultAGLTables.02.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
@@ -63,6 +65,7 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     }
     
     // Read fine mesh data 
+#ifndef __ROOTSHAREDLIBRARY__
     UHTOC(RICRADSETUPFFKEY.finemesh_in,50,filename,200);
     
     for(int i=200;i>=0;i--){
@@ -71,7 +74,9 @@ void RichRadiatorTileManager::Init(){  // Default initialization
 	break;
       }
     } 
-    if((RICRADSETUPFFKEY.setup%10)==1){
+    if((RICRADSETUPFFKEY.setup%10)==1)
+#endif
+    {
       if(filename[0]!='\0') ReadFineMeshFromFile(filename);
       else{
 	char name[801];
@@ -246,9 +251,9 @@ void RichRadiatorTileManager::_compute_tables(){
 
 void RichRadiatorTileManager::Finish_Default(){
   cout<<"RichTileManager finishing"<<endl;
+#ifndef __ROOTSHAREDLIBRARY__
     char filename[201];
     UHTOC(RICRADSETUPFFKEY.tables_out,50,filename,200);
-  
     for(int i=200;i>=0;i--){
       if(filename[i]!=' '){
 	filename[i+1]=0;
@@ -274,6 +279,7 @@ void RichRadiatorTileManager::Finish_Default(){
       }
       data.close();
     }
+#endif  
 }
 
 
@@ -294,7 +300,6 @@ integer RichRadiatorTileManager::get_tile_number(geant x,geant y){
 
   return -1;
 }
-
 
 
 RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
@@ -546,15 +551,19 @@ void RichRadiatorTileManager::GetFromTDV(){
     _tiles[i]->clarity=_optical_parameters[i*n_+1];
     recompute_tables(i,_tiles[i]->index);
     // Update the information fo the NpExp computation 
+#ifndef __ROOTSHAREDLIBRARY__
     AMSRichRing::_first_radiator_call[i]=1;
+#endif
   }
 
 }
 
 
 void RichRadiatorTileManager::UpdateDB(AMSID my_id){
+#ifndef __ROOTSHAREDLIBRARY__
   AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(my_id);
   ptdv->UpdateMe()=1;
+#endif
 }
 
 
@@ -668,7 +677,11 @@ extern "C" geant getphotons_(geant *charge,geant *min_index,geant *vect,geant *s
 extern "C" geant getmomentum_(geant *index){
   const geant cvpwl=1.2398E-6;  //m*eV=nm*GeV
   int dummy=0; 
+#ifndef __ROOTSHAREDLIBRARY__
   geant integral=RNDM(dummy);
+#else
+  geant integral=0;
+#endif
   
   //
   // Use binary search to find the photon
@@ -923,6 +936,7 @@ void RichRadiatorTileManager::recompute_tables(int current,double my_index){  //
 
 void RichRadiatorTileManager::Finish(){
   Finish_Default();
+#ifndef __ROOTSHAREDLIBRARY__
   if((RICDBFFKEY.dump%10)==0) return;
   if(AMSFFKEY.Update==0) return;
 
@@ -967,5 +981,6 @@ void RichRadiatorTileManager::Finish(){
     cout <<" Time Begin "<<ctime(&begin_time)<<endl;
     cout <<" Time End "<<ctime(&end_time)<<endl;
   }
+#endif
 }
 

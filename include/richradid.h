@@ -4,8 +4,10 @@
 #include "timeid.h"
 #include "job.h"
 #include "trrec.h"
+#ifndef __ROOTSHAREDLIBRARY__
 #include "richrec.h"
 #include "richcal.h"
+#endif
 
 ///////////////////////////////////////////
 // This class contains all the information used in the reconstruction

@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.58 2011/02/23 13:42:38 mdelgado Exp $
+//  $Id: richdbc.h,v 1.59 2013/06/04 10:45:46 shaino Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -15,10 +15,11 @@
 #define __RICH_SINGLE_LG_TABLE__
 
 
-
+#ifndef __ROOTSHAREDLIBRARY__
 #include"job.h"
-#include"commons.h" 
 #include "mceventg.h"
+#endif
+#include"commons.h" 
 
 
 class RichAlignment;

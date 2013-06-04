@@ -1,8 +1,14 @@
-//  $Id: richdbc.C,v 1.74 2011/03/07 14:02:41 mdelgado Exp $
+//  $Id: richdbc.C,v 1.75 2013/06/04 10:45:43 shaino Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
+
+#ifndef __ROOTSHAREDLIBRARY__
 #include"timeid.h" 
+#else
+#include <fstream>
+RICGTKOV_DEF gtckovext_;
+#endif
 
 geant RICHDB::_RICradpos=RICradposs;
 integer RICHDB::_Nph=0;
@@ -354,7 +360,11 @@ geant RICHDB::y(integer id){return RichPMTsManager::GetChannelPos(id,1);};
 
 integer RICHDB::detcer(geant photen)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   return RichPMTsManager::detcer(photen);
+#else
+  return 0;
+#endif
 }
    
 
@@ -770,6 +780,7 @@ void RichAlignment::Init(){
   // Has the single an implicit barrier? Just in case we add them
 //#pragma omp barrier  
 //#pragma omp master
+#ifndef __ROOTSHAREDLIBRARY__
   if(AMSJob::gethead()->isRealData()  &&              // It is real data
      //     MISCFFKEY.BeamTest==1 &&                         // It is a cosmic run
      strstr(AMSJob::gethead()->getsetup(),"PreAss")){  // It is the preassembly one
@@ -795,7 +806,7 @@ void RichAlignment::Init(){
        }
      }
 //#pragma omp barrier 
-
+#endif
 }
 
 
@@ -872,7 +883,7 @@ void RichAlignment::Finish(){
   for(int i=0;i<8;i++) cout<<current[i]<<" ";
   cout<<endl; 
   */
-
+#ifndef __ROOTSHAREDLIBRARY__
   if(((RICDBFFKEY.dump/10)%10)==0) return;
   if(AMSFFKEY.Update==0) return;
   AMSTimeID *ptdv;
@@ -916,4 +927,5 @@ void RichAlignment::Finish(){
     cout <<" Time Begin "<<ctime(&begin_time)<<endl;
     cout <<" Time End "<<ctime(&end_time)<<endl;
   }
+#endif
 }
