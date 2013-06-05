@@ -1,9 +1,10 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.35 2013/05/01 13:18:50 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.36 2013/06/05 03:30:55 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
 ClassImp(EcalCR);
+ClassImp(EcalChi2);
 int EcalPDF::Version =2 ;
 int EcalPDF::has_init=-1;
 EcalPDF::EcalPDF(const char* fdatabase){
@@ -1453,8 +1454,7 @@ bool EcalAxis::init_lf(){
     p[2]=init_dxdz;
     p[3]=init_dydz;
     double ep[4];
-    chi20=GetChi2(p);
-    if((Version>=2&&EnergyE<15)||simple==1){
+    if(simple==1){
         p0_lf[0]=init_x0 ;
         p0_lf[1]=init_y0 ;
         p0_lf[2]=ecalz[8];
@@ -1467,8 +1467,10 @@ bool EcalAxis::init_lf(){
         dir_lf[2]/=r;
 	//reset simple to 0
 	simple=0;
+        chi20=GetChi2(p);
         return true;
     }
+    chi20=GetChi2(p);
     for(int i1=0;i1<10;i1++){
         p[0]=init_x0+(rand()%200-100.)/200.*0.9  ;
         p[1]=init_y0+(rand()%200-100.)/200.*0.9	 ;
@@ -1496,6 +1498,11 @@ bool EcalAxis::init_lf(){
         dir_lf[0]=init_dxdz;
         dir_lf[1]=init_dydz;
         dir_lf[2]=1.0	   ;
+	p[0]=p0_lf[0];
+	p[1]=p0_lf[1];
+	p[2]=dir_lf[0];
+	p[3]=dir_lf[1];
+	GetChi2(p);
     }
     double r=sqrt(dir_lf[0]*dir_lf[0]+dir_lf[1]*dir_lf[1]+dir_lf[2]*dir_lf[2]);
     dir_lf[0]/=r;
@@ -1637,6 +1644,7 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
         sign=trtrack->GetRigidity()>0?1.:-1.;
     else
         sign=-1;
+    //cout<<run<<"<->"<<ev->Run()<<", "<<event<<"<->"<<ev->Event()<<", "<<algorithmHasCalculated<<"<->"<<algorithm<<endl;
     if(run==ev->Run()&&event==ev->Event()&&(algorithmHasCalculated&algorithm)==algorithm){
 	//cout<<"algo "<<algorithm<<" has been calculated!"<<endl;
 	for(int i1=0;i1<5;i1++){
