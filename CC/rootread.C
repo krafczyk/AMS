@@ -115,14 +115,14 @@ if(!rfile){
 	return -1;
  }
 
- rfile->Get("datacards/TKGEOMFFKEY_DEF");
- rfile->Get("datacards/TRMCFFKEY_DEF");
- rfile->Get("datacards/TRMCFFKEY_DEF");
- rfile->Get("datacards/TRCALIB_DEF");
- rfile->Get("datacards/TRCALIB_DEF");
- rfile->Get("datacards/TRCLFFKEY_DEF");
- rfile->Get("datacards/TRFITFFKEY_DEF");
- rfile->Get("datacards/TRCHAFFKEY_DEF");
+ if(!rfile->Get("datacards/TKGEOMFFKEY_DEF"))return -1;
+if(! rfile->Get("datacards/TRMCFFKEY_DEF"))return -1;
+if(! rfile->Get("datacards/TRMCFFKEY_DEF"))return -1;
+if(! rfile->Get("datacards/TRCALIB_DEF"))return -1;
+if(! rfile->Get("datacards/TRCALIB_DEF"))return -1;
+if(! rfile->Get("datacards/TRCLFFKEY_DEF"))return -1;
+if(! rfile->Get("datacards/TRFITFFKEY_DEF"))return -1;
+if(! rfile->Get("datacards/TRCHAFFKEY_DEF"))return -1;
 
 
  if(jou){
