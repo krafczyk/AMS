@@ -1,10 +1,9 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.36 2013/06/05 03:30:55 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.37 2013/06/05 13:44:51 kaiwu Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
 ClassImp(EcalCR);
-ClassImp(EcalChi2);
 int EcalPDF::Version =2 ;
 int EcalPDF::has_init=-1;
 EcalPDF::EcalPDF(const char* fdatabase){
