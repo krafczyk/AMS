@@ -6,7 +6,7 @@ use strict;
 my $cpuload=10;
 my $cpuloada=.5;
 my $time=300;
-my $delay=120;
+my $delay=600;
 my $go=1;
    my @killed;
    $#killed=-1;
@@ -32,10 +32,14 @@ while(1){
 for my $pid (@pids){
    if($pid==0){
       next;
-    }
+   }
+   if (not $pida->is_pid_running($pid)) {
+       next;
+   }
    my @pidinfo=$pida->pid_info($pid);
    if($#pidinfo>0){
        if($pidinfo[0]=~/root/ or $pidinfo[0]=~/ams/ or $pidinfo[0]=~/oracle/){
+           #print "$pidinfo[0] \n";
            next;
        }
        my $proc_uid=$gtop->proc_uid($pid);
@@ -53,7 +57,7 @@ for my $pid (@pids){
                   while($ppid!=1 and $ppid!=0){
                    $ppid=$proc_uid->ppid;
                    my @ppidinfo=$pida->pid_info($ppid);
-                   if($ppidinfo[10]=~/sbatchd/ and $ppidinfo[0]=~/root/){
+                   if($#ppidinfo>9 and ($ppidinfo[10]=~/pbs_mom/ or $ppidinfo[10]=~/sbatchd/) and $ppidinfo[0]=~/root/){
                        $lsf=1;
                        last;
                    }
@@ -70,6 +74,11 @@ for my $pid (@pids){
                        if($kill==$pid){
                         $cmd="kill -9 $pid";
                         $found=1;
+##
+## Hack by Pavel. Post wait for all dead children
+##
+$pida->non_blocking_wait();
+##
                         last;
                        }
                    }
