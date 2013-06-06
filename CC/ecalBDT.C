@@ -29,6 +29,7 @@ char *pisavarname[nPISABDTVARs + 1] = {
    "EnergyD"
 };
 
+bool MDT_DEBUG = false;
 bool BDT_DEBUG = false;
 bool BDT_HISTOS = false;
 bool BDT_HISTOS_DECLARE = true;
@@ -82,6 +83,9 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
+   const Float_t ecalZEntry = -142.792;
+   const Float_t ecalZExit = -158.457;
+   const Float_t EneDepThreshold = 2.;//threshold on single cell in MeV (1MeV~2ADC)
 
    float MapEneDep[nLAYERs][nCELLs]; // Energy deposit in every cell of ECAL [GeV]
    float ClusterEnergy[nLAYERs];     // Lateral leak corrected energy deposit [GeV]
@@ -139,7 +143,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
       LayerSigma[ilayer] = 0.;
 
       LayerS1S3[ilayer]   = 1.;
-      LayerS3Frac[ilayer] = -1.;
+      LayerS3Frac[ilayer] = 1.;
 
       for (unsigned int icell = 0; icell < nCELLs; ++icell)
          MapEneDep[ilayer][icell] = 0.;
@@ -184,18 +188,18 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 
       ShowerMean += (ilayer + 1)*ClusterEnergy[ilayer];
 
-      unsigned int imaxcell = 0;
+      int imaxcell = 0;
       float maxcellene      = 0.;
 
       for (unsigned int icell = 0; icell < nCELLs; ++icell)
       {
-         if (MapEneDep[ilayer][icell] == 0.) continue;
+	if (MapEneDep[ilayer][icell] <= EneDepThreshold ) continue;
+	
+	LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
+	
+	++NEcalHits;
 
-         EneDep += MapEneDep[ilayer][icell];
-
-         LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
-
-         if (MapEneDep[ilayer][icell] >= maxcellene)
+        if (MapEneDep[ilayer][icell] >= maxcellene)
          {
             maxcellene = MapEneDep[ilayer][icell];
             imaxcell   = icell;
@@ -205,10 +209,67 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
          ShowerMeanXY[proj] += (icell + 1)*MapEneDep[ilayer][icell];
       }
 
+      //
+      // Now apply corrections for lateral leakage -- ADDED 27may2013 MI
+      //
+      float LatLeak[10]={0.};
+      //case 1: cell at left border -> simmetrize shower
+      if (imaxcell==0)
+	{
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell+iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      LatLeak[iLatLeak-1] = MapEneDep[ilayer][imaxcell+iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //case 2: cell close to left border within 10 cells 
+      //-> simmetrize shower using ratio of adjacent cells
+      else if (imaxcell<9)
+	{
+	  //find ratio
+	  float LatRatio = MapEneDep[ilayer][imaxcell-1]/MapEneDep[ilayer][imaxcell+1] ;
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell+iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      if (imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell+iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //case 3: cell at right border -> simmetrize shower
+      if (imaxcell==71)
+	{
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      LatLeak[iLatLeak-1] = MapEneDep[ilayer][imaxcell-iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //case 4: cell close to left border within 10 cells 
+      //-> simmetrize shower using ratio of adjacent cells
+      else if (imaxcell>62)
+	{
+	  //find ratio
+	  float LatRatio = MapEneDep[ilayer][imaxcell+1]/MapEneDep[ilayer][imaxcell-1] ;
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      if (imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //
+      for(int i=0;i<10;i++) LayerEneDep[ilayer] += LatLeak[i];
+      //End of correction for lateral leakage
+      //
+
+      EneDep         += LayerEneDep[ilayer];
       EneDepXY[proj] += LayerEneDep[ilayer];
 
       float S1 = MapEneDep[ilayer][imaxcell];
       float S3 = S1;
+      if (imaxcell==0 || imaxcell==71) S3 += LatLeak[0];
       if (imaxcell > 0) S3 += MapEneDep[ilayer][imaxcell - 1];
       if (imaxcell < nCELLs - 1) S3 += MapEneDep[ilayer][imaxcell + 1];
 
@@ -216,7 +277,6 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
       else S3toty += S3;
 
       if (S1*S3 > 0.) LayerS1S3[ilayer] = S1/S3;
-      else  LayerS1S3[ilayer] = 0.;
 
       if (LayerEneDep[ilayer] > 0.)
       {
@@ -227,7 +287,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
       {
          LayerMean[ilayer] = -1.;
       }
-   }
+   } //end of loop on layers
 
    if (EneDep <= 0. || LayerEnergy <= 0. || EneDepXY[0] <= 0. || EneDepXY[1] <= 0.) return -0.999;
 
@@ -253,7 +313,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 
       for (unsigned int icell = 0; icell < nCELLs; ++icell)
       {
-         if (MapEneDep[ilayer][icell] == 0.) continue;
+         if (MapEneDep[ilayer][icell]  <= EneDepThreshold) continue;
 
          LayerSigma[ilayer] += TMath::Power(icell + 1 - LayerMean[ilayer], 2)*MapEneDep[ilayer][icell];
 
@@ -280,9 +340,9 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    ShowerFootprintX = TMath::Sqrt(TMath::Abs(sigmaXY[0]*sigmaZ[0] - TMath::Power(sigmaXYZ[0], 2)));
    ShowerFootprintY = TMath::Sqrt(TMath::Abs(sigmaXY[1]*sigmaZ[1] - TMath::Power(sigmaXYZ[1], 2)));
 
-   S3totx = this->S3tot[1];
-   S3toty = this->S3tot[2];
-   NEcalHits = this->Nhits;
+   //S3totx = this->S3tot[1];
+   //S3toty = this->S3tot[2];
+   //NEcalHits = this->Nhits;
 
    float energyd = EnergyD/1000.;
 
@@ -1404,7 +1464,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 
        mean = 0.89048*(((((1+(-0.417808*x))+(0.285339*pow(x,2)))+(-0.0797402*(pow(x,3))))+(0.0102105*(pow(x,4))))+(-0.00049191*(pow(x,5))));
        sigma = 0.464536*(((((1+(-0.56921*x))+(0.141747*pow(x,2)))+(-0.0176432*(pow(x,3))))+(0.000979462*(pow(x,4))))+(-1.3265e-05*(pow(x,5))));
-    pisanormvar[ivar++] = (LayerS3Frac[12]-mean)/sigma;
+       pisanormvar[ivar++] = (LayerS3Frac[12]-mean)/sigma;
 
        mean = 0.914006*(((((1+(-0.505655*x))+(0.329083*pow(x,2)))+(-0.0891581*(pow(x,3))))+(0.0111151*(pow(x,4))))+(-0.000522036*(pow(x,5))));
        sigma = 0.561738*(((((1+(-0.521007*x))+(0.0973216*pow(x,2)))+(-0.0042303*(pow(x,3))))+(-0.000662862*(pow(x,4))))+(5.63393e-05*(pow(x,5))));
@@ -1442,6 +1502,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        float mean, sigma;
        float x = log(energyd);
 
+       if (MDT_DEBUG) cout << Form("RUN %d EVENT %d --- EnergyD=%f",pev->Run(),pev->Event(),energyd) <<endl;
        if (BDT_DEBUG) std::cout << Form(" ??? x=%f\n", x) << flush;
 
        ivar = 0;
@@ -1449,36 +1510,45 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        mean = 5.81753*(((((1+(-0.0652423*x))+(0.123152*pow(x,2)))+(-0.0309516*(pow(x,3))))+(0.00355938*(pow(x,4))))+(-0.000154605*(pow(x,5))));
        sigma = 0.654693*(((((1+(0.349885*x))+(-0.258381*pow(x,2)))+(0.0762609*(pow(x,3))))+(-0.0101505*(pow(x,4))))+(0.000480682*(pow(x,5))));
        pisanormvar[ivar++] = (ShowerMean-mean)/sigma;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "ShowerMean", ShowerMean) << endl;
 
        pisanormvar[ivar++] = F2SLEneDep;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "F2SLEneDep", F2SLEneDep) << endl<<flush;
 
        mean = -0.00563546*(((((1+(-4.90888*x))+(3.06143*pow(x,2)))+(-1.19568*(pow(x,3))))+(0.200186*(pow(x,4))))+(-0.0124911*(pow(x,5))));
        sigma = 0.0202379*(((((1+(-0.700595*x))+(0.315499*pow(x,2)))+(-0.0637316*(pow(x,3))))+(0.00687652*(pow(x,4))))+(-0.000297002*(pow(x,5))));
        pisanormvar[ivar++] = (L2LFrac-mean)/sigma;
+     if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "L2LFrac", L2LFrac) << endl<<flush;
 
        mean = 0.976096*(((((1+(-0.00594019*x))+(0.00626969*pow(x,2)))+(-0.00277484*(pow(x,3))))+(0.000469374*(pow(x,4))))+(-2.69748e-05*(pow(x,5))));
        sigma = 0.0202693*(((((1+(-0.450749*x))+(0.156631*pow(x,2)))+(-0.0379591*(pow(x,3))))+(0.00471605*(pow(x,4))))+(-0.000217455*(pow(x,5))));
        pisanormvar[ivar++] = (R3cmFrac-mean)/sigma;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "R3cmFrac", R3cmFrac) << endl<<flush;
 
        mean = 0.947438*(((((1+(-0.0958179*x))+(0.0542999*pow(x,2)))+(-0.0149508*(pow(x,3))))+(0.00197748*(pow(x,4))))+(-9.96043e-05*(pow(x,5))));
        sigma = 0.0514221*(((((1+(-0.191206*x))+(-0.081866*pow(x,2)))+(0.0396561*(pow(x,3))))+(-0.00606394*(pow(x,4))))+(0.000326768*(pow(x,5))));
        pisanormvar[ivar++] = (S3totx-mean)/sigma;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "S3totx", S3totx) << endl<<flush;
 
        mean = 0.894616*(((((1+(-0.0830502*x))+(0.0602628*pow(x,2)))+(-0.0178786*(pow(x,3))))+(0.00239022*(pow(x,4))))+(-0.000118785*(pow(x,5))));
        sigma = 0.074716*(((((1+(-0.194879*x))+(-0.118629*pow(x,2)))+(0.0562894*(pow(x,3))))+(-0.00869822*(pow(x,4))))+(0.000470664*(pow(x,5))));
        pisanormvar[ivar++] = (S3toty-mean)/sigma;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "S3toty", S3toty) << endl<<flush;
 
        mean = 17.7832*(((((1+(4.11748*x))+(-1.32613*pow(x,2)))+(0.378096*(pow(x,3))))+(-0.0420122*(pow(x,4))))+(0.00192212*(pow(x,5))));
        sigma = -7.45314*(((((1+(-4.362*x))+(3.04245*pow(x,2)))+(-0.998655*(pow(x,3))))+(0.144479*(pow(x,4))))+(-0.00759756*(pow(x,5))));
        pisanormvar[ivar++] = (NEcalHits-mean)/sigma;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "NEcalHits", NEcalHits) << endl<<flush;
 
        mean = 2.08418*(((((1+(1.53685*x))+(-0.960584*pow(x,2)))+(0.28049*(pow(x,3))))+(-0.037519*(pow(x,4))))+(0.00186672*(pow(x,5))));
        sigma = 1.08555*(((((1+(0.301398*x))+(-0.486968*pow(x,2)))+(0.167722*(pow(x,3))))+(-0.0236229*(pow(x,4))))+(0.00120627*(pow(x,5))));
        pisanormvar[ivar++] = (ShowerFootprintX-mean)/sigma;
+        if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "ShowerFootprintX", ShowerFootprintX) << endl<<flush;
 
        mean = 3.06557*(((((1+(1.38162*x))+(-0.972884*pow(x,2)))+(0.288618*(pow(x,3))))+(-0.0381605*(pow(x,4))))+(0.00186877*(pow(x,5))));
        sigma = 1.97309*(((((1+(0.0319007*x))+(-0.296926*pow(x,2)))+(0.108391*(pow(x,3))))+(-0.0151688*(pow(x,4))))+(0.000761558*(pow(x,5))));
        pisanormvar[ivar++] = (ShowerFootprintY-mean)/sigma;
+        if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "ShowerFootprintY", ShowerFootprintY) << endl<<flush;
 
        mean = 0.0154335*(((((1+(-0.0374406*x))+(-0.1801*pow(x,2)))+(0.0575964*(pow(x,3))))+(-0.00701209*(pow(x,4))))+(0.000309315*(pow(x,5))));
        sigma = -0.0116612*(((((1+(-2.62644*x))+(1.4815*pow(x,2)))+(-0.352021*(pow(x,3))))+(0.0384267*(pow(x,4))))+(-0.00159106*(pow(x,5))));
@@ -1515,6 +1585,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        mean = 0.0544055*(((((1+(0.185537*x))+(0.115868*pow(x,2)))+(-0.0463891*(pow(x,3))))+(0.00617888*(pow(x,4))))+(-0.000325102*(pow(x,5))));
        sigma = 0.0358471*(((((1+(-0.404967*x))+(0.161259*pow(x,2)))+(-0.0523526*(pow(x,3))))+(0.00851722*(pow(x,4))))+(-0.000492585*(pow(x,5))));
        pisanormvar[ivar++] = (LayerEneFrac[8]-mean)/sigma;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "LayerEneFrac[8]", LayerEneFrac[8]) << endl<<flush;
 
        mean = 0.0586046*(((((1+(-0.35631*x))+(0.418475*pow(x,2)))+(-0.123614*(pow(x,3))))+(0.0161746*(pow(x,4))))+(-0.000828849*(pow(x,5))));
        sigma = 0.0195272*(((((1+(0.15923*x))+(-0.127709*pow(x,2)))+(0.0134291*(pow(x,3))))+(0.000637799*(pow(x,4))))+(-9.40079e-05*(pow(x,5))));
@@ -1523,6 +1594,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        mean = 0.0384656*(((((1+(-0.106815*x))+(0.243958*pow(x,2)))+(-0.0433174*(pow(x,3))))+(0.00189987*(pow(x,4))))+(4.54321e-05*(pow(x,5))));
        sigma = 0.0193138*(((((1+(0.109858*x))+(-0.222064*pow(x,2)))+(0.0902414*(pow(x,3))))+(-0.0161111*(pow(x,4))))+(0.00103071*(pow(x,5))));
        pisanormvar[ivar++] = (LayerEneFrac[10]-mean)/sigma;
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "LayerEneFrac[10]", LayerEneFrac[10]) << endl<<flush;
 
        mean = 0.0288085*(((((1+(-0.203208*x))+(0.392827*pow(x,2)))+(-0.0992274*(pow(x,3))))+(0.0124898*(pow(x,4))))+(-0.000668279*(pow(x,5))));
        sigma = 0.0276025*(((((1+(-0.717605*x))+(0.363821*pow(x,2)))+(-0.0791709*(pow(x,3))))+(0.0067021*(pow(x,4))))+(-0.000146176*(pow(x,5))));
@@ -1553,8 +1625,10 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        pisanormvar[ivar++] = (LayerEneFrac[17]-mean)/sigma;
 
        pisanormvar[ivar++] = LayerS1S3[1];
+       if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "LayerS1S3[1]", LayerS1S3[1]) << endl<<flush;
 
        pisanormvar[ivar++] = LayerS1S3[2];
+      if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "LayerS1S3[2]", LayerS1S3[2]) << endl<<flush;
 
        pisanormvar[ivar++] = LayerS1S3[3];
 
@@ -1569,10 +1643,12 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        mean = 0.557175*(((((1+(2.12671*x))+(-1.4178*pow(x,2)))+(0.409941*(pow(x,3))))+(-0.0540956*(pow(x,4))))+(0.00267714*(pow(x,5))));
        sigma = 0.00897424*(((((1+(80.9882*x))+(-57.6913*pow(x,2)))+(16.3878*(pow(x,3))))+(-2.09909*(pow(x,4))))+(0.100461*(pow(x,5))));
        pisanormvar[ivar++] = (LayerSigma[8]-mean)/sigma;
+      if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "LayerSigma[8]", LayerSigma[8]) << endl<<flush;
 
        mean = 0.825791*(((((1+(1.22133*x))+(-0.880486*pow(x,2)))+(0.267216*(pow(x,3))))+(-0.0366376*(pow(x,4))))+(0.00186991*(pow(x,5))));
        sigma = 0.465602*(((((1+(0.508751*x))+(-0.654088*pow(x,2)))+(0.221749*(pow(x,3))))+(-0.0314511*(pow(x,4))))+(0.00161545*(pow(x,5))));
        pisanormvar[ivar++] = (LayerSigma[9]-mean)/sigma;
+      if (MDT_DEBUG) cout << Form("piBDT[%d] = %s = %f",ivar, "LayerSigma[9]", LayerSigma[9]) << endl<<flush;
 
        mean = 0.910081*(((((1+(0.739722*x))+(-0.509627*pow(x,2)))+(0.159914*(pow(x,3))))+(-0.0229559*(pow(x,4))))+(0.001221*(pow(x,5))));
        sigma = 0.205266*(((((1+(2.68981*x))+(-2.12361*pow(x,2)))+(0.623894*(pow(x,3))))+(-0.0819358*(pow(x,4))))+(0.0040157*(pow(x,5))));
@@ -1745,6 +1821,6 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	   hECALBDT[i]->Fill(pisanormvar[i]);
 	 }
      }
-
+   //
    return bdt;
 }
