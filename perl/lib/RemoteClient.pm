@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.778 2013/05/31 20:18:46 bshan Exp $
+# $Id: RemoteClient.pm,v 1.779 2013/06/07 11:48:35 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20389,11 +20389,11 @@ sub UploadToDisks{
        foreach my $ntuple (@{$ret_nt}){
          # Added by bshan to stager_get and stager_qry before copying
          my $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
-         my $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>&1`;
+         my $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>/dev/null`;
          chomp $staged;
          if (not $staged) {
              for (my $i = 0; $i < 3; $i++) {
-                 my $stagein = `stager_qry -M $ntuple->[0] | grep -c STAGE 2>&1`;
+                 my $stagein = `stager_qry -M $ntuple->[0] | grep -c STAGE 2>/dev/null`;
                  chomp $stagein;
                  if (not $stagein) {
                      print "stager_get failed, retrying ...\n";
@@ -20404,7 +20404,7 @@ sub UploadToDisks{
                      $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
                  }
              }
-             $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>&1`; # check again if it is staged
+             $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>/dev/null`; # check again if it is staged
              chomp $staged;
          }
          if (not $staged) {
@@ -20614,11 +20614,11 @@ sub UploadToDisksDataFiles{
        foreach my $ntuple (@{$ret_nt}){
          # Added by bshan to stager_get and stager_qry before copying
          my $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
-         my $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>&1`;
+         my $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>/dev/null`;
          chomp $staged;
          if (not $staged) {
              for (my $i = 0; $i < 3; $i++) {
-                 my $stagein = `stager_qry -M $ntuple->[0] | grep -c STAGE 2>&1`;
+                 my $stagein = `stager_qry -M $ntuple->[0] | grep -c STAGE 2>/dev/null`;
                  chomp $stagein;
                  if (not $stagein) {
                      print "stager_get failed, retrying ...\n";
@@ -20629,7 +20629,7 @@ sub UploadToDisksDataFiles{
                      $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
                  }
              }
-             $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>&1`; # check again if it is staged
+             $staged = `stager_qry -M $ntuple->[0] | grep -c STAGED 2>/dev/null`; # check again if it is staged
              chomp $staged;
          }
          if (not $staged) {
@@ -21044,11 +21044,11 @@ sub RemoveFromDisks{
          else{
          # Added by bshan to stager_get and stager_qry before copying
          my $ret = system("stager_get -M $castor 1>/dev/null 2>&1");
-         my $staged = `stager_qry -M $castor | grep -c STAGED 2>&1`;
+         my $staged = `stager_qry -M $castor | grep -c STAGED 2>/dev/null`;
          chomp $staged;
          if (not $staged) {
              for (my $i = 0; $i < 3; $i++) {
-                 my $stagein = `stager_qry -M $castor | grep -c STAGE 2>&1`;
+                 my $stagein = `stager_qry -M $castor | grep -c STAGE 2>/dev/null`;
                  chomp $stagein;
                  if (not $stagein) {
                      print "stager_get failed, retrying ...\n";
@@ -21059,7 +21059,7 @@ sub RemoveFromDisks{
                      $ret = system("stager_get -M $castor 1>/dev/null 2>&1");
                  }
              }
-             $staged = `stager_qry -M $castor | grep -c STAGED 2>&1`; # check again if it is staged
+             $staged = `stager_qry -M $castor | grep -c STAGED 2>/dev/null`; # check again if it is staged
              chomp $staged;
          }
          if (not $staged) {
