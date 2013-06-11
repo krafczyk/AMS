@@ -836,46 +836,55 @@ void TrSim::PrintSimPars() {
 void TrSim::MergeMCCluster(){
   vector<TrMCClusterR> locstor;
  
- // Get the pointer to the TrMCCluster container
+  // Get the pointer to the TrMCCluster container
   VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
   if (container==0) {
     if (WARNING) printf("TrSim::MergeMCCluster-W no TrMCCluster container, skip.\n");
     return;
   }
- int clen=container->getnelem();
+  int clen=container->getnelem();
   if (clen==0) {
     if (WARNING) printf("TrSim::MergeMCCluster-W TrMCCluster container is empty, skip.\n");
     if (container!=0) delete container;
     return;
   }
-//   printf("\n\n List from Merge Cluster BEGIN\n");
-//   for (int ii=0;ii<clen;ii++)
-// #ifdef __ROOTSHAREDLIBRARY__
-//     ((TrMCClusterR*) container->getelem(ii))->Print();
-// #else
-//    ((AMSTrMCCluster*) container->getelem(ii))->Print();
-// #endif
-//   if(container) delete container;
-//   printf("List from Merge Cluster END\n\n");
-//   return;
+  //   printf("\n\n List from Merge Cluster BEGIN\n");
+  //   for (int ii=0;ii<clen;ii++)
+  // #ifdef __ROOTSHAREDLIBRARY__
+  //     ((TrMCClusterR*) container->getelem(ii))->Print();
+  // #else
+  //    ((AMSTrMCCluster*) container->getelem(ii))->Print();
+  // #endif
+  //   if(container) delete container;
+  //   printf("List from Merge Cluster END\n\n");
+  //   return;
+  map<int,vector< pair<int,TrMCClusterR*> > > TrLadMap;
+  map<int,vector< pair<int,TrMCClusterR*> > >::iterator iter;
 
-  int* used=new int[clen];
-  memset(used,0,clen*sizeof(int));
   for (int jj=0; jj<clen; jj++){
-    if(used[jj]==1) continue;
     TrMCClusterR* cl0 = (TrMCClusterR*) container->getelem(jj);
-    locstor.push_back(*cl0);
-    used[jj]=1;
-    for (int ii=jj+1; ii<clen; ii++) {
-      if(used[ii]==1) continue;
-      TrMCClusterR* cl = (TrMCClusterR*) container->getelem(ii);
-      AMSPoint dd=locstor.rbegin()->_xgl-cl->_xgl;
-      if((fabs(dd[0])+fabs(dd[1]))<0.015) {
-	*(locstor.rbegin())+=(*cl);
-	used[ii]=1;
+    int tkid=cl0->GetTkId();
+    TrLadMap[tkid].push_back(std::make_pair(0,cl0));
+  }
+  
+  for(iter=TrLadMap.begin();iter!=TrLadMap.end();iter++){
+    vector< pair<int,TrMCClusterR*> > & mm= iter->second;
+    for(int jj=0;jj<mm.size();jj++){
+      if(mm[jj].first==1) continue;
+      locstor.push_back(*(mm[jj].second));
+      mm[jj].first=1;
+      for (int ii=jj+1; ii<mm.size(); ii++) {
+	if(mm[ii].first==1) continue;
+	TrMCClusterR* cl = mm[ii].second;
+	AMSPoint dd=locstor.rbegin()->_xgl-cl->_xgl;
+	if((fabs(dd[0])+fabs(dd[1]))<0.015) {
+	  *(locstor.rbegin())+=(*cl);
+	  mm[ii].first=1;
+	}
       }
     }
   }
+
   if(locstor.size()>0){
     container->eraseC();
     for(int ii=0;ii<locstor.size();ii++)
@@ -885,7 +894,7 @@ void TrSim::MergeMCCluster(){
       container->addnext( new AMSTrMCCluster(locstor[ii]) );
 #endif
   }
-
+  
   if (container!=0) delete container;
   return;
 }
