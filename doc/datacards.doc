@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.391 2013/03/24 20:24:55 qyan Exp $
+#  $Id: datacards.doc,v 1.392 2013/06/12 20:29:01 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -683,7 +683,7 @@ I 1 BFOrder(4)       // Runge Kutta order
 R 2 Delta(0.001)     // Runge Kutta delta
 I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead field map
 I 4 Geant3CutsOn(1)  // Use(1) not use(0) geant3-like energy cuts
-I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSC, others not yet implemented, see also http://cmsdoc.cern.ch/~hpw/GHAD/HomePage/index.html)
+I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSP_BERT, others not yet implemented, see also http://cmsdoc.cern.ch/~hpw/GHAD/HomePage/index.html)
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
 I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 1: Binary Light Ion Cascade model(not supposed to be valid above few 10GeV/n)

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.580 2013/06/04 18:47:09 lbasara Exp $
+//  $Id: root.C,v 1.581 2013/06/12 20:28:56 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2582,16 +2582,19 @@ if(MCEventgR::Rebuild){
     RebuildMCEventg();
 }
      
-    if(!AMSEventR::Head()->nMCEventg()){ // not for MC events
-     fHeader.getISSTLE();
-     fHeader.getISSAtt();
-    }
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
       runo=fHeader.Run;
       if(!UpdateSetup(fHeader.Run)){
 	cerr<<"AMSEventR::UpdateSetup-E-UnabletofindSetupEntryfor "<<fHeader.Run<<endl;
       }
+//
+// tle bug
+//
+      if(runo>1357960950 && runo<1371032409 && getsetup()){
+       getsetup()->fISSData.clear();
+      }
+      
       if(evento>0){
 #pragma omp critical (rd) 
 	if(pService)(*pService).TotalTrig+=(int)dif/2; 
@@ -2630,7 +2633,13 @@ if(MCEventgR::Rebuild){
 	if(pService)(*pService).TotalTrig++;
       }
     }
+
     if(_Entry==0 && bStatus &&  !UProcessStatus(fStatus))return false;
+    if(!AMSEventR::Head()->nMCEventg()){ // not for MC events
+     fHeader.getISSTLE();
+     fHeader.getISSAtt();
+    }
+
     evento=Event();
   }
   else{
@@ -13333,6 +13342,7 @@ if(!ret){
  VelocityS=VelTP[0];
  VelTheta=VelTP[1];
  VelPhi=VelTP[2];
+ ThetaM=GetThetaM();
 }
 return ret;
 }
