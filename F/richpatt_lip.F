@@ -5533,7 +5533,7 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
 ****************
 
 
-      subroutine richaccbypmt(thetac,ringsm)
+      subroutine richaccbypmt(thetac,ringsmext)
 **********************************************************************
 * Returns acceptance and efficiency values for each PMT
 * using a uniform ring sampling in photon phi
@@ -5548,6 +5548,7 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
 
 * ... argument
       real thetac
+      real ringsmext
 
 * ... patrace variables
       real vdet(3),vdir(3)
@@ -5863,6 +5864,7 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
 * ...... get photon spread across PMTs
 
+         ringsm = ringsmext
          if(ringsm.lt.0.) then
             ringsm = sqrt(F1SIGMA2) ! gaussian smearing (cm), value used here
                                     ! is width of main gaussian given for likelihood
@@ -6124,7 +6126,8 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   ipmttouch_nogap(ipmtsamp(i)+1) = 1 ! PMT flagged as touched
 
                   accbypmt_tot_nogap(ipmtsamp(i)+1)
-     +                 = accbypmt_tot_nogap(ipmtsamp(i)+1)+reflec/inrsamp
+     +                 = accbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 +reflec/inrsamp
                   accbypmt_ref1_nogap(ipmtsamp(i)+1)
      +                 = accbypmt_ref1_nogap(ipmtsamp(i)+1)+1./inrsamp
                   accbypmt_ref1ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
