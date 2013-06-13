@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.581 2013/06/12 20:28:56 choutko Exp $
+//  $Id: root.C,v 1.582 2013/06/13 06:27:03 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2591,7 +2591,7 @@ if(MCEventgR::Rebuild){
 //
 // tle bug
 //
-      if(runo>1357960950 && runo<1371032409 && getsetup()){
+      if(runo>1366721606 && runo<1371032409 && getsetup() && Version()<653 ){
        getsetup()->fISSData.clear();
       }
       
