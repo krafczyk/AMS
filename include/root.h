@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.559 2013/06/04 18:47:09 lbasara Exp $
+//  $Id: root.h,v 1.560 2013/06/13 08:09:49 incaglim Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -833,10 +833,16 @@ public:
   /// TMVA Classifier:
   /// TMVAClassifier=0 (default) standard BDTG
   /// TMVAClassifier=1           BDT with smoothing
+  /// deposited or reconstructed Energy:
+  /// EnergyFlag=0 (default) classes in EnergyD bins
+  /// EnergyFlag=1           classes in EnergyE bins
   float GetEcalBDT();
   float GetEcalBDT(unsigned int iBDTVERSION);
   float GetEcalBDT(unsigned int iBDTVERSION, int TMVAClassifier);
-  float GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier=0);
+  float GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION);
+  float GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier);
+  float GetEcalBDT(unsigned int iBDTVERSION, int TMVAClassifier, int EnergyFlag);
+  float GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier, int EnergyFlag);
   /// Function that combines GetEcalBDT and GetChi2 .
   /// It has three arguments: a pointer to the event (AMSEventR *pev), a version number and a Classifier number.
   /// Version number:
@@ -845,10 +851,16 @@ public:
   /// TMVA Classifier:
   /// TMVAClassifier=0 (default) standard BDTG
   /// TMVAClassifier=1           BDT with smoothing
+  /// deposited or reconstructed Energy:
+  /// EnergyFlag=0 (default) classes in EnergyD bins
+  /// EnergyFlag=1           classes in EnergyE bins
   float GetEcalBDTCHI2();
   float GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION);
   float GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier);
-  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier=0);
+  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION);
+  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier);
+  float GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag);
+  float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag);
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
   int NEcal2DCluster()const {return fEcal2DCluster.size();}
