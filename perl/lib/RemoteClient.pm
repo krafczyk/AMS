@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.779 2013/06/07 11:48:35 bshan Exp $
+# $Id: RemoteClient.pm,v 1.780 2013/06/13 10:47:09 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2011,9 +2011,9 @@ my @sntl = sort nprio @ntuplelist;
 my $fevt=-1;
             my $dat0=0;
  foreach my $ntuple (@sntl){
-     if($fevt>=0 and $ntuple->{LastEvent} > $fevt){
+     if($fevt>=0 and $ntuple->{LastEvent} > $fevt and ($ntuple->{Type} ne "RawFile")){
          $ntuple->{OK}=0;
-         warn "  problems with $run->{Run} $ntuple->{Name} \n";
+         warn "  problems with $run->{Run} $ntuple->{Name} $fevt $ntuple->{LastEvent}\n";
      }
      else{
                   if($ntuple->{Type} ne "RawFile"){
