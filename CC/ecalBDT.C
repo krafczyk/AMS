@@ -4,10 +4,14 @@
 
 TMVA::Reader *ecalpisareader_v3 = NULL;
 TMVA::Reader *ecalpisareader_v4 = NULL;
-TMVA::Reader *ecalpisareader_v5_ODD = NULL;
-TMVA::Reader *ecalpisareader_v5_EVEN = NULL;
-TMVA::Reader *ecalpisareaderS_v5_ODD = NULL;
-TMVA::Reader *ecalpisareaderS_v5_EVEN = NULL;
+TMVA::Reader *ecalpisareader_v5_ODD = NULL;      //uses EnergyD for classification
+TMVA::Reader *ecalpisareader_v5_EVEN = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalpisareaderS_v5_ODD = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalpisareaderS_v5_EVEN = NULL;    //uses EnergyD for classification
+TMVA::Reader *ecalpisareader_E_v5_ODD = NULL;    //uses EnergyE for classification
+TMVA::Reader *ecalpisareader_E_v5_EVEN = NULL;   //uses EnergyE for classification
+TMVA::Reader *ecalpisareaderS_E_v5_ODD = NULL;   //uses EnergyE for classification
+TMVA::Reader *ecalpisareaderS_E_v5_EVEN = NULL;  //uses EnergyE for classification
 
 const unsigned int nPISABDTVARs = 61;
 float pisanormvar[nPISABDTVARs + 1];
@@ -57,7 +61,26 @@ float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION, int TMVAClassifier)
   return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier);
 }
 
+float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION, int TMVAClassifier, int EnergyFlag)
+{
+  AMSEventR *pev = AMSEventR::Head();
+  return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier, EnergyFlag);
+}
+
+float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION)
+{
+  int TMVAClassifier=0;
+  int EnergyFlag=0;
+  return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier);
+}
+
 float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier)
+{
+  int EnergyFlag=0;
+  return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier, EnergyFlag);
+}
+
+float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier, int EnergyFlag)
 {
   
    if (BDT_DEBUG)
@@ -80,6 +103,11 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	   BDT_HISTOS_DECLARE = false;
 	 }
      }
+
+   //Check if the version is > 100. In this case, it means that we want to use version X-100 and do not apply the cuts on F2SL and s1s3
+   //Example: iBDTVERSION==103 means v3 but no cuts applied 
+   bool apply_precuts = true;
+   if( iBDTVERSION>=100 ) { iBDTVERSION-=100; apply_precuts = false; }
 
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
@@ -345,6 +373,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    //NEcalHits = this->Nhits;
 
    float energyd = EnergyD/1000.;
+   float classification_energy = energyd;
+   if( iBDTVERSION==5 ) { if( EnergyFlag!=0) classification_energy=EnergyE; }
 
    if (BDT_DEBUG) std::cout << " ??? BDT variables computed\n" << flush;
 
@@ -411,7 +441,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    pisainputvar[ivar++] = LayerS3Frac[15];
    pisainputvar[ivar++] = LayerS3Frac[16];
    pisainputvar[ivar++] = LayerS3Frac[17];
-   pisainputvar[ivar++] = energyd;
+   pisainputvar[ivar++] = classification_energy;
 
 
    //********************************
@@ -423,6 +453,11 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    TMVA::Reader *ecalpisareader_EVEN = NULL;
    TMVA::Reader *ecalpisareaderS_ODD = NULL;
    TMVA::Reader *ecalpisareaderS_EVEN = NULL;
+   TMVA::Reader *ecalpisareader_E_ODD = NULL;
+   TMVA::Reader *ecalpisareader_E_EVEN = NULL;
+   TMVA::Reader *ecalpisareaderS_E_ODD = NULL;
+   TMVA::Reader *ecalpisareaderS_E_EVEN = NULL;
+
 
    if ( iBDTVERSION == 3 )
    {
@@ -438,11 +473,15 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        {
 	 ecalpisareader_ODD = ecalpisareader_v5_ODD;
 	 ecalpisareader_EVEN = ecalpisareader_v5_EVEN;
+	 ecalpisareader_E_ODD = ecalpisareader_E_v5_ODD;
+	 ecalpisareader_E_EVEN = ecalpisareader_E_v5_EVEN;
        }
      else if (TMVAClassifier==1)
        {
 	 ecalpisareaderS_ODD = ecalpisareaderS_v5_ODD;
 	 ecalpisareaderS_EVEN = ecalpisareaderS_v5_EVEN;
+	 ecalpisareaderS_E_ODD = ecalpisareaderS_E_v5_ODD;
+	 ecalpisareaderS_E_EVEN = ecalpisareaderS_E_v5_EVEN;
        }
    }
    else
@@ -464,23 +503,38 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    //check if reader already initialized
    bool InitReader = false;
    if (iBDTVERSION<5 && ecalpisareader==NULL) InitReader=true;
-   else if (iBDTVERSION==5&&TMVAClassifier==0&&ecalpisareader_ODD==NULL) InitReader=true;
-   else if (iBDTVERSION==5&&TMVAClassifier==1&&ecalpisareaderS_ODD==NULL) InitReader=true;
+   else if (iBDTVERSION==5)
+     {
+       if(TMVAClassifier==0)   
+	 {
+	   if( EnergyFlag==0 ) { if( ecalpisareader_ODD==NULL   ) InitReader=true; }
+	   else                { if( ecalpisareader_E_ODD==NULL ) InitReader=true; }
+	 }
+       else //TMVAClass==1
+	 {
+	   if( EnergyFlag==0 ) { if( ecalpisareaderS_ODD==NULL   ) InitReader=true; }
+	   else                { if( ecalpisareaderS_E_ODD==NULL ) InitReader=true; }
+	 }
+     }
 
    if (InitReader)     //if not already Init.....
    {
-      std::cout << "##############################################################" << std::endl;
-      std::cout << "                Create GetEcalBDT v"<<iBDTVERSION<<" Reader   " << std::endl;
-      if ( iBDTVERSION==5 )
-      std::cout << "                TMVAClassifier type: "<<TMVAClassifier          << std::endl;
-      std::cout << "##############################################################" << std::endl;
+      std::cout << "##############################################################"                          << std::endl;
+      std::cout << "                Create GetEcalBDT v"<<iBDTVERSION<<" Reader   "                          << std::endl;
+      if ( iBDTVERSION==5 ){
+      std::cout << "                TMVAClassifier type: "<<TMVAClassifier                                   << std::endl;
+      std::cout << "                Classification Energy: "<<Form("%s",EnergyFlag==0?"EnergyD":"EnergyE")         << std::endl;
+      }
+      std::cout << "##############################################################"                          << std::endl;
 
       //~ TMVA::Tools::Instance();
       //
       //
       char WeightsDir[100];
+      char WeightsDir_v5[100];
       sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
-      //sprintf(WeightsDir,"/afs/cern.ch/user/i/incaglim/public/bdt-marco/WEIGHTS");
+      sprintf(WeightsDir_v5,"%s/v5.00", getenv("AMSDataDir"));
+      //sprintf(WeightsDir_v5,"/afs/cern.ch/user/i/incaglim/public/bdt-marco/WEIGHTS/BDT5");
       
       if ( iBDTVERSION == 3 )
 	{
@@ -551,7 +605,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader->BookMVA("BDTG_LAYERS", Form("%s/ECAL_PISA_BDT_412_v3.weights.xml", WeightsDir));
 	  ecalpisareader_v3 = ecalpisareader;
 	}
-      else if ( iBDTVERSION == 4 )
+      if ( iBDTVERSION == 4 )
 	{
 	  ecalpisareader = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
 	  ecalpisareader->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
@@ -620,7 +674,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader->BookMVA("BDTG_LAYERS", Form("%s/ECAL_PISA_BDT_412_v4.weights.xml", WeightsDir));
 	  ecalpisareader_v4 = ecalpisareader;
 	}
-      else if ( iBDTVERSION == 5 && TMVAClassifier == 0 )
+      if ( iBDTVERSION == 5 && TMVAClassifier == 0 && EnergyFlag==0 )
 	{
 	  ecalpisareader_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
 	  ecalpisareader_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
@@ -752,12 +806,12 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareader_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_412_v5_ODD.weights.xml", WeightsDir));
-	  ecalpisareader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_412_v5_EVEN.weights.xml", WeightsDir));
+	  ecalpisareader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_412_v5final_ODD.weights.xml", WeightsDir_v5));
+	  ecalpisareader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_412_v5final_EVEN.weights.xml", WeightsDir_v5));
 	  ecalpisareader_v5_ODD = ecalpisareader_ODD;
 	  ecalpisareader_v5_EVEN = ecalpisareader_EVEN;
 	}
-      else if ( iBDTVERSION == 5 && TMVAClassifier == 1 )
+      if ( iBDTVERSION == 5 && TMVAClassifier == 1 && EnergyFlag==0 )
 	{
 	  ecalpisareaderS_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
 	  ecalpisareaderS_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
@@ -889,52 +943,326 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareaderS_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareaderS_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareaderS_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_412_v5_ODD.weights.xml", WeightsDir));
-	  ecalpisareaderS_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_412_v5_EVEN.weights.xml", WeightsDir));
+	  ecalpisareaderS_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_412_v5final_ODD.weights.xml", WeightsDir_v5));
+	  ecalpisareaderS_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_412_v5final_EVEN.weights.xml", WeightsDir_v5));
 	  ecalpisareaderS_v5_ODD = ecalpisareaderS_ODD;
 	  ecalpisareaderS_v5_EVEN = ecalpisareaderS_EVEN;
 	}
-      else
+     if ( iBDTVERSION == 5 && TMVAClassifier == 0 && EnergyFlag!=0 )
 	{
+	  ecalpisareader_E_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader_E_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
+	  ivar = 0;
+	  ecalpisareader_E_ODD->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("F2SLEneDep",           &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("L2LFracNorm",          &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("R3cmFracNorm",         &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("S3totxNorm",           &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("S3totyNorm",           &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("NEcalHitsNorm",        &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("ShowerFootprintXNorm", &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("ShowerFootprintYNorm", &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm0",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm1",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm2",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm3",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm4",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm5",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm6",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm7",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm8",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm9",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm10",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm11",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm12",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm13",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm14",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm15",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm16",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerEneFracNorm17",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS1S31",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS1S32",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS1S33",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS1S34",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS1S35",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS1S36",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS1S37",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm8",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm9",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm10",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm11",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm12",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm13",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm14",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm15",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm16",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerSigmaNorm17",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm1",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm2",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm3",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm4",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm5",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm6",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm7",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm8",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm9",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm10",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm11",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm12",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm13",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm14",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm15",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
+	  //
+	  ecalpisareader_E_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader_E_EVEN->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
+	  ivar = 0;
+	  ecalpisareader_E_EVEN->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("F2SLEneDep",           &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("L2LFracNorm",          &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("R3cmFracNorm",         &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("S3totxNorm",           &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("S3totyNorm",           &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("NEcalHitsNorm",        &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("ShowerFootprintXNorm", &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("ShowerFootprintYNorm", &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm0",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm1",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm2",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm3",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm4",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm5",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm6",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm7",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm8",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm9",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm10",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm11",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm12",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm13",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm14",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm15",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm16",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerEneFracNorm17",   &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS1S31",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS1S32",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS1S33",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS1S34",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS1S35",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS1S36",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS1S37",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm8",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm9",      &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm10",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm11",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm12",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm13",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm14",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm15",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm16",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerSigmaNorm17",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm1",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm2",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm3",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm4",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm5",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm6",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm7",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm8",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm9",     &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm10",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm11",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm12",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm13",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm14",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm15",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
+	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
+	  //
+	  ecalpisareader_E_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_412_v5final_E_ODD.weights.xml", WeightsDir_v5));
+	  ecalpisareader_E_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_412_v5final_E_EVEN.weights.xml", WeightsDir_v5));
+	  ecalpisareader_E_v5_ODD = ecalpisareader_E_ODD;
+	  ecalpisareader_E_v5_EVEN = ecalpisareader_E_EVEN;
 	}
+      if ( iBDTVERSION == 5 && TMVAClassifier == 1 && EnergyFlag!=0 )
+	{
+	  ecalpisareaderS_E_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareaderS_E_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
+	  ivar = 0;
+	  ecalpisareaderS_E_ODD->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("F2SLEneDep",           &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("L2LFracNorm",          &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("R3cmFracNorm",         &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("S3totxNorm",           &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("S3totyNorm",           &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("NEcalHitsNorm",        &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("ShowerFootprintXNorm", &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("ShowerFootprintYNorm", &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm0",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm1",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm2",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm3",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm4",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm5",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm6",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm7",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm8",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm9",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm10",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm11",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm12",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm13",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm14",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm15",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm16",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerEneFracNorm17",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS1S31",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS1S32",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS1S33",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS1S34",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS1S35",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS1S36",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS1S37",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm8",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm9",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm10",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm11",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm12",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm13",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm14",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm15",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm16",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerSigmaNorm17",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm1",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm2",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm3",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm4",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm5",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm6",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm7",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm8",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm9",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm10",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm11",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm12",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm13",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm14",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm15",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
+	  //
+	  ecalpisareaderS_E_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareaderS_E_EVEN->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
+	  ivar = 0;
+	  ecalpisareaderS_E_EVEN->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("F2SLEneDep",           &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("L2LFracNorm",          &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("R3cmFracNorm",         &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("S3totxNorm",           &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("S3totyNorm",           &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("NEcalHitsNorm",        &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("ShowerFootprintXNorm", &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("ShowerFootprintYNorm", &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm0",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm1",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm2",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm3",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm4",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm5",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm6",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm7",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm8",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm9",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm10",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm11",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm12",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm13",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm14",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm15",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm16",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerEneFracNorm17",   &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS1S31",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS1S32",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS1S33",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS1S34",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS1S35",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS1S36",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS1S37",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm8",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm9",      &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm10",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm11",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm12",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm13",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm14",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm15",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm16",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerSigmaNorm17",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm1",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm2",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm3",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm4",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm5",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm6",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm7",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm8",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm9",     &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm10",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm11",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm12",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm13",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm14",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm15",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
+	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
+	  //
+	  ecalpisareaderS_E_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_412_v5final_E_ODD.weights.xml", WeightsDir_v5));
+	  ecalpisareaderS_E_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_412_v5final_E_EVEN.weights.xml", WeightsDir_v5));
+	  ecalpisareaderS_E_v5_ODD = ecalpisareaderS_E_ODD;
+	  ecalpisareaderS_E_v5_EVEN = ecalpisareaderS_E_EVEN;
+	}
+
    }
 
 
    if ( iBDTVERSION == 3 )
      {
-   //*******************************
-   //*****Reject without BDT********
-   //*******************************
+       if( apply_precuts )
+	 {
+	   //*******************************
+	   //*****Reject without BDT********
+	   //*******************************
 
-   //Check the energy deposit in the first 2 superlayers
-   if (F2SLEneDep < TMath::Max(0.1, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
+	   //Check the energy deposit in the first 2 superlayers
+	   if (F2SLEneDep < TMath::Max(0.1, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
 
-   //Check S1/S3 per layer
-   int first_lay = -1; //first layer in which we want to estimate S1/S3
-   int last_lay  = -1; //last  layer in which we want to estimate S1/S3
+	   //Check S1/S3 per layer
+	   int first_lay = -1; //first layer in which we want to estimate S1/S3
+	   int last_lay  = -1; //last  layer in which we want to estimate S1/S3
 
-   if (energyd < 4 )
-   {
-      first_lay = 3;
-      last_lay = 6;
-   }
-   else if (energyd < 12)
-   {
-      first_lay = 2;
-      last_lay = 7;
-   }
-   else
-   {
-      first_lay = 2;
-      last_lay = 11;
-   }
+	   if (energyd < 4 )
+	     {
+	       first_lay = 3;
+	       last_lay = 6;
+	     }
+	   else if (energyd < 12)
+	     {
+	       first_lay = 2;
+	       last_lay = 7;
+	     }
+	   else
+	     {
+	       first_lay = 2;
+	       last_lay = 11;
+	     }
 
-   //request 2 consecutive layers with MIP like energy deposit
-   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
-   {
-      if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
-   }
-
+	   //request 2 consecutive layers with MIP like energy deposit
+	   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
+	     {
+	       if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
+	     }
+	 }
 
        //********************************
        //*****Normalize the Variables****
@@ -1192,43 +1520,45 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        sigma = ((((-0.272627+(0.557623*x))+(-0.23831*pow(x,2)))+(0.0425152*pow(x,3)))+(-0.00330163*pow(x,4)))+(8.523e-05*pow(x,5));
        pisanormvar[ivar++] = (LayerS3Frac[17] - mean)/sigma;
 
-       pisanormvar[ivar++] = energyd;
+       pisanormvar[ivar++] = classification_energy;
      }
    else if ( iBDTVERSION==4 )
      {
-   //*******************************
-   //*****Reject without BDT********
-   //*******************************
+       if( apply_precuts )
+	 {
+	   //*******************************
+	   //*****Reject without BDT********
+	   //*******************************
 
-   //Check the energy deposit in the first 2 superlayers
-   if (F2SLEneDep < TMath::Max(0.1, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
+	   //Check the energy deposit in the first 2 superlayers
+	   if (F2SLEneDep < TMath::Max(0.1, -0.02 + 0.17*log(energyd) + 8.7e-4*pow((float)log(energyd), (float)4.00))) return -0.9991;
 
-   //Check S1/S3 per layer
-   int first_lay = -1; //first layer in which we want to estimate S1/S3
-   int last_lay  = -1; //last  layer in which we want to estimate S1/S3
+	   //Check S1/S3 per layer
+	   int first_lay = -1; //first layer in which we want to estimate S1/S3
+	   int last_lay  = -1; //last  layer in which we want to estimate S1/S3
 
-   if (energyd < 4 )
-   {
-      first_lay = 3;
-      last_lay = 6;
-   }
-   else if (energyd < 12)
-   {
-      first_lay = 2;
-      last_lay = 7;
-   }
-   else
-   {
-      first_lay = 2;
-      last_lay = 11;
-   }
+	   if (energyd < 4 )
+	     {
+	       first_lay = 3;
+	       last_lay = 6;
+	     }
+	   else if (energyd < 12)
+	     {
+	       first_lay = 2;
+	       last_lay = 7;
+	     }
+	   else
+	     {
+	       first_lay = 2;
+	       last_lay = 11;
+	     }
 
-   //request 2 consecutive layers with MIP like energy deposit
-   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
-   {
-      if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
-   }
-
+	   //request 2 consecutive layers with MIP like energy deposit
+	   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
+	     {
+	       if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
+	     }
+	 }
 
        //********************************
        //*****Normalize the Variables****
@@ -1486,7 +1816,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        sigma = -0.354826*(((((1+(-1.9982*x))+(0.923192*pow(x,2)))+(-0.181456*(pow(x,3))))+(0.0161776*(pow(x,4))))+(-0.000531338*(pow(x,5))));
        pisanormvar[ivar++] = (LayerS3Frac[17]-mean)/sigma;
 
-       pisanormvar[ivar++] = energyd;
+       pisanormvar[ivar++] = classification_energy;
 
      }
    else if ( iBDTVERSION==5 )
@@ -1498,7 +1828,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        //       and from LayerSigmaNorm1-7 to LayerS1S31-7 .
        //       The new variables ARE NOT normalized.
        // fix: normalization may be NaN below 2 GeV or above 1000 GeV;
-       energyd = energyd < 2. ? 2. : (energyd > 1000. ? 1000. : energyd);
+       energyd = energyd < 1. ? 1. : (energyd > 1000. ? 1000. : energyd);
        float mean, sigma;
        float x = log(energyd);
 
@@ -1750,7 +2080,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
        sigma = -0.354826*(((((1+(-1.9982*x))+(0.923192*pow(x,2)))+(-0.181456*(pow(x,3))))+(0.0161776*(pow(x,4))))+(-0.000531338*(pow(x,5))));
        pisanormvar[ivar++] = (LayerS3Frac[17]-mean)/sigma;
 
-       pisanormvar[ivar++] = energyd;
+       pisanormvar[ivar++] = classification_energy;
 
      }
 
@@ -1790,7 +2120,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
      {
        bdt = ecalpisareader->EvaluateMVA("BDTG_LAYERS");
      }
-   else if ( iBDTVERSION == 5 && TMVAClassifier == 0 )
+   else if ( iBDTVERSION == 5 && TMVAClassifier == 0 && EnergyFlag==0 )
      {
        if ( pev->Event()%2 == 1 ) 
 	 {
@@ -1801,7 +2131,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	   bdt = ecalpisareader_EVEN->EvaluateMVA("BDTG_LAYERS_EVEN");
 	 }
      }
-   else if ( iBDTVERSION == 5 && TMVAClassifier == 1 )
+   else if ( iBDTVERSION == 5 && TMVAClassifier == 1  && EnergyFlag==0 )
      {
        if ( pev->Event()%2 == 1 ) 
 	 {
@@ -1812,6 +2142,30 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	   bdt = ecalpisareaderS_EVEN->EvaluateMVA("BDTS_LAYERS_EVEN");
 	 }
      }
+   else if ( iBDTVERSION == 5 && TMVAClassifier == 0 && EnergyFlag==1 )
+     {
+       if ( pev->Event()%2 == 1 ) 
+	 {
+	   bdt = ecalpisareader_E_ODD->EvaluateMVA("BDTG_LAYERS_ODD");
+	 }
+       else
+	 {
+	   bdt = ecalpisareader_E_EVEN->EvaluateMVA("BDTG_LAYERS_EVEN");
+	 }
+     }
+   else if ( iBDTVERSION == 5 && TMVAClassifier == 1  && EnergyFlag==1 )
+     {
+       if ( pev->Event()%2 == 1 ) 
+	 {
+	   bdt = ecalpisareaderS_E_ODD->EvaluateMVA("BDTS_LAYERS_ODD");
+	 }
+       else
+	 {
+	   bdt = ecalpisareaderS_E_EVEN->EvaluateMVA("BDTS_LAYERS_EVEN");
+	 }
+     }
+
+
    else bdt=-999.;
 
    if (BDT_HISTOS)
@@ -1822,5 +2176,78 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	 }
      }
    //
+   //Normalization of smoothed bdt
+   /*
+   if (TMVAClassifier==1)
+     {
+       // 1 jun 2013: apply output correction for smoothed version (TMVAClass=1)
+       //
+       // training done in Energy
+       const int nCat=13;
+       float EnergyEBin[nCat] = 
+	 {   0.5,    2.05,   5.60, 10.28,  15.43,
+	     20.3,   30.76,  41.76, 51.94,  73.51,
+	     102.47, 150.53, 263.57 };
+       float scaleE[nCat] = 
+	 { 1.034, 0.811, 0.682, 0.612, 0.667,
+	   0.638, 0.698, 0.732, 0.714, 0.811, 
+	   0.882, 0.968, 1.250 };
+       float BDTmeanE[nCat] = 
+	 { -0.08, -0.04, -0.03, -0.02,  0.00,
+	   0.00,  0.00, -0.04,  0.03, -0.06,
+	   -0.07, -0.06,  0.03 };
+       float BDTmipE[nCat] = 
+	 { -0.38,  0.13, -0.03, -0.01, -0.09,
+	   -0.03, -0.05,  0.09,  0.09, -0.13,
+	   -0.01, -0.25, -0.33 };
+       float EnergyDBin[nCat] = 
+	 {   0.5,    2.,   5., 10., 15.,
+	     20.,   30.,  40., 50., 70.,
+	     100.,  150., 250. };
+       float scaleD[nCat] = 
+	 { 1.154, 0.714, 0.625, 0.578, 0.667,
+	   0.698, 0.714, 0.667, 0.789, 0.857, 
+	   0.882, 0.909, 1.579 };
+       float BDTmeanD[nCat] = 
+	 {  0.01, -0.01,  0.03,  0.01,  0.04,
+	    0.06,  0.05,  0.02,  0.05, -0.10,
+	    -0.09, -0.02,  0.00 };
+       float BDTmipD[nCat] = 
+	 { -0.41, -0.09,  0.07,  0.11,  0.07,
+	   0.03, -0.03,  0.29,  0.05, -0.11,
+	   -0.11,  0.05, -0.43 };
+
+       float cut = -0.02+0.17*log(energyd)+8.7e-4*pow((double)log(energyd),4.00);
+       cut = cut>0.1?cut:0.1;
+       float shift;
+       int LoopCheck=-1;
+
+       for (int j=nCat-1;j>=0;j--)
+	 {
+	   //here use energyD
+	   if ( EnergyFlag == 0 )
+	     {
+	       if (energyd>EnergyDBin[j] && LoopCheck<0)
+		 {
+		   shift = F2SLEneDep>cut?BDTmeanD[j]:BDTmipD[j];
+		   //cout<<Form(" Energybin, energyd, cut, bdt, shift = %d %f %f %f %f",j,energyd,cut,bdt,shift);
+		   bdt = scaleD[j]*(bdt-shift);
+		   //cout<<" Corrected bdt = "<<bdt<<endl;
+		   LoopCheck=1;
+		 }
+	     }
+	   //EnergyE 
+	   else
+	     {
+	       if (EnergyE>EnergyEBin[j] && LoopCheck<0)
+		 {
+		   shift = F2SLEneDep>cut?BDTmeanE[j]:BDTmipE[j];
+		   bdt = scaleE[j]*(bdt-shift);
+		 }
+	     }
+	 }
+     }//end of output normalization
+   */
+
    return bdt;
 }
