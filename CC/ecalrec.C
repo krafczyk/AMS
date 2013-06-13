@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.173 2012/05/16 17:13:32 afiasson Exp $
+//  $Id: ecalrec.C,v 1.174 2013/06/13 15:43:47 incaglim Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -946,7 +946,7 @@ void AMSEcalHit::build(int &stat){
  	}
  	else{
  	  //cout << "WARNING: No T sensor found for SL " << isl << " PMT " << pmc  << endl;
-	  deltaT=-13.;
+	  deltaT=0.;
 	}
       }
       else{
@@ -957,6 +957,10 @@ void AMSEcalHit::build(int &stat){
       scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
       // correct for Gain dependence on Temperature
       Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;
+      //additional temperature correction to shift from Reference temperature Tref
+      //to TestBeam temperature Ttb using global slope Tgsl
+      //(4/6/13: Tref=10deg, Ttb=23deg, Tgsl=0.25%/deg)
+      Tcorr=Tcorr*(1.+ECREFFKEY.Tgsl/100.*(ECREFFKEY.Tref-ECREFFKEY.Ttb));
       if ( Tcorr > 0 ){
   	scgn*=Tcorr;
       }

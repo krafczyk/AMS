@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.913 2013/04/16 22:29:35 pzuccon Exp $
+// $Id: job.C,v 1.914 2013/06/13 15:43:40 incaglim Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -970,7 +970,7 @@ void AMSJob::_siecaldata(){
     ECMCFFKEY.claddxy[2*ilayer+1]=0.;//(40-75)clad+glue additional vert. th.  
   }
   ECMCFFKEY.g4cutge=1.; // (76) Factor to divide the standard minimum range for photons and electrons in g4physics.C
-  ECMCFFKEY.Tsim=23.; // (77) Temperature for MC simulation (equal to the test beam ECREFFKEY.Tref means no T corrections applied)
+  ECMCFFKEY.Tsim=10.; // (77) Temperature for MC simulation (equal to the test beam ECREFFKEY.Tref means no T corrections applied)
   ECMCFFKEY.FiberDisplacement[0]=0.0290; // (78-86) displacement in cm between negative coordinate and positive coordinate fiber edge due to fiber rotation (from W.Xu) for each superlayer
   ECMCFFKEY.FiberDisplacement[1]=0.0527;
   ECMCFFKEY.FiberDisplacement[2]= 0.0117;
@@ -1116,7 +1116,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.mon[1]=0;//
   ECREFFKEY.year[0]=108;// (105-106)
   ECREFFKEY.year[1]=125;//
-  ECREFFKEY.Tref=23.;// (107)
+  ECREFFKEY.Tref=10.;// (107)
 
 
   //LAPP impact-point correction parameters for S3/S5 X and Y sides (M.P.-S-R)
@@ -1142,6 +1142,11 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.VarYA[2]=41.12;
   ECREFFKEY.VarYA[3]=21.6;
   // end of LAPP impact-point correction parameters for ShowerLatDisp
+
+  //M.I.: global correction due to temperature
+  ECREFFKEY.Ttb=23; // (124) -> TestBeam reference temperature
+  ECREFFKEY.Tgsl=0.25; // (125) -> Global slope for Temp correction (%/deg)
+  //end of global Temp correction
 
   FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   //

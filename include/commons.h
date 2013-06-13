@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.355 2012/11/29 12:45:09 chchung Exp $
+//  $Id: commons.h,v 1.356 2013/06/13 15:43:23 incaglim Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -493,7 +493,9 @@ class ECREFFKEY_DEF {
   integer day[2];
   integer mon[2];
   integer year[2];
-  float Tref; // Reference temperature at which ADC2MeV is calculated
+  float Tref; // Reference temperature at which ADC2MeV is calculated (4/6/13: 10deg)
+  float Ttb; //Test Beam reference temperature (4/6/13: 23deg)
+  float Tgsl; // Global temperature slope to correct Tref->Ttb (4/6/13: 0.25 %/deg) 
 };
 #define ECREFFKEY COMMON_BLOCK(ECREFFKEY,ecreffkey)
 COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
