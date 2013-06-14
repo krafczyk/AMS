@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.781 2013/06/13 22:38:16 bshan Exp $
+# $Id: RemoteClient.pm,v 1.782 2013/06/14 13:01:53 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16680,10 +16680,6 @@ sub validateDST {
        #return 1,0;
      }
 
-     if ($vcode != 0) {
-         return 0, $vcode;
-     }
-
      if (defined $jobid and -f "$prefix$fname.jou") {
          system("sed -i \"s/\\.job.*/.job/g\" $prefix$fname.jou");
          my $jobname;
@@ -16708,6 +16704,7 @@ sub validateDST {
     }
 
      if ($verbose == 1) {print "$validatecmd : $vcode \n";}
+      $ret = 1;
      }
 
      my $time1 = time();
