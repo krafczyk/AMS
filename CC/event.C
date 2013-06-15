@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.577 2013/03/04 19:49:16 choutko Exp $
+//  $Id: event.C,v 1.578 2013/06/15 08:01:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1554,7 +1554,15 @@ void AMSEvent::_siamsevent(){
   _sianti2event();//Anti(as TOF) is digitized only by combined FT (checked inside of subr.!)
   _sitrdevent(); 
   _sirichevent();
+
+try{
   _sitkevent(); 
+}
+  catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _sitkevent"<<endl;
+      seterror(2);
+      throw;
+    }
   _sitrigevent();//create lev1/lev3 trig.object
   _sidaqevent(); //DAQ-simulation 
 
