@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.578 2013/06/15 08:01:50 choutko Exp $
+//  $Id: event.C,v 1.579 2013/06/15 13:13:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1559,7 +1559,7 @@ try{
   _sitkevent(); 
 }
   catch(std::bad_alloc a){
-      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _sitkevent"<<endl;
+      cerr<<" AMSEvent::_sitkevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _sitkevent"<<endl;
       seterror(2);
       throw;
     }
