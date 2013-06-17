@@ -258,7 +258,7 @@ double BayesianUnfolder::getChi2(TH1D &measured){
 void BayesianUnfolder::run(TH1D &measured,TH1D &unfolded,int regularization,double maxKLchange,double maxChi2change){
   // Set a stupid prior
   Prior=unfolded;
-  for(int i=1;i<=Prior.GetNbinsX();Prior.SetBinContent(i++,1));
+  if(Prior.Integral(1,Prior.GetNbinsX())==0) for(int i=1;i<=Prior.GetNbinsX();Prior.SetBinContent(i++,1));
   Posterior=Prior;
   
   // Initial check values
