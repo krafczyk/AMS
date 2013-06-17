@@ -903,7 +903,7 @@ void StochasticUnfolding::unfoldFast(TH2D &joint,TH1D &measured,TH1D &output,boo
   TH1D accumulator=Prior; accumulator.Reset();
   TH1D accumulator2=accumulator;
 
-  int entries=measured.Integral();
+  double entries=measured.Integral();
   TH1D originalPrior=Prior;
   double originalCounter=Counter;
 
