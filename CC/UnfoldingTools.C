@@ -918,7 +918,8 @@ void StochasticUnfolding::unfoldFast(TH2D &joint,TH1D &measured,TH1D &output,boo
     Counter=0;
     setResponseMatrixFromJoint(myJoint);
 
-    do addEntries(measured,fraction,maxRegularization);while(Counter<entries);
+    double limit=entries-0.1*sqrt(entries); // solve some precision problems 
+    do addEntries(measured,fraction,maxRegularization);while(Counter<limit);
 
 
     // Change the normalization
