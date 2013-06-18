@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.506.2.3 2013/01/09 09:33:17 incaglim Exp $
+//  $Id: root.h,v 1.506.2.4 2013/06/18 17:12:44 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -724,8 +724,9 @@ public:
   float NEnergy3C2;
   float NEnergy3C3;
 
-  /// Function to obtain the best reconstructed energy for the shower according to a particle hyptothesis: partid=1(photon),2=(electron/positron). Using different methods to recover anode efficiency, rear leakage, lateral leakage and temperature effects. It's till dummy for the moment: just retrieves EnergyC (method=0), EnergyA (method=1) or EnergyE (method=2)
+  /// Function to obtain the best reconstructed energy for the shower according to a particle hyptothesis: partid=1(photon),2=(electron/positron). Using different methods to recover anode efficiency, rear leakage, lateral leakage and temperature effects. EnergyC correction (method=0) is also known as EnergyP ("energy patched").  EnergyA (method=1) correction not yet implemented. EnergyE for candidate electrons retrieves negative values in case of unphysical energy fraction in last two layers or deposited energy in case of negative correction.
   float GetCorrectedEnergy(int partid=2,int method=2);
+  float EnergyP(int partid); ///< Method 0 in GetcorrectedEnergy above 
 
   void NormaliseVariableLAPP();
   ///< LAPP function to normalise several variables
