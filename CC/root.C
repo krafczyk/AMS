@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.494.2.12 2013/05/16 10:40:10 shaino Exp $
+//  $Id: root.C,v 1.494.2.13 2013/06/18 17:10:18 sdifalco Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3443,7 +3443,7 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
   float kink_highenergy;
   float correction_factor =1;
 
-  if (method == 0 ) return EnergyC; // no correction implemented yet
+  if (method == 0 ) return EnergyP(partid); // no correction implemented yet
 
   if (method == 1 ) return EnergyA; // no correction implemented yet
 
@@ -3473,13 +3473,13 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
     depositedenergy = (edep_xy[0]/(1+S13LeakXPI) + edep_xy[1]/(1+S13LeakYPI))/1000;
     //depositedenergy is in GeV,  EnergyLayer are in MeV, S13LeakYPI is the correction factor for Y-side
     energyfractionlast2layers = (EnergyLayer[16] +  EnergyLayer[17])/1000/(1+S13LeakYPI)/depositedenergy;
-    
-    
+
     if (partid==2 ) {
       // electron hypothesis
       //define kink
       kink_highenergy = 850;
       kink_lowenergy = 3;
+
       if(EnergyE<kink_lowenergy)
 	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -EnergyE)));
       else
@@ -3497,7 +3497,7 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
       
       //second iteration
       if(energy<kink_lowenergy)
-	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -EnergyE)));
+	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -energy)));
       else
 	if(energy<kink_highenergy)
 	  alpha = 1.037 - 0.0743/energy-0.159/TMath::Power(energy,2)-1.9186e-9*TMath::Power(energy,2.189);  
@@ -3505,16 +3505,21 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
 	  alpha = 0.7628+460/energy-1.988e5/TMath::Power(energy,2)-6.1e-7*TMath::Power(energy,-2.537);
       
       correction_factor = alpha -  0.752 * energyfractionlast2layers -  5.633 * TMath::Power(energyfractionlast2layers,2);
+      //}//ed else for fraction
     
       //corrected value  
       if(correction_factor>0)
 	energy = depositedenergy/correction_factor;
       else
 	energy = depositedenergy;
-                
-    //reconstructed energy never less than deposited energy corrected for anode efficiency
+      
+      //reconstructed energy never less than deposited energy corrected for anode efficiency
       if(energy<depositedenergy)
 	energy =  depositedenergy;
+      //It is not an electron, the fraction is too high (checked by MC, 3 sigmas)
+      if(energyfractionlast2layers>0.2)
+	energy = -1 * energy;
+
       return energy;
     }//end if on partid of electrons
   
@@ -3538,6 +3543,57 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
   return -1.;
 }
 
+
+float EcalShowerR::EnergyP(int partid){
+float ec_ec=EnergyC;
+float ec_rl=RearLeak;
+float phi=atan2(Dir[1],Dir[0]);
+float theta=acos(Dir[2]);
+bool mcc=false;
+#ifdef __ROOTSHAREDLIBRARY__
+if(AMSEventR::Head())mcc=AMSEventR::Head()->nMCEventg()>0;
+#else
+if(AMSJob::gethead())mcc=AMSJob::gethead()->isRealData()?false:true;
+#endif
+//           ec_ec energyC in gev
+//           ec _rl energyC rear leak 
+//           phi shower phi angle (rad)
+//            theta shower theta angle (rad)
+//           mcc true if mc events
+             double c_ec_ec=1;
+             if(mcc)c_ec_ec=1.04;
+             else c_ec_ec=0.985;
+             double ecd=ec_ec;
+             ec_ec=ec_ec>1650?ec_ec/(0.225+(1-0.225)*ec_ec/1650):ec_ec;
+             ec_ec*=c_ec_ec;
+             double fe=(2.65+0.25*log10(ecd/(1+ec_rl)))/3.1;
+             double c2=1/(1+ec_rl)/(1-fe*ec_rl/(1+ec_rl));
+             ec_ec*=c2;        
+             double ea=0.0806;
+             double eb=812;
+             double c3=1;
+             double sq=1-4*ea*(1-ea)*ec_ec/eb;
+             if(sq>0 && ec_ec>0){
+             c3=eb/2/ea/ec_ec*(1-sqrt(sq));
+             if(c3<1)c3=1;
+             }
+              ec_ec*=c3;
+              if(cos(theta)>0){
+                double nx=cos(phi)*sin(theta); 
+                double ny=sin(phi)*sin(theta); 
+                double nz=cos(theta);
+                phi=atan2(-ny,-nx);
+                theta=acos(-nz);
+              }
+              static int k=0;
+              if(phi>3.1415926)phi=phi-2*3.1415926;
+              double cphi=(1+5.45e-3*cos(4*fabs(phi)));
+              ec_ec*=cphi;
+              double ctheta=(1-1.6e-1*(1+cos(theta)));
+              ec_ec*=ctheta;
+              return ec_ec;
+
+}
 
 /// Normalise variable as a function of the energy
 void EcalShowerR::NormaliseVariableLAPP(){
