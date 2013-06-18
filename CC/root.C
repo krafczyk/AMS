@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.582 2013/06/13 06:27:03 choutko Exp $
+//  $Id: root.C,v 1.583 2013/06/18 14:35:04 sdifalco Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3658,13 +3658,13 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
     depositedenergy = (edep_xy[0]/(1+S13LeakXPI) + edep_xy[1]/(1+S13LeakYPI))/1000;
     //depositedenergy is in GeV,  EnergyLayer are in MeV, S13LeakYPI is the correction factor for Y-side
     energyfractionlast2layers = (EnergyLayer[16] +  EnergyLayer[17])/1000/(1+S13LeakYPI)/depositedenergy;
-    
-    
+
     if (partid==2 ) {
       // electron hypothesis
       //define kink
       kink_highenergy = 850;
       kink_lowenergy = 3;
+
       if(EnergyE<kink_lowenergy)
 	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -EnergyE)));
       else
@@ -3682,7 +3682,7 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
       
       //second iteration
       if(energy<kink_lowenergy)
-	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -EnergyE)));
+	alpha = 1/(1+TMath::Exp(1.581*(-6.131e-1 -energy)));
       else
 	if(energy<kink_highenergy)
 	  alpha = 1.037 - 0.0743/energy-0.159/TMath::Power(energy,2)-1.9186e-9*TMath::Power(energy,2.189);  
@@ -3690,16 +3690,21 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
 	  alpha = 0.7628+460/energy-1.988e5/TMath::Power(energy,2)-6.1e-7*TMath::Power(energy,-2.537);
       
       correction_factor = alpha -  0.752 * energyfractionlast2layers -  5.633 * TMath::Power(energyfractionlast2layers,2);
+      //}//ed else for fraction
     
       //corrected value  
       if(correction_factor>0)
 	energy = depositedenergy/correction_factor;
       else
 	energy = depositedenergy;
-                
-    //reconstructed energy never less than deposited energy corrected for anode efficiency
+      
+      //reconstructed energy never less than deposited energy corrected for anode efficiency
       if(energy<depositedenergy)
 	energy =  depositedenergy;
+      //It is not an electron, the fraction is too high (checked by MC, 3 sigmas)
+      if(energyfractionlast2layers>0.2)
+	energy = -1 * energy;
+
       return energy;
     }//end if on partid of electrons
   
