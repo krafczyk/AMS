@@ -3356,7 +3356,7 @@ class RemoteClient:
                 if(file[1]>0):
                     castorPrefix='/castor/cern.ch/ams/'
                     delimiter='Data'
-                    if(datamc==0):
+                    if(datamc==0 or datamc==10):
                         delimiter='MC'
                     junk=file[0].split(delimiter)
                     if len(junk)>=2:
@@ -3418,7 +3418,7 @@ class RemoteClient:
                     if(file[1]>0):
                         castorPrefix='/castor/cern.ch/ams/'
                         delimiter='Data'
-                        if(datamc==0):
+                        if(datamc==0 or datamc==10):
                             delimiter='MC'
                         junk=file[0].split(delimiter)
                         if len(junk)>=2:
