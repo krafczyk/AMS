@@ -40,4 +40,3 @@ bool ACsoft::ACQtProducer::ProduceEventHeader() {
   fEvent->fEventHeader = eventHeader;
   return true;
 }
-

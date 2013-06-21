@@ -30,4 +30,3 @@ bool ACsoft::ACQtProducer::ProduceDAQ() {
 
   return true;
 }
-

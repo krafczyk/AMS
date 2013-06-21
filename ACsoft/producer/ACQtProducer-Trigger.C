@@ -83,4 +83,3 @@ bool ACsoft::ACQtProducer::ProduceTrigger() {
 
   return true;
 }
-

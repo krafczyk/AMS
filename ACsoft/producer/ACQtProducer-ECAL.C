@@ -119,4 +119,3 @@ bool ACsoft::ACQtProducer::ProduceECAL() {
 
   return true;
 }
-

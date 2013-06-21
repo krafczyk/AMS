@@ -4,7 +4,7 @@
 
 bool ACsoft::ACQtProducer::ProduceRunHeader(int entries) {
 
-  assert(fAMSEvent);
+  Q_ASSERT(fAMSEvent);
 
   delete fRunHeader;
   fRunHeader = new AC::RunHeader;
@@ -20,4 +20,3 @@ bool ACsoft::ACQtProducer::ProduceRunHeader(int entries) {
   // All other fields of the run header are directly set by the ac_producer.
   return true;
 }
-

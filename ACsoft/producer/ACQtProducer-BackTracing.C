@@ -83,4 +83,3 @@ bool ACsoft::ACQtProducer::DoCustomBacktracing(ParticleR* pParticle, UChar_t& st
 
   return true;
 }
-

@@ -127,4 +127,3 @@ void ACsoft::ACQtWriter::Finish(const TTimeStamp& firstEventTime, const TTimeSta
   delete fFile;
   fFile = 0;
 }
-

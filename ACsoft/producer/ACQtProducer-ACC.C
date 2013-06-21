@@ -52,4 +52,3 @@ bool ACsoft::ACQtProducer::ProduceACC() {
 
   return true;
 }
-

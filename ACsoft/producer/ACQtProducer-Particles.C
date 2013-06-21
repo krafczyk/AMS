@@ -16,6 +16,7 @@ bool ACsoft::ACQtProducer::ProduceParticles() {
 
     AC::Particle particle;
 
+
     //links to SubD objects 
     particle.fTOFBetaIndex = pParticle->iBetaH();
     particle.fTRDVTrackIndex = pParticle->iTrdTrack();
@@ -95,6 +96,7 @@ bool ACsoft::ACQtProducer::ProduceParticles() {
         particle.fStatus |= AC::Particle::FlagGalacticCoordinatesFromOrbit;
       }
       timer_galc->Stop();
+
     }
 #endif
 
@@ -103,4 +105,3 @@ bool ACsoft::ACQtProducer::ProduceParticles() {
 
   return true;
 }
-

@@ -121,4 +121,3 @@ bool ACsoft::ACQtProducer::ProduceTOF() {
   successful &= ProduceTOFBetas();
   return successful;
 }
-

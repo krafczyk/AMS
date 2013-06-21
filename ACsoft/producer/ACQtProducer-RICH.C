@@ -64,4 +64,3 @@ bool ACsoft::ACQtProducer::ProduceRICH() {
 
   return true;
 }
-

@@ -125,7 +125,7 @@ void ACsoft::ACQtProducer::PrepareProductionForEvent(AMSEventR* amsEvent) {
 
   assert(amsEvent);
   if (fAMSEvent) {
-    WARN_OUT << "PrepareProductionForEvent() called before calling FinishProductionForEvent(). this=" << this << " fAMSEvent=" << fAMSEvent << std::endl;
+    WARN_OUT << "PrepareProductionForEvent() called before calling FinishProductionForEvent()." << std::endl;
     return;
   }
 
@@ -199,4 +199,3 @@ bool ACsoft::ACQtProducer::ProducePart(ProductionSelection selection) {
   assert(false);
   return false;
 }
-

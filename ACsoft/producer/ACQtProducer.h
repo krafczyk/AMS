@@ -15,6 +15,10 @@ class TrdKCluster;
 class VertexR;
 class TH2F;
 
+namespace AC {
+  class MagnetTemperatures;
+}
+
 namespace ACsoft {
 
 struct TRDExtraHit;
@@ -25,7 +29,6 @@ namespace AC {
   class RunHeader;
   class TrackerTrack;
   class Vertex;
-  class MagnetTemperatures;
 }
 
 /** Produces ACQt events from a a single AMSEvent.
@@ -184,6 +187,9 @@ public:
   TH2F *h2_TrLH_vs_EovR;
   TH2F *h2_relerrR_vs_R_choutko;
   TH2F *h2_relerrR_vs_R_chikani;
+  
+}
+
 #endif
 
 private:
@@ -240,6 +246,6 @@ struct TRDExtraHit {
   float residual;
 };
 
-}
+};
 
 #endif

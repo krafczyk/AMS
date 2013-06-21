@@ -142,4 +142,3 @@ bool ACsoft::ACQtProducer::ProduceMC() {
   // FIXME: RICH Edep accessor is not available in gbatch, can't store MC RICH energy deposition.
   return true;
 }
-

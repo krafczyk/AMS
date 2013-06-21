@@ -588,7 +588,7 @@ bool ACsoft::ACQtProducer::ProduceTracker() {
       return false;
     }
 
-	// calculate TrackerLikelihood (F.Nozzoli) to reduce CC from interactions
+    // calculate TrackerLikelihood (F.Nozzoli) to reduce CC from interactions
     timer_trkl->Start(kFALSE);
     if ( !ProduceTrackerTrackCCLikelihood(trackerTrack, trackIndex, fAMSEvent) ) {
       WARN_OUT << "Problem building AC::TrackerTrack[" << trackIndex << "] CCLikelihood: "
@@ -658,4 +658,3 @@ bool ACsoft::ACQtProducer::ProduceTracker() {
   fEvent->fTracker.fClusters = fAMSEvent->nTrCluster();
   return true;
 }
-

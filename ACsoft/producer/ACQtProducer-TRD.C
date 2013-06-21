@@ -24,9 +24,7 @@ int HWAddress(const int Haddr){
   return (Crate<<12) + (UDR<<9) + (UFE<<6) + CH;
 }
 
-};
-
-bool ACsoft::ACQtProducer::ProduceTRDHSegments() {
+bool ACQtProducer::ProduceTRDHSegments() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -65,7 +63,7 @@ bool ACsoft::ACQtProducer::ProduceTRDHSegments() {
   return true;
 }
 
-static inline bool LookupRigidityForTRDHTrackIndex(const ACsoft::AC::Event* event, AMSEventR* amsEvent, int htrackIndex, float& rigidity) {
+static inline bool LookupRigidityForTRDHTrackIndex(const AC::Event* event, AMSEventR* amsEvent, int htrackIndex, float& rigidity) {
 
   Q_ASSERT(event);
   Q_ASSERT(amsEvent);
@@ -74,7 +72,7 @@ static inline bool LookupRigidityForTRDHTrackIndex(const ACsoft::AC::Event* even
   // Lookup particle which is associated with the given htrackIndex.
   int nParticles = (int)event->fParticles.size();
   for (int particleIndex = 0; particleIndex < nParticles; ++particleIndex) {
-    const ACsoft::AC::Particle& particle = event->fParticles[particleIndex];
+    const AC::Particle& particle = event->fParticles[particleIndex];
     if (particle.TRDHTrackIndex() != htrackIndex)
       continue;
 
@@ -89,7 +87,7 @@ static inline bool LookupRigidityForTRDHTrackIndex(const ACsoft::AC::Event* even
   return false;
 }
 
-bool ACsoft::ACQtProducer::ProduceTRDHTracks() {
+bool ACQtProducer::ProduceTRDHTracks() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -139,7 +137,7 @@ bool ACsoft::ACQtProducer::ProduceTRDHTracks() {
   return true;
 }
 
-bool ACsoft::ACQtProducer::ProduceTRDVTracks() {
+bool ACQtProducer::ProduceTRDVTracks() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -209,7 +207,7 @@ bool ACsoft::ACQtProducer::ProduceTRDVTracks() {
   return true;
 }
 
-bool ACsoft::ACQtProducer::ProduceTRD() {
+bool ACQtProducer::ProduceTRD() {
 
   Q_ASSERT(fEvent);
   Q_ASSERT(fAMSEvent);
@@ -366,3 +364,4 @@ bool ACsoft::ACQtProducer::ProduceTRD() {
   return true;
 }
 
+}
