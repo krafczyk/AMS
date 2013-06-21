@@ -35,6 +35,7 @@ public:
   int ModuleNumber() const { return fModuleNumber; }
   int LayerNumber() const { return fLayerNumber; }
   int SublayerNumber() const { return fSublayerNumber; }
+  int GlobalSublayerNumber() const { return fGlobalSublayerNumber; }
   int LadderNumber() const { return fLadderNumber; }
   int TowerNumber() const { return fTowerNumber; }
   AC::MeasurementMode Direction() const { return fDirection; }
@@ -45,7 +46,7 @@ public:
   TVector3 GlobalPosition() const;
   TRotation GlobalRotation() const;
 
-  void ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot );
+  void ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot, bool alignmentOk );
   void UpdateGlobalPositionAndDirection();
 
   /** Get TrdStraw with the given number (0..15).
@@ -64,6 +65,14 @@ public:
   void SetShimmingRotation( const TRotation& matrix );
   void SetShimmingOffset( const TVector3& offset );
 
+  void SetCurrentGainValue( const double val, const bool isGainOk ) { fCurrentGainValue = val; fCurrentGainValueOk = isGainOk; }
+  double CurrentGainValue() const { return fCurrentGainValue; }
+  bool IsCurrentGainValueOk() const { return fCurrentGainValueOk; }
+
+  bool IsAlignmentOk() const { return fAlignmentParametersOk; }
+  // FIXME for the general case of aligning different levels in the TRD hierarchy at the same time, there must be a top-level function in
+  // FIXME TRD detector, which checks that the alignment at all levels is ok
+
 private:
 
   void SetGlobalPosition( const TVector3& pos ) { fGlobalPosition = pos; }
@@ -79,13 +88,18 @@ private:
   TRotation fNominalRelativeRotation; ///< nominal rotation of module in sublayer frame (fixed with time)
   TRotation fShimmingRotation;        ///< shimming rotation (fixed with time)
   TRotation fExtraRelativeRotation;   ///< additional rotation from alignment (may change with time)
+  bool fAlignmentParametersOk;        ///< errors when getting alignment parameters from lookup?
 
   TVector3 fGlobalPosition; ///< current position in AMS tracker frame
   TRotation fGlobalRotation; ///< current orientation in AMS tracker frame
 
+  double fCurrentGainValue;   ///< current gain (ADC/cm)
+  bool   fCurrentGainValueOk; ///< errors when getting gain value from lookup?
+
   int fModuleNumber;    ///< global module number (0..327)
   int fLayerNumber;     ///< global layer number (0..19)
   int fSublayerNumber;  ///< sublayer in layer (0..1)
+  int fGlobalSublayerNumber; ///< global sublayer number (0..39)
   int fLadderNumber;    ///< ladder position of module in layer (0..N-1)
   int fTowerNumber;     ///< tower number (0..17 for top row ,..., 2..15 for bottom row)
   AC::MeasurementMode fDirection; ///< describes how module is oriented (before alignment)

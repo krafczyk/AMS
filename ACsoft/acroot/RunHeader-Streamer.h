@@ -6,6 +6,7 @@
 #define AC_RunHeader_Variables \
 private: \
   UShort_t fRunTag; \
+  UShort_t fRunType; \
   Int_t fRun; \
   Int_t fTotalAMSEvents; \
   TTimeStamp fFirstEventTimeStamp; \
@@ -18,9 +19,13 @@ private: \
   std::string fAMSRootFileName; \
   std::string fGitSHA; \
   StreamsVector fSelectedStreams; \
+  ULong64_t fMCNumberOfTriggeredEvents; \
+  Float_t fMCMinimumMomentum; \
+  Float_t fMCMaximumMomentum; \
 public: \
   RunHeader() \
     : fRunTag(0) \
+    , fRunType(0) \
     , fRun(0) \
     , fTotalAMSEvents(0) \
     , fFirstEventTimeStamp(0) \
@@ -33,6 +38,9 @@ public: \
     , fAMSRootFileName() \
     , fGitSHA() \
     , fSelectedStreams() \
+    , fMCNumberOfTriggeredEvents(0) \
+    , fMCMinimumMomentum(0) \
+    , fMCMaximumMomentum(0) \
   { \
   }
 

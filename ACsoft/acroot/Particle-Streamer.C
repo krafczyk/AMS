@@ -12,10 +12,10 @@ namespace AC {
 QDataStream& operator<<(QDataStream& stream, const Particle& object) {
 
   stream << object.fStatus;
-  stream << object.fStoermerCutoffNegative;
-  stream << object.fStoermerCutoffPositive;
-  stream << object.fGalacticLongitudeFromBacktracing;
-  stream << object.fGalacticLatitudeFromBacktracing;
+  stream << object.fGalacticLongitudeFromRigidityBacktracing;
+  stream << object.fGalacticLatitudeFromRigidityBacktracing;
+  stream << object.fGalacticLongitudeFromEnergyBacktracing;
+  stream << object.fGalacticLatitudeFromEnergyBacktracing;
   stream << object.fGalacticLongitudeFromOrbit;
   stream << object.fGalacticLatitudeFromOrbit;
   stream << object.fTOFBetaIndex;
@@ -32,14 +32,18 @@ QDataStream& operator>>(QDataStream& stream, Particle& object) {
 
   if (::AC::CurrentACQtVersion() >= 53)
     stream >> object.fStatus;
-  if (::AC::CurrentACQtVersion() >= 53)
+  if (::AC::CurrentACQtVersion() >= 53 && ::AC::CurrentACQtVersion() <= 56)
     stream >> object.fStoermerCutoffNegative;
-  if (::AC::CurrentACQtVersion() >= 53)
+  if (::AC::CurrentACQtVersion() >= 53 && ::AC::CurrentACQtVersion() <= 56)
     stream >> object.fStoermerCutoffPositive;
   if (::AC::CurrentACQtVersion() >= 53)
-    stream >> object.fGalacticLongitudeFromBacktracing;
+    stream >> object.fGalacticLongitudeFromRigidityBacktracing;
   if (::AC::CurrentACQtVersion() >= 53)
-    stream >> object.fGalacticLatitudeFromBacktracing;
+    stream >> object.fGalacticLatitudeFromRigidityBacktracing;
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fGalacticLongitudeFromEnergyBacktracing;
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fGalacticLatitudeFromEnergyBacktracing;
   if (::AC::CurrentACQtVersion() >= 54)
     stream >> object.fGalacticLongitudeFromOrbit;
   if (::AC::CurrentACQtVersion() >= 54)

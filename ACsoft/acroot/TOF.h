@@ -15,7 +15,7 @@ class TOF {
   WTF_MAKE_FAST_ALLOCATED;
 public:
   /** A vector of TOFBeta objects */
-  typedef Vector<TOFBeta, 1> BetasVector;
+  typedef Vector<TOFBeta, 9> BetasVector;
 
   /** A vector of TOFCluster objects */
   typedef Vector<TOFCluster, 34> ClustersVector;

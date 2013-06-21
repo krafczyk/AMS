@@ -5,6 +5,8 @@
 
 #include <TEllipse.h>
 
+#include "AnalysisParticle.hh"
+#include "Event.h"
 #include "TRDRawHit.h"
 #include "TRDVTrack.h"
 #include "TrackerTrack.h"
@@ -12,10 +14,12 @@
 #include "DetectorManager.hh"
 #include "TrdDetector.hh"
 #include "TrdStraw.hh"
+#include "TrdModule.hh"
 #include "TrdAlignment.hh"
 #include "TrdGainCalibration.hh"
 #include "pathlength_functions.hh"
 #include "SplineTrack.hh"
+#include "TrdTrack.hh"
 #include "dumpstreamers.hh"
 #include "Palettes.hh"
 
@@ -26,7 +30,7 @@
 /** Initialize variables from hit.
   *
   */
-ACsoft::Analysis::TrdHit::TrdHit( const AC::TRDRawHit& rhit ) :
+ACsoft::Analysis::TrdHit::TrdHit( const ACsoft::AC::TRDRawHit& rhit ) :
   fEllipse(0)
 {
 
@@ -38,14 +42,15 @@ ACsoft::Analysis::TrdHit::TrdHit( const AC::TRDRawHit& rhit ) :
   GC  = rhit.GasCircuit();
   GG  = rhit.GasGroup();
 
-  fOrientation = ( Lay <= 3 || Lay >= 16 ? AC::YZMeasurement : AC::XZMeasurement ); // FIXME take from straw?
+  fOrientation = ( Lay <= 3 || Lay >= 16 ? ACsoft::AC::YZMeasurement : ACsoft::AC::XZMeasurement ); // FIXME take from straw?
 
   Amp_raw = rhit.DepositedEnergy();
   Amp_calib = Amp_raw;
   IsGainCorrected = false;
 
-  Detector::DetectorManager* dm = Detector::DetectorManager::Self();
-  const Detector::TrdStraw* alignedStraw = dm->GetAlignedTrd()->GetTrdStraw(fGlobalStrawNumber);
+  DEBUG_OUT << "Setting aligned coords..." << std::endl;
+  ACsoft::Detector::DetectorManager* dm = ACsoft::Detector::DetectorManager::Self();
+  const ACsoft::Detector::TrdStraw* alignedStraw = dm->GetAlignedTrd()->GetTrdStraw(fGlobalStrawNumber);
   TubeDir   = alignedStraw->GlobalWireDirection();
   XYZ_align = alignedStraw->GlobalPosition();
 
@@ -56,7 +61,6 @@ ACsoft::Analysis::TrdHit::TrdHit( const AC::TRDRawHit& rhit ) :
   fTrackDistance = 0.0;
 }
 
-
 /** Apply the gain correction.
   *
   * Hit amplitude is scaled by a correction factor, such that
@@ -64,18 +68,19 @@ ACsoft::Analysis::TrdHit::TrdHit( const AC::TRDRawHit& rhit ) :
   * reference rigidity used in TrdGainCalibration equals the
   * given \p referenceGain.
   *
-  * \param time Event time (seconds since epoch).
   * \param referenceGain reference dE/dx (ADC/cm) as described above.
   *
   */
-void ACsoft::Analysis::TrdHit::ApplyGainCorrection( double time, Double_t referenceGain ) {
+void ACsoft::Analysis::TrdHit::ApplyGainCorrection( /*double time, */ Double_t referenceGain ) {
 
   assert(!IsGainCorrected);
 
-  Double_t lookupGain = Calibration::TrdGainParametersLookup::Self()->GetGainValue(Mod,time);
+//  Double_t lookupGainOld = Calibration::TrdGainParametersLookup::Self()->GetGainValue(Mod,time);
+  Double_t lookupGain = ACsoft::Detector::DetectorManager::Self()->GetAlignedTrd()->GetTrdModule(Mod)->CurrentGainValue();
+
+//  DEBUG_OUT << "old " << lookupGainOld << "  new " << lookupGain << std::endl;
 
   Double_t gainCorrectionFactor = ( lookupGain > 0.0 ? referenceGain / lookupGain : 1.0 );
-
   Amp_calib = Amp_raw * gainCorrectionFactor;
 
   DEBUG_OUT << "Mod " << Mod << ": lookupGain " << lookupGain << " ref " << referenceGain
@@ -93,12 +98,12 @@ void ACsoft::Analysis::TrdHit::FillInformationFromTrack( const ACsoft::Analysis:
 
   assert( !IsSecondCoordSet );
 
-  ::TVector3 trackPos, trackDir;
+  TVector3 trackPos, trackDir;
   track.CalculateLocalPositionAndDirection(Z(),trackPos,trackDir);
 
   DEBUG_OUT << "track at z=" << Z() << " trackPos: " << trackPos << " trackDir: " << trackDir << std::endl;
 
-  fPathlength3D = Pathlength3d(AC::AMSGeometry::TRDTubeRadius,XYZ_align,TubeDir,trackPos,trackDir);
+  fPathlength3D = Pathlength3d(ACsoft::AC::AMSGeometry::TRDTubeRadius,XYZ_align,TubeDir,trackPos,trackDir);
 
   fTrackDistance = Distance(XYZ_align,TubeDir,trackPos,trackDir);
 
@@ -110,6 +115,29 @@ void ACsoft::Analysis::TrdHit::FillInformationFromTrack( const ACsoft::Analysis:
 }
 
 
+/** Fill pathlength, distance to track and coordinate along wire from track interpolation through tube.
+  *
+  */
+void ACsoft::Analysis::TrdHit::FillInformationFromTrack( const ACsoft::Analysis::TrdTrack& track ) {
+
+  assert( !IsSecondCoordSet );
+
+  TVector3 trackPos = track.Eval(Z());
+  TVector3 trackDir = track.DirectionVector();
+
+  DEBUG_OUT << "track at z=" << Z() << " trackPos: " << trackPos << " trackDir: " << trackDir << std::endl;
+
+  fPathlength3D = Pathlength3d(ACsoft::AC::AMSGeometry::TRDTubeRadius,XYZ_align,TubeDir,trackPos,trackDir);
+
+  fTrackDistance = Distance(XYZ_align,TubeDir,trackPos,trackDir);
+
+  XYZ_along = BasePoint1(XYZ_align,TubeDir,trackPos,trackDir);
+
+  IsSecondCoordSet = true;
+
+  DEBUG_OUT << *this << std::endl;
+}
+
 void ACsoft::Analysis::TrdHit::Draw( bool rotatedSystem ) {
 
   static int FirstColor = ::Utilities::Palette::UseNicePaletteWithLessGreen();
@@ -118,11 +146,11 @@ void ACsoft::Analysis::TrdHit::Draw( bool rotatedSystem ) {
 
   if(fEllipse) delete fEllipse;
 
-  float xy = fOrientation == AC::XZMeasurement ? Position3D().X() : Position3D().Y();
+  float xy = fOrientation == ACsoft::AC::XZMeasurement ? Position3D().X() : Position3D().Y();
 
   float xPad = rotatedSystem ? -Position3D().Z() : xy;
   float yPad = rotatedSystem ? xy : Position3D().Z();
-  fEllipse = new TEllipse(xPad,yPad,AC::AMSGeometry::TRDTubeRadius);
+  fEllipse = new TEllipse(xPad,yPad,ACsoft::AC::AMSGeometry::TRDTubeRadius);
   float colorFraction = GetAmplitude()/maxAmp;
   if(colorFraction>1.0) colorFraction = 1.0;
   if(colorFraction<0.0) colorFraction = 0.0;
@@ -156,7 +184,7 @@ bool ACsoft::Analysis::operator<( const ACsoft::Analysis::TrdHit& left, const AC
 std::ostream& ACsoft::Analysis::operator<<( std::ostream& out, const ACsoft::Analysis::TrdHit& h ) {
 
   out << "Lay " << h.Lay << " Lad " << h.Lad << " Tub " << h.Tub  << " Straw " << h.GlobalStrawNumber()
-      << " Mod " << h.Mod << " D: " << ( h.fOrientation == AC::XZMeasurement ? "XZ" : "YZ" )
+      << " Mod " << h.Mod << " D: " << ( h.fOrientation == ACsoft::AC::XZMeasurement ? "XZ" : "YZ" )
       << " AMP: raw " << h.Amp_raw << " calib " << h.Amp_calib << "\n"
       << " POS: align " << h.XYZ_align << " along " << h.XYZ_along << " tube dir " << h.TubeDir
       << " track dist " << h.fTrackDistance << " 3D pathlength " << h.fPathlength3D;

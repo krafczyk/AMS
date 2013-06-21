@@ -1,0 +1,11 @@
+# This class was renamed from MCTRDHit to MCTRDCluster in ACQt 5.6.0
+[Description]
+Namespace = AC
+Class = MCTRDCluster
+Members = \
+  Short_t fID                  \
+  UShort_t fLLT                \
+  EnergyLossVector fEnergyLoss \
+  Float_t fKineticEnergy       \
+  Float_t fDepositedEnergy     \
+  Float_t fStep

@@ -3,34 +3,86 @@
 
 #include <vector>
 
-static const int nBinsPamela = 18;
-
-double* PamelaBinning() {
-  static double gPamelaBinning[nBinsPamela+1] = {0.5, 1.0, 1.5, 1.8, 2.2, 2.7, 3.3, 4.1, 5.0, 6.1, 7.4, 9.1, 11.2, 15.0, 20.0, 28.0, 42.0, 65.0, 100.0};
-  return gPamelaBinning;
-}
-
-static const int nBinsEcal = 35;
-
-double* EcalBinning() {
-  static double gEcalBinning[nBinsEcal+1] = {0.86, 1.35, 1.95, 2.69, 3.57, 4.60, 5.78, 7.14, 8.68, 10.41, 12.36, 14.54, 16.97, 19.67, 22.67, 25.99, 29.66, 33.73, 38.22, 43.17, 48.64, 54.66, 61.30, 68.62, 76.68, 85.55, 96.59, 110.83, 130.07, 157.84, 202, 270, 370, 530, 750, 1100 };
-  return gEcalBinning;
-}
-
-static const int nBinsAlpha = 33;
-
-double* AlphaBinning() {
-  static double gAlphaBinning[nBinsAlpha+1] = {0.75, 1.00, 1.39, 1.86, 2.41, 3.04, 3.75, 4.55, 5.43, 6.42, 7.50, 8.69, 10.00, 12.01, 14.26, 16.78, 19.59, 22.71, 26.18, 31.00, 38.36, 47.03, 57.22, 69.18, 83.20, 100.00, 127.90, 162.60, 206.00, 260.00, 350.0, 500, 750, 1000};
-  return gAlphaBinning;
-}
+class TH1D;
+class TAxis;
 
 namespace ACsoft {
 
 namespace Utilities {
+  class Binning {
+  public:
+    static std::vector<double> PamelaBinning();
+    static int nBinsPamela();
+    static std::vector<double> EcalBinning();
+    static int nBinsEcal();
+    static std::vector<double> AlphaBinning();
+    static int nBinsAlpha();
+    static std::vector<double> AmsPositronFractionPaper2013Binning();
+    static int nBinsAmsPositronFractionPaper2013Binning();
 
-void CollectEquidistantBinning(std::vector<double>& vec, int nbins, double fromValue, double toValue);
+    /** Returns a vector with the lower edges for a logarithmic equidistant binning */
+    static std::vector<double> GenerateLogBinning(int nBinLog, double Tmin, double Tmax);
 
-}
+    static void CollectEquidistantBinning(std::vector<double>& vec, int nbins, double fromValue, double toValue);
+
+    /** Calculate binning according to ECAL energy resolution.
+     *
+     * \param minEnergy Minimal energy start value for binning.
+     * \param maxEnergy Maximum energy value which should be included in the highest energy bin.
+     * \param factor Fraction of sigmaE to each bin side.
+     */
+    static std::vector<double> EnergyResolutionBinning(double minEnergy, double maxEnergy, const double factor = 1.5);
+
+    /** Calculate binning according to tracker sagitta resolution.
+     *
+     * \param minRigidity Minimal rigidity start value for binning.
+     * \param maxRigidity Maximum rigidity value which should be included in the highest rigidity bin.
+     * \param mdr MDR of the desired tracker configuration
+     * \param factor Fraction of sigmaS to each bin side.
+     */
+    static std::vector<double> SagittaResolutionBinning(const double minRigidity, const double maxRigidity, const double mdr, const double factor = 1.5);
+
+    /** Calculate binning acording to fullspan tracker sagitta resolution.
+     *
+     * \param minRigidity Minimal rigidity start value for binning.
+     * \param maxRigidity Maximum rigidity value which should be included int the highest rigidity bin.
+     * \param factor Fraction of sigmaS to each bin side.
+     */
+    static std::vector<double> SagittaResolutionBinningFullspan(const double minRigidity, const double maxRigidity, const double factor = 1.5);
+
+    /** Convert the sagitta axis to rigidity and return a new histogram with this axis.
+     *  if the axis contains values of different signs the axis has to be symmetric up to now
+     *
+     * \param sagittaHistogram Histogram with axis along sagitta.
+     */
+    static TH1D* ConvertToRigidity(const TH1D* sagittaHistogram);
+
+    /** Get the the bins of a TAxis Object
+     *
+     * \param axis TAxis object from were you want to get the bins.
+     */
+    static std::vector<double> GetAxis(const TAxis* axis);
+
+    /** Get only positive bins from a TAxis object
+     *
+     * \param axis TAxis object from were you want to get the bins.
+     */
+    static std::vector<double> GetPositiveBinning(const TAxis* axis);
+
+    /** Mirror the sign of the bins
+     */
+    static std::vector<double> MirrorSign(const std::vector<double>&);
+
+    /** Inverse the bins. Use this if you want to convert a binning in sagitta to rigidity
+     */
+    static std::vector<double> Inverse(const std::vector<double>&);
+
+    /** Get a binning covering symetric negative and positive range.
+     *  If you have a positive binning from 0.1 to 100 for example you can use this to get a full binning from -100 to 100 acording to your input bins.
+     */
+    static std::vector<double> CompleteWithNegative(const std::vector<double>& positiveBinning);
+  };
+};
 
 }
 

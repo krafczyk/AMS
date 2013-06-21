@@ -13,6 +13,7 @@ private: \
   Float_t fTime; \
   Float_t fTimeError; \
   Float_t fEnergy; \
+  Float_t fCharge; \
 public: \
   TOFCluster() \
     : fStatus(0) \
@@ -23,6 +24,7 @@ public: \
     , fTime(0) \
     , fTimeError(0) \
     , fEnergy(0) \
+    , fCharge(0) \
   { \
   }
 

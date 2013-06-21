@@ -19,6 +19,7 @@ private: \
   TrdKChargeLikelihoodVector fTrdKChargeLikelihood; \
   UChar_t fTrdKChargeNumberOfHitsForLikelihoods; \
   UChar_t fTrdKChargeNumberOfOffTrackHitsForLikelihoods; \
+  Float_t fCCLikelihood; \
   ChargesNewVector fChargesNew; \
   FitsVector fTrackFits; \
   ReconstructedHitsVector fReconstructedHits; \
@@ -39,6 +40,7 @@ public: \
     , fTrdKChargeLikelihood() \
     , fTrdKChargeNumberOfHitsForLikelihoods(0) \
     , fTrdKChargeNumberOfOffTrackHitsForLikelihoods(0) \
+    , fCCLikelihood(0) \
     , fChargesNew() \
     , fTrackFits() \
     , fReconstructedHits() \

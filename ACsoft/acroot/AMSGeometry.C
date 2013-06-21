@@ -23,7 +23,8 @@ namespace ACsoft {
 
 namespace AC {
 
-const float AMSGeometry::TRDTubeRadius = 0.3;
+const float AMSGeometry::TRDTubeRadius   = 0.3;
+const float AMSGeometry::TRDTubeDiameter = 0.6;
 const float AMSGeometry::TRDMaximumStrawLength = 210.0;
 const float AMSGeometry::ZTOFUpper = 63.65;
 const float AMSGeometry::ZECALUpper = -142.792;
@@ -31,8 +32,8 @@ const float AMSGeometry::ZECALLower = -158.457;
 const float AMSGeometry::ZRICH = -73.6;
 const float AMSGeometry::ZTrackerLayer1 = 159.067;
 const float AMSGeometry::ZTrackerLayer56 = 0.0;
-const float AMSGeometry::ZTrackerLayer9 = -136.041; 
-const float AMSGeometry::ZTRDCenter = 113.55; 
+const float AMSGeometry::ZTrackerLayer9 = -136.041;
+const float AMSGeometry::ZTRDCenter = 113.55;
 const float AMSGeometry::ZTRDUpper = 136.75;
 const float AMSGeometry::ZTRDLower = 90.35;
 const float AMSGeometry::TrdLayerThickness = 2.9;
@@ -64,6 +65,69 @@ AMSGeometry* AMSGeometry::Self() {
   }
   return gInstance;
 }
+
+
+/** Get the list of straw numbers for candidate straws for intersection at point (\c x,\c y) in \c sublayer (0..39).
+  *
+  * \todo needs documentation
+  */
+bool AMSGeometry::CollectStrawCandidates( unsigned short sublayer, double x, double y, std::vector<unsigned short>& strawNumbers ) {
+
+  if( sublayer >= AC::AMSGeometry::TRDSubLayers ){
+    WARN_OUT << "Illegal sublayer number: " << sublayer << std::endl;
+    return false;
+  }
+
+  float coordinateOffset = AC::AMSGeometry::TRDMaximumStrawLength / 2.0;
+
+  strawNumbers.clear();
+
+  // FIXME explain algorithm (copied here from TrdPreselection)
+  int xIntLower = floor(x + coordinateOffset);
+  int xIntUpper = ceil(x + coordinateOffset);
+  bool xIntLowerGood = xIntLower >= 0 && xIntLower < (int)AC::AMSGeometry::TRDMaximumStrawLengthAsInteger;
+  bool xIntUpperGood = xIntUpper >= 0 && xIntUpper < (int)AC::AMSGeometry::TRDMaximumStrawLengthAsInteger;
+  if (!xIntLowerGood && !xIntUpperGood) return false;
+
+  int yIntLower = floor(y + coordinateOffset);
+  int yIntUpper = ceil(y + coordinateOffset);
+  bool yIntLowerGood = yIntLower >= 0 && yIntLower < (int)AC::AMSGeometry::TRDMaximumStrawLengthAsInteger;
+  bool yIntUpperGood = yIntUpper >= 0 && yIntUpper < (int)AC::AMSGeometry::TRDMaximumStrawLengthAsInteger;
+  if (!yIntLowerGood && !yIntUpperGood) return false;
+
+  std::vector<unsigned short>* strawNumbersLL = 0;
+  if (xIntLowerGood && yIntLowerGood) strawNumbersLL = &(TRDStrawLookupTable[sublayer][xIntLower][yIntLower]);
+
+  std::vector<unsigned short>* strawNumbersLU = 0;
+  if (xIntLowerGood && yIntUpperGood) strawNumbersLU = &(TRDStrawLookupTable[sublayer][xIntLower][yIntUpper]);
+
+  std::vector<unsigned short>* strawNumbersUL = 0;
+  if (xIntUpperGood && yIntLowerGood) strawNumbersUL = &(TRDStrawLookupTable[sublayer][xIntUpper][yIntLower]);
+
+  std::vector<unsigned short>* strawNumbersUU = 0;
+  if (xIntUpperGood && yIntUpperGood) strawNumbersUU = &(TRDStrawLookupTable[sublayer][xIntUpper][yIntUpper]);
+
+  if (!strawNumbersLL && !strawNumbersLU && !strawNumbersUL && !strawNumbersUU) return false;
+
+  if (strawNumbersLL)
+    strawNumbers.insert(strawNumbers.end(), strawNumbersLL->begin(), strawNumbersLL->end());
+
+  if (strawNumbersLU)
+    strawNumbers.insert(strawNumbers.end(), strawNumbersLU->begin(), strawNumbersLU->end());
+
+  if (strawNumbersUL)
+    strawNumbers.insert(strawNumbers.end(), strawNumbersUL->begin(), strawNumbersUL->end());
+
+  if (strawNumbersUU)
+    strawNumbers.insert(strawNumbers.end(), strawNumbersUU->begin(), strawNumbersUU->end());
+
+  std::sort(strawNumbers.begin(), strawNumbers.end());
+  std::vector<unsigned short>::iterator it = std::unique(strawNumbers.begin(), strawNumbers.end());
+  strawNumbers.resize(it - strawNumbers.begin());
+
+  return true;
+}
+
 
 /** Get a list of %TRD module numbers on given \p layer.
   *
@@ -209,7 +273,7 @@ void AMSGeometry::InitTRDGeometryFile( const std::string& path ) {
   for (unsigned int sublayer = 0; sublayer < perLayerContent.size(); ++sublayer) {
     TRDModuleGeometry geometry;
     geometry.layer = ceil((sublayer + 1) / 2.0) - 1;
-    geometry.sublayer = sublayer;
+    geometry.sublayer = sublayer % 2 ? sublayer -1 : sublayer + 1; //sublayer; // FIXME wrong!
     geometry.moduleLength = -999;
 
     if (perLayerContent[sublayer].size() < 36) {
@@ -248,7 +312,7 @@ void AMSGeometry::InitTRDGeometryFile( const std::string& path ) {
                    << "' in line " << i + 1 << " for sublayer " << sublayer + 1 << std::endl;
           throw std::runtime_error("ERROR processing TRD Module Contours file.");
         }
-  
+
         geometry.moduleLength = tokens[6].toFloat(&ok) / 10.0;
         if (!ok) {
           WARN_OUT << "ERROR while parsing TRD Module Contours file. Couldn't parse module length '" << qPrintable(tokens[6])
@@ -300,6 +364,8 @@ void AMSGeometry::InitTRDGeometryFile( const std::string& path ) {
 
       geometry.xyContour.push_back(std::make_pair(x, y));
     }
+
+    DEBUG_OUT << geometry << std::endl;
     TRDModuleGeometries[iModuleNumber - 1] = geometry;  // FIXME is the -1 still correct?
   }
 
@@ -471,14 +537,14 @@ void AMSGeometry::InitTRDLadderLayerToModuleLookupTable() {
 
 #if DEBUG > 0
   printf("    ");
-  for (unsigned int lad=0; lad<TRDLadders; lad++) printf("%4d ",lad);
+  for (unsigned int lad=0; lad<TRDTowers; lad++) printf("%4d ",lad);
   printf("\n");
   printf("----");
-  for (unsigned int lad=0; lad<TRDLadders; lad++) printf("-----");
+  for (unsigned int lad=0; lad<TRDTowers; lad++) printf("-----");
   printf("\n");
   for (int lay=TRDLayers-1; lay>=0; lay--) {
     printf("%3d ",lay);
-    for (unsigned int lad=0; lad<TRDLadders; lad++) {
+    for (unsigned int lad=0; lad<TRDTowers; lad++) {
       printf("%4d ",TRDLadderLayerToModuleLookupTable[lad][lay]);
     }
     printf("\n");
@@ -487,7 +553,7 @@ void AMSGeometry::InitTRDLadderLayerToModuleLookupTable() {
 }
 
 void AMSGeometry::TRDStrawToLadderAndLayer(unsigned short Straw, unsigned short &Lad, unsigned short &Lay) {
-  
+
   unsigned short Module = TRDStrawToModule(Straw);
   TRDModuleToLadderAndLayer(Module,Lad,Lay);
 }
@@ -538,7 +604,7 @@ void PushStrawToLookupTableIfNeeded(unsigned short int straw, unsigned short int
 }
 
 void AMSGeometry::InitTRDStrawLookupTable() {
-  
+
   // Apply a coordinate transformation to map any negative x/y values to a positive range.
   float coordinateOffset = TRDMaximumStrawLength / 2.0;
   for (unsigned short straw = 0; straw < TRDStraws; ++straw) {
@@ -1034,7 +1100,7 @@ void TrdStrawToRawCoordinates(unsigned short straw, int& direction, float& xy, f
   if ((direction==1) && (tower>=12)) xy += 0.78;
   if ((direction==1) && (tower<= 5)) xy -= 0.78;
 
-  unsigned short tube = ACsoft::AC::TRDStrawToTube(straw);
+  unsigned short tube = TRDStrawToTube(straw);
   xy += 0.31 + 0.62 * (float) tube;
 
   // Account TRD longitudinal stringers.
@@ -1049,6 +1115,7 @@ void TrdStrawToRawCoordinates(unsigned short straw, int& direction, float& xy, f
   gStrawXY->at(straw) = xy;
   gStrawZ->at(straw) = z;
 }
+
 
 unsigned short TRDStrawToLayer(unsigned short straw) {
 

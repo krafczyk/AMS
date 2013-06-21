@@ -17,6 +17,9 @@ QDataStream& operator<<(QDataStream& stream, const ECALShower& object) {
   stream << object.fEnergyAt3CMRatio;
   stream << object.fReconstructedEnergy;
   stream << object.fReconstructedEnergyError;
+  stream << object.fReconstructedEnergyElectron;
+  stream << object.fReconstructedEnergyPhoton;
+  stream << object.fReconstructedEnergyStandaloneEstimator;
   stream << object.fRelativeRearLeak;
   stream << object.fShowerMaximum;
   stream << object.fChiSquareProfile;
@@ -41,25 +44,34 @@ QDataStream& operator>>(QDataStream& stream, ECALShower& object) {
   stream >> object.fStatus;
   stream >> object.fNumberOfHits;
 
-  FloatArrayStream<18> subStream1(stream);
+  FloatArrayStream<4> subStream1(stream);
   object.fDepositedEnergy = subStream1.read();
   object.fEnergyAt3CMRatio = subStream1.read();
   object.fReconstructedEnergy = subStream1.read();
   object.fReconstructedEnergyError = subStream1.read();
-  object.fRelativeRearLeak = subStream1.read();
-  object.fShowerMaximum = subStream1.read();
-  object.fChiSquareProfile = subStream1.read();
-  object.fTheta = subStream1.read();
-  object.fPhi = subStream1.read();
-  object.fX = subStream1.read();
-  object.fY = subStream1.read();
-  object.fZ = subStream1.read();
-  object.fEntryX = subStream1.read();
-  object.fEntryY = subStream1.read();
-  object.fEntryZ = subStream1.read();
-  object.fExitX = subStream1.read();
-  object.fExitY = subStream1.read();
-  object.fExitZ = subStream1.read();
+
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fReconstructedEnergyElectron;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fReconstructedEnergyPhoton;
+  if (::AC::CurrentACQtVersion() >= 58)
+    stream >> object.fReconstructedEnergyStandaloneEstimator;
+
+  FloatArrayStream<14> subStream2(stream);
+  object.fRelativeRearLeak = subStream2.read();
+  object.fShowerMaximum = subStream2.read();
+  object.fChiSquareProfile = subStream2.read();
+  object.fTheta = subStream2.read();
+  object.fPhi = subStream2.read();
+  object.fX = subStream2.read();
+  object.fY = subStream2.read();
+  object.fZ = subStream2.read();
+  object.fEntryX = subStream2.read();
+  object.fEntryY = subStream2.read();
+  object.fEntryZ = subStream2.read();
+  object.fExitX = subStream2.read();
+  object.fExitY = subStream2.read();
+  object.fExitZ = subStream2.read();
 
   stream >> object.fEstimators;
   return stream;

@@ -5,7 +5,9 @@
 #include <vector>
 
 namespace Cuts {
-  class Selector;
+
+class Selector;
+
 }
 
 namespace ACsoft {
@@ -25,7 +27,12 @@ public:
 
   SelectionParser( Utilities::ConfigHandler& handler );
 
-  ::Cuts::Selector* GetSelector( std::string name ) const;
+   ::Cuts::Selector* GetSelector( std::string name ) const;
+
+  const std::vector<std::string>& GetListOfSelectorNames() const { return fListOfSelectorNames; }
+
+  typedef ::Cuts::Selector* SelectorType;
+  const std::vector<SelectorType>& GetListOfSelectors() const { return fSelectors; }
 
 private:
 
@@ -35,8 +42,7 @@ private:
 
   std::vector<std::string> fListOfSelectorNames;
 
-  typedef ::Cuts::Selector SelectorType;
-  std::vector<SelectorType*> fSelectors;
+  std::vector<SelectorType> fSelectors;
 
 };
 

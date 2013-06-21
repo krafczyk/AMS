@@ -54,13 +54,13 @@ public:
   static T* MakeNewTimeHistogram2D( std::string name, std::string title, std::string yaxisLabel, int nbinsY, double ymin, double ymax );
 
   template<class T>
-  static T* MakeNewTimeHistogram2D( std::string name, std::string title, std::string yaxisLabel, int nbinsY, double* yBinning );
+  static T* MakeNewTimeHistogram2D( std::string name, std::string title, std::string yaxisLabel, int nbinsY, const double* yBinning );
 
   template<class T>
   static T* MakeNewTimeHistogram3D( std::string name, std::string title, std::string yaxisLabel, std::string zaxisLabel, int nbinsY, double ymin, double ymax, int nbinsZ, double zmin, double zmax);
 
   template<class T>
-  static T* MakeNewTimeHistogram3D( std::string name, std::string title, std::string yaxisLabel, std::string zaxisLabel, int nbinsY, double* yBinning, int nbinsZ, double* zBinning );
+  static T* MakeNewTimeHistogram3D( std::string name, std::string title, std::string yaxisLabel, std::string zaxisLabel, int nbinsY, const double* yBinning, int nbinsZ, const double* zBinning );
 
   static TH1*  Merge1DTimeHistograms( std::vector<TH1*>& histos );
   static TH2*  Merge2DTimeHistograms( std::vector<TH2*>& histos );
@@ -198,7 +198,7 @@ T* Utilities::TimeHistogramManager::MakeNewTimeHistogram2D( std::string name, st
   * \param yBinning Array with bin boundaries on y-axis.
   */
 template<class T>
-T* Utilities::TimeHistogramManager::MakeNewTimeHistogram2D( std::string name, std::string title, std::string yaxisLabel, int nbinsY, double* yBinning ) {
+T* Utilities::TimeHistogramManager::MakeNewTimeHistogram2D( std::string name, std::string title, std::string yaxisLabel, int nbinsY, const double* yBinning ) {
 
   int ntimebins;
   double timemin, timemax;
@@ -267,7 +267,7 @@ T* Utilities::TimeHistogramManager::MakeNewTimeHistogram3D( std::string name, st
   *
   */
 template<class T>
-T* Utilities::TimeHistogramManager::MakeNewTimeHistogram3D( std::string name, std::string title, std::string yaxisLabel, std::string zaxisLabel, int nbinsY, double* yBinning, int nbinsZ, double* zBinning ) {
+T* Utilities::TimeHistogramManager::MakeNewTimeHistogram3D( std::string name, std::string title, std::string yaxisLabel, std::string zaxisLabel, int nbinsY, const double* yBinning, int nbinsZ, const double* zBinning ) {
 
   int ntimebins;
   double timemin, timemax;

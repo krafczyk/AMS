@@ -31,23 +31,17 @@ public:
     */
   Float_t Y() const { return fY; }
 
-  /** Cluster X signal [ADC counts].
-    * Returns the signal of X.
+  /** TrackerTrack Charge in Layer of hit:  .
     */
-  Float_t SignalX() const { return fSignalX; }
-
-  /** Cluster Y signal [ADC counts].
-    * Returns the signal of Y.
-    */
-  Float_t SignalY() const { return fSignalY; }
+  Float_t QLayerJ() const { return fabs(fQLayerJ); }
 
   /** Cluster Y residal [microns] wrt to std fit iTrTrackPar(0)
     */
   Short_t ResidualY() const { return fResidualY; }
 
-  /** Signal in X and Y?
+  /** Signal in X and Y - stored in positive sign of fQLayerJ ?
     */
-  bool IsXAndYSignal() const { return fSignalX>0. && fSignalY>0.; }
+  bool IsXAndYSignal() const { return fQLayerJ > 0.; }
 
 private:
   REGISTER_CLASS_WITH_TABLE(TrackerReconstructedHit)

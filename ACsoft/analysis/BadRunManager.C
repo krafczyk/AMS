@@ -20,23 +20,27 @@
 ACsoft::Analysis::BadRunManager::BadRunManager() {
 
   // initialize index map from enum SubD:
-  SubDNameToEnum["General"] = General;
-  SubDNameToEnum["DAQ"]     = DAQ    ;
-  SubDNameToEnum["TRD"]     = TRD    ;
-  SubDNameToEnum["TOF"]     = TOF    ;
-  SubDNameToEnum["ACC"]     = ACC    ;
-  SubDNameToEnum["Tracker"] = Tracker;
-  SubDNameToEnum["Rich"]    = Rich   ;
-  SubDNameToEnum["Ecal"]    = Ecal   ;
+  SubDNameToEnum["General"]                = General;
+  SubDNameToEnum["DAQ"]                    = DAQ;
+  SubDNameToEnum["TRDB"]                   = TRDB;
+  SubDNameToEnum["TRDC"]                   = TRDC;
+  SubDNameToEnum["TRDD"]                   = TRDD;
+  SubDNameToEnum["TOF"]                    = TOF;
+  SubDNameToEnum["ACC"]                    = ACC;
+  SubDNameToEnum["Tracker"]                = Tracker;
+  SubDNameToEnum["Rich"]                   = Rich;
+  SubDNameToEnum["Ecal"]                   = Ecal;
 
-  EnumToSubDName[General] = "General";
-  EnumToSubDName[DAQ]     = "DAQ"    ;
-  EnumToSubDName[TRD]     = "TRD"    ;
-  EnumToSubDName[TOF]     = "TOF"    ;
-  EnumToSubDName[ACC]     = "ACC"    ;
-  EnumToSubDName[Tracker] = "Tracker";
-  EnumToSubDName[Rich]    = "Rich"   ;
-  EnumToSubDName[Ecal]    = "Ecal"   ;
+  EnumToSubDName[General]                = "General";
+  EnumToSubDName[DAQ]                    = "DAQ";
+  EnumToSubDName[TRDB]                   = "TRDB";
+  EnumToSubDName[TRDC]                   = "TRDC";
+  EnumToSubDName[TRDD]                   = "TRDD";
+  EnumToSubDName[TOF]                    = "TOF";
+  EnumToSubDName[ACC]                    = "ACC";
+  EnumToSubDName[Tracker]                = "Tracker";
+  EnumToSubDName[Rich]                   = "Rich";
+  EnumToSubDName[Ecal]                   = "Ecal";
 
   fCurrentRun   = 0;
   fCurrentUTime = 0;
@@ -70,30 +74,39 @@ ACsoft::Analysis::BadRunManager::SubD ACsoft::Analysis::BadRunManager::StringToS
 
 void ACsoft::Analysis::BadRunManager::AddDefaultBadRunLists() {
 
+  // Last update: 28.05.2013 (for 5.7.0 alignment_v10 / gain_v10 / pdf_v19 production)
   INFO_OUT << "Adding default run lists..." << std::endl;
 
-//  AddBadRunList("General_ShortRun_1305853512:1347160405");
-  AddBadRunList("General_commissioning_1305853512:1337244535");
-//  AddBadRunList("General_desync_1305853512:1337244535");
-//  AddBadRunList("General_events_with_error_1305853512:1347158991");
-//  AddBadRunList("General_events_without_particle_1305853512:1347158991");
-//  AddBadRunList("General_missing_events_1305853512:1347158991");
-//  AddBadRunList("General_not_vertical_1305853512:1347158991");
+  // In principle all of the periods should be covered by RTI, but it doesn't hurt to
+  // exclude them, when taking this into account while computing the measuring time.
 
+  // 'General' category
+  AddBadRunList("General_ShortRun_1305853512:1347160405");
+  AddBadRunList("General_commissioning_1305853512:1337244535");
+  AddBadRunList("General_desync_1305853512:1347158991");
+  AddBadRunList("General_events_with_error_1305853512:1347158991");
+  AddBadRunList("General_events_without_particle_1305853512:1347158991");
+  AddBadRunList("General_missing_events_1305853512:1347158991");
+  AddBadRunList("General_not_vertical_1305853512:1347158991");
+
+  // 'DAQ' category
   AddBadRunList("DAQ_pulser_on_1305853512:1337244535");
 
+  // 'Tracker' category
   AddBadRunList("Tracker_BadStrips_1305853512:1347160405");
 
+  // 'Ecal' category
   AddBadRunList("Ecal_E0_event_mismatch_1305853512:1337449847");
-//  AddBadRunList("Ecal_EDR_1_0_A_wrong_config_1305853512:1337449847");
-//  AddBadRunList("Ecal_EIB_RP3_LV_power_cycle_1305853512:1337449847");
-//  AddBadRunList("Ecal_EIB_RP3_wrong_setting_1305853512:1337449847");
-//  AddBadRunList("Ecal_Trigger_test_1305853512:1337449847");
+  AddBadRunList("Ecal_EDR_1_0_A_wrong_config_1305853512:1337449847");
+  AddBadRunList("Ecal_EIB_RP3_LV_power_cycle_1305853512:1337449847");
+  AddBadRunList("Ecal_EIB_RP3_wrong_setting_1305853512:1337449847");
+  AddBadRunList("Ecal_Trigger_test_1305853512:1337449847");
 
-//  AddBadRunList("TRD_BadForEPseparation_1305800727:1354552232");
-  AddBadRunList("TRD_UnusableForAnalysis_1305800727:1354552232");
-//  AddBadRunList("TRD_WeakForEPseparation_1305800727:1354552232");
-//  AddBadRunList("TRD_Test");
+  AddBadRunList("TRDB_1305800727:1369748140");
+
+  AddBadRunList("TRDC_1305800727:1369748140");
+
+  AddBadRunList("TRDD_1305800727:1369748140");
 }
 
 
@@ -127,7 +140,7 @@ int ACsoft::Analysis::BadRunManager::AddBadRunList( const std::string& fileName 
             long UT0=0,UT1=0;
             if( BadRunEntry.size()==1 ){        // whole run bad
               UT0=1000000000; //FIXME why not 0?
-              UT1=3000000000; //FIXME why not long_max ?
+              UT1=3000000000UL; //FIXME why not long_max ?
             }
             else if( BadRunEntry.size()==2 ){  // extended entry with start- and end-time: RunID_UT0:UT1
               std::vector<std::string> UTimeRange = split(BadRunEntry[1],":");
@@ -167,13 +180,7 @@ int ACsoft::Analysis::BadRunManager::AddBadRunList( const std::string& fileName 
 
 bool ACsoft::Analysis::BadRunManager::IsBad( SubD subdetector, const ACsoft::Analysis::Particle& particle ){
 
-  if( !particle.HasRawEventData() )
-    return particle.BadRunTag() & 1 << int(subdetector);
-
-  long Run = particle.RawEvent()->RunHeader()->Run();
-  time_t UTime = particle.RawEvent()->EventHeader().TimeStamp().GetSec();
-
-  return IsBad(subdetector,Run,UTime);
+  return IsBad(subdetector, particle.Run(), particle.TimeStamp());
 }
 
 

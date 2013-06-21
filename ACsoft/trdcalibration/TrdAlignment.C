@@ -33,6 +33,7 @@
 
 ACsoft::Calibration::TrdAlignment::TrdAlignment( Utilities::ConfigHandler* ) :
   fIsInitialized(false),
+  fTrdHitFactory(),
   fNumberOfTrdHitsWithinCut(0),
   fNumberOfTrdLayersWithHitWithinCut(0),
   fNumberOfHitsOnLayersWithHitWithinCut(0),
@@ -102,9 +103,8 @@ void ACsoft::Calibration::TrdAlignment::Process( const Analysis::Particle& parti
 
   if(!fIsInitialized)
     Initialize();
- 
-  const AC::EventHeader& evthdr = particle.RawEvent()->EventHeader();
-  TTimeStamp evttime = evthdr.TimeStamp();
+
+  TTimeStamp evttime = particle.TimeStamp();
 
   static const float CutTrdTrkD = 3.0;
 
@@ -121,9 +121,12 @@ void ACsoft::Calibration::TrdAlignment::Process( const Analysis::Particle& parti
   std::map<int,int> moduleNumberToNhitsMap;
   std::map<int,Double_t> moduleNumberToLastTrackResidual;
 
-  for( unsigned int i=0 ; i<particle.TrdHits().size(); ++i ){
+  std::vector<Analysis::TrdHit> trdHits;
+  fTrdHitFactory.ProduceTrdHitsFrom(*(particle.RawEvent()),*splineTrack,Analysis::TrackInfo,trdHits);
 
-    const Analysis::TrdHit& hit = particle.TrdHits().at(i);
+  for( unsigned int i=0 ; i<trdHits.size(); ++i ){
+
+    const Analysis::TrdHit& hit = trdHits.at(i);
 
     // check distance to track
 //    Double_t trackResid = hit.DistanceToTrack();
@@ -193,7 +196,7 @@ void ACsoft::Calibration::TrdAlignment::Process( const Analysis::Particle& parti
   fNumberOfTrdLayersWithHitWithinCut->Fill(evttime,Double_t(numberOfTrdLayersWithHitWithinCut));
   int binEvtTime = fEventTimeHisto->GetXaxis()->FindBin(Double_t(evttime));
   fEventTimeHisto->Fill(Double_t(evttime),Double_t(evttime)-fEventTimeHisto->GetXaxis()->GetBinLowEdge(binEvtTime));
-  fIssPositionHisto->Fill(evthdr.ISSLongitude(),evthdr.ISSLatitude());
+  fIssPositionHisto->Fill(particle.LongitudeDegree(),particle.LatitudeDegree());
   fNumberOfTrdLayersWithAtLeastOneHitWithNonzeroPathlength->Fill(Double_t(evttime),numberOfTrdLayersWithAtLeastOneHitWithNonzeroPathlength);
   fNumberOfTrdLayersWithAtLeastOneHitWithPathlengthAboveCut->Fill(Double_t(evttime),numberOfTrdLayersWithAtLeastOneHitWithPathlengthAboveCut);
 
@@ -221,7 +224,7 @@ void ACsoft::Calibration::TrdAlignment::WriteResultsToCurrentFile() {
 
 
 
-static inline void SaveCanvas(TCanvas* canvas, const std::string& prefix, const std::string& name, const std::string& postfix) {
+static inline void WriteCanvas(TCanvas* canvas, const std::string& prefix, const std::string& name, const std::string& postfix) {
 
   assert(canvas);
   std::stringstream fileName;
@@ -546,7 +549,7 @@ int ACsoft::Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
     std::stringstream stream;
     stream << moduleId << "_timebin_" << testbin;
     if (snapshot)
-      SaveCanvas(t, "fit_module_", stream.str(), "_results");
+      WriteCanvas(t, "fit_module_", stream.str(), "_results");
   }
 
   TCanvas* ac = new TCanvas( "auxCanvas", "aux canvas", 1400, 1000 );
@@ -611,7 +614,7 @@ int ACsoft::Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
   fitChisquareGraph->GetXaxis()->SetTimeDisplay(1);
   fitChisquareGraph->GetXaxis()->SetTimeFormat("%y-%m-%d%F1970-01-01 00:00:00");
 
-  if( !testbin ){
+  if( !testbin || interactive ){
     TCanvas* fc = new TCanvas( "finalCanvas", "final", 1400, 1000 );
     fc->cd();
     if(fitMeanGraphGoodFit->GetN()>0){
@@ -642,9 +645,9 @@ int ACsoft::Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
     fitMeanGraphBadFit->SetMarkerColor(kRed);
     replacementMeanGraph->SetMarkerStyle(2);
     replacementMeanGraph->SetMarkerColor(kGreen);
-  
+
     if (snapshot && !test)
-      SaveCanvas(fc, "fit_module_", moduleId, "_shifts");
+      WriteCanvas(fc, "fit_module_", moduleId, "_shifts");
   }
 
   if( !interactive && !snapshot ) {
@@ -679,9 +682,10 @@ int ACsoft::Calibration::TrdAlignment::AnalyzeAlignmentShiftHistograms(
     return 0;
   }
 
-  if (snapshot && test) {
-    SaveCanvas(ac, "fit_module_", moduleId, "_parameters");
-    SaveCanvas(c, "fit_module_", moduleId, "_results");
+  if (snapshot && !test) {
+    WriteCanvas(ac, "fit_module_", moduleId, "_parameters");
+    WriteCanvas(c, "fit_module_", moduleId, "_results");
   }
   return 0;
 }
+

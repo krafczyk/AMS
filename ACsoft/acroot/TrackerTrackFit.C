@@ -1,4 +1,5 @@
 #include "TrackerTrackFit.h"
+#include "Settings.h"
 
 namespace ACsoft {
 
@@ -39,6 +40,33 @@ BEGIN_DEBUG_TABLE(TrackerTrackFit)
   COL( "L9X [cm] ",        Float_t, XLayer9)
   COL( "L9Y [cm] ",        Float_t, YLayer9)
 END_DEBUG_TABLE
+
+// FIXME: The way I determine the ACQt version is not correct. We have to determine the ACQt version for every file.
+// We'd need to pass in an AC::Event* pointer here, so we can access the ACQt version used
+// for that file. Otherwise it will not be possible to mix different FileManagers, loading
+// different ACQt versions. For now this is sufficient, as nobody wants to mix.
+
+Int_t TrackerTrackFit::Algorithm() const {
+
+  if (::AC::CurrentACQtVersion() >= 56)
+    return fParameters >> 12;
+  return (fParameters >> 6) & 7;
+
+}
+
+Int_t TrackerTrackFit::Pattern() const {
+
+  if (::AC::CurrentACQtVersion() >= 56)
+    return (fParameters & 0xfff) >> 8;
+  return (fParameters >> 3) & 7;
+}
+
+Int_t TrackerTrackFit::Refit() const {
+
+  if (::AC::CurrentACQtVersion() >= 56)
+    return fParameters & 0xff;
+  return fParameters & 7;
+}
 
 }
 

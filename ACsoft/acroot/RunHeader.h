@@ -11,6 +11,29 @@ class ACQtWriter;
 
 namespace AC {
 
+enum RunTypeIdentifier {
+  ISSRun = 0,
+  MCRun = 1,
+  BTRun = 2
+};
+
+#ifndef __CINT__
+// QDataStream operators
+inline QDataStream& operator<<(QDataStream& stream, const RunTypeIdentifier& object) {
+
+  stream << (UShort_t) object;
+  return stream;
+}
+
+inline QDataStream& operator>>(QDataStream& stream, RunTypeIdentifier& object) {
+
+  UShort_t runType;
+  stream >> runType;
+  object = (RunTypeIdentifier) runType;
+  return stream;
+}
+#endif
+
 /** Run header data
   */
 class RunHeader {
@@ -29,6 +52,11 @@ public:
     * \todo Add documentation.
     */
   UShort_t RunTag() const { return fRunTag; }
+
+  /** Run type.
+    * Used to differentiate between ISS/MC/BT runs.
+    */
+  RunTypeIdentifier RunType() const { return static_cast<RunTypeIdentifier>(fRunType); }
 
   /** Run number.
     */
@@ -96,7 +124,40 @@ public:
     */
   const StreamsVector& SelectedStreams() const { return fSelectedStreams; }
 
+  /** Returns the number of triggered events, as specified in the MC datacard, for MC runs.
+    * Otherwhise this returns 0.
+    */
+  ULong64_t MCNumberOfTriggeredEvents() const { return fMCNumberOfTriggeredEvents; }
+
+  /** Returns the lower boundary of the generated MC momentum spectrum, as specified in the MC datacard, for MC runs.
+    * Otherwhise this returns 0.
+    */
+  Float_t MCMinimumMomentum() const { return fMCMinimumMomentum; }
+
+  /** Returns the upper boundary of the generated MC momentum spectrum, as specified in the MC datacard, for MC runs.
+    * Otherwhise this returns 0.
+    */
+  Float_t MCMaximumMomentum() const { return fMCMaximumMomentum; }
+
 private:
+  /** Accessor to runtype as string.
+    */
+  std::string RunTypeString() const {
+    return RunTypeAsString(RunType());
+  }
+
+public:
+  /** Run type as string.
+    */
+  static std::string RunTypeAsString( RunTypeIdentifier id ) {
+    switch (id) {
+    case ISSRun: return "ISS";
+    case MCRun: return "MC";
+    case BTRun: return "BT";
+    }
+    return "";
+  }
+
   friend class ACsoft::ACQtWriter;
   REGISTER_CLASS_WITH_TABLE(RunHeader)
 };

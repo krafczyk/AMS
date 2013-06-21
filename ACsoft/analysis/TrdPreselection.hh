@@ -7,7 +7,6 @@
 #include "AMSGeometry.h"
 #include "Settings.h"
 
-
 namespace ACsoft {
 
 namespace Analysis {
@@ -33,7 +32,7 @@ struct TRDCandidateHit {
   }
   // FIXME We do not really need this structure, TrdHit can easily be expanded to do the same!
 
-  unsigned short straw;
+  unsigned short straw; // global straw number (0..5247)
   float pathLength;
   float pathLengthTrdTrack;
   float deDx;
@@ -76,10 +75,10 @@ public:
     * candidate straws vector. Calling PathLengthInGasVolumes()/CandidateLayers()/etc.. after
     * this will return the information from the last processed particle.
     *
-    * Note: This function returns false if the extrapolated track position is not within
+    * Note: This function returns true if the extrapolated track position is within
     * the geometrical TRD acceptance.
-    */ 
-  bool Process( const Analysis::Particle& particle, bool AddNearTrackHitsToCandidateList );
+    */
+  bool Process( const Analysis::Particle& particle, bool AddNearTrackHitsToCandidateList, bool ExcludeDeadStraws );
 
   /** Returns the sum of path length in all layers for a given track fit. */
   float GetCandidatePathLength() const;
@@ -92,7 +91,7 @@ public:
   /** Returns the number of candidate straws for a given track fit.
     */
   unsigned short GetNumberOfCandidateStraws() const;
- 
+
   /** Returns the coordinate extrapolated from the tracker track into a given TRD layer.
     */
   TVector2 PointInLayer(unsigned short layer) const;
@@ -112,26 +111,19 @@ public:
   bool IsInsideTrdGeometricalAcceptance() const;
 
 private:
-  void ProcessWithLookupTable(const Analysis::Particle&, bool AddNearTrackHitsToCandidateList);
+  void ProcessWithLookupTable(const Analysis::Particle&, bool AddNearTrackHitsToCandidateList, bool ExcludeDeadStraws);
   void BuildIsInsideSubLayerInformation();
   void StoreNeighboringStraws(std::vector<TRDCandidateHit>& CandidateHits, const std::vector<unsigned short>& strawNumbers);
 
   const Analysis::SplineTrack* fSplineTrack; // we only borrow this from high-level event, do not delete!
 
   std::vector<TRDCandidateHit> fCandidateHitsPerSubLayer[AC::AMSGeometry::TRDSubLayers];
-  bool fMcEvent;
 
   std::vector<unsigned short> strawNumbers;
   std::vector<TRDCandidateHit> CandidateHitsPerSubLayerOnTrack[AC::AMSGeometry::TRDSubLayers];
   std::vector<TRDCandidateHit> CandidateHitsPerSubLayerNearTrack[AC::AMSGeometry::TRDSubLayers];
   std::vector<TRDCandidateHit> CandidateHitsOnTrack;
   std::vector<TRDCandidateHit> CandidateHitsNearTrack;
-
-  static const int  nDeadStraws = 9;
-  unsigned int      deadStraws[nDeadStraws];
-  float             DeadStart[nDeadStraws], DeadEnd[nDeadStraws];
-  bool IsDeadStraw(const unsigned int straw, float SecondCoordinate);
-
 };
 
 }

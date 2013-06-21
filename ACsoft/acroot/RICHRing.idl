@@ -4,8 +4,10 @@ Class = RICHRing
 Members = \
   UInt_t fStatus                                    \
   UShort_t fNumberOfHits                            \
+  [56+UShort_t fNumberOfUsedHits]                   \
   Float_t fBeta                                     \
   Float_t fBetaError                                \
+  [56+Float_t fBetaConsistency]                     \
   Float_t fX                                        \
   Float_t fY                                        \
   Float_t fZ                                        \
@@ -14,4 +16,11 @@ Members = \
   Float_t fProbability                              \
   Float_t fChargeEstimate                           \
   [53-ChargesVector fCharges]                       \
-  [53-ChargesProbabilityVector fChargesProbability]
+  [53-ChargesProbabilityVector fChargesProbability] \
+  [56+Float_t fNPhotoElectrons]                     \
+  [56+Float_t fNExpectedPhotoElectrons]             \
+  [56+Float_t fNCollectedPhotoElectrons]            \
+  [56+bool fIsNaF]                                  \
+  [56+Float_t fWidth]                               \
+  [56+Float_t fWidthUnusedHits]                     \
+  [56+Float_t fDistanceToTileBorder]               

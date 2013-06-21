@@ -13,6 +13,7 @@ QDataStream& operator<<(QDataStream& stream, const Tracker& object) {
 
   stream << object.fClusters;
   stream << object.fTracks;
+  stream << object.fVertices;
   return stream;
 }
 
@@ -21,6 +22,8 @@ QDataStream& operator>>(QDataStream& stream, Tracker& object) {
 
   stream >> object.fClusters;
   stream >> object.fTracks;
+  if (::AC::CurrentACQtVersion() >= 55)
+    stream >> object.fVertices;
   return stream;
 }
 

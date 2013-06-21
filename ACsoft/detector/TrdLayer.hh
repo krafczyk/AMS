@@ -3,6 +3,7 @@
 
 #include <TVector3.h>
 #include <TRotation.h>
+#include <TRDRawHit.h>
 
 #include <vector>
 
@@ -36,6 +37,8 @@ public:
   TRotation GlobalRotation() const;
 
   int LayerNumber() const { return fLayerNumber; }
+  AC::MeasurementMode Direction() const { return fDirection; }
+
   unsigned int NumberOfSublayers() const { return fSublayers.size(); }
 
   /** Get TrdSublayer with the given global number (0..1). */
@@ -71,6 +74,7 @@ private:
 
   TVector3 fGlobalPosition; ///< current position in AMS tracker frame
   TRotation fGlobalRotation; ///< current orientation in AMS tracker frame
+  AC::MeasurementMode fDirection; ///< describes how layer is oriented (before alignment)
 
   int fLayerNumber;     ///< global layer number (0..19)
 

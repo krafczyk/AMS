@@ -18,15 +18,17 @@ ACsoft::Detector::TrdLayer::TrdLayer( int layerNumber, Trd* mother ) :
   fMother(mother)
 {
 
-  assert( layerNumber >= 0 && layerNumber < int(AC::AMSGeometry::TRDLayers) );
+  assert( layerNumber >= 0 && layerNumber < int(ACsoft::AC::AMSGeometry::TRDLayers) );
 
-  double zrel = (double(layerNumber)-9.5) * AC::AMSGeometry::TrdLayerThickness;
+  double zrel = (double(layerNumber)-9.5) * ACsoft::AC::AMSGeometry::TrdLayerThickness;
   fNominalRelativePosition = TVector3(0.0,0.0,zrel);
   fOffsetRelativePosition  = TVector3(0.0,0.0,0.0);
   fNominalRelativeRotation.SetToIdentity();
   if( layerNumber <= 3 || layerNumber >= 16 ){
     fNominalRelativeRotation.RotateZ(90.0*TMath::DegToRad());
   }
+
+  fDirection = ( fLayerNumber <= 3 || fLayerNumber >= 16 ? ACsoft::AC::YZMeasurement : ACsoft::AC::XZMeasurement );
 
   fExtraRelativeRotation.SetToIdentity();
 
@@ -119,3 +121,4 @@ void ACsoft::Detector::TrdLayer::UpdateGlobalPositionAndDirection() {
     sublayer->UpdateGlobalPositionAndDirection();
   }
 }
+

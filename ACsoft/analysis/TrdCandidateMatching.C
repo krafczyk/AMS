@@ -21,8 +21,9 @@
 #define INFO_OUT_TAG "TrdCandidateMatching> "
 #include <debugging.hh>
 
-ACsoft::Analysis::TrdCandidateMatching::TrdCandidateMatching()
-  : fNumberOfMatchedHits(0)
+ACsoft::Analysis::TrdCandidateMatching::TrdCandidateMatching() :
+  fTrdHitFactory()
+  , fNumberOfMatchedHits(0)
   , fTrdStandAloneFitXZ(-1,-1)
   , fTrdCombinedFitXZ(-1,-1)
   , fTrkFitXZ(-1,-1)
@@ -30,11 +31,9 @@ ACsoft::Analysis::TrdCandidateMatching::TrdCandidateMatching()
   , fTrdCombinedFitYZ(-1,-1)
   , fTrkFitYZ(-1,-1)
 {
-  fTrdAdcScaleFactor = 1.0;
-
-  fActiveHitsPerLayer.reserve(AC::AMSGeometry::TRDLayers);
-  fActiveHitsPerLayer.assign(AC::AMSGeometry::TRDLayers, std::vector<ACsoft::Analysis::TrdHit>());
-  for (unsigned int layer = 0; layer < AC::AMSGeometry::TRDLayers; ++layer)
+  fActiveHitsPerLayer.reserve(ACsoft::AC::AMSGeometry::TRDLayers);
+  fActiveHitsPerLayer.assign(ACsoft::AC::AMSGeometry::TRDLayers, std::vector<ACsoft::Analysis::TrdHit>());
+  for (unsigned int layer = 0; layer < ACsoft::AC::AMSGeometry::TRDLayers; ++layer)
     fActiveHitsPerLayer.at(layer).reserve(2);
 
   fMeanPathLength    = 0.3;
@@ -43,7 +42,6 @@ ACsoft::Analysis::TrdCandidateMatching::TrdCandidateMatching()
   fXfitLayer1        = 0;
   fYfitLayer1        = 0;
   fHitLayer1         = false;
-
 }
 
 ACsoft::Analysis::TrdCandidateMatching::~TrdCandidateMatching() {
@@ -54,15 +52,26 @@ void ACsoft::Analysis::TrdCandidateMatching::DetermineActiveHitsPerLayer(const A
 
   // FIXME: proper implementation using PDG formula for multiple scattering, include Z dependence
   // due to multiple scattering the region of interest is rigidity dependent
-  float aRig = fabs(particle.MainTrackerTrackFit()->Rigidity());
+  float aRig = fabs(particle.Rigidity());
   static double R1     =5.0, R2     =50.0;
   static double deltaR1=0.1, deltaR2= 0.0;
 
-  for (unsigned int layer = 0; layer < AC::AMSGeometry::TRDLayers; ++layer)
+  for (unsigned int layer = 0; layer < ACsoft::AC::AMSGeometry::TRDLayers; ++layer)
     fActiveHitsPerLayer.at(layer).clear();
 
-  for (unsigned int iHit = 0; iHit < particle.TrdHits().size(); ++iHit) {
-    const ACsoft::Analysis::TrdHit& hit = particle.TrdHits().at(iHit);
+  const ACsoft::Analysis::SplineTrack* splineTrack = particle.GetSplineTrack();
+  if( !splineTrack ){
+    DEBUG_OUT << "No valid SplineTrack present!" << std::endl;
+    return;
+  }
+
+  std::vector<ACsoft::Analysis::TrdHit> trdHits;
+  fTrdHitFactory.ProduceTrdHitsFrom(*(particle.RawEvent()),*splineTrack,ACsoft::Analysis::TrackInfo|ACsoft::Analysis::GainCorrection,trdHits);
+
+  for( unsigned int i=0 ; i<trdHits.size(); ++i ){
+
+    const ACsoft::Analysis::TrdHit& hit = trdHits.at(i);
+
     float distance = hit.DistanceToTrack();
     unsigned short layer = hit.Layer();
     float delta = std::max(0.0,deltaR2/(R2-R1)*(aRig-R1) + deltaR1/(R2-R1)*(R2-aRig));
@@ -80,7 +89,7 @@ void ACsoft::Analysis::TrdCandidateMatching::DetermineCandidateHitsPerLayer() {
   fPreselection.GetCandidateHits(fCandidateHits);
 
   fCandidateHitsPerLayer.clear();
-  for (unsigned int i=0; i<AC::AMSGeometry::TRDLayers; i++) fCandidateHitsPerLayer.push_back(std::vector<ACsoft::Analysis::TRDCandidateHit>());
+  for (unsigned int i=0; i<ACsoft::AC::AMSGeometry::TRDLayers; i++) fCandidateHitsPerLayer.push_back(std::vector<ACsoft::Analysis::TRDCandidateHit>());
 
   for (unsigned int iHit=0; iHit<fCandidateHits.size(); iHit++) {
     unsigned short straw = fCandidateHits[iHit].straw;
@@ -92,21 +101,21 @@ void ACsoft::Analysis::TrdCandidateMatching::DetermineCandidateHitsPerLayer() {
 
 void ACsoft::Analysis::TrdCandidateMatching::PrintMatching(const ACsoft::Analysis::Particle& particle) {
 
-  int   Run      = particle.RawEvent()->RunHeader()->Run();
-  int   Event    = particle.RawEvent()->EventHeader().Event();
-  float Rigidity = particle.MainTrackerTrackFit()->Rigidity();
+  int   Run      = particle.Run();
+  int   Event    = particle.Event();
+  float Rigidity = particle.Rigidity();
 
   printf("Run=%12d Event=%12d Rigidity=%9.2f Track Hit in Plane 1: %2d\n",Run,Event,Rigidity,int(fHitLayer1));
   printf("      ||                                              Candidate Hits                                                                                 ||                    Active Hits \n");
   printf("layer || straw | Active Straw |  dEdX  | PLenTrk | PLenTrd |  Chi2  |    XY   | straw | Active Straw |  dEdX  | PLenTrk | PLenTrd |  Chi2  |    XY   |");
   int maxHitsPerLayer = 0;
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     if (int(fActiveHitsPerLayer[layer].size())>maxHitsPerLayer) maxHitsPerLayer = int(fActiveHitsPerLayer[layer].size());
 
   }
   for (int i=0; i<maxHitsPerLayer; i++) printf("| straw |   dE   |    XY   | match |  Chi2  |");
   std::cout << std::endl;
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     printf(" %4d |",layer);
     for (unsigned int i=0; i<2; i++) {
       if (i<fCandidateHitsPerLayer[layer].size()) {
@@ -142,7 +151,7 @@ void ACsoft::Analysis::TrdCandidateMatching::PrintMatching(const ACsoft::Analysi
 void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const ACsoft::Analysis::Particle& particle, bool AddNearTrackHits) {
 
   // reset
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     fActiveHitsMatched[layer].clear();
     fActiveHitsChi2[layer].clear();
     for (unsigned int iAHit=0; iAHit<fActiveHitsPerLayer[layer].size(); iAHit++) {
@@ -152,13 +161,13 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
   }
 
   // we have only 1 candidate and 1 active hit in a layer
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     if (fActiveHitsPerLayer[layer].size()    !=1 ) continue;
     if (fCandidateHitsPerLayer[layer].size() !=1 ) continue;
 
     ACsoft::Analysis::TrdHit ActiveHit    = fActiveHitsPerLayer[layer].at(0);
     TRDCandidateHit  CandidateHit = fCandidateHitsPerLayer[layer].at(0);
-    float dE  = ActiveHit.GetAmplitude() * fTrdAdcScaleFactor;
+    float dE  = ActiveHit.GetAmplitude();
 
     if (ActiveHit.GlobalStrawNumber() != CandidateHit.straw) {
       if (!AddNearTrackHits) continue;
@@ -171,11 +180,11 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
   }
 
   // try to match the remaining hits
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iAHit=0; iAHit<fActiveHitsPerLayer[layer].size(); iAHit++) {
       if (fActiveHitsMatched[layer].at(iAHit)) continue;
       const ACsoft::Analysis::TrdHit& ActiveHit = fActiveHitsPerLayer[layer].at(iAHit);
-      float            dE        = ActiveHit.GetAmplitude() * fTrdAdcScaleFactor;
+      float            dE        = ActiveHit.GetAmplitude();
       for (unsigned int iCHit=0; iCHit<fCandidateHitsPerLayer[layer].size(); iCHit++) {
         const TRDCandidateHit& CandidateHit = fCandidateHitsPerLayer[layer].at(iCHit);
         if (CandidateHit.deDx>0) continue;
@@ -194,7 +203,7 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
   if (AddNearTrackHits) {
     // one candidate hit but more than one active hit
     // => take the one with the largest amplitude
-    for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+    for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
       if (fCandidateHitsPerLayer[layer].size() !=1 ) continue;
       const TRDCandidateHit& CandidateHit = fCandidateHitsPerLayer[layer].at(0);
       if (CandidateHit.deDx>0) continue;
@@ -203,7 +212,7 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
       for (unsigned int iAHit=0; iAHit<fActiveHitsPerLayer[layer].size(); iAHit++) {
         if (fActiveHitsMatched[layer].at(iAHit)) continue;
         const ACsoft::Analysis::TrdHit& ActiveHit = fActiveHitsPerLayer[layer].at(iAHit);
-        float            dE        = ActiveHit.GetAmplitude() * fTrdAdcScaleFactor;
+        float            dE        = ActiveHit.GetAmplitude();
         if (dE>maxAmplitude) {
           maxAmplitude = dE;
           iMaxHit      = iAHit;
@@ -212,7 +221,7 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
       if (iMaxHit<0) continue;
 
       const ACsoft::Analysis::TrdHit& ActiveHit = fActiveHitsPerLayer[layer].at(iMaxHit);
-      float            dE        = ActiveHit.GetAmplitude() * fTrdAdcScaleFactor;
+      float            dE        = ActiveHit.GetAmplitude();
       fCandidateHitsPerLayer[layer].at(0).ActiveStraw = ActiveHit.GlobalStrawNumber();
       fCandidateHitsPerLayer[layer].at(0).deDx        = dE;
       fCandidateHitsPerLayer[layer].at(0).xy          = ActiveHit.R();
@@ -227,7 +236,7 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
 
   // Refit the track using TRD hits and TRD Missing Hits
   fMissingHitsPerLayer.clear();
-  fMissingHitsPerLayer.assign(AC::AMSGeometry::TRDLayers, std::vector<ACsoft::Analysis::TRDMissingHit>());
+  fMissingHitsPerLayer.assign(ACsoft::AC::AMSGeometry::TRDLayers, std::vector<ACsoft::Analysis::TRDMissingHit>());
   int NumberOfCalls = 0;
   int Reason        = 0;
 
@@ -243,8 +252,8 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
       NumberOfCalls ++;
       if (NumberOfCalls>10) {
         std::cout << std::endl;
-        WARN_OUT << "Exceeding number of calls !!!  Run=" << particle.RawEvent()->RunHeader()->Run() << " Event=" << particle.RawEvent()->EventHeader().Event() << std::endl;
-        PrintMatching(particle);
+        WARN_OUT << "Exceeding number of calls !!!  Run=" << particle.Run() << " Event=" << particle.Event() << std::endl;
+        if(DEBUG) PrintMatching(particle);
         break;
       }
     }
@@ -257,7 +266,7 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
   if (DEBUG>=1) PrintMatching(particle);
 
   // Store the assigned and unassigned hits
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iAHit=0; iAHit<fActiveHitsPerLayer[layer].size(); iAHit++) {
       if (fActiveHitsMatched[layer].at(iAHit)) fAssignedHits.push_back(fActiveHitsPerLayer[layer].at(iAHit));
       else fUnassignedHits.push_back(fActiveHitsPerLayer[layer].at(iAHit));
@@ -265,7 +274,7 @@ void ACsoft::Analysis::TrdCandidateMatching::MatchActiveAndCandidateHits(const A
   }
 
   fCandidateHits.clear();
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iCHit=0; iCHit<fCandidateHitsPerLayer[layer].size(); iCHit++) fCandidateHits.push_back(fCandidateHitsPerLayer[layer].at(iCHit));
   }
 
@@ -282,14 +291,22 @@ void ACsoft::Analysis::TrdCandidateMatching::testSplineTracksDeviationFromStraig
   fTrkFitXZ.Chi2 = -1;
   fTrkFitYZ.Chi2 = -1;
 
-  const ACsoft::Analysis::SplineTrack* splineTrack     = particle.GetSplineTrack();
-  Detector::Trd* trd = Detector::DetectorManager::Self()->GetAlignedTrd();
+  const ACsoft::Analysis::SplineTrack* splineTrack = particle.GetSplineTrack();
+  if (!splineTrack) {
+    fTrkFitXZ.Ndof = 0;
+    fTrkFitXZ.Chi2 = -1;
+    fTrkFitYZ.Ndof = 0;
+    fTrkFitYZ.Chi2 = -1;
+    return;
+  }
+
+  ACsoft::Detector::Trd* trd = ACsoft::Detector::DetectorManager::Self()->GetAlignedTrd();
   // use TRD center to minimize correlations between the 2 fit parameters
   float OffsetZ = trd->Position().Z();
 
   // How straight is the spline track ?
   std::vector<double> v_sx, v_sy, v_sxz, v_syz, v_sxe, v_sye;
-  for (unsigned int subLayer=0; subLayer<AC::AMSGeometry::TRDSubLayers; ++subLayer) {
+  for (unsigned int subLayer=0; subLayer<ACsoft::AC::AMSGeometry::TRDSubLayers; ++subLayer) {
     float zSublayer = trd->GetTrdSublayer(subLayer)->GlobalPosition().Z();
     short layer  = subLayer/2;
     int   direction = 0;
@@ -308,13 +325,13 @@ void ACsoft::Analysis::TrdCandidateMatching::testSplineTracksDeviationFromStraig
 
   double parX_0, e_parX_0, parX_1, e_parX_1, rhox;
   int    NdofX = v_sxz.size()-2;
-  double Chi2X = Utilities::FastLineFit(v_sxz,v_sx,v_sxe,parX_0,e_parX_0,parX_1,e_parX_1,rhox);
+  double Chi2X = ACsoft::Utilities::FastLineFit(v_sxz,v_sx,v_sxe,parX_0,e_parX_0,parX_1,e_parX_1,rhox);
   fTrkFitXZ.Ndof = NdofX;
   fTrkFitXZ.Chi2 = Chi2X;
 
   double parY_0, e_parY_0, parY_1, e_parY_1, rhoy;
   int    NdofY = v_syz.size()-2;
-  double Chi2Y = Utilities::FastLineFit(v_syz,v_sy,v_sye,parY_0,e_parY_0,parY_1,e_parY_1,rhoy);
+  double Chi2Y = ACsoft::Utilities::FastLineFit(v_syz,v_sy,v_sye,parY_0,e_parY_0,parY_1,e_parY_1,rhoy);
   fTrkFitYZ.Ndof = NdofY;
   fTrkFitYZ.Chi2 = Chi2Y;
 
@@ -338,7 +355,7 @@ void ACsoft::Analysis::TrdCandidateMatching::testSplineTracksDeviationFromStraig
   DEBUG_OUT << "Chi2Y=" << Chi2Y/NdofY << " maxResidualY=" << maxResidualY << std::endl;
 
   TVector3 Point1XZ, Point2XZ;
-  Point1XZ.SetZ(AC::AMSGeometry::ZTOFUpper);
+  Point1XZ.SetZ(ACsoft::AC::AMSGeometry::ZTOFUpper);
   Point2XZ.SetZ(Point1XZ.Z()+1.0);
   Point1XZ.SetX(parX_0 + parX_1*(Point1XZ.Z()-OffsetZ));
   Point2XZ.SetX(parX_0 + parX_1*(Point2XZ.Z()-OffsetZ));
@@ -346,7 +363,7 @@ void ACsoft::Analysis::TrdCandidateMatching::testSplineTracksDeviationFromStraig
   fTrkFitXZ.Direction = (Point2XZ - Point1XZ).Unit();
 
   TVector3 Point1YZ, Point2YZ;
-  Point1YZ.SetZ(AC::AMSGeometry::ZTOFUpper);
+  Point1YZ.SetZ(ACsoft::AC::AMSGeometry::ZTOFUpper);
   Point2YZ.SetZ(Point1YZ.Z()+1.0);
   Point1YZ.SetY(parY_0 + parY_1*(Point1YZ.Z()-OffsetZ));
   Point2YZ.SetY(parY_0 + parY_1*(Point2YZ.Z()-OffsetZ));
@@ -429,7 +446,7 @@ void ACsoft::Analysis::TrdCandidateMatching::FitTrdTrackWithStraightLine(unsigne
   }
 
   // use TRD center to minimize correlations between the 2 fit parameters
-  static const float OffsetZ = AC::AMSGeometry::ZTRDCenter;
+  static const float OffsetZ = ACsoft::AC::AMSGeometry::ZTRDCenter;
 
   static std::vector<double>* v_x = 0;
   static std::vector<double>* v_z = 0;
@@ -455,7 +472,7 @@ void ACsoft::Analysis::TrdCandidateMatching::FitTrdTrackWithStraightLine(unsigne
 
   double par_0, e_par_0, par_1, e_par_1, rho;
   int   Ndf  = v_x->size() - 2;
-  float chi2 = Utilities::FastLineFit(*v_z, *v_x, *v_e, par_0, e_par_0, par_1, e_par_1, rho);
+  float chi2 = ACsoft::Utilities::FastLineFit(*v_z, *v_x, *v_e, par_0, e_par_0, par_1, e_par_1, rho);
   DEBUG_OUT << "Chi2= " << chi2 << std::endl;
   DEBUG_OUT << "par0= " << par_0 << " +/- " << e_par_0 << std::endl;
   DEBUG_OUT << "par1= " << par_1 << " +/- " << e_par_1 << std::endl;
@@ -471,8 +488,8 @@ void ACsoft::Analysis::TrdCandidateMatching::FitTrdTrackWithStraightLine(unsigne
   }
 
   // calculate CHi2 for all active hits
-  static float sigmaXY_TRD = 2.0*AC::AMSGeometry::TRDTubeRadius/sqrt(12.0);
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  static float sigmaXY_TRD = 2.0*ACsoft::AC::AMSGeometry::TRDTubeRadius/sqrt(12.0);
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iAHit=0; iAHit<fActiveHitsPerLayer[layer].size(); iAHit++) {
       const ACsoft::Analysis::TrdHit& ActiveHit = fActiveHitsPerLayer[layer].at(iAHit);
       if (ActiveHit.Orientation() != (int)direction) continue;
@@ -482,7 +499,7 @@ void ACsoft::Analysis::TrdCandidateMatching::FitTrdTrackWithStraightLine(unsigne
   }
 
   TVector3 Point1, Point2;
-  Point1.SetZ(AC::AMSGeometry::ZTOFUpper);
+  Point1.SetZ(ACsoft::AC::AMSGeometry::ZTOFUpper);
   Point2.SetZ(Point1.Z()+1.0);
   if (direction == 0) {
     Point1.SetX(par_0 + par_1*(Point1.Z()-OffsetZ));
@@ -508,7 +525,7 @@ void ACsoft::Analysis::TrdCandidateMatching::FitTrdTrackStandAlone(std::vector<T
 
 void ACsoft::Analysis::TrdCandidateMatching::FitTrdTrackCombinedWithSeedTrack(std::vector<TrdTrackPoint>& TrdTrackPointsXZ, std::vector<TrdTrackPoint>& TrdTrackPointsYZ) {
 
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     fActiveHitsChi2[layer].clear();
     for (unsigned int iAHit=0; iAHit<fActiveHitsPerLayer[layer].size(); iAHit++) fActiveHitsChi2[layer].push_back(-1.0);
   }
@@ -552,16 +569,18 @@ void ACsoft::Analysis::TrdCandidateMatching::BuildTrdTrackPoints(const ACsoft::A
   DEBUG_OUT << "BuildTrdTrackPoints..." << std::endl;
 
   // use TRD center to minimize correlations between the 2 fit parameters
-  static float OffsetZ = AC::AMSGeometry::ZTRDCenter;
+  static float OffsetZ = ACsoft::AC::AMSGeometry::ZTRDCenter;
 
   const ACsoft::Analysis::SplineTrack* splineTrack     = particle.GetSplineTrack();
-  TVector3  PointInUpperTof = splineTrack->InterpolateToZ(AC::AMSGeometry::ZTOFUpper);
   static float sigmaX_Tracker     = 0.005;             // track track error at Upper Tof
   static float sigmaY_Tracker     = 0.005;             // track track error at Upper Tof
-  static float sigmaXY_TRD        = 2.0*AC::AMSGeometry::TRDTubeRadius/sqrt(12.0);
+  static float sigmaXY_TRD        = 2.0*ACsoft::AC::AMSGeometry::TRDTubeRadius/sqrt(12.0);
 
   TrdTrackPointsXZ.clear();
   TrdTrackPointsYZ.clear();
+  if (!splineTrack)
+    return;
+  TVector3  PointInUpperTof = splineTrack->InterpolateToZ(ACsoft::AC::AMSGeometry::ZTOFUpper);
 
   // first point from the tracker track position at the upper ToF
   // assuming multiple scattering is mainly happening in the upper ToF and in the lower TRD carbon fibre disc
@@ -569,7 +588,7 @@ void ACsoft::Analysis::TrdCandidateMatching::BuildTrdTrackPoints(const ACsoft::A
   TrdTrackPointsYZ.push_back(TrdTrackPoint(0,PointInUpperTof.Y(),PointInUpperTof.Z()-OffsetZ,sigmaY_Tracker));
 
   // Candidate Hits
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iCHit=0; iCHit<fCandidateHitsPerLayer[layer].size(); iCHit++) {
       TRDCandidateHit  CandidateHit = fCandidateHitsPerLayer[layer].at(iCHit);
       if (CandidateHit.deDx<=0) continue;
@@ -584,7 +603,7 @@ void ACsoft::Analysis::TrdCandidateMatching::BuildTrdTrackPoints(const ACsoft::A
   }
 
   // Missing Hits
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iMHit=0; iMHit<fMissingHitsPerLayer[layer].size(); iMHit++) {
       TRDMissingHit  MissingHit = fMissingHitsPerLayer[layer].at(iMHit);
       if (MissingHit.d==0) {
@@ -599,18 +618,18 @@ void ACsoft::Analysis::TrdCandidateMatching::BuildTrdTrackPoints(const ACsoft::A
 
   // FIXME: proper implementation using PDG formula for multiple scattering, include Z dependence
   // due to multiple scattering the region of interest is rigidity dependent
-  float aRig = fabs(particle.MainTrackerTrackFit()->Rigidity());
+  float aRig = fabs(particle.TrackerTrackFit()->Rigidity());
   static float R1       =5.0, R2       = 50.0;
   static float sigmaX_R1=0.1, sigmaX_R2= sigmaX_Tracker;
   static float sigmaY_R1=0.1, sigmaY_R2= sigmaY_Tracker;
   float        sigmaX   = std::max(sigmaX_Tracker,sigmaX_R2/(R2-R1)*(aRig-R1) + sigmaX_R1/(R2-R1)*(R2-aRig));
   float        sigmaY   = std::max(sigmaY_Tracker,sigmaY_R2/(R2-R1)*(aRig-R1) + sigmaY_R1/(R2-R1)*(R2-aRig));
   if (fHitLayer1) {
-    TrdTrackPointsXZ.push_back(TrdTrackPoint(0,fXhitLayer1,AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaX_Tracker));
-    TrdTrackPointsYZ.push_back(TrdTrackPoint(0,fYhitLayer1,AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaY_Tracker));
+    TrdTrackPointsXZ.push_back(TrdTrackPoint(0,fXhitLayer1,ACsoft::AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaX_Tracker));
+    TrdTrackPointsYZ.push_back(TrdTrackPoint(0,fYhitLayer1,ACsoft::AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaY_Tracker));
   } else {
-    TrdTrackPointsXZ.push_back(TrdTrackPoint(0,fXfitLayer1,AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaX));
-    TrdTrackPointsYZ.push_back(TrdTrackPoint(0,fYfitLayer1,AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaY));
+    TrdTrackPointsXZ.push_back(TrdTrackPoint(0,fXfitLayer1,ACsoft::AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaX));
+    TrdTrackPointsYZ.push_back(TrdTrackPoint(0,fYfitLayer1,ACsoft::AC::AMSGeometry::ZTrackerLayer1-OffsetZ,sigmaY));
   }
 
   if (DEBUG>=1) {
@@ -630,7 +649,7 @@ bool ACsoft::Analysis::TrdCandidateMatching::RemoveActiveHits() {
   float Chi2Max_X =  0, Chi2Max_Y  =  0;
   int   iX_max    = -1, iY_max     = -1;
   int   layX_max  = -1, layY_max   = -1;
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iCHit=0; iCHit<fCandidateHitsPerLayer[layer].size(); iCHit++) {
       TRDCandidateHit  CandidateHit = fCandidateHitsPerLayer[layer].at(iCHit);
       if (CandidateHit.deDx<=0) continue;
@@ -728,7 +747,7 @@ bool ACsoft::Analysis::TrdCandidateMatching::RemoveActiveHits() {
 bool ACsoft::Analysis::TrdCandidateMatching::AddActiveHits() {
   bool HitAdded = false;
 
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iCHit=0; iCHit<fCandidateHitsPerLayer[layer].size(); iCHit++) {
       TRDCandidateHit  CandidateHit = fCandidateHitsPerLayer[layer].at(iCHit);
       if (CandidateHit.deDx>0 && CandidateHit.Chi2<2.0) continue;
@@ -757,7 +776,7 @@ bool ACsoft::Analysis::TrdCandidateMatching::AddActiveHits() {
 
       if (AddHit) {
         DEBUG_OUT << "Hit added: Chi2_Best=" << Chi2_Best << " iAHit_Best=" << iAHit_Best << std::endl;
-        float dE = ActiveHit.GetAmplitude() * fTrdAdcScaleFactor;
+        float dE = ActiveHit.GetAmplitude();
         fCandidateHitsPerLayer[layer].at(iCHit).ActiveStraw = ActiveHit.GlobalStrawNumber();
         fCandidateHitsPerLayer[layer].at(iCHit).deDx        = dE;
         fCandidateHitsPerLayer[layer].at(iCHit).xy          = ActiveHit.R();
@@ -777,14 +796,14 @@ bool ACsoft::Analysis::TrdCandidateMatching::GenerateMissingHits(const ACsoft::A
   bool MissingHitsGenerated = false;
   const ACsoft::Analysis::SplineTrack* splineTrack = particle.GetSplineTrack();
 
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     if (fActiveHitsPerLayer[layer].size()>0) continue;
     if (fMissingHitsPerLayer[layer].size()>0) continue;
     if (fCandidateHitsPerLayer[layer].size()!=1) continue;
     TRDCandidateHit CandidateHit1 = fCandidateHitsPerLayer[layer].at(0);
 
     TVector3        Point         = splineTrack->InterpolateToZ(CandidateHit1.z);
-    float           MinDistance   = 2*AC::AMSGeometry::TRDTubeRadius + 0.05; // account for the 0.5mm stringer gap
+    float           MinDistance   = 2*ACsoft::AC::AMSGeometry::TRDTubeRadius + 0.05; // account for the 0.5mm stringer gap
     int             SecondStraw   = -1;
     TVector3        FirstPoint;
     TVector3        SecondPoint;
@@ -824,8 +843,8 @@ bool ACsoft::Analysis::TrdCandidateMatching::GenerateMissingHits(const ACsoft::A
     MissingHit.straw1 = CandidateHit1.straw;
     MissingHit.straw2 = SecondStraw;
     MissingHit.d      = direction;
-    float gap         = fabs(FirstPoint.X()-SecondPoint.X()) - 2*AC::AMSGeometry::TRDTubeRadius;
-    if (direction==1) gap = fabs(FirstPoint.Y()-SecondPoint.Y()) - 2*AC::AMSGeometry::TRDTubeRadius;
+    float gap         = fabs(FirstPoint.X()-SecondPoint.X()) - 2*ACsoft::AC::AMSGeometry::TRDTubeRadius;
+    if (direction==1) gap = fabs(FirstPoint.Y()-SecondPoint.Y()) - 2*ACsoft::AC::AMSGeometry::TRDTubeRadius;
     DEBUG_OUT << "Missing Hit added in layer=" << layer << " straw1=" << MissingHit.straw1 << " straw2=" << MissingHit.straw2 << " gap=" << gap << std::endl;
     MissingHit.sigma  = gap/sqrt(12.0);
     fMissingHitsPerLayer[layer].push_back(MissingHit);
@@ -846,7 +865,7 @@ void ACsoft::Analysis::TrdCandidateMatching::RecalculatePathLength(unsigned int 
     trackPos = fTrdCombinedFitYZ.Direction;
     trackDir = fTrdCombinedFitYZ.Direction;
   }
-  for (unsigned int layer=0; layer<AC::AMSGeometry::TRDLayers; layer++) {
+  for (unsigned int layer=0; layer<ACsoft::AC::AMSGeometry::TRDLayers; layer++) {
     for (unsigned int iCHit=0; iCHit<fCandidateHitsPerLayer[layer].size(); iCHit++) {
       TRDCandidateHit CandidateHit = fCandidateHitsPerLayer[layer].at(iCHit);
       if (CandidateHit.d != (int)direction) continue;
@@ -857,7 +876,8 @@ void ACsoft::Analysis::TrdCandidateMatching::RecalculatePathLength(unsigned int 
       } else {
         StrawPos.SetY(CandidateHit.xy);
       }
-      Double_t pathLength = pathlength3d(direction, trackPos, trackDir, StrawPos, AC::AMSGeometry::TRDTubeRadius);
+      // FIXME replace by more general Pathlength3d function
+      Double_t pathLength = pathlength3d_obsolete(direction, trackPos, trackDir, StrawPos, ACsoft::AC::AMSGeometry::TRDTubeRadius);
       fCandidateHitsPerLayer[layer].at(iCHit).pathLengthTrdTrack = pathLength;
     }
   }
@@ -866,22 +886,30 @@ void ACsoft::Analysis::TrdCandidateMatching::RecalculatePathLength(unsigned int 
 
 void ACsoft::Analysis::TrdCandidateMatching::TrackerPointInPlane1(const ACsoft::Analysis::Particle& particle) {
 
-  fXfitLayer1        = particle.MainTrackerTrackFit()->XLayer1();
-  fYfitLayer1        = particle.MainTrackerTrackFit()->YLayer1();
   fXhitLayer1        = 0;
   fYhitLayer1        = 0;
   fHitLayer1         = false;
 
+  if (particle.HasTrackerTrackFit()) {
+    fXfitLayer1        = particle.TrackerTrackFit()->XLayer1();
+    fYfitLayer1        = particle.TrackerTrackFit()->YLayer1();
+    fHitLayer1         = true;
+  } else {
+    fXfitLayer1        = -10000;
+    fYfitLayer1        = -10000;
+    return;
+  }
+
   // FIXME: take formula for multiple scattering angle from PDG
-  float         aRig                 = fabs(particle.MainTrackerTrackFit()->Rigidity());
+  float         aRig                 = fabs(particle.TrackerTrackFit()->Rigidity());
   static double R1                   = 5.0, R2      = 50.0;
   static double deltaR1              = 1.0, deltaR2 =  0.05;
   float         MinDistanceLayer1    = std::max(deltaR2,deltaR2/(R2-R1)*(aRig-R1) + deltaR1/(R2-R1)*(R2-aRig));
 
-  const AC::TrackerTrack* TRKtrk  = particle.MainTrackerTrack();
-  const AC::TrackerTrack::ReconstructedHitsVector& rhits = TRKtrk->ReconstructedHits();
+  const ACsoft::AC::TrackerTrack* TRKtrk  = particle.TrackerTrack();
+  const ACsoft::AC::TrackerTrack::ReconstructedHitsVector& rhits = TRKtrk->ReconstructedHits();
   for (unsigned int i=0; i<rhits.size(); ++i) {
-    const AC::TrackerReconstructedHit& hit = rhits[i];
+    const ACsoft::AC::TrackerReconstructedHit& hit = rhits[i];
     if (hit.Layer()==1) {
       double distance = sqrt(pow(fXfitLayer1-hit.X(),2)+pow(fYfitLayer1-hit.Y(),2));
       if (distance<MinDistanceLayer1) {
@@ -920,7 +948,7 @@ void ACsoft::Analysis::TrdCandidateMatching::CalculateDeDx(bool AddNearTrackHits
 
 }
 
-bool ACsoft::Analysis::TrdCandidateMatching::Process(const ACsoft::Analysis::Particle& particle, bool AddNearTrackHits ) {
+bool ACsoft::Analysis::TrdCandidateMatching::Process(const ACsoft::Analysis::Particle& particle, bool AddNearTrackHits, bool ExcludeDeadStraws ) {
 
   fNumberOfMatchedHits = 0;
   fCandidateHits.clear();
@@ -930,11 +958,11 @@ bool ACsoft::Analysis::TrdCandidateMatching::Process(const ACsoft::Analysis::Par
   fUnassignedHits.reserve(40);
 
   fMissingHitsPerLayer.clear();
-  fMissingHitsPerLayer.assign(AC::AMSGeometry::TRDLayers, std::vector<ACsoft::Analysis::TRDMissingHit>());
+  fMissingHitsPerLayer.assign(ACsoft::AC::AMSGeometry::TRDLayers, std::vector<ACsoft::Analysis::TRDMissingHit>());
 
   TrackerPointInPlane1(particle);
 
-  bool IsInsideTRDGeometricalAcceptance = fPreselection.Process(particle, AddNearTrackHits);
+  bool IsInsideTRDGeometricalAcceptance = fPreselection.Process(particle, AddNearTrackHits, ExcludeDeadStraws);
 
   DetermineActiveHitsPerLayer(particle);
 
@@ -958,7 +986,7 @@ bool ACsoft::Analysis::TrdCandidateMatching::UsefulForTrdParticleId() const {
 
 unsigned short ACsoft::Analysis::TrdCandidateMatching::GetNumberOfActiveLayers() const {
 
-  unsigned short TrdActiveLayer[AC::AMSGeometry::TRDLayers] = {0};
+  unsigned short TrdActiveLayer[ACsoft::AC::AMSGeometry::TRDLayers] = {0};
   for (unsigned int i=0; i<fCandidateHits.size(); i++) {
     const ACsoft::Analysis::TRDCandidateHit& hit = fCandidateHits[i];
     if (hit.deDx>0) {
@@ -968,7 +996,7 @@ unsigned short ACsoft::Analysis::TrdCandidateMatching::GetNumberOfActiveLayers()
   }
 
   unsigned short nTrdActiveLayers = 0;
-  for (unsigned int i=0; i<AC::AMSGeometry::TRDLayers; i++)
+  for (unsigned int i=0; i<ACsoft::AC::AMSGeometry::TRDLayers; i++)
     nTrdActiveLayers += TrdActiveLayer[i];
   return nTrdActiveLayers;
 }

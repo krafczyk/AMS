@@ -5,12 +5,15 @@
 
 #include <TChain.h>
 #include <TList.h>
+#include <TFile.h>
 #include <TSystem.h>
 #include <TStopwatch.h>
 #include <QDataStream>
 #include <QFile>
 #include <QProcessEnvironment>
+#include <QString>
 
+#include "DeadStrawLookup.hh"
 #include "Event.h"
 #include "ReducedEvent.hh"
 #include "ReducedFileHeader.hh"
@@ -27,8 +30,13 @@ namespace ACsoft {
 
 namespace IO {
 
-FileManager::FileManager(bool shouldDumpSettings)
-  : fShouldDumpSettings(shouldDumpSettings)
+/** Default constructor.
+  * A settings argument can be passed influencing the FileManager operation:
+  * - 'DontDumpSettings': Suppressing dumping all ACQt lookup file settings (useful if you have more than one FileManagr).
+  * - 'LoadDatabaseFiles': Load DB ROOT files for every run, to access the AC::Database.
+  **/
+FileManager::FileManager(int settings)
+  : fSettings(settings)
   , fCurrentEventNumber(-1)
   , fEntries(0)
   , fRunTimer(0)
@@ -41,16 +49,22 @@ FileManager::FileManager(bool shouldDumpSettings)
   , fNumberOfProcessedRuns(0)
   , fCurrentFile(0)
   , fNumberOfFiles(0)
+  , fDatabase(0)
   , fRunHeader(0)
   , fEvent(0)
   , fCurrentACQtFile(0)
   , fChunkBufferSize(0)
+  , fByteArrayIn(0)
+  , fByteArrayOut(0)
+  , fDataStream(0)
+  , fPropagateFirstAndLastRunTime(true)
   , fReducedEvent(0)
   , fReducedFileHeader(0)
   , fChain(0)
   , fCurrentRootFile(0)
   , fRun(-1)
   , fCustomChain(0) {
+
 }
 
 FileManager::~FileManager() {
@@ -69,6 +83,8 @@ FileManager::~FileManager() {
     delete fEventTimer;
     fEventTimer = 0;
   }
+
+  delete fDatabase;
 }
 
 static inline bool IsACQtFile(const std::string& name) {
@@ -89,8 +105,8 @@ bool FileManager::ReadFileList(const std::string& fileList, std::string customli
     return false;
   }
 
-  Q_ASSERT(fCurrentEventNumber == -1);
-  Q_ASSERT(!fEvent);
+  assert(fCurrentEventNumber == -1);
+  assert(!fEvent);
 
   std::vector<std::string> acqtFiles;
   std::vector<std::string> rootFiles;
@@ -151,8 +167,8 @@ bool FileManager::ReadFileList(const std::string& fileList, std::string customli
 
 bool FileManager::ReadFile(const std::string& file) {
 
-  Q_ASSERT(fCurrentEventNumber == -1);
-  Q_ASSERT(!fEvent);
+  assert(fCurrentEventNumber == -1);
+  assert(!fEvent);
 
   std::vector<std::string> files;
   files.push_back(file);
@@ -180,8 +196,8 @@ void FileManager::DumpEventLoopProgress(unsigned int dumpAllNEvents, char separa
       std::printf(" Mean CPU time per run: %5.2f [s]", fAccumulatedCPUTime / fNumberOfProcessedRuns);
     }
     if (fNumberOfProcessedBunches > 0) {
-      const int nMaxEvents = GetEntries();
-      const int nEventsLeft = nMaxEvents - fCurrentEventNumber;
+      const Long64_t nMaxEvents = GetEntries();
+      const Long64_t nEventsLeft = nMaxEvents - fCurrentEventNumber;
       const int totalSecondsLeft = (fAccumulatedEventRealTime * nEventsLeft / fNumberOfProcessedBunches) / fEventBunchSize;
       const int hh = floor(totalSecondsLeft / 60 / 60);
       const int mm = floor(totalSecondsLeft / 60 % 60);
@@ -196,6 +212,7 @@ void FileManager::ExpandEnvironmentVariables(std::string& string) {
 
   QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
   AC::TableStream::findAndReplace(string, "${ACROOTSOFTWARE}", environment.value("ACROOTSOFTWARE").toStdString());
+  AC::TableStream::findAndReplace(string, "${ACANALYSIS}", environment.value("ACANALYSIS").toStdString());
 }
 
 bool FileManager::DoesFileExist(const std::string& file) {
@@ -219,7 +236,9 @@ void FileManager::DumpSettings() {
   std::cout << "||                                                                                           ||" << std::endl;
 
   std::string alignmentFile = ::AC::Settings::gTrdQtAlignmentFileName;
+  std::string btAlignmentFile = ::AC::Settings::gTrdQtBeamTestAlignmentFileName;
   std::string gainFile = ::AC::Settings::gTrdQtGainFileName;
+  std::string btGainFile = ::AC::Settings::gTrdQtBeamTestGainFileName;
   std::string pdfFile = ::AC::Settings::gTrdQtPdfFileName;
   std::string slowControlFile = ::AC::Settings::gTrdQtSlowControlFileName;
   if (fReducedEvent) {
@@ -227,7 +246,9 @@ void FileManager::DumpSettings() {
     // Use settings from ACROOT file, if possible.
     assert(fReducedEvent->FileHeader);
     alignmentFile = fReducedEvent->FileHeader->TrdAlignmentFileName(); 
+    btAlignmentFile = fReducedEvent->FileHeader->TrdBeamTestAlignmentFileName(); 
     gainFile = fReducedEvent->FileHeader->TrdGainFileName(); 
+    btGainFile = fReducedEvent->FileHeader->TrdBeamTestGainFileName(); 
     pdfFile = fReducedEvent->FileHeader->TrdPdfFileName(); 
     slowControlFile = fReducedEvent->FileHeader->TrdSlowControlFileName(); 
     addNearTrackHits = fReducedEvent->FileHeader->TrdQtPdfSettings()->fAddNearTrackHits;
@@ -236,32 +257,68 @@ void FileManager::DumpSettings() {
   
   std::cout << "||" << std::endl;
   std::cout << "|| Alignment-File:          " << alignmentFile << std::endl;
+  std::cout << "|| BT-Alignment-File:       " << btAlignmentFile << std::endl;
   std::cout << "|| Gain-File:               " << gainFile << std::endl;
+  std::cout << "|| BT-Gain-File:            " << btGainFile << std::endl;
   std::cout << "|| PDF-File:                " << pdfFile << std::endl;
   std::cout << "|| SlowControl-File:        " << slowControlFile << std::endl;
   std::cout << "|| TRD Add near track hits: " << addNearTrackHits << std::endl;
   std::cout << "||                                                                                           ||" << std::endl;
   std::cout << "==============================================================================================="  << std::endl;
   std::cout << std::endl;
+
+  Utilities::DeadStrawLookup::Self()->DumpDeadStraws();
+}
+
+std::string FileManager::GetCurrentFileName() const {
+
+  if (fReducedEvent)
+    return std::string();
+  return GetCurrentACQtFileName();
 }
 
 bool FileManager::GetNextEvent() {
 
-  if (fCurrentEventNumber == -1 && fShouldDumpSettings)
-    DumpSettings();
+  if (fCurrentEventNumber == -1) {
+    if (!((fSettings & DontDumpSettings) == DontDumpSettings))
+      DumpSettings();
+  }
 
   if (fReducedEvent)
     return GetNextACROOTEvent();
   return GetNextACQtEvent();
 }
 
-bool FileManager::GetEvent(int index) {
+void FileManager::LoadDatabase(const std::string& fileName) {
+
+  // Only load the DB root file if wanted.
+  if (!((fSettings & LoadDatabaseFiles) == LoadDatabaseFiles))
+    return;
+
+  assert(!fileName.empty());
+  TFile* file = new TFile(fileName.c_str(), "READ");
+  if (!file->IsOpen() || file->IsZombie()) {
+    fDatabase = 0;
+    WARN_OUT << "DB ROOT file \"" << fileName << "\" can't be read! No Database available for this run." << std::endl;
+    return;
+  }
+
+  // Better clone the AC::Database to be sure we own the object.
+  if (fDatabase)
+    delete fDatabase;
+  fDatabase = (::AC::Database*)file->Get("AC::Database")->Clone();
+  file->Close();
+}
+
+bool FileManager::GetEvent(Long64_t index) {
 
   if (index < 0 || index >= GetEntries())
     return false;
 
-  if (fCurrentEventNumber == -1 && fShouldDumpSettings)
-    DumpSettings();
+  if (fCurrentEventNumber == -1) {
+    if (!((fSettings & DontDumpSettings) == DontDumpSettings))
+      DumpSettings();
+  }
 
   if (fReducedEvent)
     return GetACROOTEvent(index);
@@ -287,36 +344,34 @@ bool FileManager::CheckFileIntegrities() const {
   return result;
 }
 
-std::string FileManager::MakeStandardRootFileName( std::string resultdir, std::string prefix, std::string suffix) {
+int FileManager::GetNumberOfRuns() {
 
-  if( prefix == "" )
-    WARN_OUT << "Empty prefix!" << std::endl;
-
-  std::string outputFileName = "";
-  if( resultdir != "" )
-    outputFileName += ( resultdir + std::string("/") );
-  outputFileName += prefix;
-  if( suffix != "" )
-  outputFileName += ( std::string("_") + suffix );
-  outputFileName += std::string(".root");
-
-  return outputFileName;
+  if (fReducedEvent)
+    return GetNumberOfACROOTRuns();
+  return GetNumberOfACQtRuns();
 }
 
-std::string FileManager::MakeStandardPdfFileName( std::string resultdir, std::string prefix, std::string suffix) {
+int FileManager::GetCurrentRunIndex() {
 
-  if( prefix == "" )
-    WARN_OUT << "Empty prefix!" << std::endl;
+  if (fReducedEvent)
+    return GetCurrentACROOTRunIndex();
+  return GetCurrentACQtRunIndex();
+}
 
-  std::string outputFileName = "";
-  if( resultdir != "" )
-    outputFileName += ( resultdir + std::string("/") );
-  outputFileName += prefix;
-  if( suffix != "" )
-  outputFileName += ( std::string("_") + suffix );
-  outputFileName += std::string(".pdf");
+void FileManager::SkipCurrentRun() {
 
-  return outputFileName;
+  if (fReducedEvent)
+    SkipCurrentACROOTRun();
+  else
+    SkipCurrentACQtRun();
+}
+
+void FileManager::SkipBackRun() {
+
+  if (fReducedEvent)
+    SkipBackACROOTRun();
+  else
+    SkipBackACQtRun();
 }
 
 }

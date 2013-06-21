@@ -5,10 +5,12 @@
 
 #define AC_TRDHSegment_Variables \
 private: \
+  RawHitIndexVector_8 fRawHitIndex_old; \
   RawHitIndexVector fRawHitIndex; \
 public: \
   TRDHSegment() \
-    : fRawHitIndex() \
+    : fRawHitIndex_old() \
+    , fRawHitIndex() \
   { \
   }
 

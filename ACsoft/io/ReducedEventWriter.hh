@@ -12,6 +12,7 @@
 class TFile;
 
 namespace IO {
+  
   class ReducedFileHeader;
 }
 

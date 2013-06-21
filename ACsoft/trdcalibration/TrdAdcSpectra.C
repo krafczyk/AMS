@@ -15,11 +15,9 @@
 #include <StringTools.hh>
 #include <Statistics.hh>
 #include <ParticleSelectionCuts.hh>
-#include "Utilities.hh"
+#include <Binning.hh>
 #include "TrdQt.hh"
 
-#include "Event.h"
-#include "RunHeader.h"
 #include "AnalysisParticle.hh"
 
 #include <assert.h>
@@ -33,7 +31,7 @@
 #include <vector>
 
 #define DEBUG 0
-#define INFO_OUT_TAG "TrdLikelihood> "
+#define INFO_OUT_TAG "TrdAdcSpectra> "
 #include <debugging.hh>
 
 ACsoft::Calibration::TrdAdcSpectra::TrdAdcSpectra( Utilities::ConfigHandler*, unsigned short version, bool AddNearTrackHits ) :
@@ -83,7 +81,7 @@ void ACsoft::Calibration::TrdAdcSpectra::Initialize() {
   fTrdGainPerParticle[1] = Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2F>( "fTrdGainProtons", "Gain stability, protons", "ADC counts [ADC/cm]", 501, -1, 1001 );
   fTrdGainPerParticle[2] = Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2F>( "fTrdGainHelium", "Gain stability, helium", "ADC counts [ADC/cm]", 501, -1, 1001 );
  
-  std::vector<double> v_RigLog = Utilities::GenerateLogBinning(30, 2, 600);
+  std::vector<double> v_RigLog = Utilities::Binning::GenerateLogBinning(40, 1, 2000);
   fTrackerCharge_vs_rigidity[0] = new TH2F("fTrackerCharge_vs_rig_Negative", "Tracker Charge vs. Rigidity, for negative rigidities; Rigiditiy [GV]; Charge [e]", v_RigLog.size()-1, v_RigLog.data(), 100, 0.0, 10.0);
   fTrackerCharge_vs_rigidity[1] = new TH2F("fTrackerCharge_vs_rig_Positive", "Tracker Charge vs. Rigidity, for positive rigidities; Rigiditiy [GV]; Charge [e]", v_RigLog.size()-1, v_RigLog.data(), 100, 0.0, 10.0);
   fTrackerCharge_vs_time[0] = Utilities::TimeHistogramManager::MakeNewTimeHistogram2D<TH2F>( "fTrackerCharge_vs_time_Negative", "Tracker Charges vs. Time, for negative rigidities", "Charge [e]", 100, 0, 10 );
@@ -111,7 +109,7 @@ void ACsoft::Calibration::TrdAdcSpectra::CreateADCSpectraHistos() {
    v_adc.push_back(-0.5);
 
    int   nBinLogAdcTemp = 400;
-   std::vector<double> v_adcTemp = Utilities::GenerateLogBinning(nBinLogAdcTemp, 0.5, TrdMaxDeDx-0.5);
+   std::vector<double> v_adcTemp = Utilities::Binning::GenerateLogBinning(nBinLogAdcTemp, 0.5, TrdMaxDeDx-0.5);
    for (int i=0; i<=nBinLogAdcTemp; i++) v_adc.push_back(v_adcTemp.at(i));
 
    // overflow Bin, i.e. dEdX after calibration larger that (TRDMaxADCCount=4096ADC)/(TRDTubeMinPathLength=0.1cm) = 40960
@@ -122,7 +120,7 @@ void ACsoft::Calibration::TrdAdcSpectra::CreateADCSpectraHistos() {
   for (unsigned int i=0; i<=AC::AMSGeometry::TRDLayers; i++) v_layer.push_back(i-0.5);
 
   for (int i = 0; i < Utilities::TrdPdfLookup::fNumberOfParticles; ++i) {
-    std::vector<double> v_RigLog = Utilities::TrdPdfLookup::GetBinningForParticle(i);
+    std::vector<double> v_RigLog = Utilities::TrdPdfLookup::GetBinningForParticle(Utilities::ParticleId(i));
     std::stringstream nameRigidity, titleRigidity;
     nameRigidity << "ADCVsRigidity_" << Utilities::TrdPdfLookup::fParticleNames[i];
     titleRigidity << Utilities::TrdPdfLookup::fParticleNames[i] << " - dE/dX [ADC/cm]";
@@ -158,20 +156,15 @@ void ACsoft::Calibration::TrdAdcSpectra::Process( const Analysis::Particle& part
   if(!fIsInitialized)
     Initialize();
  
-  TTimeStamp evttime = particle.RawEvent()->EventHeader().TimeStamp();
+  TTimeStamp evttime = particle.TimeStamp();
 
-  const AC::TrackerTrack* trktrk = particle.MainTrackerTrack();
-  const AC::TrackerTrackFit* trackFit = particle.MainTrackerTrackFit();
-  assert(trktrk);
-  assert(trackFit);
-  float rigidity = trackFit->Rigidity();
+  float rigidity = particle.Rigidity();
   float aRig = fabs(rigidity);
 
-  fTrdCandidateMatching->Process(particle, fAddNearTrackHits);
+  fTrdCandidateMatching->Process(particle, fAddNearTrackHits, true /* Exclude dead straws by default */);
 
-  AC::ChargeAndError trkChargeAndError = trktrk->GetChargeAndErrorNew(3);
-  float TrkCharge = trkChargeAndError.charge;
-  short IdPart = TrdQt::ParticleID(TrkCharge, rigidity);
+  float TrkCharge = particle.TrackerCharge();
+  short IdPart = Cuts::ParticleID(TrkCharge, rigidity);
   if (IdPart < 0 || IdPart >= Utilities::TrdPdfLookup::fNumberOfParticles) return;
 
   DEBUG_OUT << "IdPart " << IdPart << " rig " << rigidity << std::endl;
@@ -179,23 +172,19 @@ void ACsoft::Calibration::TrdAdcSpectra::Process( const Analysis::Particle& part
   int index = 0;
   if (rigidity>0) index = 1;
 
-  if (trkChargeAndError.error != -1) {
+  if (particle.TrackerChargeError() > 0) {
     fTrackerCharge_vs_rigidity[index]->Fill(aRig, TrkCharge);
     fTrackerCharge_vs_time[index]->Fill(evttime, TrkCharge);
   }
 
-  const AC::TOFBeta* tofb = particle.TofBeta();
-  assert(tofb);
-  unsigned int tofbChargesSize = tofb->ChargesNew().size();
-  if (tofbChargesSize > 1) {
-    AC::ChargeAndError tofChargeAndError = tofb->GetChargeAndErrorNew(particle.RawEvent(), AC::TOFBeta::GoodLayers);
-    fTOFCharge_vs_rigidity[index]->Fill(aRig, tofChargeAndError.charge);
-    fTOFCharge_vs_time[index]->Fill(evttime, tofChargeAndError.charge);
-    if (TrkCharge != -1) fTOFCharge_vs_TrackerCharge->Fill(tofChargeAndError.charge, TrkCharge);
+  double tofCharge = particle.TofCharge();
+  if (tofCharge > 0) {
+    fTOFCharge_vs_rigidity[index]->Fill(aRig, tofCharge);
+    fTOFCharge_vs_time[index]->Fill(evttime, tofCharge);
+    if (TrkCharge != -1) fTOFCharge_vs_TrackerCharge->Fill(tofCharge, TrkCharge);
   }
 
-  unsigned int numberOfRawHits = particle.RawEvent()->TRD().RawHits().size();
-  fTrdRawHits->Fill(evttime, numberOfRawHits);
+  fTrdRawHits->Fill(evttime, particle.NumberOfTrdRawHits());
 
   const std::vector<Analysis::TRDCandidateHit> candidateHits = fTrdCandidateMatching->CandidateHits();
   unsigned int numberOfCandidateHits = candidateHits.size();
@@ -245,3 +234,4 @@ void ACsoft::Calibration::TrdAdcSpectra::WriteResultsToCurrentFile() {
     fTOFCharge_vs_time[i]->Write();
   }
 }
+

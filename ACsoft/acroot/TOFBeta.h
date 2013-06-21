@@ -68,6 +68,10 @@ public:
     */
   Float_t BetaError() const { return fBetaError; }
 
+  /** Associated TrackerTrack index: BetaHR::iTrTrack()
+   */
+  Char_t TrackerTrackIndex() const { return fTrackerTrackIndex; }
+
   /** Measured charges in layers: BetaHR::GetQL(ilay)
     * sign: >0 for BetaHR::IsGoodQPathL(ilay)==true 
     *       <0 for BetaHR::IsGoodQPathL(ilay)==false

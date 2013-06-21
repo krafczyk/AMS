@@ -22,7 +22,6 @@ namespace IO {
 }
 
 /// ACROOT event classes.
-
 namespace AC {
 
 /** AMS-02 reduced event data
@@ -31,7 +30,7 @@ class Event {
   WTF_MAKE_FAST_ALLOCATED;
 public:
   /** A vector of Particle objects */
-  typedef Vector<Particle, 1> ParticlesVector;
+  typedef Vector<Particle, 6> ParticlesVector;
 
   AC_Event_Variables
 

@@ -7,6 +7,8 @@
 #include <TObject.h>
 #include <TH1F.h>
 
+class TEfficiency;
+
 namespace ACsoft {
 
 namespace Analysis {
@@ -83,6 +85,9 @@ public:
   explicit Cut( std::string description = "void" );
   virtual ~Cut();
 
+  virtual bool IsNMinusOneCut() const { return false; }
+  virtual bool IsManualNMinusOneCut() const { return false; }
+
   /** Decide if a particle passes the cut.
     *
     * This function internally calls the TestCondition() function of
@@ -91,6 +96,7 @@ public:
     *
     */
   bool Passes( const ACsoft::Analysis::Particle& );
+
 
   /** Print a summary of the cut statistics.
     *
@@ -108,11 +114,20 @@ public:
   virtual std::string Description() const { return fDescription; }
 
 
+  /** Returns a 1d-histogram of the number of passed events vs time */
   TH1F* GetPassedTimeHisto() const { return fPassedTimeHisto; }
+
+  /** Returns a 1d-histogram of the number of failed events vs time */
   TH1F* GetFailedTimeHisto() const { return fFailedTimeHisto; }
 
-  void ReplacePassedHisto( TH1F* histo );
-  void ReplaceFailedHisto( TH1F* histo);
+  /** Returns a graph denoting the efficiency of this cut vs time, after applying all previous cuts ("last cut" efficiency).
+    * If mergeBins > 1 is given, 'mergeBins' consecutive bins will be merged together. As the default bin width of time histograms is 1200 seconds
+    * (20 minutes), if you pass mergeBins=3, you'll get an 1 hour binning.
+    */
+  TEfficiency* ProduceTimeEfficiency(unsigned int mergeBins = 1) const;
+
+  void ReplaceHistograms( TH1F* passedHisto, TH1F* failedHisto );
+  static void FillHistograms( bool fill ) { sFillHistograms = fill; }
 
 private:
 
@@ -139,12 +154,11 @@ private:
   void MergeStatisticsFrom( const Cut& other );
 
 protected:
-
   /** Check if a particle passes this cut.
     *
     * This function has to be implemented by all sub-classes.
     */
-  virtual bool TestCondition( const ACsoft::Analysis::Particle& ) = 0;
+  virtual bool TestCondition( const ACsoft::Analysis::Particle&) = 0;
 
   /** Helper function which aborts the program if a Cut that needs
     * full ACQt data structures is applied to ACROOT files.
@@ -174,11 +188,6 @@ protected:
   /// should be set to \c true if cut is not part of a group of cuts
   bool fIsStandaloneCut;
 
-  /// \todo implement me
-  bool fUsesRigidityBookkeeping;
-  /// \todo implement me
-  bool fUsesChargeBookkeeping;
-
   /// fill if Passes() == true
   TH1F* fPassedTimeHisto;
   /// fill if Passes() == false
@@ -190,7 +199,10 @@ protected:
   /// CutCounter of all instances
   static int sCutCounter;
 
-  ClassDef(Cuts::Cut,1)
+  /// globally turn filling of histograms in cuts on or off
+  static bool sFillHistograms;
+
+  ClassDef(Cuts::Cut,3)
 };
 }
 

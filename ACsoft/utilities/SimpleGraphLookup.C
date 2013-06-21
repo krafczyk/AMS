@@ -19,6 +19,26 @@
 #define INFO_OUT_TAG "SimpleGraphLookup> "
 #include <debugging.hh>
 
+/** Construct a SimpleGraphLookup from given TFile.
+  * This constructor shall be used when the TFile object is shared between multiple SimpleGraphLookups,
+  * to avoid loading it several times from disk. See the other constructor for details about the parameters.
+  */
+ACsoft::Utilities::SimpleGraphLookup::SimpleGraphLookup( TFile* file, std::string namePrefix, std::string uncertaintyPrefix, unsigned int nMin, unsigned int nMax, unsigned int mod2D ) :
+  fNumberOffset(nMin),
+  fModulus2D(mod2D),
+  fHasUncertainties(false),
+  fLastQueryOk(true)
+{
+  LoadGraphs( file, namePrefix, nMin, nMax, fGraphs );
+
+  if( uncertaintyPrefix != "" ){
+    fHasUncertainties = true;
+    LoadGraphs( file, uncertaintyPrefix, nMin, nMax, fUncertaintyGraphs );
+  }
+
+  if( !TestConsistency() ) fHasUncertainties = false;
+}
+
 /** Construct a SimpleGraphLookup from given filename.
   *
   * Use the environment variable \c ACROOTLOOKUPS to construct the full filename, i.e. \c $ACROOTLOOKUPS/lookupfile
@@ -36,10 +56,10 @@
   * For simple two-dimensional lookups, graph names are of the form \c prefix_X_Y, where X is in the range 0..Xmax, Y is in the range 0..Ymax.
   * In this case, the graphs can still be stored in a 1D array structure, and the correct suffixes when reading the graphs are created if the \p mod2D
   * parameter is set to \c Ymax+1. The user then has to make sure that the correct graphs are queried by calculating the number argument from \c X and \c Y.
-  * For an example, see Utilities::TrdPdfLookup.
+  * For an example, see ACsoft::Utilities::TrdPdfLookup.
   *
   * \code
-  * Utilities::SimpleGraphLookup("file.root", "myGraph", "myError", 1, 328);
+  * ACsoft::Utilities::SimpleGraphLookup("file.root", "myGraph", "myError", 1, 328);
   * \endcode
   *
   */
@@ -65,22 +85,21 @@ ACsoft::Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string lookupfile,
     throw std::runtime_error("ERROR opening lookup file.");
   }
 
-  // FIXME: Once we've produced new lookups, always rely on the existance of a 'ACQtVersion' object!
   AC::ACQtLookupFileIdentifier* acqtVersion = (AC::ACQtLookupFileIdentifier*) file->Get("ACQtVersion");
-  if (acqtVersion) {
-    if (acqtVersion->fGitSHA != expectedGitSHA) {
-      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected Git SHA: \""
-               << expectedGitSHA << "\". Actual Git SHA: \"" << acqtVersion->fGitSHA << "\"" << std::endl;
-      if( expectedGitSHA != std::string("0") )
-        throw std::runtime_error("ERROR validating lookup file.");
-    }
+  assert(acqtVersion);
 
-    if (acqtVersion->fVersion != expectedVersion) {
-      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected version: \""
-               << expectedVersion << "\". Actual version: \"" << acqtVersion->fVersion << "\"" << std::endl;
-      if( expectedVersion != std::string("0") )
-        throw std::runtime_error("ERROR validating lookup file.");
-    }
+  if (acqtVersion->fGitSHA != expectedGitSHA) {
+    WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected Git SHA: \""
+             << expectedGitSHA << "\". Actual Git SHA: \"" << acqtVersion->fGitSHA << "\"" << std::endl;
+    if( expectedGitSHA != std::string("0") )
+      throw std::runtime_error("ERROR validating lookup file.");
+  }
+
+  if (acqtVersion->fVersion != expectedVersion) {
+    WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected version: \""
+             << expectedVersion << "\". Actual version: \"" << acqtVersion->fVersion << "\"" << std::endl;
+    if( expectedVersion != std::string("0") )
+      throw std::runtime_error("ERROR validating lookup file.");
   }
 
   LoadGraphs( file, namePrefix, nMin, nMax, fGraphs );
@@ -124,20 +143,18 @@ ACsoft::Utilities::SimpleGraphLookup::SimpleGraphLookup( std::string treefile, s
     throw std::runtime_error("ERROR opening lookup file!");
   }
 
-  // FIXME: Once we've produced new lookups, always rely on the existance of a 'ACQtVersion' object!
   AC::ACQtLookupFileIdentifier* acqtVersion = (AC::ACQtLookupFileIdentifier*) file->Get("ACQtVersion");
-  if (acqtVersion) {
-    if (acqtVersion->fGitSHA != expectedGitSHA) {
-      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected Git SHA: \""
-               << expectedGitSHA << "\". Actual Git SHA: \"" << acqtVersion->fGitSHA << "\"" << std::endl;
-      throw std::runtime_error("ERROR validating lookup file.");
-    }
+  assert(acqtVersion);
+  if (acqtVersion->fGitSHA != expectedGitSHA) {
+    WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected Git SHA: \""
+             << expectedGitSHA << "\". Actual Git SHA: \"" << acqtVersion->fGitSHA << "\"" << std::endl;
+    throw std::runtime_error("ERROR validating lookup file.");
+  }
 
-    if (acqtVersion->fVersion != expectedVersion) {
-      WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected version: \""
-               << expectedVersion << "\". Actual version: \"" << acqtVersion->fVersion << "\"" << std::endl;
-      throw std::runtime_error("ERROR validating lookup file.");
-    }
+  if (acqtVersion->fVersion != expectedVersion) {
+    WARN_OUT << "ERROR validating lookup file " << filename.str() << ". File mismatch! Expected version: \""
+             << expectedVersion << "\". Actual version: \"" << acqtVersion->fVersion << "\"" << std::endl;
+    throw std::runtime_error("ERROR validating lookup file.");
   }
 
   // get tree
@@ -297,10 +314,12 @@ bool ACsoft::Utilities::SimpleGraphLookup::TestConsistency() {
   */
 ACsoft::Utilities::Quantity ACsoft::Utilities::SimpleGraphLookup::Query( unsigned int number, double x, bool needUncertainty ) const {
 
+  fLastQueryOk = true;
+
   unsigned int index = number - fNumberOffset;
   TGraph* gr    = fGraphs.at(index);
   if(!gr) {
-    DEBUG_OUT << "Lookupg graph " << number << " missing." << std::endl;
+    DEBUG_OUT << "Lookup graph " << number << " missing." << std::endl;
     fLastQueryOk = false;
     return Quantity(0.,0.);
   }
@@ -332,11 +351,9 @@ ACsoft::Utilities::Quantity ACsoft::Utilities::SimpleGraphLookup::Query( unsigne
   }
   else if( iLow < 0 ){
 #ifndef AMS_ACQT_SILENCE_COMMON_WARNINGS
-    if(fNumberOfWarnings[number] < 2)
-      WARN_OUT << "Value x=" << std::setprecision(10) << x << " too low in number " << number << " !" << std::endl;
+    if(fNumberOfWarnings[number] < 2) WARN_OUT << "Value x=" << std::setprecision(10) << x << " too low in number " << number << " !" << std::endl;
     fNumberOfWarnings[number]++;
-    if(fNumberOfWarnings[number] == 2)
-      WARN_OUT << "Suppressing further warnings for number " << number << std::endl;
+    if(fNumberOfWarnings[number] == 2) WARN_OUT << "Suppressing further warnings for number " << number << std::endl;
 #endif
 
     gr->GetPoint(0,x0,y0);
@@ -345,14 +362,13 @@ ACsoft::Utilities::Quantity ACsoft::Utilities::SimpleGraphLookup::Query( unsigne
       uncgr->GetPoint(0,dummy,e0);
       uncgr->GetPoint(0,dummy,e1);
     }
+    fLastQueryOk = false;
   }
   else if( iLow >= (gr->GetN()-1) ){
 #ifndef AMS_ACQT_SILENCE_COMMON_WARNINGS
-    if(fNumberOfWarnings[number] < 2)
-      WARN_OUT << "Value x=" << std::setprecision(10) << x << " too high in number " << number << " !" << std::endl;
+    if(fNumberOfWarnings[number] < 2) WARN_OUT << "Value x=" << std::setprecision(10) << x << " too high in number " << number << " !" << std::endl;
     fNumberOfWarnings[number]++;
-    if(fNumberOfWarnings[number] == 2)
-      WARN_OUT << "Suppressing further warnings for number " << number << std::endl;
+    if(fNumberOfWarnings[number] == 2) WARN_OUT << "Suppressing further warnings for number " << number << std::endl;
 #endif
 
     int lastPoint = gr->GetN()-1;
@@ -362,6 +378,7 @@ ACsoft::Utilities::Quantity ACsoft::Utilities::SimpleGraphLookup::Query( unsigne
       uncgr->GetPoint(lastPoint,dummy,e0);
       uncgr->GetPoint(lastPoint,dummy,e1);
     }
+    fLastQueryOk = false;
   }
 
   // linear interpolation
@@ -383,9 +400,8 @@ ACsoft::Utilities::Quantity ACsoft::Utilities::SimpleGraphLookup::Query( unsigne
             << " x1=" << std::setprecision(10) << x1
             << " y0=" << y0 << "+-" << e0
             << " y1=" << y1 << "+-" << e1 << " -> "
-            << result << std::endl;
+            << result << " (ok: " << fLastQueryOk << ")" << std::endl;
 
-  fLastQueryOk = true;
   return result;
 }
 
@@ -490,3 +506,12 @@ Double_t ACsoft::Utilities::SimpleGraphLookup::LastEntryX( unsigned int number )
 
   return x;
 }
+
+
+bool ACsoft::Utilities::IsBeamTestTime(double time) {
+
+  // FIXME: Is this sufficient? If we need to differentiate between KSC cosmics runs, this needs to be more fine-grained.
+  return time < 1300000000;
+}
+
+

@@ -20,6 +20,7 @@ QDataStream& operator<<(QDataStream& stream, const Trigger& object) {
   stream << object.fTriggerRateFTZ;
   stream << object.fTriggerRateFTE;
   stream << object.fTriggerRateLV1;
+  stream << object.fTofPatt1;
   return stream;
 }
 
@@ -38,6 +39,8 @@ QDataStream& operator>>(QDataStream& stream, Trigger& object) {
   object.fTriggerRateFTE = subStream1.read();
   object.fTriggerRateLV1 = subStream1.read();
 
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fTofPatt1;
   return stream;
 }
 

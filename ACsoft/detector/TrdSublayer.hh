@@ -3,6 +3,7 @@
 
 #include <TVector3.h>
 #include <TRotation.h>
+#include <TRDRawHit.h>
 
 #include <vector>
 
@@ -40,6 +41,7 @@ public:
   int LayerNumber() const { return fLayerNumber; }
   int SublayerNumber() const { return fSublayerNumber; }
   int GlobalSublayerNumber() const { return fGlobalSublayerNumber; }
+  AC::MeasurementMode Direction() const { return fDirection; }
 
   /** Get a list of TrdModule objects in this layer, sorted by ladder number. */
   const std::vector<TrdModule*>& Modules() const { return fTrdModules; }
@@ -74,6 +76,7 @@ private:
   int fLayerNumber;     ///< global layer number (0..19)
   int fSublayerNumber;  ///< sublayer in layer (0..1)
   int fGlobalSublayerNumber; ///< global sublayer number (0..39)
+  AC::MeasurementMode fDirection; ///< describes how sublayer is oriented (before alignment)
 
   TrdLayer* fMother;
 

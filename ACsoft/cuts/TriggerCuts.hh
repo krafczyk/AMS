@@ -1,3 +1,4 @@
+
 #ifndef TRIGGERCUTS_HH
 #define TRIGGERCUTS_HH
 
@@ -54,6 +55,52 @@ public:
 
   ClassDef(Cuts::CutTriggerRate,1)
 };
+
+
+/** %Cut on trigger physics bit for charged particles
+  *
+  * - bit1: unbiased TOF-trig(i.e. FTC= z>=1)
+  * - bit2: Z>=1(FTC+anti) "protons"
+  * - bit3: Z>=2(FTC & BZ) ions
+  * - bit4: SlowZ>=2 (FTZ) slow ions
+  * - bit5: electrons(FTC & FTE)
+  * - bit6: gammas(FTE & ECLVL1("shower angle")
+  * - bit7: unbECAL(FTE)
+  * - bit8: External
+  */
+class CutPhysicsTriggerChargedParticles: public Cut {
+public:
+  CutPhysicsTriggerChargedParticles() : Cut( "Trigger Physics bits for charged particles") { }
+
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+
+    return (p.TriggerFlags()&0x1E)>0?true:false;
+  }
+
+  ClassDef(Cuts::CutPhysicsTriggerChargedParticles,1)
+};
+
+
+class CutHasAnyPhysicsTrigger: public Cut {
+public:
+  CutHasAnyPhysicsTrigger() : Cut("Tests for any physics bit") { }
+
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+    int physb = p.TriggerFlags();
+
+    bool HasAny = false;
+    HasAny |= physb&0x0002;
+    HasAny |= physb&0x0004;
+    HasAny |= physb&0x0008;
+    HasAny |= physb&0x0010;
+    HasAny |= physb&0x0020;
+
+    return HasAny;
+  }
+
+  ClassDef(Cuts::CutHasAnyPhysicsTrigger,1)
+};
+
 
 }
 

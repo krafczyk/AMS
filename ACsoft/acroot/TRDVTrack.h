@@ -55,6 +55,14 @@ public:
     */
   Float_t Phi() const { return fPhi * TMath::RadToDeg(); }
 
+  /** Direction vector 3D. */
+  TVector3 DirectionVector() const { return TVector3( cos(fPhi)*sin(fTheta), sin(fPhi)*sin(fTheta), cos(fTheta) ); }
+
+  /** Angle to z-axis in XZ projection. */
+  double ProjAngleX() const { return TMath::PiOver2() - TVector2(cos(fPhi)*sin(fTheta),cos(fTheta)).Phi(); }
+  /** Angle to z-axis in YZ projection. */
+  double ProjAngleY() const { return TMath::PiOver2() - TVector2(sin(fPhi)*sin(fTheta),cos(fTheta)).Phi(); }
+
   /** X position [cm].
     */
   Float_t X() const { return fX; }
@@ -82,6 +90,10 @@ public:
   float Extrapolate_to_z( float z, MeasurementMode mode ) const {    // D=0: return X   else return Y
     if(mode == XZMeasurement) return fX+(z-fZ)*tan(fTheta)*cos(fPhi);
     else     return fY+(z-fZ)*tan(fTheta)*sin(fPhi);
+  }
+
+  TVector3 Eval( float z ) const {
+    return TVector3( Extrapolate_to_z(z,AC::XZMeasurement), Extrapolate_to_z(z,AC::YZMeasurement), z );
   }
 
 private:

@@ -4,12 +4,18 @@
 #include <string>
 #include <vector>
 #include <QBuffer>
+#include <QString>
+#include <QStringList>
 #include <TChain.h>
+#include <Database.h>
 
+class QByteArray;
+class QDataStream;
 class QFile;
 class TChain;
 class TFile;
 class TStopwatch;
+class TTimeStamp;
 
 namespace IO {
   class ReducedFileHeader;
@@ -29,6 +35,7 @@ namespace AC {
 
 namespace IO {
   class ReducedEvent;
+  class MultiFileManager;
 
 /** Interface for access to ACQt files and ACROOT files.
   * ACQt files give full access to all AC datastructures to build full-fledged analysis/calibration software tools.
@@ -105,22 +112,16 @@ namespace IO {
   *
   */
 
+enum FileManagerSettings {
+  DefaultSettings   = 0,
+  DontDumpSettings  = 1 << 0,
+  LoadDatabaseFiles = 1 << 1
+};
+
 class FileManager {
 public:
-  FileManager(bool shouldDumpSettings = true);
+  FileManager(int fileManagerFlags = DefaultSettings);
   virtual ~FileManager();
-
-  /** Utility function to assemble an output file name according to standard scheme.
-    *
-    * Typically returns something like \c resultdir/prefix_suffix.root, but also handles the case where resultdir and/or suffix are empty.
-    */
-  static std::string MakeStandardRootFileName( std::string resultdir, std::string prefix, std::string suffix);
-
-  /** Utility function to assemble an output file name according to standard scheme for pdf files.
-    *
-    * Typically returns something like \c resultdir/prefix_suffix.pdf, but also handles the case where resultdir and/or suffix are empty.
-    */
-  static std::string MakeStandardPdfFileName( std::string resultdir, std::string prefix, std::string suffix);
 
   /** Read a file list, and open all files specificed in that list.
     *
@@ -161,6 +162,11 @@ public:
     */
   AC::RunHeader* RunHeader() const { return fRunHeader; }
 
+  /** Returns a pointer to the database belonging to the current run.
+    * Returns 0 for non-ACQt files.
+    */
+  ::AC::Database* Database() const { return fDatabase; }
+
   /** Moves to next Event.
     *
     * If none of GetNextEvent(), or GetEvent(int) were called before, this moves the manager to the first event.
@@ -177,7 +183,7 @@ public:
     * \param[in] index index of event to get
     * \return true if event at index was available, otherwise false
     */
-  bool GetEvent(int index);
+  bool GetEvent(Long64_t index);
 
   /** Resets FileManager to the state, right after calling ReadFileList/ReadFile.
     * After this call the FileManager no longer points to any event.
@@ -188,17 +194,43 @@ public:
     *
     * \return number of entries in all runs
     */
-  int GetEntries() const { return fEntries; }
+  Long64_t GetEntries() const { return fEntries; }
 
   /** Get current event index.
     *
     * Note: This returns -1, if no event was ever loaded. (Before the first call of GetNextEvent/GetEvent).
     * \return current event index
     */
-  int GetCurrentEventIndex() const { return fCurrentEventNumber; }
+  Long64_t GetCurrentEventIndex() const { return fCurrentEventNumber; }
+
+  /** Get current file name.
+    * Returns an empty string for non-ACQt files (ACROOT files).
+    */
+  std::string GetCurrentFileName() const;
+
+  /** Get number of (unique) loaded runs. Duplicated runs in any of the file lists, will be counted as one.
+    */
+  int GetNumberOfRuns();
+
+  /** Get current run index.
+    */
+  int GetCurrentRunIndex();
+
+  /** Skip the current run.
+    *
+    * This will move the AC::Event pointer to the last event of the current run. Calling GetNextEvent() will then return the first event of the next run.
+    */
+  void SkipCurrentRun();
+
+  /** Skip back one run.
+    *
+    * This will move the AC::Event pointer to the last event of the previous run. Calling GetNextEvent() will then return the first event of the current run.
+    * If you are already at the beginning of the current run, this will skip back one run further.
+    */
+  void SkipBackRun();
 
   /** Register a custom branch within the ROOT tree that's read as well during GetNextEvent() & co.
-    **/
+    */
   template<class T>
   void ReadCustomBranch(const char* branchName, T* pointerToType) {
 
@@ -219,10 +251,16 @@ public:
   static void ExpandEnvironmentVariables(std::string&);
 
 private:
+  friend class MultiFileManager;
+  void DisablePropagateFirstAndLastRunTime() { fPropagateFirstAndLastRunTime = false; }
+  void RetrieveFirstAndLastEventTimeForACQtFiles(TTimeStamp& timeOfFirstEvent, TTimeStamp& timeOfLastEvent);
+
+private:
   friend bool NonInlineGetNextACQtDataChunk(FileManager*); 
 
   bool DoesFileExist(const std::string&);
   void DumpSettings();
+  void LoadDatabase(const std::string& databaseFileName);
 
   // ACROOT specific code, implemented in FileManagerACROOT.C
   void DestructACROOTFiles();
@@ -232,6 +270,11 @@ private:
   void ResetACROOTFiles();
   void RetrieveFirstAndLastEventTimeForACROOTFiles();
   void SetACROOTBranchAddresses();
+  int GetNumberOfACROOTRuns();
+  int GetCurrentACROOTRunIndex();
+  void SkipCurrentACROOTRun();
+  void SkipBackACROOTRun();
+
 
   // ACQt specific code, implemented in FileManagerACQt.C.
   bool CheckACQtFileIntegrity(unsigned int fileNumber) const;
@@ -241,7 +284,11 @@ private:
   bool InitializeACQtFiles(const std::vector<std::string>&);
   void ResetACQtFiles();
   void RetrieveFirstAndLastEventTimeForACQtFiles();
-
+  std::string GetCurrentACQtFileName() const;
+  int GetNumberOfACQtRuns();
+  int GetCurrentACQtRunIndex();
+  void SkipCurrentACQtRun();
+  void SkipBackACQtRun();
 
   /** ACQtFile structure, used only internally.
    */
@@ -264,12 +311,13 @@ private:
 
   bool OpenACQtFile(ACQtFile&);
   bool GetNextACQtDataChunk();
-  friend bool OpenACQtFileIfNeeded(const ACQtFile&, bool);
+  int MoveToACQtDataChunkContainingEvent(unsigned int event);
+  friend bool OpenACQtFileIfNeeded(const ACQtFile&, std::string&, bool);
 
 private:
-  bool fShouldDumpSettings;
-  int fCurrentEventNumber;
-  int fEntries;
+  int fSettings;
+  Long64_t fCurrentEventNumber;
+  Long64_t fEntries;
 
   TStopwatch* fRunTimer;
   TStopwatch* fEventTimer;
@@ -281,6 +329,7 @@ private:
   unsigned int fNumberOfProcessedRuns;
   unsigned int fCurrentFile;
   unsigned int fNumberOfFiles;
+  ::AC::Database* fDatabase;
 
   // ACQt specific variables.
   AC::RunHeader* fRunHeader;
@@ -289,6 +338,10 @@ private:
   unsigned int fCurrentACQtFile;
   unsigned long fChunkBufferSize;
   QBuffer fChunkBuffer;
+  QByteArray* fByteArrayIn;
+  QByteArray* fByteArrayOut;
+  QDataStream* fDataStream;
+  bool fPropagateFirstAndLastRunTime;
 
   // ACROOT specific variables.
   ReducedEvent* fReducedEvent;

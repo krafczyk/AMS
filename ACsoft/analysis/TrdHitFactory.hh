@@ -1,18 +1,20 @@
 #ifndef TRDHITFACTORY_HH
 #define TRDHITFACTORY_HH
 
+#include <vector>
 #include <TrdHit.hh>
 
 namespace ACsoft {
 
 namespace AC {
-  class EventHeader;
+  class Event;
   class TRDRawHit;
 }
 
 namespace Analysis {
 
 class SplineTrack;
+class TrdTrack;
 
 /** Steps used by TrdHitFactory in production of TrdHit objects.
   */
@@ -27,7 +29,12 @@ public:
 
   TrdHitFactory();
 
-  TrdHit ProduceTrdHitFrom( const AC::TRDRawHit& rhit, const SplineTrack& splineTrack, const AC::EventHeader& header, int steps );
+  void   ProduceTrdHitsFrom( const AC::Event& event, const SplineTrack& splineTrack, int steps, std::vector<TrdHit>& resultVector );
+  void   ProduceTrdHitsFrom( const AC::Event& event, const TrdTrack& trdTrack, int steps, std::vector<TrdHit>& resultVector );
+  TrdHit ProduceTrdHitFrom( const AC::TRDRawHit& rhit, const SplineTrack& splineTrack, int steps );
+  TrdHit ProduceTrdHitFrom( const AC::TRDRawHit& rhit, const TrdTrack& trdTrack, int steps );
+
+  void   ProduceBasicTrdHitsFrom( const AC::Event& event, std::vector<TrdHit>& resultVector);
 
 private:
 

@@ -44,6 +44,21 @@ public:
     * Note:
     * 8 lsbits-> pattern of LVL1 sub-triggers ("predefined physics" branches) 
     * See http://ams.cern.ch/cgi-bin/viewcvs.cgi/AMS/include/root.h?view=markup for details.
+    *
+    * for ISS Data:  
+    * Level1R::RestorePhysBPat(){
+    * if(PhysBPatt==0){
+    * 
+    *  unsigned short int ft_pattern=JMembPatt;
+    * 
+    *  if ( (ft_pattern & 0x0001) == 0x0001 ) PhysBPatt |= 0x0001; // unbiased 3/4 TOF-CP
+    *  if ( (ft_pattern & 0x0090) == 0x0090 ) PhysBPatt |= 0x0002; // 4/4 TOF-CT & ACC0
+    *  if ( (ft_pattern & 0x0300) == 0x0300 ) PhysBPatt |= 0x0004; // 4/4 TOF-BZ & ACC1
+    *  if ( (ft_pattern & 0x0020) == 0x0020 ) PhysBPatt |= 0x0008; // 4/4 FTZ
+    *  if ( (ft_pattern & 0x0410) == 0x0410 ) PhysBPatt |= 0x0010; // 4/4 TOF-CT & ECALF&
+    *  if ( (ft_pattern & 0x1000) == 0x1000 ) PhysBPatt |= 0x0020; // ECALA&
+    *  if ( (ft_pattern & 0x0800) == 0x0800 ) PhysBPatt |= 0x0040; // unbiased ECALA||
+    * }
     */
   Int_t PhysBFlags() const { return (fBits >> 24) & 0xff; }
 
@@ -130,8 +145,36 @@ public:
     */
   UShort_t TriggerRateLV1() const { return fTriggerRateLV1; }
 
+
+  /** Tof Layer/Bar S1&S2 coincidence in Trigger
+   * 
+   *  Layer: 0    Bar 0..7
+   *         1    Bar 0..7 
+   *         2    Bar 0..9  (only 1..8 stored) 
+   *         3    Bar 0..7 
+   *
+   */
+  bool HasCoincidenceFromTofLayerBar(int Layer, int Bar) const {
+
+    assert(Layer>=0 && Layer<=3);
+
+    if( Layer==2 ) {
+      if ( Bar==0 || Bar==9 ) return 0;
+      Bar--;
+    }
+
+    assert(Bar>=0 && Bar<=7);
+
+    return fTofPatt1 & (1<<(8*Layer+Bar));
+  }
+
+  /** TofPatt1
+   */
+  UInt_t TofPatt1() const { return fTofPatt1; }
+
+  
+private:
   /** Helper function to generate UInt_t fBits - used by the producer only.
-    * \todo Remove this logic from here.
     */
   static UInt_t GenerateBitsFromFlags(Int_t PBP, Int_t TOF1, Int_t TOF2, Int_t ACC, Int_t ECAL) {
 
@@ -142,11 +185,25 @@ public:
           | ((ECAL & 0xff)                         );
   }
 
-private:
+  /** Helper function to generate custom TOF-Patt: 
+    * - store only coincidence of S1&S2
+    * - TOF-Plane-3 truncated to 8 center paddles
+    */
+  static UInt_t GenerateBitsFromTofPatt( Int_t *Lv1TofPatt ) {
+    UInt_t Bits = 0;
+    for( int layer=0; layer<4; layer++ ) {
+      UShort_t S12 = Lv1TofPatt[layer] & (Lv1TofPatt[layer]>>16);   // S1 & S2  - physics trigger with coincidence of both sides
+      if( layer==2 ) S12 = S12>>1;                                  // drop paddle-1 of TOF-plane-3
+      Bits |= (S12&0xff)<<(8*layer);                                // store only 8 paddles (ignore paddle 10 of TOF-plane-3)
+    }
+    return Bits;
+  }
+
   std::bitset<8> PhysBFlagsBitset() const { return std::bitset<8>(PhysBFlags()); }
   std::bitset<16> JMembFlagsBitset() const { return std::bitset<16>(JMembFlags()); }
   std::bitset<8> ACCFlagsBitset() const { return std::bitset<8>(ACCFlags()); }
   std::bitset<8> ECALFlagsBitset() const { return std::bitset<8>(ECALFlags()); }
+  std::bitset<32> TofPatt1Bitset() const { return std::bitset<32>(TofPatt1()); }
  
 private:
   REGISTER_CLASS_WITH_TABLE(Trigger)

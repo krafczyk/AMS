@@ -2,7 +2,9 @@
 Namespace = AC
 Class = MCEventGenerator
 Members = \
-  UShort_t fID             \
+  [55-UShort_t fID]        \
+  [55+Short_t fParticleID] \
+  [55+UShort_t fTrackID]   \
   UShort_t fMotherParticle \
   UChar_t fProcess         \
   Float_t fMomentum        \

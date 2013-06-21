@@ -2,7 +2,6 @@
 #include "ACQtProducer.h"
 #endif
 
-#include <TF1.h>
 #include "TrdQt.hh"
 
 #include "TrdCandidateMatching.hh"
@@ -12,63 +11,47 @@
 #include "ReducedFileHeader.hh"
 #include "ParticleFactory.hh"
 #include "TrdDetector.hh"
+#include "TrdModule.hh"
+#include "TrdStraw.hh"
+#include "DetectorManager.hh"
 #include "AnalysisParticle.hh"
 #include "SimpleGraphLookup.hh"
 #include "Utilities.hh"
 #include "TrdPdfLookup.hh"
 #include "TrdHit.hh"
 #include "ParticleSelectionCuts.hh"
+#include "TrdLikelihoodCalculator.hh"
 
+#include <TF1.h>
 #include <TRandom3.h>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "TrdQt> "
 #include <debugging.hh>
 
+// FIXME move to settings, or rather, a proper MC config file
 static const float MC_XenonPressure = 800.0; // in mBar
-static const int MaximumNumberOfRigidityBins = 30;
 
-class ACsoft::TrdQt::TrdQtPrivate {
+class TrdQt::TrdQtPrivate {
 public:
-  TrdQtPrivate(TrdQt* trdQt, unsigned int numberOfToyMcEvents)
-    : fTrdMinDeDx(0)
-    , fTrdMaxDeDx(AC::AMSGeometry::TRDMaxADCCount / ::AC::Settings::TrdTubeDefaultMinPathLength)
-    , fNumberOfSelectedHits(0)
-    , fMonteCarloEvent(false)
+  TrdQtPrivate(unsigned int numberOfToyMcEvents)
+    : fMonteCarloEvent(false)
     , fNumberOfToyMcEvents(numberOfToyMcEvents)
     , fNumberOfRandomEvents(numberOfToyMcEvents)
-    , fMinimumPdfValue(1e-7)
+    , fIsCalibrationGood(false)
+    , fXePressureOk(false)
     , fReducedEvent(0) {
 
-    // FIXME fMinimumPdfValue is a potentially important number, store it in Settings.C as well?
     fLogLikelihoodRatiosElectronToyMC.assign(numberOfToyMcEvents, std::vector<double>());
     fLogLikelihoodRatiosProtonToyMC.assign(numberOfToyMcEvents, std::vector<double>());
 
-    // FIXME::
     fLogLikelihoodRatiosElectronRandom.assign(numberOfToyMcEvents, std::vector<double>());
     fLogLikelihoodRatiosProtonRandom.assign(numberOfToyMcEvents, std::vector<double>());
 
     for (int i = 0; i < Utilities::TrdPdfLookup::fNumberOfParticles; ++i)
-      v_RigLog[i] = Utilities::TrdPdfLookup::GetBinningForParticle(i);
+      v_RigLog[i] = Utilities::TrdPdfLookup::GetBinningForParticle(Utilities::ParticleId(i));
 
-    for (int xenonBin = 0; xenonBin < Utilities::TrdPdfLookup::fNumberOfXenonBins; ++xenonBin) {
-      for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle) {
-        for (int rigidityBin = 0; rigidityBin < Utilities::TrdPdfLookup::fNumberOfRigidityBins[idParticle]; ++rigidityBin) {
-          for (unsigned int layer = 0; layer < AC::AMSGeometry::TRDLayers; ++layer) {
-            std::stringstream string;
-            string << "fPDFs_" << xenonBin << idParticle << rigidityBin << layer;
-            fPDFs[xenonBin][rigidityBin][layer][idParticle] = new TF1(string.str().c_str(), trdQt, &ACsoft::TrdQt::FunPDF, 1.0, fTrdMaxDeDx, 4, "TrdQt", "FunPDF");
-            fPDFs[xenonBin][rigidityBin][layer][idParticle]->SetParameters(double(xenonBin),double(rigidityBin),double(layer),double(idParticle));
-            fPDFs[xenonBin][rigidityBin][layer][idParticle]->SetNpx(1000);
-          }
-        }
-      }
-    }
   }
-
-  double fTrdMinDeDx;
-  double fTrdMaxDeDx;
-  int fNumberOfSelectedHits;
 
   bool fMonteCarloEvent;
   unsigned int fNumberOfToyMcEvents;
@@ -87,24 +70,27 @@ public:
   std::vector<std::vector<double> > fLogLikelihoodRatiosProtonRandom;
 
   std::vector<double> fPvalues;
+  std::vector<double> fLikelihoodProducts;
+  std::vector<bool>   fLikelihoodOkForParticle;
 
-  double fMinimumPdfValue;
+  bool fIsCalibrationGood;
+  bool fXePressureOk;
+
   std::vector<double> v_RigLog[Utilities::TrdPdfLookup::fNumberOfParticles];
-  TF1* fPDFs[Utilities::TrdPdfLookup::fNumberOfXenonBins][MaximumNumberOfRigidityBins][AC::AMSGeometry::TRDLayers][Utilities::TrdPdfLookup::fNumberOfParticles];
 
   const IO::ReducedEvent* fReducedEvent;
 };
 
-ACsoft::TrdQt::TrdQt(unsigned int numberOfToyMcEventsPerEvent)
-  : d(new TrdQtPrivate(this, numberOfToyMcEventsPerEvent)) {
+TrdQt::TrdQt(unsigned int numberOfToyMcEventsPerEvent)
+  : d(new TrdQtPrivate(numberOfToyMcEventsPerEvent)) {
 
 }
 
-ACsoft::TrdQt::~TrdQt() {
+TrdQt::~TrdQt() {
 
 }
 
-int ACsoft::TrdQt::GetRigidityBin(int particleId, float aRig) const {
+int TrdQt::GetRigidityBin(int particleId, float aRig) const {
 
   Q_ASSERT(particleId >= 0);
   Q_ASSERT(particleId < Utilities::TrdPdfLookup::fNumberOfParticles);
@@ -124,35 +110,32 @@ int ACsoft::TrdQt::GetRigidityBin(int particleId, float aRig) const {
 }
 
 
-bool ACsoft::TrdQt::Process(const Analysis::Particle& particle, int particleId) {
+bool TrdQt::Process(const Analysis::Particle& particle, int particleId, bool ExcludeDeadStraws) {
 
  /* arguments defined in Settings.C that determine the behaviour of TrdQt:
-  *
-  * MinPathLength: default 0mm and a smart algorithem is trying to maximize the number of straws on the tracker track.
-  *                If set to >0 only candidate hits matching active hits will be considered with a path length > MinPathLength.
-  *
-  * ActiveStraws:  default is true and a smart algorithem is trying to combine candidate and active hits.
-  *                If set to false only straws are considered which are traversed by the tracker track.
-  */
+   *
+   * MinPathLength:    default 0mm and a smart algorithem is trying to maximize the number of straws on the tracker track.
+   *                   If set to >0 only candidate hits matching active hits will be considered with a path length > MinPathLength.
+   *
+   * AddNearTrackHits: default is true and a smart algorithem is trying to combine candidate and active hits.
+   *                   If set to false only straws are considered which are traversed by the tracker track.
+   */
 
   d->fReducedEvent = particle.fReducedEvent;
   d->fNumberOfRandomEvents   = d->fNumberOfToyMcEvents;
-  d->fNumberOfSelectedHits = 0;
+  d->fMonteCarloEvent = particle.IsMC();
 
-  d->fMonteCarloEvent      = false; // FIXME this can be improved
-  if (particle.RawEvent() && particle.RawEvent()->MC().EventGenerators().size() != 0) d->fMonteCarloEvent = true;
+  bool AddNearTrackHits = Utilities::TrdPdfLookup::Self()->AddNearTrackHitsForCandidateMatching();
 
-  d->fLogLikelihoodRatiosElectron.clear();
-  d->fLogLikelihoodRatiosProton.clear();
-  d->fLogLikelihoodRatiosElectron.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
-  d->fLogLikelihoodRatiosProton.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
+  float aRig = fabs(particle.Rigidity());
+  bool PassesTrdCandidateMatchingCuts = true;
+  if (!d->fReducedEvent)
+    PassesTrdCandidateMatchingCuts = d->fCandidateMatching.Process(particle, AddNearTrackHits, ExcludeDeadStraws);
 
-  for (unsigned int mcEvent = 0; mcEvent < d->fNumberOfToyMcEvents; ++mcEvent) {
-    d->fLogLikelihoodRatiosElectronToyMC.at(mcEvent).clear();
-    d->fLogLikelihoodRatiosProtonToyMC.at(mcEvent).clear();
-    d->fLogLikelihoodRatiosElectronToyMC.at(mcEvent).assign(Utilities::TrdPdfLookup::fNumberOfParticles, -1);
-    d->fLogLikelihoodRatiosProtonToyMC.at(mcEvent).assign(Utilities::TrdPdfLookup::fNumberOfParticles, -1);
-  }
+  CalculateLikelihoods(aRig, particle.EventTime());
+  CalculateToyMcLikelihoods(aRig, particle.EventTime(), particleId);
+
+   // This makes only sense for high rigidity protons
   for (unsigned int randomEvent = 0; randomEvent < d->fNumberOfRandomEvents; ++randomEvent) {
     d->fLogLikelihoodRatiosElectronRandom.at(randomEvent).clear();
     d->fLogLikelihoodRatiosProtonRandom.at(randomEvent).clear();
@@ -160,25 +143,7 @@ bool ACsoft::TrdQt::Process(const Analysis::Particle& particle, int particleId) 
     d->fLogLikelihoodRatiosProtonRandom.at(randomEvent).assign(Utilities::TrdPdfLookup::fNumberOfParticles, -1);
   }
 
-  d->fPvalues.clear();
-  d->fPvalues.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
-
-  bool AddNearTrackHits = Utilities::TrdPdfLookup::Self()->AddNearTrackHitsForCandidateMatching();
-
-  if (d->fReducedEvent)
-    return true; // FIXME: Is this right?
-
-  bool PassesTrdCandidateMatchingCuts = d->fCandidateMatching.Process(particle, AddNearTrackHits);
-
-  assert(particle.MainTrackerTrackFit());
-  float aRig = fabs(particle.MainTrackerTrackFit()->Rigidity());
-
-  CalculateLikelihoods(aRig, particle.EventTime());
-  if (d->fNumberOfToyMcEvents > 0)
-    CalculateToyMcLikelihoods(aRig, particle.EventTime(), particleId);
-
-  // This makes only sense for high rigidity protons
-  if (d->fNumberOfRandomEvents>0 && particleId==1 && aRig>100.0)
+  if (particleId==1 && aRig>100.0)
     CalculateRandomLikelihoods(particle.EventTime());
 
   CalculatePvalues(aRig, particle.EventTime());
@@ -187,32 +152,37 @@ bool ACsoft::TrdQt::Process(const Analysis::Particle& particle, int particleId) 
 }
 
 #ifdef AMS_ACQT_INTERFACE
-bool ACsoft::TrdQt::ProcessEvent(AMSEventR* pEvent, int trackIndex, int algorithm, int pattern, int refit) {
+bool TrdQt::ProcessEvent(AMSEventR* pEvent, int trackIndex, int algorithm, int pattern, int refit) {
 
+  assert(pEvent);
   if (trackIndex < 0)
     return false;
 
-  ACQtProducer producer;
-  producer.PrepareProductionForEvent(pEvent);
-  if (!producer.ProduceRunHeader(1 /* Number of events in run */))
-    return false;
+  static ACQtProducer* gProducer = 0;
+  if (!gProducer)
+    gProducer = new ACQtProducer;
+
+  gProducer->PrepareProductionForEvent(pEvent);
+
+  bool producedRunHeader = gProducer->ProduceRunHeader(1 /* Number of events in run */);
+  assert(producedRunHeader);
 
   // Select only a single track fit, don't build any others.
-  producer.SetProduceSingleTrackFitOnly(algorithm, pattern, refit);
+  gProducer->SetProduceSingleTrackFitOnly(algorithm, pattern, refit);
 
-  bool successful = producer.ProducePart(ACQtProducer::ProduceEventHeaderData);
-  successful &= producer.ProducePart(ACQtProducer::ProduceParticlesData);
-  successful &= producer.ProducePart(ACQtProducer::ProduceTOFData);
-  successful &= producer.ProducePart(ACQtProducer::ProduceTrackerData);
-  successful &= producer.ProducePart(ACQtProducer::ProduceTRDData);
-  producer.FinishProductionForEvent(pEvent);
+  bool successful = gProducer->ProducePart(ACQtProducer::ProduceEventHeaderData);
+  successful &= gProducer->ProducePart(ACQtProducer::ProduceParticlesData);
+  successful &= gProducer->ProducePart(ACQtProducer::ProduceTOFData);
+  successful &= gProducer->ProducePart(ACQtProducer::ProduceTrackerData);
+  successful &= gProducer->ProducePart(ACQtProducer::ProduceTRDData);
+  gProducer->FinishProductionForEvent(pEvent);
 
   // If AC::Event production failed, just exit here.
   if (!successful)
     return false;
 
   // Now check if the track index the user wants is present in the AC::Event, if not bail out.
-  const AC::Event& event = producer.ProducedEvent();
+  const AC::Event& event = gProducer->ProducedEvent();
   if (trackIndex >= (int)event.Tracker().Tracks().size())
     return false;
 
@@ -225,11 +195,12 @@ bool ACsoft::TrdQt::ProcessEvent(AMSEventR* pEvent, int trackIndex, int algorith
   // Now we have an AC::Event and an AC::TrackerTrackFit and can just use regular ProcessTrackerTrack() method and we're done.
   const AC::TrackerTrackFit& trackFit = trackerTrack.TrackFits()[trackerTrackFitIndex];
 
+  // Make sure alignment and gain calibration constants are up-to-date.
+  Detector::DetectorManager::Self()->UpdateIfNeeded(event.EventHeader().TimeStamp(),event.RunHeader()->RunType());
+
   static Analysis::ParticleFactory* gParticleFactory = 0;
-  if (!gParticleFactory) {
-    const int stepsForTrdHits = Analysis::TrackInfo | Analysis::GainCorrection;
-    gParticleFactory = new Analysis::ParticleFactory(stepsForTrdHits);
-  }
+  if (!gParticleFactory)
+    gParticleFactory = new Analysis::ParticleFactory;
 
   // Prepare particle (fill in which particle should be used, etc..).
   d->fParticle = Analysis::Particle(&event,0,&trackerTrack,&trackFit,0,0,0,0);
@@ -239,13 +210,13 @@ bool ACsoft::TrdQt::ProcessEvent(AMSEventR* pEvent, int trackIndex, int algorith
 }
 #endif
 
-static void ComputeLogLikelihoodRatiosForElectronsAndProtons(double* likelihoodProductForParticle, std::vector<double>& logLikelihoodRatiosElectron, std::vector<double>& logLikelihoodRatiosProton) {
+void TrdQt::ComputeLogLikelihoodRatiosForElectronsAndProtons(const std::vector<double>& likelihoodProductForParticle, std::vector<double>& logLikelihoodRatiosElectron, std::vector<double>& logLikelihoodRatiosProton) {
 
   logLikelihoodRatiosElectron.clear();
   logLikelihoodRatiosProton.clear();
-  logLikelihoodRatiosElectron.assign(ACsoft::Utilities::TrdPdfLookup::fNumberOfParticles,-1);
-  logLikelihoodRatiosProton.assign(ACsoft::Utilities::TrdPdfLookup::fNumberOfParticles,-1);
-  for (int idParticle = 0; idParticle < ACsoft::Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle) {
+  logLikelihoodRatiosElectron.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
+  logLikelihoodRatiosProton.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
+  for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle) {
     double likelihoodRatioElectron = likelihoodProductForParticle[idParticle]/(likelihoodProductForParticle[idParticle]+likelihoodProductForParticle[0]);
     double likelihoodRatioProton   = likelihoodProductForParticle[idParticle]/(likelihoodProductForParticle[idParticle]+likelihoodProductForParticle[1]);
     logLikelihoodRatiosElectron.at(idParticle) = -log(likelihoodRatioElectron);
@@ -254,54 +225,48 @@ static void ComputeLogLikelihoodRatiosForElectronsAndProtons(double* likelihoodP
 }
 
 
-void ACsoft::TrdQt::ComputeLikelihoodProducts(int xenonBin, const std::vector<int>& rigidityBin, const std::vector<ACsoft::Analysis::TRDCandidateHit>& candidates, double* likelihoodProductForParticle) {
+void TrdQt::ComputeLikelihoodProducts(double pXe, double rigidity, const std::vector<ACsoft::Analysis::TRDCandidateHit>& candidates,
+                                      std::vector<double>& likelihoodProductForParticle, std::vector<bool>& likelihoodOkForParticle) const {
 
-  int Model = 1;   // 0==All Hits, 1==reject underflows, 2==reject underflows and overflows
-  std::vector<Analysis::TRDCandidateHit> SelectedHits;
-  for (unsigned int i=0; i<candidates.size(); ++i) {
-    const Analysis::TRDCandidateHit& hit = candidates.at(i);
-    if (Model==1 && hit.deDx<d->fTrdMinDeDx+0.5) continue;
-    if (Model==2 && (hit.deDx<d->fTrdMinDeDx+0.5 || hit.deDx>d->fTrdMaxDeDx-0.5)) continue;
-    SelectedHits.push_back(hit);
-  }
+  if( candidates.empty() ) return;
 
-  d->fNumberOfSelectedHits = SelectedHits.size();
-  if (d->fNumberOfSelectedHits<=0) return;
+  likelihoodOkForParticle.clear();
+  likelihoodOkForParticle.assign(Utilities::TrdPdfLookup::fNumberOfParticles,false);
 
-  double weight = 1.0/double(d->fNumberOfSelectedHits);
-  for (int i=0; i<Utilities::TrdPdfLookup::fNumberOfParticles; i++) likelihoodProductForParticle[i]=1;
+  Analysis::TrdLikelihoodCalculator calc(Analysis::RejectUnderflows);
 
-  for (unsigned int i = 0; i < SelectedHits.size(); ++i) {
-    const Analysis::TRDCandidateHit& hit = SelectedHits[i];
-    unsigned short layer = ACsoft::AC::TRDStrawToLayer(hit.straw);
-    for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle) {
-      double   value = 0;
-      if (hit.deDx<d->fTrdMinDeDx+0.5) {
-        value = GetTrdPdfValue(xenonBin, rigidityBin.at(idParticle), layer, d->fTrdMinDeDx, idParticle);
-      } else if (hit.deDx>d->fTrdMaxDeDx-0.5) {
-        value = GetTrdPdfValue(xenonBin, rigidityBin.at(idParticle), layer, d->fTrdMaxDeDx, idParticle);
-      } else {
-        value = d->fPDFs[xenonBin][rigidityBin.at(idParticle)][layer][idParticle]->Eval(hit.deDx);
-      }
-      value = std::max(d->fMinimumPdfValue,value);
-      likelihoodProductForParticle[idParticle]*= pow(value, weight);
-    }
+  std::vector<ACsoft::Analysis::GenericHitData> SelectedHits;
+  calc.PrepareGenericHitData(candidates,SelectedHits);
+
+  for (int i=0; i<Utilities::TrdPdfLookup::fNumberOfParticles; i++){
+    likelihoodProductForParticle[i] = calc.ComputeTrdLikelihood(Utilities::ParticleId(i),pXe,rigidity,SelectedHits);
+    likelihoodOkForParticle[i] = calc.LastPdfQueriesOk();
+    DEBUG_OUT << "Particle " << i << " llh: " << likelihoodProductForParticle[i] << " ok: " << likelihoodOkForParticle[i] << std::endl;
   }
 }
 
 
-double ACsoft::TrdQt::QueryXenonPressure(const TTimeStamp& time) const {
+double TrdQt::QueryXenonPressure(const TTimeStamp& time, bool& queryOk) const {
+
+  if (d->fMonteCarloEvent)
+    return MC_XenonPressure;
 
   if (d->fReducedEvent) {
-   if (time.AsDouble() == d->fReducedEvent->EventTime)
+   if (time.AsDouble() == d->fReducedEvent->EventTime) // FIXME this line has an unpredicted behaviour, why resort to the value stored in ReducedEvent at all?
      return d->fReducedEvent->XePressure;
   }
 
-  return Utilities::TrdPdfLookup::QueryXenonPressure(time);
+  return Utilities::TrdPdfLookup::QueryXenonPressure(time,queryOk);
 }
 
+void TrdQt::CalculatePvalues(float aRig, const TTimeStamp& time) {
 
-void ACsoft::TrdQt::CalculatePvalues(float aRig, const TTimeStamp& time) {
+  d->fPvalues.clear();
+  d->fPvalues.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
+
+  // FIXME: Pvalues still experimental and not very usefull for the time beeing
+  // FIXME: use  allQueriesOk  flag
+  return;
 
   DEBUG_OUT << std::endl;
   int xenonBin = 0;
@@ -310,7 +275,8 @@ void ACsoft::TrdQt::CalculatePvalues(float aRig, const TTimeStamp& time) {
   else
     xenonBin = Utilities::TrdPdfLookup::GetXenonBin(time);
 
-  const std::vector<Analysis::TRDCandidateHit>& candidates = d->fCandidateMatching.CandidateHits();
+  const std::vector<ACsoft::Analysis::TRDCandidateHit>& candidates = GetCandidateHits();
+  if (candidates.size()<=0) return;
 
   std::vector<int> rigidityBin;
   for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle)
@@ -323,12 +289,16 @@ void ACsoft::TrdQt::CalculatePvalues(float aRig, const TTimeStamp& time) {
   maxWarnings = 0;
 #endif
 
+  static const double TrdMaxDeDx = AC::AMSGeometry::TRDMaxADCCount / ::AC::Settings::TrdTubeDefaultMinPathLength;
+
   for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle) {
     std::vector<double> pValue;
+    bool allQueriesOk = true;
     for (unsigned int i = 0; i < candidates.size(); ++i) {
       const Analysis::TRDCandidateHit&  hit   = candidates[i];
       unsigned short                    layer = ACsoft::AC::TRDStrawToLayer(hit.straw);
-      double                            pV    = Utilities::TrdPdfLookup::Self()->GetTrdPvalue(xenonBin, rigidityBin.at(idParticle), layer, std::min(d->fTrdMaxDeDx,double(hit.deDx)), (Utilities::ParticleId)idParticle);
+      double                            pV    = Utilities::TrdPdfLookup::Self()->GetTrdPvalue(xenonBin, rigidityBin.at(idParticle), layer, std::min(TrdMaxDeDx,double(hit.deDx)), (Utilities::ParticleId)idParticle);
+      allQueriesOk &= Utilities::TrdPdfLookup::Self()->LastQueryOk();
       if (pV<=0.0 || pV>1.0) {
           nWarnings++;
           if (nWarnings<maxWarnings) {
@@ -356,219 +326,229 @@ void ACsoft::TrdQt::CalculatePvalues(float aRig, const TTimeStamp& time) {
   }
 }
 
-void ACsoft::TrdQt::CalculateLikelihoods(float aRig, const TTimeStamp& time) {
+void TrdQt::CalculateLikelihoods(float aRig, const TTimeStamp& time) {
 
-  int xenonBin = 0;
-  if (d->fMonteCarloEvent)
-    xenonBin = Utilities::TrdPdfLookup::GetXenonBin(MC_XenonPressure);
-  else
-    xenonBin = Utilities::TrdPdfLookup::GetXenonBin(time);
+  double pXe = d->fMonteCarloEvent ? MC_XenonPressure : Utilities::TrdPdfLookup::QueryXenonPressure(time,d->fXePressureOk);
 
-  const std::vector<Analysis::TRDCandidateHit>& candidates = d->fCandidateMatching.CandidateHits();
-  if (candidates.size() <= 0)
-    return;
+  d->fLogLikelihoodRatiosElectron.clear();
+  d->fLogLikelihoodRatiosProton.clear();
+  d->fLogLikelihoodRatiosElectron.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
+  d->fLogLikelihoodRatiosProton.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
+  d->fLikelihoodProducts.clear();
+  d->fLikelihoodProducts.assign(Utilities::TrdPdfLookup::fNumberOfParticles,-1);
 
-  std::vector<int> rigidityBin;
-  for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle)
-    rigidityBin.push_back(GetRigidityBin(idParticle, aRig));
+  d->fLikelihoodOkForParticle.clear();
+  d->fLikelihoodOkForParticle.assign(Utilities::TrdPdfLookup::fNumberOfParticles,false);
 
-  double likelihoodProductForParticle[Utilities::TrdPdfLookup::fNumberOfParticles];
-  ComputeLikelihoodProducts(xenonBin, rigidityBin, candidates, likelihoodProductForParticle);
-  ComputeLogLikelihoodRatiosForElectronsAndProtons(likelihoodProductForParticle, d->fLogLikelihoodRatiosElectron, d->fLogLikelihoodRatiosProton);
+  const std::vector<ACsoft::Analysis::TRDCandidateHit>& candidates = GetCandidateHits();
+  if (candidates.size()<=0) return;
+
+  ComputeLikelihoodProducts(pXe, aRig, candidates, d->fLikelihoodProducts,d->fLikelihoodOkForParticle);
+  ComputeLogLikelihoodRatiosForElectronsAndProtons(d->fLikelihoodProducts, d->fLogLikelihoodRatiosElectron, d->fLogLikelihoodRatiosProton);
+
+  // check if calibration constants for all modules with hits used in the likelihood calculation are good
+  d->fIsCalibrationGood = true;
+  for( unsigned int i=0 ; i<candidates.size() ; ++i ){
+    const Analysis::TRDCandidateHit& hit = candidates[i];
+    const Detector::TrdModule* module = Detector::DetectorManager::Self()->GetAlignedTrd()->GetTrdStraw(hit.straw)->GetMother();
+    d->fIsCalibrationGood &= ( module->IsCurrentGainValueOk() && module->IsAlignmentOk() );
+  }
 }
 
+bool TrdQt::IsCalibrationGood() const {
 
-Double_t ACsoft::TrdQt::FunPDF(Double_t *x, Double_t *par) {
-    Int_t    xenonBin    = TMath::Nint(par[0]);
-    Int_t    rigidityBin = TMath::Nint(par[1]);
-    Int_t    layer       = TMath::Nint(par[2]);
-    Int_t    particleId  = TMath::Nint(par[3]);
-    double      dEdX          = x[0];
-
-    double pdf=0.0;
-    if (dEdX>d->fTrdMinDeDx+0.5 && dEdX<d->fTrdMaxDeDx-0.5) pdf = GetTrdPdfValue(xenonBin, rigidityBin, layer, dEdX, particleId);
-
-    return     std::max(d->fMinimumPdfValue,pdf);
+  return d->fIsCalibrationGood;
 }
 
-void ACsoft::TrdQt::CalculateToyMcLikelihoods(float aRig, const TTimeStamp& time, int toyMCParticleID) {
+bool TrdQt::IsSlowControlDataGood() const {
+
+  return d->fXePressureOk;
+}
+
+double TrdQt::CalculateElectronLikelihoodInSelectedEnergyBin(const TTimeStamp& time, double BinLowEdge, double BinHighEdge) const {
+
+  const std::vector<ACsoft::Analysis::TRDCandidateHit>& candidates = GetCandidateHits();
+  if (candidates.size()<=0) return -1.0;
+
+  bool queryOk = false;
+  double pXe = d->fMonteCarloEvent ? MC_XenonPressure : Utilities::TrdPdfLookup::QueryXenonPressure(time,queryOk);
+
+  // assume that we have an electron in energy bin between BinLowEdge and BinHighEdge
+  // and that the measured rigidity follows a E^-3 distribution
+  static TF1* gEnergyFunction = 0;
+  if (!gEnergyFunction)
+    gEnergyFunction = new TF1("Efunc","[0]*x**(-3)");
+
+  gEnergyFunction->SetMinimum(BinLowEdge);
+  gEnergyFunction->SetMaximum(BinHighEdge);
+  gEnergyFunction->SetParameter(0, 2 *(pow(BinLowEdge, -2) - pow(BinHighEdge, -2))); // normalize
+  double assumedEnergy = gEnergyFunction->GetRandom();
+
+  std::vector<double> likelihoodProductForParticleSpecified;
+  likelihoodProductForParticleSpecified.assign(Utilities::TrdPdfLookup::fNumberOfParticles,0.0);
+  std::vector<bool> likelihoodsOk; // dummy, this function has to be removed anyway...
+  ComputeLikelihoodProducts(pXe, assumedEnergy, candidates, likelihoodProductForParticleSpecified,likelihoodsOk);
+
+  std::vector<double> calculatedRatio_Electron;
+  std::vector<double> calculatedRatio_Proton;
+  ComputeLogLikelihoodRatiosForElectronsAndProtons(likelihoodProductForParticleSpecified, calculatedRatio_Electron, calculatedRatio_Proton);
+  return calculatedRatio_Proton.at(0);
+}
+
+void TrdQt::CalculateToyMcLikelihoods(float aRig, const TTimeStamp& time, int toyMCParticleID) {
+
+  for (unsigned int mcEvent = 0; mcEvent < d->fNumberOfToyMcEvents; ++mcEvent) {
+    d->fLogLikelihoodRatiosElectronToyMC.at(mcEvent).clear();
+    d->fLogLikelihoodRatiosProtonToyMC.at(mcEvent).clear();
+    d->fLogLikelihoodRatiosElectronToyMC.at(mcEvent).assign(Utilities::TrdPdfLookup::fNumberOfParticles, -1);
+    d->fLogLikelihoodRatiosProtonToyMC.at(mcEvent).assign(Utilities::TrdPdfLookup::fNumberOfParticles, -1);
+  }
+  if (d->fNumberOfToyMcEvents<=0) return;
 
   if (toyMCParticleID<0 || toyMCParticleID>=Utilities::TrdPdfLookup::fNumberOfParticles) return;
 
-  const std::vector<Analysis::TRDCandidateHit>& candidates = d->fCandidateMatching.CandidateHits();
+  const std::vector<ACsoft::Analysis::TRDCandidateHit>& candidates = GetCandidateHits();
   if (candidates.size()<=0) return;
 
-  int xenonBin = 0;
-  if (d->fMonteCarloEvent) {
-      xenonBin = Utilities::TrdPdfLookup::GetXenonBin(MC_XenonPressure);
-  } else {
-      xenonBin = Utilities::TrdPdfLookup::GetXenonBin(time);
-  }
-
-  std::vector<int> rigidityBin;
-  for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle)
-    rigidityBin.push_back(GetRigidityBin(idParticle, aRig));
-
-  static TRandom3* fRandom = new TRandom3();
+  bool queryOk = false; // used here as dummy, since we will have tested this for the real data already
+  double pXe = d->fMonteCarloEvent ? MC_XenonPressure : Utilities::TrdPdfLookup::QueryXenonPressure(time,queryOk);
 
   for (unsigned int mcEvent = 0; mcEvent < d->fNumberOfToyMcEvents; ++mcEvent) {
 
     // generate the Toy MC event
-    std::vector<Analysis::TRDCandidateHit> candidatesMC;
+    std::vector<ACsoft::Analysis::TRDCandidateHit> candidatesMC;
     for (unsigned int i = 0; i < candidates.size(); ++i) {
-      Analysis::TRDCandidateHit hitMC           = candidates[i];
-      unsigned short            layer           = ACsoft::AC::TRDStrawToLayer(hitMC.straw);
-      double                    ZeroEntries     = GetTrdPdfValue(xenonBin, rigidityBin.at(toyMCParticleID), layer, d->fTrdMinDeDx, toyMCParticleID);
-      double                    OverflowEntries = GetTrdPdfValue(xenonBin, rigidityBin.at(toyMCParticleID), layer, d->fTrdMaxDeDx, toyMCParticleID);
-      double                    xRandom           = fRandom->Uniform();
-      if (xRandom <= ZeroEntries) {
-          hitMC.deDx = d->fTrdMinDeDx;
-      } else if (xRandom>=1.0-OverflowEntries) {
-          hitMC.deDx = d->fTrdMaxDeDx;
-      } else {
-          hitMC.deDx = d->fPDFs[xenonBin][rigidityBin.at(toyMCParticleID)][layer][toyMCParticleID]->GetRandom();
-      }
+      Analysis::TRDCandidateHit hitMC  = candidates[i];
+      unsigned short            layer  = ACsoft::AC::TRDStrawToLayer(hitMC.straw);
+      hitMC.deDx = Utilities::TrdPdfLookup::Self()->GetToymcDedxValue(pXe,aRig,layer,Utilities::ParticleId(toyMCParticleID));
       candidatesMC.push_back(hitMC);
     }
 
     // calculate the likelihood for the Toy MC event
-    double likelihoodProductForParticleToyMC[Utilities::TrdPdfLookup::fNumberOfParticles];
-    ComputeLikelihoodProducts(xenonBin, rigidityBin, candidatesMC, likelihoodProductForParticleToyMC);
+    std::vector<double> likelihoodProductForParticleToyMC;
+    likelihoodProductForParticleToyMC.assign(Utilities::TrdPdfLookup::fNumberOfParticles,0.0);
+    std::vector<bool> likelihoodsOk; // dummy, the same pdfs as for the calculation of the real likelihoods will be used, so we already know if they are ok
+    ComputeLikelihoodProducts(pXe, aRig, candidatesMC, likelihoodProductForParticleToyMC,likelihoodsOk);
     ComputeLogLikelihoodRatiosForElectronsAndProtons(likelihoodProductForParticleToyMC, d->fLogLikelihoodRatiosElectronToyMC.at(mcEvent), d->fLogLikelihoodRatiosProtonToyMC.at(mcEvent));
   }
-
 }
 
-void ACsoft::TrdQt::CalculateRandomLikelihoods(const TTimeStamp& time) {
 
-  const std::vector<Analysis::TRDCandidateHit>& candidates = d->fCandidateMatching.CandidateHits();
+void TrdQt::CalculateRandomLikelihoods(const TTimeStamp& time) {
+
+  for (unsigned int randomEvent = 0; randomEvent < d->fNumberOfRandomEvents; ++randomEvent) {
+    d->fLogLikelihoodRatiosElectronRandom.at(randomEvent).clear();
+    d->fLogLikelihoodRatiosProtonRandom.at(randomEvent).clear();
+    d->fLogLikelihoodRatiosElectronRandom.at(randomEvent).assign(Utilities::TrdPdfLookup::fNumberOfParticles, -1);
+    d->fLogLikelihoodRatiosProtonRandom.at(randomEvent).assign(Utilities::TrdPdfLookup::fNumberOfParticles, -1);
+   }
+  if (d->fNumberOfRandomEvents<=0) return;
+
+  const std::vector<ACsoft::Analysis::TRDCandidateHit>& candidates = GetCandidateHits();
   if (candidates.size()<=0) return;
 
-  int xenonBin = 0;
-  if (d->fMonteCarloEvent) {
-      xenonBin = Utilities::TrdPdfLookup::GetXenonBin(MC_XenonPressure);
-  } else {
-      xenonBin = Utilities::TrdPdfLookup::GetXenonBin(time);
-  }
+  bool queryOk = false; // used here as dummy, since we will have tested this for the real data already
+  double pXe = d->fMonteCarloEvent ? MC_XenonPressure : Utilities::TrdPdfLookup::QueryXenonPressure(time,queryOk);
 
-  // assume that we have a praticle with charge confusion
+  // assume that we have a particle with charge confusion
   // and that the measured rigidity follows in this case a uniform distribution
-  static TRandom3 *fRandom = new TRandom3();
+  static TRandom3 *sRandom = new TRandom3();
 
   for (unsigned int randomEvent = 0; randomEvent < d->fNumberOfRandomEvents; ++randomEvent) {
 
-    float aRigRandom = fRandom->Uniform(1.0,1000.0);
-
-    std::vector<int> rigidityBin;
-    for (int idParticle = 0; idParticle < Utilities::TrdPdfLookup::fNumberOfParticles; ++idParticle) rigidityBin.push_back(GetRigidityBin(idParticle, aRigRandom));
+    float aRigRandom = sRandom->Uniform(1.0,1000.0);
 
     // calculate the likelihood for the Toy MC event
-    double likelihoodProductForParticleRandom[Utilities::TrdPdfLookup::fNumberOfParticles];
-    ComputeLikelihoodProducts(xenonBin, rigidityBin, candidates, likelihoodProductForParticleRandom);
+    std::vector<double> likelihoodProductForParticleRandom;
+    std::vector<bool> likelihoodsOk; // dummy, the same pdfs as for the calculation of the real likelihoods will be used, so we already know if they are ok
+
+    likelihoodProductForParticleRandom.assign(Utilities::TrdPdfLookup::fNumberOfParticles,0.0);
+    ComputeLikelihoodProducts(pXe, aRigRandom, candidates, likelihoodProductForParticleRandom,likelihoodsOk);
     ComputeLogLikelihoodRatiosForElectronsAndProtons(likelihoodProductForParticleRandom, d->fLogLikelihoodRatiosElectronRandom.at(randomEvent), d->fLogLikelihoodRatiosProtonRandom.at(randomEvent));
-    //printf("d->fLogLikelihoodRatiosProtonRandom.at(randomEvent).at(0)=%9.4f \n",d->fLogLikelihoodRatiosProtonRandom.at(randomEvent).at(0));
   }
 
 }
 
 
-
-double ACsoft::TrdQt::GetTrdPdfValue(int xenonBin, int rigidityBin, unsigned short layer, float deDx, int idParticle) const {
-
-  return Utilities::TrdPdfLookup::Self()->GetTrdPdfValue(xenonBin, rigidityBin, layer, deDx, (Utilities::ParticleId)idParticle);
-}
-
-
-short ACsoft::TrdQt::ParticleID(float trackerCharge, float rigidity) {
-
-  // FIXME: This should not be in TrdQt. It is purely tracker-related code. -> Selector
-  int Q = rigidity < 0. ? -1 : 1;
-
-  int IdPart = 1;
-  if (Q < 0) IdPart = 0;
-
-  int Z = 0;
-  for (unsigned int i = 0; i < Cuts::gTrackerCharges; ++i) {
-    if (fabs(trackerCharge - Cuts::gTrackerChargeMean[i]) < 3 * Cuts::gTrackerChargeSigma[i]) {
-      Z = i+1;
-      break;
-    }
-  }
-
-  if (Z == 0) { return -1; }
-
-  if (Z==1) {
-    if (Q==+1) IdPart = 1;       // Proton
-    else if (Q==-1) IdPart = 0;  // Electron
-  }
-  else IdPart = Z;
-
-  return IdPart;
-}
-
-
-const std::vector<ACsoft::Analysis::TrdHit>& ACsoft::TrdQt::GetUnassignedHits() const {
+const std::vector<ACsoft::Analysis::TrdHit>& TrdQt::GetUnassignedHits() const {
 
   if (d->fReducedEvent) {
     WARN_OUT << "GetUnassignedHits() not available on ACROOT files." << std::endl;
-    static const std::vector<Analysis::TrdHit>* gEmptyVector = 0;
+    static const std::vector<ACsoft::Analysis::TrdHit>* gEmptyVector = 0;
     if (!gEmptyVector)
-      gEmptyVector = new std::vector<Analysis::TrdHit>;
+      gEmptyVector = new std::vector<ACsoft::Analysis::TrdHit>;
     return *gEmptyVector;
   }
 
   return d->fCandidateMatching.UnassignedHits();
 }
 
-const std::vector<ACsoft::Analysis::TrdHit>& ACsoft::TrdQt::GetAssignedHits() const {
+const std::vector<ACsoft::Analysis::TrdHit>& TrdQt::GetAssignedHits() const {
 
   if (d->fReducedEvent) {
     WARN_OUT << "GetAssignedHits() not available on ACROOT files." << std::endl;
-    static const std::vector<Analysis::TrdHit>* gEmptyVector = 0;
-    if (!gEmptyVector)
-      gEmptyVector = new std::vector<Analysis::TrdHit>;
+    static const std::vector<ACsoft::Analysis::TrdHit>* gEmptyVector = 0;
+    if (!gEmptyVector) gEmptyVector = new std::vector<ACsoft::Analysis::TrdHit>;
     return *gEmptyVector;
   }
 
   return d->fCandidateMatching.AssignedHits();
 }
 
-unsigned short ACsoft::TrdQt::GetNumberOfUnassignedHits() const {
+const std::vector<ACsoft::Analysis::TRDCandidateHit>& TrdQt::GetCandidateHits() const {
+
+  if (d->fReducedEvent) {
+    static std::vector<ACsoft::Analysis::TRDCandidateHit>* gCandidates = 0;
+    if (!gCandidates)
+      gCandidates = new std::vector<ACsoft::Analysis::TRDCandidateHit>;
+    else
+      gCandidates->clear();
+    for (unsigned int i=0; i<d->fReducedEvent->TrdStraws->size(); i++) {
+      float PathLen = 0.0;      // Warning: PathLen no were used in TrdQt, only in Candidate Matching !
+      gCandidates->push_back(Analysis::TRDCandidateHit(d->fReducedEvent->TrdStraws->at(i),PathLen,0.5*d->fReducedEvent->Trd2DeDx->at(i)));
+    }
+    return *gCandidates;
+  }
+
+  return d->fCandidateMatching.CandidateHits();
+}
+
+
+unsigned short TrdQt::GetNumberOfUnassignedHits() const {
 
   if (d->fReducedEvent)
     return d->fReducedEvent->TrdUnassignedHits;
   return GetUnassignedHits().size();
 }
 
-unsigned short ACsoft::TrdQt::GetNumberOfActiveLayers() const {
+unsigned short TrdQt::GetNumberOfActiveLayers() const {
 
   if (d->fReducedEvent)
     return d->fReducedEvent->TrdActiveLayers;
   return d->fCandidateMatching.GetNumberOfActiveLayers();
 }
 
-unsigned short ACsoft::TrdQt::GetNumberOfActiveStraws() const {
+unsigned short TrdQt::GetNumberOfActiveStraws() const {
 
-  if (d->fReducedEvent)
-    return d->fReducedEvent->TrdActiveStraws;
+  if (d->fReducedEvent) return d->fReducedEvent->TrdStraws->size();
   return d->fCandidateMatching.GetNumberOfActiveStraws();
 }
 
-float ACsoft::TrdQt::GetActivePathLength() const {
+float TrdQt::GetActivePathLength() const {
 
   if (d->fReducedEvent)
     return d->fReducedEvent->TrdActivePathLen;
   return d->fCandidateMatching.GetActivePathLength();
 }
 
-unsigned short ACsoft::TrdQt::GetNumberOfCandidateLayers() const {
+unsigned short TrdQt::GetNumberOfCandidateLayers() const {
 
   if (d->fReducedEvent)
     return d->fReducedEvent->TrdCandidateLayers;
   return d->fCandidateMatching.Preselection().GetNumberOfCandidateLayers();
 }
 
-unsigned short ACsoft::TrdQt::GetNumberOfCandidateStraws() const {
+unsigned short TrdQt::GetNumberOfCandidateStraws() const {
 
   if (d->fReducedEvent) {
     WARN_OUT << "GetNumberOfCandidateStraws() not available on ACROOT files.\n";
@@ -578,14 +558,14 @@ unsigned short ACsoft::TrdQt::GetNumberOfCandidateStraws() const {
   return d->fCandidateMatching.Preselection().GetNumberOfCandidateStraws();
 }
 
-bool ACsoft::TrdQt::IsInsideTrdGeometricalAcceptance() const {
+bool TrdQt::IsInsideTrdGeometricalAcceptance() const {
 
   if (d->fReducedEvent)
     return d->fReducedEvent->TrdInAcceptance;
   return d->fCandidateMatching.Preselection().IsInsideTrdGeometricalAcceptance();
 }
 
-bool ACsoft::TrdQt::PassesTrdPreselectionCuts() const {
+bool TrdQt::PassesTrdPreselectionCuts() const {
 
   if (d->fReducedEvent) {
     WARN_OUT << "PassesTrdPreselectionCuts() not available on ACROOT files.\n";
@@ -595,7 +575,7 @@ bool ACsoft::TrdQt::PassesTrdPreselectionCuts() const {
   return d->fCandidateMatching.PassesTrdPreselectionCuts();
 }
 
-bool ACsoft::TrdQt::UsefulForTrdParticleId() const {
+bool TrdQt::UsefulForTrdParticleId() const {
 
   if (d->fReducedEvent) {
     WARN_OUT << "UsefulForTrdParticleId() not available on ACROOT files.\n";
@@ -605,40 +585,27 @@ bool ACsoft::TrdQt::UsefulForTrdParticleId() const {
   return d->fCandidateMatching.UsefulForTrdParticleId();
 }
 
-double ACsoft::TrdQt::LogLikelihoodRatioElectronProton() const {
+double TrdQt::LogLikelihoodRatioElectronProton() const {
 
-  if (d->fReducedEvent)
-    return d->fReducedEvent->LR_Elec_Prot;
-
-  if (d->fLogLikelihoodRatiosProton.empty())
-    return std::numeric_limits<float>::max() - 1;
+  if (d->fLogLikelihoodRatiosProton.empty()) return std::numeric_limits<float>::max() - 1;
   return d->fLogLikelihoodRatiosProton.at(0);
 }
 
-double ACsoft::TrdQt::LogLikelihoodRatioHeliumElectron() const {
+double TrdQt::LogLikelihoodRatioHeliumElectron() const {
 
-  if (d->fReducedEvent)
-    return d->fReducedEvent->LR_Heli_Elec;
-
-  if (d->fLogLikelihoodRatiosProton.empty())
-    return std::numeric_limits<float>::max() - 1;
+  if (d->fLogLikelihoodRatiosProton.empty()) return std::numeric_limits<float>::max() - 1;
   return d->fLogLikelihoodRatiosElectron.at(2);
 }
 
-double ACsoft::TrdQt::LogLikelihoodRatioHeliumProton() const {
+double TrdQt::LogLikelihoodRatioHeliumProton() const {
 
-  if (d->fReducedEvent)
-    return d->fReducedEvent->LR_Heli_Prot;
-
-  if (d->fLogLikelihoodRatiosProton.empty())
-    return std::numeric_limits<float>::max() - 1;
+  if (d->fLogLikelihoodRatiosProton.empty()) return std::numeric_limits<float>::max() - 1;
   return d->fLogLikelihoodRatiosProton.at(2);
 }
 
-float ACsoft::TrdQt::GetCandidatePathLength() const {
+float TrdQt::GetCandidatePathLength() const {
 
-  if (d->fReducedEvent)
-    return d->fReducedEvent->TrdCandidatePathLen;
+  if (d->fReducedEvent) return d->fReducedEvent->TrdCandidatePathLen;
   return d->fCandidateMatching.Preselection().GetCandidatePathLength();
 }
 
@@ -666,57 +633,49 @@ static inline const ACsoft::Analysis::TrackFitResult& sharedEmptyTrackFitResult(
   return *gEmptyObject;
 }
 
-const std::vector<double>& ACsoft::TrdQt::LogLikelihoodRatiosElectrons() const {
-
-  if (d->fReducedEvent) {
-    WARN_OUT << "LogLikelihoodRatiosElectrons() not available on ACROOT files.\n";
-    return sharedEmptyDoubleVector();
-  }
+const std::vector<double>& TrdQt::LogLikelihoodRatiosElectrons() const {
 
   return d->fLogLikelihoodRatiosElectron;
 }
 
-const std::vector<double>& ACsoft::TrdQt::LogLikelihoodRatiosProtons() const {
-
-  if (d->fReducedEvent) {
-    WARN_OUT << "LogLikelihoodRatiosProtons() not available on ACROOT files.\n";
-    return sharedEmptyDoubleVector();
-  }
-
+const std::vector<double>& TrdQt::LogLikelihoodRatiosProtons() const {
   return d->fLogLikelihoodRatiosProton;
 }
 
-const std::vector<std::vector<double> > & ACsoft::TrdQt::LogLikelihoodRatiosElectronsToyMC() const {
-
-  if (d->fReducedEvent) {
-    WARN_OUT << "LogLikelihoodRatiosElectronsToyMC() not available on ACROOT files.\n";
-    return sharedEmptyDoubleVectorVector();
-  }
-
+const std::vector<std::vector<double> >& TrdQt::LogLikelihoodRatiosElectronsToyMC() const {
   return d->fLogLikelihoodRatiosElectronToyMC;
 }
 
-const std::vector<std::vector<double> >& ACsoft::TrdQt::LogLikelihoodRatiosProtonsToyMC() const {
-
-  if (d->fReducedEvent) {
-    WARN_OUT << "LogLikelihoodRatiosProtonsToyMC() not available on ACROOT files.\n";
-    return sharedEmptyDoubleVectorVector();
-  }
-
+const std::vector<std::vector<double> >& TrdQt::LogLikelihoodRatiosProtonsToyMC() const {
   return d->fLogLikelihoodRatiosProtonToyMC;
 }
 
-const std::vector<double>& ACsoft::TrdQt::GetPvalueVector() const {
-
-  if (d->fReducedEvent) {
-    WARN_OUT << "GetPvalueVector() not available on ACROOT files.\n";
-    return sharedEmptyDoubleVector();
-  }
-
+const std::vector<double>& TrdQt::GetPvalues() const {
   return d->fPvalues;
 }
 
-const ACsoft::Analysis::TrackFitResult& ACsoft::TrdQt::GetTrdTrackCombinedFit(unsigned int direction) const {
+void TrdQt::GetLikelihoodProducts(std::vector<float>& LikelihoodProducts) const {
+  LikelihoodProducts.clear();
+  for (unsigned int i = 0; i < d->fLikelihoodProducts.size(); ++i)
+    LikelihoodProducts.push_back(d->fLikelihoodProducts.at(i)); // FIXME there must be a better way to copy a vector
+}
+
+
+bool TrdQt::IsLikelihoodOkForElectron() const {
+  return d->fLikelihoodOkForParticle.at(Utilities::Electron);
+}
+
+bool TrdQt::IsLikelihoodOkForProton() const {
+  return d->fLikelihoodOkForParticle.at(Utilities::Proton);
+}
+
+void TrdQt::AreLikelihoodsOk(std::vector<bool>& LikelihoodsOk) const {
+
+  LikelihoodsOk.clear();
+  LikelihoodsOk.assign(d->fLikelihoodOkForParticle.begin(),d->fLikelihoodOkForParticle.end());
+}
+
+const ACsoft::Analysis::TrackFitResult& TrdQt::GetTrdTrackCombinedFit(unsigned int direction) const {
 
   if (d->fReducedEvent) {
     WARN_OUT << "GetTrdTrackCombinedFit() not available on ACROOT files.\n";
@@ -726,7 +685,7 @@ const ACsoft::Analysis::TrackFitResult& ACsoft::TrdQt::GetTrdTrackCombinedFit(un
   return d->fCandidateMatching.GetTrdTrackCombinedFit(direction);
 }
 
-const ACsoft::Analysis::TrackFitResult& ACsoft::TrdQt::GetTrdTrackStandAloneFit(unsigned int direction) const {
+const ACsoft::Analysis::TrackFitResult& TrdQt::GetTrdTrackStandAloneFit(unsigned int direction) const {
 
  if (d->fReducedEvent) {
     WARN_OUT << "GetTrdTrackStandAloneFit() not available on ACROOT files.\n";
@@ -736,35 +695,26 @@ const ACsoft::Analysis::TrackFitResult& ACsoft::TrdQt::GetTrdTrackStandAloneFit(
   return d->fCandidateMatching.GetTrdTrackStandAloneFit(direction);
 }
 
-const ACsoft::Analysis::TrackFitResult& ACsoft::TrdQt::GetTrkTrackFit(unsigned int direction) const {
+const ACsoft::Analysis::TrackFitResult& TrdQt::GetTrkTrackFit(unsigned int direction) const {
 
   if (d->fReducedEvent) {
-    WARN_OUT << "GetTrkTrackFitt() not available on ACROOT files.\n";
+    WARN_OUT << "GetTrkTrackFit() not available on ACROOT files.\n";
     return sharedEmptyTrackFitResult();
   }
 
   return d->fCandidateMatching.GetTrkTrackFit(direction);
 }
 
-float ACsoft::TrdQt::GetTrdTrkAngle(unsigned int direction) const {
+float TrdQt::GetTrdTrkAngle(unsigned int direction) const {
 
   if (d->fReducedEvent) {
-    if (direction == 0)
-      return d->fReducedEvent->TrdTrkDeltaAngleXZ;
-    assert(direction == 1);
-    return d->fReducedEvent->TrdTrkDeltaAngleYZ;
+    WARN_OUT << "GetTrdTrkAngle not available on ACROOT files.\n";
+    return -1000.0;
   }
-
   return d->fCandidateMatching.GetTrdTrkAngle(direction);
 }
 
-void ACsoft::TrdQt::GetLogLikelihoodRatiosElectronsProtonsToyMC(std::vector<float>& result) const {
-
-  if (d->fReducedEvent) {
-    result = *d->fReducedEvent->LR_Elec_Prot_MC;
-    return;
-  }
-
+void TrdQt::GetLogLikelihoodRatiosElectronsProtonsToyMC(std::vector<float>& result) const {
   result.clear();
   result.reserve(d->fLogLikelihoodRatiosProtonToyMC.size());
 
@@ -772,13 +722,7 @@ void ACsoft::TrdQt::GetLogLikelihoodRatiosElectronsProtonsToyMC(std::vector<floa
     result.push_back(d->fLogLikelihoodRatiosProtonToyMC.at(i).at(0));
 }
 
-void ACsoft::TrdQt::GetLogLikelihoodRatiosHeliumElectronToyMC(std::vector<float>& result) const {
-
-  if (d->fReducedEvent) {
-    result = *d->fReducedEvent->LR_Heli_Elec_MC;
-    return;
-  }
-
+void TrdQt::GetLogLikelihoodRatiosHeliumElectronToyMC(std::vector<float>& result) const {
   result.clear();
   result.reserve(d->fLogLikelihoodRatiosElectronToyMC.size());
 
@@ -787,16 +731,108 @@ void ACsoft::TrdQt::GetLogLikelihoodRatiosHeliumElectronToyMC(std::vector<float>
 }
 
 
-void ACsoft::TrdQt::GetLogLikelihoodRatioElectronProtonRandom(std::vector<float>& result) const {
-
-  if (d->fReducedEvent) {
-    result = *d->fReducedEvent->LR_Elec_Prot_Rndm;
-    return;
-  }
-
+void TrdQt::GetLogLikelihoodRatioElectronProtonRandom(std::vector<float>& result) const {
   result.clear();
   result.reserve(d->fNumberOfRandomEvents);
 
   for (unsigned int i = 0; i < d->fNumberOfRandomEvents; ++i)
     result.push_back(d->fLogLikelihoodRatiosProtonRandom.at(i).at(0));
 }
+
+/** Returns the TrdK number of off-track hits for e/p/he likelihoods.
+  */
+Short_t TrdQt::TrdKUnassignedHits(const Analysis::Particle& particle) const {
+
+  if (d->fReducedEvent) {
+    assert(particle.fReducedEvent == d->fReducedEvent);
+    return d->fReducedEvent->TrdKUnassignedHits;
+  }
+
+  assert(particle.RawEvent());
+  return particle.TrackerTrack() ? particle.TrackerTrack()->TrdKChargeNumberOfOffTrackHitsForLikelihoods() : -1;
+}
+
+/** Returns the TrdK number of used hits for e/p/he likelihoods.
+  */
+Short_t TrdQt::TrdKActiveHits(const Analysis::Particle& particle) const {
+
+  if (d->fReducedEvent) {
+    assert(particle.fReducedEvent == d->fReducedEvent);
+    return d->fReducedEvent->TrdKActiveHits;
+  }
+
+  assert(particle.RawEvent());
+  return particle.TrackerTrack() ? particle.TrackerTrack()->TrdKChargeNumberOfHitsForLikelihoods() : -1;
+}
+
+/** Returns the e/p/He Likelihoods from the TrdK package (A.Kounine, MIT)
+  */
+void TrdQt::GetTrdKLikelihoodRatios(const Analysis::Particle& particle, std::vector<Float_t>& likelihoods) const {
+
+  if (d->fReducedEvent) {
+    likelihoods = *d->fReducedEvent->TrdKLikelihoodRatios;
+    return;
+  }
+
+  assert(particle.RawEvent());
+
+  likelihoods.clear();
+  likelihoods.assign(3,-1.0);
+  if (!particle.TrackerTrack())
+    return;
+
+  const AC::TrackerTrack::TrdKChargeLikelihoodVector& v_Likelihoods = particle.TrackerTrack()->TrdKChargeLikelihood();
+  if (!v_Likelihoods.size())
+    return;
+
+  if (v_Likelihoods.at(0)>0 && v_Likelihoods.at(1)>0) likelihoods.at(0) = -log(v_Likelihoods.at(0)/(v_Likelihoods.at(0)+v_Likelihoods.at(1)));
+  if (v_Likelihoods.at(1)>0 && v_Likelihoods.at(2)>0) likelihoods.at(1) = -log(v_Likelihoods.at(2)/(v_Likelihoods.at(2)+v_Likelihoods.at(1)));
+  if (v_Likelihoods.at(0)>0 && v_Likelihoods.at(2)>0) likelihoods.at(2) = -log(v_Likelihoods.at(0)/(v_Likelihoods.at(0)+v_Likelihoods.at(2)));
+}
+
+/** Returns the TrdK log likelihood ratio Electron/(Electron+Proton)
+  */
+Float_t TrdQt::TrdKLrElectronProton(const Analysis::Particle& particle) const {
+
+  if (d->fReducedEvent) {
+    if (d->fReducedEvent->TrdKLikelihoodRatios->size() > 0)
+      return d->fReducedEvent->TrdKLikelihoodRatios->at(0);
+  } else {
+    std::vector<Float_t> likelihoodRatios;
+    GetTrdKLikelihoodRatios(particle, likelihoodRatios);
+    return likelihoodRatios.size() ? likelihoodRatios.at(0) : -1;
+  }
+  return -1;
+}
+
+/** Returns the TrdK log likelihood ratio Helium/(Helium+Proton)
+  */
+Float_t TrdQt::TrdKLrHeliumProton(const Analysis::Particle& particle) const {
+
+  if (d->fReducedEvent) {
+    if (d->fReducedEvent->TrdKLikelihoodRatios->size() > 0)
+      return d->fReducedEvent->TrdKLikelihoodRatios->at(1);
+  } else {
+    std::vector<Float_t> likelihoodRatios;
+    GetTrdKLikelihoodRatios(particle, likelihoodRatios);
+    return likelihoodRatios.size() ? likelihoodRatios.at(1) : -1;
+  }
+  return -1;
+}
+
+/** Returns the TrdK log likelihood ratio Electron/(Helium+Electron)
+  */
+Float_t TrdQt::TrdKLrHeliumElectron(const Analysis::Particle& particle) const {
+
+  if (d->fReducedEvent) {
+    if (d->fReducedEvent->TrdKLikelihoodRatios->size() > 0)
+      return d->fReducedEvent->TrdKLikelihoodRatios->at(2);
+  } else {
+    std::vector<Float_t> likelihoodRatios;
+    GetTrdKLikelihoodRatios(particle, likelihoodRatios);
+    return likelihoodRatios.size() ? likelihoodRatios.at(2) : -1;
+  }
+  return -1;
+}
+
+

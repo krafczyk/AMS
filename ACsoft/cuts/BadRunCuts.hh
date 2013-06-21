@@ -24,7 +24,7 @@ public:
   }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& particle) {
-
+    if (!particle.IsISS()) return true;
     return !ACsoft::Analysis::BadRunManager::Self()->IsBad(fSubd, particle);
   }
 

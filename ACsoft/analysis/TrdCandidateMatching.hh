@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "TrdPreselection.hh"
 #include "TrdHit.hh"
+#include "TrdHitFactory.hh"
 
 namespace ACsoft {
 
@@ -53,8 +54,8 @@ public:
   ~TrdCandidateMatching();
 
   /** Process a given particle.
-    */ 
-  bool Process(const Analysis::Particle& particle, bool AddNearTrackHits);
+    */
+  bool Process(const Analysis::Particle& particle, bool AddNearTrackHits, bool ExcludeDeadStraws);
 
   /** Returns all straws with the associated path lengths that were determined in ProcessTrackerTrack(). */
   const std::vector<TRDCandidateHit>& CandidateHits() const;
@@ -125,12 +126,12 @@ private:
   void RecalculatePathLength(unsigned int direction);
 
   TrdPreselection              fPreselection;
+  TrdHitFactory                fTrdHitFactory;
 
   std::vector<TRDCandidateHit> fCandidateHits;
   std::vector<TrdHit>          fUnassignedHits;
   std::vector<TrdHit>          fAssignedHits;
   unsigned short               fNumberOfMatchedHits;
-  float                        fTrdAdcScaleFactor;
 
   float                        fMeanPathLength;
 

@@ -2,7 +2,8 @@
 Namespace = AC
 Class = TrackerTrackFit
 Members = \
-  UChar_t fParameters             \
+  [55-UChar_t fParametersOld]     \
+  [55+UShort_t fParameters]       \
   Float_t fRigidity               \
   Float_t fInverseRigidityError   \
   Float_t fChiSquareNormalizedX   \

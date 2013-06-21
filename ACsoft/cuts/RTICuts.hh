@@ -3,7 +3,6 @@
 
 #include "Cut.hh"
 #include "RTIData.hh"
-#include "RTIReader.hh"
 
 #ifndef __CINT__
 #include "Event.h"
@@ -18,8 +17,8 @@ public:
   CutRTIdataAvailable() : Cut("check if rti info was available in this second.") { }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-
-    const ACsoft::RTI::RTIData* data = ACsoft::RTI::RTIReader::Instance()->GetRTIData(p);
+    if (!p.IsISS()) return true;
+    const ACsoft::Utilities::RTIData* data = p.RTIData();
     if (!data)
       return true;
     return data->GetRun() > 0;
@@ -34,8 +33,8 @@ public:
   CutMostEventsTriggered() : Cut("test if most of the events have been triggered") { }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-
-    const ACsoft::RTI::RTIData* data = ACsoft::RTI::RTIReader::Instance()->GetRTIData(p);
+    if (!p.IsISS()) return true;
+    const ACsoft::Utilities::RTIData* data = p.RTIData();
     if (!data)
       return true;
     return (float)data->GetLevel1Trigger()/(float)data->GetEvents()  > 0.98;
@@ -50,8 +49,8 @@ public:
   CutSecondWithinRun() : Cut("test if the unix second is within the runID") { }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-
-    const ACsoft::RTI::RTIData* data = ACsoft::RTI::RTIReader::Instance()->GetRTIData(p);
+    if (!p.IsISS()) return true;
+    const ACsoft::Utilities::RTIData* data = p.RTIData();
     if (!data)
       return true;
     return data->GetTime() >= data->GetRun();
@@ -66,8 +65,8 @@ public:
   CutBadReconstructionPeriod() : Cut("cut perdiods of bad reconstruction efficiency") { }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-
-    const ACsoft::RTI::RTIData* data = ACsoft::RTI::RTIReader::Instance()->GetRTIData(p);
+    if (!p.IsISS()) return true;
+    const ACsoft::Utilities::RTIData* data = p.RTIData();
     if (!data)
       return true;
     return (float)data->GetParticles()/(float)data->GetLevel1Trigger() > 0.07/1600. * data->GetLevel1Trigger();
@@ -82,8 +81,8 @@ public:
   CutBadFacingAngle() : Cut("cut perdiods with rotated ISS") { }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-
-    const ACsoft::RTI::RTIData* data = ACsoft::RTI::RTIReader::Instance()->GetRTIData(p);
+    if (!p.IsISS()) return true;
+    const ACsoft::Utilities::RTIData* data = p.RTIData();
     if (!data)
       return true;
     return data->GetZenith() < 40;
@@ -98,14 +97,29 @@ public:
   CutBadLiveTime() : Cut("cut away periods with livetime < 0.5") { }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-
-    const ACsoft::RTI::RTIData* data = ACsoft::RTI::RTIReader::Instance()->GetRTIData(p);
+    if (!p.IsISS()) return true;
+    const ACsoft::Utilities::RTIData* data = p.RTIData();
     if (!data)
       return true;
     return data->GetLiveTime() > 0.5;
   }
 
   ClassDef(Cuts::CutBadLiveTime, 1)
+};
+
+class CutNoMissedEvents : public Cut {
+public:
+  CutNoMissedEvents() : Cut("cut away periods where events were missed") { }
+
+  virtual bool TestCondition(const ACsoft::Analysis::Particle &p ) {
+    if (!p.IsISS()) return true;
+    const ACsoft::Utilities::RTIData* data = p.RTIData();
+    if (!data)
+      return true;
+    return (double)data->GetMissedEvents()/(double)data->GetEvents() < 0.1;
+  }
+
+  ClassDef(Cuts::CutNoMissedEvents, 1)
 };
 
 }

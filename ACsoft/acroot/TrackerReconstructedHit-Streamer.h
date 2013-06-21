@@ -9,16 +9,18 @@ private: \
   Float_t fX; \
   Float_t fY; \
   Float_t fSignalX; \
-  Float_t fSignalY; \
+  Float_t fSignal; \
   Short_t fResidualY; \
+  Float_t fQLayerJ; \
 public: \
   TrackerReconstructedHit() \
     : fLayer(0) \
     , fX(0) \
     , fY(0) \
     , fSignalX(0) \
-    , fSignalY(0) \
+    , fSignal(0) \
     , fResidualY(0) \
+    , fQLayerJ(0) \
   { \
   }
 

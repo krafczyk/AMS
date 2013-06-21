@@ -59,7 +59,11 @@ public:
   /** Particle Identifier a la Geant3.
     * See http://ams.cern.ch/cgi-bin/viewcvs.cgi/AMS/include/root.h?view=markup for details.
     */
-  UShort_t ID() const { return fID; }
+  Short_t ParticleID() const { return fParticleID; }
+
+  /** Geant4 Track ID
+    */
+  UShort_t TrackID() const { return fTrackID; }
 
   /** Index of mother particle.
     * \todo Nobody uses this at the moment.

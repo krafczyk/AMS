@@ -8,6 +8,7 @@ namespace AC {
 BEGIN_DEBUG_TABLE(TrackerTrack)
   COL( "HitsX", Int_t, NumberOfHitsX)
   COL( "HitsY", Int_t, NumberOfHitsY)
+  COL( "CCLikelihood", Float_t, CCLikelihood)
   NEWTABLE
   COL( "ChargesNew\t\t\t\t\t\t\t\t\t\t\t\t", ChargesNewVector, ChargesNew)
   NEWTABLE

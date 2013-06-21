@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.261 2013/05/10 12:36:42 choutko Exp $
+#  $Id: Makefile,v 1.262 2013/06/21 14:08:19 nzimmerm Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -321,16 +321,17 @@ COMMON_FILES +=$(TOF_ADD)
 
 #ACsoft
 ifdef AMS_ACQT_INTERFACE
-DEFINES += -DAMS_ACQT_INTERFACE -DAMS_ACQT_SILENCE_COMMON_WARNINGS \
-		   -DACPASSTAG=5.4.0 -DACROOTVERSION=54 -DACPRODUCTIONSHA=ac0833351e82fdf578be0e0e43864ffe49778520
+DEFINES += -DAMS_ACQT_INTERFACE -DDISABLE_ACQT_CONTROL_PLOTS -DAMS_ACQT_SILENCE_COMMON_WARNINGS \
+           -DACPASSTAG=5.8.0 -DACROOTVERSION=58 -DACPRODUCTIONSHA=0a9936b833771fb57f727286dc0a8d9b7479af40
 
 ACSOFT_INCDIRS := -I$(QTDIR_STATIC)/Headers -I$(QTDIR_STATIC)/include -I$(QTDIR_STATIC)/include/QtCore -I../ACsoft \
                   -I../ACsoft/acroot -I../ACsoft/cuts -I../ACsoft/platform -I../ACsoft/utilities -I../ACsoft/analysis \
-				  -I../ACsoft/producer -I../ACsoft/interface -I../ACsoft/rti -I../ACsoft/io -I../ACsoft/detector -I../ACsoft/trdcalibration
+                  -I../ACsoft/producer -I../ACsoft/interface -I../ACsoft/io -I../ACsoft/detector -I../ACsoft/trdcalibration
 ROOTDICT_CPPFLAGS += -DAMS_ACQT_INTERFACE $(ACSOFT_INCDIRS)
 
 ROOTDICTFILES += ../ACsoft/acroot/AMSGeometry.h \
                  ../ACsoft/acroot/Database.h \
+                 ../ACsoft/acroot/MagnetTemperatures.h \
                  ../ACsoft/acroot/Settings.h \
                  ../ACsoft/acroot/TrackerExternalAlignment.h \
                  ../ACsoft/acroot/TRDCalibration.h \
@@ -343,6 +344,8 @@ ROOTDICTFILES += ../ACsoft/acroot/AMSGeometry.h \
                  ../ACsoft/cuts/Cut.hh \
                  ../ACsoft/cuts/TwoSidedCut.hh \
                  ../ACsoft/cuts/ManualCut.hh \
+                 ../ACsoft/cuts/ManualNMinusOneCut.hh \
+                 ../ACsoft/cuts/NMinusOneCut.hh \
                  ../ACsoft/cuts/PreselectionCuts.hh \
                  ../ACsoft/cuts/ECALCuts.hh \
                  ../ACsoft/cuts/GroupACuts.hh \
@@ -355,7 +358,8 @@ ROOTDICTFILES += ../ACsoft/acroot/AMSGeometry.h \
                  ../ACsoft/cuts/ParticleSelectionCuts.hh \
                  ../ACsoft/cuts/Selector.hh \
                  ../ACsoft/io/ReducedFileHeader.hh \
-                 ../ACsoft/utilities/Palettes.hh
+                 ../ACsoft/utilities/Palettes.hh \
+                 ../ACsoft/utilities/TrackfindingHistogram.hh
 
 ACSOFT_FILES = ../ACsoft/acroot/ACC.C \
                ../ACsoft/acroot/ACCCluster.C \
@@ -374,14 +378,17 @@ ACSOFT_FILES = ../ACsoft/acroot/ACC.C \
                ../ACsoft/acroot/EventHeader.C \
                ../ACsoft/acroot/EventHeader-Streamer.C \
                ../ACsoft/acroot/Event-Streamer.C \
+               ../ACsoft/acroot/LookupFileValidation.C \
                ../ACsoft/acroot/MC.C \
                ../ACsoft/acroot/MCEventGenerator.C \
                ../ACsoft/acroot/MCEventGenerator-Streamer.C \
                ../ACsoft/acroot/MC-Streamer.C \
                ../ACsoft/acroot/MCTrack.C \
                ../ACsoft/acroot/MCTrack-Streamer.C \
-               ../ACsoft/acroot/MCTRDHit.C \
-               ../ACsoft/acroot/MCTRDHit-Streamer.C \
+               ../ACsoft/acroot/MCTRDCluster.C \
+               ../ACsoft/acroot/MCTRDCluster-Streamer.C \
+               ../ACsoft/acroot/MCTrackerCluster.C \
+               ../ACsoft/acroot/MCTrackerCluster-Streamer.C \
                ../ACsoft/acroot/Particle.C \
                ../ACsoft/acroot/Particle-Streamer.C \
                ../ACsoft/acroot/RICH.C \
@@ -419,24 +426,38 @@ ACSOFT_FILES = ../ACsoft/acroot/ACC.C \
                ../ACsoft/acroot/Trigger.C \
                ../ACsoft/acroot/Trigger-Streamer.C \
                ../ACsoft/acroot/VectorCapacityTracker.C \
+               ../ACsoft/acroot/Vertex.C \
+               ../ACsoft/acroot/Vertex-Streamer.C \
                ../ACsoft/analysis/AnalysisParticle.C \
                ../ACsoft/analysis/BadRunManager.C \
+               ../ACsoft/analysis/DatabaseReader.C \
                ../ACsoft/analysis/ParticleFactory.C \
                ../ACsoft/analysis/pathlength_functions.C \
                ../ACsoft/analysis/RejectionCalculator.C \
                ../ACsoft/analysis/SplineTrack.C \
+               ../ACsoft/analysis/StraightLineTrack.C \
                ../ACsoft/analysis/TrackFactory.C \
                ../ACsoft/analysis/TrdCandidateMatching.C \
+               ../ACsoft/analysis/TrdLikelihoodCalculator.C \
+               ../ACsoft/analysis/TrdMissingHit.C \
                ../ACsoft/analysis/TrdHit.C \
                ../ACsoft/analysis/TrdHitFactory.C \
                ../ACsoft/analysis/TrdPdfHistogram.C \
                ../ACsoft/analysis/TrdPreselection.C \
+               ../ACsoft/analysis/TrdSegment.C \
+               ../ACsoft/analysis/TrdTrack.C \
+               ../ACsoft/analysis/TrdTrackFitFunction.C \
+               ../ACsoft/analysis/TrdTracking.C \
                ../ACsoft/cuts/Cut.C \
                ../ACsoft/cuts/CutFactory.C \
-               ../ACsoft/cuts/ManualCut.C \
                ../ACsoft/cuts/SelectionParser.C \
                ../ACsoft/cuts/Selector.C \
                ../ACsoft/cuts/TwoSidedCut.C \
+               ../ACsoft/cuts/ManualCut.C \
+               ../ACsoft/cuts/ManualNMinusOneCut.C \
+               ../ACsoft/cuts/NMinusOneCut.C \
+               ../ACsoft/cuts/ParticleSelectionCuts.C \
+               ../ACsoft/cuts/TrackerCharges.C \
                ../ACsoft/detector/DetectorManager.C \
                ../ACsoft/detector/TrdDetector.C \
                ../ACsoft/detector/TrdLayer.C \
@@ -447,6 +468,7 @@ ACSOFT_FILES = ../ACsoft/acroot/ACC.C \
                ../ACsoft/io/FileManagerACQt.C \
                ../ACsoft/io/FileManagerACROOT.C \
                ../ACsoft/io/FileManager.C \
+               ../ACsoft/io/MultiFileManager.C \
                ../ACsoft/io/ReducedEvent.C \
                ../ACsoft/io/ReducedEventWriter.C \
                ../ACsoft/io/ReducedFileHeader.C \
@@ -468,23 +490,33 @@ ACSOFT_FILES = ../ACsoft/acroot/ACC.C \
                ../ACsoft/producer/ACQtProducer-TRD.C \
                ../ACsoft/producer/ACQtProducer-Trigger.C \
                ../ACsoft/producer/ACQtWriter.C \
-               ../ACsoft/rti/RTIData.C \
-               ../ACsoft/rti/RTIReader.C \
                ../ACsoft/trdcalibration/gain_functions.C \
                ../ACsoft/trdcalibration/TrdAdcSpectra.C \
                ../ACsoft/trdcalibration/TrdAlignment.C \
                ../ACsoft/trdcalibration/TrdGainCalibration.C \
                ../ACsoft/utilities/Binning.C \
+               ../ACsoft/utilities/CoordinateSystems.C \
                ../ACsoft/utilities/ConfigHandler.C \
                ../ACsoft/utilities/dumpstreamers.C \
-               ../ACsoft/utilities/Palettes.C \
-               ../ACsoft/utilities/ProgressBar.C \
-               ../ACsoft/utilities/Quantity.C \
+               ../ACsoft/utilities/DeadStrawLookup.C \
+               ../ACsoft/utilities/MCConfigHandler.C \
+               ../ACsoft/utilities/McGeneratedEventsCalculation.C \
+               ../ACsoft/utilities/McParticleId.C \
+               ../ACsoft/utilities/McSpectrumScaler.C \
+               ../ACsoft/utilities/ObjectManager.C \
                ../ACsoft/utilities/RejectionUtils.C \
+               ../ACsoft/utilities/ResolutionModels.C \
                ../ACsoft/utilities/RunTagDecoder.C \
+               ../ACsoft/utilities/RTIData.C \
+               ../ACsoft/utilities/RTIReader.C \
                ../ACsoft/utilities/SimpleGraphLookup.C \
+               ../ACsoft/utilities/Statistics.C \
                ../ACsoft/utilities/StringTools.C \
+               ../ACsoft/utilities/TemplateFitter.C \
+               ../ACsoft/utilities/TemplateFitter2D.C \
                ../ACsoft/utilities/TimeHistogramManager.C \
+               ../ACsoft/utilities/Palettes.C \
+               ../ACsoft/utilities/TrackfindingHistogram.C \
                ../ACsoft/utilities/TrdPdfLookup.C \
                ../ACsoft/utilities/TrdPdfWrapper.C \
                ../ACsoft/utilities/Utilities.C
@@ -495,7 +527,6 @@ ACSOFT_DIR_CUTS=../ACsoft/cuts
 ACSOFT_DIR_UTILITIES=../ACsoft/utilities
 ACSOFT_DIR_ANALYSIS=../ACsoft/analysis
 ACSOFT_DIR_PRODUCER=../ACsoft/producer
-ACSOFT_DIR_RTI=../ACsoft/rti
 ACSOFT_DIR_INTERFACE=../ACsoft/interface
 ACSOFT_DIR_IO=../ACsoft/io
 ACSOFT_DIR_DETECTOR=../ACsoft/detector
@@ -511,12 +542,11 @@ ACSOFT_OBJECTS_INTERFACE:=$(ACSOFT_OBJECTS_PRODUCER:$(ACSOFT_DIR_INTERFACE)/%.C=
 ACSOFT_OBJECTS_IO:=$(ACSOFT_OBJECTS_INTERFACE:$(ACSOFT_DIR_IO)/%.C=$(BIN)%.AC.o) 
 ACSOFT_OBJECTS_DETECTOR:=$(ACSOFT_OBJECTS_IO:$(ACSOFT_DIR_DETECTOR)/%.C=$(BIN)%.AC.o) 
 ACSOFT_OBJECTS_TRDCALIBRATION:=$(ACSOFT_OBJECTS_DETECTOR:$(ACSOFT_DIR_TRDCALIBRATION)/%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS_RTI:=$(ACSOFT_OBJECTS_TRDCALIBRATION:$(ACSOFT_DIR_RTI)/%.C=$(BIN)%.AC.o) 
-ACSOFT_OBJECTS:=$(ACSOFT_OBJECTS_RTI)
+ACSOFT_OBJECTS:=$(ACSOFT_OBJECTS_TRDCALIBRATION)
 
 ACSOFT_DIRS_CPP = $(ACSOFT_DIR_PLATFORM)
 ACSOFT_DIRS_C = $(ACSOFT_DIR_ACROOT) $(ACSOFT_DIR_CUTS) $(ACSOFT_DIR_UTILITIES) $(ACSOFT_DIR_ANALYSIS) \
-                $(ACSOFT_DIR_PRODUCER) $(ACSOFT_DIR_RTI) $(ACSOFT_DIR_INTERFACE) $(ACSOFT_DIR_IO) $(ACSOFT_DIR_DETECTOR) \
+                $(ACSOFT_DIR_PRODUCER) $(ACSOFT_DIR_INTERFACE) $(ACSOFT_DIR_IO) $(ACSOFT_DIR_DETECTOR) \
                 $(ACSOFT_DIR_TRDCALIBRATION)
 
 vpath %.cpp $(ACSOFT_DIRS_CPP)

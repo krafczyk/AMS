@@ -56,11 +56,20 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "EcalEnergy") {
     return new Cuts::CutEcalEnergy(convertStringToDouble(arg1), convertStringToDouble(arg2));
   }
+  else if (cut == "EcalStandaloneEstimatorV3") {
+    return new Cuts::CutEcalStandaloneEstimatorV3(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
   else if (cut == "EcalBdtEstimator") {
     return new Cuts::CutEcalBdtEstimator(convertStringToDouble(arg1), convertStringToDouble(arg2));
   }
-  else if (cut == "EcalTrackerTrackMatch") {
-    return new Cuts::CutEcalTrackerTrackMatch(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  else if (cut == "EcalTrackerTrackMatchR") {
+    return new Cuts::CutEcalTrackerTrackMatchR(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "EcalTrackerTrackMatchX") {
+    return new Cuts::CutEcalTrackerTrackMatchX(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "EcalTrackerTrackMatchY") {
+    return new Cuts::CutEcalTrackerTrackMatchY(convertStringToDouble(arg1), convertStringToDouble(arg2));
   }
   else if (cut == "RemoveAntiNuclei") {
     return new Cuts::CutRemoveAntiNuclei;
@@ -68,11 +77,11 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "RemoveHeavyNuclei") {
     return new Cuts::CutRemoveHeavyNuclei;
   }
-  else if (cut == "RemovePositrons") {
-    return new Cuts::CutRemovePositrons;
+  else if (cut == "ProbablyChargeOneBeforeInnerTracker") {
+    return new Cuts::CutProbablyChargeOneBeforeInnerTracker;
   }
-  else if (cut == "RemoveAntiProtons") {
-    return new Cuts::CutRemoveAntiProtons;
+  else if (cut == "ChargeOneBeforeInnerTracker") {
+    return new Cuts::CutChargeOneBeforeInnerTracker;
   }
   else if (cut == "ReduceMisidentifiedHelium") {
     return new Cuts::CutReduceMisidentifiedHelium;
@@ -95,6 +104,9 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "SingleTrackerTrack") {
     return new Cuts::CutSingleTrackerTrack;
   }
+  else if (cut == "TrackerNumberOfTracks") {
+    return new Cuts::CutTrackerNumberOfTracks(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
   else if (cut == "HasEcalShower") {
     return new Cuts::CutHasEcalShower;
   }
@@ -110,14 +122,29 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "HasTRDVTrack") {
     return new Cuts::CutHasTRDVTrack;
   }
+  else if (cut == "MCHasPrimaryEventGenerator") {
+    return new Cuts::CutMCHasPrimaryEventGenerator;
+  }
   else if (cut == "IsDowngoing") {
     return new Cuts::CutIsDowngoing;
+  }
+  else if (cut == "ElectronIsDowngoing") {
+    return new Cuts::CutElectronIsDowngoing;
   }
   else if (cut == "EventConsistency") {
     return new Cuts::CutEventConsistency;
   }
+  else if (cut == "TofInverseBeta") {
+    return new Cuts::CutTofInverseBeta(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
   else if (cut == "TofCharge") {
     return new Cuts::CutTofCharge(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "LowerTofCharge") {
+    return new Cuts::CutLowerTofCharge(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "UpperTofCharge") {
+    return new Cuts::CutUpperTofCharge(convertStringToDouble(arg1), convertStringToDouble(arg2));
   }
   else if (cut == "TofChargeAvailable") {
     return new Cuts::CutTofChargeAvailable;
@@ -143,14 +170,29 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "TrackerLayerOneOrNine") {
     return new Cuts::CutTrackerLayerOneOrNine;
   }
+  else if (cut == "HasAdditionalNonInnerTrackerLayers") {
+    return new Cuts::CutHasAdditionalNonInnerTrackerLayers;
+  }
+  else if (cut == "RelativeSagittaError") {
+    return new Cuts::CutRelativeSagittaError(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "IsFullSpanTrackerTrack") {
+    return new Cuts::CutIsFullSpanTrackerTrack;
+  }
+  else if (cut == "IsFullSpanWithXandY") {
+    return new Cuts::CutIsFullSpanWithXandY;
+  }
   else if (cut == "IsGoodInnerTrackerTrack") {
     return new Cuts::CutIsGoodInnerTrackerTrack;
   }
   else if (cut == "IsGoodCentralInnerTrackerTrack") {
     return new Cuts::CutIsGoodCentralInnerTrackerTrack;
   }
-  else if (cut == "TrackerTrackGoodnessOfFit") {
-    return new Cuts::CutTrackerTrackGoodnessOfFit(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  else if (cut == "TrackerTrackYsideGoodnessOfFit") {
+    return new Cuts::CutTrackerTrackYsideGoodnessOfFit(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "TrackerTrackXsideGoodnessOfFit") {
+    return new Cuts::CutTrackerTrackXsideGoodnessOfFit(convertStringToDouble(arg1), convertStringToDouble(arg2));
   }
   else if (cut == "TrackerTrackHasAtLeastThreeXHits") {
     return new Cuts::CutTrackerTrackHasAtLeastThreeXHits;
@@ -167,17 +209,74 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "TriggerInformationAvailable") {
     return new Cuts::CutTriggerInformationAvailable;
   }
+  else if (cut == "PositiveRigidity"){
+    return new Cuts::CutPositiveRigidity;
+  }
+  else if (cut == "NegativeRigidity"){
+    return new Cuts::CutNegativeRigidity;
+  }
+  else if (cut == "TrackerHasLayer2Hit"){
+    return new Cuts::CutTrackerHasLayer2Hit;
+  }
+  else if (cut == "TrackInCentralTofAcceptance"){
+    return new Cuts::CutTrackInCentralTofAcceptance;
+  }
+  else if (cut == "TrackerChargeLayer1") {
+    return new Cuts::CutTrackerChargeLayer1;
+  }
+  else if (cut == "TrackerThetaLayer1") {
+    return new Cuts::CutTrackerThetaLayer1(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "TrackInCentralLayer1Acceptance"){
+    return new Cuts::CutTrackInCentralLayer1Acceptance;
+  }
   else if (cut == "TriggerLiveTime") {
     return new Cuts::CutTriggerLiveTime;
   }
   else if (cut == "TriggerRate") {
     return new Cuts::CutTriggerRate;
   }
+  else if (cut == "PhysicsTriggerChargedParticles") {
+    return new Cuts::CutPhysicsTriggerChargedParticles;
+  }
+  else if (cut == "HasAnyPhysicsTrigger") {
+    return new Cuts::CutHasAnyPhysicsTrigger;
+  }
+  else if (cut == "RichRingAvailable") {
+    return new Cuts::CutRichRingAvailable;
+  }
   else if (cut == "RichRingHits") {
     return new Cuts::CutRichRingHits(convertStringToDouble(arg1), convertStringToDouble(arg2));
   }
   else if (cut == "RichRingBeta") {
     return new Cuts::CutRichRingBeta(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "RichRingBetaError") {
+    return new Cuts::CutRichRingBetaError(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "RichRingBetaConsistency") {
+    return new Cuts::CutRichRingBetaConsistency(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "RichRingProbability") {
+    return new Cuts::CutRichRingProbability(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "RichRingAGL") {
+    return new Cuts::CutRichRingAGL;
+  }
+  else if (cut == "RichRingNaF") {
+    return new Cuts::CutRichRingNaF;
+  }
+  else if (cut == "RichRingDistanceToTileBorder") {
+    return new Cuts::CutRichRingDistanceToTileBorder(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
+  else if (cut == "RichRingExpectedPhotoElectronsAGL") {
+    return new Cuts::CutRichRingExpectedPhotoElectronsAGL;
+  }
+  else if (cut == "RichRingExpectedPhotoElectronsNaF") {
+    return new Cuts::CutRichRingExpectedPhotoElectronsNaF;
+  }
+  else if (cut == "RichRingFractionTotalPhotoElectrons") {
+    return new Cuts::CutRichRingFractionTotalPhotoElectrons;
   }
   else if (cut == "BadRun") {
     ACsoft::Analysis::BadRunManager::SubD type = ACsoft::Analysis::BadRunManager::Self()->StringToSubd(arg1.toStdString());
@@ -201,11 +300,17 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "InTrdAcceptance") {
     return new Cuts::CutInTrdAcceptance;
   }
+  else if (cut == "EcalNumberOfShowers") {
+    return new Cuts::CutEcalNumberOfShowers(convertStringToDouble(arg1), convertStringToDouble(arg2));
+  }
   else if (cut == "TrackerEcalMatching") {
     return new Cuts::CutTrackerEcalMatching;
   }
   else if (cut == "TofTrackerMatching") {
     return new Cuts::CutTofTrackerMatching;
+  }
+  else if (cut == "EcalEnergyAboveGeomagneticCutoff") {
+    return new Cuts::CutEcalEnergyAboveGeomagneticCutoff;
   }
   else if (cut == "RigidityAboveGeomagneticCutoff") {
     return new Cuts::CutRigidityAboveGeomagneticCutoff;
@@ -228,6 +333,11 @@ Cuts::Cut* Cuts::CutFactory::CreateCut( std::string stringToParse ) const {
   else if (cut == "BadLiveTime"){
     return new Cuts::CutBadLiveTime;
   }
+  else if (cut == "NoMissedEvents"){
+    return new Cuts::CutNoMissedEvents;
+  }
+
+
   else {
     WARN_OUT << "Cut \"" << qPrintable(cut) << "\" unknown." << std::endl;
     throw std::runtime_error("Unknown cut.");

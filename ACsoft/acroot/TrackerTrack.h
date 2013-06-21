@@ -56,7 +56,7 @@ public:
   typedef Vector<Float_t, 3> SCalibProbabilityVector;
 
   /** A vector of float numbers */
-  typedef Vector<Float_t, 3> TrdKChargeLikelihoodVector;
+  typedef Vector<Float_t, 6> TrdKChargeLikelihoodVector;
 
   /** A vector of PatternChargeAndError objects */
   typedef Vector<PatternChargeAndError, 3> ChargesNewVector;
@@ -89,6 +89,10 @@ public:
     */ 
   Int_t NumberOfHitsY() const { return fNumberOfHitsY; }
 
+  /** TrackLikelihood (F.Nozzoli) to reduce charge confusion.
+    */ 
+  Float_t CCLikelihood() const { return fCCLikelihood; }
+
   /** TRDK reconstructed charge.
     * \todo Add units.
     */ 
@@ -111,7 +115,7 @@ public:
     */ 
   UChar_t TrdKChargeNumberOfHitsForDeltaRayPDF() const { return fTrdKChargeNumberOfHitsForDeltaRayPDF; }
 
-  /** TRDK charge likelihood: e/p/he likelihoods
+  /** TRDK likelihoods (3 entries): e, p, He likelihoods
     */
   const TrdKChargeLikelihoodVector& TrdKChargeLikelihood() const { return fTrdKChargeLikelihood; }
 
@@ -145,12 +149,11 @@ public:
   const ClusterDistancesVector& ClusterDistances() const { return fClusterDistances; }
 
   /** GetFit
+    * \sa TrackerTrackFit::Algorithm
+    * \sa TrackerTrackFit::Pattern
+    * \sa TrackerTrackFit::Refit
     *
-    * \param kAlgo  1: Choutko fit, 2: Alcaraz fit
-    * \param kPatt  0: all hits, 3: inner tracker hits
-    * \param kRefit ...
-    *
-    * fit based on inner tracker alone: (1,3,3)
+    * eg. fit based on inner tracker alone: (1,3,3)
     *
     * \sa ACQtProducer::ProduceTrackerTrackFits()
     */

@@ -6,6 +6,8 @@
 #define AC_MCEventGenerator_Variables \
 private: \
   UShort_t fID; \
+  Short_t fParticleID; \
+  UShort_t fTrackID; \
   UShort_t fMotherParticle; \
   UChar_t fProcess; \
   Float_t fMomentum; \
@@ -19,6 +21,8 @@ private: \
 public: \
   MCEventGenerator() \
     : fID(0) \
+    , fParticleID(0) \
+    , fTrackID(0) \
     , fMotherParticle(0) \
     , fProcess(0) \
     , fMomentum(0) \

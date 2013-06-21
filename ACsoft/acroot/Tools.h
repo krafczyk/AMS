@@ -34,10 +34,17 @@ public:
   Float_t error;
 };
 
-/** Helper function to create a TTimeStamp from a unix time & time fraction in microsends */
+/** Helper function to create a TTimeStamp from a unix time & time fraction in seconds, i.e. in the interval [0,1[ */
 static inline TTimeStamp ConstructTimeStamp(time_t unixTime, float timeFraction) {
 
   return TTimeStamp(unixTime, TMath::Nint(timeFraction * 1e9));
+}
+
+/** Helper function to create a TTimeStamp from a unix time in double precision */
+static inline TTimeStamp ConstructTimeStamp(double unixTime) {
+
+  // convert double -> TTimeStamp(sec,nsec)
+  return TTimeStamp(time_t(unixTime),1.e9*(unixTime-TMath::Floor(unixTime)));
 }
 
 }
@@ -115,7 +122,7 @@ static inline void writeGenericVectorToStream(std::ostream& stream, const Vector
 
   std::vector<FieldDescriptionBase*> seperatedTableDescriptors;
   const std::vector<FieldDescriptionBase*>& descriptors = T::FieldDescriptions();
-  for (unsigned int i = 0; i < descriptors.size(); ++i) { 
+  for (unsigned int i = 0; i < descriptors.size(); ++i) {
     if (!descriptors[i]->isSeperatedTableMarker())
       continue;
     seperatedTableDescriptors.push_back(descriptors[i]);
@@ -123,7 +130,7 @@ static inline void writeGenericVectorToStream(std::ostream& stream, const Vector
 
   if (!seperatedTableDescriptors.empty()) {
     for (unsigned int i = 0; i < list.size(); ++i)
-      writeSeperatedTablesToStream<T>(stream, &list[i], i, seperatedTableDescriptors); 
+      writeSeperatedTablesToStream<T>(stream, &list[i], i, seperatedTableDescriptors);
   }
 
   indentation::decrement();
@@ -134,7 +141,7 @@ inline void writeObjectToStream( std::ostream& stream, const T& object ) {
 
   indentation::increment();
   std::vector<int> splitTable = T::SplitTableAfterColumns();
-  
+
   unsigned int start = 0;
   for (unsigned int i = 0; i < splitTable.size(); ++i) {
     writeTableRangeToStream(stream, object, start, splitTable[i] - start);
@@ -146,7 +153,7 @@ inline void writeObjectToStream( std::ostream& stream, const T& object ) {
 
   indentation::decrement();
 }
- 
+
 class FieldDescriptionSplitTable : public FieldDescriptionBase {
 public:
   virtual ~FieldDescriptionSplitTable() { }
@@ -187,7 +194,7 @@ protected:
   Getter fGetter;
   ErrorGetter fErrorGetter;
 };
- 
+
 template<typename ClassType, typename DataType>
 class FieldDescriptionSeperatedTable : public FieldDescription<ClassType, DataType> {
 public:
@@ -205,7 +212,7 @@ private:
 
     const ClassType* object = reinterpret_cast<const ClassType*>(maskedObject);
     indentation::increment();
-    stream << indentation::string(); 
+    stream << indentation::string();
     stream << "Additional information for object " << index << ":" << std::endl;
     stream << (object->*fGetter)();
     indentation::decrement();
@@ -252,7 +259,7 @@ private:
   std::vector<FieldDescriptionBase*>& ClassName::FieldDescriptions() { \
     static std::vector<FieldDescriptionBase*>* gFieldDescriptions = 0; \
     if (!gFieldDescriptions) { \
-      gFieldDescriptions = new std::vector<FieldDescriptionBase*>; 
+      gFieldDescriptions = new std::vector<FieldDescriptionBase*>;
 
 // A column in the table representing a value
 #define COL(ColumnText, Type, Getter) \
@@ -276,7 +283,7 @@ private:
 #define BEGIN_DEBUG_OUTPUT(ClassName) \
   void ClassName::Dump() const { std::cout << *this; } \
   void ClassName::DumpToStream(std::ostream& stream) const {
- 
+
 #define DUMP_POD(Name, Getter) \
   indentation::increment(); \
   stream << indentation::string() << "[" << Getter() << " " Name "]" << std::endl; \

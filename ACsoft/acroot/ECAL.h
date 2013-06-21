@@ -14,7 +14,7 @@ class ECAL {
   WTF_MAKE_FAST_ALLOCATED;
 public:
   /** A vector of ECALShower objects */
-  typedef Vector<ECALShower, 5> ShowersVector;
+  typedef Vector<ECALShower, 10> ShowersVector;
 
   AC_ECAL_Variables
 

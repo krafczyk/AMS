@@ -11,13 +11,14 @@ namespace AC {
 /** Writes this object into a QDataStream, which is used to produce ACQt files */
 QDataStream& operator<<(QDataStream& stream, const EventHeader& object) {
 
-  stream << object.fStatus;
+  stream << object.fAMSStatus;
+  stream << object.fFlags;
   stream << object.fRandom;
   stream << object.fMCRandomSeed1;
   stream << object.fMCRandomSeed2;
   stream << object.fEvent;
   stream << object.fTimeStamp;
-  stream << object.fUTCTime;
+  stream << object.fUTCTimeStamp;
   stream << object.fMagneticLatitude;
   stream << object.fMagneticLongitude;
   stream << object.fISSLatitude;
@@ -28,15 +29,15 @@ QDataStream& operator<<(QDataStream& stream, const EventHeader& object) {
   stream << object.fISSYaw;
   stream << object.fISSVelocityLatitude;
   stream << object.fISSVelocityLongitude;
-  stream << object.fMaxCutOffConeNegative;
-  stream << object.fMaxCutOffConePositive;
   return stream;
 }
 
 /** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
 QDataStream& operator>>(QDataStream& stream, EventHeader& object) {
 
-  stream >> object.fStatus;
+  stream >> object.fAMSStatus;
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fFlags;
 
   UCharArrayStream<3> subStream1(stream);
   object.fRandom = subStream1.read();
@@ -45,8 +46,10 @@ QDataStream& operator>>(QDataStream& stream, EventHeader& object) {
 
   stream >> object.fEvent;
   stream >> object.fTimeStamp;
-  if (::AC::CurrentACQtVersion() >= 53)
+  if (::AC::CurrentACQtVersion() >= 53 && ::AC::CurrentACQtVersion() <= 56)
     stream >> object.fUTCTime;
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fUTCTimeStamp;
   if (::AC::CurrentACQtVersion() < 53)
     stream >> object.fGalacticLatitude;
   if (::AC::CurrentACQtVersion() < 53)
@@ -64,9 +67,9 @@ QDataStream& operator>>(QDataStream& stream, EventHeader& object) {
   object.fISSVelocityLatitude = subStream2.read();
   object.fISSVelocityLongitude = subStream2.read();
 
-  if (::AC::CurrentACQtVersion() >= 54)
+  if (::AC::CurrentACQtVersion() >= 54 && ::AC::CurrentACQtVersion() <= 55)
     stream >> object.fMaxCutOffConeNegative;
-  if (::AC::CurrentACQtVersion() >= 54)
+  if (::AC::CurrentACQtVersion() >= 54 && ::AC::CurrentACQtVersion() <= 55)
     stream >> object.fMaxCutOffConePositive;
   return stream;
 }

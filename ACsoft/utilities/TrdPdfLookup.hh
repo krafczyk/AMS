@@ -2,7 +2,11 @@
 #define TRDPDFLOOKUP_HH
 
 #include <TTimeStamp.h>
+
+#include "AMSGeometry.h"
 #include "SimpleGraphLookup.hh"
+
+class TF1;
 
 namespace AC {
   class ACQtPDFLookupFileIdentifier;
@@ -43,17 +47,21 @@ public:
 
   ~TrdPdfLookup();
 
-  /** Returns the xenon partial pressure for a given time */
-  static double QueryXenonPressure(const TTimeStamp&);
+  static double QueryXenonPressure( const TTimeStamp& time, bool &queryOk );
+  static double QueryXenonPressure( double            time, bool &queryOk );
 
-  /** Returns the Trd PDF value for a given XenonBin, rigidityBin, TRD layer, measured dEdX and particle type pid */
-  double GetTrdPdfValue( unsigned int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const;
+  double GetTrdPdfValue( int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const;
+  double GetTrdPdfValue( double pXe, double rigidity, unsigned int layer, double dEdX, ParticleId pid ) const;
 
-  /** Returns the Trd p-value for a given XenonBin, rigidityBin, TRD layer, measured dEdX and particle type pid */
-  double GetTrdPvalue( unsigned int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const;
+  double GetToymcDedxValue( int XenonBin, unsigned int rigidityBin, unsigned int layer, ParticleId pid );
+  double GetToymcDedxValue( double pXe, double rigidity, unsigned int layer, ParticleId pid );
 
-   /** Returns whether the activeStraws algorithm was chosen for the PDF generation
-    * \todo Add better documentation about the algorithm.
+  double GetTrdPvalue( int XenonBin, unsigned int rigidityBin, unsigned int layer, double dEdX, ParticleId pid ) const;
+
+  bool LastQueryOk() const { return fLastQueryOk; }
+
+
+   /** Was the AddNearTrackHits algorithm chosen for the PDF generation?
     */
   bool AddNearTrackHitsForCandidateMatching() const { return fAddNearTrackHits; }
 
@@ -62,24 +70,38 @@ public:
   static const std::string fParticleNames[fNumberOfParticles];
   static const float fRigidityLowerLimits[fNumberOfParticles];
   static const float fRigidityUpperLimits[fNumberOfParticles];
+  static const int MaximumNumberOfRigidityBins = 40;
   static const int fNumberOfRigidityBins[fNumberOfParticles];
-  static std::vector<double> GetBinningForParticle(int particle);
+  static std::vector<double> GetBinningForParticle( ParticleId particle );
 
-  static int GetXenonBin(const TTimeStamp&);
-  static int GetXenonBin(const double pressureXe);
+  static int GetXenonBin( const TTimeStamp& time, bool& queryOk );
+  static int GetXenonBin( double pressureXe );
+  static int GetRigidityBin( double rigidity, ParticleId pid );
 
   /** Returns the settings as they are stored in the active PDF file
     */
   ::AC::ACQtPDFLookupFileIdentifier* Identifier() const { return fIdentifier; }
 
 private:
+
   TrdPdfLookup();
+  void InitializePdfFunctions();
+
+  Double_t FunPDF(Double_t* x, Double_t* par);
+
+private:
 
   SimpleGraphLookup* PdfLookup[fNumberOfParticles];
   SimpleGraphLookup* pValueLookup[fNumberOfParticles];
 
+  /// helper TF1 objects needed for the calculation of toy MC energy depositions
+  TF1* fPDFs[fNumberOfXenonBins][MaximumNumberOfRigidityBins][AC::AMSGeometry::TRDLayers][fNumberOfParticles];
+  bool fPdfFunctionsInitialized;
+
   bool fAddNearTrackHits;
   ::AC::ACQtPDFLookupFileIdentifier* fIdentifier;
+
+  mutable bool fLastQueryOk;
 };
 
 }

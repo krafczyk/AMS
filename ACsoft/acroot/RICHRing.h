@@ -1,6 +1,7 @@
 #ifndef RICHRing_h
 #define RICHRing_h
 
+#include <bitset>
 #include <TMath.h>
 #include "Tools.h"
 #include "RICHRing-Streamer.h"
@@ -43,9 +44,14 @@ public:
    */
   UInt_t Status() const { return fStatus; }
 
+  std::bitset<32> StatusBitset() const { return std::bitset<32>(fStatus);}
   /** Number of hits in the ring cluster.
     */ 
   UShort_t NumberOfHits() const { return fNumberOfHits; }
+
+  /** Number of hits in the ring cluster used for ring reconstruction.
+    */ 
+  UShort_t NumberOfUsedHits() const { return fNumberOfUsedHits; }
 
   /** Normalized velocity: beta.
     */
@@ -54,6 +60,10 @@ public:
   /** Beta error.
     */
   Float_t BetaError() const { return fBetaError; }
+
+  /** Beta consistency is the difference between the reconstructed beta of the two reconstruction methods from LIP and CIEMAT.
+    */
+  Float_t BetaConsistency() const { return fBetaConsistency; }
 
   /** X coordinate [cm].
     * Note: These are radiator crossing track parameters.
@@ -88,10 +98,38 @@ public:
     */
   Float_t Probability() const { return fProbability; }
 
-  /** Continuous Z^2 estimate for this ring.
-    * \todo Find out which unit this uses.
+  /** Continuous Z estimate for this ring.
     */
   Float_t ChargeEstimate() const { return fChargeEstimate; }
+
+  /** Number of detected photoelectrons in this ring.
+    */
+  Float_t NPhotoElectrons() const { return fNPhotoElectrons; }
+
+  /** Number of expected photoelectrons in this ring.
+    */
+  Float_t NExpectedPhotoElectrons() const { return fNExpectedPhotoElectrons; }
+
+  /** Number of collected photoelectrons in this event.
+    */
+  Float_t NCollectedPhotoElectrons() const { return fNCollectedPhotoElectrons; }
+
+  /** Was the NaF radiator used?
+   */
+  bool IsNaF() const { return fIsNaF; }
+
+  /** Width of this ring (residuals between hit position and ring)
+   */
+  Float_t Width() const { return fWidth;}
+
+  /** Mean of the 1/distance^2 distribution of unused hits to the PMT hit by the incoming particle
+   */
+  Float_t WidthUnusedHits() const { return fWidthUnusedHits; }
+
+  /** Distance of the impact point of the incoming particle to the Aerogel tile border. The quality of the AGL is worse at the edges.
+   */
+  Float_t DistanceToTileBorder() const { return fDistanceToTileBorder; }
+
 
 private:
   REGISTER_CLASS_WITH_TABLE(RICHRing)

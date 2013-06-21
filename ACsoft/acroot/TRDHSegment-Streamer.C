@@ -18,7 +18,10 @@ QDataStream& operator<<(QDataStream& stream, const TRDHSegment& object) {
 /** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
 QDataStream& operator>>(QDataStream& stream, TRDHSegment& object) {
 
-  stream >> object.fRawHitIndex;
+  if (::AC::CurrentACQtVersion() >= 50 && ::AC::CurrentACQtVersion() <= 56)
+    stream >> object.fRawHitIndex_old;
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fRawHitIndex;
   return stream;
 }
 

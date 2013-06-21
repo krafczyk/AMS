@@ -19,12 +19,15 @@ ACsoft::Detector::TrdSublayer::TrdSublayer( int layerNumber, int sublayerNumber,
   fMother(mother)
 {
 
-  assert( layerNumber >= 0 && layerNumber < int(AC::AMSGeometry::TRDLayers) );
+  assert( layerNumber >= 0 && layerNumber < int(ACsoft::AC::AMSGeometry::TRDLayers) );
   assert( sublayerNumber >= 0 && sublayerNumber < 2 );
+  assert(fMother);
+
+  fDirection = fMother->Direction();
 
   fGlobalSublayerNumber = 2*fLayerNumber + fSublayerNumber;
 
-  float zrel = sublayerNumber ? +0.25*AC::AMSGeometry::TrdLayerThickness : -0.25*AC::AMSGeometry::TrdLayerThickness;
+  float zrel = sublayerNumber ? +0.25*ACsoft::AC::AMSGeometry::TrdLayerThickness : -0.25*ACsoft::AC::AMSGeometry::TrdLayerThickness;
   fNominalRelativePosition = TVector3(0.0,0.0,zrel);
   fOffsetRelativePosition  = TVector3(0.0,0.0,0.0);
   fNominalRelativeRotation.SetToIdentity();
@@ -42,7 +45,7 @@ ACsoft::Detector::TrdSublayer::~TrdSublayer() { }
 
 void ACsoft::Detector::TrdSublayer::ConstructModules() {
 
-  std::vector<Short_t> modules = AC::AMSGeometry::Self()->TrdModulesOnSublayer( fLayerNumber, fSublayerNumber );
+  std::vector<Short_t> modules = ACsoft::AC::AMSGeometry::Self()->TrdModulesOnSublayer( fLayerNumber, fSublayerNumber );
 
   for( unsigned int i=0 ; i<modules.size() ; ++i )
     fTrdModules.push_back( new ACsoft::Detector::TrdModule(modules[i],this) );

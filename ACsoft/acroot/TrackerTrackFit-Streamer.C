@@ -52,7 +52,10 @@ QDataStream& operator<<(QDataStream& stream, const TrackerTrackFit& object) {
 /** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
 QDataStream& operator>>(QDataStream& stream, TrackerTrackFit& object) {
 
-  stream >> object.fParameters;
+  if (::AC::CurrentACQtVersion() < 55)
+    stream >> object.fParametersOld;
+  if (::AC::CurrentACQtVersion() >= 55)
+    stream >> object.fParameters;
 
   FloatArrayStream<8> subStream1(stream);
   object.fRigidity = subStream1.read();

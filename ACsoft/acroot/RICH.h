@@ -14,7 +14,7 @@ class RICH {
   WTF_MAKE_FAST_ALLOCATED;
 public:
   /** A vector of RICHRing objects */
-  typedef Vector<RICHRing, 4> RingsVector;
+  typedef Vector<RICHRing, 10> RingsVector;
 
   AC_RICH_Variables
 

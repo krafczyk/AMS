@@ -15,9 +15,13 @@ class TTimeStamp;
 class TH3F;
 class TCanvas;
 
-/// Classes that model detector structure.
 namespace ACsoft {
 
+namespace AC {
+class TRDRawHit;
+}
+
+/// Classes that model detector structure.
 namespace Detector {
 
 class TrdLayer;
@@ -42,7 +46,7 @@ class Trd
 
 public:
 
-  Trd();
+  explicit Trd( bool applyShimmings );
   ~Trd();
 
   /** Global position of %TRD (nominal + alignment) in AMS frame. */
@@ -75,7 +79,13 @@ public:
 
   void Dump() const;
 
-  TCanvas* DrawProjections( float xcenter, float ycenter, float xywidth, bool rotated = false );
+  TCanvas* DrawProjections( float xcenter, float ycenter, float xywidth, bool rotated = false, std::string canvasname = "" );
+
+  /** Helper function: Get the global position of a given TRDRawHit.*/
+  TVector3 HitPosition( const AC::TRDRawHit* hit ) const;
+
+  /** Helper function: Get the global tube direction of a given TRDRawHit.*/
+  TVector3 HitDirection( const AC::TRDRawHit* hit ) const;
 
 private:
   void ConstructTrdLayers();

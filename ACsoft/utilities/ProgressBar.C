@@ -3,6 +3,9 @@
 #include <iostream>
 #include <iomanip>
 
+#define DEBUG 0
+#include <debugging.hh>
+
 ACsoft::Utilities::ProgressBar::ProgressBar( int numberOfTotalSteps, char progressIndicator ) :
   fProgressIndicator(progressIndicator),
   fNumberOfDivisions(100), // must be even!
@@ -23,6 +26,7 @@ void ACsoft::Utilities::ProgressBar::Update( int currentStep ) {
   if( division > fCurrentDivision ){
 
     fCurrentDivision = division;
+    DEBUG_OUT << "Updating at step " << currentStep << std::endl;
     std::cout << fProgressIndicator << std::flush;
   }
 

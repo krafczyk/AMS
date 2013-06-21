@@ -22,6 +22,7 @@ QDataStream& operator<<(QDataStream& stream, const TrackerTrack& object) {
   stream << object.fTrdKChargeLikelihood;
   stream << object.fTrdKChargeNumberOfHitsForLikelihoods;
   stream << object.fTrdKChargeNumberOfOffTrackHitsForLikelihoods;
+  stream << object.fCCLikelihood;
   stream << object.fChargesNew;
   stream << object.fTrackFits;
   stream << object.fReconstructedHits;
@@ -59,6 +60,8 @@ QDataStream& operator>>(QDataStream& stream, TrackerTrack& object) {
     stream >> object.fTrdKChargeNumberOfHitsForLikelihoods;
   if (::AC::CurrentACQtVersion() >= 53)
     stream >> object.fTrdKChargeNumberOfOffTrackHitsForLikelihoods;
+  if (::AC::CurrentACQtVersion() >= 55)
+    stream >> object.fCCLikelihood;
   stream >> object.fChargesNew;
   stream >> object.fTrackFits;
   stream >> object.fReconstructedHits;

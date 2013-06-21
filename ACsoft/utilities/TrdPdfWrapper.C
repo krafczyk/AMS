@@ -10,17 +10,18 @@ ACsoft::Utilities::TrdPdfWrapper::TrdPdfWrapper( TGraph* pdfGraph ) :
 }
 
 
-//**********************************************************************************************************************************
-//	x[0] = Eadc
-//
 double ACsoft::Utilities::TrdPdfWrapper::TrdQtPdf(double *x, double *par) {
 
-    double 	dEdX 	   = x[0];
-    double  TrdMinDeDx = par[0];
-    double  TrdMaxDeDx = par[1];
+  // x[0] = Eadc
 
-    double pdf=0.0;
-    if (dEdX>TrdMinDeDx+0.5  && dEdX<TrdMaxDeDx-0.5) pdf = fPdfGraph->Eval(dEdX);
-    return 	std::max(1E-12,pdf);
+  double  dEdX       = x[0];
+  double  TrdMinDeDx = par[0];
+  double  TrdMaxDeDx = par[1];
+
+  double pdf=0.0;
+  if (dEdX>TrdMinDeDx+0.5  && dEdX<TrdMaxDeDx-0.5) pdf = fPdfGraph->Eval(dEdX);
+  return std::max(1E-12,pdf); // FIXME TrdQt uses 1.e-7 as minimum pdf value
 
 }
+
+

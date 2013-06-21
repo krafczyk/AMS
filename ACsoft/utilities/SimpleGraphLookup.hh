@@ -28,12 +28,19 @@ namespace Utilities {
   * to be smarter than simply looping over all points (as done by ROOT) when finding the two points closest to \c x for
   * the interpolation.
   *
+  * After a query, a call to the LastQueryOk() function will reveal if none of the following problems has occurred:
+  *  - Missing lookup graph
+  *  - Empty lookup graph
+  *  - x value outside range of lookup graph
+  *
+  *
   * \test \c utilities/test/test_SimpleGraphLookup.C
   */
 class SimpleGraphLookup
 {
 public:
-
+    SimpleGraphLookup( TFile* lookupfile,
+                       std::string namePrefix, std::string uncertaintyPrefix, unsigned int nMin, unsigned int nMax, unsigned int mod2D = 0 );
     SimpleGraphLookup( std::string lookupfile, std::string expectedGitSHA, unsigned short expectedVersion,
                        std::string namePrefix, std::string uncertaintyPrefix, unsigned int nMin, unsigned int nMax, unsigned int mod2D = 0 );
     SimpleGraphLookup( std::string treefile, std::string expectedGitSHA, unsigned short expectedVersion,
@@ -78,6 +85,9 @@ protected:
     /// keep track of whether the last query had any problems (e.g. graph with zero number of points)
     mutable bool fLastQueryOk;
 };
+
+bool IsBeamTestTime(double time);
+
 }
 
 }

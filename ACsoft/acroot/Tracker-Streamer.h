@@ -7,10 +7,12 @@
 private: \
   Short_t fClusters; \
   TracksVector fTracks; \
+  VerticesVector fVertices; \
 public: \
   Tracker() \
     : fClusters(0) \
     , fTracks() \
+    , fVertices() \
   { \
   }
 

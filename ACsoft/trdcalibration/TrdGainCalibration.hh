@@ -7,6 +7,7 @@
 
 #include "SimpleGraphLookup.hh"
 #include "Settings.h"
+#include "TrdHitFactory.hh"
 
 class TH1;
 class TH2I;
@@ -20,6 +21,7 @@ namespace Utilities {
 namespace Analysis {
   class Particle;
 }
+
 
 namespace Calibration {
 
@@ -41,7 +43,7 @@ public:
 
   explicit TrdGainCalibration( Utilities::ConfigHandler* );
 
-  void Process( const Analysis::Particle& );
+  void Process( const Analysis::Particle&, bool checkMode );
 
   void Initialize();
 
@@ -65,6 +67,7 @@ private:
 protected:
 
   bool fIsInitialized;
+  Analysis::TrdHitFactory fTrdHitFactory;
   std::vector<TH1*> fDeDxHistos;
 
 };
@@ -73,7 +76,7 @@ protected:
 /** Lookup for gain calibration values.
   *
   */
-class TrdGainParametersLookup : public Utilities::SimpleGraphLookup {
+class TrdGainParametersLookup {
 public:
   static TrdGainParametersLookup* Self() {
 
@@ -92,17 +95,36 @@ public:
     *
     * \returns MPV of Landau fit to dE/dx distribution of proton events at the reference momentum used by TrdGainCalibration (ADC/cm)
     */
-  virtual Double_t GetGainValue( unsigned int module, double time ) const {
-    Utilities::Quantity result = Utilities::SimpleGraphLookup::Query(module,time,false);
+  Double_t GetGainValue( unsigned int module, double time ) const {
+
+    const Utilities::SimpleGraphLookup& lookup = Utilities::IsBeamTestTime(time) ? fBeamTestLookup : fISSLookup;
+    Utilities::Quantity result = lookup.Query(module,time,false);
+    fLastQueryOk = lookup.LastQueryOk();
     return result.value;
   }
 
+  bool LastQueryOk() const { return fLastQueryOk; }
+
+
 private:
   TrdGainParametersLookup()
-    : Utilities::SimpleGraphLookup(::AC::Settings::gTrdQtGainFileName,
-                                   ::AC::Settings::gTrdQtGainFileNameExpectedGitSHA,
-                                   ::AC::Settings::gTrdQtGainFileNameExpectedVersion,
-                                   "fitMpvGraphGoodFit", "", 0, 327) { }
+    : fISSLookup(::AC::Settings::gTrdQtGainFileName,
+                 ::AC::Settings::gTrdQtGainFileNameExpectedGitSHA,
+                 ::AC::Settings::gTrdQtGainFileNameExpectedVersion,
+                 "fitMpvGraphGoodFit", "", 0, 327)
+    , fBeamTestLookup(::AC::Settings::gTrdQtBeamTestGainFileName,
+                      ::AC::Settings::gTrdQtBeamTestGainFileNameExpectedGitSHA,
+                      ::AC::Settings::gTrdQtBeamTestGainFileNameExpectedVersion,
+                      "fitMpvGraphGoodFit", "", 0, 327)
+    , fLastQueryOk(false){
+
+  }
+
+  Utilities::SimpleGraphLookup fISSLookup;
+  Utilities::SimpleGraphLookup fBeamTestLookup;
+
+  mutable bool fLastQueryOk;
+
 };
 
 }

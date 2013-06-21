@@ -8,6 +8,12 @@ namespace ACsoft {
 
 namespace AC {
 
+enum EventHeaderFlags {
+  EventHeaderNoFlags = 0,
+  EventHeaderUTCTimeFromGPS = 1 << 0
+  // 7 free bits remaining
+};
+
 /** %Event header data.
   *
   * \todo add units to documentation
@@ -69,7 +75,11 @@ public:
     *
     * \todo Verify documentation.
     */
-  qint64 Status() const { return fStatus; }
+  qint64 Status() const { return fAMSStatus; }
+
+  /** Additional bits encoding status information.
+    */
+  EventHeaderFlags Flags() const { return static_cast<EventHeaderFlags>(fFlags); }
 
   /** Random number (0..255).
     *
@@ -93,10 +103,10 @@ public:
     */
   const TTimeStamp& TimeStamp() const { return fTimeStamp; }
 
-  /** %Event UTC time stamp
-    * \todo Add documentation.
+  /** %Event UTC time stamp, eventually JMDC drift corrected, GPS corrected and leap seconds corrected.
+    * Check Flags() to see which corrections were applied.
     */
-  Double_t UTCTime() const { return fUTCTime; }
+  const TTimeStamp& UTCTimeStamp() const { return fUTCTimeStamp; }
 
   /** ISS Magnetic Latitude [deg].
     */
@@ -158,48 +168,6 @@ public:
   /** ISS Velocity Longitude [deg].
     */
   Float_t ISSVelocityLongitude() const { return fISSVelocityLongitude * TMath::RadToDeg(); }
-
-  /** Maximum Stoermer cutoff in AMS acceptance-cone (35deg) for negative particles [GV].
-    */
-  Float_t MaxCutOffConeNegative() const { return fMaxCutOffConeNegative; }
-
-  /** Maximum Stoermer cutoff in AMS acceptance-cone (35deg) for positive particles [GV].
-    */
-  Float_t MaxCutOffConePositive() const { return fMaxCutOffConePositive; }
-
-  /** Maximum Stoermer cutoff in AMS acceptance-cone (35deg) [GV].
-    */
-  Float_t MaxCutOffCone() const { return fabs(fMaxCutOffConeNegative) > fMaxCutOffConePositive ? fMaxCutOffConeNegative : fMaxCutOffConePositive;  }
-
-private:
-  // All these are private at the moment. If anyone needs those, please contact Niko first, so we can
-  // properly refactor these methods. nPART() could be renamed to NumberOfParticles() for instance.
-  int  bits(Long_t Word, int ifirst, int nbits) const { return (Word>>ifirst)&((1<<nbits)-1);}
-
-  int  nPART() const {     return bits(fStatus, 0,2);}
-  int  nTRDvtrk() const {  return bits(fStatus, 8,2);}
-  int  nTOFclu() const {   return bits(fStatus,10,3);}
-  int  nACCclu() const {   return bits(fStatus,21,2);}
-  int  nTRKtrk() const {   return bits(fStatus,13,2);}
-  int  nRICHring() const { return bits(fStatus,15,2);}
-  int  nECALshwr() const { return bits(fStatus,17,2);}
-  int  Charge() const {    return bits(fStatus,23,3);}
-
-  int  PARTwithTRDvtrk() const {  return bits(fStatus, 2,1);}
-  int  PARTwithTOFbeta() const {  return bits(fStatus, 3,1);}
-  int  PARTwithTRKtrk() const {   return bits(fStatus, 4,1);}
-  int  PARTwithRICHring() const { return bits(fStatus, 5,1);}
-  int  PARTwithECALshwr() const { return bits(fStatus, 6,1);}
-
-  int  PositiveVelocity() const { return bits(fStatus,33,1);}
-  int  PositiveMomentum() const { return bits(fStatus,34,1);}
-  int  RigidityBin() const {      return bits(fStatus,35,2);} // ?? always 0
-  int  ECALenergyBin() const {    return bits(fStatus,37,2);}
-
-  int  PrescaledEvt() const {     return bits(fStatus,32,1);} // ?? always 0
-
-  bool not_SingleTrackEvt() const {return (fStatus & 0x0000000000007F1F) ^ 0x000000000000311D;}
-  bool not_SingleECALshwr() const {return (fStatus & 0x0000000000060040) ^ 0x0000000000020040;}
 
 private:
   REGISTER_CLASS_WITH_TABLE(EventHeader)

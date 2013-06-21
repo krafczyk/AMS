@@ -12,8 +12,21 @@ namespace AC {
 QDataStream& operator<<(QDataStream& stream, const MC& object) {
 
   stream << object.fEventGenerators;
-  stream << object.fTracks;
-  stream << object.fTRDHits;
+  stream << object.fTrackerClusters;
+  stream << object.fTRDClusters;
+  stream << object.fNumberOfEventGenerators;
+  stream << object.fNumberOfTrackerCluster;
+  stream << object.fNumberOfTRDCluster;
+  stream << object.fNumberOfTOFCluster;
+  stream << object.fNumberOfACCCluster;
+  stream << object.fNumberOfRICHCluster;
+  stream << object.fNumberOfECALHits;
+  stream << object.fUpperTOFEnergyDeposition;
+  stream << object.fLowerTOFEnergyDeposition;
+  stream << object.fTrackerEnergyDeposition;
+  stream << object.fTRDEnergyDeposition;
+  stream << object.fACCEnergyDeposition;
+  stream << object.fECALEnergyDeposition;
   return stream;
 }
 
@@ -21,8 +34,37 @@ QDataStream& operator<<(QDataStream& stream, const MC& object) {
 QDataStream& operator>>(QDataStream& stream, MC& object) {
 
   stream >> object.fEventGenerators;
-  stream >> object.fTracks;
-  stream >> object.fTRDHits;
+  if (::AC::CurrentACQtVersion() < 56)
+    stream >> object.fTracks;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fTrackerClusters;
+  stream >> object.fTRDClusters;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfEventGenerators;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfTrackerCluster;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfTRDCluster;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfTOFCluster;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfACCCluster;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfRICHCluster;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfECALHits;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fUpperTOFEnergyDeposition;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fLowerTOFEnergyDeposition;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fTrackerEnergyDeposition;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fTRDEnergyDeposition;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fACCEnergyDeposition;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fECALEnergyDeposition;
   return stream;
 }
 

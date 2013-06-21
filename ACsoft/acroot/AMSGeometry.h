@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 #include <Rtypes.h>
 
@@ -45,6 +46,9 @@ public:
 
   /** Radius of TRD tubes [cm] */
   static const float TRDTubeRadius;
+
+  /** Diameter of TRD tubes [cm] */
+  static const float TRDTubeDiameter;
 
   /** Maximum length of TRD straw tube [cm] */
   static const float TRDMaximumStrawLength;
@@ -116,6 +120,7 @@ public:
     float moduleLength;
     TCutG* contour;
     std::vector<std::pair<float, float> > xyContour;
+
   };
 
   TCutG* TRDFirstLayerContour; // FIXME move to TrdDetector, align!
@@ -134,6 +139,8 @@ public:
   friend unsigned short TRDStrawToLadder(unsigned short);
   void TRDStrawToLadderAndLayer(unsigned short straw, unsigned short& ladder, unsigned short& layer);
   void TRDModuleToLadderAndLayer(unsigned short Module, unsigned short &Lad, unsigned short &Lay);
+
+  bool CollectStrawCandidates( unsigned short sublayer, double x, double y, std::vector<unsigned short>& strawNumbers );
 
 private:
   AMSGeometry();
@@ -160,6 +167,12 @@ unsigned short TRDStrawToTube(unsigned short straw); // FIXME remove
 
 /** Helper function to return the coordinates associated with a straw 0-5247 */
 void TrdStrawToRawCoordinates(unsigned short straw, int& direction, float& xy, float& z); // FIXME Rename to TrdStrawToRawCoordinates, then remove
+
+inline std::ostream& operator<<(std::ostream& out, const AC::AMSGeometry::TRDModuleGeometry& geo) {
+
+  out << "TRDModuleGeometry z=" << geo.z << " lay " << geo.layer << " sublayer " << geo.sublayer << " len " << geo.moduleLength;
+  return out;
+}
 
 }
 

@@ -1,7 +1,16 @@
 #include "Utilities.hh"
+
 #include <iostream>
+#include <math.h>
 #include <TMath.h>
 #include <TMatrixDEigen.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <TFile.h>
+#include <TClass.h>
+#include <TCanvas.h>
+
 
 #define DEBUG 0
 #define INFO_OUT_TAG "Utilities> "
@@ -11,27 +20,42 @@ namespace ACsoft {
 
 namespace Utilities {
 
-std::vector<double> GenerateLogBinning(int nBinLog, double Tmin, double Tmax) {
 
-  std::vector<double> xMin;
-  xMin.push_back(Tmin);
-  for (int i=0; i<nBinLog; i++) {
-    double xMax = exp(log(xMin[i])+(log(Tmax)-log(Tmin))/nBinLog);
-    xMin.push_back(xMax);
+TH1* GetHisto( TFile* file, const char* histoName ) {
+
+  TH1* histo = (TH1*)file->Get(histoName);
+  if( !histo ){
+    WARN_OUT << "ERROR: Histogram " << histoName << " not found!" << std::endl;
+    return 0;
   }
-  return xMin;
+
+  DEBUG_OUT << "Found histo " << histo->GetName() << " of type " << histo->IsA()->GetName() << " with " << histo->GetEntries() << " entries" << std::endl;
+
+  return histo;
+}
+
+void SaveCanvas(TCanvas* canvas) {
+
+  if(!canvas) return;
+
+  std::string fileName(canvas->GetName());
+
+  INFO_OUT << "Saving canvas " << fileName << ".png/root..." << std::endl;
+  canvas->Update();
+  canvas->SaveAs((fileName + std::string(".root")).c_str());
+  canvas->SaveAs((fileName + std::string(".png")).c_str());
 }
 
 double FastLineFit(std::vector<double> &x, std::vector<double> &y, std::vector<double> &ey, double &offset, double &e_offset, double &slope, double &e_slope, double &correlation) {
 
-  double s	 = 0.0;
-  double sx	 = 0.0;
-  double sy	 = 0.0;
-  double sxx	 = 0.0;
-  double sxy   = 0.0;
+  double s    = 0.0;
+  double sx   = 0.0;
+  double sy   = 0.0;
+  double sxx  = 0.0;
+  double sxy  = 0.0;
 
   static int nWarnings    =  1;
-  static int maxWarnings  = 11;
+  static int maxWarnings  =  1;
 
 #ifdef AMS_ACQT_SILENCE_COMMON_WARNINGS
   maxWarnings = 0;
@@ -69,11 +93,11 @@ double FastLineFit(std::vector<double> &x, std::vector<double> &y, std::vector<d
     return -2.0;
   }
 
-  offset 	    = (sxx*sy - sx*sxy)/delta;
-  slope 	    = (s*sxy - sx*sy)/delta;
-  e_offset	  = sqrt(sxx/delta);
-  e_slope	    = sqrt(s/delta);
-  correlation	= -sx/sqrt(s*sxx);
+  offset         = (sxx*sy - sx*sxy)/delta;
+  slope         = (s*sxy - sx*sy)/delta;
+  e_offset      = sqrt(sxx/delta);
+  e_slope        = sqrt(s/delta);
+  correlation    = -sx/sqrt(s*sxx);
 
   double chiq = 0.0;
   for (unsigned int i=0; i<x.size(); i++) chiq += pow((y.at(i)-(offset+slope*x.at(i)))/ey.at(i),2);
@@ -81,31 +105,171 @@ double FastLineFit(std::vector<double> &x, std::vector<double> &y, std::vector<d
   return chiq;
 }
 
+/** Test if the binning of two histogram axes is identical. */
+bool TestBinning( TAxis* axis1, TAxis* axis2, double epsilon ) {
 
-void NormalizeHistogramXSlices(TH2* hist) {
+  if( axis1->GetNbins() != axis2->GetNbins() ) return false;
 
-  int nBinX = hist->GetNbinsX();
-  int nBinY = hist->GetNbinsY();
-  const char* hName = hist->GetName();
-  for (int iBinX=1; iBinX<=nBinX; iBinX++) {
-    double xc = hist->GetXaxis()->GetBinCenter(iBinX);
-        char hpName[200];
-        sprintf(hpName,"hpDX_%s_%d_%d_%61f",hName,nBinX,nBinY,xc);
-        TH1* hp = hist->ProjectionY(hpName,iBinX,iBinX);
-        double sum = hp->Integral();
-        if (sum<=0.0) continue;
-        if (iBinX==1) hp->Sumw2();
-        hp->Scale(1.0/sum);
-        for (int iBinY=1; iBinY<=nBinY; iBinY++) {
-          double Value = hp->GetBinContent(iBinY);
-          double eValue = hp->GetBinError(iBinY);
-          double yc = hp->GetBinCenter(iBinY);
-          int iBin = hist->FindBin(xc,yc);
-          hist->SetBinContent(iBin,Value);
-          hist->SetBinError(iBin,eValue);
-        }
-        delete hp;
+  for( int i=1 ; i<=axis1->GetNbins() ; ++i ){
+    if(fabs(axis1->GetBinLowEdge(i)-axis2->GetBinLowEdge(i)) > epsilon ) return false;
+    if(fabs(axis1->GetBinUpEdge(i)-axis2->GetBinUpEdge(i)) > epsilon ) return false;
   }
+
+  return true;
+}
+
+/** Test if the binning of two histograms is identical. */
+bool TestBinning( TH1* h1, TH1* h2, double epsilon ) {
+
+  return TestBinning(h1->GetXaxis(),h2->GetXaxis(),epsilon);
+}
+
+
+void NormalizeHistogramXSlices( TH2* histo ) {
+
+  int nBinsX = histo->GetNbinsX();
+  int nBinsY = histo->GetNbinsY();
+
+  for( int iBinX=1; iBinX<=nBinsX; ++iBinX ) {
+
+    double xc = histo->GetXaxis()->GetBinCenter(iBinX);
+    std::stringstream name;
+    name << histo->GetName() << "_" << iBinX << "_" << xc;
+    TH1D* hp = histo->ProjectionY(name.str().c_str(),iBinX,iBinX);
+    double sum = hp->Integral();
+    if (sum<=0.0){
+      WARN_OUT << "Non-positive integral in projection " << hp->GetName() << std::endl;
+      continue;
+    }
+    if (iBinX==1) hp->Sumw2();
+
+    hp->Scale(1.0/sum);
+
+    for (int iBinY=1; iBinY<=nBinsY; iBinY++) {
+      double Value = hp->GetBinContent(iBinY);
+      double eValue = hp->GetBinError(iBinY);
+      histo->SetBinContent(iBinX,iBinY,Value);
+      histo->SetBinError(iBinX,iBinY,eValue);
+    }
+    delete hp; hp = 0;
+  }
+}
+
+
+/** Create a XZ projection of a 3D histogram.
+  *
+  * \param[in] histo 3D-histogram to project
+  * \param[in] projectionType Specify which projection to calculate, valid values are "XZ", "YZ", and "XY"
+  * \param[in] firstBin first bin on projected axis to be used for projection (use firstBin=lastBin=0 for all bins)
+  * \param[in] lastBin  last bin on projected axis to be used for projection (use firstBin=lastBin=0 for all bins)
+  * \param[in] title title for projected histogram, will be determined automatically if none given
+  * \param[in] name name for projected histogram, will be determined automatically if none given
+  *
+  */
+TH2* Projection2D(TH3* histo, ProjectionType projectionType, int firstBin, int lastBin, std::string title, std::string name ) {
+
+  if(!histo) {
+    WARN_OUT << "Received null-pointer!" << std::endl;
+    return 0;
+  }
+
+  const TAxis* axis1 = 0;
+  const TAxis* axis2 = 0;
+  const TAxis* paxis = 0;
+  std::string tag;
+
+  if( projectionType == Utilities::XZ ){
+    axis1 = histo->GetXaxis();
+    axis2 = histo->GetZaxis();
+    paxis = histo->GetYaxis();
+    tag = "XZ";
+  }
+  else if( projectionType == Utilities::YZ ){
+    axis1 = histo->GetYaxis();
+    axis2 = histo->GetZaxis();
+    paxis = histo->GetXaxis();
+    tag = "YZ";
+  }
+  else{
+    axis1 = histo->GetXaxis();
+    axis2 = histo->GetYaxis();
+    paxis = histo->GetZaxis();
+    tag = "XY";
+  }
+
+
+  const Double_t* binArray1 = axis1->GetXbins()->GetArray();
+  const Double_t* binArray2 = axis2->GetXbins()->GetArray();
+  if( !binArray1 || !binArray2 ) {
+    WARN_OUT << "Bin array not available for 3D histo " << histo->GetName() << std::endl;
+    return 0;
+  }
+
+  int nBinsAxis1 = axis1->GetNbins();
+  int nBinsAxis2 = axis2->GetNbins();
+
+  int StartBin = 1;
+  int EndBin   = paxis->GetNbins();
+  if( firstBin>0 ) StartBin = firstBin;
+  if( lastBin >0 ) EndBin   = lastBin;
+
+  std::stringstream name2d, title2d;
+  if( name == "" ){
+    name2d << histo->GetName() << "_" << tag;
+    if( firstBin>0 || lastBin>0 )
+      name2d << "_" << StartBin << "_" << EndBin;
+  }
+  else
+    name2d << name;
+  if( title == "" ){
+    title2d << histo->GetTitle() << " (" << tag << " projection)";
+  }
+  else
+    title2d << title;
+
+  TH2* h2d = 0;
+  if( histo->IsA()->GetName() == std::string("TH3F") )
+    h2d = new TH2F(name2d.str().c_str(),title2d.str().c_str(),nBinsAxis1,&(binArray1[0]),nBinsAxis2,&(binArray2[0]));
+  else if( histo->IsA()->GetName() == std::string("TH3D") )
+    h2d = new TH2D(name2d.str().c_str(),title2d.str().c_str(),nBinsAxis1,&(binArray1[0]),nBinsAxis2,&(binArray2[0]));
+  else if( histo->IsA()->GetName() == std::string("TH3C") )
+    h2d = new TH2C(name2d.str().c_str(),title2d.str().c_str(),nBinsAxis1,&(binArray1[0]),nBinsAxis2,&(binArray2[0]));
+  else if( histo->IsA()->GetName() == std::string("TH3S") )
+    h2d = new TH2S(name2d.str().c_str(),title2d.str().c_str(),nBinsAxis1,&(binArray1[0]),nBinsAxis2,&(binArray2[0]));
+  else if( histo->IsA()->GetName() == std::string("TH3I") )
+    h2d = new TH2I(name2d.str().c_str(),title2d.str().c_str(),nBinsAxis1,&(binArray1[0]),nBinsAxis2,&(binArray2[0]));
+  else return 0;
+
+  h2d->GetXaxis()->SetTitle(axis1->GetTitle());
+  h2d->GetYaxis()->SetTitle(axis2->GetTitle());
+
+  for( int iBin1=1; iBin1<=nBinsAxis1; ++iBin1 ) {
+
+    double p1 = axis1->GetBinCenter(iBin1);
+
+    for( int iBin2=1; iBin2<=nBinsAxis2; ++iBin2 ) {
+
+      double p2 = axis2->GetBinCenter(iBin2);
+
+      for( int iBinP=StartBin; iBinP<=EndBin; ++iBinP ) {
+
+        double value = 0.0;
+
+        if( projectionType == Utilities::XZ )
+          value = histo->GetBinContent(iBin1,iBinP,iBin2);
+        else if( projectionType == Utilities::YZ )
+          value = histo->GetBinContent(iBinP,iBin1,iBin2);
+        else
+          value = histo->GetBinContent(iBin1,iBin2,iBinP);
+
+        h2d->Fill(p1,p2,value);
+      }
+    }
+  }
+
+  h2d->SetStats(0);
+
+  return h2d;
 }
 
 
@@ -161,8 +325,8 @@ TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const doubl
   // The Z_GTOD axis overlaps with the Earth rotational axis pointing to the North pole.
 
   // The LVLH is defined by means of the ISS radial position vector R and its velocity vector V given in GTOD.
-	// The Z_GTOD lies along the geocentric radius vector to the vehicle R and is positive towards the centre of Earth.
-	// The X_GTOD lies on the vertical orbital plane to the Z_GTOD axis and is positive in the of the vehicle motion.
+  // The Z_GTOD lies along the geocentric radius vector to the vehicle R and is positive towards the centre of Earth.
+  // The X_GTOD lies on the vertical orbital plane to the Z_GTOD axis and is positive in the of the vehicle motion.
   // The Y_GTOD is the cross product of the X_GTOD and Z_GTOD axes (Y_GTOD = Z_GTOD x X_GTOD)
 
   // First construct GTOD to LVLH matrix and then invert it
@@ -202,8 +366,8 @@ TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const doubl
   // Needed information about the geomagnetic field, approximated by a dipole field
   const double magneticNpole_theta = -1.399310;       // magnetic centred north pole latitude 2012 (rad)
   const double magneticNpole_phi = 1.877269;          // magnetic centred north pole longitude 2012 (rad)
-  const double magneticDpolecenter_theta = 0.395086;	// dipole centre latitude 2012 (rad)
-  const double magneticDpolecenter_phi = 2.639650;	 	// dipole centre longitude 2012 (rad)
+  const double magneticDpolecenter_theta = 0.395086;    // dipole centre latitude 2012 (rad)
+  const double magneticDpolecenter_phi = 2.639650;         // dipole centre longitude 2012 (rad)
   const double magneticDshift = 569.779321;           // dipole centre shift respect earth's center (km) 2012
 
   // Calculate magnetic Dipole center in GTOD
@@ -219,7 +383,7 @@ TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const doubl
   // normalise vector
   double length = sqrt(relative_X*relative_X + relative_Y*relative_Y + relative_Z*relative_Z);
   TVector3 EventFromDipoleCentre(relative_X/length, relative_Y/length, relative_Z/length);
-  
+
   // Calculate magnetic North Pole in GTOD (We have to take into account that the geographic latitude is pi/2 - the cylindrical theta)
   TVector3 Npole;
   Npole.SetMagThetaPhi(1., TMath::Pi()*0.5 - magneticNpole_theta, magneticNpole_phi);
@@ -254,6 +418,39 @@ TVector3 TransformAMS02toMAG(const double &yaw, const double &pitch, const doubl
 
   return eventInMAG;
 }
+
+/** function that follows the 1/beta curve for a given particle species,
+  * defined by mass and charge.
+  *
+  * use the shift parameter to define a 1/beta band.
+  */
+double OneOverBetaCurves(double mass, double rigidity, double charge, double shift, double scale) {
+  const double fabsRigidity = fabs(rigidity);
+  const double fabsCharge = fabs(charge);
+  return sqrt(1.0 + mass * mass / (fabsRigidity * fabsRigidity * fabsCharge * fabsCharge)) + scale * shift / (fabsRigidity * fabsCharge) + shift;
+}
+
+int RootColor(int i)
+{
+  if (0 <= i%16 && i%16 <= 7)
+    return i+2;
+  switch (i%16) {
+    case  8: return 28;
+    case  9: return 30;
+    case 10: return 33;
+    case 11: return 38;
+  }
+  if (12 <= i%16 && i%16 <= 15)
+    return i+28;
+  return 1;
+}
+
+// Work around missing GetPaintedGraph() accessor in AMS ROOT 5.2.7.
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,34,1)
+TGraphAsymmErrors* GraphFromTEfficiency(TEfficiency* efficiency) { return efficiency->GetPaintedGraph(); }
+#else
+TGraphAsymmErrors* GraphFromTEfficiency(TEfficiency* efficiency) { return efficiency->fPaintGraph; }
+#endif
 
 }
 

@@ -21,20 +21,44 @@ public:
     */
   void Dump() const;
 
-  /** Track fit algorithm
-    * \todo Add documentation.
+  /** AMS Track fit algorithm
+    * 0: Default algorithm
+    * 1: Choutko algorithm
+    * 2: Alcaraz algorithm
+    * 3: ChikanianF algorithm
+    * 4: ChikanianC algorithm
+    * \todo: 7: Vertex fit? (Not sure Bastian should fill this)
    */
-  Int_t Algorithm() const { return (fParameters >> 6) & 3; }
+  Int_t Algorithm() const;
 
-  /** Track fit pattern
-    * \todo Add documentation.
+  /** AMS Track fit pattern
+    * \li 0: All hits belonging to track (maximum span)
+    * \li 1: Inner tracker upper half (2-4)
+    * \li 2: Inner tracker lower half (5-8)
+    * \li 3: Inner tracker only (no external layer 1/9 hit included in fit)
+    * \li 4: Only 2 hits plus 2 external hits (layer 1/9)
+    * \li 5: Inner tracker + layer 1
+    * \li 6: Inner tracker + layer 9
+    * \li 7: Inner tracker + layer 1 + layer 9
+    * \todo: Verify tracker planes for 1/2 are really 2-4/5-8.
+    * 
    */
-  Int_t Pattern() const { return (fParameters >> 3) & 7; }
+  Int_t Pattern() const;
 
-  /** Track refit mode
-    * \todo Add documentation.
+  /** AMS Track refit mode
+    * \li   0  do not refit
+    * \li   1  refit if does not exist
+    * \li   2  refit
+    * \li   3  refit and rebuild ALSO coordinates (useful for tricked alignment)
+    * \li +10  CIEMAT Aligment if meaningful for the pattern
+    * \li  10  do not refit 
+    * \li  11  refit if does not exist 
+    * \li  12  force refit 
+    * \li  13  refit and rebuild also INNER coordinates (useful for tricked alignment)
+    * \todo What the heck are 'ALSO' coordinates? Can't find it anywhere else in AMS.
+    * \todo What the heck is 'tricked alignment'?
    */
-  Int_t Refit() const { return fParameters & 7; }
+  Int_t Refit() const;
 
   /** Rigidity [GV].
     * Note: The unit is giga-volts.
@@ -196,6 +220,16 @@ public:
     if(mode == XZMeasurement) return ex.X();
     else return ex.Y();
   }
+
+  /** Helper function to generate UShort_t fParameters.
+    */
+  static UShort_t GenerateParametersFromFlags(Int_t algorithm, Int_t pattern, Int_t refit) {
+
+    // Layout: 16 bit integer (short) = algorithm (4bits) .. pattern (4 bits) .. refit (8 bits)
+    // Clear high bits for safey in algorithm & pattern & refit, keeping only the lower 8/4 bits.
+    return ((algorithm & 0xf) << 12) | ((pattern & 0xf) << 8) | (refit & 0xff);
+  }
+
 private:
   REGISTER_CLASS_WITH_TABLE(TrackerTrackFit)
 };

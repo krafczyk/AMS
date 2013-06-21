@@ -319,7 +319,5 @@ inline QDataStream& operator>>(QDataStream& stream, Vector<float, inlineCapacity
 }
 
 #endif
-
 #endif
-
 #endif

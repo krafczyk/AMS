@@ -5,8 +5,9 @@
 
 #include <TTimeStamp.h>
 
-#include <SimpleGraphLookup.hh>
+#include "SimpleGraphLookup.hh"
 #include "Settings.h"
+#include "TrdHitFactory.hh"
 
 class TH1;
 class TH2I;
@@ -62,6 +63,8 @@ protected:
 
   bool fIsInitialized;
 
+  Analysis::TrdHitFactory fTrdHitFactory;
+
   std::vector<TH1*> fAlignmentShiftHistos;
   TH2I* fNumberOfTrdHitsWithinCut;
   TH2I* fNumberOfTrdLayersWithHitWithinCut;
@@ -78,7 +81,7 @@ protected:
   *
   * \todo relax cuts on fit results, because some modules have zero entries in the good-fit graph
   */
-class TrdAlignmentShiftLookup : public Utilities::SimpleGraphLookup {
+class TrdAlignmentShiftLookup {
 public:
   static TrdAlignmentShiftLookup* Self() {
 
@@ -97,17 +100,34 @@ public:
     *
     * \returns effective alignment shift in transverse (y or x) direction (cm)
     */
-  virtual Double_t GetAlignmentShift( unsigned int module, double time ) const {
-    Utilities::Quantity result = Utilities::SimpleGraphLookup::Query(module,time,false);
+  Double_t GetAlignmentShift( unsigned int module, double time ) const {
+
+    const Utilities::SimpleGraphLookup& lookup = Utilities::IsBeamTestTime(time) ? fBeamTestLookup : fISSLookup;
+    Utilities::Quantity result = lookup.Query(module,time,false);
+    fLastQueryOk = lookup.LastQueryOk();
     return result.value;
   }
 
+  bool LastQueryOk() const { return fLastQueryOk; }
+
 private:
   TrdAlignmentShiftLookup()
-    : Utilities::SimpleGraphLookup(::AC::Settings::gTrdQtAlignmentFileName,
-                                   ::AC::Settings::gTrdQtAlignmentFileNameExpectedGitSHA,
-                                   ::AC::Settings::gTrdQtAlignmentFileNameExpectedVersion,
-                                   "fitMeanGraphGoodFit", "", 0, 327) { }
+    : fISSLookup(::AC::Settings::gTrdQtAlignmentFileName,
+                 ::AC::Settings::gTrdQtAlignmentFileNameExpectedGitSHA,
+                 ::AC::Settings::gTrdQtAlignmentFileNameExpectedVersion,
+                 "fitMeanGraphGoodFit", "", 0, 327)
+    , fBeamTestLookup(::AC::Settings::gTrdQtBeamTestAlignmentFileName,
+                      ::AC::Settings::gTrdQtBeamTestAlignmentFileNameExpectedGitSHA,
+                      ::AC::Settings::gTrdQtBeamTestAlignmentFileNameExpectedVersion,
+                      "fitMeanGraphGoodFit", "", 0, 327)
+    , fLastQueryOk(false) {
+
+  }
+
+  Utilities::SimpleGraphLookup fISSLookup;
+  Utilities::SimpleGraphLookup fBeamTestLookup;
+
+  mutable bool fLastQueryOk;
 };
 
 }

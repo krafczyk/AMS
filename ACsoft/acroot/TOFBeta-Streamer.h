@@ -7,6 +7,7 @@
 private: \
   Float_t fBeta; \
   Float_t fBetaError; \
+  Char_t fTrackerTrackIndex; \
   ChargesVector fCharges; \
   ChargesProbabilityVector fChargesProbability; \
   ChargesNewVector fChargesNew; \
@@ -15,6 +16,7 @@ public: \
   TOFBeta() \
     : fBeta(0) \
     , fBetaError(0) \
+    , fTrackerTrackIndex(0) \
     , fCharges() \
     , fChargesProbability() \
     , fChargesNew() \

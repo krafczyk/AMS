@@ -12,6 +12,7 @@ BEGIN_DEBUG_TABLE(TOFCluster)
   COL( "Z [cm]\t",             Float_t, Z)
   COLE("Time [s]\t\t\t\t\t\t", Float_t, Time)
   COL( "Energy [MeV]",         Float_t, Energy)
+  COL( "Charge",               Float_t, Charge)
 END_DEBUG_TABLE
 
 }

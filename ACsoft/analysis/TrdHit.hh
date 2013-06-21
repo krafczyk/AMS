@@ -19,12 +19,13 @@ namespace AC {
 namespace Analysis {
 
 class SplineTrack;
+class TrdTrack;
 
 /** TRD hit for use in calibration and analysis.
   *
   * Allows access to geometry information and gain-corrected amplitude and dE/dx.
   *
-  * The hit can be coupled to a SplineTrack (as done in the TrdHitFactory) so that
+  * The hit can be based on a track, e.g. a tracker SplineTrack or a %TRD track, so that
   * the relevant quantities for calibration and analysis (full 3D hit position, 3D pathlength and
   * distance to track) can be calculated and are subsequently stored in the TrdHit.
   *
@@ -33,10 +34,6 @@ class SplineTrack;
 class TrdHit
 {
 public:
-
-  void ApplyGainCorrection( double time, Double_t referenceGain );
-
-  void FillInformationFromTrack( const SplineTrack& track );
 
   /** Return the x or y coordinate of the hit, i.e. the one approximately perpendicular to the wire,
     * depending on orientation of the module the hit belongs to.
@@ -55,7 +52,7 @@ public:
   Double_t L() const { return( fOrientation==AC::XZMeasurement ? XYZ_along.Y() : XYZ_along.X() ); }
   Double_t Z() const { return( XYZ_along.Z() ); }
 
-  /** Full 3D position after alignment and with the coordinate along the wire set by SplineTrack. */
+  /** Full 3D position after alignment and with the coordinate along the wire set by track. */
   TVector3 Position3D() const { return XYZ_along; }
 
   /** Position of the wire center post-alignment. */
@@ -82,16 +79,21 @@ public:
 
   void Draw( bool rotatedSystem=false);
 
-public:
-
-  /** 3D Path length as calculated from SplineTrack (cm). */
+  /** 3D Path length as calculated from track (cm). */
   Double_t Pathlength3D() const { return fPathlength3D; }
 
-  /** Distance calculated to SplineTrack (cm). */
+  /** Distance calculated to track (cm). */
   Double_t DistanceToTrack() const { return fTrackDistance; }
 
   friend bool operator<( const Analysis::TrdHit& left, const Analysis::TrdHit& right );
   friend std::ostream& operator<<( std::ostream& out, const Analysis::TrdHit& h );
+
+private:
+
+  void ApplyGainCorrection( Double_t referenceGain );
+
+  void FillInformationFromTrack( const SplineTrack& track );
+  void FillInformationFromTrack( const TrdTrack& track );
 
 private:
 

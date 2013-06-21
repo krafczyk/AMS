@@ -613,3 +613,5 @@ double ACsoft::Analysis::RejectionCalculator::FindTheMaximum(TH1D* histo){
 	return sum/sumweights;
 }
 
+
+

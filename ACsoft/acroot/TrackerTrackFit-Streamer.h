@@ -5,7 +5,8 @@
 
 #define AC_TrackerTrackFit_Variables \
 private: \
-  UChar_t fParameters; \
+  UChar_t fParametersOld; \
+  UShort_t fParameters; \
   Float_t fRigidity; \
   Float_t fInverseRigidityError; \
   Float_t fChiSquareNormalizedX; \
@@ -42,7 +43,8 @@ private: \
   Float_t fYLayer9Minus1cm; \
 public: \
   TrackerTrackFit() \
-    : fParameters(0) \
+    : fParametersOld(0) \
+    , fParameters(0) \
     , fRigidity(0) \
     , fInverseRigidityError(0) \
     , fChiSquareNormalizedX(0) \

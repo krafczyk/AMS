@@ -45,8 +45,15 @@ TVector3 ACsoft::Analysis::SplineTrack::InterpolateToZ( Double_t z ) const {
   Double_t x = fSplineZX.Eval(z);
   Double_t y = fSplineZY.Eval(z);
 
-  assert( !TMath::IsNaN(x) );
-  assert( !TMath::IsNaN(y) );
+  if ( TMath::IsNaN(x) ) {
+    WARN_OUT << "'x' coordinate of spline track interpolation yields NaN. y=" << y << " z=" << z << " zmin=" << zmin << " zmax=" << zmax << std::endl;
+    return TVector3(-999,-999,z);
+  }
+
+  if ( TMath::IsNaN(y) ) {
+    WARN_OUT << "'y' coordinate of spline track interpolation yields NaN. x=" << x << " z=" << z << " zmin=" << zmin << " zmax=" << zmax << std::endl;
+    return TVector3(-999,-999,z);
+  }
 
   return TVector3(x,y,z);
 }

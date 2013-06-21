@@ -2,6 +2,20 @@
 Namespace = AC
 Class = MC
 Members = \
-  EventGeneratorsVector fEventGenerators \
-  TracksVector fTracks                   \
-  TRDHitsVector fTRDHits
+  EventGeneratorsVector fEventGenerators      \
+  [56-TracksVector fTracks]                   \
+  [56+TrackerClustersVector fTrackerClusters] \
+  TRDClustersVector fTRDClusters              \
+  [56+Int_t fNumberOfEventGenerators]         \
+  [56+Int_t fNumberOfTrackerCluster]          \
+  [56+Int_t fNumberOfTRDCluster]              \
+  [56+Int_t fNumberOfTOFCluster]              \
+  [56+Int_t fNumberOfACCCluster]              \
+  [56+Int_t fNumberOfRICHCluster]             \
+  [56+Int_t fNumberOfECALHits]                \
+  [56+Float_t fUpperTOFEnergyDeposition]      \
+  [56+Float_t fLowerTOFEnergyDeposition]      \
+  [56+Float_t fTrackerEnergyDeposition]       \
+  [56+Float_t fTRDEnergyDeposition]           \
+  [56+Float_t fACCEnergyDeposition]           \
+  [56+Float_t fECALEnergyDeposition]

@@ -8,8 +8,10 @@ private: \
   UShort_t fStatus; \
   Float_t fStoermerCutoffNegative; \
   Float_t fStoermerCutoffPositive; \
-  Float_t fGalacticLongitudeFromBacktracing; \
-  Float_t fGalacticLatitudeFromBacktracing; \
+  Float_t fGalacticLongitudeFromRigidityBacktracing; \
+  Float_t fGalacticLatitudeFromRigidityBacktracing; \
+  Float_t fGalacticLongitudeFromEnergyBacktracing; \
+  Float_t fGalacticLatitudeFromEnergyBacktracing; \
   Float_t fGalacticLongitudeFromOrbit; \
   Float_t fGalacticLatitudeFromOrbit; \
   Int_t fID; \
@@ -33,8 +35,10 @@ public: \
     : fStatus(0) \
     , fStoermerCutoffNegative(0) \
     , fStoermerCutoffPositive(0) \
-    , fGalacticLongitudeFromBacktracing(0) \
-    , fGalacticLatitudeFromBacktracing(0) \
+    , fGalacticLongitudeFromRigidityBacktracing(0) \
+    , fGalacticLatitudeFromRigidityBacktracing(0) \
+    , fGalacticLongitudeFromEnergyBacktracing(0) \
+    , fGalacticLatitudeFromEnergyBacktracing(0) \
     , fGalacticLongitudeFromOrbit(0) \
     , fGalacticLatitudeFromOrbit(0) \
     , fID(0) \

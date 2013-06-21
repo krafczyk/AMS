@@ -1,11 +1,13 @@
 #include "Cut.hh"
 #include "TimeHistogramManager.hh"
-
+#include "Binning.hh"
+#include <TCanvas.h>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <TEfficiency.h>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "Cut> "
@@ -16,7 +18,8 @@
 #include "AnalysisParticle.hh"
 #endif
 
-int Cuts::Cut::sCutCounter=0; // initialize Cut instance counter
+int  Cuts::Cut::sCutCounter = 0; // initialize Cut instance counter
+bool Cuts::Cut::sFillHistograms = true;
 
 Cuts::Cut::Cut( std::string description ) :
   TObject(),
@@ -27,8 +30,6 @@ Cuts::Cut::Cut( std::string description ) :
   fFailedOnlyThisCutCounter(0),
   fFailedAfterPassingAllPreviousCutsCounter(0),
   fIsStandaloneCut(true),
-  fUsesRigidityBookkeeping(false),
-  fUsesChargeBookkeeping(false),
   fPassedTimeHisto(0),
   fFailedTimeHisto(0) {
 
@@ -46,14 +47,14 @@ bool Cuts::Cut::Passes( const ACsoft::Analysis::Particle& particle ) {
 
   ++fTotalCounter;
 
-  if(!fPassedTimeHisto){
+  if(!fPassedTimeHisto && sFillHistograms){
     std::stringstream name, title;
     name << "PassedTimeHisto_" << TString(fDescription.c_str()).ReplaceAll(" ","_").ReplaceAll(":","").Data() << "_" << fCutCount;
     title << "Particles passed vs time: " << fDescription;
     DEBUG_OUT << "Book time histos for cut-count: " << fCutCount << ":" << name.str() << std::endl;
     fPassedTimeHisto = ACsoft::Utilities::TimeHistogramManager::MakeNewTimeHistogram1D<TH1F>( name.str().c_str(), title.str().c_str() );
   }
-  if(!fFailedTimeHisto){
+  if(!fFailedTimeHisto && sFillHistograms){
     std::stringstream name, title;
     name << "FailedTimeHisto_" << TString(fDescription.c_str()).ReplaceAll(" ","_").ReplaceAll(":","").Data() << "_" << fCutCount;
     title << "Particles failed vs time: " << fDescription;
@@ -62,17 +63,18 @@ bool Cuts::Cut::Passes( const ACsoft::Analysis::Particle& particle ) {
 
   if( passes ) {
     ++fPassedCounter;
-    fPassedTimeHisto->Fill(particle.EventTime());
+    if(fPassedTimeHisto)
+      fPassedTimeHisto->Fill(particle.EventTime());
     return true;
   }
   else{
     ++fFailedCounter;
-    fFailedTimeHisto->Fill(particle.EventTime());
+    if(fFailedTimeHisto)
+      fFailedTimeHisto->Fill(particle.EventTime());
 
    return false;
   }
 }
-
 
 void Cuts::Cut::PrintSummaryHeaderLine( std::ostream& out ) {
 
@@ -130,19 +132,38 @@ void Cuts::Cut::MergeStatisticsFrom( const Cut& other ) {
   fFailedAfterPassingAllPreviousCutsCounter += other.fFailedAfterPassingAllPreviousCutsCounter;
 }
 
+TEfficiency* Cuts::Cut::ProduceTimeEfficiency(unsigned int mergeBins) const {
 
-/** Replace time-histogram of passed particles. Needed by ac_merge. */
-void Cuts::Cut::ReplacePassedHisto( TH1F* histo ) {
+  TH1F* allTimeHisto = (TH1F*)fPassedTimeHisto->Clone();
+  allTimeHisto->SetName("allTimeHisto");
+  allTimeHisto->Add(fFailedTimeHisto);
 
-  if( fPassedTimeHisto ) delete fPassedTimeHisto;
-  fPassedTimeHisto = histo;
+  TH1F* passedTimeHisto = (TH1F*)fPassedTimeHisto->Clone();
+  if (mergeBins > 1) {
+    passedTimeHisto->Rebin(mergeBins);
+    allTimeHisto->Rebin(mergeBins);
+  }
+
+  std::stringstream name, title;
+  name << "TimeEfficiency_" << TString(fDescription.c_str()).ReplaceAll(" ","_").ReplaceAll(":","").Data() << "_" << fCutCount;
+  title << "Efficiency '" << fDescription << "' vs. Time;Time;Efficiency";
+  assert(TEfficiency::CheckConsistency(*passedTimeHisto, *allTimeHisto));
+  TEfficiency* efficiency = new TEfficiency(*passedTimeHisto, *allTimeHisto);
+  efficiency->SetName(name.str().c_str());
+  efficiency->SetTitle(title.str().c_str());
+  return efficiency;
 }
 
-/** Replace time-histogram of failed particles. Needed by ac_merge. */
-void Cuts::Cut::ReplaceFailedHisto( TH1F* histo ) {
+/** Replace all histograms. Needed by ac_merge, to replace the statistics
+  * of a single Cut with those merged from different runs.
+  */
+void Cuts::Cut::ReplaceHistograms(TH1F* passedHisto, TH1F* failedHisto) {
 
-  if( fFailedTimeHisto ) delete fFailedTimeHisto;
-  fFailedTimeHisto = histo;
+  delete fPassedTimeHisto;
+  fPassedTimeHisto = passedHisto;
+
+  delete fFailedTimeHisto;
+  fFailedTimeHisto = failedHisto;
 }
 
 void Cuts::Cut::AssureCutIsAppliedToACQtFile( const ACsoft::Analysis::Particle& p ) {

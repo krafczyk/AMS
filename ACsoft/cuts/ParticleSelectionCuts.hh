@@ -7,16 +7,12 @@
 #ifndef __CINT__
 #include "Event.h"
 #include "AnalysisParticle.hh"
+#include "TrackerCharges.hh"
 #endif
 
 namespace Cuts {
 
-// FIXME document these numbers
-// FIXME add instructions how to reproduce and monitor these numbers!
-// FIXME move to tracker cuts
-const unsigned int gTrackerCharges = 8;
-const float gTrackerChargeMean[gTrackerCharges] =  {9.86033e-01, 1.99755e+00, 2.98898e+00, 3.96389e+00, 4.91655e+00, 5.90427e+00, 6.89230e+00, 7.87853e+00};
-const float gTrackerChargeSigma[gTrackerCharges] = {6.18135e-02, 8.61350e-02, 1.21828e-01, 1.29896e-01, 1.49056e-01, 1.70152e-01, 1.78035e-01, 2.29481e-01};
+short ParticleID(float trackerCharge, float rigidity);
 
 // FIXME the following can be done via Selectors of existing cuts (almost....)
 
@@ -27,12 +23,8 @@ public:
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( p.HasMainTrackerTrack() && p.HasMainTrackerTrackFit() ){
-      if( p.Rigidity() > 0. ){
-        return fabs(p.TrackerCharge() - gTrackerChargeMean[0]) < 3 * gTrackerChargeSigma[0];
-      }
-    }
-
+    if( p.HasTrackerTrack() && p.HasTrackerTrackFit() && p.Rigidity() > 0. )
+      return fabs(p.TrackerCharge() - TrackerCharges::GetMean(0)) < 3 * TrackerCharges::GetSigma(0);
     return false;
   }
 
@@ -46,12 +38,10 @@ public:
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.HasMainTrackerTrackFit() ) return true;
-    if (p.Rigidity() >= 0.0)
-      return true;
-
-    if( !p.HasMainTrackerTrack() ) return true;
-    return p.TrackerCharge() < gTrackerChargeMean[0] + 3 * gTrackerChargeSigma[0];
+    if( !p.HasTrackerTrackFit() ) return true;
+    if (p.Rigidity() >= 0.0) return true;
+    if( !p.HasTrackerTrack() ) return true;
+    return p.TrackerCharge() < TrackerCharges::GetMean(0) + 3 * TrackerCharges::GetSigma(0);
   }
 
   ClassDef(Cuts::CutRemoveAntiNuclei,1)
@@ -64,68 +54,65 @@ public:
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.HasMainTrackerTrack() ) return true;
-
-    return p.TrackerCharge() < gTrackerChargeMean[5] + 3 * gTrackerChargeSigma[5];
+    if( !p.HasTrackerTrack() ) return true;
+    return p.TrackerCharge() < TrackerCharges::GetMean(5) + 3 * TrackerCharges::GetSigma(5);
   }
 
   ClassDef(Cuts::CutRemoveHeavyNuclei,1)
 };
 
 
-/** Remove positrons **/
-class CutRemovePositrons : public Cut {
+/** Make sure charge in tracker layer 1 and upper TOF are consistent with Z=1, but only if measurements are available.
+  * If a layer1 charge measurement is not available, it's not taken into account for this cut.
+  * Same for the upper tof charges.
+  **/
+class CutProbablyChargeOneBeforeInnerTracker : public Cut {
 public:
-  CutRemovePositrons() : Cut("Remove positrons") { }
+  CutProbablyChargeOneBeforeInnerTracker() : Cut("Probably Z=1 in front of inner tracker") { }
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    AssureCutIsAppliedToACQtFile(p);
-
-    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
-    if( !shower ) return true;
-
-    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
-    if( !trackFit ) return true;
-    if( trackFit->Rigidity() <= 0.0 )
-      return true;
-
-    return shower->Estimators().at(0) <= -0.2 && shower->DepositedEnergy() / trackFit->Rigidity() <= 0.5;
-  }
-
-  ClassDef(Cuts::CutRemovePositrons,1)
-};
-  
-
-/** Remove anti-protons. **/
-class CutRemoveAntiProtons  : public Cut {
-public:
-  CutRemoveAntiProtons() : Cut("Remove antiprotons") { }
-
-  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-
-    AssureCutIsAppliedToACQtFile(p);
-
-    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
-    if( !shower ) return true;
-
-    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
-    if( !trackFit ) return true;
-    if (trackFit->Rigidity() >= 0.)
-      return true;
-
-    float bdt = shower->Estimators().at(0);
-    if (bdt >= -1.0 && bdt < 0.0)
+    // If tracker layer 1 charge measurement is available, and not within the expected range, bail out.
+    Float_t TrkCLay1 = p.TrackerChargeFor(ACsoft::Analysis::Particle::TrkLay1);
+    if (TrkCLay1 >= 0 && !(TrkCLay1 > 0.8 && TrkCLay1 < 1.5))
       return false;
 
-    if (bdt >= -1.0 && shower->DepositedEnergy() < 1.0)
+    Float_t TofCLay1 = p.TofChargeFor(ACsoft::Analysis::Particle::TofLay1);
+    if (TofCLay1 >= 0 && !(TofCLay1 > 0.8 && TofCLay1 < 1.3))
       return false;
 
+    Float_t TofCLay2 = p.TofChargeFor(ACsoft::Analysis::Particle::TofLay2);
+    if (TofCLay2 >= 0 && !(TofCLay2 > 0.8 && TofCLay2 < 1.3))
+      return false;
     return true;
   }
 
-  ClassDef(Cuts::CutRemoveAntiProtons,1)
+  ClassDef(Cuts::CutProbablyChargeOneBeforeInnerTracker,1)
 };
+
+
+/** Make sure charge in tracker layer 1 and upper TOF are consistent with Z=1.
+  *
+**/
+class CutChargeOneBeforeInnerTracker : public Cut {
+public:
+  CutChargeOneBeforeInnerTracker() : Cut("Z=1 in front of inner tracker") { }
+
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
+
+    Float_t TofCLay1 = p.TofChargeFor(ACsoft::Analysis::Particle::TofLay1);
+    Float_t TofCLay2 = p.TofChargeFor(ACsoft::Analysis::Particle::TofLay2);
+    Float_t TrkCLay1 = p.TrackerChargeFor(ACsoft::Analysis::Particle::TrkLay1);
+
+    return ( TofCLay1 > 0.8 && TofCLay1<1.3 &&
+             TofCLay2 > 0.8 && TofCLay2<1.3 &&
+             TrkCLay1 > 0.8 && TrkCLay1<1.5 ); // FIXME Do I have to use ValueIsInRange here? Why call it ValueIsInRange when it checks a boolean???
+  }
+
+  ClassDef(Cuts::CutChargeOneBeforeInnerTracker,1)
+};
+
+
 
 /** Reduce misidentified helium.
   *
@@ -135,17 +122,18 @@ public:
 **/
 class CutReduceMisidentifiedHelium : public Cut {
 public:
-  CutReduceMisidentifiedHelium() : Cut("Reduce misidentified helium") { }
+  CutReduceMisidentifiedHelium() : Cut("Reduce misidentified helium") { } // FIXME obsolete?
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
     if(!p.HasTofBeta()) return true;
 
-    if( !p.HasMainTrackerTrack() ) return true;
+    if( !p.HasTrackerTrack() ) return true;
     float trackerCharge = p.TrackerCharge();
-    if (trackerCharge > gTrackerChargeMean[0] + 3 * gTrackerChargeSigma[0])
+    if (trackerCharge > TrackerCharges::GetMean(0) + 3 * TrackerCharges::GetSigma(0))
       return true;
 
+    // FIXME: This needs to be seperated into different cuts, otherwhise there's no way to calculate the efficiency of such a cu.
     if (p.TofCharge() > 1.8 && p.TofChargeError() < 0.2)
       return false;
 
@@ -166,9 +154,10 @@ public:
 
   virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
 
-    if( !p.HasMainEcalShower() ) return true;
-    if( !p.HasMainTrackerTrackFit()) return true;
-    return ValueIsInRange(p.EcalEnergy() / fabs(p.Rigidity()));
+    if( !p.HasTrackerTrack() ) return true;
+    if( !p.HasTrackerTrackFit() ) return true;
+    if( !p.HasEcalShower() ) return true;
+    return ValueIsInRange(p, p.EcalEnergy() / fabs(p.Rigidity()));
   }
 
   CutEnergyOverRigidity() : TwoSidedCut( "", 0.0, 0.0 ) {}
@@ -202,11 +191,11 @@ public:
 
     AssureCutIsAppliedToACQtFile(p);
 
-    const ACsoft::AC::TrackerTrackFit* trackFit = p.MainTrackerTrackFit();
+    const ACsoft::AC::TrackerTrackFit* trackFit = p.TrackerTrackFit();
     if( !trackFit ) return true;
     if( trackFit->Rigidity() > -2.0 ) return true;
-    
-    const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
+
+    const ACsoft::AC::ECALShower* shower = p.EcalShower();
     if( !shower ) return true;
     if( !shower->Estimators().size() ) return true;
 
@@ -223,7 +212,7 @@ public:
   ClassDef(Cuts::CutElectronCandidate,1)
 
 private:
-  TGraph* fCut90PercentEfficiency; // FIXME shouldn't this have a //! ?
+  TGraph* fCut90PercentEfficiency;
 };
 
 }

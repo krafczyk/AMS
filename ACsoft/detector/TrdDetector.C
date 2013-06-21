@@ -30,19 +30,27 @@
 #define INFO_OUT_TAG "Trd> "
 #include <debugging.hh>
 
-ACsoft::Detector::Trd::Trd()
+ACsoft::Detector::Trd::Trd( bool applyShimmings )
 {
 
-  fNominalPosition = TVector3(0.0,0.0,AC::AMSGeometry::ZTRDCenter);
+  fNominalPosition = TVector3(0.0,0.0,ACsoft::AC::AMSGeometry::ZTRDCenter);
   fOffsetPosition  = TVector3(0.0,0.0,0.0);
   fNominalRotation.SetToIdentity();
   fExtraRotation.SetToIdentity();
 
+  if( applyShimmings )
+    INFO_OUT << "Constructing TRD with shimming corrections..." << std::endl;
+  else
+    INFO_OUT << "Constructing TRD without shimming corrections..." << std::endl;
+
   ConstructTrdLayers();
   FillConvenienceVectors();
 
-  ReadTrdShimmingGlobalFile();
-  ReadTrdShimmingModuleFile();
+  if( applyShimmings ){
+    ReadTrdShimmingGlobalFile();
+    ReadTrdShimmingModuleFile();
+  }
+
 
   // trigger recalculation of geometry
   ChangePositionAndRotation(TVector3(),TRotation());
@@ -57,10 +65,8 @@ ACsoft::Detector::Trd::~Trd()
 
 void ACsoft::Detector::Trd::ConstructTrdLayers() {
 
-  INFO_OUT << "Constructing TRD with " << AC::AMSGeometry::TRDLayers << " layers..." << std::endl;
-
   // create layers, which will in turn create the additional substructure (sublayers, modules, straws)
-  for( unsigned int lay=0 ; lay < AC::AMSGeometry::TRDLayers ; ++lay ){
+  for( unsigned int lay=0 ; lay < ACsoft::AC::AMSGeometry::TRDLayers ; ++lay ){
 
     fLayers.push_back( new ACsoft::Detector::TrdLayer(lay,this) );
   }
@@ -80,9 +86,9 @@ void ACsoft::Detector::Trd::FillConvenienceVectors() {
   fModules.clear();
   fStraws.clear();
 
-  fSublayers.assign(AC::AMSGeometry::TRDSubLayers,0);
-  fModules.assign(AC::AMSGeometry::TRDModules,0);
-  fStraws.assign(AC::AMSGeometry::TRDStraws,0);
+  fSublayers.assign(ACsoft::AC::AMSGeometry::TRDSubLayers,0);
+  fModules.assign(ACsoft::AC::AMSGeometry::TRDModules,0);
+  fStraws.assign(ACsoft::AC::AMSGeometry::TRDStraws,0);
 
   for( unsigned int i = 0 ; i < fLayers.size() ; ++i ){
 
@@ -214,7 +220,7 @@ void ACsoft::Detector::Trd::ReadTrdShimmingModuleFile() {
 
     module->SetShimmingOffset(TVector3(0.0,0.0,1.e-4*Imod_Dz));
     TRotation shimrot;
-    if(module->Direction()==AC::YZMeasurement)
+    if(module->Direction()==ACsoft::AC::YZMeasurement)
       Imod = -Imod; // FIXME sign convention in shimming file is inconsistent!
     shimrot.RotateX(1.e-6*Imod_Arz);
     module->SetShimmingRotation(shimrot);
@@ -248,7 +254,7 @@ void ACsoft::Detector::Trd::ChangePositionAndRotation( const TVector3& offsetPos
 }
 
 
-TCanvas* ACsoft::Detector::Trd::DrawProjections( float xcenter, float ycenter, float xywidth, bool rotated ) {
+TCanvas* ACsoft::Detector::Trd::DrawProjections( float xcenter, float ycenter, float xywidth, bool rotated, std::string canvasname ) {
 
   DEBUG_OUT << "x " << xcenter << " y " << ycenter << " xywidth " << xywidth << std::endl;
 
@@ -262,10 +268,10 @@ TCanvas* ACsoft::Detector::Trd::DrawProjections( float xcenter, float ycenter, f
   float ymin = ycenter - 0.5*xywidth;
   float ymax = ycenter + 0.5*xywidth;
 
-  float xminstraw = xmin + AC::AMSGeometry::TRDTubeRadius;
-  float xmaxstraw = xmax - AC::AMSGeometry::TRDTubeRadius;
-  float yminstraw = ymin + AC::AMSGeometry::TRDTubeRadius;
-  float ymaxstraw = ymax - AC::AMSGeometry::TRDTubeRadius;
+  float xminstraw = xmin + ACsoft::AC::AMSGeometry::TRDTubeRadius;
+  float xmaxstraw = xmax - ACsoft::AC::AMSGeometry::TRDTubeRadius;
+  float yminstraw = ymin + ACsoft::AC::AMSGeometry::TRDTubeRadius;
+  float ymaxstraw = ymax - ACsoft::AC::AMSGeometry::TRDTubeRadius;
 
   float canvasHeight = gStyle->GetCanvasDefH(); // fix this, adjust width so that aspect ratio is roughly in the two pads
   float canvasWidth  = 2.0 * canvasHeight * xywidth / (zmax-zmin);
@@ -277,7 +283,8 @@ TCanvas* ACsoft::Detector::Trd::DrawProjections( float xcenter, float ycenter, f
 
   DEBUG_OUT << "canvas pixel size: (" << canvasWidth << " x " << canvasHeight << ")" << std::endl;
 
-  TCanvas* c = new TCanvas( "trdCanvas", "TRD", canvasWidth, canvasHeight );
+  if( canvasname == "" ) canvasname = "trdCanvas";
+  TCanvas* c = new TCanvas( canvasname.c_str(), "TRD", canvasWidth, canvasHeight );
   if(!rotated)
     c->Divide(2,1);
   else
@@ -296,16 +303,16 @@ TCanvas* ACsoft::Detector::Trd::DrawProjections( float xcenter, float ycenter, f
     gPad->Range(-zmax,ymin,-zmin,ymax);
 
 
-  for( unsigned int i = 0 ; i<AC::AMSGeometry::TRDStraws ; ++i ){
+  for( unsigned int i = 0 ; i<ACsoft::AC::AMSGeometry::TRDStraws ; ++i ){
     ACsoft::Detector::TrdStraw* trdstraw = GetTrdStraw(i);
     TVector3 strawPos = trdstraw->GlobalPosition();
-    if( trdstraw->Direction() == AC::XZMeasurement ){
+    if( trdstraw->Direction() == ACsoft::AC::XZMeasurement ){
       if( strawPos.X() > xminstraw && strawPos.X() < xmaxstraw ){
         c->cd(1);
         trdstraw->Draw(rotated);
       }
     }
-    else if( trdstraw->Direction() == AC::YZMeasurement ){
+    else if( trdstraw->Direction() == ACsoft::AC::YZMeasurement ){
       if( strawPos.Y() > yminstraw && strawPos.Y() < ymaxstraw ){
         c->cd(2);
         trdstraw->Draw(rotated);
@@ -371,6 +378,19 @@ TCanvas* ACsoft::Detector::Trd::DrawProjections( float xcenter, float ycenter, f
   return c;
 }
 
+TVector3 ACsoft::Detector::Trd::HitPosition( const ACsoft::AC::TRDRawHit* hit ) const {
+
+  Short_t strawNumber = hit->Straw();
+  const ACsoft::Detector::TrdStraw* straw = GetTrdStraw(strawNumber);
+  return straw->GlobalPosition();
+}
+
+TVector3 ACsoft::Detector::Trd::HitDirection( const ACsoft::AC::TRDRawHit* hit ) const {
+
+  Short_t strawNumber = hit->Straw();
+  const ACsoft::Detector::TrdStraw* straw = GetTrdStraw(strawNumber);
+  return straw->GlobalWireDirection();
+}
 
 
 void ACsoft::Detector::Trd::Dump() const {
@@ -383,3 +403,4 @@ void ACsoft::Detector::Trd::Dump() const {
     layer->Dump();
   }
 }
+

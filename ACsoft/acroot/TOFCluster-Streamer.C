@@ -19,6 +19,7 @@ QDataStream& operator<<(QDataStream& stream, const TOFCluster& object) {
   stream << object.fTime;
   stream << object.fTimeError;
   stream << object.fEnergy;
+  stream << object.fCharge;
   return stream;
 }
 
@@ -36,6 +37,8 @@ QDataStream& operator>>(QDataStream& stream, TOFCluster& object) {
   object.fTimeError = subStream1.read();
   object.fEnergy = subStream1.read();
 
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fCharge;
   return stream;
 }
 

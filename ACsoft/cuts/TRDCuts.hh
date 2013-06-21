@@ -16,7 +16,7 @@ public:
   CutTrdNumberOfRawHits(float minimumHits, float maximumHits ) :
     TwoSidedCut( "Number of TRD raw hits", minimumHits, maximumHits) { }
 
-  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) { return ValueIsInRange(p.NumberOfTrdRawHits()); }
+  virtual bool TestCondition(const ACsoft::Analysis::Particle& p) { return ValueIsInRange(p, p.NumberOfTrdRawHits()); }
 
   CutTrdNumberOfRawHits() : TwoSidedCut("",0.,0.) {}
   ClassDef(Cuts::CutTrdNumberOfRawHits,1)

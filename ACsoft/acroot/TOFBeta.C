@@ -7,7 +7,8 @@ namespace ACsoft {
 namespace AC {
 
 BEGIN_DEBUG_TABLE(TOFBeta)
-  COLE("Beta\t\t\t\t\t",                                                  Float_t,              Beta)
+  COLE("Beta\t\t\t\t\t",             Float_t,              Beta)
+  COL( "TrackerTrackIndex",          Char_t, TrackerTrackIndex)
   NEWTABLE
   COL( "ChargesNew\t\t\t\t\t\t\t\t", ChargesNewVector,   ChargesNew)
   COL( "TOFCluster\t\t\t",           ClusterIndexVector, TOFClusterIndex)

@@ -11,7 +11,8 @@ namespace AC {
 /** Writes this object into a QDataStream, which is used to produce ACQt files */
 QDataStream& operator<<(QDataStream& stream, const MCEventGenerator& object) {
 
-  stream << object.fID;
+  stream << object.fParticleID;
+  stream << object.fTrackID;
   stream << object.fMotherParticle;
   stream << object.fProcess;
   stream << object.fMomentum;
@@ -28,22 +29,24 @@ QDataStream& operator<<(QDataStream& stream, const MCEventGenerator& object) {
 /** Reads this object from a QDataStream, which is used to construct AC objects from ACQt files */
 QDataStream& operator>>(QDataStream& stream, MCEventGenerator& object) {
 
-
-  UShortArrayStream<2> subStream1(stream);
-  object.fID = subStream1.read();
-  object.fMotherParticle = subStream1.read();
-
+  if (::AC::CurrentACQtVersion() < 55)
+    stream >> object.fID;
+  if (::AC::CurrentACQtVersion() >= 55)
+    stream >> object.fParticleID;
+  if (::AC::CurrentACQtVersion() >= 55)
+    stream >> object.fTrackID;
+  stream >> object.fMotherParticle;
   stream >> object.fProcess;
 
-  FloatArrayStream<8> subStream2(stream);
-  object.fMomentum = subStream2.read();
-  object.fMass = subStream2.read();
-  object.fCharge = subStream2.read();
-  object.fX0 = subStream2.read();
-  object.fY0 = subStream2.read();
-  object.fZ0 = subStream2.read();
-  object.fTheta = subStream2.read();
-  object.fPhi = subStream2.read();
+  FloatArrayStream<8> subStream1(stream);
+  object.fMomentum = subStream1.read();
+  object.fMass = subStream1.read();
+  object.fCharge = subStream1.read();
+  object.fX0 = subStream1.read();
+  object.fY0 = subStream1.read();
+  object.fZ0 = subStream1.read();
+  object.fTheta = subStream1.read();
+  object.fPhi = subStream1.read();
 
   return stream;
 }

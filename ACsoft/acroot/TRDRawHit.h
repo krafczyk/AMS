@@ -29,24 +29,19 @@ public:
     */
   void Dump() const;
 
-  /** Layer associated with this hit
+  /** Layer associated with this hit  0..19
     */
   Short_t Layer() const { return GeometryForHardwareAddress()[0]; } // Layer 0..19 in +z  order
 
-  /** Ladder associated with this hit
+  /** Ladder associated with this hit  0..13(Layer 0-3)    0..15(Layer 4-11)   0..17(Layer 12-19)
     */
   Short_t Ladder() const { return GeometryForHardwareAddress()[1]; } // Ladder 0..13/0..15/0..17 in +x/+y order
   
-  /** Tube associated with this hit
+  /** Tube associated with this hit  0..15 in positive X/Y direction
     */
-  Short_t Tube() const {
+  Short_t Tube() const;
 
-    if( !GeometryForHardwareAddress()[2] )
-      return ((fHWAddress % 100) % 16);     // Tube 0..15 in +x/+y order
-    return 15 - ((fHWAddress % 100) % 16);  // UFE on other side
-  }
-
-  /** Global straw number for this hit
+  /** Global straw number for this hit   (Module*16 + Tube)
     */
   Short_t Straw() const {
 
@@ -94,22 +89,21 @@ public:
     return gGasGroupInGasCircuit[GasCircuit()]; 
   }
 
+  /** Referenced by TRDVTrack
+    */
+  bool FromTRDVTrack() const;
+
+  /** Referenced by TRDHSeg
+    */
+  bool FromTRDHSeg() const;
+
+  /** In proximity to TrackerTrack
+    */
+  bool FromTrackerTrack() const;
+
+
 private:
-  inline Int_t* GeometryForHardwareAddress() const {
-
-    return AMSGeometry::Self()->GetGeo[(fHWAddress/10000)][(fHWAddress/1000)%10][(fHWAddress/100)%10][(fHWAddress%100)/16];
-  }
-
-  Int_t getUFEch() const { // UFE-Channel 0..63
-    int   SM_Lay[5] = {0,0,0,1,1}; // lowest Ladder in Layer/4 begins with Pos(0)/Neg(1) ReadoutSide
-    Int_t ch;
-
-    ch = (Layer() % 4) * 16; 
-    if((Ladder()/2+SM_Lay[Layer()/4])%2) ch += (15-Tube());
-    else                        ch +=     Tube();
-
-    return ch;
-  }
+  Int_t* GeometryForHardwareAddress() const;
 
 private:
   REGISTER_CLASS_WITH_TABLE(TRDRawHit)

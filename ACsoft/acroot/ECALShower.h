@@ -2,6 +2,8 @@
 #define ECALShower_h
 
 #include <TMath.h>
+#include <TVector3.h>
+
 #include "Tools.h"
 #include "ECALShower-Streamer.h"
 
@@ -15,7 +17,7 @@ class ECALShower {
   WTF_MAKE_FAST_ALLOCATED;
 public:
   /** A vector of float numbers */
-  typedef Vector<Float_t, 1> EstimatorsVector;
+  typedef Vector<Float_t, 2> EstimatorsVector;
 
   AC_ECALShower_Variables
 
@@ -51,6 +53,22 @@ public:
     */
   Float_t ReconstructedEnergyError() const { return fReconstructedEnergyError; }
 
+  /** Reconstructed shower energy, to be used for ECAL standalone estimator v2/v3 [GeV].
+    * EnergyA in AMS terms.
+    */
+  Float_t ReconstructedEnergyStandaloneEstimator() const { return fReconstructedEnergyStandaloneEstimator; }
+
+
+  /** Reconstructed shower energy - if it was an electron/positron [GeV].
+    * GetCorrecteEnergy() with EnergyE mode and a electron/positron hypothesis, in AMS terms.
+    */
+  Float_t ReconstructedEnergyElectron() const { return fReconstructedEnergyElectron; }
+
+  /** Reconstructed shower energy - if it was an photon [GeV].
+    * GetCorrecteEnergy() with EnergyE mode and a electron hypothesis, in AMS terms.
+    */
+  Float_t ReconstructedEnergyPhoton() const { return fReconstructedEnergyPhoton; }
+
   /** Relative rear leak. See Section 5 of http://cdsweb.cern.ch/record/687490/files/note03_001.pdf.
     * The lead tungstate crystals used in the ECAL have a depth of 23 cm or 25.84 radiation lengths.
     * This places a limit on the size of an electromagnetic cascade that can be totally contained,
@@ -72,15 +90,15 @@ public:
     */
   Float_t ChiSquareProfile() const { return fChiSquareProfile; }
 
-  /** Zenith angle theta [deg].
+  /** Zenith angle theta [rad].
     * See AMSDir::gettheta() (http://ams.cern.ch/cgi-bin/viewcvs.cgi/AMS/include/point.h?view=markup).
     */
-  Float_t Theta() const { return fTheta * TMath::RadToDeg(); }
+  Float_t Theta() const { return fTheta; }
 
-  /** Azimutal angle phi [deg].
+  /** Azimutal angle phi [rad].
     * See AMSDir::getphi() (http://ams.cern.ch/cgi-bin/viewcvs.cgi/AMS/include/point.h?view=markup).
     */
-  Float_t Phi() const { return fPhi * TMath::RadToDeg(); }
+  Float_t Phi() const { return fPhi; }
 
   /** X position in 'center of gravity' [cm].
     * The energy center of gravity (c.o.g) is calculated in a core 5 cells wide around the cluster center.
@@ -99,6 +117,11 @@ public:
     * See https://twiki.cern.ch/twiki/bin/view/AMS/ECALReconstruction.
     */
   Float_t Z() const { return fZ; }
+
+  /** Centre of gravity.
+    * \sa X()
+    */
+  TVector3 CentreOfGravity() const { return TVector3(X(),Y(),Z()); }
 
   /** X position in 'entry point' [cm].
     */

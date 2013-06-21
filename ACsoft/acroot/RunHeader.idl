@@ -3,6 +3,7 @@ Namespace = AC
 Class = RunHeader
 Members = \
   UShort_t fRunTag                 \
+  [56+UShort_t fRunType]           \
   Int_t fRun                       \
   Int_t fTotalAMSEvents            \
   TTimeStamp fFirstEventTimeStamp  \
@@ -14,4 +15,7 @@ Members = \
   TTimeStamp fProducerJobTimeStamp \
   std::string fAMSRootFileName     \
   std::string fGitSHA              \
-  StreamsVector fSelectedStreams
+  StreamsVector fSelectedStreams   \
+  [56+ULong64_t fMCNumberOfTriggeredEvents] \
+  [57+Float_t fMCMinimumMomentum] \
+  [57+Float_t fMCMaximumMomentum]

@@ -3,12 +3,19 @@
 #include <sstream>
 
 Cuts::TwoSidedCut::TwoSidedCut( std::string description, float minimum, float maximum ) :
-  Cut(description),
+  NMinusOneCut(description),
   fLower(minimum),
   fUpper(maximum) {
 
 }
 
+double Cuts::TwoSidedCut::Lower() const {
+  return fLower;
+}
+
+double Cuts::TwoSidedCut::Upper() const {
+  return fUpper;
+}
 
 std::string Cuts::TwoSidedCut::Description() const {
 

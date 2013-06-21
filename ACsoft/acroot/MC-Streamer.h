@@ -7,12 +7,40 @@
 private: \
   EventGeneratorsVector fEventGenerators; \
   TracksVector fTracks; \
-  TRDHitsVector fTRDHits; \
+  TrackerClustersVector fTrackerClusters; \
+  TRDClustersVector fTRDClusters; \
+  Int_t fNumberOfEventGenerators; \
+  Int_t fNumberOfTrackerCluster; \
+  Int_t fNumberOfTRDCluster; \
+  Int_t fNumberOfTOFCluster; \
+  Int_t fNumberOfACCCluster; \
+  Int_t fNumberOfRICHCluster; \
+  Int_t fNumberOfECALHits; \
+  Float_t fUpperTOFEnergyDeposition; \
+  Float_t fLowerTOFEnergyDeposition; \
+  Float_t fTrackerEnergyDeposition; \
+  Float_t fTRDEnergyDeposition; \
+  Float_t fACCEnergyDeposition; \
+  Float_t fECALEnergyDeposition; \
 public: \
   MC() \
     : fEventGenerators() \
     , fTracks() \
-    , fTRDHits() \
+    , fTrackerClusters() \
+    , fTRDClusters() \
+    , fNumberOfEventGenerators(0) \
+    , fNumberOfTrackerCluster(0) \
+    , fNumberOfTRDCluster(0) \
+    , fNumberOfTOFCluster(0) \
+    , fNumberOfACCCluster(0) \
+    , fNumberOfRICHCluster(0) \
+    , fNumberOfECALHits(0) \
+    , fUpperTOFEnergyDeposition(0) \
+    , fLowerTOFEnergyDeposition(0) \
+    , fTrackerEnergyDeposition(0) \
+    , fTRDEnergyDeposition(0) \
+    , fACCEnergyDeposition(0) \
+    , fECALEnergyDeposition(0) \
   { \
   }
 

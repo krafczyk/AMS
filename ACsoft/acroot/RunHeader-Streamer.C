@@ -12,6 +12,7 @@ namespace AC {
 QDataStream& operator<<(QDataStream& stream, const RunHeader& object) {
 
   stream << object.fRunTag;
+  stream << object.fRunType;
   stream << object.fRun;
   stream << object.fTotalAMSEvents;
   stream << object.fFirstEventTimeStamp;
@@ -24,6 +25,9 @@ QDataStream& operator<<(QDataStream& stream, const RunHeader& object) {
   stream << object.fAMSRootFileName;
   stream << object.fGitSHA;
   stream << object.fSelectedStreams;
+  stream << object.fMCNumberOfTriggeredEvents;
+  stream << object.fMCMinimumMomentum;
+  stream << object.fMCMaximumMomentum;
   return stream;
 }
 
@@ -31,6 +35,8 @@ QDataStream& operator<<(QDataStream& stream, const RunHeader& object) {
 QDataStream& operator>>(QDataStream& stream, RunHeader& object) {
 
   stream >> object.fRunTag;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fRunType;
 
   stream >> object.fRun
          >> object.fTotalAMSEvents;
@@ -52,6 +58,12 @@ QDataStream& operator>>(QDataStream& stream, RunHeader& object) {
          >> object.fGitSHA;
 
   stream >> object.fSelectedStreams;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fMCNumberOfTriggeredEvents;
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fMCMinimumMomentum;
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream >> object.fMCMaximumMomentum;
   return stream;
 }
 

@@ -5,13 +5,15 @@
 
 #define AC_EventHeader_Variables \
 private: \
-  qint64 fStatus; \
+  qint64 fAMSStatus; \
+  UChar_t fFlags; \
   UChar_t fRandom; \
   UChar_t fMCRandomSeed1; \
   UChar_t fMCRandomSeed2; \
   Int_t fEvent; \
   TTimeStamp fTimeStamp; \
-  Double_t fUTCTime; \
+  Float_t fUTCTime; \
+  TTimeStamp fUTCTimeStamp; \
   Float_t fGalacticLatitude; \
   Float_t fGalacticLongitude; \
   Float_t fMagneticLatitude; \
@@ -28,13 +30,15 @@ private: \
   Float_t fMaxCutOffConePositive; \
 public: \
   EventHeader() \
-    : fStatus(0) \
+    : fAMSStatus(0) \
+    , fFlags(0) \
     , fRandom(0) \
     , fMCRandomSeed1(0) \
     , fMCRandomSeed2(0) \
     , fEvent(0) \
     , fTimeStamp(0) \
     , fUTCTime(0) \
+    , fUTCTimeStamp(0) \
     , fGalacticLatitude(0) \
     , fGalacticLongitude(0) \
     , fMagneticLatitude(0) \

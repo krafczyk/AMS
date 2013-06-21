@@ -13,8 +13,10 @@ QDataStream& operator<<(QDataStream& stream, const RICHRing& object) {
 
   stream << object.fStatus;
   stream << object.fNumberOfHits;
+  stream << object.fNumberOfUsedHits;
   stream << object.fBeta;
   stream << object.fBetaError;
+  stream << object.fBetaConsistency;
   stream << object.fX;
   stream << object.fY;
   stream << object.fZ;
@@ -22,6 +24,13 @@ QDataStream& operator<<(QDataStream& stream, const RICHRing& object) {
   stream << object.fPhi;
   stream << object.fProbability;
   stream << object.fChargeEstimate;
+  stream << object.fNPhotoElectrons;
+  stream << object.fNExpectedPhotoElectrons;
+  stream << object.fNCollectedPhotoElectrons;
+  stream << object.fIsNaF;
+  stream << object.fWidth;
+  stream << object.fWidthUnusedHits;
+  stream << object.fDistanceToTileBorder;
   return stream;
 }
 
@@ -30,22 +39,43 @@ QDataStream& operator>>(QDataStream& stream, RICHRing& object) {
 
   stream >> object.fStatus;
   stream >> object.fNumberOfHits;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNumberOfUsedHits;
 
-  FloatArrayStream<9> subStream1(stream);
+  FloatArrayStream<2> subStream1(stream);
   object.fBeta = subStream1.read();
   object.fBetaError = subStream1.read();
-  object.fX = subStream1.read();
-  object.fY = subStream1.read();
-  object.fZ = subStream1.read();
-  object.fTheta = subStream1.read();
-  object.fPhi = subStream1.read();
-  object.fProbability = subStream1.read();
-  object.fChargeEstimate = subStream1.read();
+
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fBetaConsistency;
+
+  FloatArrayStream<7> subStream2(stream);
+  object.fX = subStream2.read();
+  object.fY = subStream2.read();
+  object.fZ = subStream2.read();
+  object.fTheta = subStream2.read();
+  object.fPhi = subStream2.read();
+  object.fProbability = subStream2.read();
+  object.fChargeEstimate = subStream2.read();
 
   if (::AC::CurrentACQtVersion() < 53)
     stream >> object.fCharges;
   if (::AC::CurrentACQtVersion() < 53)
     stream >> object.fChargesProbability;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNPhotoElectrons;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNExpectedPhotoElectrons;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fNCollectedPhotoElectrons;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fIsNaF;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fWidth;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fWidthUnusedHits;
+  if (::AC::CurrentACQtVersion() >= 56)
+    stream >> object.fDistanceToTileBorder;
   return stream;
 }
 

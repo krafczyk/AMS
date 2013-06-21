@@ -7,8 +7,10 @@
 private: \
   UInt_t fStatus; \
   UShort_t fNumberOfHits; \
+  UShort_t fNumberOfUsedHits; \
   Float_t fBeta; \
   Float_t fBetaError; \
+  Float_t fBetaConsistency; \
   Float_t fX; \
   Float_t fY; \
   Float_t fZ; \
@@ -18,12 +20,21 @@ private: \
   Float_t fChargeEstimate; \
   ChargesVector fCharges; \
   ChargesProbabilityVector fChargesProbability; \
+  Float_t fNPhotoElectrons; \
+  Float_t fNExpectedPhotoElectrons; \
+  Float_t fNCollectedPhotoElectrons; \
+  bool fIsNaF; \
+  Float_t fWidth; \
+  Float_t fWidthUnusedHits; \
+  Float_t fDistanceToTileBorder; \
 public: \
   RICHRing() \
     : fStatus(0) \
     , fNumberOfHits(0) \
+    , fNumberOfUsedHits(0) \
     , fBeta(0) \
     , fBetaError(0) \
+    , fBetaConsistency(0) \
     , fX(0) \
     , fY(0) \
     , fZ(0) \
@@ -33,6 +44,13 @@ public: \
     , fChargeEstimate(0) \
     , fCharges() \
     , fChargesProbability() \
+    , fNPhotoElectrons(0) \
+    , fNExpectedPhotoElectrons(0) \
+    , fNCollectedPhotoElectrons(0) \
+    , fIsNaF(0) \
+    , fWidth(0) \
+    , fWidthUnusedHits(0) \
+    , fDistanceToTileBorder(0) \
   { \
   }
 

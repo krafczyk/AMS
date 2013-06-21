@@ -14,6 +14,7 @@ private: \
   UShort_t fTriggerRateFTZ; \
   UShort_t fTriggerRateFTE; \
   UShort_t fTriggerRateLV1; \
+  UInt_t fTofPatt1; \
 public: \
   Trigger() \
     : fTimeDifference(0) \
@@ -25,6 +26,7 @@ public: \
     , fTriggerRateFTZ(0) \
     , fTriggerRateFTE(0) \
     , fTriggerRateLV1(0) \
+    , fTofPatt1(0) \
   { \
   }
 

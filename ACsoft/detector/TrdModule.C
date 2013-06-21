@@ -18,32 +18,38 @@
 #include <debugging.hh>
 
 ACsoft::Detector::TrdModule::TrdModule( int moduleNumber, TrdSublayer* mother ) :
+  fAlignmentParametersOk(false),
+  fCurrentGainValue(100.0),
+  fCurrentGainValueOk(false),
   fModuleNumber( moduleNumber ),
   fMother(mother)
 {
 
-  assert(moduleNumber >= 0 && moduleNumber < int(AC::AMSGeometry::TRDModules));
+  assert(fMother);
+
+  assert(moduleNumber >= 0 && moduleNumber < int(ACsoft::AC::AMSGeometry::TRDModules));
 
   // get layer and ladder number from geometry lookup
   unsigned short layer, ladder;
-  AC::AMSGeometry::Self()->TRDModuleToLadderAndLayer((unsigned short)(fModuleNumber),ladder,layer);
+  ACsoft::AC::AMSGeometry::Self()->TRDModuleToLadderAndLayer((unsigned short)(fModuleNumber),ladder,layer);
   fLayerNumber = layer;
   fLadderNumber = ladder;
 
   fSublayerNumber = mother ? mother->SublayerNumber() : 0;
+  fGlobalSublayerNumber = mother ? mother->GlobalSublayerNumber() : 0;
 
   fTowerNumber = fLadderNumber;
   if (fLayerNumber < 12) ++fTowerNumber;
   if (fLayerNumber < 4) ++fTowerNumber;
 
-  fDirection = ( fLayerNumber <= 3 || fLayerNumber >= 16 ? AC::YZMeasurement : AC::XZMeasurement );
+  fDirection = fMother->Direction();
 
   float deltaBulkhead = 0.0;
   if( ( layer >= 16 || layer <= 3 ) ){
     if( fTowerNumber >= 12 ) deltaBulkhead = +0.78;
     if( fTowerNumber <=  5 ) deltaBulkhead = -0.78;
   }
-  float xrel = AC::AMSGeometry::TrdModuleWidth*(float(fTowerNumber)-8.5) + deltaBulkhead;
+  float xrel = ACsoft::AC::AMSGeometry::TrdModuleWidth*(float(fTowerNumber)-8.5) + deltaBulkhead;
 
   fNominalRelativePosition = TVector3(xrel,0.,0.);
   fShimmingOffset = TVector3(0.,0.,0.);
@@ -70,9 +76,9 @@ ACsoft::Detector::TrdModule::~TrdModule() {
 
 void ACsoft::Detector::TrdModule::ConstructStraws() {
 
-  for( unsigned int straw=0 ; straw<AC::AMSGeometry::TRDStrawsPerModule; ++straw ){
+  for( unsigned int straw=0 ; straw<ACsoft::AC::AMSGeometry::TRDStrawsPerModule; ++straw ){
 
-    fStraws.push_back( new ACsoft::Detector::TrdStraw( fLayerNumber, fSublayerNumber, fLadderNumber, fModuleNumber, straw, this ) );
+    fStraws.push_back( new ACsoft::Detector::TrdStraw( fLayerNumber, fSublayerNumber, fGlobalSublayerNumber, fLadderNumber, fTowerNumber, fModuleNumber, straw, this ) );
   }
 
 }
@@ -83,10 +89,11 @@ void ACsoft::Detector::TrdModule::ConstructStraws() {
   *
   * The nominal position and orientation will remain unchanged.
   */
-void ACsoft::Detector::TrdModule::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot ) {
+void ACsoft::Detector::TrdModule::ChangeRelativePositionAndRotation( const TVector3& offsetPos, const TRotation& extraRot, bool alignmentOk ) {
 
   fOffsetRelativePosition = offsetPos;
   fExtraRelativeRotation  = extraRot;
+  fAlignmentParametersOk  = alignmentOk;
 
   UpdateGlobalPositionAndDirection();
 }
@@ -148,4 +155,10 @@ void ACsoft::Detector::TrdModule::Dump() const {
 //    straw->Dump();
 //  }
 }
+
+
+
+
+
+
 

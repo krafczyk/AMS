@@ -28,10 +28,10 @@ enum MomentsMode {
  AllEntries,
  AbsOfEntries,
  OnlyPositiveEntries
- };
+};
 
-template<typename T, size_t inlineCapacity>
-static Moments CalculateMoments(const Vector<T, inlineCapacity>& input, MomentsMode mode = AllEntries) {
+template<typename T>
+static Moments CalculateMoments(const T& input, MomentsMode mode = AllEntries) {
 
   Moments moments;
   int inputSize = input.size();
@@ -43,8 +43,8 @@ static Moments CalculateMoments(const Vector<T, inlineCapacity>& input, MomentsM
 
   for( int i=0; i< inputSize; i++ ){
     if(    (mode==AllEntries) 
-	|| (mode==AbsOfEntries)
-	|| (mode==OnlyPositiveEntries && input[i]>0)
+    || (mode==AbsOfEntries)
+    || (mode==OnlyPositiveEntries && input[i]>0)
       ) {
 
       n    += 1.0;
@@ -65,6 +65,39 @@ static Moments CalculateMoments(const Vector<T, inlineCapacity>& input, MomentsM
 
   return moments;
 }
+
+template<typename T, typename DataType>
+static DataType FindMaximum(const T& input, MomentsMode mode = AllEntries) {
+
+  DataType max = -std::numeric_limits<DataType>::max();
+  for( unsigned int i = 0; i < input.size(); ++i) {
+    if (mode == OnlyPositiveEntries && input.at(i) <= 0)
+      continue;
+    if( input.at(i) > max )
+      max = input.at(i);
+  }
+  return max;
+}
+
+template<typename T, typename DataType>
+static DataType FindMinimum(const T& input, MomentsMode mode = AllEntries) {
+
+  DataType min = std::numeric_limits<DataType>::max();
+  for( unsigned int i = 0; i < input.size(); ++i) {
+    if (mode == OnlyPositiveEntries && input.at(i) <= 0)
+      continue;
+    if (input.at(i) < min)
+      min = input.at(i);
+  }
+  return min;
+}
+
+/**
+ * This routine calculates the correct 1-sigma Poisson distributed uncertainty of the integer value val.
+ * Above 20 the Square-root is calculated. Below twenty the values given in (Feldman & Cousins, Phys. Rev. D, 1998, Table 2, no background) are used.
+ * So all uncertaintites, also for small numbers, are correct.
+ */
+void PoissonUncertainty(int val, double& lowerError, double& upperError);
 
 }
 

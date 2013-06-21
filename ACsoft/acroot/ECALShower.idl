@@ -8,6 +8,9 @@ Members = \
  Float_t fEnergyAt3CMRatio         \
  Float_t fReconstructedEnergy      \
  Float_t fReconstructedEnergyError \
+ [56+Float_t fReconstructedEnergyElectron] \
+ [56+Float_t fReconstructedEnergyPhoton]   \
+ [58+Float_t fReconstructedEnergyStandaloneEstimator] \
  Float_t fRelativeRearLeak         \
  Float_t fShowerMaximum            \
  Float_t fChiSquareProfile         \

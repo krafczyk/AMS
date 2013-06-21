@@ -19,7 +19,7 @@ namespace Cuts {
     CutEventErrors() : Cut("Event Errors") {}
 
     virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-      AssureCutIsAppliedToACQtFile(p);
+      if (!p.HasRawEventData()) return true; // This cut is used within ACROOT production. (Find a way to guarantee that!)
       return !(p.RawEvent()->EventHeader().Status() >> 30 & 0x1);
     }
 
@@ -45,7 +45,7 @@ namespace Cuts {
     CutGoodHW() : Cut("Good HW") {}
 
     virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-      AssureCutIsAppliedToACQtFile(p);
+      if (!p.HasRawEventData()) return true; // This cut is used within ACROOT production. (Find a way to guarantee that!)
       const ACsoft::AC::DAQ& daq = p.RawEvent()->DAQ();
       const ACsoft::AC::DAQ::JINJStatusVector& jinj_status = daq.JINJStatus();
       const ACsoft::AC::DAQ::SlaveStatusVector& slave_status = daq.SlaveStatus();
@@ -80,12 +80,13 @@ namespace Cuts {
     CutIsNotInSolarArrayShadow() : Cut("Is not in Solar Array shadow") {}
 
     virtual bool TestCondition(const ACsoft::Analysis::Particle& p) {
-      AssureCutIsAppliedToACQtFile(p);
-      // particles from below will have the IsInSolarArrayShadow bit set, although it doesn't make sense for them
+      if (!p.HasRawEventData()) return true; // This cut is used within ACROOT production. (Find a way to guarantee that!)
+
+	  // particles from below will have the IsInSolarArrayShadow bit set, although it doesn't make sense for them
       // -> checking for this here.
       if (!p.HasTofBeta()) return true;
       if (p.BetaTof() < 0) return true;
-      return !p.MainAmsParticle()->IsInSolarArrayShadow();
+      return !p.AmsParticle()->IsInSolarArrayShadow();
     }
 
     ClassDef(Cuts::CutIsNotInSolarArrayShadow,1)
@@ -165,7 +166,7 @@ namespace Cuts {
       if (!spline)
         return true;
 
-      const ACsoft::AC::ECALShower* shower = p.MainEcalShower();
+      const ACsoft::AC::ECALShower* shower = p.EcalShower();
       if (!shower)
         return true;
 

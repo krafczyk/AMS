@@ -33,7 +33,8 @@
 #include <debugging.hh>
 
 ACsoft::Calibration::TrdGainCalibration::TrdGainCalibration( Utilities::ConfigHandler* ) :
-  fIsInitialized(false) {
+  fIsInitialized(false),
+  fTrdHitFactory() {
 
   // read options from cfghandler here and save them in the class if needed
   // ...
@@ -78,15 +79,14 @@ void ACsoft::Calibration::TrdGainCalibration::StoreDeDx( unsigned int moduleNumb
 /**
   * \todo fill interesting histograms: number of TRD hits on track, pathlengths, bethe-bloch corr factors, dE/dx vs pathlength ...
   */
-void ACsoft::Calibration::TrdGainCalibration::Process( const Analysis::Particle& particle ) {
+void ACsoft::Calibration::TrdGainCalibration::Process( const Analysis::Particle& particle, bool checkMode ) {
 
   if(!fIsInitialized)
     Initialize();
 
   static const float CutTrdTrkD = 3.0;
 
-  const AC::Event* evt = particle.RawEvent();
-  TTimeStamp evttime = evt->EventHeader().TimeStamp();
+  TTimeStamp evttime = particle.TimeStamp();
 
   const Analysis::SplineTrack* splineTrack = particle.GetSplineTrack();
   if( !splineTrack ){
@@ -94,15 +94,20 @@ void ACsoft::Calibration::TrdGainCalibration::Process( const Analysis::Particle&
     return;
   }
 
-
   // find particle momentum
-  const AC::TrackerTrackFit* trackFit = particle.MainTrackerTrackFit();
+  const AC::TrackerTrackFit* trackFit = particle.TrackerTrackFit();
   assert(trackFit);
   Float_t p_evt = trackFit->Rigidity();
 
-  for( unsigned int i=0 ; i<particle.TrdHits().size(); ++i ){
+  int stepsForTrdHits = Analysis::TrackInfo;
+  if( checkMode ) stepsForTrdHits |= Analysis::GainCorrection;
 
-    const Analysis::TrdHit& hit = particle.TrdHits().at(i);
+  std::vector<Analysis::TrdHit> trdHits;
+  fTrdHitFactory.ProduceTrdHitsFrom(*(particle.RawEvent()),*splineTrack,stepsForTrdHits,trdHits);
+
+  for( unsigned int i=0 ; i<trdHits.size(); ++i ){
+
+    const Analysis::TrdHit& hit = trdHits.at(i);
 
     // calculate dE/dx based on tube amplitude and pathlength
     // GetDeDx function will return dE/dx based on raw amplitude if no gain correction has been applied in hit factory
@@ -123,7 +128,7 @@ void ACsoft::Calibration::TrdGainCalibration::Process( const Analysis::Particle&
                                                                 hit.R() - splineTrack->InterpolateToZ(hit.Z()).Y();
     Double_t trackResid = deltaXY;
 
-    // cut on minimum pathlength, only fill histogram for first half of event sample
+    // cut on minimum pathlength
     if( fabs(trackResid) < CutTrdTrkD && hit.Pathlength3D() > ::AC::Settings::TrdTubeDefaultMinPathLength ){
       StoreDeDx(hit.Module(), evttime, dEdX_corr);
     }
@@ -140,7 +145,7 @@ void ACsoft::Calibration::TrdGainCalibration::WriteResultsToCurrentFile() {
 
 
 
-static inline void SaveCanvas(TCanvas* canvas, const std::string& prefix, const std::string& name, const std::string& postfix) {
+static inline void WriteCanvas(TCanvas* canvas, const std::string& prefix, const std::string& name, const std::string& postfix) {
 
   assert(canvas);
   std::stringstream fileName;
@@ -394,7 +399,7 @@ int ACsoft::Calibration::TrdGainCalibration::AnalyzeGainHistograms(
     std::stringstream stream;
     stream << moduleId << "_timebin_" << testbin;
     if (snapshot)
-      SaveCanvas(t, "fit_module_", stream.str(), "_results");
+      WriteCanvas(t, "fit_module_", stream.str(), "_results");
   }
 
   TCanvas* c = new TCanvas( "gainFitCanvas", "gain fits", 1400, 1000 );
@@ -441,7 +446,7 @@ int ACsoft::Calibration::TrdGainCalibration::AnalyzeGainHistograms(
   fitNentriesGraph->GetXaxis()->SetTimeDisplay(1);
   fitNentriesGraph->GetXaxis()->SetTimeFormat("%y-%m-%d%F1970-01-01 00:00:00");
   if (snapshot && !testbin)
-    SaveCanvas(c, "fit_module_", moduleId, "_parameters");
+    WriteCanvas(c, "fit_module_", moduleId, "_parameters");
 
   if( !testbin ){
     TCanvas* fc = new TCanvas( "gainFinalCanvas", "final gain parameters", 1400, 1000 );
@@ -470,7 +475,7 @@ int ACsoft::Calibration::TrdGainCalibration::AnalyzeGainHistograms(
     fitMpvGraphBadFit->SetMarkerStyle(5);
     fitMpvGraphBadFit->SetMarkerColor(kRed);
     if (snapshot)
-      SaveCanvas(fc, "fit_module_", moduleId, "_results");
+      WriteCanvas(fc, "fit_module_", moduleId, "_results");
   }
 
   if( !interactive && !snapshot ){
@@ -501,3 +506,4 @@ int ACsoft::Calibration::TrdGainCalibration::AnalyzeGainHistograms(
 
   return 0;
 }
+

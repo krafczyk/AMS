@@ -111,7 +111,7 @@ public:
     * \param[in] particleId If toy MC was enabled in the constructor, generate a list of Toy MC likelihoods drawn from the PDFs for
     * the particle specified. These can later be accessed by LogLikelihoodRatiosElectronsToyMC() and LogLikelihoodRatiosProtonsToyMC().
     */
-  bool Process(const Analysis::Particle& particle, int particleId=-1);
+  bool Process(const Analysis::Particle& particle, int particleId=-1, bool ExcludeDeadStraws = true);
 
 #ifdef AMS_ACQT_INTERFACE
   /** Process a given AMS event and track fit. AMS Software users will use this method.
@@ -119,7 +119,7 @@ public:
     * from an AMSEventR* to an AC::Event worked fine. That does NOT mean that preselection cuts & geometrical acceptance cuts are fulfilled.
     * In consequence, if this method returns false, you will not be able to query any information from this class. See the example code
     * provided in the description of the TrdQt class on how to proceed after the call to this function.
-    */ 
+    */
   bool ProcessEvent(AMSEventR*, int trackIndex, int algorithm, int pattern, int refit);
 #endif
 
@@ -162,17 +162,17 @@ public:
   /** Returns the total path length in the TRD in cm for those candidate straws with a non-zero ADC value. */
   float GetActivePathLength() const;
 
-  /** Returns the vector with TrdHits that are assigned to a candidate hit */
-  const std::vector<Analysis::TrdHit>& GetAssignedHits() const;
+  /** Returns the vector with TrdHits that are assigned to a candidate hit, these are only those hits with a path length > 0 */
+  const std::vector<ACsoft::Analysis::TrdHit>& GetAssignedHits() const;
+
+  /** Returns the vector with Trd Candidate Hits */
+  const std::vector<ACsoft::Analysis::TRDCandidateHit>& GetCandidateHits() const;
 
   /** Returns the vector with TrdHits that are not assigned to a candidate hit */
-  const std::vector<Analysis::TrdHit>& GetUnassignedHits() const;
-
-  /** Returns the particle id code for a given rigidity and tracker charge. Relies exclusively on tracker information. */
-  static short ParticleID(float trackerCharge, float rigidity);
+  const std::vector<ACsoft::Analysis::TrdHit>& GetUnassignedHits() const;
 
   /** Returns the Xenon partial pressure for a given time. */
-  double QueryXenonPressure(const TTimeStamp&) const;
+  double QueryXenonPressure(const TTimeStamp&, bool &queryOk) const;
 
   /** Returns the log-likelihood ratios for particle id N against electrons. */
   const std::vector<double>& LogLikelihoodRatiosElectrons() const;
@@ -195,7 +195,7 @@ public:
     * First index: i-th toyMC event
     * Second index: particle-ID
     */
-  const std::vector<std::vector<double> > & LogLikelihoodRatiosElectronsToyMC() const;
+  const std::vector<std::vector<double> >& LogLikelihoodRatiosElectronsToyMC() const;
 
   /** Returns the log-likelihood ratios for particle id N against protons for toy MC.
     *
@@ -205,7 +205,24 @@ public:
   const std::vector<std::vector<double> >& LogLikelihoodRatiosProtonsToyMC() const;
 
   /** Returns the p-value for various particle hypotheses. (Still experimental.) */
-  const std::vector<double>& GetPvalueVector() const;
+  const std::vector<double>& GetPvalues() const;
+
+  /** Returns the Likelihood Products for various particle hypotheses. */
+  void GetLikelihoodProducts(std::vector<float>& LikelihoodProducts) const;
+
+
+  /** Check if likelihood for electron hypothesis was calculated without errors in the lookup of the pdf value. */
+  bool IsLikelihoodOkForElectron() const;
+  /** Check if likelihood for proton hypothesis was calculated without errors in the lookup of the pdf value. */
+  bool IsLikelihoodOkForProton() const;
+  /** Check if likelihoods for the available particle hypotheses were calculated without errors in the lookup of the pdf value. */
+  void AreLikelihoodsOk(std::vector<bool>& LikelihoodsOk) const;
+
+  /** Check if the calibration constants for all modules with hits used in the likelihood calculation are ok. */
+  bool IsCalibrationGood() const;
+
+  /** Check if all relevant slow control data was available for the likelihood calculation. */
+  bool IsSlowControlDataGood() const;
 
   /** Returns the result from the TRD internal track fit combined withe the seed tracker track in the XZ-Plane for direction=0 and in the YZ-Plane for direction=1*/
   const Analysis::TrackFitResult& GetTrdTrackCombinedFit(unsigned int direction) const;
@@ -223,13 +240,24 @@ public:
     * and the rigidity is following a uniform random distribution.*/
   void GetLogLikelihoodRatioElectronProtonRandom(std::vector<float>&) const;
 
+  void GetTrdKLikelihoodRatios(const Analysis::Particle&, std::vector<Float_t>& likelihoodRatios) const;
+  Short_t TrdKActiveHits(const Analysis::Particle&) const;
+  Short_t TrdKUnassignedHits(const Analysis::Particle&) const;
+  Float_t TrdKLrElectronProton(const Analysis::Particle&) const;
+  Float_t TrdKLrHeliumProton(const Analysis::Particle&) const;
+  Float_t TrdKLrHeliumElectron(const Analysis::Particle&) const;
+
+  void ComputeLikelihoodProducts(double pXe, double rigidity, const std::vector<ACsoft::Analysis::TRDCandidateHit>&,
+                                 std::vector<double>& likelihoodProductForParticle, std::vector<bool> &likelihoodOkForParticle) const;
+
+  static void ComputeLogLikelihoodRatiosForElectronsAndProtons(const std::vector<double>& likelihoodProductForParticle, std::vector<double>& logLikelihoodRatiosElectron, std::vector<double>& logLikelihoodRatiosProton);
+
+  double CalculateElectronLikelihoodInSelectedEnergyBin(const TTimeStamp&, double BinLowEdge, double BinHighEdge) const;
+
 private:
   friend class TrdQtPrivate;
-  Double_t FunPDF(Double_t* x, Double_t* parameters);
   int GetRigidityBin(int particleId, float aRig) const;
-  double GetTrdPdfValue(int xenonBin, int rigidityBin, unsigned short layer, float deDx, int idParticle) const;
 
-  void ComputeLikelihoodProducts(int xenonBin, const std::vector<int>& rigidityBin, const std::vector<Analysis::TRDCandidateHit>&, double* likelihoodProductForParticle);
   void CalculateLikelihoods(float aRig, const TTimeStamp&);
   void CalculatePvalues(float aRig, const TTimeStamp&);
   void CalculateToyMcLikelihoods(float aRig, const TTimeStamp&, int particleId);

@@ -33,9 +33,10 @@ public:
     FlagTrackerTrackIndexFromBetaH         = 1 << 1,
     FlagTRDVTrackIndexFromBetaH            = 1 << 2,
     FlagECALShowerIndexFromBetaH           = 1 << 3,
-    FlagGalacticCoordinatesFromBacktracing = 1 << 4,
+    FlagGalacticCoordinatesFromRigidityBacktracing = 1 << 4,
     FlagGalacticCoordinatesFromStarTracker = 1 << 5,
-    FlagGalacticCoordinatesFromOrbit       = 1 << 6
+    FlagGalacticCoordinatesFromOrbit       = 1 << 6,
+    FlagGalacticCoordinatesFromEnergyBacktracing = 1 << 7
   };
 
   /** Backtracing Status for negative rigidity
@@ -89,9 +90,13 @@ public:
    */
   bool ECALShowerIndexFromBetaH() const { return (fStatus & FlagECALShowerIndexFromBetaH) == FlagECALShowerIndexFromBetaH; }
 
-  /** Returns true if galactic coordinates were computed from backtracing with BTstatus==1.
+  /** Returns true if galactic coordinates were computed from backtracing seeded with rigidity with BTstatus==1.
    */
-  bool GalacticCoordinatesFromBacktracing() const { return (fStatus & FlagGalacticCoordinatesFromBacktracing) == FlagGalacticCoordinatesFromBacktracing; }
+  bool GalacticCoordinatesFromRigidityBacktracing() const { return (fStatus & FlagGalacticCoordinatesFromRigidityBacktracing) == FlagGalacticCoordinatesFromRigidityBacktracing; }
+
+  /** Returns true if galactic coordinates were computed from backtracing seeded with energy with BTstatus==1.
+   */
+  bool GalacticCoordinatesFromEnergyBacktracing() const { return (fStatus & FlagGalacticCoordinatesFromEnergyBacktracing) == FlagGalacticCoordinatesFromEnergyBacktracing; }
 
   /** Returns true if galactic coordinates originate from the star tracker.
    */
@@ -101,38 +106,41 @@ public:
    */
   bool GalacticCoordinatesFromOrbit() const { return (fStatus & FlagGalacticCoordinatesFromOrbit) == FlagGalacticCoordinatesFromOrbit; }
 
-  /** Stoermer cut off for negative rigidities/energies.
+  /** Galactic Longitude from Backtracing [deg] if GalacticCoordinatesFromRigidityBacktracing() == true  -  else  Float_Max-1. 
     */
-  Float_t StoermerCutoffNegative() const { return fStoermerCutoffNegative; }
+  Float_t GalacticLongitudeFromRigidityBacktracing() const {
 
-  /** Stoermer cut off for positive rigidities/energies.
-    */
-  Float_t StoermerCutoffPositive() const { return fStoermerCutoffPositive; }
-
-  /** Maximum Stoermer cutoff returns >0: from positive or <0: from negative particle
-    */
-  Float_t StoermerMaxCutoff() const { return fabs(fStoermerCutoffNegative) > fStoermerCutoffPositive ? fStoermerCutoffNegative : fStoermerCutoffPositive;  }
-
-  /** Galactic Longitude from Backtracing [deg] if GalacticCoordinatesFromBacktracing() == true  -  else  Float_Max-1. 
-    * Particle.BT_glong   if BT_status==1 from AMSEventR::DoBacktracing(Particle Momentum/Beta/Charge/Theta/Phi) 
-    */
-  Float_t GalacticLongitudeFromBacktracing() const {
-
-    if (GalacticCoordinatesFromBacktracing())
-       return fGalacticLongitudeFromBacktracing; 
+    if (GalacticCoordinatesFromRigidityBacktracing())
+       return fGalacticLongitudeFromRigidityBacktracing; 
      return std::numeric_limits<float>::max() - 1.0;
   }
 
-  /** Galactic Latitude from Backtracing [deg] if GalacticCoordinatesFromBacktracing() == true  -  else  Float_Max-1.
-    * Particle.BT_glat    if BT_status==1 from AMSEventR::DoBacktracing(Particle Momentum/Beta/Charge/Theta/Phi) 
+  /** Galactic Latitude from Backtracing [deg] if GalacticCoordinatesFromRigidityBacktracing() == true  -  else  Float_Max-1.
     */
-  Float_t GalacticLatitudeFromBacktracing() const {
+  Float_t GalacticLatitudeFromRigidityBacktracing() const {
 
-    if (GalacticCoordinatesFromBacktracing())
-       return fGalacticLatitudeFromBacktracing; 
+    if (GalacticCoordinatesFromRigidityBacktracing())
+       return fGalacticLatitudeFromRigidityBacktracing; 
      return std::numeric_limits<float>::max() - 1.0;
   }
 
+  /** Galactic Longitude from Backtracing [deg] if GalacticCoordinatesFromEnergyBacktracing() == true  -  else  Float_Max-1. 
+    */
+  Float_t GalacticLongitudeFromEnergyBacktracing() const {
+
+    if (GalacticCoordinatesFromEnergyBacktracing())
+       return fGalacticLongitudeFromEnergyBacktracing; 
+     return std::numeric_limits<float>::max() - 1.0;
+  }
+
+  /** Galactic Latitude from backtracing [deg] if GalacticCoordinatesFromEnergyBacktracing() == true  -  else  Float_Max-1.
+    */
+  Float_t GalacticLatitudeFromEnergyBacktracing() const {
+
+    if (GalacticCoordinatesFromEnergyBacktracing())
+       return fGalacticLatitudeFromEnergyBacktracing; 
+     return std::numeric_limits<float>::max() - 1.0;
+  }
   /** Galactic Longitude from Orbit [deg] if GalacticCoordinatesFromOrbit() == true  -  else  Float_max-1.
     * glong from ISS orbit frame transformation AMSEvent::GetGalCoo(result, glong, glatt, Particle.Theta, Particle.Phi)
     */

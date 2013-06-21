@@ -18,6 +18,7 @@ BEGIN_DEBUG_TABLE(Trigger)
   COL( "ACC \t",      std::bitset<8>,  ACCFlagsBitset)
   COL( "ECAL \t",     std::bitset<8>,  ECALFlagsBitset)
   COL( "JMemb\t\t\t", std::bitset<16>, JMembFlagsBitset)
+  COL( "TofPatt1\t\t\t\t\t\t ", std::bitset<32>, TofPatt1Bitset)
 END_DEBUG_TABLE
 
 void Trigger::Clear() {
@@ -31,6 +32,7 @@ void Trigger::Clear() {
   fTriggerRateFTZ = 0;
   fTriggerRateFTE = 0;
   fTriggerRateLV1 = 0;
+  fTofPatt1 = 0;
 }
 
 }

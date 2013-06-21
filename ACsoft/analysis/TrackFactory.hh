@@ -22,7 +22,6 @@ public:
   TrackFactory();
 
   SplineTrack* CreateSplineTrackFrom( const AC::TrackerTrackFit& );
-  SplineTrack* CreateSplineTrackFullDetectorFrom( const AC::TrackerTrackFit& );
 };
 
 }

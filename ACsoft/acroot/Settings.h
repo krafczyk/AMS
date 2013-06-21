@@ -8,23 +8,28 @@ namespace AC {
 #define DECLARE_SETTING(Variable) \
   static const char* Variable; \
   static const char* Variable##ExpectedGitSHA; \
-  static const unsigned short Variable##ExpectedVersion; \
+  static const unsigned short Variable##ExpectedVersion;
 
 /** Global settings and names of current version of all lookup files. */
 struct Settings {
 
   /** Minimal path length in TRD tubes [cm] */
-  static const Float_t TrdTubeDefaultMinPathLength = 0.1;
+  static const Float_t TrdTubeDefaultMinPathLength;
 
+  static const double TrdMinimumPdfValue;
 
   // Text files
   DECLARE_SETTING(gTrdQtGeometryFileName)
   DECLARE_SETTING(gTrdQtShimmingGlobalFileName)
   DECLARE_SETTING(gTrdQtShimmingModuleFileName)
+  DECLARE_SETTING(gTrdQtDeadStrawsFileName)
+  DECLARE_SETTING(gTrackerChargesFileName)
 
   // ROOT files
   DECLARE_SETTING(gTrdQtAlignmentFileName)
+  DECLARE_SETTING(gTrdQtBeamTestAlignmentFileName)
   DECLARE_SETTING(gTrdQtGainFileName)
+  DECLARE_SETTING(gTrdQtBeamTestGainFileName)
   DECLARE_SETTING(gTrdQtSlowControlFileName)
   DECLARE_SETTING(gTrdQtPdfFileName)
 

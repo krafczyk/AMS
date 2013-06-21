@@ -8,6 +8,7 @@
 #define DEBUG 0
 #include <debugging.hh>
 
+
 /** Calculate three-dimensional pathlength of straight line through cylinder.
   *
   * See maple/pathlength3D.mw
@@ -18,8 +19,10 @@
   * \param tubePos Tube center
   * \param R tube radius
   *
+  * \warning This function is obsolete and is now superseded by the more general function Pathlength3d().
+  *
   */
-Double_t pathlength3d( int D, TVector3 trackPos, TVector3 trackDir, TVector3 tubePos, Double_t R ) {
+Double_t pathlength3d_obsolete( int D, TVector3 trackPos, TVector3 trackDir, TVector3 tubePos, Double_t R ) {
 
   trackDir = trackDir.Unit();
 
@@ -59,14 +62,17 @@ Double_t pathlength3d( int D, TVector3 trackPos, TVector3 trackDir, TVector3 tub
   * \param tubePos Tube center
   * \param R tube radius
   *
+  * \warning This function is obsolete and is now superseded by the more general function Pathlength3d().
+  *
+  *
   */
-Double_t pathlength3d( int D, TVector3 trackPos, Double_t trackTheta, Double_t trackPhi, TVector3 tubePos, Double_t R ) {
+Double_t pathlength3d_obsolete( int D, TVector3 trackPos, Double_t trackTheta, Double_t trackPhi, TVector3 tubePos, Double_t R ) {
 
   TVector3 trackDir( sin(trackTheta) * cos(trackPhi),
                      sin(trackTheta) * sin(trackPhi),
                      cos(trackTheta) );
 
-  return pathlength3d(D, trackPos, trackDir, tubePos, R );
+  return pathlength3d_obsolete(D, trackPos, trackDir, tubePos, R );
 }
 
 
@@ -81,7 +87,7 @@ Double_t pathlength3d( int D, TVector3 trackPos, Double_t trackTheta, Double_t t
   * where \f$ \vec{x} \f$ is a point on the line and \f$ \vec{a} \f$ is a direction vector.
   *
   * \param[in] radius radius of cylinder
-  * \param[in] x1 point on cylinder center
+  * \param[in] x1 point on cylinder axis
   * \param[in] dir1 vector parallel to cylinder axis
   * \param[in] x2 point on intersecting line
   * \param[in] dir2 direction vector of intersecting line
@@ -188,4 +194,7 @@ TVector3 BasePoint2( const TVector3& x1, const TVector3& dir1, const TVector3& x
   TVector3 bp2 = x2 + (lambda2*a2);
   return bp2;
 }
+
+
+
 

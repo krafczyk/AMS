@@ -143,5 +143,4 @@ static inline void checkInlineCapacity(size_t size, size_t inlineCapacity) {
 }
 
 #endif
-
 #endif

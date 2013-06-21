@@ -3,10 +3,12 @@ Namespace = AC
 Class = Particle
 Members = \
   [53+UShort_t fStatus]                             \
-  [53+Float_t fStoermerCutoffNegative]              \
-  [53+Float_t fStoermerCutoffPositive]              \
-  [53+Float_t fGalacticLongitudeFromBacktracing]    \
-  [53+Float_t fGalacticLatitudeFromBacktracing]     \
+  [53_56Float_t fStoermerCutoffNegative]            \
+  [53_56Float_t fStoermerCutoffPositive]            \
+  [53+Float_t fGalacticLongitudeFromRigidityBacktracing]  \
+  [53+Float_t fGalacticLatitudeFromRigidityBacktracing]   \
+  [57+Float_t fGalacticLongitudeFromEnergyBacktracing]    \
+  [57+Float_t fGalacticLatitudeFromEnergyBacktracing]     \
   [54+Float_t fGalacticLongitudeFromOrbit]          \
   [54+Float_t fGalacticLatitudeFromOrbit]           \
   [53-Int_t fID]                                    \

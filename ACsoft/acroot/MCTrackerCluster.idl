@@ -1,0 +1,11 @@
+# MCTrackerCluster class first appeared in ACQt version 5.6.0
+[Description]
+Namespace = AC
+Class = MCTrackerCluster
+Members = \
+  Short_t fID                 \        
+  Float_t fDepositedEnergy    \
+  Float_t fMCParticleMomentum \  
+  Float_t fX                  \
+  Float_t fY                  \
+  Float_t fZ                     

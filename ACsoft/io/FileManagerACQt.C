@@ -3,6 +3,7 @@
 #include "Event.h"
 #include "Settings.h"
 #include "TimeHistogramManager.hh"
+#include "DetectorManager.hh"
 
 #include <zlib.h>
 #include <QDataStream>
@@ -10,6 +11,7 @@
 #include <TStopwatch.h>
 
 #include <cmath>
+#include <set>
 
 #define DEBUG 0
 #define INFO_OUT_TAG "FileManagerACQt> "
@@ -19,46 +21,6 @@ namespace ACsoft {
 
 namespace IO {
 
-// Scratch buffer used to read chunks from ACQt files.
-static inline QByteArray*& sharedInputByteArray() {
-
-  static QByteArray* gByteArray = 0;
-  if (!gByteArray)
-    gByteArray = new QByteArray(1024 * 1024 * 5, '\0');
-
-  return gByteArray;
-}
-
-// Scratch buffer used to hold the decompressed chunk data from ACQt files.
-static inline QByteArray*& sharedOutputByteArray() {
-
-  static QByteArray* gByteArray = 0;
-  if (!gByteArray)
-    gByteArray = new QByteArray(1024 * 1024 * 10, '\0');
-
-  return gByteArray;
-}
-
-static inline QDataStream& sharedDataStream(QBuffer* buffer = 0) {
-
-  static QDataStream* gDataStream = 0;
-  if (buffer && gDataStream) {
-    delete gDataStream;
-    gDataStream = 0;
-  }
-
-  if (!gDataStream) {
-    Q_ASSERT(buffer);
-    if (!buffer)
-      WARN_OUT << "FATAL ERROR in sharedDataStream()!" << std::endl;
-    gDataStream = new QDataStream(buffer);
-    gDataStream->setVersion(QDataStream::Qt_4_6);
-    gDataStream->setFloatingPointPrecision(QDataStream::SinglePrecision);
-  }
-
-  return *gDataStream;
-}
-
 void FileManager::DestructACQtFiles() {
 
   for (unsigned i = 0 ; i < fACQtFiles.size(); ++i) {
@@ -67,16 +29,14 @@ void FileManager::DestructACQtFiles() {
   }
 
   delete fEvent;
-
+  delete fDataStream;
+  delete fByteArrayIn;
+  delete fByteArrayOut;
   fChunkBuffer.close();
 }
 
-void FileManager::RetrieveFirstAndLastEventTimeForACQtFiles() {
+void FileManager::RetrieveFirstAndLastEventTimeForACQtFiles(TTimeStamp& timeOfFirstEvent, TTimeStamp& timeOfLastEvent) {
 
-  Q_ASSERT(fEntries > 0);
-
-  TTimeStamp timeOfFirstEvent;
-  TTimeStamp timeOfLastEvent;
   unsigned int size = fACQtFiles.size();
   for (unsigned int i = 0; i < size; ++i) {
     if (!fACQtFiles[i].header || !fACQtFiles[i].entries)
@@ -91,7 +51,7 @@ void FileManager::RetrieveFirstAndLastEventTimeForACQtFiles() {
     timeOfLastEvent = fACQtFiles[i].header->LastEventTimeStamp();
     break;
   }
- 
+
   if( timeOfFirstEvent == TTimeStamp(0,0) ){
     WARN_OUT << "Time of first event from run header is zero!" << std::endl;
     GetEvent(0);
@@ -101,14 +61,10 @@ void FileManager::RetrieveFirstAndLastEventTimeForACQtFiles() {
 
   if( timeOfLastEvent == TTimeStamp(0,0) ){
     WARN_OUT << "Time of last event from run header is zero!" << std::endl;
-    // FIXME: This is uber-slow for ACQt files. It needs to read the _all_ entries until it reaches the end, that makes it horrible slow at the moment.
     GetEvent(GetEntries()-1);
     timeOfLastEvent = fEvent->EventHeader().TimeStamp();
     Reset();
   }
-
-  INFO_OUT << "First event time: " << timeOfFirstEvent.AsString() << std::endl;
-  INFO_OUT << "Last event time: " << timeOfLastEvent.AsString() << std::endl;
 
   delete fEvent;
   fEvent = 0;
@@ -117,26 +73,42 @@ void FileManager::RetrieveFirstAndLastEventTimeForACQtFiles() {
   fChunkBufferSize = 0;
   if (fChunkBuffer.isOpen())
     fChunkBuffer.seek(0);
+}
 
-  Utilities::TimeHistogramManager::instance()->SetFirstAndLastEventTimes( timeOfFirstEvent, timeOfLastEvent );
-  int nbins;
-  double xmin, xmax;
-  Utilities::TimeHistogramManager::instance()->GetTimeBinning(nbins,xmin,xmax);
+void FileManager::RetrieveFirstAndLastEventTimeForACQtFiles() {
+
+  TTimeStamp timeOfFirstEvent;
+  TTimeStamp timeOfLastEvent;
+  RetrieveFirstAndLastEventTimeForACQtFiles(timeOfFirstEvent, timeOfLastEvent);
+
+  INFO_OUT << "First event time: " << timeOfFirstEvent.AsString() << std::endl;
+  INFO_OUT << "Last event time: " << timeOfLastEvent.AsString() << std::endl;
+
+  Utilities::TimeHistogramManager::instance()->SetFirstAndLastEventTimes(timeOfFirstEvent, timeOfLastEvent);
 }
 
 bool FileManager::InitializeACQtFiles( const std::vector<std::string>& files ) {
 
-  unsigned int nFiles = 0;
+  if (!fByteArrayIn)
+    fByteArrayIn = new QByteArray(1024 * 1024 * 5, '\0');   //  5 MB buffer to hold compressed ACQt data
+  else
+    fByteArrayIn->fill('\0');
 
+  if (!fByteArrayOut)
+    fByteArrayOut = new QByteArray(1024 * 1024 * 10, '\0'); // 10 MB buffer to hold uncompressed ACQt data
+  else
+    fByteArrayOut->fill('\0');
+
+  unsigned int nFiles = 0;
   for (unsigned int i = 0; i < files.size(); ++i) {
     std::string file = files[i];
     ExpandEnvironmentVariables(file);
     if (!DoesFileExist(file))
       continue;
 
-    INFO_OUT << "Adding file " << file << " to list of ACQt files." << std::endl;
     ACQtFile acQtFile;
     acQtFile.file = new QFile(file.c_str());
+    INFO_OUT << "Adding file " << file << " to list of ACQt files." << std::endl;
     fACQtFiles.push_back(acQtFile);
     ++nFiles;
   }
@@ -147,14 +119,18 @@ bool FileManager::InitializeACQtFiles( const std::vector<std::string>& files ) {
     return false;
   }
 
-  fChunkBuffer.setBuffer(sharedOutputByteArray());
+  fChunkBuffer.setBuffer(fByteArrayOut);
   fChunkBuffer.open(QIODevice::ReadOnly);
-  (void) sharedDataStream(&fChunkBuffer);
+
+  delete fDataStream;
+  fDataStream = new QDataStream(&fChunkBuffer);
+  fDataStream->setVersion(QDataStream::Qt_4_6);
+  fDataStream->setFloatingPointPrecision(QDataStream::SinglePrecision);
 
   fChunkBufferSize = 0;
 
   // FIXME: Add unit-tests for runs that failed to load!
-  Q_ASSERT(!fEntries);
+  assert(!fEntries);
   for (unsigned int i = 0; i < fACQtFiles.size(); ++i) {
     if (!OpenACQtFile(fACQtFiles[i]))
       continue;
@@ -168,7 +144,8 @@ bool FileManager::InitializeACQtFiles( const std::vector<std::string>& files ) {
 
   INFO_OUT << "Created ACQt file list with " << GetEntries() << " events from " << nFiles << " files." << std::endl;
 
-  RetrieveFirstAndLastEventTimeForACQtFiles();
+  if (fPropagateFirstAndLastRunTime)
+    RetrieveFirstAndLastEventTimeForACQtFiles();
   return true;
 }
 
@@ -198,7 +175,7 @@ bool FileManager::OpenACQtFile(ACQtFile& file) {
   if (version == 5) // Fix version type in ACQt 5.2.0 files.
     version = 52;
 
-  if (version != 52 && version != 53 && version != 54) {
+  if (version != 52 && version != 53 && version != 54 && version != 55 && version != 56 && version != 57 && version != 58) {
     WARN_OUT << "ERROR opening file \"" << fileName << "\"! Unknown version number '" << version << "'" << std::endl;
     return false;
   }
@@ -209,6 +186,9 @@ bool FileManager::OpenACQtFile(ACQtFile& file) {
   file.header = new AC::RunHeader;
   file.entries = entries;
   file.version = version;
+
+  // Be sure to set the ACQt version, so version conditionals in the AC::RunHeader aren't ignored.
+  ::AC::CurrentACQtVersion() = version;
   fileStream >> *file.header;
   file.headerSize = file.file->pos();
   file.file->close();
@@ -221,7 +201,7 @@ bool FileManager::OpenACQtFile(ACQtFile& file) {
 static inline bool decompressByteArray(QByteArray* inputBuffer, QByteArray* outputBuffer, qint64 inputSize, unsigned long& length) {
 
   unsigned char* inputData = reinterpret_cast<unsigned char*>(inputBuffer->data());
-  Q_ASSERT(inputData);
+  assert(inputData);
 
   if (inputSize <= 4) {
     if (inputSize < 4 || (inputData[0]!=0 || inputData[1]!=0 || inputData[2]!=0 || inputData[3]!=0))
@@ -246,7 +226,7 @@ static inline bool decompressByteArray(QByteArray* inputBuffer, QByteArray* outp
     return false;
   }
 
-  Q_ASSERT(false); // This can't be reached.
+  assert(false); // This can't be reached.
   return false;
 }
 
@@ -255,13 +235,24 @@ bool NonInlineGetNextACQtDataChunk(FileManager* fileManager) {
   return fileManager->GetNextACQtDataChunk();
 }
 
-bool OpenACQtFileIfNeeded(const FileManager::ACQtFile& file, bool forceSeekToStart = false) {
+bool OpenACQtFileIfNeeded(const FileManager::ACQtFile& file, std::string& databaseFileName, bool forceSeekToStart = false) {
+
+  // Build DB file name for this run. Requires that the ACQt file name has an absolute path (/hpcwork/amsana/ACQT/ISS.../DATA/PWT/...).
+  assert(file.header);
+  QString fileName = file.file->fileName();
+  QStringList tokens = fileName.split("/", QString::SkipEmptyParts);
+  if (tokens.size() > 2) {
+    QString streamName = tokens[tokens.size() - 2];
+    fileName.replace(streamName, "DB");
+    fileName.replace(".acqt", ".root");
+    databaseFileName = fileName.toStdString();
+  }
 
   if (file.file->isOpen()) {
     // Seek to start of chunk data stream, right after the run header.
     if (forceSeekToStart) {
       bool result = file.file->seek(file.headerSize);
-      Q_ASSERT(result);
+      assert(result);
       Q_UNUSED(result);
     }
     return true;
@@ -274,48 +265,82 @@ bool OpenACQtFileIfNeeded(const FileManager::ACQtFile& file, bool forceSeekToSta
 
   // Seek to start of chunk data stream, right after the run header.
   bool result = file.file->seek(file.headerSize);
-  Q_ASSERT(result);
+  assert(result);
   Q_UNUSED(result);
   return true;
+}
+
+int FileManager::MoveToACQtDataChunkContainingEvent(unsigned int event) {
+
+  assert(fCurrentACQtFile < fACQtFiles.size());
+  QFile* file = fACQtFiles[fCurrentACQtFile].file;
+
+  QDataStream fileStream(file);
+  fileStream.setVersion(QDataStream::Qt_4_6);
+  fileStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+  quint32 eventsInChunk = 0;
+  qint64 compressedChunkSize = 0;
+  unsigned long positionInFile = fACQtFiles[fCurrentACQtFile].headerSize, lastOffset = 0;
+  unsigned long examinedEvents = 0;
+  while (examinedEvents < event) {
+    file->seek(positionInFile);
+    fileStream >> eventsInChunk >> compressedChunkSize;
+
+    examinedEvents += eventsInChunk;
+    lastOffset = compressedChunkSize + sizeof(quint32) + sizeof(qint64);
+    positionInFile += lastOffset;
+  }
+
+  file->seek(positionInFile - lastOffset);
+  if (!GetNextACQtDataChunk())
+    return -1;
+
+  int distance = event - (examinedEvents - eventsInChunk);
+  assert(distance >= 0);
+  return distance;
 }
 
 ALWAYS_INLINE bool FileManager::GetNextACQtDataChunk() {
 
   if (!fRunTimer) {
     fRunTimer = new TStopwatch;
-    fRunTimer->Start();    
+    fRunTimer->Start();
   }
 
   if (fCurrentACQtFile == fACQtFiles.size())
     return false;
-  Q_ASSERT(fCurrentACQtFile < fACQtFiles.size());
+  assert(fCurrentACQtFile < fACQtFiles.size());
 
   QFile* file = fACQtFiles[fCurrentACQtFile].file;
   if (fChunkBuffer.isOpen() && fChunkBuffer.pos() < (long) fChunkBufferSize) {
-    Q_ASSERT(fRunHeader);
+    assert(fRunHeader);
     return true;
   }
 
-  if (!OpenACQtFileIfNeeded(fACQtFiles[fCurrentACQtFile]))
+  std::string databaseFileName;
+  if (!OpenACQtFileIfNeeded(fACQtFiles[fCurrentACQtFile], databaseFileName))
     return false;
+  LoadDatabase(databaseFileName);
 
   QDataStream fileStream(file);
   if (fileStream.atEnd()) {
     fRunTimer->Stop();
     fAccumulatedRealTime += fRunTimer->RealTime();
     fAccumulatedCPUTime += fRunTimer->CpuTime();
-    ++fNumberOfProcessedRuns;    
-    fRunTimer->Start();    
-  
+    ++fNumberOfProcessedRuns;
+    fRunTimer->Start();
+
     ++fCurrentACQtFile;
     fCurrentFile = fCurrentACQtFile;
     if (fCurrentACQtFile == fACQtFiles.size())
       return false;
 
     file->close();
-    Q_ASSERT(fCurrentACQtFile < fACQtFiles.size());
-    if (!OpenACQtFileIfNeeded(fACQtFiles[fCurrentACQtFile]))
+    assert(fCurrentACQtFile < fACQtFiles.size());
+    if (!OpenACQtFileIfNeeded(fACQtFiles[fCurrentACQtFile], databaseFileName))
       return false;
+    LoadDatabase(databaseFileName);
 
     file = fACQtFiles[fCurrentACQtFile].file;
     fileStream.setDevice(file);
@@ -324,44 +349,58 @@ ALWAYS_INLINE bool FileManager::GetNextACQtDataChunk() {
   fileStream.setVersion(QDataStream::Qt_4_6);
   fileStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
-  // FIXME: Make use of eventsInChunk to speed-up ACQt random-access mode.
+  // This information is only needed for seeking in ACQt files.
   quint32 eventsInChunk = 0;
   qint64 compressedChunkSize = 0;
   fileStream >> eventsInChunk >> compressedChunkSize;
+  assert(compressedChunkSize > 0);
+  assert(compressedChunkSize < 1024 * 1024 * 5);
 
-  // FIXME: Automatically chose the right size.
-  Q_ASSERT(compressedChunkSize < 1024 * 1024 * 5);
-  if (compressedChunkSize >= 1024 * 1024 * 5) {
-    WARN_OUT << "Compressed chunk size larger than 5MB in file " << fACQtFiles[fCurrentACQtFile].file->fileName().toStdString() << ". Will skip this file and continue." << std::endl;
+  // If a chunk is empty, skip the file. This only happens if there's only a single empty chunk in the file.
+  if (!eventsInChunk) {
     file->seek(file->size());
-    Q_ASSERT(fileStream.atEnd());
+    assert(fileStream.atEnd());
+    WARN_OUT << "Empty chunk in file " << fACQtFiles[fCurrentACQtFile].file->fileName().toStdString() << std::endl;
     return NonInlineGetNextACQtDataChunk(this);
   }
 
-  QByteArray* inputBuffer = sharedInputByteArray();
+  QByteArray* inputBuffer = fByteArrayIn;
   int readBytes = fileStream.readRawData(inputBuffer->data(), compressedChunkSize);
   if (readBytes != compressedChunkSize) {
     WARN_OUT << "Only read " << readBytes << " bytes instead of the expected " << compressedChunkSize << " bytes from file " << fACQtFiles[fCurrentACQtFile].file->fileName().toStdString() << ". Will skip this file and continue." << std::endl;
     file->seek(file->size());
-    Q_ASSERT(fileStream.atEnd());
+    assert(fileStream.atEnd());
+    fByteArrayIn->fill('\0');
+    fByteArrayOut->fill('\0');
+    fChunkBufferSize = 0;
     return NonInlineGetNextACQtDataChunk(this);
   }
 
-  if (!decompressByteArray(inputBuffer, sharedOutputByteArray(), compressedChunkSize, fChunkBufferSize)) {
+  if (!decompressByteArray(inputBuffer, fByteArrayOut, compressedChunkSize, fChunkBufferSize)) {
     WARN_OUT << "Decompressing chunk at position " << file->pos() << " in file " << fACQtFiles[fCurrentACQtFile].file->fileName().toStdString() << " failed. Input size: " << float(compressedChunkSize) / (1024.0f * 1024.0f) << "MB. Will skip this file and continue." << std::endl;
     file->seek(file->size());
+    fByteArrayIn->fill('\0');
+    fByteArrayOut->fill('\0');
+    fChunkBufferSize = 0;
     return NonInlineGetNextACQtDataChunk(this);
   }
 
   fChunkBuffer.seek(0);
-  Q_ASSERT((long)fChunkBufferSize < sharedOutputByteArray()->size());
+  assert((long)fChunkBufferSize < fByteArrayOut->size());
 
   fRunHeader = fACQtFiles[fCurrentACQtFile].header;
 
   // Always synchronize the ACQt version, so the streamers know which version they're supposed to read.
-  ::AC::CurrentACQtVersion() = fACQtFiles[fCurrentACQtFile].version; 
-  Q_ASSERT(fRunHeader);
+  ::AC::CurrentACQtVersion() = fACQtFiles[fCurrentACQtFile].version;
+  assert(fRunHeader);
   return true;
+}
+
+std::string FileManager::GetCurrentACQtFileName() const {
+
+  assert(fCurrentACQtFile < fACQtFiles.size());
+  assert(fACQtFiles[fCurrentACQtFile].file);
+  return fACQtFiles[fCurrentACQtFile].file->fileName().toStdString();
 }
 
 bool FileManager::GetNextACQtEvent() {
@@ -369,9 +408,9 @@ bool FileManager::GetNextACQtEvent() {
   if (!GetNextACQtDataChunk())
     return false;
 
-  QDataStream& chunkStream = sharedDataStream();
-  Q_ASSERT(fRunHeader);
-  Q_ASSERT(!chunkStream.atEnd());
+  assert(fRunHeader);
+  assert(fDataStream);
+  assert(!fDataStream->atEnd());
   ++fCurrentEventNumber;
 
   if (!fEventTimer) {
@@ -389,8 +428,11 @@ bool FileManager::GetNextACQtEvent() {
   if (!fEvent)
     fEvent = new AC::Event;
 
-  chunkStream >> *fEvent;
+  *fDataStream >> *fEvent;
   fEvent->SetRunHeader(fRunHeader);
+
+  const TTimeStamp& eventTime = fEvent->EventHeader().TimeStamp();
+  Detector::DetectorManager::Self()->UpdateIfNeeded(eventTime,fRunHeader->RunType());
 
   return true;
 }
@@ -406,17 +448,19 @@ bool FileManager::GetACQtEvent(int index) {
       break;
   }
 
-  Q_ASSERT(acqtFile >= 0);
-  Q_ASSERT(acqtFile <= (int) fACQtFiles.size()); /// \todo shouldn't this be '<' instead of '<=' ?
+  assert(acqtFile >= 0);
+  assert(acqtFile < (int) fACQtFiles.size());
 
   int indexInFile = index - (entries - fACQtFiles[acqtFile].entries);
-  Q_ASSERT(indexInFile >= 0);
-  Q_ASSERT(indexInFile < (int)fACQtFiles[acqtFile].entries);
+  assert(indexInFile >= 0);
+  assert(indexInFile < (int)fACQtFiles[acqtFile].entries);
 
+  std::string databaseFileName;
   if (fCurrentACQtFile < fACQtFiles.size()) {
-    Q_ASSERT(fACQtFiles[fCurrentACQtFile].file);
-    if (!OpenACQtFileIfNeeded(fACQtFiles[fCurrentACQtFile], true))
+    assert(fACQtFiles[fCurrentACQtFile].file);
+    if (!OpenACQtFileIfNeeded(fACQtFiles[fCurrentACQtFile], databaseFileName, true))
       return false;
+    LoadDatabase(databaseFileName);
     fChunkBuffer.seek(0);
     fChunkBufferSize = 0;
   }
@@ -427,14 +471,17 @@ bool FileManager::GetACQtEvent(int index) {
   // those events if possible, without having to read all chunks before the desired event.
   fCurrentACQtFile = acqtFile;
   fCurrentFile = fCurrentACQtFile;
-  Q_ASSERT(fACQtFiles[acqtFile].file);
+  assert(fACQtFiles[acqtFile].file);
 
-  if (!OpenACQtFileIfNeeded(fACQtFiles[acqtFile], true))
+  if (!OpenACQtFileIfNeeded(fACQtFiles[acqtFile], databaseFileName, true))
     return false;
 
+  LoadDatabase(databaseFileName);
   fCurrentEventNumber = index - indexInFile - 1;
   bool result = false;
-  for (int i = 0; i <= indexInFile; ++i) {
+
+  int distanceToTargetEvent = MoveToACQtDataChunkContainingEvent(indexInFile);
+  for (int i = 0; i <= distanceToTargetEvent; ++i) {
     result = GetNextEvent();
     if (!result)
       break;
@@ -445,9 +492,13 @@ bool FileManager::GetACQtEvent(int index) {
     return false;
   }
 
-  Q_ASSERT(fEvent);
-  Q_ASSERT(fRunHeader);
-  Q_ASSERT(fCurrentEventNumber == index);
+  assert(fEvent);
+  assert(fRunHeader);
+  fCurrentEventNumber = index;
+
+  const TTimeStamp& eventTime = fEvent->EventHeader().TimeStamp();
+  Detector::DetectorManager::Self()->UpdateIfNeeded(eventTime,fRunHeader->RunType());
+
   return true;
 }
 
@@ -460,8 +511,15 @@ void FileManager::ResetACQtFiles() {
     file->seek(fACQtFiles[i].headerSize);
   }
 
+  fChunkBufferSize = 0;
+  if (fChunkBuffer.isOpen())
+    fChunkBuffer.seek(0);
+
   fRunHeader = 0;
   fCurrentACQtFile = 0;
+
+  fByteArrayIn->fill('\0');
+  fByteArrayOut->fill('\0');
 
   delete fEvent;
   fEvent = 0;
@@ -475,7 +533,7 @@ static inline void dumpSize(qint64 size) {
   std::cout << " MB)";
 }
 
-bool FileManager::CheckACQtFileIntegrity(unsigned int fileNumber) const {
+bool FileManager::CheckACQtFileIntegrity(unsigned int fileNumber) const{
 
   if (fACQtFiles.empty() || fileNumber >= fACQtFiles.size())
     return false;
@@ -485,7 +543,8 @@ bool FileManager::CheckACQtFileIntegrity(unsigned int fileNumber) const {
   dumpSize(file->size());
   std::cout << " for integrity..." << std::endl;
 
-  if (!OpenACQtFileIfNeeded(fACQtFiles[fileNumber], true)) {
+  std::string databaseFileName;
+  if (!OpenACQtFileIfNeeded(fACQtFiles[fileNumber], databaseFileName, true)) {
     WARN_OUT << " -> FATAL ERROR IN FILE " << file->fileName().toStdString() << "! Cannot read from file." << std::endl << std::endl;
     return false;
   }
@@ -503,14 +562,14 @@ bool FileManager::CheckACQtFileIntegrity(unsigned int fileNumber) const {
     fileStream >> eventsInChunk >> compressedChunkSize;
     maxEvents += eventsInChunk;
 
-    QByteArray* inputBuffer = sharedInputByteArray();
+    QByteArray* inputBuffer = fByteArrayIn;
     int readBytes = fileStream.readRawData(inputBuffer->data(), compressedChunkSize);
     bool isChunkComplete = readBytes == compressedChunkSize;
 
     unsigned long uncompressedChunkSize = 0;
     bool isDecompressable = false;
     if (isChunkComplete)
-      isDecompressable = decompressByteArray(inputBuffer, sharedOutputByteArray(), compressedChunkSize, uncompressedChunkSize);
+      isDecompressable = decompressByteArray(inputBuffer, fByteArrayOut, compressedChunkSize, uncompressedChunkSize);
 
     std::cout << "Chunk " << std::setw(3) << chunk << " size: ";
     dumpSize(compressedChunkSize);
@@ -541,6 +600,98 @@ bool FileManager::CheckACQtFileIntegrity(unsigned int fileNumber) const {
 
   INFO_OUT << "File is valid." << std::endl << std::endl;
   return true;
+}
+
+int FileManager::GetNumberOfACQtRuns() {
+
+  std::set<int> runs;
+  for (unsigned int i = 0; i < fACQtFiles.size(); ++i)
+    runs.insert(fACQtFiles[i].header->Run());
+  return runs.size();
+}
+
+int FileManager::GetCurrentACQtRunIndex() {
+
+  int oldrun = fACQtFiles[0].header->Run();
+  int count = 0;
+  for (unsigned int i = 0; i<=fCurrentACQtFile;i++) {
+    if (fACQtFiles[i].header->Run() != oldrun) {
+      oldrun = fACQtFiles[i].header->Run();
+      count++;
+    }
+  }
+  return count;
+}
+
+void FileManager::SkipCurrentACQtRun() {
+
+  assert(fCurrentACQtFile < fACQtFiles.size());
+
+  Long64_t entries = 0;
+  int run = fACQtFiles[fCurrentACQtFile].header->Run();
+  for (unsigned int i = 0; i <= fCurrentACQtFile; ++i)
+    entries += fACQtFiles[i].entries;
+
+  // check if next files belong to current run
+  int offset = 1;
+  while ((fCurrentACQtFile + offset != fACQtFiles.size()) && (fACQtFiles[fCurrentACQtFile + offset].header->Run() == run)) {
+      entries += fACQtFiles[fCurrentACQtFile + offset].entries;
+      ++offset;
+  }
+  assert(GetEvent(entries - 1));
+  assert(GetCurrentEventIndex() == (entries - 1));
+}
+
+void FileManager::SkipBackACQtRun() {
+
+  Long64_t entries = 0;
+  int run = fACQtFiles[fCurrentACQtFile].header->Run();
+
+  // Check if previous file(s) in the list, belongs to the current run as well, if so, skip it.
+  int fileindex = fCurrentACQtFile - 1;
+  for (int i = fileindex; i >= 0; i++) {
+    if (fACQtFiles[i].header->Run() != run)
+      break;
+    --fileindex;
+  }
+
+  // Count all entries in the chain until the beginning of the current run.
+  for (int j = 0; j <= fileindex; ++j)
+    entries += fACQtFiles[j].entries;
+
+  // If there are no entries, we're already at the beginning of the file list: early exit and reset state.
+  if (!entries) {
+    Reset();
+    return;
+  }
+
+  // If we found a new position, check that it's different from the current one. If so go ahead and we're done.
+  if (entries != GetCurrentEventIndex()) {
+    assert(GetEvent(entries - 1));
+    assert(GetCurrentEventIndex() == (entries - 1));
+    return;
+  }
+
+  // If SkipBackACQtRun() was called at the beginning of the current run, we reach this code.
+  // Skip back another run, otherwhise this function would be a no-op.
+  entries -= fACQtFiles[fCurrentACQtFile - 1].entries;
+  int oldrun = fACQtFiles[fCurrentACQtFile - 1].header->Run();
+
+  if (fCurrentACQtFile - 1 > 0) {
+    int offset = 2;
+    while ((entries > 0) && (oldrun == fACQtFiles[fCurrentACQtFile - offset].header->Run())) {
+      entries -= fACQtFiles[fCurrentACQtFile - offset].entries;
+      ++offset;
+    }
+  }
+
+  if (!entries) {
+    Reset();
+    return;
+  }
+
+  assert(GetEvent(entries - 1));
+  assert(GetCurrentEventIndex() == (entries - 1));
 }
 
 }

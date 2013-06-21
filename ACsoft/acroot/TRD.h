@@ -26,7 +26,7 @@ public:
   typedef Vector<TRDHSegment, 40> HSegmentsVector;
 
   /** A vector of TRDRawHit objects */
-  typedef Vector<TRDRawHit, 260> RawHitsVector;
+  typedef Vector<TRDRawHit, 5250> RawHitsVector;
 
   AC_TRD_Variables
 

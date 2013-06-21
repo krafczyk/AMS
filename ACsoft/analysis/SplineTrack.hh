@@ -39,11 +39,10 @@ public:
   void DrawYZProjection( float zmin, float zmax, bool rotatedSystem = false, int nPoints=1000 );
 
   static void setWarnOutOfBounds(bool value);
+
 protected:
 
   friend class TrackFactory;
-
-  // include TRKtrk and TRKfit stuff
 
   TrackSource fSource; ///< where does the track information originate?
 

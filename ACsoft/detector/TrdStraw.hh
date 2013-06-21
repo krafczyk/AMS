@@ -21,12 +21,14 @@ class TrdStraw
 {
 public:
 
-    TrdStraw( int layerNumber, int sublayerNumber, int ladderNumber, int moduleNumber, int strawNumber,
+    TrdStraw( int layerNumber, int sublayerNumber, int globalSublayerNumber, int ladderNumber, int towerNumber, int moduleNumber, int strawNumber,
               TrdModule* mother );
 
     int LayerNumber() const { return fLayerNumber; }
     int SublayerNumber() const { return fSublayerNumber; }
+    int GlobalSublayerNumber() const { return fGlobalSublayerNumber; }
     int LadderNumber() const { return fLadderNumber; }
+    int TowerNumber() const { return fTowerNumber; }
     int ModuleNumber() const { return fModuleNumber; }
     int StrawNumber() const { return fStrawNumber; }
     int GlobalStrawNumber() const { return fGlobalStrawNumber; }
@@ -37,6 +39,8 @@ public:
 
     TVector3 GlobalPosition() const { return fGlobalPosition; }
     TVector3 GlobalWireDirection() const { return fGlobalWireDirection; }
+
+    const TrdModule* GetMother() const { return fMother; }
 
     void UpdateGlobalPositionAndDirection();
 
@@ -58,7 +62,9 @@ private:
 
     int fLayerNumber;        ///< global layer number (0..19)
     int fSublayerNumber;     ///< sublayer in layer (0..1)
+    int fGlobalSublayerNumber; ///< global sublayer number (0..39)
     int fLadderNumber;       ///< ladder position of module in layer (0..N-1)
+    int fTowerNumber;        ///< tower number of module (0..17)
     int fModuleNumber;       ///< global module number (0..327)
     int fStrawNumber;        ///< straw number in module (0..15)
     int fGlobalStrawNumber;  ///< global straw number (0..5247)

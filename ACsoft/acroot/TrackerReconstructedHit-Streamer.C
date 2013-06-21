@@ -14,9 +14,8 @@ QDataStream& operator<<(QDataStream& stream, const TrackerReconstructedHit& obje
   stream.writeRawData(&object.fLayer, 1);
   stream << object.fX;
   stream << object.fY;
-  stream << object.fSignalX;
-  stream << object.fSignalY;
   stream << object.fResidualY;
+  stream << object.fQLayerJ;
   return stream;
 }
 
@@ -25,14 +24,18 @@ QDataStream& operator>>(QDataStream& stream, TrackerReconstructedHit& object) {
 
   stream.readRawData(&object.fLayer, 1);
 
-  FloatArrayStream<4> subStream1(stream);
+  FloatArrayStream<2> subStream1(stream);
   object.fX = subStream1.read();
   object.fY = subStream1.read();
-  object.fSignalX = subStream1.read();
-  object.fSignalY = subStream1.read();
 
+  if (::AC::CurrentACQtVersion() < 55)
+    stream >> object.fSignalX;
+  if (::AC::CurrentACQtVersion() < 55)
+    stream >> object.fSignal;
   if (::AC::CurrentACQtVersion() >= 54)
     stream >> object.fResidualY;
+  if (::AC::CurrentACQtVersion() >= 55)
+    stream >> object.fQLayerJ;
   return stream;
 }
 

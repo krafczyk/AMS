@@ -16,7 +16,8 @@ class TRDHSegment {
   WTF_MAKE_FAST_ALLOCATED;
 public:
   /** A vector of unsigned char (8bit) numbers */
-  typedef Vector<UChar_t, 40> RawHitIndexVector;
+  typedef Vector<UChar_t, 40>  RawHitIndexVector_8;
+  typedef Vector<UShort_t, 40> RawHitIndexVector;
 
   AC_TRDHSegment_Variables
 

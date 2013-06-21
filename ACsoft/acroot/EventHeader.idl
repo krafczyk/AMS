@@ -2,13 +2,15 @@
 Namespace = AC
 Class = EventHeader
 Members = \
-  qint64 fStatus                      \
+  qint64 fAMSStatus                   \
+  [57+UChar_t fFlags]                 \
   UChar_t fRandom                     \
   UChar_t fMCRandomSeed1              \
   UChar_t fMCRandomSeed2              \
   Int_t fEvent                        \
   TTimeStamp fTimeStamp               \
-  [53+Double_t fUTCTime]              \
+  [53_56Float_t fUTCTime]             \
+  [57+TTimeStamp fUTCTimeStamp]       \
   [53-Float_t fGalacticLatitude]      \
   [53-Float_t fGalacticLongitude]     \
   Float_t fMagneticLatitude           \
@@ -21,5 +23,5 @@ Members = \
   Float_t fISSYaw                     \
   Float_t fISSVelocityLatitude        \
   Float_t fISSVelocityLongitude       \
-  [54+Float_t fMaxCutOffConeNegative] \
-  [54+Float_t fMaxCutOffConePositive]
+  [54_55Float_t fMaxCutOffConeNegative] \
+  [54_55Float_t fMaxCutOffConePositive]

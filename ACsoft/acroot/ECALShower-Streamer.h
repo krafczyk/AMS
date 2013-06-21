@@ -11,6 +11,9 @@ private: \
   Float_t fEnergyAt3CMRatio; \
   Float_t fReconstructedEnergy; \
   Float_t fReconstructedEnergyError; \
+  Float_t fReconstructedEnergyElectron; \
+  Float_t fReconstructedEnergyPhoton; \
+  Float_t fReconstructedEnergyStandaloneEstimator; \
   Float_t fRelativeRearLeak; \
   Float_t fShowerMaximum; \
   Float_t fChiSquareProfile; \
@@ -34,6 +37,9 @@ public: \
     , fEnergyAt3CMRatio(0) \
     , fReconstructedEnergy(0) \
     , fReconstructedEnergyError(0) \
+    , fReconstructedEnergyElectron(0) \
+    , fReconstructedEnergyPhoton(0) \
+    , fReconstructedEnergyStandaloneEstimator(0) \
     , fRelativeRearLeak(0) \
     , fShowerMaximum(0) \
     , fChiSquareProfile(0) \

@@ -13,6 +13,7 @@ QDataStream& operator<<(QDataStream& stream, const TOFBeta& object) {
 
   stream << object.fBeta;
   stream << object.fBetaError;
+  stream.writeRawData(&object.fTrackerTrackIndex, 1);
   stream << object.fChargesNew;
   stream << object.fTOFClusterIndex;
   return stream;
@@ -26,6 +27,8 @@ QDataStream& operator>>(QDataStream& stream, TOFBeta& object) {
   object.fBeta = subStream1.read();
   object.fBetaError = subStream1.read();
 
+  if (::AC::CurrentACQtVersion() >= 57)
+    stream.readRawData(&object.fTrackerTrackIndex, 1);
   if (::AC::CurrentACQtVersion() < 53)
     stream >> object.fCharges;
   if (::AC::CurrentACQtVersion() < 53)

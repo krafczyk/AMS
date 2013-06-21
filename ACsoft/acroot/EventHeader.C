@@ -5,14 +5,13 @@ namespace ACsoft {
 namespace AC {
 
 BEGIN_DEBUG_TABLE(EventHeader)
-  COL( "Rnd",               UChar_t,    Random)
-  COL( "Event\t",           Int_t,      Event)
-  COL( "Timestamp\t\t\t\t", TTimeStamp, TimeStamp)
-  COL( "UTCTime\t\t\t\t",   Double_t,   UTCTime)
-  COL( "MAGLat [deg]",      Float_t,    MagneticLatitude)
-  COL( "MAGLon [deg]",      Float_t,    MagneticLongitude)
-  COL( "MaxCutConeNeg",     Float_t,    MaxCutOffConeNegative)
-  COL( "MaxCutConePos",     Float_t,    MaxCutOffConePositive)
+  COL( "Flags",               EventHeaderFlags, Flags)
+  COL( "Rnd",                 UChar_t,    Random)
+  COL( "Event\t",             Int_t,      Event)
+  COL( "Timestamp\t\t\t\t",   TTimeStamp, TimeStamp)
+  COL( "UTCTimestamp\t\t\t\t",TTimeStamp, UTCTimeStamp)
+  COL( "MAGLat [deg]",        Float_t,    MagneticLatitude)
+  COL( "MAGLon [deg]",        Float_t,    MagneticLongitude)
   NEWTABLE
   COL( "ISSLat [deg]",    Float_t, ISSLatitude)
   COL( "ISSLon [deg]",    Float_t, ISSLongitude)
@@ -28,13 +27,14 @@ END_DEBUG_TABLE
 
 void EventHeader::Clear() {
 
-  fStatus = 0;
+  fAMSStatus = 0;
+  fFlags = 0;
   fRandom = 0;
   fMCRandomSeed1 = 0;
   fMCRandomSeed2 = 0;
   fEvent = 0;
   fTimeStamp = TTimeStamp();
-  fUTCTime = 0;
+  fUTCTimeStamp = TTimeStamp();
   fMagneticLatitude = 0;
   fMagneticLongitude = 0;
   fISSLatitude = 0;
