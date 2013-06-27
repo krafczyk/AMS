@@ -108,9 +108,9 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
 #ifdef G4_USE_DPMJET
   if(G4FFKEY.IonPhysicsModel==3)hadi->AddDataSet(dpmXS);
 #endif
-  hadi->AddDataSet(fTripathi);
+/*  hadi->AddDataSet(fTripathi);
 //fTripathiLight or fIonH first use
-  hadi->AddDataSet(fTripathiLight);
+  hadi->AddDataSet(fTripathiLight);*/
   if(isIon) { hadi->AddDataSet(fIonH); }
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
