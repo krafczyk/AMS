@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.390.2.1 2013/03/24 21:12:52 qyan Exp $
+#  $Id: datacards.doc,v 1.390.2.2 2013/06/28 14:32:23 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -687,7 +687,7 @@ I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSC, others not 
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
 I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 1: Binary Light Ion Cascade model(not supposed to be valid above few 10GeV/n)
-			// 2: Wilson abrasion model (not supposed to be valid above few 10GeV/n)
+			// 2: G4QMD ; -2 :Wilson Abrasion 
                         // 3: Binary Light(<5GeV/n) +DPMJET2-5Model+DPMJETCrossSection(5GeV/n,1000TeV/n)
                         // 4: Binary Light(<5GeV/n) +DPMJET2-5Model+ShenCrossSection(5GeV/n,1000TeV/n)
 
