@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.561 2013/06/18 14:35:37 sdifalco Exp $
+//  $Id: root.h,v 1.562 2013/06/28 14:44:23 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4145,7 +4145,8 @@ public:
 #elif  defined WIN32
 public:
 #else
-protected:
+//protected:
+public:
 #endif
 //
 //  TSelector functions
