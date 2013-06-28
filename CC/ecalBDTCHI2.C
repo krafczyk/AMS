@@ -117,6 +117,9 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
   
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
+   const Float_t ecalZEntry = -142.792;
+   const Float_t ecalZExit = -158.457;
+   const Float_t EneDepThreshold = 2.;//threshold on single cell in MeV (1MeV~2ADC)
 
    float MapEneDep[nLAYERs][nCELLs]; // Energy deposit in every cell of ECAL [GeV]
    float ClusterEnergy[nLAYERs];     // Lateral leak corrected energy deposit [GeV]
@@ -176,7 +179,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       LayerSigma[ilayer] = 0.;
 
       LayerS1S3[ilayer]   =  1.;
-      LayerS3Frac[ilayer] = -1.;
+      LayerS3Frac[ilayer] =  1.;
 
       for (unsigned int icell = 0; icell < nCELLs; ++icell)
          MapEneDep[ilayer][icell] = 0.;
@@ -230,15 +233,15 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       unsigned int imaxcell = 0;
       float maxcellene      = 0.;
 
-      for (unsigned int icell = 0; icell < nCELLs; ++icell)
+     for (unsigned int icell = 0; icell < nCELLs; ++icell)
       {
-         if (MapEneDep[ilayer][icell] == 0.) continue;
+	if (MapEneDep[ilayer][icell] <= EneDepThreshold ) continue;
+	
+	LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
+	
+	++NEcalHits;
 
-         EneDep += MapEneDep[ilayer][icell];
-
-         LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
-
-         if (MapEneDep[ilayer][icell] >= maxcellene)
+        if (MapEneDep[ilayer][icell] >= maxcellene)
          {
             maxcellene = MapEneDep[ilayer][icell];
             imaxcell   = icell;
@@ -248,10 +251,67 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
          ShowerMeanXY[proj] += (icell + 1)*MapEneDep[ilayer][icell];
       }
 
+      //
+      // Now apply corrections for lateral leakage -- ADDED 27may2013 MI
+      //
+      float LatLeak[10]={0.};
+      //case 1: cell at left border -> simmetrize shower
+      if (imaxcell==0)
+	{
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell+iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      LatLeak[iLatLeak-1] = MapEneDep[ilayer][imaxcell+iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //case 2: cell close to left border within 10 cells 
+      //-> simmetrize shower using ratio of adjacent cells
+      else if (imaxcell<9)
+	{
+	  //find ratio
+	  float LatRatio = MapEneDep[ilayer][imaxcell-1]/MapEneDep[ilayer][imaxcell+1] ;
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell+iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      if (imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell+iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //case 3: cell at right border -> simmetrize shower
+      if (imaxcell==71)
+	{
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      LatLeak[iLatLeak-1] = MapEneDep[ilayer][imaxcell-iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //case 4: cell close to left border within 10 cells 
+      //-> simmetrize shower using ratio of adjacent cells
+      else if (imaxcell>62)
+	{
+	  //find ratio
+	  float LatRatio = MapEneDep[ilayer][imaxcell+1]/MapEneDep[ilayer][imaxcell-1] ;
+	  int iLatLeak=1;
+	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
+	    {
+	      if (imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
+	      iLatLeak++;
+	    }
+	}
+      //
+      for(int i=0;i<10;i++) LayerEneDep[ilayer] += LatLeak[i];
+      //End of correction for lateral leakage
+      //
+
+      EneDep         += LayerEneDep[ilayer];
       EneDepXY[proj] += LayerEneDep[ilayer];
 
       float S1 = MapEneDep[ilayer][imaxcell];
       float S3 = S1;
+      if (imaxcell==0 || imaxcell==71) S3 += LatLeak[0];
       if (imaxcell > 0) S3 += MapEneDep[ilayer][imaxcell - 1];
       if (imaxcell < nCELLs - 1) S3 += MapEneDep[ilayer][imaxcell + 1];
 
@@ -259,7 +319,6 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       else S3toty += S3;
 
       if (S1*S3 > 0.) LayerS1S3[ilayer] = S1/S3;
-      else  LayerS1S3[ilayer] = 0.;
 
       if (LayerEneDep[ilayer] > 0.)
       {
@@ -270,7 +329,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       {
          LayerMean[ilayer] = -1.;
       }
-   }
+   } //end of loop on layers
 
    if (EneDep <= 0. || LayerEnergy <= 0. || EneDepXY[0] <= 0. || EneDepXY[1] <= 0.) return -0.999;
 
@@ -323,9 +382,9 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    ShowerFootprintX = TMath::Sqrt(TMath::Abs(sigmaXY[0]*sigmaZ[0] - TMath::Power(sigmaXYZ[0], 2)));
    ShowerFootprintY = TMath::Sqrt(TMath::Abs(sigmaXY[1]*sigmaZ[1] - TMath::Power(sigmaXYZ[1], 2)));
 
-   S3totx = this->S3tot[1];
-   S3toty = this->S3tot[2];
-   NEcalHits = this->Nhits;
+   //S3totx = this->S3tot[1];
+   //S3toty = this->S3tot[2];
+   //NEcalHits = this->Nhits;
 
    float energyd = EnergyD/1000.;
    float classification_energy = energyd;
@@ -1714,6 +1773,81 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
      }
    else bdt=-999.;
+
+   /*
+   //
+   //Normalization of smoothed bdt
+   
+   if (TMVAClassifier==1)
+     {
+       // 1 jun 2013: apply output correction for smoothed version (TMVAClass=1)
+       //
+       // training done in Energy
+       const int nCat=13;
+       float EnergyEBin[nCat] = 
+	 {   0.5,    2.05,   5.60, 10.28,  15.43,
+	     20.3,   30.76,  41.76, 51.94,  73.51,
+	     102.47, 150.53, 263.57 };
+       float scaleE[nCat] = 
+	 { 2.000, 1.363, 0.833, 0.750, 0.714,
+	   0.789, 0.682, 0.769, 0.714, 0.769, 
+	   0.937, 0.968, 1.200 };
+       float BDTmeanE[nCat] = 
+	 { -0.04, -0.01,  0.01, -0.01, -0.01,
+	   -0.01, -0.03, -0.02,  0.01, -0.06,
+	   -0.05, -0.10, -0.04 };
+       float BDTmipE[nCat] = 
+	 { -0.59, -0.27, -0.25, -0.19, -0.11,
+	   -0.15, -0.09, -0.19, -0.03, -0.09,
+	   -0.23, -0.35, -0.35 };
+       float EnergyDBin[nCat] = 
+	 {   0.5,    2.,   5., 10., 15.,
+	     20.,   30.,  40., 50., 70.,
+	     100.,  150., 250. };
+       float scaleD[nCat] = 
+	 { 2.000, 1.200, 0.857, 0.714, 0.667,
+	   0.750, 0.682, 0.714, 0.667, 0.714, 
+	   0.789, 0.857, 1.200 };
+       float BDTmeanD[nCat] = 
+	 {  -0.04,  0.00,  0.00, -0.01, -0.02,
+	     0.01,  0.01, -0.01,  0.02, -0.13,
+	    -0.07, -0.02, -0.49 };
+       float BDTmipD[nCat] = 
+	 { -0.55, -0.19, -0.13, -0.11, -0.09,
+	   -0.11, -0.05,  0.17,  0.05, -0.03,
+	   -0.11, -0.23, -0.49 };
+
+       float cut = -0.02+0.17*log(energyd)+8.7e-4*pow((double)log(energyd),4.00);
+       cut = cut>0.1?cut:0.1;
+       float shift;
+       int LoopCheck=-1;
+
+       for (int j=nCat-1;j>=0;j--)
+	 {
+	   //here use energyD
+	   if ( EnergyFlag == 0 )
+	     {
+	       if (energyd>EnergyDBin[j] && LoopCheck<0)
+		 {
+		   shift = F2SLEneDep>cut?BDTmeanD[j]:BDTmipD[j];
+		   //cout<<Form(" Energybin, energyd, cut, bdt, shift = %d %f %f %f %f",j,energyd,cut,bdt,shift);
+		   bdt = scaleD[j]*(bdt-shift);
+		   //cout<<" Corrected bdt = "<<bdt<<endl;
+		   LoopCheck=1;
+		 }
+	     }
+	   //EnergyE 
+	   else
+	     {
+	       if (EnergyE>EnergyEBin[j] && LoopCheck<0)
+		 {
+		   shift = F2SLEneDep>cut?BDTmeanE[j]:BDTmipE[j];
+		   bdt = scaleE[j]*(bdt-shift);
+		 }
+	     }
+	 }
+     }//end of output normalization   
+   */
 
    return bdt;
 }
