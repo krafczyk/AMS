@@ -176,7 +176,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     }
 
 
-    if(G4FFKEY.IonPhysicsModel==2){
+    if(G4FFKEY.IonPhysicsModel==-2){
 
 	cout<<"Use G4WilsonAbrasionModel for All the Ions"<<endl;
 
@@ -246,7 +246,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
 
 
-    if(G4FFKEY.IonPhysicsModel==4){
+    if(G4FFKEY.IonPhysicsModel==2){
 
 	cout<<"Use G4QMD for All the Ions"<<endl;
 
