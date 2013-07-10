@@ -107,11 +107,11 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    static EcalAxis ecalaxis;
    if (iBDTCHI2VERSION<3)
      {
-       ecalaxis.process(pev,2);//use Lateral Fit algorithm for finding COG in the layer->time consuming
+       ecalaxis.process(this,2);//use Lateral Fit algorithm for finding COG in the layer->time consuming
      }
    else
      {
-       ecalaxis.process(pev,8);//use Neighbour Cells algorithm for finding COG in the layer
+       ecalaxis.process(this,8);//use Neighbour Cells algorithm for finding COG in the layer
      }
 
   
