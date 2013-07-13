@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.133 2013/05/15 09:38:47 choutko Exp $
+//  $Id: root_setup.C,v 1.134 2013/07/13 14:07:39 mduranti Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -4606,7 +4606,9 @@ int AMSSetupR::LoadDSPErrors(unsigned int t1, unsigned int t2){
   int oldsize=fDSPError.size();
 
   //when a new file will be produced we will have to implement the loop over files...
-  const char fpath[256]="DSPPERIODS_1305911355_1339661827.csv";
+  //  const char fpath[256]="DSPPERIODS_1305911355_1339661827.csv";
+  //better to "merge" the new files and use a 'forever valid' "alias" (a symbolic link) 
+  const char fpath[256]="DSPPERIODS.csv";
   
   string fname=DSPPath;
   //  cout<<fname<<endl;//only for debug
@@ -4998,22 +5000,22 @@ bool AMSSetupR::DSPError::SetNA(unsigned int NA){
   // printf("%08X\n", Nodes_1C0_1DF);
   // printf("%08X\n", Nodes_1E0_1FF);
 
-  if (NA<0x01F)      Nodes_000_01F=(1<< NA      );
-  else if (NA<0x03F) Nodes_020_03F=(1<<(NA-   32));
-  else if (NA<0x05F) Nodes_040_05F=(1<<(NA- 2*32));
-  else if (NA<0x07F) Nodes_060_07F=(1<<(NA- 3*32));
-  else if (NA<0x09F) Nodes_080_09F=(1<<(NA- 4*32));
-  else if (NA<0x0BF) Nodes_0A0_0BF=(1<<(NA- 5*32));
-  else if (NA<0x0DF) Nodes_0C0_0DF=(1<<(NA- 6*32));
-  else if (NA<0x0FF) Nodes_0E0_0FF=(1<<(NA- 7*32));
-  else if (NA<0x11F) Nodes_100_11F=(1<<(NA- 8*32));
-  else if (NA<0x13F) Nodes_120_13F=(1<<(NA- 9*32));
-  else if (NA<0x15F) Nodes_140_15F=(1<<(NA-10*32));
-  else if (NA<0x17F) Nodes_160_17F=(1<<(NA-11*32));
-  else if (NA<0x19F) Nodes_180_19F=(1<<(NA-12*32));
-  else if (NA<0x1BF) Nodes_1A0_1BF=(1<<(NA-13*32));
-  else if (NA<0x1DF) Nodes_1C0_1DF=(1<<(NA-14*32));
-  else if (NA<0x1FF) Nodes_1E0_1FF=(1<<(NA-15*32));
+  if (NA<=0x01F)      Nodes_000_01F=(1<< NA      );
+  else if (NA<=0x03F) Nodes_020_03F=(1<<(NA-   32));
+  else if (NA<=0x05F) Nodes_040_05F=(1<<(NA- 2*32));
+  else if (NA<=0x07F) Nodes_060_07F=(1<<(NA- 3*32));
+  else if (NA<=0x09F) Nodes_080_09F=(1<<(NA- 4*32));
+  else if (NA<=0x0BF) Nodes_0A0_0BF=(1<<(NA- 5*32));
+  else if (NA<=0x0DF) Nodes_0C0_0DF=(1<<(NA- 6*32));
+  else if (NA<=0x0FF) Nodes_0E0_0FF=(1<<(NA- 7*32));
+  else if (NA<=0x11F) Nodes_100_11F=(1<<(NA- 8*32));
+  else if (NA<=0x13F) Nodes_120_13F=(1<<(NA- 9*32));
+  else if (NA<=0x15F) Nodes_140_15F=(1<<(NA-10*32));
+  else if (NA<=0x17F) Nodes_160_17F=(1<<(NA-11*32));
+  else if (NA<=0x19F) Nodes_180_19F=(1<<(NA-12*32));
+  else if (NA<=0x1BF) Nodes_1A0_1BF=(1<<(NA-13*32));
+  else if (NA<=0x1DF) Nodes_1C0_1DF=(1<<(NA-14*32));
+  else if (NA<=0x1FF) Nodes_1E0_1FF=(1<<(NA-15*32));
   else {
     cerr<<"DSPError::SetNA-W-NodeAddressNotPossible "<<NA<<endl;
     return false;
@@ -5060,22 +5062,22 @@ bool AMSSetupR::DSPError::AddNA(unsigned int NA) {
   // unsigned int _Nodes_1C0_1DF=Nodes_1C0_1DF;
   // unsigned int _Nodes_1E0_1FF=Nodes_1E0_1FF;
 
-  if (NA<0x01F)      Nodes_000_01F|=(1<< NA      );
-  else if (NA<0x03F) Nodes_020_03F|=(1<<(NA-   32));
-  else if (NA<0x05F) Nodes_040_05F|=(1<<(NA- 2*32));
-  else if (NA<0x07F) Nodes_060_07F|=(1<<(NA- 3*32));
-  else if (NA<0x09F) Nodes_080_09F|=(1<<(NA- 4*32));
-  else if (NA<0x0BF) Nodes_0A0_0BF|=(1<<(NA- 5*32));
-  else if (NA<0x0DF) Nodes_0C0_0DF|=(1<<(NA- 6*32));
-  else if (NA<0x0FF) Nodes_0E0_0FF|=(1<<(NA- 7*32));
-  else if (NA<0x11F) Nodes_100_11F|=(1<<(NA- 8*32));
-  else if (NA<0x13F) Nodes_120_13F|=(1<<(NA- 9*32));
-  else if (NA<0x15F) Nodes_140_15F|=(1<<(NA-10*32));
-  else if (NA<0x17F) Nodes_160_17F|=(1<<(NA-11*32));
-  else if (NA<0x19F) Nodes_180_19F|=(1<<(NA-12*32));
-  else if (NA<0x1BF) Nodes_1A0_1BF|=(1<<(NA-13*32));
-  else if (NA<0x1DF) Nodes_1C0_1DF|=(1<<(NA-14*32));
-  else if (NA<0x1FF) Nodes_1E0_1FF|=(1<<(NA-15*32));
+  if (NA<=0x01F)      Nodes_000_01F|=(1<< NA      );
+  else if (NA<=0x03F) Nodes_020_03F|=(1<<(NA-   32));
+  else if (NA<=0x05F) Nodes_040_05F|=(1<<(NA- 2*32));
+  else if (NA<=0x07F) Nodes_060_07F|=(1<<(NA- 3*32));
+  else if (NA<=0x09F) Nodes_080_09F|=(1<<(NA- 4*32));
+  else if (NA<=0x0BF) Nodes_0A0_0BF|=(1<<(NA- 5*32));
+  else if (NA<=0x0DF) Nodes_0C0_0DF|=(1<<(NA- 6*32));
+  else if (NA<=0x0FF) Nodes_0E0_0FF|=(1<<(NA- 7*32));
+  else if (NA<=0x11F) Nodes_100_11F|=(1<<(NA- 8*32));
+  else if (NA<=0x13F) Nodes_120_13F|=(1<<(NA- 9*32));
+  else if (NA<=0x15F) Nodes_140_15F|=(1<<(NA-10*32));
+  else if (NA<=0x17F) Nodes_160_17F|=(1<<(NA-11*32));
+  else if (NA<=0x19F) Nodes_180_19F|=(1<<(NA-12*32));
+  else if (NA<=0x1BF) Nodes_1A0_1BF|=(1<<(NA-13*32));
+  else if (NA<=0x1DF) Nodes_1C0_1DF|=(1<<(NA-14*32));
+  else if (NA<=0x1FF) Nodes_1E0_1FF|=(1<<(NA-15*32));
   else {
     cerr<<"DSPError::AddNA-W-NodeAddressNotPossible "<<NA<<endl;
     return false;
@@ -5195,22 +5197,22 @@ bool AMSSetupR::DSPError::SearchNA(unsigned int NA){
   
   bool ret=false;
   
-  if (NA<0x01F)      ret=(Nodes_000_01F)&(1<< NA      );
-  else if (NA<0x03F) ret=(Nodes_020_03F)&(1<<(NA-   32));
-  else if (NA<0x05F) ret=(Nodes_040_05F)&(1<<(NA- 2*32));
-  else if (NA<0x07F) ret=(Nodes_060_07F)&(1<<(NA- 3*32));
-  else if (NA<0x09F) ret=(Nodes_080_09F)&(1<<(NA- 4*32));
-  else if (NA<0x0BF) ret=(Nodes_0A0_0BF)&(1<<(NA- 5*32));
-  else if (NA<0x0DF) ret=(Nodes_0C0_0DF)&(1<<(NA- 6*32));
-  else if (NA<0x0FF) ret=(Nodes_0E0_0FF)&(1<<(NA- 7*32));
-  else if (NA<0x11F) ret=(Nodes_100_11F)&(1<<(NA- 8*32));
-  else if (NA<0x13F) ret=(Nodes_120_13F)&(1<<(NA- 9*32));
-  else if (NA<0x15F) ret=(Nodes_140_15F)&(1<<(NA-10*32));
-  else if (NA<0x17F) ret=(Nodes_160_17F)&(1<<(NA-11*32));
-  else if (NA<0x19F) ret=(Nodes_180_19F)&(1<<(NA-12*32));
-  else if (NA<0x1BF) ret=(Nodes_1A0_1BF)&(1<<(NA-13*32));
-  else if (NA<0x1DF) ret=(Nodes_1C0_1DF)&(1<<(NA-14*32));
-  else if (NA<0x1FF) ret=(Nodes_1E0_1FF)&(1<<(NA-15*32));
+  if (NA<=0x01F)      ret=(Nodes_000_01F)&(1<< NA      );
+  else if (NA<=0x03F) ret=(Nodes_020_03F)&(1<<(NA-   32));
+  else if (NA<=0x05F) ret=(Nodes_040_05F)&(1<<(NA- 2*32));
+  else if (NA<=0x07F) ret=(Nodes_060_07F)&(1<<(NA- 3*32));
+  else if (NA<=0x09F) ret=(Nodes_080_09F)&(1<<(NA- 4*32));
+  else if (NA<=0x0BF) ret=(Nodes_0A0_0BF)&(1<<(NA- 5*32));
+  else if (NA<=0x0DF) ret=(Nodes_0C0_0DF)&(1<<(NA- 6*32));
+  else if (NA<=0x0FF) ret=(Nodes_0E0_0FF)&(1<<(NA- 7*32));
+  else if (NA<=0x11F) ret=(Nodes_100_11F)&(1<<(NA- 8*32));
+  else if (NA<=0x13F) ret=(Nodes_120_13F)&(1<<(NA- 9*32));
+  else if (NA<=0x15F) ret=(Nodes_140_15F)&(1<<(NA-10*32));
+  else if (NA<=0x17F) ret=(Nodes_160_17F)&(1<<(NA-11*32));
+  else if (NA<=0x19F) ret=(Nodes_180_19F)&(1<<(NA-12*32));
+  else if (NA<=0x1BF) ret=(Nodes_1A0_1BF)&(1<<(NA-13*32));
+  else if (NA<=0x1DF) ret=(Nodes_1C0_1DF)&(1<<(NA-14*32));
+  else if (NA<=0x1FF) ret=(Nodes_1E0_1FF)&(1<<(NA-15*32));
   else {
     cerr<<"DSPError::AddNA-W-NodeAddressNotPossible "<<NA<<endl;
     return false;
