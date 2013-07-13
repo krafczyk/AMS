@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.584 2013/07/13 15:25:01 qyan Exp $
+//  $Id: root.C,v 1.585 2013/07/13 15:37:28 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6698,8 +6698,8 @@ double TrdTrackR::Interpolate(double zpl,AMSPoint &pnt,AMSDir &dir) const{
    p1[2]=zpl;
    p0[2]=0;
    for(int ixy=0;ixy<2;ixy++){
-     p1[ixy]=(p1[2]==Coo[2])?Coo[ixy]:Coo[ixy]+d1[ixy]/d1[2]*(p1[2]-Coo[2]);//zpl
-     p0[ixy]=(p0[2]==Coo[2])?Coo[ixy]:Coo[ixy]+d1[ixy]/d1[2]*(p0[2]-Coo[2]);
+     p1[ixy]=Coo[ixy]+d1[ixy]/d1[2]*(p1[2]-Coo[2]);//zpl
+     p0[ixy]=Coo[ixy]+d1[ixy]/d1[2]*(p0[2]-Coo[2]);
    }
    AMSPoint p2(p1-p0);
    number path=p2.norm();
