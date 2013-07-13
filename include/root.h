@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.562 2013/06/28 14:44:23 choutko Exp $
+//  $Id: root.h,v 1.563 2013/07/13 15:25:05 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -373,7 +373,7 @@ input
           velocity  (not signed v/speed_of_light)
           charge    (signed, integer)
 	  RPT[3]    ISS coordinates (Rs,PhiS,ThetaS)
-          VelPT[3]  ISS velocity (Vel rad/sec,VelPhi rad,VelTheta rad)
+          VelPT[3]  ISS velocity (Vel rad/sec,VelPhi rad,VepTheta rad)
 	  YPR[3]    ISS attitude (Yaw,Pitch,Roll)
 	  xtime     time
 	  att       1:GTOD, 2:CTRS, 3:INTL
@@ -2324,6 +2324,15 @@ public:
       static bool CreatePDF(const char *fnam);
   /// compute charge & likelihoods
   void ComputeCharge(double betacorr);
+   /// TrdTrack Interpolation to posZ
+  /*!
+   * @param[in] zpl Interpolate to Z position (Z=zpl)
+   * @param[out] pnt TrdTrack position at Z=zpl
+   * @param[out] dir TrdTrack direction at Z=zpl
+   * @return path length at Z=zpl (from Z=0)
+   */
+  double  Interpolate(double zpl,AMSPoint &pnt,AMSDir &dir) const;
+
   TrdTrackR(AMSTRDTrack *ptr);
   TrdTrackR(const TrdTrackR & o);
   TrdTrackR(){};

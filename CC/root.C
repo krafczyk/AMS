@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.583 2013/06/18 14:35:04 sdifalco Exp $
+//  $Id: root.C,v 1.584 2013/07/13 15:25:01 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6687,6 +6687,28 @@ void TrdTrackR::ComputeCharge(double betacorr){
 
         }
 
+
+
+//----TrdTrack Interpolation
+double TrdTrackR::Interpolate(double zpl,AMSPoint &pnt,AMSDir &dir) const{
+//----
+   number theta=Theta,phi=Phi;
+   AMSDir d1(theta,phi);
+   AMSPoint p0,p1;
+   p1[2]=zpl;
+   p0[2]=0;
+   for(int ixy=0;ixy<2;ixy++){
+     p1[ixy]=(p1[2]==Coo[2])?Coo[ixy]:Coo[ixy]+d1[ixy]/d1[2]*(p1[2]-Coo[2]);//zpl
+     p0[ixy]=(p0[2]==Coo[2])?Coo[ixy]:Coo[ixy]+d1[ixy]/d1[2]*(p0[2]-Coo[2]);
+   }
+   AMSPoint p2(p1-p0);
+   number path=p2.norm();
+   if(p1[2]<0)path*=-1;
+//---
+   dir=d1; pnt=p1;
+   return path;
+}
+//---
 
 TrdTrackR::TrdTrackR(const TrdTrackR &o){
 if(&o!=this){
