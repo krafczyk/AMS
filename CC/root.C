@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.585 2013/07/13 15:37:28 qyan Exp $
+//  $Id: root.C,v 1.586 2013/07/14 23:51:23 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10096,6 +10096,43 @@ int AMSEventR::GetRTI(AMSSetupR::RTI & a){
    return getsetup()->getRTI(a,fHeader.Time[0]);
 }
 
+//--------
+map<unsigned int,AMSSetupR::RunI> AMSEventR::fRunList;
+
+int AMSEventR::RecordRTIRun(){
+
+  static string pf="";
+//----Find rootfile
+  unsigned int nt=fHeader.Time[0]; 
+  unsigned int nr=fHeader.Run;
+  string nf=Tree()->GetCurrentFile()->GetName();
+  if(nf==pf){
+     if(nt<fRunList[nr].bt)fRunList[nr].bt=nt;
+     if(nt>fRunList[nr].et)fRunList[nr].et=nt;
+     return 2;//exist
+  }
+
+  pf=nf;
+//----  
+  map<unsigned int,AMSSetupR::RunI>::iterator it=fRunList.find(nr);
+  if(it==fRunList.end()){//Find Run
+     fRunList.insert(make_pair(nr,AMSSetupR::RunI(nr,nt,nt,nf)));
+     return 0;//new run
+  }
+  else {//Exist Run Check File
+    if(nt<fRunList[nr].bt)fRunList[nr].bt=nt;
+    if(nt>fRunList[nr].et)fRunList[nr].et=nt;
+    for(int ifn=0;ifn<fRunList[nr].fname.size();ifn++){
+      if(fRunList[nr].fname.at(ifn)==nf)return 2;//exist
+    }
+    fRunList[nr].fname.push_back(nf); //new file
+    return 1;//
+  }
+
+  return 3;
+
+}
+
 int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
 
 #ifdef __ROOTSHAREDLIBRARY__
@@ -10103,10 +10140,10 @@ int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
   static unsigned int stime[2]={1,1};
 #pragma omp threadprivate (setupu)
 #pragma omp threadprivate (stime)
-
+ const int pt=3600*3;
  const int dt=3600*24;
- if(stime[0]==1||xtime>stime[1]){
-    stime[0]=xtime;
+ if(stime[0]==1||xtime>stime[1]||xtime<stime[0]){
+    stime[0]=(xtime<=pt)?1:xtime-pt;
     stime[1]=xtime+dt;
     setupu.fRTI.clear();
     setupu.LoadRTI(stime[0],stime[1]);
@@ -10126,6 +10163,38 @@ int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
   return 2;
 }
 
+
+int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2]){
+
+  const int pt=100;//Run window Pr
+  const int dt=3600;//Run window Af 1~hour 20min
+  unsigned int bt=(runid<=pt)?1:runid-pt;
+  unsigned int et=runid+dt;
+  time[0]=time[1]=runid;//Not Found
+
+//----Find BT
+  AMSSetupR::RTI a;
+  for(unsigned int t=bt;t<=et;t++){      
+     if(GetRTI(a,t)!=0)continue; 
+     if(a.run==runid){time[0]=a.run;break;}
+  }
+//---Find ET
+  for(unsigned int t=et;t>=bt;t--){
+     if(GetRTI(a,t)!=0)continue;
+     if(a.run==runid){time[1]=a.run;break;}
+  }
+
+//--Result
+  if(time[0]==et||time[1]==bt){
+     cerr<<"RTI-RunTime Size Too Big Run="<<runid<<" Time="<<time[0]<<"-"<<time[1]<<endl;
+  }
+  if(time[0]>time[1]){
+     cerr<<"RTI-RunTime Abnormal Run="<<runid<<" Time="<<time[0]<<"-"<<time[1]<<endl;
+     time[0]=time[1]=runid;
+  }
+  int ssize=time[1]-time[0]+1;
+  return ssize;
+}
 
 //----------------------------------------------------------------------
 double HeaderR::Zenith(){

@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.80 2013/03/25 15:46:16 qyan Exp $
+//  $Id: root_setup.h,v 1.81 2013/07/14 23:51:26 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -215,6 +215,27 @@ float getphim();///< ThetaM(degrees)
    }
 ClassDef(RTI,4)
 };
+
+
+//! AMS RTI Process RootFile Run information
+/*!
+\sa AMSSetupR
+\author qyan@cern.ch
+*/
+
+class RunI{
+ public: 
+  unsigned int run;///< run
+  unsigned int bt; ///begin time of this run
+  unsigned int et; ///end time of this run
+  vector<string>fname;//root file name
+  RunI():run(0),bt(0),et(0){}
+  RunI(unsigned int _run,unsigned int _bt, unsigned int _et, string _fn):run(_run),bt(_bt),et(_et){
+    fname.push_back(_fn);
+  }
+  ClassDef(RunI,1)
+};
+
 
 class GPSWGS84{
 public:

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.563 2013/07/13 15:25:05 qyan Exp $
+//  $Id: root.h,v 1.564 2013/07/14 23:51:26 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4564,10 +4564,16 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
            !=0: RIT second has problem(please not use this second for Flux Cal)
        */  
        int GetRTIStat();
+       //! RTI RunList
+       static map<unsigned int,AMSSetupR::RunI> fRunList;
+       //! Record RTI Run to RTIRunList
+       /*! return 0: if Event->new run  1: Event->new file 2: Event->old as previous Ev
+       */
+       int RecordRTIRun();
        //! get AMS Exposure-Time RTI information for each second
        /*! return 0: if sucess
            !=0: RIT second has problem 
-       */      
+       */ 
        int GetRTI(AMSSetupR::RTI & a);
        //!  AMS Exposure-Time RTI for each second off-rootfile mode
        /*! return 0: if sucess
@@ -4575,6 +4581,11 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
            \param[in] xtime JMDC Time
        */
        static int GetRTI(AMSSetupR::RTI & a, unsigned int  xtime);
+       //!  get AMS Run Begin and End Time from RTI according to run id
+       /*    \param[in]  runid: run id
+             \param[out] time[0]: Run Begin Time, time[1]: Run End Time
+       */
+       static int GetRTIRunTime(unsigned int runid,unsigned int time[2]);
 
 //--------------------------------------------------------------------------------------------------
 
@@ -6510,7 +6521,7 @@ void         AddAMSObject(TriggerLVL302 *ptr);
 void RebuildBetaH();
 void RebuildMCEventg();
 friend class AMSChain;
-ClassDef(AMSEventR,21)       //AMSEventR
+ClassDef(AMSEventR,22)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
