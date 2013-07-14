@@ -3,6 +3,7 @@
 //        Created:       2013-Jan-26  Q.Yan  qyan@cern.ch (Example and Develop)
 //                       Time Cut by V.Choutko
 //        Run:           root -b -q RTI.C+
+//        Update:        2013-July-14  Q.Yan:  better cutoff value bin by bin
 // -----------------------------------------------------------
 
 #include <signal.h>
@@ -128,10 +129,16 @@ bool PreEvent(AMSEventR *pev){
 
 //---RIT+Event Cutoff-Cut
    float rig=betah->pTrTrack()->GetRigidity();//no select for TkPattern
-   if(rig<1.2*a.cf[3][1])return false; //1.2*Cutoff (Positive 40 degree)
- 
+//--Find Cutoff
+   double ucutr=1.2*a.cf[3][1];
+//---Search Bin LowEdge>=Cutoff as Cutoff(much higher)
+   TH1D* th=(TH1D *)hman1.Get("HeEvent"); 
+   for(int ibr=1;ibr<=th->GetNbinsX();ibr++){
+       if(th->GetBinLowEdge(ibr)>=ucutr){ucutr=th->GetBinLowEdge(ibr);break;}
+   }
+   if(rig<ucutr)return false;//> Bin  Cutoff
 //--Fill Above Cutoff Ev++
-    hman1.Fill("HeEvent",rig);     
+    th->Fill(rig);
     return true;
 }
 
@@ -164,10 +171,10 @@ void ProcessTime(unsigned int time[2]){
      if(!TPreSelect(a))continue;//Abandon Second
 //--Time Cal
      double nt=a.lf*a.nev/(a.nev+a.nerr);
-     double urig=1.2*a.cf[3][1];//1.2*Cutoff (Positive 40 degree)
-//--Above Cutoff T+
+     double ucutr=1.2*a.cf[3][1];
+//--Above Cutoff LowBin>=Cutof T+ 
      for(int ibr=1;ibr<=th->GetNbinsX();ibr++){//Above CutOff Time++
-        if(th->GetBinCenter(ibr)>urig){
+        if(th->GetBinLowEdge(ibr)>=ucutr){
           th->AddBinContent(ibr,nt);
         }
      }
