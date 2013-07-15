@@ -101,10 +101,10 @@ public:
 
     TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir);
 
-    TrdKCluster(AMSEventR *evt,TrdTrackR *trdtrack);
-    TrdKCluster(AMSEventR *evt,TrdHTrackR *trdhtrack);
+    TrdKCluster(AMSEventR *evt,TrdTrackR *trdtrack,float Rigidity=0);
+    TrdKCluster(AMSEventR *evt,TrdHTrackR *trdhtrack,float Rigidity=0);
     TrdKCluster(AMSEventR *evt,EcalShowerR *shower);
-    TrdKCluster(AMSEventR *evt, BetaHR *betah, int UseTrTrack=0);
+    TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity=0);
 
 
     // Cluster status
@@ -155,7 +155,7 @@ public:
 
     // Get TrTrack Extrapolation of current TrTrack
     int GetTrTrackExtrapolation(AMSPoint &P0, AMSDir &Dir);
-
+    float GetTrTrackRigidity(){return Track_Rigidity;};
 
     // Hit manipulation/operation
     TrdKHit* GetHit(int i){if(i>NHits())return 0;return &(TRDHitCollection.at(i));}
@@ -303,18 +303,20 @@ private:
     // TRDTrack Refit
     static void fcn_TRDTrack(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
     static void fcn_TRDTrack_PathLength(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
-
+    
     double TRDTrack_ImpactChi2(Double_t *par);
+ 
     double TRDTrack_PathLengthLikelihood(Double_t *par);
-
+    
     static Double_t trd_parabolic_fit(Int_t N, Double_t *X, Double_t *Y, Double_t *V);
+    
     void KounineRefit(AMSPoint& P_fit, AMSDir& D_fit,
                       const AMSPoint& P_init, const AMSDir& D_init);
-
+    
     void SetImpLikelihood(TRD_ImpactParameter_Likelihood *Likelihood){ TRDImpactlikelihood=Likelihood;}
-
     void FitTRDTrack_IPLikelihood(int IsCharge=0); //IsCharge==1 is used for charge
     void FitTRDTrack_PathLength(int particle_hypothesis);
+
     void FitTRDTrack_PathLength_KFit(int particle_hypothesis);
     void FitTRDTrack_Analytical();
     void AnalyticalFit_2D(int direction, double x, double z , double dx, double dz, double &TRDTrack_x, double &TRDTrack_dx);
