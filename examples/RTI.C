@@ -4,6 +4,8 @@
 //                       Time Cut by V.Choutko
 //        Run:           root -b -q RTI.C+
 //        Update:        2013-July-14  Q.Yan:  better cutoff value bin by bin
+//        Update:        2013-July-15  Q.Yan:  AMSEventR adding RecordRTIRun, used for recording all processed runs to  AMSEventR:fRunList
+//                                             reference:  Calculate Time method 2
 // -----------------------------------------------------------
 
 #include <signal.h>
@@ -11,7 +13,6 @@
 #include <TLine.h>
 #include <TSystem.h>
 #include <TStyle.h>
-#include <iostream>
 #include <iomanip>
 #include  "TMath.h"
 #include "TMinuit.h"
@@ -21,7 +22,6 @@
 #include <fstream.h>
 #include <iostream>
 #include "root_RVSP.h"
-//#include "root.h"
 #include "amschain.h"
 #include "Tofrec02_ihep.h"
 #include "Tofcharge_ihep.h"
@@ -31,20 +31,22 @@ HistoMan hman1;//Histo Hman
 void BookHistos();//Histo-Book
 void ProcessROOT(AMSChain *ch,unsigned int time[2]);//Event Cal
 void ProcessTime(unsigned int time[2]);//StandAlone Time Cal
-int RTI_CINT(AMSChain *ch,char *outfile);
+int RTI_CINT(AMSChain *ch,char *outfile,int Tcalopt);
 
 
 ///--Main Function 
 int RTI(){
 
    AMSChain a;
-   a.Add("root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2011B/ISS.B620/pass4/1355244861.00000001.root");
-   RTI_CINT(&a,"./RTI_Test.root");
+   a.Add("root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2011B/ISS.B620/pass4/1355240756.00000001.root");
+   a.Add("root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2011B/ISS.B620/pass4/1355242081.00000001.root");
+   int Tcalopt=1;//0 by Time; 1 by Process RunList; 2 by Run Id
+   RTI_CINT(&a,"./RTI_Test.root",Tcalopt);
    return 0;
 }
 
 //---------------------------------------------
-int RTI_CINT(AMSChain *ch,char *outfile){ 
+int RTI_CINT(AMSChain *ch,char *outfile,int Tcalopt){ 
 
    hman1.Clear();
    hman1.Enable();
@@ -53,15 +55,48 @@ int RTI_CINT(AMSChain *ch,char *outfile){
 //--Book Hist
    BookHistos();
   
-//--Process ROOT
+//--Process ROOT Events Counting
    cout<<"Proces ROOT"<<endl;
    unsigned int time[2]={0};
    ProcessROOT(ch,time);
 
-  cout<<"ROOT Time="<<time[0]<<" "<<time[1]<<endl;
-//--Cal Exposure Time
-   ProcessTime(time);
-   
+//--Time Calculation
+  switch(Tcalopt){
+
+   case 0 : //---Calculate Time method 1  //by Begin and End Time
+     cout<<" Time="<<time[0]<<" "<<time[1]<<endl;
+     ProcessTime(time);
+     break;
+
+   case 1:  //---Calculate Time method 2  //by Processed RunList from Recording AMSEventR:fRunList
+     for(map<unsigned int,AMSSetupR::RunI>::iterator it=AMSEventR::fRunList.begin();it!=AMSEventR::fRunList.end();it++){//Get Run by Run
+       unsigned int run=it->first;//run id
+       AMSSetupR::RunI runi=it->second; //run information
+       unsigned int rtime[2];//run begin and end time
+       AMSEventR::GetRTIRunTime(run,rtime);//Find Run begin and end time by RTI database
+       cout<<"Process Run="<<run<<"  Time="<<rtime[0]<<"~"<<rtime[1]<<endl;//can first write runid to txtfile, then use case 2 to process
+       for(int k=0;k<runi.fname.size();k++){
+          cout<<runi.fname[k]<<endl;//Print root file
+      }
+      ProcessTime(rtime);//calculate time by Run begin and end time 
+    }
+    break;
+
+   case 2:  //---Calculate Time method 3 //by Run Id
+      const int nrun=2;
+      unsigned int runlist[nrun]={//run id
+        1355240756,
+        1355242081,
+      };
+     for(int ir=0;ir<nrun;ir++){
+       unsigned int run=runlist[ir];//run id
+       unsigned int rtime[2];//run begin and end time
+       AMSEventR::GetRTIRunTime(run,rtime); //Find Run begin and end time by RTI database
+       cout<<"Run="<<run<<"  Time="<<rtime[0]<<"~"<<rtime[1]<<endl;
+       ProcessTime(rtime);//calculate time by Run begin and end time
+     }
+     break;
+  } 
 
 //--Hist Save
    hman1.Save();
@@ -147,11 +182,13 @@ bool PreEvent(AMSEventR *pev){
 void ProcessROOT(AMSChain *ch,unsigned int time[2]){
 
    Long64_t num2=ch->GetEntries();
+   AMSEventR::fRunList.clear();//Clear AMSEventR:fRunList
    for(Long64_t entry=0; entry<num2; entry++){
       AMSEventR *ev=(AMSEventR *)ch->GetEvent();
       if(ev==NULL)continue;
       if(entry%100000==0) printf("Processed %7ld out of %7ld\n",entry,num2);
       PreEvent(ev);
+      ev->RecordRTIRun();//Record Processing Run to AMSEventR:fRunList
    }
    time[0]=ch->GetEvent(0)->UTime();
    time[1]=ch->GetEvent(num2-1)->UTime();

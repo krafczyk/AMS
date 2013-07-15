@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.81 2013/07/14 23:51:26 qyan Exp $
+//  $Id: root_setup.h,v 1.82 2013/07/15 14:46:17 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -226,9 +226,9 @@ ClassDef(RTI,4)
 class RunI{
  public: 
   unsigned int run;///< run
-  unsigned int bt; ///begin time of this run
-  unsigned int et; ///end time of this run
-  vector<string>fname;//root file name
+  unsigned int bt; ///< begin time of this run
+  unsigned int et; ///< end time of this run
+  vector<string>fname;///< root file name
   RunI():run(0),bt(0),et(0){}
   RunI(unsigned int _run,unsigned int _bt, unsigned int _et, string _fn):run(_run),bt(_bt),et(_et){
     fname.push_back(_fn);

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.586 2013/07/14 23:51:23 qyan Exp $
+//  $Id: root.C,v 1.587 2013/07/15 14:46:10 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10166,7 +10166,7 @@ int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
 
 int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2]){
 
-  const int pt=100;//Run window Pr
+  const int pt=1000;//Run window Pr
   const int dt=3600;//Run window Af 1~hour 20min
   unsigned int bt=(runid<=pt)?1:runid-pt;
   unsigned int et=runid+dt;
@@ -10176,12 +10176,12 @@ int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2]){
   AMSSetupR::RTI a;
   for(unsigned int t=bt;t<=et;t++){      
      if(GetRTI(a,t)!=0)continue; 
-     if(a.run==runid){time[0]=a.run;break;}
+     if(a.run==runid){time[0]=t;break;}
   }
 //---Find ET
   for(unsigned int t=et;t>=bt;t--){
      if(GetRTI(a,t)!=0)continue;
-     if(a.run==runid){time[1]=a.run;break;}
+     if(a.run==runid){time[1]=t;break;}
   }
 
 //--Result
