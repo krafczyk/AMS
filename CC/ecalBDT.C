@@ -260,7 +260,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  int iLatLeak=1;
 	  while(MapEneDep[ilayer][imaxcell+iLatLeak]>0.&&iLatLeak<10)
 	    {
-	      if (imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell+iLatLeak];
+	      if ((int)imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell+iLatLeak];
 	      iLatLeak++;
 	    }
 	}
@@ -283,7 +283,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  int iLatLeak=1;
 	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
 	    {
-	      if (imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
+	      if ((int)imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
 	      iLatLeak++;
 	    }
 	}
@@ -2247,7 +2247,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	     }
 	 }
      }//end of output normalization
-   */
+   */   
 
    return bdt;
 }
