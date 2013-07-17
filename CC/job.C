@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.906.2.2 2013/02/06 18:49:22 qyan Exp $
+// $Id: job.C,v 1.906.2.3 2013/07/17 09:59:05 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2568,7 +2568,7 @@ void AMSJob::_sitof2initjob(){
   //---------
   //
   TOF2JobStat::bookhistmc();//Book histograms for MC
-  if(G4FFKEY.TFNewGeant4>0){
+  if(G4FFKEY.TFNewGeant4>0&& !isRealData() ){
      TOFPMT::build();//New PMT information
      if(G4FFKEY.TFNewGeant4>1||MISCFFKEY.G3On)TOFWScanN::build();//Table method
    }
