@@ -35,9 +35,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2013/03/15 08:04:29 $
+ $Date: 2013/07/18 14:39:23 $
 
- $Revision: 1.38 $
+ $Revision: 1.39 $
 
 */
 
@@ -343,7 +343,15 @@ class TrClusterR :public TrElem{
   void     SetUsed()    { setstatus(AMSDBc::USED); }
   /// Clear used status
   void     ClearUsed()  { clearstatus(AMSDBc::USED); }
-
+  /// change back and forth the flip status
+  void ChangeFlipStatus(){
+    if (checkstatus(kFlip))
+      clearstatus(kFlip);
+    else 
+      setstatus(kFlip);
+  }
+     
+      
   /// Get the current parameter database
   TrParDB* GetTrParDB() { return _trpardb; }
   /// Get the current calibration database

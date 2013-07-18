@@ -316,6 +316,7 @@ void TrClusterR::GetBoundsSymm(int &leftindex, int &rightindex, int nstrips, int
    * - n = min(int((nstrips-1)/2),min(nleft,nright)) to be used automatically on left an right (symmetry)
    * - add one more strip if nstrips is odd or if the nleft and nright are dramatically different 
    */
+  if (checkstatus(kFlip)!=0) opt|=kFlip;
   int cstrip     = GetSeedIndex(opt);
   int nleft      = GetLeftLength(opt);
   int nright     = GetRightLength(opt);
