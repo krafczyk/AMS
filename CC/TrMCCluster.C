@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.39 2013/05/24 15:59:38 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.40 2013/07/18 15:52:18 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/05/24 15:59:38 $
+///$Date: 2013/07/18 15:52:18 $
 ///
-///$Revision: 1.39 $
+///$Revision: 1.40 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,7 +42,11 @@ extern "C" double rnormx();
 
 ClassImp(TrMCClusterR);
 
+
+
 double qlinfun(double X, double k);
+double gain_to_gain(double* x, double* par);
+
 
 int TrMCClusterR::_NoiseMarker(555);
 
@@ -126,7 +130,6 @@ static int mp=0;
   Status |= that.Status;
   for(int ii=0; ii<2; ii++)
     if (that._simcl[ii]!=0) delete _simcl[ii];
-  
   return *this;
 }
 
@@ -189,6 +192,7 @@ void TrMCClusterR::GenSimClusters(){
   float    edep = GetEdep()*1.e6;     // energy deposition [keV] 
   int hcharge=0;
   if(abs(_itra)>=47) hcharge=1;
+  if(abs(_itra)>=61) hcharge=2;
   if (edep<1) return;                 // if energy deposition < 1 keV 
   //  if (momentum<1e-6) return;          // if momentum < keV/c
 
@@ -198,15 +202,15 @@ void TrMCClusterR::GenSimClusters(){
   int  nsensor = _glo2loc.GetSensor();                                      // sensor number
   double ip[2] = {_glo2loc.GetSensCoo().x(),_glo2loc.GetSensCoo().y()};     // sensor impact point
   double ia[2] = {_glo2loc.GetImpactAngleXZ(),_glo2loc.GetImpactAngleYZ()}; // sensor impact angle
-  double tip[2]= {_glo2loc.GetImpactPointX(),_glo2loc.GetImpactPointY()}; //true impact point [0,1]
+  double tip[2]= {_glo2loc.GetImpactPointX(),_glo2loc.GetImpactPointY()};   // true impact point [0,1]
   int imult = _glo2loc.GetMultIndex();
 
   if(tip[0]<0)tip[0]+=1;
   if(tip[1]<0)tip[1]+=1;
   // Print();
   if (VERBOSE) {
-    printf("TrSim::GenSimClusters-V  tkid = %+4d   loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",
-           GetTkId(),ip[0],ip[1],ia[0],ia[1],nsensor);
+    printf("TrSim::GenSimClusters-V  tkid = %+4d   loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   edep(keV) = %7.2f   nsens = %2d   itra = %4d\n",
+           GetTkId(),ip[0],ip[1],ia[0],ia[1],edep,nsensor,abs(_itra));
     printf("TrSim::GenSimClusters-V  laddcoo(x,y) = (%7.4f,%7.4f)   readout(x,y) = (%4d,%4d)   mult = %2d\n",
            _glo2loc.GetLaddCoo().x(),_glo2loc.GetLaddCoo().y(),_glo2loc.GetStripX(),_glo2loc.GetStripY(),imult);
   }
@@ -220,8 +224,9 @@ void TrMCClusterR::GenSimClusters(){
     // create the simulated cluster
 
     // SMEAR the position
+    int hcharge_smear = (hcharge>1) ? 1 : hcharge; // ions = He
     float ipsmear=ip[iside];
-    ipsmear=ip[iside]+rnormx()*TRMCFFKEY.SmearPos[hcharge][iside];
+    ipsmear=ip[iside]+rnormx()*TRMCFFKEY.SmearPos[hcharge_smear][iside];
 
     // SMEAR outer layers
     int lay = abs(GetTkId())/100;
@@ -230,6 +235,7 @@ void TrMCClusterR::GenSimClusters(){
 
     // Create the cluster
     TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ipsmear,ia[iside],nsensor,step*dir[2]);
+
     // from time to time the cluster is empty
     if (simcluster.GetWidth()==0) continue;
 
@@ -240,44 +246,51 @@ void TrMCClusterR::GenSimClusters(){
     hman.Fill(Form("TrSimSig%c",sidename[iside]),_simcl[iside]->GetEta(),_simcl[iside]->GetTotSignal());
     
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
-    _simcl[iside]->GaussianizeFraction(iside,hcharge,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
-      
-    // moved to datacard (PZ)
-    // // Enegy smearing, scaling, and convert to ADC
-    // //                          p_x p_y  He_x  He_y
-    // double ADCMipValue[2][2]={ {44, 32},{46,    32.}};
-    // double SigQuadLoss[2][2]={{0.0002,0.0004},{0.0001,0.00022}};
-    double edep_c2=edep;
-    if(iside==0) {
-      double edep_c=qlinfun(edep,TRMCFFKEY.SigQuadLoss[hcharge][iside]); // 
-      edep_c2=TRMCFFKEY.ADCMipValue[hcharge][0]*edep_c/81;
-    }else{
-      double edep_c=edep* (1+rnormx()*0.15);
-      edep_c=qlinfun(edep_c,TRMCFFKEY.SigQuadLoss[hcharge][iside]);	
-      edep_c2=TRMCFFKEY.ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
+    int hcharge_gauss = (hcharge>1) ? 1 : hcharge; // ions = He    
+    _simcl[iside]->GaussianizeFraction(iside,hcharge_gauss,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
+    
+    // p and He
+    // - non-linear edep 
+    if (hcharge<2) {
+      // moved to datacard (PZ)
+      // // Enegy smearing, scaling, and convert to ADC
+      // //                          p_x p_y  He_x  He_y
+      // double ADCMipValue[2][2]={ {44, 32},{46,    32.}};
+      // double SigQuadLoss[2][2]={{0.0002,0.0004},{0.0001,0.00022}};
+      double edep_c2=edep;
+      if(iside==0) {
+        double edep_c=qlinfun(edep,TRMCFFKEY.SigQuadLoss[hcharge][iside]); // 
+        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][0]*edep_c/81; 
+      }
+      else {
+        double edep_c=edep* (1+rnormx()*0.15);
+        edep_c=qlinfun(edep_c,TRMCFFKEY.SigQuadLoss[hcharge][iside]);	
+        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
+      }
+      // if side Y some additional edep vs eta dependence
+      // double pc[5]={0.8169,2.23,-8.996,13.581,-6.849};
+      // if(iside==1 && tip[iside]>0.3 && tip[iside]<0.7) edep_c2*=pc[0]+pc[1]*tip[iside]+pc[2]*pow(tip[iside],2)+pc[3]*pow(tip[iside],3)+pc[4]*pow(tip[iside],4);
+      _simcl[iside]->Multiply(edep_c2);
     }
-    // if side Y some addtional edep vs eta dependence
-    double pc[5]={0.8169,2.23,-8.996,13.581,-6.849};	
-   //  if(iside==1 && tip[iside]>0.3 && tip[iside]<0.7) edep_c2*=pc[0]
-//       +pc[1]*tip[iside]
-//       +pc[2]*pow(tip[iside],2)
-//       +pc[3]*pow(tip[iside],3)
-//       +pc[4]*pow(tip[iside],4);
-    _simcl[iside]->Multiply(edep_c2);
-    //      if(iside==0){Print();      _simcl[iside]->Info(10);}
-    // cluster strip values in ADC counts
+    // ion 
+    // - linear edep (...)
+    // - strip non-linearity
+    else if (hcharge==2) { 
+      // edep-to-edep Z compression ... 
+      double gain_to_gain_pars[2][5] = {
+        {14.4,200,3.91,0,0},
+        {4.5,10.75,4.0,0.349,1.188}
+      };
+      for (int i=0; i<_simcl[iside]->GetWidth(); i++) {
+        double mip_c = edep*_simcl[iside]->GetSignal(i)/81;
+        mip_c *= 2; // relation ADC vs MIP derived for eta = 0.5 (~ half of the signal) 
+        double sqrt_mip_c = sqrt(mip_c);
+        double signal = pow(gain_to_gain(&sqrt_mip_c,gain_to_gain_pars[iside]),2);
+        signal *= (iside==0) ? 1.2*1.074*1.074 : 1.05*0.95*0.95; // for implicit losses
+        _simcl[iside]->SetSignal(i,signal);
+      }
+    }
 
-   //  // check eta distribution
-//     hman.Fill(Form("TrSimEta%c",sidename[iside]),fabs(ia[iside]),eta);
-//     // dependence from angle 
-//     hman.Fill(Form("TrSimResA%c",sidename[iside]),fabs(ia[iside]),intr_res);
-//     // dependence from charge (edep)
-//     hman.Fill(Form("TrSimResE%c",sidename[iside]),sqrt(edep),intr_res);
-//     // energy deposition plot
-//     hman.Fill(Form("TrSimEDep%c",sidename[iside]),sqrt(edep),sqrt(adc));
-
-//     if (VERBOSE) printf("angle=%7.3f   eta=%7.3f   sqrt(edep)=%7.3f   intrres=%7.3f   totsig=%7.3f\n",
-//                         ia[iside],_simcl[iside]->GetEta(),sqrt(edep),intr_res,_simcl[iside]->GetTotSignal());
   }
   return;
 }
@@ -446,8 +459,7 @@ double TrMCClusterR::fdiff(double a, int ialpha) {
 */
 
 
- double qlinfun(double X, double k){
-
+double qlinfun(double X, double k){
   double th=135*TMath::Pi()/180.;
   double ss=sin(th);
   double cc=cos(th);
@@ -460,5 +472,28 @@ double TrMCClusterR::fdiff(double a, int ialpha) {
     return (Ym>0)?Ym:Yp;
   } else
   return 0;
-
 }
+
+
+double gain_to_gain(double* x, double* par) {
+  // y = c*x         x < x1        c = MeVtoADC
+  // y = k + a*x     x1 < x < x2   with a ~ 0
+  // y = o + g*x     x > x2        a < g < 1
+  // 7 parameters: c, k, a, o, g, x1, x2 
+  // 2 continuity conditions: y(x1-) = y(x1+) and y(x2-) = y(x2+)
+  // y(x1-) = c*x1 = y(x1+) = k + a*x1   ==>   k = x1*(c-a)
+  // y(x2-) = x1*(c-a) + a*x2 = y(x2+) = o + g*x2   ==>    o = x1*(c-a) + x2*(a-g)
+  double xx = x[0];
+  double x1 = par[0];
+  double x2 = par[1];
+  double c  = par[2];
+  double a  = par[3];
+  double g  = par[4];
+  double k  = x1*(c-a);
+  double o  = x1*(c-a) + x2*(a-g);
+  if      (xx<x1) return c*xx;
+  else if (xx>x2) return o + g*xx;
+  return k + a*xx;
+}
+
+
