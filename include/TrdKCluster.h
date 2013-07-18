@@ -157,6 +157,9 @@ public:
     int GetTrTrackExtrapolation(AMSPoint &P0, AMSDir &Dir);
     float GetTrTrackRigidity(){return Track_Rigidity;};
 
+    AMSPoint GetPropogated_TrTrack_P0();
+    AMSDir GetPropogated_TrTrack_Dir();
+
     // Hit manipulation/operation
     TrdKHit* GetHit(int i){if(i>NHits())return 0;return &(TRDHitCollection.at(i));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
@@ -297,8 +300,7 @@ private:
 
     // TrTrack for propogation/extrapolation
     void Propogate_TrTrack(double z);
-    AMSPoint GetPropogated_TrTrack_P0();
-    AMSDir GetPropogated_TrTrack_Dir();
+
 
     // TRDTrack Refit
     static void fcn_TRDTrack(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
