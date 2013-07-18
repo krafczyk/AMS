@@ -455,6 +455,11 @@ void TrSim::sitkdigi() {
 #endif
       } 
 
+      // Put the  ADC 12-bit  hard cieling to the signal amplitude in ADC
+
+      for (int ii=0;ii<1024;ii++)
+	if(ladbuf[ii]+ladcal->GetPedestal(ii)>4096) ladbuf[ii]=4096-ladcal->GetPedestal(ii);
+
       // DSP Simulation
       if ( (TRMCFFKEY.NoiseType==1) ||  // DSP on all ladders
            (nclu>0) ) {                 // DSP only on ladders with some cluster/noise
