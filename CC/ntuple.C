@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.261 2013/03/02 08:49:51 choutko Exp $
+//  $Id: ntuple.C,v 1.262 2013/07/19 11:55:15 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -848,7 +848,7 @@ return NULL;
 }
 
 uinteger AMSNtuple::writeRSetup(){
-if( _treesetup){
+if( _treesetup && AMSJob::gethead() && !AMSJob::gethead()->isSimulation()){
    try{
 #ifdef __G4AMS__
         UPool.ReleaseLastResort();

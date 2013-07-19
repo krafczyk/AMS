@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.174 2013/06/13 15:43:47 incaglim Exp $
+//  $Id: ecalrec.C,v 1.175 2013/07/19 11:55:15 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1645,6 +1645,7 @@ integer Ecal1DCluster::build(int rerun){
 	    }
 	    number e;
 	    if(k==center+1 && (status & AMSDBc::WIDE)){
+	      ptrh[k]->setstatus(AMSDBc::WIDE);
 	      e=adc[k]/2;
 	    }
 	    else e=adc[k];
