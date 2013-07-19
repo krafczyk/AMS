@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.902.2.4 2013/07/17 09:55:41 qyan Exp $
+// $Id: job.C,v 1.902.2.5 2013/07/19 16:31:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -251,7 +251,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   IOPA.mode=0;//85
   VBLANK(IOPA.ffile,40);//86
   IOPA.MaxNtupleEntries=1000000000;//126
-  IOPA.MaxFileSize=100000000;
+  IOPA.MaxFileSize=200000000;
   IOPA.MaxFileTime=86400*3;
   IOPA.BuildMin=-1;//170
   IOPA.histoman=1;//171

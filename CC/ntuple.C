@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.259.4.1 2013/06/20 15:42:31 choutko Exp $
+//  $Id: ntuple.C,v 1.259.4.2 2013/07/19 16:31:26 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -442,7 +442,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
   cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
   cout<<"Set Split Level ..."<<branchSplit<<endl;
 
-  _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
+  _rfile->SetCompressionLevel(abs(IOPA.WriteRoot-1));
   cout<<"AMSNtuple::initR -I- create branches"<<endl;
   _tree= new TTree("AMSRoot","AMS Ntuple Root");
   _treesetup= new TTree("AMSRootSetup","AMS Setup Root");
