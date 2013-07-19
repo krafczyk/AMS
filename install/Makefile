@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.230.2.1 2013/04/25 17:52:15 choutko Exp $
+#  $Id: Makefile,v 1.230.2.2 2013/07/19 19:31:19 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -633,7 +633,7 @@ test: $(OBJECTCO)
 
 server: amswd	$(SERVER)
 #               Orbit-C   Orbit-C++-Ser
-$(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o .$(BIN)ctype.o
+$(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL)  
 
