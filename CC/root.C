@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.587 2013/07/15 14:46:10 qyan Exp $
+//  $Id: root.C,v 1.588 2013/07/19 06:28:48 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6116,6 +6116,7 @@ int ParticleR::GetStoermerCutoff(double &Scut,int momOrR, int sign, AMSDir amsdi
         }
 
         //---------------------[GV]
+
         double Rcut =GeoMagCutoff( Utime,  Altitude , theta_deg,  phi_deg, thetaISS,  phiISS,  pos ) ;
 //        cout<<" ParticleR::GetStoermerCutoff Old " <<RcutOld << " New "<< Rcut <<" ratio New/Old "<< Rcut/RcutOld<<endl;   
         if(momOrR==0){
@@ -10072,6 +10073,11 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
                 if (fabs(Rcutoff_neg ) > fabs(cutoff[0] ) ) {
                         cutoff[0] =Rcutoff_neg ;
                 }
+/*
+      cout<<Form("%7.2f %7.2f %6.2f %6.2f",
+		 theta*TMath::RadToDeg(), phi*TMath::RadToDeg(),
+		 Rcutoff_neg, Rcutoff_pos)<<endl;
+*/
         }//....................................//end for i 
 
 
@@ -10083,6 +10089,28 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
 
 return 0;
 }
+
+
+int AMSEventR::GetIGRFCutoff(double &Rcut, int sign, AMSDir dir)
+{
+  double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
+  double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
+  double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
+  double xtime  =   fHeader.UTCTime();
+
+  return fHeader.GetIGRFCutoff(Rcut, sign, dir, RPT, VPT, YPR, xtime);
+}
+
+int AMSEventR::GetMaxIGRFCutoff(double fov, double degbin, double cutoff[2])
+{
+  double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
+  double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
+  double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
+  double xtime  =   fHeader.UTCTime();
+
+  return fHeader.GetMaxIGRFCutoff(fov, degbin, cutoff, RPT, VPT, YPR, xtime);
+}
+
 
 //----------------------------------------------------------------------
 int AMSEventR::GetRTIStat(){
@@ -11174,17 +11202,92 @@ return out;
 
 
 
+int HeaderR::GetIGRFCutoff(double &Rcut, int sign, AMSDir dir, 
+			   double RPT[3], double VPT[3], double YPR[3],
+			   double xtime)
+{
+  double ths = RPT[2]*TMath::RadToDeg();
+  double phs = RPT[1]*TMath::RadToDeg();
+  double alt = RPT[0]*1e-5-6371.2;
+  if (phs > 180) phs -= 360;
 
+  double th, ph;
+  get_gtod_coo(ph, th, dir.gettheta(), dir.getphi(), RPT, VPT, YPR, xtime);
 
+  int      pos = (sign > 0) ? 1 : 0;
+  double  scut = GeoMagCutoff(xtime, alt, th, ph, ths, phs, pos);
 
+  double rstep = 0.05;
+  double  rcut = fabs(scut)*1.15;
+  double  bcut =  0;
+  int     bret = -1;
 
+  while (0.1 < rcut && rcut < 50) {
+    double glon, glat, rpto[3], gpt[2], tim;
+    int ret = do_backtracing(glon, glat, tim, rpto, gpt,
+			     dir.gettheta(), dir.getphi(), rcut, 1, sign,
+			     RPT, VPT, YPR, xtime);
+    if (bret >= 0) {
+      if (bret == 1 && ret != 1) { Rcut = bcut*sign; return 0; }
+      if (bret != 1 && ret == 1) { Rcut = rcut*sign; return 0; }
+    }
+    bcut = rcut;
+    bret = ret;
 
+    if (ret == 1) rcut *= 1-rstep;
+    if (ret != 1) rcut *= 1+rstep;
+  }
 
+  return -1;
+}
 
+int HeaderR::GetMaxIGRFCutoff(double fov, double degbin, double *cutoff,
+			      double RPT[3], double VPT[3], double YPR[3],
+			      double xtime)
+{
+  cutoff[0] = cutoff[1] = 0;
 
+  int mode = 1;
+  if (degbin < 0) { mode = 2; degbin = -degbin; }
 
+  double *cf = (mode == 2) ? cutoff : 0;
+  int ii[3] = { 0, 0, 0 };
+  if (mode == 2) { ii[0] = 25/degbin; ii[1] = 30/degbin; ii[2] = 35/degbin; }
 
+  double tmin = 0, tmax = fov*TMath::DegToRad();
+  double pmin = 0, pmax = TMath::TwoPi();
 
+  double dth = degbin*TMath::DegToRad();
+
+  int nth = (int)((tmax-tmin)/dth)+1;
+
+  for (int i = 0; i < nth; i++) {
+    double th  = tmin+dth*i;
+    double dph = (i > 0) ? dth/TMath::Sin(th) : 1e6;
+    int    nph = (int)((pmax-pmin)/dph)+1;
+
+    if (mode == 2) {
+      if (i == ii[0]+1) { cutoff = &cf[2]; cf[2] = cf[0]; cf[3] = cf[1]; }
+      if (i == ii[1]+1) { cutoff = &cf[4]; cf[4] = cf[2]; cf[5] = cf[3]; }
+      if (i == ii[2]+1) { cutoff = &cf[6]; cf[6] = cf[4]; cf[7] = cf[5]; }
+    }
+  
+    for (int j = 0; j < nph; j++) {
+      double ph = pmin+dph*j;
+
+      AMSDir dir(th, ph);
+      dir = dir*(-1);
+
+      double scut[2];
+      GetIGRFCutoff(scut[0], -1, dir, RPT, VPT, YPR, xtime);
+      GetIGRFCutoff(scut[1],  1, dir, RPT, VPT, YPR, xtime);
+
+      if (fabs(scut[0]) > fabs(cutoff[0])) cutoff[0] = scut[0];
+      if (fabs(scut[1]) > fabs(cutoff[1])) cutoff[1] = scut[1];
+    }
+  }
+  return 0;
+}
 
 
 int HeaderR::get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double AMSPhi, double RPT[3],double VelPT[3], double YPR[3], double  time, bool gtod){

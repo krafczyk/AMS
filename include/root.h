@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.564 2013/07/14 23:51:26 qyan Exp $
+//  $Id: root.h,v 1.565 2013/07/19 06:28:51 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -390,6 +390,41 @@ output
         -1 error
 */
 int do_backtracing(double & gal_long, double & gal_lat, double & time_trace, double RPTO[3], double GPT[2], double AMSTheta, double AMSPhi, double momentum, double velocity, int charge, double RPT[3], double VelPT[3], double YPR[3], double  xtime, int att=1, bool galactic=true);
+
+
+/// IGRF Geomagnetic Cutoff
+        /*!
+	 * @param[out]  Rcut is the Cutoff value (in GV)
+	 * @param[in]   Charge sign (+1 or -1)
+	 * @param[in]   amsdir direction in AMS reference frame (theta=0:up)
+	 * @param[in]   RPT[3]    ISS coordinates (Rs,PhiS,ThetaS)
+	 * @param[in]   VelPT[3]  ISS velocity (rad/sec,rad,rad)
+	 * @param[in]   YPR[3]    ISS attitude (Yaw,Pitch,Roll)
+	 * @param[in]   xtime     time (sec)
+	 *  return  0: success, -1: if failure;
+*/
+  int GetIGRFCutoff(double &Rcut, int sign, AMSDir amsdir, 
+		    double RPT[3], double VelPT[3], double YPR[3],
+		    double xtime);
+
+/// Max. IGRF Geomagnetic Cutoff
+        /*!
+	 * @param[in]   AMSfov AMS field of view in deg.
+	 * @param[in]   degbin binning precision in deg (theta x phi)
+	 * @param[out]  cutoff[0] Max. cutoff (GV) for negative particle
+	 * @param[out]  cutoff[1] Max. cutoff (GV) for positive particle
+	 * @param[in]   Charge sign (+1 or -1)
+	 * @param[in]   amsdir direction in AMS reference frame (theta=0:up)
+	 * @param[in]   RPT[3]    ISS coordinates (Rs,PhiS,ThetaS)
+	 * @param[in]   VelPT[3]  ISS velocity (rad/sec,rad,rad)
+	 * @param[in]   YPR[3]    ISS attitude (Yaw,Pitch,Roll)
+	 * @param[in]   xtime     time (sec)
+	 *  return  0: success, -1: if failure;
+*/
+  int GetMaxIGRFCutoff(double AMSfov, double degbin, double *cutoff,
+		       double RPT[3], double VelPT[3], double YPR[3],
+		       double xtime);
+
 
 //------------------------------------------------------
 //! Function used in AMSEventR::DoBacktracing
@@ -4545,7 +4580,7 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 
 //--------------------------------------------------------------------------------------------------
 ///
-        //! Returns Maximum Rcutoff [GV] for Charge (+/-)1 particles in a fixed AMS field of view. 
+        //! Returns Maximum Rcutoff [GV] for Charge (+/-)1 particles in a fixed AMS field of view based on Stoermer Rigidity cutoff
         /*! return  0: if success;
 	    retrun -1: if failure;	
             input parameters : AMSfov = AMS field of view in deg. ;
@@ -4555,6 +4590,25 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
         */
         int GetMaxGeoCutoff( double AMSfov,double degbin ,double  cutoff[2]);
 
+
+        /// IGRF Geomagnetic Cutoff
+        /*!
+	 * @param[out]  Rcut is the Cutoff value (in GV)
+	 * @param[in]   Charge sign (+1 or -1)
+	 * @param[in]   amsdir direction in AMS reference frame (theta=0:up)
+	 *  return  0: success, -1: if failure;
+	 */
+        int GetIGRFCutoff(double &Rcut, int sign, AMSDir amsdir);
+
+        //! Returns Maximum Rcutoff [GV] for Charge (+/-)1 particles in a fixed AMS field of view based on DoBacktracing with IGRF model
+        /*! return  0: if success;
+	    retrun -1: if failure;	
+            input parameters : AMSfov = AMS field of view in deg. ;
+		             : degbin = binning precision (theta x phi) deg >> Example degbin=5 -> (5 x 5 )deg
+            output           : cutoff[0] = Max. Rcut [GV] for negative particles (Z==-1); 
+                               cutoff[1] = Max. Rcut [GV] for positive particles (Z== 1).
+        */
+        int GetMaxIGRFCutoff(double AMSfov, double degbin, double cutoff[2]);
 
 
 //--------------------------------------------------------------------------------------------------
