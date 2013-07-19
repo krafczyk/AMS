@@ -153,8 +153,8 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower){
 }
 /////////////////////////////////////////////////////////////////////
 TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity){
-  AMSPoint *P0=0;
-  AMSDir *Dir=0;
+  AMSPoint *P0=new AMSPoint();
+  AMSDir *Dir=new AMSDir();
   double dummy_time;
   betah->TInterpolate(TRDCenter,*P0,*Dir,dummy_time,false);
   Init_Base();
