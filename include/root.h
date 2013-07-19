@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.565 2013/07/19 06:28:51 shaino Exp $
+//  $Id: root.h,v 1.566 2013/07/19 11:55:45 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3914,6 +3914,7 @@ protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
 bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
 bool UpdateSetup(uinteger run);  ///< Update RootSetup for the new Run
+public:
 class Service{
 public:
  TFile *            _pOut;
@@ -3953,13 +3954,13 @@ long long Size();
      unsigned int u;
      int i;
      };
+Service  fService;
 protected:
 static TString Dir;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(Dir)
 #pragma omp threadprivate(gWDir)
 #endif
-Service  fService;
 static Service*  pService;
 static TBranch*  bStatus;
 static TBranch*  bAll;
