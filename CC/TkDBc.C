@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.70 2013/05/01 13:54:33 shaino Exp $
+//  $Id: TkDBc.C,v 1.71 2013/07/20 21:41:29 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/05/01 13:54:33 $
+///$Date: 2013/07/20 21:41:29 $
 ///
-///$Revision: 1.70 $
+///$Revision: 1.71 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1503,7 +1503,7 @@ TkDBc *TkDBc::Load(TFile *rfile)
 {
   printf(" TkDBc::Load -------------------------------> from file %s\n",rfile->GetName());
   if (!rfile || !rfile->IsOpen()) return 0;
-  TkDBc::Head = (TkDBc *)rfile->Get("TkDBc");
+  TkDBc::Head = dynamic_cast<TkDBc *>(rfile->Get("TkDBc"));
 
   if (TkDBc::Head) TkDBc::Head->RebuildMap();
 
@@ -1512,7 +1512,7 @@ TkDBc *TkDBc::Load(TFile *rfile)
 
 void TkDBc::RebuildMap()
 {
-  // Clear all the maps except tkidmap
+// Clear all the maps except tkidmap
   tkassemblymap.clear();
   hwidmap      .clear();
   //  pgidmap      .clear();
@@ -1520,7 +1520,10 @@ void TkDBc::RebuildMap()
   JMDCNumMap   .clear();
 
   // Rebuild all the maps
-  for (tkidIT it = tkidmap.begin(); it != tkidmap.end(); it++) {
+  //
+  // 
+  //
+ for (tkidIT it = tkidmap.begin(); it != tkidmap.end(); it++) {
     TkLadder *lad = it->second;
     int lay  = lad->GetLayer();
     int side = lad->GetSide();
@@ -1536,7 +1539,6 @@ void TkDBc::RebuildMap()
     lnamemap     [lnam] = lad;
     JMDCNumMap   [jmdc] = lad;
   }
-
   // SH FIXME size of pgidmap is only 24
   cout << "TkDBc::Maps have been rebuilt: "
        << "tk= " << tkidmap      .size() << " "
@@ -1545,6 +1547,7 @@ void TkDBc::RebuildMap()
        << "as= " << tkassemblymap.size() << " "
     //       << "pg= " << pgidmap      .size() << " "
        << "JN= " << JMDCNumMap   .size() << endl;
+
 }
 
 
