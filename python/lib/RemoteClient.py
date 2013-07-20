@@ -2303,6 +2303,7 @@ class RemoteClient:
             ret=1
         self.fastntCalls=self.fastntCalls+1
         self.fastntTime=self.fastntTime+time.time()-time0
+        print "validateDST returning (ret=", ret, ", vcode=", vcode, ")."
         return ret,vcode
     
     def InsertRun(self,Run):
