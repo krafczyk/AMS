@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.566 2013/07/19 11:55:45 choutko Exp $
+//  $Id: root.h,v 1.567 2013/07/21 10:25:18 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4606,11 +4606,15 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 	    retrun -1: if failure;	
             input parameters : AMSfov = AMS field of view in deg. ;
 		             : degbin = binning precision (theta x phi) deg >> Example degbin=5 -> (5 x 5 )deg
+			       if degbin <=0 use pre-calculated table
             output           : cutoff[0] = Max. Rcut [GV] for negative particles (Z==-1); 
                                cutoff[1] = Max. Rcut [GV] for positive particles (Z== 1).
         */
         int GetMaxIGRFCutoff(double AMSfov, double degbin, double cutoff[2]);
 
+        //! IGRF cutoff
+        class IGRF { public: float theta, phi; float cf[4][2]; };
+        static map<unsigned int,IGRF> fIGRF;
 
 //--------------------------------------------------------------------------------------------------
 ///

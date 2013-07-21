@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.588 2013/07/19 06:28:48 shaino Exp $
+//  $Id: root.C,v 1.589 2013/07/21 10:25:16 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10101,14 +10101,73 @@ int AMSEventR::GetIGRFCutoff(double &Rcut, int sign, AMSDir dir)
   return fHeader.GetIGRFCutoff(Rcut, sign, dir, RPT, VPT, YPR, xtime);
 }
 
+map<unsigned int,AMSEventR::IGRF> AMSEventR::fIGRF;
+
 int AMSEventR::GetMaxIGRFCutoff(double fov, double degbin, double cutoff[2])
 {
-  double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
-  double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
-  double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
-  double xtime  =   fHeader.UTCTime();
+  if (degbin > 0) {
+    double YPR[3] = { fHeader.Yaw,       fHeader.Pitch,  fHeader.Roll };
+    double RPT[3] = { fHeader.RadS,      fHeader.PhiS,   fHeader.ThetaS };
+    double VPT[3] = { fHeader.VelocityS, fHeader.VelPhi, fHeader.VelTheta };
+    double xtime  =   fHeader.UTCTime();
 
-  return fHeader.GetMaxIGRFCutoff(fov, degbin, cutoff, RPT, VPT, YPR, xtime);
+    return fHeader.GetMaxIGRFCutoff(fov, degbin, cutoff, RPT, VPT, YPR, xtime);
+  }
+
+  cutoff[0] = cutoff[1] = 0;
+
+  static int stm = 0;
+  if (stm < 0) return -1;
+
+  unsigned int tm = UTime();
+  if (degbin < -1300000000) tm = -degbin;
+
+  int tid = tm/10000000;
+  if (tid != stm) fIGRF.clear();
+
+  if (fIGRF.empty()) {
+    TString std = "/afs/cern.ch/ams/Offline/AMSDataDir";
+    const char *ad = getenv("AMSDataDir");
+    const char *ai = getenv("AMSISS");
+    if (ad && strlen(ad)) std = ad; std += "/altec/";
+    if (ai && strlen(ai)) std = ai; std += "RTI/";
+
+    TString sfn = Form(std+"MaxIGRFCutoff_%d.csv", tid);
+    ifstream fin(sfn);
+    if (!fin) {
+      cerr << "AMSEventR::GetMaxIGRFCutoff-E-File not found: "
+	   << sfn.Data() << endl;
+      stm = -1;
+      return -1;
+    }
+    while (fin.good() && !fin.eof()) {
+      unsigned int nt; IGRF a;
+      fin >> nt >> a.phi >> a.theta;
+      for(int j = 0; j < 4; j++) fin >> a.cf[j][0] >> a.cf[j][1];
+      if (!fin.good()) continue;
+      fIGRF.insert(make_pair(nt, a));
+    }
+    fin.close();
+    cout<< "AMSEventR::GetMaxIGRFCutoff-I- " << fIGRF.size()
+	<< " Entries Loaded" << endl;
+    stm = tid;
+  }
+
+  unsigned int t1, t2;
+  IGRF a1, a2;
+  map<unsigned int,IGRF>::iterator k = fIGRF.lower_bound(tm);
+  if (k == fIGRF.end()) k--;
+  t2 = k->first; a2 = k->second; k--;
+  t1 = k->first; a1 = k->second;
+
+  int fi = (fov-21)/5;
+  if (fi < 0) fi = 0;
+  if (fi > 3) fi = 3;
+
+  cutoff[0] = a1.cf[fi][0]+(a2.cf[fi][0]-a1.cf[fi][0])*(tm-t1)/(t2-t1);
+  cutoff[1] = a1.cf[fi][1]+(a2.cf[fi][1]-a1.cf[fi][1])*(tm-t1)/(t2-t1);
+
+  return 0;
 }
 
 
