@@ -1,4 +1,4 @@
-//  $Id: commonsi.C,v 1.227 2013/06/13 06:27:03 choutko Exp $
+//  $Id: commonsi.C,v 1.228 2013/07/21 21:22:57 choutko Exp $
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -26,7 +26,7 @@ char AMSCommonsI::_version[]="v4.00";
 #else
 char AMSCommonsI::_version[]="v5.00";
 #endif
-uinteger AMSCommonsI::_build=653;
+uinteger AMSCommonsI::_build=654;
 uinteger AMSCommonsI::_buildtime=0;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;

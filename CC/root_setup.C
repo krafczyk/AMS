@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.134 2013/07/13 14:07:39 mduranti Exp $
+//  $Id: root_setup.C,v 1.135 2013/07/21 21:22:58 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -48,13 +48,21 @@ static RotMatrices_m fRotMatrices;   ///< CTRS->ICRS rotation matrices map
 
 
 AMSSetupR* AMSSetupR::_Head=0;
-
+#ifdef __LZMA__
+#include "Compression.h"
+#endif
 void AMSSetupR::CreateBranch(TTree *tree, int branchSplit){
   if(tree){
     _Head=this;
     tree->Branch("run.","AMSSetupR",&_Head,12800000,branchSplit);
     TBranch * branch=tree->GetBranch("run.");
-    branch->SetCompressionLevel(6);
+    int clevel=branch->GetCompressionLevel();
+#ifdef __LZMA__
+    if(clevel<6 && branch->GetCompressionAlgorithm()!=ROOT::kLZMA)clevel=6;
+#else
+    if(clevel<6)clevel=6;
+#endif
+    branch->SetCompressionLevel(clevel);
     cout <<" SetupR CompressionLevel "<<branch->GetCompressionLevel()<<" "<<branch->GetSplitLevel()<<endl;
   }
 }

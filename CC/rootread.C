@@ -1,9 +1,9 @@
-#include <iostream.h>
+#include <iostream>
 #include "TBranch.h"
 #include "root.h"
 #include <stdio.h>
 #include "TObjString.h"
-#include <fstream.h>
+#include <fstream>
 #include <TStreamerInfo.h>
 #include <TRFIOFile.h>
 #include <TCastorFile.h>

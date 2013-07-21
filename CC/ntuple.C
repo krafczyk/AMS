@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.262 2013/07/19 11:55:15 choutko Exp $
+//  $Id: ntuple.C,v 1.263 2013/07/21 21:22:58 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -59,6 +59,9 @@ extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #include "TH2F.h"
 #include "TFitter.h"
 #include "HistoMan.h"
+#ifdef __LZMA__
+#include "Compression.h"
+#endif
 #include"trigger102.h"
 AMSEventR AMSNtuple::_evroot02;
 AMSSetupR AMSNtuple::_setup02;
@@ -86,6 +89,9 @@ static float empv_arr[20][18][16];
 const int MEMUPD = 100; // update Memory Monitor Histograms each 
                         // MEMUPD events 
 
+#ifdef _OPENMP
+omp_lock_t AMSNtuple::fLock;
+#endif
 AMSNtuple::~AMSNtuple(){
 #ifdef __WRITEROOT__
   //for(int k=0;k<sizeof(_evroot02)/sizeof(_evroot02[0]);k++)if(_evroot02[k])delete _evroot02[k];
@@ -298,7 +304,9 @@ void AMSNtuple::write(integer addentry){
 }
 
 void AMSNtuple::endR(bool cachewrite){
-
+#ifdef _OPENMP
+  omp_destroy_lock(&fLock);
+#endif
   if(_rfile && evmap.size()  ){
     cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<cachewrite<<endl;
     for(evmapi i=evmap.begin();i!=evmap.end();i++){
@@ -402,6 +410,9 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
 #ifdef __WRITEROOT__
   TTree::SetMaxTreeSize(0xFFFFFFFFFFLL);
   static TROOT _troot("S","S");
+#ifdef _OPENMP
+  omp_init_lock(&fLock);
+#endif
   cout << "Initializing tree...\n"<<endl;
   _Nentries=0;
   _Lasttime=0;
@@ -441,11 +452,19 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     delete [] name;
   }
   _ag.Write("AMS02Geometry");
-  
-  cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
+  int clevel=IOPA.WriteRoot>0?IOPA.WriteRoot-1:-IOPA.WriteRoot;
+  bool lzma=IOPA.WriteRoot<0;
+  cout<<"Set Compress Level ..."<<clevel<<endl;
   cout<<"Set Split Level ..."<<branchSplit<<endl;
+  _rfile->SetCompressionLevel(clevel);
+#ifdef __LZMA__
+  if(lzma)_rfile->SetCompressionAlgorithm(ROOT::kLZMA);
+  else _rfile->SetCompressionAlgorithm(ROOT::kZLIB);
+  cout<<"Set Compress Alg LZMA ..."<<lzma<<endl;
+#else
+  cerr<<"AMSNtuple::InitR-W-UnableToSet Compress Alg LZMA ..."<<lzma<<endl;
+#endif
 
-  _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
   cout<<"AMSNtuple::initR -I- create branches"<<endl;
   _tree= new TTree("AMSRoot","AMS Ntuple Root");
   _treesetup= new TTree("AMSRootSetup","AMS Setup Root");
@@ -483,12 +502,12 @@ uinteger AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
 
 if(Trigger2LVL1::SetupIsChanged){
-#pragma omp critical (g4)
+  #pragma omp critical (g4)
 Get_setup02()->fLVL1Setup.insert(make_pair(AMSEvent::gethead()->gettime(),Trigger2LVL1::l1trigconf));
 
 }
 if(Trigger2LVL1::ScalerIsChanged){
-#pragma omp critical (g4)
+  #pragma omp critical (g4)
 {
 Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger2LVL1::scalmon));
 //for(AMSSetupR::Scalers_i k=Get_setup02()->fScalers.begin();k!=Get_setup02()->fScalers.end();k++){
@@ -496,13 +515,10 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 //}
 }
 }
-
-
-  vector<AMSEventR*> del;
-#pragma omp critical (wr1)
+   const int size_break=10000;
+  #pragma omp critical (wr1)
   {
     Get_evroot02()->SetCont();
-    static int _Size=0;
     int nthr=1;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
@@ -510,6 +526,32 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
     uint64 runv=AMSEvent::gethead()->getrunev();
     AMSEventR * evn=new AMSEventR(_evroot02);
     evmap.insert(make_pair(runv,evn));
+#ifdef _PGTRACK_
+    // once the AMSEventR is created I fill the monitoring infos
+    if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->Fill(evn); 
+#endif
+  }
+     static int mode_yeld=false; 
+#ifdef _OPENMP
+     for(int k=0;k<50000;k++){
+ if(!omp_test_lock(&fLock)){
+   if(!mode_yeld)return _Lastev;
+   else usleep(2);
+ }
+ else goto ok;
+     }
+ return _Lastev;
+ ok:
+ //cout << " lock test passed"<<AMSEvent::get_thread_num()<<" "<<_Lastev<<endl;
+#endif
+  vector<AMSEventR*> del;
+#pragma omp critical (wr1)
+  {
+     static int _Size=0;
+   int nthr=1;
+#ifdef _OPENMP
+    nthr=omp_get_num_threads();
+#endif
     for(evmapi i=evmap.begin();i!=evmap.end();){
       bool go=true;
       //     cout <<"  go "<<i->second->Event()<<endl;
@@ -530,6 +572,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 	del.push_back(i->second); 
 	evmapi idel=i++;
 	evmap.erase(idel);
+        if(del.size()>size_break)break;
       }
     }
     if(evmap.size()>_Size){
@@ -541,20 +584,19 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       if(maxsize<1000)maxsize=1000;
       if(ssize/1024/1024>maxsize){
       cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<AMSEvent::gethead()->get_thread_num()<<" "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
-	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
+      mode_yeld=true;
+      //	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       }
+      else mode_yeld=false;
       _Size=evmap.size();
       if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
     }
-
-#ifdef _PGTRACK_
-    // once the AMSEventR is created I fill the monitoring infos
-    if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->Fill(evn); 
-#endif
+    else if(mode_yeld && evmap.size()<size_break)mode_yeld=false;
 
   }
   if(del.size()){
-#pragma omp critical (wr2)
+    //cout << " lock write "<<AMSEvent::get_thread_num()<<" "<<_Lastev<<" "<<del.size()<<endl;
+    //#pragma omp critical (wr2)
     for(int k=0;k<del.size();k++){
       if(_tree){
 	if(!_lun )_Nentries++;
@@ -565,7 +607,8 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 	_tree->Fill();
       }
     }
-#pragma omp critical (wr1)
+    //cout << " lock writed "<<AMSEvent::get_thread_num()<<" "<<_Lastev<<" "<<del.size()<<endl;
+    //   #pragma omp critical (wr1)
     {
       if(AMSCommonsI::AB_catch<0){
 	AMSCommonsI::AB_catch=0;
@@ -573,6 +616,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 	cout <<"  AMSNtuple:writeR-I-sigsetjmp set "<<AMSEvent::get_thread_num()<<endl;
       }
       if(AMSCommonsI::AB_catch!=1){
+        //cout << " lock deleting "<<AMSEvent::get_thread_num()<<" "<<_Lastev<<" "<<del.size()<<endl;
 	for(int k=0;k<del.size();k++)delete del[k];
       }
       else{
@@ -581,6 +625,10 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
     }
   }
   
+#ifdef _OPENMP
+    omp_unset_lock(&fLock);
+    //    cout << " lock unset "<<AMSEvent::get_thread_num()<<endl;
+#endif
 #endif
   return _Lastev;
 }

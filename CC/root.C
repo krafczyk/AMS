@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.589 2013/07/21 10:25:16 shaino Exp $
+//  $Id: root.C,v 1.590 2013/07/21 21:22:58 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8740,13 +8740,22 @@ EcalShowerR* ParticleR::pEcalShower(){
 VertexR* ParticleR::pVertex(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pVertex(fVertex):0;
 }
-
+#ifdef __LZMA__
+#include "Compression.h"
+#endif
 void AMSEventR::CreateBranch(TTree *tree, int branchSplit){
   if(tree){
     _Head=this;
     tree->Branch(BranchName(),"AMSEventR",&_Head,128000,branchSplit);
     TBranch * branch=tree->GetBranch(BranchName());
-    branch->SetCompressionLevel(6);
+    int clevel=branch->GetCompressionLevel();
+#ifdef __LZMA__
+    if(clevel<6 && branch->GetCompressionAlgorithm()!=ROOT::kLZMA)clevel=6;
+#else
+    if(clevel<6)clevel=6;
+#endif
+branch->SetCompressionLevel(clevel);
+
     cout <<" CompressionLevel "<<branch->GetCompressionLevel()<<" "<<branch->GetSplitLevel()<<endl;
     tree->SetBranchStatus("ev.TSelector",false);
     //     tree->SetBranchStatus("ev.fService",false);
@@ -10427,7 +10436,9 @@ static int master=0;
     TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
     if(!TkDBc::Head){
       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
-	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
+	TrExtAlignDB::ForceFromTDV=1;
+        TrInnerDzDB::ForceFromTDV=1;
+        TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
 	int setup=0;
 	if(Run()>=1300000000)setup=3;
 	else if(Run()>=1257416200)setup=2;
