@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.60 2013/03/10 12:58:30 choutko Exp $
+#  $Id: Makefile,v 1.61 2013/07/21 21:24:46 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -125,9 +125,9 @@ LDS	= 	$(LD) -Bstatic
 LDD	= 	$(LD) -Bdynamic
 
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
-ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot -llzma -pthread  -lAfterImage  -lpcre \
 	            $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat  -lncurses \
-                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet 
+                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrdClient -lXrd -lXrdNet 
 ifndef SLC6system
   ROOTLIBSA += -lXrdNetUtil
 endif

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.20 2012/12/21 16:40:35 kaiwu Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.21 2013/07/21 21:24:30 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -875,6 +875,7 @@ switch (type){
 
 
 void AMSDisplay::Init(){
+
    m_ControlFrame= new AMSControlFrame(gClient->GetRoot(), (TRootCanvas*)m_Canvas->GetCanvasImp(), 400, 220);
    m_Canvas->Update();
 }

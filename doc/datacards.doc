@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.392 2013/06/12 20:29:01 choutko Exp $
+#  $Id: datacards.doc,v 1.393 2013/07/21 21:24:34 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -76,7 +76,8 @@ I85    mode(0)                   // 4th vectors i/0 mode switch
 I86   ffile(' ')                 // 4th vectors file name
 I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
 I127  WriteRoot(0)               // write (!0) or not write(0) root file
-                                 // the value is used to set Root Compression Level-1
+                                 // the value is used to set Root Compression Level=WriteRoot-1; compression algorthm = zlib if >0
+                                 //                           Root Compression Level=-WriteRoot; compression algorthm = lzma otherwise
 I128  rfile(160*' ')             // root file name
 I168 MaxFileSize(100000000)      // max ntuplefilesize (kbytes)
 I169 MaxFileTime(86400*3)        //  max ntuple time (sec)

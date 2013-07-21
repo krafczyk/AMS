@@ -10,6 +10,16 @@ PREFIX        = $(AMSWD)/bin/$(ARCH)/fastntrd/
 DEPDIR        = $(PREFIX)/dep
 AMSPRG        = $(AMSWD)/exe/$(ARCH)/fastntrd.exe
 AMSLIB        = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a
+ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
+    LZMAL =
+else
+    DEFINES  +=  -D__LZMA__
+    LZMAL = -llzma
+endif
+SLC6system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+endif
 
 
 ifeq ($(ARCH),linuxx8664gcc)
@@ -21,7 +31,7 @@ CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOT
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -O -rdynamic -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG -lRoot  -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys   -lrt
+LDFLAGS= -O -rdynamic -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys   -lrt
 CC=g++ 
 FF=gfortran 
 LD=g++ 
@@ -38,10 +48,16 @@ CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOT
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG  -lRoot -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc 
-CC=/opt/intel/Compiler/11.1/073/bin/intel64/icc  -openmp 
-FF=/opt/intel/Compiler/11.1/073/bin/intel64/ifort  -openmp 
-LD=/opt/intel/Compiler/11.1/073/bin/intel64/icpc  -openmp  
+  INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
+  INTELVER=Compiler/11.1/073/
+ifdef SLC6system
+  INTELVER=composer_xe_2011_sp1.9.293/compiler/
+endif
+LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
+
+CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  -openmp -axssse3
+FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort  -openmp -axssse3
+LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  -openmp -axssse3 
 BIN=$(AMSWD)/bin/$(ARCH)/fastntrd/
 EXE=$(AMSWD)/exe/$(ARCH)
 TIMEL=

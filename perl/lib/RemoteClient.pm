@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.782 2013/06/14 13:01:53 bshan Exp $
+# $Id: RemoteClient.pm,v 1.783 2013/07/21 21:24:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7269,7 +7269,7 @@ print qq`
 #    $self->getProductionVersion();
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000 170=$self->{Build} 2=" $defNTUPLE>Ntuple 
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=9000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=18000000 170=$self->{Build} 127=-2 128=" $defROOT>RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -15586,7 +15586,7 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=9000000 170=$self->{Build} 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=18000000 170=$self->{Build} 127=-2 128=\" $defROOT><b> RootFile </b><BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000  170=$self->{Build} 2=\" $defNTUPLE><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();

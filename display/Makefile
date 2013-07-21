@@ -1,10 +1,17 @@
-#  $Id: Makefile,v 1.120 2013/03/10 12:47:46 choutko Exp $
+#  $Id: Makefile,v 1.121 2013/07/21 21:24:30 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
 #
 # List of SLC6 changes
 #
+ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
+    LZMAL =
+else
+    DEFINES  +=  -D__LZMA__
+    LZMAL = -llzma
+endif
+
 SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
@@ -15,6 +22,9 @@ endif
 ifndef AMSDEPLIB
   AMSDEPLIB := /afs/cern.ch/ams/local2/opt/
 endif
+
+
+
 #
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
 #    libcrypt.a  libexpat.a  libfontconfig.a  libshift.a      
@@ -37,6 +47,7 @@ endif
 
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
+VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
 PLATFORM      =  Linux
 PREFIX        = $(AMSWD)/bin/$(ARCH)/display/
 DEPDIR        = $(PREFIX)/dep
@@ -46,13 +57,13 @@ AMSLIBSO        = ntuple_slc4.so
 AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsed
 AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedc
 SLC4=y
-
 #GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
 #GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
 #GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
 GCC_VER_MAJOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c1 )
 GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
 GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
+XRDLIBP        := 
 
 ifeq ($(GCC_VER_MAJOR),4) 
 VERGCC :=1
@@ -66,6 +77,17 @@ else ifeq ($(GCC_VER_MIDDLE),7)
 VERGCCH := 1
 endif
 endif 
+ifeq ($(VERSION),5.27)
+ifndef SLC6system
+  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
+else
+  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+endif
+endif
+ifeq ($(VERSION),5.34)
+  XRDLIB += -lXrdClient   -lXrdUtils
+endif
+
 
 ifdef PGTRACK
 PREFIX        = $(AMSWD)/bin/$(ARCH)/display/PG/
@@ -113,16 +135,27 @@ endif
 ifndef NOXROOTD
 ROOTLIBS     += -lNetx 
 endif
-ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage   $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	              -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
 
-LIBS          =  -Bstatic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic -ldl 
-LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm             -ldl 
+LIBS          =  -Bstatic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm  $(XRDLIBP) $(XRDLIB) -Bdynamic -ldl 
+LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm        $(XRDLIBP) $(XRDLIB)      -ldl 
 LIBSD         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS) 
 
 endif
+
 ifeq ($(ARCH),linuxx8664icc)
+
+
+ifeq ($(VERSION),5.34)
+ifndef SLC6system
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-41/lib64
+else
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-icc64-12/lib64
+endif
+endif
+
 
 ifndef SLC6system
   INTELVER=/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/
@@ -161,20 +194,20 @@ endif
 ifndef NOXROOTD
 ROOTLIBS += -lNetx
 endif
-ROOTLIBSA =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+ROOTLIBSA =  -L$(ROOTSYS)/lib -lRoot $(LZMAL) -lcrypto -pthread  -lAfterImage  -lpcre -lncurses \
 	         $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-             -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys #!!!!!-lXrdNetUtil -lncurses $(LFORT)
-ifndef SLC6system
-  ROOTLIBSA += -lXrdNetUtil
-endif
+             -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   
+
+
 ROOTLIBSA += -lncurses $(LFORT)
 
 #LIBS          =   -Bstatic $(ROOTLIBSA)  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm   -Bdynamic -ldl 
-LIBS          =   -Bstatic $(ROOTLIBSA)   -lm   -Bdynamic -lshift -ldl 
-LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm -ldl 
-LIBSD         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBS) 
+LIBS          =   -Bstatic $(ROOTLIBSA) $(LZMAL)  -lm   $(XRDLIBP) $(XRDLIB) -Bdynamic    -lshift -ldl 
+LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm  $(XRDLIBP) $(XRDLIB) -ldl 
+LIBSD         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBS)    $(XRDLIBP) $(XRDLIB)
 
 endif
+
 ifeq ($(ARCH),macosx64)
 
 OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
@@ -260,6 +293,16 @@ endif
 endif
 ifeq ($(ARCH),linuxx8664gcc)
 
+ifeq ($(VERSION),5.34)
+
+ifndef SLC6system
+ XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-41/lib64
+else
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-44/lib64
+endif
+
+endif
+
 CXX           =  g++ 
 CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
@@ -291,13 +334,14 @@ endif
 ifndef NOXROOTD
 ROOTLIBS     += -lNetx
 endif
-ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
-	             $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
-                 -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil $(LFORT)
-LIBS          =  -Bstatic $(ROOTLIBSA)  -lm -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl
 
-LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm    -ldl 
-LIBSD         =  -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBS)
+ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage  -lpcre $(LZMAL) -lcrypto  -lncurses \
+	             $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lexpat -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
+                 -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff    $(LFORT)
+LIBS          =  -Bstatic $(ROOTLIBSA)    $(XRDLIBP) $(XRDLIB) -lm -Bdynamic    -lshift  -ldl
+
+LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm      $(XRDLIBP) $(XRDLIB) -ldl 
+LIBSD         =  -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBS)   $(XRDLIBP) $(XRDLIB)
 
 ifdef AMS_ACQT_INTERFACE
 LIBSD+= -L$(QTDIR)/lib -lQtCore
@@ -435,7 +479,7 @@ $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a:
 
 $(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a 
 		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
-		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -o $(@) 
+		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a 

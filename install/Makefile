@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.262 2013/06/21 14:08:19 nzimmerm Exp $
+#  $Id: Makefile,v 1.263 2013/07/21 21:24:41 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -61,6 +61,12 @@ SHELL=/bin/sh
 #-----------------------DEFAULTS------------------------------
 ### defaults can be redefined in the OS specific Makefile (Makefile.[OS])
 ## these defaults are for  Linux at CERN 
+ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),) 
+    LZMAL =
+else 
+    DEFINES  +=  -D__LZMA__ 
+    LZMAL = -llzma  
+endif
 
 
 ifndef AMSWD
@@ -76,7 +82,7 @@ G4=
 ifdef G4AMS
 G4:=G4
 include $(G4INSTALL)/config/architecture.gmk
-DEFINES  += -D__NAMESPACE__ -D__G4AMS__
+DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
 INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
 G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global -lCLHEP
 AR=ar
@@ -978,7 +984,7 @@ static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $(SHLIBBO)
-	@if ! [ -z $(QT_STATIC_LIBRARY) ] ; then mkdir -p qt_tmp; cd qt_tmp; $(AR) x $(QT_STATIC_LIBRARY); cd ..; $(AR) q $(NTLD) `ls qt_tmp/*.o | xargs`; rm -Rf qt_tmp; fi
+	@if ! [ -z $(QT_STATIC_LIBRARYP) ] ; then mkdir -p qt_tmp; cd qt_tmp; $(AR) x $(QT_STATIC_LIBRARYP); cd ..; $(AR) q $(NTLD) `ls qt_tmp/*.o | xargs`; rm -Rf qt_tmp; fi
 else
 static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)
