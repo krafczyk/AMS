@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.567 2013/07/21 10:25:18 shaino Exp $
+//  $Id: root.h,v 1.568 2013/07/21 21:23:30 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -554,6 +554,12 @@ ClassDef(DaqEventR,8)       //DaqEventR
 class EcalHitR {
 public:
   unsigned int   Status;   ///< Statusword
+                /*!<  USED
+                      WIDE   hit shared  by 1d cluster (also WIDE)
+                      BAD
+                      GOOD 
+                */
+               
   short   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4
                /*!<
 Idsoft SubCells(pixels) numbering(+Z is top):\n

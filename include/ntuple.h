@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.149 2012/08/18 12:02:06 mkrafczy Exp $
+//  $Id: ntuple.h,v 1.150 2013/07/21 21:23:30 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -936,7 +936,9 @@ protected:
            string filename;
         };
 
-
+#ifdef _OPENMP
+        static omp_lock_t fLock;
+#endif
 typedef map<uint64,AMSEventR*> evmap_d;
 typedef map<uint64,AMSEventR*>::iterator evmapi;
   evmap_d evmap; 
