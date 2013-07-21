@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.78 2013/02/02 16:43:54 shaino Exp $
+//  $Id: TrFit.C,v 1.79 2013/07/21 10:24:48 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2013/02/02 16:43:54 $
+///$Date: 2013/07/21 10:24:48 $
 ///
-///$Revision: 1.78 $
+///$Revision: 1.79 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -982,6 +982,8 @@ double TrFit::AlcarazFit(int fixr)
       wx += (_xs[i] > 0) ? dmsc[i]*2.5 : 0;
       wy += (_ys[i] > 0) ? dmsc[i]     : 0;
     }
+    _zs[i] = wy;
+
     _chisqx += (wx > 0) ? _xr[i]*_xr[i]/wx : 0;
     _chisqy += (wy > 0) ? _yr[i]*_yr[i]/wy : 0;
   }
