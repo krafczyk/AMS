@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.263 2013/07/21 21:24:41 choutko Exp $
+#  $Id: Makefile,v 1.264 2013/07/22 18:21:37 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -102,18 +102,6 @@ endif
 DEFINES  +=    -D__WRITEROOT__    
 INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
 
-#----Qi Yan
-ifdef G4AMS
-DPMDIR=../DPMJET/
-DPMBIN=$(AMSWD)/bin/$(MARCH)/DPMJET/
-DPMSCC=$(DPMDIR)/src/
-DPMFF= $(DPMDIR)/dpmjet2_5/
-
-DEFINES +=-DG4_USE_DPMJET \
-        -DG4DPMJET25GDSHDEBU
-INCDIRS +=-I$(DPMDIR)/include
-endif
-#-----
 
 CPPFLAGS += $(DEFINES)  $(INCDIRS)
 
@@ -138,22 +126,39 @@ ifdef MINUIT2
 DEFINES+= -D_MINUIT2_
 ROOTDICT_CPPFLAGS+= -D_MINUIT2_
 endif
+ifdef SLC6system
+AMSLIBSUFFIX=slc6
+else
+AMSLIBSUFFIX=slc4
+endif
 
-BINMT=$(AMSWD)/bin/$(MARCH)/mt_PG$(G4)/
-BIN=$(AMSWD)/bin/$(MARCH)/PG$(G4)/
-EXE=$(AMSWD)/exe/$(MARCH)/
-LIB=$(AMSWD)/lib/$(MARCH)/
-SHLD=$(LIB)/ntuple_slc4_PG.so
-NTLD=$(LIB)/libntuple_slc4_PG.a
+BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt_PG$(G4)/
+BIN=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/PG$(G4)/
+EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
+LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
+SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX)_PG.so
+NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG.a
 else
 PG=
-BINMT=$(AMSWD)/bin/$(MARCH)/mt/$(G4)/
-BIN=$(AMSWD)/bin/$(MARCH)/$(G4)/
-EXE=$(AMSWD)/exe/$(MARCH)/
-LIB=$(AMSWD)/lib/$(MARCH)/
-SHLD=$(LIB)/ntuple_slc4.so
-NTLD=$(LIB)/libntuple_slc4.a
+BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt/$(G4)/
+BIN=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/$(G4)/
+EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
+LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
+SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX).so
+NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX).a
 endif
+#----Qi Yan
+ifdef G4AMS
+DPMDIR=../DPMJET/
+DPMBIN=$(BIN)/DPMJET/
+DPMSCC=$(DPMDIR)/src/
+DPMFF= $(DPMDIR)/dpmjet2_5/
+
+DEFINES +=-DG4_USE_DPMJET \
+        -DG4DPMJET25GDSHDEBU
+INCDIRS +=-I$(DPMDIR)/include
+endif
+#-----
 
 IDLFLAGS=-D__CORBA__ -I$(BIN)
 
@@ -167,6 +172,12 @@ IDLFLAGS=-D__CORBA__ -I$(BIN)
 
 ifeq ($(origin MARCH), undefined) 
   MARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
+endif
+VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
+ifeq ($(VERSION),5.27)
+VERSIONP=
+else
+VERSIONP = $(VERSION)
 endif
 local_makefile = Makefile.$(MARCH)
 include $(local_makefile)

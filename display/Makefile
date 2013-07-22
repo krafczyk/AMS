@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.121 2013/07/21 21:24:30 choutko Exp $
+#  $Id: Makefile,v 1.122 2013/07/22 18:21:32 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -29,6 +29,12 @@ endif
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
 #    libcrypt.a  libexpat.a  libfontconfig.a  libshift.a      
 #
+ifdef SLC6system
+AMSLIBSUFFIX=slc6
+else
+AMSLIBSUFFIX=slc4
+endif
+
 IMPORTS_SLC5_LIBS=
 ifdef SLC6system
   IMPORTS_SLC5_LIBS= -L$(AMSDEPLIB)/lib64
@@ -49,13 +55,19 @@ endif
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
 PLATFORM      =  Linux
-PREFIX        = $(AMSWD)/bin/$(ARCH)/display/
+ifeq ($(VERSION),5.27)
+VERSIONP=
+else
+VERSIONP=$(VERSION)
+endif
+
+PREFIX        = $(AMSWD)/bin/$(ARCH)$(VERSIONP)/display/
 DEPDIR        = $(PREFIX)/dep
 
-AMSLIB        = ntuple_slc4
-AMSLIBSO        = ntuple_slc4.so
-AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsed
-AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedc
+AMSLIB        = ntuple_$(AMSLIBSUFFIX)
+AMSLIBSO        = ntuple_$(AMSLIBSUFFIX).so
+AMSPRG        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/amsed
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/amsedc
 SLC4=y
 #GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
 #GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
@@ -90,11 +102,11 @@ endif
 
 
 ifdef PGTRACK
-PREFIX        = $(AMSWD)/bin/$(ARCH)/display/PG/
-AMSLIB        = ntuple_slc4_PG
-AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsedPG
-AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedcPG
-AMSPRGCC       = $(AMSWD)/exe/$(ARCH)/amseddPG
+PREFIX        = $(AMSWD)/bin/$(ARCH)$(VERSIONP)/display/PG/
+AMSLIB        = ntuple_$(AMSLIBSUFFIX)_PG
+AMSPRG        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/amsedPG
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/amsedcPG
+AMSPRGCC       = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/amseddPG
 endif
 
 
@@ -150,7 +162,7 @@ ifeq ($(ARCH),linuxx8664icc)
 
 ifeq ($(VERSION),5.34)
 ifndef SLC6system
-  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-41/lib64
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-icc64-11/lib64
 else
   XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-icc64-12/lib64
 endif
@@ -204,7 +216,7 @@ ROOTLIBSA += -lncurses $(LFORT)
 #LIBS          =   -Bstatic $(ROOTLIBSA)  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm   -Bdynamic -ldl 
 LIBS          =   -Bstatic $(ROOTLIBSA) $(LZMAL)  -lm   $(XRDLIBP) $(XRDLIB) -Bdynamic    -lshift -ldl 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm  $(XRDLIBP) $(XRDLIB) -ldl 
-LIBSD         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBS)    $(XRDLIBP) $(XRDLIB)
+LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)    $(XRDLIBP) $(XRDLIB)
 
 endif
 
@@ -341,7 +353,7 @@ ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage  -lpcre $(LZMAL)
 LIBS          =  -Bstatic $(ROOTLIBSA)    $(XRDLIBP) $(XRDLIB) -lm -Bdynamic    -lshift  -ldl
 
 LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm      $(XRDLIBP) $(XRDLIB) -ldl 
-LIBSD         =  -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBS)   $(XRDLIBP) $(XRDLIB)
+LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)   $(XRDLIBP) $(XRDLIB)
 
 ifdef AMS_ACQT_INTERFACE
 LIBSD+= -L$(QTDIR)/lib -lQtCore
@@ -469,20 +481,20 @@ standalone:  amslib $(AMSPRG)
 osdepend:  $(AMSPRGC)
 dynamic:   amslib $(AMSPRGCC)
 
-amslib: $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
-$(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a:
+amslib: $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a
+$(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a:
 	$(MAKE) -C ../install lib
 
   
 
 
 
-$(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a 
+$(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO) $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a 
 		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
 		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a 
+$(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a 
 		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
 		$(LDD)   $(LDFLAGS) $^  $(LIBS) -o $(@) 
 		@echo "$(AMSPRGC) done"

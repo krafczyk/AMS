@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.61 2013/07/21 21:24:46 choutko Exp $
+#  $Id: Makefile,v 1.62 2013/07/22 18:21:40 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -8,6 +8,12 @@
 #
 # List of SLC6 changes
 #
+ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
+    LZMAL =
+else
+    DEFINES  +=  -D__LZMA__
+    LZMAL = -llzma
+endif
 SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
@@ -17,6 +23,11 @@ endif
 #
 ifndef AMSDEPLIB
   AMSDEPLIB := /afs/cern.ch/ams/local2/opt/
+endif
+ifdef SLC6system
+AMSLIBSUFFIX=slc6
+else
+AMSLIBSUFFIX=slc4
 endif
 #
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
@@ -38,21 +49,41 @@ ifndef AMSWD
 AMSWD := ..
 endif
 
+XRDLIBP        := 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
+VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
 PLATFORM      =  Linux
-PREFIX        = $(AMSWD)/bin/$(ARCH)/online/
+
+ifeq ($(VERSION),5.27)
+VERSIONP=
+else
+VERSIONP=$(VERSION)
+endif
+
+
+PREFIX        = $(AMSWD)/bin/$(ARCH)$(VERSIONP)/online/
 DEPDIR        = $(PREFIX)/dep
 
-AMSLIB        = ntuple_slc4
-AMSPRG        = $(AMSWD)/exe/$(ARCH)/offmon
-AMSPRGC       = $(AMSWD)/exe/$(ARCH)/offmonc
+AMSLIB        = ntuple_$(AMSLIBSUFFIX)
+AMSPRG        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/offmon
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/offmonc
 SLC4=y
 ifdef PGTRACK
-PREFIX        = $(AMSWD)/bin/$(ARCH)/online/PG/
-AMSLIB        = ntuple_slc4_PG
-AMSPRG        = $(AMSWD)/exe/$(ARCH)/offmonPG
-AMSPRGC       = $(AMSWD)/exe/$(ARCH)/offmoncPG
+PREFIX        = $(AMSWD)/bin/$(ARCH)$(VERSIONP)/online/PG/
+AMSLIB        = ntuple_$(AMSLIBSUFFIX)_PG
+AMSPRG        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/offmonPG
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/offmoncPG
 else
+endif
+ifeq ($(VERSION),5.27)
+ifndef SLC6system
+  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
+else
+  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+endif
+endif
+ifeq ($(VERSION),5.34)
+  XRDLIB += -lXrdClient   -lXrdUtils
 endif
 
 
@@ -94,6 +125,15 @@ LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -ls
 endif
 ifeq ($(ARCH),linuxx8664icc)
 
+
+ifeq ($(VERSION),5.34)
+ifndef SLC6system
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-icc64-11/lib64
+else
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-icc64-12/lib64
+endif
+endif
+
 ifndef SLC6system
   INTELVER=/opt/intel/Compiler/11.1/073/
 else
@@ -125,16 +165,13 @@ LDS	= 	$(LD) -Bstatic
 LDD	= 	$(LD) -Bdynamic
 
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
-ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot -llzma -pthread  -lAfterImage  -lpcre \
+ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot $(LZMAL) -pthread  -lAfterImage  -lpcre -lcrypto \
 	            $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat  -lncurses \
-                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrdClient -lXrd -lXrdNet 
-ifndef SLC6system
-  ROOTLIBSA += -lXrdNetUtil
-endif
-ROOTLIBSA += -lXrdOuc -lXrdSys $(LFORT)
+                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   
+ROOTLIBSA +=  $(LFORT)
 
-LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl 
-LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm -Bstatic -ldl 
+LIBS          =  -Bstatic   $(ROOTLIBSA)  $(XRDLIBP) $(XRDLIB) -Bdynamic -lshift -lm    -ldl 
+LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  $(XRDLIBP) $(XRDLIB) -lm -Bstatic -ldl 
 
 endif
 ifeq ($(ARCH),linux)
@@ -194,12 +231,12 @@ LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF $(LFORT)
-ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot $(LZMAL) -pthread  -lAfterImage  -lpcre -lcrypto  -lncurses \
 	            $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                 -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
-LIBS          = -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
-LIBSA         = $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
+LIBS          = -Bstatic   $(ROOTLIBSA)   $(XRDLIBP) $(XRDLIB) -Bdynamic -lshift -lm    -ldl
+LIBSA         = $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   $(XRDLIBP) $(XRDLIB)  -Bdynamic          -ldl 
 endif
 
 
@@ -318,20 +355,20 @@ LDD	= 	$(LD) -rdynamic
 standalone:  amslib $(AMSPRG) 
 osdepend:  amslib $(AMSPRGC)
 
-amslib: $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
-$(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a:
+amslib: $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a
+$(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a:
 	$(MAKE) -C ../install lib
 
   
 
 
 
-$(AMSPRG):        $(OBJS)  $(DICTO) $(MAINO) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
-		$(LDS)   $(LDFLAGS) $^  $(LIBSA) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a -o $(@) 
+$(AMSPRG):        $(OBJS)  $(DICTO) $(MAINO) $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a
+		$(LDS)   $(LDFLAGS) $^  $(LIBSA) $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a -o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	  $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
-		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a  $(LIBS) -o $(AMSPRGC) 
+		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a  $(LIBS) -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS) LinkDef.h
