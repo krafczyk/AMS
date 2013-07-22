@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.202.4.1 2013/01/17 16:46:07 choutko Exp $
+//  $Id: server.C,v 1.202.4.2 2013/07/22 07:05:47 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2930,10 +2930,10 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
         jid=atol(line+kstart+1);
         cout <<"  Check Client jid found "<<jid<<" "<<uid<<endl;         
         acv->id.pid=jid;
-        char tmp[255];
+        char tmp[1024];
         sprintf(tmp,"%s%s.bsub",add,uid);
         unlink(tmp);
-        sprintf(tmp,"ssh %s /afs/cern.ch/ams/local/bin/timeout --signal 9 120  bjobs %u 1>& %s%s.bsub",(const char*)(acv->id).HostName,jid,add,uid);
+        sprintf(tmp,"/afs/cern.ch/ams/local/bin/timeout --signal 9 60 ssh %s /afs/cern.ch/ams/local/bin/timeout --signal 9 120  bjobs %u 1>& %s%s.bsub",(const char*)(acv->id).HostName,jid,add,uid);
         int suc=system(tmp);
         if(suc){
             cerr<<" unable to "<<tmp<<endl;
