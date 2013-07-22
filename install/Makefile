@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.230.2.2 2013/07/19 19:31:19 choutko Exp $
+#  $Id: Makefile,v 1.230.2.3 2013/07/22 07:05:56 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -61,6 +61,12 @@ SHELL=/bin/sh
 #-----------------------DEFAULTS------------------------------
 ### defaults can be redefined in the OS specific Makefile (Makefile.[OS])
 ## these defaults are for  Linux at CERN 
+ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
+    LZMAL =
+else
+    DEFINES  +=  -D__LZMA__
+    LZMAL = -llzma
+endif
 
 
 ifndef AMSWD
