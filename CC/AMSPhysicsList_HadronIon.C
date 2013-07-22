@@ -30,6 +30,7 @@
 #include "G4LElastic.hh"
 #include "G4HadronElasticProcess.hh"
 #include "G4IonsShenCrossSection.hh"
+#include "G4QMDReaction.hh"
 //////////////////////////////////////////////////////////////////////////////// 
 // 
 AMSPhysicsList_HadronIon::AMSPhysicsList_HadronIon(const G4String& name)
@@ -75,6 +76,10 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     theGenIonBC->SetMinEnergy(0.0*MeV);
     theGenIonBC->SetMaxEnergy(20000.0*GeV);
 
+
+    G4QMDReaction * theGenIonQMD= new G4QMDReaction;
+    theGenIonQMD->SetMinEnergy(0.0*MeV);
+    theGenIonQMD->SetMaxEnergy(20000.0*GeV);
 
     G4EMDissociationCrossSection *EMDCrossSection = new G4EMDissociationCrossSection;
     G4GeneralSpaceNNCrossSection * generalCrossSection =  new G4GeneralSpaceNNCrossSection;
@@ -171,7 +176,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     }
 
 
-    if(G4FFKEY.IonPhysicsModel==2){
+    if(G4FFKEY.IonPhysicsModel==-2){
 
 	cout<<"Use G4WilsonAbrasionModel for All the Ions"<<endl;
 
@@ -236,6 +241,89 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  pManager->AddDiscreteProcess(fGenericIon_EMD);
 	}
 
+
+    }
+
+
+
+    if(G4FFKEY.IonPhysicsModel==2){
+
+	cout<<"Use G4QMD for All the Ions"<<endl;
+
+
+	
+ G4TripathiCrossSection * TripathiCrossSection= new G4TripathiCrossSection;
+
+
+
+
+
+	//======Deuteron
+	particle = G4Deuteron::Deuteron();
+	pManager = particle->GetProcessManager();
+        fDeuteronProcess->AddDataSet(fShen);
+	fDeuteronProcess->AddDataSet(generalCrossSection);
+	fDeuteronProcess->AddDataSet(TripathiCrossSection);
+	fDeuteronProcess->RegisterMe(theGenIonQMD);
+	pManager->AddDiscreteProcess(fDeuteronProcess);
+	//	pManager->AddDiscreteProcess(hadElastProc);
+
+	//======Triton
+	particle = G4Triton::Triton();
+	pManager = particle->GetProcessManager();
+        fTritonProcess->AddDataSet(fShen);	
+	fTritonProcess->AddDataSet(generalCrossSection);
+	fTritonProcess->AddDataSet(TripathiCrossSection);
+	fTritonProcess->RegisterMe(theGenIonQMD);
+	pManager->AddDiscreteProcess(fTritonProcess);
+	//	pManager->AddDiscreteProcess(hadElastProc);
+	//======Alpha
+	particle = G4Alpha::Alpha();
+	pManager = particle->GetProcessManager();
+        fAlphaProcess->AddDataSet(fShen);
+	fAlphaProcess->AddDataSet(generalCrossSection);
+	fAlphaProcess->AddDataSet(TripathiCrossSection);
+	fAlphaProcess->RegisterMe(theGenIonQMD);
+	pManager->AddDiscreteProcess(fAlphaProcess);
+	//	pManager->AddDiscreteProcess(hadElastProc);
+	//======He3
+	particle = G4He3::He3();
+	pManager = particle->GetProcessManager();
+	G4HadronInelasticProcess* fhe3Ion = new G4HadronInelasticProcess("He3Inelastic",particle);
+        fhe3Ion->AddDataSet(fShen);
+	fhe3Ion->AddDataSet(generalCrossSection);
+	fhe3Ion->AddDataSet(TripathiCrossSection);
+	fhe3Ion->RegisterMe(theGenIonQMD);
+	pManager->AddDiscreteProcess(fhe3Ion);
+	pManager->AddDiscreteProcess(hadElastProc);
+	//======GenericIon
+	particle = G4GenericIon::GenericIon();
+	pManager = particle->GetProcessManager();
+	G4HadronInelasticProcess* fGenericIon = new G4HadronInelasticProcess("IonInelastic",particle);
+        fGenericIon->AddDataSet(fShen);
+	fGenericIon->AddDataSet(generalCrossSection);
+	fGenericIon->AddDataSet(TripathiCrossSection);
+	fGenericIon->RegisterMe(theGenIonQMD);
+	pManager->AddDiscreteProcess(fGenericIon);
+	pManager->AddDiscreteProcess(hadElastProc);
+
+	if(G4FFKEY.UseEMDModel==1){
+	  cout<<"Also Use EMD Model"<<endl;
+	  G4EMDissociation *theEMD = new G4EMDissociation();
+	  theEMD->SetMinEnergy(100.0*MeV);
+	  theEMD->SetMaxEnergy(2000.0*GeV);
+	  theEMD->SetVerboseLevel(2);
+	  G4ElementTable::iterator iter;
+	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
+	  for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
+	    theEMD->ActivateFor(*iter);
+	  }
+	  G4HadronInelasticProcess* fGenericIon_EMD = new G4HadronInelasticProcess("IonEMD",particle);
+	  
+	  fGenericIon_EMD->AddDataSet(EMDCrossSection);
+	  fGenericIon_EMD->RegisterMe(theEMD);
+	  pManager->AddDiscreteProcess(fGenericIon_EMD);
+	}
 
     }
 
