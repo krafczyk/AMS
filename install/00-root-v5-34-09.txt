@@ -1,0 +1,77 @@
+Root v5-34-09  compatible with AMS have been built for
+
+icc64-11  (slc5)
+icc64-12  (slc6)
+gcc64-41  (slc5)
+gcc64-44  (slc6)
+
+the corresponding patch is available in  /afs/cern.ch/ams/Offline/AMSsoft/root-v5-34-09.patch
+see also RelaseNotes.VC  for build options and what was changed
+
+
+
+
+the corresponding root libraries are installed in 
+
+/afs/cern.ch/exp/ams/Offline/root/Linux/root-v5-34-9-gcc64-slc5
+/afs/cern.ch/exp/ams/Offline/root/Linux/root-v5-34-9-gcc64-slc6
+/afs/cern.ch/exp/ams/Offline/root/Linux/root-v5-34-9-icc64-slc5
+/afs/cern.ch/exp/ams/Offline/root/Linux/root-v5-34-9-icc64-slc6
+
+
+
+to set up corresponding libraries and var please use 
+
+source /afs/cern.ch/exp/ams/Offline/root/Linux/root-v5-34-9-xxx/amsvar
+
+
+
+
+
+Comments for these root versions release
+
+
+1.Xrootd  is now only support shared libraries.
+
+  the corresponding xrootd 3-2-7 are installed in
+
+  /afs/cern.ch/ams/local2/opt/xrootd-xxx
+
+
+2.LZMA compression gives better compression w/r libz , but slower algorithm.
+
+  the compression level=2  gives 10 to 15 % of the root file size, while having small cpu overhead
+  which is the default now. 
+
+  IMPORTANT  we are going to change compression in Data production soon (Date will be announced)
+
+  To have backward support the LZMA compression had been added in 5.27 icc64 only
+
+  /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64.lzma
+
+  NB this version will be used after issuing source  /Offline/vdev/install/amsvar
+  
+  Please report all the problems in using it to vitali.choutko@cern.ch
+
+
+ 
+
+3. AMS libraries/exec for new versions 
+    
+are being installed on /Offline/vdev/.../linuxx8664icc645.34
+                       /Offline/vdev/.../linuxx8664gcc645.34
+
+
+
+4. We are going to switch AMS production using root version 5-34-09 soon  (Date will be announced)
+
+
+
+
+Please send comments, questions and report problems to vitali.choutko@cern.ch, alexander.egorov@cern.ch
+
+
+
+ 
+ 
+
