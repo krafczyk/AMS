@@ -1103,9 +1103,123 @@ void FUnfolding::fold(TH1D &parameters,TH1F &output){
 
 }
 
+void SamplingUnfolding::copyH(TH2F &input,TH2D &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+  Double_t *ybins=new Double_t[input.GetNbinsY()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+
+  for(int i=1;i<=input.GetNbinsY();i++) ybins[i-1]=input.GetYaxis()->GetBinLowEdge(i);
+  ybins[input.GetNbinsY()]=input.GetYaxis()->GetBinUpEdge(input.GetNbinsY());
+
+  output.SetBins(input.GetNbinsX(),xbins,input.GetNbinsY(),ybins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++)
+    for(int j=0;j<=input.GetNbinsY()+1;j++){
+      output.SetBinContent(i,j,input.GetBinContent(i,j));
+      output.SetBinError(i,j,input.GetBinError(i,j));
+    }
+
+  delete[] xbins;
+  delete[] ybins;
+}
+
+void SamplingUnfolding::copyH(TH2D &input,TH2F &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+  Double_t *ybins=new Double_t[input.GetNbinsY()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+
+  for(int i=1;i<=input.GetNbinsY();i++) ybins[i-1]=input.GetYaxis()->GetBinLowEdge(i);
+  ybins[input.GetNbinsY()]=input.GetYaxis()->GetBinUpEdge(input.GetNbinsY());
+
+  output.SetBins(input.GetNbinsX(),xbins,input.GetNbinsY(),ybins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++)
+    for(int j=0;j<=input.GetNbinsY()+1;j++){
+      output.SetBinContent(i,j,input.GetBinContent(i,j));
+      output.SetBinError(i,j,input.GetBinError(i,j));
+    }
+
+  delete[] xbins;
+  delete[] ybins;
+}
+
+void SamplingUnfolding::copyH(TH1F &input,TH1D &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+  output.SetBins(input.GetNbinsX(),xbins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++){
+    output.SetBinContent(i,input.GetBinContent(i));
+    output.SetBinError(i,input.GetBinError(i));
+  }
+
+  delete[] xbins;
+}
 
 
-#define MASKED 1000
+void SamplingUnfolding::copyH(TH1D &input,TH1F &output){
+  // Create an array to store the binning
+  Double_t *xbins=new Double_t[input.GetNbinsX()+1];
+
+  // Copy the binning
+  for(int i=1;i<=input.GetNbinsX();i++) xbins[i-1]=input.GetXaxis()->GetBinLowEdge(i);
+  xbins[input.GetNbinsX()]=input.GetXaxis()->GetBinUpEdge(input.GetNbinsX());
+  output.SetBins(input.GetNbinsX(),xbins);
+
+  // Fill the histogram
+  for(int i=0;i<=input.GetNbinsX()+1;i++){
+    output.SetBinContent(i,input.GetBinContent(i));
+    output.SetBinError(i,input.GetBinError(i));
+  }
+  
+  delete[] xbins;
+}
+ 
+#define MASKED -1000 
+
+void SamplingUnfolding::updateSigmas(){
+  Sigmas=Prior;
+  Samples=Prior;
+  Samples.Reset();
+  Accepted=Samples;
+  
+  for(int i=1;i<=Prior.GetNbinsX();i++){
+    if(Prior.GetBinContent(i)==MASKED) Sigmas.SetBinContent(i,0);
+    else Sigmas.SetBinContent(i,exp(-Prior.GetBinContent(i)/2));
+  }
+}
+
+void SamplingUnfolding::setPrior(TH1D &prior){
+  Prior=prior;
+  Prior.Reset();
+  for(int i=1;i<=Prior.GetNbinsX();i++){
+    if(prior.GetBinContent(i)<=0) Prior.SetBinContent(i,MASKED); // This is amask
+    else Prior.SetBinContent(i,log(prior.GetBinContent(i)));
+  }
+
+  fold(prior,FoldedPrior);
+  updateSigmas();
+
+  
+}
+
+
+
 void SamplingUnfolding::step(TH1D &goal,TH1D &sample){
   // Use Metropolis-Hasting method to modify the prior
 

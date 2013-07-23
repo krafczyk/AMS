@@ -406,7 +406,7 @@ class FUnfolding{
 
 
 
-class SamplingUnfolding: public TObject{
+class SamplingUnfolding{
  public:
   void copyH(TH2F &input,TH2D &output);  //< Helper function
   void copyH(TH1F &input,TH1D &output);  //< Helper function 
@@ -455,8 +455,6 @@ class SamplingUnfolding: public TObject{
   }
 
   SamplingUnfolding():Regularization(1.0){}
-  
-  ClassDef(SamplingUnfolding,1)
 };
 
 
