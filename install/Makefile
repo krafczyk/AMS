@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.264 2013/07/22 18:21:37 choutko Exp $
+#  $Id: Makefile,v 1.265 2013/07/23 16:19:46 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -113,6 +113,11 @@ ROOTDICT_CPPFLAGS= $(CPPFLAGS)
 SCC = ../CC/
 # Fortran  sources dir 
 SFF = ../F/
+ifdef SLC6system
+AMSLIBSUFFIX=slc6
+else
+AMSLIBSUFFIX=slc4
+endif
 
 ifdef PGTRACK
 PG:=PG
@@ -125,11 +130,6 @@ ROOTDICT_CPPFLAGS+= -D_PGTRACK_
 ifdef MINUIT2
 DEFINES+= -D_MINUIT2_
 ROOTDICT_CPPFLAGS+= -D_MINUIT2_
-endif
-ifdef SLC6system
-AMSLIBSUFFIX=slc6
-else
-AMSLIBSUFFIX=slc4
 endif
 
 BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt_PG$(G4)/
