@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.100 2013/03/14 09:29:38 oliva Exp $
+//  $Id: TrTrack.h,v 1.101 2013/07/23 12:49:35 bbeische Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2013/03/14 09:29:38 $
+///$Date: 2013/07/23 12:49:35 $
 ///
-///$Revision: 1.100 $
+///$Revision: 1.101 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,6 +52,7 @@ class AMSTrTrackError;
 #include "TrElem.h"
 #include <cmath>
 
+class mean_t;
 class TrRecHitR;
 
 //! Class Used to represent the parameters coming as a result of a Track Fit
@@ -736,12 +737,16 @@ public:
 
   /** @name Track charge estimation (best available estimators shortcuts) */
   /**@{*/
+  //! Get the track charge estimator (all calculated information)
+  mean_t  GetQ_all(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the track charge estimator
   float   GetQ(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the number of points used in the track charge estimator
   int     GetQ_NPoints(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the RMS of the track charge estimator 
   float   GetQ_RMS(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
+  //! Get the inner tracker estimator (all calculated information)
+  mean_t  GetInnerQ_all(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the inner tracker estimator
   float   GetInnerQ(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
   //! Get the number of points used in the inner tracker charge estimator

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.172 2013/03/21 09:37:09 oliva Exp $
+// $Id: TrTrack.C,v 1.173 2013/07/23 12:49:34 bbeische Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/03/21 09:37:09 $
+///$Date: 2013/07/23 12:49:34 $
 ///
-///$Revision: 1.172 $
+///$Revision: 1.173 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1929,99 +1929,65 @@ bool TrTrackR::ValidTrRecHitsPointers() {
 }
 
 
-float TrTrackR::GetQ(float beta, int fit_id, float mass_on_z, int version) {
+mean_t TrTrackR::GetQ_all(float beta, int fit_id, float mass_on_z, int version) {
   // ver0: X side only, no kLoss
   if (version==0) 
     return TrCharge::GetMean(
       TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).Mean;
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld);
   // ver1: X/Y truncated mean combination (old corrections) 
   else if (version==1)
     return TrCharge::GetCombinedMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).Mean;
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld);
   // ver2: X/Y truncated mean combination (new corrections, 2013) 
   return TrCharge::GetCombinedMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z).Mean;  
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z);  
+}
+
+
+float TrTrackR::GetQ(float beta, int fit_id, float mass_on_z, int version) {
+  return GetQ_all(beta, fit_id, mass_on_z, version).Mean;
 }
 
 
 int TrTrackR::GetQ_NPoints(float beta, int fit_id, float mass_on_z, int version) {
-  // ver0: X side only, no kLoss
-  if (version==0)
-    return TrCharge::GetMean(
-      TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).NPoints;
-  // ver1: X/Y truncated mean combination (old corrections) 
-  else if (version==1)
-    return TrCharge::GetCombinedMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).NPoints;
-  // ver2: X/Y truncated mean combination (new corrections, 2013) 
-  return TrCharge::GetCombinedMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z).NPoints;
+  return GetQ_all(beta, fit_id, mass_on_z, version).NPoints;
 }
 
 
 float TrTrackR::GetQ_RMS(float beta, int fit_id, float mass_on_z, int version) {
-  // ver0: X side only, no kLoss
-  if (version==0)
-    return TrCharge::GetMean(
-      TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).RMS;
-  // ver1: X/Y truncated mean combination (old corrections) 
-  else if (version==1)
-    return TrCharge::GetCombinedMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).RMS;
-  // ver2: X/Y truncated mean combination (new corrections, 2013) 
-  return TrCharge::GetCombinedMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z).RMS;
+  return GetQ_all(beta, fit_id, mass_on_z, version).RMS;
 }
 
  
-float TrTrackR::GetInnerQ(float beta, int fit_id, float mass_on_z, int version) {
+mean_t TrTrackR::GetInnerQ_all(float beta, int fit_id, float mass_on_z, int version) {
   // ver0: X side only, no kLoss
   if (version==0)
     return TrCharge::GetMean(
       TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).Mean;
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld);
   // ver1: X/Y truncated mean combination (old corrections) 
   else if (version==1)
     return TrCharge::GetCombinedMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).Mean;
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld);
   // ver2: X/Y truncated mean combination (new corrections, 2013) 
   return TrCharge::GetCombinedMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z).Mean;
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z);
+}
+
+
+float TrTrackR::GetInnerQ(float beta, int fit_id, float mass_on_z, int version) {
+  return GetInnerQ_all(beta, fit_id, mass_on_z, version).Mean;
 }
 
 
 int TrTrackR::GetInnerQ_NPoints(float beta, int fit_id, float mass_on_z, int version) {
-  // ver0: X side only, no kLoss
-  if (version==0)
-    return TrCharge::GetMean(
-      TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).NPoints;
-  // ver1: X/Y truncated mean combination (old corrections) 
-  else if (version==1)
-    return TrCharge::GetCombinedMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).NPoints;
-  // ver2: X/Y truncated mean combination (new corrections, 2013) 
-  return TrCharge::GetCombinedMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z).NPoints;
+  return GetInnerQ_all(beta, fit_id, mass_on_z, version).NPoints;
 }
 
   
 float TrTrackR::GetInnerQ_RMS(float beta, int fit_id, float mass_on_z, int version) {
-  // ver0: X side only, no kLoss
-  if (version==0)
-    return TrCharge::GetMean(
-      TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).RMS;
-  // ver1: X/Y truncated mean combination (old corrections) 
-  else if (version==1)
-    return TrCharge::GetCombinedMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kOld).RMS;
-  // ver2: X/Y truncated mean combination (new corrections, 2013) 
-  return TrCharge::GetCombinedMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,beta,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity|TrClusterR::kMIP,fit_id,mass_on_z).RMS;
+  return GetInnerQ_all(beta, fit_id, mass_on_z, version).RMS;
 }
 
   
