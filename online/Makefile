@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.62 2013/07/22 18:21:40 choutko Exp $
+#  $Id: Makefile,v 1.63 2013/07/23 12:08:31 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -278,6 +278,13 @@ endif
 #LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
 #ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
 #endif
+
+
+ifdef AMS_ACQT_INTERFACE
+LIBS+= $(QTDIR_STATIC)/lib/libQtCore.a
+LIBSA+= $(QTDIR_STATIC)/lib/libQtCore.a
+LIBSD+= -L$(QTDIR)/lib -lQtCore
+endif
 
 ifdef AMS_ACQT_INTERFACE
 LIBS+=-lrt
