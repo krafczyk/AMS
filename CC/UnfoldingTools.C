@@ -3,6 +3,7 @@
 #include <iostream>
 #include "math.h"
 #include "TSpline.h"
+#include "TProfile.h"
 
 using namespace std;
 
@@ -1103,3 +1104,160 @@ void FUnfolding::fold(TH1D &parameters,TH1F &output){
 }
 
 
+
+#define MASKED 1000
+void SamplingUnfolding::step(TH1D &goal,TH1D &sample){
+  // Use Metropolis-Hasting method to modify the prior
+
+  // Ensure the priors are ok
+  if(FoldedPrior.GetNbinsX()!=goal.GetNbinsX()){
+    FoldedPrior=goal;
+    FoldedPrior.Reset();
+    TH1D right=Prior;
+    for(int i=1;i<=right.GetNbinsX();i++) right.SetBinContent(i,exp(Prior.GetBinContent(i))); 
+    fold(right,FoldedPrior);
+  }
+
+
+  // Select a single channel
+  int whichBin=-1;
+  do whichBin=1+Random.Integer(Prior.GetNbinsX()); while(Prior.GetBinContent(whichBin)==MASKED);
+
+  //  cout<<"USING WHICHBIN "<<whichBin<<endl;
+
+  // Sample a step
+  double delta=Random.Gaus()*Sigmas.GetBinContent(whichBin);
+
+  if(0)
+  {
+    TH1D candidate=Prior;
+    candidate.AddBinContent(whichBin,delta);
+    Prior.SetLineColor(2);
+    candidate.SetLineColor(1);
+    TCanvas ll;
+    Prior.Draw();
+    candidate.Draw("same");
+    gPad->WaitPrimitive();
+  }
+
+
+  // Compute the change in the log of the probability 
+  TH1D change=Prior;
+  change.Reset();
+  change.SetBinContent(whichBin,exp(Prior.GetBinContent(whichBin))*(exp(delta)-1));
+  TH1D increment=goal;
+  increment.Reset();
+  fold(change,increment);
+
+
+  TH1D final=Prior;final.AddBinContent(whichBin,delta);
+  double logProbDelta=foldedCostFunction(increment,FoldedPrior,goal);
+  double logProbDeltaInit=unfoldedCostFunction(final)-unfoldedCostFunction(Prior);
+  logProbDelta+=logProbDeltaInit;
+
+
+  // Perform the step
+  double acceptance=log(Random.Uniform());
+  Samples.AddBinContent(whichBin,1);
+
+  if(logProbDelta>=acceptance){
+    // Accepted
+    Accepted.AddBinContent(whichBin,1);
+
+    // Update Prior and folded prior
+    FoldedPrior.Add(&increment);
+    Prior.AddBinContent(whichBin,delta);
+  }else{
+    // Do nothing
+  }
+
+  // Return the current prior
+  sample=Prior;
+  for(int i=1;i<=sample.GetNbinsX();i++) sample.SetBinContent(i,exp(sample.GetBinContent(i)));
+}
+
+
+void SamplingUnfolding::setResponseMatrixFromJoint(TH2D &joint){
+  ResponseMatrix=joint;  ResponseMatrix.Reset();
+  TH1D *normalization=    (TH1D*)joint.ProjectionX("_normalizatio",1,joint.GetNbinsY());
+  
+  for(int i=1;i<=ResponseMatrix.GetNbinsX();i++){
+    double sum=normalization->GetBinContent(i);
+    if(sum<=0) continue;
+    for(int j=1;j<=ResponseMatrix.GetNbinsY();j++) ResponseMatrix.SetBinContent(i,j,joint.GetBinContent(i,j)/sum);
+  }
+
+  delete (TH1D*)normalization;
+}
+
+void SamplingUnfolding::fold(TH1D &input,TH1D &output){
+  output.Reset();
+  for(int i=1;i<=ResponseMatrix.GetNbinsX();i++){
+    double x=ResponseMatrix.GetXaxis()->GetBinCenter(i);
+    int pbin=input.GetXaxis()->FindBin(x);
+    double weight=input.GetBinContent(pbin)*ResponseMatrix.GetXaxis()->GetBinWidth(i)/input.GetXaxis()->GetBinWidth(pbin);
+    if(weight) for(int j=1;j<=ResponseMatrix.GetNbinsY();j++) output.Fill(ResponseMatrix.GetYaxis()->GetBinCenter(j),ResponseMatrix.GetBinContent(i,j)*weight);
+  }
+}
+
+
+double SamplingUnfolding::unfoldedCostFunction(TH1D &unfolded){
+  double sum=0;
+  for(int i=2;i<=unfolded.GetNbinsX()-1;i++){
+    double y1=exp(unfolded.GetBinContent(i+1))/unfolded.GetXaxis()->GetBinWidth(i+1);
+    double y0=exp(unfolded.GetBinContent(i-1))/unfolded.GetXaxis()->GetBinWidth(i-1);
+    double x1=unfolded.GetXaxis()->GetBinCenter(i+1);
+    double x0=unfolded.GetXaxis()->GetBinCenter(i-1);
+    double prediction=y0+(y1-y0)/(x1-x0)*(unfolded.GetXaxis()->GetBinCenter(i)-x0);
+    if(prediction==0) continue;
+    prediction*=unfolded.GetXaxis()->GetBinWidth(i);
+    double v=prediction-exp(unfolded.GetBinContent(i));
+    sum+=-0.5*v*v/prediction;
+  }
+  return sum*Regularization;
+}
+
+double SamplingUnfolding::foldedCostFunction(TH1D &increment,TH1D &folded,TH1D &goal){
+  double sum=0;
+
+  for(int i=1;i<=goal.GetNbinsX();i++){
+    double current=folded.GetBinContent(i);
+    double delta=increment.GetBinContent(i)+current;
+    double n=goal.GetBinContent(i);
+
+    sum+=-delta+(n!=0?n*log(delta):0);
+    sum-=-current+(n!=0?n*log(current):0);
+  }
+  return sum;
+}
+
+
+void SamplingUnfolding::computeAll(TH2D &jointPDF,TH1D &measured,TH1D &unfolded,double reg,int burn_in,int samples){
+  Regularization=reg;
+  setResponseMatrixFromJoint(jointPDF);
+  setPrior(measured);
+  TH1D current;
+
+  cout<<"BURN-IN PHASE..."<<endl;
+  for(int i=0;i<burn_in*measured.GetNbinsX();i++){
+    step(measured,current);
+    if(i%(100*measured.GetNbinsX())==0) cout<<"... "<<i/measured.GetNbinsX()<<" of "<<burn_in<<" done"<<endl;
+  }
+
+
+  double *array=new double[current.GetNbinsX()+1];
+  for(int i=1;i<=current.GetNbinsX()+1;i++) array[i-1]=current.GetXaxis()->GetBinLowEdge(i);
+
+  cout<<"UNFOLDING PHASE..."<<endl;
+  TProfile final_result("","",current.GetNbinsX(),array,"s");
+  for(int i=0;i<samples*measured.GetNbinsX();i++){
+    step(measured,current);
+    for(int j=1;j<=current.GetNbinsX();j++) final_result.Fill(current.GetXaxis()->GetBinCenter(j),current.GetBinContent(j));
+    if(i%(100*measured.GetNbinsX())==0) cout<<"... "<<i/measured.GetNbinsX()<<" of "<<samples<<" done"<<endl;
+  }
+  unfolded.SetBins(current.GetNbinsX(),array);
+  for(int j=1;j<current.GetNbinsX();j++){
+    unfolded.SetBinContent(j,final_result.GetBinContent(j));
+    unfolded.SetBinError(j,final_result.GetBinError(j));
+  }
+}

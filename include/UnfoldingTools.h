@@ -405,5 +405,60 @@ class FUnfolding{
 };
 
 
+
+class SamplingUnfolding: public TObject{
+ public:
+  void copyH(TH2F &input,TH2D &output);  //< Helper function
+  void copyH(TH1F &input,TH1D &output);  //< Helper function 
+  void copyH(TH2D &input,TH2F &output);  //< Helper function
+  void copyH(TH1D &input,TH1F &output);  //< Helper function 
+
+  void setPrior(TH1D &prior);
+  void updateSigmas();
+  void setResponseMatrixFromJoint(TH2D &joint);  
+  void fold(TH1D &input,TH1D &output);
+  void step(TH1D &goal,TH1D &sample);
+
+  virtual double foldedCostFunction(TH1D &increment,TH1D &folded,TH1D &goal);
+  virtual double unfoldedCostFunction(TH1D &unfolded);
+  
+  TRandom Random;
+  TH1D Prior;
+  TH1D FoldedPrior;
+  TH1D Sigmas;
+  TH1D Samples;
+  TH1D Accepted;
+
+
+  TH2D ResponseMatrix;
+  
+
+  Double_t Regularization;
+  void computeAll(TH2D &jointPDF,TH1D &measured,             // Inputs
+		  TH1D &unfolded,                            // Output
+		  double regularization=0.5,
+		  int burn_in=1000,                          // Samples for MC error computation    
+		  int samples=1000);
+
+
+  void computeAll(TH2F &jointPDF,TH1F &measured,             // Inputs
+		  TH1F &unfolded,                            // Output
+		  double regularization=0.5,
+		  int burn_in=1000,                          // Samples for MC error computation    
+		  int samples=1000){
+    TH2D jointPDFD;
+    TH1D measuredD,unfoldedD;
+    copyH(jointPDF,jointPDFD);
+    copyH(measured,measuredD);
+    computeAll(jointPDFD,measuredD,unfoldedD,regularization,burn_in,samples);
+    copyH(measuredD,measured);
+  }
+
+  SamplingUnfolding():Regularization(1.0){}
+  
+  ClassDef(SamplingUnfolding,1)
+};
+
+
 #endif
 
