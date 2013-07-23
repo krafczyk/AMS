@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.122 2013/07/22 18:21:32 choutko Exp $
+#  $Id: Makefile,v 1.123 2013/07/23 12:08:28 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -356,6 +356,8 @@ LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -ls
 LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)   $(XRDLIBP) $(XRDLIB)
 
 ifdef AMS_ACQT_INTERFACE
+LIBS+= $(QTDIR_STATIC)/lib/libQtCore.a
+LIBSA+= $(QTDIR_STATIC)/lib/libQtCore.a
 LIBSD+= -L$(QTDIR)/lib -lQtCore
 endif
 
