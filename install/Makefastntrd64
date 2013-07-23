@@ -4,12 +4,23 @@ SHELL=/bin/sh
 ifndef AMSWD
 AMSWD := ..
 endif
+ifndef AMSDEPLIB
+  AMSDEPLIB := /afs/cern.ch/ams/local2/opt/
+endif
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
+VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
+ifeq ($(VERSION),5.27)
+VERSIONP=
+else
+VERSIONP = $(VERSION)
+endif
+XRDLIBP        := 
 PLATFORM      =  Linux
-PREFIX        = $(AMSWD)/bin/$(ARCH)/fastntrd/
+PREFIX        = $(AMSWD)/bin/$(ARCH)$(VERSIONP)/fastntrd/
 DEPDIR        = $(PREFIX)/dep
-AMSPRG        = $(AMSWD)/exe/$(ARCH)/fastntrd.exe
-AMSLIB        = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a
+AMSPRG        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/fastntrd64.exe
+AMSPRGS        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/fastntrd.exe
+AMSLIB        = $(AMSWD)/lib/$(ARCH)$(VERSIONP)/libntuple_slc4_PG.a
 ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else
@@ -20,9 +31,28 @@ SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
+ifeq ($(VERSION),5.27)
+ifndef SLC6system
+  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
+else
+  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+endif
+endif
+ifeq ($(VERSION),5.34)
+  XRDLIB += -lXrdClient   -lXrdUtils
+endif
 
 
 ifeq ($(ARCH),linuxx8664gcc)
+ifeq ($(VERSION),5.34)
+
+ifndef SLC6system
+ XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-41/lib64
+else
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-44/lib64
+endif
+
+endif
 
 # DEFAULTS 
  RH9add=-pthread  
@@ -31,18 +61,27 @@ CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOT
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -O -rdynamic -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys   -lrt
+LDFLAGSA= -O -static -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_slc4_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread  $(XRDLIBP) $(XRDLIB)   -lrt
+LDFLAGS= -O -rdynamic -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_slc4_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   $(XRDLIBP) $(XRDLIB)   -lrt
 CC=g++ 
 FF=gfortran 
 LD=g++ 
-BIN=$(AMSWD)/bin/$(ARCH)/fastntrd/
-EXE=$(AMSWD)/exe/$(ARCH)
+BIN=$(AMSWD)/bin/$(ARCH)$(VERSIONP)/fastntrd/
+EXE=$(AMSWD)/exe/$(ARCH)$(VERSIONP)
 TIMEL=
 endif
 ifeq ($(ARCH),linuxx8664icc)
 
 # DEFAULTS 
  RH9add=-pthread  
+
+ifeq ($(VERSION),5.34)
+ifndef SLC6system
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-icc64-11/lib64
+else
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-icc64-12/lib64
+endif
+endif
 
 CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
 FFLAGS=   -O -I../include
@@ -53,13 +92,14 @@ DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl
 ifdef SLC6system
   INTELVER=composer_xe_2011_sp1.9.293/compiler/
 endif
-LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)  -Bstatic -lntuple_slc4_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
+LDFLAGSA=  -static -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_slc4_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   $(XRDLIBP) $(XRDLIB) -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
+LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_slc4_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -Bstatic $(XRDLIBP) $(XRDLIB) -Bstatic -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
 
 CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  -openmp -axssse3
 FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort  -openmp -axssse3
 LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  -openmp -axssse3 
-BIN=$(AMSWD)/bin/$(ARCH)/fastntrd/
-EXE=$(AMSWD)/exe/$(ARCH)
+BIN=$(AMSWD)/bin/$(ARCH)$(VERSIONP)/fastntrd/
+EXE=$(AMSWD)/exe/$(ARCH)$(VERSIONP)
 TIMEL=
 endif
 
@@ -69,11 +109,20 @@ endif
 SCC=../CC/
 FILES= $(SCC)fastntrd.C ../F/fntread.F ../CC/rootread.C  ../CC/commonsi.C
 OBJECTS= $(BIN)fastntrd.o  $(BIN)fntread.o $(BIN)rootread.o $(BIN)commonsi.o
+osdepend: $(AMSPRG)
+static: $(AMSPRGS)
+$(AMSPRGS):	$(BIN)fastntrd.o  $(BIN)fntread.o $(BIN)rootread.o $(BIN)commonsi.o $(AMSLLIB)
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
+	$(LD) -v -o $(AMSPRGS) $(OBJECTS) $(TIMEL) $(LDFLAGSA)
+
+	chmod +x  $(EXE)/fastntrd.exe 
+
+
 $(AMSPRG):	$(BIN)fastntrd.o  $(BIN)fntread.o $(BIN)rootread.o $(BIN)commonsi.o $(AMSLLIB)
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
 	$(LD) -v -o $(AMSPRG) $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
-	chmod +x  $(EXE)/fastntrd.exe 
+	chmod +x  $(EXE)/fastntrd64.exe 
 
 
 $(BIN)fastntrd.o:         $(SCC)fastntrd.C
