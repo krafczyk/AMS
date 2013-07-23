@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.64 2013/07/23 12:58:50 choutko Exp $
+#  $Id: Makefile,v 1.65 2013/07/23 14:54:14 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -208,6 +208,13 @@ endif
 
 endif
 ifeq ($(ARCH),linuxx8664gcc)
+ifeq ($(VERSION),5.34)
+ifndef SLC6system
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-41/lib64
+else
+  XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd-gcc64-44/lib64
+endif
+endif
 
 CXX           =  g++
 CPPFLAGS      =  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
@@ -237,7 +244,7 @@ LDD	= 	$(LD) -rdynamic
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF $(LFORT)
 ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot $(LZMAL) -pthread  -lAfterImage  -lpcre -lcrypto  -lncurses \
 	            $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
+                -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   $(XRDLIB) $(XRDLIBP) $(LFORT)
 
 LIBS          = -Bstatic   $(ROOTLIBSA)   $(XRDLIBP) $(XRDLIB) -Bdynamic -lshift -lm    -ldl
 LIBSA         = $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   $(XRDLIBP) $(XRDLIB)  -Bdynamic          -ldl 
