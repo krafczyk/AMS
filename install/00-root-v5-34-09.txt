@@ -52,8 +52,14 @@ Comments for these root versions release
   NB this version will be used after issuing source  /Offline/vdev/install/amsvar
 
 
-   Previos version is available after by issuing
+   Previous version is available after by issuing
      source /Offline/vdev/install/amsvar.nolzma
+
+  You might need the version above if you are using dynamically linking to the above root shared libraries (not recommended). To resolve the problem (forever) you need to recompile your exec (using libroot.a)  or make sure your LD_LIBRARY_PATH included same library used for linking (this is general problem with root as the latter does not support shared library schema evolution via libName.so.version)
+ 
+
+
+
   
   Please report all the problems in using it to vitali.choutko@cern.ch
 
