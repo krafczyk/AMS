@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.17 2011/08/31 18:47:33 shaino Exp $
+//  $Id: MagField.h,v 1.18 2013/07/24 09:43:11 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -65,9 +65,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2011/08/31 18:47:33 $
+///$Date: 2013/07/24 09:43:11 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -195,6 +195,7 @@ protected:
 
   static MagField* _ptr;  ///< Self pointer
   double fscale;
+  float mag_temp;
   MagField(void);
 
 public:
@@ -240,6 +241,8 @@ public:
   void   SetScale(double scal) { fscale = scal; }
   int    GetMagstat() const { return MAGSFFKEY.magstat; }
   double GetScale  () const { return fscale; }
+  float  GetMagTemp() const { return mag_temp;}
+  void   SetMagTemp(float temp )  {  mag_temp=temp; fscale=BCorrFactor(mag_temp);}
 
   void Print();
 
@@ -256,6 +259,10 @@ protected:
 
   /// Get index of the array from position (x,y,z)
   int _GetIndex(double x, double y, double z) const;
+
+  /// Function to correct the field intesity with temperature
+  static float  BCorrFactor(float temp);
+
 };
 
 bool MagFieldOn();

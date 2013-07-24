@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.17 2011/08/31 18:47:33 shaino Exp $
+// $Id: MagField.C,v 1.18 2013/07/24 09:43:32 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2011/08/31 18:47:33 $
+///$Date: 2013/07/24 09:43:32 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -50,6 +50,7 @@ MagField::MagField(void)
 {
   iniok=0;
   fscale=1;
+  mag_temp=18.5;
   for(int ii=0;ii<2;ii++)
     isec[ii]=imin[ii]=ihour[ii]=iday[ii]=imon[ii]=iyear[ii]=0;
   na[0]=na[1]=na[2]=0;
@@ -133,6 +134,10 @@ void MagField::GuFld(float *xx, float *b)
 	b[1] += by*ww;
 	b[2] += bz*ww;
       }
+  b[0]*=fscale;
+  b[1]*=fscale;
+  b[2]*=fscale;
+
 }
 
 void MagField::TkFld(float *xx, float hxy[][3])
@@ -532,5 +537,9 @@ void uctoh (char* MS,int* MT,int npw, int NCHP){
   return;
 }
 
-
+float  MagField::BCorrFactor(float temp){
+  float dBdT=8.37e-4+5.07e-6*temp;
+  const float TETH=18.5;
+  return 1.-dBdT*(temp-TETH);
+}
 #endif
