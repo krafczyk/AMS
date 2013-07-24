@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.916 2013/07/21 21:22:57 choutko Exp $
+// $Id: job.C,v 1.917 2013/07/24 09:44:13 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2257,6 +2257,9 @@ void AMSJob::udata(){
     zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
 
   rkmsinit_(zpos); 
+
+  // init for MC residual misalignment)
+  if(isSimulation())TKGEOMFFKEY.MdExAlignTag=1;
 
 #else
 
