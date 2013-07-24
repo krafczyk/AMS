@@ -1370,7 +1370,7 @@ void SamplingUnfolding::computeAll(TH2D &jointPDF,TH1D &measured,TH1D &unfolded,
     if(i%(100*measured.GetNbinsX())==0) cout<<"... "<<i/measured.GetNbinsX()<<" of "<<samples<<" done"<<endl;
   }
   unfolded.SetBins(current.GetNbinsX(),array);
-  for(int j=1;j<current.GetNbinsX();j++){
+  for(int j=1;j<=current.GetNbinsX();j++){
     unfolded.SetBinContent(j,final_result.GetBinContent(j));
     unfolded.SetBinError(j,final_result.GetBinError(j));
   }
