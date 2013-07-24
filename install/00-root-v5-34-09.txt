@@ -50,6 +50,10 @@ Comments for these root versions release
   /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64.lzma
 
   NB this version will be used after issuing source  /Offline/vdev/install/amsvar
+
+
+   Previos version is available after by issuing
+     source /Offline/vdev/install/amsvar.nolzma
   
   Please report all the problems in using it to vitali.choutko@cern.ch
 
