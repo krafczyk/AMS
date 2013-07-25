@@ -42,7 +42,7 @@ sub refreshStatus{
     $time = "Last update $clastupdate" ;
     $lastupdate = time();
     while (time() - $lastupdate <= 600) {
-        $output = `timeout 30 ssh amslocal\@pcamsf41 "cd /Offline/vdev/perl/; ./rdlastraw.perl -ok @ARGV"`;
+        $output = `timeout 30 ssh amslocal\@pcamsf41 "cd /Offline/vdev/perl/; ./rdlastraw.perl -ok @ARGV" 2>/tmp/err_ssh_pcamsf41`;
         chomp $output;
         if  ($output eq "") {
             sleep 5;
@@ -62,8 +62,9 @@ sub refreshStatus{
         else {
             if ($ssherrorcount > 1) {
                 $statusLabel->configure(-background => "red");
-                $status = 'Cannot ssh pcamsf41';
-                $message = 'Call expert: 16 9642';
+                $status = 'Updating status error';
+                $message = `cat /tmp/err_ssh_pcamsf41`;
+                $message .= 'Call expert: 16 9642';
             }
             else {
                 $ssherrorcount++;
