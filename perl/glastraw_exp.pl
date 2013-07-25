@@ -4,10 +4,11 @@ use Tk;
 use Tk::Font;
 use strict;
 
+my $version = 'v3.0 (2013-07-25)';
 my $mw = MainWindow->new;
 my  $font = $mw->Font(-family=> 'arial', -size  => 20);
 $mw->geometry("400x160");
-$mw->title("SOC Console");
+$mw->title("SOC Console $version");
 my $status;
 my $message;
 my $time;
