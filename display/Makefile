@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.128 2013/07/27 11:43:01 mduranti Exp $
+#  $Id: Makefile,v 1.129 2013/07/27 16:22:43 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -162,6 +162,10 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage   $(ROOTSYS)/li
 LIBS          =  -Bstatic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm  $(XRDLIBP) $(XRDLIB) -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm        $(XRDLIBP) $(XRDLIB)      -ldl 
 LIBSD         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS) 
+ifdef AMS_ACQT_INTERFACE
+LIBS+= $(QTDIR_STATIC_32)/lib/libQtCore.a
+LIBSA+= $(QTDIR_STATIC_32)/lib/libQtCore.a
+endif
 
 endif
 
@@ -310,6 +314,10 @@ else
   CPPFLAGS+= -D__LINUXGNU__
 endif
 
+ifdef AMS_ACQT_INTERFACE
+LIBS+= $(QTDIR_STATIC_32)/lib/libQtCore.a
+LIBSA+= $(QTDIR_STATIC_32)/lib/libQtCore.a
+endif
 endif
 ifeq ($(ARCH),linuxx8664gcc)
 
