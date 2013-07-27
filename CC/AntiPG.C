@@ -796,8 +796,8 @@ int AntiRecoPG::BuildCluster(AntiClusterR* cluster, int sect, float zzguess, flo
     cluster->rawq = cluster->Charge();
     cluster->Edep = cluster->GetEdep();
     cluster->phi = cluster->FillCoo(& cluster->AntiCoo);
-    cluster->adc[0] = adctable[0][sect-1];
-    cluster->adc[1] = adctable[1][sect-1];
+    cluster->adc[0] = (int)(adctable[0][sect-1]);
+    cluster->adc[1] = (int)(adctable[1][sect-1]);
   }
   return npa;
 }
