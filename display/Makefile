@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.127 2013/07/24 10:01:05 choutko Exp $
+#  $Id: Makefile,v 1.128 2013/07/27 11:43:01 mduranti Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -23,7 +23,13 @@ ifndef AMSDEPLIB
   AMSDEPLIB := /afs/cern.ch/ams/local2/opt/
 endif
 
+#M.Duranti - 27/07/2013
+__XROOTDPATHTEMP__ := $(shell root-config --config | awk 'BEGIN { FS = "--" } ; { for(i=1;i<=NF;i++){ print $$i"\n" } }' | grep "with-xrootd" )
+__XROOTDPATH__ := $(subst with-xrootd=,,$(__XROOTDPATHTEMP__))
 
+ifneq ($(strip $(__XROOTDPATH__)),)
+MENOELLEXROOTD=-L$(strip $(__XROOTDPATH__))/lib/
+endif
 
 #
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
@@ -89,6 +95,7 @@ else ifeq ($(GCC_VER_MIDDLE),7)
 VERGCCH := 1
 endif
 endif 
+
 ifeq ($(VERSION),5.27)
 ifndef SLC6system
   XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
@@ -96,6 +103,7 @@ else
   XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 endif
 endif
+
 ifeq ($(VERSION),5.34)
   XRDLIB += -lXrdClient   -lXrdUtils
 endif
@@ -247,9 +255,9 @@ ifndef NOXROOTD
 ROOTLIBSA += -lNetx
 ROOTLIBS += -lNetx
 endif
-LIBS          =  -L$(AMSWD)/lib/macosx64/  -l$(AMSLIB) $(ROOTLIBS) -lgfortran
-LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA) -lgfortran
-LIBSD         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBS)  -lgfortran
+LIBS          =  -L$(AMSWD)/lib/macosx64$(VERSIONP)/  -l$(AMSLIB) $(ROOTLIBS) -lgfortran
+LIBSA         =  -L$(AMSWD)/lib/macosx64$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBSA) -lgfortran
+LIBSD         =  -L$(AMSWD)/lib/macosx64$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  -lgfortran
 
 # On Mac only shared ACsoft builds are supported, otherwise anyone has to build its own custom static Qt version on Mac.
 # To avoid that we have to explicitely link against the libQtCore shared library here.
@@ -487,22 +495,22 @@ amslib: $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a
 $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a:
 	$(MAKE) -C ../install lib
 
-  
-
-
-
 $(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO) $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a 
-		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
-		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -o $(@) 
+		@if ! [ -d $(AMSWD)/exe/$(ARCH)$(VERSIONP) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH)$(VERSIONP); fi
+#		@echo $(__XROOTDPATH__)
+#		@echo $(MENOELLEXROOTD)
+#		@echo $(XRDLIB)
+#		$(LDS) $(LDFLAGS) $^ $(LIBSA) $(MENOELLEXROOTD) -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -o $(@)
+		$(LDS) $(LDFLAGS) $^ $(LIBSA) $(MENOELLEXROOTD) $(XRDLIB) -o $(@)
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a 
-		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
+		@if ! [ -d $(AMSWD)/exe/$(ARCH)$(VERSIONP) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH)$(VERSIONP); fi
 		$(LDD)   $(LDFLAGS) $^  $(LIBS) -o $(@) 
 		@echo "$(AMSPRGC) done"
 
 $(AMSPRGCC):	$(OBJSN)  $(OBJS) $(DICTO)  
-		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
+		@if ! [ -d $(AMSWD)/exe/$(ARCH)$(VERSIONP) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH)$(VERSIONP); fi
 		$(LDD)   $(LDFLAGS) $^  $(LIBSD) -o $(@) 
 		@echo "$(AMSPRGCC) done"
 
