@@ -20,7 +20,7 @@ PREFIX        = $(AMSWD)/bin/$(ARCH)$(VERSIONP)/fastntrd/
 DEPDIR        = $(PREFIX)/dep
 AMSPRG        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/fastntrd64.exe
 AMSPRGS        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/fastntrd.exe
-AMSLIB        = $(AMSWD)/lib/$(ARCH)$(VERSIONP)/libntuple_slc4_PG.a
+AMSLIB        = $(AMSWD)/lib/$(ARCH)$(VERSIONP)/libntuple_$(AMSLIBSUFFIX).a
 ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else
@@ -31,6 +31,13 @@ SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
+ifdef SLC6system
+AMSLIBSUFFIX=slc6
+else
+AMSLIBSUFFIX=slc4
+endif
+
+
 ifeq ($(VERSION),5.27)
 ifndef SLC6system
   XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
@@ -64,8 +71,8 @@ DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl
 LDFLAGSA= -O -static -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_slc4_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread  $(XRDLIBP) $(XRDLIB)   -lrt
 LDFLAGS= -O -rdynamic -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_slc4_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   $(XRDLIBP) $(XRDLIB)   -lrt
 ifdef AMS_ACQT_INTERFACE
-LDFLAGS+= $(QTDIR_STATIC)/lib/libQtCore.a
-LDFLAGSA+= $(QTDIR_STATIC)/lib/libQtCore.a
+LDFLAGS+= $(QTDIR_STATIC)/lib/libQtCore.a -lrt
+LDFLAGSA+= $(QTDIR_STATIC)/lib/libQtCore.a -lrt
 endif
 CC=g++ 
 FF=gfortran 
@@ -115,6 +122,7 @@ FILES= $(SCC)fastntrd.C ../F/fntread.F ../CC/rootread.C  ../CC/commonsi.C
 OBJECTS= $(BIN)fastntrd.o  $(BIN)fntread.o $(BIN)rootread.o $(BIN)commonsi.o
 osdepend: $(AMSPRG)
 static: $(AMSPRGS)
+        CFLAGS+=  -D__FASTSTATIC__
 $(AMSPRGS):	$(BIN)fastntrd.o  $(BIN)fntread.o $(BIN)rootread.o $(BIN)commonsi.o $(AMSLLIB)
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
 	$(LD) -v -o $(AMSPRGS) $(OBJECTS) $(TIMEL) $(LDFLAGSA)
