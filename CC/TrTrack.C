@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.173 2013/07/23 12:49:34 bbeische Exp $
+// $Id: TrTrack.C,v 1.174 2013/07/29 14:41:33 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/07/23 12:49:34 $
+///$Date: 2013/07/29 14:41:33 $
 ///
-///$Revision: 1.173 $
+///$Revision: 1.174 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -443,6 +443,11 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   _bitX  = _bitX>>1;
   _bitY  = _bitY>>1;
   _bitXY = _bitXY>>1;
+      if (!patt) {
+       int nn = (TkDBc::Head->GetSetup()==3) ? 7 : 8;
+       patt = new tkpatt(nn);
+       patt->Init(nn);
+     }
   _Pattern   = patt->GetHitPatternIndex(_bit);
   _PatternX  = patt->GetHitPatternIndex(_bitX);
   _PatternY  = patt->GetHitPatternIndex(_bitY);
