@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.176 2013/07/19 11:59:17 choutko Exp $
+//  $Id: ecalrec.C,v 1.177 2013/07/29 14:01:44 incaglim Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -957,10 +957,12 @@ void AMSEcalHit::build(int &stat){
       scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
       // correct for Gain dependence on Temperature
       Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;
-      //additional temperature correction to shift from Reference temperature Tref
+      //Additional temperature correction to shift from Reference temperature Tref
       //to TestBeam temperature Ttb using global slope Tgsl
+      //Not to be applied to MC
       //(4/6/13: Tref=10deg, Ttb=23deg, Tgsl=0.25%/deg)
-      Tcorr=Tcorr*(1.+ECREFFKEY.Tgsl/100.*(ECREFFKEY.Tref-ECREFFKEY.Ttb));
+      if (AMSJob::gethead()->isRealData()) 
+	Tcorr=Tcorr*(1.+ECREFFKEY.Tgsl/100.*(ECREFFKEY.Tref-ECREFFKEY.Ttb));
       if ( Tcorr > 0 ){
   	scgn*=Tcorr;
       }
