@@ -9,6 +9,13 @@ ifndef AMSWD
 AMSWD := ..
 endif
 
+VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
+ifeq ($(VERSION),5.27)
+VERSIONP=
+else
+VERSIONP = $(VERSION)
+endif
+
 ### Options
 CINT           := $(ROOTSYS)/bin/rootcint
 ROOTCFG        := $(ROOTSYS)/bin/root-config
@@ -22,7 +29,7 @@ endif
 CXXFLAGS       += $(shell $(ROOTCFG) --cflags) 
 DEFINES        := -I../include -I$(INCDIR) -I$(OBJDIR)
 ARCH           := $(shell $(ROOTCFG) --arch)
-LIBS           := -L$(AMSWD)/lib/$(ARCH)/ -lntuple_slc4_PG
+LIBS           := -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -lntuple_slc4_PG
 LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA
 ifneq ($(ARCH),macosx64)
 LIBS           += -lRFIO
