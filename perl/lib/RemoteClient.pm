@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.783 2013/07/21 21:24:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.784 2013/07/31 12:11:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14658,6 +14658,9 @@ foreach my $block (@blocks) {
       #$cmd = "mv -v $dirpath/*$run* $dirpath/bad";
       #print FILE "$cmd\n";
       #system($cmd);
+       $sql="update jobs set realtriggers=-1 where jid=$jobid";
+       print FILE "$sql \n";
+       $self->{sqlserver}->Update($sql);  
       print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
       close FILE;
       system("mv $inputfile $inputfileLink");
