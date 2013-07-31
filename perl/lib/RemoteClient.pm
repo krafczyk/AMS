@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.784 2013/07/31 12:11:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.785 2013/07/31 20:29:39 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16683,7 +16683,7 @@ sub validateDST {
        #return 1,0;
      }
 
-     if (defined $jobid and -f "$prefix$fname.jou") {
+     if (0) {#defined $jobid and -f "$prefix$fname.jou") {
          system("sed -i \"s/\\.job.*/.job/g\" $prefix$fname.jou");
          my $jobname;
          my $sql = "SELECT jobname FROM Jobs WHERE jid=$jobid";
