@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.183 2013/05/06 16:55:40 choutko Exp $
+//  $Id: mceventg.C,v 1.184 2013/08/01 11:28:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -704,9 +704,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       //
       // find a modulation
       //
-      geant modul[14]={400.,350.,550.,650.,950.,1000.,1300.,1200.,1000.,900.,800.,600.,500.,500.};
+      geant modul[18]={400.,350.,550.,650.,950.,1000.,1300.,1200.,1000.,900.,800.,600.,500.,500.,500.,600.,600.,700.};
       integer year=(begindate%10000+enddate%10000)/2-1997; 
-      if(year <=0 || year > 13){
+      if(year <=0 || year > 17){
         cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
         exit(1);
       }
@@ -749,12 +749,12 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
         else if (ipart ==14 ){
-          y=1.7e4/beta/pow(xrig,2.77);
+          y=1.7e4/beta/pow(xrig,2.78);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }    
         else if (ipart > 15 && ipart < 100){
           // He etc...
-          y=.252e4/beta/pow(xrig,2.74);
+          y=.252e4/beta/pow(xrig,2.68);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }    
         else if (ipart == 15 || ipart > 100){
