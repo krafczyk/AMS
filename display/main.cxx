@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.61 2013/07/21 21:24:30 choutko Exp $
+//  $Id: main.cxx,v 1.62 2013/08/01 11:30:12 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -116,6 +116,7 @@ int main(int argc, char *argv[]){
     {"monitor", 1, 0, 'm'},
     {"help",    0, 0, 'h'},
     {"scan",  1, 0, 's'},
+    {"nosetup",0,0,'n'},
     {0, 0, 0, 0}
   };
 
@@ -124,10 +125,13 @@ int main(int argc, char *argv[]){
   }   
   fstream fbin;
   while (1) {
-    c = getopt_long (argc, argv, "t:hHmMs:?", long_options, &option_index);
+    c = getopt_long (argc, argv, "nt:hHmMs:?", long_options, &option_index);
     if (c == -1) break;
 
     switch (c) {
+    case 'n':
+     AMSEventR::ProcessSetup=0;
+     break;
     case 's':             /* display */
       sec=atoi(optarg);
       break;
@@ -155,7 +159,7 @@ int main(int argc, char *argv[]){
     case 'H':
     case '?':
     default:            /* help */
-      cout<<"$amsed(c) file -scan[s] -title[t] -m(M)onitor"<<endl;
+      cout<<"$amsed(c) file -scan[s] -title[t] -m(M)onitor -nosetup"<<endl;
       return 0;
       break;
     }

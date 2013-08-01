@@ -20,9 +20,71 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
-if(ev && ev->nParticle()){
-if(ev->nTrTrack() && ev->Particle(0).iTrTrack()>=0){
-    TrTrackR & tr=ev->TrTrack( ev->Particle(0).iTrTrack());
+if(ev && ev->NParticle()){
+
+cout <<"  herehere "<<endl;
+
+if(ev->NTrTrack() && ev->Particle(0).iTrTrack()>=0){
+cout <<"  here "<<endl;
+    ParticleR &part=ev->Particle(0);
+    TrTrackR &tr=ev->TrTrack(ev->Particle(0).iTrTrack());
+    int result0;
+    int status0;
+    double glat,glong;
+    double RPTO[3];
+    double TraceTime;
+    int r3,s3;
+    int r1,s1;
+    int r2,s2;
+     int charge=part.Charge;
+     double mom=part.Momentum;
+     if(mom<0){
+        mom=-mom;
+        charge=-charge;
+     }
+    cout <<"******** time********* "<<ev->UTime()<<endl;
+    int res_0=ev->DoBacktracing(result0,status0,glong,glat,RPTO,TraceTime,part.Theta,part.Phi,mom,part.Beta,charge,0);
+     cout <<"  r0 "<<res_0<<" "<<result0<<" "<<status0<<endl;     
+    int res_1=ev->DoBacktracing(r1,s1,glong,glat,RPTO,TraceTime,part.Theta,part.Phi,mom,part.Beta,charge,1);
+     cout <<"  r1 "<<res_1<<" "<<r1<<" "<<s1<<endl;     
+    int res_2=ev->DoBacktracing(r2,s2,glong,glat,RPTO,TraceTime,part.Theta,part.Phi,mom,part.Beta,charge,2);
+     cout <<"  r2 "<<res_2<<" "<<r2<<" "<<s2<<endl;     
+    int res_3=ev->DoBacktracing(r3,s3,glong,glat,RPTO,TraceTime,part.Theta,part.Phi,mom,part.Beta,charge,3);
+     cout <<"  r3 "<<res_3<<" "<<r3<<" "<<s3<<endl;     
+
+     for(int i=1;i<10;i++){
+      if(tr.GetHitLJ(i)){
+      float beta=part.Beta;
+        cout<<" ql"<<i<<" "<<tr.GetLayerJQ(i,beta)<<endl;;
+      }
+     }
+     for(int k=0;k<ev->NTrRecHit();k++){
+       TrRecHitR &hit=ev->TrRecHit(k);
+       if(hit.GetLayerJ()==7 && !hit.Used() && !hit.OnlyX() && !hit.OnlyY()){
+          cout<<"hit found "<<hit.GetCoord(4)<<endl;
+          cout<<"hit found "<<hit.GetCoord(1)<<endl;
+          cout<<"hit found "<<hit.GetCoord(5)<<endl;
+          TrTrackR trc=ev->TrTrack(ev->Particle(0).iTrTrack());
+           trc.AddHit(&hit,1);      
+           int it1=trc.iTrTrackPar(1,0,23);
+           int iti=trc.iTrTrackPar(1,3,3,TrFit::Mhelium,2); 
+           if(it1>=0){
+            cout <<" full "<<trc.GetRigidity(it1)<<" "<<trc.GetNormChisqY(it1)<<" "<< trc.GetNormChisqX(it1)<<endl;
+       }
+           if(iti>=0){
+            cout <<" inner "<<trc.GetRigidity(iti)<<" "<<trc.GetNormChisqY(iti)<<" "<< trc.GetNormChisqX(iti)<<endl;
+     for(int i=1;i<10;i++){
+      if(trc.GetHitLJ(i)){
+      float beta=part.Beta;
+        cout<<" qlc"<<i<<" "<<trc.GetLayerJQ(i,beta)<<endl;;
+      }
+     }
+     }
+    }
+   }
+      
+     return true;
+
     if(fabs(tr.Rigidityf())<20)return false; 
      TrRecHitR *hit1=tr.GetHitLJ(1);
     TrRecHitR *hit9=tr.GetHitLJ(9);
