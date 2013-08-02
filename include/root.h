@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.568 2013/07/21 21:23:30 choutko Exp $
+//  $Id: root.h,v 1.569 2013/08/02 12:24:51 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4651,7 +4651,15 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
              \param[out] time[0]: Run Begin Time, time[1]: Run End Time
        */
        static int GetRTIRunTime(unsigned int runid,unsigned int time[2]);
-
+       //!  get  difference(um) bewteen PG ad CIEMAT alignment of L1(L9)(XYZ)  in choosen time window
+       /*    \param[in]  extlay: Track External Layer: 0-L1, 1-L9
+             \param[out] nxyz:  Events number with X(YZ) Hit
+             \param[out] dxyz:  X(YZ) coodinate mean difference |PG-CIEMAT|
+             \param[in]  xtime: JMDC Time (second)
+             \param[in]  dt:    Time window (second)
+             \return  effective Time window (second)
+       */
+       static int GetRTIdL1L9(int extlay,AMSPoint &nxyz, AMSPoint &dxyz,unsigned int xtime,unsigned int dt);
 //--------------------------------------------------------------------------------------------------
 
 
