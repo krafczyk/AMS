@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.135 2013/07/21 21:22:58 choutko Exp $
+//  $Id: root_setup.C,v 1.136 2013/08/02 12:24:54 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1320,6 +1320,8 @@ return fScalersReturn.size();
 #include "TMath.h"
 #include "GM_SubLibrary.h"
 ///---RTI function
+int AMSSetupR::RTI::Version=0;
+
 float AMSSetupR::RTI::getthetam(){
   
    double deg2rad = TMath::DegToRad();
@@ -1360,7 +1362,7 @@ float AMSSetupR::RTI::getphim(){
 
 
 ///----
-int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2){
+int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2, const char *dir){
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
    char * AMSDataDir=getenv("AMSDataDir");
@@ -1374,7 +1376,10 @@ int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2){
     AMSISSlocal=AMSISS;
    }
  AMSISSlocal+="RTI/";
+ if(RTI::Version>=1)AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
+ if(dir!=0)AMSISS=dir;
+
 if(t1>t2){
 cerr<< "AMSSetupR::LoadAMSRTI-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
 return 2;
@@ -1435,6 +1440,20 @@ const char fpate[]="24H.csv";
            fbin>>a.mphe;//Helium Most Prob
            fbin>>a.theta>>a.phi>>a.r>>a.zenith>>a.glat>>a.glong;//Position
            fbin>>a.nev>>a.nerr>>a.ntrig>>a.npart;
+//---Add Version 1
+           if(RTI::Version>=1){
+             for(int ifv=0;ifv<4;ifv++){
+               for(int ipn=0;ipn<2;ipn++)fbin>>a.cfi[ifv][ipn];
+             }
+             for(int iexl=0;iexl<2;iexl++){
+               for(int ixy=0;ixy<2;ixy++)fbin>>a.nl1l9[iexl][ixy];
+             }
+             for(int iexl=0;iexl<2;iexl++){
+               for(int ico=0;ico<3;ico++)fbin>>a.dl1l9[iexl][ico];
+             }
+             fbin>>a.nhwerr;
+           }
+//---
            fbin>>a.good;
            a.utime=nt;
          }

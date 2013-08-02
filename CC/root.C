@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.590 2013/07/21 21:22:58 choutko Exp $
+//  $Id: root.C,v 1.591 2013/08/02 12:24:54 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10291,6 +10291,48 @@ int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2]){
   int ssize=time[1]-time[0]+1;
   return ssize;
 }
+
+int AMSEventR::GetRTIdL1L9(int extlay,AMSPoint &nxyz, AMSPoint &dxyz,unsigned int xtime,unsigned int dt){
+
+  unsigned int bt= xtime/dt*dt;
+  unsigned int et= bt+dt-1;
+ 
+  static unsigned int rbt=0;
+  static unsigned int ret=0;
+  static unsigned int rst=0;//Eff  dt
+  static AMSPoint rnxyz[2];
+  static AMSPoint rdxyz[2]; 
+
+//----New External Layer If
+  if(!(bt>=rbt&&et<=ret)){ //First Time arrive
+    rst=0;
+    for(int iexl=0;iexl<2;iexl++){rnxyz[iexl].setp(0,0,0);rdxyz[iexl].setp(0,0,0);}
+//----Sum BT
+    AMSSetupR::RTI a;
+    for(unsigned int t=bt;t<=et;t++){
+       if(GetRTI(a,t)!=0)continue;
+       for(int iexl=0;iexl<2;iexl++){
+         for(int ico=0;ico<3;ico++){
+           double nev=a.nl1l9[iexl][ico==0?0:1];
+           rnxyz[iexl][ico]+=nev;//X Y Z Events number
+           rdxyz[iexl][ico]+=a.dl1l9[iexl][ico]*nev;
+         }
+       }
+       rst++;
+    }
+//---Calculate Mean
+     for(int iexl=0;iexl<2;iexl++){
+       for(int ico=0;ico<3;ico++){
+         rdxyz[iexl][ico]=(rnxyz[iexl][ico]>0)?rdxyz[iexl][ico]/rnxyz[iexl][ico]:0;
+       }
+     }
+  }
+    
+  nxyz=rnxyz[extlay]; dxyz=rdxyz[extlay];
+  rbt=bt;     ret=et;
+  return rst;
+}
+
 
 //----------------------------------------------------------------------
 double HeaderR::Zenith(){
