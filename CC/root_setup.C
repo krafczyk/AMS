@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.136 2013/08/02 12:24:54 qyan Exp $
+//  $Id: root_setup.C,v 1.137 2013/08/04 19:59:57 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1321,6 +1321,7 @@ return fScalersReturn.size();
 #include "GM_SubLibrary.h"
 ///---RTI function
 int AMSSetupR::RTI::Version=0;
+int AMSSetupR::RTI::Loadopt=1;
 
 float AMSSetupR::RTI::getthetam(){
   
@@ -1376,9 +1377,6 @@ int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2, const char *dir){
     AMSISSlocal=AMSISS;
    }
  AMSISSlocal+="RTI/";
- if(RTI::Version>=1)AMSISSlocal+="V1_20130802/";
- AMSISS=AMSISSlocal.c_str();
- if(dir!=0)AMSISS=dir;
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadAMSRTI-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -1393,6 +1391,13 @@ else{
    t2=t1+864000;
 }
 }
+
+//---NewV
+ bool isnewv=((t2>1368950397)||(RTI::Version>=1));
+ if(isnewv)AMSISSlocal+="V1_20130802/";
+ AMSISS=AMSISSlocal.c_str();
+ if(dir!=0)AMSISS=dir;
+
 
 const char fpatb[]="RTI";
 const char fpate[]="24H.csv";
@@ -1441,10 +1446,23 @@ const char fpate[]="24H.csv";
            fbin>>a.theta>>a.phi>>a.r>>a.zenith>>a.glat>>a.glong;//Position
            fbin>>a.nev>>a.nerr>>a.ntrig>>a.npart;
 //---Add Version 1
-           if(RTI::Version>=1){
+           if(isnewv){
              for(int ifv=0;ifv<4;ifv++){
                for(int ipn=0;ipn<2;ipn++)fbin>>a.cfi[ifv][ipn];
              }
+             //---use IGRF table to  fill cfi
+             if(RTI::Loadopt%10==1){
+               double fv,cfn[2];
+               for(int ifv=0;ifv<4;ifv++){
+                 if     (ifv==0)fv=25;
+                 else if(ifv==1)fv=30;
+                 else if(ifv==2)fv=35;
+                 else if(ifv==3)fv=40;
+                 AMSEventR::GetMaxIGRFCutoff(fv,cfn,nt);
+                 a.cfi[ifv][0]=cfn[0]; a.cfi[ifv][1]=cfn[1];
+               }
+             }
+             //---
              for(int iexl=0;iexl<2;iexl++){
                for(int ixy=0;ixy<2;ixy++)fbin>>a.nl1l9[iexl][ixy];
              }

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.591 2013/08/02 12:24:54 qyan Exp $
+//  $Id: root.C,v 1.592 2013/08/04 19:59:57 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10122,14 +10122,20 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double degbin, double cutoff[2])
 
     return fHeader.GetMaxIGRFCutoff(fov, degbin, cutoff, RPT, VPT, YPR, xtime);
   }
+  
+  unsigned int tm = UTime();
+  if (degbin < -1300000000) tm = -degbin;
+  return GetMaxIGRFCutoff(fov, cutoff, tm);
+}
+
+int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime){
 
   cutoff[0] = cutoff[1] = 0;
 
   static int stm = 0;
   if (stm < 0) return -1;
 
-  unsigned int tm = UTime();
-  if (degbin < -1300000000) tm = -degbin;
+  unsigned int tm = xtime;
 
   int tid = tm/10000000;
   if (tid != stm) fIGRF.clear();

@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.83 2013/08/02 12:24:51 qyan Exp $
+//  $Id: root_setup.h,v 1.84 2013/08/04 20:00:00 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -191,7 +191,7 @@ public:
 unsigned int run;  ///< run
 unsigned int evno;///< fist event no in one second
 float lf;  ///< life time
-float cf[4][2];  ///<  max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
+float cf[4][2];  ///< max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
 float cfi[4][2];   ///< max IGRF cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
 float mphe;///< most probable He rigidity;
 float theta;  ///< theta gtod (degrees)
@@ -207,13 +207,12 @@ float nhwerr;  ///< events with has HW error(JINJStatus)
 float npart; ///< events with tof+trd+tracker+ecal
 float nl1l9[2][2]; ///<events with track L1 L9 XY hit 
 float dl1l9[2][3]; ///< mean difference(um) bewteen PG ad CIEMAT alignment of L1 and L9(XYZ)
-int good;    ///<  0 if good -1 no events(in this second)
-///---
+int good;    ///< 0 if good -1 no events(in this second)
 unsigned int utime;///< JMDC Time
 float getthetam();///< PhiM (degrees)
 float getphim();///< ThetaM(degrees)
-//---
- static int Version;
+static int Version;///< RTI Version id: 0(default) old, 1 new(2013-08)
+static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) form IGRF-table
 //---
  RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0){
         for(int ifv=0;ifv<4;ifv++){
