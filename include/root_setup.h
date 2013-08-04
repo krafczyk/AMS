@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.77 2012/12/17 23:29:19 qyan Exp $
+//  $Id: root_setup.h,v 1.77.2.1 2013/08/04 16:59:24 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -188,10 +188,11 @@ ClassDef(GPS,3)
 */
 class RTI{
 public:
-unsigned int run;  ///< ruin
+unsigned int run;  ///< run
 unsigned int evno;///< fist event no in one second
 float lf;  ///< life time
 float cf[4][2];  ///<  max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
+float cfi[4][2];   ///< max IGRF cutoff for 25,30,35,40 degrees (gv) for Neg+Pos >=V1
 float mphe;///< most probable He rigidity;
 float theta;  ///< theta gtod (degrees)
 float phi;    ///<phi gtod (degrees)
@@ -202,13 +203,22 @@ float glong; ///< ams pointing galatic longitude (degrees) -1 faild
 float nev;    ///< exist events  nev+nerr=sumev
 float nerr;  ///<  absent events
 float ntrig; ///< events with trigger;
+float nhwerr;  ///< events with has HW error(JINJStatus) >=V1
 float npart; ///< events with tof+trd+tracker+ecal
+float nl1l9[2][2]; ///<events with track L1 L9 XY hit  >=V1
+float dl1l9[2][3]; ///< mean difference(um) bewteen PG ad CIEMAT alignment of L1 and L9(XYZ) >=V1
 int good;    ///<  0 if good -1 no events(in this second)
- RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2){
+unsigned int utime;///< JMDC Time
+static int Version;///< RTI Version id: default 0,new 1
+
+ RTI():evno(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0){
         for(int ifv=0;ifv<4;ifv++){
-           for(int ipn=0;ipn<2;ipn++)cf[ifv][ipn]=0;}
+           for(int ipn=0;ipn<2;ipn++)cfi[ifv][ipn]=cf[ifv][ipn]=0;}
+        for(int iexl=0;iexl<2;iexl++){
+          for(int ico=0;ico<3;ico++){if(ico<2)nl1l9[iexl][ico]=0;dl1l9[iexl][ico]=0;}
+        }
    }
-ClassDef(RTI,3)
+ClassDef(RTI,5)
 };
 
 class GPSWGS84{
@@ -797,7 +807,7 @@ static int _select (const dirent64 * entry);
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);
  int LoadISSSA(unsigned int t1, unsigned int t2);
- int LoadRTI(unsigned int t1, unsigned int t2);
+ int LoadRTI(unsigned int t1, unsigned int t2, const char *dir=0);
  int LoadGPSWGS84(unsigned int t1, unsigned int t2);
  int LoadISSINTL(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
