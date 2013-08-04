@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.125.2.5 2013/08/04 16:59:20 qyan Exp $
+//  $Id: root_setup.C,v 1.125.2.6 2013/08/04 19:52:39 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1327,9 +1327,6 @@ int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2, const char *dir){
     AMSISSlocal=AMSISS;
    }
  AMSISSlocal+="RTI/";
- if(RTI::Version>=1)AMSISSlocal+="V1_20130802/";
- AMSISS=AMSISSlocal.c_str();
- if(dir!=0)AMSISS=dir;
 
 if(t1>t2){
 cerr<< "AMSSetupR::LoadAMSRTI-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
@@ -1339,6 +1336,13 @@ else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadAMSRTI-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
    t2=t1+864000;
 }
+
+//---NewV
+ bool isnewv=((t2>1368950397)||(RTI::Version>=1));
+ if(isnewv)AMSISSlocal+="V1_20130802/";
+ AMSISS=AMSISSlocal.c_str();
+ if(dir!=0)AMSISS=dir;
+
 
 const char fpatb[]="RTI";
 const char fpate[]="24H.csv";
@@ -1387,7 +1391,7 @@ const char fpate[]="24H.csv";
            fbin>>a.theta>>a.phi>>a.r>>a.zenith>>a.glat>>a.glong;//Position
            fbin>>a.nev>>a.nerr>>a.ntrig>>a.npart;
 //---Add Version-1
-           if(RTI::Version>=1){
+           if(isnewv){
              for(int ifv=0;ifv<4;ifv++){
                for(int ipn=0;ipn<2;ipn++)fbin>>a.cfi[ifv][ipn];
              }
