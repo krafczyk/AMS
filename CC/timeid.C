@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.148 2012/11/20 11:29:19 mduranti Exp $
+//  $Id: timeid.C,v 1.149 2013/08/05 12:56:35 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -497,6 +497,10 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      }
 	      else {
 		cerr<<"AMSTimeID::read-E-Problems to Read File "<<fnam<<" size declared "<<ns<<endl;
+                if(strstr(dir,"/cvmfs")){
+		 cerr<<"AMSTimeID::read-F-Problems to Read File "<<fnam<<" size declared "<<ns<<" on /cvmfs. Aborted Execution"<<endl;
+                 abort();
+                } 
 #ifdef _WEBACCESS_
 		url_fclose(ffbin);
 #else
@@ -513,6 +517,10 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	  }
 	  else {
 	    cerr<<"AMSTimeID::read-E-CouldNot open file "<<fnam<<endl;
+                if(strstr(dir,"/cvmfs")){
+        	    cerr<<"AMSTimeID::read-F-CouldNot open file "<<fnam<<" on /cvmfs. Aborting Execution."<<endl;
+                 abort();
+                } 
 	    return false;
 	  }
 	  return true;

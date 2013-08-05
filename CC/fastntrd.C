@@ -63,12 +63,13 @@ using namespace std;
 
      struct stat sb;
      char *pROOTSYS = getenv("ROOTSYS");
+#ifndef __FASTSTATIC_NOWAY__
      if (pROOTSYS == NULL || stat(strcat(pROOTSYS, "/etc/plugins/TVirtualStreamerInfo"), &sb) != 0) {
          if(verbose)cerr << "ROOTSYS not properly set, cannot continue with rootread." << endl;
          return -7;
      }
 
-
+#endif
      if(iver)cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
 try{
