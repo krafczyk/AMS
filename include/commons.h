@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.356 2013/06/13 15:43:23 incaglim Exp $
+//  $Id: commons.h,v 1.357 2013/08/05 14:23:07 qyan Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1197,6 +1197,10 @@ class G4FFKEY_DEF{
   int NeutronTkCut;
   int TFNewGeant4;
   int MemoryLimit;
+  int DetectorCut;
+  float AMSCut;
+  float EcalCut;
+  int  ProcessOff;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);

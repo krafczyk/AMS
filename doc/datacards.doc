@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.393 2013/07/21 21:24:34 choutko Exp $
+#  $Id: datacards.doc,v 1.394 2013/08/05 14:23:04 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -696,8 +696,13 @@ I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
 I 11 NeutronTkCut(0)   //Use(1) or Not Standard Neutron Tracking Cut(tracking global time>10 microsecond),can also self adjustment 
 I 12 TFNewGeant4(0)    //TOF new Geant4(0 old simulation) (1 new online simulation) (2 new table mode)
-I 13 MemoryLimit(-1)  //Geant4Memory raise in bytes in mallinfo.arena+mallinfo.uordblks to trigger process  termination (-1 == infinity)
-
+I 13 MemoryLimit(-1)   //Geant4Memory raise in bytes in mallinfo.arena+mallinfo.uordblks to trigger process  termination (-1 == infinity)
+I 14 DetectorCut(0)    // set detector cut,  Tracker+TRD+TOF+RICH+ECAL+AMS(0 cut off, 1 new cut). 
+                       // 11:  Ecal cut 1*cm, AMS cut 1*mm (Ion suggestion cut  >2 times faster)
+R 15 AMSCut(1*mm)      // general AMS geant4 cut 
+R 16 EcalCut(1*cm)     // Ecal geant4 cut
+I 17 ProcessOff(0)     // Geant4 Process switch off option. 
+                       // 111:  Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on) 
 
 
 
