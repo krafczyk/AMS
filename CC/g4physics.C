@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.55 2013/08/06 09:38:16 qyan Exp $
+//  $Id: g4physics.C,v 1.56 2013/08/06 10:24:35 qyan Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.55 2013/08/06 09:38:16 qyan Exp $
+// $Id: g4physics.C,v 1.56 2013/08/06 10:24:35 qyan Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -149,6 +149,7 @@ void AMSG4Physics::ConstructProcess()
       //     pion->ConstructProcess();
 
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
+      hadronelastic->ConstructProcess();
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
       if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
 //--Qi Yan
