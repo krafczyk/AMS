@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.41 2013/08/06 10:26:33 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.42 2013/08/06 12:05:47 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/08/06 10:26:33 $
+///$Date: 2013/08/06 12:05:47 $
 ///
-///$Revision: 1.41 $
+///$Revision: 1.42 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -287,7 +287,6 @@ void TrMCClusterR::GenSimClusters(){
         mip_c *= 2; // relation ADC vs MIP derived for eta = 0.5 (~ half of the signal) 
         double sqrt_mip_c = sqrt(mip_c);
         double signal = pow(gain_to_gain(&sqrt_mip_c,gain_to_gain_pars[iside]),2);
-        signal *= (iside==0) ? 1.2*1.074*1.074 : 1.05*0.95*0.95; // for implicit losses
         signal *= (iside==0) ? 1.3842 : 0.9476; 
         _simcl[iside]->SetSignal(i,signal);
       }
