@@ -29,6 +29,7 @@
 #include "G4DPMJET2_5Model.hh"
 #include "G4DPMJET2_5Interface.hh"
 #include "G4DPMJET2_5CrossSection.hh"
+#include "G4IonsHEAOCrossSection.hh"
 #endif
 
 using namespace std;
@@ -70,10 +71,11 @@ void IonDPMJETPhysics::ConstructProcess()
   G4ElementTable::iterator iter;
   G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
   for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
-       G4int AA  =(*iter)->GetN();
-//       G4cout<<"Element AA="<<AA<<G4endl;
-       if(AA<=dpmAmax){theDPM   ->ActivateFor(*iter);theIonBC1->DeActivateFor(*iter);}
-       else           {theIonBC1->ActivateFor(*iter);theDPM   ->DeActivateFor(*iter);}
+     G4int AA  =(*iter)->GetN();
+     if(G4FFKEY.IonPhysicsModel/10==0){//Only for use DPMJET Model
+        if(AA<=dpmAmax){theDPM   ->ActivateFor(*iter);theIonBC1->DeActivateFor(*iter);}
+        else           {theIonBC1->ActivateFor(*iter);theDPM   ->DeActivateFor(*iter);}
+     }
    }
 //  theDPM->SetVerboseLevel(10);
 #endif
@@ -84,9 +86,8 @@ void IonDPMJETPhysics::ConstructProcess()
   fIonH = new G4IonProtonCrossSection();//proton Target <20GeV (Inject A>4)
   fShen = new G4IonsShenCrossSection();
 #ifdef G4_USE_DPMJET
-  if(G4FFKEY.IonPhysicsModel==3){
-    dpmXS = new G4DPMJET2_5CrossSection;//<1000TeV Shen(Z >58)+ PMJET2.5 
-  }
+  if     (G4FFKEY.IonPhysicsModel%10==3)dpmXS = new G4DPMJET2_5CrossSection;//DPMJET Cross-section<1000TeV
+  else if(G4FFKEY.IonPhysicsModel%10==5)HEAOXS= new G4IonsHEAOCrossSection();//HEAO  Cross-section
 #endif  
   AddProcess("dInelastic", G4Deuteron::Deuteron(),false);
   AddProcess("tInelastic",G4Triton::Triton(),false);
@@ -104,9 +105,10 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess(name, part);
   G4ProcessManager* pManager = part->GetProcessManager();
   pManager->AddDiscreteProcess(hadi);
-  hadi->AddDataSet(fShen);
+  hadi->AddDataSet(fShen);//G4FFKEY.IonPhysicsModel%10==4 Shen Cross-section
 #ifdef G4_USE_DPMJET
-  if(G4FFKEY.IonPhysicsModel==3)hadi->AddDataSet(dpmXS);
+  if     (G4FFKEY.IonPhysicsModel%10==3)hadi->AddDataSet(dpmXS);//DPMJET Cross-section
+  else if(G4FFKEY.IonPhysicsModel%10==5)hadi->AddDataSet(HEAOXS);////DPMJET Cross-section
 #endif
 //  hadi->AddDataSet(fTripathi);
 //fTripathiLight or fIonH first use
@@ -115,7 +117,7 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
 #ifdef G4_USE_DPMJET
-  hadi->RegisterMe(theDPM);
+  if(G4FFKEY.IonPhysicsModel/10==0)hadi->RegisterMe(theDPM);
 #endif
 
 }
