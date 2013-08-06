@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.96 2012/09/19 08:41:36 choutko Exp $
+//  $Id: geant4.C,v 1.96.4.1 2013/08/06 12:05:19 qyan Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1003,7 +1003,12 @@ if(!Step)return;
 	    number rkb=0.0011;
 	    number c=0.52;
 	    number dedxcm=1000*dee/GCTRAK.step;
-	    if(G4FFKEY.TFNewGeant4>0)dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
+//----Birk Retune
+            number cb1=1.1;
+	    if(G4FFKEY.TFNewGeant4>0){
+               dee=dee/(1.+cb1*atan(TFMCFFKEY.birk*dedxcm*0.1/cb1));
+             //dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
+            }
 	    else                     dee=dee/(1+c*atan(rkb/c*dedxcm));
 	    //cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
 	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof);
