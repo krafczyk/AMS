@@ -221,47 +221,42 @@ void TrSimCluster::GaussianizeFraction(int iside, int hcharge, double fraction,f
     RR=iseed;
   }
 
- 
-
   float fra1=TRMCFFKEY.NearStripMult[hcharge][iside][0];
   float fra2=TRMCFFKEY.NearStripMult[hcharge][iside][1];
   float fra3=TRMCFFKEY.NearStripMult[hcharge][iside][2];
 
   if((LL-1)>=0){
-    double ss=GetSignal(LL-1)* fra1;
+    double ss=GetSignal(LL-1)*fra1;
     SetSignal(LL-1,ss);
   }
-  // if((LL-2)>=0)
-//     SetSignal(LL-2,GetSignal(LL-2)*fra2*fra2);
-
-   
   
   if(RR+1<GetWidth()){
-    double ss=GetSignal(RR+1)* fra1;
+    double ss=GetSignal(RR+1)*fra1;
     SetSignal(RR+1,ss);
   }
   
- //  if(RR+2<GetWidth())
-//     SetSignal(RR+2,GetSignal(RR+2)* fra2*fra2);
-  
-  
   int kk=2;
-  if((LL-2)>=0)
+  if ((LL-2)>=0) {
     for (int ii=LL-2;ii>=0;ii--){
-      double ss=GetSignal(ii)* pow(fra3,kk++);
-      //      ss*=(1+rnormx()*0.5);
+      double ss = (GetSignal(ii)<1e-15) ? 0 : GetSignal(ii)*pow(fra3,kk);
+      // cout << "LL-2 " << ii << " " << GetSignal(ii) << " " << " " << pow(fra3,kk) << " " << kk << " " << ss << endl;
       SetSignal(ii,ss);
+      //if (kk<3) 
+      kk++;
     }
-  
+  }
+
   kk=2;
-  if((RR+2)<GetWidth())
+  if ((RR+2)<GetWidth()) {
     for (int ii=RR+2;ii<GetWidth();ii++){
-      double ss=GetSignal(ii)* pow(fra3,kk++);
-      //      ss*=(1+rnormx()*0.5);
+      double ss = (GetSignal(ii)<1e-15) ? 0 : GetSignal(ii)*pow(fra3,kk);
+      // cout << "RR+2 " << ii << " " << GetSignal(ii) << " " << " " << pow(fra3,kk) << " " << kk << " " << ss << endl;
       SetSignal(ii,ss);
-      
+      // if (kk<3) 
+      kk++;
     }
-  
+  }
+
   return;  
     
 }

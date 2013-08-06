@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.40 2013/07/18 15:52:18 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.41 2013/08/06 10:26:33 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/07/18 15:52:18 $
+///$Date: 2013/08/06 10:26:33 $
 ///
-///$Revision: 1.40 $
+///$Revision: 1.41 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -247,7 +247,8 @@ void TrMCClusterR::GenSimClusters(){
     
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
     int hcharge_gauss = (hcharge>1) ? 1 : hcharge; // ions = He    
-    _simcl[iside]->GaussianizeFraction(iside,hcharge_gauss,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
+    // no extra-multiplication if too inclined  
+    if (fabs(ia[iside])<0.8) _simcl[iside]->GaussianizeFraction(iside,hcharge_gauss,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
     
     // p and He
     // - non-linear edep 
@@ -287,6 +288,7 @@ void TrMCClusterR::GenSimClusters(){
         double sqrt_mip_c = sqrt(mip_c);
         double signal = pow(gain_to_gain(&sqrt_mip_c,gain_to_gain_pars[iside]),2);
         signal *= (iside==0) ? 1.2*1.074*1.074 : 1.05*0.95*0.95; // for implicit losses
+        signal *= (iside==0) ? 1.3842 : 0.9476; 
         _simcl[iside]->SetSignal(i,signal);
       }
     }
