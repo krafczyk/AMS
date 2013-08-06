@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.49 2012/08/01 17:04:09 choutko Exp $
+//  $Id: g4physics.C,v 1.49.6.1 2013/08/06 10:41:47 qyan Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.49 2012/08/01 17:04:09 choutko Exp $
+// $Id: g4physics.C,v 1.49.6.1 2013/08/06 10:41:47 qyan Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -147,23 +147,23 @@ void AMSG4Physics::ConstructProcess()
       //     pion->ConstructProcess();
 
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
-      HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
-      pqgsp->ConstructProcess();    
       hadronelastic->ConstructProcess();
+      HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+      if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
 //--Qi Yan
       G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
       hardonstop->ConstructProcess();
       if(G4FFKEY.IonPhysicsModel==1||G4FFKEY.IonPhysicsModel==2){
         cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
         AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
-        pamshi->ConstructProcess();
+        if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       }
 //--Qi Yan
       else {
-         cout<<"AMS DPMJET_HadronIon  will be used. "<<endl;
+         cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section)."<<endl;
          bool vers=1;
          IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(vers);
-         pamshi->ConstructProcess();
+         if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
        } 
     }
   }
@@ -184,7 +184,7 @@ void AMSG4Physics::ConstructProcess()
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
       hadronelastic->ConstructProcess();
       HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
-      pqgsp->ConstructProcess();    
+      if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
 //--Qi Yan      
       G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
       hardonstop->ConstructProcess();
@@ -192,13 +192,13 @@ void AMSG4Physics::ConstructProcess()
      if(G4FFKEY.IonPhysicsModel==1||G4FFKEY.IonPhysicsModel==2){
         cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
         AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
-        pamshi->ConstructProcess();
+        if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       }
 //--Qi Yan
       else {
-        cout<<"AMS DPMJET_HadronIon  will be used. "<<endl;
+        cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section)."<<endl;
         IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(1);
-        pamshi->ConstructProcess();
+        if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       }
 
     }
@@ -222,7 +222,7 @@ void AMSG4Physics::ConstructProcess()
 
   ConstructGeneral();
   //  if(TRDMCFFKEY.mode>=0)ConstructXRay();
-  if(GCTLIT.ITCKOV)ConstructOp();
+  if(GCTLIT.ITCKOV&&(G4FFKEY.ProcessOff%10==0))ConstructOp();
 }
 
 
@@ -1009,18 +1009,44 @@ void AMSG4Physics::SetCuts()
   
   // set cut values for gamma at first and for e- second and next for e+,
   // because some processes for e+/e- need cut values for gamma
-  SetCutValue(cut/10./ECMCFFKEY.g4cutge, "gamma");
-  SetCutValue(cut/10., "xrayphoton");
-  SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e-");
-  SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e+");
+  if(G4FFKEY.DetectorCut%10==1){
+    G4double acutv=G4FFKEY.AMSCut*mm;
+//   G4cout<<"acut="<<acutv<<G4endl;
+    SetCutValue(acutv, "gamma");
+    SetCutValue(acutv, "xrayphoton");
+    SetCutValue(acutv, "e-");
+    SetCutValue(acutv, "e+");
+    SetCutValue(acutv, "proton");
+    SetCutValue(acutv, "anti_proton");
+ }
+ else {
+    SetCutValue(cut/10./ECMCFFKEY.g4cutge, "gamma");
+    SetCutValue(cut/10., "xrayphoton");
+    SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e-");
+    SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e+");
 
   // set cut values for proton and anti_proton before all other hadrons
   // because some processes for hadrons need cut values for proton/anti_proton
-  SetCutValue(cut, "proton");
-  SetCutValue(cut, "anti_proton");
+    SetCutValue(cut, "proton");
+    SetCutValue(cut, "anti_proton");
+ }
  
   trdSimUtil.gasregion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
   trdSimUtil.radregion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
+
+  if(G4FFKEY.DetectorCut/10%10==1){//Ecal
+     G4Region* EcalRegion = (G4RegionStore::GetInstance())->GetRegion("ECVolumeR");
+     G4ProductionCuts *EcalCuts = new G4ProductionCuts();
+     G4double ecutv=G4FFKEY.EcalCut*mm;
+//    G4cout<<"ecut="<<ecutv<<G4endl;
+     EcalCuts->SetProductionCut(ecutv, "gamma");
+     EcalCuts->SetProductionCut(ecutv, "e+");
+     EcalCuts->SetProductionCut(ecutv, "e-");
+     EcalCuts->SetProductionCut(ecutv, "proton");
+     EcalCuts->SetProductionCut(ecutv, "anti_proton");
+     EcalRegion->SetProductionCuts(EcalCuts);
+  }
+
 
   //  G4VPersistencyManager *persM = G4VPersistencyManager::GetPersistencyManager() ;
   //  G4VPhysicalVolume *theWorld= G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()->GetWorldVolume() ;

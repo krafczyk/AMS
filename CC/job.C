@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.902.2.5 2013/07/19 16:31:26 choutko Exp $
+// $Id: job.C,v 1.902.2.6 2013/08/06 10:41:47 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -306,13 +306,20 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.Geant3CutsOn=1;
   G4FFKEY.PhysicsListUsed=1;
   G4FFKEY.LowEMagProcUsed=0;
-  G4FFKEY.IonPhysicsModel=1;
+//  G4FFKEY.IonPhysicsModel=1;
+  G4FFKEY.IonPhysicsModel=3;//DPMJET Model as default
   G4FFKEY.UseEMDModel=0;
   G4FFKEY.SigTerm=0;
   G4FFKEY.ExEmPhysics=0;
   G4FFKEY.NeutronTkCut=0;
-  G4FFKEY.TFNewGeant4=0;
+//  G4FFKEY.TFNewGeant4=0;
+  G4FFKEY.TFNewGeant4=2;//New TF
   G4FFKEY.MemoryLimit=-1;
+  G4FFKEY.DetectorCut=0;//11 set detector cut as below,Tracker+TRD+TOF+RICH+ECAL+AMS(0 cut off, 1 new cut).
+  G4FFKEY.AMSCut=1.;//AMSCut 1*mm
+  G4FFKEY.EcalCut=10.;//EcalCut 10*mm
+  G4FFKEY.ProcessOff=0;//111 Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on) 
+
   FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
   PRODFFKEY.Debug=0;

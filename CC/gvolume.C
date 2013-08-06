@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.64 2012/08/01 17:04:09 choutko Exp $
+//  $Id: gvolume.C,v 1.64.6.1 2013/08/06 10:41:47 qyan Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -473,6 +473,12 @@ integer AMSgvolume::_Norp=0;
       _pg4l->SetUserLimits(new AMSUserLimits(maxstep*cm));
      }    
 //  Set Cuts
+
+ //--Ecal Volume G4Region
+    if(strcmp(getname(),"ECMO")==0){
+       G4Region *evol = new G4Region("ECVolumeR");
+       evol->AddRootLogicalVolume(_pg4l);
+    }
 
     AMSUserLimits * puser=(AMSUserLimits*)_pg4l->GetUserLimits();
     puser->ElectronECut()=_pgtmed->CUTELE()*GeV;

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.390.2.2 2013/06/28 14:32:23 choutko Exp $
+#  $Id: datacards.doc,v 1.390.2.3 2013/08/06 10:41:52 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -688,8 +688,12 @@ I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "sta
 I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 1: Binary Light Ion Cascade model(not supposed to be valid above few 10GeV/n)
 			// 2: G4QMD ; -2 :Wilson Abrasion 
-                        // 3: Binary Light(<5GeV/n) +DPMJET2-5Model+DPMJETCrossSection(5GeV/n,1000TeV/n)
-                        // 4: Binary Light(<5GeV/n) +DPMJET2-5Model+ShenCrossSection(5GeV/n,1000TeV/n)
+                        // 3: Binary Light(<5GeV/n) +DPMJET2-5Model+ DPMJETCrossSection(5GeV/n,1000TeV/n)
+                        // 4: Binary Light(<5GeV/n) +DPMJET2-5Model(5GeV/n,1000TeV/n)+ ShenCrossSection
+                        // 5: Binary Light(<5GeV/n) +DPMJET2-5Model(5GeV/n,1000TeV/n)+ HEAOCrossSection
+                        // 13: Binary Light(all) Model + DPMJETCrossSection(5GeV/n,1000TeV/n)
+                        // 14: Binary Light(all) Model + ShenCrossSection
+                        // 15: Binary Light(all) Model + HEAOCrossSection
 
 I 8 UseEMDModel(0)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
@@ -697,7 +701,12 @@ I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ 
 I 11 NeutronTkCut(0)   //Use(1) or Not Standard Neutron Tracking Cut(tracking global time>10 microsecond),can also self adjustment 
 I 12 TFNewGeant4(0)    //TOF new Geant4(0 old simulation) (1 new online simulation) (2 new table mode)
 I 13 MemoryLimit(-1)  //Geant4Memory raise in bytes in mallinfo.arena+mallinfo.uordblks to trigger process  termination (-1 == infinity)
-
+I 14 DetectorCut(0)    // set detector cut,  Tracker+TRD+TOF+RICH+ECAL+AMS(0 cut off, 1 new cut).
+                       // 11:  Ecal cut 1*cm, AMS cut 1*mm (Ion suggestion cut  >2 times faster)
+R 15 AMSCut(1*mm)      // general AMS geant4 cut
+R 16 EcalCut(1*cm)     // Ecal geant4 cut
+I 17 ProcessOff(0)     // Geant4 Process switch off option.
+                       // 111:  Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on)
 
 
 
