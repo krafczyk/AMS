@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.149 2013/08/05 12:56:35 choutko Exp $
+//  $Id: timeid.C,v 1.150 2013/08/06 07:50:01 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -519,7 +519,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    cerr<<"AMSTimeID::read-E-CouldNot open file "<<fnam<<endl;
                 if(strstr(dir,"/cvmfs")){
         	    cerr<<"AMSTimeID::read-F-CouldNot open file "<<fnam<<" on /cvmfs. Aborting Execution."<<endl;
-                 abort();
+//                 abort();
                 } 
 	    return false;
 	  }
