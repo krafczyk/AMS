@@ -17,6 +17,7 @@ class G4VCrossSectionDataSet;
 #ifdef G4_USE_DPMJET
 class G4DPMJET2_5Model;
 class G4DPMJET2_5CrossSection;
+class G4IonsHEAOCrossSection;
 #endif
 class IonDPMJETPhysics : public G4VHadronPhysics
 {
@@ -36,6 +37,7 @@ class IonDPMJETPhysics : public G4VHadronPhysics
   G4VCrossSectionDataSet* fIonH;
 #ifdef G4_USE_DPMJET
   G4DPMJET2_5CrossSection* dpmXS;
+  G4IonsHEAOCrossSection * HEAOXS;
   G4DPMJET2_5Model*        theDPM;
 #endif
   G4bool useDPMJETXS;
