@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.16 2011/05/26 01:30:19 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.17 2013/08/07 16:19:20 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/26 01:30:19 $
+///$Date: 2013/08/07 16:19:20 $
 ///
-///$Revision: 1.16 $
+///$Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -119,7 +119,7 @@ TrLadCal* TrCalDB::GetEntry(int ii){
 
 void TrCalDB::Load(char * filename){
   TFile* f=TFile::Open(filename);
-  Head=(TrCalDB*) f->Get("TrCalDB");
+  Head=dynamic_cast<TrCalDB*>( f->Get("TrCalDB"));
   f->Close();
   return ;
 }

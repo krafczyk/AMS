@@ -1,4 +1,4 @@
-// $Id: TrGainDB.C,v 1.8 2013/03/27 10:12:13 oliva Exp $
+// $Id: TrGainDB.C,v 1.9 2013/08/07 16:19:20 choutko Exp $
 
 #include "TrGainDB.h"
 
@@ -123,7 +123,7 @@ bool TrGainDB::Load(const char* filename) {
 bool TrGainDB::Load(TFile* rootfile) { 
   // Init(); // no memory loss
   if (rootfile==0) return false;
-   TrGainDB * fh=(TrGainDB*) rootfile->Get("TrGainDB");
+   TrGainDB * fh=dynamic_cast<TrGainDB*>( rootfile->Get("TrGainDB"));
    if(!fh)return false;
   if(fHead)delete fHead;
   fHead = fh;

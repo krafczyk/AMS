@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.592 2013/08/04 19:59:57 qyan Exp $
+//  $Id: root.C,v 1.593 2013/08/07 16:19:20 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10481,7 +10481,10 @@ static int master=0;
 {
   if (_FILE){
     if(TrCalDB::Head) delete TrCalDB::Head;
-    TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
+    TrCalDB::Head = dynamic_cast<TrCalDB*>(_FILE->Get("TrCalDB"));
+    if(!TrCalDB::Head ){
+       cerr<<" AMSEventR::InitDB-S-UnableToFindTrCalDBiN "<<_FILE->GetName()<<endl;
+   } 
     if(!TkDBc::Head){
       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
 	TrExtAlignDB::ForceFromTDV=1;
