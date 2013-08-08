@@ -2254,7 +2254,7 @@ class RemoteClient:
         sizemb="%.f" %(ntsize)
         sql="delete from ntuples where path='%s'" %(path)
         self.sqlserver.Update(sql);
-        sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc)
+        sql = "INSERT INTO ntuples (RUN,VERSION,TYPE,JID,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,CRC,CRCTIME,CRCFLAG,CASTORTIME,BUILDNO,DATAMC) VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc)
         self.linkdataset(path,"/Offline/DataSetsDir",1)
         self.sqlserver.Update(sql)
    

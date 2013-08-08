@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.785 2013/07/31 20:29:39 bshan Exp $
+# $Id: RemoteClient.pm,v 1.786 2013/08/08 12:23:51 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -15522,7 +15522,25 @@ if(not defined $fetime or not defined $letime){
    $self->{sqlserver}->Update($sql);
     
   }
-  $sql = "INSERT INTO ntuples VALUES( $run,
+  $sql = "INSERT INTO ntuples (RUN,
+                               VERSION,
+                               TYPE,
+                               JID,
+                               FEVENT,
+                               LEVENT,
+                               NEVENTS,
+                               NEVENTSERR,
+                               TIMESTAMP,
+                               SIZEMB,
+                               STATUS,
+                               PATH,
+                               CRC,
+                               CRCTIME,
+                               CRCFLAG,
+                               CASTORTIME,
+                               BUILDNO,
+                               DATAMC)
+                                  VALUES( $run,
                                          '$version',
                                          '$type',
                                           $jid,
