@@ -386,10 +386,8 @@ G4bool StrHP::IsApplicable (const G4HadProjectile &theTrack, G4Nucleus &theTarge
   const G4ParticleDefinition *definitionP = theTrack.GetDefinition();
   G4int AP   = definitionP->GetBaryonNumber();
   G4int ZP   = G4int(definitionP->GetPDGCharge()/eplus + 0.5);
-  //G4int AT   = theTarget.GetA_asInt();
-  //G4int ZT   = theTarget.GetZ_asInt();
-   G4double AT         = theTarget.GetN();
-   G4double ZT         = theTarget.GetZ(); 
+    G4int AT   = theTarget.GetA_asInt();
+    G4int ZT   = theTarget.GetZ_asInt();
 
   bool ret= strstr((const char*)(definitionP->GetParticleName()),"strangelet")!=0;
   return ret;
@@ -415,10 +413,10 @@ G4HadFinalState *StrHP::ApplyYourself (const G4HadProjectile &theTrack, G4Nucleu
   G4ThreeVector pP    = theTrack.Get4Momentum().vect();
   G4double T          = theTrack.GetKineticEnergy()/G4double(AP);   // Units are MeV/nuc 
   G4double E          = theTrack.GetTotalEnergy()/G4double(AP);	    // Units are MeV/nuc
-//  G4int AT         = theTarget.GetA_asInt();
-//  G4int ZT         = theTarget.GetZ_asInt();
-  G4double AT         = theTarget.GetN();
-  G4double ZT         = theTarget.GetZ();
+    G4double AT         = theTarget.GetA_asInt();
+    G4double ZT         = theTarget.GetZ_asInt();
+  //G4double AT         = theTarget.GetN();
+  //G4double ZT         = theTarget.GetZ();
   G4double mpnt  = theTarget.AtomicMass(AT, ZT);
   G4double TotalEPre  = theTrack.GetTotalEnergy() + mpnt;
     //    theTarget.AtomicMass(AT, ZT) + theTarget.GetEnergyDeposit();

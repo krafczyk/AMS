@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.265 2013/07/23 16:19:46 choutko Exp $
+#  $Id: Makefile,v 1.266 2013/08/09 14:48:56 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -84,7 +84,11 @@ G4:=G4
 include $(G4INSTALL)/config/architecture.gmk
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
 INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
+ifdef CLHEP_BASE_DIR
 G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global -lCLHEP
+else
+G4LIBS=  -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
+endif
 AR=ar
 endif
 

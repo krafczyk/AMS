@@ -8,6 +8,7 @@
 //        Modified:
 // -----------------------------------------------------------
 
+#include "G4Version.hh"
 #include "g4tof.h"
 #include "G4ios.hh"
 #include "G4OpProcessSubType.hh"
@@ -60,6 +61,8 @@ TOFG4Scintillation::AtRestDoIt(const G4Track& aTrack, const G4Step& aStep)
 G4VParticleChange*
 TOFG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 {
+#if G4VERSION_NUMBER  <945 
+
         aParticleChange.Initialize(aTrack);
 
         const G4DynamicParticle* aParticle = aTrack.GetDynamicParticle();
@@ -278,7 +281,10 @@ TOFG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
         G4cout << "\n Exiting from TOFG4Scintillation::DoIt -- NumberOfSecondaries = "
              << aParticleChange.GetNumberOfSecondaries() << G4endl;
         }
-
+#else
+cerr<<"TOFG4Scintillation::PostStepDoIt-F-NotYetSupportedInGeant>9.4.4 "<<endl;
+abort();
+#endif
         return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
 }
 
@@ -286,6 +292,7 @@ void TOFG4Scintillation::BuildThePhysicsTable()
 {
         if (theFastIntegralTable && theSlowIntegralTable) return;
 
+#if G4VERSION_NUMBER  <945 
         const G4MaterialTable* theMaterialTable =
                                G4Material::GetMaterialTable();
         G4int numOfMaterials = G4Material::GetNumberOfMaterials();
@@ -423,6 +430,9 @@ void TOFG4Scintillation::BuildThePhysicsTable()
         theFastIntegralTable->insertAt(i,aPhysicsOrderedFreeVector);
         theSlowIntegralTable->insertAt(i,bPhysicsOrderedFreeVector);
         }
+#else
+cerr<<"TOFG4Scintillation::BuildThePhysicsTable-S-NotYetSupportedInGeant>9.4.4 "<<endl;
+#endif
 }
 
 // GetMeanFreePath
@@ -494,6 +504,7 @@ TOFG4OpBoundaryProcess::TOFG4OpBoundaryProcess(const G4String& processName,
 G4VParticleChange*
 TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 {
+#if G4VERSION_NUMBER  <945 
   aParticleChange.Initialize(aTrack);
   theStatus= Undefined;
  
@@ -663,6 +674,10 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
     NewPolarization = NewPolarization.unit();
     aParticleChange.ProposeMomentumDirection(NewMomentum);
     aParticleChange.ProposePolarization(NewPolarization);
+#else
+cerr<<"TOFG4OpBoundaryProcess::PostStepDoIt-F-NotYetSupportedInGeant>9.4.4 "<<endl;
+abort();
+#endif
 
     return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
 

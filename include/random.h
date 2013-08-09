@@ -22,8 +22,8 @@ extern "C" void ROOTPoissn(float &, int &, int&);
 extern "C" void poissn_(float &, int &, int&);
 PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #define RNDMG3(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)
-#define RNDM(A) (MISCFFKEY.G4On?(RandFlat::shoot()):RNDMG3(A))
-#define POISSN(A,B,C) if(MISCFFKEY.G4On){C=0;B=RandPoissonQ::shoot(A);} else poissn_(A,B,C)
+#define RNDM(A) (MISCFFKEY.G4On?(CLHEP::RandFlat::shoot()):RNDMG3(A))
+#define POISSN(A,B,C) if(MISCFFKEY.G4On){C=0;B=CLHEP::RandPoissonQ::shoot(A);} else poissn_(A,B,C)
 
 #else
 

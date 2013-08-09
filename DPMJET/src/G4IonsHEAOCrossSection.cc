@@ -9,6 +9,7 @@
 #include "G4ParticleTable.hh"
 #include "G4IonTable.hh"
 #include "G4HadTmpUtil.hh"
+#include "G4DynamicParticle.hh"
 
 
 ///////////////////////////////////////////////////////////////////////////////

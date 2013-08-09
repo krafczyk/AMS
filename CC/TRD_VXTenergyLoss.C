@@ -1,6 +1,6 @@
 
 //
-// $Id: TRD_VXTenergyLoss.C,v 1.3 2010/11/11 19:08:43 mmilling Exp $
+// $Id: TRD_VXTenergyLoss.C,v 1.4 2013/08/09 14:48:48 choutko Exp $
 //
 // History:
 // 2001-2002 R&D by V.Grichine// 19.06.03 V. Grichine, modifications in BuildTable for the integration 
@@ -26,7 +26,7 @@
 #include "G4PhysicsVector.hh"
 #include "G4PhysicsFreeVector.hh"
 #include "G4PhysicsLinearVector.hh"
-
+ #include "G4Version.hh"
 using namespace std;
 using namespace CLHEP;
 
@@ -110,7 +110,9 @@ TRD_VXTenergyLoss::TRD_VXTenergyLoss(G4Region *anEnvelope,
   if(fVerbose)G4cout<<"the number of TR radiator plates = "<<fPlateNumber<<G4endl ;
   if(fPlateNumber == 0)
   {
+#if G4VERSION_NUMBER  <945 
     G4Exception("No plates in X-ray TR radiator") ;
+#endif
   }
   // default is XTR dEdx, not flux after radiator
 
@@ -276,8 +278,10 @@ void TRD_VXTenergyLoss::BuildPhysicsTable(const G4ParticleDefinition& pd)
 {
   if(pd.GetPDGCharge()  == 0.) 
   {
+#if G4VERSION_NUMBER  <945 
     G4Exception("TRD_VXTenergyLoss::BuildPhysicsTable", "Notification", JustWarning,
                  "XTR initialisation for neutral particle ?!" );   
+#endif
   }
   BuildTable();
   if (fAngleRadDistr) 
@@ -1372,7 +1376,9 @@ G4double TRD_VXTenergyLoss::GetPlateLinearPhotoAbs(G4double omega)
   }
   if( i == 0 )
   { 
+#if G4VERSION_NUMBER  <945 
     G4Exception("Invalid (<I1) energy in TRD_VXTenergyLoss::GetPlateLinearPhotoAbs");
+#endif
   }
   else i-- ;
   
@@ -1485,7 +1491,9 @@ G4double TRD_VXTenergyLoss::GetGasLinearPhotoAbs(G4double omega)
   }
   if( i == 0 )
   { 
+#if G4VERSION_NUMBER  <945 
    G4Exception("Invalid (<I1) energy in TRD_VXTenergyLoss::GetGasLinearPhotoAbs");
+#endif
   }
   else i-- ;
   

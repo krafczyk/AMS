@@ -1,4 +1,4 @@
-//  $Id: g4util.h,v 1.4 2010/11/14 20:17:47 mdelgado Exp $
+//  $Id: g4util.h,v 1.5 2013/08/09 14:48:55 choutko Exp $
 #include "cern.h"
 #define ENABLE_BACKWARDS_COMPATIBILITY
 #include "CLHEP/Random/Random.h"
@@ -7,7 +7,7 @@
 class AMSRandGeneral{
 class service{
 public:
-RandGeneral * _pgenerator;
+CLHEP::RandGeneral * _pgenerator;
 integer _id;
 geant _xmi;
 geant _range;
@@ -17,7 +17,7 @@ _id(id),_next(0),_xmi(xmi),_range(xma-xmi){
  if(larray){
   number * _parray=new number[larray];
   for (int i=0;i<larray;i++)_parray[i]=parray[i];
-  _pgenerator=new RandGeneral(_parray,larray);
+  _pgenerator=new CLHEP::RandGeneral(_parray,larray);
   delete[] _parray;
  } 
  else _pgenerator=0;

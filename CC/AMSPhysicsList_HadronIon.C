@@ -28,7 +28,14 @@
 #include "G4IonBinaryCascadePhysics.hh"
 #include "AMSPhysicsList_HadronIon.h" 
 #include "G4LElastic.hh"
+#include  "G4IonsShenCrossSection.hh"
+#include  "G4TripathiCrossSection.hh"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER  > 945 
+#include  "G4GlauberGribovCrossSection.hh"
+#endif
 #include "G4HadronElasticProcess.hh"
+#include "G4HadronElasticDataSet.hh"
 #include "G4IonsShenCrossSection.hh"
 #include "G4QMDReaction.hh"
 //////////////////////////////////////////////////////////////////////////////// 
@@ -85,6 +92,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     G4GeneralSpaceNNCrossSection * generalCrossSection =  new G4GeneralSpaceNNCrossSection;
    G4IonsShenCrossSection* fShen = new G4IonsShenCrossSection();
 
+#if G4VERSION_NUMBER  > 945 
+   G4GlauberGribovCrossSection* fGG = new G4GlauberGribovCrossSection();
+#endif
    G4LEDeuteronInelastic*  fDeuteronModel = new G4LEDeuteronInelastic;
     fDeuteronModel->SetMaxEnergy(100.0*MeV);
 
@@ -114,6 +124,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
+#if G4VERSION_NUMBER  > 945 
+        fDeuteronProcess->AddDataSet(fGG);
+#endif
         fDeuteronProcess->AddDataSet(fShen);
 	fDeuteronProcess->AddDataSet(generalCrossSection);
 	fDeuteronProcess->RegisterMe(theGenIonBC);
@@ -123,6 +136,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
+#if G4VERSION_NUMBER  > 945 
+        fTritonProcess->AddDataSet(fGG);	
+#endif
         fTritonProcess->AddDataSet(fShen);	
 	fTritonProcess->AddDataSet(generalCrossSection);
 	fTritonProcess->RegisterMe(theGenIonBC);
@@ -131,6 +147,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
+#if G4VERSION_NUMBER  > 945 
+        fAlphaProcess->AddDataSet(fGG);
+#endif
         fAlphaProcess->AddDataSet(fShen);
 	fAlphaProcess->AddDataSet(generalCrossSection);
 	fAlphaProcess->RegisterMe(theGenIonBC);
@@ -140,6 +159,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fhe3Ion = new G4HadronInelasticProcess("He3Inelastic",particle);
+#if G4VERSION_NUMBER  > 945 
+        fhe3Ion->AddDataSet(fGG);
+#endif
         fhe3Ion->AddDataSet(fShen);
 	fhe3Ion->AddDataSet(generalCrossSection);
 	fhe3Ion->RegisterMe(theGenIonBC);
@@ -149,6 +171,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fGenericIon = new G4HadronInelasticProcess("IonInelastic",particle);
+#if G4VERSION_NUMBER  > 945 
+        fGenericIon->AddDataSet(fGG);
+#endif
         fGenericIon->AddDataSet(fShen);
 	fGenericIon->AddDataSet(generalCrossSection);
 	fGenericIon->RegisterMe(theGenIonBC);
@@ -261,6 +286,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
+#if G4VERSION_NUMBER  > 945 
+        fDeuteronProcess->AddDataSet(fGG);
+#endif
         fDeuteronProcess->AddDataSet(fShen);
 	fDeuteronProcess->AddDataSet(generalCrossSection);
 	fDeuteronProcess->AddDataSet(TripathiCrossSection);
@@ -271,6 +299,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
+#if G4VERSION_NUMBER  > 945 
+        fTritonProcess->AddDataSet(fGG);
+#endif
         fTritonProcess->AddDataSet(fShen);	
 	fTritonProcess->AddDataSet(generalCrossSection);
 	fTritonProcess->AddDataSet(TripathiCrossSection);
@@ -280,6 +311,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
+#if G4VERSION_NUMBER  > 945 
+        fAlphaProcess->AddDataSet(fGG);
+#endif
         fAlphaProcess->AddDataSet(fShen);
 	fAlphaProcess->AddDataSet(generalCrossSection);
 	fAlphaProcess->AddDataSet(TripathiCrossSection);
@@ -290,6 +324,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fhe3Ion = new G4HadronInelasticProcess("He3Inelastic",particle);
+#if G4VERSION_NUMBER  > 945 
+        fhe3Ion->AddDataSet(fGG);
+#endif
         fhe3Ion->AddDataSet(fShen);
 	fhe3Ion->AddDataSet(generalCrossSection);
 	fhe3Ion->AddDataSet(TripathiCrossSection);
@@ -300,6 +337,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fGenericIon = new G4HadronInelasticProcess("IonInelastic",particle);
+#if G4VERSION_NUMBER  > 945 
+        fGenericIon->AddDataSet(fGG);
+#endif
         fGenericIon->AddDataSet(fShen);
 	fGenericIon->AddDataSet(generalCrossSection);
 	fGenericIon->AddDataSet(TripathiCrossSection);
