@@ -61,7 +61,7 @@ TOFG4Scintillation::AtRestDoIt(const G4Track& aTrack, const G4Step& aStep)
 G4VParticleChange*
 TOFG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 {
-#if G4VERSION_NUMBER  <945 
+//#if G4VERSION_NUMBER  <945 
 
         aParticleChange.Initialize(aTrack);
 
@@ -281,10 +281,11 @@ TOFG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
         G4cout << "\n Exiting from TOFG4Scintillation::DoIt -- NumberOfSecondaries = "
              << aParticleChange.GetNumberOfSecondaries() << G4endl;
         }
+/*
 #else
 cerr<<"TOFG4Scintillation::PostStepDoIt-F-NotYetSupportedInGeant>9.4.4 "<<endl;
 abort();
-#endif
+#endif*/
         return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
 }
 
@@ -292,7 +293,7 @@ void TOFG4Scintillation::BuildThePhysicsTable()
 {
         if (theFastIntegralTable && theSlowIntegralTable) return;
 
-#if G4VERSION_NUMBER  <945 
+//#if G4VERSION_NUMBER  <945 
         const G4MaterialTable* theMaterialTable =
                                G4Material::GetMaterialTable();
         G4int numOfMaterials = G4Material::GetNumberOfMaterials();
@@ -327,19 +328,23 @@ void TOFG4Scintillation::BuildThePhysicsTable()
                    if (theFastLightVector) {
                       // Retrieve the first intensity point in vector
                       // of (photon energy, intensity) pairs 
-
+#if G4VERSION_NUMBER  >945
+                      G4double currentIN = (*theFastLightVector)[0];
+#else
                       theFastLightVector->ResetIterator();
-                      ++(*theFastLightVector);  // advance to 1st entry 
-
+                      ++(*theFastLightVector);  // advance to 1st entry  
                       G4double currentIN = theFastLightVector->GetProperty();
+#endif
 
                       if (currentIN >= 0.0) {
 
                          // Create first (photon energy, Scintillation 
                          // Integral pair  
-
+#if G4VERSION_NUMBER  >945
+                         G4double currentPM = theFastLightVector->Energy(0);
+#else
                          G4double currentPM = theFastLightVector-> GetPhotonEnergy();
-
+#endif
                          G4double currentCII = 0.0;
 
                          aPhysicsOrderedFreeVector->InsertValues(currentPM , currentCII);
@@ -352,13 +357,19 @@ void TOFG4Scintillation::BuildThePhysicsTable()
 
                          // loop over all (photon energy, intensity)
                          // pairs stored for this material  
+#if G4VERSION_NUMBER  >945
+                        for (size_t ii = 1;ii < theFastLightVector->GetVectorLength();++ii)
+                           {
+                                currentPM = theFastLightVector->Energy(ii);
+                                currentIN = (*theFastLightVector)[ii];
 
-                        while(++(*theFastLightVector))
+#else
+                       while(++(*theFastLightVector))
+
                          {
                                 currentPM = theFastLightVector->GetPhotonEnergy();
-
                                 currentIN=theFastLightVector->GetProperty();
-
+#endif
                                 currentCII = 0.5 * (prevIN + currentIN);
 
                                 currentCII = prevCII +(currentPM - prevPM) * currentCII;
@@ -371,27 +382,33 @@ void TOFG4Scintillation::BuildThePhysicsTable()
                          }
                       }
                    }
-
+        
                    G4MaterialPropertyVector* theSlowLightVector =
                    aMaterialPropertiesTable->GetProperty("SLOWCOMPONENT");
                     if (theSlowLightVector) {
 
                       // Retrieve the first intensity point in vector
                       // of (photon energy, intensity) pairs
-
+#if G4VERSION_NUMBER >945
+                       G4double currentIN = (*theSlowLightVector)[0];
+                      
+#else 
                       theSlowLightVector->ResetIterator();
                       ++(*theSlowLightVector);  // advance to 1st entry
 
                       G4double currentIN = theSlowLightVector->
                                            GetProperty();
-
+#endif
+                    
                       if (currentIN >= 0.0) {
 
                          // Create first (photon energy, Scintillation
                          // Integral pair
-
+#if G4VERSION_NUMBER >945
+                         G4double currentPM = theSlowLightVector->Energy(0);
+#else 
                          G4double currentPM = theSlowLightVector->GetPhotonEnergy();
-
+#endif
                          G4double currentCII = 0.0;
 
                          bPhysicsOrderedFreeVector->InsertValues(currentPM , currentCII);
@@ -403,13 +420,18 @@ void TOFG4Scintillation::BuildThePhysicsTable()
                          G4double prevIN  = currentIN;
                          // loop over all (photon energy, intensity)
                          // pairs stored for this material
-
+#if G4VERSION_NUMBER >945
+                        for (size_t ii = 1;ii < theSlowLightVector->GetVectorLength();++ii)
+                         {
+                                currentPM = theSlowLightVector->Energy(ii);
+                                currentIN = (*theSlowLightVector)[ii];
+#else
                          while(++(*theSlowLightVector))
                          {
                                 currentPM = theSlowLightVector->GetPhotonEnergy();
 
                                 currentIN=theSlowLightVector->GetProperty();
-
+#endif
                                 currentCII = 0.5 * (prevIN + currentIN);
 
                                 currentCII = prevCII +(currentPM - prevPM) * currentCII;
@@ -430,9 +452,9 @@ void TOFG4Scintillation::BuildThePhysicsTable()
         theFastIntegralTable->insertAt(i,aPhysicsOrderedFreeVector);
         theSlowIntegralTable->insertAt(i,bPhysicsOrderedFreeVector);
         }
-#else
+/*#else
 cerr<<"TOFG4Scintillation::BuildThePhysicsTable-S-NotYetSupportedInGeant>9.4.4 "<<endl;
-#endif
+#endif*/
 }
 
 // GetMeanFreePath
@@ -504,7 +526,7 @@ TOFG4OpBoundaryProcess::TOFG4OpBoundaryProcess(const G4String& processName,
 G4VParticleChange*
 TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 {
-#if G4VERSION_NUMBER  <945 
+//#if G4VERSION_NUMBER  <945 
   aParticleChange.Initialize(aTrack);
   theStatus= Undefined;
  
@@ -534,7 +556,11 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
       Rindex = aMaterialPropertiesTable->GetProperty("RINDEX");
   }
    if (Rindex) {
+#if G4VERSION_NUMBER  >945
+      Rindex1 = Rindex->Value(thePhotonMomentum);
+#else
       Rindex1 = Rindex->GetProperty(thePhotonMomentum);
+#endif
    }
    else {
        theStatus = NoRINDEX;
@@ -587,7 +613,11 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 //--property table
    Rindex = aMaterialPropertiesTable->GetProperty("RINDEX");
    if(Rindex ){
+#if G4VERSION_NUMBER >945
+      Rindex2 = Rindex->Value(thePhotonMomentum);
+#else 
       Rindex2 = Rindex->GetProperty(thePhotonMomentum);
+#endif
    }
    else  {
        theStatus = NoRINDEX;
@@ -598,7 +628,11 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 //raw polishedbackpainted 
     PropertyPointer = aMaterialPropertiesTable->GetProperty("ABSORPTIVITY");
     if(PropertyPointer){
+#if G4VERSION_NUMBER >945
+        theAbsorptivity =PropertyPointer->Value(thePhotonMomentum);
+#else
         theAbsorptivity =PropertyPointer->GetProperty(thePhotonMomentum);
+#endif
     }
     else {
          return G4OpBoundaryProcess::PostStepDoIt(aTrack, aStep);
@@ -607,7 +641,11 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
  
     PropertyPointer = aMaterialPropertiesTable->GetProperty("REFLECTIVITY");
     if(PropertyPointer){
+#if G4VERSION_NUMBER >945
+        theReflectivity =PropertyPointer->Value(thePhotonMomentum);
+#else
         theReflectivity =PropertyPointer->GetProperty(thePhotonMomentum);
+#endif
     }
     else { 
       theReflectivity=0.;
@@ -615,7 +653,11 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 
     PropertyPointer=aMaterialPropertiesTable->GetProperty("EFFICIENCY");
     if (PropertyPointer) {
-	    theEfficiency=PropertyPointer->GetProperty(thePhotonMomentum);
+#if G4VERSION_NUMBER >945
+       theEfficiency=PropertyPointer->Value(thePhotonMomentum);
+#else
+       theEfficiency=PropertyPointer->GetProperty(thePhotonMomentum);
+#endif
     }
     else {
        theEfficiency = 0.;
@@ -623,21 +665,33 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 
     PropertyPointer=aMaterialPropertiesTable->GetProperty("SPECULARLOBECONSTANT");
     if (PropertyPointer) {
+#if G4VERSION_NUMBER >945
+        prob_sl=PropertyPointer->Value(thePhotonMomentum);
+#else
 	prob_sl=PropertyPointer->GetProperty(thePhotonMomentum);
+#endif
     } else {
         prob_sl = 0.0;
     }
 
     PropertyPointer=aMaterialPropertiesTable->GetProperty("SPECULARSPIKECONSTANT");
     if (PropertyPointer) {
+#if G4VERSION_NUMBER >945
+        prob_ss=PropertyPointer->Value(thePhotonMomentum);
+#else
 	prob_ss=PropertyPointer->GetProperty(thePhotonMomentum);
+#endif
     } else {
 	prob_ss = 0.0;
     }
     
     PropertyPointer=aMaterialPropertiesTable->GetProperty("BACKSCATTERCONSTANT");
     if (PropertyPointer) {
-	    prob_bs=PropertyPointer->GetProperty(thePhotonMomentum);
+#if G4VERSION_NUMBER >945
+         prob_bs=PropertyPointer->Value(thePhotonMomentum);
+#else
+         prob_bs=PropertyPointer->GetProperty(thePhotonMomentum);
+#endif
     } else {
 	 prob_bs = 0.0;
     }
@@ -674,10 +728,10 @@ TOFG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
     NewPolarization = NewPolarization.unit();
     aParticleChange.ProposeMomentumDirection(NewMomentum);
     aParticleChange.ProposePolarization(NewPolarization);
-#else
+/*#else
 cerr<<"TOFG4OpBoundaryProcess::PostStepDoIt-F-NotYetSupportedInGeant>9.4.4 "<<endl;
 abort();
-#endif
+#endif*/
 
     return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
 
