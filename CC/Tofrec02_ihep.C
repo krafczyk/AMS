@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.47 2013/03/27 13:36:26 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.48 2013/08/12 08:55:03 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -1164,6 +1164,7 @@ int TofRecH::BuildBetaH(int verse){
 
 //---After Track Find Continue
     if(iktr==0&&((BuildOpt==3)||(BuildOpt/10000%10==3)))found=0;//Opt=3 Build Continue After Track Find
+    if(iktr==1&&(BuildOpt/1000%10==3))found=0;//Opt=3 Build Continue After Trd Find
 //----
     if(found>0)break;
     
