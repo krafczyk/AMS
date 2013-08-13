@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.37 2013/06/05 13:44:51 kaiwu Exp $
+//  $Id: EcalChi2CY.C,v 1.38 2013/08/13 13:48:32 choutko Exp $
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -2244,8 +2244,17 @@ double EcalCR::local_shower_center(int layer,double el, double ec, double er, do
   else if (est>1.5) est = 1.5;
 
   int ibin = floor((est+1.5)/est_binsize);
+  if(ibin<0){
+   cerr<<"  EcalCR::local_shower_center-S-IBINError  "<<layer<<" "<<ibin   <<" "<<est<<endl;
+   ibin=0;
+  }
+  else if(ibin>=n_est_bin-1){
+   cerr<<"  EcalCR::local_shower_center-S-IBINError  "<<layer<<" "<<ibin   <<" "<<est<<endl;
+   ibin=n_est_bin-2;
+  }
   double estlow = -1.5+ibin*est_binsize;
   int ib = layer*n_est_bin + ibin;
+  //cout <<" ib "<<ib<<" "<<layer<<" "<<ibin<<endl;
   double xlow = *(p_est_int+ib) + *(p_est_slope+ib)*dele +
                 *(p_est_curve+ib)*dele*dele;
   double xhigh = *(p_est_int+ib+1) + *(p_est_slope+ib+1)*dele +
