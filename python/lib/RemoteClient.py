@@ -3257,7 +3257,7 @@ class RemoteClient:
             runbuildd=" and ntuples_deleted.buildno=%d " %(buildno)
         if(castoronly!=0):
             buildno=1
-            if(casuoronly>0):
+            if(castoronly>0):
                 runbuild=runbuild+" and ntuples.castortime>0 "
                 runbuildd=runbuildd+" and ntuples_deleted.castortime>0 "
             if(castoronly<0):
@@ -3306,7 +3306,7 @@ class RemoteClient:
                 rund=" and runs.run<%d " %(run2p)
                 runn=" and ntuples.run<%d " %(run2p)
                 runnd=" and ntuples_deleted.run<%d " %(run2p)
-        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s" %(dataset,datamc%10,runn,runbuild,arun2p) 
+        sql="select path,castortime,eostime from ntuples where path like '%%%s/%%' and datamc=%d %s %s %s" %(dataset,datamc%10,runn,runbuild,arun2p) 
         df=0
         files=self.sqlserver.Query(sql)
         datapath=dataset
@@ -3366,6 +3366,18 @@ class RemoteClient:
                         i=os.system(castordel)
                         if(i):
                             print " CastorCommand Failed ",castordel
+                if(file[2]>0):
+                    eosPrefix='/eos/ams/'
+                    delimiter='Data'
+                    if(datamc==0 or datamc==10):
+                        delimiter='MC'
+                    junk=file[0].split(delimiter)
+                    if len(junk)>=2:
+                        eosfile=eosPrefix+delimiter+junk[1]
+                        eosdel="/afs/cern.ch/project/eos/installation/0.2.33/bin/eos.select rm  "+castorfile
+                        i=os.system(eosdel)
+                        if(i):
+                            print " EosCommand Failed ",eosdel
         if(len(files)==0):
             if(datamc==0):
                 if(donly==0):
