@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.357 2013/08/05 14:23:07 qyan Exp $
+//  $Id: commons.h,v 1.358 2013/08/16 15:58:04 traiha Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -348,6 +348,7 @@ class TRDMCFFKEY_DEF{
   integer PAIModel;
   integer debug;
   int CreatePDF;
+  float TRphotonEnergyScalingFactor;
 };
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);

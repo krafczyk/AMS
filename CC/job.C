@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.919 2013/08/06 09:38:16 qyan Exp $
+// $Id: job.C,v 1.920 2013/08/16 15:58:04 traiha Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1285,7 +1285,7 @@ void AMSJob::_sitrddata(){
   TRDMCFFKEY.NoiseOn=1;
   //TRDMCFFKEY.GeV2ADC=1.e8;
   // changed vc 22-dec-2009
-  TRDMCFFKEY.GeV2ADC=1.e8/3;
+  TRDMCFFKEY.GeV2ADC=1.e8/3 * 1.39;
   TRDMCFFKEY.Thr1R=3.5;
   TRDMCFFKEY.sec[0]=0;
   TRDMCFFKEY.sec[1]=0;
@@ -1310,18 +1310,19 @@ void AMSJob::_sitrddata(){
   TRDMCFFKEY.ndecor=1.0;
   TRDMCFFKEY.edecor=1.0;
   TRDMCFFKEY.Tmean=287.15;
-  TRDMCFFKEY.Pmean=950;
+  TRDMCFFKEY.Pmean=927;
   TRDMCFFKEY.FibreDiam=12.;
   TRDMCFFKEY.RadThick=20.;
   TRDMCFFKEY.AlphaFibre=5.;
   TRDMCFFKEY.AlphaGas=0.66;
   TRDMCFFKEY.FleeceGas=1;
-  TRDMCFFKEY.XenonFraction=0.8;
+  TRDMCFFKEY.XenonFraction=0.89;
   TRDMCFFKEY.ArgonFraction=0.;
-  TRDMCFFKEY.CO2Fraction=0.2;
+  TRDMCFFKEY.CO2Fraction=0.11;
   TRDMCFFKEY.GasStep=6.;
   TRDMCFFKEY.PAIModel=1;
   TRDMCFFKEY.debug=0;
+  TRDMCFFKEY.TRphotonEnergyScalingFactor=0.80;
 
   FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
 

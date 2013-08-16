@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.395 2013/08/06 09:39:50 qyan Exp $
+#  $Id: datacards.doc,v 1.396 2013/08/16 15:58:04 traiha Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -763,6 +763,7 @@ R48   GasStep(1.);	    // gas medium step size in mm
 I49   PAIModel(1);	    // enable PAI Model
 I50   debug(0); 	    // debug flag
 I51   CreatePDF(0)          // create or not pdf function
+R52   TRphotonEnergyScalingFactor(0.80)  // factor to scale energy of TR photons
 TRDCL   // TRD clustering
 
 R1 ADC2KeV;         //

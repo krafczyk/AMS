@@ -1,6 +1,6 @@
 
 //
-// $Id: TRD_VXTenergyLoss.C,v 1.4 2013/08/09 14:48:48 choutko Exp $
+// $Id: TRD_VXTenergyLoss.C,v 1.5 2013/08/16 15:58:04 traiha Exp $
 //
 // History:
 // 2001-2002 R&D by V.Grichine// 19.06.03 V. Grichine, modifications in BuildTable for the integration 
@@ -12,6 +12,7 @@
 #include "G4Timer.hh"
 #include <CLHEP/Vector/ThreeVector.h>
 #include "TRD_VXTenergyLoss.hh"
+#include "commons.h"
 
 #include "G4Poisson.hh"
 #include "G4MaterialTable.hh"
@@ -805,6 +806,7 @@ G4VParticleChange* TRD_VXTenergyLoss::PostStepDoIt( const G4Track& aTrack,
       fParticleChange.SetNumberOfSecondaries(1);
 
       energyTR = GetXTRrandomEnergy(TkinScaled,iTkin);
+      energyTR = energyTR * TRDMCFFKEY.TRphotonEnergyScalingFactor;
 
       if( verboseLevel )
       {
