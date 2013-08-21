@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.786 2013/08/08 12:23:51 bshan Exp $
+# $Id: RemoteClient.pm,v 1.787 2013/08/21 08:03:56 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20588,8 +20588,8 @@ sub UploadToDisksDataFiles{
         print "  Run $run->[0] $run->[1] has non-castor ntuples, ignored \n";
        }
        $suc=0;
-#       $bad_runs++;  
-#       next;
+       $bad_runs++;  
+       next;
       }
        $sql="select path,crc from datafiles where  run=$run->[0] and path like '%$dir%' and castortime>0 "; 
        $ret_nt =$self->{sqlserver}->Query($sql);
@@ -20700,13 +20700,36 @@ sub UploadToDisksDataFiles{
 #
 # run successfully copied
 #
-               foreach my $file (@files){ 
-#                 system("rm $file");
-              } 
-              if($verbose){
-                print " Run $run->[0]  processed \n";
+          if ($update) {
+              foreach my $ntuple (@{$ret_nt}) {
+                  my @junk = split '\/', $ntuple->[0];
+                  my $local = $dir."/$junk[$#junk]";
+                  my $sql = "update datafiles set path='$local' where path='$ntuple->[0]'";
+                  $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
+                  $self->datasetlink($local,"/Offline/DataSetsDir",1);
+                  $self->{sqlserver}->Update($sql);
               }
-           }
+              my $res = $self->{sqlserver}->Commit();
+              if (!$res) {
+                  if ($verbose) {
+                      print " Commit failed for run $run->[0] \n"; 
+                  }
+                  $bad_runs++;
+                  foreach my $file (@files){ 
+                     system("rm $file");
+                  } 
+              }
+              $#files = -1;
+          }
+          else {
+              foreach my $file (@files){ 
+                 system("rm $file");
+              } 
+          }
+          if($verbose){
+                print " Run $run->[0]  processed \n";
+          }
+       }
        my $ret=0;
        if(!$suc){
            $ret=1;
