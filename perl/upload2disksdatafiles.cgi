@@ -2,6 +2,9 @@
 use strict;
 use lib $ENV{'Offline'}.qw(/vdev/perl);
 use lib::RemoteClient;
+unshift @ARGV, "-DOracle:";
+unshift @ARGV, "-Fpdb_ams";
+
 
 my $nocgi=1;
 my $html=new RemoteClient($nocgi);
