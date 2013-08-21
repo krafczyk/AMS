@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.788 2013/08/21 12:57:06 bshan Exp $
+# $Id: RemoteClient.pm,v 1.789 2013/08/21 13:20:27 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20591,7 +20591,7 @@ sub UploadToDisksDataFiles{
        $bad_runs++;  
        next;
       }
-       $sql="select path,crc from datafiles where  run=$run->[0] and path like '%$dir%' and castortime>0 "; 
+       $sql="select path,crc,paths from datafiles where  run=$run->[0] and path like '%$dir%' and castortime>0 "; 
        $ret_nt =$self->{sqlserver}->Query($sql);
        my $disk=undef;
         my $dir=undef;
@@ -20705,8 +20705,8 @@ sub UploadToDisksDataFiles{
                   my @junk = split '\/', $ntuple->[0];
                   my $local = $dir."/$junk[$#junk]";
                   my $sql = "update datafiles set path='$local' where path='$ntuple->[0]'";
-                  $self->datasetlink($ntuple->[0],"/Offline/RunsDir",0);
-                  $self->datasetlink($local,"/Offline/RunsDir",1);
+                  $self->datasetlink($ntuple->[0],"/Offline/RunsDir",0,$ntuple->[2]);
+                  $self->datasetlink($local,"/Offline/RunsDir",1,$ntuple->[2]);
                   $self->{sqlserver}->Update($sql);
               }
               my $res = $self->{sqlserver}->Commit();
@@ -21299,7 +21299,7 @@ if($run2p){
     if($run2p ne 0 and $run2p ne $run->[0]){
       next;
     }
-        $sql="select path,crc from datafiles where  run=$run->[0] and path like '%$dir%' and castortime>0 and path not like '/castor%' ";
+        $sql="select path,crc,paths from datafiles where  run=$run->[0] and path like '%$dir%' and castortime>0 and path not like '/castor%' ";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       if(not defined $ret_nt->[0][0]){
@@ -21392,7 +21392,7 @@ if($run2p){
                    }
                 $sql="update datafiles set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
                 $self->{sqlserver}->Update($sql);
-                $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
+                $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0,$ntuple->[2]);
                 
                 $sys=$irm." $ntuple->[0]";
                 if($ntuple->[0]=~/^#/){
