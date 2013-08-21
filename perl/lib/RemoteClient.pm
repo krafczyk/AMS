@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.787 2013/08/21 08:03:56 bshan Exp $
+# $Id: RemoteClient.pm,v 1.788 2013/08/21 12:57:06 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20705,8 +20705,8 @@ sub UploadToDisksDataFiles{
                   my @junk = split '\/', $ntuple->[0];
                   my $local = $dir."/$junk[$#junk]";
                   my $sql = "update datafiles set path='$local' where path='$ntuple->[0]'";
-                  $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
-                  $self->datasetlink($local,"/Offline/DataSetsDir",1);
+                  $self->datasetlink($ntuple->[0],"/Offline/RunsDir",0);
+                  $self->datasetlink($local,"/Offline/RunsDir",1);
                   $self->{sqlserver}->Update($sql);
               }
               my $res = $self->{sqlserver}->Commit();
