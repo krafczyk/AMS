@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.794 2013/08/21 14:09:32 bshan Exp $
+# $Id: RemoteClient.pm,v 1.795 2013/08/21 15:55:57 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20542,10 +20542,10 @@ sub UploadToDisksDataFiles{
    my $runs=0;
    my $bad_runs=0;
    my $sql ="select name,did from productionset";
-   my $ret =$self->{sqlserver}->Query($sql);
+   my $ret_did =$self->{sqlserver}->Query($sql);
     my $did=-1;
     my $name="";
-   foreach my $ds (@{$ret}){
+   foreach my $ds (@{$ret_did}){
     if($dir=~/$ds->[0]/){
         $did=$ds->[1];
         $name=$ds->[0];
@@ -20665,6 +20665,7 @@ sub UploadToDisksDataFiles{
          }
          if (not $staged) {
              print "$ntuple->[0] is not staged yet, skipping ...\n";
+             $suc = 0;
              last;              # will not continue if not staged
          }
          print "$ntuple->[0] staged=$staged, copying ...\n";
@@ -21401,7 +21402,7 @@ if($run2p){
                    }
                 $sql="update datafiles set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
                 $self->{sqlserver}->Update($sql);
-                $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0,$ntuple->[2]);
+                $self->datasetlink($ntuple->[0],"/Offline/RunsDir",0,$ntuple->[2]);
                 
                 $sys=$irm." $ntuple->[0]";
                 if($ntuple->[0]=~/^#/){
