@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.793 2013/08/21 13:50:54 bshan Exp $
+# $Id: RemoteClient.pm,v 1.794 2013/08/21 14:09:32 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20563,6 +20563,9 @@ sub UploadToDisksDataFiles{
     if($did>0){
     if($run2p eq 0){
     $sql = "SELECT run  from datafiles  where  path like '%$dir%'";
+    if ($datamc) {
+        $sql .= " and type like 'SCI%'";
+    }
     if (!$force) {
         $sql .= " and path like '/castor%'";
     }
@@ -20576,8 +20579,12 @@ sub UploadToDisksDataFiles{
 }
     else{
 } 
-   $ret =$self->{sqlserver}->Query($sql);
-    foreach my $run (@{$ret}){
+   my $ret_runs =$self->{sqlserver}->Query($sql);
+   print "Totally " . scalar @{$ret_runs} . " runs selected.\n";
+   my $ret;
+   my $local=undef;
+   my $clocal=undef;
+    foreach my $run (@{$ret_runs}){
        my $timenow = time();
     if($run2p ne 0 and $run2p ne $run->[0]){
       next;
@@ -20633,8 +20640,8 @@ sub UploadToDisksDataFiles{
        }
        my @files=();
        $#files=-1;
-       my $local=undef;
-       my $clocal=undef;
+       $local=undef;
+       $clocal=undef;
        foreach my $ntuple (@{$ret_nt}){
          # Added by bshan to stager_get and stager_qry before copying
          my $ret = system("stager_get -M $ntuple->[0] 1>/dev/null 2>&1");
@@ -20706,7 +20713,7 @@ sub UploadToDisksDataFiles{
           if ($update) {
               foreach my $ntuple (@{$ret_nt}) {
                   my @junk = split '\/', $ntuple->[0];
-                  my $local = $dir."/$junk[$#junk]";
+                  $local = $dir."/$junk[$#junk]";
                   my $sql = "update datafiles set path='$local' where path='$ntuple->[0]'";
                   $self->datasetlink($local,"/Offline/RunsDir",1,$ntuple->[2]);
                   $self->{sqlserver}->Update($sql);
@@ -20732,12 +20739,12 @@ sub UploadToDisksDataFiles{
                 print " Run $run->[0]  processed \n";
           }
        }
-       my $ret=0;
+       $ret=0;
        if(!$suc){
            $ret=1;
        }
-    return $ret,$local,$clocal;
    }
+   return $ret,$local,$clocal;
 }
 
 
