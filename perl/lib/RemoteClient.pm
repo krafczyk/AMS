@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.791 2013/08/21 13:36:04 bshan Exp $
+# $Id: RemoteClient.pm,v 1.792 2013/08/21 13:37:42 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20562,7 +20562,7 @@ sub UploadToDisksDataFiles{
     }
     if($did>0){
     if($run2p eq 0){
-    $sql = "SELECT run  from datafiles  where  path like '$dir%'";
+    $sql = "SELECT run  from datafiles  where  path like '%$dir%'";
 #    print " run not defined $run2p \n";
 #    return 1;
 }
