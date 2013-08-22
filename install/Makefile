@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.266 2013/08/09 14:48:56 choutko Exp $
+#  $Id: Makefile,v 1.267 2013/08/22 16:51:56 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -80,6 +80,7 @@ endif
 G4LIBS=
 G4=
 ifdef G4AMS
+G4VIS_USE:= 1
 G4:=G4
 include $(G4INSTALL)/config/architecture.gmk
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
@@ -90,6 +91,9 @@ else
 G4LIBS=  -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
 endif
 AR=ar
+endif
+ifdef G4VIS_USE
+G4LIBS+= -lG4vis_management
 endif
 
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
@@ -758,11 +762,17 @@ OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
 #------------------------------------------------------------------------------
 # File list for interactive gbatch compilation
 
+ifdef  G4AMS
+FILESI= $(COMMON_FILES)  \
+	$(SCC)g4visman.C $(SFF)gi.F $(SCC)gi2.C  \
+	$(SCC)job.C $(SCC)event.C $(SCC)daqevt.C \
+        $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)richdisp_lip.F
+else
 FILESI= $(COMMON_FILES)  \
 	$(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C  \
 	$(SCC)job.C $(SCC)event.C $(SCC)daqevt.C \
         $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)richdisp_lip.F
-
+endif
 ifndef PGTRACK
 FILESI +=$(SFF)TrackFit_utils.F
 endif
@@ -772,8 +782,11 @@ MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTSI:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
+ifdef  G4AMS
+OBJECTSI+=  $(BIN)mtx.o  $(BIN)rootdict.o   $(BIN)geant4i.o  
+else
 OBJECTSI+=  $(BIN)mtx.o  $(BIN)rootdict.o   $(BIN)geanti.o 	$(BIN)geant3i.o  
-
+endif
 #------------------------------------------------------------------------------
 # File list for client(production) gbatch compilation
 
@@ -889,6 +902,7 @@ $(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o
 #------------------------------------------------------------------------------
 #  Gbatch standalone interactive session
 
+ifndef G4AMS
 INTERACTIVE:=$(EXE)gxint$(G4)$(PG).exe 
 gxint :	amswd $(INTERACTIVE)
 
@@ -904,6 +918,23 @@ $(BIN)geanti.o:      $(SCC)geant.C
 $(BIN)geant3i.o:      $(SCC)geant3.C
 	$(CXX) -c  $(CFLAGSI) $(SCC)geant3.C -o $(BIN)/geant3i.o
 
+else
+INTERACTIVE:=$(EXE)gxint$(G4)$(PG).exe 
+gxint :	amswd $(INTERACTIVE)
+
+
+$(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
+	$(LD) -v -o $@  $(OBJECTSI) $(LDFLAGSI)
+
+
+$(BIN)geant4i.o:      $(SCC)geant4.C
+	$(CXX) -c  $(CFLAGSI) $(SCC)geant4.C -o $(BIN)/geant4i.o
+
+#$(BIN)g4visman.o: 	 $(SCC)g4visman.C
+#	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)g4visman.C -o $(BIN)g4visman.o
+
+endif
 #---------------------------------------------------------------------------------
 # Client TARGET (producer)
 

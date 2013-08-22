@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.40 2013/07/25 12:46:39 pzuccon Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.41 2013/08/22 16:51:57 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -6,6 +6,9 @@
 #
 # List of SLC6 changes
 #
+ifdef G4VIS_USE
+include binmake.icc64.gmk
+endif
 SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
