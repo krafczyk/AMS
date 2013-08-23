@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.268 2013/08/23 11:14:49 choutko Exp $
+#  $Id: Makefile,v 1.269 2013/08/23 11:35:15 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -811,6 +811,7 @@ OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o  $(BIN)job_c.o \
 ifdef  G4AMS
 OBJECTSC +=$(BIN)geant4_c.o
 OBJECTSC:=$(filter-out $(BIN)geant4.o,$(OBJECTSC)) 
+OBJECTSI:=$(filter-out $(BIN)geant4.o,$(OBJECTSI))
 endif
 ifndef PGTRACK
 OBJECTSC += $(BIN)TrackFit_utils_c.o

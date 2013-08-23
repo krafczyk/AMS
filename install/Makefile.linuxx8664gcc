@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.31 2013/08/23 11:14:49 choutko Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.32 2013/08/23 11:35:15 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -237,13 +237,13 @@ SHLDFLAGS=
 # Library list 
 TIMEL=
 
-LDFLAGSI= -static $(G4LIBSI) $(FORTRAN2_LIBS) \
+LDFLAGSI= -static $(G4LIBSI)  \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
+-L$(ROOTSYS)/lib -lRoot -lfreetype  $(LZMAL) \
 -L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lfreetype \
--L$(IMPORTS_X11R6)/lib64 -lXmu -lXt -lXext -lX11 \
-$(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre $(LZMAL) -lncurses -lcrypt -lssl  -lcom_err -lresolv  \
+-L$(IMPORTS_X11R6)/lib64 -lXm -lXmu -lXt -lSM -lICE  -lXp -lXxf86vm -lXext -lX11 \
+$(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre  -lncurses -lcrypt -lssl  -lcom_err -lresolv  \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS= $(G4LIBS)   $(FORTRAN2_LIBS) \
