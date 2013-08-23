@@ -67,6 +67,10 @@ char tmp[1024];
     d_min=atol(tmp);
     if(d_min>d_max)d_min=d_max;
    }
+   else{
+     cerr<<"main-F-AvailableOptions are --lastweek --yesterday --lastmonth NULL==today"<<endl;
+     return 1;
+   }
  }
 char *ad=getenv("AMSDataDir");
 if(!ad){
