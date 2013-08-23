@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.267 2013/08/22 16:51:56 choutko Exp $
+#  $Id: Makefile,v 1.268 2013/08/23 11:14:49 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -76,12 +76,22 @@ endif
 ifndef AMSDEPLIB
 AMSDEPLIB := /afs/cern.ch/ams/local2/opt/
 endif
-
+ifndef VISLIBS
+VISLIBS:=
+endif
+ifndef UILIBS
+UILIBS:=
+endif
 G4LIBS=
+G4LIBSI=
 G4=
 ifdef G4AMS
 G4VIS_USE:= 1
 G4:=G4
+ifdef G4VIS_USE
+include $(G4INSTALL)/config/G4UI_USE.gmk
+include $(G4INSTALL)/config/G4VIS_USE.gmk
+endif
 include $(G4INSTALL)/config/architecture.gmk
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
 INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
@@ -90,10 +100,8 @@ G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_
 else
 G4LIBS=  -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
 endif
+G4LIBSI= -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
 AR=ar
-endif
-ifdef G4VIS_USE
-G4LIBS+= -lG4vis_management
 endif
 
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
@@ -783,7 +791,7 @@ MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o)
 OBJECTSI:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 ifdef  G4AMS
-OBJECTSI+=  $(BIN)mtx.o  $(BIN)rootdict.o   $(BIN)geant4i.o  
+OBJECTSI+=  $(BIN)mtx.o  $(BIN)rootdict.o   $(BIN)geant4i.o $(BIN)geanti.o  $(BIN)gbatchi.o
 else
 OBJECTSI+=  $(BIN)mtx.o  $(BIN)rootdict.o   $(BIN)geanti.o 	$(BIN)geant3i.o  
 endif
@@ -917,7 +925,6 @@ $(BIN)geanti.o:      $(SCC)geant.C
 
 $(BIN)geant3i.o:      $(SCC)geant3.C
 	$(CXX) -c  $(CFLAGSI) $(SCC)geant3.C -o $(BIN)/geant3i.o
-
 else
 INTERACTIVE:=$(EXE)gxint$(G4)$(PG).exe 
 gxint :	amswd $(INTERACTIVE)
@@ -929,11 +936,12 @@ $(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
 
 
 $(BIN)geant4i.o:      $(SCC)geant4.C
-	$(CXX) -c  $(CFLAGSI) $(SCC)geant4.C -o $(BIN)/geant4i.o
+	$(CXX) -c  $(CFLAGSI) -DG4VIS_USE $(SCC)geant4.C -o $(BIN)/geant4i.o
 
-#$(BIN)g4visman.o: 	 $(SCC)g4visman.C
-#	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)g4visman.C -o $(BIN)g4visman.o
-
+$(BIN)geanti.o:      $(SCC)geant.C
+	$(CXX) -c  $(CFLAGSI) $(SCC)geant.C -o $(BIN)/geanti.o
+$(BIN)gbatchi.o:      $(SCC)gbatch.C
+	$(CXX) -c  $(CFLAGSI) $(SCC)gbatch.C -o $(BIN)/gbatchi.o
 endif
 #---------------------------------------------------------------------------------
 # Client TARGET (producer)
@@ -1287,9 +1295,11 @@ $(BIN)job_c.o: 	 $(SCC)job.C
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C
 	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
 
+$(BIN)geant4_c.o:        $(SCC)geant4.C
+	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) -UG4VIS_USE $(SCC)geant4.C -o $(BIN)geant4_c.o
 
-$(BIN)geant4_c.o: 	 $(SCC)geant4.C
-	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) $(SCC)geant4.C -o $(BIN)geant4_c.o
+$(BIN)geant4.o: 	 $(SCC)geant4.C
+	$(CXX) -c $(CFLAGS) -D__BATCH__ -UG4VIS_USE $(SCC)geant4.C -o $(BIN)geant4.o
 
 
 $(BIN)event_c.o: 	 $(SCC)event.C

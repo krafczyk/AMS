@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.101 2013/05/06 16:55:39 choutko Exp $
+//  $Id: geant4.C,v 1.102 2013/08/23 11:14:27 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -95,6 +95,7 @@ G4RunManager * pmgr = new G4RunManager();
 
 #ifdef G4VIS_USE
    AMSG4VisManager::create();
+  cout<<"  geant4i-I-visman created"<<endl; 
 #endif
 
 }
