@@ -48,6 +48,9 @@ foreach my $line (@$files) {
     elsif (readlink($line->{PATHS}) ne $line->{PATH}) {
         print "Correcting $line->{PATHS} --> $line->{PATH}.\n";
     }
+    if ($line->{PATH} =~ /\/castor/) {
+        next;
+    }
     $ret = system("ls -L $line->{PATHS} >/dev/null 2>&1");
     if ($ret != 0) {
         print "Recopying $line->{PATHS}\n";
