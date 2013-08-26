@@ -3366,7 +3366,7 @@ class RemoteClient:
                         i=os.system(castordel)
                         if(i):
                             print " CastorCommand Failed ",castordel
-                if(file[2]>0):
+                if(file[2]>0 or self.force):
                     eosPrefix='/eos/ams/'
                     delimiter='Data'
                     if(datamc==0 or datamc==10):
