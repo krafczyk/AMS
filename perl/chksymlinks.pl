@@ -24,6 +24,7 @@ while (scalar @ARGV) {
 
 my $pwd = `cat /var/www/cgi-bin/mon/lib/.oracle.oracle`;
 chomp $pwd;
+delete $ENV{NLS_LANG};
 my $dbh = DBI->connect('dbi:Oracle:pdb_ams', 'amsdes', $pwd) or die $DBI::errstr;
 my $sql = "select paths, path, run from amsdes.datafiles where path like '%$dataset%' and type like 'SCI%' and status like 'OK'";
 my $sth = $dbh->prepare($sql);
