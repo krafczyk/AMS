@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.186 2013/01/22 00:02:51 choutko Exp $
+//  $Id: producer.C,v 1.187 2013/08/29 08:54:24 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -781,6 +781,7 @@ if(strstr((const char *)fcopy,"rfcp"))tmc=10800;
  if(!_Solo)sendid(tmc);
 int ntry=3;
  bool suc=false;
+ bool retryonce=false;
 againcp:
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));
@@ -789,6 +790,75 @@ againcp:
   if(!system((const char*)fcopy)){
    suc=true;
    cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
+ // add more validation here
+ //
+    string file2v="";    
+    string ff=(const char*)fcopy;
+  if(ff.find("/castor/cern.ch")!=-1){
+     file2v+="rfio:";
+  }
+  file2v+=destdir;
+  file2v+='/';
+  for (int k=bnt;k<bend;k++)file2v+=a[k];
+if(type!=DPS::Producer::RawFile){
+const char *exedir=getenv("ExeDir");
+const char *nve=getenv("NtupleValidatorExec");
+if(exedir && nve && AMSCommonsI::getosname()){
+ AString systemc(exedir);
+  systemc+="/";
+  systemc+=AMSCommonsI::getosname();
+  systemc+="/";
+  systemc+=nve;
+  systemc+=" ";
+  systemc+=file2v.c_str();
+  systemc+=" ";
+  char tmp[80];
+  sprintf(tmp,"%d",ntend->EventNumber);
+  systemc+=tmp;
+  if(IOPA.WriteRoot)systemc+=" 1 ";
+  else systemc+=" 0 ";
+  sprintf(tmp,"%d",ntend->LastEvent);
+   systemc+=tmp; 
+  cout<<"AMSProducer::sendNtupleEnd-I-ValidatingBy "<<systemc<<endl;
+  int i=system(systemc);
+  cout<<"AMSProducer::sendNtupleEnd-I-ValidatedBy "<<systemc<<" "<<i<<endl;
+  if( (i == 0xff00) || (i & 0xff)){
+// Unable To Check
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBy "<<systemc<<endl;
+  }
+  else{
+    i=(i>>8);
+    if(i/128 && ( !AMSEvent::_checkUpdate())){
+     cerr<<"  AMSProducer::sendNtupleEnd-E-Ntuple failure "<<i<<" "<< AMSEvent::_checkUpdate()<<endl;
+     ntend->Status=DPS::Producer::Failure;
+    }
+    else{
+     ntend->Status=DPS::Producer::Validated;
+     ntend->ErrorNumber=int(i*ntend->EventNumber/100);
+    }
+  }
+ }
+ else if(!nve){
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBecauseNtupleValidatorExecIsNull"<<endl;
+ }
+ else if(!exedir){
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBecauseExeDirIsNull"<<endl;
+ }
+ else {
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBecauseOsNameIsNull"<<endl;
+ }
+if(ntend->Status==DPS::Producer::Failure){
+if(!retryonce){
+retryonce=true;
+cerr<<"AMSProducer::sendNtupleEnd-E-2ndValidationFailedTrytoRecopy"<<endl;
+goto againcp;
+}
+}
+}
+
+
+
+        
   if(!_Solo)sendCurrentRunInfo();
    if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
     1){
