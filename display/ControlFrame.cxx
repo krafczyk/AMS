@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.16 2011/05/28 15:35:26 pzuccon Exp $
+//  $Id: ControlFrame.cxx,v 1.17 2013/08/30 19:22:28 pzuccon Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -231,6 +231,9 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       case 3:
 	gAMSDisplay->SaveParticleROOT();
 	break;              
+      case 7:
+	gAMSDisplay->SaveParticlePDFMulti();
+	break;              
       case 4:
 	gAMSDisplay->PrintCB();
 	break;              
@@ -275,6 +278,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fSaveAsMenu->AddEntry("Save As run.event.&pdf",1);
     fSaveAsMenu->AddEntry("Save As run.event.&png",2);
     fSaveAsMenu->AddEntry("Save As run.event.&root",3);
+    fSaveAsMenu->AddEntry("Save All as PDF",7);
     fSaveAsMenu->AddSeparator();
     fSaveAsMenu->AddEntry("P&rint",4);
     fSaveAsMenu->AddSeparator();

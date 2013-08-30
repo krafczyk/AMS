@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.21 2013/07/21 21:24:30 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.22 2013/08/30 19:22:27 pzuccon Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -46,7 +46,7 @@ ClassImp(AMSDisplay);
 AMSDisplay *gAMSDisplay;
 
 
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec, bool monit=false):
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec, bool monit,bool scanout):
   m_chain(chain), m_sec(sec),m_nodate(false),TObject(),m_chain_Entries(0){
      m_sec=abs(sec);
      m_nodate=sec<0;
@@ -177,7 +177,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
   //end=clock();
   //cout<<"This uses "<<double(end-start)/double(CLOCKS_PER_SEC)<<" seconds"<<endl;
   m_chain->ReadOneEvent(0);
-
+  if(scanout) SaveParticlePDFMulti();
 }
 
 
@@ -713,6 +713,31 @@ void AMSDisplay::DrawEvent()
 
 
 
+void AMSDisplay::SaveParticlePDFMulti(char *fname){
+  static char fnam[255]="SelectedEvents.pdf";
+  if(fname) sprintf(fnam,"%s",fname);
+  char fnam2[255];
+  m_chain->LoadUF();
+  Long64_t evn=0;
+  int status=m_chain->ReadOneEvent(evn++);
+  sprintf(fnam2, "%s[",fnam);
+  GetCanvas()->SaveAs(fnam2,"pdf");
+  GetCanvas()->Update();          // refresh the screen
+  
+  while(status>=0){
+    if(status==1) {
+      DrawEvent();
+      GetCanvas()->SaveAs(fnam,"pdf");
+      GetCanvas()->Update();          // refresh the screen
+    }
+    status=m_chain->ReadOneEvent(evn++);
+    //if(evn>100) break;
+  }
+  sprintf(fnam2, "%s]",fnam);
+  GetCanvas()->SaveAs(fnam2,"pdf");
+  GetCanvas()->Update();          // refresh the screen
+  
+}
 
 void AMSDisplay::SaveParticleCB(){
    char fnam[255];

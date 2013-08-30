@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.62 2013/08/01 11:30:12 choutko Exp $
+//  $Id: main.cxx,v 1.63 2013/08/30 19:22:28 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -50,38 +50,38 @@ static int Sort(dirent64 ** e1,  dirent64 ** e2);
 
 #endif
 #endif
-  int add=0;
-    bool notlast=true;
-  bool monitor=false;
-  time_t lasttime=0;;
-  AMSChain *pchain;
-  char *filename=0;
-  char lastfile[32767]="\0";
+int add=0;
+bool notlast=true;
+bool monitor=false;
+time_t lasttime=0;;
+AMSChain *pchain;
+char *filename=0;
+char lastfile[32767]="\0";
 void Myapp::HandleIdleTimer(){
   
   if(fDisplay){
     StopIdleing();
     bool ok= fDisplay->ShowNextEvent(1);
     if(!ok){
-     cout<<"AMSDisplay-I-FinishedScan "<<endl;
-     if(monitor){
-      add=0;
-       for(int k=0;k<30;k++){
-        sleep(1);
-        if(gSystem->ProcessEvents()){
-          cout <<"InteruptReceived"<<endl;
-        }        
+      cout<<"AMSDisplay-I-FinishedScan "<<endl;
+      if(monitor){
+	add=0;
+	for(int k=0;k<30;k++){
+	  sleep(1);
+	  if(gSystem->ProcessEvents()){
+	    cout <<"InteruptReceived"<<endl;
+	  }        
 
-       }
-       char tmp[127];
-      ofstream fbout (".amsedc");
-      if(fbout){
-       fbout<<lasttime;
-       cout <<"AMSDisplay-I-LastTimeModified "<<lasttime<<endl;
-       fbout.close();
+	}
+	char tmp[127];
+	ofstream fbout (".amsedc");
+	if(fbout){
+	  fbout<<lasttime;
+	  cout <<"AMSDisplay-I-LastTimeModified "<<lasttime<<endl;
+	  fbout.close();
+	}
+	OpenChain(*pchain,filename);
       }
-       OpenChain(*pchain,filename);
-     }
     }
     StartIdleing();
   }
@@ -99,13 +99,13 @@ int main(int argc, char *argv[]){
   // by TRint (which inherits from TApplication) you will be able
   // to execute CINT commands once in the eventloop (via Run()).
 #ifndef WIN32
-     *signal(SIGFPE, handler);
+  *signal(SIGFPE, handler);
   *signal(SIGCONT, handler);
   *signal(SIGTERM, handler);
   *signal(SIGINT, handler);
   *signal(SIGQUIT, handler);
 #endif
-
+  bool pall=false;
   int c;
   int sec=10;
   char title[256];
@@ -117,6 +117,7 @@ int main(int argc, char *argv[]){
     {"help",    0, 0, 'h'},
     {"scan",  1, 0, 's'},
     {"nosetup",0,0,'n'},
+    {"printsel",0,0,'p'},
     {0, 0, 0, 0}
   };
 
@@ -125,13 +126,13 @@ int main(int argc, char *argv[]){
   }   
   fstream fbin;
   while (1) {
-    c = getopt_long (argc, argv, "nt:hHmMs:?", long_options, &option_index);
+    c = getopt_long (argc, argv, "pnt:hHmMs:?", long_options, &option_index);
     if (c == -1) break;
 
     switch (c) {
     case 'n':
-     AMSEventR::ProcessSetup=0;
-     break;
+      AMSEventR::ProcessSetup=0;
+      break;
     case 's':             /* display */
       sec=atoi(optarg);
       break;
@@ -145,15 +146,18 @@ int main(int argc, char *argv[]){
       monitor=true;
       fbin.open(".amsedc");
       if(fbin){
-       fbin>>lasttime;
-       cout <<"  LastTime Set "<<lasttime;
-       fbin.close();
-     }
+	fbin>>lasttime;
+	cout <<"  LastTime Set "<<lasttime;
+	fbin.close();
+      }
       fbin.open(".amsedc");
       if(fbin){
-       fbin<<(lasttime-1000);
-       fbin.close();
-     }
+	fbin<<(lasttime-1000);
+	fbin.close();
+      }
+      break;
+    case 'p':
+      pall=true;
       break;
     case 'h':
     case 'H':
@@ -166,9 +170,9 @@ int main(int argc, char *argv[]){
   }
   AMSNtupleV *pntuple= new AMSNtupleV();
   AMSChain chain(pntuple,"AMSRoot");
-pchain=&chain;
+  pchain=&chain;
   if(filename){
-     //chain.Reset();
+    //chain.Reset();
     OpenChain(chain,filename); 
   }  
   printf("opening file %s...\n", filename);
@@ -183,8 +187,8 @@ pchain=&chain;
   //gDebug=2;
   TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
-gGuiFactory=new TRootGuiFactory();  
-theApp->SetStatic();
+  gGuiFactory=new TRootGuiFactory();  
+  theApp->SetStatic();
 #endif
 
 
@@ -203,11 +207,11 @@ theApp->SetStatic();
   char *geoFile_new = "ams02.geom";
   char *geofile_perm="ams02.pm.geom";
   cout <<" pchain->getsetup() "<<pchain->getsetup()<<endl; 
- if(!strcmp(pchain->getsetup(),"AMS02P")){
-   strcat(geoFile,geofile_perm);
+  if(!strcmp(pchain->getsetup(),"AMS02P")){
+    strcat(geoFile,geofile_perm);
   }
   else strcat(geoFile,geoFile_new);
-   cout<<"  open geo file "<<geoFile<<endl; 
+  cout<<"  open geo file "<<geoFile<<endl; 
   TFile fgeo(geoFile);
 
   TGeometry *geo = (TGeometry *)fgeo.Get("ams02");
@@ -218,7 +222,7 @@ theApp->SetStatic();
   }
 
 
-  AMSDisplay * amd= new AMSDisplay(title,geo,&chain,sec,monitor);
+  AMSDisplay * amd= new AMSDisplay(title,geo,&chain,sec,monitor,pall);
   amd->SetApplication(theApp);
   amd->Init();
   theApp->SetDisplay(amd);  
@@ -227,7 +231,7 @@ theApp->SetStatic();
   if(monitor){
     amd->StartStop(true);
     amd->ReLoad();
-}
+  }
   theApp->Run();
   return 0;
   
@@ -283,16 +287,16 @@ void OpenChain(AMSChain & chain, char * filenam){
   bool wildsubdir=false;
   bool wild=false;
   bool remote=false;
-   if(a.Contains(b)){
+  if(a.Contains(b)){
 #ifdef CASTORSTATIC
-     TRFIOFile f(""); 	 
-     TXNetFile g(""); 	 
-     TCastorFile h(""); 	 
+    TRFIOFile f(""); 	 
+    TXNetFile g(""); 	 
+    TCastorFile h(""); 	 
 #endif
     strcpy(filename,filenam);
     remote=true;
-   }
-   else if(a.Contains(c)){
+  }
+  else if(a.Contains(c)){
     strcpy(filename,filenam);
     remote=true;
   }
@@ -304,11 +308,11 @@ void OpenChain(AMSChain & chain, char * filenam){
     strcpy(filename,filenam);
     remote=true;
   }
-   else if(a.Contains(f)){
+  else if(a.Contains(f)){
     strcpy(filename,"rfio:");
     strcat(filename,filenam);
     remote=true;
-   }
+  }
   else{ 
 #ifndef WIN32
     if(filenam[0]!='/'){
@@ -327,7 +331,7 @@ void OpenChain(AMSChain & chain, char * filenam){
 	break;
       }
       else if(filename[i]=='*'){
-       wild=true;
+	wild=true;
       }
     }
   }
@@ -342,14 +346,14 @@ void OpenChain(AMSChain & chain, char * filenam){
 	      if(filename[l]=='/'){
                 
                 if(l-k-1>0){
-                   if(Selector)delete Selector;
-                   Selector= new TString(filename+k+1,l-k-1);
+		  if(Selector)delete Selector;
+		  Selector= new TString(filename+k+1,l-k-1);
                 }
                 else if(Selector){
-                   delete Selector;
-                   Selector=0;
+		  delete Selector;
+		  Selector=0;
                 }
-//                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
+		//                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
 #if __OSXVER__ >= 1080
@@ -389,44 +393,44 @@ void OpenChain(AMSChain & chain, char * filenam){
         for(int k=i-1;k>=0;k--){
 	  if(filename[k]=='/'){
 	    TString ts(filename,k+1);
-                if(strlen(filename)-k-1>0){
-                   if(Selectorf)delete Selectorf;
-                   Selectorf= new TString(filename+k+1,strlen(filename)-k-1);
-                }
-                else if(Selectorf){
-                   delete Selectorf;
-                   Selectorf=0;
-                }
+	    if(strlen(filename)-k-1>0){
+	      if(Selectorf)delete Selectorf;
+	      Selectorf= new TString(filename+k+1,strlen(filename)-k-1);
+	    }
+	    else if(Selectorf){
+	      delete Selectorf;
+	      Selectorf=0;
+	    }
                  
-                cout <<"  scanning wild"<<ts<<endl;
+	    cout <<"  scanning wild"<<ts<<endl;
 #ifdef __APPLE__
-                dirent ** namelistsubdir;
+	    dirent ** namelistsubdir;
 #if __OSXVER__ >= 1080
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent**, const dirent**)>(&Sort));
+	    int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent**, const dirent**)>(&Sort));
 #else
-		int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+	    int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #endif
 #elif defined(__LINUXNEW__)
-                dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
+	    dirent64 ** namelistsubdir;
+	    int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
 #elif defined(__LINUXGNU__)
-                dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+	    dirent64 ** namelistsubdir;
+	    int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #else
-                dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,&Sort);
+	    dirent64 ** namelistsubdir;
+	    int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,&Sort);
 #endif
-                for( int nsd=0;nsd<nptrdir;nsd++){
-                  char fsdir[1023];
-                  strcpy(fsdir,ts.Data());
-                  strcat(fsdir,namelistsubdir[nsd]->d_name);
-                  if(nsd<nptrdir-1)notlast=false;
-                  else notlast=false;   
-                  OpenChain(chain,fsdir);
+	    for( int nsd=0;nsd<nptrdir;nsd++){
+	      char fsdir[1023];
+	      strcpy(fsdir,ts.Data());
+	      strcat(fsdir,namelistsubdir[nsd]->d_name);
+	      if(nsd<nptrdir-1)notlast=false;
+	      else notlast=false;   
+	      OpenChain(chain,fsdir);
                
-                } 
-                return;               
-           }
+	    } 
+	    return;               
+	  }
 	}
       }
     }
@@ -439,36 +443,36 @@ void OpenChain(AMSChain & chain, char * filenam){
   struct stat64 statbuf;
   stat64((const char*)filename, &statbuf);
 #endif
-     time_t t;
-     time(&t);
+  time_t t;
+  time(&t);
   if(remote || (statbuf.st_mtime>=lasttime &&statbuf.st_size)){
-     if( (t-statbuf.st_mtime>60 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename))){     
+    if( (t-statbuf.st_mtime>60 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename))){     
       strcpy(lastfile,filename);
       cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
       if(add++<3000){
-           lasttime=statbuf.st_mtime;
-           chain.Add(filename);
-           static int init =0;
-           if(init==0){
-            init=1;
-            TObjString s("");
-             TObjArray* arr=chain.GetListOfFiles();
-            TIter next(arr);
-            TChainElement* el=(TChainElement*) next();
-            if(el){
+	lasttime=statbuf.st_mtime;
+	chain.Add(filename);
+	static int init =0;
+	if(init==0){
+	  init=1;
+	  TObjString s("");
+	  TObjArray* arr=chain.GetListOfFiles();
+	  TIter next(arr);
+	  TChainElement* el=(TChainElement*) next();
+	  if(el){
             TFile * rfile=TFile::Open(el->GetTitle(),"READ");
             if(rfile){
               s.Read("DataCards");
               cout <<s.String()<<endl; 
             }
-           }
-           }
+	  }
+	}
+      }
     }
-     }
-     else {
-       cout<<"main-W-OpenChainFileNotAdded "<<filename<<t<<" "<<statbuf.st_mtime<<endl;
-       return;
-     }
+    else {
+      cout<<"main-W-OpenChainFileNotAdded "<<filename<<t<<" "<<statbuf.st_mtime<<endl;
+      return;
+    }
   }
 }
 
@@ -481,12 +485,12 @@ void OpenChain(AMSChain & chain, char * filenam){
 #if __OSXVER__ >= 1080
 int Selectsdir(const dirent *entry)
 #else
-int Selectsdir(dirent *entry)
+  int Selectsdir(dirent *entry)
 #endif
 #else
-int Selectsdir(  const dirent64 *entry)
+  int Selectsdir(  const dirent64 *entry)
 #endif
-  {
+{
   if(Selector){
     TString a(entry->d_name);
     TRegexp b(Selector->Data(),true);
@@ -504,12 +508,12 @@ int Selectsdir(  const dirent64 *entry)
 #if __OSXVER__ >= 1080
 int Select(const dirent *entry)
 #else
-int Select(dirent *entry)
+  int Select(dirent *entry)
 #endif
 #else
-int Select( const dirent64 *entry)
+  int Select( const dirent64 *entry)
 #endif
-  {
+{
   if(Selectorf){
     TString a(entry->d_name);
     TRegexp b(Selectorf->Data(),true);
@@ -521,10 +525,10 @@ int Select( const dirent64 *entry)
 #ifdef __APPLE__
 int Sort( dirent ** e1,   dirent ** e2)
 #else
-int Sort(dirent64 ** e1,  dirent64 ** e2)
+  int Sort(dirent64 ** e1,  dirent64 ** e2)
 #endif
-  {
-return strcmp((*e1)->d_name,(*e2)->d_name);
+{
+  return strcmp((*e1)->d_name,(*e2)->d_name);
 }
 
 

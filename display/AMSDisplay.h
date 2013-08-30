@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.31 2012/12/21 16:40:35 kaiwu Exp $
+//  $Id: AMSDisplay.h,v 1.32 2013/08/30 19:22:27 pzuccon Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -124,7 +124,7 @@ public:
     }
   }
             
-  AMSDisplay(const char *title, TGeometry * geo, AMSChain* chain,int sec, bool monit);
+  AMSDisplay(const char *title, TGeometry * geo, AMSChain* chain,int sec, bool monit=false,bool scanout=false);
   
   //Variables to record index of each runs' entry index
   int                 m_chain_Entries;
@@ -168,6 +168,7 @@ public:
   void                SaveParticleCB();
   void                SaveParticleGIF();
   void                SaveParticleROOT();
+  void                SaveParticlePDFMulti(char* fnam=0);
   void        SetView(EAMSR_View newView=kFrontView);
   void        ResetView(){m_View=kNoView;}
   void        SetNextView(EAMSR_View nextView) {m_PrevView=m_View;m_View=nextView;}
