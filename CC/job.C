@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.920 2013/08/16 15:58:04 traiha Exp $
+// $Id: job.C,v 1.921 2013/09/02 16:57:21 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3360,11 +3360,12 @@ void AMSJob::_timeinitjob(){
    
    
     int need=1;
+    int trackercals_need=(CALIB.SubDetInCalib/100)%10?1:0;
     //if(isMonitoring())need=0;
     /// PZ NO !!! Calibrations must alwys be loaded !!!     if(isRealData())
     TID.add (new AMSTimeID(AMSID("TrackerCals",isRealData()),begin,end,
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
-                           server,need,SLin2CalDB));
+                           server,trackercals_need,SLin2CalDB));
 
     DynAlManager::need2bookTDV=false;
     if(isRealData()){
