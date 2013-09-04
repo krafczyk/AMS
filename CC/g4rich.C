@@ -267,12 +267,11 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
   G4Material *Material2 = pPostStepPoint -> GetMaterial();
   
   // Follow the standard path if not RICH radiator to vacuum transition
-  if(!(Material1->GetName()==aerogel_name) && 
-     !(Material1->GetName()==naf_name))
+  if(!(Material1->GetName()==aerogel_name))
     return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
 //      return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
 
-  if(!(Material2->GetName()=="VACUUM"))
+  if(Material2->GetName()==aerogel_name)
     return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
 //      return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
    
@@ -334,7 +333,16 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
   G4double wavelength=cvpwl/thePhotonMomentum*GeV;
 
   Rindex1=RichRadiatorTileManager::get_refractive_index(position[0]/cm,position[1]/cm,wavelength);
-  Rindex2=1.00;
+  const G4MaterialPropertyVector* Rindex = Material2->GetMaterialPropertiesTable()->GetProperty("RINDEX");
+  if(!Rindex){
+    aParticleChange.ProposeTrackStatus(fStopAndKill);
+    return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
+  }
+#if G4VERSION_NUMBER >945
+  Rindex2 = Rindex->Value(thePhotonMomentum);
+#else
+  Rindex2 = Rindex->GetProperty(thePhotonMomentum);
+#endif
   
   // SKIP photons exiting through the lateral sides of the tiles
    if(abs(theGlobalNormal[2])<1e-6)  return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
@@ -346,17 +354,26 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
   NewMomentum = NewMomentum.unit();
   NewPolarization = NewPolarization.unit();
 
-  if(Material1->GetName()==aerogel_name && G4UniformRand()<RICHDB::scatprob){
-    // Aerogel scattering effect
-    double phi=2*M_PI*G4UniformRand();
-    double theta=sqrt(-2*log(G4UniformRand()))*RICHDB::scatang;
+  if(Material1->GetName()==aerogel_name){
+    // Simple parameterization to get the right number of p.e.
+    if(G4UniformRand()<RICHDB::scatloss){
+      aParticleChange.ProposeTrackStatus(fStopAndKill);
+      return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
+    }
     
-    // Build the vector
+    // Forward scattering
+    if(G4UniformRand()<RICHDB::scatprob){
+      // Aerogel scattering effect
+      double phi=2*M_PI*G4UniformRand();
+      double theta=sqrt(-2*log(G4UniformRand()))*RICHDB::scatang;
+      
+      // Build the vector
     G4ThreeVector direction(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
     direction.rotateUz(NewMomentum);
     NewMomentum=direction.unit();
+    }
   }
-  
+
   aParticleChange.ProposeMomentumDirection(NewMomentum);
   aParticleChange.ProposePolarization(NewPolarization);
 

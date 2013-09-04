@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.75 2013/06/04 10:45:43 shaino Exp $
+//  $Id: richdbc.C,v 1.76 2013/09/04 11:44:18 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -151,6 +151,7 @@ geant RICHDB::rich_height=46.32;     // Mirror height (for historical reasons it
 geant RICHDB::hole_radius[2]={63.8/2.,64.3/2}; // half ECAL hole side length (it is not symmetric)
 geant RICHDB::inner_mirror_height=50;          // UNUSED
 geant RICHDB::rad_clarity=0.0055;              // Radiator clarity: updated 10/28/04
+geant RICHDB::scatloss=1.0-0.74;                   // Probability of losing a photon when crossing the radiator surface 
 geant RICHDB::scatprob=.19;                    // Probability of surface scattering accroding to C. Delgado model
 //geant RICHDB::scatang=14e-3;                   // Scattered angle (rad) according to C. Delgado model 
 geant RICHDB::scatang=10e-3;                   // Scattered angle (rad) according to C. Delgado model 

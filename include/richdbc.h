@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.59 2013/06/04 10:45:46 shaino Exp $
+//  $Id: richdbc.h,v 1.60 2013/09/04 11:44:18 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -168,6 +168,7 @@ public: // To be migrated in the future
   static geant rad_index;   // Mean index for the main radiator
   static geant scatprob;    // Probability of surface scattering
   static geant scatang;     // Angle of surface scattering  
+  static geant scatloss;    // Probability of losing a photon when crossing the aerogel surface
   static geant eff_rad_clarity; // Effective radiator clarity for charge reconstruction 
 
   // Central NaF radiator features
