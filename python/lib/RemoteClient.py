@@ -3374,7 +3374,7 @@ class RemoteClient:
                     junk=file[0].split(delimiter)
                     if len(junk)>=2:
                         eosfile=eosPrefix+delimiter+junk[1]
-                        eosdel="/afs/cern.ch/project/eos/installation/0.2.33/bin/eos.select rm  "+castorfile
+                        eosdel="/afs/cern.ch/project/eos/installation/0.2.33/bin/eos.select rm  "+eosfile
                         i=os.system(eosdel)
                         if(i):
                             print " EosCommand Failed ",eosdel
