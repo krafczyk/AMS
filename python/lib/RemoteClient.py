@@ -3374,10 +3374,17 @@ class RemoteClient:
                     junk=file[0].split(delimiter)
                     if len(junk)>=2:
                         eosfile=eosPrefix+delimiter+junk[1]
-                        eosdel="/afs/cern.ch/project/eos/installation/0.2.33/bin/eos.select rm  "+eosfile
-                        i=os.system(eosdel)
-                        if(i):
-                            print " EosCommand Failed ",eosdel
+                        junk2 = eosfile.split(datapath)
+                        if len(junk2) >= 2:
+                            eosdir = junk2[0] + datapath;
+                            print "chmod for " + eosdir + " ..."
+                            eoschmod = "/afs/cern.ch/project/eos/installation/0.2.33/bin/eos.select chmod "
+                            os.system(eoschmod + " 750 " + eosdir)
+                            eosdel="/afs/cern.ch/project/eos/installation/0.2.33/bin/eos.select rm  "+eosfile
+                            i=os.system(eosdel)
+                            os.system(eoschmod + " 550 " + eosdir)
+                            if(i):
+                                print " EosCommand Failed ",eosdel
         if(len(files)==0):
             if(datamc==0):
                 if(donly==0):
