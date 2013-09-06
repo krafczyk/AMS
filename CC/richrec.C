@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.163 2012/05/17 17:57:45 barao Exp $
+//  $Id: richrec.C,v 1.164 2013/09/06 07:30:40 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1362,6 +1362,15 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   _npexpg=nexpg;
   _npexpr=nexpr;
   _npexpb=nexpb;
+
+  // Correction for the MC using the explicit loss function
+  if(_kind_of_tile!=naf_kind && AMSJob::gethead()->isMCData()){
+    _npexp*=1-RICHDB::scatloss;
+    _npexpg*=1-RICHDB::scatloss;
+    _npexpr*=1-RICHDB::scatloss;
+    _npexpb*=1-RICHDB::scatloss;
+  }
+
 
   _collected_npe=0.;
   _collected_npe_lkh=0;  
