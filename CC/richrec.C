@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.164 2013/09/06 07:30:40 mdelgado Exp $
+//  $Id: richrec.C,v 1.165 2013/09/09 11:09:45 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1369,6 +1369,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
     _npexpg*=1-RICHDB::scatloss;
     _npexpr*=1-RICHDB::scatloss;
     _npexpb*=1-RICHDB::scatloss;
+    for(int i=0;i<680;NpExpPMT[i++]*=1-RICHDB::scatloss);
   }
 
 
@@ -1416,7 +1417,6 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
       _collected_npe_lkh+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->photoElectrons();
     }
   }
-
 }
 
 
