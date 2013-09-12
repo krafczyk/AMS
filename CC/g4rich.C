@@ -334,7 +334,8 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
   G4double wavelength=cvpwl/thePhotonMomentum*GeV;
 
   Rindex1=RichRadiatorTileManager::get_refractive_index(position[0]/cm,position[1]/cm,wavelength);
-  const G4MaterialPropertyVector* Rindex = Material2->GetMaterialPropertiesTable()->GetProperty("RINDEX");
+  G4MaterialPropertyVector* Rindex = Material2->GetMaterialPropertiesTable()->GetProperty("RINDEX");
+
   if(!Rindex){
     aParticleChange.ProposeTrackStatus(fStopAndKill);
     return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
