@@ -7,6 +7,7 @@
 #include "G4ios.hh"
 #include "G4OpProcessSubType.hh"
 #include "G4GeometryTolerance.hh"
+#include "G4Version.hh"
 #include "g4rich.h"
 
 #include "richradid.h"
