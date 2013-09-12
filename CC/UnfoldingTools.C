@@ -184,7 +184,7 @@ void BayesianUnfolder::BayesianUnfoldingStep(TH1D &measured){
   //  cout<<"FILLING POSTERIOR"<<endl;
   for(int j=1;j<=UnfoldingMatrix.GetNbinsY();j++){
     double y=UnfoldingMatrix.GetYaxis()->GetBinCenter(j);
-    double width=UnfoldingMatrix.GetXaxis()->GetBinWidth(j);
+    double width=UnfoldingMatrix.GetYaxis()->GetBinWidth(j);
     int measuredBin=measured.GetXaxis()->FindBin(y);
     double weight=measured.GetBinContent(measuredBin)*width/measured.GetXaxis()->GetBinWidth(measuredBin);
     if(weight<=0) continue;
