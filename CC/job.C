@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.902.2.7 2013/09/02 16:56:10 choutko Exp $
+// $Id: job.C,v 1.902.2.8 2013/09/20 01:28:53 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3779,7 +3779,7 @@ void AMSJob::_timeinitjob(){
     end.tm_year=0;
 
 //----TOF IHEP BetaH ClusterH TDV/ version //temp only realdata
-    if(isRealData()){
+//    if(isRealData()){
       if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
        TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
        TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
@@ -3807,7 +3807,7 @@ void AMSJob::_timeinitjob(){
 //---Charge Par
       TofCAlignPar *TofCAlign=TofCAlignPar::GetHead();
      }
-    }
+//    }
     //
     if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
       if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
