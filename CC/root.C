@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.594 2013/09/06 07:30:40 mdelgado Exp $
+//  $Id: root.C,v 1.595 2013/09/27 00:15:57 mdelgado Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2526,18 +2526,22 @@ bool AMSEventR::ReadHeader(int entry){
     RichRingR::pmtCorrectionsFailed = -1;
     // Rich Uniformity Beta Correction Loading. Only once per run
 #pragma omp critical(rd)
-    if(fHeader.Run!=runo && nMCEventg() && RichRingR::shouldLoadCorrection==RichRingR::tileCorrection){
+    if(fHeader.Run!=runo && nMCEventg()){
+#ifdef _PGTRACK_
+      if(RichRingR::shouldLoadCorrection!=-1){
+	TString filename;
+	if(Version()<658) filename=Form("%s/v5.00/RichDefaultTileCorrectionMC.root",getenv("AMSDataDir"));
+	else filename=Form("%s/v5.00/RichDefaultTileCorrectionMC_v2.root",getenv("AMSDataDir"));
+	
+	if(!RichRingTables::Load(filename)) cout<<"Problem loading "<<filename<<endl;
+	else cout<<"Rich Default Refractive Index correction loaded"<<endl; 
+      }
+#endif
+
       // Disable corrections for MC
       RichRingR::shouldLoadCorrection=-1;
       RichRingR::loadChargeUniformityCorrection=false;      
-#ifdef _PGTRACK_
-      TString filename;
-      if(Version()<658) filename=Form("%s/v5.00/RichDefaultTileCorrectionMC.root",getenv("AMSDataDir"));
-      else filename=Form("%s/v5.00/RichDefaultTileCorrectionMC_v2.root",getenv("AMSDataDir"));
 
-	if(!RichRingTables::Load(filename)) cout<<"Problem loading "<<filename<<endl;
-	else cout<<"Rich Default Refractive Index correction loaded"<<endl; 
-#endif
     }
 #pragma omp critical(rd)
     if(RichRingR::shouldLoadCorrection==RichRingR::fullUniformityCorrection && 
