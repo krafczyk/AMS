@@ -1375,3 +1375,266 @@ void SamplingUnfolding::computeAll(TH2D &jointPDF,TH1D &measured,TH1D &unfolded,
     unfolded.SetBinError(j,final_result.GetBinError(j));
   }
 }
+
+
+//////////////////
+///////////////////////// CONSISTENT UNFOLDING
+/////////////////
+
+int BayesianConsistent::Verbosity=0;
+
+void BayesianConsistent::Normalize(TH2D &umatrix){
+    TH1D *h=(TH1D*)umatrix.ProjectionX("_norma",1,umatrix.GetNbinsY());
+    h->SetBit(kMustCleanup);
+    TH1D &folded=*h;
+    for(int i=1;i<=umatrix.GetNbinsX();i++) 
+    for(int j=1;j<=umatrix.GetNbinsY();j++)
+      umatrix.SetBinContent(i,j,umatrix.GetBinContent(i,j)/folded.GetBinContent(i));
+    delete h;
+}
+
+void BayesianConsistent::Fold(TH2D &matrix,TH1D &unfolded,TH1D &output){
+  output.Reset();
+  for(int i=1;i<=matrix.GetNbinsX();i++){
+    double x=matrix.GetXaxis()->GetBinCenter(i);
+    double width=matrix.GetXaxis()->GetBinWidth(i);
+    int posteriorBin=unfolded.GetXaxis()->FindBin(x);
+    double posteriorWeight=unfolded.GetBinContent(posteriorBin)/unfolded.GetXaxis()->GetBinWidth(posteriorBin)*width;
+    if(posteriorWeight<=0) continue;
+    for(int j=1;j<=matrix.GetNbinsY();j++){
+      double y=matrix.GetYaxis()->GetBinCenter(j);
+      output.Fill(y,matrix.GetBinContent(i,j)*posteriorWeight);
+    }
+  }
+}
+
+
+void BayesianConsistent::FoldTr(TH2D &matrix,TH1D &measured,TH1D &output){
+    output.Reset();
+    for(int j=1;j<=matrix.GetNbinsY();j++){
+      double y=matrix.GetYaxis()->GetBinCenter(j);
+      double width=matrix.GetYaxis()->GetBinWidth(j);
+      int measuredBin=measured.GetXaxis()->FindBin(y);
+      double weight=measured.GetBinContent(measuredBin)*width/measured.GetXaxis()->GetBinWidth(measuredBin);
+      if(weight<=0) continue;
+      for(int i=1;i<=matrix.GetNbinsX();i++){
+	double x=matrix.GetXaxis()->GetBinCenter(i);
+	output.Fill(x,weight*matrix.GetBinContent(i,j));
+      }
+    }
+  }
+
+void BayesianConsistent::GetUnfoldingMatrix(TH2D &matrix,TH1D &prior,TH2D &umatrix){
+  umatrix=matrix;
+  umatrix.Reset();
+  
+  for(int i=1;i<=matrix.GetNbinsX();i++){
+    double x=matrix.GetXaxis()->GetBinCenter(i);
+    double width=matrix.GetXaxis()->GetBinWidth(i);
+    int priorBin=prior.GetXaxis()->FindBin(x);
+    double weight=prior.GetBinContent(priorBin)*width/prior.GetXaxis()->GetBinWidth(priorBin);
+    if(weight<=0) continue;
+    for(int j=1;j<=matrix.GetNbinsY();j++) umatrix.SetBinContent(i,j,matrix.GetBinContent(i,j)*weight);
+  }
+  
+  
+  TH1D *h=(TH1D*)umatrix.ProjectionY("_norma",1,umatrix.GetNbinsX());
+  h->SetBit(kMustCleanup);
+  TH1D &folded=*h;
+  
+  
+  for(int j=1;j<=umatrix.GetNbinsY();j++){
+    if(folded.GetBinContent(j)<=0) continue;
+    for(int i=1;i<=umatrix.GetNbinsX();i++) umatrix.SetBinContent(i,j,umatrix.GetBinContent(i,j)/folded.GetBinContent(j));
+  }
+  delete h;
+}
+
+
+double BayesianConsistent::Metric(TH1D &h1,TH1D &h2){
+  double sum=0;
+  for(int i=1;i<=h1.GetNbinsX();i++){
+    double mean=(h1.GetBinContent(i)+h2.GetBinContent(i))/2;
+    if(mean<=0) continue;
+    //    sum+=(h1.GetBinContent(i)-h2.GetBinContent(i))*(h1.GetBinContent(i)-h2.GetBinContent(i))/mean;
+    sum+=fabs(h1.GetBinContent(i)-h2.GetBinContent(i))/mean;
+  }
+  return sum;
+}
+
+void BayesianConsistent::Step(TH2D &matrix,TH1D &measured,TH1D &current){
+  TH2D umatrix;
+  Smooth(current);
+  GetUnfoldingMatrix(matrix,current,umatrix);
+  current.Reset();
+  FoldTr(umatrix,measured,current);
+}
+
+
+int BayesianConsistent::GetIterations(TH2D &matrix,TH1D &input,int max_iters){
+  // Find how many iterations are needed if we know the unfolded
+  TH1D result=input;
+  result.Reset();
+  Fold(matrix,input,result);
+  
+  TH1D candidate=input;
+  for(int i=1;i<=candidate.GetNbinsX();i++) candidate.SetBinContent(i,1);
+  
+  double best=HUGE_VAL;
+  int time_outs=0;
+  int best_iterations=0;
+  int counter=0;
+  do{
+    Step(matrix,result,candidate);
+    counter++;
+    double current=Metric(candidate,input);
+    time_outs++;
+    if(current<best){
+      best=current;
+      best_iterations=counter;
+      time_outs=0;
+    }
+    if(Verbosity%10==2 && counter%(Verbosity/10)==0) cout<<counter<<" CURRENT "<<current<<" BEST "<<best<<" TIME OUTS "<<time_outs<<endl;
+  }while(time_outs<2 && counter<max_iters);
+  return best_iterations;
+}
+
+
+void BayesianConsistent::Unfold(int steps,double min_gof_change,TH2D &matrix,TH1D &measured,TH1D &unfolded){
+  Normalize(matrix);
+  unfolded.Reset();
+  double prev_gof=HUGE_VAL;
+  for(int i=1;i<=unfolded.GetNbinsX();i++) unfolded.SetBinContent(i,1);
+  for(int i=0;i<steps;i++){
+    Step(matrix,measured,unfolded);
+    double gof=GetGOF(matrix,measured,unfolded);
+    if(fabs(gof-prev_gof)<min_gof_change) break;
+    if(Verbosity%10 && i%(Verbosity/10)==0) cout<<"Iteration "<<i<<" Lkh "<<gof<<endl;
+  }
+}
+
+
+void BayesianConsistent::Unfold(int steps,TH2D &matrix,TH1D &measured,TH1D &unfolded){
+  Normalize(matrix);
+  unfolded.Reset();
+  for(int i=1;i<=unfolded.GetNbinsX();i++) unfolded.SetBinContent(i,1);
+  for(int i=0;i<steps;i++) Step(matrix,measured,unfolded);
+}
+
+
+
+void BayesianConsistent::Unfold(TH2D &matrix,TH1D &measured,TH1D &unfolded){
+  // Get an initial estimate of the optimum number of iterations
+  cout<<"GETTING INITIAL ITERATIONS "<<endl;
+  int iterations=GetIterations(matrix,measured);
+  Unfold(iterations,matrix,measured,unfolded);
+  
+  for(int i=0;i<3;i++){
+    int newIters=GetIterations(matrix,unfolded);
+    Unfold(newIters,matrix,measured,unfolded);
+    //    if(abs(newIters-iterations)<2) break;
+
+    cout<<"PREVIOUS "<<iterations<<" NOW "<<newIters<<endl; 
+    iterations=newIters;
+  }
+}
+
+
+double BayesianConsistent::GetGOF(TH2D &matrix,TH1D &measured,TH1D &unfolded){
+  TH1D output=measured; output.Reset();
+  Fold(matrix,unfolded,output);
+
+  double sum=0;
+  for(int i=1;i<=output.GetNbinsX();i++){
+    sum+=-output.GetBinContent(i)+measured.GetBinContent(i);
+    if(measured.GetBinContent(i)>0) sum+=measured.GetBinContent(i)*log(output.GetBinContent(i)/measured.GetBinContent(i));
+  }
+  sum*=2.0/output.GetNbinsX();
+
+  return -sum;
+}
+
+void BayesianConsistent::Smooth(TH1D &histo){
+  for(int i=2;i<=histo.GetNbinsX()-1;i++){
+    double x_1=histo.GetXaxis()->GetBinCenter(i-1);
+    double x=histo.GetXaxis()->GetBinCenter(i);
+    double x1=histo.GetXaxis()->GetBinCenter(i+1);
+
+    double y_1=log(histo.GetBinContent(i-1)/histo.GetXaxis()->GetBinWidth(i-1));
+    double y1=log(histo.GetBinContent(i+1)/histo.GetXaxis()->GetBinWidth(i+1));
+
+    double expected=(y1-y_1)/(x1-x_1)*(x-x_1)+y_1;
+    expected+=log(histo.GetXaxis()->GetBinWidth(i));
+    
+    double avg=exp((expected+log(histo.GetBinContent(i)))/2);
+    
+    if(avg>=0 && fabs(avg-histo.GetBinContent(i))/sqrt(avg)<3) histo.SetBinContent(i,avg);
+  }
+}
+
+
+void BayesianConsistent::ComputeAll(TH2D &matrix,TH1D &measured,TH1D &unfolded,TH2D &correlation,double min_gof_change,int iterations,int mc_iters){
+
+  // Ensure propoer binning of the unfolded slot
+  if(unfolded.GetNbinsX()==1){
+    unfolded=measured;
+    unfolded.Reset();
+  }
+
+  // Compute the best iterations automatically
+  if(iterations<=0){
+    iterations=GetIterations(matrix,measured);
+    TH1D myUnfolded=unfolded;
+    Unfold(iterations,matrix,measured,myUnfolded);
+    iterations=GetIterations(matrix,myUnfolded);
+  }
+
+  // Compute the current solution
+  Unfold(iterations,min_gof_change,matrix,measured,unfolded);
+
+  // Use a MC to compute the errors and correlation matrix
+  vector<double> bin_array;
+  bin_array.push_back(unfolded.GetXaxis()->GetBinLowEdge(1));
+  for(int i=1;i<=unfolded.GetNbinsX();i++) bin_array.push_back(unfolded.GetXaxis()->GetBinUpEdge(i));
+  TH1D sum=unfolded; sum.Reset();
+  TH2D sum2; sum2.SetBins(unfolded.GetNbinsX(),&(bin_array.front()),unfolded.GetNbinsX(),&(bin_array.front()));
+
+
+  if(mc_iters<=0) return;
+
+  int verbosity=Verbosity;
+  Verbosity=0;
+  for(int i=0;i<mc_iters;i++){
+    TH1D myMeasured=measured; myMeasured.Reset();
+    TH1D myUnfolded=unfolded; myUnfolded.Reset();
+    for(int n=1;n<=measured.GetNbinsX();n++) myMeasured.SetBinContent(n,gRandom->Poisson(measured.GetBinContent(n)));
+    Unfold(iterations,min_gof_change,matrix,myMeasured,myUnfolded);
+    for(int ii=1;ii<=myUnfolded.GetNbinsX();ii++){
+      sum.SetBinContent(ii,sum.GetBinContent(ii)+myUnfolded.GetBinContent(ii));
+
+      for(int jj=1;jj<=myUnfolded.GetNbinsX();jj++)
+	sum2.SetBinContent(ii,jj,sum2.GetBinContent(ii,jj)+myUnfolded.GetBinContent(ii)*myUnfolded.GetBinContent(jj));
+    }
+  }
+  Verbosity=verbosity;
+
+
+  // Compute sigmas
+  for(int ii=1;ii<=unfolded.GetNbinsX();ii++){
+    for(int jj=1;jj<=unfolded.GetNbinsX();jj++){
+      sum2.SetBinContent(ii,jj,sum2.GetBinContent(ii,jj)/mc_iters-sum.GetBinContent(ii)*sum.GetBinContent(jj)/mc_iters/mc_iters);
+    }
+  }
+
+  // Compute error and pearson coefficien
+  correlation=sum2;
+  correlation.Reset();
+  for(int ii=1;ii<=unfolded.GetNbinsX();ii++){
+    unfolded.SetBinError(ii,sqrt(sum2.GetBinContent(ii,ii)));
+    for(int jj=1;jj<=unfolded.GetNbinsX();jj++){
+      if(sum2.GetBinContent(ii,ii)*sum2.GetBinContent(jj,jj)==0) correlation.SetBinContent(ii,jj,0);
+      else correlation.SetBinContent(ii,jj,sum2.GetBinContent(ii,jj)/sqrt(sum2.GetBinContent(ii,ii)*sum2.GetBinContent(jj,jj)));
+    }
+  }
+    
+}

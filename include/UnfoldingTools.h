@@ -458,5 +458,34 @@ class SamplingUnfolding{
 };
 
 
+
+class BayesianConsistent{
+ public:
+  static int Verbosity;
+  void Normalize(TH2D &umatrix);                                   // Normalize the unfolding matrix
+  void Fold(TH2D &matrix,TH1D &unfolded,TH1D &output);             // Fold unfolded with the migration matrix and put the result in output
+  void FoldTr(TH2D &matrix,TH1D &measured,TH1D &output);           // Fold with the transpose of the matrix
+  void GetUnfoldingMatrix(TH2D &matrix,TH1D &prior,TH2D &umatrix); // Build the unfolding matrix "umatrix" given the migration one "matrix" and a prior 
+
+  void Step(TH2D &matrix,TH1D &measured,TH1D &current);            // Perform a single step of bayesian unfolding
+  int GetIterations(TH2D &matrix,TH1D &input,int max_iters=100);   // Given a migration matrix and an aproximation to the unfolded histogram, return the number of iterations minimizing the metric
+
+  //  void ComputeAll(TH2D &matrix,TH1D &measured,TH1D &unfolded,TH2D &correlation_matrix);
+
+
+  void Unfold(int steps,TH2D &matrix,TH1D &measured,TH1D &unfolded); // Simple unfolding given the number of iterations
+  void Unfold(int steps,double min_gof_change,TH2D &matrix,TH1D &measured,TH1D &unfolded); // Simple unfolding given the number of iterations
+  void Unfold(TH2D &matrix,TH1D &measured,TH1D &unfolded);         // Unfolding without error computation
+
+  void ComputeAll(TH2D &matrix,TH1D &measured,TH1D &unfolded,TH2D &correlation,double min_gof_change=0.1,int iterations=-1,int mc_iters=10);
+
+
+  virtual void Smooth(TH1D &histo);                                     // Smooth a histogram  
+  virtual double GetGOF(TH2D &matrix,TH1D &measured,TH1D &unfolded);            // Get the goodness of fit (whatever is it); 
+  virtual double Metric(TH1D &h1,TH1D &h2);                        // Metric used to infer the number of iterations by minimizing it     
+
+};
+
+
 #endif
 
