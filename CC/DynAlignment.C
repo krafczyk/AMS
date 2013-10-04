@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.70 2013/05/19 13:42:23 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.71 2013/10/04 14:38:35 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -16,6 +16,7 @@
 #else
 #include "ntuple.h"
 #include "commons.h"
+#include "job.h"
 #endif
 
 #ifdef _PGTRACK_
@@ -2169,6 +2170,17 @@ bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME,DynAlFitC
 
   if(tdvBuffer.records) DynAlManager::FinishLinear(tdvname);
   return true;
+}
+
+
+bool DynAlManager::Available(){
+#ifdef __ROOTSHAREDLIBRARY__
+  // Deal with MC properly
+  if(AMSEventR::Head() && AMSEventR::Head()->nMCEventg()) return 0;
+#else
+  if(!AMSJob::gethead()->isRealData()) return 0;
+#endif 
+  return 1;
 }
 
 

@@ -9,6 +9,7 @@
 #include "VCon.h"
 
 #include "DynAlignment.h"
+
 #ifdef __ROOTSHAREDLIBRARY__
 #include "root.h"
 #endif
@@ -213,11 +214,7 @@ return -5;
 
 int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   if(DynAlManager::ignoreAlignment) return 0;
-
-#ifdef __ROOTSHAREDLIBRARY__
-  // Deal with MC properly
-  if(AMSEventR::Head() && AMSEventR::Head()->nMCEventg()) return 0;
-#endif 
+  if(!DynAlManager::Available()) return 0;   // If MC it is not available 
 
   if (!TkDBc::Head) {
     std::cerr << "TkDBc::Head is null" << std::endl;

@@ -9,6 +9,7 @@
 #include <set>
 #include "point.h"
 
+
 class AMSEventR;
 class TrRecHitR;
 #ifdef __ROOTSHAREDLIBRARY__
@@ -304,6 +305,7 @@ class DynAlManager:public TObject{
 
   static TString GetTDVName(int tag);   // Build a valid alignment tdv name given a valid tag 
   static bool SetTDVTag(int tag,bool forceReading=true);   // Build a valid alignment tdv name given a valid tag 
+  static bool Available();
 
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(dynAlFitContainers)
