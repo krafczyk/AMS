@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.53 2012/11/20 11:29:19 mduranti Exp $
+//  $Id: timeid.h,v 1.54 2013/10/04 16:33:53 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -128,6 +128,9 @@ File content:
 
 uinteger array[GetNbytes] | CRC | InsertTime | BeginTime | EndTime
 
+// if variable== true
+uinteger Size |  InsertTime | BeginTime | EndTime | array[Size] | CRC 
+
 CRC is calculated by _CalcCRC() function
 
 */
@@ -141,7 +144,7 @@ private:
   AMSTimeID(const AMSTimeID & o){};
 
   trigfun_type _trigfun;
-
+  bool    _Variable;
 public:
   struct iibe{
     uinteger id;
@@ -219,13 +222,13 @@ public:
 
 
   AMSTimeID():AMSNode(),_trigfun(0),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),
-	      _CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone),_updateable(-1)
+	      _CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone),_updateable(-1),_Variable(false)
   {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";setmapdir();}
   
   AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,bool verify=true,CType server=Standalone,trigfun_type fun=0):
-    AMSNode(id),_Insert(0),_Begin(0),_End(0),_Nbytes(nbytes),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),
+    AMSNode(id),_Insert(0),_Begin(0),_End(0),_Nbytes(abs(nbytes)),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),
     _DataBaseSize(0),_Type(server),_updateable(-1)
-  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";setmapdir();}
+  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";setmapdir();_Variable=nbytes<0;}
   
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);
   
@@ -246,6 +249,7 @@ public:
   }
   
 integer  GetNbytes() const { return _Nbytes;}
+void  SetNbytes(int nbytes){_Nbytes=nbytes;}
   integer  CopyOut (void *pdataNew) const;
   integer  CopyIn( const void *pdataNew);
   uinteger getCRC()const {return _CRC;}

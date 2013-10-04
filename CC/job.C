@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.921 2013/09/02 16:57:21 choutko Exp $
+// $Id: job.C,v 1.922 2013/10/04 16:33:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3188,7 +3188,7 @@ void AMSJob::_timeinitjob(){
       end=AMSmceventg::Orbit.Begin;
     }
     AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
-							       isRealData()),begin,end,getstatustable()->getsize(),
+							       isRealData()),begin,end,-getstatustable()->getsize(),
 							 getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/100000)%10));
     cout <<" timeinitjob calib.subdetrequest "<<(CALIB.SubDetRequestCalib/100000)%10<<" "<<CALIB.SubDetRequestCalib<<endl;
     if(AMSFFKEY.Update==88)return;
@@ -4998,9 +4998,10 @@ void AMSJob::_dbendjob(){
     */
   }
   if( AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->gettimestructure() ){
-    AMSJob::gethead()->getstatustable()->Sort();
-    AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
+  AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
     if(ptdv){
+    ptdv->SetNbytes(AMSJob::gethead()->getstatustable()->getsizeV());
+    AMSJob::gethead()->getstatustable()->Sort();
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time_t begin,end,insert;

@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.56 2012/11/07 15:47:28 choutko Exp $
+//  $Id: status.C,v 1.57 2013/10/04 16:33:50 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -28,9 +28,14 @@ if(sizeof(AMSStatus)<8000000){
 
    return &tstatus;
 }
-else{
+else if(sizeof(AMSStatus)<10000000){
    static AMSStatus tstatus("EventStatusTable03",version);
    cout<<"AMSStatus::create-I-EventStatusTable03 Created "<<endl;
+   return &tstatus;
+}
+else{
+   static AMSStatus tstatus("EventStatusTable04",version);
+   cout<<"AMSStatus::create-I-EventStatusTable04 Created "<<endl;
    return &tstatus;
 }
 }
@@ -40,8 +45,8 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,
   const int howmany=20;
   static time_t oldtime=0;
   integer timechanged= time!=oldtime?1:0;
-  if(AMSEvent::get_num_threads()==1 && run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
-    cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
+  if(AMSEvent::get_num_threads()==1 && run==_Run && _Nelem>0 && evt<_Status[_Nelem-1].event){
+    cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[_Nelem-1].event<<endl;
 #pragma omp critical (st1)
    _Errors++;
    if(_Errors>howmany){
@@ -75,29 +80,13 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,
 void AMSStatus::Sort(){
 //  sort statuses before db writing in case of multiple threads
 if(_Nelem<=1)return;
-uinteger *tmp =new uinteger[_Nelem];
-uinteger **padd=new uinteger*[_Nelem];
-for(int i=0;i<_Nelem;i++){
- tmp[i]=_Status[0][i];
- padd[i]=tmp+i;
-}
-//for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
-//cout <<"******** "<<endl;
-AMSsortNAG(padd,_Nelem);
-for(int i=0;i<4;i++){
- for(int k=0;k<_Nelem;k++)tmp[k]=_Status[i][k];
- cout <<" i "<<i<<" "<<_Status[i][0]<<" "<<tmp[0]<<" "<<padd[0]<<endl;
- for(int k=0;k<_Nelem;k++)_Status[i][k]=*(padd[k]);
-//cout <<" ii "<<i<<" "<<_Status[i][0]<<" "<<tmp[0]<<" "<<padd[0]<<endl;
-
-}
-delete[] padd;
-delete[] tmp;
-if(_Status[0][0]==_Status[1][0] && _Status[0][0]==_Status[2][0] &&_Status[0][0]==_Status[3][0] ){
-cerr<<"  AMSStatus::Sort-F-CompilerBug Aborting "<<endl;
-abort();
-}
- //for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
+//for(int k=0;k<_Nelem;k++){
+// cout <<"  k "<<k<<" "<<_Status[k].event<<endl;
+//}
+AMSsortNAGa(_Status,_Nelem);
+//for(int k=0;k<_Nelem;k++){
+// cout <<"sorted  k "<<k<<" "<<_Status[k].event<<endl;
+//}
 }
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
   if(_Nelem==0  || (isFull(run,evt,time,NULL)>1 && !AMSFFKEY.Update )){
@@ -134,11 +123,11 @@ cout <<"  out barrier AMSStatus::adds "<< AMSEvent::get_thread_num()<<endl;
 {
   if(_End<time)_End=time;
   if(_Begin>time)_Begin=time;
-  _Status[0][_Nelem]=evt;
-  _Status[1][_Nelem]=status[0];
+  _Status[_Nelem].event=evt;
+  _Status[_Nelem].st[0]=status[0];
    uinteger offset=uinteger(((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset);
-  _Status[2][_Nelem]=offset;
-  _Status[3][_Nelem]=status[1];
+  _Status[_Nelem].off=offset;
+  _Status[_Nelem].st[1]=status[1];
 //  cout <<" evt "<<evt<<" "<<offset<<" "<<_Offset<<endl;
   if(_Nelem<=MAXDAQRATE+STATUSSIZE-1)_Nelem++;
   else {
@@ -149,10 +138,11 @@ cout <<"  out barrier AMSStatus::adds "<< AMSEvent::get_thread_num()<<endl;
 }
 
 void AMSStatus::updates(uinteger run, uinteger evt, uinteger* status, time_t time){
- int out= AMSbins(_Status[0],evt,_Nelem);
+ stm event(evt);
+ int out= AMSbins(_Status,event,_Nelem);
   if(out>0){
-    _Status[1][out-1]=status[0];
-    _Status[3][out-1]=status[1];
+    _Status[out-1].st[0]=status[0];
+    _Status[out-1].st[1]=status[1];
   }
   else {
       cerr<<"AMSStatus::updates-E--NoMatchFoundRun "<<run<<" " <<evt<<endl;
@@ -175,16 +165,17 @@ AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
   // try hint +
   //cout <<" nelem "<<_Nelem<<endl;
   int out;
-  if( _Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
+  stm event(evt);
+  if( _Hint>=_Nelem || evt!=_Status[_Hint].event)out= AMSbins(_Status,event,_Nelem);
   else out=_Hint+1;
   static int repeat=0;
  if (out>0){
    _Hint=out;
    repeat=0;
-   return statusI(_Status[1][out-1],_Status[3][out-1])  ;
+   return statusI(_Status[out-1].st[0],_Status[out-1].st[1])  ;
  }
  else if(repeat<10  ){
-   cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
+   cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[-out].event<<" "<<_Status[-out-1].event<<endl;
 #pragma omp critical (st1)
    _Errors++;
    repeat++;
@@ -210,29 +201,30 @@ bool  AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
   }
   // try hint +
   int out;
-  if(_Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
+ stm event(evt);
+  if(_Hint>=_Nelem || evt!=_Status[_Hint].event)out= AMSbins(_Status,event,_Nelem);
   else out=_Hint+1;
  if (out>0){
    _Hint=out;
    //event found;
 #pragma omp critical (g4)
- ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][out-1]);
+ ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[out-1].off);
   return true;   
  }
  else {
    // No Match Found
-   if(evt>_Status[0][_Nelem-1] && curevent<_Status[0][_Nelem-1]){
+   if(evt>_Status[_Nelem-1].event && curevent<_Status[_Nelem-1].event){
 #pragma omp critical (g4)
-      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
+      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[_Nelem-1].off);
    }
-   else if(curevent>_Status[0][_Nelem-1]){ 
+   else if(curevent>_Status[_Nelem-1].event){ 
     static int npr=0;
-    if(npr++<100)cerr<<"AMSStatus::geteventpos-E-NoMatchfound "<<run<<" "<<curevent<<" "<<_Status[0][_Nelem-1]<<" "<<endl;
+    if(npr++<100)cerr<<"AMSStatus::geteventpos-E-NoMatchfound "<<run<<" "<<curevent<<" "<<_Status[_Nelem-1].event<<" "<<endl;
    }
-   else if(evt<_Status[0][_Nelem-1]){ 
-    cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
+   else if(evt<_Status[_Nelem-1].event){ 
+    cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[-out].event<<" "<<_Status[-out-1].event<<endl;
 #pragma omp critical (g4)
-      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][-out]);
+      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[-out].off);
    }
    return false;
 }
@@ -360,16 +352,16 @@ integer AMSStatus::_statusok(statusI status){
 integer AMSStatus::getnextok(){
  int skipped=0;
  for(int i=_Hint;i<_Nelem;i++){
-   if(_statusok(statusI(_Status[1][i],_Status[3][i]))){
+   if(_statusok(statusI(_Status[i].st[0],_Status[i].st[1]))){
 //  protection in mthreaded mode
 //
   uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getsoffset();
 // a bit tricky in mt mode
 const int maxthr=32;
 const long long max32=4294967296LL;
-  uint64 off64=_Offset+_Status[2][i];
-if(i<maxthr && _Status[2][i]>_Status[2][maxthr] && off64>=max32){
-   cerr<<"AMSSetatus::getnextok-W-32bitProblemfound "<<i<<" "<<_Status[2][i]<<" "<<_Offset<<" "<<off64%max32<<endl;
+  uint64 off64=_Offset+_Status[i].off;
+if(i<maxthr && _Status[i].off>_Status[maxthr].off && off64>=max32){
+   cerr<<"AMSSetatus::getnextok-W-32bitProblemfound "<<i<<" "<<_Status[i].off<<" "<<_Offset<<" "<<off64%max32<<endl;
      off64=off64%max32;
 }
      if(offset<off64){
@@ -383,8 +375,8 @@ if(i<maxthr && _Status[2][i]>_Status[2][maxthr] && off64>=max32){
  }
  if(_Hint<_Nelem-1){
   uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getsoffset();
-     if(offset<_Offset+_Status[2][_Nelem-1]){
-       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
+     if(offset<_Offset+_Status[_Nelem-1].off){
+       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[_Nelem-1].off);
        _Hint=_Nelem-1;
        return skipped;
      } 
@@ -397,6 +389,8 @@ if(i<maxthr && _Status[2][i]>_Status[2][maxthr] && off64>=max32){
 
 void AMSStatus::UpdateStatusTableDB(){
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
+      ptdv->SetNbytes(AMSJob::gethead()->getstatustable()->getsizeV());
+      AMSJob::gethead()->getstatustable()->Sort();
       uinteger crcold=ptdv->getCRC();
       ptdv->UpdCRC();
       if(crcold!=ptdv->getCRC()){

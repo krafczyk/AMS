@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.150 2013/08/06 07:50:01 choutko Exp $
+//  $Id: timeid.C,v 1.151 2013/10/04 16:33:50 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -64,12 +64,19 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes,
   setmapdir();
   _fname="";
   _trigfun=fun;
-
+  if(nbytes>=0){
   _Nbytes=nbytes;
   _Nbytes+=sizeof(uinteger);
-
-
-
+  _Variable=false;
+  }
+  else{
+    // variable
+    //  first size;
+    //  than i,b,e
+    _Variable=true;
+    _Nbytes=-nbytes;
+    _Nbytes+=sizeof(uinteger);
+  }
   if(_Type!=Client){
     _fillDB((const char*)AMSDBc::amsdatabase,0);
   }
@@ -234,12 +241,22 @@ bool AMSTimeID::write(const char * dir, int slp){
     if(fbin){
       uinteger * pdata;
       integer ns=_Nbytes/sizeof(pdata[0])+3;
+      if(_Variable)ns++;
       pdata =new uinteger[ns];
       if(pdata){
+       if(_Variable){
+	pdata[0]=ns-1;
+	pdata[1]=uinteger(_Insert);
+	pdata[2]=uinteger(_Begin);
+	pdata[3]=uinteger(_End);
+	CopyOut(pdata+4);
+       }
+       else{
 	CopyOut(pdata);
 	pdata[_Nbytes/sizeof(pdata[0])]=uinteger(_Insert);
 	pdata[_Nbytes/sizeof(pdata[0])+1]=uinteger(_Begin);
 	pdata[_Nbytes/sizeof(pdata[0])+2]=uinteger(_End);
+       }
 	_convert(pdata,ns);
 	fbin.write((char*)pdata,ns*sizeof(pdata[0]));
 	fbin.close();
@@ -298,6 +315,7 @@ bool AMSTimeID::write(const char * dir, int slp){
     return AMSProducer::gethead()->sendTDV(this);
   }
 #endif
+  return false;
 }
 
 
@@ -441,6 +459,29 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #endif
 	  uinteger * pdata;
 	  integer ns=_Nbytes/sizeof(pdata[0])+3;
+          if(_Variable){
+#ifdef _WEBACCESS_
+	    int num=url_fread((char*)(&ns),sizeof(ns),1,ffbin);
+            if(num){
+            _convert((uinteger*)&ns,1);
+            _Nbytes=(ns-3)*sizeof(pdata[0]);
+            }
+#else
+	      fbin.read((char*)(&ns),sizeof(pdata[0]));
+	      if(fbin.good()){
+              _convert((uinteger*)&ns,1);
+              _Nbytes=(ns-3)*sizeof(pdata[0]);
+              }
+	      else {
+    	        ns=_Nbytes/sizeof(pdata[0])+3;
+		cerr<<"AMSTimeID::read-E-Problems to Read File Var "<<fnam<<" size declared "<<ns<<endl;
+                if(strstr(dir,"/cvmfs")){
+		 cerr<<"AMSTimeID::read-F-Problems to Read File Var "<<fnam<<" size declared "<<ns<<" on /cvmfs. Aborted Execution"<<endl;
+                 abort();
+                } 
+              }
+#endif
+}
 	  pdata =new uinteger[ns];
 	  if(pdata){
 #ifdef _WEBACCESS_
@@ -452,11 +493,20 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #endif
 		_convert(pdata,ns);
 		{
+                 if(_Variable){
+		  CopyIn(pdata+3);
+		  _Insert=time_t(pdata[0]);
+		  _Begin=time_t(pdata[1]);
+		  _End=time_t(pdata[2]);
+                 }
+                 else{
 		  CopyIn(pdata);
 		  _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
 		  _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
 		  _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
+                 }
 		  //       if(dflt)_getDefaultEnd(asktime,_End);
+                 
 		  if(run==0){
 		    _Insert=1;
 		    _Begin=1;
@@ -537,6 +587,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	  return AMSProducer::gethead()->getSplitTDV(this,run);
 	}
 #endif
+      return false;
       }
 
       void AMSTimeID::_convert(uinteger *pdata, integer n){
@@ -862,7 +913,12 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		      ffbin.open((const char *)ffile);
 		      uinteger temp[3];
 		      if(ffbin){
-			ffbin.seekg(integer(ffbin.tellg())+_Nbytes);
+                        if(_Variable){ 
+   			 ffbin.seekg(integer(ffbin.tellg())+sizeof(integer));
+                        }
+                        else{
+   			 ffbin.seekg(integer(ffbin.tellg())+_Nbytes);
+                        }
 			ffbin.read((char*)temp,3*sizeof(temp[0]));
 			if(ffbin.good()){
 			  _convert(temp,3);
@@ -1136,7 +1192,12 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		      ffbin.open((const char *)ffile);
 		      uinteger temp[3];
 		      if(ffbin){
+                       if(_Variable){
+			ffbin.seekg(integer(ffbin.tellg())+sizeof(integer));
+                       }
+                       else{
 			ffbin.seekg(integer(ffbin.tellg())+_Nbytes);
+                       }
 			ffbin.read((char*)temp,3*sizeof(temp[0]));
 			if(ffbin.good()){
 			  _convert(temp,3);
@@ -1298,15 +1359,34 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    if(fbin){
 	      uinteger * pdata;
 	      integer ns=_Nbytes/sizeof(pdata[0])+3;
+              if(_Variable){
+  	       fbin.read((char*)(&ns),sizeof(pdata[0]));
+               _convert((uinteger*)&ns,1);
+	       if(fbin.good()){
+                 _Nbytes=(ns-3)*sizeof(pdata[0]);
+              }
+	      else {
+    	        ns=_Nbytes/sizeof(pdata[0])+3;
+		cerr<<"AMSTimeID::read-E-Problems to ReRead File Var "<<ffile<<" size declared "<<ns<<endl;
+              }
+             }
 	      pdata =new uinteger[ns];
 	      if(pdata){
 		fbin.read((char*)pdata,ns*sizeof(pdata[0]));
 		if(fbin.good()){
 		  _convert(pdata,ns);
+                 if(_Variable){
+		  CopyIn(pdata+3);
+		  _Insert=time_t(pdata[0]);
+		  _Begin=time_t(pdata[1]);
+		  _End=time_t(pdata[2]);
+                 }
+                 else{
 		  CopyIn(pdata);
 		  _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
 		  _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
 		  _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
+                 }
 		  cout <<"AMSTimeID::read-I-Open file "<<ffile<<endl;
 #ifdef __AMSDEBUG__
 		  cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;

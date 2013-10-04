@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.20 2011/11/28 17:06:10 choutko Exp $
+//  $Id: status.h,v 1.21 2013/10/04 16:33:53 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -7,8 +7,9 @@
 #include "cern.h"
 #include "amsdbc.h"
 #include <time.h>
+#
 class DAQEvent;
-const integer STATUSSIZE=500000;
+const integer STATUSSIZE=2500000;
 const integer MAXDAQRATE=5000;
 class AMSStatus : public AMSNode {
 protected:
@@ -20,6 +21,15 @@ protected:
    uinteger *getp(){return _data;}
    uinteger  operator[](uinteger i){return i==0?_data[0]:_data[1];}
   };
+  class stm{
+   public:
+   uinteger event;
+   uinteger st[2];
+   uinteger off;
+   stm(uinteger evt=0):event(evt),off(0){st[0]=st[1]=0;}
+   integer operator < ( const stm & o) const{ return event<o.event;}
+   integer operator == ( const stm & o) const{ return event==o.event;}
+  };
   time_t _Begin;
   time_t _End;
   integer _Hint;
@@ -29,7 +39,8 @@ protected:
   uinteger _Run;
   uint64 _Offset;   
   integer  _Nelem;
-  uinteger _Status[4][STATUSSIZE+MAXDAQRATE];  //eventno, status, offset
+  stm  _Status[STATUSSIZE+MAXDAQRATE];
+//  uinteger _Status[4][STATUSSIZE+MAXDAQRATE];  //eventno, status, offset
  
    void _init();
   AMSStatus (const AMSStatus&);   // do not want cc
@@ -51,6 +62,7 @@ public:
   AMSStatus * up(){return   (AMSStatus *)AMSNode::up();}
   AMSStatus * down(){return (AMSStatus *)AMSNode::down();}
   integer getsize(){return _id==0?sizeof(_Run)+sizeof(_Nelem)+3*sizeof(_Status)/4:sizeof(_Run)+sizeof(_Nelem)+sizeof(_Status)+sizeof(_Offset);}
+  integer getsizeV(){return _id==0?sizeof(_Run)+sizeof(_Nelem)+3*sizeof(_Status)/4:sizeof(_Run)+sizeof(_Nelem)+sizeof(_Status[0])*_Nelem+sizeof(_Offset);}
   uinteger * getptr(){return sizeof(ulong)>sizeof(uinteger)?&_Run:&_Run+1;}
   void updates(uinteger run, uinteger evt, uinteger* status, time_t time=0);
   void adds(uinteger run, uinteger evt, uinteger * status, time_t time=0);
@@ -71,7 +83,7 @@ public:
   time_t getbegin()const{return _Begin;}
   time_t getend()const{return _End;}
   uinteger getrun()const {return _Run;}
-  void getFL(uinteger &first, uinteger & last){first=_Status[0][0];last=_Status[0][_Nelem-1];}
+  void getFL(uinteger &first, uinteger & last){first=_Status[0].event;last=_Status[_Nelem-1].event;}
 };
 
 #endif
