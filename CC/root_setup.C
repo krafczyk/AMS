@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.115.2.5 2013/04/09 16:38:07 choutko Exp $
+//  $Id: root_setup.C,v 1.115.2.6 2013/10/04 10:06:41 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -3392,7 +3392,7 @@ else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSGTOD-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
    t2=t1+864000;
 }
-const char fpatb[]="GTOD/ISS_SV_GTOD_01-";
+const char fpatb[]="GTOD/ISS_SV_GTOD-";
 const char fpatb2[]="GTOD/ISS_SV_GTOD_01_";
 const char fpate[]="-24H.csv";
 const char fpate2[]="-24h.csv";
