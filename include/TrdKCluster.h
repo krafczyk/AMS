@@ -189,7 +189,7 @@ public:
     static int Default_TrPar[3];
 
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
-    void SetMinDistance(float r){MinimumDistance=r;return;}
+    static void SetMinDistance(float r){MinimumDistance=r;return;}
 
 
 
