@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.595 2013/09/27 00:15:57 mdelgado Exp $
+//  $Id: root.C,v 1.596 2013/10/07 11:58:47 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10623,6 +10623,14 @@ master=1;
   
 
 }
+const char * AMSEventR::GetCurrentFileName(bool setup){
+if(setup && _TreeSetup){
+ return _TreeSetup->GetCurrentFile()->GetName();
+}
+else if(!setup && _Tree)return _Tree->GetCurrentFile()->GetName();
+else return NULL;
+}
+
 
 bool AMSEventR::UpdateSetup(uinteger run){
 /*
@@ -10646,6 +10654,7 @@ beg:
 if(!_TreeSetup)return 2;
      _TreeSetup->SetBranchStatus("*",false);
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fHeader",true);
+     if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fEntries",true);
      if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
 map <unsigned int,int>::iterator it= _RunSetup.theMap.find(run);
      bool ret=it!=_RunSetup.theMap.end();
@@ -10653,6 +10662,20 @@ map <unsigned int,int>::iterator it= _RunSetup.theMap.find(run);
 
 return ret;
 }
+
+int AMSEventR::GetSetup(uinteger entry){
+if(!_TreeSetup)return 2;
+   if(entry>=_TreeSetup->GetEntries())return 1;
+     _TreeSetup->SetBranchStatus("*",false);
+     if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fHeader",true);
+     if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fEntries",true);
+     if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
+     int nb=_TreeSetup->GetEntry(entry);
+     return 0;
+
+}
+
+
 bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger run){
   if (ProcessSetup<0) return false;
 static int master=0;

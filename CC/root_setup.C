@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.137 2013/08/04 19:59:57 qyan Exp $
+//  $Id: root_setup.C,v 1.138 2013/10/07 11:58:47 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -138,6 +138,9 @@ return gps;
 
 void AMSSetupR::UpdateHeader(AMSEventR *head){
 if(!head)return;
+unsigned long long runev=((unsigned long long)head->Run())<<32;
+runev+=head->Event();
+fEntries.insert(make_pair(runev,fEntries.size()));
 unsigned int nsec;
 unsigned int sec;
 if(!head->fHeader.GetGPSEpoche(sec,nsec)){
@@ -182,7 +185,17 @@ if(run){
 }
 return true;
 }
+
+int AMSSetupR::GetEntry(unsigned int run,unsigned int event){
+unsigned long long runev=((unsigned long long)run)<<32;
+runev+=event;
+htable_i it=fEntries.find(runev);
+if(it==fEntries.end())return -1;
+else return it->second;
+
+}
 void AMSSetupR::Reset(){
+fEntries.clear();
 fGPS.clear();
 fRTI.clear();
 fGPSWGS84.clear();

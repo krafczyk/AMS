@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.43 2011/05/10 21:11:42 choumilo Exp $
+//  $Id: antirec02.C,v 1.44 2013/10/07 11:58:47 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -242,7 +242,7 @@ void Anti2RawEvent::mc_build(int &stat){
   geant up(0),down(0),slope[2],athr[2],tau,q2pe,temp;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
-  int i,ii,nup,ndown,sector,sectorN,ierr,it,sta[2];
+  int i,nup,ndown,sector,sectorN,ierr,it,sta[2];
   number npest[2][2];
   uinteger j,ibmn[2],ibmx[2],nsides(0);
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
@@ -328,7 +328,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //---
   AMSContainer *cptr;
   cptr=AMSEvent::gethead()->getC("AMSAntiMCCluster",0);//MC container-pointer
-  ii=0;
+  uinteger ii=0;
   if(cptr)ii+=cptr->getnelem();
   if(ATMCFFKEY.mcprtf)HF1(2637,geant(ii),1.);
   if(ii==0)return;//empty ACC

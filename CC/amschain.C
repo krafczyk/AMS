@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.77 2013/05/24 17:45:06 choutko Exp $
+//  $Id: amschain.C,v 1.78 2013/10/07 11:58:47 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -159,7 +159,82 @@ AMSEventR* AMSChain::GetEvent(){
   return _EVENT;
 };
 
+long long AMSChain::GetEntryNo(UInt_t run, Int_t ev, bool runinfilename, unsigned long long maxent){
+int prcs=AMSEventR::ProcessSetup;
+unsigned long long runev=((unsigned long long)run)<<32;
+runev+=ev;
+map<unsigned long long, unsigned long long>::iterator it=m_chain_entryindex.find(runev);
+if(it!=m_chain_entryindex.end())return it->second;
+
+
+if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
+ m_chain_Entries=GetEntries();
+ unsigned long long msum=0;
+ m_chain_entryindex.clear();
+ m_chain_Runs.clear();
+  AMSEventR::ProcessSetup=1;
+ for(int i1=0;i1<GetListOfFiles()->GetEntries();i1++){
+   TChainElement* elem=(TChainElement*)GetListOfFiles()->At(i1);
+if(runinfilename && m_chain_Entries>maxent){
+   TString name(elem->GetTitle());
+   TString t1("/");
+   TString t2(".");
+   TObjArray *arr=name.Tokenize(t1);
+    TObjString *s=(TObjString*)arr->At(arr->GetEntries()-1); 
+    TObjArray *ar1=s->GetString().Tokenize(t2);
+    unsigned int k=atoi(((TObjString* )ar1->At(0))->GetString().Data());
+    if(k!=run){
+        msum+=elem->GetEntries();
+        break;
+    }
+}
+      GetEvent(msum);    
+      
+      if(_EVENT &&_EVENT->getsetup()){
+       m_chain_Runs.insert(make_pair(_EVENT->Run(),msum));
+       if(  m_chain_Entries>maxent && _EVENT->Run() !=run){
+         msum+=elem->GetEntries();
+         break;
+       }
+       for (unsigned int ent=0;;ent++){
+        if(_EVENT->GetSetup(ent))break;
+       for (map<unsigned long long, unsigned int>::iterator it=_EVENT->getsetup()->fEntries.begin();it!=_EVENT->getsetup()->fEntries.end();it++){
+        unsigned long long entl=msum+it->second;
+        m_chain_entryindex.insert(make_pair(it->first,entl));
+       }
+ }
+}
+        msum+=elem->GetEntries();
+}
+}
+AMSEventR::ProcessSetup=prcs;
+it=m_chain_entryindex.find(runev);
+if(it==m_chain_entryindex.end())return -1;
+else return it->second;
+}
+
+
+AMSEventR* AMSChain::GetEventFast(UInt_t run, Int_t ev, bool runinfilename, unsigned long long maxent){
+ long long entry= GetEntryNo(run,ev ,runinfilename,maxent);
+ unsigned int frun=_EVENT?_EVENT->Run():0;
+ if(entry>=0){
+        GetEvent(entry);
+        if(_EVENT && _EVENT->Run()==run && _EVENT->Event()==ev){
+             if(frun!=run)_EVENT->UpdateSetup(run);
+             return _EVENT;
+        }
+    }
+
+   return NULL;         
+
+}
+
+
 AMSEventR* AMSChain::GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind){
+
+
+//old one
+
   if (!kDontRewind) Rewind();//Go to start of chain
   // Get events in turn
   while  (GetEvent() &&

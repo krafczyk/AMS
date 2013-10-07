@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.151 2013/10/04 16:33:50 choutko Exp $
+//  $Id: timeid.C,v 1.152 2013/10/07 11:58:47 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -77,6 +77,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes,
     _Nbytes=-nbytes;
     _Nbytes+=sizeof(uinteger);
   }
+  _NbytesM=_Nbytes;
   if(_Type!=Client){
     _fillDB((const char*)AMSDBc::amsdatabase,0);
   }
@@ -121,6 +122,10 @@ void AMSTimeID::SetTime(time_t insert, time_t begin, time_t end) {
 
 integer AMSTimeID::CopyIn(const void *pdata){
   if(pdata && _pData){
+    if(_Nbytes>_NbytesM){
+      cerr<<"  AMSTimeID::CopyIn-E-NbytesTooBig "<<_NbytesM<<" "<<_Nbytes<<endl;
+      _Nbytes=_NbytesM;
+    }
     integer n=_Nbytes/sizeof(uinteger)-1;
     integer i;
     for(i=0;i<n;i++){
@@ -132,8 +137,12 @@ integer AMSTimeID::CopyIn(const void *pdata){
   else return 0;
 }
 
-integer AMSTimeID::CopyOut  (void *pdata)const {
+integer AMSTimeID::CopyOut  (void *pdata) {
   if(pdata && _pData){
+    if(_Nbytes>_NbytesM){
+      cerr<<"  AMSTimeID::CopyOut-E-NbytesTooBig "<<_NbytesM<<" "<<_Nbytes<<endl;
+      _Nbytes=_NbytesM;
+    }
     integer n=_Nbytes/sizeof(uinteger)-1;
     integer i;
     for(i=0;i<n;i++){
@@ -178,6 +187,10 @@ integer AMSTimeID::validate(time_t & Time, integer reenter){
 uinteger AMSTimeID::_CalcCRC(){
   _InitTable();
   int i,j,k;
+    if(_Nbytes>_NbytesM){
+      cerr<<"  AMSTimeID::_CalcCRC-E-NbytesTooBig "<<_NbytesM<<" "<<_Nbytes<<endl;
+      _Nbytes=_NbytesM;
+    }
   integer n=_Nbytes/sizeof(uinteger)-1;
   uinteger crc;
   if( n < 1) return 0;
