@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.38 2013/02/28 16:39:29 choutko Exp $
+//  $Id: amschain.h,v 1.39 2013/10/07 11:59:01 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -29,6 +29,9 @@
 
 class AMSChain : public TChain {
 private:
+  int                 m_chain_Entries;
+  multimap<unsigned int,unsigned long long>         m_chain_Runs;
+  map<unsigned long long ,unsigned long long> m_chain_entryindex;
   int m_tree_entry;
   unsigned int fThreads;
   unsigned int fSize;
@@ -52,7 +55,7 @@ public:
   unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
   /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
-    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0),fout(0),amsnew(0),rsetup(0){}
+    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_chain_Entries(0),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0),fout(0),amsnew(0),rsetup(0){}
   char * getsetup();
   
   /// alternative constructor (It requires an AMSEventR object to be passed)
@@ -118,6 +121,8 @@ in this case the files will be prestaged if on castor but actual try will be don
   ///Get AMSEventR with run number "run" and event number "ev"
   ///If kDontRewind=true the event will be searched starting from current event. If kDontRewind=false (default) the whole chain is rewinded and event will be searched starting from the first event in the chain
   AMSEventR* GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind=false); 
+  AMSEventR* GetEventFast(UInt_t run, Int_t ev, bool runinfilename=false, unsigned long long maxent=100000000);   ///< get event fast
+  long long GetEntryNo(UInt_t run, Int_t ev, bool runinfilename=false, unsigned long long maxent=100000000); 
 
   //  bool   getevent(unsigned int run, unsigned int event);
   

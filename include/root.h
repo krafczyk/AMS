@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.570 2013/08/04 20:00:00 qyan Exp $
+//  $Id: root.h,v 1.571 2013/10/07 11:59:01 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3920,6 +3920,8 @@ protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
 bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
 bool UpdateSetup(uinteger run);  ///< Update RootSetup for the new Run
+int  GetSetup(uinteger entry);   ///< Update RootSetup for the entry 
+const char * GetCurrentFileName(bool setup=false);
 public:
 class Service{
 public:
@@ -6604,7 +6606,7 @@ void         AddAMSObject(TriggerLVL302 *ptr);
 void RebuildBetaH();
 void RebuildMCEventg();
 friend class AMSChain;
-ClassDef(AMSEventR,22)       //AMSEventR
+ClassDef(AMSEventR,23)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 

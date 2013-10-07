@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.54 2013/10/04 16:33:53 choutko Exp $
+//  $Id: timeid.h,v 1.55 2013/10/07 11:59:01 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -169,6 +169,7 @@ protected:
   time_t _Begin;     //! validity starts
   time_t _End;       //!  validity ends
   integer _Nbytes;   //! Number of bytes in _pData
+  integer _NbytesM;   //! Max Number of bytes in _pData
   uinteger _CRC;     //! Control Sum
   mutable integer _UpdateMe;
   bool _verify;
@@ -221,12 +222,12 @@ public:
   bool      setupdateablemapdir(const char*dir);
 
 
-  AMSTimeID():AMSNode(),_trigfun(0),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),
+  AMSTimeID():AMSNode(),_trigfun(0),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_NbytesM(0),_pData(0),
 	      _CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone),_updateable(-1),_Variable(false)
   {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";setmapdir();}
   
   AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,bool verify=true,CType server=Standalone,trigfun_type fun=0):
-    AMSNode(id),_Insert(0),_Begin(0),_End(0),_Nbytes(abs(nbytes)),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),
+    AMSNode(id),_Insert(0),_Begin(0),_End(0),_NbytesM(abs(nbytes)),_Nbytes(abs(nbytes)),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),
     _DataBaseSize(0),_Type(server),_updateable(-1)
   {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";setmapdir();_Variable=nbytes<0;}
   
@@ -250,7 +251,7 @@ public:
   
 integer  GetNbytes() const { return _Nbytes;}
 void  SetNbytes(int nbytes){_Nbytes=nbytes;}
-  integer  CopyOut (void *pdataNew) const;
+  integer  CopyOut (void *pdataNew) ;
   integer  CopyIn( const void *pdataNew);
   uinteger getCRC()const {return _CRC;}
   void     UpdCRC();
