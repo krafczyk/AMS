@@ -1510,6 +1510,7 @@ void BayesianConsistent::Unfold(int steps,double min_gof_change,TH2D &matrix,TH1
     double gof=GetGOF(matrix,measured,unfolded);
     if(fabs(gof-prev_gof)<min_gof_change) break;
     if(Verbosity%10 && i%(Verbosity/10)==0) cout<<"Iteration "<<i<<" Lkh "<<gof<<endl;
+    prev_gof=gof;
   }
 }
 
