@@ -12,14 +12,19 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
     static int a=0;
+    static unsigned int oldev=0;
     // 
     // This is a user function to be modified
     //  return true if event has to be drawn false otherwise.
     // Example take the even event numbers
-    if(ev && ev->Event()>1000) return false;
-    if(ev && ev->Event()%2==0) return true;
-    else return false;
-    }
+   if(ev){
+    bool next=ev->Event()!=oldev;
+       oldev=ev->Event();
+       if(next)return false;
+       else return true;
+   }
+   return false;
+}
 };
 //
 //  The code below should not be modified

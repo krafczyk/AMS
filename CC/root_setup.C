@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.138 2013/10/07 11:58:47 choutko Exp $
+//  $Id: root_setup.C,v 1.139 2013/10/10 14:41:05 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -136,11 +136,13 @@ for( GPS_ri i=fGPS.rbegin();i!=fGPS.rend();i++){
 return gps;
 }
 
-void AMSSetupR::UpdateHeader(AMSEventR *head){
-if(!head)return;
+int AMSSetupR::UpdateHeader(AMSEventR *head){
+int ret=0;
+if(!head)return 1;
 unsigned long long runev=((unsigned long long)head->Run())<<32;
 runev+=head->Event();
-fEntries.insert(make_pair(runev,fEntries.size()));
+if(fEntries.find(runev)!=fEntries.end())ret=2;
+else fEntries.insert(make_pair(runev,fEntries.size()));
 unsigned int nsec;
 unsigned int sec;
 if(!head->fHeader.GetGPSEpoche(sec,nsec)){
@@ -173,7 +175,7 @@ if(fHeader.FEvent==0){
  fHeader.FEvent=head->Event();
  fHeader.FEventTime=head->UTime();
 }
-
+return ret;
 }
 bool AMSSetupR::UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime){
 fHeader.Run=run;
