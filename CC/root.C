@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.596 2013/10/07 11:58:47 choutko Exp $
+//  $Id: root.C,v 1.597 2013/10/11 12:09:24 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -451,6 +451,24 @@ void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, 
 #pragma omp critical (hf2)
   Service::hb2.insert(make_pair(id,p));
 }
+
+
+void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, int nchaa, double ybin[]){
+  AMSID id(idd,Dir);
+#pragma omp critical (hf2)
+  if(Service::hb2.find(id) != Service::hb2.end()){
+    delete Service::hb2.find(id)->second;
+    Service::hb2.erase((Service::hb2.find(id)));
+    cerr<<"  AMSEventR::hbook2-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+  }
+  char hid[1025];
+  sprintf(hid,"hb2_%d_%s_%s",idd,title,Dir.Data()); 
+  TH2D * p= new TH2D(hid,title,ncha,a,b,nchaa,ybin);
+#pragma omp critical (hf2)
+  Service::hb2.insert(make_pair(id,p));
+}
+
+
 
 void AMSEventR::hfill(int idd, float a, float b=0, float w=1){
   AMSID id(idd,Dir);

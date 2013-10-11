@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.571 2013/10/07 11:59:01 choutko Exp $
+//  $Id: root.h,v 1.572 2013/10/11 12:09:13 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4109,6 +4109,7 @@ static void hbook1s(int id,const char title[], int ncha, float a, float b, int h
 static void hbook1s(int id,const char title[], int ncha, double xbin[], int howmany=6,int shift=100000);
    ///  hbook like 2d histgoram booking by int id \n parameters like in classical hbook2
 static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);
+static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, double ybin[]);
    ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
 static void hbook2s(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);
    ///  hbook like profile histgoram booking by int id \n  parameters like in classical maphbook1
