@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.60 2012/04/23 16:41:50 choutko Exp $
+#  $Id: 00index.txt,v 1.61 2013/10/14 15:52:04 choutko Exp $
 
 Makefile //  General Makefile
 source /Offline/vdev/install/amsvar.gcc64
@@ -12,19 +12,18 @@ Makefile.linux// OS dep -> Linux-gcc32
 	  // unsetenv DEBUGFLAG        turn on  optimizatio in compiling;
           // setenv   AMSPROFILE 1     adds gprof;
 	  // setenv   AMSDEBUG         enable the debug code into the GBATCH source
-	  // setenv   AMSP 1           enable the parallel processing (Intel compilers only)
           // setenv   PGTRACK 1        enable the new tracker SW
           // setenv   CASTORSTATIC     enable static compilation for RFIO and  XROOTd access
           // setenv   ECALBDT 1        enable ECAL electron classifier function
           //                           WARNING: if set file ecalBDT.C need ~6 
           //                           minutes to be compiled
 	  
-Moptg4    // makefile to gmake g4 batch 
-          // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
-          // setenv AMSWD to some tmp dir is  recommended
-Moptg4i    // makefile to gmake geant interactive  g4 (not yet supported)
+          // setenv G4AMS  1             enable geant4 mc producer compilation 
 
 
+
+/*
+Obsolete  no need any more use setenv G4AMS 1
 (PZ) New experimental feature about GEANT4
 By using the new AMSsoft distribution (/scratch/pzuccon/AMSsoft or
 /scratch/pzuccon/tars/AMSsoft_v0.2.tar.bz2) it is possible to compile GBATCH
@@ -37,8 +36,7 @@ simplified howto:
 2) set the variable G4AMS (ex. setenv G4AMS 1)
 3) go to AMS/install and do the usual make
 5) You will get $AMSWD/exe/XXXXX/gbatchG4PG.exe
-
-The inteactive G4 target is not yet ready.
+*/
 
 
 Overall:
@@ -47,7 +45,7 @@ The choice of the compiler suite (gcc/g77  or icc/ifort) is automaticaly done
 as a consquence of the root-config --arch command.
 It then depends on the compiler type has been used for  your ROOT version. 
 
-The new Perugia Tracker Software can be enabled at compile time with:
+The (not so) new Perugia Tracker Software can be enabled at compile time with:
 setenv PGTRACK 1
 
 
@@ -56,16 +54,21 @@ gmake gxint           // builds g3 gxint
 gmake lib             // builds root shared & static library
 gmake shared          // builds root shared library
 gmake static          // builds root static library
-gmake producer        // builds gbatch-orbit (add -i flag for Intel Compilers mode)
+gmake producer        // builds gbatch-orbit producer (add -i flag for Intel Compilers mode)
+gmake producer6       // builds gbatch-orbit producer for slc6  (thanks to slc6 bug)
 gmake server          // builds server       (add -i flag for Intel Compilers mode)
 
 gmake all             //  build gbatch,gxint,lib,producer,display ,offmon
 gmake allold          //  build gbatch,lib producer for 2.4 kernels to bind(
 use slc 4 release) 
 build_all            //   build everything
-gmake -f Moptg4   //builds g4 batch 
-gmake -f Moptg4i  //builds g4 interactive 
 
+setenv G4AMS 1
+
+gmake gbatch(default) // builds g4 gbatch 
+gmake gxint           // builds g4 gxint 
+gmake producer        // builds g4 mc producer
+gmake producer6       // builds g4 mc producer for slc6  (thanks to slc6 bug)
 
 
 
