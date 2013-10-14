@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.358 2013/08/16 15:58:04 traiha Exp $
+//  $Id: commons.h,v 1.359 2013/10/14 16:01:12 traiha Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -22,6 +22,7 @@
 #include "tkdcards.h"
 #endif
 
+#include "TrdMcDatacards.h"
 
 #ifdef __AMSVMC__
 #include "geant3function_redefine.h"
@@ -298,61 +299,6 @@ class MAGSFFKEY_DEF {
 COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 #endif
 //==============================================================
-
-
-class TRDMCFFKEY_DEF{
- public:
-  integer mode; // 0: saveliev 1: saveliev+Pai 2: garibyan + Pai
-  integer g3trd;  // g3identifier for trd aware media
-  float cor;     // saveliev parameter
-  float alpha;    // garibyan pars
-  float beta;    //  garibyan par
-  geant ped;     
-  geant pedsig;     
-  geant sigma;
-  geant gain;
-  geant cmn;
-  geant   f2i;
-  integer adcoverflow;
-  integer NoiseOn;
-  float GeV2ADC;
-  float Thr1R;
-  integer GenerateConst;
-  geant NoiseLevel;
-  geant DeadLevel;
-  integer sec[2];
-  integer min[2];
-  integer hour[2];
-  integer day[2];
-  integer mon[2];
-  integer year[2];
-  integer multiples;
-  geant  Gdens;
-  geant  Pecut;
-  geant  ntrcor;
-  geant  etrcor;
-  geant  ndecor;
-  geant  edecor;
-
-  geant Tmean;
-  geant Pmean;
-  geant FibreDiam;
-  geant RadThick;
-  geant AlphaFibre;
-  geant AlphaGas;
-  integer FleeceGas;
-  geant XenonFraction;
-  geant ArgonFraction;
-  geant CO2Fraction;
-  geant GasStep;
-  integer PAIModel;
-  integer debug;
-  int CreatePDF;
-  float TRphotonEnergyScalingFactor;
-};
-#define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
-COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);
-
 
 class TRDFITFFKEY_DEF{
  public:

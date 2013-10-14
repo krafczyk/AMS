@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.396 2013/08/16 15:58:04 traiha Exp $
+#  $Id: datacards.doc,v 1.397 2013/10/14 16:01:13 traiha Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -731,7 +731,7 @@ R10   cmn(16)
 R11   f2i(8)         // float to int convertor in raw format
 I12   adcoverflow(4095)    // 12 bit adc 
 I13   NoiseOn(1)            // Generate(1) do not generate(0) noise in trd
-R14   GeV2ADC(1e8)
+R14   GeV2ADC(1e8/3*1.39)   // conversion factor from GeVs to ADC counts
 R15   Thr1R(3.5)    // in sigmas
 I16   GenerateConst(0) // generate/not generate trd const
 R17   NoiseLevel(0.01)  // fraction of noisy channels
@@ -750,15 +750,15 @@ R35   etrcor(1.2)           // correction factor to mean energy of tr gammas
 R36   ndecor(0.85)           // correction factor to number of ion collisions
 R37   edecor(1.0)           // correction factor to mean energy loss per collision
 R38   Tmean(287.15)	    // mean temperature in TRD in kelvin
-R39   Pmean(950.);	    // mean pressure in TRD in mbar
+R39   Pmean(927.0);	    // mean pressure in TRD in mbar
 R40   FibreDiam(12.);	    // mean fibre diameter in um
-R41   RadThick(2.);	    // mean radiator thickness in mm
+R41   RadThick(20.);	    // mean radiator thickness in mm
 R42   AlphaFibre(5.);	    // alpha fibre of radiator
 R43   AlphaGas(0.66);        // alpha gas of radiator
-I44   FleeceGas(0);	    // fleece gas - 0:Air 1:Galactic
-R45   XenonFraction(0.8);   // volume fraction of xenon gas
+I44   FleeceGas(1);	    // fleece gas - 0:Air 1:Galactic
+R45   XenonFraction(0.89);  // volume fraction of xenon gas
 R46   ArgonFraction(0.0);   // volume fraction of argon gas
-R47   CO2Fraction(0.2);	    // volume fraction of CO2 gas
+R47   CO2Fraction(0.11);    // volume fraction of CO2 gas
 R48   GasStep(1.);	    // gas medium step size in mm
 I49   PAIModel(1);	    // enable PAI Model
 I50   debug(0); 	    // debug flag

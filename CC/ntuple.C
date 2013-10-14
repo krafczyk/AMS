@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.264 2013/10/10 14:41:04 choutko Exp $
+//  $Id: ntuple.C,v 1.265 2013/10/14 16:01:12 traiha Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -358,6 +358,7 @@ _rfile->cd();
     TRCLFFKEY.Write();
     TRFITFFKEY.Write();
     TRCHAFFKEY.Write();
+    TRDMCFFKEY.Write();
     _rfile->cd();
 #endif 
     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     

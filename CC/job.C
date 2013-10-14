@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.922 2013/10/04 16:33:50 choutko Exp $
+// $Id: job.C,v 1.923 2013/10/14 16:01:12 traiha Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1269,62 +1269,9 @@ void AMSJob::_sianti2data(){
 //================================================================================
 
 void AMSJob::_sitrddata(){
-  TRDMCFFKEY.CreatePDF=0;
-  TRDMCFFKEY.mode=-1;
-  TRDMCFFKEY.g3trd=123654;
-  TRDMCFFKEY.cor=0.68;
-  TRDMCFFKEY.alpha=0;
-  TRDMCFFKEY.beta=0;
-  TRDMCFFKEY.gain=1;
-  TRDMCFFKEY.f2i=8;
-  TRDMCFFKEY.adcoverflow=4095;
-  TRDMCFFKEY.ped=355;
-  TRDMCFFKEY.pedsig=102;
-  TRDMCFFKEY.sigma=6;
-  TRDMCFFKEY.cmn=15;
-  TRDMCFFKEY.NoiseOn=1;
-  //TRDMCFFKEY.GeV2ADC=1.e8;
-  // changed vc 22-dec-2009
-  TRDMCFFKEY.GeV2ADC=1.e8/3 * 1.39;
-  TRDMCFFKEY.Thr1R=3.5;
-  TRDMCFFKEY.sec[0]=0;
-  TRDMCFFKEY.sec[1]=0;
-  TRDMCFFKEY.min[0]=0;
-  TRDMCFFKEY.min[1]=0;
-  TRDMCFFKEY.hour[0]=0;
-  TRDMCFFKEY.hour[1]=0;
-  TRDMCFFKEY.day[0]=1;
-  TRDMCFFKEY.day[1]=1;
-  TRDMCFFKEY.mon[0]=0;
-  TRDMCFFKEY.mon[1]=0;
-  TRDMCFFKEY.year[0]=101;
-  TRDMCFFKEY.year[1]=120;
-  TRDMCFFKEY.GenerateConst=0;
-  TRDMCFFKEY.NoiseLevel=0.01;
-  TRDMCFFKEY.DeadLevel=0.;
-  TRDMCFFKEY.multiples=0;
-  TRDMCFFKEY.Gdens=0.00446;
-  TRDMCFFKEY.Pecut=-0.65;
-  TRDMCFFKEY.ntrcor=1.3;
-  TRDMCFFKEY.etrcor=1.2;
-  TRDMCFFKEY.ndecor=1.0;
-  TRDMCFFKEY.edecor=1.0;
-  TRDMCFFKEY.Tmean=287.15;
-  TRDMCFFKEY.Pmean=927;
-  TRDMCFFKEY.FibreDiam=12.;
-  TRDMCFFKEY.RadThick=20.;
-  TRDMCFFKEY.AlphaFibre=5.;
-  TRDMCFFKEY.AlphaGas=0.66;
-  TRDMCFFKEY.FleeceGas=1;
-  TRDMCFFKEY.XenonFraction=0.89;
-  TRDMCFFKEY.ArgonFraction=0.;
-  TRDMCFFKEY.CO2Fraction=0.11;
-  TRDMCFFKEY.GasStep=6.;
-  TRDMCFFKEY.PAIModel=1;
-  TRDMCFFKEY.debug=0;
-  TRDMCFFKEY.TRphotonEnergyScalingFactor=0.80;
 
-  FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
+  TRDMCFFKEY.init();
+  FFKEY("TRDMC",(float*)&(TRDMCFFKEY.mode),(sizeof(TRDMCFFKEY_DEF)-4)/sizeof(integer),"MIXED");
 
   TRDRECFFKEY.Chi2StrLine=5;
   TRDRECFFKEY.ResCutStrLine=1;
