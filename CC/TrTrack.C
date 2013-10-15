@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.174 2013/07/29 14:41:33 choutko Exp $
+// $Id: TrTrack.C,v 1.175 2013/10/15 03:01:58 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/07/29 14:41:33 $
+///$Date: 2013/10/15 03:01:58 $
 ///
-///$Revision: 1.174 $
+///$Revision: 1.175 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1055,7 +1055,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   if (!update) retbad= _TrFit.GetChisq();
 
 
-  // if (!update || !done){
+  if (!update || !done){
   //   /// Restore deafult PG alignment if CIEMAT one was used
   //   if (UpdateCoo) {
   //     // Set TkPlaneExt to PG
@@ -1064,8 +1064,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   //     for (int ii=0;ii<getnhits () ;ii++)
   // 	if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
   //   }
-  //   return retbad;
-  // }
+  return retbad;
+   }
 
 
   // Fill fittng parameters
