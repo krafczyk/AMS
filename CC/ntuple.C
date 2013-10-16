@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.265 2013/10/14 16:01:12 traiha Exp $
+//  $Id: ntuple.C,v 1.266 2013/10/16 11:01:43 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -313,7 +313,11 @@ void AMSNtuple::endR(bool cachewrite){
       if(_tree){
 	if(!_lun )_Nentries++;
 	AMSEventR::Head()=i->second;
+        if(Get_setup02() && Get_setup02()->UpdateHeader(AMSEventR::Head())!=2){
+        _Lastev=i->second->Event();
+        _Lasttime=i->second->UTime();
 	if(cachewrite)_tree->Fill();
+      }
       }
       delete i->second;
     }
@@ -898,7 +902,8 @@ return NULL;
 }
 
 uinteger AMSNtuple::writeRSetup(){
-if( _treesetup && AMSJob::gethead() && !AMSJob::gethead()->isSimulation()){
+if( _treesetup ){
+if(AMSJob::gethead() && AMSJob::gethead()->isSimulation() && Get_setup02())Get_setup02()->ResetMC();
    try{
 #ifdef __G4AMS__
         UPool.ReleaseLastResort();

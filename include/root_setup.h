@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.86 2013/10/10 14:41:26 choutko Exp $
+//  $Id: root_setup.h,v 1.87 2013/10/16 11:01:48 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -832,6 +832,7 @@ static int _select (const dirent64 * entry);
  bool LoadSlowcontrolDB(const char *file, int verb=0);
  int UpdateHeader(AMSEventR* ev);
  void Reset();
+ void ResetMC();
  int GetEntry(unsigned int run,unsigned int event); ///< GetEntry for run,event; return -1 if not found
  AMSSetupR();
  void LoadISS(unsigned int t1, unsigned int t2);

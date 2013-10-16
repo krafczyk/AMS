@@ -11,7 +11,9 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+    static set <unsigned int> fmap;
     static int a=0;
+    static int dupl=0;
     static unsigned int oldev=0;
     // 
     // This is a user function to be modified
@@ -20,6 +22,10 @@ public:
    if(ev){
     bool next=ev->Event()!=oldev;
        oldev=ev->Event();
+       if(fmap.find(ev->Event())!=fmap.end()){
+         cout<< " dupl event found "<<ev->Event()<<" "<<++dupl<<endl;
+       }
+       else fmap.insert(ev->Event());
        if(next)return false;
        else return true;
    }

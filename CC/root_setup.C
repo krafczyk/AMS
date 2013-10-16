@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.139 2013/10/10 14:41:05 choutko Exp $
+//  $Id: root_setup.C,v 1.140 2013/10/16 11:01:43 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -218,6 +218,25 @@ fHeader=a;
 SlowControlR b;
 fSlowControl=b;
 Purge();
+}
+void AMSSetupR::ResetMC(){
+fGPS.clear();
+fRTI.clear();
+fGPSWGS84.clear();
+fISSData.clear();
+fISSAtt.clear();
+fAMSSTK.clear();
+fDSPError.clear();
+fISSINTL.clear();
+fISSCTRS.clear();
+fISSGTOD.clear();
+fScalers.clear();
+fScalersReturn.clear();
+fLVL1Setup.clear();
+fDynAlignment.clear();
+fBadRun.clear();
+SlowControlR b;
+fSlowControl=b;
 }
 
 
