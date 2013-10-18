@@ -1,7 +1,6 @@
 //**************************************************************//
 // TrdMTrack methods
 //
-
 //
 //**************************************************************//
 
@@ -92,6 +91,7 @@ class TrdMTrack : public TObject
 
   // additional Initalisation
   void Init_Alignment();
+  void update_alignment_vectors(unsigned long evttime);
   void Init_GainCorrection();
   void Init_PDFs();
   void Init_Xe();
@@ -109,12 +109,14 @@ class TrdMTrack : public TObject
   AMSEventR *evt;
   
   time_t _Time;
+  unsigned long _calibtime;
   bool IsValid;
   bool isprocessed;
   bool misshit;
   int n_mhX;
   int n_mhY;
   float xycorr[328][6];
+  int index[328];
   
   vector<float> mod_corr[328][4];
   vector<unsigned long> mod_time[328];
