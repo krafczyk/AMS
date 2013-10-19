@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.140 2013/10/16 11:01:43 choutko Exp $
+//  $Id: root_setup.C,v 1.141 2013/10/19 04:38:46 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1428,7 +1428,9 @@ else{
 
 //---NewV
  bool isnewv=((t2>1368950397)||(RTI::Version>=1));
- if(isnewv)AMSISSlocal+="V1_20130802/";
+ bool isnewv2=(RTI::Version>=2);
+ if     (isnewv2)AMSISSlocal+="V2_20131220/";
+ else if(isnewv)AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
  if(dir!=0)AMSISS=dir;
 
@@ -1472,6 +1474,10 @@ const char fpate[]="24H.csv";
          fbin>>a.run;
          if(a.run!=0){//missing second
             fbin>>a.evno;
+            if(isnewv2){ //Add Version 2
+              fbin>>a.evnol;
+              fbin>>a.usec[0]>>a.usec[1];
+            }
             fbin>>a.lf;//begin ev+ livetime
             for(int ifv=0;ifv<4;ifv++){//cutoff
               for(int ipn=0;ipn<2;ipn++)fbin>>a.cf[ifv][ipn];
