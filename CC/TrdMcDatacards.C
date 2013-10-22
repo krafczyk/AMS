@@ -1,10 +1,10 @@
-// $Id: TrdMcDatacards.C,v 1.1 2013/10/14 16:01:12 traiha Exp $
+// $Id: TrdMcDatacards.C,v 1.2 2013/10/22 17:26:26 choutko Exp $
 #include "TrdMcDatacards.h"
 #include <math.h>
 #include <float.h>
-
+#ifdef _PGTRACK_
 ClassImp(TRDMCFFKEY_DEF);
-
+#endif
 
 //==============================
 //  TRD simulation datacards

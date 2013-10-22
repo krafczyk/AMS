@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.184 2013/08/01 11:28:04 choutko Exp $
+//  $Id: mceventg.C,v 1.185 2013/10/22 17:26:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -693,7 +693,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           HPRINT(_hid);
     }
     else if (low==0 || !(GMFFKEY.GammaSource==0)){//ISN
-      integer nchan=10000;
+      integer nchan=100000;
       geant binw;
       if(mass < 0.938)binw=100;
       else  binw=100*mass/0.938;

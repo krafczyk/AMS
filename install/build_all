@@ -40,6 +40,7 @@ source  $PREFIX/g4i$TESTFLAG.gcc64
 gmake allp
 gmake fast64
 
+echo "$PREFIX/amsvar$TESTFLAG.icc32 building..."
 
 source $PREFIX/amsvar$TESTFLAG.icc32
 if ( "$CXXVERS" < "430" ) then
@@ -73,7 +74,6 @@ unsetenv G4AMS
 unsetenv PGTRACK
 unsetenv AMS_ACQT_INTERFACE
 
-
 unsetenv G4AMS
 unsetenv MARCH
 unsetenv PGTRACK
@@ -87,6 +87,7 @@ source  $PREFIX/amsvar$TESTFLAG.gcc64
 gmake allp
 
 source  $PREFIX/amsvar$TESTFLAG.icc32
+echo "$PREFIX/amsvar$TESTFLAG.icc32 bbuilding..."
 if ( "$CXXVERS" < "430" ) then
   gmake allold 
   setenv MARCH linuxicc26

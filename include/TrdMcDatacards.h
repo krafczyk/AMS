@@ -1,4 +1,4 @@
-// $Id: TrdMcDatacards.h,v 1.1 2013/10/14 16:01:12 traiha Exp $
+// $Id: TrdMcDatacards.h,v 1.2 2013/10/22 17:26:31 choutko Exp $
 #ifndef TrdMcDatacards_h
 #define TrdMcDatacards_h
 
@@ -74,7 +74,9 @@ public:
   float TRphotonEnergyScalingFactor;
   void init();
   TRDMCFFKEY_DEF():TObject(){init();}
+#ifdef _PGTRACK_
   ClassDef(TRDMCFFKEY_DEF,1);
+#endif
 };
 
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
