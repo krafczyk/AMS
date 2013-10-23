@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.129 2013/07/27 16:22:43 choutko Exp $
+#  $Id: Makefile,v 1.130 2013/10/23 17:14:25 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -98,14 +98,14 @@ endif
 
 ifeq ($(VERSION),5.27)
 ifndef SLC6system
-  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
+  XRDLIB = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
 else
-  XRDLIB += -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+  XRDLIB = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 endif
 endif
 
 ifeq ($(VERSION),5.34)
-  XRDLIB += -lXrdClient   -lXrdUtils
+  XRDLIB = -lXrdClient   -lXrdUtils
 endif
 
 
