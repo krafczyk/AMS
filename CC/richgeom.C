@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.52 2012/03/01 17:00:09 mdelgado Exp $
+//  $Id: richgeom.C,v 1.53 2013/10/27 00:21:13 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -249,11 +249,6 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[1]=0;
   coo[2]=-RICHDB::cato_pos();
 
-#ifdef __G4AMS__ 
-  // Solve a rounding problem
-  coo[2]+=RICepsln;
-  par[2]+=RICepsln/2;
-#endif
 
   dummy=lig->add(new AMSgvolume("RICH PMTS",
 				0,
@@ -613,7 +608,8 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[1]=0.;
   par[2]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
   par[3]=0.;
-  par[4]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
+  //  par[4]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
+  par[4]=RICradiator_box_radius+RICradiator_box_thickness;
 
 
   coo[0]=0;
