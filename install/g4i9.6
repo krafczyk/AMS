@@ -1,4 +1,4 @@
-#  $Id: g4i9.6,v 1.2 2013/10/23 17:17:37 choutko Exp $
+#  $Id: g4i9.6,v 1.3 2013/10/28 10:33:03 choutko Exp $
 setenv GEANT4NEW 1
 unsetenv CLHEP_BASE_DIR
 #if `$ROOTSYS/bin/root-config --arch` == "linux" then
@@ -24,7 +24,7 @@ endif
 
 if `$ROOTSYS/bin/root-config --arch` == "linuxx8664gcc" then
 setenv G4LIB_BUILD_GDML 1
-setenv G4SYSTEM  Linux-g++.64
+setenv G4SYSTEM  Linux-g++
 if ($?DEBUGFLAG) then
 setenv G4SYSTEM  Linux-g++.debug
 endif

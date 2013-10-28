@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.39 2013/10/07 11:59:01 choutko Exp $
+//  $Id: amschain.h,v 1.40 2013/10/28 10:33:01 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -74,7 +74,7 @@ public:
    \brief Conditionally add the TFiles from the filelist to an  amschain
    
  
-\param[in]  rootfilelist  a (txt) file with full path names of the files to be chained. example is in /afs/cern.ch/work/c/choutko/txt/filelistexample.txt
+\param[in]  rootfilelist  a (txt) file with full path names of the files to be chained. example is in /afs/cern.ch/work/c/choutko/public/filelistexample.txt
 
 \param[in] beg first  file line  (started from 0) to be chained
 
@@ -91,8 +91,8 @@ The rejected filenames will be written in the rootfilelist_beg_end_TMOUT file
 \retval 0  otherwise
 
 Recommended setup
-AddFromfile(file,bef,end,false,0,pattern);
-in this case the files will be prestaged if on castor but actual try will be done during runtime.  In case fileas are unaccessible by any reason, they will be bypassed and their names will be written in file_beg_end_RUNTIMETNOUT so can be reused for the subsequent attempt
+AddFromfile(rootfilelist,beg,end,false,0,pattern);
+in this case the files will be prestaged if on castor but actual try will be done during runtime.  In case files are unaccessible by any reason, they will be bypassed and their names will be written in file_beg_end_RUNTIMETNOUT so can be reused for the subsequent attempt
 
  */
   int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,unsigned int timeout=0,char *pattern=0);
