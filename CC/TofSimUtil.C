@@ -1,4 +1,4 @@
-//  $Id: TofSimUtil.C,v 1.5 2012/10/26 20:23:06 pzuccon Exp $
+//  $Id: TofSimUtil.C,v 1.6 2013/10/28 15:35:24 qyan Exp $
 
 //Author Qi Yan 2012/Feb/09 23:14
 // ------------------------------------------------------------
@@ -166,13 +166,18 @@ G4double TofSimUtil::Lgt_l[NLAY][NBAR]={
 	{12.*cm,0.,    11.*cm,11.*cm,11.*cm,15.*cm,11.*cm,12.*cm,0.,12.*cm},
 	{0.,    0.,    0.,    0.,    0.,     0.,   0.,    0.,    0.,0.}
 };
-G4double TofSimUtil::Twista[NLAY][NBAR]={
+/*G4double TofSimUtil::Twista[NLAY][NBAR]={
         {0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,0.},
 	{0.,     45.*deg,45.*deg,89.*deg,45.*deg,45.*deg,45.*deg,0.,     0.,0.},
 	{45.*deg,0.,     45.*deg,45.*deg,89.*deg,45.*deg,45.*deg,45.*deg,0.,45.*deg},
 	{0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,0.}
-};
-
+};*/
+G4double TofSimUtil::Twista[NLAY][NBAR]={
+        {0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,0.},
+        {0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,0.},
+        {0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,0.},
+        {0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,0.},      
+}
 //---conial pmt
 G4double TofSimUtil::Lgc_l[NLAY][NBAR]={
   {5.5*cm,5.5*cm,5.5*cm,5.5*cm,5.5*cm,5.5*cm,5.5*cm,5.5*cm,0., 0.},

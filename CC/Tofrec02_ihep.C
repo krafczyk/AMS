@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.49 2013/10/28 15:15:39 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.50 2013/10/28 15:35:24 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -1154,7 +1154,7 @@ tktrdf:
              if((tktrdflag==0)||(tstat==0)){
                EdepTkAtt(phit,tklcoo,tkcosz,betapar);
                betapar.Status|=status;
-               if(tktrdflag!=0)cout<<"beta="<<betapar.Beta<<endl;
+//               if(tktrdflag!=0)cout<<"beta="<<betapar.Beta<<endl;
 #ifndef __ROOTSHAREDLIBRARY__
                cont->addnext(new AMSBetaH(phit,dynamic_cast<AMSTrTrack *>(usetr),usetrd,useshow,betapar));
 #else
