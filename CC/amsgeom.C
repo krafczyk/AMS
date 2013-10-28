@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.222 2013/10/28 10:32:44 choutko Exp $
+//  $Id: amsgeom.C,v 1.223 2013/10/28 16:05:40 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -920,9 +920,9 @@ void amsgeom::magnetgeom02p(AMSgvolume & mother){
   geant rmagi(55.75),drmagi(0.3),rmago(65.35),drmago(0.4),magh(80.);
   geant rmagro(82.5),dzmagr(1.5);
   geant rflgi1(61.94),rflgi2(62.6),rflgo1(124.14),rflgo2(124.8),conflgh(31.7);//con.flange
-  geant rflgro(137.),dzflgr(2.);//flange 
+  geant rflgro(136.8),dzflgr(2.);//flange (137->136.8 on 28.10.13) 
   geant rvaco(134.),drvaco(0.2),vach(58.6);//vac-case outer cylinder
-  geant drring2(3.);//flange outer ring2 Dr
+  geant drring2(2.8);//flange outer ring2 Dr (3->2.8 0n 28.10.13)
   geant dzmag=magh/2+dzmagr+conflgh;
 //---> magnet+its AL-shell:
   gid=1;
