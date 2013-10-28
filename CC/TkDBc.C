@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.71 2013/07/20 21:41:29 choutko Exp $
+//  $Id: TkDBc.C,v 1.72 2013/10/28 10:32:44 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/07/20 21:41:29 $
+///$Date: 2013/10/28 10:32:44 $
 ///
-///$Revision: 1.71 $
+///$Revision: 1.72 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -282,7 +282,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     P1NSupportSkinThickness=0.25;
     P1NSCRadius=94.5;
     P1NSCThickness=9.7;
-
+    P1NSCThickness=9.1;  //VC 26-oct-2013 to avoid trd3 overlap
     P1NSupportCoo[0]=0;
     P1NSupportCoo[1]=0;
     P1NSupportCoo[2]= _zpos[4]+_sup_hc_w[4]/2.+

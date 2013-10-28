@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.102 2013/08/23 11:14:27 choutko Exp $
+//  $Id: geant4.C,v 1.103 2013/10/28 10:32:44 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -16,6 +16,7 @@
 #include "geant4.h"
 #include "astring.h"
 #include "g4physics.h"
+#include "G4PhysicalVolumeStore.hh"
 #include "G4FieldManager.hh"
 #include "G4ChordFinder.hh"
 #include "G4Mag_UsualEqRhs.hh"
@@ -652,6 +653,19 @@ if(!_pv){
     cout << "AMSG4DetectorInterface::Construct-I-New TOFB Geometry "<<endl;
     TofSimUtil::Head->MakeTOFG4Volumes(AMSJob::gethead()->getgeom()->down());
    }
+
+
+
+  G4PhysicalVolumeStore* phystore = G4PhysicalVolumeStore::GetInstance();
+if(0 && phystore){
+  cout <<" AMSgvolume::MakeG4Volumes-I-Total of "<<phystore->size()<<" volumes found"<<endl;
+  for(int i=0;i<phystore->size();i++){
+    G4VPhysicalVolume*p=(*phystore)[i];
+     if(p && p->CheckOverlaps(1000,1.e-4*cm,false)){
+       cerr<<"  AMSgvolume::MakeG4Volumes-E-OverlapFoundFor "<<p->GetName()<<endl;
+}
+}
+}
 //--
 // Attention as step volumes are linked to false_mother, not mother as other ones
  AString fnam(AMSDATADIR.amsdatadir);

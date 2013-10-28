@@ -20,4 +20,13 @@
 vis/scene/add/trajectories
 /run/beamOn 1
 
+/control/matScan/theta 1 -90 0
+/control/matScan/phi 1 0 0
+/control/matScan/eyePosition  -10 65 180 cm
+/control/matScan/scan
+/control/matScan/eyePosition  -10 65 181 cm
+/control/matScan/scan
+/geometry/test/position -10 65 180 cm
+/geometry/test/direction 0 0 -1
+/geometry/test/line_test
 

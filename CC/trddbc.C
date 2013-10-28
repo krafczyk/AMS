@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.56 2010/10/08 17:27:59 mmilling Exp $
+//  $Id: trddbc.C,v 1.57 2013/10/28 10:32:45 choutko Exp $
 #include "trddbc.h"
 //#include "amsdbc.h"
 #include <math.h>
@@ -721,6 +721,8 @@ void TRDDBc::init(){
 
        case 3:   // top honeycomb...need to check this
           coo[2]= (1476+94.+6.)/10.+OctagonDimensions(i,4);
+// VC 2013-10-26 to remove ovrlap with P1NC
+          coo[2]-=2.6;    
           break;
 
        case 2: // bottom carbon fiber cover

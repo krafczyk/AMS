@@ -1,9 +1,10 @@
-//  $Id: gvolume.C,v 1.65 2013/08/05 14:23:00 qyan Exp $
+//  $Id: gvolume.C,v 1.66 2013/10/28 10:32:45 choutko Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
 #include "gmat.h"
 #ifdef __G4AMS__
+#include "G4PhysicalVolumeStore.hh"
 #include "G4MaterialPropertyVector.hh"
 #include "G4Material.hh"
 #include "G4MaterialTable.hh"

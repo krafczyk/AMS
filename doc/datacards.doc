@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.398 2013/10/22 17:26:29 choutko Exp $
+#  $Id: datacards.doc,v 1.399 2013/10/28 10:32:49 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -678,6 +678,7 @@ I 9 DynThreads(0)    //   dyn adjustment of thread number w/r proc loading
 I10 ChunkThreads(4096) // number of events per thread in one parallel  clause
 I11 DivideBy(1)        // divide or not cpu spent by number of threads (link dependent)
 I12 RaiseFPE(1)         // enforce-also-on-broken-code(3) enforce(2) raise(1) or not (0) fpe signals
+I13 DoMatScan(0)        // mat scanning   
  
 G4FF    // Geant4 Datacards
 I 1 BFOrder(4)       // Runge Kutta order 
