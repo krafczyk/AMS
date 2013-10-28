@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.572 2013/10/11 12:09:13 choutko Exp $
+//  $Id: root.h,v 1.573 2013/10/28 15:17:03 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2875,7 +2875,7 @@ class BetaHR: public TrElem{
   /// \return 1:Tracker-BetaH 2:Trd-BetaH 3:Ecal-BetaH 4:TOF-StandAlone(4Layer)-BetaH 5:TOF-StandAlone(3Layer)-BetaH
   int            GetBuildType();
   /// Return True if TOF ilay is Used For Beta-Fit
-  bool           IsBetaUseHL(int ilay)  {return (BetaPar.Pattern[ilay]%10==4);}
+  bool           IsBetaUseHL(int ilay)  {return (BetaPar.Pattern[ilay]%10==4||((BetaPar.Status&(TOFDBcN::TKTRACK2|TOFDBcN::TRDTRACK2))>0&&BetaPar.Pattern[ilay]%10>0));}
   /// Return True if BetaH Cluster is Isolation Fire Counter
   /// \return 0 if neighbor Counter Fire, idis distance to  Central Counter
   /*!
@@ -3127,7 +3127,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,14)
+  ClassDef(BetaHR,15)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        

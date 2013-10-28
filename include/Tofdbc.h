@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.30 2013/05/21 19:29:52 qyan Exp $
+//  $Id: Tofdbc.h,v 1.31 2013/10/28 15:17:02 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -52,10 +52,17 @@ namespace TOFDBcN{
   const uinteger BADP=128;
   const uinteger BADTCOO=256;
   const uinteger BADTIME=512;   //Bad Time
+//------------
   const uinteger NOWINDOWLT=1024;//NoLT (>40ns befFT)&&(<640 befFT)
-  const uinteger NOWINDOWHT=2048;
-  const uinteger NOWINDOWSHT=4096;
-  const uinteger LTMANY=8192;
+  const uinteger NOWINDOWHT=2048; //HT
+  const uinteger NOWINDOWSHT=4096;//SHT
+  const uinteger LTMANY=8192;     //LT 
+//BetaH TOF2 TRACK BetaH
+  const uinteger TKTRACK2=1024;//TRACK2 BetaH(RECOVER)
+  const uinteger TRDTRACK2=2048;//TRD2 BetaH(RECOVER)
+  const uinteger ECALTRACK2=4096;//ECAL2 BetaH(RECOVER)
+  const uinteger TOFTRACK2=8192;  //TOF2 TRACK BetaH(RECOVER)
+//--------------
   const uinteger HTMANY=          16384;
   const uinteger NOADC=           16384*2; 
   const uinteger RECOVERED=       16384*2*2;//RECOVER

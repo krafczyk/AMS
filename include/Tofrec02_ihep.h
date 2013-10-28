@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.28 2013/03/04 19:49:20 choutko Exp $
+//  $Id: Tofrec02_ihep.h,v 1.29 2013/10/28 15:17:03 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -192,7 +192,7 @@ public:
   static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern);
 #endif
 /// Recover Time information if One Side lost Signal
-  static int  TRecover(TofClusterHR *tfhit[4],number tklcoo[4]);//using hassid to recover other side
+  static int  TRecover(TofClusterHR *tfhit[4],number tklcoo[4],int partten[4],int mode=0);//using hassid to recover other side
   static int  TRecover(int idsoft,geant trlcoo,geant tms[2],geant &tm,geant &etm,uinteger &status,int hassid);
 /// ReBuild Attenuation Correction From TkCoo 
   static int EdepTkAtt(TofClusterHR *tfhit[4],number tklcoo[4],number tkcosz[4],TofBetaPar &par);
@@ -202,7 +202,7 @@ public:
   static int  BetaFitT(TofClusterHR *tfhit[4],number len[4],int partten[4],TofBetaPar &par,int mode=1,int verse=0);//mode same etime weight(0) or not(1)
   static int  BetaFitT(number time[],number etime[],number len[],const int nhits,TofBetaPar &par,int mode=1,int verse=0);//mode same etime weight(0) or not(1)
 /// Beta Check function
-  static int  BetaFitCheck(TofClusterHR *tfhit[4],number res[4][2],number lenr[4],int pattern[4],TofBetaPar &par);//if this is normal value
+  static int  BetaFitCheck(TofClusterHR *tfhit[4],number res[4][2],number lenr[4],int pattern[4],TofBetaPar &par,int mode);//if this is normal value
 #ifndef __ROOTSHAREDLIBRARY__
   static number BetaCorr(number zint,number z0,number part,uinteger &status);//to BetaC Vitaly
 #endif
@@ -248,7 +248,7 @@ public:
   friend class BetaHR; 
   friend class TofBetaPar; 
 
-  ClassDef(TofRecH,7)
+  ClassDef(TofRecH,8)
 };
 
 /////////////////////////////////////////////////////////////////////////

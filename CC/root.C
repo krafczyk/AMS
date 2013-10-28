@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.597 2013/10/11 12:09:24 choutko Exp $
+//  $Id: root.C,v 1.598 2013/10/28 15:15:39 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8230,7 +8230,7 @@ void TofBetaPar::SetFitPar(float _Beta,float _BetaC,float _InvErrBeta,float _Inv
 
 void TofBetaPar::CalFitRes(){
   for(int ilay=0;ilay<4;ilay++){
-    if((Pattern[ilay]%10==4)){
+    if((Pattern[ilay]%10>0)){
       TResidual[ilay]=Time[ilay]-(Len[ilay]/Beta/TofRecH::cvel+T0);
     }
   }
@@ -8286,8 +8286,14 @@ int   BetaHR::GetBetaPattern(){
 
 int  BetaHR::GetBuildType(){
     
-   if     (fTrTrack>=0)      return 1;
-   else if(fTrdTrack>=0)     return 2;
+   if     (fTrTrack>=0){
+        if((GetStatus()&TOFDBcN::TKTRACK2)==0)return 1;
+        else   return 11;
+   }
+   else if(fTrdTrack>=0){
+        if((GetStatus()&TOFDBcN::TRDTRACK2)==0)return 2;
+        else return 12; 
+   }
    else if(fEcalShower>=0)   return 3;
    else if(BetaPar.SumHit==4)return 4;
    else                      return 5;
@@ -8314,13 +8320,14 @@ float BetaHR::GetNormChi2T(){
 //---
    for(int ilay=0;ilay<4;ilay++){
        if(!TestExistHL(ilay))continue;
-       if(GetPattern(ilay)%10!=4)continue;
+       if(GetPattern(ilay)%10!=4&&!(((GetStatus()&(TOFDBcN::TKTRACK2|TOFDBcN::TRDTRACK2))>0)&&(GetPattern(ilay)%10>0)))continue;
        time [nhit]=GetTime(ilay);
        len  [nhit]=GetTkTFLen(ilay);
 //---
        TofRecPar::IdCovert(ilay,GetClusterHL(ilay)->Bar);
        if((ch1<=1)||(ch1==tfq)){etime[nhit]=TofRecPar::GetTimeSigma(TofRecPar::Idsoft,ch1);}
        else  etime[nhit]=(ww2*TofRecPar::GetTimeSigma(TofRecPar::Idsoft,ch1)+ww1*TofRecPar::GetTimeSigma(TofRecPar::Idsoft,ch2))/(ww2+ww1);
+       if(GetPattern(ilay)%10!=4)etime[nhit]=1.414*etime[nhit];
        nhit++;
     }
    TofBetaPar fitpar;
@@ -8352,7 +8359,7 @@ float BetaHR::GetNormChi2C(){
        chisl+=res*res/(ecoo*ecoo);
        nhitl++;
     }
-   return chisl/nhitl; 
+   return (nhitl==0)?0:chisl/nhitl; 
 }
 
 
@@ -8441,6 +8448,9 @@ double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, b
   if(fTrTrack>=0 && usetrtr){
      path=pTrTrack()->Interpolate(zpl,pnt,dir);
    }
+  else if((GetStatus()&(TOFDBcN::TKTRACK2|TOFDBcN::TRDTRACK2))>0){//TKTRACK2
+    time =0; return path;
+  } 
   else {///No TrTrack Then TofTrack
 #endif
 ///--Find Coo

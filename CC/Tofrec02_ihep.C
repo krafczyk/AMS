@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.48 2013/08/12 08:55:03 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.49 2013/10/28 15:15:39 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -10,6 +10,7 @@
 //        Modified:      2012-Sep      Adding New Charge Reconstruction
 //        Modified:      2012-Sep -12  Adding Tof Self Track Reconstruction
 //        Modified:      2012-Oct -1   Update TOF Charge Part
+//        Modified:      2013-Oct -28  Adding BetaH Counter Side Reconstruction
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "tofrec02.h"
@@ -1015,6 +1016,7 @@ int TofRecH::BuildBetaH(int verse){
     bool leftf=0,rightf=0;
     number Beta,InvErrBeta,BetaC,InvErrBetaC,Chi2;
     int found=0;//
+    int tktrdflag=0;
     int ntracks=0;
 
     VCon* cont=0;
@@ -1083,7 +1085,8 @@ int TofRecH::BuildBetaH(int verse){
 #ifdef __ROOTSHAREDLIBRARY__
   cont->eraseC(); 
 #endif
-   
+
+tktrdf:   
    for(int iktr=0;iktr<2;iktr++){
 //---Not Use Track
      if((BuildOpt==1)&&(iktr==0))continue;
@@ -1097,7 +1100,7 @@ int TofRecH::BuildBetaH(int verse){
 //----
      for(int itr=0;itr<ntracks;itr++){
        uinteger status=(iktr==0)?(TOFDBcN::TKTRACK):(TOFDBcN::TRDTRACK);
-
+       if(tktrdflag!=0)status|=(iktr==0)?(TOFDBcN::TKTRACK2):(TOFDBcN::TRDTRACK2);
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
        TrTrackR *ptrack;  TrTrackR *usetr=0;
        if(iktr==0){ptrack=track.at(itr);usetr=ptrack;}
@@ -1131,31 +1134,36 @@ int TofRecH::BuildBetaH(int verse){
        int udlay[2]={0,0};//up and down check
        for(int ilay=0;ilay<4;ilay++){
           if(phit[ilay]==0)continue;
-          if(ilay==0||ilay==1){if((pattern[ilay]%10==4))udlay[0]++;}//no mising
-          else                {if((pattern[ilay]%10==4))udlay[1]++;}//no mising
-          if(ilay==0||ilay==3){xylay[0]++;}
-          else                {xylay[1]++;}
+          if(ilay==0||ilay==1){if((pattern[ilay]%10==4)||(tktrdflag!=0))udlay[0]++;}//no mising
+          else                {if((pattern[ilay]%10==4)||(tktrdflag!=0))udlay[1]++;}//no mising
+          if(ilay==0||ilay==3){xylay[0]++;}//Fire
+          else                {xylay[1]++;}//Fire
         }
 //-----then fit+Check
-       if((xylay[0]>=1)&&(xylay[1]>=1)&&(udlay[0]>=1)&&(udlay[1]>=1)){//pattern found
-          if((xylay[0]+xylay[1]>=TofRecPar::BetaHMinL[0])&&(udlay[0]+udlay[1]>=TofRecPar::BetaHMinL[1])){
+       if((xylay[0]>=1)&&(xylay[1]>=1)&&(udlay[0]>=1)&&(udlay[1]>=1)){//Layer Require Fire
+          if((xylay[0]+xylay[1]>=TofRecPar::BetaHMinL[0])&&(udlay[0]+udlay[1]>=TofRecPar::BetaHMinL[1])){//sum layer
            betapar.Init();//first initial
 //---first to recover
-           TRecover(phit,tklcoo);
-           BetaFitC(phit,cres,pattern,betapar,1);
-           BetaFitT(phit,len,pattern,betapar,1,verse);
+           int mode=(tktrdflag==0)?1:11;
+           int tstat=TRecover(phit,tklcoo,pattern,mode);
+           if((tktrdflag==0)||(tstat==0)){
+             BetaFitC(phit,cres,pattern,betapar,1);
+             BetaFitT(phit,len,pattern,betapar,mode,verse);
 //--Addtional Check
-           BetaFitCheck(phit,cres,len,pattern,betapar);
-//--
-           EdepTkAtt(phit,tklcoo,tkcosz,betapar);
-           betapar.Status|=status;
+             tstat=BetaFitCheck(phit,cres,len,pattern,betapar,mode);
+             if((tktrdflag==0)||(tstat==0)){
+               EdepTkAtt(phit,tklcoo,tkcosz,betapar);
+               betapar.Status|=status;
+               if(tktrdflag!=0)cout<<"beta="<<betapar.Beta<<endl;
 #ifndef __ROOTSHAREDLIBRARY__
-          cont->addnext(new AMSBetaH(phit,dynamic_cast<AMSTrTrack *>(usetr),usetrd,useshow,betapar));
+               cont->addnext(new AMSBetaH(phit,dynamic_cast<AMSTrTrack *>(usetr),usetrd,useshow,betapar));
 #else
-          cont->addnext(new  BetaHR(phit,usetr,usetrd,useshow,betapar));
-           BetaHLink(usetr,usetrd,useshow);
+               cont->addnext(new  BetaHR(phit,usetr,usetrd,useshow,betapar));
+               BetaHLink(usetr,usetrd,useshow);
 #endif
-           found++;
+               found++;
+             }
+            }
           }
         }
         
@@ -1169,7 +1177,10 @@ int TofRecH::BuildBetaH(int verse){
     if(found>0)break;
     
   }//2 type
-
+ 
+// 2nd Search Tk-Trd exit 
+ if(tktrdflag!=0)found=-1; //faild    
+ 
 
 //No Tk or Trd Match, Tof Self Track Recontruction
   int npairu=0;
@@ -1296,6 +1307,9 @@ int TofRecH::BuildBetaH(int verse){
 #endif 
     }//end if
   }//---found
+
+
+  if(found==0){tktrdflag=1; goto tktrdf;} //No Tof Sel Track, Search Tk-Trd Again (more loose)
 
   delete cont;
   return 0;
@@ -1717,7 +1731,10 @@ bool TofRecH::PairCompare(const pair<TofClusterHR*,TofClusterHR*> &a,const pair<
 }
 
 //======================================================== 
-int TofRecH::TRecover(TofClusterHR *tfhit[4],number tklcoo[4]){
+int TofRecH::TRecover(TofClusterHR *tfhit[4],number tklcoo[4],int pattern[4],int mode){
+
+//--Directly Recover
+ if(mode/10==0){//tktrdf
   for(int ilay=0;ilay<4;ilay++){
     if(!tfhit[ilay])continue;
     if((tfhit[ilay]->Status&TOFDBcN::BADTIME)>0){
@@ -1726,6 +1743,76 @@ int TofRecH::TRecover(TofClusterHR *tfhit[4],number tklcoo[4]){
       TRecover(TofRecPar::Idsoft,geant(tklcoo[ilay]),tfhit[ilay]->Stime,tfhit[ilay]->Time,tfhit[ilay]->ETime,tfhit[ilay]->Status,hassid);
     }
   }
+  return 0;
+ } 
+
+//--Using For Pattern Finding
+  else  {
+
+     uinteger status;
+     geant tm,etm,time[4]={0},etime[4]={0},st[2]={0};
+     int npattern[4]={0};
+     bool tmatch[2]={0};
+//----Mark pattern 
+    for(int ilay=0;ilay<4;ilay++){
+       if(!tfhit[ilay])continue;  
+       npattern[ilay]=pattern[ilay]%10;
+       time[ilay]=tfhit[ilay]->Time;
+       etime[ilay]=tfhit[ilay]->ETime;
+     }
+
+     for(int iud=0;iud<2;iud++){
+//----Recover Side
+       number tms[2][2]={{0}},etms[2][2]={{0}};
+       for(int il=0;il<2;il++){
+          int ilay=iud*2+il;
+          for(int is=0;is<2;is++){
+            if(npattern[ilay]<3&&npattern[ilay]!=is+1)continue;
+            TofRecPar::IdCovert(ilay,tfhit[ilay]->Bar);
+            st[0]=tfhit[ilay]->Stime[0];
+            st[1]=tfhit[ilay]->Stime[1];
+            TRecover(TofRecPar::Idsoft,geant(tklcoo[ilay]),st,tm,etm,status,is);
+            tms[il][is]=tm; etms[il][is]=etm;
+//           cout<<"ilay="<<ilay<<" is="<<is<<" tms="<< tms[il][is]<<endl;
+         }
+       }
+       number dmint=FLT_MAX;
+       int il0=iud*2, il1=iud*2+1;
+       for(int is0=0;is0<2;is0++){
+        for(int is1=0;is1<2;is1++){
+          if(tms[0][is0]==0||tms[1][is1]==0)continue;
+          number ndt=tms[0][is0]-tms[1][is1]; 
+          if(fabs(ndt)<dmint){
+            if(npattern[il0]!=4){npattern[il0]=is0+1;time[il0]=tms[0][is0];etime[il0]=etms[0][is0];}
+            if(npattern[il1]!=4){npattern[il1]=is1+1;time[il1]=tms[1][is1];etime[il1]=etms[1][is1];}
+            dmint=fabs(ndt);
+          }
+        }
+       }
+       tmatch[iud]=(npattern[il0]!=0&&npattern[il1]!=0);
+       if(tmatch[iud]){
+         double dcoz=tfhit[il0]->Coo[2]-tfhit[il1]->Coo[2];
+         tmatch[iud]=(fabs(dmint)<fabs(dcoz)*1.414/(TofRecPar::NonTkBetaCutL*cvel)+1.414*TofRecPar::PairTMatch);//45degree 0.3c slow
+       }
+       if (!tmatch[iud]){
+           if     (npattern[il0]==4&&npattern[il1]!=4)npattern[il1]=0;
+           else if(npattern[il1]==4&&npattern[il0]!=4)npattern[il0]=0;
+           if     (npattern[il0]==4||npattern[il1]==4)tmatch[iud]=1;
+       }
+       
+      if(!tmatch[iud])return -1;
+     }
+//---Already Find
+    for(int ilay=0;ilay<4;ilay++){
+       tfhit[ilay]->Time=time[ilay];
+       tfhit[ilay]->ETime=etime[ilay];
+       if(npattern[ilay]==1||npattern[ilay]==2)tfhit[ilay]->Status|=TOFDBcN::RECOVERED;
+       pattern[ilay]=pattern[ilay]/10*10+npattern[ilay];
+    }
+    
+   }
+ 
+  
   return 0;
 }
 
@@ -1760,7 +1847,7 @@ int TofRecH::BetaFitC(TofClusterHR *tfhit[4],number res[4][2],int pattern[4], To
           }
       }
    }
-   par.Chi2C=chisl/nhitl;
+   par.Chi2C=(nhitl==0)?0:chisl/nhitl;
 //  par.Chi2C=sqrt((chisxy[0]+chisxy[1])/(nhitxy[0]+nhitxy[1]));
   return 0;
 }
@@ -1778,7 +1865,7 @@ int TofRecH::BetaFitT(TofClusterHR *tfhit[4],number lenr[4],int pattern[4], TofB
      par.Pattern[ilay]=pattern[ilay];
 //     if(tfhit[ilay]==0)par.Pattern[ilay]=0;
      if(par.Pattern[ilay]%10>0)par.SumHit++;
-     if(par.Pattern[ilay]%10!=4)continue;
+     if(par.Pattern[ilay]%10!=4&&!(mode/10==1&&par.Pattern[ilay]%10>0))continue;//tktrdf
 //--fill to par
      par.Time[ilay]= tfhit[ilay]->Time;//ns
      par.ETime[ilay]=tfhit[ilay]->ETime;//ns  
@@ -1792,6 +1879,7 @@ int TofRecH::BetaFitT(TofClusterHR *tfhit[4],number lenr[4],int pattern[4], TofB
 
   par.UseHit=selhit;
   if(selhit<2||selhit>=5){par.Status|=TOFDBcN::BAD;return -1;}
+  if(mode/10==1&&selhit>=2)par.UseHit=2;//tktrdf   
 
 //--then Fit
    BetaFitT(time,etime,len,selhit,par,mode,verse);
@@ -1813,7 +1901,8 @@ int TofRecH::TRecover(int idsoft,geant tklcoo,geant tms[2],geant &tm,geant &etm,
   else         {tms[0]=tms[1]+phdt;}
   tm=0.5*(tms[0]+tms[1]);
   tm=-tm;
-  etm=3*TofRecPar::GetTimeSigma(idsoft,1)*sqrt(2.);//1sid sqrt(2)
+//  etm=3*TofRecPar::GetTimeSigma(idsoft,1)*sqrt(2.);//1sid sqrt(2)
+  etm=TofRecPar::GetTimeSigma(idsoft,1)*sqrt(2.);//1sid sqrt(2)
   status|=TOFDBcN::RECOVERED;
   return 0;
 }
@@ -1904,7 +1993,7 @@ int TofRecH::BetaFitT(number time[],number etime[],number len[],const int nhits,
 }
 
 //========================================================
-int  TofRecH::BetaFitCheck(TofClusterHR *tfhit[4],number res[4][2],number lenr[4],int pattern[4],TofBetaPar &par){
+int  TofRecH::BetaFitCheck(TofClusterHR *tfhit[4],number res[4][2],number lenr[4],int pattern[4],TofBetaPar &par,int mode){
 
 //----double check don't need recover or unable to recover
   const float bcutl=0.3;
@@ -1915,6 +2004,12 @@ int  TofRecH::BetaFitCheck(TofClusterHR *tfhit[4],number res[4][2],number lenr[4
   bool cstat=(par.Chi2T<TofRecPar::DPairChi2TCut);
   if(!bstat)par.Status|=(TOFDBcN::BETAOVERFLOW|TOFDBcN::BAD);
   if(!cstat)par.Status|=(TOFDBcN::BETABADCHIT|TOFDBcN::BAD);
+
+  if(mode/10==1){//tktrdf
+     par.Status|=TOFDBcN::RECOVERED;
+     if((par.Status&TOFDBcN::BAD)>0)return -1;
+     else  return 0; 
+  }
 
 //--try to recover
   if((bstat&&cstat)||par.UseHit<=2){return 0;}
