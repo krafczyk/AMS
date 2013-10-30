@@ -30,3 +30,19 @@ vis/scene/add/trajectories
 /geometry/test/direction 0 0 -1
 /geometry/test/line_test
 
+
+#to scan/cut specific volume
+
+
+
+/run/initialize
+/vis/open OGLIX
+
+/vis/drawVolume volumename copyno
+
+/vis/scene/add/volume volumename2 copyno2
+
+# x y z cm  nx ny nz
+/vis/viewer/set/sectionPlane  on  0.0  0.0  0.0  cm  1.0  0.0  0.0    
+
+/vis/viewer/zoom xyz

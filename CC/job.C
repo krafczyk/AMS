@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.923 2013/10/14 16:01:12 traiha Exp $
+// $Id: job.C,v 1.924 2013/10/30 11:47:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -322,6 +322,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.AMSCut=1.;//AMSCut 1*mm
   G4FFKEY.EcalCut=10.;//EcalCut 10*mm
   G4FFKEY.ProcessOff=0;//111 Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on) 
+  G4FFKEY.OverlapTol=0;
   FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
   PRODFFKEY.Debug=0;

@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.103 2013/10/28 10:32:44 choutko Exp $
+//  $Id: geant4.C,v 1.104 2013/10/30 11:47:09 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -16,6 +16,7 @@
 #include "geant4.h"
 #include "astring.h"
 #include "g4physics.h"
+#include "G4GeometryTolerance.hh"
 #include "G4PhysicalVolumeStore.hh"
 #include "G4FieldManager.hh"
 #include "G4ChordFinder.hh"
@@ -647,6 +648,9 @@ int AMSG4EventAction::FindClosestParent( int gtrkid ){
 
 if(!_pv){
   cout << "AMSG4DetectorInterface::Construct-I-Building Geometry "<<endl;
+  G4GeometryTolerance::GetInstance()->SetSurfaceTolerance(100000);
+  cout << "AMSG4DetectorInterface::Construct-I-SurficeToleranceSetTo "<<G4GeometryTolerance::GetInstance()->GetSurfaceTolerance()<<" mm" <<endl;;
+
   AMSJob::gethead()->getgeom()->MakeG4Volumes();
 //---
   if(G4FFKEY.TFNewGeant4>0){ //TOF New Geant4 Geometry->down to mother
@@ -655,13 +659,12 @@ if(!_pv){
    }
 
 
-
   G4PhysicalVolumeStore* phystore = G4PhysicalVolumeStore::GetInstance();
-if(0 && phystore){
+if(G4FFKEY.OverlapTol &&phystore){
   cout <<" AMSgvolume::MakeG4Volumes-I-Total of "<<phystore->size()<<" volumes found"<<endl;
   for(int i=0;i<phystore->size();i++){
     G4VPhysicalVolume*p=(*phystore)[i];
-     if(p && p->CheckOverlaps(1000,1.e-4*cm,false)){
+     if(p && p->CheckOverlaps(1000,G4FFKEY.OverlapTol*cm,false)){
        cerr<<"  AMSgvolume::MakeG4Volumes-E-OverlapFoundFor "<<p->GetName()<<endl;
 }
 }

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.359 2013/10/14 16:01:12 traiha Exp $
+//  $Id: commons.h,v 1.360 2013/10/30 11:47:59 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1148,6 +1148,7 @@ class G4FFKEY_DEF{
   float AMSCut;
   float EcalCut;
   int  ProcessOff;
+  float OverlapTol;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);

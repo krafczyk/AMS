@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.57 2013/10/28 10:32:45 choutko Exp $
+//  $Id: trddbc.C,v 1.58 2013/10/30 11:47:52 choutko Exp $
 #include "trddbc.h"
 //#include "amsdbc.h"
 #include <math.h>
@@ -537,7 +537,7 @@ void TRDDBc::init(){
  
 //  Bottom octagon carbon fiber ring
 
-      OctagonDimensions(2,4)=-6./20.;    // z coord 
+      OctagonDimensions(2,4)=-6./20.+1.e-6;    // z coord  // tolerance 
 
      // Bottom edge
       OctagonDimensions(2,5)=1470./20.;         // rmin

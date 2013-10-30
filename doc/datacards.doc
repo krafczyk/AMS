@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.399 2013/10/28 10:32:49 choutko Exp $
+#  $Id: datacards.doc,v 1.400 2013/10/30 11:47:55 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -708,7 +708,7 @@ R 15 AMSCut(1*mm)      // general AMS geant4 cut
 R 16 EcalCut(1*cm)     // Ecal geant4 cut
 I 17 ProcessOff(0)     // Geant4 Process switch off option. 
                        // 111:  Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on) 
-
+R 18 OverlapTol(0)    // Tolerance for overlap check (cm); no overlap check if 0
 
 
 HISE   // Heavy Ion MC switch (Geant3 only)
