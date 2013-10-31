@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.50 2013/10/28 15:35:24 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.51 2013/10/31 13:49:39 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -1096,7 +1096,8 @@ tktrdf:
 //---Not Use Track+TRD
      if(BuildOpt==2)break;
 //---if trdtrack
-     if(iktr==1){ntracks=trdtrack.size();}
+     if     (iktr==0){ntracks=track.size();}
+     else if(iktr==1){ntracks=trdtrack.size();}
 //----
      for(int itr=0;itr<ntracks;itr++){
        uinteger status=(iktr==0)?(TOFDBcN::TKTRACK):(TOFDBcN::TRDTRACK);
@@ -1154,7 +1155,7 @@ tktrdf:
              if((tktrdflag==0)||(tstat==0)){
                EdepTkAtt(phit,tklcoo,tkcosz,betapar);
                betapar.Status|=status;
-//               if(tktrdflag!=0)cout<<"beta="<<betapar.Beta<<endl;
+          //     if(tktrdflag!=0)cout<<"beta="<<betapar.Beta<<endl;
 #ifndef __ROOTSHAREDLIBRARY__
                cont->addnext(new AMSBetaH(phit,dynamic_cast<AMSTrTrack *>(usetr),usetrd,useshow,betapar));
 #else
@@ -1768,6 +1769,7 @@ int TofRecH::TRecover(TofClusterHR *tfhit[4],number tklcoo[4],int pattern[4],int
           int ilay=iud*2+il;
           for(int is=0;is<2;is++){
             if(npattern[ilay]<3&&npattern[ilay]!=is+1)continue;
+            if(!tfhit[ilay])continue;
             TofRecPar::IdCovert(ilay,tfhit[ilay]->Bar);
             st[0]=tfhit[ilay]->Stime[0];
             st[1]=tfhit[ilay]->Stime[1];
@@ -1804,10 +1806,11 @@ int TofRecH::TRecover(TofClusterHR *tfhit[4],number tklcoo[4],int pattern[4],int
      }
 //---Already Find
     for(int ilay=0;ilay<4;ilay++){
+       pattern[ilay]=pattern[ilay]/10*10+npattern[ilay];
+       if(!tfhit[ilay])continue;
        tfhit[ilay]->Time=time[ilay];
        tfhit[ilay]->ETime=etime[ilay];
        if(npattern[ilay]==1||npattern[ilay]==2)tfhit[ilay]->Status|=TOFDBcN::RECOVERED;
-       pattern[ilay]=pattern[ilay]/10*10+npattern[ilay];
     }
     
    }
