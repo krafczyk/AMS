@@ -1,4 +1,4 @@
-// $Id: TrChargeLossDB.C,v 1.3 2013/03/15 07:34:38 oliva Exp $
+// $Id: TrChargeLossDB.C,v 1.4 2013/10/31 18:23:06 choutko Exp $
 
 #include "TrChargeLossDB.h"
 
@@ -619,15 +619,26 @@ double monotonic_cubic_interpolation(double xx, int n, double* x, double* y) {
   // (some modification of mine to deal with extrema)
   */
   // outside: linear extrapolation with first/last two points
+  if (xx!=xx){
+   cerr<<"monotonic_cubic_interpolation-E-NaNInput "<<endl;
+   return 0;
+  }
   if (xx<x[0])    return y[0] + (y[1]-y[0])/(x[1]-x[0])*(xx-x[0]);
   if (xx>=x[n-1]) return y[n-2] + (y[n-1]-y[n-2])/(x[n-1]-x[n-2])*(xx-x[n-2]);
   // find position (binary search)
   int l = (n-1);
   int f = 0;
   int ibin = int(f+(l-f)/2);
+  int ntry=0;
   while (!((xx>=x[ibin])&&(xx<x[ibin+1])) ) {
     if (xx<x[ibin])    { l = ibin;   ibin = int(f+(l-f)/2); }
     if (xx>=x[ibin+1]) { f = ibin+1; ibin = int(f+(l-f)/2); }
+    if(ntry++>n){
+       cerr<<"monotonic_cubic_interpolation-E-InfiniteCycle "<<ntry<<" "<<n<<" "<<xx<<endl;
+        for(int i=0;i<n;i++)cerr<<" x[i] "<<i<<" "<<x[i]<<endl;
+       ibin=0; 
+       break;
+    }
   }
   // monotonic cubic spline
   // special treatment for boundary (match with linear extrapolation)  
