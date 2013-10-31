@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.176 2013/10/31 18:26:10 oliva Exp $
+// $Id: TrTrack.C,v 1.177 2013/10/31 22:50:25 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/10/31 18:26:10 $
+///$Date: 2013/10/31 22:50:25 $
 ///
-///$Revision: 1.176 $
+///$Revision: 1.177 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1804,11 +1804,10 @@ void TrTrackR::RecalcHitCoordinates(int id) {
     TrClusterR *xcls = (TrClusterR*) hit->GetXCluster();
     TrClusterR *ycls = (TrClusterR*) hit->GetYCluster();
     TkSens sens(hit->GetTkId(),dpoi[i],dtrk[i],0);
-    if (xcls) { xcls->SetDxDz(sens.GetSensDir().x()/sens.GetSensDir().z());
-                xcls->SetDyDz(sens.GetSensDir().y()/sens.GetSensDir().z()); }
-    if (ycls) { ycls->SetDxDz(sens.GetSensDir().x()/sens.GetSensDir().z());
-                ycls->SetDyDz(sens.GetSensDir().y()/sens.GetSensDir().z()); }
-
+    float dxdz = (fabs(sens.GetSensDir().z())>0) ? sens.GetSensDir().x()/sens.GetSensDir().z() : 0;
+    float dydz = (fabs(sens.GetSensDir().z())>0) ? sens.GetSensDir().y()/sens.GetSensDir().z() : 0;
+    if (xcls) { xcls->SetDxDz(dxdz); xcls->SetDyDz(dydz); }
+    if (ycls) { ycls->SetDxDz(dxdz); ycls->SetDyDz(dydz); }
     int ll = hit->GetLayer();
     if (ll == 8 || ll == 9) {
       // TrExtAlignDB::SetAlKind(1);
