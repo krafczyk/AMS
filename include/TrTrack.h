@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.101 2013/07/23 12:49:35 bbeische Exp $
+//  $Id: TrTrack.h,v 1.102 2013/10/31 18:26:18 oliva Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2013/07/23 12:49:35 $
+///$Date: 2013/10/31 18:26:18 $
 ///
-///$Revision: 1.101 $
+///$Revision: 1.102 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -737,26 +737,32 @@ public:
 
   /** @name Track charge estimation (best available estimators shortcuts) */
   /**@{*/
-  //! Get the track charge estimator (all calculated information)
+  //! Get the full tracker floating point charge estimator (all calculated information)
   mean_t  GetQ_all(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get the track charge estimator
+  //! Get the full tracker floating point charge estimator
   float   GetQ(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get the number of points used in the track charge estimator
+  //! Get the number of points used in the full tracker floating point charge estimator 
   int     GetQ_NPoints(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get the RMS of the track charge estimator 
+  //! Get the RMS of the full tracker floating point charge estimator 
   float   GetQ_RMS(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get the inner tracker estimator (all calculated information)
+  //! Get the inner tracker floating point charge estimator (all calculated information)
   mean_t  GetInnerQ_all(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get the inner tracker estimator
+  //! Get the inner tracker floating point charge estimator
   float   GetInnerQ(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get the number of points used in the inner tracker charge estimator
+  //! Get the number of points used in the inner tracker floating point charge estimator
   int     GetInnerQ_NPoints(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get the RMS of the inner tracker charge estimator  
+  //! Get the RMS of the inner tracker floating point charge estimator  
   float   GetInnerQ_RMS(float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! Get charge of a hit
+  //! Get floating point charge estimator of a hit
   float   GetLayerJQ(int jlayer, float beta = 1, int fit_id = -1, float mass_on_z = 0, int version = 2);
-  //! nuovo GetQ
-  // GetQ(int& npoints, float& rms, int pattern, float beta = 1, float rigidity = 0, float mass_on_z = 0, int version = 1);
+  //! Get status of the charge of a single hit (see TrRecHit::GetQStatus)
+  int     GetLayerJQStatus(int jlayer);
+  //! Get full tracker integer charge estimator (log-like return for Z-1, Z and Z+1 if existing)
+  int     GetZ(int& NPoints, double& Q, double LogLike[3], float beta = 1, int fit_id = -1, float mass_on_z = 0);
+  //! Get inner tracker integer charge estimator (log-like return for Z-1, Z and Z+1 if existing)
+  int     GetInnerZ(int& NPoints, double& Q, double LogLike[3], float beta = 1, int fit_id = -1, float mass_on_z = 0);
+  //! Get integer charge estimator of a hit (log-like return for Z-1, Z and Z+1 if existing)
+  int     GetLayerJZ(int& NPoints, double& Q, double LogLike[3], int jlayer, float beta = 1, int fit_id = -1, float mass_on_z = 0);
   /**@}*/
 
 

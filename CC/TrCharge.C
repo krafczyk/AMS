@@ -1,18 +1,25 @@
 #include "TrCharge.h"
 
 
-////////////////////////////////////////////
-// Settings 
-////////////////////////////////////////////
-
-
 // Histogramming stuff
 bool     TrCharge::EnabledHistograms = TRCHAFFKEY.EnableHisto;
 HistoMan TrCharge::Histograms;
 
 
+// Clean members
+void TrCharge::Clear() {
+  for(int ll=0; ll<9; ll++) {
+    ClsCat[ll] = -1000;
+    for(int ss=0; ss<2; ss++) {
+      ClsSig[ss][ll]= -1.; // means not stored
+    }
+  }
+}
+
+
 ////////////////////////////////////////////
-// Goodness of a single charge measurement
+// Floating point charge estimator 
+// A. Oliva and P. Saouter 2012    
 ////////////////////////////////////////////
 
 
@@ -33,11 +40,6 @@ bool TrCharge::GoodChargeReconHit(TrRecHitR* hit, int iside) {
   else               return ((status&0x1FD1FD)==0);
   return true;
 }
-
-
-//////////////////////////////////////////////
-// Averaging methods
-//////////////////////////////////////////////
 
 
 mean_t TrCharge::GetMean(int type, vector<float> signal) {
@@ -233,7 +235,246 @@ mean_t TrCharge::GetCombinedMean(int type, TrTrackR* track, float beta, int jlay
 
 
 //////////////////////////////////////////////
-// Probability method (OLD IMPLEMENTATION) 
+// Integer charge estimator related methods  
+// A. Oliva and N. Tomassetti 2013
+//////////////////////////////////////////////
+
+
+// Remark
+//   almost equivalent to TrCharge::GoodChargeReconHit
+//   a part the request of being "gold". Maybe too strict.
+bool TrCharge::GoodHitForLogProb(TrRecHitR* hit, int iside) {
+  // pointer check
+  if (hit==0) return false;
+  iside = iside%3;
+  // cluster exist
+  TrClusterR* cls;
+  if (iside==0) cls = hit->GetXCluster();
+  if (iside==1) cls = hit->GetYCluster();
+  if (!cls) return false;
+  // good va
+  int iVA  = (int)(cls->GetAddress()/64);
+  bool isgold = (bool) TrGainDB::GetHead()->FindGainTkId(cls->GetTkId())->IsGold(iVA);
+  if (!isgold) return false;
+  // quality
+  int Mult = hit->GetResolvedMultiplicity();
+  if ( (cls->GetQStatus(1,Mult)&0x1FD)!=0 ) return false;
+  // other-side cluster
+  TrClusterR* clo;
+  if (iside==0) clo = hit->GetYCluster();
+  if (iside==1) clo = hit->GetXCluster();
+  if ( (clo) && (clo->GetQStatus(1,Mult)&0x100)!=0 ) return false;
+  return true;
+}
+
+
+// Remark: check the mass_on_Z choice 
+bool TrCharge::StoreClusterInfo(TrTrackR* track, int type, int iside, double beta, double rigidity, double mass_on_Z) {
+  // reset 
+  Clear();     
+  // check pointer
+  if (track==0) return false; 
+  // init
+  double qtot_x= 0.;
+  double qtot_y= 0.;
+  int default_opt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kMIP|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity;
+  // loop on hits
+  for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+    TrRecHitR* hit = track->GetHit(ihit);
+    if(!hit) continue;
+    int LayerJ = hit->GetLayerJ();
+    // store only the requested configuration 
+    if ( (type<8)&&(!( ((type&kInner)&&(LayerJ>1)&&(LayerJ<9))||((type&kLower)&&(LayerJ==9))||((type&kUpper)&&(LayerJ==1)))) ) continue;
+    if ( (type>100)&&((type%100)!=LayerJ) ) continue;
+    // store
+    ClsCat[LayerJ-1]= 0;
+    if ( (hit->GetXCluster())&&(!hit->GetXCluster()->IsK7()) ) ClsCat[LayerJ-1]= 1;
+    // use 2D hits when available - 1D otherwise
+    if(iside==2) {
+      if ( (GoodHitForLogProb(hit,0))&&(GoodHitForLogProb(hit,1)) ) {
+        ClsSig[0][LayerJ-1] = sqrt(hit->GetSignalCombination(0,default_opt,beta,rigidity,mass_on_Z));
+        ClsSig[1][LayerJ-1] = sqrt(hit->GetSignalCombination(1,default_opt,beta,rigidity,mass_on_Z));
+      }
+      else {
+        if (GoodHitForLogProb(hit,0)) { // x-side 1D
+          ClsSig[0][LayerJ-1]= sqrt(hit->GetSignalCombination(0,default_opt,beta,rigidity,mass_on_Z));
+        }
+        if (GoodHitForLogProb(hit,1)) { // y-side 1D
+          ClsSig[1][LayerJ-1]= sqrt(hit->GetSignalCombination(1,default_opt,beta,rigidity,mass_on_Z));
+        }
+      }
+    }
+    // only one side used
+    if (iside==0) {
+      if (GoodHitForLogProb(hit,0)) { // x-side 1D
+        ClsSig[0][LayerJ-1]= sqrt(hit->GetSignalCombination(0,default_opt,beta,rigidity,mass_on_Z));
+      }
+    }
+    if (iside==1) {
+      if (GoodHitForLogProb(hit,1)) { // y-side 1D
+        ClsSig[1][LayerJ-1]= sqrt(hit->GetSignalCombination(1,default_opt,beta,rigidity,mass_on_Z));
+      }
+    }
+  }
+  return true;
+}
+
+
+void TrCharge::PrintClusterInfo() {
+  printf("TrCharge::PrintfClusterInfo-V:\n");
+  for (int ss=0; ss<2; ss++) {
+    for (int ll=0; ll<9; ll++) { 
+      printf("%7.3f ",ClsSig[ss][ll]);
+    }
+    printf("\n");
+  }
+  for (int ll=0; ll<9; ll++) {
+    printf("%7d ",ClsCat[ll]);
+  }
+  printf("\n");
+}
+
+
+double TrCharge::GetMeanCharge(double qtot_x, double qtot_y, int nq_x, int nq_y, int Z){
+  if(nq_x<=0 && nq_y<=0) return -1.;
+  if(nq_y<=0) return qtot_x/nq_x; // x-side only
+  if(nq_x<=0) return qtot_y/nq_y; // y-side only
+  double sigma6_x[28]={0.0598, 0.0762, 0.0881, 0.0947, 0.1091, 0.1303, 0.1357,
+                       0.1721, 0.2264, 0.2467, 0.32125, 0.3958, 0.479, 0.5622,
+                       0.8591, 1.156, 1.12024, 1.08448, 1.04872, 1.01296, 0.9772,
+                       0.94144, 0.90568, 0.86992, 0.83416, 0.7984, 0.7984, 0.7984};
+  double sigma6_y[28]={0.0618, 0.0798, 0.095, 0.1361, 0.2534, 0.5171, 1.2854,
+                       0.8704, 0.7563, 0.4421, 0.45615, 0.4702, 0.4912, 0.5122,
+                       0.77315, 1.0341, 1.02556, 1.01702, 1.00848, 0.99994, 0.9914,
+                       0.98286, 0.97432, 0.96578, 0.95724, 0.9487, 0.9487, 0.9487};
+  double sigma_x = sigma6_x[Z-1]*sqrt(6./nq_x);
+  double sigma_y = sigma6_y[Z-1]*sqrt(6./nq_y);
+  double mean_q = (qtot_x/nq_x/sigma_x/sigma_x + qtot_y/nq_y/sigma_y/sigma_y)/(1./sigma_x/sigma_x + 1./sigma_y/sigma_y);
+  return mean_q;
+}
+
+
+double TrCharge::GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int iside){
+  // init
+  double likelihood = 0.;
+  int npoints_x     = 0;
+  int npoints_y     = 0;
+  int npoints_xy    = 0;
+  double qtot_x     = 0.;
+  double qtot_y     = 0.;
+  // loop 
+  int  side = iside%3;
+  for(int ll=0;ll<9;ll++){
+    // cluster values
+    double xi_x = ClsSig[0][ll]/Z;
+    double xi_y = ClsSig[1][ll]/Z;
+    int    icat = ClsCat[ll];
+    double logprob = TrLikeDB::default_logprob;
+    // fiducial intervals
+    float MinXi=0.55;
+    float MaxXi=3.0;
+    if(Z>2)  MaxXi=2.3;
+    if(Z>6)  MaxXi=1.8;
+    if(Z>10) MaxXi=1.5;
+    bool kX = (xi_x>MinXi && xi_x<MaxXi);
+    bool kY = (xi_y>MinXi && xi_y<MaxXi);
+    // switch
+    if (side==2) { // LOOK AT BOTH SIDES
+      if (kX && kY) { // 2D COMBINED SIGNALS
+        logprob = -TrLikeDB::Interpolate(TrLikeDB::GetHead()->GetPdf(0,Z,icat,0,1),xi_x,xi_y); // 2D X vs Y 
+        if(logprob>TrLikeDB::default_logprob){
+          qtot_x += ClsSig[0][ll];
+          qtot_y += ClsSig[1][ll];
+          npoints_xy++;
+          likelihood+= logprob;
+        }
+      }
+      else{ // ONLY 1D SIGNAL
+        if (kX){ // IT's X
+          logprob = -TrLikeDB::Interpolate(TrLikeDB::GetHead()->GetPdf(1,Z,icat,0,1),xi_x); // 1D X
+          if (logprob>TrLikeDB::default_logprob) {
+            qtot_x += ClsSig[0][ll];
+            npoints_x++;
+            likelihood+= logprob;
+          }
+        }
+        if (kY) {// IT's Y
+          logprob = -TrLikeDB::Interpolate(TrLikeDB::GetHead()->GetPdf(1,Z,icat,1,1),xi_y); // 1D Y
+          if (logprob>TrLikeDB::default_logprob) {
+            qtot_y += ClsSig[1][ll];
+            npoints_y++;
+            likelihood+= logprob;
+          }
+        }
+      }
+    }
+    if ((side==0) && kX) {
+      logprob = -TrLikeDB::Interpolate(TrLikeDB::GetHead()->GetPdf(1,Z,icat,0,1),xi_x); // 1D X   
+      if (logprob>TrLikeDB::default_logprob){ 
+        qtot_x += ClsSig[0][ll];
+        npoints_x++;
+        likelihood+= logprob;
+      }
+    }
+    if ((side==1) && kY) {
+       logprob = -TrLikeDB::Interpolate(TrLikeDB::GetHead()->GetPdf(1,Z,icat,1,1),xi_y); // 1D Y 
+      if (logprob>TrLikeDB::default_logprob) {
+        qtot_y += ClsSig[1][ll];
+        npoints_y++;
+        likelihood+= logprob;
+      }
+    }
+  }
+  // eval mean floating charge q and likelihood dof
+  int nq_x = npoints_x + npoints_xy;
+  int nq_y = npoints_y + npoints_xy;
+  qmean = GetMeanCharge(qtot_x,qtot_y,nq_x,nq_y,Z);
+  npoints = npoints_x + npoints_y + 2*npoints_xy;
+  return (npoints<1) ? TrLikeDB::default_logprob : likelihood/npoints;
+}
+
+
+// Not sure about MinNP
+int TrCharge::GetZ(int& NPoints, double &QMean, double& LogLike, TrTrackR* track, int type, int iside, double beta, double rigidity, double mass_on_Z){
+  // check 
+  if(!track) return -2;
+  int Zbest = -1;
+  NPoints =  0;
+  // min npoints required at first iteration
+  int MinNP = 6;
+  if (iside<2) MinNP = 5;
+  if (type&kAll) MinNP++;
+  if ( type&kLower || type&kUpper ) MinNP=1;
+  if (type>8) MinNP=1;
+  // init
+  int npoints = 0;
+  double qmean= 0.;
+  LogLike = TrLikeDB::default_logprob;
+  // store in memory relevant infos
+  if (!StoreClusterInfo(track,type,iside,beta,rigidity,mass_on_Z)) return -3;
+  // find best charge Z
+  int NITER = MinNP;
+  for (int iter=0; iter<NITER; iter++) { // iteration loop (to avoid that lower number of points could dominate)
+    Zbest = -1;
+    for (int Z=1; Z<=28; Z++) {
+      double logl = GetLogLikelihoodToBeZ(npoints,qmean,Z,iside);
+      if (npoints<MinNP-iter) continue;
+      if (logl>LogLike) {
+        LogLike = logl;
+        Zbest = Z;
+        NPoints = npoints;
+        QMean = qmean;
+      }
+    }
+    if(Zbest>0) break; // Z found
+  } // end iteration loop
+  return Zbest;
+}
+
+
+//////////////////////////////////////////////
+// Old methods for floating point charge and integer charge estimators 
+// A. Oliva and P. Saouter 2011
 //////////////////////////////////////////////
 
 
@@ -255,7 +496,6 @@ double TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
     case 1: { 
       TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf01_SingleLayer);
       if (pdf==0) {
-        // this frequently happens ... maybe is better to put a counter
         // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d), returning 0.\n",
         //   iside,Z,TRCHAFFKEY.PdfVersion);
         return 0;
@@ -267,14 +507,7 @@ double TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
     }
     case 2: {
       TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
-      // TMP (MAYBE BETTER)
-      // TrPdf* pdf = (Z<2) ? TrPdfDB::GetHead()->GetPdf(1,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) : 
-      //                      TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) ;
-      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
-      // TAKING JUST ONE PDF FOR EACH CHARGE AND EACH LAYER ... SEEMS BETTER!!!
-      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,2);
       if (pdf==0) {
-        // this frequently happens ... maybe is better to put a counter
         // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d, layer=%d), returning 0.\n",
         //    iside,Z,TRCHAFFKEY.PdfVersion,hit->GetLayerJ());
         return 0;
@@ -398,12 +631,6 @@ like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int
     // calculate probability 
     double prob = GetProbToBeZ(hit,iside,Z,beta);
     double logprob = (prob>1e-300) ? log10(prob) : -300; // double minimum 
-    /*
-    cout << ihit << " " << hit->GetLayerJ() << " "  
-         << hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta) << " " 
-         << hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta)/Z/Z << " " 
-         << Z << " " << " " << prob << endl;
-    */
     likelihood.NPoints++;
     likelihood.LogLike += logprob;
     likelihood.Mean = hit->GetSignalCombination(iside,TrClusterR::DefaultChargeCorrOpt,beta);
@@ -435,8 +662,9 @@ like_t TrCharge::GetLogLikelihoodCharge(int type, TrTrackR* track, int iside, fl
 }
 
 
-////////////////////////////////////////////
-// Reconstruction related methods
+//////////////////////////////////////////////
+// Charge-related methods for reconstruction
+// A. Oliva 2012   
 //////////////////////////////////////////////
 
 

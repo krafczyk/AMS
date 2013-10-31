@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.924 2013/10/30 11:47:52 choutko Exp $
+// $Id: job.C,v 1.925 2013/10/31 18:26:10 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -40,6 +40,7 @@
 #include "TrEDepDB.h"
 #include "TrMipDB.h"
 #include "TrLinearDB.h"
+#include "TrLikeDB.h"
 
 #include "trrec.h"
 #include "tkdcards.h"
@@ -2192,6 +2193,8 @@ void AMSJob::udata(){
   TrMipDB::GetHead()->Init();
   // create and load from AMSDataDir the linearity correction database
   TrLinearDB::GetHead()->Init();
+  // create and load from AMSDataDir the pdf library
+  TrLikeDB::GetHead()->Init();
 
   TrRecon::Init();
   TrRecon::SetParFromDataCards();

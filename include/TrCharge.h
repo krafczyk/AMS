@@ -9,11 +9,11 @@
  \brief Full class for the Tracker charge reconstruction
 
  \class TrCharge
- \brief A static class for the Tracker charge reconstruction
+ \brief An almost static class for the Tracker charge reconstruction
 
- $Date: 2013/03/14 09:29:38 $
+ $Date: 2013/10/31 18:26:18 $
 
- $Revision: 1.11 $
+ $Revision: 1.12 $
 */
 
 #include "VCon.h"
@@ -27,6 +27,7 @@
 #include "TrPdfDB.h"
 #include "TrGainDB.h"
 #include "TrChargeLossDB.h"
+#include "TrLikeDB.h"
 
 #include "TFile.h"
 #include "TMath.h"
@@ -38,26 +39,6 @@
 
 
 using namespace std;
-
-
-/*
-class TrChargeR : public TrElem {
-
- protected:
- 
-  //! Energy deposition estimation (MeV)
-  float EDep[3][9];
-  //! Energy deposition integral inside 2 cm 
-  float EDep2cm[3][9];
-  //! Charge estimation for every layer/side [sqrt(MIP)]
-  float Q[3][9];
-  //! Integer charge estimation for every layer/side
-  int   Z[9]; 
-  //! 
-  Hypothesis ... 
-
-}
-*/
 
 
 //! Class used to retrieve results of a mean calculation
@@ -165,6 +146,20 @@ class TrCharge {
 
  public:
 
+  //! Cluster signal container (used to speed-up likelihood)
+  double ClsSig[2][9];
+  //! Cluster category (used to speed-up likelihood)
+  int    ClsCat[9];
+
+ public:
+
+  //! Enabling histograms
+  static bool     EnabledHistograms;
+  //! Histogram manager
+  static HistoMan Histograms;
+
+ public:
+
   /////////////////////////
   // Enumerators
   /////////////////////////
@@ -180,16 +175,19 @@ class TrCharge {
     // xy not weighted
     kXYUnWei = 3 
   };
-  //! Mean types
-  enum MeanType {
+  //! Pattern types
+  enum PattType {
     // add inner tracker
-    kInner     = 0x1, 
+    kInner     = 0x1,
     // add upper layer 
     kUpper     = 0x2,
     // add lower layer
     kLower     = 0x4,
     // all tracker
-    kAll       = 0x1|0x2|0x4,
+    kAll       = 0x1|0x2|0x4
+  };
+  //! Mean types
+  enum MeanType {
     // plain mean
     kPlainMean = 0x10, 
     // truncated mean  
@@ -204,17 +202,20 @@ class TrCharge {
     // kTruncatedMean = 0x100, kAllPoints = 0x200, kDropOne = 0x400, kBestFour = 0x800 
   };
 
-  /////////////////////////
-  // Goodness of a single charge measurement
-  /////////////////////////
+ public:
 
+  /** @name Base methods (only used for likelihood right now). */
+  // c-tor
+  TrCharge() { Clear(); }     
+  // d-tor
+  ~TrCharge() { Clear(); }         
+  // Clear computing members
+  void Clear();
+
+  /** @name Floating point charge estimator related methods (static library) */
+  /**@{*/
   //! Good hit for charge reconstruction
   static bool   GoodChargeReconHit(TrRecHitR* hit, int iside);
-
-  /////////////////////////
-  // Averaging methods
-  /////////////////////////
-
   //! Mean generic interface
   static mean_t GetMean(int type, vector<float> signal);
   //! Mean of n signals
@@ -229,11 +230,28 @@ class TrCharge {
   //! Weighted mean of two sides  
   static mean_t GetCombinedMean(int type, TrTrackR* track, float beta = 1, int jlayer = -1, 
         int opt = TrClusterR::DefaultChargeCorrOpt, int fit_id = -1, float mass_on_Z = 0);
+  /**@}*/
 
-  /////////////////////////
-  // Old methods (still in use!)
-  /////////////////////////
 
+  /** @name Integer charge estimator related methods (non-static library) */
+  /**@{*/
+  //! Good clusters for the probability calculation
+  bool   GoodHitForLogProb(TrRecHitR* hit, int side);
+  //! Store in memory relevant information of clusters that will be used in likelihood calculation
+  bool   StoreClusterInfo(TrTrackR* track, int type, int iside = 2, double beta = 1, double rigidity = 0, double mass_on_Z = 2*0.93149);
+  //! Print current cluster info
+  void   PrintClusterInfo();
+  //! Compute xy-combined mean charge given the evaluated Z 
+  double GetMeanCharge(double qtot_x, double qtot_y, int nq_x, int nq_y, int Z);
+  //! Get likelihood to be Z for a given event (0: x-side, 1: y-side, 2: both sides when possible, otherwise y-side)
+  double GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int iside = 2);
+  //! Get best charge (with type = 10j get evaluation of layer j) 
+  int    GetZ(int& NPoints, double &QMean, double& LogLike, TrTrackR* track, int type = kInner, int iside = 2, double beta = 1, double rigidity = 0, double mass_on_Z = 2*0.93149);
+  /**@}*/
+
+
+  /** @name Old methods for floating point charge and integer charge estimators (static library) */
+  /**@{*/
   //! The rigidity could be used to estimate beta  
   static float  GetBetaFromRigidity(float rigidity, int Z, float mass);
   //! Get the probability 
@@ -244,37 +262,29 @@ class TrCharge {
   static int    GetTruncMeanCharge(TrTrackR* track, float beta = 1);
   //! A first attempt to get a Q evaluator (DEPRECATED) 
   static float  GetQ(TrTrackR* track, int iside, float beta = 1);
+  //! Likelihood computation   
+  static like_t GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta = 1);
+  //! Likelihood charge
+  static like_t GetLogLikelihoodCharge(int type, TrTrackR* track, int iside, float beta = 1);
+  /**@}*/
 
-  /////////////////////////
-  // Reconstruction used methods
-  /////////////////////////
-
+  
+  /** @name Charge-related methods for reconstruction */
+  /**@{*/
   //! Get mean signal of 4 highest clusters 
   static mean_t GetMeanHighestFourClusters(int type, int iside, int opt = TrClusterR::DefaultCorrOpt);
+  /**@}*/
 
-  /////////////////////////
-  // Likelihood methods
-  /////////////////////////
 
-  //! Likelihood computation   
-  static like_t  GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta = 1);
-  //! Likelihood charge
-  static like_t  GetLogLikelihoodCharge(int type, TrTrackR* track, int iside, float beta = 1);
-
-  /////////////////////////
-  // Histogramming methods
-  /////////////////////////
-
-  //! Enabling histograms
-  static bool     EnabledHistograms;
-  //! Histogram manager
-  static HistoMan Histograms;
+  /** @name Histogramming methods */
   //! Enable the histogram filling
-  static void     EnableHistograms()  { Histograms.Enable();  EnabledHistograms = true; }
+  static void   EnableHistograms()  { Histograms.Enable();  EnabledHistograms = true; }
   //! Disable the histogram filling
-  static void     DisableHistograms() { Histograms.Disable(); EnabledHistograms = false; }
+  static void   DisableHistograms() { Histograms.Disable(); EnabledHistograms = false; }
   //! Save histograms on a file
-  static void     Save(TFile* file) { Histograms.Save(file,"TrCharge"); }
+  static void   Save(TFile* file) { Histograms.Save(file,"TrCharge"); }
+  /**@}*/
+
 
 };
 

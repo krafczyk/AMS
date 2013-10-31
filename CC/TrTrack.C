@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.175 2013/10/15 03:01:58 pzuccon Exp $
+// $Id: TrTrack.C,v 1.176 2013/10/31 18:26:10 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/10/15 03:01:58 $
+///$Date: 2013/10/31 18:26:10 $
 ///
-///$Revision: 1.175 $
+///$Revision: 1.176 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1995,7 +1995,7 @@ float TrTrackR::GetInnerQ_RMS(float beta, int fit_id, float mass_on_z, int versi
   return GetInnerQ_all(beta, fit_id, mass_on_z, version).RMS;
 }
 
-  
+ 
 float TrTrackR::GetLayerJQ(int jlayer, float beta, int fit_id, float mass_on_z, int version) {
   TrRecHitR* hit = (TrRecHitR*) GetHitLJ(jlayer);
   if (hit==0) return 0;
@@ -2009,5 +2009,54 @@ float TrTrackR::GetLayerJQ(int jlayer, float beta, int fit_id, float mass_on_z, 
   float rigidity = (fit_id>=0) ? GetRigidity(fit_id) : 0; 
   return sqrt(hit->GetSignalCombination(2,TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kRigidity,beta,rigidity,mass_on_z));
 }
+
+
+int TrTrackR::GetLayerJQStatus(int jlayer) {
+  TrRecHitR* hit = (TrRecHitR*) GetHitLJ(jlayer);
+  if (hit==0) return 0;
+  return hit->GetQStatus();
+}
+
+
+#include "TrLikeDB.h"
+int TrTrackR::GetZ(int& NPoints, double& Q, double LogLike[3], float beta, int fit_id, float mass_on_z) {
+  TrCharge trcharge;
+  double rigidity = (fit_id>0) ? GetRigidity(fit_id) : 0;
+  int Z = trcharge.GetZ(NPoints,Q,LogLike[1],this,TrCharge::kAll,2,beta,rigidity,mass_on_z);
+  int np_tmp = 0;
+  double q_tmp = 0;
+  LogLike[0] = (Z>1)             ? trcharge.GetLogLikelihoodToBeZ(np_tmp,q_tmp,Z-1,2) : TrLikeDB::default_logprob;
+  LogLike[2] = ( (Z>0)&&(Z<28) ) ? trcharge.GetLogLikelihoodToBeZ(np_tmp,q_tmp,Z+1,2) : TrLikeDB::default_logprob;
+  return Z;
+}
+
+
+int TrTrackR::GetInnerZ(int& NPoints, double& Q, double LogLike[3], float beta, int fit_id, float mass_on_z) {
+  TrCharge trcharge;
+  double rigidity = (fit_id>0) ? GetRigidity(fit_id) : 0;
+  int Z = trcharge.GetZ(NPoints,Q,LogLike[1],this,TrCharge::kInner,2,beta,rigidity,mass_on_z);
+  int np_tmp = 0;
+  double q_tmp = 0;
+  LogLike[0] = (Z>1)             ? trcharge.GetLogLikelihoodToBeZ(np_tmp,q_tmp,Z-1,2) : TrLikeDB::default_logprob;
+  LogLike[2] = ( (Z>0)&&(Z<28) ) ? trcharge.GetLogLikelihoodToBeZ(np_tmp,q_tmp,Z+1,2) : TrLikeDB::default_logprob;
+  return Z;
+}
+
+
+int TrTrackR::GetLayerJZ(int& NPoints, double& Q, double LogLike[3], int jlayer, float beta, int fit_id, float mass_on_z) {
+  TrCharge trcharge;
+  double rigidity = (fit_id>0) ? GetRigidity(fit_id) : 0;
+  int Z = trcharge.GetZ(NPoints,Q,LogLike[1],this,100+jlayer,2,beta,rigidity,mass_on_z);
+  int np_tmp = 0;
+  double q_tmp = 0;
+  LogLike[0] = (Z>1)             ? trcharge.GetLogLikelihoodToBeZ(np_tmp,q_tmp,Z-1,2) : TrLikeDB::default_logprob;
+  LogLike[2] = ( (Z>0)&&(Z<28) ) ? trcharge.GetLogLikelihoodToBeZ(np_tmp,q_tmp,Z+1,2) : TrLikeDB::default_logprob;
+  return Z;
+}
+
+
+
+
+
 
  

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.598 2013/10/28 15:15:39 qyan Exp $
+//  $Id: root.C,v 1.599 2013/10/31 18:26:10 oliva Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10500,6 +10500,7 @@ char * DaqEventR::Info(int number){
 #include "TrEDepDB.h"
 #include "TrMipDB.h"
 #include "TrLinearDB.h"
+#include "TrLikeDB.h"
 #endif
 
 void AMSEventR::InitDB(TFile *_FILE){
@@ -10630,6 +10631,8 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     TrMipDB::GetHead()->Init();
     // create and load from AMSDataDir the linearity correction database
     TrLinearDB::GetHead()->Init();
+    // create and load from AMSDataDir the pdf library
+    TrLikeDB::GetHead()->Init();
 
     //------Initialize BacktracingMIB class
         if(BackTracingMIB::GetStatusBT()!=1){
