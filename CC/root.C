@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.599 2013/10/31 18:26:10 oliva Exp $
+//  $Id: root.C,v 1.600 2013/11/01 14:58:31 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5497,7 +5497,8 @@ MCEventgR::MCEventgR(AMSmceventg *ptr){
   Momentum = ptr->_mom;
   Mass     = ptr->_mass;
   Charge   = ptr->_charge;
-  tbline   = ptr->_tbline;
+  TBl   = ptr->_tbline;
+  PartInfo   = ptr->_parinfo;
 #endif
 }           
 

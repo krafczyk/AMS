@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.573 2013/10/28 15:17:03 qyan Exp $
+//  $Id: root.h,v 1.574 2013/11/01 14:58:42 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3835,7 +3835,7 @@ public:
 static bool Rebuild;
 
   int Nskip;      ///< geant4 partcle create process: bit-1 IonInelastic(He+Deturon+Triton+Ion) bit-2 ProtonInelastic bit-3 ConvertPhoton
-  int Particle;   ///< geant3 particle id
+  int Particle;   ///< geant3 particle id OR geant4 particle id if no geant3 counterpart is found
                   /*!<
           (geant3 only) \n
             Particle=g3pid+256 means heavy ion nonelstic
@@ -3851,7 +3851,8 @@ static bool Rebuild;
   float Momentum;  ///< momentum (gev)
   float Mass;      ///< mass (gev)
   float Charge;    ///< charge (signed)
-  int tbline;      ///< For TB generation mode postion id (line number of the file of positions)
+  short int TBl;      ///< For TB generation mode postion id (line number of the file of positions)   
+  short int PartInfo; ///< 1 geant3 particle code 2 geant4 particle code - secondary particle
   MCEventgR(){};
   MCEventgR(AMSmceventg *ptr);
   /// \param number index in container
@@ -3861,7 +3862,7 @@ static bool Rebuild;
   return _Info;
   }
   virtual ~MCEventgR(){};
-ClassDef(MCEventgR,4)       //MCEventgR
+ClassDef(MCEventgR,5)       //MCEventgR
 #pragma omp threadprivate(fgIsA)
 };
 

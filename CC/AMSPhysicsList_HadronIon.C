@@ -67,14 +67,14 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     SetVerboseLevel(10);
 
 
-
+/*
     G4LElastic* elasticModel = new G4LElastic();
     G4HadronElasticProcess* hadElastProc = new G4HadronElasticProcess();
     hadElastProc->AddDataSet(new G4HadronElasticDataSet);
     hadElastProc->RegisterMe(elasticModel);
     //       pmanager->AddDiscreteProcess(hadElastProc);
 
-
+*/
 
     G4ParticleDefinition* particle = 0;
     G4ProcessManager* pManager = 0;
@@ -166,7 +166,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fhe3Ion->AddDataSet(generalCrossSection);
 	fhe3Ion->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fhe3Ion);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//pManager->AddDiscreteProcess(hadElastProc);
 	//======GenericIon
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
@@ -178,7 +178,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fGenericIon->AddDataSet(generalCrossSection);
 	fGenericIon->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fGenericIon);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//pManager->AddDiscreteProcess(hadElastProc);
 
 	if(G4FFKEY.UseEMDModel==1){
 	  cout<<"Also Use EMD Model"<<endl;
@@ -239,7 +239,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fhe3Ion->AddDataSet(generalCrossSection);
 	fhe3Ion->RegisterMe(theAM);
 	pManager->AddDiscreteProcess(fhe3Ion);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//pManager->AddDiscreteProcess(hadElastProc);
 	//======GenericIon
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
@@ -247,7 +247,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fGenericIon->AddDataSet(generalCrossSection);
 	fGenericIon->RegisterMe(theAM);
 	pManager->AddDiscreteProcess(fGenericIon);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//pManager->AddDiscreteProcess(hadElastProc);
 
 	if(G4FFKEY.UseEMDModel==1){
 	  cout<<"Also Use EMD Model"<<endl;
@@ -332,7 +332,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fhe3Ion->AddDataSet(TripathiCrossSection);
 	fhe3Ion->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fhe3Ion);
-	pManager->AddDiscreteProcess(hadElastProc);
+//	pManager->AddDiscreteProcess(hadElastProc);
 	//======GenericIon
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
@@ -345,7 +345,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fGenericIon->AddDataSet(TripathiCrossSection);
 	fGenericIon->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fGenericIon);
-	pManager->AddDiscreteProcess(hadElastProc);
+//	pManager->AddDiscreteProcess(hadElastProc);
 
 	if(G4FFKEY.UseEMDModel==1){
 	  cout<<"Also Use EMD Model"<<endl;

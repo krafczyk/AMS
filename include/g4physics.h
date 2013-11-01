@@ -1,4 +1,4 @@
-//  $Id: g4physics.h,v 1.14 2013/05/06 16:56:11 choutko Exp $
+//  $Id: g4physics.h,v 1.15 2013/11/01 14:58:42 choutko Exp $
 #ifndef __G4PHYSICS__
 #define __G4PHYSICS__
 
@@ -15,7 +15,7 @@ public:
   virtual ~AMSG4Physics();
   public:
   const char* G3toG4(G4int pid);
-  G4int G4toG3(const G4String&  particle);
+  G4int G4toG3(const G4String&  particle,int& error);
   void _init();
   // Construct particle and physics
   virtual void ConstructParticle();

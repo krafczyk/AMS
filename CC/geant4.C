@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.104 2013/10/30 11:47:09 choutko Exp $
+//  $Id: geant4.C,v 1.105 2013/11/01 14:58:31 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -870,7 +870,8 @@ if(!Step)return;
 
     //cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
     G4ParticleDefinition* particle =Track->GetDefinition();
-    GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
+    int parinfo;
+    GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName(),parinfo);
     GCKINE.charge=particle->GetPDGCharge();
     //    if(GCKINE.ipart==51){
     //       cout <<" xray "<<PrePV->GetName()<<" "<<PostPV->GetName()<<" "<<PostPoint->GetPosition()<<endl;
@@ -1003,7 +1004,8 @@ if(!Step)return;
 
 
 	G4ParticleDefinition* particle =Track->GetDefinition();
-	GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
+        int parinfo;
+	GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName(),parinfo);
 	GCKINE.charge=particle->GetPDGCharge();
 	//      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<GCKINE.ipart<<" "<<GCTRAK.destep<<" "<<GCTRAK.step<<endl;
 
@@ -1338,7 +1340,8 @@ if(!Step)return;
 G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track * aTrack)
 { 
   G4ParticleDefinition* particle =aTrack->GetDefinition();
-  GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
+    int parinfo;
+  GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName(),parinfo);
   if(GCKINE.ipart==Cerenkov_photon){
     //--new TOF part
     if((G4FFKEY.TFNewGeant4==1)){
@@ -1422,11 +1425,9 @@ void AMSG4SteppingAction::FillPrimaryInfo( const G4Step *Step){
   G4double ekin = aTrack->GetKineticEnergy();
   G4String name = aTrack -> GetDynamicParticle() -> GetDefinition() -> GetParticleName();
   G4ThreeVector mom = aTrack->GetMomentumDirection();
-  int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
-  if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle ){
-    //G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
-    // too bad, could be nuclei
-  }
+    int partinfo;
+    int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name,partinfo );
+    partinfo++;
   if(g3code==AMSG4Physics::_G3DummyParticle)return;
 
   G4ThreeVector pos = aTrack->GetPosition();
@@ -1435,10 +1436,13 @@ void AMSG4SteppingAction::FillPrimaryInfo( const G4Step *Step){
   AMSDir dir( mom.x(), mom.y(), mom.z() );
   int nskip = -1000; //indicates that this is primary acceptance particle
   nskip -= ipl;
+   G4ParticleDefinition * pdef = aTrack->GetDynamicParticle()->GetDefinition();
+   float charge=pdef->GetPDGCharge();
+   float mass=pdef->GetPDGMass()/GeV;
 
   AMSEvent::gethead()->addnext(
                                AMSID("AMSmceventg",0),
-                               new AMSmceventg( g3code,  aTrack->GetTrackID(), aTrack->GetParentID(), ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
+                               new AMSmceventg( g3code,  aTrack->GetTrackID(), aTrack->GetParentID(), ekin/GeV, point/cm, dir,partinfo,mass,charge,nskip) // negetive code for secondary
                                );
 
 }
@@ -1461,20 +1465,21 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
     // 
     // ams form of the track/particle information
     //
-    int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
-    if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle ){
-      //G4cout << "AMSG4SteppingAction::FillBackSplash-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
-      // too bad, could be nuclei
-    }
+    int partinfo;
+    int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name,partinfo );
+    partinfo++;
+    partinfo=-partinfo;
     if(g3code==AMSG4Physics::_G3DummyParticle)return;
     G4ThreeVector pos = aTrack->GetPosition();
     AMSPoint point( pos.x(), pos.y(), pos.z() );
     float parr[3] = { pos.x(), pos.y(), pos.z() };
     AMSDir dir( mom.x(), mom.y(), mom.z() );
     int nskip = -2; //indicates that this is step of backsplashed particle
+   float charge=pdef->GetPDGCharge();
+   float mass=pdef->GetPDGMass()/GeV;
     AMSEvent::gethead()->addnext(
                                  AMSID("AMSmceventg",0),
-                                 new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(), ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
+                                 new AMSmceventg( g3code,  aTrack->GetTrackID(), aTrack->GetParentID(), ekin/GeV, point/cm, dir,partinfo,mass,charge,nskip) // negetive code for secondary
                                  );
     AMSG4EventAction* evt_act = (AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
     evt_act->AddRegisteredTrack( aTrack->GetTrackID() );

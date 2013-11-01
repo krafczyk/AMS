@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.579 2013/06/15 13:13:18 choutko Exp $
+//  $Id: event.C,v 1.580 2013/11/01 14:58:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -808,7 +808,7 @@ void AMSEvent::_regnevent(){
       AMSPoint x(ArrayB[chint].X,ArrayB[chint].Y,ArrayB[chint].Z);
       
 //cout << " x "<<x<< " "<<dir<< " "<<ArrayB[chint].Time<<endl;
-      AMSmceventg *pgen=new AMSmceventg(part, 1, 0, mom,x,dir,ArrayB[chint].Cond);
+      AMSmceventg *pgen=new AMSmceventg(part, mom,x,dir,ArrayB[chint].Cond);
       if(pgen->acceptio()){
         addnext(AMSID("AMSmceventg",0),pgen);
       }
@@ -1535,7 +1535,7 @@ void AMSEvent::_siamsevent(){
     geant coo[7];
     abinelget_(iset,coo);
     if(iset){
-      AMSmceventg* genp=new AMSmceventg(iset+256, 1, 0,coo[6],AMSPoint(coo[0],coo[1],coo[2]),AMSDir(coo[3],coo[4],coo[5]));
+      AMSmceventg* genp=new AMSmceventg(iset+256, coo[6],AMSPoint(coo[0],coo[1],coo[2]),AMSDir(coo[3],coo[4],coo[5]));
       addnext(AMSID("AMSmceventg",0), genp);
 
     }

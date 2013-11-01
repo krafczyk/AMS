@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.57 2013/08/09 14:48:48 choutko Exp $
+//  $Id: g4physics.C,v 1.58 2013/11/01 14:58:31 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.57 2013/08/09 14:48:48 choutko Exp $
+// $Id: g4physics.C,v 1.58 2013/11/01 14:58:31 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1142,7 +1142,8 @@ const char* AMSG4Physics::G3toG4(G4int pid){
   }
 }
 
-G4int AMSG4Physics::G4toG3(const G4String & particle){
+G4int AMSG4Physics::G4toG3(const G4String & particle,int &error){
+  error=0;
   AMSIDs ids((const char*)(particle));
   int found=AMSbins(_pg4tog3,ids,_Ng3tog4);
   if(found>0){
@@ -1153,11 +1154,13 @@ G4int AMSG4Physics::G4toG3(const G4String & particle){
     G4ParticleTable *ppart=G4ParticleTable::GetParticleTable();
       G4ParticleDefinition *part=ppart->FindParticle(particle);
       if(part){
+         error=1;
          return part->GetPDGEncoding();
       }
       else{
        static int l=0;
        if(l++<100)cerr<<"AMSG4Physics::G4toG3-I-NoG4ParticleFoundFor"<<(const char *)(particle)<<endl;
+      error=2;
       return _G3DummyParticle;
       }
   }

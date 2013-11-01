@@ -1,7 +1,12 @@
-//  $Id: g4visman.C,v 1.5 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: g4visman.C,v 1.6 2013/11/01 14:58:31 choutko Exp $
 #include "g4visman.h"
 
 // Supported drivers...
+
+
+#ifdef G4VIS_USE_RAYTRACER
+#include "G4RayTracerX.hh"
+#endif
 
 #ifdef G4VIS_USE_DAWN
 #include "G4FukuiRenderer.hh"
@@ -19,6 +24,7 @@
 #ifdef G4VIS_USE_OPENGLX
 #include "G4OpenGLImmediateX.hh"
 #include "G4OpenGLStoredX.hh"
+
 #endif
 
 #ifdef G4VIS_USE_OPENGLWIN32
@@ -26,9 +32,20 @@
 #include "G4OpenGLStoredWin32.hh"
 #endif
 
+#ifdef G4VIS_USE_HEPREPFILE
+#include "G4HepRepFile.hh"
+#include "G4HepRepFileViewer.hh"
+#include "G4HepRepSceneHandler.hh"
+#endif
+
+#ifdef G4VIS_USE_HEPREP
+#include "G4HepRep.hh"
+#endif
+
 #ifdef G4VIS_USE_OPENGLXM
 #include "G4OpenGLImmediateXm.hh"
 #include "G4OpenGLStoredXm.hh"
+#include "G4OpenGLImmediateQt.hh"
 #endif
 
 #ifdef G4VIS_USE_OIX
@@ -54,12 +71,26 @@
 
 void AMSG4VisManager::RegisterGraphicsSystems () {
 
+#ifdef G4VIS_USE_RAYTRACER
+  RegisterGraphicsSystem (new G4RayTracerX);
+#endif
+
+
 #ifdef G4VIS_USE_DAWN
   RegisterGraphicsSystem (new G4FukuiRenderer);
 #endif
 
 #ifdef G4VIS_USE_DAWNFILE
   RegisterGraphicsSystem (new G4DAWNFILE);
+#endif
+
+#ifdef G4VIS_USE_HEPREPFILE
+  RegisterGraphicsSystem (new G4HepRepFile);
+#endif
+
+
+#ifdef G4VIS_USE_HEPREP
+  RegisterGraphicsSystem (new G4HepRep);
 #endif
 
 #ifdef G4VIS_USE_OPACS
@@ -80,6 +111,7 @@ void AMSG4VisManager::RegisterGraphicsSystems () {
 #ifdef G4VIS_USE_OPENGLXM
   RegisterGraphicsSystem (new G4OpenGLImmediateXm);
   RegisterGraphicsSystem (new G4OpenGLStoredXm);
+  RegisterGraphicsSystem (new G4OpenGLImmediateQt);
 #endif
 
 #ifdef G4VIS_USE_OIX

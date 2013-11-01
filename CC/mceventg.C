@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.185 2013/10/22 17:26:26 choutko Exp $
+//  $Id: mceventg.C,v 1.186 2013/11/01 14:58:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -93,13 +93,13 @@ if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
 
 
 AMSmceventg::AMSmceventg(integer ipart, geant mom, const AMSPoint & coo,
-			 const AMSDir & dir, integer nskip):_trkid(-2),_parentid(-2),_nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
-init(ipart);
+			 const AMSDir & dir, integer nskip):_trkid(1),_parentid(0),_nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0),_parinfo(1),_ipart(ipart),_delay(0){
+if(abs(_parinfo)==1)init(ipart);
 
 }
 
-AMSmceventg::AMSmceventg(integer ipart, integer trackid, integer parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip):_trkid(trackid), _parentid(parentid), _nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
-init(ipart);
+AMSmceventg::AMSmceventg(integer ipart, integer trackid, integer parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer parinfo,float charge,float mass,integer nskip):_trkid(trackid), _parentid(parentid), _nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0),_parinfo(parinfo),_charge(charge),_mass(mass),_ipart(ipart),_delay(0){
+if(abs(_parinfo)==1)init(ipart);
 _mom=sqrt( (_mom+_mass)*(_mom+_mass)-_mass*_mass);
 
  }
@@ -1982,12 +1982,13 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    // 
    // ams form of the track/particle information
    //
-   int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
-   if( g3code > 100 && g3code!=AMSG4Physics::_G3DummyParticle  && g3code!= 113 ){
-    //  G4cout << "AMSmceventg::FillMCInfoG4-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
-      // too bad, could be nuclei
-   }
+   int parinfo;
+   int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name,parinfo );
    if(g3code==AMSG4Physics::_G3DummyParticle)return;
+   parinfo++;
+   parinfo=-parinfo;
+   float charge=pdef->GetPDGCharge();
+   float mass=pdef->GetPDGMass()/GeV;
    AMSPoint point( pos.x(), pos.y(), pos.z() );
    float parr[3] = { pos.x(), pos.y(), pos.z() };
    AMSDir dir( mom.x(), mom.y(), mom.z() );
@@ -2015,7 +2016,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    //
    AMSEvent::gethead()->addnext(
          AMSID("AMSmceventg",0),
-         new AMSmceventg( -g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir,nskip) // negetive code for secondary
+         new AMSmceventg( g3code,  aTrack->GetTrackID(), aTrack->GetParentID(),  ekin/GeV, point/cm, dir,parinfo,mass,charge,nskip) // negetive code for secondary
          );
 
 
