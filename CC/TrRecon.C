@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.168 2013/01/05 22:02:04 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.169 2013/11/01 16:49:46 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/01/05 22:02:04 $
+/// $Date: 2013/11/01 16:49:46 $
 ///
-/// $Revision: 1.168 $
+/// $Revision: 1.169 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -5567,8 +5567,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
       fitid|=TrTrackR::kFitLayer8;
     else     if(iadd[1]==1) 
       fitid|=TrTrackR::kFitLayer9;
-    track->FitT(fitid);
-    track->RecalcHitCoordinates(fitid);
+    if (track->FitT(fitid) > 0)
+      track->RecalcHitCoordinates(fitid);
 
   }
   else return nadd;
