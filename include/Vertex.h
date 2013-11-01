@@ -87,6 +87,8 @@ public:
   integer       getndof()    const  {return Ndof;}
   /// Return true if the vertex has been properly built 
   bool           IsFilled()   const  {return _filled!=0;}
+  /// Return true if the vertex is build with an assumption of photon
+  bool           IsPhotonVertex() const  {return _filled==2;}
   /// Returns an AMSPoint with the vertex coo
   AMSPoint      getvert()  const {return AMSPoint(Vertex[0],Vertex[1],Vertex[2]);}
 
