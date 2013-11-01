@@ -302,7 +302,7 @@ double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2)
 {
   if (!trk1 || !trk2) return -1;
 
-  enum { NL = 7, ND = 5 };
+  enum { NL = 8, ND = 5 };
 
   double zref = ZrefV;
   double sigx =   1;
@@ -342,7 +342,7 @@ double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2)
       TrTrackR *trk = (i == 0) ? trk1 : trk2;
       AMSPoint   pb = ppnt[i];
 
-      for (int k = 0; k <= NL; k++) {
+      for (int k = 0; k < NL; k++) {
 	double xsg = 0, ysg = 0;
 	AMSPoint p = pb;
 	if (k > 0) {
