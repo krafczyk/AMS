@@ -47,6 +47,7 @@ void AMSJob::_retkinitjob(){
   AMSgObj::BookTimer.book("TrTrack6FitE");
   AMSgObj::BookTimer.book("TrTrack0Vpsel");
   AMSgObj::BookTimer.book("TrTrack1Vfind");
+  AMSgObj::BookTimer.book("TrTrack1Vhmlt");
   AMSgObj::BookTimer.book("TrCluster");
   AMSgObj::BookTimer.book("TrClusterRefit");
   AMSgObj::BookTimer.book("TrClusterReorder");
