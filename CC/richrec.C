@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.165 2013/09/09 11:09:45 mdelgado Exp $
+//  $Id: richrec.C,v 1.166 2013/11/02 22:57:09 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -820,6 +820,9 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     if(recs[actual][0]>0 || recs[actual][1]>0 || recs[actual][2]>0){	
       hitp[actual]=hit;
       actual++;
+
+      if(actual>100 && actual%20==0 && _NoMoreTime()) throw amsglobalerror("AMSRichRing::build-E-Cpulimit Exceeded ");
+
     }
   }
   // Look for clusters
@@ -849,6 +852,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     
     
     for(integer i=0;i<actual;i++){
+      if(i>50 && i%20==0 && _NoMoreTime()) throw amsglobalerror("AMSRichRing::build-E-Cpulimit Exceeded ");
       if(recs[i][0]==-2.) continue; // Jump if direct is below threshold
       if((cleanup && current_ring_status&dirty_ring) || (cleanup/10)%10) 
 	if(hitp[i]->getbit(crossed_pmt_bit)) continue;
