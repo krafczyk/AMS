@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.137 2013/11/03 03:00:10 pzuccon Exp $
+//  $Id: geant.C,v 1.138 2013/11/03 09:30:02 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -325,9 +325,8 @@ if (IOPA.WriteTGeometry>1) {
 	f->Write();
 	f->Close();
 
-#endif
 }
-
+#endif
 }
 
 
