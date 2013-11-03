@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.266 2013/10/16 11:01:43 choutko Exp $
+//  $Id: ntuple.C,v 1.267 2013/11/03 21:19:32 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -520,25 +520,43 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 //}
 }
 }
-   const int size_break=10000;
-  #pragma omp critical (wr1)
-  {
-    Get_evroot02()->SetCont();
+    AMSEventR * evn=0;
     int nthr=1;
+    static int mode_yeld=false; 
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
 #endif
+    int size_break=IOPA.MaxEventsMap*nthr;
     uint64 runv=AMSEvent::gethead()->getrunev();
-    AMSEventR * evn=new AMSEventR(_evroot02);
+  #pragma omp critical (wr1)
+  {
+    Get_evroot02()->SetCont();
+    if(evmap.find(runv)!=evmap.end()){
+      cerr<<"AMSEventR::writeR-E-dupliucatedEventInMapFound "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
+    }
+    else{
+     evn=new AMSEventR(_evroot02);    
     evmap.insert(make_pair(runv,evn));
+    
+    
 #ifdef _PGTRACK_
     // once the AMSEventR is created I fill the monitoring infos
     if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->Fill(evn); 
 #endif
-  }
-     static int mode_yeld=false; 
+    }
+
+
+    if(evmap.size()>2*size_break)mode_yeld=true;
+    else if(evmap.size()<size_break/2)mode_yeld=false;
+}
+  
+
+
+
 #ifdef _OPENMP
-     for(int k=0;k<50000;k++){
+     int maxk=evmap.size()*100;
+     if(maxk<50000)maxk=50000;
+     for(int k=0;k<maxk;k++){
  if(!omp_test_lock(&fLock)){
    if(!mode_yeld)return _Lastev;
    else usleep(2);
@@ -552,11 +570,26 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
   vector<AMSEventR*> del;
 #pragma omp critical (wr1)
   {
-     static int _Size=0;
    int nthr=1;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
 #endif
+      static int _Size=0;
+      if(evmap.size()>_Size ){
+      long long ssize=0;
+      for(evmapi i=evmap.begin();i!=evmap.end();i++){
+	ssize+=i->second->Size();
+      }  
+      float maxsize=1000.*AMSEvent::get_num_threads()/4.;
+      if(maxsize<1000)maxsize=1000;
+      if(ssize/1024/1024>maxsize){
+      if(!mode_yeld)cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<AMSEvent::gethead()->get_thread_num()<<" "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
+      mode_yeld=true;
+      }
+      if(evmap.size()-_Size>10)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<evmap.size()<<" "<<ssize/1024/1024<<" Mb "<<endl;
+      _Size=evmap.size();
+    }
+
     for(evmapi i=evmap.begin();i!=evmap.end();){
       bool go=true;
       //     cout <<"  go "<<i->second->Event()<<endl;
@@ -571,7 +604,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 	for(int k=0;k<nthr;k++){
 	  if(AMSEvent::runev(k)==(i->first)){
 	    AMSEvent::runev(k)=0;
-	    break;
+//	    break;
 	  }
 	}
 	del.push_back(i->second); 
@@ -580,25 +613,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
         if(del.size()>size_break)break;
       }
     }
-    if(evmap.size()>_Size){
-      long long ssize=0;
-      for(evmapi i=evmap.begin();i!=evmap.end();i++){
-	ssize+=i->second->Size();
-      }  
-      float maxsize=1000.*AMSEvent::get_num_threads()/4.;
-      if(maxsize<1000)maxsize=1000;
-      if(ssize/1024/1024>maxsize){
-      cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<AMSEvent::gethead()->get_thread_num()<<" "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
-      mode_yeld=true;
-      //	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
-      }
-      else mode_yeld=false;
-      _Size=evmap.size();
-      if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
-    }
-    else if(mode_yeld && evmap.size()<size_break)mode_yeld=false;
-
-  }
+   }
   if(del.size()){
     //cout << " lock write "<<AMSEvent::get_thread_num()<<" "<<_Lastev<<" "<<del.size()<<endl;
     //#pragma omp critical (wr2)
@@ -630,6 +645,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       }
     }
   }
+  else mode_yeld=false;
   
 #ifdef _OPENMP
     omp_unset_lock(&fLock);

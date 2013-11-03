@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.401 2013/11/03 03:00:10 pzuccon Exp $
+#  $Id: datacards.doc,v 1.402 2013/11/03 21:19:36 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -99,6 +99,8 @@ I215 ReadAMI(0)                   //  0,1,2 not read/Read/force read AMI interfa
 I216 unitimegen(0)                    // dummy datacard entry for future use 
 I217 MaxOneMinuteRootFileSize(100000000)  //  in bytes
 I218 BuildRichConfig(1)          // Create Rich Config DB records (>0) and write them in Root (>=0) 
+I219 MaxEventsMap  (200)               // Max events to be filled in root file by one thread  
+
 //-------------------------------------------------------------------------------
 
     RICH simulation

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.360 2013/10/30 11:47:59 choutko Exp $
+//  $Id: commons.h,v 1.361 2013/11/03 21:19:36 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -217,6 +217,7 @@ class IOPA_DEF {
   integer unitimegen;
   integer MaxOneMinuteRootFileSize;
   integer BuildRichConfig;
+  integer MaxEventsMap;
 #ifdef __AMSVMC__
   integer VMCVersion;
   integer VMCEventno;
