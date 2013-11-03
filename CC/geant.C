@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.136 2012/08/02 09:21:54 choutko Exp $
+//  $Id: geant.C,v 1.137 2013/11/03 03:00:10 pzuccon Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -88,6 +88,17 @@
 #include <TGeoBBox.h>
 #include "amsvmc_MCApplication.h"
 extern amsvmc_MCApplication*  appl;
+#endif
+
+
+
+
+
+
+#ifdef _USEVGM_
+#include "Geant4GM/volumes/Factory.h" 
+#include "RootGM/volumes/Factory.h" 
+#include "TGeoManager.h"
 #endif
 
 #ifdef __DB__
@@ -220,7 +231,7 @@ void gams::UGINIT(int argc,  char * argv[]){
    AMSgvolume::amsgeom();
 
 
-   #ifdef __AMSVMC__
+#ifdef __AMSVMC__
       TGeoVolume *top = rootgeom->GetVolume("AMSG");
       //   TGeoBBox *box = new TGeoBBox("s_box", 10,10,10);
       //      TGeoVolume *top = new TGeoVolume("Dumy",box,gGeoManager->GetMedium(15));
@@ -264,7 +275,7 @@ GDINIT();
 
 
 // Save geometry in TGeo format with ams2tgeo automatic converter
-if (IOPA.WriteTGeometry) {
+if (IOPA.WriteTGeometry==1) {
   // ROOT Geometry
   char tgeofilename[40];
   UHTOC(IOPA.TGeometryFileName,40/sizeof(integer),tgeofilename,40-1);
@@ -290,6 +301,33 @@ if(MISCFFKEY.G4On)g4ams::G4INIT();
 GPHYSI();
 #endif
 AMSJob::map(1);
+
+#ifdef _USEVGM_
+if (IOPA.WriteTGeometry>1) {
+    // ROOT Geometry
+    char tgeofilename[40];
+      UHTOC(IOPA.TGeometryFileName,40/sizeof(integer),tgeofilename,40-1);
+        cout << "gams::UGINIT-Create Root TGeoManager, output file is " << tgeofilename << endl;
+	TFile * f=TFile::Open(tgeofilename,"RECREATE");
+
+	// Import Geant4 geometry to VGM
+	//
+	Geant4GM::Factory g4Factory;
+	g4Factory.Import(AMSJob::gethead()->getgeom()->pg4v());
+	// where physiWorld is of G4VPhysicalVolume* type
+
+	// Export VGM geometry to Root
+	//
+	RootGM::Factory rtFactory;
+	g4Factory.Export(&rtFactory);
+	gGeoManager->CloseGeometry();
+	gGeoManager->Write();
+	f->Write();
+	f->Close();
+
+#endif
+}
+
 }
 
 

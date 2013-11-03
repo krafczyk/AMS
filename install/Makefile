@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.272 2013/10/31 18:26:18 oliva Exp $
+#  $Id: Makefile,v 1.273 2013/11/03 03:00:10 pzuccon Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -116,7 +116,7 @@ DEFINES += -DCASTORSTATIC
 endif
 
 DEFINES  +=    -D__WRITEROOT__    
-INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
+INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include  
 
 
 CPPFLAGS += $(DEFINES)  $(INCDIRS)
@@ -1050,9 +1050,13 @@ endif
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
 
-
+ifndef VGM_INSTALL
 $(BIN)geant.o: 	 $(SCC)geant.C
 	$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
+else
+$(BIN)geant.o: 	 $(SCC)geant.C
+	$(CXX) -c $(CFLAGS) -D_USEVGM_ -I$(VGM_INSTALL)/include -D__BATCH__  $< -o $@
+endif
 
 $(BIN)geant3.o:	 $(SCC)geant3.C
 	$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
