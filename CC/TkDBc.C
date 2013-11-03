@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.72 2013/10/28 10:32:44 choutko Exp $
+//  $Id: TkDBc.C,v 1.73 2013/11/03 05:28:00 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/10/28 10:32:44 $
+///$Date: 2013/11/03 05:28:00 $
 ///
-///$Revision: 1.72 $
+///$Revision: 1.73 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -208,8 +208,6 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     Plane6EnvelopSize[0]=109.4;
     Plane6EnvelopSize[1]=75;
     Plane6EnvelopSize[2]=3.3;
-    Plane6_skin_w[0]=0.07;
-    Plane6_skin_w[1]=0.07;
   
     const number  xposl[maxplanes]={0,0,0,0,0,0.};
     memcpy(_xpos,xposl,maxplanes*sizeof(xposl[0]));
@@ -217,6 +215,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     //                                      1/5N   2       3     4      1N     6    
     const number sup_hc_skin_w[maxplanes]={0.069, 0.015, 0.015, 0.015, 0.069, 0.06};
     memcpy(_sup_hc_skin_w,sup_hc_skin_w,maxplanes*sizeof(sup_hc_skin_w[0]));
+    Plane6_skin_w[0]=sup_hc_skin_w[5];
+    Plane6_skin_w[1]=sup_hc_skin_w[5];
 
     const number  yposl[maxplanes]={0,0,0,0,0,0};
     memcpy(_ypos,yposl,nplanes*sizeof(yposl[0]));
@@ -250,7 +250,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     memcpy(_plane_d1,plane_d1,maxplanes*sizeof(_plane_d1[0]));
 
     // Plane envelop half thickness in cm
-    const double  plane_d2[maxplanes] = { 4., 11.0, 11.0, 11.0 ,3.,0.};
+    const double  plane_d2[maxplanes] = { 4., 11.0, 11.0, 11.0 ,3,0.};
     memcpy(_plane_d2,plane_d2,maxplanes*sizeof(_plane_d2[0]));
     _plane_d2[5]= Plane6EnvelopSize[2]/2.;
 
@@ -264,7 +264,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     if(_setup==3){
       _dz[0]=0.; //-1.*(_plane_d2[0]*2.-_sup_hc_w[0])/2.;
       
-      _dz[4]=(_plane_d2[4]*2.-_sup_hc_w[4])/2.;
+      _dz[4]=(_plane_d2[4]*2.-_sup_hc_w[4]-2*_sup_hc_skin_w[4])/2.;
       
       _dz[5]=(Plane6EnvelopSize[2]-Plane6Size[2])/2.; 
     }

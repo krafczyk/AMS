@@ -330,13 +330,13 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
 
   geant par[3];
   if(layer==1 ||layer==8||layer==9){
-    par[0] = TkDBc::Head->_zelec[2]/2;
-    par[1] = TkDBc::Head->_zelec[1]/2;
-    par[2] = TkDBc::Head->_zelec[0]/2;
+    par[0] = TkDBc::Head->_zelec[2]/2.;
+    par[1] = TkDBc::Head->_zelec[1]/2.;
+    par[2] = TkDBc::Head->_zelec[0]/2.;
   }else{
-    par[0] = TkDBc::Head->_zelec[0]/2;
-    par[1] = TkDBc::Head->_zelec[1]/2;
-    par[2] = TkDBc::Head->_zelec[2]/2;
+    par[0] = TkDBc::Head->_zelec[0]/2.;
+    par[1] = TkDBc::Head->_zelec[1]/2.;
+    par[2] = TkDBc::Head->_zelec[2]/2.;
   }
   double hlen = TkCoo::GetLadderLength(tkid)/2
     -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
@@ -351,7 +351,7 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
 
   // Get coordinate w.r.t. the mother layer
   geant coo[3];
-  coo[0] = oo.x() +sign*(TkCoo::GetLadderLength(tkid)/2+par[0]);
+  coo[0] = oo.x() +sign*(TkCoo::GetLadderLength(tkid)/2+par[0]+0.003);
   coo[1] = oo.y();
   coo[2] = (abs(oo.z())/oo.z())*(TkDBc::Head->_sup_hc_w[plane-1]/2.+par[2]+0.1); 
   if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
@@ -506,16 +506,17 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     //       plan6 Y size/2.
     par[1]=TkDBc::Head->Plane6Size[1]/2.;
     //       plan6E thickness/2.
-    par[2]= TkDBc::Head->Plane6Size[2]/2.-TkDBc::Head->Plane6_skin_w[0];    //       plan6E X size/2.
+    double p6z= TkDBc::Head->Plane6Size[2]-TkDBc::Head->Plane6_skin_w[0]*2; 
+    par[2]=p6z/2.;
 
     
     coo[0] = coo[1] = 0;
-    coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  -TkDBc::Head->Plane6Size[2])/2;
+    coo[2] =-1*TkDBc::Head->Plane6EnvelopSize[2]/2+ p6z/2 +TkDBc::Head->Plane6_skin_w[0];
     
     
     VZERO(nrm,9*sizeof(nrm[0][0])/4);
     nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
-    
+   
     mvol->add(new AMSgvolume("Tr_HoneyOUT", _nrot++, name,
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
@@ -536,14 +537,12 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     
     
     coo[0] = coo[1] = 0;
-    coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  -TkDBc::Head->Plane6Size[2])/2 - 
-      ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[0])/2.;
+    coo[2] =-1*TkDBc::Head->Plane6EnvelopSize[2]/2. + TkDBc::Head->Plane6_skin_w[0]+p6z+TkDBc::Head->Plane6_skin_w[0]/2.;
     sprintf(name2,"USK%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
-    coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  -TkDBc::Head->Plane6Size[2])/2 + 
-      ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[0])/2.;
+    coo[2] =-1*TkDBc::Head->Plane6EnvelopSize[2]/2.  +TkDBc::Head->Plane6_skin_w[0]/2.;
 
     sprintf(name2,"LSK%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
@@ -558,11 +557,12 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
      //       plan6 Y size/2.
      par[1]=TkDBc::Head->Plane6Size[1]/2.;
     //       plan6E thickness/2.
-     par[2]= 0.4/2. -TkDBc::Head->Plane6_skin_w[1] ;    //       plan6 cover Z size/2.
+     double p6zt= 0.4 -TkDBc::Head->Plane6_skin_w[1]*2 ; 
+     par[2]= p6zt/2. ;    //       plan6 cover Z size/2.
 
     
     coo[0] = coo[1] = 0;
-    coo[2] =  (TkDBc::Head->Plane6EnvelopSize[2]  - 0.4 )/2;
+    coo[2] = TkDBc::Head->Plane6EnvelopSize[2]/2.  - TkDBc::Head->Plane6_skin_w[1] - p6zt/2.;
     
     
     VZERO(nrm,9*sizeof(nrm[0][0])/4);
@@ -589,14 +589,12 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     
     
     coo[0] = coo[1] = 0;
-    coo[2] =(TkDBc::Head->Plane6EnvelopSize[2]  - 0.4 )/2 - 
-      ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[1])/2.;
+    coo[2] =TkDBc::Head->Plane6EnvelopSize[2]/2. - TkDBc::Head->Plane6_skin_w[1]/2.;
     sprintf(name2,"USH%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
-    coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  - 0.4)/2 + 
-      ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[1])/2.;
+    coo[2] =TkDBc::Head->Plane6EnvelopSize[2]/2.- TkDBc::Head->Plane6_skin_w[1] - p6zt - TkDBc::Head->Plane6_skin_w[1]/2.;
 
     sprintf(name2,"LSH%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
@@ -616,12 +614,13 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
       //       Spacer Y size/2.
       par[1]= 0.7 /2.;
      //       Spacer thickness/2.
-      par[2]=  1.9 /2.;    //       plan6 cover Z size/2.
+      double spz=TkDBc::Head->Plane6EnvelopSize[2] - p6zt -p6z  - 4*TkDBc::Head->Plane6_skin_w[1];
+      par[2]=  spz/2.;
      
      //            Spacers pitch
      coo[0] = kk * 14.2;
      coo[1] = 0;
-     coo[2] =TkDBc::Head->Plane6Size[2] -TkDBc::Head->Plane6EnvelopSize[2]/2.  + par[2];
+     coo[2] = -1*TkDBc::Head->Plane6EnvelopSize[2]/2. + 2*TkDBc::Head->Plane6_skin_w[0]+p6z   + par[2];
     
     
      VZERO(nrm,9*sizeof(nrm[0][0])/4);
@@ -640,12 +639,13 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
       //       Spacer Y size/2.
       par[1]= 1.4 /2.;
      //       Spacer thickness/2.
-     par[2]=  1.9 /2.;    //       plan6 cover Z size/2.
+      double spz=TkDBc::Head->Plane6EnvelopSize[2] - p6zt -p6z  - 4*TkDBc::Head->Plane6_skin_w[1];
+     par[2]=  spz/2.;
      
      //            Spacers pitch
      coo[0] = 0;
      coo[1] = kk*(34+par[1]);
-     coo[2] =TkDBc::Head->Plane6Size[2] -TkDBc::Head->Plane6EnvelopSize[2]/2.  + par[2] ;
+     coo[2] =-1*TkDBc::Head->Plane6EnvelopSize[2]/2. + 2*TkDBc::Head->Plane6_skin_w[0]+p6z   + par[2];
     
     
      VZERO(nrm,9*sizeof(nrm[0][0])/4);
