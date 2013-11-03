@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.73 2013/11/03 05:28:00 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.74 2013/11/03 06:12:08 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/11/03 05:28:00 $
+///$Date: 2013/11/03 06:12:08 $
 ///
-///$Revision: 1.73 $
+///$Revision: 1.74 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -250,7 +250,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     memcpy(_plane_d1,plane_d1,maxplanes*sizeof(_plane_d1[0]));
 
     // Plane envelop half thickness in cm
-    const double  plane_d2[maxplanes] = { 4., 11.0, 11.0, 11.0 ,3,0.};
+    const double  plane_d2[maxplanes] = { 3.6, 11.0, 11.0, 11.0 ,3,0.};
     memcpy(_plane_d2,plane_d2,maxplanes*sizeof(_plane_d2[0]));
     _plane_d2[5]= Plane6EnvelopSize[2]/2.;
 

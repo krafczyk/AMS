@@ -681,14 +681,14 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     mvol->add(new AMSgvolume(mate, _nrot++, name,
 			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
-  if(plane>0&&plane!=6){
-    printf("\nPlane %d\n",plane);
-    printf(" Coo %f %f %f\n ",coo[0],coo[1],coo[2]);    
-    printf(" Half dim %f %f %f\n ",par[0],par[1],par[2]);
-    printf(" Matr  %f %f %f \n",nrm[0][0],nrm[0][1],nrm[0][2]);
-    printf("       %f %f %f \n",nrm[1][0],nrm[1][1],nrm[1][2]);
-    printf("       %f %f %f \n",nrm[2][0],nrm[2][1],nrm[2][2]);
-  }
+    if(plane>0&&plane!=6){
+      printf("\nPlane %d\n",plane);
+      printf(" Coo %f %f %f\n ",coo[0],coo[1],coo[2]);    
+      printf(" Half dim %f %f %f\n ",par[0],par[1],par[2]);
+      printf(" Matr  %f %f %f \n",nrm[0][0],nrm[0][1],nrm[0][2]);
+      printf("       %f %f %f \n",nrm[1][0],nrm[1][1],nrm[1][2]);
+      printf("       %f %f %f \n",nrm[2][0],nrm[2][1],nrm[2][2]);
+    }
     // ADD CARBON SKINS
     par[0] = 0;
     par[1] = TkDBc::Head->_sup_hc_r[plane-1];
@@ -721,7 +721,7 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     for (int lbb=0;lbb<5;lbb++){
       coo[0]=lbcoo[lbb][0];
       coo[1]=lbcoo[lbb][1];
-      coo[2]= -TkDBc::Head->_dz[plane-1]+TkDBc::Head->_sup_hc_w[plane-1]/2.+par[2]+0.1;
+      coo[2]= -TkDBc::Head->_dz[plane-1]+TkDBc::Head->_sup_hc_w[plane-1]/2.+TkDBc::Head->_sup_hc_skin_w[plane-1]+par[2];
 
       nrm[0][0]=nrm[1][1]=cos(lbcoo[lbb][2]/180.*pi);
       nrm[0][1]=sin(lbcoo[lbb][2]/180.*pi);
