@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.52 2013/02/17 16:32:18 mduranti Exp $ 
+/// $Id: HistoMan.C,v 1.53 2013/11/03 12:57:34 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -471,6 +471,7 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH3F("GmBTA",  "BTM Under", 180, -180, 180, 90, -90, 90, 20, 0, 2));
   Add(new TH3F("GgBTT",  "BTG Trapp", 180, -180, 180, 90, -90, 90, 20, 0, 2));
   Add(new TH3F("GmBTT",  "BTM Trapp", 180, -180, 180, 90, -90, 90, 20, 0, 2));
+  Add(new TH2F("GmBTph", "Photons",   180, -180, 180, 90, -90, 90));
 
   Add(TH2D_L("GmBTrS", "BTM Over",  48, -1.2, 1.2, 60, 0.1, 100, 0, 1));
   Add(TH2D_L("GmBTrA", "BTM Under", 48, -1.2, 1.2, 60, 0.1, 100, 0, 1));

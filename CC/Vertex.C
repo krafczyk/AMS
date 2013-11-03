@@ -28,6 +28,7 @@ void VertexR::Clear(){
   _pTrTrack.clear();
   Vertex[0]=Vertex[1]=Vertex[2]=0;
   _filled=0;
+  Status=0;
 }
 
 //
@@ -551,7 +552,6 @@ double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2)
   Vertex[2] = (ppnt[0].z()+ppnt[1].z())/2;
 
   _filled = 2;
-  setstatus(AMSDBc::GOOD);
 
   return 0;
 }

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.600 2013/11/01 14:58:31 choutko Exp $
+//  $Id: root.C,v 1.601 2013/11/03 12:57:35 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5628,6 +5628,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 #endif
     bool isshwr  = (ptr->_pShower &&
 		    ptr->_pShower->getEnergy()*1e-3 > BACKTRACEFFKEY.thengd);
+    bool isvtx   = ptr->_pvert;
 
     BT_result = 0;
     enum { bENGY = 8 };
@@ -5638,14 +5639,31 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 	                        : -ptr->_pShower->getEnergyPIC();
       BT_result |= (1<<bENGY);
     }
-    if (BACKTRACEFFKEY.enable != 1 || istrack || isshwr) DoBacktracing();
+    int ret = -1;
+    if (BACKTRACEFFKEY.enable != 1 || istrack || isshwr || isvtx) 
+      ret = DoBacktracing(BACKTRACEFFKEY.out_type);
     if (BT_status < 0) BT_result = -1;
+
+#ifdef _PGTRACK_
+    if (isvtx && ret == 0 && BT_status == 4 &&
+	ptr->_pvert &&
+	ptr->_pvert->IsPhotonVertex() &&
+	ptr->_pvert->checkstatus(AMSDBc::GOOD)) {
+      cout << "ParticleR::ParticleR-I-phvtx candidate @"
+	   << AMSEvent::gethead()->getEvent() << " "
+	   << AMSEvent::gethead()->getrun() << " coo= "
+	   << BT_glong << " " << BT_glat << endl;
+
+      hman.Fill("GmBTph", -BT_glong, BT_glat);
+    }
+#endif
+
     Momentum = msave;
   }
 #endif
 }
 
-int ParticleR::DoBacktracing()
+int ParticleR::DoBacktracing(int out_type)
 {
 #ifndef __ROOTSHAREDLIBRARY__
   EventNtuple02 *ptr = AMSJob::gethead()->getntuple()->Get_event02();
@@ -5654,16 +5672,17 @@ int ParticleR::DoBacktracing()
   enum { bSTK  = 0, bINTL = 1, bTLE  = 2, bGTOD = 3, bCTRS = 4, bGPSW = 5,
 	 bGPST = 6, bGPSC = 7 };
 
-  double momentum = Momentum;
-  double velocity = Beta;
-  int    icharge  = (int)Charge;
-  if (momentum < 0) {
-    momentum = -momentum;
-    icharge  = -icharge;
-  }
+  AMSDir dir(Theta, Phi);
+  int    ichg = Charge;
+  double beta = Beta;
+  double momt = Momentum;
+
+  if (beta < 0) { dir  = dir*(-1); beta = -beta; }
+  if (momt < 0) { momt = -momt;    ichg = -ichg; }
+  if (momt > 1e5) ichg = 0;
 
   // Force as photons
-  if (BACKTRACEFFKEY.enable == 3) icharge = 0;
+  if (BACKTRACEFFKEY.enable == 3) ichg = 0;
 
   GeoMagTrace::DEBUG    = BACKTRACEFFKEY.debug;
   GeoMagTrace::StepCv   = BACKTRACEFFKEY.stepdv;
@@ -5718,16 +5737,17 @@ int ParticleR::DoBacktracing()
     }
   }
 
-  if (icharge == 0) {
+  if (ichg == 0) {
     AMSDir dir(Theta, Phi);
     if (dir.z() < 0) dir = dir*(-1);
+
     double x = dir.x(), y = dir.y(), z = dir.z();
     double glon = 0, glat = 0;
-    if (BACKTRACEFFKEY.out_type == 1)
+    if (out_type == 1)
       get_ams_l_b_fromGTOD   (x, y, z, glon, glat, RPT, VPT, YPR, xtime);
-    else if (BACKTRACEFFKEY.out_type == 2)
+    else if (out_type == 2)
       get_ams_ra_dec_fromGTOD(x, y, z, glon, glat, RPT, VPT, YPR, xtime);
-    else if (BACKTRACEFFKEY.out_type == 3)
+    else if (out_type == 3)
       get_ams_gtod_fromGTOD  (x, y, z, glon, glat, RPT, VPT, YPR, xtime);
     else return -1;
 
@@ -5741,8 +5761,9 @@ int ParticleR::DoBacktracing()
 
   BT_result |= (1<<bTLE);
 
-  double rgt = momentum/icharge;
-  GeoMagTrace gp(RPT, VPT, YPR, xtime, Theta, Phi, rgt, icharge, velocity);
+  double rgt = momt/ichg;
+  GeoMagTrace gp(RPT, VPT, YPR, xtime,
+		 dir.gettheta(), dir.getphi(), rgt, ichg, beta);
 
   int stat = gp.Propagate(gp.NmaxStep);
   BT_status = 3;
@@ -5754,7 +5775,7 @@ int ParticleR::DoBacktracing()
   BT_RPTO[2] = gp.GetLati (false);
   BT_time    = gp.GetTof();
 
-  if (rgt != 0&& icharge != 0) {
+  if (rgt != 0&& ichg != 0) {
     double phg = RPT[1]*180./M_PI;
     double thg = RPT[2]*180./M_PI;
     double phm = ptr->  PhiM*180./M_PI;
@@ -5767,10 +5788,10 @@ int ParticleR::DoBacktracing()
 #ifdef _PGTRACK_
     hman.Fill("GgIss",  phg, thg);
     hman.Fill("GmIss",  phm, thm);
-    hman.Fill("GgCutD", phg, thg, Cutoff /icharge);
-    hman.Fill("GmCutD", phm, thm, Cutoff /icharge);
-    hman.Fill("GgCutS", phg, thg, CutoffS/icharge);
-    hman.Fill("GmCutS", phm, thm, CutoffS/icharge);
+    hman.Fill("GgCutD", phg, thg, Cutoff /ichg);
+    hman.Fill("GmCutD", phm, thm, Cutoff /ichg);
+    hman.Fill("GgCutS", phg, thg, CutoffS/ichg);
+    hman.Fill("GmCutS", phm, thm, CutoffS/ichg);
     if (BT_status == 1) { hman.Fill("GgBTS",  phg, thg, lrg);
                           hman.Fill("GmBTS",  phm, thm, lrg);
 			  hman.Fill("GmBTrS", trm, arg);
@@ -5792,9 +5813,10 @@ int ParticleR::DoBacktracing()
   }
   else {
     double x = gp.GetDx(), y = gp.GetDy(), z = gp.GetDz(), r = 1;
+
     double glon = 0, glat = 0;
     FT_GTOD2Equat  (x, y, z, xtime-BT_time);
-    FT_Cart2Angular(x, y, z, r, glon, glat);
+    FT_Cart2Angular(x, y, z, r, glat, glon);
     if (BACKTRACEFFKEY.out_type == 1) FT_Equat2Gal(glon, glat);
     BT_glong = glon*180./M_PI;
     BT_glat  = glat*180./M_PI;
@@ -5803,18 +5825,39 @@ int ParticleR::DoBacktracing()
   AMSgObj::BookTimer.stop("DoBacktracing");
   return 0;
 #else
+  GeoMagTrace::StepCv   = 0.1;                  //BACKTRACEFFKEY.stepdv;
+  GeoMagTrace::MinStep  = 0.05*GeoMagTrace::Re; //BACKTRACEFFKEY.minstep
+  GeoMagTrace::MaxStep  = 2.0 *GeoMagTrace::Re; //BACKTRACEFFKEY.maxstep
+  GeoMagTrace::NmaxStep = 200;                  //BACKTRACEFFKEY.nmax;
+
   AMSDir dir(Theta, Phi);
   int    ichg = Charge;
   double beta = Beta;
   double momt = Momentum;
+
   if (beta < 0) { dir  = dir*(-1); beta = -beta; }
   if (momt < 0) { momt = -momt;    ichg = -ichg; }
+  if (momt > 1e5) ichg = 0;
 
-  double glong = 0, glat = 0, RPTO[3] = { 0, 0, 0 }, time;
+  if (ichg == 0) {
+    AMSDir dir(Theta, Phi);
+    if (dir.z() > 0) dir = dir*(-1);
+
+    double glon = 0, glat = 0;
+    int ret = AMSEventR::Head()->GetGalCoo(BT_result, glon, glat,
+		  dir.gettheta(), dir.getphi(), 1, 4, 3, 0, out_type);
+    BT_glong  = glon;
+    BT_glat   = glat;
+    BT_status = 4;
+
+    return ret;
+  }
+
+  double glon = 0, glat = 0, RPTO[3] = { 0, 0, 0 }, time;
   int ret = AMSEventR::Head()
-    ->DoBacktracing(BT_result, BT_status, glong, glat, RPTO,
+    ->DoBacktracing(BT_result, BT_status, glon, glat, RPTO,
 		    time, dir.gettheta(), dir.getphi(), momt, beta, ichg);
-  BT_glong   = glong;
+  BT_glong   = glon;
   BT_glat    = glat;
   BT_RPTO[0] = RPTO[0];
   BT_RPTO[1] = RPTO[1];

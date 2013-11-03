@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.111 2011/11/26 10:47:02 pzuccon Exp $
+//  $Id: event.h,v 1.112 2013/11/03 12:57:31 shaino Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -401,6 +401,7 @@ time_t getmitime()const;
   uinteger getmiid();
 time_t getusec()const {return _usec;}
 time_t& settime(){return _time;}
+integer gettrstat()const{return trstat;}
 //void * operator new(size_t t, void *p) {return p;}
 void * operator new(size_t t) {return UPool.insert(t);}
 void operator delete(void *p)

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.170 2013/11/02 12:28:00 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.171 2013/11/03 12:57:34 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/11/02 12:28:00 $
+/// $Date: 2013/11/03 12:57:34 $
 ///
-/// $Revision: 1.170 $
+/// $Revision: 1.171 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4635,6 +4635,7 @@ int TrRecon::FillHistos(int trstat, int refit)
       if (psel == 3) {
 	trstat |= 0x4000;
 	fTrackCounter[9]++;
+	vtx->setstatus(AMSDBc::GOOD);
       }
     }
 

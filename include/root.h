@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.574 2013/11/01 14:58:42 choutko Exp $
+//  $Id: root.h,v 1.575 2013/11/03 12:57:31 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3490,7 +3490,13 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
 
   int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 
-  int DoBacktracing();  ///< Fill BT_glong,BT_glat etc.
+  /*!
+  \brief  Fill BT_glong,BT_glat etc.
+  \param[in]  out_type    1:Galactic coord. 2:Equatorial coord.(R.A. and Dec.)
+                          3:GTOD coord.(use_att forced to 1)
+  \retval     0 success
+  */
+  int DoBacktracing(int out_type = 1);
 
  char * pType(){
    static char type[63];
