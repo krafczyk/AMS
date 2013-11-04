@@ -1866,7 +1866,8 @@ class RemoteClient:
         output='/castor/cern.ch/ams'
         buf2=input.split(buf[1])
         output=output+buf2[1]
-        cmd="nsrm "+output
+        tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
+        cmd=tmout+" nsrm "+output
         cmdstatus=os.system(cmd)
         ossize=10000000000
         try:
@@ -1883,7 +1884,8 @@ class RemoteClient:
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
-            cmd="nsrm "+output
+            tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
+            cmd=tmout+" nsrm "+output
             cmdstatus=os.system(cmd)
         else:
             return int(time.time())
@@ -1891,7 +1893,8 @@ class RemoteClient:
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor ",input,output,cmdstatus
-            cmd="nsrm "+output
+            tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
+            cmd=tmout+" nsrm "+output
             cmdstatus1=os.system(cmd)
             if(cmdstatus):
                 print "Error uploadToCastor ",input,output,cmdstatus
