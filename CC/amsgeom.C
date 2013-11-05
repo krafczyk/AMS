@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.223 2013/10/28 16:05:40 choumilo Exp $
+//  $Id: amsgeom.C,v 1.224 2013/11/05 12:26:10 traiha Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -211,7 +211,7 @@ else if (!strcmp(AMSJob::gethead()->getsetup(),"AMS02P")){
 #ifdef  __G4AMS__
    //testg4geom(mother);
 #endif
- trdgeom02(mother,0.01);
+ trdgeom02(mother,0.1);
  ecalgeom02(mother);
  richgeom02(mother);
 }
