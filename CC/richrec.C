@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.166 2013/11/02 22:57:09 mdelgado Exp $
+//  $Id: richrec.C,v 1.167 2013/11/05 14:22:30 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1155,7 +1155,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   nexp=nexpg=nexpr=nexpb=0;
 
   int limit=4;
-  for(int step=0;step<1000 && step<limit;step++){
+  for(int step=0;step<100 && step<limit;step++){
     // Each computation step adds 100 points to the integral  
     for(int i=0;i<100;i++){
       l*=_height/local_dir[2];
