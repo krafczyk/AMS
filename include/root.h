@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.576 2013/11/06 20:22:56 shaino Exp $
+//  $Id: root.h,v 1.577 2013/11/06 20:41:54 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3722,8 +3722,6 @@ ClassDef(EcalMCHitR,1)       //EcalMCHitRoot
 #pragma omp threadprivate(fgIsA)
 };
 
-
-class EcalHR;
 
 
 /// TrdMCCluster structure
