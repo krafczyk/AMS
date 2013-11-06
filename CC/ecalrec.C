@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.177 2013/07/29 14:01:44 incaglim Exp $
+//  $Id: ecalrec.C,v 1.178 2013/11/06 10:21:00 goy Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2403,6 +2403,8 @@ void AMSEcalShower::EnergyFit(){
   //begin LAPP
   int icofgcell[Maxrow];
   float cofgcell[Maxrow];
+  const integer Maxcell = ECALDBc::GetCellsNo(); 
+  float s1_a[Maxrow][Maxcell]; 
   float s1a[Maxrow];
   float s3a[Maxrow];
   float s5a[Maxrow];
@@ -2430,6 +2432,9 @@ void AMSEcalShower::EnergyFit(){
     s3a[k]=0.;
     s5a[k]=0.;
     edepl[k]=0.;
+    for( int kk=0;kk< Maxcell;kk++) {
+      s1_a[k][kk] = 0; 
+    }
     //end LAPP
   }
 
@@ -2465,14 +2470,15 @@ void AMSEcalShower::EnergyFit(){
            //phit->getadc(madc);          
           //if (madc[0]>4){// count only hits with adc_highgain>4
           */
-          if (phit->getedep()>=2){// count only hits with edep >= 2 MeV
-              if (((phit->getplane()/2)%2)==0){
-                  nhitshy++;
-              }else {
-                  nhitshx++;
-              }
+          if (phit->getedep()>=2){// count only hits with edep >= 2 MeV 
+	    // Modified CG 
+	    s1_a[phit->getplane()][phit->getcell()] += phit->getedep();  
+	    if (((phit->getplane()/2)%2)==0){
+	      nhitshy++;
+	    }else {
+	      nhitshx++;
+	    }
           }
-          
         }        
         // end LAPP
       }
@@ -2494,7 +2500,14 @@ void AMSEcalShower::EnergyFit(){
       edept+=edepl[k];
     }
     icofgcell[k]=int(cofgcell[k]);
-    if ((cofgcell[k]-icofgcell[k])>=0.5)  icofgcell[k]++;   
+    if ((cofgcell[k]-icofgcell[k])>=0.5)  icofgcell[k]++; 
+    // modifief CG - 05/11/2013/ 
+    int cog = icofgcell[k];
+    int cogm = max(0,cog-1); 
+    int cogp = min(71,cog+1); 
+    if (s1_a[k][cogm] > s1_a[k][cog] ) cog = cogm; 
+    if (s1_a[k][cogp] > s1_a[k][cog] ) cog = cogp; 
+    icofgcell[k] = cog; 
     cofgl+=k*edepl[k];
   }
   if (edept>0){ 
@@ -2829,7 +2842,7 @@ void AMSEcalShower::EnergyFit(){
     //     corr_leak_f=4.234*exp(-1.388*pow(erec_ipcorr/((float)cofgl),0.01))-1.604*frac2;
     //   }      
      
-    if ((erec_new>=ECREFFKEY.LAPPRearLeak[5])||(frac2>=ECREFFKEY.LAPPRearLeak[6])) corr_leak_f=1.;// do not apply correction for E>=1TeV or too big Edep in last2layers
+    if ((erec_new>=ECREFFKEY.LAPPRearLeak[5])||(frac2>=ECREFFKEY.LAPPRearLeak[6])) corr_leak_f=1.;// do not apply correction for E>=2TeV or too big Edep in last2layers (frac2 < 0.5) 
     if ((erec_new/corr_leak_f)<0){
       //           setstatus(AMSDBc::CATLEAK);
       EcalJobStat::addre(12);

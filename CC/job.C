@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.926 2013/11/03 21:19:32 choutko Exp $
+// $Id: job.C,v 1.927 2013/11/06 10:21:00 goy Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1059,8 +1059,8 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.LAPPRearLeak[2]=1.604;
   ECREFFKEY.LAPPRearLeak[3]=0.01; 
   ECREFFKEY.LAPPRearLeak[4]=0.025;
-  ECREFFKEY.LAPPRearLeak[5]=1000.;
-  ECREFFKEY.LAPPRearLeak[6]=0.3;
+  ECREFFKEY.LAPPRearLeak[5]=2000.;
+  ECREFFKEY.LAPPRearLeak[6]=0.5;
   // end of LAPP rear-leakage correction parameters
 
   ECREFFKEY.ealpha0=-3.0; // (57)

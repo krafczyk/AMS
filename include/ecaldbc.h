@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.50 2012/09/10 18:51:53 vaurynov Exp $
+//  $Id: ecaldbc.h,v 1.51 2013/11/06 10:21:00 goy Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -78,6 +78,7 @@ class ECALDBc {
   //
 
   static uinteger GetLayersNo(){return _slstruc[2]*2;}
+  static uinteger GetCellsNo(){return _slstruc[3]*2;}
   static geant gendim(integer i);
   static geant fpitch(integer i);
   static geant rdcell(integer i);
