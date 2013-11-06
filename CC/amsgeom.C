@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.225 2013/11/06 08:26:38 choutko Exp $
+//  $Id: amsgeom.C,v 1.226 2013/11/06 16:18:35 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2690,6 +2690,7 @@ ECALDBc::readgconf();//
     fiber_displacement[isupl]=ECMCFFKEY.FiberDisplacement[isupl];
   } // displacement in cm between negative coordinate and positive coordinate fiber edge due to fiber rotation (default value from W.Xu)
   number angle[9];
+  number angle_max;
   number nrm3[9][3][3];
   for (int isupl=0;isupl<nsupl;isupl++){
     if (isupl%2==1){
@@ -2869,10 +2870,15 @@ ECALDBc::readgconf();//
   	    coo[0]=0.;
    	    coo[1]=cleft+ifib*fpitx;
           }
-	  par[2]=flen;
+	  angle_max=2.*atan2(par[0],flen);
+	  if (abs(angle[isupl])<angle_max){ 
+	    par[2]=(flen-par[0]*abs(sin(angle[isupl])))/cos(angle[isupl])-0.001; 
+	  }
+	  else{
+	    par[2]=flen-0.001;
+	  }
 	  coo[2]=0.;
 	  gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
-          
 	  // sdf pECfib=pECfbl->add(new AMSgvolume("EC_FWALL",0,"ECFW","ELTU",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
 	
           pECfib=pECfbl->add(new AMSgvolume("EC_FWALL",nrot,"ECFW","ELTU",par,3,coo,nrm3[isupl],"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));

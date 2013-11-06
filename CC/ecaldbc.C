@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.103 2012/05/12 08:48:07 sdifalco Exp $
+//  $Id: ecaldbc.C,v 1.104 2013/11/06 16:18:25 sdifalco Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -41,7 +41,7 @@ geant ECALDBc::_gendim[20]={// Warning: only alignment params are readout from E
   1.83,         //  =9      lead thickness of 1 SuperLayer
   0.01,         //  =10     Thickness of glue on top(bot) side of SL
   0.032145,-0.0583656,0.0217877, 0.015298,0.0655636,  //=11-19 -> superlayer fibers common shift for each of 9 superlayers
-  0.0075863,0.0402682,0.0672924,-0.0670404,
+  0.0075863,0.0402682,0.0672924,-0.052,
   0.             //  =20     spare    
 };
 //
