@@ -9,6 +9,7 @@ TrLikeDB* TrLikeDB::fHead = 0;
 
 
 double TrLikeDB::default_logprob = -8.;
+int    TrLikeDB::fZmax = 0;
 
 
 TrLikeDB* TrLikeDB::GetHead() {
@@ -33,8 +34,9 @@ bool TrLikeDB::LoadPdfVer0(char* dirname) {
   if (!file) return false;
   int index = 0;
   int irig = 1;
-  TH1* pdf = 0; 
-  for (int Z=1; Z<=28; Z++) {
+  TH1* pdf = 0;
+  fZmax = 28;
+  for (int Z=1; Z<=fZmax; Z++) {
     for (int icat=0; icat<2; icat++) { 
       // 2D Xi_{X} vs Xi_{Y}
       index = CreateIndex(0,Z,icat,0,irig); 
@@ -70,12 +72,21 @@ bool TrLikeDB::LoadPdfVer0(char* dirname) {
       }   
     }
   }
+  // create missing pdf here if needed ... not for now 
   file->Close();
   return true;
 }
 
 
+int TrLikeDB::CreateIndex(int type, int Z, int icat, int iside, int irig) {
+  if ( (icat!=0)&&(icat!=1) ) return -1;
+  if (Z>=fZmax) Z = fZmax; // use Z=fZmax for very high charges    
+  return type + Z*10 + icat*10000 + iside*100000 + irig*1000000;
+}
+
+
 void TrLikeDB::AddPdf(TH1* pdf, int index) {
+  if (index<0) return; // invalid index
   pair<map<int,TH1*>::iterator,bool> ret;
   ret = fTrPdfMap.insert(pair<int,TH1*>(index,pdf));
   if (ret.second==false) fTrPdfMap.find(index)->second = pdf; 

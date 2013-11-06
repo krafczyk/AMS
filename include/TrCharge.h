@@ -11,9 +11,9 @@
  \class TrCharge
  \brief An almost static class for the Tracker charge reconstruction
 
- $Date: 2013/10/31 18:26:18 $
+ $Date: 2013/11/06 11:17:45 $
 
- $Revision: 1.12 $
+ $Revision: 1.13 $
 */
 
 #include "VCon.h"
@@ -106,7 +106,7 @@ class like_t {
   //! Constructor
   like_t() { clear(); }
   //! Constructor
-  like_t(int t, int v = 0, int s = 0, int z = -1, int n = 0, float ll = 0, float p = 0, float m = 0) { 
+  like_t(int t, int v = 0, int s = 0, int z = -1, int n = 0, float ll = -30, float p = 0, float m = 0) { 
     clear(); Type = t; Ver = v; Side = s; Z = z; NPoints = n; LogLike = ll; Prob = p; Mean = m; 
   }
   //! Destructor
@@ -120,24 +120,24 @@ class like_t {
     Type = that.Type; Ver = that.Ver; Side = that.Side; Z = that.Z; NPoints = that.NPoints; LogLike = that.LogLike; Prob = that.Prob; Mean = that.Mean;
   }
   //! Relational operator <
-  bool operator<(like_t &that) { return (this->GetNormLogLike())<(that.GetNormLogLike()); }
+  bool operator<(const like_t& that) const { return GetNormLogLike()<that.GetNormLogLike(); }
   //! Relational operator >
-  bool operator>(like_t &that) { return (this->GetNormLogLike())>(that.GetNormLogLike()); }
+  bool operator>(const like_t& that) const { return GetNormLogLike()>that.GetNormLogLike(); }
   //! Relational operator <=
-  bool operator<=(like_t &that) { return (this->GetNormLogLike())<=(that.GetNormLogLike()); }
+  bool operator<=(const like_t& that) const { return GetNormLogLike()<=that.GetNormLogLike(); }
   //! Relational operator >=
-  bool operator>=(like_t &that) { return (this->GetNormLogLike())>=(that.GetNormLogLike()); }
+  bool operator>=(const like_t& that) const { return GetNormLogLike()>=that.GetNormLogLike(); }
   //! Clear
   void clear() { 
-    Type = 0; Ver = 0; Side = 0; Z = -1; NPoints = 0; LogLike = 0; Prob = 0; Mean = 0; 
+    Type = 0; Ver = 0; Side = 0; Z = -1; NPoints = 0; LogLike = -30; Prob = 0; Mean = 0; 
   }
   //! Print
   void print() {
-    printf("Type %4x  Ver %2d  Side %1d  Z %2d  NPoints %1d  LogLike %7.5f  Prob %7.5f  Mean %7.2f \n",
-           Type,Ver,Side,Z,NPoints,LogLike,Prob,Mean);
+    printf("Type %4x  Ver %2d  Side %1d  Z %2d  NPoints %2d  LogLike %7.3f  Prob %7.5f  Mean %7.2f NormLogLike %7.3f\n",
+           Type,Ver,Side,Z,NPoints,LogLike,Prob,Mean,GetNormLogLike());
   }
   //! Normalized LogLike
-  float GetNormLogLike() { return (NPoints>0) ? LogLike/NPoints : -1e+10; }
+  float GetNormLogLike() const { return (NPoints>0) ? LogLike/NPoints : -30; }
 };
 
 
@@ -145,7 +145,9 @@ class like_t {
 class TrCharge {
 
  public:
-
+ 
+  //! Pattern used to create list of cluster signals  
+  int    PattType;
   //! Cluster signal container (used to speed-up likelihood)
   double ClsSig[2][9];
   //! Cluster category (used to speed-up likelihood)
@@ -204,7 +206,7 @@ class TrCharge {
 
  public:
 
-  /** @name Base methods (only used for likelihood right now). */
+  /** @name Base methods. */
   // c-tor
   TrCharge() { Clear(); }     
   // d-tor
@@ -212,7 +214,7 @@ class TrCharge {
   // Clear computing members
   void Clear();
 
-  /** @name Floating point charge estimator related methods (static library) */
+  /** @name Floating point charge estimator related methods. */
   /**@{*/
   //! Good hit for charge reconstruction
   static bool   GoodChargeReconHit(TrRecHitR* hit, int iside);
@@ -233,7 +235,7 @@ class TrCharge {
   /**@}*/
 
 
-  /** @name Integer charge estimator related methods (non-static library) */
+  /** @name Integer charge estimator related methods. */
   /**@{*/
   //! Good clusters for the probability calculation
   bool   GoodHitForLogProb(TrRecHitR* hit, int side);
@@ -244,13 +246,14 @@ class TrCharge {
   //! Compute xy-combined mean charge given the evaluated Z 
   double GetMeanCharge(double qtot_x, double qtot_y, int nq_x, int nq_y, int Z);
   //! Get likelihood to be Z for a given event (0: x-side, 1: y-side, 2: both sides when possible, otherwise y-side)
-  double GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int iside = 2);
-  //! Get best charge (with type = 10j get evaluation of layer j) 
-  int    GetZ(int& NPoints, double &QMean, double& LogLike, TrTrackR* track, int type = kInner, int iside = 2, double beta = 1, double rigidity = 0, double mass_on_Z = 2*0.93149);
+  // double GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int iside = 2);
+  like_t GetLogLikelihoodToBeZ(int Z, int iside = 2);
+  //! Get best charge returning the list of likelihood objects from most probable to least probable (with type = 10j get evaluation of layer j) 
+  int    GetZ(vector<like_t>& likelihood, TrTrackR* track, int type = kInner, int iside = 2, double beta = 1, double rigidity = 0, double mass_on_Z = 2*0.93149);
   /**@}*/
 
 
-  /** @name Old methods for floating point charge and integer charge estimators (static library) */
+  /** @name Old methods for floating point charge and integer charge estimators. */
   /**@{*/
   //! The rigidity could be used to estimate beta  
   static float  GetBetaFromRigidity(float rigidity, int Z, float mass);
@@ -269,7 +272,7 @@ class TrCharge {
   /**@}*/
 
   
-  /** @name Charge-related methods for reconstruction */
+  /** @name Charge-related methods for reconstruction. */
   /**@{*/
   //! Get mean signal of 4 highest clusters 
   static mean_t GetMeanHighestFourClusters(int type, int iside, int opt = TrClusterR::DefaultCorrOpt);

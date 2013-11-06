@@ -35,6 +35,8 @@ class TrLikeDB : public TObject {
 
   //! default value for log-probability (const) 
   static double default_logprob; 
+  //! maximum Z pdf available
+  static int fZmax; 
 
  public:
 
@@ -56,9 +58,9 @@ class TrLikeDB : public TObject {
   bool   LoadPdfVer0(char* dirname = getenv("AMSDataDir"));
   //! Index used to store and retrieve PDFs (index = RSCZZT)
   // - type = 0: 2D X vs Y; 1: 1D X or Y only; 2: 1D Eta 
-  // - Z = 1, ..., 28
+  // - Z = 1, ..., 28, ... (for Z>28 will be given Z=28 pdf)
   // - category/side = 0/0: K7 (or K7 vs S); 1/0: K5 (or K5 vs S); x/1: S  
-  static int CreateIndex(int type, int Z, int icat, int iside, int irig) { return type + Z*10 + icat*1000 + iside*10000 + irig*100000; }
+  static int CreateIndex(int type, int Z, int icat, int iside, int irig);
   //! Add or override a PDF
   void AddPdf(TH1* pdf, int index);
   //! Get the PDF by index 

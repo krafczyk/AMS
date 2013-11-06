@@ -8,6 +8,7 @@ HistoMan TrCharge::Histograms;
 
 // Clean members
 void TrCharge::Clear() {
+  PattType = -1;
   for(int ll=0; ll<9; ll++) {
     ClsCat[ll] = -1000;
     for(int ss=0; ss<2; ss++) {
@@ -316,6 +317,7 @@ bool TrCharge::StoreClusterInfo(TrTrackR* track, int type, int iside, double bet
       }
     }
   }
+  PattType = type;
   return true;
 }
 
@@ -336,9 +338,12 @@ void TrCharge::PrintClusterInfo() {
 
 
 double TrCharge::GetMeanCharge(double qtot_x, double qtot_y, int nq_x, int nq_y, int Z){
-  if(nq_x<=0 && nq_y<=0) return -1.;
-  if(nq_y<=0) return qtot_x/nq_x; // x-side only
-  if(nq_x<=0) return qtot_y/nq_y; // y-side only
+  // check
+  if (Z<1) return -2.;
+  if (nq_x<=0 && nq_y<=0) return -1.;
+  if (nq_y<=0) return qtot_x/nq_x; // x-side only
+  if (nq_x<=0) return qtot_y/nq_y; // y-side only
+  // measured resolutions
   double sigma6_x[28]={0.0598, 0.0762, 0.0881, 0.0947, 0.1091, 0.1303, 0.1357,
                        0.1721, 0.2264, 0.2467, 0.32125, 0.3958, 0.479, 0.5622,
                        0.8591, 1.156, 1.12024, 1.08448, 1.04872, 1.01296, 0.9772,
@@ -347,6 +352,8 @@ double TrCharge::GetMeanCharge(double qtot_x, double qtot_y, int nq_x, int nq_y,
                        0.8704, 0.7563, 0.4421, 0.45615, 0.4702, 0.4912, 0.5122,
                        0.77315, 1.0341, 1.02556, 1.01702, 1.00848, 0.99994, 0.9914,
                        0.98286, 0.97432, 0.96578, 0.95724, 0.9487, 0.9487, 0.9487};
+  // do something reasonable when out of range
+  if (Z>=28) Z = 28;
   double sigma_x = sigma6_x[Z-1]*sqrt(6./nq_x);
   double sigma_y = sigma6_y[Z-1]*sqrt(6./nq_y);
   double mean_q = (qtot_x/nq_x/sigma_x/sigma_x + qtot_y/nq_y/sigma_y/sigma_y)/(1./sigma_x/sigma_x + 1./sigma_y/sigma_y);
@@ -354,7 +361,9 @@ double TrCharge::GetMeanCharge(double qtot_x, double qtot_y, int nq_x, int nq_y,
 }
 
 
-double TrCharge::GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int iside){
+like_t TrCharge::GetLogLikelihoodToBeZ(int Z, int iside){
+  // check
+  if (Z<1) return like_t(PattType,10,iside,Z,0,TrLikeDB::default_logprob,0,0);
   // init
   double likelihood = 0.;
   int npoints_x     = 0;
@@ -376,8 +385,8 @@ double TrCharge::GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int i
     if(Z>2)  MaxXi=2.3;
     if(Z>6)  MaxXi=1.8;
     if(Z>10) MaxXi=1.5;
-    bool kX = (xi_x>MinXi && xi_x<MaxXi);
-    bool kY = (xi_y>MinXi && xi_y<MaxXi);
+    bool kX = (xi_x>MinXi && xi_x<MaxXi && icat>=0 && icat<=1);
+    bool kY = (xi_y>MinXi && xi_y<MaxXi && icat>=0 && icat<=1);
     // switch
     if (side==2) { // LOOK AT BOTH SIDES
       if (kX && kY) { // 2D COMBINED SIGNALS
@@ -428,46 +437,78 @@ double TrCharge::GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int i
   // eval mean floating charge q and likelihood dof
   int nq_x = npoints_x + npoints_xy;
   int nq_y = npoints_y + npoints_xy;
-  qmean = GetMeanCharge(qtot_x,qtot_y,nq_x,nq_y,Z);
-  npoints = npoints_x + npoints_y + 2*npoints_xy;
-  return (npoints<1) ? TrLikeDB::default_logprob : likelihood/npoints;
+  double qmean = GetMeanCharge(qtot_x,qtot_y,nq_x,nq_y,Z);
+  int npoints = npoints_x + npoints_y + 2*npoints_xy;
+  return (npoints<1) ? 
+    like_t(PattType,10,iside,Z,0,TrLikeDB::default_logprob,0,0) : 
+    like_t(PattType,10,iside,Z,npoints,likelihood,pow(10,likelihood),qmean);
 }
 
 
-// Not sure about MinNP
-int TrCharge::GetZ(int& NPoints, double &QMean, double& LogLike, TrTrackR* track, int type, int iside, double beta, double rigidity, double mass_on_Z){
+int TrCharge::GetZ(vector<like_t>& likelihood, TrTrackR* track, int type, int iside, double beta, double rigidity, double mass_on_Z) {
+
+  // clean
+  likelihood.clear();
+
   // check 
-  if(!track) return -2;
+  if (!track) return -2;
   int Zbest = -1;
-  NPoints =  0;
+  int NPoints = 0;
+
   // min npoints required at first iteration
   int MinNP = 6;
   if (iside<2) MinNP = 5;
   if (type&kAll) MinNP++;
   if ( type&kLower || type&kUpper ) MinNP=1;
   if (type>8) MinNP=1;
-  // init
-  int npoints = 0;
-  double qmean= 0.;
-  LogLike = TrLikeDB::default_logprob;
+  int NITER = MinNP;
+
   // store in memory relevant infos
   if (!StoreClusterInfo(track,type,iside,beta,rigidity,mass_on_Z)) return -3;
-  // find best charge Z
-  int NITER = MinNP;
+
+  // standard loop between 1-28, but extend to int(Q)+10 from max Q between inner or first tracker layer floating charge, max boundary is however 150.
+  int Zinner = int(track->GetInnerQ(beta,0,mass_on_Z)+0.5);
+  int Zl1 = int(track->GetLayerJQ(1,beta,0,mass_on_Z)+0.5);
+  int Zmax = max(TrLikeDB::fZmax,min(150,10+max(Zinner,Zl1)));
+
+  // iteration loop 
   for (int iter=0; iter<NITER; iter++) { // iteration loop (to avoid that lower number of points could dominate)
+
+    // init before Z search 
+    likelihood.clear();
     Zbest = -1;
-    for (int Z=1; Z<=28; Z++) {
-      double logl = GetLogLikelihoodToBeZ(npoints,qmean,Z,iside);
-      if (npoints<MinNP-iter) continue;
+    double LogLike = TrLikeDB::default_logprob;
+
+    // Z search
+    for (int Z=1; Z<=Zmax; Z++) {
+
+      // calculate 
+      like_t like = GetLogLikelihoodToBeZ(Z,iside);
+      double logl = like.GetNormLogLike();
+      int npoints = like.NPoints; 
+
+      // drop too bad evaluations
+      if ( (logl<=TrLikeDB::default_logprob)||(npoints<1) ) continue; 
+      likelihood.push_back(like);
+
+      if (like.NPoints<MinNP-iter) continue;
       if (logl>LogLike) {
         LogLike = logl;
-        Zbest = Z;
-        NPoints = npoints;
-        QMean = qmean;
+        Zbest = like.Z;
       }
+
     }
     if(Zbest>0) break; // Z found
-  } // end iteration loop
+  } 
+
+  // reorder
+  sort(likelihood.begin(),likelihood.end()); 
+  reverse(likelihood.begin(),likelihood.end());
+
+  // consistency check 
+  if ( (Zbest>0)&&(likelihood.empty()) ) printf("TrCharge::GetZ()-W good Z found but empty likelihood container. This is very strange. Go to check.\n");
+
+  // end iteration loop
   return Zbest;
 }
 
