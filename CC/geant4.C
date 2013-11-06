@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.105 2013/11/01 14:58:31 choutko Exp $
+//  $Id: geant4.C,v 1.106 2013/11/06 19:02:06 shaino Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1054,7 +1054,7 @@ if(!Step)return;
 	  if(GCTRAK.destep && GrandMother && GrandMother->GetName()(0)=='S' 
 	     &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K'){
 	    AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
-				     GCTRAK.destep,GCTRAK.step,GCKINE.ipart,gtrkid);   
+				     GCTRAK.destep,GCTRAK.step,/*GCKINE.ipart,*/gtrkid);   
 	  }
 #endif
 	  //------------------------------------------------------------
