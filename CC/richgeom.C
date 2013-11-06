@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.53 2013/10/27 00:21:13 mdelgado Exp $
+//  $Id: richgeom.C,v 1.54 2013/11/06 13:00:17 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -53,7 +53,7 @@ using namespace amsgeom;
 void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
 {
   AMSNode *dummy;
-  geant par[3],coo[3];
+  geant par[10],coo[3];
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz} 
   number rm45[3][3]={1/sqrt(2.),1/sqrt(2.),0.,
                      -1/sqrt(2.),1/sqrt(2.),0,
@@ -82,7 +82,8 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
 							3,
 							coo,
 							nrm,
-							"ONLY",
+							//							"ONLY",
+							"BOOL",
 							0,
 							copia,
 							rel));
@@ -96,70 +97,75 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
   coo[2]=0;
 
 
-  b->add(new AMSgvolume("RICH PORON",
-			1,
-			"RSCR",
-			"BOX",
-			par,
-			3,
-			coo,
-			rm45,
-			"ONLY", 
-			0,
-			10*copia+1,
-			rel));
-  
+#ifndef __G4AMS__
+#define set(c_)   b->add(new AMSgvolume("RICH PORON",	\
+					1,		\
+					"RSCR",		\
+					"BOX",		\
+					par,		\
+					3,		\
+					coo,		\
+					rm45,           \
+                                        "ONLY",	        \
+					0,	        \
+					10*copia+c_,	\
+					rel));
+
+#else
+#define set(c_) b->addboolean("BOX", \
+			      par,   \
+			      3,     \
+			      coo,   \
+			      rm45,  \
+			      '-');
+#endif
+
+  set(1);
   
   coo[0]=-RichRadiatorTileManager::get_tile_boundingbox(tile,0);
   coo[1]=RichRadiatorTileManager::get_tile_boundingbox(tile,1);
   coo[2]=0;
-  
-  b->add(new AMSgvolume("RICH PORON",
-			1,
-			"RSCR",
-			"BOX",
-			par,
-			3,
-			coo,
-			rm45,
-			"ONLY",
-			0,
-			10*copia+2,
-			rel));
+
+  set(2);
   
   coo[0]=RichRadiatorTileManager::get_tile_boundingbox(tile,0);
   coo[1]=-RichRadiatorTileManager::get_tile_boundingbox(tile,1);
   coo[2]=0;
-  
-  b->add(new AMSgvolume("RICH PORON",
-			1,
-			"RSCR",
-			"BOX",
-			par,
-			3,
-			coo,
-			rm45,
-			"ONLY",
-			0,
-			10*copia+3,
-			rel));
-  
+
+  set(3);
+
   coo[0]=-RichRadiatorTileManager::get_tile_boundingbox(tile,0);
   coo[1]=-RichRadiatorTileManager::get_tile_boundingbox(tile,1);
   coo[2]=0;
   
-  b->add(new AMSgvolume("RICH PORON",
-			1,
-			"RSCR",
-			"BOX",
-			par,
-			3,
-			coo,
-			rm45,
-			"ONLY",
-			0,
-			10*copia+4,
-			rel));
+  set(4);
+
+#ifdef __G4AMS__
+  // Definition of the radiator box
+  par[0]=180.0/RICradiator_box_sides;
+  par[1]=360;
+  par[2]=RICradiator_box_sides;
+  par[3]=2;
+  par[4]=-RICHDB::rad_height/2-RICHDB::foil_height-RICepsln;  // Radiator and foil are inside this box
+  par[5]=0;
+  par[6]=RICradiator_box_radius;
+  par[7]=RICHDB::rad_height/2;
+  par[8]=0;
+  par[9]=RICradiator_box_radius;
+  
+  
+  coo[0]=-RichRadiatorTileManager::get_tile_x(tile);
+  coo[1]=-RichRadiatorTileManager::get_tile_y(tile);
+  coo[2]=0;
+
+  b->addboolean("PGON",
+		par,
+		10,
+		coo,
+		nrm,
+		'/');
+
+#endif
 }
 
 
@@ -821,7 +827,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 									0,
 									1,
 									rel));
-
+  
 
   // FOIL
   par[0]=180.0/RICradiator_box_sides;
@@ -874,12 +880,39 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 					    3,
 					    coo,
 					    nrm,
-					    "ONLY",
+					    "BOOL",
 					    0,
 					    copia1++,
-					    rel));
 
+
+					    rel));
 #ifdef __G4AMS__
+      // Definition of the radiator box
+      par[0]=180.0/RICradiator_box_sides;
+      par[1]=360;
+      par[2]=RICradiator_box_sides;
+      par[3]=2;
+      par[4]=-RICHDB::rad_height/2-RICHDB::foil_height-RICepsln;  // Radiator and foil are inside this box
+      par[5]=0;
+      par[6]=RICradiator_box_radius;
+      par[7]=RICHDB::rad_height/2;
+      par[8]=0;
+      par[9]=RICradiator_box_radius;
+
+      
+      coo[0]=-RichRadiatorTileManager::get_tile_x(n);
+      coo[1]=-RichRadiatorTileManager::get_tile_y(n);
+      coo[2]=0;
+
+      ((AMSgvolume*)rad1)->addboolean("PGON",
+				      par,
+				      10,
+				      coo,
+				      nrm,
+				      '/');
+
+
+
       if(MISCFFKEY.G4On)
 	Put_rad((AMSgvolume *)rad1,copia1-1,n);
 #endif
