@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.575 2013/11/03 12:57:31 shaino Exp $
+//  $Id: root.h,v 1.576 2013/11/06 20:22:56 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -50,8 +50,8 @@
 #include "SlowControlDB.h"
 #include "Tofdbc.h"
 #include "Tofcharge_ihep.h"
-
 #include "AntiPG.h"
+#include "EcalH.h"
 
 #ifdef __AMSVMC__
 #include "amsvmc_MCApplication.h"
@@ -122,6 +122,7 @@ class AMSVtx;
 class Ecal1DCluster;
 class AMSEcal2DCluster;
 class AMSEcalShower;
+class AMSEcalH;
 class TOF2RawCluster;
 class TOF2RawSide;
 class Anti2RawEvent;
@@ -272,6 +273,7 @@ int   EcalHits;
 int   EcalClusters;
 int   Ecal2DClusters;
 int   EcalShowers;
+int   EcalHs;
 int   RichHits;
 int   RichRings;
 int   RichRingBs;
@@ -3721,6 +3723,8 @@ ClassDef(EcalMCHitR,1)       //EcalMCHitRoot
 };
 
 
+class EcalHR;
+
 
 /// TrdMCCluster structure
 /*!
@@ -3984,6 +3988,7 @@ static TBranch*  bEcalHit;
 static TBranch*  bEcalCluster;
 static TBranch*  bEcal2DCluster;
 static TBranch*  bEcalShower;
+static TBranch*  bEcalH;
 static TBranch*  bRichHit;
 static TBranch*  bRichRing;
 static TBranch*  bRichRingB;
@@ -4024,7 +4029,7 @@ static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 #ifdef __ROOTSHAREDLIBRARY__
 
-#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bTofClusterH,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bBetaB,bBetaH,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTofMCPmtHit,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bEcalH,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bTofClusterH,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bBetaB,bBetaH,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTofMCPmtHit,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
 
 #endif
 
@@ -4035,6 +4040,7 @@ static void*  vEcalHit;
 static void*  vEcalCluster;
 static void*  vEcal2DCluster;
 static void*  vEcalShower;
+static void*  vEcalH;
 static void*  vRichHit;
 static void*  vRichRing;
 static void*  vRichRingB;
@@ -4878,6 +4884,7 @@ int   nEcal2DCluster()const { return fHeader.Ecal2DClusters;} ///< \return numbe
 ///
 int   nEcalShower()const { return fHeader.EcalShowers;} ///< \return number of EcalShowerR elements (fast)
 ///
+int   nEcalH()const { return fHeader.EcalHs;} ///< \return number of EcalShowerR elements (fast)
 int   nRichHit()const { return fHeader.RichHits;} ///< \return number of RichHitR elements (fast)
 ///
 int   nRichRing()const { return fHeader.RichRings;} ///< \return number of RichRingR elements (fast)
@@ -4963,6 +4970,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   vector<EcalClusterR> fEcalCluster;
   vector<Ecal2DClusterR> fEcal2DCluster;
   vector<EcalShowerR> fEcalShower;
+  vector<EcalHR> fEcalH;
 
 
   //RICH
@@ -5174,7 +5182,34 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
         return l<fEcalShower.size()?&(fEcalShower[l]):0;
       }
 
-
+      ///  \return number of EcalHR
+      ///
+      unsigned int NEcalH() {
+        if(fHeader.EcalHs && fEcalH.size()==0)bEcalH->GetEntry(_Entry);
+        return fEcalH.size();
+      }
+      ///  \return reference of EcalHR Collection
+      ///
+      vector<EcalHR> &EcalH() {
+        if(fHeader.EcalHs && fEcalH.size()==0)bEcalH->GetEntry(_Entry);
+	return  fEcalH;
+      }
+      ///  EcalHR accessor
+      /// \param l index of EcalHR Collection
+      ///  \return reference to corresponding EcalHR element
+      ///
+      EcalHR &EcalH(unsigned int l) {
+        if(fHeader.EcalHs && fEcalH.size()==0)bEcalH->GetEntry(_Entry);
+	return fEcalH.at(l);
+      }
+      ///  EcalHR accessor
+      /// \param l index of EcalHR Collection
+      ///  \return pointer to corresponding EcalHR element
+      ///
+      EcalHR *pEcalH(unsigned int l) {
+        if(fHeader.EcalHs && fEcalH.size()==0)bEcalH->GetEntry(_Entry);
+        return l<fEcalH.size()?&(fEcalH[l]):0;
+      }
 
       ///  \return number of RichHitR
       ///
@@ -6606,6 +6641,7 @@ void         AddAMSObject(AMSTrTrack *ptr);
 void         AddAMSObject(Ecal1DCluster *ptr);
 void         AddAMSObject(AMSEcal2DCluster  *ptr);
 void         AddAMSObject(AMSEcalShower  *ptr);
+void         AddAMSObject(AMSEcalH  *ptr);
 void         AddAMSObject(TOF2RawCluster *ptr);
 void         AddAMSObject(TOF2RawSide *ptr);
 void         AddAMSObject(Trigger2LVL1 *ptr);

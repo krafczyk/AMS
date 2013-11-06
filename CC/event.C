@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.580 2013/11/01 14:58:31 choutko Exp $
+//  $Id: event.C,v 1.581 2013/11/06 20:22:50 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -72,6 +72,7 @@ extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *v
 #endif
 #include "tofhit.h"
 #include "Tofrec02_ihep.h"
+#include "EcalH.h"
 
 static geant   Tcpu0 = 0; 
 static time_t  T0    = 0;
@@ -1096,6 +1097,9 @@ void AMSEvent::_reaxinitevent(){
  
   add (
   new AMSContainer(AMSID("AMSContainer:AMSBetaH",0),0));
+
+  add (
+  new AMSContainer(AMSID("AMSContainer:AMSEcalH",0),0));
 
   add (
   new AMSContainer(AMSID("AMSContainer:AMSCharge",0),&AMSCharge::build,0));
@@ -2381,6 +2385,9 @@ try{
 //  if((TFREFFKEY.TFHTDVCalib/10000%100>0)&&(AMSJob::gethead()->isRealData())){
   if(TFREFFKEY.TFHTDVCalib/10000%100>0){
     TofRecH::BuildBetaH();//BetaH
+  }
+  if (ECALHFFKEY.enable) {
+    EcalHR::Build();
   }
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSBeta::print();

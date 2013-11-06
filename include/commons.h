@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.361 2013/11/03 21:19:36 choutko Exp $
+//  $Id: commons.h,v 1.362 2013/11/06 20:22:56 shaino Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -905,6 +905,15 @@ class BACKTRACEFFKEY_DEF {
 };
 #define BACKTRACEFFKEY COMMON_BLOCK(BACKTRACEFFKEY,tbacffkey)
 COMMON_BLOCK_DEF(BACKTRACEFFKEY_DEF,BACKTRACEFFKEY);
+//================================================================
+
+
+class ECALHFFKEY_DEF {
+ public:
+  integer enable;   // Enable EcalH
+};
+#define ECALHFFKEY COMMON_BLOCK(ECALHFFKEY,eclhffkey)
+COMMON_BLOCK_DEF(ECALHFFKEY_DEF,ECALHFFKEY);
 //================================================================
 
 

@@ -19,7 +19,8 @@ VCon* VCon_root::GetCont(const char * name){
      strstr(name,"AMSTRDHTrack")||
      strstr(name,"Vtx") ||
      strstr(name,"AMSTOFClusterH") ||
-     strstr(name,"AMSBetaH")
+     strstr(name,"AMSBetaH") ||
+     strstr(name,"AMSEcalH")
      ){
     sprintf(contname,"%s",name);
     return       (VCon*)(this);
@@ -99,6 +100,12 @@ void VCon_root::removeEl(TrElem* aa, integer res)
     for(int ii=0;ii<index;ii++) it++;
     ev->BetaH().erase(it);
   }
+  if( strstr(contname,"AMSEcalH")){
+    int index=(aa)?getindex(aa)+1:0;
+    vector<EcalHR>::iterator it=ev->EcalH().begin();
+    for(int ii=0;ii<index;ii++) it++;
+    ev->EcalH().erase(it);
+  }
 
 }
 
@@ -127,6 +134,8 @@ int VCon_root::getnelem(){
     return ev->NTrdRawHit();
   if( strstr(contname,"AMSTOFClusterH"))
     return ev->NTofClusterH();
+  if( strstr(contname,"AMSBetaH"))
+    return ev->NBetaH();
   if( strstr(contname,"AMSBetaH"))
     return ev->NBetaH();
 

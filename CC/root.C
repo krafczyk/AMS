@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.601 2013/11/03 12:57:35 shaino Exp $
+//  $Id: root.C,v 1.602 2013/11/06 20:22:50 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -1592,6 +1592,7 @@ TBranch* AMSEventR::bLevel3;
 TBranch* AMSEventR::bBeta;
 TBranch* AMSEventR::bBetaB;
 TBranch* AMSEventR::bBetaH;
+TBranch* AMSEventR::bEcalH;
 TBranch* AMSEventR::bVertex;
 TBranch* AMSEventR::bCharge;
 TBranch* AMSEventR::bParticle;
@@ -1637,6 +1638,7 @@ void* AMSEventR::vLevel3=0;
 void* AMSEventR::vBeta=0;
 void* AMSEventR::vBetaB=0;
 void* AMSEventR::vBetaH=0;
+void* AMSEventR::vEcalH=0;
 void* AMSEventR::vVertex=0;
 void* AMSEventR::vCharge=0;
 void* AMSEventR::vParticle=0;
@@ -1964,6 +1966,11 @@ void AMSEventR::GetBranch(TTree *fChain){
     bBetaH=fChain->GetBranch(tmp);
    }
 
+  {
+    strcpy(tmp,_Name);
+    strcat(tmp,"fEcalH");
+    bEcalH=fChain->GetBranch(tmp);
+   }
 
   {
     strcpy(tmp,_Name);
@@ -2239,6 +2246,11 @@ void AMSEventR::GetBranchA(TTree *fChain){
     vBetaH=fChain->GetBranch(tmp)->GetAddress();
   }
 
+  {
+    strcpy(tmp,_Name);
+    strcat(tmp,"fEcalH");
+    vEcalH=fChain->GetBranch(tmp)->GetAddress();
+  }
 
   {
     strcpy(tmp,_Name);
@@ -2356,6 +2368,7 @@ void AMSEventR::SetCont(){
   fHeader.Betas=fBeta.size();
   fHeader.BetaBs=fBetaB.size();
   fHeader.BetaHs=fBetaH.size();
+  fHeader.EcalHs=fEcalH.size();
   fHeader.Vertexs=fVertex.size();
   fHeader.Charges=fCharge.size();
   fHeader.Particles=fParticle.size();
@@ -2736,6 +2749,7 @@ AMSEventR::AMSEventR():TSelector(){
   fBeta.reserve(MAXBETA02);
   fBetaB.reserve(MAXBETA02);
   fBetaH.reserve(MAXBETAH);
+  fEcalH.reserve(MAXECALH);
   fTofChargeH.reserve(MAXBETAH);
   fCharge.reserve(MAXCHARGE02);
   fVertex.reserve(2);
@@ -2788,6 +2802,7 @@ void AMSEventR::clear(){
   fBeta.clear();
   fBetaB.clear();
   fBetaH.clear();
+  fEcalH.clear();
   fTofChargeH.clear();
   fCharge.clear();
   fVertex.clear();
@@ -3122,6 +3137,15 @@ void AMSEventR::AddAMSObject(AMSBetaH *ptr)
   }
 }
 
+void AMSEventR::AddAMSObject(AMSEcalH *ptr)
+{
+  if (ptr) {
+    fEcalH.push_back(EcalHR(ptr));
+    ptr->SetClonePointer(fEcalH.size()-1);
+  }  else {
+    cout<<"AddAMSObject -E- AMSEcalH ptr is NULL"<<endl;
+  }
+}
 
 void AMSEventR::AddAMSObject(AMSCharge *ptr){
   if(!ptr){
@@ -9279,6 +9303,7 @@ void AMSEventR::GetAllContents() {
   bBeta->GetEntry(_Entry);
   bBetaB->GetEntry(_Entry);
   if(bBetaH) bBetaH->GetEntry(_Entry);
+  if(bEcalH) bEcalH->GetEntry(_Entry);
   bVertex->GetEntry(_Entry);
   bCharge->GetEntry(_Entry);
   bParticle->GetEntry(_Entry);
@@ -9302,7 +9327,7 @@ fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCl
 fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),
 fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),
 fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fTrdHSegment(o.fTrdHSegment),
-fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fTofChargeH(o.fTofChargeH),fCharge(o.fCharge),
+fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fEcalH(o.fEcalH),fTofChargeH(o.fTofChargeH),fCharge(o.fCharge),
 fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),
 fTofMCCluster(o.fTofMCCluster),fTofMCPmtHit(o.fTofMCPmtHit),fEcalMCHit(o.fEcalMCHit),fTrdMCCluster(o.fTrdMCCluster),
 fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux)
@@ -9340,6 +9365,7 @@ long long AMSEventR::Size(){
   size+=sizeof(BetaR)*fBeta.size();
   size+=sizeof(BetaR)*fBetaB.size();
   size+=sizeof(BetaHR)*fBetaH.size();
+  size+=sizeof(EcalHR)*fEcalH.size();
   size+=sizeof(TofChargeHR)*fTofChargeH.size();
   size+=sizeof(ChargeR)*fCharge.size();
   size+=sizeof(VertexR)*fVertex.size();

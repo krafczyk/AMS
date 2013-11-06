@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.150 2013/07/21 21:23:30 choutko Exp $
+//  $Id: ntuple.h,v 1.151 2013/11/06 20:22:56 shaino Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -15,6 +15,7 @@ const int NBRANCHES = 1;    // number of branches
 namespace root{
 const int MAXBETA02    = 20;
 const int MAXBETAH     = 20;
+const int MAXECALH     = 20;
 const int MAXCHARGE02  = 20;
 const int MAXPART02    =  10;
 const int MAXTOF     =    48;

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.171 2013/11/03 12:57:34 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.172 2013/11/06 20:22:50 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/11/03 12:57:34 $
+/// $Date: 2013/11/06 20:22:50 $
 ///
-/// $Revision: 1.171 $
+/// $Revision: 1.172 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -254,6 +254,7 @@ void TrRecon::Init(){
 // ---      MAIN RECONSTRUCTION FUNCTION            --- //
 //////////////////////////////////////////////////////////
 
+double memchk(void);
 
 int TrRecon::Build(int iflag, int rebuild, int hist)
 {
@@ -349,7 +350,12 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
   //////////////////// TrTrack reconstruction ////////////////////  
   int simple = (flag%10000  >=  1000) ? 1 : 0;
   int vertex = (flag%100000 >= 10000) ? 1 : 0;
-
+/*
+  int evid = GetEventID();
+  if (evid%1000 == 0)
+    cout << Form("TrRecon::Build-Memory check: %8d %5.0f",
+		 evid, memchk()/1024) << endl;
+*/
   if ( (flag%1000>=100)&&(nhit>0) ) {
     RecPar.NbuildTrack++;
 
@@ -6851,6 +6857,28 @@ bool TrRecon::CompatibilityWithChargeSeed(TrRecHitR* hit) {
     return CompatibilityWithChargeSeed(hit->GetXCluster()) && CompatibilityWithChargeSeed(hit->GetYCluster());
   return false;
 }
+
+
+#include "TSystem.h"
+
+double memchk(void)
+{
+  TString sfn(Form("/proc/%d/status", gSystem->GetPid()));
+  std::ifstream fin(sfn);
+  if (!fin) return 0;
+
+  TString str;
+  while (!fin.eof()) {
+    str.ReadToken(fin);
+    if (str == "VmSize:") {
+      float vmsize;
+      fin >> vmsize;
+      return vmsize;
+    }
+  }
+  return 0;
+}
+
 
 ///// For debug --------------------------------------
 

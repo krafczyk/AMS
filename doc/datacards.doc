@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.402 2013/11/03 21:19:36 choutko Exp $
+#  $Id: datacards.doc,v 1.403 2013/11/06 20:22:53 shaino Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -656,7 +656,7 @@ I35  sword                   // service word
 I36  base(10)                base to calculate bit<->status correspondance
 
 
-TRACEBACK  // Control back tracing
+BACKTRACE  // Control back tracing
 I 1  enable  (0)   // 1:Backtrace only for particles with TrTrackR
 	           // 2:Backtrace all the particles
                    // 3:No backtrace but only pointing (assuming photons)
@@ -673,6 +673,8 @@ F10  minstep(0.05) // Minimum step size (Re)
 F11  maxstep(2.0)  // Maximum step size (Re)
 F12  thengd (0.5)  // Minimum EnergyD to use EnergyE instead of Momentum
 
+ECALH
+I 1  enable  (0)   // 1:Enable EcalH
 
 MISC   // misc
 
