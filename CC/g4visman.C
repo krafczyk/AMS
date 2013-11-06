@@ -1,4 +1,4 @@
-//  $Id: g4visman.C,v 1.6 2013/11/01 14:58:31 choutko Exp $
+//  $Id: g4visman.C,v 1.7 2013/11/06 08:26:39 choutko Exp $
 #include "g4visman.h"
 
 // Supported drivers...
@@ -72,7 +72,7 @@
 void AMSG4VisManager::RegisterGraphicsSystems () {
 
 #ifdef G4VIS_USE_RAYTRACER
-  RegisterGraphicsSystem (new G4RayTracerX);
+//  RegisterGraphicsSystem (new G4RayTracerX);
 #endif
 
 
