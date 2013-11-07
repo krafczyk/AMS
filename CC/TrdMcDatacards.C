@@ -1,4 +1,4 @@
-// $Id: TrdMcDatacards.C,v 1.3 2013/11/07 12:55:44 choutko Exp $
+// $Id: TrdMcDatacards.C,v 1.4 2013/11/07 14:44:17 traiha Exp $
 #include "TrdMcDatacards.h"
 #include <math.h>
 #include <float.h>
@@ -64,7 +64,7 @@ void TRDMCFFKEY_DEF::init(){
   PAIModel=1;
   debug=0;
   TRphotonEnergyScalingFactor=0.80;
-  ZShift=0.01;
+  ZShift=0.1; // TR 07-nov-2013: TRD shifted upwards 1 mm instead of previous 0.1 mm
 }
 
 TRDMCFFKEY_DEF TRDMCFFKEY;
