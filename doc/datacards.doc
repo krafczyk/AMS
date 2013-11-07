@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.403 2013/11/06 20:22:53 shaino Exp $
+#  $Id: datacards.doc,v 1.404 2013/11/07 12:55:48 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -777,6 +777,7 @@ I49   PAIModel(1);	    // enable PAI Model
 I50   debug(0); 	    // debug flag
 I51   CreatePDF(0)          // create or not pdf function
 R52   TRphotonEnergyScalingFactor(0.80)  // factor to scale energy of TR photons
+R53   ZShift;(0.01)        //  TRD Global Shift
 TRDCL   // TRD clustering
 
 R1 ADC2KeV;         //

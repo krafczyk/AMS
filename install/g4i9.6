@@ -1,11 +1,11 @@
-#  $Id: g4i9.6,v 1.5 2013/11/06 08:26:46 choutko Exp $
+#  $Id: g4i9.6,v 1.6 2013/11/07 12:55:52 choutko Exp $
 setenv GEANT4NEW 1
 unsetenv CLHEP_BASE_DIR
 #if `$ROOTSYS/bin/root-config --arch` == "linux" then
 #setenv G4SYSTEM Linux-g++
 #endif
 
-
+#setenv VGM_INSTALL $G4INSTALL/vgmams 
 if `$ROOTSYS/bin/root-config --arch` == "linuxx8664icc" then
 setenv G4LIB_BUILD_GDML 1
 setenv G4SYSTEM  Linux-icc

@@ -1,4 +1,4 @@
-// $Id: TrdMcDatacards.C,v 1.2 2013/10/22 17:26:26 choutko Exp $
+// $Id: TrdMcDatacards.C,v 1.3 2013/11/07 12:55:44 choutko Exp $
 #include "TrdMcDatacards.h"
 #include <math.h>
 #include <float.h>
@@ -64,6 +64,7 @@ void TRDMCFFKEY_DEF::init(){
   PAIModel=1;
   debug=0;
   TRphotonEnergyScalingFactor=0.80;
+  ZShift=0.01;
 }
 
 TRDMCFFKEY_DEF TRDMCFFKEY;
