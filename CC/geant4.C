@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.106 2013/11/06 19:02:06 shaino Exp $
+//  $Id: geant4.C,v 1.107 2013/11/07 14:27:48 bbeische Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -287,9 +287,9 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
  
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
- fvec_reg_tracks.clear();
+ fset_reg_tracks.clear();
  fmap_det_tracks.clear();
- fvec_reg_tracks.push_back(1); //primary track
+ fset_reg_tracks.insert(1); //primary track
  fmap_det_tracks.insert( std::pair<int,int>(1,0) );
  flast_trkid=flast_parentid=-1;
 
@@ -552,7 +552,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 
 void AMSG4EventAction::AddRegisteredTrack(int gtrkid)
 {
-  fvec_reg_tracks.push_back(gtrkid);
+  fset_reg_tracks.insert(gtrkid);
 }
 
 
@@ -563,8 +563,8 @@ void AMSG4EventAction::AddRegisteredParentChild(int gtrkid, int gparentid)
 
 bool AMSG4EventAction::IsRegistered(int gtrkid)
 {
-  vector<int>::iterator it = find(fvec_reg_tracks.begin(), fvec_reg_tracks.end(), gtrkid);
-  if( it==fvec_reg_tracks.end() ) return false;
+  set<int>::iterator it = find(fset_reg_tracks.begin(), fset_reg_tracks.end(), gtrkid);
+  if( it==fset_reg_tracks.end() ) return false;
   return true;
 }
 
@@ -578,8 +578,8 @@ int AMSG4EventAction::FindClosestParent( int gtrkid ){
   int par_id = gtrkid;
 
   /*  cout<<"Finding clsest track to: "<< gtrkid<<endl;
-  cout<<"Content of vector: ";
-  for( vector<int>::iterator it = fvec_reg_tracks.begin(); it!=fvec_reg_tracks.end(); ++it ) cout<<" "<<*it;
+  cout<<"Content of set: ";
+  for( set<int>::iterator it = fset_reg_tracks.begin(); it!=fset_reg_tracks.end(); ++it ) cout<<" "<<*it;
   cout<<endl;
 
   cout<<"Content of map: ";

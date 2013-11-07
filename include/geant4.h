@@ -1,8 +1,8 @@
-//  $Id: geant4.h,v 1.13 2013/05/02 21:07:52 zhukov Exp $
+//  $Id: geant4.h,v 1.14 2013/11/07 14:27:48 bbeische Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
 
-#include <vector>
+#include <set>
 #include <algorithm>
 #include "cern.h"
 #include "geantnamespace.h"
@@ -69,7 +69,7 @@ public:
     int  FindClosestParent(int gtrkid );
  private:
 
-    vector<int> fvec_reg_tracks;
+    set<int> fset_reg_tracks;
     map<int,int> fmap_det_tracks; 
     int flast_trkid;
     int flast_parentid;
