@@ -109,6 +109,7 @@ class TrdMTrack : public TObject
   AMSEventR *evt;
   
   time_t _Time;
+  time_t _Time_previous;
   unsigned long _calibtime;
   bool IsValid;
   bool isprocessed;

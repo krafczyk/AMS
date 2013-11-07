@@ -100,7 +100,7 @@ float TrdMTrack::GetLogLikelihood(AMSEventR *_evt, ParticleR *par){
   evt=_evt;
   _Time=evt->UTime();
 
-  if(TrdAlignType==2 && (unsigned int)_Time> _calibtime+10000000) update_alignment_vectors((unsigned long)_Time);
+  if(TrdAlignType==2 && ((unsigned int)_Time> _calibtime+10000000 ||(unsigned int)_Time< _calibtime) ) update_alignment_vectors((unsigned long)_Time);
   // cout << "Utime: " << evt->UTime() <<endl ;
 
   if(_Time>=FirstRun && _Time<=LastRun) IsValid=true;
@@ -125,6 +125,8 @@ float TrdMTrack::GetLogLikelihood(AMSEventR *_evt, ParticleR *par){
   float lik=CalcLogLikelihood();
  
   isprocessed=true;
+  _Time_previous=_Time;
+
   return lik;
   
 }
@@ -796,6 +798,7 @@ void TrdMTrack::Init_Base(){
   generate_modul_matrix();
   _fit = new TrFit();
 
+  _Time_previous=0;
   IsValid=true;
  
   return;
@@ -1350,6 +1353,12 @@ void TrdMTrack::SetAlignment(){
 	xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
 	xycorr[i][5]=z_corr[i][1]/pow(10.,6);
       }
+    }
+  }
+
+  if(_Time<_Time_previous) {
+    for(int i=0; i<328; i++){
+      index[i]=0;
     }
   }
 
