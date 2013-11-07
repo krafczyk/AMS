@@ -1,6 +1,6 @@
 
 //
-// $Id: TRD_VXTenergyLoss.C,v 1.5 2013/08/16 15:58:04 traiha Exp $
+// $Id: TRD_VXTenergyLoss.C,v 1.6 2013/11/07 14:01:46 bbeische Exp $
 //
 // History:
 // 2001-2002 R&D by V.Grichine// 19.06.03 V. Grichine, modifications in BuildTable for the integration 
@@ -105,6 +105,8 @@ TRD_VXTenergyLoss::TRD_VXTenergyLoss(G4Region *anEnvelope,
   fAngleForEnergyTable(0),
   fVerbose(0)
 {
+  SetProcessSubType(fTransitionRadiation);
+
   fEnvelope = anEnvelope ;
   //  fPlateNumber = fEnvelope->GetNoDaughters() ;
   fPlateNumber = n ;
