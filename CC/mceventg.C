@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.186 2013/11/01 14:58:31 choutko Exp $
+//  $Id: mceventg.C,v 1.187 2013/11/07 22:49:40 bbeische Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1995,20 +1995,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
 
 ///--Create Process Record Adding by Q.Yan
    const G4VProcess *creator=aTrack->GetCreatorProcess();
-   G4String processn=creator->GetProcessName();
-   int nskip=0;
-   if(processn=="dInelastic"||processn=="tInelastic"||processn=="He3Inelastic"||processn=="alphaInelastic"||processn=="ionInelastic"){
-      nskip=(1<<0);//Nucleus Inelastic Process
-    }
-    else if(processn=="DeuteronInelastic"||processn=="TritonInelastic"||processn=="AlphaInelastic"||processn=="IonInelastic"){
-      nskip=(1<<0);//Nucleus Inelastic Process
-    }
-    else if(processn=="ProtonInelastic"){//Proton Inelastic
-      nskip=(1<<1);
-    }
-    else if(processn=="conv"){//Convert Photon  Process
-      nskip=(1<<2);
-    }
+   int nskip = creator ? (creator->GetProcessType() << 24) | (creator->GetProcessSubType() & 0xFFFFFF) : 0;
 //---
 
    //

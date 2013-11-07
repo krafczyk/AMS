@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.43 2013/05/02 21:07:52 zhukov Exp $
+//  $Id: mccluster.h,v 1.44 2013/11/07 22:49:41 bbeische Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -248,6 +248,7 @@ protected:
  integer _itra;     // geant itra
  integer _ipart;     // geant itra
  integer _gtrkid;  //geant4 track id
+ integer _procid;  //process id
  AMSPoint _xgl;     // global coo (cm)
  number _step;      // track length (cm)
  number   _edep;      // energy deposition (GeV)
@@ -259,17 +260,17 @@ protected:
  static integer Out(integer);
 public:
  // Constructor for noise and crosstalk
- AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra, integer gtrkid):AMSlink(),_idsoft(id),_xgl(0,0,0),_step(0),_edep(energy),_itra(itra),_ekin(0), _gtrkid(gtrkid){};
+ AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra, integer gtrkid):AMSlink(),_idsoft(id),_xgl(0,0,0),_step(0),_edep(energy),_itra(itra),_ekin(0), _gtrkid(gtrkid), _procid(0) {};
  // Constructor for geant track
    AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra):AMSlink(),
-     _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(-2){}
+   _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(-2), _procid(0){}
 
 // Constructor for geant track
-   AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra,integer gtrkid):AMSlink(),
-     _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(gtrkid){}
+ AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra,integer gtrkid, integer procid):AMSlink(),
+   _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(gtrkid), _procid(procid) {}
 
  static void    sitrdhits(integer idsoft ,geant vect[],
-			  geant destep, geant ekin, geant step,integer ipart, integer itra, integer gtrkid=-2);   
+			  geant destep, geant ekin, geant step,integer ipart, integer itra, integer gtrkid=-2, integer procid=0);   
 
  // Constructor for daq
  AMSTRDMCCluster (AMSPoint xgl, integer itra): AMSlink(),
@@ -280,6 +281,7 @@ public:
   integer IsNoise(){return _itra==_NoiseMarker;}
   AMSPoint getHit(){return _xgl;}
   integer getgtrkid() const { return _gtrkid; }
+  integer getprocid() const { return _procid; }
   static integer noisemarker(){return _NoiseMarker;}
   geant getedep()const {return _edep;}
   geant getitra()const {return _itra;}

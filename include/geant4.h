@@ -1,4 +1,4 @@
-//  $Id: geant4.h,v 1.14 2013/11/07 14:27:48 bbeische Exp $
+//  $Id: geant4.h,v 1.15 2013/11/07 22:49:41 bbeische Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
 
@@ -65,14 +65,15 @@ public:
 
     void AddRegisteredTrack(int gtrkid);
     bool IsRegistered(int gtrkid);
-    void AddRegisteredParentChild(int gtrkid, int gparentid);
-    int  FindClosestParent(int gtrkid );
+    void AddRegisteredParentChild(int gtrkid, int gparentid, int processid);
+    void FindClosestRegisteredTrack(int& gtrkid, int& processid);
  private:
 
     set<int> fset_reg_tracks;
-    map<int,int> fmap_det_tracks; 
+    map< int, pair<int,int> > fmap_det_tracks; 
     int flast_trkid;
-    int flast_parentid;
+    int flast_resultid;
+    int flast_processid;
 };
 
 

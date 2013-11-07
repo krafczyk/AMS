@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.577 2013/11/06 20:41:54 shaino Exp $
+//  $Id: root.h,v 1.578 2013/11/07 22:49:41 bbeische Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3735,7 +3735,9 @@ public:
   int   Ladder;     ///< ladder  no
   int   Tube;   ///< tube no
   int   ParticleNo;   ///< particle id ala g3, (-) if secondary partilces
-  int   GtrkID;      ///< G4 track id
+  int   GtrkID;      ///< G4 track id (if negative: track ID of first parent which is stored as MCEventgR
+  int   ProcID;      ///< If GtrkID is positive: ID of CreatorProcess of GtrkID. Otherwise: ID of CreatorProcess of first _unsaved_ particle in chain of parents of the particle which caused the MCCluster.
+                     /*!< Format: ProcID == ((G4ProcessType << 24) | (G4ProcessSubType & 0xFFFFFF)). */
   float Edep;        ///<  energy dep gev
   float Ekin;        ///< part kin energy (gev)
   float Xgl[3];     ///< hit global coo(cm)
@@ -3744,7 +3746,7 @@ public:
   TrdMCClusterR(){};
   TrdMCClusterR(AMSTRDMCCluster *ptr);
   virtual ~TrdMCClusterR(){};
-ClassDef(TrdMCClusterR,2)       //TrdMCClusterR
+ClassDef(TrdMCClusterR,3)       //TrdMCClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3842,7 +3844,12 @@ static char _Info[255];
 public:
 static bool Rebuild;
 
-  int Nskip;      ///< geant4 partcle create process: bit-1 IonInelastic(He+Deturon+Triton+Ion) bit-2 ProtonInelastic bit-3 ConvertPhoton
+  int Nskip;      ///< Additional information about this particle / step.
+  /*!< Three distinct cases:\n
+    1. If primary particle: Nskip =~ -1000: If particle was killed in this step: Nskip == -1100, otherwise Nskip == (-1000 - (index of acceptance plane [0..20])).\n
+    2. If backsplash: Nskip == -2\n
+    3. If secondary particle (except for backsplash): Nskip == geant4 particle creation process: upper 8 bit: ProcessType of G4VProcess, lower 24 bit: ProcessSubType of G4VProcess.
+  */
   int Particle;   ///< geant3 particle id OR geant4 particle id if no geant3 counterpart is found
                   /*!<
           (geant3 only) \n

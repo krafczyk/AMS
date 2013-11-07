@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.602 2013/11/06 20:22:50 shaino Exp $
+//  $Id: root.C,v 1.603 2013/11/07 22:49:40 bbeische Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6427,6 +6427,7 @@ TrdMCClusterR::TrdMCClusterR(AMSTRDMCCluster *ptr){
   Tube   = ptr->_idsoft.gettube();
   ParticleNo= ptr->_ipart;
   GtrkID = ptr->_gtrkid;
+  ProcID = ptr->_procid;
   if(ptr->_itra!=0)ParticleNo= -ParticleNo;
   //  TrackNo= ptr->_itra;
   Edep   = ptr->_edep;

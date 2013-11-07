@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.87 2013/05/02 21:07:22 zhukov Exp $
+//  $Id: mccluster.C,v 1.88 2013/11/07 22:49:40 bbeische Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -26,13 +26,13 @@ number AMSEcalMCHit::leadedep[ecalconst::ECSLMX];
 integer AMSTRDMCCluster::_NoiseMarker(555);
 
 void AMSTRDMCCluster::sitrdhits(
-				integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer ipart, integer itra, integer gtrkid ){
+				integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer ipart, integer itra, integer gtrkid, integer procid ){
 
 
         AMSPoint xgl(vect[0],vect[1],vect[2]);
         AMSDir xvec(vect[3],vect[4],vect[5]);
       AMSEvent::gethead()->addnext(AMSID("AMSTRDMCCluster",0),
-      new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,ipart,itra, gtrkid));
+                                   new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,ipart,itra, gtrkid, procid));
 
 }
 

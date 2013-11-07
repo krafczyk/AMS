@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.107 2013/11/07 14:27:48 bbeische Exp $
+//  $Id: geant4.C,v 1.108 2013/11/07 22:49:40 bbeische Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -36,6 +36,7 @@
 #include "G4StateManager.hh"
 #include "G4ApplicationState.hh"
 #include "G4VPhysicalVolume.hh"
+#include "G4VProcess.hh"
 #include "g4xray.h"
 #include "producer.h"
 #include "TofSimUtil.h"
@@ -290,8 +291,8 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
  fset_reg_tracks.clear();
  fmap_det_tracks.clear();
  fset_reg_tracks.insert(1); //primary track
- fmap_det_tracks.insert( std::pair<int,int>(1,0) );
- flast_trkid=flast_parentid=-1;
+ fmap_det_tracks.insert( std::pair<int, std::pair<int,int> >(1, std::pair<int,int>(0,0)) );
+ flast_trkid=flast_resultid=flast_processid=-1;
 
 
  DAQEvent * pdaq=0;
@@ -556,9 +557,9 @@ void AMSG4EventAction::AddRegisteredTrack(int gtrkid)
 }
 
 
-void AMSG4EventAction::AddRegisteredParentChild(int gtrkid, int gparentid)
+void AMSG4EventAction::AddRegisteredParentChild(int gtrkid, int gparentid, int processid)
 {
-  fmap_det_tracks.insert( std::pair<int,int>( gtrkid, gparentid ) );
+  fmap_det_tracks.insert( std::pair<int, std::pair<int,int> >( gtrkid, std::pair<int,int>(gparentid,processid) ) );
 }
 
 bool AMSG4EventAction::IsRegistered(int gtrkid)
@@ -568,14 +569,26 @@ bool AMSG4EventAction::IsRegistered(int gtrkid)
   return true;
 }
 
-int AMSG4EventAction::FindClosestParent( int gtrkid ){
+void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid ){
 
 
-  if( gtrkid == flast_trkid ) return flast_parentid; //to speedup
+  if( gtrkid == flast_trkid ) {
+    gtrkid = flast_resultid; //to speedup
+    processid = flast_processid;
+    return;
+  }
+
+  if( IsRegistered( gtrkid ) ) {
+    flast_trkid = gtrkid;
+    flast_resultid = gtrkid;
+    flast_processid = processid;
+    return;
+  }
 
   bool found = false;
   bool err = false;
   int par_id = gtrkid;
+  int process_id = 0;
 
   /*  cout<<"Finding clsest track to: "<< gtrkid<<endl;
   cout<<"Content of set: ";
@@ -588,22 +601,31 @@ int AMSG4EventAction::FindClosestParent( int gtrkid ){
 
   while( (!found) && (!err)  ){
     
-    std::map<int,int>::iterator it = fmap_det_tracks.find( par_id );
+    std::map<int, pair<int,int> >::iterator it = fmap_det_tracks.find( par_id );
     if( it==fmap_det_tracks.end() ){  
       err = true;
 
       //   cout<<"!!!Error, chain is broken on track: "<<par_id<<endl;
     }
-    if( IsRegistered( it->second ) ) found = true;
+    par_id = (it->second).first;
+    process_id = (it->second).second;
+
+    if( IsRegistered( par_id ) ) found = true;
 
     //  cout<<"("<<par_id<<","<<it->second<<")="<<found<<endl;
-
-    par_id = it->second;
-
   }
+
+  // flip sign of parent ID to signify that this parent is indirectly associated
+  par_id = -par_id;
+
+  // store results for this input gtrkid for future retrieval
   flast_trkid = gtrkid;
-  flast_parentid = par_id;
-  return par_id;
+  flast_resultid = par_id;
+  flast_processid = process_id;
+
+  // store results in input references
+  gtrkid = flast_resultid;
+  process_id = flast_processid;
 }
 
  G4VPhysicalVolume* AMSG4DetectorInterface::Construct(){
@@ -998,10 +1020,9 @@ if(!Step)return;
 
         //looging if given track is already registered in MCEventG. If not, find closest parent and change sign of gtrkid
         AMSG4EventAction* evt_act = (AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
-        if( !evt_act->IsRegistered( gtrkid ) ) gtrkid = -evt_act->FindClosestParent( gtrkid );
-        
-
-
+        const G4VProcess* process = Track->GetCreatorProcess();
+        int process_id = process ? ( (process->GetProcessType() << 24) | (process->GetProcessSubType() & 0xFFFFFF) ) : 0;
+        evt_act->FindClosestRegisteredTrack( gtrkid, process_id );
 
 	G4ParticleDefinition* particle =Track->GetDefinition();
         int parinfo;
@@ -1019,7 +1040,7 @@ if(!Step)return;
 	     &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
 	    //cout <<" trd "<<GCKINE.itra<<" "<<GCKINE.ipart<<endl;
 	    AMSTRDMCCluster::sitrdhits(PrePV->GetCopyNo(),GCTRAK.vect,
-				       GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra, gtrkid);   
+				       GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra, gtrkid, process_id);   
 	  }
 
 
@@ -1376,10 +1397,12 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
     if(!RICHDB::detcer(e)) return fKill; // Kill discarded Cerenkov photons
   }
   if( !aTrack->GetCurrentStepNumber() ){ //don't fill twice for the same track
-      AMSmceventg::FillMCInfoG4( aTrack );
-      AMSG4EventAction* evt_act =(AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
-      evt_act->AddRegisteredParentChild( aTrack->GetTrackID(), aTrack->GetParentID() );
-  }  
+    AMSmceventg::FillMCInfoG4( aTrack );
+    AMSG4EventAction* evt_act =(AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
+    const G4VProcess* process = aTrack->GetCreatorProcess();
+    int process_id = process ? ( (process->GetProcessType() << 24) | (process->GetProcessSubType() & 0xFFFFFF) ) : 0;
+    evt_act->AddRegisteredParentChild( aTrack->GetTrackID(), aTrack->GetParentID(), process_id );
+  }
 
   return fWaiting;
 }
