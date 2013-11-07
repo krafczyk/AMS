@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.58 2013/10/30 11:47:52 choutko Exp $
+//  $Id: trddbc.C,v 1.59 2013/11/07 10:29:54 choutko Exp $
 #include "trddbc.h"
 //#include "amsdbc.h"
 #include <math.h>
@@ -689,7 +689,7 @@ void TRDDBc::init(){
 
       
       for(i=0;i<OctagonNo();i++){
-       OctagonDimensions(i,0)=0-360/16.;
+       OctagonDimensions(i,0)=0+360/16.; //VC 7-Nov-2013 to bypass G4PolyHedrsa featured 
        OctagonDimensions(i,1)=360;
        OctagonDimensions(i,2)=8;
        OctagonDimensions(i,3)=2;
