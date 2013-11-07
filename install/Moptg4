@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.144 2012/11/06 20:45:00 qyan Exp $
+#  $Id: Moptg4,v 1.145 2013/11/07 17:06:08 mkrafczy Exp $
 #
 SHELL=/bin/sh
 #
@@ -25,6 +25,8 @@ VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),6)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),7)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),8)
 VERGCCH := 1
 endif
 endif 

@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.47 2012/11/08 15:23:20 beischer Exp $
+#  $Id: Makefile.linux,v 1.48 2013/11/07 17:06:08 mkrafczy Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -34,6 +34,8 @@ VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),6)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),7)
+VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),8)
 VERGCCH := 1
 endif
 endif 
