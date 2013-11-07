@@ -1,6 +1,6 @@
 
 //
-// $Id: TRD_VXTenergyLoss.C,v 1.6 2013/11/07 14:01:46 bbeische Exp $
+// $Id: TRD_VXTenergyLoss.C,v 1.7 2013/11/07 14:17:49 bbeische Exp $
 //
 // History:
 // 2001-2002 R&D by V.Grichine// 19.06.03 V. Grichine, modifications in BuildTable for the integration 
@@ -14,6 +14,7 @@
 #include "TRD_VXTenergyLoss.hh"
 #include "commons.h"
 
+#include "G4EmProcessSubType.hh"
 #include "G4Poisson.hh"
 #include "G4MaterialTable.hh"
 #include "G4VDiscreteProcess.hh"
