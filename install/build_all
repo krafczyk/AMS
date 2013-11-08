@@ -10,6 +10,7 @@ else
     unsetenv ADDBUILDNO
 endif
 
+unsetenv AMSLIB 
 unsetenv SLC6system
 setenv CXXVERS `g++ -dumpversion | tr -d "."`
 
