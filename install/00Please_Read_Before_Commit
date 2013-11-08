@@ -15,6 +15,18 @@ iii.
 iv
  AMS Event Display works on produced root files and shows meaningful pictures.
 
+P.S.:
 
+A good machine where to try it is scamfs1. The suggested shell is tcsh. A working procedure is:
+
+ssh scamsfs1
+cd /tmp
+mkdir whatever
+cd whatever
+cvs co AMS
+cd AMS
+cd install
+./build_all > & build_all.log
+...
 
 
