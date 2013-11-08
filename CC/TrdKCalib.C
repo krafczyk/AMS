@@ -141,7 +141,7 @@ int TrdKCalib::readDB_Alignment_Plane(Double_t asktime){
 
         //        printf("TRDAlignmentPlane DB read, Validity: %i - %i \n",_trdaligndb_Plane.time_start,_trdaligndb_Plane.time_end);
         TRDAlignmentPar * par= _trdaligndb_Plane.getplaneparp(0);
-        if(par->dX==0){
+        if(par->dX==0 && par->dY==0 && par->dZ==0){
             //            printf("****ERROR****** Plane Alignment parameter return zero within validity period,  %f\n",asktime);
             Error("TrdKCalib::readDB_Alignment_Plane-E-", "Plane Alignment return zero : %f", asktime);
             return 0;
@@ -236,7 +236,7 @@ TRDAlignmentPar * TrdKCalib::GetAlignmentPar_Global(int t){
 
 TRDAlignmentPar *TrdKCalib::GetAlignmentPar_Plane(int plane){
     TRDAlignmentPar * par= _trdaligndb_Plane.getplaneparp(plane);
-    if(par->dX!=0)return par;
+    if(par->dX!=0 && par->dY!=0 && par->dZ!=0 ) return par;
     else {
         //            printf("****ERROR****** Plane Alignment parameter return zero within validity period\n");
         return par;
