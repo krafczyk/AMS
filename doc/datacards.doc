@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.404 2013/11/07 12:55:48 choutko Exp $
+#  $Id: datacards.doc,v 1.405 2013/11/08 10:14:26 shaino Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -673,7 +673,7 @@ F10  minstep(0.05) // Minimum step size (Re)
 F11  maxstep(2.0)  // Maximum step size (Re)
 F12  thengd (0.5)  // Minimum EnergyD to use EnergyE instead of Momentum
 
-ECALH
+ECAH
 I 1  enable  (0)   // 1:Enable EcalH
 
 MISC   // misc
