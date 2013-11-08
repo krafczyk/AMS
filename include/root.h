@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.578 2013/11/07 22:49:41 bbeische Exp $
+//  $Id: root.h,v 1.579 2013/11/08 18:01:22 jorgec Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1752,6 +1752,7 @@ static bool useGainCorrections; ///< Activate PMT Gain equalization
 static bool useEfficiencyCorrections;  ///< Activate PMT Efficiency equalization
 static bool useBiasCorrections; ///< Activate PMT Efficiency bias corrections
 static bool useTemperatureCorrections; ///< Activate PMT Temperature corrections
+static bool useEffectiveTemperatureCorrection; ///< Activate Global Effective Temperature correction
 static bool useExternalFiles; ///< Use external files instead of info stored in the root file
 static bool reloadTemperatures; ///< Force load of Temperatures from external files
 static bool reloadRunTag; ///< Force load of Config & Status info from external files

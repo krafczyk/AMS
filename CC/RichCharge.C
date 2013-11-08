@@ -34,6 +34,7 @@ bool RichPMTCalib::useGainCorrections = true;
 bool RichPMTCalib::useEfficiencyCorrections = true;
 bool RichPMTCalib::useBiasCorrections = true;
 bool RichPMTCalib::useTemperatureCorrections = true;
+bool RichPMTCalib::useEffectiveTemperatureCorrection = true;
 int RichPMTCalib::temperatureUpdatePeriod = 60;
 unsigned short RichPMTCalib::richRunBad = (1<<RichPMTCalib::kTagJ) | (1<<RichPMTCalib::kTagR); //  JINFR & RDR Configuration  
 unsigned short RichPMTCalib::richPmtBad = (1<<RichPMTCalib::kPmtFE) | (1<<RichPMTCalib::kPmtJ) | (1<<RichPMTCalib::kPmtR); //  FE On & No Config Err/Mismatch 
@@ -266,6 +267,30 @@ float RichPMTCalib::GainTemperatureCorrection(int pmt) {
 }
 
 
+float RichPMTCalib::EffectiveTemperatureCorrection() {
+
+  float temperatureCorrection = 1;
+
+  float dE = 0;
+  if (useEffectiveTemperatureCorrection) {
+    dE = -1;
+    if (pmtTemperatures) {
+      float temp = pmt_mean_temp;
+      float temp_ref = pmt_mean_temp_ref;
+      float dEdT = pmt_mean_dEdT;
+      if (temp>pmtMinTemperature && temp<pmtMaxTemperature)
+	dE = (temp - temp_ref) * dEdT;
+    }
+
+  }
+
+  temperatureCorrection = 1 + dE;
+
+  return temperatureCorrection;
+
+}
+
+
 void RichPMTCalib::updatePMTs(int run, bool force) {
   int utime, dV, pmt, pm;
   float ecor, gcor, gmcor, temp, dtemp;
@@ -281,6 +306,7 @@ void RichPMTCalib::updatePMTs(int run, bool force) {
   v_pmt_gcor = v_pmt_gcor_dflt;
   v_pmt_gmcor = v_pmt_gmcor_dflt;
   v_pmt_temp_ref = v_pmt_temp_ref_dflt;
+  pmt_mean_temp_ref = pmt_mean_temp_ref_dflt;
 
   // PMT Status & HV
   for (int pmt=0; pmt<NPMT; pmt++) {
@@ -376,6 +402,10 @@ bool RichPMTCalib::initPMTs() {
 
   m_pmt_periods.clear();
   m_pmt_voltages.clear();
+
+  pmt_mean_temp_ref = pmtRefTemperature;
+  pmt_mean_temp_ref_dflt = pmtRefTemperature;
+  pmt_mean_dEdT = pmt_mean_RefdEdT;
 
   //
   // Efficiency & Gain Corrections
@@ -857,6 +887,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
     v_pmt_temp.assign(NPMT, pmtRefTemperature); // Default PMT Temperatures
     v_pmt_rep.assign(NPMT, 0);
+    pmt_mean_temp = pmtRefTemperature;
 
     TString DBDir=currentDir+TString("/RichPMTCalib/");
     TString DtsPositionsFileName, PmtPositionsFileName;
@@ -1037,6 +1068,16 @@ bool RichPMTCalib::getRichPmtTemperatures() {
       cout << "RichPMTCalib::getRichPmtTemperatures: PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" <<  endl;
     if (v_pmt_temp[pmt]<pmtMinTemperature || v_pmt_temp[pmt]>pmtMaxTemperature) 
       cout << "RichPMTCalib::getRichPmtTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" << endl;
+  }
+
+  pmt_mean_temp = pmtRefTemperature;
+  if (RichPmtTemperatures) {
+    double sum=0;
+    for (int i=0; i<(int)v_dts_temp.size(); i++)
+      sum += v_dts_temp[i];
+    pmt_mean_temp = sum/v_dts_temp.size();
+    if (DEBUG)
+      cout << "RichPMTCalib::getRichPmtTemperatures: T_Mean=" << pmt_mean_temp << endl;
   }
 
   last_stat = RichPmtTemperatures;
@@ -2072,6 +2113,12 @@ bool RichPMTCalib::buildCorrections(){
   for(int pmt=0; pmt<680; pmt++){
     if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpExpPMTCorr[pmt]=0;
     else NpExpPMTCorr[pmt]=corr->EfficiencyCorrection(pmt) * corr->EfficiencyTemperatureCorrection(pmt);
+  }
+ 
+  // Effective Temperature Correction
+  for(int pmt=0; pmt<680; pmt++){
+    if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpExpPMTCorr[pmt]=0;
+    else NpExpPMTCorr[pmt]*=corr->EffectiveTemperatureCorrection();
   }
  
   return true;

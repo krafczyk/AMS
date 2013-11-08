@@ -42,6 +42,7 @@ namespace RichPMTCalibConstants{
   const float pmtRefdGdT = -0.56e-2, pmtMindGdT = -1.00e-2, pmtMaxdGdT = 0.00e-2;
   const float pmtRefdEdT =  0.08e-2, pmtMindEdT = -0.10e-2, pmtMaxdEdT = 0.30e-2;
   const float brickRefTemperature = 25, brickMinTemperature = -20, brickMaxTemperature = 40;
+  const float pmt_mean_RefdEdT = -0.236e-2;
 }
 
 class RichPMTCalib{
@@ -69,6 +70,7 @@ class RichPMTCalib{
   static bool useEfficiencyCorrections;
   static bool useBiasCorrections;
   static bool useTemperatureCorrections;
+  static bool useEffectiveTemperatureCorrection;
   static int temperatureUpdatePeriod;
   static unsigned short richRunBad;
   static unsigned short richPmtBad;
@@ -105,6 +107,7 @@ class RichPMTCalib{
   vector<float> v_pmt_temp_ref;
   vector<float> v_pmt_ecor_dflt, v_pmt_gcor_dflt, v_pmt_gmcor_dflt;
   vector<float> v_pmt_temp_ref_dflt;
+  float pmt_mean_temp_ref, pmt_mean_temp_ref_dflt;
 
   //
   // Bias Corrections
@@ -116,6 +119,8 @@ class RichPMTCalib{
   vector<float> v_pmt_dGdT, v_pmt_dEdT, v_pmt_temp;
   bool brickTemperatures;
   vector<float> v_brick_temp;
+  float pmt_mean_dEdT;
+  float pmt_mean_temp;
 
 //
 // Declare here the functions, and define them if they are very one-liners
@@ -127,6 +132,7 @@ class RichPMTCalib{
   float  GainCorrection(int );
   float  EfficiencyTemperatureCorrection(int );
   float  GainTemperatureCorrection(int );
+  float  EffectiveTemperatureCorrection();
   bool   initPMTs();
   void   updatePMTs(int run, bool force=true);
   bool   checkRichPmtTemperatures();

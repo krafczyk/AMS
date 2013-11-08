@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.603 2013/11/07 22:49:40 bbeische Exp $
+//  $Id: root.C,v 1.604 2013/11/08 18:01:22 jorgec Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -1780,6 +1780,7 @@ bool RichRingR::useGainCorrections = true;       // PMT Gain equalization
 bool RichRingR::useEfficiencyCorrections = true; // PMT Efficiency equalization
 bool RichRingR::useBiasCorrections = true;       // PMT Efficiency bias corrections
 bool RichRingR::useTemperatureCorrections = true;// PMT Temperature corrections
+bool RichRingR::useEffectiveTemperatureCorrection = false;// PMT Additional Temperature correction
 bool RichRingR::useExternalFiles = false;        // read external files
 bool RichRingR::reloadTemperatures = true;       // force load Temperatures from AMSSetup
 bool RichRingR::reloadRunTag = false;            // force load Config & Status from ext. files
@@ -7325,6 +7326,7 @@ bool RichRingR::buildChargeCorrections(){
   RichPMTCalib::useEfficiencyCorrections = useEfficiencyCorrections;
   RichPMTCalib::useBiasCorrections = useBiasCorrections;
   RichPMTCalib::useTemperatureCorrections = useTemperatureCorrections;
+  RichPMTCalib::useEffectiveTemperatureCorrection = useEffectiveTemperatureCorrection;
 
   RichConfigManager::useExternalFiles = useExternalFiles;
   RichConfigManager::reloadTemperatures = reloadTemperatures;
@@ -7348,7 +7350,8 @@ bool RichRingR::buildChargeCorrections(){
       it!=NpExpPMT.end();it++){
     int pmt=it->first;
     if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpExpCorr[pmt]=0;
-    else NpExpCorr[pmt]=corr->EfficiencyCorrection(pmt) * corr->EfficiencyTemperatureCorrection(pmt);
+    else NpExpCorr[pmt]=corr->EfficiencyCorrection(pmt) * corr->EfficiencyTemperatureCorrection(pmt)
+      * corr->EffectiveTemperatureCorrection();
   }
 
   pmtCorrectionsFailed = 0;
