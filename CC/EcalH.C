@@ -1,3 +1,18 @@
+//  $Id: EcalH.C,v 1.5 2013/11/08 18:31:16 shaino Exp $
+
+//////////////////////////////////////////////////////////////////////////
+///
+///\file  EcalH.C
+///\brief Source file of EcalHR class
+///
+///\date  2013/11/06 SH  Introduction of the class
+///\date  2013/11/08 SH  Methods implemented
+///
+///$Date: 2013/11/08 18:31:16 $
+///
+///$Revision: 1.5 $
+///
+//////////////////////////////////////////////////////////////////////////
 
 #include "root.h"
 #include "EcalH.h"

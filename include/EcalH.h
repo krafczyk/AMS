@@ -1,4 +1,4 @@
-//  $Id: EcalH.h,v 1.2 2013/11/08 18:07:07 shaino Exp $
+//  $Id: EcalH.h,v 1.3 2013/11/08 18:31:14 shaino Exp $
 #ifndef __EcalHR__
 #define __EcalHR__
 
@@ -8,10 +8,11 @@
 ///\brief A class to manage hadron shower in Ecal
 ///
 ///\date  2013/11/06 SH  Introduction of the class
+///\date  2013/11/08 SH  Methods implemented
 ///
-///$Date: 2013/11/08 18:07:07 $
+///$Date: 2013/11/08 18:31:14 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
