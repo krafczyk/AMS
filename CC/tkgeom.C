@@ -896,11 +896,11 @@ void BuildPlane1NSupport(AMSgvolume* mvol){
   float mlihdz=0.025;//hole teflon
   float mliri=15;//tempor
   float mliro=TkDBc::Head->P1NSupportRadius+9;// "9" to have outer radious covering whole trkL1supp.
-  float logoxs=30;
-  float logoys=50;
+  float logoxs=50;
+  float logoys=120;
   float logodz1=0.034;//logo's bcloth
   float logodz2=0.025;//logo's teflon (neglect 25mkm Al)
-  float logoxp=40;
+  float logoxp=55;
 //mli:              
   coo[0]=TkDBc::Head->P1NSupportCoo[0];
   coo[1]=TkDBc::Head->P1NSupportCoo[1];
