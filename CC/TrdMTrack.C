@@ -1335,54 +1335,56 @@ void TrdMTrack::SetAlignment(){
     }
   }
 
-  if(TrdAlignType==-1){
-    for( int i=0; i<328; i++){
-      if(i>55 && i<256){
-	xycorr[i][0]=0;
-	xycorr[i][1]=0;
-	xycorr[i][2]=0;
-	xycorr[i][3]=0;
-	xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
-	xycorr[i][5]=z_corr[i][1]/pow(10.,6);
-      }
-      else {
-	xycorr[i][0]=0;
-	xycorr[i][1]=0;
-	xycorr[i][2]=0;
-	xycorr[i][3]=0;
-	xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
-	xycorr[i][5]=z_corr[i][1]/pow(10.,6);
-      }
-    }
-  }
-
   if(_Time<_Time_previous) {
     for(int i=0; i<328; i++){
       index[i]=0;
     }
   }
 
-  if(TrdAlignType==2 ){
-    // int index=0;
-    unsigned int time=(unsigned int)(_Time);
-    
+  if(TrdAlignType==-1){
     for( int i=0; i<328; i++){
-      while(time>mod_time[i][index[i]+1] && index[i]<((int)mod_time[i].size()-1)) index[i]++;
-      if(i>55 && i<256){
-	xycorr[i][0]=mod_corr[i][0][index[i]];
-	xycorr[i][1]=mod_corr[i][1][index[i]];
-	xycorr[i][2]=0;
-	xycorr[i][3]=0;
-	xycorr[i][4]=mod_corr[i][2][index[i]];
-	xycorr[i][5]=mod_corr[i][3][index[i]];
+     
+      xycorr[i][0]=0;
+      xycorr[i][1]=0;
+      xycorr[i][2]=0;
+      xycorr[i][3]=0;
+      xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
+      xycorr[i][5]=z_corr[i][1]/pow(10.,6);
+     
+    }
+  }
+  else if(TrdAlignType==2 ){
+    // int index=0;
+    unsigned long time=(unsigned long)(_Time);
+    
+ 
+    for( int i=0; i<328; i++){
+      if((int)mod_time[0].size()>1){
+	while(time>mod_time[i][index[i]+1] && index[i]<((int)mod_time[i].size()-2)) index[i]++;
+	if(i>55 && i<256){
+	  xycorr[i][0]=mod_corr[i][0][index[i]];
+	  xycorr[i][1]=mod_corr[i][1][index[i]];
+	  xycorr[i][2]=0;
+	  xycorr[i][3]=0;
+	  xycorr[i][4]=mod_corr[i][2][index[i]];
+	  xycorr[i][5]=mod_corr[i][3][index[i]];
+	}
+	else {
+	  xycorr[i][0]=0;
+	  xycorr[i][1]=0;
+	  xycorr[i][2]=mod_corr[i][0][index[i]];
+	  xycorr[i][3]=mod_corr[i][1][index[i]];
+	  xycorr[i][4]=mod_corr[i][2][index[i]];
+	  xycorr[i][5]=mod_corr[i][3][index[i]];
+	}
       }
       else {
-	xycorr[i][0]=0;
+      	xycorr[i][0]=0;
 	xycorr[i][1]=0;
-	xycorr[i][2]=mod_corr[i][0][index[i]];
-	xycorr[i][3]=mod_corr[i][1][index[i]];
-	xycorr[i][4]=mod_corr[i][2][index[i]];
-	xycorr[i][5]=mod_corr[i][3][index[i]];
+	xycorr[i][2]=0;
+	xycorr[i][3]=0;
+	xycorr[i][4]=z_corr[i][0]/pow(10.,4)+0.1;
+	xycorr[i][5]=z_corr[i][1]/pow(10.,6);
       }
     }
   }
@@ -1400,7 +1402,7 @@ void TrdMTrack::SetAlignment(){
       int module=mStraw[lad][lay];
       // printf("%i -> lad %i lay %i mod %i\n", i, lad, lay, module);
 
-      while(time>mod_time[module][index[i]+1] && index[i]<((int)mod_time[module].size()-1)) index[i]++;
+      while(time>mod_time[module][index[i]+1] && index[i]<((int)mod_time[module].size()-2)) index[i]++;
       float inter = (float)(time-mod_time[module][index[i]])/(float)(mod_time[module][index[i]+1]-mod_time[module][index[i]]);
      
       if(i>55 && i<256){
