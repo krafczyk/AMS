@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.928 2013/11/06 20:22:50 shaino Exp $
+// $Id: job.C,v 1.929 2013/11/08 10:09:08 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1786,7 +1786,7 @@ void AMSJob::_reaxdata(){
   FFKEY("BACKTRACE",(float*)&BACKTRACEFFKEY,sizeof(BACKTRACEFFKEY_DEF)/sizeof(integer),"MIXED");
 //----ECALH
   ECALHFFKEY.enable = 0;
-  FFKEY("ECALH",(float*)&ECALHFFKEY,sizeof(ECALHFFKEY_DEF)/sizeof(integer),"MIXED");
+  FFKEY("ECAH",(float*)&ECALHFFKEY,sizeof(ECALHFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_retrddata(){
