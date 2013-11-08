@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.55 2013/11/06 13:06:23 mdelgado Exp $
+//  $Id: richgeom.C,v 1.56 2013/11/08 09:47:10 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -615,7 +615,8 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[2]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
   par[3]=0.;
   //  par[4]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
-  par[4]=RICradiator_box_radius+RICradiator_box_thickness+2*RICepsln;
+  par[4]=(RICradiator_box_radius+RICradiator_box_thickness+RICepsln)/
+    cos(2.0*M_PI/RICradiator_box_sides/2.0);
 
 
   coo[0]=0;
