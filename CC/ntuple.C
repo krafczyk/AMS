@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.268 2013/11/08 21:02:36 mduranti Exp $
+//  $Id: ntuple.C,v 1.269 2013/11/08 21:40:05 mduranti Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -506,7 +506,8 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
 uinteger AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
 
-  Get_evroot02()->RebuildAntiClusters();
+  if (ATCAFFKEY.antiPG)
+    Get_evroot02()->RebuildAntiClusters();
 
 if(Trigger2LVL1::SetupIsChanged){
   #pragma omp critical (g4)

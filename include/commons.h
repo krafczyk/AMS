@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.363 2013/11/08 18:07:07 shaino Exp $
+//  $Id: commons.h,v 1.364 2013/11/08 21:40:05 mduranti Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -779,6 +779,8 @@ class ATCAFFKEY_DEF {
   geant pedlim[2];// Ped-limits for PedCalibJobs
   geant siglim[2];// PedSig-limits .............
   geant mev2mv;//mev->mV conv.factor(side ampl[mV]/1MIP(mev) Edep at center)
+
+  integer antiPG; // enable PG reconstruction (default). Previous flags could lose meaning...
 };
 #define ATCAFFKEY COMMON_BLOCK(ATCAFFKEY,atcaffkey)
 COMMON_BLOCK_DEF(ATCAFFKEY_DEF,ATCAFFKEY);

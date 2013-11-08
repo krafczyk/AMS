@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.406 2013/11/08 18:07:05 shaino Exp $
+#  $Id: datacards.doc,v 1.407 2013/11/08 21:40:05 mduranti Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1397,6 +1397,7 @@ R 7 pedlim(400)             //      hi-lim ...............
 R 8 siglim(0.4)             // PedSig low-lim ............
 R 9 siglim(15)              //         hi-lim ............
 R 10 mev2mv(150)            // spare, not used now
+I 11 antiPG(1);		    // enable/disable PG reco. Default is PG. Previous parameters could lose meaning.
 
 
  Back tracing
