@@ -363,17 +363,21 @@ EcalHR *EcalHR::Get(int i)
   return ech;
 }
 
+#ifdef _PGTRACK_
 extern double memchk(void);
+#endif
 
 int EcalHR::Build(int clear)
 {
 #ifndef __ROOTSHAREDLIBRARY__
+#ifdef _PGTRACK_
   if (ECALHFFKEY.enable/10 == 1) {
     int evid = AMSEvent::gethead()->getEvent();
     if (evid%1000 == 0)
       cout << Form("EcalHR::Build-Memory check: %8d %6.1f",
 		   evid, memchk()/1024) << endl;
   }
+#endif
   if (ECALHFFKEY.enable%10 == 0) return 0;
 #endif
 
