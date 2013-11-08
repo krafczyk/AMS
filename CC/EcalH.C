@@ -339,8 +339,9 @@ bool EcalHR::IsInside(TrTrackR *track)
 {
   AMSPoint pnt;
   AMSDir   dir;
-
+#ifdef _PGTRACK_
   track->Interpolate(fZref, pnt, dir);
+#endif
   return IsInside(pnt, dir);
 }
 
