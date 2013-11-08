@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.604 2013/11/08 18:01:22 jorgec Exp $
+//  $Id: root.C,v 1.605 2013/11/08 18:07:03 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5728,7 +5728,7 @@ int ParticleR::DoBacktracing(int out_type)
     first = false;
   }
 
-  AMSgObj::BookTimer.start("DoBacktracing");
+  AMSgObj::BookTimer.start("ReAxDoBacktr");
 
   int    utime  =        ptr->Time[0];
   double tfrac  = double(ptr->Time[1])/1000000;
@@ -5780,7 +5780,7 @@ int ParticleR::DoBacktracing(int out_type)
     BT_glat   = glat;
     BT_status = 4;
 
-    AMSgObj::BookTimer.stop("DoBacktracing");
+    AMSgObj::BookTimer.stop("ReAxDoBacktr");
     return 0;
   }
 

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.362 2013/11/06 20:22:56 shaino Exp $
+//  $Id: commons.h,v 1.363 2013/11/08 18:07:07 shaino Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -911,6 +911,8 @@ COMMON_BLOCK_DEF(BACKTRACEFFKEY_DEF,BACKTRACEFFKEY);
 class ECALHFFKEY_DEF {
  public:
   integer enable;   // Enable EcalH
+  geant   emin;     // Minimum energy sum (GeV) needed for FitL
+  geant   ethd[3];  // Energy threshold (MeV) for apex
 };
 #define ECALHFFKEY COMMON_BLOCK(ECALHFFKEY,eclhffkey)
 COMMON_BLOCK_DEF(ECALHFFKEY_DEF,ECALHFFKEY);

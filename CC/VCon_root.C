@@ -136,8 +136,8 @@ int VCon_root::getnelem(){
     return ev->NTofClusterH();
   if( strstr(contname,"AMSBetaH"))
     return ev->NBetaH();
-  if( strstr(contname,"AMSBetaH"))
-    return ev->NBetaH();
+  if( strstr(contname,"AMSEcalH"))
+    return ev->NEcalH();
 
   return 0;
 }
@@ -193,7 +193,10 @@ void VCon_root::eraseC(){
     ev->BetaH().clear();
     ev->TofChargeH().clear();
   }
-
+  if( strstr(contname,"AMSEcalH")) {
+    ev->fHeader.EcalHs = 0;
+    ev->EcalH().clear();
+  }
 }
 
 TrElem* VCon_root::getelem(int ii){
@@ -223,6 +226,8 @@ TrElem* VCon_root::getelem(int ii){
     return  (TrElem*) ev->pTofClusterH(ii);
   if( strstr(contname,"AMSBetaH"))
     return  (TrElem*) ev->pBetaH(ii);
+  if( strstr(contname,"AMSEcalH"))
+    return  (TrElem*) ev->pEcalH(ii);
  
   return 0;
 }
@@ -272,6 +277,11 @@ void  VCon_root::addnext(TrElem* aa){
     ev->fHeader.BetaHs++;
     delete (BetaHR*)aa;
   }
+  if( strstr(contname,"AMSEcalH")){
+    ev->EcalH().push_back(*(EcalHR*)aa);
+    ev->fHeader.EcalHs++;
+    delete (EcalHR*)aa;
+  }
 }
 
 
@@ -313,6 +323,9 @@ int  VCon_root::getindex(TrElem* aa){
   if( strstr(contname,"AMSBetaH"))
     for(int ii=0;ii<ev->NBetaH();ii++)
       if(ev->pBetaH(ii)==aa) return ii;
+  if( strstr(contname,"AMSEcalH"))
+    for(int ii=0;ii<ev->NEcalH();ii++)
+      if(ev->pEcalH(ii)==aa) return ii;
 
   return 0;
 }
@@ -413,6 +426,14 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     }
     if ( (i1<0)||(i2<0) ) return;
     swap(ev->BetaH().at(i1),ev->BetaH().at(i2));
+  }
+  if (strstr(contname,"AMSEcalH")) {
+    for(int ii=0;ii<ev->NEcalH();ii++) {
+      if (ev->pEcalH(ii)==el1) i1=ii;
+      if (ev->pEcalH(ii)==el2) i2=ii;
+    }
+    if ( (i1<0)||(i2<0) ) return;
+    swap(ev->EcalH().at(i1),ev->EcalH().at(i2));
   }
 
 

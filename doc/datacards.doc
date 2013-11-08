@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.405 2013/11/08 10:14:26 shaino Exp $
+#  $Id: datacards.doc,v 1.406 2013/11/08 18:07:05 shaino Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -674,7 +674,9 @@ F11  maxstep(2.0)  // Maximum step size (Re)
 F12  thengd (0.5)  // Minimum EnergyD to use EnergyE instead of Momentum
 
 ECAH
-I 1  enable  (0)   // 1:Enable EcalH
+I 1  enable  (0)   // 1:Enable EcalH build
+F 2  emin    (10)  // Minimum energy sum (GeV) needed for FitL
+F 3  ethd    (3)   // Energy threshold (MeV) for apex
 
 MISC   // misc
 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.929 2013/11/08 10:09:08 shaino Exp $
+// $Id: job.C,v 1.930 2013/11/08 18:07:03 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1784,8 +1784,13 @@ void AMSJob::_reaxdata(){
   BACKTRACEFFKEY.maxstep  = 2.0;
   BACKTRACEFFKEY.thengd   = 0.5;
   FFKEY("BACKTRACE",(float*)&BACKTRACEFFKEY,sizeof(BACKTRACEFFKEY_DEF)/sizeof(integer),"MIXED");
+
 //----ECALH
-  ECALHFFKEY.enable = 0;
+  ECALHFFKEY.enable  =   0;
+  ECALHFFKEY.emin    =  10;
+  ECALHFFKEY.ethd[0] =  50;
+  ECALHFFKEY.ethd[1] = 100;
+  ECALHFFKEY.ethd[2] = 300;
   FFKEY("ECAH",(float*)&ECALHFFKEY,sizeof(ECALHFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
@@ -2988,7 +2993,8 @@ void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("ReTOFRefit"); 
   AMSgObj::BookTimer.book("ReAxPid");
   AMSgObj::BookTimer.book("part::loc2gl");
-  AMSgObj::BookTimer.book("DoBacktracing");
+  AMSgObj::BookTimer.book("ReAxDoBacktr");
+  AMSgObj::BookTimer.book("ReAxEcalH");
 
 
   if (AMSJob::gethead()->isMonitoring()) {

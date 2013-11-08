@@ -2,22 +2,45 @@
 #include "root.h"
 #include "EcalH.h"
 
+#include "TF1.h"
+#include "TMath.h"
+#include "TMinuit.h"
+
+#ifndef __ROOTSHAREDLIBRARY__
+#include "commons.h"
+#include "ecalrec.h"
+#endif
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 ClassImp(EcalHR)
 
-double EcalHR::fZref = -143.2;
-double EcalHR::fXmin =  -32.270;
-double EcalHR::fXmax =   32.530;
-double EcalHR::fYmin =  -32.470;
-double EcalHR::fYmax =   32.330;
-double EcalHR::fZtop = -142.732;
-double EcalHR::fZbot = -159.382;
+float EcalHR::fZref = -151;
+float EcalHR::fXmin =  -32.270;
+float EcalHR::fXmax =   32.530;
+float EcalHR::fYmin =  -32.470;
+float EcalHR::fYmax =   32.330;
+float EcalHR::fZtop = -142.732;
+float EcalHR::fZbot = -159.382;
+float EcalHR::fCell =    0.9;
 
-bool EcalHR::IsInside(void) const
+float EcalHR::fEmin = 10;
+float EcalHR::fEthd[3] = { 50, 100, 300 };
+
+EcalHR::EcalHR()
 {
-  return (fXmin < TrkX(fZtop) && TrkX(fZtop) < fXmax &&
-	  fYmin < TrkY(fZtop) && TrkY(fZtop) < fXmax &&
-	  fXmin < TrkX(fZbot) && TrkX(fZbot) < fXmax &&
-	  fYmin < TrkY(fZbot) && TrkY(fZbot) < fXmax);
+  Clear();
+}
+
+EcalHR::EcalHR(const EcalHR *org)
+{
+  *this = *org;
+}
+
+EcalHR::~EcalHR()
+{
 }
 
 void EcalHR::Clear(int mode)
@@ -30,25 +53,351 @@ void EcalHR::Clear(int mode)
   _ac .clear();
   if (mode != 1) return;
 
+  _tpnt.setp(0, 0, 0);
+  _tdir.setp(0, 0, 0);
+  _tcsq = 0;
+
   _nhit = 0;
-  for (int i = 0; i < 5*NL; i++) _hidx[i/NL][i%NL] = 0;
+  for (int i = 0; i < 5*NL; i++) _hidx[i/5][i%5] = -1;
   for (int i = 0; i < 3; i++)
-    _apex[i] = _ecen[i] = _elast[i] = _lmax[i] = 0;
+    _apex[i] = _ecen[i] = _elast[i] = _lmax[i] = _lsum[i] = 0;
+  _etot = 0;
 }
+
+
+float EcalHR::GetChisq(float sigma, float emin, int norm) const
+{
+  float chisq = 0;
+  int    nlay = 0;
+
+  sigma *= fCell;
+  if (sigma == 0) return -1;
+
+  for (int i = 0; i < NL; i++) {
+    if (Ecell(i, 2) > emin) {
+      float dx = dXt(Hidx(i, 2));
+      chisq += dx*dx/sigma/sigma;
+      nlay++;
+    }
+  }
+
+  if (norm && nlay > 0) chisq /= norm;
+  return chisq;
+}
+
+namespace EcalH {
+  static TMinuit *mnt = 0;
+  static TF1    *func = 0;
+  static float ecen[EcalHR::NL];
+
+#ifdef _OPENMP
+#pragma omp threadprivate(mnt)
+#pragma omp threadprivate(func)
+#pragma omp threadprivate(ecen)
+#endif
+
+  void FCN(int &n, double *grad, double &chisq, double *par, int iflag)
+  {
+    if (iflag == 2) {
+      grad[0] = grad[1] = grad[2] = 0;
+      return;
+    }
+
+    if (par[2] == 0) {
+      chisq = 1e9;
+      return;
+    }
+
+    chisq = 0;
+    func->SetParameters(par[0], par[1], par[2]);
+
+    for (int i = 0; i < EcalHR::NL; i++) {
+      if (ecen[i] > 0 && i > par[1]) {
+	double y = func->Eval(i);
+	double e = ecen[i]/TMath::Sqrt(ecen[i]/10)+10;
+	double d = ecen[i]-y;
+	chisq += d*d/e/e;
+      }
+    }
+  }
+};
+
 
 int EcalHR::Process(void)
 {
   Clear();
 
-  
+#ifndef __ROOTSHAREDLIBRARY__
+  for (int i = 0; i < NL; i++) {
+    AMSEcalHit *hit
+      = (AMSEcalHit *)AMSEvent::gethead()->getheadC("AMSEcalHit", i, 1);
+
+    while (hit) {
+      float edep = (hit->getedep() == hit->getedep()) ? hit->getedep() : 0;
+      _hid.push_back(Hid(hit->getplane(), hit->getcell(), hit->getproj()));
+      _hxy.push_back(hit->getcool());
+      _hz .push_back(hit->getcooz());
+      _de .push_back(edep);
+      _sc .push_back(hit->getedepc());
+      _ac .push_back(hit->getattcor());
+      _nhit++;
+      hit = hit->next();
+    }
+  }
+
+#else
+  AMSEventR *evt = AMSEventR::Head();
+  for (int i = 0; evt && i < evt->nEcalHit(); i++) {
+    EcalHitR *hit = evt->pEcalHit(i);
+    if (!hit) continue;
+
+    float edep = (hit->Edep == hit->Edep) ? hit->Edep : 0;
+    AMSPoint coo(hit->Coo[0], hit->Coo[1], hit->Coo[2]);
+    _hid.push_back(Hid(hit->Plane, hit->Cell, hit->Proj));
+    _hxy.push_back((hit->Proj == 0) ? coo.x() : coo.y());
+    _hz .push_back(coo.z());
+    _de .push_back(edep);
+    _sc .push_back(hit->EdCorr);
+    _ac .push_back(hit->AttCor);
+    _nhit++;
+  }
+#endif
+
+  _apex[0] = _apex[1] = _apex[2] = -1;
+
+  for (int i = 0; i < NL; i++) {
+    float emax =  0;
+    int   cmax = -1;
+    for (int j = 0; j < _nhit; j++)
+      if (Plane(j) == i && dE(j) > emax) { emax = dE(j); cmax = Cell(j); }
+
+    bool ll = (i == NL-2 || i == NL-1);
+
+             _ecen[0] += emax;
+    if (ll) _elast[0] += emax;
+
+    float es3 = 0;
+    for (int j = 0; cmax >= 0 && j < _nhit; j++) {
+      int jj = Cell(j)-cmax;
+      if (Plane(j) == i && -2 <= jj && jj <= 2) {
+	_hidx[i][jj+2] = j;
+
+	if (-1 <= jj && jj <= 1) {
+	            es3     += dE(j);
+	           _ecen[1] += dE(j);
+	  if (ll) _elast[1] += dE(j);
+	}
+	           _ecen[2] += dE(j);
+	  if (ll) _elast[2] += dE(j);
+      }
+    }
+    for (int j = 0; j < 3; j++)
+      if (_apex[j] < 0 && es3 > fEthd[j]) _apex[j] = i;
+  }
+
+#ifdef _PGTRACK_
+  VCon *cont = GetVCon()->GetCont("AMSTrTrack");
+  if (!cont) return -1;
+
+  float    cmin = 0;
+  AMSPoint pmin;
+  AMSDir   dmin;
+
+  int ntrk = cont->getnelem();
+  for (int i = 0; i < ntrk; i++) {
+    TrTrackR *trk = dynamic_cast<TrTrackR *>(cont->getelem(i));
+    if (!trk) continue;
+
+    AMSPoint pnt;
+    AMSDir   dir;
+    trk->Interpolate(fZref, pnt, dir);
+    if (IsInside(pnt, dir)) {
+      _tpnt = pnt;
+      _tdir = dir;
+
+      float csq = GetChisq(1, 100, 1);
+      if (cmin == 0 || csq < cmin) {
+	cmin = csq;
+	pmin = pnt;
+	dmin = dir;
+      }
+    }
+  }
+  delete cont;
+
+  _tpnt = pmin;
+  _tdir = dmin;
+  _tcsq = cmin;
+#endif
+
+  for (int s = 0; s < 3; s++) {
+    if (_ecen[s] < fEmin) continue;
+
+    float par[3], err[3];
+    if (FitL(s, par, err) == 0 && EcalH::func) {
+      EcalH::func->SetParameters(par[0], par[1], par[2]);
+      _lmax[s] = par[1]+par[2];
+      _lsum[s] = EcalH::func->Integral(par[1], NL*5);
+    }
+  }
+
+  return _nhit;
+}
+
+#ifdef __ROOTSHAREDLIBRARY__
+#include "TH1.h"
+#endif
+
+int EcalHR::FitL(int s, float *par, float *err)
+{
+  float xmax = 0, hmax = 0;
+  for (int i = 0; i < NL; i++) {
+    float ec = 0;
+    for (int j = -s; j <= s; j++) ec += Ecell(i, j+2);
+
+    if (ec > hmax) { xmax = i; hmax = ec; }
+    EcalH::ecen[i] = ec;
+  }
+
+  if (!EcalH::func) EcalH::func = Lfun(1, 0, 1);
+
+#ifdef __ROOTSHAREDLIBRARY__
+  static TH1F *htmp = 0;
+  if (!htmp) htmp = new TH1F("htmp", "Lfit", NL, -0.5, NL-0.5);
+
+  for (int i = 0; i < NL; i++) {
+    float ec = EcalH::ecen[i];
+    if (ec > 0) {
+      htmp->SetBinContent(i+1, ec);
+      htmp->SetBinError  (i+1, ec/TMath::Sqrt(ec/10)+10);
+    }
+  }
+  EcalH::func->SetParameters(hmax, xmax-10, 4);
+  EcalH::func->SetParLimits(0,   0, 1e6);
+  EcalH::func->SetParLimits(1, -10,  15);
+  EcalH::func->SetParLimits(2,   1,  30);
+
+  htmp->Fit(EcalH::func, "q0");
+
+  float pref[3], eref[3];
+  for (int i = 0; i < 3; i++) {
+    pref[i] = EcalH::func->GetParameter(i);
+    eref[i] = EcalH::func->GetParError (i);
+  }
+#endif
+
+  if (!EcalH::mnt) {
+    int thr = 0;
+#ifdef _OPENMP
+#pragma omp critical (tminuit)
+    thr = omp_get_thread_num();
+#endif
+    EcalH::mnt = new TMinuit(3);
+    cout << "EcalHR::Process-I-TMinuit object created for thread "
+	 << thr << endl;
+  }
+
+  TMinuit *mnt = EcalH::mnt;
+  mnt->SetFCN(EcalH::FCN);
+  mnt->SetPrintLevel(-1);
+
+  int ierr = 0;
+  mnt->mnparm(0, "par0", hmax,   hmax*0.1,   0, 1e6, ierr);
+  mnt->mnparm(1, "par1", xmax-10,     0.1, -10,  15, ierr);
+  mnt->mnparm(2, "par2", 10,          0.1,   1,  30, ierr);
+
+  int ret = mnt->Migrad();
+  if (ret != 0 && ret != 4) return -1;
+
+  for (int i = 0; i < 3; i++) {
+    double p = 0, e = 0;
+    mnt->GetParameter(i, p, e);
+    if (par) par[i] = p;
+    if (err) err[i] = e;
+
+#ifdef __ROOTSHAREDLIBRARY__
+    cout << Form("AHO par[%d] : %7.2f +/- %7.2f  %7.2f +/- %7.2f",
+		 i, p, e, pref[i], eref[i]) << endl;
+#endif
+  }
 
   return 0;
 }
 
-int EcalHR::Build(void)
+bool EcalHR::IsInside(AMSPoint pnt, AMSDir dir)
+{
+  AMSPoint pntt = pnt+dir/dir.z()*(fZtop-pnt.z());
+  AMSPoint pntb = pnt+dir/dir.z()*(fZbot-pnt.z());
+
+  return (fXmin < pntt.x() && pntt.x() < fXmax &&
+	  fYmin < pntt.y() && pntt.y() < fYmax &&
+	  fXmin < pntb.x() && pntb.x() < fXmax &&
+	  fYmin < pntb.y() && pntb.y() < fYmax);
+}
+
+bool EcalHR::IsInside(TrTrackR *track)
+{
+  AMSPoint pnt;
+  AMSDir   dir;
+
+  track->Interpolate(fZref, pnt, dir);
+  return IsInside(pnt, dir);
+}
+
+int EcalHR::GetN(void)
 {
   VCon *cont = GetVCon()->GetCont("AMSEcalH");
   if (!cont) return -1;
+
+  int n = cont->getnelem(); delete cont;
+  return n;
+}
+
+EcalHR *EcalHR::Get(int i)
+{
+  VCon *cont = GetVCon()->GetCont("AMSEcalH");
+  if (!cont) return 0;
+
+  EcalHR *ech = dynamic_cast<EcalHR *>(cont->getelem(i)); delete cont;
+  return ech;
+}
+
+extern double memchk(void);
+
+int EcalHR::Build(int clear)
+{
+#ifndef __ROOTSHAREDLIBRARY__
+  if (ECALHFFKEY.enable/10 == 1) {
+    int evid = AMSEvent::gethead()->getEvent();
+    if (evid%1000 == 0)
+      cout << Form("EcalHR::Build-Memory check: %8d %6.1f",
+		   evid, memchk()/1024) << endl;
+  }
+  if (ECALHFFKEY.enable%10 == 0) return 0;
+#endif
+
+  VCon *cont = GetVCon()->GetCont("AMSEcalH");
+  if (!cont) return -1;
+
+  if (clear) cont->eraseC();
+
+  static bool first = true;
+#ifdef _OPENMP
+#pragma omp critical (trrecsimple)
+#endif
+  if (first) {
+#ifndef __ROOTSHAREDLIBRARY__
+    fEmin    = ECALHFFKEY.emin;
+    fEthd[0] = ECALHFFKEY.ethd[0];
+    fEthd[1] = ECALHFFKEY.ethd[1];
+    fEthd[2] = ECALHFFKEY.ethd[2];
+#endif
+    cout << "EcalHR::Build-I-"
+	 << "fEmin= " << fEmin << " "
+	 << "fEthd= " << fEthd[0] << " " << fEthd[1] << " "
+	                                 << fEthd[2] << " " << endl;
+    first = false;
+  }
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSEcalH *ech = new AMSEcalH;
@@ -56,22 +405,26 @@ int EcalHR::Build(void)
   EcalHR   *ech = new EcalHR;
 #endif
 
-  int ret = ech->Process();
-  if (ret) {
+  if (ech->Process() < 0) {
     delete ech;
-    return ret;
+    return -1;
   }
+
+#ifndef __ROOTSHAREDLIBRARY__
+  if (ECALHFFKEY.enable%10 <  2) ech->EcalHR::Clear(0);
+#endif
+
   cont->addnext(ech);
 
-  return 0;
+  return 1;
 }
 
-TF1 *EcalHR::Lfun(double norm, double apex, double ldep)
+TF1 *EcalHR::Lfun(float norm, float apex, float lmax)
 {
   TF1 *func = new TF1("func", "(sqrt((x-[1])^2)+x-[1])/2"
 		              "*[0]/[2]/1200*((x-[1])*10.4/[2])^6"
 		              "*exp(-0.67*((x-[1])*10.4/[2]))", 0, 17);
-  func->SetParameters(norm, apex, ldep);
+  func->SetParameters(norm, apex, lmax);
 
   return func;
 }
@@ -79,7 +432,16 @@ TF1 *EcalHR::Lfun(double norm, double apex, double ldep)
 void EcalHR::_PrepareOutput(int opt)
 {
   sout.clear();
-  sout.append("EcalHR info");
+  sout.append(Form("EcalHR nhit= %d E(S1,3,5)= %.2f %.2f %.2f Chisq= %.2f",
+		   Nhit(), Ecen(0)*1e-3, Ecen(1)*1e-3, Ecen(2)*1e-3, Tcsq()));
+
+  if (opt) {
+    sout.append("\n");
+    for (int i = 0; i < _nhit; i++)
+      sout.append(Form("Hit%02d %2d-%2d %5.1f %6.1f %6.1f\n", i,
+		       Plane(i), Cell(i), Hxy(i), Hz(i), dE(i)));
+		       
+  }
 }
 
 void EcalHR::Print(int opt)
