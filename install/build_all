@@ -11,6 +11,11 @@ else
 endif
 
 unsetenv AMSLIB 
+unsetenv  CERNDIR    
+unsetenv  CERNICC     
+unsetenv  CERNSRCDIR  
+ 
+
 unsetenv SLC6system
 setenv CXXVERS `g++ -dumpversion | tr -d "."`
 
