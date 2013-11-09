@@ -136,7 +136,7 @@ class AntiRecoPG {
   static AntiRecoPG* head;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (head)
-
+#endif
  public:
   //! Default deconstructor
 virtual  ~AntiRecoPG(){};
