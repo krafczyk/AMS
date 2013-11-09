@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.931 2013/11/08 21:40:05 mduranti Exp $
+// $Id: job.C,v 1.932 2013/11/09 06:45:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1658,7 +1658,7 @@ void AMSJob::_reanti2data(){
   ATCAFFKEY.siglim[0]=0.4;  // (8) PedSig low-lim ............
   ATCAFFKEY.siglim[1]=50.; //  (9)         hi-lim ............
   ATCAFFKEY.mev2mv=150.;   // (10) spare, not used now
-  ATCAFFKEY.antiPG=1;       // (11) enable by deafult PG reco
+  ATCAFFKEY.antiPG=0;       // (11) enable by deafult PG reco
   //
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
