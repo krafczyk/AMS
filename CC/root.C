@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.606 2013/11/09 07:24:34 choutko Exp $
+//  $Id: root.C,v 1.607 2013/11/09 07:29:40 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5780,7 +5780,7 @@ int ParticleR::DoBacktracing(int out_type)
     BT_glat   = glat;
     BT_status = 4;
 
-    //AMSgObj::BookTimer.stop("ReAxDoBacktr");
+    AMSgObj::BookTimer.stop("ReAxDoBacktr");
     return 0;
   }
 
@@ -5847,7 +5847,7 @@ int ParticleR::DoBacktracing(int out_type)
     BT_glat  = glat*180./M_PI;
   }
 
-  AMSgObj::BookTimer.stop("DoBacktracing");
+  //AMSgObj::BookTimer.stop("DoBacktracing");
   return 0;
 #else
   GeoMagTrace::StepCv   = 0.1;                  //BACKTRACEFFKEY.stepdv;
