@@ -134,7 +134,7 @@ class AntiRecoPG {
 
   //! The head of the singleton
   static AntiRecoPG* head;
-ifdef __ROOTSHAREDLIBRARY__
+#ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (head)
 
  public:
