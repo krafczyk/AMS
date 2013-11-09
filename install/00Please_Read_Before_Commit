@@ -15,7 +15,7 @@ iii.
 iv
  AMS Event Display works on produced root files and shows meaningful pictures.
 
-P.S.:
+Nota bene:
 
 A good machine where to try it is scamfs1. The suggested shell is tcsh. A working procedure is:
 
@@ -29,4 +29,6 @@ cd install
 ./build_all > & build_all.log
 ...
 
+Remember that if AMSWD is set this will be 'honored' and the build_all will put the results there.
+If this is not set the compilation will build inside the actual working directory but then AMSWD is rewuired for the next steps.
 

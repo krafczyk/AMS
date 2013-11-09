@@ -14,25 +14,41 @@ setenv TESTFLAG
 
 unsetenv PGTRACK
 unsetenv ARCH
-source $PREFIX/amsvar$TESTFLAG.icc32
-../examples/g3.root.test.job
-source $PREFIX/amsvar$TESTFLAG.slc4
-../examples/g3.root.test.job
-source $PREFIX/amsvar$TESTFLAG.icc64
-../examples/g3.root.test.job
-source $PREFIX/amsvar$TESTFLAG.slc4icc
-setenv ARCH Linux.24
-../examples/g3.root.test.job
+
+setenv SLC4 `cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4'`
+#echo "$SLC4"
+if ($SLC4 == "1") then
+    echo "You're running on SCL4"
+endif
+
+if ($SLC4 == "0") then
+    source $PREFIX/amsvar$TESTFLAG.icc32
+    ../examples/g3.root.test.job
+    source $PREFIX/amsvar$TESTFLAG.slc4
+    ../examples/g3.root.test.job
+    source $PREFIX/amsvar$TESTFLAG.icc64
+    ../examples/g3.root.test.job
+else
+    source $PREFIX/amsvar$TESTFLAG.slc4icc
+    setenv ARCH Linux.24
+    ../examples/g3.root.test.job
+endif
+
 unsetenv ARCH
 setenv PGTRACK 1
-source $PREFIX/amsvar$TESTFLAG.icc32
-../examples/g3.root.test.job
-source $PREFIX/amsvar$TESTFLAG.slc4
-../examples/g3.root.test.job
-source $PREFIX/amsvar$TESTFLAG.icc64
-../examples/g3.root.test.job
-source $PREFIX/amsvar$TESTFLAG.slc4icc
-setenv ARCH Linux.24
-../examples/g3.root.test.job
+
+if ($SLC4 == "0") then
+    source $PREFIX/amsvar$TESTFLAG.icc32
+    ../examples/g3.root.test.job
+    source $PREFIX/amsvar$TESTFLAG.slc4
+    ../examples/g3.root.test.job
+    source $PREFIX/amsvar$TESTFLAG.icc64
+    ../examples/g3.root.test.job
+else
+    source $PREFIX/amsvar$TESTFLAG.slc4icc
+    setenv ARCH Linux.24
+    ../examples/g3.root.test.job
+endif
+
 unsetenv ARCH
 unsetenv PGTRACK
