@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.605 2013/11/08 18:07:03 shaino Exp $
+//  $Id: root.C,v 1.606 2013/11/09 07:24:34 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5780,7 +5780,7 @@ int ParticleR::DoBacktracing(int out_type)
     BT_glat   = glat;
     BT_status = 4;
 
-    AMSgObj::BookTimer.stop("ReAxDoBacktr");
+    //AMSgObj::BookTimer.stop("ReAxDoBacktr");
     return 0;
   }
 
