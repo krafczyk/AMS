@@ -31,4 +31,9 @@ cd install
 
 Remember that if AMSWD is set this will be 'honored' and the build_all will put the results there.
 If this is not set the compilation will build inside the actual working directory but then AMSWD is rewuired for the next steps.
+Another approach is passing the AMSWD as parameter. For example you can do:
 
+./build_all  `pwd`/../
+./load_all  `pwd`/../
+./run_all  `pwd`/../
+./test_all  `pwd`/../

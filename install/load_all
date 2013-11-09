@@ -11,31 +11,37 @@ endif
 setenv PREFIX /Offline/vdev/install
 setenv TESTFLAG
 
-source $PREFIX/amsvar$TESTFLAG.icc32
-setenv ARCH linuxicc
-echo "Loading $ARCH"
-root -b -q load.C
-root -b -q loadPG.C
-
 source $PREFIX/amsvar$TESTFLAG.icc64
 setenv ARCH linuxx8664icc
-echo "Loading $ARCH"
-root -b -q load.C
-root -b -q loadPG.C
-
-source $PREFIX/amsvar$TESTFLAG.gcc32
-setenv ARCH linux
-echo "Loading $ARCH"
+echo
+echo "******* Loading $ARCH *******"
+echo
 root -b -q load.C
 root -b -q loadPG.C
 
 source $PREFIX/amsvar$TESTFLAG.gcc64
 setenv ARCH linuxx8664gcc
-echo "Loading $ARCH"
+echo
+echo "******* Loading $ARCH *******"
+echo
 root -b -q load.C
 root -b -q loadPG.C
 
+#source $PREFIX/amsvar$TESTFLAG.icc32
+#setenv ARCH linuxicc
+#echo
+#echo "******* Loading $ARCH *******"
+#echo
+#root -b -q load.C
+#root -b -q loadPG.C
 
+#source $PREFIX/amsvar$TESTFLAG.gcc32
+#setenv ARCH linux
+#echo
+#echo "******* Loading $ARCH ******* "
+#echo
+#root -b -q load.C
+#root -b -q loadPG.C
 
 unsetenv ARCH
 
