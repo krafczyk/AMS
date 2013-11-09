@@ -11,9 +11,9 @@
  \class TrCharge
  \brief An almost static class for the Tracker charge reconstruction
 
- $Date: 2013/11/06 11:17:45 $
+ $Date: 2013/11/09 14:14:08 $
 
- $Revision: 1.13 $
+ $Revision: 1.14 $
 */
 
 #include "VCon.h"
@@ -138,6 +138,8 @@ class like_t {
   }
   //! Normalized LogLike
   float GetNormLogLike() const { return (NPoints>0) ? LogLike/NPoints : -30; }
+  //! Normalized Probability
+  float GetNormProb() const { return (NPoints>0) ? pow(10,GetNormLogLike()) : 0; }    
 };
 
 

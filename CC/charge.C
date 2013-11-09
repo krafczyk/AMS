@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.94 2012/09/21 17:08:57 oliva Exp $
+//  $Id: charge.C,v 1.95 2013/11/09 14:14:07 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -11,6 +11,7 @@
 #include "commons.h"
 #include <math.h>
 #include <limits.h>
+#include <algorithm>
 #include "amsgobj.h"
 #include "extC.h"
 #include "upool.h"
@@ -27,8 +28,6 @@
 #endif
 #include "job.h"
 
-int AMSCharge::_debug=0;     // debug level for AMSCharge
-int AMSChargeSubD::_debug=0; // debug level for AMSChargeSubD
 
 using namespace std;
 using namespace trconst;
@@ -44,139 +43,191 @@ bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd);
 integer AMSChargeTOF::_chargeTOF[MaxZTypes]={1,1,2,3,4,5,6,7,8,9};
 integer AMSChargeTracker::_chargeTracker[MaxZTypes]={1,1,2,3,4,5,6,7,8,9};
 
-int AMSChargeTOF::ComputeCharge(int refit){
+static TString detector_list[7] = {
+  AMSChargeTrackerUpper::ClassID(),
+  AMSChargeTRD::ClassID(),
+  AMSChargeTOFUpper::ClassID(),
+  AMSChargeTrackerInner::ClassID(),
+  AMSChargeTOFLower::ClassID(),
+  AMSChargeRich::ClassID(),
+  AMSChargeTrackerLower::ClassID()
+};
 
-  // Check pointers
-  if (_pbeta == NULL) {
-    cout << "AMSChargeTOF::ComputeCharge-W-NullAMSBetaPointer" << endl;
-    return 0;
-  }
 
-  // Initialize
-  Init(refit);
+/////////////////////////////////////////////////////////////////
+// AMSChargeBase
+/////////////////////////////////////////////////////////////////
 
-  // flag bad betas
-  FlagBad();
 
-  // Fill Charge info
-  if(!Fill(refit)) return 0;
-
-  // Fill vectors
-  FillRootVectors();
-
-  return 1;
+void AMSChargeBase::copyvalues(const AMSChargeBase& that) {
+  _Q = that._Q;
+  _Indxz = that._Indxz;
+  _Lkhdz = that._Lkhdz;
+  _Probz = that._Probz;
+  _ChargeI = that._ChargeI;
+  _Lkhd = that._Lkhd;
+  _Prob = that._Prob;  
 }
 
 
-
-int AMSChargeTracker::ComputeCharge(int refit){
-
-  // Check pointers
-  if (_pbeta == NULL) {
-    cout << "AMSChargeTOF::ComputeCharge-W-NullAMSBetaPointer" << endl;
-    return 0;
-  }
-
-  if (_ptrtk == NULL) {
-    cout << "AMSChargeTracker::ComputeCharge-W-NullAMSTrTrackPointer" << endl;
-    return 0;
-  }
-
-  // Initialize
-  Init(refit);
-
-  // flag bad tracks
-  FlagBad();
-
-  // Fill charge
-  if(!Fill(refit)) return 0;
-
-  // Fill vectors
-  FillRootVectors();
-
-  return 1;
-}
-
-int AMSChargeRich::ComputeCharge(int refit) {
-
-  // Check pointers
-  if (_pbeta == NULL) {
-    cout << "AMSChargeTOF::ComputeCharge-W-NullAMSBetaPointer" << endl;
-    return 0;
-  }
-
-  if (_pring == NULL) {
-    cout << "AMSChargeRich::ComputeCharge-W-NullRichRingPointer" << endl;
-    return 0;
-  }
-
-  // Initialize
-  Init(refit);
-
-  // flag bad rings
-  FlagBad();
-
-  // Fill charge 
-  if (!Fill(refit)) return 0;
-
-  if (_debug) 
-    cout << "AMSChargeRich::ComputeCharger-I Charge : " << _Charge << endl;
-    //for (i=0; i<MaxZTypes; i++)
-    //  cout << "i lkhd prob " << i << " " << _Lkhdz[i] << " " << _Probz[i] << endl;
-
-  // Fill vectors
-  FillRootVectors();
-
-  return 1;
+void AMSChargeBase::clear() {
+  _Q = 0;
+  _Indxz.clear();
+  _Lkhdz.clear();
+  _Probz.clear();
+  _ChargeI.clear();
+  _Lkhd.clear();
+  _Prob.clear();
 }
 
 
-int AMSChargeTRD::ComputeCharge(int refit) {
-
-  // Check pointers
-  if (_pbeta == NULL) {
-    cout << "AMSChargeTOF::ComputeCharge-W-NullAMSBetaPointer" << endl;
-    return 0;
+void AMSChargeBase::addelectron() {
+  if (isvalid(1)) {
+    _Indxz.push_back(0);
+    _Lkhdz.push_back(getlkhdindex(1));
+    _Probz.push_back(getprobindex(1));
   }
-
-  if (_ptrd == NULL) {
-    cout << "AMSChargeTRD::ComputeCharge-W-NullTRDTrackPointer" << endl;
-    return 0;
-  }
-
-  // Initialize
-  Init(refit);
-
-  // flag bad tracks
-  FlagBad();
-
-  // Fill charge
-  if (!Fill(refit)) return 0; 
-
-  // Fill vectors
-  FillRootVectors();
-
-  return 1;
 }
+
+
+struct order_indexes_with_vector {
+  vector<double>& values;
+  order_indexes_with_vector(vector<double>& val) : values(val) {}
+  bool operator() (const int& a, const int& b) const {
+    return values[a]<values[b];
+  }
+};
+
+
+bool AMSChargeBase::sortandfill(bool uselike, double maxLogLike, double minProb, int maxRootSize) {
+  // checks
+  if (isempty()) return false;
+  if (!isconsistent()) {
+    printf("AMSChargeBase::sortandfill-W error on size of containers (nIndxz:%2d,nLkhdz:%2d,nProbz:%2d), clean up.\n",(int)_Indxz.size(),(int)_Lkhdz.size(),(int)_Probz.size());
+    clear();
+    return false; 
+  }
+  // reordering
+  vector<int> indexes;
+  for (int i=0; i<getn(); i++) indexes.push_back(i);
+  if (uselike) sort(indexes.begin(),indexes.end(),order_indexes_with_vector(_Lkhdz));
+  else {
+    sort(indexes.begin(),indexes.end(),order_indexes_with_vector(_Probz));
+    reverse(indexes.begin(),indexes.end());
+  }
+  // probability normalization
+  _ProbSum = 0;
+  for (int i=0; i<(int)_Probz.size(); i++) _ProbSum += _Probz[i];
+  if (_ProbSum<=0) {
+    printf("AMSChargeBase::sortandfill(2)-W proability sum is <=0 (%f), clean up.\n",_ProbSum);
+    clear();
+    return false;
+  } 
+  if (CHARGEFITFFKEY.NormalizeProbs) {
+    for (int i=0; i<(int)_Probz.size(); i++) {
+      _Probz[i] /= _ProbSum;
+    }
+  }
+  // fill and swap
+  for (int i=0; i<getn(); i++) {
+    _ChargeI.push_back(_Indxz[indexes[i]]);
+    _Lkhd.push_back(_Lkhdz[indexes[i]]);
+    _Prob.push_back(_Probz[indexes[i]]);
+  }
+  copy(_ChargeI.begin(),_ChargeI.end(),_Indxz.begin());
+  copy(_Lkhd.begin(),_Lkhd.end(),_Lkhdz.begin());
+  copy(_Prob.begin(),_Prob.end(),_Probz.begin());
+  // clean from too small values
+  for (int i=getn()-1; i>=0; i--) {
+    if ( (_Lkhdz[i]>maxLogLike)||(_Probz[i]<minProb) ) {
+      _Indxz.erase(_Indxz.begin()+i);
+      _Lkhdz.erase(_Lkhdz.begin()+i);
+      _Probz.erase(_Probz.begin()+i);
+      _ChargeI.erase(_ChargeI.begin()+i);
+      _Lkhd.erase(_Lkhd.begin()+i);
+      _Prob.erase(_Prob.begin()+i);
+    }
+  }
+  if (isempty()) return false;
+  // probability normalization (again)
+  _ProbSum = 0;
+  for (int i=0; i<(int)_Probz.size(); i++) _ProbSum += _Probz[i];
+  if (_ProbSum<=0) {
+    printf("AMSChargeBase::sortandfill(2)-W proability sum is <=0 (%f), clean up.\n",_ProbSum);
+    clear();
+    return false;
+  }
+  if (CHARGEFITFFKEY.NormalizeProbs) {
+    for (int i=0; i<(int)_Probz.size(); i++) {
+      _Probz[i] /= _ProbSum;
+      _Prob[i] /= _ProbSum;
+    }
+  }
+  // restrit to maxRootSize elements to be stored on ROOT file 
+  for (int i=getn()-1; i>=0; i--) {
+    if ( (maxRootSize>=0)&&(i>=maxRootSize) ) {
+      _ChargeI.erase(_ChargeI.begin()+i);
+      _Lkhd.erase(_Lkhd.begin()+i);
+      _Prob.erase(_Prob.begin()+i);
+    }
+  }
+  // charge 
+  return true;
+}
+
+
+bool AMSChargeBase::isvalid(int index, double maxLogLike, double minProb) {
+  for (int i=0; i<getn(); i++) 
+    if (index==_Indxz[i]) 
+      if ( (_Probz[i]>=minProb)&&(_Lkhdz[i]<=maxLogLike) ) return true; 
+  return false;
+} 
+
+
+double AMSChargeBase::getprobindex(int index) {
+  float prob = 0;
+  for (int i=0; i<getn(); i++) 
+    if (index==_Indxz[i]) 
+      return (i<(int)_Probz.size()) ? _Probz[i] : prob;
+  return prob;
+}
+
+
+double AMSChargeBase::getlkhdindex(int index) {
+  float like = 1000; 
+  for (int i=0; i<getn(); i++) 
+    if (index==_Indxz[i]) 
+      return (i<(int)_Lkhdz.size()) ? _Lkhdz[i] : like; 
+  return like;
+}
+
+
+void AMSChargeBase::getminmaxindex(int& minindex, int& maxindex) {
+  minindex = -1;
+  maxindex = -1;
+  if (isempty()) return;
+  minindex = *min_element(_Indxz.begin(),_Indxz.end());
+  maxindex = *max_element(_Indxz.begin(),_Indxz.end());
+}
+
+
+bool AMSChargeBase::isok() { 
+  return (!isempty())&&(isconsistent());
+}
+
+/////////////////////////////////////////////////////////////////
+// AMSChargeSubD
+/////////////////////////////////////////////////////////////////
 
 
 void AMSChargeSubD::Init(int refit){
-
   _ProbSum = 0;
-
-  if(!refit){
-    _i=0;
-    _Charge=0;
-    _Probz.clear();
-    _Indxz.clear();
-    _Lkhdz.clear();
+  if (!refit) {
+    clear(); 
     clearstatus(0xFFFFFFFF);
-    _ChargeI.clear();
-    _Lkhd.clear();
-    _Prob.clear();
   }
-
 }
+
 
 void AMSChargeSubD::lkhcalc(int mode, double beta, int nhit, double ehit[], int typeh[], double lkh[]){
   for(int i=0; i<MaxZTypes; i++){
@@ -263,13 +314,16 @@ double AMSChargeSubD::probcalc(int fit, int nhit, double lkhd[]){
 
   vector<double> prob(MaxZTypes,0);
 
+  int index = -1;
+
   if(fit>=0){
     Init();
     for(int i=0; i<MaxZTypes; i++) _Lkhdz.push_back(lkhd[i]);
-    _i=sortlkhd();
+    index = sortlkhd();
   }
 
   double probmx=1;
+
 //  probmx=0.;
 //  for(i=0; i<types; i++){
 //    double lkhdnorm=mode?TrkElosPDF::TrkEPDFs[_iTracker].getstep(i):TofElosPDF::TofEPDFs[_iTOF].getstep();
@@ -289,9 +343,9 @@ double AMSChargeSubD::probcalc(int fit, int nhit, double lkhd[]){
   }
 
   //cout << " _i _Probz[i] prob[i] " << _i << " " <<
-  // getprobcharge(_i, CHARGEFITFFKEY.NormalizeProbs) << " " << prob[_i] << endl;
+  // _i, CHARGEFITFFKEY.NormalizeProbs) << " " << prob[_i] << endl;
 
-  return prob[_i]/(CHARGEFITFFKEY.NormalizeProbs?_ProbSum:1);
+  return prob[index]; // /(CHARGEFITFFKEY.NormalizeProbs?_ProbSum:1);
 } 
 
 
@@ -332,215 +386,119 @@ int AMSChargeSubD::sortlkhd() {
 }
 
 
-void AMSChargeSubD::FillRootVectors() {
-
-  if (_debug)
-    cout << "AMSChargeSubD::FillRootVector-I-ID " << _ID << endl;
-
-  _ChargeI.resize(_Indxz.size());
-  _Lkhd.resize(_Indxz.size());
-  _Prob.resize(_Indxz.size());
-
-  for (int i=0; i<_Indxz.size(); i++) {
-    int j=_Indxz[i];
-    if (_debug)
-      cout << "Index " << i << " in position " << j << " like " << _Lkhdz[i] << endl;
-    if (j>=0 && j<_Indxz.size()) {
-      _ChargeI[j] = i;
-      _Lkhd[j] = _Lkhdz[i];
-      //_Prob[j] = _Probz[i];
-      _Prob[j] = getprobcharge(i,CHARGEFITFFKEY.NormalizeProbs);
-    }
+void AMSChargeSubD::print() {
+  if (isempty()) printf("AMSChargeSubD::print-V %25s empty.\n",getID().Data());
+  for (int i=0; i<getn(); i++) {
+    printf("AMSChargeSubD::print-V %25s i:%02d iz:%2d -LL:%10.5f P:%10.5g\n",
+      getID().Data(),i,_Indxz[i],_Lkhdz[i],_Probz[i]);
   }
-
-  return; 
 }
 
 
-int AMSChargeSubD::getsplitlevel() {
-
-  if      (_ID.Contains(AMSChargeTOF::ClassID())) 
-    return CHARGEFITFFKEY.SplitLevel[kTOF];
-  else if (_ID.Contains(AMSChargeTracker::ClassID()))
-    return CHARGEFITFFKEY.SplitLevel[kTracker];
-  else if (_ID.Contains(AMSChargeTRD::ClassID()))
-    return CHARGEFITFFKEY.SplitLevel[kTRD];
-  else if (_ID.Contains(AMSChargeRich::ClassID()))
-    return CHARGEFITFFKEY.SplitLevel[kRich];
-
-  cout << "AMSChargeSubD::getsplitlevel-W-UnknownID " << _ID << endl;
-
-  return 0; 
-}
+/////////////////////////////////////////////////////////////////
+// AMSCharge
+/////////////////////////////////////////////////////////////////
 
 
-int AMSChargeSubD::getchargemax() {
-
-  if      (_ID.Contains(AMSChargeTOF::ClassID())) 
-    return CHARGEFITFFKEY.ChargeMax[kTOF]; 
-  else if (_ID.Contains(AMSChargeTracker::ClassID()))
-    return CHARGEFITFFKEY.ChargeMax[kTracker];
-  else if (_ID.Contains(AMSChargeTRD::ClassID()))
-    return CHARGEFITFFKEY.ChargeMax[kTRD];
-  else if (_ID.Contains(AMSChargeRich::ClassID()))
-    return CHARGEFITFFKEY.ChargeMax[kRich];
-
-  cout << "AMSChargeSubD::getchargemax-W-UnknownID " << _ID << endl;
-
-  return 0;
-}
-
-
-double AMSChargeSubD::getprobmin() {
-
-  if      (_ID.Contains(AMSChargeTOF::ClassID())) 
-    return CHARGEFITFFKEY.ProbMin[kTOF];
-  else if (_ID.Contains(AMSChargeTracker::ClassID()))
-    return CHARGEFITFFKEY.ProbMin[kTracker];
-  else if (_ID.Contains(AMSChargeTRD::ClassID()))
-    return CHARGEFITFFKEY.ProbMin[kTRD];
-  else if (_ID.Contains(AMSChargeRich::ClassID()))
-    return CHARGEFITFFKEY.ProbMin[kRich];
-
-  cout << "AMSChargeSubD::getprobmin-W-UnknownID " << _ID << endl;
-
-  return 0;
+void AMSCharge::print() {
+  printf("AMSCharge::print-V - Start ------------------------------------------------------ \n");
+  printf("AMSCharge::print-V - Beta? %1d    BetaH? %1d\n",(_pbeta!=0),(_pbetah!=0));
+  if (isempty()) printf("AMSCharge::print-V     %25s empty.\n","AMSCharge");
+  for (int i=0; i<getn(); i++) {
+    printf("AMSCharge::print-V     %25s i:%02d iz:%2d -LL:%10.5f P:%10.5g\n",
+      "AMSCharge",i,_Indxz[i],_Lkhdz[i],_Probz[i]);
+  }
+  map<TString,AMSChargeSubD*>::iterator i;
+  for (i=_charges.begin(); i!=_charges.end(); ++i) {
+    AMSChargeSubD *chargeSubD = i->second;
+    chargeSubD->print();
+  }
+  printf("AMSCharge::print-V - End -------------------------------------------------------- \n");
 }
 
 
 int AMSCharge::build(int refit){
-
   if (refit) return AMSCharge::refit(); // no refit implemented yet 
-
   for(int patb=0; patb<npatb; patb++){
-
     AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
     while(pbeta){
-
       AMSCharge *pcharge = new AMSCharge(pbeta);
-
       AMSEvent::gethead()->addnext(AMSID("AMSCharge",0),pcharge);
-   
       pbeta=pbeta->next();
-
     }
-
   }
-
   return 0;
 }
 
 
-int AMSCharge::BuildTOF(AMSBeta *pbeta) {
+int AMSCharge::BuildTOF() {
 
-  if (pbeta == NULL) return 0;
-
-  AMSChargeTOF *chargetof = new AMSChargeTOF(pbeta);
-
-  if (chargetof == NULL) return 0;
-
-  if (chargetof->ComputeCharge()) 
-    _charges[chargetof->_ID]=chargetof;
-  else {
-    delete chargetof;
-    return 0;
+  // checks
+  if (_pbeta == NULL) return 0;
+  // whole TOF
+  if (((CHARGEFITFFKEY.RecEnable[kTOF]/tofAll)%10) != 0) {
+    AMSChargeTOF *chargetof = new AMSChargeTOF(_pbeta,_pbetah);
+    if ((chargetof->ComputeCharge())&&chargetof->isok()) _charges[chargetof->_ID] = chargetof;  
+    else delete chargetof; 
   }
-  if (_debug) chargetof->_printEl(cout);
-
-//--New TOF BetaH
-  AMSTrTrack *ptrack=pbeta->getptrack();
-  if (ptrack == NULL) return 0;
-
-  
-  AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
-  while(betah){
-    if(betah->gettrack()==ptrack){_pbetah=betah;_pbetah->setcharge(this);break;}
-    betah=betah->next();
+  // upper TOF
+  if (((CHARGEFITFFKEY.RecEnable[kTOF]/tofUpper)%10) != 0) {
+    AMSChargeTOFUpper *chargetofupper = new AMSChargeTOFUpper(_pbeta,_pbetah);
+    if (chargetofupper->ComputeCharge()&&chargetofupper->isok()) _charges[chargetofupper->_ID] = chargetofupper;
+    else delete chargetofupper;
   }
- 
-//---
-
-
+  // lower TOF
+  if (((CHARGEFITFFKEY.RecEnable[kTOF]/tofLower)%10) != 0) {
+    AMSChargeTOFLower *chargetoflower = new AMSChargeTOFLower(_pbeta,_pbetah);
+    if (chargetoflower->ComputeCharge()&&chargetoflower->isok()) _charges[chargetoflower->_ID] = chargetoflower;
+    else delete chargetoflower;
+  }
   return 1;
 }
 
 
-int AMSCharge::BuildTracker(AMSBeta *pbeta) {
-
-  if (pbeta == NULL) return 0;
-
-  AMSTrTrack *ptrtk=pbeta->getptrack();
+int AMSCharge::BuildTracker() {
+  // checks 
+  if (_pbeta == NULL) return 0;
+  AMSTrTrack *ptrtk = _pbeta->getptrack();
   if (ptrtk == NULL) return 0;
-
-  if (ptrtk->getnhits() == 0) return 0; // fake track check
-
+  if (ptrtk->getnhits() == 0) return 0; 
+  // whole tracker
   if (((CHARGEFITFFKEY.RecEnable[kTracker]/trkAll)%10) != 0) {
-
-    AMSChargeTracker *chargetrk = new AMSChargeTracker(pbeta,ptrtk);
-
-    if (chargetrk != NULL) {
-      if (chargetrk->ComputeCharge()) 
-	_charges[chargetrk->_ID]=chargetrk;
-      else delete chargetrk;
-      if (_debug) chargetrk->_printEl(cout);
-    }
+    AMSChargeTracker *chargetrk = new AMSChargeTracker(_pbeta,ptrtk,_pbetah);
+    if (chargetrk->ComputeCharge()&&chargetrk->isok()) _charges[chargetrk->_ID] = chargetrk;
+    else delete chargetrk;
   }
-
-  // Inner planes
+  // inner tracker
   if (((CHARGEFITFFKEY.RecEnable[kTracker]/trkInner)%10) != 0) {
-
-    AMSChargeTrackerInner *chargetrkinner = new AMSChargeTrackerInner(pbeta,ptrtk);
-
-    if (chargetrkinner != NULL) {
-      if (chargetrkinner->ComputeCharge())
-	_charges[chargetrkinner->_ID]=chargetrkinner;
-      else delete  chargetrkinner;
-      if (_debug) chargetrkinner->_printEl(cout);
-    }
-
+    AMSChargeTrackerInner *chargetrkinner = new AMSChargeTrackerInner(_pbeta,ptrtk,_pbetah);
+    if (chargetrkinner->ComputeCharge()&&chargetrkinner->isok()) _charges[chargetrkinner->_ID] = chargetrkinner;
+    else delete chargetrkinner;
   }
-
-  // Upper planes
+  // upper layer
   if (((CHARGEFITFFKEY.RecEnable[kTracker]/trkUpper)%10) != 0) {
-
-    AMSChargeTrackerUpper *chargetrkupper = new AMSChargeTrackerUpper(pbeta,ptrtk);
-    if (chargetrkupper != NULL) {
-      if (chargetrkupper->ComputeCharge())
-	_charges[chargetrkupper->_ID]=chargetrkupper;
-      else delete chargetrkupper;
-      if (_debug) chargetrkupper->_printEl(cout);
-    }
-
+    AMSChargeTrackerUpper *chargetrkupper = new AMSChargeTrackerUpper(_pbeta,ptrtk,_pbetah);
+    if (chargetrkupper->ComputeCharge()&&chargetrkupper->isok()) _charges[chargetrkupper->_ID] = chargetrkupper;
+    else delete chargetrkupper;
   }
-
-  // Lower plane
+  // lower layer
   if (((CHARGEFITFFKEY.RecEnable[kTracker]/trkLower)%10) != 0) {
-
-    AMSChargeTrackerLower *chargetrkbottom = new AMSChargeTrackerLower(pbeta,ptrtk);
-
-    if (chargetrkbottom != NULL) {
-      if(chargetrkbottom->ComputeCharge())
-	_charges[chargetrkbottom->_ID]=chargetrkbottom;
-      else delete chargetrkbottom;
-
-      if (_debug) chargetrkbottom->_printEl(cout);
-    }
-
+    AMSChargeTrackerLower *chargetrklower = new AMSChargeTrackerLower(_pbeta,ptrtk,_pbetah);
+    if(chargetrklower->ComputeCharge()&&chargetrklower->isok()) _charges[chargetrklower->_ID] = chargetrklower;
+    else delete chargetrklower;
   }
-
   return 1; 
 }
 
 
-int AMSCharge::BuildTRD(AMSBeta *pbeta) {       
-
-  if (pbeta == NULL) return 0;
-
-  AMSTrTrack *ptrtk=pbeta->getptrack();
+int AMSCharge::BuildTRD() {       
+  // checks
+  if (_pbeta == NULL) return 0;
+  AMSTrTrack *ptrtk = _pbeta->getptrack();
   if (ptrtk == NULL) return 0; 
-
+  // search for best trd-track associated with trk-track
   AMSTRDTrack *ptrd=NULL;
-   bool notrefitted=true;
+  bool notrefitted=true;
 again:
   int ntrd=0;
   AMSTRDTrack* p=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
@@ -555,54 +513,38 @@ again:
     }
     p=p->next();
   }   
-
   if (ptrd == NULL) {
-
-   if(notrefitted){
-     notrefitted=false;
-     if(TRDRECFFKEY.ResolveAmb && AMSTRDTrack::ResolveAmb(ptrtk))goto again;
-     else return 0;
-   }
-
-    
+    if(notrefitted){
+      notrefitted=false;
+      if(TRDRECFFKEY.ResolveAmb && AMSTRDTrack::ResolveAmb(ptrtk))goto again;
+      else return 0;
+    }
     else return 0; 
   }
-
-  AMSChargeTRD *chargetrd = new AMSChargeTRD(pbeta,ptrd);
-
-  if (chargetrd == NULL) return 0;
-
-  if (chargetrd->ComputeCharge()) 
-    _charges[chargetrd->_ID]=chargetrd;
-  else {
-    delete chargetrd;
-    return 0;
-  }
-
-//---Use TRD Match for BetaH
+  // whole TRD 
+  AMSChargeTRD *chargetrd = new AMSChargeTRD(_pbeta,ptrd,_pbetah);
+  if (chargetrd->ComputeCharge()&&chargetrd->isok()) _charges[chargetrd->_ID] = chargetrd;
+  else delete chargetrd;
+  //---Use TRD Match for BetaH
   if(ptrd!=NULL){
-     if(_pbetah==0){//no tracker match->try to use trdtrack match
+    if(_pbetah==0){ //no tracker match->try to use trdtrack match
        AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
        while(betah){
-        if(betah->gettrdtrack()==ptrd){_pbetah=betah;_pbetah->setcharge(this);break;}
-          betah=betah->next();
+         if(betah->gettrdtrack()==ptrd){_pbetah=betah;_pbetah->setcharge(this);break;}
+         betah=betah->next();
        }
-     }
-     else _pbetah->settrdtrack(ptrd); //reset this trd to betah
-   } 
-
-
-  if (_debug) chargetrd->_printEl(cout);
-
+    }
+    else _pbetah->settrdtrack(ptrd); //reset this trd to betah
+  } 
   return 1; 
 }
 
 
-int AMSCharge::BuildRich(AMSBeta *pbeta) {
-
-  AMSTrTrack *ptrtk=pbeta->getptrack();
+int AMSCharge::BuildRich() {
+  // check
+  AMSTrTrack *ptrtk = _pbeta->getptrack();
   if (ptrtk == NULL) return 0;
-
+  // search ring associated with track
   AMSRichRing *pring=NULL;
   AMSRichRing *p=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
   while(p){
@@ -613,340 +555,305 @@ int AMSCharge::BuildRich(AMSBeta *pbeta) {
     }
     p=p->next(); 
   }
-
   if (pring == NULL) return 0;
-
-  AMSChargeRich *chargerich = new AMSChargeRich(pbeta,pring);
-
-  if (chargerich == NULL) return 0;
-
-  if (chargerich->ComputeCharge()) 
-    _charges[chargerich->_ID]=chargerich;
-  else {
-     delete chargerich;
-     return 0;
-  }
-  if (_debug) chargerich->_printEl(cout);
+  // RICH
+  AMSChargeRich *chargerich = new AMSChargeRich(_pbeta,pring,_pbetah);
+  if (chargerich->ComputeCharge()&&chargerich->isok()) _charges[chargerich->_ID]=chargerich;
+  else delete chargerich;
 
   return 1; 
 }
 
 
 int AMSCharge::BuildCombine() {
-
-  _i=-1;
-  _Charge = 0;
-  _Nused = 0;
-
-  _Probz.clear();
-  _Indxz.clear();
-  _Lkhdz.clear();
-
-  clearstatus(0xFFFFFFFF);
-
-  if (!SelectSubDCharges()) {
-    setstatus(AMSDBc::WEAK);
-    if (!SelectSubDCharges()) 
-      setstatus(AMSDBc::BAD);
-  }
-
-  if (_Nused<=0) {
-    cout << "AMSCharge::BuildCombine-W-NoValidSubDChargesFound " << endl;
-    return 0;
-  }
-
-  int indmx;
-  getvotedcharge(indmx);
-
-  if (_Charge<=0) {
+  clear();
+  int indmx = -1; 
+  int charge = getvotedcharge(indmx);
+  if (indmx<0) {
     cout << "AMSCharge::BuildCombine-W-NoValidAMSChargeFound " << endl;
+    print();
     return 0;
   }
+  if (_ChargeI[0]==65535) {
+    cout << "AMSCharge::BuildCombine-W-ChargeI overflow " << endl;
+    // print();
+    return 0;     
+  }
+  return 1;
+}
 
-  if (_debug)
-    cout << "AMSCharge::BuildCombine-I-Charge : _Charge " << _Charge << endl;
-  //for (int ind=0; ind<_Probz.size(); ind++) getprobcharge(ind);
 
-  FillRootVectors();
+AMSChargeBase AMSCharge::getvotedcharge(vector<TString> detectors) {
+
+  AMSChargeBase result;
+  result.clear();
+
+  // calculate index range 
+  int minindex = -1;
+  int maxindex = -1;
+  map<TString,AMSChargeSubD*>::iterator i;
+  for (i=_charges.begin(); i!=_charges.end(); ++i) {
+    AMSChargeSubD *chargeSubD = i->second;
+    if (find(detectors.begin(),detectors.end(),chargeSubD->getID())==detectors.end()) continue;
+    int subdminindex = -1;
+    int subdmaxindex = -1;
+    chargeSubD->getminmaxindex(subdminindex,subdmaxindex);
+    if (minindex<0) minindex = subdminindex;
+    if (maxindex<0) maxindex = subdmaxindex;
+    minindex = min(minindex,subdminindex);
+    maxindex = max(maxindex,subdmaxindex);
+  }
+  int size = maxindex - minindex + 1;
+  if ( (minindex<0)&&(maxindex<0) ) return result;
+  
+  // calculate global likelihood 
+  result._Indxz.assign(size,-1);
+  result._Lkhdz.assign(size,0);
+  result._Probz.assign(size,1);
+  for (int index=minindex; index<=maxindex; index++) {
+    int Nused = 0;
+    for (i=_charges.begin();i!=_charges.end();++i) {
+      AMSChargeSubD *chargeSubD = i->second;
+      if (find(detectors.begin(),detectors.end(),chargeSubD->getID())==detectors.end()) continue;
+      if ( (!chargeSubD->isvalid(index))||(chargeSubD->getprobindex(chargeSubD->getindex())==0) ) continue;
+      Nused++;
+      result._Indxz[index-minindex] = index;
+      result._Lkhdz[index-minindex] += chargeSubD->getlkhdindex(index);
+      result._Probz[index-minindex] *= chargeSubD->getprobindex(index)/chargeSubD->getprobindex(chargeSubD->getindex());
+    }
+    if (Nused>0) result._Lkhdz[index-minindex] /= Nused;
+    else {
+      // if no detector reset to bad values
+      result._Lkhdz[index-minindex] = HUGE_VAL;
+      result._Probz[index-minindex] = 0;
+    }
+  }
+
+  // sort and fill ROOT vectors 
+  result.sortandfill(); // CHARGEFITFFKEY.UseLikelihood);
+
+  return result;
+}
+
+
+int AMSCharge::getvotedcharge(int& index) {
+
+  // return value if already computed
+  if (getcharge()>0) {
+    index = getindex();
+    return getcharge();
+  }
+
+  // calculate if new
+  vector<TString> list; 
+  for (int i=0; i<7; i++) list.push_back(detector_list[i]);
+  copyvalues(getvotedcharge(list));
+
+  index = getindex();
+  return getcharge();  
+}
+
+
+int AMSCharge::BuildUpper() {
+
+  // upper AMS detector list 
+  vector<TString> list;
+  for (int i=0; i<3; i++) list.push_back(detector_list[i]);
+
+  // combine charges
+  AMSChargeUpper *chargeupper = new AMSChargeUpper();
+  int nused = 0;
+  chargeupper->copyvalues(getvotedcharge(list));
+  if (chargeupper->isok()) _charges[chargeupper->_ID] = chargeupper;
+  else delete chargeupper;
 
   return 1;
 }
 
 
-int AMSCharge::SelectSubDCharges() {
-
-  _Nused = 0;
-
-  map<TString,AMSChargeSubD*>::iterator i;
-
-  AMSChargeSubD* bestTrCharge=NULL;
-
-  bool weak = checkstatus(AMSDBc::WEAK);
-
-  for(i=_charges.begin();i!=_charges.end();++i) {
-
-    AMSChargeSubD *chargeSubD = i->second;
-
-    int charge = chargeSubD->getcharge();
-    float prob = chargeSubD->getprobcharge(chargeSubD->getindex(), CHARGEFITFFKEY.NormalizeProbs);
-    int chargemax = chargeSubD->getchargemax();
-    float probmin = chargeSubD->getprobmin();
-    int splitlevel = chargeSubD->getsplitlevel();
-    
-    bool bad = chargeSubD->checkstatus(AMSDBc::BAD);
-
-    chargeSubD->clearstatus(AMSDBc::USED);
-
-    if(charge>0 && !bad &&
-       ( weak ||
-	 (chargemax<0 || charge<=chargemax) && prob>probmin ) ) {
-
-      if(chargeSubD->_ID.Contains(AMSChargeTracker::ClassID())){
-
-	if (splitlevel>0) {
-	  if (chargeSubD->_ID.CompareTo(AMSChargeTracker::ClassID()))
-	    chargeSubD->setstatus(AMSDBc::USED);
-	}
-	else {
-	  if (!chargeSubD->_ID.CompareTo(AMSChargeTracker::ClassID())) {
-	    if(bestTrCharge==NULL || chargeSubD->_Priority>bestTrCharge->_Priority) {
-	      if (bestTrCharge!=NULL) bestTrCharge->clearstatus(AMSDBc::USED);
-	      bestTrCharge = chargeSubD;
-	      bestTrCharge->setstatus(AMSDBc::USED);
-	    }
-	  }
-	}
-
-      }
-      else chargeSubD->setstatus(AMSDBc::USED);
-    }
-
-    if (_debug) 
-      cout << "AMSCharge::SelectSubDCharges-I-chargeSubDID : " << chargeSubD->getID()
-	   << " used : " << (chargeSubD->checkstatus(AMSDBc::USED) > 0) << endl;
-
-    if (chargeSubD->checkstatus(AMSDBc::USED)) _Nused++;
-  }
-
-  if (_debug)
-    cout << "AMSCharge::SelectSubDCharges-I-_Nused : " << _Nused << endl;
-
-  return (_Nused>0);
-}
-
-
-int AMSCharge::getvotedcharge(int &iVoted) {
-
-  if (_Charge >0) {
-    iVoted=_i;
-    return _Charge;
-  }
-
-  _Charge = 0;
-
-  if (_Nused<=0) return 0;
-
-  map<TString,AMSChargeSubD*>::iterator i;
-
-  vector<int> ind2charge;
-
-  for (i=_charges.begin();i!=_charges.end();++i) {
-
-    AMSChargeSubD *chargeSubD = i->second;
-
-    if (!chargeSubD->checkstatus(AMSDBc::USED)) continue;
-
-    int indmx = chargeSubD->getindex();
-    int size = chargeSubD->getsize();
-
-    if (_Lkhdz.empty()) {
-      _Indxz.assign(size,-1);
-      _Lkhdz.assign(size,0);
-      _Probz.assign(size,1);
-    }
-    else if (size != _Lkhdz.size()) {
-      cout << "AMSCharge::getvotedcharge-W-InconsistentSubDVectorSizes : "
-	   << chargeSubD->getID() << " size " << size << " RefSize " << _Lkhdz.size() << endl;
-      return 0;
-    }
-
-    if (_debug)
-      cout << "AMSCharge::getvotedcharge-I-chargeSubDID : " << chargeSubD->getID()
-	   << " size " << size << " indmx " << indmx << endl;
-
-    for (int index=0; index<size; index++) {
-
-      //cout << "index " << index << " lkhd " << chargeSubD->getlkhdcharge(index)<< endl;
-      _Lkhdz[index] += chargeSubD->getlkhdcharge(index);
-      _Probz[index] *= chargeSubD->getprobcharge(index, CHARGEFITFFKEY.NormalizeProbs)/
-	              chargeSubD->getprobcharge(indmx, CHARGEFITFFKEY.NormalizeProbs);
-      //cout << "_Lkhdz " << _Lkhdz[index] << " _Probz " <<  _Probz[index] << endl;
-
-    }
-
-    if (ind2charge.empty()) {
-      ind2charge.assign(size,0);
-      for (int ind=0; ind<size; ind++) ind2charge[ind] = chargeSubD->ind2charge(ind);
-    }
-
-  }
-
-  // Find voted & Fill vectors
-  vector<double> test, save;
-  if (CHARGEFITFFKEY.UseLikelihood) test=_Lkhdz;
-  else {
-    test=_Probz;
-    for (int i=0; i<test.size(); i++) test[i]*=-1;
-  }
-  save=test;
-  sort(test.begin(),test.end());
-
-  // again the unfortunate heritage ... again to be removed
-  _i=-1;
-  for(int i=0;i<test.size();i++)
-    for(int j=0;j<save.size();j++) {
-      if(test[i] == save[j] && _Indxz[j]<0) {
-	_Indxz[j]=i;
-	test[i] = -HUGE_VAL;
-        if (!i) _i=j; //store Z-index with max prob. 
-      }
-    }
-
-  iVoted = _i;
-  if (iVoted>=0) _Charge = ind2charge[iVoted];
-
-  if (_debug)
-    cout << "AMSCharge::getvotedcharge-I-VotedCharge : charge " << _Charge << " index " << iVoted << endl;
-
-  return _Charge;
+int AMSCharge::BuildFragmentation() {
+  return 1;
 }
 
 
 double AMSCharge::getprobcharge(int charge) {
-
-  double prob=0;
-
-  charge=abs(charge);
-  if(charge>MaxZTypes){
-    cerr <<" AMSCharge::getprobcharge-E-charge too big "<<charge<<endl;
-    return 0;
-  }
-
+  // init
+  charge = abs(charge);
   int indmx;
-  int voted=getvotedcharge(indmx);
-  int index=charge;
-
-  map<TString,AMSChargeSubD*>::iterator i;
-
-  vector<int> ind2charge;
-
-  prob = 1;
-
-  for (i=_charges.begin();i!=_charges.end();++i) {
-
+  int voted = getvotedcharge(indmx);
+  int index = charge;
+  double prob = 1;
+  // loop
+  for (map<TString,AMSChargeSubD*>::iterator i=_charges.begin();i!=_charges.end();++i) {
     AMSChargeSubD *chargeSubD = i->second;
-
     if (!chargeSubD->checkstatus(AMSDBc::USED)) continue;
-
-    prob *= chargeSubD->getprobcharge(index, CHARGEFITFFKEY.NormalizeProbs)/
-            chargeSubD->getprobcharge(indmx, CHARGEFITFFKEY.NormalizeProbs);
-
+    prob *= chargeSubD->getprobindex(index)/chargeSubD->getprobindex(voted);
   }
-
-  //cout << "AMSCharge::getprobcharge : charge " << charge << " voted " << voted << " index " << index
-  //     << " prob " << prob << endl;
-
- return prob;
-}
-
-
-void AMSCharge::FillRootVectors() {
-
-  if (_debug)
-    cout << "AMSCharge::FillRootVector-I- size : " << _Indxz.size() << endl;
-
-  _ChargeI.resize(_Indxz.size());
-  _Lkhd.resize(_Indxz.size());
-  _Prob.resize(_Indxz.size());
-
-  for (int i=0; i<_Indxz.size(); i++) {
-    int j=_Indxz[i];
-    if (_debug)
-      cout << "Index " << i << " in position " << j << " prob " << _Probz[i] << endl;
-    if (j>=0 && j<_Indxz.size()) {
-      _ChargeI[j] = i;
-      _Lkhd[j] = _Lkhdz[i];
-      _Prob[j] = _Probz[i];
-    }
-  }
-
-  return; 
+  return prob;
 }
 
 
 int AMSCharge::getchargeTOF() {
-
   map<TString,AMSChargeSubD*>::iterator i=_charges.find("AMSChargeTOF");
-
   if(i==_charges.end()) return -1;
   else return i->second->getcharge();
 }
 
 
 int AMSCharge::getchargeTracker() {
-
   map<TString,AMSChargeSubD*>::iterator i=_charges.find("AMSChargeTracker");
-
   if(i==_charges.end()) return -1;
   else return i->second->getcharge();
 }
 
 
 AMSCharge::AMSCharge(AMSBeta *pbeta) {
-
-  _i=-1;
-  _Charge = 0;
+  // init 
+  clear();
   _pbeta = pbeta;
-//--  
-  _pbetah=0;
-
-  if (CHARGEFITFFKEY.RecEnable[kTOF] > 0) {
-    if (_debug) cout << "AMSCharge::AMSCharge-I-BuildTOF" << endl;
-    BuildTOF(pbeta);
+  // associate betah (needed) 
+  _pbetah = 0;
+  AMSTrTrack* ptrack=pbeta->getptrack();
+  if (ptrack!=NULL) {
+    AMSBetaH* betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
+    while(betah){
+      if(betah->gettrack()==ptrack){_pbetah=betah;_pbetah->setcharge(this);break;}
+      betah=betah->next();
+    }
   }
-
-  if (CHARGEFITFFKEY.RecEnable[kTracker] > 0) {
-    if (_debug) cout << "AMSCharge::AMSCharge-I-BuildTracker" << endl;
-    BuildTracker(pbeta);
-  }
-
-  if (CHARGEFITFFKEY.RecEnable[kTRD] > 0) {
-    if (_debug) cout << "AMSCharge::AMSCharge-I-BuildTRD" << endl;
-    BuildTRD(pbeta);
-  }
-
-  if (CHARGEFITFFKEY.RecEnable[kRich] > 0) {
-    if (_debug) cout << "AMSCharge::AMSCharge-I-BuildRich" << endl;
-    BuildRich(pbeta);
-  }
-
-  if (_debug) cout << "AMSCharge::AMSCharge-I-BuildCombine" << endl;
+  // build (the order is important in order to find proper betah)
+  if (CHARGEFITFFKEY.RecEnable[kTRD]>0)     BuildTRD();
+  if (CHARGEFITFFKEY.RecEnable[kTracker]>0) BuildTracker();
+  if (CHARGEFITFFKEY.RecEnable[kTOF]>0)     BuildTOF();
+  if (CHARGEFITFFKEY.RecEnable[kRich]>0)    BuildRich();
   BuildCombine();
+  BuildUpper();
+  BuildFragmentation();
 
+  // print();
+}
+
+
+#include "root.h"
+
+void AMSCharge::_writeEl(){
+#ifdef __WRITEROOT__
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+}
+
+void AMSCharge::_copyEl(){
+#ifdef __WRITEROOT__
+  if(PointerNotSet()) return;
+  ChargeR &ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->Charge(_vpos);
+  ptr.setBeta(_pbeta==NULL?-1:_pbeta->GetClonePointer());
+  ptr.setBetaH(_pbetah==0?-1:_pbetah->GetClonePointer());
+  for(  map <TString,AMSChargeSubD*> :: iterator i=_charges.begin();i!=_charges.end();++i){
+
+    ChargeSubDR &subPtr=ptr.Charges[i->first];
+
+    /*subPtr.setParent(i->second->_getParent());*/
+
+    subPtr.setParent(-1);
+
+    if((i->first).Contains(AMSChargeTOF::ClassID())){
+      AMSChargeTOF *obj=(AMSChargeTOF*)i->second;
+      subPtr.setParent(obj->_pbeta==NULL?-1:obj->_pbeta->GetClonePointer());
+      continue;
+    }
+
+    if((i->first).Contains(AMSChargeTracker::ClassID())){
+      AMSChargeTracker *obj=(AMSChargeTracker*)i->second;
+      subPtr.setParent(obj->_ptrtk==NULL?-1:obj->_ptrtk->GetClonePointer());
+      continue;
+    }
+
+    if((i->first).Contains(AMSChargeTRD::ClassID())){
+      AMSChargeTRD *obj=(AMSChargeTRD*)i->second;
+      subPtr.setParent(obj->_ptrd==NULL?-1:obj->_ptrd->GetClonePointer());
+      continue;
+    }
+
+    if((i->first).Contains(AMSChargeRich::ClassID())){
+      AMSChargeRich *obj=(AMSChargeRich*)i->second;
+      subPtr.setParent(obj->_pring==NULL?-1:obj->_pring->GetClonePointer());
+      continue;
+    }
+    
+  }
+#endif
+}
+
+
+/////////////////////////////////////////////////////////////////
+// AMSChargeSubD derived types
+/////////////////////////////////////////////////////////////////
+
+
+int AMSChargeTOF::ComputeCharge(int refit){
+  if (_pbeta == NULL) {
+    cout << "AMSChargeTOF::ComputeCharge-W-NullAMSBetaPointer" << endl;
+    return 0;
+  }
+  Init(refit);
+  if (!Fill(refit)) return 0;
+  return 1;
+}
+
+
+
+int AMSChargeTracker::ComputeCharge(int refit){
+  if (_pbeta == NULL) {
+    cout << "AMSChargeTOF::ComputeCharge-W-NullAMSBetaPointer" << endl;
+    return 0;
+  }
+  if (_ptrtk == NULL) {
+    cout << "AMSChargeTracker::ComputeCharge-W-NullAMSTrTrackPointer" << endl;
+    return 0;
+  }
+  Init(refit);
+  if (!Fill(refit)) return 0;
+  return 1;
+}
+
+
+int AMSChargeRich::ComputeCharge(int refit) {
+  if (_pbeta == NULL) {
+    cout << "AMSChargeTOF::ComputeCharge-W-NullAMSBetaPointer" << endl;
+    return 0;
+  }
+  if (_pring == NULL) {
+    cout << "AMSChargeRich::ComputeCharge-W-NullRichRingPointer" << endl;
+    return 0;
+  }
+  Init(refit);
+  if (!Fill(refit)) return 0;
+  return 1;
+}
+
+
+int AMSChargeTRD::ComputeCharge(int refit) {
+  if (_pbeta == NULL) {
+    cout << "AMSChargeTRD::ComputeCharge-W-NullAMSBetaPointer" << endl;
+    return 0;
+  }
+  if (_ptrd == NULL) {
+    cout << "AMSChargeTRD::ComputeCharge-W-NullTRDTrackPointer" << endl;
+    return 0;
+  }
+  Init(refit);
+  if (!Fill(refit)) return 0;
+  return 1;
 }
 
 
 int AMSChargeTRD::Fill(int refit) {
-
-  _ptrd->ComputeCharge(_pbeta->GetTRDBetaCorr());
-
+  // init
+  _ptrd->ComputeCharge(_pbeta->GetTRDBetaCorr()); // <<< THIS IS NOT CLEAR FOR ME
   if (_ptrd->_Charge.Nused <= 0) return 0;
-
+  // charge
   _Q = _ptrd->_Charge.Q;
-  _i = _ptrd->_Charge.Charge[0];
-  _Charge = ind2charge(_i);
-
-  // Fill vectors
+  // likelihood 
   double probmx = 1;
   int nc = sizeof(_ptrd->_Charge.Charge)/sizeof(_ptrd->_Charge.Charge[0]);
   _Probz.assign(nc,0);
@@ -957,9 +864,8 @@ int AMSChargeTRD::Fill(int refit) {
     int ind = _ptrd->_Charge.Charge[i];
     if (ind<nc) {
       _Indxz[ind]=i;
-      _Lkhdz[ind]=_ptrd->_Charge.ChargeP[i];
-      _Probz[ind]=1./exp(min(_Lkhdz[ind]/_ptrd->_Charge.Nused,powmx))/probmx;
-      _ProbSum+=_Probz[ind];
+      _Lkhdz[ind]=_ptrd->_Charge.ChargeP[i]/_ptrd->_Charge.Nused;
+      _Probz[ind]=1./exp(min(_Lkhdz[ind],powmx))/probmx;
       //cout << "AMSChargeTRD::ComputeCharge " <<  _Lkhdz.back() << " " << _Probz.back() << " " << _ProbSum << endl;
     }
     else {
@@ -967,38 +873,36 @@ int AMSChargeTRD::Fill(int refit) {
       return 0;
     }
   }
-
+  sortandfill();
   if (refit) setstatus(AMSDBc::REFITTED);
-
   return 1;
 }
 
 
 int AMSChargeRich::Fill(int refit) {
-
+  // photon counting
   double exp = _pring->getnpexp();
   double use = _pring->getcollnpe();
-
   if (AMSJob::gethead()->isRealData()) exp*=0.836; // average correction factor 
   if(exp<=0) return 0;
-
-  for (int i=0; i<MaxZTypes; i++){
-    double z=ind2charge(i);
-    double zz=z*z;
-    _Lkhdz.push_back(exp*zz-use*log(exp*zz));
-  }
-
-  _i=sortlkhd();
-  _Charge=ind2charge(_i);
-  for (int i=0; i<MaxZTypes; i++)
-    _Probz.push_back(PROB(2.*(float)(_Lkhdz[i]-_Lkhdz[_i]),1));
-  _ProbSum=0;
-  for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
-
+  // floating charge
   _Q = sqrt(use/exp);
-
+  // calculation
+  float minLogLike = HUGE_VAL;
+  int maxindex = int(_Q+15);
+  for (int i=0; i<maxindex; i++){
+    double z=i+1;
+    double zz=z*z;
+    _Indxz.push_back(z);
+    double LogLike = exp*zz-use*log(exp*zz);
+    _Lkhdz.push_back(LogLike);
+    if (LogLike<minLogLike) minLogLike = LogLike;
+  }
+  for (int i=0; i<maxindex; i++)  
+    _Probz.push_back(PROB(2.*max(_Lkhdz[i]-minLogLike,0.),1)); // (float)(_Lkhdz[i]-minLogLike),1));
+  addelectron();
+  sortandfill();
   if (refit) setstatus(AMSDBc::REFITTED);
-
   return 1;
 }
 
@@ -1006,6 +910,7 @@ int AMSChargeRich::Fill(int refit) {
 #ifdef _PGTRACK_
 int AMSChargeTracker::Fill(int refit) {
 
+  // check
   if (_ID.CompareTo(AMSChargeTracker::ClassID())      &&
       _ID.CompareTo(AMSChargeTrackerInner::ClassID()) && 
       _ID.CompareTo(AMSChargeTrackerLower::ClassID()) && 
@@ -1013,99 +918,62 @@ int AMSChargeTracker::Fill(int refit) {
      )
     return 0;
 
+  // beta
   float beta = _pbeta->getbeta();
+  if (_pbetah) beta = _pbetah->GetBeta(); 
+
+  // for results
+  vector<like_t> likelihood;
 
   // AMSChargeTrackerInner
   if (_ID.CompareTo(AMSChargeTrackerInner::ClassID())==0) {
-    _Q = _ptrtk->GetQ(beta);
-    _TruncatedMean = _ptrtk->GetQ(1);
+    _Q = _ptrtk->GetInnerQ(beta);
+    _TruncatedMean = _ptrtk->GetInnerQ(1);
+    _ptrtk->GetInnerZ(likelihood,beta);
   }
+
   // AMSChargeTrackerUpper
   else if (_ID.CompareTo(AMSChargeTrackerUpper::ClassID())==0) {
     _Q = _ptrtk->GetLayerJQ(1,beta);
     _TruncatedMean = _ptrtk->GetLayerJQ(1,1);
+    _ptrtk->GetLayerJZ(likelihood,1,beta); 
   }
+
   // AMSChargeTrackerLower
   else if (_ID.CompareTo(AMSChargeTrackerLower::ClassID())==0) {
     _Q = _ptrtk->GetLayerJQ(9,beta);
     _TruncatedMean = _ptrtk->GetLayerJQ(9,1);
+    _ptrtk->GetLayerJZ(likelihood,9,beta);
   }
+
   // AMSChargeTracker
   else if (_ID.CompareTo(AMSChargeTracker::ClassID())==0) {
-    //! Best available Q evaluation (charge units) with beta correction 
+    // _ProbAllTracker = 0;
     _Q = _ptrtk->GetQ(beta);
-    //! Truncated mean charge (inner tracker), no beta correction
     _TruncatedMean = _ptrtk->GetQ(1);
-    //! ProbAlltracker not yet available
-    _ProbAllTracker = 0;
-    // very preliminary likelihood estimation 
-    like_t like;
-    for (int ind=0; ind<MaxZTypes; ind++) {
-      float beta = ind>0?_pbeta->getbeta():1;
-      int Z = ind2charge(ind);
-      //! Truncated mean probability (inner tracker)
-      like = TrCharge::GetTruncMeanProbToBeZ(_ptrtk, Z, beta);
-      // Fill 
-      Fill(ind, like);
-    }
-    // Compute Sum Probabilities for all charges & check
-    _ProbSum=0;
-    for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
-    // Sort Likelihoods  
-    _i=sortlkhd();
-    // Assign Most likely charge
-    _Charge=ind2charge(_i);
+    _ptrtk->GetZ(likelihood,beta);
   }
 
-  if (_debug)
-    _printEl(cout);
+  // fill base vectors 
+  for (int i=0; i<(int)likelihood.size(); i++) {
+    _Indxz.push_back(likelihood[i].Z);
+    _Lkhdz.push_back(-likelihood[i].GetNormLogLike()); // convention
+    _Probz.push_back(likelihood[i].GetNormProb());
+  }
+
+  // sort and fill root vectors
+  addelectron();
+  sortandfill();
 
   if (refit) setstatus(AMSDBc::REFITTED);
-
   return 1;
 }
 
-int AMSChargeTracker::Fill(int ind, like_t like) {
-
-  if (!_Probz.size()) {
-    _Probz.assign(MaxZTypes,0);
-    _Indxz.assign(MaxZTypes,0);
-    _Lkhdz.assign(MaxZTypes,HUGE_VALF);
-    _ProbSum=0;
-  }
-
-  if (ind>MaxZTypes) {
-    cout << "AMSChargeTracker::Fill-W-ChargeIndexAboveLimits: ind " << endl;
-    return 0;
-  }
-
-  if (like.NPoints>0) {
- 
-    //! Likelihood
-    if (like.Prob>0)
-      _Lkhdz[ind] = -log(like.Prob);  // use convention -logPi;
-
-    //! Probability
-    _Probz[ind] = like.Prob;    
-
-    if (_debug)
-      cout << " AMSChargeTracker::Fill-I-ChargeIndex " << ind 
-	   << " Lkhd " << _Lkhdz[ind] << " Prob " << _Probz[ind] << endl;
-   }
-  else {
-
-    // I comment this out as it  seems to be more frequent than expected
-    //cout << " AMSChargeTracker::Fill-W-ZeroNPoints " << endl; 
-    return 0;
-  }
-
-  return 1;
-}
 
 #else
 
-int AMSChargeTracker::Fill(int refit) {
 
+int AMSChargeTracker::Fill(int refit) {
   // init
   AMSTrTrack *ptrack = _ptrtk;
   AMSBeta    *pbeta  = _pbeta;
@@ -1113,23 +981,15 @@ int AMSChargeTracker::Fill(int refit) {
   double EdepTracker[trconst::TrkTypes-1][trconst::maxlay];
   AMSTrCluster *pTrackerc[trconst::TrkTypes-1][trconst::maxlay];
   const double fac=AMSTrRawCluster::ADC2KeV();
-
   int nhitTracker=0, nallTracker=0;
-
   double beta=pbeta->getbeta();
   double theta, phi, sleng;
   AMSPoint P1;
   double pathcor;
-
   clearstatus(AMSDBc::WEAK);
   while(1 ){
-
     nhitTracker=0;
     nallTracker=0;
-
-    if (_debug)
-      cout << "AMSChargeTracker::Fill-I- ID " << _ID << endl;
-
     for(int i=0; i<ptrack->getnhits(); i++){
       AMSTrRecHit *phit=ptrack->getphit(i);
       if(phit){
@@ -1171,20 +1031,14 @@ int AMSChargeTracker::Fill(int refit) {
 	}
       }
     }
-
     if(nhitTracker<2 && 
        _ID.CompareTo(AMSChargeTrackerUpper::ClassID()) && _ID.CompareTo(AMSChargeTrackerUpper::ClassID())){
       if(!checkstatus(AMSDBc::WEAK) && nallTracker) setstatus(AMSDBc::WEAK);
       else break;
     }
     else break;
-
   }
-
-  if (_debug)
-    cout << "AMSChargeTracker::Fill-I- nallTracker " << nallTracker << " nhitTracker " << nhitTracker <<  endl;
-
-//====> Compute path corrected truncated mean (use K side)
+  //====> Compute path corrected truncated mean (use K side)
   int imx;
   double mean, trunres, trunmax;
   double rescut=CHARGEFITFFKEY.ResCut[1];
@@ -1192,15 +1046,10 @@ int AMSChargeTracker::Fill(int refit) {
   double resmx=resmax(EdepTracker[0],nhitTracker,0,rescut,imx,mean,trunres,trunmax);
   if(!CHARGEFITFFKEY.TrMeanRes) _TruncatedMean=trunmax;
   else _TruncatedMean=trunres;
-
   int bstatus = !pbeta->checkstatus(AMSDBc::AMBIG);
-
   if (!Fit(0,beta,bstatus,nhitTracker,pTrackerc,EdepTracker)) return 0;
-
-  _Q = sqrt ( _TruncatedMean * EdepBetaCorrection(_i,beta) / CHARGEFITFFKEY.TrkkeVperMip );
-
+  _Q = sqrt ( _TruncatedMean * EdepBetaCorrection(getindex(),beta) / CHARGEFITFFKEY.TrkkeVperMip );
   if (refit) setstatus(AMSDBc::REFITTED); // not considered yet 
-
   return 1;
 }
 
@@ -1214,19 +1063,13 @@ int AMSChargeTracker::Fit(int trkfit, double beta, int bstatus, int nhitTracker,
   double Trackerresmax[trconst::TrkTypes-1], etrkh[trconst::maxlay], x[trconst::maxlay];
   int Trackerhitmax[trconst::TrkTypes-1];
   int i,j;
-
-  if (_debug)
-    cout << "AMSChargeTracker::Fit-I-trkfit : " << trkfit << endl;
-
 // init
   if(!trkfit){
     Init();
     _ProbAllTracker=0;
     UCOPY(etrk[0],ETRK[0],(trconst::TrkTypes-1)*trconst::maxlay*sizeof(etrk[0][0])/4);
   }
-
   if (nhitTracker<=0) return 0;
-
 // determine furthest hits
   if(trkfit>=0){
     double rescut=!trkfit?CHARGEFITFFKEY.ResCut[1]:0;
@@ -1282,17 +1125,13 @@ int AMSChargeTracker::Fit(int trkfit, double beta, int bstatus, int nhitTracker,
     }
   }
   if(!nhittrk) failtrk=1;
-
   if(!failtrk){
-
 // likelihood values and charge probabilities
     double lkhtrk[MaxZTypes];
     lkhcalc(1,beta,nhitTracker,etrkh,typetrk,lkhtrk);
     double probtrk=probcalc(trkfit,nhittrk,lkhtrk);
-    _Charge=ind2charge(_i);
     _ProbSum=0;
     for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
-
 // refit tracker if required
     if(!trkfit && probtrk<CHARGEFITFFKEY.ProbTrkRefit){
       for(int i=0; i<nhitTracker; i++){
@@ -1306,7 +1145,6 @@ int AMSChargeTracker::Fit(int trkfit, double beta, int bstatus, int nhitTracker,
     }
     else if(trkfit>0) setstatus(AMSDBc::REFITTED);
     else _ProbAllTracker=probtrk;
-
 // get tracker probability using all the hits
     if(trkfit!=-1) failtrk=!Fit(-1,beta,bstatus,nhitTracker,pTrackerc,ETRK);
     //cout << "AMSCharge::FitTracker : " << _Charge << endl;
@@ -1317,43 +1155,76 @@ int AMSChargeTracker::Fit(int trkfit, double beta, int bstatus, int nhitTracker,
   else{
     //cerr<<"AMSCharge::Fit -E- no Tracker hit found"<<endl;
   }
-
   return !failtrk;
 }
 
 
 double AMSChargeTracker::EdepBetaCorrection(int ichar, double beta) {
-
   if (ichar<0 || ichar>=MaxZTypes) return 0;
-
   double betamax = 0.94;
   double betapow = 1.78;//my estimation, works better than 5/3, the same for all nucl<=C12)
   double betacor = ichar?pow(min(fabs(beta/betamax),1.),betapow):1;//corr to "mip"(=1 for ichar=0(electrons))
-
   return betacor;
 }
-
 #endif
 
 
 int AMSChargeTOF::Fill(int refit) {
 
+  if ( (_ID.CompareTo(AMSChargeTOF::ClassID())) &&   
+       (_ID.CompareTo(AMSChargeTOFUpper::ClassID())) &&
+       (_ID.CompareTo(AMSChargeTOFLower::ClassID())) ) return 0;
+
+#ifdef _PGTRACK_
+  if (_pbetah) {
+    FakeBetaHR fakebetah(_pbetah); 
+    TofChargeHR charbetah(&fakebetah);
+    int pattern = -2; // -2 drop max-q bad pathlenght, -10 bad pathlenght
+    if      (_ID.CompareTo(AMSChargeTOFUpper::ClassID())==0) pattern = 1100;
+    else if (_ID.CompareTo(AMSChargeTOFLower::ClassID())==0) pattern = 11;
+    for (int i=0; i<charbetah.GetNZ(pattern); i++) {
+      TofLikelihoodPar* likelihood = charbetah.GetTofLikelihoodPar(i,pattern);
+      int nhit = likelihood->GetnLayer();
+      if (nhit<1) continue;
+      int charge = likelihood->Z;
+      double loglike = -likelihood->Likelihood/nhit; // convention 
+      double prob = likelihood->Prob;
+      if ((prob<0)||isnan(prob)||isnan(loglike)) continue;
+      _Indxz.push_back(charge);
+      _Lkhdz.push_back(loglike);   
+      _Probz.push_back(prob);
+    }
+    int npoints = 0;
+    float rms = 0;
+    _Q = charbetah.GetQ(npoints,rms,pattern);
+    _TruncatedMean = fakebetah.GetQ(npoints,rms,2,TofClusterHR::DefaultQOpt,pattern,1); // no beta correction
+    // sort and fill root vectors
+    addelectron();
+    sortandfill();
+    if (refit) setstatus(AMSDBc::REFITTED);
+    return 1; 
+  }
+#endif 
+
+  // if no available betah charge go to old algo. based on beta
+
+  // no upper/lower for old algo. 
+  if ( (_ID.CompareTo(AMSChargeTOFUpper::ClassID()==0))||
+       (_ID.CompareTo(AMSChargeTOFLower::ClassID()==0)) ) return 0;
+
+  // old algo.
   AMSBeta *pbeta = _pbeta;
   double etof[TOF2GC::SCLRS];
   double EdepTOF[TOF2GC::SCLRS];
   AMSTOFCluster *pTOFc[TOF2GC::SCLRS];
   int TypeTOF[TOF2GC::SCLRS];
-
-// init
+  // init
   int nhitTOF=0, nallTOF=0;
-
   AMSTrTrack *ptrack=pbeta->getptrack();
   double beta=pbeta->getbeta();
   double theta, phi, sleng;
   AMSPoint P1;
   double pathcor;
-
-
   clearstatus(AMSDBc::WEAK);
   while(1 ){
     nhitTOF=0;
@@ -1387,11 +1258,7 @@ int AMSChargeTOF::Fill(int refit) {
     }
     else break;
   }//-->endof while
-
-  if (_debug)
-    cout << "AMSChargeTOF::Fill-I- nhitTOF " << nhitTOF <<  endl;
-
-//====> Compute path corrected truncated mean
+  //====> Compute path corrected truncated mean
   int imx;
   double mean, trunres, trunmax;
   double rescut=CHARGEFITFFKEY.ResCut[0];//use/not(>=0/-1) incomp.clus exclusion
@@ -1399,15 +1266,11 @@ int AMSChargeTOF::Fill(int refit) {
   double resmx=resmax(EdepTOF,nhitTOF,0,rescut,imx,mean,trunres,trunmax);//TOF hits trunc.mean)
   if(!CHARGEFITFFKEY.TrMeanRes) _TruncatedMean=trunmax;//normal("-highest hit") TruncMean
   else _TruncatedMean=trunres;//"-incomp.cluster" TruncMean
-
   int bstatus = !pbeta->checkstatus(AMSDBc::AMBIG);
-
   if (!Fit(0,beta,bstatus,nhitTOF,pTOFc,EdepTOF)) return 0;
-
-  _Q = sqrt ( _TruncatedMean * EdepBetaCorrection(_i,beta) / CHARGEFITFFKEY.TOFMeVperMip );
-
+  sortandfill();
+  _Q = sqrt ( _TruncatedMean * EdepBetaCorrection(getindex(),beta) / CHARGEFITFFKEY.TOFMeVperMip );
   if (refit) setstatus(AMSDBc::REFITTED);
-
   return 1;
 }
 
@@ -1419,13 +1282,11 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
   double TOFresmax, etofh[TOF2GC::SCLRS], x[TOF2GC::SCLRS];
   int TOFhitmax;
   int i,j;
-
 // init
   if (!refit){
     Init();
     UCOPY(etof,ETOF,TOF2GC::SCLRS*sizeof(etof[0])/4);//save initial edep-array
   }
-
 // find/remove furthest(incomp) hits(if requested)
   if(!refit){
     double rescut=CHARGEFITFFKEY.ResCut[0];//>=0/-1->use/not incomp.clus exclusion
@@ -1436,7 +1297,6 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
     TOFhitmax=hitmax;//incomp.clus.index/-1(if not requested)
     for(j=0; j<nhitTOF; j++) if(j==TOFhitmax) etof[j]=0;//delete incomp.hit(if requested)
   }
-
 // Mark good(used)/deleted hits:
   int failtof=0;
   int nhittof=0;
@@ -1460,80 +1320,57 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
     double lkhtof[MaxZTypes];
     lkhcalc(0,beta,nhitTOF,etofh,typetof,lkhtof);//"0" means TOF
     double probtof=probcalc(refit,nhittoftyp,lkhtof);
-    _Charge=ind2charge(_i);
     _ProbSum=0;
     for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
-    if (_debug)
-      cout << "AMSCharge::FitTOF : " << _Charge << endl;
     //for (int i=0; i<MaxZTypes; i++)
     //   cout << "i lkhd prob " << i << " " << _Lkhdz[i] << " " << _Probz[i] << endl;
   }
   else{
     cerr<<"AMSCharge::TofFit -E- no TOF cluster found"<<endl;
   }
-
   return !failtof;
 }
 
 
 double AMSChargeTOF::EdepBetaCorrection(int ichar, double beta) {
-
   if (ichar<0 || ichar>=MaxZTypes) return 0;
-
   double betamax = 0.95;//now depends on Z-index
   double betapow = TofElosPDF::TofEPDFs[ichar].getbpow();
   double betacor = ichar?pow(min(fabs(beta/betamax),1.),betapow):1;//corr to "mip"(=1 for ichar=0(electrons))
-
   return betacor;
 }
 
 
-#include "root.h"
+#ifdef _PGTRACK_
+/////////////////////////////////////////////////////////////////
+// FakeBetaHR support class
+////////////////////////////////////////////////////////////////
 
-void AMSCharge::_writeEl(){
-#ifdef __WRITEROOT__
-  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
+FakeBetaHR::FakeBetaHR() {
+  _pclusterh.clear();
+  _ptrtrack = 0;
 }
 
-void AMSCharge::_copyEl(){
-#ifdef __WRITEROOT__
-  if(PointerNotSet()) return;
-  ChargeR &ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->Charge(_vpos);
-  ptr.setBeta(_pbeta==NULL?-1:_pbeta->GetClonePointer());
-  ptr.setBetaH(_pbetah==0?-1:_pbetah->GetClonePointer());
-  for(  map <TString,AMSChargeSubD*> :: iterator i=_charges.begin();i!=_charges.end();++i){
-
-    ChargeSubDR &subPtr=ptr.Charges[i->first];
-
-    /*subPtr.setParent(i->second->_getParent());*/
-
-    subPtr.setParent(-1);
-
-    if((i->first).Contains(AMSChargeTOF::ClassID())){
-      AMSChargeTOF *obj=(AMSChargeTOF*)i->second;
-      subPtr.setParent(obj->_pbeta==NULL?-1:obj->_pbeta->GetClonePointer());
-      continue;
-    }
-
-    if((i->first).Contains(AMSChargeTracker::ClassID())){
-      AMSChargeTracker *obj=(AMSChargeTracker*)i->second;
-      subPtr.setParent(obj->_ptrtk==NULL?-1:obj->_ptrtk->GetClonePointer());
-      continue;
-    }
-
-    if((i->first).Contains(AMSChargeTRD::ClassID())){
-      AMSChargeTRD *obj=(AMSChargeTRD*)i->second;
-      subPtr.setParent(obj->_ptrd==NULL?-1:obj->_ptrd->GetClonePointer());
-      continue;
-    }
-
-    if((i->first).Contains(AMSChargeRich::ClassID())){
-      AMSChargeRich *obj=(AMSChargeRich*)i->second;
-      subPtr.setParent(obj->_pring==NULL?-1:obj->_pring->GetClonePointer());
-      continue;
-    }
-    
+FakeBetaHR::FakeBetaHR(AMSBetaH* ptr) : BetaHR(ptr) {
+  fTrTrack = -1;
+  for (int i=0; i<4; i++) 
+    if (ptr->_phith[i])
+      _pclusterh.push_back((TofClusterHR*) ptr->_phith[i]);
+  if (ptr->_ptrack) {
+    _ptrtrack = (TrTrackR*) ptr->_ptrack;
+    fTrTrack = 0; // to let the people believe
   }
-#endif
 }
+
+FakeBetaHR::~FakeBetaHR() { 
+  _pclusterh.clear();
+  _ptrtrack = 0;
+}
+
+TofClusterHR* FakeBetaHR::GetClusterHL(int ilay) {
+  for (int i=0; i<NTofClusterH(); i++) 
+    if (pTofClusterH(i)&&(pTofClusterH(i)->Layer==ilay)) 
+      return pTofClusterH(i);
+  return 0;
+}
+#endif 

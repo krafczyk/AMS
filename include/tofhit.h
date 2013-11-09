@@ -1,4 +1,4 @@
-//  $Id: tofhit.h,v 1.4 2012/09/13 13:54:42 qyan Exp $
+//  $Id: tofhit.h,v 1.5 2013/11/09 14:14:08 oliva Exp $
 
 //Author Qi Yan 2012/Jul/19 10:03 qyan@cern.ch
 #ifndef __AMSTOFHIT__
@@ -53,7 +53,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 class AMSBetaH: public AMSlink,public BetaHR {
 
-protected:
+public: 
    AMSTOFClusterH * _phith[4];
    AMSTrTrack *     _ptrack;//trdtrack delete not exis/should be careful
    AMSTRDTrack *    _ptrdtrack;

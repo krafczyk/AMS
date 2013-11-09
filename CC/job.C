@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.933 2013/11/09 08:36:44 mduranti Exp $
+// $Id: job.C,v 1.934 2013/11/09 14:14:07 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1682,8 +1682,8 @@ void AMSJob::_redaqdata(){
 void AMSJob::_reaxdata(){
   // Fit beta & charge
   //- AMSCharge Combination options
-  CHARGEFITFFKEY.RecEnable[0]=1;         //I 1  TOF Charge reconstruction switch (1:enabled 0:disabled) 
-  CHARGEFITFFKEY.RecEnable[1]=1111;      //I 2  Charge reconstruction switch (see datacards.doc)
+  CHARGEFITFFKEY.RecEnable[0]=111;       //I 1  TOF Charge reconstruction switch (see datacards.doc)
+  CHARGEFITFFKEY.RecEnable[1]=1111;      //I 2  Tracker Charge reconstruction switch (see datacards.doc)
   CHARGEFITFFKEY.RecEnable[2]=1;         //I 3  TRD Charge reconstruction switch (1:enabled, 0:disabled) 
   CHARGEFITFFKEY.RecEnable[3]=1;         //I 4  Rich Charge reconstruction switch (1:enabled, 0:disabled) 
   CHARGEFITFFKEY.SplitLevel[0]=0;        //I 5  TOF split level used in charge combination (only full TOF (0) implemeted)      
@@ -3770,6 +3770,12 @@ void AMSJob::_timeinitjob(){
                            server,1,TofPMDAlignPar::HeadLoadTDVPar));
 //---Charge Par
       TofCAlignPar *TofCAlign=TofCAlignPar::GetHead();
+//---PDF Par
+      TofPDFPar *TofPDF=TofPDFPar::GetHead();
+      TID.add (new AMSTimeID(AMSID(TofPDF->TDVName,isRealData()),begin,end,
+                           TofPDF->TDVSize,
+                           TofPDF->TDVBlock,
+                           server,1,TofPDFPar::HeadLoadTDVPar));
      }
 //    }
     //

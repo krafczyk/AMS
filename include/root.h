@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.579 2013/11/08 18:01:22 jorgec Exp $
+//  $Id: root.h,v 1.580 2013/11/09 14:14:08 oliva Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2822,41 +2822,40 @@ class BetaHR: public TrElem{
   /// \return index of TrTrackR object in collection or -1
   int iTrTrack()const {return fTrTrack;}
   /// access function to TrTrackR object used
- /// \return pointer to TrTrackR object or 0
-  TrTrackR * pTrTrack();
+  /// \return pointer to TrTrackR object or 0
+  virtual TrTrackR * pTrTrack();
   /// access function to TrdTrackR object Matched
   /// \return index of TrdTrackR object in collection or -1
   int iTrdTrack()const {return fTrdTrack;}
   /// access function to TrdTrackR object Matched
   /// \return pointer to TrdTrackR object or 0
-  TrdTrackR * pTrdTrack();
+  virtual TrdTrackR * pTrdTrack();
   /// access function to EcalShowerR object Matched
   /// \return index of EcalShowerR object in collection or -1
   int iEcalShower()const {return fEcalShower;}
   /// access function to EcalShowerR object Matched
   /// \return pointer to EcalShowerR object or 0
-  EcalShowerR * pEcalShower();
-   
+  virtual EcalShowerR * pEcalShower();
  
   /// access function to TofClusterHR objects used
   /// \return number of TofClusterHR used
-  int NTofClusterH()const {return fTofClusterH.size();}
+  virtual int NTofClusterH()const {return fTofClusterH.size();}
   /// access function to TofClusterHR objects used
   /// \return index of TofClusterHR object in collection or -1
   int iTofClusterH(unsigned int i){return i<fTofClusterH.size()?fTofClusterH[i]:-1;}
   /// access function to TofClusterHR objects used
   /// \return pointer to TofClusterHR object or 0
-  TofClusterHR * pTofClusterH(unsigned int i);
+  virtual TofClusterHR * pTofClusterH(unsigned int i);
 
   /// Get pointer to TOF BetaH iLayer(0-3) ClusterH /*return 0 if not exist*/
-  TofClusterHR * GetClusterHL (int ilay);
+  virtual TofClusterHR * GetClusterHL (int ilay);
   /// if TOF BetaH iLayer(0-3) ClusterH exists Return true
-  bool           TestExistHL  (int ilay){return (ilay>=0&&ilay<4)&&(fLayer[ilay]>=0);}
+  virtual bool           TestExistHL  (int ilay){return (ilay>=0&&ilay<4)&&(fLayer[ilay]>=0);}
 
   /// access function to TofChargeHR object
   int iTofChargeH();
   ///access function to TofChargeHR objects(this suggest to replace gTofCharge)
-  TofChargeHR * pTofChargeH(); 
+  virtual TofChargeHR * pTofChargeH(); 
   /// Set TofChargeH index
   void setChargeHI(int iChargeH) {fTofChargeH=iChargeH;}
 /**@}*/
