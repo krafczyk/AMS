@@ -1,4 +1,5 @@
 #!/bin/tcsh
+
 if ( "$1" != "" )  then
 setenv AMSWD $1
 endif
@@ -9,82 +10,22 @@ else
 unsetenv ADDBUILDNO
 endif
 
-setenv ARCH linuxicc
-echo "Testing $ARCH"
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
+foreach PG ("" "PG")
+    foreach COMP ("gcc" "icc")
 
+	source ./amsvar.${COMP}64
+	setenv ARCH linuxx8664$COMP
+	echo "Testing $PG$ARCH"
+#	echo "$AMSWD/exe/$ARCH/fastntrd64.exe g3v1g3$PG$ARCH.root 10 1 10"
+	$AMSWD/exe/$ARCH/fastntrd64.exe g3v1g3$PG$ARCH.root 10 1 10
+	set i=$?
+	if ( "$i" < 0 ) then
+	echo "$ARCH failed $i"
+	endif
 
-setenv ARCH PGlinuxicc
-echo "Testing $ARCH"
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
-
-
-setenv ARCH PGLinux.24
-echo "Testing $ARCH"
-
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
-
-
-
-
-setenv ARCH linux
-echo "Testing $ARCH"
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
-
-setenv ARCH Linux.24
-echo "Testing $ARCH"
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
-
-
-
-setenv ARCH PGlinux
-echo "Testing $ARCH"
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
-
-
-setenv ARCH linuxx8664icc
-echo "Testing $ARCH"
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
-
-
-
-setenv ARCH PGlinuxx8664icc
-echo "Testing $ARCH"
-$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
-set i=$?
-if ( "$i" < 0 ) then
-echo "$ARCH failed $i"
-endif
-
-unsetenv ARCH
+	unsetenv ARCH
+    end
+end
 
 
 
