@@ -1,4 +1,4 @@
-//  $Id: EcalH.C,v 1.6 2013/11/10 14:57:24 shaino Exp $
+//  $Id: EcalH.C,v 1.7 2013/11/10 15:34:40 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/11/10 14:57:24 $
+///$Date: 2013/11/10 15:34:40 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,7 +42,7 @@ float EcalHR::fZtop = -142.732;
 float EcalHR::fZbot = -159.382;
 float EcalHR::fCell =    0.9;
 
-float EcalHR::fEmin = 10;
+float EcalHR::fEmin = 1;
 float EcalHR::fEthd[3] = { 50, 100, 300 };
 
 EcalHR::EcalHR()
@@ -254,7 +254,7 @@ int EcalHR::Process(void)
 #endif
 
   for (int s = 0; s < 3; s++) {
-    if (_ecen[s] < fEmin) continue;
+    if (_ecen[s] < fEmin*1e3) continue;
 
     float par[3], err[3];
     if (FitL(s, par, err) == 0 && EcalH::func) {
