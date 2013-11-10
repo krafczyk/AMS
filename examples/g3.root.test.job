@@ -10,6 +10,10 @@ if [ -z "$AMSWD" ] ; then
 AMSWD=../
 fi
 
+echo
+echo "******* Running with $AMSWD/exe/$ARCH/gbatch$PG.exe *******"
+echo
+
 $AMSWD/exe/$ARCH/gbatch$PG.exe <<!
 LIST
 KINE  1

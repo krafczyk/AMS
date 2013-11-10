@@ -6,7 +6,7 @@ setenv CVSROOT $Offline/CVS
 #setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
 setenv CVS_RSH ssh
 setenv ProductionRunsDir /s0dat0/Data/Deframing
-setenv AMSDataDir $Offline/AMSDataDirRW
+setenv AMSDataDir $Offline/AMSDataDir
 setenv AMSDataDirRW $Offline/AMSDataDirRW
 setenv EDITOR  emacs
 setenv CVSEDITOR  emacs
