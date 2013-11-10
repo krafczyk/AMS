@@ -1,4 +1,4 @@
-//  $Id: EcalH.h,v 1.3 2013/11/08 18:31:14 shaino Exp $
+//  $Id: EcalH.h,v 1.4 2013/11/10 14:57:21 shaino Exp $
 #ifndef __EcalHR__
 #define __EcalHR__
 
@@ -9,10 +9,11 @@
 ///
 ///\date  2013/11/06 SH  Introduction of the class
 ///\date  2013/11/08 SH  Methods implemented
+///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/11/08 18:31:14 $
+///$Date: 2013/11/10 14:57:21 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -44,8 +45,11 @@ protected:
   int      _hidx [NL][5];   ///< Index  of EcalHits for S5 cells
   int      _apex [3];       ///< Apex for different criteria
   float    _ecen [3];       ///< S1,3,5 energy
+  float    _ecap [3];       ///< S1,3,5 energy (after apex[1])
   float    _elast[3];       ///< S1,3,5 energy in the last two layers (L16,17)
-  float    _lmax [3];       ///< Shower max (in layer)   for S1,3,5 energy
+  float    _lapex[3];       ///< Shower apex (in layer)  for S1,3,5 energy
+  float    _lmax [3];       ///< Shower max  (in layer)  for S1,3,5 energy
+  float    _ltop [3];       ///< Shower max energy (MeV) for S1,3,5 energy
   float    _lsum [3];       ///< Sum of longitudinal fit for S1,3,5 energy
   float    _etot;           ///< Total Edep sum
 
@@ -92,8 +96,11 @@ public:
 				     0 <= j && j < 5) ? _hidx [i][j] : -1; }
   int   Apex (int i) const { return (0 <= i && i < 3) ? _apex [i] : -1; }
   float Ecen (int i) const { return (0 <= i && i < 3) ? _ecen [i] : -1; }
+  float Ecap (int i) const { return (0 <= i && i < 3) ? _ecap [i] : -1; }
   float Elast(int i) const { return (0 <= i && i < 3) ? _elast[i] : -1; }
+  float Lapex(int i) const { return (0 <= i && i < 3) ? _lapex[i] : -1; }
   float Lmax (int i) const { return (0 <= i && i < 3) ? _lmax [i] : -1; }
+  float Ltop (int i) const { return (0 <= i && i < 3) ? _ltop [i] : -1; }
   float Lsum (int i) const { return (0 <= i && i < 3) ? _lsum [i] : -1; }
   float Etot (void)  const { return _etot; }
   float Ecell(int i,
@@ -186,7 +193,7 @@ public:
   const char   *Info (int iref = 0);
   std::ostream &putout(std::ostream &ostr = std::cout);
 
-  ClassDef(EcalHR, 1)
+  ClassDef(EcalHR, 2)
 };
 
 #ifndef __ROOTSHAREDLIBRARY__

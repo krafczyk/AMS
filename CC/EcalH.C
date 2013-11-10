@@ -1,4 +1,4 @@
-//  $Id: EcalH.C,v 1.5 2013/11/08 18:31:16 shaino Exp $
+//  $Id: EcalH.C,v 1.6 2013/11/10 14:57:24 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -7,10 +7,11 @@
 ///
 ///\date  2013/11/06 SH  Introduction of the class
 ///\date  2013/11/08 SH  Methods implemented
+///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/11/08 18:31:16 $
+///$Date: 2013/11/10 14:57:24 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -75,7 +76,8 @@ void EcalHR::Clear(int mode)
   _nhit = 0;
   for (int i = 0; i < 5*NL; i++) _hidx[i/5][i%5] = -1;
   for (int i = 0; i < 3; i++)
-    _apex[i] = _ecen[i] = _elast[i] = _lmax[i] = _lsum[i] = 0;
+    _apex [i] = _ecen[i] = _elast[i] = 
+    _lapex[i] = _lmax[i] = _ltop [i] = _lsum[i] = 0;
   _etot = 0;
 }
 
@@ -178,6 +180,9 @@ int EcalHR::Process(void)
   }
 #endif
 
+  _etot = 0;
+  for (int i = 0; i < _nhit; i++) _etot += dE(i);
+
   _apex[0] = _apex[1] = _apex[2] = -1;
 
   for (int i = 0; i < NL; i++) {
@@ -187,8 +192,9 @@ int EcalHR::Process(void)
       if (Plane(j) == i && dE(j) > emax) { emax = dE(j); cmax = Cell(j); }
 
     bool ll = (i == NL-2 || i == NL-1);
-
+    bool ap = (_apex[1] >= 0);
              _ecen[0] += emax;
+    if (ap)  _ecap[0] += emax;
     if (ll) _elast[0] += emax;
 
     float es3 = 0;
@@ -200,9 +206,11 @@ int EcalHR::Process(void)
 	if (-1 <= jj && jj <= 1) {
 	            es3     += dE(j);
 	           _ecen[1] += dE(j);
+	  if (ap)  _ecap[1] += emax;
 	  if (ll) _elast[1] += dE(j);
 	}
 	           _ecen[2] += dE(j);
+	  if (ap)  _ecap[2] += emax;
 	  if (ll) _elast[2] += dE(j);
       }
     }
@@ -251,8 +259,10 @@ int EcalHR::Process(void)
     float par[3], err[3];
     if (FitL(s, par, err) == 0 && EcalH::func) {
       EcalH::func->SetParameters(par[0], par[1], par[2]);
-      _lmax[s] = par[1]+par[2];
-      _lsum[s] = EcalH::func->Integral(par[1], NL*5);
+      _lapex[s] = par[1];
+      _lmax [s] = par[1]+par[2];
+      _ltop [s] = par[0];
+      _lsum [s] = EcalH::func->Integral(par[1], NL*5);
     }
   }
 
@@ -277,6 +287,8 @@ int EcalHR::FitL(int s, float *par, float *err)
   if (!EcalH::func) EcalH::func = Lfun(1, 0, 1);
 
 #ifdef __ROOTSHAREDLIBRARY__
+ int DEBUG = 0;
+ if (DEBUG) {
   static TH1F *htmp = 0;
   if (!htmp) htmp = new TH1F("htmp", "Lfit", NL, -0.5, NL-0.5);
 
@@ -293,6 +305,7 @@ int EcalHR::FitL(int s, float *par, float *err)
   EcalH::func->SetParLimits(2,   1,  30);
 
   htmp->Fit(EcalH::func, "q0");
+ }
 
   float pref[3], eref[3];
   for (int i = 0; i < 3; i++) {
@@ -319,7 +332,7 @@ int EcalHR::FitL(int s, float *par, float *err)
   int ierr = 0;
   mnt->mnparm(0, "par0", hmax,   hmax*0.1,   0, 1e6, ierr);
   mnt->mnparm(1, "par1", xmax-10,     0.1, -10,  15, ierr);
-  mnt->mnparm(2, "par2", 10,          0.1,   1,  30, ierr);
+  mnt->mnparm(2, "par2", 10,          0.1,   1,  15, ierr);
 
   int ret = mnt->Migrad();
   if (ret != 0 && ret != 4) return -1;
@@ -331,8 +344,10 @@ int EcalHR::FitL(int s, float *par, float *err)
     if (err) err[i] = e;
 
 #ifdef __ROOTSHAREDLIBRARY__
-    cout << Form("AHO par[%d] : %7.2f +/- %7.2f  %7.2f +/- %7.2f",
+   if (DEBUG) {
+    cout << Form("Cmp par[%d] : %7.2f +/- %7.2f  %7.2f +/- %7.2f",
 		 i, p, e, pref[i], eref[i]) << endl;
+   }
 #endif
   }
 
