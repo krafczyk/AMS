@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.56 2013/11/08 09:47:10 mdelgado Exp $
+//  $Id: richgeom.C,v 1.57 2013/11/10 19:39:28 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -82,8 +82,11 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
 							3,
 							coo,
 							nrm,
-							//							"ONLY",
+#ifndef __G4AMS__ 
+							"ONLY",
+#else
 							"BOOL",
+#endif
 							0,
 							copia,
 							rel));
@@ -881,7 +884,11 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 					    3,
 					    coo,
 					    nrm,
+#ifdef __G4AMS__
 					    "BOOL",
+#else
+					    "ONLY",
+#endif
 					    0,
 					    copia1++,
 
@@ -1061,6 +1068,11 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				      rel));
   
 
+#ifndef __G4AMS__
+  // FOR G4 THIS HAS PROBLEMS, AND BOOLEAN GEOMETRY STUCKS
+  // THE VISUALIZER. SINCE IT IS A MINO DETAIL, WE SIMPLY
+  // DISCARD IT
+
   // THE MANYS BELOW ARE REQUIRED TO OBTAIN A "OR" BOOLEAN OPERATION
   // Naf tiles separators
   par[0]=full_naf_block_length/2;
@@ -1169,7 +1181,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				3,
 				rel));
 
-
+#endif
 
   // Support structure: simple version
   coo[0]=0;
