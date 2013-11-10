@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.275 2013/11/06 20:22:58 shaino Exp $
+#  $Id: Makefile,v 1.276 2013/11/10 07:41:52 mduranti Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -1369,10 +1369,10 @@ clean :
 	rm -f $(NTLD) $(SHLD)
 	rm -f $(DPMBIN)*.o
 cleanALL : 
-	rm -rf $(AMSWD)/bin 
-	rm -rf $(AMSWD)/lib
-	rm -rf $(AMSWD)/exe 
-	rm -rf $(AMSWD)/$(MARCH)
+	rm -rf `find $(AMSWD)/bin -type f | grep -v 'CVS'`
+	rm -rf `find $(AMSWD)/lib -type f | grep -v 'CVS'`
+	rm -rf `find $(AMSWD)/exe -type f | grep -v 'CVS'`
+	#rm -rf $(AMSWD)/$(MARCH)
 	rm -f ../include/root_methods*.h
 
 cleanlibs:
