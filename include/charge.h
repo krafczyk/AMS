@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.31 2013/11/11 13:57:12 oliva Exp $
+//  $Id: charge.h,v 1.32 2013/11/11 14:29:57 choutko Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -466,7 +466,7 @@ class AMSCharge : public AMSChargeBase, public AMSlink {
   int BuildFragmentation();
 
   // calculate overall charge given a detector list
-  AMSChargeBase getvotedcharge(vector<TString> detectors);
+  AMSChargeBase getvotedcharge(const vector<TString> &detectors);
   // calculate overall charge
   int getvotedcharge(int& index); 
   // evaluate probability given Z
