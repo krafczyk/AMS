@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.100 2013/11/11 13:57:13 oliva Exp $
+//  $Id: charge.C,v 1.101 2013/11/11 14:29:49 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -578,7 +578,7 @@ int AMSCharge::BuildCombine() {
 }
 
 
-AMSChargeBase AMSCharge::getvotedcharge(vector<TString> detectors) {
+AMSChargeBase AMSCharge::getvotedcharge(const vector<TString> & detectors) {
 
   AMSChargeBase result;
   result.clear();
