@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.99 2013/11/11 08:30:38 qyan Exp $
+//  $Id: charge.C,v 1.100 2013/11/11 13:57:13 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -402,7 +402,6 @@ void AMSChargeSubD::print() {
 
 
 void AMSCharge::print() {
-
   printf("AMSCharge::print-V - Start ------------------------------------------------------ \n");
   printf("AMSCharge::print-V - Beta? %1d    BetaH? %1d\n",(_pbeta!=0),(_pbetah!=0));
   if (isempty()) printf("AMSCharge::print-V     %25s empty.\n","AMSCharge");
@@ -434,7 +433,6 @@ int AMSCharge::build(int refit){
 
 
 int AMSCharge::BuildTOF() {
-
   // checks
   if (_pbeta == NULL) return 0;
   // whole TOF
@@ -571,19 +569,10 @@ int AMSCharge::BuildCombine() {
   clear();
   int indmx = -1; 
   int charge = getvotedcharge(indmx);
-  int static iprint=0; //FIXME should be done via datacards 
-  const int mprint=100;
   if (indmx<0 ) {
-    if(iprint++<mprint){
     cout << "AMSCharge::BuildCombine-W-NoValidAMSChargeFound " << endl;
-    print();
-    }
-    return 0;
-  }
-  if (_ChargeI[0]==65535) {
-    cout << "AMSCharge::BuildCombine-W-ChargeI overflow " << endl;
     // print();
-    return 0;     
+    return 0;
   }
   return 1;
 }
@@ -611,29 +600,39 @@ AMSChargeBase AMSCharge::getvotedcharge(vector<TString> detectors) {
   }
   int size = maxindex - minindex + 1;
   if ( (minindex<0)&&(maxindex<0) ) return result;
-  
+
   // calculate global likelihood 
+  vector<int> Nused;
+  Nused.assign(size,0);
   result._Indxz.assign(size,-1);
   result._Lkhdz.assign(size,0);
   result._Probz.assign(size,1);
   for (int index=minindex; index<=maxindex; index++) {
-    int Nused = 0;
     for (i=_charges.begin();i!=_charges.end();++i) {
       AMSChargeSubD *chargeSubD = i->second;
       if (find(detectors.begin(),detectors.end(),chargeSubD->getID())==detectors.end()) continue;
       if ( (!chargeSubD->isvalid(index))||(chargeSubD->getprobindex(chargeSubD->getindex())==0) ) continue;
-      Nused++;
+      Nused[index-minindex]++;
       result._Indxz[index-minindex] = index;
       result._Lkhdz[index-minindex] += chargeSubD->getlkhdindex(index);
       result._Probz[index-minindex] *= chargeSubD->getprobindex(index)/chargeSubD->getprobindex(chargeSubD->getindex());
     }
-    if (Nused>0) result._Lkhdz[index-minindex] /= Nused;
+    if (Nused[index-minindex]>0) result._Lkhdz[index-minindex] /= Nused[index-minindex];
     else {
       // if no detector reset to bad values
       result._Lkhdz[index-minindex] = HUGE_VAL;
       result._Probz[index-minindex] = 0;
     }
   }
+
+  // use only likelihoods with maximum number of points
+  int npoints = *max_element(Nused.begin(),Nused.end());
+  for (int i=(int)Nused.size()-1; i>=0; i--) {
+    if (Nused[i]==npoints) continue;
+    result._Indxz.erase(result._Indxz.begin()+i);
+    result._Lkhdz.erase(result._Lkhdz.begin()+i);
+    result._Probz.erase(result._Probz.begin()+i);
+  } 
 
   // sort and fill ROOT vectors 
   result.sortandfill(); // CHARGEFITFFKEY.UseLikelihood);
@@ -735,7 +734,6 @@ AMSCharge::AMSCharge(AMSBeta *pbeta) {
   BuildCombine();
   BuildUpper();
   BuildFragmentation();
-
   // print();
 }
 
@@ -899,13 +897,15 @@ int AMSChargeRich::Fill(int refit) {
   for (int i=0; i<maxindex; i++){
     double z=i+1;
     double zz=z*z;
-    _Indxz.push_back(z);
     double LogLike = exp*zz-use*log(exp*zz);
+    if (LogLike<0) continue;  // protection
+    _Indxz.push_back(z);
     _Lkhdz.push_back(LogLike);
     if (LogLike<minLogLike) minLogLike = LogLike;
   }
-  for (int i=0; i<maxindex; i++)  
-    _Probz.push_back(PROB(2.*max(_Lkhdz[i]-minLogLike,0.),1)); // (float)(_Lkhdz[i]-minLogLike),1));
+  if ((int)_Lkhdz.size()==0) return 0; 
+  for (int i=0; i<(int)_Lkhdz.size(); i++)  
+    _Probz.push_back(PROB(2.*max(_Lkhdz[i]-minLogLike,0.),1)); // (float)(_Lkhdz[i]-minLogLike),1)); // protection
   addelectron();
   sortandfill();
   if (refit) setstatus(AMSDBc::REFITTED);
@@ -915,62 +915,60 @@ int AMSChargeRich::Fill(int refit) {
 
 #ifdef _PGTRACK_
 int AMSChargeTracker::Fill(int refit) {
-
+  _isPGTRACK = 1;
   // check
   if (_ID.CompareTo(AMSChargeTracker::ClassID())      &&
       _ID.CompareTo(AMSChargeTrackerInner::ClassID()) && 
       _ID.CompareTo(AMSChargeTrackerLower::ClassID()) && 
       _ID.CompareTo(AMSChargeTrackerUpper::ClassID()) 
-     )
-    return 0;
-
+     ) return 0;
   // beta
   float beta = _pbeta->getbeta();
   if (_pbetah) beta = _pbetah->GetBeta(); 
-
   // for results
   vector<like_t> likelihood;
-
+  vector<like_t> likelielec;
   // AMSChargeTrackerInner
   if (_ID.CompareTo(AMSChargeTrackerInner::ClassID())==0) {
     _Q = _ptrtk->GetInnerQ(beta);
     _TruncatedMean = _ptrtk->GetInnerQ(1);
     _ptrtk->GetInnerZ(likelihood,beta);
+    _ptrtk->GetInnerZ(likelielec,1);
   }
-
   // AMSChargeTrackerUpper
   else if (_ID.CompareTo(AMSChargeTrackerUpper::ClassID())==0) {
     _Q = _ptrtk->GetLayerJQ(1,beta);
     _TruncatedMean = _ptrtk->GetLayerJQ(1,1);
-    _ptrtk->GetLayerJZ(likelihood,1,beta); 
+    _ptrtk->GetLayerJZ(likelihood,1,beta);
+    _ptrtk->GetLayerJZ(likelielec,1,1);
   }
-
   // AMSChargeTrackerLower
   else if (_ID.CompareTo(AMSChargeTrackerLower::ClassID())==0) {
     _Q = _ptrtk->GetLayerJQ(9,beta);
     _TruncatedMean = _ptrtk->GetLayerJQ(9,1);
     _ptrtk->GetLayerJZ(likelihood,9,beta);
+    _ptrtk->GetLayerJZ(likelielec,9,1);
   }
-
   // AMSChargeTracker
   else if (_ID.CompareTo(AMSChargeTracker::ClassID())==0) {
-    // _ProbAllTracker = 0;
     _Q = _ptrtk->GetQ(beta);
     _TruncatedMean = _ptrtk->GetQ(1);
     _ptrtk->GetZ(likelihood,beta);
+    _ptrtk->GetZ(likelielec,1);
   }
-
   // fill base vectors 
+  if ((int)likelielec.size()>0) {
+    _Indxz.push_back(0);
+    _Lkhdz.push_back(-likelielec[0].GetNormLogLike()); // convention
+    _Probz.push_back(likelielec[0].GetNormProb());
+  }
   for (int i=0; i<(int)likelihood.size(); i++) {
     _Indxz.push_back(likelihood[i].Z);
     _Lkhdz.push_back(-likelihood[i].GetNormLogLike()); // convention
     _Probz.push_back(likelihood[i].GetNormProb());
   }
-
   // sort and fill root vectors
-  addelectron();
   sortandfill();
-
   if (refit) setstatus(AMSDBc::REFITTED);
   return 1;
 }
@@ -980,6 +978,7 @@ int AMSChargeTracker::Fill(int refit) {
 
 
 int AMSChargeTracker::Fill(int refit) {
+  _isPGTRACK = 0;
   // init
   AMSTrTrack *ptrack = _ptrtk;
   AMSBeta    *pbeta  = _pbeta;
@@ -1072,7 +1071,6 @@ int AMSChargeTracker::Fit(int trkfit, double beta, int bstatus, int nhitTracker,
 // init
   if(!trkfit){
     Init();
-    _ProbAllTracker=0;
     UCOPY(etrk[0],ETRK[0],(trconst::TrkTypes-1)*trconst::maxlay*sizeof(etrk[0][0])/4);
   }
   if (nhitTracker<=0) return 0;
@@ -1150,8 +1148,8 @@ int AMSChargeTracker::Fit(int trkfit, double beta, int bstatus, int nhitTracker,
       failtrk=!Fit(trkfit,beta,bstatus,nhitTracker,pTrackerc,etrk);
     }
     else if(trkfit>0) setstatus(AMSDBc::REFITTED);
-    else _ProbAllTracker=probtrk;
-// get tracker probability using all the hits
+    // ele _ProbAllTracker=probtrk;
+    // get tracker probability using all the hits
     if(trkfit!=-1) failtrk=!Fit(-1,beta,bstatus,nhitTracker,pTrackerc,ETRK);
     //cout << "AMSCharge::FitTracker : " << _Charge << endl;
     //for (i=0; i<MaxZTypes; i++)
@@ -1183,10 +1181,10 @@ int AMSChargeTOF::Fill(int refit) {
 
 #ifdef _PGTRACK_
   if (_pbetah) {
+    _isBetaH = 1;
     FakeBetaHR fakebetah(_pbetah); 
     TofChargeHR charbetah(&fakebetah);
-//    int pattern = -2; // -2 drop max-q bad pathlenght, -10 bad pathlenght
-    int pattern = -10;// -10 is better, otherwise pdf would be biased
+    int pattern = -10; // -10 bad pathlenght 
     if      (_ID.CompareTo(AMSChargeTOFUpper::ClassID())==0) pattern = 1100;
     else if (_ID.CompareTo(AMSChargeTOFLower::ClassID())==0) pattern = 11;
     for (int i=0; i<charbetah.GetNZ(pattern); i++) {
@@ -1198,16 +1196,16 @@ int AMSChargeTOF::Fill(int refit) {
       double prob = likelihood->Prob;
       if ((prob<0)||isnan(prob)||isnan(loglike)) continue;
       _Indxz.push_back(charge);
-      _Lkhdz.push_back(loglike);  // 
+      _Lkhdz.push_back(loglike);   
       _Probz.push_back(prob);
     }
     int npoints = 0;
     float rms = 0;
-    if(pattern<0)pattern=-2;//-1 drop max-dq  bad pathlength
+    if (pattern==-10) pattern=-2; // drop max-dq and bad pathlength
     _Q = charbetah.GetQ(npoints,rms,pattern);
     _TruncatedMean = fakebetah.GetQ(npoints,rms,2,TofClusterHR::DefaultQOpt,pattern,1); // no beta correction
     // sort and fill root vectors
-    addelectron();
+    addelectron(); // replica of charge 1
     sortandfill();
     if (refit) setstatus(AMSDBc::REFITTED);
     return 1; 
@@ -1215,12 +1213,11 @@ int AMSChargeTOF::Fill(int refit) {
 #endif 
 
   // if no available betah charge go to old algo. based on beta
-
-  // no upper/lower for old algo. 
-  if ( (_ID.CompareTo(AMSChargeTOFUpper::ClassID()==0))||
-       (_ID.CompareTo(AMSChargeTOFLower::ClassID()==0)) ) return 0;
-
-  // old algo.
+  _isBetaH = 0;
+  int pattern = 0;
+  int minhits = 2;
+  if      (_ID.CompareTo(AMSChargeTOFUpper::ClassID())==0) { pattern = 1; minhits = 1; } 
+  else if (_ID.CompareTo(AMSChargeTOFLower::ClassID())==0) { pattern = 2; minhits = 1; }
   AMSBeta *pbeta = _pbeta;
   double etof[TOF2GC::SCLRS];
   double EdepTOF[TOF2GC::SCLRS];
@@ -1241,6 +1238,8 @@ int AMSChargeTOF::Fill(int refit) {
       EdepTOF[i]=0;
       AMSTOFCluster *pcluster=pbeta->getpcluster(i);
       if(pcluster){
+        if      ( (pattern==1)&&(pcluster->getntof()>=3) ) continue;
+        else if ( (pattern==2)&&(pcluster->getntof()<=2) ) continue;
 	double edep=pcluster->getedep();
 	if(edep>0) etof[nallTOF++]=pcluster->getedep();//store/counts all raw hits
 	if(pcluster->getnmemb()<=CHARGEFITFFKEY.NmembMax || checkstatus(AMSDBc::WEAK)){
@@ -1256,11 +1255,11 @@ int AMSChargeTOF::Fill(int refit) {
 	}
       }
     }//---> endof hits loop
-    if(nhitTOF<2){//too little, try to add "nmemb>NmembMax"(weak) hits
+    if(nhitTOF<minhits){//too little, try to add "nmemb>NmembMax"(weak) hits
       if(!checkstatus(AMSDBc::WEAK) && nallTOF>0 && CHARGEFITFFKEY.NmembMax<2)
 	setstatus(AMSDBc::WEAK); // (try to use clust with nmemb>NmembMax(if<2), by TOF-clust definition nmemb<=2 !!!)
       else{
-	cerr<<"AMSCharge::build:TOF -E- Low clust.mult. and No weak clusters to add"<<endl;
+	// cerr<<"AMSCharge::build:TOF -E- Low clust.mult. and No weak clusters to add"<<endl; // it happens!
 	break;
       }
     }
@@ -1333,9 +1332,9 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
     //for (int i=0; i<MaxZTypes; i++)
     //   cout << "i lkhd prob " << i << " " << _Lkhdz[i] << " " << _Probz[i] << endl;
   }
-  else{
-    cerr<<"AMSCharge::TofFit -E- no TOF cluster found"<<endl;
-  }
+  // else{
+  //   cerr<<"AMSCharge::TofFit -E- no TOF cluster found"<<endl; // it happens
+  // }
   return !failtof;
 }
 

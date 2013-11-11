@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.30 2013/11/09 14:14:08 oliva Exp $
+//  $Id: charge.h,v 1.31 2013/11/11 13:57:12 oliva Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -173,6 +173,8 @@ class AMSChargeTOF : public AMSChargeSubD {
 
   // truncated mean  
   float _TruncatedMean;  
+  // betaH is used to calculate charge
+  int _isBetaH;
   // parameter for old fitting 
   static integer _chargeTOF[MaxZTypes];
 
@@ -188,6 +190,8 @@ class AMSChargeTOF : public AMSChargeSubD {
   int ComputeCharge(int refit = false);
   // truncated mean
   float getTruncatedMean() {return _TruncatedMean;}
+  // code used to produce charge
+  int getversion() { return _isBetaH; }
   // filler
   int Fill(int refit);     
   // old charge computation
@@ -197,7 +201,10 @@ class AMSChargeTOF : public AMSChargeSubD {
   // parent
   int _getParent(){return _pbeta==NULL?-1:_pbeta->GetClonePointer();}
   // attributes
-  void _addAttr(map<TString,float> &attr){attr["TruncatedMean"]=getTruncatedMean();}
+  void _addAttr(map<TString,float> &attr){ 
+    attr["TruncatedMean"] = getTruncatedMean();
+    attr["isBetaH"] = getversion();
+  }
 };
 
 
@@ -238,11 +245,11 @@ class AMSChargeTracker : public AMSChargeSubD {
   AMSTrTrack *_ptrtk;
   // truncated mean
   float _TruncatedMean;
-  // global probability (to be removed (?))
-  float _ProbAllTracker;
   // parameters for old fitting 
   static integer _chargeTracker[MaxZTypes];
- 
+  // v5 is used to calculate charge
+  int _isPGTRACK;
+
  public: 
 
   // name 
@@ -255,8 +262,8 @@ class AMSChargeTracker : public AMSChargeSubD {
   int ComputeCharge(int refit=false);
   // truncated mean (no beta correction)
   float getTruncatedMean() { return _TruncatedMean; }
-  // probability of all tracker (to be removed (?))
-  float getProbAllTracker() { return _ProbAllTracker; }
+  // code used to produce charge
+  int getversion() { return _isPGTRACK; } 
   // fill
   int Fill(int refit);
 #ifndef _PGTRACK_
@@ -266,9 +273,12 @@ class AMSChargeTracker : public AMSChargeSubD {
   double EdepBetaCorrection(int ichar, double beta);
 #endif
   // parent
-  int _getParent(){ return _ptrtk==NULL?-1: _ptrtk->GetClonePointer(); }  
+  int _getParent(){ return _ptrtk==NULL?-1: _ptrtk->GetClonePointer(); }
   // attribute map
-  void _addAttr(map<TString,float> &attr){attr["TruncatedMean"]=getTruncatedMean();attr["ProbAllTracker"]=getProbAllTracker();}
+  void _addAttr(map<TString,float> &attr) {
+    attr["TruncatedMean"] = getTruncatedMean();
+    attr["isPGTRACK"] = getversion();
+  }
 };
 
 
