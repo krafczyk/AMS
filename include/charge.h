@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.32 2013/11/11 14:29:57 choutko Exp $
+//  $Id: charge.h,v 1.33 2013/11/11 15:56:40 oliva Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -158,8 +158,6 @@ class AMSChargeSubD : public AMSChargeBase, public AMSlink {
   // write element
   void _writeEl(){}
 
-  // parent
-  virtual int  _getParent() { return -1; }
   // additional attribute map 
   virtual void _addAttr(map<TString,float> &attr) {} 
 
@@ -198,8 +196,6 @@ class AMSChargeTOF : public AMSChargeSubD {
   int Fit(int refit, double beta, int bstatus, int nhit, AMSTOFCluster *pTOFc[], double etof[TOF2GC::SCLRS]);
   // energy deposition correction
   double EdepBetaCorrection(int ichar, double beta);
-  // parent
-  int _getParent(){return _pbeta==NULL?-1:_pbeta->GetClonePointer();}
   // attributes
   void _addAttr(map<TString,float> &attr){ 
     attr["TruncatedMean"] = getTruncatedMean();
@@ -272,8 +268,6 @@ class AMSChargeTracker : public AMSChargeSubD {
   // beta correction
   double EdepBetaCorrection(int ichar, double beta);
 #endif
-  // parent
-  int _getParent(){ return _ptrtk==NULL?-1: _ptrtk->GetClonePointer(); }
   // attribute map
   void _addAttr(map<TString,float> &attr) {
     attr["TruncatedMean"] = getTruncatedMean();
@@ -491,7 +485,6 @@ class AMSCharge : public AMSChargeBase, public AMSlink {
 
 #ifdef _PGTRACK_
 // A fake BetaHR class that replaces methods based on indexes with methods based on pointers.
-// This is a temporary patch (in the hypothesis it will work).
 class FakeBetaHR : public BetaHR {
  public:
   /// pointers to clusters

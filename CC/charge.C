@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.101 2013/11/11 14:29:49 choutko Exp $
+//  $Id: charge.C,v 1.102 2013/11/11 15:56:40 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -751,18 +751,17 @@ void AMSCharge::_copyEl(){
   if(PointerNotSet()) return;
   ChargeR &ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->Charge(_vpos);
   ptr.setBeta(_pbeta==NULL?-1:_pbeta->GetClonePointer());
-  ptr.setBetaH(_pbetah==0?-1:_pbetah->GetClonePointer());
+  ptr.setBetaH(_pbetah==NULL?-1:_pbetah->GetClonePointer());
   for(  map <TString,AMSChargeSubD*> :: iterator i=_charges.begin();i!=_charges.end();++i){
 
     ChargeSubDR &subPtr=ptr.Charges[i->first];
-
-    /*subPtr.setParent(i->second->_getParent());*/
 
     subPtr.setParent(-1);
 
     if((i->first).Contains(AMSChargeTOF::ClassID())){
       AMSChargeTOF *obj=(AMSChargeTOF*)i->second;
-      subPtr.setParent(obj->_pbeta==NULL?-1:obj->_pbeta->GetClonePointer());
+      if (obj->_pbetah!=NULL) subPtr.setParent(obj->_pbetah->GetClonePointer()); 
+      else                    subPtr.setParent(obj->_pbeta==NULL?-1:obj->_pbeta->GetClonePointer());
       continue;
     }
 
