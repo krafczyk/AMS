@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.96 2013/11/11 07:24:16 choutko Exp $
+//  $Id: charge.C,v 1.97 2013/11/11 07:56:02 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -573,9 +573,11 @@ int AMSCharge::BuildCombine() {
   int charge = getvotedcharge(indmx);
   int static iprint=0; //FIXME should be done via datacards 
   const int mprint=100;
-  if (indmx<0 && iprint++<mprint) {
+  if (indmx<0 ) {
+    if(iprint++>mprint){
     cout << "AMSCharge::BuildCombine-W-NoValidAMSChargeFound " << endl;
     print();
+    }
     return 0;
   }
   if (_ChargeI[0]==65535) {
