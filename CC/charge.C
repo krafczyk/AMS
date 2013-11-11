@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.98 2013/11/11 07:58:43 choutko Exp $
+//  $Id: charge.C,v 1.99 2013/11/11 08:30:38 qyan Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -1185,7 +1185,8 @@ int AMSChargeTOF::Fill(int refit) {
   if (_pbetah) {
     FakeBetaHR fakebetah(_pbetah); 
     TofChargeHR charbetah(&fakebetah);
-    int pattern = -2; // -2 drop max-q bad pathlenght, -10 bad pathlenght
+//    int pattern = -2; // -2 drop max-q bad pathlenght, -10 bad pathlenght
+    int pattern = -10;// -10 is better, otherwise pdf would be biased
     if      (_ID.CompareTo(AMSChargeTOFUpper::ClassID())==0) pattern = 1100;
     else if (_ID.CompareTo(AMSChargeTOFLower::ClassID())==0) pattern = 11;
     for (int i=0; i<charbetah.GetNZ(pattern); i++) {
@@ -1197,11 +1198,12 @@ int AMSChargeTOF::Fill(int refit) {
       double prob = likelihood->Prob;
       if ((prob<0)||isnan(prob)||isnan(loglike)) continue;
       _Indxz.push_back(charge);
-      _Lkhdz.push_back(loglike);   
+      _Lkhdz.push_back(loglike);  // 
       _Probz.push_back(prob);
     }
     int npoints = 0;
     float rms = 0;
+    if(pattern<0)pattern=-2;//-1 drop max-dq  bad pathlength
     _Q = charbetah.GetQ(npoints,rms,pattern);
     _TruncatedMean = fakebetah.GetQ(npoints,rms,2,TofClusterHR::DefaultQOpt,pattern,1); // no beta correction
     // sort and fill root vectors
