@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.95 2013/11/09 14:14:07 oliva Exp $
+//  $Id: charge.C,v 1.96 2013/11/11 07:24:16 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -387,6 +387,7 @@ int AMSChargeSubD::sortlkhd() {
 
 
 void AMSChargeSubD::print() {
+
   if (isempty()) printf("AMSChargeSubD::print-V %25s empty.\n",getID().Data());
   for (int i=0; i<getn(); i++) {
     printf("AMSChargeSubD::print-V %25s i:%02d iz:%2d -LL:%10.5f P:%10.5g\n",
@@ -401,6 +402,7 @@ void AMSChargeSubD::print() {
 
 
 void AMSCharge::print() {
+
   printf("AMSCharge::print-V - Start ------------------------------------------------------ \n");
   printf("AMSCharge::print-V - Beta? %1d    BetaH? %1d\n",(_pbeta!=0),(_pbetah!=0));
   if (isempty()) printf("AMSCharge::print-V     %25s empty.\n","AMSCharge");
@@ -569,7 +571,9 @@ int AMSCharge::BuildCombine() {
   clear();
   int indmx = -1; 
   int charge = getvotedcharge(indmx);
-  if (indmx<0) {
+  int static iprint=0; //FIXME should be done via datacards 
+  const int mprint=100;
+  if (indmx<0 && iprint++<mprint) {
     cout << "AMSCharge::BuildCombine-W-NoValidAMSChargeFound " << endl;
     print();
     return 0;
