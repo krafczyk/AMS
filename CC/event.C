@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.582 2013/11/08 18:07:03 shaino Exp $
+//  $Id: event.C,v 1.583 2013/11/12 16:08:22 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2197,7 +2197,7 @@ bool tofftok(false),ecalftok(false),extrigok(false);
       AMSgObj::BookTimer.start("TOF:RwCl->ClH");
 //      if((TFREFFKEY.TFHTDVCalib/10000%100>0)&&(AMSJob::gethead()->isRealData())){
       if(TFREFFKEY.TFHTDVCalib/10000%100>0){
-        TofRecH::BuildTofClusterH();//RawCluster->ClsuterH
+        TofRecH::BuildTofClusterH();//RawSide->ClsuterH
       }
       AMSgObj::BookTimer.stop("TOF:RwCl->ClH");
 
@@ -2383,9 +2383,12 @@ try{
   buildC("AMSBeta");
  
 //  if((TFREFFKEY.TFHTDVCalib/10000%100>0)&&(AMSJob::gethead()->isRealData())){
+  AMSgObj::BookTimer.start("ReTOFBetaH");
   if(TFREFFKEY.TFHTDVCalib/10000%100>0){
     TofRecH::BuildBetaH();//BetaH
   }
+  AMSgObj::BookTimer.stop ("ReTOFBetaH");
+  
   if (ECALHFFKEY.enable) {
     AMSgObj::BookTimer.start("ReAxEcalH");
     EcalHR::Build();

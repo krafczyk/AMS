@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.934 2013/11/09 14:14:07 oliva Exp $
+// $Id: job.C,v 1.935 2013/11/12 16:08:22 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2984,6 +2984,7 @@ void AMSJob::_reecalinitjob(){
 
 void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("REAXEVENT");
+  AMSgObj::BookTimer.book("ReTOFBetaH");
   AMSgObj::BookTimer.book("REAXPART");
   AMSgObj::BookTimer.book("ReAxRefit");
   AMSgObj::BookTimer.book("ReTRDRefit"); 
