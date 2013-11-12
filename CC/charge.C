@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.104 2013/11/12 16:17:49 oliva Exp $
+//  $Id: charge.C,v 1.105 2013/11/12 16:28:08 jorgec Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -891,20 +891,21 @@ int AMSChargeRich::Fill(int refit) {
   // floating charge
   _Q = sqrt(use/exp);
   // calculation
-  float minLogLike = HUGE_VAL;
+  double minLogLike = HUGE_VAL;
   int maxindex = int(_Q+15);
   for (int i=0; i<maxindex; i++){
     double z=i+1;
     double zz=z*z;
     double LogLike = exp*zz-use*log(exp*zz);
-    if (LogLike<0) continue;  // protection
     _Indxz.push_back(z);
     _Lkhdz.push_back(LogLike);
     if (LogLike<minLogLike) minLogLike = LogLike;
   }
-  if ((int)_Lkhdz.size()==0) return 0; 
+  double probSum = 0;
+  for (int i=0; i<(int)_Lkhdz.size(); i++)
+    probSum+=std::exp(minLogLike-_Lkhdz[i]);
   for (int i=0; i<(int)_Lkhdz.size(); i++)  
-    _Probz.push_back(PROB(2.*max(_Lkhdz[i]-minLogLike,0.),1)); // (float)(_Lkhdz[i]-minLogLike),1)); // protection
+    _Probz.push_back(std::exp(minLogLike-_Lkhdz[i])/probSum);
   addelectron();
   sortandfill();
   if (refit) setstatus(AMSDBc::REFITTED);
