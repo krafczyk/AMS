@@ -435,6 +435,9 @@ static double HitCorrelation_MeanPar[7] = {0, 1.10018e+00,-6.99183e-03,-1.92904e
 static double HitCorrelation_XMax = 160;
 static double HitCorrelation_SigmPar[7] = {1,-5.50738e-02, 1.24566e-02,-4.60968e-04,7.55153e-06,-5.75738e-08,1.67042e-10}; 
 static double HitCorrelation_SigmMin = 1;
+// list of low gain on p (added on nov. 2013)
+static int HitCorrelation_TkId_Gain15[15] = {-803, 307, 305, 802, 813, -813, 811, -610, 611, 110, 703, 503, 603, -706, -903};
+static int HitCorrelation_TkId_Gain20[ 2] = {213, -904};
 float TrRecHitR::GetCorrelationProb() {
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();
@@ -444,6 +447,8 @@ float TrRecHitR::GetCorrelationProb() {
   double x = sqrt(sig_x);
   if (x>HitCorrelation_XMax) return 1; // good if out of range
   double sig_y = cly->GetTotSignal(HitCorrelation_Opt);
+  if ( (HitCorrelation_TkId_Gain15+15)!=find(HitCorrelation_TkId_Gain15,HitCorrelation_TkId_Gain15+15,GetTkId())) sig_y *= 1.5;
+  if ( (HitCorrelation_TkId_Gain20+ 2)!=find(HitCorrelation_TkId_Gain20,HitCorrelation_TkId_Gain20+ 2,GetTkId())) sig_y *= 2.0;
   double y = sqrt(sig_y);
   // parameters for the test
   double mean = 0.;
