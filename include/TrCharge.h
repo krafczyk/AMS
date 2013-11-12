@@ -11,9 +11,9 @@
  \class TrCharge
  \brief An almost static class for the Tracker charge reconstruction
 
- $Date: 2013/11/09 14:14:08 $
+ $Date: 2013/11/12 16:18:39 $
 
- $Revision: 1.14 $
+ $Revision: 1.15 $
 */
 
 #include "VCon.h"
@@ -248,7 +248,6 @@ class TrCharge {
   //! Compute xy-combined mean charge given the evaluated Z 
   double GetMeanCharge(double qtot_x, double qtot_y, int nq_x, int nq_y, int Z);
   //! Get likelihood to be Z for a given event (0: x-side, 1: y-side, 2: both sides when possible, otherwise y-side)
-  // double GetLogLikelihoodToBeZ(int& npoints, double& qmean, int Z, int iside = 2);
   like_t GetLogLikelihoodToBeZ(int Z, int iside = 2);
   //! Get best charge returning the list of likelihood objects from most probable to least probable (with type = 10j get evaluation of layer j) 
   int    GetZ(vector<like_t>& likelihood, TrTrackR* track, int type = kInner, int iside = 2, double beta = 1, double rigidity = 0, double mass_on_Z = 2*0.93149);

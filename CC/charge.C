@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.103 2013/11/12 09:28:38 qyan Exp $
+//  $Id: charge.C,v 1.104 2013/11/12 16:17:49 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -1366,11 +1366,11 @@ FakeBetaHR::FakeBetaHR(AMSBetaH* ptr) : BetaHR(ptr) {
      }
   if (ptr->_ptrack) {
     _ptrtrack = (TrTrackR*) ptr->_ptrack;
-    fTrTrack = 0; // to let the people believe
+    fTrTrack = 0; 
   }
    if (ptr->_ptrdtrack) {
     _trdtrack = TrdTrackR (ptr->_ptrdtrack);
-    fTrdTrack = 0; // to let the people believe
+    fTrdTrack = 0; 
   }
 }
 
