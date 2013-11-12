@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.580 2013/11/09 14:14:08 oliva Exp $
+//  $Id: root.h,v 1.581 2013/11/12 14:59:48 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2994,15 +2994,17 @@ class BetaHR: public TrElem{
     * @return    -1: Bad Time  0: Normal Measument
    */
   int  BetaReFit(TofBetaPar &betapar,int pattern=-2,int mode=1,int update=0); 
-  /// TOF BetaH Measurement Time Interpolation to posZ (Using Matched TrTrack if exist, otherwise Using Tof Self Track)
+  /// TOF BetaH Measurement Time Interpolation to posZ (Using Matched TrTrack if exist, or TRD, or Tof Self Track)
   /*!
    * @param[in] zpl Interpolate to Z position (Z=zpl)
    * @param[out] pnt BetaH's Track position at Z=zpl
    * @param[out] dir BetaH's Track direction at Z=zpl
    * @param[out] time TOF Time at Z=zpl(ns)
+   * @param[in]  usetrtrack  true: by matched TrTrack(TRD)  false:by TOF
+   * @param[in]  tkopt 11110 Trk-Trd-Other-TOF-Other
    * @return BetaH's Track Path length at Z=zpl
    */
-  double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, bool usetrtrack=true);
+  double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time,bool usetrtrack=true,int tkopt=11110);
 /**@}*/
 
 

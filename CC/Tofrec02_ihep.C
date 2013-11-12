@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.51 2013/10/31 13:49:39 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.52 2013/11/12 14:59:41 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -539,7 +539,7 @@ int TofRecH::TimeCooRec(int idsoft,number sdtm[], number adca[],number tms[2],nu
    if(fabs(lcoo)>TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.+30.){//Still BAD
       lcoo=0; elcoo=TOFGeom::Sci_l[TofRecPar::iLay][TofRecPar::iBar]/2.;
       etm=fabs(elcoo/vel); 
-      status|=(TOFDBcN::BADTIME|TOFDBcN::BADTCOO);
+      if(BuildOpt>=0)status|=(TOFDBcN::BADTIME|TOFDBcN::BADTCOO);
     }
 //----
 
@@ -1151,7 +1151,8 @@ tktrdf:
              BetaFitC(phit,cres,pattern,betapar,1);
              BetaFitT(phit,len,pattern,betapar,mode,verse);
 //--Addtional Check
-             tstat=BetaFitCheck(phit,cres,len,pattern,betapar,mode);
+             tstat=0;
+             if(BuildOpt>=0)tstat=BetaFitCheck(phit,cres,len,pattern,betapar,mode);
              if((tktrdflag==0)||(tstat==0)){
                EdepTkAtt(phit,tklcoo,tkcosz,betapar);
                betapar.Status|=status;
@@ -1310,7 +1311,7 @@ tktrdf:
   }//---found
 
 
-  if(found==0){tktrdflag=1; goto tktrdf;} //No Tof Sel Track, Search Tk-Trd Again (more loose)
+  if(found==0&&BuildOpt>=0){tktrdflag=1; goto tktrdf;} //No Tof Sel Track, Search Tk-Trd Again (more loose)
 
   delete cont;
   return 0;

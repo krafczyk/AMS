@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.609 2013/11/12 09:28:38 qyan Exp $
+//  $Id: root.C,v 1.610 2013/11/12 14:59:41 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -8513,17 +8513,19 @@ int BetaHR::BetaReFit(TofBetaPar &betapar,int pattern,int mode,int update){
   return 0;
 }
 
-double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, bool usetrtr){
+double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time,bool usetrtr,int tkopt){
 
   double path=0;
+  pnt.setp(0,0,zpl);
+  dir.setp(0,0,1);
 #ifdef _PGTRACK_
-  if(fTrTrack>=0 && usetrtr){
+  if(fTrTrack>=0 && usetrtr && (tkopt/10000%10>0) ){//TrTrack
      path=pTrTrack()->Interpolate(zpl,pnt,dir);
    }
-  else if(fTrdTrack>=0 && usetrtr){
+  else if(fTrdTrack>=0 && usetrtr && (tkopt/1000%10>0) ){//TrdTrack
      path=pTrdTrack()->Interpolate(zpl,pnt,dir); 
   } 
-  else {///No TrTrack Then TofTrack
+  else if( !usetrtr || (tkopt/10%10>0) ){//TofTrack
 #endif
 ///--Find Coo
      double coo[3][4]={{0}},ecoo[3][4]={{0}};//X Y Z 4Layer;
@@ -8540,17 +8542,18 @@ double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, b
        nhits++;
      }
 ///--Space Line Fit x=az+b y=az+b
-     double ax,bx,ay,by;
-     TofRecH::LineFit(nhits,coo[2],coo[0],ecoo[0],ax,bx);
-     TofRecH::LineFit(nhits,coo[2],coo[1],ecoo[1],ay,by);
-///---Copy Value
-     AMSPoint p1(ax*zpl+bx,ay*zpl+by,zpl);
-     AMSPoint p0(ax*0.+bx,ay*0.+by,0.);
-     AMSPoint p2(p1-p0);
-     AMSDir   d1(p2);
-     path=p2.norm();  
-     dir=d1; pnt=p1;
-     if (zpl == 0) dir = AMSDir(ax, ay, 1);
+     if(nhits>=2){
+       double ax,bx,ay,by;
+       TofRecH::LineFit(nhits,coo[2],coo[0],ecoo[0],ax,bx);
+       TofRecH::LineFit(nhits,coo[2],coo[1],ecoo[1],ay,by);
+       AMSPoint p1(ax*zpl+bx,ay*zpl+by,zpl);
+       AMSPoint p0(ax*0.+bx,ay*0.+by,0.);
+       AMSPoint p2(p1-p0);
+       AMSDir   d1(p2);
+       path=p2.norm();  
+       dir=d1; pnt=p1;
+       if (zpl == 0) dir = AMSDir(ax, ay, 1);
+     }
 #ifdef _PGTRACK_
   }
 #endif
