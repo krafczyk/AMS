@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.105 2013/11/12 16:28:08 jorgec Exp $
+//  $Id: charge.C,v 1.106 2013/11/12 17:03:00 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -852,7 +852,7 @@ int AMSChargeTRD::ComputeCharge(int refit) {
 
 int AMSChargeTRD::Fill(int refit) {
   // init
-  _ptrd->ComputeCharge(_pbeta->GetTRDBetaCorr()); // <<< THIS IS NOT CLEAR FOR ME
+  _ptrd->ComputeCharge(_pbeta->GetTRDBetaCorr()); 
   if (_ptrd->_Charge.Nused <= 0) return 0;
   // charge
   _Q = _ptrd->_Charge.Q;
