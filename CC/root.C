@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.608 2013/11/09 09:18:43 shaino Exp $
+//  $Id: root.C,v 1.609 2013/11/12 09:28:38 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6799,7 +6799,7 @@ double TrdTrackR::Interpolate(double zpl,AMSPoint &pnt,AMSDir &dir) const{
    }
    AMSPoint p2(p1-p0);
    number path=p2.norm();
-   if(p1[2]<0)path*=-1;
+   if(p1[2]>0)path*=-1;
 //---
    dir=d1; pnt=p1;
    return path;
@@ -8520,8 +8520,8 @@ double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, b
   if(fTrTrack>=0 && usetrtr){
      path=pTrTrack()->Interpolate(zpl,pnt,dir);
    }
-  else if((GetStatus()&(TOFDBcN::TKTRACK2|TOFDBcN::TRDTRACK2))>0){//TKTRACK2
-    time =0; return path;
+  else if(fTrdTrack>=0 && usetrtr){
+     path=pTrdTrack()->Interpolate(zpl,pnt,dir); 
   } 
   else {///No TrTrack Then TofTrack
 #endif
@@ -8549,12 +8549,13 @@ double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time, b
      AMSPoint p2(p1-p0);
      AMSDir   d1(p2);
      path=p2.norm();  
-     if(zpl<0)path*=-1;
      dir=d1; pnt=p1;
      if (zpl == 0) dir = AMSDir(ax, ay, 1);
 #ifdef _PGTRACK_
   }
 #endif
+  path=fabs(path);
+  if(zpl>0)path*=-1;
   time =path/GetBeta()/TofRecH::cvel+GetT0();
   return path;
 }

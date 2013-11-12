@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.33 2013/11/11 15:56:40 oliva Exp $
+//  $Id: charge.h,v 1.34 2013/11/12 09:28:46 qyan Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -491,6 +491,8 @@ class FakeBetaHR : public BetaHR {
   vector<TofClusterHR*> _pclusterh;
   /// pointer to track
   TrTrackR*             _ptrtrack;
+  ///  trdtrack
+   TrdTrackR            _trdtrack;
   // c-tor  
   FakeBetaHR();
   // c-tor with AMSBetaH 
@@ -508,7 +510,7 @@ class FakeBetaHR : public BetaHR {
   /// overload access to TrTrackR
   TrTrackR*     pTrTrack() { return _ptrtrack; }
   /// overload access to TrdTrackR (not implementable)
-  TrdTrackR*    pTrdTrack() { return 0; }
+  TrdTrackR*    pTrdTrack() { return (fTrdTrack>=0)?&_trdtrack:0; }
   /// overload access to EcalShowerR (not implementable)
   EcalShowerR*  pEcalShower() { return 0; }
 };
