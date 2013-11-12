@@ -589,7 +589,7 @@ float AntiRecoPG::GetTofTimeGuess(){
   
   float tguess = 0.;
   int nguess = 0;
-  for(int i=0; i<evt->nTofClusterH(); i++){
+  for(int i=0; i<evt->NTofClusterH(); i++){
     TofClusterHR* ptcl=evt->pTofClusterH(i);
     if( !ptcl) continue;
     tguess+=(ptcl->Time);
@@ -610,7 +610,7 @@ int AntiRecoPG::ReLoadAcc(){
   int run_type = SelectRun();
   InitCal(run_type);}
   
-  if (evt->nAntiRawSide()!=0){
+  if (evt->NAntiRawSide()!=0){
   for(int isect=1; isect<=8; isect++){ //clear timetable 
     for(int k=0; k<2; k++){ //side index
       timeindx[0][k][isect-1]=0; // index for FT times
@@ -618,7 +618,7 @@ int AntiRecoPG::ReLoadAcc(){
       adctable[k][isect-1]=0.; // adc values
       for(int i=0; i<16; i++){
 	timetable[i][k][isect-1]=0; }}}
-  for(int ir=0; ir<evt->nAntiRawSide(); ir++){
+  for(int ir=0; ir<evt->NAntiRawSide(); ir++){
     AntiRawSideR* rsd = evt->pAntiRawSide(ir);
     if( !rsd) continue;
     int swid = rsd->swid;
@@ -809,20 +809,31 @@ int AntiRecoPG::BuildCluster(AntiClusterR* cluster, int sect, float zzguess, flo
 */  
 int AntiRecoPG::BuildAllClusters(int sect, float sect_zguess, float err_sect_zguess){
 
+  //  printf("Anti: sect = %d\n");//only for default
+
   ppAntiClusterPG.clear();
   int nacc=0;
   for (int isect=1;isect<=8;isect++){
     AntiClusterR* cluster = new AntiClusterR;
     int nbc;
-    if (sect!=0 && isect==sect) {nbc = BuildCluster(cluster, isect, sect_zguess, err_sect_zguess);}
-    else { nbc = BuildCluster(cluster, isect);}
+    //    printf("Anti: trying isect = %d\n", isect);//only for default
+    if (sect!=0 && isect==sect) {
+      //      printf("Anti (1)\n");//only for default
+      nbc = BuildCluster(cluster, isect, sect_zguess, err_sect_zguess);
+    }
+    else {
+      //      printf("Anti (2)\n");//only for default
+      nbc = BuildCluster(cluster, isect);
+    }
     if (nbc != 0) {
       cluster->Info(nacc);
       nacc++;
-      ppAntiClusterPG.push_back(*cluster);}
+      ppAntiClusterPG.push_back(*cluster);
+      //      printf("Anti (3)\n");//only for default
+    }
     delete cluster;
-
   }
+  //  printf("Anti (after loop)\n");//only for default
   nAntiClusterPG = nacc;
   return nacc;  // total number of anticounter
 
