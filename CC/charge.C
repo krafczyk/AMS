@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.106 2013/11/12 17:03:00 oliva Exp $
+//  $Id: charge.C,v 1.107 2013/11/12 22:06:03 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -635,7 +635,7 @@ AMSChargeBase AMSCharge::getvotedcharge(const vector<TString> & detectors) {
   } 
 
   // sort and fill ROOT vectors 
-  result.sortandfill(); // CHARGEFITFFKEY.UseLikelihood);
+  result.sortandfill(CHARGEFITFFKEY.UseLikelihood);
 
   return result;
 }
