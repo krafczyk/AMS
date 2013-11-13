@@ -15,7 +15,8 @@ else
 NEW = _new
 endif
 
-
+#VERGCC_LONG  := $(shell gcc --version | grep GCC | awk '{ print $$3 }' | sed 's/\.//g')
+VERGCC_LONG  := $(shell gcc -dumpversion | sed 's/\.//g')
 
 ########################################################################
 #Compilers
@@ -90,7 +91,8 @@ CFLAGSB=  -Wno-pragmas -Wno-deprecated -Wno-write-strings
 #CFLAGSB+= -Wall -Wfloat-equal -Wshadow -Wsign-compare -Winline 
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
-OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+#OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; fi)
 DEFINES+=-D__OSXVER__=$(OSXVER)
 
 ifdef AMSPROFILE
@@ -130,7 +132,14 @@ endif
 
 # -undefined dynamic_lookup to have not the linker complaining for the undefined symbols (like in Linux)
 # -shared -dynamiclib -dynamic means ~ the same but not all the versions of Apple gcc understand the same option...
+MY_IF_GCC=$(shell test $(1) -$(2) $(3); echo $$?)
+GCC_LT_480 := $(call MY_IF_GCC,$(VERGCC_LONG),lt,480)
+# the logics of test is inverted...
+ifeq "$(GCC_LT_480)" "0"
 SOFLAGS = --dynamic --shared --dynamiclib -undefined dynamic_lookup
+else
+SOFLAGS = --shared -undefined dynamic_lookup
+endif
 
 
 ifdef SLC4system

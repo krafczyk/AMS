@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.141 2013/10/19 04:38:46 qyan Exp $
+//  $Id: root_setup.C,v 1.142 2013/11/13 09:01:05 mduranti Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -908,6 +908,11 @@ slc+="/SlowControlDir";
     //  int scandir_b(const char *, struct dirent ***,
     // 	       int (^)(const struct dirent *), int (^)(const struct dirent **, const struct dirent **)) __DARWIN_INODE64(scandir_b) __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_3_2);
     // #endif /* __BLOCKS__ */
+    //--------------------------
+    // 9 November 2013 with first release of Mavericks (10.9)
+    // found the problem that OSXVER was bad defined (109 instead 1090 since sw_vers was giving 10.9 instead of 10.9.0) so the
+    // #if OSXVER >= 108 was not working correctly
+    // fixed 'by hand' in Makefile.macosx64 but it could happen also with 10.8, 10.10, ...
     dirent ** namelist;
     int nptr=scandir(sdir.c_str(),&namelist,_select,NULL);
 #endif
