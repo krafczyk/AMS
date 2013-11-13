@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.27 2012/11/08 16:41:20 nzimmerm Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.23.2.1 2013/11/13 17:18:05 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -74,7 +74,7 @@ ifdef RH9
  RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 endif
 
-RH9add=-pthread $(BIN)ctype.o 
+RH9add=-pthread 
 
 
 ########################################################################
@@ -235,7 +235,7 @@ SHLDFLAGS=
 # Library list 
 TIMEL=
 
-LDFLAGSI= -static $(G4LIBS) $(FORTRAN2_LIBS) \
+LDFLAGSI=  $(G4LIBS) $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS) \
@@ -248,25 +248,18 @@ LDFLAGS= $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB)\
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIRLIB) $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lssl -lcrypto  -lcom_err -lfreetype -lncurses  -ldl     -Wl,--allow-multiple-definition -lpcre -lncurses\
+-L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lssl -lcrypto  -lcom_err -lfreetype -lncurses  -ldl     -Wl,--allow-multiple-definition -lpcre -lncurses -llzma\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg
 endif
 
-ifdef AMS_ACQT_INTERFACE
-QT_STATIC_LIBRARY := $(QTDIR_STATIC)/lib/libQtCore.a
-LDFLAGS += $(QT_STATIC_LIBRARY) -lrt
-LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt
-SOFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
-endif
-
 ifdef WEBACCESS
   LDFLAGS+= -lcurl
 LDFLAGSSTATIC:=    $(LDFLAGS) -pthread 
 else
-LDFLAGSSTATIC:=  -static $(LDFLAGS) $(RH9add) 
+LDFLAGSSTATIC:=   $(LDFLAGS) $(RH9add) 
 endif
 
 #--------------------------------------------------------------------------------------------------
