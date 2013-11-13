@@ -1,4 +1,4 @@
-//  $Id: EcalH.C,v 1.7 2013/11/10 15:34:40 shaino Exp $
+//  $Id: EcalH.C,v 1.8 2013/11/13 05:11:35 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/11/10 15:34:40 $
+///$Date: 2013/11/13 05:11:35 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -273,45 +273,63 @@ int EcalHR::Process(void)
 #include "TH1.h"
 #endif
 
-int EcalHR::FitL(int s, float *par, float *err)
+int EcalHR::FillS(int s, float es[EcalHR::NL])
 {
-  float xmax = 0, hmax = 0;
+  int   imax = -1;
+  float emax =  0;
   for (int i = 0; i < NL; i++) {
     float ec = 0;
     for (int j = -s; j <= s; j++) ec += Ecell(i, j+2);
 
-    if (ec > hmax) { xmax = i; hmax = ec; }
-    EcalH::ecen[i] = ec;
+    if (ec > emax) { imax = i; emax = ec; }
+    es[i] = ec;
   }
+  return imax;
+}
+
+int EcalHR::FitL(int s, float par[3], float err[3], int method)
+{
+  float *ec = EcalH::ecen;
+  int  imax = FillS(s, ec);
+  if (imax < 0 || NL <= imax) return -1;
+
+  int im = imax;
+  if (im ==    0) im = 1;
+  if (im == NL-1) im = NL-2;
+
+  float emax = ec[imax];
+  float xmax = Peak(im-1, ec[im-1], im, ec[im], im+1, ec[im+1]);
+
+  if (xmax > 25) xmax = 25;
 
   if (!EcalH::func) EcalH::func = Lfun(1, 0, 1);
 
 #ifdef __ROOTSHAREDLIBRARY__
- int DEBUG = 0;
- if (DEBUG) {
+ if (method == 3) {
   static TH1F *htmp = 0;
   if (!htmp) htmp = new TH1F("htmp", "Lfit", NL, -0.5, NL-0.5);
 
   for (int i = 0; i < NL; i++) {
-    float ec = EcalH::ecen[i];
-    if (ec > 0) {
-      htmp->SetBinContent(i+1, ec);
-      htmp->SetBinError  (i+1, ec/TMath::Sqrt(ec/10)+10);
+    float e = ec[i];
+    if (e > 0) {
+      htmp->SetBinContent(i+1, e);
+      htmp->SetBinError  (i+1, e/TMath::Sqrt(e/10)+10);
     }
   }
-  EcalH::func->SetParameters(hmax, xmax-10, 4);
+  EcalH::func->SetParameters(emax, xmax-10, 4);
   EcalH::func->SetParLimits(0,   0, 1e6);
   EcalH::func->SetParLimits(1, -10,  15);
   EcalH::func->SetParLimits(2,   1,  30);
 
   htmp->Fit(EcalH::func, "q0");
- }
 
-  float pref[3], eref[3];
   for (int i = 0; i < 3; i++) {
-    pref[i] = EcalH::func->GetParameter(i);
-    eref[i] = EcalH::func->GetParError (i);
+    par[i] = EcalH::func->GetParameter(i);
+    err[i] = EcalH::func->GetParError (i);
   }
+
+  return 0;
+ }
 #endif
 
   if (!EcalH::mnt) {
@@ -330,9 +348,9 @@ int EcalHR::FitL(int s, float *par, float *err)
   mnt->SetPrintLevel(-1);
 
   int ierr = 0;
-  mnt->mnparm(0, "par0", hmax,   hmax*0.1,   0, 1e6, ierr);
-  mnt->mnparm(1, "par1", xmax-10,     0.1, -10,  15, ierr);
-  mnt->mnparm(2, "par2", 10,          0.1,   1,  15, ierr);
+  mnt->mnparm(0, "par0", emax, emax*0.1,   0, 1e6, ierr);
+  mnt->mnparm(1, "par1", xmax-10,   0.1, -10,  15, ierr);
+  mnt->mnparm(2, "par2", 10,        0.1,   1,  15, ierr);
 
   int ret = mnt->Migrad();
   if (ret != 0 && ret != 4) return -1;
@@ -342,13 +360,6 @@ int EcalHR::FitL(int s, float *par, float *err)
     mnt->GetParameter(i, p, e);
     if (par) par[i] = p;
     if (err) err[i] = e;
-
-#ifdef __ROOTSHAREDLIBRARY__
-   if (DEBUG) {
-    cout << Form("Cmp par[%d] : %7.2f +/- %7.2f  %7.2f +/- %7.2f",
-		 i, p, e, pref[i], eref[i]) << endl;
-   }
-#endif
   }
 
   return 0;
@@ -462,6 +473,24 @@ TF1 *EcalHR::Lfun(float norm, float apex, float lmax)
   func->SetParameters(norm, apex, lmax);
 
   return func;
+}
+
+double EcalHR::Peak(double x1, double y1, double x2, double y2,
+		    double x3, double y3)
+{
+  double m[4] = { x1-x2, x1*x1-x2*x2,
+		  x2-x3, x2*x2-x3*x3 };
+  double d = m[0]*m[3]-m[1]*m[2];
+
+  if (d == 0) return 0;
+
+  double n[4] = { m[3]/d, -m[1]/d, -m[2]/d, m[0]/d };
+  double v[2] = { y1-y2, y2-y3 };
+
+  double p1 = n[0]*v[0]+n[1]*v[1];
+  double p2 = n[2]*v[0]+n[3]*v[1];
+
+  return (p2 != 0) ? -p1/p2/2 : 0;
 }
 
 void EcalHR::_PrepareOutput(int opt)

@@ -1,4 +1,4 @@
-//  $Id: EcalH.h,v 1.4 2013/11/10 14:57:21 shaino Exp $
+//  $Id: EcalH.h,v 1.5 2013/11/13 05:11:40 shaino Exp $
 #ifndef __EcalHR__
 #define __EcalHR__
 
@@ -11,9 +11,9 @@
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/11/10 14:57:21 $
+///$Date: 2013/11/13 05:11:40 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -148,14 +148,23 @@ public:
   int Process(void);
 
   /*!
+    \brief Fill S energy for each layer
+    \param[in]  s     use 0:S1, 1:S3, 2:S5 energy
+    \param[out] es    S1/3/5 energy at each layer
+    \retval     imax  layer number with maximum es value
+  */
+  int FillS(int s, float es[NL]);
+
+  /*!
     \brief Fit longitudinal shower shape
-    \param[in]  s    use 0:S1, 1:S3, 2:S5 energy
-    \param[out] par  fitting parameters
-    \param[out] err  fitting errors
+    \param[in]  s       use 0:S1, 1:S3, 2:S5 energy
+    \param[out] par[3]  fitting parameters
+    \param[out] err[3]  fitting errors
+    \param[in]  method  1:Minuit 2:Analytical 3:TH1F(ROOTSHARED only)
     \retval  0 success
     \retval -1 failure
   */
-  int FitL(int s, float *par, float *err);
+  int FitL(int s, float par[3], float err[3], int method = 1);
 
   // --- static methods ---
 
@@ -182,6 +191,9 @@ public:
   */
   static TF1 *Lfun(float norm, float apex, float lmax);
 
+  /// Peak locator with pol2 from three bins
+  static double Peak(double x1, double y1, double x2, double y2,
+		     double x3, double y3);
 
   // --- TrElem overoverriders ---
 
