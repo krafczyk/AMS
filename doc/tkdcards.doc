@@ -32,44 +32,42 @@ I [834]   MdExAlignTag CIEMAT External Alignment tag; 0: default,  otherwise ver
 
 TRMC
 I 564        SimulationType            0 GBATCH: old algorythm (DEPRECATED)
-             (def=2)                   1 SkipRawSim: no TrRawClusters, very fast 
+                                       1 SkipRawSim: no TrRawClusters, very fast 
                                        2 TrSim2010: a detailed simulation
 I 565        MinMCClusters             Minimum number of MC Clusters needed  
-             (def=0)                   to trigger digitization (=0, all events)       
+                                       to trigger digitization (=0, all events)       
 I 566        NoiseType                 0 No noise
-             (def=3)                   1 Gaussian noise generation for every channel: full simulation, very slow 
+                                       1 Gaussian noise generation for every channel: full simulation, very slow 
                                        2 Gaussian noise generation only on ladders with signal + fake clusters (th)
                                        3 Gaussian noise generation only on ladders with signal + fake clusters (tuned)
 R [567,584]  DSPSeedThr[2][9]          DSP Seed Threshold for x and y sides per layer  
-             def(all=3.500)
 R [585,586]  DSPNeigThr[2]             DSP Neig Threshold for x and y sides 
-             (def=1.,1.)
 I [587,588]  TrSim2010_ADCMipValue[2]  ADC Mip value 
-             (def=34.5,32.)
 R [589,590]  TrSim2010_ADCSat[2]       ADC Saturation Limit (for each strip)
-             (def=3500.,3500.) 
 I [591]      PStripCorr                0 inactivate p-strip non-linearity
-             (def=0)                   1 activate p-strip non-linearity (to be checked with real data!)
+                                       1 activate p-strip non-linearity (to be checked with real data!)
 R [592,593]  TrSim2010_Cint            Interstrip Capacitance (n/p sides)
-             (def=80.,50.)
 R [594,595]  TrSim2010_Cbk             Backplane + Guard-ring capacitance (n/p sides)
-             (def=50.,5.)
 R [596,597]  TrSim2010_Cdec            Decoupling Capacitance (n/p sides)
-             (def=800.,800.)  
 I [598,599]  TrSim2010_DiffType        0 Box
-             (def=2,2)                 1 Gaussian
+                                       1 Gaussian
                                        2 Gaussian Convoluted with Box
                                        3 Triangular
                                        4 Sum of Gauss distributions
 R [600,601]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
-             (def=8.,8.)
 R [602,603]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
-             (def=0.1,0.1)  
 R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
-             (def=2.5,2.5)
-I 606 ActivateShielding=1;
-I 607 ShieldingDensity=2.5;
+I 606        ActivateShielding;        Activate ladder shielding
+I 607        ShieldingDensity;         Density of the shielding
 R [608,611]  OuterSmearing[2][2]       Outer smearing to simulate residual disalignment [0:L1,1:L9][0:X,1:Y]
+// 2013 tuning of p He related parameters
+R [612,615]  SmearPos[2][2]            Additional position smearing
+R [616,619]  ADCMipValue[2][2]         ADC scaling 
+R [620,623]  SigQuadLoss[2][2]         Parameters for energy deposit scale tuning 
+R [624,635]  NearStripMult[2][2][3]    Amplification factor of nearby strips
+R [636,637]  noise_fac[2]              Additional noise fraction in the signal region
+R [638,639]  GlobalNoiseFactor[2]      Tuning of number of noise cluster
+
 
 //==============================
 //  TRACKER RECONSTRUCTION
@@ -114,8 +112,6 @@ I 60 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
 I 61 TRD TOF Matching  mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
 I 62 Use Sensor Alignement 1=yes 0=no; must be 0 for MC
 I 63 ReconStats flag  0 no 1 yes
-
-// Additional datacard members for track finding improvement (Jan 2012)
 I 64 ChargeSeedTagActive            (Default: 1)  BuildRecHits: tagging hits and clusters compatible with charge seed 
                                                   0 inactive
                                                   !=0 active
@@ -139,7 +135,12 @@ I 71 BuildTracksSimpleChargeSeedTag (Default: 1)  Build: reconstruct first a tra
 I 72 TrackFindChargeCutActive       (Default: 0)  BuildTrTracksSimple: charge cut during track finding
                                                   0 inactive
                                                   !=0 active
+I 73  NhitXForTRDTrackHelp          (Default: 3)  BuildTrTracksSimple: Number of x candidates to use help of TRD
+R 74  logChisqXmax                  (Default: 3)  MatchTOF_TRD: Maximum logChisqX to declare a good multiplicity resolution after TRD match
 
+
+/*
+// This datacard is no longer in use
 TRCHA
 I 1  ReconType  (Default: 1)  tracker charge reconstruction type 
                               0 no recon
@@ -152,7 +153,7 @@ I 3  MaxCharge (Default: 8)   max reconstructed charge
 I 4  EnableHisto (Default: 0) fill histograms during reconstruction
                               0 inactive
                               !=0 active
-
+*/
 
 
 //==============================

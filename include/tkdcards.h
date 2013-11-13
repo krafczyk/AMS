@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.63 2013/05/24 15:59:39 pzuccon Exp $
+// $Id: tkdcards.h,v 1.64 2013/11/13 21:02:29 oliva Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -380,9 +380,12 @@ public:
   //! I 73 BuildTrTracksSimple: Numver of x candidates to use help of TRD
   int   NhitXForTRDTrackHelp;
 
+  //! R 74 MatchTOF_TRD: Maximum logChisqX to declare a good multiplicity resolution after TRD match
+  geant logChisqXmax; 
+
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,5);
+  ClassDef(TRCLFFKEY_DEF,6);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)

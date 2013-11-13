@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.172 2013/11/06 20:22:50 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.173 2013/11/13 21:02:29 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/11/06 20:22:50 $
+/// $Date: 2013/11/13 21:02:29 $
 ///
-/// $Revision: 1.172 $
+/// $Revision: 1.173 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -6720,10 +6720,17 @@ int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
       AMSPoint pp= trd->getCooStr();
       AMSDir dd=trd->getCooDirStr(); 
       TRDdone=TkTRDMatch(tr,pp,dd,select_tag); 
+      if (TRDdone>0) {
+        tr->FitT(tr->Gettrdefaultfit());
+        if (log10(tr->GetNormChisqX(tr->Gettrdefaultfit()))>TRCLFFKEY.logChisqXmax) TRDdone = -9;
+      }
       if (TRDdone>0) break;
     }
   }
-  if(TRDdone<=0 &&(TRCLFFKEY.ExtMatch/10)>0) TOFdone = TkTOFMatch(tr, select_tag);
+  if(TRDdone<=0 &&(TRCLFFKEY.ExtMatch/10)>0) {
+    tr->FitT(tr->Gettrdefaultfit());
+    TOFdone = TkTOFMatch(tr, select_tag);
+  }
 #else
   if((TRCLFFKEY.ExtMatch%10)>0){
     AMSEventR *evt = AMSEventR::Head();
@@ -6732,6 +6739,10 @@ int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
       AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
       AMSDir   dd(trd->Theta,  trd->Phi);
       TRDdone = TkTRDMatch(tr,pp,dd,select_tag); 
+      if (TRDdone>0) {
+        tr->FitT(tr->Gettrdefaultfit());
+        if (log10(tr->GetNormChisqX(tr->Gettrdefaultfit()))>TRCLFFKEY.logChisqXmax) TRDdone = -9; 
+      }
       if (TRDdone>0) break;
     }
   }

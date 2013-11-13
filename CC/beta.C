@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.94 2012/07/06 11:54:26 pzuccon Exp $
+//  $Id: beta.C,v 1.95 2013/11/13 21:02:29 oliva Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -15,6 +15,8 @@
 #include "trigger302.h"
 #include "event.h"
 #include "trdrec.h"
+#include "tkdcards.h"
+#include "HistoMan.h"
 #ifdef _PGTRACK_
 #include "tkpatt.h"
 #include "TrRecon.h"
@@ -186,6 +188,7 @@ void mtof_hit::MatchCheck(){
   }
 }
 
+
 int FindCloserTOF(TrTrackR* ptrack,mtof_hit* tmhit){
 
   // 0 -- Search for the geometrically matching TOF Hits  
@@ -193,7 +196,7 @@ int FindCloserTOF(TrTrackR* ptrack,mtof_hit* tmhit){
   for (int TOFlay=0;TOFlay<4;TOFlay++){
     int cluster=AMSEvent::gethead()->getC(AMSID("AMSTOFCluster",TOFlay))->getnelem();
     tmhit[TOFlay].min_d= AMSPoint(1000,1000,1000);
-    
+
     // 1 -- FIND on each TOF layer the hit closer to the track
     for ( AMSTOFCluster * tofhit=AMSTOFCluster::gethead(TOFlay) ; tofhit; tofhit=tofhit->next()) {
       number td, ssleng;
@@ -203,7 +206,8 @@ int FindCloserTOF(TrTrackR* ptrack,mtof_hit* tmhit){
       AMSPoint dst=AMSBeta::Distance(tofhit->getcoo(),tofhit->getecoo(),
 				     (AMSTrTrack*)ptrack,ssleng,td);
       
-      if (fabs(dst[tofcoo[TOFlay]]) <= tmhit[TOFlay].min_d[tofcoo[TOFlay]]){ 
+      // search the closest along Y only
+      if (fabs(dst[1]) <= tmhit[TOFlay].min_d[1]){
 	//cout<<" The cluster "<<clnum-1<<" is good"<<endl; 
 	tmhit[TOFlay].min_d = dst.abs(); 
 	tmhit[TOFlay].phit  = tofhit;
@@ -225,7 +229,9 @@ bool TkTOFMatch(TrTrackR* ptrack,int select_tag) {
   FindCloserTOF( ptrack,tofhit);
   bool g_YMatch=tofhit[0].Ymatch && tofhit[3].Ymatch;
   bool g_XMatch=tofhit[1].Xmatch || tofhit[2].Xmatch;
-  if( g_YMatch && !g_XMatch ){ //try to move
+  if ( ( (g_YMatch)&&(!g_XMatch) )||
+       ( (g_YMatch)&&(log10(ptrack->GetNormChisqX(ptrack->Gettrdefaultfit()))>TRCLFFKEY.logChisqXmax) ) 
+     ) { // try to move 
 
     AMSPoint p0(tofhit[0].phit->getcoo());
     AMSPoint p1(tofhit[3].phit->getcoo());
