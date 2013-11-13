@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.107 2013/11/12 22:06:03 oliva Exp $
+//  $Id: charge.C,v 1.108 2013/11/13 13:28:17 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -957,10 +957,12 @@ int AMSChargeTracker::Fill(int refit) {
     _ptrtk->GetZ(likelielec,1);
   }
   // fill base vectors 
-  if ((int)likelielec.size()>0) {
-    _Indxz.push_back(0);
-    _Lkhdz.push_back(-likelielec[0].GetNormLogLike()); // convention
-    _Probz.push_back(likelielec[0].GetNormProb());
+  for (int i=0; i<(int)likelielec.size(); i++) {
+    if (likelielec[i].Z==1) {
+      _Indxz.push_back(0);
+      _Lkhdz.push_back(-likelielec[0].GetNormLogLike()); // convention
+      _Probz.push_back(likelielec[0].GetNormProb());
+    }
   }
   for (int i=0; i<(int)likelihood.size(); i++) {
     _Indxz.push_back(likelihood[i].Z);
