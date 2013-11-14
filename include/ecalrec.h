@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.63 2012/05/16 17:13:59 afiasson Exp $
+//  $Id: ecalrec.h,v 1.64 2013/11/14 21:45:43 sdifalco Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -392,6 +392,7 @@ class AMSEcalShower: public AMSlink{
 
   number  _EnergyC;
   number  _EnergyPIC;
+  number  _EnergyH;
   number  _Energy0A[2];  //LAPP EcalShower Energy0 0->X, 1->Y  only impact-point corrected, no rear leakage corr. (M.P.)
   number  _EnergyA;  //LAPP EcalShower Energy (M.P.)
 
@@ -440,6 +441,7 @@ class AMSEcalShower: public AMSlink{
   //end LAPP
   number  _ErrEnergyC;
   number  _ErrEnergyPIC;
+  number  _ErrEnergyH;
   number  _ErrEnergyA;//LAPP EcalShower Energy error (M.P)
 
   number  _Orp2DEnergy;
@@ -460,6 +462,13 @@ class AMSEcalShower: public AMSlink{
   number _SphericityEV[3];
   number _TransFitPar[3];
   number _TransFitChi2;
+
+  // anode correction
+  number _CellEdep[18][72];
+  number _CooCR[18];
+  number _CooNew[18];
+  number _KCR[2];
+
 
   // LAPP
   number _S1tot;		  
@@ -505,6 +514,8 @@ class AMSEcalShower: public AMSlink{
   void DirectionFit();
   void ProfileFit();
   void EnergyFit();
+  void _ReFitDirCR();
+  void _ReCalEnergy();
   void EMagFit();
   void SphFit();
   static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
@@ -539,9 +550,11 @@ class AMSEcalShower: public AMSlink{
   number getEnergy()const {return _Energy;}
   number getEnergyC()const {return _EnergyC;}
   number getEnergyPIC()const {return _EnergyPIC;}
+  number getEnergyH()const {return _EnergyH;}
   number getEnergyXY(int proj)const;
   number getEnergyErr()const{return _ErrEnergyC;}
   number getEnergyErrPI()const{return _ErrEnergyPIC;}
+  number getEnergyErrH()const{return _ErrEnergyH;}
   number getEnergyA()const {return _EnergyA;} //LAPP (M.P.)
   number getEnergyErrA()const{return _ErrEnergyA;}//LAPP (M.P.)
   integer getDirection() const{return _Direction==0?1:-1;}
