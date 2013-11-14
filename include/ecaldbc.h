@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.51 2013/11/06 10:21:00 goy Exp $
+//  $Id: ecaldbc.h,v 1.52 2013/11/14 21:44:44 sdifalco Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -33,6 +33,24 @@ namespace ecalconst{
   const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
   const integer ECHISTR=2100;// REEcal histogram number(starting from...)
   const integer ECHISTC=2200;// CAEcal histogram number(starting from...)
+  // for anode correction
+  const double ECCommonOffSetMC[2] = {-0.13,0.075}; //MC common shift
+  const double ECOffSetMC[9][2] = { 843.7, 1150.9, -597.1, -1183.0, -1.6, 118.5, -503.3, -634.0,
+			      873.0, 402.6, -350.4, -383.1, -252.0, -386.3, 1613.9, 1373.9, -192.5, -1333.3 };
+  
+  const double ECCommonOffSetBT[2] = { -0.17, 0.085 };
+  const double ECOffSetBT[9][2] = { -0.009, 0.005, 0.005, -0.005, -0.005, -0.002, 0.001, 0.005,
+			      -0.000, -0.002, 0.004, 0.003, 0.003, -0.002, 0.004, -0.008, -0.001, 0.005 };
+  const double ECCommonOffSetISS[2] = { -0.13, 0.075 };
+  const double ECOffSetISS[9][2] = { -108.7, 14.7, 46.1, -223.1, -60.5, -57.1, 157.5, 22.8, 
+					  25.5, -86.3, 215.4, 123.4, 25.6, -67.1, 245.7, 2.2, 170.7, -70.3 };
+  const double EClayer_Z[18] = { -143.215-0.005, -144.135+0.005, -145.065-0.005, -145.985+0.005, 
+    -146.915-0.005, -147.835+0.005, -148.765-0.005, -149.685+0.005, -150.615-0.005,
+    -151.535+0.005, -152.465-0.005, -153.385+0.005, -154.315-0.005, -155.235+0.005,
+    -156.165-0.005, -157.085+0.005, -158.015-0.005, -158.935+0.005 };
+  const  double ECfiberRotation[9] = {
+      0.0004797,  0.0009035,  0.0001849,  0.0002104, -0.0007271, 
+      3.608e-05,  -0.000221,  0.0003725,  -0.001776 };
 };
 //
 //geometry :
