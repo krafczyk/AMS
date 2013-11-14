@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.611 2013/11/12 22:42:26 mduranti Exp $
+//  $Id: root.C,v 1.612 2013/11/14 21:48:43 sdifalco Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3569,11 +3569,13 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   EnergyD   =   ptr->_Energy;
   EnergyC   =   ptr->_EnergyC;
   EnergyE   =   ptr->_EnergyPIC;
+  EnergyE2014 =   ptr->_EnergyH;
   Energy3C[0] = ptr->_Energy3C;
   Energy3C[1] = ptr->_Energy5C;
   Energy3C[2] = ptr->_Energy9C;
   ErEnergyC   = ptr->_ErrEnergyC;
   ErEnergyE   = ptr->_ErrEnergyPIC;
+  ErEnergyE2014 = ptr->_ErrEnergyH;
   DifoSum     = ptr->_DifoSum;
   SideLeak    = ptr->_SideLeak;
   RearLeak    = ptr->_RearLeak;
