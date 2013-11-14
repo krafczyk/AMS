@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.178 2013/11/06 10:21:00 goy Exp $
+//  $Id: ecalrec.C,v 1.179 2013/11/14 21:47:56 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -961,7 +961,7 @@ void AMSEcalHit::build(int &stat){
       //to TestBeam temperature Ttb using global slope Tgsl
       //Not to be applied to MC
       //(4/6/13: Tref=10deg, Ttb=23deg, Tgsl=0.25%/deg)
-      if (AMSJob::gethead()->isRealData()) 
+      if (AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()>=1305763200) 
 	Tcorr=Tcorr*(1.+ECREFFKEY.Tgsl/100.*(ECREFFKEY.Tref-ECREFFKEY.Ttb));
       if ( Tcorr > 0 ){
   	scgn*=Tcorr;
@@ -2467,7 +2467,7 @@ void AMSEcalShower::EnergyFit(){
 	  cofgcell[phit->getplane()]+=phit->getcell()*phit->getedep();        
 	  edepl[phit->getplane()]+=phit->getedep();
           /*
-           //phit->getadc(madc);          
+	  //phit->getadc(madc);          
           //if (madc[0]>4){// count only hits with adc_highgain>4
           */
           if (phit->getedep()>=2){// count only hits with edep >= 2 MeV 
@@ -2564,11 +2564,11 @@ void AMSEcalShower::EnergyFit(){
       //ptr->getadc(madc);
       //if (madc[0]>4){// count only hits with adc_highgain>4 ADC
       if (ptr->getedep()>=2){// count only hits with edep >=2 MeV
-          if (((ptr->getplane()/2)%2)==0){
-              nhitsy++;
-          }else {
-              nhitsx++;
-          }
+	if (((ptr->getplane()/2)%2)==0){
+	  nhitsy++;
+	}else {
+	  nhitsx++;
+	}
       } 
       ////end LAPP
       ptr=ptr->next();
@@ -2617,31 +2617,31 @@ void AMSEcalShower::EnergyFit(){
   _S35Ra[1]=ss3a[1]/ss5a[1];
 
   // compute S1, S3, S5 (CofG used as seed)
-   _S1tot=ss1a[0]+ss1a[1];
-   _S3tot=ss3a[0]+ss3a[1];
-   _S5tot=ss5a[0]+ss5a[1];
-   if ((edepx+edepy)>0){
-	_S1tot=_S1tot/(edepx+edepy);
-	_S3tot=_S3tot/(edepx+edepy);
-	_S5tot=_S5tot/(edepx+edepy);
-    }
-    // end S1, S3, S5
+  _S1tot=ss1a[0]+ss1a[1];
+  _S3tot=ss3a[0]+ss3a[1];
+  _S5tot=ss5a[0]+ss5a[1];
+  if ((edepx+edepy)>0){
+    _S1tot=_S1tot/(edepx+edepy);
+    _S3tot=_S3tot/(edepx+edepy);
+    _S5tot=_S5tot/(edepx+edepy);
+  }
+  // end S1, S3, S5
   _S1totx=0.;
-   _S3totx=0.;
-   _S5totx=0.;
-    if (edepx>0){
-      _S1totx=ss1a[0]/edepx;
-      _S3totx=ss3a[0]/edepx;
-      _S5totx=ss5a[0]/edepx;
-    }
-   _S1toty=0.;
-   _S3toty=0.;
-   _S5toty=0.;
-   if (edepy>0){
-     _S1toty=ss1a[1]/edepy;
-     _S3toty=ss3a[1]/edepy;
-     _S5toty=ss5a[1]/edepy;
-    }
+  _S3totx=0.;
+  _S5totx=0.;
+  if (edepx>0){
+    _S1totx=ss1a[0]/edepx;
+    _S3totx=ss3a[0]/edepx;
+    _S5totx=ss5a[0]/edepx;
+  }
+  _S1toty=0.;
+  _S3toty=0.;
+  _S5toty=0.;
+  if (edepy>0){
+    _S1toty=ss1a[1]/edepy;
+    _S3toty=ss3a[1]/edepy;
+    _S5toty=ss5a[1]/edepy;
+  }
 
   //end LAPP
   //
@@ -2747,20 +2747,20 @@ void AMSEcalShower::EnergyFit(){
     }
     //X-side done
     //beginning Y-side:
-      if(_S13Ra[1]>ECREFFKEY.S1S3YA[3] && _S13Ra[1]<=ECREFFKEY.S1S3YA[2]){
-	_S13LeakYA0=ECREFFKEY.S1S3YA[0]*_S13Ra[1]+ECREFFKEY.S1S3YA[1]-1.;
-      }
-      else if(_S13Ra[1]<=ECREFFKEY.S1S3YA[3]){
-	_S13LeakYA0=ECREFFKEY.S1S3YA[0]*ECREFFKEY.S1S3YA[3]+ECREFFKEY.S1S3YA[1]-1.;
+    if(_S13Ra[1]>ECREFFKEY.S1S3YA[3] && _S13Ra[1]<=ECREFFKEY.S1S3YA[2]){
+      _S13LeakYA0=ECREFFKEY.S1S3YA[0]*_S13Ra[1]+ECREFFKEY.S1S3YA[1]-1.;
+    }
+    else if(_S13Ra[1]<=ECREFFKEY.S1S3YA[3]){
+      _S13LeakYA0=ECREFFKEY.S1S3YA[0]*ECREFFKEY.S1S3YA[3]+ECREFFKEY.S1S3YA[1]-1.;
 
-      }      
+    }      
    
 
-//begin lapp  impact-point correction for S35R x, y and ShowerLatDisp x, y:
+    //begin lapp  impact-point correction for S35R x, y and ShowerLatDisp x, y:
     //X side:
     if(_S13Ra[0]>ECREFFKEY.S3S5XA[0] && _S13Ra[0]<=ECREFFKEY.S3S5XA[1]){
-        _S35LeakXA=((ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*_S13Ra[0])/(ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*ECREFFKEY.S3S5XA[1]))-1.;
-        _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*_S13Ra[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
+      _S35LeakXA=((ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*_S13Ra[0])/(ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*ECREFFKEY.S3S5XA[1]))-1.;
+      _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*_S13Ra[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
     } 
     else if(_S13Ra[0]<=ECREFFKEY.S3S5XA[0] ){ 
       _S35LeakXA=((ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*ECREFFKEY.S3S5XA[0])/(ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*ECREFFKEY.S3S5XA[1]))-1.;
@@ -2768,50 +2768,50 @@ void AMSEcalShower::EnergyFit(){
     }
     //X-side done
     //beginning Y-side:
-        if(_S13Ra[1]>ECREFFKEY.S3S5YA[0] && _S13Ra[1]<=ECREFFKEY.S3S5YA[1]){
-        _S35LeakYA=((ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*_S13Ra[1])/(ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*ECREFFKEY.S3S5YA[1]))-1.;
-        _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*_S13Ra[1])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
+    if(_S13Ra[1]>ECREFFKEY.S3S5YA[0] && _S13Ra[1]<=ECREFFKEY.S3S5YA[1]){
+      _S35LeakYA=((ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*_S13Ra[1])/(ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*ECREFFKEY.S3S5YA[1]))-1.;
+      _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*_S13Ra[1])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
     } 
     else if(_S13Ra[1]<=ECREFFKEY.S3S5YA[0] ){ 
       _S35LeakYA=((ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*ECREFFKEY.S3S5YA[0])/(ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*ECREFFKEY.S3S5YA[1]))-1.;
       _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[0])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
     }   
-      /// end lapp  impact-point correction for S35R x, y
-        /*  
-//begin lapp  impact-point correction for ShowerLatDisp x, y:
+    /// end lapp  impact-point correction for S35R x, y
+    /*  
+    //begin lapp  impact-point correction for ShowerLatDisp x, y:
     //X side:
     if(_S13Ra[0]>ECREFFKEY.VarXA[0] && _S13Ra[0]<=ECREFFKEY.VarXA[1]){
-        _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*_S13Ra[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
+    _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*_S13Ra[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
     } 
     else if(_S13Ra[0]<=ECREFFKEY.VarXA[0] ){ 
-      _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
+    _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
     }
     //X-side done
     //beginning Y-side:
-        if(_S13Ra[1]>ECREFFKEY.VarYA[0] && _S13Ra[1]<=ECREFFKEY.VarYA[1]){
-        _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*_S13Ra[1])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
+    if(_S13Ra[1]>ECREFFKEY.VarYA[0] && _S13Ra[1]<=ECREFFKEY.VarYA[1]){
+    _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*_S13Ra[1])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
     } 
     else if(_S13Ra[1]<=ECREFFKEY.VarYA[0] ){ 
-      _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[0])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
+    _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[0])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
     }   
-      /// end lapp  impact-point correction for ShowerLatDisp x, y
-      */
-// Apply Impact point correction to S35Ra:
-        _S35Ra[0]=_S35Ra[0]/(1 +_S35LeakXA);
-        _S35Ra[1]=_S35Ra[1]/(1 +_S35LeakYA);
-//done Impact point correction to S35Ra
+    /// end lapp  impact-point correction for ShowerLatDisp x, y
+    */
+    // Apply Impact point correction to S35Ra:
+    _S35Ra[0]=_S35Ra[0]/(1 +_S35LeakXA);
+    _S35Ra[1]=_S35Ra[1]/(1 +_S35LeakYA);
+    //done Impact point correction to S35Ra
 
-   edepx=ep[0]/1000.;// redefine edepx from ep and express in GeV
-   edepy=ep[1]/1000.;// redefine edepy from ep and express in GeV
+    edepx=ep[0]/1000.;// redefine edepx from ep and express in GeV
+    edepy=ep[1]/1000.;// redefine edepy from ep and express in GeV
 
-   float erec_ipcorr= edepx/(1+_S13LeakXA0) + edepy/(1+_S13LeakYA0);  //energy w impact-point correction  (in GeV)
+    float erec_ipcorr= edepx/(1+_S13LeakXA0) + edepy/(1+_S13LeakYA0);  //energy w impact-point correction  (in GeV)
 
-   _Energy0A[0]=edepx/(1+_S13LeakXA0); //  Energy X-side w impact point correction in GeV
-   _Energy0A[1]=edepy/(1+_S13LeakYA0);  // Energy Y-side w impact point correction in GeV
+    _Energy0A[0]=edepx/(1+_S13LeakXA0); //  Energy X-side w impact point correction in GeV
+    _Energy0A[1]=edepy/(1+_S13LeakYA0);  // Energy Y-side w impact point correction in GeV
 
-   //end LAPP impact point-correction
+    //end LAPP impact point-correction
 
-   // begin LAPP hit multiplicity correction
+    // begin LAPP hit multiplicity correction
     float hitrx=nhitsx/((float)nhitshx);
     float hitry=nhitsy/((float)nhitshy);
 
@@ -2825,7 +2825,7 @@ void AMSEcalShower::EnergyFit(){
 
     erec_new= erec_new/ECREFFKEY.LAPPHitLeak[0];
 
-     // end LAPP hit multiplicity correction
+    // end LAPP hit multiplicity correction
 
     //Beginning LAPP rear leakage correction (implemented by M.P. on April 6, 2011, updated 20 March 2012)
    
@@ -2838,7 +2838,7 @@ void AMSEcalShower::EnergyFit(){
       corr_leak_f=ECREFFKEY.LAPPRearLeak[0]*exp(-ECREFFKEY.LAPPRearLeak[1]*pow(erec_ipcorr/((float)cofgl),ECREFFKEY.LAPPRearLeak[3]))-ECREFFKEY.LAPPRearLeak[2]*frac2;
     }
    
-// if (frac2>0.25){
+    // if (frac2>0.25){
     //     corr_leak_f=4.234*exp(-1.388*pow(erec_ipcorr/((float)cofgl),0.01))-1.604*frac2;
     //   }      
      
@@ -3029,6 +3029,11 @@ void AMSEcalShower::EnergyFit(){
   _AngleRes();
   _EnergyRes(); 
 
+
+
+  // anode efficiency correction layer by layer ( 2014 EnergyE calculation)
+  _ReFitDirCR();
+  _ReCalEnergy();
 }
 
 
@@ -3059,9 +3064,9 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 
 //______________________________________________________________________________
 double funcv2(float x, double *par){
-        //scale factor is set to 0.48 
-        double fitval = (x<par[2])?0.:(par[0]*0.48*TMath::Exp(-0.48*(x-par[2]))*pow(0.48*(x-par[2]),0.48*par[1])/TMath::Gamma(0.48*par[1]+1.));
-        return fitval;
+  //scale factor is set to 0.48 
+  double fitval = (x<par[2])?0.:(par[0]*0.48*TMath::Exp(-0.48*(x-par[2]))*pow(0.48*(x-par[2]),0.48*par[1])/TMath::Gamma(0.48*par[1]+1.));
+  return fitval;
 }
 
 void fcnv2(int &npar, double *gin, double &f, double *par, int iflag)
@@ -3126,148 +3131,148 @@ void AMSEcalShower::ZProfile()
   if (ratio>=0.5&&ratio<0.75) cory=1./(0.3749*ratio+0.7187);
 
   // Loop over 2d clusters
-    for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
-      // Number of 1d cluster in 2D cluster
-      necalcl=_pCl[cl2]->getNClust();
-      // Loop over 1d clusters in cluster 2d
-      for (int cl=0; cl<necalcl; cl++){
-	nhits_cl=_pCl[cl2]->getpClust(cl)->getNHits();
-	// Loop over hits in cluster 1d
-	for (int ie=0; ie<nhits_cl; ie++){ 
-	  plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
-	  if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep()))
-	    ECalEdepFrac[plane] += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	  etot += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	}
+  for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
+    // Number of 1d cluster in 2D cluster
+    necalcl=_pCl[cl2]->getNClust();
+    // Loop over 1d clusters in cluster 2d
+    for (int cl=0; cl<necalcl; cl++){
+      nhits_cl=_pCl[cl2]->getpClust(cl)->getNHits();
+      // Loop over hits in cluster 1d
+      for (int ie=0; ie<nhits_cl; ie++){ 
+	plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
+	if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep()))
+	  ECalEdepFrac[plane] += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	etot += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
       }
     }
+  }
   nbins=0;
   if(etot<=0)
-     return;
-    par2= 1.05*(log(_EnergyPIC*1000./(8.))-0.5);
-    //     std::cout << "EShower " <<  _EnergyPIC << std::endl;
-    for(int a=0;a<18;a++){
-      // Impact point correction layer by layer version #2
-      cora=1.;
-      if (((a/2)%2)==1&&corx>0.7) cora=corx;
-      if (((a/2)%2)==0&&cory>0.7) cora=cory;
-      fracv2[a] = ECalEdepFrac[a]/etot;	      
-      err = fracv2[a] * 0.1;  
-      if (err<.009&&etot<10000.) err=0.009;
-      if (err<.004&&etot>10000.) err=0.004;
-      zv2[a] = frac[a];
-      errorzv2[a] = err;
-      xv2[a]=(float) a;
+    return;
+  par2= 1.05*(log(_EnergyPIC*1000./(8.))-0.5);
+  //     std::cout << "EShower " <<  _EnergyPIC << std::endl;
+  for(int a=0;a<18;a++){
+    // Impact point correction layer by layer version #2
+    cora=1.;
+    if (((a/2)%2)==1&&corx>0.7) cora=corx;
+    if (((a/2)%2)==0&&cory>0.7) cora=cory;
+    fracv2[a] = ECalEdepFrac[a]/etot;	      
+    err = fracv2[a] * 0.1;  
+    if (err<.009&&etot<10000.) err=0.009;
+    if (err<.004&&etot>10000.) err=0.004;
+    zv2[a] = frac[a];
+    errorzv2[a] = err;
+    xv2[a]=(float) a;
 
-      frac[a] = ECalEdepFrac[a]/(_EnergyPIC*1000.);
-      err=(ECalEdepFrac[a]/(_EnergyPIC*1000.))*0.10; 
-      if (err<.009&&_EnergyPIC<1000.) err=0.009;
-      if (err<.004&&_EnergyPIC>1000.) err=0.004;
-      if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
-	if((par2>8&&a>4)||(par2<8&&a<15)){
-	  z[nbins] = frac[a];
-	  errorz[nbins] = err;
-	  x[nbins]=(float) a + 0.5;
-	  nbins++;
-	}
+    frac[a] = ECalEdepFrac[a]/(_EnergyPIC*1000.);
+    err=(ECalEdepFrac[a]/(_EnergyPIC*1000.))*0.10; 
+    if (err<.009&&_EnergyPIC<1000.) err=0.009;
+    if (err<.004&&_EnergyPIC>1000.) err=0.004;
+    if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
+      if((par2>8&&a>4)||(par2<8&&a<15)){
+	z[nbins] = frac[a];
+	errorz[nbins] = err;
+	x[nbins]=(float) a + 0.5;
+	nbins++;
       }
     }
+  }
 
 
 
-      Double_t arglist[10];
-      Double_t a1,erra1;
-      // The z values	
-      Double_t zprof[3],errprof[3];
-      xx=-1.;
-      int ix=-1;  
-      float zint=0.;
-      par0=1.;
-      par1=0.5; 
-      float erec0=1000.; 
-      Int_t ierflg = 0;
+  Double_t arglist[10];
+  Double_t a1,erra1;
+  // The z values	
+  Double_t zprof[3],errprof[3];
+  xx=-1.;
+  int ix=-1;  
+  float zint=0.;
+  par0=1.;
+  par1=0.5; 
+  float erec0=1000.; 
+  Int_t ierflg = 0;
 
-    if(nbins>3){
+  if(nbins>3){
 	 
-      // par2==zmax if the shower is an electromagnetic shower 
-      // Minuit
-      if (!ecalrec_ZProf::fMinuit) {
+    // par2==zmax if the shower is an electromagnetic shower 
+    // Minuit
+    if (!ecalrec_ZProf::fMinuit) {
 #pragma omp critical (tminuit)
-	ecalrec_ZProf::fMinuit = new TMinuit(3);
-      }		
-      TMinuit *minuit = ecalrec_ZProf::fMinuit;
+      ecalrec_ZProf::fMinuit = new TMinuit(3);
+    }		
+    TMinuit *minuit = ecalrec_ZProf::fMinuit;
 	
-      //Set Minuit print Options
-      minuit->SetPrintLevel(-1); 
-      minuit->SetFCN(fcn);
-      arglist[0]   = 1;
-      minuit->mnexcm("SET ERR", arglist ,1,ierflg);
-      // Set starting values and step sizes for parameters
-      Double_t vstart[3] = {par0,par1,par2};
-      Double_t step[3]   = {0.0001 , 0.0001 , .0001};
-      minuit->mnparm(0, "a1", vstart[0], step[0],0.2*par0,3.*par0,ierflg);
-      minuit->mnparm(1, "a2", vstart[1], step[1],0.,1.,ierflg);
-      minuit->mnparm(2, "a3", vstart[2], step[2],0.5*par2,3.*par2,ierflg);
-      // Now ready for minimization step
-      arglist[0] = 1000;
-      arglist[1] = 1;
-      minuit->mnexcm("MIGRAD", arglist ,2,ierflg);
-      // Print results
-      minuit->GetParameter(0,zprof[0],errprof[0]);
-      minuit->GetParameter(1,zprof[1],errprof[1]);
-      minuit->GetParameter(2,zprof[2],errprof[2]);
-      Double_t amin,edm,errdef;
-      Int_t nvpar,nparx,icstat;
-      minuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
-      _Zprofile[0] = zprof[0];
-      _Zprofile[2] = zprof[2];
-      _Zprofile[3] = par2;
-      _Zprofile[1] = zprof[1];
-      _ZprofileChi2 = amin/(nbins-3);
-    }
+    //Set Minuit print Options
+    minuit->SetPrintLevel(-1); 
+    minuit->SetFCN(fcn);
+    arglist[0]   = 1;
+    minuit->mnexcm("SET ERR", arglist ,1,ierflg);
+    // Set starting values and step sizes for parameters
+    Double_t vstart[3] = {par0,par1,par2};
+    Double_t step[3]   = {0.0001 , 0.0001 , .0001};
+    minuit->mnparm(0, "a1", vstart[0], step[0],0.2*par0,3.*par0,ierflg);
+    minuit->mnparm(1, "a2", vstart[1], step[1],0.,1.,ierflg);
+    minuit->mnparm(2, "a3", vstart[2], step[2],0.5*par2,3.*par2,ierflg);
+    // Now ready for minimization step
+    arglist[0] = 1000;
+    arglist[1] = 1;
+    minuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+    // Print results
+    minuit->GetParameter(0,zprof[0],errprof[0]);
+    minuit->GetParameter(1,zprof[1],errprof[1]);
+    minuit->GetParameter(2,zprof[2],errprof[2]);
+    Double_t amin,edm,errdef;
+    Int_t nvpar,nparx,icstat;
+    minuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+    _Zprofile[0] = zprof[0];
+    _Zprofile[2] = zprof[2];
+    _Zprofile[3] = par2;
+    _Zprofile[1] = zprof[1];
+    _ZprofileChi2 = amin/(nbins-3);
+  }
 
   // Fit Version #2 
-        float par3=1.;
-        par0=1.; 
-    // Minuit
-      if (!ecalrec_ZProf::fMinuitv2) {
+  float par3=1.;
+  par0=1.; 
+  // Minuit
+  if (!ecalrec_ZProf::fMinuitv2) {
 #pragma omp critical (tminuit)
-        ecalrec_ZProf::fMinuitv2 = new TMinuit(3);
-      }         
-      TMinuit *minuitv2 = ecalrec_ZProf::fMinuitv2;
-      minuitv2->SetPrintLevel(-1);
-        minuitv2->SetFCN(fcnv2);
-        arglist[0]=2;
-        minuitv2->mnexcm("SET ERR",arglist,1,ierflg);
-        minuitv2->mnparm(0, "Normalisation", par0 , 0.1,0.,2.,ierflg);
-        minuitv2->mnparm(1, "Zmax", par2, 0.1,.5*par2,1.5*par2,ierflg);
-        minuitv2->mnparm(2, "Zshift", par3 , 0.5,-2.,18.,ierflg);
-        arglist[0]=400;
-        minuitv2->mnexcm("MIGRAD",arglist,1,ierflg);
-        minuitv2->GetParameter(0,zprof[0],errprof[0]);
-        minuitv2->GetParameter(1,zprof[1],errprof[1]);
-        minuitv2->GetParameter(2,zprof[2],errprof[2]);
-        float delta=0.;
-	_ZprofileChi2 = 0.;
-	for (int i=0;i<18; i++) {
-            delta = (zv2[i]-funcv2(xv2[i],zprof))/errorzv2[i];
-            _ZprofileChi2 += delta*delta;
-        }
-      _Zprofilev2[0] = zprof[0];
-      _Zprofilev2[2] = zprof[2];
-      _Zprofilev2[3] = par2;
-      _Zprofilev2[1] = zprof[1];
+    ecalrec_ZProf::fMinuitv2 = new TMinuit(3);
+  }         
+  TMinuit *minuitv2 = ecalrec_ZProf::fMinuitv2;
+  minuitv2->SetPrintLevel(-1);
+  minuitv2->SetFCN(fcnv2);
+  arglist[0]=2;
+  minuitv2->mnexcm("SET ERR",arglist,1,ierflg);
+  minuitv2->mnparm(0, "Normalisation", par0 , 0.1,0.,2.,ierflg);
+  minuitv2->mnparm(1, "Zmax", par2, 0.1,.5*par2,1.5*par2,ierflg);
+  minuitv2->mnparm(2, "Zshift", par3 , 0.5,-2.,18.,ierflg);
+  arglist[0]=400;
+  minuitv2->mnexcm("MIGRAD",arglist,1,ierflg);
+  minuitv2->GetParameter(0,zprof[0],errprof[0]);
+  minuitv2->GetParameter(1,zprof[1],errprof[1]);
+  minuitv2->GetParameter(2,zprof[2],errprof[2]);
+  float delta=0.;
+  _ZprofileChi2 = 0.;
+  for (int i=0;i<18; i++) {
+    delta = (zv2[i]-funcv2(xv2[i],zprof))/errorzv2[i];
+    _ZprofileChi2 += delta*delta;
+  }
+  _Zprofilev2[0] = zprof[0];
+  _Zprofilev2[2] = zprof[2];
+  _Zprofilev2[3] = par2;
+  _Zprofilev2[1] = zprof[1];
   _EnergyF = etot * zprof[0];  	
 
 
   // Normalised energy dep frac
   if(etot>0.&&etot<10000000.){
     for(int a=0;a<18;a++)
-	_EcalEdepFrac[a] = ECalEdepFrac[a] / etot;
+      _EcalEdepFrac[a] = ECalEdepFrac[a] / etot;
   }
   else{
     for(int a=0;a<18;a++)
-	_EcalEdepFrac[a] = -1.;
+      _EcalEdepFrac[a] = -1.;
   }	
   return;
 }
@@ -3300,17 +3305,17 @@ void AMSEcalShower::LAPPVariables(){
   float edep_layer[18];
   int nhitcell[18]={0.};
   for (int elay=0; elay<18; elay++){
-      bcell_lat[elay]=0.;
-      bcell2_lat[elay]=0.;
-      bcell_latx[elay]=0.;
-      bcell_laty[elay]=0.;
-      s_cell_w[elay]=0.;
-      s_cell2_w[elay]=0.; 
-      edep_layer[elay]=0.;
-      nhitcell[elay]=0;
-      for (int icell=0; icell<72; icell++){
-          edep_cell[elay][icell]=0.;
-      }    
+    bcell_lat[elay]=0.;
+    bcell2_lat[elay]=0.;
+    bcell_latx[elay]=0.;
+    bcell_laty[elay]=0.;
+    s_cell_w[elay]=0.;
+    s_cell2_w[elay]=0.; 
+    edep_layer[elay]=0.;
+    nhitcell[elay]=0;
+    for (int icell=0; icell<72; icell++){
+      edep_cell[elay][icell]=0.;
+    }    
   }  
   int necalcl=0;
   int ihit,cell,plane,proj;
@@ -3340,11 +3345,11 @@ void AMSEcalShower::LAPPVariables(){
 
 	if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep())){
             
-	   edep_layer[plane]      += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	   edep_cell[plane][cell] =  _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	   s_cell_w[plane]        += (cell+1)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	   s_cell2_w[plane]       += pow((cell+1),2.)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();          
-	   nhitcell[plane]++;
+	  edep_layer[plane]      += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	  edep_cell[plane][cell] =  _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	  s_cell_w[plane]        += (cell+1)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	  s_cell2_w[plane]       += pow((cell+1),2.)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();          
+	  nhitcell[plane]++;
         }
         
       }
@@ -3392,20 +3397,20 @@ void AMSEcalShower::LAPPVariables(){
     }
   }
 
-// Apply Impact point correction to ShowerLatDisp x,y:
+  // Apply Impact point correction to ShowerLatDisp x,y:
   _ShowerLatDispx=_ShowerLatDispx/(1+_VarLeakXA);
   _ShowerLatDispy=_ShowerLatDispy/(1+_VarLeakYA);
-//done Impact point correction to ShowerLatDisp x, y
+  //done Impact point correction to ShowerLatDisp x, y
 
   _NbLayerX = nbcellx;
   _NbLayerY = nbcelly;
 
   //Compute longitudinal dispersions
   if(edep_tot>0.){
-      _ShowerLongDisp =bplane2/edep_tot-pow((bplane/edep_tot),2);
+    _ShowerLongDisp =bplane2/edep_tot-pow((bplane/edep_tot),2);
   }  
   else{
-      _ShowerLongDisp = -1.; 
+    _ShowerLongDisp = -1.; 
   }
 
   edep_tot=edep_totx+edep_toty;
@@ -3415,10 +3420,10 @@ void AMSEcalShower::LAPPVariables(){
 
   //Compute shower shower Cofg_z
   if(edep_tot>0.){
-      bplane=bplane/edep_tot;
+    bplane=bplane/edep_tot;
   } 
   else { 
-      bplane = -1000.;  
+    bplane = -1000.;  
   }
 
   //Compute shower CofG x,y 
@@ -4178,3 +4183,503 @@ void AMSEcalShower::_copyEl(){
   }
 #endif
 }  
+
+void AMSEcalShower::_ReFitDirCR(){
+
+  const static double CellWidth=0.9;
+  float CooCOG[18];
+
+  const static double UM2CM = 1.*1e-4;
+
+  //Par for CR
+  Double_t P_1x_ISS[3] = { 6.44811, 2.0972, 0.323359 }; //ISS
+  Double_t P_2x_ISS[3] = { -0.397205, 0.0319445, 1.86641};//ISS
+  Double_t P_1y_ISS[3] = {  6.43306, 1.73144, 0.0791552 }; //ISS
+  Double_t P_2y_ISS[3] = { -1.09495, 0.107193, 0.232615 }; //ISS
+
+
+  Double_t P_1x_MC[3] = { 6.99937, 0.0813625, 0.00474232 }; //MC
+  Double_t P_2x_MC[3] = { -0.393693, 0.0240556, 11.3286};//MC
+  Double_t P_1y_MC[3] = { 6.81918, 2.39385, 0.117458 }; //MC
+  Double_t P_2y_MC[3] = {-0.408571, 0.0277098, 1.24271 }; //MC
+
+  Double_t P1[2];   //[0] for X, [1] for y
+  Double_t P2[2];   //[0] for x, [1] for y
+  if (AMSJob::gethead()->isMCData()){
+    P1[0] = P_1x_MC[0] - P_1x_MC[1]*TMath::Exp(-1. * P_1x_MC[2]*_EnergyPIC);
+    if(_EnergyPIC>0)P2[0] = P_2x_MC[0] + P_2x_MC[1]*TMath::Log(_EnergyPIC) + TMath::Power(_EnergyPIC,-1.*P_2x_MC[2]);
+    else P2[0] = 0.;
+    P1[1] = P_1y_MC[0] - P_1y_MC[1]*TMath::Exp(-1. * P_1y_MC[2]*_EnergyPIC);
+    if(_EnergyPIC>0)P2[1] = P_2y_MC[0] + P_2y_MC[1]*TMath::Log(_EnergyPIC) + TMath::Power(_EnergyPIC,-1.*P_2y_MC[2]);
+    else P2[1] = 0.;
+  }
+  else{
+    P1[0] = P_1x_ISS[0] - P_1x_ISS[1]*TMath::Exp(-1. * P_1x_ISS[2]*_EnergyPIC);
+    if(_EnergyPIC>0)P2[0] = P_2x_ISS[0] + P_2x_ISS[1]*TMath::Log(_EnergyPIC) + TMath::Power(_EnergyPIC,-1.*P_2x_ISS[2]);
+    else P2[0] = 0.;
+    P1[1] = P_1y_ISS[0] - P_1y_ISS[1]*TMath::Exp(-1. * P_1y_ISS[2]*_EnergyPIC);
+    if(_EnergyPIC>0)P2[1] = P_2y_ISS[0] + P_2y_ISS[1]*TMath::Log(_EnergyPIC) + TMath::Power(_EnergyPIC,-1.*P_2y_ISS[2]);
+    else P2[1] = 0.;
+  }
+
+    
+  //Par for Linear fit Weight of CR Methode
+  Double_t WeightPar_ISS[18][3] ={ //ISS
+    2.21605   ,   -2.1036  ,   0.000247644   ,
+    2.19426   ,   -2.01735  ,   -0.000177171   ,
+    0.598035   ,  -0.505857 ,   -0.0398346   ,
+    1.33065   ,   -1.30213  ,   -0.026076   ,
+    2.43469 , -2.4352 , -0.0102615,
+    5.42861 , -5.44565 , -0.00528856,
+    5.6952 , -5.80503 , -0.00972158,
+    14.8548 , -14.9397 , -0.00335767,
+    143.378 , -143.438 , -0.000222705,
+    11.0292 , -11.1681 , -0.00311395,
+    88.3388 , -88.5045 , -0.000432378,
+    264.127 , -264.315 , -0.000122839,
+    8.89312 , -8.98343 , -0.00202462,
+    200.187 , -200.268 , -6.62233e-05,
+    208.756 , -208.864 , -6.28318e-05,
+    11.6781 , -11.7483 , -0.000759786,
+    2.17098 , -2.19247 , -0.00181211,
+    2.22295 , -2.22983 , -0.000909882
+  };
+
+    
+  Double_t WeightPar_MC[18][3] ={ //MC
+    5.17953  , -5.08484  ,  1.47755e-06  ,
+    5.2431  , -4.99729  ,  -1.08931e-06  ,
+    0.869854  , -0.599749  ,  -0.0116514  ,
+    2.2637  , -2.02706  ,  -0.00776025  ,
+    4.5917  , -4.43558  ,  -0.00348769  ,
+    7.30869  , -7.11846  ,  -0.00274286  ,
+    11.5314  , -11.2963  ,  -0.00349027  ,
+    15.0101  , -14.8141  ,  -0.00287746  ,
+    20.6217  , -20.5361  ,  -0.00150433  ,
+    23.2943  , -23.333  ,  -0.00135089  ,
+    33.9453  , -34.1189  ,  -0.00123685  ,
+    30.9135  , -31.2807  ,  -0.00127686  ,
+    31.9754  , -32.1955  ,  -0.000708125  ,
+    37.6698  , -37.9253  ,  -0.00050569  ,
+    24.5923  , -24.8841  ,  -0.000783484  ,
+    32.3625  , -32.6477  ,  -0.000466563  ,
+    32.0213  , -32.2323  ,  -0.000290185  ,
+    38.4202  , -38.5792  ,  -0.000163912
+  };
+   
+
+  Double_t LFWeight[18];
+  for(int il=0;il<18;il++){
+    if (AMSJob::gethead()->isMCData()){
+      LFWeight[il] = WeightPar_MC[il][0] + WeightPar_MC[il][1]*TMath::Exp(WeightPar_MC[il][2]*_EnergyPIC);
+    }
+    else{
+      LFWeight[il] = WeightPar_ISS[il][0] + WeightPar_ISS[il][1]*TMath::Exp(WeightPar_ISS[il][2]*_EnergyPIC);
+    }
+    
+    if(LFWeight[il]<0.05)LFWeight[il]=0.05;
+    if(LFWeight[il]>5.)LFWeight[il]=5.;
+  }
+  
+
+  //Par for Linear fit Weight of COG Method
+  Double_t WPCOG0[3] = {5.10998,1.30892,-7.18807};
+  Double_t WP_COG0;
+  if(_EnergyPIC+WPCOG0[2]>0)Double_t WP_COG0 = WPCOG0[0] + WPCOG0[1]*TMath::Log(_EnergyPIC+WPCOG0[2]);
+  else WP_COG0 = 0.; 
+  Double_t WPCOG1[5] = {1.54966, -6.22604e-08,-0.0103966,0.610089,-5.06742};
+  Double_t WP_COG1;
+  if(_EnergyPIC+WPCOG1[4]>0)WP_COG1 = WPCOG1[0] - WPCOG1[1]*TMath::Exp(-1.*WPCOG1[2]*_EnergyPIC)+WPCOG1[3]*TMath::Log(_EnergyPIC + WPCOG1[4]);
+  else WP_COG1 =0.;
+  Double_t WPCOG2[5] = {-30.6324,-7.22955,0.00115106,3.9701,389.901};
+  Double_t WP_COG2;
+  if(_EnergyPIC+WPCOG2[4]>0) WP_COG2 = 1./(WPCOG2[0]-WPCOG2[1]*TMath::Exp(-1.*WPCOG2[2]*_EnergyPIC)+WPCOG2[3]*TMath::Log(_EnergyPIC+WPCOG2[4]));
+  else WP_COG2 = 0.;
+  
+  
+
+  Double_t COOCR[18];
+  Double_t Sigma[18];
+  Double_t CooTrans[3][18];
+  Double_t EdepCellRatio[18];
+  Double_t Alpha[18];
+  Double_t DisLeft[18];
+  Double_t RecCoo[18];
+  Double_t Weight[18];
+
+  Double_t ThetaEcal;
+  Double_t AngleTrk[3];
+  Double_t AngleEcal[3];
+
+  memset(CooTrans,0,sizeof(CooTrans));
+  memset(EdepCellRatio,0,sizeof(EdepCellRatio));
+  memset(Alpha,0,sizeof(Alpha));
+  memset(DisLeft,0,sizeof(DisLeft));
+  memset(RecCoo,0,sizeof(RecCoo));
+  memset(_CooCR,0,sizeof(_CooCR));
+  memset(Weight,0,sizeof(Weight));
+  memset(AngleTrk,0,sizeof(AngleEcal));
+  memset(AngleEcal,0,sizeof(AngleEcal));
+  memset(_CellEdep,0,sizeof(_CellEdep));
+
+  for(int i=0;i<_N2dCl;i++){
+    for(int j=0;j<_pCl[i]->getNClust();j++){
+      for (int k=0;k<_pCl[i]->getpClust(j)->getNHits();k++){
+	AMSEcalHit * phit=_pCl[i]->getpClust(j)->getphit(k);
+	_CellEdep[phit->getplane()][phit->getcell()]+=phit->getedep();
+      }
+    }
+  }
+  int normal =0;
+  //Calculate COOCOG & COOCR
+  for(int il =0;il<18;il++){
+    int proj = 1- il/2%2;   //0 for x, 1 for y;
+    normal = 1;
+    Alpha[il] =  -1.*P1[proj] - P2[proj]*(il+0.5);  //Used for Calculate COOCR for layer
+
+    //Find Bin_Max in the Layer;
+    float tmpedepmax = -1.;
+    int tmpcellmax = -1; 
+    for(int ic=0;ic<72;ic++){
+      if(_CellEdep[il][ic] >tmpedepmax){
+	tmpedepmax = _CellEdep[il][ic];
+	tmpcellmax = ic;
+      }
+    }
+    int pmtside = tmpcellmax/2%2;
+    
+    //Caculate CooCOG
+    Double_t tmpcoo=0.;
+    Double_t eccl = 0.;
+    for(int ic=0;ic<72;ic++){
+      if(_CellEdep[il][ic]>0) tmpcoo += _CellEdep[il][ic] * (ic+0.5);
+      eccl += _CellEdep[il][ic];
+    }
+    if(eccl>0) tmpcoo/=eccl;
+    else tmpcoo =-9999.;
+    CooCOG[il] = (tmpcoo - 36)*CellWidth;
+    //Ecal Track Alignment
+    if(AMSJob::gethead()->isMCData()){
+      CooCOG[il] -= ECCommonOffSetMC[proj]; // MC
+    }
+    else{
+      if(AMSEvent::gethead()->getrun()<1305763200){
+	CooCOG[il] -= ECCommonOffSetBT[proj]; // Test Beam
+      }
+      else  CooCOG[il] -= ECCommonOffSetISS[proj]; // ISS
+    }
+    //Side Shift
+    if(AMSJob::gethead()->isMCData()){
+      CooCOG[il] += UM2CM * ECOffSetMC[il][pmtside]; // MC
+    }
+    else{
+      if(AMSEvent::gethead()->getrun()<1305763200){
+	CooCOG[il] += UM2CM * ECOffSetBT[il][pmtside]; // Test Beam
+      }
+      else  CooCOG[il] += UM2CM*ECOffSetISS[il][pmtside]; // ISS
+    }
+
+    //Calculate CooCR
+    if(tmpcellmax ==0 || tmpcellmax == 71){
+      _CooCR[il] = -9999.;
+    }
+    else{
+      if(_CellEdep[il][tmpcellmax+1]>0.&&_CellEdep[il][tmpcellmax-1]>0.){
+	_CooCR[il] = tmpcellmax + 0.5 + TMath::Log(_CellEdep[il][tmpcellmax-1]/_CellEdep[il][tmpcellmax+1])/Alpha[il];
+	//Convert Cell Unit to cm
+	_CooCR[il] -= 36;
+	_CooCR[il] *= CellWidth;
+	
+	//Ecal Track Alignment and Side Shift 
+	if(AMSJob::gethead()->isMCData()){
+	  _CooCR[il] -= ECCommonOffSetMC[proj]; // MC 
+	  _CooCR[il] += UM2CM * ECOffSetMC[il][pmtside];
+	}
+	else{
+	  if(AMSEvent::gethead()->getrun()<1305763200){
+	    _CooCR[il] -= ECCommonOffSetBT[proj]; // Test Beam
+	    _CooCR[il] += UM2CM*ECOffSetBT[il][pmtside];
+	  }
+	  else{
+	    _CooCR[il] -= ECCommonOffSetISS[proj]; // ISS 
+	    _CooCR[il] += UM2CM*ECOffSetISS[il][pmtside];
+	  }
+	}
+      }
+      else{
+	_CooCR[il] = -9999.;
+      }
+    }
+  }
+
+  //Do Linear Fit in XZ and YZ plane to get kx and ky with COOCOG
+  Float_t coocr[18];
+  _KCR[0]=0.;
+  _KCR[1]=0.;
+
+  //Calculate Weight used for Linear Fit  Weight = 1/Sigma_pos_layer/Sigma_pos_layer(mm^-2), minimum = 1/4.5/4.5=0.05, Maximum 1/0.45/0.45 = 5;
+  for(int il=0;il<18;il++){
+    //Weight[il] = elayer[il];
+    if(CooCOG[il] >-100){
+      coocr[il] = CooCOG[il]; 
+        
+      if(WP_COG1>0&&WP_COG2>0){
+	Weight[il] =  WP_COG0*TMath::GammaDist(il+0.5,WP_COG1,0,WP_COG2);;
+	if(Weight[il]<0.05)  Weight[il] = 0.05; //Minimum Weight for C.O.G
+	if(Weight[il]>4)  Weight[il] = 4.;  //Maximum weight for C.O.G
+      }
+      else Weight[il] =0.05;
+    }
+    else Weight[il] =0.;
+  }
+
+  Double_t sumz2=0.,sumy=0.,sumyz=0.,sumw=0.,sumz=0.;
+  for(int isl=0;isl<9;isl+=2){
+    for(int il=2*isl;il<2*isl +2;il++){
+      if(coocr[il]<32.4 && coocr[il] > -32.4&&Weight[il]>0){
+	Double_t tmpz = EClayer_Z[il]-_CofG[2];
+	sumz2 += Weight[il] * tmpz*tmpz;
+	sumy += Weight[il]*coocr[il];
+	sumyz += Weight[il]*coocr[il]*tmpz;
+	sumw += Weight[il];
+	sumz += Weight[il] * tmpz;
+      }
+    }
+  }
+  if(sumw*sumz2-sumz*sumz>0){
+    _CooNew[1] = (sumz2*sumy - sumz * sumyz)/(sumw*sumz2-sumz*sumz);
+    _KCR[1] = (sumw*sumyz - sumz*sumy)/(sumw*sumz2 - sumz*sumz);
+  }
+  else { 
+    _CooNew[1] = -99999.;
+    _KCR[1]=-99999.;
+  }
+  
+  sumz2=0;
+  sumw=0;
+  sumz=0;
+  float sumx=0,sumxz=0;
+  for(int isl=1;isl<9;isl+=2){
+    for(int il=2*isl;il<2*isl +2;il++){
+      if(coocr[il]<32.4 && coocr[il] > -32.4&&Weight[il]>0){
+	Double_t tmpz =  EClayer_Z[il]-_CofG[2];
+	sumz2 += Weight[il] * tmpz*tmpz;
+	sumx += Weight[il]*coocr[il];
+	sumxz += Weight[il]*coocr[il]*tmpz;
+	sumw += Weight[il];
+	sumz += Weight[il] * tmpz;
+      }
+    }
+  }
+  if(sumw*sumz2-sumz*sumz>0){
+    _CooNew[0] = (sumz2*sumx - sumz * sumxz)/(sumw*sumz2-sumz*sumz);
+    _KCR[0] = (sumw*sumxz - sumz*sumx)/(sumw*sumz2 - sumz*sumz);
+  }
+  else { 
+    _CooNew[0]=-1;
+    _KCR[0]=-99999.;
+  }
+  _CooNew[2] = _CofG[2];
+
+
+  //Add Fiber Rotation to CooCR[il]
+  for(int il=0;il<18;il++){
+    //Find Bin_Max in the Layer;
+    float tmpedepmax = -1.;
+    int tmpcellmax = -1; 
+    for(int ic=0;ic<72;ic++){
+      if(_CellEdep[il][ic] >tmpedepmax){
+	tmpedepmax = _CellEdep[il][ic];
+	tmpcellmax = ic;
+      }
+    }
+    double coof = il/2%2==0?(EClayer_Z[il]-_CofG[2])*_KCR[0]+_CooNew[0]:(EClayer_Z[il]-_CofG[2])*_KCR[1]+_CooNew[1];
+    if(coof>32.4)coof=32.4;
+    if(coof<-32.4)coof=-32.4;
+    if( tmpcellmax/2%2==il/2%2 ){
+      _CooCR[il] += ECfiberRotation[il/2]*(coof + 32.4);
+    }
+    else{
+      _CooCR[il] += ECfiberRotation[il/2]*(coof - 32.4);
+    }
+  }
+  
+  //Second loop
+  //Do Linear Fit in XZ and YZ plane to get kx and ky using COOCR
+  _KCR[0]=0.;
+  _KCR[1]=0.;
+
+  //init values
+  sumz2=0.;sumy=0.;sumyz=0.;sumw=0.;sumz=0.;
+  sumx=0;sumxz=0;
+  //Calculate Weight used for Linear Fit;
+  for(int il=0;il<18;il++){
+    if(_CooCR[il]>-100){
+      coocr[il] = _CooCR[il];
+      Weight[il] = LFWeight[il];
+    }
+    else{
+      if(CooCOG[il] >-100){
+	coocr[il] = CooCOG[il]; 
+	//Weight[il] = elayer[il];
+	if(WP_COG1>0&&WP_COG2>0){
+	  Weight[il] =  WP_COG0*TMath::GammaDist(il+0.5,WP_COG1,0,WP_COG2);;
+	  if(Weight[il]<0.05)Weight[il] = 0.05;
+	  if(Weight[il]>4)Weight[il] = 4;
+	}
+	else Weight[il] =0.05;
+      }
+      else Weight[il] =0.;
+    }
+  }
+
+  for(int isl=0;isl<9;isl+=2){
+    for(int il=2*isl;il<2*isl +2;il++){
+      if(coocr[il]<32.4 && coocr[il] > -32.4&&Weight[il]>0){
+	Double_t tmpz = EClayer_Z[il]-_CofG[2];
+	sumz2 += Weight[il] * tmpz*tmpz;
+	sumy += Weight[il]*coocr[il];
+	sumyz += Weight[il]*coocr[il]*tmpz;
+	sumw += Weight[il];
+	sumz += Weight[il] * tmpz;
+      }
+    }
+  }
+  if(sumw*sumz2-sumz*sumz>0){
+    _CooNew[1] = (sumz2*sumy - sumz * sumyz)/(sumw*sumz2-sumz*sumz);
+    _KCR[1] = (sumw*sumyz - sumz*sumy)/(sumw*sumz2 - sumz*sumz);
+  }
+  else { 
+    _CooNew[1] = -99999.;
+    _KCR[1]=-99999.;
+  }
+  
+  sumz2=0;
+  sumw=0;
+  sumz=0;
+  sumx=0;
+  sumxz=0;
+  for(int isl=1;isl<9;isl+=2){
+    for(int il=2*isl;il<2*isl +2;il++){
+      if(coocr[il]<32.4 && coocr[il] > -32.4&&Weight[il]>0){
+	Double_t tmpz =  EClayer_Z[il]-_CofG[2];
+	sumz2 += Weight[il] * tmpz*tmpz;
+	sumx += Weight[il]*coocr[il];
+	sumxz += Weight[il]*coocr[il]*tmpz;
+	sumw += Weight[il];
+	sumz += Weight[il] * tmpz;
+      }
+    }
+  }
+  if(sumw*sumz2-sumz*sumz>0){
+    _CooNew[0] = (sumz2*sumx - sumz * sumxz)/(sumw*sumz2-sumz*sumz);
+    _KCR[0] = (sumw*sumxz - sumz*sumx)/(sumw*sumz2 - sumz*sumz);
+  }
+  else { 
+    _CooNew[0]=-1;
+    _KCR[0]=-99999.;
+  }
+  _CooNew[2] = _CofG[2];
+  //Done _KCR and _CooNew Calculation
+}
+
+void AMSEcalShower::_ReCalEnergy(){
+  const static double CellWidth=0.9;
+  const static double UM2CM = 1.*1e-4;
+
+  //Sigma need to be refined.
+  //ISS
+  double aa = 0.336094;
+  double bb[3] = {0.0848548,0.0870487,-0.0315658};
+  //MC
+  double a1 = aa;
+  double b1 = bb[0] + bb[1] * TMath::Exp(bb[2]*_EnergyPIC);
+   
+  double Elpmteffsigma[18];
+
+  double kk = TMath::Sqrt(1. + _KCR[0]*_KCR[0]+_KCR[1]*_KCR[1]);
+  double kk1 = TMath::Sqrt(1. + 0.1228*0.1228);
+     
+  for(int il=0;il<18;il++){
+    Elpmteffsigma[il] = a1+b1*(il+0.5)*kk;
+    if(Elpmteffsigma[il]<.5)Elpmteffsigma[il]=0.55;
+  }
+
+  //Last Layer Correction
+  double LastFrac_ECorrParA = 1.07346;
+  double LastFrac_ECorrParB = -1.64638;
+
+  float NewEnergyD =0.;
+  float EnergyD_Corr = 0.;
+  float elayer[18];
+  float elayer_corr[18];
+
+
+  for(int il=0;il<18;il++){
+    elayer[il] = 0.;
+    for(int ic=0;ic<72;ic++){
+      if(_CellEdep[il][ic]>0) elayer[il] += _CellEdep[il][ic];
+    }
+    NewEnergyD += elayer[il];
+    int proj = 1- il/2%2;   //0 for x, 1 for y;
+    float tmppos;
+    float coofit = _CooNew[proj] + _KCR[proj]*(EClayer_Z[il]-_CofG[2]);
+    if(_CooCR[il]>-33&&_CooCR[il]<33)tmppos = _CooCR[il] ;
+    else tmppos = coofit ;
+    //tmppos = coofit;
+               
+    //Ecal Track Alignment
+    if(AMSJob::gethead()->isMCData()){
+      tmppos += ECCommonOffSetMC[proj]; // MC 
+    }
+    else{
+      if(AMSEvent::gethead()->getrun()<1305763200){
+	tmppos += ECCommonOffSetBT[proj]; // Test Beam 
+      } 
+      else{
+	tmppos += ECCommonOffSetISS[proj]; // ISS 
+      }
+    }
+    int tmpcellmax = (int)(tmppos/CellWidth) +36;
+    int pmtside = tmpcellmax /2%2;
+    //Side Shift
+    if(AMSJob::gethead()->isMCData()){
+      tmppos -= UM2CM * ECOffSetMC[il][pmtside]; // MC
+    }
+    else{
+      if(AMSEvent::gethead()->getrun()<1305763200){
+	tmppos -= UM2CM * ECOffSetBT[il][pmtside]; // Test Beam
+      } 
+      else{
+	tmppos -= UM2CM*ECOffSetISS[il][pmtside]; // ISS
+      }
+    }
+
+    //Fiber Rotation
+    double coof = il/2%2==0?(EClayer_Z[il]-_CofG[2])*_KCR[0]+_CooNew[0]:(EClayer_Z[il]-_CofG[2])*_KCR[1]+_CooNew[1];
+    if(coof>32.4)coof=32.4;
+    if(coof<-32.4)coof=-32.4;
+    if( tmpcellmax/2%2==il/2%2 ){
+      tmppos -= ECfiberRotation[il/2]*(coof + 32.4);
+    }
+    else{
+      tmppos -= ECfiberRotation[il/2]*(coof - 32.4);
+    }
+
+    tmppos /= CellWidth ;
+    float pmtpos = tmppos - TMath::FloorNint(tmppos);
+
+    elayer_corr[il] = elayer[il] /TMath::Gaus(pmtpos,0.5,Elpmteffsigma[il]);
+    EnergyD_Corr += elayer_corr[il];
+  }
+  
+  if(EnergyD_Corr!=0&&(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr<0.5){
+    _EnergyH = EnergyD_Corr/1000./(LastFrac_ECorrParA + LastFrac_ECorrParB*(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr);
+  }
+  else{
+    _EnergyH=EnergyD_Corr+elayer_corr[16]+elayer_corr[17];
+  }
+
+  NewEnergyD /=1000.;
+  EnergyD_Corr /=1000.;
+}
