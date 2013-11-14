@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.581 2013/11/12 14:59:48 qyan Exp $
+//  $Id: root.h,v 1.582 2013/11/14 21:43:57 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -736,11 +736,13 @@ public:
   float EnergyD; ///< energy deposit (Mev)
   float EnergyC; ///< shower energy (gev) - old version
   float EnergyE; ///< shower reconstructed energy (GeV)
+  float EnergyE2014; ///< shower reconstructed energy (GeV) since november 2013
   float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
   float  S13R;        ///< S1/S3 Ratio
   float  S13Rpi[2];  ///< S1/S3 Ratio for X and Y view
   float ErEnergyC;   ///< energy error (gev) - old version
   float ErEnergyE;   ///< energy error (gev) - Pisa version
+  float ErEnergyE2014;   ///< energy error (gev) - Pisa version since nov 2013
   float DifoSum;     ///<  (E_x-E_y)/(E_x+E_y)
   float SideLeak;    ///< rel side leak
   float RearLeak;    ///< rel rear leak
@@ -929,7 +931,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,16)       //EcalShowerR
+  ClassDef(EcalShowerR,17)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
