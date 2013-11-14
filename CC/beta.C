@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.95 2013/11/13 21:02:29 oliva Exp $
+//  $Id: beta.C,v 1.96 2013/11/14 23:35:39 shaino Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -15,9 +15,9 @@
 #include "trigger302.h"
 #include "event.h"
 #include "trdrec.h"
-#include "tkdcards.h"
 #include "HistoMan.h"
 #ifdef _PGTRACK_
+#include "tkdcards.h"
 #include "tkpatt.h"
 #include "TrRecon.h"
 #endif
