@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.582 2013/11/14 21:43:57 sdifalco Exp $
+//  $Id: root.h,v 1.583 2013/11/14 23:35:58 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -483,7 +483,7 @@ int get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double 
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,22)       //HeaderR
+  ClassDef(HeaderR,23)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -6659,7 +6659,7 @@ void         AddAMSObject(TriggerLVL302 *ptr);
 void RebuildBetaH();
 void RebuildMCEventg();
 friend class AMSChain;
-ClassDef(AMSEventR,23)       //AMSEventR
+ClassDef(AMSEventR,24)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
