@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.88 2013/10/19 04:39:09 qyan Exp $
+//  $Id: root_setup.h,v 1.89 2013/11/14 08:46:32 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -838,6 +838,7 @@ static int _select (const dirent64 * entry);
  void ResetMC();
  int GetEntry(unsigned int run,unsigned int event); ///< GetEntry for run,event; return -1 if not found
  AMSSetupR();
+ static bool LoadISSMC;///< Load/Not LOAd ISS info for the MC runs
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);
  int LoadISSSA(unsigned int t1, unsigned int t2);

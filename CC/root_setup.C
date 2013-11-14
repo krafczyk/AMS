@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.142 2013/11/13 09:01:05 mduranti Exp $
+//  $Id: root_setup.C,v 1.143 2013/11/14 08:46:28 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -46,6 +46,8 @@ typedef map <unsigned int,TMatrixD> RotMatrices_m;
 typedef map <unsigned int,TMatrixD>::iterator RotMatrices_i;
 static RotMatrices_m fRotMatrices;   ///< CTRS->ICRS rotation matrices map
 
+
+bool AMSSetupR::LoadISSMC=true;
 
 AMSSetupR* AMSSetupR::_Head=0;
 #ifdef __LZMA__
@@ -1290,6 +1292,7 @@ fbin.open(ifile.c_str());
 }
 
 void AMSSetupR::LoadISS(unsigned int t1, unsigned int t2){
+if(!LoadISSMC)return;
 char amsdatadir[]="/afs/cern.ch/ams/Offline/AMSDataDir";
 char *amsd=getenv("AMSDataDir");
 if(!amsd || !strlen(amsd))amsd=amsdatadir;
@@ -1561,6 +1564,7 @@ return ret;
 }
 
 int AMSSetupR::LoadAMSSTK(unsigned int t1, unsigned int t2){
+   if(!LoadISSMC)return 3;
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
    char * AMSDataDir=getenv("AMSDataDir");
@@ -1777,6 +1781,7 @@ return ret;
 
 
 int AMSSetupR::LoadISSAtt(unsigned int t1, unsigned int t2){
+if(!LoadISSMC)return 3;
 
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
@@ -3325,6 +3330,7 @@ return 0;
 
 
 int AMSSetupR::LoadISSSA(unsigned int t1, unsigned int t2){
+if(!LoadISSMC)return 3;
 
 
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
@@ -3503,6 +3509,7 @@ return ret;
 
 
 int AMSSetupR::LoadISSINTL(unsigned int t1, unsigned int t2){
+if(!LoadISSMC)return 3;
 
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
@@ -3858,6 +3865,7 @@ else{
 
 
 int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
+if(!LoadISSMC)return 3;
 
   string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
 
@@ -4069,6 +4077,7 @@ else{
 
 
 int AMSSetupR::LoadGPSWGS84(unsigned int t1, unsigned int t2){
+if(!LoadISSMC)return 3;
 
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
@@ -4250,6 +4259,7 @@ else{
 
 
 int AMSSetupR::LoadISSGTOD(unsigned int t1, unsigned int t2){
+if(!LoadISSMC)return 3;
 
    string AMSISSlocal="/afs/cern.ch/ams/Offline/AMSDataDir";
    char postfix[]="/altec/";
