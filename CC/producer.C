@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.187 2013/08/29 08:54:24 choutko Exp $
+//  $Id: producer.C,v 1.188 2013/11/18 09:00:32 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -799,7 +799,7 @@ againcp:
   }
   file2v+=destdir;
   file2v+='/';
-  for (int k=bnt;k<bend;k++)file2v+=a[k];
+  for (int k=bend;k<a.length();k++)file2v+=a[k];
 if(type!=DPS::Producer::RawFile){
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv("NtupleValidatorExec");
