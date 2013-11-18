@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.52 2013/11/12 14:59:41 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.53 2013/11/18 15:36:20 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -17,7 +17,7 @@
 #include "tofdbc02.h"
 #include "job.h"
 #include "commons.h"
-#include <limits.h>
+#include <limits>
 #include "tofsim02.h"
 #include "tofhit.h"
 #include "cern.h"
@@ -191,7 +191,7 @@ int TofRecH::BuildTofClusterH(){
     }
 //--increase id
     sort(tfraws.begin(),tfraws.end(),SideCompare);
-    sort(sideid.begin(),sideid.end(),IdCompare);
+    sort(sideid.begin(),sideid.end(),IdCompare<integer>);
     TofRawSideR *tfhraws[2]={0};
 #endif  
 //-----  
@@ -1125,10 +1125,9 @@ tktrdf:
       if(iktr==1)usetrd=amstrdtrack.at(itr);
 #endif
 //--- 
-         TofClusterHR *phit[4]={0}; int pattern[4]={0};number len[4]={0},tklcoo[4]={0},tkcosz[4]={1.,1.,1.,1.};
-         number cres[4][2]={{1000}}; 
+         TofClusterHR *phit[4]={0}; int pattern[4]={0};number len[4]={0},tklcoo[4]={0},tkcosz[4]={1.,1.,1.,1.},cres[4][2]={{0}};
          for(int ilay=0;ilay<4;ilay++){
-            BetaFindTOFCl(ptrack,ilay,&phit[ilay],len[ilay],tklcoo[ilay],tkcosz[ilay],cres[ilay],pattern[ilay]);
+            BetaFindTOFCl(ptrack,ilay,&phit[ilay],len[ilay],tklcoo[ilay],tkcosz[ilay],cres[ilay],pattern[ilay],0);
         }
 //----then select+Fit
        int xylay[2]={0,0};//x y direction check
@@ -1140,11 +1139,32 @@ tktrdf:
           if(ilay==0||ilay==3){xylay[0]++;}//Fire
           else                {xylay[1]++;}//Fire
         }
-//-----then fit+Check
+//----then fit+Check
        if((xylay[0]>=1)&&(xylay[1]>=1)&&(udlay[0]>=1)&&(udlay[1]>=1)){//Layer Require Fire
           if((xylay[0]+xylay[1]>=TofRecPar::BetaHMinL[0])&&(udlay[0]+udlay[1]>=TofRecPar::BetaHMinL[1])){//sum layer
+//----2nd Association
+           TofClusterHR *phitb[4]={0};int patternb[4]={0};number lenb[4]={0},tklcoob[4]={0},tkcoszb[4]={1.,1.,1.,1.},cresb[4][2]={{0}};
+           for(int ilay=0;ilay<4;ilay++){
+              int fopt=(phit[ilay]==0)?10:11;//2nd search largest or second
+              if(iktr==1)fopt=fopt+100;//TrdTracker
+              BetaFindTOFCl(ptrack,ilay,&phitb[ilay],lenb[ilay],tklcoob[ilay],tkcoszb[ilay],cresb[ilay],patternb[ilay],fopt);
+           }
+           TofClusterHR *phits[4]={0};
+           TOFClSel(phit,phitb,phits,tklcoo,tklcoob,tkcosz,tkcoszb); 
+           for(int ilay=0;ilay<4;ilay++){
+//              if(phit[ilay]&&iktr==1)cout<<"ilay="<<ilay<<" RT="<<phit[ilay]->Time<<" RQ="<<phit[ilay]->GetQSignal(-1)<<endl;
+              if(phit[ilay]!=phits[ilay]){//new found
+                len[ilay]=lenb[ilay];
+                tklcoo[ilay]=tklcoob[ilay];
+                tkcosz[ilay]=tkcoszb[ilay];
+                cres[ilay][0]=cresb[ilay][0];cres[ilay][1]=cresb[ilay][1];
+                pattern[ilay]=patternb[ilay];
+                phit[ilay]=phits[ilay];
+//                if(iktr==1)cout<<"ilay="<<ilay<<" NT="<<phit[ilay]->Time<<" NQ="<<phit[ilay]->GetQSignal(-1)<<endl;
+             }
+           }
+//---first to recover 
            betapar.Init();//first initial
-//---first to recover
            int mode=(tktrdflag==0)?1:11;
            int tstat=TRecover(phit,tklcoo,pattern,mode);
            if((tktrdflag==0)||(tstat==0)){
@@ -1319,82 +1339,136 @@ tktrdf:
 }
 //========================================================
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
-int  TofRecH::BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern){
+int  TofRecH::BetaFindTOFCl(TrTrackR *ptrack,  int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern,int opt){
 #else
-int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern){
+int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern,int opt){
 #endif
 //---init
-    int nowbar=0,prebar=-1000,nextbar=-1000,tminbar=0,layhit=0,npattern=0;
+    int nowbar=0,prebar=-1000,nextbar=-1000,npattern=0;
     uinteger tfhstat=0;
-    number mscoo=1000,mlcoo=100,mintm=1000,barw=0,dscoo=1000,dlcoo=1000,tfhtime;
+    number mscoo=1000,dscoo=1000;
     number theta,phi,sleng;
-    bool leftf,rightf;
     int iscoo=1-TOFGeom::Proj[ilay];//short coo y x x y
-    (*tfhit)=0;tklen=0;pattern=0;cres[0]=1000,cres[1]=1000;
-//---  
+     (*tfhit)=0; tklen=0;pattern=0;cres[0]=cres[1]=1000;
+
+///--First search
+    vector<pair <integer,number> >fbarid;
     for(int i=0;i<tofclh[ilay].size();i++){
        AMSPoint tfcoo (tofclh[ilay].at(i)->Coo);
-       AMSPoint tfecoo(tofclh[ilay].at(i)->ECoo);
        nowbar=         tofclh[ilay].at(i)->Bar;
-       tfhstat=        tofclh[ilay].at(i)->Status;
-       tfhtime=        tofclh[ilay].at(i)->Time;
-       npattern=       tofclh[ilay].at(i)->Pattern%10;
-       if(i==tofclh[ilay].size()-1)nextbar=-1000;
-       else                        nextbar=tofclh[ilay].at(i+1)->Bar;
-
 //---Intepolate 
        AMSDir tkdir(0,0,1);AMSPoint tkcoo;   
 #if defined (_PGTRACK_) || ! defined (__ROOTSHAREDLIBRARY__)
        ptrack->interpolate(tfcoo,tkdir,tkcoo,theta,phi,sleng);
 #else
-      return -1;
+       return -1;
 #endif
+       dscoo=fabs(tkcoo[iscoo]-tfcoo[iscoo])-TOFGeom::Sci_w[ilay][nowbar]/2.;
+       fbarid.push_back(make_pair<integer,number>(i,dscoo)); 
+     }
 
-//---time min bar not used now
-       if((tfhstat&TOFDBcN::BADTIME)==0){ //not bad time
-         if(mintm==1000||tfhtime<mintm){
-           mintm=tfhtime;//find earliest(tm) in this layer
-           tminbar=nowbar;//tag earliest bar
-          }
-       }
+//--sort id by distance+fix index     
+     sort(fbarid.begin(),fbarid.end(),IdCompare<number>);
+     integer idb=-1,ib=-1;
+     if     (opt%10==0&&fbarid.size()>=1)idb=0;//0 or 10 barid cmin
+     else if(opt%10==1&&fbarid.size()>=2)idb=1;//11  barid cmin+
 
-      dscoo=fabs(tkcoo[iscoo]-tfcoo[iscoo])-TOFGeom::Sci_w[ilay][nowbar]/2.;
-      if(dscoo<mscoo){//first compare Trans
-          mscoo=dscoo;
-          if(fabs(tkcoo[iscoo]-tfcoo[iscoo])<TofRecPar::BetaHReg[0]*tfecoo[iscoo]){//0.5cm offset tof+tkhit match in same counter 3sigma S flag
-             (*tfhit)=tofclh[ilay].at(i);tklen=sleng;
-             dlcoo=fabs(tkcoo[1-iscoo]-tfcoo[1-iscoo]);
-             tklcoo=tkcoo[1-iscoo]; tkcosz=cos(theta);//tkcosz=fabs(tkdir[2]);
-             pattern=npattern;
-//------------
-             for(int ip=0;ip<2;ip++){
-                cres[ip]=tkcoo[ip]-tfcoo[ip];
-                if(((tfhstat&TOFDBcN::BADTCOO)>0)&&(ip==1-iscoo)){cres[ip]=TOFGeom::Sci_l[ilay][nowbar]/2.;}
-              }
-             if(TofRecPar::BetaHLMatch==0||dlcoo<TofRecPar::BetaHReg[1]*tfecoo[1-iscoo]){
-               if((tfhstat&TOFDBcN::BADTIME)==0)pattern=4;
-//               if((pattern%10)==3)pattern=4;
-             }//3sigma L flag
-             leftf=0;rightf=0;
-//----previous bar
-             if(prebar>=0)       {leftf=1;}//left counter fire
-             else                {leftf=0;}
-             if(leftf)pattern+=(nowbar-prebar)*100;
-//----next bar
-             if(nextbar>=0)       {rightf=1;}//right counter fire
-             else                 {rightf=0;}
-             if(rightf)pattern+=(nextbar-nowbar)*10;
+//--selection
+     if(idb>=0){
+        ib=fbarid.at(idb).first; dscoo=fbarid.at(idb).second;
+        bool transcut=0;
+        if  (opt%100==0)transcut=(dscoo<TofRecPar::TkLSMatch);//1nd search
+        else   {//2nd search
+          if(opt/100==0)transcut=(dscoo<TofRecPar::TkLSMatch2);//Tk Case
+          else          transcut=(dscoo<TofRecPar::TRDLSMatch2);//TRD Case
+        }
 //---
-         }
+        if(transcut){
+          AMSPoint tfcoo (tofclh[ilay].at(ib)->Coo);
+          nowbar=         tofclh[ilay].at(ib)->Bar;
+          tfhstat=        tofclh[ilay].at(ib)->Status;
+          npattern=       tofclh[ilay].at(ib)->Pattern%10;
+          if(ib==0)                    prebar=-1000;
+          else                         prebar=tofclh[ilay].at(ib-1)->Bar;
+          if(ib==tofclh[ilay].size()-1)nextbar=-1000;
+          else                         nextbar=tofclh[ilay].at(ib+1)->Bar;
+//---Intepolate 
+          AMSDir tkdir(0,0,1);AMSPoint tkcoo;
+#if defined (_PGTRACK_) || ! defined (__ROOTSHAREDLIBRARY__)
+          ptrack->interpolate(tfcoo,tkdir,tkcoo,theta,phi,sleng);
+#else
+          return -1;
+#endif
+//---
+          (*tfhit)=tofclh[ilay].at(ib);
+          tklen=sleng;
+          tklcoo=tkcoo[1-iscoo]; tkcosz=cos(theta);//tkcosz=fabs(tkdir[2]);
+          pattern=npattern;
+          for(int ip=0;ip<2;ip++){
+             cres[ip]=tkcoo[ip]-tfcoo[ip];
+             if(((tfhstat&TOFDBcN::BADTCOO)>0)&&(ip==1-iscoo)){cres[ip]=TOFGeom::Sci_l[ilay][nowbar]/2.;}
+           }
+          if((tfhstat&TOFDBcN::BADTIME)==0)pattern=4;
+//----previous next bar
+          if(prebar>=0) pattern+=(nowbar-prebar)*100;
+          if(nextbar>=0)pattern+=(nextbar-nowbar)*10;
+        }
     }
-   prebar=nowbar;
-   layhit++;
-  }//end tof loop
-   pattern+=1000*layhit;
+     
+   pattern+=1000*tofclh[ilay].size();
 
    return 0;
 }
 
+//========================================================
+int  TofRecH::TOFClSel(TofClusterHR *tfhit[4],TofClusterHR *tfhitb[4],TofClusterHR *tfhits[4],number tklcoo[4],number tklcoob[4],number tkcosz[4],number tkcoszb[4]){
+
+   for(int iud=0;iud<2;iud++){
+//--
+     TofClusterHR *phit[2][2]={{0}};
+     phit[0][0]=tfhits[2*iud]=tfhit[2*iud];
+     phit[0][1]=tfhitb[2*iud];
+     phit[1][0]=tfhits[2*iud+1]=tfhit[2*iud+1];   
+     phit[1][1]=tfhitb[2*iud+1]; 
+     number qsmax=0,qdmin=FLT_MAX,qa=0,qb=0,qd=0,qsum=0;
+     int qpat[2]={-1,-1}; 
+     TofClusterHR *phits[2]={0},*phitsb[2]={0};
+//---
+     for(int ib=0;ib<2;ib++){
+       if(phit[0][ib]==0||(phit[1][0]==0&&phit[1][1]==0))continue;
+       if(ib==0)qa=phit[0][ib]->GetQSignal(2,TofClusterHR::DefaultQOpt,tkcosz[2*iud],1,tklcoo[2*iud]);
+       else     qa=phit[0][ib]->GetQSignal(2,TofClusterHR::DefaultQOpt,tkcoszb[2*iud],1,tklcoob[2*iud]);
+       bool tmatch=((phit[0][ib]->Status&TOFDBcN::BADTIME)==0);
+       for(int ib1=0;ib1<2;ib1++){
+          if(phit[1][ib1]==0)continue;
+          if(ib1==0)qb=phit[1][ib1]->GetQSignal(2,TofClusterHR::DefaultQOpt,tkcosz[2*iud+1],1,tklcoo[2*iud+1]);
+          else      qb=phit[1][ib1]->GetQSignal(2,TofClusterHR::DefaultQOpt,tkcoszb[2*iud+1],1,tklcoob[2*iud+1]);
+//--TMatch
+          if(tmatch)tmatch=((phit[1][ib1]->Status&TOFDBcN::BADTIME)==0);
+          if(tmatch){
+             number ndt=phit[0][ib]->Time-phit[1][ib1]->Time;
+             number dcoz=phit[0][ib]->Coo[2]-phit[1][ib1]->Coo[2];
+             tmatch=(fabs(ndt)<fabs(dcoz)*1.414/(TofRecPar::NonTkBetaCutL*cvel)+TofRecPar::PairTMatch);//45degree 0.3c slow   
+          }
+//---EMax-Counter
+          qsum=qa+qb;
+          qd=fabs((qa-qb)/(qa+qb));
+          if(tmatch){//TMatch Case, Use Max-Edep Counter
+            if(qsum>qsmax){phits[0]=phit[0][ib];phits[1]=phit[1][ib1];qpat[0]=ib*10+ib1;qsmax=qsum;}
+            if(qd<qdmin)  {phitsb[0]=phit[0][ib];phitsb[1]=phit[1][ib1];qpat[1]=ib*10+ib1;qdmin=qd;}
+          }
+       }
+     }
+//---
+      if(phits[0]!=0&&phits[1]!=0){
+        if(qpat[1]==0){phits[0]=phitsb[0];phits[1]=phitsb[1];}//Best-EMatch+PosMatch
+        tfhits[2*iud]=phits[0];tfhits[2*iud+1]=phits[1];//Largest-E
+      }  
+   }
+     
+
+   return 0;
+}
 
 //========================================================
 int TofRecH::TOFPairSel(int ud,TofClusterHR* tfhit[2]){

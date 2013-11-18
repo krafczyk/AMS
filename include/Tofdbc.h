@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.31 2013/10/28 15:17:02 qyan Exp $
+//  $Id: Tofdbc.h,v 1.32 2013/11/18 15:36:25 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -6,7 +6,7 @@
 #define __TOFDBCQ__ 1
 
 #ifndef __ROOTSHAREDLIBRARY__
-#include <string.h>
+#include <string>
 #include <stdlib.h>
 #endif
 #include "typedefs.h"
@@ -522,6 +522,9 @@ class TofRecPar: public TofTDVTool<float>{
      static const  int   BetaHMinL[2];//Min X+Y Match Layer//U+D Match Layer
      static const  float Dynodegate=5;//Dynode ADC should >5
      static const  float AttLenLimit;//Attenuation Correction Limit Length
+     static const  float TkLSMatch;//Tracker Trans Coo Match
+     static const  float TkLSMatch2;//Tracker Trans Coo Match(Loose)
+     static const  float TRDLSMatch2;//TRD Trans Coo Match(Loose)
 //---BetaH Self Recontruction Par
      static const  float PairQDA=6;//Pair Energy Match Using Anode when Q<6
      static const  float PairQgate=0.8;//Pair Min Energy Q 

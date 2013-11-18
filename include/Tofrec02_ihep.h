@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.30 2013/11/12 14:59:48 qyan Exp $
+//  $Id: Tofrec02_ihep.h,v 1.31 2013/11/18 15:36:25 qyan Exp $
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -187,10 +187,13 @@ public:
 public:
 /// Find TofClusterH for ilay with Track
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
-  static int  BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern);
+  static int  BetaFindTOFCl(TrTrackR *ptrack,   int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern,int opt=0);
 #else
-  static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern);
+  static int  BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR** tfhit,number &tklen,number &tklcoo,number &tkcosz,number cres[2],int &pattern,int opt=0);
 #endif
+/// Search TofClusterH
+  static int  TOFClSel(TofClusterHR* tfhit[4],TofClusterHR* tfhitb[4],TofClusterHR* tfhits[4],number tklcoo[4],number tklcoob[4],number tkcosz[4],number tkcoszb[4]);
+
 /// Recover Time information if One Side lost Signal
   static int  TRecover(TofClusterHR *tfhit[4],number tklcoo[4],int partten[4],int mode=0);//using hassid to recover other side
   static int  TRecover(int idsoft,geant trlcoo,geant tms[2],geant &tm,geant &etm,uinteger &status,int hassid);
@@ -235,7 +238,8 @@ public:
 /// Sort TofRawSide accoding to BarId
   static bool SideCompare(const TofRawSideR& a,const TofRawSideR& b){return a.swid<b.swid;}
 /// Sort TofRawSide Index 
-  static bool IdCompare(const pair<integer,integer> &a,const pair<integer,integer> &b){return a.second<b.second;}
+template <class T>
+  static bool IdCompare(const pair<integer,T> &a,const pair<integer,T> &b){return a.second<b.second;}
 /// Sort TofClusterHR Pair-Index
   static bool PairCompare(const pair<TofClusterHR*,TofClusterHR*> &a,const pair<TofClusterHR*,TofClusterHR*> &b);
 /// ParticleR ChargeR Build Link index to BetaH
