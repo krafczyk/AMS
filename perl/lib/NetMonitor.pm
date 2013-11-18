@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.71 2012/12/04 14:35:22 ams Exp $
+# $Id: NetMonitor.pm,v 1.72 2013/11/18 09:29:41 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -24,12 +24,14 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcposc1','pcamsf9','amsvobox13','pcamsp1','pcamsj0','pcamsj1','pcamsf7','pcamsf8','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
+  excluded=>['pcposc1','amsvobox11','pcamsn0','pcamsf9','scamsnd0','pcamsp1','pcamsf7','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
   sbhost=>'pcamss0',
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
-  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd','scdb_j0.perl'],
-  filesystems=>['f2users','r0fc00','fcdat1','fcdat0'],
+#  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','scdb_j2.perl'],
+#  dbhoststargets=>['amsprodserverv5.exe','transfer.py','frame_decode','scdb_j2.perl'],
+   dbhoststargets=>['amsprodserverv5.exe','transfer.py','frame_decode'],
+  filesystems=>['f2users','r0fc00','fcdat1'],
   afsvolumes=>['/afs/cern.ch/ams/local','/afs/cern.ch/ams/AMSDataBase','/afs/cern.ch/ams/Offline'],
   hostsstat=>[],
   bad=>[],
@@ -71,7 +73,7 @@ push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.c
 #push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
 #push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Jinghui.Zhang@cern.ch  41764878673@mail2sms.cern.ch',sent=>0,timesent=>0};
 #push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'dmitri.filippov@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
-push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Gabriele.Alberti@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
+push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'baosong.shan@cern.ch 41764879642@mail2sms.cern.ch',sent=>0,timesent=>0};
    #  excluded hosts
     my $mybless=bless $self,$type;
     if(ref($NetMonitor::Singleton)){
@@ -332,29 +334,31 @@ my $period = '';
 #
 # sanboxes
 #
-	$mes="NetMonitor-W-SanBoxesProblems";
-	$command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout ssh -2 -x -o \'StrictHostKeyChecking no \' $self->{sbhost} /afs/cern.ch/ams/local/bin/check_sanbox.pl";
-        my $i1=system("$command -fsanbox01 >/tmp/sbhost.$$");
-        my $i2=system("$command -fsanbox02 >>/tmp/sbhost.$$");
-    if($i1 or $i2){
-                push @{$self->{bad}}, "$self->{sbhost} NetMonitor-W-ssh4Failed ";
-    }
-    else{
-            if(not open(FILE,"<"."/tmp/sbhost.$$")){
-                push @{$self->{bad}}, " /tmp/sbhost.$$ NetMonitor-W-ssh5Failed ";
-                print "\n".localtime()."   /tmp/sbhost.$$ NetMonitor-W-ssh5Failed \n";
-            }
-            else{
-            my @lines=<FILE>;
-            close FILE;
-    foreach my $bl (@lines){
-        $bl=~s/ /\_/g;
-            push @{$self->{bad}}, "$bl $mes ";
-    }
 
-        }
-        }
-            unlink "/tmp/sbhost.$$";
+##temporary closed
+#	$mes="NetMonitor-W-SanBoxesProblems";
+#	$command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout ssh -2 -x -o \'StrictHostKeyChecking no \' $self->{sbhost} /afs/cern.ch/ams/local/bin/check_sanbox.pl";
+#        my $i1=system("$command -fsanbox01 >/tmp/sbhost.$$");
+#        my $i2=system("$command -fsanbox02 >>/tmp/sbhost.$$");
+#    if($i1 or $i2){
+#                push @{$self->{bad}}, "$self->{sbhost} NetMonitor-W-ssh4Failed ";
+#    }
+#    else{
+#            if(not open(FILE,"<"."/tmp/sbhost.$$")){
+#                push @{$self->{bad}}, " /tmp/sbhost.$$ NetMonitor-W-ssh5Failed ";
+#                print "\n".localtime()."   /tmp/sbhost.$$ NetMonitor-W-ssh5Failed \n";
+#            }
+#            else{
+#            my @lines=<FILE>;
+#            close FILE;
+#    foreach my $bl (@lines){
+#        $bl=~s/ /\_/g;
+#            push @{$self->{bad}}, "$bl $mes ";
+#    }
+#
+#        }
+#        }
+#            unlink "/tmp/sbhost.$$";
 
            
 	#

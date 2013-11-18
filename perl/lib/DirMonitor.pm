@@ -106,7 +106,7 @@ sub run{
         	my $ans=dir_ok($self,$dir);
 	        my $num=-1;
         	if($ans==1){
-                	my @files=`ls -ctr $dir/* 2>/dev/null`;
+                	my @files=`ls -ctr $dir/* | grep $dir | grep -v :\$ 2>/dev/null`;
 	                $num=$#files+1;
         	        #when the number of files in this directory is larger than $max_nfiles, remove old files
                         my $timenow=time();

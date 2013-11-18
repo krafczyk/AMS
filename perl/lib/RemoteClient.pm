@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.795 2013/08/21 15:55:57 bshan Exp $
+# $Id: RemoteClient.pm,v 1.796 2013/11/18 09:29:41 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19740,11 +19740,55 @@ again:
 sub CheckNTUnique{
 #check and optionally remove identical ntuples
     my ($self,$dir,$update,$verbose,$run2p)=@_;
+
+# check duplicated entries
+my $sql2="select max(jid)-min(jid),run from ntuples where path like '%$dir%' group by run";    
+    if($run2p!=0){
+        $sql2=$sql2." and run=$run2p";
+    }
+    my @duplicated=();
+        my $ret_jid =$self->{sqlserver}->Query($sql2);
+          foreach my $ntuple (@{$ret_jid}){
+           if(  $ntuple->[0]!=0){
+             push @duplicated,$ntuple->[1];
+     
+           }         
+          }
+    my $runs="";
+    if($#duplicated>=0){
+        print "$#duplicated runs find \n";
+        foreach my $run (@duplicated){
+           print " duplicated $run \n";
+           my $sql="select path,jid,run,castortime,crctime from ntuples where path like '%$dir%' and run=$run";  
+           my $ret_nt =$self->{sqlserver}->Query($sql);
+           my $jidmax=-1;
+           my $ctimemax=-1;
+           my $valid=1;
+          foreach my $ntuple (@{$ret_nt}){
+              if($ntuple->[3]==0){
+                  $valid=0;
+                  last;
+              }
+              if($ntuple->[4]>$ctimemax){
+                  $ctimemax=$ntuple->[4];
+                  $jidmax=$ntuple->[1];
+          }
+          }
+           if($valid){
+          foreach my $ntuple (@{$ret_nt}){
+              if($ntuple->[1]!=$jidmax){
+               
+              }
+          }
+      }
+}   
+ 
+    }
     my $sql="select path,jid,run,castortime from ntuples where path like '%$dir%'";    
     if($run2p!=0){
         $sql=$sql." and run=$run2p";
-    }
-        my $ret_nt =$self->{sqlserver}->Query($sql);
+    } 
+       my $ret_nt =$self->{sqlserver}->Query($sql);
           foreach my $ntuple (@{$ret_nt}){
               my $path=$ntuple->[0];
               my @junk=split $dir,$path;

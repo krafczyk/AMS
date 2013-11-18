@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.165 2012/09/10 11:06:44 choutko Exp $
+# $Id: Monitor.pm,v 1.166 2013/11/18 09:29:41 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -765,7 +765,7 @@ sub getactivehosts{
           print "$rdst->{Run},";
        }
        if( $rdst->{Status} eq "Finished" or $rdst->{Status} eq "Processing"){
-           $evtp=$rdstc->{EventsProcessed}>$rdst->{LastEvent}-$rdst->{FirstEvent}?$rdst->{LastEvent}-$rdst->{FirstEvent}:$rdstc->{EventsProcessed};
+           $evtp=$rdstc->{EventsProcessed}>$rdst->{LastEvent}-$rdst->{FirstEvent}?$rdstc->{LastEventProcessed}-$rdst->{FirstEvent}:$rdstc->{EventsProcessed};
            $lastevt+=$evtp;
            $tevt+=$evtp;
 #           print "rdstc  $rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} $lastevt $tevt \n";
@@ -1695,8 +1695,100 @@ sub ErrorPlus{
 
 sub RemoveRuns{
  my $ref=shift;
- open(FILEA,">2ecal2.badrun.list.$$");
- open(FILEB,">2ecal2.badjob.list.$$");
+        foreach my $arsref (@{$ref->{arpref}}){
+            try{
+                print "finished  \n";
+         my %cid=%{$ref->{cid}};
+         $cid{Type}="Producer";
+         #       my ($run,$dv)=$arsref->getRunEvInfo(\%cid);
+         my $maxr=0;
+               my ($length,$ahl)=$arsref->getRunEvInfoS(\%cid, \$maxr);
+                print "gr $maxr $length \n";
+               my $rnt=$arsref->getRunsTotal();
+           
+                print "finished $rnt \n";
+                my $rnf=$arsref->getRunsNumber("Finished");
+                print "finished $rnf \n";
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+ return;
+      for my $row (0 ... $#{$ref->{acl}}){
+        my %ac=%{${$ref->{acl}}[$row]};
+                my %cid=%{$ac{id}};
+                my $found=0;
+                  for my $j (0 ... $#{$ref->{rtb}}){
+                    my %rdst=%{${$ref->{rtb}}[$j]};
+                    if($rdst{uid}==$cid{uid}){
+                     if($rdst{FilePath} =~/he.pl1.4008000/){ 
+                     
+                          $found=1;
+                          if($cid{pid}<1000000){
+                       my $cmd="ssh $cid{HostName} kill -9  $cid{pid} ";
+                       print "$cmd \n";
+                       system($cmd);
+                   }
+                          else{
+                       my $cmd="ssh lxplus5.cern.ch bkill -s9  $cid{pid} ";
+                       system($cmd);
+                        }      
+                    } 
+                          last;
+                 }
+             }    
+                  if($found==0){
+                         next;
+                  }                  
+ 
+        my $arsref;
+         my $safeact="Delete";
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my $hash_ac=\%ac;
+                my %cid=%{$ac{id}};
+                $arsref->sendAC(\%cid,\$hash_ac,$safeact);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ac{id}};
+                my $hash=\%cid;
+                my $hash_ac=\%ac;
+            try{
+                $arsref->sendACPerl($hash,$hash_ac,$safeact);
+#                $arsref->sendAC($hash,\$hash_ac,$safeact);
+            }  catch DPS::DBProblem   with{
+                my $e=shift;
+                warn "DBProblem: $e->{message}\n";
+            }
+            catch CORBA::SystemException with{
+                 $arsref->sendAC($hash,\$hash_ac,$safeact);
+#                 $arsref->sendACPerl($hash,$hash_ac,$safeact);
+            };
+                last;
+            }
+            catch DPS::DBProblem   with{
+                my $e=shift;
+                warn "DBProblem: $e->{message}\n";
+            }
+            catch CORBA::SystemException with{
+                warn "Exiting corba exc";
+            };
+        }
+}
+
+
+
+
+
+# open(FILEA,">2ecal2.badrun.list.$$");
+# open(FILEB,">2ecal2.badjob.list.$$");
       print "herewr\n"; 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
@@ -1707,9 +1799,10 @@ sub RemoveRuns{
 #     if(  $rdst{Status} eq "Canceled" and $rdst{FilePath} =~/calib/ ){
 #         print "restoring $rdst{uid} \n";
 #         $rdst{Status} = "Finished";
-     if( $rdst{Status} eq "Failed" and  $rdst{CounterFail}>2 and $rdst{FilePath} =~/2ecal2noway/){
-         print FILEA "$rdst{Run},";
-         print FILEB "$rdst{uid},";
+                     if($rdst{FilePath} =~/he.pl1.4008000/){ 
+#     if( $rdst{FilePath} =~/sdssdfsdfsrpr.pl1.ecal.22100/){
+#         print FILEA "$rdst{Run},";
+#         print FILEB "$rdst{uid},";
 #     if($rdst{Status} eq "Finished"){
 #         foreach my $hash (@{$ref->{acl}}){
 #             if ($hash->{id}->{uid} == $rdst{uid}){
@@ -1742,8 +1835,8 @@ sub RemoveRuns{
 
     }
 }
-close(FILEA);
-close(FILEB);
+#close(FILEA);
+#close(FILEB);
 }
 
 

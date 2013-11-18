@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.64 2012/01/02 09:15:35 ams Exp $
+#  $Id: monitorUI.pm,v 1.65 2013/11/18 09:29:41 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -436,6 +436,8 @@ Gtk->timeout_add(3600000,\&AFS);
 Gtk->timeout_add(900000,\&Update);
 Gtk->timeout_add(800000,\&DVDST);
 Gtk->timeout_add(3600000,\&ReCreate);
+Gtk->timeout_add(3600000,\&ReCreate);
+Gtk->timeout_add(21600000,\&ResetHosts);
 return $mybless;
 }
 
