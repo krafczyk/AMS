@@ -92,7 +92,7 @@ CFLAGSB=  -Wno-pragmas -Wno-deprecated -Wno-write-strings
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 #OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
-OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; fi)
+OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
 DEFINES+=-D__OSXVER__=$(OSXVER)
 
 ifdef AMSPROFILE
