@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.131 2013/11/07 17:06:08 mkrafczy Exp $
+#  $Id: Makefile,v 1.132 2013/11/19 19:12:16 mduranti Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -236,7 +236,8 @@ endif
 
 ifeq ($(ARCH),macosx64)
 
-OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+#OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
 
 CXX           =  g++  
 CPPFLAGS      =  -D__APPLE__ -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -D__OSXVER__=$(OSXVER) -I. -I../include -I$(ROOTSYS)/include  -I/usr/X11R6/include/ -I/usr/X11R6/include/freetype2
