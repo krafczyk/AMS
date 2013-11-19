@@ -75,6 +75,13 @@ void TrdKCluster::Init(AMSEventR *evt){
         TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
         if(!_trd_hit) continue;
         if(_trd_hit->Amp < threshold) continue;
+        bool skip = false;
+        for(int j=0;j<ignore_hits.size()&&!skip;j++) {
+            if(i == ignore_hits[j]) {
+                skip = true;
+            }
+        }
+        if (skip) continue;
         TRDHitCollection.push_back(TrdKHit(_trd_hit,Zshift));
         NonZeroParticpatingHits.push_back(i);
     }
@@ -112,8 +119,11 @@ void TrdKCluster::Init(AMSEventR *evt){
 
 /////////////////////////////////////////////////////////////////////
 
-TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode, double _threshold) : threshold(_threshold)
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode, double _threshold, vector<int>* _ignore_hits) : threshold(_threshold)
 {
+    if(_ignore_hits) {
+        ignore_hits = *_ignore_hits;
+    }
     Init_Base();
     SetTrTrack(track, fitcode);
     Init(evt);
@@ -122,8 +132,11 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode, double _t
 
 /////////////////////////////////////////////////////////////////////
 
-TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir, double _threshold) : threshold(_threshold)
+TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir, double _threshold, vector<int>* _ignore_hits) : threshold(_threshold)
 {
+    if(_ignore_hits) {
+        ignore_hits = *_ignore_hits;
+    }
     Init_Base();
     SetTrTrack(P0, Dir, DefaultRigidity);
     Init(evt);
@@ -131,7 +144,10 @@ TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir, double _thres
 
 
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack, double _threshold, float Rigidity): threshold(_threshold){
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack, double _threshold, float Rigidity, vector<int>* _ignore_hits): threshold(_threshold){
+    if(_ignore_hits) {
+        ignore_hits = *_ignore_hits;
+    }
     AMSPoint *P0= new AMSPoint(trdtrack->Coo);
     AMSDir *Dir = new AMSDir(trdtrack->Theta,trdtrack->Phi);
     Init_Base();
@@ -142,7 +158,10 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack, double _threshold,
     delete Dir;
 }
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack, double _threshold, float Rigidity): threshold(_threshold){
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack, double _threshold, float Rigidity, vector<int>* _ignore_hits): threshold(_threshold){
+    if(_ignore_hits) {
+        ignore_hits = *_ignore_hits;
+    }
     AMSPoint *P0= new AMSPoint(trdtrack->Coo);
     AMSDir *Dir = new AMSDir(trdtrack->Dir);
     Init_Base();
@@ -154,7 +173,10 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack, double _threshold
 
 }
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower, double _threshold) : threshold(_threshold){
+TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower, double _threshold, vector<int>* _ignore_hits) : threshold(_threshold){
+    if(_ignore_hits) {
+        ignore_hits = *_ignore_hits;
+    }
     AMSPoint *P0= new AMSPoint(shower->CofG);
     AMSDir *Dir = new AMSDir(shower->Dir);
     Init_Base();
@@ -165,7 +187,10 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower, double _threshold)
 
 }
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah,double _threshold,float Rigidity) : threshold(_threshold){
+TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah,double _threshold,float Rigidity, vector<int>* _ignore_hits) : threshold(_threshold){
+    if(_ignore_hits) {
+        ignore_hits = *_ignore_hits;
+    }
     AMSPoint *P0=new AMSPoint();
     AMSDir *Dir=new AMSDir();
     double dummy_time;
