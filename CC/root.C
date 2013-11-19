@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612 2013/11/14 21:48:43 sdifalco Exp $
+//  $Id: root.C,v 1.613 2013/11/19 15:13:42 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3293,12 +3293,13 @@ void AMSEventR::AddAMSObject(AMSmctrack *ptr)
 int AMSEventR::RebuildAntiClusters(int sect, float sect_zguess, float err_sect_zguess){
   
   AntiRecoPG* Acci = AntiRecoPG::gethead();
+  Acci->AMSEventRHead()=this;
   int nacc = Acci->BuildAllClusters(sect,sect_zguess,err_sect_zguess);
-  //  printf("Built %d AntiClusterR\n", nacc);
+//    printf("Built %d AntiClusterR\n", nacc);
 
-  // printf("Before: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
-  // printf("Before: nAntiCluster()=%d\n", (int)nAntiCluster());
-  // printf("Before: NAntiCluster()=%d\n", (int)NAntiCluster());
+//   printf("Before: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
+//   printf("Before: nAntiCluster()=%d\n", (int)nAntiCluster());
+//   printf("Before: NAntiCluster()=%d\n", (int)NAntiCluster());
   fAntiCluster.clear();
   fHeader.AntiClusters = 0;
 
@@ -3316,9 +3317,9 @@ int AMSEventR::RebuildAntiClusters(int sect, float sect_zguess, float err_sect_z
   // printf("After: nAntiCluster()=%d\n", (int)nAntiCluster());
   // printf("After: NAntiCluster()=%d\n", (int)NAntiCluster());
   fHeader.AntiClusters = nacc;
-  // printf("After2: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
-  // printf("After2: nAntiCluster()=%d\n", (int)nAntiCluster());
-  // printf("After2: NAntiCluster()=%d\n", (int)NAntiCluster());
+//   printf("After2: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
+//   printf("After2: nAntiCluster()=%d\n", (int)nAntiCluster());
+//   printf("After2: NAntiCluster()=%d\n", (int)NAntiCluster());
 
   return nacc;
 }

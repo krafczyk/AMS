@@ -13,7 +13,9 @@ char  AntiClusterR::_Info[255];
 
 #ifdef __USEANTICLUSTERPG__
 
-AntiRecoPG* AntiRecoPG::head=0;
+  AntiRecoPG* AntiRecoPG::head=0;
+  AMSEventR* AntiRecoPG::_HeadE=0;
+  AMSEventR*& AntiRecoPG::AMSEventRHead(){return _HeadE;}
 
 ClassImp(AntiRecoPG)
 ClassImp(AntiClusterR)
@@ -23,6 +25,14 @@ AntiClusterR::AntiClusterR(AMSAntiCluster *ptr){
   Sector = ptr->_sector;  
   Npairs = ptr->_npairs;
   Edep   = ptr->_edep;
+  unfzeta= ptr->_coo[2];
+  phi=FillCoo(&AntiCoo);  
+  time=1.e9;
+    for(int i=0;i<ptr->_ntimes;i++){
+      if(fabs(ptr->_times[i])<fabs(time))time=ptr->_times[i];
+    }
+ rawq=1;
+
 #endif
 }
 
@@ -130,6 +140,7 @@ AntiRecoPG* AntiRecoPG::gethead() {
   if (!head) {
     printf("AntiRecoPG::gethead()-M-CreatingObjectAntiRecoPGAsSingleton\n", head);
     head = new AntiRecoPG();//this also initialize at the default version
+    if(!AMSEventRHead())AMSEventRHead()=AMSEventR::Head();
   }
   return head;
 }
@@ -191,7 +202,7 @@ int AntiRecoPG::SelectRun(){
   // return = 2 pre-launch BT or Muons (pre 1305331200)                   
   // return = 99  MC                                              
   int run_type;
-  AMSEventR* evt = AMSEventR::Head();                                         
+  AMSEventR* evt = AMSEventRHead();                                         
     MCEventgR *pmc = evt->pMCEventg(0);
     if (!pmc) { run_type = 1;  // is DATA                                      
       //  cout << "Run autoselected as DATA" << endl;
@@ -585,7 +596,7 @@ float AntiRecoPG::BayesEstimation(float value, float error, float low, float upp
 
 // evaluate a guess of event time averaging tof times
 float AntiRecoPG::GetTofTimeGuess(){
-  AMSEventR* evt = AMSEventR::Head();
+  AMSEventR* evt = AMSEventRHead();                                         
   
   float tguess = 0.;
   int nguess = 0;
@@ -604,7 +615,7 @@ float AntiRecoPG::GetTofTimeGuess(){
 //fill timetable and timeindex
 int AntiRecoPG::ReLoadAcc(){  
   int iret = 0; // no raw sides
-  AMSEventR* evt = AMSEventR::Head();
+  AMSEventR* evt = AMSEventRHead();                                         
   if (evt->Event() == evto && evt->Run() == runo) return nrsd;
   if (evt->Run() != runo){ // new run reload calibrations
   int run_type = SelectRun();

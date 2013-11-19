@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.270 2013/11/09 07:24:34 choutko Exp $
+//  $Id: ntuple.C,v 1.271 2013/11/19 15:13:42 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -353,6 +353,7 @@ _rfile->cd();
 
     _rfile->cd();
     TrRecon::RecPar.Write();
+/*
     TDirectory* dd=_rfile->mkdir("datacards");
     dd->cd();
     TKGEOMFFKEY.Write();
@@ -364,6 +365,7 @@ _rfile->cd();
     TRCHAFFKEY.Write();
     TRDMCFFKEY.Write();
     _rfile->cd();
+*/
 #endif 
     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
       TRDPlotInit();
@@ -446,6 +448,19 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     throw amsglobalerror("UnableToOpenRootFile",3);
   }
   _dc.Write("DataCards");
+    TDirectory* dd=_rfile->mkdir("datacards");
+    dd->cd();
+    TKGEOMFFKEY.Write();
+    TRMCFFKEY.Write();
+    TRCALIB.Write();
+    TRALIG.Write();
+    TRCLFFKEY.Write();
+    TRFITFFKEY.Write();
+    TRCHAFFKEY.Write();
+    TRDMCFFKEY.Write();
+    _rfile->cd();
+
+
 
   const int size=5000000;
   char * name=new char[size];
@@ -507,7 +522,6 @@ uinteger AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
 
   if (ATCAFFKEY.antiPG){
-    AMSEventR::Head()=Get_evroot02();
     Get_evroot02()->RebuildAntiClusters();
 }
 if(Trigger2LVL1::SetupIsChanged){
