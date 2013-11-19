@@ -20,9 +20,15 @@ public:
     //  return true if event has to be drawn false otherwise.
     // Example take the even event numbers
    if(ev){
+    cout<<" ev "<<ev->NAntiCluster()<<endl;
+    return true;
     bool next=ev->Event()!=oldev;
-       oldev=ev->Event();
-       if(fmap.find(ev->Event())!=fmap.end()){
+    bool breaks=ev->Event()-oldev!=1;
+    if(breaks){
+       cout<<" break "<<ev->Event()<<" "<<oldev<<endl;
+    }
+    oldev=ev->Event();
+   if(fmap.find(ev->Event())!=fmap.end()){
          cout<< " dupl event found "<<ev->Event()<<" "<<++dupl<<endl;
        }
        else fmap.insert(ev->Event());

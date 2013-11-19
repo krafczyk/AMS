@@ -129,6 +129,8 @@ class AntiRecoPG {
   friend class AntiClusterR;
 
  private:
+ static AMSEventR * _HeadE;
+#pragma omp threadprivate(_HeadE)
   //! Default contructor
   AntiRecoPG();
 
@@ -136,6 +138,7 @@ class AntiRecoPG {
   static AntiRecoPG* head;
 #pragma omp threadprivate (head)
  public:
+ static AMSEventR*&AMSEventRHead();
   //! Default deconstructor
 virtual  ~AntiRecoPG(){};
   

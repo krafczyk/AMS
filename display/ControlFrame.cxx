@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.17 2013/08/30 19:22:28 pzuccon Exp $
+//  $Id: ControlFrame.cxx,v 1.18 2013/11/19 15:13:51 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -218,6 +218,17 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         gAMSDisplay->SetView(gAMSDisplay->GetView());
         gAMSDisplay->DrawTitle();
         break;
+      case 104:
+        gAMSDisplay->RebuildACC()=!gAMSDisplay->RebuildACC();
+        fOptionMenu->DeleteEntry(104);
+        if(gAMSDisplay->RebuildACC()){
+         fOptionMenu->AddEntry("Do Not Rebuild &ACC",104);
+        }
+        else   fOptionMenu->AddEntry("Rebuild &ACC ",104);
+        gAMSDisplay->GetNtuple()->Prepare(kanticlusters);
+        gAMSDisplay->SetView(gAMSDisplay->GetView());
+        gAMSDisplay->DrawTitle();
+        break;
       case 6:
         gApplication->SetReturnFromRun(0);
         gApplication->Terminate(1);
@@ -297,6 +308,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fOptionMenu->AddEntry("&Draw TrClusters As Simple Boxes",101);
     fOptionMenu->AddEntry("&Use Hollow Style",102);
     fOptionMenu->AddEntry("Draw &RichRings From Plex",103);
+    fOptionMenu->AddEntry("Rebuild &ACC",104);
     fOptionMenu->Associate(this);
 
     fHelpMenu=new TGPopupMenu(fClient->GetRoot());
