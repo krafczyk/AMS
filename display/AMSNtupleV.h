@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.56 2013/05/11 10:59:35 mduranti Exp $
+//  $Id: AMSNtupleV.h,v 1.56.2.1 2013/11/19 14:52:59 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -24,7 +24,6 @@ public:
 
   AMSDrawI(AMSEventR *ev=0,int ref=0):fRef(ref),fEv(ev){}
 };
-
 class AMS3DMarker: public TMarker3DBox{
 public:
   AMS3DMarker():TMarker3DBox(){};
