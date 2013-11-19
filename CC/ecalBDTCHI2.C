@@ -38,7 +38,7 @@ TH1F *hECALBCHI2[nPIBCHI2VARs];
 float EcalShowerR::GetEcalBDTCHI2()
 {
   AMSEventR *pev = AMSEventR::Head();
-  unsigned int iBDTVERSION = 5;
+  unsigned int iBDTVERSION = 3;
   int TMVAClassifier=0;
   return GetEcalBDTCHI2(pev, iBDTVERSION, TMVAClassifier);
 }
