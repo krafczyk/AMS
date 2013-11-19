@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.271 2013/11/19 15:13:42 choutko Exp $
+//  $Id: ntuple.C,v 1.272 2013/11/19 18:02:56 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -448,6 +448,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     throw amsglobalerror("UnableToOpenRootFile",3);
   }
   _dc.Write("DataCards");
+#ifdef _PGTRACK_
     TDirectory* dd=_rfile->mkdir("datacards");
     dd->cd();
     TKGEOMFFKEY.Write();
@@ -459,7 +460,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     TRCHAFFKEY.Write();
     TRDMCFFKEY.Write();
     _rfile->cd();
-
+#endif
 
 
   const int size=5000000;
