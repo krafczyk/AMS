@@ -236,6 +236,8 @@ public:
     // Hit manipulation/operation
     TrdKHit* GetHit(int i){if(i>=NHits())return 0;return &(TRDHitCollection.at(i));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
+    int GetNonZeroParticipatingHit(int i) {return NonZeroParticpatingHits[i];}
+    unsigned int GetNumNonZeroParticipatingHit() {return NonZeroParticpatingHits.size();}
 
     // Select Only Hit within distance/cm around the current track , outside hits are dropped from the cluster
     void DoHitPreselection(float distance);
@@ -484,6 +486,7 @@ private:
     float TRDCenter;
     float Minimum_dR;
     vector <TrdKHit> TRDHitCollection;
+    vector <int> NonZeroParticpatingHits;
 
 
     float Track_Rigidity;

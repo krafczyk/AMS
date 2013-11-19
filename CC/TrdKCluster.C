@@ -69,13 +69,13 @@ void TrdKCluster::Init(AMSEventR *evt){
     int NTRDHit=evt->NTrdRawHit();
     if(!NTRDHit)return;
 
-
     TRDHitCollection.reserve(NTRDHit);
     if(NHits())TRDHitCollection.clear();
     for(int i=0;i<NTRDHit;i++){
         TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
         if(!_trd_hit) continue;
         TRDHitCollection.push_back(TrdKHit(_trd_hit,Zshift));
+        NonZeroParticpatingHits.push_back(i);
     }
 
 
@@ -613,10 +613,15 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
 
 void TrdKCluster::DoHitPreselection(float cut_distance){
     vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
+    vector<int>::iterator NonZeroHit_it=NonZeroParticpatingHits.begin();
     for (;Hit_it!=TRDHitCollection.end(); ) {
         if(fabs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>cut_distance){
             Hit_it =TRDHitCollection.erase(Hit_it);
-        }else Hit_it++;
+            NonZeroHit_it=NonZeroParticpatingHits.erase(NonZeroHit_it);
+        }else {
+            Hit_it++;
+            NonZeroHit_it++;
+        }
     }
 
 
