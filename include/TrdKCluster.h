@@ -93,18 +93,18 @@ public:
     TrdKCluster();
 
     // Constructor for ToyMC Study
-    TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir);
+    TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir, double _threshold=0.);
 
     // Constructor for Analysis on AMS Root files
-    TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode);
+    TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode, double _threshold=0.);
     ~TrdKCluster();
 
-    TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir);
+    TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir, double _threshold=0.);
 
-    TrdKCluster(AMSEventR *evt,TrdTrackR *trdtrack,float Rigidity=0);
-    TrdKCluster(AMSEventR *evt,TrdHTrackR *trdhtrack,float Rigidity=0);
-    TrdKCluster(AMSEventR *evt,EcalShowerR *shower);
-    TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity=0);
+    TrdKCluster(AMSEventR *evt,TrdTrackR *trdtrack,double _threshold=0.,float Rigidity=0);
+    TrdKCluster(AMSEventR *evt,TrdHTrackR *trdhtrack,double _threshold=0.,float Rigidity=0);
+    TrdKCluster(AMSEventR *evt,EcalShowerR *shower, double _threshold=0.);
+    TrdKCluster(AMSEventR *evt, BetaHR *betah,double _threshold=0.,float Rigidity=0);
 
 
 
@@ -202,19 +202,19 @@ public:
 
 
     // GetLikelihoodRatio and Event Properties
-    int GetLikelihoodRatio(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir,float ECAL_Energy_Hypothesis=0);
-    int GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir, int start_index=0, float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir,float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_DEBUG(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir, int start_index=0, float ECAL_Energy_Hypothesis=0);
 
-    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits);
-    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL);
+    int GetLikelihoodRatio_TrTrack(double* LLR, int &nhits);
+    int GetLikelihoodRatio_TrTrack(double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL);
 
-    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits);
-    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod=1, int particle_hypothesis=1);
+    int GetLikelihoodRatio_TRDRefit(double* LLR, int &nhits);
+    int GetLikelihoodRatio_TRDRefit(double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod=1, int particle_hypothesis=1);
 
 
     // GetLikelihoodRatio and Event Properties,  Debug version
-    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, int flag_debug=-1, float ECAL_Energy_Hypothesis=0);
-    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp , int fitmethod=1, int particle_hypothesis=1, int flag_debug=-1,  float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_TrTrack(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, int flag_debug=-1, float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_TRDRefit(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp , int fitmethod=1, int particle_hypothesis=1, int flag_debug=-1,  float ECAL_Energy_Hypothesis=0);
 
 
 
@@ -440,6 +440,8 @@ private:
 
 
     // TRDTrack Refit
+    double threshold;
+
     static void fcn_TRDTrack(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
     static void fcn_TRDTrack_PathLength(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
     
