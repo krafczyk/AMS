@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.33 2013/05/21 19:29:39 qyan Exp $
+//  $Id: Tofdbc.C,v 1.33.2.1 2013/11/19 16:30:55 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -15,7 +15,7 @@
 #ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
 #include "amsdbc.h"
-#include <string.h>
+#include <string>
 #include <stdlib.h>
 #include <math.h>
 #include "ntuple.h"
@@ -34,8 +34,9 @@
 #include "Tofcharge_ihep.h"
 
 const float TofRecPar::AttLenLimit=50;
-
-
+const float TofRecPar::TkLSMatch=0.3;//0.3cm
+const float TofRecPar::TkLSMatch2=0.5;//0.5cm
+const float TofRecPar::TRDLSMatch2=5;//5cm
 //Overlap
 
 
