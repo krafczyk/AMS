@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.270.2.5 2013/11/20 09:12:09 choutko Exp $
+//  $Id: ntuple.C,v 1.270.2.6 2013/11/20 09:13:48 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -322,8 +322,6 @@ void AMSNtuple::endR(bool cachewrite){
       delete i->second;
     }
     evmap.clear();
-    if(_tree)_nentries=_tree->GetEntries();
-    else _nentries=0;    
     cout<<"AMSNtupe::endR-I-MapErased "<<evmap.size()<<endl;
   }
 #ifdef __WRITEROOT__
