@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.187.2.2 2013/11/20 09:06:31 choutko Exp $
+//  $Id: producer.C,v 1.187.2.3 2013/11/20 09:12:09 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -697,12 +697,6 @@ if(exedir && nve && AMSCommonsI::getosname()){
   systemc+=a(bstart);
   systemc+=" ";
   char tmp[80];
-  if(AMSNtuple::GetEntries()){
-     if(ntend->EventNumber!=AMSNtuple::GetEntries()){
-         cerr<<" AMSProducer::sendNtupleEnd-W-EventNumberMismatch Run Says "<<ntend->EventNumber<<" entries, Ntuple says "<<=AMSNtuple::GetEntries();
-     }
-     ntend->EventNumber=AMSNtuple::GetEntries() ;
- }
   sprintf(tmp,"%d",ntend->EventNumber);
   systemc+=tmp;
   if(IOPA.WriteRoot)systemc+=" 1 ";
@@ -819,12 +813,6 @@ if(exedir && nve && AMSCommonsI::getosname()){
   systemc+=file2v.c_str();
   systemc+=" ";
   char tmp[80];
-  if(AMSNtuple::GetEntries()){
-     if(ntend->EventNumber!=AMSNtuple::GetEntries()){
-         cerr<<" AMSProducer::sendNtupleEnd-W-EventNumberMismatch Run Says "<<ntend->EventNumber<<" entries, Ntuple says "<<=AMSNtuple::GetEntries();
-     }
-     ntend->EventNumber=AMSNtuple::GetEntries() ;
- }
   sprintf(tmp,"%d",ntend->EventNumber);
   systemc+=tmp;
   if(IOPA.WriteRoot)systemc+=" 1 ";

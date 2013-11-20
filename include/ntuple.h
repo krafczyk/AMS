@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.151.2.1 2013/11/20 09:06:11 choutko Exp $
+//  $Id: ntuple.h,v 1.151.2.2 2013/11/20 09:12:14 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -1000,7 +1000,6 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   static TTree* _treesetup;   //   the one-per-run entree tree fulled with 
                               //   maps of (time,{structure}) time==uint or uint64 mksec
   static TFile* _rfile;
-  static unsigned long long _nentries;
   static TObjString _dc; 
   static TObjString _ta; 
   static TObjString _ag; 
@@ -1012,7 +1011,6 @@ public:
   //for(int k=0;k<sizeof(_evroot02)/sizeof(_evroot02[0]);k++)_evroot02[k]=0;
 }
   AMSNtuple(char* name);
-  static unsigned long long GetEntries(){return _nentries;} 
   ~AMSNtuple();
   AMSNtuple(integer lun, char* name);
   static void Bell();

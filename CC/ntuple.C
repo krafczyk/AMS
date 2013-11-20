@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.270.2.4 2013/11/20 09:06:31 choutko Exp $
+//  $Id: ntuple.C,v 1.270.2.5 2013/11/20 09:12:09 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -68,7 +68,6 @@ AMSSetupR AMSNtuple::_setup02;
 EventNtuple02 AMSNtuple::_event02;
 TRDInfoNtuple02 AMSNtuple::_trdinfo02;
 TTree* AMSNtuple::_tree=0;
-unsigned long long AMSNtuple::_nentries=0;
 TTree* AMSNtuple::_treesetup=0;
 TFile* AMSNtuple::_rfile=0;
 TObjString AMSNtuple::_dc("");
