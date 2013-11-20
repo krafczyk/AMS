@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.272 2013/11/19 18:02:56 choutko Exp $
+//  $Id: ntuple.C,v 1.273 2013/11/20 09:14:50 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -311,9 +311,9 @@ void AMSNtuple::endR(bool cachewrite){
     cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<cachewrite<<endl;
     for(evmapi i=evmap.begin();i!=evmap.end();i++){
       if(_tree){
-	if(!_lun )_Nentries++;
 	AMSEventR::Head()=i->second;
         if(Get_setup02() && Get_setup02()->UpdateHeader(AMSEventR::Head())!=2){
+  	 if(!_lun )_Nentries++;
         _Lastev=i->second->Event();
         _Lasttime=i->second->UTime();
 	if(cachewrite)_tree->Fill();
@@ -448,9 +448,9 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     throw amsglobalerror("UnableToOpenRootFile",3);
   }
   _dc.Write("DataCards");
-#ifdef _PGTRACK_
     TDirectory* dd=_rfile->mkdir("datacards");
     dd->cd();
+#ifdef _PGTRACK_
     TKGEOMFFKEY.Write();
     TRMCFFKEY.Write();
     TRCALIB.Write();
@@ -522,7 +522,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
 uinteger AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
 
-  if (ATCAFFKEY.antiPG){
+  if (ATCAFFKEY.antiPG>1){
     Get_evroot02()->RebuildAntiClusters();
 }
 if(Trigger2LVL1::SetupIsChanged){
@@ -638,9 +638,9 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
     //#pragma omp critical (wr2)
     for(int k=0;k<del.size();k++){
       if(_tree){
-	if(!_lun )_Nentries++;
 	AMSEventR::Head()=del[k];
         if(Get_setup02()->UpdateHeader(AMSEventR::Head())!=2){
+	if(!_lun )_Nentries++;
         _Lastev=del[k]->Event();
         _Lasttime=del[k]->UTime();
 	_tree->Fill();
