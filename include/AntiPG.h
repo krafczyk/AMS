@@ -29,7 +29,7 @@ class AntiClusterR {
 
  public:
 
-  AntiClusterR(){};
+  AntiClusterR();
   AntiClusterR(AMSAntiCluster *ptr);
   virtual ~AntiClusterR(){};
 
