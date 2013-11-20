@@ -33,6 +33,7 @@ class AntiClusterR {
   AntiClusterR(AMSAntiCluster *ptr);
   virtual ~AntiClusterR(){};
 
+  unsigned int Status;
   //! number of pairs (if <0 number of time history of the found side)
   int Npairs;
   //! 1-8 identify the sector
@@ -105,7 +106,7 @@ class AntiClusterR {
     return _Info;
   }
   
-  ClassDef(AntiClusterR,5);
+  ClassDef(AntiClusterR,6);
 #pragma omp threadprivate(fgIsA)
 };
 
