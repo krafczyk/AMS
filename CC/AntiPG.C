@@ -20,21 +20,55 @@ char  AntiClusterR::_Info[255];
 ClassImp(AntiRecoPG)
 ClassImp(AntiClusterR)
 
+AntiClusterR::AntiClusterR() {
+  Npairs = 0;
+  Sector = 0;
+  adc[0] = 0;
+  adc[1] = 0;
+  time=0;
+  zeta=1000;
+  chi=0;
+  unfzeta=1000;
+  next_time   = 0;
+  next_zeta   = 0;
+  next_chi   = 0;
+  next_unfzeta= 0;
+  zeta_adc   = 0;
+  unfzeta_adc   = 0;
+  rawq=0;
+  phi=FillCoo(&AntiCoo);
+  rawdep   = 0;
+  Edep   = 0;
+}
+
 AntiClusterR::AntiClusterR(AMSAntiCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  Sector = ptr->_sector;  
+  Status = ptr->_status;
   Npairs = ptr->_npairs;
-  Edep   = ptr->_edep;
-  unfzeta= ptr->_coo[2];
-  phi=FillCoo(&AntiCoo);  
+  Sector = ptr->_sector;
+  adc[0] = 0;
+  adc[1] = 0;
   time=1.e9;
-    for(int i=0;i<ptr->_ntimes;i++){
-      if(fabs(ptr->_times[i])<fabs(time))time=ptr->_times[i];
-    }
- rawq=1;
-
+  for(int i=0;i<ptr->_ntimes;i++){
+    if(fabs(ptr->_times[i])<fabs(time))time=ptr->_times[i];
+  }
+  zeta= ptr->_coo[2];
+  chi=0;
+  unfzeta= ptr->_coo[2];
+  next_time   = 0;
+  next_zeta   = 0;
+  next_chi   = 0;
+  next_unfzeta= 0;
+  zeta_adc   = 0;
+  unfzeta_adc   = 0;
+  rawq=1;
+  phi=FillCoo(&AntiCoo);
+  rawdep   = ptr->_edep;
+  Edep   = ptr->_edep;
 #endif
 }
+
+
 
 /* return distance, beta and cosine theta inclination respect to Acc pad \n
   assuming External point hypothesis and straight line trajectory \n
@@ -777,6 +811,7 @@ float AntiRecoPG::DoRawEdep(int sect){
   return number of pairs. if <0 then only single side time history
 */  
 int AntiRecoPG::BuildCluster(AntiClusterR* cluster, int sect, float zzguess, float err_zguess, float ttguess, float err_tguess){ 
+  //  printf("BuildCluster: %d\n", sect);//only for debug
   int nld = ReLoadAcc();
   if (nld==0) return 0;
   float zg = zzguess;
@@ -809,6 +844,13 @@ int AntiRecoPG::BuildCluster(AntiClusterR* cluster, int sect, float zzguess, flo
     cluster->phi = cluster->FillCoo(& cluster->AntiCoo);
     cluster->adc[0] = (int)(adctable[0][sect-1]);
     cluster->adc[1] = (int)(adctable[1][sect-1]);
+    cluster->Status=0;
+    if (cluster->chi>30.0) cluster->Status|=1;
+    if (cluster->chi>30.0) cluster->Status|=128;
+    if ((cluster->adc[0]==0) || (cluster->adc[1]==0)) cluster->Status|=2;
+    if ((cluster->adc[0]==0) && (cluster->adc[1]==0)) cluster->Status|=4;
+    if (cluster->Npairs<0) cluster->Status|=1024;
+    //    printf("Sector %d) Npairs=%d, Chisq=%f, Status=%x\n", cluster->Sector, cluster->Npairs, cluster->chi, cluster->Status);//only for debug
   }
   return npa;
 }
@@ -819,32 +861,30 @@ int AntiRecoPG::BuildCluster(AntiClusterR* cluster, int sect, float zzguess, flo
   For a single defined sect a partucular zguess can be set
 */  
 int AntiRecoPG::BuildAllClusters(int sect, float sect_zguess, float err_sect_zguess){
-
-  //  printf("Anti: sect = %d\n");//only for default
-
+  //  printf("Anti: sect = %d\n");//only for debug
   ppAntiClusterPG.clear();
   int nacc=0;
   for (int isect=1;isect<=8;isect++){
     AntiClusterR* cluster = new AntiClusterR;
     int nbc;
-    //    printf("Anti: trying isect = %d\n", isect);//only for default
+    //    printf("Anti: trying isect = %d\n", isect);//only for debug
     if (sect!=0 && isect==sect) {
-      //      printf("Anti (1)\n");//only for default
+      //      printf("Anti (1)\n");//only for debug
       nbc = BuildCluster(cluster, isect, sect_zguess, err_sect_zguess);
     }
     else {
-      //      printf("Anti (2)\n");//only for default
+      //      printf("Anti (2)\n");//only for debug
       nbc = BuildCluster(cluster, isect);
     }
     if (nbc != 0) {
       cluster->Info(nacc);
       nacc++;
       ppAntiClusterPG.push_back(*cluster);
-      //      printf("Anti (3)\n");//only for default
+      //      printf("Anti (3)\n");//only for debug
     }
     delete cluster;
   }
-  //  printf("Anti (after loop)\n");//only for default
+  //  printf("Anti (after loop)\n");//only for debug
   nAntiClusterPG = nacc;
   return nacc;  // total number of anticounter
 
@@ -856,15 +896,14 @@ AntiClusterR::AntiClusterR(AMSAntiCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Sector = ptr->_sector;
-  //Npairs = ptr->_npairs;
+  Ntimes = ptr->_ntimes;
+  Npairs = ptr->_npairs;
   //Time.clear();
   //TimeE.clear();
   //for(int i=0;i<ptr->_ntimes;i++){
   //  Time.push_back(ptr->_times[i]);
   //  TimeE.push_back(ptr->_etimes[i]);
   //  }
-  Ntimes = ptr->_ntimes;
-  Npairs = ptr->_npairs;
   for(int i=0;i<sizeof(Times)/sizeof(Times[0]);i++)Times[i] = i<Ntimes?ptr->_times[i]:0;
   for(int i=0;i<sizeof(Timese)/sizeof(Timese[0]);i++)Timese[i] = i<Ntimes?ptr->_etimes[i]:0;
   

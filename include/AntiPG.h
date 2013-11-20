@@ -33,6 +33,16 @@ class AntiClusterR {
   AntiClusterR(AMSAntiCluster *ptr);
   virtual ~AntiClusterR(){};
 
+  /*!
+    Goodness of the reconstructed Cluster:
+    0: good cluster
+    bit  0    ("1"): Bad ChiSq
+    bit  7  ("128"): No FT-coinc. on 2 sides
+    bit  8  ("256"): 1 side Sector
+    bit 10 ("1024"): miss.side
+    
+  */
+  unsigned int Status;
   //! number of pairs (if <0 number of time history of the found side)
   int Npairs;
   //! 1-8 identify the sector
@@ -105,7 +115,7 @@ class AntiClusterR {
     return _Info;
   }
   
-  ClassDef(AntiClusterR,5);
+  ClassDef(AntiClusterR,6);
 #pragma omp threadprivate(fgIsA)
 };
 
