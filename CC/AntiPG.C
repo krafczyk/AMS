@@ -202,7 +202,7 @@ int AntiRecoPG::SelectRun(){
   // return = 2 pre-launch BT or Muons (pre 1305331200)                   
   // return = 99  MC                                              
   int run_type;
-  AMSEventR* evt = AMSEventRHead();                                         
+  AMSEventR* evt = AMSEventRHead()?AMSEventRHead():AMSEventR::Head();
     MCEventgR *pmc = evt->pMCEventg(0);
     if (!pmc) { run_type = 1;  // is DATA                                      
       //  cout << "Run autoselected as DATA" << endl;
@@ -596,7 +596,7 @@ float AntiRecoPG::BayesEstimation(float value, float error, float low, float upp
 
 // evaluate a guess of event time averaging tof times
 float AntiRecoPG::GetTofTimeGuess(){
-  AMSEventR* evt = AMSEventRHead();                                         
+  AMSEventR* evt = AMSEventRHead()?AMSEventRHead():AMSEventR::Head();
   
   float tguess = 0.;
   int nguess = 0;
@@ -615,7 +615,7 @@ float AntiRecoPG::GetTofTimeGuess(){
 //fill timetable and timeindex
 int AntiRecoPG::ReLoadAcc(){  
   int iret = 0; // no raw sides
-  AMSEventR* evt = AMSEventRHead();                                         
+  AMSEventR* evt = AMSEventRHead()?AMSEventRHead():AMSEventR::Head();
   if (evt->Event() == evto && evt->Run() == runo) return nrsd;
   if (evt->Run() != runo){ // new run reload calibrations
   int run_type = SelectRun();
