@@ -22,6 +22,7 @@ ClassImp(AntiClusterR)
 
 AntiClusterR::AntiClusterR(AMSAntiCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
+  Status = ptr->_status;
   Sector = ptr->_sector;  
   Npairs = ptr->_npairs;
   Edep   = ptr->_edep;
