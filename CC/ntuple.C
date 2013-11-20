@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.270.2.3 2013/11/19 14:56:35 choutko Exp $
+//  $Id: ntuple.C,v 1.270.2.4 2013/11/20 09:06:31 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -68,6 +68,7 @@ AMSSetupR AMSNtuple::_setup02;
 EventNtuple02 AMSNtuple::_event02;
 TRDInfoNtuple02 AMSNtuple::_trdinfo02;
 TTree* AMSNtuple::_tree=0;
+unsigned long long AMSNtuple::_nentries=0;
 TTree* AMSNtuple::_treesetup=0;
 TFile* AMSNtuple::_rfile=0;
 TObjString AMSNtuple::_dc("");
@@ -311,9 +312,9 @@ void AMSNtuple::endR(bool cachewrite){
     cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<cachewrite<<endl;
     for(evmapi i=evmap.begin();i!=evmap.end();i++){
       if(_tree){
-	if(!_lun )_Nentries++;
 	AMSEventR::Head()=i->second;
         if(Get_setup02() && Get_setup02()->UpdateHeader(AMSEventR::Head())!=2){
+  	 if(!_lun )_Nentries++;
         _Lastev=i->second->Event();
         _Lasttime=i->second->UTime();
 	if(cachewrite)_tree->Fill();
@@ -322,6 +323,8 @@ void AMSNtuple::endR(bool cachewrite){
       delete i->second;
     }
     evmap.clear();
+    if(_tree)_nentries=_tree->GetEntries();
+    else _nentries=0;    
     cout<<"AMSNtupe::endR-I-MapErased "<<evmap.size()<<endl;
   }
 #ifdef __WRITEROOT__
@@ -450,6 +453,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
   _dc.Write("DataCards");
     TDirectory* dd=_rfile->mkdir("datacards");
     dd->cd();
+#ifdef _PGTRACK_
     TKGEOMFFKEY.Write();
     TRMCFFKEY.Write();
     TRCALIB.Write();
@@ -459,7 +463,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     TRCHAFFKEY.Write();
     TRDMCFFKEY.Write();
     _rfile->cd();
-
+#endif
 
 
   const int size=5000000;
@@ -637,9 +641,9 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
     //#pragma omp critical (wr2)
     for(int k=0;k<del.size();k++){
       if(_tree){
-	if(!_lun )_Nentries++;
 	AMSEventR::Head()=del[k];
         if(Get_setup02()->UpdateHeader(AMSEventR::Head())!=2){
+	if(!_lun )_Nentries++;
         _Lastev=del[k]->Event();
         _Lasttime=del[k]->UTime();
 	_tree->Fill();
