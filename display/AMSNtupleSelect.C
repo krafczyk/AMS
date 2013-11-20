@@ -20,8 +20,6 @@ public:
     //  return true if event has to be drawn false otherwise.
     // Example take the even event numbers
    if(ev){
-    cout<<" ev "<<ev->NAntiCluster()<<endl;
-    return true;
     bool next=ev->Event()!=oldev;
     bool breaks=ev->Event()-oldev!=1;
     if(breaks){
