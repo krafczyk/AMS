@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.583 2013/11/14 23:35:58 shaino Exp $
+//  $Id: root.h,v 1.584 2013/11/21 15:41:14 oliva Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4509,7 +4509,7 @@ public:
 
 
 33
-      trd charge *2
+      Upper AMS charge = UTrk + TRD + UTOF (0: no good charge; 1, ..., 14: charge; 15: charge>=15) 
 60
 61
 62

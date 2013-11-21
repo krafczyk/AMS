@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.109 2013/11/13 13:29:40 oliva Exp $
+//  $Id: charge.C,v 1.110 2013/11/21 15:41:14 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -708,6 +708,13 @@ int AMSCharge::getchargeTOF() {
 int AMSCharge::getchargeTracker() {
   map<TString,AMSChargeSubD*>::iterator i=_charges.find("AMSChargeTracker");
   if(i==_charges.end()) return -1;
+  else return i->second->getcharge();
+}
+
+
+int AMSCharge::getchargeUpper() {
+  map<TString,AMSChargeSubD*>::iterator i=_charges.find("AMSChargeUpper");
+  if (i==_charges.end()) return -1;
   else return i->second->getcharge();
 }
 

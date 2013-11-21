@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.35 2013/11/12 16:17:49 oliva Exp $
+//  $Id: charge.h,v 1.36 2013/11/21 15:41:14 oliva Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -470,6 +470,8 @@ class AMSCharge : public AMSChargeBase, public AMSlink {
   int getchargeTOF();
   // charge from Tracker
   int getchargeTracker();
+  // charge from Upper AMS (UTrk+TRD+UTOF)
+  int getchargeUpper();
 
   // copy all elements 
   void _copyEl();
