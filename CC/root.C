@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612.2.1 2013/11/19 14:52:52 choutko Exp $
+//  $Id: root.C,v 1.612.2.2 2013/11/21 22:03:56 mduranti Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3292,35 +3292,38 @@ void AMSEventR::AddAMSObject(AMSmctrack *ptr)
 
 int AMSEventR::RebuildAntiClusters(int sect, float sect_zguess, float err_sect_zguess){
   
+  //  printf("In RebuilAntiClusters...\n");
   AntiRecoPG* Acci = AntiRecoPG::gethead();
+  //  printf("Got AntiRecoPG head...\n");
   Acci->AMSEventRHead()=this;
+  //  printf("Set AntiRecoPG:AMSEventRHead to this ...\n");
   int nacc = Acci->BuildAllClusters(sect,sect_zguess,err_sect_zguess);
-//    printf("Built %d AntiClusterR\n", nacc);
-
-//   printf("Before: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
-//   printf("Before: nAntiCluster()=%d\n", (int)nAntiCluster());
-//   printf("Before: NAntiCluster()=%d\n", (int)NAntiCluster());
+  //    printf("Built %d AntiClusterR\n", nacc);
+  
+  //   printf("Before: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
+  //   printf("Before: nAntiCluster()=%d\n", (int)nAntiCluster());
+  //   printf("Before: NAntiCluster()=%d\n", (int)NAntiCluster());
   fAntiCluster.clear();
   fHeader.AntiClusters = 0;
-
+  
   for (int ii=0; ii<nacc; ii++) {
     AntiClusterR* clus = Acci->pAntiClusterPG(ii);
     //    printf("%d) Found one AntiClusterR...\n", ii);
     if (clus) {
       AntiClusterR clusderef = *clus;
       fAntiCluster.push_back(clusderef);
-      //      printf("Valid (%p, %d)", clus, clus->sector);
-      //      printf(" (%d)\n", clusderef.sector);
+      //      printf("Valid (%p, %d)", clus, clus->Sector);
+      //      printf(" (%d)\n", clusderef.Sector);
     }
   }
   // printf("After: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
   // printf("After: nAntiCluster()=%d\n", (int)nAntiCluster());
   // printf("After: NAntiCluster()=%d\n", (int)NAntiCluster());
   fHeader.AntiClusters = nacc;
-//   printf("After2: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
-//   printf("After2: nAntiCluster()=%d\n", (int)nAntiCluster());
-//   printf("After2: NAntiCluster()=%d\n", (int)NAntiCluster());
-
+  //   printf("After2: fAntiCluster.size()=%d\n", (int)fAntiCluster.size());
+  //   printf("After2: nAntiCluster()=%d\n", (int)nAntiCluster());
+  //   printf("After2: NAntiCluster()=%d\n", (int)NAntiCluster());
+  
   return nacc;
 }
 #endif

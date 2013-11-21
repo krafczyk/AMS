@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.53.2.3 2013/11/20 19:14:35 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.53.2.4 2013/11/21 22:03:58 mduranti Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -293,13 +293,19 @@ void AMSNtupleV::Prepare( EAMSType type){
       if(gAMSDisplay->RebuildACC()){
          int nold=NAntiCluster();
          int n=RebuildAntiClusters();
-         int c=0;
+         static int c=0;
          const int maxc=100;
-         if(c++<maxc && n!=nold)cerr<<"AMSNtupleV-W-NACC changed was "<<nold<<" now "<<n<<endl;
+         if (c<maxc && n!=nold) {
+	   cerr<<"AMSNtupleV-W-NACC changed was "<<nold<<" now "<<n<<endl;
+	   c++;
+	 }
       }
       for(int i=0;i<NAntiCluster();i++){
-	  if(!gAMSDisplay->DrawUsedOnly() || ((pAntiCluster(i)->Status)/32)%2 ) fAntiClusterV.push_back( AntiClusterV(this,i));
-	//if(!gAMSDisplay->DrawUsedOnly()) fAntiClusterV.push_back( AntiClusterV(this,i));
+	if (!gAMSDisplay->DrawUsedOnly()) {
+	  if ((pAntiCluster(i)->Status)==0) {
+	    fAntiClusterV.push_back(AntiClusterV(this,i));
+	  }
+	}
       }
     }
   }
