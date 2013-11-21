@@ -36,7 +36,9 @@ class AntiClusterR {
   /*!
     Goodness of the reconstructed Cluster:
     0: good cluster
-    bit  0    ("1"): Bad ChiSq
+    bit  0    ("1"): Bad ChiSq>30
+    bit  1    ("2"): One ADC is 0
+    bit  2    ("4"): Both ADC are 0
     bit  7  ("128"): No FT-coinc. on 2 sides
     bit  8  ("256"): 1 side Sector
     bit 10 ("1024"): miss.side
