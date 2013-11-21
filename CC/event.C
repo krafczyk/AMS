@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.583 2013/11/12 16:08:22 qyan Exp $
+//  $Id: event.C,v 1.583.2.1 2013/11/21 15:32:48 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4177,6 +4177,7 @@ else{
              __status1|=(z1<<25);
       }
 
+  /*
        if(ptr){
         if(ptr->_ptrd){
           float charge=ptr->_ptrd->_Charge.Q;
@@ -4185,8 +4186,17 @@ else{
          __status1|=(z1<<28);
         }       
         }
+  */
 
-
+  // substitute trd charge with AMS Upper Charge  
+  if(ptr){
+    if(ptr->_pcharge) { 
+      int z1 = ptr->_pcharge->getchargeUpper();
+      if (z1<0) z1 = 0;
+      if (z1>15) z1 = 15; 
+      __status1 |= (z1<<28);
+    }
+  }
 
        _status[0]=__status;
        _status[1]=__status1;
