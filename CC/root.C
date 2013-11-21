@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.613 2013/11/19 15:13:42 choutko Exp $
+//  $Id: root.C,v 1.614 2013/11/21 17:23:00 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -435,6 +435,11 @@ void AMSEventR::hbookp(int idd,const char title[], int ncha, float  a, float b){
 void AMSEventR::hbook2s(int id, const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba,int howmany,int shift){
   for (int i=0;i<howmany;i++){
     hbook2(id+shift*i,title,ncha,a,b,nchaa,aa,ba);
+  }
+}
+void AMSEventR::hbook2s(int id, const char title[], int ncha, float  a, float b, int nchaa, double *ba,int howmany,int shift){
+  for (int i=0;i<howmany;i++){
+    hbook2(id+shift*i,title,ncha,a,b,nchaa,ba);
   }
 }
 void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
