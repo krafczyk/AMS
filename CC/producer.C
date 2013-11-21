@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.187.2.3 2013/11/20 09:12:09 choutko Exp $
+//  $Id: producer.C,v 1.187.2.4 2013/11/21 15:51:58 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -749,7 +749,14 @@ againcpmeans:
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
-  fmake="nsmkdir -p ";
+
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir"))localbin=getenv("AMSDataDir");
+   else localbin=local;
+   fmake=localbin;
+   fmake+="/DataManagement/exe/linux/timeout --signal 9 9 ";
+   fmake+="nsmkdir -p ";
   if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
   fcopy=means;
   fcopy+=" ";
@@ -770,7 +777,7 @@ againcpmeans:
   else fmake+=rfio.c_str();
 // fmake+='/';
 // for (int k=bnt;k<bend;k++)fmake+=a[k];
- system((const char*)fmake);
+ int imake=system((const char*)fmake);
  fcopy+=(const char*)a(bstart);
  fcopy+="  ";
  fcopy+=destdir; 
@@ -1299,7 +1306,13 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
-  fmake="nsmkdir -p  ";
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir"))localbin=getenv("AMSDataDir");
+   else localbin=local;
+   fmake=localbin;
+   fmake+="/DataManagement/exe/linux/timeout --signal 9 9 ";
+   fmake+="nsmkdir -p ";
   if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
   string rfio=destdir;
   if(rfio.find("/castor/cern.ch")!=-1){
