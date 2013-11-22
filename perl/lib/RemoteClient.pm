@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.799 2013/11/22 15:46:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.800 2013/11/22 16:00:31 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -878,6 +878,7 @@ if($#{$self->{DataSetsT}}==-1){
      $dataset->{singlejob}=0;
      $dataset->{closed}=0;
      foreach my $job (@jobs){
+         chomp $job;
          if($job=~/^data=true/){
              $dataset->{datamc}=1;
 #             $self->{DataMC}=1;
@@ -931,22 +932,19 @@ if($#{$self->{DataSetsT}}==-1){
            if($job=~/^singlejob=true/){
              $dataset->{singlejob}=1;
          }
-        
-     }
-     if($dataset->{closed}){
-         next;
-     }
-     if($dataset->{datamc}==0 ){
-     foreach my $job (@jobs){
-         if($job=~/^version=/){
+        if($job=~/^version=/){
              my @vrs= split '=',$job;
              $dataset->{version}=$vrs[1];
              if($dataset->{version}=~/v5/){
 #              $self->{DataMC}=1;
              }
-             last;
          }
+ 
      }
+     if($dataset->{closed}){
+         next;
+     }
+     if($dataset->{datamc}==0 ){
      foreach my $job (@jobs){
          if($job=~/^serverno=/){
              my @vrs= split '=',$job;
@@ -1030,7 +1028,7 @@ if($#{$self->{DataSetsT}}==-1){
                 my $datasetsDidDB  = $ds->[0];
                 my $datasetsNameDB = $ds->[1];
                 my $datasetsVDB = $ds->[2];
-               if ($datasetsNameDB eq $dataset->{name} and $datasetsVDB eq $dataset->{version}  ) {
+               if ($datasetsNameDB eq $dataset->{name} and trimblanks($datasetsVDB) eq trimblanks($dataset->{version})  ) {
     
                  $dataset->{did}=$datasetsDidDB;
                   $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
@@ -1070,7 +1068,6 @@ if($#{$self->{DataSetsT}}==-1){
                $self->{sqlserver}->Update($sql);
                $sql="select did, name,version from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
-               
            }
 
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
@@ -1098,14 +1095,6 @@ if($#{$self->{DataSetsT}}==-1){
 #             $datafiles="mcfiles";
 #         }
      foreach my $job (@jobs){
-         if($job=~/^version=/){
-             my @vrs= split '=',$job;
-             $dataset->{version}=$vrs[1];
-             if($dataset->{version}=~/v5/){
-#              $self->{DataMC}=1;
-             }
-#            die " $dataset->{version} $self->{DataMC} "
-         }
 
       if($job =~ /\.job$/){
        if($job =~ /^\./){
@@ -1209,7 +1198,7 @@ if($#{$self->{DataSetsT}}==-1){
                 my $datasetsDidDB  = $ds->[0];
                 my $datasetsNameDB = $ds->[1];
                 my $datasetsVDB = $ds->[2];
-               if ($datasetsNameDB eq $dataset->{name} and $datasetsVDB eq $dataset->{version}  ) {
+               if ($datasetsNameDB eq $dataset->{name} and trimblanks($datasetsVDB) eq trimblanks($dataset->{version})  ) {
                  $dataset->{did}=$datasetsDidDB;
                  $datasetfound = 1;
                  last;
@@ -1227,7 +1216,7 @@ if($#{$self->{DataSetsT}}==-1){
                my $dmc=$dataset->{datamc}+$dataset->{MC}*10;
                $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dmc)";
                $self->{sqlserver}->Update($sql);
-               $sql="select did, name from DataSets";
+               $sql="select did, name, version from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
              }
            my $runlist="";
@@ -6867,7 +6856,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                      my $ret=$self->{sqlserver}->Query($sql);
 #                      die "$sql $ret->[0][0]";
                      if(not defined $ret->[0][0]){
-                         $sql = "SELECT did from Datasets WHERE name='$dataset->{name}'";
+                         $sql = "SELECT did from Datasets WHERE name='$dataset->{name}' and version='$dataset->{version}'";
                          $ret=$self->{sqlserver}->Query($sql);
                          if(defined $ret->[0][0]){
                          my $timenow = time();
@@ -8984,9 +8973,6 @@ if(defined $dataset->{buildno} ){
            if($setup =~/v4.00/){
             $dataset->{version}='v4.00';
            }
-           elsif($setup =~/v5.01/){
-            $dataset->{version}='v5.01';
-           }
            else{
             $dataset->{version}='v5.00';
            }
@@ -8994,7 +8980,7 @@ if(defined $dataset->{buildno} ){
         elsif($setup =~/AMSSHUTTLE/){
             $dataset->{version}='v3.00';
         }
-}
+    }
         else{
          my $setup=$q->param("QTemp");
          if($setup =~/v4.00/){
@@ -9003,14 +8989,11 @@ if(defined $dataset->{buildno} ){
          elsif($setup =~/v5.00/){
             $dataset->{version}='v5.00';
         }
-         elsif($setup =~/v5.01/){
-            $dataset->{version}='v5.01';
-        }
         elsif($setup =~/mc01/){
             $dataset->{version}='v3.00';
         }
-}
-}
+        }
+    }
 
         my $gbatch="";
         my $gbatchcomp="";
