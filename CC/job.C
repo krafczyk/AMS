@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.935.2.1 2013/11/22 10:58:17 shaino Exp $
+// $Id: job.C,v 1.935.2.2 2013/11/22 11:36:04 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2105,8 +2105,13 @@ void AMSJob::udata(){
       pgtrack_DB_ver=2;
     }
 #ifdef _PGTRACK_
-    if(TKGEOMFFKEY.alignver>3) TkLadder::version=3;
+    if(TKGEOMFFKEY.alignver==3) TkLadder::version=2;
+    if(TKGEOMFFKEY.alignver >3) TkLadder::version=3;
     TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
+  cout << "AMSJob::update-I- "
+       << "TkLadder::version= "     << TkLadder::version << " "
+       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
