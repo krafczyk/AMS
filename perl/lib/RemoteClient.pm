@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.800 2013/11/22 16:00:31 bshan Exp $
+# $Id: RemoteClient.pm,v 1.801 2013/11/22 17:12:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -18580,7 +18580,14 @@ sub updateDataSetsDescription {
      opendir THISDIR, $jobdir or die "unable to open $jobdir";
      my @jobs=readdir THISDIR;
      closedir THISDIR;
-
+     my $vr="v4.00";     
+     foreach my $job (@jobs){
+        if($job=~/^version=/){
+             my @vrs= split '=',$job;
+             $vr=$vrs[1];
+             last;
+         }
+    }
      foreach my $job (@jobs){
      if($job =~ /\.job$/){
       if($job =~ /^\./){
@@ -18610,7 +18617,7 @@ sub updateDataSetsDescription {
          print "dir path : $ret->[0][0], Insert time : $ret->[0][1] \n";
          print "****Skip $topdir/$dataset/$job \n";
      } else {
-      $sql = "SELECT did from Datasets WHERE name='$dataset'";
+      $sql = "SELECT did from Datasets WHERE name='$dataset' and version='$vr'";
       $ret = $self->{sqlserver}->Query($sql);
       if (not defined $ret->[0][0]) {
           print "****Warning dataset : $dataset NOT FOUND in Datasets Table. Skipped \n";
