@@ -1790,8 +1790,8 @@ class RemoteClient:
     def doCopyRaw(self,run,inputfile,crc,path='/MC'):
        time0=time.time()
        time00=0
-#       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByName(path)
-       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByName("2011A")
+#       (period,prodstarttime,periodid,vrs)=self.getActiveProductionPeriodByName(path)
+       (period,prodstarttime,periodid,vrs)=self.getActiveProductionPeriodByName("2011A")
        if(period == None or prodstarttime==0):
            sys.exit("Cannot find Active Production Period for path "+str(path))
        self.doCopyCalls=self.doCopyCalls+1
@@ -1906,11 +1906,11 @@ class RemoteClient:
         
 
     def getActiveProductionPeriodByName(self,name):
-       ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and name like '%"+name+"%'")
+       ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID,vdb  FROM ProductionSet WHERE STATUS='Active' and name like '%"+name+"%'")
        if(len(ret)>0):
-           return self.trimblanks(ret[0][0]),ret[0][1],ret[0][2]
+           return self.trimblanks(ret[0][0]),ret[0][1],ret[0][2],self.trimblanks(ret[0][3])
        else:
-          return None,0,0
+          return None,0,0,"invalid"
       
     def getActiveProductionPeriodByVersion(self,dbv):
        ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and vdb='"+dbv+"'")
@@ -3087,7 +3087,7 @@ class RemoteClient:
         types=["0SCI","0LAS","0CAL","0CMD","0CAB"]
         datapath=dataset
         ds1=""
-        ds2=""
+        ds2="invalid"
         did=-1
         if(dataset.find("/")>=0):
             junk=dataset.split('/')
@@ -3314,18 +3314,26 @@ class RemoteClient:
         files=self.sqlserver.Query(sql)
         datapath=dataset
         ds1=""
-        ds2=""
+        ds2="invalid"
         did=-1
         if(dataset.find("/")>=0):
             junk=dataset.split('/')
             dataset=junk[len(junk)-1]
             ds1=junk[len(junk)-2]
+            if(len(junk)>=3):
+                ds2=junk[len(junk)-3]
             sql="select did from datasets where name like '%s' " %(ds1)
             ds=self.sqlserver.Query(sql)
             if(len(ds)==1):
                 did=ds[0][0]
+            elif(len(ds)>1):
+                (np,bp,pid,vdb)=self.getActiveProductionPeriodByName(ds2)
+                sql="select did from datasets where name like '%s' and version='%s' " %(ds1,vdb)
+                ds=self.sqlserver.Query(sql)
+                if(len(ds)==1):
+                    did=ds[0][0]
             else:
-                sql="select did from datasets where name like '%s' " %(dataset)
+                sql="select did from datasetsdesc where name like '%s' " %(dataset)
 	        ds=self.sqlserver.Query(sql) 
                 if(len(ds)==1):
                        did=ds[0][0]
