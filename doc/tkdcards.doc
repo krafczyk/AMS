@@ -28,7 +28,7 @@ F [821,826] L9Amp[6]   L9 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dThe
 F [827,832] L9Phase[6] L9 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
 I [833]     exalignver PG External Alignment version; 1: no errors,  2: with errors (def)
 I [834]   MdExAlignTag CIEMAT External Alignment tag; 0: default,  otherwise version tag
-
+I [835]   MaxAlignedRun PG/MD Max aligned run
 
 TRMC
 I 564        SimulationType            0 GBATCH: old algorythm (DEPRECATED)

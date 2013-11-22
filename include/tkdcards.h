@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.64 2013/11/13 21:02:29 oliva Exp $
+// $Id: tkdcards.h,v 1.65 2013/11/22 11:49:27 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -53,9 +53,11 @@ public:
   integer exalignver;
   ///[834] CIEMAT External Alignment tag; (0: default,  otherwise version tag)
   integer MdExAlignTag;
+  ///[835] PG/MD Max aligned run
+  integer MaxAlignedRun;
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
-  ClassDef(TKGEOMFFKEY_DEF,7);
+  ClassDef(TKGEOMFFKEY_DEF,8);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
