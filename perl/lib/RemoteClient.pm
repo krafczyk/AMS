@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.801 2013/11/22 17:12:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.802 2013/11/22 17:37:50 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1028,7 +1028,7 @@ if($#{$self->{DataSetsT}}==-1){
                 my $datasetsDidDB  = $ds->[0];
                 my $datasetsNameDB = $ds->[1];
                 my $datasetsVDB = $ds->[2];
-               if ($datasetsNameDB eq $dataset->{name} and trimblanks($datasetsVDB) eq trimblanks($dataset->{version})  ) {
+               if (trimblanks($datasetsNameDB) eq trimblanks($dataset->{name}) and trimblanks($datasetsVDB) eq trimblanks($dataset->{version})  ) {
     
                  $dataset->{did}=$datasetsDidDB;
                   $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
