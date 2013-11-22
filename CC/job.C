@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.935 2013/11/12 16:08:22 qyan Exp $
+// $Id: job.C,v 1.935.2.1 2013/11/22 10:58:17 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2105,7 +2105,7 @@ void AMSJob::udata(){
       pgtrack_DB_ver=2;
     }
 #ifdef _PGTRACK_
-    if(TKGEOMFFKEY.alignver>2) TkLadder::version=2;
+    if(TKGEOMFFKEY.alignver>3) TkLadder::version=3;
     TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
@@ -3417,8 +3417,12 @@ void AMSJob::_timeinitjob(){
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM2",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
-	  else 	  if(TKGEOMFFKEY.alignver>2)
+	  else 	  if(TKGEOMFFKEY.alignver==3)
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM3",isRealData()),begin,end,
+				   TkDBc::GetLinearSize(),TkDBc::linear,
+				   server,need,SLin2Align));
+	  else 	  if(TKGEOMFFKEY.alignver>3)
+	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM4",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
 	}
