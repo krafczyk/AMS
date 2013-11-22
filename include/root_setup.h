@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.89 2013/11/14 08:46:32 choutko Exp $
+//  $Id: root_setup.h,v 1.90 2013/11/22 12:14:39 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -195,8 +195,8 @@ float lf;  ///< life time
 float cf[4][2];  ///< max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
 float cfi[4][2];   ///< max IGRF cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
 float mphe;///< most probable He rigidity;
-float theta;  ///< theta gtod (degrees)
-float phi;    ///<phi gtod (degrees)
+float theta;  ///< theta gtod (rad)
+float phi;    ///<phi gtod (rad)
 float r;     ///< Rad (cm)
 float zenith; ///< ams zenith angle (degrees)
 float glat;  ///< ams pointing galatic latitude (degrees) -1 faild
