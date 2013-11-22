@@ -14,7 +14,8 @@
 #include "root.h"
 #endif
 
-#define  MAXALIGNEDRUN 1374300000
+// Use TKGEOMFFKEY.MaxAlignedRun instead
+//#define  MAXALIGNEDRUN 1374300000
 
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
@@ -445,8 +446,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 // PZ -- FIXME -- TO be removed and replaced by TDV entry with years validity and zero content
   static int nprint=0;
 
-  int mar=MAXALIGNEDRUN;
-  if(time > MAXALIGNEDRUN  ){
+  int mar=TKGEOMFFKEY.MaxAlignedRun; //MAXALIGNEDRUN;
+  if(time > TKGEOMFFKEY.MaxAlignedRun){ //MAXALIGNEDRUN
     if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBc-W- Warning no dyn alignment available after %d, this message will be repeted only 10 times \n",mar);
     SL1[0]=SL1[1]=SL1[2]=SL1[3]=SL1[4]=SL1[5]=0.;
     SL9[0]=SL9[1]=SL9[2]=SL9[3]=SL9[4]=SL9[5]=0.;

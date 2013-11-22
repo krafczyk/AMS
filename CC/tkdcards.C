@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.90.2.1 2013/11/22 10:58:18 shaino Exp $
+// $Id: tkdcards.C,v 1.90.2.2 2013/11/22 11:36:23 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -40,6 +40,7 @@ void TKGEOMFFKEY_DEF::init(){
   }
   exalignver=3;
   MdExAlignTag=0;
+  MaxAlignedRun=1374300000;
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
