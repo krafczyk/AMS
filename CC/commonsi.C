@@ -1,4 +1,4 @@
-//  $Id: commonsi.C,v 1.236 2013/11/19 15:13:42 choutko Exp $
+//  $Id: commonsi.C,v 1.237 2013/11/22 10:42:11 choutko Exp $
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -24,7 +24,7 @@ uinteger AMSCommonsI::_MaxMem=1400000000;
 #ifndef _PGTRACK_
 char AMSCommonsI::_version[]="v4.00";
 #else
-char AMSCommonsI::_version[]="v5.00";
+char AMSCommonsI::_version[]="v5.01";
 #endif
 uinteger AMSCommonsI::_build=800;
 uinteger AMSCommonsI::_buildtime=0;
