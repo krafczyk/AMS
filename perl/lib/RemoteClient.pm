@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.798 2013/11/22 12:40:54 choutko Exp $
+# $Id: RemoteClient.pm,v 1.799 2013/11/22 15:46:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8984,6 +8984,9 @@ if(defined $dataset->{buildno} ){
            if($setup =~/v4.00/){
             $dataset->{version}='v4.00';
            }
+           elsif($setup =~/v5.01/){
+            $dataset->{version}='v5.01';
+           }
            else{
             $dataset->{version}='v5.00';
            }
@@ -8991,7 +8994,7 @@ if(defined $dataset->{buildno} ){
         elsif($setup =~/AMSSHUTTLE/){
             $dataset->{version}='v3.00';
         }
-    }
+}
         else{
          my $setup=$q->param("QTemp");
          if($setup =~/v4.00/){
@@ -9000,11 +9003,14 @@ if(defined $dataset->{buildno} ){
          elsif($setup =~/v5.00/){
             $dataset->{version}='v5.00';
         }
+         elsif($setup =~/v5.01/){
+            $dataset->{version}='v5.01';
+        }
         elsif($setup =~/mc01/){
             $dataset->{version}='v3.00';
         }
-        }
-    }
+}
+}
 
         my $gbatch="";
         my $gbatchcomp="";
