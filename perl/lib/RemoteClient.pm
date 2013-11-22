@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.797 2013/11/22 11:28:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.798 2013/11/22 12:40:54 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1070,7 +1070,7 @@ if($#{$self->{DataSetsT}}==-1){
                $self->{sqlserver}->Update($sql);
                $sql="select did, name,version from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
-
+               
            }
 
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
@@ -18695,7 +18695,7 @@ sub readDataSets() {
   my $ret=$self->{sqlserver}->Query($sql);
   if (defined $ret->[0][0]) {$ndatasetsDB = $ret->[0][0];}
   if ($ndatasetsDB > 0) {
-   $sql="select did, name from DataSets";
+   $sql="select did, name,version from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
 
    $sql="select count(jid) from Jobs where timestamp > $periodStartTime";
@@ -18797,7 +18797,8 @@ sub readDataSets() {
               for my $i (0..$ndatasetsDB-1) {
                my $datasetsDidDB  = $datasetsDB->[$i][0];
                my $datasetsNameDB = $datasetsDB->[$i][1];
-               if ($datasetsNameDB eq $dataset->{name}) {
+               my $datasetsVDB = $datasetsDB->[$i][2];
+               if ($datasetsNameDB eq $dataset->{name} and $datasetsVDB eq $dataset->{version}) {
                  $dataset->{did}=$datasetsDidDB;
                  for my $j (0...$njobsDB-1) {
                    my $jobsJidDB     = $jobsDB->[$j][0];
