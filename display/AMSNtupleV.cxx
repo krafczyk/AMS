@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.53.2.4 2013/11/21 22:03:58 mduranti Exp $
+//  $Id: AMSNtupleV.cxx,v 1.53.2.5 2013/11/22 14:01:18 mduranti Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -290,19 +290,25 @@ void AMSNtupleV::Prepare( EAMSType type){
   if(type==kall || type==kusedonly || type==kanticlusters){
     fAntiClusterV.clear();
     if(gAMSDisplay->DrawObject(kanticlusters)){
+#ifdef __USEANTICLUSTERPG__
       if(gAMSDisplay->RebuildACC()){
-         int nold=NAntiCluster();
-         int n=RebuildAntiClusters();
-         static int c=0;
-         const int maxc=100;
-         if (c<maxc && n!=nold) {
-	   cerr<<"AMSNtupleV-W-NACC changed was "<<nold<<" now "<<n<<endl;
-	   c++;
-	 }
+	int nold=NAntiCluster();
+	int n=RebuildAntiClusters();
+	static int c=0;
+	const int maxc=100;
+	if (c<maxc && n!=nold) {
+	  cerr<<"AMSNtupleV-W-NACC changed was "<<nold<<" now "<<n<<endl;
+	  c++;
+	}
       }
+#endif
       for(int i=0;i<NAntiCluster();i++){
 	if (!gAMSDisplay->DrawUsedOnly()) {
-	  if ((pAntiCluster(i)->Status)==0) {
+#ifdef __USEANTICLUSTERPG__
+	  if (!(pAntiCluster(i)->Status)) {
+#else
+	  if (!(((pAntiCluster(i)->Status)/32)%2)) { 
+#endif
 	    fAntiClusterV.push_back(AntiClusterV(this,i));
 	  }
 	}

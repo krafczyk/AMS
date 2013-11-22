@@ -21,6 +21,7 @@ ClassImp(AntiRecoPG)
 ClassImp(AntiClusterR)
 
 AntiClusterR::AntiClusterR() {
+  Status = 0xFFFFFFFF;
   Npairs = 0;
   Sector = 0;
   adc[0] = 0;
@@ -825,7 +826,7 @@ int AntiRecoPG::BuildCluster(AntiClusterR* cluster, int sect, float zzguess, flo
   if (ttguess != 999) SetTGuess(ttguess,err_tguess);
   int npa = ScanThePairs(sect);
   if (npa != 0) {
-    if(!cluster) cluster = new AntiClusterR;    
+    if (!cluster) cluster = new AntiClusterR;//FIX ME: This function is never used "internally" with cluster=0, but if a user was calling it in this way the value of "cluster" would never be "returned".
     cluster->Npairs = npa;
     cluster->Sector = sect;
     cluster->time = GetTime(sect,0);
