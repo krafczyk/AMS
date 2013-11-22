@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.796 2013/11/18 09:29:41 ams Exp $
+# $Id: RemoteClient.pm,v 1.797 2013/11/22 11:28:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -793,7 +793,7 @@ if($#{$self->{DataSetsT}}==-1){
        $pps=$pps." $pp->[0] ";
    }
 
-   $sql="select did, name from DataSets";
+   $sql="select did, name,version from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
    $st[0]=$st[0]+1;
    if(defined $datasetsDB->[0][0]){
@@ -1029,7 +1029,8 @@ if($#{$self->{DataSetsT}}==-1){
               foreach my $ds (@{$datasetsDB}){
                 my $datasetsDidDB  = $ds->[0];
                 my $datasetsNameDB = $ds->[1];
-               if ($datasetsNameDB eq $dataset->{name}) {
+                my $datasetsVDB = $ds->[2];
+               if ($datasetsNameDB eq $dataset->{name} and $datasetsVDB eq $dataset->{version}  ) {
     
                  $dataset->{did}=$datasetsDidDB;
                   $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
@@ -1037,33 +1038,6 @@ if($#{$self->{DataSetsT}}==-1){
                    my $tm=time();
                   $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
                   my $rtn2=$self->{sqlserver}->Query($sql);
-#                 foreach my $job (@{$jobsDB}){
-#                   my $jobsJidDB     = $job->[0];
-#                   my $jobsTimeDB    = $job->[1];
-#                   my $jobsTrigDB    = $job->[2];
-#                   my $jobsTimeOutDB = $job->[3];
-#                   my $jobsDidDB     = $job->[4];
-#                   my $jobsNameDB    = $job->[5];
-#                   my $rtrig=$job->[6];
-#                   if ($jobsDidDB == $dataset->{did}) {
-#                     my @junk     = split '\.',$jobsNameDB;
-#                     my $jobname = $junk[2];
-#                     for my $n (3..$#junk) {
-#                         $jobname = $jobname.".".$junk[$n];
-#                     }
-#                         if ($jobname eq $template->{filename}) {
-#                            if(defined  $rtrig and $rtrig>0 ) {
-#                               $template->{TOTALEVENTS}-=$rtrig;
-#                              }
-#                             elsif(time()-$jobsTimeDB < $jobsTimeOutDB){
-#                             #$st[3]+=1;
-##
-## subtract allocated events
-#                             $template->{TOTALEVENTS}-=$jobsTrigDB;
-#                         }
-#                        } # $jobname eq %$template->{filename}
-#                  } # $jobsDidDB == $dataset->{did)
-#                 } # loop for all jobs started after ProductionSetStartTime
                $datasetfound = 1;
                  my $rtrig=$rtn1->[0][0];
                  my $subm= $rtn2->[0][0];
@@ -1094,7 +1068,7 @@ if($#{$self->{DataSetsT}}==-1){
                my $dmc=$dataset->{datamc}+$dataset->{MC}*10;
                $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dmc)";
                $self->{sqlserver}->Update($sql);
-               $sql="select did, name from DataSets";
+               $sql="select did, name,version from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
 
            }
@@ -1234,7 +1208,8 @@ if($#{$self->{DataSetsT}}==-1){
               foreach my $ds (@{$datasetsDB}){
                 my $datasetsDidDB  = $ds->[0];
                 my $datasetsNameDB = $ds->[1];
-               if ($datasetsNameDB eq $dataset->{name}) {
+                my $datasetsVDB = $ds->[2];
+               if ($datasetsNameDB eq $dataset->{name} and $datasetsVDB eq $dataset->{version}  ) {
                  $dataset->{did}=$datasetsDidDB;
                  $datasetfound = 1;
                  last;
