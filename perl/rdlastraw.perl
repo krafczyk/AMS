@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rdlastraw.perl,v 1.3 2012/08/13 17:07:15 choutko Exp $
+#  $Id: rdlastraw.perl,v 1.4 2013/11/23 07:26:51 bshan Exp $
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
@@ -95,9 +95,9 @@ if($ok && !$nook){
          }
              else{
  
-         $sql = "SELECT path,run,timestamp fROM amsdes.ntuples  where datamc=1 and version like 'v5.00%' and path not like '%hbk' and timestamp>$timenow-3600 and path like '%/std%'  $run2p  ORDER BY timestamp desc";
+         $sql = "SELECT path,run,timestamp fROM amsdes.ntuples  where datamc=1 and version like 'v5.0%' and path not like '%hbk' and timestamp>$timenow-3600 and path like '%/std%'  $run2p  ORDER BY timestamp desc";
          my $rdlast=$o->Query($sql);
-         $sql = "SELECT path,run,timestamp fROM amsdes.ntuples  where datamc=1 and version like 'v5.00%' and path not like '%hbk' and path like '%/std%' and timestamp>$timenow-3600  $run2p  ORDER BY run desc";
+         $sql = "SELECT path,run,timestamp fROM amsdes.ntuples  where datamc=1 and version like 'v5.0%' and path not like '%hbk' and path like '%/std%' and timestamp>$timenow-3600  $run2p  ORDER BY run desc";
          my $rdlastr=$o->Query($sql);
                 
 
