@@ -3163,16 +3163,20 @@ class RemoteClient:
             rund=" and dataruns.run=%d " %(run2p)
             runn=" and ntuples.run=%d " %(run2p)
         if(self.force):
-            sql="select run from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(dataset,runn)
+            sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
             files=self.sqlserver.Query(sql)
-            sql="select run from datafiles where status='OK' and type like 'SCI%%' %s " %(rundd)
+            sql="select run,levent-fevent+1 from datafiles where status='OK' and type like 'SCI%%' %s " %(rundd)
             runs=self.sqlserver.Query(sql)
             if(len(files)>0):
                 for run in runs:
                     found=0
                     for file in files:
-                        if(run==file):
+                        if(run[0]==file[0]):
                             found=1
+                            if(run[1]!=file[1]):
+                                bad2.append(run[0])
+                                print "Run ",run," and ntuples disagree. run events=",run[1]," ntuple events=",file[1]
+                                
                             break
                     if(found==0):
                         if(tab==0):
