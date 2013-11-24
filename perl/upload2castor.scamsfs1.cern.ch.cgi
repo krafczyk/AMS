@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.scamsfs1.cern.ch.cgi,v 1.2 2013/03/08 15:47:09 bshan Exp $
+#  $Id: upload2castor.scamsfs1.cern.ch.cgi,v 1.3 2013/11/24 22:53:58 bshan Exp $
 use strict;
 use lib $ENV{'Offline'}.qw(/vdev/perl);
 use lib::RemoteClient;
@@ -67,16 +67,13 @@ my $mb=2000000;
     }
  }
 
-$dir="AMS02/2011B";
+$dir="AMS02/2014";
 $html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,20,1,0,$validate);
 print "$dir Done \n";
 
 
 
 
-$dir="AMS02/2011B";
-$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,3,0,$validate);
-print "$dir Done \n";
 $dir="AMS02/2011A";
 $html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,3,0,$validate);
 
@@ -86,6 +83,11 @@ $html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,20,1,0,$validate);
 print "$dir Done \n";
 
 
+$dir="AMS02/2011B";
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,20,1,0,$validate);
+print "$dir Done \n";
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,3,0,$validate);
+print "$dir Done \n";
 
 
 
