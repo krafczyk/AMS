@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.583.2.1 2013/11/21 15:32:48 oliva Exp $
+//  $Id: event.C,v 1.583.2.2 2013/11/24 09:14:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1704,6 +1704,14 @@ if(DAQEvent::FileSize()){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _rerichevent"<<endl;
       seterror(2);
         throw;
+    }
+    catch (amsglobalerror e){
+     cerr << e.getmessage()<<endl;
+     cerr <<"Event dump follows"<<endl;
+     AMSEvent::gethead()->_printEl(cerr);
+      AMSEvent::gethead()->seterror(e.getlevel());
+      seterror(e.getlevel());
+      if(e.getlevel()>1)throw e;
     }
     try{
       if(callecal)_reecalevent();
