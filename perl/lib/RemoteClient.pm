@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.802 2013/11/22 17:37:50 bshan Exp $
+# $Id: RemoteClient.pm,v 1.803 2013/11/24 12:12:59 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -330,6 +330,7 @@ return $mybless;
 }
 
 sub Init{
+    my @tdebug=();
      my $self = shift;
      my $forceret=shift;
 #
@@ -337,7 +338,6 @@ sub Init{
     my $ret  = undef;
 
     $t0Init = time();
-
 #just temporary skeleton to check basic princ
 #should be replaced by real db servers
       if(defined $self->{q}){
@@ -346,6 +346,7 @@ sub Init{
       $self->{q}=new CGI;
 #cpu types
       my $cachetime=3600;
+    push @tdebug,time()-$t0Init;
      if(defined $self->{initdone} ){
       if(time()-$self->{initdone}<$cachetime and $self->{initdone} >$self->dblupdate()){
         return 1;
@@ -694,6 +695,7 @@ my %mv=(
               }
              }
          }
+    push @tdebug,time()-$t0Init;
         my $reputation=1;
         my $ret = $self->{sqlserver}->Query("select capacity, reputation from cites where cid=".$self->{CCID});
 	if ( defined $ret->[0][0] ) {
@@ -701,6 +703,7 @@ my %mv=(
                 $reputation = $ret->[0][1];
 	}
 
+    push @tdebug,time()-$t0Init;
         $ret = $self->{sqlserver}->Query("select count(*) as total from
 (select cid as jcid, pid, time as jtime from jobs union all select cid
 as jcid, pid, time as jtime from jobs_deleted), productionset where
@@ -709,12 +712,14 @@ jcid=".$self->{CCID}." and pid=productionset.did and productionset.status='Activ
 		$total_jobs = $ret->[0][0];
 	}
 
+    push @tdebug,time()-$t0Init;
         $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 (select cid, pid as jpid, realtriggers from jobs_deleted), productionset where 
 jpid=productionset.did  and cid=".$self->{CCID}." and productionset.status='Active'");
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $ret->[0][0];
 	}
+    push @tdebug,time()-$t0Init;
        $ret = $self->{sqlserver}->Query("select count(*) as completed from
 (select cid as jcid, pid, realtriggers , time as jtime from jobs ) 
 , productionset where
@@ -723,18 +728,21 @@ jcid=".$self->{CCID}." and realtriggers>0 and pid=productionset.did and producti
                 $completed_jobs+= $ret->[0][0];
         }
  
+    push @tdebug,time()-$t0Init;
          $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 (select cid, pid as jpid, jid as jjid, realtriggers  from jobs), ntuples,productionset where 
 jjid=ntuples.jid and ntuples.path like '%00000%' and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.status='Active' ");
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $completed_jobs+$ret->[0][0];
 	}
+    push @tdebug,time()-$t0Init;
         $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 (select cid, pid as jpid, jid as jjid, realtriggers  from jobs), ntuples,datafiles,productionset where
 jjid=ntuples.jid and ntuples.path like '%00000%' and datafiles.type like '%MC%'  and datafiles.run=ntuples.jid and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.status='Active' ");
         if ( defined $ret->[0][0] ) {
                 $completed_jobs = $completed_jobs-=$ret->[0][0];
         }
+    push @tdebug,time()-$t0Init;
        $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 (select cid, pid as jpid, jid as jjid, realtriggers  from jobs), datafiles,productionset where
 jjid=datafiles.run and datafiles.type like '%MC%'  and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.status='Active' ");
@@ -757,6 +765,7 @@ jjid=datafiles.run and datafiles.type like '%MC%'  and jpid=productionset.did an
           }
         }
 
+    push @tdebug,time()-$t0Init;
 if($#{$self->{DataSetsT}}==-1){
    my $ndatasets  =0; # total datasets scanned
    my $nfiles     =0; # total jobs scanned
@@ -813,6 +822,7 @@ if($#{$self->{DataSetsT}}==-1){
    my @allfiles= readdir THISDIR;
    closedir THISDIR;
 
+    push @tdebug,time()-$t0Init;
    foreach my $file (@allfiles){
     my $newfile="$dir/$file";
      if($file =~/^\.Trial/){
@@ -956,6 +966,7 @@ if($#{$self->{DataSetsT}}==-1){
          $dataset->{serverno}=$dataset->{version};
      }
 
+    push @tdebug,time()-$t0Init;
       foreach my $job (@jobs){
       if($job =~ /\.job$/){
        if($job =~ /^\./){
@@ -1409,6 +1420,8 @@ foreach my $file (@allfiles){
 #die " $max_jobs\n";
 #}
     $self->{initdone}=time();
+    push @tdebug,time()-$t0Init;
+#die "timing @tdebug";
  if( not defined $self->{IOR}){
   return $self->{ok};
  }
