@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.803 2013/11/24 12:12:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.804 2013/11/25 14:41:24 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13848,7 +13848,13 @@ foreach my $block (@blocks) {
 #
     my ($utime,@jj) = split " ",$block;
     if (defined $utime) {
-     if ($utime > $firstjobtime && $utime < $lastjobtime) {
+        if ($utime < $firstjobtime or $utime > $lastjobtime) {
+#            $BadRuns[$nCheckedCite]++;
+            print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
+#            system("mv $inputfile $inputjfile.0");
+#            close FILE;
+#            return $jobid,$copylog;
+        }
 #
 # find one of the following : RunIncomplete StartingJob, StartingRun,
 #                             OpenDST, CloseDST, RunFinished
@@ -14522,13 +14528,6 @@ foreach my $block (@blocks) {
 
 
 }
-  } else {
-    $BadRuns[$nCheckedCite]++;
-    print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
-    system("mv $inputfile $inputjfile.0");
-    close FILE;
-    return $jobid,$copylog;
-   }
   } #if defined $utime
 }
 
