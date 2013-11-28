@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.614 2013/11/21 17:23:00 choutko Exp $
+//  $Id: root.C,v 1.615 2013/11/28 13:49:59 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -646,14 +646,16 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
 	      if(st.IsDigit() || (st[0]=='-' && st1.IsDigit())){
               int idd=st.Atoi(); 
               AMSID id(idd,dir);
-              if(!idh || idh==idd)fetch1++;
+              if(!idh || idh==idd){
+              fetch1++;
               if(Service::hb1.find(id) == Service::hb1.end()){
               }
               else{
 		cerr<<"  AMSEventR::hfetch-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
 		Service::hb1.erase((Service::hb1.find(id)));
               }
-              if(!idh || idh==idd)(Service::hb1).insert(make_pair(id,f1));
+              (Service::hb1).insert(make_pair(id,f1));
+              }
               break;
 	    }
 	    else cerr<<"TH1D "<<t<<" IdNotDigitalSkipped"<<endl;
@@ -674,14 +676,16 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
 	      if(st.IsDigit() || (st[0]=='-' && st1.IsDigit())){
 		int idd=st.Atoi(); 
 		AMSID id(idd,dir);
-		if(!idh || idh==idd)fetch2++;
+		if(!idh || idh==idd){
+                fetch2++;
 		if(Service::hb2.find(id) == Service::hb2.end()){
 		}
 		else{
 		  cerr<<"  AMSEventR::hfetch-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
 		  Service::hb2.erase((Service::hb2.find(id)));
 		}
-		if(!idh || idh==idd)(Service::hb2).insert(make_pair(id,f1));
+	(Service::hb2).insert(make_pair(id,f1));
+               }
 		break;
 	      }
 	      else cerr<<"TH2D "<<t<<" IdNotDigitalSkipped"<<endl;
@@ -702,7 +706,8 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
 	      if(st.IsDigit() || (st[0]=='-' && st1.IsDigit())){
 		  int idd=st.Atoi(); 
 		  AMSID id(idd,dir);
-		  if(!idh || idh==idd)fetchp++;
+		  if(!idh || idh==idd){
+                  fetchp++;
 		  if(Service::hbp.find(id) == Service::hbp.end()){
 		  }
 		  else{
@@ -710,6 +715,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
 		    Service::hbp.erase((Service::hbp.find(id)));
 		  }
 		  if(!idh || idh==idd)(Service::hbp).insert(make_pair(id,f1));
+                 }
 		  break;
 		}
 		else cerr<<"TProfile "<<t<<" IdNotDigitalSkipped"<<endl;
