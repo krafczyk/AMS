@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.16 2012/09/25 14:36:57 choutko Exp $
+#  $Id: status02.doc,v 1.16.8.1 2013/11/29 09:09:19 oliva Exp $
 status word definition
 
 0
@@ -150,9 +150,9 @@ status word definition
 
 
 
-33  
-      trd charge *2
-60 
+33
+      Upper AMS charge = UTrk + TRD + UTOF (0: no good charge; 1, ..., 14: charge; 15: charge>=15) 
+60
 61
 62
 63
