@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612.2.4 2013/11/28 13:51:38 choutko Exp $
+//  $Id: root.C,v 1.612.2.5 2013/11/29 16:04:14 sdifalco Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3586,6 +3586,26 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   EnergyC   =   ptr->_EnergyC;
   EnergyE   =   ptr->_EnergyPIC;
   EnergyE2014 =   ptr->_EnergyH;
+  for (int il=0;il<18;il++){
+    Elayer_corr[il]=ptr->_elayer_corr[il];
+  }
+  for (int i=0;i<3;i++){
+    CofGCR[i]=ptr->_CooNew[i];
+  }
+  if ( ptr->_KCR[0]==0 ||  ptr->_KCR[0]==-99999. ||
+       ptr->_KCR[1]==0 ||  ptr->_KCR[1]==-99999.){
+    for (int i=0;i<3;i++){
+      DirCR[i]=-999.;
+    }
+  }
+  else{
+    DirCR[0]=1./sqrt(1.+1./ptr->_KCR[0]/ptr->_KCR[0]+ptr->_KCR[1]*ptr->_KCR[1]/ptr->_KCR[0]/ptr->_KCR[0]);
+    DirCR[1]=1./sqrt(1.+1./ptr->_KCR[1]/ptr->_KCR[1]+ptr->_KCR[0]*ptr->_KCR[0]/ptr->_KCR[1]/ptr->_KCR[1]);
+    DirCR[2]=-1./sqrt(1.+ptr->_KCR[0]*ptr->_KCR[0]+ptr->_KCR[1]*ptr->_KCR[1]);
+    if (ptr->_KCR[0]>0) DirCR[0]=-DirCR[0];
+    if (ptr->_KCR[1]>0) DirCR[1]=-DirCR[1];
+  }
+
   Energy3C[0] = ptr->_Energy3C;
   Energy3C[1] = ptr->_Energy5C;
   Energy3C[2] = ptr->_Energy9C;
