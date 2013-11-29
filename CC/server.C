@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.210.2.1 2013/11/29 06:43:32 choutko Exp $
+//  $Id: server.C,v 1.210.2.2 2013/11/29 06:58:16 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3458,7 +3458,7 @@ cout <<"findtdv "<<id<<" F "<<(const char*)tdv.File<<" S "<<tdv.Size<<endl;
 TIDI li=_tid.find(id);
 if(li==_tid.end()){
 try{
- uinteger *pdata = new uinteger[abs(tdv.Size)/sizeof(uinteger)-1];
+ uinteger *pdata = new uinteger[abs(int(tdv.Size/sizeof(uinteger)-1))];
  if(pdata){
   time_t b=tdv.Entry.Begin;
   time_t e=tdv.Entry.End;
