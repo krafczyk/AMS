@@ -1,5 +1,6 @@
 #include "root.h"
 #include "TMVA/Tools.h"
+#include "TMVA/Version.h"
 #include "TH1F.h"
 
 TMVA::Reader *ecalpisareader_v3 = NULL;
@@ -104,6 +105,12 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	 }
      }
 
+   int TMVAVER = 0;
+   if (TMVAVER==0)
+     {
+       TMVAVER = 412;
+       if ( TMVA_RELEASE == "4.2.0" ) TMVAVER = 420;
+     }
    //Check if the version is > 100. In this case, it means that we want to use version X-100 and do not apply the cuts on F2SL and s1s3
    //Example: iBDTVERSION==103 means v3 but no cuts applied 
    bool apply_precuts = true;
@@ -806,8 +813,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareader_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_412_v5final_ODD.weights.xml", WeightsDir_v5));
-	  ecalpisareader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_412_v5final_EVEN.weights.xml", WeightsDir_v5));
+	  ecalpisareader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_%d_v5final_ODD.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_%d_v5final_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
 	  ecalpisareader_v5_ODD = ecalpisareader_ODD;
 	  ecalpisareader_v5_EVEN = ecalpisareader_EVEN;
 	}
@@ -943,8 +950,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareaderS_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareaderS_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareaderS_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_412_v5final_ODD.weights.xml", WeightsDir_v5));
-	  ecalpisareaderS_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_412_v5final_EVEN.weights.xml", WeightsDir_v5));
+	  ecalpisareaderS_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_%d_v5final_ODD.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareaderS_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_%d_v5final_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
 	  ecalpisareaderS_v5_ODD = ecalpisareaderS_ODD;
 	  ecalpisareaderS_v5_EVEN = ecalpisareaderS_EVEN;
 	}
@@ -1080,8 +1087,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareader_E_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_412_v5final_E_ODD.weights.xml", WeightsDir_v5));
-	  ecalpisareader_E_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_412_v5final_E_EVEN.weights.xml", WeightsDir_v5));
+	  ecalpisareader_E_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_%d_v5final_E_ODD.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareader_E_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_%d_v5final_E_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
 	  ecalpisareader_E_v5_ODD = ecalpisareader_E_ODD;
 	  ecalpisareader_E_v5_EVEN = ecalpisareader_E_EVEN;
 	}
@@ -1217,8 +1224,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareaderS_E_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_412_v5final_E_ODD.weights.xml", WeightsDir_v5));
-	  ecalpisareaderS_E_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_412_v5final_E_EVEN.weights.xml", WeightsDir_v5));
+	  ecalpisareaderS_E_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_%d_v5final_E_ODD.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareaderS_E_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_%d_v5final_E_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
 	  ecalpisareaderS_E_v5_ODD = ecalpisareaderS_E_ODD;
 	  ecalpisareaderS_E_v5_EVEN = ecalpisareaderS_E_EVEN;
 	}
