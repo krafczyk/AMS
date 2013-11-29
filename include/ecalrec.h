@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.64 2013/11/14 21:45:43 sdifalco Exp $
+//  $Id: ecalrec.h,v 1.65 2013/11/29 16:05:23 sdifalco Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -393,6 +393,7 @@ class AMSEcalShower: public AMSlink{
   number  _EnergyC;
   number  _EnergyPIC;
   number  _EnergyH;
+  number  _elayer_corr[18];
   number  _Energy0A[2];  //LAPP EcalShower Energy0 0->X, 1->Y  only impact-point corrected, no rear leakage corr. (M.P.)
   number  _EnergyA;  //LAPP EcalShower Energy (M.P.)
 

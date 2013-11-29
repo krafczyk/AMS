@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.585 2013/11/21 17:22:51 choutko Exp $
+//  $Id: root.h,v 1.586 2013/11/29 16:05:09 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -725,10 +725,12 @@ public:
                 */
   ///
   float Dir[3];    ///< direction cos array
+  float DirCR[3];    ///< direction cos array from cell ratio method
   float EMDir[3];  ///< direction cos array for emag type shower
   float Entry[3];  ///< entry point (cm)
   float Exit[3];   ///< exit point(cm)
   float CofG[3];  ///< center of gravity (cm)
+  float CofGCR[3];  ///< Shower center from Cell Ratio method (cm)
   float ErDir;    ///< 3d angle error
   float ErDirE;   ///< 3d angle error - Pisa version
   float Chi2Dir;  ///<  chi2 direction fit
@@ -737,6 +739,7 @@ public:
   float EnergyC; ///< shower energy (gev) - old version
   float EnergyE; ///< shower reconstructed energy (GeV)
   float EnergyE2014; ///< shower reconstructed energy (GeV) since november 2013
+  float Elayer_corr[18]; ///< Layer energy corrected for anode efficiency
   float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
   float  S13R;        ///< S1/S3 Ratio
   float  S13Rpi[2];  ///< S1/S3 Ratio for X and Y view
