@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.57 2013/10/04 16:33:50 choutko Exp $
+//  $Id: status.C,v 1.57.2.1 2013/11/29 07:22:32 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -327,7 +327,7 @@ integer AMSStatus::_statusok(statusI status){
               local=1;
               break; 
             }
-            st=st/10;
+            st=st/STATUSFFKEY.status[nsta+1];
           }
         }
         if(!local){
