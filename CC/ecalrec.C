@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.179 2013/11/14 21:47:56 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.179.2.1 2013/11/29 16:04:50 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -4370,13 +4370,13 @@ void AMSEcalShower::_ReFitDirCR(){
     }
     //Side Shift
     if(AMSJob::gethead()->isMCData()){
-      CooCOG[il] += UM2CM * ECOffSetMC[il][pmtside]; // MC
+      CooCOG[il] += UM2CM * ECOffSetMC[il/2][pmtside]; // MC
     }
     else{
       if(AMSEvent::gethead()->getrun()<1305763200){
-	CooCOG[il] += UM2CM * ECOffSetBT[il][pmtside]; // Test Beam
+	CooCOG[il] += UM2CM * ECOffSetBT[il/2][pmtside]; // Test Beam
       }
-      else  CooCOG[il] += UM2CM*ECOffSetISS[il][pmtside]; // ISS
+      else  CooCOG[il] += UM2CM*ECOffSetISS[il/2][pmtside]; // ISS
     }
 
     //Calculate CooCR
@@ -4393,16 +4393,16 @@ void AMSEcalShower::_ReFitDirCR(){
 	//Ecal Track Alignment and Side Shift 
 	if(AMSJob::gethead()->isMCData()){
 	  _CooCR[il] -= ECCommonOffSetMC[proj]; // MC 
-	  _CooCR[il] += UM2CM * ECOffSetMC[il][pmtside];
+	  _CooCR[il] += UM2CM * ECOffSetMC[il/2][pmtside];
 	}
 	else{
 	  if(AMSEvent::gethead()->getrun()<1305763200){
 	    _CooCR[il] -= ECCommonOffSetBT[proj]; // Test Beam
-	    _CooCR[il] += UM2CM*ECOffSetBT[il][pmtside];
+	    _CooCR[il] += UM2CM*ECOffSetBT[il/2][pmtside];
 	  }
 	  else{
 	    _CooCR[il] -= ECCommonOffSetISS[proj]; // ISS 
-	    _CooCR[il] += UM2CM*ECOffSetISS[il][pmtside];
+	    _CooCR[il] += UM2CM*ECOffSetISS[il/2][pmtside];
 	  }
 	}
       }
@@ -4609,7 +4609,6 @@ void AMSEcalShower::_ReCalEnergy(){
   double LastFrac_ECorrParA = 1.07346;
   double LastFrac_ECorrParB = -1.64638;
 
-  float NewEnergyD =0.;
   float EnergyD_Corr = 0.;
   float elayer[18];
   float elayer_corr[18];
@@ -4620,7 +4619,6 @@ void AMSEcalShower::_ReCalEnergy(){
     for(int ic=0;ic<72;ic++){
       if(_CellEdep[il][ic]>0) elayer[il] += _CellEdep[il][ic];
     }
-    NewEnergyD += elayer[il];
     int proj = 1- il/2%2;   //0 for x, 1 for y;
     float tmppos;
     float coofit = _CooNew[proj] + _KCR[proj]*(EClayer_Z[il]-_CofG[2]);
@@ -4644,14 +4642,14 @@ void AMSEcalShower::_ReCalEnergy(){
     int pmtside = tmpcellmax /2%2;
     //Side Shift
     if(AMSJob::gethead()->isMCData()){
-      tmppos -= UM2CM * ECOffSetMC[il][pmtside]; // MC
+      tmppos -= UM2CM * ECOffSetMC[il/2][pmtside]; // MC
     }
     else{
       if(AMSEvent::gethead()->getrun()<1305763200){
-	tmppos -= UM2CM * ECOffSetBT[il][pmtside]; // Test Beam
+	tmppos -= UM2CM * ECOffSetBT[il/2][pmtside]; // Test Beam
       } 
       else{
-	tmppos -= UM2CM*ECOffSetISS[il][pmtside]; // ISS
+	tmppos -= UM2CM*ECOffSetISS[il/2][pmtside]; // ISS
       }
     }
 
@@ -4671,15 +4669,67 @@ void AMSEcalShower::_ReCalEnergy(){
 
     elayer_corr[il] = elayer[il] /TMath::Gaus(pmtpos,0.5,Elpmteffsigma[il]);
     EnergyD_Corr += elayer_corr[il];
+    _elayer_corr[il]=elayer_corr[il];
   }
-  
+   
+  /* Z.Li original leakage correction 
   if(EnergyD_Corr!=0&&(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr<0.5){
     _EnergyH = EnergyD_Corr/1000./(LastFrac_ECorrParA + LastFrac_ECorrParB*(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr);
   }
   else{
     _EnergyH=EnergyD_Corr+elayer_corr[16]+elayer_corr[17];
   }
+  */
+  number kink_highenergy = 850;
+  number kink_lowenergy = 5;
+  double alpha;
+  number correction_factor = 1.;
+  double parleak_0[5]={1.60341,-1.52486e-01,1.88086e-02,-5.31496e-01,2.32455e-02};
+  double parleak_1[5]={1.04922,-1.95889e-01,2.61411e-01,-1.12636e-08,2.07651};
+  double parleak_2[5]={7.33469e-01,5.12555e+02,-2.19282e+05,-8.21973e+04,-5.12837e+01};
+  if(_EnergyPIC<kink_lowenergy)
+      alpha = parleak_0[0]+parleak_0[1]/_EnergyPIC+parleak_0[2]/TMath::Power(_EnergyPIC,2)+parleak_0[3]*TMath::Power(_EnergyPIC,parleak_0[4]);
+  else
+    if(_EnergyPIC<kink_highenergy)
+      alpha = parleak_1[0]+parleak_1[1]/_EnergyPIC+parleak_1[2]/TMath::Power(_EnergyPIC,2)+parleak_1[3]*TMath::Power(_EnergyPIC,parleak_1[4]);  
+    else
+      alpha = parleak_2[0]+parleak_2[1]/_EnergyPIC+parleak_2[2]/TMath::Power(_EnergyPIC,2)+parleak_2[3]*TMath::Power(_EnergyPIC,parleak_2[4]);
 
-  NewEnergyD /=1000.;
-  EnergyD_Corr /=1000.;
+  double energyfractionlast2layers;
+  energyfractionlast2layers=(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr;
+  double beta =-0.752;
+  double gamma=-5.633;
+  correction_factor = alpha + beta * energyfractionlast2layers + gamma * TMath::Power(energyfractionlast2layers,2);
+      
+  double energy;
+  EnergyD_Corr /=1000.; // EnergyD from now in GeV
+  if(correction_factor>0)
+    energy = EnergyD_Corr/correction_factor;
+  else
+    energy = _EnergyPIC;
+      
+  //second iteration
+  if(energy<kink_lowenergy)
+      alpha = parleak_0[0]+parleak_0[1]/energy+parleak_0[2]/TMath::Power(energy,2)+parleak_0[3]*TMath::Power(energy,parleak_0[4]);
+  else
+    if(energy<kink_highenergy)
+      alpha = parleak_1[0]+parleak_1[1]/energy+parleak_1[2]/TMath::Power(energy,2)+parleak_1[3]*TMath::Power(energy,parleak_1[4]);  
+    else
+      alpha = parleak_2[0]+parleak_2[1]/energy+parleak_2[2]/TMath::Power(energy,2)+parleak_2[3]*TMath::Power(energy,parleak_2[4]);
+
+  correction_factor = alpha + beta * energyfractionlast2layers + gamma * TMath::Power(energyfractionlast2layers,2);
+    
+  //corrected value  
+  if(correction_factor>0)
+    _EnergyH =  EnergyD_Corr/correction_factor;
+  else
+    _EnergyH =  EnergyD_Corr;
+      
+  //reconstructed energy never less than deposited energy corrected for anode efficiency
+  if(_EnergyH<EnergyD_Corr)
+    _EnergyH =  EnergyD_Corr;
+  //It is not an electron, the fraction is too high (checked by MC, 3 sigmas)
+  if(energyfractionlast2layers>0.2)
+    _EnergyH =  EnergyD_Corr;
+  
 }
