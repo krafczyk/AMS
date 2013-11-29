@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.161 2013/03/10 11:19:05 qyan Exp $
+//  $Id: geant3.C,v 1.161.2.1 2013/11/29 06:43:32 choutko Exp $
 
 #include "Tofsim02.h"
 #include "typedefs.h"
@@ -1171,9 +1171,10 @@ try{
      AMSID tdvs=AMSEvent::getTDVStatus();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
-      AMSJob::gethead()->getstatustable()->Sort();
      AMSID tdvs=AMSEvent::getTDVStatus();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
+      ptdv->SetNbytes(AMSJob::gethead()->getstatustable()->getsizeV());
+      AMSJob::gethead()->getstatustable()->Sort();
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time_t begino,endo,inserto;
