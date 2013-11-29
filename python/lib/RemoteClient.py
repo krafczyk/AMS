@@ -2526,7 +2526,7 @@ class RemoteClient:
         ret = self.sqlserver.Query(sql)
         if(ret[0][0]==1 and timenow-ret[0][1]<100000):
             print "ParseJournalFiles-E-ProcessingFlagSet on ",ret[0][1]," exiting"
-##            return 0
+            return 0
         else: self.setprocessingflag(1,timenow,0)
         self.setprocessingflag(0,timenow,0)
         ret=self.sqlserver.Query("SELECT min(begin) FROM productionset WHERE STATUS='Active' ORDER BY begin")
