@@ -36,6 +36,12 @@ foreach my $jou (@journals) {
     my $ne = (grep /NEvent=/, @buf)[0];
     chomp $ne;
     $ne =~ s/NEvent=//g;
+    my $fet = (grep /TFevent=/, @buf)[0];
+    chomp $fet;
+    $fet =~ s/TFevent=//g;
+    my $let = (grep /LFevent=/, @buf)[0];
+    chomp $let;
+    $let =~ s/LFevent=//g;
     my $type = (grep /Type0=/, @buf)[0];
     chomp $type;
     $type =~ s/Type0=//g;
@@ -46,8 +52,15 @@ foreach my $jou (@journals) {
     my ($ofe, $ole, $one);
     $sth->bind_columns(\$ofe, \$ole, \$one);
     $sth->fetch;
+    my $runtype;
     if ($type == 5 or $type == 6) {
-        print "Examining $jou ...\n";
+        if ($type == 5) {
+            $runtype = 'SCI';
+        }
+        else {
+            $runtype = 'CAL';
+        }
+        print "Examining $jou ($runtype)...\n";
         print "$run: Type $type\n";
         printf "             %10s%10s%10s\n", "FEVENT", "LEVENT", "NEVENTS";
         printf "Before Merge:%10d%10d%10d\n", $ofe, $ole, $one;
@@ -60,7 +73,7 @@ foreach my $jou (@journals) {
         if ($tag % 256 == 204) { # LAS run, ignore ...
             next;
         }
-        my $percentage = sprintf "(%.2f%%)", ($ne-$one)/$ne*100;
+        my $percentage = sprintf "(%.2f%%, $type, %d events, %.0f min)", ($ne-$one)/$ne*100, $ne-$one, ($ne-$one)/$ne*($let-$fet)/60;
         my $newrun = $ofe ? $percentage : "(new)";
 
         print "Found run to MERGE: $run $newrun\n";
