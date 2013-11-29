@@ -1,4 +1,4 @@
-import sys,os,time,string,re,thread,smtplib,commands,math,socket
+import sys,os,time,string,re,threading,thread,smtplib,commands,math,socket
 from stat import *
 from DBSQLServer import DBSQLServer
 from DBServer import DBServer
@@ -22,6 +22,7 @@ class RemoteClient:
     dbclient=""
     sqlserver=""
     sqlconnected=-1
+    productionPeriods = []
     def getior(self,datamc=0):
         if self.sqlconnected==-1:
             self.ConnectDB()
@@ -510,7 +511,8 @@ class RemoteClient:
            sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
         ret=self.sqlserver.Query(sql)
         if(len(ret)<=0):
-           self.sendmailmessage('vitali.choutko@cern.ch','FileSystems are  Full or Offline Python',sql)
+#           self.sendmailmessage('vitali.choutko@cern.ch','FileSystems are  Full or Offline Python',sql)
+           self.NotifyResp('FileSystems are  Full or Offline Python: ' + sql);
            sql="select path from ntuples where sizemb>20000"
            ret=self.sqlserver.Query(sql)
            for disk in ret:
@@ -1919,9 +1921,28 @@ class RemoteClient:
        else:
           return None,0,0
       
+    def getProductionSetIdByDatasetId(self, did):
+       ret=self.sqlserver.Query("SELECT Productionset.DID FROM ProductionSet WHERE vdb = (SELECT datasets.version FROM datasets WHERE datasets.did = %d) AND productionset.STATUS='Active'" %(did))
+       return ret[0][0]
+      
     def trimblanks(self,expr):
         return expr.lstrip().rstrip()
        
+    def checkDSTVersion(self,dstv):
+        rstatus = 1
+        junk = dstv.split('/')
+        version = int(float(junk[0].replace('v', '')))
+        build = int(junk[1].replace('build', ''))
+
+        for p in self.productionPeriods:
+            if (p['name'].find('Active') >= 0):
+                vvv = int(p['vdb'].replace('v', ''))
+                if (vvv == version):
+                    bbb = int(p['vgbatch'].replace('build', ''))
+                    if (build < bbb):
+                        rstatus = 0
+                        break
+        return rstatus
                               
     def getDSTVersion(self,version):
         junk=version.split('/')
@@ -2181,19 +2202,23 @@ class RemoteClient:
                 print "UpdateRunCatalog-E-CannitFindRunJobContent with jid=",run
     
               
-    def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc):
+    def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc,fetime=None,letime=None):
         if(type=="RawFile" and datamc==0):
 #            paths="/Offline/RunsDir/MC/";
 #            cmd="ln -sf %s %s" %(path,paths)
 #            os.system(cmd)
             paths=self.linkdataset(path,"/Offline/RunsDir",1)
-            sql="select fetime,letime from runs where jid=%d" %(jid)
-            ret=self.sqlserver.Query(sql)
-            fetime=0
-            letime=0
-            if(len(ret)>0):
-                fetime=ret[0][0]
-                letime=ret[0][1]
+            if (fetime is None or letime is None):
+                sql="select fetime,letime from runs where jid=%d" %(jid)
+                ret=self.sqlserver.Query(sql)
+                fetime=0
+                letime=0
+                if(len(ret)>0):
+                    fetime=ret[0][0]
+                    letime=ret[0][1]
+            else:
+                self.sqlserver.Update("update runs set  fetime=%d, letime=%d where jid=%d" %(fetime,letime,jid))
+
             sql=" select content,jobname from jobs where jid=%d " %(jid)
             ret=self.sqlserver.Query(sql)
             part="-1"
@@ -2344,6 +2369,34 @@ class RemoteClient:
                     if(self.v):
                         print "Update RunCatalog ",run
 
+    def insertRun(self,run,jid,fevent,levent,fetime,letime,submit,status):
+            sql="SELECT run, jid, fevent, levent, status FROM Runs WHERE run=%d" %(run)
+            ret=self.sqlserver.Query(sql)
+            doinsert=0
+            if(len(ret)>0):
+                dbrun=ret[0][0]
+                dbjid=ret[0][1]
+                dbfevent=ret[0][2]
+                dblevent=ret[0][3]
+                dbstatus=ret[0][4]
+                if(dbjid==run and dbfevent==fevent and dblevent==levent and dbstatus==status):
+                    print "InsertRun-E-",run,"AlreadyExists"
+                else:
+                    sql="DELETE runs WHERE run=%d" %(run)
+                    self.sqlserver.Update(sql)
+                    doinsert=1
+            else:
+                doinsert=1
+            if doinsert==1:
+                sql="INSERT INTO Runs VALUES(%d,%d,%d,%d,%d,%d,%d,'%s')" %(run,jid,fevent,levent,fetime,letime,submit,status)
+                self.sqlserver.Update(sql)
+                if(self.v):
+                    print sql
+                if(status=="Completed"):
+                    if(self.v):
+                        print "Update RunCatalog ",run
+
+
     def InsertJob(self,jid):
         sql="insert into jobs select jobs_deleted.* from jobs_deleted where jid=%d  " %(jid)
         self.sqlserver.Update(sql)
@@ -2382,7 +2435,31 @@ class RemoteClient:
                 if(self.v):
                     print sql
 
-       
+    def insertDataRun(self,run,jid,fevent,levent,fetime,letime,submit,status):
+            sql="SELECT run, jid, fevent, levent, status FROM dataRuns WHERE run=%d" %(run)
+            ret=self.sqlserver.Query(sql)
+            doinsert=0
+            if(len(ret)>0):
+                dbrun=ret[0][0]
+                dbjid=ret[0][1]
+                dbfevent=ret[0][2]
+                dblevent=ret[0][3]
+                dbstatus=ret[0][4]
+                if(dbjid==jid and dbrun==run and dbfevent==fevent and dblevent==levent and dbstatus==status):
+                    print "InsertRun-E-",run,"AlreadyExists"
+                else:
+                    sql="DELETE dataruns WHERE run=%d" %(run)
+                    self.sqlserver.Update(sql)
+                    doinsert=1
+            else:
+                doinsert=1
+            if doinsert==1:
+                sql="INSERT INTO dataRuns VALUES(%d,%d,%d,%d,%d,'%s',%d,%d)" %(run,fevent,levent,fetime,letime,status,jid,submit)
+                self.sqlserver.Update(sql)
+                if(self.v):
+                    print sql
+
+      
     def calculateCRC(self,filename,crc):
         self.crcCalls=self.crcCalls+1
         time0=time.time()
@@ -2402,7 +2479,8 @@ class RemoteClient:
             return 1
         else:
             return rstatus
-    def parseJoutnalFiles(self,i,v,h,s,m):
+    def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0):
+        self.castoronly=co
         firstjobname=0
         lastjobname=0
         HelpTxt = """
@@ -2414,6 +2492,10 @@ class RemoteClient:
         -m      -  Mail owner if failed
         ./pj.py
         """
+        if (d == 1):
+            datamc = 1
+        else:
+            datamc = 0
         if(i==1):
             self.rm="rm -i "
         else: self.rm="rm -f "
@@ -2428,27 +2510,37 @@ class RemoteClient:
         else: self.v=0 
         if(m==1):
             self.m=1
-        else: self.v=0 
+        else: self.m=0 
+        if (mt == 1):
+            self.mt = 1
+        else:
+            self.mt = 0
         whoami=os.getlogin()
         if not (whoami == None or whoami =='ams' ):
             print "parseJournalFiles -ERROR- script cannot be run from account : ",whoami 
             return 0
         timenow=int(time.time())
         self.valStTime=timenow
+        self.needfsmutex=0
         sql = "SELECT flag, timestamp from FilesProcessing"
         ret = self.sqlserver.Query(sql)
         if(ret[0][0]==1 and timenow-ret[0][1]<100000):
             print "ParseJournalFiles-E-ProcessingFlagSet on ",ret[0][1]," exiting"
-            return 0
+##            return 0
         else: self.setprocessingflag(1,timenow,0)
+        self.setprocessingflag(0,timenow,0)
         ret=self.sqlserver.Query("SELECT min(begin) FROM productionset WHERE STATUS='Active' ORDER BY begin")
         if (len(ret)==0):
             print "ValidateRuns=E-CannotFindActiveProductionSet"
             self.setprocessingflag(0,timenow,0)
             return 0
+        else:
+            periodStartTime = ret[0][0]
+            print "periodStartTime is %d" %(periodStartTime)
+        self.getProductionPeriods(0)
         firstjobtime=ret[0][0]-24*60*60
         lastjobtime=int(time.time())+24*60*60
-        ret=self.sqlserver.Query("select max(cid) from cities")
+        ret=self.sqlserver.Query("select max(cid) from cites")
         self.nCheckedCite=-1
         self.nActiveCites=0
         self.gbDST=0
@@ -2460,29 +2552,50 @@ class RemoteClient:
         self.crcCalls=0
         self.copyTime=0
         self.copyCalls=0
-        self.nCheckedCite=0
         self.nBadCopiesInRow=0
-        for i in range(0,ret[0][0]-1):
-            self.JF[i]=0
-            self.JFLastCheck[i]=0
-            self.JouDirPath=[i]="xyz"
-            self.CheckedRuns[i]=0
-            self.FailedRuns[i]=0
-            self.GoodRuns[i]=0
-            self.BadRuns[i]=0
-            self.GoodDSTs[i]=0
-            self.BadDSTs[i]=0
-            self.BadCRC[i]=0
-            self.BadRunID[i]=0
-            self.gbDST[i]=0
+        self.JF = []
+        self.JouLastCheck = []
+        self.JouDirPath = []
+        self.CheckedRuns = []
+        self.FailedRuns = []
+        self.GoodRuns = []
+        self.BadRuns = []
+        self.CheckedDSTs = []
+        self.GoodDSTs = []
+        self.BadDSTs = []
+        self.BadDSTCopy = []
+        self.BadCRC = []
+        self.BadRunID = []
+        self.gbDST = []
+        self.mail = None
+        for i in range(0,ret[0][0]):
+            self.JF.append(0)
+            self.JouLastCheck.append(0)
+            self.JouDirPath.append("xyz")
+            self.CheckedRuns.append(0)
+            self.FailedRuns.append(0)
+            self.GoodRuns.append(0)
+            self.BadRuns.append(0)
+            self.CheckedDSTs.append(0)
+            self.GoodDSTs.append(0)
+            self.BadDSTs.append(0)
+            self.BadDSTCopy.append(0)
+            self.BadCRC.append(0)
+            self.BadRunID.append(0)
+            self.gbDST.append(0)
         minJobID=0
         ret=self.sqlserver.Query("SELECT dirpath,journals.timelast,name,journals.cid FROM journals,cites WHERE journals.cid=cites.cid")
         cid=-1
+        global mutex
+#        mutex=thread.allocate_lock()
+        mutex = threading.Lock()
         if(len(ret)>0):
             for jou in ret:
                 self.nCheckedCite=self.nCheckedCite+1
                 timenow=int(time.time())
                 dir=self.trimblanks(jou[0])
+                if (datamc == 1):
+                    dir.replace("/MC/", "/Data/")
                 cite=self.trimblanks(jou[2])
                 timestamp=jou[1]
                 lastcheck=self.EpochToDDMMYYHHMMSS(timestamp)
@@ -2490,7 +2603,7 @@ class RemoteClient:
                     continue
                 if(cid != jou[3]):
                     cid=jou[3]
-                    sql="SELECT  min(jid) from jobs where cid=$cid and timestamp>=%d"  %(periodStartTime)
+                    sql="SELECT  min(jid) from jobs where cid=%d and timestamp>=%d"  %(cid, periodStartTime)
                     r0=self.sqlserver.Query(sql)
                     if(len(r0)==0):
                         sql="SELECT  min(jid) from jobs where cid=$cid and timestamp<%d"  %(periodStartTime)
@@ -2499,9 +2612,10 @@ class RemoteClient:
                             minJobID=r1[0][0]
                     else:
                         minJobID=r0[0][0]
-                    self.JouDirPath[nCheckedCite]=cite
-                    self.JouLastCheck[nCheckedCite]=lastcheck
+                    self.JouDirPath[self.nCheckedCite]=cite
+                    self.JouLastCheck[self.nCheckedCite]=lastcheck
                     title="Cite %s, Directory %s Last Check %s " %(cite,dir,lastcheck)
+                    print title
                     newfile="./"
                     lastfile="./"
                     writelast=0
@@ -2513,14 +2627,29 @@ class RemoteClient:
                     except:
                         print "Enable to open ",joudir
                         continue
+                    threads = []
+                    self.suc = {}
                     for file in allfiles:
-                        if(file.find(".journal")<0):
+                        if(file.find(".journal")<0 or re.match("^\.", file)):
                             continue
                         junk=file.split("journal.")
                         if(len(junk)>1):
-                            if(junk[1]==0 or junk[1]==1 or junk[1]==2):
+                            if(junk[1]=="0" or junk[1]=="1" or junk[1]=="2"):
                                 continue
-                        fid=file.replace(".journal","")
+                            if (not re.match("\.journal$", file)):
+                                continue
+#                            elif (junk[1] == "work"):
+#                                ret = os.system("mv %s/%s %s/%s" %(joudir,file,joudir,file.replace(".work","")))
+#                                if (ret == 0):
+#                                    file = file.replace(".work","")
+#                                else:
+#                                    continue
+                        try:
+                            fid=float(file.replace(".journal",""))
+                        except:
+                            print "%s is not a regular journal file name, skipping..." %(file)
+                            continue
+                        jid=int(fid)
                         if(int(fid)<minJobID):
                             print " invalid jid ",fid
                             self.BadRunID[cite]=self.BadRunID[cite]+1
@@ -2530,12 +2659,28 @@ class RemoteClient:
                         if(writetime > writelast):
                             writelast=writetime
                             lastfile=newfile
-                        if(self.v):
-                            print "parsejournal file ",writetime,timestamp,newfile
+                        self.suc[jid] = 0
                         if(writetime> timestamp-24*60*60*30):
-                            (suc,logfile)=self.parseJournalFile(firstjobtime,lastjobtime,logdir,newfile,ntdir,cid)
-                        if(suc>0 and mail):
-                            sql="select jid,mid from jobs where jid=%d" %(suc)
+                            if(self.v):
+                                print "parsejournal file ",writetime,timestamp,newfile
+                            if (self.mt == 1):
+                                while threading.activeCount() > 5:
+#                                    print "waiting..."
+                                    time.sleep(1)
+                                try:
+                                    parseThread = self.threadParseJournalFile(self,firstjobtime,lastjobtime,logdir,newfile,ntdir,cid,datamc,None)
+                                    parseThread.start()
+                                    threads.append(parseThread)
+#                                    thread.startnew(self.parseJournalFile, (firstjobtime,lastjobtime,logdir,newfile,ntdir,cid,datamc,None,))
+                                except:
+                                    print "EXCEPTION in starting new thread";
+                            else:
+                                (self.suc[jid],logfile)=self.parseJournalFile(firstjobtime,lastjobtime,logdir,newfile,ntdir,cid,datamc,None)
+                                print "parseJournalFile returned (%d, %s)" %(self.suc[jid], logfile)
+                        else:
+                            continue
+                        if(self.suc[jid]>0 and self.mail):
+                            sql="select jid,mid from jobs where jid=%d" %(self.suc[jid])
                             ret=self.sqlserver.Query(sql)
                             sql = "SELECT mails.name, mails.address, cites.name FROM Mails, Cites  WHERE mails.mid=%d and mails.cid=cites.cid" %(ret[0][1])
                             r4=self.sqlserver.Query(sql)
@@ -2544,7 +2689,7 @@ class RemoteClient:
                                 owner=r4[0][0]
                                 address=r4[0][1]
                                 cite=r4[0][2]
-                                sub="Validation Failed for Job:  %d  %s" %(suc,r4[0][1])
+                                sub="Validation Failed for Job:  %d  %s" %(self.suc[jid],r4[0][1])
                                 mes=" "
                                 if(logfile != None):
                                     input=open(logfile,'r')
@@ -2552,9 +2697,12 @@ class RemoteClient:
                                     input.close()
                                 self.sendmailmessage(address,sub,mes)
                         
-                        self.JF[nCheckedCite]=self.JF[nCheckedCite]+1
+                        self.JF[self.nCheckedCite]=self.JF[self.nCheckedCite]+1
                         if(self.oneonly):
                             break
+                    for t in threads:
+                        t.join()
+                    print "All threads exited."
                     
                     
                     if(cid!=None):
@@ -2619,63 +2767,80 @@ class RemoteClient:
         firstline = "------------- parseJournalFiles ------------- "
         lastline  = "-------------     Thats It          ------------- "
         print firstline
-        output.write(firstline)
-        stime   = time.asctime(time.localtime(self.ValStTime))
+        output.write(firstline + "\n")
+        stime   = time.asctime(time.localtime(self.valStTime))
         ltime=time.asctime(time.localtime(timenow))
-        hours   = (timenow - self.ValStTime)/60/60;
+        hours   = (timenow - self.valStTime)/60/60;
         t0="Start Time : "+stime
         t1="End Time : "+ltime
         print t0,t1
-        output.write(t0)
-        output.write(t1)
+        output.write(t0 + "\n")
+        output.write(t1 + "\n")
         ctt = "Cites      : $nCheckedCite , active : $nActiveCites \n";
         ctt = "Cites      : %d , active : %d " %(self.nCheckedCite,self.nActiveCites)
         print ctt
-        output.write(ctt)
-        for i  in range(0,self.nCheckedCite):
+        output.write(ctt + "\n")
+        for i  in range(0,self.nCheckedCite+1):
             s1="Cite : "+self.JouDirPath[i]
             s2="Latest Journal : "+str(self.JouLastCheck[i])
             s3="New Files : "+str(self.JF[i])
             cj="%-20.15s %-20.40s %-50.30s" % (s1,s2,s3)
             print cj
-            output.write(cj)
+            output.write(cj + "\n")
             if self.JF[i] > 0:
                 l0 = "   Runs (Checked, Good, Bad, Failed) : %d %d %d %d " %( self.CheckedRuns[i], self.GoodRuns[i],  self.BadRuns[i], self.FailedRuns[i])
                 l1 = "   DSTs (Checked, Good, Bad, CRC, CopyFail) :  %d %d %d %d %d %d" %(self.CheckedDSTs[i],  self.GoodDSTs[i], self.BadDSTs[i], self.BadCRC[i], self.BadDSTCopy[i], self.BadRunID[i])
                 print l0
                 print l1
-                output.write(l0)
-                output.write(l1)
+                output.write(l0 + "\n")
+                output.write(l1 + "\n")
             tR    = tR    + self.CheckedRuns[i]
-            tRB = trb + self.BadRuns[i] + self.FailedRuns[i]
+            tBR += self.BadRuns[i] + self.FailedRuns[i]
             tD    = tD    + self.CheckedDSTs[i]
-            tDB = tDB + self.BadDSTs[i] + self.BadCRC[i] + self.BadDSTCopy[i]
+            tBD += self.BadDSTs[i] + self.BadCRC[i] + self.BadDSTCopy[i]
             tGB      = tGB      + self.gbDST[i]
-        totalGB = float(totalGB)/1000.
-        chGB = "%3.1f" %(totalGB)
-        summ =  "Total : Runs %d (%d), DSTs %d (%d), GB %s" %(tR,tRB,tD,tDB,chGB)
+        tGB = float(tGB)/1000.
+        chGB = "%3.1f" %(tGB)
+        summ =  "Total : Runs %d (%d), DSTs %d (%d), GB %s" %(tR,tBR,tD,tBD,chGB)
         print summ
-        output.write(summ)
+        output.write(summ + "\n")
         ch0   = "Total Time %3.1f hours" %(hours)
         mbits = 0;
         if(self.doCopyTime > 0) :
-            mbits = totalGB*8/self.doCopyTime
+            mbits = tGB*8/self.doCopyTime
         ch1 = " doCopy (calls, time, Mbit/s) : %5d %3.1fh %3.1f [cp file :%5d %3.1fh]; " %(self.doCopyCalls, float(self.doCopyTime)/60/60, mbits, self.copyCalls, float(self.copyTime)/60/60)
         ch2 = " CRC (calls,time) : %5d, %3.1fh ; Validate (calls,time) : %5d, %3.1fh]; "%(self.crcCalls, float(self.crcTime)/60/60,self.fastntCalls, self.fastntTime/60/60 )
         print ch0
         print ch1
         print ch2
         print lastline
-        output.write(ch0)
-        output.write(ch1)
-        output.write(ch2)
-        output.write(lastline)
+        output.write(ch0 + "\n")
+        output.write(ch1 + "\n")
+        output.write(ch2 + "\n")
+        output.write(lastline + "\n")
         output.close()
+
     def EpochToDDMMYYHHMMSS(self,tm):
         return time.strftime("%d %b %Y %H:%M:%S", time.localtime(tm))
-    def parseJournalFile(self,firstjobtime,lastjobtime,logdir,inputfile,dirpath,cid):
-        outputpath=None
-        host="Unknow"
+
+    class threadParseJournalFile(threading.Thread):
+        def __init__(self,caller, firstjobtime,lastjobtime,logdir,inputfile,dirpath,cid,datamc,outputpath):
+            threading.Thread.__init__(self)
+            self.caller = caller
+            self.firstjobtime = firstjobtime
+            self.lastjobtime = lastjobtime
+            self.logdir = logdir
+            self.inputfile = inputfile
+            self.dirpath = dirpath
+            self.cid = cid
+            self.datamc = datamc
+            self.outputpath = outputpath
+        def run(self):
+            RemoteClient.parseJournalFile(self.caller, self.firstjobtime, self.lastjobtime, self.logdir, self.inputfile, self.dirpath, self.cid, self.datamc, self.outputpath)
+
+    def parseJournalFile(self,firstjobtime,lastjobtime,logdir,inputfile,dirpath,cid,datamc,outputpath):
+#        outputpath=None
+        host="Unknown"
         tevents=0
         terrors=0
         jobid=-1
@@ -2699,18 +2864,27 @@ class RemoteClient:
         self.failedcp=0
         self.thrusted=0
         self.copied=0
-        self.failedcp=0
         self.bad=0
         self.unchecked=0
         self.validated=0
         leti=0
         feti=2000000000
         run=0
+        mutex.acquire()
+        inputwork = inputfile + ".work"
+        ret = os.system("mv %s %s" %(inputfile, inputwork))
+        if (ret == 0):
+            inputfile = inputwork
+        else:
+            print " Unable to execute mv %s %s" %(inputfile, inputwork)
+            mutex.release()
+            return 0, ""
         try:
             input=open(inputfile,'r')
         except IOError,e:
             print e
-            return 0
+            mutex.release()
+            return 0, ""
         buf=input.read()
         input.close()
         sp1=buf.split(', UID ')
@@ -2720,7 +2894,8 @@ class RemoteClient:
                 print "Fatal - Run %s does not match file  %s"  %(sp2[0],inputfile)
                 cmd="mv %s %s.o"  %(inputfile,inputfile)
                 os.system(cmd)
-                return 0
+                mutex.release()
+                return 0, ""
             else:
                 try:
                     files=os.listdir(dirpath)
@@ -2729,10 +2904,14 @@ class RemoteClient:
                 tnow=int(time.time())
                 for file in files:
                    if(file.find(sp2[0])>=0):
-                       mtim=os.stat(dirpath+"/"+file)[ST_MTIME]
+                       try:
+                           mtim=os.stat(dirpath+"/"+file)[ST_MTIME]
+                       except OSError,e:
+                           mtim = 0
                        if(tnow-mtim<300):
                            print "run %s not yet completed.  Postponed " %(sp2[0])
-                           return 0
+                           mutex.release()
+                           return 0, ""
         blocks=buf.split("-I-TimeStamp")
         cpntuples=[]
         mvntuples=[]
@@ -2746,226 +2925,593 @@ class RemoteClient:
             output=open(copylog,'w')
         except IOError,e:
             print e
-            return 0
+            mutex.release()
+            return 0, ""
+        run_incomplete = 0
+        run_finished = 0
+        for block in blocks:
+            if (block.find('RunIncomplete') >=0 ):
+                run_incomplete = 1
+            if (block.find('RunFinished') >= 0):
+                run_finished = 1
         for block in blocks:
             if(block.find('RunValidated')>=0):
                junk=block.split(',')
                for i in range (0,len(junk)):
                    junk[i]=self.trimblanks(junk[i])
                    if(junk[i].find('Path')>=0):
-                       path=junk[i].split(' ')
+                       path=junk[i].split()
                        dirpath=self.trimblanks(path[1])
                        break
         for block in blocks:
-            junk=block.slpit(",")
+            junk=block.split(",")
             for i in range (0,len(junk)):
                 junk[i]=self.trimblanks(junk[i])
-            jj=block.split(" ")
-            utime=jj[0]
-            if(utime> firstjobtime and utime <lastjobtime):
-                if(block.find('RunIncomplete')>=0):
-                    if(startingrunR ==1):
-                        output.write("RunIncomplete : ntuples validated: %d Continue " %(validated))
-                        output.write(block)
-                        patternsmatched=0
-                        RunIncompletePatterns=("RunIncomplete","Host","Run","EventsProcessed","LastEvent","Errors","CPU","Elapsed","CPU/Event","Status")
-                        for i in range (0,len(junk)):
-                            jj=junk[i].split(" ")
-                            if(len(jj)>1):
-                                found=0
-                                j=0
-                                while j<len(RunIncompletePatterns) and found==0 :
-                                    if (jj[0] == RunIncompletePatterns[j]):
-                                        runincomplete[j]=trimblanks(jj[1])
-                                        patternsmatched=patternsmatched+1
-                                        found=1
-                                    j=j+1
-                        if(patternsmatched == len(RunIncompletePatterns)):
-                           runincomplete[0]="RunIncomplete"
-                           run=runincomplete[2]
-                           runfinishedR=1
-                           sql="SELECT run FROM runs WHERE run = %d AND levent=%d" %(run,runincomplete[4])
-                           ret=self.sqlserver.Query(sql)
-                           
-                           if(len(ret)==0):
-                               cputime="%.0f" %(runincomplete[6])
-                               elapsed="%.0f" %(runincomplete[7])
-                               host=runincomplete[1]
-                               sql="UPDATE Jobs SET EVENTS=%d, ERRORS=%d,CPUTIME=%s, ELAPSED=%s,HOST='%s', TIMESTAMP = %d WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = %d)" %(runincomplete[3], runincomplete[5],cputime, elapsed,host,timestamp, run)
-                               output.write(sql)
-                               self.sqlserver.Update(sql)
-                               sql="update runs set levent=%d where run=%d " %(runincomplete[4],run)
-                               output.write(sql)
-                               self.sqlserver.Update(sql)
-                        else:
-                            output.write("parseJournalfile-W-RunIncomplete - cannot find all patterns ")
-                    else:
-                        print "parseJournalFile -W- RunIncomplete CHECK File ",joufile
-                        runfinishedR=1
-                        jj=joufule.split('.journal')
-                        jobid=jj[0]
-                        mailto="vitali.choutko@cern.ch"
-                        subject = "RunIncomplet : "+inputfile
-                        text    = " Program found RunIncomplete status in "+inputfile+" file. \n Please provide job log file to V.Choutko"
-                        sql = "SELECT Mails.address FROM Jobs, Mails WHERE Jobs.jid=%d AND Mails.mid = Jobs.mid" %(jobid)
-                        ret = selfsqlserverQuery(sql)
-                        if(len(ret)>0):
-                            mailto=mailto+", "+ret[0][0]
-                        self.sendmailmessage(mailto,subject,text)
-                        break
-                elif(block.find('StartingJob')>=0):
-                    pattarnsmatched=0
-                    StartingJobPatterns = ("StartingJob", "HostName","UID","PID","Type","ExitStatus","StatusType")
+            jj=block.split()
+            if (len(jj) == 0):
+                continue
+            utime=int(jj[0])
+            if(utime < firstjobtime or utime > lastjobtime):
+                self.BadRuns[self.nCheckedCite] += 1;
+                output.write("*********** wrong timestamp : %d (%d,%d)\n" %(utime, firstjobtime, lastjobtime))
+#                os.system("mv %s %s.0" %(inputfile, inputfile))
+#                output.write(lastline + "\n")
+#                output.close
+#                mutex.release()
+#                return (jobid, copylog)
+            if(block.find('RunIncomplete')>=0):
+                if(startingrunR ==1):
+                    output.write("RunIncomplete : ntuples validated: %d Continue \n" %(validated))
+                    output.write(block + "\n")
+                    patternsmatched=0
+                    RunIncompletePatterns=("RunIncomplete","Host","Run","EventsProcessed","LastEvent","Errors","CPU","Elapsed","CPU/Event","Status")
+                    runincomplete = [None] * len(RunIncompletePatterns)
                     for i in range (0,len(junk)):
-                        jj=junk[i].split(' ')
+                        jj=junk[i].split()
                         if(len(jj)>1):
                             found=0
                             j=0
-                            while (j<len(StartingJobPatterns) and found==0):
-                                if(jj[0] ==  StartingJobPatterns[j]):
-                                    startingjob[j]=self.trimblanks(jj[1])
+                            while j<len(RunIncompletePatterns) and found==0 :
+                                if (jj[0] == RunIncompletePatterns[j]):
+                                    runincomplete[j]=trimblanks(jj[1])
                                     patternsmatched=patternsmatched+1
                                     found=1
                                 j=j+1
-                    if(len(startingjob)>=3):
-                        jobid=startingjob[2]
-                        if(self.findJob(jobif,buf,dirpath,cid) !=jobid):
-                            output.write("fatail - cannot find JobInfo for "+str(jobid))
-                            self.BadRuns[self.nCheckedCite]=self.BadRuns[self.nCheckedCite]+1
-                            system("mv %s %s.0" %(inputfile,inputfile))
-                            return 0
+                    if(patternsmatched == len(RunIncompletePatterns)):
+                       runincomplete[0]="RunIncomplete"
+                       run=int(runincomplete[2])
+                       runfinishedR=1
+                       sql="SELECT run FROM runs WHERE run = %d AND levent=%d" %(run,runincomplete[4])
+                       ret=self.sqlserver.Query(sql)
+                       
+                       if(len(ret)==0):
+                           cputime="%.0f" %(runincomplete[6])
+                           elapsed="%.0f" %(runincomplete[7])
+                           host=runincomplete[1]
+                           sql="UPDATE Jobs SET EVENTS=%s, ERRORS=%s,CPUTIME=%s, ELAPSED=%s,HOST='%s', TIMESTAMP = %d WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = %d)" %(runincomplete[3], runincomplete[5],cputime, elapsed,host,timestamp, run)
+                           output.write(sql + "\n")
+                           self.sqlserver.Update(sql)
+                           sql="update runs set levent=%s where run=%d " %(runincomplete[4],run)
+                           output.write(sql + "\n")
+                           self.sqlserver.Update(sql)
                     else:
-                            output.write("fatail - cannot find JobInfo for in "+inputfile)
-                            system("mv %s %s.0" %(inputfile,inputfile))
-                            return 0
-                    if(patternsmatched == len(StartingJobPatterns) or patternsmatched == len(StartingJobPatterns)-1):
-                        startingjob[0]="StartingJob"
-                        startingjobR=1
-                        lastjobid=startingjob[2]
+                        output.write("parseJournalfile-W-RunIncomplete - cannot find all patterns \n")
+                else:
+                    print "parseJournalFile -W- RunIncomplete CHECK File ",joufile
+                    runfinishedR=1
+                    jj=joufule.split('.journal')
+                    jobid=jj[0]
+                    mailto="vitali.choutko@cern.ch"
+                    subject = "RunIncomplet : "+inputfile
+                    text    = " Program found RunIncomplete status in "+inputfile+" file. \n Please provide job log file to V.Choutko"
+                    sql = "SELECT Mails.address FROM Jobs, Mails WHERE Jobs.jid=%d AND Mails.mid = Jobs.mid" %(jobid)
+                    ret = selfsqlserverQuery(sql)
+                    if(len(ret)>0):
+                        mailto=mailto+", "+ret[0][0]
+                    self.sendmailmessage(mailto,subject,text)
+                    break
+            elif(block.find('StartingJob')>=0):
+                pattarnsmatched=0
+                StartingJobPatterns = ("StartingJob", "HostName","UID","PID","Type","ExitStatus","StatusType")
+                startingjob = [None] * len(StartingJobPatterns)
+                for i in range (0,len(junk)):
+                    jj=junk[i].split()
+                    if(len(jj)>1):
+                        found=0
+                        j=0
+                        while (j<len(StartingJobPatterns) and found==0):
+                            if(jj[0] ==  StartingJobPatterns[j]):
+                                startingjob[j]=self.trimblanks(jj[1])
+                                patternsmatched=patternsmatched+1
+                                found=1
+                            j=j+1
+                if(len(startingjob)>=3):
+                    jobid=jobstartingjob[2]
+                    if(self.findJob(jobid,buf,dirpath,cid) !=jobid):
+                        output.write("fatail - cannot find JobInfo for %d\n" %(jobid))
+                        self.BadRuns[self.nCheckedCite] += 1
+                        system("mv %s %s.0" %(inputfile,inputfile))
+                        mutex.release()
+                        return 0, copylog
+                else:
+                        output.write("fatail - cannot find JobInfo for in %s\n" %(inputfile))
+                        system("mv %s %s.0" %(inputfile,inputfile))
+                        mutex.release()
+                        return 0, copylog
+                if(patternsmatched == len(StartingJobPatterns) or patternsmatched == len(StartingJobPatterns)-1):
+                    startingjob[0]="StartingJob"
+                    startingjobR=1
+                    lastjobid=startingjob[2]
+                else:
+                    output.write("parseJournalFiles -W- StartingJob - cannot find all patterns\n")
+            elif (block.find('JobStarted') >= 0):
+# 19.09.03
+#
+#, JobStarted HostName pcamsf6 hrdl , UID 116 , PID 5751 5746 , Type
+# Producer , ExitStatus NOP , StatusType OneRunOnly , Mips 2445
+#                                                     ^^^^
+#
+                patternsmatched = 0
+                JobStartedPatterns = ("JobStarted", "HostName","UID","PID","Type", "ExitStatus","StatusType","Mips")
+                jobstarted = [None] * len(JobStartedPatterns)
+                j = 0
+                for pat in JobStartedPatterns:
+                    for xyz in junk:
+                        jj = xyz.split()
+                        if (len(jj)>1):
+                            if ( pat == jj[0] ):
+                                patternsmatched += 1
+                                jobstarted[j]=self.trimblanks(jj[1])
+                                if (jj[0] == "Mips"):
+                                    jobmips = int(self.trimblanks(jj[1]))
+                                break
+                    j += 1
+                if (jobstarted[2] != None):
+                    jobid = int(jobstarted[2])
+                    if(self.findJob(jobid,buf,dirpath,cid) !=jobid):
+                        output.write("fatal - cannot find JobInfo for %d\n" %(jobid))
+                        self.BadRuns[self.nCheckedCite] += 1
+                        os.system("mv %s %s.0" %(inputfile,inputfile))
+                        mutex.release()
+                        return 0, copylog
+                else:
+                        output.write("fatal - cannot find JobInfo for in %s\n" %(inputfile))
+                        print("fatal - cannot find JobInfo for in "+inputfile)
+                        os.system("mv %s %s.0" %(inputfile,inputfile))
+                        mutex.release()
+                        return 0, copylog 
+                if(patternsmatched == len(JobStartedPatterns)-1 or patternsmatched == len(JobStartedPatterns)-2):
+                    jobstarted[0]="JobStarted"
+                    jobstartedR=1
+                    lastjobid=int(jobstarted[2])
+                    sql = "UPDATE Jobs SET mips = %d, host = '%s' where jid = %d" %(jobmips, jobstarted[1], lastjobid)
+                    output.write(sql + "\n")
+                    self.sqlserver.Update(sql)
+                else:
+                    output.write("parseJournalFiles -W- JobStarted - cannot find all patterns\n")
+            elif(block.find('StartingRun')>=0):
+                patternsmatched = 0
+                StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent","Prio","Path","Status","History","CounterFail", "ClientID","SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent","Errors","CPU","Elapsed","CPU/Event","Status","DataMC")
+                startingrun = [None] * len(StartingRunPatterns)
+                j=0
+                for pat in StartingRunPatterns:
+                    for xyz in junk:
+                        jj=xyz.split()
+                        if(len(jj)>1):
+                            if(pat == jj[0]):
+                                patternsmatched += 1
+                                startingrun[j]=self.trimblanks(jj[1])
+                                if(jj[0] == 'Run'):
+                                    break
+                    j=j+1
+                runtype = int(startingrun[21])
+                if (lastjobid != int(startingrun[2]) and datamc != 1):
+                    # for MC recontruction
+                    print "Changing data mc %d %s" %(lastjobid, startingrun[2])
+                    runtype = 2
+                run=startingrun[2]
+                if (runtype != 0):
+                    runtable = 'dataruns'
+                else:
+                    runtable = 'runs'
+                startingrun[0]="StartingRun"
+                sql=" select status from %s where jid=%d" %(runtable, lastjobid)
+                rq=self.sqlserver.Query(sql)
+                if(len(rq)>0 and rq[0][0].find('Completed')>=0):
+                    print "Run ",run," already completed in database do nothing"
+#                        os.system("mv %s %s.1" %(inputfile,inputfile))
+#                        return 0, copylog
+                if(patternsmatched == len(StartingRunPatterns)+3 or patternsmatched == len(StartingRunPatterns)+2):
+                    startingrunR=1
+                    self.CheckedRuns[self.nCheckedCite] += 1
+                    if (runtype == 0):
+                        self.insertRun(int(startingrun[2]),lastjobid,int(startingrun[3]),int(startingrun[4]),feti,leti,int(startingrun[12]),startingrun[7])
                     else:
-                        output.write("parseJournalFiles -W- StartingJob - cannot find all patterns")
-                elif(block.find('StartingRun')>=0):
-                    patternsmatched = 0;
-                    StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent","Prio","Path","Status","History","CounterFail", "ClientID","SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent","Errors","CPU","Elapsed","CPU/Event","Status")
-                    j=0
-                    for pat in StartingRunPatterns:
-                        for xyz in junk:
-                            jj=xyz.split(" ")
-                            if(len(jj)>2):
-                                if(pat == jj[0]):
-                                    patternsmatched=patternsmatched+1
-                                    startingrunrun[j]=self.trimblanks(jj[1])
-                                    if(jj[0] == 'Run'):
-                                        break
-                        j=j+1
-                    if(patternsmatched == len(StartingRunsPAtterns)+3 or patternsmatched == len(StartingRunsPAtterns)+2):
-                        run=startingrun[2]
-                        startingrun[0]="StartingRun"
-                        sql=" select status from runs where jid=%d" %(run)
-                        rq=self.sqlserver.Query(sql)
-                        if(len(rq)>0 and rq[0][0].find('Completed'>=0)):
-                            print "Run ",run," already comleted in database do nothing"
-                            os.system("mv %s %s.1" %(inputfile,inputfile))
-                            return 0
-                        startingRunR=1
-                        self.CheckedRuns[self.nCheckedCite]=self.CheckedRuns[self.nCheckedCite]+1
-                        self.insertRun(startingrun[2],lastjobid,startingrun[3],startingrun[4],feti,leti,startingrun[12],startingrun[7])
-                        if(len(startingrun)>13):
-                            host=startingrun[13]
-                        sql = "UPDATE Jobs set host='%s',events=%s, errors=%s,cputime=%s, elapsed=%s,timestamp=%d, mips = %s where jid=%d" %(host,startingrun[14],startingrun[16],startingrun[17],startingrun[18],timestamp,jobmips,lastjobid)
-                        self.sqlserver.Update(sql)
-                        output.write(sql)
-                    else:
-                        output.write("StartingRun - cannot find all patterns ")
-                        print "StartingRun -W- cannot find all patterns " ,patternsmatched,len(StartingRunPatterns)
-                elif(block.find('OpenDST')>=0):
-                    patternsmatched = 0;
-                    OpenDSTPatterns = ("OpenDST","Status","Type","Name","Version","Size","CRC","Insert","Begin","End","Run","FirstEvent","LastEvent","EventNumber","ErrorNumber")
-                    for i in range (0,len(junk)):
-                        jj=junk[i].split(' ')
-                        if(len(jj)>2):
-                            found=0
-                            j=0
-                            while(j<len(OpenDSTPAtterns) and found==0):
-                                if(jj[0] == OpenDSTPatterns[j] or jj[0] == OpenDSTPatterns[j].lc()):
-                                    opendst[j]=self.trimblanks(jj[1])
-                                    patternsmatched=patternsmatched+1
-                                    found=1
-                                j=j+1
-                    if(patternsmatched==OpenDSTPattern.len()-1):
-                        opendst[0]="OpenDST"
-                        self.CheckedDSTs[self.nCheckedCite]=self.CheckedDSTs[self.nCheckedCite]+1
-                    else:
-                        output.write("OPENDST - cannot find all patterns ")
-                
-                elif(block.find("CloseDST")>=0):
-                    patternsmatched=0
-                    statusIndx=1
-                    fileIndx=3
-                    crcIndx=6
-                    CloseDSTPAtterns=("CloseDST","Status","Type","Name","Version","Size","CRC","Insert","Begin","End","Run","FirstEvent","LastEvent","EventNumber","ErrorNumber")
-                    for icl in range(0,CloseDSTPAtterns.len()-1):
-                        closedst[icl]=0
-                    for i in range (0,junk.len()):
+                        self.insertDataRun(int(startingrun[2]),lastjobid,int(startingrun[3]),int(startingrun[4]),feti,leti,int(startingrun[12]),startingrun[7])
+                    if(len(startingrun)>13):
+                        host=startingrun[13]
+                    if (runtype != 0 and (run_incomplete == 1 or run_finished == 0)):
+                        # data do not allow incomplete run
+                        print "Run %d incomplete or not finished while real data mode, do nothing." %(startingrun[2])
+                        os.system("mv %s %s.0" %(inputfile, inputfile))
+                        mutex.release()
+                        return 0, copylog
+
+                    sql = "UPDATE Jobs set host='%s',events=%s, errors=%s,cputime=%s, elapsed=%s,timestamp=%d, mips = %s where jid=%d" %(host,startingrun[14],startingrun[16],startingrun[17],startingrun[18],timestamp,jobmips,lastjobid)
+                    self.sqlserver.Update(sql)
+                    output.write(sql + "\n")
+                else:
+                    output.write("StartingRun - cannot find all patterns \n")
+                    print "StartingRun -W- cannot find all patterns " ,patternsmatched,len(StartingRunPatterns)
+            elif(block.find('OpenDST')>=0):
+                patternsmatched = 0;
+                OpenDSTPatterns = ("OpenDST","Status","Type","Name","Version","Size","CRC","Insert","Begin","End","Run","FirstEvent","LastEvent","EventNumber","ErrorNumber")
+                opendst = [None] * len(OpenDSTPatterns)
+                for i in range (0,len(junk)):
+                    jj=junk[i].split()
+                    if(len(jj)>1):
+                        found=0
+                        j=0
+                        while(j<len(OpenDSTPatterns) and found==0):
+                            if(jj[0] == OpenDSTPatterns[j] or jj[0] == OpenDSTPatterns[j].lower()):
+                                opendst[j]=self.trimblanks(jj[1])
+                                patternsmatched += 1
+                                found=1
+                            j += 1
+                if(patternsmatched==len(OpenDSTPatterns)-1):
+                    opendst[0]="OpenDST"
+                    self.CheckedDSTs[self.nCheckedCite]=self.CheckedDSTs[self.nCheckedCite]+1
+                else:
+                    output.write("OPENDST - cannot find all patterns \n")
+            
+            elif(block.find("CloseDST")>=0):
+                patternsmatched=0
+                statusIndx=1
+                fileIndx=3
+                crcIndx=6
+                CloseDSTPatterns=("CloseDST","Status","Type","Name","Version","Size","CRC","Insert","Begin","End","Run","FirstEvent","LastEvent","EventNumber","ErrorNumber")
+                closedst = [None] * len(CloseDSTPatterns)
+                for icl in range(0,len(CloseDSTPatterns)):
+                    closedst[icl]=0
+                for i in range (0,len(junk)):
+                    jj = junk[i].split()
+                    if (len(jj)>1):
                         found=0
                         j=0
                         while(j<len(CloseDSTPatterns) and found==0):
-                            if(jj[0] == CloseDSTPatterns[j] or jj[0] == CloseDSTPatterns[j].lc()):
+                            if(jj[0] == CloseDSTPatterns[j] or jj[0] == CloseDSTPatterns[j].lower()):
                                     closedst[j]=self.trimblanks(jj[1])
                                     patternsmatched=patternsmatched+1
                                     found=1
                             j=j+1
-                    if(feti>closedst[8] and closedst[8]>0):
-                        feti=closedst[8]
-                    if(leti<closedst[9]):
-                        leti=closedst[9]
-                    if (patternsmatched == CloseDSTPatterns.len()-1):
-                        if(closedst[crcIndx]==0):
-                            output.write("Status : %d, CRC %d. Skip file : : %d" %(closedst[statusIndx],closedst[crcIndx],closedst[fileIndx]))
+                if(feti>int(closedst[8]) and int(closedst[8])>0):
+                    feti=int(closedst[8])
+                if(leti<int(closedst[9])):
+                    leti=int(closedst[9])
+                if (patternsmatched == len(CloseDSTPatterns)-1):
+                    if(closedst[crcIndx]==0):
+                        output.write("Status : %d, CRC %d. Skip file : : %d\n" %(closedst[statusIndx],closedst[crcIndx],closedst[fileIndx]))
+                    else:
+                        junk=closedst[fileIndx].split('/')
+                        dstfile=self.trimblanks(junk[len(junk)-1])
+                        filename=dstfile
+                        dstfile=dirpath+"/"+dstfile
+                        dstlink = dstfile
+                        inputfilel = os.path.realpath(dstfile)
+                        if (re.match("^/castor", inputfilel)):
+                            dstfile = inputfilel
+                            if (outputpath is None):
+                                ouputpath = '/castor/cern.ch/ams'
+                        elif (re.match("^/", inputfilel)):
+                            junk = inputfilel.split('/')
+                            if (runtype % 2 == 1):
+                                path = '/Data'
+                            else:
+                                path = '/MC'
+                            disk = junk[1]
+                            sql = "SELECT disk FROM filesystems WHERE status='Active' and  isonline=1 and path = '%s' and disk = '%s' ORDER BY priority DESC, available" %(path, disk)
+                            rq=self.sqlserver.Query(sql)
+                            dstfile = inputfilel
+                            if(len(rq)>0 and rq[0][0] == disk):
+                                outputpath = disk
+                            else:
+                                sql = "SELECT disk FROM filesystems WHERE status='Full' and  Allowed=0 and path = '%s' and disk = '%s' ORDER BY priority DESC, available" %(path, disk)
+                                rq=self.sqlserver.Query(sql)
+                                dstfile = inputfilel
+                                if(len(rq)>0 and rq[0][0] == disk):
+                                    outputpath = disk
+                        if (re.match("^/castor", dstfile)):
+                            pid = os.getpid()
+                            tmpf = "/tmp/castor.%d" %(pid)
+                            if (os.path.isfile(tmpf)):
+                                try:
+                                    os.unlink(tmpf)
+                                except IOError,e:
+                                    print e
+                            os.system("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_get -M %s" %(dstfile))
+                            cmd = "/usr/bin/nsls -l %s >%s" %(dstfile, tmpf)
+                            i = os.system(cmd)
+                            if (i == 0):
+                                try:
+                                    fo = open(tmpf, "r")
+                                    line=fo.readline()
+                                    fo.close
+                                    junk = line.split()
+                                    if (len(junk) > 4):
+                                        dstsize = int(junk[4])
+                                except IOError,e:
+                                    print e
+                                    print "parsejournalfile-E-Unableto open file %s" %(tmpf)
+                            else:
+                                print "parsejournalfile-E-Unableto %s" %(cmd)
+                            os.unlink(tmpf)
                         else:
-                            junk=closedst[fileIndx].split()
-                            dstfile=self.trimblanks(junk[junk.len()-1])
-                            filename=dstfile[:]
-                            dstfile=dirpath+"/"+dstfile
-                            dstsize=os.stat(dstfile)[ST_SIZE]
-                            if(dstsize==None):
-                                output.write("parseJournalFile-W-CloseDST block : cannot stat "+dstfile)
+                            dstsize=int(os.stat(dstfile)[ST_SIZE])
+                            try:
+                                dstsize
+                            except NameError:
+                                output.write("parseJournalFile-W-CloseDST block : cannot stat %s\n" %(dstfile))
                                 runfinishedR=1
                                 dstsize=-1
-                                copyfailed=-1
+                                copyfailed = -1
                                 break
+                            if(closedst[1] != "Validated" and closedst[1] != "Success" and closedst[1] != "OK"):
+                                output.write("parseJournalFile -W- CloseDST block : %s,  DST status  %s. Check anyway\n" %(dstfile,closedst[1]))
+                            dstsize="%.1f" %(float(dstsize)/1000./1000.)
+                            closedst[0]="CloseDST"
+                            output.write(dstfile + "\n")
+                            ntstatus=closedst[1]
+                            nttype   =closedst[2]
+                            version  =closedst[4]
+                            ntcrc    =int(closedst[6])
+                            run      =int(closedst[10])
+                            jobid    =int(closedst[10])
+                            dstfevent=int(closedst[11])
+                            dstlevent=int(closedst[12])
+                            ntevents =int(closedst[13])
+                            badevents=int(closedst[14])
+                            if (self.checkDSTVersion(version)!=1):
+                                output.write("------------ Check DST; Version : version / Min production version : %s \n" %(version,self.Version()))
+                                self.unchecked += 1
+                                copyfailed += 1
+                                self.BadDSTs[self.nCheckedCite] += 1
+                                break
+                            levent += dstlevent-dstfevent+1
+                            i=self.calculateCRC(dstfile,ntcrc)
+                            output.write("calculateCRC(%s,%d):  Status %d \n" %(dstfile,ntcrc,i))
+                            if(i!=1):
+                                self.unchecked += 1
+                                copyfailed += 1
+                                self.BadCRC[self.nCheckedCite] += 1
+                                break
+                            (ret,i)=self.validateDST(dstfile,ntevents,nttype,dstlevent)
+                            output.write("validateDST(%s, %d, %s, %d, %d) : Status : %d : Ret : %d\n" %(dstfile, ntevents, nttype, dstlevent, jobid, i, ret))
+                            if (ret != 1):
+                                self.unchecked += 1
+                                copyfailed += 1
+                                output.write(" validateDST return code != 1. Quit. \n")
+                                break
+                            if (i == 0xff00 or i & 0xff):
+                                if (ntstatus != 'Validated'):
+                                    ntstatus = "Unchecked"
+                                    badevents="NULL"
+                                    self.unchecked += 1
+                                    copyfailed += 1
+                                    break
+                                else:
+                                    self.thrusted += 1
                             else:
-                                if(closedst[1] != "Validated" and closedst[1] != "Success" and closedst[1] != "OK"):
-                                    output.write("parseJournalFile -W- CloseDST block : $s,  DST status  %s. Check anyway" %(dstfile,closedst[1]))
-                                dstsizs="%.1f" %(float(dstsize)/1000./1000.)
-                                closedst[0]="CloseDST"
-                                output.write(dstfile)
-                                ntstatus=closedst[1]
-                                nttype   =closedst[2]
-                                version  =closedst[4]
-                                ntcrc    =closedst[6]
-                                run      =closedst[10]
-                                jobid    =closedst[10]
-                                dstfevent=closedst[11]
-                                dstlevent=closedst[12]
-                                ntevents =closedst[13]
-                                badevents=closedst[14]
-                                if (self.checkDSTVersion(version)!=1):
-                                           output.write("------------ Check DST; Version : version / Min production version : %s" %(version,self.Version()))
-                                           self.unchecked=self.unchecked+1
-                                           self.copyfailed=self.copyfailed+1
-                                           self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
-                                           break
-                                levent=levent+dstlevent-dstfevent+1
-                                i=self.caculateCRC(dstfile,ntcrc)
-                                output.write("calculateCRC(%s,%d):  Status %d " %(dstfile,ntcrc,i))
-                                if(i!=1):
-                                           self.unchecked=self.unchecked+1
-                                           self.copyfailed=self.copyfailed+1
-                                           self.BadCRCi[self.nCheckedCite]=self.BadCRCi[self.nCheckedCite]+1
-                                           break
-                                (ret,i)=self.validateDST(dstfile,ntevents,nttype,dstlevent)
-                                           
+                                i >>= 8
+                                if (int(i/128)):
+                                    ntevents = 0
+                                    badevents = "NULL"
+                                    ntstatus = "Bad%d" %(i-128)
+                                    self.bad += 1
+                                    levent -= dstlevent - dstfevent + 1
+                                else:
+                                    badevents = int(i*ntevents/100)
+                                    tevents += ntevents
+                                    terrors += badevents
+                                    self.validated += 1
+                                    ntstatus = 'Validated'
+                                    if (runtype % 2 == 0):
+                                        path = '/MC'
+                                    else:
+                                        path = '/Data'   
+                                    (outputpatha, rstatus, odisk, castortime) = self.doCopy(jobid, dstfile, ntcrc, version, outputpath, path)
+                                    outputpath = outputpatha
+                                    if (outputpath != None):
+                                        mvntuples.append(outputpath)
+                                    output.write("doCopy return status : %d \n" %(rstatus))
+                                    if (rstatus == 1):
+                                        castortime = 0
+                                        if (re.match("^/castor", outputpath)):
+                                            castortime = int(time.time())
+                                        if (castortime == 0):
+                                            castorPrefix = '/castor/cern.ch/ams';
+                                            junk = outputpath.split("/")
+                                            castordir = castorPrefix
+                                            for i in range(2, len(junk)-1):
+                                                castordir += "/%s" %(junk[i])
+                                            sys = "/usr/bin/nsmkdir -p %s" %(castordir)
+                                            i = os.system(sys)
+                                            rfcp = "/usr/bin/rfcp %s %s" %(outputpath, castordir)
+                                            failure = os.system(rfcp)
+                                            if (failure):
+                                                print " %s failed" %(rfcp)
+                                            else:
+                                                castortime = int(time.time())
+                                        self.InsertNtuple(run, version, nttype, jobid, dstfevent, dstlevent, ntevents, badevents, timestamp, dstsize, ntstatus, outputpath, ntcrc, timestamp, 1, castortime, runtype%2, feti, leti)
+                                        output.write("insert ntuple : %d, %s, %s\n" %(run, outputpath, closedst[1]))
+                                        self.gbDST[self.nCheckedCite] += float(dstsize)
+                                        cpntuples.append(dstlink)
+                                    else:
+                                        output.write("***** Error in doCopy for : %s\n" %(outputpath))
+                else:
+                    output.write("parseJournalFiles -W- CloseDST - cannot find all patterns\n")
+                # end CloseDST
+                #
+            elif (block.find("RunFinished")>=0):
+#
+# RunFinished CInfo  , Host pcamsvc , EventsProcessed 10796 , LastEvent 21000 ,
+# Errors 3 , CPU 712.62 , Elapsed 725.923 , CPU/Event 0.0660017 , Status Finished
+#
+                patternsmatched = 0
+                RunFinishedPatterns = ("RunFinished","Host","Run","EventsProcessed","LastEvent","Errors", "CPU","Elapsed","CPU/Event","Status")
+                runfinished = [None] * len(RunFinishedPatterns)
+                for i in range(0, len(junk)):
+                    jj = junk[i].split()
+                    if (len(jj)):
+                        found = 0
+                        j = 0
+                        while (j < len(RunFinishedPatterns) and found == 0):
+                            if (jj[0] == RunFinishedPatterns[j]):
+                                runfinished[j] = self.trimblanks(jj[1])
+                                patternsmatched += 1
+                                found = 1
+                            j += 1
+                if (patternsmatched == len(RunFinishedPatterns) or patternsmatched == len(RunFinishedPatterns) - 1):
+                    runfinished[0] = "RunFinished"
+                    runfinishedR   = 1
+                    if (runtype!=0):
+                        runtable = 'dataruns'
+                    else:
+                        runtable = 'runs'
+                    if (runtype==0):
+                        sql = "UPDATE %s SET LEVENT=%s WHERE jid=%d" %(runtable, runfinished[4], lastjobid)
+                        self.sqlserver.Update(sql)
+                    else:
+                        sql = "UPDATE jobs SET realtriggers=%s WHERE jid=%d" %(runfinished[3], lastjobid)
+                        self.sqlserver.Update(sql)
+                    output.write(sql + "\n")
+                    cputime = int(float(runfinished[6]))
+                    elapsed = int(float(runfinished[7]))
+                    host = runfinished[1]
+                    sql = "update jobs set events=%s, errors=%s, cputime=%d, elapsed=%d, host='%s', mips=%d, timestamp=%d where jid = %d" %(runfinished[3], runfinished[5], cputime, elapsed, host, jobmips, timestamp, lastjobid)
+                    output.write(sql + "\n")
+                    self.sqlserver.Update(sql)
+                else:
+                    output.write("parseJournalFile -W- RunFinished - cannot find all patterns %d/%d\n" %(patternsmatched, RunFinishedPatterns))
+                    #
+                    # end RunFinished
+                    #
+        if (startingrunR == 1 or runfinishedR == 1):
+            status = "Failed"
+            cmd = None
+            inputfileLink = inputfile + '.0'
+            inputfileAdd = inputfile + '.2'
+            if (copyfailed == 0):
+                if (len(cpntuples) > 0):
+                    status = 'Completed'
+                    inputfileLink = inputfile + '.1'
+                    try:
+                        jououtput=open(inputfileAdd,'w')
+                    except IOError,e:
+                        print e
+                        mutex.release()
+                        return 0, copylog
+                    t = int(time.time())
+                    tl = time.strftime("%c", time.localtime(t))
+                    jououtput.write("\n")
+                    jououtput.write("-I-TimeStamp %d %s\n" %(t, tl))
+                    dst = len(cpntuples)
+                    junk = outputpath.split('/')
+                    outp = ""
+                    for i in range(0, len(junk)-1):
+                        if (i > 0):
+                            outp += '/'
+                        outp += junk[i]
+                    run = int(startingrun[2])
+                    jououtput.write(", RunValidated , Run %d , DST %d , Path %s  \n" %(run, dst, outp))
+                    jououtput.close()
+                    self.GoodRuns[self.nCheckedCite] += 1
+                    if (runfinishedR != 1):
+                        output.write("End of Run not found update Jobs \n")
+                        sql = "UPDATE Jobs SET host = %s, events = %d, errors = %d, cputime = -1, elapsed = -1, timestamp = %d where jid = %d" %(host, tevents, terrors, timestamp, lastjobid)
+                        output.write(sql + " \n")
+                        self.sqlserver.Update(sql)
+                    if (runtype == 0):
+                        sql = "select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run=%d and ntuples.datamc=0" %(run)
+                        r4 = self.sqlserver.Query(sql)
+                        ntevt = r4[0][0]
+                        fevt = r4[0][1]
+                        if (ntevt is None):
+                            ntevt = 0
+                        if (ntevt > 0):
+                            sql="UPDATE Runs SET fevent=%d, Levent=%d, fetime=%d, letime=%d WHERE jid=%d" %(fevt, ntevt-1+fevt, feti, leti, run)
+                            output.write(sql + "\n")
+                            self.sqlserver.Update(sql)
+                            sql=" update jobs set realtriggers=%d, timekill=0 where jid=%d" %(ntevt, run)
+                            output.write(sql + "\n")
+                            self.sqlserver.Update(sql)
+                    for ntuple in cpntuples:
+                        cmd = self.rm + ntuple
+                        output.write(cmd + "\n")
+                        os.system(cmd)
+                        output.write("Validation done : system command %s \n" %(cmd))
+                        self.GoodDSTs[self.nCheckedCite] += 1
+                else:
+                    self.BadRuns[self.nCheckedCite] += 1
+            else:
+                run = int(startingrun[2])
+                output.write("Validation/copy failed = %d for  Run =%d \n" %(copyfailed, run))
+                status = 'Unchecked'
+                self.BadRuns[self.nCheckedCite] += 1
+                for ntuple in mvntuples:
+                    cmd = "rm %s" %(ntuple)
+                    if (rmprompt == 1):
+                        cmd = "rm -i %s" %(ntuple)
+                    output.write("Validation failed : system command %s \n" %(cmd))
+                    output.write(cmd + "\n")
+                    os.system(cmd)
+                sql = "DELETE ntuples WHERE jid=%d" %(lastjobid)
+                self.sqlserver.Update(sql)
+                output.write(sql + "\n")
+            if (runtype != 0):
+                runtable = 'dataruns'
+            else:
+                runtable = 'runs'
+            if (startingrun[2] != 0):
+                sql = "UPDATE %s SET STATUS='%s' WHERE jid=%d" %(runtable, status, lastjobid)
+                self.sqlserver.Update(sql)
+                output.write("Update Runs : %s \n" %(sql))
+                if (status == 'Failed' or status == 'Unchecked'):
+                    sql = "SELECT dirpath FROM journals WHERE cid=-1"
+                    ret = self.sqlserver.Query(sql)
+                    if (ret[0][0] != None):
+                        junkdir = ret[0][0]
+                        if (self.v):
+                            print "run status %s  moving mv %s/*%s* %s " %(status, dirpath, startingrun[2], junkdir)
+                        sql = "update jobs set realtriggers=-1 where jid=%d" %(jobid)
+                        output.write(sql + " \n")
+                        self.sqlserver.Update(sql)
+                        self.sqlserver.Commit(1)
+                        output.write("Validation/copy failed : mv ntuples to %s \n" %(junkdir))
+                        output.close
+                        os.system("mv %s %s" %(inputfile, inputfileLink))
+                        mutex.release()
+                        self.suc[jobid] = jobid
+                        return (jobid, copylog)
+            os.system("mv %s %s" %(inputfile, inputfileLink))
+            os.system("cat %s >> %s" %(inputfileAdd, inputfileLink))
+            os.unlink(inputfileAdd)
+            output.write("mv %s %s\n" %(inputfile, inputfileLink))
+            if (self.v == 1):
+                print "mv %s %s\n" %(inputfile, inputfileLink)
+            if (status == 'Completed'):
+                if (runtype == 0):
+                    self.updateRunCatalog(int(startingrun[2]))
+                    if (self.v == 1):
+                        print "Update RunCatalog table : %s" %(startingrun[2])
+                self.sqlserver.Commit(1)
+                mutex.release()
+                return 0, copylog
+        self.sqlserver.Commit(0)
+        output.close()
+        mutex.release()
+        return 0, copylog
+
+
        
     def buildTDV(self,name,commit,verbose):
         if(os.environ.has_key('AMSDataDirRW')):
@@ -3036,15 +3582,15 @@ class RemoteClient:
                                         good=1
                                     if(good == 1):
                                         if(line.find("size")>=0):
-                                            size=line.split(" ")[1]
+                                            size=line.split()[1]
                                         elif(line.find("crc")>=0):
-                                            crc=line.split(" ")[1]
+                                            crc=line.split()[1]
                                         elif(line.find("begin")>=0):
-                                            begin=line.split(" ")[1]
+                                            begin=line.split()[1]
                                         elif(line.find("end")>=0):
-                                            end=line.split(" ")[1]
+                                            end=line.split()[1]
                                         elif(line.find("insert")>=0):
-                                            insert=line.split(" ")[1]
+                                            insert=line.split()[1]
                                         
                                 fltdvo.close()
                                 if(len(size)>1 and len(end)>1 and len(insert)>1 and len(begin)>1 and len(crc)>1):
@@ -3134,7 +3680,7 @@ class RemoteClient:
                 paths=pathso.replace('ams.cern.ch/Offline','cern.ch/ams/Offline',1)
                 junk=paths.split('/')
                 bpath=""
-                for i in range (1,len(junk)-1):
+                for i in range (1,len(junk)):
                         bpath=bpath+"/"+junk[i]
                 isdir=run/1000000
                 isdir=isdir*1000000;
@@ -3598,7 +4144,7 @@ class RemoteClient:
                         pat=line.split(',')
                         npat=0
                         for i in range (2,len(pat)-2):
-                            attr=pat[i].split(' ')
+                            attr=pat[i].split()
                             if(attr[1]=='Status' and attr[2]=='Validated'):
                                 ntuple.Status=self.dbclient.iorp.Validated
                                 npat=npat+1
@@ -3939,3 +4485,164 @@ class RemoteClient:
         if(i):
                 print "Problem with "+cmd
         return newfile
+
+    def findJob(self, jid, buf, dir, cid):
+        rstatus = 0
+        sql = "SELECT jid,mid FROM Jobs WHERE jid=%d" %(jid)
+        ret = self.sqlserver.Query(sql)
+        if (len(ret)):
+            rstatus = ret[0][0]
+        else:
+            sql = "SELECT jid,mid FROM Jobs_deleted WHERE jid=%d" %(jid)
+            ret = self.sqlserver.Query(sql)
+            if (len(ret)):
+                rstatus = ret[0][0]
+                print "Job %d restored from Jobs_deleted" %(jid)
+                sql = "insert into jobs select * from jobs_deleted where jobs_deleted.jid=%d" %(jid)
+                self.sqlserver.Update(sql)
+                sql = "delete from jobs_deleted where jid=%d" %(jid)
+                self.sqlserver.Update(sql)
+                self.sqlserver.Commit()
+            else:
+#
+#        got things from root file itself
+#
+                CloseDSTPatterns = {
+                    'CloseDST' : None,
+                    'Status' : None,
+                    'Type' : None,
+                    'Name' : None,
+                    'Version' : 0,
+                    'Size' : 0,
+                    'crc' : 0,
+                    'Insert' : 0,
+                    'Begin' : 0,
+                    'End' : 0,
+                    'Run' : 0,
+                    'FirstEvent' : 0,
+                    'LastEvent' : 0,
+                    'EventNumber' : 0,
+                    'ErrorNumber' : 0
+                }
+                if (buf == ""):
+                    joudir = ''
+                    sql = "select dirpath from journals where cid=%d" %(cid)
+                    ret = self.sqlserver.Query(sql)
+                    if (ret[0][0] != None):
+                        joudir = ret[0][0]
+                    else:
+                        return 0
+                    try:
+                        allfiles=os.listdir(joudir)
+                    except:
+                        print "Enable to open ",joudir
+                        return 0
+                    for file in allfiles:
+                        if(file.find(".journal")>0 and re.match("\.journal", file)):
+                            try:
+                                input=open(joudir + '/' + file,'r')
+                            except IOError,e:
+                                print e
+                                return 0
+                            buf=input.read()
+                            input.close()
+                            break
+                if (buf == ""):
+                    return 0
+                blocks = buf.split("-I-TimeStamp ")
+                junk = blocks[1].split()
+                ctime = junk[0]
+                for line in blocks:
+                    if (line.find("CloseDST") >= 0):
+                        pat = line.split(' , ')
+                        for entry in pat:
+                            kv = entry.split()
+                            if (len(kv)>1):
+                                CloseDSTPatterns[kv[0]] = kv[1]
+                        break
+                if (CloseDSTPatterns['Type'] == 'RootFile'):
+                    if (CloseDSTPatterns['Name'] != None):
+                        jhost = CloseDSTPatterns['Name'].split(':')
+                        host = jhost[0]
+                        junk = CloseDSTPatterns['Name'].split('/')
+                        fnam = jhost[1]                                   
+                        if (dir != None):
+                            fnam = dir + '/' + junk[len(junk)-1]
+                        validatecmd = self.env['AMSSoftwareDir']+"/exe/linuxfastntrd64.exe %s 0 2 0 1" %(fnam)
+                        os.system(validatecmd)
+                        fnam += '.jou'
+                        os.system("sed -i \"s/\\.job.*/.job/g\" %s" %(fnam))
+                        bufj = ''
+                        try:
+                            jouf = open(fnam, 'r')
+                        except IOError, e:
+                            print e
+                            return 0
+                        bufj = jouf.read()
+                        jouf.close()
+                        os.unlink(fnam)
+                        job = {}
+                        cont = bufj.split("\n")
+                        pats = ("DATASETNAME","ScriptName","TRIG","NICKNAME","SUBMITTIME")
+                        job['TRIG'] = 100000000
+                        for line in cont:
+                            for pat in pats:
+                                if (line.find("%s=" %(pat)) >= 0):
+                                    junk = line.split('=')
+                                    if (pat == 'ScriptName'):
+                                        j2 = junk[1].split('/')
+                                        job[pat] = trimblanks(j2[len(j2)-1])
+                                    else:
+                                        if (len(junk) > 1):
+                                            job[pat] = trimblanks(junk[1])
+                        ok = 1
+                        for pat in pats:
+                            if (job[pat] is None):
+                                ok = 0
+                                break
+                        if (re.match("^\d+$", ctime)):
+                            ctime = job['SUBMITTIME']
+                        sql = "select did from datasets where name = %s" %(job['DATASETNAME'])
+                        ret = self.sqlserver.Query(sql)
+                        if (ok and ret[0][0] != None):
+                            did = ret[0][0]
+                            sql = "select mid from mails where cid = %d" %(cid)
+                            ret = self.sqlserver.Query(sql)
+                            pid = self.getProductionSetIdByDatasetId(did)
+                            bufj.replace('$', '\$')
+                            bufj.replace('"', '\\"')
+                            bufj.replace('(', '\(')
+                            bufj.replace(')', '\)')
+                            bufj.replace('\\', '\\\\')
+                            if (self.sqlserver.dbdrive.find('Oracle') >= 0):
+                                bufj.replace("'", "''")
+                            insertjobsql = "INSERT INTO Jobs VALUES (%d, %s, %d, %d, %d, %d, %d, 864000, %s, %d, %s, %s, 0, 0, 0, 0, 'STANDALONE', -1, %d, -1, 0)" %(jid, job['ScriptName'], ret[0][0], cid, did, job['SUBMITTIME'], job['TRIG'], bufj, ctime, job['NICKNAME'], host, pid)
+                            self.sqlserver.Update(insertjobsql)
+                            self.sqlserver.Commit()
+                            sql = "SELECT jid,mid FROM Jobs WHERE jid = %d" %(jid)
+                            ret = self.sqlserver.Query(sql)
+                            if (ret[0][0] != None):
+                                rstatus = ret[0][0]
+                                print "  Job %d restored from ntuple" %(jid)
+        return rstatus
+
+    def getProductionPeriods(self, flag):
+        i = 0
+        sql = "SELECT DID, NAME, BEGIN, END, STATUS, VGBATCH, VDB, VOS  FROM ProductionSet ORDER by begin desc"
+        ret = self.sqlserver.Query(sql)
+        if (ret[0][0] != None):
+            for p in ret:
+                period = {}
+                period['id']      = p[0]
+                period['name']    = self.trimblanks(p[1])
+                period['begin']   = p[2]
+                period['end']     = p[3]
+                period['status']  = self.trimblanks(p[4])
+                period['vgbatch'] = self.trimblanks(p[5])
+                period['vdb']     = self.trimblanks(p[6])
+                period['vos']     = self.trimblanks(p[7])
+                self.productionPeriods.append(period)
+                if (flag == 1):
+                    print " %5d %15s %10d %10d %12s %6s %6d %6s" %(period['id'], period['name'], period['begin'], period['end'], period['status'], period['vdb'], period['vgbatch'], period['vos'])
+                i += 1
+
