@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.585 2013/11/24 09:16:00 choutko Exp $
+//  $Id: event.C,v 1.586 2013/11/29 07:27:39 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -115,8 +115,9 @@ void AMSEvent::_init(DAQEvent*pdaq){
     AMSEvent::ResetThreadWait(1);
 #pragma omp barrier  
 if(AMSEvent::get_thread_num()==0){
-      AMSJob::gethead()->getstatustable()->Sort();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
+      ptdv->SetNbytes(AMSJob::gethead()->getstatustable()->getsizeV());
+      AMSJob::gethead()->getstatustable()->Sort();
       ptdv->UpdateMe()=1;
       
       ptdv->UpdCRC();

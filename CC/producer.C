@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.189 2013/11/20 14:35:40 choutko Exp $
+//  $Id: producer.C,v 1.190 2013/11/29 07:27:39 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1704,7 +1704,8 @@ DPS::Producer::TDVName a;
 if (!pser->Verify())continue;
 a.Name=pser->getname();
 a.DataMC=pser->getid();
-a.Size=pser->GetNbytes();
+if(pser->Variable())a.Size=-pser->GetNbytesM()+2*sizeof(uinteger);
+else a.Size=pser->GetNbytes();
 a.CRC=pser->getCRC();
 a.File="";
 time_t i,b,e;
@@ -1763,7 +1764,8 @@ DPS::Producer::TDVName name;
 name.Name=tdv->getname();
 name.DataMC=tdv->getid();
 name.CRC=tdv->getCRC();
-name.Size=tdv->GetNbytes();
+if(tdv->Variable())name.Size=-tdv->GetNbytesM()+2*sizeof(uinteger);
+else name.Size=tdv->GetNbytes();
 name.Entry.id=id;
 name.File="";
 time_t i,b,e;
@@ -1825,7 +1827,8 @@ DPS::Producer::TDVName name;
 name.Name=tdv->getname();
 name.DataMC=tdv->getid();
 name.CRC=tdv->getCRC();
-name.Size=tdv->GetNbytes();
+if(tdv->Variable())name.Size=-tdv->GetNbytesM()+2*sizeof(uinteger);
+else name.Size=tdv->GetNbytes();
 name.Entry.id=id;
 name.File="";
 time_t i,b,e;
@@ -1902,7 +1905,8 @@ DPS::Producer::TDVName name;
 name.Name=tdv->getname();
 name.DataMC=tdv->getid();
 name.CRC=tdv->getCRC();
-name.Size=tdv->GetNbytes();
+if(tdv->Variable())name.Size=-tdv->GetNbytesM()+2*sizeof(uinteger);
+else name.Size=tdv->GetNbytes();
 time_t i,b,e;
 tdv->gettime(i,b,e);
 name.Entry.Insert=i;
@@ -1911,7 +1915,7 @@ name.Entry.End=e;
 name.File="";
  int suc=0;
 DPS::Producer::TDVbody_var vbody=new DPS::Producer::TDVbody();
-vbody->length(name.Size/sizeof(integer));
+vbody->length(tdv->GetNbytes()/sizeof(integer));
 tdv->CopyOut(vbody->get_buffer());
  bool transienterror=false;
  bool again=false;

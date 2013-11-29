@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.210 2013/05/17 07:16:32 choutko Exp $
+//  $Id: server.C,v 1.211 2013/11/29 07:27:39 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3342,6 +3342,10 @@ i=tdvname.Entry.Insert;
 b=tdvname.Entry.Begin;
 e=tdvname.Entry.End;
 li->second->SetTime(i,b,e);
+if(li->second->Variable()){
+  li->second->SetNbytes(tdv.length()*sizeof(integer));
+  cout <<"  sendtdv-variableTDV-I-Size "<<li->second->GetNbytes()<<endl;
+}
 li->second->CopyIn(tdv.get_buffer()); 
  tdvname.Success=li->second->write((const char*)AMSDBc::amsdatabase,1);
 
@@ -3454,10 +3458,13 @@ cout <<"findtdv "<<id<<" F "<<(const char*)tdv.File<<" S "<<tdv.Size<<endl;
 TIDI li=_tid.find(id);
 if(li==_tid.end()){
 try{
- uinteger *pdata = new uinteger[tdv.Size/sizeof(uinteger)-1];
+ uinteger *pdata = new uinteger[abs(int(tdv.Size/sizeof(uinteger)-1))];
  if(pdata){
   time_t b=tdv.Entry.Begin;
   time_t e=tdv.Entry.End;
+  if(tdv.Size<0){
+   cout<<" findtdv variable found "<<id<<endl;
+  }
   _tid[id]=new AMSTimeID(id,(*(localtime(&b))),(*(localtime(&e))),tdv.Size-sizeof(uinteger),pdata,AMSTimeID::Server);
  cout <<" new tdv "<<id<<endl;
  li=_tid.find(id);

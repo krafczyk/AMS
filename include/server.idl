@@ -129,7 +129,7 @@ module DPS{
     struct TDVName{
      string Name;
      string File;
-     unsigned long Size;
+     long Size;
      unsigned long CRC;
      TDVTableEntry Entry;
      long DataMC;

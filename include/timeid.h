@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.55 2013/10/07 11:59:01 choutko Exp $
+//  $Id: timeid.h,v 1.56 2013/11/29 07:27:42 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -249,7 +249,9 @@ public:
     else return 0;
   }
   
+bool   Variable() const { return _Variable;}
 integer  GetNbytes() const { return _Nbytes;}
+integer  GetNbytesM() const { return _NbytesM;}
 void  SetNbytes(int nbytes){_Nbytes=nbytes;}
   integer  CopyOut (void *pdataNew) ;
   integer  CopyIn( const void *pdataNew);
