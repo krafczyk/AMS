@@ -3658,6 +3658,8 @@ class RemoteClient:
             junk=dataset.split('/')
             dataset=junk[len(junk)-1]
             ds1=junk[len(junk)-2]
+            if(len(junk)>=3):
+                ds2=junk[len(junk)-3]
             sql="select did from datasets where name like '%s' " %(ds1)
             ds=self.sqlserver.Query(sql)
             if(len(ds)==1):
@@ -3667,6 +3669,13 @@ class RemoteClient:
                         files=self.sqlserver.Query(sql)
                         for file in files:
                                 self.linkdataset(file[0],"/afs/cern.ch/ams/Offline/DataSetsDir",1)
+	    elif(len(ds)>1):
+                (np,bp,pid,vdb)=self.getActiveProductionPeriodByName(ds2)
+                sql="select did from datasets where name like '%s' and version='%s' " %(ds1,vdb)
+                ds=self.sqlserver.Query(sql)
+                if(len(ds)==1):
+                    did=ds[0][0]
+
             else:
                 sql="select did from datasets where name like '%s' " %(dataset)
 	        ds=self.sqlserver.Query(sql) 
