@@ -2080,7 +2080,7 @@ class RemoteClient:
                 cmd="/usr/bin/rfcp "+output+" "+cmove
                 i=os.system(cmd)
                 if(i==0):
-                    return int(time.time()),cmove
+                    return int(time.time()),None
                 else:
                     print "moveCastor-E-2 ",cmd
                     return 0,None   
