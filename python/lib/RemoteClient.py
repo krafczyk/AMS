@@ -2073,6 +2073,7 @@ class RemoteClient:
         junk=output.split('/')
         cmove='/castor/cern.ch/ams'
         if(input.find(cmove)<0):
+            print "moveCastor-E-1 ",input,output
             return 0,None   
         for i in range (2,len(junk)):
             cmove=cmove+'/'+junk[i]
@@ -2081,9 +2082,11 @@ class RemoteClient:
         if(i==0):
             return int(time.time()),cmove
         else:
+            print "moveCastor-W-failed ",cmd
             cmdn="nsls "+cmove
             cmdstatus=os.system(cmdn)
             if(cmdstatus):
+                print "moveCastor-E-failed ",cmdn
                 return 0,None
             else:
                 return int(time.time()),cmove
@@ -2116,10 +2119,14 @@ class RemoteClient:
             cmdstatus=os.system(cmdn);
             if(cmdstatus):
                 print "copyFile-W-Failed ",cmdn
+                print "copyFile-W-Failed ",output
                 cmove=self.getmoveCastor(input,output)
                 if(cmove!=None):
                     input=cmove
-
+                else:
+                    if(self.castoronly):
+                        print "copyFile-E-FailedCastorOnly ",input,output
+                        return 1
             cmd="rfcp "+input+" "+output
             if(self.castoronly):
                 mutex.acquire()
