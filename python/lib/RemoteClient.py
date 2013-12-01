@@ -609,8 +609,9 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0,castoronly=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0,castoronly=0,castorcopy=0):
         self.s=""
+        self.castorcopy=castorcopy
         self.castoronly=castoronly
         self.needfsmutex=nfs
         self.crczero=0
@@ -2073,8 +2074,19 @@ class RemoteClient:
         junk=output.split('/')
         cmove='/castor/cern.ch/ams'
         if(input.find(cmove)<0):
-            print "moveCastor-E-1 ",input,output
-            return 0,None   
+            if(self.castorcopy):
+                for i in range (2,len(junk)):
+                    cmove=cmove+'/'+junk[i]
+                cmd="/usr/bin/rfcp "+output+" "+cmove
+                i=os.system(cmd)
+                if(i==0):
+                    return int(time.time()),cmove
+                else:
+                    print "moveCastor-E-2 ",cmd
+                    return 0,None   
+            else:
+                print "moveCastor-E-1 ",input,output
+                return 0,None   
         for i in range (2,len(junk)):
             cmove=cmove+'/'+junk[i]
         cmd="rfrename "+input+" "+cmove
@@ -3726,7 +3738,7 @@ class RemoteClient:
                     for file in files:
                         if(run[0]==file[0]):
                             found=1
-                            if(run[1]!=file[1]):
+                            if(run[1]>file[1]+1000):
                                 bad2.append(run[0])
                                 print "Run ",run," and ntuples disagree. run events=",run[1]," ntuple events=",file[1]
                                 
