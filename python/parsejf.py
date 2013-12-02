@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.4
 
 import sys, os
-sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
 sys.path.insert(0,os.environ['Offline'] + '/vdev/python/lib')
 import RemoteClient
 
