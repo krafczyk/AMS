@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.804 2013/11/25 14:41:24 bshan Exp $
+# $Id: RemoteClient.pm,v 1.805 2013/12/02 12:46:03 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -557,6 +557,8 @@ my %mv=(
      push @{$self->{FileDB}}, "v4.00rddb.tar.gz";
      push @{$self->{FileDB}}, "v5.00mcdb.tar.gz";
      push @{$self->{FileDB}}, "v5.00rddb.tar.gz";
+     push @{$self->{FileDB}}, "v5.01mcdb.tar.gz";
+     push @{$self->{FileDB}}, "v5.01rddb.tar.gz";
     }
      $#{$self->{FileAttDB}}=-1;
     $key='FileAttDB';
@@ -566,13 +568,15 @@ my %mv=(
      foreach my $file (@{$ret}){
       push @{$self->{FileAttDB}}, $file;
      }
-    }
+ }
     else{
       push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v4.00rddb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v5.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v5.00rddb.addon.tar.gz";
+      push @{$self->{FileAttDB}}, "v5.01mcdb.addon.tar.gz";
+      push @{$self->{FileAttDB}}, "v5.01rddb.addon.tar.gz";
     }
 
 #-
@@ -7740,6 +7744,7 @@ print qq`
           }
          }
           if (not defined $filedb) {
+#            die " pp @productionPeriods ; $dataset->{version} ; $vdb  ; @{$self->{FileDB}} ";
             $self->ErrorPlus("unable to find corrsponding database file ($dataset->{name},$dataset->{version}, $vdb, $stt)");
          }
 #-
@@ -12921,6 +12926,8 @@ sub DownloadSA {
     push @{$self->{FileDB}}, "v4.00rddb.tar.gz";
     push @{$self->{FileDB}}, "v5.00mcdb.tar.gz";
     push @{$self->{FileDB}}, "v5.00rddb.tar.gz";
+    push @{$self->{FileDB}}, "v5.01mcdb.tar.gz";
+    push @{$self->{FileDB}}, "v5.01rddb.tar.gz";
     push @{$self->{FileDB}}, "amsdatadir.addon.tar";
 
     push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
@@ -12928,6 +12935,8 @@ sub DownloadSA {
     push @{$self->{FileAttDB}}, "v4.00rddb.addon.tar.gz";
     push @{$self->{FileAttDB}}, "v5.00mcdb.addon.tar.gz";
     push @{$self->{FileAttDB}}, "v5.00rddb.addon.tar.gz";
+    push @{$self->{FileAttDB}}, "v5.01mcdb.addon.tar.gz";
+    push @{$self->{FileAttDB}}, "v5.01rddb.addon.tar.gz";
 
     $self->{FileBBFTP}  ="ams02bbftp.tar.gz";
     $self->{FileBookKeeping}  ="ams02bookkeeping.tar.gz";
