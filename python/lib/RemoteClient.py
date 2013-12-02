@@ -2500,6 +2500,7 @@ class RemoteClient:
             return rstatus
     def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0):
         self.castoronly=co
+        self.castorcopy=1
         firstjobname=0
         lastjobname=0
         HelpTxt = """
