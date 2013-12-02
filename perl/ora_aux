@@ -9,6 +9,7 @@ modtime date
 /
 insert into mods values('jobs', '24-oct-05');
 insert into mods values('runs', '25-oct-05');
+insert into mods values('dataruns', '25-oct-05');
 insert into mods values('datasets','25-oct-05');
 insert into mods values('datafiles','25-oct-05');
 insert into mods values('ntuples','25-oct-05');
@@ -21,6 +22,16 @@ update mods set modtime=sysdate where tabname='jobs';
 end ;
 /
 show errors
+
+create or replace trigger jobs_bidr
+before insert or update on dataruns
+for each row
+begin
+update mods set modtime=sysdate where tabname='dataruns';
+end ;
+/
+show errors
+
 
 create or replace trigger runs_biu
 after insert or update on runs
