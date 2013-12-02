@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.166 2013/11/18 09:29:41 ams Exp $
+# $Id: Monitor.pm,v 1.167 2013/12/02 13:30:09 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -881,6 +881,7 @@ sub getactiveclients{
 if ($producer eq "Producer"){
         my $run=-1;
         my $evtp=0;
+        my $totev=0;
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
        my $rdst=$Monitor::Singleton->{rtb}[$j];
        my $rdstc=$rdst->{cinfo};
@@ -891,6 +892,7 @@ if ($producer eq "Producer"){
                    $rdst->{cinfo}->{LastEventProcessed}=0;
                }
                 $evtp=$rdst->{LastEvent}-$rdst->{cinfo}->{LastEventProcessed};
+                $totev=$rdst->{LastEvent}-$rdst->{FirstEvent}+1;
 #               warn "run ... $run \n";
                last;
            }
@@ -922,7 +924,18 @@ or  ($host[0] =~/lxplus/ and $hash->{id}->{HostName} =~ /lxplus/)){
            }
        }
    }
-        push @text, $run,$evtp;
+        my $s2r=int(-($hash->{Start}-$hash->{LastUpdate})/(1+$totev-$evtp)*$evtp);
+        my $hh=int($s2r/3600);
+        my $mm=int (( $s2r-$hh*3600)/60); 
+        my $ss=$s2r-$hh*3600-$mm*60;
+        my $hm="";
+         if($hh>0){
+             $hm="$hh h $mm m";
+         }
+         else{
+             $hm="$mm m $ss s";
+         }   
+        push @text, $hm,$run,$evtp;
         my @dummy=split "/",$ntuple;
         push @text, $dummy[$#dummy];
         push @text, $hash->{Status};
