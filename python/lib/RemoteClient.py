@@ -683,8 +683,8 @@ class RemoteClient:
                         self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
                         
             return
-        if(mt==1):
-            self.mt=1
+        if(mt):
+            self.mt=mt
         else: self.mt=0
         if(u>=1):
             self.deleteuncnt=1
@@ -755,13 +755,15 @@ class RemoteClient:
         global fsmutexes
         fsmutexes = {}
         maxt=5
+        if(mt>5):
+            maxt=mt
         rtb_tuples=sorted(self.dbclient.rtb,key=lambda rtb: rtb.Run,reverse=True)
         for run in rtb_tuples:
             run2p=self.run2p
             if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p) and not(run2p/10000000000>0 and run.Run<=(run2p%10000000000))):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
-            if( run.DataMC==datamc and mt==1 ):
+            if( run.DataMC==datamc and mt ):
                 exitmutexes[run.Run]=thread.allocate_lock()
                 timenow=int(time.time())
                 try:
@@ -2531,8 +2533,8 @@ class RemoteClient:
         if(m==1):
             self.m=1
         else: self.m=0 
-        if (mt == 1):
-            self.mt = 1
+        if (mt):
+            self.mt = mt
         else:
             self.mt = 0
         whoami=os.getlogin()
@@ -2683,7 +2685,7 @@ class RemoteClient:
                         if(writetime> timestamp-24*60*60*30):
                             if(self.v):
                                 print "parsejournal file ",writetime,timestamp,newfile
-                            if (self.mt == 1):
+                            if (self.mt):
                                 while threading.activeCount() > 5:
 #                                    print "waiting..."
                                     time.sleep(1)

@@ -1,9 +1,9 @@
 #!/usr/bin/env python2.4
-#  $Id: vrdv6co.py,v 1.2 2013/12/02 06:53:05 ams Exp $
+#  $Id: vrdv6co.py,v 1.3 2013/12/03 08:57:00 ams Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
-sys.path.insert(0,'/var/www/cgi-bin/mon/lib')
+sys.path.insert(0,os.environ['Offline'] + '/vdev/python/lib')
 sys.path.insert(0,'./lib')
 import RemoteClient
 
@@ -29,7 +29,10 @@ for x in sys.argv:
     elif x == "-u": u=1
     elif x == "-castorcopy": castorcopy=1
     elif x == "-force": force=1
-    elif x == "-mt": mt=1
+    elif x == "-mt":
+        mt=1
+        if(len(x)>3):
+            mt=int(x[3:len(x)])
     elif x[0:2] == "-b":
         b=1
         if(len(x)>2):
