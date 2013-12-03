@@ -1622,7 +1622,10 @@ class RemoteClient:
         os.system(rmdir)
         #print "run finished ",run.Run,run.uid
 	self.sqlserver.Commit()
-        mutex.release()
+        try:
+            mutex.release()
+        except:
+            print "-E- Mutex not locked "
         if(self.mt):
               exitmutexes[run.Run].acquire()
 
@@ -1771,7 +1774,14 @@ class RemoteClient:
                                if(rstatus==1):
                                    (castortime,castorpath)=self.moveCastor(inputfile,outputpath)
                                    if(self.castoronly and castortime>0 and castorpath!=None):
+                                       i2=inputfile
+                                       inputfile=outputpath
                                        outputpath=castorpath
+                                       if(self.castorcopy<0 and outputpath!=inputfile and inputfile.find('/castor')<0 and i2.find('/castor')<0):
+                                           cmd="rm "+inputfile
+                                           cmdstatus=os.system(cmd)
+                                           if(cmdstatus):
+                                               print "cmd failed ",cmdstatus,cmd
                                    return outputpath,1,odisk,castortime
                                else:
                                    print "doCopy-E-ErorrCRC ",rstatus
@@ -2075,6 +2085,7 @@ class RemoteClient:
     def moveCastor(self,input,output):
         junk=output.split('/')
         cmove='/castor/cern.ch/ams'
+        mutex.release()
         if(input.find(cmove)<0):
             if(self.castorcopy):
                 for i in range (2,len(junk)):
@@ -2082,28 +2093,41 @@ class RemoteClient:
                 cmd="/usr/bin/rfcp "+output+" "+cmove
                 i=os.system(cmd)
                 if(i==0):
-                    return int(time.time()),None
+                    if(self.castorcopy>0):
+                        mutex.acquire()
+                        return int(time.time()),None
+                    else:
+                        mutex.acquire()
+                        return int(time.time()),cmove
                 else:
                     print "moveCastor-E-2 ",cmd
+                    castordel="/usr/bin/rfrm "+cmove
+                    os.system(castordel)
+                    mutex.acquire()
                     return 0,None   
             else:
                 print "moveCastor-E-1 ",input,output
+                mutex.acquire()
                 return 0,None   
         for i in range (2,len(junk)):
             cmove=cmove+'/'+junk[i]
         cmd="rfrename "+input+" "+cmove
         i=os.system(cmd)
         if(i==0):
+            mutex.acquire()
             return int(time.time()),cmove
         else:
             print "moveCastor-W-failed ",cmd
             cmdn="nsls "+cmove
             cmdstatus=os.system(cmdn)
             if(cmdstatus):
+                mutex.acquire()
                 print "moveCastor-E-failed ",cmdn
                 return 0,None
             else:
+                mutex.acquire()
                 return int(time.time()),cmove
+                
                 
     def getmoveCastor(self,input,output):
         junk=output.split('/')
@@ -2139,6 +2163,7 @@ class RemoteClient:
                     input=cmove
                 else:
                     if(self.castoronly):
+                        mutex.acquire()
                         print "copyFile-E-FailedCastorOnly ",input,output
                         return 1
             cmd="rfcp "+input+" "+output

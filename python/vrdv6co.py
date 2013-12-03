@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: vrdv6co.py,v 1.4 2013/12/03 09:05:20 ams Exp $
+#  $Id: vrdv6co.py,v 1.5 2013/12/03 11:47:15 ams Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -13,6 +13,7 @@ i=0
 d=0
 b=0
 castorcopy=0
+localdel=0
 run2p=0
 h=0
 u=0
@@ -28,6 +29,7 @@ for x in sys.argv:
     elif x == "-dd": d=2
     elif x == "-u": u=1
     elif x == "-castorcopy": castorcopy=1
+    elif x == "-localdel": localdel=1
     elif x == "-force": force=1
     elif x[0:3] == "-mt":
         mt=1
@@ -43,6 +45,8 @@ if(d==0):
     b=0   
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
+if(castorcopy and localdel):
+    castorcopy=-1
 if(html.ServerConnect(2)):
     html.ValidateRuns(run2p,i,v,d,h,b,u,mt,1,force,0,1,castorcopy)
 
