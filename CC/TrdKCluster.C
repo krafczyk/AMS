@@ -842,7 +842,38 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
     return result;
 }
 
+/////////////////////////////////////////////////////////////////////
 
+double TrdKCluster::TRDTrack_PathLengthLikelihood_Repulsion(Double_t *par){
+  int size= NHits();
+  double result=0;
+  AMSPoint temp_TrTrackP0(par[0],par[1],par[2]);
+  AMSDir  temp_TrTrackDir(par[3],par[4],TMath::Sqrt(1-par[3]*par[3]-par[4]*par[4]));
+  double pathlength,impact_parameter,likelihood;
+  TrdKHit* hit;
+  for(int i=0;i<size;i++){
+    hit=GetHit(i);
+    if(hit->TRDHit_Amp != 0.) {
+      pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
+      if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+      else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+      else if(Refit_hypothesis==2) likelihood=kpdf_h->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+      else{
+        cout<<"~~~~~WARNING~~~~TrdKCluster, Refit using PathLength Likelihood, Particle Hypothesis not found: "<<Refit_hypothesis<<endl;
+        return -999;
+      }
+    } else {
+      impact_parameter=hit->Tube_Track_Distance_3D(&temp_TrTrackP0,&temp_TrTrackDir);
+      likelihood=TRDImpactlikelihood->GetLikelihood(hit->TRDHit_Amp,impact_parameter);
+    }
+    result-=2*log(likelihood);
+
+  }
+
+
+
+  return result;
+}
 
 /////////////////////////////////////////////////////////////////////
 
@@ -1084,6 +1115,152 @@ refit:
 
 /////////////////////////////////////////////////////////////////////
 
+void TrdKCluster::KounineRefit_Repulsion(AMSPoint& P_fit, AMSDir& D_fit,
+                                         const AMSPoint& P_init,
+                                         const AMSDir& D_init) {
+    Double_t dDD  = 0.04;
+    Double_t dAA  = 0.004;
+    Double_t D_Tol = 0.03;
+    Double_t K_Tol = 0.002;
+    Int_t MaxItr = 4;
+  
+    Double_t X_0  = P_init[0];
+    Double_t Y_0  = P_init[1];
+    Double_t Z = P_init[2];
+  
+    Double_t kX_init, kY_init;
+    Bool_t Up;
+    dir_to_k(kX_init, kY_init, Up, D_init);
+  
+    Double_t kX_0 = kX_init;
+    Double_t kY_0 = kY_init;
+    Double_t X_fit,Y_fit,kX_fit,kY_fit;
+    Double_t kX,kY;
+    Double_t V[10],W[10],Q[5];
+    Double_t par[5];
+    AMSDir temp_d;
+    Int_t Itr  = 0;
+  
+    par[2] = Z;
+
+refit:
+
+    ///////////////////////////
+    //         Fit X0        //
+    ///////////////////////////
+    par[1] = Y_0;
+    kX = kX_0;
+    kY = kY_0;
+    for (Int_t m=0; m<5; m++ ) {
+  
+        par[0] = X_0 + dDD*(m-2.);
+        V[m] = par[0];
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+          
+        W[m] = TRDTrack_PathLengthLikelihood_Repulsion(par);
+    }
+  
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+        X_fit = P_init[0];
+    } else {
+        X_fit = Q[0];
+    }
+  
+    ///////////////////////////
+    //         Fit Y0        //
+    ///////////////////////////
+    par[0] = X_0;
+    kX = kX_0;
+    kY = kY_0;
+    for (Int_t m=0; m<5; m++ ) {
+  
+        par[1] = Y_0 + dDD*(m-2.);
+        V[m] = par[1];
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+          
+        W[m] = TRDTrack_PathLengthLikelihood_Repulsion(par);
+    }
+  
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+        Y_fit = P_init[1];
+    } else {
+        Y_fit = Q[0];
+    }
+  
+    ///////////////////////////
+    //         Fit kX        //
+    ///////////////////////////
+    par[0] = X_0;
+    par[1] = Y_0;
+    kY = kY_0;
+    for (Int_t m=0; m<5; m++ ) {
+  
+        kX = kX_0 + dAA*(m-2.);
+        V[m] = kX;
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+          
+        W[m] = TRDTrack_PathLengthLikelihood_Repulsion(par);
+    }
+  
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+        kX_fit = kX_init;
+    } else {
+        kX_fit = Q[0];
+    }
+  
+    ///////////////////////////
+    //         Fit kY        //
+    ///////////////////////////
+    par[0] = X_0;
+    par[1] = Y_0;
+    kX = kX_0;
+    for (Int_t m=0; m<5; m++ ) {
+  
+        kY = kY_0 + dAA*(m-2.);
+        V[m] = kY;
+        k_to_dir(temp_d,kX,kY,Up);
+        par[3] = temp_d[0];
+        par[4] = temp_d[1];
+          
+        W[m] = TRDTrack_PathLengthLikelihood_Repulsion(par);
+    }
+  
+    if( trd_parabolic_fit(5, V, W, Q) < 0. ) {
+        kY_fit = kY_init;
+    } else {
+        kY_fit = Q[0];
+    }
+  
+    if ( TMath::Abs(X_fit-X_0)>D_Tol || TMath::Abs(Y_fit-Y_0)>D_Tol || TMath::Abs(kX_fit-kX_0)>K_Tol || TMath::Abs(kY_fit-kY_0)>K_Tol ) {
+  
+        //	printf("Init: %f %f %f %f\n", X_0, Y_0,   kX_0,   kY_0);
+        //	printf("Fit:%f %f %f %f\n", X_fit, Y_fit, kX_fit, kY_fit);
+  
+        dDD *= 0.7;
+        dAA *= 0.7;
+        X_0= X_fit;
+        Y_0= Y_fit;
+        kX_0 = kX_fit;
+        kY_0 = kY_fit;
+  
+        if ( Itr++ < MaxItr) goto refit;
+  
+    }
+  
+    P_fit[0] = X_fit;
+    P_fit[1] = Y_fit;
+    P_fit[2] = Z;
+    k_to_dir(D_fit,kX_fit,kY_fit,Up);
+}
+
+/////////////////////////////////////////////////////////////////////
+
 void TRD_ImpactParameter_Likelihood::InitLikelihood(){
     TString s_func ="[0]*(TMath::ATan((0.3-(x-[1]))/[2])+TMath::ATan((0.3+(x-[1]))/[2]))";
     //    cout<<"Init Likelihood function: "<<s_func<<endl;
@@ -1131,6 +1308,7 @@ void TrdKCluster::FitTRDTrack(int method, int hypothesis){
     else  if(method==2) FitTRDTrack_Analytical();
     else  if(method==3) FitTRDTrack_PathLength(hypothesis);
     else  if(method==4) FitTRDTrack_PathLength_KFit(hypothesis);
+    else  if(method==5) FitTRDTrack_PathLength_KFit_Repulsion(hypothesis);
     else{
         cout<<"~~~WARNING~~~TrdKCluster, Unrecognized Fit Method: "<<method<<endl;
         return ;
@@ -1456,6 +1634,27 @@ void TrdKCluster::FitTRDTrack_PathLength_KFit(int particle_hypothesis){
     SetTRDTrack(&TRDP0,&TRDDir);
 }
 
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::FitTRDTrack_PathLength_KFit_Repulsion(int particle_hypothesis){
+
+  Refit_hypothesis=particle_hypothesis;
+  float init_z0=115;
+  float init_x0=0;
+  float init_y0=0;
+  float init_dx=0;
+  float init_dy=0;
+
+  Propogate_TrTrack(init_z0);
+  AMSPoint P0=GetPropogated_TrTrack_P0();
+  AMSDir Dir=GetPropogated_TrTrack_Dir();
+  AMSPoint TRDP0;
+  AMSDir   TRDDir;
+
+  KounineRefit_Repulsion(TRDP0,TRDDir,P0,Dir);
+
+  SetTRDTrack(&TRDP0,&TRDDir);
+}
 
 /////////////////////////////////////////////////////////////////////
 
