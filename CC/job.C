@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.935.2.2 2013/11/22 11:36:04 shaino Exp $
+// $Id: job.C,v 1.935.2.3 2013/12/04 16:22:34 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3786,7 +3786,16 @@ void AMSJob::_timeinitjob(){
                            TofPDF->TDVSize,
                            TofPDF->TDVBlock,
                            server,1,TofPDFPar::HeadLoadTDVPar));
-     }
+//---TDC Linear New Calib
+      if(isRealData()){
+         TofTdcPar *TdcPar=TofTdcPar::GetHead();
+         TID.add (new AMSTimeID(AMSID(TdcPar->TDVName,isRealData()),begin,end,
+                             TdcPar->TDVSize,
+                             TdcPar->TDVBlock,
+                             server,1,TofTdcPar::HeadLoadTDVPar));
+              
+       }
+    }
 //    }
     //
     if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 

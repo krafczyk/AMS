@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.33.2.1 2013/11/19 16:30:55 qyan Exp $
+//  $Id: Tofdbc.C,v 1.33.2.2 2013/12/04 16:22:33 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -983,6 +983,107 @@ void TofTAlignPar::PrintTDV(){
 TofTdcCorN TofTdcCorN::tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
 
 // **************************************************************
+TofTdcPar* TofTdcPar::Head=0;
+
+TofTdcPar *TofTdcPar::GetHead(){
+  if(!Head)Head = new TofTdcPar();
+  return Head;
+}
+
+//===========================================================
+TofTdcPar::TofTdcPar(){
+  TDVName="TofTdcPar";
+  TDVParN=(TOFCSN::NCRATE*TOFCSN::NSLOT*TOFCSN::NCHANNEL*1024);
+  TDVBlock=new float[TDVParN];
+  TDVSize=TDVParN*sizeof(float);
+  ntime=0;
+}
+
+//===========================================================
+TofTdcPar::TofTdcPar(float *arr,int brun,int erun){
+  TDVName="TofTdcPar";
+  TDVParN=(TOFCSN::NCRATE*TOFCSN::NSLOT*TOFCSN::NCHANNEL*1024);
+  TDVBlock=arr;
+  TDVSize=TDVParN*sizeof(float);
+  BRun=brun;
+  ERun=erun;
+  LoadTDVPar();
+  ntime=0;
+}
+
+//===========================================================
+void TofTdcPar::LoadTDVPar(){
+//----load par
+   int iblock=0;
+   for(int icrate=0;icrate<TOFCSN::NCRATE;icrate++){
+     for(int islot=0;islot<TOFCSN::NSLOT;islot++){
+       for(int ich=0;ich<TOFCSN::NCHANNEL;ich++){
+          for(int i=0;i<1024;i++)ncor[icrate][islot][ich][i]=TDVBlock[iblock++];
+      }
+    } 
+  }
+//---
+  Isload=1;
+}
+
+//==========================================================
+int  TofTdcPar::LoadFromFile(char *file){
+   ifstream vlfile(file,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
+    return -1;
+   }
+//---load
+   vlfile>>BRun>>ERun;
+   int ib=0;
+   for(int i=0;i<TDVParN;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   LoadTDVPar();
+   vlfile.close();
+   return 0;
+}
+
+//==========================================================
+void TofTdcPar::PrintTDV(){
+ cout<<"<<----Print "<<TDVName<<endl;
+ for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+ cout<<'\n';
+ cout<<"<<----end of Print "<<TDVName<<endl;
+}
+
+//==========================================================
+float TofTdcPar::getcor(int icrate,int islot,int ichan, int tdc){
+   int t10=(tdc&(0x3FFL));//10 lsb of TDC-count(time measurement)
+   if(t10<=0){return(0);}
+   return ncor[icrate][islot][ichan][t10-1];
+}
+
+//==========================================================
+int  TofTdcPar::btoc(int ilay,int ibar,int is,int opt,int &icrate,int &islot,int &ichan){
+   int csid=TOFCSN::CSId[ilay][is][ibar];
+   icrate=csid/10-1;
+   islot=csid%10-1;
+   ichan=(opt==0)?ibar/2:opt;
+   return 0;
+}
+
+//==========================================================
+float TofTdcPar::getcorb(int ilay,int ibar,int is,int opt,int tdc){
+  int icrate,islot,ichan;
+  btoc(ilay,ibar,is,opt,icrate,islot,ichan);
+  return getcor(icrate,islot,ichan,tdc);
+}
+
+//==========================================================
+bool TofTdcPar::IsValidate(){
+  if(ntime>=1385487767)return true; 
+  else                 return false;
+}
+
+
+
+// **************************************************************
 // Tof Scintillator Attenutation Calbration 15days per Calibration
 // **************************************************************
 TofAttAlignPar* TofAttAlignPar::Head=0;
@@ -1010,6 +1111,7 @@ TofAttAlignPar::TofAttAlignPar(float *arr,int brun,int erun){
   ERun=erun;
   LoadTDVPar();
 }
+
 //===========================================================
 void   TofAttAlignPar::LoadTDVPar(){
    int iblock=0;
@@ -2540,6 +2642,16 @@ TofAlignManager::TofAlignManager(int real){
                            server,1,TofPDFPar::HeadLoadTDVPar);
     tdvmap.insert(pair<string,AMSTimeID*>(TofPDFAlign->TDVName,tdv));
 
+//---TDC Linear New Calib
+    if(real==1){
+      TofTdcPar *TdcPar=TofTdcPar::GetHead(); 
+      tdv= new AMSTimeID(AMSID(TdcPar->TDVName,isreal),begin,end,
+                            TdcPar->TDVSize,
+                            TdcPar->TDVBlock,
+                            server,1,TofTdcPar::HeadLoadTDVPar);
+      tdvmap.insert(pair<string,AMSTimeID*>(TdcPar->TDVName,tdv));
+    }
+ 
 
 }
 
