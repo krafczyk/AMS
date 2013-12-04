@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.805 2013/12/02 12:46:03 choutko Exp $
+# $Id: RemoteClient.pm,v 1.806 2013/12/04 14:23:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8543,8 +8543,33 @@ else{
           else{
               $attach= "$file2tar.gz,$dataset->{version}rdscripts.tar.gz";
           }
+           
                   $self->sendmailmessage($address,$subject,$message,$attach);
+#                  my $i=unlink "$file2tar.gz";
+          my $dire="";
+    my $sqle="SELECT myvalue FROM Environment WHERE mykey='AMSSCRIPTS'";
+    my $rete = $self->{sqlserver}->Query($sqle);
+    if (defined $rete->[0][0]) {
+        $dire = $rete->[0][0];
+    }
+    else{
+                $self->ErrorPlus( "unable to find AMSSCRIPTS dir ");
+    }                       
+          system("mkdir -p $dire/$self->{CCA}");
+          my $cmde="cp $file2tar.gz $dire/$self->{CCA}/";
+          my $ie=system($cmde);
+          if($ie){
+                $self->ErrorPlus( "unable to $cmde ");
+          }
+    if($self->{jst} eq 'C' and $self->{CCA} eq 'taiwan'){
+    }
+          else{
                   my $i=unlink "$file2tar.gz";
+              }
+
+
+
+
                   if($self->{sendaddon}==1){
                    $self->{TU2}=time();
                    $attach="$filedb_att,ams02rddb.addon.tar.gz";
@@ -8590,6 +8615,73 @@ else{
                        unlink $file;
                      }
                   }
+
+
+#
+#         if custom and taiwan - print all the job scripts as html output
+# 
+
+
+    if($self->{jst} eq 'C' and $self->{CCA} eq 'taiwan'){
+         my $dir2tar="/tmp/tar.$self->{CCA}.".$$;
+        system("rm -rf $dir2tar");
+        system("mkdir  -p $dir2tar");
+       
+         my $cmd ="tar -zxvf $file2tar.gz -C$dir2tar 1>/dev/null 2>&1";
+         my $i=system($cmd);
+               if($i){
+                  system("rm -rf $dir2tar");
+                  unlink "$file2tar.gz";
+                  $self->ErrorPlus("Unable to untar: $cmd ");
+               }
+               else{
+                 opendir THISDIR, $dir2tar or die "unable to open $dir2tar";
+                 my @jobs=readdir THISDIR;
+                 closedir THISDIR;
+                 print $q->header("text/html ");
+                 $q->start_html();
+                 my $min=20000000000;
+                 my $max=0;
+                 foreach my $job (@jobs){
+                     if($job =~ /\.job$/){
+                       if($job =~ /^\./){
+                           next;
+                       }
+                       my @junk=split '\.',$job;
+                           if($#junk>1){
+                               if($min>$junk[1]){
+                                  $min=$junk[1];
+                                }
+                               if($max<$junk[1]){
+                                  $max=$junk[1];
+                                }
+                            }
+                      }
+                     }
+                     my $jobsetid="$min$max";
+                       print $q->h1("JOBSETID=$jobsetid");
+                 foreach my $job (@jobs){
+                     if($job =~ /\.job$/){
+                       if($job =~ /^\./){
+                           next;
+                       }
+                       my $full="$dir2tar/$job";
+                       open(FILE,"<".$full) or die "Unable to open job file $full \n";
+                       my $buf; 
+                       read(FILE,$buf,1638400) or next;
+                       close FILE;
+                       print $q->h3("JOB=$job ");
+                       print $q->textarea($job,$buf,20,100);
+                       print $q->h3(" ");
+                   }
+                 }
+                 system("rm -rf $dir2tar");
+                 #unlink "$file2tar.gz";
+                 $q->end_html;
+             }
+}
+
+
 # check last download time
 # but first check local/remote cite
       my $cite_status="remote";
@@ -9905,8 +9997,25 @@ else{
           else{
               $attach= "$file2tar.gz,$dataset->{version}mcscripts.tar.gz";
           }
+
                   $self->sendmailmessage($address,$subject,$message,$attach);
-    if($self->{jst} eq 'C' and $self->{CCA} eq 'test'){
+          my $dire="";
+    my $sqle="SELECT myvalue FROM Environment WHERE mykey='AMSSCRIPTS'";
+    my $rete = $self->{sqlserver}->Query($sqle);
+    if (defined $rete->[0][0]) {
+        $dire = $rete->[0][0];
+    }
+    else{
+                $self->ErrorPlus( "unable to find AMSSCRIPTS dir ");
+    }                       
+          
+          system("mkdir -p $dire/$self->{CCA}");
+          my $cmde="cp $file2tar.gz $dire/$self->{CCA}/";
+          my $ie=system($cmde);
+          if($ie){
+                $self->ErrorPlus( "unable to $cmde ");
+          }
+    if($self->{jst} eq 'C' and $self->{CCA} eq 'taiwan'){
     }
           else{
                   my $i=unlink "$file2tar.gz";
