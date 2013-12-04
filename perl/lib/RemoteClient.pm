@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.806 2013/12/04 14:23:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.807 2013/12/04 14:27:20 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7467,13 +7467,13 @@ print qq`
         my $srunno=$q->param("QRun");
         if($qrunno<1){
            $qrunno=1;
-        }elsif($qrunno>500){
-         $qrunno=500;
+        }elsif($qrunno>1000){
+         $qrunno=1000;
         }
        if($srunno<1){
            $srunno=1;
-        }elsif($srunno>500){
-         $srunno=500;
+        }elsif($srunno>1000){
+         $srunno=1000;
         }
        if($max_jobs<$srunno){
             $srunno=$max_jobs;
@@ -7512,8 +7512,8 @@ print qq`
                 if(not $runno =~/^\d+$/ or $runno <1){
                     $runno=1;
                 }
-                if($runno>500 ){
-                    $runno=500;
+                if($runno>1000 ){
+                    $runno=1000;
                 }
                 if($max_jobs<$runno){
                     $runno=$max_jobs;
@@ -7558,8 +7558,8 @@ print qq`
         }
         my $runmi=$q->param("QRunMi");
         my $runma=$q->param("QRunMa");
-        if(not $runno =~/^\d+$/ or $runno <1 or $runno>500){
-             $self->ErrorPlus("Runs no $runno is out of range (1,500)");
+        if(not $runno =~/^\d+$/ or $runno <1 or $runno>1000){
+             $self->ErrorPlus("Runs no $runno is out of range (1,1000)");
         }
 #
 #  get runs from database
@@ -8920,8 +8920,8 @@ anyagain:
         if($max_jobs<$runno){
             $runno=$max_jobs;
         }
-        if(not $runno =~/^\d+$/ or $runno <$a or $runno>500){
-             $self->ErrorPlus("Runs no $runno is out of range ($a,500)");
+        if(not $runno =~/^\d+$/ or $runno <$a or $runno>1000){
+             $self->ErrorPlus("Runs no $runno is out of range ($a,1000)");
         }
 
 
