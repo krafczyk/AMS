@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.32 2013/11/18 15:36:25 qyan Exp $
+//  $Id: Tofdbc.h,v 1.33 2013/12/04 15:58:47 qyan Exp $
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -27,7 +27,10 @@ namespace TOFCSN{
    const integer NBARN=34;
    const integer NSIDE=2;
    const integer NPMTM=3;
-   const integer CSId[SCLRS][NSIDE][SCMXBR]={  //Electronic: Create-4 Slot-7(4 SFET) ID
+   const integer NCRATE=4;
+   const integer NSLOT=4;
+   const integer NCHANNEL=8;
+   const integer CSId[SCLRS][NSIDE][SCMXBR]={  //Electronic: Crate-4 Slot-7(4 SFET) ID
       11, 12, 11, 12, 11, 12, 11, 12, 0,  0,//L0-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
       21, 22, 21, 22, 21, 22, 21, 22, 0,  0,//L0-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
       23, 24, 23, 24, 23, 24, 23, 24, 0,  0,//L1-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
@@ -367,6 +370,32 @@ public:
   }
   static TofTdcCorN tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
 };
+
+
+//==========================================================
+class TofTdcPar: public TofTDVTool<float>{ //TDC Linear
+  public:
+     float ncor[TOFCSN::NCRATE][TOFCSN::NSLOT][TOFCSN::NCHANNEL][1024];
+     unsigned int ntime;
+//----
+  public:
+     TofTdcPar();
+     TofTdcPar(float *arr,int brun,int erun);//load 
+     static TofTdcPar *Head;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif
+     static TofTdcPar *GetHead();
+     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+     void LoadTDVPar();//copy TDV to class 
+     int  LoadFromFile(char *file);//read data from file->Block data
+     void PrintTDV();
+     float getcor(int icrate,int islot,int ichan, int tdc);
+     int   btoc(int ilay,int ibar,int is,int opt,int &icrate,int &islot,int &ichan);//opt=0 LT; opt=5 FT; opt=6 HT; opt=7 SHT
+     float getcorb(int ilay,int ibar,int is,int opt,int tdc);
+     bool IsValidate();
+};
+
 
 //==========================================================
 class TofAttAlignPar: public TofTDVTool<float>{ //Scintillator Attenuation Algin

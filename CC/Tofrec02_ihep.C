@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.53 2013/11/18 15:36:20 qyan Exp $
+//  $Id: Tofrec02_ihep.C,v 1.54 2013/12/04 15:58:10 qyan Exp $
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -122,6 +122,9 @@ int TofRecH::Init(){
   }
   else tdvstat=-1;
 #endif
+  if(realdata){
+     TofTdcPar::GetHead()->ntime=trun;
+  }
   if(tdvstat!=0&&nerr++<100)cerr<<"<<-----Error TofRecH TDV Par Init Error"<<endl;
   return tdvstat;
 }
@@ -230,7 +233,7 @@ int TofRecH::BuildTofClusterH(){
 //Reconstruction
       else {
 //-- ReFind Lost  LT using other GOOD Side /*due to 30ns LT deadtime, it's enough to use other Side to ReFind LT
-         if(((sstatus[0]|sstatus[1])&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0){
+         if((((sstatus[0]|sstatus[1])&(TOFDBcN::NOHTRECOVCAD|TOFDBcN::NOMATCHRECOVCAD))>0)&&(BuildOpt>=0)){
             LTRefind(idsoft,0,sdtm,adca,status,ltdcw);
             TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],status);///Time Rec
 //            if((status&TOFDBcN::BADTIME)==0)cout<<"refind LT="<<coo[TOFGeom::Proj[il]]<<endl;
@@ -241,7 +244,7 @@ int TofRecH::BuildTofClusterH(){
            uinteger ustatus=status;
            int tstat=TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],ustatus);
 //--ReFind Again if also lost
-           if(tstat!=-1&&(ustatus&TOFDBcN::BADTIME)>0){
+           if((tstat!=-1&&(ustatus&TOFDBcN::BADTIME)>0)&&(BuildOpt>=0)){
              LTRefind(idsoft,0,sdtm,adca,status,ltdcw);
 //             cout<<"misfind good coo="<<coo[TOFGeom::Proj[il]]<<endl;
              TimeCooRec(idsoft,sdtm,adca,timers,timer,etimer,coo[TOFGeom::Proj[il]],ecoo[TOFGeom::Proj[il]],status);
@@ -331,40 +334,61 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
       number ftcor=0,ltcor=0,htcor=0,shtcor=0;
 //---LT
   if(realdata>0&&nlt>0&&nft>0){
+      TofTdcPar *TdcPar=TofTdcPar::GetHead(); 
       for(i=0;i<nlt;i++){
+        if(TdcPar->IsValidate()){
+           ltcor=TdcPar->getcor(crat-1,sslot-1,tdcch[0]-1,ptr->fstdc[i]); 
+        }
+        else {
 #ifndef __ROOTSHAREDLIBRARY__
-         if(tdcch[0]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[0]-1))ltcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fstdc[i],tdcch[0]-1);
+          if(tdcch[0]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[0]-1))ltcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fstdc[i],tdcch[0]-1);
 #else
-         if(tdcch[0]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[0]-1))ltcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fstdc[i],tdcch[0]-1);
+          if(tdcch[0]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[0]-1))ltcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fstdc[i],tdcch[0]-1);
 #endif
-         ltdch[i]-=ltcor;
+         }
+         if(BuildOpt>=0)ltdch[i]-=ltcor;
       }
 //---FT
       for(i=0;i<nft;i++){
+        if(TdcPar->IsValidate()){
+           ftcor=TdcPar->getcor(crat-1,sslot-1,tdcch[1]-1,ptr->fftdc[i]);
+        }
+        else {
 #ifndef __ROOTSHAREDLIBRARY__
-         if(tdcch[1]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[1]-1))ftcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fftdc[i],tdcch[1]-1);
+          if(tdcch[1]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[1]-1))ftcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fftdc[i],tdcch[1]-1);
 #else
-         if(tdcch[1]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[1]-1))ftcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fftdc[i],tdcch[1]-1);
+          if(tdcch[1]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[1]-1))ftcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fftdc[i],tdcch[1]-1);
 #endif
-         ftdch[i]-=ftcor;
+        }
+        if(BuildOpt>=0)ftdch[i]-=ftcor;
       }
 //---HT
       for(i=0;i<nht;i++){
+        if(TdcPar->IsValidate()){
+           htcor=TdcPar->getcor(crat-1,sslot-1,tdcch[2]-1,ptr->fsumht[i]);
+        }
+        else {
 #ifndef __ROOTSHAREDLIBRARY__
-         if(tdcch[2]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[2]-1))htcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fsumht[i],tdcch[2]-1);
+          if(tdcch[2]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[2]-1))htcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fsumht[i],tdcch[2]-1);
 #else
-         if(tdcch[2]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[2]-1))htcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fsumht[i],tdcch[2]-1);
+          if(tdcch[2]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[2]-1))htcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fsumht[i],tdcch[2]-1);
 #endif
-         htdch[i]-=htcor;
+        }
+         if(BuildOpt>=0)htdch[i]-=htcor;
       }
 //---SHT
       for(i=0;i<nsht;i++){
+        if(TdcPar->IsValidate()){
+           shtcor=TdcPar->getcor(crat-1,sslot-1,tdcch[3]-1,ptr->fsumsht[i]);
+        }
+        else {
 #ifndef __ROOTSHAREDLIBRARY__
          if(tdcch[3]>0&&TofTdcCor::tdccor[crat-1][sslot-1].truech(tdcch[3]-1))shtcor=TofTdcCor::tdccor[crat-1][sslot-1].getcor(ptr->fsumsht[i],tdcch[3]-1);
 #else
          if(tdcch[3]>0&&TofTdcCorN::tdccor[crat-1][sslot-1].truech(tdcch[3]-1))shtcor=TofTdcCorN::tdccor[crat-1][sslot-1].getcor(ptr->fsumsht[i],tdcch[3]-1);
 #endif
-         shtdch[i]-=shtcor;
+        }
+         if(BuildOpt>=0)shtdch[i]-=shtcor;
       }
    }
 
@@ -378,17 +402,17 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
 //---Put to calidate
       ltdcw.clear();htdcw.clear();shtdcw.clear();
       for(i=0;i<nlt;i++){//notTooYoung(>40ns befFT), notTooOld(<300 befFT)
-         if((ltdc[i]> TofRecPar::FTgate[0])&&(ltdc[i]<TofRecPar::FTgate[1])){
+         if(((ltdc[i]> TofRecPar::FTgate[0])&&(ltdc[i]<TofRecPar::FTgate[1]))||BuildOpt<0){
             ltdcw.push_back(ltdc[i]);
          }
        }
      for(i=0;i<nht;i++){//notTooYoung(>40ns befFT), notTooOld(<300 befFT)
-         if((htdc[i]> TofRecPar::FTgate[0])&& (htdc[i]<TofRecPar::FTgate[1])){
+         if(((htdc[i]> TofRecPar::FTgate[0])&& (htdc[i]<TofRecPar::FTgate[1]))||BuildOpt<0){
            htdcw.push_back(htdc[i]);
          }
        }
      for(i=0;i<nsht;i++){//notTooYoung(>40ns befFT), notTooOld(<300 befFT)
-         if((shtdc[i]> TofRecPar::FTgate[0])&& (shtdc[i]<TofRecPar::FTgate[1])){
+         if(((shtdc[i]> TofRecPar::FTgate[0])&& (shtdc[i]<TofRecPar::FTgate[1]))||BuildOpt<0){
            shtdcw.push_back(shtdc[i]);
          }
       }
@@ -1143,6 +1167,7 @@ tktrdf:
        if((xylay[0]>=1)&&(xylay[1]>=1)&&(udlay[0]>=1)&&(udlay[1]>=1)){//Layer Require Fire
           if((xylay[0]+xylay[1]>=TofRecPar::BetaHMinL[0])&&(udlay[0]+udlay[1]>=TofRecPar::BetaHMinL[1])){//sum layer
 //----2nd Association
+         if(BuildOpt>=0){
            TofClusterHR *phitb[4]={0};int patternb[4]={0};number lenb[4]={0},tklcoob[4]={0},tkcoszb[4]={1.,1.,1.,1.},cresb[4][2]={{0}};
            for(int ilay=0;ilay<4;ilay++){
               int fopt=(phit[ilay]==0)?10:11;//2nd search largest or second
@@ -1163,6 +1188,7 @@ tktrdf:
 //                if(iktr==1)cout<<"ilay="<<ilay<<" NT="<<phit[ilay]->Time<<" NQ="<<phit[ilay]->GetQSignal(-1)<<endl;
              }
            }
+         }
 //---first to recover 
            betapar.Init();//first initial
            int mode=(tktrdflag==0)?1:11;
@@ -1201,7 +1227,7 @@ tktrdf:
   }//2 type
  
 // 2nd Search Tk-Trd exit 
- if(tktrdflag!=0)found=-1; //faild    
+ if(tktrdflag!=0||BuildOpt<0)found=-1; //faild    
  
 
 //No Tk or Trd Match, Tof Self Track Recontruction
@@ -1408,7 +1434,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
              cres[ip]=tkcoo[ip]-tfcoo[ip];
              if(((tfhstat&TOFDBcN::BADTCOO)>0)&&(ip==1-iscoo)){cres[ip]=TOFGeom::Sci_l[ilay][nowbar]/2.;}
            }
-          if((tfhstat&TOFDBcN::BADTIME)==0)pattern=4;
+          if(((tfhstat&TOFDBcN::BADTIME)==0)||BuildOpt<0)pattern=4;
 //----previous next bar
           if(prebar>=0) pattern+=(nowbar-prebar)*100;
           if(nextbar>=0)pattern+=(nextbar-nowbar)*10;
