@@ -2699,7 +2699,7 @@ class RemoteClient:
                         jid=int(fid)
                         if(int(fid)<minJobID):
                             print " invalid jid ",fid
-                            self.BadRunID[cite]=self.BadRunID[cite]+1
+                            self.BadRunID[self.nCheckedCite] += 1
                             continue
                         newfile=joudir+"/"+file
                         writetime=os.stat(newfile)[ST_MTIME]
