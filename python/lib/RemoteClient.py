@@ -1,4 +1,4 @@
-import sys,os,time,string,re,threading,thread,smtplib,commands,math,socket
+import sys,os,time,string,re,threading,thread,smtplib,commands,math,socket,pwd
 from stat import *
 from DBSQLServer import DBSQLServer
 from DBServer import DBServer
@@ -2562,7 +2562,7 @@ class RemoteClient:
             self.mt = mt
         else:
             self.mt = 0
-        whoami=LOGNAME
+        whoami=pwd.getpwuid(os.getuid())[0]
         if not (whoami == None or whoami =='ams' ):
             print "parseJournalFiles -ERROR- script cannot be run from account : ",whoami 
             return 0
