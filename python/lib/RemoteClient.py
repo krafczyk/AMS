@@ -2562,7 +2562,7 @@ class RemoteClient:
             self.mt = mt
         else:
             self.mt = 0
-        whoami=os.getlogin()
+        whoami=LOGNAME
         if not (whoami == None or whoami =='ams' ):
             print "parseJournalFiles -ERROR- script cannot be run from account : ",whoami 
             return 0
