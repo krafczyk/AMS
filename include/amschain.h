@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.40 2013/10/28 10:33:01 choutko Exp $
+//  $Id: amschain.h,v 1.41 2013/12/06 17:10:44 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -80,7 +80,7 @@ public:
 
 \param[in] end next to the last file line to be chained
 
-\param[in] stagedonly  if true only take staged files if files are on castor.  The rejected filenames will be written in the rootfilelist_beg_end_STAGEIN file
+\param[in] stagedonly  if 1 only take staged files if files are on castor.  The rejected filenames will be written in the rootfilelist_beg_end_STAGEIN file if; if -1 additional attempt will be done to get files from eos
 
 \param[in] timeout  if>0 will reject files after timeout sec of trying to open.
 The rejected filenames will be written in the rootfilelist_beg_end_TMOUT file
@@ -91,11 +91,11 @@ The rejected filenames will be written in the rootfilelist_beg_end_TMOUT file
 \retval 0  otherwise
 
 Recommended setup
-AddFromfile(rootfilelist,beg,end,false,0,pattern);
+AddFromfile(rootfilelist,beg,end,-1,0,pattern);
 in this case the files will be prestaged if on castor but actual try will be done during runtime.  In case files are unaccessible by any reason, they will be bypassed and their names will be written in file_beg_end_RUNTIMETNOUT so can be reused for the subsequent attempt
 
  */
-  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, bool stagedonly=false,unsigned int timeout=0,char *pattern=0);
+  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, int stagedonly=-1,unsigned int timeout=0,char *pattern=0);
   /// Get number of TFiles in  a text file 
   int ValidateFromFile(const char* rootfilelist,bool stage=false);
 

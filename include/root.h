@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.586 2013/11/29 16:05:09 sdifalco Exp $
+//  $Id: root.h,v 1.587 2013/12/06 17:10:44 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -934,7 +934,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,17)       //EcalShowerR
+  ClassDef(EcalShowerR,18)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
