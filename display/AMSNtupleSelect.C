@@ -20,6 +20,10 @@ public:
     //  return true if event has to be drawn false otherwise.
     // Example take the even event numbers
    if(ev){
+// my selection of He++ 
+//
+    if(ev->nParticle()  && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).Charge>1)return true;
+    else return false;
     bool next=ev->Event()!=oldev;
     bool breaks=ev->Event()-oldev!=1;
     if(breaks){
