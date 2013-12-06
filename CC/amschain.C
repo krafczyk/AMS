@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.78 2013/10/07 11:58:47 choutko Exp $
+//  $Id: amschain.C,v 1.79 2013/12/06 17:11:11 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -297,7 +297,7 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
   
   return i;
 }
-int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,unsigned int timeout,char *pattern){
+int AMSChain::AddFromFile(const char *fname,int first,int last, int stagedonly,unsigned int timeout,char *pattern){
   AMSEventR::fRequested.clear();
   sprintf(AMSEventR::filename,"%s_%06d_%06d_RUNTIMETMOUT",fname,first,last);
   ofstream  rejfile;
@@ -387,7 +387,8 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
            if(ktry==2)cerr<<"AMSChain::AddFromFile-E-UnableToStage "<<stager_get<<endl;
            }
            }
-          if(staged || !stagedonly){
+          if(staged || stagedonly==0){
+againeos:
             int radd=   Add(rname,timeout?-kBigNumber:kBigNumber);
             if(!radd){
             cerr<<"AMSChain::AddFromFile-W-FileNotStagedOrTimeOutAndWillNotBeProcessed"<<rname<<endl;
@@ -406,6 +407,33 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, bool stagedonly,
             }
           
           else {
+           if(stagedonly==-1){
+            string castor="//castorpublic.cern.ch///castor/cern.ch/";
+            string eos="//eosams.cern.ch///eos/";
+            string rn=rname;
+            int pos=rn.find(castor);
+            if(pos>=0){
+             rn.replace(rn.begin()+pos,rn.begin()+pos+castor.length(),eos);
+             cout <<" AMSChain-I-RepacedBy "<<rn<<endl;
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir")){
+    localbin=getenv("AMSDataDir");
+   }
+   else localbin=local;
+       string eoscheck=localbin;
+       eoscheck+="/DataManagement/exe/linux/timeout --signal 9 30 ";
+             eoscheck+="/afs/cern.ch/project/eos/installation/0.3.1-22/bin/eos.select ls /eos/";
+             eoscheck+=rn.c_str()+pos+eos.length();
+             int k=system(eoscheck.c_str());
+             if(!k){ 
+              strcpy(rname,rn.c_str());
+              goto againeos; 
+             }
+             else cerr<<" AMSChain::AddFromFile-W-FileNotOnEOS "<<eoscheck<<endl;
+             }
+        
+        }
             cerr<<"AMSChain::AddFromFile-W-FileNotStagedAndWillNotBeProcessed"<<rname<<endl;
              char rejfilename[4095];
              sprintf(rejfilename,"%s_%06d_%06d_STAGEIN",fname,first,last);
