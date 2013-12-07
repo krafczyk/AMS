@@ -39,9 +39,9 @@ foreach my $jou (@journals) {
     my $fet = (grep /TFevent=/, @buf)[0];
     chomp $fet;
     $fet =~ s/TFevent=//g;
-    my $let = (grep /LFevent=/, @buf)[0];
+    my $let = (grep /TLevent=/, @buf)[0];
     chomp $let;
-    $let =~ s/LFevent=//g;
+    $let =~ s/TLevent=//g;
     my $type = (grep /Type0=/, @buf)[0];
     chomp $type;
     $type =~ s/Type0=//g;
@@ -73,7 +73,7 @@ foreach my $jou (@journals) {
         if ($tag % 256 == 204) { # LAS run, ignore ...
             next;
         }
-        my $percentage = sprintf "(%.2f%%, $type, %d events, %.0f min)", ($ne-$one)/$ne*100, $ne-$one, ($ne-$one)/$ne*($let-$fet)/60;
+        my $percentage = sprintf "(%.2f%%, $runtype, %d events, %.0f min)", ($ne-$one)/$ne*100, $ne-$one, ($ne-$one)/$ne*($let-$fet)/60;
         my $newrun = $ofe ? $percentage : "(new)";
 
         print "Found run to MERGE: $run $newrun\n";
