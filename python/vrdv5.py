@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: vrdv5.py,v 1.7 2013/12/01 12:54:20 ams Exp $
+#  $Id: vrdv5.py,v 1.8 2013/12/08 12:31:46 ams Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -32,7 +32,10 @@ for x in sys.argv:
     elif x == "-force": force=1
     elif x == "-castoronly": castoronly=1
     elif x == "-castorcopy": castorcopy=1
-    elif x == "-mt": mt=1
+    elif x[0:3] == "-mt":
+        mt=1
+        if(len(x)>3):
+            mt=int(x[3:len(x)])
     elif x[0:2] == "-b":
         b=1
         if(len(x)>2):
