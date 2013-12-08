@@ -3995,7 +3995,7 @@ class RemoteClient:
                         if len(junk2) >= 2:
                             eosdir = junk2[0] + datapath;
                             print "chmod for " + eosdir + " ..."
-                            eoschmod = "/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select chmod "
+                            eoschmod = "/afs/cern.ch/project/eos/installation/0.3.2in/eos.select chmod "
                             os.system(eoschmod + " 750 " + eosdir)
                             eosdel="/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select rm  "+eosfile
                             i=os.system(eosdel)
