@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.64.2.1 2013/11/22 11:36:31 shaino Exp $
+// $Id: tkdcards.h,v 1.64.2.2 2013/12/10 00:22:29 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -433,6 +433,8 @@ public:
   int  MultipleAlign;
   /// I 22 Determine the max |X| accepted to associate a layer 9 hit to the track
   float EcalMaxX;
+  // I  23 magnet temp correction enabled
+  int   magtemp;
 
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
@@ -440,7 +442,7 @@ public:
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,7);
+  ClassDef(TRFITFFKEY_DEF,8);
 };
 //
 

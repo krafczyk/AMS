@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.583.2.3 2013/11/29 06:43:31 choutko Exp $
+//  $Id: event.C,v 1.583.2.4 2013/12/10 00:22:27 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1584,6 +1584,14 @@ try{
 }
 //------------------------------------------------------------------------------------------------------------------------
 void AMSEvent::_reamsevent(){
+
+
+#ifdef _PGTRACK_
+  if(TRFITFFKEY.magtemp &&AMSCommonsI::getbuildno()>=700) MagField::GetPtr()->UpdateMagTemp(gettime());
+#endif
+
+
+
   AMSgObj::BookTimer.start("REAMSEVENT");  
   // get beam par, and other things  if any;
   _regnevent();

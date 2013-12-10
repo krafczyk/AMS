@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.90.2.2 2013/11/22 11:36:23 shaino Exp $
+// $Id: tkdcards.C,v 1.90.2.3 2013/12/10 00:22:28 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -495,6 +495,8 @@ void TRFITFFKEY_DEF::init(){
   MultipleAlign=2;
   /// R 22 Determine the max |X| accepted to associate a layer 9 hit to the track
   EcalMaxX=45.;
+// I  23 magnet temp correction enabled
+  magtemp=0;
 }
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 

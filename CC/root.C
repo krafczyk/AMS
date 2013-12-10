@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612.2.5 2013/11/29 16:04:14 sdifalco Exp $
+//  $Id: root.C,v 1.612.2.6 2013/12/10 00:22:27 pzuccon Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -22,6 +22,7 @@
 #include "commonsi.h"
 #include "RichCharge.h"
 #include "RichBeta.h"
+
 #ifndef __ROOTSHAREDLIBRARY__
 #include "antirec02.h"
 #include "beta.h"
@@ -69,6 +70,8 @@
 #include "Tofrec02_ihep.h"
 #include "GM_SubLibrary.h"
 #include "BackTracingMIB.h"
+#include "MagField.h"
+#include "tkdcards.h"
 
 
 
@@ -2523,6 +2526,7 @@ bool AMSEventR::ReadHeader(int entry){
 	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
       }
       if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
+      if(TRFITFFKEY.magtemp && Version()>=700) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
 
