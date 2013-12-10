@@ -1,4 +1,4 @@
-// $Id: TrTasPar.h,v 1.2 2009/12/21 20:46:57 shaino Exp $
+// $Id: TrTasPar.h,v 1.3 2013/12/10 08:35:03 hegast Exp $
 
 #ifndef __TrTasPar__
 #define __TrTasPar__
@@ -14,9 +14,9 @@
 ///
 ///\date  2009/12/10 SH  First version
 ///\date  2009/12/17 SH  First Gbatch version
-///$Date: 2009/12/21 20:46:57 $
+///$Date: 2013/12/10 08:35:03 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -76,12 +76,12 @@ public:
   { return (0 <= i && i < NLAD && 0 <= j && j < NADR) ? _mask[i*NADR+j] : 0; }
 
   bool IsMasked(int i, int j, int adr) const
-  { return GetMask(i, j) & (1 << adr-GetAmin(i, j)); }
+  { return GetMask(i, j) & (1 << (adr-GetAmin(i, j))); }
 
   void SetMask(int i, int j, int adr) {
     if (0 <= i && i < NLAD && 0 <= j && j < NADR && 
 	GetAmin(i, j) <= adr && adr <= GetAmax(i, j)) 
-      _mask[i*NADR+j] |= (1 << adr-GetAmin(i, j)); 
+      _mask[i*NADR+j] |= (1 << (adr-GetAmin(i, j))); 
   }
 
   float GetFpar(int i, int j, int k) const
