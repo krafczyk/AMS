@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.178 2013/11/06 11:17:45 oliva Exp $
+// $Id: TrTrack.C,v 1.178.2.1 2013/12/10 00:20:55 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2013/11/06 11:17:45 $
+///$Date: 2013/12/10 00:20:55 $
 ///
-///$Revision: 1.178 $
+///$Revision: 1.178.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1683,7 +1683,7 @@ int TrTrackR::GetResidualKindJ(int ilay, AMSPoint& pnt,int kind, int id){
  
 
   if(!aa.TestHitLayerJ(ilay)){
-    if(kind==2){
+    if(kind==2 ||kind==1){
       pnt=GetResidualJ(ilay,id);
       return 1;
     }	
