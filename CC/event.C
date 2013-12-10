@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.583.2.4 2013/12/10 00:22:27 pzuccon Exp $
+//  $Id: event.C,v 1.583.2.5 2013/12/10 00:52:58 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1587,7 +1587,7 @@ void AMSEvent::_reamsevent(){
 
 
 #ifdef _PGTRACK_
-  if(TRFITFFKEY.magtemp &&AMSCommonsI::getbuildno()>=700) MagField::GetPtr()->UpdateMagTemp(gettime());
+  if(TRFITFFKEY.magtemp &&AMSCommonsI::getbuildno()>=700&& AMSJob::gethead()->isRealData()) MagField::GetPtr()->UpdateMagTemp(gettime());
 #endif
 
 
