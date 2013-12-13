@@ -1468,7 +1468,7 @@ void TrdKCluster::InitXePressure(){
   for( map<int, TRDOnline>::iterator ii=map_TRDOnline.begin(); ii!=map_TRDOnline.end(); ++ii)
     {
       TRDOnline test=(*ii).second;
-      printf("TRD Online:  %i  %.2f  %.2f\n",test.time,test.xe,test.co2);
+      if(DebugOn) printf("TRD Online:  %i  %.2f  %.2f\n",test.time,test.xe,test.co2);
     }
 
 
