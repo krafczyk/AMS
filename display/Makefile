@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.131.2.1 2013/11/19 18:04:27 mduranti Exp $
+#  $Id: Makefile,v 1.131.2.2 2013/12/13 21:24:13 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -187,18 +187,19 @@ ifndef SLC6system
   INTELVER=/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/
   CPPFLAGS= -D__LINUXGNU__
 else
-  INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2011_sp1.9.293/
+#  INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2011_sp1.9.293/
+INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2013_sp1.1.106/
   CPPFLAGS= -D__LINUXNEW__  
 endif
 
 CXX = $(INTELVER)bin/intel64/icc
 CPPFLAGS     += -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
-CXXFLAGS      = -Wno-deprecated -openmp -axsse4.2,ssse3 $(OPT) $(CPPFLAGS)
+CXXFLAGS      = -Wno-deprecated -openmp -axAVX $(OPT) $(CPPFLAGS)
 OPT           = -O3 
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
-LD            = $(INTELVER)/bin/intel64/icpc  -axssse3 -openmp -static-intel
+LD            = $(INTELVER)/bin/intel64/icpc  -axAVX -openmp -static-intel
 ifdef PGTRACK
   LDFLAGS = 
   LFORT= -lifcore
