@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.937 2013/12/04 15:58:10 qyan Exp $
+// $Id: job.C,v 1.938 2013/12/13 10:08:03 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1533,7 +1533,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[9]=0.;// (27) C-type def.temperature
   //
   TFREFFKEY.ReadConstFiles=100;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
-  //                                           D->ThrCuts-set(datacards),P->Peds(rd),C->CalibConst(rd/mc));
+  //                                           D->not used now,P->Peds(rd),C->CalibConst(rd/mc));
   // L=1/0->Take TofTdcLinearityCorrections from RawFiles/DB
   // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
   // D=1/0->Take ThreshCuts-set from DataCards/DB,
@@ -2855,9 +2855,9 @@ void AMSJob::_retof2initjob(){
   //
   //---------(*.ReadConstFiles card convention : tfmc->LPTS, tfre->LQDPC)
   //--------
-  if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(D) Take ThreshCuts-set from Data-Cards
+//  if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(D) Take ThreshCuts-set from Data-Cards !!! now(11.12.2013->) always take from cards
     TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//create ThrCuts-obj from Data-Cards
-  }
+//  }
   //--------
   if(TFREFFKEY.ReadConstFiles%10>0){//(C) Take Paddles CalibConst from CalibFiles
     TOF2Brcal::build();//create scbrcal-objects from CalibFiles
@@ -3867,6 +3867,7 @@ void AMSJob::_timeinitjob(){
 
     end.tm_year=TFREFFKEY.year[1];
     //-----
+/*
     if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//(D)ThreshCuts-set from DB
 
     TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
@@ -3874,6 +3875,7 @@ void AMSJob::_timeinitjob(){
 			   (void*)&TOF2Varp::tofvpar,server,needval));
     
     end.tm_year=TFREFFKEY.year[1];
+*/
     //----- 
     if((TFREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(Q)ChargeCalibPDFs from DB
 

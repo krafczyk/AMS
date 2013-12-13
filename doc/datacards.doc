@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.409 2013/11/09 08:36:44 mduranti Exp $
+#  $Id: datacards.doc,v 1.410 2013/12/13 10:08:14 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -995,7 +995,8 @@ R 25  cuts[7] (10)      // T-type def.temperature (see card #29)
 R 26  cuts[8] (5)       // P-type def.temperature
 R 27  cuts[9] (8)       // C-type def.temperature
 //
-I 28  ReadConstFiles(100)   // LQDPC(L->TDCLinCalib(RD/MC),Q->ChargeCalib,D->ThreshCuts-set,
+I 28  ReadConstFiles(100)   // LQDPC(L->TDCLinCalib(RD/MC),Q->ChargeCalib,D->not used now(No related TDV "Tofvpar" !,
+//                                                      cuts&thresholds are read directly from related data cards not DB)
 //                                                                        P->Peds,C->CalibConst(RD/MC))
 // L=1/0->Take TofTdcLinearityCorrections from RawFiles/DB
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
