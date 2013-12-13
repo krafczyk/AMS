@@ -1,10 +1,10 @@
-// $Id: tkdcards.h,v 1.64.2.2 2013/12/10 00:22:29 pzuccon Exp $
+// $Id: tkdcards.h,v 1.64.2.3 2013/12/13 22:42:25 choutko Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
 #include "typedefs.h"
 #include "TObject.h"
-
+#ifdef _PGTRACK_
 #ifdef __ALPHA__
 #define DECFortran
 #else
@@ -473,4 +473,5 @@ class TRCHAFFKEY_DEF : public TObject {
 #define TRCHAFFKEY COMMON_BLOCK(TRCHAFFKEY,trchaffkey)
 COMMON_BLOCK_DEF(TRCHAFFKEY_DEF,TRCHAFFKEY);
 
+#endif
 #endif
