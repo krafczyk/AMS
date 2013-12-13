@@ -107,7 +107,7 @@ DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl
   INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
   INTELVER=Compiler/11.1/073/
 ifdef SLC6system
-  INTELVER=composer_xe_2011_sp1.9.293/compiler/
+  INTELVER=composer_xe_2011_sp1.1.106/compiler/
 endif
 LDFLAGSA=  -static -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   $(XRDLIBP) $(XRDLIB) -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
 LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -Bstatic $(XRDLIBP) $(XRDLIB) -Bstatic -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
