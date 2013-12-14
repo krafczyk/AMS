@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.18.2.1 2013/12/08 04:49:37 pzuccon Exp $
+//  $Id: MagField.h,v 1.18.2.2 2013/12/14 12:20:18 choutko Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -6,7 +6,7 @@
 
 
 #ifndef _PGTRACK_
-
+/*
 
 // GEANT part
 #ifdef __ALPHA__
@@ -24,7 +24,7 @@ PROTOCCALLSFSUB2(TKFLD,tkfld,FLOATV,FLOATVV)
 
 #define MAGSFFKEY COMMON_BLOCK(MAGSFFKEY,magsffkey)
 COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
-
+*/
 #else
 
 class MAGSFFKEY_DEF {
@@ -65,9 +65,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2013/12/08 04:49:37 $
+///$Date: 2013/12/14 12:20:18 $
 ///
-///$Revision: 1.18.2.1 $
+///$Revision: 1.18.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
