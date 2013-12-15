@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.43 2013/12/13 13:19:16 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.44 2013/12/15 10:35:09 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -96,7 +96,7 @@ endif
   INTELOPT=-axsse4.2,ssse3 
 ifdef SLC64system
   INTELVER=composer_xe_2013_sp1.1.106/compiler/
-   INTELOPT=-axAVX
+   INTELOPT=-mavx
 endif
 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
