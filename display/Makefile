@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.133 2013/12/13 21:11:53 choutko Exp $
+#  $Id: Makefile,v 1.134 2013/12/16 13:57:57 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -194,12 +194,12 @@ endif
 
 CXX = $(INTELVER)bin/intel64/icc
 CPPFLAGS     += -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
-CXXFLAGS      = -Wno-deprecated -openmp -axAVX $(OPT) $(CPPFLAGS)
+CXXFLAGS      = -Wno-deprecated -openmp -mavx $(OPT) $(CPPFLAGS)
 OPT           = -O3 
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
-LD            = $(INTELVER)/bin/intel64/icpc  -axAVX -openmp -static-intel
+LD            = $(INTELVER)/bin/intel64/icpc  -axAVX -openmp -static-intel -static-libgcc
 ifdef PGTRACK
   LDFLAGS = 
   LFORT= -lifcore
