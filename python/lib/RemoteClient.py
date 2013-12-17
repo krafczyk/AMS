@@ -3646,7 +3646,7 @@ class RemoteClient:
                                     self.sqlserver.Commit(commit)
 
                                     
-    def CheckDataSet(self,run2p,dataset,v,f,tab=0):
+    def CheckDataSet(self,run2p,dataset,v,f,tab=0,runmin=0,runmax=2000000000):
         self.verbose=v
         self.run2p=run2p
         self.force=0         
@@ -3764,6 +3764,12 @@ class RemoteClient:
             rundd=" and datafiles.run=%d " %(run2p)
             rund=" and dataruns.run=%d " %(run2p)
             runn=" and ntuples.run=%d " %(run2p)
+        runad=" and dataruns.run>=%s and dataruns.run<=%s " %(runmin,runmax)
+        runadd=" and datafiles.run>=%s and datafiles.run<=%s " %(runmin,runmax)
+        runan=" and ntuples.run>=%s and ntuples.run<=%s " %(runmin,runmax)
+        rundd=rundd+runadd
+        rund=rund+runad
+        runn=runn+runan
         if(self.force):
             sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
             files=self.sqlserver.Query(sql)
@@ -3995,7 +4001,7 @@ class RemoteClient:
                         if len(junk2) >= 2:
                             eosdir = junk2[0] + datapath;
                             print "chmod for " + eosdir + " ..."
-                            eoschmod = "/afs/cern.ch/project/eos/installation/0.3.2in/eos.select chmod "
+                            eoschmod = "/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select chmod "
                             os.system(eoschmod + " 750 " + eosdir)
                             eosdel="/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select rm  "+eosfile
                             i=os.system(eosdel)
