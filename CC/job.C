@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.938 2013/12/13 10:08:03 choumilo Exp $
+// $Id: job.C,v 1.939 2013/12/18 22:07:48 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2105,13 +2105,6 @@ void AMSJob::udata(){
       pgtrack_DB_ver=2;
     }
 #ifdef _PGTRACK_
-    if(TKGEOMFFKEY.alignver==3) TkLadder::version=2;
-    if(TKGEOMFFKEY.alignver >3) TkLadder::version=3;
-    TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
-  cout << "AMSJob::update-I- "
-       << "TkLadder::version= "     << TkLadder::version << " "
-       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
-
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
@@ -2136,6 +2129,12 @@ void AMSJob::udata(){
       printf("Read MC Disaligment from %s \n",disname);
     }
 
+    if(TKGEOMFFKEY.alignver==3) TkLadder::version=2;
+    if(TKGEOMFFKEY.alignver >3) TkLadder::version=3;
+    TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
+  cout << "AMSJob::update-I- "
+       << "TkLadder::version= "     << TkLadder::version << " "
+       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
 
 #else
     AMSTrIdGeom::init(STD_DB_ver);
