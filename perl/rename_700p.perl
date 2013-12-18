@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rename_700p.perl,v 1.1 2013/12/18 14:26:53 choutko Exp $
+#  $Id: rename_700p.perl,v 1.2 2013/12/18 15:59:10 choutko Exp $
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
@@ -216,7 +216,7 @@ seteos:
         my $cmd ="rfrename $file->[0] $line";
         my $i=system($cmd);
         if($i==0){
-          $sql="update jobs set did=313 where jid=$file->[1]";      
+          $sql="update jobs set did=310 where jid=$file->[1]";      
           $o->Update($sql);
           $sql="update ntuples set path='$line'   where path='$file->[0]'";      
           $o->Update($sql);
