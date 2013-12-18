@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.79 2013/07/21 10:24:48 shaino Exp $
+//  $Id: TrFit.C,v 1.80 2013/12/18 22:06:47 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2013/07/21 10:24:48 $
+///$Date: 2013/12/18 22:06:47 $
 ///
-///$Revision: 1.79 $
+///$Revision: 1.80 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4177,7 +4177,7 @@ void TrProp::GuFld(double *p, double *b)
     if (err) return;
   }
 
-  float pp[3] = { p[0], p[1], p[2] };
+  float pp[3] = { (float)p[0], (float)p[1], (float)p[2] };
   float bb[3];
   GUFLD(pp, bb);
 
