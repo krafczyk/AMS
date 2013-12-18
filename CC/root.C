@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.617 2013/12/18 19:20:37 qyan Exp $
+//  $Id: root.C,v 1.618 2013/12/18 20:33:03 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10680,8 +10680,14 @@ static int master=0;
     
 
 try{
+    unsigned int save=TKGEOMFFKEY.MaxAlignedRun;
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
+     if(TKGEOMFFKEY.MaxAlignedRun<save){
+         TKGEOMFFKEY.MaxAlignedRun=save;
+         cerr<<"AMSEventr::InitDB-W-TKGEOMFFKEY.MaxAlignedrun Redefined "<<save<<endl;
+      } 
+
       if (TRMCFFKEY.ReadFromFile  && _FILE->Get("datacards/TRMCFFKEY_DEF"))
     TRMCFFKEY   =*((TRMCFFKEY_DEF*)  _FILE->Get("datacards/TRMCFFKEY_DEF"));
 				 if (_FILE->Get("datacards/TRCALIB_DEF"))
