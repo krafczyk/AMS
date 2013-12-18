@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.808 2013/12/18 14:26:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.809 2013/12/18 22:13:27 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5289,9 +5289,18 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
   } elsif ($self->{q}->param("queryDB04") eq "Continue" ) {
      my $query=$q->param("QPart");
     my $qpp=$q->param("QPPer");
+    my $dsname = $query;
+    my $dsver = '';
+    if ($query =~ /_/) {
+        my @junk = split /_/, $query;
+        if (scalar @junk >=2) {
+            $dsname = $junk[0];
+            $dsver = $junk[1];
+        }
+    }
 
      foreach my $dataset (@{$self->{DataSetsT}}){
-      if($dataset->{name} eq $query){
+      if($dataset->{name} eq $dsname){
                  foreach $cite (@{$dataset->{jobs}}){
                  if(not ($cite->{filename} =~/^\./)){
                   push @tempnam, $cite->{filename};
@@ -5336,7 +5345,7 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
                 $jobspid=$self->getactiveppstring();
               }
           }
-          my $sql="select count(jobs.jid),datasetsdesc.jobdesc from jobs,datasetsdesc where $jobspid jobs.did=datasetsdesc.did and datasetsdesc.dataset='$query' and datasetsdesc.jobname=split(jobs.jobname) group by  datasetsdesc.jobdesc";
+          my $sql="select count(jobs.jid),datasetsdesc.jobdesc from jobs,datasetsdesc,datasets where $jobspid jobs.did=datasetsdesc.did and datasetsdesc.dataset='$dsname' and datasets.version like '\%$dsver\%' and datasets.did=datasetsdesc.did and datasetsdesc.jobname=split(jobs.jobname) group by  datasetsdesc.jobdesc";
 #       my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
        my $r5=$self->{sqlserver}->Query($sql);
        if(defined $r5->[0][0]){
@@ -5421,10 +5430,19 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
      if(not defined $query){
          $query="AnyData";
      }
+     my $dsname = $query;
+     my $dsver = '';
+     if ($query =~ /_/) {
+         my @junk = split /_/, $query;
+         if (scalar @junk >=2) {
+             $dsname = $junk[0];
+             $dsver = $junk[1];
+         }
+     }
     my $qpp=$q->param("QPPer");
 
      foreach my $dataset (@{$self->{DataSetsT}}){
-      if($dataset->{name} eq $query){
+      if($dataset->{name} eq $dsname){
                  foreach $cite (@{$dataset->{jobs}}){
                  if(not ($cite->{filename} =~/^\./)){
                   push @tempnam, $cite->{filename};
@@ -5469,7 +5487,7 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
                   $jobspid=$self->getactiveppstring();
               }
           }
-          my $sql="select count(jobs.jid),datasetsdesc.jobdesc from jobs,datasetsdesc where $jobspid jobs.did=datasetsdesc.did and datasetsdesc.dataset='$query' and datasetsdesc.jobname=split(jobs.jobname) group by  datasetsdesc.jobdesc";
+          my $sql="select count(jobs.jid),datasetsdesc.jobdesc from jobs,datasetsdesc,datasets where $jobspid jobs.did=datasets.did and datasets.did=datasetsdesc.did and datasetsdesc.dataset='$dsname' and datasets.version like '\%$dsver\%' and datasetsdesc.jobname=split(jobs.jobname) group by  datasetsdesc.jobdesc";
 #       my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
        my $r5=$self->{sqlserver}->Query($sql);
        if(defined $r5->[0][0]){
@@ -5579,7 +5597,7 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
                    <span id=\"pbany\"><INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANYMC<BR></span>\n";
            print "</b></font></td></tr>\n";
            my @datasets = ();
-           my $sql = "SELECT datasetsdesc.dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=0 group by dataset";
+           my $sql = "SELECT datasetsdesc.dataset, datasets.version FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=0 group by dataset, version";
            my $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
             foreach my $ds (@{$r5}){
@@ -5590,12 +5608,12 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
                         next;
                     }
                 }
-                if ($dsexist == 0) {push @datasets, $ds->[0];}
+                if ($dsexist == 0) {push @datasets, $ds;}
             }
            }
             my $id=1;
            foreach my $dataset (@datasets) {
-             print "<span id=\"pb$id\"><INPUT TYPE=\"radio\" NAME=\"QPart\" ID=$id VALUE=$dataset><span id=b$id>$dataset</span><BR></span>\n";
+             print "<span id=\"pb$id\"><INPUT TYPE=\"radio\" NAME=\"QPart\" ID=$id VALUE=$dataset->[0]_$dataset->[1]><span id=b$id>$dataset->[0]</span><BR></span>\n";
              $id++;
 #              print "</b></font></td></tr>\n";
            }
@@ -5609,10 +5627,10 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
         foreach my $dataset (@datasets) {
             my $sqlq = "select did, nvl(cnt,0) cnt from productionset left outer join (select jobs.pid as did, count(jobs.did) as cnt
                         FROM Runs, Jobs, datasets, productionset, datasetsdesc
-                        WHERE Jobs.pid=productionset.did AND Jobs.JID=Runs.JID and datasets.did=jobs.did and datasetsdesc.dataset='$dataset' and datasetsdesc.did=datasets.did and
+                        WHERE Jobs.pid=productionset.did AND Jobs.JID=Runs.JID and datasets.did=jobs.did and datasetsdesc.dataset='$dataset->[0]' and datasetsdesc.did=datasets.did and datasets.version = '$dataset->[1]' and
                                 Runs.Status='Completed' group by jobs.pid) using(did) union all select -1 as did, count(jobs.did) as cnt
                     FROM Runs, Jobs, datasets, productionset, datasetsdesc
-                     WHERE Jobs.pid=productionset.did AND Jobs.JID=Runs.JID and datasets.did=jobs.did and datasetsdesc.dataset='$dataset' and productionset.status='Active' and datasetsdesc.did=datasets.did and
+                     WHERE Jobs.pid=productionset.did AND Jobs.JID=Runs.JID and datasets.did=jobs.did and datasetsdesc.dataset='$dataset->[0]' and productionset.status='Active' and datasetsdesc.did=datasets.did and productionset.vdb = datasets.version and datasets.version='$dataset->[1]' and
                             Runs.Status='Completed' order by did";
             my $res=$self->{sqlserver}->Query($sqlq);
             my $i=0;
@@ -5786,7 +5804,7 @@ function sort_prodsets() {
            print "</b></font></td></tr>\n";
            $#datasets = -1;
            
-           $sql = "SELECT name FROM datasets  where datamc=11";
+           $sql = "SELECT name, version FROM datasets  where datamc=11";
 #           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
            $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
@@ -5863,17 +5881,17 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
            print "</b></font></td></tr>\n";
            $#datasets = -1;
            
-           $sql = "SELECT name FROM datasets  where datamc=1";
+           $sql = "SELECT name, version FROM datasets  where datamc=1";
 #           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
            $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
             foreach my $ds (@{$r5}){
-                push @datasets, $ds->[0];
+                push @datasets, $ds;
             }
            }
        $id=2001;
            foreach my $dataset (@datasets) {
-             print "<span id=pb$id><INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset><span id=b$id>$dataset</span><BR></span>\n";
+             print "<span id=pb$id><INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset->[0]_$dataset->[1]><span id=b$id>$dataset->[0]</span><BR></span>\n";
              $id++;
 #              print "</b></font></td></tr>\n";
            }
@@ -5881,21 +5899,21 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
 #js start
          $sqlq = "select did ";
         foreach my $dataset (@datasets) {
-            $sqlq = $sqlq.",nvl(\"$dataset\",0) \"$dataset\" ";
+            $sqlq = $sqlq.",nvl(\"$dataset->[0]_$dataset->[1]\",0) \"$dataset->[0]_$dataset->[1]\" ";
         }
         $sqlq = $sqlq."from productionset ";
         foreach my $dataset (@datasets) {
             $sqlq = $sqlq."left outer join (
-select jobs.pid as did, count(jobs.did) as \"$dataset\"
+select jobs.pid as did, count(jobs.did) as \"$dataset->[0]_$dataset->[1]\"
                     FROM datasets, dataruns, productionset, jobs
-                     where productionset.did=jobs.pid and datasets.did=jobs.did and dataruns.jid=jobs.jid and datasets.name='$dataset' and
+                     where productionset.did=jobs.pid and datasets.did=jobs.did and dataruns.jid=jobs.jid and datasets.name='$dataset->[0]' and datasets.version = '$dataset->[1]' and 
                             dataruns.Status='Completed' group by jobs.pid) using(did)";
         }
         $sqlq=$sqlq." union all (select * from (select -1 as did from dual) ";
         foreach my $dataset (@datasets) {
-            $sqlq=$sqlq."left outer join (select -1 as did, count(jobs.did) as \"$dataset\"
+            $sqlq=$sqlq."left outer join (select -1 as did, count(jobs.did) as \"$dataset->[0]_$dataset->[1]\"
                     FROM datasets, dataruns, productionset, jobs
-                     where productionset.did=jobs.pid and datasets.did=jobs.did and productionset.status='Active' and dataruns.jid=jobs.jid and datasets.name='$dataset' and
+                     where productionset.did=jobs.pid and datasets.did=jobs.did and productionset.status='Active' and dataruns.jid=jobs.jid and datasets.name='$dataset->[0]' and datasets.version='$dataset->[1]' and
                             dataruns.Status='Completed') using(did)"
         }
 #        print($sqlq);
