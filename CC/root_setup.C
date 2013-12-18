@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.143 2013/11/14 08:46:28 choutko Exp $
+//  $Id: root_setup.C,v 1.144 2013/12/18 19:20:37 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1436,7 +1436,7 @@ else{
 
 //---NewV
  bool isnewv=((t2>1368950397)||(RTI::Version>=1));
- bool isnewv2=(RTI::Version>=2);
+ bool isnewv2=((t2>1374267385)||(RTI::Version>=2));
  if     (isnewv2)AMSISSlocal+="V2_20131220/";
  else if(isnewv)AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
@@ -1485,6 +1485,7 @@ const char fpate[]="24H.csv";
             if(isnewv2){ //Add Version 2
               fbin>>a.evnol;
               fbin>>a.usec[0]>>a.usec[1];
+              fbin>>a.mtrdh;
             }
             fbin>>a.lf;//begin ev+ livetime
             for(int ifv=0;ifv<4;ifv++){//cutoff
@@ -3150,6 +3151,12 @@ static unsigned int ssize=0;
 static unsigned int stime[2]={1,1};
 #pragma omp threadprivate (stime)
 #pragma omp threadprivate (ssize)
+static int vrti=-1;
+#pragma omp threadprivate (vrti)
+if(AMSSetupR::RTI::Version!=vrti){
+  cout<<"<<----------RTI Version="<<AMSSetupR::RTI::Version<<"---------->>"<<endl;
+  vrti=AMSSetupR::RTI::Version;
+}
 if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1]))fRTI.clear();
 if(fRTI.size()==0){
 const int dt=120;

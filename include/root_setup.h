@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.90 2013/11/22 12:14:39 choutko Exp $
+//  $Id: root_setup.h,v 1.91 2013/12/18 19:20:41 qyan Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -208,7 +208,16 @@ float nhwerr;  ///< events with has HW error(JINJStatus)
 float npart; ///< events with tof+trd+tracker+ecal
 float nl1l9[2][2]; ///<events with track L1 L9 XY hit 
 float dl1l9[2][3]; ///< mean difference(um) bewteen PG ad CIEMAT alignment of L1 and L9(XYZ)
-int good;    ///< 0 if good -1 no events(in this second)
+float mtrdh; ///< average trdrawhit number for one event  
+int good;    ///< 0 if good
+/*!<
+  bit0: duplicate events                          \n
+  bit1: event number flip                         \n
+  bit2: event missing at the beginging of second  \n
+  bit3: event missing at the end of second        \n
+  bit4: second at the begining of run             \n
+  bit5: second at the end of run                  \n
+*/
 unsigned int utime;///< JMDC unix time(second)
 unsigned int usec[2];///< microsecond(us) for first and last event in one second
 float getthetam();///< PhiM (degrees)
@@ -216,7 +225,7 @@ float getphim();///< ThetaM(degrees)
 static int Version;///< RTI Version id: 0(default B620) old, 1 new(2013-08 B620),2 new (2013-12 B700)
 static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) form IGRF-table
 //---
- RTI():evno(0),evnol(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0){
+ RTI():evno(0),evnol(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0),mtrdh(0){
         for(int ifv=0;ifv<4;ifv++){
           for(int ipn=0;ipn<2;ipn++){cf[ifv][ipn]=0;cfi[ifv][ipn]=0;}
         }
@@ -225,7 +234,7 @@ static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) f
         }
         usec[0]=usec[1]=0;
    }
-ClassDef(RTI,6)
+ClassDef(RTI,7)
 };
 
 
