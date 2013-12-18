@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612.2.6 2013/12/10 00:22:27 pzuccon Exp $
+//  $Id: root.C,v 1.612.2.7 2013/12/18 19:18:11 qyan Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10397,6 +10397,12 @@ int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
   static unsigned int stime[2]={1,1};
 #pragma omp threadprivate (setupu)
 #pragma omp threadprivate (stime)
+static int vrti=-1;
+#pragma omp threadprivate (vrti)
+if(AMSSetupR::RTI::Version!=vrti){
+  cout<<"<<----------RTI Version="<<AMSSetupR::RTI::Version<<"---------->>"<<endl;
+  vrti=AMSSetupR::RTI::Version;
+}
  const int pt=3600*3;
  const int dt=3600*24;
  if(stime[0]==1||xtime>stime[1]||xtime<stime[0]){
