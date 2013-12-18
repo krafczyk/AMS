@@ -3658,6 +3658,7 @@ class RemoteClient:
         runst=""
         bad1=array('i')
         bad2=array('i')
+        badeos=array('i')
         typess=["0SCI","0LAS","0CAL","0CMD","0CAB"]
 
         for type in typess:
@@ -3771,10 +3772,39 @@ class RemoteClient:
         rund=rund+runad
         runn=runn+runan
         if(self.force):
+            eos_prefix="/tmp/eosams"
+            eosmount="/afs/cern.ch/project/eos/installation/0.3.1-22/bin/eos.select -b fuse mount "+eos_prefix 
+            os.system(eosmount)
+            sql="select path,run from ntuples where path like '%%%s/%%' and eostime>0 and datamc=1  %s " %(datapath,runn)
+            paths=self.sqlserver.Query(sql)
+            for path in paths:
+                if(path[0].find('/castor/cern.ch')>=0):
+                    nsls="nsls -l "+path[0]
+                    pair=commands.getstatusoutput(nsls)
+                    if(pair[0]==0):
+                        sp1=pair[1].split(' ')
+                        if(len(sp1)>4):
+                            pos=0
+                            for chunk in sp1:
+                                if(chunk!=""):
+                                    if(pos==4):
+                                        sp1[4]=chunk
+                                    pos=pos+1
+                                    
+                            patheos=path[0].replace('/castor/cern.ch',eos_prefix,1)
+                            eosls ="ls -l "+patheos
+                            p2=commands.getstatusoutput(eosls)
+                            sp2=p2[1].split(' ')
+                            if(p2[0]!=0 or len(sp2)<=4 or sp2[4]!=sp1[4]):
+                                    badeos.append(path[1])
+                                    print "Run ",path[1] ," have eos problems "
+                                
+        if(self.force):
             sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
             files=self.sqlserver.Query(sql)
             sql="select run,levent-fevent+1 from datafiles where status='OK' and type like 'SCI%%' %s " %(rundd)
             runs=self.sqlserver.Query(sql)
+            tot=0
             if(len(files)>0):
                 for run in runs:
                     found=0
@@ -3788,7 +3818,9 @@ class RemoteClient:
                             break
                     if(found==0):
                         if(tab==0):
-                            print "Run ",run,"  not found in dataset ",dataset
+                            tot=tot+1
+                            print "Run ",run,"  not found in dataset ",dataset,tot
+
                             bad1.append(run[0])
                         else:
                             print "<tr>"
@@ -3839,6 +3871,7 @@ class RemoteClient:
         else:   
            print "not found ",bad1
            print "disagree ",bad2       
+           print "eos ",badeos       
 
     def DeleteDataSet(self,run2p,dataset,u,v,f,donly,datamc,buildno,castoronly):
         self.update=u
