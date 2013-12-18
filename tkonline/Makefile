@@ -42,6 +42,14 @@ LIBS += -F$(QTDIR) -framework QtCore
 endif
 endif
 
+ifeq ($(ARCH),macosx64)
+
+#OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
+DEFINES+=-D__OSXVER__=$(OSXVER)
+
+endif
+
 ### Additional Classes Dictionary  
 CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI CalList
 CLASSES        += Predict
