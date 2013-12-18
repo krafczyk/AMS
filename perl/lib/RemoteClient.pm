@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.807 2013/12/04 14:27:20 choutko Exp $
+# $Id: RemoteClient.pm,v 1.808 2013/12/18 14:26:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8359,6 +8359,10 @@ if(defined $dataset->{buildno} ){
  $sql="select FEvent from DataRuns where jid=$job";
  $ret=$self->{sqlserver}->Query($sql);
 }
+my $buf2="$buf$tmpb";
+if(length($buf2)>=4000){
+    $buf2=~s/export/et/g;
+}
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($job,
                               '$script',
@@ -8368,7 +8372,7 @@ if(defined $dataset->{buildno} ){
                               $ctime,
                               $evts,
                               $timeout,
-                              '$buf$tmpb',
+                              '$buf2',
                               $ctime,
                               '$nickname',
                                'host',0,0,0,0,'$stalone',
@@ -9802,6 +9806,10 @@ if(defined $dataset->{buildno} ){
  $sql="select FEvent from Runs where jid=$run";
  $ret=$self->{sqlserver}->Query($sql);
 }
+my $buf2="$buf$tmpb";
+if(length($buf2)>=4000){
+    $buf2=~s/export/et/g;
+}
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($run,
                               '$script',
@@ -9811,7 +9819,7 @@ if(defined $dataset->{buildno} ){
                               $ctime,
                               $evts,
                               $timeout,
-                              '$buf$tmpb',
+                              '$buf2',
                               $ctime,
                               '$nickname',
                                'host',0,0,0,0,'$stalone',
@@ -15379,6 +15387,10 @@ my %CloseDSTPatterns = (
               if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
                $bufj =~ s/'/''/g;
               }
+
+if(length($bufj)>=4000){
+    $bufj=~s/export/et/g;
+}
               my $insertjobsql="INSERT INTO Jobs VALUES
                              ($jid,
                               '$job->{ScriptName}',
