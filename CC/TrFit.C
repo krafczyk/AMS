@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.79.2.1 2013/12/18 22:21:31 shaino Exp $
+//  $Id: TrFit.C,v 1.79.2.2 2013/12/19 13:22:42 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2013/12/18 22:21:31 $
+///$Date: 2013/12/19 13:22:42 $
 ///
-///$Revision: 1.79.2.1 $
+///$Revision: 1.79.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4204,7 +4204,7 @@ AMSPoint TrProp::GuFld(AMSPoint pnt)
 
 void TrProp::TkFld(double *p, double hxy[][3])
 {
-  float pp[3] = { p[0], p[1], p[2] };
+  float pp[3] = { (float)p[0], (float)p[1], (float)p[2] };
   float hh[2][3];
   TKFLD(pp, hh);
 
