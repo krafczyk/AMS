@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.44 2013/12/15 10:35:09 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.45 2013/12/19 10:05:31 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -14,7 +14,11 @@ SLC64system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
 endif
-
+infdef SLC64system
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
+endif
+endif
 
 #
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
