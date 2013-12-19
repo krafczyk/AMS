@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.45 2013/12/19 10:05:31 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.46 2013/12/19 12:13:30 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -14,7 +14,7 @@ SLC64system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
 endif
-infdef SLC64system
+ifndef SLC64system
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
 endif
@@ -100,7 +100,8 @@ endif
   INTELOPT=-axsse4.2,ssse3 
 ifdef SLC64system
   INTELVER=composer_xe_2013_sp1.1.106/compiler/
-   INTELOPT=-mavx
+#compiler bug
+   INTELOPT=-axAVX -msse3
 endif
 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
