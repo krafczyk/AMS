@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.42.2.4 2013/12/19 12:14:18 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.42.2.5 2013/12/19 14:18:11 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -14,7 +14,11 @@ SLC64system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
 endif
-
+ifndef SLC64system
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
+endif
+endif
 
 #
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
@@ -96,7 +100,9 @@ endif
   INTELOPT=-axsse4.2,ssse3 
 ifdef SLC64system
   INTELVER=composer_xe_2013_sp1.1.106/compiler/
-   INTELOPT=-axAVX -msse3
+#compiler bug
+#   INTELOPT=-axAVX -msse3
+   INTELOPT=-axsse4.2,ssse3 -msse3
 endif
 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
