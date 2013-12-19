@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.131.2.4 2013/12/19 07:57:18 choutko Exp $
+#  $Id: Makefile,v 1.131.2.5 2013/12/19 12:14:26 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -189,7 +189,7 @@ ifndef SLC6system
 else
 #  INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2011_sp1.9.293/
 INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2013_sp1.1.106/
-  CPPFLAGS= -D__LINUXNEW__ -mavx 
+  CPPFLAGS= -D__LINUXNEW__ -axAVX -msse3 
 endif
 
 CXX = $(INTELVER)bin/intel64/icc

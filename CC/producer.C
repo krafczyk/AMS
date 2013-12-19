@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.187.2.5 2013/11/29 06:43:32 choutko Exp $
+//  $Id: producer.C,v 1.187.2.6 2013/12/19 12:13:43 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2314,8 +2314,19 @@ else sprintf(tmpu,"%d",_pid.uid);
               afscript+=(const char*)afout;
               afscript+=" 2>&1";
              cout << "AMSClient-I-Trying "<<(const char*)afscript<<endl;
+              // cern lxplus6 id
+              bool lxplus6=strstr(_pid.HostName,"cern.ch");
+              bool lxplus6_1=_pid.HostName[0]=='b' && _pid.HostName[1]=='6';
+              bool lxplus6_2=_pid.HostName[0]=='p';
+              if(lxplus6_2){
+                for(int k=1;k<strlen(_pid.HostName);k++){
+                  if(_pid.HostName[k]=='.')break;
+                  if(!isdigit( _pid.HostName[k]))lxplus6_2=false;
+                }
+              }
+              lxplus6=lxplus6 && (lxplus6_1 || lxplus6_2); 
                //  not if pcamsf4
-              int i=!(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb") || strstr(_pid.HostName,"vmb"))?1:system((const char*)afscript);
+              int i=!(lxplus6 || strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb") || strstr(_pid.HostName,"vmb"))?1:system((const char*)afscript);
               char line[1024];
               bool amsprod=false;
               if(i==0){
@@ -2351,9 +2362,10 @@ else sprintf(tmpu,"%d",_pid.uid);
                char *lxplus5=getenv("AMSPublicBatch");
                if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
               lxplus5=getenv("AMSPublicBatch");
-                  if(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb")|| strstr(_pid.HostName,"vmb")){
+                  if(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb")|| strstr(_pid.HostName,"vmb") || lxplus6){
 
                     _pid.HostName=amsprod?"lxplus.cern.ch":lxplus5;
+                    if(lxplus6)_pid.HostName="lxplus6.cern.ch";
                     _pid.pid=id[id.size()-1];
                     _pid.ppid=0;
                   }
