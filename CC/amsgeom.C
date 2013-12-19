@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.227 2013/11/07 12:55:44 choutko Exp $
+//  $Id: amsgeom.C,v 1.227.2.1 2013/12/19 14:27:56 traiha Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2114,10 +2114,11 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 #ifdef __G4AMS__
      if(MISCFFKEY.G4On){
-// no bulkheads in g4
-//       daug4 = 
-//      (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
-//       nrot++,name,"TRD1",par,4,coo,nrm,"BOOL",0,gid,1));
+// (no bulkheads in g4)
+// TR: enabled 19-Dec-2013
+       daug4 = 
+      (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
+       nrot++,name,"TRD1",par,4,coo,nrm,"BOOL",0,gid,1));
      }
      else
 #endif
@@ -2148,8 +2149,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 #ifdef __G4AMS__
                  if(MISCFFKEY.G4On){
-// temporary disable cutouts in g4  VC 12-mar-2003
-//		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
+// (temporary disable cutouts in g4  VC 12-mar-2003)
+// TR: enabled 19-Dec-2013
+		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
                  }
                  else
 #endif
@@ -2218,8 +2220,45 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 #ifdef __G4AMS__
    if(MISCFFKEY.G4On){
    dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
-       nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
+       nrot++,name,"BOX",par,3,coo,nrm, "BOOL",0,gid,1));
    ((AMSgvolume*) dau)->Smartless()=1;
+
+   // get the position of straw module's strips to remove ladder's fleece 
+   // on top and bottom of them where the bulkheads are crossed (TR: 19-Dec-2013)
+   geant stripCoord[3] = {0.0,0.0,0.0};
+   number stripRotation[3][3] = {1,0,0,0,1,0,0,0,1};
+   TRDDBc::GetTubeBox(k,j,i,status,stripCoord,stripRotation,rgid);
+   geant cutoutCoord[3];
+   geant cutoutDimensions[3];
+   // bulkheads cross symmetrically both halves of each ladder
+   number distanceToBulkhead = 61.38 / 2.0; // [cm]
+   cutoutCoord[0] = 0.0;
+   cutoutCoord[2] = distanceToBulkhead;
+
+   // remove fleece above the straw module
+   number strawModuleUpperEdge = stripCoord[1] + TRDDBc::StripsDim(1) / 2.0;
+   // the half-height of fleece cutout
+   cutoutDimensions[1] = fabs(par[1] - strawModuleUpperEdge) / 2.0;
+   // the center between ladder and straw module upper edges
+   cutoutCoord[1] = par[1] - cutoutDimensions[1];
+   cutoutDimensions[0] = par[0]; // half-width of the ladder
+   cutoutDimensions[2] = TRDDBc::BulkheadWidth() / 2.0; // bulkhead half-thickness along the ladder
+   // do not apply any rotation in ladder's coordinate system
+   number cutoutRotation[3][3] = {1,0,0,0,1,0,0,0,1};
+   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
+   cutoutCoord[2] = -distanceToBulkhead;
+   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
+
+   // remove fleece below the straw module
+   stripCoord[1]-=TRDDBc::TubesBoxDimensions(i,j,k,3);
+   number strawModuleLowerEdge = stripCoord[1] - TRDDBc::StripsDim(1) / 2.0;
+   cutoutDimensions[1] = fabs(-par[1] - strawModuleLowerEdge) / 2.0;
+   cutoutCoord[1] = -par[1] + cutoutDimensions[1];
+   cutoutCoord[2] = distanceToBulkhead;
+   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
+   cutoutCoord[2] = -distanceToBulkhead;
+   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
+
     }
     else{
 #endif
@@ -2269,22 +2308,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
       }
 
-
-   // Wires (disabled for now)
-   /*
-      for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
-         ost.clear();
-   ost.seekp(0);
-
-   ost << "TRDI"<<ends;
-   TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
-   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::WiresDimensions(i,j,k,ip);
-
-   gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
-   dau->add(new AMSgvolume(TRDDBc::WiresMedia(),
-      0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1)\
-);
-} */
 
      //strips
          ost.clear();
@@ -2342,8 +2365,26 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 //   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
    gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
    //   cout << "Inner Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" gid "<<gid<<endl;
-   dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
+   AMSNode *ptrd=dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+
+#ifdef __G4AMS__
+   if(MISCFFKEY.G4On){
+
+     // Wires (TR: enabled 19-Dec-2013)
+     ost.clear();
+     ost.seekp(0);
+     ost << "TRDI"<<ends;
+     for(ip=0;ip<3;ip++)par[ip]=TRDDBc::WiresDimensions(i,j,k,ip);
+
+     // place wire in the middle of gas volume
+     geant wireCoord[3] = {0.0,0.0,0.0};
+     gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
+     ptrd->add(new AMSgvolume(TRDDBc::WiresMedia(),
+			    0,name,"TUBE",par,3,wireCoord,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));
+   }
+#endif
+
    }
 
 

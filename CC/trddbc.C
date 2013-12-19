@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.59 2013/11/07 10:29:54 choutko Exp $
+//  $Id: trddbc.C,v 1.59.2.1 2013/12/19 14:27:56 traiha Exp $
 #include "trddbc.h"
 //#include "amsdbc.h"
 #include <math.h>
@@ -305,7 +305,7 @@ uinteger   TRDDBc::_NumberCutouts=0;
 uinteger   TRDDBc::_NumberBulkheads=0;
 
 
-const number  TRDDBc::_WireDiameter=0.03;
+const number  TRDDBc::_WireDiameter=0.003;
 const number  TRDDBc::_TubeWallThickness=72e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
 const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-2*TRDDBc::_TubeWallThickness)/2.;
