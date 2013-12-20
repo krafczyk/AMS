@@ -3298,7 +3298,7 @@ class RemoteClient:
                         else:
                             try:
                                 dstsize=int(os.stat(dstfile)[ST_SIZE])
-                            except IOError, e:
+                            except OSError, e:
                                 output.write("parseJournalFile-W-CloseDST block : cannot stat %s\n" %(dstfile))
                                 runfinishedR=1
                                 dstsize=-1
