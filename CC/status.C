@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.57.2.2 2013/12/20 08:25:30 choutko Exp $
+//  $Id: status.C,v 1.57.2.3 2013/12/20 15:10:56 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -357,7 +357,7 @@ integer AMSStatus::getnextok(){
 //
   uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getsoffset();
 // a bit tricky in mt mode
-const int maxthr=32;
+const int maxthr=64;
 const long long max32=4294967296LL;
   uint64 off64=_Offset+_Status[i].off;
 if(i<maxthr && _Status[i].off>_Status[maxthr].off && off64>=max32){

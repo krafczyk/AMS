@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.935.2.4 2013/12/18 22:21:51 shaino Exp $
+// $Id: job.C,v 1.935.2.5 2013/12/20 15:10:56 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2080,6 +2080,10 @@ void AMSJob::udata(){
 
 
 #ifdef _PGTRACK_
+if(isRealData()){
+if(TKGEOMFFKEY.LoadMCDisalign)cerr<<"AMSJob::udata-W-TKGEOMFFKEY.LoadMCDisalignReseted  "<<TKGEOMFFKEY.LoadMCDisalign<<endl;
+TKGEOMFFKEY.LoadMCDisalign=0;
+}
   TkDBc::CreateTkDBc();
 #else
 #endif
