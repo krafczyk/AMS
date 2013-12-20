@@ -3041,6 +3041,7 @@ class RemoteClient:
                            sql="update runs set levent=%s where run=%d " %(runincomplete[4],run)
                            output.write(sql + "\n")
                            self.sqlserver.Update(sql)
+                           self.sqlserver.Commit(1)
                     else:
                         output.write("parseJournalfile-W-RunIncomplete - cannot find all patterns \n")
                 else:
@@ -3134,6 +3135,7 @@ class RemoteClient:
                     sql = "UPDATE Jobs SET mips = %d, host = '%s' where jid = %d" %(jobmips, jobstarted[1], lastjobid)
                     output.write(sql + "\n")
                     self.sqlserver.Update(sql)
+                    self.sqlserver.Commit(1)
                 else:
                     output.write("parseJournalFiles -W- JobStarted - cannot find all patterns\n")
             elif(block.find('StartingRun')>=0):
@@ -3186,6 +3188,7 @@ class RemoteClient:
 
                     sql = "UPDATE Jobs set host='%s',events=%s, errors=%s,cputime=%s, elapsed=%s,timestamp=%d, mips = %s where jid=%d" %(host,startingrun[14],startingrun[16],startingrun[17],startingrun[18],timestamp,jobmips,lastjobid)
                     self.sqlserver.Update(sql)
+                    self.sqlserver.Commit(1)
                     output.write(sql + "\n")
                 else:
                     output.write("StartingRun - cannot find all patterns \n")
@@ -3293,10 +3296,9 @@ class RemoteClient:
                                 print "parsejournalfile-E-Unableto %s" %(cmd)
                             os.unlink(tmpf)
                         else:
-                            dstsize=int(os.stat(dstfile)[ST_SIZE])
                             try:
-                                dstsize
-                            except NameError:
+                                dstsize=int(os.stat(dstfile)[ST_SIZE])
+                            except IOError, e:
                                 output.write("parseJournalFile-W-CloseDST block : cannot stat %s\n" %(dstfile))
                                 runfinishedR=1
                                 dstsize=-1
@@ -3430,6 +3432,7 @@ class RemoteClient:
                     else:
                         sql = "UPDATE jobs SET realtriggers=%s WHERE jid=%d" %(runfinished[3], lastjobid)
                         self.sqlserver.Update(sql)
+                    self.sqlserver.Commit(1)
                     output.write(sql + "\n")
                     cputime = int(float(runfinished[6]))
                     elapsed = int(float(runfinished[7]))
@@ -3437,6 +3440,7 @@ class RemoteClient:
                     sql = "update jobs set events=%s, errors=%s, cputime=%d, elapsed=%d, host='%s', mips=%d, timestamp=%d where jid = %d" %(runfinished[3], runfinished[5], cputime, elapsed, host, jobmips, timestamp, lastjobid)
                     output.write(sql + "\n")
                     self.sqlserver.Update(sql)
+                    self.sqlserver.Commit(1)
                 else:
                     output.write("parseJournalFile -W- RunFinished - cannot find all patterns %d/%d\n" %(patternsmatched, RunFinishedPatterns))
                     #
@@ -3477,6 +3481,7 @@ class RemoteClient:
                         sql = "UPDATE Jobs SET host = %s, events = %d, errors = %d, cputime = -1, elapsed = -1, timestamp = %d where jid = %d" %(host, tevents, terrors, timestamp, lastjobid)
                         output.write(sql + " \n")
                         self.sqlserver.Update(sql)
+                        self.sqlserver.Commit(1)
                     if (runtype == 0):
                         sql = "select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run=%d and ntuples.datamc=0" %(run)
                         r4 = self.sqlserver.Query(sql)
@@ -3491,6 +3496,7 @@ class RemoteClient:
                             sql=" update jobs set realtriggers=%d, timekill=0 where jid=%d" %(ntevt, run)
                             output.write(sql + "\n")
                             self.sqlserver.Update(sql)
+                            self.sqlserver.Commit(1)
                     for ntuple in cpntuples:
                         cmd = self.rm + ntuple
                         output.write(cmd + "\n")
@@ -3513,6 +3519,7 @@ class RemoteClient:
                     os.system(cmd)
                 sql = "DELETE ntuples WHERE jid=%d" %(lastjobid)
                 self.sqlserver.Update(sql)
+                self.sqlserver.Commit(1)
                 output.write(sql + "\n")
             if (runtype != 0):
                 runtable = 'dataruns'
@@ -3521,6 +3528,7 @@ class RemoteClient:
             if (startingrun[2] != 0):
                 sql = "UPDATE %s SET STATUS='%s' WHERE jid=%d" %(runtable, status, lastjobid)
                 self.sqlserver.Update(sql)
+                self.sqlserver.Commit(1)
                 output.write("Update Runs : %s \n" %(sql))
                 if (status == 'Failed' or status == 'Unchecked'):
                     sql = "SELECT dirpath FROM journals WHERE cid=-1"
@@ -3601,6 +3609,7 @@ class RemoteClient:
                                     if(ret[0][0]==os.stat(ptdv)[ST_MTIME]):
                                         sql="delete from TDV where path='%s'" %ptdv
                                         self.sqlserver.Update(sql)
+                                        self.sqlserver.Commit(1)
                                         continue
                                     
                                 if(verbose):
