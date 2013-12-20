@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.48 2013/12/20 22:20:48 choutko Exp $
+#  $Id: Makefile.linuxx8664k1omicc,v 1.1 2013/12/20 22:20:48 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -60,7 +60,7 @@ SLC4system=1
 RH9=1
 RH9add=
 ifdef RH9
- RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+ RH9add=-pthread   -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 endif
 
 SLC6system=
@@ -68,7 +68,7 @@ ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
 
-RH9add=-pthread $(BIN)ctype.o 
+RH9add=-pthread  
 ifdef DEBUGFLAG
 RH9add+= -g
 endif
@@ -102,10 +102,7 @@ ifdef SLC64system
   INTELVER=composer_xe_2013_sp1.1.106/compiler/
 #compiler bug
 #   INTELOPT=-axAVX -msse3
-   INTELOPT=-axsse4.2,ssse3 -msse3
-ifdef AMSMIC
 INTELOPT=-mmic 
-endif
 endif
 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
@@ -115,7 +112,7 @@ endif
   FFOLD=$(FF)  -save
   FFLAGSSAVE= -save
   FORTRAN_LIBS=
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
+  FORTRAN2_LIBS=  -L$(INTELDIR)/$(INTELVER)/lib/mic   -lifport -lintlc -lifcoremt -limf  -lipgo -lirc_s 
 
 ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
@@ -133,11 +130,8 @@ CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib
 
 ifndef CERNDIR
   CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
-  ifdef DEBUGFLAG
-    CERNDIR =/f2users/choutko/cernlib_64g/$(CERN_LEVEL)
-  endif
   ifdef SLC64system
-    CERNDIR=/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL).icc64.14
+    CERNDIR=/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL).mic
   endif
 
 endif
@@ -145,7 +139,7 @@ endif
 CERNSRCDIR = $(CERNDIR)
 
 ifndef AMSLIB
-  AMSLIB = /afs/cern.ch/exp/ams/Offline/lib/linux/icc64
+  AMSLIB = /afs/cern.ch/exp/ams/Offline/lib/linux/mic
 endif
 
 ifndef NAGDIR
@@ -221,7 +215,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/mic/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
 ifndef NOXROOTD
 SOFLAGS += -lNetx
 endif
@@ -247,7 +241,7 @@ endif
 
 TIMEL=
 LDFLAGSI=    -static  $(G4LIBSI) $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag64 \
+-L$(NAGDIR) -lnagmic \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype -lncurses\
@@ -256,10 +250,10 @@ $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre  $(LZMAL)    \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add) 
 
 LDFLAGS=     $(G4LIBS)  $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag64   \
+-L$(NAGDIR) -lnagmic   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--lcrypto -L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -lfreetype -lncurses  -ldl -lpcre  $(LZMAL) \
+-L$(AMSDEPLIB)/xrootd.mic-icc64-13/lib -lcrypto -L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS)  -lcrypto -lfreetype   -ldl -lpcre  $(LZMAL) \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
@@ -276,7 +270,7 @@ LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt  -lRoot
 SOFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
 endif
 
-LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
+LDFLAGSSTATIC:=    $(LDFLAGS) $(RH9add) 
 
 LDFLAGS+= -lcxa -lcprts
 
