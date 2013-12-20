@@ -464,7 +464,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   uint ti9 = Find(9, 0)-119;
 
   uint te8 = ti8+50000;  // Effective time range
-  uint te9 = ti8+50000;  // Effective time range
+  uint te9 = ti9+50000;  // Effective time range
 
   if (time%50000 < 120) time += 120;
 
