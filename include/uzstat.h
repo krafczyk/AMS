@@ -1,4 +1,4 @@
-//  $Id: uzstat.h,v 1.21 2013/11/25 14:37:37 choutko Exp $
+//  $Id: uzstat.h,v 1.22 2013/12/20 22:20:57 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSUZSTAT__
 #define __AMSUZSTAT__
@@ -76,7 +76,12 @@ public:
   AMSStat();
   ~AMSStat();
   /// Create a new timer
-  void book(char * name, int freq=1,int thr=64);
+  //
+#ifdef __MIC__ 
+ void book(char * name, int freq=1,int thr=256);
+#else
+void book(char * name, int freq=1,int thr=64);
+#endif
   void accu();
   ///Starts the timer
   void start(char * name);

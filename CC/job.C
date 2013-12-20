@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.940 2013/12/20 21:59:47 shaino Exp $
+// $Id: job.C,v 1.941 2013/12/20 22:21:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -100,6 +100,9 @@
 #include "TrdHCalib.h"
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+#ifdef __MIC__
+#define __DARWIN__
 #endif
 #ifdef __DB__
 //+
@@ -2078,6 +2081,10 @@ void AMSJob::udata(){
     }
   }
 
+if(isRealData()){
+if(TKGEOMFFKEY.LoadMCDisalign)cerr<<"AMSJob::udata-W-TKGEOMFFKEY.LoadMCDisalignReseted  "<<TKGEOMFFKEY.LoadMCDisalign<<endl;
+TKGEOMFFKEY.LoadMCDisalign=0;
+}
 
 #ifdef _PGTRACK_
 if(isRealData()){
@@ -2157,12 +2164,12 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
 #endif
     RichPMTsManager::Init();
-#ifndef __DARWIN__  
+#ifndef  __DARWIN__ 
     feclearexcept(FE_ALL_EXCEPT);
     if(env){
       feenableexcept(env);        
     }
-#endif       
+#endif
     RichRadiatorTileManager::Init();	
     RichAlignment::Init();
     RichLIPRec::InitGlobal();

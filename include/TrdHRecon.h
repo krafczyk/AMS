@@ -16,7 +16,7 @@ class AMSTimeID;
 #ifndef __ROOTSHAREDLIBRARY__
 class AMSTRDRawHit;
 #endif 
-const int maxtrdhrecon=64;
+const int maxtrdhrecon=256;
 
 const float TRDz0=113.5;
 const float RSDmax=0.6;

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.167 2013/11/05 14:22:30 mdelgado Exp $
+//  $Id: richrec.C,v 1.168 2013/12/20 22:21:04 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -18,6 +18,9 @@ int RichLIPRec::hitinlip[11000];
 #include "root.h" 
 #endif
 
+#ifdef __MIC__
+#define __DARWIN__
+#endif
 #ifdef _OPENMP
 #include <omp.h>
 #endif

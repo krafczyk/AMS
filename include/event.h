@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.113 2013/11/25 14:37:37 choutko Exp $
+//  $Id: event.h,v 1.114 2013/12/20 22:20:57 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -27,7 +27,7 @@
 
 
 
-const int maxthread=64;
+const int maxthread=256;
 class AMSEvent: public AMSNode{
 private:
 
