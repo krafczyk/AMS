@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.179.2.1 2013/11/29 16:04:50 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.179.2.2 2013/12/20 15:18:56 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -3303,8 +3303,9 @@ void AMSEcalShower::LAPPVariables(){
   float s_cell2_w[18];
   float edep_cell[18][72];
   float edep_layer[18];
-  int nhitcell[18]={0.};
-  for (int elay=0; elay<18; elay++){
+ int nhitcell[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+ 
+ for (int elay=0; elay<18; elay++){
     bcell_lat[elay]=0.;
     bcell2_lat[elay]=0.;
     bcell_latx[elay]=0.;
