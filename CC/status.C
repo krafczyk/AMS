@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.57.2.1 2013/11/29 07:22:32 choutko Exp $
+//  $Id: status.C,v 1.57.2.2 2013/12/20 08:25:30 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -64,7 +64,7 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,
 
         return 2;
 } 
-  bool ret= ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && pdaq && pdaq->getoffset()-_Offset>INT_MAX);
+  bool ret= ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && pdaq && pdaq->getoffset()-_Offset>4294967294-MAXDAQRATE*10000 && timechanged);
     if(ret){
        cout <<  "  StatusTableFull "<<_Offset<<" "<<_Nelem<<" "<<evt<<endl;
        return 1;
