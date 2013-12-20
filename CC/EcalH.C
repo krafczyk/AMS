@@ -1,4 +1,4 @@
-//  $Id: EcalH.C,v 1.8 2013/11/13 05:11:35 shaino Exp $
+//  $Id: EcalH.C,v 1.9 2013/12/20 22:00:59 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/11/13 05:11:35 $
+///$Date: 2013/12/20 22:00:59 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -301,6 +301,7 @@ int EcalHR::FitL(int s, float par[3], float err[3], int method)
   float xmax = Peak(im-1, ec[im-1], im, ec[im], im+1, ec[im+1]);
 
   if (xmax > 25) xmax = 25;
+  if (xmax <  0) xmax =  0;
 
   if (!EcalH::func) EcalH::func = Lfun(1, 0, 1);
 
