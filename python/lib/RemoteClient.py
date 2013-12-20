@@ -2919,6 +2919,7 @@ class RemoteClient:
         run=0
         mutex.acquire()
         inputwork = inputfile + ".work"
+        inputorig = inputfile
         ret = os.system("mv %s %s" %(inputfile, inputwork))
         if (ret == 0):
             inputfile = inputwork
@@ -3001,7 +3002,7 @@ class RemoteClient:
             if(utime < firstjobtime or utime > lastjobtime):
                 self.BadRuns[self.nCheckedCite] += 1;
                 output.write("*********** wrong timestamp : %d (%d,%d)\n" %(utime, firstjobtime, lastjobtime))
-#                os.system("mv %s %s.0" %(inputfile, inputfile))
+#                os.system("mv %s %s.0" %(inputfile, inputorig))
 #                output.write(lastline + "\n")
 #                output.close
 #                mutex.release()
@@ -3078,12 +3079,12 @@ class RemoteClient:
                     if(self.findJob(jobid,buf,dirpath,cid) !=jobid):
                         output.write("fatail - cannot find JobInfo for %d\n" %(jobid))
                         self.BadRuns[self.nCheckedCite] += 1
-                        system("mv %s %s.0" %(inputfile,inputfile))
+                        system("mv %s %s.0" %(inputfile,inputorig))
                         mutex.release()
                         return 0, copylog
                 else:
                         output.write("fatail - cannot find JobInfo for in %s\n" %(inputfile))
-                        system("mv %s %s.0" %(inputfile,inputfile))
+                        system("mv %s %s.0" %(inputfile,inputorig))
                         mutex.release()
                         return 0, copylog
                 if(patternsmatched == len(StartingJobPatterns) or patternsmatched == len(StartingJobPatterns)-1):
@@ -3119,13 +3120,13 @@ class RemoteClient:
                     if(self.findJob(jobid,buf,dirpath,cid) !=jobid):
                         output.write("fatal - cannot find JobInfo for %d\n" %(jobid))
                         self.BadRuns[self.nCheckedCite] += 1
-                        os.system("mv %s %s.0" %(inputfile,inputfile))
+                        os.system("mv %s %s.0" %(inputfile,inputorig))
                         mutex.release()
                         return 0, copylog
                 else:
                         output.write("fatal - cannot find JobInfo for in %s\n" %(inputfile))
                         print("fatal - cannot find JobInfo for in "+inputfile)
-                        os.system("mv %s %s.0" %(inputfile,inputfile))
+                        os.system("mv %s %s.0" %(inputfile,inputorig))
                         mutex.release()
                         return 0, copylog 
                 if(patternsmatched == len(JobStartedPatterns)-1 or patternsmatched == len(JobStartedPatterns)-2):
@@ -3168,7 +3169,7 @@ class RemoteClient:
                 rq=self.sqlserver.Query(sql)
                 if(len(rq)>0 and rq[0][0].find('Completed')>=0):
                     print "Run ",run," already completed in database do nothing"
-#                        os.system("mv %s %s.1" %(inputfile,inputfile))
+#                        os.system("mv %s %s.1" %(inputfile,inputorig))
 #                        return 0, copylog
                 if(patternsmatched == len(StartingRunPatterns)+3 or patternsmatched == len(StartingRunPatterns)+2):
                     startingrunR=1
@@ -3182,7 +3183,7 @@ class RemoteClient:
                     if (runtype != 0 and (run_incomplete == 1 or run_finished == 0)):
                         # data do not allow incomplete run
                         print "Run %d incomplete or not finished while real data mode, do nothing." %(startingrun[2])
-                        os.system("mv %s %s.0" %(inputfile, inputfile))
+                        os.system("mv %s %s.0" %(inputfile, inputorig))
                         mutex.release()
                         return 0, copylog
 
@@ -3449,12 +3450,12 @@ class RemoteClient:
         if (startingrunR == 1 or runfinishedR == 1):
             status = "Failed"
             cmd = None
-            inputfileLink = inputfile + '.0'
-            inputfileAdd = inputfile + '.2'
+            inputfileLink = inputorig + '.0'
+            inputfileAdd = inputorig + '.2'
             if (copyfailed == 0):
                 if (len(cpntuples) > 0):
                     status = 'Completed'
-                    inputfileLink = inputfile + '.1'
+                    inputfileLink = inputorig + '.1'
                     try:
                         jououtput=open(inputfileAdd,'w')
                     except IOError,e:
