@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.941 2013/12/20 22:21:04 choutko Exp $
+// $Id: job.C,v 1.942 2013/12/21 16:57:22 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2080,11 +2080,6 @@ void AMSJob::udata(){
       }
     }
   }
-
-if(isRealData()){
-if(TKGEOMFFKEY.LoadMCDisalign)cerr<<"AMSJob::udata-W-TKGEOMFFKEY.LoadMCDisalignReseted  "<<TKGEOMFFKEY.LoadMCDisalign<<endl;
-TKGEOMFFKEY.LoadMCDisalign=0;
-}
 
 #ifdef _PGTRACK_
 if(isRealData()){
