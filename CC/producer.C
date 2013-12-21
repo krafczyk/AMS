@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.191 2013/12/19 12:13:26 choutko Exp $
+//  $Id: producer.C,v 1.192 2013/12/21 15:01:52 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2316,12 +2316,12 @@ else sprintf(tmpu,"%d",_pid.uid);
              cout << "AMSClient-I-Trying "<<(const char*)afscript<<endl;
               // cern lxplus6 id
               bool lxplus6=strstr(_pid.HostName,"cern.ch");
-              bool lxplus6_1=_pid.HostName[0]=='b' && _pid.HostName[1]=='6';
-              bool lxplus6_2=_pid.HostName[0]=='p';
+              bool lxplus6_1=((const char*)_pid.HostName)[0]=='b' && ((const char*)_pid.HostName)[1]=='6';
+              bool lxplus6_2=((const char*)_pid.HostName)[0]=='p';
               if(lxplus6_2){
                 for(int k=1;k<strlen(_pid.HostName);k++){
-                  if(_pid.HostName[k]=='.')break;
-                  if(!isdigit( _pid.HostName[k]))lxplus6_2=false;
+                  if(((const char*)_pid.HostName)[k]=='.')break;
+                  if(!isdigit( ((const char*)_pid.HostName)[k]))lxplus6_2=false;
                 }
               }
               lxplus6=lxplus6 && (lxplus6_1 || lxplus6_2); 
