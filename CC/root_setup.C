@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.143.2.1 2013/12/18 19:18:11 qyan Exp $
+//  $Id: root_setup.C,v 1.143.2.2 2013/12/21 12:34:27 qyan Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1363,7 +1363,7 @@ return fScalersReturn.size();
 #include "GM_SubLibrary.h"
 ///---RTI function
 int AMSSetupR::RTI::Version=0;
-int AMSSetupR::RTI::Loadopt=1;
+int AMSSetupR::RTI::Loadopt=0;
 
 float AMSSetupR::RTI::getthetam(){
   
@@ -1436,7 +1436,8 @@ else{
 
 //---NewV
  bool isnewv=((t2>1368950397)||(RTI::Version>=1));
- bool isnewv2=((t2>1374267385)||(RTI::Version>=2));
+// bool isnewv2=((t2>1374267385)||(RTI::Version>=2));
+ bool isnewv2=((t1>=1374268537)||(RTI::Version>=2));
  if     (isnewv2)AMSISSlocal+="V2_20131220/";
  else if(isnewv)AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
