@@ -73,10 +73,13 @@ foreach my $jou (@journals) {
         if ($tag % 256 == 204) { # LAS run, ignore ...
             next;
         }
-        my $percentage = sprintf "(%.2f%%, $runtype, %d events, %.0f min)", ($ne-$one)/$ne*100, $ne-$one, ($ne-$one)/$ne*($let-$fet)/60;
-        my $newrun = $ofe ? $percentage : "(new)";
+        my $percentage = 'new';
+        if ($ofe) {
+            $percentage = sprintf "%.2f%%", ($ne-$one)/$ne*100;
+        }
+        my $info = sprintf "(%s, $runtype, %d events, %.0f min)", $percentage, $ne-$one, ($ne-$one)/$ne*($let-$fet)/60;
 
-        print "Found run to MERGE: $run $newrun\n";
+        print "Found run to MERGE: $run $info\n";
         print "Copying $run to $TRCDIR ...";
         my $ret = system("cp $MERGEDIR/$run $TRCDIR/ && cp $jou $TRCDIR/jou/ && mv $MERGEDIR/$run $ARCHDIR && mv $jou $ARCHDIR/jou/$run.jou.merged");
         print "done, cp returned $ret.\n\n"
