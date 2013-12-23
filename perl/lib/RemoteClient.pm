@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.809 2013/12/18 22:13:27 bshan Exp $
+# $Id: RemoteClient.pm,v 1.810 2013/12/23 10:47:58 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20423,7 +20423,9 @@ sub CastorPrestage{
      my @junk=split '-',$run2p;
      $srun=" and run>=$junk[0] and run<=$junk[1] ";        
  }
-
+if($run2p=~/,/){
+$srun=" and run in ($run2p)";
+}
     $sql = "SELECT path  from $ntuples where castortime>0 and path like '%$dir%' $srun";
 
 }

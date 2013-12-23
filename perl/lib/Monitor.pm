@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.167 2013/12/02 13:30:09 ams Exp $
+# $Id: Monitor.pm,v 1.168 2013/12/23 10:47:57 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -925,16 +925,30 @@ or  ($host[0] =~/lxplus/ and $hash->{id}->{HostName} =~ /lxplus/)){
        }
    }
         my $s2r=int(-($hash->{Start}-$hash->{LastUpdate})/(1+$totev-$evtp)*$evtp);
-        my $hh=int($s2r/3600);
-        my $mm=int (( $s2r-$hh*3600)/60); 
-        my $ss=$s2r-$hh*3600-$mm*60;
+        my $ww=int($s2r/3600/24/7);
+        my $dd=int($s2r/3600/24-$ww*7);
+        my $hh=int($s2r/3600-$dd*24-$ww*7*24);
+        my $mm=int (( $s2r-$hh*3600-$dd*24*3600-$ww*24*3600)/60); 
+        my $ss=$s2r-$hh*3600-$mm*60-$dd*3600*24-$ww*3600*24*7;
         my $hm="";
-         if($hh>0){
+        if($ww>52){
+             $hm=">1y";
+        }
+        elsif($ww>0){
+             $hm="$ww w $dd d";
+        }
+        elsif($dd>0){
+             $hm="$dd d $hh h";
+         }
+         elsif($hh>0){
              $hm="$hh h $mm m";
          }
-         else{
+         elsif($mm>0 || $ss>0){
              $hm="$mm m $ss s";
          }   
+                 else{
+             $hm=" --- ";
+                 }
         push @text, $hm,$run,$evtp;
         my @dummy=split "/",$ntuple;
         push @text, $dummy[$#dummy];
