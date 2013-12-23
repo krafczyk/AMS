@@ -2642,7 +2642,7 @@ class RemoteClient:
                 timenow=int(time.time())
                 dir=self.trimblanks(jou[0])
                 if (datamc == 1):
-                    dir.replace("/MC/", "/Data/")
+                    dir = dir.replace("/MC/", "/Data/")
                 cite=self.trimblanks(jou[2])
                 timestamp=jou[1]
                 lastcheck=self.EpochToDDMMYYHHMMSS(timestamp)
