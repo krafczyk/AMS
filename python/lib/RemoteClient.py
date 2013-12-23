@@ -2711,7 +2711,7 @@ class RemoteClient:
                             if(self.v):
                                 print "parsejournal file ",writetime,timestamp,newfile
                             if (self.mt):
-                                while threading.activeCount() > 5:
+                                while threading.activeCount() > 9:
 #                                    print "waiting..."
                                     time.sleep(1)
                                 try:
