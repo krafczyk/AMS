@@ -3300,11 +3300,17 @@ class RemoteClient:
                             try:
                                 dstsize=int(os.stat(dstfile)[ST_SIZE])
                             except OSError, e:
-                                output.write("parseJournalFile-W-CloseDST block : cannot stat %s\n" %(dstfile))
-                                runfinishedR=1
                                 dstsize=-1
-                                copyfailed = -1
-                                break
+                        try:
+                            dstsize
+                        except NameError:
+                            dstsize = -1
+                        if (dstsize == -1):
+                            output.write("parseJournalFile-W-CloseDST block : cannot stat %s\n" %(dstfile))
+                            runfinishedR=1
+                            copyfailed = -1
+                            break
+                        else:
                             if(closedst[1] != "Validated" and closedst[1] != "Success" and closedst[1] != "OK"):
                                 output.write("parseJournalFile -W- CloseDST block : %s,  DST status  %s. Check anyway\n" %(dstfile,closedst[1]))
                             dstsize="%.1f" %(float(dstsize)/1000./1000.)
@@ -3315,7 +3321,7 @@ class RemoteClient:
                             version  =closedst[4]
                             ntcrc    =int(closedst[6])
                             run      =int(closedst[10])
-                            jobid    =int(closedst[10])
+                            #jobid    =int(closedst[10])
                             dstfevent=int(closedst[11])
                             dstlevent=int(closedst[12])
                             ntevents =int(closedst[13])
