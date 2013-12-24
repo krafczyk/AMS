@@ -1,4 +1,4 @@
-//  $Id: GeoMagField.C,v 1.1 2012/10/16 19:37:46 shaino Exp $
+//  $Id: GeoMagField.C,v 1.2 2013/12/24 11:36:31 shaino Exp $
 
 #include "GeoMagField.h"
 #include "TSystem.h"     // For ExpandPathName
@@ -61,14 +61,16 @@ int GeoMagField::InitModel(const char *mdfile, double date)
   }
 
   static bool first = true;
-#pragma omp critical (initmodel)
   if (first) {
+#pragma omp critical (initmodel)
+  {if (first) {
     std::cout << "GeoMagField::InitModel-I-Read model from : "
 	      << mdfile << " N= "
 	      << nmodel << " " << max2[modelI] << " " << nmax << " "
 	      << "Year= " << sdate << std::endl;
     first = 0;
-  }
+   }
+  }}
 
   Reset();
 

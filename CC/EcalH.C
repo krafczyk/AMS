@@ -1,4 +1,4 @@
-//  $Id: EcalH.C,v 1.9 2013/12/20 22:00:59 shaino Exp $
+//  $Id: EcalH.C,v 1.10 2013/12/24 11:36:31 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/12/20 22:00:59 $
+///$Date: 2013/12/24 11:36:31 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -429,10 +429,11 @@ int EcalHR::Build(int clear)
   if (clear) cont->eraseC();
 
   static bool first = true;
+  if (first) {
 #ifdef _OPENMP
 #pragma omp critical (trrecsimple)
 #endif
-  if (first) {
+  {if (first) {
 #ifndef __ROOTSHAREDLIBRARY__
     fEmin    = ECALHFFKEY.emin;
     fEthd[0] = ECALHFFKEY.ethd[0];
@@ -444,7 +445,8 @@ int EcalHR::Build(int clear)
 	 << "fEthd= " << fEthd[0] << " " << fEthd[1] << " "
 	                                 << fEthd[2] << " " << endl;
     first = false;
-  }
+   }
+  }}
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSEcalH *ech = new AMSEcalH;

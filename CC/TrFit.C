@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.81 2013/12/19 13:11:11 shaino Exp $
+//  $Id: TrFit.C,v 1.82 2013/12/24 11:36:31 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2013/12/19 13:11:11 $
+///$Date: 2013/12/24 11:36:31 $
 ///
-///$Revision: 1.81 $
+///$Revision: 1.82 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1050,15 +1050,17 @@ int TrFit::FillDmsc(double *dmsc, double fact,
                       };
 
   static bool first = true;
-#pragma omp critical (filldmsc)
+
   if (first && _mscat) {
+#pragma omp critical (filldmsc)
+   {if (first) {
     std::cout << "TrFit::FillDmsc-I-WLEN(%)=";
     for (int i = 0; i < 9; i++)
       std::cout << Form(" %4.2f", WLEN[i]*100);
     std::cout << endl;
     first = false;
-  }
-
+   }
+  }}
   for (int i = 0; i < _nhit; i++) dmsc[i] = 0;
   for (int i = 1; i <     8; i++) WLEN[i] *= fact;
 

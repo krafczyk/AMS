@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.173 2013/11/13 21:02:29 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.174 2013/12/24 11:36:31 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/11/13 21:02:29 $
+/// $Date: 2013/12/24 11:36:31 $
 ///
-/// $Revision: 1.173 $
+/// $Revision: 1.174 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1722,14 +1722,16 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
   cmaxy = RecPar.MaxChisqAllowed;     // 300
   
   static bool first = true;
-#pragma omp critical (trrecsimple)
   if (first) {
+#pragma omp critical (trrecsimple)
+  {if (first) {
     cout << "TrRecon::BuildTrTracksSimple-I-"
 	 << "psel= " << pselm << " " << pselx << " " << psely << " "
 	 << "msel= " << mselx << " " << msely << " "
 	 << "cmax= " << cmaxx << " " << cmaxy << endl;
     first = false;
-  }
+   }
+  }}
   
   //////////////////// Buffers definition ////////////////////
   
@@ -3272,15 +3274,17 @@ int TrRecon::PreselTrTracksVertex()
   int    npat =  0;
 
   static bool first = true;
-#pragma omp critical (trrecpreselvertex)
   if (first) {
+#pragma omp critical (trrecpreselvertex)
+  {if (first) {
     cout << "TrRecon::PreselTrTracksVertex-I-"
 	 << "csig= " << csig << " pthd= " << pthd << " "
 	 << "dthd= " << dthd << " cthd= " << cthd << " "
 	 << "rthd= " << rthd << " zref= " << zref << " "
 	 << "npat= " << npat << endl;
     first = false;
-  }
+   }
+  }}
 
   for (int i0 =    0; i0 <    ncl[0]-1; i0++) { if (ily[i0] <= 0) continue;
   for (int i1 =   NC; i1 < NC+ncl[1]-1; i1++) { if (ily[i1] <= 0) continue;
@@ -3445,14 +3449,16 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
   double zvtx =  50;
 
   static bool first = true;
-#pragma omp critical (trrecvertex)
   if (first) {
+#pragma omp critical (trrecvertex)
+  {if (first) {
     cout << "TrRecon::BuildTrTracksVertex-I-"
 	 << "csig= " << csig << " csth= " << csth << " "
 	 << "cxth= " << cxth << " p2th= " << p2th << " "
 	 << "zvtx= " << zvtx << endl;
     first = false;
-  }
+   }
+  }}
 
   double cmin[NC];
   double pmin[NC][NP];
