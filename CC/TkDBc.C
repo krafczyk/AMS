@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.75 2013/11/07 14:44:17 traiha Exp $
+//  $Id: TkDBc.C,v 1.75.2.1 2013/12/24 11:41:36 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/11/07 14:44:17 $
+///$Date: 2013/12/24 11:41:36 $
 ///
-///$Revision: 1.75 $
+///$Revision: 1.75.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1553,8 +1553,11 @@ void TkDBc::RebuildMap()
 
 
 #include "TrExtAlignDB.h"
+#ifdef __ROOTSHAREDLIBRARY__
+#include "root.h"
+#endif
 
-void TkDBc::UseLatest()
+void TkDBc::UseLatest(int reset)
 {
   TkDBc       ::ForceFromTDV = 4;
   TrExtAlignDB::ForceFromTDV = 1;
@@ -1564,4 +1567,14 @@ void TkDBc::UseLatest()
        << "TkDBc::ForceFromTDV= " << TkDBc::ForceFromTDV << " "
        << "TrExtAlignDB::ForceFromTDV= " << TrExtAlignDB::ForceFromTDV << " "
        << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+
+#ifdef __ROOTSHAREDLIBRARY__
+  if (reset) {
+    AMSEventR *evt = AMSEventR::Head();
+    if (evt) {
+      TkDBc::GetFromTDV(evt->UTime(), 4);
+      TrExtAlignDB::GetFromTDV(evt->UTime(), TrExtAlignDB::version, 1);
+    }
+  }
+#endif
 }
