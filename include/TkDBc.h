@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.41 2013/05/01 13:54:30 shaino Exp $
+// $Id: TkDBc.h,v 1.42 2013/12/24 11:32:31 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -507,8 +507,11 @@ public:
 #pragma omp threadprivate (ForceFromTDV)
 #endif
 
-  //! Use the latest alignment instead of the one stored in ROOT file
-  static void UseLatest();
+  /*!
+    \brief Use the latest alignment instead of the one stored in ROOT file
+    \param reset 1: Reset and reload alignment TDV
+  */
+  static void UseLatest(int reset = 0);
 
   ClassDef(TkDBc, 10);
 };
