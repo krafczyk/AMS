@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.192 2013/12/21 15:01:52 choutko Exp $
+//  $Id: producer.C,v 1.193 2013/12/25 19:22:23 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -444,7 +444,10 @@ ndir:
         if(strlen(nt2)){
           string nt2_new=nt2;
           char whoami[255]="";
-          if(getlogin())sprintf(whoami,"%s/%u",getlogin(),_pid.pid);
+          if(getlogin() && !strstr(getlogin(),"root")){
+              sprintf(whoami,"%s/%u",getlogin(),_pid.pid);
+              cout <<" AMSProducer-I-getlogin() "<<whoami<<endl;
+          }      
           else if(getenv("LOGNAME"))sprintf(whoami,"%s/%u",getenv("LOGNAME"),_pid.pid);
           int pos=nt2_new.find("whoami");  
           if(pos>=0 && whoami && strlen(whoami))nt2_new.replace(pos,6,whoami);
@@ -1764,8 +1767,7 @@ DPS::Producer::TDVName name;
 name.Name=tdv->getname();
 name.DataMC=tdv->getid();
 name.CRC=tdv->getCRC();
-if(tdv->Variable())name.Size=-tdv->GetNbytesM()+2*sizeof(uinteger);
-else name.Size=tdv->GetNbytes();
+name.Size=tdv->GetNbytes();
 name.Entry.id=id;
 name.File="";
 time_t i,b,e;
@@ -1812,6 +1814,10 @@ if(!suc){
 }
 DPS::Producer::TDVbody_var vbody=pbody;
 if(name.Success){
+if(tdv->Variable()){
+tdv->SetNbytes(length*sizeof(integer));
+}
+
  int nb=tdv->CopyIn(vbody->get_buffer());
  if(nb){
   tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
@@ -1827,8 +1833,10 @@ DPS::Producer::TDVName name;
 name.Name=tdv->getname();
 name.DataMC=tdv->getid();
 name.CRC=tdv->getCRC();
-if(tdv->Variable())name.Size=-tdv->GetNbytesM()+2*sizeof(uinteger);
-else name.Size=tdv->GetNbytes();
+if(tdv->Variable()){
+ cout<<" AMSProducer::getSplitTDV-IVarTDV found "<<tdv->getname()<<" "<<tdv->GetNbytes()<<" "<<tdv->getfile()<<endl;
+}
+ name.Size=tdv->GetNbytes();
 name.Entry.id=id;
 name.File="";
 time_t i,b,e;
@@ -1836,7 +1844,6 @@ tdv->gettime(i,b,e);
 name.Entry.Insert=i;
 name.Entry.Begin=b;
 name.Entry.End=e;
-cout <<" time ibe "<<i<<" "<<b<<" "<<e<<endl;
  int length=0;
  uinteger pos=0;
  DPS::Producer::TransferStatus st=DPS::Producer::Begin;
@@ -1880,6 +1887,10 @@ else{
 totallength+=length;
 }
 if(name.Success){
+cout <<"AMSProducer::getSplitTDV-I-get time ibe "<<i<<" "<<b<<" "<<e<<" "<<totallength*sizeof(integer)<<" "<<tdv->GetNbytes()<<endl;
+if(tdv->Variable()){
+tdv->SetNbytes(totallength*sizeof(integer));
+}
  int nb=tdv->CopyIn(vb2->get_buffer());
 tdv->setfile((const char*)name.File);
 cout <<"TDVFileNameRead "<<tdv->getfile()<<endl; 
@@ -2315,7 +2326,8 @@ else sprintf(tmpu,"%d",_pid.uid);
               afscript+=" 2>&1";
              cout << "AMSClient-I-Trying "<<(const char*)afscript<<endl;
               // cern lxplus6 id
-              bool lxplus6=strstr(_pid.HostName,"cern.ch");
+              bool lxplus6=strstr(_pid.HostName,"cern.ch")!=0;
+              lxplus6=true;
               bool lxplus6_1=((const char*)_pid.HostName)[0]=='b' && ((const char*)_pid.HostName)[1]=='6';
               bool lxplus6_2=((const char*)_pid.HostName)[0]=='p';
               if(lxplus6_2){
@@ -2325,6 +2337,9 @@ else sprintf(tmpu,"%d",_pid.uid);
                 }
               }
               lxplus6=lxplus6 && (lxplus6_1 || lxplus6_2); 
+              if(lxplus6){
+                cout <<" AMSProducer-I-lxplus6 Detected"<<endl;
+              }
                //  not if pcamsf4
               int i=!(lxplus6 || strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb") || strstr(_pid.HostName,"vmb"))?1:system((const char*)afscript);
               char line[1024];

@@ -20,17 +20,22 @@ public:
     //  return true if event has to be drawn false otherwise.
     // Example take the even event numbers
    if(ev){
-// my selection of He++ 
-//
-    if(ev->nParticle()  && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).Charge>1)return true;
-    else return false;
-    bool next=ev->Event()!=oldev;
-    bool breaks=ev->Event()-oldev!=1;
-    if(breaks){
-       cout<<" break "<<ev->Event()<<" "<<oldev<<endl;
+     if(ev->nParticle()){
+        if(ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).Charge && fabs(ev->Particle(0).Momentum/ev->Particle(0).Charge)>100){
+          TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
+          TkDBc::UseLatest();
+          int it0=tr.iTrTrackPar(1,0,1);
+          cout <<" r "<<tr.GetRigidity(it0)<<endl;
+          int it1=tr.iTrTrackPar(1,0,1);
+          int it3=tr.iTrTrackPar(1,0,3);
+           cout <<tr.GetRigidity(it1)<<" "<<tr.GetRigidity(it3)<<endl;
+          return true;
+        }
     }
-    oldev=ev->Event();
-   if(fmap.find(ev->Event())!=fmap.end()){
+    return false;
+    bool next=ev->Event()!=oldev;
+       oldev=ev->Event();
+       if(fmap.find(ev->Event())!=fmap.end()){
          cout<< " dupl event found "<<ev->Event()<<" "<<++dupl<<endl;
        }
        else fmap.insert(ev->Event());
