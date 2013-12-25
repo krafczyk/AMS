@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.41 2013/05/01 13:54:30 shaino Exp $
+// $Id: TkDBc.h,v 1.41.2.1 2013/12/25 19:30:01 choutko Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -508,7 +508,7 @@ public:
 #endif
 
   //! Use the latest alignment instead of the one stored in ROOT file
-  static void UseLatest();
+  static void UseLatest(int reset=0);
 
   ClassDef(TkDBc, 10);
 };
