@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.168 2013/12/23 10:47:57 ams Exp $
+# $Id: Monitor.pm,v 1.169 2013/12/25 19:21:08 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -792,7 +792,7 @@ sub getactivehosts{
      $total_time+=$time;
      $total_ev+=$evt;
      my $proc=$hash->{ClientsRunning}==0?1:$hash->{ClientsRunning};
-   my $cpuper=int ($cpu*10000/($evt+1)/$proc);
+   my $cpuper=int ($cpu*10000/($evt+2)/$proc);
    
      my $cpunumber=1;
     for my $nhlcycle (0 ...$#{$Monitor::Singleton->{nhl}}){

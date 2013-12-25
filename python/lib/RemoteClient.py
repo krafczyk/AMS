@@ -3666,8 +3666,8 @@ class RemoteClient:
         self.verbose=v
         self.run2p=run2p
         self.force=0         
-        if(f==1):
-           self.force=1
+        if(f>0):
+           self.force=f
         rundd=""
         rund=""
         runn=""
@@ -3787,7 +3787,7 @@ class RemoteClient:
         rundd=rundd+runadd
         rund=rund+runad
         runn=runn+runan
-        if(self.force):
+        if(self.force>1):
             eos_prefix="/tmp/eosams"
             eosmount="/afs/cern.ch/project/eos/installation/0.3.1-22/bin/eos.select -b fuse mount "+eos_prefix 
             os.system(eosmount)
@@ -3830,23 +3830,56 @@ class RemoteClient:
                             if(run[1]>file[1]+1000):
                                 bad2.append(run[0])
                                 print "Run ",run," and ntuples disagree. run events=",run[1]," ntuple events=",file[1]
-                                
+           		                     
                             break
                     if(found==0):
                         if(tab==0):
                             tot=tot+1
                             print "Run ",run,"  not found in dataset ",dataset,tot
-
+			    sql="select run,dataruns.jid,realtriggers,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and split(jobs.jobname) like '%%%s.job' %s %s  and run=%d" %(dataset,rund,runst,run[0])
+  			    jid=self.sqlserver.Query(sql)
+			    if(len(jid)==0):
+				print " job for run ",run[0]  , " doesnot exists "
                             bad1.append(run[0])
                         else:
                             print "<tr>"
                             print "<td>Run %d  </td><td> not found in dataset %s</td>" %(run[0],dataset)
                             print "</tr>"
         else:
-            sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
+            sql="select run,sum(levent-fevent+1),sum(jid)/count(jid) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
             files=self.sqlserver.Query(sql)
             sql="select run,dataruns.jid,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and split(jobs.jobname) like '%%%s.job' %s %s" %(dataset,rund,runst)
             runs=self.sqlserver.Query(sql)
+            tot=0
+	    tota=0
+            for file in files:
+		found=0
+		for run in runs:
+                    if(file[2]==run[1]):
+                        found=1
+                        break
+                if(found==0):
+	            tota=tota+1		
+                    sql="select run,dataruns.jid,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and split(jobs.jobname) like '%%%s.job' %s %s and jobs.jid=%d" %(dataset,rund,runst,file[2])
+                    print " jid ",file[2],file[0] ," had no dataruns or  job ",tota
+                    sql="select timestamp,realtriggers from jobs where realtriggers>0 and jid=%d" %(file[2])
+                    jts=self.sqlserver.Query(sql)
+                    if(len(jts)>0):
+                        jid=file[2]
+                        submit=jts[0][0]
+                        status="Completed"
+                        rrun=file[0]
+                        sql="select fevent,levent,fetime,letime from datafiles where status='OK' and type like 'SCI%%' and run=%d " %(rrun)
+                        rt=self.sqlserver.Query(sql)
+                        if(len(rt)>0):
+                            fevent=rt[0][0]
+                            levent=rt[0][1]
+                            fetime=rt[0][2]
+                            letime=rt[0][3]
+                            sql="INSERT INTO dataRuns VALUES(%d,%d,%d,%d,%d,'%s',%d,%d)" %(rrun,fevent,levent,fetime,letime,status,jid,submit)
+                            print sql
+                            self.sqlserver.Update(sql)
+                            self.sqlserver.Commit(1)
             if(len(files)>0):
                 for run in runs:
                     found=0
@@ -3863,8 +3896,9 @@ class RemoteClient:
                                     print "</tr>"
                             break
                     if(found==0):
+  			tot=tot+1
                         if(tab==0):
-                            print "Run ",run,"  not found in dataset ",dataset
+                            print "Run ",run,"  not found in dataset ",dataset,tot
 			    bad1.append(run[0])   		
                         else:
                             print "<tr>"

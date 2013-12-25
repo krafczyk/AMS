@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.810 2013/12/23 10:47:58 ams Exp $
+# $Id: RemoteClient.pm,v 1.811 2013/12/25 19:21:08 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19896,26 +19896,36 @@ my $sql2="select max(jid)-min(jid),run from ntuples where path like '%$dir%' gro
            my $jidmax=-1;
            my $ctimemax=-1;
            my $valid=1;
+           my $pathmax="";
           foreach my $ntuple (@{$ret_nt}){
               if($ntuple->[3]==0){
                   $valid=0;
                   last;
               }
-              if($ntuple->[4]>$ctimemax){
-                  $ctimemax=$ntuple->[4];
+              if($ntuple->[3]>$ctimemax  ){
+                  $ctimemax=$ntuple->[3];
                   $jidmax=$ntuple->[1];
+                  $pathmax=$ntuple->[0];
           }
           }
            if($valid){
           foreach my $ntuple (@{$ret_nt}){
-              if($ntuple->[1]!=$jidmax){
-               
+              if($ntuple->[1]!=$jidmax and $pathmax eq $ntuple->[0]){
+                  print "removeing $ntuple->[1] out of $jidmax \n";
+                          if($update){
+                            my $sqld="delete from ntuples where jid=$ntuple->[1]";
+                            my $sqlj="delete from jobs where jid=$ntuple->[1]";
+                                  $self->{sqlserver}->Update($sqld);
+                                  $self->{sqlserver}->Update($sqlj);
+                                   $self->{sqlserver}->Commit(1);
+                          }               
               }
           }
       }
 }   
  
     }
+    return;
     my $sql="select path,jid,run,castortime from ntuples where path like '%$dir%'";    
     if($run2p!=0){
         $sql=$sql." and run=$run2p";
