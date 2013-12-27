@@ -2470,7 +2470,7 @@ class RemoteClient:
                 if(dbjid==jid and dbrun==run and dbfevent==fevent and dblevent==levent and dbstatus==status):
                     print "InsertRun-E-",run,"AlreadyExists"
                 else:
-                    sql="DELETE dataruns WHERE run=%d" %(run)
+                    sql="DELETE dataruns WHERE jid=%d" %(jid)
                     self.sqlserver.Update(sql)
                     doinsert=1
             else:
@@ -2494,7 +2494,7 @@ class RemoteClient:
                 if(dbjid==jid and dbrun==run and dbfevent==fevent and dblevent==levent and dbstatus==status):
                     print "InsertRun-E-",run,"AlreadyExists"
                 else:
-                    sql="DELETE dataruns WHERE run=%d" %(run)
+                    sql="DELETE dataruns WHERE jid=%d" %(jid)
                     self.sqlserver.Update(sql)
                     doinsert=1
             else:
