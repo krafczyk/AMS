@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.811 2013/12/25 19:21:08 ams Exp $
+# $Id: RemoteClient.pm,v 1.812 2013/12/27 15:07:28 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1256,7 +1256,7 @@ if($#{$self->{DataSetsT}}==-1){
            if($template->{QTYPE} ne ""){
                $qtype="and $datafiles.type like '$template->{QTYPE}%'";
             }
-                   my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and $datafiles.nevents>$template->{EVENTMIN} and run<=$template->{RUNMAX}  and ($datafiles.status='OK' or $datafiles.status='Validated') $qtype $runlist  $runalist and $datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                   my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and $datafiles.nevents>$template->{EVENTMIN} and run<=$template->{RUNMAX}  and ($datafiles.status='OK' or $datafiles.status='Validated') $qtype $runlist  $runalist and $datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') and run not in  (select distinct run from ntuples,jobs where  ntuples.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.realtriggers>0 and jobs.jobname like '%$template->{filename}') ";
               if($template->{TAG}>=0){
                   $sql=$sql." and $datafiles.tag=$template->{TAG} ";
               }
