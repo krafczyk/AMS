@@ -2482,7 +2482,7 @@ class RemoteClient:
                     print sql
 
     def insertDataRun(self,run,jid,fevent,levent,fetime,letime,submit,status):
-            sql="SELECT run, jid, fevent, levent, status FROM dataRuns WHERE run=%d" %(run)
+            sql="SELECT run, jid, fevent, levent, status FROM dataRuns WHERE jid = %d" %(jid)
             ret=self.sqlserver.Query(sql)
             doinsert=0
             if(len(ret)>0):
@@ -3169,8 +3169,8 @@ class RemoteClient:
                 rq=self.sqlserver.Query(sql)
                 if(len(rq)>0 and rq[0][0].find('Completed')>=0):
                     print "Run ",run," already completed in database do nothing"
-#                        os.system("mv %s %s.1" %(inputfile,inputorig))
-#                        return 0, copylog
+                    os.system("mv %s %s.1" %(inputfile,inputorig))
+                    return 0, copylog
                 if(patternsmatched == len(StartingRunPatterns)+3 or patternsmatched == len(StartingRunPatterns)+2):
                     startingrunR=1
                     self.CheckedRuns[self.nCheckedCite] += 1
@@ -3182,7 +3182,7 @@ class RemoteClient:
                         host=startingrun[13]
                     if (runtype != 0 and (run_incomplete == 1 or run_finished == 0)):
                         # data do not allow incomplete run
-                        print "Run %d incomplete or not finished while real data mode, do nothing." %(startingrun[2])
+                        print "Run %s incomplete or not finished while real data mode, do nothing." %(startingrun[2])
                         os.system("mv %s %s.0" %(inputfile, inputorig))
                         mutex.release()
                         return 0, copylog
