@@ -2248,7 +2248,7 @@ class RemoteClient:
                 print "UpdateRunCatalog-E-CannitFindRunJobContent with jid=",run
     
               
-    def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc,fetime=None,letime=None):
+    def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc,fetime=None,letime=None,eostime=0):
         if(type=="RawFile" and datamc==0):
 #            paths="/Offline/RunsDir/MC/";
 #            cmd="ln -sf %s %s" %(path,paths)
@@ -2328,7 +2328,7 @@ class RemoteClient:
         sizemb="%.f" %(ntsize)
         sql="delete from ntuples where path='%s'" %(path)
         self.sqlserver.Update(sql);
-        sql = "INSERT INTO ntuples (RUN,VERSION,TYPE,JID,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,CRC,CRCTIME,CRCFLAG,CASTORTIME,BUILDNO,DATAMC) VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc)
+        sql = "INSERT INTO ntuples (RUN,VERSION,TYPE,JID,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,CRC,CRCTIME,CRCFLAG,CASTORTIME,BUILDNO,DATAMC,EOSTIME) VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc,eostime)
         self.linkdataset(path,"/Offline/DataSetsDir",1)
         self.sqlserver.Update(sql)
    
@@ -3840,13 +3840,47 @@ class RemoteClient:
   			    jid=self.sqlserver.Query(sql)
 			    if(len(jid)==0):
 				print " job for run ",run[0]  , " doesnot exists "
+                            eosfind=" ls -l /tmp/eosams/ams/Data/AMS02/2014/ISS.B700/pass5/%d*.root" %(run[0])
+                            eosout=commands.getstatusoutput(eosfind)
+                            eosfiles=eosout[1].split("\n")
+                            for eos in eosfiles:
+                                e=eos.split(' ')
+                                print e[8]
+                                r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s 1 1 1 1 1 " %(e[8])
+                                cp=e[8].replace("/tmp/eosams","/castor/cern.ch",1)
+                                co=commands.getstatusoutput("nsls -l "+cp)
+                                if(co[0]):
+                                        print " problem with castor ",co,cp
+                                        continue
+                                f1=commands.getstatusoutput(r64)
+                                f1a=f1[1]
+                                f1_1=f1a.split("entries")
+                                f1_2=f1_1[1].split(" ")
+                                r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s %s 1 1 1 1 " %(e[8],f1_2[1])
+                                f2=commands.getstatusoutput(r64)
+                                f2a=f2[1]
+                                f2_1=f2a.split(",,,")
+                                le=int(f2_1[1])
+                                fe=int(f2_1[2])
+                                ver=f2_1[3]
+                                crc="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/crc %s 1 1" %(e[8])
+                                c2=commands.getstatusoutput(crc)                     
+                                c3=c2[1]
+                                c3_1=c3.split(" ")
+                                timenow=int(time.time())
+                                version="build%s/xyz" %(ver)
+                                sizemb=int(int(e[4])/1024/1024+0.5)
+                                self.InsertNtuple(run[0],version,"RootFile",run[1],fe,le,int(f1_2[1]),0,timenow,sizemb,"Validated",cp,int(c3_1[1]),timenow,0,timenow,1,None,None,timenow)
+                                self.sqlserver.Commit(1)
+
+				 
                             bad1.append(run[0])
                         else:
                             print "<tr>"
                             print "<td>Run %d  </td><td> not found in dataset %s</td>" %(run[0],dataset)
                             print "</tr>"
         else:
-            sql="select run,sum(levent-fevent+1),sum(jid)/count(jid) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
+            sql="select run,sum(levent-fevent+1),sum(jid)/count(jid),sum(nevents) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
             files=self.sqlserver.Query(sql)
             sql="select run,dataruns.jid,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and split(jobs.jobname) like '%%%s.job' %s %s" %(dataset,rund,runst)
             runs=self.sqlserver.Query(sql)
@@ -3862,7 +3896,7 @@ class RemoteClient:
 	            tota=tota+1		
                     sql="select run,dataruns.jid,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and split(jobs.jobname) like '%%%s.job' %s %s and jobs.jid=%d" %(dataset,rund,runst,file[2])
                     print " jid ",file[2],file[0] ," had no dataruns or  job ",tota
-                    sql="select timestamp,realtriggers from jobs where realtriggers>0 and jid=%d" %(file[2])
+                    sql="select timestamp,realtriggers from jobs where   jid=%d" %(file[2])
                     jts=self.sqlserver.Query(sql)
                     if(len(jts)>0):
                         jid=file[2]
@@ -3879,6 +3913,10 @@ class RemoteClient:
                             sql="INSERT INTO dataRuns VALUES(%d,%d,%d,%d,%d,'%s',%d,%d)" %(rrun,fevent,levent,fetime,letime,status,jid,submit)
                             print sql
                             self.sqlserver.Update(sql)
+     			    if(jts[0][1]<0):
+				print "job ",file[2], " has realtriggers<0 "
+				sql="update jobs set realtriggers=%d where jid=%d" %(file[3],file[2])
+				self.sqlserver.Update(sql)  				
                             self.sqlserver.Commit(1)
             if(len(files)>0):
                 for run in runs:
@@ -3899,6 +3937,44 @@ class RemoteClient:
   			tot=tot+1
                         if(tab==0):
                             print "Run ",run,"  not found in dataset ",dataset,tot
+		            eosfind=" ls -l /tmp/eosams/ams/Data/AMS02/2014/ISS.B700/pass5/%d*.root" %(run[0])
+                            eosout=commands.getstatusoutput(eosfind)
+                            eosfiles=eosout[1].split("\n")
+      	                    for eos in eosfiles:
+				e=eos.split(' ')
+				print e[8]
+				r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s 1 1 1 1 1 " %(e[8])
+			 	cp=e[8].replace("/tmp/eosams","/castor/cern.ch",1)
+				co=commands.getstatusoutput("nsls -l "+cp)
+				if(co[0]):
+					print " problem with castor ",co,cp
+					continue
+				f1=commands.getstatusoutput(r64)
+				f1a=f1[1]
+				f1_1=f1a.split("entries")
+				if(len(f1_1)<2):
+					print " problem with ntuple 1 ",f1
+					continue
+				f1_2=f1_1[1].split(" ")
+				r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s %s 1 1 1 1 " %(e[8],f1_2[1])
+				f2=commands.getstatusoutput(r64)
+				f2a=f2[1]
+				f2_1=f2a.split(",,,")
+				if(len(f2_1)<3):
+					print "problem with ntuple 2 ",f2
+					continue
+				le=int(f2_1[1])
+				fe=int(f2_1[2])	
+				ver=f2_1[3]
+				crc="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/crc %s 1 1" %(e[8])
+				c2=commands.getstatusoutput(crc)					
+				c3=c2[1]
+				c3_1=c3.split(" ")
+				timenow=int(time.time())
+				version="build%s/xyz" %(ver)
+				sizemb=int(int(e[4])/1024/1024+0.5)
+				self.InsertNtuple(run[0],version,"RootFile",run[1],fe,le,int(f1_2[1]),0,timenow,sizemb,"Validated",cp,int(c3_1[1]),timenow,0,timenow,1,None,None,timenow)
+				self.sqlserver.Commit(1)
 			    bad1.append(run[0])   		
                         else:
                             print "<tr>"
