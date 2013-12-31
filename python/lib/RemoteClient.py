@@ -3840,40 +3840,6 @@ class RemoteClient:
   			    jid=self.sqlserver.Query(sql)
 			    if(len(jid)==0):
 				print " job for run ",run[0]  , " doesnot exists "
-                            eosfind=" ls -l /tmp/eosams/ams/Data/AMS02/2014/ISS.B700/pass5/%d*.root" %(run[0])
-                            eosout=commands.getstatusoutput(eosfind)
-                            eosfiles=eosout[1].split("\n")
-                            for eos in eosfiles:
-                                e=eos.split(' ')
-                                print e[8]
-                                r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s 1 1 1 1 1 " %(e[8])
-                                cp=e[8].replace("/tmp/eosams","/castor/cern.ch",1)
-                                co=commands.getstatusoutput("nsls -l "+cp)
-                                if(co[0]):
-                                        print " problem with castor ",co,cp
-                                        continue
-                                f1=commands.getstatusoutput(r64)
-                                f1a=f1[1]
-                                f1_1=f1a.split("entries")
-                                f1_2=f1_1[1].split(" ")
-                                r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s %s 1 1 1 1 " %(e[8],f1_2[1])
-                                f2=commands.getstatusoutput(r64)
-                                f2a=f2[1]
-                                f2_1=f2a.split(",,,")
-                                le=int(f2_1[1])
-                                fe=int(f2_1[2])
-                                ver=f2_1[3]
-                                crc="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/crc %s 1 1" %(e[8])
-                                c2=commands.getstatusoutput(crc)                     
-                                c3=c2[1]
-                                c3_1=c3.split(" ")
-                                timenow=int(time.time())
-                                version="build%s/xyz" %(ver)
-                                sizemb=int(int(e[4])/1024/1024+0.5)
-                                self.InsertNtuple(run[0],version,"RootFile",run[1],fe,le,int(f1_2[1]),0,timenow,sizemb,"Validated",cp,int(c3_1[1]),timenow,0,timenow,1,None,None,timenow)
-                                self.sqlserver.Commit(1)
-
-				 
                             bad1.append(run[0])
                         else:
                             print "<tr>"
@@ -3886,6 +3852,7 @@ class RemoteClient:
             runs=self.sqlserver.Query(sql)
             tot=0
 	    tota=0
+	    totg=0	
             for file in files:
 		found=0
 		for run in runs:
@@ -3918,6 +3885,7 @@ class RemoteClient:
 				sql="update jobs set realtriggers=%d where jid=%d" %(file[3],file[2])
 				self.sqlserver.Update(sql)  				
                             self.sqlserver.Commit(1)
+	    print "pass1 ended"
             if(len(files)>0):
                 for run in runs:
                     found=0
@@ -3943,6 +3911,7 @@ class RemoteClient:
       	                    for eos in eosfiles:
 				e=eos.split(' ')
 				print e[8]
+				continue
 				r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s 1 1 1 1 1 " %(e[8])
 			 	cp=e[8].replace("/tmp/eosams","/castor/cern.ch",1)
 				co=commands.getstatusoutput("nsls -l "+cp)
@@ -3980,7 +3949,10 @@ class RemoteClient:
                             print "<tr>"
                             print "<td>Run %d Events %d  </td><td> Id %d </td><td>  not found in dataset %s</td>" %(run[0],run[2],run[1],dataset)
                             print "</tr>"
-            
+           	else:
+			totg=totg+1
+			if(totg%1000==1):
+				print " good ",totg 
             else:
                 if(tab==0):
                     print "dataset ",dataset, "not found "
