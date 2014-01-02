@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664k1omicc,v 1.1 2013/12/20 22:20:48 choutko Exp $
+#  $Id: Makefile.linuxx8664k1omicc,v 1.2 2014/01/02 16:29:38 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -114,9 +114,9 @@ endif
   FORTRAN_LIBS=
   FORTRAN2_LIBS=  -L$(INTELDIR)/$(INTELVER)/lib/mic   -lifport -lintlc -lifcoremt -limf  -lipgo -lirc_s 
 
-ORBIT2DIR=$(AMSDEPLIB)/Orbit2
+ORBIT2DIR=$(AMSDEPLIB)/ORBit2.2.14.mic-gcc64-47
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
-IDLCPP=$(ORBIT2DIR)/bin/orbit-idl-2 --backenddir=$(AMSDEPLIB)/lib/orbit-2.0/idl-backends -l cpp
+IDLCPP=$(ORBIT2DIR)/bin/orbit-idl-2 --backenddir=$(AMSDEPLIB)/Orbit2.2.14/idl-backends -l cpp
 
 
 ########################################################################
@@ -240,7 +240,7 @@ endif
 # Library list 
 
 TIMEL=
-LDFLAGSI=    -static  $(G4LIBSI) $(FORTRAN2_LIBS) \
+LDFLAGSI=      $(G4LIBSI) $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnagmic \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
@@ -283,7 +283,7 @@ TIMEL=
 
 LDFLAGSIDL= -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp -lORBit-2
 
-LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2 -lrt -lnsl   
+LDFLAGSSTATICIDL=  $(LDFLAGSIDL) -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2 -lIDL-2 -lrt -lnsl   
 
 CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
