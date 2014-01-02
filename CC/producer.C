@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.187.2.8 2013/12/25 19:21:55 ams Exp $
+//  $Id: producer.C,v 1.187.2.9 2014/01/02 15:31:54 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1562,7 +1562,7 @@ else _cinfo.Status=DPS::Producer::Finished;
 // check event numbers
    
     int fail=1;
-    if(!AMSJob::gethead()->isRealData()){
+    if(1){
       fail=(_reinfo->LastEvent-_reinfo->FirstEvent+1)/(_cinfo.EventsProcessed+1)*10;      
      if(fail<1)fail=1;
     }
@@ -1718,7 +1718,7 @@ a.Entry.Insert=i;
 a.Entry.Begin=b;
 a.Entry.End=e;
 DPS::Producer::TDVTable * ptdv;
-//IMessage(AMSClient::print(a," INITDV "));
+IMessage(AMSClient::print(a," INITDV "));
  int suc=0;
  int length;
 again:
