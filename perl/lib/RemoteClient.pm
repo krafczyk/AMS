@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.812 2013/12/27 15:07:28 choutko Exp $
+# $Id: RemoteClient.pm,v 1.813 2014/01/03 17:19:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14473,7 +14473,7 @@ foreach my $block (@blocks) {
      if ($closedst[1] ne "Validated" and $closedst[1] ne "Success" and $closedst[1] ne "OK") {
       print FILE "parseJournalFile -W- CloseDST block : $dstfile,  DST status  $closedst[1]. Check anyway.\n";
      }
-      $dstsize = sprintf("%.1f",$dstsize/1000/1000);
+      $dstsize = sprintf("%.1f",$dstsize/1024/1024);
       $closedst[0] = "CloseDST";
        print FILE "$dstfile.... \n";
 
@@ -15515,7 +15515,7 @@ sub insertNtuple {
                  print " $path not found \n";
              }
              else{
-                 $ntsize=$filesize/1000/1000;
+                 $ntsize=$filesize/1024/1024;
                  print "  file size corrected to $ntsize $path \n";
 
              }
@@ -16975,7 +16975,7 @@ sub printValidateStat {
       print "\n ",$l0,$l1,$l2;
       print FILEV "\n",$l0,$l1,$l2;
 
- my $totalGB = $gbDST[0]/1000/1000/1000;
+ my $totalGB = $gbDST[0]/1024/1024/1024;
  my $chGB = sprintf("Total GB %3.1f \n",$totalGB);
  print $chGB;
  my $ch0 = sprintf("Total Time %3.1f hours \n",$hours);
@@ -18545,7 +18545,7 @@ sub updateDSTPath {
         my $crc    = $ret->[0][1];
         my $inputfile = $filename;
         my $filesize    = (stat($inputfile))[7];
-        $filesize = $filesize/1000/1000;
+        $filesize = $filesize/1024/1024;
         $filesize = sprintf("%.f",$filesize);
         if ($verbose == 1) {print "$inputfile $filesize/$sizemb [MB] \n";}
         if ($sizemb - $filesize < 2 ) {
