@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.169 2013/12/25 19:21:08 ams Exp $
+# $Id: Monitor.pm,v 1.170 2014/01/03 17:20:05 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1873,9 +1873,9 @@ sub ResetHistory{
 my $ref=shift;
      for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-        if($rdst{History} eq "Failed"){
+        if(  $rdst{History} eq "Failed"){
             $rdst{History}="ToBeRerun";
-                        $rdst{Fails}=0;
+                        $rdst{CounterFail}=0;
 
        foreach my $arsref (@{$ref->{arpref}}){
             try{

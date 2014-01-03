@@ -518,7 +518,7 @@ class RemoteClient:
            for disk in ret:
                try:
                    fs=os.stat(disk[0])[ST_SIZE]
-                   fs=int(fs/1000/1000+0.5)
+                   fs=int(fs/1024/1024+0.5)
                    if(fs<20000):
                        sql="update ntuples set sizemb=%d where path like '%s' " %(fs,disk[0])
                        self.sqlserver.Update(sql)
@@ -2323,7 +2323,7 @@ class RemoteClient:
         if(ntsize>20000):
             print "Too Big size ",ntsize," for ",path
             ossize=os.stat(path)[ST_SIZE]
-            ntsize=float(ossize)/1000/1000
+            ntsize=float(ossize)/1024/1024
             print "size Changed To ",ntsize," for ",path
         sizemb="%.f" %(ntsize)
         sql="delete from ntuples where path='%s'" %(path)
@@ -3791,7 +3791,7 @@ class RemoteClient:
             eos_prefix="/tmp/eosams"
             eosmount="/afs/cern.ch/project/eos/installation/0.3.1-22/bin/eos.select -b fuse mount "+eos_prefix 
             os.system(eosmount)
-            sql="select path,run from ntuples where path like '%%%s/%%' and eostime>0 and datamc=1  %s " %(datapath,runn)
+            sql="select path,run,sizemb,jid,buildno from ntuples where path like '%%%s/%%' and eostime>0 and datamc=1  %s " %(datapath,runn)
             paths=self.sqlserver.Query(sql)
             for path in paths:
                 if(path[0].find('/castor/cern.ch')>=0):
@@ -3810,11 +3810,25 @@ class RemoteClient:
                             patheos=path[0].replace('/castor/cern.ch',eos_prefix,1)
                             eosls ="ls -l "+patheos
                             p2=commands.getstatusoutput(eosls)
+                            sizemb=path[2]
                             sp2=p2[1].split(' ')
-                            if(p2[0]!=0 or len(sp2)<=4 or sp2[4]!=sp1[4]):
+                            if(p2[0]!=0 or len(sp2)<=4):
                                     badeos.append(path[1])
                                     print "Run ",path[1] ," have eos problems "
-                                
+                            elif  (sp2[4]!=sp1[4] or int(sp2[4])==0):
+                                    badeos.append(path[1])
+                                    print "Run ",path[1] ," have eos problems ",sp2[4],sp1[4]
+                            elif ( abs(int(sp2[4])/1024/1024-sizemb)>2):
+                                if(int(sp2[4])/1000/1000-sizemb<2):
+                                    print " correcting size ",int(int(sp2[4])/1000/1000),sizemb
+                                    sizemb=int(int(sp2[4])/1024/1024+0.5)
+                                    sql="update ntuples set sizemb=%d where path like '%s'" %(sizemb,path[0])
+                                    self.sqlserver.Update(sql)
+                                    self.sqlserver.Commit(1)
+                                else:
+#                                    badeos.append(path[1])
+                                    print "Run ",path[1] ," have eos problems size ",sp2[4],sp1[4],sizemb
+                                    
         if(self.force):
             sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
             files=self.sqlserver.Query(sql)
