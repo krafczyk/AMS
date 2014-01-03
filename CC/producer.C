@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.187.2.9 2014/01/02 15:31:54 choutko Exp $
+//  $Id: producer.C,v 1.187.2.10 2014/01/03 16:55:21 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -635,7 +635,7 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
    struct stat64 statbuf;
     stat64((const char*)a(bstart), &statbuf);
       ntend->Insert=statbuf.st_ctime;
-      ntend->size=statbuf.st_size/1024./1024.+0.5;
+      ntend->size=statbuf.st_size/1000./1000.+0.5;
  
 
    if(!AMSTimeID::_Table){
@@ -979,7 +979,7 @@ char *means=getenv("TransferBy");
     stat64((const char*)a(bstart), &statbuf);
 
 ntend->Insert=statbuf.st_ctime;
-ntend->size=statbuf.st_size/1024./1024.+0.5;
+ntend->size=statbuf.st_size/1000./1000.+0.5;
 }
 ntend->ErrorNumber=0;
 
