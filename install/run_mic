@@ -1,3 +1,3 @@
 export ROOTSYS=/dat0/choutko/rootmic 
-export LD_LIBRARY_PATH=$ROOTSYS/lib:/dat0/lib
+export LD_LIBRARY_PATH=$ROOTSYS/lib:/dat0/lib:/fc02dat0/opt/ORBit2.2.14.mic-gcc64-47/lib
 export AMSDataDir=/dat0/AMSDataDir
