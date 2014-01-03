@@ -568,12 +568,12 @@ class RemoteClient:
            return 0
     def sendmailmessage(self,add,sub,mes="",att=""):
         import mimetypes
-        from email import encoders
-        from email.message import Message
-        from email.mime.base import MIMEBase
-        from email.mime.image import MIMEImage
-        from email.mime.multipart import MIMEMultipart
-        from email.mime.text import MIMEText
+        from email import Encoders
+        from email.Message import Message
+        from email.MIMEBase import MIMEBase
+        from email.MIMEImage import MIMEImage
+        from email.MIMEMultipart import MIMEMultipart
+        from email.MIMEText import MIMEText
         if(att == ""):
                message=MIMEText(mes)
                message['Subject']=sub
