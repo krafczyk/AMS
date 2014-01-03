@@ -3924,7 +3924,8 @@ class RemoteClient:
                             eosfiles=eosout[1].split("\n")
       	                    for eos in eosfiles:
 				e=eos.split(' ')
-				print e[8]
+				if(len(e)>7):
+					print e[8]
 				continue
 				r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s 1 1 1 1 1 " %(e[8])
 			 	cp=e[8].replace("/tmp/eosams","/castor/cern.ch",1)
