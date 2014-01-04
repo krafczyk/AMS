@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.18 2013/07/24 09:43:32 pzuccon Exp $
+// $Id: MagField.C,v 1.19 2014/01/04 16:00:13 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2013/07/24 09:43:32 $
+///$Date: 2014/01/04 16:00:13 $
 ///
-///$Revision: 1.18 $
+///$Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -21,8 +21,8 @@
 #include <cmath>
 #include <cstdlib>
 
-
 #include "MagField.h"
+#include "bcorr.h"
 #ifdef _PGTRACK_
 
 
@@ -542,4 +542,20 @@ float  MagField::BCorrFactor(float temp){
   const float TETH=18.5;
   return 1.-dBdT*(temp-TETH);
 }
+
+int MagField::UpdateMagTemp(unsigned int time){
+
+  float temp=18.5;
+  if(time!=MagnetVarp::mgtt.time){
+    MagnetVarp::mgtt.loadValues(time,true);
+    if(time!=MagnetVarp::mgtt.time)return -1;
+  }
+  
+  int ret=MagnetVarp::mgtt.getmeanmagnettemp(temp);
+  if(ret)return -2;
+  
+  SetMagTemp(temp);
+  return 0;
+}
+
 #endif

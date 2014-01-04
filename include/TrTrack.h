@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.103 2013/11/06 11:17:45 oliva Exp $
+//  $Id: TrTrack.h,v 1.104 2014/01/04 16:00:14 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2013/11/06 11:17:45 $
+///$Date: 2014/01/04 16:00:14 $
 ///
-///$Revision: 1.103 $
+///$Revision: 1.104 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -581,8 +581,8 @@ public:
   /// \retval  0  --> The Residual with point included in the fit has been calculated
   /// \retval -1 --> No hit on the track on this layer
   /// \retval -2 --> Cannot find the fit id
-  /// \retval -3 --> The layer was not used in the fit and kind !=2
-  /// \retval -4 --> the kind type was not 0, 1 o
+  /// \retval -3 --> The layer was not used in the fit and kind !=1
+  /// \retval -4 --> the kind type was not 0, 1 
   /// \retval <-10 ---> Problem with the fitting, returning iTrTrackPar error multiplied by 10
   int GetResidualKindJ(int ilay, AMSPoint& pnt,int kind, int id);
 

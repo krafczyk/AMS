@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.618 2013/12/18 20:33:03 choutko Exp $
+//  $Id: root.C,v 1.619 2014/01/04 16:00:13 pzuccon Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -69,6 +69,8 @@
 #include "Tofrec02_ihep.h"
 #include "GM_SubLibrary.h"
 #include "BackTracingMIB.h"
+#include "MagField.h"
+#include "tkdcards.h"
 
 
 
@@ -442,6 +444,7 @@ void AMSEventR::hbook2s(int id, const char title[], int ncha, float  a, float b,
     hbook2(id+shift*i,title,ncha,a,b,nchaa,ba);
   }
 }
+
 void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
   AMSID id(idd,Dir);
 #pragma omp critical (hf2)
@@ -2522,6 +2525,7 @@ bool AMSEventR::ReadHeader(int entry){
 	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
       }
       if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
+      if(TRFITFFKEY.magtemp && Version()>=700) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
 

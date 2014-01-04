@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.66 2013/12/16 13:57:59 choutko Exp $
+// $Id: tkdcards.h,v 1.67 2014/01/04 16:00:14 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 #ifdef _PGTRACK_
@@ -433,6 +433,8 @@ public:
   int  MultipleAlign;
   /// I 22 Determine the max |X| accepted to associate a layer 9 hit to the track
   float EcalMaxX;
+  // I  23 magnet temp correction enabled
+  int   magtemp;
 
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
@@ -440,7 +442,7 @@ public:
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,7);
+  ClassDef(TRFITFFKEY_DEF,8);
 };
 //
 
@@ -470,5 +472,6 @@ class TRCHAFFKEY_DEF : public TObject {
 
 #define TRCHAFFKEY COMMON_BLOCK(TRCHAFFKEY,trchaffkey)
 COMMON_BLOCK_DEF(TRCHAFFKEY_DEF,TRCHAFFKEY);
+
 #endif
 #endif

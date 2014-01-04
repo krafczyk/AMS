@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.587 2013/12/20 22:21:04 choutko Exp $
+//  $Id: event.C,v 1.588 2014/01/04 16:00:13 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1584,6 +1584,14 @@ try{
 }
 //------------------------------------------------------------------------------------------------------------------------
 void AMSEvent::_reamsevent(){
+
+
+#ifdef _PGTRACK_
+  if(TRFITFFKEY.magtemp &&AMSCommonsI::getbuildno()>=700&& AMSJob::gethead()->isRealData()) MagField::GetPtr()->UpdateMagTemp(gettime());
+#endif
+
+
+
   AMSgObj::BookTimer.start("REAMSEVENT");  
   // get beam par, and other things  if any;
   _regnevent();
@@ -1742,6 +1750,7 @@ if(DAQEvent::FileSize()){
 #ifndef _PGTRACK_
   if(calltrk)AMSTrTrack::cleanup(); 
 #endif
+
   AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
@@ -2262,6 +2271,7 @@ void AMSEvent::_reecalevent(){
   }
   EcalJobStat::addre(5);
 //
+      
        AMSgObj::BookTimer.start("ReEcalShowerFit");
        //two phase run due to att corr 
       for(int i=0;i<2;i++){
@@ -2273,6 +2283,7 @@ void AMSEvent::_reecalevent(){
        nsuc+=1;
       }
       if(nsuc==2)EcalJobStat::addre(6);
+
        AMSgObj::BookTimer.stop("ReEcalShowerFit");
 
 //
