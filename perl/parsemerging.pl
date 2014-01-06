@@ -77,7 +77,7 @@ foreach my $jou (@journals) {
         if ($ofe) {
             $percentage = sprintf "%.2f%%", ($ne-$one)/$ne*100;
         }
-        my $info = sprintf "(%s, $runtype, %d events, %.0f min)", $percentage, $ne-$one, ($ne-$one)/$ne*($let-$fet)/60;
+        my $info = sprintf "(%s, $runtype, %d events, %.1f min)", $percentage, $ne-$one, ($ne-$one)/$ne*($let-$fet)/60;
 
         print "Found run to MERGE: $run $info\n";
         print "Copying $run to $TRCDIR ...";
