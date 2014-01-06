@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612.2.9 2014/01/03 12:36:36 choutko Exp $
+//  $Id: root.C,v 1.612.2.10 2014/01/06 08:12:32 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3828,7 +3828,7 @@ float phi=atan2(Dir[1],Dir[0]);
 float theta=acos(Dir[2]);
 bool mcc=false;
 #ifdef __ROOTSHAREDLIBRARY__
-if(AMSEventR::Head())mcc=AMSEventR::Head()->nMCEventgC()>0;
+if(AMSEventR::Head())mcc=AMSEventR::Head()->nMCEventg()>0;
 #else
 if(AMSJob::gethead())mcc=AMSJob::gethead()->isRealData()?false:true;
 #endif
@@ -10728,7 +10728,7 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     // if (TrPdfDB::IsNull()) TrPdfDB::Load(_FILE);
     TrPdfDB::GetHead()->LoadDefaults();
 
-    bool isReal = (AMSEventR::Head()->nMCEventgC()==0);
+    bool isReal = !(AMSEventR::Head()->nMCEventgC());
 
     // TrGainDB (if all attempts fail use default)
     // 1st attempt: file
@@ -13733,7 +13733,7 @@ void  ParticleR::_build(double rid,double err,float charge,float beta, float ebe
 #ifdef _PGTRACK_
 int  UpdateInnerDz(){
   // not active for MC events!!
-  if(AMSEventR::Head()->nMCEventgC() > 0) return 0;
+  if(AMSEventR::Head()->nMCEventgC()) return 0;
 
   uint time,run;
 #ifdef __ROOTSHAREDLIBRARY__ 
@@ -13748,7 +13748,7 @@ int  UpdateInnerDz(){
 }
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   // not active for MC events!!
-  if(AMSEventR::Head()->nMCEventgC() > 0) return 0;
+  if(AMSEventR::Head()->nMCEventgC() ) return 0;
 
   //type 0 PG; 1 Madrid
   uint time,run;
@@ -14002,7 +14002,7 @@ void AMSEventR::RebuildBetaH(){
      }
 
 //---Fix For Gbatch
-    else if( (Version()>=610&&Version()<=622)&&nMCEventgC()==0){
+    else if( (Version()>=610&&Version()<=622)&&nMCEventg()==0){
 //---
       TofRecH::Init();
 //---TofClusterHR
@@ -14060,7 +14060,7 @@ bool MCEventgR::Rebuild=true;
 
 void AMSEventR::RebuildMCEventg(){
 if(Version()<645){
-for(int i=0;i<nMCEventgC();i++){
+for(int i=0;i<nMCEventg();i++){
 MCEventgR & mc=MCEventg(i);
 if(mc.Particle<0 && mc.parentID!=-2 ){
 mc.Momentum=sqrt( (mc.Momentum+mc.Mass)*(mc.Momentum+mc.Mass)-mc.Mass*mc.Mass);
