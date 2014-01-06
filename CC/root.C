@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.619 2014/01/04 16:00:13 pzuccon Exp $
+//  $Id: root.C,v 1.620 2014/01/06 08:12:07 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2518,14 +2518,14 @@ bool AMSEventR::ReadHeader(int entry){
 
     }
 #ifdef _PGTRACK_
-    if(!AMSEventR::Head()->nMCEventg()){ // not active for MC events!!
+    if(!AMSEventR::Head()->nMCEventgC()){ // not active for MC events!!
       // update the tracker Databases
       if(TrExtAlignDB::GetHead()){
 	TrExtAlignDB::GetHead()->UpdateTkDBc(UTime());
 	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
       }
       if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
-      if(TRFITFFKEY.magtemp && Version()>=700) MagField::GetPtr()->UpdateMagTemp(UTime());
+      if(TRFITFFKEY.magtemp && Version()>=700 ) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
 
@@ -2539,7 +2539,7 @@ bool AMSEventR::ReadHeader(int entry){
     }
 
     // Build corrections for each PMT
-    if (RichRingR::loadPmtCorrections && AMSEventR::Head()->nMCEventg()) {
+    if (RichRingR::loadPmtCorrections && AMSEventR::Head()->nMCEventgC()) {
       cout << "RICH PMT Corrections disabled for MC." << endl;
       RichRingR::loadPmtCorrections=false;
     }
@@ -2573,7 +2573,7 @@ bool AMSEventR::ReadHeader(int entry){
     RichRingR::pmtCorrectionsFailed = -1;
     // Rich Uniformity Beta Correction Loading. Only once per run
 #pragma omp critical(rd)
-    if(fHeader.Run!=runo && nMCEventg()){
+    if(fHeader.Run!=runo && nMCEventgC()){
 #ifdef _PGTRACK_
       if(RichRingR::shouldLoadCorrection!=-1){
 	TString filename;
@@ -2608,7 +2608,7 @@ bool AMSEventR::ReadHeader(int entry){
     }
 
     // Rich Default Beta Correction Loading. Only once per run
-    if(fHeader.Run!=runo && !nMCEventg())
+    if(fHeader.Run!=runo && !nMCEventgC())
 #pragma omp critical(rd)
       if(RichRingR::shouldLoadCorrection==RichRingR::tileCorrection){
 	RichRingR::shouldLoadCorrection=-1; // Done
@@ -2689,7 +2689,7 @@ if(MCEventgR::Rebuild){
     }
 
     if(_Entry==0 && bStatus &&  !UProcessStatus(fStatus))return false;
-    if(!AMSEventR::Head()->nMCEventg()){ // not for MC events
+    if(!AMSEventR::Head()->nMCEventgC()){ // not for MC events
      fHeader.getISSTLE();
      fHeader.getISSAtt();
     }
@@ -4510,7 +4510,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	float scor[5]={0.} ; 
 	//
 	
-	if(AMSEventR::Head()->nMCEventg()){
+	if(AMSEventR::Head()->nMCEventgC()){
 
 		TRandom3 R;
 		// footprint
@@ -7346,7 +7346,7 @@ bool RichRingR::buildChargeCorrections(){
   pmtCorrectionsFailed = 1;
 
   // If it is MC skip use a trivial compuation
-  if(AMSEventR::Head()->nMCEventg()){
+  if(AMSEventR::Head()->nMCEventgC()){
     for(map<unsigned short,float>::iterator it=NpColPMT.begin();
 	it!=NpColPMT.end();it++) NpColCorr[it->first]=1;
     for(map<unsigned short,float>::iterator it=NpExpPMT.begin();
@@ -10673,7 +10673,7 @@ static int master=0;
       }
       ///// SH: Workaround to take care of the wrong TrackerAlignPM3
 
-      if(TkDBc::ForceFromTDV && !AMSEventR::Head()->nMCEventg())
+      if(TkDBc::ForceFromTDV && !AMSEventR::Head()->nMCEventgC())
 	TkDBc::GetFromTDV(UTime(), (TkDBc::ForceFromTDV == 4) ? 4 : 3);
     }
     if(!TrExtAlignDB::ForceFromTDV) 
@@ -10725,7 +10725,7 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     // if (TrPdfDB::IsNull()) TrPdfDB::Load(_FILE);
     TrPdfDB::GetHead()->LoadDefaults();
 
-    bool isReal = (AMSEventR::Head()->nMCEventg()==0);
+    bool isReal = !(AMSEventR::Head()->nMCEventgC());
 
     // TrGainDB (if all attempts fail use default)
     // 1st attempt: file
@@ -13730,7 +13730,7 @@ void  ParticleR::_build(double rid,double err,float charge,float beta, float ebe
 #ifdef _PGTRACK_
 int  UpdateInnerDz(){
   // not active for MC events!!
-  if(AMSEventR::Head()->nMCEventg() > 0) return 0;
+  if(AMSEventR::Head()->nMCEventgC() ) return 0;
 
   uint time,run;
 #ifdef __ROOTSHAREDLIBRARY__ 
@@ -13745,7 +13745,7 @@ int  UpdateInnerDz(){
 }
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   // not active for MC events!!
-  if(AMSEventR::Head()->nMCEventg() > 0) return 0;
+  if(AMSEventR::Head()->nMCEventgC() ) return 0;
 
   //type 0 PG; 1 Madrid
   uint time,run;
@@ -14065,3 +14065,14 @@ mc.Momentum=sqrt( (mc.Momentum+mc.Mass)*(mc.Momentum+mc.Mass)-mc.Mass*mc.Mass);
 }
 }
 }
+
+bool AMSEventR::nMCEventgC(){
+bool mcc=false;
+#ifdef __ROOTSHAREDLIBRARY__
+if(AMSEventR::Head())mcc=AMSEventR::Head()->nMCEventg()>0;
+#else
+if(AMSJob::gethead())mcc=AMSJob::gethead()->isRealData()?false:true;
+#endif
+return mcc;
+}
+

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.212 2013/12/25 19:22:23 choutko Exp $
+//  $Id: server.C,v 1.213 2014/01/06 08:12:08 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3470,10 +3470,15 @@ try{
  if(pdata){
   time_t b=tdv.Entry.Begin;
   time_t e=tdv.Entry.End;
+  bool estatus=false;
   if(tdv.Size<0){
    cout<<" findtdv variable found "<<id<<endl;
   }
-  _tid[id]=new AMSTimeID(id,(*(localtime(&b))),(*(localtime(&e))),tdv.Size-sizeof(uinteger),pdata,AMSTimeID::Server);
+  else if(strstr((const char*)tdv.Name,"EventStatusTable04")){
+   cerr <<id<<" must be variable , resetting "<<endl;
+   estatus=true;
+  }
+  _tid[id]=new AMSTimeID(id,(*(localtime(&b))),(*(localtime(&e))),estatus?-tdv.Size:tdv.Size-sizeof(uinteger),pdata,AMSTimeID::Server);
  cout <<" new tdv "<<id<<endl;
  li=_tid.find(id);
  }

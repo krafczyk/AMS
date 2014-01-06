@@ -147,6 +147,7 @@ if(! rfile->Get("datacards/TRCHAFFKEY_DEF"))return -1;
    
  } 
  int nevents=tree->GetEntries();
+int ver;
  if(iver)cout <<"  entries "<<nevents<<" "<<nev<<endl;
  if(nevents<=0)return -2;
  else if(nev>nevents)return -3;
@@ -161,6 +162,9 @@ again:
   int nbadev=0;
   int nevread=0;
   for (int i=0;i<nevents;i++){
+   if(i==0){
+      if(pev->ReadHeader(i))ver=pev->Version();
+  }
    if(castor){
       if(!pev->ReadHeader(i))break;
       else return 0;
@@ -188,6 +192,7 @@ again:
   if(nev>2 && LastEvent>0){
    float rate=(lastevent+1-firstevent)/nevread;
    if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<" "<<rate<<" "<<diff<<endl; 
+   if(iver)cout <<" LastEvent,,,"<<lastevent << ",,,"<<firstevent<<",,,"<<ver<<",,,"<<nevread<<endl;
    if(0 && abs(LastEvent-lastevent)>15*rate && abs(LastEvent-lastevent)>3*diff){
      return -5;
    } 
