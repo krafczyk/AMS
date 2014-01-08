@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.187.2.11 2014/01/03 17:02:03 choutko Exp $
+//  $Id: producer.C,v 1.187.2.12 2014/01/08 15:34:25 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -165,6 +165,7 @@ again:
     cout <<"   TimeOut sending "<<cput<<endl;
     struct hostent* h;
     h=gethostbyname("pcamss0.cern.ch");
+    if(!_pid.Interface)_pid.Interface="";
       IMessage(AMSClient::print(_pid,"sendID-I-Before"));
   try{
      if(!((*li)->sendId(_pid,_pid.Mips,cput))){
