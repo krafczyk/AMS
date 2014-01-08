@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.813 2014/01/03 17:19:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.814 2014/01/08 19:43:04 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8380,6 +8380,9 @@ if(defined $dataset->{buildno} ){
 my $buf2="$buf$tmpb";
 if(length($buf2)>=4000){
     $buf2=~s/export/et/g;
+}
+if(length($buf2)>=4000){
+    $buf2 = substr $buf2, 0, 4000;
 }
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($job,
