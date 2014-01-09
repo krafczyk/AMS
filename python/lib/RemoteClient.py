@@ -3518,9 +3518,7 @@ class RemoteClient:
                 status = 'Unchecked'
                 self.BadRuns[self.nCheckedCite] += 1
                 for ntuple in mvntuples:
-                    cmd = "rm %s" %(ntuple)
-                    if (rmprompt == 1):
-                        cmd = "rm -i %s" %(ntuple)
+                    cmd = "%s %s" %(self.rm, ntuple)
                     output.write("Validation failed : system command %s \n" %(cmd))
                     output.write(cmd + "\n")
                     os.system(cmd)
