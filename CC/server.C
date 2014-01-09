@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.213 2014/01/06 08:12:08 choutko Exp $
+//  $Id: server.C,v 1.214 2014/01/09 12:53:26 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3730,9 +3730,10 @@ int crun=0;
       }
     }
 
-                    NHLI li=find_if(_nhl.begin(),_nhl.end(),NHL_find((const char *)cid.HostName)); 
+     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+                    NHLI li=find_if(_pser->getnhl().begin(),_pser->getnhl().end(),NHL_find((const char *)cid.HostName)); 
                     int maxn=12;
-                     if(li!=_nhl.end()){
+                     if(li!=_pser->getnhl().end()){
                          maxn=(*li)->CPUNumber;
                     }
 //       if(threads>maxn && strstr((const char *)cid.HostName,lxplus5))threads=maxn;        
