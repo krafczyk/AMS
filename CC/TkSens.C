@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.23 2012/07/17 13:09:08 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.24 2014/01/09 15:14:32 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2012/07/17 13:09:08 $
+///$Date: 2014/01/09 15:14:32 $
 ///
-/// $Revision: 1.23 $
+/// $Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -135,15 +135,18 @@ void TkSens::Recalc(){
     return ;
   } 
   if(ll->IsK7()){
-    ReadChanX=GetStripFromLocalCooK7(SensCoo[0],sens);
-    mult = sens*TkDBc::Head->_NReadStripK7/TkDBc::Head->_NReadoutChanK;
-    int test = (mult*TkDBc::Head->_NReadoutChanK+ReadChanX)/TkDBc::Head->_NReadStripK7;
-    if (test!=sens) mult = mult+1;
-    cooX1=TkCoo::GetLocalCooK7(640+ReadChanX,mult);
+    ReadChanX=GetStripFromLocalCooK7(SensCoo[0],sens,mult);
+//     mult = sens*TkDBc::Head->_NReadStripK7/TkDBc::Head->_NReadoutChanK;
+     int RR=ReadChanX;
+     if(RR<0) RR=close_chanX;
+//     int test = (mult*TkDBc::Head->_NReadoutChanK+ReadChanX)/TkDBc::Head->_NReadStripK7;
+//     if (test!=sens) mult = mult+1;
+    
+    cooX1=TkCoo::GetLocalCooK7(640+RR,mult);
     if((LaddCoo[0]-cooX1)>=0) 
-      cooX2=TkCoo::GetLocalCooK7(640+ReadChanX+1,mult);
+      cooX2=TkCoo::GetLocalCooK7(640+RR+1,mult);
     else
-      cooX2=TkCoo::GetLocalCooK7(640+ReadChanX-1,mult);
+      cooX2=TkCoo::GetLocalCooK7(640+RR-1,mult);
   }    
   else{
     ReadChanX=GetStripFromLocalCooK5(SensCoo[0],sens);
@@ -625,23 +628,35 @@ int TkSens::GetStripFromLocalCooK5(number X,int Sens){
 
 
 //--------------------------------------------------
-int TkSens::GetStripFromLocalCooK7(number X,int Sens){
+int TkSens::GetStripFromLocalCooK7(number X,int Sens,int& mult){
 
-  // PZ FIXME is K7 not K5
-   if( X<0){
-    close_chanX=0;
-    if(Sens%2==1) close_chanX+=192;
+  if( X<0){
+    float strip=0;
+    int gstrip;
+    int rstrip=GetStripFromLocalImplantK7(strip, Sens, gstrip,mult);
+    close_chanX=rstrip;
     return -1;
   }
   else if ( X > TkDBc::Head->_ssize_active[0]){
-    close_chanX=191;
-    if(Sens%2==1) close_chanX+=192;
+    float strip=384;
+    int gstrip;
+    int rstrip=GetStripFromLocalImplantK7(strip, Sens, gstrip,mult);
+    close_chanX=rstrip;
     return -1;
+  }else{
+    
+    float strip=(X/TkDBc::Head->_ImplantPitchK);
+    int gstrip;
+    int rstrip=GetStripFromLocalImplantK7(strip, Sens, gstrip,mult);
+    close_chanX=rstrip;
+    return rstrip;
   }
-  
-  int gstrip=-1;
-  float strip=(X/TkDBc::Head->_ImplantPitchK);
+}
 
+int TkSens::GetStripFromLocalImplantK7(number strip, int Sens, int &gstrip, int& mult){
+  
+  gstrip=-1;
+  
   if(strip<95.5){
     int tstrip=(int)trunc(strip);
     int rstrip=(int)round(strip);
@@ -664,11 +679,11 @@ int TkSens::GetStripFromLocalCooK7(number X,int Sens){
     else if(ff==0) gstrip=tstrip*2/3+160;
     else gstrip= (tstrip+1)*2/3+160;
   }
-
+  
   if(gstrip<0) return -1;
   int rstrip=(Sens*224+gstrip)%384;
-  close_chanX=rstrip;
+  mult=(Sens*224+gstrip)/384;
   return rstrip;
-
+  
 }
 

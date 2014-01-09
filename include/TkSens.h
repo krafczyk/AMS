@@ -1,4 +1,4 @@
-/// $Id: TkSens.h,v 1.8 2012/05/13 21:59:38 pzuccon Exp $ 
+/// $Id: TkSens.h,v 1.9 2014/01/09 15:14:45 pzuccon Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
@@ -13,9 +13,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2012/05/13 21:59:38 $
+///$Date: 2014/01/09 15:14:45 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -26,7 +26,7 @@
 
 class TkSens {
 
- private:
+ public:
 
   // Input data
   
@@ -90,7 +90,9 @@ class TkSens {
   //! find the nearest readout channel from sensor K5 local coo
   int  GetStripFromLocalCooK5(number X,int sens);
   //! find the nearest readout channel from sensor K7 local coo
-  int  GetStripFromLocalCooK7(number X,int sens);
+  int  GetStripFromLocalCooK7(number X,int sens,int& mult);
+  //! find the nearest readout channel from sensor K7 local implatation strip
+  int  GetStripFromLocalImplantK7(number strip, int Sens, int &gstrip,int& mult);
 
  public:
 

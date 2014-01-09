@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.277 2013/12/20 22:20:48 choutko Exp $
+#  $Id: Makefile,v 1.278 2014/01/09 15:15:07 pzuccon Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -317,7 +317,7 @@ TRACK_BASE= $(SCC)TkCoo.C 	\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
 	$(SCC)TrHistoMan.C   $(SCC)HistoMan.C $(SCC)TrTrackSelection.C \
-	$(SCC)TrkLH.C \
+	$(SCC)TrkLH.C       $(SCC)tktof.C \
         $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C $(SCC)TrInnerDzDB.C
 
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C   $(SCC)TkDBc.C $(SCC)TrTrack.C  \

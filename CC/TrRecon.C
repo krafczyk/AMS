@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.174 2013/12/24 11:36:31 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.175 2014/01/09 15:14:32 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/12/24 11:36:31 $
+/// $Date: 2014/01/09 15:14:32 $
 ///
-/// $Revision: 1.174 $
+/// $Revision: 1.175 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -6570,7 +6570,7 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err, in
   for(int jj=0;jj<ptr->getnhits();jj++){
     TrRecHitR* phit=ptr->GetHit(jj);
     if (phit->OnlyY()) continue;
-    if (phit->GetLayer()==1) continue;
+    if (phit->GetLayer()==1||phit->GetLayer()>7) continue;
     nxy++;
     float X=pp[0]+dir[0]/dir[2]*(phit->GetCoord().z()-pp[2]);
     int mm;
@@ -6635,6 +6635,8 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err, in
   //  Lets try to find the best hit for the new track on layer 1
 
   TrRecHitR* phit2=ptr->GetHitLJ(2);
+
+
   // Check that hit on lay 1 exists and it is not Y only
   if(phit2 && !phit2->OnlyY()){
     TrClusterR*   cl1y=phit2->GetYCluster();
@@ -6716,15 +6718,30 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err, in
 
 
 bool TkTOFMatch(TrTrackR* tr, int select_tag);
+bool TkTOFMatch2(TrTrackR* tr, int select_tag);
 
 int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
   int  TRDdone = -10;
   bool TOFdone = false;
-#ifndef __ROOTSHAREDLIBRARY__
-  if ((TRCLFFKEY.ExtMatch%10)>0) {
+  //return 0;
+  if((TRCLFFKEY.ExtMatch/10)>0) {
+  tr->FitT(tr->Gettrdefaultfit());
+    TOFdone = TkTOFMatch2(tr, select_tag);
+  }
+
+  if (!(TOFdone) &&(TRCLFFKEY.ExtMatch%10)>0) {
+#ifdef __ROOTSHAREDLIBRARY__
+    AMSEventR *evt = AMSEventR::Head();
+    for (int i = 0; evt && i < evt->nTrdTrack(); i++) {
+      TrdTrackR *trd = evt->pTrdTrack(i);
+      AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
+      AMSDir   dd(trd->Theta,  trd->Phi);
+
+#else
     for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1); trd; trd=trd->next()) {
       AMSPoint pp= trd->getCooStr();
       AMSDir dd=trd->getCooDirStr(); 
+#endif
       TRDdone=TkTRDMatch(tr,pp,dd,select_tag); 
       if (TRDdone>0) {
         tr->FitT(tr->Gettrdefaultfit());
@@ -6733,30 +6750,12 @@ int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
       if (TRDdone>0) break;
     }
   }
-  if(TRDdone<=0 &&(TRCLFFKEY.ExtMatch/10)>0) {
-    tr->FitT(tr->Gettrdefaultfit());
-    TOFdone = TkTOFMatch(tr, select_tag);
-  }
-#else
-  if((TRCLFFKEY.ExtMatch%10)>0){
-    AMSEventR *evt = AMSEventR::Head();
-    for (int i = 0; evt && i < evt->nTrdTrack(); i++) {
-      TrdTrackR *trd = evt->pTrdTrack(i);
-      AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
-      AMSDir   dd(trd->Theta,  trd->Phi);
-      TRDdone = TkTRDMatch(tr,pp,dd,select_tag); 
-      if (TRDdone>0) {
-        tr->FitT(tr->Gettrdefaultfit());
-        if (log10(tr->GetNormChisqX(tr->Gettrdefaultfit()))>TRCLFFKEY.logChisqXmax) TRDdone = -9; 
-      }
-      if (TRDdone>0) break;
-    }
-  }
-#endif
+  
   if(TRDdone/10>0||TOFdone) {
     if (tr->FitT(tr->Gettrdefaultfit() > 0))
       tr->RecalcHitCoordinates(tr->Gettrdefaultfit());
   }
+
   return 0;
 }
 //-----------------------------------------------------------------------
@@ -7128,5 +7127,7 @@ PatID Nhits   Pattern  Sw Attrib
   217     3  01110000   0  02100
   218     3  01010100   0  01110
 */
+
+
 
 
