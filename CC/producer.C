@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.194 2014/01/08 15:34:40 choutko Exp $
+//  $Id: producer.C,v 1.195 2014/01/10 20:53:03 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -15,6 +15,7 @@
 #include <sys/file.h> 
 #include <malloc.h>
 #include <netdb.h>
+#include <sys/utsname.h>
 
 AMSProducer * AMSProducer::_Head=0;
 AString * AMSProducer::_dc=0; 
@@ -80,7 +81,10 @@ else{
 // return;
    FMessage("AMSProducer::AMSProducer-F-NoIOR",DPS::Client::CInAbort);
   }
-  _orb= CORBA::ORB_init(argc,argv);
+  argc++;
+  argv--;
+  //cout <<"a rgv "<<argc<<" "<<argv[1]<<endl;
+ _orb= CORBA::ORB_init(argc,argv);
   try{
    CORBA::Object_var obj=_orb->string_to_object(ior);
    if(!CORBA::is_nil(obj)){
@@ -697,6 +701,12 @@ if(exedir && nve && AMSCommonsI::getosname()){
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
   systemc+=nve;
+ struct utsname u;
+   uname(&u);
+char *ht=u.machine;
+if(ht && strstr(ht,"k1om")){
+systemc+=".mic";
+}
   systemc+=" ";
   systemc+=a(bstart);
   systemc+=" ";
@@ -1781,6 +1791,8 @@ cout <<" time ibe "<<i<<" "<<b<<" "<<e<<endl;
  int suc=0;
  bool oncemore=false;
  bool exhausted=false;
+
+
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
@@ -1792,8 +1804,8 @@ again:
     break;
   }
   catch  (const CORBA::SystemException &  a){
-     cerr<< "Problems with TDV "<<endl;
-//     cerr<< "Problems with TDV "<< a._orbitcpp_get_repoid()<<endl;
+//     cerr<< "Problems with TDV "<<endl;
+     cerr<< "Problems with TDV "<< a._orbitcpp_get_repoid()<<endl;
     _OnAir=false;
   }
  }
@@ -1864,6 +1876,8 @@ name.Entry.End=e;
     break;
   }
   catch  (CORBA::SystemException & a){
+  cerr<< "Problems with TDV "<< a._orbitcpp_get_repoid()<<endl;
+
     _OnAir=false;
   }
 }
@@ -2160,6 +2174,13 @@ return 0;
 
 bool AMSProducer::getior(const char * getiorvar){
 _OnAir=false;
+ struct utsname u;
+   uname(&u);
+char *ht=u.machine;
+if(ht && strstr(ht,"k1om")){
+cerr<<"AMSProducer::getior-E-UnableToGetIOR for "<<ht<<endl;
+return false;
+}
 char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);

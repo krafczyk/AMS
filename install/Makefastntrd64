@@ -120,6 +120,34 @@ EXE=$(AMSWD)/exe/$(ARCH)$(VERSIONP)
 TIMEL=
 endif
 
+ifeq ($(ARCH),linuxx8664k1omicc)
+
+# DEFAULTS
+  RH9add=-pthread
+  CERNDIRLIB = /afs/cern.ch/exp/ams/Offline/CERN/2005.mic/lib
+
+#
+      XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd.mic-icc64-13/lib64
+#
+      CFLAGS=      -D__BATCH__  -I../include   -DNORFIOD -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+      FFLAGS=   -O -I../include
+      DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl
+      #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c
+ INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
+            INTELVER=composer_xe_2013_sp1.1.106/compiler/
+            LDFLAGSA=  -static -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt  -L//afs/cern.ch/exp/ams/Offline/CERN/2005.mic/lib    -lpacklib -lmathlib -lkernlib   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl -lrt  -Bstatic  -lfreetype -lpcre   -pthread   $(XRDLIBP) $(XRDLIB) -L$(INTELDIR)/$(INTELVER)/lib/mic/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
+            LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt  -L//afs/cern.ch/exp/ams/Offline/CERN/2005.mic/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic  -ldl -lrt  -Bstatic  -lfreetype -lpcre   -pthread   -Bstatic $(XRDLIBP) $(XRDLIB)  -L$(INTELDIR)/$(INTELVER)/lib/mic/ -lifport -lifcoremt -lintlc -lirng -lsvml -limf  -lipgo -lirc_s  -lirc
+
+            CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  -openmp -mmic
+            FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort  -openmp -mmic
+            LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  -openmp -mmic
+            BIN=$(AMSWD)/bin/$(ARCH)$(VERSIONP)/fastntrd/
+            EXE=$(AMSWD)/exe/$(ARCH)$(VERSIONP)
+            TIMEL=
+            endif
+#
+
+
 #
 #
 #

@@ -1,6 +1,8 @@
 unsetenv AMS_ACQT_INTERFACE
+unsetenv CASTORSTATIC
 setenv ROOTSYS /afs/cern.ch/ams/Offline/root/linux/root-v5-34-9-icc64.14-mic 
 setenv ROOTSYSRUN /afs/cern.ch/ams/Offline/root/linux/root-v5-34-9-gcc64-slc6/
 setenv LD_LIBRARY_PATH $ROOTSYS/lib:$ROOTSYSRUN/lib
 setenv PGTRACK 1
 unsetenv G4AMS
+setenv NORFIOD 1
