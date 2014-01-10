@@ -3170,6 +3170,7 @@ class RemoteClient:
                 if(len(rq)>0 and rq[0][0].find('Completed')>=0):
                     print "Run ",run," already completed in database do nothing"
                     os.system("mv %s %s.1" %(inputfile,inputorig))
+                    mutex.release()
                     return 0, copylog
                 if(patternsmatched == len(StartingRunPatterns)+3 or patternsmatched == len(StartingRunPatterns)+2):
                     startingrunR=1
