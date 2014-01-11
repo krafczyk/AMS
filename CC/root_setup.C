@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.146 2014/01/11 11:12:15 choutko Exp $
+//  $Id: root_setup.C,v 1.147 2014/01/11 11:24:09 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -369,9 +369,10 @@ if(nodename && strlen(nodename)){
 static unsigned int loadextdone=0;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(loadextdone)
+#else
+#pragma omp critical (loadext)
 #endif
 if(loadextdone!=time && _Head && (!fRTable.size() || !fETable.size())){
-#pragma omp critical (loadext)
  if(_Head->LoadExt())loadextdone=time;
 
 }
