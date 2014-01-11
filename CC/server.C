@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.214 2014/01/09 12:53:26 choutko Exp $
+//  $Id: server.C,v 1.215 2014/01/11 09:40:02 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3673,7 +3673,7 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Run
 
   long threads=cid.threads;
   cout << " Threads requested "<< threads<<endl;
-  if(threads<0 || threads>=32)threads=1;
+  if(threads<0 || threads>=244)threads=1;
 
         for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
           if(curp->getType()==cid.Type){
