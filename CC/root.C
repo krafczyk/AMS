@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.621 2014/01/12 12:30:14 mduranti Exp $
+//  $Id: root.C,v 1.622 2014/01/13 08:36:15 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -151,9 +151,14 @@ void AMSEventR::hcopy(int id1,int id2){
   if(h1p){
     float a=h1p->GetBinLowEdge(1); 
     int n=h1p->GetNbinsX();
-    float b=h1p->GetBinLowEdge(n)+h1p->GetBinWidth(n); 
+     float b=h1p->GetBinLowEdge(n)+h1p->GetBinWidth(n); 
     const char *title=h1p->GetTitle();
+if(h1p->GetXaxis()->GetXbins()->GetArray()){
+ hbook1(id2,title,n,(double*)h1p->GetXaxis()->GetXbins()->GetArray());
+}
+else{
     hbook1(id2,title,n,a,b);
+}
     TH1D *h2p = h1(id2);
     if(h2p){
       for (int i=0;i<n+2;i++){
@@ -197,6 +202,7 @@ void AMSEventR::hcopy(int id1,int id2){
 }
 void AMSEventR::hdivide(int id1,int id2,int id3){
 {
+
   TH1D *h2p = h1(id2);
   if(h2p){
     //   h2p->Sumw2();
