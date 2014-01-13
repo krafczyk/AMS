@@ -1,4 +1,4 @@
-// $Id: TrGainDB.C,v 1.9 2013/08/07 16:19:20 choutko Exp $
+// $Id: TrGainDB.C,v 1.10 2014/01/13 15:33:51 choutko Exp $
 
 #include "TrGainDB.h"
 
@@ -33,7 +33,7 @@ TrGainDB* TrGainDB::GetHead() {
 
 
 TrGainDB::~TrGainDB() { 
-  Clear();
+//  Clear();
   if (!fTrGainHwIdMap.empty()) {
     for (TrGainIt ladgain=fTrGainHwIdMap.begin(); ladgain!=fTrGainHwIdMap.end(); ++ladgain)
       delete (*ladgain).second;
