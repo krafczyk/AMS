@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.622 2014/01/13 08:36:15 choutko Exp $
+//  $Id: root.C,v 1.623 2014/01/13 18:20:05 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10874,6 +10874,7 @@ bool suc=false;
      _TreeSetup->SetBranchStatus("*",false);
      if(ProcessSetup>0){
      _TreeSetup->SetBranchStatus("run.fHeader",true);
+     _TreeSetup->SetBranchStatus("run.fEntries",true);
      while(entry+1<_TreeSetup->GetEntries() ) {
       _TreeSetup->GetEntry(++entry);   
       map <unsigned int,int>::iterator it= _RunSetup.theMap.find(getsetup()->fHeader.Run);
@@ -10895,8 +10896,9 @@ bool suc=false;
       map <unsigned int,int>::iterator it=_RunSetup.theMap.find(run);
      suc=it!=_RunSetup.theMap.end();
      if(suc){
-          _TreeSetup->GetEntry(it->second);
+         int k= _TreeSetup->GetEntry(it->second);
           _EntrySetup=it->second;
+	  cout <<"AMSEventR::InitSetup-I-Read "<<k<<" Bytes from "<< _EntrySetup<<endl;
      } 
 //     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
 //      _TreeSetup->GetEntry(++_EntrySetup);
