@@ -504,7 +504,7 @@ double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2)
   for (int i = 0; i < 2; i++) {
     TrTrackR    *trk = (i == 0) ? trk1 : trk2;
     TrTrackPar &tpar = trk->AddPar(fitid);
-    trk->Settrdefaultfit(fitid);
+    //trk->Settrdefaultfit(fitid);
 
     tpar.FitDone  = true;
     tpar.HitBits  = hbit[i];

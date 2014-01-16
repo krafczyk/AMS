@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.583.2.5 2013/12/10 00:52:58 pzuccon Exp $
+//  $Id: event.C,v 1.583.2.6 2014/01/16 18:04:47 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2478,6 +2478,24 @@ try{
   if(AMSEvent::debug)AMSParticle::print();
 #endif
 
+#ifdef _PGTRACK_
+  if (TRCLFFKEY.recflag%100000 >= 10000) {
+    try{
+      AMSgObj::BookTimer.start("VtxPh");
+
+      TrRecon rec;
+      trstat |= rec.Build(10000, 0, TRCLFFKEY.statflag);
+    }
+    catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reaxevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" vtxph"<<endl;
+      seterror(2);
+      AMSgObj::BookTimer.stop("VtxPh");
+      AMSgObj::BookTimer.stop("REAXEVENT");
+      throw;
+    }
+    AMSgObj::BookTimer.stop("VtxPh");
+  }
+#endif
 
   AMSgObj::BookTimer.stop("REAXEVENT");
 }

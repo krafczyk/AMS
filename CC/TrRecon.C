@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.173.2.1 2013/12/24 11:41:36 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.173.2.2 2014/01/16 18:04:45 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2013/12/24 11:41:36 $
+/// $Date: 2014/01/16 18:04:45 $
 ///
-/// $Revision: 1.173.2.1 $
+/// $Revision: 1.173.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -350,6 +350,23 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
   //////////////////// TrTrack reconstruction ////////////////////  
   int simple = (flag%10000  >=  1000) ? 1 : 0;
   int vertex = (flag%100000 >= 10000) ? 1 : 0;
+
+  if (vertex == 1 && flag%1000 == 0) {
+    _StartTimer();
+    VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
+    int nhit = (cont) ? cont->getnelem() : 0;
+    delete cont;
+    if (nhit < 10 || nhit > 200) return 0;
+
+    if (PreselTrTracksVertex() == 1) {
+      trstat |= 0x20;
+      if (BuildTrTracksVertex(rebuild) == 1)
+	if (BuildVertex(2) == 1) trstat |= 0x2000;
+      _CpuTime += _CheckTimer();
+    }
+    return trstat;
+  }
+
 /*
   int evid = GetEventID();
   if (evid%1000 == 0)
@@ -3878,6 +3895,7 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
    TrTrackR   *track = new TrTrackR(0);
 #endif
    track->setstatus(AMSDBc::TOFFORGAMMA);
+   track->setstatus(AMSDBc::RECOVERED);
 
    int masky = 0x7f;
    int maskc = 0x7f;
@@ -6782,7 +6800,7 @@ int TrRecon::BuildVertex(integer refit){
     return -1;
   }
 
-  if (refit) pcvt->eraseC();
+  if (refit == 1) pcvt->eraseC();
 
   enum { Nmax = 10 };
   TrTrackR *ptrack[Nmax];
