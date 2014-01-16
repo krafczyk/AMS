@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.814 2014/01/08 19:43:04 bshan Exp $
+# $Id: RemoteClient.pm,v 1.815 2014/01/16 12:07:17 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8379,10 +8379,18 @@ if(defined $dataset->{buildno} ){
 }
 my $buf2="$buf$tmpb";
 if(length($buf2)>=4000){
-    $buf2=~s/export/et/g;
+    $buf2=~s/G4INSTALL/G4I/g;
 }
 if(length($buf2)>=4000){
-    $buf2 = substr $buf2, 0, 4000;
+    $buf2=~s/export/et/g;
+}
+if(length($buf2)>4000){
+    my $len=length($buf2)-4000;
+    my $mes="CUTTED:$len"; 
+    $len=length($buf2)-4000+length($mes);
+    $mes="CUTTED:$len"; 
+    $buf2 = substr $buf2, 0, 4000-length($mes);
+    $buf2="$buf2$mes";
 }
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($job,
@@ -9046,7 +9054,7 @@ if(defined $dataset->{buildno} ){
         my $sql="select maxrun from Cites where name='$self->{CCA}' and state=0";
         my $res=$self->{sqlserver}->Query($sql);
         if( not defined $res->[0][0]){
-            my $mes="Cite $self->{CCA} does not exist or locked";
+            my $mes="Cite $self->{CCA} does not exist or locked. Please retry from very beginning";
               foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
@@ -9829,7 +9837,18 @@ if(defined $dataset->{buildno} ){
 }
 my $buf2="$buf$tmpb";
 if(length($buf2)>=4000){
+    $buf2=~s/G4INSTALL/G4I/g;
+}
+if(length($buf2)>=4000){
     $buf2=~s/export/et/g;
+}
+if(length($buf2)>4000){
+    my $len=length($buf2)-4000;
+    my $mes="CUTTED:$len"; 
+    $len=length($buf2)-4000+length($mes);
+    $mes="CUTTED:$len"; 
+    $buf2 = substr $buf2, 0, 4000-length($mes);
+    $buf2="$buf2$mes";
 }
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($run,
@@ -15410,7 +15429,18 @@ my %CloseDSTPatterns = (
               }
 
 if(length($bufj)>=4000){
+    $bufj=~s/G4INSTALL/G4I/g;
+}
+if(length($bufj)>=4000){
     $bufj=~s/export/et/g;
+}
+if(length($bufj)>4000){
+    my $len=length($bufj)-4000;
+    my $mes="CUTTED:$len"; 
+    $len=length($bufj)-4000+length($mes);
+    $mes="CUTTED:$len"; 
+    $bufj = substr $bufj, 0, 4000-length($mes);
+    $bufj="$bufj$mes";
 }
               my $insertjobsql="INSERT INTO Jobs VALUES
                              ($jid,
