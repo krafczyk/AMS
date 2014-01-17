@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.935.2.5 2013/12/20 15:10:56 choutko Exp $
+// $Id: job.C,v 1.935.2.6 2014/01/17 11:39:52 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2121,7 +2121,7 @@ TKGEOMFFKEY.LoadMCDisalign=0;
       TkDBc::Head->init(pgtrack_DB_ver);
 
     char disname[400];
-    if(TKGEOMFFKEY.LoadMCDisalign%10>0){
+    if(isMCData() && TKGEOMFFKEY.LoadMCDisalign%10>0){
       char disname[200];
       char fname[1601];
       if(TKGEOMFFKEY.LoadMCDisalign%10==2)
