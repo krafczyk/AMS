@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.78 2013/10/07 11:58:47 choutko Exp $
+//  $Id: amschain.C,v 1.78.2.1 2014/01/17 15:58:38 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -734,16 +734,16 @@ int AMSChain::OpenOutputFile(const char* filename){
   amsnew = CloneTree(0);
   TFile * input=GetFile();
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return -2;}
-  if(!rsetup){
-    TTree* rsetup0=(TTree*) GetFile()->Get("AMSRootSetup");
-    fout->cd();
-    rsetup=rsetup0->CloneTree();
+  if(!rsetup){    
+      TTree* rsetup0=(TTree*) GetFile()->Get("AMSRootSetup");
+      fout->cd();
+      rsetup=rsetup0->CloneTree(-1,"fast");
   }
 
 #ifdef _PGTRACK_
   // Parameters
-  enum {nfiles=7};
-  char objlist[nfiles][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB","TrInnerDzDB"};
+  enum {nfiles=8};
+  char objlist[nfiles][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB","TrInnerDzDB","TrOccDB"};
   for(int ii=0;ii<nfiles;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
