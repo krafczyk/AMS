@@ -545,7 +545,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
       
       if ( iBDTVERSION == 3 )
 	{
-	  ecalpisareader = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader = new TMVA::Reader("Color:Silent");
 	  ecalpisareader->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareader->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -614,7 +614,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	}
       if ( iBDTVERSION == 4 )
 	{
-	  ecalpisareader = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader = new TMVA::Reader("Color:Silent");
 	  ecalpisareader->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareader->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -683,7 +683,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	}
       if ( iBDTVERSION == 5 && TMVAClassifier == 0 && EnergyFlag==0 )
 	{
-	  ecalpisareader_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader_ODD = new TMVA::Reader("Color:Silent");
 	  ecalpisareader_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareader_ODD->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -748,7 +748,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader_ODD->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareader_ODD->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareader_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader_EVEN = new TMVA::Reader("Color:Silent");
 	  ecalpisareader_EVEN->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareader_EVEN->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -820,7 +820,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	}
       if ( iBDTVERSION == 5 && TMVAClassifier == 1 && EnergyFlag==0 )
 	{
-	  ecalpisareaderS_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareaderS_ODD = new TMVA::Reader("Color:Silent");
 	  ecalpisareaderS_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareaderS_ODD->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -885,7 +885,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareaderS_ODD->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareaderS_ODD->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareaderS_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareaderS_EVEN = new TMVA::Reader("Color:Silent");
 	  ecalpisareaderS_EVEN->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareaderS_EVEN->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -957,7 +957,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	}
      if ( iBDTVERSION == 5 && TMVAClassifier == 0 && EnergyFlag!=0 )
 	{
-	  ecalpisareader_E_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader_E_ODD = new TMVA::Reader("Color:Silent");
 	  ecalpisareader_E_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareader_E_ODD->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -1022,7 +1022,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareader_E_ODD->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareader_E_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareader_E_EVEN = new TMVA::Reader("Color:Silent");
 	  ecalpisareader_E_EVEN->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareader_E_EVEN->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -1094,7 +1094,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	}
       if ( iBDTVERSION == 5 && TMVAClassifier == 1 && EnergyFlag!=0 )
 	{
-	  ecalpisareaderS_E_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareaderS_E_ODD = new TMVA::Reader("Color:Silent");
 	  ecalpisareaderS_E_ODD->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareaderS_E_ODD->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
@@ -1159,7 +1159,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareaderS_E_ODD->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareaderS_E_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	  ecalpisareaderS_E_EVEN = new TMVA::Reader("Color:Silent");
 	  ecalpisareaderS_E_EVEN->AddSpectator("EnergyD", &pisanormvar[nPISABDTVARs]);
 	  ivar = 0;
 	  ecalpisareaderS_E_EVEN->AddVariable("ShowerMeanNorm",       &pisanormvar[ivar++]);
