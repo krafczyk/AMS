@@ -35,6 +35,8 @@ bool BCHI2_HISTOS_DECLARE = true;
 int iVersionNumberBDTCHI2=0;
 TH1F *hECALBCHI2[nPIBCHI2VARs];
 
+EcalAxis& EcalShowerR::SharedEcalAxis() { static EcalAxis myAxis; return myAxis; };  // <<<   implementation of SharedEcalAxis()
+
 float EcalShowerR::GetEcalBDTCHI2()
 {
   AMSEventR *pev = AMSEventR::Head();
@@ -102,9 +104,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    bool apply_precuts = true;
    if( iBDTCHI2VERSION>=100 ) { iBDTCHI2VERSION-=100; apply_precuts = false; }
 
-
    EcalAxis::Version=3;
-   static EcalAxis ecalaxis;
+   static EcalAxis& ecalaxis = SharedEcalAxis();        // <<<  use  SharedEcalAxis() here
    if (iBDTCHI2VERSION<3)
      {
        ecalaxis.process(this,2);//use Lateral Fit algorithm for finding COG in the layer->time consuming
@@ -489,7 +490,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 {
 	   //~ TMVA::Tools::Instance();
 	   // 
-	   ecalBDTCHI2reader = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2reader = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   int ivar = 0;
 	   ecalBDTCHI2reader->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -542,7 +543,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
        if ( iBDTCHI2VERSION == 2 )
 	 {
-	   ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   int ivar = 0;
 	   ecalBDTCHI2reader_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -590,7 +591,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_ODD->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2reader_ODD->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   // 
-	   ecalBDTCHI2reader_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2reader_EVEN = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_EVEN->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   ivar = 0;
 	   ecalBDTCHI2reader_EVEN->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -645,7 +646,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
        if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 0 && EnergyFlag==0 )
 	 {
-	   ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   int ivar = 0;
 	   ecalBDTCHI2reader_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -693,7 +694,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_ODD->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2reader_ODD->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   // 
-	   ecalBDTCHI2reader_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2reader_EVEN = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_EVEN->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   ivar = 0;
 	   ecalBDTCHI2reader_EVEN->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -749,7 +750,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
        if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 1 && EnergyFlag==0 )
 	 {
-	   ecalBDTCHI2readerS_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2readerS_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2readerS_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   int ivar = 0;
 	   ecalBDTCHI2readerS_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -797,7 +798,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2readerS_ODD->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2readerS_ODD->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   // 
-	   ecalBDTCHI2readerS_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2readerS_EVEN = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2readerS_EVEN->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   ivar = 0;
 	   ecalBDTCHI2readerS_EVEN->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -853,7 +854,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
         if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 0 && EnergyFlag==1 )
 	 {
-	   ecalBDTCHI2reader_E_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2reader_E_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_E_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   int ivar = 0;
 	   ecalBDTCHI2reader_E_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -901,7 +902,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_E_ODD->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2reader_E_ODD->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   // 
-	   ecalBDTCHI2reader_E_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2reader_E_EVEN = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_E_EVEN->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   ivar = 0;
 	   ecalBDTCHI2reader_E_EVEN->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -957,7 +958,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
        if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 1 && EnergyFlag==1 )
 	 {
-	   ecalBDTCHI2readerS_E_ODD = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2readerS_E_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2readerS_E_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   int ivar = 0;
 	   ecalBDTCHI2readerS_E_ODD->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
@@ -1005,7 +1006,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2readerS_E_ODD->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2readerS_E_ODD->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   // 
-	   ecalBDTCHI2readerS_E_EVEN = new TMVA::Reader("Color:!Silent:V:VerbosityLevel=Debug:H");
+	   ecalBDTCHI2readerS_E_EVEN = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2readerS_E_EVEN->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
 	   ivar = 0;
 	   ecalBDTCHI2readerS_E_EVEN->AddVariable("ShowerMeanNorm",       &piBCHI2normvar[ivar++]);
