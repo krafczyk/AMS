@@ -1,4 +1,4 @@
-//  $Id: Tofsim02.C,v 1.7.2.1 2012/08/14 08:32:45 choutko Exp $
+//  $Id: Tofsim02.C,v 1.7.2.2 2014/01/19 05:20:33 qyan Exp $
 
 //Create by Qi Yan 2012/05/01
 // ------------------------------------------------------------
@@ -107,6 +107,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
       nelp=nels*sharep;
       //            cout<<"nelp="<<nelp<<endl;
       POISSN(nelp,neles,ierr);
+      TH1D *hph=0;
 //----Add Map Check
       if(neles>0){
          phmapiter=phmap.find(pmtid);
@@ -115,8 +116,8 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
              pair<integer,TH1D>phelem(pmtid,TH1D(histn,histn,TOF2GC::SCTBMX,0.,histmax));
              phmap.insert(phelem);
          }
+         hph=&phmap[pmtid];
        }
-       TH1D *hph=&phmap[pmtid];
 //-----
       //            cout<<"pmt="<<ipm<<" sum pmt phton="<<neles<<endl;
       for(i=0;i<neles;i++){//for each side
