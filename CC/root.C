@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612.2.12 2014/01/19 12:37:23 shaino Exp $
+//  $Id: root.C,v 1.612.2.13 2014/01/19 13:57:15 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2529,9 +2529,9 @@ bool AMSEventR::ReadHeader(int entry){
       if(TRFITFFKEY.magtemp && Version()>=700) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
-
+#ifdef _PGTRACK_
     // Fix trdefaultfit
-    if(Version()>700){
+    if(Version()>700 && Version()<714){
       int fix=0;
       for(int i=0;i<NTrTrack();i++){
 	TrTrackR *trk=pTrTrack(i);
@@ -2542,7 +2542,7 @@ bool AMSEventR::ReadHeader(int entry){
 	fHeader.BetaHs = NBetaH();
       }
     }
-
+#endif
     if(Version()<160){
       // Fix rich rings
       NRichHit();
