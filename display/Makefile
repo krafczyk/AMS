@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.136 2013/12/19 12:13:28 choutko Exp $
+#  $Id: Makefile,v 1.137 2014/01/19 15:03:25 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -163,7 +163,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage   $(ROOTSYS)/li
 
 LIBS          =  -Bstatic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm  $(XRDLIBP) $(XRDLIB) -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm        $(XRDLIBP) $(XRDLIB)      -ldl 
-LIBSD         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS) 
+LIBSD         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS) -ljpeg -lpng
 ifdef AMS_ACQT_INTERFACE
 LIBS+= $(QTDIR_STATIC_32)/lib/libQtCore.a
 LIBSA+= $(QTDIR_STATIC_32)/lib/libQtCore.a
@@ -198,6 +198,10 @@ CPPFLAGS     += -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I..
 CXXFLAGS      = -Wno-deprecated -openmp  $(OPT) $(CPPFLAGS)
 OPT           = -O3 
 OPTC          = -O3
+ifdef DEBUGFLAG
+OPT           = -g
+OPTC          = -g
+endif
 NOOPT         = -g
 NOOPTC        = -g
 LD            = $(INTELVER)/bin/intel64/icpc  $(CPPFLAGS) -openmp -static-intel -static-libgcc
@@ -232,7 +236,7 @@ ROOTLIBSA += -lncurses $(LFORT)
 #LIBS          =   -Bstatic $(ROOTLIBSA)  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm   -Bdynamic -ldl 
 LIBS          =   -Bstatic $(ROOTLIBSA) $(LZMAL)  -lm   $(XRDLIBP) $(XRDLIB) -Bdynamic    -lshift -ldl 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm  $(XRDLIBP) $(XRDLIB) -ldl 
-LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)    $(XRDLIBP) $(XRDLIB)
+LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  -ljpeg -lpng  $(XRDLIBP) $(XRDLIB)
 
 endif
 
@@ -311,7 +315,7 @@ ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/l
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
 LIBS          =   -Bstatic $(ROOTLIBSA)   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm -Bdynamic -ldl
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm    -ldl 
-LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS)  
+LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) -ljpeg -lpng 
 
 ifdef VERGCCH
   CPPFLAGS+= -D__LINUXNEW__
@@ -374,7 +378,7 @@ ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage  -lpcre $(LZMAL)
 LIBS          =  -Bstatic $(ROOTLIBSA)    $(XRDLIBP) $(XRDLIB) -lm -Bdynamic    -lshift  -ldl
 
 LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm      $(XRDLIBP) $(XRDLIB) -ldl 
-LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)   $(XRDLIBP) $(XRDLIB)
+LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  -ljpeg -lpng $(XRDLIBP) $(XRDLIB)
 
 ifdef AMS_ACQT_INTERFACE
 LIBS+= $(QTDIR_STATIC)/lib/libQtCore.a
