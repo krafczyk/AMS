@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.103.2.1 2013/12/10 00:20:56 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.103.2.2 2014/01/19 12:20:19 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2013/12/10 00:20:56 $
+///$Date: 2014/01/19 12:20:19 $
 ///
-///$Revision: 1.103.2.1 $
+///$Revision: 1.103.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -928,6 +928,9 @@ public:
 
   /// Do advanced fits specified in the default list and add in OR the add_flags
   int DoAdvancedFit(int add_flags=0);
+
+  /// Reset trdefaultfit based on the longest span
+  void Resettrdefaultfit();
 
   /// Get range of maximum shift in multiplicity
   void GetMaxShift(int &left, int &right) const;
