@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.179 2014/01/04 16:00:13 pzuccon Exp $
+// $Id: TrTrack.C,v 1.180 2014/01/19 12:19:20 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2014/01/04 16:00:13 $
+///$Date: 2014/01/19 12:19:20 $
 ///
-///$Revision: 1.179 $
+///$Revision: 1.180 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1460,6 +1460,15 @@ int TrTrackR::AdvancedFitDone(int add_flag) const
     }
   }
   return done;
+}
+
+void TrTrackR::Resettrdefaultfit()
+{
+  int algo[4] = { kAlcaraz, kChoutko, kAlcaraz|kMultScat, kChoutko|kMultScat };
+  int span[4] = { 0, kFitLayer8, kFitLayer9, kFitLayer8 | kFitLayer9 };
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++)
+      if (ParExists(algo[j]|span[i])) trdefaultfit = algo[j]|span[i];
 }
 
 char * TrTrackR::GetFitNameFromID(int fitnum){
