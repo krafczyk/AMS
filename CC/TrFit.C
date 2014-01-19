@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.82 2013/12/24 11:36:31 shaino Exp $
+//  $Id: TrFit.C,v 1.83 2014/01/19 12:34:54 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2013/12/24 11:36:31 $
+///$Date: 2014/01/19 12:34:54 $
 ///
-///$Revision: 1.82 $
+///$Revision: 1.83 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1231,7 +1231,7 @@ int TrFit::JAFillFGmtx(double *fmtx, double *gmtx,
 }
 
 
-double TrFit::DmscFact = 16;
+double TrFit::DmscFact = 1;
 
 int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
                        double *len,  double *cosz, int *ilay)
