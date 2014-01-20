@@ -1186,7 +1186,7 @@ class RemoteClient:
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
                                                         self.nBadCopiesInRow=0
-                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.Run,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,0,run.DataMC)
+                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.Run,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,castortime,run.DataMC)
                                                         output.write("insert %d %s %s %d" %(run.Run, outputpath, status,int(ntuple.size)))
                                                         self.copied=self.copied+1
                                                         self.gbDST=self.gbDST+ntuple.size
@@ -1650,9 +1650,6 @@ class RemoteClient:
         self.sqlserver.Commit()
 
 
-    def getValidationDir(self):
-        sql="SELECT myvalue FROM Environment WHERE mykey='ValidationDirPath'"
-        return self.sqlserver.Query(sql)[0][0]
 
     def ServerConnect(self,datamc=0):
         try:
@@ -2306,6 +2303,7 @@ class RemoteClient:
             sql="delete from datafiles where run=%d and type like '%s'" %(run,stype)
             self.sqlserver.Update(sql)
             sql=" insert into datafiles values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s')" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths)
+            print "  insert ntuple before ",sql
             self.sqlserver.Update(sql)
             return
         
@@ -2329,6 +2327,7 @@ class RemoteClient:
         sql="delete from ntuples where path='%s'" %(path)
         self.sqlserver.Update(sql);
         sql = "INSERT INTO ntuples (RUN,VERSION,TYPE,JID,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,CRC,CRCTIME,CRCFLAG,CASTORTIME,BUILDNO,DATAMC,EOSTIME) VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc,eostime)
+	print "  insert ntuple before ",sql
         self.linkdataset(path,"/Offline/DataSetsDir",1)
         self.sqlserver.Update(sql)
    
