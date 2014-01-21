@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.79 2013/12/06 17:11:11 choutko Exp $
+//  $Id: amschain.C,v 1.80 2014/01/21 19:15:00 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -345,7 +345,17 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, int stagedonly,u
            else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
              staged=true;  
            }
-           else staged=false;
+           else{
+              staged=false;
+             stager_get="stager_qry -M ";
+             stager_get+=(rname+pos);
+             stager_get+=" | grep -c CANBEMIGR 2>&1";
+             pclose(fp);
+             fp=popen(stager_get.c_str(),"r");
+             if(fp && fgets(path, sizeof(path), fp) != NULL && strstr(path,"1"))staged=true;
+
+
+           }
            pclose(fp);
            if(!staged)stagein++; 
 //            stager_get bug workarond             
@@ -362,7 +372,16 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, int stagedonly,u
              else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
               stagedin=true;  
              }
-             else stagedin=false;
+             else {
+                stagedin=false;
+             stager_get="stager_qry -M ";
+             stager_get+=(rname+pos);
+             stager_get+=" | grep -c CANBEMIGR 2>&1";
+             pclose(fp);
+             fp=popen(stager_get.c_str(),"r");
+             if(fp && fgets(path, sizeof(path), fp) != NULL && strstr(path,"1"))stagedin=true;
+
+              } 
              pclose(fp);
            if(!stagedin){
              if(ktry==0)cerr<<"AMSChain::AddFromFile-W-TryingToStageHard "<<stager_get<<endl;
