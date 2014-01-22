@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.108 2013/11/07 22:49:40 bbeische Exp $
+//  $Id: geant4.C,v 1.109 2014/01/22 07:22:07 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -670,7 +670,7 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
 
 if(!_pv){
   cout << "AMSG4DetectorInterface::Construct-I-Building Geometry "<<endl;
-  G4GeometryTolerance::GetInstance()->SetSurfaceTolerance(100000);
+  G4GeometryTolerance::GetInstance()->SetSurfaceTolerance(10000);
   cout << "AMSG4DetectorInterface::Construct-I-SurficeToleranceSetTo "<<G4GeometryTolerance::GetInstance()->GetSurfaceTolerance()<<" mm" <<endl;;
 
   AMSJob::gethead()->getgeom()->MakeG4Volumes();
