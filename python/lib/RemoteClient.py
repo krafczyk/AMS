@@ -4089,7 +4089,7 @@ class RemoteClient:
                 if(len(ds)==1):
                     did=ds[0][0]
             else:
-                sql="select did from datasetsdesc where name like '%s' " %(dataset)
+                sql="select did from datasetsdesc where jobname like '%s' " %(dataset)
 	        ds=self.sqlserver.Query(sql) 
                 if(len(ds)==1):
                        did=ds[0][0]
