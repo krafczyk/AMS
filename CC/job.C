@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.944 2014/01/23 08:48:42 choutko Exp $
+// $Id: job.C,v 1.945 2014/01/23 14:14:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -903,7 +903,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.writeall=0;   //148 write photon information to rootfile(table mode)->on(1) off(0)
   TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
   TFMCFFKEY.threref[0]=1.;//150  LT  reference to normal value
-  TFMCFFKEY.threref[1]=1.;//151  HT  reference to normal value
+  TFMCFFKEY.threref[1]=1.19;//151  HT  reference to normal value
   TFMCFFKEY.threref[2]=1.;//151  SHT reference to normal value
          
 //---
