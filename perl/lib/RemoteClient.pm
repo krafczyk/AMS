@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.815 2014/01/16 12:07:17 choutko Exp $
+# $Id: RemoteClient.pm,v 1.816 2014/01/23 12:14:24 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -930,7 +930,7 @@ if($#{$self->{DataSetsT}}==-1){
              $dataset->{build}=$vrs[1];
             my @j1=split '.B',$job;
             if($#j1>0){
-                my $build=$j1[$#j1];
+                my $build=substr($j1[$#j1],0,4);
                 $build =~ tr/0-9//cd;
                 if(not defined $self->{Build} or $build>$self->{Build}){
 #                    $self->{Build}=$build;
