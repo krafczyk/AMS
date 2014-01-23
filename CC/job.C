@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.943 2014/01/23 08:23:17 choutko Exp $
+// $Id: job.C,v 1.944 2014/01/23 08:48:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2527,7 +2527,7 @@ void AMSJob::_signinitjob(){
 
 
 // add proper geant4 ets
-
+#ifdef __G4AMS__
 char *g4i=getenv("G4INSTALL");
 if(g4i && !strstr((const char *)G4Version,"geant4-09-04" )&& strstr (g4i,"geant4.9.4") && isSimulation()){
 string g4is=g4i;
@@ -2588,7 +2588,7 @@ cerr<<"AMSJob::_signinitjob-E-UnknowG4VersionDetected "<<G4Version<<endl;
 }
 
 
-
+#endif
   AMSgObj::BookTimer.book("SetTimeCoo");
 
   AMSmceventg::setcuts(CCFFKEY.coo,CCFFKEY.dir,CCFFKEY.momr,
