@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.935.2.7 2014/01/19 15:31:50 choutko Exp $
+// $Id: job.C,v 1.935.2.8 2014/01/23 08:20:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -100,6 +100,9 @@
 #include "TrdHCalib.h"
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+#ifdef __G4AMS__
+#include "G4Version.hh"
 #endif
 #ifdef __DB__
 //+
@@ -2522,10 +2525,11 @@ void AMSJob::_signinitjob(){
 // add proper geant4 ets
 
 char *g4i=getenv("G4INSTALL");
-if(g4i && AMSCommonsI::getbuildno()>700 && AMSCommonsI::getbuildno()<800 && strstr (g4i,"geant4.9.4") && isSimulation()){
+if(g4i && !strstr((const char *)G4Version,"geant4-09-04" )&& strstr (g4i,"geant4.9.4") && isSimulation()){
 string g4is=g4i;
 int pos=g4is.find("geant4.9.4");
 if(pos>=0){
+if(strstr((const char *)G4Version,"geant4-09-06")){
 string add="geant4.9.6.p02";
  g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
  setenv("G4INSTALL",g4is.c_str(),1);
@@ -2569,13 +2573,15 @@ setenv("G4DPMJET2_5DATA" ,g4is.c_str(),1);
 g4is=g4i;
 g4is+="/data/G4SAIDDATA1.1";
 setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
- cout<<"AMSJob::_signitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
+ cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
 
 
 }
-
+else{
+cerr<<"AMSJob::_signinitjob-E-UnknowG4VersionDetected "<<G4Version<<endl;
 }
-
+}
+}
 
 
   AMSgObj::BookTimer.book("SetTimeCoo");
