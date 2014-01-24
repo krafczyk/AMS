@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.182 2013/12/21 15:01:51 choutko Exp $
+//  $Id: ecalrec.C,v 1.183 2014/01/24 16:00:33 incaglim Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -4731,8 +4731,10 @@ void AMSEcalShower::_ReCalEnergy(){
   //reconstructed energy never less than deposited energy corrected for anode efficiency
   if(_EnergyH<EnergyD_Corr)
     _EnergyH =  EnergyD_Corr;
+
+  ///////////
   //It is not an electron, the fraction is too high (checked by MC, 3 sigmas)
-  if(energyfractionlast2layers>0.2)
-    _EnergyH =  EnergyD_Corr;
-  
+  //if(energyfractionlast2layers>0.2)
+  // _EnergyH =  EnergyD_Corr;
+  ///////////
 }
