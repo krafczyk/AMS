@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.625 2014/01/19 13:55:40 choutko Exp $
+//  $Id: root.C,v 1.626 2014/01/24 16:01:13 incaglim Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -3808,9 +3808,12 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
       //reconstructed energy never less than deposited energy corrected for anode efficiency
       if(energy<depositedenergy)
 	energy =  depositedenergy;
+   
+      //////
       //It is not an electron, the fraction is too high (checked by MC, 3 sigmas)
-      if(energyfractionlast2layers>0.2)
-	energy = -1 * energy;
+      //   if(energyfractionlast2layers>0.2)
+      //	energy = -1 * energy;
+      //////
 
       return energy;
     }//end if on partid of electrons
@@ -3831,6 +3834,12 @@ float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
       return energy;
     }//end if on partid of photons
   }//end if of method 2
+
+   if (method == 3) return EnergyE2014; // no correction implemented yet
+
+
+
+
   cerr << "EcalShowerR::GetCorrectedEnergy>>UNKNOWN PARTICLE ID OR METHOD FOR ENERGY CORRECTION" <<endl;
   return -1.;
 }
