@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.945 2014/01/23 14:14:32 choutko Exp $
+// $Id: job.C,v 1.946 2014/01/24 14:22:09 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2520,7 +2520,7 @@ void AMSJob::_sitkinitjob(){
   AMSgObj::BookTimer.book("TrMCCluster");
 }
 #endif
-#ifdef __G4`AMS__
+#ifdef __G4AMS__
 #include "G4Version.hh"
 #endif
 void AMSJob::_signinitjob(){
