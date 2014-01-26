@@ -115,7 +115,7 @@ void TrkLH::clear(){
 
 TrkLH* TrkLH::gethead() {
   if (!head) {
-    printf("TrkLH::gethead()-M-CreatingObjectTrkLHAsSingleton\n", head);
+    printf("TrkLH::gethead()-M-CreatingObjectTrkLHAsSingleton\n");
     head = new TrkLH();//this also initialize at the default version
   }
   return head;

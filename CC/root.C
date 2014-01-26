@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.629 2014/01/26 20:05:47 choutko Exp $
+//  $Id: root.C,v 1.630 2014/01/26 20:59:18 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -14109,14 +14109,15 @@ return mcc;
 
 unsigned int AMSEventR::NTrTrackG(){
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+        int ret=0;
 #ifndef _PGTRACK_
 for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
-#endif
-       int ret=0;
+#else
        const unsigned int tfg= (1<<31);
        for(int k=0;k<fTrTrack.size();k++){
          if(!fTrTrack[k].checkstatus(tfg))ret++;
       }
+#endif
       return ret;
 }
 
