@@ -15,10 +15,18 @@ public:
     static int a=0;
     static int dupl=0;
     static unsigned int oldev=0;
+    AMSEventR*pev=ev;
+    if(pev && (!pev->NBetaH() && pev->nTrTrack() )){
+      cout <<pev->nTrTrack()<<" "<<pev->NBetaH()<<" "<<pev->NTrTrack()<<" "<<pev->NTrTrackG()<<endl;
+      return true;
+    }
+    return false;
     // 
     // This is a user function to be modified
     //  return true if event has to be drawn false otherwise.
     // Example take the even event numbers
+
+
    if(ev){
      if(ev->nParticle()){
         if(ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).Charge && fabs(ev->Particle(0).Momentum/ev->Particle(0).Charge)>100){

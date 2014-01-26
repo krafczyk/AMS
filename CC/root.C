@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.626 2014/01/24 16:01:13 incaglim Exp $
+//  $Id: root.C,v 1.627 2014/01/26 14:49:55 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -14105,5 +14105,18 @@ if(AMSEventR::Head())mcc=AMSEventR::Head()->nMCEventg()>0;
 if(AMSJob::gethead())mcc=AMSJob::gethead()->isRealData()?false:true;
 #endif
 return mcc;
+}
+
+unsigned int AMSEventR::NTrTrackG(){
+        if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+#ifndef _PGTRACK_
+for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
+#endif
+       int ret=0;
+       const unsigned int tfg= (2<<31);
+       for(int k=0;k<fTrTrack.size();k++){
+         if(!fTrTrack[k].checkstatus(tfg))ret++;
+        return ret;
+      }
 }
 

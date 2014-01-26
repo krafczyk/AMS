@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.80 2014/01/21 19:15:00 choutko Exp $
+//  $Id: amschain.C,v 1.81 2014/01/26 14:49:55 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -707,7 +707,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
       if(tree){
         curp->Begin(tree);
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
-           if(nentr>nentries)break;
+           if(nentr++>nentries)break;
 	  try{
 //            while(AMSEventR::_Lock&0x100000000){
 //            }
@@ -730,7 +730,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 
 #pragma omp critical (cls)  
       {
-	if(tree && AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
+//	if(tree && AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
 	//        cout <<" finished "<<i<<" "<<endl;
       }
     }

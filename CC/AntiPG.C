@@ -173,7 +173,7 @@ AntiRecoPG::AntiRecoPG(){
 
 AntiRecoPG* AntiRecoPG::gethead() {
   if (!head) {
-    printf("AntiRecoPG::gethead()-M-CreatingObjectAntiRecoPGAsSingleton\n", head);
+    printf("AntiRecoPG::gethead()-M-CreatingObjectAntiRecoPGAsSingleton\n");
     head = new AntiRecoPG();//this also initialize at the default version
     if(!AMSEventRHead())AMSEventRHead()=AMSEventR::Head();
   }

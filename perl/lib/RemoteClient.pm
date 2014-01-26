@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.816 2014/01/23 12:14:24 choutko Exp $
+# $Id: RemoteClient.pm,v 1.817 2014/01/26 14:50:09 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1658,7 +1658,7 @@ sub RestartServer{
           }
           if(defined $self->{dbfile}){
               my $full="$self->{UploadsDir}/ServerRestart";
-           open(FILE,">".$full) or die "Unable to open file $full \n";
+              open(FILE,">".$full) or die "Unable to open file $full \n";
               print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
               print FILE "export AMSProdDir=$self->{AMSProdDir}/../ \n";
              if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
@@ -8250,6 +8250,35 @@ if(defined $dataset->{buildno} ){
          $adddst=~ s/\.job//;
          open(FILE,">".$root) or die "Unable to open file $root\n";
          if($self->{CCT} eq "local"){
+               my $srv=$dataset->{serverno};
+        if($dataset->{serverno}=~/^v/){
+           $srv=0;
+        }
+   if($#{$self->{arpref}} <0 ){
+       $self->ServerConnect($dataset->{serverno});
+    }
+
+    if($#{$self->{arpref}} >=0){
+        my $ard=${$self->{arpref}}[0];
+        my %cid=%{$self->{cid}};
+
+try{
+                my ($length,$arr)=$ard->getEnv(\%cid);
+                foreach my $ent (@{$arr}){
+                    if($ent=~/AMSDataDir/){
+                      $self->{AMSDataDir_$srv}=$ent;  
+                 }
+                }
+   }
+}
+
+              print FILE "export AMSDataDir2=$self->{AMSDataDir} \n";
+              print FILE "export AMSDataDir=$self->{AMSDataDir_$srv} \n";
+              print FILE "if [ ! -d \$AMSDataDir/$dataset->{version} ]; then \n";
+              print FILE "export AMSDataDir=\$AMSDataDir2 \n";
+              print FILE "fi \n";
+
+
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
  print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$adddst/$run \n";
  print FILE "export NtupleDir=/dat0/local/logs/nt \n";
@@ -8271,7 +8300,6 @@ if(defined $dataset->{buildno} ){
            @tmpa=split '/', $ret->[0][0];
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
-          print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
          if($dataset->{serverno}=~/^v/){
           }
           else{
@@ -9681,6 +9709,35 @@ if(defined $dataset->{buildno} ){
          $adddst=~ s/\.job//;
          open(FILE,">".$root) or die "Unable to open file $root\n";
          if($self->{CCT} eq "local"){
+               my $srv=$dataset->{serverno};
+        if($dataset->{serverno}=~/^v/){
+           $srv=0;
+        }
+   if($#{$self->{arpref}} <0 ){
+       $self->ServerConnect($dataset->{serverno});
+    }
+
+    if($#{$self->{arpref}} >=0){
+        my $ard=${$self->{arpref}}[0];
+        my %cid=%{$self->{cid}};
+
+try{
+                my ($length,$arr)=$ard->getEnv(\%cid);
+                foreach my $ent (@{$arr}){
+                    if($ent=~/AMSDataDir/){
+                      $self->{AMSDataDir_$srv}=$ent;
+                 }
+                }
+   }
+}   
+   
+              print FILE "export AMSDataDir2=$self->{AMSDataDir} \n";
+              print FILE "export AMSDataDir=$self->{AMSDataDir_$srv} \n";
+              print FILE "if [ ! -d \$AMSDataDir/$dataset->{version} ]; then \n";
+              print FILE "export AMSDataDir=\$AMSDataDir2 \n";
+              print FILE "fi \n";
+
+
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
  print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$adddst/$run \n";
  print FILE "export NtupleDir=/dat0/local/logs/nt \n";
@@ -9709,7 +9766,7 @@ if(defined $dataset->{buildno} ){
           else{
               print FILE "export AMSServerNo=$dataset->{serverno} \n";
           }        
-          print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
+          #print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
       }
 #
 # check here custom/generic

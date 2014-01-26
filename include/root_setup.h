@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.91 2013/12/18 19:20:41 qyan Exp $
+//  $Id: root_setup.h,v 1.92 2014/01/26 14:50:04 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -296,13 +296,14 @@ public:
 ClassDef(GPSWGS84R,1)
 };
 
-class JGC{
+class JGCR{
 //  JMDC- GPS Correction
 public:
 unsigned int Validity[2];  ///< validity range unix time
 double A[2]; ///< A[0]+A[1]*x correction
 double Par[3]; ///<Par[0]*sin(Par[1]*x+Par[2]) add correction
 double Err[2]; ///< residial error estimation (rms, gaussian (sec)
+ClassDef(JGCR,1)
 };
 
 
@@ -311,7 +312,6 @@ public:
 TString Name;
 TString TL1;
 TString TL2;
-
 };
 
 class ISSAtt{
@@ -384,7 +384,7 @@ public:
  unsigned int begin; //First Second (unix time)is bad 
  unsigned int end;   // Last second (unix time) is bad
  unsigned int run;   // Run number
-BadRun(const char* str, unsigned int r, unsigned int b=0,unsigned int e=4294967295):reason(str),run(r),begin(b),end(e){};
+BadRun(const char* str, unsigned int r, unsigned int b=0,unsigned int e=4294967295L):reason(str),run(r),begin(b),end(e){};
 BadRun():reason(""),begin(0),end(0),run(0){};
 ClassDef(BadRun,1)       //BadRun
 };
@@ -551,7 +551,7 @@ public:
 
  typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
  typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
- vector<JGC> fJGC;
+ vector<JGCR> fJGC;
  BadRun_m fBadRun; ///< BadRuns 
  GPS_m fGPS;    ///< GPS Epoch Time
  RTI_m fRTI;  ///<  runtimeInfo data

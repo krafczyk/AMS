@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.147 2014/01/11 11:24:09 choutko Exp $
+//  $Id: root_setup.C,v 1.148 2014/01/26 14:49:55 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1212,14 +1212,14 @@ init_error=LoadJMDCGPSCorr();
  }
  else{
   if(hint>=0 && hint<fJGC.size() && time>=fJGC[hint].Validity[0] && time<fJGC[hint].Validity[1]){
-   JGC &a=fJGC[hint];
+   JGCR &a=fJGC[hint];
    corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
    err=a.Err[1];
    return 0;
   } 
   for(hint=0;hint<fJGC.size();hint++){
   if(time>=fJGC[hint].Validity[0] && time<fJGC[hint].Validity[1]){
-   JGC &a=fJGC[hint];
+   JGCR &a=fJGC[hint];
    corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
    err=a.Err[1];
    return 0;
@@ -1252,7 +1252,7 @@ fbin.open(ifile.c_str());
          while(getline(str,word,',')){
           vout.push_back(word);
           if(vout.size()==9){
-           JGC a;
+           JGCR a;
            istringstream convert;
            convert.clear();
            convert.str(vout[0]);

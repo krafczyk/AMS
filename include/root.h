@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.589 2014/01/18 14:10:06 incaglim Exp $
+//  $Id: root.h,v 1.590 2014/01/26 14:50:04 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -5655,6 +5655,12 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
 #endif
         return fTrTrack.size();
       }
+       ///  TrTrackR accessor
+      ///  \return number of TrTrackR without bit 31 (TOFFORGAMMA) /created during vertex reconstruction/ 
+      ///
+      unsigned int   NTrTrackG() ;
+
+
       ///  \return reference of TrTrackR Collection
       ///
       vector<TrTrackR> & TrTrack()  {
