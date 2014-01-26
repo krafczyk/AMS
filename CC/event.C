@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.589 2014/01/16 18:01:52 shaino Exp $
+//  $Id: event.C,v 1.590 2014/01/26 23:10:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1587,7 +1587,9 @@ void AMSEvent::_reamsevent(){
 
 
 #ifdef _PGTRACK_
-  if(TRFITFFKEY.magtemp &&AMSCommonsI::getbuildno()>=700&& AMSJob::gethead()->isRealData()) MagField::GetPtr()->UpdateMagTemp(gettime());
+//disabled by VC 26-01-2014 Unable to ensure correct behavior
+// need to introduce root_setup map<time,corr>  
+// if(0&& TRFITFFKEY.magtemp &&AMSCommonsI::getbuildno()>=700&& AMSJob::gethead()->isRealData()) MagField::GetPtr()->UpdateMagTemp(gettime());
 #endif
 
 
