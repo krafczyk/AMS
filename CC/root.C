@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.631 2014/01/26 22:56:40 choutko Exp $
+//  $Id: root.C,v 1.632 2014/01/26 23:18:54 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -14111,7 +14111,7 @@ unsigned int AMSEventR::NTrTrackG(){
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
         int ret=0;
 #ifdef _PGTRACK_
-       const unsigned int tfg= (1<<31);
+       const unsigned int tfg= (unsigned int)(1<<31);
        for(int k=0;k<fTrTrack.size();k++){
          if(!fTrTrack[k].checkstatus(tfg))ret++;
       }
