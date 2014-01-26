@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.105 2014/01/19 12:19:17 shaino Exp $
+//  $Id: TrTrack.h,v 1.106 2014/01/26 23:20:20 choutko Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2014/01/19 12:19:17 $
+///$Date: 2014/01/26 23:20:20 $
 ///
-///$Revision: 1.105 $
+///$Revision: 1.106 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -414,7 +414,7 @@ public:
   /// Returns a number corresponding to the ladder combination spanned by the track
   long long GetTrackPathID() const;
   /// For Gbatch compatibility
-  uinteger checkstatus(integer checker) const{return Status & checker;}
+  uinteger checkstatus(uinteger checker) const{return Status & checker;}
   uinteger getstatus() const{return Status;}
   void     setstatus(uinteger status){Status=Status | status;}
   void     clearstatus(uinteger status){Status=Status & ~status;} 
