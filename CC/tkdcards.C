@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.94 2014/01/04 16:09:46 pzuccon Exp $
+// $Id: tkdcards.C,v 1.95 2014/01/26 22:56:40 choutko Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -54,7 +54,7 @@ TKGEOMFFKEY_DEF TKGEOMFFKEY;
 //==============================
 void TRCLFFKEY_DEF::init(){
 for (int ii=0;ii<9;ii++){
-  recflag=1111;
+  recflag=11111;
   ThrSeed[0][ii]  = 3.50;
   ThrSeed[1][ii]  = 3.50;
 }
