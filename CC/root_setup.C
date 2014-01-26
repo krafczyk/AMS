@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.148 2014/01/26 14:49:55 choutko Exp $
+//  $Id: root_setup.C,v 1.149 2014/01/26 20:05:48 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -715,7 +715,7 @@ else{
    fISSGTOD.clear();
    fRTI.clear();
    fGPSWGS84.clear();
-   fJGC.clear();
+   fJGCR.clear();
    fDSPError.clear();
    LoadISS(fHeader.Run-dt,fHeader.Run+3600);
    LoadISSAtt(fHeader.Run-dt,fHeader.Run+3600);
@@ -764,7 +764,7 @@ else{
    fISSAtt.clear();
    fDSPError.clear();
    fAMSSTK.clear();
-   fJGC.clear();
+   fJGCR.clear();
    const int dt=120;
    LoadISS(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadISSAtt(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
@@ -1189,7 +1189,7 @@ const double ti=1306000000;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(init_error)
 #endif
- if(init_error==0 && !fJGC.size()){
+ if(init_error==0 && !fJGCR.size()){
 #ifndef __ROOTSHAREDLIBRARY__
 #pragma omp critical (loadjmdc)
 #endif
@@ -1197,29 +1197,29 @@ const double ti=1306000000;
 init_error=LoadJMDCGPSCorr();
 }
  }
- if(!fJGC.size())return 2;
- if(time<fJGC[0].Validity[0]){
+ if(!fJGCR.size())return 2;
+ if(time<fJGCR[0].Validity[0]){
    corr=0;
    err=10;
    hint=-1;
    return 3;
  }
- else if (time>fJGC[fJGC.size()-1].Validity[1]){
+ else if (time>fJGCR[fJGCR.size()-1].Validity[1]){
    corr=0;
    err=0.3;
    hint=-1;
    return 3;
  }
  else{
-  if(hint>=0 && hint<fJGC.size() && time>=fJGC[hint].Validity[0] && time<fJGC[hint].Validity[1]){
-   JGCR &a=fJGC[hint];
+  if(hint>=0 && hint<fJGCR.size() && time>=fJGCR[hint].Validity[0] && time<fJGCR[hint].Validity[1]){
+   JGCR &a=fJGCR[hint];
    corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
    err=a.Err[1];
    return 0;
   } 
-  for(hint=0;hint<fJGC.size();hint++){
-  if(time>=fJGC[hint].Validity[0] && time<fJGC[hint].Validity[1]){
-   JGCR &a=fJGC[hint];
+  for(hint=0;hint<fJGCR.size();hint++){
+  if(time>=fJGCR[hint].Validity[0] && time<fJGCR[hint].Validity[1]){
+   JGCR &a=fJGCR[hint];
    corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
    err=a.Err[1];
    return 0;
@@ -1242,7 +1242,7 @@ ifstream fbin;
 fbin.clear();
 fbin.open(ifile.c_str());
      if(fbin){
-      fJGC.clear();
+      fJGCR.clear();
       while(fbin.good() && !fbin.eof()){
         string line;
          while(getline(fbin,line)){
@@ -1281,7 +1281,7 @@ fbin.open(ifile.c_str());
            convert.clear();
            convert.str(vout[8]);
            convert>>a.Err[1]; 
-           fJGC.push_back(a);    
+           fJGCR.push_back(a);    
           }
         }
        }
@@ -1291,8 +1291,8 @@ fbin.open(ifile.c_str());
        cerr<<"AMSSetupR::LoadJMDCGPSCorr-E-UnabletoOpenFile "<<ifile<<endl;
      }
      
-    cout<< "AMSSetupR::LoadJMDCGPSCorr-I- "<<fJGC.size()<<" Entries Loaded "<<endl;
-    return fJGC.size()?0:2;
+    cout<< "AMSSetupR::LoadJMDCGPSCorr-I- "<<fJGCR.size()<<" Entries Loaded "<<endl;
+    return fJGCR.size()?0:2;
 }
 
 void AMSSetupR::LoadISS(unsigned int t1, unsigned int t2){
