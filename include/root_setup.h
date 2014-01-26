@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.92 2014/01/26 14:50:04 choutko Exp $
+//  $Id: root_setup.h,v 1.93 2014/01/26 20:05:59 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -551,7 +551,7 @@ public:
 
  typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
  typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
- vector<JGCR> fJGC;
+ vector<JGCR> fJGCR;
  BadRun_m fBadRun; ///< BadRuns 
  GPS_m fGPS;    ///< GPS Epoch Time
  RTI_m fRTI;  ///<  runtimeInfo data
