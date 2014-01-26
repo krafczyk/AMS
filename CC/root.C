@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.627 2014/01/26 14:49:55 choutko Exp $
+//  $Id: root.C,v 1.628 2014/01/26 17:50:08 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -14116,7 +14116,7 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
        const unsigned int tfg= (2<<31);
        for(int k=0;k<fTrTrack.size();k++){
          if(!fTrTrack[k].checkstatus(tfg))ret++;
-        return ret;
       }
+      return ret;
 }
 
