@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.410 2013/12/13 10:08:14 choumilo Exp $
+#  $Id: datacards.doc,v 1.411 2014/01/27 17:16:23 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -703,10 +703,15 @@ I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSP_BERT, others
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
 I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 1: Binary Light Ion Cascade model(not supposed to be valid above few 10GeV/n)
-			// 2: G4QMD 
+			// 2: G4QMD GG crossection 4.9.6
+			// 1: Binary Light Ion Cascade model(not supposed to be valid above few 10GeV/n)
+			// 2: G4QMD GG Crossection 4.9.6 
+                        // 10 +x (x=1,2)  use general crossection 4.9.4 & 4.9.6
+                        // 20+x  (x-1,2)  use Shen crossection 4.9.4 & 4.9.6
                         // 3: Binary Light(<5GeV/n) +DPMJET2-5Model+ DPMJETCrossSection(5GeV/n,1000TeV/n)
                         // 4: Binary Light(<5GeV/n) +DPMJET2-5Model(5GeV/n,1000TeV/n)+ ShenCrossSection
                         // 5: Binary Light(<5GeV/n) +DPMJET2-5Model(5GeV/n,1000TeV/n)+ HEAOCrossSection
+                        // 6: Binary Light(<5GeV/n) +DPMJET2-5Model(5GeV/n,1000TeV/n)+ GlauberGribovCrossection (4.9.6 only)
                         // 13: Binary Light(all) Model + DPMJETCrossSection(5GeV/n,1000TeV/n) 
                         // 14: Binary Light(all) Model + ShenCrossSection
                         // 15: Binary Light(all) Model + HEAOCrossSection

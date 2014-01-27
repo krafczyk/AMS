@@ -124,11 +124,13 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
+        fDeuteronProcess->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fDeuteronProcess->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fDeuteronProcess->AddDataSet(fGG);
 #endif
-        fDeuteronProcess->AddDataSet(fShen);
-	fDeuteronProcess->AddDataSet(generalCrossSection);
 	fDeuteronProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fDeuteronProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
@@ -136,22 +138,26 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
+        fTritonProcess->AddDataSet(fShen);	
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fTritonProcess->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fTritonProcess->AddDataSet(fGG);	
 #endif
-        fTritonProcess->AddDataSet(fShen);	
-	fTritonProcess->AddDataSet(generalCrossSection);
 	fTritonProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fTritonProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
+        fAlphaProcess->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fAlphaProcess->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fAlphaProcess->AddDataSet(fGG);
 #endif
-        fAlphaProcess->AddDataSet(fShen);
-	fAlphaProcess->AddDataSet(generalCrossSection);
 	fAlphaProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fAlphaProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
@@ -159,11 +165,13 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fhe3Ion = new G4HadronInelasticProcess("He3Inelastic",particle);
+        fhe3Ion->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fhe3Ion->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fhe3Ion->AddDataSet(fGG);
 #endif
-        fhe3Ion->AddDataSet(fShen);
-	fhe3Ion->AddDataSet(generalCrossSection);
 	fhe3Ion->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fhe3Ion);
 	//pManager->AddDiscreteProcess(hadElastProc);
@@ -171,11 +179,13 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fGenericIon = new G4HadronInelasticProcess("IonInelastic",particle);
+        fGenericIon->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fGenericIon->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fGenericIon->AddDataSet(fGG);
 #endif
-        fGenericIon->AddDataSet(fShen);
-	fGenericIon->AddDataSet(generalCrossSection);
 	fGenericIon->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fGenericIon);
 	//pManager->AddDiscreteProcess(hadElastProc);
@@ -286,12 +296,13 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
+        fDeuteronProcess->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fDeuteronProcess->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fDeuteronProcess->AddDataSet(fGG);
 #endif
-        fDeuteronProcess->AddDataSet(fShen);
-	fDeuteronProcess->AddDataSet(generalCrossSection);
-	fDeuteronProcess->AddDataSet(TripathiCrossSection);
 	fDeuteronProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fDeuteronProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
@@ -299,24 +310,26 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
+        fTritonProcess->AddDataSet(fShen);	
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fTritonProcess->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fTritonProcess->AddDataSet(fGG);
 #endif
-        fTritonProcess->AddDataSet(fShen);	
-	fTritonProcess->AddDataSet(generalCrossSection);
-	fTritonProcess->AddDataSet(TripathiCrossSection);
 	fTritonProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fTritonProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
+        fAlphaProcess->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fAlphaProcess->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fAlphaProcess->AddDataSet(fGG);
 #endif
-        fAlphaProcess->AddDataSet(fShen);
-	fAlphaProcess->AddDataSet(generalCrossSection);
-	fAlphaProcess->AddDataSet(TripathiCrossSection);
 	fAlphaProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fAlphaProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
@@ -324,12 +337,13 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fhe3Ion = new G4HadronInelasticProcess("He3Inelastic",particle);
+        fhe3Ion->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fhe3Ion->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fhe3Ion->AddDataSet(fGG);
 #endif
-        fhe3Ion->AddDataSet(fShen);
-	fhe3Ion->AddDataSet(generalCrossSection);
-	fhe3Ion->AddDataSet(TripathiCrossSection);
 	fhe3Ion->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fhe3Ion);
 //	pManager->AddDiscreteProcess(hadElastProc);
@@ -337,12 +351,13 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fGenericIon = new G4HadronInelasticProcess("IonInelastic",particle);
+        fGenericIon->AddDataSet(fShen);
+        if(G4FFKEY.IonPhysicsModel/10<2)
+	fGenericIon->AddDataSet(generalCrossSection);
 #if G4VERSION_NUMBER  > 945 
+        if(G4FFKEY.IonPhysicsModel/10==0)
         fGenericIon->AddDataSet(fGG);
 #endif
-        fGenericIon->AddDataSet(fShen);
-	fGenericIon->AddDataSet(generalCrossSection);
-	fGenericIon->AddDataSet(TripathiCrossSection);
 	fGenericIon->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fGenericIon);
 //	pManager->AddDiscreteProcess(hadElastProc);
