@@ -1,3 +1,6 @@
+#include <vector>
+#include <algorithm>
+
 #include "TrdKCluster.h"
 
 ClassImp(TrdKCluster)
@@ -884,12 +887,54 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood_Curved(Double_t *par){
   AMSDir  hyp_TrTrackDir(par[3],par[4],TMath::Sqrt(1-par[3]*par[3]-par[4]*par[4]));
   double pathlength,likelihood;
   TrdKHit* hit;
+  //Collect the different sublayers used by our hits.
+  std::vector<int> used_sublayers;
+  for(int i=0;i<size;++i) {
+    hit = GetHit(i);
+    int sublayer = hit->getSublayer();
+    bool already_used = false;
+    for(int j=0;j<used_sublayers.size();++j) {
+      if(sublayer == used_sublayers[j]) {
+        already_used = true;
+        break;
+      }
+    }
+    if(!already_used) {
+      used_sublayers.push_back(sublayer);
+    }
+  }
+  //Sort the list
+  std::sort(used_sublayers.begin(), used_sublayers.end());
+  //Get the z value of the layers
+  double* z_layers = new double[used_sublayers.size()];
+  for(int i=0;i<used_sublayers.size();++i) {
+    z_layers[i] = (double) TrdKHit::getSublayerZ(used_sublayers[i]);
+  }
+  //Build the interpolation list
+  AMSPoint* interp_points = new AMSPoint[used_sublayers.size()];
+  AMSDir* interp_dirs = new AMSDir[used_sublayers.size()];
+  TrTrack_Pro.Interpolate(used_sublayers.size(), z_layers, interp_points, interp_dirs);
+
+  bool found = false;
   for(int i=0;i<size;i++){
     hit=GetHit(i);
-    AMSPoint temp_TrTrackP0(hyp_TrTrackP0);
-    temp_TrTrackP0[2] = hit->TRDHit_z;
-    AMSDir temp_TrTrackDir(hyp_TrTrackDir);
-    TrTrack_Pro.Interpolate(temp_TrTrackP0, temp_TrTrackDir);
+
+    //Find the hit's sublayer
+    int idx = 0;
+    while(idx < used_sublayers.size()) {
+      if(hit->getSublayer() == used_sublayers[idx]) {
+        found = true;
+        break;
+      }
+      ++idx;
+    }
+    if(!found) {
+      //Print a warning and skip the hit if we can't find the sublayer
+      printf("TrdKCluster::TRDTrack_PathLengthLikelihood_Curved-W: Couldn't find a hit's sublayer Skipping!\n");
+      break;
+    }
+    AMSPoint temp_TrTrackP0(interp_points[idx]);
+    AMSDir temp_TrTrackDir(interp_dirs[idx]);
     pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
     if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
     else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
