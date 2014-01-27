@@ -34,6 +34,8 @@ public:
     double Tube_Track_3DLength(AMSPoint *C2, AMSDir *D2);
     double Tube_Track_3DLength_New(double d, AMSDir *Dir);
     double Tube_Track_3DLength_New(AMSPoint *X0, AMSDir *Dir);
+    int getSublayer() const;
+    static float getSublayerZ(const int sublayer);
 
     double Time;
 

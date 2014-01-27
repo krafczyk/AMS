@@ -250,3 +250,25 @@ double TrdKHit::Tube_Track_3DLength(AMSPoint *X0, AMSDir *Dir){
 
     return distance;
 }
+
+int TrdKHit::getSublayer() const {
+	if ((TRDHit_Layer > 3)&&(TRDHit_Layer < 12)) {
+		if((TRDHit_Ladder%2)==0) {
+			return (2*TRDHit_Layer);
+		} else {
+			return (2*TRDHit_Layer)+1;
+		}
+	} else {
+		if((TRDHit_Ladder%2)==0) {
+			return (2*TRDHit_Layer)+1;
+		} else {
+			return (2*TRDHit_Layer);
+		}
+	}
+}
+
+float TrdKHit::getSublayerZ(const int sublayer) {
+	float z = 85.275 + 2.9*((float)(sublayer/2));
+	if((sublayer%2)==1) z += 1.45;
+	return z;
+}
