@@ -18,6 +18,7 @@ extern "C" geant getmomentum_(geant *index);
 
 RichG4Cerenkov::RichG4Cerenkov(const G4String& processName, G4ProcessType type)
   : G4Cerenkov(processName,type){
+  SetProcessSubType(fCerenkov);
   G4cout<<"RichG4Cerenkov::dealing with Rich fine grained refractive indexes"<<G4endl;  
 }
 
