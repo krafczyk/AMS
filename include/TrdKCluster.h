@@ -180,6 +180,8 @@ public:
 
     // Helper function to get Xe partial pressure
     int GetXePressure();
+    int GetDefaultMCXePressure(){return DefaultMCXePressure;}
+    void SetDefaultMCXePressure(float xe){ DefaultMCXePressure=xe;return;}
 
     // Globlal Validity flag
     int GetValidity(){return IsValid;}
@@ -241,6 +243,8 @@ public:
 
     static int ForceReadAlignment;
     static int ForceReadCalibration;
+static int ForceReadXePressure;
+static float DefaultMCXePressure;
 
     static Double_t LastProcessedRun_Calibration;
     static Double_t LastProcessedRun_Alignment;
