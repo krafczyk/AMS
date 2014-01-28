@@ -3178,6 +3178,7 @@ class RemoteClient:
                         self.insertRun(int(startingrun[2]),lastjobid,int(startingrun[3]),int(startingrun[4]),feti,leti,int(startingrun[12]),startingrun[7])
                     else:
                         self.insertDataRun(int(startingrun[2]),lastjobid,int(startingrun[3]),int(startingrun[4]),feti,leti,int(startingrun[12]),startingrun[7])
+                    self.sqlserver.Commit(1)
                     if(len(startingrun)>13):
                         host=startingrun[13]
                     if (runtype != 0 and (run_incomplete == 1 or run_finished == 0)):
