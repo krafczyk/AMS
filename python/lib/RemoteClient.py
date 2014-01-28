@@ -3313,7 +3313,7 @@ class RemoteClient:
                         else:
                             if(closedst[1] != "Validated" and closedst[1] != "Success" and closedst[1] != "OK"):
                                 output.write("parseJournalFile -W- CloseDST block : %s,  DST status  %s. Check anyway\n" %(dstfile,closedst[1]))
-                            dstsize="%.1f" %(float(dstsize)/1000./1000.)
+                            dstsize="%.1f" %(float(dstsize)/1024./1024.)
                             closedst[0]="CloseDST"
                             output.write(dstfile + "\n")
                             ntstatus=closedst[1]
@@ -3664,6 +3664,9 @@ class RemoteClient:
         self.verbose=v
         self.run2p=run2p
         self.force=0         
+        self.selectedstream = 1
+        if (dataset.find('pass') >= 0 or dataset.find('std') >= 0):
+            self.selectedstream = 0
         if(f>0):
            self.force=f
         rundd=""
@@ -3828,7 +3831,7 @@ class RemoteClient:
                                     print "Run ",path[1] ," have eos problems size ",sp2[4],sp1[4],sizemb
                                     
         if(self.force):
-            sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
+            sql="select run,sum(levent-fevent+1),sum(jid)/count(jid),sum(nevents) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(datapath,runn)
             files=self.sqlserver.Query(sql)
             sql="select run,levent-fevent+1 from datafiles where status='OK' and type like 'SCI%%' %s " %(rundd)
             runs=self.sqlserver.Query(sql)
@@ -3904,10 +3907,11 @@ class RemoteClient:
                     for file in files:
                         if(run[0]==file[0]):
                             found=1
-                            if(run[2]!=file[1] and float(run[2])>float(file[1])):
+                            if(run[2]!=file[1] and float(run[2])>float(file[1]) and (self.selectedstream == 0 or float(run[2])-float(file[1]) >= float(file[1])/float(file[3])*5.0 )):
                                 if(tab==0):
                                     bad2.append(run[0])
                                     print "Run ",run," and ntuples disagree. run events=",run[2]," ntuple events=",file[1]
+                                    print "%f v.s. %f" %(float(run[2])-float(file[1]), float(file[1])/float(file[3])*3.0);
                                 else:
                                     print "<tr>"
                                     print "<td>Run %d,%d and ntuples disagree.</td><td> Run Events=%d </td><td>Ntuple Events=%d</td>" %(run[0],run[1],run[2],file[1])
