@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.83 2014/01/19 12:34:54 shaino Exp $
+//  $Id: TrFit.C,v 1.84 2014/01/28 16:51:57 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2014/01/19 12:34:54 $
+///$Date: 2014/01/28 16:51:57 $
 ///
-///$Revision: 1.83 $
+///$Revision: 1.84 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4290,6 +4290,7 @@ C.    ******************************************************************
 C.
 
    Imported to C++ by SH
+   Bugfix found by H.Chou 2014/1/7
 */
   double F[4], X, Y, Z, XYZT[3];
   double SECXS[4], SECYS[4], SECZS[4], HXP[3];
@@ -4396,7 +4397,7 @@ C.
 	      (std::fabs(SECYS[0]+SECYS[3]-(SECYS[1]+SECYS[2])))+
 	      (std::fabs(SECZS[0]+SECZS[3]-(SECZS[1]+SECZS[2])));
 
-	if (EST <= DLT && std::fabs(H) > 1.E-4) {
+	if (!(EST > DLT && std::fabs(H) > 1.E-4)) {
 	  NCUT = 0;
 
 //               If too many iterations, go to HELIX
@@ -4442,9 +4443,9 @@ C.
     F2 = F2*HNORM;
     F3 = F3*HNORM;
 
-    HXP[0] = F2*vect[2]-F3*vect[1];
-    HXP[1] = F3*vect[0]-F1*vect[2];
-    HXP[2] = F1*vect[1]-F2*vect[0];
+    HXP[0] = F2*vect[5]-F3*vect[4];
+    HXP[1] = F3*vect[3]-F1*vect[5];
+    HXP[2] = F1*vect[4]-F2*vect[3];
 
     double HP = F1*vect[0]+F2*vect[1]+F3*vect[2];
 
@@ -4459,13 +4460,14 @@ C.
     double G5 = SINT;
     double G6 = COST*HP;
  
-    vout[0] = vect[0]+(G1*vect[0]+G2*HXP[0]+G3*F1);
-    vout[1] = vect[1]+(G1*vect[1]+G2*HXP[1]+G3*F2);
-    vout[2] = vect[2]+(G1*vect[2]+G2*HXP[2]+G3*F3);
+    vout[0] = vect[0]+(G1*vect[3]+G2*HXP[0]+G3*F1);
+    vout[1] = vect[1]+(G1*vect[4]+G2*HXP[1]+G3*F2);
+    vout[2] = vect[2]+(G1*vect[5]+G2*HXP[2]+G3*F3);
  
-    vout[0] = vect[0]+(G4*vect[0]+G5*HXP[0]+G6*F1);
-    vout[1] = vect[1]+(G4*vect[1]+G5*HXP[1]+G6*F2);
-    vout[2] = vect[2]+(G4*vect[2]+G5*HXP[2]+G6*F3);
+    vout[3] = vect[3]+(G4*vect[3]+G5*HXP[0]+G6*F1);
+    vout[4] = vect[4]+(G4*vect[4]+G5*HXP[1]+G6*F2);
+    vout[5] = vect[5]+(G4*vect[5]+G5*HXP[2]+G6*F3);
+
   }
   else {
     vout[0] = vect[0]+step*vect[0];
