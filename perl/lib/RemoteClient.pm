@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.818 2014/01/28 10:40:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.819 2014/01/28 12:28:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -250,7 +250,9 @@ my %fields=(
         FilesystemT=>[],
         NickT=>[],
         AMSSoftwareDir=>undef,
+        AMSSoftwareDir2=>undef,
         AMSDataDir=>undef,
+        AMSDataDir2=>undef,
         AMSProdDir=>undef,
         AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
@@ -465,9 +467,11 @@ my %mv=(
  my $dir=$ENV{AMSDataDirRW};
  if (defined $dir){
      $self->{AMSDataDir}=$dir;
+     $self->{AMSDataDir2}="AMSDataDir=$dir";
  }
  else{
      $self->{AMSDataDir}="/afs/cern.ch/ams/Offline/AMSDataDir";
+     $self->{AMSDataDir2}="AMSDataDir=/afs/cern.ch/ams/Offline/AMSDataDir";
      $ENV{AMSDataDirRW}=$self->{AMSDataDir};
  }
 #sqlserver
@@ -621,12 +625,15 @@ my %mv=(
     }
 
      $key='AMSSoftwareDir';
+     my $key2='AMSSoftwareDir2';
      $sql="select myvalue from Environment where mykey='".$key."'";
      $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      $self->{$key}="$self->{AMSDataDir}/".$ret->[0][0];
+     $self->{$key2}="\$AMSDataDir/".$ret->[0][0];
  }
     else{
+     $self->{$key2}="\$AMSDataDir/DataManagement";
      $self->{$key}="$self->{AMSDataDir}/DataManagement";
     }
      $key='AMSProdDir';
@@ -8195,7 +8202,7 @@ if(defined $dataset->{buildno} ){
           else{
            $buf=~ s/RUNDIR=/RUNDIR=$path/;
           }
-           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/g;
+           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir2}\/$gbatch/g;
       }
          else{
           $buf=~ s/RUNDIR=/CRUNDIR=/;
@@ -8256,24 +8263,28 @@ if(defined $dataset->{buildno} ){
         }
    if($#{$self->{arpref}} <0 ){
        $self->ServerConnect($dataset->{serverno});
-    }
+   }
 
     if($#{$self->{arpref}} >=0){
-        my $ard=${$self->{arpref}}[0];
+        my $ard=${$self->{arsref}}[0];
         my %cid=%{$self->{cid}};
+        $cid{Type}="Server";
 
 try{
                 my ($length,$arr)=$ard->getEnv(\%cid);
                 foreach my $ent (@{$arr}){
-                    if($ent=~/AMSDataDir/){
-                      $self->{AMSDataDir_$srv}=$ent;  
+                    if($ent=~/AMSDataDir=/){
+                      $self->{AMSDataDir2}=$ent;  
                  }
                 }
-   }
-}
+            }
+     catch CORBA::SystemException with{
+     };
+
+           }
 
               print FILE "export AMSDataDir2=$self->{AMSDataDir} \n";
-              print FILE "export AMSDataDir=$self->{AMSDataDir_$srv} \n";
+              print FILE "export $self->{AMSDataDir2} \n";
               print FILE "if [ ! -d \$AMSDataDir/$dataset->{version} ]; then \n";
               print FILE "export AMSDataDir=\$AMSDataDir2 \n";
               print FILE "fi \n";
@@ -8305,7 +8316,7 @@ try{
           else{
               print FILE "export AMSServerNo=$dataset->{serverno} \n";
              }
-      }
+           }
 #
 # check here custom/generic
 #
@@ -8816,7 +8827,7 @@ else{
 
 
 
-       }
+}
        else{
 anyagain:
        if(defined $dataset){
@@ -9658,7 +9669,7 @@ if(defined $dataset->{buildno} ){
          my $ctime=time();
          $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;
          if($self->{CCT} eq "local"){
-           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/g;
+           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir2}\/$gbatch/g;
          }
          else{
              my @gbc=split "\/", $gbatch;
@@ -9718,21 +9729,24 @@ if(defined $dataset->{buildno} ){
     }
 
     if($#{$self->{arpref}} >=0){
-        my $ard=${$self->{arpref}}[0];
+        my $ard=${$self->{arsref}}[0];
         my %cid=%{$self->{cid}};
+        $cid{Type}="Server";
 
 try{
                 my ($length,$arr)=$ard->getEnv(\%cid);
                 foreach my $ent (@{$arr}){
                     if($ent=~/AMSDataDir/){
-                      $self->{AMSDataDir_$srv}=$ent;
+                      $self->{AMSDataDir2}=$ent;
                  }
                 }
-   }
+}
+     catch CORBA::SystemException with{
+     };
 }   
    
               print FILE "export AMSDataDir2=$self->{AMSDataDir} \n";
-              print FILE "export AMSDataDir=$self->{AMSDataDir_$srv} \n";
+              print FILE "export $self->{AMSDataDir2} \n";
               print FILE "if [ ! -d \$AMSDataDir/$dataset->{version} ]; then \n";
               print FILE "export AMSDataDir=\$AMSDataDir2 \n";
               print FILE "fi \n";
