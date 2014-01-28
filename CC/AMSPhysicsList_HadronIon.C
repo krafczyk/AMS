@@ -112,7 +112,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
 
 
-    if(G4FFKEY.IonPhysicsModel==1){
+    if(G4FFKEY.IonPhysicsModel%10==1){
 
 	cout<<"Use G4BinaryLightIonReaction for All the Ions"<<endl;
 
@@ -211,77 +211,10 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     }
 
 
-    if(G4FFKEY.IonPhysicsModel==-2){
-
-	cout<<"Use G4WilsonAbrasionModel for All the Ions"<<endl;
-
-    G4WilsonAbrasionModel *theAM = new G4WilsonAbrasionModel(true);
-    theAM->SetMinEnergy(0.0*MeV);
-    theAM->SetMaxEnergy(20000.0*GeV);
-    theAM->SetVerboseLevel(2);
-
-
-	//======Deuteron
-	particle = G4Deuteron::Deuteron();
-	pManager = particle->GetProcessManager();
-	fDeuteronProcess->AddDataSet(generalCrossSection);
-	fDeuteronProcess->RegisterMe(theAM);
-	pManager->AddDiscreteProcess(fDeuteronProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
-	//======Triton
-	particle = G4Triton::Triton();
-	pManager = particle->GetProcessManager();
-	fTritonProcess->AddDataSet(generalCrossSection);
-	fTritonProcess->RegisterMe(theAM);
-	pManager->AddDiscreteProcess(fTritonProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
-	//======Alpha
-	particle = G4Alpha::Alpha();
-	pManager = particle->GetProcessManager();
-	fAlphaProcess->AddDataSet(generalCrossSection);
-	fAlphaProcess->RegisterMe(theAM);
-	pManager->AddDiscreteProcess(fAlphaProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
-	//======He3
-	particle = G4He3::He3();
-	pManager = particle->GetProcessManager();
-	G4HadronInelasticProcess* fhe3Ion = new G4HadronInelasticProcess("He3Inelastic",particle);
-	fhe3Ion->AddDataSet(generalCrossSection);
-	fhe3Ion->RegisterMe(theAM);
-	pManager->AddDiscreteProcess(fhe3Ion);
-	//pManager->AddDiscreteProcess(hadElastProc);
-	//======GenericIon
-	particle = G4GenericIon::GenericIon();
-	pManager = particle->GetProcessManager();
-	G4HadronInelasticProcess* fGenericIon = new G4HadronInelasticProcess("IonInelastic",particle);
-	fGenericIon->AddDataSet(generalCrossSection);
-	fGenericIon->RegisterMe(theAM);
-	pManager->AddDiscreteProcess(fGenericIon);
-	//pManager->AddDiscreteProcess(hadElastProc);
-
-	if(G4FFKEY.UseEMDModel==1){
-	  cout<<"Also Use EMD Model"<<endl;
-	  G4EMDissociation *theEMD = new G4EMDissociation();
-	  theEMD->SetMinEnergy(100.0*MeV);
-	  theEMD->SetMaxEnergy(2000.0*GeV);
-	  theEMD->SetVerboseLevel(2);
-	  G4ElementTable::iterator iter;
-	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
-	  for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
-	    theEMD->ActivateFor(*iter);
-	  }
-	  G4HadronInelasticProcess* fGenericIon_EMD = new G4HadronInelasticProcess("IonEMD",particle);
-	  fGenericIon_EMD->AddDataSet(EMDCrossSection);
-	  fGenericIon_EMD->RegisterMe(theEMD);
-	  pManager->AddDiscreteProcess(fGenericIon_EMD);
-	}
-
-
-    }
 
 
 
-    if(G4FFKEY.IonPhysicsModel==2){
+    if(G4FFKEY.IonPhysicsModel%10==2){
 
 	cout<<"Use G4QMD for All the Ions"<<endl;
 
