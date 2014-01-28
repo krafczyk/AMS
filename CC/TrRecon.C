@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.176 2014/01/16 18:01:51 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.177 2014/01/28 16:52:32 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2014/01/16 18:01:51 $
+/// $Date: 2014/01/28 16:52:32 $
 ///
-/// $Revision: 1.176 $
+/// $Revision: 1.177 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3426,7 +3426,7 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 #else
     if (!hit->Used() && (hit->Used() || !hit->OnlyY())) continue;
 #endif
-    hitp[nh] = hit->GetCoord(0);
+    hitp[nh] = hit->GetCoord(hit->GetMultiplicity()-1);
     hitl[nh] = hit->GetLayer();
     hiti[nh] = i;
     nh++;
@@ -3630,6 +3630,39 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
       TR_DEBUG_CODE_2021;
       if (fabs(par[2]) > 1e-3 &&
 	  fabs(par[5]) > 1e-3 && par[2]*par[5] > 0) continue;
+
+      double xmn[2], zmn[2] = {  99,  99 };
+      double xmx[2], zmx[2] = { -99, -99 };
+      for (int j = 0; j < NT; j++)
+	for (int k = 0; k < 2; k++) {
+	  int jt = (k == 0) ? it1[j] : it2[j];
+	  if (jt >= 0) {
+	    AMSPoint p = hitp[idx[jt]];
+	    if (p.z() > zmx[k]) { xmx[k] = p.x(); zmx[k] = p.z(); }
+	    if (p.z() < zmn[k]) { xmn[k] = p.x(); zmn[k] = p.z(); }
+	  }
+	}
+      int chk = 0;
+      if (xmn[0]*xmx[0] > 20) {
+	double xm = (xmn[0]+xmx[0])/2;
+	for (int j = 0; j < NT; j++)
+	  if (it1[j] >= 0 && fabs(hitp[idx[it1[j]]].x()) > 5 && 
+	                       xm*hitp[idx[it1[j]]].x()  < 0) {
+	    chk = 1;
+	    break; 
+	  }
+	if (chk) continue;
+      }
+      if (xmn[1]*xmx[1] > 20) {
+	double xm = (xmn[1]+xmx[1])/2;
+	for (int j = 0; j < NT; j++)
+	  if (it2[j] >= 0 && fabs(hitp[idx[it2[j]]].x()) > 5 && 
+	                       xm*hitp[idx[it2[j]]].x()  < 0) {
+	    chk = 1;
+	    break; 
+	  }
+	if (chk) continue;
+      }
     }
 
     int cut = 0;
