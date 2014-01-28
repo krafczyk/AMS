@@ -181,7 +181,9 @@ public:
     // Helper function to get Xe partial pressure
     int GetXePressure();
     int GetDefaultMCXePressure(){return DefaultMCXePressure;}
-    void SetDefaultMCXePressure(float xe){ DefaultMCXePressure=xe;return;}
+    static void SetDefaultMCXePressure(float xe){ DefaultMCXePressure=xe;return;}
+
+
 
     // Globlal Validity flag
     int GetValidity(){return IsValid;}

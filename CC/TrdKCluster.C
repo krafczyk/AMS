@@ -222,7 +222,7 @@ void TrdKCluster::Init_Base(){
     Zshift=0.0;
     Minimum_dR=2;
     TRDCenter=115;
-    SetDefaultMCXePressure(780);
+    if(DefaultMCXePressure<=0)SetDefaultMCXePressure(780);
     if(TRDTubeCollection.size()!=5248)Constrcut_TRDTube();
     if(map_TRDOnline.size()==0) InitXePressure();
     if(!TRDImpactlikelihood)TRDImpactlikelihood=new TRD_ImpactParameter_Likelihood();
