@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.817 2014/01/26 14:50:09 choutko Exp $
+# $Id: RemoteClient.pm,v 1.818 2014/01/28 10:40:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9600,8 +9600,8 @@ if(defined $dataset->{buildno} ){
           $buf=~ s/TRIG=/TRIG=$evts/;
           my $r1=rand;
           my $r2=rand;
-          my $pminr=$pmin*(1-0.01*$r1);
-          my $pmaxr=$pmax*(1+0.01*$r2);
+          my $pminr=$pmin*(1-0.005*$r1);
+          my $pmaxr=$pmax*(1+0.005*$r2);
         if($pminr<0.01){
             $pminr=0.01;
         }

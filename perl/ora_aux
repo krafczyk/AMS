@@ -34,7 +34,7 @@ show errors
 
 
 create or replace trigger runs_biu
-after insert or update on runs
+before insert or update on runs
 for each row
 begin
 update mods set modtime=sysdate where tabname='runs';
