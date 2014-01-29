@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.632 2014/01/26 23:18:54 choutko Exp $
+//  $Id: root.C,v 1.633 2014/01/29 15:49:39 choumilo Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -12297,6 +12297,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
   if(TOFTrigFl1<=4 && TOFTrigFl1>=0){
     L1TrMemPatt|=(1<<1);// set FTCP0(>=3of4)
     L1TrMemPatt|=1;// set FTC
+    if(CentrOK)L1TrMemPatt|=(1<<3);// set FTCT0(not used in TrigDecision but let it be seen)
   }
   if(TOFTrigFl1==0)L1TrMemPatt|=(1<<2);// set FTCP1(4of4)
 //-----------------------------------------
@@ -12325,7 +12326,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
   }  
   else if((ECTrigFl/10==1) || (ECTrigFl/10==2))L1TrMemPatt|=(1<<11);// set EC-F_or
   if(ECTrigFl%10>=2){
-//    L1TrMemPatt|=(1<<13);// set EC-A_or
+    L1TrMemPatt|=(1<<13);// set EC-A_or (not used in TrigDecision but let it be seen)
     if(ECTrigFl%10==3)L1TrMemPatt|=(1<<12);// set EC-A_and
   }  
   if((L1TrMemPatt&(1<<11))>0)L1TrMemPatt|=(1<<6);// set FTE (EC-F_or is required)
