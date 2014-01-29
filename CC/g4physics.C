@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.58 2013/11/01 14:58:31 choutko Exp $
+//  $Id: g4physics.C,v 1.59 2014/01/29 10:52:32 oliva Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.58 2013/11/01 14:58:31 choutko Exp $
+// $Id: g4physics.C,v 1.59 2014/01/29 10:52:32 oliva Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -149,7 +149,7 @@ void AMSG4Physics::ConstructProcess()
 //--Qi Yan
       G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
       hardonstop->ConstructProcess();
-      if(G4FFKEY.IonPhysicsModel==1||G4FFKEY.IonPhysicsModel==2){
+      if(G4FFKEY.IonPhysicsModel%10==1||G4FFKEY.IonPhysicsModel%10==2){
         cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
         AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
         if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
@@ -186,7 +186,7 @@ void AMSG4Physics::ConstructProcess()
       G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
       hardonstop->ConstructProcess();
 
-     if(G4FFKEY.IonPhysicsModel==1||G4FFKEY.IonPhysicsModel==2){
+     if(G4FFKEY.IonPhysicsModel%10==1||G4FFKEY.IonPhysicsModel%10==2){
         cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
         AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
         if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
