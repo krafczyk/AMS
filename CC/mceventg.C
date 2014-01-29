@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.188 2014/01/29 17:48:08 choutko Exp $
+//  $Id: mceventg.C,v 1.189 2014/01/29 18:16:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1714,7 +1714,7 @@ void AMSmceventg::builddaq(integer i, integer length, int16u *p){
  bool sec=false;
 while(ptr){ 
 if(ptr->Primary() || !sec){
-  if(!ptr->Primary())sec=true;
+//  if(!ptr->Primary())sec=true;
  const uinteger c=65535;
  *(p+1)=ptr->_ipart;
  uinteger momentum=uinteger(ptr->_mom*1000);
@@ -1772,7 +1772,7 @@ integer AMSmceventg::calcdaqlength(integer i){
        if(pm->Primary())l+=12;
        else if(!sec){
         l+=12;
-        sec=true;
+//        sec=true;
        }
       }
  return -l;   //in jinj mode

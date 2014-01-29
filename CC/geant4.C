@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.109 2014/01/22 07:22:07 choutko Exp $
+//  $Id: geant4.C,v 1.110 2014/01/29 18:16:10 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1495,7 +1495,7 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
     if(g3code==AMSG4Physics::_G3DummyParticle)return;
     G4ThreeVector pos = aTrack->GetPosition();
     AMSPoint point( pos.x(), pos.y(), pos.z() );
-    float parr[3] = { pos.x(), pos.y(), pos.z() };
+    float parr[3] = { float(pos.x()), float(pos.y()), float(pos.z()) };
     AMSDir dir( mom.x(), mom.y(), mom.z() );
     int nskip = -2; //indicates that this is step of backsplashed particle
    float charge=pdef->GetPDGCharge();
