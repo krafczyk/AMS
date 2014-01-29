@@ -873,7 +873,9 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood_Repulsion(Double_t *par){
 
   }
 
-
+  delete [] z_layers;
+  delete [] interp_points;
+  delete [] interp_dirs;
 
   return result;
 }
