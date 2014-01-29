@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.177 2014/01/28 16:52:32 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.178 2014/01/29 16:19:27 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2014/01/28 16:52:32 $
+/// $Date: 2014/01/29 16:19:27 $
 ///
-/// $Revision: 1.177 $
+/// $Revision: 1.178 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1184,6 +1184,20 @@ if (TrDEBUG >= 6) {\
                  "sx %5.2f im %d sen %d dx %6.2f %5.2f", px-glo[0],\
                  tkid, tks.GetStripX(), tks.GetSensCoo().x(), \
                  it.imult[il], tks.GetSensor(), px-lx, ln/2) << endl;\
+}
+
+#define TR_DEBUG_CODE_401 \
+if (TrDEBUG >= 1) {\
+  cout << "C401 1st fit "<<mfit1<<" "<<track->GetChisqX(mfit1)<<" "\
+                                     <<track->GetChisqY(mfit1)<<endl;\
+  for (int i = 0; i < track->GetNhits(); i++) {\
+    TrRecHitR *hit = track->GetHit(i);\
+    if (hit)\
+      cout << Form("%4d %6.2f %6.2f %6.2f X(%3d) Y(%3d)", hit->GetTkId(),\
+	           hit->GetCoord().x(), hit->GetCoord().y(),\
+                   hit->GetCoord().z(), hit->iTrCluster('x'),\
+		                        hit->iTrCluster('y')) << endl;\
+  }\
 }
 
 #define TR_DEBUG_CODE_41 \
@@ -3024,6 +3038,25 @@ if (TrDEBUG >= 1) {\
  }\
 }
 
+#define TR_DEBUG_CODE_2051 \
+if (TrDEBUG >= 1) {\
+ for (int ic = 0; ic < NC; ic++) {\
+  if (cmin[ic] < csth) {\
+   cout << "C2051 @" << GetEventID() << endl;\
+   cout << "C2051";\
+   for (int i = 0; i < NT; i++) if(tmin[ic][i] >= 0) \
+     cout << Form(" %2d %6.2f %6.2f %6.2f", hiti[idx[tmin[ic][i]]],\
+ 	        hitp[idx[tmin[ic][i]]].x(), hitp[idx[tmin[ic][i]]].y(),\
+	        hitp[idx[tmin[ic][i]]].z()) << endl;\
+   cout << endl;\
+   for (int i = 0; i < NT; i++) if(tmin[ic][i+NT] >= 0) \
+     cout << Form(" %2d %6.2f %6.2f %6.2f", hiti[idx[tmin[ic][i+NT]]],\
+	     hitp[idx[tmin[ic][i+NT]]].x(), hitp[idx[tmin[ic][i+NT]]].y(),\
+	     hitp[idx[tmin[ic][i+NT]]].z()) << endl;\
+  }\
+ }\
+}
+
 #define TR_DEBUG_CODE_206 \
 if (TrDEBUG >= 1) {\
   for (int i = 0; i < NFL; i++) {\
@@ -3426,7 +3459,9 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 #else
     if (!hit->Used() && (hit->Used() || !hit->OnlyY())) continue;
 #endif
-    hitp[nh] = hit->GetCoord(hit->GetMultiplicity()-1);
+    int iml = hit->GetResolvedMultiplicity();
+    if (iml < 0) iml = hit->GetMultiplicity()-1;
+    hitp[nh] = hit->GetCoord(iml);
     hitl[nh] = hit->GetLayer();
     hiti[nh] = i;
     nh++;
@@ -3631,38 +3666,27 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
       if (fabs(par[2]) > 1e-3 &&
 	  fabs(par[5]) > 1e-3 && par[2]*par[5] > 0) continue;
 
-      double xmn[2], zmn[2] = {  99,  99 };
-      double xmx[2], zmx[2] = { -99, -99 };
-      for (int j = 0; j < NT; j++)
-	for (int k = 0; k < 2; k++) {
-	  int jt = (k == 0) ? it1[j] : it2[j];
+      int xchk = 0;
+      for (int i = 0; i < 2; i++) {
+	double xs = 0, xmin = 99, xmax = -99;
+	int    nx = 0;
+	for (int j = 0; j < NT; j++) {
+	  int jt = (i == 0) ? it1[j] : it2[j];
 	  if (jt >= 0) {
 	    AMSPoint p = hitp[idx[jt]];
-	    if (p.z() > zmx[k]) { xmx[k] = p.x(); zmx[k] = p.z(); }
-	    if (p.z() < zmn[k]) { xmn[k] = p.x(); zmn[k] = p.z(); }
+	    if (p.x() < xmin) xmin = p.x();
+	    if (p.x() > xmax) xmax = p.x();
+	    xs += p.x();
+	    nx++;
 	  }
 	}
-      int chk = 0;
-      if (xmn[0]*xmx[0] > 20) {
-	double xm = (xmn[0]+xmx[0])/2;
-	for (int j = 0; j < NT; j++)
-	  if (it1[j] >= 0 && fabs(hitp[idx[it1[j]]].x()) > 5 && 
-	                       xm*hitp[idx[it1[j]]].x()  < 0) {
-	    chk = 1;
-	    break; 
-	  }
-	if (chk) continue;
+	if (nx < 2 || (xs-xmin)/(nx-1)*xmin < -20
+	           || (xs-xmax)/(nx-1)*xmax < -20) {
+	  xchk = 1;
+	  break;
+	}
       }
-      if (xmn[1]*xmx[1] > 20) {
-	double xm = (xmn[1]+xmx[1])/2;
-	for (int j = 0; j < NT; j++)
-	  if (it2[j] >= 0 && fabs(hitp[idx[it2[j]]].x()) > 5 && 
-	                       xm*hitp[idx[it2[j]]].x()  < 0) {
-	    chk = 1;
-	    break; 
-	  }
-	if (chk) continue;
-      }
+      if (xchk) continue;
     }
 
     int cut = 0;
@@ -3701,6 +3725,7 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
   if (cmin[0] == csth) return 0;
 
   TR_DEBUG_CODE_205;
+  TR_DEBUG_CODE_2051;
 
   //////////////////// Fill TOF buffer ////////////////////
 
@@ -3769,8 +3794,11 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
       TrRecHitR *hh = (TrRecHitR*)cont_hit->getelem(j);
       if (hh->OnlyY() || hh->GetTkId() != tkid) continue;
 
-      int nml = hh->GetMultiplicity();
-      for (int k = 0; k < nml && nhml[il] < NX; k++) {
+      int k1 = 0, k2 = hh->GetMultiplicity()-1;
+      if (hh->GetResolvedMultiplicity() >= 0)
+	k1 = k2 = hh->GetResolvedMultiplicity();
+
+      for (int k = k1; k <= k2 && nhml[il] < NX; k++) {
 	AMSPoint coo = hh->GetCoord(k);
 	hitx[nhml[il]+il*NX] = coo.x();
 	hitz[nhml[il]+il*NX] = coo.z();
@@ -3930,6 +3958,8 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
    track->setstatus(AMSDBc::TOFFORGAMMA);
    track->setstatus(AMSDBc::RECOVERED);
 
+   int msel[7] = { -1, -1, -1, -1, -1, -1, -1 };
+
    int masky = 0x7f;
    int maskc = 0x7f;
 
@@ -3948,10 +3978,12 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
     }
     if (!hit) continue;
 
-    int        msel = -1;
-    int        tkid = hit->GetTkId();
-    double     dmin =  0;
-    TrRecHitR *hsel =  0;
+    int tkid = hit->GetTkId();
+    int il   = hit->GetLayer()-1;
+    if (il < 0 || 7 <= il) continue;
+
+    double     dmin = 0;
+    TrRecHitR *hsel = 0;
     TrClusterR *cly = hit->GetYCluster();
     if (!cly) continue;
 
@@ -3966,15 +3998,16 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 	double d = fabs(pmin[ic][7]+pmin[ic][8]*coo.z()-coo.x());
 	if (hh->OnlyY()) d += 100;
 	if (dmin == 0 || d < dmin) {
-	  dmin = d; msel = k; hsel = hh;
+	  dmin = d; msel[il] = k; hsel = hh;
 	}
       }
     }
     if (!hsel) hsel = hit;
 
-    if (msel >= 0) hsel->SetResolvedMultiplicity(msel);
+  //if (msel >= 0) hsel->SetResolvedMultiplicity(msel);
     TR_DEBUG_CODE_211;
-    track->AddHit(hsel, msel);
+
+    track->AddHit(hsel);
 
     if (!hsel->OnlyX()) masky &= ~(1 << (patt->GetSCANLAY()-hsel->GetLayer()));
     if (!hsel->OnlyY()) maskc &= ~(1 << (patt->GetSCANLAY()-hsel->GetLayer()));
@@ -3995,11 +4028,18 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
    }
    delete cont;
 
-   if (tshr && tshr != tref && nshr > 2) {
+ //if (tshr && tshr != tref && nshr > 2) {
+   if (tshr && nshr > 2) {
      tshr->setstatus(AMSDBc::TOFFORGAMMA);
      tref = tshr;
      delete track;
      continue;
+   }
+
+   for (int j = 0; j < 7; j++) {
+     TrRecHitR *hit = track->GetHitLO(j+1);
+     if (hit && hit->GetResolvedMultiplicity() < 0 && msel[j] >= 0)
+       hit->SetResolvedMultiplicity(msel[j]);
    }
 
    track->SetPatterns(patt->GetHitPatternIndex(maskc),
@@ -5965,6 +6005,13 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
     delete track;
     return 0;
   }
+  TR_DEBUG_CODE_401;
+  if (track->GetChisqX(mfit1) > 1e6) {
+    if (TrDEBUG >= 1) cout << "Too large ChisqX, force to fail" << endl;
+    delete track;
+    return 0;
+  }
+
   track->Settrdefaultfit(mfit1);
 
   // Merge low seed SN hits
