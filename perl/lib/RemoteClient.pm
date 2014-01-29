@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.819 2014/01/28 12:28:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.820 2014/01/29 17:48:21 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8218,8 +8218,7 @@ if(defined $dataset->{buildno} ){
           $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc].64 -$self->{IORP} -U$job  -M -D1 -G$aft -S$stalone/;
 }
          my $script="$self->{CCA}.$job.$template";
-         my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
-         "$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
+         my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":"$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
          if($self->{q}->param("ProductionQuery") eq "Submit Request" and $self->{CCT} eq "local"   ){
 # add one more check here using save state
             my $time = time();
@@ -8282,7 +8281,6 @@ try{
      };
 
            }
-
               print FILE "export AMSDataDir2=$self->{AMSDataDir} \n";
               print FILE "export $self->{AMSDataDir2} \n";
               print FILE "if [ ! -d \$AMSDataDir/$dataset->{version} ]; then \n";
@@ -8384,7 +8382,14 @@ try{
               $self->ErrorPlus("Unable to tar $script to $file2tar ");
           }
           unlink $root;
-          }
+         }
+else{
+         my @jnk=split '=', $self->{AMSDataDir2};
+if($#jnk>0){
+         my $i=system("cp $root $jnk[1]/$self->{LocalClientsDir}");
+}
+
+}
          $buf=~s/\$/\\\$/g;
          $buf=~s/\"/\\\"/g;
          $buf=~s/\(/\\\(/g;
@@ -9871,7 +9876,14 @@ try{
               $self->ErrorPlus("Unable to tar $script to $file2tar ");
           }
           unlink $root;
-          }
+     }
+else{
+         my @jnk=split '=', $self->{AMSDataDir2};
+if($#jnk>0){
+         system("cp $root $jnk[1]/$self->{LocalClientsDir}");
+}
+
+     }
          $buf=~s/\$/\\\$/g;
          $buf=~s/\"/\\\"/g;
          $buf=~s/\(/\\\(/g;

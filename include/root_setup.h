@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.94 2014/01/26 20:59:24 choutko Exp $
+//  $Id: root_setup.h,v 1.95 2014/01/29 17:48:17 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -306,6 +306,16 @@ double Err[2]; ///< residial error estimation (rms, gaussian (sec)
 ClassDef(JGCR,1)
 };
 
+class JGC{
+//  JMDC- GPS Correction
+// seprecated
+public:
+unsigned int Validity[2];  ///< validity range unix time
+double A[2]; ///< A[0]+A[1]*x correction
+double Par[3]; ///<Par[0]*sin(Par[1]*x+Par[2]) add correction
+double Err[2]; ///< residial error estimation (rms, gaussian (sec)
+};
+
 
 class ISSData{
 public:
@@ -551,6 +561,7 @@ public:
 
  typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
  typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
+ vector<JGC> fJGC;
  vector<JGCR> fJGCR;
  BadRun_m fBadRun; ///< BadRuns 
  GPS_m fGPS;    ///< GPS Epoch Time
@@ -883,7 +894,7 @@ static int _select (const dirent64 * entry);
  //---------------------------------------
 
 
-ClassDef(AMSSetupR,25)       //AMSSetupR
+ClassDef(AMSSetupR,26)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.633 2014/01/29 15:49:39 choumilo Exp $
+//  $Id: root.C,v 1.634 2014/01/29 17:48:08 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10844,6 +10844,7 @@ if(!_TreeSetup)return 2;
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fHeader",true);
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fEntries",true);
      if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
+     if(Version()>=800)_TreeSetup->SetBranchStatus("run.fJGC",false);
 map <unsigned int,int>::iterator it= _RunSetup.theMap.find(run);
      bool ret=it!=_RunSetup.theMap.end();
      if(ret)_TreeSetup->GetEntry(it->second);
@@ -12240,9 +12241,9 @@ else return -1;
 }
 
 
-void  Level1R::RestorePhysBPat() {
+void  Level1R::RestorePhysBPat(int mg) {
 
- if(PhysBPatt==0){
+ if( mg || PhysBPatt==0){
 
   unsigned short int ft_pattern=JMembPatt;
 

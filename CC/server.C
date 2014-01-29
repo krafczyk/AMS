@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.215 2014/01/11 09:40:02 choutko Exp $
+//  $Id: server.C,v 1.216 2014/01/29 17:48:09 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2630,6 +2630,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
        }
        else fnam=logdir;
         fnam+="/scripts/";
+        if(getenv("AMSScriptsDir"))fnam=getenv("AMSScriptsDir"); 
         submit+=(const char*)fnam;
         submit+=(const char*)((*cli)->WholeScriptPath);  
      }

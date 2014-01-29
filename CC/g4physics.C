@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.59 2014/01/29 10:52:32 oliva Exp $
+//  $Id: g4physics.C,v 1.60 2014/01/29 17:48:08 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.59 2014/01/29 10:52:32 oliva Exp $
+// $Id: g4physics.C,v 1.60 2014/01/29 17:48:08 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -44,7 +44,7 @@
 #include "G4EmStandardPhysics.hh"
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSP_BERT.hh"
-//#include "HadronPhysicsQGSC.hh"
+#include "HadronPhysicsQGSC_CHIPS.hh"
 #include "G4IonPhysics.hh"
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 899 
@@ -134,8 +134,7 @@ void AMSG4Physics::ConstructProcess()
     }
     if(GCPHYS.IHADR)ConstructHad();
   }
-  else if(G4FFKEY.PhysicsListUsed==1){
-    cout<<"QGSP Physics List will be used. "<<endl;
+  else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2){
     
     if(GCPHYS.ILOSS){
       ConstructEM2();
@@ -144,8 +143,18 @@ void AMSG4Physics::ConstructProcess()
 
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
       hadronelastic->ConstructProcess();
+
+    if(G4FFKEY.PhysicsListUsed==1){
+      cout<<"QGSP Physics List will be used. "<<endl;
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
       if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+    }
+    if(G4FFKEY.PhysicsListUsed==2){
+      cout<<"QGSC Physics List will be used. "<<endl;
+      HadronPhysicsQGSC_CHIPS* pqgsp=new HadronPhysicsQGSC_CHIPS();  // default in geant4.9.6 
+      if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+    }
+   
 //--Qi Yan
       G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
       hardonstop->ConstructProcess();
@@ -163,43 +172,7 @@ void AMSG4Physics::ConstructProcess()
        } 
     }
   }
-  else if(G4FFKEY.PhysicsListUsed==2){
-    cout<<"QGSP_BERT Physics List will be used. "<<endl;
-    
-    if(GCPHYS.ILOSS){
-      //     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
-      //     pem->ConstructProcess();
-      ConstructEM2();
-
-    }
-    if(GCPHYS.IHADR){
-      //      HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
-      //      pqgsp->ConstructProcess();    
-      //      G4IonPhysics *pion=new G4IonPhysics("ion");
-      //      pion->ConstructProcess();
-
-      G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
-      hadronelastic->ConstructProcess();
-      HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
-      if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
-//--Qi Yan      
-      G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
-      hardonstop->ConstructProcess();
-
-     if(G4FFKEY.IonPhysicsModel%10==1||G4FFKEY.IonPhysicsModel%10==2){
-        cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
-        AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
-        if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
-      }
-//--Qi Yan
-      else {
-        cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section). "<<endl;
-        IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(1); //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
-        if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
-      }
-
-    }
-  }
+  
 //---
   else{
     cerr<<"Physics List no "<<G4FFKEY.PhysicsListUsed<<" Not Yet Supported"<<endl;

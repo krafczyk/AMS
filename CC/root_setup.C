@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.149 2014/01/26 20:05:48 choutko Exp $
+//  $Id: root_setup.C,v 1.150 2014/01/29 17:48:09 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -716,6 +716,7 @@ else{
    fRTI.clear();
    fGPSWGS84.clear();
    fJGCR.clear();
+   fJGC.clear();
    fDSPError.clear();
    LoadISS(fHeader.Run-dt,fHeader.Run+3600);
    LoadISSAtt(fHeader.Run-dt,fHeader.Run+3600);
@@ -765,6 +766,7 @@ else{
    fDSPError.clear();
    fAMSSTK.clear();
    fJGCR.clear();
+   fJGC.clear();
    const int dt=120;
    LoadISS(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadISSAtt(fHeader.FEventTime-dt,fHeader.LEventTime+dt);

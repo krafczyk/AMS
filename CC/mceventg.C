@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.187 2013/11/07 22:49:40 bbeische Exp $
+//  $Id: mceventg.C,v 1.188 2014/01/29 17:48:08 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -13,7 +13,7 @@
 #include "ecaldbc.h"
 #include "tofdbc02.h"
 #include "astro.h" //ISN 
-
+#include "root.h"
 #ifdef _PGTRACK_
 #include "HistoMan.h"
 #endif
@@ -312,7 +312,7 @@ void AMSmceventg::gener(){
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On){
         _mom=AMSRandGeneral::hrndm1(_hid)/1000.;
-        // cout <<" mom    .... "<<_mom<<endl; 
+         //cout <<" **********mom    .... "<<_mom<<endl; 
       }
       else
 #endif
@@ -691,6 +691,39 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
      }
           
           HPRINT(_hid);
+    }
+    else if (low%1000==11){//Natural Spectrum
+      integer nchan=120000;
+      geant binw;
+      if(mass < 0.938)binw=100;
+      else  binw=100*mass/0.938;
+      geant al=0;
+      geant bl=nchan*binw;
+      HBOOK1(_hid,"NaturalFlux",nchan,al,bl,0.);
+      HBOOK1(_hid+1,"NaturalFlux",nchan,al,bl,0.);
+      AMSEventR::hbook1(_hid,"NaturalFlux",nchan,al,bl);
+       string option="";
+       int opt=low/1000;
+       if(opt==0){
+        if(ipart==47)option="flat";
+       }
+       else if(opt==1){
+        if(ipart==47)option="parabolic";
+       }  
+       else{
+       }
+      for (int k=0;k<nchan;k++){
+       int error=0;
+       float mom_mev=(binw/2+k*binw);
+       double r=NaturalFlux(ipart,mom_mev/charge/1000,option.c_str(),error);
+       HF1(_hid,mom_mev,float(r));
+       HF1(_hid+1,mom_mev,float(r));
+       AMSEventR::hf1(_hid,mom_mev,r);
+       if(error){
+         cerr<<"AMSmceventg::setspectra-F-NotImplementedYet "<<error<<" "<<ipart<<" "<<mom_mev<<endl;
+         abort();
+       }
+      }
     }
     else if (low==0 || !(GMFFKEY.GammaSource==0)){//ISN
       integer nchan=100000;
@@ -1436,14 +1469,14 @@ else
 
     cout<<"Primary particle mom:"<<plab[0]<<", "<<plab[1]<<", "<<plab[2]<<endl;
  // Track ID (filled by stack)
- Int_t ntr;
+ int ntr;
  
  // Option: to be tracked
- Int_t toBeDone = 1; 
+ int toBeDone = 1; 
 
  // PDG
 
- Int_t pdg;
+ int pdg;
  TParticlePDG* particlePDG;
  if(vmc_version==1)
    {  
@@ -1507,13 +1540,13 @@ else
    {
 
  // Track ID (filled by stack)
- Int_t ntr;
+ int ntr;
  
  // Option: to be tracked
- Int_t toBeDone = 1; 
+ int toBeDone = 1; 
  
  // PDG
- Int_t pdg  = kElectron;     //To be Changed to convert geant3 coding to PDG coding
+ int pdg  = kElectron;     //To be Changed to convert geant3 coding to PDG coding
  TParticlePDG* particlePDG = TDatabasePDG::Instance()->GetParticle(pdg);
 
 
@@ -1990,7 +2023,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    float charge=pdef->GetPDGCharge();
    float mass=pdef->GetPDGMass()/GeV;
    AMSPoint point( pos.x(), pos.y(), pos.z() );
-   float parr[3] = { pos.x(), pos.y(), pos.z() };
+   float parr[3] = { float(pos.x()), float(pos.y()), float(pos.z()) };
    AMSDir dir( mom.x(), mom.y(), mom.z() );
 
 ///--Create Process Record Adding by Q.Yan
@@ -2337,5 +2370,211 @@ else return true;
 
 number AMSmceventg::_Livetime=1;
 number AMSmceventg::_DT=0;
+
+
+
+
+#ifdef NATURAL_FLUX_TEST
+// root.exe -l NaturalFlux.C+
+#include "TF1.h"
+#include "TCanvas.h"
+#endif
+
+/******************************************************************************/
+
+/*
+Given arrays x[1..n] and y[1..n] containing a tabulated function, i.e., yi = f(xi), with
+x1 < x2 < .. . < xN, and given values yp1 and ypn for the first derivative of the interpolating
+function at points 1 and n, respectively, this routine returns an array y2[1..n] that contains
+the second derivatives of the interpolating function at the tabulated points xi. If yp1 and/or
+ypn are equal to 1 × 1030 or larger, the routine is signaled to set the corresponding boundary
+condition for a natural spline, with zero second derivative on that boundary.
+*/
+
+void AMSmceventg::NaturalFlux_spline(double x[], double y[], int n, double yp1, double ypn, double y2[])
+{
+ int i,k;
+ double p,qn,sig,un;
+
+ double u[n];
+ if (yp1 > 0.99e30) // The lower boundary condition is set either to be “natural”
+  y2[1]=u[1]=0.0; 
+ else  // or else to have a specified first derivative.
+ {
+  y2[1] = -0.5;
+  u[1]=(3.0/(x[2]-x[1]))*((y[2]-y[1])/(x[2]-x[1])-yp1);
+ }
+
+ for (i=2;i<=n-1;i++) { // This is the decomposition loop of the tridiagonal algorithm.
+  // y2 and u are used for temporary storage of the decomposed factors.
+  sig=(x[i]-x[i-1])/(x[i+1]-x[i-1]);
+  p=sig*y2[i-1]+2.0;
+  y2[i]=(sig-1.0)/p;
+  u[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
+  u[i]=(6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
+ }
+ if (ypn > 0.99e30) // The upper boundary condition is set either to be “natural”
+  qn=un=0.0;
+  else { // or else to have a specified first derivative.
+   qn=0.5;
+   un=(3.0/(x[n]-x[n-1]))*(ypn-(y[n]-y[n-1])/(x[n]-x[n-1]));
+  }
+  y2[n]=(un-qn*u[n-1])/(qn*y2[n-1]+1.0);
+  for (k=n-1;k>=1;k--) // This is the backsubstitution loop of the tridiagonal algorithm.
+   y2[k]=y2[k]*y2[k+1]+u[k];
+
+
+}
+/******************************************************************************/
+
+/*
+Given the arrays xa[1..n] and ya[1..n], which tabulate a function (with the xai’s in order),
+and given the array y2a[1..n], which is the output from NaturalFlux_spline above, and given a value of
+x, this routine returns a cubic-spline interpolated value y.
+*/
+
+void AMSmceventg::NaturalFlux_splint(double xa[], double ya[], double y2a[], int n, double x, double *y)
+{
+
+ int klo,khi,k;
+ double h,b,a;
+
+ // We will find the right place in the table by means of
+ // bisection. This is optimal if sequential calls to this
+ // routine are at random values of x. If sequential calls
+ // are in order, and closely spaced, one would do better
+ // to store previous values of klo and khi and test if
+ // they remain appropriate on the next call.
+
+ klo=1; 
+ khi=n;
+ while (khi-klo > 1) {
+  k=(khi+klo) >> 1;
+  if (xa[k] > x) khi=k;
+  else klo=k;
+ } // klo and khi now bracket the input value of x.
+ h=xa[khi]-xa[klo];
+ if (h == 0.0) cerr<<"Bad xa input to routine NaturalFlux_splint\n"; // The xa’s must be distinct.
+  a=(xa[khi]-x)/h; 
+  b=(x-xa[klo])/h; // Cubic spline polynomial is now evaluated.
+  *y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
+}
+/******************************************************************************/
+#include <memory>
+double AMSmceventg::NaturalFlux_TrueFluxFun_CubSpline(double * x, double * par)
+{
+
+ const double trueRigidity = x[0];
+ if(trueRigidity<=0) return 1e-20;
+
+ const double firstDerStart  = par[0];
+ const double firstDerFinish = par[1];
+ const int nPoints = par[2]+0.5;
+ const int nextPar = 3;
+ std::auto_ptr<double> xp(new double[nPoints+1]); // x-values
+ std::auto_ptr<double> yp(new double[nPoints+1]); // y-values
+ std::auto_ptr<double> sd(new double[nPoints+1]); // second derivatives
+ for(int i=nextPar; i<(nPoints+nextPar); i++)
+ {
+      xp.get()[i-nextPar+1] = par[i];
+      yp.get()[i-nextPar+1] = par[i+nPoints];
+ }// end of for
+
+ #ifdef NATURAL_FLUX_TEST
+ const double factor = 1.0;
+ #else
+ const double factor = pow(trueRigidity,-2.7);
+ #endif
+
+ const double xMin = pow(10.0, xp.get()[1]),
+                xMax = pow(10.0, xp.get()[nPoints]);
+
+ if( xMin<trueRigidity && trueRigidity<xMax )
+ {
+      NaturalFlux_spline(xp.get(), yp.get(), nPoints, firstDerStart, firstDerFinish, sd.get());
+      double result;
+      NaturalFlux_splint(xp.get(), yp.get(), sd.get(), nPoints, log10(trueRigidity), &result);
+      return factor * result;
+ }// end of if
+
+ else if(trueRigidity>=xMax)
+ {
+      NaturalFlux_spline(xp.get(), yp.get(), nPoints, firstDerStart, firstDerFinish, sd.get());
+      double result_at_xMax;
+      const double log10_xMax = xp.get()[nPoints];
+      NaturalFlux_splint(xp.get(), yp.get(), sd.get(), nPoints, log10_xMax, &result_at_xMax);
+      return factor * (result_at_xMax + firstDerFinish*(log10(trueRigidity)-log10_xMax));
+ }// end of if
+
+ else {
+      NaturalFlux_spline(xp.get(), yp.get(), nPoints, firstDerStart, firstDerFinish, sd.get());
+      double result_at_xMin;
+      const double log10_xMin = xp.get()[1];
+      NaturalFlux_splint(xp.get(), yp.get(), sd.get(), nPoints, log10_xMin, &result_at_xMin);
+
+      const double alpha = firstDerStart/(xMin*log(10.0)) /
+                             result_at_xMin *
+                             xMin;
+      return factor * result_at_xMin*pow(trueRigidity/xMin, alpha);
+ }// end of block
+
+}// end of function
+/******************************************************************************/
+double AMSmceventg::NaturalFlux(int gpid, double trueRigidity, const char *  acceptance, int &error){
+//  error = 0 ok
+//  error = 1 no such part
+//  error = 2 no such acceptance 
+error=0;
+if(gpid==47){ // He Geant ID
+           if( strcmp(acceptance,"flat")==0 )
+           {
+                static double par[] = { 2488.268552523628, 230.9280546822297, 
+                                          4,
+                                          0.3010299956639812, 1, 1.477121254719662, 2, 
+                                          369.5532687414981, 2064.072100117866, 2455.854924375252, 2606.0412271868 };
+               return NaturalFlux_TrueFluxFun_CubSpline(&trueRigidity, par);
+           }// end of if
+           else if( strcmp(acceptance,"parabolic")==0 )
+           {
+                static double par[] = { 2362.589734949727, 197.6460307149418, 
+                                          4, 
+                                          0.3010299956639812, 1, 1.477121254719662, 2, 
+                                          351.2988657483565, 2048.492403848601, 2483.212224330382, 2649.087992727587 };
+                return NaturalFlux_TrueFluxFun_CubSpline(&trueRigidity, par);
+           }// end of if
+else{
+
+           cerr<<"NaturalFlux-E-UndefinedAcceptanceOption=\""<<acceptance<<"\" for gpid="<<gpid<<endl;
+           error=2;
+           return 0;
+}
+}
+else{
+         cerr<<"AMSmceventg::NaturalFlux-E-UndefinedParticle="<<gpid<<endl;
+         error=1;
+         return 0;
+}
+
+}// end of function
+/******************************************************************************/
+#ifdef NATURAL_FLUX_TEST
+double NaturalFlux(double * x, double * par) // for testing
+{
+ if(fabs(par[0]-1)<0.1) return NaturalFlux(47, x[0], "flat");
+ if(fabs(par[0]-2)<0.1) return NaturalFlux(47, x[0], "parabolic");
+ return 0.0;
+}// end of function
+/******************************************************************************/
+void NaturalFlux(void)
+{
+ TF1 * f1 = new TF1("NaturalFlux", NaturalFlux, 0.1, 60000.0, 1);
+ f1->SetMinimum(0.0);
+ f1->SetMaximum(3800.0);
+ f1->SetParameter(0,1); f1->SetLineColor(kRed);  f1->DrawCopy();       // He,flat
+ f1->SetParameter(0,2); f1->SetLineColor(kBlue); f1->DrawCopy("same"); // He,parabolic
+ gPad->GetCanvas()->SetLogx();
+}// end of function
+/******************************************************************************/
+#endif
 
 

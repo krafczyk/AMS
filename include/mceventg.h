@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.53 2013/11/01 14:58:42 choutko Exp $
+//  $Id: mceventg.h,v 1.54 2014/01/29 17:48:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -193,6 +193,12 @@ integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);
 static void setspectra(integer begind, integer begint, integer endd, 
 integer endt, integer ipart, integer low);
+//  Nuclear natural fluxes
+static void NaturalFlux_spline(double x[], double y[], int n, double yp1, double ypn, double y2[]);
+static void NaturalFlux_splint(double xa[], double ya[], double y2a[], int n, double x, double *y);
+static double NaturalFlux_TrueFluxFun_CubSpline(double * x, double * par);
+static double NaturalFlux(int gpid, double trueRigidity, const char *  acceptance, int &error);
+
 static void lookupsourcesp(integer sourceid,number & constant,number & index); //ISN 
 static void lookupsourcecoo(integer sourceid, geant & rasource, geant & decsource); //ISN
 static integer _hid;

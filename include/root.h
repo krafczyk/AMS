@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.591 2014/01/29 07:32:00 shaino Exp $
+//  $Id: root.h,v 1.592 2014/01/29 17:48:17 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2482,7 +2482,8 @@ public:
 /// \param level -1 any tof level
 ///  \return true if any tof related level1 was set
  bool isTOFTrigger(int level=-1);
- void RestorePhysBPat();
+/// \param mg !=0 restore pattern in anycase; physbpat==0  otherwise 
+ void RestorePhysBPat( int mg=0 );
  
  int RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt);///< Rebuid JMembPatt/PhysBPatt according to Flight tr.setup(mainly for old MC root-files)
 /// \return 1/0 (was physical/unbiased trigger)

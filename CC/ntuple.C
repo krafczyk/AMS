@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.273 2013/11/20 09:14:50 choutko Exp $
+//  $Id: ntuple.C,v 1.274 2014/01/29 17:48:08 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -331,6 +331,9 @@ void AMSNtuple::endR(bool cachewrite){
 
     writeRSetup();
 _rfile->cd();
+if(AMSEventR::h1(AMSmceventg::_hid)){
+   AMSEventR::h1(AMSmceventg::_hid)->Write();
+}
 #ifndef _PGTRACK_
     _ta.SetString(AMSTrAligFit::GetAligString());
     //cout <<AMSTrAligFit::GetAligString()<<endl;
