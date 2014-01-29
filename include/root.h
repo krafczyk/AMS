@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.590 2014/01/26 14:50:04 choutko Exp $
+//  $Id: root.h,v 1.591 2014/01/29 07:32:00 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4268,9 +4268,9 @@ public:
      if(ProcessCut(entry))ProcessFill(entry);
      return true;
    }
-    catch (...)
+   catch (std::exception &err)
     {
-     cout <<"  exception caught "<<endl;
+      cout <<"  exception caught : "<<err.what()<<endl;
     return false;
     }
  }
