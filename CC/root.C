@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.635 2014/01/30 11:45:25 choumilo Exp $
+//  $Id: root.C,v 1.636 2014/01/30 12:12:20 choutko Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10844,7 +10844,7 @@ if(!_TreeSetup)return 2;
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fHeader",true);
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fEntries",true);
      if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
-     if(Version()>=800)_TreeSetup->SetBranchStatus("run.fJGC",false);
+     if(ProcessSetup>2 || Version()>=800)_TreeSetup->SetBranchStatus("run.fJGC",false);
 map <unsigned int,int>::iterator it= _RunSetup.theMap.find(run);
      bool ret=it!=_RunSetup.theMap.end();
      if(ret)_TreeSetup->GetEntry(it->second);
