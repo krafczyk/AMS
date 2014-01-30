@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.190 2014/01/30 09:43:06 choutko Exp $
+//  $Id: mceventg.C,v 1.191 2014/01/30 09:46:24 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -2560,7 +2560,7 @@ if(gpid>=61 && gpid<=66) {  // Secondaries
   ret*=par[0]*(x/(x-par[1]))*pow(x-par[1],par[2])+par[3];
 
 }
-
+return ret;
 }
 else{
          cerr<<"AMSmceventg::NaturalFlux-E-UndefinedParticle="<<gpid<<endl;
