@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.191 2014/01/30 09:46:24 choutko Exp $
+//  $Id: mceventg.C,v 1.192 2014/01/30 20:44:46 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1713,9 +1713,13 @@ void AMSmceventg::builddaq(integer i, integer length, int16u *p){
   getheadC("AMSmceventg",0);
  p--;
  bool sec=false;
+int l=1;
+int maxl=1200;
 while(ptr){ 
 if(ptr->Primary() || !sec){
 //  if(!ptr->Primary())sec=true;
+if(l>maxl)sec=true;
+if(l>maxl)break;
  const uinteger c=65535;
  *(p+1)=ptr->_ipart;
  uinteger momentum=uinteger(ptr->_mom*1000);
@@ -1737,6 +1741,7 @@ if(ptr->Primary() || !sec){
  *(p+7+2*k)=int16u((cd>>16)&c);
  }
  p+=12;
+ l+=12;
 }
  ptr=ptr->next();
 }
@@ -1766,17 +1771,21 @@ void AMSmceventg::buildraw(integer n, int16u *p){
 
 integer AMSmceventg::calcdaqlength(integer i){
  AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg");
+int maxl=1200;
    integer l=1;
    bool sec=false;
     for(AMSmceventg* pm=
       (AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);pm;pm=pm->next()){
+       if(l>maxl)break;
        if(pm->Primary())l+=12;
        else if(!sec){
         l+=12;
-//        sec=true;
+        if(l>maxl)sec=true;
        }
+       
       }
  return -l;   //in jinj mode
+
 }
 
 void orbit::UpdateOrbit(number theta, number phi, integer sdir){
