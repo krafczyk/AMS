@@ -348,7 +348,10 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
 #endif
   
   // SKIP photons exiting through the lateral sides of the tiles
-   if(abs(theGlobalNormal[2])<1e-6)  return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
+   if(std::abs(theGlobalNormal[2])<1e-6){
+cout <<" g4rich::abs "<<std::abs(theGlobalNormal[2])<<" "<<abs(theGlobalNormal[2])<<" "<<theGlobalNormal[2]<<endl;
+     return G4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);
+   } 
 //   if(abs(theGlobalNormal[2])<1e-6)  return TOFG4OpBoundaryProcess::PostStepDoIt(aTrack,aStep);  
 
   DielectricDielectric();
