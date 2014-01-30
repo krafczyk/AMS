@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.592 2014/01/29 17:48:17 choutko Exp $
+//  $Id: root.h,v 1.593 2014/01/30 11:45:39 choumilo Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -2486,6 +2486,8 @@ public:
  void RestorePhysBPat( int mg=0 );
  
  int RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt);///< Rebuid JMembPatt/PhysBPatt according to Flight tr.setup(mainly for old MC root-files)
+/// \return 1/0 (was physical/unbiased trigger)
+ int RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt,int &AccPatt);///< Rebuid JMembPatt/PhysBPatt, also return ACC-sectors pattern (AccPat 8 lsb)
 /// \return 1/0 (was physical/unbiased trigger)
  
   Level1R(Trigger2LVL1 *ptr);
