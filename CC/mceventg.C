@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.189 2014/01/29 18:16:10 choutko Exp $
+//  $Id: mceventg.C,v 1.190 2014/01/30 09:43:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -312,6 +312,7 @@ void AMSmceventg::gener(){
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On){
         _mom=AMSRandGeneral::hrndm1(_hid)/1000.;
+        if(AMSEventR::h1(_hid+1))AMSEventR::hf1(_hid+1,_mom);
          //cout <<" **********mom    .... "<<_mom<<endl; 
       }
       else
@@ -702,16 +703,16 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       HBOOK1(_hid,"NaturalFlux",nchan,al,bl,0.);
       HBOOK1(_hid+1,"NaturalFlux",nchan,al,bl,0.);
       AMSEventR::hbook1(_hid,"NaturalFlux",nchan,al,bl);
+      AMSEventR::hbook1(_hid+1,"NaturalFlux Generated GeV",nchan/100,al/1000,bl/1000);
+ 
        string option="";
        int opt=low/1000;
        if(opt==0){
-        if(ipart==47)option="flat";
+        if(ipart>=47)option="flat";
        }
        else if(opt==1){
-        if(ipart==47)option="parabolic";
+        if(ipart>=47)option="parabolic";
        }  
-       else{
-       }
       for (int k=0;k<nchan;k++){
        int error=0;
        float mom_mev=(binw/2+k*binw);
@@ -2525,14 +2526,17 @@ double AMSmceventg::NaturalFlux(int gpid, double trueRigidity, const char *  acc
 //  error = 1 no such part
 //  error = 2 no such acceptance 
 error=0;
-if(gpid==47){ // He Geant ID
+double ret=0;
+if(gpid>=47 && gpid<=69){ // He to O Geant ID
+
            if( strcmp(acceptance,"flat")==0 )
            {
                 static double par[] = { 2488.268552523628, 230.9280546822297, 
                                           4,
                                           0.3010299956639812, 1, 1.477121254719662, 2, 
                                           369.5532687414981, 2064.072100117866, 2455.854924375252, 2606.0412271868 };
-               return NaturalFlux_TrueFluxFun_CubSpline(&trueRigidity, par);
+                
+               ret= NaturalFlux_TrueFluxFun_CubSpline(&trueRigidity, par);
            }// end of if
            else if( strcmp(acceptance,"parabolic")==0 )
            {
@@ -2540,7 +2544,7 @@ if(gpid==47){ // He Geant ID
                                           4, 
                                           0.3010299956639812, 1, 1.477121254719662, 2, 
                                           351.2988657483565, 2048.492403848601, 2483.212224330382, 2649.087992727587 };
-                return NaturalFlux_TrueFluxFun_CubSpline(&trueRigidity, par);
+                ret=NaturalFlux_TrueFluxFun_CubSpline(&trueRigidity, par);
            }// end of if
 else{
 
@@ -2548,6 +2552,15 @@ else{
            error=2;
            return 0;
 }
+
+if(gpid>=61 && gpid<=66) {  // Secondaries
+
+  double x=trueRigidity;
+  double par[4] = {1.6835,-3.00849,-0.661628,0.0710779};
+  ret*=par[0]*(x/(x-par[1]))*pow(x-par[1],par[2])+par[3];
+
+}
+
 }
 else{
          cerr<<"AMSmceventg::NaturalFlux-E-UndefinedParticle="<<gpid<<endl;
