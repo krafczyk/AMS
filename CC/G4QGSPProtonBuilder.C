@@ -27,7 +27,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: G4QGSPProtonBuilder.C,v 1.2 2014/01/31 14:06:27 choutko Exp $
+// $Id: G4QGSPProtonBuilder.C,v 1.3 2014/01/31 20:44:38 choutko Exp $
 //
 //---------------------------------------------------------------------------
 //
@@ -85,9 +85,8 @@ G4QGSPProtonBuilder(G4bool quasiElastic, G4bool projectileDiffraction)
 void G4QGSPProtonBuilder::
 Build(G4ProtonInelasticProcess * aP)
  {
-   aP->AddDataSet(new G4CrossSectionPairGG(new G4ProtonInelasticCrossSection(), 91*GeV));  
-//   aP->AddDataSet(new G4BGGNucleonInelasticXS(G4Proton::Proton()));
-   std::cout <<"G4QGSPProtonBuilder::Build-I-Calling aP->AddDataSet(new G4CrossSectionPairGG(new G4ProtonInelasticCrossSection(), 91*GeV));"<<std::endl;
+//   aP->AddDataSet(new G4CrossSectionPairGG(new G4ProtonInelasticCrossSection(), 91*GeV));  
+   aP->AddDataSet(new G4BGGNucleonInelasticXS(G4Proton::Proton()));
    theModel->SetMinEnergy(theMin);
    theModel->SetMaxEnergy(100*TeV);
    aP->RegisterMe(theModel);

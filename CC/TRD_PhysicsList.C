@@ -1,5 +1,5 @@
 
-// $Id: TRD_PhysicsList.C,v 1.1 2010/07/14 14:23:01 zweng Exp $
+// $Id: TRD_PhysicsList.C,v 1.2 2014/01/31 20:44:38 choutko Exp $
 
 #include "TRD_PhysicsList.hh"
 
@@ -37,7 +37,8 @@
 
 TRD_PhysicsList::TRD_PhysicsList():  G4VModularPhysicsList()
 {
-
+cerr<<"TRD_PhysicsList::TRD_PhysicsList-F-NotSupported "<<endl;
+  abort(); 
   fEmStandardPhysics = 0;
   fTrdPhysics = 0;
 
