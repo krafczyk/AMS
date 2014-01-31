@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.820 2014/01/29 17:48:21 choutko Exp $
+# $Id: RemoteClient.pm,v 1.821 2014/01/31 20:55:05 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3493,8 +3493,12 @@ CheckCite:            if (defined $q->param("QCite")) {
                    ($q->param("QPart") ne "Any" and
                     $q->param("QPart") ne "ANY" and $q->param("QPart") ne "any"))  {
          $particle = $q->param("QPart");
+         my $versioncond = '';
+         if (defined $q->param("Version")) {
+             $versioncond = " AND VERSION = '".$q->param("Version")."'";
+         }
          $qparticle = $particle;
-         $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle'";
+         $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle' $versioncond";
          my $r0=$self->{sqlserver}->Query($sql);
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
@@ -4472,8 +4476,12 @@ CheckCite:            if (defined $q->param("QCite")) {
                    ($q->param("QPartD") ne "AnyData" and
                     $q->param("QPartD") ne "ANY" and $q->param("QPartD") ne "any"))  {
          $particle = $q->param("QPartD");
+         my $versioncond = '';
+         if (defined $q->param("Version")) {
+             $versioncond = " AND VERSION = '".$q->param("Version")."'";
+         }
          $qparticle = $particle;
-         $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle'";
+         $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle' $versioncond";
          my $r0=$self->{sqlserver}->Query($sql);
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
@@ -5298,11 +5306,11 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
     my $qpp=$q->param("QPPer");
     my $dsname = $query;
     my $dsver = '';
-    if ($query =~ /_/) {
-        my @junk = split /_/, $query;
+    if ($query =~ /_v/) {
+        my @junk = split /_v/, $query;
         if (scalar @junk >=2) {
             $dsname = $junk[0];
-            $dsver = $junk[1];
+            $dsver = "v".$junk[1];
         }
     }
 
@@ -5327,7 +5335,8 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
       print "</td><td>\n";
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
        print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
-       print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$dsname\">\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"Version\" VALUE=\"$dsver\">\n";
        print "<INPUT TYPE=\"hidden\" NAME=\"QPPer\" VALUE=\"$qpp\">\n";
       htmlTableEnd();
      if ($query ne "Any" and $query ne "ANY" and $query ne "any") {
@@ -5439,11 +5448,11 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
      }
      my $dsname = $query;
      my $dsver = '';
-     if ($query =~ /_/) {
-         my @junk = split /_/, $query;
+     if ($query =~ /_v/) {
+         my @junk = split /_v/, $query;
          if (scalar @junk >=2) {
              $dsname = $junk[0];
-             $dsver = $junk[1];
+             $dsver = "v".$junk[1];
          }
      }
     my $qpp=$q->param("QPPer");
@@ -5469,7 +5478,8 @@ my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE 
       print "</td><td>\n";
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
        print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
-       print "<INPUT TYPE=\"hidden\" NAME=\"QPartD\" VALUE=\"$query\">\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"QPartD\" VALUE=\"$dsname\">\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"Version\" VALUE=\"$dsver\">\n";
        print "<INPUT TYPE=\"hidden\" NAME=\"QPPer\" VALUE=\"$qpp\">\n";
       htmlTableEnd();
      if ($query ne "AnyData" and $query ne "ANYDATA" and $query ne "anydata") {
