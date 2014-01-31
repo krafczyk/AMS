@@ -2190,7 +2190,7 @@ class RemoteClient:
 
     def updateRunCatalog(self,run):
         timestamp=int(time.time())
-        sql = "SELECT runs.status, jobs.content FROM Runs, Jobs WHERE runs.jid=jobs.jid and jobs.jid="+str(run)
+        sql = "SELECT runs.status, jobs.content, datasetsdesc.jobdesc FROM Runs, Jobs, datasetsdesc WHERE runs.jid=jobs.jid and jobs.jid="+str(run)+" and datasetsdesc.did=jobs.did and   split(jobs.jobname) like datasetsdesc.jobname"
         r0=self.sqlserver.Query(sql)
         if(len(r0)>0):
             runstatus=r0[0][0]
@@ -2228,15 +2228,17 @@ class RemoteClient:
                                     sql1=sql1+", 'TriggerLVL1'"
                             break
                     i=i+1
-                for line in sbuf:
-                    if(line.find("generate")>=0):
-                        line=line.replace("C ","",1)
-                        line=line.replace("\\","",1)
-                        line=line.replace("\\","",1)
-                        line=self.trimblanks(line)
-                        sql0=sql0+", jobname"
-                        sql1=sql1+", '"+line+"'"
-                        break
+#                for line in sbuf:
+#                    if(line.find("generate")>=0):
+#                        line=line.replace("C ","",1)
+#                        line=line.replace("\\","",1)
+#                        line=line.replace("\\","",1)
+#                        line=self.trimblanks(line)
+#                        sql0=sql0+", jobname"
+#                        sql1=sql1+", '"+line+"'"
+#                        break
+                sql0=sql0+", jobname"
+                sql1=sql1+", '"+r0[0][2]+"'"
                 sql0=sql0+", TIMESTAMP) "
                 sql1=sql1+", "+str(timestamp)+")"
                 sql=sql0+sql1
