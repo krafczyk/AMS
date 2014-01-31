@@ -1,5 +1,6 @@
 #include "root.h"
 #include "TMVA/Tools.h"
+#include "TMVA/Version.h"
 #include <EcalChi2CY.h>
 
 TMVA::Reader *ecalBDTCHI2reader_v1 = NULL;
@@ -33,6 +34,7 @@ bool BCHI2_DEBUG = false;
 bool BCHI2_HISTOS = false;
 bool BCHI2_HISTOS_DECLARE = true;
 int iVersionNumberBDTCHI2=0;
+int ECALBCHI2_TMVAVER = 0;
 TH1F *hECALBCHI2[nPIBCHI2VARs];
 
 EcalAxis& EcalShowerR::SharedEcalAxis() { static EcalAxis myAxis; return myAxis; };  // <<<   implementation of SharedEcalAxis()
@@ -99,6 +101,11 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
      }
 
+   if (ECALBCHI2_TMVAVER==0)
+     {
+       ECALBCHI2_TMVAVER = 412;
+       if ( TMVA_RELEASE == "4.1.4" ) ECALBCHI2_TMVAVER = 414;
+     }
    //Check if the version is > 100. In this case, it means that we want to use version X-100 and do not apply the cuts on F2SL and s1s3
    //Example: iBDTCHI2VERSION==103 means v3 but no cuts applied 
    bool apply_precuts = true;
@@ -298,7 +305,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	  int iLatLeak=1;
 	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
 	    {
-	      if ((int)imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
+	      if ((int)imaxcell+iLatLeak > 61) LatLeak[iLatLeak+imaxcell-62] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
 	      iLatLeak++;
 	    }
 	}
@@ -742,8 +749,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2reader_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2reader_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_412_v3final_ODD.weights.xml", WeightsDir_v3));
-	   ecalBDTCHI2reader_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v3final_EVEN.weights.xml", WeightsDir_v3));
+	   ecalBDTCHI2reader_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
+	   ecalBDTCHI2reader_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
 	
 	   ecalBDTCHI2reader_v3_ODD = ecalBDTCHI2reader_ODD;
 	   ecalBDTCHI2reader_v3_EVEN = ecalBDTCHI2reader_EVEN;
@@ -846,8 +853,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2readerS_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2readerS_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2readerS_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_412_v3final_ODD.weights.xml", WeightsDir_v3));
-	   ecalBDTCHI2readerS_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_412_v3final_EVEN.weights.xml", WeightsDir_v3));
+	   ecalBDTCHI2readerS_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
+	   ecalBDTCHI2readerS_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
 	
 	   ecalBDTCHI2readerS_v3_ODD = ecalBDTCHI2readerS_ODD;
 	   ecalBDTCHI2readerS_v3_EVEN = ecalBDTCHI2readerS_EVEN;
@@ -950,8 +957,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_E_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2reader_E_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2reader_E_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_E_412_v3final_ODD.weights.xml", WeightsDir_v3));
-	   ecalBDTCHI2reader_E_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_E_412_v3final_EVEN.weights.xml", WeightsDir_v3));
+	   ecalBDTCHI2reader_E_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_E_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
+	   ecalBDTCHI2reader_E_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_E_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
 	
 	   ecalBDTCHI2reader_E_v3_ODD = ecalBDTCHI2reader_E_ODD;
 	   ecalBDTCHI2reader_E_v3_EVEN = ecalBDTCHI2reader_E_EVEN;
@@ -1054,8 +1061,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2readerS_E_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2readerS_E_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2readerS_E_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_E_412_v3final_ODD.weights.xml", WeightsDir_v3));
-	   ecalBDTCHI2readerS_E_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_E_412_v3final_EVEN.weights.xml", WeightsDir_v3));
+	   ecalBDTCHI2readerS_E_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_E_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
+	   ecalBDTCHI2readerS_E_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_E_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
 	
 	   ecalBDTCHI2readerS_E_v3_ODD = ecalBDTCHI2readerS_E_ODD;
 	   ecalBDTCHI2readerS_E_v3_EVEN = ecalBDTCHI2readerS_E_EVEN;

@@ -39,6 +39,7 @@ bool BDT_DEBUG = false;
 bool BDT_HISTOS = false;
 bool BDT_HISTOS_DECLARE = true;
 int iVersionNumberBDT=0;
+int ECALBDT_TMVAVER = 0;
 TH1F *hECALBDT[nPISABDTVARs];
 
 float EcalShowerR::GetEcalBDT()
@@ -105,11 +106,10 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	 }
      }
 
-   int TMVAVER = 0;
-   if (TMVAVER==0)
+   if (ECALBDT_TMVAVER==0)
      {
-       TMVAVER = 412;
-       if ( TMVA_RELEASE == "4.2.0" ) TMVAVER = 420;
+       ECALBDT_TMVAVER = 412;
+       if ( TMVA_RELEASE == "4.1.4" ) ECALBDT_TMVAVER = 414;
      }
    //Check if the version is > 100. In this case, it means that we want to use version X-100 and do not apply the cuts on F2SL and s1s3
    //Example: iBDTVERSION==103 means v3 but no cuts applied 
@@ -290,7 +290,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  int iLatLeak=1;
 	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
 	    {
-	      if ((int)imaxcell-iLatLeak < 0) LatLeak[iLatLeak-imaxcell-1] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
+	      if ((int)imaxcell+iLatLeak > 61) LatLeak[iLatLeak+imaxcell-62] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
 	      iLatLeak++;
 	    }
 	}
@@ -813,8 +813,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareader_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_%d_v5final_ODD.weights.xml", WeightsDir_v5,TMVAVER));
-	  ecalpisareader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_%d_v5final_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareader_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_%d_v5final_ODD.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
+	  ecalpisareader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_%d_v5final_EVEN.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
 	  ecalpisareader_v5_ODD = ecalpisareader_ODD;
 	  ecalpisareader_v5_EVEN = ecalpisareader_EVEN;
 	}
@@ -950,8 +950,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareaderS_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareaderS_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareaderS_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_%d_v5final_ODD.weights.xml", WeightsDir_v5,TMVAVER));
-	  ecalpisareaderS_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_%d_v5final_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareaderS_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_%d_v5final_ODD.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
+	  ecalpisareaderS_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_%d_v5final_EVEN.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
 	  ecalpisareaderS_v5_ODD = ecalpisareaderS_ODD;
 	  ecalpisareaderS_v5_EVEN = ecalpisareaderS_EVEN;
 	}
@@ -1087,8 +1087,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareader_E_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareader_E_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_%d_v5final_E_ODD.weights.xml", WeightsDir_v5,TMVAVER));
-	  ecalpisareader_E_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_%d_v5final_E_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareader_E_ODD->BookMVA("BDTG_LAYERS_ODD", Form("%s/ECAL_PISA_BDT_%d_v5final_E_ODD.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
+	  ecalpisareader_E_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDT_%d_v5final_E_EVEN.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
 	  ecalpisareader_E_v5_ODD = ecalpisareader_E_ODD;
 	  ecalpisareader_E_v5_EVEN = ecalpisareader_E_EVEN;
 	}
@@ -1224,8 +1224,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm16",    &pisanormvar[ivar++]);
 	  ecalpisareaderS_E_EVEN->AddVariable("LayerS3FracNorm17",    &pisanormvar[ivar++]);
 	  //
-	  ecalpisareaderS_E_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_%d_v5final_E_ODD.weights.xml", WeightsDir_v5,TMVAVER));
-	  ecalpisareaderS_E_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_%d_v5final_E_EVEN.weights.xml", WeightsDir_v5,TMVAVER));
+	  ecalpisareaderS_E_ODD->BookMVA("BDTS_LAYERS_ODD", Form("%s/ECAL_PISA_BDTS_%d_v5final_E_ODD.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
+	  ecalpisareaderS_E_EVEN->BookMVA("BDTS_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTS_%d_v5final_E_EVEN.weights.xml", WeightsDir_v5,ECALBDT_TMVAVER));
 	  ecalpisareaderS_E_v5_ODD = ecalpisareaderS_E_ODD;
 	  ecalpisareaderS_E_v5_EVEN = ecalpisareaderS_E_EVEN;
 	}
@@ -2183,78 +2183,5 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	 }
      }
    //
-   //Normalization of smoothed bdt
-   /*
-   if (TMVAClassifier==1)
-     {
-       // 1 jun 2013: apply output correction for smoothed version (TMVAClass=1)
-       //
-       // training done in Energy
-       const int nCat=13;
-       float EnergyEBin[nCat] = 
-	 {   0.5,    2.05,   5.60, 10.28,  15.43,
-	     20.3,   30.76,  41.76, 51.94,  73.51,
-	     102.47, 150.53, 263.57 };
-       float scaleE[nCat] = 
-	 { 1.034, 0.811, 0.682, 0.612, 0.667,
-	   0.638, 0.698, 0.732, 0.714, 0.811, 
-	   0.882, 0.968, 1.250 };
-       float BDTmeanE[nCat] = 
-	 { -0.08, -0.04, -0.03, -0.02,  0.00,
-	   0.00,  0.00, -0.04,  0.03, -0.06,
-	   -0.07, -0.06,  0.03 };
-       float BDTmipE[nCat] = 
-	 { -0.38,  0.13, -0.03, -0.01, -0.09,
-	   -0.03, -0.05,  0.09,  0.09, -0.13,
-	   -0.01, -0.25, -0.33 };
-       float EnergyDBin[nCat] = 
-	 {   0.5,    2.,   5., 10., 15.,
-	     20.,   30.,  40., 50., 70.,
-	     100.,  150., 250. };
-       float scaleD[nCat] = 
-	 { 1.154, 0.714, 0.625, 0.578, 0.667,
-	   0.698, 0.714, 0.667, 0.789, 0.857, 
-	   0.882, 0.909, 1.579 };
-       float BDTmeanD[nCat] = 
-	 {  0.01, -0.01,  0.03,  0.01,  0.04,
-	    0.06,  0.05,  0.02,  0.05, -0.10,
-	    -0.09, -0.02,  0.00 };
-       float BDTmipD[nCat] = 
-	 { -0.41, -0.09,  0.07,  0.11,  0.07,
-	   0.03, -0.03,  0.29,  0.05, -0.11,
-	   -0.11,  0.05, -0.43 };
-
-       float cut = -0.02+0.17*log(energyd)+8.7e-4*pow((double)log(energyd),4.00);
-       cut = cut>0.1?cut:0.1;
-       float shift;
-       int LoopCheck=-1;
-
-       for (int j=nCat-1;j>=0;j--)
-	 {
-	   //here use energyD
-	   if ( EnergyFlag == 0 )
-	     {
-	       if (energyd>EnergyDBin[j] && LoopCheck<0)
-		 {
-		   shift = F2SLEneDep>cut?BDTmeanD[j]:BDTmipD[j];
-		   //cout<<Form(" Energybin, energyd, cut, bdt, shift = %d %f %f %f %f",j,energyd,cut,bdt,shift);
-		   bdt = scaleD[j]*(bdt-shift);
-		   //cout<<" Corrected bdt = "<<bdt<<endl;
-		   LoopCheck=1;
-		 }
-	     }
-	   //EnergyE 
-	   else
-	     {
-	       if (EnergyE>EnergyEBin[j] && LoopCheck<0)
-		 {
-		   shift = F2SLEneDep>cut?BDTmeanE[j]:BDTmipE[j];
-		   bdt = scaleE[j]*(bdt-shift);
-		 }
-	     }
-	 }
-     }//end of output normalization
-   */   
-
    return bdt;
 }
