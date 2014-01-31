@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.612.2.14 2014/01/24 16:57:13 incaglim Exp $
+//  $Id: root.C,v 1.612.2.15 2014/01/31 14:20:46 choumilo Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -12246,7 +12246,7 @@ void  Level1R::RestorePhysBPat() {
 }
 
 int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
-//returns: two new trig-patterns and int. flag 0/1->"WasOnlyUnbiasedTrig"/"WasPhysTrig"
+//returns: two new trig-patterns and flag: 0/1 --> "Not"/"Was" PhysTrig
   L1TrMemPatt=0;
   PhysTrPatt=0;
   int TrigPatt(0),PhysTrigPatt(0);
@@ -12285,6 +12285,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
   if(TOFTrigFl1<=4 && TOFTrigFl1>=0){
     L1TrMemPatt|=(1<<1);// set FTCP0(>=3of4)
     L1TrMemPatt|=1;// set FTC
+    if(CentrOK)L1TrMemPatt|=(1<<3);// set FTCT0(not used in TrigDecision but let it be seen)
   }
   if(TOFTrigFl1==0)L1TrMemPatt|=(1<<2);// set FTCP1(4of4)
 //-----------------------------------------
@@ -12313,7 +12314,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
   }  
   else if((ECTrigFl/10==1) || (ECTrigFl/10==2))L1TrMemPatt|=(1<<11);// set EC-F_or
   if(ECTrigFl%10>=2){
-//    L1TrMemPatt|=(1<<13);// set EC-A_or
+    L1TrMemPatt|=(1<<13);// set EC-A_or (not used in TrigDecision but let it be seen)
     if(ECTrigFl%10==3)L1TrMemPatt|=(1<<12);// set EC-A_and
   }  
   if((L1TrMemPatt&(1<<11))>0)L1TrMemPatt|=(1<<6);// set FTE (EC-F_or is required)
@@ -12324,7 +12325,92 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
     if((L1TrMemPatt&PhysTrSet[i])==PhysTrSet[i])PhysTrPatt|=(1<<i);
   }
 //-----------------------------------------
-  if((PhysTrPatt&0x3EL)>0)return 1;
+  if((PhysTrPatt&0x3EL)!=0)return 1;
+  else return 0;
+}
+//---
+int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt, int &AccSectPatt){
+//returns: two new trig-patterns and flag: 0/1 --> "Not"/"Was" PhysTrig
+  L1TrMemPatt=0;
+  PhysTrPatt=0;
+  int TrigPatt(0),PhysTrigPatt(0);
+  int tofpattft[4]={0,0,0,0};
+  int tofpattbz[4]={0,0,0,0};
+  int AccPatt(0),NAccs(0);
+  int TOFTrigFl1(-1),TOFTrigFl2(-1),ECTrigFl(-1);
+  bool FTZ(0);
+  
+  int PhysTrSet[8]={0,0,0,0,0,0,0,0};
+  PhysTrSet[0]=(1<<1);//ch_unb:FTCP0
+  PhysTrSet[1]=(1<<4)+(1<<7);//singl_charged(not el):FTCT1&ACC0
+  PhysTrSet[2]=(1<<8)+(1<<9);//ions:ACC1&BZ
+  PhysTrSet[3]=(1<<5);//sl_ions:FTZ
+  PhysTrSet[4]=(1<<4)+(1<<10);//el:FTCT1&EC-F_and
+  PhysTrSet[5]=(1<<12);//ph:EC-A_and
+  PhysTrSet[6]=(1<<11);//unbEC:EC-A_or
+  
+//------> get current trig. parameters:
+  for(int ii=0;ii<4;ii++){
+    tofpattft[ii]=TofPatt1[ii];
+    tofpattbz[ii]=TofPatt2[ii];
+  }
+  TrigPatt=JMembPatt;
+  PhysTrigPatt=PhysBPatt;
+  FTZ=((TrigPatt&(1<<5))!=0);
+  AccSectPatt=AntiPatt;
+  AccPatt=AntiPatt;
+  TOFTrigFl1=TofFlag1;
+  TOFTrigFl2=TofFlag2;//bz
+  ECTrigFl=EcalFlag;//MN, M=0/1/2/3->noFTE/noFTE(1prj@2requested)/FTEor/FTEand, 
+//                                N=0/1/2/3-> /undef/noLev1/Lev1or/Lev1and
+  bool CentrOK=((tofpattft[2]&0x1FE01FEL)>0);//have any central counter in Lay-3 trig.patt
+//-----------------------------------------
+//------>FTC,FTCP0,FTCP1 rebuild:
+//
+  if(TOFTrigFl1<=4 && TOFTrigFl1>=0){
+    L1TrMemPatt|=(1<<1);// set FTCP0(>=3of4)
+    L1TrMemPatt|=1;// set FTC
+    if(CentrOK)L1TrMemPatt|=(1<<3);// set FTCT0(not used in TrigDecision but let it be seen)
+  }
+  if(TOFTrigFl1==0)L1TrMemPatt|=(1<<2);// set FTCP1(4of4)
+//-----------------------------------------
+//------>FTCT1 rebuild:    
+//
+  if(TOFTrigFl1==0 && CentrOK){//was tof 4of4
+    L1TrMemPatt|=(1<<4);// set FTCT1 
+  }
+//-----------------------------------------
+//------> ACC0/1 rebuild:
+//
+  for(int i=0;i<8;i++)if((AccPatt & (1<<i))>0)NAccs+=1;//count nsectors       
+  if(NAccs<1)L1TrMemPatt|=(1<<7);// set ACC0
+  if(NAccs<5)L1TrMemPatt|=(1<<8);// set ACC1
+//-----------------------------------------
+//------> FTZ,BZ-bits rebuild(no need to exclude out.c in L3):
+//
+  if(FTZ)L1TrMemPatt|=(1<<5);// set FTZ as it was
+  if(TOFTrigFl2==0)L1TrMemPatt|=(1<<9);// set BZ "4of4"
+//-----------------------------------------
+//------> EC-bits rebuild:
+//
+  if((ECTrigFl/10)==3){
+    L1TrMemPatt|=(1<<10);// set EC-F_and
+    L1TrMemPatt|=(1<<11);// set EC-F_or
+  }  
+  else if((ECTrigFl/10==1) || (ECTrigFl/10==2))L1TrMemPatt|=(1<<11);// set EC-F_or
+  if(ECTrigFl%10>=2){
+    L1TrMemPatt|=(1<<13);// set EC-A_or (not used in TrigDecision but let it be seen)
+    if(ECTrigFl%10==3)L1TrMemPatt|=(1<<12);// set EC-A_and
+  }  
+  if((L1TrMemPatt&(1<<11))>0)L1TrMemPatt|=(1<<6);// set FTE (EC-F_or is required)
+//-----------------------------------------
+//------>rebuild PhysTrigPatt:
+//
+  for(int i=0;i<7;i++){
+    if((L1TrMemPatt&PhysTrSet[i])==PhysTrSet[i])PhysTrPatt|=(1<<i);
+  }
+//-----------------------------------------
+  if((PhysTrPatt&0x3EL)!=0)return 1;
   else return 0;
 }
 
