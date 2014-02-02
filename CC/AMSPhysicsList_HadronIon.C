@@ -32,7 +32,7 @@
 #include  "G4TripathiCrossSection.hh"
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 945 
-#include  "G4GlauberGribovCrossSection.hh"
+#include  "G4GGNuclNuclCrossSection.hh"
 #endif
 #include "G4HadronElasticProcess.hh"
 #include "G4HadronElasticDataSet.hh"
@@ -93,7 +93,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
    G4IonsShenCrossSection* fShen = new G4IonsShenCrossSection();
 
 #if G4VERSION_NUMBER  > 945 
-   G4GlauberGribovCrossSection* fGG = new G4GlauberGribovCrossSection();
+    G4GGNuclNuclCrossSection* fGG = new G4GGNuclNuclCrossSection();
 #endif
    G4LEDeuteronInelastic*  fDeuteronModel = new G4LEDeuteronInelastic;
     fDeuteronModel->SetMaxEnergy(100.0*MeV);
