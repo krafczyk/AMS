@@ -102,9 +102,9 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   else if(G4FFKEY.IonPhysicsModel%10==5)hadi->AddDataSet(HEAOXS);////DPMJET Cross-section
 #if G4VERSION_NUMBER  > 945 
   else if(G4FFKEY.IonPhysicsModel%10==6){
-   G4GlauberGribovCrossSection* fGG = new G4GlauberGribovCrossSection();
-    hadi->AddDataSet(fGG);////DPMJET Cross-section
-}
+    G4GGNuclNuclCrossSection* fGG = new G4GGNuclNuclCrossSection();
+    hadi->AddDataSet(fGG);
+  }
 #endif
 //  hadi->AddDataSet(fTripathi);
 //fTripathiLight or fIonH first use
