@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.110 2014/01/29 18:16:10 choutko Exp $
+//  $Id: geant4.C,v 1.111 2014/02/02 20:27:18 oliva Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -264,23 +264,64 @@ delete[] _particleGun;
 }
 
 
-
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
-
-static unsigned int iq=0;
-
-if(iq++==0){ 
-  cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
-
-  pph->_init();
-
+  static unsigned int iq=0;
+  if(iq++==0){ 
+    cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
+    pph->_init();
+  }
+  if (G4FFKEY.DumpCrossSections>0) DumpCrossSections();
 }
+
+
+#include "G4ProcessTable.hh"
+#include "G4ParticleTable.hh"
+#include "G4DynamicParticle.hh"
+#include "G4ThreeVector.hh"
+#include "G4Element.hh"
+#include "G4NistManager.hh"
+#include "G4CrossSectionDataStore.hh"
+#include "G4IonsShenCrossSection.hh"
+
+void  AMSG4RunAction::DumpCrossSections() {
+  cout << "~~~~~~~~~~~~~~~~ DumpCrossSections ~~~~~~~~~~~~~~" << endl;
+  G4ParticleTable* table = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particle[3] = {G4Proton::Proton(),G4Alpha::Alpha(),table->GetIon(6,12,0)};
+  for (int iparticle=0; iparticle<3; iparticle++) {
+    if (!particle[iparticle]) continue; 
+    particle[iparticle]->DumpTable();
+    G4ProcessManager* manager = particle[iparticle]->GetProcessManager();
+    if (manager) manager->DumpInfo();
+    G4ProcessTable* theProcessTable = G4ProcessTable::GetProcessTable();
+    G4HadronInelasticProcess* process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("ionInelastic",particle[iparticle]);
+    if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("ProtonInelastic",particle[iparticle]);
+    if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("alphaInelastic",particle[iparticle]);
+    if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("AlphaInelastic",particle[iparticle]);
+    if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("IonInelastic",particle[iparticle]);
+    if (process) {
+      process->DumpPhysicsTable(*particle[iparticle]);
+      G4NistManager* man = G4NistManager::Instance();
+      G4Element* target = man->FindOrBuildElement("C");
+      G4CrossSectionDataStore* cross_section = process->GetCrossSectionDataStore();
+      for (int imom=0; imom<=60; imom++) {
+        G4double momentum = 0.01*pow(10,imom*(log10(10000)-log10(0.01))/60)*GeV; 
+        G4ThreeVector momentum_vector(0,0,momentum);
+        G4DynamicParticle projectile(particle[iparticle],momentum_vector);
+        G4CrossSectionDataStore* cross_section = process->GetCrossSectionDataStore();
+        G4int Ap = projectile.GetDefinition()->GetBaryonNumber();
+        G4int Zp = G4lrint(projectile.GetDefinition()->GetPDGCharge()/eplus);
+        G4double XS = cross_section->GetCrossSection(&projectile,target,0);
+        printf("(%2d,%2d)->(12,6) @ %10.3f GeV/c = %10.3f mbarn\n",Ap,Zp,momentum/GeV,XS/millibarn);
+      }
+    }
+  }
+  cout << "~~~~~~~~~~~~~~~~ DumpCrossSections ~~~~~~~~~~~~~~" << endl;
 }
+
+
 void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
   cout<<"~~~~~~~~~~~~~~~~End of Run Action~~~~~~~~~~~~~~"<<endl;
-
-
 
 }
 

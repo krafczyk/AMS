@@ -1,4 +1,4 @@
-//  $Id: geant4.h,v 1.15 2013/11/07 22:49:41 bbeische Exp $
+//  $Id: geant4.h,v 1.16 2014/02/02 20:27:18 oliva Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
 
@@ -59,7 +59,8 @@ private:
 #include "G4UserEventAction.hh"
 class AMSG4EventAction: public G4UserEventAction{
 
-public:
+ public:
+
     virtual void BeginOfEventAction(const G4Event*);
     virtual void EndOfEventAction(const G4Event*);
 
@@ -67,6 +68,7 @@ public:
     bool IsRegistered(int gtrkid);
     void AddRegisteredParentChild(int gtrkid, int gparentid, int processid);
     void FindClosestRegisteredTrack(int& gtrkid, int& processid);
+
  private:
 
     set<int> fset_reg_tracks;
@@ -80,9 +82,12 @@ public:
 #include "G4UserRunAction.hh"
 class AMSG4RunAction: public G4UserRunAction{
 
-public:
+ public:
+
     virtual void BeginOfRunAction(const G4Run*);
     virtual void EndOfRunAction(const G4Run*);
+
+    void DumpCrossSections();
 
 };
 
