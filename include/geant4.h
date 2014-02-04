@@ -1,4 +1,4 @@
-//  $Id: geant4.h,v 1.16 2014/02/02 20:27:18 oliva Exp $
+//  $Id: geant4.h,v 1.17 2014/02/04 22:50:47 oliva Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
 
@@ -87,7 +87,7 @@ class AMSG4RunAction: public G4UserRunAction{
     virtual void BeginOfRunAction(const G4Run*);
     virtual void EndOfRunAction(const G4Run*);
 
-    void DumpCrossSections();
+    void DumpCrossSections(int verbose);
 
 };
 

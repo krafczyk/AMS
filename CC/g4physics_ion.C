@@ -24,6 +24,13 @@
 #include "G4TripathiLightCrossSection.hh"
 #include "G4IonsShenCrossSection.hh"
 #include "G4IonProtonCrossSection.hh"
+#include "G4GeneralSpaceNNCrossSection.hh"
+#include "G4EMDissociation.hh"
+
+#include "G4Version.hh"
+#if G4VERSION_NUMBER  > 945 
+#include  "G4GGNuclNuclCrossSection.hh"
+#endif
 
 #include "G4DPMJET2_5Model.hh"
 #include "G4DPMJET2_5Interface.hh"
@@ -57,7 +64,6 @@ void IonDPMJETPhysics::ConstructProcess()
   theIonBC1 = new G4BinaryLightIonReaction();
   theIonBC1->SetMinEnergy(dpmemin);
   theIonBC1->SetMaxEnergy(emax);
- 
 //--Model DPMJET
   theDPM = new G4DPMJET2_5Model();
   theDPM->SetMinEnergy(dpmemin);
@@ -81,12 +87,33 @@ void IonDPMJETPhysics::ConstructProcess()
   fShen = new G4IonsShenCrossSection();
   if     (G4FFKEY.IonPhysicsModel%10==3)dpmXS = new G4DPMJET2_5CrossSection;//DPMJET Cross-section<1000TeV
   else if(G4FFKEY.IonPhysicsModel%10==5)HEAOXS= new G4IonsHEAOCrossSection();//HEAO  Cross-section
-  AddProcess("dInelastic", G4Deuteron::Deuteron(),false);
+  AddProcess("dInelastic",G4Deuteron::Deuteron(),false);
   AddProcess("tInelastic",G4Triton::Triton(),false);
   AddProcess("He3Inelastic",G4He3::He3(),true);
-  AddProcess("alphaInelastic", G4Alpha::Alpha(),true);
+  AddProcess("alphaInelastic",G4Alpha::Alpha(),true);
   AddProcess("ionInelastic",G4GenericIon::GenericIon(),true);
   G4cout << "IonDPMJETPhysics::ConstructProcess done! " << G4endl;
+
+  if(G4FFKEY.UseEMDModel==1){
+    cout<<"Also Use EMD Model"<<endl;
+    G4EMDissociationCrossSection *EMDCrossSection = new G4EMDissociationCrossSection;
+    G4ParticleDefinition* particle = G4GenericIon::GenericIon();
+    G4ProcessManager* pManager = particle->GetProcessManager();
+    G4EMDissociation *theEMD = new G4EMDissociation();
+    theEMD->SetMinEnergy(100.0*MeV);
+    theEMD->SetMaxEnergy(2000.0*GeV);
+    theEMD->SetVerboseLevel(2);
+    G4ElementTable::iterator iter;
+    G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
+    for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
+      theEMD->ActivateFor(*iter);
+    }
+    G4HadronInelasticProcess* fGenericIon_EMD = new G4HadronInelasticProcess("IonEMD",particle);
+    fGenericIon_EMD->AddDataSet(EMDCrossSection);
+    fGenericIon_EMD->RegisterMe(theEMD);
+    pManager->AddDiscreteProcess(fGenericIon_EMD);
+  }
+
 }
 
 // -----------------------------------------------------------
@@ -96,23 +123,24 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
 {
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess(name, part);
   G4ProcessManager* pManager = part->GetProcessManager();
-  pManager->AddDiscreteProcess(hadi);
-  hadi->AddDataSet(fShen);//G4FFKEY.IonPhysicsModel%10==4 Shen Cross-section
-  if     (G4FFKEY.IonPhysicsModel%10==3)hadi->AddDataSet(dpmXS);//DPMJET Cross-section
-  else if(G4FFKEY.IonPhysicsModel%10==5)hadi->AddDataSet(HEAOXS);////DPMJET Cross-section
+  hadi->AddDataSet(fShen); //G4FFKEY.IonPhysicsModel%10==4 Shen Cross-section
+  if     (G4FFKEY.IonPhysicsModel%10==3)hadi->AddDataSet(dpmXS); //DPMJET Cross-section
+  else if(G4FFKEY.IonPhysicsModel%10==5)hadi->AddDataSet(HEAOXS); ////DPMJET Cross-section
 #if G4VERSION_NUMBER  > 945 
-  else if(G4FFKEY.IonPhysicsModel%10==6){
+  else if (G4FFKEY.IonPhysicsModel%10==6) {
     G4GGNuclNuclCrossSection* fGG = new G4GGNuclNuclCrossSection();
     hadi->AddDataSet(fGG);
   }
 #endif
-//  hadi->AddDataSet(fTripathi);
-//fTripathiLight or fIonH first use
-//  hadi->AddDataSet(fTripathiLight);
-  if(isIon) { hadi->AddDataSet(fIonH); }
+  else if (G4FFKEY.IonPhysicsModel%10==7) {
+    G4GeneralSpaceNNCrossSection* generalCrossSection = new G4GeneralSpaceNNCrossSection;
+    hadi->AddDataSet(generalCrossSection);
+  }
+  G4double dpmemin=5.*GeV;
+  G4double emax = 1000.*TeV;
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
-  if(G4FFKEY.IonPhysicsModel/10==0)hadi->RegisterMe(theDPM);
-
+  if(G4FFKEY.IonPhysicsModel/10==0) hadi->RegisterMe(theDPM);
+  pManager->AddDiscreteProcess(hadi);
 }
 // -----------------------------------------------------------

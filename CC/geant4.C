@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.111 2014/02/02 20:27:18 oliva Exp $
+//  $Id: geant4.C,v 1.112 2014/02/04 22:50:46 oliva Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -270,7 +270,7 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
     cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
     pph->_init();
   }
-  if (G4FFKEY.DumpCrossSections>0) DumpCrossSections();
+  if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections);
 }
 
 
@@ -281,10 +281,15 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
 #include "G4Element.hh"
 #include "G4NistManager.hh"
 #include "G4CrossSectionDataStore.hh"
-#include "G4IonsShenCrossSection.hh"
+#include "G4HadronicInteraction.hh"
+#include "G4HadFinalState.hh"
+#include "G4HadProjectile.hh"
+#include "G4Nucleus.hh"
 
-void  AMSG4RunAction::DumpCrossSections() {
+void  AMSG4RunAction::DumpCrossSections(int verbose) {
+  if (verbose<=0) return; 
   cout << "~~~~~~~~~~~~~~~~ DumpCrossSections ~~~~~~~~~~~~~~" << endl;
+  // loop on three kinds of particles (p, He, C)
   G4ParticleTable* table = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* particle[3] = {G4Proton::Proton(),G4Alpha::Alpha(),table->GetIon(6,12,0)};
   for (int iparticle=0; iparticle<3; iparticle++) {
@@ -293,26 +298,80 @@ void  AMSG4RunAction::DumpCrossSections() {
     G4ProcessManager* manager = particle[iparticle]->GetProcessManager();
     if (manager) manager->DumpInfo();
     G4ProcessTable* theProcessTable = G4ProcessTable::GetProcessTable();
+    // get the hadronic inelastic model whatever it is 
     G4HadronInelasticProcess* process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("ionInelastic",particle[iparticle]);
     if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("ProtonInelastic",particle[iparticle]);
     if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("alphaInelastic",particle[iparticle]);
     if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("AlphaInelastic",particle[iparticle]);
     if (!process) process = (G4HadronInelasticProcess*) theProcessTable->FindProcess("IonInelastic",particle[iparticle]);
-    if (process) {
-      process->DumpPhysicsTable(*particle[iparticle]);
-      G4NistManager* man = G4NistManager::Instance();
-      G4Element* target = man->FindOrBuildElement("C");
-      G4CrossSectionDataStore* cross_section = process->GetCrossSectionDataStore();
-      for (int imom=0; imom<=60; imom++) {
-        G4double momentum = 0.01*pow(10,imom*(log10(10000)-log10(0.01))/60)*GeV; 
-        G4ThreeVector momentum_vector(0,0,momentum);
-        G4DynamicParticle projectile(particle[iparticle],momentum_vector);
-        G4CrossSectionDataStore* cross_section = process->GetCrossSectionDataStore();
-        G4int Ap = projectile.GetDefinition()->GetBaryonNumber();
-        G4int Zp = G4lrint(projectile.GetDefinition()->GetPDGCharge()/eplus);
-        G4double XS = cross_section->GetCrossSection(&projectile,target,0);
-        printf("(%2d,%2d)->(12,6) @ %10.3f GeV/c = %10.3f mbarn\n",Ap,Zp,momentum/GeV,XS/millibarn);
+    if (!process) {
+      printf("No inelastic process found.\n");
+      continue;
+    }  
+    // dump tables
+    process->DumpPhysicsTable(*particle[iparticle]);
+    G4int Ap = particle[iparticle]->GetBaryonNumber();
+    G4int Zp = particle[iparticle]->GetPDGCharge()/eplus;
+    // search/build target
+    G4int At = 12;
+    G4int Zt = 6;
+    G4Element* target = 0;
+    G4ElementTable::iterator iter;
+    G4ElementTable *elementTable = const_cast<G4ElementTable*> (G4Element::GetElementTable());
+    for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
+      G4int AA = (*iter)->GetN();
+      G4int ZZ = (*iter)->GetZ();
+      if ( (AA==At)&&(ZZ=Zt) ) target = *iter;
+    }
+    G4Material* material = new G4Material("material_target",2.26,1);
+    material->AddElement(target,1.);
+    G4HadronicInteraction* model = process->GetManagerPointer()->GetHadronicInteraction(10*GeV,material,target); 
+    cout << "Hadronic model @ Kn = 100 GeV/n is " << model->GetModelName() << endl;
+    G4CrossSectionDataStore* cross_section = process->GetCrossSectionDataStore();
+    for (int irig=0; irig<=50; irig++) {
+      // inealastic cross section  
+      G4double rigidity = 0.1*pow(10,irig*(log10(10000)-log10(0.1))/50); 
+      G4double momentum = Zp*rigidity*GeV;
+      G4ThreeVector momentum_vector(momentum,0,0); 
+      G4DynamicParticle projectile(particle[iparticle],momentum_vector);
+      G4double k = projectile.GetKineticEnergy();  
+      G4double kn = k/Ap;
+      G4double XS = cross_section->GetCrossSection(&projectile,target,0);
+      if ( (verbose<=1)||(Zp!=6)||(rigidity<5.)||(rigidity>500.) ) { 
+        printf("(%2d,%2d)->(%2d,%2d) @ %10.3f GeV/c (%10.3f GeV/n) = %10.3f mbarn\n",Ap,Zp,At,Zt,momentum/GeV,kn/GeV,XS/millibarn);
+        continue; 
       }
+      // fake MC to get partial cross-section
+      G4int nFragments[5] = {0}; 
+      G4int nmc = 1000;
+      for (int imc=0; imc<nmc; imc++) { 
+        model = process->GetManagerPointer()->GetHadronicInteraction(k,0,target);
+        if (!model) continue;
+        G4HadProjectile a_projectile(projectile);
+        G4Nucleus a_target(At,Zt);
+        G4int Zmax = 0;    
+        G4HadFinalState* final_state = model->ApplyYourself(a_projectile,a_target); 
+        for (int isec=0; isec<final_state->GetNumberOfSecondaries(); isec++) {
+          G4DynamicParticle* secondary = final_state->GetSecondary(isec)->GetParticle();
+          G4int As = secondary->GetParticleDefinition()->GetBaryonNumber();
+          G4int Zs = secondary->GetParticleDefinition()->GetPDGCharge()/eplus;
+          if ( (As<1)||(Zs<1) ) continue;
+          G4double ks = secondary->GetKineticEnergy();
+          G4double kns = ks/As;
+          if (kns<0.1*kn) continue; 
+          if (Zs>Zmax) Zmax = Zs;  
+        }
+        if ( (Zmax>0)&&(Zmax<6) ) nFragments[Zmax-1]++;
+      }
+      G4double prob[5] = {0}; 
+      G4double eprob[5] = {0}; 
+      for (int i=0; i<5; i++) { 
+        prob[i] = 1.*nFragments[i]/nmc;
+        eprob[i] = sqrt(prob[i]*(1-prob[i])/nmc); 
+      }
+      printf("(%2d,%2d)->(%2d,%2d) @ %10.3f GeV/c (%10.3f GeV/n) = %10.3f mbarn P(6->5)= %4.2f (%4.2f) P(6->4)= %4.2f (%4.2f) P(6->3)= %4.2f (%4.2f) P(6->2)= %4.2f (%4.2f) P(6->1)= %4.2f (%4.2f)\n",
+             Ap,Zp,At,Zt,momentum/GeV,kn/GeV,XS/millibarn,
+             prob[5-1],eprob[5-1],prob[4-1],eprob[4-1],prob[3-1],eprob[3-1],prob[2-1],eprob[2-1],prob[1-1],eprob[1-1]);
     }
   }
   cout << "~~~~~~~~~~~~~~~~ DumpCrossSections ~~~~~~~~~~~~~~" << endl;
@@ -326,7 +385,6 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 }
 
 
- 
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
  fset_reg_tracks.clear();

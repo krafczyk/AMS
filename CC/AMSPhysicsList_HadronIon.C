@@ -29,7 +29,6 @@
 #include "AMSPhysicsList_HadronIon.h" 
 #include "G4LElastic.hh"
 #include  "G4IonsShenCrossSection.hh"
-#include  "G4TripathiCrossSection.hh"
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 945 
 #include  "G4GGNuclNuclCrossSection.hh"
@@ -207,9 +206,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  fGenericIon_EMD->RegisterMe(theEMD);
 	  pManager->AddDiscreteProcess(fGenericIon_EMD);
 	}
-
     }
-
 
 
 
@@ -217,14 +214,6 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     if(G4FFKEY.IonPhysicsModel%10==2){
 
 	cout<<"Use G4QMD for All the Ions"<<endl;
-
-
-	
- G4TripathiCrossSection * TripathiCrossSection= new G4TripathiCrossSection;
-
-
-
-
 
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
