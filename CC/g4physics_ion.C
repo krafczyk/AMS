@@ -136,8 +136,6 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
     G4GeneralSpaceNNCrossSection* generalCrossSection = new G4GeneralSpaceNNCrossSection;
     hadi->AddDataSet(generalCrossSection);
   }
-  G4double dpmemin=5.*GeV;
-  G4double emax = 1000.*TeV;
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   if(G4FFKEY.IonPhysicsModel/10==0) hadi->RegisterMe(theDPM);
