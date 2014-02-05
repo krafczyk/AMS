@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.112 2014/02/04 22:50:46 oliva Exp $
+//  $Id: geant4.C,v 1.113 2014/02/05 08:47:05 oliva Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -270,7 +270,6 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
     cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
     pph->_init();
   }
-  if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections);
 }
 
 
@@ -337,7 +336,7 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
       G4double k = projectile.GetKineticEnergy();  
       G4double kn = k/Ap;
       G4double XS = cross_section->GetCrossSection(&projectile,target,0);
-      if ( (verbose<=1)||(Zp!=6)||(rigidity<5.)||(rigidity>500.) ) { 
+      if ( (verbose<=1)||(Zp!=6) ) { 
         printf("(%2d,%2d)->(%2d,%2d) @ %10.3f GeV/c (%10.3f GeV/n) = %10.3f mbarn\n",Ap,Zp,At,Zt,momentum/GeV,kn/GeV,XS/millibarn);
         continue; 
       }
@@ -345,7 +344,7 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
       G4int nFragments[5] = {0}; 
       G4int nmc = 1000;
       for (int imc=0; imc<nmc; imc++) { 
-        model = process->GetManagerPointer()->GetHadronicInteraction(k,0,target);
+        model = process->GetManagerPointer()->GetHadronicInteraction(k,material,target);
         if (!model) continue;
         G4HadProjectile a_projectile(projectile);
         G4Nucleus a_target(At,Zt);
@@ -380,8 +379,9 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
 
 void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
-  cout<<"~~~~~~~~~~~~~~~~End of Run Action~~~~~~~~~~~~~~"<<endl;
+  if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections);
 
+  cout<<"~~~~~~~~~~~~~~~~End of Run Action~~~~~~~~~~~~~~"<<endl;
 }
 
 
