@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.415 2014/02/04 22:50:46 oliva Exp $
+#  $Id: datacards.doc,v 1.416 2014/02/05 09:10:49 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -724,8 +724,8 @@ I 12 TFNewGeant4(0)    //TOF new Geant4(0 old simulation) (1 new online simulati
 I 13 MemoryLimit(-1)   //Geant4Memory raise in bytes in mallinfo.arena+mallinfo.uordblks to trigger process  termination (-1 == infinity)
 I 14 DetectorCut(0)    // set detector cut,  Tracker+TRD+TOF+RICH+ECAL+AMS(0 cut off, 1 new cut). 
                        // 11:  Ecal cut 1*cm, AMS cut 1*mm (Ion suggestion cut  >2 times faster)
-R 15 AMSCut(1*mm)      // general AMS geant4 cut 
-R 16 EcalCut(1*cm)     // Ecal geant4 cut
+R 15 AMSCut(1)      // general AMS geant4 cut 
+R 16 EcalCut(10 )    // Ecal geant4 cut
 I 17 ProcessOff(0)     // Geant4 Process switch off option. 
                        // 111:  Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on) 
 R 18 OverlapTol(0)     // Tolerance for overlap check (cm); no overlap check if 0

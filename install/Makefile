@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.279 2014/01/29 17:48:19 choutko Exp $
+#  $Id: Makefile,v 1.280 2014/02/05 09:11:02 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -279,7 +279,7 @@ ifdef G4AMS
 
 COMMON_FILES +=   $(SCC)TRD_SimUtil.C  $(SCC)g4physics_ion.C \
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C $(SCC)geant4.C \
-	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C  $(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4strangelet.C	$(SCC)G4QGSPProtonBuilder.C
+	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C  $(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4strangelet.C $(SCC)G4ExcitationHandler.C 
 
 COMMON_FILES += $(SCC)g4rich.C $(SCC)g4tof.C $(SCC)TofSimUtil.C
 
