@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.60 2014/01/29 17:48:08 choutko Exp $
+//  $Id: g4physics.C,v 1.61 2014/02/05 09:10:38 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.60 2014/01/29 17:48:08 choutko Exp $
+// $Id: g4physics.C,v 1.61 2014/02/05 09:10:38 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1011,6 +1011,8 @@ if(G4FFKEY.DetectorCut%10==1){
    SetCutValue(acutv, "e+");
    SetCutValue(acutv, "proton");
    SetCutValue(acutv, "anti_proton");
+   SetCutValue(acutv, "alpha");
+   SetCutValue(acutv, "He3");
  }
  else {
    SetCutValue(cut/10./ECMCFFKEY.g4cutge, "gamma");
@@ -1030,12 +1032,13 @@ if(G4FFKEY.DetectorCut%10==1){
     G4Region* EcalRegion = (G4RegionStore::GetInstance())->GetRegion("ECVolumeR");
     G4ProductionCuts *EcalCuts = new G4ProductionCuts();
     G4double ecutv=G4FFKEY.EcalCut*mm;
-//    G4cout<<"ecut="<<ecutv<<G4endl;
-    EcalCuts->SetProductionCut(ecutv, "gamma");
+//    EcalCuts->SetProductionCut(ecutv, "gamma");  // removed gamma for backspash
     EcalCuts->SetProductionCut(ecutv, "e+");
     EcalCuts->SetProductionCut(ecutv, "e-");
     EcalCuts->SetProductionCut(ecutv, "proton");
     EcalCuts->SetProductionCut(ecutv, "anti_proton");
+    EcalCuts->SetProductionCut(ecutv, "alpha");
+    EcalCuts->SetProductionCut(ecutv, "He3");
     EcalRegion->SetProductionCuts(EcalCuts);  
   }
 
