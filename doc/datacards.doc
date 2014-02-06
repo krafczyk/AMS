@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.416 2014/02/05 09:10:49 choutko Exp $
+#  $Id: datacards.doc,v 1.417 2014/02/06 11:37:00 oliva Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -709,13 +709,14 @@ I 7 IonPhysicsModel(1)  // Physics Model for Ion:
                         // 12: QMD  | general "space" cross sections (best between Tripathi, Tripathi Light and Shen)
                         // 21: BLIC | Shen cross sections
                         // 22: QMD  | Shen cross sections
-                        //  3: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Shen (<5GeV/n) + DPMJET2.5 cross sections (5GeV/n,1000TeV/n)
-                        //  4: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Shen cross sections
-                        //  5: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Brandt-Peters cross sections used by HEAO-C2 guys 
                         //  6: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Glauber-Gribov Nucl-Nucl cross sections 4.9.6 (Shen for 4.9.4)
-                        //  7: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | general "space" cross sections  
-                        // 13: BLIC | Shen + DPMJET2.5 cross section (5GeV/n,1000TeV/n) 
-                        // 15: BLIC | Brandt-Peters cross sections used by HEAO-C2 guys 
+                        //  7: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | general "space" cross sections
+                        //  4: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Shen cross sections
+                        // With problems: 
+                        //  3: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Shen (<5GeV/n) + DPMJET2.5 cross sections (5GeV/n,1000TeV/n) <<< XS DOES NOT WORK, Shen really used
+                        //  5: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Brandt-Peters cross sections used by HEAO-C2 guys <<< XS DOES NOT WORK, Shen really used        
+                        // 13: BLIC | Shen + DPMJET2.5 cross section (5GeV/n,1000TeV/n) <<< XS DOES NOT WORK, Shen really used 
+                        // 15: BLIC | Brandt-Peters cross sections used by HEAO-C2 guys <<< XS DOES NOT WORK, Shen really used 
 I 8 UseEMDModel(0)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
