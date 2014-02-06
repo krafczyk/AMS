@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.637 2014/02/06 15:47:59 ccorti Exp $
+//  $Id: root.C,v 1.638 2014/02/06 17:26:55 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -9,6 +9,7 @@
 #include "TSystem.h"
 #include <TChainElement.h>
 #include "TFile.h"
+#include "TH3.h"
 #include "TMinuit.h"
 #include "TEnv.h"
 #ifdef _OPENMP
@@ -14056,6 +14057,55 @@ int AMSEventR::IsInsideTracker(int ilyJ, const AMSPoint &pntIn,
       ymin+tolerance < pmin.y() && pmin.y() < ymax-tolerance) return 2;
 
   return 0;
+}
+
+double AMSEventR::GetRadiationLength(const AMSPoint &pnt,
+				     const AMSDir   &dir,
+				     double rigidity, double z1, double z2)
+{
+  static TFile *file = 0;
+  static TH3F  *hist = 0;
+
+  if (!hist) {
+#pragma omp critical (getradiationlength)
+    {
+      if (!hist && !file) {
+	TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/g4mscan.root";
+	if (getenv("G4MScan")) sfn = getenv("G4MScan");
+
+	TDirectory *dsave = gDirectory;
+	file = TFile::Open(sfn);
+	if (dsave) dsave->cd();
+
+	if (file) hist = (TH3F *)file->Get("hist1");
+	if (hist)
+	  cout << "AMSEventR::GetRadiationLength-I-Open file: "
+	       << file->GetName() << endl;
+	else {
+	  cout << "AMSEventR::GetRadiationLength-E-hist1 not found" << endl;
+	  hist = (TH3F *)1;
+	}
+      }
+    }
+  }
+  if (!hist || hist == (TH3F *)1) return -1;
+
+  TrProp trp(pnt, dir, rigidity);
+
+  int ib1 = hist->GetZaxis()->FindBin(z1);
+  int ib2 = hist->GetZaxis()->FindBin(z2);
+
+  if (ib2 < ib1) { int swp = ib1 ; ib1 = ib2; ib2 = swp; }
+
+  double ms = 0;
+  for (int i = ib1; i <= ib2; i++) {
+    double z = hist->GetZaxis()->GetBinCenter(i);
+    trp.Propagate(z);
+    int m = hist->GetBinContent(hist->GetXaxis()->FindBin(trp.GetP0x()),
+				hist->GetYaxis()->FindBin(trp.GetP0y()), i);
+    if (m != 0) ms += pow(10, m/10000.-3)/trp.GetD0z();
+  }
+  return ms;
 }
 #endif
 

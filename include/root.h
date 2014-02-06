@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.594 2014/02/06 15:48:01 ccorti Exp $
+//  $Id: root.h,v 1.595 2014/02/06 17:26:52 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -4770,6 +4770,19 @@ static int IsInsideTracker(int ilay, const AMSPoint &pntIn,
 			             const AMSDir   &dirIn,
 			   double rigidity, double tolerance,
 			   int &tkid, AMSPoint &PntOut, AMSPoint &pntDist);
+
+  /*!
+   *! Get material thickness in unit of radiation length on the given trajectory between two points
+   * @param[in]  pntIn   Reference point[cm](can be tk-tof-or-shower position )
+   * @param[in]  dirIn   Reference dir      (can be tk-tof-or-shower direction)
+   * @param[in]  rigidity  Rigidity  [GV]   (0 in case of linear track)
+   * @param[in]  z1      from z position[cm]
+   * @param[in]  z2      to   z position[cm]
+   * @return     material thickness in radiation length, <0 in case of error
+   */
+static double GetRadiationLength(const AMSPoint &pnt,
+				 const AMSDir   &dir,
+				 double rigidity, double z1, double z2);
 #endif
 
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);
