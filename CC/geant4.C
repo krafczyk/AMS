@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.114 2014/02/06 11:33:52 oliva Exp $
+//  $Id: geant4.C,v 1.115 2014/02/06 15:47:59 ccorti Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -953,6 +953,80 @@ if(!Step)return;
      // 
 
   */
+  
+   /// <CC> BEGIN material scanning information
+   // only for Geant4
+   if (MISCFFKEY.SaveMCTrack == 1 && MISCFFKEY.G4On == 1 && MISCFFKEY.G3On == 0)
+   {
+      static double ECAL_Z = ECALDBc::ZOfEcalTopHoneycombSurface()*cm;
+      static double ene_threshold = MISCFFKEY.MCTrackMinEne*MeV;
+      static bool   save_sec = MISCFFKEY.SaveMCTrackSecondary == 1;
+
+      G4Track *step_trk = Step->GetTrack();
+
+      if (step_trk != NULL)
+      {
+         G4int pid = step_trk->GetParentID();
+         G4int tid = step_trk->GetTrackID();
+
+         G4ParticleDefinition *pdef = step_trk->GetDynamicParticle()->GetDefinition();
+         G4String part_name = pdef->GetParticleName();
+         int part_info;
+         int g3code = AMSJob::gethead()->getg4physics()->G4toG3(part_name, part_info);
+         bool isDummy = g3code == AMSG4Physics::_G3DummyParticle;
+         bool isNeutrino = pdef->GetPDGCharge() == 0 && pdef->GetLeptonNumber() != 0;
+
+         // save only secondary particles (but not neutrinos or dummy particles) if datacard is set
+         if (pid == 0 || (save_sec && !isNeutrino && !isDummy))
+         {
+            G4StepPoint *preStepPoint = Step->GetPreStepPoint();
+            G4StepPoint *postStepPoint = Step->GetPostStepPoint();
+
+            if (preStepPoint != NULL)
+            {
+               G4ThreeVector pre_pos = preStepPoint->GetPosition();
+               G4ThreeVector post_pos = postStepPoint->GetPosition();
+
+               bool isBacksplash = pre_pos.z() < ECAL_Z && post_pos.z() > ECAL_Z;
+
+               G4double ekin = step_trk->GetKineticEnergy();
+
+               // save only primary particle and secondary particles above ECAL (or backsplash) and with kinetic energy greater than the threshold
+               if (pid == 0 || ((pre_pos.z() > ECAL_Z || isBacksplash) && ekin >= ene_threshold))
+               {
+                  G4Material *material = preStepPoint->GetMaterial();
+
+                  if (material != NULL)
+                  {
+                     G4double stlen = Step->GetStepLength();
+                     G4double x0 = stlen/(material->GetRadlen());
+                     G4double lambda = stlen/(material->GetNuclearInterLength());
+                     G4double enetot = Step->GetTotalEnergyDeposit()/GeV*1000;
+                     G4double eneion = enetot - Step->GetNonIonizingEnergyDeposit()/GeV*1000;
+
+                     const char *tmp_name = preStepPoint->GetPhysicalVolume()->GetName().data();
+                     char vol_name[5] = "";
+                     for (int i = 0; i < 4; ++i)
+                     {
+                        vol_name[i] = tmp_name[i];
+                     }
+
+                     float pos[3];
+                     for (int i = 0; i < 3; ++i)
+                     {
+                        pos[i] = pre_pos[i]/cm;
+                     }
+
+                     AMSmctrack *genp = new AMSmctrack(x0, lambda, pos, vol_name, stlen, enetot, eneion, tid);
+                     AMSEvent::gethead()->addnext(AMSID("AMSmctrack", 0), genp);
+                  }
+               }
+            }
+         }
+      }
+   }
+   /// <CC> END material scanning information
+
   //       cout <<" stepping in"<<endl;
   //       AMSmceventg::PrintSeeds(cout);
   //       AMSmceventg::SaveSeeds();

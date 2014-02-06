@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.593 2014/01/30 11:45:39 choumilo Exp $
+//  $Id: root.h,v 1.594 2014/02/06 15:48:01 ccorti Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3827,22 +3827,27 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 /// MCTrack structure
 
 /*!
-Contains radiation/absorption length ticknesses.
- Activated bt SCAN TRUE datacard
+Contains radiation/absorption length ticknesses and energy deposit. Link to MCEventgR via trkID.
+ Activated by MISC 25=1 datacard
 \author vitali.choutko@cern.ch
+\author ccorti@cern.ch
 */
 
 class MCTrackR {
 public:
-float RadL;   ///< integrated radiation length
-float AbsL;   ///< integrated nuclear absorption length
-float Pos[3];  ///< x,y,z (cm)
-char  VolName[5];  ///< Volume name
+float RadL;       ///< Integrated radiation length of the step
+float AbsL;       ///< Integrated nuclear absorption length of the step
+float Pos[3];     ///< Position at the beginning of the step: x,y,z (cm)
+char  VolName[5]; ///< Volume name
+float StepL;      ///< Step length (mm)
+float EneTot;     ///< Total energy deposited in the step (MeV)
+float EneIon;     ///< Ionizing energy deposited in the step (MeV)
+int   trkID;      ///< Geant4 track ID, the same as MCEventgR::trkID
 
  MCTrackR(){};
  MCTrackR(AMSmctrack *ptr);
   virtual ~MCTrackR(){};
-ClassDef(MCTrackR,1)       //MCTrackR
+ClassDef(MCTrackR,2)       //MCTrackR
 #pragma omp threadprivate(fgIsA)
 };
 

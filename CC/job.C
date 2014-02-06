@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.948 2014/02/02 20:27:18 oliva Exp $
+// $Id: job.C,v 1.949 2014/02/06 15:47:59 ccorti Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -308,6 +308,9 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   MISCFFKEY.StartScanZstep=0.5;   // (22)  eye z step (cm) must be positive
   MISCFFKEY.StartScanTheta=-90.;   // (23) Line of View direction (in fact is theta=theta +90 )
   MISCFFKEY.StartScanPhi=0.;   // (24)
+  MISCFFKEY.SaveMCTrack=0;     // (25) Activate material scan, saving MCTrack informations at every step
+  MISCFFKEY.SaveMCTrackSecondary=1; // (26) 1/0 save/not save also secondary particles above ECAL and above minimum kinetic energy (next datacard)
+  MISCFFKEY.MCTrackMinEne=1;        // (27) minimum kinetic energy in MeV to save a secondary particle above ECAL
 
 
   FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");

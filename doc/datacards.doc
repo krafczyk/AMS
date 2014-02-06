@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.417 2014/02/06 11:37:00 oliva Exp $
+#  $Id: datacards.doc,v 1.418 2014/02/06 15:48:00 ccorti Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -694,6 +694,9 @@ I10 ChunkThreads(4096) // number of events per thread in one parallel  clause
 I11 DivideBy(1)        // divide or not cpu spent by number of threads (link dependent)
 I12 RaiseFPE(1)         // enforce-also-on-broken-code(3) enforce(2) raise(1) or not (0) fpe signals
 I13 DoMatScan(0)        // mat scanning   
+I25 SaveMCTrack(1)      // mat scanning, by saving MCTrack informations at every step
+I26 SaveMCTrackSecondary(1) // 1/0 save/not save also secondary particles above ECAL and above minimum kinetic energy (next datacard)
+R27 MCTrackMinEne(1)        // minimum kinetic energy in MeV to save a secondary particle above ECAL 
  
 G4FF    // Geant4 Datacards
 I 1 BFOrder(4)       // Runge Kutta order 

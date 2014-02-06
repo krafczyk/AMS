@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.151 2013/11/06 20:22:56 shaino Exp $
+//  $Id: ntuple.h,v 1.152 2014/02/06 15:48:00 ccorti Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -585,6 +585,10 @@ float radl[MAXMCVOL];
 float absl[MAXMCVOL];
 float pos[MAXMCVOL][3];
 char  vname[MAXMCVOL][4];
+float stlen[MAXMCVOL];
+float enetot[MAXMCVOL];
+float eneion[MAXMCVOL];
+int tid[MAXMCVOL];
 };
 
 

@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.54 2014/01/29 17:48:16 choutko Exp $
+//  $Id: mceventg.h,v 1.55 2014/02/06 15:48:00 ccorti Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -58,14 +58,23 @@ number _radl;
 number _absl;
 number _pos[3];
 char _vname[4];
+number _stlen;
+number _enetot;
+number _eneion;
+integer _tid;
 void _copyEl(){};
 void _writeEl();
 void _printEl(ostream & stream){};
 public:
-AMSmctrack(number radl,number absl, float pos[3], char name[]):AMSlink(),_radl(radl),_absl(absl){
+AMSmctrack(number radl,number absl, float pos[3], char name[], number stlen, number enetot, number eneion, integer tid):AMSlink(),_radl(radl),_absl(absl),_stlen(stlen),_enetot(enetot),_eneion(eneion),_tid(tid){
  for (int i=0;i<3;i++)_pos[i]=pos[i];
  for (int i=0;i<4;i++)_vname[i]=name[i];
 }
+AMSmctrack(number radl,number absl, float pos[3], char name[]):AMSlink(),_radl(radl),_absl(absl),_stlen(0),_enetot(0),_eneion(0),_tid(0){
+ for (int i=0;i<3;i++)_pos[i]=pos[i];
+ for (int i=0;i<4;i++)_vname[i]=name[i];
+}
+
 #ifdef __WRITEROOT__
  friend class MCTrackR;
 #endif

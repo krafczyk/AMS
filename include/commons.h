@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.365 2014/02/02 20:27:18 oliva Exp $
+//  $Id: commons.h,v 1.366 2014/02/06 15:48:00 ccorti Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -67,6 +67,9 @@ class MISCFFKEY_DEF{
   float StartScanZstep;
   float StartScanTheta;
   float StartScanPhi;
+  integer SaveMCTrack;
+  integer SaveMCTrackSecondary;
+  float   MCTrackMinEne;
 };
 
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);

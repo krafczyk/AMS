@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.636 2014/01/30 12:12:20 choutko Exp $
+//  $Id: root.C,v 1.637 2014/02/06 15:47:59 ccorti Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -5597,6 +5597,10 @@ MCTrackR::MCTrackR(AMSmctrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   RadL = ptr->_radl;
   AbsL = ptr->_absl;
+  StepL = ptr->_stlen;
+  EneTot = ptr->_enetot;
+  EneIon = ptr->_eneion;
+  trkID = ptr->_tid;
   for (int i=0; i<3; i++) Pos[i]   = ptr->_pos[i];
   for (int i=0; i<4; i++) VolName[i] = ptr->_vname[i];
   VolName[4]='\0';
