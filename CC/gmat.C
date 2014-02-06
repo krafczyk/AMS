@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.122 2012/07/10 17:25:27 mdelgado Exp $
+//  $Id: gmat.C,v 1.123 2014/02/06 21:58:03 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -330,8 +330,18 @@ void AMSgmat::amsmat(){
   mat.add (new AMSgmat( "CSkin-Trpl6",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
   density=1.65/scl;
   mat.add (new AMSgmat( "CSkin-P1NS",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
-  density=1.53; //PZ average density: 25 g over a volume 3.2x3.4x1.5 cm
-  mat.add(new AMSgmat("LBBX-Alloy",47.867,22,density, 3.56*4.54/density,  27.8*4.54/density));
+  //OUTDATED   density=1.53; //PZ average density: 25 g over a volume 3.2x3.4x1.5 cm
+  //OUTDATED  mat.add(new AMSgmat("LBBX-Alloy",47.867,22,density, 3.56*4.54/density,  27.8*4.54/density));
+
+  density=2.39; //PZ average density: 25 g of Al + Prisms + screws~= 39 g  over a volume 3.2x3.4x1.5 cm
+  mat.add(new AMSgmat("LBBX-Alloy",26.981,13,density, 8.897*2.7/density,  39.7*2.7/density));
+
+
+  //Special material for tracker electronics tuned on data -- PZ Feb 2014
+  density=2.265*1.03;
+  mat.add (new AMSgmat("CARBON-TK", 12.01, 6., density ,18.8*2.265/density,49.9*2.65/density));
+
+
 
   // Track Shielding Kapton (polyimide (C_22 H_10 N_2 O_5) ) + Cu + Au
 
@@ -752,7 +762,6 @@ tmed.add (new AMSgtmed("USSALLOY","ALUMINIUM",0));
 tmed.add (new AMSgtmed("ACTIVE_SILICON","SILICON",1));
 tmed.add (new AMSgtmed("NONACTIVE_SILICON","SILICON"));
 tmed.add (new AMSgtmed("CARBON","CARBON",0));
-tmed.add (new AMSgtmed("ELECTRONICS","CARBON",0));
 #ifdef _PGTRACK_
 tmed.add (new AMSgtmed("Tr_HoneyIN","AL-HONEYC-TrIn",0));
 tmed.add (new AMSgtmed("Tr_HoneyOUT","AL-HONEYC-TrOut",0));
@@ -761,10 +770,12 @@ tmed.add (new AMSgtmed("pl6_HoneySkin","CSkin-Trpl6",0));
 tmed.add (new AMSgtmed("P1NS_HoneySkin","CSkin-P1NS",0));
 tmed.add (new AMSgtmed("LBBX-med","LBBX-Alloy",0));
 tmed.add (new AMSgtmed("TrShield-M","TrShield",0));
+tmed.add (new AMSgtmed("ELECTRONICS","CARBON-TK",0));
 
 
 #else
  tmed.add (new AMSgtmed("Tr_Honeycomb","AL-HONEYC-Tr",0));
+tmed.add (new AMSgtmed("ELECTRONICS","CARBON",0));
 #endif
 tmed.add (new AMSgtmed("Tr_Foam","FOAM",0));
 //

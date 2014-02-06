@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.76 2013/12/24 11:32:24 shaino Exp $
+//  $Id: TkDBc.C,v 1.77 2014/02/06 21:58:03 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2013/12/24 11:32:24 $
+///$Date: 2014/02/06 21:58:03 $
 ///
-///$Revision: 1.76 $
+///$Revision: 1.77 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -281,14 +281,12 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     P1NSupportThickness=7.;
     P1NSupportSkinThickness=0.25;
     P1NSCRadius=94.5;
-    //P1NSCThickness=9.7;
-    //P1NSCThickness=9.1;  //VC 26-oct-2013 to avoid trd3 overlap
-    P1NSCThickness=9.02;   //TR 07-nov-2013 to make space for TRD shift upwards
+    P1NSCThickness=9.7;
     P1NSupportCoo[0]=0;
     P1NSupportCoo[1]=0;
     P1NSupportCoo[2]= _zpos[4]+_sup_hc_w[4]/2.+
       //                                              space between 1N and 1NS
-      P1NSupportSkinThickness+P1NSupportThickness/2.+0.12;
+      P1NSupportSkinThickness+P1NSupportThickness/2.+1.2;
 
 //----------------------------------------------------------------------------------
 //            LAYERS
