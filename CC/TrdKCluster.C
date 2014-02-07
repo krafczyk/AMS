@@ -259,8 +259,8 @@ int TrdKCluster::Build(){
     if(ptrk){
         Int_t refit = 21;
         if( pev->nMCEventg() > 1 ) refit = 1;
-        //        myfitcode= ptrk->iTrTrackPar(1, 0, refit); // MaxSpan
-        myfitcode= ptrk->iTrTrackPar(1, 3, refit); // InnerOnly
+                myfitcode= ptrk->iTrTrackPar(1, 0, refit); // MaxSpan
+//        myfitcode= ptrk->iTrTrackPar(1, 3, refit); // InnerOnly
         if(!ptrk->ParExists(myfitcode))myfitcode=0;
         rig = ptrk->GetRigidity(myfitcode);
     }
