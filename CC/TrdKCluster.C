@@ -31,6 +31,11 @@ map<int, TRDOnline> TrdKCluster::map_TRDOnline;
 float TrdKCluster::MinimumDistance=3;
 float TrdKCluster::DefaultRigidity=200;
 
+
+TrdKCluster* TrdKCluster::_Head=0;
+TrdKCalib* TrdKCluster::_HeadCalib=0;
+AMSEventR* TrdKCluster::_HeadE=0;
+
 /////////////////////////////////////////////////////////////////////
 
 TrdKCluster::TrdKCluster()
@@ -63,6 +68,8 @@ void TrdKCluster::Init(AMSEventR *evt){
     int NTRDHit=evt->NTrdRawHit();
     if(!NTRDHit)return;
 
+
+    if(NHits())TRDHitCollection.clear();
     for(int i=0;i<NTRDHit;i++){
         TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
         if(!_trd_hit) continue;
@@ -197,6 +204,336 @@ TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir
 
 /////////////////////////////////////////////////////////////////////
 
+// Default Build Function
+int TrdKCluster::Build(){
+
+    IsMC=0;
+    IsTB=0;
+    IsISS=0;
+
+    Track_type=0;
+    Event_type=0;
+
+    pev=GetAMSEventRHead();
+    if(!pev) return -1;
+
+    if(pev->nMCEventg()>0)IsMC=1;
+    else if(pev->Run()<1300000000)IsTB=1;
+    else IsISS=1;
+
+
+    if(IsMC){
+        TrdKCluster::ForceReadAlignment=0;
+        TrdKCluster::ForceReadCalibration=0;
+        TrdKCluster::ForceReadXePressure=0;
+        TrdKCluster::SetDefaultMCXePressure(900);
+    } else if(IsTB){
+        TrdKCluster::IsReadGlobalAlignment=0;
+        TrdKCluster::ForceReadAlignment=1;
+        TrdKCluster::ForceReadCalibration=1;
+        TrdKCluster::ForceReadXePressure=1;
+    }else{
+        TrdKCluster::IsReadGlobalAlignment=1;
+        TrdKCluster::ForceReadAlignment=1;
+        TrdKCluster::ForceReadCalibration=1;
+        TrdKCluster::ForceReadXePressure=1;
+    }
+
+
+    if(pev->NEcalShower()>0)FindBestMatch_FromECAL();
+    else if (pev->NParticle()>0)FindBestMatch_FromParticle();
+    else if (pev->NTrTrack()>0)FindBestMatch_FromTrTrack();
+    else{
+        ptrk  = pev->pTrTrack(0);
+        ptrd  = pev->pTrdTrack(0);
+        ptrdh = pev->pTrdHTrack(0);
+        pecal = pev->pEcalShower(0);
+        ptof = pev->pBetaH(0);
+        mcpart=pev->pMCEventg(0);
+    }
+
+
+    Double_t rig=0;
+    int myfitcode=0;
+
+    if(ptrk){
+        Int_t refit = 21;
+        if( pev->nMCEventg() > 1 ) refit = 1;
+        //        myfitcode= ptrk->iTrTrackPar(1, 0, refit); // MaxSpan
+        myfitcode= ptrk->iTrTrackPar(1, 3, refit); // InnerOnly
+        if(!ptrk->ParExists(myfitcode))myfitcode=0;
+        rig = ptrk->GetRigidity(myfitcode);
+    }
+
+    Double_t ene = 0.;
+    if(pecal){ ene = fabs(pecal->EnergyE);	}
+
+    float assume_rig=rig;
+    if(abs(rig)<5 && ene > 5)assume_rig=ene;
+    else assume_rig=100;
+
+    if(ptrd){
+        Build(ptrd,assume_rig);
+        Track_type |= 1;
+    }else if(ptrk && ptrk->ParExists(myfitcode)){
+        Build(ptrk,myfitcode);
+        Track_type |= 2;
+    }else if(ptrdh){
+        Build(ptrdh, assume_rig);
+        Track_type |= 4;
+    }else if(pecal){
+        Build(pecal);
+        Track_type |= 8;
+    }else if(mcpart){
+        Build(mcpart);
+        Track_type |= 16;
+    }else if(ptof){
+        Build(ptof,assume_rig);
+        Track_type |= 32;
+    }
+    else {
+        return -1;
+    }
+
+
+    //=== Do Refit ====
+    FitTRDTrack(1,0);
+
+    //========TrTrack
+    if(ptrk && ptrk->ParExists(myfitcode)){
+        SetTrTrack(ptrk, myfitcode);
+    }
+
+}
+/////////////////
+
+
+int TrdKCluster::FindBestMatch_FromParticle(){
+
+    int npart=pev->NParticle();
+
+    int index=0;
+
+    if(npart>1){
+        float maxenergy=0;
+        for(int i=0;i<npart;i++){
+            ParticleR *part=pev->pParticle(i);
+            if(fabs(part->Momentum)>maxenergy && (part->pTrdTrack() || part->pTrdHTrack())){
+                maxenergy=fabs(part->Momentum);
+                index=i;
+            }
+        }
+    }
+
+    ParticleR *part=pev->pParticle(index);
+
+    ptrk  = part->pTrTrack();
+    ptrd  = part->pTrdTrack();
+    ptrdh = part->pTrdHTrack();
+    pecal = part->pEcalShower();
+    ptof = part->pBetaH();
+    mcpart=pev->pMCEventg(0);
+
+    Event_type=1;
+    return 1;
+}
+
+
+int TrdKCluster::FindBestMatch_FromECAL(){
+    ptrk  = 0;
+    ptrd  =0;
+    ptrdh = 0;
+    pecal = 0;
+    ptof = 0;
+    mcpart=0;
+
+    pev=_HeadE;
+
+    // 1. find the highest energetic shower
+    Double_t e_candidate = 0.;
+    Int_t    i_candidate_ecal = -1,
+            i_candidate_part = -1,
+            i_candidate_trd  = -1,
+            i_candidate_trdh = -1,
+            i_candidate_trk  = -1,
+            i_candidate_beta = -1,
+            i_candidate_betah= -1;
+
+    int necal = pev->nEcalShower();
+    if(necal<=0)return 0;
+
+    int npart = pev->nParticle();
+    int ntrd  = pev->nTrdTrack();
+    int ntrdh = pev->nTrdHTrack();
+    int ntrk  = pev->nTrTrack();
+    int nbetah= pev->nBetaH();
+    int nbeta = pev->nBeta();
+
+    // Most energetic Shower
+    for(Int_t i=0; i<pev->nEcalShower(); i++){
+        if( pev->pEcalShower(i)->EnergyD > e_candidate ){
+            e_candidate = pev->pEcalShower(i)->EnergyD;
+            i_candidate_ecal = i;
+        }
+    }
+
+
+    // Particle associated with Shower
+    for(Int_t i=0; i<pev->nParticle(); i++){
+        if( pev->pParticle(i) && pev->pParticle(i)->iEcalShower() == i_candidate_ecal ){
+            i_candidate_part = i;
+        }
+    }
+
+    AMSPoint ecal_coo( pev->pEcalShower(i_candidate_ecal)->CofG );
+    AMSDir   ecal_dir( pev->pEcalShower(i_candidate_ecal)->Dir );
+
+    // 2. find best matched TRD
+    AMSPoint trd_coo, trd_coo_ecalcog;
+    AMSDir   trd_dir;
+    Double_t min_dist = 10000., min_dang = 10000.,
+            dist, dang;
+    for(Int_t i=0; i<pev->nTrdTrack(); i++){
+        trd_coo = AMSPoint( pev->pTrdTrack(i)->Coo );
+        trd_dir = AMSDir( pev->pTrdTrack(i)->Theta, pev->pTrdTrack(i)->Phi );
+        trd_coo_ecalcog[0] = trd_coo[0] + trd_dir[0]/trd_dir[2]*(ecal_coo[2] - trd_coo[2]);
+        trd_coo_ecalcog[1] = trd_coo[1] + trd_dir[1]/trd_dir[2]*(ecal_coo[2] - trd_coo[2]);
+        trd_coo_ecalcog[2] = ecal_coo[2];
+
+        dist = trd_coo_ecalcog.dist( ecal_coo );
+        if( dist < min_dist ){
+            min_dist = dist;
+            i_candidate_trd = i;
+        }
+    }
+    min_dist = 10000.;
+    for(Int_t i=0; i<pev->nTrdHTrack(); i++){
+        trd_coo = AMSPoint( pev->pTrdHTrack(i)->Coo );
+        trd_dir = AMSDir( pev->pTrdHTrack(i)->Dir );
+        dist = trd_coo.dist( ecal_coo );
+        trd_coo_ecalcog[0] = trd_coo[0] + trd_dir[0]/trd_dir[2]*(ecal_coo[2] - trd_coo[2]);
+        trd_coo_ecalcog[1] = trd_coo[1] + trd_dir[1]/trd_dir[2]*(ecal_coo[2] - trd_coo[2]);
+        trd_coo_ecalcog[2] = ecal_coo[2];
+
+        if( dist < min_dist ){
+            min_dist = dist;
+            i_candidate_trdh = i;
+        }
+    }
+    // 3. find best matched TrTrack
+    min_dist = 10000.;
+    AMSPoint trk_coo_ecalcog;
+    AMSDir   trk_dir_ecalcog;
+    for(Int_t i=0; i<ntrk; i++){
+        Int_t fitid = pev->pTrTrack(i)->iTrTrackPar(1, 3, 1); // VC + Inner
+        pev->pTrTrack(i)->Interpolate(ecal_coo[2], trk_coo_ecalcog, trk_dir_ecalcog, fitid);
+        dist = trk_coo_ecalcog.dist( ecal_coo );
+        if( dist < min_dist ){
+            min_dist = dist;
+            i_candidate_trk = i;
+        }
+    }
+    // 4. find best matched BetaH
+    for(Int_t i=0; i<pev->nBetaH(); i++){
+        if(
+                ( i_candidate_ecal >= 0 && pev->pBetaH(i)->iEcalShower() == i_candidate_ecal )
+                || ( i_candidate_trk  >= 0 && pev->pBetaH(i)->iTrTrack()    == i_candidate_trk  )
+                || ( i_candidate_trd  >= 0 && pev->pBetaH(i)->iTrdTrack()   == i_candidate_trd  )
+                ){
+            i_candidate_betah = i;
+            break;
+        }
+    }
+    if( i_candidate_part>= 0 ){
+        i_candidate_beta = pev->pParticle(i_candidate_part)->iBeta();
+    }
+    else{
+        i_candidate_beta = pev->pParticle(0)->iBeta();
+    }
+
+    ptrk  = _HeadE->pTrTrack(i_candidate_trk);
+    ptrd  = _HeadE->pTrdTrack(i_candidate_trd);
+    ptrdh = _HeadE->pTrdHTrack(i_candidate_trdh);
+    pecal = _HeadE->pEcalShower(i_candidate_ecal);
+    ptof  = _HeadE->pBetaH(i_candidate_betah);
+    mcpart=_HeadE->pMCEventg(0);
+
+    Event_type=0;
+    return 1;
+}
+
+
+int TrdKCluster::FindBestMatch_FromTrTrack(){
+
+    int ntrk=pev->NTrTrack();
+
+    int index=0;
+
+    if(ntrk>1){
+        float maxenergy=0;
+        for(int i=0;i<ntrk;i++){
+            TrTrackR *trk=pev->pTrTrack(i);
+            if(fabs(trk->GetRigidity())>maxenergy){
+                maxenergy=fabs(trk->GetRigidity());
+                index=i;
+            }
+        }
+    }
+
+
+    ptrk=_HeadE->pTrTrack(index);
+    AMSPoint trk_coo;
+    AMSDir trk_dir;
+    ptrk->Interpolate(80,trk_coo,trk_dir);
+
+    // 2. find best matched TRD
+    int i_candidate_trd=-1;
+    int i_candidate_trdh=-1;
+    AMSPoint trd_coo, trd_coo_atTrTrack;
+    AMSDir   trd_dir;
+    Double_t min_dist = 10000., min_dang = 10000.,
+            dist, dang;
+
+
+
+    for(Int_t i=0; i<pev->nTrdTrack(); i++){
+        trd_coo = AMSPoint( pev->pTrdTrack(i)->Coo );
+        trd_dir = AMSDir( pev->pTrdTrack(i)->Theta, pev->pTrdTrack(i)->Phi );
+        trd_coo_atTrTrack[0] = trd_coo[0] + trd_dir[0]/trd_dir[2]*(trk_coo[2] - trd_coo[2]);
+        trd_coo_atTrTrack[1] = trd_coo[1] + trd_dir[1]/trd_dir[2]*(trk_coo[2] - trd_coo[2]);
+        trd_coo_atTrTrack[2] = trk_coo[2];
+        dist = trd_coo_atTrTrack.dist( trk_coo );
+        if( dist < min_dist ){
+            min_dist = dist;
+            i_candidate_trd = i;
+        }
+    }
+    min_dist = 10000.;
+    for(Int_t i=0; i<pev->nTrdHTrack(); i++){
+        trd_coo = AMSPoint( pev->pTrdHTrack(i)->Coo );
+        trd_dir = AMSDir( pev->pTrdHTrack(i)->Dir );
+        dist = trd_coo.dist( trk_coo );
+        trd_coo_atTrTrack[0] = trd_coo[0] + trd_dir[0]/trd_dir[2]*(trk_coo[2] - trd_coo[2]);
+        trd_coo_atTrTrack[1] = trd_coo[1] + trd_dir[1]/trd_dir[2]*(trk_coo[2] - trd_coo[2]);
+        trd_coo_atTrTrack[2] = trk_coo[2];
+
+        if( dist < min_dist ){
+            min_dist = dist;
+            i_candidate_trdh = i;
+        }
+    }
+
+    ptrd  = _HeadE->pTrdTrack(i_candidate_trd);
+    ptrdh = _HeadE->pTrdHTrack(i_candidate_trdh);
+
+    Event_type=2;
+    return 1;
+
+}
+
+
+
+///////////////////////
 void TrdKCluster::Constrcut_TRDTube(){
     cout<<"Construct TRD Tube: "<<endl;
     TRDTubeCollection.clear();
@@ -226,7 +563,7 @@ void TrdKCluster::Init_Base(){
     if(TRDTubeCollection.size()!=5248)Constrcut_TRDTube();
     if(map_TRDOnline.size()==0) InitXePressure();
     if(!TRDImpactlikelihood)TRDImpactlikelihood=new TRD_ImpactParameter_Likelihood();
-    if(!_DB_instance) _DB_instance=new TrdKCalib();
+    if(!_DB_instance) _DB_instance=GetTRDKCalibHead();
     if(!kpdf_e)kpdf_e=new TrdKPDF("Electron");
     if(!kpdf_p)kpdf_p=new TrdKPDF("Proton");
     if(!kpdf_h)kpdf_h=new TrdKPDF("Helium");
@@ -536,7 +873,7 @@ Double_t TrdKCluster::trd_parabolic_fit(Int_t N, Double_t *X, Double_t *Y, Doubl
     //inverse matrix
     DD  = m11*m22*m33 + 2.*m12*m13*m23 - m13*m13*m22 - m12*m12*m33 - m11*m23*m23;
     if ( DD == 0. ) return y_min;
-    
+
     a11 = m22*m33 - m23*m23;
     a12 = m13*m23 - m12*m33;
     a13 = m12*m23 - m13*m22;
@@ -610,7 +947,7 @@ refit:
         k_to_dir(temp_d,kX,kY,Up);
         par[3] = temp_d[0];
         par[4] = temp_d[1];
-        
+
         W[m] = TRDTrack_PathLengthLikelihood(par);
     }
 
@@ -633,7 +970,7 @@ refit:
         k_to_dir(temp_d,kX,kY,Up);
         par[3] = temp_d[0];
         par[4] = temp_d[1];
-        
+
         W[m] = TRDTrack_PathLengthLikelihood(par);
     }
 
@@ -656,7 +993,7 @@ refit:
         k_to_dir(temp_d,kX,kY,Up);
         par[3] = temp_d[0];
         par[4] = temp_d[1];
-        
+
         W[m] = TRDTrack_PathLengthLikelihood(par);
     }
 
@@ -679,7 +1016,7 @@ refit:
         k_to_dir(temp_d,kX,kY,Up);
         par[3] = temp_d[0];
         par[4] = temp_d[1];
-        
+
         W[m] = TRDTrack_PathLengthLikelihood(par);
     }
 
@@ -765,7 +1102,7 @@ void TrdKCluster::FitTRDTrack(int method, int hypothesis){
         return ;
     }
     return;
-    
+
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -1173,7 +1510,6 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
 
 void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 
-    //if(fitcode>=0){
     if(track->ParExists(fitcode)) {
         track_extrapolated_Dir=  AMSDir(0,0,0);
         track_extrapolated_P0= AMSPoint(0,0,0);
@@ -1208,6 +1544,8 @@ int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &
 }
 
 int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod, int particle_hypothesis){
+
+    if(!HasTRDTrack && !fitmethod)fitmethod=1;
     if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
     double dummy_L[3];
     float dummy_length;
@@ -1217,6 +1555,7 @@ int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &
 }
 
 int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, double* L, int &nhits,float &total_pathlength, float &total_amp , int fitmethod, int particle_hypothesis,int flag_debug, float ECAL_Energy_Hypothesis){
+    if(!HasTRDTrack && !fitmethod)fitmethod=1;
     if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
     if(flag_debug<0)return GetLikelihoodRatio(threshold,LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
     else return GetLikelihoodRatio_DEBUG(threshold,LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);

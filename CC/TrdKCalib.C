@@ -1,7 +1,6 @@
 #include <TrdKCalib.h>
-#include <timeid.h>
 #include <commonsi.h>
-
+#include <timeid.h>
 ClassImp(TrdKCalib)
 
 //#include <TRDDBClass_ROOT.h>
@@ -10,6 +9,9 @@ ClassImp(TrdKCalib)
 //AMSTimeID* TrdKCalib::tid_Calib = 0;
 //AMSTimeID* TrdKCalib::tid_Align_Plane = 0;
 //AMSTimeID* TrdKCalib::tid_Align_Global = 0;
+
+TrdKCalib* TrdKCalib::_Head=0;
+
 
 TString TrdKCalib::GetEnv( const string & var ) {
     const char * val = getenv( var.c_str() );
@@ -49,14 +51,10 @@ void TrdKCalib::fillDB(TString s_type,  T *_db, Double_t time_start, Double_t ti
 template <class T>
 int TrdKCalib::readDB(TString s_type,  T *db, Double_t asktime){
 
-    static  AMSTimeID* tid_Calib=0;
-    static  AMSTimeID* tid_Align_Plane=0;
-    static  AMSTimeID* tid_Align_Global=0;
 
-#ifdef __ROOTSHAREDLIBRARY__
-#pragma omp threadprivate (tid_Calib,tid_Align_Plane,tid_Align_Global)
-#endif
-
+    static AMSTimeID* tid_Calib=0;
+    static AMSTimeID* tid_Align_Plane=0;
+    static AMSTimeID* tid_Align_Global=0;
 
     AMSTimeID **tid;
 

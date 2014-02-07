@@ -107,6 +107,79 @@ public:
     TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity=0);
 
 
+
+    void Build(MCEventgR *mcpart){
+        AMSPoint TrTrack_P0 = AMSPoint(mcpart->Coo);
+        AMSDir TrTrack_Dir = AMSDir(mcpart->Dir);
+        SetTrTrack(&TrTrack_P0,&TrTrack_Dir, mcpart->Momentum);
+        Init(GetAMSEventRHead());
+    }
+
+
+    void Build(TrTrackR *track, int fitcode){
+        SetTrTrack(track, fitcode);
+        Init(GetAMSEventRHead());
+    }
+
+    void  Build(AMSPoint *P0, AMSDir *Dir,float Rigidity=0){
+        if(!Rigidity)Rigidity=DefaultRigidity;
+        SetTrTrack(P0, Dir, Rigidity);
+        Init(GetAMSEventRHead());
+    }
+
+    void Build(TrdTrackR *trdtrack,float Rigidity=0){
+        AMSPoint *P0= new AMSPoint(trdtrack->Coo);
+        AMSDir *Dir = new AMSDir(trdtrack->Theta,trdtrack->Phi);
+        if(!Rigidity)Rigidity=DefaultRigidity;
+        SetTrTrack(P0, Dir, Rigidity);
+        Init(GetAMSEventRHead());
+        delete P0;
+        delete Dir;
+    }
+
+    void  Build(TrdHTrackR *trdhtrack,float Rigidity=0){
+        AMSPoint *P0= new AMSPoint(trdhtrack->Coo);
+        AMSDir *Dir = new AMSDir(trdhtrack->Dir);
+        if(!Rigidity)Rigidity=DefaultRigidity;
+        SetTrTrack(P0, Dir, Rigidity);
+        Init(GetAMSEventRHead());
+        delete P0;
+        delete Dir;
+    }
+
+    void Build(EcalShowerR *shower, float energy=0){
+        if(!energy) energy=shower->EnergyC;
+        AMSPoint *P0= new AMSPoint(shower->CofG);
+        AMSDir *Dir = new AMSDir(shower->Dir);
+        SetTrTrack(P0, Dir,energy);
+        Init(GetAMSEventRHead());
+        delete P0;
+        delete Dir;
+    }
+
+    void Build(BetaHR *betah,float Rigidity=0){
+        AMSPoint *P0=new AMSPoint();
+        AMSDir *Dir=new AMSDir();
+        double dummy_time;
+        betah->TInterpolate(TRDCenter,*P0,*Dir,dummy_time,false);
+        if(!Rigidity)Rigidity=DefaultRigidity;
+        SetTrTrack(P0, Dir, Rigidity);
+        Init(GetAMSEventRHead());
+        delete P0;
+        delete Dir;
+    }
+
+
+    int Build();
+    int FindBestMatch_FromParticle();
+    int FindBestMatch_FromECAL();
+    int FindBestMatch_FromTrTrack();
+
+
+
+
+
+
     // Cluster status
     int  NHits(){return TRDHitCollection.size();}
     bool IsCalibrated();
@@ -245,8 +318,8 @@ public:
 
     static int ForceReadAlignment;
     static int ForceReadCalibration;
-static int ForceReadXePressure;
-static float DefaultMCXePressure;
+    static int ForceReadXePressure;
+    static float DefaultMCXePressure;
 
     static Double_t LastProcessedRun_Calibration;
     static Double_t LastProcessedRun_Alignment;
@@ -257,38 +330,84 @@ static float DefaultMCXePressure;
     static TrdKCalib *_DB_instance;
     TrdKCalib* GetTrdKDB(){return _DB_instance;}
 
+
+    int Track_type;
+    int Event_type;
+
+    int IsMC;
+    int IsTB;
+    int IsISS;
+
     static int dir_to_k(double& kx,double& ky,bool& up,const AMSDir& dir) {
-    	kx = dir.x()/dir.z();
-	ky = dir.y()/dir.z();
-	if(dir.z()>=0) {
-		up = true;
-	} else {
-		up = false;
-	}
-	return 0;
+        kx = dir.x()/dir.z();
+        ky = dir.y()/dir.z();
+        if(dir.z()>=0) {
+            up = true;
+        } else {
+            up = false;
+        }
+        return 0;
     }
     static int k_to_dir(AMSDir& dir,const double& kx,const double& ky,const bool& up) {
-    	double b = TMath::Sqrt(1+kx*kx+ky*ky);
-	double dx;
-	double dy;
-	double dz;
-	if(up) {
-		dx = kx/b;
-		dy = ky/b;
-		dz = TMath::Sqrt(1-dx*dx-dy*dy);
-	} else {
-		dx = -kx/b;
-		dy = -ky/b;
-		dz = -TMath::Sqrt(1-dx*dx-dy*dy);
-	}
-	dir = AMSDir(dx,dy,dz);
-	return 0;
+        double b = TMath::Sqrt(1+kx*kx+ky*ky);
+        double dx;
+        double dy;
+        double dz;
+        if(up) {
+            dx = kx/b;
+            dy = ky/b;
+            dz = TMath::Sqrt(1-dx*dx-dy*dy);
+        } else {
+            dx = -kx/b;
+            dy = -ky/b;
+            dz = -TMath::Sqrt(1-dx*dx-dy*dy);
+        }
+        dir = AMSDir(dx,dy,dz);
+        return 0;
     }
     Double32_t GetTime() {
         return Time;
     }
 
+
+    static AMSEventR* GetAMSEventRHead(){
+        if(!_HeadE)_HeadE=AMSEventR::Head();
+        return _HeadE;
+    }
+
+
+    static TrdKCalib* GetTRDKCalibHead(){
+        if(!_HeadCalib)_HeadCalib=TrdKCalib::gethead();
+        return _HeadCalib;
+    }
+
+
+
+    static TrdKCluster* gethead(){
+        if (!_Head) {
+            printf("TrdKCluster::gethead()-M-CreatingObject TrdKCluster\n");
+            _Head = new TrdKCluster();
+            GetAMSEventRHead();
+            GetTRDKCalibHead();
+        }
+        return _Head;
+    }
+
+
+
 private:
+
+    static TrdKCluster* _Head;
+    static AMSEventR * _HeadE;
+    static TrdKCalib* _HeadCalib;
+
+AMSEventR* pev;
+    TrTrackR    *ptrk;
+    TrdTrackR   *ptrd;
+    TrdHTrackR  *ptrdh;
+    EcalShowerR *pecal;
+    BetaHR      *ptof;
+    MCEventgR   *mcpart;
 
     // Additinal Initilizationa
     void Init_Base();
@@ -313,7 +432,7 @@ private:
     static void fcn_TRDTrack_PathLength(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
     
     double TRDTrack_ImpactChi2(Double_t *par);
- 
+
     double TRDTrack_PathLengthLikelihood(Double_t *par);
     
     static Double_t trd_parabolic_fit(Int_t N, Double_t *X, Double_t *Y, Double_t *V);
