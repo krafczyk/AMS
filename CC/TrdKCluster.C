@@ -304,6 +304,7 @@ int TrdKCluster::Build(){
         SetTrTrack(ptrk, myfitcode);
     }
 
+    return 1;
 }
 /////////////////
 
