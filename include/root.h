@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.595 2014/02/06 17:26:52 shaino Exp $
+//  $Id: root.h,v 1.596 2014/02/07 09:03:31 shaino Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3563,6 +3563,17 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
 
   /// \return true if position at z=(center & top of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
+
+#ifdef _PGTRACK_
+  /*!
+   *! Get material thickness in unit of radiation length on the given trajectory between two points
+   * @param[in]  z1    from z position[cm]
+   * @param[in]  z2    to   z position[cm]
+   * @param[in]  type  1: TrTrack 2: TrdTrack 3: EcalShower
+   * @return     material thickness in radiation length, <0 in case of error
+   */
+  double GetRadiationLength(double z1, double z2, int type = 1);
+#endif
 
 //----------------------------------------------------------------------------------------------------------
 /// returns  Stoermer Rigidity cutoff multiply by ParticleR.Charge [GeV/c]:

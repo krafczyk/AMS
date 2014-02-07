@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.638 2014/02/06 17:26:55 shaino Exp $
+//  $Id: root.C,v 1.639 2014/02/07 09:03:33 shaino Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -6053,6 +6053,27 @@ int ParticleR::Loc2Gl(AMSEventR *pev){
         return 0;
 }
 
+#ifdef _PGTRACK_
+double ParticleR::GetRadiationLength(double z1, double z2, int type)
+{
+  AMSPoint pnt;
+  AMSDir   dir;
+  double   rgt = 0;
+
+  if (type == 1 && pTrTrack())    { pnt = pTrTrack()->GetP0();
+                                    dir = pTrTrack()->GetDir();
+				    rgt = pTrTrack()->GetRigidity(); }
+  if (type == 2 && pTrdTrack())   { pnt = AMSPoint(pTrdTrack()->Coo);
+                                    dir = AMSDir  (pTrdTrack()->Theta,
+				   	           pTrdTrack()->Phi); }
+  if (type == 3 && pEcalShower()) { pnt = AMSPoint(pEcalShower()->Entry);
+                                    dir = AMSDir  (pEcalShower()->Dir); }
+
+  if (dir.norm() == 0) return -1;
+
+  return AMSEventR::GetRadiationLength(pnt, dir, rgt, z1, z2);
+}
+#endif
 
 int  ParticleR::IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSPoint &tofpnt, float &disedge){
    
