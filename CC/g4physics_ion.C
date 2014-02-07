@@ -59,7 +59,7 @@ void IonDPMJETPhysics::ConstructProcess()
 //--Model Binary Cascade Low Energy
   theIonBC = new G4BinaryLightIonReaction();
   theIonBC->SetMinEnergy(0.0);
-  theIonBC->SetMaxEnergy(dpmemin);
+  theIonBC->SetMaxEnergy(dpmemin+0.1*GeV);
 //--High Energy
   theIonBC1 = new G4BinaryLightIonReaction();
   theIonBC1->SetMinEnergy(dpmemin);
@@ -73,10 +73,8 @@ void IonDPMJETPhysics::ConstructProcess()
   G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
   for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
      G4int AA  =(*iter)->GetN();
-     if(G4FFKEY.IonPhysicsModel/10==0){//Only for use DPMJET Model
-        if(AA<=dpmAmax){theDPM   ->ActivateFor(*iter);theIonBC1->DeActivateFor(*iter);}
-        else           {theIonBC1->ActivateFor(*iter);theDPM   ->DeActivateFor(*iter);}
-     }
+     if (AA<=dpmAmax) { theDPM   ->ActivateFor(*iter); theIonBC1->DeActivateFor(*iter); }
+     else             { theIonBC1->ActivateFor(*iter); theDPM   ->DeActivateFor(*iter); }
    }
 //  theDPM->SetVerboseLevel(10);
 
@@ -85,9 +83,10 @@ void IonDPMJETPhysics::ConstructProcess()
   fTripathiLight = new G4TripathiLightCrossSection();//K/n <10GeV t d he3 he
   fIonH = new G4IonProtonCrossSection();//proton Target <20GeV (Inject A>4)
   fShen = new G4IonsShenCrossSection();
-  if     (G4FFKEY.IonPhysicsModel%10==3)dpmXS = new G4DPMJET2_5CrossSection;//DPMJET Cross-section<1000TeV
-  else if(G4FFKEY.IonPhysicsModel%10==5)HEAOXS= new G4IonsHEAOCrossSection();//HEAO  Cross-section
+  dpmXS = new G4DPMJET2_5CrossSection;//DPMJET Cross-section<1000TeV
+  HEAOXS = new G4IonsHEAOCrossSection();//HEAO  Cross-section
   AddProcess("dInelastic",G4Deuteron::Deuteron(),false);
+
   AddProcess("tInelastic",G4Triton::Triton(),false);
   AddProcess("He3Inelastic",G4He3::He3(),true);
   AddProcess("alphaInelastic",G4Alpha::Alpha(),true);
@@ -123,22 +122,22 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
 {
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess(name, part);
   G4ProcessManager* pManager = part->GetProcessManager();
-  hadi->AddDataSet(fShen); //G4FFKEY.IonPhysicsModel%10==4 Shen Cross-section
-  if     (G4FFKEY.IonPhysicsModel%10==3)hadi->AddDataSet(dpmXS); //DPMJET Cross-section
-  else if(G4FFKEY.IonPhysicsModel%10==5)hadi->AddDataSet(HEAOXS); ////DPMJET Cross-section
+  hadi->AddDataSet(fShen); 
+  if (G4FFKEY.IonPhysicsModel/10==4) hadi->AddDataSet(dpmXS);
+  if (G4FFKEY.IonPhysicsModel/10==3) hadi->AddDataSet(HEAOXS);
+  if (G4FFKEY.IonPhysicsModel/10==2) {
+    G4GeneralSpaceNNCrossSection* generalCrossSection = new G4GeneralSpaceNNCrossSection;
+    hadi->AddDataSet(generalCrossSection);
+  }
 #if G4VERSION_NUMBER  > 945 
-  else if (G4FFKEY.IonPhysicsModel%10==6) {
+  if (G4FFKEY.IonPhysicsModel/10==1) {
     G4GGNuclNuclCrossSection* fGG = new G4GGNuclNuclCrossSection();
     hadi->AddDataSet(fGG);
   }
 #endif
-  else if (G4FFKEY.IonPhysicsModel%10==7) {
-    G4GeneralSpaceNNCrossSection* generalCrossSection = new G4GeneralSpaceNNCrossSection;
-    hadi->AddDataSet(generalCrossSection);
-  }
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
-  if(G4FFKEY.IonPhysicsModel/10==0) hadi->RegisterMe(theDPM);
+  hadi->RegisterMe(theDPM);
   pManager->AddDiscreteProcess(hadi);
 }
 // -----------------------------------------------------------

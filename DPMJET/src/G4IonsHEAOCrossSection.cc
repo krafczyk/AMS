@@ -32,7 +32,7 @@ GetZandACrossSection(const G4DynamicParticle* aParticle, G4int ZZ,
 
    G4double R=cubicrAt+cubicrAp-0.83;
 
-   G4double xsection= 57.3*R*R; //mb
+   G4double xsection= 57.3*R*R*millibarn; 
 
    return xsection; 
 }
@@ -79,7 +79,7 @@ G4bool G4IonsHEAOCrossSection::IsApplicable(const G4DynamicParticle* theProjecti
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-G4bool G4IonsHEAOCrossSection::IsIsoApplicable(const G4DynamicParticle* theProjectile,  G4int ZZ, G4int AA){
+G4bool G4IonsHEAOCrossSection::IsIsoApplicable(const G4DynamicParticle* theProjectile, G4int ZZ, G4int AA){
 
    G4int AP = theProjectile->GetDefinition()->GetBaryonNumber();
    G4double EPN= theProjectile->GetKineticEnergy()/AP;

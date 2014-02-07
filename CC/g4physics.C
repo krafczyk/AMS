@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.61 2014/02/05 09:10:38 choutko Exp $
+//  $Id: g4physics.C,v 1.62 2014/02/07 15:52:29 oliva Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.61 2014/02/05 09:10:38 choutko Exp $
+// $Id: g4physics.C,v 1.62 2014/02/07 15:52:29 oliva Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -164,12 +164,12 @@ void AMSG4Physics::ConstructProcess()
         if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       }
 //--Qi Yan
-      else {
+      else if (G4FFKEY.IonPhysicsModel%10==3) {
          cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section)."<<endl; 
          bool vers=1;
          IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(vers); //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
          if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
-       } 
+      } 
     }
   }
   
@@ -194,6 +194,7 @@ void AMSG4Physics::ConstructProcess()
   //  if(TRDMCFFKEY.mode>=0)ConstructXRay();
   if(GCTLIT.ITCKOV&&(G4FFKEY.ProcessOff%10==0))ConstructOp();
 }
+
 
 
 #if G4VERSION_NUMBER  < 945 

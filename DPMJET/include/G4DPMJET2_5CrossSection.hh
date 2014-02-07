@@ -63,6 +63,8 @@
 
 #include "G4VCrossSectionDataSet.hh"
 #include "G4DPMJET2_5CrossSectionParamSet.hh"
+#include "G4Element.hh"
+#include "G4Material.hh"
 
 #include <map>
 
@@ -92,6 +94,28 @@ class G4DPMJET2_5CrossSection : public G4VCrossSectionDataSet
     virtual void BuildPhysicsTable(const G4ParticleDefinition&);
 
     virtual void DumpPhysicsTable(const G4ParticleDefinition&);
+
+// >>> A. Oliva - compatibility with geant4.9.6
+#if G4VERSION_NUMBER  > 945 
+  virtual G4bool IsIsoApplicable(const G4DynamicParticle* theProjectile,
+                                 G4int ZZ, G4int AA,
+                                 const G4Element* elm = 0,
+                                 const G4Material* mat = 0) 
+  {
+    return IsZAApplicable(theProjectile,ZZ,AA);
+  }
+
+  virtual 
+  G4double GetIsoCrossSection(const G4DynamicParticle* theProjectile,
+                              G4int ZZ, G4int AA,
+                              const G4Isotope*,
+                              const G4Element* elm = 0,
+                              const G4Material* mat = 0) 
+  {
+    return GetIsoZACrossSection(theProjectile,ZZ,AA,0);
+  }
+#endif
+// <<< A. Oliva - compatibility with geant4.9.6
     
   private:
     void Initialise ();

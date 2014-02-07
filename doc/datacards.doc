@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.418 2014/02/06 15:48:00 ccorti Exp $
+#  $Id: datacards.doc,v 1.419 2014/02/07 15:52:29 oliva Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -705,22 +705,18 @@ I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead fiel
 I 4 Geant3CutsOn(1)  // Use(1) not use(0) geant3-like energy cuts
 I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSP_BERT, others not yet implemented, see also http://cmsdoc.cern.ch/~hpw/GHAD/HomePage/index.html)
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
-I 7 IonPhysicsModel(1)  // Physics Model for Ion:
-			//  1: BLIC | Glauber-Gribov Nucl-Nucl cross sections 4.9.6 (general cross sections for 4.9.4) 
-			//  2: QMD  | Glauber-Gribov Nucl-Nucl cross sections 4.9.6 (general cross sections for 4.9.4)
-                        // 11: BLIC | general "space" cross sections (best between Tripathi, Tripathi Light and Shen)                        
-                        // 12: QMD  | general "space" cross sections (best between Tripathi, Tripathi Light and Shen)
-                        // 21: BLIC | Shen cross sections
-                        // 22: QMD  | Shen cross sections
-                        //  6: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Glauber-Gribov Nucl-Nucl cross sections 4.9.6 (Shen for 4.9.4)
-                        //  7: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | general "space" cross sections
-                        //  4: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Shen cross sections
-                        // With problems: 
-                        //  3: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Shen (<5GeV/n) + DPMJET2.5 cross sections (5GeV/n,1000TeV/n) <<< XS DOES NOT WORK, Shen really used
-                        //  5: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) | Brandt-Peters cross sections used by HEAO-C2 guys <<< XS DOES NOT WORK, Shen really used        
-                        // 13: BLIC | Shen + DPMJET2.5 cross section (5GeV/n,1000TeV/n) <<< XS DOES NOT WORK, Shen really used 
-                        // 15: BLIC | Brandt-Peters cross sections used by HEAO-C2 guys <<< XS DOES NOT WORK, Shen really used 
-I 8 UseEMDModel(0)     Use(1)/not use(0) EM Dissociation model
+I 7 IonPhysicsModel(13) // Physics Model for Ion as XY
+                        //  X: Total inelastic cross section  
+                        //     0: Shen  
+                        //     1: Glauber-Gribov nucleus-nucleus cross sections 4.9.6 (override by Shen for geant4.9.4)
+                        //     2: general "space" cross sections (best between Tripathi, Tripathi Light and Shen)
+                        //     3: Brandt-Peters cross sections used by HEAO-C2 guys 
+                        //     4: DPMJET built-in cross section (5GeV/n,1000TeV/n), only for DPMJET model
+                        //  Y: Interaction model 
+                        //     1: BLIC, Binary Light Ion Cascade (not supposed to be valid after 10 GeV/n)
+                        //     2: QMD, Quantum Molecular Dynamics (not supposed to be valid after 10 GeV/n) 
+                        //     3: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) 
+I 8 UseEMDModel(1)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
 I 11 NeutronTkCut(0)   //Use(1) or Not Standard Neutron Tracking Cut(tracking global time>10 microsecond),can also self adjustment 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.949 2014/02/06 15:47:59 ccorti Exp $
+// $Id: job.C,v 1.950 2014/02/07 15:52:29 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -323,9 +323,8 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.Geant3CutsOn=1;
   G4FFKEY.PhysicsListUsed=1;
   G4FFKEY.LowEMagProcUsed=0;
-//  G4FFKEY.IonPhysicsModel=1;
-  G4FFKEY.IonPhysicsModel=3;//DPMJET Model as default
-  G4FFKEY.UseEMDModel=0;
+  G4FFKEY.IonPhysicsModel=13; 
+  G4FFKEY.UseEMDModel=1;
   G4FFKEY.SigTerm=0;
   G4FFKEY.ExEmPhysics=0;
   G4FFKEY.NeutronTkCut=0;

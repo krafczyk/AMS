@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.115 2014/02/06 15:47:59 ccorti Exp $
+//  $Id: geant4.C,v 1.116 2014/02/07 15:52:29 oliva Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -279,7 +279,7 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
 #include "G4ThreeVector.hh"
 #include "G4Element.hh"
 #include "G4NistManager.hh"
-#include "G4CrossSectionDataStore.hh"
+// #include "G4CrossSectionDataStore.hh"
 #include "G4HadronicInteraction.hh"
 #include "G4HadFinalState.hh"
 #include "G4HadProjectile.hh"
@@ -326,7 +326,6 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
     material->AddElement(target,1.);
     G4HadronicInteraction* model = process->GetManagerPointer()->GetHadronicInteraction(10*GeV,material,target); 
     cout << "Hadronic model @ Kn = 100 GeV/n is " << model->GetModelName() << endl;
-    G4CrossSectionDataStore* cross_section = process->GetCrossSectionDataStore();
     for (int irig=0; irig<=50; irig++) {
       // inealastic cross section  
       G4double rigidity = 0.1*pow(10,irig*(log10(10000)-log10(0.1))/50); 
@@ -335,7 +334,7 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
       G4DynamicParticle projectile(particle[iparticle],momentum_vector);
       G4double k = projectile.GetKineticEnergy();  
       G4double kn = k/Ap;
-      G4double XS = cross_section->GetCrossSection(&projectile,target,0);
+      G4double XS = process->GetMicroscopicCrossSection(&projectile,target,0);
       if ( (verbose<=1)||(Zp!=6)||(rigidity<5.)||(rigidity>500.) ) { 
         printf("(%2d,%2d)->(%2d,%2d) @ %10.3f GeV/c (%10.3f GeV/n) = %10.3f mbarn\n",Ap,Zp,At,Zt,momentum/GeV,kn/GeV,XS/millibarn);
         continue; 
