@@ -104,11 +104,23 @@ G4bool StrCS::IsApplicable
 }
 
 
+#if G4VERSION_NUMBER  > 945 
 G4bool StrCS::IsIsoApplicable(const G4DynamicParticle* theProjectile,
-                                             G4int ZZ, G4int AA){
-   bool result=strstr((const char *)(theProjectile->GetParticleDefinition()->GetParticleName()),"strangelet")!=0;
+                              G4int ZZ, G4int AA, const G4Element* elm, const G4Material* mat) {
+#else
+G4bool StrCS::IsIsoApplicable(const G4DynamicParticle* theProjectile,
+                              G4int ZZ, G4int AA){
+#endif
+  bool result=strstr((const char *)(theProjectile->GetParticleDefinition()->GetParticleName()),"strangelet")!=0;
   return result;
 }
+
+#if G4VERSION_NUMBER  > 945 
+G4double StrCS::GetIsoCrossSection(const G4DynamicParticle* theProjectile,
+                                   G4int ZZ, G4int AA, const G4Isotope* iso, const G4Element* elm, const G4Material* mat) {
+  return GetZandACrossSection(theProjectile,ZZ,AA,0);
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //

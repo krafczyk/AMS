@@ -70,8 +70,22 @@ class StrCS:  public G4VCrossSectionDataSet{
     virtual G4bool IsApplicable(const G4DynamicParticle* theProjectile,
       const G4Element* theTarget);
 
-    virtual G4bool IsIsoApplicable(const G4DynamicParticle* theProjectile,
+// >>> A. Oliva - compatibility with geant4.9.6
+#if G4VERSION_NUMBER  > 945 
+    virtual G4bool IsIsoApplicable(const G4DynamicParticle* theProjectile, 
+                                   G4int ZZ, G4int AA, 
+                                   const G4Element* elm = 0, const G4Material* mat = 0);
+#else
+    virtual G4bool IsIsoApplicable(const G4DynamicParticle* theProjectile, 
                                    G4int ZZ, G4int AA);
+#endif
+
+#if G4VERSION_NUMBER  > 945 
+    virtual G4double GetIsoCrossSection(const G4DynamicParticle* theProjectile, 
+                                        G4int ZZ, G4int AA, 
+                                        const G4Isotope* iso = 0, const G4Element* elm = 0, const G4Material* mat = 0);
+#endif
+// <<< A. Oliva - compatibility with geant4.9.6
 
     virtual G4double GetCrossSection(const G4DynamicParticle* theProjectile,
       const G4Element* theTarget, G4double theTemperature);
