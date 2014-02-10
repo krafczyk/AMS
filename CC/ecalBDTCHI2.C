@@ -14,6 +14,14 @@ TMVA::Reader *ecalBDTCHI2reader_E_v3_ODD = NULL;    //uses EnergyE for classific
 TMVA::Reader *ecalBDTCHI2reader_E_v3_EVEN = NULL;   //uses EnergyE for classification
 TMVA::Reader *ecalBDTCHI2readerS_E_v3_ODD = NULL;   //uses EnergyE for classification
 TMVA::Reader *ecalBDTCHI2readerS_E_v3_EVEN = NULL;  //uses EnergyE for classification
+TMVA::Reader *ecalBDTCHI2reader_v4_ODD = NULL;      //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2reader_v4_EVEN = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2readerS_v4_ODD = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2readerS_v4_EVEN = NULL;    //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2reader_E_v4_ODD = NULL;    //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalBDTCHI2reader_E_v4_EVEN = NULL;   //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalBDTCHI2readerS_E_v4_ODD = NULL;   //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalBDTCHI2readerS_E_v4_EVEN = NULL;  //uses GetCorrectedEnergy(2,2) for classification
 
 const unsigned int nPIBCHI2VARs = 44;
 float piBCHI2normvar[nPIBCHI2VARs + 1];
@@ -42,41 +50,41 @@ EcalAxis& EcalShowerR::SharedEcalAxis() { static EcalAxis myAxis; return myAxis;
 float EcalShowerR::GetEcalBDTCHI2()
 {
   AMSEventR *pev = AMSEventR::Head();
-  unsigned int iBDTVERSION = 3;
+  unsigned int iBDTCHI2VERSION = 4;
   int TMVAClassifier=0;
-  return GetEcalBDTCHI2(pev, iBDTVERSION, TMVAClassifier);
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
 }
 
-float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTVERSION)
+float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION)
 {
   AMSEventR *pev = AMSEventR::Head();
   int TMVAClassifier=0;
-  return GetEcalBDTCHI2(pev, iBDTVERSION, TMVAClassifier);
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
 }
 
-float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTVERSION, int TMVAClassifier)
+float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier)
 {
   AMSEventR *pev = AMSEventR::Head();
-  return GetEcalBDTCHI2(pev, iBDTVERSION, TMVAClassifier);
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
 }
 
-float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTVERSION, int TMVAClassifier, int EnergyFlag)
+float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag)
 {
   AMSEventR *pev = AMSEventR::Head();
-  return GetEcalBDTCHI2(pev, iBDTVERSION, TMVAClassifier, EnergyFlag);
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier, EnergyFlag);
 }
 
-float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTVERSION)
+float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 {
   int TMVAClassifier=0;
   int EnergyFlag=0;
-  return GetEcalBDTCHI2(pev, iBDTVERSION, TMVAClassifier);
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
 }
 
-float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTVERSION, int TMVAClassifier)
+float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier)
 {
   int EnergyFlag=0;
-  return GetEcalBDTCHI2(pev, iBDTVERSION, TMVAClassifier, EnergyFlag);
+  return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier, EnergyFlag);
 }
 
 float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag)
@@ -397,6 +405,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    float energyd = EnergyD/1000.;
    float classification_energy = energyd;
    if( iBDTCHI2VERSION==3 ) { if( EnergyFlag!=0) classification_energy=EnergyE; }
+   if( iBDTCHI2VERSION==4 ) { if( EnergyFlag!=0) classification_energy=GetCorrectedEnergy(2,2); }
    
    if (BCHI2_DEBUG) std::cout << " ??? BDT variables computed\n" << flush;
 
@@ -440,13 +449,30 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 ecalBDTCHI2readerS_E_EVEN = ecalBDTCHI2readerS_E_v3_EVEN;
        }
    }
+   else if ( iBDTCHI2VERSION == 4 )
+   {
+     if (TMVAClassifier==0)
+       {
+	 ecalBDTCHI2reader_ODD = ecalBDTCHI2reader_v4_ODD;
+	 ecalBDTCHI2reader_EVEN = ecalBDTCHI2reader_v4_EVEN;
+	 ecalBDTCHI2reader_E_ODD = ecalBDTCHI2reader_E_v4_ODD;
+	 ecalBDTCHI2reader_E_EVEN = ecalBDTCHI2reader_E_v4_EVEN;
+       }
+     else if (TMVAClassifier==1)
+       {
+	 ecalBDTCHI2readerS_ODD = ecalBDTCHI2readerS_v4_ODD;
+	 ecalBDTCHI2readerS_EVEN = ecalBDTCHI2readerS_v4_EVEN;
+	 ecalBDTCHI2readerS_E_ODD = ecalBDTCHI2readerS_E_v4_ODD;
+	 ecalBDTCHI2readerS_E_EVEN = ecalBDTCHI2readerS_E_v4_EVEN;
+       }
+   }
    else
    {
      if ( iVersionNumberBDTCHI2==0 )
        {
 	 cout<<" "<<endl;
 	 cout<<" ====================================================================="<<endl;
-	 cout<<" [ecalBDTCHI2] ATTENTION    only versions 1, 2 and 3 of BDTCHI2 supported"<<endl;
+	 cout<<" [ecalBDTCHI2] ATTENTION    only versions 1, 2, 3 and 4 of BDTCHI2 supported"<<endl;
 	 cout<<" [ecalBDTCHI2] ATTENTION    you have called it with version "<<iBDTCHI2VERSION<<endl;
 	 cout<<" [ecalBDTCHI2] ATTENTION    BDT will be set to -999 for all entries!!!"<<endl;
 	 cout<<" ====================================================================="<<endl;
@@ -460,7 +486,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    bool InitReader = false;
    if (iBDTCHI2VERSION<2 && ecalBDTCHI2reader==NULL) InitReader=true;
    else if( iBDTCHI2VERSION==2 && ecalBDTCHI2reader_v2_ODD==NULL) InitReader=true; 
-   else if(  iBDTCHI2VERSION==3 )
+   else if(  iBDTCHI2VERSION>=3 )
      {
         if(TMVAClassifier==0)   
 	 {
@@ -483,6 +509,10 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 std::cout << "                TMVAClassifier type: "<<TMVAClassifier          << std::endl;
 	 std::cout << "                Classification Energy: "<<Form("%s",EnergyFlag==0?"EnergyD":"EnergyE")         << std::endl;
        }
+       if ( iBDTCHI2VERSION==4 ){
+	 std::cout << "                TMVAClassifier type: "<<TMVAClassifier          << std::endl;
+	 std::cout << "                Classification Energy: "<<Form("%s",EnergyFlag==0?"EnergyD":"GetCorrectedEnergy(2,2)")         << std::endl;
+       }
        std::cout << "##############################################################" << std::endl;
 
        // 
@@ -490,7 +520,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
        char WeightsDir_v3[100];
        sprintf(WeightsDir,"%s/v5.00", getenv("AMSDataDir"));
        sprintf(WeightsDir_v3,"%s/v5.00", getenv("AMSDataDir"));
-       //sprintf(WeightsDir_v3,"/afs/cern.ch/user/i/incaglim/public/bdt-marco/WEIGHTS/BDT5");
+       //sprintf(WeightsDir_v3,"/afs/cern.ch/user/i/incaglim/public/bdt-marco/WEIGHTS");
        //sprintf(WeightsDir,"/afs/cern.ch/user/i/incaglim/public/bdt-marco/WEIGHTS");
        //
        if ( iBDTCHI2VERSION == 1 )
@@ -651,7 +681,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_EVEN->BookMVA("BDTG_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_412_v2_EVEN.weights.xml", WeightsDir));
 	   ecalBDTCHI2reader_v2_EVEN = ecalBDTCHI2reader_EVEN;
 	 }
-       if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 0 && EnergyFlag==0 )
+       if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 0 && EnergyFlag==0 )
 	 {
 	   ecalBDTCHI2reader_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
@@ -749,13 +779,25 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2reader_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2reader_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	   ecalBDTCHI2reader_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	
-	   ecalBDTCHI2reader_v3_ODD = ecalBDTCHI2reader_ODD;
-	   ecalBDTCHI2reader_v3_EVEN = ecalBDTCHI2reader_EVEN;
+	   ecalBDTCHI2reader_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_%d_v%dfinal_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   ecalBDTCHI2reader_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_%d_v%dfinal_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   if ( iBDTCHI2VERSION == 3 )
+	     {
+	       ecalBDTCHI2reader_v3_ODD = ecalBDTCHI2reader_ODD;
+	       ecalBDTCHI2reader_v3_EVEN = ecalBDTCHI2reader_EVEN;
+	     }
+	   else if ( iBDTCHI2VERSION == 4 )
+	     {
+	       ecalBDTCHI2reader_v4_ODD = ecalBDTCHI2reader_ODD;
+	       ecalBDTCHI2reader_v4_EVEN = ecalBDTCHI2reader_EVEN;
+	     }
+	   else
+	     {           
+	       cout<<" BDTCHI2 reader NOT initialized; error in version number. iBDTCHI2VERSION = "<<iBDTCHI2VERSION<<endl;
+	     }
+	   //
 	 }
-       if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 1 && EnergyFlag==0 )
+       if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 1 && EnergyFlag==0 )
 	 {
 	   ecalBDTCHI2readerS_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2readerS_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
@@ -853,13 +895,25 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2readerS_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2readerS_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2readerS_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	   ecalBDTCHI2readerS_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	
-	   ecalBDTCHI2readerS_v3_ODD = ecalBDTCHI2readerS_ODD;
-	   ecalBDTCHI2readerS_v3_EVEN = ecalBDTCHI2readerS_EVEN;
+	   ecalBDTCHI2readerS_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_%d_v%dfinal_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   ecalBDTCHI2readerS_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_%d_v%dfinal_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   if ( iBDTCHI2VERSION == 3 )
+	     {
+	       ecalBDTCHI2readerS_v3_ODD = ecalBDTCHI2readerS_ODD;
+	       ecalBDTCHI2readerS_v3_EVEN = ecalBDTCHI2readerS_EVEN;
+	     }
+	   else if ( iBDTCHI2VERSION == 4 )
+	     {
+	       ecalBDTCHI2readerS_v4_ODD = ecalBDTCHI2readerS_ODD;
+	       ecalBDTCHI2readerS_v4_EVEN = ecalBDTCHI2readerS_EVEN;
+	     }
+	   else
+	     {           
+	       cout<<" BDTCHI2 reader NOT initialized; error in version number. iBDTCHI2VERSION = "<<iBDTCHI2VERSION<<endl;
+	     }
+	   //
 	 }
-        if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 0 && EnergyFlag==1 )
+        if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 0 && EnergyFlag==1 )
 	 {
 	   ecalBDTCHI2reader_E_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2reader_E_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
@@ -957,13 +1011,25 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2reader_E_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2reader_E_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2reader_E_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_E_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	   ecalBDTCHI2reader_E_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_E_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	
-	   ecalBDTCHI2reader_E_v3_ODD = ecalBDTCHI2reader_E_ODD;
-	   ecalBDTCHI2reader_E_v3_EVEN = ecalBDTCHI2reader_E_EVEN;
+	   ecalBDTCHI2reader_E_ODD->BookMVA("BDTCHI2G_LAYERS_ODD", Form("%s/ECAL_PISA_BDTCHI2_E_%d_v%dfinal_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   ecalBDTCHI2reader_E_EVEN->BookMVA("BDTCHI2G_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTCHI2_E_%d_v%dfinal_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   if ( iBDTCHI2VERSION == 3 )
+	     {
+	       ecalBDTCHI2reader_E_v3_ODD = ecalBDTCHI2reader_E_ODD;
+	       ecalBDTCHI2reader_E_v3_EVEN = ecalBDTCHI2reader_E_EVEN;
+	     }
+	   else if ( iBDTCHI2VERSION == 4 )
+	     {
+	       ecalBDTCHI2reader_E_v4_ODD = ecalBDTCHI2reader_E_ODD;
+	       ecalBDTCHI2reader_E_v4_EVEN = ecalBDTCHI2reader_E_EVEN;
+	     }
+	   else
+	     {           
+	       cout<<" BDTCHI2 reader NOT initialized; error in version number. iBDTCHI2VERSION = "<<iBDTCHI2VERSION<<endl;
+	     }
+	   //
 	 }
-       if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 1 && EnergyFlag==1 )
+       if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 1 && EnergyFlag==1 )
 	 {
 	   ecalBDTCHI2readerS_E_ODD = new TMVA::Reader("Color:Silent");
 	   ecalBDTCHI2readerS_E_ODD->AddSpectator("EnergyD", &piBCHI2normvar[nPIBCHI2VARs]);
@@ -1061,11 +1127,23 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   ecalBDTCHI2readerS_E_EVEN->AddVariable("LayerChi216",     &piBCHI2normvar[ivar++]);
 	   ecalBDTCHI2readerS_E_EVEN->AddVariable("LayerChi217",     &piBCHI2normvar[ivar++]);
 	   //
-	   ecalBDTCHI2readerS_E_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_E_%d_v3final_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	   ecalBDTCHI2readerS_E_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_E_%d_v3final_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER));
-	
-	   ecalBDTCHI2readerS_E_v3_ODD = ecalBDTCHI2readerS_E_ODD;
-	   ecalBDTCHI2readerS_E_v3_EVEN = ecalBDTCHI2readerS_E_EVEN;
+	   ecalBDTCHI2readerS_E_ODD->BookMVA("BDTCHI2S_LAYERS_ODD", Form("%s/ECAL_PISA_BDTSCHI2_E_%d_v%dfinal_ODD.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   ecalBDTCHI2readerS_E_EVEN->BookMVA("BDTCHI2S_LAYERS_EVEN", Form("%s/ECAL_PISA_BDTSCHI2_E_%d_v%dfinal_EVEN.weights.xml", WeightsDir_v3,ECALBCHI2_TMVAVER,iBDTCHI2VERSION));
+	   if ( iBDTCHI2VERSION == 3 )
+	     {
+	       ecalBDTCHI2readerS_E_v3_ODD = ecalBDTCHI2readerS_E_ODD;
+	       ecalBDTCHI2readerS_E_v3_EVEN = ecalBDTCHI2readerS_E_EVEN;
+	     }
+	   else if ( iBDTCHI2VERSION == 4 )
+	     {
+	       ecalBDTCHI2readerS_E_v4_ODD = ecalBDTCHI2readerS_E_ODD;
+	       ecalBDTCHI2readerS_E_v4_EVEN = ecalBDTCHI2readerS_E_EVEN;
+	     }
+	   else
+	     {           
+	       cout<<" BDTCHI2 reader NOT initialized; error in version number. iBDTCHI2VERSION = "<<iBDTCHI2VERSION<<endl;
+	     }
+	   //
 	 }
      }
 
@@ -1494,7 +1572,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
        piBCHI2normvar[ivar++] = energyd;
 
      }
-   else if ( iBDTCHI2VERSION == 3 )
+   else if ( iBDTCHI2VERSION >= 3 )
      {
        //********************************
        //*****Normalize the Variables****
@@ -1736,7 +1814,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   bdt = ecalBDTCHI2reader_EVEN->EvaluateMVA("BDTG_LAYERS_EVEN");
 	 }
      }
-   else if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 0 && EnergyFlag == 0 )
+   else if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 0 && EnergyFlag == 0 )
      {
        if ( pev->Event()%2 == 1 ) 
 	 {
@@ -1747,7 +1825,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   bdt = ecalBDTCHI2reader_EVEN->EvaluateMVA("BDTCHI2G_LAYERS_EVEN");
 	 }
      }
-   else if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 1  && EnergyFlag == 0 )
+   else if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 1  && EnergyFlag == 0 )
      {
        if ( pev->Event()%2 == 1 ) 
 	 {
@@ -1758,7 +1836,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   bdt = ecalBDTCHI2readerS_EVEN->EvaluateMVA("BDTCHI2S_LAYERS_EVEN");
 	 }
      }
-    else if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 0 && EnergyFlag == 1 )
+    else if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 0 && EnergyFlag == 1 )
      {
        if ( pev->Event()%2 == 1 ) 
 	 {
@@ -1769,7 +1847,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	   bdt = ecalBDTCHI2reader_E_EVEN->EvaluateMVA("BDTCHI2G_LAYERS_EVEN");
 	 }
      }
-   else if ( iBDTCHI2VERSION == 3 && TMVAClassifier == 1  && EnergyFlag == 1 )
+   else if ( iBDTCHI2VERSION >= 3 && TMVAClassifier == 1  && EnergyFlag == 1 )
      {
        if ( pev->Event()%2 == 1 ) 
 	 {
@@ -1781,81 +1859,6 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
      }
    else bdt=-999.;
-
-   /*
-   //
-   //Normalization of smoothed bdt
-   
-   if (TMVAClassifier==1)
-     {
-       // 1 jun 2013: apply output correction for smoothed version (TMVAClass=1)
-       //
-       // training done in Energy
-       const int nCat=13;
-       float EnergyEBin[nCat] = 
-	 {   0.5,    2.05,   5.60, 10.28,  15.43,
-	     20.3,   30.76,  41.76, 51.94,  73.51,
-	     102.47, 150.53, 263.57 };
-       float scaleE[nCat] = 
-	 { 2.000, 1.363, 0.833, 0.750, 0.714,
-	   0.789, 0.682, 0.769, 0.714, 0.769, 
-	   0.937, 0.968, 1.200 };
-       float BDTmeanE[nCat] = 
-	 { -0.04, -0.01,  0.01, -0.01, -0.01,
-	   -0.01, -0.03, -0.02,  0.01, -0.06,
-	   -0.05, -0.10, -0.04 };
-       float BDTmipE[nCat] = 
-	 { -0.59, -0.27, -0.25, -0.19, -0.11,
-	   -0.15, -0.09, -0.19, -0.03, -0.09,
-	   -0.23, -0.35, -0.35 };
-       float EnergyDBin[nCat] = 
-	 {   0.5,    2.,   5., 10., 15.,
-	     20.,   30.,  40., 50., 70.,
-	     100.,  150., 250. };
-       float scaleD[nCat] = 
-	 { 2.000, 1.200, 0.857, 0.714, 0.667,
-	   0.750, 0.682, 0.714, 0.667, 0.714, 
-	   0.789, 0.857, 1.200 };
-       float BDTmeanD[nCat] = 
-	 {  -0.04,  0.00,  0.00, -0.01, -0.02,
-	     0.01,  0.01, -0.01,  0.02, -0.13,
-	    -0.07, -0.02, -0.49 };
-       float BDTmipD[nCat] = 
-	 { -0.55, -0.19, -0.13, -0.11, -0.09,
-	   -0.11, -0.05,  0.17,  0.05, -0.03,
-	   -0.11, -0.23, -0.49 };
-
-       float cut = -0.02+0.17*log(energyd)+8.7e-4*pow((double)log(energyd),4.00);
-       cut = cut>0.1?cut:0.1;
-       float shift;
-       int LoopCheck=-1;
-
-       for (int j=nCat-1;j>=0;j--)
-	 {
-	   //here use energyD
-	   if ( EnergyFlag == 0 )
-	     {
-	       if (energyd>EnergyDBin[j] && LoopCheck<0)
-		 {
-		   shift = F2SLEneDep>cut?BDTmeanD[j]:BDTmipD[j];
-		   //cout<<Form(" Energybin, energyd, cut, bdt, shift = %d %f %f %f %f",j,energyd,cut,bdt,shift);
-		   bdt = scaleD[j]*(bdt-shift);
-		   //cout<<" Corrected bdt = "<<bdt<<endl;
-		   LoopCheck=1;
-		 }
-	     }
-	   //EnergyE 
-	   else
-	     {
-	       if (EnergyE>EnergyEBin[j] && LoopCheck<0)
-		 {
-		   shift = F2SLEneDep>cut?BDTmeanE[j]:BDTmipE[j];
-		   bdt = scaleE[j]*(bdt-shift);
-		 }
-	     }
-	 }
-     }//end of output normalization   
-   */
 
    return bdt;
 }
