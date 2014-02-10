@@ -12,7 +12,8 @@
 #include "G4VCrossSectionDataSet.hh"
 #include "G4Element.hh" 
 #include "G4Material.hh"
-
+#include "G4Version.hh"
+ 
 class G4IonsHEAOCrossSection : public G4VCrossSectionDataSet
 {
   public:

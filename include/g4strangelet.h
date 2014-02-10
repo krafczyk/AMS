@@ -25,6 +25,7 @@
 #include "G4HadProjectile.hh"
 #include "G4Material.hh"
 #include "G4Element.hh"
+#include "G4Version.hh"
 class TF1;
 class G4StrangeletP : public G4VDiscreteProcess {
     public:
