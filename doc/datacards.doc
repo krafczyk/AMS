@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.419 2014/02/07 15:52:29 oliva Exp $
+#  $Id: datacards.doc,v 1.420 2014/02/11 14:45:55 bbeische Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -737,30 +737,30 @@ I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
 
 TRDMC   
-I1 mode(1)        //0: saveliev-GenerTransportIoniz
-                  //1: saveliev-GenerTransport  pai-Ioniz
-                  //2: saveliev-Gener pai-TransportIoniz
-                  //3: gaibyan-Gener pai-TransportIoniz
-I2 g3trd        // g3identifier for trd aware media
+I1 mode(1)                  // 0: saveliev-GenerTransportIoniz
+                            // 1: saveliev-GenerTransport  pai-Ioniz
+                            // 2: saveliev-Gener pai-TransportIoniz
+                            // 3: gaibyan-Gener pai-TransportIoniz
+I2 g3trd                    // g3identifier for trd aware media
 R3 cor
 R4 alpha
 R5 beta
-R6   ped(355)       // pedestals 
-R7   pedsigma(102)       // sigma
-R8   sigma(6)       // sigma
-R9   gain(1)        //gain
+R6   ped(355)               // pedestals 
+R7   pedsigma(102)          // sigma
+R8   sigma(6)               // sigma
+R9   gain(1)                // gain
 R10   cmn(16)
-R11   f2i(8)         // float to int convertor in raw format
-I12   adcoverflow(4095)    // 12 bit adc 
+R11   f2i(8)                // float to int convertor in raw format
+I12   adcoverflow(4095)     // 12 bit adc 
 I13   NoiseOn(1)            // Generate(1) do not generate(0) noise in trd
 R14   GeV2ADC(1e8/3*1.39)   // conversion factor from GeVs to ADC counts
-R15   Thr1R(3.5)    // in sigmas
-I16   GenerateConst(0) // generate/not generate trd const
-R17   NoiseLevel(0.01)  // fraction of noisy channels
-R18   DeadLevel(0.01)      //  fraction of dead channels
+R15   Thr1R(3.)             // in sigmas
+I16   GenerateConst(0)      // generate/not generate trd const
+R17   NoiseLevel(0.01)      // fraction of noisy channels
+R18   DeadLevel(0.01)       // fraction of dead channels
 I19   sec[2](0,0)           // 
 I21   min[2](0,0)           //
-I23   hour[2](0,0)          // Validity time
+I23   hour[2](0,0)          // validity time
 I25   day[2](1,1)           //
 I27   mon[2](0,0)           //
 I29   year[2](101,110)
@@ -769,14 +769,14 @@ R32   Gdens(0.00446)        // Tube Gas density (in g/cm3)
 R33   Pecut(-0.65)          // Pecut in amsut
 R34   ntrcor(1.4)           // correction factor to n tr gammas
 R35   etrcor(1.2)           // correction factor to mean energy of tr gammas
-R36   ndecor(0.85)           // correction factor to number of ion collisions
+R36   ndecor(0.85)          // correction factor to number of ion collisions
 R37   edecor(1.0)           // correction factor to mean energy loss per collision
 R38   Tmean(287.15)	    // mean temperature in TRD in kelvin
 R39   Pmean(927.0);	    // mean pressure in TRD in mbar
 R40   FibreDiam(12.);	    // mean fibre diameter in um
 R41   RadThick(20.);	    // mean radiator thickness in mm
 R42   AlphaFibre(5.);	    // alpha fibre of radiator
-R43   AlphaGas(0.66);        // alpha gas of radiator
+R43   AlphaGas(0.66);       // alpha gas of radiator
 I44   FleeceGas(1);	    // fleece gas - 0:Air 1:Galactic
 R45   XenonFraction(0.89);  // volume fraction of xenon gas
 R46   ArgonFraction(0.0);   // volume fraction of argon gas
@@ -786,7 +786,9 @@ I49   PAIModel(1);	    // enable PAI Model
 I50   debug(0); 	    // debug flag
 I51   CreatePDF(0)          // create or not pdf function
 R52   TRphotonEnergyScalingFactor(0.80)  // factor to scale energy of TR photons
-R53   ZShift;(0.01)        //  TRD Global Shift
+R53   ZShift(0.1);          //  TRD Global Shift in cm
+R54   MinSigma(3.);         // minimum sigma used in TRD digi data reduction
+R55   MaxSigma(5.);         // maximum sigma used in TRD digi data reduction
 TRDCL   // TRD clustering
 
 R1 ADC2KeV;         //

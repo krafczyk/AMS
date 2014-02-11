@@ -1,4 +1,4 @@
-// $Id: TrdMcDatacards.h,v 1.3 2013/11/07 12:55:50 choutko Exp $
+// $Id: TrdMcDatacards.h,v 1.4 2014/02/11 14:45:55 bbeische Exp $
 #ifndef TrdMcDatacards_h
 #define TrdMcDatacards_h
 
@@ -73,10 +73,12 @@ public:
   int CreatePDF;
   float TRphotonEnergyScalingFactor;
   float ZShift;
+  float MinSigma;
+  float MaxSigma;
   void init();
   TRDMCFFKEY_DEF():TObject(){init();}
 #ifdef _PGTRACK_
-  ClassDef(TRDMCFFKEY_DEF,2);
+  ClassDef(TRDMCFFKEY_DEF,3);
 #endif
 };
 

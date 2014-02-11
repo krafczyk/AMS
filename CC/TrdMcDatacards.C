@@ -1,4 +1,4 @@
-// $Id: TrdMcDatacards.C,v 1.4 2013/11/07 14:44:17 traiha Exp $
+// $Id: TrdMcDatacards.C,v 1.5 2014/02/11 14:45:55 bbeische Exp $
 #include "TrdMcDatacards.h"
 #include <math.h>
 #include <float.h>
@@ -27,7 +27,7 @@ void TRDMCFFKEY_DEF::init(){
   //GeV2ADC=1.e8;
   // changed vc 22-dec-2009
   GeV2ADC=1.e8/3 * 1.39;
-  Thr1R=3.5;
+  Thr1R=3.0;
   sec[0]=0;
   sec[1]=0;
   min[0]=0;
@@ -65,6 +65,8 @@ void TRDMCFFKEY_DEF::init(){
   debug=0;
   TRphotonEnergyScalingFactor=0.80;
   ZShift=0.1; // TR 07-nov-2013: TRD shifted upwards 1 mm instead of previous 0.1 mm
+  MinSigma=3.;
+  MaxSigma=5.;
 }
 
 TRDMCFFKEY_DEF TRDMCFFKEY;
