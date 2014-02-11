@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.194 2014/02/11 18:47:20 choutko Exp $
+//  $Id: mceventg.C,v 1.195 2014/02/11 18:54:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -694,7 +694,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           HPRINT(_hid);
     }
     else if (low%1000==11){//Natural Spectrum
-      integer nchan=120000;
+      integer nchan=100000;
       geant binw;
       if(mass < 0.938)binw=100;
       else  binw=100*mass/0.938;
@@ -713,10 +713,14 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
        else if(opt==1){
         if(ipart>=47)option="parabolic";
        }  
+      double xmin=1e30;
+      double xmax=0;
       for (int k=0;k<nchan;k++){
        int error=0;
        float mom_mev=(binw/2+k*binw);
        double r=NaturalFlux(ipart,mom_mev/charge/1000,option.c_str(),error);
+       if(r>xmax)xmax=r;
+       if(r<xmin && r>0)xmin=r;
        HF1(_hid,mom_mev,float(r));
        HF1(_hid+1,mom_mev,float(r));
        AMSEventR::hf1(_hid,mom_mev,r);
@@ -724,6 +728,13 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
          cerr<<"AMSmceventg::setspectra-F-NotImplementedYet "<<error<<" "<<ipart<<" "<<mom_mev<<endl;
          abort();
        }
+      }
+      double rat=xmax/xmin;
+      if(rat>2000000000){
+         cerr<<"AMSmceventg::setspectra-E-SpectralRatioTooBig "<<xmax<<" "<<xmin<<" "<<rat<<endl;
+      }
+      else{
+         cout<<"AMSmceventg::setspectra-I-SpectralRatioOK "<<xmax<<" "<<xmin<<" "<<rat<<endl;
       }
     }
     else if (low==0 || !(GMFFKEY.GammaSource==0)){//ISN
