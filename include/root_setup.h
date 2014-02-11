@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.95 2014/01/29 17:48:17 choutko Exp $
+//  $Id: root_setup.h,v 1.96 2014/02/11 18:09:25 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -850,7 +850,7 @@ static int _select (const dirent64 * entry);
  bool FillHeader(uinteger run); //fillHeader at run start by database
  bool FillSlowcontrolDB( string & file);
  int LoadExt();
- void getSlowControlFilePath( string & file);
+ time_t getSlowControlFilePath( string & file);
  void updateSlowControlFilePath( string & file);
  bool LoadSlowcontrolDB(const char *file, int verb=0);
  int UpdateHeader(AMSEventR* ev);

@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.81 2014/01/26 14:49:55 choutko Exp $
+//  $Id: amschain.C,v 1.82 2014/02/11 18:09:23 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -992,7 +992,7 @@ void AMSEventList::Write(AMSChain* chain,const char * outfilename){
   cout <<"AMSEventList::ExtractFromDirs-I- Event int the chain are "<<max<<endl;
   chain->Rewind();
   for( ull  jj=0;jj< max ;jj++){
-    if(jj%ff==0) printf("AMSEventList::ExtractFromDirs-I- Done %2d %7d out of %d \n",jj/ff*grain,jj,max);
+    if(jj%ff==0) printf("AMSEventList::ExtractFromDirs-I- Done %2d %7d out of %u \n",jj/ff*grain,jj,max);
     AMSEventR*  ev=chain->GetEvent();
     if (ev &&  Contains(ev) ){
       chain->SaveCurrentEvent();
@@ -1001,7 +1001,7 @@ void AMSEventList::Write(AMSChain* chain,const char * outfilename){
 	     , ev->Run(), ev->Event());
     }
   }
-  printf("AMSEventList found %d events out of %d\n",found,GetEntries());
+  printf("AMSEventList found %u events out of %d\n",found,GetEntries());
   chain->CloseOutputFile();
   return;
 };

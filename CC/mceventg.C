@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.192 2014/01/30 20:44:46 choutko Exp $
+//  $Id: mceventg.C,v 1.193 2014/02/11 18:09:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -2536,6 +2536,12 @@ double AMSmceventg::NaturalFlux(int gpid, double trueRigidity, const char *  acc
 //  error = 2 no such acceptance 
 error=0;
 double ret=0;
+double par[2]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
+double xr[2]={0.412,27};
+double rm=par[0]+par[1]*xr[1]+par[2]*xr[1]*xr[1];
+double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
+if(fac<0)fac=0;
+fac/=rm;
 if(gpid>=47 && gpid<=69){ // He to O Geant ID
 
            if( strcmp(acceptance,"flat")==0 )
@@ -2569,7 +2575,7 @@ if(gpid>=61 && gpid<=66) {  // Secondaries
   ret*=par[0]*(x/(x-par[1]))*pow(x-par[1],par[2])+par[3];
 
 }
-return ret;
+return ret*fac;
 }
 else{
          cerr<<"AMSmceventg::NaturalFlux-E-UndefinedParticle="<<gpid<<endl;

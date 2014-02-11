@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.150 2014/01/29 17:48:09 choutko Exp $
+//  $Id: root_setup.C,v 1.151 2014/02/11 18:09:23 choutko Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -353,7 +353,14 @@ if(verb)fSlowControl.print();
 int AMSSetupR::LoadExt(){
 if(!SlowControlR::ReadFromExternalFile)return -1;
 string slc;
-getSlowControlFilePath(slc);
+time_t gettime=getSlowControlFilePath(slc);
+if(gettime<1200000000 || gettime> 2100000000){
+ cerr<<"AMSSetupR::LoadExt-W-EventTimeoutOfRange "<<gettime<<endl;
+ if( AMSEventR::nMCEventgC()){
+cerr<<"AMSSetupR::LoadExt-W-DisablingReadFromExternalfileForMC "<<endl;
+SlowControlR::ReadFromExternalFile=false;
+}
+}
 return LoadSlowcontrolDB(slc.c_str())?0:1;
 }
 
@@ -858,7 +865,7 @@ void AMSSetupR::updateSlowControlFilePath(string & slc){
 }
 
 
-void AMSSetupR::getSlowControlFilePath(string & slc){
+time_t AMSSetupR::getSlowControlFilePath(string & slc){
 //#ifndef __ROOTSHAREDLIBRARY__
 // check first if needed file exists in 
 //
@@ -994,6 +1001,7 @@ slc+="/SlowControlDir";
 //         slc+=tmps;
           cout <<"AMSSetupR::getslowcontrolfilepath-I-"<<slc<<endl;                    
 //#endif
+return t1;
 }
 #ifndef __ROOTSHAREDLIBRARY__
 bool AMSSetupR::FillSlowcontrolDB(string & slc){

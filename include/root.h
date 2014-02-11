@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.596 2014/02/07 09:03:31 shaino Exp $
+//  $Id: root.h,v 1.597 2014/02/11 18:09:25 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -5003,7 +5003,7 @@ int   nRichMCCluster()const { return fHeader.RichMCClusters;} ///< \return numbe
 int   nMCTrack()const { return fHeader.MCTracks;} ///< \return number of MCTrackR elements (fast)
 ///
 int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEventgR elements (fast)
-bool   nMCEventgC();
+static bool   nMCEventgC();
 ///
 int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEventgR elements (fast)
 ///
