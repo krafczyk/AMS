@@ -252,15 +252,15 @@ int TrClusterR::GetSeedIndex(int opt) {
 float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_on_Z, int res_mult) {
   // total signal with signal corrections
   float sum = 0.;
-  // for (int ii=0; ii<GetNelem(); ii++) {
-  //   float signal = GetSignal(ii,opt);
-  //   if (signal>0) sum += signal;
-  // }
-  for (int ii=0; ii<GetNelem(); ii++) { 
-    float signal = GetSignal(ii,TrClusterR::kAsym); 
-    if (signal>0) sum += signal; 
-  } 
-  if (kGain&opt) sum = TrGainDB::GetHead()->GetGainCorrected(sum,GetTkId(),int(GetSeedAddress()/64));
+  for (int ii=0; ii<GetNelem(); ii++) {
+    float signal = GetSignal(ii,opt);
+    if (signal>0) sum += signal;
+  }
+  // for (int ii=0; ii<GetNelem(); ii++) { 
+  //   float signal = GetSignal(ii,TrClusterR::kAsym); 
+  //   if (signal>0) sum += signal; 
+  // } 
+  // if (kGain&opt) sum = TrGainDB::GetHead()->GetGainCorrected(sum,GetTkId(),int(GetSeedAddress()/64));
   // old correction scheme
   if (kOld&opt) {
     // if (kLoss&opt) sum *= GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle()); // correction no longer in use
