@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.193 2014/02/11 18:09:23 choutko Exp $
+//  $Id: mceventg.C,v 1.194 2014/02/11 18:47:20 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -2536,7 +2536,7 @@ double AMSmceventg::NaturalFlux(int gpid, double trueRigidity, const char *  acc
 //  error = 2 no such acceptance 
 error=0;
 double ret=0;
-double par[2]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
+double par[3]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
 double xr[2]={0.412,27};
 double rm=par[0]+par[1]*xr[1]+par[2]*xr[1]*xr[1];
 double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
