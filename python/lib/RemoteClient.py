@@ -3377,15 +3377,13 @@ class RemoteClient:
                                         path = '/MC'
                                     else:
                                         path = '/Data'   
+                                    castortime = 0
                                     (outputpatha, rstatus, odisk, castortime) = self.doCopy(jobid, dstfile, ntcrc, version, outputpath, path)
                                     outputpath = outputpatha
                                     if (outputpath != None):
                                         mvntuples.append(outputpath)
                                     output.write("doCopy return status : %d \n" %(rstatus))
                                     if (rstatus == 1):
-                                        castortime = 0
-                                        if (re.match("^/castor", outputpath) or re.match("^/castor", dstfile)):
-                                            castortime = int(time.time())
                                         if (castortime == 0):
                                             castorPrefix = '/castor/cern.ch/ams';
                                             junk = outputpath.split("/")
