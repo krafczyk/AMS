@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.170 2014/01/03 17:20:05 ams Exp $
+# $Id: Monitor.pm,v 1.171 2014/02/12 09:39:18 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1198,7 +1198,7 @@ sub PNtupleSort{
      if($smartsize>10000){
         $smartsize=int($smartsize/1024/1024+0.5);
     }
-          push @text, $hash->{Run}, $hash->{Insert},$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$smartsize,$hash->{Status},$hash->{Type};
+          push @text, $hash->{Run}, $hash->{Insert},$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$smartsize,$hash->{Status},$hash->{Type},$hash->{crc},$hash->{EventNumber};
           push @output, [@text];   
       }
     }elsif( $name eq "Run"){
@@ -1447,6 +1447,8 @@ sub sendback{
         $nc{size}=shift @data;
         $nc{Status}=shift @data;
         $nc{Type}=shift  @data;
+        $nc{crc}=shift @data;
+        $nc{EventNumber}=shift @data;
         my $arsref;
                 my %cid=%{$ref->{cid}};
         foreach $arsref (@{$ref->{arpref}}){

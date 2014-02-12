@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.822 2014/02/12 09:32:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.823 2014/02/12 09:39:18 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19910,7 +19910,7 @@ sub UploadToCastor{
          else{
              $found=1;
          }
-         my $sys=$rfcp.$ntuple->[0]." $castor";
+         $sys=$rfcp.$ntuple->[0]." $castor";
          if($found){
              $sys="echo $castor ";
          }

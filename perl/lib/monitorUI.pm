@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.66 2013/12/02 13:30:09 ams Exp $
+#  $Id: monitorUI.pm,v 1.67 2014/02/12 09:39:18 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1359,6 +1359,8 @@ sub show_sample{
         "Size",
         "Status",
         "Type",
+         "CRC",
+         "EventNumber", 
                  );
     }elsif( $name eq "Run"){
         $#titles=-1;

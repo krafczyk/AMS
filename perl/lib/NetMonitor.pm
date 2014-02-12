@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.74 2013/12/25 19:21:08 ams Exp $
+# $Id: NetMonitor.pm,v 1.75 2014/02/12 09:39:18 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -8,6 +8,7 @@ use DBI;
 use POSIX  qw(strtod);
 @NetMonitor::EXPORT=qw(new Run); 
 $ENV{AMISERVER} = "http://pcamsj2.cern.ch:8081";
+$ENV{ROOTSYS} = "/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64";
 use lib::DirMonitor;
 
 sub new{
@@ -24,7 +25,7 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcposc1','pcamsf3','pcamsn0','amsvobox11','amsvobox01','amsvobox02','scamsnd5','amsvobox05','amsvobox06','amsvobox07','amsvobox10','amsvobox13','amsvobox14','pcamsf9','pcamsp1','pcamsf7','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
+  excluded=>['amsvobox03','amsvobox04','amsvobox12','pcposc1','pcamsf3','pcamsn0','amsvobox11','amsvobox01','amsvobox02','scamsnd5','amsvobox05','amsvobox06','amsvobox07','amsvobox10','amsvobox13','amsvobox14','pcamsf9','pcamsp1','pcamsf7','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
   sbhost=>'pcamss0',
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
@@ -271,7 +272,7 @@ my $period = '';
 #	    $self->sendmailpolicy("slow_database_last_update_time_too_far_in_the_past:-$delta\n",0);
             }
         close TIME;
-        unlink "/tmp/checkami";
+#        unlink "/tmp/checkami";
         } 
     if (($period++) == 30){
         $period = 1;
