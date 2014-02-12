@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.821 2014/01/31 20:55:05 bshan Exp $
+# $Id: RemoteClient.pm,v 1.822 2014/02/12 09:32:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19882,7 +19882,38 @@ sub UploadToCastor{
          my $sys="/usr/bin/nsmkdir -p $junk3[0]";
         #  system($sys);
      }
+
+#check if file already on place
+          my $found=0;       
+          my $ctmp="/tmp/castor.tmp";
+          my $ltmp="/tmp/local.tmp";
+          my $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
+          system($sys);
+          $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          my $res=system($sys);
+          if($res){
+              print "problem with $sys \n";
+          }
+                 open(FILE,"<$ctmp") or die "Unable to open $ctmp \n";
+                 my $line_c = <FILE>;
+                 close FILE;
+               open(FILE,"<$ltmp") or die "Unable to open $ltmp \n";
+                 my $line_l = <FILE>;
+                 close FILE;
+                 unlink $ctmp;
+                 unlink $ltmp;
+                 my @size_l= split ' ',$line_l;
+                 my @size_c= split ' ',$line_c;
+                 if(($#size_c<4 or not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
+                     system("rfrm $castor");
+                 }
+         else{
+             $found=1;
+         }
          my $sys=$rfcp.$ntuple->[0]." $castor";
+         if($found){
+             $sys="echo $castor ";
+         }
          my $i=system($sys);
          if($i){
           $suc=0;
