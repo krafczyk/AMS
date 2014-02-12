@@ -3384,7 +3384,7 @@ class RemoteClient:
                                     output.write("doCopy return status : %d \n" %(rstatus))
                                     if (rstatus == 1):
                                         castortime = 0
-                                        if (re.match("^/castor", outputpath)):
+                                        if (re.match("^/castor", outputpath) or re.match("^/castor", dstfile)):
                                             castortime = int(time.time())
                                         if (castortime == 0):
                                             castorPrefix = '/castor/cern.ch/ams';
