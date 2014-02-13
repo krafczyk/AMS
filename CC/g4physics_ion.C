@@ -101,7 +101,7 @@ void IonDPMJETPhysics::ConstructProcess()
     G4EMDissociation *theEMD = new G4EMDissociation();
     theEMD->SetMinEnergy(100.0*MeV);
     theEMD->SetMaxEnergy(2000.0*GeV);
-    theEMD->SetVerboseLevel(2);
+    // theEMD->SetVerboseLevel(2);
     G4ElementTable::iterator iter;
     G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
     for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
@@ -122,6 +122,7 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
 {
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess(name, part);
   G4ProcessManager* pManager = part->GetProcessManager();
+  pManager->AddDiscreteProcess(hadi);
   hadi->AddDataSet(fShen); 
   if (G4FFKEY.IonPhysicsModel/10==4) hadi->AddDataSet(dpmXS);
   if (G4FFKEY.IonPhysicsModel/10==3) hadi->AddDataSet(HEAOXS);
@@ -138,6 +139,6 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   hadi->RegisterMe(theDPM);
-  pManager->AddDiscreteProcess(hadi);
+  if(isIon) { hadi->AddDataSet(fIonH); }
 }
 // -----------------------------------------------------------

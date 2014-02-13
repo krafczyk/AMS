@@ -179,7 +179,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  G4EMDissociation *theEMD = new G4EMDissociation();
 	  theEMD->SetMinEnergy(100.0*MeV);
 	  theEMD->SetMaxEnergy(2000.0*GeV);
-	  theEMD->SetVerboseLevel(2);
+	  // theEMD->SetVerboseLevel(2);
 	  G4ElementTable::iterator iter;
 	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
 	  for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
@@ -271,7 +271,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  G4EMDissociation *theEMD = new G4EMDissociation();
 	  theEMD->SetMinEnergy(100.0*MeV);
 	  theEMD->SetMaxEnergy(2000.0*GeV);
-	  theEMD->SetVerboseLevel(2);
+	  // theEMD->SetVerboseLevel(2);
 	  G4ElementTable::iterator iter;
 	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
 	  for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
