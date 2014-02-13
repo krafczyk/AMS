@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.825 2014/02/13 21:59:05 bshan Exp $
+# $Id: RemoteClient.pm,v 1.826 2014/02/13 22:00:26 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10637,7 +10637,7 @@ sub sendmailmessage{
 
     my $hostname=hostname();
     my $traceinfo = shortmess("Warning message");
-    $mes .= "\n\nHostname: $hotname\n\nTraceback:\n$traceinfo";
+    $mes .= "\n\nHostname: $hostname\n\nTraceback:\n$traceinfo";
     if(defined $att){
         my $msg = MIME::Lite->new(
                      To      =>$add,
