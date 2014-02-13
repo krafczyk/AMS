@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.823 2014/02/12 09:39:18 ams Exp $
+# $Id: RemoteClient.pm,v 1.824 2014/02/13 17:57:43 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19671,12 +19671,14 @@ offline:
                   last;
                }
          }
-         $self->sendmailmessage($address,"FileSystems are Full or Offline",$sql);                                                                                
+         my $hostname=hostname();
+         my $traceinfo = shortmess("Warning message");
+         $self->sendmailmessage($address,"FileSystems are Full or Offline","On $hostname:\n$traceinfo\n\n$sql");                                                 
 #        try to find online and not physicall phull system
           $sql="select disk from filesystems where isonline=1 and status='Full'  and path like '$path%' order by totalsize-occupied $desc";
            $ret=$self->{sqlserver}->Query($sql);
            if(not defined $ret->[0][0]){
-           $self->sendmailmessage($address,"FileSystems are Offline",$sql);                                                                                
+           $self->sendmailmessage($address,"FileSystems are Offline","On $hostname:\n$traceinfo\n\n$sql");
        }
     else{
 #        print "Got $ret->[0][0] \n";
