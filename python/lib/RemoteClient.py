@@ -4,6 +4,7 @@ from DBSQLServer import DBSQLServer
 from DBServer import DBServer
 import cgi
 import datetime
+import traceback
 from array import *
 def sorta(s,o):
     timenow=int(time.time())
@@ -574,6 +575,12 @@ class RemoteClient:
         from email.MIMEImage import MIMEImage
         from email.MIMEMultipart import MIMEMultipart
         from email.MIMEText import MIMEText
+
+        hostname=socket.gethostname()
+        mes += "\n\nHostname: %s\n\nTraceback Info:\n" %(hostname)
+        for line in traceback.format_stack():
+            mes += line.strip() + "\n"
+
         if(att == ""):
                message=MIMEText(mes)
                message['Subject']=sub
