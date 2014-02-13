@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.824 2014/02/13 17:57:43 bshan Exp $
+# $Id: RemoteClient.pm,v 1.825 2014/02/13 21:59:05 bshan Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10634,6 +10634,10 @@ sub sendmailmessage{
     my $sub=shift;
     my $mes=shift;
     my $att=shift;
+
+    my $hostname=hostname();
+    my $traceinfo = shortmess("Warning message");
+    $mes .= "\n\nHostname: $hotname\n\nTraceback:\n$traceinfo";
     if(defined $att){
         my $msg = MIME::Lite->new(
                      To      =>$add,
@@ -19671,14 +19675,12 @@ offline:
                   last;
                }
          }
-         my $hostname=hostname();
-         my $traceinfo = shortmess("Warning message");
-         $self->sendmailmessage($address,"FileSystems are Full or Offline","On $hostname:\n$traceinfo\n\n$sql");                                                 
+         $self->sendmailmessage($address,"FileSystems are Full or Offline",$sql);                                                 
 #        try to find online and not physicall phull system
           $sql="select disk from filesystems where isonline=1 and status='Full'  and path like '$path%' order by totalsize-occupied $desc";
            $ret=$self->{sqlserver}->Query($sql);
            if(not defined $ret->[0][0]){
-           $self->sendmailmessage($address,"FileSystems are Offline","On $hostname:\n$traceinfo\n\n$sql");
+           $self->sendmailmessage($address,"FileSystems are Offline",$sql);
        }
     else{
 #        print "Got $ret->[0][0] \n";
