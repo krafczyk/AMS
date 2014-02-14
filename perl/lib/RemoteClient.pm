@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.827 2014/02/14 17:58:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.828 2014/02/14 18:07:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10654,7 +10654,7 @@ sub sendmailmessage{
     my $att=shift;
 
     my $hostname=hostname();
-    my $traceinfo = shortmess("Warning message");
+    my $traceinfo = Carp::shortmess("Warning message");
     $mes .= "\n\nHostname: $hostname\n\nTraceback:\n$traceinfo";
     if(defined $att){
         my $msg = MIME::Lite->new(
