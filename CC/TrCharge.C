@@ -208,8 +208,8 @@ mean_t TrCharge::GetCombinedMean(int type, TrTrackR* track, float beta, int jlay
   float factor_y = ( (n_y>0)&&(n_y<9) ) ? sigma_scale_y[n_y] : 0;
   if (!(opt&TrClusterR::kOld)) {
     // in new version I use just point normalization 
-    factor_x = sqrt(1.*n_x)/sqrt(6);
-    factor_y = sqrt(1.*n_y)/sqrt(6);
+    factor_x = sqrt(6./n_x);
+    factor_y = sqrt(6./n_y);
   }
   // make a first approximate charge guess: is X, if existing, otherwise Y
   float q_pre = (q_x>0) ? q_x : q_y;
