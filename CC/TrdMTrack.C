@@ -47,7 +47,8 @@ TrdMTrack::TrdMTrack(int gaintype, int aligntype, int pdftype){
   cout << "TrdMTrack constructor: TrdGainType " << TrdGainType << " TrdAlignType " << TrdAlignType << " TrdPdfType " << TrdPdfType <<  " is being used!" << endl;
 
   FirstRun=1305853512;
-  LastRun=1355349190;
+  LastRun=1374267278;
+  // LastRun=1385483969; with new alignment
 
   Init_Base();
  
