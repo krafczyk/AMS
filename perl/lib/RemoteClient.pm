@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.826 2014/02/13 22:00:26 bshan Exp $
+# $Id: RemoteClient.pm,v 1.827 2014/02/14 17:58:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -969,7 +969,14 @@ if($#{$self->{DataSetsT}}==-1){
      foreach my $job (@jobs){
          if($job=~/^serverno=/){
              my @vrs= split '=',$job;
-             $dataset->{serverno}=$vrs[1];
+             my @add=split ',',$vrs[1];
+             if($#add>0){
+                 my $tme=time();
+               $dataset->{serverno}=$add[$tme%($#add+1)];
+             }          
+             else{
+               $dataset->{serverno}=$vrs[1];
+              }
              last;
          }
      }
@@ -1305,7 +1312,14 @@ if($#{$self->{DataSetsT}}==-1){
      foreach my $job (@jobs){
          if($job=~/^serverno=/){
              my @vrs= split '=',$job;
-             $dataset->{serverno}=$vrs[1];
+             my @add=split ',',$vrs[1];
+             if($#add>0){
+                 my $tme=time();
+               $dataset->{serverno}=$add[$tme%($#add+1)];
+             }          
+             else{
+               $dataset->{serverno}=$vrs[1];
+              }
              last;
          }
      }
@@ -7053,7 +7067,11 @@ if( not defined $dbserver->{dbfile}){
               if($max_jobs<$jbs){
                 $jbs=$max_jobs;
               }
-              htmlTextField("Total Jobs Requested","number",7,$jbs,"QRun"," ");
+              my $ds="";
+              if(defined $dataset->{serverno}){
+                 $ds=" ServerNo  $dataset->{serverno}  ";
+              }
+              htmlTextField("Total Jobs Requested $ds","number",7,$jbs,"QRun"," ");
                  if($self->{CCT} eq "local" or $dataset->{datamc}==1){
    print qq`
 <INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" >Force CPULimit<BR>
