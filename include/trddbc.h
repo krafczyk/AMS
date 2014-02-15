@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.24 2009/02/20 14:12:20 choutko Exp $
+//  $Id: trddbc.h,v 1.25 2014/02/15 18:05:26 traiha Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include "typedefs.h"
@@ -95,6 +95,7 @@ private:
     static const integer       _BHOrientation[trdconst::maxbulk];
     static const number  _SpacerDim[4]; 
     static const integer _NumberSpacers[trdconst::maxtube];
+    static const number _AngleMainOctagon;
 
  //Sizes    
    static number    _OctagonDimensions[maxo][10]; 
@@ -323,6 +324,7 @@ public:
     static number SpacerWidth(){return _SpacerDim[0];}
     static number SpacerDim(int n){return n<sizeof(_SpacerDim)/sizeof(_SpacerDim[0])?_SpacerDim[n]:-1;}
     static  integer NumberSpacers(uinteger tube){return tube<trdconst::maxtube?_NumberSpacers[tube]:0;}     
+    static  number  AngleMainOctagon(){return _AngleMainOctagon;}
 
 
  //Sizes    

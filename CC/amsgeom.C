@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.228 2013/12/10 18:22:27 traiha Exp $
+//  $Id: amsgeom.C,v 1.229 2014/02/15 18:05:26 traiha Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2008,6 +2008,7 @@ number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number inrm[3][3];
 char name[5];
 geant coo[3]={0.,0.,0.};
+geant bulkheadCoord[3] = {0.0,0.0,0.0};
 integer gid(0);
 uinteger rgid(0);
 uinteger status;
@@ -2031,6 +2032,7 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo()-sub0;i++){
  int ip;
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
+
      if(i!=1){
        oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
@@ -2071,7 +2073,6 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
  int ip;
  int po=TRDDBc::GetPrimaryOctagon(i);
 
-
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
 
      if(po!=1){
@@ -2092,6 +2093,85 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
 }
 
 
+ // remove 4 mm thick carbon fiber cover from top and bottom of TRD main container (TRD1)
+ // by replacing them by vacuum octagons (TR: 15-Feb-2014)
+ TRDDBc::GetOctagon(1,status,coo,nrm,rgid);
+
+ // top octagon
+
+ for(int param=0; param < 10; param++) par[param] = TRDDBc::OctagonDimensions(9, param);
+ par[4] = -0.4 / 2.0; // half-thickness
+ // bottom edge
+ par[5] = 0.0; // rmin
+ par[6] = par[9]; // rmax
+ par[7] = -par[4];
+ // top edge
+ par[8] = 0.0; // rmin
+ par[9] = par[6] + 2 * fabs(par[4]) * tan(TRDDBc::AngleMainOctagon()); // rmax
+
+ gid = 13 + 1;
+
+ coo[0] = 0.0;
+ coo[1] = 0.0;
+ coo[2] = fabs(TRDDBc::OctagonDimensions(1, 4)) - fabs(par[4]);
+
+ ost.seekp(0);
+ ost << "TRDd" << ends;
+
+ oct[1]->add(new AMSgvolume("VACUUM",
+			    nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+
+ // bottom octagon
+
+ for(int param=0; param < 10; param++) par[param] = TRDDBc::OctagonDimensions(9, param);
+ par[4] = -0.4 / 2.0; // half-thickness
+ // top edge
+ par[8] = 0.0;
+ par[9] = par[6];
+ // bottom edge
+ par[5] = 0.0;
+ par[6] = par[6] - 2 * fabs(par[4]) * tan(TRDDBc::AngleMainOctagon()); // rmax
+ par[7] = -par[4];
+
+ gid = 14 + 1;
+
+ coo[0] = 0.0;
+ coo[1] = 0.0;
+ coo[2] = -fabs(TRDDBc::OctagonDimensions(1, 4)) + fabs(par[4]);
+
+ ost.seekp(0);
+ ost << "TRDe" << ends;
+
+ oct[1]->add(new AMSgvolume("VACUUM",
+			    nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+
+
+ // add skin in the middle of TRD6 (TR: 15-Feb-2014)
+ TRDDBc::GetOctagon(1,status,coo,nrm,rgid);
+ for(int param=0; param < 10; param++) par[param]=TRDDBc::OctagonDimensions(6, param);
+
+ par[4] = -0.04 / 2.0; // half-thickness
+ // bottom edge
+ par[5] = 0.0; // rmin
+ par[6] = par[9]; // rmax
+ par[7] = -par[4];
+ // top edge
+ par[8] = 0.0; // rmin
+ par[9] = par[6]; // rmax
+
+ gid = 15 + 1;
+
+ coo[0] = 0.0;
+ coo[1] = 0.0;
+ coo[2] = 0.0;
+
+ ost.seekp(0);
+ ost << "TRDs" << ends;
+
+ oct[6]->add(new AMSgvolume("TRDCarbonFiber",
+			    nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+
+
 // trd 
 for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
@@ -2108,13 +2188,16 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    TRDDBc::GetBulkhead(b,i,status,coo,nrm,rgid);
    for(ip=0;ip<4;ip++)par[ip]=TRDDBc::BulkheadsDimensions(i,b,ip);
    int itrd=TRDDBc::NoTRDOctagons(i);
-//            cout <<name<<" "<<j<<" "<<
-//   coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
-//   	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
+   //            cout <<name<<" "<<j<<" "<<
+   //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
+   //	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
+
+   bulkheadCoord[0] = coo[0];
+   bulkheadCoord[1] = coo[1];
+   bulkheadCoord[2] = coo[2];
 
 #ifdef __G4AMS__
      if(MISCFFKEY.G4On){
-// (no bulkheads in g4)
 // TR: bulkheads enabled 10-Dec-2013
        daug4 = 
       (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
@@ -2152,6 +2235,47 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 // (temporary disable cutouts in g4  VC 12-mar-2003)
 // TR: bulkhead slits enabled 10-Dec-2013
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
+
+                  // add module fixation plates on the bulkheads above each module (TR: 15-Feb-2014)
+                  ost.seekp(0);
+		  ost << "FX"<<TRDDBc::CodeLad(gid-1)<<ends;
+
+                  geant plateParams[3] = {0.,0.,0.};
+                  plateParams[0] = 9.4 / 2.0;
+                  plateParams[1] = 0.1 / 2.0;
+                  plateParams[2] = 1.1 / 2.0; // weighted half-height (in reality not perfectly rectangular)
+                  geant plateCoord[3] = {0.,0.,0.};
+                  geant bulkheadSide = 1.0; // -1.0 or 1.0 depending on which side of the bulkhead plate is placed
+                  if (b == 1 || b == 3 || b == 5) bulkheadSide = -1.0;
+
+                  plateCoord[2] = bulkheadCoord[2] + coo[2] + 0.26 + plateParams[2];
+
+                  if (b == 0 || b == 1) {
+                    plateCoord[0] = bulkheadCoord[0] + coo[0];
+                    // plate always in the inner side of the bulkhead
+                    plateCoord[1] = bulkheadCoord[1] + bulkheadSide * (TRDDBc::BulkheadWidth() / 2.0 + plateParams[1]);
+                  } else if (b == 2 || b == 3 || b == 4 || b == 5) {
+                    plateCoord[0] = bulkheadCoord[0] + bulkheadSide * (TRDDBc::BulkheadWidth() / 2.0 + plateParams[1]);
+                    plateCoord[1] = bulkheadCoord[1] + coo[0];
+
+                    geant tempValue = plateParams[0];
+                    plateParams[0] = plateParams[1];
+                    plateParams[1] = tempValue;
+                  }
+
+                  // reduce the height of some plates to overcome overlaps
+                  if (fabs(16.575 - plateCoord[2]) < 0.01 &&
+                      fabs(35.35 - plateCoord[0]) < 0.01 &&
+                      (fabs(-30.49 - plateCoord[1]) < 0.01 ||
+                       fabs(30.49 - plateCoord[1]) < 0.01)) {
+                    plateParams[0] = 6.4 / 2.0;
+                  } else if (fabs(-18.225 - plateCoord[2]) < 0.01) {
+                    plateParams[2] = 0.3 / 2.0;
+                    plateCoord[2] = plateCoord[2] - 0.4;
+                  }
+
+                  oct[itrd]->add(new AMSgvolume("TRDALUMINIUM",
+						0, name, "BOX", plateParams, 3, plateCoord, nrm, "ONLY", -1, gid++, 1));
                  }
                  else
 #endif
@@ -2164,7 +2288,94 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 	    }
 	  }
 	}
-  }
+ }
+
+#ifdef __G4AMS__
+ if(MISCFFKEY.G4On){
+
+   // inserts on top honeycomb cover (TR: 15-Feb-2014)
+   TRDDBc::GetOctagon(6,status,coo,nrm,rgid);
+   for(int param=0; param < 10; param++) par[param]=TRDDBc::OctagonDimensions(6, param);
+
+   geant insertParams[3]={0.,0.,0.};
+   insertParams[0] = 1.75; // rmin
+   insertParams[1] = 2.2; // rmax
+   insertParams[2] = 4.0 / 2.0; // half-height
+
+   const int numberOfInserts = 32;
+   geant insertX[numberOfInserts] = {-1.8, -35.0, -26.6, 30.6, -55.5, 69.5, -22.1, -13.1, 20.1, 73.4, -71.5, 74.2, 42.8, -41.6, 42.2, 84.2, -84.1,
+				     -42.1, 41.3, -43.0, -74.3, 71.2, -73.5, -20.3, 13.2, 22.0, -69.5, 55.1, -30.8, 34.5, 26.5, 1.5};
+   geant insertY[numberOfInserts] = {-84.1, -74.5, -74.3, -71.2, -69.5, -55.2, -42.9, -42.0, -41.5, -34.9, -31.2, -26.6, -22.2, -20.1, -13.0, -1.8,
+				     1.6, 13.0, 20.0, 22.0, 26.5, 31.3, 34.9, 41.6, 42.1, 43.0, 55.5, 69.5, 71.4, 73.5, 74.5, 84.0};
+   geant insertZ = par[7] - insertParams[2];
+
+   geant insertCoord[3];
+
+   for (int insertCount = 0; insertCount < numberOfInserts; insertCount++) {
+     insertCoord[0] = insertX[insertCount];
+     insertCoord[1] = insertY[insertCount];
+     insertCoord[2] = insertZ;
+
+     ost.seekp(0);
+     if (insertCount < 10) {
+       ost << "IN0" << insertCount << ends;
+     } else {
+       ost << "IN" << insertCount << ends;
+     }
+
+     daug4 = (AMSgvolume *)oct[6]->add(new AMSgvolume("TRDALUMINIUM",
+						      0, name, "TUBE", insertParams, 3, insertCoord, nrm, "BOOL", -1, gid++, 1));
+
+     // add bottom end gaps
+     geant bottomGapParams[3]={0.,0.,0.};
+     bottomGapParams[0] = 0.0; // rmin
+     bottomGapParams[1] = insertParams[1]; // rmax
+     bottomGapParams[2] = 0.1 / 2.0;
+
+     geant bottomGapCoord[3]={0.,0.,0.};
+     bottomGapCoord[0] = 0.0;
+     bottomGapCoord[1] = 0.0;
+     bottomGapCoord[2] = -insertParams[2] - bottomGapParams[2];
+
+     daug4->addboolean("TUBE", bottomGapParams, 3, bottomGapCoord, nrm, '+');
+   }
+
+   // 4 larger inserts in the middle modelled as double-tubes
+   insertParams[0] = 0.25;
+   insertParams[1] = 1.0;
+   insertParams[2] = 3.0 / 2.0;
+
+   const int numberOfMidInserts = 8;
+   geant largeInsertX[numberOfMidInserts] = {-8.7, -3.1, -12.5, -9.8, 3.3, 8.8, 9.9, 12.7};
+   geant largeInsertY[numberOfMidInserts] = {9.8, 12.7, -3.7, -8.7, -13.1, -9.7, 8.8, 3.3};
+   geant largeInsertZ = par[7] - insertParams[2];
+
+   for (int insertCount = 0; insertCount < numberOfMidInserts; insertCount++) {
+     insertCoord[0] = largeInsertX[insertCount];
+     insertCoord[1] = largeInsertY[insertCount];
+     insertCoord[2] = largeInsertZ;
+
+     ost.seekp(0);
+     ost << "INS" << insertCount << ends;
+
+     daug4 = (AMSgvolume *)oct[6]->add(new AMSgvolume("TRDALUMINIUM",
+						      0, name, "TUBE", insertParams, 3, insertCoord, nrm, "BOOL", -1, gid++, 1));
+
+     // add bottom end gaps
+     geant bottomGapParams[3]={0.,0.,0.};
+     bottomGapParams[0] = 0.0; // rmin
+     bottomGapParams[1] = insertParams[1]; // rmax
+     bottomGapParams[2] = 0.1 / 2.0;
+
+     geant bottomGapCoord[3]={0.,0.,0.};
+     bottomGapCoord[0] = 0.0;
+     bottomGapCoord[1] = 0.0;
+     bottomGapCoord[2] = -insertParams[2] - bottomGapParams[2];
+
+     daug4->addboolean("TUBE", bottomGapParams, 3, bottomGapCoord, nrm, '+');
+   }
+ }
+#endif
 
    // Radiator side holes (daughters of octagon)
 
@@ -2214,9 +2425,10 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    ost << "TR"<<TRDDBc::CodeLad(gid-1)<<ends;
    TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::LaddersDimensions(i,j,k,ip);
-   //   cout <<name<<" "<<j<<" "<<k<<" "<<
-   // coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
+   //cout <<name<<" "<<j<<" "<<k<<" "<<
+   //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
+
 #ifdef __G4AMS__
    if(MISCFFKEY.G4On){
    dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
@@ -2232,8 +2444,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    geant cutoutDimensions[3];
    // bulkheads cross symmetrically both halves of each ladder
    number distanceToBulkhead = 61.38 / 2.0; // [cm]
+   geant plateWidth = 0.1;
    cutoutCoord[0] = 0.0;
-   cutoutCoord[2] = distanceToBulkhead;
+   cutoutCoord[2] = distanceToBulkhead - plateWidth / 2.0;
 
    // remove fleece above the straw module
    number strawModuleUpperEdge = stripCoord[1] + TRDDBc::StripsDim(1) / 2.0;
@@ -2242,22 +2455,46 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    // the center between ladder and straw module upper edges
    cutoutCoord[1] = par[1] - cutoutDimensions[1];
    cutoutDimensions[0] = par[0]; // half-width of the ladder
-   cutoutDimensions[2] = TRDDBc::BulkheadWidth() / 2.0; // bulkhead half-thickness along the ladder
+   cutoutDimensions[2] = (TRDDBc::BulkheadWidth() + plateWidth) / 2.0; // along the ladder
    // do not apply any rotation in ladder's coordinate system
    number cutoutRotation[3][3] = {1,0,0,0,1,0,0,0,1};
-   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
-   cutoutCoord[2] = -distanceToBulkhead;
-   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
+   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
+
+   // add vacuum boxes to remove unwanted fleece above topmost ladders (TR: 15-Feb-2014)
+   if (j == 19 && strawModuleUpperEdge < 0.0) {
+     geant fleeceRemovalParams[3];
+     geant fleeceRemovalCoord[3];
+
+     fleeceRemovalParams[0] = par[0];
+     geant ladderFleeceBelowModule = 0.375;
+     geant fleeceAboveLadders = 2.1;
+     fleeceRemovalParams[1] = (fleeceAboveLadders - ladderFleeceBelowModule) / 2.0;
+     fleeceRemovalParams[2] = par[2];
+
+     fleeceRemovalCoord[0] = coo[0];
+     fleeceRemovalCoord[1] = coo[1];
+     fleeceRemovalCoord[2] = coo[2] + par[1] + fleeceRemovalParams[1] + ladderFleeceBelowModule;
+
+     ost.seekp(0);
+     ost << "CU"<<TRDDBc::CodeLad(gid-1)<<ends;
+     daug4=(AMSgvolume*)oct[itrd]->add(new AMSgvolume("VACUUM", nrot++, name, "BOX", fleeceRemovalParams, 
+						      3, fleeceRemovalCoord, nrm, "BOOL", 0, gid, 1));
+     daug4->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
+   }
+
+   cutoutCoord[2] = -distanceToBulkhead + plateWidth / 2.0;
+   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
+   daug4->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
 
    // remove fleece below the straw module
    stripCoord[1]-=TRDDBc::TubesBoxDimensions(i,j,k,3);
    number strawModuleLowerEdge = stripCoord[1] - TRDDBc::StripsDim(1) / 2.0;
    cutoutDimensions[1] = fabs(-par[1] - strawModuleLowerEdge) / 2.0;
    cutoutCoord[1] = -par[1] + cutoutDimensions[1];
-   cutoutCoord[2] = distanceToBulkhead;
-   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
-   cutoutCoord[2] = -distanceToBulkhead;
-   dau->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
+   cutoutCoord[2] = distanceToBulkhead - plateWidth / 2.0;
+   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
+   cutoutCoord[2] = -distanceToBulkhead + plateWidth / 2.0;
+   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
 
     }
     else{

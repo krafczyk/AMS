@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.60 2013/12/10 18:22:28 traiha Exp $
+//  $Id: trddbc.C,v 1.61 2014/02/15 18:05:26 traiha Exp $
 #include "trddbc.h"
 //#include "amsdbc.h"
 #include <math.h>
@@ -304,7 +304,6 @@ uinteger   TRDDBc::_NumberLadders=0;
 uinteger   TRDDBc::_NumberCutouts=0;
 uinteger   TRDDBc::_NumberBulkheads=0;
 
-
 const number  TRDDBc::_WireDiameter=0.003;
 const number  TRDDBc::_TubeWallThickness=72e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
@@ -324,6 +323,7 @@ const number TRDDBc::_ManifoldLength = 1.15; // Length of manifold along wire
 const number TRDDBc::_ManifoldWidth = 10.1; // Width of manifold 
 const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 const number TRDDBc::_EndPieceLength = 1.51; // ladder - tube length difference
+const number TRDDBc::_AngleMainOctagon=22.5/180.*M_PI;
 
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0};   // 0 -x 1 -y    
 const integer TRDDBc::_BHOrientation[maxbulk]={0,0,1,1,1,1};   // 0 -x 1 -y    
@@ -516,7 +516,7 @@ void TRDDBc::init(){
 
 // Main octagon
 
-      number ang=22.5/180.*M_PI;
+      number ang=AngleMainOctagon();
 
      // z coord... drawing gives height dimension including
      //   top and bottom carbon fiber ring widths,
@@ -549,7 +549,8 @@ void TRDDBc::init(){
 
 // Top honeycomb cover
 
-      OctagonDimensions(3,4)=-94./20.;   // z coord
+      //OctagonDimensions(3,4)=-94./20.;   // z coord
+      OctagonDimensions(3,4)=-93.6/20.;   // z coord
 
    // Bottom edge
       OctagonDimensions(3,5)=0;         // rmin
@@ -687,7 +688,6 @@ void TRDDBc::init(){
       OctagonDimensions(12,9)=OctagonDimensions(5,9);
 
 
-      
       for(i=0;i<OctagonNo();i++){
        OctagonDimensions(i,0)=0+360/16.; //VC 7-Nov-2013 to bypass G4PolyHedrsa featured 
        OctagonDimensions(i,1)=360;
@@ -720,9 +720,8 @@ void TRDDBc::init(){
           break;
 
        case 3:   // top honeycomb...need to check this
-          coo[2]= (1476+94.+6.)/10.+OctagonDimensions(i,4);
-// VC 2013-10-26 to remove ovrlap with P1NC
-          coo[2]-=2.6;    
+	 //coo[2]= (1476+94.+6.)/10.+OctagonDimensions(i,4)-2.6;
+	 coo[2] = 150.3 + 0.38; // old position + 3.8 mm shift
           break;
 
        case 2: // bottom carbon fiber cover
