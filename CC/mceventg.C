@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.195 2014/02/11 18:54:14 choutko Exp $
+//  $Id: mceventg.C,v 1.196 2014/02/15 20:58:46 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -746,6 +746,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       geant bl=binw/2+nchan*binw;
       HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
       HBOOK1(_hid+1,"Spectrum",nchan,al,bl,0.);
+     AMSEventR::hbook1(_hid,"NaturalFlux",nchan,al,bl);
+     AMSEventR::hbook1(_hid+1,"NaturalFlux Generated GeV",nchan/100,al/1000,bl/1000);
+
       //
       // find a modulation
       //
@@ -796,6 +799,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
         else if (ipart ==14 ){
           y=1.7e4/beta/pow(xrig,2.78);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+          
         }    
         else if (ipart > 15 && ipart < 100){
           // He etc...
@@ -823,8 +827,18 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           HCDIR (cdir, " ");
           return;
         }
+//      geomag transmittion
+double par[3]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
+double xr[2]={0.412,27};
+double rm=par[0]+par[1]*xr[1]+par[2]*xr[1]*xr[1];
+double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
+if(fac<0)fac=0;
+fac/=rm;
+ y*=fac;   
         HF1(_hid,xm,y);
         HF1(_hid+1,xm,y);
+AMSEventR::hf1(_hid,xm,y);
+
       }//--->endof "nchan"-loop
     }//--->endof "low=0"
 //
