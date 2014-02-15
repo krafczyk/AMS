@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.196 2014/02/15 20:58:46 choutko Exp $
+//  $Id: mceventg.C,v 1.197 2014/02/15 21:00:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -830,6 +830,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
 //      geomag transmittion
 double par[3]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
 double xr[2]={0.412,27};
+double trueRigidity=xm/1000.;
 double rm=par[0]+par[1]*xr[1]+par[2]*xr[1]*xr[1];
 double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
