@@ -27,7 +27,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: G4ExcitationHandler.C,v 1.1 2014/02/05 09:10:38 choutko Exp $
+// $Id: G4ExcitationHandler.C,v 1.2 2014/02/18 16:14:01 choutko Exp $
 //
 // Hadronic Process: Nuclear De-excitations
 // by V. Lara (May 1998)
@@ -455,6 +455,11 @@ void G4ExcitationHandler::SetMinEForMultiFrag(G4double anE)
   minEForMultiFrag = anE;
 }
 #else
-extern "C" void my_dummy_bug_2(){
+#include "G4EMDissociation.hh"
+G4EMDissociation::~G4EMDissociation ()
+{
+  if (handlerDefinedInternally) delete theExcitationHandler;
+  delete thePhotonSpectrum;
 }
+
 #endif
