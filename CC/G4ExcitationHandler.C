@@ -27,7 +27,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: G4ExcitationHandler.C,v 1.2 2014/02/18 16:14:01 choutko Exp $
+// $Id: G4ExcitationHandler.C,v 1.3 2014/02/18 16:48:40 choutko Exp $
 //
 // Hadronic Process: Nuclear De-excitations
 // by V. Lara (May 1998)
@@ -454,6 +454,39 @@ void G4ExcitationHandler::SetMinEForMultiFrag(G4double anE)
 {
   minEForMultiFrag = anE;
 }
+#include "G4SubtractionSolid.hh"
+G4double  G4SubtractionSolid::DistanceToIn( const G4ThreeVector& p ) const 
+{
+  G4double dist=0.0;
+
+  if( Inside(p) == kInside )
+  {
+    G4cout << "WARNING - Invalid call in "
+           << "G4SubtractionSolid::DistanceToIn(p)" << G4endl
+           << "  Point p is inside !" << G4endl;
+    G4cout << "          p = " << p << G4endl;
+    G4cerr << "WARNING - Invalid call in "
+           << "G4SubtractionSolid::DistanceToIn(p)" << G4endl
+           << "  Point p is inside !" << G4endl;
+    G4cerr << "          p = " << p << G4endl;
+    G4cerr<< fPtrSolidA->GetName()<<" "<< fPtrSolidB->GetName()<<endl;
+  }
+
+  if( ( fPtrSolidA->Inside(p) != kOutside) &&   // case 1
+      ( fPtrSolidB->Inside(p) != kOutside)    )
+  {
+      dist= fPtrSolidB->DistanceToOut(p)  ;
+  }
+  else
+  {
+      dist= fPtrSolidA->DistanceToIn(p) ; 
+  }
+  
+  return dist; 
+}
+
+
+
 #else
 #include "G4EMDissociation.hh"
 G4EMDissociation::~G4EMDissociation ()
