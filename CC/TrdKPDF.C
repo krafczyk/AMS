@@ -1756,16 +1756,17 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
     if(Rigidity<0) Rigidity=-Rigidity;
 
     //Rigidity correction and charge PDF for Z>=3, fit points: 3 to 6, 8, 10, 12, 14, 20, 26
-    double p1r[10]={0.49, 0.48, 0.46, 0.410, 0.390, 0.350, 0.32, 0.31, 0.2, 0.18};
-    double p2r[10]={0.20, 0.20, 0.19, 0.165, 0.155, 0.145, 0.13, 0.13, 0.1, 0.08};
+    static const double p1r[10]={0.49, 0.48, 0.46, 0.410, 0.390, 0.350, 0.32, 0.31, 0.2, 0.18};
+    static const double p2r[10]={0.20, 0.20, 0.19, 0.165, 0.155, 0.145, 0.13, 0.13, 0.1, 0.08};
 
-    double p1c[10]={88.84,  189.8,  348.5,  528.9,  988.7,  1614,   2510,   3652,     7941,     13199     };
-    double p2c[10]={73.39,  107.9,  137.2,  138.3,  158.2,  205.4,  246.4,  280,      400.9,    449.6     };
-    double p3c[10]={0.618,  0.7243, 1.034,  1.667,  2.838,  3.524,  4.943,  6.9,      8.112,    10.56     };
-    double p4c[10]={0.9529, 0.9629, 0.9705, 0.9962, 0.9994, 0.9996, 0.9999, 0.999995, 0.999999, 0.99999999};
-    double p5c[10]={0,      0,      0,      0,      0,      0,      0,      0,        0,        0         };
-    double p6c[10]={453.6,  508.3,  550.0,  625.4,  863.1,  1220.2, 1660,   3074,     23140,    63140     };
-    double p7c[10]={0,      0,      0,      0,      0,      0,      0,      0,        0,        0         };
+    static const double p1c[10]={88.84,  189.8,  348.5,  528.9,  988.7,  1614,   2510,   3652,     7941,     13199     };
+    static const double p2c[10]={73.39,  107.9,  137.2,  138.3,  158.2,  205.4,  246.4,  280,      400.9,    449.6     };
+    static const double p3c[10]={0.618,  0.7243, 1.034,  1.667,  2.838,  3.524,  4.943,  6.9,      8.112,    10.56     };
+    static const double p4c[10]={0.9529, 0.9629, 0.9705, 0.9962, 0.9994, 0.9996, 0.9999, 0.999995, 0.999999, 0.99999999};
+    static double p5c[10]={0,      0,      0,      0,      0,      0,      0,      0,        0,        0         };
+    static const double p6c[10]={453.6,  508.3,  550.0,  625.4,  863.1,  1220.2, 1660,   3074,     23140,    63140     };
+    static double p7c[10]={0,      0,      0,      0,      0,      0,      0,      0,        0,        0         };
+
     for(int i=0;i<10;i++)
     {
         p5c[i]=2*p1c[i];
@@ -1913,13 +1914,15 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
     }
 
     //Charge and rigidity PDF for Z<3, fit points: 1, 2, also use fit at Z=3
-    double p1cr[2][3]={2.303,    2.1,    1.746,      8.306,   10.83,  12.27  };
-    double p2cr[2][3]={32.04,    30,     26.34,      52.32,   58.03,  62.46  };
-    double p3cr[2][3]={0.004065, 0.0037, 0.003456,   0.01169, 0.0284, 0.03558};
-    double p4cr[2][3]={0.4306,   0.46,   0.5749,     0.6811,  0.6556, 0.671  };
-    double p5cr[2][3]={0,        0,      0,          0,       0,      0      };
-    double p6cr[2][3]={9.132,    8.45,   7.59,       39.74,   48.09,  52.44  };
-    double p7cr[2][3]={0,        0,      0,          0,       0,      0      };
+    static const double p1cr[2][3]={2.303,    2.1,    1.746,      8.306,   10.83,  12.27  };
+    static const double p2cr[2][3]={32.04,    30,     26.34,      52.32,   58.03,  62.46  };
+    static const double p3cr[2][3]={0.004065, 0.0037, 0.003456,   0.01169, 0.0284, 0.03558};
+    static const double p4cr[2][3]={0.4306,   0.46,   0.5749,     0.6811,  0.6556, 0.671  };
+    static double p5cr[2][3]={0,        0,      0,          0,       0,      0      };
+    static const double p6cr[2][3]={9.132,    8.45,   7.59,       39.74,   48.09,  52.44  };
+    static double p7cr[2][3]={0,        0,      0,          0,       0,      0      };
+
+
     for(int i=0;i<2;i++)
     {
         for(int j=0;j<3;j++)
@@ -2082,6 +2085,9 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
     PDFNormalization=Par4c*Par2c*TMath::Power(Par3c,1-Par3c)*TMath::Gamma(Par3c) + (1-Par4c)*Par6c*TMath::Power(Par7c,1-Par7c)*TMath::Gamma(Par7c);
     return PDFValue/PDFNormalization;
 }
+
+
+
 
 
 //////////////////////////
