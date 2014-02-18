@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.280 2014/02/05 09:11:02 choutko Exp $
+#  $Id: Makefile,v 1.281 2014/02/18 15:45:56 choutko Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -50,10 +50,24 @@
 
 # List of SLC6 changes
 #
+ifndef  SLC6system
 SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
+endif
+ifndef  SLC64system
+SLC64system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
+endif
+ifndef SLC64system
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
+endif
+endif
+endif
+
 #
 
 SHELL=/bin/sh

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.137 2014/01/19 15:03:25 choutko Exp $
+#  $Id: Makefile,v 1.138 2014/02/18 15:45:49 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -11,10 +11,11 @@ else
     DEFINES  +=  -D__LZMA__
     LZMAL = -llzma
 endif
-
+ifndef SLC6system
 SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+endif
 endif
 #
 #[ae-2012.08.17] - can't take from ../install/Makefile
