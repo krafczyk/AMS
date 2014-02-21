@@ -4134,7 +4134,7 @@ class RemoteClient:
                     if(self.verbose):
                         print "deleted ",file[0]
                 if(file[1]>0):
-                    castorPrefix='/castor/cern.ch/ams/'
+                    castorPrefix='/castor/cern.ch/ams'
                     delimiter='/Data/'
                     if(datamc==0 or datamc==10):
                         delimiter='/MC/'
@@ -4146,7 +4146,7 @@ class RemoteClient:
                         if(i):
                             print " CastorCommand Failed ",castordel
                 if(file[2]>0 or self.force):
-                    eosPrefix='/eos/ams/'
+                    eosPrefix='/eos/ams'
                     delimiter='/Data/'
                     if(datamc==0 or datamc==10):
                         delimiter='/MC/'
@@ -4215,7 +4215,7 @@ class RemoteClient:
                         if(self.verbose):
                             print "deleted ",file[0]
                     if(file[1]>0):
-                        castorPrefix='/castor/cern.ch/ams/'
+                        castorPrefix='/castor/cern.ch/ams'
                         delimiter='/Data/'
                         if(datamc==0 or datamc==10):
                             delimiter='/MC/'
