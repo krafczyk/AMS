@@ -4135,9 +4135,9 @@ class RemoteClient:
                         print "deleted ",file[0]
                 if(file[1]>0):
                     castorPrefix='/castor/cern.ch/ams/'
-                    delimiter='Data'
+                    delimiter='/Data/'
                     if(datamc==0 or datamc==10):
-                        delimiter='MC'
+                        delimiter='/MC/'
                     junk=file[0].split(delimiter)
                     if len(junk)>=2:
                         castorfile=castorPrefix+delimiter+junk[1]
