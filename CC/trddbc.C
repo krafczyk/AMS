@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.61 2014/02/15 18:05:26 traiha Exp $
+//  $Id: trddbc.C,v 1.62 2014/02/25 11:56:51 traiha Exp $
 #include "trddbc.h"
 //#include "amsdbc.h"
 #include <math.h>
@@ -714,9 +714,9 @@ void TRDDBc::init(){
        case 5:    // Ze Radiator octagon  (up from hc)
           coo[2]= (1476+94.+6.+35+11.9)/10.+OctagonDimensions(i,4);
           break;
-       case 4:    // bottom honeycomb... starts 1.5 mm below carbon
+       case 4:    // bottom honeycomb... starts 4.0 mm below carbon
 	 //  fiber ring
-          coo[2]= (835.-1.5)/10.+OctagonDimensions(i,4);
+          coo[2]= (835.-4.0)/10.+OctagonDimensions(i,4);
           break;
 
        case 3:   // top honeycomb...need to check this
