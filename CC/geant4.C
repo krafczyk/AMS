@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.116 2014/02/07 15:52:29 oliva Exp $
+//  $Id: geant4.C,v 1.117 2014/02/26 10:22:49 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -768,7 +768,7 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
 
 if(!_pv){
   cout << "AMSG4DetectorInterface::Construct-I-Building Geometry "<<endl;
-  G4GeometryTolerance::GetInstance()->SetSurfaceTolerance(10000);
+  //G4GeometryTolerance::GetInstance()->SetSurfaceTolerance(10000);
   cout << "AMSG4DetectorInterface::Construct-I-SurficeToleranceSetTo "<<G4GeometryTolerance::GetInstance()->GetSurfaceTolerance()<<" mm" <<endl;;
 
   AMSJob::gethead()->getgeom()->MakeG4Volumes();
@@ -952,7 +952,24 @@ if(!Step)return;
      // 
 
   */
-  
+  static integer freq=10;
+  static integer trig=0;
+  trig=(trig+1)%freq;
+  static bool report=true; 
+  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit){
+    freq=1;
+    GCTRAK.istop =1;
+    G4Track * Track = Step->GetTrack();
+    Track->SetTrackStatus(fStopAndKill);
+    AMSEvent::gethead()->seterror();
+    if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit<<endl;
+    report=false;
+   return;
+  }
+  else if(freq<10){
+   freq=10;
+   report=true;
+  }
    /// <CC> BEGIN material scanning information
    // only for Geant4
    if (MISCFFKEY.SaveMCTrack == 1 && MISCFFKEY.G4On == 1 && MISCFFKEY.G3On == 0)

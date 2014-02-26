@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.62 2014/02/07 15:52:29 oliva Exp $
+//  $Id: g4physics.C,v 1.63 2014/02/26 10:22:49 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.62 2014/02/07 15:52:29 oliva Exp $
+// $Id: g4physics.C,v 1.63 2014/02/26 10:22:49 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1016,10 +1016,10 @@ if(G4FFKEY.DetectorCut%10==1){
    SetCutValue(acutv, "He3");
  }
  else {
-   SetCutValue(cut/10./ECMCFFKEY.g4cutge, "gamma");
+   SetCutValue(cut/10., "gamma");
    SetCutValue(cut/10., "xrayphoton");
-   SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e-");
-   SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e+");
+   SetCutValue(cut/10., "e-");
+   SetCutValue(cut/10., "e+");
   // set cut values for proton and anti_proton before all other hadrons
   // because some processes for hadrons need cut values for proton/anti_proton
    SetCutValue(cut, "proton");
@@ -1028,10 +1028,10 @@ if(G4FFKEY.DetectorCut%10==1){
  
   trdSimUtil.gasregion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
   trdSimUtil.radregion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
-
-  if(G4FFKEY.DetectorCut/10%10==1){//Ecal
     G4Region* EcalRegion = (G4RegionStore::GetInstance())->GetRegion("ECVolumeR");
     G4ProductionCuts *EcalCuts = new G4ProductionCuts();
+
+  if(G4FFKEY.DetectorCut/10%10==1){//Ecal
     G4double ecutv=G4FFKEY.EcalCut*mm;
 //    EcalCuts->SetProductionCut(ecutv, "gamma");  // removed gamma for backspash
     EcalCuts->SetProductionCut(ecutv, "e+");
@@ -1041,6 +1041,14 @@ if(G4FFKEY.DetectorCut%10==1){
     EcalCuts->SetProductionCut(ecutv, "alpha");
     EcalCuts->SetProductionCut(ecutv, "He3");
     EcalRegion->SetProductionCuts(EcalCuts);  
+    cout <<"AMSG4Physics::SetCuts-I-SettingProductionCutsForParticles "<<ecutv<<endl;
+  }
+  else if(ECMCFFKEY.g4cutge!=1){
+    EcalCuts->SetProductionCut(cut/10./ECMCFFKEY.g4cutge, "e+");
+    EcalCuts->SetProductionCut(cut/10./ECMCFFKEY.g4cutge, "e-");
+    EcalCuts->SetProductionCut(cut/10./ECMCFFKEY.g4cutge, "gamma");
+    EcalRegion->SetProductionCuts(EcalCuts);  
+    cout <<"AMSG4Physics::SetCuts-I-SettingProductionCutsForElectronsPhotons "<<cut/10./ECMCFFKEY.g4cutge<<endl;
   }
 
   //  G4VPersistencyManager *persM = G4VPersistencyManager::GetPersistencyManager() ;

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.197 2014/02/15 21:00:19 choutko Exp $
+//  $Id: mceventg.C,v 1.198 2014/02/26 10:22:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -797,7 +797,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
         else if (ipart ==14 ){
-          y=1.7e4/beta/pow(xrig,2.78);
+          y=1.7e4/beta/pow(xrig,2.82);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
           
         }    
