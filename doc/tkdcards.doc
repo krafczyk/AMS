@@ -173,6 +173,8 @@ I 21 	MultipleAlign;  Activates the multiple Alignmnet fitting
                          during the reconstriuction (1=PG 2=PG+MD 3=PG+MD+Averagae)
 R 22    EcalMaxX        Determine the max |X| accepted to associate a layer 9 hit to the track
 I 23    magtemp         magnet temp correction enabled/disabled=1/0 (default 0)
+R 24 Additional fitting error (Layer 1) due to misalignment
+R 25 Additional fitting error (Layer 9) due to misalignment
 //==============================
 
 
