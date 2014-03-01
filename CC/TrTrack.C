@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.180 2014/01/19 12:19:20 shaino Exp $
+// $Id: TrTrack.C,v 1.181 2014/03/01 12:56:08 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2014/01/19 12:19:20 $
+///$Date: 2014/03/01 12:56:08 $
 ///
-///$Revision: 1.180 $
+///$Revision: 1.181 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1023,8 +1023,13 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     // printf("Adding Hit %d %+7.4f, %+7.4f, %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f,  %+7.4f \n", 
     //     hit->GetLayerJ(),coo[0],coo[1],coo[2], ferx*errx*fmscx, fery*erry*fmscy, errz, 
     //	       bf[0], bf[1], bf[2]);
-    _TrFit.Add(coo, ferx*errx*fmscx, fery*erry*fmscy, errz, 
-	       bf[0], bf[1], bf[2]);
+    float ery = erry;
+    if (hit->GetLayerJ() == 1) ery = std::sqrt(erry*erry+TRFITFFKEY.ErrYL1*
+ 					                 TRFITFFKEY.ErrYL1);
+    if (hit->GetLayerJ() == 9) ery = std::sqrt(erry*erry+TRFITFFKEY.ErrYL9*
+ 					                 TRFITFFKEY.ErrYL9);
+    _TrFit.Add(coo, ferx*errx*fmscx,
+	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
 
     hitbits |= (1 << (hit->GetLayer()-1));
     if (id != kLinear && j == 0) zh0 = coo.z();
@@ -1944,6 +1949,114 @@ bool TrTrackR::ValidTrRecHitsPointers() {
   return (!invalid_pointers);
 }
 
+int TrTrackR::MergeHits(int layer, float dmax, float qmin,
+			           float qmax, float beta, int opt)
+
+
+{
+  if (!(opt&2) && TestHitLayerJ(layer)) return -1;
+
+  VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) return -1;
+
+  int        mfit = (opt&8) ? DefaultFitID : trdefaultfit;
+  AMSPoint   ptrk = InterpolateLayerJ(layer, mfit);
+  AMSDir     pdir;  Interpolate(ptrk.z(), ptrk, pdir, mfit);
+  TrRecHitR *hmin =  0;
+  float      dmin = -1;
+  int        mmin = -1;
+
+  float rgt = GetRigidity(mfit);
+  int  qopt = TrClusterR::kAsym | TrClusterR::kGain  | TrClusterR::kLoss |
+              TrClusterR::kMIP  | TrClusterR::kAngle | TrClusterR::kBeta |
+              TrClusterR::kRigidity;
+
+  int nhit = 0;
+
+  for (int i = 0; i < cont->getnelem(); i++) {
+    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
+    if (!hit) continue;
+    if (!(opt&1) && hit->OnlyY()) continue;
+
+    TrClusterR *xcls = hit->GetXCluster();
+    TrClusterR *ycls = hit->GetYCluster();
+
+    TkSens sens(hit->GetTkId(), ptrk, pdir, 0);
+    AMSDir sdir = sens.GetSensDir();
+    float  dxdz = (sdir.z() != 0) ? sdir.x()/sdir.z() : 0;
+    float  dydz = (sdir.z() != 0) ? sdir.y()/sdir.z() : 0;
+
+    if (xcls && xcls->GetDxDz() == 0) xcls->SetDxDz(dxdz);
+    if (xcls && xcls->GetDyDz() == 0) xcls->SetDyDz(dydz);
+    if (ycls && ycls->GetDxDz() == 0) ycls->SetDxDz(dxdz);
+    if (ycls && ycls->GetDyDz() == 0) ycls->SetDyDz(dydz);
+
+    float qhit = std::sqrt(hit->GetSignalCombination(2, qopt, beta, rgt));
+    if (qhit < qmin || qmax < qhit) continue;
+
+    int    mult = -1;
+    AMSPoint dd = hit->HitPointDist(ptrk, mult);
+    float  dist = std::sqrt(dd.x()*dd.x()+dd.y()*dd.y());
+    if (dist > dmax) continue;
+
+    nhit++;
+    if (opt&4) {
+      TrTrackR tfit = *this;
+      tfit.AddHit(hit, mult);
+      dist = tfit.FitT(0, -1, false);
+    }
+
+    if (!hmin || dist < dmin) {
+      hmin = hit;
+      dmin = dist;
+      mmin = mult;
+    }
+  }
+  if (hmin) AddHit(hmin, mmin);
+
+  delete cont;
+  return nhit;
+}
+
+int TrTrackR::MergeExtHitsAndRefit(float dmax, const map<int, float> &qmin,
+		                               const map<int, float> &qmax,
+				   float beta, int opt)
+{
+  vector<like_t> like;
+  int ztrk = GetInnerZ(like, beta);
+
+  map<int, float>::const_iterator imin = qmin.find(ztrk);
+  map<int, float>::const_iterator imax = qmax.find(ztrk);
+
+  float qmn = (imin != qmin.end()) ? imin->second : -1;
+  float qmx = (imax != qmax.end()) ? imax->second : -1;
+
+  int hext = HasExtLayers();
+  int nm1  = MergeHits(1, dmax, qmn, qmx);
+  int nm9  = MergeHits(9, dmax, qmn, qmx);
+
+  int mfit1 = kChoutko;
+  int mfit2 = kAlcaraz;
+  if (nm1 > 0) {
+    DoAdvancedFit(kFitLayer8);
+    if      (FitDone(mfit1|kFitLayer8)) Settrdefaultfit(mfit1|kFitLayer8);
+    else if (FitDone(mfit2|kFitLayer8)) Settrdefaultfit(mfit2|kFitLayer8);
+  }
+  if (nm9 > 0) {
+    DoAdvancedFit(kFitLayer9);
+    if      (FitDone(mfit1|kFitLayer9)) Settrdefaultfit(mfit1|kFitLayer9);
+    else if (FitDone(mfit2|kFitLayer9)) Settrdefaultfit(mfit2|kFitLayer9);
+  }
+  if ((nm1 > 0 && nm9 > 0) || (nm1 > 0 && (hext&2))
+                           || (nm9 > 0 && (hext&1))) {
+    int k89 = kFitLayer8|kFitLayer9;
+    DoAdvancedFit(k89);
+    if      (FitDone(mfit1|k89)) Settrdefaultfit(mfit1|k89);
+    else if (FitDone(mfit2|k89)) Settrdefaultfit(mfit2|k89);
+  }
+
+  return nm1+nm9;
+}
 
 mean_t TrTrackR::GetQ_all(float beta, int fit_id, float mass_on_z, int version) {
   // ver0: X side only, no kLoss

@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.95 2014/01/26 22:56:40 choutko Exp $
+// $Id: tkdcards.C,v 1.96 2014/03/01 12:56:08 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -271,10 +271,10 @@ void TRMCFFKEY_DEF::init(){
   ActivateShielding=1;
   ShieldingDensity=2.5;
   // Outer smearing to simulate residual disalignment
-  OuterSmearing[0][0]=8e-4; //L1 X
-  OuterSmearing[0][1]=8e-4; //L1 Y
-  OuterSmearing[1][0]=8e-4; //L9 X
-  OuterSmearing[1][1]=8e-4; //L9 Y
+  OuterSmearing[0][0]= 8.0e-4; //L1 X
+  OuterSmearing[0][1]= 9.0e-4; //L1 Y
+  OuterSmearing[1][0]= 8.0e-4; //L9 X
+  OuterSmearing[1][1]=11.5e-4; //L9 Y
 
   // new stuff 2013 (PZ)
 
@@ -497,6 +497,11 @@ void TRFITFFKEY_DEF::init(){
   EcalMaxX=45.;
 // I  23 magnet temp correction enabled
   magtemp=1;
+
+  /// R 24 Additional fit point error (Layer 1)
+  ErrYL1 =  9.0e-4/1.4;
+  /// R 25 Additional fit point error (Layer 9)
+  ErrYL9 = 11.5e-4/1.4;
 }
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 

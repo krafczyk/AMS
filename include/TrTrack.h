@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.106 2014/01/26 23:20:20 choutko Exp $
+//  $Id: TrTrack.h,v 1.107 2014/03/01 12:56:34 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2014/01/26 23:20:20 $
+///$Date: 2014/03/01 12:56:34 $
 ///
-///$Revision: 1.106 $
+///$Revision: 1.107 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -968,6 +968,39 @@ public:
 
   /// Check if the track has good TrRecHit pointers
   bool ValidTrRecHitsPointers();
+
+  /// Merge the closest hits
+  /*!
+    \param[in] layer  Layer number (J-scheme)
+    \param[in] dmax   Maximum allowed distance to the hit (cm)
+    \param[in] qmin   Hit charge lower limit (< 0 for no limit)
+    \param[in] qmax   Hit charge upper limit (< 0 for no limit)
+    \param[in] beta   Beta to correct charge of hits
+    \param[in] opt    + 1: Allow OnlyY hit
+		      + 2: Replace the existing hit
+                      + 4: Use min. chisquare instead of min. distance
+		      + 8: Use inner track extrapolation instead of default fit
+		      +16: Refit after merge
+    \return    Number of hits found by the criteria
+   */
+  int MergeHits(int layer, float dmax, float qmin, float qmax,
+		                       float beta = 1, int opt = 0);
+
+  /// Merge hits in L1 and L9 and refit
+  /*!
+    \param[in] dmax  Window size
+    \param[in] qmin  map of inner integer charge and hit charge lower limit 
+    \param[in] qmax  map of inner integer charge and hit charge uuper limit
+    \param[in] beta  Beta to correct the charge of hits
+    \param[in] opt   +1: Allow OnlyY hit
+		     +2: Replace the existing hit
+                     +4: Use min. chisquare instead of min. distance
+		     +8: Use inner track extrapolation instead of default fit
+    \return    Total number of hits found by the criteria
+  */
+  int MergeExtHitsAndRefit(float dmax, const map<int, float> &qmin,
+		                       const map<int, float> &qmax,
+			   float beta = 1, int opt = 0);
 
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy, int pat = -1) {

@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.67 2014/01/04 16:00:14 pzuccon Exp $
+// $Id: tkdcards.h,v 1.68 2014/03/01 12:56:34 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 #ifdef _PGTRACK_
@@ -435,6 +435,12 @@ public:
   float EcalMaxX;
   // I  23 magnet temp correction enabled
   int   magtemp;
+
+  /// R 24 Additional fitting error (Layer 1) due to misalignment
+  float ErrYL1;
+  /// R 25 Additional fitting error (Layer 9) due to misalignment
+  float ErrYL9;
+
 
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
