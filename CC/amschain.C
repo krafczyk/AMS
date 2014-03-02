@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.78.2.1 2014/01/17 15:58:38 pzuccon Exp $
+//  $Id: amschain.C,v 1.78.2.2 2014/03/02 16:59:19 qyan Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -116,7 +116,8 @@ AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
   
   if (_EVENT->ReadHeader(m_tree_entry)==false) {
     delete _EVENT; _EVENT = NULL;
-    _ENTRY = -1;
+//    _ENTRY = -1;
+    _ENTRY = -2;
   }
 #ifdef _PGTRACK_
 //if(TkDBc::Head==0&& _EVENT!=0){
@@ -154,7 +155,8 @@ AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
 
 
 
-AMSEventR* AMSChain::GetEvent(){ 
+AMSEventR* AMSChain::GetEvent(){
+  if(_ENTRY<-1)return NULL; 
   GetEvent(_ENTRY+1);
   return _EVENT;
 };
