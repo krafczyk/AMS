@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.68 2014/03/01 12:56:34 shaino Exp $
+// $Id: tkdcards.h,v 1.69 2014/03/03 18:37:34 choutko Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 #ifdef _PGTRACK_
@@ -448,7 +448,7 @@ public:
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,8);
+  ClassDef(TRFITFFKEY_DEF,9);
 };
 //
 
