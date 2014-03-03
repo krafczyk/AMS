@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.63 2014/02/26 10:22:49 choutko Exp $
+//  $Id: g4physics.C,v 1.64 2014/03/03 18:37:16 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.63 2014/02/26 10:22:49 choutko Exp $
+// $Id: g4physics.C,v 1.64 2014/03/03 18:37:16 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1043,7 +1043,7 @@ if(G4FFKEY.DetectorCut%10==1){
     EcalRegion->SetProductionCuts(EcalCuts);  
     cout <<"AMSG4Physics::SetCuts-I-SettingProductionCutsForParticles "<<ecutv<<endl;
   }
-  else if(ECMCFFKEY.g4cutge!=1){
+  else if(1){
     EcalCuts->SetProductionCut(cut/10./ECMCFFKEY.g4cutge, "e+");
     EcalCuts->SetProductionCut(cut/10./ECMCFFKEY.g4cutge, "e-");
     EcalCuts->SetProductionCut(cut/10./ECMCFFKEY.g4cutge, "gamma");

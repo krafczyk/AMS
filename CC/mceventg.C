@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.198 2014/02/26 10:22:49 choutko Exp $
+//  $Id: mceventg.C,v 1.199 2014/03/03 18:37:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -752,7 +752,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       //
       // find a modulation
       //
-      geant modul[18]={400.,350.,550.,650.,950.,1000.,1300.,1200.,1000.,900.,800.,600.,500.,500.,500.,600.,600.,700.};
+      geant modul[18]={400.,350.,550.,650.,950.,1000.,1300.,1200.,1000.,900.,800.,600.,500.,500.,500.,600.,600.,600.};
       integer year=(begindate%10000+enddate%10000)/2-1997; 
       if(year <=0 || year > 17){
         cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
@@ -797,7 +797,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
         else if (ipart ==14 ){
-          y=1.7e4/beta/pow(xrig,2.82);
+          y=1.7e4/beta/pow(xrig,2.80);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
           
         }    
@@ -828,6 +828,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           return;
         }
 //      geomag transmittion
+
 double par[3]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
 double xr[2]={0.412,27};
 double trueRigidity=xm/1000.;
@@ -836,6 +837,7 @@ double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
 fac/=rm;
  y*=fac;   
+        
         HF1(_hid,xm,y);
         HF1(_hid+1,xm,y);
 AMSEventR::hf1(_hid,xm,y);
@@ -1210,9 +1212,58 @@ bool AMSmceventg::SpecialCuts(integer cut){
       }
       else return false;
      } 
-     else return true;
+      else return true;
+
+  }
+  else if(cut>=4 && cut<=7){
+
+      static AMSPoint cross1;
+      static double par1[4]={63.14,48.4,158.920,67.14};
+      static AMSPoint cross9;
+      static double par9[4]={46.62 ,34.5,-135.882,67.14};
+      static bool initdone=false;
+      if(!initdone){
+      cross1[0]=par1[0];
+      cross1[1]=par1[1];
+      cross1[2]=par1[2];
+      cout <<" AMSmceventg::Specualcut-I-CrossingParametersLayer1: "<<cross1<<endl;
+      cross9[0]=par9[0];
+      cross9[1]=par9[1];
+      cross9[2]=par9[2];
+      cout <<" AMSmceventg::Specualcut-I-CrossingParametersLayer9: "<<cross9<<endl;
+     }
+      bool layer1=false;
+      if(_dir[2]){
+       AMSPoint extrap=_coo+_dir*((cross1[2]-_coo[2])/_dir[2]);
+      if(fabs(extrap[0])<fabs(cross1[0]) && fabs(extrap[1])<fabs(cross1[1]) && sqrt(extrap[0]*extrap[0]+extrap[1]*extrap[1])<par1[3])layer1=true;
+      }
+
+
+
+      bool layer9=false;
+      if(_dir[2]){
+       AMSPoint extrap=_coo+_dir*((cross9[2]-_coo[2])/_dir[2]);
+      if(fabs(extrap[0])<fabs(cross9[0]) && fabs(extrap[1])<fabs(cross9[1]) && sqrt(extrap[0]*extrap[0]+extrap[1]*extrap[1])<par9[3])layer9=true;
+      }
+
+
+      if(!initdone){
+       if(cut==4)cout<<" AMSmceventg::Specualcut-I-Layer1FocusSelected"<<endl;
+       else if (cut==5)cout<<" AMSmceventg::Specualcut-I-Layer9FocusSelected"<<endl;
+     else if (cut==6)cout<<" AMSmceventg::Specualcut-I-Layer1Or9FocusSelected"<<endl;
+     else cout<< " AMSmceventg::Specualcut-I-Layer1And9FocusSelected"<<endl;
+    initdone=true;
+    }
+    if(cut==4)return layer1;
+     else if (cut==5)return layer9;
+     else if (cut==6)return (layer1 || layer9);
+     else return (layer1 &&layer9);       
   }
 
+
+/*
+
+Removed by VC 2014.02.03 as no documentation for this codde exists
 #ifdef _PGTRACK_
   if (cut == 5 || cut == 6) {
 /// AMS-B Ecal/TRD-acceptance
@@ -1239,7 +1290,7 @@ bool AMSmceventg::SpecialCuts(integer cut){
 /// AMS-B Ecal/TRD-acceptance
   }
 #endif
-
+*/
      return true;
 }
 

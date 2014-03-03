@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.420 2014/02/11 14:45:55 bbeische Exp $
+#  $Id: datacards.doc,v 1.421 2014/03/03 18:37:21 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -292,6 +292,10 @@ I34 SpecialCut(0)                 // special acceptance cut
                                   // 1: focus on ecal
                                   // 2: focus on outer trd hc
                                   // 3: focus on solarpanel/ams (AMS02BIG setup required)
+                                  // 4: focus on layer 1
+                                  // 5: focus on layer 9
+                                  // 6: focus on layer 1 || layer9
+                                  // 7: foxuse on ecal && layer 9 
                                   // 10+: additional tracker plane on the ecal level
 I35 FluxFile(' ')                 // file with fluxes (creme96 format)
 I75 curtime                      //  aux
