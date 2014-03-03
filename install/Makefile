@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.281 2014/02/18 15:45:56 choutko Exp $
+#  $Id: Makefile,v 1.282 2014/03/03 15:08:35 shaino Exp $
 
 # definition of cppflags and inc paths within Makefile
 # avoid multiple listings of files, using where possible the generation
@@ -364,7 +364,7 @@ COMMON_FILES += $(SCC)TrdMcDatacards.C $(SCC)trdid.C $(SCC)trdsim.C $(SCC)trdrec
 
 #TRD + AC Calibration + TrdKLikelihood Methods + TrdMTrack
 ifdef PGTRACK
-TRD_ADD= $(SCC)TrdSCalib.C $(SCC)TrdKCalib.C $(SCC)TrdKHit.C $(SCC)TrdMTrack.C $(SCC)TrdKPDF.C $(SCC)TrdKCluster.C $(SCC)TrdKToyMC.C  
+TRD_ADD= $(SCC)TrdSCalib.C $(SCC)TrdKCalib.C $(SCC)TrdKHit.C $(SCC)TrdMTrack.C $(SCC)TrdKPDF.C $(SCC)TrdKCluster.C $(SCC)TrdKToyMC.C $(SCC)GammaFit.C
 TOF_ADD= $(SCC)TofGeometry.C $(SCC)TofRecon.C $(SCC)TofTrack.C
 endif
 COMMON_FILES +=$(TRD_ADD) 
@@ -722,7 +722,7 @@ ROOTDICTFILES += ../include/DynAlignment.h ../include/RichTools.h ../include/Ric
 ROOTDICTFILES += ../include/BackTracingMIB.h
 
 ifdef PGTRACK
-ROOTDICTFILES += ../include/TrdSCalib.h ../include/TrdKCalib.h ../include/TrdKHit.h ../include/TrdMTrack.h ../include/TrdKPDF.h ../include/TrdKCluster.h ../include/TrdKToyMC.h
+ROOTDICTFILES += ../include/TrdSCalib.h ../include/TrdKCalib.h ../include/TrdKHit.h ../include/TrdMTrack.h ../include/TrdKPDF.h ../include/TrdKCluster.h ../include/TrdKToyMC.h ../include/GammaFit.h
 ROOTDICTFILES += ../include/TofGeometry.h  ../include/TofRecon.h  ../include/TofTrack.h ../include/bcorr.h
 endif
 
@@ -1010,7 +1010,7 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)SlowControlDB_s.o $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)TrGainDB_s.o $(BIN)TrChargeLossDB_s.o $(BIN)TrOccDB_s.o \
 	$(BIN)TrEDepDB_s.o $(BIN)TrMipDB_s.o $(BIN)TrLinearDB_s.o $(BIN)TrLikeDB_s.o \
         $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdMcDatacards.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o $(BIN)TrdKToyMC_s.o  $(BIN)TrdMTrack_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)commonsi.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o \
+        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdMcDatacards.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o $(BIN)TrdKToyMC_s.o  $(BIN)TrdMTrack_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)commonsi.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)GammaFit_s.o \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o   $(BIN)GM_SubLibrary.o \
 	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o
 SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)bcorr_s.o
