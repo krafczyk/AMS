@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.107 2014/03/01 12:56:34 shaino Exp $
+//  $Id: TrTrack.h,v 1.108 2014/03/03 12:54:36 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2014/03/01 12:56:34 $
+///$Date: 2014/03/03 12:54:36 $
 ///
-///$Revision: 1.107 $
+///$Revision: 1.108 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -988,9 +988,9 @@ public:
 
   /// Merge hits in L1 and L9 and refit
   /*!
-    \param[in] dmax  Window size
+    \param[in] dmax  Maximum allowed distance to the hit (cm)
     \param[in] qmin  map of inner integer charge and hit charge lower limit 
-    \param[in] qmax  map of inner integer charge and hit charge uuper limit
+    \param[in] qmax  map of inner integer charge and hit charge upper limit
     \param[in] beta  Beta to correct the charge of hits
     \param[in] opt   +1: Allow OnlyY hit
 		     +2: Replace the existing hit
@@ -1001,6 +1001,13 @@ public:
   int MergeExtHitsAndRefit(float dmax, const map<int, float> &qmin,
 		                       const map<int, float> &qmax,
 			   float beta = 1, int opt = 0);
+
+  /// Convert from array to map
+  static map<int,float> v2m(int n, float *q) {
+    map<int,float> mm;
+    for (Int_t i = 0; i < n; i++) if (q[i] > 0) mm[i+1] = q[i];
+    return mm;
+  }
 
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy, int pat = -1) {

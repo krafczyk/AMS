@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.181 2014/03/01 12:56:08 shaino Exp $
+// $Id: TrTrack.C,v 1.182 2014/03/03 12:54:39 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2014/03/01 12:56:08 $
+///$Date: 2014/03/03 12:54:39 $
 ///
-///$Revision: 1.181 $
+///$Revision: 1.182 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1954,7 +1954,7 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
 
 
 {
-  if (!(opt&2) && TestHitLayerJ(layer)) return -1;
+  if (!(opt&2) && TestHitLayerJ(layer)) return 0;
 
   VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont) return -1;
@@ -1975,7 +1975,7 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
 
   for (int i = 0; i < cont->getnelem(); i++) {
     TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
-    if (!hit) continue;
+    if (!hit || hit->GetLayerJ() != layer) continue;
     if (!(opt&1) && hit->OnlyY()) continue;
 
     TrClusterR *xcls = hit->GetXCluster();
@@ -1992,7 +1992,8 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
     if (ycls && ycls->GetDyDz() == 0) ycls->SetDyDz(dydz);
 
     float qhit = std::sqrt(hit->GetSignalCombination(2, qopt, beta, rgt));
-    if (qhit < qmin || qmax < qhit) continue;
+    if (qmin > 0 && qhit < qmin) continue;
+    if (qmax > 0 && qhit > qmax) continue;
 
     int    mult = -1;
     AMSPoint dd = hit->HitPointDist(ptrk, mult);
@@ -2006,7 +2007,10 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
       dist = tfit.FitT(0, -1, false);
     }
 
-    if (!hmin || dist < dmin) {
+    if (hit->OnlyY()) mult = -1;
+    if (mmin > 0 && mult < 0) continue;
+
+    if (!hmin || (mmin < 0 && mult > 0) || dist < dmin) {
       hmin = hit;
       dmin = dist;
       mmin = mult;
@@ -2032,11 +2036,11 @@ int TrTrackR::MergeExtHitsAndRefit(float dmax, const map<int, float> &qmin,
   float qmx = (imax != qmax.end()) ? imax->second : -1;
 
   int hext = HasExtLayers();
-  int nm1  = MergeHits(1, dmax, qmn, qmx);
-  int nm9  = MergeHits(9, dmax, qmn, qmx);
+  int nm1  = MergeHits(1, dmax, qmn, qmx, beta, opt);
+  int nm9  = MergeHits(9, dmax, qmn, qmx, beta, opt);
 
-  int mfit1 = kChoutko;
-  int mfit2 = kAlcaraz;
+  int mfit1 = kChoutko | TrTrackR::kMultScat;
+  int mfit2 = kAlcaraz | TrTrackR::kMultScat;
   if (nm1 > 0) {
     DoAdvancedFit(kFitLayer8);
     if      (FitDone(mfit1|kFitLayer8)) Settrdefaultfit(mfit1|kFitLayer8);
