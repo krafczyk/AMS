@@ -534,7 +534,7 @@ FILE_PATTERNS          = root.h \
 			 TrdKCalib.h TrdKCluster.h TrdKHit.h TrdKPDF.h TrdKSimpleHit.h \
 			 TrdSCalib.h Tofrec02_ihep.h Tofcharge_ihep.h EcalChi2CY.h \
 			 FrameTrans.h TrdMcDatacards.h TrdMTrack.h TrdQt.hh bcorr.h \
-			 AntiPG.h UnfoldingTools.h Sunposition.h EcalH.h
+			 AntiPG.h UnfoldingTools.h Sunposition.h EcalH.h GammaFit.h
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
