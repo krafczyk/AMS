@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.422 2014/03/04 18:29:23 choutko Exp $
+#  $Id: datacards.doc,v 1.423 2014/03/04 19:01:38 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -295,7 +295,7 @@ I34 SpecialCut(0)                 // special acceptance cut
                                   // 4: focus on layer 1
                                   // 5: focus on layer 9
                                   // 6: focus on layer 1 || layer9
-                                  // 7: foxuse on ecal && layer 9 
+                                  // 7: focus on layer && layer 9 
                                   // 10+: additional tracker plane on the ecal level
 I35 FluxFile(' ')                 // file with fluxes (creme96 format)
 I75 curtime                      //  aux
