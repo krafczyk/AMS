@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.96 2014/02/11 18:09:25 choutko Exp $
+//  $Id: root_setup.h,v 1.97 2014/03/04 20:41:44 wgillard Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -8,6 +8,7 @@
 #include <vector>
 #include "TObject.h"
 #include "TString.h"
+#include "TGraph.h"
 #include "TTree.h"
 #include "TMatrixD.h"
 #include "trigger102_setup.h"
@@ -187,7 +188,20 @@ ClassDef(GPS,3)
 \author vitali.choutko@cern.ch qyan@cern.ch
 */
 class RTI{
+protected:
+	static TGraph *SAAedge;	///< outer boundaries of the SAA region
+
 public:
+
+	static TGraph *GetSAAedge(); ///< Construct the boundaries of the SAA region
+	//--------------------------------------------------------------------------------------------------
+	///
+	//!   Says if AMS was inside SAA boundaries
+	/*!
+	 returns: true if inside SAA, false if outside.
+	 */
+	bool IsInSAA();				///< True if ISS in in SAA, false otherwize
+
 unsigned int run;  ///< run
 unsigned int evno;///< fist event no in one second
 unsigned int evnol;///< last event no in one second

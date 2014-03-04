@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.640 2014/03/04 15:26:02 choutko Exp $
+//  $Id: root.C,v 1.641 2014/03/04 20:41:44 wgillard Exp $
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -10,6 +10,7 @@
 #include <TChainElement.h>
 #include "TFile.h"
 #include "TH3.h"
+#include "TGraph.h"
 #include "TMinuit.h"
 #include "TEnv.h"
 #ifdef _OPENMP
@@ -125,10 +126,13 @@ ClassImp(AMSEventR)
 
 //------------------- constructors -----------------------
 
-  AMSEventR::Service::hb1_d AMSEventR::Service::hb1;
+AMSEventR::Service::hb1_d AMSEventR::Service::hb1;
 AMSEventR::Service::hb2_d AMSEventR::Service::hb2;
 AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
 //char AMSEventR::Service::Dir[]="";
+
+TGraph *SSAedge = NULL;
+
 bool AMSEventR::fgThickMemory=false;
 TFile* AMSEventR::fgOutSep[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 TDirectory* AMSEventR::fgOutSepDir[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -251,9 +255,26 @@ void AMSEventR::hdivide(int id1,int id2,int id3){
    }   
   }
 }
-
-
 }
+
+bool AMSEventR::IsInSAA(unsigned int time){
+/*
+ *
+ *  Created by William GILLARD on 03/03/2014.
+ *  Determine either the AMS was inside the SAA boundary at a given time. The default value for the time corresponds to the curent event's date.
+ *  Retrun true if in the SAA boundary, false otherwize.
+ */
+
+	AMSSetupR::RTI a;
+
+	if(time == 0)
+		GetRTI(a, fHeader.Time[0]);
+	else
+		GetRTI(a, time);
+
+	return a.IsInSAA();
+}
+
 void AMSEventR::hscale(int id1,double fac,bool calcsumw2){
 {
   TH1D *h2p = h1(id1);

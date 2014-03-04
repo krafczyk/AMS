@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.598 2014/03/04 14:39:08 choutko Exp $
+//  $Id: root.h,v 1.599 2014/03/04 20:41:44 wgillard Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3960,6 +3960,7 @@ static unsigned int MaxRun;
 static int ProcessSetup;
 static bool isBadRun(unsigned int run);
 static bool RunTypeSelected(unsigned int runtype);
+
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
 bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
@@ -4615,6 +4616,15 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 
         int isInShadow(AMSPoint & ic,int ipart=0); 
         int isInShadow(AMSPoint & ic, ParticleR &part);
+
+//--------------------------------------------------------------------------------------------------
+///
+//!   Says if AMS is inside SAA boundaries
+/*!
+ input parameter: time = a Unix timestamp (default==0 correspond to the time of the current envent);
+ returns: true if inside SAA, false if outside SAA ;
+ */
+bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throught the SAA
 
 
 //--------------------------------------------------------------------------------------------------

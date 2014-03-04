@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.151 2014/02/11 18:09:23 choutko Exp $
+//  $Id: root_setup.C,v 1.152 2014/03/04 20:41:44 wgillard Exp $
 
 #include "root_setup.h"
 #include "root.h"
@@ -1396,6 +1396,91 @@ float AMSSetupR::RTI::getthetam(){
         thetaM= thetaM*(-1)*deg2rad;
 
       return thetaM;
+}
+
+TGraph *AMSSetupR::RTI::SAAedge = NULL;
+
+TGraph *AMSSetupR::RTI::GetSAAedge()
+{
+	if(AMSSetupR::RTI::SAAedge != NULL)
+		return AMSSetupR::RTI::SAAedge;
+
+	AMSSetupR::RTI::SAAedge = new TGraph();
+	AMSSetupR::RTI::SAAedge->SetPoint(0 , -46.9020531516 , 1.07065020944);
+	AMSSetupR::RTI::SAAedge->SetPoint(1 , -42.4324570724 , 0.278767621219);
+	AMSSetupR::RTI::SAAedge->SetPoint(2 , -38.7963908651 , -0.864383087583);
+	AMSSetupR::RTI::SAAedge->SetPoint(3 , -32.3643804368 , -7.86605177782);
+	AMSSetupR::RTI::SAAedge->SetPoint(4 , -32.1564301222 , -8.2925091686);
+	AMSSetupR::RTI::SAAedge->SetPoint(5 , -30.4732034929 , -10.2380772476);
+	AMSSetupR::RTI::SAAedge->SetPoint(6 , -28.9780074759 , -11.1541721933);
+	AMSSetupR::RTI::SAAedge->SetPoint(7 , -24.9729186857 , -13.9219707474);
+	AMSSetupR::RTI::SAAedge->SetPoint(8 , -22.3514515118 , -15.8035549547);
+	AMSSetupR::RTI::SAAedge->SetPoint(9 , -17.864105537 , -17.5329648531);
+	AMSSetupR::RTI::SAAedge->SetPoint(10 , -13.7360395887 , -18.4514556443);
+	AMSSetupR::RTI::SAAedge->SetPoint(11 , -9.31195234438 , -20.5579164624);
+	AMSSetupR::RTI::SAAedge->SetPoint(12 , -7.18498632474 , -21.1949557893);
+	AMSSetupR::RTI::SAAedge->SetPoint(13 , -3.59895538649 , -23.8036939586);
+	AMSSetupR::RTI::SAAedge->SetPoint(14 , -2.34504587932 , -24.8012082521);
+	AMSSetupR::RTI::SAAedge->SetPoint(15 , -0.819716509312 , -27.065064314);
+	AMSSetupR::RTI::SAAedge->SetPoint(16 , -0.0558141297819 , -29.4952077252);
+	AMSSetupR::RTI::SAAedge->SetPoint(17 , -1.39465186809 , -31.1867845581);
+	AMSSetupR::RTI::SAAedge->SetPoint(18 , -4.48059829104 , -33.3607272689);
+	AMSSetupR::RTI::SAAedge->SetPoint(19 , -8.42183566883 , -35.9587368092);
+	AMSSetupR::RTI::SAAedge->SetPoint(20 , -9.27876931794 , -36.2964186885);
+	AMSSetupR::RTI::SAAedge->SetPoint(21 , -13.8165106415 , -37.7311180334);
+	AMSSetupR::RTI::SAAedge->SetPoint(22 , -17.4924677527 , -39.0468547418);
+	AMSSetupR::RTI::SAAedge->SetPoint(23 , -18.408230558 , -39.407844502);
+	AMSSetupR::RTI::SAAedge->SetPoint(24 , -19.3555119436 , -39.7809321206);
+	AMSSetupR::RTI::SAAedge->SetPoint(25 , -26.2402929635 , -42.5628157663);
+	AMSSetupR::RTI::SAAedge->SetPoint(26 , -29.3390198221 , -43.7512422146);
+	AMSSetupR::RTI::SAAedge->SetPoint(27 , -30.4468807826 , -44.1487676525);
+	AMSSetupR::RTI::SAAedge->SetPoint(28 , -36.2608202879 , -44.9657315842);
+	AMSSetupR::RTI::SAAedge->SetPoint(29 , -38.6471514882 , -45.8362408379);
+	AMSSetupR::RTI::SAAedge->SetPoint(30 , -39.884535768 , -46.2670553531);
+	AMSSetupR::RTI::SAAedge->SetPoint(31 , -41.1537099863 , -46.7007904009);
+	AMSSetupR::RTI::SAAedge->SetPoint(32 , -46.4231376314 , -47.035405079);
+	AMSSetupR::RTI::SAAedge->SetPoint(33 , -50.5517527888 , -46.9389068642);
+	AMSSetupR::RTI::SAAedge->SetPoint(34 , -56.1886816966 , -45.9179669008);
+	AMSSetupR::RTI::SAAedge->SetPoint(35 , -60.4620401598 , -44.5064118787);
+	AMSSetupR::RTI::SAAedge->SetPoint(36 , -65.9797837207 , -40.9661101604);
+	AMSSetupR::RTI::SAAedge->SetPoint(37 , -68.6756029734 , -39.1105256272);
+	AMSSetupR::RTI::SAAedge->SetPoint(38 , -69.9926612952 , -38.1896928803);
+	AMSSetupR::RTI::SAAedge->SetPoint(39 , -72.5874587403 , -35.1855408369);
+	AMSSetupR::RTI::SAAedge->SetPoint(40 , -74.9768865609 , -32.1834974998);
+	AMSSetupR::RTI::SAAedge->SetPoint(41 , -79.386936716 , -24.8704780079);
+	AMSSetupR::RTI::SAAedge->SetPoint(42 , -81.5015374707 , -20.6638534546);
+	AMSSetupR::RTI::SAAedge->SetPoint(43 , -83.3018473547 , -16.5956399645);
+	AMSSetupR::RTI::SAAedge->SetPoint(44 , -83.4855953538 , -15.6706377827);
+	AMSSetupR::RTI::SAAedge->SetPoint(45 , -83.4016563744 , -13.3880324461);
+	AMSSetupR::RTI::SAAedge->SetPoint(46 , -79.0157111546 , -9.8025691601);
+	AMSSetupR::RTI::SAAedge->SetPoint(47 , -76.0062621477 , -8.49383318946);
+	AMSSetupR::RTI::SAAedge->SetPoint(48 , -71.9675022979 , -7.9008874195);
+	AMSSetupR::RTI::SAAedge->SetPoint(49 , -69.1989836702 , -6.34481990494);
+	AMSSetupR::RTI::SAAedge->SetPoint(50 , -68.320940027 , -6.15577355353);
+	AMSSetupR::RTI::SAAedge->SetPoint(51 , -60.8270728968 , -4.71604157559);
+	AMSSetupR::RTI::SAAedge->SetPoint(52 , -57.4730300335 , -3.41729725291);
+	AMSSetupR::RTI::SAAedge->SetPoint(53 , -53.25104737 , -1.64190214253);
+	AMSSetupR::RTI::SAAedge->SetPoint(54 , -51.5811868613 , -0.10182123818);
+	AMSSetupR::RTI::SAAedge->SetPoint(55 , -49.9470795728 , 1.16581717215);
+	AMSSetupR::RTI::SAAedge->SetPoint(56 , -46.9020531516 , 1.07065020944);
+
+	return AMSSetupR::RTI::SAAedge;
+	
+}
+
+bool AMSSetupR::RTI::IsInSAA()
+{
+	AMSSetupR::RTI::GetSAAedge();
+
+	float rtiLong = phi*TMath::RadToDeg();
+	float rtiLat  = theta*TMath::RadToDeg();
+
+	while (rtiLong > 180.0f) rtiLong-=360.0f;
+
+	if( AMSSetupR::RTI::SAAedge->IsInside(rtiLong,rtiLat) )
+		return true;
+
+	return false;
 }
 
 float AMSSetupR::RTI::getphim(){
