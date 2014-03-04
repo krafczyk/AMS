@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.366 2014/02/06 15:48:00 ccorti Exp $
+//  $Id: commons.h,v 1.367 2014/03/04 14:39:08 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1041,6 +1041,7 @@ class CCFFKEY_DEF {
   integer DirFilePositions[2];
   integer DirFile[40];
   float Angle;
+  geant momrsp[2];      //118-119
 };
 //
 #define CCFFKEY COMMON_BLOCK(CCFFKEY,ccffkey)

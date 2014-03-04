@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.597 2014/02/11 18:09:25 choutko Exp $
+//  $Id: root.h,v 1.598 2014/03/04 14:39:08 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3229,7 +3229,7 @@ class ChargeR{
   BetaHR *pBetaH();
 
   /// most probable integer charge
-  int Charge(){return max(1,int(ChargeI[0]));}
+  int Charge(){return  getSize()?max(1,int(ChargeI[0])):-1;}
   /// number of ChargeSubD objects stored
   int getNCharges(){return Charges.size();}
   /// number of ChargeSubD objects used
