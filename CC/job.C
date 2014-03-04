@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.950 2014/02/07 15:52:29 oliva Exp $
+// $Id: job.C,v 1.951 2014/03/04 14:24:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -804,6 +804,8 @@ void AMSJob::_signdata(){
   CCFFKEY.dir[5]=1.;
   CCFFKEY.momr[0]=-1.e10;
   CCFFKEY.momr[1]=1.e10;
+  CCFFKEY.momrsp[0]=0;
+  CCFFKEY.momrsp[1]=0;
   CCFFKEY.fixp=0;
   CCFFKEY.albedor=0.;
   CCFFKEY.albedocz=0.05;

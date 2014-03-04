@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.199 2014/03/03 18:37:16 choutko Exp $
+//  $Id: mceventg.C,v 1.200 2014/03/04 14:24:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -681,6 +681,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       binw=40;
       geant al=binw/2;
       geant bl=binw/2+nchan*binw;
+      
       HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
       for(int i=0;i<nchan;i++){
         geant xm=i*binw+al+binw/2;
@@ -694,16 +695,21 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           HPRINT(_hid);
     }
     else if (low%1000==11){//Natural Spectrum
-      integer nchan=100000;
+      integer nchan=200000;
       geant binw;
       if(mass < 0.938)binw=100;
       else  binw=100*mass/0.938;
       geant al=0;
       geant bl=nchan*binw;
+      if(CCFFKEY.momrsp[0]<CCFFKEY.momrsp[1] && CCFFKEY.momrsp[0]>=0){
+       al=CCFFKEY.momrsp[0]*990;
+       bl=CCFFKEY.momrsp[1]*1010;
+       binw=(bl-al)/nchan;
+      }
       HBOOK1(_hid,"NaturalFlux",nchan,al,bl,0.);
       HBOOK1(_hid+1,"NaturalFlux",nchan,al,bl,0.);
       AMSEventR::hbook1(_hid,"NaturalFlux",nchan,al,bl);
-      AMSEventR::hbook1(_hid+1,"NaturalFlux Generated GeV",nchan/100,al/1000,bl/1000);
+      AMSEventR::hbook1(_hid+1,"NaturalFlux Generated GeV",nchan/20,al/1000,bl/1000);
  
        string option="";
        int opt=low/1000;
@@ -738,16 +744,21 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       }
     }
     else if (low==0 || !(GMFFKEY.GammaSource==0)){//ISN
-      integer nchan=100000;
+      integer nchan=200000;
       geant binw;
       if(mass < 0.938)binw=100;
       else  binw=100*mass/0.938;
       geant al=binw/2;
       geant bl=binw/2+nchan*binw;
+      if(CCFFKEY.momrsp[0]<CCFFKEY.momrsp[1] && CCFFKEY.momrsp[0]>=0){
+       al=CCFFKEY.momrsp[0]*990;
+       bl=CCFFKEY.momrsp[1]*1010;
+       binw=(bl-al)/nchan;
+      }
       HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
       HBOOK1(_hid+1,"Spectrum",nchan,al,bl,0.);
      AMSEventR::hbook1(_hid,"NaturalFlux",nchan,al,bl);
-     AMSEventR::hbook1(_hid+1,"NaturalFlux Generated GeV",nchan/100,al/1000,bl/1000);
+     AMSEventR::hbook1(_hid+1,"NaturalFlux Generated GeV",nchan/20,al/1000,bl/1000);
 
       //
       // find a modulation
@@ -831,8 +842,13 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
 
 double par[3]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
 double xr[2]={0.412,27};
-double trueRigidity=xm/1000.;
+//   add 
+//   smearing 
+//
+double sm=CCFFKEY.momrsp[1]?CCFFKEY.momrsp[1]/CCFFKEY.momr[1]:1;
+double trueRigidity=xm/1000.*sm;
 double rm=par[0]+par[1]*xr[1]+par[2]*xr[1]*xr[1];
+if( trueRigidity>xr[1]) trueRigidity=xr[1];
 double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
 fac/=rm;
@@ -2616,8 +2632,10 @@ double ret=0;
 double par[3]={ -2.5489251E-0002,6.2432960E-0002, -9.056250E-0004};
 double xr[2]={0.412,27};
 double rm=par[0]+par[1]*xr[1]+par[2]*xr[1]*xr[1];
+
 double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
+if(fac>rm)fac=rm;
 fac/=rm;
 if(gpid>=47 && gpid<=69){ // He to O Geant ID
 
