@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.64 2014/03/03 18:37:16 choutko Exp $
+//  $Id: g4physics.C,v 1.65 2014/03/04 18:29:19 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.64 2014/03/03 18:37:16 choutko Exp $
+// $Id: g4physics.C,v 1.65 2014/03/04 18:29:19 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -148,6 +148,10 @@ void AMSG4Physics::ConstructProcess()
       cout<<"QGSP Physics List will be used. "<<endl;
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
       if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+      if(G4FFKEY.HCrossSectionBias!=1){
+      cout<<"HadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias<<endl;
+       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+      }
     }
     if(G4FFKEY.PhysicsListUsed==2){
       cout<<"QGSC Physics List will be used. "<<endl;

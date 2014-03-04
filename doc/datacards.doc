@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.421 2014/03/03 18:37:21 choutko Exp $
+#  $Id: datacards.doc,v 1.422 2014/03/04 18:29:23 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -302,7 +302,7 @@ I75 curtime                      //  aux
 I76 DirFilePositions[2](1,0)             //  number of positions to be read from dire file
 I78 DirFile(' ')                  // file with positions
 R118 Angle(0)                     //  ams rotation angle
-
+R119 momrsp[2]                //  0,0  Range for spectra
 GMSRC   // to specify a point (gamma) source 
 I1 GammaSource(0)              // !=0 activate point source generation    
                            // MCGEN 3 and 7-12 not used with sources       
@@ -736,6 +736,7 @@ R 18 OverlapTol(0)     // Tolerance for overlap check (cm); no overlap check if 
 I 19 DumpCrossSections(0)  // 0 nothing 
                            // 1 dump inelastic cross sections for proton, helium and carbon projectiles over carbon
                            // 2 make a MC dry-run to calculate interaction probabilities P(C->X) for process C12 + C12 -> X + stuff (avoid this with production) 
+R 20 HCrossectionBias(1)    // Change (hadronic) crossection by multiplying by this number 
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
