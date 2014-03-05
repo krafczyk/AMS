@@ -56,15 +56,15 @@ void IonDPMJETPhysics::ConstructProcess()
 {
   G4double dpmemin=5.*GeV; 
   G4double emax = 1000.*TeV;
-//--Model Binary Cascade Low Energy
+  //--Model Binary Cascade Low Energy
   theIonBC = new G4BinaryLightIonReaction();
   theIonBC->SetMinEnergy(0.0);
   theIonBC->SetMaxEnergy(dpmemin+0.1*GeV);
-//--High Energy
+  //--High Energy
   theIonBC1 = new G4BinaryLightIonReaction();
   theIonBC1->SetMinEnergy(dpmemin);
   theIonBC1->SetMaxEnergy(emax);
-//--Model DPMJET
+  //--Model DPMJET
   theDPM = new G4DPMJET2_5Model();
   theDPM->SetMinEnergy(dpmemin);
   theDPM->SetMaxEnergy(emax);
@@ -72,13 +72,13 @@ void IonDPMJETPhysics::ConstructProcess()
   G4ElementTable::iterator iter;
   G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
   for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
-     G4int AA  =(*iter)->GetN();
-     if (AA<=dpmAmax) { theDPM   ->ActivateFor(*iter); theIonBC1->DeActivateFor(*iter); }
-     else             { theIonBC1->ActivateFor(*iter); theDPM   ->DeActivateFor(*iter); }
-   }
-//  theDPM->SetVerboseLevel(10);
+    G4int AA  =(*iter)->GetN();
+    if (AA<=dpmAmax) { theDPM   ->ActivateFor(*iter); theIonBC1->DeActivateFor(*iter); }
+    else             { theIonBC1->ActivateFor(*iter); theDPM   ->DeActivateFor(*iter); }
+  }
+  // theDPM->SetVerboseLevel(10);
 
-//---CrossSection
+  //---CrossSection
   fTripathi = new G4TripathiCrossSection();//< 1GeV  all A
   fTripathiLight = new G4TripathiLightCrossSection();//K/n <10GeV t d he3 he
   fIonH = new G4IonProtonCrossSection();//proton Target <20GeV (Inject A>4)
@@ -101,7 +101,7 @@ void IonDPMJETPhysics::ConstructProcess()
     G4EMDissociation *theEMD = new G4EMDissociation();
     theEMD->SetMinEnergy(100.0*MeV);
     theEMD->SetMaxEnergy(2000.0*GeV);
-    // theEMD->SetVerboseLevel(2);
+    // theEMD->SetVerboseLevel(10);
     G4ElementTable::iterator iter;
     G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
     for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
@@ -136,9 +136,9 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
     hadi->AddDataSet(fGG);
   }
 #endif
+  if(isIon) { hadi->AddDataSet(fIonH); }
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   hadi->RegisterMe(theDPM);
-  if(isIon) { hadi->AddDataSet(fIonH); }
 }
 // -----------------------------------------------------------
