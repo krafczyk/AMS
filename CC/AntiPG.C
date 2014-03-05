@@ -224,7 +224,7 @@ int AntiRecoPG::GetCrossing(AMSPoint* Point1, AMSPoint* Point2, AMSPoint* CrossP
  phicross = (acos(xc/rr)*180./3.1415926-180.)*yc/fabs(yc)+180.;
  int rsec = 0;
  for (int is = 1; is<9;is++){
- double phis = 45.*is;
+ double phis = 45.*(is-1)+22.5;
  if(fabs(phis-phicross)<22.5) rsec = is;
  }
  if (fabs(zc)>=40) rsec = -rsec;
