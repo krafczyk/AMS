@@ -848,36 +848,77 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
 /////////////////////////////////////////////////////////////////////
 
 double TrdKCluster::TRDTrack_PathLengthLikelihood_Repulsion(Double_t *par){
-  int size= NHits();
-  double result=0;
-  AMSPoint temp_TrTrackP0(par[0],par[1],par[2]);
-  AMSDir  temp_TrTrackDir(par[3],par[4],TMath::Sqrt(1-par[3]*par[3]-par[4]*par[4]));
-  double pathlength,impact_parameter,likelihood;
-  TrdKHit* hit;
-  for(int i=0;i<size;i++){
-    hit=GetHit(i);
-    if(hit->TRDHit_Amp != 0.) {
-      pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
-      if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
-      else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
-      else if(Refit_hypothesis==2) likelihood=kpdf_h->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
-      else{
-        cout<<"~~~~~WARNING~~~~TrdKCluster, Refit using PathLength Likelihood, Particle Hypothesis not found: "<<Refit_hypothesis<<endl;
-        return -999;
-      }
-    } else {
-      impact_parameter=hit->Tube_Track_Distance_3D(&temp_TrTrackP0,&temp_TrTrackDir);
-      likelihood=TRDImpactlikelihood->GetLikelihood(hit->TRDHit_Amp,impact_parameter);
+    int size= NHits();
+    double result=0;
+    AMSPoint hyp_TrTrackP0(par[0],par[1],par[2]);
+    AMSDir  hyp_TrTrackDir(par[3],par[4],TMath::Sqrt(1-par[3]*par[3]-par[4]*par[4]));
+    double pathlength,likelihood;
+    TrdKHit* hit;
+    //Collect the different sublayers used by our hits.
+    std::vector<int> used_sublayers;
+    for(int i=0;i<size;++i) {
+        hit = GetHit(i);
+        int sublayer = hit->getSublayer();
+        bool already_used = false;
+        for(int j=0;j<used_sublayers.size();++j) {
+            if(sublayer == used_sublayers[j]) {
+                already_used = true;
+                break;
+            }
+        }
+        if(!already_used) {
+            used_sublayers.push_back(sublayer);
+        }
     }
-    result-=2*log(likelihood);
-
-  }
-
-  delete [] z_layers;
-  delete [] interp_points;
-  delete [] interp_dirs;
-
-  return result;
+    //Sort the list
+    std::sort(used_sublayers.begin(), used_sublayers.end());
+    //Get the z value of the layers
+    double* z_layers = new double[used_sublayers.size()];
+    for(int i=0;i<used_sublayers.size();++i) {
+        z_layers[i] = (double) TrdKHit::getSublayerZ(used_sublayers[i]);
+    }
+    //Build the interpolation list
+    AMSPoint* interp_points = new AMSPoint[used_sublayers.size()];
+    AMSDir* interp_dirs = new AMSDir[used_sublayers.size()];
+    TrTrack_Pro.Interpolate(used_sublayers.size(), z_layers, interp_points, interp_dirs);
+  
+    bool found = false;
+    for(int i=0;i<size;i++){
+        hit=GetHit(i);
+  
+        //Find the hit's sublayer
+        int idx = 0;
+        while(idx < used_sublayers.size()) {
+            if(hit->getSublayer() == used_sublayers[idx]) {
+                found = true;
+                break;
+            }
+            ++idx;
+        }
+        if(!found) {
+            //Print a warning and skip the hit if we can't find the sublayer
+            printf("TrdKCluster::TRDTrack_PathLengthLikelihood_Curved-W: Couldn't find a hit's sublayer Skipping!\n");
+            break;
+        }
+        AMSPoint temp_TrTrackP0(interp_points[idx]);
+        AMSDir temp_TrTrackDir(interp_dirs[idx]);
+        pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
+        if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        else if(Refit_hypothesis==2) likelihood=kpdf_h->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        else{
+            cout<<"~~~~~WARNING~~~~TrdKCluster, Refit using PathLength Likelihood, Particle Hypothesis not found: "<<Refit_hypothesis<<endl;
+            return -999;
+        }
+        result-=2*log(likelihood);
+  
+    }
+  
+    delete [] z_layers;
+    delete [] interp_points;
+    delete [] interp_dirs;
+  
+    return result;
 }
 
 /////////////////////////////////////////////////////////////////////
