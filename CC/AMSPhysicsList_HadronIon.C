@@ -57,15 +57,15 @@ AMSPhysicsList_HadronIon::~AMSPhysicsList_HadronIon()
 
 void AMSPhysicsList_HadronIon::ConstructProcess() {
 
-    SetVerboseLevel(10);
+    // SetVerboseLevel(10);
 
-/*
+    /*
     G4LElastic* elasticModel = new G4LElastic();
     G4HadronElasticProcess* hadElastProc = new G4HadronElasticProcess();
     hadElastProc->AddDataSet(new G4HadronElasticDataSet);
     hadElastProc->RegisterMe(elasticModel);
     //       pmanager->AddDiscreteProcess(hadElastProc);
-*/
+    */
 
     G4ParticleDefinition* particle = 0;
     G4ProcessManager* pManager = 0;
@@ -108,8 +108,6 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
 	cout<<"Use G4BinaryLightIonReaction for All the Ions"<<endl;
 
-	//	G4HadronElasticProcess* theElasticProcess = new G4HadronElasticProcess();
-
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
@@ -121,7 +119,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fDeuteronProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fDeuteronProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fDeuteronProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 
 	//======Triton
 	particle = G4Triton::Triton();
@@ -134,7 +132,8 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fTritonProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fTritonProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fTritonProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
@@ -146,7 +145,8 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fAlphaProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fAlphaProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fAlphaProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+
 	//======He3
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
@@ -159,7 +159,8 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fhe3Ion->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fhe3Ion);
-	//pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fhe3Ion->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+
 	//======GenericIon
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
@@ -172,7 +173,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fGenericIon->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fGenericIon);
-	//pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fGenericIon->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 
 	if(G4FFKEY.UseEMDModel==1){
 	  cout<<"Also Use EMD Model"<<endl;
@@ -210,7 +211,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fDeuteronProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fDeuteronProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fDeuteronProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 
 	//======Triton
 	particle = G4Triton::Triton();
@@ -223,7 +224,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fTritonProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fTritonProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fTritonProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 
 	//======Alpha
 	particle = G4Alpha::Alpha();
@@ -236,7 +237,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fAlphaProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fAlphaProcess);
-	//	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fAlphaProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 
 	//======He3
 	particle = G4He3::He3();
@@ -250,7 +251,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fhe3Ion->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fhe3Ion);
-        //	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fhe3Ion->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 
 	//======GenericIon
 	particle = G4GenericIon::GenericIon();
@@ -264,7 +265,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fGenericIon->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fGenericIon);
-        //	pManager->AddDiscreteProcess(hadElastProc);
+        if (G4FFKEY.HCrossSectionBias!=1) fGenericIon->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 
 	if(G4FFKEY.UseEMDModel==1){
 	  cout<<"Also Use EMD Model"<<endl;
@@ -278,13 +279,10 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	    theEMD->ActivateFor(*iter);
 	  }
 	  G4HadronInelasticProcess* fGenericIon_EMD = new G4HadronInelasticProcess("IonEMD",particle);
-	  
 	  fGenericIon_EMD->AddDataSet(EMDCrossSection);
 	  fGenericIon_EMD->RegisterMe(theEMD);
 	  pManager->AddDiscreteProcess(fGenericIon_EMD);
 	}
-
     }
-
 }
 #endif

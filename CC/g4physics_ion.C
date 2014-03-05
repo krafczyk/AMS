@@ -140,5 +140,6 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   hadi->RegisterMe(theDPM);
+  if (G4FFKEY.HCrossSectionBias!=1) hadi->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
 }
 // -----------------------------------------------------------
