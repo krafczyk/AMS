@@ -80,7 +80,7 @@ Double_t GammaFit::Fit(Double_t &likelihood, int particle,
   Double_t rt = (particle == kElectron) ? TMath::Abs(_rgt) : _rgt;
 
   Int_t i = method*Npart+particle;
-  _gamma[i] = pdf->GammaFit(_pxe, _len, _amp, _nhit, rt, _drv, zm, wt);
+  _gamma[i] = pdf->GammaFit(_pxe, _len, _amp, _nhit, rt, _drv, zm, wt)*zm;
   _likel[i] = pdf->fLH[0];
 
   likelihood = _likel[i];
