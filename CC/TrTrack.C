@@ -1125,6 +1125,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     }
   }
 
+  par.Bcorr=1;
+  MagField * mag=MagField::GetPtr();
+  if (mag)
+    par.Bcorr=mag->GetScale();
   // /// Restore deafult PG alignment if CIEMAT one was used
   // if(UsedCiemat){
   //   // Set TkPlaneExt to PG

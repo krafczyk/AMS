@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.641 2014/03/04 20:41:44 wgillard Exp $
+//  $Id$
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2553,7 +2553,7 @@ bool AMSEventR::ReadHeader(int entry){
 	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
       }
       if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
-      if(TRFITFFKEY.magtemp && Version()>=700 ) MagField::GetPtr()->UpdateMagTemp(UTime());
+      if(TRFITFFKEY.magtemp && Version()>=800 ) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
 #ifdef _PGTRACK_
