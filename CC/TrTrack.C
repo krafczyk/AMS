@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.182 2014/03/03 12:54:39 shaino Exp $
+// $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2014/03/03 12:54:39 $
+///$Date$
 ///
-///$Revision: 1.182 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1965,6 +1965,7 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
   TrRecHitR *hmin =  0;
   float      dmin = -1;
   int        mmin = -1;
+  float      amin[2] = { 0, 0 };
 
   float rgt = GetRigidity(mfit);
   int  qopt = TrClusterR::kAsym | TrClusterR::kGain  | TrClusterR::kLoss |
@@ -1986,12 +1987,25 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
     float  dxdz = (sdir.z() != 0) ? sdir.x()/sdir.z() : 0;
     float  dydz = (sdir.z() != 0) ? sdir.y()/sdir.z() : 0;
 
+    // Save the angles in clusters
+    float dds[4] = { (xcls) ? xcls->GetDxDz() : 0,
+		     (xcls) ? xcls->GetDyDz() : 0,
+		     (ycls) ? ycls->GetDxDz() : 0,
+		     (ycls) ? ycls->GetDyDz() : 0 };
+
     if (xcls && xcls->GetDxDz() == 0) xcls->SetDxDz(dxdz);
     if (xcls && xcls->GetDyDz() == 0) xcls->SetDyDz(dydz);
     if (ycls && ycls->GetDxDz() == 0) ycls->SetDxDz(dxdz);
     if (ycls && ycls->GetDyDz() == 0) ycls->SetDyDz(dydz);
 
     float qhit = std::sqrt(hit->GetSignalCombination(2, qopt, beta, rgt));
+
+    // Restore the angles in clusters
+    if (xcls) xcls->SetDxDz(dds[0]);
+    if (xcls) xcls->SetDyDz(dds[1]);
+    if (ycls) ycls->SetDxDz(dds[2]);
+    if (ycls) ycls->SetDyDz(dds[3]);
+
     if (qmin > 0 && qhit < qmin) continue;
     if (qmax > 0 && qhit > qmax) continue;
 
@@ -2014,9 +2028,21 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
       hmin = hit;
       dmin = dist;
       mmin = mult;
+      amin[0] = dxdz;
+      amin[1] = dydz;
     }
   }
-  if (hmin) AddHit(hmin, mmin);
+  if (hmin) {
+    AddHit(hmin, mmin);
+
+    // Update the angles
+    TrClusterR *xcls = hmin->GetXCluster();
+    TrClusterR *ycls = hmin->GetYCluster();
+    if (xcls) xcls->SetDxDz(amin[0]);
+    if (xcls) xcls->SetDyDz(amin[1]);
+    if (ycls) ycls->SetDxDz(amin[0]);
+    if (ycls) ycls->SetDyDz(amin[1]);
+  }
 
   delete cont;
   return nhit;
