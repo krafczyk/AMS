@@ -79,7 +79,7 @@ ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
-    LZMAL = -llzma  
+    LZMAL = -lz
 endif
 
 
@@ -108,7 +108,7 @@ include $(G4INSTALL)/config/G4VIS_USE.gmk
 endif
 include $(G4INSTALL)/config/architecture.gmk
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
-INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
+INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/  -I$(G4INCLUDE)
 ifdef CLHEP_BASE_DIR
 G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global -lCLHEP
 else
@@ -1010,7 +1010,7 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)SlowControlDB_s.o $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)TrGainDB_s.o $(BIN)TrChargeLossDB_s.o $(BIN)TrOccDB_s.o \
 	$(BIN)TrEDepDB_s.o $(BIN)TrMipDB_s.o $(BIN)TrLinearDB_s.o $(BIN)TrLikeDB_s.o \
         $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdMcDatacards.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o $(BIN)TrdKToyMC_s.o  $(BIN)TrdMTrack_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)commonsi.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)GammaFit_s.o \
+        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdMcDatacards.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o $(BIN)TrdKToyMC_s.o  $(BIN)TrdMTrack_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)commonsi_s.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)GammaFit_s.o \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o   $(BIN)GM_SubLibrary.o \
 	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o
 SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)bcorr_s.o
