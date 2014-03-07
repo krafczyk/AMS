@@ -1441,9 +1441,11 @@ allold:
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
 
+ifneq ("$(wildcard /etc/redhat-release)","")
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
 	#@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
+endif
 endif
 
 
