@@ -52,17 +52,17 @@
 #
 ifndef  SLC6system
 SLC6system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
 endif
 ifndef  SLC64system
 SLC64system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
 endif
 ifndef SLC64system
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
 endif
 endif

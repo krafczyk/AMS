@@ -54,13 +54,13 @@ else
 endif
 
 SLC4system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
 endif
 
 ifdef SLC4system
 else
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
 endif
 endif
