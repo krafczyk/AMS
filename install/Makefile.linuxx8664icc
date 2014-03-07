@@ -74,43 +74,42 @@ ifndef INTELDIR
   INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
 endif
 
+INTELVER_DEFAULT=Compiler/11.1/073/
+INTELVER_SLC6=composer_xe_2011_sp1.9.293/
+INTELVER_SLC64=composer_xe_2013_sp1.1.106/
+
 ifndef INTELVER
-  INTELVER=Compiler/11.1/073/
-endif
-
-INTELOPT=-axsse4.2,ssse3 
-
-ifdef SLC6system
-  ifndef INTELVER
-    INTELVER=composer_xe_2011_sp1.9.293/
+  INTELVER=$(INTELVER_DEFAULT)
+  ifdef SLC6system
+    INTELVER=$(INTELVER_SLC6)
+  endif
+  ifdef SLC64system
+    INTELVER=$(INTELVER_SLC64)
   endif
 endif
-#  INTELVER=composer_xe_2011_sp1.9.293/compiler/
 
-ifdef SLC64system
-  ifndef INTELVER
-    INTELVER=composer_xe_2013_sp1.1.106/
-  endif
-#compiler bug
-#   INTELOPT=-axAVX -msse3
+INTELOPT=-axsse4.2,ssse3
+ifeq ("$(INTELVER)", "$(INTELVER_SLC64)")
   INTELOPT=-axsse4.2,ssse3 -msse3
   ifdef AMSMIC
-    INTELOPT=-mmic 
+    INTELOPT=-mmic
   endif
 endif
 
 ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/bin/intel64)","")
 INTELBIN = $(INTELDIR)/$(INTELVER)/compiler/bin/intel64
-endif
+else
 ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/bin/intel64)","")
 INTELBIN = $(INTELDIR)/$(INTELVER)/bin/intel64
+endif
 endif
 
 ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/lib/intel64)","")
 INTELLIB = $(INTELDIR)/$(INTELVER)/compiler/lib/intel64
-endif
+else
 ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/lib/intel64)","")
 INTELLIB = $(INTELDIR)/$(INTELVER)/lib/intel64
+endif
 endif
 
   FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
