@@ -1,4 +1,4 @@
-// $Id: TrGainDB.h,v 1.6 2012/08/05 22:35:09 oliva Exp $
+// $Id$
 
 #ifndef __TrGainDB__
 #define __TrGainDB__
@@ -107,6 +107,9 @@ class TrLadGain : public TObject {
   //! Apply correction to a strip (very bad VA are excluded)
   float GetGainCorrected(float adc, int iva);
 
+  //! Check if setting is default
+  bool IsDefault();
+
   using TObject::Dump;
   using TObject::Info;
   ClassDef(TrLadGain,1);
@@ -186,6 +189,9 @@ class TrGainDB : public TObject {
 
   //! Display gains as a 2D histogram 
   TH2D* GetGainHistogram();
+
+  //! Check if setting is default
+  bool IsDefault();
 
   using TObject::Dump;
   using TObject::Info;

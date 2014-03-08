@@ -10805,9 +10805,9 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
 
     // TrGainDB (if all attempts fail use default)
     // 1st attempt: file
-    if (!TrGainDB::GetHead()->Load(_FILE)) { 
+    if ( (!TrGainDB::GetHead()->Load(_FILE))||(TrGainDB::GetHead()->IsDefault()) ) { 
       // 2nd attempt: TDV
-      if(LoadFromTDV) TrGainDB::GetHead()->LoadFromTDV(UTime()); 
+      if (LoadFromTDV) TrGainDB::GetHead()->LoadFromTDV(UTime()); 
     }
 
     // TrOccDB (if all attempts fail use default)

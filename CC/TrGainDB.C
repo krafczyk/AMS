@@ -1,4 +1,4 @@
-// $Id: TrGainDB.C,v 1.10 2014/01/13 15:33:51 choutko Exp $
+// $Id$
 
 #include "TrGainDB.h"
 
@@ -284,6 +284,19 @@ TH2D* TrGainDB::GetGainHistogram() {
 }
 
 
+bool TrGainDB::IsDefault() {
+  for (int icrate=0; icrate<8; icrate++) {
+    for (int itdr=0; itdr<24; itdr++) {
+      int iladder = icrate*24 + itdr;
+      int hwid = icrate*100 + itdr;
+      TrLadGain* ladgain = (TrLadGain*) FindGainHwId(hwid);
+      if (!ladgain->IsDefault()) return false;
+    }
+  }
+  return true;
+}
+
+
 ///////////////////////////
 // TrLadGain
 ///////////////////////////
@@ -369,3 +382,10 @@ float TrLadGain::GetGainCorrected(float adc, int iva) {
   // return (adc + GetOffset(iva)/2)*GetGain(iva); 
 }
 
+
+bool TrLadGain::IsDefault() {
+  for (int iva=0; iva<16; iva++) 
+    if ( (GetGain(iva)!=1.)||(GetOffset(iva)!=0.)||(GetSysErr(iva)!=0.)||(GetStatus(iva)!=0) ) 
+      return false;
+  return true;
+}

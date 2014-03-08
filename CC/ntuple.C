@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.275 2014/01/30 09:43:06 choutko Exp $
+//  $Id$
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -345,9 +345,9 @@ if(AMSEventR::h1(AMSmceventg::_hid+1)){
     TrCalDB::Head->Write();
     TkDBc  ::Head->Write();
     TrParDB::Head->Write();
-    // TrPdfDB::GetHead()->Write(); // don't save it, crete it every time
-    if (!TrGainDB::IsNull()) TrGainDB::GetHead()->Write();
-    if ((!TrOccDB::IsNull())&&(TrOccDB::GetHead()->GetRun()>0)) TrOccDB::GetHead()->Write();
+    // TrPdfDB::GetHead()->Write(); // don't save it, create it every time
+    if (TrGainDB::GetHead()) TrGainDB::GetHead()->Write();
+    if (TrOccDB::GetHead()) TrOccDB::GetHead()->Write();
     TrExtAlignDB::GetHead()->Write();
     TrInnerDzDB::GetHead()->Write();
     if (TrTasDB::Head) TrTasDB::Head->Write();
@@ -445,6 +445,11 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
 #ifdef __CORBA__
   _dc.SetString(AMSProducer::GetDataCards());
   //   cout <<_dc.GetString()<<endl;
+#else
+  _dc.String().Append("\n");
+  _dc.String().Append(Form("TRIG=%d\n",GCFLAG.NEVENT));
+  _dc.String().Append(Form("PMIN=%f\n",CCFFKEY.momr[0]));
+  _dc.String().Append(Form("PMAX=%f\n",CCFFKEY.momr[1]));
 #endif
   if(!_rfile || _rfile->IsZombie()){
     if(_rfile){
