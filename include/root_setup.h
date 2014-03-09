@@ -322,7 +322,7 @@ ClassDef(JGCR,1)
 
 class JGC{
 //  JMDC- GPS Correction
-// deprecated
+// seprecated
 public:
 unsigned int Validity[2];  ///< validity range unix time
 double A[2]; ///< A[0]+A[1]*x correction
@@ -575,7 +575,7 @@ public:
 
  typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
  typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
-  // vector<JGC> fJGC;
+ vector<JGC> fJGC;
  vector<JGCR> fJGCR;
  BadRun_m fBadRun; ///< BadRuns 
  GPS_m fGPS;    ///< GPS Epoch Time
