@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.641 2014/03/04 20:41:44 wgillard Exp $
+//  $Id$
 
 #include "TROOT.h"
 #include "TRegexp.h"
@@ -2553,7 +2553,7 @@ bool AMSEventR::ReadHeader(int entry){
 	TrExtAlignDB::GetHead()->UpdateTkDBcDyn(fHeader.Run,UTime(),3);
       }
       if(TrInnerDzDB::GetHead()) TrInnerDzDB::GetHead()->UpdateTkDBc(UTime());
-      if(TRFITFFKEY.magtemp && Version()>=700 ) MagField::GetPtr()->UpdateMagTemp(UTime());
+      if(TRFITFFKEY.magtemp && Version()>=800 ) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
 #ifdef _PGTRACK_
@@ -10805,9 +10805,9 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
 
     // TrGainDB (if all attempts fail use default)
     // 1st attempt: file
-    if (!TrGainDB::GetHead()->Load(_FILE)) { 
+    if ( (!TrGainDB::GetHead()->Load(_FILE))||(TrGainDB::GetHead()->IsDefault()) ) { 
       // 2nd attempt: TDV
-      if(LoadFromTDV) TrGainDB::GetHead()->LoadFromTDV(UTime()); 
+      if (LoadFromTDV) TrGainDB::GetHead()->LoadFromTDV(UTime()); 
     }
 
     // TrOccDB (if all attempts fail use default)

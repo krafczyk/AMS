@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.32 2013/05/10 15:05:09 shaino Exp $
+//  $Id$
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -259,6 +259,9 @@ public:
     L9[time]=TrExtAlignPar(dx,dy,dz,dalpha,dbeta,dgamma);
     return;
   }
+
+  /// Check if there is an wrong entry
+  int Check(void);
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   /// plane =1 upper plane =2 lower plane = 3 both

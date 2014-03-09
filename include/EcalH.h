@@ -1,4 +1,4 @@
-//  $Id: EcalH.h,v 1.5 2013/11/13 05:11:40 shaino Exp $
+//  $Id$
 #ifndef __EcalHR__
 #define __EcalHR__
 
@@ -11,9 +11,9 @@
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/11/13 05:11:40 $
+///$Date$
 ///
-///$Revision: 1.5 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -28,6 +28,20 @@ class TH2;
 class TF1;
 
 class EcalHR : public TrElem {
+
+#ifdef __ROOTSHAREDLIBRARY__
+public:
+  /*!
+    \brief Get hadron shower parameters of current event
+    \param[in]  z         Integer charge estimated by TrTrack (1 or 2)
+    \param[out] rrec      Estimated rigidity (GV)
+    \param[out] smax      Estimated shower max (in unit of Ecal layer)
+    \param[out] tr_chisq  TrTrack-EcalShower matching chisquare
+    \retval  0  success
+    \retval -1  error
+  */
+  static int Get(int z, float &rrec, float &smax, float &tr_chisq);
+#endif
 
 public:
   enum { NL = 18,           ///< Number of layers

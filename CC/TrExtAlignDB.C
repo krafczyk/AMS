@@ -186,10 +186,29 @@ void TrExtAlignDB::Load(TFile * ff){
   if(!Head)
     cout << "TrExtAlignDB::Load-W- Cannot Load the external Layer AlignmentDB"
 	 << endl;
-  else
+  else {
+    Head->Check();
     cout << "TrExtAlignDB::Load-I- Loaded from: " << ff->GetName()
 	 << " Size= " << Head->GetSize(8) << " " << Head->GetSize(9) << endl;
+  }
   return;
+}
+
+int TrExtAlignDB::Check(void)
+{
+  int rmin = 1300000000;
+  int ndel = 0;
+
+  for (ealgIT it = L8.begin(); it != L8.end(); it++)
+    if (it->first < rmin) { L8.erase(it++); ndel++; }
+
+  for (ealgIT it = L9.begin(); it != L9.end(); it++)
+    if (it->first < rmin) { L9.erase(it++); ndel++; }
+
+  if (ndel > 0)
+    cout << "TrExtAlignDB::Load-I- Removed wrong entries: " << ndel << endl;
+
+  return ndel;
 }
 
 Bool_t  TrExtAlignDB::Load(const char *fname)

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.952 2014/03/04 18:29:19 choutko Exp $
+// $Id$
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3537,18 +3537,16 @@ void AMSJob::_timeinitjob(){
     end.  tm_sec   = end.  tm_min = end.  tm_hour = end.  tm_mday = end.  tm_mon = end.tm_year   = 0;
     TID.add (new AMSTimeID(AMSID("TrackerVAGains",isRealData()),begin,end,
                            TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),
-                           server,isRealData(),FunctionLinearToGainDB));
+                           server,need,FunctionLinearToGainDB));
 
     // occupancy database (Dec 2012)
-    // only data 
-    if (isRealData()) {
-      begin.tm_isdst = end.  tm_isdst = 0;
-      begin.tm_sec   = begin.tm_min = begin.tm_hour = begin.tm_mday = begin.tm_mon = begin.tm_year = 0;
-      end.  tm_sec   = end.  tm_min = end.  tm_hour = end.  tm_mday = end.  tm_mon = end.tm_year   = 0;
-      TID.add (new AMSTimeID(AMSID("TrackerOccupancy",isRealData()),begin,end,
-                             TrOccDB::GetLinearSize(),TrOccDB::GetLinear(),
-                             server,isRealData(),FunctionLinearToOccDB));
-    }
+    // both data and MC 
+    begin.tm_isdst = end.  tm_isdst = 0;
+    begin.tm_sec   = begin.tm_min = begin.tm_hour = begin.tm_mday = begin.tm_mon = begin.tm_year = 0;
+    end.  tm_sec   = end.  tm_min = end.  tm_hour = end.  tm_mday = end.  tm_mon = end.tm_year   = 0;
+    TID.add (new AMSTimeID(AMSID("TrackerOccupancy",isRealData()),begin,end,
+                           TrOccDB::GetLinearSize(),TrOccDB::GetLinear(),
+                           server,need,FunctionLinearToOccDB));
 
     if (isRealData() && TrRecon::TasRecon) {
       begin.tm_isdst=0;

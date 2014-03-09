@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.108 2014/03/03 12:54:36 shaino Exp $
+//  $Id$
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2014/03/03 12:54:36 $
+///$Date$
 ///
-///$Revision: 1.108 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -77,6 +77,8 @@ public:
   short int NdofX;
   /// Ndof in Y
   short int NdofY;
+  /// Applied Bfield Temp correction 
+  float Bcorr;
 public:
   /// Normalized chisquare, Chisq(x+y)/Ndof(x+y)
   /*!
@@ -144,7 +146,7 @@ public:
   TrTrackPar()
     : FitDone(false), HitBits(0), ChisqX(-1), ChisqY(-1), 
       NdofX(0), NdofY(0), Chisq(-1), Rigidity(0), ErrRinv(0), 
-      P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {
+      P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)),Bcorr(1.) {
     for (int i = 0; i < trconst::maxlay; i++){
       Residual[i][0] = Residual[i][1] = 0;
       weight[i][0] = weight[i][1] = 0;
@@ -155,7 +157,7 @@ public:
   void Print_stream(std::string &ostr,int full=0) const;
   friend class TrTrackR;
   friend class VertexR;
-  ClassDef(TrTrackPar,4);
+  ClassDef(TrTrackPar,5);
 } ; 
 
 

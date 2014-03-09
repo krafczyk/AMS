@@ -1,4 +1,4 @@
-//  $Id: EcalH.C,v 1.10 2013/12/24 11:36:31 shaino Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
 ///
-///$Date: 2013/12/24 11:36:31 $
+///$Date$
 ///
-///$Revision: 1.10 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -44,6 +44,28 @@ float EcalHR::fCell =    0.9;
 
 float EcalHR::fEmin = 1;
 float EcalHR::fEthd[3] = { 50, 100, 300 };
+
+
+#ifdef __ROOTSHAREDLIBRARY__
+int EcalHR::Get(int z, float &rrec, float &smax, float &tcsq)
+{
+  AMSEventR *evt = AMSEventR::Head();
+  if (!evt) return -1;
+
+  EcalHR ectmp;
+  EcalHR *ecal = evt->pEcalH(0);
+  if (!ecal) {
+    ecal = &ectmp;
+    ecal->Process();
+  }
+
+  rrec = ecal->Lsum(1)*((z == 2) ? 2.8e-3 : 4.0e-3);
+  smax = ecal->Lmax(1);
+  tcsq = ecal->Tcsq();
+
+  return 0;
+}
+#endif
 
 EcalHR::EcalHR()
 {
