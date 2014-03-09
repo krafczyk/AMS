@@ -723,7 +723,7 @@ else{
    fRTI.clear();
    fGPSWGS84.clear();
    fJGCR.clear();
-   //   fJGC.clear();
+   fJGC.clear();
    fDSPError.clear();
    LoadISS(fHeader.Run-dt,fHeader.Run+3600);
    LoadISSAtt(fHeader.Run-dt,fHeader.Run+3600);
@@ -773,7 +773,7 @@ else{
    fDSPError.clear();
    fAMSSTK.clear();
    fJGCR.clear();
-   //   fJGC.clear();
+   fJGC.clear();
    const int dt=120;
    LoadISS(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
    LoadISSAtt(fHeader.FEventTime-dt,fHeader.LEventTime+dt);
