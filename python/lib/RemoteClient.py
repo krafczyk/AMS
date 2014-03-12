@@ -3466,7 +3466,8 @@ class RemoteClient:
             cmd = None
             inputfileLink = inputorig + '.0'
             inputfileAdd = inputorig + '.2'
-            if (copyfailed == 0):
+#            if (copyfailed == 0):
+            if (self.thrusted > 0):
                 if (len(cpntuples) > 0):
                     status = 'Completed'
                     inputfileLink = inputorig + '.1'
@@ -3504,10 +3505,13 @@ class RemoteClient:
                         fevt = r4[0][1]
                         if (ntevt is None):
                             ntevt = 0
+                        if (fevt is None):
+                            fevt = 0
                         if (ntevt > 0):
                             sql="UPDATE Runs SET fevent=%d, Levent=%d, fetime=%d, letime=%d WHERE jid=%d" %(fevt, ntevt-1+fevt, feti, leti, run)
                             output.write(sql + "\n")
                             self.sqlserver.Update(sql)
+                        if (ntevt >= 0):
                             sql=" update jobs set realtriggers=%d, timekill=0 where jid=%d" %(ntevt, run)
                             output.write(sql + "\n")
                             self.sqlserver.Update(sql)
