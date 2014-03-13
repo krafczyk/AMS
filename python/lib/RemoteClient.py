@@ -3496,7 +3496,7 @@ class RemoteClient:
                     self.GoodRuns[self.nCheckedCite] += 1
                     if (runfinishedR != 1):
                         output.write("End of Run not found update Jobs \n")
-                        sql = "UPDATE Jobs SET host = %s, events = %d, errors = %d, cputime = -1, elapsed = -1, timestamp = %d where jid = %d" %(host, tevents, terrors, timestamp, lastjobid)
+                        sql = "UPDATE Jobs SET host = '%s', events = %d, errors = %d, cputime = -1, elapsed = -1, timestamp = %d where jid = %d" %(host, tevents, terrors, timestamp, lastjobid)
                         output.write(sql + " \n")
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
