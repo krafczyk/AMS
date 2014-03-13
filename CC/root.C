@@ -5622,6 +5622,7 @@ MCTrackR::MCTrackR(AMSmctrack *ptr){
   StepL = ptr->_stlen;
   EneTot = ptr->_enetot;
   EneIon = ptr->_eneion;
+  fEl=ptr->_fEl;
   trkID = ptr->_tid;
   for (int i=0; i<3; i++) Pos[i]   = ptr->_pos[i];
   for (int i=0; i<4; i++) VolName[i] = ptr->_vname[i];
