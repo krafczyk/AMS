@@ -2999,6 +2999,7 @@ class RemoteClient:
                        path=junk[i].split()
                        dirpath=self.trimblanks(path[1])
                        break
+        validated_ntuples = 0
         for block in blocks:
             junk=block.split(",")
             for i in range (0,len(junk)):
@@ -3409,6 +3410,7 @@ class RemoteClient:
                                         output.write("insert ntuple : %d, %s, %s\n" %(run, outputpath, closedst[1]))
                                         self.gbDST[self.nCheckedCite] += float(dstsize)
                                         cpntuples.append(dstlink)
+                                        validated_ntuples += 1
                                     else:
                                         output.write("***** Error in doCopy for : %s\n" %(outputpath))
                 else:
@@ -3467,7 +3469,7 @@ class RemoteClient:
             inputfileLink = inputorig + '.0'
             inputfileAdd = inputorig + '.2'
 #            if (copyfailed == 0):
-            if (self.thrusted > 0):
+            if (validated_ntuples > 0):
                 if (len(cpntuples) > 0):
                     status = 'Completed'
                     inputfileLink = inputorig + '.1'
