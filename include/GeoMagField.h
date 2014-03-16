@@ -1,4 +1,4 @@
-//  $Id: GeoMagField.h,v 1.1 2012/10/16 19:37:49 shaino Exp $
+//  $Id$
 #ifndef __GeoMagField__
 #define __GeoMagField__
 
@@ -12,9 +12,9 @@
 ///
 ///\date  2012/09/23 SH  Imported to C++
 ///
-///$Date: 2012/10/16 19:37:49 $
+///$Date$
 ///
-///$Revision: 1.1 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -150,6 +150,8 @@ public:
   static int GetInitStat() { return fInitStat; }
   /// Field model file name
   static TString fModelFile;
+  /// Field model time in year
+  static double fModelYear;
 
 public:
   /// Get northward component (nT)
@@ -168,7 +170,7 @@ public:
   double GetH() { return geth(); }
 
   /// Initialize model
-  int InitModel(const char *mdfile = 0, double date = 2012);
+  int InitModel(const char *mdfile = 0, double date = fModelYear);
 
   /// Reset variables
   void Reset();

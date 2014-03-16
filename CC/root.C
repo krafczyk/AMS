@@ -11613,14 +11613,22 @@ int HeaderR::GetIGRFCutoff(double &Rcut, int sign, AMSDir dir,
   double  bcut =  0;
   int     bret = -1;
 
+  GeoMagTrace::UTime = (int)xtime;
+  GeoMagField::fModelYear = 2012+(xtime-GeoMagTrace::T2012)/3600/24/365;
+
   while (0.1 < rcut && rcut < 50) {
     double glon, glat, rpto[3], gpt[2], tim;
     int ret = do_backtracing(glon, glat, tim, rpto, gpt,
 			     dir.gettheta(), dir.getphi(), rcut, 1, sign,
 			     RPT, VPT, YPR, xtime);
     if (bret >= 0) {
-      if (bret == 1 && ret != 1) { Rcut = bcut*sign; return 0; }
-      if (bret != 1 && ret == 1) { Rcut = rcut*sign; return 0; }
+      if ((bret == 1 && ret != 1) || (bret != 1 && ret == 1)) {
+	if (rstep > 0.02) rstep = 0.02;
+	else {
+	  if (bret == 1 && ret != 1) { Rcut = bcut*sign; return 0; }
+	  if (bret != 1 && ret == 1) { Rcut = rcut*sign; return 0; }
+	}
+      }
     }
     bcut = rcut;
     bret = ret;
