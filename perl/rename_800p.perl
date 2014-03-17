@@ -69,7 +69,7 @@ my $runmax=2337449847;
 my $ds="pass5";
 if($ok){
     my $time=time();
-    my $runmin=1374267279;
+    my $runmin=1385485339;
     if($run2p eq ""){
         $run2p="and run>=$runmin and run<$runmax ";
     }
