@@ -2,7 +2,7 @@
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
-
+use File::Basename;
 
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
@@ -166,7 +166,12 @@ seteos:
     }
     my $castor_prefix="/castor/cern.ch";
     $sql="select path,jid,eostime from ntuples   where  path like '%ISS.B800P/$ds%' and path  like '/castor%' $run2p";
-         $ret=$o->Query($sql);
+    $ret=$o->Query($sql);
+    my $eosdir = dirname($ret->[0]->[0]);
+    $eosdir =~ s:$castor_prefix:$eos_prefix:;
+    my $neweosdir = $eosdir;
+    $neweosdir =~ s/ISS.B800P/ISS.B800/;
+    system("chmod u+w $eosdir; chmod u+w $eosdir/..; chmod u+w  $neweosdir/.. 2>/dev/null; chmod u+w  $neweosdir 2>/dev/null; mkdir -p $neweosdir");
     foreach my $file (@{$ret}){
         my $line=$file->[0];
         my $eos_filein=$line;
