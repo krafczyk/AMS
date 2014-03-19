@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.44 2013/10/07 11:58:47 choutko Exp $
+//  $Id$
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -217,25 +217,15 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   if(bad==0)status=0;//good anti-event(were at least 1 RawEvent-obj with Time and Ampl measurements)
 }
 //----------------------------------------------------
-geant Anti2RawEvent::accsatur(geant aout){
-  geant norm(17);//tempor. scaling coeff to have about the same most prob of aout and ain
-//  integer bmx=12;
-//  geant ainref[12]={0,74,148,370,740,1480,2960,3256,4096,5400,21620,90700};//kunin
-//  geant aouref[12]={0,74,120,220,340, 500, 740, 770, 840,1000, 2000, 4096};
-  integer bmx=22;
-  geant ainref[22]={0, 0.2, 0.67, 1.3, 2.6, 5, 10, 15, 20, 30, 40, 50, 70, 100,
-                             150, 200, 300, 400, 500, 740, 1000, 4600};
-  geant aouref[22]={0, 11,35,68,120,190,300,400,480,630,790,930,1200,1400,
-                             1750,1900,2200,2400,2550,2850,3000,4000};
-//
-  if(aout<=0)return(0);
-  for(int ib=0;ib<bmx-1;ib++){
-    if(aout>aouref[ib] && aout<=aouref[ib+1]){
-      return(norm*(ainref[ib]+(ainref[ib+1]-ainref[ib])/(aouref[ib+1]-aouref[ib])*(aout-aouref[ib])));
-    }
-  }
-  return(norm*ainref[bmx-1]);
-//
+geant Anti2RawEvent::accsatur(geant x){//return Ain vs Aout (linearity correction)
+//based on  all channels average curve from Aachen (old ~ 2008 version) 
+  geant fitval(0);
+  geant norm(17);
+  geant par[2]={1.57689e+01,1.38905e-03};
+  if(x<=0)return 0;
+  if(x>4096)x=4096;
+  fitval=par[0]*(exp(par[1]*x)-1);
+  return (fitval*norm);
 }
 //----------------------------------------------------
 void Anti2RawEvent::mc_build(int &stat){

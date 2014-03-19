@@ -4125,7 +4125,7 @@ void AMSJob::_timeinitjob(){
     //---------
     if((ATREFFKEY.ReadConstFiles/10)%10==0)end.tm_year=ATREFFKEY.year[0]-1;//VariableParams from DB
     //
-    TID.add (new AMSTimeID(AMSID("Antivpcal",isRealData()),
+    TID.add (new AMSTimeID(AMSID("Antivpcal1",isRealData()),
 			   begin,end,ANTI2C::MAXANTI*sizeof(ANTI2VPcal::antivpcal[0]),
 			   (void*)&ANTI2VPcal::antivpcal[0],server,needval));
     //
