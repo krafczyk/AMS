@@ -1,6 +1,6 @@
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 945 
-#define __G4BUG__
+#define __G4PROTONBUG__
 #endif
 //
 // ********************************************************************
@@ -27,7 +27,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: G4ExcitationHandler.C,v 1.3 2014/02/18 16:48:40 choutko Exp $
+// $Id$
 //
 // Hadronic Process: Nuclear De-excitations
 // by V. Lara (May 1998)
