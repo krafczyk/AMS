@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.200 2014/03/04 14:24:09 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -32,7 +32,7 @@
 #include <TVector3.h>
 #include <TParticlePDG.h>
 #include <TDatabasePDG.h>
-
+#include "TROOT.h"
 #include "TGeant3.h"
 #include "TGeant3TGeo.h"
 #include "g4physics.h"
@@ -70,7 +70,7 @@ int   AMSmceventg::_particle[30];
 int   AMSmceventg::_nucleons[30];
 geant*   AMSmceventg::_spectra[30];
 number   AMSmceventg::_flux[30];
-
+TH3F* AMSmceventg::ratio=0;
 
 AMSmceventg::AMSmceventg(const AMSIO & io){
 _nskip=io._nskip;
@@ -2701,3 +2701,49 @@ void NaturalFlux(void)
 #endif
 
 
+
+
+///Returns if an particle coming forma given direction in the AMS frame (Theta,Phi);
+/// and with a given rigidity must be accepted or not
+/// Rigidity in GV[.1, 10^4], theta[0, pi/2]  phi[0, pi] 
+  // PZuccon-- MIT 2014
+int AMSmceventg::NaturalFlux_stormer(float theta,float phi, float rig){
+
+  if(!ratio){
+    char fnam[256];
+    char fname[400]="NaturalFluxStormer.root";
+    strcpy(fnam,AMSDATADIR.amsdatadir);
+    strcat(fnam,fname);  
+    TFile* ff=TFile::Open(fname);
+    TH3F* rr=(TH3F*)ff->Get("ratio");
+    gROOT->cd();
+    ratio= new TH3F(*rr);
+    ff->Close();
+  }
+  
+  float rig_log=log10(rig);
+
+  int bx=ratio->GetXaxis()->FindBin(theta);
+  int nbx=ratio->GetXaxis()->GetNbins();
+
+  int by=ratio->GetYaxis()->FindBin(phi);
+  int nby=ratio->GetYaxis()->GetNbins();
+
+  int bz=ratio->GetZaxis()->FindBin(rig_log);
+  int nbz=ratio->GetZaxis()->GetNbins();
+
+  if(
+     (bx<1|| bx>nbx) ||
+     (by<1|| by>nby) ||
+     (bz<1|| bz>nbz) )
+    return 1;
+
+  float th=ratio->GetBinContent(bx,by,bz);
+  // printf("%10f %10f %10f %10f %3d %3d %3d  %10f\n",theta,phi,rig,rig_log,bx,by,bz,th);
+  float d=1;
+  float  tf=RNDM(d);
+    
+  if(tf<th) return 1;
+  else return 0;
+}
+ 
