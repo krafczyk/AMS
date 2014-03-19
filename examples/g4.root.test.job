@@ -21,7 +21,7 @@ else
 PG=G4PG
     MACHINE="linuxx8664icc5.34"
 fi
-
+WHO=`whoami`
 $AMSWD/exe/$MACHINE/gbatch$PG.exe <<!
 LIST
 KINE 14
@@ -41,7 +41,7 @@ C 12=-0.95
 13=200. 14=200. 15=0 16=1. 19=101 20=5 21=0  
 25=20102011 27=21102011
 
-IOPA 1=0 127=2 128='/f2users/choutko/cp.root' 43=101
+IOPA 1=0 127=2 128='/f2users/$WHO/cp.root' 43=101
 45='TriggerLVL1   ' 126=10000 
 C RNDM 191483493 13582325
 C RNDM  2010916395 53071516

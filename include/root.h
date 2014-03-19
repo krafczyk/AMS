@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.599 2014/03/04 20:41:44 wgillard Exp $
+//  $Id$
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3854,11 +3854,21 @@ float StepL;      ///< Step length (mm)
 float EneTot;     ///< Total energy deposited in the step (MeV)
 float EneIon;     ///< Ionizing energy deposited in the step (MeV)
 int   trkID;      ///< Geant4 track ID, the same as MCEventgR::trkID
-
+map <int,float> fEl;   ///< elements & number of atoms per volume
  MCTrackR(){};
  MCTrackR(AMSmctrack *ptr);
   virtual ~MCTrackR(){};
-ClassDef(MCTrackR,2)       //MCTrackR
+  int fEl_size(){return fEl.size();}
+  float fEl_num(int i){return fEl.find(i)==fEl.end()?0:fEl.find(i)->second;}
+  int fEl_i(int i){if(i<0 || i>=fEl.size())return -1;
+                   int s=0;
+                   typedef std::map<int,float>::iterator k_i;
+                   for(k_i k=fEl.begin();k!=fEl.end();k++){  
+                    if(s++==i)return k->first;
+                   }
+                   return -1; 
+  }
+ClassDef(MCTrackR,4)       //MCTrackR
 #pragma omp threadprivate(fgIsA)
 };
 

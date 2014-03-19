@@ -485,6 +485,10 @@ public:
 
     \param fixrig (optional) if specified and !=0 it request a fit with fixed rigidty. It is available only with the kAlcaraz algorithm
 
+    WARNING: the fit ID is calculated only with the first three parameters of iTrTrakPar as a consequence
+    if you perform the same fit with just different mass (or beta) the previous fit with the same ID will be overwriten.
+
+
     \return  the code to access the TrTrackPar object corresponding to the selected fit or <0  if errors
     \retval  >=0  --> The code corresponding to the requested fittype
     \retval -1 --> The requested fit cannot be performed on this track

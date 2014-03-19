@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.117 2014/02/26 10:22:49 choutko Exp $
+//  $Id$
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1032,8 +1032,14 @@ if(!Step)return;
                      {
                         pos[i] = pre_pos[i]/cm;
                      }
-
-                     AMSmctrack *genp = new AMSmctrack(x0, lambda, pos, vol_name, stlen, enetot, eneion, tid);
+                     map <int,float>felmap;
+                      for (int i=0; i<material->GetNumberOfElements(); ++i) {
+                      int Zi = (*material->GetElementVector())[i]->GetZ();
+                      float Ni=material->GetVecNbOfAtomsPerVolume()[i];
+                      felmap.insert(make_pair(Zi,Ni));
+                      }
+               
+                     AMSmctrack *genp = new AMSmctrack(x0, lambda, pos, vol_name, stlen, enetot, eneion, tid, felmap);
                      AMSEvent::gethead()->addnext(AMSID("AMSmctrack", 0), genp);
                   }
                }

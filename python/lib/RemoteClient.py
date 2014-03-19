@@ -2999,6 +2999,7 @@ class RemoteClient:
                        path=junk[i].split()
                        dirpath=self.trimblanks(path[1])
                        break
+        validated_ntuples = 0
         for block in blocks:
             junk=block.split(",")
             for i in range (0,len(junk)):
@@ -3409,6 +3410,7 @@ class RemoteClient:
                                         output.write("insert ntuple : %d, %s, %s\n" %(run, outputpath, closedst[1]))
                                         self.gbDST[self.nCheckedCite] += float(dstsize)
                                         cpntuples.append(dstlink)
+                                        validated_ntuples += 1
                                     else:
                                         output.write("***** Error in doCopy for : %s\n" %(outputpath))
                 else:
@@ -3466,7 +3468,8 @@ class RemoteClient:
             cmd = None
             inputfileLink = inputorig + '.0'
             inputfileAdd = inputorig + '.2'
-            if (copyfailed == 0):
+#            if (copyfailed == 0):
+            if (validated_ntuples > 0):
                 if (len(cpntuples) > 0):
                     status = 'Completed'
                     inputfileLink = inputorig + '.1'
@@ -3493,7 +3496,7 @@ class RemoteClient:
                     self.GoodRuns[self.nCheckedCite] += 1
                     if (runfinishedR != 1):
                         output.write("End of Run not found update Jobs \n")
-                        sql = "UPDATE Jobs SET host = %s, events = %d, errors = %d, cputime = -1, elapsed = -1, timestamp = %d where jid = %d" %(host, tevents, terrors, timestamp, lastjobid)
+                        sql = "UPDATE Jobs SET host = '%s', events = %d, errors = %d, cputime = -1, elapsed = -1, timestamp = %d where jid = %d" %(host, tevents, terrors, timestamp, lastjobid)
                         output.write(sql + " \n")
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
@@ -3504,10 +3507,13 @@ class RemoteClient:
                         fevt = r4[0][1]
                         if (ntevt is None):
                             ntevt = 0
+                        if (fevt is None):
+                            fevt = 0
                         if (ntevt > 0):
                             sql="UPDATE Runs SET fevent=%d, Levent=%d, fetime=%d, letime=%d WHERE jid=%d" %(fevt, ntevt-1+fevt, feti, leti, run)
                             output.write(sql + "\n")
                             self.sqlserver.Update(sql)
+                        if (ntevt >= 0):
                             sql=" update jobs set realtriggers=%d, timekill=0 where jid=%d" %(ntevt, run)
                             output.write(sql + "\n")
                             self.sqlserver.Update(sql)

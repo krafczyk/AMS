@@ -1,4 +1,4 @@
-//  $Id: GeoMagField.C,v 1.2 2013/12/24 11:36:31 shaino Exp $
+//  $Id$
 
 #include "GeoMagField.h"
 #include "TSystem.h"     // For ExpandPathName
@@ -9,6 +9,9 @@ GeoMagField *GeoMagField::fHead = 0;
 
 /// Model file name
 TString GeoMagField::fModelFile = "$AMSDataDir/v5.00/IGRF11.COF";
+
+/// Model time in year
+double GeoMagField::fModelYear = 2012;
 
 /// Status of the InitModel 0:Not yet, 1:Done, -1:Error
 int GeoMagField::fInitStat = 0;
