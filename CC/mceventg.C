@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.200 2014/03/04 14:24:09 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -32,7 +32,7 @@
 #include <TVector3.h>
 #include <TParticlePDG.h>
 #include <TDatabasePDG.h>
-
+#include "TROOT.h"
 #include "TGeant3.h"
 #include "TGeant3TGeo.h"
 #include "g4physics.h"
@@ -70,7 +70,7 @@ int   AMSmceventg::_particle[30];
 int   AMSmceventg::_nucleons[30];
 geant*   AMSmceventg::_spectra[30];
 number   AMSmceventg::_flux[30];
-
+TH3F* AMSmceventg::ratio=0;
 
 AMSmceventg::AMSmceventg(const AMSIO & io){
 _nskip=io._nskip;
@@ -2490,7 +2490,7 @@ Given arrays x[1..n] and y[1..n] containing a tabulated function, i.e., yi = f(x
 x1 < x2 < .. . < xN, and given values yp1 and ypn for the first derivative of the interpolating
 function at points 1 and n, respectively, this routine returns an array y2[1..n] that contains
 the second derivatives of the interpolating function at the tabulated points xi. If yp1 and/or
-ypn are equal to 1 × 1030 or larger, the routine is signaled to set the corresponding boundary
+ypn are equal to 1 Ã 1030 or larger, the routine is signaled to set the corresponding boundary
 condition for a natural spline, with zero second derivative on that boundary.
 */
 
@@ -2500,7 +2500,7 @@ void AMSmceventg::NaturalFlux_spline(double x[], double y[], int n, double yp1, 
  double p,qn,sig,un;
 
  double u[n];
- if (yp1 > 0.99e30) // The lower boundary condition is set either to be “natural”
+ if (yp1 > 0.99e30) // The lower boundary condition is set either to be ânaturalâ
   y2[1]=u[1]=0.0; 
  else  // or else to have a specified first derivative.
  {
@@ -2516,7 +2516,7 @@ void AMSmceventg::NaturalFlux_spline(double x[], double y[], int n, double yp1, 
   u[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
   u[i]=(6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
  }
- if (ypn > 0.99e30) // The upper boundary condition is set either to be “natural”
+ if (ypn > 0.99e30) // The upper boundary condition is set either to be ânaturalâ
   qn=un=0.0;
   else { // or else to have a specified first derivative.
    qn=0.5;
@@ -2531,7 +2531,7 @@ void AMSmceventg::NaturalFlux_spline(double x[], double y[], int n, double yp1, 
 /******************************************************************************/
 
 /*
-Given the arrays xa[1..n] and ya[1..n], which tabulate a function (with the xai’s in order),
+Given the arrays xa[1..n] and ya[1..n], which tabulate a function (with the xaiâs in order),
 and given the array y2a[1..n], which is the output from NaturalFlux_spline above, and given a value of
 x, this routine returns a cubic-spline interpolated value y.
 */
@@ -2557,7 +2557,7 @@ void AMSmceventg::NaturalFlux_splint(double xa[], double ya[], double y2a[], int
   else klo=k;
  } // klo and khi now bracket the input value of x.
  h=xa[khi]-xa[klo];
- if (h == 0.0) cerr<<"Bad xa input to routine NaturalFlux_splint\n"; // The xa’s must be distinct.
+ if (h == 0.0) cerr<<"Bad xa input to routine NaturalFlux_splint\n"; // The xaâs must be distinct.
   a=(xa[khi]-x)/h; 
   b=(x-xa[klo])/h; // Cubic spline polynomial is now evaluated.
   *y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
@@ -2701,3 +2701,49 @@ void NaturalFlux(void)
 #endif
 
 
+
+
+///Returns if an particle coming forma given direction in the AMS frame (Theta,Phi);
+/// and with a given rigidity must be accepted or not
+/// Rigidity in GV[.1, 10^4], theta[0, pi/2]  phi[0, pi] 
+  // PZuccon-- MIT 2014
+int AMSmceventg::NaturalFlux_stormer(float theta,float phi, float rig){
+
+  if(!ratio){
+    char fnam[256];
+    char fname[400]="NaturalFluxStormer.root";
+    strcpy(fnam,AMSDATADIR.amsdatadir);
+    strcat(fnam,fname);  
+    TFile* ff=TFile::Open(fname);
+    TH3F* rr=(TH3F*)ff->Get("ratio");
+    gROOT->cd();
+    ratio= new TH3F(*rr);
+    ff->Close();
+  }
+  
+  float rig_log=log10(rig);
+
+  int bx=ratio->GetXaxis()->FindBin(theta);
+  int nbx=ratio->GetXaxis()->GetNbins();
+
+  int by=ratio->GetYaxis()->FindBin(phi);
+  int nby=ratio->GetYaxis()->GetNbins();
+
+  int bz=ratio->GetZaxis()->FindBin(rig_log);
+  int nbz=ratio->GetZaxis()->GetNbins();
+
+  if(
+     (bx<1|| bx>nbx) ||
+     (by<1|| by>nby) ||
+     (bz<1|| bz>nbz) )
+    return 1;
+
+  float th=ratio->GetBinContent(bx,by,bz);
+  // printf("%10f %10f %10f %10f %3d %3d %3d  %10f\n",theta,phi,rig,rig_log,bx,by,bz,th);
+  float d=1;
+  float  tf=RNDM(d);
+    
+  if(tf<th) return 1;
+  else return 0;
+}
+ 
