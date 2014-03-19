@@ -196,6 +196,9 @@ void TrExtAlignDB::Load(TFile * ff){
 
 int TrExtAlignDB::Check(void)
 {
+  // This check should be called only when number of entries are too many
+  if (L8.size() <= 500 || L9.size() <= 500) return 0;
+
   int rmin = 1300000000;
   int ndel = 0;
 
