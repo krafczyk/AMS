@@ -202,11 +202,11 @@ int TrExtAlignDB::Check(void)
   int rmin = 1300000000;
   int ndel = 0;
 
-  for (ealgIT it = L8.begin(); it != L8.end(); it++)
-    if (it->first < rmin) { L8.erase(it++); ndel++; }
+  for (ealgIT it = L8.begin(); it != L8.end(); )
+    if (it->first < rmin) { L8.erase(it++); ndel++; } else it++;
 
-  for (ealgIT it = L9.begin(); it != L9.end(); it++)
-    if (it->first < rmin) { L9.erase(it++); ndel++; }
+  for (ealgIT it = L9.begin(); it != L9.end(); )
+    if (it->first < rmin) { L9.erase(it++); ndel++; } else it++;
 
   if (ndel > 0)
     cout << "TrExtAlignDB::Load-I- Removed wrong entries: " << ndel << endl;
