@@ -709,7 +709,8 @@ I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead fiel
 I 4 Geant3CutsOn(1)  // Use(1) not use(0) geant3-like energy cuts
 I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSP_BERT, others not yet implemented, see also http://cmsdoc.cern.ch/~hpw/GHAD/HomePage/index.html)
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
-I 7 IonPhysicsModel(13) // Physics Model for Ion as XY
+I 7 IonPhysicsModel(13) // Physics Model for Ion as ZXY
+                        //  Z: use gheisha ion proton crossection
                         //  X: Total inelastic cross section  
                         //     0: Shen  
                         //     1: Glauber-Gribov nucleus-nucleus cross sections 4.9.6 (override by Shen for geant4.9.4)

@@ -380,11 +380,11 @@ void  AMSG4RunAction::DumpCrossSections(int verbose, G4int At, G4int Zt) {
 
 void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
+
   if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections,
 						     G4FFKEY.DumpCrossSectionsAt,
 						     G4FFKEY.DumpCrossSectionsZt);
-
-  cout<<"~~~~~~~~~~~~~~~~End of Run Action~~~~~~~~~~~~~~"<<endl;
+    AMSG4Physics::SaveXS(GCKINE.ikine);
 }
 
 

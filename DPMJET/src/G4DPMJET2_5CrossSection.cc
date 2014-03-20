@@ -82,7 +82,7 @@ G4DPMJET2_5CrossSection::G4DPMJET2_5CrossSection ():
 // is applicable to hydrogen targets.  However, the cross-section will be
 // set to zero.
 //
-  ATmin = 1;
+  ATmin = 2;
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 }
@@ -110,6 +110,18 @@ G4DPMJET2_5CrossSection::~G4DPMJET2_5CrossSection ()
 }
 ///////////////////////////////////////////////////////////////////////////////
 //
+ G4bool G4DPMJET2_5CrossSection::IsElementApplicable(const G4DynamicParticle* theProjectile,G4int Z,const G4Material* mat){
+  bool ret=false;
+  if(!mat)return ret;
+  const G4ElementVector*elv=mat->GetElementVector();
+  for(int k=0;k<elv->size();k++){
+    G4Element *el=(*elv)[k];
+    if(Z==el->GetZ()){
+      if(IsApplicable(theProjectile,el))return true;
+    }
+  }
+  return ret;
+}
 G4bool G4DPMJET2_5CrossSection::IsApplicable
   (const G4DynamicParticle* theProjectile, const G4Element* theTarget)
 {
@@ -244,6 +256,9 @@ G4double G4DPMJET2_5CrossSection::GetIsoZACrossSection
     G4double cc2 = (*ptr)[2];
     sigma = cc0 + cc1*lnECM + cc2*lnECM*lnECM;
     sigma = sigma * millibarn;
+    double p[3]={0.48639E-01,0.41653E-04,0.77188E-03};
+    double corr=p[0]+p[1]*AT+p[2]*AT*AT;
+    sigma/=(1+corr);
     if (verboseLevel >= 2) {
       G4cout <<"***************************************************************"
              <<G4endl;
@@ -269,6 +284,17 @@ G4double G4DPMJET2_5CrossSection::GetIsoZACrossSection
 }
 ///////////////////////////////////////////////////////////////////////////////
 //
+G4double G4DPMJET2_5CrossSection::GetElementCrossSection(const G4DynamicParticle* theProjectile,G4int Z,const G4Material*mat){
+  const G4ElementVector*elv=mat->GetElementVector();
+  for(int k=0;k<elv->size();k++){
+    G4Element *el=(*elv)[k];
+    if(Z==el->GetZ()){
+      return GetCrossSection( theProjectile, el,293*kelvin);
+    }
+
+}
+return 0;
+}
 G4double G4DPMJET2_5CrossSection::GetCrossSection
   (const G4DynamicParticle* theProjectile, const G4Element* theTarget,
   G4double theTemperature)

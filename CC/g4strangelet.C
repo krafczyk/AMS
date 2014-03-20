@@ -22,7 +22,7 @@
 // ********************************************************************
 //
 //
-// GEANT4 tag $Name:  $
+// GEANT4 tag $Name$
 //
 // 
 
@@ -105,6 +105,10 @@ G4bool StrCS::IsApplicable
 
 
 #if G4VERSION_NUMBER  > 945 
+G4bool StrCS::IsElementApplicable(const G4DynamicParticle* theProjectile,G4int Z,const G4Material* mat){
+  bool result=strstr((const char *)(theProjectile->GetParticleDefinition()->GetParticleName()),"strangelet")!=0;
+  return result;
+}
 G4bool StrCS::IsIsoApplicable(const G4DynamicParticle* theProjectile,
                               G4int ZZ, G4int AA, const G4Element* elm, const G4Material* mat) {
 #else
@@ -119,6 +123,15 @@ G4bool StrCS::IsIsoApplicable(const G4DynamicParticle* theProjectile,
 G4double StrCS::GetIsoCrossSection(const G4DynamicParticle* theProjectile,
                                    G4int ZZ, G4int AA, const G4Isotope* iso, const G4Element* elm, const G4Material* mat) {
   return GetZandACrossSection(theProjectile,ZZ,AA,0);
+}
+G4double StrCS::GetElementCrossSection(const G4DynamicParticle* theProjectile,G4int Z,const G4Material*mat){
+  const G4ElementVector*elv=mat->GetElementVector();
+  for(int k=0;k<elv->size();k++){
+    G4Element *el=(*elv)[k];
+    if(Z==el->GetZ()){
+      return GetCrossSection( theProjectile, el,293*kelvin);
+    }
+}
 }
 #endif
 

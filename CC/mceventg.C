@@ -35,7 +35,6 @@
 #include "TROOT.h"
 #include "TGeant3.h"
 #include "TGeant3TGeo.h"
-#include "g4physics.h"
 //extern TGeant4* geant4;
 extern TGeant3* geant3;
 #endif
@@ -45,6 +44,7 @@ extern TGeant3* geant3;
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
 #include <iostream>
+#include "g4physics.h"
 #endif
 
 #if defined __AMSVMC__
@@ -1023,7 +1023,9 @@ AMSEventR::hf1(_hid,xm,y);
     //HPRINT(_hid);
 #endif
 #ifdef __G4AMS__
-if(MISCFFKEY.G4On)AMSRandGeneral::book(_hid);
+if(MISCFFKEY.G4On){
+  AMSRandGeneral::book(_hid);
+}
 #endif
      char hp[9]="//PAWC";
      HCDIR(hp," ");
