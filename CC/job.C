@@ -338,6 +338,9 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.DumpCrossSections=0;
   G4FFKEY.HCrossSectionBias=1;
   
+  G4FFKEY.DumpCrossSectionsAt=12;
+  G4FFKEY.DumpCrossSectionsZt=6;
+
   FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
   PRODFFKEY.Debug=0;

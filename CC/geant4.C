@@ -285,7 +285,7 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
 #include "G4HadProjectile.hh"
 #include "G4Nucleus.hh"
 
-void  AMSG4RunAction::DumpCrossSections(int verbose) {
+void  AMSG4RunAction::DumpCrossSections(int verbose, G4int At, G4int Zt) {
   if (verbose<=0) return; 
   cout << "~~~~~~~~~~~~~~~~ DumpCrossSections ~~~~~~~~~~~~~~" << endl;
   // loop on three kinds of particles (p, He, C)
@@ -312,8 +312,6 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
     G4int Ap = particle[iparticle]->GetBaryonNumber();
     G4int Zp = particle[iparticle]->GetPDGCharge()/eplus;
     // search/build target
-    G4int At = 12;
-    G4int Zt = 6;
     G4Element* target = 0;
     G4ElementTable::iterator iter;
     G4ElementTable *elementTable = const_cast<G4ElementTable*> (G4Element::GetElementTable());
@@ -321,6 +319,10 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
       G4int AA = (*iter)->GetN();
       G4int ZZ = (*iter)->GetZ();
       if ( (AA==At)&&(ZZ=Zt) ) target = *iter;
+    }
+    if(!target){
+      G4cout << "No element found for A=" << At << " Z= " << Zt << G4endl;
+      return;
     }
     G4Material* material = new G4Material("material_target",2.26,1);
     material->AddElement(target,1.);
@@ -378,7 +380,9 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
 
 void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
-  if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections);
+  if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections,
+						     G4FFKEY.DumpCrossSectionsAt,
+						     G4FFKEY.DumpCrossSectionsZt);
 
   cout<<"~~~~~~~~~~~~~~~~End of Run Action~~~~~~~~~~~~~~"<<endl;
 }

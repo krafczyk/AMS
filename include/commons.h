@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.368 2014/03/04 18:29:27 choutko Exp $
+//  $Id$
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1170,6 +1170,9 @@ class G4FFKEY_DEF{
   // 
   int DumpCrossSections;
   float HCrossSectionBias;
+
+  int DumpCrossSectionsAt;
+  int DumpCrossSectionsZt;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);

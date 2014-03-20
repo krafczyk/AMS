@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.423 2014/03/04 19:01:38 choutko Exp $
+#  $Id$
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -737,6 +737,8 @@ I 19 DumpCrossSections(0)  // 0 nothing
                            // 1 dump inelastic cross sections for proton, helium and carbon projectiles over carbon
                            // 2 make a MC dry-run to calculate interaction probabilities P(C->X) for process C12 + C12 -> X + stuff (avoid this with production) 
 R 20 HCrossectionBias(1)    // Change (hadronic) crossection by multiplying by this number 
+I 21 DumpCrossSectionsAt(12)  // Target mass   number for DumpCrossSections
+I 22 DumpCrossSectionsZt(6)   // Target atomic number for DumpCrossSections
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
