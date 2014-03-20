@@ -63,6 +63,9 @@ extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #include "Compression.h"
 #endif
 #include"trigger102.h"
+#ifdef __G4AMS__
+#include "g4physics.h"
+#endif
 AMSEventR AMSNtuple::_evroot02;
 AMSSetupR AMSNtuple::_setup02;
 EventNtuple02 AMSNtuple::_event02;
@@ -337,6 +340,18 @@ if(AMSEventR::h1(AMSmceventg::_hid)){
 if(AMSEventR::h1(AMSmceventg::_hid+1)){
    AMSEventR::h1(AMSmceventg::_hid+1)->Write();
 }
+#ifdef __G4AMS__
+if(AMSJob::gethead() && AMSJob::gethead()->isSimulation()){
+    TDirectory* xs=_rfile->mkdir("xs");
+    xs->cd();
+    for(int k=0;k<AMSG4Physics::XSId.size();k++){
+      if(AMSEventR::h1(AMSG4Physics::XSId[k]))AMSEventR::h1(AMSG4Physics::XSId[k])->Write();
+      if(AMSEventR::h1(-AMSG4Physics::XSId[k]))AMSEventR::h1(-AMSG4Physics::XSId[k])->Write();
+    }
+    _rfile->cd();
+}
+#endif    
+
 #ifndef _PGTRACK_
     _ta.SetString(AMSTrAligFit::GetAligString());
     //cout <<AMSTrAligFit::GetAligString()<<endl;
@@ -459,9 +474,9 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     throw amsglobalerror("UnableToOpenRootFile",3);
   }
   _dc.Write("DataCards");
+#ifdef _PGTRACK_
     TDirectory* dd=_rfile->mkdir("datacards");
     dd->cd();
-#ifdef _PGTRACK_
     TKGEOMFFKEY.Write();
     TRMCFFKEY.Write();
     TRCALIB.Write();
@@ -472,7 +487,6 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     TRDMCFFKEY.Write();
     _rfile->cd();
 #endif
-
 
   const int size=5000000;
   char * name=new char[size];

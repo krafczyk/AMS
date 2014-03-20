@@ -77,12 +77,14 @@ class G4DPMJET2_5CrossSection : public G4VCrossSectionDataSet
   public:
     G4DPMJET2_5CrossSection();
     ~G4DPMJET2_5CrossSection();
+    virtual G4bool IsElementApplicable(const G4DynamicParticle* theProjectile,G4int Z,const G4Material*);
     virtual G4bool IsApplicable(const G4DynamicParticle* theProjectile,
       const G4Element* theTarget);
 
     virtual G4bool IsZAApplicable(const G4DynamicParticle* theProjectile,
       G4double ZZ, G4double AA);
 
+    virtual G4double GetElementCrossSection(const G4DynamicParticle* theProjectile,G4int Z,const G4Material*);
     virtual G4double GetCrossSection(const G4DynamicParticle* theProjectile,
       const G4Element* theTarget, G4double theTemperature);
 
