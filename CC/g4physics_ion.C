@@ -108,9 +108,19 @@ void IonDPMJETPhysics::ConstructProcess()
       theEMD->ActivateFor(*iter);
     }
     G4HadronInelasticProcess* fGenericIon_EMD = new G4HadronInelasticProcess("IonEMD",particle);
+    G4HadronInelasticProcess* falpha_EMD = new G4HadronInelasticProcess("AlphaEMD",G4Alpha::Alpha());
+    G4HadronInelasticProcess* fhe3_EMD = new G4HadronInelasticProcess("He3EMD",G4He3::He3());
     fGenericIon_EMD->AddDataSet(EMDCrossSection);
     fGenericIon_EMD->RegisterMe(theEMD);
     pManager->AddDiscreteProcess(fGenericIon_EMD);
+
+    falpha_EMD->AddDataSet(EMDCrossSection);
+    falpha_EMD->RegisterMe(theEMD);
+    pManager->AddDiscreteProcess(falpha_EMD);
+
+    fhe3_EMD->AddDataSet(EMDCrossSection);
+    fhe3_EMD->RegisterMe(theEMD);
+    pManager->AddDiscreteProcess(fhe3_EMD);
   }
 
 }
@@ -136,7 +146,8 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
     hadi->AddDataSet(fGG);
   }
 #endif
-  if(isIon) { hadi->AddDataSet(fIonH); }
+// Should be not be used with GG
+  if(isIon && G4FFKEY.IonPhysicsModel/100==1) { hadi->AddDataSet(fIonH); }
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   hadi->RegisterMe(theDPM);

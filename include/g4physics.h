@@ -1,4 +1,4 @@
-//  $Id: g4physics.h,v 1.15 2013/11/01 14:58:42 choutko Exp $
+//  $Id$
 #ifndef __G4PHYSICS__
 #define __G4PHYSICS__
 
@@ -25,7 +25,8 @@ public:
   virtual void SetCuts();
 public:  
   static G4int _G3DummyParticle;
-  
+  static void SaveXS(int ipart);   
+  static vector<int> XSId;
 protected:
   AMSIDi* _pg3tog4;
   AMSIDs* _pg4tog3;

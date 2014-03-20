@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.50 2012/07/27 15:00:11 pzuccon Exp $
+//  $Id$
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -415,6 +415,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 #pragma omp critical (hf1)
 {
         HF1(1503,geant(eacl),1.);
+        if(sector<8 && sector>=0){
+	  HF1(15001+sector,geant(eacl),1.);
+	}
 }
       }
     }
@@ -1228,6 +1231,14 @@ void TOF2User::InitJob(){
     HBOOK1(15043,"TofUser:TofClust T14(ns, TRK-track matched,Beta>0)",80,1.5,9.5,0.);
     HBOOK1(15044,"TofUser:TofClust T23(ns, TRK-track matched,Beta>0)",80,1.5,9.5,0.);
     HBOOK1(1503,"TofUser:AccSector energy(mev,FTCoinc)",80,0.,20.,0.);
+    HBOOK1(15001,"TofUser:AccSector-1 energy(mev,FTCoinc)",100,0.,10.,0.);
+    HBOOK1(15002,"TofUser:AccSector-2 energy(mev,FTCoinc)",100,0.,10.,0.);
+    HBOOK1(15003,"TofUser:AccSector-3 energy(mev,FTCoinc)",100,0.,10.,0.);
+    HBOOK1(15004,"TofUser:AccSector-4 energy(mev,FTCoinc)",100,0.,10.,0.);
+    HBOOK1(15005,"TofUser:AccSector-5 energy(mev,FTCoinc)",100,0.,10.,0.);
+    HBOOK1(15006,"TofUser:AccSector-6 energy(mev,FTCoinc)",100,0.,10.,0.);
+    HBOOK1(15007,"TofUser:AccSector-7 energy(mev,FTCoinc)",100,0.,10.,0.);
+    HBOOK1(15008,"TofUser:AccSector-8 energy(mev,FTCoinc)",100,0.,10.,0.);
     HBOOK1(1505,"TofUser:Number of AccSectors(FTCoinc,E>Thr)",20,0.,20.,0.);
     HBOOK1(1506,"TofUser:Part.charge(trapez.c <=1)",20,0.,20.,0.);
     HBOOK1(1507,"TofUser:TOF-charge(trapez.c <=1)",20,0.,20.,0.);
@@ -1449,6 +1460,7 @@ void TOF2User::EndJob(){
 //  for(i=0;i<8;i++)HPRINT(1290+i);
   
   HPRINT(1503);
+  for(i=0;i<8;i++)HPRINT(15001+i);
   HPRINT(1505);
   HPRINT(1514);
   HPRINT(1517);

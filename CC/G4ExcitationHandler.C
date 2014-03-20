@@ -1,6 +1,6 @@
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 945 
-#define __G4BUG__
+#define __G4PROTONBUG__
 #endif
 //
 // ********************************************************************
@@ -27,7 +27,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: G4ExcitationHandler.C,v 1.3 2014/02/18 16:48:40 choutko Exp $
+// $Id$
 //
 // Hadronic Process: Nuclear De-excitations
 // by V. Lara (May 1998)
@@ -469,7 +469,7 @@ G4double  G4SubtractionSolid::DistanceToIn( const G4ThreeVector& p ) const
            << "G4SubtractionSolid::DistanceToIn(p)" << G4endl
            << "  Point p is inside !" << G4endl;
     G4cerr << "          p = " << p << G4endl;
-    G4cerr<< fPtrSolidA->GetName()<<" "<< fPtrSolidB->GetName()<<endl;
+    G4cerr<< fPtrSolidA->GetName()<<" "<< fPtrSolidB->GetName()<<std::endl;
   }
 
   if( ( fPtrSolidA->Inside(p) != kOutside) &&   // case 1
@@ -486,13 +486,25 @@ G4double  G4SubtractionSolid::DistanceToIn( const G4ThreeVector& p ) const
 }
 
 
+#endif
+#if G4VERSION_NUMBER  < 946 
 
-#else
 #include "G4EMDissociation.hh"
 G4EMDissociation::~G4EMDissociation ()
 {
   if (handlerDefinedInternally) delete theExcitationHandler;
   delete thePhotonSpectrum;
 }
+#include "G4IonProtonCrossSection.hh"
+
+G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
+                                         G4int Z, G4int A)
+{
+  G4bool result = false;
+  if(Z < 2 && A < 2 && dp->GetDefinition()->GetPDGCharge()/eplus > 1.5)
+    { result = true;}
+  return result;
+}
+
 
 #endif

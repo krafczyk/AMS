@@ -63,6 +63,14 @@ int EcalHR::Get(int z, float &rrec, float &smax, float &tcsq)
   smax = ecal->Lmax(1);
   tcsq = ecal->Tcsq();
 
+  // Linearity correction
+  double ref = 100;
+  double cor = (z == 2) ? 1.12 : 0.98;
+  double pw1 = (z == 2) ? 0.88 : 0.90;
+  double pw2 = (z == 2) ? 0.92 : 0.94;
+  double pw  = (rrec < ref) ? pw1 : pw2;
+  rrec = TMath::Power(rrec/ref, pw)*ref*cor;
+
   return 0;
 }
 #endif

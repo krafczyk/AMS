@@ -338,6 +338,9 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.DumpCrossSections=0;
   G4FFKEY.HCrossSectionBias=1;
   
+  G4FFKEY.DumpCrossSectionsAt=12;
+  G4FFKEY.DumpCrossSectionsZt=6;
+
   FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
   PRODFFKEY.Debug=0;
@@ -4125,7 +4128,7 @@ void AMSJob::_timeinitjob(){
     //---------
     if((ATREFFKEY.ReadConstFiles/10)%10==0)end.tm_year=ATREFFKEY.year[0]-1;//VariableParams from DB
     //
-    TID.add (new AMSTimeID(AMSID("Antivpcal",isRealData()),
+    TID.add (new AMSTimeID(AMSID("Antivpcal1",isRealData()),
 			   begin,end,ANTI2C::MAXANTI*sizeof(ANTI2VPcal::antivpcal[0]),
 			   (void*)&ANTI2VPcal::antivpcal[0],server,needval));
     //
