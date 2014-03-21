@@ -1986,7 +1986,7 @@ void AMSG4Physics::SaveXS(int ipart){
 #endif
 //                    if(k%100==1)cout << element->GetName()<<" "<<R<<" "<<xs<<endl;
                                      AMSEventR::h1(id)->SetBinContent(k,xs);
-                                     AMSEventR::h1(id)->SetBinError(k,xs);
+                                     AMSEventR::h1(id)->SetBinError(k,0);
                     }
                                      break;
                                 }// end of if
@@ -2012,7 +2012,7 @@ void AMSG4Physics::SaveXS(int ipart){
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
 #endif
                                      AMSEventR::h1(-id)->SetBinContent(k,xs);
-                                     AMSEventR::h1(-id)->SetBinError(k,xs);
+                                     AMSEventR::h1(-id)->SetBinError(k,0);
                     }
                                      break;
                                 }// end of if
