@@ -275,7 +275,7 @@ I20 low(5)                        //cosmic(0);  undercutoff(1)
                                   //
                                   //
                                   //(11)  Natural Fluxes (X*1000+11 ) = different acceptance options
-I21 earth(0)                      // Earth magnetic field modulation on (1) off(0) 
+I21 earth(0)                      // Earth magnetic field modulation stoermer(2) on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
 R24 pole(108.392)                 // Pole phi at begin 

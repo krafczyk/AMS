@@ -1,6 +1,6 @@
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 945 
-#define __G4PROTONBUG__
+#define __G4PROTONBUG962only__
 #endif
 //
 // ********************************************************************
@@ -495,7 +495,8 @@ G4EMDissociation::~G4EMDissociation ()
   if (handlerDefinedInternally) delete theExcitationHandler;
   delete thePhotonSpectrum;
 }
-#include "G4IonProtonCrossSection.hh"
+/*
+  #include "G4IonProtonCrossSection.hh"
 
 G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
                                          G4int Z, G4int A)
@@ -506,5 +507,5 @@ G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
   return result;
 }
 
-
+*/
 #endif

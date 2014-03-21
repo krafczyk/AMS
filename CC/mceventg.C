@@ -852,6 +852,7 @@ if( trueRigidity>xr[1]) trueRigidity=xr[1];
 double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
 fac/=rm;
+if(CCFFKEY.earth)fac=1;
  y*=fac;   
         
         HF1(_hid,xm,y);
@@ -1320,8 +1321,14 @@ integer AMSmceventg::accept(){
          geant d;
           if(SpecialCuts(CCFFKEY.SpecialCut%10)){
 //        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate)
-            if((CCFFKEY.low==0 || CCFFKEY.low==6)  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
+            if((CCFFKEY.low==0 || CCFFKEY.low==6 || CCFFKEY.low==11)  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
             return EarthModulation();
+            else if((CCFFKEY.low==0 || CCFFKEY.low==6 || CCFFKEY.low==11)  && CCFFKEY.earth == 2 && !_fixeddir && !_fixedmom){ 
+            float theta=acos(_dir[2]);
+            float phi=atan2(_dir[1],_dir[0]);
+            float rig=_charge?_mom/fabs(_charge):10000;
+            return NaturalFlux_stormer(theta,phi,  rig);
+            }
            else return 1;
           }
       }
@@ -2637,6 +2644,7 @@ double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
 if(fac>rm)fac=rm;
 fac/=rm;
+if(CCFFKEY.earth)fac=1;
 if(gpid>=47 && gpid<=69){ // He to O Geant ID
 
            if( strcmp(acceptance,"flat")==0 )

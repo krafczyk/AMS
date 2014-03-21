@@ -1041,7 +1041,7 @@ if(!Step)return;
                       felmap.insert(make_pair(Zi,Ni));
                       }
                
-                     AMSmctrack *genp = new AMSmctrack(x0, lambda, pos, vol_name, stlen, enetot, eneion, tid);
+                     AMSmctrack *genp = new AMSmctrack(x0, lambda, pos, vol_name, stlen, enetot, eneion, tid,felmap);
                      AMSEvent::gethead()->addnext(AMSID("AMSmctrack", 0), genp);
                   }
                }

@@ -19,7 +19,7 @@
 #include <time.h>
 #include "astro.h"
 #include "TH3F.h"
-
+#include <map>
 class G4Track;
 class orbit{
 public:
@@ -64,11 +64,12 @@ protected:
   number _enetot;
   number _eneion;
   integer _tid;
+map<int,float>_fEl;
   void _copyEl(){};
   void _writeEl();
   void _printEl(ostream & stream){};
 public:
-  AMSmctrack(number radl,number absl, float pos[3], char name[], number stlen, number enetot, number eneion, integer tid):AMSlink(),_radl(radl),_absl(absl),_stlen(stlen),_enetot(enetot),_eneion(eneion),_tid(tid){
+AMSmctrack(number radl,number absl, float pos[3], char name[], number stlen, number enetot, number eneion, integer tid, const map<int,float> &fel):AMSlink(),_radl(radl),_absl(absl),_stlen(stlen),_enetot(enetot),_eneion(eneion),_tid(tid),_fEl(fel){
     for (int i=0;i<3;i++)_pos[i]=pos[i];
     for (int i=0;i<4;i++)_vname[i]=name[i];
   }
