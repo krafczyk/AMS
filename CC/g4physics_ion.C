@@ -134,20 +134,20 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   G4ProcessManager* pManager = part->GetProcessManager();
   pManager->AddDiscreteProcess(hadi);
   hadi->AddDataSet(fShen); 
-  if (G4FFKEY.IonPhysicsModel/10==4) hadi->AddDataSet(dpmXS);
-  if (G4FFKEY.IonPhysicsModel/10==3) hadi->AddDataSet(HEAOXS);
-  if (G4FFKEY.IonPhysicsModel/10==2) {
+  if ((G4FFKEY.IonPhysicsModel/10)%10==4) hadi->AddDataSet(dpmXS);
+  if ((G4FFKEY.IonPhysicsModel/10)%10==3) hadi->AddDataSet(HEAOXS);
+  if ((G4FFKEY.IonPhysicsModel/10)%10==2) {
     G4GeneralSpaceNNCrossSection* generalCrossSection = new G4GeneralSpaceNNCrossSection;
     hadi->AddDataSet(generalCrossSection);
   }
 #if G4VERSION_NUMBER  > 945 
-  if (G4FFKEY.IonPhysicsModel/10==1) {
+  if ((G4FFKEY.IonPhysicsModel/10)%10==1) {
     G4GGNuclNuclCrossSection* fGG = new G4GGNuclNuclCrossSection();
     hadi->AddDataSet(fGG);
   }
 #endif
 // Should be not be used with GG
-  if(isIon && G4FFKEY.IonPhysicsModel/100==1) { hadi->AddDataSet(fIonH); }
+  if(isIon && (G4FFKEY.IonPhysicsModel/100)%10==1) { hadi->AddDataSet(fIonH); }
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   hadi->RegisterMe(theDPM);
