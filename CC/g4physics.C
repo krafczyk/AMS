@@ -1918,6 +1918,7 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
 }
 #include "root.h"
 #include "job.h"
+#include <memory>
 void AMSG4Physics::SaveXS(int ipart){
    XSId.clear();
    const char *name=AMSJob::gethead()->getg4physics()->G3toG4(ipart);
