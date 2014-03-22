@@ -99,8 +99,13 @@ TH1* TrLikeDB::GetPdf(int index) {
 }
 
 
+
 double TrLikeDB::Interpolate(TH1* pdf, double x) {
-  if (!pdf) fabs(default_logprob);
+  if (!pdf){
+    static int bad=0;
+    if(!bad++)cerr<<"TrLikeDB::Interpolate-S-NoPDF "<<endl;
+    return fabs(default_logprob);
+  }
   if ( (x<pdf->GetXaxis()->GetXmin())||(x>pdf->GetXaxis()->GetXmax()) ) 
     return fabs(default_logprob);
   return pdf->Interpolate(x);
