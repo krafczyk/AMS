@@ -10356,7 +10356,7 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double degbin, double cutoff[2])
   return GetMaxIGRFCutoff(fov, cutoff, tm);
 }
 
-int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime){
+int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime,const char *fdir){
 
   cutoff[0] = cutoff[1] = 0;
 
@@ -10374,7 +10374,7 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
     const char *ai = getenv("AMSISS");
     if (ad && strlen(ad)) std = ad; std += "/altec/";
     if (ai && strlen(ai)) std = ai; std += "RTI/";
-
+    if(fdir!=0) std=fdir;
     TString sfn = Form(std+"MaxIGRFCutoff_%d.csv", tid);
     ifstream fin(sfn);
     if (!fin) {
@@ -10382,6 +10382,9 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
 	   << sfn.Data() << endl;
       stm = -1;
       return -1;
+    }
+    else {
+       cout << "AMSEventR::GetMaxIGRFCutoff File: " << sfn.Data() << endl;
     }
     while (fin.good() && !fin.eof()) {
       unsigned int nt; IGRF a;
