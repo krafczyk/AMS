@@ -1550,7 +1550,7 @@ void AMSG4Physics::ConstructEM2( void ){
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
 #endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddDiscreteProcess(processXTR);
 
     } else if (particleName == "e+") {
@@ -1565,7 +1565,7 @@ void AMSG4Physics::ConstructEM2( void ){
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
 #endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddProcess(new G4eplusAnnihilation,   0,-1, 4);
       pmanager->AddDiscreteProcess(processXTR);
 
@@ -1744,7 +1744,7 @@ void AMSG4Physics::ConstructEM2( void ){
       eioniPAI->SetVerboseLevel(debug);
       pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddDiscreteProcess(processXTR);
 
     } else if (particleName == "e+") {
@@ -1755,7 +1755,7 @@ void AMSG4Physics::ConstructEM2( void ){
       }
       pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddProcess(new G4eplusAnnihilation,   0,-1, 4);
       pmanager->AddDiscreteProcess(processXTR);
 
