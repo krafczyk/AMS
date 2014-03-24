@@ -234,7 +234,7 @@ public:
     AMSDir GetPropogated_TrTrack_Dir();
 
     // Hit manipulation/operation
-    TrdKHit* GetHit(int i){if(i>NHits())return 0;return &(TRDHitCollection.at(i));}
+    TrdKHit* GetHit(int i){if(i>=NHits())return 0;return &(TRDHitCollection.at(i));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
 
     // Select Only Hit within distance/cm around the current track , outside hits are dropped from the cluster
