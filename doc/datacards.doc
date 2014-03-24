@@ -725,7 +725,7 @@ I 8 UseEMDModel(1)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
 I 11 NeutronTkCut(0)   //Use(1) or Not Standard Neutron Tracking Cut(tracking global time>10 microsecond),can also self adjustment 
-I 12 TFNewGeant4(0)    //TOF new Geant4(0 old simulation) (1 new online simulation) (2 new table mode)
+I 12 TFNewGeant4(2)    //TOF new Geant4(0 old simulation) (1 new online simulation) (2 new table mode)
 I 13 MemoryLimit(-1)   //Geant4Memory raise in bytes in mallinfo.arena+mallinfo.uordblks to trigger process  termination (-1 == infinity)
 I 14 DetectorCut(0)    // set detector cut,  Tracker+TRD+TOF+RICH+ECAL+AMS(0 cut off, 1 new cut). 
                        // 11:  Ecal cut 1*cm, AMS cut 1*mm (Ion suggestion cut  >2 times faster)
@@ -976,7 +976,7 @@ R 146  g4hfnoise(10.)         //New G4TOF high freq.noise
 R 147  anodesat(1)            //Anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
 R 148  writeall(0)            //write photon information to rootfile(table mode)->on(1) off(0   
 I 149  simfvern(509300)       //simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
-R 150  threref(1. 1. 1.)      //LT HT SHT reference to normal value
+R 150  threref(1. 1.19 1.)      //LT HT SHT reference to normal value
 
 // AMS02 TOF Reconstruction
 
