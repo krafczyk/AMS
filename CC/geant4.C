@@ -974,6 +974,173 @@ if(!Step)return;
    freq=10;
    report=true;
   }
+
+  /// <SH> Scan of element abundance along the track
+  if (MISCFFKEY.ScanElemAbundance && MISCFFKEY.G4On == 1
+                                  && MISCFFKEY.G3On == 0) {
+    static double Z1 =   53.1*cm;  // Before L2
+    static double Z2 =  -29.3*cm;  // After  L8
+    static double Z3 = -135.7*cm;  // Before L9
+
+    static double par1[4] = { 63.14, 48.4,  158.9, 67.14 };
+    static double par9[4] = { 46.62, 34.5, -135.7, 67.14 };
+    static AMSPoint crp1;
+    static AMSPoint crp9;
+
+    if (crp1.norm() == 0) crp1.setp(par1[0], par1[1], par1[2]);
+    if (crp9.norm() == 0) crp9.setp(par9[0], par9[1], par9[2]);
+
+    G4StepPoint *PrePoint  = Step->GetPreStepPoint ();
+    G4StepPoint *PostPoint = Step->GetPostStepPoint();
+    G4Track *trk = Step->GetTrack();
+
+    if (trk && trk->GetParentID() == 0 && PrePoint && PostPoint &&
+	PrePoint->GetPosition().z() > Z3) {
+
+      enum { NZ = 14, NE = 6 };
+                         // 1   2  3  4  5  6  7  8   9 10 11 12 13 14
+      static int iZ[NZ] = { 0, -1,-1,-1,-1, 1, 2, 3, -1,-1,-1,-1, 4, 5 };
+      static int evno =  -1;
+      static int nevt =   0;
+      static int nxsc =   0;
+      static int fpl1 =   0;
+      static int intv = 100;
+      static double wsum[NE*3];
+      static double wavg[NE*3];
+      static double xsec[NE];
+      if (evno < 0) {
+	G4cout << "AMSG4SteppingAction::UserSteppingAction-I-Initialize "
+	       << "element abundance vector" << G4endl;
+	for (int i = 0; i < NE*3; i++) wavg[i] = 0;
+	for (int i = 0; i < NE;   i++) xsec[i] = 0;
+	nevt = 0;
+      }
+      if (evno != AMSEvent::gethead()->getEvent()) {
+	  evno  = AMSEvent::gethead()->getEvent();
+	for (int i = 0; i < NE*3; i++) wsum[i] = 0;
+	fpl1 = 0;
+      }
+
+      G4double x1 =  PrePoint->GetPosition().x();
+      G4double y1 =  PrePoint->GetPosition().y();
+      G4double z1 =  PrePoint->GetPosition().z();
+      G4double z2 = PostPoint->GetPosition().z();
+
+      // Layer1 check
+      if (z1/cm > crp1.z() && z2/cm < crp1.z() &&
+	  fabs(x1)/cm < crp1.x() && fabs(y1)/cm < crp1.y() && 
+	  (x1*x1+y1*y1)/cm/cm < par1[3]*par1[3]) fpl1 = 1;
+
+      // Layer9 check
+      if (z1 > Z3 && z2 < Z3 && 
+	  fabs(x1)/cm < crp9.x() && fabs(y1)/cm < crp9.y() && 
+	  (x1*x1+y1*y1)/cm/cm < par9[3]*par9[3] && fpl1) {
+
+	for (int i = 0; i < NE*3; i++) wavg[i] += wsum[i];
+	nevt++;
+
+	if (nevt%intv == 0) {
+	  if (intv < 100000) intv *= 10;
+	  G4cout<< std::fixed << std::setprecision(1);
+	  G4cout << "## Element abundance (rho*L*w/A) in cm^2 "
+		 << "averaged with Nevent= " << nevt << G4endl;
+	  G4cout << "## Element abundance (1) Z>" << Z1/cm
+		 << " (2) Z> " << Z3/cm
+		 << " (3) " << Z2/cm << " >Z> " << Z3/cm << G4endl;
+	  G4cout << "##" << G4endl;
+	  G4cout << "## Element abundance    : "
+		 << "  1(H)   6(C)   7(N)   8(O) 13(Al) 14(Si)" << G4endl;
+	  G4cout<< std::fixed << std::setprecision(4);
+	  for (int i = 0; i < 3; i++) {
+	    G4cout << "## Element abundance ("<<i+1<<"): ";
+	    for (int j = 0; j < NE; j++) G4cout << wavg[i*NE+j]/nevt << " ";
+	    G4cout << G4endl;
+	  }
+	  G4cout << "##" << G4endl;
+	  if (xsec[0] > 0) {
+	    G4cout << "## Element cross section: "
+		   << "  1(H)   6(C)   7(N)   8(O) 13(Al) 14(Si)" << G4endl;
+	    G4cout << "## Cross section (mb)   : ";
+	    G4cout << std::fixed << std::setprecision(3)
+		   << xsec[0]/millibarn << " ";
+	    G4cout << std::setprecision(2);
+	    for (int j = 1; j < NE; j++) G4cout << xsec[j]/millibarn << " ";
+	    G4cout << G4endl;
+	    G4cout<< std::fixed << std::setprecision(4);
+	    for (int i = 0; i < 3; i++) {
+	      G4double sum = 0;
+	      for (int j = 0; j < NE; j++) sum += xsec[j]*wavg[i*NE+j]/nevt;
+	      if (sum > 0) {
+		G4cout << "## Element rel.xsec. ("<<i+1<<"): ";
+		for (int j = 0; j < NE; j++)
+		  G4cout << xsec[j]*wavg[i*NE+j]/nevt/sum << " ";
+		G4cout << G4endl;
+	      }
+	    }
+	    G4cout << "##" << G4endl;
+	  }
+	}
+      }
+
+      const  G4DynamicParticle *prj = 0;
+      G4HadronInelasticProcess *prc = 0;
+      if (nxsc < NE) {
+	prj = trk->GetDynamicParticle();
+	const G4ParticleDefinition *pt = trk->GetParticleDefinition();
+	G4ProcessTable *ptbl = G4ProcessTable::GetProcessTable();
+
+	G4String pname = pt->GetParticleName();
+
+	if (pname == "proton") {
+	  prc = (G4HadronInelasticProcess *)ptbl
+	                                 ->FindProcess("ProtonInelastic", pt);
+	  if (!prc) prc = (G4HadronInelasticProcess *)ptbl
+		                         ->FindProcess("protonInelastic", pt);
+	}
+	else if (pname == "alpha") {
+	  prc = (G4HadronInelasticProcess *)ptbl
+	                                 ->FindProcess("AlphaInelastic", pt);
+	  if (!prc) prc = (G4HadronInelasticProcess *)ptbl
+		                         ->FindProcess("alphaInelastic", pt);
+	}
+	else if (pname == "GenericIon")
+	  prc = (G4HadronInelasticProcess *)ptbl
+	                                 ->FindProcess("IonInelastic", pt);
+
+	if (!prc) nxsc = NE;
+      }
+
+      G4Material *material = PrePoint->GetMaterial();
+      if (material) {
+	G4double slen = Step->GetStepLength();
+	G4double dens = material->GetDensity();
+	for (G4int i = 0; i < material->GetNumberOfElements(); i++) {
+	  const G4Element *elm = material->GetElement(i);
+	  G4int Z = elm->GetZ();
+	  if (Z < 1 || NZ < Z) continue;
+
+	  G4int iz = iZ[Z-1];
+	  if (iz < 0 || NE <= iz) continue;
+
+	  if (xsec[iz] == 0 && prc && prj) {
+	    xsec[iz] = prc->GetMicroscopicCrossSection(prj, elm, 0);
+	    nxsc++;
+	  }
+
+	  G4double W = material->GetFractionVector()[i];
+	  G4double A = elm->GetA();
+	  G4double S = W*dens/A*slen*cm2;
+	  G4double z = PrePoint->GetPosition().z();
+	  if (z > Z1) wsum[iz]      += S;
+	  if (z > Z3) wsum[iz+NE]   += S;
+	  if (z < Z2 &&
+	      z > Z3) wsum[iz+NE*2] += S;
+	}
+      }
+    }
+  }
+  /// <SH> Measurement of element abundance on the track
+
    /// <CC> BEGIN material scanning information
    // only for Geant4
    if (MISCFFKEY.SaveMCTrack == 1 && MISCFFKEY.G4On == 1 && MISCFFKEY.G3On == 0)

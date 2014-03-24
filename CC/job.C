@@ -311,7 +311,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   MISCFFKEY.SaveMCTrack=0;     // (25) Activate material scan, saving MCTrack informations at every step
   MISCFFKEY.SaveMCTrackSecondary=1; // (26) 1/0 save/not save also secondary particles above ECAL and above minimum kinetic energy (next datacard)
   MISCFFKEY.MCTrackMinEne=1;        // (27) minimum kinetic energy in MeV to save a secondary particle above ECAL
-
+  MISCFFKEY.ScanElemAbundance=0;    // (28) Activate a scan of element abudance along the track
 
   FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
