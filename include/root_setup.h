@@ -182,7 +182,7 @@ GPS():Run(0),Event(0),EventLast(0){}
 ClassDef(GPS,3)
 };
 
-//! AMS Exposure Time information for every second(JMDC Time[0])
+//! AMS Exposure Time information for every second(JMDC Time[0] RTI::Version<3, UTC Time RTI::Version>=3)
 /*!
 \sa AMSSetupR
 \author vitali.choutko@cern.ch qyan@cern.ch
@@ -233,22 +233,25 @@ int good;    ///< 0 if good
   bit5: second at the end of run                  \n
 */
 unsigned int utime;///< JMDC unix time(second)
-unsigned int usec[2];///< microsecond(us) for first and last event in one second
+unsigned int usec[2];///< JMDC unix time microsecond(us) for first and last event in one second
+unsigned int utctime;///< UTC time(second)
+unsigned int utcsec[2];///< UTC time microsecond(us) for first and last event in one second
 float getthetam();///< PhiM (degrees)
 float getphim();///< ThetaM(degrees)
-static int Version;///< RTI Version id: 0(default B620) old, 1 new(2013-08 B620),2 new (2013-12 B700)
+static int Version;///< RTI Version id: 0(default B620) old, 1(2013-08 B620),2(2013-12 B700),3 new(2014-03 B620 based on UTC Time)
 static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) form IGRF-table
+static int UseLatest();///< Use Latest RTI Version (return Version id)
 //---
- RTI():evno(0),evnol(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0),mtrdh(0){
+ RTI():evno(0),evnol(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),utctime(0),nhwerr(0),mtrdh(0){
         for(int ifv=0;ifv<4;ifv++){
           for(int ipn=0;ipn<2;ipn++){cf[ifv][ipn]=0;cfi[ifv][ipn]=0;}
         }
         for(int iexl=0;iexl<2;iexl++){
           for(int ico=0;ico<3;ico++){if(ico<2)nl1l9[iexl][ico]=0;dl1l9[iexl][ico]=0;}
         }
-        usec[0]=usec[1]=0;
+        usec[0]=usec[1]=utcsec[0]=utcsec[1]=0;
    }
-ClassDef(RTI,7)
+ClassDef(RTI,8)
 };
 
 
@@ -261,8 +264,8 @@ ClassDef(RTI,7)
 class RunI{
  public: 
   unsigned int run;///< run
-  unsigned int bt; ///< begin time of this run
-  unsigned int et; ///< end time of this run
+  unsigned int bt; ///< begin time of this run, JMDC Time(RTI::Version<3), UTC Time(RTI::Version>=3)
+  unsigned int et; ///< end time of this run, JMDC Time(RTI::Version<3), UTC Time(RTI::Version>=3)
   vector<string>fname;///< root file name
   RunI():run(0),bt(0),et(0){}
   RunI(unsigned int _run,unsigned int _bt, unsigned int _et, string _fn):run(_run),bt(_bt),et(_et){

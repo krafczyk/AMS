@@ -268,10 +268,11 @@ bool AMSEventR::IsInSAA(unsigned int time){
 	AMSSetupR::RTI a;
 
 	if(time == 0)
-		GetRTI(a, fHeader.Time[0]);
+//		GetRTI(a, fHeader.Time[0]);
+                GetRTI(a);
 	else
 		GetRTI(a, time);
-
+        
 	return a.IsInSAA();
 }
 
@@ -10365,7 +10366,12 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
 
   unsigned int tm = xtime;
 
-  int tid = tm/10000000;
+  const int    dt = 1000000;
+  const int    ct = 3600;// compensate item
+  int          tid= tm/dt*dt;//stemp
+  unsigned int bt = tid-ct;
+  unsigned int et = tid+dt-1+ct;
+//---
   if (tid != stm) fIGRF.clear();
 
   if (fIGRF.empty()) {
@@ -10375,7 +10381,7 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
     if (ad && strlen(ad)) std = ad; std += "/altec/";
     if (ai && strlen(ai)) std = ai; std += "RTI/";
     if(fdir!=0) std=fdir;
-    TString sfn = Form(std+"MaxIGRFCutoff_%d.csv", tid);
+    TString sfn = Form(std+"MaxIGRFCutoff_%d.csv", int(tm/10000000));
     ifstream fin(sfn);
     if (!fin) {
       cerr << "AMSEventR::GetMaxIGRFCutoff-E-File not found: "
@@ -10391,6 +10397,7 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
       fin >> nt >> a.phi >> a.theta;
       for(int j = 0; j < 4; j++) fin >> a.cf[j][0] >> a.cf[j][1];
       if (!fin.good()) continue;
+      if (nt<bt||nt>et)continue;//unnesasery erase
       fIGRF.insert(make_pair(nt, a));
     }
     fin.close();
@@ -10419,14 +10426,18 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
 
 //----------------------------------------------------------------------
 int AMSEventR::GetRTIStat(){
-   
+
+   bool isutc=(AMSSetupR::RTI::Version>=3);
+   int xtime=isutc?int(fHeader.UTCTime()):fHeader.Time[0];//UTCTime or JMDC Time
    AMSSetupR::RTI a;
-   return getsetup()->getRTI(a,fHeader.Time[0]);
+   return getsetup()->getRTI(a,xtime);
 }
 
 int AMSEventR::GetRTI(AMSSetupR::RTI & a){
 
-   return getsetup()->getRTI(a,fHeader.Time[0]);
+   bool isutc=(AMSSetupR::RTI::Version>=3);
+   int xtime=isutc?int(fHeader.UTCTime()):fHeader.Time[0];//UTCTime or JMDC Time
+   return getsetup()->getRTI(a,xtime);
 }
 
 //--------
@@ -10436,7 +10447,9 @@ int AMSEventR::RecordRTIRun(){
 
   static string pf="";
 //----Find rootfile
-  unsigned int nt=fHeader.Time[0]; 
+  bool isutc=(AMSSetupR::RTI::Version>=3);
+  int xtime=isutc?int(fHeader.UTCTime()):fHeader.Time[0];//UTCTime or JMDC Time
+  unsigned int nt=xtime;
   unsigned int nr=fHeader.Run;
   string nf=Tree()->GetCurrentFile()->GetName();
   if(nf==pf){

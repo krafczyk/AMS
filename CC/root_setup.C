@@ -1379,6 +1379,17 @@ return fScalersReturn.size();
 int AMSSetupR::RTI::Version=0;
 int AMSSetupR::RTI::Loadopt=0;
 
+int AMSSetupR::RTI::UseLatest(){
+
+  RTI::Version=2;
+  static int vrti=-1;
+  if(RTI::Version!=vrti){
+     cout<< "AMSSetupR::RTI::UseLatest Version="<<RTI::Version<<endl;
+     vrti=RTI::Version;
+  }
+  return RTI::Version;
+}
+
 float AMSSetupR::RTI::getthetam(){
   
    double deg2rad = TMath::DegToRad();
@@ -1534,11 +1545,13 @@ else{
 }
 
 //---NewV
- bool isnewv=((t2>1368950397)||(RTI::Version>=1));
-// bool isnewv2=((t2>1374267385)||(RTI::Version>=2));
+ bool isnewv =((t2>1368950397) ||(RTI::Version>=1));
  bool isnewv2=((t1>=1374268537)||(RTI::Version>=2));
- if     (isnewv2)AMSISSlocal+="V2_20131220/";
- else if(isnewv)AMSISSlocal+="V1_20130802/";
+// bool isnewv3=((t2>1385484728) ||(RTI::Version>=3));
+ bool isnewv3=(RTI::Version>=3);
+ if     (isnewv3)AMSISSlocal+="V3_20140324/";
+ else if(isnewv2)AMSISSlocal+="V2_20131220/";
+ else if(isnewv )AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
  if(dir!=0)AMSISS=dir;
 
@@ -1578,11 +1591,17 @@ const char fpate[]="24H.csv";
       while(fbin.good()&& !fbin.eof()){
          unsigned int nt; RTI a;
 //---Input
-         fbin>>nt;
+         fbin>>nt;//JMDCtime(Version<3) UTCtime(Version>=3)
          fbin>>a.run;
          if(a.run!=0){//missing second
             fbin>>a.evno;
-            if(isnewv2){ //Add Version 2
+            if(isnewv3){
+              fbin>>a.evnol;
+              fbin>>a.utcsec[0]>>a.utcsec[1];
+              fbin>>a.utime>>a.usec[0]>>a.usec[1];
+              fbin>>a.mtrdh;
+            }
+            else if(isnewv2){ //Add Version 2
               fbin>>a.evnol;
               fbin>>a.usec[0]>>a.usec[1];
               fbin>>a.mtrdh;
@@ -1622,7 +1641,8 @@ const char fpate[]="24H.csv";
            }
 //---
            fbin>>a.good;
-           a.utime=nt;
+           if(isnewv3)a.utctime=nt;
+           else       a.utime=nt;
          }
          else continue;
          if(!fbin.good())continue;
@@ -1633,7 +1653,8 @@ const char fpate[]="24H.csv";
             if(bfound!=2){
                fRTI.clear();bfound=2;  
             }
-            fRTI.insert(make_pair(nt,a));
+            if(RTI::Version>=3)fRTI.insert(make_pair(a.utctime,a));//Use UTC as stemp
+            else               fRTI.insert(make_pair(a.utime,a));//Use JMDC as stemp
          }//found 
          else if(nt>t2){efound=1;goto nah;}//end
 //----
