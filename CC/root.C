@@ -6096,6 +6096,41 @@ double ParticleR::GetRadiationLength(double z1, double z2, int type)
 
   return AMSEventR::GetRadiationLength(pnt, dir, rgt, z1, z2);
 }
+
+int ParticleR::GetElementAbundance(double z1, double z2, int type,
+				   double elem[7])
+{
+  AMSPoint pnt;
+  AMSDir   dir;
+  double   rgt = 0;
+
+  if (type == 1 && pTrTrack())    { pnt = pTrTrack()->GetP0();
+                                    dir = pTrTrack()->GetDir();
+				    rgt = pTrTrack()->GetRigidity(); }
+  if (type == 2 && pTrdTrack())   { pnt = AMSPoint(pTrdTrack()->Coo);
+                                    dir = AMSDir  (pTrdTrack()->Theta,
+				   	           pTrdTrack()->Phi); }
+  if (type == 3 && pEcalShower()) { pnt = AMSPoint(pEcalShower()->Entry);
+                                    dir = AMSDir  (pEcalShower()->Dir); }
+
+  if (dir.norm() == 0) return -1;
+
+  return AMSEventR::GetElementAbundance(pnt, dir, rgt, z1, z2, elem);
+}
+
+double ParticleR::GetRelInteractionLength(double z1, double z2, int zp,
+					  int zt, int model, int norm)
+{
+  if (!pTrTrack()) return -1;
+
+  AMSPoint pnt = pTrTrack()->GetP0();
+  AMSDir   dir = pTrTrack()->GetDir();
+  double   rgt = pTrTrack()->GetRigidity();
+  if (dir.norm() == 0) return -1;
+
+  return AMSEventR::GetRelInteractionLength(pnt, dir, rgt, z1, z2,
+					    zp, zt, model, norm);
+}
 #endif
 
 int  ParticleR::IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSPoint &tofpnt, float &disedge){
@@ -14168,6 +14203,190 @@ double AMSEventR::GetRadiationLength(const AMSPoint &pnt,
     if (m != 0) ms += pow(10, m/10000.-3)/trp.GetD0z();
   }
   return ms;
+}
+
+int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
+				   const AMSDir   &dir,
+				   double rigidity, double z1, double z2,
+				   double elem[7])
+{
+  static TFile *file    = 0;
+  static TH3F  *hist[7] = { 0, 0, 0, 0, 0, 0, 0 };
+
+  for (int i = 0; i < 7; i++) elem[i] = 0;
+
+  if (!hist[0]) {
+#pragma omp critical (getelementabundance)
+    {
+      if (!hist[0] && !file) {
+	TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/g4elmap.root";
+	if (getenv("G4elMap")) sfn = getenv("G4elMap");
+
+	TDirectory *dsave = gDirectory;
+	file = TFile::Open(sfn);
+	if (dsave) dsave->cd();
+
+	if (file) {
+	  cout << "AMSEventR::GetElementAbundance-I-Open file: "
+	       << file->GetName() << endl;
+	  for (int i = 0; i < 7; i++)
+	    hist[i] = (TH3F *)file->Get(Form("hist%d", i+1));
+	}
+	if (!hist[0] || !hist[6]) {
+	  cout << "AMSEventR::GetElementAbundance-E-hist not found" << endl;
+	  hist[0] = (TH3F *)1;
+	}
+      }
+    }
+  }
+  if (!hist[0] || hist[0] == (TH3F *)1) return -3;
+
+  TrProp trp(pnt, dir, rigidity);
+
+  int ib1 = hist[0]->GetZaxis()->FindBin(z1);
+  int ib2 = hist[0]->GetZaxis()->FindBin(z2);
+  int nb  = hist[0]->GetNbinsZ();
+
+  if (ib2 < ib1) { int swp = ib1 ; ib1 = ib2; ib2 = swp; }
+
+  if (ib1 <  1) ib1 = 1;
+  if (ib2 > nb) ib2 = nb;
+
+  double zp = hist[0]->GetZaxis()->GetBinCenter(ib1);
+         z2 = hist[0]->GetZaxis()->GetBinCenter(ib2);
+  trp.Propagate(zp);
+  AMSPoint p1 = trp.GetP0();
+
+  int   ndv = 5;
+  int   err = 0;
+  double ms = 0;
+
+  do {
+    double b = TMath::Abs(TrFit::GuFld(p1).x());
+    double l = (b > 0) ? TMath::Abs(rigidity)/0.3/b : 0;
+    if (l <= 0 || l > 10) l = 10;
+
+    zp = p1.z()+l; if (zp > z2) zp = z2;
+    trp.Propagate(zp);
+    AMSPoint p2 = trp.GetP0();
+
+    ib1 = hist[0]->GetZaxis()->FindBin(p1.z());
+    ib2 = hist[0]->GetZaxis()->FindBin(p2.z());
+    int ns = (ib2-ib1)*ndv;
+
+    double dl = (p2-p1).norm();
+    if (dl <= 0) break;
+
+    double cosz = (p2.z()-p1.z())/dl;
+    double dz   = hist[0]->GetZaxis()->GetBinWidth(ib1)/cosz/ndv;
+
+    for (int i = 0; i < ns; i++) {
+      double   z = p1.z()+(p2.z()-p1.z())/ns*(i+0.5);
+      AMSPoint p = p1+(p2-p1)/(p2.z()-p1.z())*(z-p1.z());
+      int     ix = hist[0]->GetXaxis()->FindBin(p.x());
+      int     iy = hist[0]->GetYaxis()->FindBin(p.y());
+      if (ix <= 0 || hist[0]->GetNbinsX() < ix ||
+	  iy <= 0 || hist[0]->GetNbinsY() < iy) { err = -2; continue; }
+
+      for (int j = 0; j < 7; j++)
+	if (hist[j]) elem[j] += hist[j]->GetBinContent(ix, iy, ib1+i/ndv)*dz;
+    }
+
+    p1 = p2;
+  } while (zp < z2);
+
+  return err;
+}
+
+double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
+{
+                    // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
+  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3,-1,-1,-1,-1, 4, 5 };
+
+  int ip = (zp == 1) ? 0 :
+          ((zp == 2) ? 1 :
+	  ((zp == 6) ? 2 : -1));
+  int it = (1 <= zt && zt <= 14) ? iZ[zt-1] :
+                     ((zt == 82) ? 6 : -1);
+
+  if (ip < 0 || it < 0) return -1;
+
+  static TFile *file    = 0;
+  static TH1D  *hist[42] = { 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0,
+			     0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0,
+			     0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0 };
+
+  if (!hist[0]) {
+#pragma omp critical (getelementabundance)
+    {
+      if (!hist[0] && !file) {
+	TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/g4xsec.root";
+	if (getenv("G4xSec")) sfn = getenv("G4xSec");
+
+	TDirectory *dsave = gDirectory;
+	file = TFile::Open(sfn);
+	if (dsave) dsave->cd();
+
+	TDirectory *dir1 = (TDirectory *)file->Get("dir94");
+	TDirectory *dir2 = (TDirectory *)file->Get("dir96");
+
+	for (int i = 0; dir1 && i < 21; i++)
+	  hist[i]    = (TH1D *)dir1->Get(Form("hist%d%d1", i/7+1, i%7+1));
+	for (int i = 0; dir2 && i < 21; i++)
+	  hist[i+21] = (TH1D *)dir2->Get(Form("hist%d%d1", i/7+1, i%7+1));
+
+	int nh = 0;
+	for (int i = 0; i < 42; i++) if (hist[i]) nh++;
+
+	if (nh == 42)
+	  cout << "AMSEventR::GetCrossSection-I-Open file: "
+	       << file->GetName() << endl;
+	else {
+	  cout << "AMSEventR::GetCrossSection-E-hist not found" << endl;
+	  hist[0] = (TH1D *)1;
+	}
+      }
+    }
+  }
+  if (!hist[0] || hist[0] == (TH1D *)1) return -2;
+
+  int im = (model == 2) ? 1 : 0;
+
+  TH1D *hh = hist[ip*7+it+im*21];
+  if (hh) return hh->Interpolate(rgt);
+
+  return -1;
+}
+
+double AMSEventR::GetRelInteractionLength(const AMSPoint &pnt,
+					  const AMSDir   &dir,
+					  double rigidity,
+					  double z1, double z2, int zp, 
+					  int zt, int model, int norm)
+{
+                    // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
+  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3,-1,-1,-1,-1, 4, 5 };
+  int it = (1 <= zt && zt <= 14) ? iZ[zt-1] :
+                     ((zt == 82) ? 6 : -1);
+  if (it < 0) return -1;
+
+  double elm[7];
+  if (GetElementAbundance(pnt, dir, rigidity, z1, z2, elm) < 0) return -2;
+
+  double NA   = 6.022e+23;  // Avogadro constant (1/mol)
+  double mb   =     1e-27;  // mb to cm^2
+  double xsec = GetCrossSection(zp, zt, rigidity, model);
+  if (xsec < 0) return -3;
+
+  double intl = xsec*mb*NA*elm[it];
+  if (!norm) return intl;
+
+  int zel[7] = { 1, 6, 7, 8, 13, 14, 82 };
+  double sum = 0;
+  for (int i = 0; i < 7; i++) 
+    sum += GetCrossSection(zp, zel[i], rigidity, model)*mb*NA*elm[i];
+
+  return (sum > 0) ? intl/sum : 0;
 }
 #endif
 
