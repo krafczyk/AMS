@@ -3588,14 +3588,14 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
   int GetElementAbundance(double z1, double z2, int type, double elem[7]);
 
   /*!
-   *! Get relative interaction length (lambda/len) on TrTrack between two points. Only FullSpan acceptance is supported for the moment (by SH)
+   *! Get relative interaction length (path len/lambda) on TrTrack between two points. Only FullSpan acceptance is supported for the moment (by SH)
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
-   * @param[in]  zp    projectile      Z (Only 1, 2, 6)
-   * @param[in]  zt    target material Z (Only 1, 6, 7, 8, 13, 14, 82)
+   * @param[in]  zp    projectile      Z (1, 2, 6)
+   * @param[in]  zt    target material Z (1, 6, 7, 8, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
    * @param[in]  1:normalized fraction over all the target elements or 0:not
-   * @return     interaction length (lambda/len), <0 for errors
+   * @return     interaction length (path len/lambda), <0 for errors
    */
   double GetRelInteractionLength(double z1, double z2, int zp,
 				 int zt, int model, int norm);
@@ -4871,17 +4871,17 @@ static int GetElementAbundance(const AMSPoint &pnt,
 static double GetCrossSection(int zp, int zt, double rgt, int model = 1);
 
   /*!
-   *! Get relative interaction length (lambda/len) on the given trajectory between two points. Only FullSpan acceptance is supported for the moment (by SH)
+   *! Get relative interaction length (path len/lambda) on the given trajectory between two points. Only FullSpan acceptance is supported for the moment (by SH)
    * @param[in]  pntIn   Reference point[cm](can be tk-tof-or-shower position )
    * @param[in]  dirIn   Reference dir      (can be tk-tof-or-shower direction)
    * @param[in]  rigidity  Rigidity  [GV]
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
-   * @param[in]  zp    projectile      Z (Only 1, 2, 6)
-   * @param[in]  zt    target material Z (Only 1, 6, 7, 8, 13, 14, 82)
+   * @param[in]  zp    projectile      Z (1, 2, 6)
+   * @param[in]  zt    target material Z (1, 6, 7, 8, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
    * @param[in]  1:normalized fraction over all the target elements or 0:not
-   * @return     interaction length (lambda/len), <0 for errors
+   * @return     interaction length (path len/lambda), <0 for errors
    */
 static double GetRelInteractionLength(const AMSPoint &pnt,
 				      const AMSDir   &dir,

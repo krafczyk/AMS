@@ -14353,7 +14353,7 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
   int im = (model == 2) ? 1 : 0;
 
   TH1D *hh = hist[ip*7+it+im*21];
-  if (hh) return hh->Interpolate(rgt);
+  if (hh) return hh->Interpolate(fabs(rgt));
 
   return -1;
 }
@@ -14366,27 +14366,31 @@ double AMSEventR::GetRelInteractionLength(const AMSPoint &pnt,
 {
                     // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
   const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3,-1,-1,-1,-1, 4, 5 };
-  int it = (1 <= zt && zt <= 14) ? iZ[zt-1] :
+  int it = (0 <= zt && zt <= 14) ? iZ[zt-1] :
                      ((zt == 82) ? 6 : -1);
-  if (it < 0) return -1;
+  if (zt > 0 && it < 0) return -1;
 
   double elm[7];
   if (GetElementAbundance(pnt, dir, rigidity, z1, z2, elm) < 0) return -2;
 
-  double NA   = 6.022e+23;  // Avogadro constant (1/mol)
-  double mb   =     1e-27;  // mb to cm^2
-  double xsec = GetCrossSection(zp, zt, rigidity, model);
-  if (xsec < 0) return -3;
+  double NA = 6.022e+23;  // Avogadro constant (1/mol)
+  double mb =     1e-27;  // mb to cm^2
 
-  double intl = xsec*mb*NA*elm[it];
-  if (!norm) return intl;
+  if (zt > 0 && !norm) {
+    double xsec = GetCrossSection(zp, zt, rigidity, model);
+    return (xsec > 0) ? xsec*mb*NA*elm[it] : -3;
+  }
 
   int zel[7] = { 1, 6, 7, 8, 13, 14, 82 };
-  double sum = 0;
-  for (int i = 0; i < 7; i++) 
-    sum += GetCrossSection(zp, zel[i], rigidity, model)*mb*NA*elm[i];
+  double intl = 0, sum = 0;
+  for (int i = 0; i < 7; i++) {
+    double il = GetCrossSection(zp, zel[i], rigidity, model)*mb*NA*elm[i];
+    sum += il;
+    if (zt == zel[i]) intl = il;
+  }
 
-  return (sum > 0) ? intl/sum : 0;
+  if (zt == 0 || intl == 0) return sum;
+  return (sum > 0) ? intl/sum : -4;
 }
 #endif
 
