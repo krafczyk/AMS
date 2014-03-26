@@ -203,23 +203,23 @@ public:
 	bool IsInSAA();				///< True if ISS in in SAA, false otherwize
 
 unsigned int run;  ///< run
-unsigned int evno;///< fist event no in one second
+unsigned int evno;///< first event no in one second
 unsigned int evnol;///< last event no in one second
 float lf;  ///< life time
-float cf[4][2];  ///< max cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
-float cfi[4][2];   ///< max IGRF cutoff for 25,30,35,40 degrees (gv) for Neg+Pos
-float mphe;///< most probable He rigidity;
+float cf[4][2];  ///< max cutoff for 25,30,35,40 degrees (gv) for neg+pos
+float cfi[4][2]; ///< max IGRF cutoff for 25,30,35,40 degrees (gv) for neg+pos
+float mphe;   ///< most probable He rigidity;
 float theta;  ///< theta gtod (rad)
-float phi;    ///<phi gtod (rad)
-float r;     ///< Rad (cm)
+float phi;    ///< phi gtod (rad)
+float r;      ///< rad (cm)
 float zenith; ///< ams zenith angle (degrees)
-float glat;  ///< ams pointing galatic latitude (degrees) -1 faild
-float glong; ///< ams pointing galatic longitude (degrees) -1 faild
+float glat;   ///< ams pointing galatic latitude (degrees) -1 faild
+float glong;  ///< ams pointing galatic longitude (degrees) -1 faild
 float nev;    ///< exist events  nev+nerr=sumev
-float nerr;  ///<  absent events
-float ntrig; ///< events with trigger;
-float nhwerr;  ///< events with has HW error(JINJStatus)
-float npart; ///< events with tof+trd+tracker+ecal
+float nerr;   ///< absent events
+float ntrig;  ///< events with trigger;
+float nhwerr; ///< events with has HW error(JINJStatus)
+float npart;  ///< events with tof+trd+tracker+ecal
 float nl1l9[2][2]; ///<events with track L1 L9 XY hit 
 float dl1l9[2][3]; ///< mean difference(um) bewteen PG ad CIEMAT alignment of L1 and L9(XYZ)
 float mtrdh; ///< average trdrawhit number for one event  
@@ -232,14 +232,28 @@ int good;    ///< 0 if good
   bit4: second at the begining of run             \n
   bit5: second at the end of run                  \n
 */
-unsigned int utime;///< JMDC unix time(second)
-unsigned int usec[2];///< JMDC unix time microsecond(us) for first and last event in one second
-float utctime[2];//UTC time for first and last event
-float getthetam();///< PhiM (degrees)
-float getphim();///< ThetaM(degrees)
-static int Version;///< RTI Version id: 0(default B620) old, 1(2013-08 B620),2(2013-12 B700),3 new(2014-03 B620)
-static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) form IGRF-table
-static int UseLatest();///< Use Latest RTI Version (return Version id)
+unsigned int utime;  ///< JMDC unix time(second)
+unsigned int usec[2];///< JMDC unix time microsecond(us) for first and last event
+double utctime[2];   ///< UTC time for first and last event
+/// get unix time
+/*!
+ * @param[in] itm  0: JMDC  time,  1: UTC  time,  2: JMDC time-UTC time
+ * @param[in] iev  0: first event, 1: last event
+ */
+double gettime(int itm=0, int iev=0); 
+float  getthetam(); ///< PhiM (degrees)
+float  getphim();   ///< ThetaM(degrees)
+static int Version; ///< RTI Version id
+/*!< 
+  0: 2013-01 B620 default \n
+  1: 2013-08 B620         \n
+  2: 2013-12 B700         \n
+  3: 2014-03 B620 latest  \n 
+*/
+static int Loadopt;//< load option
+/// use latest RTI Version
+/// \return Version id
+static int UseLatest();
 //---
  RTI():evno(0),evnol(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0),mtrdh(0){
         for(int ifv=0;ifv<4;ifv++){
