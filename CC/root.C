@@ -10427,17 +10427,13 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
 //----------------------------------------------------------------------
 int AMSEventR::GetRTIStat(){
 
-   bool isutc=(AMSSetupR::RTI::Version>=3);
-   int xtime=isutc?int(fHeader.UTCTime()):fHeader.Time[0];//UTCTime or JMDC Time
    AMSSetupR::RTI a;
-   return getsetup()->getRTI(a,xtime);
+   return getsetup()->getRTI(a,fHeader.Time[0]);
 }
 
 int AMSEventR::GetRTI(AMSSetupR::RTI & a){
 
-   bool isutc=(AMSSetupR::RTI::Version>=3);
-   int xtime=isutc?int(fHeader.UTCTime()):fHeader.Time[0];//UTCTime or JMDC Time
-   return getsetup()->getRTI(a,xtime);
+   return getsetup()->getRTI(a,fHeader.Time[0]);
 }
 
 //--------
@@ -10447,9 +10443,7 @@ int AMSEventR::RecordRTIRun(){
 
   static string pf="";
 //----Find rootfile
-  bool isutc=(AMSSetupR::RTI::Version>=3);
-  int xtime=isutc?int(fHeader.UTCTime()):fHeader.Time[0];//UTCTime or JMDC Time
-  unsigned int nt=xtime;
+  unsigned int nt=fHeader.Time[0];
   unsigned int nr=fHeader.Run;
   string nf=Tree()->GetCurrentFile()->GetName();
   if(nf==pf){

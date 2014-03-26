@@ -1591,17 +1591,11 @@ const char fpate[]="24H.csv";
       while(fbin.good()&& !fbin.eof()){
          unsigned int nt; RTI a;
 //---Input
-         fbin>>nt;//JMDCtime(Version<3) UTCtime(Version>=3)
+         fbin>>nt;//JMDCtime
          fbin>>a.run;
          if(a.run!=0){//missing second
             fbin>>a.evno;
-            if(isnewv3){
-              fbin>>a.evnol;
-              fbin>>a.utcsec[0]>>a.utcsec[1];
-              fbin>>a.utime>>a.usec[0]>>a.usec[1];
-              fbin>>a.mtrdh;
-            }
-            else if(isnewv2){ //Add Version 2
+            if(isnewv2){ //Add Version 2
               fbin>>a.evnol;
               fbin>>a.usec[0]>>a.usec[1];
               fbin>>a.mtrdh;
@@ -1639,10 +1633,13 @@ const char fpate[]="24H.csv";
              }
              fbin>>a.nhwerr;
            }
+           if(isnewv3){
+              fbin>>a.utctime;
+              fbin>>a.utcsec[0]>>a.utcsec[1];
+           }
 //---
            fbin>>a.good;
-           if(isnewv3)a.utctime=nt;
-           else       a.utime=nt;
+           a.utime=nt;
          }
          else continue;
          if(!fbin.good())continue;
@@ -1653,8 +1650,7 @@ const char fpate[]="24H.csv";
             if(bfound!=2){
                fRTI.clear();bfound=2;  
             }
-            if(RTI::Version>=3)fRTI.insert(make_pair(a.utctime,a));//Use UTC as stemp
-            else               fRTI.insert(make_pair(a.utime,a));//Use JMDC as stemp
+            fRTI.insert(make_pair(nt,a));
          }//found 
          else if(nt>t2){efound=1;goto nah;}//end
 //----

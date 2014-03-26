@@ -182,7 +182,7 @@ GPS():Run(0),Event(0),EventLast(0){}
 ClassDef(GPS,3)
 };
 
-//! AMS Exposure Time information for every second(JMDC Time[0] RTI::Version<3, UTC Time RTI::Version>=3)
+//! AMS Exposure Time information for every second(JMDC Time[0])
 /*!
 \sa AMSSetupR
 \author vitali.choutko@cern.ch qyan@cern.ch
@@ -238,7 +238,7 @@ unsigned int utctime;///< UTC time(second)
 unsigned int utcsec[2];///< UTC time microsecond(us) for first and last event in one second
 float getthetam();///< PhiM (degrees)
 float getphim();///< ThetaM(degrees)
-static int Version;///< RTI Version id: 0(default B620) old, 1(2013-08 B620),2(2013-12 B700),3 new(2014-03 B620 based on UTC Time)
+static int Version;///< RTI Version id: 0(default B620) old, 1(2013-08 B620),2(2013-12 B700),3 new(2014-03 B620)
 static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) form IGRF-table
 static int UseLatest();///< Use Latest RTI Version (return Version id)
 //---
@@ -264,8 +264,8 @@ ClassDef(RTI,8)
 class RunI{
  public: 
   unsigned int run;///< run
-  unsigned int bt; ///< begin time of this run, JMDC Time(RTI::Version<3), UTC Time(RTI::Version>=3)
-  unsigned int et; ///< end time of this run, JMDC Time(RTI::Version<3), UTC Time(RTI::Version>=3)
+  unsigned int bt; ///< begin time of this run, JMDC Time
+  unsigned int et; ///< end time of this run, JMDC Time
   vector<string>fname;///< root file name
   RunI():run(0),bt(0),et(0){}
   RunI(unsigned int _run,unsigned int _bt, unsigned int _et, string _fn):run(_run),bt(_bt),et(_et){

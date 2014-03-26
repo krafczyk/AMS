@@ -4631,7 +4631,7 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
 //!   Says if AMS is inside SAA boundaries
 /*!
- input parameter: time = JMDC Time(RTI::Version<3), UTC Time(RTI::Version>=3) (default==0 correspond to the time of the current envent);
+ input parameter: time = JMDC Time, (default==0 correspond to the time of the current envent);
  returns: true if inside SAA, false if outside SAA ;
  */
 bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throught the SAA
@@ -4724,19 +4724,19 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
        //!  AMS Exposure-Time RTI for each second off-rootfile mode
        /*! return 0: if sucess
            !=0: RIT second has problem 
-           \param[in] xtime JMDC Time(RTI::Version<3), UTC Time(RTI::Version>=3)
+           \param[in] xtime JMDC Time
        */
        static int GetRTI(AMSSetupR::RTI & a, unsigned int  xtime);
        //!  get AMS Run Begin and End Time from RTI according to run id
        /*    \param[in]  runid: run id
-             \param[out] time[0]: Run Begin Time, time[1]: Run End Time; JMDC Time(RTI::Version<3), UTC Time(RTI::Version>=3)
+             \param[out] time[0]: Run Begin Time, time[1]: Run End Time; JMDC Time
        */
        static int GetRTIRunTime(unsigned int runid,unsigned int time[2]);
        //!  get  difference(um) bewteen PG ad CIEMAT alignment of L1(L9)(XYZ)  in choosen time window
        /*    \param[in]  extlay: Track External Layer: 0-L1, 1-L9
              \param[out] nxyz:  Events number with X(YZ) Hit
              \param[out] dxyz:  X(YZ) coodinate mean difference |PG-CIEMAT|
-             \param[in]  xtime: JMDC Time (RTI::Version<3), UTC Time(RTI::Version>=3)
+             \param[in]  xtime: JMDC Time 
              \param[in]  dt:    Time window (second)
              \return  effective Time window (second)
        */
