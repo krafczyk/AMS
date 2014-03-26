@@ -1634,8 +1634,7 @@ const char fpate[]="24H.csv";
              fbin>>a.nhwerr;
            }
            if(isnewv3){
-              fbin>>a.utctime;
-              fbin>>a.utcsec[0]>>a.utcsec[1];
+             fbin>>a.utctime[0]>>a.utctime[1];
            }
 //---
            fbin>>a.good;
