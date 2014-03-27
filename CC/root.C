@@ -6098,7 +6098,7 @@ double ParticleR::GetRadiationLength(double z1, double z2, int type)
 }
 
 int ParticleR::GetElementAbundance(double z1, double z2, int type,
-				   double elem[7])
+				   double elem[9])
 {
   AMSPoint pnt;
   AMSDir   dir;
@@ -14208,12 +14208,12 @@ double AMSEventR::GetRadiationLength(const AMSPoint &pnt,
 int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
 				   const AMSDir   &dir,
 				   double rigidity, double z1, double z2,
-				   double elem[7])
+				   double elem[9])
 {
   static TFile *file    = 0;
-  static TH3F  *hist[7] = { 0, 0, 0, 0, 0, 0, 0 };
+  static TH3F  *hist[9] = { 0, 0, 0, 0, 0, 0, 0 };
 
-  for (int i = 0; i < 7; i++) elem[i] = 0;
+  for (int i = 0; i < 9; i++) elem[i] = 0;
 
   if (!hist[0]) {
 #pragma omp critical (getelementabundance)
@@ -14229,10 +14229,10 @@ int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
 	if (file) {
 	  cout << "AMSEventR::GetElementAbundance-I-Open file: "
 	       << file->GetName() << endl;
-	  for (int i = 0; i < 7; i++)
+	  for (int i = 0; i < 9; i++)
 	    hist[i] = (TH3F *)file->Get(Form("hist%d", i+1));
 	}
-	if (!hist[0] || !hist[6]) {
+	if (!hist[0] || !hist[8]) {
 	  cout << "AMSEventR::GetElementAbundance-E-hist not found" << endl;
 	  hist[0] = (TH3F *)1;
 	}
@@ -14288,8 +14288,11 @@ int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
       if (ix <= 0 || hist[0]->GetNbinsX() < ix ||
 	  iy <= 0 || hist[0]->GetNbinsY() < iy) { err = -2; continue; }
 
-      for (int j = 0; j < 7; j++)
-	if (hist[j]) elem[j] += hist[j]->GetBinContent(ix, iy, ib1+i/ndv)*dz;
+      for (int j = 0; j < 9; j++)
+	if (hist[j]) {
+	  Double_t bc = hist[j]->GetBinContent(ix, iy, ib1+i/ndv);
+	  if (bc > 0) elem[j] += bc*dz;
+	}
     }
 
     p1 = p2;
@@ -14301,20 +14304,23 @@ int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
 double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
 {
                     // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
-  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3,-1,-1,-1,-1, 4, 5 };
+  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3, 4,-1, 5,-1, 6, 7 };
 
   int ip = (zp == 1) ? 0 :
           ((zp == 2) ? 1 :
 	  ((zp == 6) ? 2 : -1));
   int it = (1 <= zt && zt <= 14) ? iZ[zt-1] :
-                     ((zt == 82) ? 6 : -1);
+                     ((zt == 82) ? 8 : -1);
 
   if (ip < 0 || it < 0) return -1;
 
   static TFile *file    = 0;
-  static TH1D  *hist[42] = { 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0,
-			     0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0,
-			     0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0 };
+  static TH1D  *hist[48] = { 0, 0, 0, 0, 0, 0, 0, 0,
+			     0, 0, 0, 0, 0, 0, 0, 0,
+			     0, 0, 0, 0, 0, 0, 0, 0,
+			     0, 0, 0, 0, 0, 0, 0, 0,
+			     0, 0, 0, 0, 0, 0, 0, 0,
+			     0, 0, 0, 0, 0, 0, 0, 0 };
 
   if (!hist[0]) {
 #pragma omp critical (getelementabundance)
@@ -14330,15 +14336,15 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
 	TDirectory *dir1 = (TDirectory *)file->Get("dir94");
 	TDirectory *dir2 = (TDirectory *)file->Get("dir96");
 
-	for (int i = 0; dir1 && i < 21; i++)
-	  hist[i]    = (TH1D *)dir1->Get(Form("hist%d%d1", i/7+1, i%7+1));
-	for (int i = 0; dir2 && i < 21; i++)
-	  hist[i+21] = (TH1D *)dir2->Get(Form("hist%d%d1", i/7+1, i%7+1));
+	for (int i = 0; dir1 && i < 24; i++)
+	  hist[i]    = (TH1D *)dir1->Get(Form("hist%d%d1", i/8+1, i%8+1));
+	for (int i = 0; dir2 && i < 24; i++)
+	  hist[i+24] = (TH1D *)dir2->Get(Form("hist%d%d1", i/8+1, i%8+1));
 
 	int nh = 0;
-	for (int i = 0; i < 42; i++) if (hist[i]) nh++;
+	for (int i = 0; i < 48; i++) if (hist[i]) nh++;
 
-	if (nh == 42)
+	if (nh == 48)
 	  cout << "AMSEventR::GetCrossSection-I-Open file: "
 	       << file->GetName() << endl;
 	else {
@@ -14352,7 +14358,7 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
 
   int im = (model == 2) ? 1 : 0;
 
-  TH1D *hh = hist[ip*7+it+im*21];
+  TH1D *hh = hist[ip*8+it+im*24];
   if (hh) return hh->Interpolate(fabs(rgt));
 
   return -1;
@@ -14365,12 +14371,12 @@ double AMSEventR::GetRelInteractionLength(const AMSPoint &pnt,
 					  int zt, int model, int norm)
 {
                     // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
-  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3,-1,-1,-1,-1, 4, 5 };
+  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3, 4,-1, 5,-1, 6, 7 };
   int it = (0 <= zt && zt <= 14) ? iZ[zt-1] :
-                     ((zt == 82) ? 6 : -1);
+                     ((zt == 82) ? 8 : -1);
   if (zt > 0 && it < 0) return -1;
 
-  double elm[7];
+  double elm[9];
   if (GetElementAbundance(pnt, dir, rigidity, z1, z2, elm) < 0) return -2;
 
   double NA = 6.022e+23;  // Avogadro constant (1/mol)
@@ -14381,9 +14387,9 @@ double AMSEventR::GetRelInteractionLength(const AMSPoint &pnt,
     return (xsec > 0) ? xsec*mb*NA*elm[it] : -3;
   }
 
-  int zel[7] = { 1, 6, 7, 8, 13, 14, 82 };
+  int zel[9] = { 1, 6, 7, 8, 9, 11, 13, 14, 82 };
   double intl = 0, sum = 0;
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 9; i++) {
     double il = GetCrossSection(zp, zel[i], rigidity, model)*mb*NA*elm[i];
     sum += il;
     if (zt == zel[i]) intl = il;

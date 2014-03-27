@@ -3579,20 +3579,22 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
    * @param[in]  type  1: TrTrack 2: TrdTrack 3: EcalShower
-   * @param[out] elem[7]  Abundance in mole/cm2 0:H 1:C 2:N 3:O 4:Al 5:Si 6:Pb
+   * @param[out] elem[9]  Abundance in mole/cm2
+   *                      0:H 1:C 2:N 3:O 4:F 5:Na 6:Al 7:Si 8:Pb
    * @retval     0 success
    * @retval    -1 error:  no trajectory found
    * @retval    -2 error: the trajectory is out of Full Span acceptance
    * @retval    -3 error:  no data file found
    */
-  int GetElementAbundance(double z1, double z2, int type, double elem[7]);
+  int GetElementAbundance(double z1, double z2, int type, double elem[9]);
 
   /*!
    *! Get relative interaction length (path len/lambda) on TrTrack between two points. Only FullSpan acceptance is supported for the moment (by SH)
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
    * @param[in]  zp    projectile      Z (1, 2, 6)
-   * @param[in]  zt    target material Z (1, 6, 7, 8, 13, 14, 82, 0:total)
+   * @param[in]  zt    target material Z
+   *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
    * @param[in]  1:normalized fraction over all the target elements or 0:not
    * @return     interaction length (path len/lambda), <0 for errors
@@ -4849,7 +4851,8 @@ static double GetRadiationLength(const AMSPoint &pnt,
    * @param[in]  rigidity  Rigidity  [GV]   (0 in case of linear track)
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
-   * @param[out] elem[7]  Abundance in mole/cm2 0:H 1:C 2:N 3:O 4:Al 5:Si 6:Pb
+   * @param[out] elem[9]  Abundance in mole/cm2
+   *                      0:H 1:C 2:N 3:O 4:F 5:Na 6:Al 7:Si 8:Pb
    * @retval     0 success
    * @retval    -1 error:  no trajectory found
    * @retval    -2 error: the trajectory is out of Full Span acceptance
@@ -4858,12 +4861,12 @@ static double GetRadiationLength(const AMSPoint &pnt,
 static int GetElementAbundance(const AMSPoint &pnt,
 			       const AMSDir   &dir,
 			       double rigidity, double z1, double z2,
-			       double elm[7]);
+			       double elem[9]);
 
   /*!
    *! Get hadron inelastic cross section as a function of rigidity (by SH)
    * @param[in]  zp  projectile charge (Only 1, 2, 6 are supported)
-   * @param[in]  zt  target     charge (Only 1, 6, 7, 8, 13, 14, 82)
+   * @param[in]  zt  target     charge (1, 6, 7, 8, 9, 11, 13, 14, 82)
    * @param[in]  rgt rigidity
    * @param[in]  model 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4) (G4FF 5=1 7=13)
    * @return     cross section in mb, <0 for errors
@@ -4878,7 +4881,8 @@ static double GetCrossSection(int zp, int zt, double rgt, int model = 1);
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
    * @param[in]  zp    projectile      Z (1, 2, 6)
-   * @param[in]  zt    target material Z (1, 6, 7, 8, 13, 14, 82, 0:total)
+   * @param[in]  zt    target material Z
+   *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
    * @param[in]  1:normalized fraction over all the target elements or 0:not
    * @return     interaction length (path len/lambda), <0 for errors
