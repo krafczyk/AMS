@@ -14389,7 +14389,10 @@ double AMSEventR::GetRelInteractionLength(const AMSPoint &pnt,
   int zel[9] = { 1, 6, 7, 8, 9, 11, 13, 14, 82 };
   double intl = 0, sum = 0;
   for (int i = 0; i < 9; i++) {
-    double il = GetCrossSection(zp, zel[i], rigidity, model)*mb*NA*elm[i];
+    double xs = GetCrossSection(zp, zel[i], rigidity, model);
+    if (xs < 0) return -3;
+
+    double il = xs*mb*NA*elm[i];
     sum += il;
     if (zt == zel[i]) intl = il;
   }
