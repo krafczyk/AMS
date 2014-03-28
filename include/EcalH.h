@@ -31,6 +31,7 @@ class EcalHR : public TrElem {
 
 #ifdef __ROOTSHAREDLIBRARY__
 public:
+  // --- User fuctions ---
   /*!
     \brief Get hadron shower parameters of current event
     \param[in]  z         Integer charge estimated by TrTrack (1 or 2)
@@ -41,6 +42,15 @@ public:
     \retval -1  error
   */
   static int Get(int z, float &rrec, float &smax, float &tr_chisq);
+
+  /*!
+    \brief Get MIP energy deposit from 3 adjacent cells (S3)
+    \param[out] p_entry   Entry point
+    \param[out] p_last    Point before APEX (the last layer before the shower)
+    \return     S3 Energy deposit in GeV from p_entry and p_last
+    \retval -1  error
+  */
+  static double GetMipEdep(AMSPoint &p_entry, AMSPoint &p_last);
 #endif
 
 public:
@@ -86,6 +96,7 @@ public:
   static float fYmax;       ///< Ecal fiducial volume in Y
   static float fCell;       ///< Ecal cell pitch
 
+  static float fEmip;       ///< Minimum energy dep (MeV) needed for Tr-match
   static float fEmin;       ///< Minimum energy sum (GeV) needed for FitL
   static float fEthd[3];    ///< Energy threshold (MeV) for apex
 
@@ -119,6 +130,8 @@ public:
   float Etot (void)  const { return _etot; }
   float Ecell(int i,
 	      int j) const { return dE(Hidx(i, j)); }
+  float ES1  (int i) const { return Ecell(i, 2); }
+  float ES3  (int i) const { return Ecell(i, 1)+Ecell(i, 2)+Ecell(i, 3); }
 
   bool    Chk(int i) const { return (0 <= i && i < _hid.size()); }
   int     Hid(int i) const { return Chk(i) ? _hid.at(i) : -1; }
