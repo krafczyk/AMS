@@ -14305,22 +14305,18 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
 {
                     // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
   const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3, 4,-1, 5,-1, 6, 7 };
+                    // 1  2  3  4  5  6  7  8
+  const int iP[8]  = { 0, 1, 2, 4, 6, 8, 9,10 };  
 
-  int ip = (zp == 1) ? 0 :
-          ((zp == 2) ? 1 :
-	  ((zp == 6) ? 2 : -1));
+  int ip = (1 <= zp && zp <=   8) ? iP[zp-1] :
+        ((103 <= zp && zp <= 105) ? (zp-103)*2+3 : -1);
   int it = (1 <= zt && zt <= 14) ? iZ[zt-1] :
                      ((zt == 82) ? 8 : -1);
 
   if (ip < 0 || it < 0) return -1;
 
-  static TFile *file    = 0;
-  static TH1D  *hist[54] = { 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			     0, 0, 0, 0, 0, 0, 0, 0, 0,
-			     0, 0, 0, 0, 0, 0, 0, 0, 0,
-			     0, 0, 0, 0, 0, 0, 0, 0, 0,
-			     0, 0, 0, 0, 0, 0, 0, 0, 0,
-			     0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  static TFile *file = 0;
+  static TH1D  *hist[9*11*2] = { 0 };
 
   if (!hist[0]) {
 #pragma omp critical (getelementabundance)
@@ -14331,20 +14327,22 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
 
 	TDirectory *dsave = gDirectory;
 	file = TFile::Open(sfn);
+       if (file) {
 	if (dsave) dsave->cd();
 
 	TDirectory *dir1 = (TDirectory *)file->Get("dir94");
 	TDirectory *dir2 = (TDirectory *)file->Get("dir96");
 
-	for (int i = 0; dir1 && i < 27; i++)
+	for (int i = 0; dir1 && i < 99; i++)
 	  hist[i]    = (TH1D *)dir1->Get(Form("hist%d%d1", i/9+1, i%9+1));
-	for (int i = 0; dir2 && i < 27; i++)
-	  hist[i+27] = (TH1D *)dir2->Get(Form("hist%d%d1", i/9+1, i%9+1));
+	for (int i = 0; dir2 && i < 99; i++)
+	  hist[i+99] = (TH1D *)dir2->Get(Form("hist%d%d1", i/9+1, i%9+1));
+       }
 
 	int nh = 0;
-	for (int i = 0; i < 54; i++) if (hist[i]) nh++;
+	for (int i = 0; i < 99*2; i++) if (hist[i]) nh++;
 
-	if (nh == 54)
+	if (nh == 99*2)
 	  cout << "AMSEventR::GetCrossSection-I-Open file: "
 	       << file->GetName() << endl;
 	else {
@@ -14359,7 +14357,7 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
 
   int im = (model == 2) ? 1 : 0;
 
-  TH1D *hh = hist[ip*9+it+im*27];
+  TH1D *hh = hist[ip*9+it+im*99];
   if (hh) return hh->Interpolate(fabs(rgt));
 
   return -1;

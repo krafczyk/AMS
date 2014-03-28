@@ -4865,7 +4865,8 @@ static int GetElementAbundance(const AMSPoint &pnt,
 
   /*!
    *! Get hadron inelastic cross section as a function of rigidity (by SH)
-   * @param[in]  zp  projectile charge (Only 1, 2, 6 are supported)
+   * @param[in]  zp  projectile charge (1, 2, 3:Li7, 4:Be9, 5:B11, 6, 7, 8,
+   *                                    103:Li6, 104:Be7, 105:B10)
    * @param[in]  zt  target     charge (1, 6, 7, 8, 9, 11, 13, 14, 82)
    * @param[in]  rgt rigidity
    * @param[in]  model 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4) (G4FF 5=1 7=13)
