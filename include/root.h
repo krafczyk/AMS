@@ -4881,7 +4881,8 @@ static double GetCrossSection(int zp, int zt, double rgt, int model = 1);
    * @param[in]  rigidity  Rigidity  [GV]
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
-   * @param[in]  zp    projectile      Z (1, 2, 6)
+   * @param[in]  zp    projectile Z (1, 2, 3:Li7, 4:Be9, 5:B11, 6, 7, 8,
+   *                                 103:Li6, 104:Be7, 105:B10)
    * @param[in]  zt    target material Z
    *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
