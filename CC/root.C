@@ -14316,7 +14316,7 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
   if (ip < 0 || it < 0) return -1;
 
   static TFile *file = 0;
-  static TH1D  *hist[9*11*2] = { 0 };
+  static TH1D  *hist[9*11*3] = { 0 };
 
   if (!hist[0]) {
 #pragma omp critical (getelementabundance)
@@ -14330,19 +14330,22 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
        if (file) {
 	if (dsave) dsave->cd();
 
-	TDirectory *dir1 = (TDirectory *)file->Get("dir94");
-	TDirectory *dir2 = (TDirectory *)file->Get("dir96");
+	TDirectory *dir1 = (TDirectory *)file->Get("dir96");
+	TDirectory *dir2 = (TDirectory *)file->Get("dir94");
+	TDirectory *dir3 = (TDirectory *)file->Get("dir620");
 
 	for (int i = 0; dir1 && i < 99; i++)
-	  hist[i]    = (TH1D *)dir1->Get(Form("hist%d%d1", i/9+1, i%9+1));
+	  hist[i]     = (TH1D *)dir1->Get(Form("hist%d%d1", i/9+1, i%9+1));
 	for (int i = 0; dir2 && i < 99; i++)
-	  hist[i+99] = (TH1D *)dir2->Get(Form("hist%d%d1", i/9+1, i%9+1));
+	  hist[i+99]  = (TH1D *)dir2->Get(Form("hist%d%d1", i/9+1, i%9+1));
+	for (int i = 0; dir3 && i < 99; i++)
+	  hist[i+198] = (TH1D *)dir3->Get(Form("hist%d%d1", i/9+1, i%9+1));
        }
 
 	int nh = 0;
-	for (int i = 0; i < 99*2; i++) if (hist[i]) nh++;
+	for (int i = 0; i < 99*3; i++) if (hist[i]) nh++;
 
-	if (nh == 99*2)
+	if (nh == 99*3)
 	  cout << "AMSEventR::GetCrossSection-I-Open file: "
 	       << file->GetName() << endl;
 	else {
@@ -14355,7 +14358,8 @@ double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
   }
   if (!hist[0] || hist[0] == (TH1D *)1) return -2;
 
-  int im = (model == 2) ? 1 : 0;
+  int im = model-1;
+  if (im < 0 || 2 < im) return -3;
 
   TH1D *hh = hist[ip*9+it+im*99];
   if (hh) return hh->Interpolate(fabs(rgt));

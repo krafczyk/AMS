@@ -3596,6 +3596,7 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
    * @param[in]  zt    target material Z
    *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
+   *                                 3:gbatchG4PG(B620/4.9.4)
    * @param[in]  1:normalized fraction over all the target elements or 0:not
    * @return     interaction length (path len/lambda), <0 for errors
    */
@@ -4870,6 +4871,7 @@ static int GetElementAbundance(const AMSPoint &pnt,
    * @param[in]  zt  target     charge (1, 6, 7, 8, 9, 11, 13, 14, 82)
    * @param[in]  rgt rigidity
    * @param[in]  model 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4) (G4FF 5=1 7=13)
+   *                   3:gbatchG4PG(B620/4.9.4) (G4FF 5=1 7=3)
    * @return     cross section in mb, <0 for errors
    */
 static double GetCrossSection(int zp, int zt, double rgt, int model = 1);
@@ -4886,6 +4888,7 @@ static double GetCrossSection(int zp, int zt, double rgt, int model = 1);
    * @param[in]  zt    target material Z
    *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
+   *                                 3:gbatchG4PG(B620/4.9.4)
    * @param[in]  1:normalized fraction over all the target elements or 0:not
    * @return     interaction length (path len/lambda), <0 for errors
    */
