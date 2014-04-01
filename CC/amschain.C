@@ -647,7 +647,9 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
       if(nentr>nentries || it==fmap.end()){
 	continue;
       }
-      if(i>=ntree)break;
+      if(i>=ntree){
+          continue;
+      }
       TChainElement* element;
       TFile* file;
       TTree *tree;
