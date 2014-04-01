@@ -21,9 +21,35 @@ TrdMTrack::TrdMTrack(){
   TrdAlignType=2;
 
   cout << "TrdMTrack constructor: TrdGainType " << TrdGainType << " TrdAlignType " << TrdAlignType << " TrdPdfType " << TrdPdfType <<  " is being used!" << endl;
+ 
+  
+  long unsigned int first=0, last=0;
+  
+  const char *amsdatadir=getenv("AMSDataDir");
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+  if(!(amsdatadir && strlen(amsdatadir))){
+    amsdatadir=local;
+  }
+    
+  char charname[100];
+  sprintf(charname, "%s/v5.00/TRD/MTrack_validity.txt", amsdatadir);
+  FILE* f;
+  f=fopen(charname, "r");
+  if(!f) {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only! "<< charname <<endl;}
+  else{
 
-  FirstRun=1305853512;
-  LastRun=1355349190;
+    if(!feof(f)){
+      fscanf(f, "%[^\n]\n");
+      fscanf(f, "%lu \n", &first);
+      fscanf(f, "%lu \n", &last);
+    }
+    else {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only! "<<charname<<endl;}
+
+  fclose(f);
+  }
+
+  FirstRun=first;
+  LastRun=last; 
  
   Init_Base();
   
@@ -46,8 +72,36 @@ TrdMTrack::TrdMTrack(int gaintype, int aligntype, int pdftype){
 
   cout << "TrdMTrack constructor: TrdGainType " << TrdGainType << " TrdAlignType " << TrdAlignType << " TrdPdfType " << TrdPdfType <<  " is being used!" << endl;
 
-  FirstRun=1305853512;
-  LastRun=1385483969; 
+
+  long unsigned int first=0, last=0;
+
+  const char *amsdatadir=getenv("AMSDataDir");
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+  if(!(amsdatadir && strlen(amsdatadir))){
+    amsdatadir=local;
+  }
+    
+  char charname[100];
+  sprintf(charname, "%s/v5.00/TRD/MTrack_validity.txt", amsdatadir);
+  FILE* f;
+  f=fopen(charname, "r");
+  if(!f) {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only!"<<charname<<endl;}
+  else{ 
+ 
+    if(!feof(f)){
+      fscanf(f, "%[^\n]\n");
+      fscanf(f, "%lu \n", &first);
+      fscanf(f, "%lu \n", &last);
+    }
+    else {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only!"<<charname<<endl; }
+
+    fclose(f);
+  }
+  
+  FirstRun=first;
+  LastRun=last; 
+
+  cout<< "Set Validity to: first run=" << FirstRun << " last run=" << LastRun << endl; 
 
   Init_Base();
  
