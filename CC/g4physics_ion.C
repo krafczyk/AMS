@@ -69,12 +69,13 @@ void IonDPMJETPhysics::ConstructProcess()
   theDPM->SetMinEnergy(dpmemin);
   theDPM->SetMaxEnergy(emax);
   G4int dpmAmax=58;
+  G4int dpmAmin=2;
   G4ElementTable::iterator iter;
   G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
   for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
     G4int AA  =(*iter)->GetN();
-    if (AA<=dpmAmax) { theDPM   ->ActivateFor(*iter); theIonBC1->DeActivateFor(*iter); }
-    else             { theIonBC1->ActivateFor(*iter); theDPM   ->DeActivateFor(*iter); }
+    if (AA>=dpmAmin && AA<=dpmAmax){ theDPM   ->ActivateFor(*iter); theIonBC1->DeActivateFor(*iter); }
+    else                           { theIonBC1->ActivateFor(*iter); theDPM   ->DeActivateFor(*iter); }
   }
   // theDPM->SetVerboseLevel(10);
 
