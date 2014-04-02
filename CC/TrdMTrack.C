@@ -22,35 +22,7 @@ TrdMTrack::TrdMTrack(){
 
   cout << "TrdMTrack constructor: TrdGainType " << TrdGainType << " TrdAlignType " << TrdAlignType << " TrdPdfType " << TrdPdfType <<  " is being used!" << endl;
  
-  
-  long unsigned int first=0, last=0;
-  
-  const char *amsdatadir=getenv("AMSDataDir");
-  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
-  if(!(amsdatadir && strlen(amsdatadir))){
-    amsdatadir=local;
-  }
-    
-  char charname[100];
-  sprintf(charname, "%s/v5.00/TRD/MTrack_validity.txt", amsdatadir);
-  FILE* f;
-  f=fopen(charname, "r");
-  if(!f) {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only! "<< charname <<endl;}
-  else{
-
-    if(!feof(f)){
-      fscanf(f, "%[^\n]\n");
-      fscanf(f, "%lu \n", &first);
-      fscanf(f, "%lu \n", &last);
-    }
-    else {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only! "<<charname<<endl;}
-
-  fclose(f);
-  }
-
-  FirstRun=first;
-  LastRun=last; 
- 
+   
   Init_Base();
   
   isprocessed=false;
@@ -72,37 +44,7 @@ TrdMTrack::TrdMTrack(int gaintype, int aligntype, int pdftype){
 
   cout << "TrdMTrack constructor: TrdGainType " << TrdGainType << " TrdAlignType " << TrdAlignType << " TrdPdfType " << TrdPdfType <<  " is being used!" << endl;
 
-
-  long unsigned int first=0, last=0;
-
-  const char *amsdatadir=getenv("AMSDataDir");
-  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
-  if(!(amsdatadir && strlen(amsdatadir))){
-    amsdatadir=local;
-  }
-    
-  char charname[100];
-  sprintf(charname, "%s/v5.00/TRD/MTrack_validity.txt", amsdatadir);
-  FILE* f;
-  f=fopen(charname, "r");
-  if(!f) {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only!"<<charname<<endl;}
-  else{ 
- 
-    if(!feof(f)){
-      fscanf(f, "%[^\n]\n");
-      fscanf(f, "%lu \n", &first);
-      fscanf(f, "%lu \n", &last);
-    }
-    else {cout<<"TrdMTrack::Init: Could not find validity values! Using time independent corrections only!"<<charname<<endl; }
-
-    fclose(f);
-  }
   
-  FirstRun=first;
-  LastRun=last; 
-
-  cout<< "Set Validity to: first run=" << FirstRun << " last run=" << LastRun << endl; 
-
   Init_Base();
  
   isprocessed=false;
@@ -845,10 +787,37 @@ void TrdMTrack::Init_Base(){
   
   cout<<"TrdMTrack::Init_Base: Initialising TrdMTrack... " <<endl;
  
+  char fname[200];
+  char description[100];
+
+  const char *amsdatadir=getenv("AMSDataDir");
+  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+  if(!(amsdatadir && strlen(amsdatadir))){
+    amsdatadir=local;
+  }
+   
+  sprintf(fname, "%s/v5.00/TRD/MTrack_lookup_files.txt", amsdatadir);
+
+  FILE* file=fopen(fname, "r");
+  
+  if(!file) {cout<<"TrdMTrack:: Could not read lookup files! Using time independent corrections only! "<< fname <<endl; FirstRun=0; LastRun=0; return;}
+  
+  fscanf(file, "%[^\n]\n", description);
+  fscanf(file, "%s %lu \n", description, &first_alignment);
+  fscanf(file, "%s %lu \n", description, &last_alignment);
+  fscanf(file, "%s %s \n", description, xenonfile);
+  fscanf(file, "%s %s \n", description, qt_gainfile);
+  fscanf(file, "%s %s \n", description, qt_alignmentfile);
+  fscanf(file, "%s %s \n", description, trd_shimmingfile);
+
+  fclose(file);
+  
+  FirstRun=first_alignment;
+
+  Init_Xe();
   Init_GainCorrection();
   Init_Alignment();
   Init_PDFs();
-  Init_Xe();
   generate_modul_matrix();
   _fit = new TrFit();
 
@@ -867,12 +836,12 @@ void TrdMTrack::Init_Xe(){
   if(!(amsdatadir && strlen(amsdatadir))){
     amsdatadir=local;
   }
-  
-  TString name=TString(amsdatadir)+"/v5.00/TRD/acroot/data/TrdQt_slowcontrol_v02.root";
+   
+  TString name=xenonfile;
   cout<<"TrdMTrack::Init_Xe:Read TRD Pressure from: "<<name<<endl;
   TFile* f=new TFile(name);
   
-  if(!f) {cout<<"TrdMTrack::Init_Xe: Could not read Xenon Pressure! "<<name<<endl; return;}
+  if(!f) {cout<<"TrdMTrack::Init_Xe: Could not read Xenon Pressure!  Using time independent corrections only!"<<name<<endl;  FirstRun=0; LastRun=0; return;}
   
   // get tree
   TTree* tree = (TTree*)f->Get("trd_online");
@@ -886,36 +855,17 @@ void TrdMTrack::Init_Xe(){
   tree->SetBranchAddress("time", &t);
   tree->SetBranchAddress("xe", &value);
 
-  TGraph *g = new TGraph();
-  // g=(TGraph*)f->Get("grTrdSlowControl_Xe");
-  g->SetName("xe");
-  g->SetTitle("xe");
-
   unsigned int nEntries = tree->GetEntries();
 
   for (unsigned int i = 0; i < nEntries; i++) {
     tree->GetEntry(i);
-
-    g->SetPoint(g->GetN(), t, value);
+    xetime.push_back((unsigned int)t);
+    xe.push_back((float)value);
   }
 
-  int test;
-  double time;
-  double press;
-  for(int i=0; i<g->GetN(); i++){
-    test=g->GetPoint(i, time, press);
-    if(test!=-1) {
-      xetime.push_back((unsigned int)time);
-      xe.push_back((float)press);
-    }
-  }
-  
-  g->Clear();
   f->Close();
   delete f;
-  delete g;
-  g=0;
-  
+ 
   if((unsigned int)(xetime[0])>FirstRun) FirstRun=(unsigned int)(xetime[0]);
   if((unsigned int)(xetime[(int)xetime.size()-1])<LastRun) LastRun=(unsigned int)(xetime[(int)xetime.size()-1]);
   
@@ -935,23 +885,15 @@ void TrdMTrack::Init_GainCorrection(){
 
   if(TrdGainType==0){
   
-    const char *amsdatadir=getenv("AMSDataDir");
-    char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
-    if(!(amsdatadir && strlen(amsdatadir))){
-      amsdatadir=local;
-    }
-    
-    // TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibGain_v10.root";
-    TString name=TString(amsdatadir)+"/v5.00/TRD/acroot/data/TrdQt_gain_v08.root";
+    TString name=qt_gainfile;
     cout<<"TrdMTrack::Init_GainCorrection: Read TRD Gain from: "<<name<<endl;
     TFile* f=new TFile(name);
     
-    if(!f) {cout<<"TrdMTrack::Init_GainCorrection: Could not read Gains! "<<name<<endl; return;}
+    if(!f) {cout<<"TrdMTrack::Init_GainCorrection: Could not read Gains! Using time independent corrections only!"<<name<<endl; FirstRun=0; LastRun=0; return;}
     
     char gname[80];
     int test;
     for(int j=0; j<328; j++){
-      // sprintf(gname, "grTrdCalibMpv_%i", j);
       sprintf(gname, "fitMpvGraphGoodFit_%i", j);
       TGraph *g;
       g=(TGraph*)f->Get(gname);
@@ -984,7 +926,6 @@ void TrdMTrack::Init_GainCorrection(){
 
   }
 
-
   if(TrdGainType==1 || TrdGainType==0) cout<<"TrdMTrack::Init_GainCorrection: Gain factors read..."<<endl;
 
   return;
@@ -995,12 +936,8 @@ void TrdMTrack::Init_GainCorrection(){
 void TrdMTrack::Init_Alignment(){
   
   if(TrdAlignType==-1){
-    const char *amsdatadir=getenv("AMSDataDir");
-    char local[]="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
-    if(!(amsdatadir && strlen(amsdatadir))){
-      amsdatadir=local;
-    }
-    TString zname=TString(amsdatadir)+"/v5.00/TRD/Modul_alignment_pass3.root";
+    
+    TString zname=trd_shimmingfile;
     cout<<"TrdMTrack::Init_Alignment: Read TRD Shimming from: "<< zname <<endl;
     TFile* fi=new TFile(zname);
     
@@ -1025,29 +962,27 @@ void TrdMTrack::Init_Alignment(){
     delete fi;
   }
 
-  if(TrdAlignType==2 ){
+  else if(TrdAlignType==2 ){
     
-    update_alignment_vectors(FirstRun);
- 
+    if(FirstRun!=0){
+      update_alignment_vectors(FirstRun);
+  
+      if(FirstRun<first_alignment) FirstRun=first_alignment;
+      if(LastRun>last_alignment) LastRun=last_alignment;
+    
+    }
   }
 
   else if(TrdAlignType==0){
-    const char *amsdatadir=getenv("AMSDataDir");
-    char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
-    if(!(amsdatadir && strlen(amsdatadir))){
-      amsdatadir=local;
-    }
-    
-    // TString name=TString(amsdatadir)+"/v5.00/TRD/TrdScalibAlign_v10.root";
-    TString name=TString(amsdatadir)+"/v5.00/TRD/acroot/data/TrdQt_alignment_v08.root";
+   
+    TString name=qt_alignmentfile;
     TFile* f=new TFile(name);
    
-    // TString zname="/afs/cern.ch/work/m/mheil/public/DataBase/Modul_alignment_pass3.root";
-    TString zname=TString(amsdatadir)+"/v5.00/TRD/Modul_alignment_pass3.root";
+    TString zname=trd_shimmingfile;
     cout<<"TrdMTrack::Init_Alignment: Read TRD Alignment from: "<< name <<endl;
     TFile* fi=new TFile(zname);
     
-    if(!f || !fi) {cout<<"TrdMTrack::Init_Alignment: Could not read Alignment! "<<name<<endl; return;}
+    if(!f || !fi) {cout<<"TrdMTrack::Init_Alignment: Could not read Alignment! Using time independent corrections only!"<<name<<endl; FirstRun=0; LastRun=0; return;}
    
     char gname[80];
     double z;
@@ -1201,9 +1136,6 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
     for( int i=0; i<328; i++){
       index[i]=0;
     }
-
- //    if((unsigned int)(mod_time[6][0])>FirstRun) FirstRun=(unsigned int)(mod_time[6][0]);
-//     if((unsigned int)(mod_time[6][(int)mod_time[6].size()-1])<LastRun) LastRun=(unsigned int)(mod_time[6][(int)mod_time[6].size()-1]);
   
     cout<<"TrdMTrack::Init_Alignment: new alignment files read..."<<endl;
 
