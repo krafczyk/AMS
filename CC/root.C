@@ -268,10 +268,11 @@ bool AMSEventR::IsInSAA(unsigned int time){
 	AMSSetupR::RTI a;
 
 	if(time == 0)
-		GetRTI(a, fHeader.Time[0]);
+//		GetRTI(a, fHeader.Time[0]);
+                GetRTI(a);
 	else
 		GetRTI(a, time);
-
+        
 	return a.IsInSAA();
 }
 
@@ -6095,6 +6096,41 @@ double ParticleR::GetRadiationLength(double z1, double z2, int type)
 
   return AMSEventR::GetRadiationLength(pnt, dir, rgt, z1, z2);
 }
+
+int ParticleR::GetElementAbundance(double z1, double z2, int type,
+				   double elem[9])
+{
+  AMSPoint pnt;
+  AMSDir   dir;
+  double   rgt = 0;
+
+  if (type == 1 && pTrTrack())    { pnt = pTrTrack()->GetP0();
+                                    dir = pTrTrack()->GetDir();
+				    rgt = pTrTrack()->GetRigidity(); }
+  if (type == 2 && pTrdTrack())   { pnt = AMSPoint(pTrdTrack()->Coo);
+                                    dir = AMSDir  (pTrdTrack()->Theta,
+				   	           pTrdTrack()->Phi); }
+  if (type == 3 && pEcalShower()) { pnt = AMSPoint(pEcalShower()->Entry);
+                                    dir = AMSDir  (pEcalShower()->Dir); }
+
+  if (dir.norm() == 0) return -1;
+
+  return AMSEventR::GetElementAbundance(pnt, dir, rgt, z1, z2, elem);
+}
+
+double ParticleR::GetRelInteractionLength(double z1, double z2, int zp,
+					  int zt, int model, int norm)
+{
+  if (!pTrTrack()) return -1;
+
+  AMSPoint pnt = pTrTrack()->GetP0();
+  AMSDir   dir = pTrTrack()->GetDir();
+  double   rgt = pTrTrack()->GetRigidity();
+  if (dir.norm() == 0) return -1;
+
+  return AMSEventR::GetRelInteractionLength(pnt, dir, rgt, z1, z2,
+					    zp, zt, model, norm);
+}
 #endif
 
 int  ParticleR::IsPassTOF(int ilay, const AMSPoint &pnt, const AMSDir &dir, AMSPoint &tofpnt, float &disedge){
@@ -10356,7 +10392,7 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double degbin, double cutoff[2])
   return GetMaxIGRFCutoff(fov, cutoff, tm);
 }
 
-int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime){
+int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime,const char *fdir){
 
   cutoff[0] = cutoff[1] = 0;
 
@@ -10365,7 +10401,12 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
 
   unsigned int tm = xtime;
 
-  int tid = tm/10000000;
+  const int    dt = 1000000;
+  const int    ct = 3600;// compensate item
+  int          tid= tm/dt*dt;//stemp
+  unsigned int bt = tid-ct;
+  unsigned int et = tid+dt-1+ct;
+//---
   if (tid != stm) fIGRF.clear();
 
   if (fIGRF.empty()) {
@@ -10374,8 +10415,8 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
     const char *ai = getenv("AMSISS");
     if (ad && strlen(ad)) std = ad; std += "/altec/";
     if (ai && strlen(ai)) std = ai; std += "RTI/";
-
-    TString sfn = Form(std+"MaxIGRFCutoff_%d.csv", tid);
+    if(fdir!=0) std=fdir;
+    TString sfn = Form(std+"MaxIGRFCutoff_%d.csv", int(tm/10000000));
     ifstream fin(sfn);
     if (!fin) {
       cerr << "AMSEventR::GetMaxIGRFCutoff-E-File not found: "
@@ -10383,11 +10424,15 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
       stm = -1;
       return -1;
     }
+    else {
+       cout << "AMSEventR::GetMaxIGRFCutoff File: " << sfn.Data() << endl;
+    }
     while (fin.good() && !fin.eof()) {
       unsigned int nt; IGRF a;
       fin >> nt >> a.phi >> a.theta;
       for(int j = 0; j < 4; j++) fin >> a.cf[j][0] >> a.cf[j][1];
       if (!fin.good()) continue;
+      if (nt<bt||nt>et)continue;//unnesasery erase
       fIGRF.insert(make_pair(nt, a));
     }
     fin.close();
@@ -10416,7 +10461,7 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
 
 //----------------------------------------------------------------------
 int AMSEventR::GetRTIStat(){
-   
+
    AMSSetupR::RTI a;
    return getsetup()->getRTI(a,fHeader.Time[0]);
 }
@@ -10433,7 +10478,7 @@ int AMSEventR::RecordRTIRun(){
 
   static string pf="";
 //----Find rootfile
-  unsigned int nt=fHeader.Time[0]; 
+  unsigned int nt=fHeader.Time[0];
   unsigned int nr=fHeader.Run;
   string nf=Tree()->GetCurrentFile()->GetName();
   if(nf==pf){
@@ -14158,6 +14203,206 @@ double AMSEventR::GetRadiationLength(const AMSPoint &pnt,
     if (m != 0) ms += pow(10, m/10000.-3)/trp.GetD0z();
   }
   return ms;
+}
+
+int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
+				   const AMSDir   &dir,
+				   double rigidity, double z1, double z2,
+				   double elem[9])
+{
+  static TFile *file    = 0;
+  static TH3F  *hist[9] = { 0, 0, 0, 0, 0, 0, 0 };
+
+  for (int i = 0; i < 9; i++) elem[i] = 0;
+
+  if (!hist[0]) {
+#pragma omp critical (getelementabundance)
+    {
+      if (!hist[0] && !file) {
+	TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/g4elmap.root";
+	if (getenv("G4elMap")) sfn = getenv("G4elMap");
+
+	TDirectory *dsave = gDirectory;
+	file = TFile::Open(sfn);
+	if (dsave) dsave->cd();
+
+	if (file) {
+	  cout << "AMSEventR::GetElementAbundance-I-Open file: "
+	       << file->GetName() << endl;
+	  for (int i = 0; i < 9; i++)
+	    hist[i] = (TH3F *)file->Get(Form("hist%d", i+1));
+	}
+	if (!hist[0] || !hist[8]) {
+	  cout << "AMSEventR::GetElementAbundance-E-hist not found" << endl;
+	  hist[0] = (TH3F *)1;
+	}
+      }
+    }
+  }
+  if (!hist[0] || hist[0] == (TH3F *)1) return -3;
+
+  TrProp trp(pnt, dir, rigidity);
+
+  int ib1 = hist[0]->GetZaxis()->FindBin(z1);
+  int ib2 = hist[0]->GetZaxis()->FindBin(z2);
+  int nb  = hist[0]->GetNbinsZ();
+
+  if (ib2 < ib1) { int swp = ib1 ; ib1 = ib2; ib2 = swp; }
+
+  if (ib1 <  1) ib1 = 1;
+  if (ib2 > nb) ib2 = nb;
+
+  double zp = hist[0]->GetZaxis()->GetBinCenter(ib1);
+         z2 = hist[0]->GetZaxis()->GetBinCenter(ib2);
+  trp.Propagate(zp);
+  AMSPoint p1 = trp.GetP0();
+
+  int   ndv = 5;
+  int   err = 0;
+  double ms = 0;
+
+  do {
+    double b = TMath::Abs(TrFit::GuFld(p1).x());
+    double l = (b > 0) ? TMath::Abs(rigidity)/0.3/b : 0;
+    if (l <= 0 || l > 10) l = 10;
+
+    zp = p1.z()+l; if (zp > z2) zp = z2;
+    trp.Propagate(zp);
+    AMSPoint p2 = trp.GetP0();
+
+    ib1 = hist[0]->GetZaxis()->FindBin(p1.z());
+    ib2 = hist[0]->GetZaxis()->FindBin(p2.z());
+    int ns = (ib2-ib1)*ndv;
+
+    double dl = (p2-p1).norm();
+    if (dl <= 0) break;
+
+    double cosz = (p2.z()-p1.z())/dl;
+    double dz   = hist[0]->GetZaxis()->GetBinWidth(ib1)/cosz/ndv;
+
+    for (int i = 0; i < ns; i++) {
+      double   z = p1.z()+(p2.z()-p1.z())/ns*(i+0.5);
+      AMSPoint p = p1+(p2-p1)/(p2.z()-p1.z())*(z-p1.z());
+      int     ix = hist[0]->GetXaxis()->FindBin(p.x());
+      int     iy = hist[0]->GetYaxis()->FindBin(p.y());
+      if (ix <= 0 || hist[0]->GetNbinsX() < ix ||
+	  iy <= 0 || hist[0]->GetNbinsY() < iy) { err = -2; continue; }
+
+      for (int j = 0; j < 9; j++)
+	if (hist[j]) {
+	  Double_t bc = hist[j]->GetBinContent(ix, iy, ib1+i/ndv);
+	  if (bc > 0) elem[j] += bc*dz;
+	}
+    }
+
+    p1 = p2;
+  } while (zp < z2);
+
+  return err;
+}
+
+double AMSEventR::GetCrossSection(int zp, int zt, double rgt, int model)
+{
+                    // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
+  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3, 4,-1, 5,-1, 6, 7 };
+                    // 1  2  3  4  5  6  7  8
+  const int iP[8]  = { 0, 1, 2, 4, 6, 8, 9,10 };  
+
+  int ip = (1 <= zp && zp <=   8) ? iP[zp-1] :
+        ((103 <= zp && zp <= 105) ? (zp-103)*2+3 : -1);
+  int it = (1 <= zt && zt <= 14) ? iZ[zt-1] :
+                     ((zt == 82) ? 8 : -1);
+
+  if (ip < 0 || it < 0) return -1;
+
+  static TFile *file = 0;
+  static TH1D  *hist[9*11*3] = { 0 };
+
+  if (!hist[0]) {
+#pragma omp critical (getelementabundance)
+    {
+      if (!hist[0] && !file) {
+	TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/g4xsec.root";
+	if (getenv("G4xSec")) sfn = getenv("G4xSec");
+
+	TDirectory *dsave = gDirectory;
+	file = TFile::Open(sfn);
+       if (file) {
+	if (dsave) dsave->cd();
+
+	TDirectory *dir1 = (TDirectory *)file->Get("dir96");
+	TDirectory *dir2 = (TDirectory *)file->Get("dir94");
+	TDirectory *dir3 = (TDirectory *)file->Get("dir620");
+
+	for (int i = 0; dir1 && i < 99; i++)
+	  hist[i]     = (TH1D *)dir1->Get(Form("hist%d%d1", i/9+1, i%9+1));
+	for (int i = 0; dir2 && i < 99; i++)
+	  hist[i+99]  = (TH1D *)dir2->Get(Form("hist%d%d1", i/9+1, i%9+1));
+	for (int i = 0; dir3 && i < 99; i++)
+	  hist[i+198] = (TH1D *)dir3->Get(Form("hist%d%d1", i/9+1, i%9+1));
+       }
+
+	int nh = 0;
+	for (int i = 0; i < 99*3; i++) if (hist[i]) nh++;
+
+	if (nh == 99*3)
+	  cout << "AMSEventR::GetCrossSection-I-Open file: "
+	       << file->GetName() << endl;
+	else {
+	  cout << "AMSEventR::GetCrossSection-E-hist not found "
+	       << nh << endl;
+	  hist[0] = (TH1D *)1;
+	}
+      }
+    }
+  }
+  if (!hist[0] || hist[0] == (TH1D *)1) return -2;
+
+  int im = model-1;
+  if (im < 0 || 2 < im) return -3;
+
+  TH1D *hh = hist[ip*9+it+im*99];
+  if (hh) return hh->Interpolate(fabs(rgt));
+
+  return -1;
+}
+
+double AMSEventR::GetRelInteractionLength(const AMSPoint &pnt,
+					  const AMSDir   &dir,
+					  double rigidity,
+					  double z1, double z2, int zp, 
+					  int zt, int model, int norm)
+{
+                    // 1  2  3  4  5  6  7  8  9 10 11 12 13 14
+  const int iZ[14] = { 0,-1,-1,-1,-1, 1, 2, 3, 4,-1, 5,-1, 6, 7 };
+  int it = (0 <= zt && zt <= 14) ? iZ[zt-1] :
+                     ((zt == 82) ? 8 : -1);
+  if (zt > 0 && it < 0) return -1;
+
+  double elm[9];
+  if (GetElementAbundance(pnt, dir, rigidity, z1, z2, elm) < 0) return -2;
+
+  double NA = 6.022e+23;  // Avogadro constant (1/mol)
+  double mb =     1e-27;  // mb to cm^2
+
+  if (zt > 0 && !norm) {
+    double xsec = GetCrossSection(zp, zt, rigidity, model);
+    return (xsec > 0) ? xsec*mb*NA*elm[it] : -3;
+  }
+
+  int zel[9] = { 1, 6, 7, 8, 9, 11, 13, 14, 82 };
+  double intl = 0, sum = 0;
+  for (int i = 0; i < 9; i++) {
+    double xs = GetCrossSection(zp, zel[i], rigidity, model);
+    if (xs < 0) return -3;
+
+    double il = xs*mb*NA*elm[i];
+    sum += il;
+    if (zt == zel[i]) intl = il;
+  }
+
+  if (zt == 0 || intl == 0) return sum;
+  return (sum > 0) ? intl/sum : -4;
 }
 #endif
 

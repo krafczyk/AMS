@@ -70,7 +70,14 @@ class TrdMTrack : public TObject
   
   // trd methods (0: TrdSCalib, 1: TrdKCalib)
   int TrdGainType, TrdPdfType, TrdAlignType ; 
-		   
+		  
+  // lookup files/values
+  long unsigned int last_alignment, first_alignment;
+  char xenonfile[200];
+  char qt_gainfile[200];
+  char qt_alignmentfile[200];
+  char trd_shimmingfile[200];
+
   
  private:
   

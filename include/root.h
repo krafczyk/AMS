@@ -3573,6 +3573,35 @@ int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=
    * @return     material thickness in radiation length, <0 in case of error
    */
   double GetRadiationLength(double z1, double z2, int type = 1);
+
+  /*!
+   *! Get element abundance in unit of mole/cm2 on the given trajectory between two points. Only FullSpan acceptance is supported for the moment (by SH)
+   * @param[in]  z1    from z position[cm]
+   * @param[in]  z2    to   z position[cm]
+   * @param[in]  type  1: TrTrack 2: TrdTrack 3: EcalShower
+   * @param[out] elem[9]  Abundance in mole/cm2
+   *                      0:H 1:C 2:N 3:O 4:F 5:Na 6:Al 7:Si 8:Pb
+   * @retval     0 success
+   * @retval    -1 error:  no trajectory found
+   * @retval    -2 error: the trajectory is out of Full Span acceptance
+   * @retval    -3 error:  no data file found
+   */
+  int GetElementAbundance(double z1, double z2, int type, double elem[9]);
+
+  /*!
+   *! Get relative interaction length (path len/lambda) on TrTrack between two points. Only FullSpan acceptance is supported for the moment (by SH)
+   * @param[in]  z1    from z position[cm]
+   * @param[in]  z2    to   z position[cm]
+   * @param[in]  zp    projectile      Z (1, 2, 6)
+   * @param[in]  zt    target material Z
+   *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
+   * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
+   *                                 3:gbatchG4PG(B620/4.9.4)
+   * @param[in]  1:normalized fraction over all the target elements or 0:not
+   * @return     interaction length (path len/lambda), <0 for errors
+   */
+  double GetRelInteractionLength(double z1, double z2, int zp,
+				 int zt, int model, int norm);
 #endif
 
 //----------------------------------------------------------------------------------------------------------
@@ -4631,7 +4660,7 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
 //!   Says if AMS is inside SAA boundaries
 /*!
- input parameter: time = a Unix timestamp (default==0 correspond to the time of the current envent);
+ input parameter: time = JMDC Time, (default==0 correspond to the time of the current envent);
  returns: true if inside SAA, false if outside SAA ;
  */
 bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throught the SAA
@@ -4692,11 +4721,12 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
          /*! return  0: if success;
              retrun -1: if failure;      
              input parameters : AMSfov = AMS field of view in deg. ;
-                              : xtime = JMDC Time
+                              : xtime = JMDC Time,or UTC Time
              output           : cutoff[0] = Max. Rcut [GV] for negative particles (Z==-1); 
                                 cutoff[1] = Max. Rcut [GV] for positive particles (Z== 1).
+             input parameter : *fdir = IGRF file directory
         */
-        static int GetMaxIGRFCutoff(double AMSfov, double cutoff[2],unsigned int xtime);
+        static int GetMaxIGRFCutoff(double AMSfov, double cutoff[2],unsigned int xtime,const char *fdir=0);
 
         //! IGRF cutoff
         class IGRF { public: float theta, phi; float cf[4][2]; };
@@ -4728,14 +4758,14 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
        static int GetRTI(AMSSetupR::RTI & a, unsigned int  xtime);
        //!  get AMS Run Begin and End Time from RTI according to run id
        /*    \param[in]  runid: run id
-             \param[out] time[0]: Run Begin Time, time[1]: Run End Time
+             \param[out] time[0]: Run Begin Time, time[1]: Run End Time; JMDC Time
        */
        static int GetRTIRunTime(unsigned int runid,unsigned int time[2]);
        //!  get  difference(um) bewteen PG ad CIEMAT alignment of L1(L9)(XYZ)  in choosen time window
        /*    \param[in]  extlay: Track External Layer: 0-L1, 1-L9
              \param[out] nxyz:  Events number with X(YZ) Hit
              \param[out] dxyz:  X(YZ) coodinate mean difference |PG-CIEMAT|
-             \param[in]  xtime: JMDC Time (second)
+             \param[in]  xtime: JMDC Time 
              \param[in]  dt:    Time window (second)
              \return  effective Time window (second)
        */
@@ -4814,6 +4844,58 @@ static int IsInsideTracker(int ilay, const AMSPoint &pntIn,
 static double GetRadiationLength(const AMSPoint &pnt,
 				 const AMSDir   &dir,
 				 double rigidity, double z1, double z2);
+
+  /*!
+   *! Get element abundance in unit of mole/cm2 on the given trajectory between two points. Only FullSpan acceptance is supported for the moment (by SH)
+   * @param[in]  pntIn   Reference point[cm](can be tk-tof-or-shower position )
+   * @param[in]  dirIn   Reference dir      (can be tk-tof-or-shower direction)
+   * @param[in]  rigidity  Rigidity  [GV]   (0 in case of linear track)
+   * @param[in]  z1    from z position[cm]
+   * @param[in]  z2    to   z position[cm]
+   * @param[out] elem[9]  Abundance in mole/cm2
+   *                      0:H 1:C 2:N 3:O 4:F 5:Na 6:Al 7:Si 8:Pb
+   * @retval     0 success
+   * @retval    -1 error:  no trajectory found
+   * @retval    -2 error: the trajectory is out of Full Span acceptance
+   * @retval    -3 error:  no data file found
+   */
+static int GetElementAbundance(const AMSPoint &pnt,
+			       const AMSDir   &dir,
+			       double rigidity, double z1, double z2,
+			       double elem[9]);
+
+  /*!
+   *! Get hadron inelastic cross section as a function of rigidity (by SH)
+   * @param[in]  zp  projectile charge (1, 2, 3:Li7, 4:Be9, 5:B11, 6, 7, 8,
+   *                                    103:Li6, 104:Be7, 105:B10)
+   * @param[in]  zt  target     charge (1, 6, 7, 8, 9, 11, 13, 14, 82)
+   * @param[in]  rgt rigidity
+   * @param[in]  model 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4) (G4FF 5=1 7=13)
+   *                   3:gbatchG4PG(B620/4.9.4) (G4FF 5=1 7=3)
+   * @return     cross section in mb, <0 for errors
+   */
+static double GetCrossSection(int zp, int zt, double rgt, int model = 1);
+
+  /*!
+   *! Get relative interaction length (path len/lambda) on the given trajectory between two points. Only FullSpan acceptance is supported for the moment (by SH)
+   * @param[in]  pntIn   Reference point[cm](can be tk-tof-or-shower position )
+   * @param[in]  dirIn   Reference dir      (can be tk-tof-or-shower direction)
+   * @param[in]  rigidity  Rigidity  [GV]
+   * @param[in]  z1    from z position[cm]
+   * @param[in]  z2    to   z position[cm]
+   * @param[in]  zp    projectile Z (1, 2, 3:Li7, 4:Be9, 5:B11, 6, 7, 8,
+   *                                 103:Li6, 104:Be7, 105:B10)
+   * @param[in]  zt    target material Z
+   *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
+   * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
+   *                                 3:gbatchG4PG(B620/4.9.4)
+   * @param[in]  1:normalized fraction over all the target elements or 0:not
+   * @return     interaction length (path len/lambda), <0 for errors
+   */
+static double GetRelInteractionLength(const AMSPoint &pnt,
+				      const AMSDir   &dir,
+				      double rigidity, double z1, double z2,
+				      int zp, int zt, int model, int norm);
 #endif
 
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);

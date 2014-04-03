@@ -1379,6 +1379,26 @@ return fScalersReturn.size();
 int AMSSetupR::RTI::Version=0;
 int AMSSetupR::RTI::Loadopt=0;
 
+int AMSSetupR::RTI::UseLatest(){
+
+  RTI::Version=2;
+  static int vrti=-1;
+  if(RTI::Version!=vrti){
+     cout<< "AMSSetupR::RTI::UseLatest Version="<<RTI::Version<<endl;
+     vrti=RTI::Version;
+  }
+  return RTI::Version;
+}
+
+double AMSSetupR::RTI::gettime(int itm, int iev){
+   
+  double xtime=0;
+  if     (itm==0)xtime=double(utime)+double(usec[iev])/1000000.;
+  else if(itm==1)xtime=utctime[iev];
+  else if(itm==2)xtime=double(utime)+double(usec[iev])/1000000.-utctime[iev];
+  return xtime;
+}
+
 float AMSSetupR::RTI::getthetam(){
   
    double deg2rad = TMath::DegToRad();
@@ -1534,11 +1554,13 @@ else{
 }
 
 //---NewV
- bool isnewv=((t2>1368950397)||(RTI::Version>=1));
-// bool isnewv2=((t2>1374267385)||(RTI::Version>=2));
+ bool isnewv =((t2>1368950397) ||(RTI::Version>=1));
  bool isnewv2=((t1>=1374268537)||(RTI::Version>=2));
- if     (isnewv2)AMSISSlocal+="V2_20131220/";
- else if(isnewv)AMSISSlocal+="V1_20130802/";
+// bool isnewv3=((t2>1385484728) ||(RTI::Version>=3));
+ bool isnewv3=(RTI::Version>=3);
+ if     (isnewv3)AMSISSlocal+="V3_20140324/";
+ else if(isnewv2)AMSISSlocal+="V2_20131220/";
+ else if(isnewv )AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
  if(dir!=0)AMSISS=dir;
 
@@ -1578,7 +1600,7 @@ const char fpate[]="24H.csv";
       while(fbin.good()&& !fbin.eof()){
          unsigned int nt; RTI a;
 //---Input
-         fbin>>nt;
+         fbin>>nt;//JMDCtime
          fbin>>a.run;
          if(a.run!=0){//missing second
             fbin>>a.evno;
@@ -1619,6 +1641,9 @@ const char fpate[]="24H.csv";
                for(int ico=0;ico<3;ico++)fbin>>a.dl1l9[iexl][ico];
              }
              fbin>>a.nhwerr;
+           }
+           if(isnewv3){
+             fbin>>a.utctime[0]>>a.utctime[1];
            }
 //---
            fbin>>a.good;

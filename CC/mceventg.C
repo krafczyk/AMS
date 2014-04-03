@@ -35,6 +35,7 @@
 #include "TROOT.h"
 #include "TGeant3.h"
 #include "TGeant3TGeo.h"
+#include "g4physics.h"
 //extern TGeant4* geant4;
 extern TGeant3* geant3;
 #endif
@@ -44,7 +45,6 @@ extern TGeant3* geant3;
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
 #include <iostream>
-#include "g4physics.h"
 #endif
 
 #if defined __AMSVMC__
@@ -852,6 +852,7 @@ if( trueRigidity>xr[1]) trueRigidity=xr[1];
 double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
 fac/=rm;
+if(CCFFKEY.earth)fac=1;
  y*=fac;   
         
         HF1(_hid,xm,y);
@@ -1023,9 +1024,7 @@ AMSEventR::hf1(_hid,xm,y);
     //HPRINT(_hid);
 #endif
 #ifdef __G4AMS__
-if(MISCFFKEY.G4On){
-  AMSRandGeneral::book(_hid);
-}
+if(MISCFFKEY.G4On)AMSRandGeneral::book(_hid);
 #endif
      char hp[9]="//PAWC";
      HCDIR(hp," ");
@@ -1322,8 +1321,14 @@ integer AMSmceventg::accept(){
          geant d;
           if(SpecialCuts(CCFFKEY.SpecialCut%10)){
 //        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate)
-            if((CCFFKEY.low==0 || CCFFKEY.low==6)  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
+            if((CCFFKEY.low==0 || CCFFKEY.low==6 || CCFFKEY.low==11)  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
             return EarthModulation();
+            else if((CCFFKEY.low==0 || CCFFKEY.low==6 || CCFFKEY.low==11)  && CCFFKEY.earth == 2 && !_fixeddir && !_fixedmom){ 
+            float theta=acos(_dir[2]);
+            float phi=atan2(_dir[1],_dir[0]);
+            float rig=_charge?_mom/fabs(_charge):10000;
+            return NaturalFlux_stormer(theta,phi,  rig);
+            }
            else return 1;
           }
       }
@@ -2492,7 +2497,7 @@ Given arrays x[1..n] and y[1..n] containing a tabulated function, i.e., yi = f(x
 x1 < x2 < .. . < xN, and given values yp1 and ypn for the first derivative of the interpolating
 function at points 1 and n, respectively, this routine returns an array y2[1..n] that contains
 the second derivatives of the interpolating function at the tabulated points xi. If yp1 and/or
-ypn are equal to 1 Ã 1030 or larger, the routine is signaled to set the corresponding boundary
+ypn are equal to 1 × 1030 or larger, the routine is signaled to set the corresponding boundary
 condition for a natural spline, with zero second derivative on that boundary.
 */
 
@@ -2502,7 +2507,7 @@ void AMSmceventg::NaturalFlux_spline(double x[], double y[], int n, double yp1, 
  double p,qn,sig,un;
 
  double u[n];
- if (yp1 > 0.99e30) // The lower boundary condition is set either to be ânaturalâ
+ if (yp1 > 0.99e30) // The lower boundary condition is set either to be “natural”
   y2[1]=u[1]=0.0; 
  else  // or else to have a specified first derivative.
  {
@@ -2518,7 +2523,7 @@ void AMSmceventg::NaturalFlux_spline(double x[], double y[], int n, double yp1, 
   u[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
   u[i]=(6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
  }
- if (ypn > 0.99e30) // The upper boundary condition is set either to be ânaturalâ
+ if (ypn > 0.99e30) // The upper boundary condition is set either to be “natural”
   qn=un=0.0;
   else { // or else to have a specified first derivative.
    qn=0.5;
@@ -2533,7 +2538,7 @@ void AMSmceventg::NaturalFlux_spline(double x[], double y[], int n, double yp1, 
 /******************************************************************************/
 
 /*
-Given the arrays xa[1..n] and ya[1..n], which tabulate a function (with the xaiâs in order),
+Given the arrays xa[1..n] and ya[1..n], which tabulate a function (with the xai’s in order),
 and given the array y2a[1..n], which is the output from NaturalFlux_spline above, and given a value of
 x, this routine returns a cubic-spline interpolated value y.
 */
@@ -2559,7 +2564,7 @@ void AMSmceventg::NaturalFlux_splint(double xa[], double ya[], double y2a[], int
   else klo=k;
  } // klo and khi now bracket the input value of x.
  h=xa[khi]-xa[klo];
- if (h == 0.0) cerr<<"Bad xa input to routine NaturalFlux_splint\n"; // The xaâs must be distinct.
+ if (h == 0.0) cerr<<"Bad xa input to routine NaturalFlux_splint\n"; // The xa’s must be distinct.
   a=(xa[khi]-x)/h; 
   b=(x-xa[klo])/h; // Cubic spline polynomial is now evaluated.
   *y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
@@ -2639,6 +2644,7 @@ double fac=par[0]+par[1]*trueRigidity+par[2]*trueRigidity*trueRigidity;
 if(fac<0)fac=0;
 if(fac>rm)fac=rm;
 fac/=rm;
+if(CCFFKEY.earth)fac=1;
 if(gpid>=47 && gpid<=69){ // He to O Geant ID
 
            if( strcmp(acceptance,"flat")==0 )

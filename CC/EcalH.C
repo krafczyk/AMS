@@ -42,6 +42,7 @@ float EcalHR::fZtop = -142.732;
 float EcalHR::fZbot = -159.382;
 float EcalHR::fCell =    0.9;
 
+float EcalHR::fEmip = 100;
 float EcalHR::fEmin = 1;
 float EcalHR::fEthd[3] = { 50, 100, 300 };
 
@@ -72,6 +73,36 @@ int EcalHR::Get(int z, float &rrec, float &smax, float &tcsq)
   rrec = TMath::Power(rrec/ref, pw)*ref*cor;
 
   return 0;
+}
+
+double EcalHR::GetMipEdep(AMSPoint &pent, AMSPoint &papx)
+{
+  AMSEventR *evt = AMSEventR::Head();
+  if (!evt) return -1;
+
+  fEmip = 10;
+
+  EcalHR ectmp;
+  EcalHR *ecal = evt->pEcalH(0);
+  if (!ecal) {
+    ecal = &ectmp;
+    ecal->Process();
+  }
+  if (ecal->_tcsq <= 0 || ecal->_tdir.z() == 0) return 0;
+
+  int lap = ecal->Apex(1)-1;
+  if (lap < 0) lap = NL-1;
+
+  float dl  = (fZtop-fZbot)/NL;
+  float lpz = fZtop-lap*dl;
+
+  pent = ecal->_tpnt+ecal->_tdir*(fZtop-ecal->_tpnt.z())/ecal->_tdir.z();
+  papx = ecal->_tpnt+ecal->_tdir*(  lpz-ecal->_tpnt.z())/ecal->_tdir.z();
+
+  double esum = 0;
+  for (int i = 0; i < lap; i++) esum += ecal->ES3(i);
+
+  return esum*1e-3;
 }
 #endif
 
@@ -268,7 +299,7 @@ int EcalHR::Process(void)
       _tpnt = pnt;
       _tdir = dir;
 
-      float csq = GetChisq(1, 100, 1);
+      float csq = GetChisq(1, fEmip, 1);
       if (cmin == 0 || csq < cmin) {
 	cmin = csq;
 	pmin = pnt;

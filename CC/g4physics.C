@@ -1550,7 +1550,7 @@ void AMSG4Physics::ConstructEM2( void ){
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
 #endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddDiscreteProcess(processXTR);
 
     } else if (particleName == "e+") {
@@ -1565,7 +1565,7 @@ void AMSG4Physics::ConstructEM2( void ){
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
 #endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddProcess(new G4eplusAnnihilation,   0,-1, 4);
       pmanager->AddDiscreteProcess(processXTR);
 
@@ -1744,7 +1744,7 @@ void AMSG4Physics::ConstructEM2( void ){
       eioniPAI->SetVerboseLevel(debug);
       pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddDiscreteProcess(processXTR);
 
     } else if (particleName == "e+") {
@@ -1755,7 +1755,7 @@ void AMSG4Physics::ConstructEM2( void ){
       }
       pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
-      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 3, 3);
       pmanager->AddProcess(new G4eplusAnnihilation,   0,-1, 4);
       pmanager->AddDiscreteProcess(processXTR);
 
@@ -1918,6 +1918,7 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
 }
 #include "root.h"
 #include "job.h"
+#include <memory>
 void AMSG4Physics::SaveXS(int ipart){
    XSId.clear();
    const char *name=AMSJob::gethead()->getg4physics()->G3toG4(ipart);
@@ -1986,7 +1987,7 @@ void AMSG4Physics::SaveXS(int ipart){
 #endif
 //                    if(k%100==1)cout << element->GetName()<<" "<<R<<" "<<xs<<endl;
                                      AMSEventR::h1(id)->SetBinContent(k,xs);
-                                     AMSEventR::h1(id)->SetBinError(k,xs);
+                                     AMSEventR::h1(id)->SetBinError(k,0);
                     }
                                      break;
                                 }// end of if
@@ -2012,7 +2013,7 @@ void AMSG4Physics::SaveXS(int ipart){
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
 #endif
                                      AMSEventR::h1(-id)->SetBinContent(k,xs);
-                                     AMSEventR::h1(-id)->SetBinError(k,xs);
+                                     AMSEventR::h1(-id)->SetBinError(k,0);
                     }
                                      break;
                                 }// end of if
