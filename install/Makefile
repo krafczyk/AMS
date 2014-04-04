@@ -50,12 +50,12 @@
 
 # List of SLC6 changes
 #
-ifndef  SLC6system
-SLC6system=
-ifneq "$(wildcard /etc/redhat-release)" ""
- SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
-endif
-endif
+#ifndef  SLC6system
+#SLC6system=
+#ifneq "$(wildcard /etc/redhat-release)" ""
+# SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+#endif
+#endif
 ifndef  SLC64system
 SLC64system=
 ifneq "$(wildcard /etc/redhat-release)" ""
