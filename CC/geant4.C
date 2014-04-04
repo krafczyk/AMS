@@ -1551,6 +1551,33 @@ if(!Step)return;
       Track->SetTrackStatus(fStopAndKill);
     }
 
+    G4ThreeVector position=Track->GetPosition();
+    G4double cutLevel = -1400.0 * mm;
+    // kill all particles below cutLevel
+    if (position.z() < cutLevel) {
+      Track->SetTrackStatus(fStopAndKill);
+    }
+    // kill all secondaries below upper TOF
+    if (Track->GetTrackID() != 1) {
+      //if (position.z() < -733.0 * mm && position.z() > -1348.0 * mm) {
+      if (position.z() < 590.0 * mm) {
+        Track->SetTrackStatus(fStopAndKill);
+      }
+    }
+
+    //G4ParticleDefinition* currentParticle = Track->GetDefinition();
+  //G4VPhysicalVolume* currentVolume = Track->GetVolume();
+  //int eventId = AMSEvent::gethead()->getEvent();
+
+  //if (currentVolume) {
+    //if (-1385.51 < position.z() && position.z() < -1385.49) {
+    //G4cout << "event: " << eventId << " currentParticle: " << currentParticle->GetParticleName() << " trackId: " << Track->GetTrackID() << " x: " << position.x() << " y: " << position.y()
+    //   << " z: " << position.z() << " currentVolume: " << currentVolume->GetName() << " material: " << currentVolume->GetLogicalVolume()->GetMaterial()->GetName()
+    //   << " density: " << currentVolume->GetLogicalVolume()->GetMaterial()->GetDensity() << " total energy: " << Track->GetTotalEnergy() / GeV << G4endl;
+      //}
+    //}
+
+
   }
 
 }
@@ -1622,6 +1649,19 @@ void AMSG4SteppingAction::FillPrimaryInfo( const G4Step *Step){
   
   double z_post = Step->GetPostStepPoint()->GetPosition().z();
   double z_pre = Step->GetPreStepPoint()->GetPosition().z();
+
+  G4ParticleDefinition* particle =aTrack->GetDefinition();
+  G4ThreeVector position=aTrack->GetPosition();
+  G4VPhysicalVolume* volume = aTrack->GetVolume();
+  int eventId = AMSEvent::gethead()->getEvent();
+
+  if (volume && aTrack->GetTrackID() == 1) {
+    //if (-1385.51 < position.z() && position.z() < -1385.49) {
+    //G4cout << "event: " << eventId << " particle: " << particle->GetParticleName() << " trackId: " << aTrack->GetTrackID() << " x: " << position.x() << " y: " << position.y()
+    //   << " z: " << position.z() << " volume: " << volume->GetName() << " material: " << volume->GetLogicalVolume()->GetMaterial()->GetName()
+    //   << " density: " << volume->GetLogicalVolume()->GetMaterial()->GetDensity() << " total energy: " << aTrack->GetTotalEnergy() / GeV << G4endl;
+      //}
+  }
 
 
   int pl = 0;
