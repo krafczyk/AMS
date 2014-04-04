@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.828 2014/02/14 18:07:55 choutko Exp $
+# $Id$
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7675,7 +7675,7 @@ print qq`
         else{
             $sql="select max(jid) from jobs where jobname like '$self->{CCA}.%'";
              my $resj=$self->{sqlserver}->Query($sql);
-          if(defined $resj->[0][0] and $resj->[0][0]> $res->[0][0]){
+          if(defined $resj->[0][0] and $resj->[0][0]>= $res->[0][0]){
                my $mes="Cite $self->{CCA} maxrun/jid mismatch $resj->[0][0]  $res->[0][0] ";
                $sql="update Cites set maxrun=$res->[0][0]+1 where name='$self->{CCA}'";
                $self->{sqlserver}->Update($sql);
