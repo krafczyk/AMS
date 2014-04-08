@@ -1381,7 +1381,7 @@ int AMSSetupR::RTI::Loadopt=0;
 
 int AMSSetupR::RTI::UseLatest(){
 
-  RTI::Version=2;
+  RTI::Version=3;
   static int vrti=-1;
   if(RTI::Version!=vrti){
      cout<< "AMSSetupR::RTI::UseLatest Version="<<RTI::Version<<endl;
@@ -1556,8 +1556,8 @@ else{
 //---NewV
  bool isnewv =((t2>1368950397) ||(RTI::Version>=1));
  bool isnewv2=((t1>=1374268537)||(RTI::Version>=2));
-// bool isnewv3=((t2>1385484728) ||(RTI::Version>=3));
- bool isnewv3=(RTI::Version>=3);
+ bool isnewv3=((t2>1385484728) ||(RTI::Version>=3));
+// bool isnewv3=(RTI::Version>=3);
  if     (isnewv3)AMSISSlocal+="V3_20140324/";
  else if(isnewv2)AMSISSlocal+="V2_20131220/";
  else if(isnewv )AMSISSlocal+="V1_20130802/";
