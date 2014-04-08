@@ -234,9 +234,10 @@ int good;    ///< 0 if good
 */
 unsigned int utime;///< JMDC unix time(second)
 unsigned int usec[2];///< microsecond(us) for first and last event in one second
+double utctime[2];   ///< UTC time for first and last event
 float getthetam();///< PhiM (degrees)
 float getphim();///< ThetaM(degrees)
-static int Version;///< RTI Version id: 0(default B620) old, 1 new(2013-08 B620),2 new (2013-12 B700)
+static int Version;///< RTI Version id: 0(default B620) old, 1 (2013-08 B620) old, 2 (2013-12 B700) old, 3 (2014-03 B620) latest
 static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) form IGRF-table
 //---
  RTI():evno(0),evnol(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0),mtrdh(0){
@@ -247,8 +248,9 @@ static int Loadopt;//< load option m: m=0 load cfi from rti-table, =1(default) f
           for(int ico=0;ico<3;ico++){if(ico<2)nl1l9[iexl][ico]=0;dl1l9[iexl][ico]=0;}
         }
         usec[0]=usec[1]=0;
+        utctime[0]=utctime[1]=0;
    }
-ClassDef(RTI,7)
+ClassDef(RTI,8)
 };
 
 
