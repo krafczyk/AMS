@@ -96,21 +96,57 @@ ifeq ("$(INTELVER)", "$(INTELVER_SLC64)")
   endif
 endif
 
-ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/bin/intel64)","")
-INTELBIN = $(INTELDIR)/$(INTELVER)/compiler/bin/intel64
-else
-ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/bin/intel64)","")
-INTELBIN = $(INTELDIR)/$(INTELVER)/bin/intel64
-endif
+########################################################################
+# Try to find INTELBIN
+########################################################################
+
+ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/bin/intel64/icc)","")
+  INTELBIN = $(INTELDIR)/$(INTELVER)/compiler/bin/intel64
 endif
 
-ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/lib/intel64)","")
-INTELLIB = $(INTELDIR)/$(INTELVER)/compiler/lib/intel64
-else
-ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/lib/intel64)","")
-INTELLIB = $(INTELDIR)/$(INTELVER)/lib/intel64
+ifeq ("$(INTELBIN)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/bin/intel64/icc)","")
+    INTELBIN = $(INTELDIR)/$(INTELVER)/bin/intel64
+  endif
 endif
+
+ifeq ("$(INTELBIN)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/bin/icc)","")
+    INTELBIN = $(INTELDIR)/$(INTELVER)/bin
+  endif
 endif
+
+ifeq ("$(INTELBIN)", "")
+  $(error Could not find intel compiler!)
+endif
+
+########################################################################
+# Try to find INTELLIB
+########################################################################
+
+ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/lib/intel64/libimf*)","")
+  INTELLIB = $(INTELDIR)/$(INTELVER)/compiler/lib/intel64
+endif
+
+ifeq ("$(INTELLIB)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/lib/intel64/libimf*)","")
+    INTELLIB = $(INTELDIR)/$(INTELVER)/lib/intel64
+  endif
+endif
+
+ifeq ("$(INTELLIB)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/lib/libimf*)","")
+    INTELLIB = $(INTELDIR)/$(INTELVER)/lib
+  endif
+endif
+
+ifeq ("$(INTELLIB)", "")
+  $(error Could not find intel compiler!)
+endif
+
+########################################################################
+# Setup compiler variables
+########################################################################
 
   FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
   CXX=$(INTELBIN)/icc  $(INTELOPT) -vec-report0  $(PARALLEL)
