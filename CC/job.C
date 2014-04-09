@@ -911,7 +911,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.phtsmear=0.;//(44)SE-jitter smear
   TFMCFFKEY.g4tfdir=0;//(45) from local(1) or AMSDataDir(0)
   VBLANK(TFMCFFKEY.g4tfdb,100);
-  char tfdb[80]="TofGainPMag_v9polish_LTof.dat";
+  char tfdb[80]="TofGainPMag_v10polish_LTof.dat";
   UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46
   TFMCFFKEY.g4hfnoise=9.;//146 new g4tof high freq. noise 
 //  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
