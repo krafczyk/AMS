@@ -132,6 +132,7 @@ G4double StrCS::GetElementCrossSection(const G4DynamicParticle* theProjectile,G4
       return GetCrossSection( theProjectile, el,293*kelvin);
     }
 }
+return 0;
 }
 #endif
 

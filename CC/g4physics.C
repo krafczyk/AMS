@@ -1929,15 +1929,19 @@ void AMSG4Physics::SaveXS(int ipart){
       if(theParticle){
         G4ThreeVector lv(0,0,0);
         G4DynamicParticle p(theParticle,lv);
-        const G4int nElements = 9;
+        const G4int nElements = 13;
         auto_ptr<G4Element> elements[nElements] = { auto_ptr<G4Element>(new G4Element("Hydrogen" ,"H"  ,   1,  1.00794  *g/mole)),
                                                   auto_ptr<G4Element>(new G4Element("Helium4"  ,"He4",   1)),//http://en.wikipedia.org/wiki/Helium-4
                                                   auto_ptr<G4Element>(new G4Element("Helium3"   ,"He3"  ,  1)),
                                                   auto_ptr<G4Element>(new G4Element("Carbon"   ,"C"  ,   6, 12.0107   *g/mole)),
                                                   auto_ptr<G4Element>(new G4Element("Oxygen"   ,"O"  ,   8, 15.9994   *g/mole)),
+                                                  auto_ptr<G4Element>(new G4Element("Nitrogen"   ,"N"  ,   7, 14   *g/mole)),
+                                                  auto_ptr<G4Element>(new G4Element("Fluoride"   ,"F"  ,   9, 19   *g/mole)),
+                                                  auto_ptr<G4Element>(new G4Element("Natrium"   ,"Na"  ,  11, 23   *g/mole)),
                                                   auto_ptr<G4Element>(new G4Element("Aluminium","Al" ,  13, 26.9815386*g/mole)),
                                                   auto_ptr<G4Element>(new G4Element("Silicon"  ,"Si" ,  14, 28.0855   *g/mole)),
-                                                  auto_ptr<G4Element>(new G4Element("Nitrogen"  ,"N",7,14*g/mole)),
+                                                  auto_ptr<G4Element>(new G4Element("Gold"  ,"Au",79,197*g/mole)),
+                                                  auto_ptr<G4Element>(new G4Element("Copper"  ,"Cu",29,63.5*g/mole)),
                                                   auto_ptr<G4Element>(new G4Element("Lead208"  ,"Pb208",82,207.9766521*g/mole)) };
 
            elements[1].get()->AddIsotope(new G4Isotope("Helium4"   ,   2, 4,   4*g/mole),1) ;
