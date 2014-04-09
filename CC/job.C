@@ -908,7 +908,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.phtsmear=0.;//(44)SE-jitter smear
   TFMCFFKEY.g4tfdir=0;//(45) from local(1) or AMSDataDir(0)
   VBLANK(TFMCFFKEY.g4tfdb,100);
-  char tfdb[80]="TofGainPMag_v9polish_LTof.dat";
+  char tfdb[80]="TofGainPMag_v10polish_LTof.dat";
   UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46
   TFMCFFKEY.g4hfnoise=9.;//146 new g4tof high freq. noise 
 //  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
@@ -917,7 +917,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
   TFMCFFKEY.threref[0]=1.3;//150  LT  reference to normal value
   TFMCFFKEY.threref[1]=1.19;//151  HT  reference to normal value
-  TFMCFFKEY.threref[2]=.9;//152  SHT reference to normal value
+  TFMCFFKEY.threref[2]=1.0;//152  SHT reference to normal value
   TFMCFFKEY.fladctbref=0.2;//153 "flash-ADC" internal time binning reference to normal value(0.1ns*0.2=20ns)        
 //---
 

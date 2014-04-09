@@ -808,7 +808,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
         else if (ipart ==14 ){
-          y=1.7e4/beta/pow(xrig,2.80);
+          y=1.7e4/beta/pow(xrig,2.82);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
           
         }    
