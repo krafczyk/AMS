@@ -84,6 +84,7 @@ G4DPMJET2_5CrossSection::G4DPMJET2_5CrossSection ():
 //
 #if G4VERSION_NUMBER  > 945
   ATmin = 2;
+  //cout <<" atmin "<<ATmin<<endl;
 #else
 ATmin = 1;
 #endif
@@ -263,7 +264,7 @@ G4double G4DPMJET2_5CrossSection::GetIsoZACrossSection
     double p[3]={0.48639E-01,0.41653E-04,0.77188E-03};
     double corr=p[0]+p[1]*AT+p[2]*AT*AT;
 #if G4VERSION_NUMBER  > 945
-    sigma/=(1+corr);
+//    sigma/=(1+corr);
 #endif
     if (verboseLevel >= 2) {
       G4cout <<"***************************************************************"
