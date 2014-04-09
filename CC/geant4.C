@@ -284,6 +284,7 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
 #include "G4HadFinalState.hh"
 #include "G4HadProjectile.hh"
 #include "G4Nucleus.hh"
+#include "G4Version.hh"
 
 void  AMSG4RunAction::DumpCrossSections(int verbose, G4int At, G4int Zt) {
   if (verbose<=0) return; 
@@ -336,14 +337,20 @@ void  AMSG4RunAction::DumpCrossSections(int verbose, G4int At, G4int Zt) {
       G4DynamicParticle projectile(particle[iparticle],momentum_vector);
       G4double k = projectile.GetKineticEnergy();  
       G4double kn = k/Ap;
-      G4double XS = process->GetMicroscopicCrossSection(&projectile,target,0);
-      if ( (verbose<=1)||(Zp!=6)||(rigidity<5.)||(rigidity>500.) ) { 
+#if G4VERSION_NUMBER  > 945 
+      G4Material mat_target("mat_target",1,1);
+      mat_target.AddElement(target,1);
+      G4double XS = process->GetElementCrossSection(&projectile,target,&mat_target); // v9.6.p02
+#else
+      G4double XS = process->GetMicroscopicCrossSection(&projectile,target,295*kelvin); // v9.4.p04
+#endif
+      if ( (verbose<=1)||(Zp!=6)||(rigidity>3000.) ) { 
         printf("(%2d,%2d)->(%2d,%2d) @ %10.3f GeV/c (%10.3f GeV/n) = %10.3f mbarn\n",Ap,Zp,At,Zt,momentum/GeV,kn/GeV,XS/millibarn);
         continue; 
       }
       // fake MC to get partial cross-section
-      G4int nFragments[5] = {0}; 
-      G4int nmc = 1000;
+      G4int ngood = 0; 
+      G4int nmc = 10000;
       for (int imc=0; imc<nmc; imc++) { 
         model = process->GetManagerPointer()->GetHadronicInteraction(k,material,target);
         if (!model) continue;
@@ -361,17 +368,9 @@ void  AMSG4RunAction::DumpCrossSections(int verbose, G4int At, G4int Zt) {
           if (kns<0.1*kn) continue; 
           if (Zs>Zmax) Zmax = Zs;  
         }
-        if ( (Zmax>0)&&(Zmax<6) ) nFragments[Zmax-1]++;
+        if (Zmax==6) ngood++;
       }
-      G4double prob[5] = {0}; 
-      G4double eprob[5] = {0}; 
-      for (int i=0; i<5; i++) { 
-        prob[i] = 1.*nFragments[i]/nmc;
-        eprob[i] = sqrt(prob[i]*(1-prob[i])/nmc); 
-      }
-      printf("(%2d,%2d)->(%2d,%2d) @ %10.3f GeV/c (%10.3f GeV/n) = %10.3f mbarn P(6->5)= %4.2f (%4.2f) P(6->4)= %4.2f (%4.2f) P(6->3)= %4.2f (%4.2f) P(6->2)= %4.2f (%4.2f) P(6->1)= %4.2f (%4.2f)\n",
-             Ap,Zp,At,Zt,momentum/GeV,kn/GeV,XS/millibarn,
-             prob[5-1],eprob[5-1],prob[4-1],eprob[4-1],prob[3-1],eprob[3-1],prob[2-1],eprob[2-1],prob[1-1],eprob[1-1]);
+      printf("(%2d,%2d)->(%2d,%2d) @ %10.3f GeV/c (%10.3f GeV/n) = %10.3f mbarn   P(C+C->X) = %4.3f\n",Ap,Zp,At,Zt,momentum/GeV,kn/GeV,XS/millibarn,1-1.*ngood/nmc);
     }
   }
   cout << "~~~~~~~~~~~~~~~~ DumpCrossSections ~~~~~~~~~~~~~~" << endl;
