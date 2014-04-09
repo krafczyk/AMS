@@ -1,4 +1,4 @@
-//  $Id: Tofsim02.C,v 1.9 2014/01/18 15:57:32 qyan Exp $
+//  $Id$
 
 //Create by Qi Yan 2012/05/01
 // ------------------------------------------------------------
@@ -42,6 +42,23 @@ map<integer,TH1D>::iterator TOF2TovtN::phmapiter;
 map<integer,TH1D>::iterator TOF2TovtN::phmapitern;
 
 //------------------------------------------------------------------
+number TOF2TovtN::ftdclw(){
+  
+  return TOFCSN::FLTDCLW;
+}
+
+//------------------------------------------------------------------
+number TOF2TovtN::ftdcbw(){
+  
+  return TOFCSN::FLTDCBW*TFMCFFKEY.fladctbref;
+}
+//------------------------------------------------------------------
+int   TOF2TovtN::ftdcnb(){
+   
+  return int(TOF2TovtN::ftdclw()/TOF2TovtN::ftdcbw());
+}
+
+//------------------------------------------------------------------
 void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, geant tofdt,geant stepl,integer parentid){
 
   integer id,pmtid,ibar,ilay,is,ipm,ibtyp,cnum;
@@ -54,7 +71,6 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   number phtiml=0,phtim=0,phtims=0,phtimd=0;
   char vname[5];
   char histn[100];
-  number histmax=TOF2GC::SCTBMX*TOF2DBc::fladctb();
   integer ierr(0);
   static geant bthick=0.5*TOF2DBc::plnstr(6);
   static geant convr =TOF2DBc::edep2ph();//
@@ -113,7 +129,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
          phmapiter=phmap.find(pmtid);
          if(phmapiter==phmap.end()){
              sprintf(histn,"TOFPh_id%d",pmtid);
-             pair<integer,TH1D>phelem(pmtid,TH1D(histn,histn,TOF2GC::SCTBMX,0.,histmax));
+             pair<integer,TH1D>phelem(pmtid,TH1D(histn,histn,ftdcnb(),0,ftdclw()));
              phmap.insert(phelem);
          }
          hph=&phmap[pmtid];
@@ -155,11 +171,12 @@ void TOF2TovtN::build()
   integer i,j,ij,iph,nph;
   uinteger ii;
   geant edep,edepb=-1,time,pmtime,am;
-  geant tslice[TOF2GC::PMTSMX][TOF2GC::SCTBMX+1]; //  flash ADC array
+  geant tslice[TOF2GC::PMTSMX][TOFCSN::FLTDCBM+1]; //  flash ADC array only use
+  static int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
 //---
   geant dummy(-1);int ierr(0);
   integer nhitl[TOF2GC::SCLRS];
-  static geant ifadcb=1./TOF2DBc::fladctb();
+  static geant ifadcb=1./ftdcbw();
   static integer eleth=200;
   static int prlevel=1;
 
@@ -175,7 +192,7 @@ void TOF2TovtN::build()
 
 
     for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
-       for(i=0;i<=TOF2GC::SCTBMX;i++){
+       for(i=0;i<=ftdcnbmax;i++){
          tslice[ipm][i]=0;
       }
     }
@@ -205,7 +222,7 @@ void TOF2TovtN::build()
       uinteger npulseb=TOFPMT::pmpulse.getnb();
       for(i=0;i<npulseb;i++){
         ij=i+ii;
-        if(ij>TOF2GC::SCTBMX)break;//max time
+        if(ij>ftdcnbmax)break;//max time
         tslice[ipm][ij]+=am*TOFPMT::pmpulse.gety(i+1); 
       //  cout<<"am="<<am<<endl;
       }
@@ -230,7 +247,7 @@ void TOF2TovtN::build()
         if(edepb>TFMCFFKEY.Thr)TOF2TovtN::totovtn(idd,edepb,tslice);//put PMT for side
         //cout<<"end process totovtn"<<endl;
         for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
-          for(i=0;i<=TOF2GC::SCTBMX;i++)tslice[ipm][i]=0;
+          for(i=0;i<=ftdcnbmax;i++)tslice[ipm][i]=0;
         }
         //cout<<"end tofcluster edep="<<edepb<<endl;
       }
@@ -261,7 +278,7 @@ void TOF2TovtN::build()
                uinteger npulseb=TOFPMT::pmpulse.getnb();
                for(i=0;i<npulseb;i++){
                   ij=ii+i;
-                  if(ij>TOF2GC::SCTBMX)continue;
+                  if(ij>ftdcnbmax)continue;
                   tslice[ipm][ij]+=am*TOFPMT::pmpulse.gety(i+1);
               }
 //-------
@@ -272,7 +289,7 @@ void TOF2TovtN::build()
               uinteger npulseb=TOFPMT::pmpulse.getnb();
               for(i=0;i<npulseb;i++){
                  ij=ii+i;
-                 if(ij>TOF2GC::SCTBMX)continue;
+                 if(ij>ftdcnbmax)continue;
                  tslice[ipm][ij]+=am*TOFPMT::pmpulse.gety(i+1);
              }
           }
@@ -298,7 +315,7 @@ void TOF2TovtN::build()
            idd=1000*(ilay+1)+10*(ibar+1)+(is+1);//LBBS
            if(edepb>TFMCFFKEY.Thr)TOF2TovtN::totovtn(idd,edepb,tslice);//put PMT for side
            for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
-              for(i=0;i<=TOF2GC::SCTBMX;i++)tslice[ipm][i]=0;
+              for(i=0;i<=ftdcnbmax;i++)tslice[ipm][i]=0;
             }
          }
 //-----
@@ -348,7 +365,7 @@ geant TOF2TovtN::pmsatur(geant am,int ilay,int ibar,int is,int ipm){
 }
 
 //--------------------------------------------------------------------------
-void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX+1])
+void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCBM+1])
 {
 //!!! Logic is preliminary:wait for detailed SFET slecrtrical logic from Diego(Guido)
   integer i,k,ii,j,ij,ipm,ilay,ibar,isid,id,_sta,stat(0);
@@ -391,7 +408,9 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
   tsens=tofid.gettempsn();//... sensor#(1,2,...,5 == sequential SFET(A)'s number !!!)
 //
   if(first++==0){
-    fladcb=TOF2DBc::fladctb();          //prepare some time-stable parameters
+    if(ftdcnb()>TOFCSN::FLTDCBM)cerr<<"<<---Error TOF2Tovt::FLASH TDC Length<1000ns"<<endl;
+    fladcb=ftdcbw();
+    cout<<"TOF2Tovt::FLASH TDC Width="<<(fladcb*1000)<<"ps"<<endl;
     cconv=fladcb/50.; // for mV->pC (50 Ohm load)
     daqp0=TOF2DBc::daqpwd(0);// fixed PW of "FTC(HT)"-branch output pulse(ACTEL-outp going to SPT)
     daqp1=TOF2DBc::daqpwd(1);// minimal inp.pulse width(TovT) to fire discr.(its rise time)
@@ -412,7 +431,8 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
    daqt2=TOFPMT::daqthr[ilay][ibar][isid][2];
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
-  geant tslice[TOF2GC::SCTBMX+1];
+  geant tslice[TOFCSN::FLTDCBM+1];
+  static int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
   geant gainref=1;
   bool gainflag=1;
   if(TFMCFFKEY.anodesat==2)gainflag=0;
@@ -421,7 +441,7 @@ pmtansat:
   charge=0;
   for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++)charged[ipm]=0;
 //---
-  for(i=0;i<=TOF2GC::SCTBMX;i++){
+  for(i=0;i<=ftdcnbmax;i++){
      tslice[i]=0;
      for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
         tslice[i]+=   tslice1[ipm][i]*TOFPMT::pmgain[ilay][ibar][isid][ipm]*gainref;//all pmt together
@@ -444,19 +464,19 @@ pmtansat:
        charged[ipm]*=fladcb/50.;
     } 
   
-        if(tslice[TOF2GC::SCTBMX]>daqt0){//test last bin of flash-ADC ("FADC")
+        if(tslice[ftdcnbmax]>daqt0){//test last bin of flash-ADC ("FADC")
           TOF2JobStat::addmc(5);
 //#ifdef __AMSDEBUG__
           cout<<"SITOFTovt-W: MC_FADC time-range overflow, id="<<idd<<
-             "  AmplOfLastBin(mV)= "<<tslice[TOF2GC::SCTBMX]<<'\n';
+             "  AmplOfLastBin(mV)= "<<tslice[ftdcnbmax]<<'\n';
           if(TFMCFFKEY.mcprtf[1]>1)TOF2Tovt::displ_a("FADC-ovfl, PM-pulse id=",idd,100,tslice);//print PMT pulse
 //#endif
         }
-        for(i=TOF2GC::SCTBMX;i>0;i--){
+        for(i=ftdcnbmax;i>0;i--){
 	  imax=i;
           if(tslice[i]>fdaqt0 && tslice[i-1]>fdaqt0)break;//find high limit as highest 2bins above thresh.
 	}
-        for(i=0;i<TOF2GC::SCTBMX;i++){
+        for(i=0;i<ftdcnbmax;i++){
 	  imin=i;
 	  if(tslice[i]>fdaqt0)break;//find low limit
 	}

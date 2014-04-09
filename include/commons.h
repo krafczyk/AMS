@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.368 2014/03/04 18:29:27 choutko Exp $
+//  $Id$
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -280,6 +280,7 @@ class TFMCFFKEY_DEF {
   integer writeall;
   integer simfvern;
   geant   threref[3];
+  geant   fladctbref;
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);

@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.h,v 1.33 2013/12/04 15:58:47 qyan Exp $
+//  $Id$
 
 //Athor Qi Yan 2012/01/05 for new Tof database qyan@cern.ch
 
@@ -42,6 +42,10 @@ namespace TOFCSN{
       31, 32, 31, 32, 31, 32, 31, 32, 0,  0, //L3-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
    };
 
+///--MC only
+   const integer FLTDCBM=100000;///flash tdc bin number limit 100000*0.1ns=10000ns
+   const number FLTDCLW=1000.;  ///flash tdc total length width 1000.ns
+   const number FLTDCBW=0.1;   ///flash tdc bin width  0.1ns
 }
 
 namespace TOFDBcN{

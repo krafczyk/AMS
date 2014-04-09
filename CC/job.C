@@ -911,13 +911,14 @@ void AMSJob::_sitof2data(){
   char tfdb[80]="TofGainPMag_v9polish_LTof.dat";
   UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46
   TFMCFFKEY.g4hfnoise=9.;//146 new g4tof high freq. noise 
-  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
+//  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
+  TFMCFFKEY.anodesat=2;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
   TFMCFFKEY.writeall=0;   //148 write photon information to rootfile(table mode)->on(1) off(0)
   TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
-  TFMCFFKEY.threref[0]=1.;//150  LT  reference to normal value
+  TFMCFFKEY.threref[0]=1.3;//150  LT  reference to normal value
   TFMCFFKEY.threref[1]=1.19;//151  HT  reference to normal value
-  TFMCFFKEY.threref[2]=.9;//151  SHT reference to normal value
-         
+  TFMCFFKEY.threref[2]=.9;//152  SHT reference to normal value
+  TFMCFFKEY.fladctbref=0.2;//153 "flash-ADC" internal time binning reference to normal value(0.1ns*0.2=20ns)        
 //---
 
   FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
