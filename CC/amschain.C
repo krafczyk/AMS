@@ -644,7 +644,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 #endif
 #pragma omp  for schedule (dynamic)  nowait
     for(int i=0;i<ntree;i++){
-      if(i>=ntree)break;
+      if(i>=ntree)continue;
       if(nentr>nentries || it==fmap.end()){
 	continue;
       }
