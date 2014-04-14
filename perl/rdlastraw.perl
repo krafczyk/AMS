@@ -1,5 +1,5 @@
-#!/usr/local/bin/perl -w
-#  $Id: rdlastraw.perl,v 1.4 2013/11/23 07:26:51 bshan Exp $
+#!/usr/bin/perl -w
+#  $Id$
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
