@@ -1955,7 +1955,7 @@ void AMSG4Physics::SaveXS(int ipart){
            for(int k=0;k<nbins+1;k++)arr[k]=pow(10.,minR+k*st);
            G4Element * element = elements[i].get();
            string hname=name;
-           hname+=" HadronInelastic ";
+           hname+=" HadronInElastic ";
            hname+=element->GetName();
            const int id=element->GetN();
            AMSEventR::hbook1(id,hname.c_str(),nbins,arr);
@@ -1964,6 +1964,15 @@ void AMSG4Physics::SaveXS(int ipart){
            hname+=element->GetName();
            AMSEventR::hbook1(-id,hname.c_str(),nbins,arr);
            XSId.push_back(id);
+           hname=name;
+           hname+= " HadronElastic ";
+           hname+=element->GetName();
+           AMSEventR::hbook1(100000+id,hname.c_str(),nbins,arr);
+           XSId.push_back(100000+id);
+           hname=name;
+           hname+= " HadronQuElastic ";
+           hname+=element->GetName();
+           AMSEventR::hbook1(-100000-id,hname.c_str(),nbins,arr);
               G4ProcessManager * processManager = theParticle->GetProcessManager();
               G4ProcessVector * processVector = processManager->GetProcessList();
               for(G4int j=0; j<processVector->size(); j++){
@@ -2022,6 +2031,38 @@ void AMSG4Physics::SaveXS(int ipart){
                                      break;
                                 }// end of if
                  }// end of for
+
+              for(G4int j=0; j<processVector->size(); j++){
+                bool inelok=false;
+                 if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="protonelastic" ;
+                 else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"  ;
+                 else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"    ;
+                 else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="ionelastic"    ;
+                 else if(theParticle==   G4Deuteron::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"    ;
+                 else if ( strstr((const char*)theParticle->GetParticleName(),"strangelet"))inelok=  (*processVector)[j]->GetProcessName()=="strangeletelastic"    ;
+                 else if( strstr((const char*)theParticle->GetParticleType(),"nucleus"))inelok=  ((*processVector)[j]->GetProcessName()=="ionelastic" );               
+                 G4HadronElasticProcess * hadronInelasticProcess = dynamic_cast<G4HadronElasticProcess*>((*processVector)[j]);
+                 if(inelok && hadronInelasticProcess){
+                  for(int k=1;k<nbins+1;k++){
+                    double xs=0;
+                    const G4double R = AMSEventR::h1(100000+id)->GetBinCenter(k)*GeV;
+                    lv.setZ(R*theParticle->GetAtomicNumber());
+                    p.SetMomentum(lv);
+#if G4VERSION_NUMBER  > 945 
+                    G4Material mat("mymat",1,1);
+                    mat.AddElement(element,1);
+                    xs = hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+#else
+                    xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
+#endif
+//                    if(k%100==1)cout << element->GetName()<<" "<<R<<" "<<xs<<endl;
+                                     AMSEventR::h1(100000+id)->SetBinContent(k,xs);
+                                     AMSEventR::h1(100000+id)->SetBinError(k,0);
+                    }
+                                     break;
+                                }// end of if
+                 }// end of for
+
 
 
 
