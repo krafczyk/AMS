@@ -571,9 +571,9 @@ void G4HadronElasticPhysics::ConstructProcess()
 
 
 
-  G4HadronElastic* lhep3 = new G4HadronElastic();
-  G4CrossSectionElastic* nucxs = 
-    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
+//  G4HadronElastic* lhep3 = new G4HadronElastic();
+//  G4CrossSectionElastic* nucxs = 
+//    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
 
 
 
@@ -671,20 +671,70 @@ void G4HadronElasticPhysics::ConstructProcess()
       hel->RegisterMe(lhep2);
       hel->RegisterMe(anuc);
       pmanager->AddDiscreteProcess(hel);
-    } else if(
-       pname == "GenericIon"    || 
-       pname == "alpha"     ||
-       pname == "deuteron"  ||
-       pname == "triton"    ||
-       pname == "He3"       ) {
-
-      G4HadronElasticProcess* hel = new G4HadronElasticProcess("ionelastic");
-      hel->AddDataSet(nucxs);
-      hel->RegisterMe(lhep3);
-      pmanager->AddDiscreteProcess(hel);
+//    } else if(
+//       pname == "GenericIon"    || 
+//       pname == "alpha"     ||
+//       pname == "deuteron"  ||
+//       pname == "triton"    ||
+//       pname == "He3"       ) {
+//
+//      G4HadronElasticProcess* hel = new G4HadronElasticProcess("ionelastic");
+//      hel->AddDataSet(nucxs);
+//      hel->RegisterMe(lhep3);
+//      pmanager->AddDiscreteProcess(hel);
     }
 
   }
 }
+#include "G4HadronElastic.hh"
+extern "C" void     abcross_(int &icas,float &a_p,float &a_t,float &zp_p,float &z_t,float &p_p,float &sigma_t,float sigma_el[],float sigma_q[]);
+G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
+                                  G4double plab,
+                                  G4int Z, G4int A)
+{
+ 
+  static const G4double GeV2 = GeV*GeV;
+  G4double momentumCMS = ComputeMomentumCMS(p,plab,Z,A);
+  G4double tmax = 4.0*momentumCMS*momentumCMS/GeV2;
+  G4double aa, bb, cc;
+  G4double dd = 10.;
+  G4Pow* g4pow = G4Pow::GetInstance();
+  if (A <= 62) {
+    bb = 14.5*g4pow->Z23(A);
+    aa = g4pow->powZ(A, 1.63)/bb;
+    cc = 1.4*g4pow->Z13(A)/dd;
+  } else {
+    bb = 60.*g4pow->Z13(A);
+    aa = g4pow->powZ(A, 1.33)/bb;
+    cc = 0.4*g4pow->powZ(A, 0.4)/dd;
+  }
+
+  if(strstr((const char*)(this->GetModelName()),"ionelasticVC")){
+    float a_p=p->GetBaryonNumber(); 
+    float a_t=A;
+    float z_p=int(p->GetPDGCharge()/eplus+0.5);
+    float z_t=Z;
+    float p_p=plab/GeV;
+    float sigma_t=0;
+    float sigma_el[3]={0,0,0};
+    float sigma_q[5]={0,0,0,0,0};
+    int icas=1;
+    abcross_(icas,a_p,a_t,z_p,z_t,p_p,sigma_t,sigma_el,sigma_q);
+    aa=sigma_el[0];
+    bb=sigma_el[1];
+    cc=sigma_q[0];
+    dd=sigma_q[2]; 
+  }
+  G4double q1 = 1.0 - std::exp(-bb*tmax);
+  G4double q2 = 1.0 - std::exp(-dd*tmax);
+  G4double s1 = q1*aa;
+  G4double s2 = q2*cc;
+  if((s1 + s2)*G4UniformRand() < s2) {
+    q1 = q2;
+    bb = dd;
+  }
+  return -GeV2*std::log(1.0 - G4UniformRand()*q1)/bb;
+}
+
 #endif
 

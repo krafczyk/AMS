@@ -25,6 +25,8 @@
 #include "G4MesonConstructor.hh"
 #include "G4BaryonConstructor.hh"
 #include "G4IonConstructor.hh"
+#include "G4CrossSectionElastic.hh"
+#include "G4ComponentGGNuclNuclXsc.hh"
 #include "G4IonTable.hh"
 #include "G4ShortLivedConstructor.hh"
 #include "G4Material.hh"
@@ -136,6 +138,37 @@ void AMSG4Physics::ConstructProcess()
 
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
       hadronelastic->ConstructProcess();
+
+//    add elastice scattering to ions
+#if G4VERSION_NUMBER  > 945 
+  G4HadronElastic* lhep3 = 0;
+  if((G4FFKEY.IonPhysicsModel/1000)%10==2)lhep3=new G4HadronElastic(G4String("ionelasticVC"));
+  else lhep3=new G4HadronElastic();
+  G4CrossSectionElastic* nucxs = 
+    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() )
+  {
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String pname = particle->GetParticleName();
+    if( (G4FFKEY.IonPhysicsModel/1000)%10 &&(
+       pname == "GenericIon"    || 
+       pname == "alpha"     ||
+       pname == "deuteron"  ||
+       pname == "triton"    ||
+       pname == "He3"       )) {
+
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess("ionelastic");
+      hel->AddDataSet(nucxs);
+      hel->RegisterMe(lhep3);
+      pmanager->AddDiscreteProcess(hel);
+  }
+}
+#endif
+        
+
+
 
     if(G4FFKEY.PhysicsListUsed==1){
       cout<<"QGSP Physics List will be used. "<<endl;
