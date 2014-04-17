@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.35 2014/02/18 15:45:57 choutko Exp $
+#  $Id$
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -286,8 +286,8 @@ LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0  -I/usr/lib64/glib-2.0/include  -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g
