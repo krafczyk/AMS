@@ -1,65 +1,459 @@
 #include "G4Version.hh"
 #if G4VERSION_NUMBER  > 945 
-#define __G4PROTONBUG__
+#define __G4PROTONBUG962only__
 #endif
+//
+// ********************************************************************
+// * License and Disclaimer                                           *
+// *                                                                  *
+// * The  Geant4 software  is  copyright of the Copyright Holders  of *
+// * the Geant4 Collaboration.  It is provided  under  the terms  and *
+// * conditions of the Geant4 Software License,  included in the file *
+// * LICENSE and available at  http://cern.ch/geant4/license .  These *
+// * include a list of copyright holders.                             *
+// *                                                                  *
+// * Neither the authors of this software system, nor their employing *
+// * institutes,nor the agencies providing financial support for this *
+// * work  make  any representation or  warranty, express or implied, *
+// * regarding  this  software system or assume any liability for its *
+// * use.  Please see the license in the file  LICENSE  and URL above *
+// * for the full disclaimer and the limitation of liability.         *
+// *                                                                  *
+// * This  code  implementation is the result of  the  scientific and *
+// * technical work of the GEANT4 collaboration.                      *
+// * By using,  copying,  modifying or  distributing the software (or *
+// * any work based  on the software)  you  agree  to acknowledge its *
+// * use  in  resulting  scientific  publications,  and indicate your *
+// * acceptance of all terms of the Geant4 Software license.          *
+// ********************************************************************
+//
+// $Id$
+//
+// Hadronic Process: Nuclear De-excitations
+// by V. Lara (May 1998)
+//
+//
+// Modified:
+// 30 June 1998 by V. Lara:
+//      -Modified the Transform method for use G4ParticleTable and 
+//       therefore G4IonTable. It makes possible to convert all kind 
+//       of fragments (G4Fragment) produced in deexcitation to 
+//       G4DynamicParticle
+//      -It uses default algorithms for:
+//              Evaporation: G4Evaporation
+//              MultiFragmentation: G4StatMF 
+//              Fermi Breakup model: G4FermiBreakUp
+// 24 Jul 2008 by M. A. Cortes Giraldo:
+//      -Max Z,A for Fermi Break-Up turns to 9,17 by default
+//      -BreakItUp() reorganised and bug in Evaporation loop fixed
+//      -Transform() optimised
+// (September 2008) by J. M. Quesada. External choices have been added for :
+//      -inverse cross section option (default OPTxs=3)
+//      -superimposed Coulomb barrier (if useSICB is set true, by default it is false) 
+// September 2009 by J. M. Quesada: 
+//      -according to Igor Pshenichnov, SMM will be applied (just in case) only once.
+// 27 Nov 2009 by V.Ivanchenko: 
+//      -cleanup the logic, reduce number internal vectors, fixed memory leak.
+// 11 May 2010 by V.Ivanchenko: 
+//      -FermiBreakUp activated, used integer Z and A, used BreakUpFragment method for 
+//       final photon deexcitation; used check on adundance of a fragment, decay 
+//       unstable fragments with A <5
+// 22 March 2011 by V.Ivanchenko: general cleanup and addition of a condition: 
+//       products of Fermi Break Up cannot be further deexcited by this model 
+// 30 March 2011 by V.Ivanchenko removed private inline methods, moved Set methods 
+//       to the source
+// 23 January 2012 by V.Ivanchenko general cleanup including destruction of 
+//    objects, propagate G4PhotonEvaporation pointer to G4Evaporation class and 
+//    not delete it here 
 #ifdef __G4PROTONBUG__
 
+#include <list>
 
-#include "G4BGGNucleonInelasticXS.hh"
+#include "G4ExcitationHandler.hh"
 #include "G4SystemOfUnits.hh"
-#include "G4GlauberGribovCrossSection.hh"
-#include "G4NucleonNuclearCrossSection.hh"
-#include "G4HadronNucleonXsc.hh"
-//#include "G4HadronInelasticDataSet.hh"
-#include "G4ComponentSAIDTotalXS.hh"
-#include "G4Proton.hh"
-#include "G4Neutron.hh"
+#include "G4LorentzVector.hh"
 #include "G4NistManager.hh"
-#include "G4Material.hh"
-#include "G4Element.hh"
-#include "G4Isotope.hh"
+#include "G4ParticleTable.hh"
+#include "G4ParticleTypes.hh"
 
-#include "G4CrossSectionDataSetRegistry.hh"
+#include "G4VMultiFragmentation.hh"
+#include "G4VFermiBreakUp.hh"
+#include "G4VFermiFragment.hh"
 
+#include "G4VEvaporation.hh"
+#include "G4VEvaporationChannel.hh"
+#include "G4VPhotonEvaporation.hh"
+#include "G4Evaporation.hh"
+#include "G4StatMF.hh"
+#include "G4PhotonEvaporation.hh"
+#include "G4FermiBreakUp.hh"
+#include "G4FermiFragmentsPool.hh"
 
-
-G4double
-G4BGGNucleonInelasticXS::GetIsoCrossSection(const G4DynamicParticle* dp,
-                                            G4int Z, G4int A,
-                                            const G4Isotope*,
-                                            const G4Element*,
-                                            const G4Material*)
-{
-  // this method should be called only for Z = 1
-
-  G4double cross = 0.0;
-  G4double ekin = dp->GetKineticEnergy();
-
-  if(ekin <= fSAIDHighEnergyLimit) {
-    cross = fSAID->GetInelasticIsotopeCrossSection(particle, ekin, 1, 1);
-  } else if(ekin < fHighEnergy) {
-    fHadron->GetHadronNucleonXscNS(dp, theProton);
-    cross = (theCoulombFac[0]/ekin + 1)*fHadron->GetInelasticHadronNucleonXsc();
-  } else {
-    fHadron->GetHadronNucleonXscPDG(dp, theProton);
-    cross = (theCoulombFac[1]/ekin + 1)*fHadron->GetInelasticHadronNucleonXsc();
-  }
-  cross *= A;
-
-  if(verboseLevel > 1) {
-    G4cout << "G4BGGNucleonInelasticXS::GetCrossSection  for "
-           << dp->GetDefinition()->GetParticleName()
-           << "  Ekin(GeV)= " << dp->GetKineticEnergy()/CLHEP::GeV
-           << " in nucleus Z= " << Z << "  A= " << A
-           << " XS(b)= " << cross/barn
-           << G4endl;
-  }
- //VC
-  return cross*1.09;
+G4ExcitationHandler::G4ExcitationHandler():
+  maxZForFermiBreakUp(9),maxAForFermiBreakUp(17),minEForMultiFrag(4*GeV),
+  minExcitation(keV),OPTxs(3),useSICB(false),isEvapLocal(true)
+{                                                                          
+  theTableOfIons = G4ParticleTable::GetParticleTable()->GetIonTable();
+  
+  theMultiFragmentation = new G4StatMF;
+  theFermiModel = new G4FermiBreakUp;
+  thePhotonEvaporation = new G4PhotonEvaporation;
+  theEvaporation = new G4Evaporation(thePhotonEvaporation);
+  thePool = G4FermiFragmentsPool::Instance();
+  SetParameters();
 }
 
+G4ExcitationHandler::~G4ExcitationHandler()
+{
+  if(isEvapLocal) { delete theEvaporation; }
+  delete theMultiFragmentation;
+  delete theFermiModel;
+}
 
+void G4ExcitationHandler::SetParameters()
+{
+  //for inverse cross section choice
+  theEvaporation->SetOPTxs(OPTxs);
+  //for the choice of superimposed Coulomb Barrier for inverse cross sections
+  theEvaporation->UseSICB(useSICB);
+  theEvaporation->Initialise();
+}
 
+G4ReactionProductVector * 
+G4ExcitationHandler::BreakItUp(const G4Fragment & theInitialState) const
+{	
+  //G4cout << "@@@@@@@@@@ Start G4Excitation Handler @@@@@@@@@@@@@" << G4endl;
+  
+  // Variables existing until end of method
+  G4Fragment * theInitialStatePtr = new G4Fragment(theInitialState);
+
+  G4FragmentVector * theTempResult = 0;      // pointer which receives temporal results
+  std::list<G4Fragment*> theEvapList;        // list to apply Evaporation or Fermi Break-Up
+  std::list<G4Fragment*> thePhotoEvapList;   // list to apply PhotonEvaporation
+  std::list<G4Fragment*> theResults;         // list to store final result
+  //
+  //G4cout << theInitialState << G4endl;  
+  
+  // Variables to describe the excited configuration
+  G4double exEnergy = theInitialState.GetExcitationEnergy();
+  G4int A = theInitialState.GetA_asInt();
+  G4int Z = theInitialState.GetZ_asInt();
+
+  G4NistManager* nist = G4NistManager::Instance();
+  
+  // In case A <= 1 the fragment will not perform any nucleon emission
+  if (A <= 1)
+    {
+      theResults.push_back( theInitialStatePtr );
+    }
+  // check if a fragment is stable
+  else if(exEnergy < minExcitation && nist->GetIsotopeAbundance(Z, A) > 0.0)
+    {
+      theResults.push_back( theInitialStatePtr );
+    }  
+  else  
+    {      
+      // JMQ 150909: first step in de-excitation is treated separately 
+      // Fragments after the first step are stored in theEvapList 
+      // Statistical Multifragmentation will take place only once
+      //
+      // move to evaporation loop
+      if((A<maxAForFermiBreakUp && Z<maxZForFermiBreakUp) 
+	 || exEnergy <= minEForMultiFrag*A) 
+	{ 
+	  theEvapList.push_back(theInitialStatePtr); 
+	}
+      else  
+        {
+          theTempResult = theMultiFragmentation->BreakItUp(theInitialState);
+	  if(!theTempResult) { theEvapList.push_back(theInitialStatePtr); }
+	  else {
+	    size_t nsec = theTempResult->size();
+	    if(0 == nsec) { theEvapList.push_back(theInitialStatePtr); }
+	    else {
+	      // secondary are produced
+	      // Sort out secondary fragments
+	      G4bool deletePrimary = true;
+	      G4FragmentVector::iterator j;
+	      for (j = theTempResult->begin(); j != theTempResult->end(); ++j) {  
+		if((*j) == theInitialStatePtr) { deletePrimary = false; }
+		A = (*j)->GetA_asInt();  
+
+		// gamma, p, n
+		if(A <= 1) { theResults.push_back(*j); }
+
+		// Analyse fragment A > 1
+		else {
+		  G4double exEnergy1 = (*j)->GetExcitationEnergy();
+
+		  // cold fragments
+		  if(exEnergy1 < minExcitation) {
+		    Z = (*j)->GetZ_asInt(); 
+		    if(nist->GetIsotopeAbundance(Z, A) > 0.0) { 
+		      theResults.push_back(*j); // stable fragment 
+
+		    } else {
+
+		      // check if the cold fragment is from FBU pool
+		      const G4VFermiFragment* ffrag = thePool->GetFragment(Z, A);
+		      if(ffrag) {
+			if(ffrag->IsStable()) { theResults.push_back(*j); }
+			else                  { theEvapList.push_back(*j); }
+
+			// cold fragment may be unstable
+		      } else {
+			theEvapList.push_back(*j); 
+		      }
+		    }
+
+		    // hot fragments are unstable
+		  } else { theEvapList.push_back(*j); } 
+		}
+	      }
+	      if( deletePrimary ) { delete theInitialStatePtr; }
+	    }
+	    delete theTempResult;
+	  }
+	}
+    }
+  /*
+  G4cout << "## After first step " << theEvapList.size() << " for evap;  "
+   << thePhotoEvapList.size() << " for photo-evap; " 
+   << theResults.size() << " results. " << G4endl; 
+  */
+  // -----------------------------------
+  // FermiBreakUp and De-excitation loop
+  // -----------------------------------
+      
+  std::list<G4Fragment*>::iterator iList;
+  for (iList = theEvapList.begin(); iList != theEvapList.end(); ++iList)
+    {
+      //G4cout << "Next evaporate: " << G4endl;  
+      //G4cout << *iList << G4endl;  
+      A = (*iList)->GetA_asInt(); 
+      Z = (*iList)->GetZ_asInt();
+	  
+      // Fermi Break-Up 
+      G4bool wasFBU = false;
+      if (A < maxAForFermiBreakUp && Z < maxZForFermiBreakUp) 
+	{
+	  theTempResult = theFermiModel->BreakItUp(*(*iList));
+	  wasFBU = true; 
+	  // if initial fragment returned unchanged try to evaporate it
+          if(1 == theTempResult->size()) {
+            for(int k=0;k<theTempResult->size();k++)delete (*theTempResult)[k];
+            delete theTempResult;
+	    theTempResult = theEvaporation->BreakItUp(*(*iList)); 
+	  }
+	}
+      else // apply Evaporation in another case
+	{
+	  theTempResult = theEvaporation->BreakItUp(*(*iList));
+	}
+      
+      G4bool deletePrimary = true;
+      size_t nsec = theTempResult->size();
+      //G4cout << "Nproducts= " << nsec << G4endl;  
+		  
+      // Sort out secondary fragments
+      if ( nsec > 0 ) {
+	G4FragmentVector::iterator j;
+	for (j = theTempResult->begin(); j != theTempResult->end(); ++j) {
+	  if((*j) == (*iList)) { deletePrimary = false; }
+
+	  //G4cout << *j << G4endl;  
+	  A = (*j)->GetA_asInt();
+	  exEnergy = (*j)->GetExcitationEnergy();
+
+	  if(A <= 1) { theResults.push_back(*j); }    // gamma, p, n
+
+	  // evaporation is not possible
+	  else if(1 == nsec) { 
+	    if(exEnergy < minExcitation) { theResults.push_back(*j); }
+	    else                         { thePhotoEvapList.push_back(*j); }
+
+	  } else { // Analyse fragment
+
+	    // cold fragment
+	    if(exEnergy < minExcitation) {
+	      Z = (*j)->GetZ_asInt();
+
+	      // natural isotope
+	      if(nist->GetIsotopeAbundance(Z, A) > 0.0) { 
+		theResults.push_back(*j); // stable fragment 
+
+	      } else {
+		const G4VFermiFragment* ffrag = thePool->GetFragment(Z, A);
+
+		// isotope from FBU pool
+		if(ffrag) {
+		  if(ffrag->IsStable()) { theResults.push_back(*j); }
+		  else                  { theEvapList.push_back(*j); }
+
+		  // isotope may be unstable
+		} else {
+		  theEvapList.push_back(*j);
+		}   
+	      }
+
+	      // hot fragment
+	    } else if (wasFBU) { 
+	      thePhotoEvapList.push_back(*j); // FBU applied only once 
+	    } else {  
+	      theEvapList.push_back(*j);        
+	    }
+	  }
+	}
+      }
+      if( deletePrimary ) { delete (*iList); }
+      delete theTempResult;
+    } // end of the loop over theEvapList
+
+  //G4cout << "## After 2nd step " << theEvapList.size() << " was evap;  "
+  // << thePhotoEvapList.size() << " for photo-evap; " 
+  // << theResults.size() << " results. " << G4endl; 
+      
+  // -----------------------
+  // Photon-Evaporation loop
+  // -----------------------
+  
+  // at this point only photon evaporation is possible
+  for(iList = thePhotoEvapList.begin(); iList != thePhotoEvapList.end(); ++iList)
+    {
+      //G4cout << "Next photon evaporate: " << thePhotonEvaporation << G4endl;  
+      //G4cout << *iList << G4endl;
+      exEnergy = (*iList)->GetExcitationEnergy();
+
+      // only hot fragments
+      if(exEnergy >= minExcitation) {  
+	theTempResult = thePhotonEvaporation->BreakUpFragment(*iList);	  
+	size_t nsec = theTempResult->size();
+	//G4cout << "Nproducts= " << nsec << G4endl;  
+	  
+	// if there is a gamma emission then
+	if (nsec > 0)
+	  {
+	    G4FragmentVector::iterator j;
+	    for (j = theTempResult->begin(); j != theTempResult->end(); ++j)
+	      {
+		theResults.push_back(*j); 
+	      }
+	  }
+  	delete theTempResult;
+      }
+
+      // priamry fragment is kept
+      theResults.push_back(*iList); 
+
+    } // end of photon-evaporation loop
+
+  //G4cout << "## After 3d step " << theEvapList.size() << " was evap;  "
+  //	 << thePhotoEvapList.size() << " was photo-evap; " 
+  //	 << theResults.size() << " results. " << G4endl; 
+    
+  G4ReactionProductVector * theReactionProductVector = new G4ReactionProductVector;
+
+  // MAC (24/07/08)
+  // To optimise the storing speed, we reserve space in memory for the vector
+  theReactionProductVector->reserve( theResults.size() );
+
+  G4int theFragmentA, theFragmentZ;
+
+  std::list<G4Fragment*>::iterator i;
+  for (i = theResults.begin(); i != theResults.end(); ++i) 
+    {
+      theFragmentA = (*i)->GetA_asInt();
+      theFragmentZ = (*i)->GetZ_asInt();
+      G4ParticleDefinition* theKindOfFragment = 0;
+      if (theFragmentA == 0) {       // photon or e-
+	theKindOfFragment = (*i)->GetParticleDefinition();   
+      } else if (theFragmentA == 1 && theFragmentZ == 0) { // neutron
+	theKindOfFragment = G4Neutron::NeutronDefinition();
+      } else if (theFragmentA == 1 && theFragmentZ == 1) { // proton
+	theKindOfFragment = G4Proton::ProtonDefinition();
+      } else if (theFragmentA == 2 && theFragmentZ == 1) { // deuteron
+	theKindOfFragment = G4Deuteron::DeuteronDefinition();
+      } else if (theFragmentA == 3 && theFragmentZ == 1) { // triton
+	theKindOfFragment = G4Triton::TritonDefinition();
+      } else if (theFragmentA == 3 && theFragmentZ == 2) { // helium3
+	theKindOfFragment = G4He3::He3Definition();
+      } else if (theFragmentA == 4 && theFragmentZ == 2) { // alpha
+	theKindOfFragment = G4Alpha::AlphaDefinition();;
+      } else {
+	theKindOfFragment = 
+	  theTableOfIons->GetIon(theFragmentZ,theFragmentA,0.0);
+      }
+      if (theKindOfFragment != 0) 
+	{
+	  G4ReactionProduct * theNew = new G4ReactionProduct(theKindOfFragment);
+	  theNew->SetMomentum((*i)->GetMomentum().vect());
+	  theNew->SetTotalEnergy((*i)->GetMomentum().e());
+	  theNew->SetFormationTime((*i)->GetCreationTime());
+	  theReactionProductVector->push_back(theNew);
+	}
+      delete (*i);
+    }
+
+  return theReactionProductVector;
+}
+
+void G4ExcitationHandler::SetEvaporation(G4VEvaporation* ptr)
+{
+  if(ptr && ptr != theEvaporation) {
+    delete theEvaporation; 
+    theEvaporation = ptr;
+    thePhotonEvaporation = ptr->GetPhotonEvaporation();
+    SetParameters();
+    isEvapLocal = false;
+  }
+}
+
+void 
+G4ExcitationHandler::SetMultiFragmentation(G4VMultiFragmentation* ptr)
+{
+  if(ptr && ptr != theMultiFragmentation) {
+    delete theMultiFragmentation;
+    theMultiFragmentation = ptr;
+  }
+}
+
+void G4ExcitationHandler::SetFermiModel(G4VFermiBreakUp* ptr)
+{
+  if(ptr && ptr != theFermiModel) {
+    delete theFermiModel;
+    theFermiModel = ptr;
+  }
+}
+
+void 
+G4ExcitationHandler::SetPhotonEvaporation(G4VEvaporationChannel* ptr)
+{
+  if(ptr && ptr != thePhotonEvaporation) {
+    thePhotonEvaporation = ptr;
+    theEvaporation->SetPhotonEvaporation(ptr);
+  }
+}
+
+void G4ExcitationHandler::SetMaxZForFermiBreakUp(G4int aZ)
+{
+  maxZForFermiBreakUp = aZ;
+}
+
+void G4ExcitationHandler::SetMaxAForFermiBreakUp(G4int anA)
+{
+  maxAForFermiBreakUp = std::min(5,anA);
+}
+
+void G4ExcitationHandler::SetMaxAandZForFermiBreakUp(G4int anA, G4int aZ)
+{
+  SetMaxAForFermiBreakUp(anA);
+  SetMaxZForFermiBreakUp(aZ);
+}
+
+void G4ExcitationHandler::SetMinEForMultiFrag(G4double anE)
+{
+  minEForMultiFrag = anE;
+}
 #include "G4SubtractionSolid.hh"
 G4double  G4SubtractionSolid::DistanceToIn( const G4ThreeVector& p ) const 
 {
@@ -115,3 +509,232 @@ G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
 
 */
 #endif
+#if G4VERSION_NUMBER  > 945 
+#include "G4HadronElasticPhysics.hh"
+
+#include "G4SystemOfUnits.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ProcessManager.hh"
+
+#include "G4MesonConstructor.hh"
+#include "G4BaryonConstructor.hh"
+#include "G4IonConstructor.hh"
+
+#include "G4HadronElasticProcess.hh"
+#include "G4HadronElastic.hh"
+#include "G4CHIPSElastic.hh"
+#include "G4ElasticHadrNucleusHE.hh"
+#include "G4AntiNuclElastic.hh"
+
+#include "G4BGGNucleonElasticXS.hh"
+#include "G4BGGPionElasticXS.hh"
+#include "G4NeutronElasticXS.hh"
+
+#include "G4CrossSectionDataSetRegistry.hh"
+
+#include "G4ChipsProtonElasticXS.hh"
+#include "G4ChipsNeutronElasticXS.hh"
+
+#include "G4ComponentAntiNuclNuclearXS.hh"  
+#include "G4CrossSectionElastic.hh"
+#include "G4ComponentGGNuclNuclXsc.hh"
+void G4HadronElasticPhysics::ConstructProcess()
+{
+  if(wasActivated) { return; }
+  wasActivated = true;
+
+  G4double elimitPi = 1.0*GeV;
+  G4double elimitAntiNuc = 100*MeV;
+  if(verbose > 1) {
+    G4cout << "### HadronElasticPhysics Construct Processes with the limit for pi " 
+	   << elimitPi/GeV << " GeV" 
+	   << "                                                  for anti-neuclei " 
+	   << elimitAntiNuc/GeV << " GeV"	   << G4endl;
+  }
+
+  G4AntiNuclElastic* anuc = new G4AntiNuclElastic();
+  anuc->SetMinEnergy(elimitAntiNuc);
+  G4CrossSectionElastic* anucxs = 
+    new G4CrossSectionElastic(anuc->GetComponentCrossSection());
+
+  G4HadronElastic* lhep0 = new G4HadronElastic();
+  G4HadronElastic* lhep1 = new G4HadronElastic();
+  G4HadronElastic* lhep2 = new G4HadronElastic();
+  lhep1->SetMaxEnergy(elimitPi);
+  lhep2->SetMaxEnergy(elimitAntiNuc);
+
+  G4CHIPSElastic* chipsp = new G4CHIPSElastic();
+  neutronModel = new G4CHIPSElastic();
+
+  G4ElasticHadrNucleusHE* he = new G4ElasticHadrNucleusHE(); 
+  he->SetMinEnergy(elimitPi);
+
+
+
+//  G4HadronElastic* lhep3 = new G4HadronElastic();
+//  G4CrossSectionElastic* nucxs = 
+//    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
+
+
+
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() )
+  {
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String pname = particle->GetParticleName();
+    if(pname == "anti_lambda"  ||
+       pname == "anti_neutron" ||
+       pname == "anti_omega-"  || 
+       pname == "anti_sigma-"  || 
+       pname == "anti_sigma+"  || 
+       pname == "anti_xi-"  || 
+       pname == "anti_xi0"  || 
+       pname == "lambda"    || 
+       pname == "omega-"    || 
+       pname == "sigma-"    || 
+       pname == "sigma+"    || 
+       pname == "xi-"        
+       ) {
+      
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->RegisterMe(lhep0);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(pname == "proton") {   
+
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      //hel->AddDataSet(new G4BGGNucleonElasticXS(particle));
+
+      //      hel->AddDataSet(new G4ChipsProtonElasticXS());
+      hel->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4ChipsProtonElasticXS::Default_Name()));
+     
+      hel->RegisterMe(chipsp);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(pname == "neutron") {   
+
+      neutronProcess = new G4HadronElasticProcess();
+      //neutronProcess->AddDataSet(new G4BGGNucleonElasticXS(particle));
+      neutronProcess->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4ChipsNeutronElasticXS::Default_Name()));
+      neutronProcess->RegisterMe(neutronModel);
+      pmanager->AddDiscreteProcess(neutronProcess);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " 
+	       << neutronProcess->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if (pname == "pi+" || pname == "pi-") { 
+
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->AddDataSet(new G4BGGPionElasticXS(particle));
+      hel->RegisterMe(lhep1);
+      hel->RegisterMe(he);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(pname == "kaon-"     || 
+	      pname == "kaon+"     || 
+	      pname == "kaon0S"    || 
+	      pname == "kaon0L" 
+	      ) {
+      
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->RegisterMe(lhep0);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(
+       pname == "anti_proton"    || 
+       pname == "anti_alpha"     ||
+       pname == "anti_deuteron"  ||
+       pname == "anti_triton"    ||
+       pname == "anti_He3"       ) {
+
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->AddDataSet(anucxs);
+      hel->RegisterMe(lhep2);
+      hel->RegisterMe(anuc);
+      pmanager->AddDiscreteProcess(hel);
+//    } else if(
+//       pname == "GenericIon"    || 
+//       pname == "alpha"     ||
+//       pname == "deuteron"  ||
+//       pname == "triton"    ||
+//       pname == "He3"       ) {
+//
+//      G4HadronElasticProcess* hel = new G4HadronElasticProcess("ionelastic");
+//      hel->AddDataSet(nucxs);
+//      hel->RegisterMe(lhep3);
+//      pmanager->AddDiscreteProcess(hel);
+    }
+
+  }
+}
+#include "G4HadronElastic.hh"
+extern "C" void     abcross_(int &icas,float &a_p,float &a_t,float &zp_p,float &z_t,float &p_p,float &sigma_t,float sigma_el[],float sigma_q[]);
+G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
+                                  G4double plab,
+                                  G4int Z, G4int A)
+{
+ 
+  static const G4double GeV2 = GeV*GeV;
+  G4double momentumCMS = ComputeMomentumCMS(p,plab,Z,A);
+  G4double tmax = 4.0*momentumCMS*momentumCMS/GeV2;
+  G4double aa, bb, cc;
+  G4double dd = 10.;
+  G4Pow* g4pow = G4Pow::GetInstance();
+  if (A <= 62) {
+    bb = 14.5*g4pow->Z23(A);
+    aa = g4pow->powZ(A, 1.63)/bb;
+    cc = 1.4*g4pow->Z13(A)/dd;
+  } else {
+    bb = 60.*g4pow->Z13(A);
+    aa = g4pow->powZ(A, 1.33)/bb;
+    cc = 0.4*g4pow->powZ(A, 0.4)/dd;
+  }
+
+  if(strstr((const char*)(this->GetModelName()),"ionelasticVC")){
+    float a_p=p->GetBaryonNumber(); 
+    float a_t=A;
+    float z_p=int(p->GetPDGCharge()/eplus+0.5);
+    float z_t=Z;
+    float p_p=plab/GeV;
+    float sigma_t=0;
+    float sigma_el[3]={0,0,0};
+    float sigma_q[5]={0,0,0,0,0};
+    int icas=1;
+    abcross_(icas,a_p,a_t,z_p,z_t,p_p,sigma_t,sigma_el,sigma_q);
+    aa=sigma_el[0];
+    bb=sigma_el[1];
+    cc=sigma_q[0];
+    dd=sigma_q[2]; 
+  }
+  G4double q1 = 1.0 - std::exp(-bb*tmax);
+  G4double q2 = 1.0 - std::exp(-dd*tmax);
+  G4double s1 = q1*aa;
+  G4double s2 = q2*cc;
+  if((s1 + s2)*G4UniformRand() < s2) {
+    q1 = q2;
+    bb = dd;
+  }
+  return -GeV2*std::log(1.0 - G4UniformRand()*q1)/bb;
+}
+
+#endif
+
