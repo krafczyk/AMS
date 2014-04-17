@@ -9147,7 +9147,6 @@ if(defined $dataset->{buildno} ){
                 $self->ErrorPlus($mes);
             }
             my $time = time();
-            my $time = time();
             $sql="update Cites set state=1, timestamp=$time where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
             $run=$res->[0][0];
