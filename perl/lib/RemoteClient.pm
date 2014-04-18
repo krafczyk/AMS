@@ -19603,12 +19603,12 @@ sub CheckFS{
                sleep (1);
                my @stat =stat("$stf");
                unlink "$stf";
-               if($stat[7]==0){
+               if($stat[7]==0  or not (-d $fs->[0])){
                system("ls $fs->[0] 1>$stf 2>&1 &");
                sleep (3); 
                my @stat =stat("$stf");
                unlink "$stf";
-               if($stat[7]==0){
+               if($stat[7]==0 or not (-d $fs->[0])){
                 $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
                 if(defined $vrb and $vrb==1){
                  print " $fs->[1]:$fs->[0] is not online \n";
