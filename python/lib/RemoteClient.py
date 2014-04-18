@@ -424,21 +424,22 @@ class RemoteClient:
                #
                #          check to see if it is can be readed
                #
-               whoami=os.getuid()
-               stf=fs[0]+"."+str(whoami)+".o"
-               stf=re.sub(r'/','',stf)
-               stf="/tmp/"+stf
-               if(self.v):
-                   print stf
-               os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
-               time.sleep(1)
-               stat=[0,0,0,0,0,0,0,0,0,0,0]
-               try:
-                   stat =os.stat(stf)
-                   os.unlink(stf)
-               except:
-                   print stf, " Failed to stat " 
-               if stat[ST_SIZE]==0:
+#               whoami=os.getuid()
+#               stf=fs[0]+"."+str(whoami)+".o"
+#               stf=re.sub(r'/','',stf)
+#               stf="/tmp/"+stf
+#               if(self.v):
+#                   print stf
+#               os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
+#               time.sleep(1)
+#               stat=[0,0,0,0,0,0,0,0,0,0,0]
+#               try:
+#                   stat =os.stat(stf)
+#                   os.unlink(stf)
+#               except:
+#                   print stf, " Failed to stat " 
+#               if stat[ST_SIZE]==0:
+               if (not os.path.isdir(fs[0])):
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    if(self.v):
                        print stf," Is Offline"
