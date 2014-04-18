@@ -424,22 +424,20 @@ class RemoteClient:
                #
                #          check to see if it is can be readed
                #
-#               whoami=os.getuid()
-#               stf=fs[0]+"."+str(whoami)+".o"
-#               stf=re.sub(r'/','',stf)
-#               stf="/tmp/"+stf
-#               if(self.v):
-#                   print stf
-#               os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
-#               time.sleep(1)
-#               stat=[0,0,0,0,0,0,0,0,0,0,0]
-#               try:
-#                   stat =os.stat(stf)
-#                   os.unlink(stf)
-#               except:
-#                   print stf, " Failed to stat " 
-#               if stat[ST_SIZE]==0:
-               if (not os.path.isdir(fs[0])):
+               whoami=os.getuid()
+               stf=fs[0]+"."+str(whoami)+".o"
+               stf=re.sub(r'/','',stf)
+               stf="/tmp/"+stf
+               if(self.v):
+                   print stf
+               os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
+               time.sleep(1)
+               stat=[0,0,0,0,0,0,0,0,0,0,0]
+               try:
+                   stat =os.stat(stf)
+               except:
+                   print stf, " Failed to stat " 
+               if (stat[ST_SIZE]==0 or (not os.path.isdir(fs[0]))) :
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    if(self.v):
                        print stf," Is Offline"
@@ -447,7 +445,16 @@ class RemoteClient:
                        self.sqlserver.Update(sql)
                        self.sqlserver.Commit()
                    continue
+               pair=commands.getstatusoutput("cat "+stf+" | grep Data | wc -l ")
+               if( not (pair[0]==0 and pair[1]=='1')):
+                   sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
+                   print stf," Is Offline by 2"
+                   if updatedb!=0:
+                       self.sqlserver.Update(sql)
+                       self.sqlserver.Commit()
+                   continue           
                res=""
+               os.unlink(stf)
                try:
                    res=os.statvfs(os.path.realpath(fs[0]))
                except:
