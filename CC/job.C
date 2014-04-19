@@ -3838,6 +3838,7 @@ void AMSJob::_timeinitjob(){
 //    if(isRealData()){
       if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
        TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
+       if(!isRealData())TofTAlign->TDVName="TofAlign2MC";//20140419 MC Calibration
        TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
                               TofTAlign->TDVSize,
                               TofTAlign->TDVBlock,

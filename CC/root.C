@@ -2556,6 +2556,11 @@ bool AMSEventR::ReadHeader(int entry){
       if(TRFITFFKEY.magtemp && Version()>=800 ) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
+    ///--Load TOFDBc
+    if(AMSEventR::Head()->nMCEventgC() && Version()>=800){ //MC Event
+       TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
+       TofTAlign->TDVName="TofAlign2MC";//20140419 MC Calibration
+    }
 #ifdef _PGTRACK_
     // Fix trdefaultfit
     if(Version()>700 && Version()<714){
