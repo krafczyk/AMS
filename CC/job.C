@@ -917,7 +917,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
   TFMCFFKEY.threref[0]=1.3;//150  LT  reference to normal value
   TFMCFFKEY.threref[1]=1.19;//151  HT  reference to normal value
-  TFMCFFKEY.threref[2]=1.0;//152  SHT reference to normal value
+  TFMCFFKEY.threref[2]=0.95;//152  SHT reference to normal value
   TFMCFFKEY.fladctbref=0.2;//153 "flash-ADC" internal time binning reference to normal value(0.1ns*0.2=20ns)        
 //---
 
