@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.15 2010/11/09 13:44:41 pzuccon Exp $
+* $Id$
 *
-* $Log: Geant3_utils.F,v $
+* $Log$
+* Revision 1.16  2014/04/20 07:48:29  choutko
+* put sht threshould in mc to 0.95
+*
 * Revision 1.15  2010/11/09 13:44:41  pzuccon
 * fix HISE dcard and bring it to standard place
 *
@@ -134,7 +137,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.15 2010/11/09 13:44:41 pzuccon Exp $
+*  $Id$
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -869,7 +872,7 @@ c       endif
 100    continue
        bnn=fb_ab(p_pn)
        ab=0.53
-       b_ab=2.2*bnn*(a_t*a_p)**0.53
+       b_ab=2.*bnn*(a_t*a_p)**0.53
        cts=0.389*16*3.14159
        dsdt=sigma_t**2/cts
        sigma_el(1)=dsdt/b_ab
@@ -946,7 +949,7 @@ c       endif
 
        bnn=fb_ab(p_pn)
        ab=0.53
-       b_ab=2.2*bnn*(a_t*a_p)**0.53
+       b_ab=2.*bnn*(a_t*a_p)**0.53
        cts=0.389*16*3.14159
        dsdt=sigma_t**2/cts
        sigma_el(1)=sigma_e

@@ -323,7 +323,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.Geant3CutsOn=1;
   G4FFKEY.PhysicsListUsed=1;
   G4FFKEY.LowEMagProcUsed=0;
-  G4FFKEY.IonPhysicsModel=2013; 
+  G4FFKEY.IonPhysicsModel=1013; 
   G4FFKEY.UseEMDModel=1;
   G4FFKEY.SigTerm=0;
   G4FFKEY.ExEmPhysics=0;
@@ -920,7 +920,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
   TFMCFFKEY.threref[0]=1.3;//150  LT  reference to normal value
   TFMCFFKEY.threref[1]=1.19;//151  HT  reference to normal value
-  TFMCFFKEY.threref[2]=1.;//152  SHT reference to normal value
+  TFMCFFKEY.threref[2]=0.95//152  SHT reference to normal value
   TFMCFFKEY.fladctbref=0.2;//153 "flash-ADC" internal time binning reference to normal value(0.1ns*0.2=20ns) 
 //---
 
@@ -2547,7 +2547,7 @@ string g4is=g4i;
 int pos=g4is.find("geant4.9.4");
 if(pos>=0){
 if(strstr((const char *)G4Version,"geant4-09-06")){
-string add="geant4.9.6.p02";
+string add="geant4.9.6.p03";
  g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
  setenv("G4INSTALL",g4is.c_str(),1);
  cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
