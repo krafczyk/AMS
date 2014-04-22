@@ -607,7 +607,7 @@ void G4HadronElasticPhysics::ConstructProcess()
 
     } else if(pname == "proton") {   
 
-      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess("protonelastic");
       //hel->AddDataSet(new G4BGGNucleonElasticXS(particle));
 
       //      hel->AddDataSet(new G4ChipsProtonElasticXS());
