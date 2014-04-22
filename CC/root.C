@@ -846,17 +846,18 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
   //  before icut-1 as last cut
   //  after icut-1 as last cut
   //  after last cut as first cut : changed  after !icut-1 as last cut
-  //  after cut icut-1 as first cut
+  //  after cut icut-1 
   hf1(id,a,w);
   bool cut=true;
   if(icut-1>0)for(int k=0;k<icut-1;k++)cut=cut && cuts[k];
   if(cut)hf1(id+shift,a,w);
+  if(cut && icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);
   for(int k=icut;k<ncuts;k++)cut=cut && cuts[k];
   if(cut)hf1(id+shift+shift,a,w);
   if(cut && cuts[icut-1])hf1(id+shift+shift+shift,a,w);             
   if(cut && !cuts[icut-1])hf1(id+shift+shift+shift+shift,a,w);             
 //  if(cuts[ncuts-1])hf1(id+shift+shift+shift+shift,a,w);             
-  if(icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);             
+//  if(icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);             
 }
 
 void AMSEventR::hf1(int idd, float a, float w){
@@ -2557,12 +2558,6 @@ bool AMSEventR::ReadHeader(int entry){
       if(TRFITFFKEY.magtemp && Version()>=800 ) MagField::GetPtr()->UpdateMagTemp(UTime());
     }
 #endif
-
-///--Load TOFDBc
-    if(AMSEventR::Head()->nMCEventgC() && Version()>=800){ //MC Event
-       TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
-       TofTAlign->TDVName="TofAlign2MC";//20140419 MC Calibration
-    } 
 #ifdef _PGTRACK_
     // Fix trdefaultfit
     if(Version()>700 && Version()<714){
