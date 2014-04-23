@@ -1032,7 +1032,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 						      method,
 						      v_dts_nn[dts].c_str()
 						      );
-      if (!rc) v_dts_temp[dts] = value[0];
+      if (!rc && value[0]<127.) v_dts_temp[dts] = value[0]; // protection against crazy DB values
       else if (rc==1) {
 	cout << "RichPMTCalib::getRichPmtTemperatures-E-NoElementNameFound : skip this run" << endl;
 	skip_run=1;
@@ -1266,7 +1266,7 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 						      method,
 						      v_dts_nn[dts].c_str()
 						      );
-      if (!rc) v_dts_temp[dts] = value[0];
+      if (!rc && value[0]<127.) v_dts_temp[dts] = value[0]; // protection against crazy DB values
       else if (rc==1) {
 	cout << "RichPMTCalib::getRichBrickTemperatures-E-NoNodeNameFound : skip this run" << endl;
 	skip_run=1;
