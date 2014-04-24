@@ -135,6 +135,8 @@ class TrSimSensor {
   //! Set diffusion radius [um]
   void   SetDiffusionRadius(double radius) { _diff_radius = radius; }
 
+  //! Sensor type is K7 
+  bool   IsK7()                 { return (GetSensorType()==kK7); }
   //! Get sensor type (0:S, 1:K5, 2:K7)
   int    GetSensorType()        { return _sensor_type; }
   //! Get number of implantation strips
@@ -153,6 +155,8 @@ class TrSimSensor {
   int    GetDiffusionType()     { return _diff_type; }
   //! Get diffusion parameter 
   double GetDiffusionRadius()   { return _diff_radius; }
+  //! Get number of readout channels 
+  int    GetNChannels();
 
   ////////////////
   // Readout/Implant Conversions

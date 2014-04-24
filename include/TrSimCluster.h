@@ -69,8 +69,8 @@ class TrSimCluster {
   int    GetAddress()        { return _address; }
   //! Get the address of a strip
   int    GetAddress(int i)   { return _address + i; }
-  //! Get the address of a strip with cyclicity (K7 cluster could extend over 384)
-  int    GetAddressCycl(int i) { return (_address + i)%384; }
+  //! Get the address of a strip with cyclicity 
+  int    GetAddressCycl(int i, int nstrips=384) { return (_address + i)%nstrips; }
   //! Get the seed as setted by the constructor
   int    GetSeedIndex()    { return _seedind; } 
   //! Find a seed 
@@ -86,7 +86,7 @@ class TrSimCluster {
   //! Multiply a cluster by a number (signal rescaling)
   void   Multiply(double signal);
   //! It returns a Cluster summed with another 
-  void   AddCluster(TrSimCluster& cluster);
+  void   AddCluster(TrSimCluster& cluster, int nstrips, bool cycl = false);
   //! Gaussianize a fraction of signal of each strip 
   void   GaussianizeFraction(int iside, int hcharge,double fraction,float IP);
   //! Add gaussian noise to each strip 
