@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.42 2013/08/06 12:05:47 oliva Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/08/06 12:05:47 $
+///$Date$
 ///
-///$Revision: 1.42 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -261,12 +261,12 @@ void TrMCClusterR::GenSimClusters(){
       double edep_c2=edep;
       if(iside==0) {
         double edep_c=qlinfun(edep,TRMCFFKEY.SigQuadLoss[hcharge][iside]); // 
-        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][0]*edep_c/81; 
+        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][0]*edep_c/81;
       }
       else {
-        double edep_c=edep* (1+rnormx()*0.15);
+        double edep_c=edep*(1+rnormx()*0.15);
         edep_c=qlinfun(edep_c,TRMCFFKEY.SigQuadLoss[hcharge][iside]);	
-        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
+        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][iside]*edep_c/81+edep_c/81*edep_c/81-4;
       }
       // if side Y some additional edep vs eta dependence
       // double pc[5]={0.8169,2.23,-8.996,13.581,-6.849};

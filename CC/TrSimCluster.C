@@ -150,7 +150,7 @@ void TrSimCluster::Multiply(double signal) {
 }
 
 
-void TrSimCluster::AddCluster(TrSimCluster& cluster) {  
+void TrSimCluster::AddCluster(TrSimCluster& cluster, int nstrips, bool cycl) {  
   if (this == &cluster) { // check auto-add
     printf("TrSimCluster::AddCluster-E auto-adding, this could be an error... please check.\n");
     return;
@@ -171,20 +171,39 @@ void TrSimCluster::AddCluster(TrSimCluster& cluster) {
     _seedind = cluster._seedind;
     return;
   }
-
-  // first and last address
-  int add1 = min(cluster.GetAddress(),GetAddress());
-  int add2 = max(cluster.GetAddress()+cluster.GetWidth(),GetAddress()+GetWidth());
+  // addresses
+  int this_min = GetAddress();
+  int this_max = GetAddress()+GetWidth();
+  int that_min = cluster.GetAddress();
+  int that_max = cluster.GetAddress()+cluster.GetWidth();
+  // consistency checks (no out of boundaries clusters in case of no cyclicity)
+  if (!cycl) {
+    if (this_min<0)       printf("TrSimCluster::AddCluster-W this_min is <0 (%d). Check please!\n",this_min);  
+    if (that_min<0)       printf("TrSimCluster::AddCluster-W that_min is <0 (%d). Check please!\n",that_min);  
+    if (this_max>nstrips) printf("TrSimCluster::AddCluster-W this_max is >%d (%d). Check please!\n",nstrips,this_max);  
+    if (that_max>nstrips) printf("TrSimCluster::AddCluster-W that_max is >%d (%d). Check please!\n",nstrips,that_max);  
+  }
+  // shift for cyclicity 
+  if (cycl) {
+    // if with shifted addresses the cluster is shorter than use shifted addresses
+    int cluster_length = max(this_max,that_max)-min(this_min,that_min);
+    int cluster_length_shifted = max(this_max,that_max+nstrips)-min(this_min,that_min+nstrips);
+    if (cluster_length_shifted<cluster_length) {
+      that_min += nstrips;
+      that_max += nstrips;
+    }
+  }
+  // cout << "-----> " << this_min << " " << that_min << " " << this_max << " " << that_max << endl;
+  // cluster.Info(10);   
+  // new boundaries 
+  int add1 = min(this_min,that_min);
+  int add2 = max(this_max,that_max);
   vector<double> acluster;
   acluster.clear();
   // fill
   for (int i=add1; i<add2; i++){
-    float s0=0;
-    if(i>=GetAddress()&& i<(GetAddress()+GetWidth())) 
-      s0= GetSignal(i-GetAddress());
-    float s1=0;
-    if(i>=cluster.GetAddress()&& i<(cluster.GetAddress()+cluster.GetWidth())) 
-      s1= cluster.GetSignal(i-cluster.GetAddress());
+    float s0 = ( (i>=this_min)&&(i<this_max) ) ? GetSignal(i-this_min) : 0;
+    float s1 = ( (i>=that_min)&&(i<that_max) ) ? cluster.GetSignal(i-that_min) : 0; 
     acluster.push_back(s0+s1);
   }
   // redefine the cluster
@@ -301,22 +320,20 @@ void TrSimCluster::ApplyGain(int iside, int tkid) {
 
 void TrSimCluster::ApplyAsymmetry(int iside) {
   float asym[2]={0.04,0.01};
-  if(iside==0)
+  if(iside==0) { 
     for (int ist=GetWidth()-1; ist>0; ist--) { // first channel is excluded
-    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*asym[iside]);
-	//        SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
-    //   SetSignal(ist,GetSignal(ist)+(GetSignal(ist-1)+500)*2.83E-4);
-  } 
-
-  if(iside==1)
-//     for (int ist=1; ist<GetWidth(); ist++) { // first channel is excluded
-//     SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*asym[iside]);
-
+      SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*asym[iside]);
+      // SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
+      // SetSignal(ist,GetSignal(ist)+(GetSignal(ist-1)+500)*2.83E-4);
+    } 
+  }
+  if(iside==1) {
     for (int ist=GetWidth()-1; ist>=0; ist--) { // first channel is excluded
       SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*asym[iside]);
-	//        SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
-    //   SetSignal(ist,GetSignal(ist)+(GetSignal(ist-1)+500)*2.83E-4);
-  } 
+      // SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
+      // SetSignal(ist,GetSignal(ist)+(GetSignal(ist-1)+500)*2.83E-4);
+    } 
+  }
 }
 
 
