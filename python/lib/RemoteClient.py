@@ -2085,7 +2085,12 @@ class RemoteClient:
                 outputpath=outputdisk+outputpath+"/"+period
             os.system("mkdir -p "+outputpath)
             
-            mtime=os.stat(outputpath)[9]
+            try:
+                mtime=os.stat(outputpath)[9]
+            except:
+                print "Enable to open ", outputpath
+                continue
+           
             if(mtime != None):
                 if(mtime!=0):
                     gb=disk[2]
