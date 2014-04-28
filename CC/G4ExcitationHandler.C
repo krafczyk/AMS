@@ -735,6 +735,110 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
   }
   return -GeV2*std::log(1.0 - G4UniformRand()*q1)/bb;
 }
+#include "G4ComponentGGNuclNuclXsc.hh"
+
+#include "G4PhysicalConstants.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4ParticleTable.hh"
+#include "G4IonTable.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4HadTmpUtil.hh"
+#include "G4HadronNucleonXsc.hh"
+
+G4double G4ComponentGGNuclNuclXsc::
+GetZandACrossSection(const G4DynamicParticle* aParticle,
+                     G4int tZ, G4int tA)
+{
+  G4double xsection;
+  G4double sigma;
+  G4double cofInelastic = 2.4;
+  G4double cofTotal = 2.0;
+  G4double nucleusSquare;
+  G4double cB;
+  G4double ratio;
+
+  G4double pZ = aParticle->GetDefinition()->GetPDGCharge();
+  G4double pA = aParticle->GetDefinition()->GetBaryonNumber();
+
+  G4double pTkin = aParticle->GetKineticEnergy();  
+  pTkin /= pA;
+
+  G4double pN = pA - pZ;
+  if( pN < 0. ) pN = 0.;
+
+  G4double tN = tA - tZ;
+  if( tN < 0. ) tN = 0.;
+
+  G4double tR = GetNucleusRadius( G4double(tZ),G4double(tA) );  
+  G4double pR = GetNucleusRadius(pZ,pA); 
+
+  cB = GetCoulombBarier(aParticle, G4double(tZ), G4double(tA), pR, tR);
+
+  if ( cB > 0. ) 
+  {
+    G4DynamicParticle* dProton = new G4DynamicParticle(theProton,
+                                              G4ParticleMomentum(1.,0.,0.), 
+                                              pTkin);
+
+    G4DynamicParticle* dNeutron = new G4DynamicParticle(theNeutron,
+                                              G4ParticleMomentum(1.,0.,0.), 
+                                              pTkin);
+
+    sigma = (pZ*tZ+pN*tN)*hnXsc->GetHadronNucleonXscNS(dProton, theProton);
+
+    G4double ppInXsc = hnXsc->GetInelasticHadronNucleonXsc();
+
+    sigma += (pZ*tN+pN*tZ)*hnXsc->GetHadronNucleonXscNS(dNeutron, theProton);
+
+    G4double npInXsc = hnXsc->GetInelasticHadronNucleonXsc();
+
+    // G4cout<<"ppInXsc = "<<ppInXsc/millibarn<<"; npInXsc = "<<npInXsc/millibarn<<G4endl;
+    // G4cout<<"npTotXsc = "<<hnXsc->GetTotalHadronNucleonXsc()/millibarn<<"; npElXsc = "
+    //                      <<hnXsc->GetElasticHadronNucleonXsc()/millibarn<<G4endl;
+
+    nucleusSquare = cofTotal*pi*( pR*pR + tR*tR );   // basically 2piRR
+
+    ratio      = sigma/nucleusSquare;
+    xsection   = nucleusSquare*std::log( 1. + ratio );
+    fTotalXsc  = xsection;
+    fTotalXsc *= cB;
+
+    fInelasticXsc = nucleusSquare*std::log( 1. + cofInelastic*ratio )/cofInelastic;
+
+    fInelasticXsc *= cB;
+    fElasticXsc   = fTotalXsc - fInelasticXsc;
+
+    // if (fElasticXsc < DBL_MIN) fElasticXsc = DBL_MIN;
+    /*    
+    G4double difratio = ratio/(1.+ratio);
+
+    fDiffractionXsc = 0.5*nucleusSquare*( difratio - std::log( 1. + difratio ) );
+    */
+    // production to be checked !!! edit MK xsc
+
+    //sigma = (pZ*tZ+pN*tN)*GetHadronNucleonXscMK(theProton, pTkin, theProton) +
+    //      (pZ*tN+pN*tZ)*GetHadronNucleonXscMK(theProton, pTkin, theNeutron);
+
+    sigma = (pZ*tZ+pN*tN)*ppInXsc + (pZ*tN+pN*tZ)*npInXsc;
+ 
+    ratio = sigma/nucleusSquare;
+    fProductionXsc = nucleusSquare*std::log( 1. + cofInelastic*ratio )/cofInelastic;
+
+    if (fElasticXsc < 0.) fElasticXsc = 0.;
+    delete dProton;
+    delete dNeutron;
+  }
+  else
+  {
+    fInelasticXsc  = 0.;
+    fTotalXsc      = 0.;
+    fElasticXsc    = 0.;
+    fProductionXsc = 0.;
+  }
+  return fInelasticXsc;   // xsection; 
+}
+
+
 
 #endif
 
