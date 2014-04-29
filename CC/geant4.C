@@ -519,7 +519,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       cout<<"  AMSG4EventAction::EndOfEventAction-I-InitialMemoryAllocation "<<m.arena<<" "<<m.uordblks<<" "<<minit<<" "<<G4FFKEY.MemoryLimit<<endl;
       
     }
-    if(gams::mem_not_enough()){
+    if(gams::mem_not_enough(2*102400)){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
     }
