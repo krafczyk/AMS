@@ -9600,7 +9600,7 @@ if(defined $dataset->{buildno} ){
            $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
              #die " $subs $buf \n";
           }
-           if($timendu-$timbegu>86400*1000){
+           if($timendu-$timbegu>86400*10000){
                $timbegu=time();
                $timendu=$timbegu+3600*$runno;
            }
