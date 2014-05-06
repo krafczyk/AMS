@@ -245,10 +245,11 @@ float  getthetam(); ///< PhiM (degrees)
 float  getphim();   ///< ThetaM(degrees)
 static int Version; ///< RTI Version id
 /*!< 
-  0: 2013-01 B620 default \n
-  1: 2013-08 B620         \n
-  2: 2013-12 B700         \n
-  3: 2014-03 B620 latest  \n 
+  0:  2013-01 B620 default \n
+  1:  2013-08 B620         \n
+  2:  2013-12 B700         \n
+  3:  2014-03 B620 latest  \n 
+  503:2014-03 B800(p5) latest \n
 */
 static int Loadopt;//< load option
 /// use latest RTI Version

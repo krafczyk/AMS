@@ -15,6 +15,17 @@ public:
     static int a=0;
     static int dupl=0;
     static unsigned int oldev=0;
+    //cout <<" q "<<ev<<endl;
+  if(ev){
+     if(ev->nParticle()){
+        //cout <<ev->nTrdTrack()<<ev->Particle(0).Charge<<endl;
+        if(ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).Charge>1 &&ev->nTrdTrack()>5){
+return true;
+}
+else return false;
+}
+}
+return false;
     AMSEventR*pev=ev;
     if(pev && (!pev->NBetaH() && pev->nTrTrack() )){
       cout <<pev->nTrTrack()<<" "<<pev->NBetaH()<<" "<<pev->NTrTrack()<<" "<<pev->NTrTrackG()<<endl;

@@ -509,3 +509,336 @@ G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
 
 */
 #endif
+#if G4VERSION_NUMBER  > 945 
+#include "G4HadronElasticPhysics.hh"
+
+#include "G4SystemOfUnits.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ProcessManager.hh"
+
+#include "G4MesonConstructor.hh"
+#include "G4BaryonConstructor.hh"
+#include "G4IonConstructor.hh"
+
+#include "G4HadronElasticProcess.hh"
+#include "G4HadronElastic.hh"
+#include "G4CHIPSElastic.hh"
+#include "G4ElasticHadrNucleusHE.hh"
+#include "G4AntiNuclElastic.hh"
+
+#include "G4BGGNucleonElasticXS.hh"
+#include "G4BGGPionElasticXS.hh"
+#include "G4NeutronElasticXS.hh"
+
+#include "G4CrossSectionDataSetRegistry.hh"
+
+#include "G4ChipsProtonElasticXS.hh"
+#include "G4ChipsNeutronElasticXS.hh"
+
+#include "G4ComponentAntiNuclNuclearXS.hh"  
+#include "G4CrossSectionElastic.hh"
+#include "G4ComponentGGNuclNuclXsc.hh"
+void G4HadronElasticPhysics::ConstructProcess()
+{
+  if(wasActivated) { return; }
+  wasActivated = true;
+
+  G4double elimitPi = 1.0*GeV;
+  G4double elimitAntiNuc = 100*MeV;
+  if(verbose > 1) {
+    G4cout << "### HadronElasticPhysics Construct Processes with the limit for pi " 
+	   << elimitPi/GeV << " GeV" 
+	   << "                                                  for anti-neuclei " 
+	   << elimitAntiNuc/GeV << " GeV"	   << G4endl;
+  }
+
+  G4AntiNuclElastic* anuc = new G4AntiNuclElastic();
+  anuc->SetMinEnergy(elimitAntiNuc);
+  G4CrossSectionElastic* anucxs = 
+    new G4CrossSectionElastic(anuc->GetComponentCrossSection());
+
+  G4HadronElastic* lhep0 = new G4HadronElastic();
+  G4HadronElastic* lhep1 = new G4HadronElastic();
+  G4HadronElastic* lhep2 = new G4HadronElastic();
+  lhep1->SetMaxEnergy(elimitPi);
+  lhep2->SetMaxEnergy(elimitAntiNuc);
+
+  G4CHIPSElastic* chipsp = new G4CHIPSElastic();
+  neutronModel = new G4CHIPSElastic();
+
+  G4ElasticHadrNucleusHE* he = new G4ElasticHadrNucleusHE(); 
+  he->SetMinEnergy(elimitPi);
+
+
+
+//  G4HadronElastic* lhep3 = new G4HadronElastic();
+//  G4CrossSectionElastic* nucxs = 
+//    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
+
+
+
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() )
+  {
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String pname = particle->GetParticleName();
+    if(pname == "anti_lambda"  ||
+       pname == "anti_neutron" ||
+       pname == "anti_omega-"  || 
+       pname == "anti_sigma-"  || 
+       pname == "anti_sigma+"  || 
+       pname == "anti_xi-"  || 
+       pname == "anti_xi0"  || 
+       pname == "lambda"    || 
+       pname == "omega-"    || 
+       pname == "sigma-"    || 
+       pname == "sigma+"    || 
+       pname == "xi-"        
+       ) {
+      
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->RegisterMe(lhep0);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(pname == "proton") {   
+
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess("protonelastic");
+      //hel->AddDataSet(new G4BGGNucleonElasticXS(particle));
+
+      //      hel->AddDataSet(new G4ChipsProtonElasticXS());
+      hel->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4ChipsProtonElasticXS::Default_Name()));
+     
+      hel->RegisterMe(chipsp);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(pname == "neutron") {   
+
+      neutronProcess = new G4HadronElasticProcess();
+      //neutronProcess->AddDataSet(new G4BGGNucleonElasticXS(particle));
+      neutronProcess->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4ChipsNeutronElasticXS::Default_Name()));
+      neutronProcess->RegisterMe(neutronModel);
+      pmanager->AddDiscreteProcess(neutronProcess);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " 
+	       << neutronProcess->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if (pname == "pi+" || pname == "pi-") { 
+
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->AddDataSet(new G4BGGPionElasticXS(particle));
+      hel->RegisterMe(lhep1);
+      hel->RegisterMe(he);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(pname == "kaon-"     || 
+	      pname == "kaon+"     || 
+	      pname == "kaon0S"    || 
+	      pname == "kaon0L" 
+	      ) {
+      
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->RegisterMe(lhep0);
+      pmanager->AddDiscreteProcess(hel);
+      if(verbose > 1) {
+	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
+	       << " added for " << particle->GetParticleName() << G4endl;
+      }
+
+    } else if(
+       pname == "anti_proton"    || 
+       pname == "anti_alpha"     ||
+       pname == "anti_deuteron"  ||
+       pname == "anti_triton"    ||
+       pname == "anti_He3"       ) {
+
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->AddDataSet(anucxs);
+      hel->RegisterMe(lhep2);
+      hel->RegisterMe(anuc);
+      pmanager->AddDiscreteProcess(hel);
+//    } else if(
+//       pname == "GenericIon"    || 
+//       pname == "alpha"     ||
+//       pname == "deuteron"  ||
+//       pname == "triton"    ||
+//       pname == "He3"       ) {
+//
+//      G4HadronElasticProcess* hel = new G4HadronElasticProcess("ionelastic");
+//      hel->AddDataSet(nucxs);
+//      hel->RegisterMe(lhep3);
+//      pmanager->AddDiscreteProcess(hel);
+    }
+
+  }
+}
+#include "G4HadronElastic.hh"
+extern "C" void     abcross_(int &icas,float &a_p,float &a_t,float &zp_p,float &z_t,float &p_p,float &sigma_t,float sigma_el[],float sigma_q[]);
+G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
+                                  G4double plab,
+                                  G4int Z, G4int A)
+{
+ 
+  static const G4double GeV2 = GeV*GeV;
+  G4double momentumCMS = ComputeMomentumCMS(p,plab,Z,A);
+  G4double tmax = 4.0*momentumCMS*momentumCMS/GeV2;
+  G4double aa, bb, cc;
+  G4double dd = 10.;
+  G4Pow* g4pow = G4Pow::GetInstance();
+  if (A <= 62) {
+    bb = 14.5*g4pow->Z23(A);
+    aa = g4pow->powZ(A, 1.63)/bb;
+    cc = 1.4*g4pow->Z13(A)/dd;
+  } else {
+    bb = 60.*g4pow->Z13(A);
+    aa = g4pow->powZ(A, 1.33)/bb;
+    cc = 0.4*g4pow->powZ(A, 0.4)/dd;
+  }
+
+  if(strstr((const char*)(this->GetModelName()),"ionelasticVC")){
+    float a_p=p->GetBaryonNumber(); 
+    float a_t=A;
+    float z_p=int(p->GetPDGCharge()/eplus+0.5);
+    float z_t=Z;
+    float p_p=plab/GeV;
+    float sigma_t=0;
+    float sigma_el[3]={0,0,0};
+    float sigma_q[5]={0,0,0,0,0};
+    int icas=1;
+    abcross_(icas,a_p,a_t,z_p,z_t,p_p,sigma_t,sigma_el,sigma_q);
+    aa=sigma_el[0];
+    bb=sigma_el[1];
+    cc=sigma_q[0];
+    dd=sigma_q[2]; 
+  }
+  G4double q1 = 1.0 - std::exp(-bb*tmax);
+  G4double q2 = 1.0 - std::exp(-dd*tmax);
+  G4double s1 = q1*aa;
+  G4double s2 = q2*cc;
+  if((s1 + s2)*G4UniformRand() < s2) {
+    q1 = q2;
+    bb = dd;
+  }
+  return -GeV2*std::log(1.0 - G4UniformRand()*q1)/bb;
+}
+#include "G4ComponentGGNuclNuclXsc.hh"
+
+#include "G4PhysicalConstants.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4ParticleTable.hh"
+#include "G4IonTable.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4HadTmpUtil.hh"
+#include "G4HadronNucleonXsc.hh"
+
+G4double G4ComponentGGNuclNuclXsc::
+GetZandACrossSection(const G4DynamicParticle* aParticle,
+                     G4int tZ, G4int tA)
+{
+  G4double xsection;
+  G4double sigma;
+  G4double cofInelastic = 2.4;
+  G4double cofTotal = 2.0;
+  G4double nucleusSquare;
+  G4double cB;
+  G4double ratio;
+
+  G4double pZ = aParticle->GetDefinition()->GetPDGCharge();
+  G4double pA = aParticle->GetDefinition()->GetBaryonNumber();
+
+  G4double pTkin = aParticle->GetKineticEnergy();  
+  pTkin /= pA;
+
+  G4double pN = pA - pZ;
+  if( pN < 0. ) pN = 0.;
+
+  G4double tN = tA - tZ;
+  if( tN < 0. ) tN = 0.;
+
+  G4double tR = GetNucleusRadius( G4double(tZ),G4double(tA) );  
+  G4double pR = GetNucleusRadius(pZ,pA); 
+
+  cB = GetCoulombBarier(aParticle, G4double(tZ), G4double(tA), pR, tR);
+
+  if ( cB > 0. ) 
+  {
+    G4DynamicParticle* dProton = new G4DynamicParticle(theProton,
+                                              G4ParticleMomentum(1.,0.,0.), 
+                                              pTkin);
+
+    G4DynamicParticle* dNeutron = new G4DynamicParticle(theNeutron,
+                                              G4ParticleMomentum(1.,0.,0.), 
+                                              pTkin);
+
+    sigma = (pZ*tZ+pN*tN)*hnXsc->GetHadronNucleonXscNS(dProton, theProton);
+
+    G4double ppInXsc = hnXsc->GetInelasticHadronNucleonXsc();
+
+    sigma += (pZ*tN+pN*tZ)*hnXsc->GetHadronNucleonXscNS(dNeutron, theProton);
+
+    G4double npInXsc = hnXsc->GetInelasticHadronNucleonXsc();
+
+    // G4cout<<"ppInXsc = "<<ppInXsc/millibarn<<"; npInXsc = "<<npInXsc/millibarn<<G4endl;
+    // G4cout<<"npTotXsc = "<<hnXsc->GetTotalHadronNucleonXsc()/millibarn<<"; npElXsc = "
+    //                      <<hnXsc->GetElasticHadronNucleonXsc()/millibarn<<G4endl;
+
+    nucleusSquare = cofTotal*pi*( pR*pR + tR*tR );   // basically 2piRR
+
+    ratio      = sigma/nucleusSquare;
+    xsection   = nucleusSquare*std::log( 1. + ratio );
+    fTotalXsc  = xsection;
+    fTotalXsc *= cB;
+
+    fInelasticXsc = nucleusSquare*std::log( 1. + cofInelastic*ratio )/cofInelastic;
+
+    fInelasticXsc *= cB;
+    fElasticXsc   = fTotalXsc - fInelasticXsc;
+
+    // if (fElasticXsc < DBL_MIN) fElasticXsc = DBL_MIN;
+    /*    
+    G4double difratio = ratio/(1.+ratio);
+
+    fDiffractionXsc = 0.5*nucleusSquare*( difratio - std::log( 1. + difratio ) );
+    */
+    // production to be checked !!! edit MK xsc
+
+    //sigma = (pZ*tZ+pN*tN)*GetHadronNucleonXscMK(theProton, pTkin, theProton) +
+    //      (pZ*tN+pN*tZ)*GetHadronNucleonXscMK(theProton, pTkin, theNeutron);
+
+    sigma = (pZ*tZ+pN*tN)*ppInXsc + (pZ*tN+pN*tZ)*npInXsc;
+ 
+    ratio = sigma/nucleusSquare;
+    fProductionXsc = nucleusSquare*std::log( 1. + cofInelastic*ratio )/cofInelastic;
+
+    if (fElasticXsc < 0.) fElasticXsc = 0.;
+    delete dProton;
+    delete dNeutron;
+  }
+  else
+  {
+    fInelasticXsc  = 0.;
+    fTotalXsc      = 0.;
+    fElasticXsc    = 0.;
+    fProductionXsc = 0.;
+  }
+  return fInelasticXsc;   // xsection; 
+}
+
+
+
+#endif
+

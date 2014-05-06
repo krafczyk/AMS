@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.83 2014/03/02 16:43:51 qyan Exp $
+//  $Id$
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -644,6 +644,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 #endif
 #pragma omp  for schedule (dynamic)  nowait
     for(int i=0;i<ntree;i++){
+      if(i>=ntree)continue;
       if(nentr>nentries || it==fmap.end()){
 	continue;
       }

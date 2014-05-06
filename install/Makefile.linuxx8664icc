@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.49 2014/02/18 15:45:57 choutko Exp $
+#  $Id$
 
 # General clean up and reorganization
 #
@@ -331,8 +331,8 @@ LDFLAGSIDL= -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp -lORBit-2
 
 LDFLAGSSTATICIDL= $(LDFLAGSIDL) -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2 -lrt -lnsl   
 
-CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
+CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g -gdwarf-2

@@ -435,10 +435,9 @@ class RemoteClient:
                stat=[0,0,0,0,0,0,0,0,0,0,0]
                try:
                    stat =os.stat(stf)
-                   os.unlink(stf)
                except:
                    print stf, " Failed to stat " 
-               if stat[ST_SIZE]==0:
+               if (stat[ST_SIZE]==0 or (not os.path.isdir(fs[0]))) :
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    if(self.v):
                        print stf," Is Offline"
@@ -446,7 +445,16 @@ class RemoteClient:
                        self.sqlserver.Update(sql)
                        self.sqlserver.Commit()
                    continue
+               pair=commands.getstatusoutput("cat "+stf+" | grep Data | wc -l ")
+               if( not (pair[0]==0 and pair[1]=='1')):
+                   sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
+                   print stf," Is Offline by 2"
+                   if updatedb!=0:
+                       self.sqlserver.Update(sql)
+                       self.sqlserver.Commit()
+                   continue           
                res=""
+               os.unlink(stf)
                try:
                    res=os.statvfs(os.path.realpath(fs[0]))
                except:
@@ -2077,7 +2085,12 @@ class RemoteClient:
                 outputpath=outputdisk+outputpath+"/"+period
             os.system("mkdir -p "+outputpath)
             
-            mtime=os.stat(outputpath)[9]
+            try:
+                mtime=os.stat(outputpath)[9]
+            except:
+                print "Enable to open ", outputpath
+                continue
+           
             if(mtime != None):
                 if(mtime!=0):
                     gb=disk[2]

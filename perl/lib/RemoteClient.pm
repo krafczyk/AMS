@@ -7677,7 +7677,7 @@ print qq`
              my $resj=$self->{sqlserver}->Query($sql);
           if(defined $resj->[0][0] and $resj->[0][0]>= $res->[0][0]){
                my $mes="Cite $self->{CCA} maxrun/jid mismatch $resj->[0][0]  $res->[0][0] ";
-               $sql="update Cites set maxrun=$res->[0][0]+1 where name='$self->{CCA}'";
+               $sql="update Cites set maxrun=$resj->[0][0]+1 where name='$self->{CCA}'";
                $self->{sqlserver}->Update($sql);
                $self->ErrorPlus($mes);
           }
@@ -9138,6 +9138,14 @@ if(defined $dataset->{buildno} ){
             $self->ErrorPlus($mes);
         }
         else{
+            $sql="select max(jid) from jobs where jobname like '$self->{CCA}.%'";
+            my $resj=$self->{sqlserver}->Query($sql);
+            if(defined $resj->[0][0] and $resj->[0][0]>= $res->[0][0]){
+                my $mes="Cite $self->{CCA} maxrun/jid mismatch $resj->[0][0]  $res->[0][0] ";
+                $sql="update Cites set maxrun=$resj->[0][0]+1 where name='$self->{CCA}'";
+                $self->{sqlserver}->Update($sql);
+                $self->ErrorPlus($mes);
+            }
             my $time = time();
             $sql="update Cites set state=1, timestamp=$time where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
@@ -9592,7 +9600,7 @@ if(defined $dataset->{buildno} ){
            $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
              #die " $subs $buf \n";
           }
-           if($timendu-$timbegu>86400*1000){
+           if($timendu-$timbegu>86400*10000){
                $timbegu=time();
                $timendu=$timbegu+3600*$runno;
            }
@@ -19595,12 +19603,12 @@ sub CheckFS{
                sleep (1);
                my @stat =stat("$stf");
                unlink "$stf";
-               if($stat[7]==0){
+               if($stat[7]==0  or not (-d $fs->[0])){
                system("ls $fs->[0] 1>$stf 2>&1 &");
                sleep (3); 
                my @stat =stat("$stf");
                unlink "$stf";
-               if($stat[7]==0){
+               if($stat[7]==0 or not (-d $fs->[0])){
                 $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
                 if(defined $vrb and $vrb==1){
                  print " $fs->[1]:$fs->[0] is not online \n";

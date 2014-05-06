@@ -360,33 +360,32 @@ void TrSim::sitkdigi() {
 #ifndef __ROOTSHAREDLIBRARY__
       AMSgObj::BookTimer.stop("SiTkDigiLadd");
 #endif
-      if(nclu>0){
-	//  keV to ADC conversion
-      
-	double pside_uncorr_pars[6] = { 2.07483, 30.2233, -0.895041, 0.0125374, -5.89888e-05, 70.2948};
-	double pside_corr_pars[4]   = { 18.4885, 20.2601, 0.00336957, -0.00016007};
-	double nside_nosat_pars[2]  = {-4.42436, 44.6219};
-      
-	//       for (int ii=0;ii<639;ii++){
-	// 	if(ladbuf[ii]==0. )continue;
-	// 	double edep=ladbuf[ii]/81;
-	// 	double mip=1;
-	// 	double val= TrSimSensor::pside_uncorr_charge_dependence_function(&edep,pside_uncorr_pars);
-	// 	val /= TrSimSensor::pside_uncorr_charge_dependence_function(&mip,pside_uncorr_pars);
-	// 	val*= TRMCFFKEY.TrSim2010_ADCMipValue[1];
 
-	// 	ladbuf[ii]=val;
-	//       }
+      if (nclu>0) { 
 
-	//  for (int ii=640;ii<1024;ii++){
-	// 	if(ladbuf[ii]==0. )continue;
-	// 	double edep=ladbuf[ii]/81;
-	// 	double mip=1;
-
-	// 	//	double val= TRMCFFKEY.TrSim2010_ADCMipValue[0]*edep;//*(edep-edep*edep*0.05);
-	// 	double val= 0.6624+2.15*edep*edep+edep*41.4;//*(edep-edep*edep*0.05);
-	// 	ladbuf[ii]=val;
-	//       }
+        // // old code for saturation
+	// //  keV to ADC conversion      
+	// double pside_uncorr_pars[6] = { 2.07483, 30.2233, -0.895041, 0.0125374, -5.89888e-05, 70.2948};
+	// double pside_corr_pars[4]   = { 18.4885, 20.2601, 0.00336957, -0.00016007};
+	// double nside_nosat_pars[2]  = {-4.42436, 44.6219};
+	// for (int ii=0;ii<639;ii++){
+	//   if(ladbuf[ii]==0. )continue;
+	//   double edep=ladbuf[ii]/81;
+	//   double mip=1;
+	//   double val= TrSimSensor::pside_uncorr_charge_dependence_function(&edep,pside_uncorr_pars);
+	//   val /= TrSimSensor::pside_uncorr_charge_dependence_function(&mip,pside_uncorr_pars);
+	//   val*= TRMCFFKEY.TrSim2010_ADCMipValue[1];
+	//   ladbuf[ii]=val;
+	// }
+        // // more old code 
+	// for (int ii=640;ii<1024;ii++){
+	//   if(ladbuf[ii]==0. )continue;
+	//   double edep=ladbuf[ii]/81;
+	//   double mip=1;
+	//   // double val= TRMCFFKEY.TrSim2010_ADCMipValue[0]*edep;//*(edep-edep*edep*0.05);
+	//   double val= 0.6624+2.15*edep*edep+edep*41.4;//*(edep-edep*edep*0.05);
+	//   ladbuf[ii]=val;
+	// }
 
 	// Apply gain corection
 	TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
@@ -407,23 +406,24 @@ void TrSim::sitkdigi() {
 
 	// apply asimmetry
 	float asym[2]={0.045,0.01};
-	for (int ii=1023;ii>640;ii--){
-	  double sn=ladbuf[ii];
-	  double snm1=ladbuf[ii-1];
-	  ladbuf[ii]=sn+snm1*asym[0];
+	for (int ii=1023; ii>640; ii--){ // K
+	  double sn = ladbuf[ii];
+	  double snm1 = ladbuf[ii-1];
+	  ladbuf[ii] = sn + snm1*asym[0];
+	}
+	for (int ii=639; ii>0; ii--) { // S
+	  double sn = ladbuf[ii];
+	  double snm1 = ladbuf[ii-1];
+	  ladbuf[ii] = sn + snm1*asym[1];
 	}
 
-	for (int ii=639;ii>0;ii--){
-	  double sn=ladbuf[ii];
-	  double snm1=ladbuf[ii-1];
-	  ladbuf[ii]=sn+snm1*asym[1];
-	}
-
+        // additional noise
 	for (int ii=0;ii<1024;ii++){
 	  int iside=(ii>639)?0:1;
 	  ladbuf[ii]+=TRMCFFKEY.TrSim2010_AddNoise[iside]*rnormx();
 	}
 
+        // More noise only where there is some cluster
 	int llb[1024];
 	memset(llb,0,1024*sizeof(llb[0]));
 	for(int ii=0;ii<1024;ii++){
@@ -432,17 +432,16 @@ void TrSim::sitkdigi() {
 	      if(jj>=0&&jj<1024) llb[jj]=1;
 	  }
 	}
-
- 	// Noise only where there is some cluster
-	for (int ii=0;ii<1024;ii++){
-	  int iside=(ii>639)?0:1;
-	  //	  double noise_fac[2]={1.1,1.45};
+	for (int ii=0; ii<1024; ii++){
+	  int iside = (ii>639) ? 0 : 1;
+	  // double noise_fac[2]={1.1,1.45}; // from datacard
 	  if( llb[ii]!=0){
 	    double noise=ladcal->GetSigma(ii)*rnormx()*TRMCFFKEY.noise_fac[iside];
 	    ladbuf[ii]+=noise;
 	  }
 	}
       }
+
       // Add noise simulation  
       if ( (TRMCFFKEY.NoiseType==1) ||                 // noise on all ladders
   	   ( (TRMCFFKEY.NoiseType>=2)&&(nclu>0) ) ) {  // noise on ladders with some cluster 
@@ -456,7 +455,6 @@ void TrSim::sitkdigi() {
       } 
 
       // Put the  ADC 12-bit  hard cieling to the signal amplitude in ADC
-
       for (int ii=0;ii<1024;ii++)
 	if(ladbuf[ii]+ladcal->GetPedestal(ii)>4096) ladbuf[ii]=4096-ladcal->GetPedestal(ii);
 

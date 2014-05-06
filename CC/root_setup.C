@@ -1554,13 +1554,15 @@ else{
 }
 
 //---NewV
- bool isnewv =((t2>1368950397) ||(RTI::Version>=1));
- bool isnewv2=((t1>=1374268537)||(RTI::Version>=2));
- bool isnewv3=((t2>1385484728) ||(RTI::Version>=3));
+ bool isnewv   =((t2>1368950397) ||(RTI::Version>=1));
+ bool isnewv2  =((t1>=1374268537)||(RTI::Version>=2));
+ bool isnewv3  =((t2>1385484728) ||(RTI::Version>=3));
+ bool isnewv3p5=((t2>1385484728) ||(RTI::Version>=503));
 // bool isnewv3=(RTI::Version>=3);
- if     (isnewv3)AMSISSlocal+="V3_20140324/";
- else if(isnewv2)AMSISSlocal+="V2_20131220/";
- else if(isnewv )AMSISSlocal+="V1_20130802/";
+ if     (isnewv3p5)AMSISSlocal+="V3_20140324_P5/";
+ else if(isnewv3)  AMSISSlocal+="V3_20140324/";
+ else if(isnewv2)  AMSISSlocal+="V2_20131220/";
+ else if(isnewv )  AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
  if(dir!=0)AMSISS=dir;
 

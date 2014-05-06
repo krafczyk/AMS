@@ -281,6 +281,7 @@ class TFMCFFKEY_DEF {
   integer writeall;
   integer simfvern;
   geant   threref[3];
+  geant   fladctbref;
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);

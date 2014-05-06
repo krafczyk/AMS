@@ -132,6 +132,7 @@ G4double StrCS::GetElementCrossSection(const G4DynamicParticle* theProjectile,G4
       return GetCrossSection( theProjectile, el,293*kelvin);
     }
 }
+return 0;
 }
 #endif
 
@@ -230,7 +231,7 @@ StrHP::StrHP():G4HadronicInteraction("StrangeletYaleHP"){
   //from not including it is small and the effort to introduce it and its decays is large
 
   // proton
-  for(int i=0;i<sizeof(IsStr)/sizeof(IsStr[0]);i++)IsStr[0]=0;
+  for(int i=0;i<sizeof(IsStr)/sizeof(IsStr[0]);i++)IsStr[i]=0;
   particle_NUM=-1;
   particle_NUM++;
   name[particle_NUM]="proton";

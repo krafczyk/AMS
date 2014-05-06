@@ -846,17 +846,18 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
   //  before icut-1 as last cut
   //  after icut-1 as last cut
   //  after last cut as first cut : changed  after !icut-1 as last cut
-  //  after cut icut-1 as first cut
+  //  after cut icut-1 
   hf1(id,a,w);
   bool cut=true;
   if(icut-1>0)for(int k=0;k<icut-1;k++)cut=cut && cuts[k];
   if(cut)hf1(id+shift,a,w);
+  if(cut && icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);
   for(int k=icut;k<ncuts;k++)cut=cut && cuts[k];
   if(cut)hf1(id+shift+shift,a,w);
   if(cut && cuts[icut-1])hf1(id+shift+shift+shift,a,w);             
   if(cut && !cuts[icut-1])hf1(id+shift+shift+shift+shift,a,w);             
 //  if(cuts[ncuts-1])hf1(id+shift+shift+shift+shift,a,w);             
-  if(icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);             
+//  if(icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);             
 }
 
 void AMSEventR::hf1(int idd, float a, float w){
@@ -2650,19 +2651,46 @@ bool AMSEventR::ReadHeader(int entry){
     }
 
     // Rich Default Beta Correction Loading. Only once per run
-    if(fHeader.Run!=runo && !nMCEventgC())
-#pragma omp critical(rd)
-      if(RichRingR::shouldLoadCorrection==RichRingR::tileCorrection){
-	RichRingR::shouldLoadCorrection=-1; // Done
-#ifndef _PGTRACK_
-	TString filename=Form("%s/v4.00/RichDefaultTileCorrection.root",getenv("AMSDataDir"));
-#else
-	TString filename=Form("%s/v5.00/RichDefaultTileCorrection.root",getenv("AMSDataDir"));
-#endif
-	if(!RichRingTables::Load(filename)) cout<<"Problem loading "<<filename<<endl;
-	else cout<<"Rich Default Refractive Index correction loaded"<<endl; 
-      }
+    if(fHeader.Run!=runo && !nMCEventgC()){
 
+      ///////////// BEGIN FIX
+      AMSSetupR::TDVR repo;
+      bool should_fix=false;
+      getsetup()->getTDV("RichRadTilesParameters",UTime(),repo);
+      if(repo.FilePath.Contains(".RichRadTilesParameters") || !repo.FilePath.Contains("RichRadTilesParameters")) should_fix=true;
+
+      // Fix in the case the RichRadtileParameters was not present during production
+#pragma omp critical(rd)
+      if(should_fix){
+	cout<<"################## RICH forcing tile corrections for run "<<fHeader.Run<<endl;
+	TString filename=Form("%s/v5.00/RichRadTileParametersFix.root",getenv("AMSDataDir"));
+	if(!RichRingTables::Load(filename)) cout<<"Problem loading "<<filename<<endl;
+
+	if(RichBetaUniformityCorrection::getHead()){
+	  RichBetaUniformityCorrection *p=RichBetaUniformityCorrection::getHead();
+	  if(p->_agl) delete p->_agl;
+	  if(p->_naf) delete p->_naf;
+	  RichBetaUniformityCorrection::_head=0; // This leaks a bit so should not be used too much
+	  RichRingR::shouldLoadCorrection=RichRingR::fullUniformityCorrection;
+	}else{
+	  if(RichRingR::shouldLoadCorrection<0)
+	    RichRingR::shouldLoadCorrection=RichRingR::tileCorrection; // Default for other runs
+	}
+	/////////////// END FIX
+
+      }else{
+	if(RichRingR::shouldLoadCorrection==RichRingR::tileCorrection){
+	  RichRingR::shouldLoadCorrection=-1; // Done
+#ifndef _PGTRACK_
+	  TString filename=Form("%s/v4.00/RichDefaultTileCorrection.root",getenv("AMSDataDir"));
+#else
+	  TString filename=Form("%s/v5.00/RichDefaultTileCorrection.root",getenv("AMSDataDir"));
+#endif
+	  if(!RichRingTables::Load(filename)) cout<<"Problem loading "<<filename<<endl;
+	  else cout<<"Rich Default Refractive Index correction loaded"<<endl; 
+	}
+      }
+    }
     // Rich Dynamic Calibration
     RichRingR::_isCalibrationEvent=false;
     if(!RichBetaUniformityCorrection::getHead())
