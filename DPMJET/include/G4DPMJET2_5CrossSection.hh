@@ -60,7 +60,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 #include "globals.hh"
-
+#include "G4Version.hh"
 #include "G4VCrossSectionDataSet.hh"
 #include "G4DPMJET2_5CrossSectionParamSet.hh"
 #include "G4Element.hh"
@@ -77,12 +77,14 @@ class G4DPMJET2_5CrossSection : public G4VCrossSectionDataSet
   public:
     G4DPMJET2_5CrossSection();
     ~G4DPMJET2_5CrossSection();
+    virtual G4bool IsElementApplicable(const G4DynamicParticle* theProjectile,G4int Z,const G4Material*);
     virtual G4bool IsApplicable(const G4DynamicParticle* theProjectile,
       const G4Element* theTarget);
 
     virtual G4bool IsZAApplicable(const G4DynamicParticle* theProjectile,
       G4double ZZ, G4double AA);
 
+    virtual G4double GetElementCrossSection(const G4DynamicParticle* theProjectile,G4int Z,const G4Material*);
     virtual G4double GetCrossSection(const G4DynamicParticle* theProjectile,
       const G4Element* theTarget, G4double theTemperature);
 
@@ -96,6 +98,7 @@ class G4DPMJET2_5CrossSection : public G4VCrossSectionDataSet
     virtual void DumpPhysicsTable(const G4ParticleDefinition&);
 
 // >>> A. Oliva - compatibility with geant4.9.6
+
 #if G4VERSION_NUMBER  > 945 
   virtual G4bool IsIsoApplicable(const G4DynamicParticle* theProjectile,
                                  G4int ZZ, G4int AA,

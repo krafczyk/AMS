@@ -73,7 +73,7 @@ void IonDPMJETPhysics::ConstructProcess()
   G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
   for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
     G4int AA  =(*iter)->GetN();
-    if (AA<=dpmAmax) { theDPM   ->ActivateFor(*iter); theIonBC1->DeActivateFor(*iter); }
+    if (AA<=dpmAmax && AA>1) { theDPM   ->ActivateFor(*iter); theIonBC1->DeActivateFor(*iter); }
     else             { theIonBC1->ActivateFor(*iter); theDPM   ->DeActivateFor(*iter); }
   }
   // theDPM->SetVerboseLevel(10);
@@ -108,9 +108,19 @@ void IonDPMJETPhysics::ConstructProcess()
       theEMD->ActivateFor(*iter);
     }
     G4HadronInelasticProcess* fGenericIon_EMD = new G4HadronInelasticProcess("IonEMD",particle);
+    G4HadronInelasticProcess* falpha_EMD = new G4HadronInelasticProcess("AlphaEMD",G4Alpha::Alpha());
+    G4HadronInelasticProcess* fhe3_EMD = new G4HadronInelasticProcess("He3EMD",G4He3::He3());
     fGenericIon_EMD->AddDataSet(EMDCrossSection);
     fGenericIon_EMD->RegisterMe(theEMD);
     pManager->AddDiscreteProcess(fGenericIon_EMD);
+
+    falpha_EMD->AddDataSet(EMDCrossSection);
+    falpha_EMD->RegisterMe(theEMD);
+    pManager->AddDiscreteProcess(falpha_EMD);
+
+    fhe3_EMD->AddDataSet(EMDCrossSection);
+    fhe3_EMD->RegisterMe(theEMD);
+    pManager->AddDiscreteProcess(fhe3_EMD);
   }
 
 }
@@ -124,19 +134,20 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   G4ProcessManager* pManager = part->GetProcessManager();
   pManager->AddDiscreteProcess(hadi);
   hadi->AddDataSet(fShen); 
-  if (G4FFKEY.IonPhysicsModel/10==4) hadi->AddDataSet(dpmXS);
-  if (G4FFKEY.IonPhysicsModel/10==3) hadi->AddDataSet(HEAOXS);
-  if (G4FFKEY.IonPhysicsModel/10==2) {
+  if ((G4FFKEY.IonPhysicsModel/10)%10==4) hadi->AddDataSet(dpmXS);
+  if ((G4FFKEY.IonPhysicsModel/10)%10==3) hadi->AddDataSet(HEAOXS);
+  if ((G4FFKEY.IonPhysicsModel/10)%10==2) {
     G4GeneralSpaceNNCrossSection* generalCrossSection = new G4GeneralSpaceNNCrossSection;
     hadi->AddDataSet(generalCrossSection);
   }
 #if G4VERSION_NUMBER  > 945 
-  if (G4FFKEY.IonPhysicsModel/10==1) {
+  if ((G4FFKEY.IonPhysicsModel/10)%10==1) {
     G4GGNuclNuclCrossSection* fGG = new G4GGNuclNuclCrossSection();
     hadi->AddDataSet(fGG);
   }
 #endif
-  if(isIon) { hadi->AddDataSet(fIonH); }
+// Should be not be used with GG
+  if(isIon && (G4FFKEY.IonPhysicsModel/100)%10==1) { hadi->AddDataSet(fIonH); }
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   hadi->RegisterMe(theDPM);

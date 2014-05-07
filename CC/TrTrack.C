@@ -1057,6 +1057,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   if (done && method != TrFit::LINEAR && _TrFit.GetRigidity() == 0)
     done = false;
   float retbad=0;
+  if(fdone>10E4) fdone=10E4;
   if (!done) retbad=-90000+fdone;
 
   // Return if fitting values are not to be over written

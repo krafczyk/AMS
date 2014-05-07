@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.83 2014/03/02 16:43:51 qyan Exp $
+//  $Id$
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -646,6 +646,9 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     for(int i=0;i<ntree;i++){
       if(nentr>nentries || it==fmap.end()){
 	continue;
+      }
+      if(i>=ntree){
+          continue;
       }
       TChainElement* element;
       TFile* file;

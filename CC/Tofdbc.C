@@ -1,4 +1,4 @@
-//  $Id: Tofdbc.C,v 1.35 2013/12/04 15:58:09 qyan Exp $
+//  $Id$
 
 //Athor Qi Yan 2012/01/05 new Tof database IHEP Version
 // ------------------------------------------------------------
@@ -487,7 +487,7 @@ void  TOFPMT::build(){
     0.,0.132,0.85,1.,0.83,0.68,0.35,0.15,0.078, 0.059,0.029,0.
   };
  
-  int pulnbc=int((pulset[pulnb-1]- pulset[0])/TOF2DBc::fladctb())+1;
+  int pulnbc=int((pulset[pulnb-1]- pulset[0])/(TOFCSN::FLTDCBW*TFMCFFKEY.fladctbref))+1;
   pmpulse =TOFHist(pulnb,pulset,pulseh,pulnbc);
 //  cout<<"<<--TOF SE pulse init"<<endl;
  /* for(int i=0;i<pmpulse.getnb();i++){cout<<pmpulse.getxc(i+1)<<" ";}

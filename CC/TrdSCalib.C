@@ -609,7 +609,7 @@ double AC_TrdHits::GetTrdPathLen3D(int lay, float xy, float z, AMSPoint cP, AMSD
   TVector3 c(cP[0], cP[1], cP[2]); 
   TVector3 d(dP[0], dP[1], dP[2]);
   
-  TVector3  v(0.0), q(0.0);
+  TVector3  v(0.0, 0.0, 0.0), q(0.0, 0.0, 0.0);
   if( (lay >= 16) || (lay <= 3) ) {
     ///Measure Y-Coordinate, Straws are running along X
     v.SetXYZ(0, xy, z);
@@ -654,7 +654,7 @@ double AC_TrdHits::GetTrdPathLen3D(AC_TrdHits AC, AMSPoint cP, AMSDir dP) {
   TVector3 c(cP[0], cP[1], cP[2]); 
   TVector3 d(dP[0], dP[1], dP[2]);
   
-  TVector3  v(0.0), q(0.0);
+  TVector3  v(0.0, 0.0, 0.0), q(0.0, 0.0, 0.0);
   if( (lay >= 16) || (lay <= 3) ) {
     ///Measure Y-Coordinate, Straws are running along X
     v.SetXYZ(0, xy, z);

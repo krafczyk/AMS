@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.117 2014/02/26 10:22:49 choutko Exp $
+//  $Id$
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -379,6 +379,8 @@ void  AMSG4RunAction::DumpCrossSections(int verbose) {
 void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
   if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections);
+    AMSG4Physics::SaveXS(GCKINE.ikine);
+
 
   cout<<"~~~~~~~~~~~~~~~~End of Run Action~~~~~~~~~~~~~~"<<endl;
 }
@@ -516,7 +518,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       cout<<"  AMSG4EventAction::EndOfEventAction-I-InitialMemoryAllocation "<<m.arena<<" "<<m.uordblks<<" "<<minit<<" "<<G4FFKEY.MemoryLimit<<endl;
       
     }
-    if(gams::mem_not_enough()){
+    if(gams::mem_not_enough(2*102400)){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
     }
@@ -1032,8 +1034,14 @@ if(!Step)return;
                      {
                         pos[i] = pre_pos[i]/cm;
                      }
-
-                     AMSmctrack *genp = new AMSmctrack(x0, lambda, pos, vol_name, stlen, enetot, eneion, tid);
+                     map <int,float>felmap;
+                      for (int i=0; i<material->GetNumberOfElements(); ++i) {
+                      int Zi = (*material->GetElementVector())[i]->GetZ();
+                      float Ni=material->GetVecNbOfAtomsPerVolume()[i];
+                      felmap.insert(make_pair(Zi,Ni));
+                      }
+               
+                     AMSmctrack *genp = new AMSmctrack(x0, lambda, pos, vol_name, stlen, enetot, eneion, tid,felmap);
                      AMSEvent::gethead()->addnext(AMSID("AMSmctrack", 0), genp);
                   }
                }

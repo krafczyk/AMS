@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.423 2014/03/04 19:01:38 choutko Exp $
+#  $Id$
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -275,7 +275,7 @@ I20 low(5)                        //cosmic(0);  undercutoff(1)
                                   //
                                   //
                                   //(11)  Natural Fluxes (X*1000+11 ) = different acceptance options
-I21 earth(0)                      // Earth magnetic field modulation on (1) off(0) 
+I21 earth(0)                      // Earth magnetic field modulation stoermer(2) on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
 R24 pole(108.392)                 // Pole phi at begin 
@@ -709,7 +709,11 @@ I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead fiel
 I 4 Geant3CutsOn(1)  // Use(1) not use(0) geant3-like energy cuts
 I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSP_BERT, others not yet implemented, see also http://cmsdoc.cern.ch/~hpw/GHAD/HomePage/index.html)
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
-I 7 IonPhysicsModel(13) // Physics Model for Ion as XY
+I 7 IonPhysicsModel(1013) // Physics Model for Ion as WZXY
+                         // W: use elastic scattering for ions
+                            1: Standard G4 Gheisha
+                            2: VC parametrization from AMS01
+                        //  Z: use gheisha ion proton crossection
                         //  X: Total inelastic cross section  
                         //     0: Shen  
                         //     1: Glauber-Gribov nucleus-nucleus cross sections 4.9.6 (override by Shen for geant4.9.4)
@@ -737,6 +741,8 @@ I 19 DumpCrossSections(0)  // 0 nothing
                            // 1 dump inelastic cross sections for proton, helium and carbon projectiles over carbon
                            // 2 make a MC dry-run to calculate interaction probabilities P(C->X) for process C12 + C12 -> X + stuff (avoid this with production) 
 R 20 HCrossectionBias(1)    // Change (hadronic) crossection by multiplying by this number 
+I 21 DumpCrossSectionsAt(12)  // Target mass   number for DumpCrossSections
+I 22 DumpCrossSectionsZt(6)   // Target atomic number for DumpCrossSections
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd

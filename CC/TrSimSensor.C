@@ -272,6 +272,22 @@ double TrSimSensor::GetImplantAddressFromReadoutAddress(double readoutadd) {
 }
 
 
+int TrSimSensor::GetNChannels() {
+  switch (GetSensorType()) {
+    case kS:
+      return 640;
+      break;
+    case kK5:
+      return 384;
+      break;
+    case kK7:
+      return 384;
+      break;
+  }
+  return 0;
+}
+
+
 /* The Capacitive net (P-Side)
 +
 *            |                           |
@@ -545,38 +561,8 @@ TrSimCluster TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, i
     return TrSimCluster(); 
   }
   // create TrSimCluster (readout strips units)
-  TrSimCluster  clout(acluster,address);
-  int seed=clout.FindSeedIndex(0,1);
-//   int RR=seed;
-//   int LL=seed-1;
-//   if (clout.GetSignal(seed+1)>clout.GetSignal(seed-1)){
-//    LL=seed;
-//    RR=seed+1;
-//   }
-
-//   float fra1=TRMCFFKEY.TrSim2010_FracNoise[1];
- 
-//   int kk=1;
-//   if((LL-1)>=0)
-//     for (int ii=LL-1;ii>=0;ii--){
-//       clout.SetSignal(ii,clout.GetSignal(ii)* pow(fra1,kk++));
-//     }
-
-//   kk=1;
-//   fra1=TRMCFFKEY.TrSim2010_FracNoise[1];
-//   if((RR+1)<clout.GetWidth())
-//     for (int ii=RR+1;ii<clout.GetWidth();ii++){
-//       clout.SetSignal(ii,clout.GetSignal(ii)* pow(fra1,kk++));
-
-//     }
-
-
-  return clout;
-
+  return TrSimCluster(acluster,address);
 }
-
-
-
 
 
 TrSimCluster TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster& implclus, int nsens) {
@@ -591,12 +577,14 @@ TrSimCluster TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster& implclus, 
     double Q       = implclus.GetSignal(ii);
     TrSimCluster addcluster = MakeClusterFromAChargeInjectionOnAnImplant(Q,impladd,nsens);
     if (VERBOSE) { printf("TrSimSensor::MakeClusterFromImplantCluster-V add cluster:\n"); addcluster.Info(10); }
-    cluster.AddCluster(addcluster);
-  }
+    cluster.AddCluster(addcluster,GetNChannels(),IsK7());
+  } 
+  // check 
   if ( (cluster.GetWidth()==0) ) {
     if (WARNING) printf("TrSimSensor::MakeClusterFromModelizedCluster-W returning an empty cluster.\n");
     return TrSimCluster();
   }
+  // return
   return cluster;
 }
 
@@ -608,6 +596,7 @@ TrSimCluster TrSimSensor::MakeCluster(double senscoo, double sensangle, int nsen
   if (VERBOSE) { printf("TrSimSensor::MakeCluster-V read cluster:\n"); readclus.Info(10); }
   return readclus; 
 }
+
 
 double TrSimSensor::GetkeVtoADC(float keV)  {
   double x = keV/81; // energy loss in MIP units

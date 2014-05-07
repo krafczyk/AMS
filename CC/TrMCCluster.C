@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.42 2013/08/06 12:05:47 oliva Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2013/08/06 12:05:47 $
+///$Date$
 ///
-///$Revision: 1.42 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -44,7 +44,8 @@ ClassImp(TrMCClusterR);
 
 
 
-double qlinfun(double X, double k);
+
+double qlinfun2(double X, double k);
 double gain_to_gain(double* x, double* par);
 
 
@@ -260,13 +261,13 @@ void TrMCClusterR::GenSimClusters(){
       // double SigQuadLoss[2][2]={{0.0002,0.0004},{0.0001,0.00022}};
       double edep_c2=edep;
       if(iside==0) {
-        double edep_c=qlinfun(edep,TRMCFFKEY.SigQuadLoss[hcharge][iside]); // 
-        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][0]*edep_c/81; 
+        double edep_c=qlinfun2(edep,TRMCFFKEY.SigQuadLoss[hcharge][iside]); // 
+        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][0]*edep_c/81;
       }
       else {
-        double edep_c=edep* (1+rnormx()*0.15);
-        edep_c=qlinfun(edep_c,TRMCFFKEY.SigQuadLoss[hcharge][iside]);	
-        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][1]*edep_c/81+edep_c/81*edep_c/81-4;
+        double edep_c=edep*(1+rnormx()*0.15);
+        edep_c=qlinfun2(edep_c,TRMCFFKEY.SigQuadLoss[hcharge][iside]);	
+        edep_c2=TRMCFFKEY.ADCMipValue[hcharge][iside]*edep_c/81+edep_c/81*edep_c/81-4;
       }
       // if side Y some additional edep vs eta dependence
       // double pc[5]={0.8169,2.23,-8.996,13.581,-6.849};
@@ -474,6 +475,21 @@ double qlinfun(double X, double k){
   } else
   return 0;
 }
+
+double qlinfun2(double X, double k){
+  double flim=750;
+  if(X<flim){
+    return qlinfun(X,k);
+  }else{
+    double p[3]={11.9216,0.5,106.043};
+    double ylp=(qlinfun(flim,k)-qlinfun(flim-30,k))/30.;
+    p[0]=ylp/(p[1]*pow(flim,p[1]-1));
+    double yl=qlinfun(flim,k);
+    p[2]=yl-p[0]*pow(flim,p[1]);
+    return p[0]*pow(X,p[1])+p[2];
+  }
+}
+
 
 
 double gain_to_gain(double* x, double* par) {
