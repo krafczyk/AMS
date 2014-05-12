@@ -26,7 +26,9 @@
 #include "G4BaryonConstructor.hh"
 #include "G4IonConstructor.hh"
 #include "G4CrossSectionElastic.hh"
+#if G4VERSION_NUMBER  > 945
 #include "G4ComponentGGNuclNuclXsc.hh"
+#endif
 #include "G4IonTable.hh"
 #include "G4ShortLivedConstructor.hh"
 #include "G4Material.hh"
