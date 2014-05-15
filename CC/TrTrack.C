@@ -938,7 +938,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }else if(id & kExtAverage){
     cookind=3;
   }else  if(id & kDisExtAlCorr){
-    cookind=4;
+    cookind=5;
   }else{
     cookind=1;
   }
