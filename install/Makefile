@@ -79,7 +79,7 @@ ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
-    LZMAL = -llzma  
+    LZMAL = -llzma -lz
 endif
 
 

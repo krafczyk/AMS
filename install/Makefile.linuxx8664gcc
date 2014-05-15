@@ -243,7 +243,7 @@ endif
 LDFLAGSI= -static $(VGMLIBS)  $(G4LIBSI)  \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
--L$(ROOTSYS)/lib -lRoot -lfreetype  $(LZMAL) \
+-L$(ROOTSYS)/lib -lRoot -lfreetype -lpng $(LZMAL) \
 -L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS) \
 -L$(IMPORTS_X11R6)/lib64 -lXm -lXmu -lXt -lSM -lICE  -lXp -lXxf86vm -lXext -lX11 \
 $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre  -lncurses -lcrypt -lssl  -lcom_err -lresolv  \
@@ -253,7 +253,7 @@ LDFLAGS= $(VGMLIBS) $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB)\
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIRLIB) $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lssl $(LZMAL) -lcrypto  -lcom_err -lfreetype -lncurses  -ldl     -Wl,--allow-multiple-definition -lpcre -lncurses\
+-L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lssl $(LZMAL) -lcrypto  -lcom_err -lfreetype -lpng -lncurses  -ldl     -Wl,--allow-multiple-definition -lpcre -lncurses\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
