@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.165 2012/10/05 00:53:14 pzuccon Exp $
+// $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/10/05 00:53:14 $
+///$Date$
 ///
-///$Revision: 1.165 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -925,7 +925,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }else if(id & kExtAverage){
     cookind=3;
   }else  if(id & kDisExtAlCorr){
-    cookind=4;
+    cookind=5;
   }else{
     cookind=1;
   }
