@@ -2633,23 +2633,14 @@ bool AMSEventR::ReadHeader(int entry){
       RichRingR::loadChargeUniformityCorrection=false;      
 
     }
-#pragma omp critical(rd)
-    if(RichRingR::shouldLoadCorrection==RichRingR::fullUniformityCorrection && 
-       !RichBetaUniformityCorrection::getHead()){
-      if(!RichBetaUniformityCorrection::Init()) cout<<"*********************** Failed to load RICH velocity uniformity corrections. Skiping."<<endl; 
-      if(RichRingR::isCalibrating()) 
-	cout<<"RICH Uniformity Corrections disable RICH dynamic calibration. If the latter is required, "<<endl
-	    <<"consider setting RichRingR::shouldLoadCorrection=RichRingR::tileCorrection before starting"<<endl
-	    <<"the event loop"<<endl; 
-      RichRingR::shouldLoadCorrection=RichRingR::tileCorrection;
-    }
-    // Rich Uniformity Charge Correction Loading. Only once per run
+
+    // Charge corrections
 #pragma omp critical(rd)
     if(RichRingR::loadChargeUniformityCorrection && !RichChargeUniformityCorrection::getHead()){
       if(!RichChargeUniformityCorrection::Init()) cout<<"*********************** Failed to load RICH charge uniformity corrections. Skiping."<<endl; 
       RichRingR::loadChargeUniformityCorrection=false;
     }
-
+    
     // Rich Default Beta Correction Loading. Only once per run
     if(fHeader.Run!=runo && !nMCEventgC()){
 
@@ -2679,6 +2670,17 @@ bool AMSEventR::ReadHeader(int entry){
 	/////////////// END FIX
 
       }else{
+
+	if(RichRingR::shouldLoadCorrection==RichRingR::fullUniformityCorrection && 
+	   !RichBetaUniformityCorrection::getHead()){
+	  if(!RichBetaUniformityCorrection::Init()) cout<<"*********************** Failed to load RICH velocity uniformity corrections. Skiping."<<endl; 
+	  if(RichRingR::isCalibrating()) 
+	    cout<<"RICH Uniformity Corrections disable RICH dynamic calibration. If the latter is required, "<<endl
+		<<"consider setting RichRingR::shouldLoadCorrection=RichRingR::tileCorrection before starting"<<endl
+		<<"the event loop"<<endl; 
+	  RichRingR::shouldLoadCorrection=RichRingR::tileCorrection;
+	}
+
 	if(RichRingR::shouldLoadCorrection==RichRingR::tileCorrection){
 	  RichRingR::shouldLoadCorrection=-1; // Done
 #ifndef _PGTRACK_
