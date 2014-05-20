@@ -1409,6 +1409,9 @@ int TrTrackR::DoAdvancedFit(int add_flag)
  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
    kmax=TRFITFFKEY.MultipleAlign;
 
+ float DefaultMass_save   = DefaultMass;
+ float DefaultCharge_save = DefaultCharge;
+
  if (DefaultMass > 0.1) {
  DefaultMass   = TrFit::Mproton;
  DefaultCharge = 1;
@@ -1444,6 +1447,9 @@ int add_flagplus;
      }
    }
  }
+ DefaultMass   = DefaultMass_save;
+ DefaultCharge = DefaultCharge_save;
+
  return AdvancedFitDone(add_flag);
 }
 
