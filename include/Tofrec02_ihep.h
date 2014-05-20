@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.h,v 1.31 2013/11/18 15:36:25 qyan Exp $
+//  $Id$
 
 //Author Qi Yan 2012/June/09 10:03 qyan@cern.ch  /*IHEP TOF version*/
 #ifndef __AMSTOFREC02_IHEP__
@@ -161,6 +161,12 @@ public:
   static number GetBetaCalCh(int idsoft,int opt,number beta,number q2,int charge,number rig=0);
 /// Beta Q2-Correction Factor For ChargeIndex(opt=0) or Cal Edep Beta(opt=1)
   static number GetBetaCalI(int idsoft,int opt,number beta,number q2norm,int chindex,number rig=0);
+/// Rigidity Correction
+  static number RigCor(int idsoft,number q2,number rig,int isanode);
+/// Rigidity Correction Factor For Charge
+  static number GetRigCalCh(int idsoft,int charge,number rig,int isanode);
+/// Rigidity Correction Factor For ChargeIndex
+  static number GetRigCalI(int idsoft,int chindex,number rig,int isanode); 
 /// Sum Anode Signal To Counter Signal
   static number SumSignalA(int idsoft,number signal[],int useweight=1);
 /// Sum Dynode Signal To Counter Signal
@@ -252,7 +258,7 @@ template <class T>
   friend class BetaHR; 
   friend class TofBetaPar; 
 
-  ClassDef(TofRecH,8)
+  ClassDef(TofRecH,9)
 };
 
 /////////////////////////////////////////////////////////////////////////

@@ -2342,6 +2342,110 @@ void TofCAlignPar::PrintTDV(){
   cout<<"<<----end of Print "<<TDVName<<endl;
 }
 
+// **************************************************************
+// Tof Charge+EDep Reconstruction Par for Ion Additional
+// **************************************************************
+TofCAlignParIon* TofCAlignParIon::Head=0;
+
+TofCAlignParIon* TofCAlignParIon::GetHead(){
+  if(!Head)Head = new TofCAlignParIon();
+  return Head;
+}
+
+//=======================================================
+const int TofCAlignParIon::RigCh[TofCAlignParIon::nRigCh]={
+   3,4,5,6,7,8
+};
+
+//=======================================================
+TofCAlignParIon::TofCAlignParIon(){
+   TDVName="TofCAlignParIon";
+   TDVParN=0;
+   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Anode
+   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Dynode
+   TDVBlock=new float[TDVParN];
+   TDVSize=TDVParN*sizeof(float);
+   LoadOptPar(1);
+}
+
+//=======================================================
+TofCAlignParIon::TofCAlignParIon(float *arr,int brun,int erun){
+   TDVName="TofCAlignParIon";
+   TDVParN=0;
+   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Anode
+   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Dynode
+   TDVBlock=arr;
+   TDVSize=TDVParN*sizeof(float);
+   BRun=brun;
+   ERun=erun;
+   LoadTDVPar();
+}
+
+//===========================================================
+void  TofCAlignParIon::LoadOptPar(int opt){
+  int iblock=0;
+//----load dynode correction par
+ for(int ich=0;ich<nRigCh;ich++){
+    for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+     for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+       for(int ipar=0;ipar<7;ipar++){
+          int id=ilay*1000+ibar*100;
+          if(opt==0)rigcor[0][ich][ipar][id]=TDVBlock[iblock++];
+          else      {
+            TDVBlock[iblock++]=rigcor[0][ich][ipar][id];
+           }
+        }
+      }
+    }
+  }
+
+//----load anode correction par
+  for(int ich=0;ich<nRigCh;ich++){
+    for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+     for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+       for(int ipar=0;ipar<7;ipar++){
+          int id=ilay*1000+ibar*100;
+          if(opt==0)rigcor[1][ich][ipar][id]=TDVBlock[iblock++];
+          else      {
+            TDVBlock[iblock++]=rigcor[1][ich][ipar][id];
+           }
+        }
+      }
+    }
+  }
+ 
+   Isload=1;
+}
+//==========================================================
+void TofCAlignParIon::LoadTDVPar(){
+  return LoadOptPar();
+}
+
+//==========================================================
+int  TofCAlignParIon::LoadFromFile(char *file){
+   ifstream vlfile(file,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
+    return -1;
+   }
+//---load
+   int ib=0;
+   for(int i=0;i<TDVParN;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   LoadTDVPar();
+   vlfile.close();
+   return 0;
+}
+
+//==========================================================
+void TofCAlignParIon::PrintTDV(){
+  cout<<"<<----Print "<<TDVName<<endl;
+  for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+  cout<<'\n';
+  cout<<"<<----end of Print "<<TDVName<<endl;
+}
+
 
 // **************************************************************
 // Tof PDF-TDV-Par

@@ -8200,6 +8200,7 @@ TofRawSideR* TofClusterHR::GetRawSideHS(int is){
 
 int TofClusterHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
 int TofClusterHR::DefaultQ2Opt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor);
+int TofClusterHR::DefaultQOptIon=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kRigidityCor|TofRecH::kQ2Q);
 
 float TofClusterHR::GetEdepPM  (int pmtype, int is,int pm)  {
 
@@ -8795,7 +8796,7 @@ float BetaHR::GetEdepL(int ilay,int pmtype,int pattern,int optw){
 }
 
 
-float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,float fbeta,int optw){
+float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,float fbeta,float frig,int optw){
     if(!TestExistHL(ilay))return 0;
 
 //---Get Default
@@ -8833,6 +8834,7 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,float fbeta,int optw
 #ifdef _PGTRACK_
     if(fTrTrack>=0&&fbeta==0){rig=pTrTrack()->GetRigidity();}
 #endif
+    if(frig!=0)rig=frig;
     AMSPoint pnt;AMSDir dir; double time; 
     TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);   
  
@@ -8852,7 +8854,7 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,float fbeta,int optw
 }
 
 
-float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern,float fbeta){
+float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern,float fbeta,float frig){
 
 //---Get Default
     if((opt==TofClusterHR::DefaultQOpt)&&(fbeta==0)){
@@ -8875,7 +8877,7 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern,float fb
 //----Fill Vector
    for(int ilay=0;ilay<4;ilay++){
       if(!TestExistHL(ilay))continue;
-      qs=GetQL(ilay,pmtype,opt,111111,fbeta);
+      qs=GetQL(ilay,pmtype,opt,111111,fbeta,frig);
       if(qs<=0)continue;
       if((pattern>0)&&((pattern/int(pow(10.,3-ilay)))%10==0))continue;
       ql.push_back(qs);

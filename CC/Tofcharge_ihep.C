@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.C,v 1.9 2013/02/15 14:23:24 qyan Exp $
+//  $Id$
 
 // ------------------------------------------------------------
 //      AMS TOF Charge and PDF Likelihood (BetaH Version)
@@ -64,6 +64,10 @@ int TofLikelihoodPar::GetnLayer(){
 // **************************************************************
 ClassImp(TofChargeHR)
 
+int TofChargeHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
+int TofChargeHR::DefaultQOptIon=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kRigidityCor|TofRecH::kQ2Q);
+///=======================================================
+
 void TofChargeHR::Init(){
    cpar.clear();
    like.clear();
@@ -71,6 +75,7 @@ void TofChargeHR::Init(){
    Q.clear();
    RQ.clear();
    fTrTrack=-1;
+   Rigidity=0;
 }
 
 ///=======================================================
@@ -279,18 +284,23 @@ float TofChargeHR::GetLikeQ(int &nlay,int pattern){
 }
 
 //=======================================================
-int  TofChargeHR::ReFit(float fbeta){
+int  TofChargeHR::ReFit(float fbeta,int opt,float frig){
 
-  if(fbeta==0)return -1;
+  if(fbeta==0&&frig==0)return -1;
 
+  int kRigidity=(opt&TofRecH::kRigidityCor);
+  double rig=0;
+  if(fTrTrack>=0&&fbeta==0)rig=Rigidity;
+  if(frig!=0)rig=frig;  
 //----ReFit by new fbeta
    number QLA1,QLD1;
    for(int im=0;im<cpar.size();im++){
+     number nbeta=(fbeta==0)?cpar.at(im).Beta:fbeta;
      TofRecPar::IdCovert(cpar.at(im).Layer,cpar.at(im).Bar);
-     QLA1= TofRecH::GetQSignal(TofRecPar::Idsoft,1,TofRecH::kBetaCor,cpar.at(im).QLARaw,0,1,fbeta);
-     QLD1= TofRecH::GetQSignal(TofRecPar::Idsoft,0,TofRecH::kBetaCor,cpar.at(im).QLDRaw,0,1,fbeta);
+     QLA1= TofRecH::GetQSignal(TofRecPar::Idsoft,1,(TofRecH::kBetaCor|kRigidity),cpar.at(im).QLARaw,0,1,nbeta,rig);
+     QLD1= TofRecH::GetQSignal(TofRecPar::Idsoft,0,(TofRecH::kBetaCor|kRigidity),cpar.at(im).QLDRaw,0,1,nbeta,rig);
      cpar.at(im).QLA=QLA1; cpar.at(im).QLD=QLD1;
-     cpar.at(im).Beta=fbeta;
+     cpar.at(im).Beta=nbeta;
    }
    TofPDFH::FillProbV(cpar);
 
@@ -328,6 +338,8 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
 //---push_back of cpar
    float Beta=betah->GetBeta(); 
    int  fTrTrack=betah->iTrTrack();
+   float Rigidity=0;
+   if(fTrTrack>=0)Rigidity=betah->pTrTrack()->GetRigidity();
 //---Beta
    for(int il=0;il<4;il++){
      if(betah->TestExistHL(il)){
@@ -358,6 +370,7 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
 //---Copy to TofChargeHR
   tofch.cpar=cpar;
   tofch.fTrTrack=fTrTrack;
+  tofch.Rigidity=Rigidity;
   tofch.UpdateZ(); 
 
   return 0; 
