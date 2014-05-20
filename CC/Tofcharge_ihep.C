@@ -339,7 +339,9 @@ int TofPDFH::ReBuild(BetaHR *betah,TofChargeHR &tofch){
    float Beta=betah->GetBeta(); 
    int  fTrTrack=betah->iTrTrack();
    float Rigidity=0;
+#ifdef _PGTRACK_
    if(fTrTrack>=0)Rigidity=betah->pTrTrack()->GetRigidity();
+#endif
 //---Beta
    for(int il=0;il<4;il++){
      if(betah->TestExistHL(il)){
