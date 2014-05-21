@@ -211,7 +211,7 @@ public:
   /*
    * @param[in]: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
    * @param[in]: opt:  Q Estimate option
-   * @param[in]: frig:  rigidity correction for opt=TofClusterHR::DefaultQOptIon, 0-use default tracker rigidity;  !=0-use input tracker rigidity[GV]
+   * @param[in]: frig:  rigidity correction for opt=TofChargeHR::DefaultQOptIon, 0-use default tracker rigidity;  !=0-use input tracker rigidity[GV]
    */
   int  ReFit(float fbeta=0,int opt=TofChargeHR::DefaultQOpt,float frig=0);
 /**@}*/

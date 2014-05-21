@@ -2345,35 +2345,35 @@ void TofCAlignPar::PrintTDV(){
 // **************************************************************
 // Tof Charge+EDep Reconstruction Par for Ion Additional
 // **************************************************************
-TofCAlignParIon* TofCAlignParIon::Head=0;
+TofCAlignIonPar* TofCAlignIonPar::Head=0;
 
-TofCAlignParIon* TofCAlignParIon::GetHead(){
-  if(!Head)Head = new TofCAlignParIon();
+TofCAlignIonPar* TofCAlignIonPar::GetHead(){
+  if(!Head)Head = new TofCAlignIonPar();
   return Head;
 }
 
 //=======================================================
-const int TofCAlignParIon::RigCh[TofCAlignParIon::nRigCh]={
+const int TofCAlignIonPar::RigCh[TofCAlignIonPar::nRigCh]={
    3,4,5,6,7,8
 };
 
 //=======================================================
-TofCAlignParIon::TofCAlignParIon(){
-   TDVName="TofCAlignParIon";
+TofCAlignIonPar::TofCAlignIonPar(){
+   TDVName="TofCAlignIon";
    TDVParN=0;
-   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Anode
-   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Dynode
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Anode
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Dynode
    TDVBlock=new float[TDVParN];
    TDVSize=TDVParN*sizeof(float);
    LoadOptPar(1);
 }
 
 //=======================================================
-TofCAlignParIon::TofCAlignParIon(float *arr,int brun,int erun){
-   TDVName="TofCAlignParIon";
+TofCAlignIonPar::TofCAlignIonPar(float *arr,int brun,int erun){
+   TDVName="TofCAlignIon";
    TDVParN=0;
-   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Anode
-   TDVParN+=nRigCh*5*TOFCSN::NBARN;//Dynode
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Anode
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Dynode
    TDVBlock=arr;
    TDVSize=TDVParN*sizeof(float);
    BRun=brun;
@@ -2382,7 +2382,7 @@ TofCAlignParIon::TofCAlignParIon(float *arr,int brun,int erun){
 }
 
 //===========================================================
-void  TofCAlignParIon::LoadOptPar(int opt){
+void  TofCAlignIonPar::LoadOptPar(int opt){
   int iblock=0;
 //----load dynode correction par
  for(int ich=0;ich<nRigCh;ich++){
@@ -2417,12 +2417,12 @@ void  TofCAlignParIon::LoadOptPar(int opt){
    Isload=1;
 }
 //==========================================================
-void TofCAlignParIon::LoadTDVPar(){
+void TofCAlignIonPar::LoadTDVPar(){
   return LoadOptPar();
 }
 
 //==========================================================
-int  TofCAlignParIon::LoadFromFile(char *file){
+int  TofCAlignIonPar::LoadFromFile(char *file,char *file1){
    ifstream vlfile(file,ios::in);
    if(!vlfile){
     cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
@@ -2430,7 +2430,17 @@ int  TofCAlignParIon::LoadFromFile(char *file){
    }
 //---load
    int ib=0;
-   for(int i=0;i<TDVParN;i++){
+   for(int i=0;i<TDVParN/2;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   vlfile.close();
+//---load2
+   vlfile.open(file1,ios::in); 
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file1<<"--file !!: "<<endl;
+    return -1;
+   }
+   for(int i=0;i<TDVParN/2;i++){
      vlfile>>TDVBlock[ib++];
    }
    LoadTDVPar();
@@ -2439,7 +2449,7 @@ int  TofCAlignParIon::LoadFromFile(char *file){
 }
 
 //==========================================================
-void TofCAlignParIon::PrintTDV(){
+void TofCAlignIonPar::PrintTDV(){
   cout<<"<<----Print "<<TDVName<<endl;
   for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
   cout<<'\n';
@@ -2738,6 +2748,14 @@ TofAlignManager::TofAlignManager(int real){
                            server,1,TofCAlignPar::HeadLoadTDVPar);
      tdvmap.insert(pair<string,AMSTimeID*>(TofCAlign->TDVName,tdv));
   */
+//---Charge Ion Par
+    TofCAlignIonPar *TofCAlignIon=TofCAlignIonPar::GetHead();
+    tdv= new AMSTimeID(AMSID(TofCAlignIon->TDVName,isreal),begin,end,
+                           TofCAlignIon->TDVSize,
+                           TofCAlignIon->TDVBlock,
+                           server,1,TofCAlignIonPar::HeadLoadTDVPar);
+    tdvmap.insert(pair<string,AMSTimeID*>(TofCAlignIon->TDVName,tdv));
+
 //---Charge PDF Par
     TofPDFPar *TofPDFAlign=TofPDFPar::GetHead();
     tdv= new AMSTimeID(AMSID(TofPDFAlign->TDVName,isreal),begin,end,

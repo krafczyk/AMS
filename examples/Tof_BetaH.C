@@ -10,6 +10,7 @@
 //        Created:       2012-Aug-17  Q.Yan  qyan@cern.ch
 //        Add:           2012-Oct-11  Adding BetaHR charge example GetQ GetQL
 //        Add:           2012-Nov-17  Adding example TofChargeHR Likelihood Charge-Z Prob-Z:  PDF validate for all charge Z=1~Z>26
+//        Add:           2014-May-21  Adding charge rigidity corrretion(recommended!!!, especially good for Ion and high rigidity)
 // -----------------------------------------------------------
 
 #include <signal.h>
@@ -24,7 +25,7 @@
 #include "TTree.h"
 #include <sstream>
 #include "TString.h"
-#include <fstream.h>
+#include <fstream>
 #include <iostream>
 #include "root_RVSP.h"
 #include "amschain.h"
@@ -460,11 +461,17 @@ bool AMSAnalysis::Select_Tof(){
        int nlay; float qrms;
        tof_hqt=betah->GetQ(nlay,qrms);//TOF Trancate Mean Q
        tof_hqg=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOpt,-1);//TOF Gaus Mean Q
-//--To TofChargeHR
+//----New 2014-05-21 Adding charge rigidity corrretion(recommended!!!, especially good for Ion and high rigidity)
+       tof_hqt=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOptIon,-2,0,tk_rigidity);//TOF Trancate Mean Q => Tk-Max-SPan Rigidity
+       tof_hqg=betah->GetQ(nlay,qrms,2,TofClusterHR::DefaultQOptIon,-1,0,tk_rigidity);//TOF Gaus Mean Q
+//----TofChargeHR Support ReFit
        TofChargeHR *tofcharge=betah->pTofChargeH();//Access To TofChargeHR
+//----New 2014-05-21 Adding charge rigidity corrretion(recommended!!!, especially good for Ion and high rigidity)
+       tofcharge->ReFit(0,TofChargeHR::DefaultQOptIon,tk_rigidity);
+//--- 
        tof_hz=tofcharge->GetZ(nlay,tof_hprobz);//Max-Prob Integer Z+ProbZ
        float probu,probd;
-       tof_hzu=tofcharge->GetZ(nlay,probu,0,1100); //Using Up TOF-Two-Layer Likelihood To PID ///TofChargeHR Support Dynamic Likelihood ReFit For select Pattern
+       tof_hzu=tofcharge->GetZ(nlay,probu,0,1100); //Using Up TOF-Two-Layer Likelihood To PID ///
        tof_hzd=tofcharge->GetZ(nlay,probd,0,11); //Using Down TOF-Two-Layer Likelihood To PID
        tof_hq=tofcharge->GetQ(nlay,qrms);//Float Q From TofChargeHR should be better than From BetaH For Z~3-8, Due to tuning better Threshold Between Anode and Dynode)
        tof_hlikq=tofcharge->GetLikeQ(nlay);//Float Q-Using Likelihood Method (More Gaus)
@@ -482,6 +489,9 @@ bool AMSAnalysis::Select_Tof(){
 //--Test if This Layer Exist-By BetaH
          if(betah->TestExistHL(ilay)){
            tof_hql[ilay]=betah->GetQL(ilay);//Q-Measurment for Each TOF-Layer
+//----New 2014-05-21 Adding charge rigidity corrretion(recommended!!!, especially good for Ion and high rigidity)
+           tof_hql[ilay]=betah->GetQL(ilay,2,TofClusterHR::DefaultQOptIon,111111,0,tk_rigidity);
+//---
            if(betah->IsBetaUseHL(ilay))tof_htl[ilay]=betah->GetTime(ilay);//Time-Measurment for Each TOF-Layer
 //---To TofClusterHR
            TofClusterHR *tofclh=betah->GetClusterHL(ilay);//Access to TofClusterHR

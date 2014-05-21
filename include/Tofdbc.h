@@ -509,23 +509,23 @@ class TofCAlignPar: public TofTDVTool<float>{
 };
 
 //==========================================================
-class TofCAlignParIon: public TofTDVTool<float>{
+class TofCAlignIonPar: public TofTDVTool<float>{
  public:
      static const int nRigCh=6;//Z=3-8
      static const int RigCh[nRigCh];
      std::map<int, float>rigcor[2][nRigCh][7];//Dynode+Anode
  public:
-     TofCAlignParIon();
-     TofCAlignParIon(float *arr,int brun,int erun);//load 
-     static TofCAlignParIon *Head;
+     TofCAlignIonPar();
+     TofCAlignIonPar(float *arr,int brun,int erun);//load 
+     static TofCAlignIonPar *Head;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (Head) 
 #endif
-     static TofCAlignParIon *GetHead();
+     static TofCAlignIonPar *GetHead();
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadOptPar(int opt=0);//copy TDV to class 0 From TDV 1 Read From Default
      void LoadTDVPar();//copy TDV to class
-     int  LoadFromFile(char *file);//read data from file->Block data
+     int  LoadFromFile(char *file,char *file1);//read data from file->Block data
      void PrintTDV();
 };
 

@@ -286,8 +286,6 @@ float TofChargeHR::GetLikeQ(int &nlay,int pattern){
 //=======================================================
 int  TofChargeHR::ReFit(float fbeta,int opt,float frig){
 
-  if(fbeta==0&&frig==0)return -1;
-
   int kRigidity=(opt&TofRecH::kRigidityCor);
   double rig=0;
   if(fTrTrack>=0&&fbeta==0)rig=Rigidity;

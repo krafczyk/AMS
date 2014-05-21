@@ -662,8 +662,8 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
  //--ReAtt Correction
    if(optc&kReAttCor){signalc=SciReAttCor(idsoft,lcoo,signalc,1);}
 //--Beta Correction
-   if(optc&kBetaCor)   {signalc=BetaCor(idsoft,signalc,beta,rig);}
-   if(optc&kRigidityCor){signalc=RigCor(idsoft,signalc,rig,isanode);} 
+   if(optc&kBetaCor)   {signalc=BetaCor(idsoft,signalc,beta,rig);if(signalc<=0)return signalc;}
+   if(optc&kRigidityCor){signalc=RigCor(idsoft,signalc,rig,isanode);if(signalc<=0)return signalc;} 
 //--Conver from MeV to Q2
   if(optc&kMeVQ2)    signalc=signalc/TofCAlignPar::ProEdep;
 //--Inverse Birk Correction
@@ -766,10 +766,16 @@ number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
 //========================================================
 number TofRecH::RigCor(int idsoft,number q2,number rig,int isanode){
 
-  if(q2<=0)return q2;
+   static int errcount=0;
+   if(TofCAlignIonPar::Head==0||TofCAlignIonPar::GetHead()->Isload!=1){
+       if(errcount++<100)cerr<<"Error TofCAlignIonPar Head not Initial !!!!"<<endl;
+       return q2;
+   }
+
+  if(q2<=0||rig==0)return q2;
 
 ///--Finding Algorithem
-  int nowch=TofCAlignParIon::RigCh[0];
+  int nowch=TofCAlignIonPar::RigCh[0];
    number cor1,cor2,ch1,ch2;
    number rigcor=1;
    while (1){
@@ -778,7 +784,7 @@ number TofRecH::RigCor(int idsoft,number q2,number rig,int isanode){
       ch1=sqrt(q2/cor1);
       ch2=sqrt(q2/cor2);
   ///--Find LowLimit
-      if(ch1<TofCAlignParIon::RigCh[0]||ch2<TofCAlignParIon::RigCh[0]||nowch==0){
+      if(ch1<TofCAlignIonPar::RigCh[0]||ch2<TofCAlignIonPar::RigCh[0]||nowch==0){
         rigcor=cor1;break;
       }
 ///--Find Gap
@@ -801,16 +807,16 @@ number TofRecH::GetRigCalCh(int idsoft,int charge,number rig,int isanode){
 
    number corvar=1;
    
-   for(int ich=0;ich<TofCAlignParIon::nRigCh;ich++){
+   for(int ich=0;ich<TofCAlignIonPar::nRigCh;ich++){
 ///---Find in arr or at end
-       if(charge==TofCAlignParIon::RigCh[ich]||ich==TofCAlignParIon::nRigCh-1){
+       if(charge<TofCAlignIonPar::RigCh[0]||charge==TofCAlignIonPar::RigCh[ich]||ich==TofCAlignIonPar::nRigCh-1){
          corvar=GetRigCalI(idsoft,ich,rig,isanode); //Beta Correction
          break;
       }
 ///---Find In middle need interpolation
-     else if(charge>TofCAlignParIon::RigCh[ich]&&charge<TofCAlignParIon::RigCh[ich+1]){
-        number  ww1=charge*charge-TofCAlignParIon::RigCh[ich]*TofCAlignParIon::RigCh[ich];
-        number  ww2=TofCAlignParIon::RigCh[ich+1]*TofCAlignParIon::RigCh[ich+1]-charge*charge;
+     else if(charge>TofCAlignIonPar::RigCh[ich]&&charge<TofCAlignIonPar::RigCh[ich+1]){
+        number  ww1=charge*charge-TofCAlignIonPar::RigCh[ich]*TofCAlignIonPar::RigCh[ich];
+        number  ww2=TofCAlignIonPar::RigCh[ich+1]*TofCAlignIonPar::RigCh[ich+1]-charge*charge;
         corvar=(ww2*GetRigCalI(idsoft,ich,rig,isanode)+ww1*GetRigCalI(idsoft,ich+1,rig,isanode))/(ww1+ww2);//Beta Correction
         break;
       }
@@ -822,12 +828,13 @@ number TofRecH::GetRigCalCh(int idsoft,int charge,number rig,int isanode){
 //========================================================
 number TofRecH::GetRigCalI(int idsoft,int chindex,number rig,int isanode){//Counter Level
 
-   TofCAlignParIon  *CParI=TofCAlignParIon::GetHead();
+   TofCAlignIonPar  *CParI=TofCAlignIonPar::GetHead();
 ///----
    const number rigcut=1.;////Const
    number rigp=fabs(rig)<rigcut? fabs(rigcut) :fabs(rig);
 //---
    number xv=log(rigp);
+   idsoft=idsoft/100*100;
    number par[7]={0};
    par[0]=CParI->rigcor[isanode][chindex][0][idsoft];
    par[1]=CParI->rigcor[isanode][chindex][1][idsoft];
