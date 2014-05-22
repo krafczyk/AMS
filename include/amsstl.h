@@ -1,4 +1,4 @@
-//  $Id: amsstl.h,v 1.19 2009/09/13 12:37:24 pzuccon Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
 // 11.07.96 modified by E.Choumilov.(AMSbins added) 
 #ifndef __AMSSTL__
@@ -155,7 +155,9 @@ template <class T> T*  AMSbs(T *a[], const T& obj, integer N, char hint){
   integer ir=1;
   integer ib=N-1;
   static integer k=0;
+#ifdef _OPENMP
 #pragma omp threadprivate (k)
+#endif
   while(ia<ib-1 || il*ir){
     if(hint=='+') {k<ib?k++:ib;hint='\0';}
     else if (hint=='-'){k>ia?k--:ia;hint='\0';}
@@ -191,7 +193,9 @@ template <class T> integer  AMSbsi(T *a[], const T& obj, integer N, char hint){
   integer ir=1;
   integer ib=N-1;
   static integer k=0;
+#ifdef _OPENMP
 #pragma omp threadprivate (k)
+#endif
   while(ia<ib-1 || il*ir){
     if(hint=='+') {k<ib?k++:ib;hint='\0';}
     else if (hint=='-'){k>ia?k--:ia;hint='\0';}
@@ -284,7 +288,9 @@ template <class T> void AMSsortNAG(T *rv[], integer m2){
 
   /* Local variables */
   static double rand;
+#ifdef _OPENMP
 #pragma omp threadprivate (rand)
+#endif
   integer leng, ierr, istk, ilow[100];
 //#pragma omp threadprivate (leng,ierr,istk,ilow)
   T *a;
@@ -502,17 +508,25 @@ template <class T> void AMSsortNAGa(T rv[], integer m2){
 
   /* Local variables */
   static double rand;
+#ifdef _OPENMP
 #pragma omp threadprivate (rand)
+#endif
   static integer leng, ierr, istk, ilow[100];
+#ifdef _OPENMP
 #pragma omp threadprivate (leng,ierr,istk,ilow)
+#endif
   T a;
   static integer i, j, k;
+#ifdef _OPENMP
 #pragma omp threadprivate (i,j,k)
+#endif
   T x;
   static integer ihigh[100];
   static char order[1];
   static integer i1, i2, j1, j2, m1;
+#ifdef _OPENMP
 #pragma omp threadprivate (ihigh,order,i1,i2,j1,j2,m1)
+#endif
 
 
   ierr = 0;

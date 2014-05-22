@@ -1183,6 +1183,7 @@ class TofClusterHR :public TrElem {
  public:
      static int DefaultQOpt;
      static int DefaultQ2Opt;
+     static int DefaultQOptIon;
 
  public:
 /** @name Constructors and Index Accessors
@@ -3055,9 +3056,10 @@ class BetaHR: public TrElem{
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] pattern 111(P-PMT)111(N-PMT): Use All Good PMTs; 100(P-PMT)-110(N-PMT): PSide-PMT-No0~1 and NSide-PMT-No0 will not used for Calculation
     * @param[in] fbeta: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
+    * @param[in] frig:  rigidity correction for opt=TofClusterHR::DefaultQOptIon, 0-use default tracker rigidity;  !=0-use input tracker rigidity
     * @param[in] optw 1-Different weight for different PMTs. 0-Same weight for All PMTs
   */
-  float GetQL(int ilay,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,float fbeta=0,int optw=1);
+  float GetQL(int ilay,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=111111,float fbeta=0,float frig=0,int optw=1);
 /// TOF Q Mean
    /*!
     * @param[out] nlay Number of TOF Layers Used For Q-Measument
@@ -3066,9 +3068,10 @@ class BetaHR: public TrElem{
     * @param[in] opt  DefaultQOpt Q Estimate, DefaultQ2Opt Q^2 Estimate
     * @param[in] pattern -1: Remove Max-dQ(Q deviation)+BadPath-Length Layer; -2: Remove Max-Q+BadPath-Length Layer; -10: Remove BadPath-Length Layer; -11: Remove Max-dQ(Q deviation) Layer; -12: Remove Max-Q Layer;  1111: Using all 4Layers(if exist);1011: Using Lay0,2,3 exclude Layer; 1100: Using Up-TOF; 11 Using Down-TOF...
     * @param[in] fbeta: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
+    * @param[in] frig:  rigidity correction for opt=TofClusterHR::DefaultQOptIon, 0-use default tracker rigidity;  !=0-use input tracker rigidity[GV]
     * @return =0 No Good TOF Layer for measurement  >0 Q(or Q^2) value
     */
-  float GetQ(int &nlay,float &qrms,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2,float fbeta=0);
+  float GetQ(int &nlay,float &qrms,int pmtype=2,int opt=TofClusterHR::DefaultQOpt,int pattern=-2,float fbeta=0,float frig=0);
 /// TOF Beta Measument of 4Layers from TOF Dedx /*validate form beta~0.3~0.94*/
    /*!
     * @param[in] ilay TOF layer(0-3)
@@ -3141,7 +3144,7 @@ class BetaHR: public TrElem{
 //---- 
   friend class AMSBetaH;
   friend class AMSEventR;
-  ClassDef(BetaHR,15)
+  ClassDef(BetaHR,16)
 #pragma omp threadprivate(fgIsA)   
 };
                                                        

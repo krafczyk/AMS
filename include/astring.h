@@ -1,4 +1,4 @@
-//  $Id: astring.h,v 1.9 2011/04/30 20:36:29 pzuccon Exp $
+//  $Id$
 #ifndef __ASTRING___
 #define __ASTRING___
 
@@ -675,7 +675,7 @@ inline char AString::operator[](
 //--
 
 {
-    return (position < length() && position>=0) ? pData->pString[position] : 0;
+    return (position>=0 && (unsigned int) position < length()) ? pData->pString[position] : 0;
 }
 
 

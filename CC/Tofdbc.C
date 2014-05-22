@@ -2342,6 +2342,120 @@ void TofCAlignPar::PrintTDV(){
   cout<<"<<----end of Print "<<TDVName<<endl;
 }
 
+// **************************************************************
+// Tof Charge+EDep Reconstruction Par for Ion Additional
+// **************************************************************
+TofCAlignIonPar* TofCAlignIonPar::Head=0;
+
+TofCAlignIonPar* TofCAlignIonPar::GetHead(){
+  if(!Head)Head = new TofCAlignIonPar();
+  return Head;
+}
+
+//=======================================================
+const int TofCAlignIonPar::RigCh[TofCAlignIonPar::nRigCh]={
+   3,4,5,6,7,8
+};
+
+//=======================================================
+TofCAlignIonPar::TofCAlignIonPar(){
+   TDVName="TofCAlignIon";
+   TDVParN=0;
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Anode
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Dynode
+   TDVBlock=new float[TDVParN];
+   TDVSize=TDVParN*sizeof(float);
+   LoadOptPar(1);
+}
+
+//=======================================================
+TofCAlignIonPar::TofCAlignIonPar(float *arr,int brun,int erun){
+   TDVName="TofCAlignIon";
+   TDVParN=0;
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Anode
+   TDVParN+=nRigCh*7*TOFCSN::NBARN;//Dynode
+   TDVBlock=arr;
+   TDVSize=TDVParN*sizeof(float);
+   BRun=brun;
+   ERun=erun;
+   LoadTDVPar();
+}
+
+//===========================================================
+void  TofCAlignIonPar::LoadOptPar(int opt){
+  int iblock=0;
+//----load dynode correction par
+ for(int ich=0;ich<nRigCh;ich++){
+    for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+     for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+       for(int ipar=0;ipar<7;ipar++){
+          int id=ilay*1000+ibar*100;
+          if(opt==0)rigcor[0][ich][ipar][id]=TDVBlock[iblock++];
+          else      {
+            TDVBlock[iblock++]=rigcor[0][ich][ipar][id];
+           }
+        }
+      }
+    }
+  }
+
+//----load anode correction par
+  for(int ich=0;ich<nRigCh;ich++){
+    for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+     for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+       for(int ipar=0;ipar<7;ipar++){
+          int id=ilay*1000+ibar*100;
+          if(opt==0)rigcor[1][ich][ipar][id]=TDVBlock[iblock++];
+          else      {
+            TDVBlock[iblock++]=rigcor[1][ich][ipar][id];
+           }
+        }
+      }
+    }
+  }
+ 
+   Isload=1;
+}
+//==========================================================
+void TofCAlignIonPar::LoadTDVPar(){
+  return LoadOptPar();
+}
+
+//==========================================================
+int  TofCAlignIonPar::LoadFromFile(char *file,char *file1){
+   ifstream vlfile(file,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
+    return -1;
+   }
+//---load
+   int ib=0;
+   for(int i=0;i<TDVParN/2;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   vlfile.close();
+//---load2
+   vlfile.open(file1,ios::in); 
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file1<<"--file !!: "<<endl;
+    return -1;
+   }
+   for(int i=0;i<TDVParN/2;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   LoadTDVPar();
+   vlfile.close();
+   return 0;
+}
+
+//==========================================================
+void TofCAlignIonPar::PrintTDV(){
+  cout<<"<<----Print "<<TDVName<<endl;
+  for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
+  cout<<'\n';
+  cout<<"<<----end of Print "<<TDVName<<endl;
+}
+
 
 // **************************************************************
 // Tof PDF-TDV-Par
@@ -2634,6 +2748,14 @@ TofAlignManager::TofAlignManager(int real){
                            server,1,TofCAlignPar::HeadLoadTDVPar);
      tdvmap.insert(pair<string,AMSTimeID*>(TofCAlign->TDVName,tdv));
   */
+//---Charge Ion Par
+    TofCAlignIonPar *TofCAlignIon=TofCAlignIonPar::GetHead();
+    tdv= new AMSTimeID(AMSID(TofCAlignIon->TDVName,isreal),begin,end,
+                           TofCAlignIon->TDVSize,
+                           TofCAlignIon->TDVBlock,
+                           server,1,TofCAlignIonPar::HeadLoadTDVPar);
+    tdvmap.insert(pair<string,AMSTimeID*>(TofCAlignIon->TDVName,tdv));
+
 //---Charge PDF Par
     TofPDFPar *TofPDFAlign=TofPDFPar::GetHead();
     tdv= new AMSTimeID(AMSID(TofPDFAlign->TDVName,isreal),begin,end,

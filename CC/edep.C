@@ -1,4 +1,4 @@
-// $Id: edep.C,v 1.5 2012/04/22 23:40:33 oliva Exp $
+// $Id$
 
 #include "edep.h"
 
@@ -39,7 +39,7 @@ Double_t AMSEnergyLoss::density_correction_logbetagamma(Double_t* x, Double_t* p
   Double_t Cbar   = par[2];
   Double_t a      = par[3];
   Double_t k      = par[4];
-  Double_t delta0 = par[5];
+  //Double_t delta0 = par[5];
   if      (eta>=x1) return 2*log(10)*eta - Cbar;
   else if (eta>=x0) return 2*log(10)*eta - Cbar + a*pow(x1-eta,k);
   else              return (2*log(10)*x0 - Cbar + a*pow(x1-x0,k))*pow(10.,2*(eta-x0)); // delta0*pow(10.,2*(eta-x0));
@@ -288,7 +288,7 @@ Double_t AMSEnergyLoss::GetTofLayerEffLogBetaGammaFromBeta(Int_t layer, Double_t
 Double_t AMSEnergyLoss::GetTofLayerEffLogBetaGamma(Int_t layer, Double_t beta, Double_t rigidity, Double_t mass_on_Z) {
   if ( (layer<1)||(layer>4) ) return -100;
   Double_t logbetagamma_beta = GetLogBetaGammaFromBeta(beta);
-  Double_t logbetagamma_rigi = GetLogBetaGammaFromRigidity(rigidity,mass_on_Z);
+  //Double_t logbetagamma_rigi = GetLogBetaGammaFromRigidity(rigidity,mass_on_Z);
   Double_t effbetagamma_beta = GetTofLayerEffLogBetaGammaFromBeta(layer,beta);
   Double_t effbetagamma_rigi = GetTofLayerEffLogBetaGammaFromRigidity(layer,rigidity,mass_on_Z);
   // both determination failed
@@ -342,7 +342,7 @@ Double_t AMSEnergyLoss::GetTrackerLayerEffLogBetaGammaFromBeta(Int_t layer, Doub
 Double_t AMSEnergyLoss::GetTrackerLayerEffLogBetaGamma(Int_t layer, Double_t beta, Double_t rigidity, Double_t mass_on_Z) {
   if ( (layer<1)||(layer>9) ) return -100;
   Double_t logbetagamma_beta = GetLogBetaGammaFromBeta(beta);
-  Double_t logbetagamma_rigi = GetLogBetaGammaFromRigidity(rigidity,mass_on_Z);
+  //Double_t logbetagamma_rigi = GetLogBetaGammaFromRigidity(rigidity,mass_on_Z);
   Double_t effbetagamma_beta = GetTrackerLayerEffLogBetaGammaFromBeta(layer,beta);
   Double_t effbetagamma_rigi = GetTrackerLayerEffLogBetaGammaFromRigidity(layer,rigidity,mass_on_Z);
   // both determination failed

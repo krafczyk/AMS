@@ -3866,6 +3866,12 @@ void AMSJob::_timeinitjob(){
                            server,1,TofPMDAlignPar::HeadLoadTDVPar));
 //---Charge Par
       TofCAlignPar *TofCAlign=TofCAlignPar::GetHead();
+//---Charge Ion Par
+      TofCAlignIonPar *TofCAlignIon=TofCAlignIonPar::GetHead();
+      TID.add (new AMSTimeID(AMSID(TofCAlignIon->TDVName,isRealData()),begin,end,
+                           TofCAlignIon->TDVSize,
+                           TofCAlignIon->TDVBlock,
+                           server,1,TofCAlignIonPar::HeadLoadTDVPar));
 //---PDF Par
       TofPDFPar *TofPDF=TofPDFPar::GetHead();
       TID.add (new AMSTimeID(AMSID(TofPDF->TDVName,isRealData()),begin,end,

@@ -1,4 +1,4 @@
-//  $Id: Tofcharge_ihep.h,v 1.12 2013/02/17 16:32:18 mduranti Exp $
+//  $Id$
 
 //Author Qi Yan 2012/Oct/01 15:56 qyan@cern.ch  /*IHEP TOF Charge Likelihood version(BetaH)*/
 #ifndef __TOFCHARGE_IHEP__
@@ -103,6 +103,10 @@ class TofLikelihoodPar: public TObject{
 class TofChargeHR: public TrElem {
 
 public:
+  static int DefaultQOpt;
+  static int DefaultQOptIon;
+
+public:
   /// Charge Measument Par Of All Layer
   vector<TofChargePar> cpar;
   /// Likelihood Value Of All Charge for Pattern
@@ -115,7 +119,8 @@ public:
   map<int, float>RQ;
   /// Tk Index
   int fTrTrack;
-
+  /// Tk Rigidity
+  float Rigidity;
 private:
 /// Update All Charge-Measurement Likelihood in Class Using Using Fix Pattern
   void UpdateZ(int pattern=-10,int opt=1);
@@ -126,7 +131,7 @@ public:
   TofChargeHR(){Init();}
   TofChargeHR(BetaHR *betah);
   virtual ~TofChargeHR(){};
-
+  
 /** @name TOF Layer Charge Measurment
  * @{
  */
@@ -205,8 +210,10 @@ public:
   /// TOF Charge ReFit by new Parameters
   /*
    * @param[in]: 0-use BetaH beta Correction 1-no beta Correction !=0-use Fix beta Correction
+   * @param[in]: opt:  Q Estimate option
+   * @param[in]: frig:  rigidity correction for opt=TofChargeHR::DefaultQOptIon, 0-use default tracker rigidity;  !=0-use input tracker rigidity[GV]
    */
-  int  ReFit(float fbeta=0);
+  int  ReFit(float fbeta=0,int opt=TofChargeHR::DefaultQOpt,float frig=0);
 /**@}*/
 
   void _PrepareOutput(int opt=0){
@@ -230,7 +237,7 @@ public:
   };
 
 //----
-  ClassDef(TofChargeHR,4);
+  ClassDef(TofChargeHR,5);
   friend class TofPDFH;
 #pragma omp threadprivate(fgIsA)
 };

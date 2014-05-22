@@ -1,4 +1,4 @@
-//  $Id: Tofrec02_ihep.C,v 1.54 2013/12/04 15:58:10 qyan Exp $
+//  $Id$
 
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
@@ -662,8 +662,8 @@ number TofRecH::GetQSignal(int idsoft,int isanode,int optc,number signal,number 
  //--ReAtt Correction
    if(optc&kReAttCor){signalc=SciReAttCor(idsoft,lcoo,signalc,1);}
 //--Beta Correction
-   if(optc&kBetaCor)  {signalc=BetaCor(idsoft,signalc,beta,rig);}
- 
+   if(optc&kBetaCor)   {signalc=BetaCor(idsoft,signalc,beta,rig);if(signalc<=0)return signalc;}
+   if(optc&kRigidityCor){signalc=RigCor(idsoft,signalc,rig,isanode);if(signalc<=0)return signalc;} 
 //--Conver from MeV to Q2
   if(optc&kMeVQ2)    signalc=signalc/TofCAlignPar::ProEdep;
 //--Inverse Birk Correction
@@ -761,6 +761,95 @@ number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
   else {
     return GetBirkFun(idsoft)->Eval(q2);
   }
+}
+
+//========================================================
+number TofRecH::RigCor(int idsoft,number q2,number rig,int isanode){
+
+   static int errcount=0;
+   if(TofCAlignIonPar::Head==0||TofCAlignIonPar::GetHead()->Isload!=1){
+       if(errcount++<100)cerr<<"Error TofCAlignIonPar Head not Initial !!!!"<<endl;
+       return q2;
+   }
+
+  if(q2<=0||rig==0)return q2;
+
+///--Finding Algorithem
+  int nowch=TofCAlignIonPar::RigCh[0];
+   number cor1,cor2,ch1,ch2;
+   number rigcor=1;
+   while (1){
+      cor1=GetRigCalCh(idsoft,nowch,rig,isanode);
+      cor2=GetRigCalCh(idsoft,nowch+1,rig,isanode);
+      ch1=sqrt(q2/cor1);
+      ch2=sqrt(q2/cor2);
+  ///--Find LowLimit
+      if(ch1<TofCAlignIonPar::RigCh[0]||ch2<TofCAlignIonPar::RigCh[0]||nowch==0){
+        rigcor=cor1;break;
+      }
+///--Find Gap
+       else if((ch1>=nowch&&ch2<=nowch+1)||(ch1<=nowch&&ch2>=nowch+1)){
+         number ww1=fabs(ch1*ch1-nowch*nowch);number ww2=fabs(ch2*ch2-(nowch+1)*(nowch+1));
+         rigcor=(ww2*cor1+ww1*cor2)/(ww1+ww2);break;
+      }
+      else if(ch1>=nowch+1||ch2>=nowch+1){nowch=(ch1>ch2)? int(ch1):int(ch2);}
+      else if(ch1<=nowch||ch2<=nowch)    {nowch--;}
+      else {cerr<<"Error Rig Correction"<<endl;break;}
+   }
+
+    return q2/rigcor;
+  
+}
+//========================================================
+number TofRecH::GetRigCalCh(int idsoft,int charge,number rig,int isanode){
+
+  if(charge<=0)return 1;
+
+   number corvar=1;
+   
+   for(int ich=0;ich<TofCAlignIonPar::nRigCh;ich++){
+///---Find in arr or at end
+       if(charge<TofCAlignIonPar::RigCh[0]||charge==TofCAlignIonPar::RigCh[ich]||ich==TofCAlignIonPar::nRigCh-1){
+         corvar=GetRigCalI(idsoft,ich,rig,isanode); //Beta Correction
+         break;
+      }
+///---Find In middle need interpolation
+     else if(charge>TofCAlignIonPar::RigCh[ich]&&charge<TofCAlignIonPar::RigCh[ich+1]){
+        number  ww1=charge*charge-TofCAlignIonPar::RigCh[ich]*TofCAlignIonPar::RigCh[ich];
+        number  ww2=TofCAlignIonPar::RigCh[ich+1]*TofCAlignIonPar::RigCh[ich+1]-charge*charge;
+        corvar=(ww2*GetRigCalI(idsoft,ich,rig,isanode)+ww1*GetRigCalI(idsoft,ich+1,rig,isanode))/(ww1+ww2);//Beta Correction
+        break;
+      }
+   }
+
+   return corvar;
+}
+
+//========================================================
+number TofRecH::GetRigCalI(int idsoft,int chindex,number rig,int isanode){//Counter Level
+
+   TofCAlignIonPar  *CParI=TofCAlignIonPar::GetHead();
+///----
+   const number rigcut=1.;////Const
+   number rigp=fabs(rig)<rigcut? fabs(rigcut) :fabs(rig);
+//---
+   number xv=log(rigp);
+   idsoft=idsoft/100*100;
+   number par[7]={0};
+   par[0]=CParI->rigcor[isanode][chindex][0][idsoft];
+   par[1]=CParI->rigcor[isanode][chindex][1][idsoft];
+   par[2]=CParI->rigcor[isanode][chindex][2][idsoft];
+   par[3]=CParI->rigcor[isanode][chindex][3][idsoft];
+   par[4]=CParI->rigcor[isanode][chindex][4][idsoft];
+   par[5]=CParI->rigcor[isanode][chindex][5][idsoft];
+   par[6]=CParI->rigcor[isanode][chindex][6][idsoft];
+//--Rigidit Correction
+   number rigcv=par[0]*atan(par[1]*xv)+par[2];
+   if(xv<par[3]){
+     rigcv=par[0]*atan(par[1]*par[3])+par[2];
+     rigcv=rigcv+par[4]*(xv-par[3])+par[5]*pow((xv-par[3]),2)+par[6]*pow((xv-par[3]),3);
+   }
+   return rigcv;
 }
 
 //========================================================
