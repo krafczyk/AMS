@@ -26,6 +26,7 @@ float TofChargePar::GetQ(int pmtype){
     return QL>0?sqrt(QL):float(QL);
   }
   else {
+      if(QLDRaw<0&&QLARaw<0)return -1;
       TofRecPar::IdCovert(Layer,Bar);
       double wd=TofRecH::GetWeightDA(TofRecPar::Idsoft,0,QLDRaw);
       double wa=TofRecH::GetWeightDA(TofRecPar::Idsoft,1,QLARaw);

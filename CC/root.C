@@ -8853,7 +8853,8 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,float fbeta,float fr
 //---SUMDA
        double wd=TofRecH::GetWeightDA(TofRecPar::Idsoft,0,qd2);
        double wa=TofRecH::GetWeightDA(TofRecPar::Idsoft,1,qa2);
-       signal=(wa*qa+wd*qd)/(wa+wd); 
+       if(qd2<0&&qa2<0)signal=-1;
+       else            signal=(wa*qa+wd*qd)/(wa+wd); 
      }
      else {
         signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),ubeta,rig);
