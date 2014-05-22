@@ -1059,6 +1059,63 @@ number TofRecH::SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweig
 }
 
 //========================================================
+number TofRecH::GetWeightDA(int idsoft,int isanode,number q2){
+
+   static int errcount=0;
+   if(TofCAlignIonPar::Head==0||TofCAlignIonPar::GetHead()->Isload!=1){
+       if(errcount++<100)cerr<<"Error TofCAlignIonPar Head not Initial !!!!"<<endl;
+       return q2;
+   }
+
+  if(q2<=0)return 0;
+  TofCAlignIonPar  *CParI=TofCAlignIonPar::GetHead();
+//----
+  idsoft=idsoft/100*100;
+  number ww=0,wwh=0,wwl=0,kx,ww1,ww2;
+//--Dyndoe
+  if(isanode==0){//Dynode No Helium
+     number q2l=4,q2h=9;
+     if(q2>=q2h){//>q2h
+       ww=CParI->wdapar[isanode][0][idsoft]+CParI->wdapar[isanode][1][idsoft]*q2; 
+       if(ww>1)ww=1;
+     }
+     else if(q2<=q2l){//<q2l
+       ww=0;
+     }
+     else {//q2l~q2h
+       wwh=CParI->wdapar[isanode][0][idsoft]+CParI->wdapar[isanode][1][idsoft]*q2h;
+       wwl=0;
+       kx=(wwh-wwl)/(q2h-q2l) ;
+       ww=kx*(q2-q2h)+wwh;
+     }
+   }
+//--Anode
+ else {//<-
+     number q2l=64,q2h=100;
+     if(q2<q2l){
+         ww=CParI->wdapar[isanode][0][idsoft]+CParI->wdapar[isanode][1][idsoft]*q2;
+         if(ww>1)ww=1;
+     }
+     else if(q2>q2h){
+       ww=0;
+     }
+     else {
+        wwh=0;
+        wwl=CParI->wdapar[isanode][0][idsoft]+CParI->wdapar[isanode][1][idsoft]*q2l;
+        kx=(wwh-wwl)/(q2h-q2l);
+        ww1=kx*(q2-q2l)+wwl;
+        ww2=CParI->wdapar[isanode][0][idsoft]+CParI->wdapar[isanode][1][idsoft]*q2;
+        ww=(ww1<ww2)?ww1:ww2;
+        if(ww<0)ww=0;
+     }
+   }
+
+//---
+  return ww;
+
+}
+
+//========================================================
 number TofRecH::SciAttCor(int idsoft,number lpos,number q2){//Side Level
 
 //---

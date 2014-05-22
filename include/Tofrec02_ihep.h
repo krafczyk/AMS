@@ -101,6 +101,8 @@ public:
     kRigidityCor=0x400,
     /// Attnueation ReCor
     kReAttCor=0x800,
+    /// Dynode-Anode Weight
+    kDAWeight=0x1000,
  };
 
 /** @name Sum ReBuild Part
@@ -171,6 +173,8 @@ public:
   static number SumSignalA(int idsoft,number signal[],int useweight=1);
 /// Sum Dynode Signal To Counter Signal
   static number SumSignalD(int idsoft,number signal[][TOFCSN::NPMTM],int useweight=1,bool minpmcut=1);
+/// Anode Dynode Weight
+  static number GetWeightDA(int idsoft,int isanode,number q2); 
 /// Get Proton Anode Mip Adc for local lpos
   static number GetProMipAdc(int idsoft,number lpos);
 /// Birk Function

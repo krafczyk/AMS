@@ -1184,7 +1184,7 @@ class TofClusterHR :public TrElem {
      static int DefaultQOpt;
      static int DefaultQ2Opt;
      static int DefaultQOptIon;
-
+     static int DefaultQOptIonW;
  public:
 /** @name Constructors and Index Accessors
  * @{

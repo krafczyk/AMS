@@ -514,6 +514,7 @@ class TofCAlignIonPar: public TofTDVTool<float>{
      static const int nRigCh=6;//Z=3-8
      static const int RigCh[nRigCh];
      std::map<int, float>rigcor[2][nRigCh][7];//Dynode+Anode
+     std::map<int, float>wdapar[2][2];//Dynode+Anode
  public:
      TofCAlignIonPar();
      TofCAlignIonPar(float *arr,int brun,int erun);//load 
@@ -525,7 +526,7 @@ class TofCAlignIonPar: public TofTDVTool<float>{
      static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
      void LoadOptPar(int opt=0);//copy TDV to class 0 From TDV 1 Read From Default
      void LoadTDVPar();//copy TDV to class
-     int  LoadFromFile(char *file,char *file1);//read data from file->Block data
+     int  LoadFromFile(char *file,char *file1,char *file2);//read data from file->Block data
      void PrintTDV();
 };
 

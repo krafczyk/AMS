@@ -2359,10 +2359,11 @@ const int TofCAlignIonPar::RigCh[TofCAlignIonPar::nRigCh]={
 
 //=======================================================
 TofCAlignIonPar::TofCAlignIonPar(){
-   TDVName="TofCAlignIon";
+   TDVName="TofCAlignIon2";
    TDVParN=0;
    TDVParN+=nRigCh*7*TOFCSN::NBARN;//Anode
    TDVParN+=nRigCh*7*TOFCSN::NBARN;//Dynode
+   TDVParN+=2*2*TOFCSN::NBARN;//NDA*2*SCI
    TDVBlock=new float[TDVParN];
    TDVSize=TDVParN*sizeof(float);
    LoadOptPar(1);
@@ -2370,10 +2371,11 @@ TofCAlignIonPar::TofCAlignIonPar(){
 
 //=======================================================
 TofCAlignIonPar::TofCAlignIonPar(float *arr,int brun,int erun){
-   TDVName="TofCAlignIon";
+   TDVName="TofCAlignIon2";
    TDVParN=0;
    TDVParN+=nRigCh*7*TOFCSN::NBARN;//Anode
    TDVParN+=nRigCh*7*TOFCSN::NBARN;//Dynode
+   TDVParN+=2*2*TOFCSN::NBARN;//NDA*2*SCI
    TDVBlock=arr;
    TDVSize=TDVParN*sizeof(float);
    BRun=brun;
@@ -2413,7 +2415,22 @@ void  TofCAlignIonPar::LoadOptPar(int opt){
       }
     }
   }
- 
+
+//---load dynode anode weight par
+   for(int ida=0;ida<2;ida++){
+     for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+       for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//N+P
+         for(int ipar=0;ipar<2;ipar++){
+           int id=ilay*1000+ibar*100;
+           if(opt==0)wdapar[ida][ipar][id]=TDVBlock[iblock++]; 
+           else      {
+             TDVBlock[iblock++]=wdapar[ida][ipar][id];
+           }
+        }
+     }
+   }
+ }
+
    Isload=1;
 }
 //==========================================================
@@ -2422,7 +2439,7 @@ void TofCAlignIonPar::LoadTDVPar(){
 }
 
 //==========================================================
-int  TofCAlignIonPar::LoadFromFile(char *file,char *file1){
+int  TofCAlignIonPar::LoadFromFile(char *file,char *file1,char *file2){
    ifstream vlfile(file,ios::in);
    if(!vlfile){
     cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
@@ -2430,7 +2447,7 @@ int  TofCAlignIonPar::LoadFromFile(char *file,char *file1){
    }
 //---load
    int ib=0;
-   for(int i=0;i<TDVParN/2;i++){
+   for(int i=0;i<nRigCh*7*TOFCSN::NBARN;i++){
      vlfile>>TDVBlock[ib++];
    }
    vlfile.close();
@@ -2440,11 +2457,22 @@ int  TofCAlignIonPar::LoadFromFile(char *file,char *file1){
     cerr <<"<---- Error: missing "<<file1<<"--file !!: "<<endl;
     return -1;
    }
-   for(int i=0;i<TDVParN/2;i++){
+   for(int i=0;i<nRigCh*7*TOFCSN::NBARN;i++){
      vlfile>>TDVBlock[ib++];
    }
-   LoadTDVPar();
    vlfile.close();
+//--load3
+   vlfile.open(file2,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file2<<"--file !!: "<<endl;
+    return -1;
+   }
+   for(int i=0;i<2*2*TOFCSN::NBARN;i++){
+     vlfile>>TDVBlock[ib++];
+   }
+   vlfile.close();
+//---
+   LoadTDVPar();
    return 0;
 }
 
