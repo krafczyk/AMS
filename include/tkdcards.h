@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.69 2014/03/03 18:37:34 choutko Exp $
+// $Id$
 #ifndef tkcommons_h
 #define tkcommons_h
 #ifdef _PGTRACK_
@@ -170,6 +170,12 @@ public:
   // 1 sigma correction to tune the number of noise cluster
   float GlobalNoiseFactor[2];//={1.08,1.037};
 
+  // 2014.05.23 SH
+  // Workaround to retune the MC resolution (not activated by default)
+  double MCtuneDmax;  //=0  typically put 100e-4 to activate
+  double MCtuneDs;    //=0  typically put   1e-4 to improve the resolution
+                      //                   -1e-4 to smare
+
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
@@ -179,7 +185,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,6);
+  ClassDef(TRMCFFKEY_DEF,7);
 
 
 };

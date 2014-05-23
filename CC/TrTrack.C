@@ -45,7 +45,7 @@
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 int  UpdateInnerDz();
-
+int  MCtune(AMSPoint &coo, double dmax, double ds);
 
 int my_int_pow(int base, int exp){
   if (exp<0) return -1;
@@ -989,6 +989,11 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
     AMSPoint coo =  hit->GetCoord(-1,cookind);
     // printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
+
+    // 2014.05.23 SH
+    // Workaround to retune the MC resolution (not activated by default)
+    if (TRMCFFKEY.MCtuneDmax > 0 && TRMCFFKEY.MCtuneDs != 0)
+      MCtune(coo, TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
 
     double fmscx = 1;
     double fmscy = 1;
