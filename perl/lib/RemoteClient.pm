@@ -15771,7 +15771,7 @@ if(not defined $fetime or not defined $letime){
     }
     $sql="delete from datafiles where run=$run";
      $self->{sqlserver}->Update($sql);
-    $sql=" insert into datafiles values($run,'$version','$stype',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths')";
+    $sql=" insert into datafiles (RUN,VERSION,TYPE,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,PATHB,CRC,CRCTIME,CASTORTIME,BACKUPTIME,TAG,FETIME,LETIME,PATHS) values($run,'$version','$stype',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths')";
 }
   }
   else{
