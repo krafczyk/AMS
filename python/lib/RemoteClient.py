@@ -3020,7 +3020,10 @@ class RemoteClient:
             jj=block.split()
             if (len(jj) == 0):
                 continue
-            utime=int(jj[0])
+            try:
+                utime=int(jj[0])
+            except:
+                continue
             if(utime < firstjobtime or utime > lastjobtime):
                 self.BadRuns[self.nCheckedCite] += 1;
                 output.write("*********** wrong timestamp : %d (%d,%d)\n" %(utime, firstjobtime, lastjobtime))
