@@ -24,6 +24,8 @@ VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
 VERGCC       := $(shell gcc --version | grep 4.1)
 
+VERICC       := $(shell icc --version | head -1 | awk '{print $$3}' | awk 'BEGIN { FS="." } {print $$1}')
+
 ifdef VER
 NEW = 
 else
@@ -166,7 +168,13 @@ DEFINES += -D__root_$(NEW) -D__ICC__
 ifdef SLC6system
   DEFINES += -D__LINUXSLC6__ -D__LINUXGNU__
 else
+$(info VERICC: $(VERICC))
+ifeq "$(VERICC)" "14"
+  DEFINES += -D__LINUXNEW__
+else
   DEFINES += -D__LINUXGNU__
+endif
+
 endif
 
 ifdef AMSPROFILE
