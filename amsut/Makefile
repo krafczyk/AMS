@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.15 2013/11/07 17:06:08 mkrafczy Exp $
+#  $Id$
 #
 # Makefile to build libamsut.a 
 #
@@ -13,6 +13,14 @@
 
 ### Architecture ###
 ARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
+
+VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
+ifeq ($(VERSION),5.27)
+VERSIONP=
+else
+VERSIONP = $(VERSION)
+endif
+
 
 #GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
 #GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
@@ -41,7 +49,7 @@ AMSWD := ..
 endif
 
 
-LIB= $(AMSWD)/lib/$(ARCH)/
+LIB= $(AMSWD)/lib/$(ARCH)$(VERSIONP)/
 
 
 ifeq "$(ARCH)" "linux"

@@ -70,19 +70,25 @@ endif
 ########################################################################
 #Compilers
 ########################################################################
+ifneq "$(origin INTELDIR)" "environment" 
 ifndef INTELDIR
   INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
 endif
+endif
 
+ifneq "$(origin INTELVER)" "environment" 
   INTELVER=Compiler/11.1/073/
 ifdef SLC6system
   INTELVER=composer_xe_2011_sp1.9.293/compiler/
 endif
 #  INTELVER=composer_xe_2011_sp1.9.293/compiler/
+endif
 
   INTELOPT=-axsse4.2,ssse3 
 ifdef SLC64system
+ifneq "$(origin INTELVER)" "environment" 
   INTELVER=composer_xe_2013_sp1.1.106/compiler/
+endif
 #compiler bug
 #   INTELOPT=-axAVX -msse3
    INTELOPT=-axsse4.2,ssse3 -msse3
