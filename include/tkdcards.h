@@ -175,6 +175,7 @@ public:
   double MCtuneDmax;  //=0  typically put 100e-4 to activate
   double MCtuneDs;    //=0  typically put   1e-4 to improve the resolution
                       //                   -1e-4 to smare
+                      //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;

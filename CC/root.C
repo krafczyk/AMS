@@ -14056,7 +14056,7 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   return ret;
 } 
 
-int MCtune(AMSPoint &coo, double dmax, double ds)
+int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 {
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
@@ -14066,7 +14066,7 @@ int MCtune(AMSPoint &coo, double dmax, double ds)
   double      dmin = dmax;
   for (int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
     TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
-    if (!m) continue;
+    if (!m || m->GetTkId() != tkid) continue;
 
     double d = coo.y()-m->GetXgl().y();
     if (TMath::Abs(d) < TMath::Abs(dmin)) {
@@ -14074,9 +14074,15 @@ int MCtune(AMSPoint &coo, double dmax, double ds)
       dmin = d;
     }
   }
-  if (mc && TMath::Abs(dmin) > ds) {
-    coo[1] += (dmin > 0) ? -ds : ds;
-    return 1;
+  if (mc) {
+    if (ds < dmax && TMath::Abs(dmin) > ds) {
+      coo[1] += (dmin > 0) ? -ds : ds;
+      return 1;
+    }
+    if (ds > dmax) {
+      coo[1] -= dmin;
+      return 1;
+    }
   } 
 
 #endif
