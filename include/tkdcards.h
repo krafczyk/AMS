@@ -166,16 +166,16 @@ public:
   float NearStripMult[2][2][3];//={{{1.,  8., 8.},{1.3, 6., 8.5}},    {{1.1,  6., 8.},{1.3, 5.,  5.}} };
 
   // additional noise fraction in the signal region
-  double noise_fac[2];//={1.1,1.45};
+  geant noise_fac[2];//={1.1,1.45};
   // 1 sigma correction to tune the number of noise cluster
   float GlobalNoiseFactor[2];//={1.08,1.037};
 
   // 2014.05.23 SH
   // Workaround to retune the MC resolution (not activated by default)
-  double MCtuneDmax;  //=0  typically put 100e-4 to activate
-  double MCtuneDs;    //=0  typically put   1e-4 to improve the resolution
-                      //                   -1e-4 to smare
-                      //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
+  geant MCtuneDmax;  //=0  typically put 100e-4 to activate
+  geant MCtuneDs;    //=0  typically put   1e-4 to improve the resolution
+                     //                   -1e-4 to smare
+                     //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;
