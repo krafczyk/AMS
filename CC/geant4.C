@@ -765,8 +765,9 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
       cout <<"g4ams::G4INIT-I-DefaultTrackingSelected "<<endl;
       fieldMgr->CreateChordFinder(pf);
      }
+     cout << "chord was "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
      fieldMgr->GetChordFinder()->SetDeltaChord(delta);
-     cout << "chord "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
+     cout << "chord set "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
  } 
 
 if(!_pv){

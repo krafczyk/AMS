@@ -318,7 +318,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
 
 
   G4FFKEY.BFOrder=4;
-  G4FFKEY.Delta=0.001;
+  G4FFKEY.Delta=0.0001;
   G4FFKEY.UniformMagField=0;
   G4FFKEY.Geant3CutsOn=1;
   G4FFKEY.PhysicsListUsed=1;
