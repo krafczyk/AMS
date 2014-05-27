@@ -8201,6 +8201,7 @@ TofRawSideR* TofClusterHR::GetRawSideHS(int is){
 int TofClusterHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
 int TofClusterHR::DefaultQ2Opt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor);
 int TofClusterHR::DefaultQOptIon=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kRigidityCor|TofRecH::kQ2Q);
+int TofClusterHR::DefaultQOptIonW=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kDAWeight|TofRecH::kBetaCor|TofRecH::kRigidityCor|TofRecH::kQ2Q);
 
 float TofClusterHR::GetEdepPM  (int pmtype, int is,int pm)  {
 
@@ -8839,8 +8840,25 @@ float BetaHR::GetQL(int ilay,int pmtype,int opt,int pattern,float fbeta,float fr
     TInterpolate(GetClusterHL(ilay)->Coo[2],pnt,dir,time);   
  
     double ubeta=(fbeta==0)?BetaPar.Beta:fbeta;
-    float signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),ubeta,rig);
-
+    float signal=0;
+    if(pmtype==2&&((opt&TofRecH::kDAWeight)!=0)){
+//---Q2Opt
+       int optq2=(opt&(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor));
+       double qd2=TofRecH::GetQSignal(TofRecPar::Idsoft,0,optq2,double(qd),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]));//Dynode
+       double qa2=TofRecH::GetQSignal(TofRecPar::Idsoft,1,optq2,double(qa),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]));//Anode
+//---QOpt
+       int optq=(opt&(TofRecH::kBetaCor|TofRecH::kRigidityCor|TofRecH::kQ2Q));
+       qd=TofRecH::GetQSignal(TofRecPar::Idsoft,0,optq,qd2,0,1,ubeta,rig);
+       qa=TofRecH::GetQSignal(TofRecPar::Idsoft,1,optq,qa2,0,1,ubeta,rig);
+//---SUMDA
+       double wd=TofRecH::GetWeightDA(TofRecPar::Idsoft,0,qd2);
+       double wa=TofRecH::GetWeightDA(TofRecPar::Idsoft,1,qa2);
+       if(qd2<0&&qa2<0)signal=-1;
+       else            signal=(wa*qa+wd*qd)/(wa+wd); 
+     }
+     else {
+        signal=TofRecH::GetQSignal(TofRecPar::Idsoft,npmtype,opt,double(q2),pnt[TOFGeom::Proj[ilay]],double(BetaPar.CosZ[ilay]),ubeta,rig);
+     }
 //---Default push_back
     if((opt==TofClusterHR::DefaultQOpt)&&(fbeta==0)){
        int qpat=pmtype*100000000+pattern*100+optw;
@@ -14037,6 +14055,39 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
 
   return ret;
 } 
+
+int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  if (!AMSEventR::Head()) return 0;
+  if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
+
+  TrMCClusterR *mc = 0;
+  double      dmin = dmax;
+  for (int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
+    TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
+    if (!m || m->GetTkId() != tkid) continue;
+
+    double d = coo.y()-m->GetXgl().y();
+    if (TMath::Abs(d) < TMath::Abs(dmin)) {
+      mc   = m;
+      dmin = d;
+    }
+  }
+  if (mc) {
+    if (ds < dmax && TMath::Abs(dmin) > ds) {
+      coo[1] += (dmin > 0) ? -ds : ds;
+      return 1;
+    }
+    if (ds > dmax) {
+      coo[1] -= dmin;
+      return 1;
+    }
+  } 
+
+#endif
+  return 0;
+}
 
 #endif
 

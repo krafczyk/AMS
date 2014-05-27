@@ -16,11 +16,25 @@
 // **************************************************************
 ClassImp(TofChargePar)
 
-float TofChargePar::GetQ(){
-
-  number QL; 
-  TofPDFH::ChooseDA(Layer,Bar,6.,number(QLA),number(QLD),number(QLARaw),number(QLDRaw),QL);//Choose
-  return QL>0?sqrt(QL):float(QL);
+float TofChargePar::GetQ(int pmtype){
+  
+  if     (pmtype==0)return QLD>0?sqrt(QLD):QLD;
+  else if(pmtype==1)return QLA>0?sqrt(QLA):QLA;
+  else if(pmtype==12||(pmtype==2&&DefaultQDAOpt==12)){//Then try default
+    number QL; 
+    TofPDFH::ChooseDA(Layer,Bar,6.,number(QLA),number(QLD),number(QLARaw),number(QLDRaw),QL);//Choose
+    return QL>0?sqrt(QL):float(QL);
+  }
+  else {
+      if(QLDRaw<0&&QLARaw<0)return -1;
+      TofRecPar::IdCovert(Layer,Bar);
+      double wd=TofRecH::GetWeightDA(TofRecPar::Idsoft,0,QLDRaw);
+      double wa=TofRecH::GetWeightDA(TofRecPar::Idsoft,1,QLARaw);
+      double qd=QLD>0?sqrt(QLD):QLD;
+      double qa=QLA>0?sqrt(QLA):QLA;
+      float qda=(wa*qa+wd*qd)/(wa+wd);
+      return qda;
+  }
 }
 
 ///=======================================================
@@ -66,6 +80,7 @@ ClassImp(TofChargeHR)
 
 int TofChargeHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
 int TofChargeHR::DefaultQOptIon=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kRigidityCor|TofRecH::kQ2Q);
+int TofChargeHR::DefaultQOptIonW=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kDAWeight|TofRecH::kBetaCor|TofRecH::kRigidityCor|TofRecH::kQ2Q);
 ///=======================================================
 
 void TofChargeHR::Init(){
@@ -161,10 +176,10 @@ bool  TofChargeHR::IsGoodQPathL(int ilay){
 }
 
 ///=======================================================
-float TofChargeHR::GetQL(int ilay){
+float TofChargeHR::GetQL(int ilay,int pmtype){
 
    TofChargePar* chpar=GetTofChargePar(ilay); 
-   if(chpar){return chpar->GetQ();}
+   if(chpar){return chpar->GetQ(pmtype);}
    else     {return 0;}
 }
 
@@ -299,6 +314,8 @@ int  TofChargeHR::ReFit(float fbeta,int opt,float frig){
      QLD1= TofRecH::GetQSignal(TofRecPar::Idsoft,0,(TofRecH::kBetaCor|kRigidity),cpar.at(im).QLDRaw,0,1,nbeta,rig);
      cpar.at(im).QLA=QLA1; cpar.at(im).QLD=QLD1;
      cpar.at(im).Beta=nbeta;
+     if(opt&TofRecH::kDAWeight)cpar.at(im).DefaultQDAOpt=22;
+     else                      cpar.at(im).DefaultQDAOpt=12;
    }
    TofPDFH::FillProbV(cpar);
 

@@ -325,6 +325,12 @@ void TRMCFFKEY_DEF::init(){
   GlobalNoiseFactor[0]=1.08;  
   GlobalNoiseFactor[1]=1.037;  
 
+  // 2014.05.23 SH
+  // Workaround to retune the MC resolution (not activated by default)
+  MCtuneDmax = 0;   // typically put 100e-4 to activate
+  MCtuneDs   = 0;   // typically put   1e-4 to improve the resolution
+                    //                -1e-4 to smare
+                    // if MCtuneDs > MCtuneDmax, use exactly as MC coo
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;

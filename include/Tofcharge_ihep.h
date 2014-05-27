@@ -19,8 +19,7 @@ class BetaHR;
 */
 //////////////////////////////////////////////////////////////////////////
 class TofChargePar: public TObject{
-
-   public:
+  public:
   /// TOF Layer
   int    Layer;
   /// TOF Bar
@@ -37,24 +36,30 @@ class TofChargePar: public TObject{
   float  Beta;
   /// PathLength
   bool  IsGoodPath;
-  /// Default Q //Best Between Anode +Dynode 
-  float GetQ();
+  /// Default QOpt
+  int   DefaultQDAOpt;
+  /// Default Q //Best Between Anode +Dynode
+  /*! 
+    * @param[in] pmtype 2-Default(Best Between Anode and Dynode) 1-Anode 0-Dynode 12-Dynode Anode Threshould 22-Dynode Anode Weight
+  */
+
+  float GetQ(int pmtype=2);
   /// All Z and ProbZ in PDF
   vector <pair<int, float> > ProbZ;
   /// Get Prob to be Z 
   float GetProbZ(float Z); 
   /// Push_back ProbZ-vector prob value from Z=ZL to Z=ZH 
   void  FillProbZ(int ZL,int ZH);
-
+  
   public:
-    TofChargePar(){Beta=Layer=Bar=-1; QLA=QLD=QLARaw=QLDRaw=0; IsGoodPath=0; ProbZ.clear();}
+    TofChargePar(){Beta=Layer=Bar=-1; QLA=QLD=QLARaw=QLDRaw=0; IsGoodPath=0; DefaultQDAOpt=12; ProbZ.clear();}
     TofChargePar(int _Layer,int _Bar,float _QLA,float _QLD,float _QLARaw,float _QLDRaw,float _Beta,bool _IsGoodPath):
                    Layer(_Layer), Bar(_Bar), QLA(_QLA), QLD(_QLD), QLARaw(_QLARaw), QLDRaw(_QLDRaw),  Beta(_Beta), IsGoodPath(_IsGoodPath){
-                      ProbZ.clear();
+                     DefaultQDAOpt=12;  ProbZ.clear();
                    }
    virtual ~TofChargePar(){};
 
-   ClassDef(TofChargePar,1);
+   ClassDef(TofChargePar,2);
 };
 
 /////////////////////////////////////////////////////////////////////////
@@ -105,7 +110,7 @@ class TofChargeHR: public TrElem {
 public:
   static int DefaultQOpt;
   static int DefaultQOptIon;
-
+  static int DefaultQOptIonW;
 public:
   /// Charge Measument Par Of All Layer
   vector<TofChargePar> cpar;
@@ -141,7 +146,10 @@ public:
   bool  IsGoodQPathL(int ilay);
   /// iLay TOF Q
   /// \return 0: Bad iLayer Charge(may not exit)  >0: Normal TOF Charge
-  float GetQL(int ilay);
+ /*! 
+    * @param[in] pmtype 2-Default(Best Between Anode and Dynode) 1-Anode 0-Dynode 12-Dynode Anode Threshould 22-Dynode Anode Weight
+  */
+  float GetQL(int ilay,int pmtype=2);
   /// Number of TOF Layer for Charge Measrument 
   int  GetNL();
   /// Access All TOF Charge Measurement Data-For iLayer /// Please First Check If ilay Exit TestExistHL

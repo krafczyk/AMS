@@ -298,7 +298,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  int iLatLeak=1;
 	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
 	    {
-	      if ((int)imaxcell+iLatLeak > 61) LatLeak[iLatLeak+imaxcell-62] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
+	      if ((int)imaxcell+iLatLeak > 71) LatLeak[iLatLeak+imaxcell-72] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
 	      iLatLeak++;
 	    }
 	}

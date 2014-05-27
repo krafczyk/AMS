@@ -2324,7 +2324,7 @@ class RemoteClient:
             sizemb="%.f" %(ntsize)
             sql="delete from datafiles where run=%d and type like '%s'" %(run,stype)
             self.sqlserver.Update(sql)
-            sql=" insert into datafiles values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s')" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths)
+            sql=" insert into datafiles (RUN,VERSION,TYPE,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,PATHB,CRC,CRCTIME,CASTORTIME,BACKUPTIME,TAG,FETIME,LETIME,PATHS) values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s')" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths)
             print "  insert ntuple before ",sql
             self.sqlserver.Update(sql)
             return
@@ -3020,7 +3020,10 @@ class RemoteClient:
             jj=block.split()
             if (len(jj) == 0):
                 continue
-            utime=int(jj[0])
+            try:
+                utime=int(jj[0])
+            except:
+                continue
             if(utime < firstjobtime or utime > lastjobtime):
                 self.BadRuns[self.nCheckedCite] += 1;
                 output.write("*********** wrong timestamp : %d (%d,%d)\n" %(utime, firstjobtime, lastjobtime))
@@ -4657,7 +4660,7 @@ class RemoteClient:
                         status='OK'
                         if(type.find('SCI')>=0 and int(tlevent)-int(tfevent)<60):
                             status='SHORT'
-                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'%s','%s','%s',%s,%s,%d,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,status,outputpath,origpath,crc,int(timenow),castortime,tag,tfevent,tlevent,bpath)
+                        sql ="insert into datafiles (RUN,VERSION,TYPE,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,PATHB,CRC,CRCTIME,CASTORTIME,BACKUPTIME,TAG,FETIME,LETIME,PATHS) values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'%s','%s','%s',%s,%s,%d,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,status,outputpath,origpath,crc,int(timenow),castortime,tag,tfevent,tlevent,bpath)
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
                         cmd="rm -rf "+pfile
