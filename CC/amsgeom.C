@@ -2004,6 +2004,8 @@ using trdconst::TRDROTMATRIXNO;
    TRDDBc::read();
 
 geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,5*0.};
+geant fleeceParams[3]={0.,0.,0.};
+geant fleeceCoord[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number inrm[3][3];
 char name[5];
@@ -2016,6 +2018,8 @@ integer nrot=TRDROTMATRIXNO;
 AMSNode * cur;
 AMSgvolume * dau;
 AMSgvolume * daug4;
+AMSgvolume * fleece;
+AMSgvolume * tubeVolume;
 AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
@@ -2034,8 +2038,16 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo()-sub0;i++){
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
 
      if(i!=1){
-       oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
-       nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+       //oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       //nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+       if (i==9) {
+	 cout << "1 setting vacuum for TRD9: " << TRDDBc::OctagonMedia(i) << endl;
+         oct[i]=(AMSgvolume*)mother.add(new AMSgvolume("VACUUM",
+						       nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+       } else {
+         oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+						       nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+       }
      }
      else{
 #ifdef __G4AMS__
@@ -2082,8 +2094,16 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
      else{
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On){
-        oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
-        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+        //oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+        //nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+        if (i==9) {
+	  cout << "2 setting vacuum for TRD9: " << TRDDBc::OctagonMedia(i) << endl;
+          oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume("VACUUM",
+							  nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+        } else {
+          oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+							  nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+        }
       }
       else
 #endif
@@ -2115,6 +2135,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
  coo[1] = 0.0;
  coo[2] = fabs(TRDDBc::OctagonDimensions(1, 4)) - fabs(par[4]);
 
+ ost.clear();
  ost.seekp(0);
  ost << "TRDd" << ends;
 
@@ -2139,6 +2160,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
  coo[1] = 0.0;
  coo[2] = -fabs(TRDDBc::OctagonDimensions(1, 4)) + fabs(par[4]);
 
+ ost.clear();
  ost.seekp(0);
  ost << "TRDe" << ends;
 
@@ -2165,6 +2187,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
  coo[1] = 0.0;
  coo[2] = 0.0;
 
+ ost.clear();
  ost.seekp(0);
  ost << "TRDs" << ends;
 
@@ -2237,6 +2260,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
 
                   // add module fixation plates on the bulkheads above each module (TR: 15-Feb-2014)
+                  ost.clear();
                   ost.seekp(0);
 		  ost << "FX"<<TRDDBc::CodeLad(gid-1)<<ends;
 
@@ -2316,6 +2340,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
      insertCoord[1] = insertY[insertCount];
      insertCoord[2] = insertZ;
 
+     ost.clear();
      ost.seekp(0);
      if (insertCount < 10) {
        ost << "IN0" << insertCount << ends;
@@ -2355,6 +2380,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
      insertCoord[1] = largeInsertY[insertCount];
      insertCoord[2] = largeInsertZ;
 
+     ost.clear();
      ost.seekp(0);
      ost << "INS" << insertCount << ends;
 
@@ -2418,22 +2444,55 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    int itrd=TRDDBc::NoTRDOctagons(i);
  for(j=0;j<TRDDBc::LayersNo(i);j++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
+
+   geant stripCoord[3] = {0.0,0.0,0.0};
+   number stripRotation[3][3] = {1,0,0,0,1,0,0,0,1};
+   TRDDBc::GetTubeBox(k,j,i,status,stripCoord,stripRotation,rgid);
+   TRDDBc::GetTube(0,k,j,i,status,coo,nrm,rgid);
+   geant ladderZ = coo[1];
+
    int ip;
    gid=i+mtrdo*j+mtrdo*maxlay*k+1;
          ost.clear();
    ost.seekp(0);  
    ost << "TR"<<TRDDBc::CodeLad(gid-1)<<ends;
    TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
+   coo[2] = coo[2] + ladderZ;
+
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::LaddersDimensions(i,j,k,ip);
    //cout <<name<<" "<<j<<" "<<k<<" "<<
    //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
 
+   fleeceParams[0] = par[0];
+   // top fleece layer below the bottommost central straw modules (y-direction)
+   // is four times thinner
+   if (fabs(coo[2] - 15.675) < 0.01 || fabs(coo[2] - (-19.125)) < 0.01) {
+     fleeceParams[1] = 0.25;
+   } else {
+     fleeceParams[1] = 1.0;
+   }
+   fleeceParams[2] = par[2];
+   fleeceCoord[0] = coo[0];
+   fleeceCoord[1] = coo[1];
+   fleeceCoord[2] = coo[2] + 0.3286 + TRDDBc::StripsDim(1) / 2.0 + fleeceParams[1];
+   par[1] = 0.3286 + TRDDBc::StripsDim(1) / 2.0;
+
 #ifdef __G4AMS__
    if(MISCFFKEY.G4On){
-   dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
-       nrot++,name,"BOX",par,3,coo,nrm, "BOOL",0,gid,1));
+   //dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
+   //nrot++,name,"BOX",par,3,coo,nrm, "BOOL",0,gid,1));
+   dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume("VACUUM",
+						  nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
    ((AMSgvolume*) dau)->Smartless()=1;
+
+   ost.clear();
+   ost.seekp(0);
+   ost << "BF"<<TRDDBc::CodeLad(gid-1)<<ends;
+
+   fleece=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
+						     nrot++,name,"BOX",fleeceParams,3,fleeceCoord,nrm, "BOOL",0,gid,1));
+   ((AMSgvolume*) fleece)->Smartless()=1;
 
    // get the position of straw module's strips to remove ladder's fleece 
    // on top and bottom of them where the bulkheads are crossed (TR: 10-Dec-2013)
@@ -2451,50 +2510,15 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    // remove fleece above the straw module
    number strawModuleUpperEdge = stripCoord[1] + TRDDBc::StripsDim(1) / 2.0;
    // the half-height of fleece cutout
-   cutoutDimensions[1] = fabs(par[1] - strawModuleUpperEdge) / 2.0;
-   // the center between ladder and straw module upper edges
-   cutoutCoord[1] = par[1] - cutoutDimensions[1];
-   cutoutDimensions[0] = par[0]; // half-width of the ladder
+   cutoutDimensions[1] = 10.0;
+   cutoutDimensions[0] = fleeceParams[0];
    cutoutDimensions[2] = (TRDDBc::BulkheadWidth() + plateWidth) / 2.0; // along the ladder
    // do not apply any rotation in ladder's coordinate system
    number cutoutRotation[3][3] = {1,0,0,0,1,0,0,0,1};
-   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
-
-   // add vacuum boxes to remove unwanted fleece above topmost ladders (TR: 15-Feb-2014)
-   if (j == 19 && strawModuleUpperEdge < 0.0) {
-     geant fleeceRemovalParams[3];
-     geant fleeceRemovalCoord[3];
-
-     fleeceRemovalParams[0] = par[0];
-     geant ladderFleeceBelowModule = 0.375;
-     geant fleeceAboveLadders = 2.1;
-     fleeceRemovalParams[1] = (fleeceAboveLadders - ladderFleeceBelowModule) / 2.0;
-     fleeceRemovalParams[2] = par[2];
-
-     fleeceRemovalCoord[0] = coo[0];
-     fleeceRemovalCoord[1] = coo[1];
-     fleeceRemovalCoord[2] = coo[2] + par[1] + fleeceRemovalParams[1] + ladderFleeceBelowModule;
-
-     ost.seekp(0);
-     ost << "CU"<<TRDDBc::CodeLad(gid-1)<<ends;
-     daug4=(AMSgvolume*)oct[itrd]->add(new AMSgvolume("VACUUM", nrot++, name, "BOX", fleeceRemovalParams, 
-						      3, fleeceRemovalCoord, nrm, "BOOL", 0, gid, 1));
-     daug4->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
-   }
-
-   cutoutCoord[2] = -distanceToBulkhead + plateWidth / 2.0;
-   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
-   daug4->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
-
-   // remove fleece below the straw module
-   stripCoord[1]-=TRDDBc::TubesBoxDimensions(i,j,k,3);
-   number strawModuleLowerEdge = stripCoord[1] - TRDDBc::StripsDim(1) / 2.0;
-   cutoutDimensions[1] = fabs(-par[1] - strawModuleLowerEdge) / 2.0;
-   cutoutCoord[1] = -par[1] + cutoutDimensions[1];
-   cutoutCoord[2] = distanceToBulkhead - plateWidth / 2.0;
-   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
-   cutoutCoord[2] = -distanceToBulkhead + plateWidth / 2.0;
-   dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
+   //dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
+   fleece->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
+   cutoutCoord[2] = -distanceToBulkhead;
+   fleece->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
 
     }
     else{
@@ -2539,8 +2563,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
          for(ip=0;ip<3;ip++)coo[ip]-=oct[itrd]->getcooA(ip);
 
-         oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
-			       0,name,"TRAP",par,11,coo,nrm,"ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+         //oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
+	 //	       0,name,"TRAP",par,11,coo,nrm,"ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
         }
 
       }
@@ -2556,15 +2580,17 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    number spacing=TRDDBc::StripsCoo(1);
    for(l=0;fabs(coo[2])<TRDDBc::LaddersDimensions(i,j,k,2)-2;l+=4){
     gid=maxstrips*maxlad*maxlay*i+maxstrips*maxlad*j+maxstrips*k+l+1;  //assume strips<maxtube here;
+    coo[1] = 0.3286;
+
    dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid++,1));    
    coo[2]=-coo[2];
    dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
-    coo[1]-=TRDDBc::TubesBoxDimensions(i,j,k,3);
+   coo[1] = -0.3286;
    dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
-    coo[2]=-coo[2];
+   coo[2]=-coo[2];
    dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid,1));    
 
@@ -2584,6 +2610,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    AMSTRDIdGeom  tmp(j,k,l,i);
    gid=tmp.cmpt();
    //   cout << "Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
+   // place the tubes in the middle of ladder vacuum case
+   coo[1] = 0.0;
    AMSNode *ptrd=dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
 #ifdef __G4AMS__
@@ -2602,6 +2630,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 //   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
    gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
    //   cout << "Inner Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" gid "<<gid<<endl;
+   coo[1] = 0.0;
    AMSNode *ptrd=dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
 
@@ -2642,6 +2671,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::SpacerDimensions(i,j,k,ip,0);
    coo[0]+=par[0];
    gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
+   geant distanceToEndCap = 0.25;
+   coo[1] = 0.0;
    dau->add(new AMSgvolume(TRDDBc::SpacerMedia(),
       0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
 
@@ -2649,7 +2680,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::SpacerDimensions(i,j,k,ip,1);
    gid=maxtube*maxlad*maxlay*TRDDBc::TRDOctagonNo()+maxtube*maxlad*j+maxtube*k+l+1;
-   coo[1]+=(TRDDBc::SpacerDim(1)+TRDDBc::SpacerDim(3))/2;    // quite ugly 
+   coo[1] = distanceToEndCap;
    dau->add(new AMSgvolume(TRDDBc::SpacerMedia(),
       0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
 
@@ -2658,7 +2689,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::SpacerDimensions(i,j,k,ip,1);
    gid=maxtube*maxlad*maxlay*TRDDBc::TRDOctagonNo()*(TRDDBc::TRDOctagonNo()+1)+maxtube*maxlad*j+maxtube*k+l+1;
-   coo[1]-=(TRDDBc::SpacerDim(1)+TRDDBc::SpacerDim(3));    // quite ugly 
+   coo[1] = -distanceToEndCap;
    dau->add(new AMSgvolume(TRDDBc::SpacerMedia(),
       0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
 
