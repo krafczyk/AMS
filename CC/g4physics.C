@@ -1057,7 +1057,8 @@ if(G4FFKEY.DetectorCut%10==1){
    SetCutValue(cut, "proton");
    SetCutValue(cut, "anti_proton");
  } 
- 
+
+  trdSimUtil.trdregion->SetProductionCuts(trdSimUtil.fTrdRegionCuts); 
   trdSimUtil.gasregion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
   trdSimUtil.radregion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
     G4Region* EcalRegion = (G4RegionStore::GetInstance())->GetRegion("ECVolumeR");
@@ -1413,6 +1414,7 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
 
   G4double ProposedStep = DBL_MAX;
   AMSUserLimits* pUserLimits = (AMSUserLimits*)aTrack.GetVolume()->GetLogicalVolume()->GetUserLimits();
+  G4LogicalVolume* logicalVolume = aTrack.GetVolume()->GetLogicalVolume();
   if (pUserLimits){ 
     G4ParticleDefinition* ParticleDef = aTrack.GetDefinition();
     G4double Ekine    = aTrack.GetKineticEnergy();
@@ -1427,6 +1429,11 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
     //        if(particleName=="gamma"){
     if(g3==1){       
       Emin=pUserLimits->PhotonECut();
+      if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+        Emin = 0.00001 * MeV;
+      }
     }
     //        else if (particleName=="e-" || particleName=="e+"){
     else if (g3==2 || g3==3){
