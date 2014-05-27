@@ -108,13 +108,13 @@ include $(G4INSTALL)/config/G4VIS_USE.gmk
 endif
 include $(G4INSTALL)/config/architecture.gmk
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
-INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
+INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I/lustre/jhome20/vsk10/vsk1015/software/geant4.9.6.p03-ams-install/include/Geant4/
 ifdef CLHEP_BASE_DIR
-G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global -lCLHEP
+G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L/lustre/jhome20/vsk10/vsk1015/software/geant4.9.6.p03-ams-install/lib64 -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global -lCLHEP
 else
-G4LIBS=  -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
+G4LIBS=  -L/lustre/jhome20/vsk10/vsk1015/software/geant4.9.6.p03-ams-install/lib64 -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
 endif
-G4LIBSI= -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
+G4LIBSI= -L/lustre/jhome20/vsk10/vsk1015/software/geant4.9.6.p03-ams-install/lib64 $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
 AR=ar
 endif
 

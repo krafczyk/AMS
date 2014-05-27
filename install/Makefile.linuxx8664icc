@@ -1,4 +1,4 @@
-#  $Id$
+#  $Id: Makefile.linuxx8664icc,v 1.49 2014/02/18 15:45:57 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -51,7 +51,7 @@ ifdef RH9
 endif
 
 
-RH9add=-pthread $(BIN)ctype.o 
+RH9add=-pthread 
 ifdef DEBUGFLAG
 RH9add+= -g
 endif
@@ -70,25 +70,19 @@ endif
 ########################################################################
 #Compilers
 ########################################################################
-ifneq "$(origin INTELDIR)" "environment" 
 ifndef INTELDIR
   INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
 endif
-endif
 
-ifneq "$(origin INTELVER)" "environment" 
-  INTELVER=Compiler/11.1/073/
-ifdef SLC6system
-  INTELVER=composer_xe_2011_sp1.9.293/compiler/
-endif
+#  INTELVER=Compiler/11.1/073/
+#ifdef SLC6system
 #  INTELVER=composer_xe_2011_sp1.9.293/compiler/
-endif
+#endif
+#  INTELVER=composer_xe_2011_sp1.9.293/compiler/
 
   INTELOPT=-axsse4.2,ssse3 
 ifdef SLC64system
-ifneq "$(origin INTELVER)" "environment" 
   INTELVER=composer_xe_2013_sp1.1.106/compiler/
-endif
 #compiler bug
 #   INTELOPT=-axAVX -msse3
    INTELOPT=-axsse4.2,ssse3 -msse3
@@ -104,7 +98,7 @@ endif
   FFOLD=$(FF)  -save
   FFLAGSSAVE= -save
   FORTRAN_LIBS=
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
+  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/compiler/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
 
 ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
@@ -210,7 +204,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/compiler/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
 ifndef NOXROOTD
 SOFLAGS += -lNetx
 endif
@@ -248,7 +242,7 @@ LDFLAGS=     $(G4LIBS)  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--lcrypto -L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -lfreetype -lncurses  -ldl -lpcre  $(LZMAL) \
+-lcrypto -L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lfreetype -lpcre  $(LZMAL) \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
@@ -265,7 +259,7 @@ LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt  -lRoot
 SOFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
 endif
 
-LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
+LDFLAGSSTATIC:=   $(LDFLAGS) $(RH9add) 
 
 LDFLAGS+= -lcxa -lcprts
 
@@ -280,8 +274,8 @@ LDFLAGSIDL= -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp -lORBit-2
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2 -lrt -lnsl   
 
-CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I$(BIN)
+CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g
