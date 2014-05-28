@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.69 2014/03/03 18:37:34 choutko Exp $
+// $Id$
 #ifndef tkcommons_h
 #define tkcommons_h
 #ifdef _PGTRACK_
@@ -178,8 +178,8 @@ public:
   number ADC2KeV(){
     return 0.5e6/beta/dedx2nprel;
   }
-
-  ClassDef(TRMCFFKEY_DEF,6);
+  void UpdateNoiseFactor(double charge);
+  ClassDef(TRMCFFKEY_DEF,7);
 
 
 };
