@@ -772,7 +772,7 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
 
 
 double mxs=G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep();
-G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(200);
+G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(50);
 
      cout << "AMSG4DetectorInterface::Construct()-I-MaxStep was/ set "<<mxs<<" "<<G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep()<<endl;
  } 
