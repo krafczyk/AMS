@@ -524,6 +524,12 @@ void TRCHAFFKEY_DEF::init(){
   /// I 4 enable histograms (default 0): 0 = disabled, 1 = enabled
   EnableHisto = 0;
 }
+
+void TRMCFFKEY_DEF::UpdateNoiseFactor(double charge){
+if(charge>1)noise_fac[1]=1.37;
+else  noise_fac[1]=1.45;
+
+}
    
 TRCHAFFKEY_DEF TRCHAFFKEY;
 #ifdef __ROOTSHAREDLIBRARY__
