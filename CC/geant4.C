@@ -768,11 +768,12 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
      }
      cout << "AMSG4DetectorInterface::Construct()-I-chord was "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
      fieldMgr->GetChordFinder()->SetDeltaChord(delta);
+     cout << "AMSG4DetectorInterface::Construct()-I-chord set "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
 
 
 
 double mxs=G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep();
-G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(200);
+G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(50);
 
      cout << "AMSG4DetectorInterface::Construct()-I-MaxStep was/ set "<<mxs<<" "<<G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep()<<endl;
 
