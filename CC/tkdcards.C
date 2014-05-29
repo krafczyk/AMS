@@ -331,6 +331,7 @@ void TRMCFFKEY_DEF::init(){
   MCtuneDs   = 0;   // typically put   1e-4 to improve the resolution
                     //                -1e-4 to smare
                     // if MCtuneDs > MCtuneDmax, use exactly as MC coo
+  MCtuneDy9  = 0;   // typically put   1e-4 to mitigate the propagation bug
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;
