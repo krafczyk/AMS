@@ -14339,3 +14339,11 @@ unsigned int AMSEventR::NTrTrackG(){
       return ret;
 }
 
+
+MCEventgR * AMSEventR::GetPrimaryMC() {
+for(int k=0;k<NMCEventg();k++){
+MCEventgR &mc=MCEventg(k);
+if(mc.parentID==0 || (mc.parentID==-2 && mc.Particle>0))return &mc; 
+}
+return NULL;
+}
