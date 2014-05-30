@@ -14094,11 +14094,11 @@ int MCshift(AMSPoint &coo, double ds)
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
 
-  MCEventgR *mc = AMSEventR::Head()->pMCEventg(0);
+  MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
   if (!mc || mc->Charge == 0) return 0;
 
   double rgen = mc->Momentum/mc->Charge;
-  double dy   = ds*2.5-0.75*TMath::Erfc(-(rgen-500)/100);
+  double dy   = ds*(2.5-0.75*TMath::Erfc(-(rgen-500)/100));
   coo[1] -= dy;
   return 1;
 
