@@ -38,6 +38,7 @@
 #include "G4UserSpecialCuts.hh"
 #include "G4FastSimulationManagerProcess.hh"
 #include "G4EmStandardPhysics.hh"
+#include "G4GammaXTRadiator.hh"
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSP_BERT.hh"
 #include "HadronPhysicsQGSC_CHIPS.hh"
@@ -1438,6 +1439,11 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
     //        else if (particleName=="e-" || particleName=="e+"){
     else if (g3==2 || g3==3){
       Emin=pUserLimits->ElectronECut();
+      if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+        Emin = 0.000010 * MeV;
+      }
     }         
     //        else if (particleName=="mu-" || particleName=="mu+"){
     else if (g3==5 || g3==6){
@@ -1736,7 +1742,18 @@ void AMSG4Physics::ConstructEM2( void ){
 		 <<" foil thickness "<< trdSimUtil.GetTrdFoilThickness()
 		 <<" gas thickness "<<trdSimUtil.GetTrdGasThickness()
 		 << " nfoils "<<trdSimUtil.GetTrdFoilNumber()<<G4endl;
-  
+
+  G4VXTRenergyLoss* processXTR = new G4GammaXTRadiator(trdSimUtil.radregion,
+						       trdSimUtil.GetAlphaFiber(),
+						       trdSimUtil.GetAlphaGas(),
+						       trdSimUtil.GetG4FleeceMaterial(),
+						       trdSimUtil.GetG4FleeceGasMaterial(),
+						       
+						       trdSimUtil.GetTrdFoilThickness(),
+						       trdSimUtil.GetTrdGasThickness(),
+						       (G4int)trdSimUtil.GetTrdFoilNumber(),
+						       "GammaXTRadiator" );
+  /*  
   TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radregion,
 							  trdSimUtil.GetAlphaFiber(),
 							  trdSimUtil.GetAlphaGas(),
@@ -1747,7 +1764,7 @@ void AMSG4Physics::ConstructEM2( void ){
 							  trdSimUtil.GetTrdGasThickness(),
 							  (G4int)trdSimUtil.GetTrdFoilNumber(),
 							  "GammaXTRadiator" );
-  
+  */
   if( !processXTR ){
     printf("not xtr process\n");
   }
