@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.57 2014/01/16 18:01:52 shaino Exp $
+//  $Id$
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -7,6 +7,8 @@
 
 void AMSEvent::_sitkinitevent(){
   AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
+     AMSmceventg *p =(AMSmceventg*)getheadC("AMSmceventg",0);
+     if(p)TRMCFFKEY.UpdateNoiseFactor(p->getcharge());
 }
  
 void AMSEvent::_retkinitevent(){

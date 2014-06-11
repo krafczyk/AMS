@@ -20,6 +20,7 @@
 #include "G4PhysicalVolumeStore.hh"
 #include "G4FieldManager.hh"
 #include "G4ChordFinder.hh"
+#include "G4PropagatorInField.hh"
 #include "G4Mag_UsualEqRhs.hh"
 #include "G4SimpleHeum.hh"
 #include "G4ImplicitEuler.hh"
@@ -764,8 +765,16 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
       cout <<"g4ams::G4INIT-I-DefaultTrackingSelected "<<endl;
       fieldMgr->CreateChordFinder(pf);
      }
+     cout << "AMSG4DetectorInterface::Construct()-I-chord was "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
      fieldMgr->GetChordFinder()->SetDeltaChord(delta);
-     cout << "chord "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
+     cout << "AMSG4DetectorInterface::Construct()-I-chord set "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
+
+
+
+double mxs=G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep();
+G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(50);
+
+     cout << "AMSG4DetectorInterface::Construct()-I-MaxStep was/ set "<<mxs<<" "<<G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep()<<endl;
  } 
 
 if(!_pv){

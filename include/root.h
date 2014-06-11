@@ -5022,6 +5022,8 @@ int   nRichMCCluster()const { return fHeader.RichMCClusters;} ///< \return numbe
 ///
 int   nMCTrack()const { return fHeader.MCTracks;} ///< \return number of MCTrackR elements (fast)
 ///
+MCEventgR* GetPrimaryMC(); ///< Return pointer to the Primary MC Particle at the point of Generation or NULL;
+///
 int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEventgR elements (fast)
 static bool   nMCEventgC();
 ///

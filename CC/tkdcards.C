@@ -271,10 +271,11 @@ void TRMCFFKEY_DEF::init(){
   ActivateShielding=1;
   ShieldingDensity=2.5;
   // Outer smearing to simulate residual disalignment
-  OuterSmearing[0][0]= 8.0e-4; //L1 X
-  OuterSmearing[0][1]= 9.0e-4; //L1 Y
-  OuterSmearing[1][0]= 8.0e-4; //L9 X
-  OuterSmearing[1][1]=11.5e-4; //L9 Y
+ TRMCFFKEY.OuterSmearing[0][0] = 8.5e-4;  // 7um for L1X
+ TRMCFFKEY.OuterSmearing[0][1] = 8.5e-4;  // 7um for L1Y
+ TRMCFFKEY.OuterSmearing[1][0] = 9.5e-4;  // 7um for L9X
+ TRMCFFKEY.OuterSmearing[1][1] = 9.5e-4;  // 7um for L9Y
+
 
   // new stuff 2013 (PZ)
 
@@ -523,6 +524,12 @@ void TRCHAFFKEY_DEF::init(){
   MaxCharge = 8;
   /// I 4 enable histograms (default 0): 0 = disabled, 1 = enabled
   EnableHisto = 0;
+}
+
+void TRMCFFKEY_DEF::UpdateNoiseFactor(double charge){
+if(charge>1)noise_fac[1]=1.37;
+else  noise_fac[1]=1.45;
+
 }
    
 TRCHAFFKEY_DEF TRCHAFFKEY;
