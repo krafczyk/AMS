@@ -14080,10 +14080,27 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
       return 1;
     }
     if (ds > dmax) {
-      coo[1] -= dmin;
+      coo = mc->GetXgl();
       return 1;
     }
   } 
+
+#endif
+  return 0;
+}
+
+int MCshift(AMSPoint &coo, double ds)
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  if (!AMSEventR::Head()) return 0;
+
+  MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
+  if (!mc || mc->Charge == 0) return 0;
+
+  double rgen = mc->Momentum/mc->Charge;
+  double dy   = ds*(2.5-0.75*TMath::Erfc(-(rgen-500)/100));
+  coo[1] -= dy;
+  return 1;
 
 #endif
   return 0;
@@ -14605,6 +14622,9 @@ void AMSEventR::RebuildBetaH(){
   }
 }
 
+
+
+
 bool MCEventgR::Rebuild=true;
 
 void AMSEventR::RebuildMCEventg(){
@@ -14640,3 +14660,11 @@ unsigned int AMSEventR::NTrTrackG(){
       return ret;
 }
 
+
+MCEventgR * AMSEventR::GetPrimaryMC() {
+for(int k=0;k<NMCEventg();k++){
+MCEventgR &mc=MCEventg(k);
+if(mc.parentID==0 || (mc.parentID==-2 && mc.Particle>0))return &mc; 
+}
+return NULL;
+}

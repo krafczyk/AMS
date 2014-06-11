@@ -176,6 +176,7 @@ public:
   geant MCtuneDs;    //=0  typically put   1e-4 to improve the resolution
                      //                   -1e-4 to smare
                      //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
+  geant MCtuneDy9;   //=0  typically put   1e-4 to mitigate the propagation bug
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;
@@ -186,7 +187,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,7);
+  ClassDef(TRMCFFKEY_DEF,8);
 
 
 };

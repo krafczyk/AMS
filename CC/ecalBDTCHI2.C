@@ -22,6 +22,14 @@ TMVA::Reader *ecalBDTCHI2reader_E_v4_ODD = NULL;    //uses GetCorrectedEnergy(2,
 TMVA::Reader *ecalBDTCHI2reader_E_v4_EVEN = NULL;   //uses GetCorrectedEnergy(2,2) for classification
 TMVA::Reader *ecalBDTCHI2readerS_E_v4_ODD = NULL;   //uses GetCorrectedEnergy(2,2) for classification
 TMVA::Reader *ecalBDTCHI2readerS_E_v4_EVEN = NULL;  //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalBDTCHI2reader_v5_ODD = NULL;      //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2reader_v5_EVEN = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2readerS_v5_ODD = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2readerS_v5_EVEN = NULL;    //uses EnergyD for classification
+TMVA::Reader *ecalBDTCHI2reader_E_v5_ODD = NULL;    //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalBDTCHI2reader_E_v5_EVEN = NULL;   //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalBDTCHI2readerS_E_v5_ODD = NULL;   //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalBDTCHI2readerS_E_v5_EVEN = NULL;  //uses GetCorrectedEnergy(2,2) for classification
 
 const unsigned int nPIBCHI2VARs = 44;
 float piBCHI2normvar[nPIBCHI2VARs + 1];
@@ -50,7 +58,7 @@ EcalAxis& EcalShowerR::SharedEcalAxis() { static EcalAxis myAxis; return myAxis;
 float EcalShowerR::GetEcalBDTCHI2()
 {
   AMSEventR *pev = AMSEventR::Head();
-  unsigned int iBDTCHI2VERSION = 4;
+  unsigned int iBDTCHI2VERSION = 5;
   int TMVAClassifier=0;
   return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
 }
@@ -405,7 +413,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    float energyd = EnergyD/1000.;
    float classification_energy = energyd;
    if( iBDTCHI2VERSION==3 ) { if( EnergyFlag!=0) classification_energy=EnergyE; }
-   if( iBDTCHI2VERSION==4 ) { if( EnergyFlag!=0) classification_energy=GetCorrectedEnergy(2,2); }
+   if( iBDTCHI2VERSION>3 ) { if( EnergyFlag!=0) classification_energy=GetCorrectedEnergy(2,2); }
    
    if (BCHI2_DEBUG) std::cout << " ??? BDT variables computed\n" << flush;
 
@@ -466,13 +474,30 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 ecalBDTCHI2readerS_E_EVEN = ecalBDTCHI2readerS_E_v4_EVEN;
        }
    }
+   else if ( iBDTCHI2VERSION == 5 )
+   {
+     if (TMVAClassifier==0)
+       {
+	 ecalBDTCHI2reader_ODD = ecalBDTCHI2reader_v5_ODD;
+	 ecalBDTCHI2reader_EVEN = ecalBDTCHI2reader_v5_EVEN;
+	 ecalBDTCHI2reader_E_ODD = ecalBDTCHI2reader_E_v5_ODD;
+	 ecalBDTCHI2reader_E_EVEN = ecalBDTCHI2reader_E_v5_EVEN;
+       }
+     else if (TMVAClassifier==1)
+       {
+	 ecalBDTCHI2readerS_ODD = ecalBDTCHI2readerS_v5_ODD;
+	 ecalBDTCHI2readerS_EVEN = ecalBDTCHI2readerS_v5_EVEN;
+	 ecalBDTCHI2readerS_E_ODD = ecalBDTCHI2readerS_E_v5_ODD;
+	 ecalBDTCHI2readerS_E_EVEN = ecalBDTCHI2readerS_E_v5_EVEN;
+       }
+   }
    else
    {
      if ( iVersionNumberBDTCHI2==0 )
        {
 	 cout<<" "<<endl;
 	 cout<<" ====================================================================="<<endl;
-	 cout<<" [ecalBDTCHI2] ATTENTION    only versions 1, 2, 3 and 4 of BDTCHI2 supported"<<endl;
+	 cout<<" [ecalBDTCHI2] ATTENTION    only versions 1, 2, 3, 4 and 5 of BDTCHI2 supported"<<endl;
 	 cout<<" [ecalBDTCHI2] ATTENTION    you have called it with version "<<iBDTCHI2VERSION<<endl;
 	 cout<<" [ecalBDTCHI2] ATTENTION    BDT will be set to -999 for all entries!!!"<<endl;
 	 cout<<" ====================================================================="<<endl;
@@ -509,7 +534,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 std::cout << "                TMVAClassifier type: "<<TMVAClassifier          << std::endl;
 	 std::cout << "                Classification Energy: "<<Form("%s",EnergyFlag==0?"EnergyD":"EnergyE")         << std::endl;
        }
-       if ( iBDTCHI2VERSION==4 ){
+       else if ( iBDTCHI2VERSION>3 ){
 	 std::cout << "                TMVAClassifier type: "<<TMVAClassifier          << std::endl;
 	 std::cout << "                Classification Energy: "<<Form("%s",EnergyFlag==0?"EnergyD":"GetCorrectedEnergy(2,2)")         << std::endl;
        }
@@ -791,6 +816,11 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	       ecalBDTCHI2reader_v4_ODD = ecalBDTCHI2reader_ODD;
 	       ecalBDTCHI2reader_v4_EVEN = ecalBDTCHI2reader_EVEN;
 	     }
+	   else if ( iBDTCHI2VERSION == 5 )
+	     {
+	       ecalBDTCHI2reader_v5_ODD = ecalBDTCHI2reader_ODD;
+	       ecalBDTCHI2reader_v5_EVEN = ecalBDTCHI2reader_EVEN;
+	     }
 	   else
 	     {           
 	       cout<<" BDTCHI2 reader NOT initialized; error in version number. iBDTCHI2VERSION = "<<iBDTCHI2VERSION<<endl;
@@ -906,6 +936,11 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	     {
 	       ecalBDTCHI2readerS_v4_ODD = ecalBDTCHI2readerS_ODD;
 	       ecalBDTCHI2readerS_v4_EVEN = ecalBDTCHI2readerS_EVEN;
+	     }
+	   else if ( iBDTCHI2VERSION == 5 )
+	     {
+	       ecalBDTCHI2readerS_v5_ODD = ecalBDTCHI2readerS_ODD;
+	       ecalBDTCHI2readerS_v5_EVEN = ecalBDTCHI2readerS_EVEN;
 	     }
 	   else
 	     {           
@@ -1023,6 +1058,11 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	       ecalBDTCHI2reader_E_v4_ODD = ecalBDTCHI2reader_E_ODD;
 	       ecalBDTCHI2reader_E_v4_EVEN = ecalBDTCHI2reader_E_EVEN;
 	     }
+	   else if ( iBDTCHI2VERSION == 5 )
+	     {
+	       ecalBDTCHI2reader_E_v5_ODD = ecalBDTCHI2reader_E_ODD;
+	       ecalBDTCHI2reader_E_v5_EVEN = ecalBDTCHI2reader_E_EVEN;
+	     }
 	   else
 	     {           
 	       cout<<" BDTCHI2 reader NOT initialized; error in version number. iBDTCHI2VERSION = "<<iBDTCHI2VERSION<<endl;
@@ -1138,6 +1178,11 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	     {
 	       ecalBDTCHI2readerS_E_v4_ODD = ecalBDTCHI2readerS_E_ODD;
 	       ecalBDTCHI2readerS_E_v4_EVEN = ecalBDTCHI2readerS_E_EVEN;
+	     }
+	   else if ( iBDTCHI2VERSION == 5 )
+	     {
+	       ecalBDTCHI2readerS_E_v5_ODD = ecalBDTCHI2readerS_E_ODD;
+	       ecalBDTCHI2readerS_E_v5_EVEN = ecalBDTCHI2readerS_E_EVEN;
 	     }
 	   else
 	     {           

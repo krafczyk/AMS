@@ -1,2 +1,2 @@
-insert into filesystems values ('fcsoc03', '/fc03dat1','/MC',0,0,0,50,'Active',10,0,0);
+insert into filesystems values ('fcsoc03', '/fc03dat0','/Data',0,0,0,100,'Active',10,0,0);
 
