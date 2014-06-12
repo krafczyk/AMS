@@ -304,7 +304,9 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, int stagedonly,u
   sprintf(AMSEventR::filename,"%s_%06d_%06d_RUNTIMETMOUT",fname,first,last);
   ofstream  rejfile;
   ofstream  rejfile2;
-  //TFile::SetOnlyStaged(stagedonly);
+    rejfile.close();
+  rejfile2.close();
+//TFile::SetOnlyStaged(stagedonly);
   //stagedonly=false;
   int stagein=0;
   unsigned int ftimeout=TFile::GetOpenTimeout();

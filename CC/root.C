@@ -14672,7 +14672,7 @@ if (mc.parentID==0 &&!bug )return &mc;
 else if(mc.parentID==-2 && mc.Particle>0)return &mc; 
 else if(bug && mc.parentID==0){
 if(mc.Dir[2]){
- double z=mc.Coo[2]/mc.Dir[2];
+ double z=mc.Coo[2]/(mc.Dir[2]>0?1:-1);
  if(zmin>z){
   zmin=z; 
   kmin=k;
