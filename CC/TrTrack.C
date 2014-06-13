@@ -1041,6 +1041,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
  					                 TRFITFFKEY.ErrYL9);
     _TrFit.Add(coo, ferx*errx*fmscx,
 	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
+   //  coo.Print();
+//     printf("%d %f %f %f  %f %f %f \n",hit->GetLayerJ(),
+// 	   ferx*errx*fmscx,
+// 	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
 
     hitbits |= (1 << (hit->GetLayer()-1));
     if (id != kLinear && j == 0) zh0 = coo.z();
@@ -1678,9 +1682,9 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 
   if(refit>=2 || (!FitExists && refit==1)) { 
     int rret=0;
-    
     //    if (refit >= 3 || CIEMATFlag){
     if (refit >= 3 ){
+      RecalcHitCoordinates();
       if(CIEMATFlag==1){
 	TrRecHitR *hit1=GetHitLJ(1);
 	TrRecHitR *hit9=GetHitLJ(9);
