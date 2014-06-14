@@ -1395,7 +1395,6 @@ int TkDBc::GetFromTDV(unsigned int time, int ver)
   cout << "Loading " << stn.Data() << " for time " << time << endl;
 
   TkLadder::version = ver-1;
-  if (TkLadder::version >= 3) TkLadder::version = 3;
   
   if (!TkDBc::Head) TkDBc::CreateTkDBc();
   TkDBc::Head->init(3);
