@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.77 2014/02/06 21:58:03 pzuccon Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2014/02/06 21:58:03 $
+///$Date$
 ///
-///$Revision: 1.77 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1395,6 +1395,7 @@ int TkDBc::GetFromTDV(unsigned int time, int ver)
   cout << "Loading " << stn.Data() << " for time " << time << endl;
 
   TkLadder::version = ver-1;
+  if (TkLadder::version >= 3) TkLadder::version = 3;
   
   if (!TkDBc::Head) TkDBc::CreateTkDBc();
   TkDBc::Head->init(3);
