@@ -1380,6 +1380,8 @@ int TkDBc::GetFromTDV(unsigned int time, int ver)
   time_t tt = time;
   static  AMSTimeID *db=0;
 #pragma omp threadprivate (db)
+
+ if (db && TkLadder::version != ver-1) { delete db; db = 0; }
  if(!db){
   tm begin;
   tm end;
