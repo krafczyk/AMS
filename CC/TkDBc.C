@@ -726,6 +726,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     //       << "pg= " << pgidmap      .size() << " "
        << "JN= " << JMDCNumMap   .size() << endl;
 
+  if (!inputfilename || TkLadder::version < 2) {
+    cout << "TkDBc::init-Setting default sensor alignment" << endl;
     // Set sensor alignment data
     for (tkidIT lad=tkidmap.begin(); lad!=tkidmap.end();++lad){
       //      if(lad->second->GetLayer()==9){ printf("TkDBC::init -W- PLANB No sensor alignement for layer 9! \n"); continue;}
@@ -735,6 +737,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       for (int i = 0; i < trconst::maxsen; i++) 
 	lad->second->_sensy[i] = GetSensAlignY(lad->second->GetTkId(), i);
     }
+  }
     
 //   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end();++pp){
 //       cout<<*(pp->second)<<endl;
