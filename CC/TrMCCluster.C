@@ -18,6 +18,9 @@
 #include "TkCoo.h"
 #include "TkSens.h"
 #include "tkdcards.h"
+#include "TrLinearDB.h"
+#include "TrGainDB.h"
+#include "TrParDB.h" 
 
 #include "TrMCCluster.h"
 
@@ -227,12 +230,12 @@ void TrMCClusterR::GenSimClusters(){
     // SMEAR the position
     int hcharge_smear = (hcharge>1) ? 1 : hcharge; // ions = He
     float ipsmear=ip[iside];
-    ipsmear=ip[iside]+rnormx()*TRMCFFKEY.SmearPos[hcharge_smear][iside];
+//    ipsmear=ip[iside]+rnormx()*TRMCFFKEY.SmearPos[hcharge_smear][iside];
 
     // SMEAR outer layers
     int lay = abs(GetTkId())/100;
-    if (lay == 8 || lay == 9)
-      ipsmear+=rnormx()*TRMCFFKEY.OuterSmearing[lay-8][iside];
+//    if (lay == 8 || lay == 9)
+//      ipsmear+=rnormx()*TRMCFFKEY.OuterSmearing[lay-8][iside];
 
     // Create the cluster
     TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ipsmear,ia[iside],nsensor,step*dir[2]);
@@ -248,9 +251,10 @@ void TrMCClusterR::GenSimClusters(){
     
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
     int hcharge_gauss = (hcharge>1) ? 1 : hcharge; // ions = He    
-    // no extra-multiplication if too inclined  
-    if (fabs(ia[iside])<0.8) _simcl[iside]->GaussianizeFraction(iside,hcharge_gauss,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
-    
+    // no extra-multiplication if too inclined or ions  
+    if ( (fabs(ia[iside])<0.8)&&((int(TRMCFFKEY.UseNonLinearity/10)%10)!=0) ) 
+      _simcl[iside]->GaussianizeFraction(iside,hcharge_gauss,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
+ 
     // p and He
     // - non-linear edep 
     if (hcharge<2) {
@@ -274,6 +278,34 @@ void TrMCClusterR::GenSimClusters(){
       // if(iside==1 && tip[iside]>0.3 && tip[iside]<0.7) edep_c2*=pc[0]+pc[1]*tip[iside]+pc[2]*pow(tip[iside],2)+pc[3]*pow(tip[iside],3)+pc[4]*pow(tip[iside],4);
       _simcl[iside]->Multiply(edep_c2);
     }
+    // ion fast tuning 
+    else { 
+      double mev_on_adc = TRMCFFKEY.ADCMipValue[1][iside]*edep/81;
+      if (iside==0) _simcl[iside]->Multiply(mev_on_adc*1.07);
+      else {   
+        if ((TRMCFFKEY.UseNonLinearity%10)==0) _simcl[iside]->Multiply(mev_on_adc*0.6);
+        else {
+          _simcl[iside]->Multiply(mev_on_adc*1.);
+          for (int ist=0; ist<_simcl[iside]->GetWidth(); ist++) { 
+            int iva = int(_simcl[iside]->GetAddress(ist)/64);
+            double adc1 = _simcl[iside]->GetSignal(ist);  
+            double adc2 = TrLinearDB::GetHead()->ApplyNonLinearity(adc1,GetTkId(),iva,3);
+            double adc3 = TrGainDB::GetHead()->ApplyGain(adc2,GetTkId(),iva);
+            double adc4 = 0; 
+            TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(GetTkId());
+            float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
+            if ( (1./gain)<0.5 ) adc4 = 10*adc3; 
+            else                 adc4 = adc3*gain;
+            _simcl[iside]->SetSignal(ist,adc4); 
+// ROBA SIMILE PER L'ASIMMETRIA (CONTRO CORREZIONE ALLE CORREZIONI DI PAOLO?)
+          }
+        }         
+      }
+      // mev_on_adc /= TRMCFFKEY.alpha;
+      // _simcl[iside]->Multiply(mev_on_adc);
+    }  
+
+    /*
     // ion 
     // - linear edep (...)
     // - strip non-linearity
@@ -292,14 +324,9 @@ void TrMCClusterR::GenSimClusters(){
         _simcl[iside]->SetSignal(i,signal);
       }
     }
-
+    */
   }
   return;
-}
-
-
-AMSPoint TrMCClusterR::GetIntersection() {
-  return AMSPoint(0,0,0);
 }
 
 
@@ -511,6 +538,105 @@ double gain_to_gain(double* x, double* par) {
   if      (xx<x1) return c*xx;
   else if (xx>x2) return o + g*xx;
   return k + a*xx;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#include "MagField.h"
+
+
+AMSPoint TrMCClusterR::GetSensMagField(int algo) { 
+  if (algo==0) { 
+    // 1. Simplest rule
+    // Local magnetic field is oriented along X. 
+    // It is positive for ladders placed on negative side (X<0) and positive for the other.
+    // (what about rotation of the layer 1?, how the tkids were assigned?) 
+    double Field = 0.150; // T 
+    int sign = -1; 
+    if (GetTkId()<0) sign = +1;
+    return AMSDir(sign,0,0)*Field; 
+  }
+  else if (algo==1) { 
+    // 2. More complex and precise rule 
+    // Field has a constant intensity along AMS x-axis. 
+    // Rotate x-axis in the local frame.
+    double   Field = 0.150; // T 
+    AMSPoint SensorCoo;
+    AMSDir   SensorFieldDir;
+    GlobalToLocal(GetXgl(),AMSPoint(1,0,0),SensorCoo,SensorFieldDir);
+    return SensorFieldDir*Field;
+  }
+  else {
+    // 3. Even more complex rule 
+    // Take the magnetic field from the map (GuFld?, TOBEFIXED: you must be sure that MagneticFieldMap is already loaded). 
+    // Rotate it to the local frame.
+    AMSPoint FieldVector = MagField::GetPtr()->GuFld(GetXgl())*0.1; // kG -> T
+    double   Field = FieldVector.norm();
+    AMSDir   FieldDir = FieldVector/Field;
+    AMSPoint SensorCoo;
+    AMSDir   SensorFieldDir;
+    GlobalToLocal(GetXgl(),FieldDir,SensorCoo,SensorFieldDir);
+    return SensorFieldDir*Field;
+  }
+  return AMSPoint(0,0,0);
+}
+
+
+AMSDir TrMCClusterR::GetSensHallDir(double& B) {
+  // Hall effect direction 
+  AMSPoint Bvec = GetSensMagField();
+  B = Bvec.norm();
+  AMSDir Bdir = Bvec/B;
+  AMSDir Edir(0,0,1); // direction of the "uniform field" inside the silicon 
+  return Edir.cross(Bdir);
+}
+
+
+AMSPoint TrMCClusterR::GetSensMiddleCoo() {
+  AMSPoint coo = GetSensCoo();
+  AMSDir   dir = GetSensDir();
+  coo[0] -= coo[2]*dir[0]/dir[2];
+  coo[1] -= coo[2]*dir[0]/dir[2];
+  coo[2] -= coo[2];
+  return coo;
+}
+
+
+bool TrMCClusterR::GlobalToLocal(AMSPoint GlobalCoo, AMSDir GlobalDir, AMSPoint& SensorCoo, AMSDir& SensorDir) {
+  // default values
+  SensorCoo = AMSPoint(-10000,-10000,-10000);
+  SensorDir = AMSDir(0,0,-1);
+  // global-to-local coordinate converter for simulation (--> also intrinsic resolution)
+  TkSens sensor(true); 
+  sensor.SetGlobal(GlobalCoo,GlobalDir);
+  // ladder not found
+  if (!sensor.LadFound()) {
+    printf("TrMCClusterR::GetSens-W ladder not found.\n");
+    return false;
+  }
+  // coordinate outside from active area 
+  AMSPoint local = sensor.GetSensCoo();
+  if ( (local.x()<0) || (local.x()>TkDBc::Head->_ssize_active[0]) || 
+       (local.y()<0) || (local.y()>TkDBc::Head->_ssize_active[1]) ) {
+    printf("TrMCClusterR::GetSens-W coordinate outside sensor active area.\n");
+    return false;
+  }
+  // tkid different from what is stored 
+  if (sensor.GetLadTkID()!=GetTkId()) { 
+    printf("TrMCClusterR::GetSens-W found ladder with tkid %+4d instead of stored tkid %+4d.\n",sensor.GetLadTkID(),GetTkId());
+    return false;
+  }
+  // number of sensor different from what is stored
+  if (sensor.GetSensor()!=GetSensor()) {
+    printf("TrSim::GenSimClusters-V found sensor number %d instead of stored sensor number %d.\n",sensor.GetSensor(),GetSensor());
+    return false;
+  }
+  // set 
+  SensorCoo = sensor.GetSensCoo();
+  SensorDir = sensor.GetSensDir();
+  return true;
 }
 
 
