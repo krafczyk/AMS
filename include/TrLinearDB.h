@@ -59,7 +59,7 @@ class TrLinearElem : public TObject {
   //! Return application of non-linearity
   double ApplyNonLinearity(double ADC);
   //! Method for linerity correction inversion 
-  double GetInterval(double y, double xmin, double xmax, int nsteps, double& xmin_step, double& xmax_step);
+  void   GetInterval(double y, double xmin, double xmax, int nsteps, double& xmin_step, double& xmax_step);
 
   using TObject::Info;
   ClassDef(TrLinearElem,1);

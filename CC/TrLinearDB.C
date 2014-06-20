@@ -216,7 +216,7 @@ double TrLinearElem::ApplyNonLinearity(double ADC) {
 }
 
 
-double TrLinearElem::GetInterval(double y, double xmin, double xmax, int nsteps, double& xmin_step, double& xmax_step) {
+void TrLinearElem::GetInterval(double y, double xmin, double xmax, int nsteps, double& xmin_step, double& xmax_step) {
   int istep;
   for (istep=0; istep<=nsteps; istep++) {
     double x = xmin+((xmax-xmin)/nsteps)*istep;
