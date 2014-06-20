@@ -95,6 +95,8 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra,
   if (aa!=0)
 #ifndef __ROOTSHAREDLIBRARY__
     aa->addnext(new AMSTrMCCluster(idsoft,step,pgl,dirg,momentum,edep,itra, gtrkid));
+//AMSTrMCCluster* cluster = (AMSTrMCCluster*) aa->getelem((int)aa->getnelem()-1);
+//cluster->Print(10);
 #else
   aa->addnext(new TrMCClusterR(idsoft,step,pgl,dirg,momentum,edep,itra,gtrkid));
 #endif
@@ -274,9 +276,8 @@ void TrSim::sitkdigi() {
     InitSensors();
   }
  
-    // Rework MCCluster list
-   MergeMCCluster();
-
+  // Rework MCCluster list
+//  if ((int(TRMCFFKEY.UseNonLinearity/100)%10)==1) MergeMCCluster(); 
 
   // Create the TrMCCluster map and make the simulated cluster (_shower(), GenSimCluster())
 
@@ -294,8 +295,12 @@ void TrSim::sitkdigi() {
     if (container!=0) delete container;
     return;
   }
+// cout << "-------------------------------------------------------------" << endl;
   for (int ii=0; ii<container->getnelem(); ii++) {
     TrMCClusterR* cluster = (TrMCClusterR*) container->getelem(ii);
+if (!cluster->IsPrimary()) continue;
+// if (cluster->IsPrimary()) 
+// cluster->Print(10);
     if (cluster) {
       // Construct ideal clusters!!!    
       if      (TRMCFFKEY.SimulationType==kRawSim)    cluster->_shower();
@@ -400,7 +405,7 @@ void TrSim::sitkdigi() {
 	  // for the moment I leave the old code
 	  float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
 	  if      ( gain<0.02 )     ladbuf[ii]=0.;                 // VA with no gain!
-	  else if ( (1./gain)<0.5 ) ladbuf[ii]/=10.; // VA with bad gain!
+          else if ( (1./gain)<0.5 ) ladbuf[ii]/=10.; // VA with bad gain!
 	  else                      ladbuf[ii]/=gain;
 	}
 
@@ -630,7 +635,6 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
         if (VERBOSE) {
           printf("TrSim::TrRawCluster\n");
           TrRawClusterR* cluster = (TrRawClusterR*) cont->getelem((int)cont->getnelem()-1);
-          cluster->Print(10);
           printf("TrSim::TrRawCluster-More Local Seed Coordinate = %f\n",TkCoo::GetLocalCoo(tkid,cluster->GetSeedAddress(),0));
         }
       }

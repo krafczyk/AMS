@@ -278,6 +278,7 @@ void TrMCClusterR::GenSimClusters(){
       // if(iside==1 && tip[iside]>0.3 && tip[iside]<0.7) edep_c2*=pc[0]+pc[1]*tip[iside]+pc[2]*pow(tip[iside],2)+pc[3]*pow(tip[iside],3)+pc[4]*pow(tip[iside],4);
       _simcl[iside]->Multiply(edep_c2);
     }
+
     // ion fast tuning 
     else { 
       double mev_on_adc = TRMCFFKEY.ADCMipValue[1][iside]*edep/81;
@@ -297,12 +298,9 @@ void TrMCClusterR::GenSimClusters(){
             if ( (1./gain)<0.5 ) adc4 = 10*adc3; 
             else                 adc4 = adc3*gain;
             _simcl[iside]->SetSignal(ist,adc4); 
-// ROBA SIMILE PER L'ASIMMETRIA (CONTRO CORREZIONE ALLE CORREZIONI DI PAOLO?)
           }
         }         
       }
-      // mev_on_adc /= TRMCFFKEY.alpha;
-      // _simcl[iside]->Multiply(mev_on_adc);
     }  
 
     /*
