@@ -95,8 +95,6 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra,
   if (aa!=0)
 #ifndef __ROOTSHAREDLIBRARY__
     aa->addnext(new AMSTrMCCluster(idsoft,step,pgl,dirg,momentum,edep,itra, gtrkid));
-//AMSTrMCCluster* cluster = (AMSTrMCCluster*) aa->getelem((int)aa->getnelem()-1);
-//cluster->Print(10);
 #else
   aa->addnext(new TrMCClusterR(idsoft,step,pgl,dirg,momentum,edep,itra,gtrkid));
 #endif
@@ -277,7 +275,7 @@ void TrSim::sitkdigi() {
   }
  
   // Rework MCCluster list
-//  if ((int(TRMCFFKEY.UseNonLinearity/100)%10)==1) MergeMCCluster(); 
+  MergeMCCluster(); 
 
   // Create the TrMCCluster map and make the simulated cluster (_shower(), GenSimCluster())
 
@@ -295,12 +293,8 @@ void TrSim::sitkdigi() {
     if (container!=0) delete container;
     return;
   }
-// cout << "-------------------------------------------------------------" << endl;
   for (int ii=0; ii<container->getnelem(); ii++) {
     TrMCClusterR* cluster = (TrMCClusterR*) container->getelem(ii);
-if (!cluster->IsPrimary()) continue;
-// if (cluster->IsPrimary()) 
-// cluster->Print(10);
     if (cluster) {
       // Construct ideal clusters!!!    
       if      (TRMCFFKEY.SimulationType==kRawSim)    cluster->_shower();
@@ -635,6 +629,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
         if (VERBOSE) {
           printf("TrSim::TrRawCluster\n");
           TrRawClusterR* cluster = (TrRawClusterR*) cont->getelem((int)cont->getnelem()-1);
+          cluster->Print(10);
           printf("TrSim::TrRawCluster-More Local Seed Coordinate = %f\n",TkCoo::GetLocalCoo(tkid,cluster->GetSeedAddress(),0));
         }
       }
