@@ -862,11 +862,13 @@ number TkDBc::GetSlotX(int layer, int slot,int side){
 }
 
 #include <fstream>
+#include <iomanip>
 
 int TkDBc::write(const char* filename){
 
   ofstream  fileout(filename);
   if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
+  fileout<<setprecision(8);
   for (int ii=0;ii<nplanes;ii++)
     fileout<<*(GetPlane(ii+1));
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
