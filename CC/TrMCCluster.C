@@ -230,12 +230,12 @@ void TrMCClusterR::GenSimClusters(){
     // SMEAR the position
     int hcharge_smear = (hcharge>1) ? 1 : hcharge; // ions = He
     float ipsmear=ip[iside];
-//    ipsmear=ip[iside]+rnormx()*TRMCFFKEY.SmearPos[hcharge_smear][iside];
+    ipsmear=ip[iside]+rnormx()*TRMCFFKEY.SmearPos[hcharge_smear][iside];
 
     // SMEAR outer layers
     int lay = abs(GetTkId())/100;
-//    if (lay == 8 || lay == 9)
-//      ipsmear+=rnormx()*TRMCFFKEY.OuterSmearing[lay-8][iside];
+    if (lay == 8 || lay == 9)
+      ipsmear+=rnormx()*TRMCFFKEY.OuterSmearing[lay-8][iside];
 
     // Create the cluster
     TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ipsmear,ia[iside],nsensor,step*dir[2]);
