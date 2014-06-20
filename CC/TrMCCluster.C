@@ -252,7 +252,7 @@ void TrMCClusterR::GenSimClusters(){
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
     int hcharge_gauss = (hcharge>1) ? 1 : hcharge; // ions = He    
     // no extra-multiplication if too inclined or ions  
-    if ( (fabs(ia[iside])<0.8)&&((int(TRMCFFKEY.UseNonLinearity/10)%10)!=0) ) 
+    if (fabs(ia[iside])<0.8)
       _simcl[iside]->GaussianizeFraction(iside,hcharge_gauss,TRMCFFKEY.TrSim2010_FracNoise[iside], tip[iside]);
  
     // p and He
