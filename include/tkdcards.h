@@ -178,6 +178,9 @@ public:
                      //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
   geant MCtuneDy9;   //=0  typically put   1e-4 to mitigate the propagation bug
 
+  // parameter for simple ion tuning (2014.06.14 AO) 
+  int   UseNonLinearity;
+
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 

@@ -332,6 +332,8 @@ void TRMCFFKEY_DEF::init(){
                     //                -1e-4 to smare
                     // if MCtuneDs > MCtuneDmax, use exactly as MC coo
   MCtuneDy9  = 0;   // typically put   1e-4 to mitigate the propagation bug
+
+  UseNonLinearity = 0;
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;
