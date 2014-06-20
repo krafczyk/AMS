@@ -135,10 +135,20 @@ int TrLinearDB::CreateIndex(int tkid, int iva, int depth) {
 double TrLinearDB::GetLinearityCorrected(double ADC, int tkid, int iva, int depth) {
   TrLinearElem* elem = GetValidElem(tkid,iva,depth);  
   if (!elem) {
-    printf("TrLinearDB::GetCorrection-E no correction element found (tkid=%+04d,iva=%02d,depth=%1d). Return unmodified value\n",tkid,iva,depth);
+    printf("TrLinearDB::GetLinearityCorrected-E no correction element found (tkid=%+04d,iva=%02d,depth=%1d). Return unmodified value\n",tkid,iva,depth);
     return ADC;
   }
   return elem->GetLinearityCorrected(ADC);
+}
+
+
+double TrLinearDB::ApplyNonLinearity(double ADC, int tkid, int iva, int depth) {
+  TrLinearElem* elem = GetValidElem(tkid,iva,depth);
+  if (!elem) {
+    printf("TrLinearDB::ApplyNonLinearity-E no correction element found (tkid=%+04d,iva=%02d,depth=%1d). Return unmodified value\n",tkid,iva,depth);
+    return ADC;
+  }
+  return elem->ApplyNonLinearity(ADC);
 }
 
 
@@ -181,6 +191,43 @@ double TrLinearElem::GetLinearityCorrected(double ADC) {
 }
 
 
+double TrLinearElem::ApplyNonLinearity(double ADC) {
+  double tmp = (ADC>0) ? sqrt(ADC) : 0;
+  double xmin = 0;
+  double xmax = 1000; // crazy high
+  // check range
+  double eval = p_strip_behavior(&xmax,fPars);     
+  if (tmp>eval) tmp = eval; // if too crazy give a flat responce  
+  // find bin 
+  for (int iter=0; iter<10; iter++) {
+    double xmin_step,xmax_step;
+    GetInterval(tmp,xmin,xmax,10,xmin_step,xmax_step);
+    xmin = xmin_step;
+    xmax = xmax_step; 
+  }
+  // linear interpolation
+  double x  = tmp; 
+  double y1 = xmin;
+  double y2 = xmax;      
+  double x1 = p_strip_behavior(&y1,fPars);   
+  double x2 = p_strip_behavior(&y2,fPars);
+  double interp = y1 + (x-x1)*(y2-y1)/(x2-x1);      
+  return pow(interp,2); 
+}
+
+
+double TrLinearElem::GetInterval(double y, double xmin, double xmax, int nsteps, double& xmin_step, double& xmax_step) {
+  int istep;
+  for (istep=0; istep<=nsteps; istep++) {
+    double x = xmin+((xmax-xmin)/nsteps)*istep;
+    double eval = p_strip_behavior(&x,fPars);
+    if (eval>y) break;
+  }
+  xmin_step = xmin+((xmax-xmin)/nsteps)*(istep-1);
+  xmax_step = xmin+((xmax-xmin)/nsteps)*(istep);
+}
+
+
 ///////////////////////////
 // Functions
 ///////////////////////////
@@ -192,5 +239,4 @@ double p_strip_behavior(double* x, double* par) {
   else              result += par[3]*par[0]+par[4]*x[0]-par[4]*par[0];
   return result/par[3];
 }
-
 

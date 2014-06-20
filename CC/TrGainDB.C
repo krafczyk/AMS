@@ -264,6 +264,14 @@ float TrGainDB::GetGainCorrected(float adc, int tkid, int iva) {
 }
 
 
+float TrGainDB::ApplyGain(float adc, int tkid, int iva) {
+  if ( (iva<0)||(iva>15) ) return 0;
+  TrLadGain* ladgain = (TrLadGain*) FindGainTkId(tkid);
+  if (ladgain==0) return 0;
+  return ladgain->ApplyGain(adc,iva);
+}
+
+
 TH2D* gain_map = 0;
 TH2D* TrGainDB::GetGainHistogram() {
   if (!gain_map) gain_map = new TH2D("gain_map","; ladder number; VA number; gain",192,-0.5,191.5,16,-0.5,15.5);
@@ -377,9 +385,12 @@ bool TrLadGain::LinearToGainDB(float* offset) {
 float TrLadGain::GetGainCorrected(float adc, int iva) { 
   if ( (iva<0)||(iva>15) ) return 0;
   return (adc + GetOffset(iva))*GetGain(iva);
-  // other possibilities are:
-  // return adc*GetGain(iva);
-  // return (adc + GetOffset(iva)/2)*GetGain(iva); 
+}
+
+
+float TrLadGain::ApplyGain(float adc, int iva) {
+  if ( (iva<0)||(iva>15) ) return 0;
+  return adc/GetGain(iva) - GetOffset(iva); 
 }
 
 

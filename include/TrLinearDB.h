@@ -1,4 +1,4 @@
-// $Id: TrLinearDB.h,v 1.1 2013/02/15 15:20:22 oliva Exp $
+// $Id$
 
 #ifndef __TrLinearDB__
 #define __TrLinearDB__
@@ -56,6 +56,10 @@ class TrLinearElem : public TObject {
   bool   IsValid(); 
   //! Return corrected value
   double GetLinearityCorrected(double ADC); 
+  //! Return application of non-linearity
+  double ApplyNonLinearity(double ADC);
+  //! Method for linerity correction inversion 
+  double GetInterval(double y, double xmin, double xmax, int nsteps, double& xmin_step, double& xmax_step);
 
   using TObject::Info;
   ClassDef(TrLinearElem,1);
@@ -107,6 +111,8 @@ class TrLinearDB : public TObject {
   bool   LoadDefaultTablesVer0(char* dirname = getenv("AMSDataDir"));
   //! Get the linearity correction at different level (depth: 0: tracker; 1: layer; 2: ladder; 3: VA) 
   double GetLinearityCorrected(double ADC, int tkid, int iva, int depth = DefaultCorrDepth);
+  //! Return application of non-linearity (depth: 0: tracker; 1: layer; 2: ladder; 3: VA)
+  double ApplyNonLinearity(double ADC, int tkid, int iva, int depth = DefaultCorrDepth);
 
   using TObject::Info;
   ClassDef(TrLinearDB,1);
