@@ -924,7 +924,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
 
   //  Update External DB alignment
-  int cookind=1;
+  int cookind=0;
   if( (id & kAltExtAl) ){
     // Set TkPlaneExt to CIEMAT
     // TrExtAlignDB::SetAlKind(1);
@@ -941,7 +941,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }else  if(id & kDisExtAlCorr){
     cookind=5;
   }else{
-    cookind=1;
+    cookind=0;
   }
 
 
