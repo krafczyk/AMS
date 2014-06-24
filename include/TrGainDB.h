@@ -106,6 +106,8 @@ class TrLadGain : public TObject {
 
   //! Apply correction to a strip (very bad VA are excluded)
   float GetGainCorrected(float adc, int iva);
+  //! Apply gain
+  float ApplyGain(float adc, int iva);    
 
   //! Check if setting is default
   bool IsDefault();
@@ -186,6 +188,8 @@ class TrGainDB : public TObject {
 
   //! Apply correction to a strip
   float GetGainCorrected(float adc, int tkid, int iva); 
+  //! Apply gain
+  float ApplyGain(float adc, int tkid, int iva);    
 
   //! Display gains as a 2D histogram 
   TH2D* GetGainHistogram();

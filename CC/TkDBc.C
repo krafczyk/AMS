@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.77 2014/02/06 21:58:03 pzuccon Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2014/02/06 21:58:03 $
+///$Date$
 ///
-///$Revision: 1.77 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -726,6 +726,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     //       << "pg= " << pgidmap      .size() << " "
        << "JN= " << JMDCNumMap   .size() << endl;
 
+  if (!inputfilename || TkLadder::version < 2) {
+    cout << "TkDBc::init-Setting default sensor alignment" << endl;
     // Set sensor alignment data
     for (tkidIT lad=tkidmap.begin(); lad!=tkidmap.end();++lad){
       //      if(lad->second->GetLayer()==9){ printf("TkDBC::init -W- PLANB No sensor alignement for layer 9! \n"); continue;}
@@ -735,6 +737,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       for (int i = 0; i < trconst::maxsen; i++) 
 	lad->second->_sensy[i] = GetSensAlignY(lad->second->GetTkId(), i);
     }
+  }
     
 //   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end();++pp){
 //       cout<<*(pp->second)<<endl;
@@ -859,11 +862,13 @@ number TkDBc::GetSlotX(int layer, int slot,int side){
 }
 
 #include <fstream>
+#include <iomanip>
 
 int TkDBc::write(const char* filename){
 
   ofstream  fileout(filename);
   if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
+  fileout<<setprecision(8);
   for (int ii=0;ii<nplanes;ii++)
     fileout<<*(GetPlane(ii+1));
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
@@ -1380,6 +1385,8 @@ int TkDBc::GetFromTDV(unsigned int time, int ver)
   time_t tt = time;
   static  AMSTimeID *db=0;
 #pragma omp threadprivate (db)
+
+ if (db && TkLadder::version != ver-1) { delete db; db = 0; }
  if(!db){
   tm begin;
   tm end;

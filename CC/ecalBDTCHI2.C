@@ -121,6 +121,8 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
      {
        ECALBCHI2_TMVAVER = 412;
        if ( TMVA_RELEASE == "4.1.4" ) ECALBCHI2_TMVAVER = 414;
+       //For BDTCHI2 versions >4 only 4.1.4 used for training
+       if (iBDTCHI2VERSION>4 )  ECALBCHI2_TMVAVER = 414;
      }
    //Check if the version is > 100. In this case, it means that we want to use version X-100 and do not apply the cuts on F2SL and s1s3
    //Example: iBDTCHI2VERSION==103 means v3 but no cuts applied 

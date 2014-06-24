@@ -274,9 +274,8 @@ void TrSim::sitkdigi() {
     InitSensors();
   }
  
-    // Rework MCCluster list
-   MergeMCCluster();
-
+  // Rework MCCluster list
+  MergeMCCluster(); 
 
   // Create the TrMCCluster map and make the simulated cluster (_shower(), GenSimCluster())
 
@@ -400,7 +399,7 @@ void TrSim::sitkdigi() {
 	  // for the moment I leave the old code
 	  float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
 	  if      ( gain<0.02 )     ladbuf[ii]=0.;                 // VA with no gain!
-	  else if ( (1./gain)<0.5 ) ladbuf[ii]/=10.; // VA with bad gain!
+          else if ( (1./gain)<0.5 ) ladbuf[ii]/=10.; // VA with bad gain!
 	  else                      ladbuf[ii]/=gain;
 	}
 

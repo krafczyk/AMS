@@ -304,7 +304,9 @@ int AMSChain::AddFromFile(const char *fname,int first,int last, int stagedonly,u
   sprintf(AMSEventR::filename,"%s_%06d_%06d_RUNTIMETMOUT",fname,first,last);
   ofstream  rejfile;
   ofstream  rejfile2;
-  //TFile::SetOnlyStaged(stagedonly);
+    rejfile.close();
+  rejfile2.close();
+//TFile::SetOnlyStaged(stagedonly);
   //stagedonly=false;
   int stagein=0;
   unsigned int ftimeout=TFile::GetOpenTimeout();
@@ -429,13 +431,15 @@ againeos:
           
           else {
            if(stagedonly==-1){
-            string castor="//castorpublic.cern.ch///castor/cern.ch/";
-            string eos="//eosams.cern.ch///eos/";
+//            string castor="//castorpublic.cern.ch///castor/cern.ch/";
+            string castor="/castor/cern.ch/";
+            string eos="root://eosams.cern.ch///eos/";
             string rn=rname;
             int pos=rn.find(castor);
             if(pos>=0){
-             rn.replace(rn.begin()+pos,rn.begin()+pos+castor.length(),eos);
-             cout <<" AMSChain-I-RepacedBy "<<rn<<endl;
+//             rn.replace(rn.begin()+pos,rn.begin()+pos+castor.length(),eos);
+             rn.replace(rn.begin(),rn.begin()+pos+castor.length(),eos);
+             cout <<" AMSChain-I-ReplacedBy "<<rn<<endl;
   char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
    char *localbin=0;
    if(getenv("AMSDataDir")){
@@ -445,7 +449,8 @@ againeos:
        string eoscheck=localbin;
        eoscheck+="/DataManagement/exe/linux/timeout --signal 9 30 ";
              eoscheck+="/afs/cern.ch/project/eos/installation/0.3.1-22/bin/eos.select ls /eos/";
-             eoscheck+=rn.c_str()+pos+eos.length();
+//             eoscheck+=rn.c_str()+pos+eos.length();
+             eoscheck+=rn.c_str()+eos.length();
              int k=system(eoscheck.c_str());
              if(!k){ 
               strcpy(rname,rn.c_str());

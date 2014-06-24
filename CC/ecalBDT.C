@@ -126,6 +126,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
      {
        ECALBDT_TMVAVER = 412;
        if ( TMVA_RELEASE == "4.1.4" ) ECALBDT_TMVAVER = 414;
+       //For BDT versions >6 only 4.1.4 used for training
+       if ( iBDTVERSION>6 )  ECALBDT_TMVAVER = 414;
      }
    //Check if the version is > 100. In this case, it means that we want to use version X-100 and do not apply the cuts on F2SL and s1s3
    //Example: iBDTVERSION==103 means v3 but no cuts applied 

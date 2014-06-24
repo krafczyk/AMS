@@ -14661,10 +14661,32 @@ unsigned int AMSEventR::NTrTrackG(){
 }
 
 
-MCEventgR * AMSEventR::GetPrimaryMC() {
+MCEventgR * AMSEventR::GetPrimaryMC(int pos) {
+
+double zmin=1e9;
+int kmin=-1;
+int search=1;
+bool newmc=Version()>700;
+bool old=Version()<600;
+if(pos<0)search=-1;
+if(!newmc && search<0)return NULL;
 for(int k=0;k<NMCEventg();k++){
 MCEventgR &mc=MCEventg(k);
-if(mc.parentID==0 || (mc.parentID==-2 && mc.Particle>0))return &mc; 
+if(old && mc.Particle>0 && mc.Particle<256)return &mc; 
+else if (mc.parentID==0 &&!newmc )return &mc; 
+else if(mc.parentID==-2 && mc.Particle>0)return &mc; 
+else if( newmc && mc.parentID==0){
+if(mc.Dir[2]){
+ double z=mc.Coo[2]/(mc.Dir[2]>0?search:-search);
+ if(zmin>z){
+  zmin=z; 
+  kmin=k;
 }
-return NULL;
+else if(kmin<0)return &mc;
+}
+
+}
+}
+if(kmin>=0)return & MCEventg(kmin);
+else return NULL;
 }

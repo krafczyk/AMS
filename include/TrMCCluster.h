@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.21 2013/05/03 10:50:11 zhukov Exp $
+//  $Id$
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -8,9 +8,9 @@
 ///\brief A class for the rapresentation of the MC stepping in Silicon active material. 
 ///\ingroup tksim
 ///
-///$Date: 2013/05/03 10:50:11 $
+///$Date$
 ///
-///$Revision: 1.21 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -53,8 +53,7 @@ class TrMCClusterR : public TrElem {
 
  public:
  
-  // ####################  CONSTRUCTORS & C. ###########################
-
+  /** @name Basic functions */
   //! Std constructor build a dummy cluster
   TrMCClusterR() { Init(); }
   //! Constructor for a digitized hit
@@ -79,10 +78,10 @@ class TrMCClusterR : public TrElem {
     result += other;            
     return result;              
   }
+  /**@}*/
 
 
-  // ####################  ACCESSORS  ###########################
-
+  /** @name Basic accessors */
   //! Get the TkId of the ladder  
   int      GetTkId();
   //! Get the sensor number 
@@ -111,9 +110,40 @@ class TrMCClusterR : public TrElem {
   float    GetMomentum() { return _mom; }
   //! Get momentum vector (GeV/c)
   AMSPoint GetMom() { return GetDir()*GetMomentum(); }
-  //! Get intersection at Silicon middle (for intrinsic resolution)
-  AMSPoint GetIntersection(); 
+  /**@}*/
 
+
+
+  /** @name Local coordinates */
+  /**@{*/
+  //! Get step middle point in sensor local coordinates (cm,cm,cm) 
+  AMSPoint GetSensCoo()      { AMSPoint point; AMSDir dir; GlobalToLocal(GetXgl(),GetDir(),point,dir); return point; }
+  //! Get sensor step oriented direction in sensor local coordinates
+  AMSDir   GetSensDir()      { AMSPoint point; AMSDir dir; GlobalToLocal(GetXgl(),GetDir(),point,dir); return dir; }
+  //! Get projected angle on plane XZ (rad)
+  float    GetAngleXZ()      { return atan(GetSensDir().x()/GetSensDir().z()); } 
+  //! Get projected angle on plane YZ (rad)
+  float    GetAngleYZ()      { return atan(GetSensDir().y()/GetSensDir().z()); }
+  //! Get step projection on XZ plane (cm)
+  float    GetStepXZ()       { AMSDir dir = GetSensDir(); return GetStep()*sqrt(dir[0]*dir[0] + dir[2]*dir[2]); } 
+  //! Get step projection on YZ plane (cm)
+  float    GetStepYZ()       { AMSDir dir = GetSensDir(); return GetStep()*sqrt(dir[1]*dir[1] + dir[2]*dir[2]); } 
+  //! Get sensor step starting point in sensor local coordinates (cm,cm,cm) 
+  AMSPoint GetSensStartCoo() { return GetSensCoo() - GetSensDir()*GetStep()/2; }
+  //! Get sensor step ending point in sensor local coordinates (cm,cm,cm)
+  AMSPoint GetSensEndCoo()   { return GetSensCoo() + GetSensDir()*GetStep()/2; }
+  //! Get the magnetic field associated to the step middle in local coordinates (3 diff. methods) (kG) 
+  AMSPoint GetSensMagField(int algo = 2);
+  //! Get the Hall-effect potential direction in local coordinate (ExB) 
+  AMSDir   GetSensHallDir(double& B);
+  //! Get local coordinate at the center of the silicon (Z=0), used for resolution evaluation 
+  AMSPoint GetSensMiddleCoo();
+  //! Global-to-local coordinate conversion interface
+  bool GlobalToLocal(AMSPoint GlobalCoo, AMSDir GlobalDir, AMSPoint& SensorCoo, AMSDir& SensorDir);
+  /**@}*/
+
+
+  /** @name Cluster simulation */
   //! Creation of the simulated clusters objects (TrSimCluster) of TrSim2010
   void GenSimClusters();
   //! Return a pointer to the simulated clusters (if TrSim2010 selected)
@@ -121,7 +151,6 @@ class TrMCClusterR : public TrElem {
     if (side!=0 && side!=1) return 0;
     return _simcl[side];
   }
-
   //! Checks the cluster type against the IsNoise flag
   int   IsNoise() { return _itra == _NoiseMarker; }
 
@@ -136,15 +165,17 @@ class TrMCClusterR : public TrElem {
 
   //! Generates the strip distribution (old model)
   void _shower();
+  /**@}*/
+
 
  protected:
 
+  //! Prepare output  
   void _PrepareOutput(int full);
 
  public:
 
-  //################ PRINTOUT  ########################################
-
+  /** @name Printout */
   /// Print MC cluster basic information on a given stream
   std::ostream& putout(std::ostream &ostr = std::cout);
   /// ostream operator
@@ -156,6 +187,8 @@ class TrMCClusterR : public TrElem {
   void Print(int printopt =0);
   /// Return a string with some info (used for event display)
   const char* Info(int iRef);
+  /**@}*/
+
 
   friend class TrDAQMC;
 

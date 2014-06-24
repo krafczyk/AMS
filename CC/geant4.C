@@ -1435,6 +1435,7 @@ if(!Step)return;
 	     GrandMother->GetName()(0)=='S' &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K' &&
 	     Mother->GetName()(0)=='L' &&  PrePV->GetName()(0)=='S'){
 	    //         cout <<" tracker "<<endl;
+
             int sign = -1;
             if (Track->GetTrackID()==1) sign = +1; // TrackID is 1 for primaries  
             TrSim::sitkhits(

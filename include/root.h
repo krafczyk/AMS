@@ -5108,7 +5108,7 @@ int   nMCTrack()const { return fHeader.MCTracks;} ///< \return number of MCTrack
 ///
 int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEventgR elements (fast)
 ///
-MCEventgR* GetPrimaryMC(); ///< Return pointer to the Primary MC Pasrticle at the point of Generation or NULL;
+MCEventgR* GetPrimaryMC(int Pos=1 ); ///< Return pointer to the Primary MC Pasrticle at the point of Generation (Pos=1) or Exiting (Pos=-1,B800++ only) or NULL;
 static bool   nMCEventgC();
 ///
 int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEventgR elements (fast)

@@ -1814,10 +1814,10 @@ void AMSG4Physics::ConstructEM2( void ){
       G4ionIonisation* theIonIonisation = new G4ionIonisation();
       if(TRDMCFFKEY.PAIModel ){
 	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
-	theIonIonisation->AddEmModel(0,pai,pai,gasregion);
+	theIonIonisation->AddEmModel(0,pai,pai,gasregion); 
       }
-      pmanager->AddProcess(new G4hMultipleScattering, -1, 1, 1);
-      pmanager->AddProcess(theIonIonisation,         -1, 2, 2);
+      pmanager->AddProcess(new G4hMultipleScattering,-1,1,1);
+      pmanager->AddProcess(theIonIonisation,-1,2,2);
       pmanager->AddDiscreteProcess(processXTR);
 
     } else if (particleName == "pi+" ||
