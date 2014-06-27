@@ -13,6 +13,7 @@
 #include "TrExtAlignDB.h"
 #endif
 #include <dlfcn.h>
+#include <iterator>
 bool AMSNtupleHelper::IsGolden(AMSEventR *o){
   return true;
 }
@@ -159,7 +160,26 @@ AMSEventR* AMSChain::GetEvent(){
   if(_ENTRY<-1)return NULL;
   GetEvent(_ENTRY+1);
   return _EVENT;
-};
+}
+
+AMSEventR * AMSChain::GetOrderedEntry(long long seq,unsigned long long maxent){
+
+long long entry=GetEntryNo(seq,  maxent);
+ unsigned int frun=_EVENT?_EVENT->Run():0;
+ if(entry>=0){
+        GetEvent(entry);
+        if(_EVENT){
+             if(frun!=_EVENT->Run())_EVENT->UpdateSetup(_EVENT->Run());
+             return _EVENT;
+        }
+    }
+
+   return NULL;         
+
+
+}
+
+
 
 long long AMSChain::GetEntryNo(UInt_t run, Int_t ev, bool runinfilename, unsigned long long maxent){
 int prcs=AMSEventR::ProcessSetup;
@@ -214,6 +234,48 @@ it=m_chain_entryindex.find(runev);
 if(it==m_chain_entryindex.end())return -1;
 else return it->second;
 }
+
+long long AMSChain::GetEntryNo(long long  seq, unsigned long long maxent){
+int prcs=AMSEventR::ProcessSetup;
+map<unsigned long long, unsigned long long>::iterator it=m_chain_entryindex.begin();
+if(seq)std::advance(it,seq);
+if(it!=m_chain_entryindex.end())return it->second;
+
+
+if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
+ m_chain_Entries=GetEntries();
+ unsigned long long msum=0;
+ m_chain_entryindex.clear();
+ m_chain_Runs.clear();
+  AMSEventR::ProcessSetup=1;
+ for(int i1=0;i1<GetListOfFiles()->GetEntries();i1++){
+   TChainElement* elem=(TChainElement*)GetListOfFiles()->At(i1);
+      GetEvent(msum);    
+      if(_EVENT &&_EVENT->getsetup()){
+       m_chain_Runs.insert(make_pair(_EVENT->Run(),msum));
+       if(  m_chain_Entries>maxent ){
+         msum+=elem->GetEntries();
+         break;
+       }
+       for (unsigned int ent=0;;ent++){
+        if(_EVENT->GetSetup(ent))break;
+       for (map<unsigned long long, unsigned int>::iterator it=_EVENT->getsetup()->fEntries.begin();it!=_EVENT->getsetup()->fEntries.end();it++){
+        unsigned long long entl=msum+it->second;
+        m_chain_entryindex.insert(make_pair(it->first,entl));
+       }
+ }
+}
+        msum+=elem->GetEntries();
+}
+}
+AMSEventR::ProcessSetup=prcs;
+
+it=m_chain_entryindex.begin();
+if(seq)std::advance(it,seq);
+if(it==m_chain_entryindex.end())return -1;
+else return it->second;
+}
+
 
 
 AMSEventR* AMSChain::GetEventFast(UInt_t run, Int_t ev, bool runinfilename, unsigned long long maxent){
