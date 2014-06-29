@@ -1008,6 +1008,9 @@ public:
 		                       const map<int, float> &qmax,
 			   float beta = 1, int opt = 0);
 
+  /// Drop hits in outer layers after smearing (to be used for MC re-tuning)
+  int DropExtHits(void);
+
   /// Convert from array to map
   static map<int,float> v2m(int n, float *q) {
     map<int,float> mm;

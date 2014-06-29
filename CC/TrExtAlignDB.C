@@ -439,6 +439,9 @@ void TrExtAlignDB::ResetExtAlign()
 
 extern "C" double rnormx();
 
+int MCscat (AMSPoint &coo, int layj, double prob, double scat, double pwr);
+int DropExtHits(void);
+
 void TrExtAlignDB::SmearExtAlign()
 {
   ResetExtAlign();
@@ -453,6 +456,24 @@ void TrExtAlignDB::SmearExtAlign()
   SL1[7] = rnormx()*TRMCFFKEY.OuterSmearing[0][1];
   SL9[6] = rnormx()*TRMCFFKEY.OuterSmearing[1][0];
   SL9[7] = rnormx()*TRMCFFKEY.OuterSmearing[1][1];
+
+#ifdef __ROOTSHAREDLIBRARY__
+  // Workaround to retune the MC scatterng
+  if (TRMCFFKEY.MCscat > 0) {
+    AMSPoint coo1, coo9;
+    MCscat(coo1, 1, TRMCFFKEY.MCscat[0], TRMCFFKEY.MCscat[1],
+	                                 TRMCFFKEY.MCscat[2]);
+    MCscat(coo9, 9, TRMCFFKEY.MCscat[0], TRMCFFKEY.MCscat[1],
+	                                 TRMCFFKEY.MCscat[2]);
+
+    SL1[0] += coo1.x(); SL1[1] += coo1.y();
+    SL9[0] += coo9.x(); SL9[1] += coo9.y();
+    SL1[6] += coo1.x(); SL1[7] += coo1.y();
+    SL9[6] += coo9.x(); SL9[7] += coo9.y();
+
+    DropExtHits();
+  }
+#endif
 }
 
 int  TrExtAlignDB::UpdateTkDBc(uint time) const

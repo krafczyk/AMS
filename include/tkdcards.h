@@ -186,9 +186,10 @@ public:
 
   // 2014.06.24 SH
   // Workaround to retune the MC scattering (not activated by default)
-  // [0]: Probability to have large scattering (typically put 0.1)
-  // [1]: Scattering amplitude (cm) at 10 GV   (typically put 0.1)
-  geant MCscat[2];   //=0,0  typically put (0.1,0.1) to activate
+  // [0]: Probability to have large scattering (typically put 0.05)
+  // [1]: Scattering amplitude (cm) at 10 GV   (typically put 0.3)
+  // [2]: Rgen power index                     (typically put 1.5)
+  geant MCscat[3];   //=0,0,0  typically put (0.05,0.3,1.5) to activate
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;
