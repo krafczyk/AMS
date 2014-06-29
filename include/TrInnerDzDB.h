@@ -44,6 +44,8 @@ public:
 
   static float LDZA[kLaynum];
 #pragma omp threadprivate (LDZA) 
+  static uint UTIME;
+#pragma omp threadprivate (UTIME)
    
 private:
   /// map implementig the DB
