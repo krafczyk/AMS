@@ -53,13 +53,13 @@ void TRDMCFFKEY_DEF::init(){
   Tmean=287.15;
   Pmean=927.0;
   FibreDiam=12.;
-  RadThick=20.;
+  RadThick=21.5;
   AlphaFibre=5.;
   AlphaGas=0.66;
   FleeceGas=1;
-  XenonFraction=0.89;
+  XenonFraction=0.915;
   ArgonFraction=0.;
-  CO2Fraction=0.11;
+  CO2Fraction=0.085;
   GasStep=6.;
   PAIModel=1;
   debug=0;

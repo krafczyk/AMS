@@ -2470,7 +2470,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    if (fabs(coo[2] - 15.675) < 0.01 || fabs(coo[2] - (-19.125)) < 0.01) {
      fleeceParams[1] = 0.25;
    } else {
-     fleeceParams[1] = 1.0;
+     fleeceParams[1] = 1.075;
    }
    fleeceParams[2] = par[2];
    fleeceCoord[0] = coo[0];
