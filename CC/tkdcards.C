@@ -347,6 +347,7 @@ void TRMCFFKEY_DEF::init(){
   // Workaround to retune the MC scattering (not activated by default)
   MCscat[0] = 0;
   MCscat[1] = 0;
+  MCscat[2] = 0;
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;

@@ -14094,6 +14094,8 @@ int MCshift(AMSPoint &coo, double ds)
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
 
+  if (AMSEventR::Head()->Version() >= 817) return 0;
+
   MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
   if (!mc || mc->Charge == 0) return 0;
 
@@ -14104,6 +14106,44 @@ int MCshift(AMSPoint &coo, double ds)
 
 #endif
   return 0;
+}
+
+int MCscat(AMSPoint &coo, int layj, double prob, double scat, double pwr)
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  if (layj != 1 && layj != 9) return 0;
+
+  MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
+  if (!mc || mc->Charge == 0) return 0;
+
+  if (gRandom->Rndm() > prob) return 0;
+
+  double rgen = mc->Momentum/mc->Charge;
+  double rr   = pow(rgen/10, pwr);
+  double sig  = (layj == 1) ? scat/rr*1.0 : scat/rr*0.7;
+
+  coo[0] += gRandom->Gaus()*sig;
+  coo[1] += gRandom->Gaus()*sig;
+  return 1;
+
+#endif
+  return 0;
+}
+
+int DropExtHits(void)
+{
+  if (!AMSEventR::Head()) return 0;
+
+  int ndrop = 0;
+
+  for (int i = 0; i < AMSEventR::Head()->NTrTrack(); i++) {
+    TrTrackR *trk = AMSEventR::Head()->pTrTrack(i);
+    if (trk && trk->HasExtLayers()) {
+      trk->RecalcHitCoordinates();
+      ndrop += trk->DropExtHits();
+    }
+  }
+  return ndrop;
 }
 
 #endif

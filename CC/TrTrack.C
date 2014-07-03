@@ -518,6 +518,12 @@ bool TrTrackR::RemoveHitOnLayer( int layer){
   _bitX  = _bitX>>1;
   _bitY  = _bitY>>1;
   _bitXY = _bitXY>>1;
+
+  if (!patt) {
+    int nn = (TkDBc::Head->GetSetup()==3) ? 7 : 8;
+    patt = new tkpatt(nn);
+    patt->Init(nn);
+  }
   _Pattern   = patt->GetHitPatternIndex(_bit);
   _PatternX  = patt->GetHitPatternIndex(_bitX);
   _PatternY  = patt->GetHitPatternIndex(_bitY);
@@ -2135,6 +2141,39 @@ int TrTrackR::MergeExtHitsAndRefit(float dmax, const map<int, float> &qmin,
 
   return nm1+nm9;
 }
+
+int TrTrackR::DropExtHits(void)
+{
+  // Workaround to retune the MC scatterng
+  int ip = ParExists(DefaultFitID) ? DefaultFitID :
+          (ParExists(kChoutko)     ? kChoutko : kAlcaraz);
+  if (!ParExists(ip)) return 0;
+
+  int ndrop = 0;
+
+  for (Int_t i = 0; i < 2; i++) {
+    TrRecHitR *hit = (i == 0) ? GetHitLJ(1) : GetHitLJ(9);
+    if (!hit) continue;
+
+    AMSPoint pnt = InterpolateLayerJ(hit->GetLayerJ(), ip);
+    double   rig = GetRigidity(ip);
+    double   dy  = hit->GetCoord().y()-pnt.y();
+
+    float limy = TRFITFFKEY.MergeExtLimY;
+    float sp0  = 0.02;
+    float sp1  = 1;
+    float rcor = std::sqrt(sp0*sp0+sp1*sp1/rig/rig);
+    float sigy = limy*rcor;
+    float dmax = sigy*4;
+
+    if (fabs(dy) > dmax) {
+      RemoveHitOnLayer(hit->GetLayer());
+      ndrop++;
+    }
+  }
+  return ndrop;
+}
+
 
 mean_t TrTrackR::GetQ_all(float beta, int fit_id, float mass_on_z, int version) {
   // ver0: X side only, no kLoss

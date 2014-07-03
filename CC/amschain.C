@@ -236,14 +236,31 @@ else return it->second;
 }
 
 long long AMSChain::GetEntryNo(long long  seq, unsigned long long maxent){
+static long long seqsav=0;
+static map<unsigned long long, unsigned long long>::iterator itsav;
+#ifndef __ROOTSHAREDLIBRARY__
+#ifdef _OPENMP
+#pragma omp threadprivate (itsav,seqsav)
+#endif
+#endif
 int prcs=AMSEventR::ProcessSetup;
 map<unsigned long long, unsigned long long>::iterator it=m_chain_entryindex.begin();
-if(seq)std::advance(it,seq);
-if(it!=m_chain_entryindex.end())return it->second;
-
+if(seq){
+  if(seqsav && abs(seq-seqsav)<seq){
+    it=itsav;
+    std::advance(it,seq-seqsav);
+  }
+  else std::advance(it,seq);
+}
+if(it!=m_chain_entryindex.end()){
+  itsav=it;
+  seqsav=seq;
+  return it->second;
+}
 
 if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
  m_chain_Entries=GetEntries();
+ seqsav=0;
  unsigned long long msum=0;
  m_chain_entryindex.clear();
  m_chain_Runs.clear();
@@ -270,11 +287,24 @@ if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
 }
 AMSEventR::ProcessSetup=prcs;
 
-it=m_chain_entryindex.begin();
-if(seq)std::advance(it,seq);
-if(it==m_chain_entryindex.end())return -1;
-else return it->second;
+ it=m_chain_entryindex.begin();
+
+if(seq){
+  if(seqsav && abs(seq-seqsav)<seq){
+    it=itsav;
+    std::advance(it,seq-seqsav);
+  }
+  else std::advance(it,seq);
 }
+
+if(it==m_chain_entryindex.end())return -1;
+else{
+  itsav=it;
+  seqsav=seq;
+ return it->second;
+}
+}
+
 
 
 
