@@ -63,7 +63,7 @@ void TRDMCFFKEY_DEF::init(){
   GasStep=6.;
   PAIModel=1;
   debug=0;
-  TRphotonEnergyScalingFactor=0.80;
+  elPhEnergyCut=0.000001; // [GeV]
   ZShift=0.1; // TR 07-nov-2013: TRD shifted upwards 1 mm instead of previous 0.1 mm
   MinSigma=3.;
   MaxSigma=5.;

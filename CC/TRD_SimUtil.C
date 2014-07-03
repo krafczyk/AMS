@@ -242,12 +242,11 @@ void TrdSimUtil::UpdateGas ( void ) {
   fTrdNumberFractionCO2=TRDMCFFKEY.CO2Fraction;
   fTrdNumberFractionAr=TRDMCFFKEY.ArgonFraction;
 
-  G4double trdCut = 0.00001 * mm;
   fTrdRegionCuts = new G4ProductionCuts();
-  fTrdRegionCuts->SetProductionCut(trdCut, idxG4GammaCut);
-  fTrdRegionCuts->SetProductionCut(trdCut, idxG4ElectronCut);
-  fTrdRegionCuts->SetProductionCut(trdCut, idxG4PositronCut);
-  fTrdRegionCuts->SetProductionCut(trdCut, idxG4ProtonCut);
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4GammaCut);
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4ElectronCut);
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4PositronCut);
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4ProtonCut);
 
   fTrdGasRegionCuts = new G4ProductionCuts();
   fTrdGasRegionCuts->SetProductionCut(cut, idxG4GammaCut);

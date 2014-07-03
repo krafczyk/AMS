@@ -71,7 +71,7 @@ public:
   integer PAIModel;
   integer debug;
   int CreatePDF;
-  float TRphotonEnergyScalingFactor;
+  float elPhEnergyCut;
   float ZShift;
   float MinSigma;
   float MaxSigma;
