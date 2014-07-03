@@ -55,10 +55,9 @@ double gain_to_gain(double* x, double* par);
 int TrMCClusterR::_NoiseMarker(555);
 
 
-TrMCClusterR::TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, integer gtrkid)
-  : _idsoft(idsoft), _itra(itra), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep),_gtrkid(gtrkid) {
+TrMCClusterR::TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, integer gtrkid, int status)
+  : _idsoft(idsoft), _itra(itra), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep),_gtrkid(gtrkid), Status(status) {
   Init();
-  Status = 0;
 }
 
 
@@ -72,7 +71,7 @@ TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra, geant edep):
     _idsoft = abs(tkid) + 1000*side + 10000*pp.GetSensor();
   } 
   Status = 0;
- _gtrkid = -2;
+  _gtrkid = -2;
 }
 
 
@@ -131,7 +130,7 @@ static int mp=0;
   //  _dir = that._dir; keep the orginal one
   //  _mom = that._mom; keep the original one
   _edep +=that._edep;
-  Status |= that.Status;
+  // Status |= that.Status; // keep the original one
   for(int ii=0; ii<2; ii++)
     if (that._simcl[ii]!=0) delete _simcl[ii];
   return *this;
@@ -174,11 +173,12 @@ const char* TrMCClusterR::Info(int iRef){
 void TrMCClusterR::_PrepareOutput(int full) {
   sout.clear();
   sout.append(
-    Form("Part: %3d  Mom(GeV): %12.6f TkId: %+04d  Sens: %2d  Edep(keV): %9.3f  Step(um): %7.1f   X:%8.3f Y:%8.3f Z:%8.3f   Cx: %8.5f Cy: %8.5f Cz: %8.5f\n",
+    Form("Part: %3d  Mom(GeV): %12.6f TkId: %+04d  Sens: %2d  Edep(keV): %9.3f  Step(um): %7.1f   X:%8.3f Y:%8.3f Z:%8.3f   Cx: %8.5f Cy: %8.5f Cz: %8.5f   TkId:%d\n",
       _itra,
       GetMomentum(),GetTkId(),GetSensor(),GetEdep()*1e+6,GetStep()*1e+4,
       GetXgl().x(),GetXgl().y(),GetXgl().z(),
-      GetDir().x(),GetDir().y(),GetDir().z()
+      GetDir().x(),GetDir().y(),GetDir().z(),
+      _gtrkid
     )
   );
   return;
@@ -278,51 +278,30 @@ void TrMCClusterR::GenSimClusters(){
       // if(iside==1 && tip[iside]>0.3 && tip[iside]<0.7) edep_c2*=pc[0]+pc[1]*tip[iside]+pc[2]*pow(tip[iside],2)+pc[3]*pow(tip[iside],3)+pc[4]*pow(tip[iside],4);
       _simcl[iside]->Multiply(edep_c2);
     }
-
-    // ion fast tuning 
+    // ion tuning (with/without non-linearities) 
     else { 
       double mev_on_adc = TRMCFFKEY.ADCMipValue[1][iside]*edep/81;
-      if (iside==0) _simcl[iside]->Multiply(mev_on_adc*1.07);
+      // X-side (only signal tuning)
+      if (iside==0) _simcl[iside]->Multiply(mev_on_adc*0.93);
       else {   
-        if ((TRMCFFKEY.UseNonLinearity%10)==0) _simcl[iside]->Multiply(mev_on_adc*0.6);
+        // Y-side
+        if ((TRMCFFKEY.UseNonLinearity%10)==0) _simcl[iside]->Multiply(mev_on_adc*0.45);
         else {
-          _simcl[iside]->Multiply(mev_on_adc*1.);
+          _simcl[iside]->Multiply(mev_on_adc*1.35);
           for (int ist=0; ist<_simcl[iside]->GetWidth(); ist++) { 
             int iva = int(_simcl[iside]->GetAddress(ist)/64);
             double adc1 = _simcl[iside]->GetSignal(ist);  
-            double adc2 = TrLinearDB::GetHead()->ApplyNonLinearity(adc1,GetTkId(),iva,3);
-            double adc3 = TrGainDB::GetHead()->ApplyGain(adc2,GetTkId(),iva);
-            double adc4 = 0; 
-            TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(GetTkId());
-            float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
-            if ( (1./gain)<0.5 ) adc4 = 10*adc3; 
-            else                 adc4 = adc3*gain;
-            _simcl[iside]->SetSignal(ist,adc4); 
+            double corr = TrLinearDB::GetHead()->ApplyNonLinearity(adc1,GetTkId(),iva,3)/adc1; 
+            // modify a bit the correction to simulate a residual "mis-calibration" 
+            // (used as a resolution tuning parameter)    
+            // choice is 2% iat 1000 ADC counts 
+            corr -= 0.02*1000/adc1; 
+            double adc2 = corr*adc1;
+            _simcl[iside]->SetSignal(ist,adc2);
           }
-        }         
+        }
       }
     }  
-
-    /*
-    // ion 
-    // - linear edep (...)
-    // - strip non-linearity
-    else if (hcharge==2) { 
-      // edep-to-edep Z compression ... 
-      double gain_to_gain_pars[2][5] = {
-        {14.4,200,3.91,0,0},
-        {4.5,10.75,4.0,0.349,1.188}
-      };
-      for (int i=0; i<_simcl[iside]->GetWidth(); i++) {
-        double mip_c = edep*_simcl[iside]->GetSignal(i)/81;
-        mip_c *= 2; // relation ADC vs MIP derived for eta = 0.5 (~ half of the signal) 
-        double sqrt_mip_c = sqrt(mip_c);
-        double signal = pow(gain_to_gain(&sqrt_mip_c,gain_to_gain_pars[iside]),2);
-        signal *= (iside==0) ? 1.3842 : 0.9476; 
-        _simcl[iside]->SetSignal(i,signal);
-      }
-    }
-    */
   }
   return;
 }

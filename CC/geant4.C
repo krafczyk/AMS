@@ -1434,18 +1434,38 @@ if(!Step)return;
 	  if(GCTRAK.destep && GrandMother && Mother &&
 	     GrandMother->GetName()(0)=='S' &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K' &&
 	     Mother->GetName()(0)=='L' &&  PrePV->GetName()(0)=='S'){
-	    //         cout <<" tracker "<<endl;
+	     // cout <<" tracker "<<endl;
+
+            int part_code = GCKINE.ipart;
+
+            int A = int((particle->GetPDGMass()/GeV)/0.931494061+0.5);
+            int Z = abs(int(GCKINE.charge));
+            int S = (GCKINE.charge>0) ? 1 : -1;
+
+            // encode charge in in first 5 bits of the status
+            int status = Z;
+            if (Z>31) status = 31;
+
+            // try to encode in a short int the new G4 particle ID for ions
+            if (abs(part_code)>1000000000) {
+              int a = (A>99) ? 99 : A;
+              int z = (Z>99) ? 99 : Z;
+              int s = (S==1) ? 0 : 1;  
+              part_code = 10000 + s*10000 + z*100 + a;
+            }
 
             int sign = -1;
-            if (Track->GetTrackID()==1) sign = +1; // TrackID is 1 for primaries  
+            if (Track->GetTrackID()==1) sign = 1; // TrackID is 1 for primaries  
             TrSim::sitkhits(
               PrePV->GetCopyNo(),
               GCTRAK.vect,
               GCTRAK.destep,
               GCTRAK.step,
-              sign*GCKINE.ipart,
-              gtrkid
+              sign*abs(part_code), // to be sure of sign
+              gtrkid,
+              status 
             );
+
 	  }
 #else
 	  if(GCTRAK.destep && GrandMother && GrandMother->GetName()(0)=='S' 
