@@ -2403,39 +2403,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
  }
 #endif
 
-   // Radiator side holes (daughters of octagon)
-
-   for (int h=0;h<TRDDBc::SideHolesNo(i);h++){
-     for (l=0;l<TRDDBc::SideHolesPieceNo(i,h);l++){
-      TRDDBc::GetRadiatorSideHolePiece(l,h,i,status,coo,nrm,rgid);
-      int itrd=TRDDBc::NoTRDOctagons(i);
-
-      int ip;
-      for(ip=0;ip<11;ip++)par[ip]=
-            TRDDBc::RadiatorSideHolePieceDimensions(i,h,l,ip);
-      gid=maxsidehole*h+l+1;
-
-         ost.clear();
-         ost.seekp(0);
-         ost << "TRR1"<<ends;
-
-// Bottom ones only for now
-	if (h<2){
-
-//	cout <<endl<< "amsgeom RSHPD: h "<<h<<" l "<<l<<endl;
-//         for (ip=0;ip<11;ip++){ cout << par[ip]<<" ";}
-         
-
-//         oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
-//			       0,name,"TRAP",par,11,coo,nrm,"ONLY",h==0 && l==0?1:-1,gid,1));    
-       }
-        }
-
-      }
-
- 
-
-
   // Now the ladders and their contents
   // ladders should go directly to mother volume now
   // assuming no rotations etc for octagons
@@ -2505,19 +2472,20 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    number distanceToBulkhead = 61.38 / 2.0; // [cm]
    geant plateWidth = 0.1;
    cutoutCoord[0] = 0.0;
+   cutoutCoord[1] = 0.0;
    cutoutCoord[2] = distanceToBulkhead - plateWidth / 2.0;
 
    // remove fleece above the straw module
    number strawModuleUpperEdge = stripCoord[1] + TRDDBc::StripsDim(1) / 2.0;
    // the half-height of fleece cutout
-   cutoutDimensions[1] = 10.0;
+   cutoutDimensions[1] = fleeceParams[1];
    cutoutDimensions[0] = fleeceParams[0];
    cutoutDimensions[2] = (TRDDBc::BulkheadWidth() + plateWidth) / 2.0; // along the ladder
    // do not apply any rotation in ladder's coordinate system
    number cutoutRotation[3][3] = {1,0,0,0,1,0,0,0,1};
    //dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
    fleece->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
-   cutoutCoord[2] = -distanceToBulkhead;
+   cutoutCoord[2] = -distanceToBulkhead + plateWidth / 2.0;
    fleece->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
 
     }
@@ -2535,39 +2503,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 #ifdef __G4AMS__
     }
 #endif
-
-
-   // Radiator holes (daughters of octagon)
-   // Bottom layer has no radiator below the tubes
-
-   for (l=0;l<3;l++){
-
-     geant cool[3];	
-     TRDDBc::GetRadiatorHole(l,k,j,i,status,cool,nrm,rgid);
-
-     for(ip=0;ip<11;ip++)par[ip]=TRDDBc::RadiatorHoleDimensions(i,j,k,l,ip);
-     gid=i+mtrdo*j+mtrdo*maxlay*k+maxhole*l+1;
-
-    
-      if (fabs(cool[1])>0){
-
-         ost.clear();
-         ost.seekp(0);
-         ost << "TRR0"<<ends;
-
-     //	Place wrt octagon (position in cool is wrt ladder)
-
-         coo[2]=cool[1]+dau->getcooA(2);
-         coo[1]=dau->getcooA(1);
-         coo[0]=cool[2]+dau->getcooA(0);
-
-         for(ip=0;ip<3;ip++)coo[ip]-=oct[itrd]->getcooA(ip);
-
-         //oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
-	 //	       0,name,"TRAP",par,11,coo,nrm,"ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
-        }
-
-      }
 
 
      //strips
