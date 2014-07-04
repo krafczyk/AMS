@@ -26,7 +26,7 @@ void TRDMCFFKEY_DEF::init(){
   NoiseOn=1;
   //GeV2ADC=1.e8;
   // changed vc 22-dec-2009
-  GeV2ADC=1.e8/3 * 1.39;
+  GeV2ADC=1.e8/3 * 1.27;
   Thr1R=3.0;
   sec[0]=0;
   sec[1]=0;
