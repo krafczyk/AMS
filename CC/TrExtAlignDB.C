@@ -36,6 +36,7 @@ float TrExtAlignDB::SL1[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 float TrExtAlignDB::SL9[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 float TrExtAlignDB::Sofs[4]={2.5e-4, 2.5e-4, 6.5e-4, 5.8e-4};
+float TrExtAlignDB::Sofs2[4]={0, 0, 0, 0};
 
 
 
@@ -188,8 +189,8 @@ void TrExtAlignDB::Load(TFile * ff){
 	 << endl;
   else {
     Head->Check();
-    cout << "TrExtAlignDB::Load-I- Loaded from: " << ff->GetName()
-	 << " Size= " << Head->GetSize(8) << " " << Head->GetSize(9) << endl;
+//  cout << "TrExtAlignDB::Load-I- Loaded from: " << ff->GetName()
+//	 << " Size= " << Head->GetSize(8) << " " << Head->GetSize(9) << endl;
   }
   return;
 }
@@ -328,7 +329,8 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     ll[6]=pos[0]; ll[7]=pos[1];ll[8]=pos[2];
     ll[9]=a;ll[10]=b;ll[11]=c;
 
-    if (TkLadder::version >= 3) ll[7]+=Sofs[i+2];
+    if (TkLadder::version == 3) ll[7]+=Sofs[i+2];
+    if (TkLadder::version >= 4) ll[7]+=Sofs2[i+2];
   }
   return 0;
 }
@@ -437,6 +439,9 @@ void TrExtAlignDB::ResetExtAlign()
 
 extern "C" double rnormx();
 
+int MCscat (AMSPoint &coo, int layj, double prob, double scat, double pwr);
+int DropExtHits(void);
+
 void TrExtAlignDB::SmearExtAlign()
 {
   ResetExtAlign();
@@ -451,6 +456,24 @@ void TrExtAlignDB::SmearExtAlign()
   SL1[7] = rnormx()*TRMCFFKEY.OuterSmearing[0][1];
   SL9[6] = rnormx()*TRMCFFKEY.OuterSmearing[1][0];
   SL9[7] = rnormx()*TRMCFFKEY.OuterSmearing[1][1];
+
+#ifdef __ROOTSHAREDLIBRARY__
+  // Workaround to retune the MC scatterng
+  if (TRMCFFKEY.MCscat > 0) {
+    AMSPoint coo1, coo9;
+    MCscat(coo1, 1, TRMCFFKEY.MCscat[0], TRMCFFKEY.MCscat[1],
+	                                 TRMCFFKEY.MCscat[2]);
+    MCscat(coo9, 9, TRMCFFKEY.MCscat[0], TRMCFFKEY.MCscat[1],
+	                                 TRMCFFKEY.MCscat[2]);
+
+    SL1[0] += coo1.x(); SL1[1] += coo1.y();
+    SL9[0] += coo9.x(); SL9[1] += coo9.y();
+    SL1[6] += coo1.x(); SL1[7] += coo1.y();
+    SL9[6] += coo9.x(); SL9[7] += coo9.y();
+
+    DropExtHits();
+  }
+#endif
 }
 
 int  TrExtAlignDB::UpdateTkDBc(uint time) const
@@ -618,7 +641,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     ll[0]=par->dpos[0];  ll[1]=par->dpos[1];   ll[2]=par->dpos[2];
     ll[3]=par->angles[0];ll[4]=par->angles[1]; ll[5]=par->angles[2];
 
-    if (TkLadder::version >= 3) ll[1]+=(layer==8)?Sofs[0]:Sofs[1];
+    if (TkLadder::version == 3) ll[1]+=(layer==8)?Sofs[0]:Sofs[1];
+    if (TkLadder::version >= 4) ll[1]+=(layer==8)?Sofs2[0]:Sofs2[1];
   }
 
   return 0;

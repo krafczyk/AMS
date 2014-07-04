@@ -21,6 +21,14 @@ TMVA::Reader *ecalpisareader_E_v6_ODD = NULL;    //uses GetCorrectedEnergy(2,2) 
 TMVA::Reader *ecalpisareader_E_v6_EVEN = NULL;   //uses GetCorrectedEnergy(2,2) for classification
 TMVA::Reader *ecalpisareaderS_E_v6_ODD = NULL;   //uses GetCorrectedEnergy(2,2) for classification
 TMVA::Reader *ecalpisareaderS_E_v6_EVEN = NULL;  //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalpisareader_v7_ODD = NULL;      //uses EnergyD for classification
+TMVA::Reader *ecalpisareader_v7_EVEN = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalpisareaderS_v7_ODD = NULL;     //uses EnergyD for classification
+TMVA::Reader *ecalpisareaderS_v7_EVEN = NULL;    //uses EnergyD for classification
+TMVA::Reader *ecalpisareader_E_v7_ODD = NULL;    //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalpisareader_E_v7_EVEN = NULL;   //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalpisareaderS_E_v7_ODD = NULL;   //uses GetCorrectedEnergy(2,2) for classification
+TMVA::Reader *ecalpisareaderS_E_v7_EVEN = NULL;  //uses GetCorrectedEnergy(2,2) for classification
 
 const unsigned int nPISABDTVARs = 61;
 float pisanormvar[nPISABDTVARs + 1];
@@ -53,7 +61,7 @@ TH1F *hECALBDT[nPISABDTVARs];
 float EcalShowerR::GetEcalBDT()
 {
   AMSEventR *pev = AMSEventR::Head();
-  unsigned int iBDTVERSION = 6;
+  unsigned int iBDTVERSION = 7;
   int TMVAClassifier=0;
   return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier);
 }
@@ -118,6 +126,8 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
      {
        ECALBDT_TMVAVER = 412;
        if ( TMVA_RELEASE == "4.1.4" ) ECALBDT_TMVAVER = 414;
+       //For BDT versions >6 only 4.1.4 used for training
+       if ( iBDTVERSION>6 )  ECALBDT_TMVAVER = 414;
      }
    //Check if the version is > 100. In this case, it means that we want to use version X-100 and do not apply the cuts on F2SL and s1s3
    //Example: iBDTVERSION==103 means v3 but no cuts applied 
@@ -298,7 +308,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	  int iLatLeak=1;
 	  while(MapEneDep[ilayer][imaxcell-iLatLeak]>0.&&iLatLeak<10)
 	    {
-	      if ((int)imaxcell+iLatLeak > 61) LatLeak[iLatLeak+imaxcell-62] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
+	      if ((int)imaxcell+iLatLeak > 71) LatLeak[iLatLeak+imaxcell-72] = LatRatio*MapEneDep[ilayer][imaxcell-iLatLeak];
 	      iLatLeak++;
 	    }
 	}
@@ -390,7 +400,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    float energyd = EnergyD/1000.;
    float classification_energy = energyd;
    if( iBDTVERSION==5 ) { if( EnergyFlag!=0) classification_energy=EnergyE; }
-   if( iBDTVERSION==6 ) { if( EnergyFlag!=0) classification_energy=GetCorrectedEnergy(2,2); }
+   if( iBDTVERSION>5 ) { if( EnergyFlag!=0) classification_energy=GetCorrectedEnergy(2,2); }
 
    if (BDT_DEBUG) std::cout << " ??? BDT variables computed\n" << flush;
 
@@ -517,13 +527,30 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	 ecalpisareaderS_E_EVEN = ecalpisareaderS_E_v6_EVEN;
        }
    }
+   else if ( iBDTVERSION == 7 )
+   {
+     if (TMVAClassifier==0)
+       {
+	 ecalpisareader_ODD = ecalpisareader_v7_ODD;
+	 ecalpisareader_EVEN = ecalpisareader_v7_EVEN;
+	 ecalpisareader_E_ODD = ecalpisareader_E_v7_ODD;
+	 ecalpisareader_E_EVEN = ecalpisareader_E_v7_EVEN;
+       }
+     else if (TMVAClassifier==1)
+       {
+	 ecalpisareaderS_ODD = ecalpisareaderS_v7_ODD;
+	 ecalpisareaderS_EVEN = ecalpisareaderS_v7_EVEN;
+	 ecalpisareaderS_E_ODD = ecalpisareaderS_E_v7_ODD;
+	 ecalpisareaderS_E_EVEN = ecalpisareaderS_E_v7_EVEN;
+       }
+   }
    else
    {
      if ( iVersionNumberBDT==0 )
        {
 	 cout<<" "<<endl;
 	 cout<<" =================================================================="<<endl;
-	 cout<<" [ecalBDT] ATTENTION    only versions 3, 4, 5 and 6 of BDT supported"<<endl;
+	 cout<<" [ecalBDT] ATTENTION    only versions 3, 4, 5, 6 and 7 of BDT supported"<<endl;
 	 cout<<" [ecalBDT] ATTENTION    you have called it with version "<<iBDTVERSION<<endl;
 	 cout<<" [ecalBDT] ATTENTION    BDT will be set to -999 for all entries!!!"<<endl;
 	 cout<<" =================================================================="<<endl;
@@ -558,7 +585,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
       std::cout << "                TMVAClassifier type: "<<TMVAClassifier                                   << std::endl;
       std::cout << "                Classification Energy: "<<Form("%s",EnergyFlag==0?"EnergyD":"EnergyE")         << std::endl;
       }
-      else if ( iBDTVERSION==6 ){
+      else if ( iBDTVERSION>5 ){
       std::cout << "                TMVAClassifier type: "<<TMVAClassifier                                   << std::endl;
       std::cout << "                Classification Energy: "<<Form("%s",EnergyFlag==0?"EnergyD":"GetCorrectedEnergy(2,2)")         << std::endl;
       }
@@ -855,6 +882,11 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	      ecalpisareader_v6_ODD = ecalpisareader_ODD;
 	      ecalpisareader_v6_EVEN = ecalpisareader_EVEN;
 	    }
+	  else if ( iBDTVERSION == 7 )
+	    {
+	      ecalpisareader_v7_ODD = ecalpisareader_ODD;
+	      ecalpisareader_v7_EVEN = ecalpisareader_EVEN;
+	    }
 	  else
 	    {
 	      cout<<" BDT reader NOT initialized; error in version number. iBDTVERSION = "<<iBDTVERSION<<endl;
@@ -1004,6 +1036,11 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	    {
 	      ecalpisareaderS_v6_ODD = ecalpisareaderS_ODD;
 	      ecalpisareaderS_v6_EVEN = ecalpisareaderS_EVEN;
+	    }
+	  else if ( iBDTVERSION == 7 )
+	    {
+	      ecalpisareaderS_v7_ODD = ecalpisareaderS_ODD;
+	      ecalpisareaderS_v7_EVEN = ecalpisareaderS_EVEN;
 	    }
 	  else
 	    {
@@ -1155,6 +1192,11 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	      ecalpisareader_E_v6_ODD = ecalpisareader_E_ODD;
 	      ecalpisareader_E_v6_EVEN = ecalpisareader_E_EVEN;
 	    }
+	  else if ( iBDTVERSION == 7 )
+	    {
+	      ecalpisareader_E_v7_ODD = ecalpisareader_E_ODD;
+	      ecalpisareader_E_v7_EVEN = ecalpisareader_E_EVEN;
+	    }
 	  else
 	    {
 	      cout<<" BDT reader NOT initialized; error in version number. iBDTVERSION = "<<iBDTVERSION<<endl;
@@ -1304,6 +1346,11 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	    {
 	      ecalpisareaderS_E_v6_ODD = ecalpisareaderS_E_ODD;
 	      ecalpisareaderS_E_v6_EVEN = ecalpisareaderS_E_EVEN;
+	    }
+	  else if ( iBDTVERSION == 7 )
+	    {
+	      ecalpisareaderS_E_v7_ODD = ecalpisareaderS_E_ODD;
+	      ecalpisareaderS_E_v7_EVEN = ecalpisareaderS_E_EVEN;
 	    }
 	  else
 	    {

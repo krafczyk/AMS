@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.20 2013/03/17 08:18:51 shaino Exp $ 
+/// $Id$ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2013/03/17 08:18:51 $
+///$Date$
 ///
-/// $Revision: 1.20 $
+/// $Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -144,6 +144,16 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   float dzcorr=0.;
   if (Layer<=7) dzcorr=TrInnerDzDB::LDZA[Layer-1]; 
   AMSPoint LayerZCorrection(0,0,dzcorr);
+
+  // Time dependent Layer 2(J) correction (2014.06.27, SH)
+  if (Layer==1 && TkLadder::version >= 4) {
+    uint utime = TrInnerDzDB::UTIME;
+    if (utime > 1305000000) {
+      float *par = TKGEOMFFKEY.L2AlignPar;
+      double y2s = 3600*24*365;
+      LayerZCorrection[1] += (par[1]+(utime-par[0])/y2s*par[2])*1e-4;
+    }
+  }
 
   // Alignment corrected Plane postion
   AMSPoint planeA = pp->GetPosA();

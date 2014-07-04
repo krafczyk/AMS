@@ -41,6 +41,13 @@ void TKGEOMFFKEY_DEF::init(){
   exalignver=3;
   MdExAlignTag=0;
   MaxAlignedRun=1393649013;  // Updated on Mar/11,2014
+
+  /// Time dependent L2 alignment parameters (used only with PM5)
+  L2AlignPar[0] = 1347000000; // Reference time
+  L2AlignPar[1] = 0;          // Offset (um)
+  L2AlignPar[2] = 0.31;       //  Shift (um) / year
+  L2AlignPar[3] = 0;          // Reserved for the future use
+  L2AlignPar[4] = 0;          // Reserved for the future use
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
@@ -331,6 +338,16 @@ void TRMCFFKEY_DEF::init(){
   MCtuneDs   = 0;   // typically put   1e-4 to improve the resolution
                     //                -1e-4 to smare
                     // if MCtuneDs > MCtuneDmax, use exactly as MC coo
+  MCtuneDy9  = 0;   // typically put   1e-4 to mitigate the propagation bug
+
+  // parameter for simple ion tuning (2014.06.14 AO) 
+  UseNonLinearity = 0;
+
+  // 2014.06.24 SH
+  // Workaround to retune the MC scattering (not activated by default)
+  MCscat[0] = 0;
+  MCscat[1] = 0;
+  MCscat[2] = 0;
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;

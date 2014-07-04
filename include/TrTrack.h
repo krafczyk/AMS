@@ -461,12 +461,12 @@ public:
     \li  10  do not refit 
     \li  11  refit if does not exist 
     \li  12  force refit 
-    \li  13  refit and rebuild also INNER coordinates (useful for tricked alignment)
+    \li  13  refit and rebuild ALSO  coordinates (useful for tricked alignment)
     \li +20  Average (PG+CIEMAT)/2 Aligment if meaningful for the pattern
     \li  20  do not refit 
     \li  21  refit if does not exist 
     \li  22  force refit 
-    \li  23  refit and rebuild also INNER coordinates (useful for tricked alignment)
+    \li  23  refit and rebuild ALSO coordinates (useful for tricked alignment)
     \li  DEPRECATED OPT (kept for compatibility)			\
     \li  4  same as 3
     \li  5  same as 13
@@ -1007,6 +1007,9 @@ public:
   int MergeExtHitsAndRefit(float dmax, const map<int, float> &qmin,
 		                       const map<int, float> &qmax,
 			   float beta = 1, int opt = 0);
+
+  /// Drop hits in outer layers after smearing (to be used for MC re-tuning)
+  int DropExtHits(void);
 
   /// Convert from array to map
   static map<int,float> v2m(int n, float *q) {

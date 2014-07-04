@@ -3913,7 +3913,6 @@ class MCEventgR {
 static char _Info[255];
 public:
 static bool Rebuild;
-
   int Nskip;      ///< Additional information about this particle / step.
   /*!< Three distinct cases:\n
     1. If primary particle: Nskip =~ -1000: If particle was killed in this step: Nskip == -1100, otherwise Nskip == (-1000 - (index of acceptance plane [0..20])).\n
@@ -5108,6 +5107,8 @@ int   nRichMCCluster()const { return fHeader.RichMCClusters;} ///< \return numbe
 int   nMCTrack()const { return fHeader.MCTracks;} ///< \return number of MCTrackR elements (fast)
 ///
 int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEventgR elements (fast)
+///
+MCEventgR* GetPrimaryMC(int Pos=1 ); ///< Return pointer to the Primary MC Pasrticle at the point of Generation (Pos=1) or Exiting (Pos=-1,B800++ only) or NULL;
 static bool   nMCEventgC();
 ///
 int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEventgR elements (fast)

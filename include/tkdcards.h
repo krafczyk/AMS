@@ -55,9 +55,12 @@ public:
   integer MdExAlignTag;
   ///[835] PG/MD Max aligned run
   integer MaxAlignedRun;
+  ///[836-840] Time dependent L2 alignment parameters (used only with PM5)
+  float L2AlignPar[5];
+
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
-  ClassDef(TKGEOMFFKEY_DEF,8);
+  ClassDef(TKGEOMFFKEY_DEF,9);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
@@ -176,6 +179,17 @@ public:
   geant MCtuneDs;    //=0  typically put   1e-4 to improve the resolution
                      //                   -1e-4 to smare
                      //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
+  geant MCtuneDy9;   //=0  typically put   1e-4 to mitigate the propagation bug
+
+  // parameter for simple ion tuning (2014.06.14 AO) 
+  int   UseNonLinearity;
+
+  // 2014.06.24 SH
+  // Workaround to retune the MC scattering (not activated by default)
+  // [0]: Probability to have large scattering (typically put 0.05)
+  // [1]: Scattering amplitude (cm) at 10 GV   (typically put 0.3)
+  // [2]: Rgen power index                     (typically put 1.5)
+  geant MCscat[3];   //=0,0,0  typically put (0.05,0.3,1.5) to activate
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;
@@ -186,7 +200,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,7);
+  ClassDef(TRMCFFKEY_DEF,9);
 
 
 };

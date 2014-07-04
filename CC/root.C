@@ -14080,13 +14080,70 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
       return 1;
     }
     if (ds > dmax) {
-      coo[1] -= dmin;
+      coo = mc->GetXgl();
       return 1;
     }
   } 
 
 #endif
   return 0;
+}
+
+int MCshift(AMSPoint &coo, double ds)
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  if (!AMSEventR::Head()) return 0;
+
+  if (AMSEventR::Head()->Version() >= 817) return 0;
+
+  MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
+  if (!mc || mc->Charge == 0) return 0;
+
+  double rgen = mc->Momentum/mc->Charge;
+  double dy   = ds*(2.5-0.75*TMath::Erfc(-(rgen-500)/100));
+  coo[1] -= dy;
+  return 1;
+
+#endif
+  return 0;
+}
+
+int MCscat(AMSPoint &coo, int layj, double prob, double scat, double pwr)
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  if (layj != 1 && layj != 9) return 0;
+
+  MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
+  if (!mc || mc->Charge == 0) return 0;
+
+  if (gRandom->Rndm() > prob) return 0;
+
+  double rgen = mc->Momentum/mc->Charge;
+  double rr   = pow(rgen/10, pwr);
+  double sig  = (layj == 1) ? scat/rr*1.0 : scat/rr*0.7;
+
+  coo[0] += gRandom->Gaus()*sig;
+  coo[1] += gRandom->Gaus()*sig;
+  return 1;
+
+#endif
+  return 0;
+}
+
+int DropExtHits(void)
+{
+  if (!AMSEventR::Head()) return 0;
+
+  int ndrop = 0;
+
+  for (int i = 0; i < AMSEventR::Head()->NTrTrack(); i++) {
+    TrTrackR *trk = AMSEventR::Head()->pTrTrack(i);
+    if (trk && trk->HasExtLayers()) {
+      trk->RecalcHitCoordinates();
+      ndrop += trk->DropExtHits();
+    }
+  }
+  return ndrop;
 }
 
 #endif
@@ -14605,6 +14662,9 @@ void AMSEventR::RebuildBetaH(){
   }
 }
 
+
+
+
 bool MCEventgR::Rebuild=true;
 
 void AMSEventR::RebuildMCEventg(){
@@ -14640,3 +14700,33 @@ unsigned int AMSEventR::NTrTrackG(){
       return ret;
 }
 
+
+MCEventgR * AMSEventR::GetPrimaryMC(int pos) {
+
+double zmin=1e9;
+int kmin=-1;
+int search=1;
+bool newmc=Version()>700;
+bool old=Version()<600;
+if(pos<0)search=-1;
+if(!newmc && search<0)return NULL;
+for(int k=0;k<NMCEventg();k++){
+MCEventgR &mc=MCEventg(k);
+if(old && mc.Particle>0 && mc.Particle<256)return &mc; 
+else if (mc.parentID==0 &&!newmc )return &mc; 
+else if(mc.parentID==-2 && mc.Particle>0)return &mc; 
+else if( newmc && mc.parentID==0){
+if(mc.Dir[2]){
+ double z=mc.Coo[2]/(mc.Dir[2]>0?search:-search);
+ if(zmin>z){
+  zmin=z; 
+  kmin=k;
+}
+else if(kmin<0)return &mc;
+}
+
+}
+}
+if(kmin>=0)return & MCEventg(kmin);
+else return NULL;
+}

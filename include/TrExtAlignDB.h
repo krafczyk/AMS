@@ -181,6 +181,9 @@ public:
   // Offset correction for PM4 alignment
   static float Sofs[4];
 
+  // Offset correction for PM5 alignment
+  static float Sofs2[4];
+
   static float SL1[18];
 #pragma omp threadprivate(SL1)
   static float SL9[18];

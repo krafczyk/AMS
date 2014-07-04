@@ -19,12 +19,14 @@ float TrInnerDzDB::TDVSwap[2*(1+kLaynum)];
 int TrInnerDzDB::ForceFromTDV=0;
 
 float TrInnerDzDB::LDZA[kLaynum]={0.,0.,0.,0.,0.,0.,0.};
+uint  TrInnerDzDB::UTIME=0;
 
 int TrInnerDzDB::UpdateTkDBc(uint Timeid){
   //  TkDBc* db=TkDBc::GetHead();
   float Dz[kLaynum];
   int ret=GetEntry(Timeid,Dz,1);
   if( ret >=0) {
+    UTIME=Timeid;
     for (int ii=0;ii<kLaynum;ii++)
       LDZA[ii]=Dz[ii];
     return 0;
@@ -34,6 +36,7 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
     if(retTDV<0) return -2;
     int ret2=GetEntry(Timeid,Dz,1);
     if( ret2 >=0) {
+      UTIME=Timeid;
       for (int ii=0;ii<kLaynum;ii++)
 	LDZA[ii]=Dz[ii];
       return 0;

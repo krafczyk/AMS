@@ -2153,7 +2153,8 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     }
 
     if(TKGEOMFFKEY.alignver==3) TkLadder::version=2;
-    if(TKGEOMFFKEY.alignver >3) TkLadder::version=3;
+    if(TKGEOMFFKEY.alignver==4) TkLadder::version=3;
+    if(TKGEOMFFKEY.alignver>=5) TkLadder::version=4;
     TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
   cout << "AMSJob::update-I- "
        << "TkLadder::version= "     << TkLadder::version << " "

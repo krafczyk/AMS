@@ -45,7 +45,8 @@
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 int  UpdateInnerDz();
-int  MCtune(AMSPoint &coo, int tkid, double dmax, double ds);
+int  MCtune (AMSPoint &coo, int tkid, double dmax, double ds);
+int  MCshift(AMSPoint &coo,                        double ds);
 
 int my_int_pow(int base, int exp){
   if (exp<0) return -1;
@@ -517,6 +518,12 @@ bool TrTrackR::RemoveHitOnLayer( int layer){
   _bitX  = _bitX>>1;
   _bitY  = _bitY>>1;
   _bitXY = _bitXY>>1;
+
+  if (!patt) {
+    int nn = (TkDBc::Head->GetSetup()==3) ? 7 : 8;
+    patt = new tkpatt(nn);
+    patt->Init(nn);
+  }
   _Pattern   = patt->GetHitPatternIndex(_bit);
   _PatternX  = patt->GetHitPatternIndex(_bitX);
   _PatternY  = patt->GetHitPatternIndex(_bitY);
@@ -923,7 +930,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
 
   //  Update External DB alignment
-  int cookind=1;
+  int cookind=0;
   if( (id & kAltExtAl) ){
     // Set TkPlaneExt to CIEMAT
     // TrExtAlignDB::SetAlKind(1);
@@ -940,7 +947,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }else  if(id & kDisExtAlCorr){
     cookind=5;
   }else{
-    cookind=1;
+    cookind=0;
   }
 
 
@@ -987,14 +994,18 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
 
-    AMSPoint coo =  hit->GetCoord(-1,cookind);
+    AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
+    if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
+      if(cookind==0) 
+	coo = GetHitCooLJ(hit->GetLayerJ(),0);
+      else if (cookind==2)
+	coo= GetHitCooLJ(hit->GetLayerJ(),1);
+      else if (cookind==3)
+	coo= (GetHitCooLJ(hit->GetLayerJ(),0)+GetHitCooLJ(hit->GetLayerJ(),1))/2.;
+      else if (cookind==5)
+	coo= hit->GetCoord(-1,cookind);
+    }
     // printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
-
-    // 2014.05.23 SH
-    // Workaround to retune the MC resolution (not activated by default)
-    if (hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
-	TRMCFFKEY.MCtuneDmax > 0 && TRMCFFKEY.MCtuneDs != 0)
-      MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
 
     double fmscx = 1;
     double fmscy = 1;
@@ -1017,6 +1028,16 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       coo[1] += (lad) ? lad->GetRotMat().GetEl(2, 2)*zdyc*dydz : 0;
     }
 
+    // 2014.05.23 SH
+    // Workaround to retune the MC resolution (not activated by default)
+    if (hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
+	TRMCFFKEY.MCtuneDmax > 0 && TRMCFFKEY.MCtuneDs != 0)
+      MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
+
+    // Workaround to mitigate the MC propagation error
+    if (hit->GetLayerJ() == 9 && TRMCFFKEY.MCtuneDy9 != 0)
+      MCshift(coo, TRMCFFKEY.MCtuneDy9);
+
     float ferx = (hit->OnlyY()) ? 0 : 1;
     float fery = (hit->OnlyX()) ? 0 : 1;
 
@@ -1036,6 +1057,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
  					                 TRFITFFKEY.ErrYL9);
     _TrFit.Add(coo, ferx*errx*fmscx,
 	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
+   //  coo.Print();
+//     printf("%d %f %f %f  %f %f %f \n",hit->GetLayerJ(),
+// 	   ferx*errx*fmscx,
+// 	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
 
     hitbits |= (1 << (hit->GetLayer()-1));
     if (id != kLinear && j == 0) zh0 = coo.z();
@@ -1123,8 +1148,20 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       TrRecHitR *hit = GetHitLO(i+1);
       AMSPoint pint  = InterpolateLayerO(i+1, id);
       if (hit){
-        par.Residual[i][0] = (hit->GetCoord(-1,cookind)-pint)[0];
-        par.Residual[i][1] = (hit->GetCoord(-1,cookind)-pint)[1];
+	AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
+	if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
+	  if(cookind==0) 
+	    coo = GetHitCooLJ(hit->GetLayerJ(),0);
+	  else if (cookind==2)
+	    coo= GetHitCooLJ(hit->GetLayerJ(),1);
+	  else if (cookind==3)
+	    coo= (GetHitCooLJ(hit->GetLayerJ(),0)+GetHitCooLJ(hit->GetLayerJ(),1))/2.;
+	  else if (cookind==5)
+	    coo= hit->GetCoord(-1,cookind);  
+	}
+	par.Residual[i][0] = (coo-pint)[0];
+	par.Residual[i][1] = (coo-pint)[1];
+	  
       }else{
 	par.Residual[i][0] = pint[0];
 	par.Residual[i][1] = pint[1];
@@ -1673,10 +1710,9 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 
   if(refit>=2 || (!FitExists && refit==1)) { 
     int rret=0;
-    
     //    if (refit >= 3 || CIEMATFlag){
     if (refit >= 3 ){
-      if(CIEMATFlag==1){
+      if(CIEMATFlag>=1){
 	TrRecHitR *hit1=GetHitLJ(1);
 	TrRecHitR *hit9=GetHitLJ(9);
 	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
@@ -1689,6 +1725,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
       int ret0=UpdateInnerDz();
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();
+      RecalcHitCoordinates();
     }
     float ret=FitT(fittype,-1,true,0,mass,chrg,beta,fixrig);
     if (ret>=0) 
@@ -2104,6 +2141,39 @@ int TrTrackR::MergeExtHitsAndRefit(float dmax, const map<int, float> &qmin,
 
   return nm1+nm9;
 }
+
+int TrTrackR::DropExtHits(void)
+{
+  // Workaround to retune the MC scatterng
+  int ip = ParExists(DefaultFitID) ? DefaultFitID :
+          (ParExists(kChoutko)     ? kChoutko : kAlcaraz);
+  if (!ParExists(ip)) return 0;
+
+  int ndrop = 0;
+
+  for (Int_t i = 0; i < 2; i++) {
+    TrRecHitR *hit = (i == 0) ? GetHitLJ(1) : GetHitLJ(9);
+    if (!hit) continue;
+
+    AMSPoint pnt = InterpolateLayerJ(hit->GetLayerJ(), ip);
+    double   rig = GetRigidity(ip);
+    double   dy  = hit->GetCoord().y()-pnt.y();
+
+    float limy = TRFITFFKEY.MergeExtLimY;
+    float sp0  = 0.02;
+    float sp1  = 1;
+    float rcor = std::sqrt(sp0*sp0+sp1*sp1/rig/rig);
+    float sigy = limy*rcor;
+    float dmax = sigy*4;
+
+    if (fabs(dy) > dmax) {
+      RemoveHitOnLayer(hit->GetLayer());
+      ndrop++;
+    }
+  }
+  return ndrop;
+}
+
 
 mean_t TrTrackR::GetQ_all(float beta, int fit_id, float mass_on_z, int version) {
   // ver0: X side only, no kLoss
