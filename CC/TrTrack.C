@@ -2010,7 +2010,10 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
 {
   if (!(opt&2) && TestHitLayerJ(layer)) return 0;
 
-  VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
+  VCon *cont = 0;
+
+  if (opt&32) cont = GetVCon()->GetCont("AMSTrCluster");
+  else        cont = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont) return -1;
 
   int        mfit = (opt&8) ? DefaultFitID : trdefaultfit;
@@ -2027,9 +2030,38 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
               TrClusterR::kRigidity;
 
   int nhit = 0;
+  TrRecHitR *htmp = 0;
+  TrRecHitR *htmn = 0;
 
   for (int i = 0; i < cont->getnelem(); i++) {
-    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
+    TrRecHitR *hit = 0;
+
+#ifdef __ROOTSHAREDLIBRARY__
+    if (opt&32) {
+      TrClusterR *cls = (TrClusterR *)cont->getelem(i);
+      if (cls->GetLayerJ() != layer || cls->GetSide() != 1) continue;
+
+      double      pmax = 0;
+      TrClusterR *cmax = 0;
+      for (int j = 0; j < cont->getnelem(); j++) {
+	TrClusterR *cl = (TrClusterR *)cont->getelem(j);
+	if (cl->GetTkId() == cls->GetTkId() && cl->GetSide() == 0) {
+	  TrRecHitR hh(cls->GetTkId(), cl, cls);
+	  double p = hh.GetCorrelationProb();
+
+	  if (p > pmax) {
+	    pmax = p;
+	    cmax = cl;
+	  }
+	}
+      }
+      if (htmp) delete htmp;
+      hit = htmp = new TrRecHitR(cls->GetTkId(), cmax, cls);
+    }
+    else
+#endif
+      hit = (TrRecHitR *)cont->getelem(i);
+
     if (!hit || hit->GetLayerJ() != layer) continue;
     if (!(opt&1) && hit->OnlyY()) continue;
 
@@ -2079,6 +2111,11 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
     if (mmin > 0 && mult < 0) continue;
 
     if (!hmin || (mmin < 0 && mult > 0) || dist < dmin) {
+      if (htmp) {
+	if (htmn) delete htmn;
+	htmn = htmp;
+	htmp = 0;
+      }
       hmin = hit;
       dmin = dist;
       mmin = mult;
@@ -2086,6 +2123,23 @@ int TrTrackR::MergeHits(int layer, float dmax, float qmin,
       amin[1] = dydz;
     }
   }
+  if (htmp) delete htmp;
+
+  if (hmin && hmin == htmn) {
+#ifdef __ROOTSHAREDLIBRARY__
+    VCon *chit = GetVCon()->GetCont("AMSTrRecHit");
+    int ih = chit->getnelem();
+
+    TrRecHitR *hit = new TrRecHitR(*htmn);
+    chit->addnext(hit);
+    hmin = (TrRecHitR *)chit->getelem(ih);
+    delete chit;
+#else
+    hmin = 0;
+#endif
+    delete htmn;
+  }
+
   if (hmin) {
     AddHit(hmin, mmin);
 
