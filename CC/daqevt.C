@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.242 2012/08/18 12:02:06 mkrafczy Exp $
+//  $Id$
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1885,7 +1885,6 @@ integer DAQEvent::read(){
 }
 
 
-
 void DAQEvent::select(){
   DAQEvent::_BufferLock=0;
   DAQEvent daq;
@@ -1918,7 +1917,7 @@ DAQEvent::InitResult DAQEvent::init(){
     unlink(getenv("TMPRawFile"));
     unsetenv("TMPRawFile");
   }
- castor:
+castor:
   if(fnam){
 #ifdef __ALPHA__ 
     fbin.close();
@@ -2020,7 +2019,9 @@ againcp:
 	    string castor("/castor/cern.ch/ams");
 	    string file(txt.c_str()+txt.rfind("/")+1);
 	    castor+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);
-	  again:
+	    string eos("/eos/ams");
+	    eos+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);	
+again:
 	    if(getenv("NtupleDir")){
 	      string local(getenv("NtupleDir"));
 	      setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
@@ -2031,7 +2032,32 @@ againcp:
 	      cp+=castor;
 	      cp+=" ";
 	      cp+=local;
-	      int i=system(cp.c_str());
+		  
+		  // copy eos
+      	  string cpeos = "/afs/cern.ch/ams/local/bin/timeout --signal 9 550 /afs/cern.ch/project/eos/installation/ams/bin/eos.select cp ";
+	      cpeos += eos+" "+local+"/"; 
+		  char tfnm[80];
+		  sprintf(tfnm,"/tmp/raw2.%d",getpid());
+		  cpeos += string(" 1>")+tfnm+" 2>&1";
+	      int i=system(cpeos.c_str());
+		  if (!i++) {
+		  	fstream tfs(tfnm,fstream::in);
+	  	  	while (!tfs.eof()) {
+		    	string txt;
+	  			std::getline(tfs,txt);
+				if (txt.find("copied") != string::npos) {
+					i = 0;
+					break;
+				}
+	  	  	}
+	  	  	tfs.close();
+		  	unlink(tfnm);
+		  }
+	      if(!i) goto okcp;
+		  cerr <<"DAQEvent::init-E-Unableto "<<cpeos.c_str()<<endl;
+		  
+		  // copy castor
+	      i=system(cp.c_str());
 	      if(i){
 		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
 		if(getenv("NtupleDir2") ){
@@ -2062,6 +2088,7 @@ againcp:
 
 	      }
               else{
+okcp:
 		local+="/";
 		local+=file;
 		cout<<"DAQEvent::init-I-CopiedTo "<<local<<endl;
@@ -2108,7 +2135,7 @@ strcpy(fnam,fnamei.c_str());
 	    string castor("/castor/cern.ch/ams");
 	    string file(txt.c_str()+txt.rfind("/")+1);
 	    castor+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);
-	  againscp:
+againscp:
 	    if(getenv("NtupleDir")){
 	      string local(getenv("NtupleDir"));
 	      setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
@@ -2184,7 +2211,6 @@ strcpy(fnam,fnamei.c_str());
   }
   return OK;
 }
-
 
 void DAQEvent::initO(integer run,integer eventno,time_t tt){
   enum open_mode{binary=0x80};
