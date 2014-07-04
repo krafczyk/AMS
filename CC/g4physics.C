@@ -1059,7 +1059,7 @@ if(G4FFKEY.DetectorCut%10==1){
    SetCutValue(cut, "anti_proton");
  } 
 
-  trdSimUtil.trdregion->SetProductionCuts(trdSimUtil.fTrdRegionCuts); 
+  trdSimUtil.trdregion->SetProductionCuts(trdSimUtil.fTrdRegionCuts);
   trdSimUtil.gasregion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
   trdSimUtil.radregion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
     G4Region* EcalRegion = (G4RegionStore::GetInstance())->GetRegion("ECVolumeR");
@@ -1748,23 +1748,22 @@ void AMSG4Physics::ConstructEM2( void ){
 						       trdSimUtil.GetAlphaGas(),
 						       trdSimUtil.GetG4FleeceMaterial(),
 						       trdSimUtil.GetG4FleeceGasMaterial(),
-						       
 						       trdSimUtil.GetTrdFoilThickness(),
 						       trdSimUtil.GetTrdGasThickness(),
 						       (G4int)trdSimUtil.GetTrdFoilNumber(),
 						       "GammaXTRadiator" );
-  /*  
-  TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radregion,
-							  trdSimUtil.GetAlphaFiber(),
-							  trdSimUtil.GetAlphaGas(),
-							  trdSimUtil.GetG4FleeceMaterial(),
-							  trdSimUtil.GetG4FleeceGasMaterial(),
-							 
-							  trdSimUtil.GetTrdFoilThickness(),
-							  trdSimUtil.GetTrdGasThickness(),
-							  (G4int)trdSimUtil.GetTrdFoilNumber(),
-							  "GammaXTRadiator" );
-  */
+
+  //TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radregion,
+  //							  trdSimUtil.GetAlphaFiber(),
+  //							  trdSimUtil.GetAlphaGas(),
+  //							  trdSimUtil.GetG4FleeceMaterial(),
+  //							  trdSimUtil.GetG4FleeceGasMaterial(),
+  //							 
+  //							  trdSimUtil.GetTrdFoilThickness(),
+  //							  trdSimUtil.GetTrdGasThickness(),
+  //							  (G4int)trdSimUtil.GetTrdFoilNumber(),
+  //							  "GammaXTRadiator" );
+
   if( !processXTR ){
     printf("not xtr process\n");
   }
