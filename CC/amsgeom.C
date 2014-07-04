@@ -2038,10 +2038,7 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo()-sub0;i++){
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
 
      if(i!=1){
-       //oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
-       //nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
        if (i==9) {
-	 cout << "1 setting vacuum for TRD9: " << TRDDBc::OctagonMedia(i) << endl;
          oct[i]=(AMSgvolume*)mother.add(new AMSgvolume("VACUUM",
 						       nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
        } else {
@@ -2094,10 +2091,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
      else{
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On){
-        //oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
-        //nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
         if (i==9) {
-	  cout << "2 setting vacuum for TRD9: " << TRDDBc::OctagonMedia(i) << endl;
           oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume("VACUUM",
 							  nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
         } else {
@@ -2447,8 +2441,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 #ifdef __G4AMS__
    if(MISCFFKEY.G4On){
-   //dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
-   //nrot++,name,"BOX",par,3,coo,nrm, "BOOL",0,gid,1));
    dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume("VACUUM",
 						  nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
    ((AMSgvolume*) dau)->Smartless()=1;
@@ -2483,7 +2475,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    cutoutDimensions[2] = (TRDDBc::BulkheadWidth() + plateWidth) / 2.0; // along the ladder
    // do not apply any rotation in ladder's coordinate system
    number cutoutRotation[3][3] = {1,0,0,0,1,0,0,0,1};
-   //dau->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
    fleece->addboolean("BOX", cutoutDimensions, 3, cutoutCoord, cutoutRotation, '-');
    cutoutCoord[2] = -distanceToBulkhead + plateWidth / 2.0;
    fleece->addboolean("BOX",cutoutDimensions,3,cutoutCoord,cutoutRotation,'-');
