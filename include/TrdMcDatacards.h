@@ -78,7 +78,7 @@ public:
   void init();
   TRDMCFFKEY_DEF():TObject(){init();}
 #ifdef _PGTRACK_
-  ClassDef(TRDMCFFKEY_DEF,3);
+  ClassDef(TRDMCFFKEY_DEF,4);
 #endif
 };
 
