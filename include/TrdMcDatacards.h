@@ -71,10 +71,11 @@ public:
   integer PAIModel;
   integer debug;
   int CreatePDF;
-  float elPhEnergyCut;
   float ZShift;
   float MinSigma;
   float MaxSigma;
+  float photonEnergyCut;
+  float electronEnergyCut;
   void init();
   TRDMCFFKEY_DEF():TObject(){init();}
 #ifdef _PGTRACK_

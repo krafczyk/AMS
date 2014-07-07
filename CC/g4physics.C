@@ -1433,7 +1433,7 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
       if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
           logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
           logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
-        Emin = TRDMCFFKEY.elPhEnergyCut * GeV;
+        Emin = TRDMCFFKEY.photonEnergyCut * MeV;
       }
     }
     //        else if (particleName=="e-" || particleName=="e+"){
@@ -1442,7 +1442,7 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
       if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
           logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
           logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
-        Emin = TRDMCFFKEY.elPhEnergyCut * GeV;
+        Emin = TRDMCFFKEY.electronEnergyCut * MeV;
       }
     }
     //        else if (particleName=="mu-" || particleName=="mu+"){

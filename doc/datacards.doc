@@ -797,10 +797,11 @@ R48   GasStep(1.);	    // gas medium step size in mm
 I49   PAIModel(1);	    // enable PAI Model
 I50   debug(0); 	    // debug flag
 I51   CreatePDF(0)          // create or not pdf function
-R52   elPhEnergyCut(0.000001)  // common electron and photon energy cut inside TRD [GeV]
-R53   ZShift(0.1);          //  TRD Global Shift in cm
-R54   MinSigma(3.);         // minimum sigma used in TRD digi data reduction
-R55   MaxSigma(5.);         // maximum sigma used in TRD digi data reduction
+R52   ZShift(0.1);          //  TRD Global Shift in cm
+R53   MinSigma(3.);         // minimum sigma used in TRD digi data reduction
+R54   MaxSigma(5.);         // maximum sigma used in TRD digi data reduction
+R55   photonEnergyCut(0.000010)  // photon energy cut inside TRD [MeV]
+R56   electronEnergyCut(0.001)  // electron energy cut inside TRD [MeV]
 TRDCL   // TRD clustering
 
 R1 ADC2KeV;         //
