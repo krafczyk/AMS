@@ -340,14 +340,19 @@ void TRMCFFKEY_DEF::init(){
                     // if MCtuneDs > MCtuneDmax, use exactly as MC coo
   MCtuneDy9  = 0;   // typically put   1e-4 to mitigate the propagation bug
 
-  // parameter for simple ion tuning (2014.06.14 AO) 
-  UseNonLinearity = 0;
-
   // 2014.06.24 SH
   // Workaround to retune the MC scattering (not activated by default)
   MCscat[0] = 0;
   MCscat[1] = 0;
   MCscat[2] = 0;
+
+  // 2014.07.02 AO
+  // Tuning for carbon, and for the use of a new gain table    
+  // (disabled, or set to previous setting by default)
+  MergeMCCluster = 1;  // 0: no merge, 1: MergeMCCluster (PZ), 2: MergeMCCluster2 (AO)   -> use 2 for ions
+  GainType = 0;        // 0: old table (AO), 1: new gains (PS)                           -> better 1, but 0 is also ok
+  UseNonLinearity = 0; // 0: no non-linearity on p-side, 1: non-linearity                -> use 1 (default) for ions 
+
 }
 
 int TRMCFFKEY_DEF::ReadFromFile = 1;

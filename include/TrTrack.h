@@ -987,6 +987,7 @@ public:
                       + 4: Use min. chisquare instead of min. distance
 		      + 8: Use inner track extrapolation instead of default fit
 		      +16: Refit after merge
+		      +32: User TrCluster instead of TrRecHit
     \return    Number of hits found by the criteria
    */
   int MergeHits(int layer, float dmax, float qmin, float qmax,

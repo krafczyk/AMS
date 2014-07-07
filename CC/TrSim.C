@@ -21,7 +21,7 @@ AMSPoint TrSim::sitkangl[trconst::maxlay];
 TrSimSensor TrSim::_sensors[3];
 
 
-void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra,  int gtrkid) {
+void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra,  int gtrkid, int status) {
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SiTkSimuAll"); // simulation counter
@@ -94,9 +94,9 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra,
   VCon* aa = GetVCon()->GetCont("AMSTrMCCluster");
   if (aa!=0)
 #ifndef __ROOTSHAREDLIBRARY__
-    aa->addnext(new AMSTrMCCluster(idsoft,step,pgl,dirg,momentum,edep,itra, gtrkid));
+    aa->addnext(new AMSTrMCCluster(idsoft,step,pgl,dirg,momentum,edep,itra,gtrkid,status));
 #else
-  aa->addnext(new TrMCClusterR(idsoft,step,pgl,dirg,momentum,edep,itra,gtrkid));
+    aa->addnext(new TrMCClusterR(idsoft,step,pgl,dirg,momentum,edep,itra,gtrkid,status));
 #endif
   if (aa!=0) delete aa;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -275,7 +275,8 @@ void TrSim::sitkdigi() {
   }
  
   // Rework MCCluster list
-  MergeMCCluster(); 
+  if (TRMCFFKEY.MergeMCCluster==1) MergeMCCluster();
+  if (TRMCFFKEY.MergeMCCluster==2) MergeMCCluster2(); 
 
   // Create the TrMCCluster map and make the simulated cluster (_shower(), GenSimCluster())
 
@@ -362,46 +363,20 @@ void TrSim::sitkdigi() {
 
       if (nclu>0) { 
 
-        // // old code for saturation
-	// //  keV to ADC conversion      
-	// double pside_uncorr_pars[6] = { 2.07483, 30.2233, -0.895041, 0.0125374, -5.89888e-05, 70.2948};
-	// double pside_corr_pars[4]   = { 18.4885, 20.2601, 0.00336957, -0.00016007};
-	// double nside_nosat_pars[2]  = {-4.42436, 44.6219};
-	// for (int ii=0;ii<639;ii++){
-	//   if(ladbuf[ii]==0. )continue;
-	//   double edep=ladbuf[ii]/81;
-	//   double mip=1;
-	//   double val= TrSimSensor::pside_uncorr_charge_dependence_function(&edep,pside_uncorr_pars);
-	//   val /= TrSimSensor::pside_uncorr_charge_dependence_function(&mip,pside_uncorr_pars);
-	//   val*= TRMCFFKEY.TrSim2010_ADCMipValue[1];
-	//   ladbuf[ii]=val;
-	// }
-        // // more old code 
-	// for (int ii=640;ii<1024;ii++){
-	//   if(ladbuf[ii]==0. )continue;
-	//   double edep=ladbuf[ii]/81;
-	//   double mip=1;
-	//   // double val= TRMCFFKEY.TrSim2010_ADCMipValue[0]*edep;//*(edep-edep*edep*0.05);
-	//   double val= 0.6624+2.15*edep*edep+edep*41.4;//*(edep-edep*edep*0.05);
-	//   ladbuf[ii]=val;
-	// }
-
-	// Apply gain corection
-	TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
-	for (int ii=0;ii<1024;ii++){
+        // gain
+	TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid); // used at least as database for low/bad gains (conservative)
+	for (int ii=0;ii<1024;ii++) {
 	  if(ladbuf[ii]==0. )continue;
 	  int iva=int(ii/64);
 	  int iside=(ii>639)?0:1;
-	  if ( (iva<0)||(iva>15) ) { 
-	    printf("TrSimCluster::ApplyGain-E wrong VA (va=%2d, tkid=%+4d, addr=%4d), skipping.\n",iva,tkid,ii);
-	    break;
-	  }
-	  // for the moment I leave the old code
 	  float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
-	  if      ( gain<0.02 )     ladbuf[ii]=0.;                 // VA with no gain!
+	  if      ( gain<0.02 )     ladbuf[ii]=0.;   // VA with no gain!
           else if ( (1./gain)<0.5 ) ladbuf[ii]/=10.; // VA with bad gain!
-	  else                      ladbuf[ii]/=gain;
-	}
+	  else {
+            if (TRMCFFKEY.GainType==0) ladbuf[ii] /= gain; // old gain
+            else                       ladbuf[ii] = TrGainDB::GetHead()->ApplyGain(ladbuf[ii],tkid,iva); // new gain
+          } 
+        }
 
 	// apply asimmetry
 	float asym[2]={0.045,0.01};
@@ -899,4 +874,136 @@ void TrSim::MergeMCCluster(){
   
   if (container!=0) delete container;
   return;
+}
+
+
+static bool sort_with_gtrkid(TrMCClusterR* a, TrMCClusterR* b) { 
+  if      ( (a->_gtrkid> 0)&&(b->_gtrkid> 0) ) return (a->_gtrkid<b->_gtrkid);
+  else if ( (a->_gtrkid> 0)&&(b->_gtrkid<=0) ) return true;
+  else if ( (a->_gtrkid<=0)&&(b->_gtrkid> 0) ) return false;
+  return (a->_gtrkid>b->_gtrkid);
+} 
+
+
+void TrSim::MergeMCCluster2() {
+
+  // get container 
+  VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
+  if (container==0) {
+    if (WARNING) printf("TrSim::MergeMCCluster2-W no TrMCCluster container, skip.\n");
+    return;
+  }
+
+  // check container
+  int clen = container->getnelem();
+  if (clen==0) {
+    if (WARNING) printf("TrSim::MergeMCCluster2-W TrMCCluster container is empty, skip.\n");
+    if (container!=0) delete container;
+    return;
+  }
+
+  // local storage of new clusters
+  vector<TrMCClusterR*> locstor;
+
+  // create a map with key tkid of [clusters,isused]
+  map<int,vector<TrMCClusterR*> > TrLadMap;
+  map<int,vector<TrMCClusterR*> >::iterator TrLadMapIter;
+  for (int jj=0; jj<clen; jj++) {
+    TrMCClusterR* cluster = (TrMCClusterR*) container->getelem(jj);
+    int tkid = cluster->GetTkId();
+    TrLadMap[tkid].push_back(cluster);
+  }
+ 
+  // loop on ladders
+  for (TrLadMapIter=TrLadMap.begin(); TrLadMapIter!=TrLadMap.end(); TrLadMapIter++) {
+
+    // create list of steps belonging to the same track
+    map<int,vector<TrMCClusterR*> > TrTrkIdMap;
+    map<int,vector<TrMCClusterR*> >::iterator TrTrkIdMapIter;
+    vector<TrMCClusterR*>& cluster_list = TrLadMapIter->second;
+    for(int jj=0; jj<cluster_list.size(); jj++) { 
+      TrMCClusterR* cluster = (TrMCClusterR*) cluster_list.at(jj);
+      if (!cluster) { 
+        printf("TrSim::MergeMCCluster2-W found an empty pointer in the AMSTrMCCluster container. Jump!");
+        continue;
+      }
+      int trkid = cluster->_gtrkid;
+      TrTrkIdMap[trkid].push_back(cluster);  
+    }
+
+    // merge primaries
+    TrMCClusterR* primary = 0; 
+    for (TrTrkIdMapIter=TrTrkIdMap.begin(); TrTrkIdMapIter!=TrTrkIdMap.end(); TrTrkIdMapIter++) {   
+      if (TrTrkIdMapIter->first!=1) continue; 
+      vector<TrMCClusterR*>& cluster_list = TrTrkIdMapIter->second;
+      int       gtrkid = cluster_list.at(0)->_gtrkid;
+      int       idsoft = cluster_list.at(0)->_idsoft; 
+      short int itra   = cluster_list.at(0)->_itra; 
+      float     mom    = cluster_list.at(0)->_mom; 
+      int       status = cluster_list.at(0)->Status;
+      int       size   = cluster_list.size();    
+      AMSPoint  head   = cluster_list.at(0)->GetStartPoint();
+      AMSPoint  tail   = cluster_list.at(size-1)->GetEndPoint();
+      // recalculate xgl, direction and step 
+      float     step   = (tail-head).norm();
+      AMSDir    dir    = (tail-head)/step;
+      AMSPoint  xgl    = (tail+head)/2; 
+      // sum edep 
+      double   edep = 0;
+      for(int jj=0; jj<size; jj++) {
+        TrMCClusterR* cluster = (TrMCClusterR*) cluster_list.at(jj);
+        edep += cluster->_edep;
+      }
+      // create a new cluster and add to the list of new MC clusters  
+      primary = new TrMCClusterR(idsoft,step,xgl,dir,mom,edep,itra,gtrkid,status);
+      locstor.push_back(primary);
+    }
+
+    // loop on secondaries
+    AMSPoint point_primary_not_changed = (primary) ? primary->GetXgl() : AMSPoint(0,0,0);
+    for (TrTrkIdMapIter=TrTrkIdMap.begin(); TrTrkIdMapIter!=TrTrkIdMap.end(); TrTrkIdMapIter++) {
+      if (TrTrkIdMapIter->first==1) continue;
+      vector<TrMCClusterR*>& cluster_list = TrTrkIdMapIter->second;
+      int size = cluster_list.size();
+      for(int jj=0; jj<size; jj++) {
+        TrMCClusterR* secondary = (TrMCClusterR*) cluster_list.at(jj);
+        // if no primary just add the secondary to the list 
+        if (!primary) {
+          locstor.push_back(new TrMCClusterR(*secondary));   
+          continue;  
+        }
+        // far away we just add to the list 
+        AMSPoint dist = secondary->GetXgl()-point_primary_not_changed;
+        if (sqrt(dist[0]*dist[0]+dist[1]*dist[1])>0.0150) {  
+          locstor.push_back(new TrMCClusterR(*secondary));   
+          continue;
+        }    
+        // add this cluster to the primary (gtrkid, idsoft, itra, dir e mom no change)
+        // use a shift based on weighted sum of energy deposition. 
+        // this idea is just bidimensional (plane xy), NOT USING Z.
+        double x = (primary->_xgl[0]*primary->_edep + secondary->_xgl[0]*secondary->_edep)/(primary->_edep + secondary->_edep);
+        double y = (primary->_xgl[1]*primary->_edep + secondary->_xgl[1]*secondary->_edep)/(primary->_edep + secondary->_edep);
+        double edep = primary->_edep + secondary->_edep;
+        primary->_xgl[0] = x;
+        primary->_xgl[1] = y;
+        primary->_edep = edep;
+      }
+    }
+  }   
+
+  // reorder
+  sort(locstor.begin(),locstor.end(),sort_with_gtrkid);
+
+  // redo container
+  if(locstor.size()>0) {
+    container->eraseC();
+    for(int ii=0;ii<locstor.size();ii++)
+#ifdef __ROOTSHAREDLIBRARY__
+      container->addnext( new TrMCClusterR(*locstor[ii]) );
+#else
+      container->addnext( new AMSTrMCCluster(*locstor[ii]) );
+#endif
+  }
+  if (container!=0) delete container;
+  return; 
 }
