@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.66 2013/10/28 10:32:45 choutko Exp $
+//  $Id$
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -474,6 +474,11 @@ integer AMSgvolume::_Norp=0;
       _pg4l->SetUserLimits(new AMSUserLimits(maxstep*cm));
      }    
 //  Set Cuts
+
+    if(strcmp(_pg4l->GetName(),"TRD9")==0){
+      if(!trdSimUtil.trdregion)trdSimUtil.trdregion=new G4Region("TrdRegion");
+      trdSimUtil.trdregion->AddRootLogicalVolume(_pg4l);
+    }
  
     //--Ecal Volume G4Region
     if(strcmp(getname(),"ECMO")==0){

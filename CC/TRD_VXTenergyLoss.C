@@ -1,6 +1,6 @@
 
 //
-// $Id: TRD_VXTenergyLoss.C,v 1.7 2013/11/07 14:17:49 bbeische Exp $
+// $Id$
 //
 // History:
 // 2001-2002 R&D by V.Grichine// 19.06.03 V. Grichine, modifications in BuildTable for the integration 
@@ -809,7 +809,6 @@ G4VParticleChange* TRD_VXTenergyLoss::PostStepDoIt( const G4Track& aTrack,
       fParticleChange.SetNumberOfSecondaries(1);
 
       energyTR = GetXTRrandomEnergy(TkinScaled,iTkin);
-      energyTR = energyTR * TRDMCFFKEY.TRphotonEnergyScalingFactor;
 
       if( verboseLevel )
       {
