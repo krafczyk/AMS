@@ -87,11 +87,13 @@ endif
   INTELOPT=-axsse4.2,ssse3 
 ifdef SLC64system
 ifneq "$(origin INTELVER)" "environment" 
-  INTELVER=composer_xe_2013_sp1.1.106/compiler/
+  INTELVER=composer_xe_2013_sp1.3.174/compiler/
 endif
 #compiler bug
 #   INTELOPT=-axAVX -msse3
-   INTELOPT=-axsse4.2,ssse3 -msse3
+   INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals
+
+#   INTELOPT=-axsse4.2,ssse3,AVX 
 ifdef AMSMIC
 INTELOPT=-mmic 
 endif
@@ -176,8 +178,11 @@ CFLAGSn=      $(CFLAGSB)
 CFLAGSDAQ=    $(CFLAGSB) 
 
 
-FFLAGS=    -D__ICC__  -mp1  -fp_port  -fPIC 
-FFLAGSn=   -D__ICC__  -mp1 -fp_port   
+#FFLAGS=    -D__ICC__  -mp1    -fPIC -fp-port
+#FFLAGSn=   -D__ICC__  -mp1   -fp-port
+
+FFLAGS=    -D__ICC__  -mp1    -fPIC
+FFLAGSn=   -D__ICC__  -mp1   
 
 
 ifdef AMSPROFILE 
