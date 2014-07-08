@@ -1,4 +1,4 @@
-//  $Id: TofSimUtil.C,v 1.8 2013/10/30 04:44:20 qyan Exp $
+//  $Id$
 
 //Author Qi Yan 2012/Feb/09 23:14
 // ------------------------------------------------------------
@@ -740,14 +740,17 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
    G4VSolid *Carbon_sol=new G4Tubs("Carbon_sol",0.,DCarbonR,DCarbonZ/2.,0.,2*M_PI*rad);
    G4LogicalVolume *Carbon_log=new G4LogicalVolume(Carbon_sol,TOFCAFibre_M,"Carbon_log"); 
    PCarbon[0][0]=0.;  PCarbon[0][1]=0.;   PCarbon[0][2]=(Zc[0]-Zshift-Nthick+Zc[1])/2.;
+   cout<<" carbon up 1 cp2n="<<PCarbon[0][2]<<" "<<DCarbonZ<<endl; 
    new G4PVPlacement(0,G4ThreeVector(PCarbon[0][0],PCarbon[0][1],PCarbon[0][2]),Carbon_log,"CarbonP1",mvol,false,0);
    PCarbon[1][0]=0.;  PCarbon[1][1]=0.;   PCarbon[1][2]=Zc[1]-Zshift-Nthick-Nthick/3.;
-//   cout<<"cp2n="<<PCarbon[1][2]<<" "<<DCarbonZ<<endl; 
+   cout<<" carbon up 2 cp2n="<<PCarbon[1][2]<<" "<<DCarbonZ<<endl; 
   new G4PVPlacement(0,G4ThreeVector(PCarbon[1][0],PCarbon[1][1],PCarbon[1][2]),Carbon_log,"CarbonP2",mvol,false,1);
 //--DOWN
    PCarbon[2][0]=0.;  PCarbon[2][1]=0.;   PCarbon[2][2]=Zc[2]+Zshift+Nthick+Nthick;
+   cout<<" carbon down 1 cp2n="<<PCarbon[2][2]<<" "<<DCarbonZ<<endl; 
    new G4PVPlacement(0,G4ThreeVector(PCarbon[2][0],PCarbon[2][1],PCarbon[2][2]),Carbon_log,"CarbonP3",mvol,false,2);
    PCarbon[3][0]=0.;  PCarbon[3][1]=0.;   PCarbon[3][2]=(Zc[3]+Zshift+Nthick+Zc[2])/2.;
+   cout<<" carbon down 2 cp2n="<<PCarbon[3][2]<<" "<<DCarbonZ<<endl; 
    new G4PVPlacement(0,G4ThreeVector(PCarbon[3][0],PCarbon[3][1],PCarbon[3][2]),Carbon_log,"CarbonP4",mvol,false,3);
 
    AMSJob::map(1);

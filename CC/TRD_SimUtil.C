@@ -242,6 +242,11 @@ void TrdSimUtil::UpdateGas ( void ) {
   fTrdNumberFractionCO2=TRDMCFFKEY.CO2Fraction;
   fTrdNumberFractionAr=TRDMCFFKEY.ArgonFraction;
 
+  fTrdRegionCuts = new G4ProductionCuts();
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4GammaCut);
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4ElectronCut);
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4PositronCut);
+  fTrdRegionCuts->SetProductionCut(1*mm, idxG4ProtonCut);
 
   fTrdGasRegionCuts = new G4ProductionCuts();
   fTrdGasRegionCuts->SetProductionCut(cut, idxG4GammaCut);
@@ -312,8 +317,10 @@ TrdSimUtil::TrdSimUtil(){
   fAlphaGas=0.;
   
   trdFleeceGasConf=0;
+  fTrdRegionCuts=0;
   fTrdGasRegionCuts=0;
   fTrdRadRegionCuts=0;
+  trdregion=0;
   gasregion=0;
   radregion=0;
   radlv=0;
@@ -322,4 +329,5 @@ TrdSimUtil::TrdSimUtil(){
 void TrdSimUtil::EndOfRun( void ) {
   (G4RegionStore::GetInstance())->DeRegister(gasregion);
   (G4RegionStore::GetInstance())->DeRegister(radregion);
+  (G4RegionStore::GetInstance())->DeRegister(trdregion);
 }

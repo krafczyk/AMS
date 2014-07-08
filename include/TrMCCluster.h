@@ -43,7 +43,7 @@ class TrMCClusterR : public TrElem {
   //! Energy released in silicon (GeV)
   Double32_t  _edep;
 
-  //! Status word
+  //! Status word (first 5 bits used for storing |Z| = 0, ..., 30; 31 is for >30)  
   int         Status;
 
   //! Noise Marker (0: normal cluster, >0 noise generated)
@@ -57,7 +57,7 @@ class TrMCClusterR : public TrElem {
   //! Std constructor build a dummy cluster
   TrMCClusterR() { Init(); }
   //! Constructor for a digitized hit
-  TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, int gtrkid);
+  TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, int gtrkid, int status = 0);
   //! Constructor for daq
   TrMCClusterR(AMSPoint xgl, integer itra, geant edep=0);
   //! Copy constructor

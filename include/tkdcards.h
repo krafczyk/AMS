@@ -181,15 +181,21 @@ public:
                      //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
   geant MCtuneDy9;   //=0  typically put   1e-4 to mitigate the propagation bug
 
-  // parameter for simple ion tuning (2014.06.14 AO) 
-  int   UseNonLinearity;
-
   // 2014.06.24 SH
   // Workaround to retune the MC scattering (not activated by default)
   // [0]: Probability to have large scattering (typically put 0.05)
   // [1]: Scattering amplitude (cm) at 10 GV   (typically put 0.3)
   // [2]: Rgen power index                     (typically put 1.5)
   geant MCscat[3];   //=0,0,0  typically put (0.05,0.3,1.5) to activate
+
+  // 2014.07.02 AO  
+  // Tuning for carbon, and for the use of a new gain table    
+  // merge MC cluster to be used (0: nothing, 1: PZ, 2: AO) (2014.06.14 AO) 
+  int   MergeMCCluster;
+  // select gain table (0: default, 1: new PS gain table)
+  int   GainType;
+  // p-side non-linearity 
+  int   UseNonLinearity;
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;

@@ -38,6 +38,7 @@
 #include "G4UserSpecialCuts.hh"
 #include "G4FastSimulationManagerProcess.hh"
 #include "G4EmStandardPhysics.hh"
+#include "G4GammaXTRadiator.hh"
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSP_BERT.hh"
 #include "HadronPhysicsQGSC_CHIPS.hh"
@@ -1057,7 +1058,8 @@ if(G4FFKEY.DetectorCut%10==1){
    SetCutValue(cut, "proton");
    SetCutValue(cut, "anti_proton");
  } 
- 
+
+  trdSimUtil.trdregion->SetProductionCuts(trdSimUtil.fTrdRegionCuts);
   trdSimUtil.gasregion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
   trdSimUtil.radregion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
     G4Region* EcalRegion = (G4RegionStore::GetInstance())->GetRegion("ECVolumeR");
@@ -1413,6 +1415,7 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
 
   G4double ProposedStep = DBL_MAX;
   AMSUserLimits* pUserLimits = (AMSUserLimits*)aTrack.GetVolume()->GetLogicalVolume()->GetUserLimits();
+  G4LogicalVolume* logicalVolume = aTrack.GetVolume()->GetLogicalVolume();
   if (pUserLimits){ 
     G4ParticleDefinition* ParticleDef = aTrack.GetDefinition();
     G4double Ekine    = aTrack.GetKineticEnergy();
@@ -1427,11 +1430,21 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
     //        if(particleName=="gamma"){
     if(g3==1){       
       Emin=pUserLimits->PhotonECut();
+      if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+        Emin = TRDMCFFKEY.photonEnergyCut * MeV;
+      }
     }
     //        else if (particleName=="e-" || particleName=="e+"){
     else if (g3==2 || g3==3){
       Emin=pUserLimits->ElectronECut();
-    }         
+      if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
+          logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+        Emin = TRDMCFFKEY.electronEnergyCut * MeV;
+      }
+    }
     //        else if (particleName=="mu-" || particleName=="mu+"){
     else if (g3==5 || g3==6){
       Emin=pUserLimits->MuonECut();
@@ -1729,18 +1742,29 @@ void AMSG4Physics::ConstructEM2( void ){
 		 <<" foil thickness "<< trdSimUtil.GetTrdFoilThickness()
 		 <<" gas thickness "<<trdSimUtil.GetTrdGasThickness()
 		 << " nfoils "<<trdSimUtil.GetTrdFoilNumber()<<G4endl;
-  
+
+#if G4VERSION_NUMBER  < 963
   TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radregion,
-							  trdSimUtil.GetAlphaFiber(),
-							  trdSimUtil.GetAlphaGas(),
-							  trdSimUtil.GetG4FleeceMaterial(),
-							  trdSimUtil.GetG4FleeceGasMaterial(),
-							 
-							  trdSimUtil.GetTrdFoilThickness(),
-							  trdSimUtil.GetTrdGasThickness(),
-							  (G4int)trdSimUtil.GetTrdFoilNumber(),
-							  "GammaXTRadiator" );
-  
+  							  trdSimUtil.GetAlphaFiber(),
+  							  trdSimUtil.GetAlphaGas(),
+  							  trdSimUtil.GetG4FleeceMaterial(),
+  							  trdSimUtil.GetG4FleeceGasMaterial(),
+  							  trdSimUtil.GetTrdFoilThickness(),
+  							  trdSimUtil.GetTrdGasThickness(),
+  							  (G4int)trdSimUtil.GetTrdFoilNumber(),
+  							  "GammaXTRadiator" );
+#else
+  G4VXTRenergyLoss* processXTR = new G4GammaXTRadiator(trdSimUtil.radregion,
+						       trdSimUtil.GetAlphaFiber(),
+						       trdSimUtil.GetAlphaGas(),
+						       trdSimUtil.GetG4FleeceMaterial(),
+						       trdSimUtil.GetG4FleeceGasMaterial(),
+						       trdSimUtil.GetTrdFoilThickness(),
+						       trdSimUtil.GetTrdGasThickness(),
+						       (G4int)trdSimUtil.GetTrdFoilNumber(),
+						       "GammaXTRadiator" );
+#endif
+
   if( !processXTR ){
     printf("not xtr process\n");
   }
