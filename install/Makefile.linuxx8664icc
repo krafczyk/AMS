@@ -88,7 +88,7 @@ ifndef INTELVER
   endif
 endif
 
-INTELOPT=-axsse4.2,ssse3
+INTELOPT=-axsse4.2,ssse3 -fp-model precise
 ifeq ("$(INTELVER)", "$(INTELVER_SLC64)")
   INTELOPT=-axsse4.2,ssse3 -msse3
   ifdef AMSMIC
@@ -227,8 +227,8 @@ CFLAGSn=      $(CFLAGSB)
 CFLAGSDAQ=    $(CFLAGSB) 
 
 
-FFLAGS=    -D__ICC__  -mp1  -fp_port  -fPIC 
-FFLAGSn=   -D__ICC__  -mp1 -fp_port   
+FFLAGS=    -D__ICC__ -mp1 -fPIC
+FFLAGSn=   -D__ICC__ -mp1
 
 
 ifdef AMSPROFILE 
