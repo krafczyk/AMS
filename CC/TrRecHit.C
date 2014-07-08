@@ -22,7 +22,7 @@
 #include "TMath.h"
 #include "TrExtAlignDB.h"
 
-int UpdateExtLayer(int,int,int);
+int UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrRecHitR);
 
 #include "VCon.h"
@@ -340,6 +340,7 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
     glo = TkCoo::GetGlobalN(GetTkId(),loc);
   }
   else {
+    if( (GetLayer()==8)|| (GetLayer()==9))UpdateExtLayer(0);
     glo = TkCoo::GetGlobalA(GetTkId(),loc);
     if (TasHit()) glo = glo-TrTasClusterR::Align(GetXCluster(), GetYCluster());
   }

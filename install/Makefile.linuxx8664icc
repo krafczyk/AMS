@@ -76,7 +76,7 @@ endif
 
 INTELVER_DEFAULT=Compiler/11.1/073/
 INTELVER_SLC6=composer_xe_2011_sp1.9.293/
-INTELVER_SLC64=composer_xe_2013_sp1.1.106/
+INTELVER_SLC64=composer_xe_2013_sp1.3.174/
 
 ifndef INTELVER
   INTELVER=$(INTELVER_DEFAULT)
@@ -88,9 +88,9 @@ ifndef INTELVER
   endif
 endif
 
-INTELOPT=-axsse4.2,ssse3 -fp-model precise
+INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals
 ifeq ("$(INTELVER)", "$(INTELVER_SLC64)")
-  INTELOPT=-axsse4.2,ssse3 -msse3
+  INTELOPT=-axsse4.2,ssse3,AVX -msse3 -fp-model source -fast-transcendentals
   ifdef AMSMIC
     INTELOPT=-mmic
   endif
@@ -227,8 +227,11 @@ CFLAGSn=      $(CFLAGSB)
 CFLAGSDAQ=    $(CFLAGSB) 
 
 
-FFLAGS=    -D__ICC__ -mp1 -fPIC
-FFLAGSn=   -D__ICC__ -mp1
+#FFLAGS=    -D__ICC__  -mp1    -fPIC -fp-port
+#FFLAGSn=   -D__ICC__  -mp1   -fp-port
+
+FFLAGS=    -D__ICC__  -mp1    -fPIC
+FFLAGSn=   -D__ICC__  -mp1   
 
 
 ifdef AMSPROFILE 
