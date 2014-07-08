@@ -22,7 +22,7 @@
 #include "TMath.h"
 #include "TrExtAlignDB.h"
 
-int UpdateExtLayer(int,int,int);
+int UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrRecHitR);
 
 #include "VCon.h"
