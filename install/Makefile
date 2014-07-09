@@ -68,6 +68,8 @@ endif
 endif
 endif
 
+ROOTINCDIR := $(shell root-config --incdir)
+
 #
 
 SHELL=/bin/sh
@@ -134,8 +136,7 @@ DEFINES += -DCASTORSTATIC
 endif
 
 DEFINES  +=    -D__WRITEROOT__    
-INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include  
-
+INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTINCDIR)
 
 CPPFLAGS += $(DEFINES)  $(INCDIRS)
 
@@ -1100,22 +1101,22 @@ $(BIN)predict.o:  $(SCC)predict.c
 ifdef PGTRACK
 $(BIN)rootdict.C:  $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
+	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) -I$(ROOTINCDIR) -I../include $^ 
 	@echo "OK"
 
 $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/amschain.h $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
+	$(ROOTSYSRUN)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTINCDIR) -I../include $^ 
 	@echo "OK"
 else
 $(BIN)rootdict.C: ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/root_setup.h ../include/trigger102_setup.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h  ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/bcorr.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
+	$(ROOTSYSRUN)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTINCDIR) -I../include $^ 
 	@echo "OK"
 
 $(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/bcorr.h ../include/UnfoldingTools.h ../include/AntiPG.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
+	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTINCDIR) -I../include  $^ 
 	@echo "OK"
 
 endif
