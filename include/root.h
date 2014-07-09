@@ -4900,6 +4900,19 @@ static double GetRelInteractionLength(const AMSPoint &pnt,
 				      int zp, int zt, int model, int norm);
 #endif
 
+  /*!
+   *! Get number of TOF clusters "in time" and "off time" w.r.t. given BetaH
+   * @param[in]  betah   BetaHR pointer of primary track
+   * @param[out] ncls[4] Num.of TOF clusters; 0:Upper in-time 1:Upper off-time
+                                              2:Lower in-time 3:Lower off-time
+   * @param[in]  cutu    threshold of in-time and off-time for upper TOF (ns)
+   * @param[in]  cutl    threshold of in-time and off-time for lower TOF (ns)
+   * @return     ncls[0]+ncls[2]  -1 in case of errors
+   */
+int GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu = 10,
+			                              float cutl = 4);
+    
+
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);
 void CTRS2GTOD(double RPT[3],double v, double VelPT[2]);
 void CTRS2GTOD(double theta, double phi, double v, double &vtheta, double &vphi);

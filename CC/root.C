@@ -14595,6 +14595,49 @@ double AMSEventR::GetRelInteractionLength(const AMSPoint &pnt,
 }
 #endif
 
+int AMSEventR::GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu,
+				                                 float cutl)
+{
+  // Original code by VC/MH/EC; imported by SH
+  if (!betah || !ncls) return -1;
+
+  for (int i = 0; i < 4; i++) ncls[i] = 0;
+      //-->look around(time) used hits:
+      for(int il=0;il<4;il++){//layer loop
+	int itb=(il<2)?0:1;
+	if(betah->TestExistHL(il)){//hit exists
+	//barn=betah->GetClusterHL(il)->Bar;//0-9
+	  float ltime=betah->GetTime(il);//ns
+	  int ntfcls=nTofClusterH();
+	  for(int icl=0;icl<ntfcls;icl++){
+	    TofClusterHR &tfcl=TofClusterH(icl);
+	    if(tfcl.Layer!=il)continue;
+	    if(tfcl.NBetaHUsed()>0)continue;//used by BetaHtfcl.Time();
+	    if(!tfcl.IsGoodTime())continue;
+	    float cltime=tfcl.Time;//ns
+	    float ed=tfcl.GetEdep();//mev
+	    float dt=cltime-ltime;//later cluster has positive dt
+	    //	       if(itb==0)prsh10->Fill(dt,1.);
+	    //	       if(itb==1)prsh11->Fill(dt,1.);
+	    float tcut(0);
+	    if(itb==0)tcut=cutu;//ns,top
+	    else tcut=cutl;//ns, bot
+	    int itm(-1);
+	    if(fabs(dt)<=tcut)itm=0;//around-time hits ("in time")
+	    if(dt>tcut)itm=1;//later hits ("off time")
+	    if(itm>=0){
+	      int indx=itm+2*itb;
+	      if(indx>=0 && indx<4){
+		ncls[indx]++;
+	      }
+	    }
+	  }//-->endof "secondary clust-loop"
+	}//-->endof "beta-hit exists"
+      }//-->endof "Tof layer loop"
+
+  return ncls[0]+ncls[2];
+}
+
 
 void AMSEventR::GTOD2CTRS(double RPT[3], double v,double  VelPT[2]){
 //
