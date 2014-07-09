@@ -85,6 +85,7 @@ endif
 endif
 
   INTELOPT=-axsse4.2,ssse3 
+  INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals
 ifdef SLC64system
 ifneq "$(origin INTELVER)" "environment" 
   INTELVER=composer_xe_2013_sp1.3.174/compiler/
