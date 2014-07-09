@@ -190,10 +190,27 @@ void TrExtAlignDB::Load(TFile * ff){
 	 << endl;
   else {
     Head->Check();
-//  cout << "TrExtAlignDB::Load-I- Loaded from: " << ff->GetName()
-//	 << " Size= " << Head->GetSize(8) << " " << Head->GetSize(9) << endl;
   }
   return;
+}
+
+Bool_t TrExtAlignDB::Load(TFile *f8, TFile *f9)
+{
+  TrExtAlignDB *db8 = (TrExtAlignDB *)f8->Get("TrExtAlignDB");
+  TrExtAlignDB *db9 = (TrExtAlignDB *)f9->Get("TrExtAlignDB");
+  if (!db8 || !db9) return kFALSE;
+
+  vector<uint> v8 = db8->GetVt(8);
+  vector<uint> v9 = db9->GetVt(9);
+
+  Head = new TrExtAlignDB;
+
+  for (int i = 0; i < v8.size(); i++)
+    Head->Fill(8, v8.at(i), db8->GetM(8, v8.at(i)));
+  for (int i = 0; i < v9.size(); i++)
+    Head->Fill(9, v9.at(i), db9->GetM(9, v9.at(i)));
+
+  return kTRUE;
 }
 
 int TrExtAlignDB::Check(void)
@@ -216,11 +233,15 @@ int TrExtAlignDB::Check(void)
   return ndel;
 }
 
-Bool_t  TrExtAlignDB::Load(const char *fname)
+Bool_t  TrExtAlignDB::Load(const char *fname, const char *dname)
 {
   TFile f(fname);
   if (!f.IsOpen()) return kFALSE;
-  Load(&f);
+  if (dname) Load((TFile *)f.Get(dname));
+  else Load(&f);
+  cout << "TrExtAlignDB::Load-I- Loaded from: " << fname;
+  if (dname) cout << "/" << dname;
+  cout << " Size= " << Head->GetSize(8) << " " << Head->GetSize(9) << endl;
   return kTRUE;
 }
 
