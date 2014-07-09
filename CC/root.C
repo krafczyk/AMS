@@ -14130,6 +14130,55 @@ int MCscat(AMSPoint &coo, int layj, double prob, double scat, double pwr)
   return 0;
 }
 
+
+int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
+// b (gev/c)^-2  coefficient  ( ~ -15 )  exp(b*q2)
+// prob probability  of quasi-elastic scattering layer 1/9  (~ 0.05/0.04)
+ 
+#ifdef __ROOTSHAREDLIBRARY__
+  if (layj != 1 && layj != 9) return 0;
+  MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
+  if (!mc || mc->Charge == 0) return 0;
+  double p = mc->Momentum;
+  double lp=log10(p);
+  if(lp<0)lp=0;
+  if(lp>2)lp=2;
+  if ( gRandom->Rndm()>prob*(3-lp)/2.)return 0;
+
+  int lay=(layj==1)?0:1;
+  double q2=log(gRandom->Rndm())/b;
+  double mass[2]={12,27}; //  scattering masses
+  double pmass[2]={0.85,0.15}; // probability
+  double l1[2]={104,86}; // length for scattering l1,l9 
+  double m1=mc->Mass;
+  double m2=mass[0];
+  if(gRandom->Rndm()>pmass[0])m2=mass[1]; 
+  double e=sqrt(p*p+m1*m1);
+  double g=e+m2;
+  double p1=g*g+q2+m2*m2-m1*m1-2*g*sqrt(q2+m2*m2);
+  if(p1<0)p1=0;
+  p1=sqrt(p1);
+  double p1_par=p/2+p1/p/2*p1-q2/2/p;
+  if(fabs(p1)<fabs(p1_par)){
+    cout<<"MCscatq2-W-too big q^2 requested "<<q2<<endl;
+    return 0;
+  }
+  double p1_per=sqrt((p1-p1_par)*(p1+p1_par));
+  double shift=p1_per/p1_par*l1[lay]*gRandom->Rndm();
+  double phi=2*3.1415926*gRandom->Rndm();
+  
+  
+    
+  coo[0] += shift*cos(phi);
+  coo[1] += shift*sin(phi);
+  return 1;
+
+#endif
+  return 0;
+}
+
+
+
 int DropExtHits(void)
 {
   if (!AMSEventR::Head()) return 0;
