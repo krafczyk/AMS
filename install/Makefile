@@ -1127,8 +1127,12 @@ $(BIN)commonsi_time.C:      $(SCC)commonsi.C
 $(BIN)rootdict.o:         $(BIN)rootdict.C
 	$(CXX) -c $(ACSOFT_INCDIRS) $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
 
+$(BIN)commonsi_s.o:	$(BIN)commonsi_time.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(BIN)commonsi_time.C -o $(BIN)commonsi_s.o
+
 $(BIN)commonsi.o:	$(BIN)commonsi_time.C
 	$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o 
+
 $(BIN)daqevt.o:         $(SCC)daqevt.C
 	$(CXX) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(SCC)daqevt.C -o $(BIN)daqevt.o 
 
