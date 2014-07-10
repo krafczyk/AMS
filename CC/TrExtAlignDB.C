@@ -1,3 +1,4 @@
+//  $Id$
 #include "TrExtAlignDB.h"
 #include "TkDBc.h"
 #include "TFile.h"
@@ -189,10 +190,27 @@ void TrExtAlignDB::Load(TFile * ff){
 	 << endl;
   else {
     Head->Check();
-//  cout << "TrExtAlignDB::Load-I- Loaded from: " << ff->GetName()
-//	 << " Size= " << Head->GetSize(8) << " " << Head->GetSize(9) << endl;
   }
   return;
+}
+
+Bool_t TrExtAlignDB::Load(TFile *f8, TFile *f9)
+{
+  TrExtAlignDB *db8 = (TrExtAlignDB *)f8->Get("TrExtAlignDB");
+  TrExtAlignDB *db9 = (TrExtAlignDB *)f9->Get("TrExtAlignDB");
+  if (!db8 || !db9) return kFALSE;
+
+  vector<uint> v8 = db8->GetVt(8);
+  vector<uint> v9 = db9->GetVt(9);
+
+  Head = new TrExtAlignDB;
+
+  for (int i = 0; i < v8.size(); i++)
+    Head->Fill(8, v8.at(i), db8->GetM(8, v8.at(i)));
+  for (int i = 0; i < v9.size(); i++)
+    Head->Fill(9, v9.at(i), db9->GetM(9, v9.at(i)));
+
+  return kTRUE;
 }
 
 int TrExtAlignDB::Check(void)
@@ -215,11 +233,15 @@ int TrExtAlignDB::Check(void)
   return ndel;
 }
 
-Bool_t  TrExtAlignDB::Load(const char *fname)
+Bool_t  TrExtAlignDB::Load(const char *fname, const char *dname)
 {
   TFile f(fname);
   if (!f.IsOpen()) return kFALSE;
-  Load(&f);
+  if (dname) Load((TFile *)f.Get(dname));
+  else Load(&f);
+  cout << "TrExtAlignDB::Load-I- Loaded from: " << fname;
+  if (dname) cout << "/" << dname;
+  cout << " Size= " << Head->GetSize(8) << " " << Head->GetSize(9) << endl;
   return kTRUE;
 }
 
@@ -440,6 +462,7 @@ void TrExtAlignDB::ResetExtAlign()
 extern "C" double rnormx();
 
 int MCscat (AMSPoint &coo, int layj, double prob, double scat, double pwr);
+int MCscatq2 (AMSPoint &coo, int layj, float b, float prob);
 int DropExtHits(void);
 
 void TrExtAlignDB::SmearExtAlign()
@@ -459,7 +482,7 @@ void TrExtAlignDB::SmearExtAlign()
 
 #ifdef __ROOTSHAREDLIBRARY__
   // Workaround to retune the MC scatterng
-  if (TRMCFFKEY.MCscat > 0) {
+  if (TRMCFFKEY.MCscat[0] > 0) {
     AMSPoint coo1, coo9;
     MCscat(coo1, 1, TRMCFFKEY.MCscat[0], TRMCFFKEY.MCscat[1],
 	                                 TRMCFFKEY.MCscat[2]);
@@ -471,9 +494,27 @@ void TrExtAlignDB::SmearExtAlign()
     SL1[6] += coo1.x(); SL1[7] += coo1.y();
     SL9[6] += coo9.x(); SL9[7] += coo9.y();
 
-    DropExtHits();
+    int nd=DropExtHits();
+    static int np=0;
+    if(nd && np++<100)cout<<" TrExtAlignDB::SmearExtAlig-I-DropExtHits "<<nd<<endl;
+    else if(nd && np==100)cout<<" TrExtAlignDB::SmearExtAlig-W-DropExtHitsLastmessage "<<endl;
+  
   }
-#endif
+  else if(TRMCFFKEY.MCscat[0] < 0) {  // alt method using q^2
+    AMSPoint coo1, coo9;
+    MCscatq2(coo1, 1, TRMCFFKEY.MCscat[0], TRMCFFKEY.MCscat[1]);
+    MCscatq2(coo9, 9, TRMCFFKEY.MCscat[0], TRMCFFKEY.MCscat[2]);
+    SL1[0] += coo1.x(); SL1[1] += coo1.y();
+    SL9[0] += coo9.x(); SL9[1] += coo9.y();
+    SL1[6] += coo1.x(); SL1[7] += coo1.y();
+    SL9[6] += coo9.x(); SL9[7] += coo9.y();
+
+    int nd=DropExtHits();
+    static int np=0;
+    if(nd && np++<100)cout<<" TrExtAlignDB::SmearExtAligQ2-I-DropExtHits "<<nd<<endl;
+    else if(nd && np==100)cout<<" TrExtAlignDB::SmearExtAligQ2-W-DropExtHitsLastmessage "<<endl;
+  }
+  #endif
 }
 
 int  TrExtAlignDB::UpdateTkDBc(uint time) const

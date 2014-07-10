@@ -309,7 +309,10 @@ public:
   static void Load(TFile * ff);
 
   /// Loaoad the DB from a file and make it available
-  static Bool_t Load(const char *fname);
+  static Bool_t Load(const char *fname, const char *dname = 0);
+
+  /// Merge two dbs into one
+  static Bool_t Load(TFile *f8, TFile *f9);
 
   /// Get the pointer to the DB singleton
   static  TrExtAlignDB* GetHead()
