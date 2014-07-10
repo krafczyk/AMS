@@ -809,6 +809,7 @@ G4VParticleChange* TRD_VXTenergyLoss::PostStepDoIt( const G4Track& aTrack,
       fParticleChange.SetNumberOfSecondaries(1);
 
       energyTR = GetXTRrandomEnergy(TkinScaled,iTkin);
+      energyTR = energyTR * TRDMCFFKEY.TRphotonEnergyScalingFactor;
 
       if( verboseLevel )
       {

@@ -71,6 +71,7 @@ public:
   integer PAIModel;
   integer debug;
   int CreatePDF;
+  float TRphotonEnergyScalingFactor;
   float ZShift;
   float MinSigma;
   float MaxSigma;
@@ -79,7 +80,7 @@ public:
   void init();
   TRDMCFFKEY_DEF():TObject(){init();}
 #ifdef _PGTRACK_
-  ClassDef(TRDMCFFKEY_DEF,4);
+  ClassDef(TRDMCFFKEY_DEF,5);
 #endif
 };
 
