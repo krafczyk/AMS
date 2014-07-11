@@ -800,8 +800,8 @@ $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h
 
 static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)
-       @if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-       $(AR) rv   $(NTLD) $(SHLIBBO)
+	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
+	$(AR) rv   $(NTLD) $(SHLIBBO)
 
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
