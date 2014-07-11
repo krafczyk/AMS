@@ -798,6 +798,11 @@ $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
 
+static : amswd $(NTLD)
+$(NTLD): $(SHLIBBO)
+       @if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
+       $(AR) rv   $(NTLD) $(SHLIBBO)
+
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
 
