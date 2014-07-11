@@ -1,9 +1,0 @@
-[Description]
-Namespace = AC
-Class = ACCCluster
-Members = \
-  UInt_t fStatus  \
-  Float_t fPhi    \
-  Float_t fZ      \
-  Float_t fTime   \
-  Float_t fEnergy

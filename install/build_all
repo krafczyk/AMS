@@ -76,16 +76,13 @@ gmake  -j
 gmake producer -i
 unsetenv G4AMS
 unsetenv PGTRACK
-unsetenv AMS_ACQT_INTERFACE
 
 unsetenv G4AMS
 unsetenv PGTRACK
-unsetenv AMS_ACQT_INTERFACE
 
 unsetenv G4AMS
 unsetenv MARCH
 unsetenv PGTRACK
-unsetenv AMS_ACQT_INTERFACE
 setenv ECALBDT 1
 source $PREFIX/amsvar$TESTFLAG.icc64
 source  $PREFIX/g4i$TESTFLAG.icc64

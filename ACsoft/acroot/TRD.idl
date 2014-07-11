@@ -1,9 +1,0 @@
-[Description]
-Namespace = AC
-Class = TRD
-Members = \
-  Short_t fNumberOfHits      \
-  VTracksVector fVTracks     \
-  HTracksVector fHTracks     \
-  HSegmentsVector fHSegments \
-  RawHitsVector fRawHits

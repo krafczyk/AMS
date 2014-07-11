@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.138 2014/02/18 15:45:49 choutko Exp $
+#  $Id$
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -167,10 +167,6 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage   $(ROOTSYS)/li
 LIBS          =  -Bstatic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm  $(XRDLIBP) $(XRDLIB) -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm        $(XRDLIBP) $(XRDLIB)      -ldl 
 LIBSD         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS) -ljpeg -lpng
-ifdef AMS_ACQT_INTERFACE
-LIBS+= $(QTDIR_STATIC_32)/lib/libQtCore.a
-LIBSA+= $(QTDIR_STATIC_32)/lib/libQtCore.a
-endif
 
 endif
 
@@ -292,15 +288,6 @@ endif
 LIBS          =  -L$(AMSWD)/lib/macosx64$(VERSIONP)/  -l$(AMSLIB) $(ROOTLIBS) -lgfortran
 LIBSA         =  -L$(AMSWD)/lib/macosx64$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBSA) -lgfortran
 LIBSD         =  -L$(AMSWD)/lib/macosx64$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  -lgfortran
-
-# On Mac only shared ACsoft builds are supported, otherwise anyone has to build its own custom static Qt version on Mac.
-# To avoid that we have to explicitely link against the libQtCore shared library here.
-ifdef AMS_ACQT_INTERFACE
-AMS_ACQT_NO_LIBRT := 1
-LIBS += -F$(QTDIR) -framework QtCore
-LIBSA += -F$(QTDIR) -framework QtCore
-LIBSD += -F$(QTDIR) -framework QtCore
-endif
 endif
 ifeq ($(ARCH),linux)
 
@@ -342,11 +329,6 @@ ifdef VERGCCH
   CPPFLAGS+= -D__LINUXNEW__
 else
   CPPFLAGS+= -D__LINUXGNU__
-endif
-
-ifdef AMS_ACQT_INTERFACE
-LIBS+= $(QTDIR_STATIC_32)/lib/libQtCore.a
-LIBSA+= $(QTDIR_STATIC_32)/lib/libQtCore.a
 endif
 endif
 ifeq ($(ARCH),linuxx8664gcc)
@@ -401,23 +383,10 @@ LIBS          =  -Bstatic $(ROOTLIBSA)    $(XRDLIBP) $(XRDLIB) -lm -Bdynamic    
 LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm      $(XRDLIBP) $(XRDLIB) -ldl 
 LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  -ljpeg -lpng $(XRDLIBP) $(XRDLIB)
 
-ifdef AMS_ACQT_INTERFACE
-LIBS+= $(QTDIR_STATIC)/lib/libQtCore.a
-LIBSA+= $(QTDIR_STATIC)/lib/libQtCore.a
-LIBSD+= -L$(QTDIR)/lib -lQtCore
-endif
-
 ifdef VERGCCH
   CPPFLAGS+= -D__LINUXNEW__
 else
   CPPFLAGS+= -D__LINUXGNU__ 
-endif
-endif
-
-ifdef AMS_ACQT_INTERFACE
-ifndef AMS_ACQT_NO_LIBRT
-LIBS+= -lrt
-LIBSA+= -lrt
 endif
 endif
 

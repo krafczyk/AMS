@@ -26,7 +26,7 @@ LIBS = 	        ${AMSWD}/lib/linuxx8664icc/ntuple_slc4_PG.so \
 
 
 ###methodes
-CXXFLAGS =      -fPIC  -c -pipe -O2  -lgfortran  -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__  -DAMS_ACQT_INTERFACE
+CXXFLAGS =      -fPIC  -c -pipe -O2  -lgfortran  -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__
 CC =            g++
 LFLAGS  =       -O4
 AR      =       ar

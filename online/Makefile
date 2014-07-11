@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.73 2014/02/18 15:46:01 choutko Exp $
+#  $Id$
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -123,10 +123,6 @@ ROOTLIBSA     =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/l
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
 LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm -Bdynamic -ldl 
-ifdef AMS_ACQT_INTERFACE
-LIBS+= $(QTDIR_STATIC_32)/lib/libQtCore.a
-LIBSA+= $(QTDIR_STATIC_32)/lib/libQtCore.a
-endif
 
 endif
 ifeq ($(ARCH),linuxx8664icc)
@@ -210,10 +206,6 @@ ROOTLIBSA     =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/l
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
-ifdef AMS_ACQT_INTERFACE
-LIBS+= $(QTDIR_STATIC_32)/lib/libQtCore.a
-LIBSA+= $(QTDIR_STATIC_32)/lib/libQtCore.a
-endif
 
 endif
 ifeq ($(ARCH),linuxx8664gcc)
@@ -257,11 +249,6 @@ ROOTLIBSA     = -L$(ROOTSYS)/lib -lRoot $(LZMAL) -pthread  -lAfterImage  -lpcre 
 
 LIBS          = -Bstatic   $(ROOTLIBSA)   $(XRDLIBP) $(XRDLIB) -Bdynamic -lshift -lm    -ldl
 LIBSA         = $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   $(XRDLIBP) $(XRDLIB)  -Bdynamic          -ldl 
-ifdef AMS_ACQT_INTERFACE
-LIBS+= $(QTDIR_STATIC)/lib/libQtCore.a
-LIBSA+= $(QTDIR_STATIC)/lib/libQtCore.a
-LIBSD+= -L$(QTDIR)/lib -lQtCore
-endif
 
 endif
 
@@ -304,16 +291,6 @@ endif
 #LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
 #ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
 #endif
-
-
-ifdef AMS_ACQT_INTERFACE
-LIBSD+= -L$(QTDIR)/lib -lQtCore
-endif
-
-ifdef AMS_ACQT_INTERFACE
-LIBS+=-lrt
-LIBSA+=-lrt
-endif
 
 ifdef CASTOSTATIC
 CPPFLAGS+= -DCASTORSTATIC

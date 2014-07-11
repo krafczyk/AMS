@@ -148,11 +148,6 @@ ifndef NOXROOTD
 SHLDFLAGS+= -lNetx
 endif
 
-# Static builds not supported with ACsoft on Mac yet.
-ifdef AMS_ACQT_INTERFACE
-SOFLAGS += -F$(QTDIR_STATIC)/lib -framework QtCore 
-endif
-
 ########################################################################
 # Output dirs
 ########################################################################

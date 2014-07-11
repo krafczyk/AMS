@@ -1,6 +1,0 @@
-[Description]
-Namespace = AC
-Class = TOF
-Members = \
-  BetasVector fBetas       \
-  ClustersVector fClusters

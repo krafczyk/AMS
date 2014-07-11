@@ -33,13 +33,6 @@ LIBS           := -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -lntuple_slc4_PG
 LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA
 ifneq ($(ARCH),macosx64)
 LIBS           += -lRFIO
-ifdef AMS_ACQT_INTERFACE
-LIBS += -L$(QTDIR)/lib -lQtCore
-endif
-else
-ifdef AMS_ACQT_INTERFACE
-LIBS += -F$(QTDIR) -framework QtCore
-endif
 endif
 
 ifeq ($(ARCH),macosx64)
