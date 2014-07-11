@@ -1,8 +1,0 @@
-[Description]
-Namespace = AC
-Class = MCTrack
-Members = \
-  Char_t fVolumeName[5] \
-  Float_t fX0           \
-  Float_t fY0           \
-  Float_t fZ0

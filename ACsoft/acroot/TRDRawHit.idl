@@ -1,6 +1,0 @@
-[Description]
-Namespace = AC
-Class = TRDRawHit
-Members = \
-  UShort_t fHWAddress \
-  UShort_t fADC

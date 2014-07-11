@@ -1,6 +1,0 @@
-[Description]
-Namespace = AC
-Class = TRDHSegment
-Members = \
-  [50_56RawHitIndexVector_8 fRawHitIndex_old] \
-  [57+RawHitIndexVector  fRawHitIndex]

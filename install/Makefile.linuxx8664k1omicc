@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664k1omicc,v 1.3 2014/01/08 15:46:04 choutko Exp $
+#  $Id$
 
 # General clean up and reorganization
 #
@@ -258,16 +258,6 @@ $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS)
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg
-endif
-
-ifdef AMS_ACQT_INTERFACE
-ACSOFT_BUILDFLAGS := -wd873 -wd2089 
-QT_STATIC_LIBRARY := $(QTDIR_STATIC)/lib/libQtCore.a
-QT_STATIC_LIBRARYP := $(QTDIR_STATIC)/lib/libQtCore.a
-
-LDFLAGS += $(QT_STATIC_LIBRARY) -lrt  -lRoot
-LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt  -lRoot
-SOFLAGS += $(QT_STATIC_LIBRARY) -lrt -lPhysics
 endif
 
 LDFLAGSSTATIC:=    $(LDFLAGS) $(RH9add) 

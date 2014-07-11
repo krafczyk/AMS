@@ -31,10 +31,3 @@ setenv AMSP 1
 limit core 0
 limit data 700000
 limit stack 32000
-
-# Enable Aachen TrdQt interface
-setenv AMS_ACQT_INTERFACE 1
-setenv ACROOTSOFTWARE $AMSDataDir/v5.00/TRD
-setenv ACROOTLOOKUPS $ACROOTSOFTWARE/acroot/data/
-setenv QTDIR_STATIC /afs/cern.ch/ams/Offline/AMSsoft/AMSQtCore/qt-4.8.3/
-setenv QTDIR_STATIC_32 /afs/cern.ch/ams/Offline/AMSsoft/AMSQtCore/qt-4.8.3-32bit/

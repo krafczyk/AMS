@@ -1,4 +1,3 @@
-unsetenv AMS_ACQT_INTERFACE
 unsetenv CASTORSTATIC
 setenv ROOTSYS /afs/cern.ch/ams/Offline/root/linux/root-v5-34-9-icc64.14-mic 
 setenv ROOTSYSRUN /afs/cern.ch/ams/Offline/root/linux/root-v5-34-9-gcc64-slc6/

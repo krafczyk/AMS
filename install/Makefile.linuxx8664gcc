@@ -260,14 +260,6 @@ ifdef AMSPROFILE
   LDFLAGS+=-pg
 endif
 
-ifdef AMS_ACQT_INTERFACE
-QT_STATIC_LIBRARY := $(QTDIR_STATIC)/lib/libQtCore.a
-
-LDFLAGS += $(QT_STATIC_LIBRARY) -lrt -lRoot
-LDFLAGSI += $(QT_STATIC_LIBRARY) -lrt -lRoot
-SOFLAGS +=  $(QT_STATIC_LIBRARY) -lrt -lPhysics
-endif
-
 ifdef WEBACCESS
   LDFLAGS+= -lcurl
 LDFLAGSSTATIC:=    $(LDFLAGS) -pthread 
