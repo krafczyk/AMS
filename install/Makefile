@@ -172,7 +172,7 @@ BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt_PG$(G4)/
 BIN=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/PG$(G4)/
 EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
-SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX)_PG.so
+SHLD=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG.so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG.a
 else
 PG=
@@ -180,7 +180,7 @@ BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt/$(G4)/
 BIN=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/$(G4)/
 EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
-SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX).so
+SHLD=$(LIB)/libntuple_$(AMSLIBSUFFIX).so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX).a
 endif
 #----Qi Yan
