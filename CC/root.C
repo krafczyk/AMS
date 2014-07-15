@@ -10846,7 +10846,7 @@ static int master=0;
       ///// SH: Workaround to take care of the wrong TrackerAlignPM3
 
       if(TkDBc::ForceFromTDV && !AMSEventR::Head()->nMCEventgC())
-	TkDBc::GetFromTDV(UTime(), (TkDBc::ForceFromTDV == 4) ? 4 : 3);
+	TkDBc::GetFromTDV(UTime(), TkDBc::ForceFromTDV);
     }
     if(!TrExtAlignDB::ForceFromTDV) 
       TrExtAlignDB::Load(_FILE);
@@ -14060,6 +14060,7 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 {
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
+  if (AMSEventR::Head()->Version() >= 817) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
   TrMCClusterR *mc = 0;
@@ -14093,7 +14094,6 @@ int MCshift(AMSPoint &coo, double ds)
 {
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
-
   if (AMSEventR::Head()->Version() >= 817) return 0;
 
   MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
