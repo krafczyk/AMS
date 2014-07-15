@@ -24,7 +24,7 @@
 ///
 //////////////////////////////////////////////////////////////////////////
 
-
+#include <iomanip>
 #include "MagField.h"
 #include "TkDBc.h"
 #include "point.h"
@@ -976,10 +976,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   double dydz = _TrFit.GetDyDz();
   double zdxc = 3e-4;
   double zdyc = 0;
-  if (dxdz == 0 || dydz == 0) {
+//  if (dxdz == 0 || dydz == 0) {
     if      (ParExists(id )){ dxdz = GetThetaXZ(id);  dydz = GetThetaYZ(id);  }
-    else if (ParExists(id0)){ dxdz = GetThetaXZ(id0); dydz = GetThetaYZ(id0); }
-  }
+    else if ((dxdz == 0 || dydz == 0) && ParExists(id0)){ dxdz = GetThetaXZ(id0); dydz = GetThetaYZ(id0); }
+//  }
   if (chrg > 1.5) {
     zdxc = (1-TMath::Abs(dxdz))*12e-4;
     zdyc = -4e-4;
