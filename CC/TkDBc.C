@@ -1558,28 +1558,64 @@ void TkDBc::RebuildMap()
 
 
 #include "TrExtAlignDB.h"
+#include "DynAlignment.h"
 #ifdef __ROOTSHAREDLIBRARY__
 #include "root.h"
 #endif
 
 void TkDBc::UseLatest(int reset)
 {
-  TkDBc       ::ForceFromTDV = 4;
-  TrExtAlignDB::ForceFromTDV = 1;
-  TrExtAlignDB::version      = 3;
+  cerr << "TkDBc::UseLatest-E-Now OBSOLETE, use UseFinal or UseVersion instead"
+       << endl;
+  exit(-1);
+}
 
-  cout << "TkDBc::UseLatest-I- "
+void TkDBc::UseVersion(int ver, int reset)
+{
+  TString dyn = "DynAlignmentV5T120628";
+  if (ver == 0) {
+    TkDBc       ::ForceFromTDV = 0;
+    TrExtAlignDB::ForceFromTDV = 0;
+  }
+  else if (ver == 3) {
+    TkDBc       ::ForceFromTDV = 3;
+    TrExtAlignDB::ForceFromTDV = 1;
+    TrExtAlignDB::version      = 2;
+  }
+  else if (ver == 4) {
+    TkDBc       ::ForceFromTDV = 4;
+    TrExtAlignDB::ForceFromTDV = 1;
+    TrExtAlignDB::version      = 3;
+  }
+  else if (ver == 5) {
+    TkDBc       ::ForceFromTDV = 5;
+    TrExtAlignDB::ForceFromTDV = 1;
+    TrExtAlignDB::version      = 4;
+    dyn = "DynAlignmentV5T140713PM5";
+  }
+  else {
+    cerr << "TkDBc::UseVersion-E-Unsupported version: " << ver << endl;
+    exit(-1);
+  }
+
+  cout << "TkDBc::UseVersion-I- "
        << "TkDBc::ForceFromTDV= " << TkDBc::ForceFromTDV << " "
        << "TrExtAlignDB::ForceFromTDV= " << TrExtAlignDB::ForceFromTDV << " "
-       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+       << "TrExtAlignDB::version= " << TrExtAlignDB::version << " "
+       << "DynAlManager::TDVName= " << dyn.Data() << endl;
+
+  if (dyn != "") DynAlManager::SetTDVName(dyn);
 
 #ifdef __ROOTSHAREDLIBRARY__
   if (reset) {
     AMSEventR *evt = AMSEventR::Head();
     if (evt) {
-      TkDBc::GetFromTDV(evt->UTime(), 4);
+      TkDBc::GetFromTDV(evt->UTime(), TkDBc::ForceFromTDV);
       TrExtAlignDB::GetFromTDV(evt->UTime(), TrExtAlignDB::version, 1);
     }
+    else
+      cout << "TkDBc::UseVersion-W-Event not found and unable to reload"
+	   << endl;
   }
 #endif
 }

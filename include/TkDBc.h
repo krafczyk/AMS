@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.42 2013/12/24 11:32:31 shaino Exp $
+// $Id$
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -508,10 +508,22 @@ public:
 #endif
 
   /*!
-    \brief Use the latest alignment instead of the one stored in ROOT file
-    \param reset 1: Reset and reload alignment TDV
+    \brief UseLatest is now OBSOLETE, use UseFinal or UseVersion instead
   */
   static void UseLatest(int reset = 0);
+
+  /*!
+    \brief Use the final alignment instead of the one stored in ROOT file
+    \param reset 1: Reset and reload alignment TDV
+  */
+  static void UseFinal(int reset = 0) { UseVersion(5, reset); }
+
+  /*!
+    \brief Specify alignment versions
+    \param ver 0: Stored in ROOT file 3:PM3-PG2-MDV5 4:PM4-PG3-MDV5 5:PM5-PG4-MDV5PM5
+    \param reset 1: Reset and reload alignment TDV
+  */
+  static void UseVersion(int ver, int reset = 0);
 
   ClassDef(TkDBc, 10);
 };
