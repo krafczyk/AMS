@@ -4820,6 +4820,12 @@ int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///
 float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers map return -1 if error
 
 #ifdef _PGTRACK_
+#ifdef __ROOTSHAREDLIBRARY__
+  /*!
+   *! Dump TrTrack variables with the current alignment settings
+   */
+static int DumpTrTrackPar(int run, int event, int itrack = 0);
+#endif
   /*!
    * @param[in]  ilay    Tracker  ilay(1-9) (J scheme)
    * @param[in]  pntIn   Reference point[cm](can be tk-tof-or-shower position )

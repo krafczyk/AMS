@@ -14266,6 +14266,102 @@ return ret;
 }
 
 #ifdef _PGTRACK_
+#ifdef __ROOTSHAREDLIBRARY__
+#include "amschain.h"
+#include "bcorr.h"
+
+int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
+{
+  TString dir = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4";
+  TString xrd = "root://eosams.cern.ch/"+dir+"/";
+  TString eos = "/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select";
+
+  static AMSChain ach;
+  static TString  str;
+  static int srun = 0;
+
+  if (run != srun) {
+    str = gSystem->GetFromPipe(eos+" ls "+dir+Form(" | grep %d", run));
+
+    TObjArray *sar = str.Tokenize("\n");
+    if (sar->GetEntries() == 0) {
+      cout << "AMSEventR::DumpTrTrackPar-E-No AMSRoot file found" << endl;
+      delete sar;
+      return -1;
+    }
+    cout << "AMSEventR::DumpTrTrackPar-I-Number of files found: "
+	 << sar->GetEntries() << endl;
+
+    ach.Reset();
+    for (int i = 0; i < sar->GetEntries(); i++)
+      ach.Add(xrd+sar->At(i)->GetName());
+    delete sar;
+
+    int ntr = ach.GetNtrees();
+    int nen = ach.GetEntries();
+    if (ntr <= 0 || nen <= 0) {
+      cout << "AMSEventR::DumpTrTrackPar-E-Invalid Ntrees,Entreis: "
+	   << ntr << " " << nen << endl;
+      return -1;
+    }
+    srun = run;
+  }
+
+  int ntry =  0;
+  int eofs = -1;
+  AMSEventR *evt = 0;
+  while ((!evt || evt->Event() != event) && ntry++ < 5) {
+    evt   = ach.GetEvent(event+eofs);
+    eofs -= evt->Event()-event;
+  }
+
+  if (!evt) {
+    cout << "AMSEventR::DumpTrTrackPar-E-No event found for: "
+	 << event << endl;
+    return -1;
+  }
+  if (evt->Event() != event) {
+    cout << "AMSEventR::DumpTrTrackPar-E-Event number mismatch: " 
+	 << evt->Event() << " " << event << endl;
+    return -1;
+  }
+
+  float bcor = -1;
+  float bcor1 = 1, bcor2 = 1;
+  int bret1 = MagnetVarp::btempcor(bcor1, 0, 1);
+  int bret2 = MagnetVarp::btempcor(bcor2, 0, 2);
+  if      (bret1 == 0 && bret2 == 0) bcor = (bcor1+bcor2)/2; 
+  else if (bret1 != 0 && bret2 == 0) bcor =        bcor2;
+
+  TrTrackR *trk = evt->pTrTrack(itrack);
+  if (!trk) {
+    cout << "AMSEventR::DumpTrTrackPar-E-TrTrack not found" << endl;
+    return -1;
+  }
+
+  int itp0 = trk->iTrTrackPar(1, 3,  3);
+  int itp1 = trk->iTrTrackPar(1, 7, 23);
+  cout << endl;
+  cout << "AMSEventR::DumpTrTrackPar-I-Dump: " << endl;
+  cout << "Run/Event : " << evt->Run() << " " << evt->Event() << endl;
+  cout << Form("btempcor= %.4f", bcor) << endl;
+  cout << Form("iTrTrackPar(1, 3,  3)= %7d", itp0);
+  if (itp0 > 0) {
+    cout << Form(" Rigidity= %9.3f",   trk->GetRigidity  (itp0));
+    cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp0));
+  }
+  cout << endl;
+  cout << Form("iTrTrackPar(1, 3, 23)= %7d", itp1);
+  if (itp1 > 0) {
+    cout << Form(" Rigidity= %9.3f",   trk->GetRigidity  (itp1));
+    cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp1));
+  }
+  cout << endl;
+
+  return 0;
+}
+#endif
+
 int AMSEventR::IsInsideTracker(int ilyJ, const AMSPoint &pntIn,
 			                 const AMSDir   &dirIn,
 			       double rigidity, double tolerance,
