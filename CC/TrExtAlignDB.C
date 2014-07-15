@@ -37,7 +37,7 @@ float TrExtAlignDB::SL1[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 float TrExtAlignDB::SL9[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 float TrExtAlignDB::Sofs[4]={2.5e-4, 2.5e-4, 6.5e-4, 5.8e-4};
-float TrExtAlignDB::Sofs2[4]={0, 0, 0, 0};
+float TrExtAlignDB::Sofs2[4]={0, 0, 3.7e-4, 6.0e-4};
 
 
 
