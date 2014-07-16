@@ -96,6 +96,8 @@ else ifeq ($(GCC_VER_MIDDLE),7)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),8)
 VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),9)
+VERGCCH := 1
 endif
 endif 
 
@@ -181,15 +183,33 @@ endif
 
 
 ifndef SLC6system
-  INTELVER=/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/
+  ifndef INTELVER
+    INTELVER=/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/
+  endif
   CPPFLAGS= -D__LINUXGNU__ -axssse4.1,ssse3
 else
 #  INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2011_sp1.9.293/
-INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2013_sp1.1.106/
+  ifndef INTELVER
+    INTELVER=/afs/cern.ch/ams/local2/opt/intel/composer_xe_2013_sp1.1.106/
+  endif
   CPPFLAGS= -D__LINUXNEW__ -axAVX -msse3 
 endif
 
-CXX = $(INTELVER)bin/intel64/icc
+ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/bin/intel64)","")
+INTELBIN = $(INTELDIR)/$(INTELVER)/compiler/bin/intel64
+endif
+ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/bin/intel64)","")
+INTELBIN = $(INTELDIR)/$(INTELVER)/bin/intel64
+endif
+
+ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/lib/intel64)","")
+INTELLIB = $(INTELDIR)/$(INTELVER)/compiler/lib/intel64
+endif
+ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/lib/intel64)","")
+INTELLIB = $(INTELDIR)/$(INTELVER)/lib/intel64
+endif
+
+CXX = $(INTELBIN)/icc
 
 CPPFLAGS     += -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
 CXXFLAGS      = -Wno-deprecated -openmp  $(OPT) $(CPPFLAGS)
@@ -201,14 +221,14 @@ OPTC          = -g
 endif
 NOOPT         = -g
 NOOPTC        = -g
-LD            = $(INTELVER)/bin/intel64/icpc  $(CPPFLAGS) -openmp -static-intel -static-libgcc
+LD            = $(INTELBIN)/icpc  $(CPPFLAGS) -openmp -static-intel -static-libgcc
 ifdef PGTRACK
   LDFLAGS = 
   LFORT= -lifcore
 else
   LDFLAGS =
   CERNDIRLIB = /afs/cern.ch/exp/ams/Offline/CERN/2005/lib
-  LFORT =  -L$(CERNDIRLIB) -lgeant321  -lminuit -lpacklib -lmathlib -lkernlib  -L$(INTELVER)/lib/intel64 -lifport -lifcoremt -limf  -lipgo -lirc_s
+  LFORT =  -L$(CERNDIRLIB) -lgeant321  -lminuit -lpacklib -lmathlib -lkernlib  -L$(INTELLIB) -lifport -lifcoremt -limf  -lipgo -lirc_s
   ifndef SLC6system
     LFORT += -lguide
   endif

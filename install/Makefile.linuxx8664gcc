@@ -54,13 +54,13 @@ else
 endif
 
 SLC4system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
 endif
 
 ifdef SLC4system
 else
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
 endif
 endif
@@ -69,12 +69,12 @@ SLC4system=1
 RH9=1
 RH9add=
 ifdef RH9
- RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+ RH9add=-pthread  -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 endif
 
-RH9add=-pthread $(BIN)ctype.o 
+RH9add=-pthread
 ifdef SLC6system
-RH9add+= -ltinfo
+#RH9add+= -ltinfo
 endif
 
 ########################################################################
@@ -191,13 +191,13 @@ ifdef AMSPROFILE
 endif
 
 ifdef DEBUGFLAG
-    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g    
-    CFLAGS       += -g
-    CFLAGSTOFSIM += -g
-    CFLAGSn      += -g
-    CFLAGSDAQ    += -g
-    FFLAGS       += -g
-    FFLAGSn      += -g
+    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g -gdwarf-2    
+    CFLAGS       += -g -gdwarf-2
+    CFLAGSTOFSIM += -g -gdwarf-2
+    CFLAGSn      += -g -gdwarf-2
+    CFLAGSDAQ    += -g -gdwarf-2
+    FFLAGS       += -g -gdwarf-2
+    FFLAGSn      += -g -gdwarf-2
 else
     CFLAGS       += -O3      
     CFLAGSTOFSIM += -O1
@@ -240,20 +240,20 @@ VGMLIBS=-L$(VGM_INSTALL)/lib/Linux-g++/  -lGeant4GMa -lRootGMa -lClhepVGMa -lXml
 endif
 
 
-LDFLAGSI= -static $(VGMLIBS)  $(G4LIBSI)  \
+LDFLAGSI= $(VGMLIBS)  $(G4LIBSI)  \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
--L$(ROOTSYS)/lib -lRoot -lfreetype  $(LZMAL) \
+$(shell root-config --libs) -lTMVA  -lMinuit -lfreetype  $(LZMAL) \
 -L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS) \
 -L$(IMPORTS_X11R6)/lib64 -lXm -lXmu -lXt -lSM -lICE  -lXp -lXxf86vm -lXext -lX11 \
-$(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre  -lncurses -lcrypt -lssl  -lcom_err -lresolv  \
+$(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre  -lncurses -lcrypt -lssl -lresolv  \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS= $(VGMLIBS) $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) $(NAGLIB)\
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIRLIB) $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot $(IMPORTS_SLC5_LIBS) -lcrypt -lssl $(LZMAL) -lcrypto  -lcom_err -lfreetype -lncurses  -ldl     -Wl,--allow-multiple-definition -lpcre -lncurses\
+$(shell root-config --libs) -lTMVA  -lMinuit -lGeom $(IMPORTS_SLC5_LIBS) -lcrypt -lssl $(LZMAL) -lcrypto -lfreetype -lncurses  -ldl  -lz   -Wl,--allow-multiple-definition -lpcre -lncurses\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
@@ -264,7 +264,7 @@ ifdef WEBACCESS
   LDFLAGS+= -lcurl
 LDFLAGSSTATIC:=    $(LDFLAGS) -pthread 
 else
-LDFLAGSSTATIC:=  -static $(LDFLAGS) $(RH9add) 
+LDFLAGSSTATIC:=  $(LDFLAGS) $(RH9add) 
 endif
 
 #--------------------------------------------------------------------------------------------------
@@ -282,8 +282,8 @@ CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/includ
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
 
 ifdef DEBUGFLAG
-CXX_ORBIT+= -g
-CCC_ORBIT+= -g
+CXX_ORBIT+= -g -gdwarf-2
+CCC_ORBIT+= -g -gdwarf-2
 else
 CXX_ORBIT+= -O3
 CCC_ORBIT+= -O3

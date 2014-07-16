@@ -63,6 +63,8 @@
 #include "amsvmc_RunConfiguration.h"
 #endif
 
+// export identifier so that ACQt Producer can check whether our fork is used or not.
+#define GBATCH_GIT_REPOSITORY
 
 using namespace std;
 #ifdef __SLC3__

@@ -130,17 +130,7 @@ else
     FFLAGSn      += -O2  
 endif
 
-# -undefined dynamic_lookup to have not the linker complaining for the undefined symbols (like in Linux)
-# -shared -dynamiclib -dynamic means ~ the same but not all the versions of Apple gcc understand the same option...
-MY_IF_GCC=$(shell test $(1) -$(2) $(3); echo $$?)
-GCC_LT_480 := $(call MY_IF_GCC,$(VERGCC_LONG),lt,480)
-# the logics of test is inverted...
-ifeq "$(GCC_LT_480)" "0"
-SOFLAGS = --dynamic --shared --dynamiclib -undefined dynamic_lookup
-else
 SOFLAGS = --shared -undefined dynamic_lookup
-endif
-
 
 ifdef SLC4system
 ifdef VER

@@ -52,22 +52,25 @@
 #
 ifndef  SLC6system
 SLC6system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
 endif
 ifndef  SLC64system
 SLC64system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
 endif
 ifndef SLC64system
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
 endif
 endif
 endif
 
+ROOTINCDIR := $(shell root-config --incdir)
+
+GITSHA = $(shell git --git-dir=${AMSWD}/.git rev-parse HEAD | tr -d '\n')
 #
 
 SHELL=/bin/sh
@@ -79,7 +82,7 @@ ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
-    LZMAL = -llzma  
+    LZMAL = -lz
 endif
 
 
@@ -96,26 +99,30 @@ endif
 ifndef UILIBS
 UILIBS:=
 endif
+G4LIBDIR=$(G4INSTALL)/lib/geant4/$(G4SYSTEM)
+ifdef G4LIB
+  G4LIBDIR = $(G4LIB)/$(G4SYSTEM)
+endif
 G4LIBS=
 G4LIBSI=
 G4=
 ifdef G4AMS
-G4VIS_USE:= 1
-G4:=G4
-ifdef G4VIS_USE
-include $(G4INSTALL)/config/G4UI_USE.gmk
-include $(G4INSTALL)/config/G4VIS_USE.gmk
-endif
-include $(G4INSTALL)/config/architecture.gmk
-DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
-INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
-ifdef CLHEP_BASE_DIR
-G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global -lCLHEP
-else
-G4LIBS=  -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
-endif
-G4LIBSI= -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
-AR=ar
+  G4VIS_USE:= 1
+  G4:=G4
+  ifdef G4VIS_USE
+    include $(G4INSTALL)/config/G4UI_USE.gmk
+    include $(G4INSTALL)/config/G4VIS_USE.gmk
+  endif
+  include $(G4INSTALL)/config/architecture.gmk
+  DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
+  INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/  -I$(G4INCLUDE)
+  CLHEP_LIBS=
+  ifdef CLHEP_BASE_DIR
+    CLHEP_LIBS= -L$(CLHEP_BASE_DIR)/lib -lCLHEP
+  endif
+  G4LIBS= $(CLHEP_LIBS) -L$(G4LIBDIR) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global
+  G4LIBSI= -L$(G4LIBDIR) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
+  AR=ar
 endif
 
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
@@ -130,8 +137,7 @@ DEFINES += -DCASTORSTATIC
 endif
 
 DEFINES  +=    -D__WRITEROOT__    
-INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include  
-
+INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTINCDIR)
 
 CPPFLAGS += $(DEFINES)  $(INCDIRS)
 
@@ -166,7 +172,7 @@ BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt_PG$(G4)/
 BIN=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/PG$(G4)/
 EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
-SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX)_PG.so
+SHLD=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG.so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG.a
 else
 PG=
@@ -174,7 +180,7 @@ BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt/$(G4)/
 BIN=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/$(G4)/
 EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
-SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX).so
+SHLD=$(LIB)/libntuple_$(AMSLIBSUFFIX).so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX).a
 endif
 #----Qi Yan
@@ -446,7 +452,7 @@ COMMON_FILES += $(SCC)MVAmanager.C $(SCC)ConfigParser.C \
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
 ifdef PGTRACK
-ROOTDICTFILES +=  ../include/TkPlane.h ../include/TkSens.h \
+ROOTDICTFILES +=  ../include/CintUInt8.h ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrCalDB.h ../include/TrGainDB.h ../include/TrChargeLossDB.h ../include/TrOccDB.h \
 		../include/TrEDepDB.h ../include/TrMipDB.h ../include/TrLinearDB.h ../include/TrLikeDB.h \
 		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
@@ -760,9 +766,9 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)SlowControlDB_s.o $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)TrGainDB_s.o $(BIN)TrChargeLossDB_s.o $(BIN)TrOccDB_s.o \
 	$(BIN)TrEDepDB_s.o $(BIN)TrMipDB_s.o $(BIN)TrLinearDB_s.o $(BIN)TrLikeDB_s.o \
         $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdMcDatacards.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o $(BIN)TrdKToyMC_s.o  $(BIN)TrdMTrack_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)commonsi.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)GammaFit_s.o \
+        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdMcDatacards.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o $(BIN)TrdKToyMC_s.o  $(BIN)TrdMTrack_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)commonsi_s.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)GammaFit_s.o \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o   $(BIN)GM_SubLibrary.o \
-	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o
+	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o $(BIN)gitsha.o
 SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)bcorr_s.o
 
 SHLIBO+=$(BIN)BackTracingMIB.o
@@ -779,8 +785,8 @@ SHLIBO+=$(BIN)OutHistoManager.o
 
 SHLIBBO:=$(SHLIBO)
 else
-SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)UnfoldingTools.o $(BIN)AntiPG_s.o
-SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)bcorr_s.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o
+SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)UnfoldingTools.o $(BIN)AntiPG_s.o $(BIN)gitsha.o
+SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)bcorr_s.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)gitsha.o
 SHLIBO+=$(BIN)UnfoldingTools.o
 SHLIBO+=$(BIN)AntiPG_s.o
 
@@ -835,22 +841,22 @@ $(BIN)predict.o:  $(SCC)predict.c
 ifdef PGTRACK
 $(BIN)rootdict.C:  $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
+	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) -I$(ROOTINCDIR) -I../include $^ 
 	@echo "OK"
 
 $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/amschain.h $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
+	$(ROOTSYSRUN)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTINCDIR) -I../include $^ 
 	@echo "OK"
 else
 $(BIN)rootdict.C: ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/root_setup.h ../include/trigger102_setup.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h  ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/bcorr.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
+	$(ROOTSYSRUN)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTINCDIR) -I../include $^ 
 	@echo "OK"
 
 $(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/bcorr.h ../include/UnfoldingTools.h ../include/AntiPG.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
+	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTINCDIR) -I../include  $^ 
 	@echo "OK"
 
 endif
@@ -861,8 +867,15 @@ $(BIN)commonsi_time.C:      $(SCC)commonsi.C
 $(BIN)rootdict.o:         $(BIN)rootdict.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
 
+$(BIN)commonsi_s.o:	$(BIN)commonsi_time.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(BIN)commonsi_time.C -o $(BIN)commonsi_s.o
+
 $(BIN)commonsi.o:	$(BIN)commonsi_time.C
 	$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o 
+
+$(BIN)gitsha.o: $(SCC)gitsha.C
+	$(CXX) -c $(CFLAGS) -DGBATCHGITSHA=$(GITSHA) $< -o $@
+
 $(BIN)daqevt.o:         $(SCC)daqevt.C
 	$(CXX) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(SCC)daqevt.C -o $(BIN)daqevt.o 
 
@@ -1180,9 +1193,11 @@ allold:
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
 
+ifneq ("$(wildcard /etc/redhat-release)","")
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
 	#@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
+endif
 endif
 
 
