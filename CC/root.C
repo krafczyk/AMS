@@ -14351,7 +14351,7 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
     cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp0));
   }
   cout << endl;
-  cout << Form("iTrTrackPar(1, 3, 23)= %7d", itp1);
+  cout << Form("iTrTrackPar(1, 7, 23)= %7d", itp1);
   if (itp1 > 0) {
     cout << Form(" Rigidity= %9.3f",   trk->GetRigidity  (itp1));
     cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp1));
