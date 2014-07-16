@@ -502,10 +502,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
    if(AMSJob::gethead()->isSimulation()){
 
      if (AMSEvent::gethead()->EventSkipped()) {
-       G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
-       G4double primaryMomentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +
-				       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +
-				       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
+       G4double primaryMomentum = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetTotalMomentum() / GeV;
        hman.Fill("Pskipped", primaryMomentum);
        AMSEvent::gethead()->SetEventSkipped(false);
      }
@@ -975,7 +972,6 @@ if(!Step)return;
      // 
 
   */
-  //eventSkipped = false;
   AMSEvent::gethead()->SetEventSkipped(false);
   static integer freq=10;
   static integer trig=0;
