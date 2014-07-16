@@ -500,6 +500,15 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 
 //   cout <<" guout in"<<endl;
    if(AMSJob::gethead()->isSimulation()){
+
+     if (AMSgObj::BookTimer.check("GEANTTRACKING") > AMSFFKEY.CpuLimit) {
+       G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
+       G4double primaryMomentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +
+				       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +
+				       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
+       hman.Fill("Pskipped", primaryMomentum);
+     }
+
    AMSgObj::BookTimer.stop("GEANTTRACKING");
  {
     float xx,yy;
