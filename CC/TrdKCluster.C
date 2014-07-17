@@ -1632,7 +1632,7 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, double * L , i
             total_amp+=Amp;
             total_pathlength+=path_length;
 
-            if(ECAL_Energy_Hypothesis<2){
+            if(ECAL_Energy_Hypothesis<0.5){
                 kpdf_e->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
                 kpdf_p->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
                 kpdf_h->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
