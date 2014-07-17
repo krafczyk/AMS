@@ -33,6 +33,8 @@ public:
   TH1D* GetExp();
 
   static LxMCcutoff *GetHead() { return Head; }
+  static void  SetBinning(TH1 *hbin) { Hbin = (TH1D *)hbin; }
+  static TH1D *GetBinning(void) { return Hbin; }
 
 public:
   double SafetyFactor;
@@ -45,6 +47,7 @@ protected:
   TH1D* Rcut1D;
 
   static LxMCcutoff *Head;
+  static TH1D *Hbin;
   
 public:
   ClassDef(LxMCcutoff, 1);

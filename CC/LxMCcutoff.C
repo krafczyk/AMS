@@ -14,6 +14,7 @@ ClassImp(LxMCcutoff);
 
 
 LxMCcutoff *LxMCcutoff::Head = 0;
+TH1D *LxMCcutoff::Hbin = 0;
 
 LxMCcutoff::LxMCcutoff (const char *FileName,TH1D *h, double safetyfactor, LxMCcutoff::eRcutDist dist ): SafetyFactor(safetyfactor), RcutDist(dist), RcutI(0),hExp0(0), hExp(0), Rcut1D(0) {
   // Filename should contain the TH2F with the Rcut vs Rmax distribution 
