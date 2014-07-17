@@ -183,10 +183,19 @@ public:
 
   // 2014.06.24 SH
   // Workaround to retune the MC scattering (not activated by default)
+  //
+  //  In case MCscat[0] > 0 Gaussian model is used (obsolete)
   // [0]: Probability to have large scattering (typically put 0.05)
   // [1]: Scattering amplitude (cm) at 10 GV   (typically put 0.3)
   // [2]: Rgen power index                     (typically put 1.5)
-  geant MCscat[3];   //=0,0,0  typically put (0.05,0.3,1.5) to activate
+  //
+  // 2014.07.09 VC : update with Q2 model
+  //  In case MCscat[0] < 0 Q2 model is used (recommended)
+  // [0]: b(gev/c)^-2 coefficient of exp(b*q2)       (typically put -15)
+  // [1]: probability of quasi-elastic scattering L1 (typically put 0.05)
+  // [2]: probability of quasi-elastic scattering L9 (typically put 0.04)
+
+  geant MCscat[3];   //=0,0,0  typically put (-15,0.05,0.04) to activate
 
   // 2014.07.02 AO  
   // Tuning for carbon, and for the use of a new gain table    
