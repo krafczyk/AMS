@@ -1,4 +1,5 @@
 #include "root.h"
+#include "commons.h"
 #include "TMVA/Tools.h"
 #include "TMVA/Version.h"
 #include <EcalChi2CY.h>
@@ -53,7 +54,23 @@ int iVersionNumberBDTCHI2=0;
 int ECALBCHI2_TMVAVER = 0;
 TH1F *hECALBCHI2[nPIBCHI2VARs];
 
-EcalAxis& EcalShowerR::SharedEcalAxis() { static EcalAxis myAxis; return myAxis; };  // <<<   implementation of SharedEcalAxis()
+EcalAxis& EcalShowerR::SharedEcalAxis(AMSEventR* pev) {
+
+  assert(pev);
+
+  int datasetType = 0;
+  if (pev->nMCEventg() > 0) /* Is Monte Carlo? */
+    datasetType = 2;
+  if (pev->Run() >= 1000000000 && pev->Run() <= 1300000000) /* Is BT? */
+    datasetType = 1;
+
+  static EcalAxis* gAxis = 0;
+  if (!gAxis)
+    gAxis = new EcalAxis(datasetType);
+  else
+    assert(gAxis->GetType() == datasetType); // Sanity check to assure the datasetType never changes in one gbatch session. The code is not prepared for that
+  return *gAxis;
+}
 
 float EcalShowerR::GetEcalBDTCHI2()
 {
@@ -130,7 +147,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    if( iBDTCHI2VERSION>=100 ) { iBDTCHI2VERSION-=100; apply_precuts = false; }
 
    EcalAxis::Version=3;
-   static EcalAxis& ecalaxis = SharedEcalAxis();        // <<<  use  SharedEcalAxis() here
+   static EcalAxis& ecalaxis = SharedEcalAxis(pev);        // <<<  use  SharedEcalAxis() here
    if (iBDTCHI2VERSION<3)
      {
        ecalaxis.process(this,2);//use Lateral Fit algorithm for finding COG in the layer->time consuming

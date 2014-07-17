@@ -912,7 +912,7 @@ public:
   float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier);
   float GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag);
   float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag);
-  EcalAxis& SharedEcalAxis(); // <<< provide outside access to EcalAxis used within BDTChi2
+  EcalAxis& SharedEcalAxis(AMSEventR*); // <<< provide outside access to EcalAxis used within BDTChi2
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
   int NEcal2DCluster()const {return fEcal2DCluster.size();}
@@ -4876,8 +4876,8 @@ static int GetElementAbundance(const AMSPoint &pnt,
 
   /*!
    *! Get hadron inelastic cross section as a function of rigidity (by SH)
-   * @param[in]  zp  projectile charge (1, 2, 3:Li7, 4:Be9, 5:B11, 6, 7, 8,
-   *                                    103:Li6, 104:Be7, 105:B10)
+   * @param[in]  zp  projectile charge (1, 2, 3:Li6, 4:Be7, 5:B10, 6, 7, 8,
+   *                                    103:Li7, 104:Be9, 105:B11)
    * @param[in]  zt  target     charge (1, 6, 7, 8, 9, 11, 13, 14, 82)
    * @param[in]  rgt rigidity
    * @param[in]  model 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4) (G4FF 5=1 7=13)
@@ -4893,8 +4893,8 @@ static double GetCrossSection(int zp, int zt, double rgt, int model = 1);
    * @param[in]  rigidity  Rigidity  [GV]
    * @param[in]  z1    from z position[cm]
    * @param[in]  z2    to   z position[cm]
-   * @param[in]  zp    projectile Z (1, 2, 3:Li7, 4:Be9, 5:B11, 6, 7, 8,
-   *                                 103:Li6, 104:Be7, 105:B10)
+   * @param[in]  zp    projectile Z (1, 2, 3:Li6, 4:Be7, 5:B10, 6, 7, 8,
+   *                                 103:Li7, 104:Be9, 105:B11)
    * @param[in]  zt    target material Z
    *                     (1, 6, 7, 8, 9, 11, 13, 14, 82, 0:total)
    * @param[in]  model cross section 1:gbatchG4PG(4.9.6) 2:gbatchG4PG(4.9.4)
