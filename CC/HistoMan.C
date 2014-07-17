@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.54 2013/11/04 16:18:16 traiha Exp $ 
+/// $Id$ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -421,6 +421,8 @@ void HistoMan::BookHistos(int simmode){
     // mceventg
     Add(TH2D_L("Pgen", "Pgen", 5000, 1e-1, 1e4, 200, -1, 1, 1, 0));
     Add(TH2D_L("Pacc", "Pacc", 5000, 1e-1, 1e4, 200, -1, 1, 1, 0));
+    // events that were skipped because of exceeded CPU time limit
+    Add(TH1F_L("Pskipped", "Pskipped", 10000, 0.01, 10000));
 
     Add(new TH2D("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2D("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
