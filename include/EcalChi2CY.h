@@ -1,4 +1,4 @@
-//  $Id: EcalChi2CY.h,v 1.18 2013/04/29 21:38:50 kaiwu Exp $
+//  $Id$
 #ifndef __ECALCHI2CY_H__
 #define __ECALCHI2CY_H__
 #include <stdio.h>
@@ -321,6 +321,9 @@ public:
     return electron likelihood
     */
     float get_elik(AMSEventR* ev,float& _nchi2,float& _nf2edep,float& _chi2plus, float& _elik)	;
+
+    // Returns the type (ISS/BT/MC) that we used to construct the EcalAxis.
+    int GetType() const { return _type; }
 
     ///Ecal Chi2 Object, can be used to access chi2, f2dep
     EcalChi2* ecalchi2		;

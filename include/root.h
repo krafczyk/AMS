@@ -910,7 +910,7 @@ public:
   float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier);
   float GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag);
   float GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, int TMVAClassifier, int EnergyFlag);
-  EcalAxis& SharedEcalAxis(); // <<< provide outside access to EcalAxis used within BDTChi2
+  EcalAxis& SharedEcalAxis(AMSEventR*); // <<< provide outside access to EcalAxis used within BDTChi2
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
   int NEcal2DCluster()const {return fEcal2DCluster.size();}
