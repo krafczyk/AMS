@@ -4919,6 +4919,20 @@ static double GetRelInteractionLength(const AMSPoint &pnt,
 int GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu = 10,
 			                              float cutl = 4);
 
+#ifdef __ROOTSHAREDLIBRARY__
+/*!
+ * Reproductive random generator
+ * which should always provide the same random number for the same MC event
+ * 
+ * @param[in]  key    Unique integer number
+ * @param[in]  type   1: Rndm()  2: Gaus()
+ * @param[in]  n      Array size
+ * @param[out] array  Array to be filled by random numbers
+ * @return     0: success  -1: error
+ */
+static int GetRandArray(int key, int type, int n, double *array);
+#endif
+
 /*!
  * Get weight factor of current MC event. Original code by L.Derome
  * AMSRoot interface by SH

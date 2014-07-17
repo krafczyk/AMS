@@ -459,26 +459,33 @@ void TrExtAlignDB::ResetExtAlign()
   return;
 }
 
-extern "C" double rnormx();
-
 int MCscat (AMSPoint &coo, int layj, double prob, double scat, double pwr);
 int MCscatq2 (AMSPoint &coo, int layj, float b, float prob);
 int DropExtHits(void);
 
+extern "C" double rnormx();
+
 void TrExtAlignDB::SmearExtAlign()
 {
+  double rnd[8];
+#ifdef __ROOTSHAREDLIBRARY__
+  AMSEventR::GetRandArray(4173792, 2, 8, rnd);
+#else
+  for (int i = 0; i < 8; i++) rnd[i] = rnormx();
+#endif
+
   ResetExtAlign();
   // PG
-  SL1[0] = rnormx()*TRMCFFKEY.OuterSmearing[0][0];
-  SL1[1] = rnormx()*TRMCFFKEY.OuterSmearing[0][1];
-  SL9[0] = rnormx()*TRMCFFKEY.OuterSmearing[1][0];
-  SL9[1] = rnormx()*TRMCFFKEY.OuterSmearing[1][1];
+  SL1[0] = rnd[0]*TRMCFFKEY.OuterSmearing[0][0];
+  SL1[1] = rnd[1]*TRMCFFKEY.OuterSmearing[0][1];
+  SL9[0] = rnd[2]*TRMCFFKEY.OuterSmearing[1][0];
+  SL9[1] = rnd[3]*TRMCFFKEY.OuterSmearing[1][1];
 
   // CIEMAT
-  SL1[6] = rnormx()*TRMCFFKEY.OuterSmearing[0][0];
-  SL1[7] = rnormx()*TRMCFFKEY.OuterSmearing[0][1];
-  SL9[6] = rnormx()*TRMCFFKEY.OuterSmearing[1][0];
-  SL9[7] = rnormx()*TRMCFFKEY.OuterSmearing[1][1];
+  SL1[6] = rnd[4]*TRMCFFKEY.OuterSmearing[0][0];
+  SL1[7] = rnd[5]*TRMCFFKEY.OuterSmearing[0][1];
+  SL9[6] = rnd[6]*TRMCFFKEY.OuterSmearing[1][0];
+  SL9[7] = rnd[7]*TRMCFFKEY.OuterSmearing[1][1];
 
 #ifdef __ROOTSHAREDLIBRARY__
   // Workaround to retune the MC scatterng
