@@ -113,6 +113,7 @@
 #pragma link C++ class GeoMagField+;
 #pragma link C++ class GeoMagTrace+;
 #pragma link C++ class GeoMagCoord+;
+#pragma link C++ class LxMCcutoff+;
 
 #pragma link C++ class TrMCClusterR+;
 #pragma link C++ class TrRawClusterR+;

@@ -52,6 +52,7 @@
 #include "Tofcharge_ihep.h"
 #include "AntiPG.h"
 #include "EcalH.h"
+#include "LxMCcutoff.h"
 
 #ifdef __AMSVMC__
 #include "amsvmc_MCApplication.h"
@@ -4917,6 +4918,21 @@ static double GetRelInteractionLength(const AMSPoint &pnt,
    */
 int GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu = 10,
 			                              float cutl = 4);
+
+/*!
+ * Get weight factor of current MC event. Original code by L.Derome
+ * AMSRoot interface by SH
+ * @param[in]  rgen  Generated rigidity
+ * @param[in]  rrec  Reconstructed rigidity
+ * @param[in]  sfac  safety factor used to compute the threshold to rrec  
+ * @param[in]  dist  the method used to estimate the Rcut vs Rmax distribution:
+ * LxMCcutoff::_RcutVert  : vertical direction in AMS
+ * LxMCcutoff::_RcutMin25 : Min direction within 25 deg
+ * LxMCcutoff::_RcutIso25 : Isotropically distributed directions within 25 deg
+ * @return     weight  -1 in case of errors
+ */
+  double GetMCCutoffWeight(double rgen, double rrec, double sfac = 0.2,
+			   LxMCcutoff::eRcutDist dist = LxMCcutoff::_RcutVert);
     
 
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);

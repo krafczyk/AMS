@@ -14734,6 +14734,49 @@ int AMSEventR::GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu,
   return ncls[0]+ncls[2];
 }
 
+double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
+				    double sfac, LxMCcutoff::eRcutDist dist)
+{
+  if (dist == LxMCcutoff::_RcutIso25) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-"
+	      "_RcutIso25 option not implemented yet" << endl;
+      return -1;
+  }
+
+  LxMCcutoff *mcc = LxMCcutoff::GetHead();
+  if (mcc &&
+      TMath::Abs(mcc->SafetyFactor-sfac) > 0.001 && mcc->RcutDist != dist) {
+    delete mcc;
+    mcc = 0;
+  }
+  if (!mcc) {
+    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin.root";
+    TFile f(sfn);
+    if (!f.IsOpen()) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-Bin file not found" << endl;
+      return -1;
+    }
+    TH1D *hbin = (TH1D *)f.Get("hist2");
+    if (!hbin) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-Bin histogram not found" << endl;
+      return -1;
+    }
+
+    sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+    if (getenv("RcutAll")) sfn = getenv("RcutAll");
+
+    mcc = new LxMCcutoff(sfn, hbin, sfac, dist);
+    if (!LxMCcutoff::GetHead()) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-Error "
+	      "in creating LxMCcutoff instance" << endl;
+      delete mcc;
+      return -1;
+    }
+  }
+
+  int seed = (fHeader.RNDMSeed[0] > 0) ? fHeader.RNDMSeed[0] : -1;
+  return mcc->GetWeight(rgen, rrec, seed);
+}
 
 void AMSEventR::GTOD2CTRS(double RPT[3], double v,double  VelPT[2]){
 //
