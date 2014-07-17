@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.114 2013/12/20 22:20:57 choutko Exp $
+//  $Id$
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -143,7 +143,8 @@ uinteger _usec;
 CCEBPar * _ccebp;
 TofSTemp * _Utoftp;
 TofSTemp * _Ltoftp;
-  integer trstat;
+integer trstat;
+bool _eventSkipped;
 
 static integer SRun;
 static integer PosInRun;
@@ -402,6 +403,8 @@ time_t getmitime()const;
 time_t getusec()const {return _usec;}
 time_t& settime(){return _time;}
 integer gettrstat()const{return trstat;}
+void SetEventSkipped(bool skipped) {_eventSkipped = skipped;}
+bool EventSkipped() {return _eventSkipped;}
 //void * operator new(size_t t, void *p) {return p;}
 void * operator new(size_t t) {return UPool.insert(t);}
 void operator delete(void *p)

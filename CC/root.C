@@ -14116,14 +14116,17 @@ int MCscat(AMSPoint &coo, int layj, double prob, double scat, double pwr)
   MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
   if (!mc || mc->Charge == 0) return 0;
 
-  if (gRandom->Rndm() > prob) return 0;
+  double rnd[2];
+  AMSEventR::GetRandArray(90818097, 1, 1, rnd);
+  if (rnd[0] > prob) return 0;
 
   double rgen = mc->Momentum/mc->Charge;
   double rr   = pow(rgen/10, pwr);
   double sig  = (layj == 1) ? scat/rr*1.0 : scat/rr*0.7;
 
-  coo[0] += gRandom->Gaus()*sig;
-  coo[1] += gRandom->Gaus()*sig;
+  AMSEventR::GetRandArray(8993306, 2, 2, rnd);
+  coo[0] += rnd[0]*sig;
+  coo[1] += rnd[1]*sig;
   return 1;
 
 #endif
@@ -14143,16 +14146,21 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
   double lp=log10(p);
   if(lp<0)lp=0;
   if(lp>2)lp=2;
-  if ( gRandom->Rndm()>prob*(3-lp)/2.)return 0;
+
+  double rnd[4];
+  AMSEventR::GetRandArray(57538922, 1, 1, rnd);
+  if ( rnd[0]>prob*(3-lp)/2.)return 0;
+
+  AMSEventR::GetRandArray(9886838, 1, 4, rnd);
 
   int lay=(layj==1)?0:1;
-  double q2=log(gRandom->Rndm())/b;
+  double q2=log(rnd[0])/b;
   double mass[2]={12,27}; //  scattering masses
   double pmass[2]={0.85,0.15}; // probability
   double l1[2]={104,86}; // length for scattering l1,l9 
   double m1=mc->Mass;
   double m2=mass[0];
-  if(gRandom->Rndm()>pmass[0])m2=mass[1]; 
+  if(rnd[1]>pmass[0])m2=mass[1]; 
   double e=sqrt(p*p+m1*m1);
   double g=e+m2;
   double p1=g*g+q2+m2*m2-m1*m1-2*g*sqrt(q2+m2*m2);
@@ -14164,8 +14172,8 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
     return 0;
   }
   double p1_per=sqrt((p1-p1_par)*(p1+p1_par));
-  double shift=p1_per/p1_par*l1[lay]*gRandom->Rndm();
-  double phi=2*3.1415926*gRandom->Rndm();
+  double shift=p1_per/p1_par*l1[lay]*rnd[2];
+  double phi=2*3.1415926*rnd[3];
   
   
     
@@ -14193,6 +14201,24 @@ int DropExtHits(void)
     }
   }
   return ndrop;
+}
+#endif //_PGTRACK_
+
+
+#ifdef __ROOTSHAREDLIBRARY__
+int AMSEventR::GetRandArray(int key, int type, int n, double *array)
+{
+  int seed = 4357;
+  if (AMSEventR::Head()) seed = AMSEventR::Head()->fHeader.RNDMSeed[0];
+
+  TRandom3 rnd1(key);
+  seed ^= rnd1.Integer(0x7fffffff);
+
+  TRandom3 rand(seed);
+  for (int i = 0; i < n; i++)
+    array[i] = (type == 2) ? rand.Gaus() : rand.Rndm();
+
+  return 0;
 }
 
 #endif
@@ -14734,6 +14760,49 @@ int AMSEventR::GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu,
   return ncls[0]+ncls[2];
 }
 
+double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
+				    double sfac, LxMCcutoff::eRcutDist dist)
+{
+  if (dist == LxMCcutoff::_RcutIso25) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-"
+	      "_RcutIso25 option not implemented yet" << endl;
+      return -1;
+  }
+
+  LxMCcutoff *mcc = LxMCcutoff::GetHead();
+  if (mcc &&
+      TMath::Abs(mcc->SafetyFactor-sfac) > 0.001 && mcc->RcutDist != dist) {
+    delete mcc;
+    mcc = 0;
+  }
+  if (!mcc) {
+    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin.root";
+    TFile f(sfn);
+    if (!f.IsOpen()) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-Bin file not found" << endl;
+      return -1;
+    }
+    TH1D *hbin = (TH1D *)f.Get("hist2");
+    if (!hbin) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-Bin histogram not found" << endl;
+      return -1;
+    }
+
+    sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+    if (getenv("RcutAll")) sfn = getenv("RcutAll");
+
+    mcc = new LxMCcutoff(sfn, hbin, sfac, dist);
+    if (!LxMCcutoff::GetHead()) {
+      cerr << "AMSEventR::GetMCCutoffWeight-E-Error "
+	      "in creating LxMCcutoff instance" << endl;
+      delete mcc;
+      return -1;
+    }
+  }
+
+  int seed = (fHeader.RNDMSeed[0] > 0) ? fHeader.RNDMSeed[0] : -1;
+  return mcc->GetWeight(rgen, rrec, seed);
+}
 
 void AMSEventR::GTOD2CTRS(double RPT[3], double v,double  VelPT[2]){
 //
