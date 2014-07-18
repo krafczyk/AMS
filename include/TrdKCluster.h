@@ -325,6 +325,8 @@ public:
     static Double_t LastProcessedRun_Alignment;
 
     static bool DebugOn;
+    static float threshold_ECAL_Energy_Hypothesis;
+    void Set_ECALEnergyHypothesisThreshold(float val){val=threshold_ECAL_Energy_Hypothesis;}
 
 
     static TrdKCalib *_DB_instance;
@@ -387,12 +389,20 @@ public:
         if (!_Head) {
             printf("TrdKCluster::gethead()-M-CreatingObject TrdKCluster\n");
             _Head = new TrdKCluster();
-            GetAMSEventRHead();
-            GetTRDKCalibHead();
         }
+        GetAMSEventRHead();
+        GetTRDKCalibHead();
         return _Head;
     }
 
+
+    static void ResetHead(){
+        if(_Head)delete _Head;
+        _Head=0;
+        _HeadE=0;
+        _HeadCalib=0;
+        return;
+    }
 
 
 private:
@@ -401,7 +411,7 @@ private:
     static AMSEventR * _HeadE;
     static TrdKCalib* _HeadCalib;
 
-AMSEventR* pev;
+    AMSEventR* pev;
     TrTrackR    *ptrk;
     TrdTrackR   *ptrd;
     TrdHTrackR  *ptrdh;
