@@ -69,6 +69,7 @@ void TrdKCluster::Init(AMSEventR *evt){
     if(!NTRDHit)return;
 
 
+    TRDHitCollection.reserve(NTRDHit);
     if(NHits())TRDHitCollection.clear();
     for(int i=0;i<NTRDHit;i++){
         TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
@@ -629,7 +630,9 @@ void TrdKCluster::DoHitPreselection(float cut_distance){
 void TrdKCluster::AddEmptyTubes(float cut_distance){
 
     //========Include All Tubes===============================
-    vector<TrdKHit> selected_tube_collection;
+    static vector<TrdKHit> selected_tube_collection;
+    selected_tube_collection.reserve(200);
+    selected_tube_collection.clear();
 
     for(int i=0;i<TRDTubeCollection.size();i++){
         TrdKHit *tube=&(TRDTubeCollection.at(i));
