@@ -326,7 +326,7 @@ public:
 
     static bool DebugOn;
     static float threshold_ECAL_Energy_Hypothesis;
-    void Set_ECALEnergyHypothesisThreshold(float val){val=threshold_ECAL_Energy_Hypothesis;}
+    void Set_ECALEnergyHypothesisThreshold(float val){threshold_ECAL_Energy_Hypothesis=val;}
 
 
     static TrdKCalib *_DB_instance;
