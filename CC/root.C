@@ -14769,6 +14769,7 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
       return -1;
   }
 
+
   LxMCcutoff *mcc = LxMCcutoff::GetHead();
   if (mcc &&
       (TMath::Abs(mcc->SafetyFactor-sfac) > 0.001 || mcc->RcutDist != dist)) {
@@ -14776,15 +14777,17 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
     mcc = 0;
   }
   if (!mcc) {
-    TH1D *hbin = LxMCcutoff::GetBinning();
+    TH1D  *hbin = LxMCcutoff::GetBinning();
+    TFile *fbin = 0;
+
     if (!hbin) {
       TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin.root";
-      TFile f(sfn);
-      if (!f.IsOpen()) {
+      fbin = TFile::Open(sfn);
+      if (!fbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin file not found" << endl;
 	return -1;
       }
-      hbin = (TH1D *)f.Get("hist2");
+      hbin = (TH1D *)fbin->Get("hist2");
       if (!hbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin histogram not found"
 	     << endl;
@@ -14795,6 +14798,8 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
     if (getenv("RcutAll")) sfn = getenv("RcutAll");
 
     mcc = new LxMCcutoff(sfn, hbin, sfac, dist);
+    delete fbin;
+
     if (!LxMCcutoff::GetHead()) {
       cerr << "AMSEventR::GetMCCutoffWeight-E-Error "
 	      "in creating LxMCcutoff instance" << endl;
