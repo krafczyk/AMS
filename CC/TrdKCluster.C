@@ -13,6 +13,7 @@ TrdKPDF *TrdKCluster::kpdf_p=NULL;
 TrdKPDF *TrdKCluster::kpdf_h=NULL;
 TrdKPDF *TrdKCluster::kpdf_q=NULL;
 
+float TrdKCluster::threshold_ECAL_Energy_Hypothesis=2.0;
 bool TrdKCluster::DebugOn=0;
 int TrdKCluster::Default_TrPar[3];
 int TrdKCluster::ForceReadAlignment=1;
@@ -348,8 +349,6 @@ int TrdKCluster::FindBestMatch_FromECAL(){
     pecal = 0;
     ptof = 0;
     mcpart=0;
-
-    pev=_HeadE;
 
     // 1. find the highest energetic shower
     Double_t e_candidate = 0.;
@@ -1514,20 +1513,15 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
 
 void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 
-    if(track->ParExists(fitcode)) {
+    if(!track->ParExists(fitcode)) {
+        fitcode=track->Gettrdefaultfit();
+        cout<<"~~WARNING~~TrdKCluster::SetTrTrack : Input fitcode do not exist, use default fitcode : "<<fitcode<<endl;
+    }
         track_extrapolated_Dir=  AMSDir(0,0,0);
         track_extrapolated_P0= AMSPoint(0,0,0);
         track->Interpolate(TRDCenter,track_extrapolated_P0,track_extrapolated_Dir,fitcode);
         TrTrack_Pro=TrProp(track_extrapolated_P0,track_extrapolated_Dir,track->GetRigidity(fitcode));
         Track_Rigidity=track->GetRigidity(fitcode);
-    }else{
-        cout<<"~~~WARNING~~~ TrdKCluster Constructor, fitcode do not exist : "<<fitcode<<endl;
-        IsValid=-1;
-    }
-
-    //    for(int i=0;i<NHits();i++){
-    //        GetHit(i)->PredictCrossing(&track_extrapolated_P0,&track_extrapolated_Dir);
-    //    }
 
     return;
 }
@@ -1635,7 +1629,7 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, double * L , i
             total_amp+=Amp;
             total_pathlength+=path_length;
 
-            if(ECAL_Energy_Hypothesis<0.5){
+            if(ECAL_Energy_Hypothesis<threshold_ECAL_Energy_Hypothesis){
                 kpdf_e->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
                 kpdf_p->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
                 kpdf_h->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
@@ -1712,7 +1706,7 @@ int TrdKCluster::GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double *
 
         if(Amp>threshold && path_length>0){
             Track_nhits++;
-            if(ECAL_Energy_Hypothesis<2){
+            if(ECAL_Energy_Hypothesis<threshold_ECAL_Energy_Hypothesis){
                 kpdf_e->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
                 kpdf_p->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
                 kpdf_h->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);

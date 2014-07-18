@@ -461,10 +461,35 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
   _dc.SetString(AMSProducer::GetDataCards());
   //   cout <<_dc.GetString()<<endl;
 #else
-  _dc.String().Append("\n");
-  _dc.String().Append(Form("TRIG=%d\n",GCFLAG.NEVENT));
-  _dc.String().Append(Form("PMIN=%f\n",CCFFKEY.momr[0]));
-  _dc.String().Append(Form("PMAX=%f\n",CCFFKEY.momr[1]));
+  if (char* fscript = getenv("AMSFSCRIPT")) {
+    ifstream inDatacardFile;
+    inDatacardFile.open((const char *)fscript);
+    string datacards = "";
+
+    if(inDatacardFile) {
+      char tmpbuf[1024];
+      datacards = datacards + "ScriptName=" + string(fscript) + "\n";
+
+      int lineCounter = 0;
+      while (inDatacardFile.good() && !inDatacardFile.eof()) {
+        inDatacardFile.getline(tmpbuf, 1023);
+        datacards = datacards + string(tmpbuf) + "\n";
+        lineCounter++;
+        if (lineCounter > 200) {
+          cerr << "Datacards file very long and couldn't be stored completely! Check that $AMSFSCRIPT set correctly." << endl;
+          break;
+        }
+      }
+      _dc.SetString(datacards.c_str());
+    }
+    inDatacardFile.close();
+  } else {
+    _dc.String().Append("\n");
+    _dc.String().Append(Form("TRIG=%d\n",GCFLAG.NEVENT));
+    _dc.String().Append(Form("PMIN=%f\n",CCFFKEY.momr[0]));
+    _dc.String().Append(Form("PMAX=%f\n",CCFFKEY.momr[1]));
+  }
+
 #endif
   if(!_rfile || _rfile->IsZombie()){
     if(_rfile){
