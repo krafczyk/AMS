@@ -14117,14 +14117,14 @@ int MCscat(AMSPoint &coo, int layj, double prob, double scat, double pwr)
   if (!mc || mc->Charge == 0) return 0;
 
   double rnd[2];
-  AMSEventR::GetRandArray(90818097, 1, 1, rnd);
+  AMSEventR::GetRandArray(90818097+layj, 1, 1, rnd);
   if (rnd[0] > prob) return 0;
 
   double rgen = mc->Momentum/mc->Charge;
   double rr   = pow(rgen/10, pwr);
   double sig  = (layj == 1) ? scat/rr*1.0 : scat/rr*0.7;
 
-  AMSEventR::GetRandArray(8993306, 2, 2, rnd);
+  AMSEventR::GetRandArray(8993306+layj, 2, 2, rnd);
   coo[0] += rnd[0]*sig;
   coo[1] += rnd[1]*sig;
   return 1;
@@ -14148,10 +14148,10 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
   if(lp>2)lp=2;
 
   double rnd[4];
-  AMSEventR::GetRandArray(57538922, 1, 1, rnd);
+  AMSEventR::GetRandArray(57538922+layj, 1, 1, rnd);
   if ( rnd[0]>prob*(3-lp)/2.)return 0;
 
-  AMSEventR::GetRandArray(9886838, 1, 4, rnd);
+  AMSEventR::GetRandArray(9886838+layj, 1, 4, rnd);
 
   int lay=(layj==1)?0:1;
   double q2=log(rnd[0])/b;
