@@ -14384,6 +14384,23 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
   }
   cout << endl;
 
+  TrRecHitR *hit1 = trk->GetHitLJ(1);
+  TrRecHitR *hit9 = trk->GetHitLJ(9);
+  if (hit1) {
+    AMSPoint cpg = hit1->GetCoord(-1, 1);
+    AMSPoint cmd = hit1->GetCoord(-1, 2);
+    cout << Form("Hit(L1): PG= %8.4f %8.4f %9.4f  MD= %8.4f %8.4f %9.4f",
+		 cpg.x(), cpg.y(), cpg.z(), cmd.x(), cmd.y(), cmd.z())
+	 << endl;
+  }
+  if (hit9) {
+    AMSPoint cpg = hit9->GetCoord(-1, 1);
+    AMSPoint cmd = hit9->GetCoord(-1, 2);
+    cout << Form("Hit(L9): PG= %8.4f %8.4f %9.4f  MD= %8.4f %8.4f %9.4f",
+		 cpg.x(), cpg.y(), cpg.z(), cmd.x(), cmd.y(), cmd.z())
+	 << endl;
+  }
+
   return 0;
 }
 #endif
