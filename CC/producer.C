@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.195 2014/01/10 20:53:03 choutko Exp $
+//  $Id$
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -815,7 +815,7 @@ againcp:
  //
     string file2v="";    
     string ff=(const char*)fcopy;
-  if(ff.find("/castor/cern.ch")!=-1){
+  if(ff.find("/castor/cern.ch")!=-1 && ff.find("root:/")==-1){
      file2v+="rfio:";
   }
   file2v+=destdir;

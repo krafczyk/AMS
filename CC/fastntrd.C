@@ -73,7 +73,9 @@ using namespace std;
      if(iver)cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
 try{
-       iflg=rootread(fname,nevents,iver,lastevent,jou);
+       int ibeg=(strstr(fname,"rfio:") && strstr(fname,"root:"))?5:0;
+       
+       iflg=rootread(fname+ibeg,nevents,iver,lastevent,jou);
 //       if(nevents==0)iflg=0;
 }
 catch (std::bad_alloc aba){
