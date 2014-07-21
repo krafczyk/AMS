@@ -2108,6 +2108,8 @@ class RemoteClient:
                 for i in range (2,len(junk)):
                     cmove=cmove+'/'+junk[i]
                 cmd="/usr/bin/rfcp "+output+" "+cmove
+                # Temporary fix for castor problem on 21 Jul 2014.
+                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
                 i=os.system(cmd)
                 if(i==0):
                     if(self.castorcopy>0):
@@ -2184,6 +2186,8 @@ class RemoteClient:
                         print "copyFile-E-FailedCastorOnly ",input,output
                         return 1
             cmd="rfcp "+input+" "+output
+            # Temporary fix for castor problem on 21 Jul 2014.
+            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 900 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp \"root://castorpublic.cern.ch//"+input+"\" "+output
             if(self.castoronly):
                 mutex.acquire()
                 return 1024
