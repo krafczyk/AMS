@@ -127,7 +127,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     char name[20];
     _setup=setup;
     if(_setup<1 || _setup>3){
-      fprintf(stderr,"TkDBc::init -E-  FATAL Unknown Setup number %d\n",_setup);
+      fprintf(stderr,"TkDBc::init -F-  FATAL Unknown Setup number %d\n",_setup);
       exit(-3);
     }
     
@@ -1565,7 +1565,7 @@ void TkDBc::RebuildMap()
 
 void TkDBc::UseLatest(int reset)
 {
-  cerr << "TkDBc::UseLatest-E-Now OBSOLETE, use UseFinal or UseVersion instead"
+  cerr << "TkDBc::UseLatest-F-Now OBSOLETE, use UseFinal or UseVersion instead"
        << endl;
   exit(-1);
 }
@@ -1594,7 +1594,7 @@ void TkDBc::UseVersion(int ver, int reset)
     dyn = "DynAlignmentV5T140713PM5";
   }
   else {
-    cerr << "TkDBc::UseVersion-E-Unsupported version: " << ver << endl;
+    cerr << "TkDBc::UseVersion-F-Unsupported version: " << ver << endl;
     exit(-1);
   }
 
