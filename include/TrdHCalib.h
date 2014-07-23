@@ -170,10 +170,10 @@ class TrdHCalibR{
   void update_medians(TrdHTrackR *track,int version=0,int option=3, float beta=0, float corr=1.,int debug=0);
   
   /// Convert layer[0,19]/ladder[0,17]/tube[0,15] to unique tube id [0,5247]
-  void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
+  static void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
   
   /// Convert unique tube id [0,5247] to layer[0,19]/ladder[0,17]/tube[0,15]
-  void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
+  static void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
   
   /// Get TDV iterator for tube id
   int GetNTDV(int tubeid);
