@@ -1550,7 +1550,7 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 			int nanti = 0;
 			unsigned int antipatt = plvl1->AntiPatt;
 			for(int i=0;i<8;i++){ 
-				if(((antipatt>>i)&1==1) || ((antipatt>>(i+8))&1==1)) nanti++;
+				if((((antipatt>>i)&1)==1) || (((antipatt>>(i+8))&1)==1)) nanti++;
 			}
 			ACC_OK=(nanti<=ACC_max);
 			if(!ACC_OK) return false; // more than the allowed number of ACC counters hit
