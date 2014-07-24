@@ -13324,7 +13324,7 @@ if(change){
       float ret2 = newtrack2->FitT(mfit1);
       if (ret2 < 0 ||
        newtrack2->GetChisqX(mfit1) <= 0 || newtrack2->GetChisqY(mfit1) <= 0 ||
-       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2) {
+       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || (newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2)) {
            newtrack2->RemoveHitOnLayer(AMSEventR::Head()->pTrRecHit(p2[i])->GetLayer());
            newtrack2->AddHit(AMSEventR::Head()->pTrRecHit(p[i]),pmulti[i]);
        }
@@ -13804,7 +13804,7 @@ if(change){
       float ret2 = newtrack2->FitT(mfit1);
       if (ret2 < 0 ||
        newtrack2->GetChisqX(mfit1) <= 0 || newtrack2->GetChisqY(mfit1) <= 0 ||
-       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2) {
+       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || (newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2)) {
            newtrack2->RemoveHitOnLayer(AMSEventR::Head()->pTrRecHit(p2[i])->GetLayer());
            newtrack2->AddHit(AMSEventR::Head()->pTrRecHit(p[i]),pmulti[i]);
        }
