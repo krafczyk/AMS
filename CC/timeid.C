@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.152 2013/10/07 11:58:47 choutko Exp $
+//  $Id$
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -1308,7 +1308,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    tmp->tm_hour=0;
 	    tmp->tm_min=0;
 	    tmp->tm_sec=0;
-	    sprintf(_buf,"%d",mktime(tmp)-3600-tzz);
+	    sprintf(_buf,"%ld",mktime(tmp)-3600-tzz);
 	    return _buf;
 	  }
 
@@ -1532,7 +1532,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    char utmp[80];
 	    time_t timet;
 	    time(&timet);
-	    sprintf(utmp,".%d",timet);
+	    sprintf(utmp,".%ld",timet);
 	    fmaptmp+=utmp;
 	    fstream fbin;
 	    unlink(fmaptmp);

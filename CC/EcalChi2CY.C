@@ -1,5 +1,5 @@
 #include "EcalChi2CY.h"
-//  $Id: EcalChi2CY.C,v 1.38 2013/08/13 13:48:32 choutko Exp $
+//  $Id$
 #define SIZE  0.9
 
 ClassImp(EcalAxis);
@@ -1164,7 +1164,7 @@ float EcalChi2::get_chi2(int ilayer, int _norm){
 	if(_norm==1){
 	        if(_erge<15)
         	    _erge=15;
-	        if(_erge>400);
+	        if(_erge>400)
         		_erge=400;
 	        if(_ndofs[ilayer]!=0){
         	    double x=log10(_erge);

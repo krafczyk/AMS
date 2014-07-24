@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.84 2014/01/28 16:51:57 shaino Exp $
+//  $Id$
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2014/01/28 16:51:57 $
+///$Date$
 ///
-///$Revision: 1.84 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3959,7 +3959,7 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
       sdir  = -sdir;
       sdist = -sdist;
       ich++;
-      for (int k = 3; k < 6; k++) vin[k] =- vin[k];
+      for (int k = 3; k < 6; k++) vin[k] = -vin[k];
     }
 
     double step = std::min(std::min(smax, sfield), sdist);
@@ -3975,7 +3975,7 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
   }
   if (imat == 0) return -1;
 
-  if (ich%2 != 0) for (int k = 3; k < 6; k++) out[k] =- out[k];
+  if (ich%2 != 0) for (int k = 3; k < 6; k++) out[k] = -out[k];
 
   if (m55) {
     double dum[NDIM][NDIM];
@@ -4030,7 +4030,7 @@ double TrProp::VCFitParCyl(double *init, double *out, double *point)
       sdir  = -sdir;
       sdist = -sdist;
       ich++;
-      for (int k = 3; k < 6; k++) vin[k] =- vin[k];
+      for (int k = 3; k < 6; k++) vin[k] = -vin[k];
     }
 
     double step = std::min(std::min(smax, sfield), sdist);
@@ -4042,7 +4042,7 @@ double TrProp::VCFitParCyl(double *init, double *out, double *point)
       for (int i = 3; i < 6; i++) out[i] = vin[i];
     }
   }
-  if (ich%2 != 0) for (int k = 3; k < 6; k++) out[k] =- out[k];
+  if (ich%2 != 0) for (int k = 3; k < 6; k++) out[k] = -out[k];
 
   return stept;
 }

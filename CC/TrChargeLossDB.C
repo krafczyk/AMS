@@ -1,4 +1,4 @@
-// $Id: TrChargeLossDB.C,v 1.4 2013/10/31 18:23:06 choutko Exp $
+// $Id$
 
 #include "TrChargeLossDB.h"
 
@@ -111,7 +111,7 @@ double TrChargeLossDB::GetChargeLossCorrectedValue(int type, double ip, double i
     mpv0 = table->GetMPVValueOld(ip,ia);    
   }
   // overflow
-  if ( (zzz1==zzz0) ) {
+  if ( zzz1==zzz0 ) {
     zzz1 = 100;
     ref1 = 100000;
     mpv1 = 100000;

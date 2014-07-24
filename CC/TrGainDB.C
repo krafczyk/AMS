@@ -346,7 +346,7 @@ void TrLadGain::Info(int verbosity) {
     for (int iva=0; iva<16; iva++) printf("%8.4f ",GetSysErr(iva));
     printf("\n");
     printf(" %10s ","Status: ");
-    for (int iva=0; iva<16; iva++) printf("%8hX ",GetStatus(iva));
+    for (int iva=0; iva<16; iva++) printf("%8X ",GetStatus(iva));
     printf("\n");
   }
 }

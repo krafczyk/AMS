@@ -661,7 +661,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
   int fetchp=0;
   TIter nextkey(f.GetListOfKeys());
   TKey *key;
-  while (key = (TKey*)nextkey()) {
+  while ((key = (TKey*)nextkey())) {
     if(pat &&!strstr(key->GetName(),pat)){
        continue;
     }
@@ -1550,7 +1550,7 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 			int nanti = 0;
 			unsigned int antipatt = plvl1->AntiPatt;
 			for(int i=0;i<8;i++){ 
-				if(((antipatt>>i)&1==1) || ((antipatt>>(i+8))&1==1)) nanti++;
+				if((((antipatt>>i)&1)==1) || (((antipatt>>(i+8))&1)==1)) nanti++;
 			}
 			ACC_OK=(nanti<=ACC_max);
 			if(!ACC_OK) return false; // more than the allowed number of ACC counters hit
@@ -10338,9 +10338,9 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
 
        //...invert direction to simulate ParticleR dir in ams ref. system 
         AMSDir ams;
-        ams[0] =- xv[i];
-        ams[1] =- yv[i];
-        ams[2] =- zv[i];
+        ams[0] = -xv[i];
+        ams[1] = -yv[i];
+        ams[2] = -zv[i];
 
 
         // From AMS to GTOD
@@ -11291,7 +11291,7 @@ int AMSEventR::IsBadRun(const char * reason){
 
 string ss(reason);
 if(!AMSEventR::getsetup())return 2;
-if(!AMSEventR::getsetup()->fHeader.Run!=Run()){
+if(AMSEventR::getsetup()->fHeader.Run!=Run()){
 AMSEventR::getsetup()->fHeader.Run=Run();
 }
 return AMSEventR::getsetup()->IsBadRun(ss,UTime(),Run());
@@ -13324,7 +13324,7 @@ if(change){
       float ret2 = newtrack2->FitT(mfit1);
       if (ret2 < 0 ||
        newtrack2->GetChisqX(mfit1) <= 0 || newtrack2->GetChisqY(mfit1) <= 0 ||
-       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2) {
+       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || (newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2)) {
            newtrack2->RemoveHitOnLayer(AMSEventR::Head()->pTrRecHit(p2[i])->GetLayer());
            newtrack2->AddHit(AMSEventR::Head()->pTrRecHit(p[i]),pmulti[i]);
        }
@@ -13804,7 +13804,7 @@ if(change){
       float ret2 = newtrack2->FitT(mfit1);
       if (ret2 < 0 ||
        newtrack2->GetChisqX(mfit1) <= 0 || newtrack2->GetChisqY(mfit1) <= 0 ||
-       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2) {
+       newtrack2->GetNdofX (mfit1) <0 || newtrack2->GetNdofY (mfit1) < 0 || (newtrack2->GetChisq(mfit1)>chisq && fabs(newtrack2->GetRigidity(mfit1))>0.2)) {
            newtrack2->RemoveHitOnLayer(AMSEventR::Head()->pTrRecHit(p2[i])->GetLayer());
            newtrack2->AddHit(AMSEventR::Head()->pTrRecHit(p[i]),pmulti[i]);
        }

@@ -1,4 +1,4 @@
-//  $Id: TrdTFit.h,v 1.2 2012/09/25 08:00:30 choutko Exp $
+//  $Id$
 #ifndef _TRDTFIT_
 #define _TRDTFIT_
 #include <iostream>
@@ -21,7 +21,7 @@ class Tfunc{
   vector<double> residuals;
  public:
   Tfunc(double t0, double px, double px2, double py, double py2, double pz, double pz2, double lik)
-    : t0_(t0), px_(px), px2_(px2), py_(py), py2_(py2_), pz_(pz), pz2_(pz2), lik_(lik) {};
+    : t0_(t0), px_(px), px2_(px2), py_(py), py2_(py2), pz_(pz), pz2_(pz2), lik_(lik) {};
     
     
     Tfunc(double* x)

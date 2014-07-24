@@ -283,9 +283,6 @@ template <class T> void AMSsortNAG(T *rv[], integer m2){
   integer i__1;
   double d__1;
 
-  /* Builtin functions */
-  double d_mod();
-
   /* Local variables */
   static double rand;
 #ifdef _OPENMP
@@ -502,9 +499,6 @@ template <class T> void AMSsortNAGa(T rv[], integer m2){
   /* System generated locals */
   integer i__1;
   double d__1;
-
-  /* Builtin functions */
-  double d_mod();
 
   /* Local variables */
   static double rand;

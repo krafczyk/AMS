@@ -1,4 +1,4 @@
-// $Id: TofTrack.C,v 1.7 2012/05/16 09:06:27 oliva Exp $
+// $Id$
 
 
 #include "TofTrack.h"
@@ -186,7 +186,7 @@ void TofTrack::SetAssociatedTrTrack(TrTrackR* trk_track, int trk_fit_id) {
 int TofTrack::GetPattern() {
   int pattern = 0;
   for (int ilay=1; ilay<=4; ilay++) {
-    if (GetHitLayer(ilay)) pattern|=(0x1<<ilay-1);
+    if (GetHitLayer(ilay)) pattern|=(0x1<<(ilay-1));
   } 
   return pattern; 
 }
@@ -549,7 +549,6 @@ bool TofTrack::MakeTimeResiduals() {
   for (int i=0; i<4; i++) _TimeResiduals[i] = 0;
   // calculate residuals
   int nhit = GetNhits();
-  for (int i=0; i<4; i++) _TimeResiduals[i];
   for (int ihit=0; ihit<nhit; ihit++) {
     TofClusterR* cluster = (TofClusterR*) GetHit(ihit);
     if (!cluster) continue;

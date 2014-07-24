@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.178 2014/01/29 16:19:27 shaino Exp $ 
+/// $Id$ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2014/01/29 16:19:27 $
+/// $Date$
 ///
-/// $Revision: 1.178 $
+/// $Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1464,7 +1464,7 @@ if (TrDEBUG >= 2) {\
   cout << "C111 " << Form("%d %6d %4.1f | %6d %4.1f %5.1f %4.1f | ",\
 			  il, imin[il], ((imin[il] != 0) ? dmin[il] : 0),\
 			  ih[is][j], d, dtc.x(), dtc.y()) << ch[is][j];\
-  if (imin[il] = ih[is][j]) cout << " SEL";\
+  if (imin[il] == ih[is][j]) cout << " SEL";\
   cout << endl;\
 }
 
@@ -5434,7 +5434,7 @@ int TrRecon::ScanHits(const TrHitIter &itlad)
       ScanRecursive(0, it);
 
       // Check chisquare
-      if (found = (_itchit.chisq[it.side] < RecPar.MaxChisqAllowed)) break;
+      if ((found = (_itchit.chisq[it.side] < RecPar.MaxChisqAllowed))) break;
     }
     if (!found) return 0;
 
