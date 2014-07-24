@@ -161,7 +161,7 @@ void TrClusterR::Print(int opt) {
 
 void TrClusterR::_PrepareOutput(int opt){
   sout.clear();
-  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %3d  Signal(ADC): %10.3f  Edep(MeV): %8.3f  QStatus: %8hX\n",
+  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %3d  Signal(ADC): %10.3f  Edep(MeV): %8.3f  QStatus: %8X\n",
     GetTkId(),GetSide(),GetAddress(),GetNelem(),getstatus(),GetTotSignal(0),GetEdep(),GetQStatus()));
   if(!opt) return;
   if (opt>1) {
