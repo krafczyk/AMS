@@ -227,13 +227,13 @@ void TrRecHitR::Print(int opt){
 void TrRecHitR::_PrepareOutput(int opt) { 
   sout.clear();
   if(_imult>0) 
-    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d  QStatus: %8hX\n",
+    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d  QStatus: %8X\n",
 		     _tkid,_imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z(),
 		     (GetYCluster()) ? GetYCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
 		     (GetXCluster()) ? GetXCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
 		     GetCorrelationProb(),getstatus(),GetQStatus()));
   else 
-    sout.append(Form("tkid: %+03d Base  Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d  QStatus: %8hX\n",
+    sout.append(Form("tkid: %+03d Base  Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d  QStatus: %8X\n",
 		     _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),
                      (GetYCluster()) ? GetYCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
                      (GetXCluster()) ? GetXCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
