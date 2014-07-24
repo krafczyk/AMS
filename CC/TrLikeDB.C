@@ -113,7 +113,7 @@ double TrLikeDB::Interpolate(TH1* pdf, double x) {
 
 
 double TrLikeDB::Interpolate(TH1* pdf, double x, double y) {
-  if (!pdf) fabs(default_logprob);
+  if (!pdf) return fabs(default_logprob);
   if ( (x<pdf->GetXaxis()->GetXmin())||(x>pdf->GetXaxis()->GetXmax())||
        (y<pdf->GetYaxis()->GetXmin())||(y>pdf->GetYaxis()->GetXmax()) )  
     return fabs(default_logprob);
