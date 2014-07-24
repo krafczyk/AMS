@@ -5434,7 +5434,7 @@ int TrRecon::ScanHits(const TrHitIter &itlad)
       ScanRecursive(0, it);
 
       // Check chisquare
-      if (found = (_itchit.chisq[it.side] < RecPar.MaxChisqAllowed)) break;
+      if ((found = (_itchit.chisq[it.side] < RecPar.MaxChisqAllowed))) break;
     }
     if (!found) return 0;
 
