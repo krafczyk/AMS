@@ -4942,11 +4942,11 @@ static int GetRandArray(int key, int type, int n, double *array);
  * @param[in]  dist  the method used to estimate the Rcut vs Rmax distribution:
  * LxMCcutoff::_RcutVert  : vertical direction in AMS
  * LxMCcutoff::_RcutMin25 : Min direction within 25 deg
- * LxMCcutoff::_RcutIso25 : Isotropically distributed directions within 25 deg
+ * LxMCcutoff::_RcutAcc25 : Isotropically distributed directions within 25 deg
  * @return     weight  -1 in case of errors
  */
   double GetMCCutoffWeight(double rgen, double rrec, double sfac = 0.2,
-			   LxMCcutoff::eRcutDist dist = LxMCcutoff::_RcutVert);
+			   LxMCcutoff::eRcutDist dist = LxMCcutoff::_RcutAcc25);
     
 
 void GTOD2CTRS(double RPT[3],double v, double VelPT[2]);
