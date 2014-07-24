@@ -661,7 +661,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
   int fetchp=0;
   TIter nextkey(f.GetListOfKeys());
   TKey *key;
-  while (key = (TKey*)nextkey()) {
+  while ((key = (TKey*)nextkey())) {
     if(pat &&!strstr(key->GetName(),pat)){
        continue;
     }
@@ -10338,9 +10338,9 @@ int AMSEventR::GetMaxGeoCutoff( double AMSfov ,double degbin , double cutoff[2])
 
        //...invert direction to simulate ParticleR dir in ams ref. system 
         AMSDir ams;
-        ams[0] =- xv[i];
-        ams[1] =- yv[i];
-        ams[2] =- zv[i];
+        ams[0] = -xv[i];
+        ams[1] = -yv[i];
+        ams[2] = -zv[i];
 
 
         // From AMS to GTOD
