@@ -15,9 +15,9 @@
 //===========================================================================
 class TOF2TovtN: public AMSlink{
 public:
- static map<integer,TH1D>phmap;//photon number map for bar 
- static map<integer,TH1D>::iterator phmapiter;
- static map<integer,TH1D>::iterator phmapitern;
+ static map<integer,TH1D*>phmap;//photon number map for bar
+ static map<integer,TH1D*>::iterator phmapiter;
+ static map<integer,TH1D*>::iterator phmapitern;
  TOF2TovtN(){};
 //
  ~TOF2TovtN(){};
