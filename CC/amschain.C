@@ -626,7 +626,7 @@ int  AMSChain::LoadUF(char* fname){
       if(handle){
 	dlclose(handle);
       }
-      if(handle=dlopen("./libuserAMSEVD.so",RTLD_NOW)){
+      if((handle=dlopen("./libuserAMSEVD.so",RTLD_NOW))){
 	void (*fhandler)()=(void (*)())
 		dlsym(handle,"fgSelect");
 	if((error=dlerror())!=0){
@@ -1092,7 +1092,7 @@ void AMSEventList::Write(AMSChain* chain,const char * outfilename){
   cout <<"AMSEventList::ExtractFromDirs-I- Event int the chain are "<<max<<endl;
   chain->Rewind();
   for( ull  jj=0;jj< max ;jj++){
-    if(jj%ff==0) printf("AMSEventList::ExtractFromDirs-I- Done %2d %7d out of %u \n",jj/ff*grain,jj,max);
+    if(jj%ff==0) printf("AMSEventList::ExtractFromDirs-I- Done %2d %llu out of %llu \n",static_cast<int>(jj/ff*grain),jj,max);
     AMSEventR*  ev=chain->GetEvent();
     if (ev &&  Contains(ev) ){
       chain->SaveCurrentEvent();
@@ -1101,7 +1101,7 @@ void AMSEventList::Write(AMSChain* chain,const char * outfilename){
 	     , ev->Run(), ev->Event());
     }
   }
-  printf("AMSEventList found %u events out of %d\n",found,GetEntries());
+  printf("AMSEventList found %llu events out of %d\n",found,GetEntries());
   chain->CloseOutputFile();
   return;
 };
@@ -1136,7 +1136,7 @@ int AMSEventList::ExtractFromDirs(char* fname){
   TChainElement* el=0;
   TIter next(arr);
   printf("AMSEventList::ExtractFromDirs-I- chain added with %d files\nThey are:\n",arr->GetEntries());
-  while(el=(TChainElement*) next())
+  while((el=(TChainElement*) next()))
     printf("%s\n",el->GetTitle());
 
   Write(&chain);
@@ -1170,7 +1170,7 @@ int AMSChain::GenUFSkel(char* filename){
   fprintf(fname,"    // This is a user function to be modified\n");
   fprintf(fname,"    //  return true if event has to be drawn false otherwise.\n");
   fprintf(fname,"    // Example take the even event numbers\n");
-  fprintf(fname,"    if(ev && ev->Event()%2==0) return true;\n");
+  fprintf(fname,"    if(ev && (ev->Event()%%2) == 0) return true;\n");
   fprintf(fname,"    else return false;\n");
   fprintf(fname,"    }\n");
   fprintf(fname,"};\n");
@@ -1252,7 +1252,7 @@ bool timeout=Nentries<-1;
            TObjArray* arr=GetListOfFiles();
            TChainElement* el=0;
             TIter next(arr);
-            while(el=(TChainElement*) next()){
+            while((el=(TChainElement*) next())){
                string title=el->GetTitle();
                int pos=title.find(aname);
                if(pos<0){
