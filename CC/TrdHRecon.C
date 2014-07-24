@@ -487,7 +487,7 @@ bool TrdHReconR::check_hits(int is1,int is2,int debug){
       cout<<"TrdHReconR::check_hits-I-reference hit "<<i<<endl;
       cout<<" x "<<refhits[i].x()<<" expos "<<pos_x<<" ex "<<ex<<" sigma "<<sig_x<<endl;
       cout<<" y "<<refhits[i].y()<<" expos "<<pos_y<<" ey "<<ey<<" sigma "<<sig_y<<endl;
-      cout<<" matching hit (sigma<=3) ? %i\n",hit_ok[i];
+      cout<<" matching hit (sigma<=3) ? " << hit_ok[i] << endl;
     }
   }
 
