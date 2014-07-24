@@ -87,8 +87,7 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 
-CFLAGSB=  -Wno-pragmas -Wno-deprecated -Wno-write-strings   
-#CFLAGSB+= -Wall -Wfloat-equal -Wshadow -Wsign-compare -Winline 
+CFLAGSB=-Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 #OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
