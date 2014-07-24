@@ -14812,7 +14812,6 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
     double *xBin = (double*)hbin->GetXaxis()->GetXbins()->GetArray();
 
     mcc = new LxMCcutoff(sfn, new TH1D("hbin",";bin",nBin,xBin), sfac, dist);
-    delete fbin;
 
     if (!LxMCcutoff::GetHead()) {
       cerr << "AMSEventR::GetMCCutoffWeight-E-Error "
@@ -14825,6 +14824,8 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
 	   << "with bin= " << hbin->GetName() << " " 
 	   << "safetyfactor= " << sfac << " " 
 	   << "dist= " << mcc->GetRcutI()->GetName() << endl;
+
+    delete fbin;
   }
 
   int seed = (fHeader.RNDMSeed[0] > 0) ? fHeader.RNDMSeed[0] : -1;
