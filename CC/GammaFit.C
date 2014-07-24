@@ -197,7 +197,7 @@ Int_t GammaPDF::Load(const char *fname)
   Int_t nf = 0;
   TKey *key;
 
-  while (key = (TKey *)it()) {
+  while ((key = (TKey *)it())) {
     TString scn = key->GetClassName();
     if (scn == "TF1") {
       TObject *obj = fAr.FindObject(key->GetName());
