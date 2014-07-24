@@ -2044,7 +2044,7 @@ int n;
 }
 
 char KepCheck(line1,line2)
-char *line1, *line2;
+const char *line1, *line2;
 {
 	/* This function scans line 1 and line 2 of a NASA 2-Line element
 	   set and returns a 1 if the element set appears to be valid or
