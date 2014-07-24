@@ -11291,7 +11291,7 @@ int AMSEventR::IsBadRun(const char * reason){
 
 string ss(reason);
 if(!AMSEventR::getsetup())return 2;
-if(!AMSEventR::getsetup()->fHeader.Run!=Run()){
+if(AMSEventR::getsetup()->fHeader.Run!=Run()){
 AMSEventR::getsetup()->fHeader.Run=Run();
 }
 return AMSEventR::getsetup()->IsBadRun(ss,UTime(),Run());

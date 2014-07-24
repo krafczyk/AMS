@@ -3030,7 +3030,7 @@ for (BadRun_i it=ret.first;it!=ret.second;++it){
      cerr<<"AMSSetupR::IsBadRun-E-LogicError" <<it->first<<" "<<f.run<<endl;
      return 3;
   }
-  if((!time || time>=f.begin && time<=f.end) && pos>=0){
+  if((!time || (time>=f.begin && time<=f.end)) && pos>=0){
    retn=1;
    reason+=f.reason;
    reason+=" ";  
