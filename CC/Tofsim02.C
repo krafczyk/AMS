@@ -37,9 +37,9 @@
 //
 using namespace std;
 //------------------------------------------------------------------
-map<integer,TH1D> TOF2TovtN::phmap;
-map<integer,TH1D>::iterator TOF2TovtN::phmapiter;
-map<integer,TH1D>::iterator TOF2TovtN::phmapitern;
+map<integer,TH1D*> TOF2TovtN::phmap;
+map<integer,TH1D*>::iterator TOF2TovtN::phmapiter;
+map<integer,TH1D*>::iterator TOF2TovtN::phmapitern;
 
 //------------------------------------------------------------------
 number TOF2TovtN::ftdclw(){
@@ -129,10 +129,11 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
          phmapiter=phmap.find(pmtid);
          if(phmapiter==phmap.end()){
              sprintf(histn,"TOFPh_id%d",pmtid);
-             pair<integer,TH1D>phelem(pmtid,TH1D(histn,histn,ftdcnb(),0,ftdclw()));
+             pair<integer,TH1D*>phelem(pmtid,new TH1D(histn,histn,ftdcnb(),0,ftdclw()));
+             phelem.second->SetDirectory(0);
              phmap.insert(phelem);
          }
-         hph=&phmap[pmtid];
+         hph=phmap[pmtid];
        }
 //-----
       //            cout<<"pmt="<<ipm<<" sum pmt phton="<<neles<<endl;
@@ -267,8 +268,8 @@ void TOF2TovtN::build()
         ipm= id%10;
 //        cout<<"id="<<id<<endl;
 //--for pmt bin
-        for(ii=1;ii<=(*phmapiter).second.GetNbinsX();ii++){
-           nph=integer((*phmapiter).second.GetBinContent(ii));
+        for(ii=1;ii<=(*phmapiter).second->GetNbinsX();ii++){
+           nph=integer((*phmapiter).second->GetBinContent(ii));
            nphoton+=nph;
            if(nph<1)continue;//zero photon
 //------sum pulse
@@ -325,7 +326,9 @@ void TOF2TovtN::build()
        
 //    cout<<"TFNew MC photon="<<nphoton<<endl;
 //--ready clear phmap
-     phmap.clear();  
+     for(phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++)
+       delete (*phmapiter).second;
+     phmap.clear();
 //-------
 
 // <--- arrange in incr.order TOF2TovtN::SumHT/SumSHT-arrays,created by all calls to TOF2TovtN::totovt(...)-routine:

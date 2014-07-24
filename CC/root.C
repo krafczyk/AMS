@@ -14144,7 +14144,8 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
   if (!mc || mc->Charge == 0) return 0;
   double p = mc->Momentum;
   double lp=log10(p);
-  if(lp<0)lp=0;
+  double c=log10(2.);
+  if(lp<c)lp=c;
   if(lp>2)lp=2;
 
   double rnd[4];

@@ -1030,7 +1030,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
     // 2014.05.23 SH
     // Workaround to retune the MC resolution (not activated by default)
-    if (//hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
+//    if (hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
+    if (
 	TRMCFFKEY.MCtuneDmax > 0 && TRMCFFKEY.MCtuneDs != 0)
       MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
 
