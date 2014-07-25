@@ -1569,7 +1569,7 @@ number TOF2Tovt::ftztime(int &trcode){
   ewcode=Trigger2LVL1::l1trigconf.tofextwid();//ext.width code from DB/File(already redef by DC if was req)
 //5_lowsignbits/next5moresignbits=>widthExtentionCodes for TopTOF/BotTOF 
   pwextt=geant(20*(1+(ewcode&31)));//ext.width for top-coinc. signal
-  pwextb=geant(20*(1+(ewcode&(31<<5))>>5));//ext.width for bot-coins. signal
+  pwextb=geant(20*(1+((ewcode&(31<<5))>>5)));//ext.width for bot-coins. signal
 //
   geant cgate=TOF2DBc::daqpwd(6);//gate(FTZ-pulse width)(SlowZ>=2)
   trcode=-1;
