@@ -701,7 +701,7 @@ gxint :	amswd $(INTERACTIVE)
 $(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	@echo Linking $@ ...
-	$(AT)$(LD) -v -o $@  $(OBJECTSI) $(LDFLAGSI)
+	$(AT)$(LD) -o $@  $(OBJECTSI) $(LDFLAGSI)
 
 
 $(BIN)geanti.o:      $(SCC)geant.C
@@ -719,7 +719,7 @@ gxint :	amswd $(INTERACTIVE)
 $(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	@echo Linking $@ ...
-	$(AT)$(LD) -v -o $@  $(OBJECTSI) $(LDFLAGSI)
+	$(AT)$(LD) -o $@  $(OBJECTSI) $(LDFLAGSI)
 
 
 $(BIN)geant4i.o:      $(SCC)geant4.C
@@ -745,7 +745,7 @@ producer: amswd	$(CLIENT)
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+	$(AT)$(LD) $(FLAGSSTATIC) -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 
 producer6: amswd	$(CLIENT6)
@@ -754,7 +754,7 @@ producer6: amswd	$(CLIENT6)
 $(CLIENT6):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype_l6.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) $(BIN)ctype_l6.o
+	$(AT)$(LD) $(FLAGSSTATIC) -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) $(BIN)ctype_l6.o
 
 
 #---------------------------------------------------------------------------------
@@ -770,7 +770,7 @@ server: amswd	$(SERVER)
 $(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	@echo Linking $@ ...
-	$(AT)$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL)
+	$(AT)$(LD) -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL)
 
 
 #------------------------------------------------------------------------------

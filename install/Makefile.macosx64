@@ -32,7 +32,7 @@ ifneq "$(origin FF )" "environment"
 endif
   FFOLD=$(FF)
 ifneq "$(origin LD )" "environment" 
-  LD  = g++ -m64 -v
+  LD  = g++ -m64
 endif
   FORTRAN2_LIBS=
   FORTRAN_LIBS=
