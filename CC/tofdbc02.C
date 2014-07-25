@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.92 2012/05/05 19:44:05 choumilo Exp $
+//  $Id$
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2718,7 +2718,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Missing FTtime info(fatal case)[%]  :\n");
+  printf("Missing FTtime info(fatal case)[%%]  :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2737,7 +2737,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Multiple FTtime info[%]  :\n");
+  printf("Multiple FTtime info[%%]  :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2756,7 +2756,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Missing LTtime info(fatal case)[%] :\n");
+  printf("Missing LTtime info(fatal case)[%%] :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2775,7 +2775,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Missing Anode info[%] :\n");
+  printf("Missing Anode info[%%] :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2794,7 +2794,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Missing Dynode when Anode is PUX-saturated[%] :\n");
+  printf("Missing Dynode when Anode is PUX-saturated[%%] :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2813,7 +2813,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Missing History(SumHT) info [%] :\n");
+  printf("Missing History(SumHT) info [%%] :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2832,7 +2832,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Missing LTtime info [%] when Anode(Q) OK:\n");
+  printf("Missing LTtime info [%%] when Anode(Q) OK:\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2851,7 +2851,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Missing Anode(Q) info [%] when LTtime OK:\n");
+  printf("Missing Anode(Q) info [%%] when LTtime OK:\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2870,7 +2870,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Both Anode(Q) and LTtime info present [%] :\n");
+  printf("Both Anode(Q) and LTtime info present [%%] :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2947,7 +2947,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("LT(FT-correlated)/SumHT-matching Missing(%) ! :\n");
+  printf("LT(FT-correlated)/SumHT-matching Missing(%%) ! :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2966,7 +2966,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Before-hits found (in front of TrueLT)(%)  ! :\n");
+  printf("Before-hits found (in front of TrueLT)(%%)  ! :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2985,7 +2985,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("After-hits found (on back of TrueLT)(%)  ! :\n");
+  printf("After-hits found (on back of TrueLT)(%%)  ! :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
