@@ -864,7 +864,7 @@ void DAQRichBlock::builddaq(integer jinr_number,integer length,int16u *p){
       int pixel=RichPMTsManager::GetChannelID(pmtgeom,pixelgeom);
       
       // Encode channel position
-      int16u data=pmt+PMTs*pixel;+PMTs*16*(ptr->gainx5());
+      int16u data=pmt+PMTs*pixel;
       *cdp_p=data;
 	
       // Encode reduced pixel value
