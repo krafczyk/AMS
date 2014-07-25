@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.126 2012/08/02 09:21:54 choutko Exp $
+//  $Id$
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -67,20 +67,20 @@ std::set_unexpected (my_unexpected);
 #else
      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
 #endif
-      //*signal(SIGABRT,handler);
-      //   *signal(SIGFPE, handler);
-     *signal(SIGCONT, handler);
-     *signal(SIGTERM, handler);
-     *signal(SIGXCPU,handler);
-     *signal(SIGINT, handler);
-     *signal(SIGQUIT, handler);
-     *signal(SIGUSR1, handler); 
-     *signal(SIGUSR2, handler); 
-     *signal(SIGHUP, handler); 
-     *signal(SIGTSTP, handler); 
-    *signal(SIGURG, handler);
-     *signal(SIGTTIN, handler); 
-     *signal(SIGTTOU, handler); 
+      //signal(SIGABRT,handler);
+      //signal(SIGFPE, handler);
+     signal(SIGCONT, handler);
+     signal(SIGTERM, handler);
+     signal(SIGXCPU,handler);
+     signal(SIGINT, handler);
+     signal(SIGQUIT, handler);
+     signal(SIGUSR1, handler); 
+     signal(SIGUSR2, handler); 
+     signal(SIGHUP, handler); 
+     signal(SIGTSTP, handler); 
+     signal(SIGURG, handler);
+     signal(SIGTTIN, handler); 
+     signal(SIGTTOU, handler); 
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
