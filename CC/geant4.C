@@ -1773,7 +1773,7 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName(),parinfo);
   if(GCKINE.ipart==Cerenkov_photon){
     //--new TOF part
-    if((G4FFKEY.TFNewGeant4==1)){
+    if(G4FFKEY.TFNewGeant4==1){
       G4ThreeVector phver=aTrack->GetPosition();
       G4String volnam=aTrack->GetVolume()->GetName();
       bool IsTof=(volnam(0)=='T'&&(volnam(1)=='O'||volnam(1)=='F'));//not RICH region
