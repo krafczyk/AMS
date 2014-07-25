@@ -1,4 +1,4 @@
-//  $Id: cfortran.h,v 1.6 2008/12/08 15:15:19 choutko Exp $
+//  $Id$
 /* cfortran.h  4.3 */
 /* www-zeus.desy.de/~burow   OR   anonymous ftp@zebra.desy.de */
 /* Burkhard Burow  burow@desy.de                 1990 - 1998. */
@@ -771,8 +771,7 @@ typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 #define  DEFAULT_cfW(A,B)
 #define  LOGICAL_cfW(A,B)
 #define PLOGICAL_cfW(A,B) *B=F2CLOGICAL(*B);
-//#define   STRING_cfW(A,B) (A[B.clen]!='\0'?A[B.clen]='\0':0); /* A?="constnt"*/
-#define   STRING_cfW(A,B) (A[B.clen]!='\0'?0:0); /* A?="constnt"*/
+#define   STRING_cfW(A,B)
 #define  PSTRING_cfW(A,B) kill_trailing(A,' ');
 #ifdef vmsFortran
 #define  STRINGV_cfW(A,B) _cf_free(B.dsc$a_pointer);
