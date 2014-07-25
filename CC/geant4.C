@@ -57,6 +57,8 @@
 
  extern "C" void getfield_(geant& a);
 
+ static double g4_primary_momentum=0;
+
 size_t get_memory_usage() {
 
 #ifndef __DARWIN__
@@ -410,12 +412,14 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
+
  fset_reg_tracks.clear();
  fmap_det_tracks.clear();
  fset_reg_tracks.insert(1); //primary track
  fmap_det_tracks.insert( std::pair<int, std::pair<int,int> >(1, std::pair<int,int>(0,0)) );
  flast_trkid=flast_resultid=flast_processid=-1;
-
+       G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
+       g4_primary_momentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +                                       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +                                       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
 
  DAQEvent * pdaq=0;
  if(!AMSJob::gethead()->isSimulation()){
@@ -534,7 +538,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
            
 
    double tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
-   hman.Fill("cputime",primaryMomentum?log10(fabs(primaryMomentum)):-2,tt);
+   hman.Fill("cputime",primaryMomentum?log10(fabs(primaryMomentum)):-2,tt?log10(tt):-2);
  {
     float xx,yy;
     TIMEX(xx);
@@ -1003,10 +1007,10 @@ if(!Step)return;
   static integer trig=0;
   trig=(trig+1)%freq;
   static bool report=true; 
-  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit && G4FFKEY.ApplyCPULimit){
+  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_primary_momentum && G4FFKEY.ApplyCPULimit){
     freq=1;
-    GCTRAK.istop =1;
     G4Track * Track = Step->GetTrack();
+    GCTRAK.istop =1;
     Track->SetTrackStatus(fStopAndKill);
     AMSEvent::gethead()->seterror();
     if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit<<endl;
