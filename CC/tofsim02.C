@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.55 2012/05/05 19:44:07 choumilo Exp $
+//  $Id$
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -2289,7 +2289,7 @@ void TOF2RawSide::mc_build(int &status)
     if(ectrfl/10>=2){//required FTE found (LVL1 flag is used later in LVL1-build for JMembPatt)
       TOF2JobStat::addmc(19);
       ftetime=AMSEcalRawEvent::gettrtm();//abs.FTE time(JLV1 at glFT-OR input)
-      if(ftpatt&1==1)if(TFMCFFKEY.mcprtf[2]!=0)HF1(1077,geant(ftctime-ftetime),1.);//when FTC ok
+      if((ftpatt&1)==1)if(TFMCFFKEY.mcprtf[2]!=0)HF1(1077,geant(ftctime-ftetime),1.);//when FTC ok
       if(ftpatt==0)TOF2JobStat::addmc(20);// <--- count "no FT from TOF" when EC ok
       ftpatt|=(1<<2);
       if((TGL1FFKEY.printfl/10)>=3)cout<<"     foundFTE:ectrfl/ftetime="<<ectrfl<<" "<<ftetime<<endl;
