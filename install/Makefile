@@ -53,17 +53,17 @@
 ifndef  SLC6system
 SLC6system=
 ifneq "$(wildcard /etc/redhat-release)" ""
- SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
+ SLC6system := $(shell cat /etc/redhat-release 2>&1 | grep "Scientific Linux CERN SLC release 6")
 endif
 endif
 ifndef  SLC64system
 SLC64system=
 ifneq "$(wildcard /etc/redhat-release)" ""
- SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
+ SLC64system := $(shell cat /etc/redhat-release 2>&1 | grep "Scientific Linux CERN SLC release 6.4")
 endif
 ifndef SLC64system
 ifneq "$(wildcard /etc/redhat-release)" ""
- SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
+ SLC64system := $(shell cat /etc/redhat-release 2>&2 | grep "Scientific Linux CERN SLC release 6.5")
 endif
 endif
 endif
@@ -1271,7 +1271,7 @@ allold:
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
 
-ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
+ifneq "$(shell cat /etc/redhat-release 2>&1 | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
 	#@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 endif
