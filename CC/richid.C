@@ -999,7 +999,7 @@ int RichPMTsManager::GetCDPFromGeomPMTId(int pmt,int &pmt_cdp){
 
 void RichPMTsManager::GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix){
   geom_pos=GetGeomPMTID(pos);
-  if(geom_pos==-1 || pixel<0 || pixel>15) geom_pix==-1;
+  if(geom_pos==-1 || pixel<0 || pixel>15) geom_pix=-1;
   else geom_pix=_pmts[geom_pos]._channel_id2geom_id[pixel];
 }
 
