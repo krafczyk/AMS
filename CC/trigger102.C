@@ -267,7 +267,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     if((ftpatt&(1<<2))>0 && (ftpatt&3)==0)TGL1JobStat::addev(7);//was FTE-member fhen TOF-FT missed
     if((ftpatt&(1<<3))>0)TGL1JobStat::addev(8);//was EXT-member
 //---> create "central trigger"-like flag FTCT1(lut1)(exists in Lin's paper, useless):    
-    if(ftpatt&1>0){
+    if((ftpatt&1)>0){
       if(tofcpcode%10>0){//lut1
         integer nsc=0;
         ns1=0;
@@ -301,7 +301,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
 //-->Make lvl1 JoinedMembersPattern(JMembPatt includes FTC, i.e all 16 bits):
 //
-    if(ftpatt&1>0)JMembPatt|=1;//FTC
+    if((ftpatt&1)>0)JMembPatt|=1;//FTC
     if(tofcpcode%10>0)JMembPatt|=(1<<1);//FTCP0
     if(tofcpcode/10>0)JMembPatt|=(1<<2);//FTCP1
     if(toftcp1)JMembPatt|=(1<<3);//FTCT0 
