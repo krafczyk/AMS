@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.95 2012/09/18 08:32:05 choutko Exp $
+//  $Id$
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -138,7 +138,8 @@ protected:
   uinteger _usec;
 public:
   int16u _lvl3[5];
-  unsigned int _gps[7];
+  static const unsigned int _gps_count = 7;
+  unsigned int _gps[_gps_count];
   unsigned int _gpsl;
   DAQlv3 lv3;
 protected:
@@ -239,7 +240,7 @@ public:
     for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
     for (int i=0;i<sizeof(_SubCount)/sizeof(_SubCount[0]);i++)_SubCount[i]=0;
     _setcalibdata(0);_DAQEvent=this;
-    for(int k=0;k<sizeof(_gps)/sizeof(_gps[0]);k++)_gps[k]=0;
+    for(int k=0;k<_gps_count;k++)_gps[k]=0;
     _gpsl=0;
   }
   static size_t FileSize(){return _FileSize;}
