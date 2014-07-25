@@ -541,7 +541,7 @@ integer AMSgvolume::_Norp=0;
      }
      else{
         DummyCoo[1]=width*nrep;
-        DummyCoo[0]=_shape=="BOX "?_par[0]*cm:_par[1]*cm;
+        DummyCoo[0]=std::string(_shape)=="BOX "?_par[0]*cm:_par[1]*cm;
      }
      G4VSolid * dsolid=new G4Box(DummyName,DummyCoo[0],DummyCoo[1],_par[2]*cm);
      G4LogicalVolume *dlogical= new G4LogicalVolume(dsolid,
