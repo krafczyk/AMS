@@ -77,10 +77,12 @@ public:
   float MaxSigma;
   float photonEnergyCut;
   float electronEnergyCut;
+  float trdProdCut;
+  float tubeProdCut;
   void init();
   TRDMCFFKEY_DEF():TObject(){init();}
 #ifdef _PGTRACK_
-  ClassDef(TRDMCFFKEY_DEF,5);
+  ClassDef(TRDMCFFKEY_DEF,6);
 #endif
 };
 

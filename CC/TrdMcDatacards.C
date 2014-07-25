@@ -69,6 +69,8 @@ void TRDMCFFKEY_DEF::init(){
   MaxSigma=5.;
   photonEnergyCut=0.000010; // [MeV]
   electronEnergyCut=0.001;  // [MeV]
+  trdProdCut=1.0;           // [mm]
+  tubeProdCut=0.001;        // [mm]
 }
 
 TRDMCFFKEY_DEF TRDMCFFKEY;
