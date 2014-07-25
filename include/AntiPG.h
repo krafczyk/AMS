@@ -143,7 +143,7 @@ class AntiClusterR {
     return _Info;
   }
   
-  ClassDef(AntiClusterR,6);
+  ClassDef(AntiClusterR,7);
 #pragma omp threadprivate(fgIsA)
 };
 
