@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.105 2012/09/28 15:43:56 choumilo Exp $
+//  $Id$
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -820,7 +820,7 @@ void Lvl1TrigConfig::redefbydc(){
   if(TGL1FFKEY.tofextwid>=0){//redef FTZ(slowZ>=2) layers logic by request from DC
     ewcode=TGL1FFKEY.tofextwid;
     pwextt=geant(20*(1+(ewcode&31)));//ext.width for top-coinc. signal
-    pwextb=geant(20*(1+(ewcode&(31<<5))>>5));//ext.width for bot-coins. signal
+    pwextb=geant(20*(1+((ewcode&(31<<5))>>5)));//ext.width for bot-coins. signal
     if(pwextt>=260 && pwextb>=260 && pwextt<=640 && pwextb<=640) 
                                                           Trigger2LVL1::l1trigconf.tofextwid()=ewcode;
     else{
@@ -1309,7 +1309,7 @@ integer Trigger2LVL1::checktofpattor(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <TOF2GC::SCLRS);
 #endif
- return ((_tofpatt1[tof])&(1 << paddle))||((_tofpatt1[tof])&(1 << 16+paddle));
+ return ((_tofpatt1[tof])&(1 << paddle))||((_tofpatt1[tof])&(1 << (16+paddle)));
 }
 
 
@@ -1317,7 +1317,7 @@ integer Trigger2LVL1::checktofpattand(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <TOF2GC::SCLRS);
 #endif
- return ((_tofpatt1[tof])&(1 << paddle))&&((_tofpatt1[tof])&(1 << 16+paddle));
+ return ((_tofpatt1[tof])&(1 << paddle))&&((_tofpatt1[tof])&(1 << (16+paddle)));
 }
 
 
