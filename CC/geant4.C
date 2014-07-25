@@ -1003,7 +1003,7 @@ if(!Step)return;
   static integer trig=0;
   trig=(trig+1)%freq;
   static bool report=true; 
-  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit && G4FF.ApplyCPULimit){
+  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit && G4FFKEY.ApplyCPULimit){
     freq=1;
     GCTRAK.istop =1;
     G4Track * Track = Step->GetTrack();
