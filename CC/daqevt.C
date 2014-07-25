@@ -1145,7 +1145,7 @@ integer DAQEvent::_HeaderOK(){
 	TRCALIB.LaserRun=22;
 	cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
       }
-      else if(_RunType&256!=Laser && TRCALIB.LaserRun==22){
+      else if((_RunType&256)!=Laser && TRCALIB.LaserRun==22){
 	cout<<"DAQEvent::_HeaderOK-I-NormalRunDetected "<<endl;
 	TRCALIB.LaserRun=0;
       }
