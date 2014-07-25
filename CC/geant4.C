@@ -526,7 +526,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
                                        primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +
                                        primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
     if (AMSEvent::gethead()->EventSkipped()) {
-
+       hman.Fill("PAllskipped", primaryMomentum?log10(fabs(primaryMomentum)):-2); 
        hman.Fill("Pskipped", primaryMomentum);
        AMSEvent::gethead()->SetEventSkipped(false);
      }
