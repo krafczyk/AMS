@@ -17,20 +17,23 @@
 
 class LxMCcutoff {
 public:
-  enum eRcutDist { _RcutVert, _RcutMin25, _RcutIso25};
-  /*
-   * Filename should contain the TH2F with the Rcut vs Rmax distribution 
+  enum eRcutDist { _RcutVert, _RcutMin25, _RcutAcc25};
+  /* Filename should contain the TH2F with the Rcut vs Rmax distribution 
    * h is used to get the binning
    * SafetyFactor is the safety factor used to compute the threshold applied to Rrec  
    * dist  is the method used to estimate the  Rcut vs Rmax distribution:
    * _RcutVert : vertical direction in AMS is used to get Rcut
    * _RcutMin25 : Min direction within 25 deg is used to get Rcut
-   * _RcutIso25 : Isotropically distributed directions within 25 deg is used to get Rcut (not implemented yet)
+   * _RcutAcc25 : Isotropically distributed directions within 25 deg is used to get Rcut
    */
-  LxMCcutoff (const char *FileName, TH1D *h, double safetyfactor=.2, LxMCcutoff::eRcutDist dist = LxMCcutoff::_RcutVert );
+  LxMCcutoff (const char *FileName, TH1D *h, double safetyfactor=.2, LxMCcutoff::eRcutDist dist = LxMCcutoff::_RcutAcc25 );
   virtual ~LxMCcutoff ();
   double GetWeight(double Rgen,double Rrec,int randseed=-1);
   TH1D* GetExp();
+  TH2F* GetRcutI() { return RcutI; }
+  TH1D* GethExp0() { return hExp0; }
+  TH1D* GetRcut1D(){ return Rcut1D; }
+  void Reset() { hExp0->Reset(); }
 
   static LxMCcutoff *GetHead() { return Head; }
   static void  SetBinning(TH1 *hbin) { Hbin = (TH1D *)hbin; }

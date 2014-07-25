@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.168 2013/12/20 22:21:04 choutko Exp $
+//  $Id$
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2459,7 +2459,6 @@ void AMSRichRingNew::fillresult(){
   _Flatness[0] = LIPF2C.resb_flatsin[nr];
   _Flatness[1] = LIPF2C.resb_flatcos[nr];
   _ChargeRec = LIPF2C.resc_chg[nr];
-  _ChargeProb[3];
   for (int i=0;i<3;i++) {
     _ChargeProb[i] = LIPF2C.resc_chgprob[nr][i];
   }

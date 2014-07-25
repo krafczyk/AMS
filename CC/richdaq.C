@@ -407,7 +407,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     }
 
     uint16 cal_status=*(p+1);
-    if(cal_status&(0x4000)==0){
+    if((cal_status&0x4000)==0){
       cout<<"-- DAQRichBlock::buildcal Calibration status is not correct"<<endl;
       return;
     }
@@ -607,7 +607,7 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
     if(cdp.status.errors) Do(kCDPError);
 
     int CDP=cdp.status.slaveId;
-    if(secondary) if(CDP==1) CDP=9; else if(CDP==9) CDP=1;
+    if(secondary) { if(CDP==1) CDP=9; else if(CDP==9) CDP=1; }
     
     // Process data
     //    if(!cdp.status.isRaw && !cdp.status.isCompressed) Do(kCalibration);
@@ -864,7 +864,7 @@ void DAQRichBlock::builddaq(integer jinr_number,integer length,int16u *p){
       int pixel=RichPMTsManager::GetChannelID(pmtgeom,pixelgeom);
       
       // Encode channel position
-      int16u data=pmt+PMTs*pixel;+PMTs*16*(ptr->gainx5());
+      int16u data=pmt+PMTs*pixel;
       *cdp_p=data;
 	
       // Encode reduced pixel value

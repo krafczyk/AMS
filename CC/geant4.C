@@ -1654,7 +1654,8 @@ if(!Step)return;
 	      number dedxcm=1000*dee/GCTRAK.step;
 	      //      dee=dee/(1+c*atan(rkb/c*dedxcm));
 	      dee=dee/ECMCFFKEY.sbcgn;//correction for too high signal vrt g3
-	      static unsigned int np=0; if(np++<0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
+	      static unsigned int np=0; if(np==0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
+		  ++np;
 	      AMSEcalMCHit::siecalhits(PrePV->GetMother()->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
 	    }
 	  }
@@ -1773,7 +1774,7 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName(),parinfo);
   if(GCKINE.ipart==Cerenkov_photon){
     //--new TOF part
-    if((G4FFKEY.TFNewGeant4==1)){
+    if(G4FFKEY.TFNewGeant4==1){
       G4ThreeVector phver=aTrack->GetPosition();
       G4String volnam=aTrack->GetVolume()->GetName();
       bool IsTof=(volnam(0)=='T'&&(volnam(1)=='O'||volnam(1)=='F'));//not RICH region

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.105 2012/09/28 15:43:56 choumilo Exp $
+//  $Id$
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -267,7 +267,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     if((ftpatt&(1<<2))>0 && (ftpatt&3)==0)TGL1JobStat::addev(7);//was FTE-member fhen TOF-FT missed
     if((ftpatt&(1<<3))>0)TGL1JobStat::addev(8);//was EXT-member
 //---> create "central trigger"-like flag FTCT1(lut1)(exists in Lin's paper, useless):    
-    if(ftpatt&1>0){
+    if((ftpatt&1)>0){
       if(tofcpcode%10>0){//lut1
         integer nsc=0;
         ns1=0;
@@ -301,7 +301,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
 //-->Make lvl1 JoinedMembersPattern(JMembPatt includes FTC, i.e all 16 bits):
 //
-    if(ftpatt&1>0)JMembPatt|=1;//FTC
+    if((ftpatt&1)>0)JMembPatt|=1;//FTC
     if(tofcpcode%10>0)JMembPatt|=(1<<1);//FTCP0
     if(tofcpcode/10>0)JMembPatt|=(1<<2);//FTCP1
     if(toftcp1)JMembPatt|=(1<<3);//FTCT0 
@@ -820,7 +820,7 @@ void Lvl1TrigConfig::redefbydc(){
   if(TGL1FFKEY.tofextwid>=0){//redef FTZ(slowZ>=2) layers logic by request from DC
     ewcode=TGL1FFKEY.tofextwid;
     pwextt=geant(20*(1+(ewcode&31)));//ext.width for top-coinc. signal
-    pwextb=geant(20*(1+(ewcode&(31<<5))>>5));//ext.width for bot-coins. signal
+    pwextb=geant(20*(1+((ewcode&(31<<5))>>5)));//ext.width for bot-coins. signal
     if(pwextt>=260 && pwextb>=260 && pwextt<=640 && pwextb<=640) 
                                                           Trigger2LVL1::l1trigconf.tofextwid()=ewcode;
     else{
@@ -1309,7 +1309,7 @@ integer Trigger2LVL1::checktofpattor(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <TOF2GC::SCLRS);
 #endif
- return ((_tofpatt1[tof])&(1 << paddle))||((_tofpatt1[tof])&(1 << 16+paddle));
+ return ((_tofpatt1[tof])&(1 << paddle))||((_tofpatt1[tof])&(1 << (16+paddle)));
 }
 
 
@@ -1317,7 +1317,7 @@ integer Trigger2LVL1::checktofpattand(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <TOF2GC::SCLRS);
 #endif
- return ((_tofpatt1[tof])&(1 << paddle))&&((_tofpatt1[tof])&(1 << 16+paddle));
+ return ((_tofpatt1[tof])&(1 << paddle))&&((_tofpatt1[tof])&(1 << (16+paddle)));
 }
 
 

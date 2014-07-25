@@ -431,7 +431,7 @@ static void buildtofst(integer length, int16u *p);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
 uinteger & runtype, time_t & time, uinteger & usec); 
 static void buildraw2009(integer type, int16u *p, uinteger &run, uinteger &event,
-uinteger & runtype, time_t & time, uinteger & usec, int16u lvl3[], unsigned int gps[], unsigned int & gpsl); 
+uinteger & runtype, time_t & time, uinteger & usec, int16u lvl3[], unsigned int gps[], unsigned int gps_count, unsigned int & gpsl); 
 static integer getmaxblocks(){return 1;}
 static integer getmaxblocksSh(){return 1;}
 static integer calcdaqlength(integer i){return 12;}

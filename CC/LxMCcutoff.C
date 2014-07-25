@@ -23,7 +23,7 @@ LxMCcutoff::LxMCcutoff (const char *FileName,TH1D *h, double safetyfactor, LxMCc
   // dist  is the method used to estimate the  Rcut vs Rmax distribution:
   // _RcutVert : vertical direction in AMS is used to get Rcut
   // _RcutMin25 : Min direction within 25 deg is used to get Rcut
-  // _RcutIso25 : Isotropically distributed directions within 25 deg is used to get Rcut (not implemented yet)
+  // _RcutAcc25 : Isotropically distributed directions within 25 deg is used to get Rcut
   TH1D::AddDirectory(false); 
   hExp0  =  (TH1D*) h -> Clone("hExp0");
   hExp0->Reset();
@@ -35,10 +35,12 @@ LxMCcutoff::LxMCcutoff (const char *FileName,TH1D *h, double safetyfactor, LxMCc
   TH2F* Rcut ;
   if(RcutDist == LxMCcutoff::_RcutVert) Rcut = (TH2F*) in->Get("hRcut");
   else if(RcutDist == LxMCcutoff::_RcutMin25) Rcut = (TH2F*) in->Get("hRcutMin");
-  else if(RcutDist == LxMCcutoff::_RcutIso25) {
-    cout << "LxMCcutoff: _RcutIso25 option not implemented yet" << endl;
-    exit(-1);
+  else if(RcutDist == LxMCcutoff::_RcutAcc25) Rcut = (TH2F*) in->Get("hRcutAcc");
+  if (RcutDist == LxMCcutoff::_RcutAcc25 && !Rcut) {
+    cout << "LxMCcutoff::LxMCcutoff-W-hRcutAcc is not available; hRcut is used instead" << endl;
+    Rcut = (TH2F*) in->Get("hRcut");
   }
+
   delete in;
   Rcut1D = Rcut->ProjectionY("Rcut1D");
   RcutI = (TH2F*) Rcut->Clone("RcutI");;
@@ -93,7 +95,7 @@ double LxMCcutoff::GetWeight(double Rgen,double Rrec,int randseed)
     // Estimate Rthres from Rmax
     int iMax =  hExp->FindBin(Rmax*(1+SafetyFactor));
     double Rthres = hExp->GetBinLowEdge(iMax+1);
-    // Fill hExp0 to be used to compute exposure time fraction
+    // Fill hExp0, to be used to compute exposure time fraction
     hExp0->AddBinContent(iMax+1,w0);
     // True rigidity should be above Rcut and measured above Rthres
     if(Rgen>Rcut && Rrec>Rthres) Weight+=w0;
@@ -117,6 +119,6 @@ TH1D* LxMCcutoff::GetExp()
       hExp->SetBinContent(ix,1.);
     }
   }
-  hExp->SetBit(TH1::kIsAverage);
+  //hExp->SetBit(TH1::kIsAverage);
   return hExp;
 }

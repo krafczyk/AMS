@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.242 2012/08/18 12:02:06 mkrafczy Exp $
+//  $Id$
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1226,7 +1226,7 @@ integer DAQEvent::_HeaderOK(){
 
     else if(int stype=AMSEvent::checkdaqid2009(*(_pcur+_cll(_pcur)))){
       //      AMSEvent::buildraw2009(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
-      AMSEvent::buildraw2009(stype,_pcur+1, _Run,_Event,_RunType,_Time,_usec,_lvl3,_gps,_gpsl);
+      AMSEvent::buildraw2009(stype,_pcur+1, _Run,_Event,_RunType,_Time,_usec,_lvl3,_gps,_gps_count,_gpsl);
       TRCALIB.Version=1;
       DAQCFFKEY.DAQVersion=0;
       if(AMSJob::gethead()->isRealData())DAQCFFKEY.DAQVersion=1;  
@@ -1890,7 +1890,7 @@ void DAQEvent::select(){
   DAQEvent::_BufferLock=0;
   DAQEvent daq;
   int ok;
-  while(ok=daq.read()){
+  while((ok=daq.read())){
     if(daq.runno() == SELECTFFKEY.Run &&
        daq.eventno() >= SELECTFFKEY.Event)break;
     daq.shrink();

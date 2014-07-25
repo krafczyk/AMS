@@ -3631,7 +3631,7 @@ void AMSEvent::buildraw(
 
 void AMSEvent::buildraw2009(
               integer type, int16u *p, uinteger & run, uinteger &id,
-              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[], unsigned int _GPS[], unsigned int &_GPSL){
+              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[], unsigned int _GPS[], unsigned int GPS_COUNT, unsigned int &_GPSL){
 
 
     id=(*(p+6)) |  (*(p+5))<<16;
@@ -3647,7 +3647,7 @@ void AMSEvent::buildraw2009(
    if(time<1000000000 && AMSJob::gethead()->isRealData()){
         time+=_OffsetT;
     }
-    for(int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)_GPS[k]=0;
+    for(int k=0;k<GPS_COUNT;k++)_GPS[k]=0;
     _GPSL=0;
     // lvl3
     for(int k=0;k<5;k++)lvl3[k]=0;

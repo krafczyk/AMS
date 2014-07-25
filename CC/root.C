@@ -14781,13 +14781,6 @@ int AMSEventR::GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu,
 double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
 				    double sfac, LxMCcutoff::eRcutDist dist)
 {
-  if (dist == LxMCcutoff::_RcutIso25) {
-      cerr << "AMSEventR::GetMCCutoffWeight-E-"
-	      "_RcutIso25 option not implemented yet" << endl;
-      return -1;
-  }
-
-
   LxMCcutoff *mcc = LxMCcutoff::GetHead();
   if (mcc &&
       (TMath::Abs(mcc->SafetyFactor-sfac) > 0.001 || mcc->RcutDist != dist)) {
@@ -14815,8 +14808,10 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
     TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
     if (getenv("RcutAll")) sfn = getenv("RcutAll");
 
-    mcc = new LxMCcutoff(sfn, hbin, sfac, dist);
-    delete fbin;
+    int nBin = hbin->GetNbinsX();
+    double *xBin = (double*)hbin->GetXaxis()->GetXbins()->GetArray();
+
+    mcc = new LxMCcutoff(sfn, new TH1D("hbin",";bin",nBin,xBin), sfac, dist);
 
     if (!LxMCcutoff::GetHead()) {
       cerr << "AMSEventR::GetMCCutoffWeight-E-Error "
@@ -14824,6 +14819,13 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
       delete mcc;
       return -1;
     }
+    else
+      cout << "AMSEventR::GetMCCutoffWeight-I-Creating LxMCcutoff instance "
+	   << "with bin= " << hbin->GetName() << " " 
+	   << "safetyfactor= " << sfac << " " 
+	   << "dist= " << mcc->GetRcutI()->GetName() << endl;
+
+    delete fbin;
   }
 
   int seed = (fHeader.RNDMSeed[0] > 0) ? fHeader.RNDMSeed[0] : -1;

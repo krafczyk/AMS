@@ -66,7 +66,7 @@ void AMSRichCal::initCuts(){
 }
 
 // Macros to facilitate using these guys
-#define SELECT(_name,_condition) {if(!select(_name,(_condition))) return false;}
+#define SELECT(_name,_condition) {if(!select(_name,(_condition))) return 0; }
 #define EVERY(_counter)  {\
 static int _ANONYMOUS_=-1;\
 _ANONYMOUS_++;\

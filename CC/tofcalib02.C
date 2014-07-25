@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.60 2012/07/27 15:00:11 pzuccon Exp $
+//  $Id$
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -3204,7 +3204,7 @@ void TofTmAmCalib::fitam(){
             jmax=j;
           }
         }
-        if(TFCAFFKEY.hprintf>1 || (ibt==0 || ibt==2 || ibt==4 || ibt==7)&&(ibn<3 || ibn>nbnr-4))HPRINT(1599);
+        if(TFCAFFKEY.hprintf>1 || ((ibt==0 || ibt==2 || ibt==4 || ibt==7)&&(ibn<3 || ibn>nbnr-4)))HPRINT(1599);
         strcpy(eltit,htit1);
 //---
         prl[1]=bnl;// some more realistic init.values from histogr.
