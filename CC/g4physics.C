@@ -1213,6 +1213,8 @@ void AMSG4Physics::_init(){
   geant *g3mass = new geant[g3part];
   geant *g3charge = new geant[g3part];
   G4ParticleDefinition** g3tog4p= new G4ParticleDefinition*[g3part];
+  for (unsigned int i = 0; i < g3part; ++i)
+    g3tog4p[i] = 0;
   g3part=0;
   for(ipart=0;ipart<1000;ipart++){
     char chp[22]="";
