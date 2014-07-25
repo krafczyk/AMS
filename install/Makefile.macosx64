@@ -35,7 +35,8 @@ ifneq "$(origin LD )" "environment"
   LD  = g++ -m64 -v
 endif
   FORTRAN2_LIBS=
-  FORTRAN_LIBS+= -L/usr/local/gfortran/lib -lgfortran 
+  FORTRAN_LIBS=
+  FORTRAN_LIBS= -L${GFORTRAN_DIR}/lib -lgfortran
 
 
 ORBIT2DIR=/opt/Orbit2
@@ -103,9 +104,14 @@ CFLAGSTOFSIM= $(CFLAGSB)
 CFLAGSn=      $(CFLAGSB)
 CFLAGSDAQ=    $(CFLAGSB) 
 
-FFLAGS=       -fno-automatic -DNO_NAG 
-FFLAGSn=      -fno-automatic -DNO_NAG
+FFLAGS=       -fno-automatic
+FFLAGSn=      -fno-automatic
 
+ifdef NO_NAG
+DEFINES+=      -DNO_NAG
+FFLAGS+=       -DNO_NAG
+FFLAGSn+=      -DNO_NAG
+endif
 
 ifdef AMSPROFILE 
   FFLAGS+=-pg
@@ -158,7 +164,6 @@ endif
 TIMEL=
 
 LDFLAGSI=      $(FORTRAN2_LIBS) \
--L$(NAGDIR)  -lnag \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lMinuit -lfreetype\
@@ -167,11 +172,20 @@ LDFLAGSI=      $(FORTRAN2_LIBS) \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=      $(FORTRAN2_LIBS) \
--L$(NAGDIR)  -lnag  \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
 `root-config --libs` -lMinuit -lGeom -lHistPainter -lTMVA -lXMLIO -lMLP -lTreePlayer -lz\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
+
+ifndef NO_NAG
+LDFLAGSI += -L$(NAGDIR)  -lnag
+LDFLAGS += -L$(NAGDIR)  -lnag
+endif
+
+ifdef G4AMS
+LDFLAGSI += $(G4LIBS)
+LDFLAGS += $(G4LIBS)
+endif
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg

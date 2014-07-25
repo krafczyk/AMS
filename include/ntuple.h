@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.152 2014/02/06 15:48:00 ccorti Exp $
+//  $Id$
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -1019,7 +1019,7 @@ public:
   AMSNtuple(integer lun, char* name);
   static void Bell();
 #ifdef __DARWIN__
-  static  int _select( dirent *entry);
+  static  int _select(  const dirent *entry);
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
   static  int _select(  const dirent64 *entry);

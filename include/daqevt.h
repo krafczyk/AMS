@@ -222,9 +222,8 @@ protected:
   static int _sort(const dirent64 **e1, const dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
 #ifdef __DARWIN__
-  static integer _select(dirent * entry=0);
-  static int _sort(const void* e1,  const void* e2){
-    return strcmp(  (*((dirent**)e1))->d_name,(*((dirent**)e2))->d_name);}
+  static integer _select(const dirent * entry=0);
+  static int _sort(const dirent **e1, const dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
 public:
   static void setRootDir(char *rootdir=0);

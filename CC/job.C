@@ -60,6 +60,10 @@
 
 #endif
 
+#ifdef __DARWIN__
+#include <unistd.h> // For unlink()
+#endif
+
 #include "mccluster.h"
 #include "job.h"
 #include "event.h"
