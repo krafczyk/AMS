@@ -148,8 +148,8 @@ endif
 # Setup compiler variables
 ########################################################################
 
-  FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELBIN)/icc  $(INTELOPT) -vec-report0  $(PARALLEL)
+  FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
+  CXX=$(INTELBIN)/icc  $(INTELOPT) -vec-report0  -diag-disable cpu-dispatch $(PARALLEL)
   CC=$(INTELBIN)/icc   $(INTELOPT) $(PARALLEL) 
   LD=$(INTELBIN)/icpc  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save
