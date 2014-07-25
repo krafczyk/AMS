@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.17 2013/08/07 16:19:20 choutko Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2013/08/07 16:19:20 $
+///$Date$
 ///
-///$Revision: 1.17 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -311,7 +311,7 @@ void TrCalDB::updtrcalib2009S(integer n, int16u* p){
     AMSID aa("TrackerCals",AMSJob::gethead()->isRealData());
     ptdv = gg->gettimestructure(aa);
 
-    printf("tdv vale 0x%x\n",ptdv);
+    printf("tdv vale 0x%p\n",ptdv);
     printf("telav\n");
     cout<<*ptdv<<endl; 
     if(!ptdv) {
@@ -400,7 +400,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     if(pri>0) printf("Reading Sigma-High\n");
     for (int ii=0;ii<1024;ii++){
       // if(pri>0) printf("Sigma High  %d  %d\n",ii,(short int)*rr));
-      *(rr++);
+      (void) *(rr++);
     }
   }
 
@@ -477,7 +477,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     // to get the real occupancy value you will have to mask the value with 0x7FFF
     if(pri>0) printf("Reading Non-Gaussian Occupancy Table from data\n");
     for (int ii=0;ii<1024;ii++) {
-      *(rr++);
+      (void) *(rr++);
     }
   }
 
@@ -496,7 +496,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   cal.usedev=*(rr++);          if(pri>0) printf("Used triggers %d\n",cal.usedev);
   cal.calstatus=*(rr++);       if(pri>0) printf("Calibration status 0x%04X\n",cal.calstatus);
   int TDRStat=*(rr++);         if(pri>0) printf("TDR status 0x%04X\n",TDRStat);
-  if(pri>0) printf("---------> READ   %hd  word for this cal\n",rr-offset);
+  if(pri>0) printf("---------> READ   %ld  word for this cal\n",rr-offset);
 
   // Fill the Calibration object
   // int hwid=((bb->node-282)/24)*100+(bb->node-282)%24;
