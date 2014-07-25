@@ -607,7 +607,7 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
     if(cdp.status.errors) Do(kCDPError);
 
     int CDP=cdp.status.slaveId;
-    if(secondary) if(CDP==1) CDP=9; else if(CDP==9) CDP=1;
+    if(secondary) { if(CDP==1) CDP=9; else if(CDP==9) CDP=1; }
     
     // Process data
     //    if(!cdp.status.isRaw && !cdp.status.isCompressed) Do(kCalibration);
