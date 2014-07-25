@@ -420,7 +420,7 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
  flast_trkid=flast_resultid=flast_processid=-1;
        G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
        g4_primary_momentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +                                       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +                                       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
-
+//     cout <<" &&&&7 primary "<<g4_primary_momentum<<endl;
  DAQEvent * pdaq=0;
  if(!AMSJob::gethead()->isSimulation()){
     //
@@ -1007,7 +1007,7 @@ if(!Step)return;
   static integer trig=0;
   trig=(trig+1)%freq;
   static bool report=true; 
-  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_primary_momentum && G4FFKEY.ApplyCPULimit){
+  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+2*g4_primary_momentum && G4FFKEY.ApplyCPULimit){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
