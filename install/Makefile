@@ -1191,7 +1191,7 @@ touch_depend:
 
 $(BIN)Make-depend:    $(INCS)
 		@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
+ifneq "$(shell du -a  $(BIN)Make-depend 2>&1 | grep -c  ake)" "1"
 		 @touch $(BIN)Make-depend
 endif
 		@echo Running makedepend ...

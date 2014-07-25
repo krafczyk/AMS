@@ -7,7 +7,7 @@
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-VERGCC       := $(shell gcc --version | grep 4.1)
+VERGCC       := $(shell gcc --version 2>&1| grep 4.1)
 
 ifdef VER
 NEW = 
