@@ -1164,7 +1164,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     if(ECREFFKEY.reprtf[2]>1)EventBitDump(reflen-1,p,"Event-by-event bit Dump :");
   }
 //
-  if(calstat&(0x4000)==0){
+  if((calstat&(0x4000))==0){
     if(ECREFFKEY.reprtf[2]>0){
       cout<<"<------ In BuilOnbPed:Bad CalStat,crat="<<crat<<" EDR="<<slot+1<<endl;
     }
@@ -1172,7 +1172,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     goto Exit;
   }
 //
-  if(calstat&(0xF)>0){
+  if((calstat&(0xF))>0){
     EcalJobStat::daqs3(crat-1,slot,2);//crazy bit entries
   }
 //---

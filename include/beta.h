@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.21 2011/04/25 14:02:58 choutko Exp $
+//  $Id$
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -61,7 +61,7 @@ protected:
   number getbeta()const{return (checkstatus(AMSDBc::BAD)|| BETAFITFFKEY.MassFromBetaRaw)?_Beta:_BetaC;}
   number getebeta()const{return (checkstatus(AMSDBc::BAD)|| BETAFITFFKEY.MassFromBetaRaw)?_InvErrBeta:_InvErrBetaC;}
   integer getpattern()const{return _Pattern&0x7ffff;}
-  void SetAlternateContainer(){_Pattern|0x80000;}
+  void SetAlternateContainer(){_Pattern|=0x80000;}
   bool IsAlternateContainer(){return (_Pattern&0x80000)>0;}
   //! The signed distance along the track from the tof cluster to the plan Z=0
   number getlenght(int tofclusindex) {return (tofclusindex>=0 && tofclusindex<4 )? _sleng[tofclusindex]:0;}

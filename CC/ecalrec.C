@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.183 2014/01/24 16:00:33 incaglim Exp $
+//  $Id$
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1033,7 +1033,7 @@ void AMSEcalHit::build(int &stat){
         edepgd=0;//PM(4xSubc) "nonoverflowed" energy 
 	nsubco=0;//number of overflowed subcells
         for(i=0;i<nsubc;i++){//count l-ch ovfls
-	  if(bsta[i]&AMSDBc::AOVERFLOW>0)nsubco+=1;
+	  if((bsta[i]&AMSDBc::AOVERFLOW)>0)nsubco+=1;
 	  else edepgd+=bedep[i]; 
 	}
 	if(dychok>0 && nsubco>0)etrue=(dedep-edepgd)/geant(nsubco);

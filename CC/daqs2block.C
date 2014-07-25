@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.49 2011/03/19 16:13:35 choumilo Exp $
+//  $Id$
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -1698,7 +1698,7 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   }
   TOF2JobStat::daqscr(2,crat-1,0);// entries/crate
 //---
-  if(calstat&(0x4000)==0){
+  if((calstat&(0x4000))==0){
     if(TFREFFKEY.reprtf[3]>0){
       cout<<"<------ In BuilOnbPed:Bad CalStat,crat="<<crat<<endl;
     }
@@ -1706,7 +1706,7 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
     goto Exit;
   }
 //---
-  if(calstat&(0xF)>0){
+  if((calstat&(0xF))>0){
     TOF2JobStat::daqscr(2,crat-1,2);//crazy bit entries
   }
 //---

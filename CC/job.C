@@ -3895,7 +3895,7 @@ void AMSJob::_timeinitjob(){
     }
 //    }
     //
-    if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
+    if((isCalibration() & CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
       if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
       time_t bdbw=MISCFFKEY.dbwrbeg;
       time_t edbw=MISCFFKEY.dbwrend;
@@ -4086,7 +4086,7 @@ void AMSJob::_timeinitjob(){
     end.tm_isdst=0;
     int needval=1;
  
-    if((isCalibration() && CAnti) && AMSFFKEY.Update>0){
+    if((isCalibration() & CAnti) && AMSFFKEY.Update>0){
       if(ATREFFKEY.relogic==3)needval=0;//only for ds acc-peds to DB
       time_t bdbw=MISCFFKEY.dbwrbeg;
       time_t edbw=MISCFFKEY.dbwrend;
@@ -4297,7 +4297,7 @@ void AMSJob::_timeinitjob(){
     end.tm_isdst=0;
     int needval=1;
     //
-    if((isCalibration() && CEcal) && AMSFFKEY.Update>0){//only for 
+    if((isCalibration() & CEcal) && AMSFFKEY.Update>0){//only for 
       if(ECREFFKEY.relogic[1]==5)needval=0;//only for ds ECAL-peds to DB
       time_t bdbw=MISCFFKEY.dbwrbeg;
       time_t edbw=MISCFFKEY.dbwrend;
