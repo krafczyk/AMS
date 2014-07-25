@@ -1175,6 +1175,7 @@ class G4FFKEY_DEF{
 
   int DumpCrossSectionsAt;
   int DumpCrossSectionsZt;
+  int ApplyCPULimit;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
