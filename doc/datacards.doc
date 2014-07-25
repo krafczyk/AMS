@@ -49,6 +49,7 @@ R488 ExtAlignErrorThreshold[2](-1,-1) // Maximum error in Madrid external
                                       //alignment parameters allowed in whole run 
                                       //for layer 1([0]) and layer 9([1]) in microns.
                                       // Negative values are ignored.   
+
 //IO
 
 IOPA 
@@ -742,8 +743,11 @@ I 19 DumpCrossSections(0)  // 0 nothing
                            // 1 dump inelastic cross sections for proton, helium and carbon projectiles over carbon
                            // 2 make a MC dry-run to calculate interaction probabilities P(C->X) for process C12 + C12 -> X + stuff (avoid this with production) 
 R 20 HCrossectionBias(1)    // Change (hadronic) crossection by multiplying by this number 
-I 21 DumpCrossSectionsAt(12)  // Target mass   number for DumpCrossSections
-I 22 DumpCrossSectionsZt(6)   // Target atomic number for DumpCrossSections
+I21 DumpCrossSectionsAt(12)  // Target mass   number for DumpCrossSections
+I22 DumpCrossSectionsZt(6)   // Target atomic number for DumpCrossSections
+I23 ApplyCPULimit(1)         // apply or not cpulimt
+
+
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
