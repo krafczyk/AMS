@@ -422,10 +422,10 @@ void HistoMan::BookHistos(int simmode){
     Add(TH2D_L("Pgen", "Pgen", 5000, 1e-1, 1e4, 200, -1, 1, 1, 0));
     Add(TH2D_L("Pacc", "Pacc", 5000, 1e-1, 1e4, 200, -1, 1, 1, 0));
     // events that were skipped because of exceeded CPU time limit
-    Add(TH1F_L("Pskipped", "Pskipped", 10000, 0.01, 10000));
-    Add(TH1F_L("PAll", "PAll", 1000, -1., 4.));
-    Add(TH2F_L("cputime", "cputime", 1000, -1., 4.,100,0.,5.));
-    Add(TH1F_L("PAllskipped", "PAll", 1000, -1., 4.));
+    Add(new TH1F("Pskipped", "Pskipped", 10000, 0.01, 10000));
+    Add(new TH1F("PAll", "PAll", 1000, -1., 4.));
+    Add(new TH2F("cputime", "cputime", 1000, -1., 4.,100,0.,5.));
+    Add(new TH1F("PAllskipped", "PAllskipped", 1000, -1., 4.));
     Add(new TH2D("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2D("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
 
