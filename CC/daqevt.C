@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.242 2012/08/18 12:02:06 mkrafczy Exp $
+//  $Id$
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1890,7 +1890,7 @@ void DAQEvent::select(){
   DAQEvent::_BufferLock=0;
   DAQEvent daq;
   int ok;
-  while(ok=daq.read()){
+  while((ok=daq.read())){
     if(daq.runno() == SELECTFFKEY.Run &&
        daq.eventno() >= SELECTFFKEY.Event)break;
     daq.shrink();
