@@ -827,7 +827,7 @@ static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	@echo Creating static Library $(NTLD) ...
-	$(AT)$(AR) rv   $(NTLD) $(SHLIBBO)
+	$(AT)$(AR) r   $(NTLD) $(SHLIBBO)
 
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
