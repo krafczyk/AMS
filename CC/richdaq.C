@@ -407,7 +407,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     }
 
     uint16 cal_status=*(p+1);
-    if(cal_status&(0x4000)==0){
+    if((cal_status&0x4000)==0){
       cout<<"-- DAQRichBlock::buildcal Calibration status is not correct"<<endl;
       return;
     }
