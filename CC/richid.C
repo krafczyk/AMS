@@ -959,7 +959,7 @@ geant& RichPMTsManager::_Eff(int Geom_id,int Geom_Channel){
 
 
 int RichPMTsManager::GetGeomPMTID(int pos){
-  for(int i=0;i<RICmaxpmts;i++) if(_pmts[i]._pos=pos) return i;
+  for(int i=0;i<RICmaxpmts;i++) if(_pmts[i]._pos==pos) return i;
   return -1;
 }
 
