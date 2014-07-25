@@ -531,9 +531,10 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
        AMSEvent::gethead()->SetEventSkipped(false);
      }
        hman.Fill("PAll", primaryMomentum?log10(fabs(primaryMomentum)):-2);
-    
+           
 
-   AMSgObj::BookTimer.stop("GEANTTRACKING");
+   double tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
+   hman.Fill("cputime",primaryMomentum?log10(fabs(primaryMomentum)):-2,tt);
  {
     float xx,yy;
     TIMEX(xx);
