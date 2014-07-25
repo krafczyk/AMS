@@ -57,13 +57,8 @@ ifeq ($(ARCH),linuxicc)
   INTELDIR=/opt/intel/
   INTELVER=Compiler/11.0/069/
   INTELOPT=-axsse4.2 
-ifeq "$(VERBOSE)" "1"
   FF=$(INTELDIR)/$(INTELVER)/bin/ia32/ifort -W0 -m32 $(INTELOPT)  -vec-report0 $(PARALLEL)
   CXX=$(INTELDIR)/$(INTELVER)/bin/ia32/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
-else
-  FF=$(INTELDIR)/$(INTELVER)/bin/ia32/ifort -W0 -m32 $(INTELOPT)  $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/ia32/icc  -m32 $(INTELOPT)  $(PARALLEL)
-endif
   CC=$(INTELDIR)/$(INTELVER)/bin/ia32/icc  -m32  $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVER)/bin/ia32/icpc -m32  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -tpp6 -xi

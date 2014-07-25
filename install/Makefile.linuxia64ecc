@@ -57,13 +57,8 @@ endif
   INTELDIR=/opt/intel/
   INTELVER=Compiler/11.1/075/
   INTELOPT= 
-ifeq "$(VERBOSE)" "1"
   FF=$(INTELDIR)/$(INTELVER)/bin/ia64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
   CXX=$(INTELDIR)/$(INTELVER)/bin/ia64/icc   $(INTELOPT) -vec-report0  $(PARALLEL)
-else
-  FF=$(INTELDIR)/$(INTELVER)/bin/ia64/ifort -W0  $(INTELOPT) $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/ia64/icc   $(INTELOPT) $(PARALLEL)
-endif
   CC=$(INTELDIR)/$(INTELVER)/bin/ia64/icc    $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVER)/bin/ia64/icpc   $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save
