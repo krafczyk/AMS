@@ -77,6 +77,10 @@ extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *v
 static geant   Tcpu0 = 0; 
 static time_t  T0    = 0;
 
+#ifdef __DARWIN__
+#include <unistd.h> // For sleep()
+#endif
+
 #ifdef __DB__
 
 #include <dbS.h>

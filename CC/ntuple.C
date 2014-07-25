@@ -1279,7 +1279,7 @@ char name[256]="";
 }
 
 #ifdef __DARWIN__
-integer AMSNtuple::_select(  dirent *entry)
+integer AMSNtuple::_select(  const dirent *entry)
 #endif
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 integer AMSNtuple::_select(  const dirent64 *entry)

@@ -47,8 +47,28 @@
 #ifdef G4VIS_USE
 #include "g4visman.h"
 #endif
+
+#ifndef __DARWIN__
 #include <malloc.h>
+#else
+#include <mach/task.h>
+#include <mach/mach_init.h>
+#endif
+
  extern "C" void getfield_(geant& a);
+
+size_t get_memory_usage() {
+
+#ifndef __DARWIN__
+  struct mallinfo m = mallinfo();
+  return m.uordblks + m.arena;
+#else
+  struct task_basic_info t_info;
+  mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+  task_info(current_task(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count);
+  return t_info.resident_size;
+#endif
+}
 
 AMSG4Physics * pph = new AMSG4Physics();
 
@@ -522,12 +542,11 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
     }
   }
 
-    struct mallinfo m=mallinfo();
    static unsigned int minit=0;
-    unsigned int mall=m.uordblks+m.arena;
+    unsigned int mall=get_memory_usage();
     if(minit==0){
       minit=mall;
-      cout<<"  AMSG4EventAction::EndOfEventAction-I-InitialMemoryAllocation "<<m.arena<<" "<<m.uordblks<<" "<<minit<<" "<<G4FFKEY.MemoryLimit<<endl;
+      cout<<"  AMSG4EventAction::EndOfEventAction-I-InitialMemoryAllocation "<<mall<<" "<<minit<<" "<<G4FFKEY.MemoryLimit<<endl;
       
     }
     if(gams::mem_not_enough(2*102400)){
@@ -537,15 +556,15 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
     if(G4FFKEY.MemoryLimit>0 && mall-minit>G4FFKEY.MemoryLimit){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
-      cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<m.arena<<" "<<m.uordblks<<endl;
+      cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<mall<<endl;
 #ifdef __G4MODIFIED__
       G4EventManager::GetEventManager()->trackContainer->clear();
       G4EventManager::GetEventManager()->trackContainer->ClearPostponeStack();
       G4StackedTrack::ResetMemory();
-      m=mallinfo();
-      cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<m.arena+m.uordblks<<endl;
+      mall = get_memory_usage();
+      cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<mall<<endl;
 #endif
-      cerr<<"  AMSG4EventAction::EndOfEventAction-W-TerminatingRun "<<m.arena+m.uordblks<<" "<<G4FFKEY.MemoryLimit<<endl;
+      cerr<<"  AMSG4EventAction::EndOfEventAction-W-TerminatingRun "<<mall<<" "<<G4FFKEY.MemoryLimit<<endl;
 
       
     } 

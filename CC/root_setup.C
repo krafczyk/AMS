@@ -17,6 +17,10 @@
 #include "commonsi.h"
 #endif
 
+#ifdef __DARWIN__
+#include <unistd.h> // For getpid()
+#endif
+
 extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *vp, float *grmedphi, double time);
 extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 

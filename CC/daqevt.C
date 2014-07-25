@@ -2491,7 +2491,7 @@ int DAQEvent::parser(char a[], char **& fname){
 
 #if defined(__DARWIN__)
     dirent ** namelist;
-    ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
+    ntot=scandir((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const dirent **, const dirent **)>(&_sort));
 #elif defined(__LINUXSLC6__)
     dirent64 ** namelist;
     ntot=scandir64((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const dirent64 **, const dirent64 **)>(&_sort));
@@ -2620,7 +2620,7 @@ integer DAQEvent::_select(dirent64 *entry)
   integer DAQEvent::_select(const dirent64 *entry)
 #endif
 #ifdef __DARWIN__
-  integer DAQEvent::_select( dirent *entry)
+  integer DAQEvent::_select( const dirent *entry)
 #endif
 {
   for(int i=0;i<strlen(entry->d_name);i++){

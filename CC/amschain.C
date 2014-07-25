@@ -615,7 +615,7 @@ int  AMSChain::LoadUF(char* fname){
   cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
   int $i=system(cmd);
   if(!$i){
-#ifdef __APPLE__
+#ifdef __DARWIN__
     sprintf(cmd1,"ld  -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
 #else
     sprintf(cmd1,"ld %s  -shared %s.o -o libuserAMSEVD.so",elf,nameonly.c_str());

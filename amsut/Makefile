@@ -82,8 +82,7 @@ DEFINES=
   CXX      = icpc 
   LD       = icpc
 endif
-ifeq ($(ARCH), Darwin)
-DEFINES  = -D__DARWIN__
+ifeq ($(ARCH), macosx64)
 FC=gfortran -m64
 CXX      = g++  
 LD       = g++ 

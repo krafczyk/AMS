@@ -310,8 +310,11 @@ COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  $(SFF)tr
 
 #Utils
 COMMON_FILES +=  $(SCC)commons.C  $(SCC)cern.C    $(SFF)sgif.F   $(SCC)rnormx.C  $(SFF)geocoor.F     \
-		 $(SCC)status.C   $(SCC)user.C    $(SCC)timelx.c $(SFF)e04ccf.f	 
-#
+		 $(SCC)status.C   $(SCC)user.C    $(SCC)timelx.c 
+
+ifndef NO_NAG
+  COMMON_FILES += $(SFF)e04ccf.f
+endif
 
 ifndef PGTRACK
 COMMON_FILES += $(SFF)mtx2.F     $(SFF)fint_my.F 

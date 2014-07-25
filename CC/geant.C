@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.138 2013/11/03 09:30:02 choutko Exp $
+//  $Id$
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -44,7 +44,9 @@
 #include "commons.h"
 #include <math.h>
 #include <sys/resource.h>
+#ifndef __DARWIN__
 #include <sys/sysinfo.h>
+#endif
 #ifndef _PGTRACK_
 #include "trid.h"
 #else
@@ -332,6 +334,10 @@ if (IOPA.WriteTGeometry>1) {
 
 int gams::mem_not_enough(int Threshold)
 {
+#ifdef __DARWIN__
+  // FIXME: Implement memory allocation protection for Mac OS X.
+  return 0;
+#else
    using std::ios_base;
    using std::ifstream;
    using std::string;
@@ -365,6 +371,7 @@ int gams::mem_not_enough(int Threshold)
      return 1;
    }
    return 0;
+#endif
 }
 
 
