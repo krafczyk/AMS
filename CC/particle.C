@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.261 2012/11/29 12:45:08 chchung Exp $
+//  $Id$
 
 // Author V. Choutko 6-june-1996
 
@@ -789,10 +789,11 @@ void AMSParticle::richfit(){
       if(ptr->gettrack()==real_track){
 	if(ptr->getused()>2) _prich=ptr;
 	if(! ptr->IsGood() && ptr->next())
-	  if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2)
+	  if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2) {
 	    if(RICRECFFKEY.recon[1]%10){
 	      if(ptr->next()->getprob()>ptr->getprob() && ptr->next()->getused()>2) _prich=ptr->next();
 	    }else _prich=ptr->next();
+	  }
 	//	  if(ptr->getused()>2 & ptr->IsGood())_prich=ptr;
 	break;
       }
