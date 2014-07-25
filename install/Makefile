@@ -898,7 +898,7 @@ $(BIN)rootdict.o:         $(BIN)rootdict.C
 
 $(BIN)commonsi.o:	$(BIN)commonsi_time.C
 	@echo Compiling  $< ...
-  $(AT)$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o
+	$(AT)$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o
 
 $(BIN)daqevt.o:         $(SCC)daqevt.C
 	@echo Compiling  $< ...
