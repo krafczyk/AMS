@@ -148,8 +148,14 @@ endif
 # Setup compiler variables
 ########################################################################
 
+ifeq "$(VERBOSE)" "1"
   FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
   CXX=$(INTELBIN)/icc  $(INTELOPT) -vec-report0  $(PARALLEL)
+else
+  FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  $(PARALLEL)
+  CXX=$(INTELBIN)/icc  $(INTELOPT)  $(PARALLEL)
+endif
+
   CC=$(INTELBIN)/icc   $(INTELOPT) $(PARALLEL) 
   LD=$(INTELBIN)/icpc  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save

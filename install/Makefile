@@ -73,6 +73,12 @@ ROOTINCDIR := $(shell root-config --incdir)
 GITSHA = $(shell git --git-dir=${AMSWD}/.git rev-parse HEAD | tr -d '\n')
 #
 
+# verbose output
+VERBOSE=0
+AT_0:=@
+AT_1:=
+AT=$(AT_$(VERBOSE))
+
 SHELL=/bin/sh
 
 #-----------------------DEFAULTS------------------------------
@@ -221,12 +227,6 @@ VERSIONP = $(VERSION)
 endif
 local_makefile = Makefile.$(MARCH)
 include $(local_makefile)
-
-# verbose output
-VERBOSE=0
-AT_0:=@
-AT_1:=
-AT=$(AT_$(VERBOSE))
 
 # combine compiler flags with pre-processor flags
 CPPFLAGSI := $(CPPFLAGS)

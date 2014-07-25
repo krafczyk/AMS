@@ -54,8 +54,13 @@ endif
   INTELVERC=cc/10.1.012
   INTELVERF=fc/10.1.012
   INTELOPT=-axT 
+ifeq "$(VERBOSE)" "1"
   FF=$(INTELDIR)/$(INTELVERF)/bin/ifort -W0 -m32 $(INTELOPT)  -vec-report0 $(PARALLEL)
   CXX=$(INTELDIR)/$(INTELVERC)/bin/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
+else
+  FF=$(INTELDIR)/$(INTELVERF)/bin/ifort -W0 -m32 $(INTELOPT)  $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVERC)/bin/icc  -m32 $(INTELOPT)  $(PARALLEL)
+endif
   CC=$(INTELDIR)/$(INTELVERC)/bin/icc  -m32  $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVERC)/bin/icpc   -m32  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -save -W0 -tpp6 -xi
