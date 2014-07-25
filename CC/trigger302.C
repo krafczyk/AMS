@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.51 2012/05/05 19:44:08 choumilo Exp $
+//  $Id$
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -1981,7 +1981,7 @@ void TriggerLVL302::Finalize(){
   if(_TRDTrigger%8==4)_MainTrigger|=4;
   if(_TOFTrigger==0)_MainTrigger|=8;
   if((_TOFDirection==0)  && UseTOFTime())_MainTrigger|= 64;
-  if((_TOFDirection==-1) )_MainTrigger|= 32;
+  if(_TOFDirection==-1 )_MainTrigger|= 32;
   if(_TrackerTrigger%8==3  && _TOFDirection==-1)_MainTrigger|=1024;
   else if(_TrackerTrigger%8==3)_MainTrigger|=128;
   if(_TrackerTrigger%8==4 )_MainTrigger|=256;
