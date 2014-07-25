@@ -529,6 +529,8 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
        hman.Fill("Pskipped", primaryMomentum);
        AMSEvent::gethead()->SetEventSkipped(false);
      }
+       hman.Fill("PAll", primaryMomentum?log10(fabs(primaryMomentum)):-2);
+    
 
    AMSgObj::BookTimer.stop("GEANTTRACKING");
  {
