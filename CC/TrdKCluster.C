@@ -1535,59 +1535,59 @@ void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 /////////////////////////////////////////////////////////////////////
 
 
-int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits){
+int TrdKCluster::GetLikelihoodRatio_TRDRefit(double* LLR, int &nhits){
     float ECAL_Energy_Hypothesis=0;
     double dummy_L[3];
     int fitmethod=1;
     int particle_hypothesis=1;
-    return GetLikelihoodRatio_TRDRefit(threshold,LLR,nhits,ECAL_Energy_Hypothesis,dummy_L,fitmethod,particle_hypothesis);
+    return GetLikelihoodRatio_TRDRefit(LLR,nhits,ECAL_Energy_Hypothesis,dummy_L,fitmethod,particle_hypothesis);
 }
 
-int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod, int particle_hypothesis){
+int TrdKCluster::GetLikelihoodRatio_TRDRefit(double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod, int particle_hypothesis){
 
     if(!HasTRDTrack && !fitmethod)fitmethod=1;
     if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
     double dummy_L[3];
     float dummy_length;
     float dummy_amp;
-    if(!LL)return GetLikelihoodRatio(threshold,LLR,dummy_L,nhits,dummy_length,dummy_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,ECAL_Energy_Hypothesis);
-    else return GetLikelihoodRatio(threshold,LLR,LL,nhits,dummy_length,dummy_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,ECAL_Energy_Hypothesis);
+    if(!LL)return GetLikelihoodRatio(LLR,dummy_L,nhits,dummy_length,dummy_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,ECAL_Energy_Hypothesis);
+    else return GetLikelihoodRatio(LLR,LL,nhits,dummy_length,dummy_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,ECAL_Energy_Hypothesis);
 }
 
-int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, double* L, int &nhits,float &total_pathlength, float &total_amp , int fitmethod, int particle_hypothesis,int flag_debug, float ECAL_Energy_Hypothesis){
+int TrdKCluster::GetLikelihoodRatio_TRDRefit(double* LLR, double* L, int &nhits,float &total_pathlength, float &total_amp , int fitmethod, int particle_hypothesis,int flag_debug, float ECAL_Energy_Hypothesis){
     if(!HasTRDTrack && !fitmethod)fitmethod=1;
     if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
-    if(flag_debug<0)return GetLikelihoodRatio(threshold,LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
-    else return GetLikelihoodRatio_DEBUG(threshold,LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);
+    if(flag_debug<0)return GetLikelihoodRatio(LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+    else return GetLikelihoodRatio_DEBUG(LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);
 }
 
 /////////////////////////////////////////////////////////////////////
 
 
-int TrdKCluster::GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits){
+int TrdKCluster::GetLikelihoodRatio_TrTrack(double* LLR, int &nhits){
     float ECAL_Energy_Hypothesis=0;
     double dummy_L[3];
-    return GetLikelihoodRatio_TrTrack(threshold,LLR,nhits,ECAL_Energy_Hypothesis,dummy_L);
+    return GetLikelihoodRatio_TrTrack(LLR,nhits,ECAL_Energy_Hypothesis,dummy_L);
 }
 
-int TrdKCluster::GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL){
+int TrdKCluster::GetLikelihoodRatio_TrTrack(double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL){
     double dummy_L[3];
     float dummy_length;
     float dummy_amp;
-    if(!LL) return GetLikelihoodRatio(threshold,LLR,dummy_L,nhits,dummy_length,dummy_amp,&track_extrapolated_P0,&track_extrapolated_Dir,ECAL_Energy_Hypothesis);
-    else return GetLikelihoodRatio(threshold,LLR,LL,nhits,dummy_length,dummy_amp,&track_extrapolated_P0,&track_extrapolated_Dir,ECAL_Energy_Hypothesis);
+    if(!LL) return GetLikelihoodRatio(LLR,dummy_L,nhits,dummy_length,dummy_amp,&track_extrapolated_P0,&track_extrapolated_Dir,ECAL_Energy_Hypothesis);
+    else return GetLikelihoodRatio(LLR,LL,nhits,dummy_length,dummy_amp,&track_extrapolated_P0,&track_extrapolated_Dir,ECAL_Energy_Hypothesis);
 
 }
 
-int TrdKCluster::GetLikelihoodRatio_TrTrack(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp,int flag_debug, float ECAL_Energy_Hypothesis){
-    if(flag_debug<0)return GetLikelihoodRatio(threshold,LLR,L,nhits,total_pathlength,total_amp,&track_extrapolated_P0,&track_extrapolated_Dir);
-    else return GetLikelihoodRatio_DEBUG(threshold,LLR,L,nhits,total_pathlength,total_amp,&track_extrapolated_P0,&track_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);
+int TrdKCluster::GetLikelihoodRatio_TrTrack(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp,int flag_debug, float ECAL_Energy_Hypothesis){
+    if(flag_debug<0)return GetLikelihoodRatio(LLR,L,nhits,total_pathlength,total_amp,&track_extrapolated_P0,&track_extrapolated_Dir);
+    else return GetLikelihoodRatio_DEBUG(LLR,L,nhits,total_pathlength,total_amp,&track_extrapolated_P0,&track_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);
 }
 
 
 /////////////////////////////////////////////////////////////////////
 
-int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, double * L , int &nhits, float &total_pathlength, float &total_amp, AMSPoint* P0, AMSDir* Dir,float ECAL_Energy_Hypothesis){
+int TrdKCluster::GetLikelihoodRatio(double* LLR, double * L , int &nhits, float &total_pathlength, float &total_amp, AMSPoint* P0, AMSDir* Dir,float ECAL_Energy_Hypothesis){
 
     LLR[0]=-1;
     LLR[1]=-1;
@@ -1668,7 +1668,7 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, double * L , i
 }
 
 
-int TrdKCluster::GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double * L , int &nhits, float &total_pathlength, float &total_amp, AMSPoint* P0, AMSDir* Dir, int start_index,float ECAL_Energy_Hypothesis){
+int TrdKCluster::GetLikelihoodRatio_DEBUG(double* LLR, double * L , int &nhits, float &total_pathlength, float &total_amp, AMSPoint* P0, AMSDir* Dir, int start_index,float ECAL_Energy_Hypothesis){
 
     LLR[0]=-1;
     LLR[1]=-1;
