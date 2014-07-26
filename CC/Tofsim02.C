@@ -200,7 +200,7 @@ void TOF2TovtN::build()
     //cout<<"begin totovtn build"<<endl;
     int nphoton=0;
 
-  if(G4FFKEY.TFNewGeant4==1){
+  if(G4FFKEY.TFNewGeant4%10==1){
     while(ptrpm){
       time=ptrpm->getphtime();//ns
       id=  ptrpm->getpmtid();
