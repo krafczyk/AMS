@@ -422,7 +422,7 @@ private:
     // Additinal Initilizationa
     void Init_Base();
     void Init(AMSEventR* evt);
-    void Constrcut_TRDTube();
+    void Construct_TRDTube();
 
     void SelectClosest();
     void AddEmptyTubes(float);
