@@ -266,7 +266,6 @@ public:
     static int Default_TrPar[3];
 
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
-    static void SetMinDistance(float r){MinimumDistance=r;return;}
     void SetThreshold(float thresh) {threshold = thresh;}
     float GetThreshold() {return threshold;}
     void SetCorridorRadius(float rad) {corridor_radius = rad;}
@@ -531,8 +530,6 @@ private:
     static TMinuit *gMinuit_TRDTrack;
 
     static map<int, TRDOnline> map_TRDOnline;
-
-    static float MinimumDistance;
 
     static float DefaultRigidity;
 

@@ -29,7 +29,6 @@ Double_t TrdKCluster::LastProcessedRun_Alignment=0;
 Double_t TrdKCluster::LastProcessedRun_Calibration=0;
 vector <TrdKHit> TrdKCluster::TRDTubeCollection;
 map<int, TRDOnline> TrdKCluster::map_TRDOnline;
-float TrdKCluster::MinimumDistance=3;
 float TrdKCluster::DefaultRigidity=200;
 
 
@@ -80,8 +79,8 @@ void TrdKCluster::Init(AMSEventR *evt){
 
 
 
-    DoHitPreselection(MinimumDistance); //=======Select +/- MinimumDistance (cm) volumn around TrTrack=============
-    AddEmptyTubes(MinimumDistance);  //===========Add empty tubes to complete the geometry==========
+    DoHitPreselection(corridor_radius); //=======Select +/- corridor_radius (cm) volumn around TrTrack=============
+    AddEmptyTubes(corridor_radius);  //===========Add empty tubes to complete the geometry==========
 
 
     if(IsReadAlignmentOK>0 && ForceReadAlignment>0){
@@ -185,8 +184,8 @@ TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir
 
     Init_Base();
 
-    //    DoHitPreselection(MinimumDistance); //=======Select +/- 5cm volumn around TrTrack=============
-    //    AddEmptyTubes(MinimumDistance);  //===========Add empty tubes to complete the geometry==========
+    //    DoHitPreselection(corridor_radius); //=======Select +/- corridor_radius volumn around TrTrack=============
+    //    AddEmptyTubes(corridor_radius);  //===========Add empty tubes to complete the geometry==========
 
     float TRDCenter=115;
     Track_Rigidity=100000;
