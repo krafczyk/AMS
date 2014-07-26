@@ -269,6 +269,8 @@ public:
     static void SetMinDistance(float r){MinimumDistance=r;return;}
     void SetThreshold(float thresh) {threshold = thresh;}
     float GetThreshold() {return threshold;}
+    void SetCorridorRadius(float rad) {corridor_radius = rad;}
+    float GetCorridorRadius() {return corridor_radius;}
 
 
 
@@ -422,6 +424,7 @@ private:
     MCEventgR   *mcpart;
 
     float threshold;
+    float corridor_radius;
 
     // Additinal Initilizationa
     void Init_Base();
