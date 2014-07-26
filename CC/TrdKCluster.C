@@ -537,6 +537,7 @@ int TrdKCluster::FindBestMatch_FromTrTrack(){
 void TrdKCluster::Construct_TRDTube(){
     cout<<"Construct TRD Tube: "<<endl;
     TRDTubeCollection.clear();
+    TRDTubeCollection.reserve(TrdHCalibR::n_tubes);
     for(int i=0;i<TrdHCalibR::n_tubes;i++){
         int layer,ladder, tube;
         TrdHCalibR::GetLLTFromTubeId(layer,ladder,tube,i);
