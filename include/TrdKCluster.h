@@ -270,6 +270,9 @@ public:
     float GetThreshold() {return threshold;}
     void SetCorridorRadius(float rad) {corridor_radius = rad;}
     float GetCorridorRadius() {return corridor_radius;}
+    void SetCorridor(const AMSPoint& P, const AMSDir& D) { corridor_p = P; corridor_d = D;}
+    const AMSPoint& GetCorridorP() {return corridor_p;}
+    const AMSDir& GetCorridorD() {return corridor_d;}
 
 
 
@@ -424,6 +427,8 @@ private:
 
     float threshold;
     float corridor_radius;
+    AMSPoint corridor_p;
+    AMSDir corridor_d;
 
     // Additinal Initilizationa
     void Init_Base();
