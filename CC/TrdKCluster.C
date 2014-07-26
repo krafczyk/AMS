@@ -1832,7 +1832,7 @@ void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir*
         TrdKHit *hit=GetHit(i);
         float path_length=hit->Tube_Track_3DLength(P0,Dir);
         float Amp=hit->TRDHit_Amp;
-        if(Amp>0 && path_length==0){
+        if(Amp>threshold && path_length==0){
             nhits++;
             amp+=Amp;
         }
