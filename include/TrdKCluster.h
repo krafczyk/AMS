@@ -182,6 +182,7 @@ public:
 
     // Cluster status
     int  NHits(){return TRDHitCollection.size();}
+    int  n_corridor_hits() {return corridor_hits.size();}
     bool IsCalibrated();
     bool IsAligned();
 
@@ -245,6 +246,7 @@ public:
 
     // Hit manipulation/operation
     TrdKHit* GetHit(int i){if(i>=NHits())return 0;return &(TRDHitCollection.at(i));}
+    TrdKHit* GetCorridorHit(int i) {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
 
     // Select Only Hit within distance/cm around the current track , outside hits are dropped from the cluster
