@@ -267,6 +267,8 @@ public:
 
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
     static void SetMinDistance(float r){MinimumDistance=r;return;}
+    void SetThreshold(float thresh) {threshold = thresh;}
+    float GetThreshold() {return threshold;}
 
 
 
@@ -418,6 +420,8 @@ private:
     EcalShowerR *pecal;
     BetaHR      *ptof;
     MCEventgR   *mcpart;
+
+    float threshold;
 
     // Additinal Initilizationa
     void Init_Base();
