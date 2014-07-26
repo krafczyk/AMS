@@ -1879,6 +1879,42 @@ void TrdKCluster::GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* 
 
 /////////////////////////////////////////////////////////////////////
 
+void TrdKCluster::GetNearTrackHit_TrTrack(int& nhits, float & amp){
+    GetNearTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir);
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetNearTrackHit_TRDRefit(int& nhits, float & amp){
+    if(HasTRDTrack==0){
+        cout<<"~~~WARNING~~~~TrdKCluster, Get NearTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
+        nhits=-1;
+        amp=-1;
+        return;
+    }
+
+    GetNearTrackHit(nhits,amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir){
+    nhits=0;
+    amp=0;
+    for(int i=0;i<NHits();i++){
+        TrdKHit *hit=GetHit(i);
+        float dist=abs(hit->Tube_Track_Distance_3D(P0,Dir));
+        float Amp=hit->TRDHit_Amp;
+        if(Amp>threshold && dist<=corridor_radius){
+            nhits++;
+            amp+=Amp;
+        }
+    }
+    return;
+}
+
+/////////////////////////////////////////////////////////////////////
+
 int TrdKCluster::GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir){
 
     if(!HasTRDTrack){

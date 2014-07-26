@@ -223,6 +223,11 @@ public:
     void GetOnTrackHit_TrTrack(int& nhits, float & amp);
     void GetOnTrackHit_TRDRefit(int& nhits, float & amp);
 
+    // Number of Hits and Total Amplitude of On-Track Tubes
+    void GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
+    void GetNearTrackHit_TrTrack(int& nhits, float & amp);
+    void GetNearTrackHit_TRDRefit(int& nhits, float & amp);
+
     // Number of Hits and Total Amplitude of Off-Track Tubes
     void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
     void GetOffTrackHit_TrTrack(int& nhits, float & amp);
