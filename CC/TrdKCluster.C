@@ -1840,6 +1840,42 @@ void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir*
     return;
 }
 
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetOnTrackHit_TrTrack(int& nhits, float & amp){
+    GetOnTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir);
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetOnTrackHit_TRDRefit(int& nhits, float & amp){
+    if(HasTRDTrack==0){
+        cout<<"~~~WARNING~~~~TrdKCluster, Get OnTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
+        nhits=-1;
+        amp=-1;
+        return;
+    }
+
+    GetOnTrackHit(nhits,amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir){
+    nhits=0;
+    amp=0;
+    for(int i=0;i<NHits();i++){
+        TrdKHit *hit=GetHit(i);
+        float path_length=hit->Tube_Track_3DLength(P0,Dir);
+        float Amp=hit->TRDHit_Amp;
+        if(Amp>threshold && path_length!=0){
+            nhits++;
+            amp+=Amp;
+        }
+    }
+    return;
+}
+
 
 /////////////////////////////////////////////////////////////////////
 
