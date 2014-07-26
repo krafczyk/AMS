@@ -560,6 +560,8 @@ void TrdKCluster::Init_Base(){
     Zshift=0.0;
     Minimum_dR=2;
     TRDCenter=115;
+    threshold=15.;
+    corridor_radius=3.;
     if(DefaultMCXePressure<=0)SetDefaultMCXePressure(780);
     if(TRDTubeCollection.size()!=5248)Construct_TRDTube();
     if(map_TRDOnline.size()==0) InitXePressure();
