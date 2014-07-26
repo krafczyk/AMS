@@ -247,10 +247,6 @@ public:
     // Advanced operation, Merge with existing cluster,  User is reponsible to make sure the "common properties" are the same
     void MergeWith(TrdKCluster* secondcluster);
 
-    // Advanced operation, remove duplicate hit.
-    void RemoveDuplicate(TrdKCluster* fired);
-
-
     // Helper function to get Xe partial pressure
     int GetXePressure();
     int GetDefaultMCXePressure(){return DefaultMCXePressure;}
@@ -268,14 +264,12 @@ public:
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
     void SetThreshold(float thresh) {threshold = thresh;}
     float GetThreshold() {return threshold;}
-    void SetCorridorRadius(float rad) {corridor_radius = rad;}
+    void SetCorridorRadius(float rad) {corridor_radius = rad; SetCorridorHits();}
     float GetCorridorRadius() {return corridor_radius;}
-    void SetCorridor(const AMSPoint& P, const AMSDir& D) { corridor_p = P; corridor_d = D;}
+    void SetCorridor(const AMSPoint& P, const AMSDir& D) { corridor_p = P; corridor_d = D; SetCorridorHits();}
     const AMSPoint& GetCorridorP() {return corridor_p;}
     const AMSDir& GetCorridorD() {return corridor_d;}
-
-
-
+    void SetCorridorHits();
 
     // For Charge Estimation
 
@@ -377,6 +371,19 @@ public:
         return Time;
     }
 
+    bool IsHitGood(TrdKHit* hit) {
+        if(preselected) {
+            return true;
+	} else {
+            if(hit->TRDHit_Amp < threshold) {
+                return false;
+	    }
+	    if(abs(hit->Tube_Track_Distance_3D(&corridor_p, &corridor_d)) > corridor_radius) {
+                return false;
+	    }
+        }
+	return true;
+    }
 
     static AMSEventR* GetAMSEventRHead(){
         if(!_HeadE)_HeadE=AMSEventR::Head();
@@ -429,6 +436,8 @@ private:
     float corridor_radius;
     AMSPoint corridor_p;
     AMSDir corridor_d;
+    vector<int> corridor_hits;
+    bool preselected;
 
     // Additinal Initilizationa
     void Init_Base();
@@ -436,7 +445,7 @@ private:
     void Construct_TRDTube();
 
     void SelectClosest();
-    void AddEmptyTubes(float);
+    void FillHitCollection(AMSEventR* evt);
 
     // Gain Calibration and Alignment
     void SetDB(TrdKCalib *rhs){_DB_instance=rhs;}

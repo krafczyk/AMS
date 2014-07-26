@@ -65,23 +65,9 @@ void TrdKCluster::Init(AMSEventR *evt){
         IsReadCalibOK=1;
     }
 
-    int NTRDHit=evt->NTrdRawHit();
-    if(!NTRDHit)return;
+    if(!evt->nTrdRawHit())return;
 
-
-    TRDHitCollection.reserve(NTRDHit);
-    if(NHits())TRDHitCollection.clear();
-    for(int i=0;i<NTRDHit;i++){
-        TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
-        if(!_trd_hit) continue;
-        TRDHitCollection.push_back(TrdKHit(_trd_hit,Zshift));
-    }
-
-
-
-    DoHitPreselection(corridor_radius); //=======Select +/- corridor_radius (cm) volumn around TrTrack=============
-    AddEmptyTubes(corridor_radius);  //===========Add empty tubes to complete the geometry==========
-
+    FillHitCollection(evt);
 
     if(IsReadAlignmentOK>0 && ForceReadAlignment>0){
         IsReadAlignmentOK=DoAlignment(IsReadPlaneAlignment,IsReadGlobalAlignment);
@@ -113,8 +99,8 @@ void TrdKCluster::Init(AMSEventR *evt){
 TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
 {
     Init_Base();
-    SetTrTrack(track, fitcode);
     Init(evt);
+    SetTrTrack(track, fitcode);
 }
 
 
@@ -123,8 +109,8 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
 TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir)
 {
     Init_Base();
-    SetTrTrack(P0, Dir, DefaultRigidity);
     Init(evt);
+    SetTrTrack(P0, Dir, DefaultRigidity);
 }
 
 
@@ -133,9 +119,9 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack, float Rigidity){
     AMSPoint *P0= new AMSPoint(trdtrack->Coo);
     AMSDir *Dir = new AMSDir(trdtrack->Theta,trdtrack->Phi);
     Init_Base();
+    Init(evt);
     if(!Rigidity)Rigidity=DefaultRigidity;
     SetTrTrack(P0, Dir, Rigidity);
-    Init(evt);
     delete P0;
     delete Dir;
 }
@@ -144,9 +130,9 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack, float Rigidity){
     AMSPoint *P0= new AMSPoint(trdtrack->Coo);
     AMSDir *Dir = new AMSDir(trdtrack->Dir);
     Init_Base();
+    Init(evt);
     if(!Rigidity)Rigidity=DefaultRigidity;
     SetTrTrack(P0, Dir, Rigidity);
-    Init(evt);
     delete P0;
     delete Dir;
 
@@ -156,8 +142,8 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower){
     AMSPoint *P0= new AMSPoint(shower->CofG);
     AMSDir *Dir = new AMSDir(shower->Dir);
     Init_Base();
-    SetTrTrack(P0, Dir, shower->EnergyC);
     Init(evt);
+    SetTrTrack(P0, Dir, shower->EnergyC);
     delete P0;
     delete Dir;
 
@@ -169,9 +155,9 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity){
     double dummy_time;
     betah->TInterpolate(TRDCenter,*P0,*Dir,dummy_time,false);
     Init_Base();
+    Init(evt);
     if(!Rigidity)Rigidity=DefaultRigidity;
     SetTrTrack(P0, Dir, Rigidity);
-    Init(evt);
     delete P0;
     delete Dir;
 
@@ -183,9 +169,6 @@ TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir
 {
 
     Init_Base();
-
-    //    DoHitPreselection(corridor_radius); //=======Select +/- corridor_radius volumn around TrTrack=============
-    //    AddEmptyTubes(corridor_radius);  //===========Add empty tubes to complete the geometry==========
 
     float TRDCenter=115;
     Track_Rigidity=100000;
@@ -562,6 +545,9 @@ void TrdKCluster::Init_Base(){
     TRDCenter=115;
     threshold=15.;
     corridor_radius=3.;
+    corridor_p = AMSPoint(0,0,0);
+    corridor_d = AMSDir(0,0,-1);
+    preselected = false;
     if(DefaultMCXePressure<=0)SetDefaultMCXePressure(780);
     if(TRDTubeCollection.size()!=TrdHCalibR::n_tubes)Construct_TRDTube();
     if(map_TRDOnline.size()==0) InitXePressure();
@@ -620,51 +606,43 @@ void TrdKCluster::DoHitPreselection(float cut_distance){
             Hit_it =TRDHitCollection.erase(Hit_it);
         }else Hit_it++;
     }
-
-
+    preselected = true;
 }
 
 
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::AddEmptyTubes(float cut_distance){
+void TrdKCluster::FillHitCollection(AMSEventR* evt){
 
-    //========Include All Tubes===============================
-    static vector<TrdKHit> selected_tube_collection;
-    selected_tube_collection.reserve(200);
-    selected_tube_collection.clear();
+    int NTRDHit=evt->nTrdRawHit();
+    if(!NTRDHit)return;
 
-    for(int i=0;i<TRDTubeCollection.size();i++){
-        TrdKHit *tube=&(TRDTubeCollection.at(i));
-        if(fabs(tube->Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>cut_distance)continue;
-        selected_tube_collection.push_back(*tube);
+    if(NHits())TRDHitCollection.clear();
+
+    TRDHitCollection.reserve(5248);
+    //Create helper array
+    bool hit_status[5248];
+    for(int i=0;i<5248;++i) {
+	    hit_status[i] = false;
     }
-
-
-    //========Remove Duplication============
-    vector<TrdKHit>::iterator  Hit_it=selected_tube_collection.begin();
-    for (;Hit_it!=selected_tube_collection.end(); ) {
-        bool removed=0;
-        for(int i=0;i<NHits();i++){
-            if((*Hit_it).tubeid==GetHit(i)->tubeid){
-                Hit_it =selected_tube_collection.erase(Hit_it);
-                removed=1;
-                break;
-            }
-        }
-        if(!removed)Hit_it++;
+    //Add Raw Hits
+    for(int i=0;i<NTRDHit;i++){
+        TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
+        if(!_trd_hit) continue;
+	int id;
+        TrdHCalibR::GetLLTFromTubeId(id,_trd_hit->Layer,_trd_hit->Ladder,_trd_hit->Tube);
+	hit_status[id] = true;
+        TRDHitCollection.push_back(TrdKHit(_trd_hit,Zshift));
     }
-
-    for(int i=0;i<selected_tube_collection.size();i++){
-        TrdKHit *tube=&(selected_tube_collection.at(i));
-        this->TRDHitCollection.push_back(*tube);
+    //Add the rest
+    for(int i=0;i<5248;++i) {
+        if(!hit_status[i]) {
+		TRDHitCollection.push_back(TRDTubeCollection[i]);
+		hit_status[i] = true;
+	}
     }
-
-
 }
-
-
 
 /////////////////////////////////////////////////////////////////////
 
@@ -685,25 +663,6 @@ void TrdKCluster::SelectClosest(){
         if(!removed)Hit_it++;
     }
 }
-
-/////////////////////////////////////////////////////////////////////
-
-void TrdKCluster::RemoveDuplicate(TrdKCluster *fired){
-    vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
-    for (;Hit_it!=TRDHitCollection.end(); ) {
-        bool removed=0;
-        for(int i=0;i<fired->NHits();i++){
-            if((*Hit_it).tubeid==fired->GetHit(i)->tubeid){
-                //                cout<<"Removed"<<endl;
-                Hit_it =TRDHitCollection.erase(Hit_it);
-                removed=1;
-                break;
-            }
-        }
-        if(!removed)Hit_it++;
-    }
-}
-
 
 /////////////////////////////////////////////////////////////////////
 
@@ -767,14 +726,14 @@ void TrdKCluster::fcn_TRDTrack_PathLength(Int_t &npar, Double_t *gin, Double_t &
 
 double TrdKCluster::TRDTrack_ImpactChi2(Double_t *par){
 
-    int size= NHits();
+    int size= corridor_hits.size();
     double result=0;
     AMSPoint temp_TrTrackP0(par[0],par[1],par[2]);
     AMSDir  temp_TrTrackDir(par[3],par[4],TMath::Sqrt(1-par[3]*par[3]-par[4]*par[4]));
     double impact_parameter,likelihood;
     TrdKHit* hit;
     for(int i=0;i<size;i++){
-        hit=GetHit(i);
+        hit=GetHit(corridor_hits[i]);
         impact_parameter=hit->Tube_Track_Distance_3D(&temp_TrTrackP0,&temp_TrTrackDir);
         likelihood = TRDImpactlikelihood->GetLikelihood(hit->TRDHit_Amp,impact_parameter);
         if(likelihood<0.0000001) likelihood=0.0000001;
@@ -788,14 +747,14 @@ double TrdKCluster::TRDTrack_ImpactChi2(Double_t *par){
 /////////////////////////////////////////////////////////////////////
 
 double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
-    int size= NHits();
+    int size= corridor_hits.size();
     double result=0;
     AMSPoint temp_TrTrackP0(par[0],par[1],par[2]);
     AMSDir  temp_TrTrackDir(par[3],par[4],TMath::Sqrt(1-par[3]*par[3]-par[4]*par[4]));
     double pathlength,likelihood;
     TrdKHit* hit;
     for(int i=0;i<size;i++){
-        hit=GetHit(i);
+        hit=GetHit(corridor_hits[i]);
         pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
         if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
         else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
@@ -1224,6 +1183,7 @@ void TrdKCluster::MergeWith(TrdKCluster *secondcluster){
     for(int i=0;i<secondcluster->NHits();i++){
         this->TRDHitCollection.push_back(*secondcluster->GetHit(i));
     }
+    SetCorridorHits();
 }
 
 
@@ -1253,9 +1213,9 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
     int factor_index=-1;
     float factor[2]={1./1.8478,-1./4.1522};
 
-    for(int i=0;i<NHits();i++){
+    for(size_t i=0;i<corridor_hits.size();i++){
 
-        TrdKHit* hit=GetHit(i);
+        TrdKHit* hit=GetHit(corridor_hits[i]);
 
         if(hit->TRDHit_Direction!=direction)continue;
 
@@ -1481,6 +1441,7 @@ void TrdKCluster::SetTrTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
     TrTrack_Pro=TrProp(track_extrapolated_P0,track_extrapolated_Dir,Rigidity);
     if(Rigidity!=0)Track_Rigidity=Rigidity;
     if(Rigidity==0 && Track_Rigidity==0)cout<<"~~~WARNING~~~TrdKCluster,  Track Rigidity is 0"<<endl;
+    SetCorridor(*P0, *Dir);
 
 
     //    for(int i=0;i<NHits();i++){
@@ -1608,8 +1569,8 @@ int TrdKCluster::GetLikelihoodRatio(double* LLR, double * L , int &nhits, float 
     int Track_nhits=0;
     double LL_pdf_track_particle[3]={1,1,1};
     double Likelihood_pdf_track_particle[3]={0,0,0};
-    for(int i=0;i<NHits();i++){
-        TrdKHit *hit=GetHit(i);
+    for(int i=0;i<corridor_hits.size();i++){
+        TrdKHit *hit=GetHit(corridor_hits[i]);
 
         if(ForceReadCalibration>0 && hit->IsCalibrated ==0 ){
             if(DebugOn)  cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
@@ -1690,8 +1651,8 @@ int TrdKCluster::GetLikelihoodRatio_DEBUG(double* LLR, double * L , int &nhits, 
     double LL_pdf_track_particle[3]={1,1,1};
     double Likelihood_pdf_track_particle[3]={0,0,0};
     vector<LikelihoodObject> v_p,v_e,v_h;
-    for(int i=0;i<NHits();i++){
-        TrdKHit *hit=GetHit(i);
+    for(int i=0;i<corridor_hits.size();i++){
+        TrdKHit *hit=GetHit(corridor_hits[i]);
 
         if(ForceReadCalibration>0 && hit->IsCalibrated ==0 ){
             if(DebugOn)  cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
@@ -2699,4 +2660,12 @@ double TrdKCluster::GetAsyD()
 
 /////////////////////////////////////////////////////////////////////
 
-
+void TrdKCluster::SetCorridorHits() {
+	corridor_hits.clear();
+	corridor_hits.reserve(200);
+	for(int i=0;i<TRDHitCollection.size();++i) {
+		if(IsHitGood(&(TRDHitCollection[i]))) {
+			corridor_hits.push_back(i);
+		}
+	}
+}
