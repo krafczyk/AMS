@@ -272,7 +272,7 @@ public:
     static int Default_TrPar[3];
 
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
-    void SetThreshold(float thresh) {threshold = thresh;}
+    void SetThreshold(float thresh) {threshold = thresh; SetCorridorHits();}
     float GetThreshold() {return threshold;}
     void SetCorridorRadius(float rad) {corridor_radius = rad; SetCorridorHits();}
     float GetCorridorRadius() {return corridor_radius;}
