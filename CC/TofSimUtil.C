@@ -58,6 +58,11 @@ G4double TofSimUtil::Honshift[2][2]={//topxy +bowxy
   {0.*cm, 0.*cm }
 };
 
+G4double TofSimUtil::HonshiftUL[2][2]={//topxy +bowxy
+  {0.*cm, 0.*cm},
+  {0.*cm, 0.*cm }
+};
+
 
 //--Honeycomb
 G4double TofSimUtil::DHoneyH[3]={//make sure only cover Sci_l//no overlap with pmt
@@ -75,22 +80,22 @@ G4double TofSimUtil::PCarbon[4][3];
 
 //---New Add
 //----HoneycombUL
-G4double TofSimUtil::DHoneyUL[2][3]={
- 125.*cm,116.*cm,10.*cm, //small than 126.5x 117.2y
- 129.*cm,109.*cm,5.*cm
+G4double TofSimUtil::DHoneyUL[2][3]={//Manually shink 0.2cm to allow carbon fibre
+ {125.*cm,116.*cm,9.8*cm}, //small than 126.5x 117.2y
+ {129.*cm,109.*cm,4.8*cm}
 };
 
-G4double TofSimUtil::PHoneyUL[2][3]={// ZR=(76.62,66.62) (-71.62,-66.62)
- 0.*cm, 0.*cm, 71.62*cm,
- 0.*cm, 0.*cm,-69.12*cm
+G4double TofSimUtil::PHoneyUL[2][3]={// ZR=(76.62,66.62) (-71.62,-66.62)=>(76.62,66.82) (-71.62,66.82)
+ {0.*cm, 0.*cm, 71.72*cm},
+ {0.*cm, 0.*cm,-69.22*cm}
 };
 
 //----Carbon Fibre1
 G4double TofSimUtil::DCarbonUL=0.12*cm;
 
-G4double TofSimUtil::PCarbonUL[2][3]={// ZR=(66.61,66.49) (-66.61,-66.49)
- 0.*cm, 0.*cm, 66.55*cm,
- 0.*cm, 0.*cm,-66.55*cm
+G4double TofSimUtil::PCarbonUL[2][3]={// ZR=(66.71,66.59) (-66.71,-66.59)
+ {0.*cm, 0.*cm, 66.65*cm},
+ {0.*cm, 0.*cm,-66.65*cm}
 };
 
 //---SciH1 
@@ -100,8 +105,8 @@ G4double TofSimUtil::PCarbonUL[2][3]={// ZR=(66.61,66.49) (-66.61,-66.49)
 G4double TofSimUtil::DCarbon2UL=0.4*cm;//2Carbon M=0.55
 
 G4double TofSimUtil::PCarbon2UL[2][3]={//X+Y+Z  ZR=+-(63.85,63.45)
- 0.*cm, 0.*cm,  63.65*cm,
- 0.*cm, 0.*cm, -63.65*cm
+ {0.*cm, 0.*cm,  63.65*cm},
+ {0.*cm, 0.*cm, -63.65*cm}
 };
 
 //--SciH2
@@ -109,16 +114,16 @@ G4double TofSimUtil::PCarbon2UL[2][3]={//X+Y+Z  ZR=+-(63.85,63.45)
 
 //---Carbon Fibre3
 G4double TofSimUtil::PCarbon3UL[2][3]={//X+Y+Z ZR=+-(60.725,60.605) 
- 0.*cm, 0.*cm,  60.665*cm,
- 0.*cm, 0.*cm, -60.665*cm
+ {0.*cm, 0.*cm,  60.665*cm},
+ {0.*cm, 0.*cm, -60.665*cm}
 };
 
 //--Honeycomb2UL
 G4double TofSimUtil::DHoney2UL=0.12*cm;
 
 G4double TofSimUtil::PHoney2UL[2][3]={//X+Y+Z  ZR=(60.565,60.445)
- 0.*cm, 0.*cm,  60.505*cm,
- 0.*cm, 0.*cm, -60.505*cm
+ {0.*cm, 0.*cm,  60.505*cm},
+ {0.*cm, 0.*cm, -60.505*cm}
 };
 
 //----EndAdd
@@ -259,7 +264,8 @@ G4double        TofSimUtil::QEMAX=0.25;
 G4double        TofSimUtil::SCEFFC[NLAY][NBAR];
 G4double        TofSimUtil::PHEFFC[NLAY][NBAR][NSIDE][NPMTM];
 G4PhysicsTable* TofSimUtil::TOFPM_Et=0;
-
+//--Verbose
+int             TofSimUtil::VerboseLevel=1;
 
 TofSimUtil*      TofSimUtil::Head=0;
 
@@ -396,8 +402,9 @@ void TofSimUtil::DefineTOF_M() {
 //Aluminum Honey
   TOFAlHoney_M = new G4Material("TOFAl_Honey",z=13.,a=26.98*g/mole,density=0.085*g/cm3);  
 
-  TOFAlHoneyUL_M[0] = new G4Material("TOFAl_HoneyUL0",z=13.,a=26.98*g/mole,density=0.05799*g/cm3);//0.566+0.0139=0.5799
-  TOFAlHoneyUL_M[1] = new G4Material("TOFAl_HoneyUL1",z=13.,a=26.98*g/mole,density=0.08698*g/cm3);//0.421+0.0139=0.4349
+  TOFAlHoneyUL_M[0] = new G4Material("TOFAl_HoneyUL0",z=13.,a=26.98*g/mole,density=0.0591735*g/cm3);//0.566+0.0139=0.5799
+  TOFAlHoneyUL_M[1] = new G4Material("TOFAl_HoneyUL1",z=13.,a=26.98*g/mole,density=0.0906042*g/cm3);//0.421+0.0139=0.4349
+
 
   TOFAlHoney2UL_M =   new G4Material("TOFAl_Honey2UL",z=13.,a=26.98*g/mole,density=2.87583*g/cm3);//0.3312+0.0139=0.3451
 
@@ -825,29 +832,32 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
       G4VSolid* Honey_sol=new G4Box(Form("TFHoneyUL%d_sol",iul), DHoneyUL[iul][0]/2.,DHoneyUL[iul][1]/2.,DHoneyUL[iul][2]/2.); //Present
       G4LogicalVolume *Honey_log=new G4LogicalVolume(Honey_sol,TOFAlHoneyUL_M[iul],Form("TFHoneyUL%d_log",iul));//U=0.5799g/cm^2 L=0.4349g/cm^2 
       new G4PVPlacement(0,G4ThreeVector(PHoneyUL[iul][0],PHoneyUL[iul][1],PHoneyUL[iul][2]),Honey_log,Form("TFHoneyUL%d",iul),mvol,false,0);
+      if(VerboseLevel>1)G4cout<<"---------->>"<<Form("TFHoneyUL%d",iul)<<" Z="<<(PHoneyUL[iul][2]+DHoneyUL[iul][2]/2.)/cm<<" "<<(PHoneyUL[iul][2]-DHoneyUL[iul][2]/2.)/cm<<G4endl;
 
 //---Carbon Fibre1
       G4VSolid* Carbon_sol=new G4Box(Form("TFCFibreUL%d_sol",iul),DHoneyUL[iul][0]/2.,DHoneyUL[iul][1]/2.,DCarbonUL/2.); //Present
       G4LogicalVolume *Carbon_log=new G4LogicalVolume(Carbon_sol,TOFCAFibreUL_M,Form("TFCFibreUL%d_log",iul));//0.168g/cm^2
       new G4PVPlacement(0,G4ThreeVector(PCarbonUL[iul][0],PCarbonUL[iul][1],PCarbonUL[iul][2]),Carbon_log,Form("TFCFibreUL%d",iul),mvol,false,0);
-
+      if(VerboseLevel>1)G4cout<<"---------->>"<<Form("TFCFibreUL%d",iul)<<" Z="<<(PCarbonUL[iul][2]+DCarbonUL/2.)/cm<<" "<<(PCarbonUL[iul][2]-DCarbonUL/2.)/cm<<G4endl;
 //---Scintillator1
 
 //---Carbon Fibre2+Foam     
       G4VSolid* Carbon2_sol=new G4Box(Form("TFCFibre2UL%d_sol",iul),DHoneyUL[iul][0]/2.,DHoneyUL[iul][1]/2.,DCarbon2UL/2.); //Present
       G4LogicalVolume *Carbon2_log=new G4LogicalVolume(Carbon2_sol,TOFCAFibre2UL_M,Form("TFCFibre2UL%d_log",iul));//0.546/cm^2
       new G4PVPlacement(0,G4ThreeVector(PCarbon2UL[iul][0],PCarbon2UL[iul][1],PCarbon2UL[iul][2]),Carbon2_log,Form("TFCFibre2UL%d",iul),mvol,false,0);
-
+      if(VerboseLevel>1)G4cout<<"---------->>"<<Form("TFCFibre2UL%d",iul)<<" Z="<<(PCarbon2UL[iul][2]+DCarbon2UL/2.)/cm<<" "<<(PCarbon2UL[iul][2]-DCarbon2UL/2.)/cm<<G4endl;
 //---Scintillator2
 
 //---Carbon Fibre3
       new G4PVPlacement(0,G4ThreeVector(PCarbon3UL[iul][0],PCarbon3UL[iul][1],PCarbon3UL[iul][2]),Carbon_log,Form("TFCFibre3UL%d",iul),mvol,false,1);//0.168g/cm^2
+      if(VerboseLevel>1)G4cout<<"---------->>"<<Form("TFCFibre3UL%d",iul)<<" Z="<<(PCarbon3UL[iul][2]+DCarbonUL/2.)/cm<<" "<<(PCarbon3UL[iul][2]-DCarbonUL/2.)/cm<<G4endl;
 
 //---Honeycomb2
       G4VSolid* Honey2_sol=new G4Box(Form("TFHoney2UL%d_sol",iul),DHoneyUL[iul][0]/2.,DHoneyUL[iul][1]/2.,DHoney2UL/2.); //Present
       G4LogicalVolume *Honey2_log=new G4LogicalVolume(Honey2_sol,TOFAlHoney2UL_M,Form("TFHoney2UL%d_log",iul));//0.3451g/cm^2
       new G4PVPlacement(0,G4ThreeVector(PHoney2UL[iul][0],PHoney2UL[iul][1],PHoney2UL[iul][2]),Honey2_log,Form("TFHoney2UL%d",iul),mvol,false,0);
-
+      if(VerboseLevel>1)G4cout<<"---------->>"<<Form("TFHoney2UL%d",iul)<<" Z="<<(PHoney2UL[iul][2]+DHoney2UL/2.)/cm<<" "<<(PHoney2UL[iul][2]-DHoney2UL/2.)/cm<<G4endl;
+     
 //---Total:0.2066X0   Al: 1.705g/cm^2  C: 1.764g/cm^2  C8H10: 4.128g/cm^2
    }
   }
@@ -1311,8 +1321,15 @@ void  TofSimUtil::InitialBarPar(int ilay,int ibar){
     barrot[1]=0.;//rotateX
     barp[0]=trpos; barp[1]=lopos;
    }
-   barp[0]+=Honshift[ilay/2][0];
-   barp[1]+=Honshift[ilay/2][1];
+//---
+   if(G4FFKEY.TFNewGeant4/10==0){
+      barp[0]+=Honshift[ilay/2][0];
+      barp[1]+=Honshift[ilay/2][1];
+   }
+   else {
+      barp[0]+=HonshiftUL[ilay/2][0];
+      barp[1]+=HonshiftUL[ilay/2][1];
+   }
 //  if(ibar<Nbar[ilay]/2)barrot=barrot+M_PI*rad;//-x -y axis 
 
 }

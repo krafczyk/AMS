@@ -103,6 +103,7 @@ class TofSimUtil
   static G4double Zc[NLAY];
   static G4double Zshift;
   static G4double Honshift[2][2];
+  static G4double HonshiftUL[2][2];
   static G4double Sci_l[NLAY][NBAR];
   static G4double Sci_w[NLAY][NBAR];
   static G4double Sci_lc[NLAY][NBAR];
@@ -176,6 +177,7 @@ class TofSimUtil
   
   public:
     static void CreateTofG4();
+    static int VerboseLevel;
     static TofSimUtil* Head;
     static G4PhysicsTable* TOFPM_Et;
     static G4double QEMAX;
