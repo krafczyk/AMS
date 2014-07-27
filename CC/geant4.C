@@ -58,7 +58,7 @@
  extern "C" void getfield_(geant& a);
 
  static double g4_primary_momentum=0;
-
+ static double g4_cpu_limit=0;
 size_t get_memory_usage() {
 
 #ifndef __DARWIN__
@@ -421,6 +421,11 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
        G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
        g4_primary_momentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +                                       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +                                       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
 //     cout <<" &&&&7 primary "<<g4_primary_momentum<<endl;
+  double g=g4_primary_momentum?log10(fabs(g4_primary_momentum)):-1;
+ double cl=3.6*(exp(0.23*g)-1.);
+ cl=pow(10.,cl);
+  g4_cpu_limit=cl/AMSCommonsI::getmips()*5000.;
+
  DAQEvent * pdaq=0;
  if(!AMSJob::gethead()->isSimulation()){
     //
@@ -1006,8 +1011,8 @@ if(!Step)return;
   static integer freq=10;
   static integer trig=0;
   trig=(trig+1)%freq;
-  static bool report=true; 
-  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+2*g4_primary_momentum && G4FFKEY.ApplyCPULimit){
+  static bool report=true;
+  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
