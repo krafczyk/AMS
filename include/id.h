@@ -1,4 +1,4 @@
-//  $Id: id.h,v 1.13 2009/02/13 11:47:37 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSID__
@@ -15,8 +15,13 @@ protected:
   // realization
   //! integer type identificator
   integer _id;
+  //! Max string size
+  static const unsigned short gMaxStringSize = 64;
   //! Object name
-  char * _name;
+  char _aname[gMaxStringSize];
+  char *_name;
+  //! Denotes if _name is set, or not.
+  bool nameIsSet;
   //! Used internally to generate the name
   void _copyname( char  const [] );
   //! printout to an ostream
@@ -27,10 +32,10 @@ protected:
 
 public:
   //! Std constructor (id=0;name=0;);
-  AMSID (): _id(0),_name(0){}
+  AMSID (): _id(0),_name(0),nameIsSet(false){ _aname[0]='\0';}
   //! explicit constructor
   AMSID(integer id, const char name[]=0);
-  //! explicit constructor
+  //! constructor
   AMSID(const char name[],integer id=0);
   //! copy constructor
   AMSID (const AMSID&);
@@ -59,7 +64,7 @@ public:
   //! Set the integer id
   inline void setid(integer id){_id=id;}
   //! Set the name
-  inline void setname(const char name []){delete[] _name;_copyname(name);}
+  inline void setname(const char name []){_copyname(name);}
   //! Error handling decl
   static void ResetError();
   //! Error handling decl
