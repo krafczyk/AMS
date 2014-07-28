@@ -803,6 +803,8 @@ R54   MinSigma(3.);                    // minimum sigma used in TRD digi data re
 R55   MaxSigma(5.);                    // maximum sigma used in TRD digi data reduction
 R56   photonEnergyCut(0.000010)        // photon energy cut inside TRD [MeV]
 R57   electronEnergyCut(0.001)         // electron energy cut inside TRD [MeV]
+R58   trdProdCut(1.0)                  // production cut in trdRegion and radiatorRegion [mm]
+R59   tubeProdCut(0.001)               // production cut in tubeRegion [mm] (walls of straws)
 
 TRDCL   // TRD clustering
 
