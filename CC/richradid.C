@@ -252,7 +252,7 @@ void RichRadiatorTileManager::_compute_tables(){
 void RichRadiatorTileManager::Finish_Default(){
   cout<<"RichTileManager finishing"<<endl;
 #ifndef __ROOTSHAREDLIBRARY__
-    char filename[201];
+    char filename[201] = "";
     UHTOC(RICRADSETUPFFKEY.tables_out,50,filename,200);
     for(int i=200;i>=0;i--){
       if(filename[i]!=' '){

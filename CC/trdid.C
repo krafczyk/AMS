@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.19 2011/05/24 14:52:45 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -105,10 +105,19 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
       }
 }
 _ped=new geant[getpedsize()];
+for (int i = 0; i < getpedsize(); ++i) _ped[i] = 0;
+
 _sig=new geant[getsigsize()];
+for (int i = 0; i < getsigsize(); ++i) _sig[i] = 0;
+
 _gain=new geant[getgaisize()];
+for (int i = 0; i < getgaisize(); ++i) _gain[i] = 0;
+
 _mcgain=new geant[getgaisize()];
+for (int i = 0; i < getgaisize(); ++i) _mcgain[i] = 0;
+
 _status=new uinteger[getstasize()];
+for (int i = 0; i < getstasize(); ++i) _status[i] = 0;
 cout <<"AMSTRDIdSoft::init()-I-"<<_NROCh<<"/"<<getpedsize()<<" readout channels initialized"<<endl;
 }
 

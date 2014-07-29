@@ -206,7 +206,7 @@ if(AMSEvent::get_thread_num()==0)
        // In case of IOPA.histoman= 2 or 3:
        // Histograms are written in file later when HistoMan::Save is called
        if(IOPA.histoman%10 == 2 || IOPA.histoman%10 == 3) {
-	 char rdir[161];
+	 char rdir[161] = "";
 	 UHTOC(IOPA.rfile,40,rdir,160);  
 
          int offs = 0; 
@@ -223,7 +223,7 @@ if(AMSEvent::get_thread_num()==0)
              }
          }
 
-         char hfname[256];
+         char hfname[256] = "";
          sprintf(hfname, "%s/Histos_%d.root", &rdir[offs], _run);
          hman.Setname(hfname);
        }
@@ -2720,7 +2720,7 @@ void AMSEvent:: _sitrdevent(){
 }
 //----------------------------------------------------------------
 void AMSEvent:: _siecalevent(){
-  int stat;
+  int stat = 0;
 //
 /*
    int16u tesarr[200];

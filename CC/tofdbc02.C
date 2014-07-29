@@ -146,7 +146,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
 //                  Called from TOFgeom :
   void TOF2DBc::readgconf(){
     int i,j;
-    char fname[1024];
+    char fname[1024] = "";
     char name[256]="TofGeom";
     char vers0[10]="MC";//not used now
     char vers1[10]="PreAss";//pre-assembly in clean room
@@ -547,8 +547,8 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  int ipm; 
 //------------------------------
   int ctyp,ntypes;
-  char datt[3];
-  char ext[80];
+  char datt[3] = "";
+  char ext[80] = "";
   int date[2],year,mon,day,hour,min,sec;
   uinteger iutct;
   tm begin;
@@ -1143,8 +1143,8 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
  geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],apr[2*TOF2GC::SCPROFP],hblen;
  geant a2drf[TOF2GC::SCBLMX][2];
  geant p1s1,p2s1,p3s1,p4s1,p5s1,p6s1,p1s2,p2s2,p3s2,p4s2,p5s2,p6s2,nom,denom; 
- char fname[1024];
- char name[256];
+ char fname[1024] = "";
+ char name[256] = "";
  geant a2q,td2p[2];
  int mrfp;
 //
@@ -1617,9 +1617,9 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
  geant gaind[TOF2GC::SCBLMX][2][TOF2GC::PMTSMX];//buff.for dyn.pmts relat.gains
  geant gnd[2][TOF2GC::PMTSMX];
  int ipm; 
- char fname[1024];
- char name[256];
- char ext[80];
+ char fname[1024] = "";
+ char name[256] = "";
+ char ext[80] = "";
  geant a2q,td2p[2];
  char vers1[3]="MC";
  char vers2[3]="SD";
@@ -3907,16 +3907,16 @@ TofElosPDF::TofElosPDF(int ich, int ch, geant bp, int nb, geant stp, geant bnl, 
 //---
 void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
 //
-  char fname[1024];
-  char name[256];
+  char fname[1024] = "";
+  char name[256] = "";
   int ctyp,ntypes;
   integer ic,charge,chref,nbns,endflab;
   geant betap,lovfl,rovfl,xmin,binw,distr[TOF2GC::SCPDFBM];
 //
 // ---> read file with the list of version numbers for all needed calib.files :
 //
-  char datt[3];
-  char ext[80];
+  char datt[3] = "";
+  char ext[80] = "";
   int date[2],year,mon,day,hour,min,sec;
   uinteger iutct;
   tm begin;
@@ -4052,16 +4052,16 @@ number TofElosPDF::getlkhd(int nhits, int hstat[], number ehit[], number beta){
 //---------------------------------------------------------------------------
 void TofTdcCor::build(){// create TofTdcCor-objects array for real/mc data
 //
-  char fname[1024];
-  char name[256];
+  char fname[1024] = "";
+  char name[256] = "";
   int ctyp,ntypes,bmap;
   integer crat,sslt,chan,bin,endflab;
   integer rdcr,rdsl;
 //
 // ---> read file with the list of version numbers for all needed calib.files :
 //
-  char datt[3];
-  char ext[80];
+  char datt[3] = "";
+  char ext[80] = "";
   int date[2],year,mon,day,hour,min,sec;
   uinteger iutct;
   tm begin;
@@ -4187,16 +4187,16 @@ geant TofTdcCor::getcor(int time, int ch){//ch=0,1,...
 //-----------------------------------------------------------------------
 void TofTdcCorMS::build(){// create TofTdcCor-objects array for real/mc data
 //
-  char fname[1024];
-  char name[256];
+  char fname[1024] = "";
+  char name[256] = "";
   int ctyp,ntypes,bmap;
   integer crat,sslt,chan,bin,endflab;
   integer rdcr,rdsl;
 //
 // ---> read file with the list of version numbers for all needed calib.files :
 //
-  char datt[3];
-  char ext[80];
+  char datt[3] = "";
+  char ext[80] = "";
   int date[2],year,mon,day,hour,min,sec;
   uinteger iutct;
   tm begin;

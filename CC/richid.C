@@ -212,7 +212,7 @@ void RichPMTsManager::Init(){
       
       // Check if there is a file containing the information. If not compute the table 
       // and save the file 
-      char filename[201];
+      char filename[201] = "";
       UHTOC(RICCONTROLFFKEY.pmttables,50,filename,200);
       
       

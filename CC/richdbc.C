@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.76 2013/09/04 11:44:18 mdelgado Exp $
+//  $Id$
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -791,7 +791,7 @@ void RichAlignment::Init(){
   }
 
   if(!strstr(AMSJob::gethead()->getsetup(),"PreAss")){
-       char filename[201];
+       char filename[201] = "";
        UHTOC(RICRADSETUPFFKEY.alignment_in,50,filename,200);
        for(int i=200;i>=0;i--){
 	 if(filename[i]!=' '){
