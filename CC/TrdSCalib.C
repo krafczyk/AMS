@@ -4184,8 +4184,8 @@ int TrdSCalibR::ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int De
   /// check trtrack fitcode	
   if( !Trtrk || fitcode < 0) return 2;
 
-  float threshold=15; 
   TrdKCluster _trdcluster = TrdKCluster(pev, Trtrk, fitcode);  
+  _trdcluster.SetThreshold(15.);
 
   int NHits[2] = {0,0};  
   double LikelihoodRatio[3]={-1,-1,-1};  //== e/P, e/H, P/H
@@ -4198,12 +4198,12 @@ int TrdSCalibR::ProcessTrdZ(AMSEventR *pev, TrTrackR *Trtrk, int fitcode, int De
   if(!_trdcluster.IsReadCalibOK) return 4;    
   
   // Calculate Likelihood Ratio, Fill the LikelihoodRatio, NHits according to Track selection, and return validity 
-  if(!_trdcluster.GetLikelihoodRatio_TrTrack(threshold, LikelihoodRatio, NHits[0]) ) return 5; 
+  if(!_trdcluster.GetLikelihoodRatio_TrTrack(LikelihoodRatio, NHits[0]) ) return 5; 
   
   //Get Number of surrounding fired tubes, excluding the ones crossed by the current TrTrack prediction
   //_trdcluster.GetOffTrackHit_TrTrack(OffTrack_nhits[0],OffTrack_amps);
     
-  int isLikValid = _trdcluster.GetLikelihoodRatio_TRDRefit(threshold,LikelihoodRatioRefit,NHits[1]);
+  int isLikValid = _trdcluster.GetLikelihoodRatio_TRDRefit(LikelihoodRatioRefit,NHits[1]);
   //Get Number of surrounding fired tubes, excluding the ones crossed by the current TrTrack prediction
   //_trdcluster.GetOffTrackHit_TRDRefit(OffTrack_nhits[1],OffTrack_amps);
  
