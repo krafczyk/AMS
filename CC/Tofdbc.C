@@ -371,14 +371,14 @@ geant   TOFPMT::emitt  [2]={0.9,2.1};//TOF rise time+ decay time(ns)
 
 void  TOFPMT::init(){
 //---read file
-   char fname[1000];
+   char fname[1000] = "";
    char *ldir="/afs/ams.cern.ch/user/qyan/Offline/AMSTOF/tofdata/";
    if(TFMCFFKEY.g4tfdir==1)strcpy(fname,ldir);
    else {
        strcpy(fname,AMSDATADIR.amsdatadir);
        strcat(fname,"tofdata/");
     }
-   char vers[200];
+   char vers[200] = "";
    UHTOC(TFMCFFKEY.g4tfdb,100,vers,200);
    strcat(fname,vers);
 //---
@@ -736,7 +736,7 @@ TOFWScanN TOFWScanN::scmcscan1[TOF2GC::SCLRS][TOF2GC::SCMXBR];
 //----------------------------------------------------------------
 void TOFWScanN::build(){
 
-   char fname[1000],name[2000];
+   char fname[1000] = "", name[2000] = "";
    char *ldir="/afs/ams.cern.ch/user/qyan/Offline/AMSTOF/tofdata/";
    if(TFMCFFKEY.g4tfdir==1)strcpy(fname,ldir);
    else   {

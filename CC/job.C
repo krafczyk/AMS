@@ -1956,14 +1956,14 @@ void AMSJob::udata(){
 
 
   const integer cl=161;
-  char jobname[cl];
-  char setupname[cl];
-  char triggername[cl];
-  char tdvname[1601];
-  char ffile[cl];
-  char ifile[cl];
-  char ofile[cl];
-  char sfile[cl];
+  char jobname[cl] = "";
+  char setupname[cl] = "";
+  char triggername[cl] = "";
+  char tdvname[1601] = "";
+  char ffile[cl] = "";
+  char ifile[cl] = "";
+  char ofile[cl] = "";
+  char sfile[cl] = "";
   UHTOC(SELECTFFKEY.File,cl/sizeof(integer),sfile,cl-1);
   UHTOC(DAQCFFKEY.ifile,cl/sizeof(integer),ifile,cl-1);
   UHTOC(DAQCFFKEY.ofile,cl/sizeof(integer),ofile,cl-1);
@@ -2319,11 +2319,11 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     TRCLFFKEY.Thr1R[0]=3;
   }
 #endif
-  char hfile[161];
+  char hfile[161] = "";
   UHTOC(IOPA.hfile,40,hfile,160);  
   _hextname=hfile;
 
-  char rfile[161];
+  char rfile[161] = "";
   UHTOC(IOPA.rfile,40,rfile,160);  
   _rextname=rfile;
 
