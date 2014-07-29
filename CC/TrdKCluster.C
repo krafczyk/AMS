@@ -85,12 +85,12 @@ void TrdKCluster::Init(AMSEventR *evt){
 
 
     if(IsReadAlignmentOK>0 && ForceReadAlignment>0){
-        IsReadAlignmentOK=DoAlignment(IsReadPlaneAlignment,IsReadGlobalAlignment);
+        //IsReadAlignmentOK=DoAlignment(IsReadPlaneAlignment,IsReadGlobalAlignment);
         LastProcessedRun_Alignment=Time;
     }
 
     if(IsReadCalibOK && ForceReadCalibration>0){
-        IsReadCalibOK=DoGainCalibration();
+        //IsReadCalibOK=DoGainCalibration();
         LastProcessedRun_Calibration=Time;
     }
 
@@ -612,8 +612,14 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::DoHitPreselection(float cut_distance){
+    int read = _DB_instance->readDB_Alignment(Time);
+    read=_DB_instance->readDB_Calibration(Time);
     vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
     for (;Hit_it!=TRDHitCollection.end(); ) {
+        int layer=Hit_it->TRDHit_Layer;
+        par_alignment=_DB_instance->GetAlignmentPar(layer,(int)Time);
+        Hit_it->DoAlignment(&par_alignment);
+        Hit_it->DoGainCalibration(_DB_instance->GetGainCorrectionFactorTube(Hit_it->tubeid,Time));
         if(fabs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>cut_distance){
             Hit_it =TRDHitCollection.erase(Hit_it);
         }else Hit_it++;
@@ -633,10 +639,18 @@ void TrdKCluster::AddEmptyTubes(float cut_distance){
     selected_tube_collection.reserve(200);
     selected_tube_collection.clear();
 
+    int read = _DB_instance->readDB_Alignment(Time);
+    read=_DB_instance->readDB_Calibration(Time);
+
     for(int i=0;i<TRDTubeCollection.size();i++){
-        TrdKHit *tube=&(TRDTubeCollection.at(i));
-        if(fabs(tube->Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>cut_distance)continue;
-        selected_tube_collection.push_back(*tube);
+        TrdKHit tube = TRDTubeCollection.at(i);
+        int layer=tube.TRDHit_Layer;
+        par_alignment=_DB_instance->GetAlignmentPar(layer,(int)Time);
+        tube.DoAlignment(&par_alignment);
+        tube.DoGainCalibration(_DB_instance->GetGainCorrectionFactorTube(tube.tubeid,Time));
+        if(fabs(tube.Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>cut_distance)continue;
+
+        selected_tube_collection.push_back(tube);
     }
 
 
