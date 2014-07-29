@@ -9331,7 +9331,7 @@ if(defined $dataset->{buildno} ){
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
         unlink "$self->{AMSDataDir}/$dbversion/\*.flux";
        }
-        $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1";
+        $i=system "tar -C$self->{UploadsDir} -h -cf $filen --exclude='v5.01/RichDefaultPMTCalib/*' --exclude='v5.01/ACsoft/*' --exclude='v5.01/TRD/*' $dbversion 1>/dev/null 2>&1";
         if($i){
               $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen  $i    tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1");
          }
