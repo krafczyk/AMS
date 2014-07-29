@@ -68,6 +68,7 @@ void TrdKCluster::Init(AMSEventR *evt){
     if(!evt->nTrdRawHit())return;
 
     FillHitCollection(evt);
+    SetCorridorHits();
 
     if(IsReadAlignmentOK>0 && ForceReadAlignment>0){
         IsReadAlignmentOK=DoAlignment(IsReadPlaneAlignment,IsReadGlobalAlignment);
@@ -524,7 +525,7 @@ void TrdKCluster::Construct_TRDTube(){
     for(int i=0;i<TrdHCalibR::n_tubes;i++){
         int layer,ladder, tube;
         TrdHCalibR::GetLLTFromTubeId(layer,ladder,tube,i);
-        TrdRawHitR *_trdhit=new TrdRawHitR(layer,ladder,tube,0);
+        TrdRawHitR *_trdhit=new TrdRawHitR(layer,ladder,tube,0.);
         TrdKHit hit(_trdhit,Zshift);
         TRDTubeCollection.push_back(hit);
         delete _trdhit;
@@ -557,7 +558,6 @@ void TrdKCluster::Init_Base(){
     if(!kpdf_p)kpdf_p=new TrdKPDF("Proton");
     if(!kpdf_h)kpdf_h=new TrdKPDF("Helium");
     if(!kpdf_q)kpdf_q=new TrdKPDF("Nuclei");
-
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -614,16 +614,15 @@ void TrdKCluster::DoHitPreselection(float cut_distance){
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::FillHitCollection(AMSEventR* evt){
-
     int NTRDHit=evt->nTrdRawHit();
     if(!NTRDHit)return;
 
     if(NHits())TRDHitCollection.clear();
 
-    TRDHitCollection.reserve(5248);
+    TRDHitCollection.reserve(TrdHCalibR::n_tubes);
     //Create helper array
-    bool hit_status[5248];
-    for(int i=0;i<5248;++i) {
+    bool hit_status[TrdHCalibR::n_tubes];
+    for(int i=0;i<TrdHCalibR::n_tubes;++i) {
 	    hit_status[i] = false;
     }
     //Add Raw Hits
@@ -631,15 +630,13 @@ void TrdKCluster::FillHitCollection(AMSEventR* evt){
         TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
         if(!_trd_hit) continue;
 	int id;
-        TrdHCalibR::GetLLTFromTubeId(id,_trd_hit->Layer,_trd_hit->Ladder,_trd_hit->Tube);
+        TrdHCalibR::GetTubeIdFromLLT(_trd_hit->Layer,_trd_hit->Ladder,_trd_hit->Tube, id);
 	hit_status[id] = true;
         TRDHitCollection.push_back(TrdKHit(_trd_hit,Zshift));
     }
-    //Add the rest
-    for(int i=0;i<5248;++i) {
+    for(int i=0;i<TrdHCalibR::n_tubes;++i) {
         if(!hit_status[i]) {
 		TRDHitCollection.push_back(TRDTubeCollection[i]);
-		hit_status[i] = true;
 	}
     }
 }
@@ -1441,7 +1438,7 @@ void TrdKCluster::SetTrTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
     TrTrack_Pro=TrProp(track_extrapolated_P0,track_extrapolated_Dir,Rigidity);
     if(Rigidity!=0)Track_Rigidity=Rigidity;
     if(Rigidity==0 && Track_Rigidity==0)cout<<"~~~WARNING~~~TrdKCluster,  Track Rigidity is 0"<<endl;
-    SetCorridor(*P0, *Dir);
+    SetCorridor(track_extrapolated_P0, track_extrapolated_Dir);
 
 
     //    for(int i=0;i<NHits();i++){
@@ -1461,6 +1458,7 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
     if(Rigidity!=0)TRDTrack_Rigidity=Rigidity;
     else TRDTrack_Rigidity=Track_Rigidity;
     HasTRDTrack=1;
+    SetCorridor(track_extrapolated_P0, track_extrapolated_Dir);
 
 
     //    for(int i=0;i<NHits();i++){
@@ -1485,6 +1483,7 @@ void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
         track->Interpolate(TRDCenter,track_extrapolated_P0,track_extrapolated_Dir,fitcode);
         TrTrack_Pro=TrProp(track_extrapolated_P0,track_extrapolated_Dir,track->GetRigidity(fitcode));
         Track_Rigidity=track->GetRigidity(fitcode);
+        SetCorridor(track_extrapolated_P0, track_extrapolated_Dir);
 
     return;
 }
@@ -1830,9 +1829,10 @@ void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir*
     amp=0;
     for(int i=0;i<NHits();i++){
         TrdKHit *hit=GetHit(i);
-        float path_length=hit->Tube_Track_3DLength(P0,Dir);
+        //float path_length=hit->Tube_Track_3DLength(P0,Dir);
+        float dist=fabs(hit->Tube_Track_Distance_3D(P0,Dir));
         float Amp=hit->TRDHit_Amp;
-        if(Amp>threshold && path_length==0){
+        if(Amp>threshold && dist > TrdKHit::Tube_radius){
             nhits++;
             amp+=Amp;
         }
@@ -1866,9 +1866,10 @@ void TrdKCluster::GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* 
     amp=0;
     for(int i=0;i<NHits();i++){
         TrdKHit *hit=GetHit(i);
-        float path_length=hit->Tube_Track_3DLength(P0,Dir);
+        //float path_length=hit->Tube_Track_3DLength(P0,Dir);
+        float dist=fabs(hit->Tube_Track_Distance_3D(P0,Dir));
         float Amp=hit->TRDHit_Amp;
-        if(Amp>threshold && path_length!=0){
+        if(Amp>threshold && dist < TrdKHit::Tube_radius){
             nhits++;
             amp+=Amp;
         }
@@ -1903,9 +1904,9 @@ void TrdKCluster::GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir
     amp=0;
     for(int i=0;i<NHits();i++){
         TrdKHit *hit=GetHit(i);
-        float dist=abs(hit->Tube_Track_Distance_3D(P0,Dir));
+        float dist=fabs(hit->Tube_Track_Distance_3D(P0,Dir));
         float Amp=hit->TRDHit_Amp;
-        if(Amp>threshold && dist<=corridor_radius){
+        if(Amp>threshold && dist<=corridor_radius && dist > TrdKHit::Tube_radius){
             nhits++;
             amp+=Amp;
         }

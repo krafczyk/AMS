@@ -275,12 +275,12 @@ public:
 
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
     void SetThreshold(float thresh) {threshold = thresh; SetCorridorHits();}
-    float GetThreshold() {return threshold;}
+    float GetThreshold() const {return threshold;}
     void SetCorridorRadius(float rad) {corridor_radius = rad; SetCorridorHits();}
-    float GetCorridorRadius() {return corridor_radius;}
+    float GetCorridorRadius() const {return corridor_radius;}
     void SetCorridor(const AMSPoint& P, const AMSDir& D) { corridor_p = P; corridor_d = D; SetCorridorHits();}
-    const AMSPoint& GetCorridorP() {return corridor_p;}
-    const AMSDir& GetCorridorD() {return corridor_d;}
+    const AMSPoint& GetCorridorP() const {return corridor_p;}
+    const AMSDir& GetCorridorD() const {return corridor_d;}
     void SetCorridorHits();
 
     // For Charge Estimation
@@ -387,10 +387,11 @@ public:
         if(preselected) {
             return true;
 	} else {
-            if(hit->TRDHit_Amp < threshold) {
+	    double dist = fabs(hit->Tube_Track_Distance_3D(&corridor_p, &corridor_d));
+            if(hit->TRDHit_Amp <= threshold) {
                 return false;
 	    }
-	    if(abs(hit->Tube_Track_Distance_3D(&corridor_p, &corridor_d)) > corridor_radius) {
+	    if(dist > corridor_radius) {
                 return false;
 	    }
         }
