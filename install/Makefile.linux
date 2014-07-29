@@ -192,7 +192,7 @@ endif
 
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated  -march=i686 
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated  -march=i686 
-CFLAGSB=  -Wno-deprecated -Wno-write-strings -march=i686 
+CFLAGSB=  -Wall -Werror -march=i686 
 DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE

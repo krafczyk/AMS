@@ -91,7 +91,9 @@ endif
 # Wno-unused-function requires a rework of cfotran.h (move all functions into cfortran.c)
 # Wno-missing-braces requires still lots of work in Tofdbc.C (after that it can be removed.)
 # Same for Wno-gnu-static-float-init & Wno-deprecated-writable-strings (requires lots of work.)
-CFLAGSB=-Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
+#CFLAGSB=-Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
+CFLAGSB=  -Wall -Werror   
+#CFLAGSB+= -Wall -Wfloat-equal -Wshadow -Wsign-compare -Winline 
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 #OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')

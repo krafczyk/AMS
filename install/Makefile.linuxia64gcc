@@ -142,7 +142,7 @@ endif
 
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
-CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC
+CFLAGSB=  -Wall -Werror -fPIC
 DEFINES+= -D__root_$(NEW) 
 
 ifdef AMSPROFILE
