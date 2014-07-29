@@ -1,4 +1,4 @@
-//  $Id: TofSimUtil.h,v 1.3 2012/06/25 02:56:02 qyan Exp $
+//  $Id$
 
 //Author Qi Yan 2012/Feb/09 23:14 qyan@cern.ch
 #ifndef __AMSG4TOF__
@@ -73,8 +73,12 @@ class TofSimUtil
    G4Material* TOFVa_M;//Vacumm
    G4Material* TOFAl_M;//Al
    G4Material* TOFAlHoney_M;
+   G4Material* TOFAlHoneyUL_M[2];
+   G4Material* TOFAlHoney2UL_M; 
    G4Material* TOFCA_M;//Carbon
    G4Material* TOFCAFibre_M;
+   G4Material* TOFCAFibreUL_M;
+   G4Material* TOFCAFibre2UL_M;
    G4Material* TOFFe_M;//Fe
    G4Material* TOFSc_M;//EJ-200
    G4Material* TOFLg_M;//PMMA
@@ -99,6 +103,7 @@ class TofSimUtil
   static G4double Zc[NLAY];
   static G4double Zshift;
   static G4double Honshift[2][2];
+  static G4double HonshiftUL[2][2];
   static G4double Sci_l[NLAY][NBAR];
   static G4double Sci_w[NLAY][NBAR];
   static G4double Sci_lc[NLAY][NBAR];
@@ -120,6 +125,17 @@ class TofSimUtil
   static G4double DCarbonR;
   static G4double DCarbonZ;
   static G4double PCarbon[4][3];
+//--New
+  static G4double DHoneyUL[2][3];
+  static G4double PHoneyUL[2][3];
+  static G4double DCarbonUL;
+  static G4double PCarbonUL[2][3];
+  static G4double DCarbon2UL;
+  static G4double PCarbon2UL[2][3];
+  static G4double PCarbon3UL[2][3];
+  static G4double DHoney2UL;
+  static G4double PHoney2UL[2][3];
+//---
   G4OpticalSurface*          TOFSC_SuA[NLAY][NBAR];
   G4MaterialPropertiesTable* TOFSc_MtA[NLAY][NBAR];//sci material table all
   G4Material*                TOFSc_MA[NLAY][NBAR];//sci material all
@@ -161,6 +177,7 @@ class TofSimUtil
   
   public:
     static void CreateTofG4();
+    static int VerboseLevel;
     static TofSimUtil* Head;
     static G4PhysicsTable* TOFPM_Et;
     static G4double QEMAX;

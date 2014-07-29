@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.88 2013/11/07 22:49:40 bbeische Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 
@@ -397,7 +397,7 @@ void AMSTOFMCPmtHit::_writeEl(){
   if(AMSTOFMCPmtHit::Out( IOPA.WriteAll%10==1)){
 #ifdef __WRITEROOT__
 //       cout<<"write tof"<<endl; online mode write AMSRoot
-     if((MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4==1)||(TFMCFFKEY.writeall==1)){
+     if((MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4%10==1)||(TFMCFFKEY.writeall==1)){
        AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
      } 
 #endif

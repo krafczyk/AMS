@@ -58,7 +58,7 @@
  extern "C" void getfield_(geant& a);
 
  static double g4_primary_momentum=0;
-
+ static double g4_cpu_limit=0;
 size_t get_memory_usage() {
 
 #ifndef __DARWIN__
@@ -421,6 +421,11 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
        G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
        g4_primary_momentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +                                       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +                                       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
 //     cout <<" &&&&7 primary "<<g4_primary_momentum<<endl;
+  double g=g4_primary_momentum?log10(fabs(g4_primary_momentum)):-1;
+ double cl=3.6*(exp(0.23*g)-1.);
+ cl=pow(10.,cl);
+  g4_cpu_limit=cl/AMSCommonsI::getmips()*5000.;
+
  DAQEvent * pdaq=0;
  if(!AMSJob::gethead()->isSimulation()){
     //
@@ -1006,8 +1011,8 @@ if(!Step)return;
   static integer freq=10;
   static integer trig=0;
   trig=(trig+1)%freq;
-  static bool report=true; 
-  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+2*g4_primary_momentum && G4FFKEY.ApplyCPULimit){
+  static bool report=true;
+  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
@@ -1567,7 +1572,7 @@ if(!Step)return;
 	    //cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
 	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof,beta,deer,GCTRAK.step,GCKINE.itra,GCKINE.ipart,gtrkid);
 	    //----
-	    if(G4FFKEY.TFNewGeant4>1){
+	    if(G4FFKEY.TFNewGeant4%10>1){
 	      number tofdt= Step->GetStepLength()/((PostPoint->GetVelocity()+PrePoint->GetVelocity())/2.)/nanosecond;
 	      integer  parentid=Track->GetTrackID();
 	      TOF2TovtN::covtoph(numv,GCTRAK.vect,dee,tof,tofdt,GCTRAK.step,parentid);
@@ -1575,7 +1580,7 @@ if(!Step)return;
 	  }
      
 	  //--Trace every photon in PMT //may be already absorb
-	  if(G4FFKEY.TFNewGeant4==1){
+	  if(G4FFKEY.TFNewGeant4%10==1){
 	    if(PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='O'&& PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='L'&&
 	       PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='O' && PostPV->GetName()(2)=='F'&&PostPV->GetName()(3)=='P'){
 	      //check boundary           
@@ -1801,7 +1806,7 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName(),parinfo);
   if(GCKINE.ipart==Cerenkov_photon){
     //--new TOF part
-    if(G4FFKEY.TFNewGeant4==1){
+    if(G4FFKEY.TFNewGeant4%10==1){
       G4ThreeVector phver=aTrack->GetPosition();
       G4String volnam=aTrack->GetVolume()->GetName();
       bool IsTof=(volnam(0)=='T'&&(volnam(1)=='O'||volnam(1)=='F'));//not RICH region

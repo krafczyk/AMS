@@ -332,7 +332,8 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.SigTerm=0;
   G4FFKEY.ExEmPhysics=0;
   G4FFKEY.NeutronTkCut=0;
-  G4FFKEY.TFNewGeant4=2;
+//  G4FFKEY.TFNewGeant4=2;//Using Old TOF support structure geometry in MC <2014-07-27
+  G4FFKEY.TFNewGeant4=12;//Using New TOF support structure geometry in MC 2014-07-27
   G4FFKEY.MemoryLimit=-1;
   G4FFKEY.DetectorCut=0;//11 set detector cut as below,Tracker+TRD+TOF+RICH+ECAL+AMS(0 cut off, 1 new cut).
   G4FFKEY.AMSCut=1.;//AMSCut 1*mm
@@ -2658,7 +2659,7 @@ void AMSJob::_sitof2initjob(){
   TOF2JobStat::bookhistmc();//Book histograms for MC
   if(G4FFKEY.TFNewGeant4>0&& !isRealData() ){
      TOFPMT::build();//New PMT information
-     if(G4FFKEY.TFNewGeant4>1||MISCFFKEY.G3On)TOFWScanN::build();//Table method
+     if(G4FFKEY.TFNewGeant4%10>1||MISCFFKEY.G3On)TOFWScanN::build();//Table method
    }
 }
 //----------------------------------------------------------------------------------------

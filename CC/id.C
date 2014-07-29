@@ -1,4 +1,4 @@
-//  $Id: id.C,v 1.24 2008/12/08 15:15:17 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 #include "id.h"
@@ -7,41 +7,54 @@
 char * AMSID::_error=0;
 char AMSID::_pull[256]="";
 
-AMSID ::AMSID(integer i, const char name[] ):_id(i){
-  _copyname(name);
+AMSID ::AMSID(integer i, const char name[] ):_id(i),nameIsSet(false){
+ _copyname(name);
 }
-AMSID ::AMSID(const char name[],integer i ):_id(i){
+AMSID ::AMSID(const char name[],integer i ):_id(i),nameIsSet(false){
   _copyname(name);
 }
 AMSID ::AMSID(const AMSID & o){
+   nameIsSet=false;
   _copyname(o._name);
   _id=o._id;
 }
 AMSID &AMSID::operator= (const AMSID &o){
   if (this != &o){
-    delete[] _name;
     _copyname(o._name);
     _id=o._id;
   }
   return *this;
 }
 AMSID::~AMSID(){
-  if(_name)delete[] _name;
-  _name=0;
+    if(nameIsSet){
+      delete[] _name;
+    }
+    nameIsSet=false;
+    _name=0;
 }
 
 // Copy function
 void AMSID::_copyname( const char   name  [] ){
-  if(name){
-    _name=new char[strlen(name)+1];
-    if(_name)strcpy(_name,name);
-    else{
-      _name=0;
-
+    if(nameIsSet){
+     delete[] _name;
+     _name=0;
+      nameIsSet=false;
     }
+  if (name && strlen(name)) {
+    if(strlen(name)<sizeof(_aname)){
+      _name=_aname;
+    }
+    else{
+     _name=new char[strlen(name)+1];
+     nameIsSet=true;
+    }
+    strcpy(_name, name);
   }
-  else _name=0;
+  else{
+   _name=0;
+  }
 }
+
 // Error handling
 void   AMSID::ResetError(){_error=0;strcpy(_pull,"");}
 char *  AMSID::IsError(){return _error;}

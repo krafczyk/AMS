@@ -9016,6 +9016,9 @@ anyagain:
         if($cput >7200){
          $cput=7200;
         }
+        if ($dataset->{buildno} > 906) {
+            $cput = 30;
+        }
 
         my $evno=$q->param("QEv");
         my $runno=$q->param("QRun");
