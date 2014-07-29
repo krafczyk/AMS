@@ -279,6 +279,8 @@ public:
     void SetCorridorRadius(float rad) {corridor_radius = rad; SetCorridorHits();}
     float GetCorridorRadius() const {return corridor_radius;}
     void SetCorridor(const AMSPoint& P, const AMSDir& D) { corridor_p = P; corridor_d = D; SetCorridorHits();}
+    void SetCorridor(float thresh, float rad) { threshold = thresh; corridor_radius = rad; SetCorridorHits();}
+    void SetCorridor(float thresh, float rad, const AMSPoint& P, const AMSDir& D) { threshold = thresh; corridor_radius = rad; corridor_p = P; corridor_d = D; SetCorridorHits();}
     const AMSPoint& GetCorridorP() const {return corridor_p;}
     const AMSDir& GetCorridorD() const {return corridor_d;}
     void SetCorridorHits();
