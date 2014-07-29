@@ -132,14 +132,11 @@ int  AMSmceventg::readposfromfile(char* filename,vector<tbpos> &poslist){
   return poslist.size();
 }
 
+static char gPAWStandardDirectory[7] = "//PAWC";
+static char gPAWGeneratorDirectory[11]="//PAWC/GEN";
 
 void AMSmceventg::gener(){
-  char cdir[256];
-  char *R="R";
-  HCDIR(cdir,R);
-  char hpawc[256]="//PAWC/GEN";
-  char *BLANK=" ";
-  HCDIR (hpawc,BLANK);
+  HCDIR(gPAWGeneratorDirectory, " ");
   if(CCFFKEY.low==8){ // simple test beam mode
     _coo[0]=extract(CCFFKEY.coo[0],CCFFKEY.coo[3]);
     _coo[1]=extract(CCFFKEY.coo[1],CCFFKEY.coo[4]);
@@ -463,9 +460,7 @@ void AMSmceventg::gener(){
       if(_fixedpoint){
         _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
         _coo=_coorange[0];
-        char hp[9]="//PAWC";
-        HCDIR(hp," ");
-        HCDIR (cdir, " ");
+        HCDIR(gPAWStandardDirectory, " ");
         return;
       }
      
@@ -566,10 +561,7 @@ void AMSmceventg::gener(){
       }
     }//--->endof "random dir"
   }//--->endof "low!=2"
-  char hp[9]="//PAWC";
-  HCDIR(hp," ");
-  HCDIR (cdir, " ");
-  
+  HCDIR(gPAWStandardDirectory, " ");
 }
 
 
@@ -638,8 +630,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     }
     return;
   }
-    char cdir[256];
-    HCDIR(cdir,"R");
+    //char cdir[256];
+    //HCDIR(cdir,"R");
     HMDIR("//PAWC/GEN","S");
     if(low ==2)ipart=5;
     char chp[22]="";
@@ -833,9 +825,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
          exit(1);
         }
         else{
-          char hp[9]="//PAWC";
-          HCDIR(hp," ");
-          HCDIR (cdir, " ");
+          HCDIR(gPAWStandardDirectory, " ");
           return;
         }
 //      geomag transmittion
@@ -1026,9 +1016,7 @@ AMSEventR::hf1(_hid,xm,y);
 #ifdef __G4AMS__
 if(MISCFFKEY.G4On)AMSRandGeneral::book(_hid);
 #endif
-     char hp[9]="//PAWC";
-     HCDIR(hp," ");
-     HCDIR (cdir, " ");
+     HCDIR(gPAWStandardDirectory," ");
   }
 }
 void AMSmceventg::lookupsourcesp(int sourceid, number & constant, number & index){
@@ -2239,18 +2227,11 @@ bool AMSmceventg::Primary(){
 }
 
 void AMSmceventg::endjob(){
-    char cdir[256];
-    char *R="R";
-    HCDIR(cdir,R);
-    char hpawc[256]="//PAWC/GEN";
-    char *BLANK=" ";
-    HCDIR (hpawc,BLANK);
+  HCDIR(gPAWGeneratorDirectory, " ");
     if(CCFFKEY.low==2){
      CMEND();
     }
-    char hp[9]="//PAWC";
-    HCDIR(hp," ");
-    HCDIR (cdir, " ");
+  HCDIR(gPAWStandardDirectory," ");
 }
 //
 integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, geant phi){
