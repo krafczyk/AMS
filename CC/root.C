@@ -12437,7 +12437,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
   }
   TrigPatt=JMembPatt;
   PhysTrigPatt=PhysBPatt;
-  FTZ=((TrigPatt&(1<<5))!=0);
+//  FTZ=((TrigPatt&(1<<5))!=0);//SlowIon setting is disabled to match with Data 
   AccPatt=AntiPatt;
   TOFTrigFl1=TofFlag1;
   TOFTrigFl2=TofFlag2;//bz
@@ -12521,7 +12521,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt, int &AccSectPatt)
   }
   TrigPatt=JMembPatt;
   PhysTrigPatt=PhysBPatt;
-  FTZ=((TrigPatt&(1<<5))!=0);
+//  FTZ=((TrigPatt&(1<<5))!=0);//SlowIon setting is disabled to match with Data 
   AccSectPatt=AntiPatt;
   AccPatt=AntiPatt;
   TOFTrigFl1=TofFlag1;
