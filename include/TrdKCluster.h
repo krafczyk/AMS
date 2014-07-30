@@ -274,13 +274,12 @@ public:
     static int Default_TrPar[3];
 
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
-    void SetThreshold(float thresh) {threshold = thresh; SetCorridorHits();}
+    void SetThreshold(float thresh) {threshold = thresh;}
     float GetThreshold() const {return threshold;}
     void SetCorridorRadius(float rad) {corridor_radius = rad; SetCorridorHits();}
     float GetCorridorRadius() const {return corridor_radius;}
     void SetCorridor(const AMSPoint& P, const AMSDir& D) { corridor_p = P; corridor_d = D; SetCorridorHits();}
-    void SetCorridor(float thresh, float rad) { threshold = thresh; corridor_radius = rad; SetCorridorHits();}
-    void SetCorridor(float thresh, float rad, const AMSPoint& P, const AMSDir& D) { threshold = thresh; corridor_radius = rad; corridor_p = P; corridor_d = D; SetCorridorHits();}
+    void SetCorridor(float rad, const AMSPoint& P, const AMSDir& D) {corridor_radius = rad; corridor_p = P; corridor_d = D; SetCorridorHits();}
     const AMSPoint& GetCorridorP() const {return corridor_p;}
     const AMSDir& GetCorridorD() const {return corridor_d;}
     void SetCorridorHits();
@@ -390,9 +389,6 @@ public:
             return true;
 	} else {
 	    double dist = fabs(hit->Tube_Track_Distance_3D(&corridor_p, &corridor_d));
-            if(hit->TRDHit_Amp <= threshold) {
-                return false;
-	    }
 	    if(dist > corridor_radius) {
                 return false;
 	    }
