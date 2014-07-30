@@ -203,19 +203,19 @@ public:
 
 
     // GetLikelihoodRatio and Event Properties
-    int GetLikelihoodRatio(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir,float ECAL_Energy_Hypothesis=0);
-    int GetLikelihoodRatio_DEBUG(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir, int start_index=0, float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir,float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, AMSPoint *P0, AMSDir *Dir, int start_index=0, float ECAL_Energy_Hypothesis=0);
 
-    int GetLikelihoodRatio_TrTrack(double* LLR, int &nhits);
-    int GetLikelihoodRatio_TrTrack(double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL);
+    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits);
+    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL);
 
-    int GetLikelihoodRatio_TRDRefit(double* LLR, int &nhits);
-    int GetLikelihoodRatio_TRDRefit(double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod=1, int particle_hypothesis=1);
+    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits);
+    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod=1, int particle_hypothesis=1);
 
 
     // GetLikelihoodRatio and Event Properties,  Debug version
-    int GetLikelihoodRatio_TrTrack(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, int flag_debug=-1, float ECAL_Energy_Hypothesis=0);
-    int GetLikelihoodRatio_TRDRefit(double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp , int fitmethod=1, int particle_hypothesis=1, int flag_debug=-1,  float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp, int flag_debug=-1, float ECAL_Energy_Hypothesis=0);
+    int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, double* L, int &nhits, float &total_pathlength, float &total_amp , int fitmethod=1, int particle_hypothesis=1, int flag_debug=-1,  float ECAL_Energy_Hypothesis=0);
 
 
 
@@ -274,8 +274,6 @@ public:
     static int Default_TrPar[3];
 
     // Set Minimum Distance between Track and Tube that will be taken into the cluster
-    void SetThreshold(float thresh) {threshold = thresh;}
-    float GetThreshold() const {return threshold;}
     void SetCorridorRadius(float rad) {corridor_radius = rad; SetCorridorHits();}
     float GetCorridorRadius() const {return corridor_radius;}
     void SetCorridor(const AMSPoint& P, const AMSDir& D) { corridor_p = P; corridor_d = D; SetCorridorHits();}
@@ -443,7 +441,6 @@ private:
     BetaHR      *ptof;
     MCEventgR   *mcpart;
 
-    float threshold;
     float corridor_radius;
     AMSPoint corridor_p;
     AMSDir corridor_d;
