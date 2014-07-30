@@ -567,7 +567,9 @@ int TrdKCluster::DoGainCalibration(){
         cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Gain Calibration, Returning 0"<<endl;
         return 0;
     }for(int i=0;i<NHits();i++){
-        GetHit(i)->DoGainCalibration(_DB_instance->GetGainCorrectionFactorTube(GetHit(i)->tubeid,Time));
+        if(!GetHit(i)->IsCalibrated) {
+            GetHit(i)->DoGainCalibration(_DB_instance->GetGainCorrectionFactorTube(GetHit(i)->tubeid,Time));
+        }
     }
     return read;
 }
@@ -580,16 +582,28 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
         cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Alignment, Returning 0"<<endl;
         return 0;
     }else if(read==2){
-        for(int i=0;i<NHits();i++){
-            int layer=GetHit(i)->TRDHit_Layer;
-            par_alignment=_DB_instance->GetAlignmentPar(layer,(int)Time);
-            GetHit(i)->DoAlignment(&par_alignment);
+	int old_layer = -1;
+        for(int i=0;i<NHits();i++) {
+            if(!GetHit(i)->IsAligned) {
+                int layer=GetHit(i)->TRDHit_Layer;
+                if(old_layer != layer) {
+                    par_alignment=_DB_instance->GetAlignmentPar(layer,(int)Time);
+                    old_layer = layer;
+                }
+                GetHit(i)->DoAlignment(&par_alignment);
+            }
         }
     }else if(read==1){
-        for(int i=0;i<NHits();i++){
-            int layer=GetHit(i)->TRDHit_Layer;
-            par_alignment=*(_DB_instance->GetAlignmentPar_Plane(layer));
-            GetHit(i)->DoAlignment(&par_alignment);
+	int old_layer = -1;
+        for(int i=0;i<NHits();i++) {
+            if(!GetHit()->IsAligned) {
+                int layer=GetHit(i)->TRDHit_Layer;
+                if(old_layer != layer) {
+                    par_alignment=*(_DB_instance->GetAlignmentPar_Plane(layer));
+                    old_layer = layer;
+                }
+                GetHit(i)->DoAlignment(&par_alignment);
+            }
         }
     }
     return read;
