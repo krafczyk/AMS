@@ -1563,6 +1563,7 @@ void TkDBc::RebuildMap()
 #include "root.h"
 #endif
 
+
 void TkDBc::UseLatest(int reset)
 {
   cerr << "TkDBc::UseLatest-F-Now OBSOLETE, use UseFinal or UseVersion instead"
@@ -1572,7 +1573,9 @@ void TkDBc::UseLatest(int reset)
 
 void TkDBc::UseFinal(int reset)
 {
-  UseVersion(5, reset);
+int iver=6;
+cout << "TkDBc::UseFinal-I-UsingVersion "<<iver<<endl;
+  UseVersion(iver, reset);
 }
 
 void TkDBc::UseVersion(int ver, int reset)
