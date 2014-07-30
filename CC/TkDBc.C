@@ -1606,7 +1606,6 @@ void TkDBc::UseVersion(int ver, int reset)
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
     dyn = "DynAlignmentV5T290713PM5";
-    TrExtAlignDB::Sofs2[6]=26e-4;
   }
   else {
     cerr << "TkDBc::UseVersion-F-Unsupported version: " << ver << endl;
