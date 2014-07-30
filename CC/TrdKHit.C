@@ -12,8 +12,8 @@ TrdKHit::TrdKHit(TrdRawHitR *_trdhit, float zshit){
 
     TRDHit_Layer=_trdhit->Layer;
     TRDHit_Ladder=_trdhit->Ladder;
-    TrdHCalibR::gethead()->GetTubeIdFromLLT(_trdhit->Layer,_trdhit->Ladder,_trdhit->Tube,tubeid);
-    mf=TrdHCalibR::gethead()->GetManifold(tubeid/128);
+    TrdHCalibR::GetTubeIdFromLLT(_trdhit->Layer,_trdhit->Ladder,_trdhit->Tube,tubeid);
+    mf=TrdHCalibR::GetManifold(tubeid/128);
     if(TRDHit_Layer<=3 || TRDHit_Layer>=16)TRDHit_Direction=1;
     else TRDHit_Direction=0;
     IsCalibrated=0;
@@ -130,6 +130,12 @@ void TrdKHit::PredictCrossing(AMSPoint *P0, AMSDir *u, int tracktype){
 double TrdKHit::Tube_Track_Distance_3D(AMSPoint *C2, AMSDir *D2){
     AMSPoint diff=(*C2)-TRDTube_Center;
     AMSPoint cross=(*D2).crossp(TRDTube_Dir);
+    return ((diff.prod(cross)))/cross.norm();
+}
+
+double TrdKHit::Tube_Track_Distance_3D_Raw(AMSPoint *C2, AMSDir *D2){
+    AMSPoint diff=(*C2)-TRDTube_Center_Raw;
+    AMSPoint cross=(*D2).crossp(TRDTube_Dir_Raw);
     return ((diff.prod(cross)))/cross.norm();
 }
 

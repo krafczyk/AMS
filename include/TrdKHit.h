@@ -30,6 +30,7 @@ public:
     void DoAlignment(TRDAlignmentPar *par);
     void PredictCrossing(AMSPoint *P0, AMSDir *u, int tracktype=0);
     double Tube_Track_Distance_3D(AMSPoint *C2, AMSDir *D2);
+    double Tube_Track_Distance_3D_Raw(AMSPoint *C2, AMSDir *D2);
     double Tube_Track_Distance_2D(AMSPoint *C2, AMSDir *D2);
     double Tube_Track_3DLength(AMSPoint *C2, AMSDir *D2);
     double Tube_Track_3DLength_New(double d, AMSDir *Dir);
