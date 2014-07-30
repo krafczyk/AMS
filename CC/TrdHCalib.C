@@ -525,8 +525,8 @@ void TrdHCalibR::GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid){
   if(hvid>63){layer+=4;ladder-=18;}
 }
 
-float par[4]={3.85478e+01,5.26885e-01,8.08710e-02,2.42610e+01};
-float path_pol3[4]={66.4444,-43.7317,10.9122,-0.575106};
+const float par[4]={3.85478e+01,5.26885e-01,8.08710e-02,2.42610e+01};
+const float path_pol3[4]={66.4444,-43.7317,10.9122,-0.575106};
 
 float TrdHCalibR::PathParametrization(float path,int opt,int debug){
   if(opt==1)return par[0]/(1+exp((par[1]-path)/par[2]))+par[3];
@@ -537,8 +537,8 @@ float TrdHCalibR::PathParametrization(float path,int opt,int debug){
   }
 }
 
-double betapar[7]={1.94728e+01,-5.96794e+00,1.58489e-02,9.52168e-03,8.18354e+01,6.00944e+00,1.54202e+03};
-double betapar_pol4[5]={9161.75,-35936.6,53297.3,-35295.1,8828.5};
+const double betapar[7]={1.94728e+01,-5.96794e+00,1.58489e-02,9.52168e-03,8.18354e+01,6.00944e+00,1.54202e+03};
+const double betapar_pol4[5]={9161.75,-35936.6,53297.3,-35295.1,8828.5};
 float TrdHCalibR::BetaParametrization(float beta,int opt,int debug){
   if(opt==1){
     double x=beta/sqrt(1-beta*beta);//log10(betagamma)

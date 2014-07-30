@@ -176,19 +176,19 @@ class TrdHCalibR{
   static void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
   
   /// Get TDV iterator for tube id
-  int GetNTDV(int tubeid);
+  static int GetNTDV(int tubeid);
   
   /// Get TDV iterator for layer ladder tube
-  int GetNTDV(int layer, int ladder, int tube);
+  static int GetNTDV(int layer, int ladder, int tube);
   
   /// Get TDV iterator for raw hit
-  int GetNTDV(TrdRawHitR* hit);
+  static int GetNTDV(TrdRawHitR* hit);
   
   /// Get parametrization of dE as function of path (extracted from space proton data) - two versions available('option')
-  float PathParametrization(float path,int option=0,int debug=0);
+  static float PathParametrization(float path,int option=0,int debug=0);
   
   /// Get parametrization of dE as function of beta (extracted from space proton data - not corrected for path yet tdb) - two versions available ('option')
-  float BetaParametrization(float beta,int option=0,int debug=0);
+  static float BetaParametrization(float beta,int option=0,int debug=0);
   
   /// Get correction factor to correct from event tof 'beta' to given value 'tobeta' - two parametrizations available ('option')
   float GetBetaCorr(double beta, double tobeta=0.95, int option=0, int debug=0); 
@@ -221,13 +221,13 @@ class TrdHCalibR{
   float MeanOccupancy(int opt=0);
   
   /// Get gas circuit number 'gascirc'[0,41] and local iterator 'gasmod' [0,7] along it associated to module at 'layer/ladder'
-  void LLT2GCM(int layer, int ladder, int &gascirc, int &gasmod);
+  static void LLT2GCM(int layer, int ladder, int &gascirc, int &gasmod);
   
   /// Get position of gas inlet for 'gascirc': 0-left bottom 1-right bottom 2-left top 3-right top  
-  int GetInletGeom(int gascirc);
+  static int GetInletGeom(int gascirc);
   
   /// Get Manifold[0,9] which supplies gas circuit 'gascirc'
-  int GetManifold(int gascirc);
+  static int GetManifold(int gascirc);
   
   /// Apply dynamic correction during analysis - gain correction varied during run
   int DynamicCalibration(AMSEventR *pev, int opt=0);
