@@ -220,19 +220,19 @@ public:
 
 
     // Number of Hits and Total Amplitude of On-Track Tubes
-    void GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
-    void GetOnTrackHit_TrTrack(int& nhits, float & amp);
-    void GetOnTrackHit_TRDRefit(int& nhits, float & amp);
+    void GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = -1.);
+    void GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.);
+    void GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.);
 
     // Number of Hits and Total Amplitude of On-Track Tubes
-    void GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
-    void GetNearTrackHit_TrTrack(int& nhits, float & amp);
-    void GetNearTrackHit_TRDRefit(int& nhits, float & amp);
+    void GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = -1.);
+    void GetNearTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.);
+    void GetNearTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.);
 
     // Number of Hits and Total Amplitude of Off-Track Tubes
-    void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
-    void GetOffTrackHit_TrTrack(int& nhits, float & amp);
-    void GetOffTrackHit_TRDRefit(int& nhits, float & amp);
+    void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = -1.);
+    void GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.);
+    void GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.);
 
     // Get Refitted TRD Track, accroding to the latest refit
     int GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir);
