@@ -67,8 +67,9 @@ void TRDMCFFKEY_DEF::init(){
   ZShift=0.1; // TR 07-nov-2013: TRD shifted upwards 1 mm instead of previous 0.1 mm
   MinSigma=3.;
   MaxSigma=5.;
-  photonEnergyCut=0.000010; // [MeV]
+  photonEnergyCut=0.001;    // [MeV]
   electronEnergyCut=0.001;  // [MeV]
+  tubeEnergyCut=0.000010;   // [MeV]
   trdProdCut=1.0;           // [mm]
   tubeProdCut=0.001;        // [mm]
 }

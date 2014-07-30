@@ -1432,20 +1432,26 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
     if(g3==1){       
       Emin=pUserLimits->PhotonECut();
       if (logicalVolume->GetRegion()->GetName().contains("Trd")) {
-	//if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
-	//logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
-	//logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
-        Emin = TRDMCFFKEY.photonEnergyCut * MeV;
+        if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdRadiatorRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+          Emin = TRDMCFFKEY.photonEnergyCut * MeV;
+        } else if (logicalVolume->GetRegion()->GetName() == "TrdTubeRegion") {
+          Emin = TRDMCFFKEY.tubeEnergyCut * MeV;
+	}
       }
     }
     //        else if (particleName=="e-" || particleName=="e+"){
     else if (g3==2 || g3==3){
       Emin=pUserLimits->ElectronECut();
       if (logicalVolume->GetRegion()->GetName().contains("Trd")) {
-	//if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
-	//logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
-	//logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
-        Emin = TRDMCFFKEY.electronEnergyCut * MeV;
+        if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdRadiatorRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+          Emin = TRDMCFFKEY.electronEnergyCut * MeV;
+        } else if (logicalVolume->GetRegion()->GetName() == "TrdTubeRegion") {
+          Emin = TRDMCFFKEY.tubeEnergyCut * MeV;
+        }
       }
     }
     //        else if (particleName=="mu-" || particleName=="mu+"){

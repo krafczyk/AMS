@@ -77,6 +77,7 @@ public:
   float MaxSigma;
   float photonEnergyCut;
   float electronEnergyCut;
+  float tubeEnergyCut;
   float trdProdCut;
   float tubeProdCut;
   void init();
