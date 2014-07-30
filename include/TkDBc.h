@@ -516,7 +516,7 @@ public:
     \brief Use the final alignment instead of the one stored in ROOT file
     \param reset 1: Reset and reload alignment TDV
   */
-  static void UseFinal(int reset = 0) { UseVersion(5, reset); }
+  static void UseFinal(int reset = 0);
 
   /*!
     \brief Specify alignment versions

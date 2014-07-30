@@ -1570,6 +1570,11 @@ void TkDBc::UseLatest(int reset)
   exit(-1);
 }
 
+void TkDBc::UseFinal(int reset)
+{
+  UseVersion(5, reset);
+}
+
 void TkDBc::UseVersion(int ver, int reset)
 {
   TString dyn = "DynAlignmentV5T120628";
