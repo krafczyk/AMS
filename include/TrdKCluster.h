@@ -383,14 +383,10 @@ public:
     }
 
     bool IsHitGood(TrdKHit* hit) {
-        if(preselected) {
-            return true;
-	} else {
-	    double dist = fabs(hit->Tube_Track_Distance_3D(&corridor_p, &corridor_d));
-	    if(dist > corridor_radius) {
-                return false;
-	    }
-        }
+	double dist = fabs(hit->Tube_Track_Distance_3D(&corridor_p, &corridor_d));
+	if(dist > corridor_radius) {
+            return false;
+	}
 	return true;
     }
 
@@ -445,7 +441,6 @@ private:
     AMSPoint corridor_p;
     AMSDir corridor_d;
     vector<int> corridor_hits;
-    bool preselected;
 
     // Additinal Initilizationa
     void Init_Base();

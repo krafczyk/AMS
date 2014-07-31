@@ -547,7 +547,6 @@ void TrdKCluster::Init_Base(){
     corridor_radius=3.;
     corridor_p = AMSPoint(0,0,0);
     corridor_d = AMSDir(0,0,-1);
-    preselected = false;
     if(DefaultMCXePressure<=0)SetDefaultMCXePressure(780);
     if(TRDTubeCollection.size()!=TrdHCalibR::n_tubes)Construct_TRDTube();
     if(map_TRDOnline.size()==0) InitXePressure();
@@ -596,7 +595,7 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
     }else if(read==1){
 	int old_layer = -1;
         for(int i=0;i<NHits();i++) {
-            if(!GetHit()->IsAligned) {
+            if(!GetHit(i)->IsAligned) {
                 int layer=GetHit(i)->TRDHit_Layer;
                 if(old_layer != layer) {
                     par_alignment=*(_DB_instance->GetAlignmentPar_Plane(layer));
@@ -743,7 +742,7 @@ double TrdKCluster::TRDTrack_ImpactChi2(Double_t *par){
     double impact_parameter,likelihood;
     TrdKHit* hit;
     for(int i=0;i<size;i++){
-        hit=GetHit(corridor_hits[i]);
+        hit=GetCorridorHit(i);
         impact_parameter=hit->Tube_Track_Distance_3D(&temp_TrTrackP0,&temp_TrTrackDir);
         likelihood = TRDImpactlikelihood->GetLikelihood(hit->TRDHit_Amp,impact_parameter);
         if(likelihood<0.0000001) likelihood=0.0000001;
@@ -764,7 +763,7 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
     double pathlength,likelihood;
     TrdKHit* hit;
     for(int i=0;i<size;i++){
-        hit=GetHit(corridor_hits[i]);
+        hit=GetCorridorHit(i);
         pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
         if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
         else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
