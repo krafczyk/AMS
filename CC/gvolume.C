@@ -452,16 +452,16 @@ integer AMSgvolume::_Norp=0;
       //      printf("pg4l %s gmat %s gmed %s\n ",_pg4l->GetName(),_pgtmed->getname(),_pgtmed->getpgmat()->getname());
       if(strcmp(_pgtmed->getname(),"TRDRadiator")==0){
 #ifdef __G4AMS__
-	if(!trdSimUtil.radregion)trdSimUtil.radregion=new G4Region("TrdRadRegion");      
-	trdSimUtil.radregion->AddRootLogicalVolume(_pg4l);
+	if(!trdSimUtil.radiatorRegion)trdSimUtil.radiatorRegion=new G4Region("TrdRadiatorRegion");
+	trdSimUtil.radiatorRegion->AddRootLogicalVolume(_pg4l);
 	trdSimUtil.radlv=_pg4l;
 #endif
         _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(1));  // Radiator
       }
       else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
 #ifdef __G4AMS__
-	if(!trdSimUtil.gasregion)trdSimUtil.gasregion=new G4Region("TrdGasRegion");
-        trdSimUtil.gasregion->AddRootLogicalVolume(_pg4l);
+	if(!trdSimUtil.gasRegion)trdSimUtil.gasRegion=new G4Region("TrdGasRegion");
+        trdSimUtil.gasRegion->AddRootLogicalVolume(_pg4l);
 #endif
        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas
       }
@@ -475,9 +475,14 @@ integer AMSgvolume::_Norp=0;
      }    
 //  Set Cuts
 
+     if(strcmp(_pgtmed->getname(),"TRDCapton")==0){
+       if(!trdSimUtil.tubeRegion)trdSimUtil.tubeRegion=new G4Region("TrdTubeRegion");
+       trdSimUtil.tubeRegion->AddRootLogicalVolume(_pg4l);
+     }
+
     if(strcmp(_pg4l->GetName(),"TRD9")==0){
-      if(!trdSimUtil.trdregion)trdSimUtil.trdregion=new G4Region("TrdRegion");
-      trdSimUtil.trdregion->AddRootLogicalVolume(_pg4l);
+      if(!trdSimUtil.trdRegion)trdSimUtil.trdRegion=new G4Region("TrdRegion");
+      trdSimUtil.trdRegion->AddRootLogicalVolume(_pg4l);
     }
  
     //--Ecal Volume G4Region

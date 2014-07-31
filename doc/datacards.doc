@@ -812,8 +812,11 @@ R52   TRphotonEnergyScalingFactor(1.0) // factor to scale energy of TR photons
 R53   ZShift(0.1);                     //  TRD Global Shift in cm
 R54   MinSigma(3.);                    // minimum sigma used in TRD digi data reduction
 R55   MaxSigma(5.);                    // maximum sigma used in TRD digi data reduction
-R56   photonEnergyCut(0.000010)        // photon energy cut inside TRD [MeV]
+R56   photonEnergyCut(0.001)           // photon energy cut inside TRD [MeV]
 R57   electronEnergyCut(0.001)         // electron energy cut inside TRD [MeV]
+R58   tubeEnergyCut(0.000010)          // electron and photon energy cut in straw tube walls [MeV]
+R59   trdProdCut(1.0)                  // production cut in trdRegion and radiatorRegion [mm]
+R60   tubeProdCut(0.001)               // production cut in tubeRegion [mm] (walls of straws)
 
 TRDCL   // TRD clustering
 

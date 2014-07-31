@@ -230,7 +230,9 @@ AMSgmat *TrdSimUtil::GetKaptonMaterial( void ){
 }
 
 void TrdSimUtil::UpdateGas ( void ) {
-  G4double cut = TRDMCFFKEY.GasStep*mm;
+  G4double gasProdCut = TRDMCFFKEY.GasStep*mm;
+  G4double trdProdCut = TRDMCFFKEY.trdProdCut*mm;
+  G4double tubeProdCut = TRDMCFFKEY.tubeProdCut*mm;
   trdGasTemperature=TRDMCFFKEY.Tmean*kelvin;
   trdGasPressure=TRDMCFFKEY.Pmean/1000.*bar;
   trdFleeceFiberDiameter=TRDMCFFKEY.FibreDiam*um;
@@ -243,22 +245,28 @@ void TrdSimUtil::UpdateGas ( void ) {
   fTrdNumberFractionAr=TRDMCFFKEY.ArgonFraction;
 
   fTrdRegionCuts = new G4ProductionCuts();
-  fTrdRegionCuts->SetProductionCut(1*mm, idxG4GammaCut);
-  fTrdRegionCuts->SetProductionCut(1*mm, idxG4ElectronCut);
-  fTrdRegionCuts->SetProductionCut(1*mm, idxG4PositronCut);
-  fTrdRegionCuts->SetProductionCut(1*mm, idxG4ProtonCut);
+  fTrdRegionCuts->SetProductionCut(trdProdCut, idxG4GammaCut);
+  fTrdRegionCuts->SetProductionCut(trdProdCut, idxG4ElectronCut);
+  fTrdRegionCuts->SetProductionCut(trdProdCut, idxG4PositronCut);
+  fTrdRegionCuts->SetProductionCut(trdProdCut, idxG4ProtonCut);
+
+  fTrdTubeRegionCuts = new G4ProductionCuts();
+  fTrdTubeRegionCuts->SetProductionCut(tubeProdCut, idxG4GammaCut);
+  fTrdTubeRegionCuts->SetProductionCut(tubeProdCut, idxG4ElectronCut);
+  fTrdTubeRegionCuts->SetProductionCut(tubeProdCut, idxG4PositronCut);
+  fTrdTubeRegionCuts->SetProductionCut(tubeProdCut, idxG4ProtonCut);
 
   fTrdGasRegionCuts = new G4ProductionCuts();
-  fTrdGasRegionCuts->SetProductionCut(cut, idxG4GammaCut);
-  fTrdGasRegionCuts->SetProductionCut(cut, idxG4ElectronCut);
-  fTrdGasRegionCuts->SetProductionCut(cut, idxG4PositronCut);
-  fTrdGasRegionCuts->SetProductionCut(cut, idxG4ProtonCut);
+  fTrdGasRegionCuts->SetProductionCut(gasProdCut, idxG4GammaCut);
+  fTrdGasRegionCuts->SetProductionCut(gasProdCut, idxG4ElectronCut);
+  fTrdGasRegionCuts->SetProductionCut(gasProdCut, idxG4PositronCut);
+  fTrdGasRegionCuts->SetProductionCut(gasProdCut, idxG4ProtonCut);
   
   fTrdRadRegionCuts = new G4ProductionCuts();
-  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4GammaCut);
-  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4ElectronCut);
-  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4PositronCut);
-  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4ProtonCut);
+  fTrdRadRegionCuts->SetProductionCut(trdProdCut, idxG4GammaCut);
+  fTrdRadRegionCuts->SetProductionCut(trdProdCut, idxG4ElectronCut);
+  fTrdRadRegionCuts->SetProductionCut(trdProdCut, idxG4PositronCut);
+  fTrdRadRegionCuts->SetProductionCut(trdProdCut, idxG4ProtonCut);
   
   //Should not define region before "World" is created, "World" need to be the first instance in G4RegionStore
 //   if(!gasregion){
@@ -318,16 +326,19 @@ TrdSimUtil::TrdSimUtil(){
   
   trdFleeceGasConf=0;
   fTrdRegionCuts=0;
+  fTrdTubeRegionCuts=0;
   fTrdGasRegionCuts=0;
   fTrdRadRegionCuts=0;
-  trdregion=0;
-  gasregion=0;
-  radregion=0;
+  trdRegion=0;
+  tubeRegion=0;
+  gasRegion=0;
+  radiatorRegion=0;
   radlv=0;
 }
 
 void TrdSimUtil::EndOfRun( void ) {
-  (G4RegionStore::GetInstance())->DeRegister(gasregion);
-  (G4RegionStore::GetInstance())->DeRegister(radregion);
-  (G4RegionStore::GetInstance())->DeRegister(trdregion);
+  (G4RegionStore::GetInstance())->DeRegister(gasRegion);
+  (G4RegionStore::GetInstance())->DeRegister(radiatorRegion);
+  (G4RegionStore::GetInstance())->DeRegister(tubeRegion);
+  (G4RegionStore::GetInstance())->DeRegister(trdRegion);
 }
