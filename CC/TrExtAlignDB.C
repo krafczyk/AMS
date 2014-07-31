@@ -8,7 +8,6 @@
 #include "commonsi.h"
 #include "TrRecHit.h"
 #include "VCon.h"
-
 #include "DynAlignment.h"
 
 #ifdef __ROOTSHAREDLIBRARY__
@@ -476,6 +475,7 @@ void TrExtAlignDB::SmearExtAlign()
   AMSEventR::GetRandArray(4173792, 1, 2, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
+   float d;
   for (int i = 0; i < 2; i++) rd[i] = RNDM(d);
 #endif
 
