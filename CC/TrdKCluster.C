@@ -611,20 +611,6 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::DoHitPreselection(float cut_distance){
-    vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
-    for (;Hit_it!=TRDHitCollection.end(); ) {
-        if(fabs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>cut_distance){
-            Hit_it =TRDHitCollection.erase(Hit_it);
-        }else Hit_it++;
-    }
-    preselected = true;
-}
-
-
-
-/////////////////////////////////////////////////////////////////////
-
 void TrdKCluster::FillHitCollection(AMSEventR* evt){
     int NTRDHit=evt->nTrdRawHit();
     if(!NTRDHit)return;

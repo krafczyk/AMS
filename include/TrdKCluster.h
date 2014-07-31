@@ -249,10 +249,6 @@ public:
     TrdKHit* GetCorridorHit(int i) {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
 
-    // Select Only Hit within distance/cm around the current track , outside hits are dropped from the cluster
-    void DoHitPreselection(float distance);
-
-
     // Advanced operation , to select differenet collecionion of hits
     void SetCollection(vector<TrdKHit> _collection){TRDHitCollection=_collection;}
 
