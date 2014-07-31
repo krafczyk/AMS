@@ -470,24 +470,70 @@ extern "C" double rnormx();
 void TrExtAlignDB::SmearExtAlign()
 {
   double rnd[8];
+  double rd[2];
 #ifdef __ROOTSHAREDLIBRARY__
   AMSEventR::GetRandArray(4173792, 2, 8, rnd);
+  AMSEventR::GetRandArray(4173792, 1, 2, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
+  for (int i = 0; i < 2; i++) rd[i] = RNDM(d);
 #endif
+
+double s1[2]={7.5,8.3};
+double s2[2]={13.,14};
+double s3[2]={33,33};
+double r[2][3]={1.,0.12/2.,0.01/2,1.,0.12/2.,0.003/2.};
+for(int l=0;l<2;l++){
+double sum=0;
+for(int k=0;k<3;k++)sum+=r[l][k];
+for(int k=0;k<3;k++)r[l][k]/=sum;
+}
+
+double md[2]={0,0};
+double pg[2]={0,0};
+
+
+for(int k=0;k<2;k++){
+{
+double r1=rd[0];
+if(r1<r[k][0]){
+ md[k]+=s1[k];
+}
+else if(r1<r[k][0]+r[k][1]){
+ md[k]+=s2[k];
+ }
+else md[k]+=s3[k];
+}
+{
+double r1=rd[1];
+if(r1<r[k][0]){
+ pg[k]=s1[k];
+}
+else if(r1<r[k][0]+r[k][1]){
+ pg[k]=s2[k];
+ }
+else pg[k]=s3[k];
+
+
+}
+}
 
   ResetExtAlign();
   // PG
   SL1[0] = rnd[0]*TRMCFFKEY.OuterSmearing[0][0];
-  SL1[1] = rnd[1]*TRMCFFKEY.OuterSmearing[0][1];
+  if(TRMCFFKEY.OuterSmearing[0][1]>=0)SL1[1] = rnd[1]*TRMCFFKEY.OuterSmearing[0][1];
+  else SL1[1] = rnd[1]*pg[0];
   SL9[0] = rnd[2]*TRMCFFKEY.OuterSmearing[1][0];
-  SL9[1] = rnd[3]*TRMCFFKEY.OuterSmearing[1][1];
+  if(TRMCFFKEY.OuterSmearing[1][1]>=0)SL9[1] = rnd[3]*TRMCFFKEY.OuterSmearing[1][1];
+  else SL9[1] = rnd[3]*pg[1];
 
   // CIEMAT
   SL1[6] = rnd[4]*TRMCFFKEY.OuterSmearing[0][0];
-  SL1[7] = rnd[5]*TRMCFFKEY.OuterSmearing[0][1];
+  if(TRMCFFKEY.OuterSmearing[0][1]>=0)SL1[7] = rnd[5]*TRMCFFKEY.OuterSmearing[0][1];
+  else SL1[7] = rnd[5]*md[0];
   SL9[6] = rnd[6]*TRMCFFKEY.OuterSmearing[1][0];
-  SL9[7] = rnd[7]*TRMCFFKEY.OuterSmearing[1][1];
+  if(TRMCFFKEY.OuterSmearing[1][1]>=0)SL9[7] = rnd[7]*TRMCFFKEY.OuterSmearing[1][1];
+  else SL9[7] = rnd[7]*md[1];
 
 #ifdef __ROOTSHAREDLIBRARY__
   // Workaround to retune the MC scatterng
