@@ -480,6 +480,9 @@ void TrExtAlignDB::SmearExtAlign()
 #endif
 
 double s1[2]={7.5,8.3};
+s1[0]=fabs(TRMCFFKEY.OuterSmearing[0][1]);
+s1[1]=fabs(TRMCFFKEY.OuterSmearing[1][1]);
+
 double s2[2]={13.,14};
 double s3[2]={33,33};
 double r[2][3]={1.,0.12/2.,0.01/2,1.,0.12/2.,0.003/2.};
