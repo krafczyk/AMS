@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.86 2012/06/08 17:42:00 choutko Exp $
+//  $Id$
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -902,7 +902,7 @@ void TOF2RawCluster::build(int &ostatus){
 //
 //------------> set LT/SumHT matching flag (if not PMEQmode):       
           rej1=0;
-          if(!PMEQmode){
+          if(!PMEQmode && itmbest[0] >= 0 && itmbest[1] >= 0){
             if((smty[0]==1 && itmatch[0][itmbest[0]]<0) || (smty[1]==1 && itmatch[1][itmbest[1]]<0)){
 	        rej1=1;//missing LT/SumHT MATCHING on any of complete(3-meas) sides
                 chnum=ilay*TOF2GC::SCMXBR*2+ibar*2;//channel numbering (s1) for job-stat counters
