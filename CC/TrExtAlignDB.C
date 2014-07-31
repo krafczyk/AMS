@@ -472,7 +472,7 @@ void TrExtAlignDB::SmearExtAlign()
   double rd[2];
 #ifdef __ROOTSHAREDLIBRARY__
   AMSEventR::GetRandArray(4173792, 2, 8, rnd);
-  AMSEventR::GetRandArray(4173792, 1, 2, rd);
+  AMSEventR::GetRandArray(3375420, 1, 2, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
    float d;
