@@ -1,4 +1,4 @@
-// $Id: TrTasCluster.h,v 1.2 2009/12/21 20:46:57 shaino Exp $
+// $Id$
 
 #ifndef __TrTasCluster__
 #define __TrTasCluster__
@@ -14,18 +14,36 @@
 ///
 ///\date  2009/12/10 SH  First version
 ///\date  2009/12/17 SH  First Gbatch version
-///$Date: 2009/12/21 20:46:57 $
+///\date  2014/07/29 SH  Update for ISS data
+///$Date$
 ///
-///$Revision: 1.2 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrCluster.h"
 
 class TF1;
+class TH1;
 class TDirectory;
 
 class TrTasClusterR : public TrClusterR {
+
+////////////////// New version for ISS //////////////////
+public:
+  /*!
+   *! Fit TAS histogram
+   * @param[in]  hist   Pointer of histogram (Y only)
+   * @param[in]  ibeam  Beam index (0 or 1)
+   * @param[in]  mode   Fitting mode (0:Def. 1:Gaus 2:SGaus >=100: CofG)
+   * @param[out] par    0:Const 1:Mean 2:sigma 3:Saturation 4:Coordinate
+   * @param[out] perr   Fitting errors
+   * @return     Chisquare/NDF, <0 for errors
+   */
+  static double Fit(TH1 *hist, int ibeam, int mode, double *par,
+		                                    double *perr = 0);
+
+////////////////// New version for ISS //////////////////
 
 public:
   enum { GAUS  = 1, ///< Normal Gaussian

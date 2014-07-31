@@ -1,4 +1,4 @@
-// $Id: TrTasCluster.C,v 1.2 2009/12/21 20:46:57 shaino Exp $
+// $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -7,15 +7,16 @@
 ///
 ///\date  2009/12/10 SH  First version
 ///\date  2009/12/17 SH  First Gbatch version
-///$Date: 2009/12/21 20:46:57 $
+///$Date$
 ///
-///$Revision: 1.2 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrTasCluster.h"
 #include "TrTasDB.h"
 #include "TrTasPar.h"
+#include "TkCoo.h"
 
 #include "TF1.h"
 #include "TH1.h"
@@ -23,6 +24,114 @@
 #include "TMath.h"
 #include "TROOT.h"
 #include "TDirectory.h"
+
+////////////////// New version for ISS //////////////////
+double TrTasClusterR::Fit(TH1 *hist, int ibeam, int mode, double *par,
+			                                  double *per)
+{
+  if (!par) return -1;
+
+  if (!TkDBc::Head) TkDBc::GetFromTDV(1325000000, 5);
+  if (!TrTasDB::Filled()) {
+    TString sdb = getenv("AMSDataDir");
+    sdb += "/v5.01/tasdb";
+
+    if (getenv("TasDB")) sdb = getenv("TasDB");
+    TrTasDB::Load(sdb);
+  }
+
+  for (int i = 0;        i < 5; i++) par[i] = 0;
+  for (int i = 0; per && i < 5; i++) per[i] = 0;
+
+  TString stt = hist->GetTitle();
+  if (stt == "Type: 00CC TkID:  310") hist->SetBinContent(133, 0);
+  if (stt == "Type: 30CC TkID: -606") hist->SetBinContent(102, 0);
+  if (stt == "Type: 31CC TkID: -609") hist->SetBinContent(129, 0);
+  if (stt == "Type: 31CC TkID: -609") hist->SetBinContent(131, 0);
+  if (stt == "Type: 40CC TkID: -609") hist->SetBinContent( 79, 0);
+
+  int id = TrTasDB::Find(hist->GetTitle(), ibeam);
+  if (id < 0) return -1;
+
+  static TF1 *func = 0;
+  if (!func) func = new TF1("func", TrTasClusterR::SGaus, 0, 1, 5);
+
+  double csq = -1;
+  double mn = TrTasDB::Mean(id);
+  int    tf = TrTasDB::Tfit(id);
+  int  tkid = TrTasDB::TkID(id);
+
+  if (mn > 0) {
+    hist->GetXaxis()->SetRangeUser(mn-15, mn+15);
+
+    Int_t    rng = tf%10;
+    Int_t    ib1 = hist->FindBin(mn-rng);
+    Int_t    ib2 = hist->FindBin(mn+rng);
+    Double_t sum = hist->Integral(ib1, ib2);
+    if (sum < 100) return -1;
+
+    if (mode > 100) {
+      Int_t nb1 = (mode/10)%10;
+      Int_t nb2 =  mode    %10;
+      Int_t ib  = hist->FindBin(mn);
+      Double_t sx = 0;
+      Double_t sw = 0;
+
+      for (Int_t i = 0; i <= nb1; i++) {
+	if (hist->GetBinContent(ib-i) > 0) {
+	  sx += hist->GetBinContent(ib-i)*hist->GetBinCenter(ib-i);
+	  sw += hist->GetBinContent(ib-i);
+	}
+      }
+      for (Int_t i = 1; i <= nb2; i++) {
+	if (hist->GetBinContent(ib-i) > 0) {
+	  sx += hist->GetBinContent(ib+i)*hist->GetBinCenter(ib+i);
+	  sw += hist->GetBinContent(ib+i);
+	}
+      }
+      if (sw != 0) sx /= sw;
+      par[0] = hist->GetBinContent(hist->FindBin(sx));
+      par[1] = sx;
+      par[2] = sw;
+      csq = 1;
+    }
+    else if (mode == 2 || (mode == 0 && tf > 10)) {
+      double hmax = hist->GetMaximum();
+      func->SetParameters(hmax*1.5, mn, 3, hmax, 500);
+      func->FixParameter(4, 25);
+      func->ReleaseParameter(3);
+
+      hist->Fit(func, "q0", "", mn-rng, mn+rng);
+      for (int i = 0;        i < 4; i++) par[i] = func->GetParameter(i);
+      for (int i = 0; per && i < 4; i++) per[i] = func->GetParError (i);
+
+      if (func->GetNDF() > 0) csq = func->GetChisquare()/func->GetNDF();
+    }
+    else {
+      hist->Fit("gaus", "q0", "", mn-rng, mn+rng);
+
+      TF1 *fg = hist->GetFunction("gaus");
+      for (int i = 0; fg &&        i < 3; i++) par[i] = fg->GetParameter(i);
+      for (int i = 0; fg && per && i < 3; i++) per[i] = fg->GetParError (i);
+
+      if (fg && fg->GetNDF() > 0) csq = fg->GetChisquare()/fg->GetNDF();
+    }
+    if (par[2] < 0) par[2] = TMath::Abs(par[2]);
+
+    float    xch = 830;
+    float    ych = par[1];
+    int       ml = TkCoo::GetMaxMult (tkid, xch);
+    float     lx = TkCoo::GetLocalCoo(tkid, xch, ml-1);
+    float     ly = TkCoo::GetLocalCoo(tkid, ych, ml-1);
+    AMSPoint coo = TkCoo::GetGlobalA (tkid, lx, ly);
+    par[4] = coo.y();
+    if (per) per[4] = per[1]*TkDBc::Head->_PitchS;
+  }
+
+  return csq;
+}
+////////////////// New version for ISS //////////////////
+
 
 ClassImp(TrTasClusterR);
 

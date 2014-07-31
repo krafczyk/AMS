@@ -132,11 +132,13 @@ class TrdSimUtil
   void DefineRadiator( void );
 
   G4ProductionCuts *fTrdRegionCuts;
+  G4ProductionCuts *fTrdTubeRegionCuts;
   G4ProductionCuts *fTrdGasRegionCuts;
   G4ProductionCuts *fTrdRadRegionCuts;
-  G4Region*        trdregion;
-  G4Region*        gasregion;
-  G4Region*        radregion;
+  G4Region*        trdRegion;
+  G4Region*        tubeRegion;
+  G4Region*        gasRegion;
+  G4Region*        radiatorRegion;
   G4LogicalVolume* radlv;
 };
 

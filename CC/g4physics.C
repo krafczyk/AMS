@@ -265,7 +265,7 @@ void AMSG4Physics::ConstructProcess()
 void AMSG4Physics::ConstructEM()
 {
 #if G4VERSION_NUMBER  < 945 
-  G4Region *gasregion=trdSimUtil.gasregion;
+  G4Region *gasregion=trdSimUtil.gasRegion;
 
   theParticleIterator->reset();
   while( (*theParticleIterator)() ){
@@ -1059,9 +1059,10 @@ if(G4FFKEY.DetectorCut%10==1){
    SetCutValue(cut, "anti_proton");
  } 
 
-  trdSimUtil.trdregion->SetProductionCuts(trdSimUtil.fTrdRegionCuts);
-  trdSimUtil.gasregion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
-  trdSimUtil.radregion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
+  trdSimUtil.trdRegion->SetProductionCuts(trdSimUtil.fTrdRegionCuts);
+  trdSimUtil.tubeRegion->SetProductionCuts(trdSimUtil.fTrdTubeRegionCuts);
+  trdSimUtil.gasRegion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
+  trdSimUtil.radiatorRegion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
     G4Region* EcalRegion = (G4RegionStore::GetInstance())->GetRegion("ECVolumeR");
     G4ProductionCuts *EcalCuts = new G4ProductionCuts();
 
@@ -1432,19 +1433,27 @@ G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
     //        if(particleName=="gamma"){
     if(g3==1){       
       Emin=pUserLimits->PhotonECut();
-      if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
-          logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
-          logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
-        Emin = TRDMCFFKEY.photonEnergyCut * MeV;
+      if (logicalVolume->GetRegion()->GetName().contains("Trd")) {
+        if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdRadiatorRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+          Emin = TRDMCFFKEY.photonEnergyCut * MeV;
+        } else if (logicalVolume->GetRegion()->GetName() == "TrdTubeRegion") {
+          Emin = TRDMCFFKEY.tubeEnergyCut * MeV;
+	}
       }
     }
     //        else if (particleName=="e-" || particleName=="e+"){
     else if (g3==2 || g3==3){
       Emin=pUserLimits->ElectronECut();
-      if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
-          logicalVolume->GetRegion()->GetName() == "TrdRadRegion" ||
-          logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
-        Emin = TRDMCFFKEY.electronEnergyCut * MeV;
+      if (logicalVolume->GetRegion()->GetName().contains("Trd")) {
+        if (logicalVolume->GetRegion()->GetName() == "TrdRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdRadiatorRegion" ||
+            logicalVolume->GetRegion()->GetName() == "TrdGasRegion") {
+          Emin = TRDMCFFKEY.electronEnergyCut * MeV;
+        } else if (logicalVolume->GetRegion()->GetName() == "TrdTubeRegion") {
+          Emin = TRDMCFFKEY.tubeEnergyCut * MeV;
+        }
       }
     }
     //        else if (particleName=="mu-" || particleName=="mu+"){
@@ -1531,7 +1540,7 @@ void AMSG4Physics::ConstructEM2( void ){
 		 <<" gas thickness "<<trdSimUtil.GetTrdGasThickness()
 		 << " nfoils "<<trdSimUtil.GetTrdFoilNumber()<<G4endl;
   
-  TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radregion,
+  TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radiatorRegion,
 							  trdSimUtil.GetAlphaFiber(),
 							  trdSimUtil.GetAlphaGas(),
 							  trdSimUtil.GetG4FleeceMaterial(),
@@ -1566,7 +1575,7 @@ void AMSG4Physics::ConstructEM2( void ){
       pmanager = G4Proton::Proton()->GetProcessManager();
       pmanager->AddDiscreteProcess(processXTR);
   */
-  G4Region *gasregion=trdSimUtil.gasregion;
+  G4Region *gasregion=trdSimUtil.gasRegion;
   gasregion->UpdateMaterialList();
 
   if(debug)G4cout << "gasregion root volumes: " << gasregion->GetNumberOfRootVolumes() << " materials : " << gasregion->GetNumberOfMaterials() << G4endl;
@@ -1746,7 +1755,7 @@ void AMSG4Physics::ConstructEM2( void ){
 		 << " nfoils "<<trdSimUtil.GetTrdFoilNumber()<<G4endl;
 
 #if G4VERSION_NUMBER  < 963
-  TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radregion,
+  TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radiatorRegion,
   							  trdSimUtil.GetAlphaFiber(),
   							  trdSimUtil.GetAlphaGas(),
   							  trdSimUtil.GetG4FleeceMaterial(),
@@ -1756,7 +1765,7 @@ void AMSG4Physics::ConstructEM2( void ){
   							  (G4int)trdSimUtil.GetTrdFoilNumber(),
   							  "GammaXTRadiator" );
 #else
-  G4VXTRenergyLoss* processXTR = new G4GammaXTRadiator(trdSimUtil.radregion,
+  G4VXTRenergyLoss* processXTR = new G4GammaXTRadiator(trdSimUtil.radiatorRegion,
 						       trdSimUtil.GetAlphaFiber(),
 						       trdSimUtil.GetAlphaGas(),
 						       trdSimUtil.GetG4FleeceMaterial(),
@@ -1775,7 +1784,7 @@ void AMSG4Physics::ConstructEM2( void ){
     processXTR->G4VProcess::SetVerboseLevel(verbose);
   }
   
-  G4Region *gasregion=trdSimUtil.gasregion;
+  G4Region *gasregion=trdSimUtil.gasRegion;
   gasregion->UpdateMaterialList();
 
   if(debug)G4cout << "gasregion root volumes: " << gasregion->GetNumberOfRootVolumes() << " materials : " << gasregion->GetNumberOfMaterials() << G4endl;
