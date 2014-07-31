@@ -1,4 +1,4 @@
-// $Id: TrTasDB.C,v 1.2 2009/12/21 20:46:57 shaino Exp $
+// $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -7,9 +7,9 @@
 ///
 ///\date  2009/12/10 SH  First version
 ///\date  2009/12/17 SH  First Gbatch version
-///$Date: 2009/12/21 20:46:57 $
+///$Date$
 ///
-///$Revision: 1.2 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +22,50 @@
 #include <fstream>
 #include <iostream>
 
+////////////////// New version for ISS //////////////////
+TString TrTasDB::_sttl[TrTasDB::Ne];
+int     TrTasDB::_beam[TrTasDB::Ne];
+int     TrTasDB::_tkid[TrTasDB::Ne];
+int     TrTasDB::_tfit[TrTasDB::Ne];
+double  TrTasDB::_mean[TrTasDB::Ne];
+double  TrTasDB::_ycoo[TrTasDB::Ne];
+int     TrTasDB::_nfil;
+
+int TrTasDB::Load(const char *fname)
+{
+  if (Filled()) return 0;
+
+  std::ifstream fin(fname);
+  if (!fin) {
+    std::cout << "File not found: " << fname << std::endl;
+    return -1;
+  }
+  std::cout << "Loading tasdb: " << fname << std::endl;
+
+  _nfil = 0;
+
+  for (int i = 0; i < Ne; i++) {
+    if (fin.eof()) {
+      std::cerr << "Unexpected EOF at " << i << std::endl;
+      return -2;
+    }
+    int type, tkid;
+    fin >> type >> tkid >> _beam[i] >> _mean[i] >> _ycoo[i] >> _tfit[i];
+    _tkid[i] = tkid;
+    _sttl[i] = Form("Type: %02dCC TkID: %4d", type, tkid);
+    _nfil++;
+  }
+  return _nfil;
+}
+
+int TrTasDB::Find(const char *title, int ibeam)
+{
+  for (int i = 0; i < Ne; i++)
+    if (_sttl[i] == title && _beam[i] == ibeam) return i;
+  return -1;
+}
+////////////////// New version for ISS //////////////////
+
 TrTasDB *TrTasDB::Head = 0;
 
 ClassImp(TrTasDB);
@@ -32,7 +76,7 @@ TrTasPar *TrTasDB::FindPar(int ival, int lddr)
   return (it == _parmap.end()) ? 0 : (TrTasPar::Head = it->second);
 }
 
-TrTasDB *TrTasDB::Load(const char *fname)
+TrTasDB *TrTasDB::Load_old(const char *fname)
 {
   if (!fname) return 0;
 

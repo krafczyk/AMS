@@ -1,4 +1,4 @@
-// $Id: TrTasDB.h,v 1.2 2009/12/21 20:46:57 shaino Exp $
+// $Id$
 
 #ifndef __TrTasDB__
 #define __TrTasDB__
@@ -14,19 +14,43 @@
 ///
 ///\date  2009/12/10 SH  First version
 ///\date  2009/12/17 SH  First Gbatch version
-///$Date: 2009/12/21 20:46:57 $
+///\date  2014/07/29 SH  Update for ISS data
+///$Date$
 ///
-///$Revision: 1.2 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TObject.h"
+#include "TString.h"
 #include "TrTasPar.h"
 
 #include <map>
 #include <ctime>
 
 class TrTasDB : public TObject {
+
+////////////////// New version for ISS //////////////////
+protected:
+  enum { Ne = 108 };
+  static TString _sttl[Ne];
+  static int     _beam[Ne];
+  static int     _tkid[Ne];
+  static int     _tfit[Ne];
+  static double  _mean[Ne];
+  static double  _ycoo[Ne];
+  static int     _nfil;
+
+public:
+  static int    Load(const char *fname);
+  static int    Find(const char *title, int ibeam);
+  static bool Filled(void)  { return (_nfil == Ne) ? 1 : 0; }
+  static int    TkID(int i) { return (0 <= i && i < Ne) ? _tkid[i] : 0; }
+  static int    Tfit(int i) { return (0 <= i && i < Ne) ? _tfit[i] : 0; }
+  static double Mean(int i) { return (0 <= i && i < Ne) ? _mean[i] : 0; }
+  static double Ycoo(int i) { return (0 <= i && i < Ne) ? _ycoo[i] : 0; }
+
+////////////////// New version for ISS //////////////////
 
 protected:
   /// Map of TrTasPar with a key of _Index(ival, lddr)
@@ -46,7 +70,7 @@ public:
   static TrTasDB *Head;
 
   /// Load TrTasDB from a root file
-  static TrTasDB *Load(const char *fname);
+  static TrTasDB *Load_old(const char *fname);
 
   /// Find TrTasPar with ival and lddr
   TrTasPar *FindPar(int ival, int lddr);
