@@ -37,7 +37,9 @@ float TrExtAlignDB::SL1[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 float TrExtAlignDB::SL9[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 float TrExtAlignDB::Sofs[4]={2.5e-4, 2.5e-4, 6.5e-4, 5.8e-4};
-float TrExtAlignDB::Sofs2[8]={0, 0, 3.7e-4, 6.0e-4, 16e-4, 0, 51e-4, 0};
+float TrExtAlignDB::Sofs2[12]={0,         0, 3.7e-4, 6.0e-4,
+			       10e-4, 20e-4,  51e-4,  20e-4,
+			        6e-6,     0,      0,      0};
 
 
 
@@ -352,7 +354,7 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     ll[9]=a;ll[10]=b;ll[11]=c;
 
     if (TkLadder::version == 3) ll[7]+=Sofs[i+2];
-    if (TkLadder::version >= 4){ll[7]+=Sofs2[i+2]; ll[8]+=Sofs2[i+6];}
+    if (TkLadder::version >= 4){ll[7]+=Sofs2[i+2]; ll[8]+=Sofs2[i+6]; ll[9]+=Sofs2[i+10];}
   }
   return 0;
 }
@@ -691,7 +693,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 
     if (TkLadder::version == 3) ll[1]+=(layer==8)?Sofs[0]:Sofs[1];
     if (TkLadder::version >= 4){ll[1]+=(layer==8)?Sofs2[0]:Sofs2[1];
-                                ll[2]+=(layer==8)?Sofs2[4]:Sofs2[5];}
+                                ll[2]+=(layer==8)?Sofs2[4]:Sofs2[5];
+                                ll[3]+=(layer==8)?Sofs2[8]:Sofs2[9];}
   }
 
   return 0;

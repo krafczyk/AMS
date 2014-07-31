@@ -1575,11 +1575,19 @@ void TkDBc::RebuildMap()
 #include "root.h"
 #endif
 
+
 void TkDBc::UseLatest(int reset)
 {
   cerr << "TkDBc::UseLatest-F-Now OBSOLETE, use UseFinal or UseVersion instead"
        << endl;
   exit(-1);
+}
+
+void TkDBc::UseFinal(int reset)
+{
+int iver=6;
+cout << "TkDBc::UseFinal-I-UsingVersion "<<iver<<endl;
+  UseVersion(iver, reset);
 }
 
 void TkDBc::UseVersion(int ver, int reset)
@@ -1604,6 +1612,12 @@ void TkDBc::UseVersion(int ver, int reset)
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
     dyn = "DynAlignmentV5T140713PM5";
+  }
+  else if (ver == 6) {
+    TkDBc       ::ForceFromTDV = 5;
+    TrExtAlignDB::ForceFromTDV = 1;
+    TrExtAlignDB::version      = 4;
+    dyn = "DynAlignmentV5T290713PM5";
   }
   else {
     cerr << "TkDBc::UseVersion-F-Unsupported version: " << ver << endl;

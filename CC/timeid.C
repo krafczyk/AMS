@@ -808,7 +808,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    _DataBaseSize=atoi(buf);
 #else
 	    if((_updateable!=1 || (!stat64((const char *)fmap,&statbuf_map)&& mtime < statbuf_map.st_mtime))  && !force ){
-	    usemap:    
+#ifdef __CORBASERVER__
+	    usemap:
+#endif
 	      char buf[100];
 	      fbin.clear();
 	      fbin.close();
@@ -851,7 +853,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
     
 	    }
 	    else if(_verify) {
+#ifdef __CORBASERVER__
 	    notrust:
+#endif
 	      cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<" "<<_verify<<endl;
 	      //    Check if is in new mode
 #ifdef __CORBASERVER__
