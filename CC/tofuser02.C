@@ -44,7 +44,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   number tmss[TOF2GC::SCLRS];
   number cltim[TOF2GC::SCLRS];
   integer clmem[TOF2GC::SCLRS];
-  number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
+  number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof=0,lflgt;
   number sigt[4]={0.15,0.15,0.15,0.15};// time meas.accuracy 
   number cvel(29.979);// light velocity
   number eacut=0.3;// cut on E-anti (mev)
