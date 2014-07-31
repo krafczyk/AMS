@@ -209,6 +209,13 @@ static geant _CooT[trdid::nute][trdconst::maxtube];
 static geant _IncMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
 static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
    TRDAux_DEF():_HMult(0),_nufe(-1),_lasthaddr(-1){
+    for (int i=0;i<trigger302const::maxufe;++i) {
+      for (int j=0;j<trigger302const::maxhitstrd;++j) {
+        for (int k=0;k<3;++k)
+          _coo[i][j][k] = 0;
+      }
+    }
+
     for(int i=0;i<2;i++){_SegmentFound[i]=false;_NHits[i]=0;}
     for(int i=0;i<trigger302const::matrixsize;i++){
      for(int j=0;j<trigger302const::matrixsize;j++){
