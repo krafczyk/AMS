@@ -938,6 +938,8 @@ void AMSParticle::pid(){
       _emom=_emom*_emom;
 #ifndef  NO_NAG	
       e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+#else
+      f = 0;
 #endif
       geant chi2=f;
       if(chi2==chi2){
