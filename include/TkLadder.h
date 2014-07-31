@@ -168,7 +168,7 @@ public:
   //! Check if it is an active ladder
   bool IsActive() { return (GetHwId()>=0); }
 
-  void Print(Option_t* = "")const{ cout << putout(cout);}
+  void Print(Option_t* = "")const{ putout(cout);}
   //! stream out the content of a the class
   friend ostream &operator << (ostream &o,  TkLadder& b)
   {return b.putout(o);}
