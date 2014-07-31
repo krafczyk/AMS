@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.22 2009/12/10 13:50:49 choutko Exp $
+//  $Id$
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include "link.h"

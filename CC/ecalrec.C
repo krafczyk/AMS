@@ -4424,7 +4424,7 @@ void AMSEcalShower::_ReFitDirCR(){
   for(int il=0;il<18;il++){
     //Weight[il] = elayer[il];
     if(CooCOG[il] >-100){
-      coocr[il] = CooCOG[il]; 
+      coocr[il] = CooCOG[il];
         
       if(WP_COG1>0&&WP_COG2>0){
 	Weight[il] =  WP_COG0*TMath::GammaDist(il+0.5,WP_COG1,0,WP_COG2);;
@@ -4433,7 +4433,7 @@ void AMSEcalShower::_ReFitDirCR(){
       }
       else Weight[il] =0.05;
     }
-    else Weight[il] =0.;
+    else { Weight[il] =0.; coocr[il] = 0.; }
   }
 
   Double_t sumz2=0.,sumy=0.,sumyz=0.,sumw=0.,sumz=0.;
