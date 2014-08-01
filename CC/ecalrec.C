@@ -2137,7 +2137,7 @@ AMSEcalShower::AMSEcalShower(AMSEcal2DCluster *px, AMSEcal2DCluster *py):AMSlink
   _pCl[0]=px;
   _pCl[1]=py;
   _N2dCl=2;
-
+  _Direction=0;
 
 
 
