@@ -4288,7 +4288,7 @@ void AMSEcalShower::_ReFitDirCR(){
   //Par for Linear fit Weight of COG Method
   Double_t WPCOG0[3] = {5.10998,1.30892,-7.18807};
   Double_t WP_COG0;
-  if(_EnergyPIC+WPCOG0[2]>0)Double_t WP_COG0 = WPCOG0[0] + WPCOG0[1]*TMath::Log(_EnergyPIC+WPCOG0[2]);
+  if(_EnergyPIC+WPCOG0[2]>0)WP_COG0 = WPCOG0[0] + WPCOG0[1]*TMath::Log(_EnergyPIC+WPCOG0[2]);
   else WP_COG0 = 0.; 
   Double_t WPCOG1[5] = {1.54966, -6.22604e-08,-0.0103966,0.610089,-5.06742};
   Double_t WP_COG1;
