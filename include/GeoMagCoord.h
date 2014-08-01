@@ -24,6 +24,7 @@ public:
   static void MagToGeog(double  r, double  tm, double  pm,
 			           double &th, double &ph, bool deg = false);
 
+  virtual ~GeoMagCoord() { }
   ClassDef(GeoMagCoord, 1)
 };
 

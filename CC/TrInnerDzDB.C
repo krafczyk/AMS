@@ -77,8 +77,8 @@ int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
   time_t endtime=0; 
   tm begin;
   tm end;
-  tm* mtim=gmtime_r(&starttime,&begin);
-  tm* mtim2=gmtime_r(&endtime,&end);
+  gmtime_r(&starttime,&begin);
+  gmtime_r(&endtime,&end);
     
   static AMSTimeID *tid=0;
 #pragma omp threadprivate (tid)
@@ -132,8 +132,8 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
   time_t endtime=it1->first+3600;
   tm begin;
   tm end;
-  tm* mtim=gmtime_r(&starttime,&begin);
-  tm* mtim2=gmtime_r(&endtime,&end);
+  gmtime_r(&starttime,&begin);
+  gmtime_r(&endtime,&end);
     
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),
@@ -183,8 +183,8 @@ int TrInnerDzDB::TDV2DB(){
   time_t endtime=0;
   tm begin;
   tm end;
-  tm* mtim=gmtime_r(&starttime,&begin);
-  tm* mtim2=gmtime_r(&endtime,&end);
+  gmtime_r(&starttime,&begin);
+  gmtime_r(&endtime,&end);
     
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),

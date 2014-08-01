@@ -71,7 +71,7 @@ void AMSTRDHSegment::_addnextR(uinteger iseg){
 void AMSTRDHTrack::_copyEl(){
 #ifdef __WRITEROOT__
   if(PointerNotSet())return;
-  TrdHTrackR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->TrdHTrack(_vpos);
+  (void)AMSJob::gethead()->getntuple()->Get_evroot02()->TrdHTrack(_vpos);
 #endif
 }
 

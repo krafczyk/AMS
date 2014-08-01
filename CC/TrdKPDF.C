@@ -815,8 +815,8 @@ Double_t TrdKPDF::GetLikelihood(double Amp, float Corr){
 void TrdKPDF::GetPar_Proton(Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press){
 
 
-    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n, i1_x;
-    Double_t dt_m, dt_l, dt_n, dt_x;
+    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n;
+    Double_t dt_m, dt_l;
 
 
     // momentum correction
@@ -893,8 +893,8 @@ void TrdKPDF::GetPar_Proton(Double_t Pmom, Double_t Length, Int_t Layer, Double_
 
 void TrdKPDF::GetPar_Electron(Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press){
 
-    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n, i1_x;
-    Double_t dt_m, dt_l, dt_n, dt_x;
+    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n;
+    Double_t dt_m, dt_l;
 
     // momentum correction
     if ( Pmom < 0 ) Pmom = 0.;
@@ -964,8 +964,8 @@ void TrdKPDF::GetPar_Electron(Double_t Pmom, Double_t Length, Int_t Layer, Doubl
 
 void TrdKPDF::GetPar_Helium(Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press){
 
-    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n, i1_x;
-    Double_t dt_m, dt_l, dt_n, dt_x;
+    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n;
+    Double_t dt_m, dt_l;
 
     // momentum correction
     if ( Pmom < 0 ) Pmom = 0.;
@@ -1645,8 +1645,8 @@ void TrdKPDF::Init_Nuclei()
 
 void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int_t Layer, Double_t Press, Double_t Beta){
 
-    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n, i1_x, i1_c;
-    Double_t dt_m, dt_l, dt_n, dt_x, dt_c;
+    Int_t    ii, i1_m, i2_m, i1_l, i2_l, i1_n, i1_c;
+    Double_t dt_m, dt_l, dt_c;
 
     //Beta correction
     if(Beta<0) Beta=Beta*(-1);
@@ -1750,7 +1750,7 @@ void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int
 Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidity)
 {
     double PDFValue,PDFNormalization;
-    double Par1c,Par2c,Par3c,Par4c,Par5c,Par6c,Par7c;
+    double Par1c,Par2c,Par3c,Par4c=0,Par5c,Par6c,Par7c;
 
     if(Charge<0) Charge=-Charge;
     if(Rigidity<0) Rigidity=-Rigidity;
@@ -1773,7 +1773,7 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
         p7c[i]=0.2;
     }
 
-    double Par1r,Par2r;
+    double Par1r=0,Par2r=0;
     if(Charge<3)
     {
         ;
@@ -1914,13 +1914,13 @@ Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidi
     }
 
     //Charge and rigidity PDF for Z<3, fit points: 1, 2, also use fit at Z=3
-    static const double p1cr[2][3]={2.303,    2.1,    1.746,      8.306,   10.83,  12.27  };
-    static const double p2cr[2][3]={32.04,    30,     26.34,      52.32,   58.03,  62.46  };
-    static const double p3cr[2][3]={0.004065, 0.0037, 0.003456,   0.01169, 0.0284, 0.03558};
-    static const double p4cr[2][3]={0.4306,   0.46,   0.5749,     0.6811,  0.6556, 0.671  };
-    static double p5cr[2][3]={0,        0,      0,          0,       0,      0      };
-    static const double p6cr[2][3]={9.132,    8.45,   7.59,       39.74,   48.09,  52.44  };
-    static double p7cr[2][3]={0,        0,      0,          0,       0,      0      };
+    static const double p1cr[2][3]={{2.303,    2.1,    1.746},    {      8.306,   10.83,  12.27  }};
+    static const double p2cr[2][3]={{32.04,    30,     26.34},    {      52.32,   58.03,  62.46  }};
+    static const double p3cr[2][3]={{0.004065, 0.0037, 0.003456}, {   0.01169, 0.0284, 0.03558   }};
+    static const double p4cr[2][3]={{0.4306,   0.46,   0.5749},   {     0.6811,  0.6556, 0.671   }};
+    static double p5cr[2][3]={{0,        0,      0},              {          0,       0,      0  }};
+    static const double p6cr[2][3]={{9.132,    8.45,   7.59},     {       39.74,   48.09,  52.44 }};
+    static double p7cr[2][3]={{0,        0,      0},              {          0,       0,      0  }};
 
 
     for(int i=0;i<2;i++)

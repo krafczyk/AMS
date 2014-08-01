@@ -28,9 +28,9 @@ protected:
   pputdata _pputdata;
   DAQSubDet * _next;
 public:
-  DAQSubDet():_next(0),_pgetid(0),_pputdata(0){}
+  DAQSubDet():_pgetid(0),_pputdata(0),_next(0){}
   DAQSubDet(pid pgetid,  pputdata pput):
-    _next(0),_pgetid(pgetid), _pputdata(pput){}
+    _pgetid(pgetid), _pputdata(pput),_next(0){}
 
   friend class DAQEvent;
 };
@@ -100,11 +100,8 @@ protected:
   pgetl   _pgetlength;
   DAQBlockType * _next;
 public:
-  DAQBlockType():_next(0),_pgetdata(0),
-		 _pgetlength(0),_pgmb(0),_maxbl(0),_plength(0){}
-  DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget):
-    _next(0),_pgetlength(pgl),_pgetdata(pget), _pgmb(pgmb),
-    _maxbl(0),_plength(0){}
+  DAQBlockType():_maxbl(0),_plength(0),_pgmb(0),_pgetdata(0),_pgetlength(0),_next(){}
+  DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget):_maxbl(0),_plength(0),_pgmb(pgmb),_pgetdata(pget),_pgetlength(pgl),_next(){}
 
   friend class DAQEvent;
 };
@@ -232,8 +229,8 @@ public:
   static DAQEvent* gethead(){return _DAQEvent;}
   uinteger GetBlType(){return _GetBlType();}
   ~DAQEvent();
-  DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
-	      _Time(0),_RunType(0),_usec(0),_BufferOwner(0),_Offset(0){
+  DAQEvent(): AMSlink(),_BufferOwner(0),_Checked(0),_Length(0),_Event(0),_Run(0),
+	      _RunType(0),_Offset(0),_Time(0),_usec(0),_pcur(0),_pData(0){
      _JStatus[0]=_JStatus[1]=_JStatus[2]=_JStatus[3]=0;
    for (int i=0;i<sizeof(_JError)/sizeof(_JError[0]);i++)_JError[i]=0;
     for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;

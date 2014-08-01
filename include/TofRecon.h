@@ -42,7 +42,7 @@ class TofCandidate {
   //! c-tor (for single clusters) 
   TofCandidate(char kind, TofClusterR* s) { type = kind; nclusters = 1; cl_upper = s; cl_lower = s; }
   //! d-tor
-  ~TofCandidate() { type = ' '; nclusters = 0; cl_upper = 0; cl_lower = 0; }
+  virtual ~TofCandidate() { type = ' '; nclusters = 0; cl_upper = 0; cl_lower = 0; }
   //! Get type name 
   char GetType() { return type; }
   //! get number of independent clusters
@@ -357,6 +357,7 @@ class TofRecon {
   /**@}*/
 
 
+  virtual ~TofRecon() { }
   //! ROOT
   ClassDef(TofRecon,1);
 };
@@ -403,6 +404,7 @@ class TofTimeCalibration {
   //! Recalculate TOF times according to zero-times/slewing calibrations
   static void RecalculateTofClusterTimes(AMSEventR* event);
 
+  virtual ~TofTimeCalibration() { }
   ClassDef(TofTimeCalibration,1);
 };
 

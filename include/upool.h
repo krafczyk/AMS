@@ -75,7 +75,6 @@ private:
   dlink *_head;
   void *_free;
   integer _lc;  // current length
-  integer * _LRS;
   integer _size;  // size in bytes
   integer _Count;
   integer _Nblocks;
@@ -86,7 +85,7 @@ private:
 
   void _grow(size_t);
 public:
-  AMSuPool(integer blsize):_head(0),_free(0),_lc(0),_LRS(0),
+  AMSuPool(integer blsize):_head(0),_free(0),_lc(0),
 			   _size(blsize),_Count(0),_Nblocks(0),_Minbl(10000000),_Maxbl(0),_Totalbl(0),
 			   _Nreq(0){SetLastResort(10000);}
   ~AMSuPool(){erase(0);};

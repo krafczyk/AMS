@@ -936,9 +936,6 @@ int TkDBc::read(const char* filename, int pri){
     string bb=aa->name;
     lnamemap[bb]=aa;
 
-    int lay  = aa->GetLayer();
-    int side = aa->GetSide();
-    int slot = abs(aa->GetSlot());
 //     int pgid = aa->GetPgId();
 //     _pgid[side][lay][slot] = pgid;
     //    pgidmap[pgid]=aa;
@@ -1542,9 +1539,6 @@ void TkDBc::RebuildMap()
   //
  for (tkidIT it = tkidmap.begin(); it != tkidmap.end(); it++) {
     TkLadder *lad = it->second;
-    int lay  = lad->GetLayer();
-    int side = lad->GetSide();
-    int slot = abs(lad->GetSlot());
     int asid = lad->GetAssemblyId();
     int hwid = lad->GetHwId();
     //    int pgid = lad->GetPgId();

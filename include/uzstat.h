@@ -56,12 +56,12 @@ public:
   
   AMSStatNode(char * name, int freq)
     :AMSNode(name),_startstop(0),_last(0),
-     _entry(0),_sum(0),_nsum2(0),_sum2(0),
+     _entry(0),_sum(0),_sum2(0),_nsum2(0),
      _max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
   
   AMSStatNode(char * name, int freq,int thr=0)
     :AMSNode(AMSID(name,thr)),_startstop(0),_last(0),
-     _entry(0),_sum(0),_nsum2(0),_sum2(0),
+     _entry(0),_sum(0),_sum2(0),_nsum2(0),
      _max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
   
   void _init(){};

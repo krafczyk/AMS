@@ -79,7 +79,6 @@ bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   // angle between the tracks
   number c=tk_dir.prod(trd_dir);
   //distance 
-  number d=(tk_pnt-trd_pnt).norm();
   
   //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
 
@@ -100,10 +99,9 @@ integer sign(number a){
 
 integer AMSParticle::build(integer refit){
   //Particle mass rec, momentum etc.
-  number mass,emass,charge,momentum,emomentum,theta(0),phi(0),massH,emassH;
+  number mass,emass,charge,momentum,emomentum,theta(0),phi(0);
   AMSPoint coo;
   AMSParticle * ppart(0);
-  AMSAntiMCCluster * pcl(0);
   AMSCharge *pcharge=(AMSCharge*)AMSEvent::gethead()->getheadC("AMSCharge",0);
   int partfound=0;
   // make particle with charge>1
@@ -128,7 +126,7 @@ integer AMSParticle::build(integer refit){
   //  change here if other particles after vtx particles should be allowed
   //
   if(!partfound || 1){      
-    int evt=AMSEvent::gethead()->getid();
+	AMSEvent::gethead()->getid();
 
 ///---search BetaH whether exist in any Charge
      bool chbetah=0;
@@ -320,7 +318,6 @@ void  AMSParticle::_build(number rid,number err,number charge,number beta, numbe
 void AMSParticle::toffit(){
   AMSDir dir(0,0,1.);
   number theta, phi, sleng;
-  number signal,beta,ebeta;
   // Find TOF hits
   integer ntof;
   integer fitdone[4]={0,0,0,0};
@@ -366,7 +363,7 @@ void AMSParticle::toffit(){
 
 
 void AMSParticle::antifit(){
-  number theta, phi, sleng;
+  number sleng;
   _AntiCoo[0]=AMSPoint(0,0,10000);
   _AntiCoo[1]=AMSPoint(0,0,10000);
   _AntiCrAngle[0][0]=AMSDBc::pi/2;
@@ -612,8 +609,10 @@ void AMSParticle::trd_likelihood(){
 void AMSParticle::trdfit(){
   _ptrd=0;
   AMSDir dir(0,0,1.);
+#ifndef _PGTRACK_
   number theta, phi, sleng;
   number dist=FLT_MAX;
+#endif
   for(AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);ptr;ptr=ptr->next()){
   if(ptr->checkstatus(AMSDBc::DELETED))continue;
     AMSPoint coo=ptr->getCooStr();
@@ -825,7 +824,7 @@ void AMSParticle::richfit(){
 }
 
 void AMSParticle::_writeEl(){
-  int evt=AMSEvent::gethead()->getid();
+  AMSEvent::gethead()->getid();
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)|| _ptrack->checkstatus(AMSDBc::ECALTRACK)))return;
 #ifdef __WRITEROOT__
   // Fill Root class
@@ -871,10 +870,12 @@ void AMSParticle::print(){
 
 
 void AMSParticle::pid(){
+#ifndef NO_NAG
   void (*palfun)(int &n, double x[], double &f, AMSParticle *p)=
     &AMSParticle::alfun;
   void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=
     &AMSParticle::monit;
+#endif
   if(_Charge==0){    
     _GPart=1;  // photon
     _gpart[0]=1;  // photon
@@ -925,21 +926,19 @@ void AMSParticle::pid(){
       GFPART(_partP[i],chdum,itr,xmass,chrg,tlt7,uwb,nwb);
       _mass=xmass*xmass;
       const int mp=2;
-      number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
-      integer n=1;
-      integer iw=n+1;
+      number f=0,x[mp];
       integer ifail=1;
-      integer maxcal=2000;
-      number tol=2.99e-2;
-      int j;
       x[0]=0;
       _mom=1/(_Momentum/_Charge*chrg);
       _emom=_ErrMomentum/_Momentum/_Momentum*_Charge/chrg;
       _emom=_emom*_emom;
 #ifndef  NO_NAG	
+      integer maxcal=2000;
+      number tol=2.99e-2;
+      integer n=1;
+      integer iw=n+1;
+	  number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
       e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
-#else
-      f = 0;
 #endif
       geant chi2=f;
       if(chi2==chi2){
@@ -1154,7 +1153,9 @@ void AMSParticle::refit(int fast){
 	     _Beta,_ErrBeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);
     }
 #endif
+#ifdef __AMSDEBUG__
     integer oldpart=_GPart;
+#endif
     pid();
 #ifdef __AMSDEBUG__
     if(_GPart != oldpart){ 
@@ -1332,8 +1333,8 @@ void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
 }
  
  
-AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
-					_ptrd(0),_phtrd(0),_prich(0),_prichB(0),_pShower(0),_pcharge(0),_pbeta(0),_pbetah(0){
+AMSParticle::AMSParticle(AMSVtx *pvert):_pbeta(0),_pbetah(0),_pcharge(0),_ptrack(0),
+					_ptrd(0),_phtrd(0),_pvert(pvert),_prich(0),_prichB(0),_pShower(0){
   int i;
   for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
   for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);

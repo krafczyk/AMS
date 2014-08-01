@@ -115,7 +115,6 @@ public:
 
 protected:
   void _printEl(ostream &stream){
-    int i;
     stream <<"AMSRichRawEvent: id="<<_channel<<endl;
     stream <<" Adc="<<_counts<<endl;
     stream <<" Status="<<_status<<endl;

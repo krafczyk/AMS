@@ -185,8 +185,7 @@ class AntiRecoPG {
  static AMSEventR*&AMSEventRHead();
 
   //! Default deconstructor
- //virtual  ~AntiRecoPG(){}; // non c'era vitrual in TrkLH
- ~AntiRecoPG();
+ virtual ~AntiRecoPG();
   
  //! Clean a previous instance of the class.                  
  void clear();

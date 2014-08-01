@@ -584,7 +584,7 @@ void BackTracingMIB::FromGTODtoGAL(double rIn ,double thetaIn, double phiIn, dou
 
 	if(gal_coo==true){
   		               //|in==out|
-	int gal=  FT_Equat2Gal(azimut, elev);
+	FT_Equat2Gal(azimut, elev);
 	}
 
 	lOut=azimut;

@@ -130,7 +130,6 @@ class AMSEcalRawEvent: public AMSlink{
     static    AMSID  getTDVcalibTslo(){return AMSID("EcalTslo",AMSJob::gethead()->isRealData());}
  protected:
     void _printEl(ostream &stream){
-      int i;
       stream <<"AMSEcalRawEvent: id="<<dec<<_idsoft<<endl;
       stream <<" Status="<<hex<<_status<<" Adc="<<_padc[0]<<" "<<_padc[1]<<endl;
       stream <<dec<<endl<<endl;
@@ -196,7 +195,6 @@ class AMSEcalHit: public AMSlink{
       //
  protected:
       void _printEl(ostream &stream){
-	int i;
 	stream <<"AMSEcalHit: Proj/Plane/cell= "<<_proj<<" "<<_plane<<" "<<_cell<<endl;
 	stream <<"Status="<<hex<<_status<<dec<<" id="<<_idsoft<<"  Edep="<<_edep<<" EdCorr="<<_edepc<<endl; 
 	stream <<"Coot/l/z= "<<_coot<<" "<<_cool<<" "<<_cooz<<endl;
@@ -278,7 +276,6 @@ class Ecal1DCluster: public AMSlink{
  protected:
 
     void _printEl(ostream &stream){
-      int i;
       stream <<"AMSEcalCluster: Proj= "<<_proj<<" plane="<<_plane<<endl;
       stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
       stream <<"Coord="<<_Coo[0]<<" "<<_Coo[1]<<" "<<_Coo[2]<<endl;
@@ -352,7 +349,6 @@ class AMSEcal2DCluster: public AMSlink{
     void _AddOneCluster(Ecal1DCluster *ptr, bool addpointer=false);
     void _Fit();
     void _printEl(ostream &stream){
-      int i;
       stream <<"AMSEcal2DCluster: Proj= "<<_proj<<endl;
       stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
       stream <<"Coord="<<_Coo<<" "<<_Tan<<endl;

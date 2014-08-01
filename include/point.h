@@ -31,6 +31,7 @@ public:
   AMSPoint(geant coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
   //! Copy Constructor
   AMSPoint(const AMSPoint& o){_x=o._x;_y=o._y;_z=o._z;}
+  virtual ~AMSPoint(){}
   //! it sets the position
   void setp(number fx,number fy,number fz){_x=fx;_y=fy;_z=fz;}
   //! it sets the position

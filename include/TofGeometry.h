@@ -60,6 +60,7 @@ class TofGeometry {
   static float    PathLengthInAPaddle(int il, int ib, AMSPoint point, AMSDir dir);
   /**@}*/
 
+  virtual ~TofGeometry() { }
   ClassDef(TofGeometry,1); 
 };
 

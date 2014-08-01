@@ -17,7 +17,6 @@ TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){
     if(hits.size()<=i&&i<Nhits){
       hits.clear();
       VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
-      int n=0;
       for(int i=0;i<cont2->getnelem();i++){
 	TRDHitRZD rzd=TRDHitRZD(*(TrdRawHitR*)cont2->getelem(i));
 	if(rzd.d!=d)continue;
@@ -61,7 +60,7 @@ TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0
 
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,float z_, float w_)
-  : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_), Nhits(0), Chi2(0.) 
+  : d(d_), m(m_), r(r_), z(z_), w(w_), em(em_), er(er_), Nhits(0), Chi2(0.) 
 {
   fTrdRawHit.clear();
 #ifndef __ROOTSHAREDLIBRARY__
@@ -71,7 +70,7 @@ TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,floa
 };
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_, float z_, float w_, int Nhits_, TrdRawHitR* pthit[])
-  : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_) , w(w_), Nhits(Nhits_)
+  : d(d_), m(m_), r(r_), z(z_), w(w_), em(em_), er(er_), Nhits(Nhits_)
 {
   fTrdRawHit.clear();
 #ifndef __ROOTSHAREDLIBRARY__
@@ -247,7 +246,6 @@ int TrdHSegmentR::Refit(int debug){
   int lr=LinReg(debug);
   
   int lay[20];for(int l=0;l!=20;l++)lay[l]=0;
-  float sum=0.;
   float zmax=0.,zmin=200.;
   int nhits=0;
   for(int h=0;h!=nTrdRawHit();h++){	

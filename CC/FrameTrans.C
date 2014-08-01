@@ -424,10 +424,7 @@ void ST_CAM2AMS(double& x, double& y, double& z, double Y, double R){
 AMSPoint getOrbitPoint(double dt, double x0, double y0, double z0, double vx0, double vy0, double vz0, int is_circ)
 {
 
-  const double M = 5.97E24;          // Earth mass in kg
-  const double G = 6.67E-11;         // Newton const m3/kg/s2
   const double GM = 398600.4418;     // GM = 398600.4418 +- 0.0008 km^3 s^(-2) 
-  const double T = 0.997269*24*3600; // Sidereal rot period s
   const double toll = 1E-7;
 
   double r0 = sqrt(x0*x0+y0*y0+z0*z0);
@@ -470,9 +467,9 @@ AMSPoint getOrbitPoint(double dt, double x0, double y0, double z0, double vx0, d
   double x = (Xt*(1-p*p+q*q) + 2*Yt*p*q) / (1+p*p+q*q);
   double y = (Yt*(1+p*p-q*q) + 2*Xt*p*q) / (1+p*p+q*q);
   double z = (-2*Xt*p + 2*Yt*q) / (1+p*p+q*q);
-  double x1 = (X1*(1-p*p+q*q) + 2*Y1*p*q) / (1+p*p+q*q);
-  double y1 = (Y1*(1+p*p-q*q) + 2*X1*p*q) / (1+p*p+q*q);
-  double z1 = (-2*X1*p + 2*Y1*q) / (1+p*p+q*q);
+  //double x1 = (X1*(1-p*p+q*q) + 2*Y1*p*q) / (1+p*p+q*q);
+  //double y1 = (Y1*(1+p*p-q*q) + 2*X1*p*q) / (1+p*p+q*q);
+  // double z1 = (-2*X1*p + 2*Y1*q) / (1+p*p+q*q);
   //cout<<"getOrbitPoint:: x "<<x<<" y "<<y<<" z "<<z<<endl;
   //cout<<"getOrbitPoint:: x1 "<<x1<<" y1 "<<y1<<" z1 "<<z1<<endl;
   AMSPoint _pos(x,y,z);
@@ -890,7 +887,6 @@ double  FT_GPS_JD(double itime){
   * elapsed since midnight Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (JD=2440587.5)
   * 
   */ 
-  double JDtime;
   double TAItime=itime-19; /* convert GPS Time in TAI time, this Difference is constant in time*/
   double JDsec=TAItime+(2440587.5*86400);/* JD(secconds)=TAI(seconds)+JD_1970*SecondsInADay*/
   double JD=JDsec/86400; /* convert seconds in days*/

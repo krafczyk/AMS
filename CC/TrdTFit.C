@@ -309,7 +309,6 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
     end=posTvec->end();
     
     //number of fit degrees
-    int m = posTvec->size();
 
     //array of Parameters to be fitted
     int N=7;

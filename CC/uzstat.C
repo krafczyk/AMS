@@ -202,12 +202,10 @@ else{
 
 
 extern "C" number HighResTime(){
-  float ar[2];
 
-  static unsigned int count=0;
-  float ltime=0;
-#pragma omp threadprivate (count)
 #ifdef __LVL3ONLY__
+  float ar[2];
+  float ltime=0;
   static number ETimeLast;
   static timeval  TPSLast;
   static struct timezone  TZ;

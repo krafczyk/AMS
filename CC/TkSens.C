@@ -127,7 +127,6 @@ void TkSens::Recalc(){
   ImpactPointY=(LaddCoo[1]-cooY1)/abs(cooY1-cooY2);
   
   mult = -1;
-  int layer=abs(lad_tkid)/100;
   number cooX1,cooX2;  
   TkLadder* ll = TkDBc::Head->FindTkId(lad_tkid);
   if(!ll){
@@ -399,7 +398,6 @@ int TkSens::FindLadder(){
 //! It takes a point in global coo and chek if it is inside the ladder pointed by the tkid
 int TkSens::FindLadder(int lay){
   TkLadder* lad=0;
-  bool found=0;
 
   int nslot = (lay == 9) ? 8 : 15;
   for (int slot = -nslot; slot <= nslot; slot++) {
@@ -477,7 +475,6 @@ AMSPoint TkSens::FindCloseSensorCenter(){
   }
   if(!TkDBc::Head->FindTkId(otkid)) return pret;
 
-  int slot=abs(otkid)%100;
   int msens=-1;
   vector<float> csM;
   vector<float> csP;

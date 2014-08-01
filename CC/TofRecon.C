@@ -1017,8 +1017,6 @@ BetaR* TofRecon::GetIncludedBeta(TofTrack* tof_track, AMSEventR* event) {
     return 0;
   }
   // loop on beta 
-  BetaR* beta = 0;
-  float minimum = 1000000;
   for (int ibeta=0; ibeta<event->NBeta(); ibeta++) {
     BetaR* beta = event->pBeta(ibeta);
     float diff  = 0;

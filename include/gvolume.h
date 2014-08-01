@@ -86,9 +86,9 @@ class AMSgvolume : public AMSNode {
  static integer _Norp;
 #endif
 #ifdef __G4AMS__
-  AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0),_pg4v(0),_pg4l(0),_pg4rm(0), _pgtmed(0),_offspring(0),_smartless(2){};
+  AMSgvolume():AMSNode(0),_pg4v(0),_pg4l(0),_pg4rm(0),_offspring(0),_smartless(2), _pgtmed(0),_npar(0),_par(0),_nrm(0),_nrmA(0),_shape(0){};
 #else
-  AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0), _pgtmed(0){};
+  AMSgvolume():AMSNode(0),_npar(0),_par(0),_nrm(0),_nrmA(0),_shape(0),_pgtmed(0){};
 #endif
   void _addboolean(AMSgvolume *p);
  public:

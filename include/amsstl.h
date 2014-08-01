@@ -274,7 +274,6 @@ template <class T> integer  AMSbsi(T *a[], const T& obj, integer N, char hint){
 template <class T> void AMSsortNAG(T *rv[], integer m2){
   /* Initialized data */
   const int minq=15;
-  const double c_b5 = 1.;
   integer ir1 = 15223;
   integer ir2 = 17795;
   integer ir3 = 28707;
@@ -491,7 +490,6 @@ template <class T> void AMSsortNAG(T *rv[], integer m2){
 template <class T> void AMSsortNAGa(T rv[], integer m2){
   /* Initialized data */
   const int minq=15;
-  const double c_b5 = 1.;
   integer ir1 = 15223;
   integer ir2 = 17795;
   integer ir3 = 28707;

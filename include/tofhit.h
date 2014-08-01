@@ -63,7 +63,7 @@ public:
 public:
     AMSBetaH(){};
     AMSBetaH(TofClusterHR *phith[4],AMSTrTrack *ptrack,AMSTRDTrack *trdtrack,AMSEcalShower *show,TofBetaPar betapar):
-         AMSlink(), _ptrack(ptrack),_ptrdtrack(trdtrack), _pecalshower(show),BetaHR(){
+         AMSlink(), BetaHR(), _ptrack(ptrack),_ptrdtrack(trdtrack), _pecalshower(show){
         if((betapar.Status&TOFDBcN::TRDTRACK)==TOFDBcN::TRDTRACK)_ptrack=0;//aleady delete next
         if((betapar.Status&TOFDBcN::ECALTRACK)==TOFDBcN::ECALTRACK)_ptrack=0;
         for(int ilay=0;ilay<4;ilay++){

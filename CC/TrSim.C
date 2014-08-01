@@ -132,9 +132,6 @@ void TrSim::gencluster(int idsoft, float vect[], float edep, float step, int itr
   AMSPoint pc = tksc.GetSensCoo();
   if (pc.x() < 0 || pc.x() > TkDBc::Head->_ssize_active[0]) return;
   VCon* cont=GetVCon()->GetCont("AMSTrCluster");
-  double lx = pc.x();
-  double ly = pc.y();
-  double lz = pc.z();
   int stx = tksc.GetStripX();
   int sty = tksc.GetStripY();
   double ipx = tksc.GetImpactPointX();
@@ -173,8 +170,6 @@ void TrSim::gencluster(int idsoft, float vect[], float edep, float step, int itr
   if (seedx == 1 && a1x > a2x) seedx = 0;
   if (seedy == 0 && a1y < a2y) seedy = 1;
   if (seedy == 1 && a1y > a2y) seedy = 0;
-
-  int lyr = TMath::Abs(tkid)/100;
 
   float adc[2] = { 0, 0 };
 
@@ -473,7 +468,6 @@ void TrSim::sitkdigi() {
 
 
 void TrSim::AddNoiseOnBuffer(double* ladbuf, TrLadCal* ladcal) {
-  float GlobalNoiseFactor[2]={1.08,1.037};
   // Noise baseline 
   for (int ii=0; ii<640; ii++) {
     if (ladcal->GetStatus(ii)&TrLadCal::dead) ladbuf[ii] = DEADSTRIPADC; // dead strip    
@@ -552,7 +546,6 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
     // "Seed" Found (not max)
     int seed = ii;
     used[ii] = 1;
-    int maxstrip = ii;
 
     // Left Loop
     int left = seed;
@@ -588,7 +581,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
       signal[ist%128] = int(8*ladbuf[left + ist]); 
       if ( (((ist+1)%128)==0) || ((ist+1)==nstrips) ) { 
         int cluslenraw = (((ist+1)%128)==0) ? 127 : (nstrips%128)-1; // 0->1, 1->2, ..., 127->128
-        int seedvalue  = int(4*ladbuf[maxstrip]);
+        // int seedvalue  = int(4*ladbuf[maxstrip]);
         // cluslenraw |= (seedvalue<<7);
         int n128 = int((ist+1)/128);
         int clusaddraw = left + 128*n128;

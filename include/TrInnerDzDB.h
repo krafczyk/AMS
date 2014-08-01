@@ -39,6 +39,7 @@ public:
     float dz[kLaynum];
     DzElem(){memset(dz,0,kLaynum*sizeof(dz[0]));}
     DzElem(float *Dz){memcpy(dz,Dz,kLaynum*sizeof(dz[0]));}
+    virtual ~DzElem() {}
     ClassDef(TrInnerDzDB::DzElem,1);
   };
 

@@ -256,8 +256,6 @@ void RICHDB::mat_init(){
 // Aerogel density
 
 geant RICHDB::aerogel_density(){
-  geant water_conc=0.;
-  geant methanol_conc=0.;
 
   // J.Phys D 27(1994)414: Unused
   //  return (RICHDB::rad_index-1.)/(0.19+0.31*water_conc+0.38*methanol_conc);
@@ -859,7 +857,6 @@ void RichAlignment::GetFromTDV(){
   _a2rRot.GetRotAngles(current[3],current[4],current[5]);
   _mirrorShift.getp(current[6],current[7],current[8]);
 
-  bool recompute=false;
   const double tolerance=1e-6;
   // Compare shifts
   for(int i=0;i<9;i++){

@@ -208,7 +208,6 @@ float TkCoo::GetLocalCoo(int tkid, int readchann,int mult){
     return -1;
   }
   int mmult=GetMaxMult(tkid,readchann);
-  int plane=abs(tkid)/100;
   if(mult>mmult||mult<0) mult=mmult;
   // float out=0.;
   if(readchann<640) return GetLocalCooS(readchann);
@@ -226,7 +225,6 @@ float TkCoo::GetLocalCoo(int tkid, float readchann,int mult){
     return -1;
   } 
   int mmult=GetMaxMult(tkid,readchann);
-  int plane=abs(tkid)/100;
   if(mult>mmult||mult<0) mult=mmult;
   // float out=0.;
   int channel = (int) round(readchann);
@@ -432,7 +430,6 @@ AMSPoint TkCoo::GetGlobalNC(int tkid,float readchanK, float readchanS,int mult){
     printf("GetGlobalNC: ERROR cant find ladder %d into the database\n",tkid);
     return AMSPoint(-1,-1,-1);
   }
-  int layer=abs(tkid)/100;
   if(ll->IsK7())
     return GetGlobalN(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
   else 
@@ -445,7 +442,6 @@ AMSPoint TkCoo::GetGlobalAC(int tkid,float readchanK, float readchanS,int mult){
     printf("GetGlobalAC: ERROR cant find ladder %d into the database\n",tkid);
     return AMSPoint(-1,-1,-1);
   }
-  int layer=abs(tkid)/100;
   if(ll->IsK7())
     return GetGlobalA(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
   else 
@@ -479,7 +475,6 @@ AMSPoint TkCoo::GetGlobalTC(int tkid,float readchanK, float readchanS,int mult){
     printf("GetGlobalAC: ERROR cant find ladder %d into the database\n",tkid);
     return AMSPoint(-1,-1,-1);
   }
-  int layer=abs(tkid)/100;
   if(ll->IsK7())
     return GetGlobalT(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
   else 

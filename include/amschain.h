@@ -55,7 +55,7 @@ public:
   unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
   /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
-    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_chain_Entries(0),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0),fout(0),amsnew(0),rsetup(0){}
+    :TChain(name),m_chain_Entries(0),m_tree_entry(-1),fThreads(thr),fSize(size),_EVENT(NULL),_ENTRY(-1),_NAME(name),_TREENUMBER(-1),_FILE(0),amsnew(0),rsetup(0),fout(0){}
   char * getsetup();
   
   /// alternative constructor (It requires an AMSEventR object to be passed)

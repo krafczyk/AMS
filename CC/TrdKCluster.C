@@ -188,7 +188,6 @@ TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir
     //    DoHitPreselection(MinimumDistance); //=======Select +/- 5cm volumn around TrTrack=============
     //    AddEmptyTubes(MinimumDistance);  //===========Add empty tubes to complete the geometry==========
 
-    float TRDCenter=115;
     Track_Rigidity=100000;
 
     track_extrapolated_Dir= *Dir;
@@ -363,12 +362,7 @@ int TrdKCluster::FindBestMatch_FromECAL(){
     int necal = pev->nEcalShower();
     if(necal<=0)return 0;
 
-    int npart = pev->nParticle();
-    int ntrd  = pev->nTrdTrack();
-    int ntrdh = pev->nTrdHTrack();
     int ntrk  = pev->nTrTrack();
-    int nbetah= pev->nBetaH();
-    int nbeta = pev->nBeta();
 
     // Most energetic Shower
     for(Int_t i=0; i<pev->nEcalShower(); i++){
@@ -392,8 +386,7 @@ int TrdKCluster::FindBestMatch_FromECAL(){
     // 2. find best matched TRD
     AMSPoint trd_coo, trd_coo_ecalcog;
     AMSDir   trd_dir;
-    Double_t min_dist = 10000., min_dang = 10000.,
-            dist, dang;
+    Double_t min_dist = 10000., dist;
     for(Int_t i=0; i<pev->nTrdTrack(); i++){
         trd_coo = AMSPoint( pev->pTrdTrack(i)->Coo );
         trd_dir = AMSDir( pev->pTrdTrack(i)->Theta, pev->pTrdTrack(i)->Phi );
@@ -492,8 +485,7 @@ int TrdKCluster::FindBestMatch_FromTrTrack(){
     int i_candidate_trdh=-1;
     AMSPoint trd_coo, trd_coo_atTrTrack;
     AMSDir   trd_dir;
-    Double_t min_dist = 10000., min_dang = 10000.,
-            dist, dang;
+    Double_t min_dist = 10000., dist;
 
 
 
@@ -817,7 +809,7 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
 
 Double_t TrdKCluster::trd_parabolic_fit(Int_t N, Double_t *X, Double_t *Y, Double_t *V) {
 
-    Int_t    i, j;
+    Int_t    i;
     Double_t X0, DD, x_min, x_max, y_min, alpha, beta, gamma;
     Double_t m11, m12, m13, m22, m23, m33, a11, a12, a13, a22, a23, a33, b1, b2, b3;
 
@@ -1178,7 +1170,6 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 
 
     float x0,y0,z0,dx,dy,dz;
-    float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
 
     //    x0=gMinuit_TRDTrack->GetParameter(0);
     //    y0=gMinuit_TRDTrack->GetParameter(1);
@@ -1241,7 +1232,7 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
 
 
     double DD1[2]={0,0};
-    double DD2[2][2]={0,0,0,0};
+    double DD2[2][2]={{0,0},{0,0}};
 
     float radius=0.3;
     float width=0.03;
@@ -1366,7 +1357,6 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
 
     float x0,y0,z0,dx,dy,dz;
-    float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
 
     //    x0=gMinuit_TRDTrack->GetParameter(0);
     //    y0=gMinuit_TRDTrack->GetParameter(1);
@@ -1409,10 +1399,6 @@ void TrdKCluster::FitTRDTrack_PathLength_KFit(int particle_hypothesis){
 
     Refit_hypothesis=particle_hypothesis;
     float init_z0=115;
-    float init_x0=0;
-    float init_y0=0;
-    float init_dx=0;
-    float init_dy=0;
 
     Propogate_TrTrack(init_z0);
     AMSPoint P0=GetPropogated_TrTrack_P0();
@@ -1445,7 +1431,6 @@ void TrdKCluster::FitTRDTrack_Analytical(){
 
 
         double track_yz_y;
-        double track_yz_z=P0.z();
         double track_yz_dy;
         AnalyticalFit_2D(1,P0.y(),P0.z(),Dir.y(),Dir.z(),track_yz_y,track_yz_dy);
 

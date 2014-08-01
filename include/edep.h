@@ -105,6 +105,7 @@ class AMSEnergyLoss {
   static Double_t GetTrackerLayerLogBetaGammaCorrection(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
   /**@}*/
 
+  virtual ~AMSEnergyLoss() { }
   ClassDef(AMSEnergyLoss,1); 
 };
 

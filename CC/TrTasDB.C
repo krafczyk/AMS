@@ -179,7 +179,7 @@ int TrTasDB::Save2DB(time_t statime, time_t endtime)
 				TrTasDB::linear,
 				AMSTimeID::Standalone, 1);
   tt->UpdateMe();
-  int pp = tt->write(AMSDATADIR.amsdatabase);
+  tt->write(AMSDATADIR.amsdatabase);
 
   return 0;
 }

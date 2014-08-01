@@ -41,7 +41,7 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
         double phi,lambda,phig,lambdag,phi2,lambda2;
         double phin,lambdan,phin2,lambdan2,phig2,lambdag2;
         double blat,blong,distd,elat,elong,gam,a,b,c,d,e,fp,fn;
-        double galt,galt2,pcut2,pcutd,dp2,pcut3;
+        double pcut2,pcutd=0,dp2;
         double Moment,Stormer;
         double Re = 6371.2;             //Earth radius in km
  

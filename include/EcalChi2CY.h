@@ -209,7 +209,6 @@ private:
     int     cal_chi2(int start_cell,int end_cell,int layer,double coo,float& chi2,float& chi22,float& chi23, float& chi24, float sign=-1.);
     float   Edep_raw[1296]  ;
     int fdead_cell[18][72]  ;
-    int Max_layer_cell[18]  ;
     float   pos[18] ;
 
     float   _chi2   ;

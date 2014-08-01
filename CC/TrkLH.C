@@ -294,8 +294,7 @@ int TrkLH::PopulateTrkLHVar(int ipart){
 
 TrkLHVar TrkLH::GetTrkLHVar(int ipart){
   
-  int ret = PopulateTrkLHVar(ipart);
-
+  PopulateTrkLHVar(ipart);
   return (*varv);
 }
 

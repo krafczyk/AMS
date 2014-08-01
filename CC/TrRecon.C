@@ -590,7 +590,6 @@ int TrRecon::BuildTrClusters(int rebuild) {
     //}
  
     int TkId = lad->first;
-    int layer = abs(TkId/100);
     ncls += BuildTrClustersInSubBuffer(TkId,0,640,0);      // S
     //printf("TkId: %+03d Found %d cluster on S\n",TkId,ncls);
     //printf("TrCluster container has: %d elements\n",cont2->getnelem());
@@ -855,7 +854,6 @@ int TrRecon::BuildTrRecHits(int rebuild)
         float sigx = clX->GetTotSignal(TrClusterR::kAsym); 
         float sigy = clY->GetTotSignal(TrClusterR::kAsym);
         float prob = hit->GetCorrelationProb();
-        float logprob = (prob<=0.) ? -30 : log10(prob);
         hman.Fill("AmpyAmpx",sqrt(sigx),sqrt(sigy));
         hman.Fill("ProbAmpx",sqrt(sigx),log10(hit->GetCorrelationProb()));
         // bad association
@@ -883,7 +881,6 @@ int TrRecon::BuildTrRecHits(int rebuild)
 
   for (ITClusterMap lad = _ClusterTkIdMap.begin(); lad != _ClusterTkIdMap.end(); lad++) {
     int tkid = lad->first;
-    int nx   = lad->second.first.size();
     int ny   = lad->second.second.size();
     int ilay = std::abs(tkid)/100-1;
     // skip if requested by datacard
@@ -1712,8 +1709,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
     printf("TrRecon::BuildTrTracksSimple-W Can't find AMSTrCluster container. Reconstruction is impossible.\n");
     return -1;
   }
-  int ncls = cont_clu->getnelem();
-
   if (!patt) {
     int nn = (TkDBc::Head->GetSetup()==3) ? 7 : 8;
     patt = new tkpatt(nn);
@@ -1913,10 +1908,10 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       if (CpuTimeUp()) break;
       if (ic[3][i[3]] < 0) continue;
       
-      double qs0 = (qc[1][i[1]]+qc[3][i[3]])/2;
-      double qs1 =  qc[1][i[1]]/qc[3][i[3]];
-      double qth = ((qc[1][i[1]] > 20 &&
-		     qc[3][i[3]] > 20) || qs0 > 45) ? 3+20/qs0 : 10;
+      // double qs0 = (qc[1][i[1]]+qc[3][i[3]])/2;
+      // double qs1 =  qc[1][i[1]]/qc[3][i[3]];
+      //double qth = ((qc[1][i[1]] > 20 &&
+	  //     qc[3][i[3]] > 20) || qs0 > 45) ? 3+20/qs0 : 10;
       // if (qs1 < 1/qth || qth < qs1) continue; // SH-to-be-fixed
       float xxx = sqrt(qc[1][i[1]]);
       float yyy = sqrt(qc[3][i[3]]);
@@ -1925,7 +1920,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 
       for (i[0] = 0; i[0] <= nc[0]; i[0]++) { // Plane 1 (Layer 1)
 	if (CpuTimeUp()) break;
-	double dps1 = 0, qs2 = 0;
+	double dps1 = 0;
 	if (i[0] < nc[0]) {
 	  dps1 = std::fabs(CY(1)-Intpol1(CZ(0), CZ(3), CY(0), CY(3), CZ(1)));
 	  if (dps1 > psely*2.5) continue;
@@ -2068,8 +2063,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	int ai = std::abs(ic[j][k]);
 	if (ai%10 == tmin[jc].ic[j]%10) continue;
 	
-	double q0 = tmin[jc].qsm;
-	double qs = qc[j][k]/q0;
+	//double q0 = tmin[jc].qsm;
+	// double qs = qc[j][k]/q0;
 	//if (qs < 1/(2+20/q0) || 2+20/q0 < qs) continue; // SH-to-be-fixed
         float xxx = sqrt(tmin[jc].qsm);
         float yyy = sqrt(qc[j][k]);
@@ -2209,7 +2204,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       TrClusterR *clx = hit->GetXCluster();
       if (clx) {
 	double  q0 = tmin[jc].qtm;
-	double sq0 = std::pow(q0, 0.8);
+	//double sq0 = std::pow(q0, 0.8);
 	double  qs = clx->GetTotSignal()/cly->GetTotSignal();
 	// SH-to-be-fixed (compatibility, done in BuildTrRecHit)
 	//if (qs < 0.2*(1+0.01*sq0) || 5*(1+0.01*sq0) < qs) continue;
@@ -2570,7 +2565,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	if (!clx || !cly) continue;
 	
 	double  q0 = tmin[jc].qtm;
-	double sq0 = std::pow(q0, 0.8);
+	// double sq0 = std::pow(q0, 0.8);
 	double  qs = clx->GetTotSignal()/cly->GetTotSignal();
 	// SH-to-be-fixed (compatibility, done in BuildTrRecHit)
 	//if (qs < 0.2*(1+0.01*sq0) || 5*(1+0.01*sq0) < qs) continue;
@@ -2819,8 +2814,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	if ( (clX==0)||(clY==0) ) continue;
 	float sigx = clX->GetTotSignal();
 	float sigy = clY->GetTotSignal();
-	float prob = hit->GetCorrelationProb();
-	float logprob = (prob<=0.) ? -30 : log10(prob);
 	hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
 	hman.Fill("AmpyCSy_final",sqrt(GetChargeSeed(1)),sqrt(sigy));
 	hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
@@ -2910,7 +2903,6 @@ int TrRecon::BuildTrTracks(int rebuild)
     _MinNhitXY = RecPar.MinNhitXY;
   }
   VCon* cont2 = GetVCon()->GetCont("AMSTrRecHit");
-  int ntrrechit=cont2->getnelem();
   delete cont2;
 #ifndef __ROOTSHAREDLIBRARY__
 
@@ -3657,7 +3649,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 		       hy2[3+i] = hitp[idx[jmin]].y(); nm2++; }
     }
 
-    int    ndf0 = ndf;
     double csq0 = csq;
     if (nm1 > 0 || nm2 > 0) {
       ndf = nc1+nc2+nm1+nm2-4;
@@ -4632,14 +4623,15 @@ int TrRecon::FillHistos(int trstat, int refit)
 
     AMSPoint pntv(vtx->Vertex[0], vtx->Vertex[1], VertexR::ZrefV);
     AMSDir   dirv(vtx->Theta, vtx->Phi);
-
-    int ntrc = 0, ntrl = 0, ntrd = 0, ntrp = 0, ntfu = 0;
     int psel = 0;
-    double   qtof[2] = { 0, 0 };
-    AMSPoint dtof[2];
 
 #ifndef __ROOTSHAREDLIBRARY__
 #ifndef _STANDALONE_
+    int ntrc = 0, ntrl = 0, ntrd = 0, ntrp = 0;
+
+    double   qtof[2] = { 0, 0 };
+    AMSPoint dtof[2];
+
     for (int i = 0; i < 2; i++) {
       AMSPoint dmin;
       double   qmin = 0;
@@ -4887,7 +4879,6 @@ int TrRecon::FillHistos(int trstat, int refit)
     double dmin = 25, dxmin, dymin;
     ttm[j] = sln[j] = 0;
     int itc = (j == 0 || j == 3) ? 1 : 0;
-    int jj  = (j == 0 || j == 2) ? j+1 : j-1;
 #ifndef __ROOTSHAREDLIBRARY__
     for (AMSTOFCluster *tofcls
 	   = AMSTOFCluster::gethead(j); tofcls; tofcls = tofcls->next()) {
@@ -6072,7 +6063,7 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
 #endif
 
   // Check it the X matching with the TRD and/or TOF direction
-  int ret3=MatchTOF_TRD(track,select_tag);
+  MatchTOF_TRD(track,select_tag);
 
   // Update bit patterns
   track->UpdateBitPattern();
@@ -6612,9 +6603,9 @@ AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
   number c=tk_dir.prod(trd_dir);
   //distance 
   AMSPoint bb=(tk_pnt-trd_pnt);
-  number d=bb.norm();
-  number X=bb[0];
-  number Y=bb[1];
+  // number d=bb.norm();
+  // number X=bb[0];
+  // number Y=bb[1];
   //   hman.Fill("TkTrd",c,d);
   //   hman.Fill("TkTrdXY",X,Y);
   //   hman.Fill("ntrdhit",ptrd->_Base._NHits,Y);
@@ -6676,7 +6667,6 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err, in
     max=9999.;
     mm=-1;
     for(int ii=0;ii<phit->GetMultiplicity();ii++){
-      int layer=phit->GetLayer();
       float diff=X- phit->GetCoord(ii).x();
       if(fabs(diff) <max) { 
 	max=fabs(diff);
@@ -6947,7 +6937,6 @@ bool TrRecon::CompatibilityWithChargeSeed(TrClusterR* cluster) {
   int   iside  = cluster->GetSide();
   float signal = cluster->GetTotSignal();
   float chseed = GetChargeSeed(iside);
-  float ratio  = signal/chseed;
   // fill some plot
   if (iside==0) hman.Fill("AmpxCSx",sqrt(chseed),sqrt(signal)); 
   else          hman.Fill("AmpyCSy",sqrt(chseed),sqrt(signal)); 

@@ -130,7 +130,7 @@ void TrDAQ::buildraw(integer n, int16u *pbeg){
   if(TRCALIB.Version==0)cmn=16;
   else cmn=0;
   //  integer ic1=checkdaqid(*(pbeg-1+leng))-1;
-  integer ic1=checkdaqid(num)-1;
+  (void)checkdaqid(num);
   //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
   int add2=0;
   if(DAQCFFKEY.DAQVersion==1)add2=2;
@@ -211,7 +211,6 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
     //dump clusters
     int  count=RawOffset+TDROff;
     while (count<(tsize-rwords)){
-      int bad=0;
 
       int cluslenraw=blocks[count++];
       int clusaddraw=blocks[count++];
@@ -238,8 +237,6 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 	if(junkerr++<100)cerr << "TrDAQ::buildraw-E-ClusterOutsideBoundary add " << clusadd << " len " << cluslen << endl;
       }
       short int  signal[1024];
-      float      sigma[1024];
-      short int  status[1024];
       if(pri>3)printf("Cluster: add: %d  lenght: %d\n",clusadd,cluslen);
       //count+=(cluslen-1);
       if(cluslen>1024) cluslen=1024;
@@ -380,7 +377,6 @@ void TrDAQMC::builddaq_old(integer i, integer length, int16u *p){
 
 void TrDAQMC::buildraw_old(integer n, int16u *p){
   integer ip;
-  geant mom;
   int len=n&65535;
   for(int16u *ptr=p;ptr<p+len-1;ptr+=8){ 
     ip=*(ptr);

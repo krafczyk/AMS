@@ -60,7 +60,7 @@ uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
                      void *pdata, AMSTimeID::CType server,bool verify,trigfun_type fun):
-  AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),_Type(server),_updateable(-1){
+  AMSNode(id),_updateable(-1),_UpdateMe(0),_verify(verify),_pData((uinteger*)pdata),_Type(server){
   setmapdir();
   _fname="";
   _trigfun=fun;
@@ -186,7 +186,7 @@ integer AMSTimeID::validate(time_t & Time, integer reenter){
 
 uinteger AMSTimeID::_CalcCRC(){
   _InitTable();
-  int i,j,k;
+  int i,j;
     if(_Nbytes>_NbytesM){
       cerr<<"  AMSTimeID::_CalcCRC-E-NbytesTooBig "<<_NbytesM<<" "<<_Nbytes<<endl;
       _Nbytes=_NbytesM;
@@ -811,7 +811,6 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #ifdef __CORBASERVER__
 	    usemap:
 #endif
-	      char buf[100];
 	      fbin.clear();
 	      fbin.close();
 	      fbin.open(fmap,ios::in);
@@ -836,6 +835,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		  for(int k=0;k<_DataBaseSize;k++){
 		    uinteger tmp;
 #ifdef _WEBACCESS_
+	        char buf[100];
 		    url_fgets(buf,100,ffbin);
 		    tmp=atoi(buf);
 #else
@@ -1060,7 +1060,6 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    if((!stat64((const char *)fmap,&statbuf_map)&&
 		mtime < statbuf_map.st_mtime) && !force){
 	    usemap:    
-	      char buf[100];
 	      fbin.clear();
 	      fbin.close();
 	      fbin.open(fmap,ios::in);
@@ -1306,7 +1305,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 
 	  char* AMSTimeID::_getsubdirname(time_t begin){
 	    static char  _buf[32];
-	    tm * tm1=localtime(&begin);
+		localtime(&begin);
 	    int tzz=timezone;
 	    tm * tmp=gmtime(&begin);
 	    tmp->tm_hour=0;

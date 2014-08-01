@@ -325,7 +325,7 @@ void ANTI2DBc::displ_a(char comm[], int id, int mf, const geant arr[]){
 // ANTI2SPcal class member functions:
 //
 void ANTI2SPcal::build(){ // fill array of objects with data
-  integer i,j,k,ip,cnum,ibr,isd,endflab;
+  integer i,j,endflab;
   geant hthr,hdthr[ANTI2C::MAXANTI]; // hist-discr threshold(p.e.)
   geant dqthr,daqthr[ANTI2C::MAXANTI];//daq-readout thresh(adc-ch)
   geant ftdl[2],ftdel[ANTI2C::MAXANTI][2];
@@ -461,7 +461,7 @@ void ANTI2SPcal::build(){ // fill array of objects with data
 // ANTI2VPcal class member functions:
 //
 void ANTI2VPcal::build(){ // fill array of objects with data
-  integer i,j,k,ip,cnum,ibr,isd,endflab;
+  integer i,endflab;
   integer status[ANTI2C::MAXANTI][2][2],sta[2][2];
   geant p2a[2][2],pe2adc[ANTI2C::MAXANTI][2][2];//[physs][side]
   geant attlen[ANTI2C::MAXANTI][2][2],atl[2][2];
@@ -652,7 +652,7 @@ void ANTI2VPcal::build(){ // fill array of objects with data
 //
 void ANTIPeds::mcbuild(){// create MC ANTI-Peds-objects for each ReadoutPaddle
 //
-  int i,j,is;
+  int i,is;
   integer sid;
   char fname[1024];
   char name[256];
@@ -719,7 +719,7 @@ void ANTIPeds::mcbuild(){// create MC ANTI-Peds-objects for each ReadoutPaddle
 //
 void ANTIPeds::build(){//tempor solution for RealData peds. 
 //
-  int i,j,is;
+  int i,is;
   integer sid;
   char fname[1024];
   char name[256];
@@ -788,7 +788,7 @@ void ANTIPeds::build(){//tempor solution for RealData peds.
 //
 void ANTIPedsMS::build(){//tempor solution for MC-Seed peds. 
 //
-  int i,j,is;
+  int i,is;
   integer sid;
   char fname[1024];
   char name[256];
@@ -902,7 +902,7 @@ integer ANTI2JobStat::brcount[ANTI2C::MAXANTI][ANTI2C::ANCSTA];
 // function to print Job-statistics at the end of JOB(RUN):
 //
 void ANTI2JobStat::printstat(){
-  int il,ib,ic;
+  int ib,ic;
   geant rc;
   printf("\n");
 //

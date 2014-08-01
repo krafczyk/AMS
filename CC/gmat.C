@@ -850,7 +850,6 @@ tmed.add (new AMSgtmed("ALUMLI","ALUMINIUM",0));
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("BGO","BGO",1,'Y',birks));
 }
-int ip=27;
 
 tmed.add (new AMSgtmed("ATC_PTAE","TEFLON3",0));//30
 tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));

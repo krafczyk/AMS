@@ -148,7 +148,6 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     int i,j;
     char fname[1024] = "";
     char name[256]="TofGeom";
-    char vers0[10]="MC";//not used now
     char vers1[10]="PreAss";//pre-assembly in clean room
     char vers2[10]="Space";//in space
     char vers3[10]="Ass1";//in clean room final assembly-1
@@ -476,7 +475,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
            geant t0, geant sl, geant sls[2], geant tdiff, geant td2p[2], geant mip,
            integer nsp, geant ysc[], geant relo[], geant upar[2*TOF2GC::SCPROFP], 
 	   geant a2q){
-    int i,j;
+    int i;
     softid=sid;
     npmts=npm;
     status[0]=sta[0];
@@ -517,20 +516,16 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
 void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
  int lsflg(1);//0/1->use common/individual values for Lspeed 
- integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
+ integer i,ila,ibr,isp,nsp,ibt,cnum;
  geant scp[TOF2GC::SCANPNT];
  geant rlo[TOF2GC::SCANPNT];// relat.(to Y=0) light output
- integer lps=1000;
- geant ef1[TOF2GC::SCANPNT],ef2[TOF2GC::SCANPNT];
- integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2],npm;
- geant r,eff1,eff2;
+ integer sta[2],stat[TOF2GC::SCBLMX][2],npm;
  integer sid,brt,endflab(0);
- geant gna[2],qath,qdth,a2dr[2],tth,strat[2][2],ah2l[2];
+ geant gna[2],a2dr[2],tth,strat[2][2];
  geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX];
  geant slops[2],slops1[TOF2GC::SCLRS][TOF2GC::SCMXBR],slops2[TOF2GC::SCLRS][TOF2GC::SCMXBR];
- geant strf[TOF2GC::SCBLMX][2],strof[TOF2GC::SCBLMX][2];
- geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
+ geant gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
  geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],apr[2*TOF2GC::SCPROFP],hblen;
  geant a2drf[TOF2GC::SCBLMX][2];
  geant p1s1,p2s1,p3s1,p4s1,p5s1,p6s1,p1s2,p2s2,p3s2,p4s2,p5s2,p6s2,nom,denom; 
@@ -1126,20 +1121,16 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
 //used for "on flight" DB update after calib.job finished
 //
  int lsflg(1);//0/1->use common/individual values for Lspeed 
- integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
+ integer i,ila,ibr,isp,nsp,ibt,cnum;
  geant scp[TOF2GC::SCANPNT];
  geant rlo[TOF2GC::SCANPNT];// relat.(to Y=0) light output
- integer lps=1000;
- geant ef1[TOF2GC::SCANPNT],ef2[TOF2GC::SCANPNT];
- integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2],npm;
- geant r,eff1,eff2;
+ integer sta[2],stat[TOF2GC::SCBLMX][2],npm;
  integer sid,brt,endflab(0);
- geant gna[2],qath,qdth,a2dr[2],tth,strat[2][2],ah2l[2];
+ geant gna[2],a2dr[2],tth,strat[2][2];
  geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX];
  geant slops[2],slops1[TOF2GC::SCLRS][TOF2GC::SCMXBR],slops2[TOF2GC::SCLRS][TOF2GC::SCMXBR];
- geant strf[TOF2GC::SCBLMX][2],strof[TOF2GC::SCBLMX][2];
- geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
+ geant gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
  geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],apr[2*TOF2GC::SCPROFP],hblen;
  geant a2drf[TOF2GC::SCBLMX][2];
  geant p1s1,p2s1,p3s1,p4s1,p5s1,p6s1,p1s2,p2s2,p3s2,p4s2,p5s2,p6s2,nom,denom; 
@@ -1158,9 +1149,6 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
   int ctyp,ntypes;
   char datt[3];
   char ext[80];
-  int date[2],year,mon,day,hour,min,sec;
-  uinteger iutct;
-  tm begin;
   time_t utct;
   uinteger verids[11],verid;
 //
@@ -1581,7 +1569,7 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
   TOFBrcalMS::TOFBrcalMS(integer sid, integer sta[2], geant gna[2], 
            geant gnd[2][TOF2GC::PMTSMX], geant a2d[2], geant stra[2][2],
            geant a2q){
-    int i,j;
+    int i;
     softid=sid;
     status[0]=sta[0];
     status[1]=sta[1];
@@ -1603,15 +1591,12 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
 //
 void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //
- integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
- integer lps=1000;
- integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2],npm;
- geant r,eff1,eff2;
+ integer i,ila,ibr,cnum;
+ integer sta[2],stat[TOF2GC::SCBLMX][2],npm;
  integer sid,brt,endflab;
- geant gna[2],a2dr[2],strat[2][2],ah2l[2];
- geant strf[TOF2GC::SCBLMX][2],strof[TOF2GC::SCBLMX][2];
- geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
- geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],hblen;
+ geant gna[2],a2dr[2],strat[2][2];
+ geant gaina[TOF2GC::SCBLMX][2];
+ geant hblen;
  geant a2drf[TOF2GC::SCBLMX][2];
 //
  geant gaind[TOF2GC::SCBLMX][2][TOF2GC::PMTSMX];//buff.for dyn.pmts relat.gains
@@ -1620,18 +1605,16 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
  char fname[1024] = "";
  char name[256] = "";
  char ext[80] = "";
- geant a2q,td2p[2];
+ geant a2q;
  char vers1[3]="MC";
  char vers2[3]="SD";
- int mrfp;
 //------------------------------
-  char in[2]="0";
   char inum[11];
-  int ctyp,ntypes,mcvern[10],rlvern[10];
-  int mcvn,rlvn,dig;
+  int ctyp,ntypes,mcvern[10];
+  int mcvn;
   int date[2],year,mon,day,hour,min,sec;
-  uinteger iutct;
   tm begin;
+  uinteger iutct;
   time_t utct;
 //
   strcpy(inum,"0123456789");
@@ -1873,7 +1856,7 @@ void TOFBrcalMS::q2a2q(int cof, int sdf, int hlf, number &adc, number &q){
 //
 void TOFBPeds::mcbuild(){// create MC TOFBPeds-objects for each sc.bar
 //
-  int i,j,ila,ibr,cnum,brt;
+  int i,ila,ibr,cnum,brt;
   integer sid;
   char fname[1024];
   char name[256];
@@ -1975,7 +1958,7 @@ void TOFBPeds::mcbuild(){// create MC TOFBPeds-objects for each sc.bar
 //
 void TOFBPeds::build(){// tempor solution for RealData peds.
 //
-  int i,j,ila,ibr,cnum,brt;
+  int i,ila,ibr,cnum,brt;
   integer sid;
   char fname[1024];
   char name[256];
@@ -3269,7 +3252,7 @@ void TOF2JobStat::printstat(){
 }
 //------------------------------------------
 void TOF2JobStat::bookhist(){
-  int i,j,k,ich,il,ib,ii,jj,ic,is,id;
+  int i,ich,il,ib,ii,jj,is,id;
   char htit1[80];
   char idname[80];
   char inum[11];
@@ -3511,10 +3494,8 @@ void TOF2JobStat::bookhistmc(){
 //----------------------------
 void TOF2JobStat::outp(){
   int i,j,k,ich,il,ib,is;
-  geant dedx[TOF2GC::SCMXBR],dedxe[TOF2GC::SCMXBR];
   char chopt[6]="qb";
   char chfun[6]="g";
-  char chopt1[5]="LOGY";
   geant par[3],step[3],pmin[3],pmax[3],sigp[3],chi2;
 //---
   if(LVL3FFKEY.histprf>0){
@@ -4305,7 +4286,7 @@ int TofTdcCorMS::getbin(number htime, number ttime, int ch){//ch=0,1,...
 //TrigTimeTag counters are internally 12bits and sincronized, so when TrigTimeTag subtraction
 // is "on" - no problem with OVFLs, when "off" - hit OVFL is simulated
 // the match-window is checked, if outside - return(-1) !!!
-  integer lsbt,msbt,bin,bn,timeCC,timeTT,low,hiw;
+  integer msbt,bin,bn,timeCC,timeTT,low,hiw;
   number t10;
 //
   timeTT=integer(floor((ttime+TOF2DBc::tdctrdel())/TOF2DBc::tdcbin(3)));//+"board" delay, TT-counter(<=12msb) not overflowed !
@@ -4336,7 +4317,7 @@ int TofTdcCorMS::getbins(number htime, number ttime){//no lin-corr, suitable for
 //TrigTimeTag counters are internally 12bits and sincronized, so when TrigTimeTag subtraction
 // is "on" - no problem with OVFLs, when "off" - hit OVFL is simulated
 // the match-window is checked, if outside - return(-1) !!!
-  integer lsbt,msbt,bin,bn,timeCC,timeTT,low,hiw;
+  integer msbt,bin,bn,timeCC,timeTT,low,hiw;
   number t10;
 //  return integer(floor(htime/TOF2DBc::tdcbin(1)));
 //

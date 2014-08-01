@@ -44,17 +44,15 @@ uinteger AMSEcalRawEvent::StartRun(0);
 time_t AMSEcalRawEvent::StartTime(0);
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
-  int i,j,k;
-  integer sta,status,dbstat,id,idd,isl,pmt,subc,pedrun(0),pmsl;
+  int i,k;
+  integer sta,id,idd,isl,pmt,subc,pmsl;
   number radc[2]; 
   geant padc[3];
-  geant val16r;
   integer swid;
-  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
+  geant pedh[4],pedl[4],sigh[4],sigl[4],ph,pl,sh,sl;
   integer ovfl[2];
   AMSEcalRawEvent * ptr;
   integer ecalflg(0);
-  integer tofflg;
   Trigger2LVL1 *ptrt;
   bool ecalftok(false);
   number asum4[ECPMSL],pixrg;
@@ -229,7 +227,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 
   int j,k,ic;
   integer fid,cid,cidar[4],nhits,nraw,nrawd,il,pm,sc,proj,rdir,nslhits;
-  number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
+  number x,y,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attfdir,attfrfl,ww[4],anen,dyen;
   number attfdir0,attfrfl0;
   geant attf,attf0;
@@ -238,15 +236,15 @@ void AMSEcalRawEvent::mc_build(int &stat){
   int dycog[ECSLMX];//to work with integer as in real EC trigger
   number pmedepr[4];
   integer zhitmap[ECSLMX];
-  integer adch,adcm,adcl,adcd;
+  integer adch,adcl,adcd;
   geant radc,a2dr,h2lr,mev2adc,ares,phel,pmrgn,scgn;
   geant h2lo;
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4],pedd,sigd;
   AMSEcalMCHit * ptr;
-  integer id,sta,scsta,nslmx,npmmx;
+  integer id,sta,nslmx,npmmx;
   geant adc[2];
-  number dyresp,dyrespt,toftrtm;// dynode resp. in mev(~mV) (for trigger)
+  number dyresp,dyrespt;// dynode resp. in mev(~mV) (for trigger)
   number an4resp,an4respt,an4qin;// (for trigger)
   number qin,saturf,a4maxq(0);
   integer adchmx,adclmx,adcdmx;
@@ -600,7 +598,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
   integer nlmin;
   number dyslmx[ECSLMX]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
   number dytrsum(0),dysl;
-  geant trwr;
   int word,bit;
   ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
   trigfl=0;
@@ -799,8 +796,6 @@ void AMSEcalRawEvent::BeamTestLinCorr(int gain,int id,
     number ph=ped[0];
     number a=1.21;
     number b=1.26e-4;
-    number x1=1666;
-    number x2=3766;
     if(radc[0]+ph<1666){
       fadc=radc[0];
     }
@@ -836,8 +831,8 @@ void AMSEcalRawEvent::BeamTestLinCorr(int gain,int id,
 }
 //---------------------------------------------------
 void AMSEcalHit::build(int &stat){
-  int i,j,k;
-  integer sta,status,dbstat,id,idd,isl,pmc,subc,nraw,nhits;
+  int i;
+  integer sta,id,idd,isl,pmc,subc,nraw,nhits;
   integer proj,plane,cell,icont;
   number radc[3],edep,edepc,adct,fadc,qmeas,saturf,emeast,coot,cool,cooz;
   number adchovfl; 
@@ -1203,7 +1198,6 @@ integer AMSEcalHit::Smooth(){
 
 //---------------------------------------------------
 void AMSEcalHit::attcor(number coo){//correct measured _edep for atten.in fibers
-  bool eccal=(AMSJob::gethead()->isCalibration() & AMSJob::CEcal);
   if(!checkstatus(AMSDBc::REFITTED) && !checkstatus(AMSDBc::RECOVERED)){
     // coo is longit.coord(i.e. from other projection) in mother ref.syst. !!!
     geant pmdist,hflen,attf,attf0,attfdir,attfrfl;
@@ -1336,7 +1330,6 @@ integer AMSEcalHit::Out(integer status){
 void Ecal1DCluster::_writeEl(){
   //
   //
-  int i;
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
@@ -1733,7 +1726,6 @@ number Ecal1DCluster::Distance(Ecal1DCluster *p){
 void AMSEcal2DCluster::_writeEl(){
 
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-    const int maxp=18;
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
@@ -2109,7 +2101,6 @@ integer AMSEcalShower::build(int rerun){
       }
     }
   }
-  AMSEcalShower* peca=0;
   AMSEcalShower *pesi=(AMSEcalShower*)AMSEvent::gethead()->
     getheadC("EcalShower",0);
   for(AMSEcalShower *pes=pesi;pes;pes=pes->next()){
@@ -2132,7 +2123,7 @@ integer AMSEcalShower::build(int rerun){
 }
 
 
-AMSEcalShower::AMSEcalShower(AMSEcal2DCluster *px, AMSEcal2DCluster *py):AMSlink(),_Et(0),_AttLeak(0),_NLinLeak(0){
+AMSEcalShower::AMSEcalShower(AMSEcal2DCluster *px, AMSEcal2DCluster *py):AMSlink(),_AttLeak(0),_NLinLeak(0),_Et(0){
   _Orp2DEnergy=0;
   _pCl[0]=px;
   _pCl[1]=py;
@@ -2659,7 +2650,6 @@ void AMSEcalShower::EnergyFit(){
   number ec=0;
   //float efinal=0;
   _ShowerMax=-1;
-  number xmax=-1;
   AMSPoint ep(0,0,0);
   VZERO(_Edep,sizeof(_Edep)/sizeof(integer));
   VZERO(_Ez,sizeof(_Ez)/sizeof(integer));
@@ -3109,14 +3099,12 @@ void AMSEcalShower::ZProfile()
   _ZprofileChi2v2=-1.;
 
   int necalcl=0;
-  int ihit,cell,plane,proj;
+  int plane;
   int nhits_cl;
   float etot=0.;
   float err;
   float par0,par1,par2;
-  float xmin, xmax; 
-  float par[3];
-  float chi2n,chis,zmax1,zmax,xx,yu,yu1,yu2,yu3,xt,fitn,fitval;
+  float xx;
   float frac[18]={0.};
   float fracv2[18]={0.};
   float ECalEdepFrac[18]={0.};
@@ -3184,15 +3172,11 @@ void AMSEcalShower::ZProfile()
 
 
   Double_t arglist[10];
-  Double_t a1,erra1;
   // The z values	
   Double_t zprof[3],errprof[3];
   xx=-1.;
-  int ix=-1;  
-  float zint=0.;
   par0=1.;
   par1=0.5; 
-  float erec0=1000.; 
   Int_t ierflg = 0;
 
   if(nbins>3){
@@ -3321,7 +3305,7 @@ void AMSEcalShower::LAPPVariables(){
     }    
   }  
   int necalcl=0;
-  int ihit,cell,plane,proj;
+  int cell,plane,proj;
   int nhits_cl;
 
  
@@ -3498,14 +3482,15 @@ extern "C" void d01amf_(void *alfun, number &bound, integer &inf, number &epsa, 
 
 void AMSEcalShower::ProfileFit(){
 
-
+#ifndef NO_NAG
   void (*palfun)(int &n, double x[], double &f, AMSEcalShower *p)=&AMSEcalShower::gamfun;
   void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=
     &AMSEcalShower::monit;
   void (*psalfun)(double &x, double &f, AMSEcalShower *p)=&AMSEcalShower::gamfunr;
+#endif
 
-  int env=0;
 #ifndef __DARWIN__
+  int env=0;
   env=fegetexcept();
   if(MISCFFKEY.RaiseFPE<=2){
     fedisableexcept(FE_OVERFLOW);
@@ -3518,18 +3503,19 @@ void AMSEcalShower::ProfileFit(){
 
 
 
-  integer n=3;
-  integer iw=n+1;
   integer ifail=1;
-  integer maxcal=25000;
   const integer mp=4;
-  number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
-  number tol=3.99e-2;
   x[0]=1;
   x[1]=_Dz*_ShowerMax;
   x[2]=1;
   _Direction=0;
+  number f=0,x[mp];
 #ifndef NO_NAG
+  integer n=3;
+  number tol=3.99e-2;
+  integer maxcal=25000;
+  number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+  integer iw=n+1;
   e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
 #endif     
   if(ifail==0){
@@ -3538,17 +3524,20 @@ void AMSEcalShower::ProfileFit(){
     _ProfilePar[2]=x[2]!=0?1./x[2]:FLT_MAX;    
     _ProfilePar[4]=f;
     //    cout << "ecalshower::profilefit finished "<<ifail<<" "<<f<<endl;
-    integer one=1;
     _iflag=3;
     ifail=1;
 #ifndef NO_NAG
+    integer one=1;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
 #endif
     // Leak Estimation
+#ifndef NO_NAG
     const integer lwc=1000;
     const integer liwc=lwc/4;
-    number ww[lwc],bound,epsa,epsr,result,abserr;
-    integer inf,iww[liwc];
+    number ww[lwc],iww[liwc];
+#endif
+	number bound,epsa,epsr,result=0;
+    integer inf;
     ifail=1;
     for(int i=Maxrow-1;i>=0;i--){
       if(_Edep[i]){
@@ -3559,9 +3548,10 @@ void AMSEcalShower::ProfileFit(){
     epsa=1.e-4;
     epsr=1.e-3;
     inf=1;
+#ifndef NO_NAG
     int liw=liwc;
     int lw=lwc;
-#ifndef NO_NAG
+    number abserr;
     d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
 #endif
     if(ifail==0){
@@ -3599,16 +3589,13 @@ void AMSEcalShower::ProfileFit(){
     _ProfilePar[6]=x[1];    
     _ProfilePar[7]=x[2]!=0?1./x[2]:FLT_MAX;    
     _ProfilePar[9]=f;
-    const integer lwc=1000;
-    const integer liwc=lwc/4;
-    number ww[lwc],bound,epsa,epsr,result,abserr;
-    integer inf,iww[liwc];
+
+	number bound,epsa,epsr,result=0;
+    integer inf;
     ifail=1;
     epsa=1.e-4;
     epsr=1.e-3;
     inf=1;
-    int liw=liwc;
-    int lw=lwc;
     for(int i=Maxrow-1;i>=0;i--){
       if(_Edep[i]){
 	bound=_Ez[i]-_Ez[0]+_Dz/2;
@@ -3617,6 +3604,11 @@ void AMSEcalShower::ProfileFit(){
     }
     ifail=1;
 #ifndef NO_NAG     
+    const integer lwc=1000;
+    const integer liwc=lwc/4;
+	number abserr,ww[lwc],iww[liwc];
+    int liw=liwc;
+    int lw=lwc;
     d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
 #endif
     if(ifail==0){
@@ -3633,8 +3625,8 @@ void AMSEcalShower::ProfileFit(){
   if(_ProfilePar[9]<_ProfilePar[4]){
     _iflag=3;
     ifail=1;
-    integer one=1;
 #ifndef NO_NAG
+    integer one=1;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
 #endif
     _Direction=1;
@@ -3755,8 +3747,10 @@ void AMSEcalShower::gamfun(integer &n, number xc[], number &fc, AMSEcalShower *p
   }
 }
 void AMSEcalShower::EMagFit(){
+#ifndef NO_NAG
   void (*palfun)(int &n, double x[], double &f, AMSEcalShower *p)=&AMSEcalShower::expfun;
   void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=&AMSEcalShower::monit;
+#endif
 
   _TransFitChi2=0;
   for(int i=0;i<3;i++)_TransFitPar[i]=0;
@@ -3788,18 +3782,19 @@ void AMSEcalShower::EMagFit(){
 
     // Fit
 
-    integer n=4;
-    integer iw=n+1;
-    integer ifail=1;
-    integer maxcal=25000;
     const integer mp=5;
-    number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
-    number tol=3.99e-2;
+    number f=0,x[mp];
     x[0]=1;
     x[1]=3;
     x[2]=0.1;
     x[3]=0.5;
 #ifndef NO_NAG
+    integer n=4;
+    integer iw=n+1;
+    integer maxcal=25000;
+    number tol=3.99e-2;
+	number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+    integer ifail=1;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
 #endif
     _TransFitPar[0]=x[1]!=0?1/x[1]:FLT_MAX;
@@ -4301,8 +4296,6 @@ void AMSEcalShower::_ReFitDirCR(){
   
   
 
-  Double_t COOCR[18];
-  Double_t Sigma[18];
   Double_t CooTrans[3][18];
   Double_t EdepCellRatio[18];
   Double_t Alpha[18];
@@ -4310,7 +4303,6 @@ void AMSEcalShower::_ReFitDirCR(){
   Double_t RecCoo[18];
   Double_t Weight[18];
 
-  Double_t ThetaEcal;
   Double_t AngleTrk[3];
   Double_t AngleEcal[3];
 
@@ -4601,17 +4593,12 @@ void AMSEcalShower::_ReCalEnergy(){
   double Elpmteffsigma[18];
 
   double kk = TMath::Sqrt(1. + _KCR[0]*_KCR[0]+_KCR[1]*_KCR[1]);
-  double kk1 = TMath::Sqrt(1. + 0.1228*0.1228);
-     
   for(int il=0;il<18;il++){
     Elpmteffsigma[il] = a1+b1*(il+0.5)*kk;
     if(Elpmteffsigma[il]<.5)Elpmteffsigma[il]=0.55;
   }
 
   //Last Layer Correction
-  double LastFrac_ECorrParA = 1.07346;
-  double LastFrac_ECorrParB = -1.64638;
-
   float EnergyD_Corr = 0.;
   float elayer[18];
   float elayer_corr[18];

@@ -319,7 +319,7 @@ void AMSaPool::dlink::_erase(integer &nbl ){
   //  cerr <<" after delete this. "<<nbl<<endl;
 }
 
-AMSaPool::AMSaPool(const AMSaPool & o):_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(),_head(0),_free(0),_lc(o._lc){
+AMSaPool::AMSaPool(const AMSaPool & o):_head(0),_free(0),_lc(o._lc),_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(){
  SetLastResort(1000000);
   cout <<"  run "<<endl;
   dlink * curo=o._head;

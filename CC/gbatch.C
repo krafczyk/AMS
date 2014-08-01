@@ -247,7 +247,9 @@ catch (std::bad_alloc abab){
 #endif
 if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1)){
 //#ifdef __G4AMS__
+#ifdef __CORBA__
 lasthope:
+#endif
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
   cerr<<"OPool Released"<<endl;

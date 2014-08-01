@@ -238,14 +238,10 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
   // TOF
 
   int tflv;  
-  char name[4];
-  char media[20];
   geant t,x,y,z;
-  geant de,dee,dtr2,div,tof,prtq,pstep;
-  geant coo[3],dx,dy,dz,dt,stepel;
-  geant wvect[6],snext,safety;
-  geant origstep,origedep;
-  int i,nd,numv,iprt,numl,numvp,tfprf(0);
+  geant de,dee,tof,prtq,pstep;
+  geant coo[3];
+  int numv,iprt,numl,numvp;
   tflv=GCVOLU.nlevel-1;  
 //---> print some GEANT standard values(for debugging):
 //  if(GCFLAG.IEVENT==3118)tfprf=1;
@@ -871,6 +867,7 @@ AMSgObj::BookTimer.start("GUKINE");
 
 abinelclear_();
 static integer event=0;
+(void)event;
 
 #ifdef __DB_All__
   if (AMSFFKEY.Read > 1) {
@@ -940,7 +937,9 @@ try{
         static bool Waiting=false; 
         double cpulimit=AMSFFKEY.CpuLimit;
 
+#ifdef _OPENMP
     static int forcemaxthread=0;
+#endif
    for(;;){
 #ifdef __CORBA__
     AMSProducer::gethead()->Transfer()=true;

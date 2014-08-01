@@ -13,7 +13,7 @@ geant _xmi;
 geant _range;
 service * _next;
 service(geant parray[],uinteger larray, geant xmi, geant xma, integer id):
-_id(id),_next(0),_xmi(xmi),_range(xma-xmi){
+_id(id),_xmi(xmi),_range(xma-xmi),_next(0){
  if(larray){
   number * _parray=new number[larray];
   for (int i=0;i<larray;i++)_parray[i]=parray[i];
@@ -29,11 +29,10 @@ _id(id),_next(0),_xmi(xmi),_range(xma-xmi){
   _pgenerator=0;
 }
 };
-uinteger _ngen;
 service * _first;
 static AMSRandGeneral * _pstatic;
 public:
-AMSRandGeneral():_first(0),_ngen(0){}
+AMSRandGeneral():_first(0){}
 ~AMSRandGeneral(){delete _first;}
 static void book(integer hid);
 static void book(geant parray[], uinteger larray, geant xmi,geant xma, integer hid);

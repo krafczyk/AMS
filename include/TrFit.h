@@ -100,7 +100,7 @@ public:
 	 double theta = 0, double phi = 0, double rigidity = 0);
   /// Constructor with AMSPoint and AMSDir
   TrProp(AMSPoint p0, AMSDir dir, double rigidity = 0);
-
+  virtual ~TrProp() { }
   // Access functions
   double GetP0x (void) const { return _p0x;  }
   double GetP0y (void) const { return _p0y;  }
@@ -259,7 +259,7 @@ public:
   TrFit(void);
 
   /// Destructor
-  ~TrFit();
+  virtual ~TrFit();
   double GetBeta();
   
   int    GetNhit  (void) const { return _nhit;   }

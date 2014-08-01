@@ -104,10 +104,8 @@ void PATT::init(int atreffekypar){
 void PATT::InitPattern(){
 
 
-  int k;
   integer ordermiss[maxlay]={0,0,0,0,0,0,0,0,0};
   integer vmiss[maxlay]={0,0,0,0,0,0,0,0,0};
-  integer vorder[maxlay]={1,2,3,4,5,6,7,8,9};
   int minc;
   int iq=0;
   ordermiss[TkDBc::Head->nlay()-3]=2;

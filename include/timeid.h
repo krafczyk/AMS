@@ -222,13 +222,13 @@ public:
   bool      setupdateablemapdir(const char*dir);
 
 
-  AMSTimeID():AMSNode(),_trigfun(0),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_NbytesM(0),_pData(0),
-	      _CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone),_updateable(-1),_Variable(false)
+  AMSTimeID():AMSNode(),_trigfun(0),_Variable(false),_updateable(-1),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_NbytesM(0),_CRC(0),
+	      _UpdateMe(0),_verify(true),_pData(0),_DataBaseSize(0),_Type(Standalone)
   {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";setmapdir();}
   
   AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,bool verify=true,CType server=Standalone,trigfun_type fun=0):
-    AMSNode(id),_Insert(0),_Begin(0),_End(0),_NbytesM(abs(nbytes)),_Nbytes(abs(nbytes)),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),
-    _DataBaseSize(0),_Type(server),_updateable(-1)
+    AMSNode(id),_updateable(-1),_Insert(0),_Begin(0),_End(0),_Nbytes(abs(nbytes)),_NbytesM(abs(nbytes)),_UpdateMe(0),_verify(verify),_pData((uinteger*)pdata),
+    _DataBaseSize(0),_Type(server)
   {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";setmapdir();_Variable=nbytes<0;}
   
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);

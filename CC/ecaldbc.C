@@ -84,7 +84,6 @@ void ECALDBc::readgconf(){
   int i;
   char fname[1024];
   char name[80]="EcalAlign";
-  char vers1[10]="MC";//not used now
   char vers2[10]="PreAss";//= first clean room assembly(jan 2008)
   char vers3[10]="Ass1";//= final clean room assembly (oct 2009)
   char vers4[10]="Space";//final
@@ -211,10 +210,10 @@ number ECALDBc::segarea(number r, number ds){//smaller_segment area fraction (wr
 // ("analog" design - fiber_edep division between neigb.pixels/pmts with fraction w)
 //
 void ECALDBc::fid2cida(integer fid, integer cid[4], number w[4]){
-  integer fidd,fff,ss,ll,ip,nfl,npm,pm,ctbin,czbin,cell,bran,tbc;
+  integer fidd,fff,ss,ll,ip,nfl,npm,pm,cell,bran,tbc;
   number cleft,tleft,bdis,ztop,ct,cz,ww;
   geant pit,piz,pmdis,dist,pmpit,pmsiz,pxsiz,fr;
-  geant fshift,effmn,deffmx,slope,peff;
+  geant fshift,effmn,deffmx,slope;
   cid[0]=0;
   cid[1]=0;
   cid[2]=0;
@@ -362,7 +361,7 @@ void ECALDBc::fid2cida(integer fid, integer cid[4], number w[4]){
 void ECALDBc::getscinfoa(integer isl, integer pmc, integer sc,
 			 integer &pr, integer &pl, integer &cell, number &ct, number &cl, number &cz){
   //
-  int i,ip,sl,fl,fb,fi,pm,ce,nf[4];
+  int i,ip,sl,fl,fi,pm,nf[4];
   number z,z11,t,tleft;
   static int first=0;
   static number coot[ECPMSMX][4];
@@ -371,7 +370,6 @@ void ECALDBc::getscinfoa(integer isl, integer pmc, integer sc,
   int nsl=_slstruc[2];// numb.of super-layers
   int nfl=_slstruc[1];// numb.of fiber-layers per super-layer
   int npm=_slstruc[3];// numb.of PM's per super-layer
-  int nfb;
   geant dzrad1=_gendim[8];// z-size of 1SL radiator(lead)
   geant alpth=_gendim[9];// glue(on rad. top/bot) thickness
   geant pmpit=_rdcell[6];//  PM-pitch(transv)
@@ -596,7 +594,7 @@ void EcalJobStat::addsr(int i){
 // function to print Job-statistics at the end of JOB(RUN):
 void EcalJobStat::printstat(){
   //
-  int crt,fmt,sl;
+  int crt,fmt;
   //
   printf("\n");
   printf("    =================== ECAL-JOB decoding report ==================\n");
@@ -849,10 +847,8 @@ void EcalJobStat::printstat(){
 }
 //------------------------------------------
 void EcalJobStat::bookhist(){
-  int i,j,k,ich,maxcl,maxpl,maxsl;
-  char htit1[60];
+  int maxcl,maxpl,maxsl;
   char inum[11];
-  char in[2]="0";
   //
   maxpl=2*ECSLMX;//MAX planes
   maxcl=2*ECPMSMX;//MAX SubCells per plane
@@ -1171,7 +1167,7 @@ void EcalJobStat::bookhistmc(){
 }
 //----------------------------
 void EcalJobStat::outp(){
-  geant rzprofa[2*ecalconst::ECSLMX],rzprofapm[ecalconst::ECSLMX],rzprofac[ecalconst::ECSLMX];
+  geant rzprofac[ecalconst::ECSLMX];
   if(LVL3FFKEY.histprf>0){// EC-lvl3 histograms
     HPRINT(ECHISTR+31);
     HPRINT(ECHISTR+32);
@@ -1497,7 +1493,6 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   geant pmrg,scrg[4],h2lr[4],a2m,a2dr,lfs,lsl,ffr;
   geant h2lo[4];
   integer slmx,pmmx;
-  integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
   cout<<endl<<"====> ECcalib_build: start with total PMTs="<<ECPMSL<<endl;
@@ -1842,10 +1837,9 @@ number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Q
 void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   int i,isl,ipm,isc,cnum;
   integer sid,sta[4],stad,endflab;
-  geant pmrg,scrg[4],h2lr[4],a2m,a2dr,lfs,lsl,ffr;
+  geant pmrg,scrg[4],h2lr[4],a2dr,lfs,lsl,ffr;
   geant h2lo[4];
   integer slmx,pmmx;
-  integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
   cout<<endl<<"====> ECcalibMS::build: start build with total PMs="<<ECPMSL<<endl;
@@ -1861,10 +1855,9 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   uinteger iutct;
   tm begin;
   time_t utct;
-  uinteger verids[10],verid;
   //
   integer status[ECPMSL][4],statusd[ECPMSL];
-  geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
+  geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL];
   geant sch2lo[ECPMSL][4];
   geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
   //
@@ -2111,7 +2104,7 @@ void ECALVarp::init(geant daqth[20], geant cuts[5]){
 //
 void ECPMPeds::build(){// create MC/RD ECPeds-objects for each cell from MC/RD- default_files
   //
-  int i,isl,ipm,isc,cnum;
+  int isl,ipm,isc,cnum;
   integer sid,endflab(0);
   char fname[1024];
   char name[80];
@@ -2121,7 +2114,6 @@ void ECPMPeds::build(){// create MC/RD ECPeds-objects for each cell from MC/RD- 
   geant pmpedd[ECPMSL],pmsigd[ECPMSL];
   uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4],pmstad[ECPMSL];
   integer slmx,pmmx;
-  integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
   //
@@ -2239,8 +2231,8 @@ void ECPMPeds::build(){// create MC/RD ECPeds-objects for each cell from MC/RD- 
 //
 void ECPMPeds::mcbuild(){// create MC ECPeds-objects for each cell by smearing of seed-values from DataCards
   //
-  int i,isl,ipm,isc,cnum;
-  integer sid,endflab(0);
+  int isl,ipm,isc,cnum;
+  integer sid;
   geant pedh[4],sigh[4],pedl[4],sigl[4],pedd,sigd;
   uinteger stah[4],stal[4],stad;
   geant pmpedh[ECPMSL][4],pmsigh[ECPMSL][4],pmpedl[ECPMSL][4],pmsigl[ECPMSL][4];
@@ -2248,7 +2240,6 @@ void ECPMPeds::mcbuild(){// create MC ECPeds-objects for each cell by smearing o
   uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4];
   uinteger pmstad[ECPMSL];
   integer slmx,pmmx;
-  integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
   //
@@ -2317,7 +2308,6 @@ void ECTslope::build(){// <--- create MC/RealData ecpmtslo-objects
   uinteger verid;
   //
   integer slmx,pmmx;
-  integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
   //
@@ -2472,7 +2462,6 @@ void ECTslope::build(){// <--- create MC/RealData ecpmtslo-objects
 //-----------------------------------------------------------
 int ECTslope::GetECALSensorTemper(int superlayer,int column,float* temp){
 
-  const int nSUPERLAYERs=9;
   const int nCOLUMNs=36;
     
   const int nFACEs=4;
@@ -2482,16 +2471,9 @@ int ECTslope::GetECALSensorTemper(int superlayer,int column,float* temp){
 
   vector<float> values;
   int stat;
-  char tchar[255];
-  float ftemp[4];
-  float tempecal[24];
 
   unsigned int fTime;
   float frac;
-
-  string facename[nFACEs]={"STAR","WAKE","PORT","RAM "};
-  string columngroupname[nCOLUMNGROUPs]={"0-11","12-23","24-35"};
-
 
   string SensorName[nFACEs][nCOLUMNGROUPs][nSENSORGROUPs]={
     {  

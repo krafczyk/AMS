@@ -43,7 +43,7 @@ protected:
  G4LogicalVolume * _pg4l;
 
 public:
- TOFgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_matter(0),_pg4l(0){};
+ TOFgvolume():AMSNode(0),_npar(0),_par(0),_matter(0),_shape(0),_pg4l(0){};
  TOFgvolume (const char matter[],const char shape[],G4int _npar, G4double par[],G4LogicalVolume *pg4l);
  virtual void _init(){};
  G4LogicalVolume *GetSameG4Vol(const char matter[],const char shape[],G4int npar, G4double par[]);
@@ -83,7 +83,6 @@ class TofSimUtil
    G4Material* TOFSc_M;//EJ-200
    G4Material* TOFLg_M;//PMMA
    G4Material* TOFPM_M;//PMT present Si02
-   G4MaterialPropertiesTable* TOFSc_Mt;//sci material table
    G4MaterialPropertiesTable* TOFLg_Mt;//lg material table
    G4OpticalSurface* TOFPM_Su;//material surface
    G4OpticalSurface* TOFSC_Su;

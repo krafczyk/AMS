@@ -114,7 +114,6 @@ G4VParticleChange* G4XRayTRCP::AlongStepDoIt( const G4Track& Track, const G4Step
 //       Run
          integer ntr=0;
          float etr[1000],str[1000];
-         float vect[7];
          geant step=Step.GetStepLength()/cm;
          geant charge=fabs(particle->GetPDGCharge());
 //       Set RNDM
@@ -182,7 +181,6 @@ G4VParticleChange* G4XRayTRDP::PostStepDoIt( const G4Track& Track, const G4Step&
 //       Run
          integer ntr=0;
          float etr[1000],str[1000];
-         float vect[7];
          geant step=Step.GetStepLength()/cm;
          geant charge=fabs(particle->GetPDGCharge());
 //       Set RNDM

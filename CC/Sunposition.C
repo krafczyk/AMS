@@ -133,7 +133,7 @@ int SunPosition::ISSday_night(){
   * 1=Day 0=night 
   * this function test if the Sun Elevation in LVLH is
   * inside the Earth circle viewed around +Z Axis  */
- double elev,azim,beta;
+ double elev,azim;
  double Rterr=637816000; // Earth radius in cm
  if ((GetSunFromLVLH(elev,azim)!=0)){
   if (elev>(acos(Rterr/sqrt(ISSx*ISSx+ISSy*ISSy+ISSz*ISSz)))){
@@ -274,7 +274,6 @@ double  SunPosition::GPS_JD(double itime){
   * elapsed since midnight Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (JD=2440587.5)
   * 
   */ 
-  double JDtime;
   double TAItime=itime-19; /* convert GPS Time in TAI time, this Difference is constant in time*/
   double JDsec=TAItime+(2440587.5*86400);/* JD(secconds)=TAI(seconds)+JD_1970*SecondsInADay*/
   double JD=JDsec/86400; /* convert seconds in days*/

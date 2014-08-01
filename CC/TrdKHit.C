@@ -103,7 +103,6 @@ void TrdKHit::PredictCrossing(AMSPoint *P0, AMSDir *u, int tracktype){
 
     float denorm=a*c-b*b;
     if(denorm==0)cout<<"ERROR: Track Tube in Parrarel orientation"<<endl;
-    float sc=(b*e-c*d)/denorm;
     float tc=(a*e-b*d)/denorm;
 
     AMSPoint hit=TRDTube_Center+TRDTube_Dir*tc;
@@ -175,7 +174,7 @@ double TrdKHit::Tube_Track_3DLength(AMSPoint *X0, AMSDir *Dir){
     AMSPoint X0prime=RCor*(*X0-Aligned_Translation-Aligned_Center)+Aligned_Center-TRDTube_Center_Raw;
     AMSDir DirPRIME=RCor*(*Dir);
 
-    double x0,y0,dx,dy;
+    double x0 = 0,y0 = 0,dx = 0,dy =0;
     if(TRDHit_Direction==1){
         x0=X0prime.y();
         y0=X0prime.z();

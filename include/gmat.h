@@ -28,7 +28,7 @@ public:
   AMSgmat (const char name[], 
 	   geant a[] , geant z[], geant w[], integer npar, 
 	   geant rho, geant radl=0, geant absl=0, geant temp=0 ): 
-    _imate(++_GlobalMatI),_npar(npar), _rho(rho), _radl(radl), _absl(absl),AMSNode(0),_pamsg4m(0),_temp(temp){
+    AMSNode(0),_pamsg4m(0),_imate(++_GlobalMatI),_npar(npar), _rho(rho), _radl(radl), _absl(absl),_temp(temp){
 #ifdef __AMSDEBUG__
     assert(npar>0);
 #endif    
@@ -50,7 +50,7 @@ public:
   AMSgmat (const char name[], 
 	   geant a , geant z,  
 	   geant rho, geant radl, geant absl, geant temp=0 ): 
-    _imate(++_GlobalMatI), _rho(rho), _radl(radl), _absl(absl),AMSNode(0),_pamsg4m(0),_temp(temp){
+    AMSNode(0),_pamsg4m(0),_imate(++_GlobalMatI), _rho(rho), _radl(radl), _absl(absl),_temp(temp){
     
     setname(name);
     setid(0);
@@ -126,13 +126,13 @@ public:
 	    integer ifield=1, geant fieldm=20, 
             geant tmaxfd=10, geant stemax=1000, 
             geant deemax=-1, geant epsil=0.001,
-            geant stmin=-1):_G4Range(-1 ),_G4EHad(GCCUTS.CUTHAD),_G4EEl(GCCUTS.CUTELE),_G4EPh(GCCUTS.CUTGAM),_G4EHNeu(GCCUTS.CUTNEU),_G4EMu(GCCUTS.CUTMUO),_G4TofMax(GCCUTS.TOFMAX),
-			    _itmed(++_GlobalMedI),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
-			    _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),_nwbuf(0),_uwbuf(0),
+            geant stmin=-1):AMSNode(),_isvol(isvol),_itmed(++_GlobalMedI),_ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
+			    _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_nwbuf(0),_uwbuf(0),_yb(yb),
+		        _G4Range(-1 ),_G4EHad(GCCUTS.CUTHAD),_G4EHNeu(GCCUTS.CUTNEU),_G4EEl(GCCUTS.CUTELE),_G4EMu(GCCUTS.CUTMUO),_G4EPh(GCCUTS.CUTGAM),_G4TofMax(GCCUTS.TOFMAX)
 #ifdef __AMSVMC__
-			    _yOptical('N'), _VMCnument(0), _VMCpmom(0), _VMCabsl(0), _VMCeff(0), _VMCrindex(0), _VMCrayleigh(0),
+			    ,_yOptical('N'), _VMCnument(0), _VMCpmom(0), _VMCabsl(0), _VMCeff(0), _VMCrindex(0), _VMCrayleigh(0)
 #endif
-			    AMSNode(){
+			    {
     _pgmat=AMSgmat::getpmat(matname); 
     if(!_pgmat){
       cerr<<"AMSgtmed-ctor-F-NoMaterialFound "<<matname <<" for media "<<name<<endl;

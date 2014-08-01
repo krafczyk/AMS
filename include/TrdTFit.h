@@ -30,7 +30,7 @@ class Tfunc{
       Tfunc()
 	: t0_(-1.e6), px_(-1.e6), px2_(-1.e6), py_(-1.e6), py2_(-1.e6), pz_(-1.e6), pz2_(-1.e6), lik_(-1.e6){};
 	
-	~Tfunc(){residuals.clear();};
+	virtual ~Tfunc(){residuals.clear();}
 	
 	double getT0(){return t0_;}
 
@@ -144,6 +144,7 @@ class TrdTFit
   
   void showSensorMap();
 
+  virtual ~TrdTFit(){}
   TrdTFit(){
     id__ = 0;
     myidum = -64;

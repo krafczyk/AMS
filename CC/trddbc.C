@@ -945,21 +945,15 @@ void TRDDBc::init(){
                             1,0,0,0,0,-1,0,1,0};
 
 
-             int badc=0;
       for(i=0;i<TRDOctagonNo();i++){
 
 //       Get octagon parameters at lowest point
 
-	number rmin=OctagonDimensions(NoTRDOctagons(i),6);
-	number rmax=OctagonDimensions(NoTRDOctagons(i),9);
-	number zoct=OctagonDimensions(NoTRDOctagons(i),7)-OctagonDimensions(NoTRDOctagons(i),4);
-	number tang=(rmax-rmin)/zoct;
 	
 	for(j=0;j<LayersNo(i);j++){
 
 	  for(k=0;k<LaddersNo(i,j);k++){
               
-              int gidd=i+mtrdo*j+mtrdo*maxlay*k+1;
 	    //	    coo[0]=TubeInnerDiameter()
             //          +2*TubeWallThickness()+2*TubeBoxThickness();
 
@@ -1169,7 +1163,6 @@ void TRDDBc::init(){
          coo[2]= OctagonDimensions(1,4)+FirstLayerHeight()+2./10.
             +LaddersDimensions(i,j,k,1)*2.*j;
 
-         int gidd=i+mtrdo*j+mtrdo*maxlay*k+1;
          SetLadder(k,j,i,status,coo,nrmxy[LadderOrientation(i,j)],gid);
 
 
@@ -2490,10 +2483,8 @@ for(int i=0;i<nlayS();i++){
 {
 
 
-    int k;
     integer ordermiss[trdconst::maxseg]={0,0,0,0,0};
     integer vmiss[trdconst::maxseg]={0,0,0,0,0};
-    integer vorder[trdconst::maxseg]={1,2,3,4,5};
     int minc;
     int iq=0;
     for(minc=0;minc<nlayS()-2;minc+=2){
@@ -2700,7 +2691,6 @@ else{
       }
 }
        int allow=0;
-       int allow2=0;
       for(int cpat=0;cpat<npatS();cpat++){
         if(_patallowS[cpat])allow++;
       }
@@ -2727,10 +2717,8 @@ else{
 for(int iseg=0;iseg<nlayS();iseg++){
 
 
-    int k;
     integer ordermiss[trdconst::maxhits]={0,0,0,0,0,0,0,0,0,0,0,0};
     integer vmiss[trdconst::maxhits]={0,0,0,0,0,0,0,0,0,0,0,0};
-    integer vorder[trdconst::maxhits]={1,2,3,4,5,6,7,8,9,10,11,12};
     int minc;
     int iq=0;
     for(minc=0;minc<nlayH(iseg)-2;minc+=2){
@@ -2952,7 +2940,7 @@ uinteger TRDDBc::getnumSideHolePiece(uinteger hole,uinteger sidehole, uinteger o
 
 
        int num=0;
-       int i,j,k,l;
+       int i,j,k;
        for ( i=0;i<oct;i++){
         for ( j=0;j<SideHolesNo(i);j++){
          for ( k=0;k<SideHolesPieceNo(i,j);k++)num++;
@@ -3064,7 +3052,7 @@ uinteger TRDDBc::getnumHole(uinteger hole,uinteger ladder, uinteger layer, uinte
 
 uinteger TRDDBc::getnumLadder(uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
-       int i,j,k,l;
+       int i,j,k;
        for ( i=0;i<oct;i++){
         for ( j=0;j<LayersNo(i);j++){
          for ( k=0;k<LaddersNo(i,j);k++)num++;
@@ -3091,7 +3079,7 @@ uinteger TRDDBc::getnumLadder(uinteger ladder, uinteger layer, uinteger oct){
 
 uinteger TRDDBc::getnumCutout(uinteger cutout, uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
-       int i,j,k,l,b;
+       int i,j,k,b;
        for ( i=0;i<oct;i++){
         for ( j=0;j<LayersNo(i);j++){
 	  for ( k=0;k<LaddersNo(i,j);k++){
