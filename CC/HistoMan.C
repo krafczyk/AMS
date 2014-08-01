@@ -102,7 +102,7 @@ return 0;
     bins[ii]=pow(10,lowL+ii*step);
 
   TH1F* hh= new TH1F(name,title,nbin, bins);
-  delete bins;
+  delete []bins;
   return hh;
 }
 
@@ -144,8 +144,8 @@ TH2F* TH2F_L(const char *name,const char * title,int nbin, double low, double up
     hh= new TH2F(name,title,nbin, bins, nbiny, lowy, upy );
   else
     hh= new TH2F(name,title,nbin, low, up, nbiny, lowy, upy );
-  delete bins;
-  delete binsy;
+  delete []bins;
+  delete []binsy;
   return hh;
 }
 
@@ -163,7 +163,7 @@ return 0;
     bins[ii]=pow(10,lowL+ii*step);
 
   TH1D* hh= new TH1D(name,title,nbin, bins);
-  delete bins;
+  delete []bins;
   return hh;
 }
 
@@ -203,8 +203,8 @@ TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up
     hh= new TH2D(name,title,nbin, bins, nbiny, lowy, upy );
   else
     hh= new TH2D(name,title,nbin, low, up, nbiny, lowy, upy );
-  delete bins;
-  delete binsy;
+  delete []bins;
+  delete []binsy;
   return hh;
 }
 //==============================================================
