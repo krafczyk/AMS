@@ -181,8 +181,7 @@ public:
 
 
     // Cluster status
-    int  NHits(){return TRDHitCollection.size();}
-    int  n_corridor_hits() {return corridor_hits.size();}
+    int  NHits(){return corridor_hits.size();}
     bool IsCalibrated();
     bool IsAligned();
 

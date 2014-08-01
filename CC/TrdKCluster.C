@@ -568,7 +568,7 @@ int TrdKCluster::DoGainCalibration(){
     if(read==0){
         cout<<"~~~~~~~WARNING, TrdKCluster~~~~~~~Can Not Read DBs for Gain Calibration, Returning 0"<<endl;
         return 0;
-    }for(int i=0;i<NHits();i++){
+    }for(int i=0;i<TrdHCalibR::n_tubes;i++){
         if(!GetHit(i)->IsCalibrated) {
             GetHit(i)->DoGainCalibration(_DB_instance->GetGainCorrectionFactorTube(GetHit(i)->tubeid,Time));
         }
@@ -585,7 +585,7 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
         return 0;
     }else if(read==2){
 	int old_layer = -1;
-        for(int i=0;i<NHits();i++) {
+        for(int i=0;i<TrdHCalibR::n_tubes;++i) {
             if(!GetHit(i)->IsAligned) {
                 int layer=GetHit(i)->TRDHit_Layer;
                 if(old_layer != layer) {
@@ -597,7 +597,7 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
         }
     }else if(read==1){
 	int old_layer = -1;
-        for(int i=0;i<NHits();i++) {
+        for(int i=0;i<TrdHCalibR::n_tubes;i++) {
             if(!GetHit(i)->IsAligned) {
                 int layer=GetHit(i)->TRDHit_Layer;
                 if(old_layer != layer) {
@@ -1814,7 +1814,7 @@ void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp, float thresho
 void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold){
     nhits=0;
     amp=0;
-    for(int i=0;i<NHits();i++){
+    for(int i=0;i<TrdHCalibR::n_tubes;i++){
         TrdKHit *hit=GetHit(i);
         //float path_length=hit->Tube_Track_3DLength(P0,Dir);
         float dist=fabs(hit->Tube_Track_Distance_3D(P0,Dir));
@@ -1851,7 +1851,7 @@ void TrdKCluster::GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshol
 void TrdKCluster::GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold){
     nhits=0;
     amp=0;
-    for(int i=0;i<NHits();i++){
+    for(int i=0;i<TrdHCalibR::n_tubes;i++){
         TrdKHit *hit=GetHit(i);
         //float path_length=hit->Tube_Track_3DLength(P0,Dir);
         float dist=fabs(hit->Tube_Track_Distance_3D(P0,Dir));
