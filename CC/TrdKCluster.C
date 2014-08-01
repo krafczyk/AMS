@@ -38,14 +38,14 @@ AMSEventR* TrdKCluster::_HeadE=0;
 
 /////////////////////////////////////////////////////////////////////
 
-TrdKCluster::TrdKCluster()
+TrdKCluster::TrdKCluster() : TRDHitCollection(TRDTubeCollection)
 {
     Init_Base();
 }
 
 /////////////////////////////////////////////////////////////////////
 
-TrdKCluster::~TrdKCluster(){
+TrdKCluster::~TrdKCluster() {
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ void TrdKCluster::Init(AMSEventR *evt){
 
 /////////////////////////////////////////////////////////////////////
 
-TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode) : TRDHitCollection(TRDTubeCollection)
 {
     Init_Base();
     Init(evt);
@@ -107,7 +107,7 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
 
 /////////////////////////////////////////////////////////////////////
 
-TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir)
+TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir) : TRDHitCollection(TRDTubeCollection)
 {
     Init_Base();
     Init(evt);
@@ -116,7 +116,7 @@ TrdKCluster::TrdKCluster(AMSEventR *evt,AMSPoint *P0, AMSDir *Dir)
 
 
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack, float Rigidity){
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack, float Rigidity) : TRDHitCollection(TRDTubeCollection) {
     AMSPoint *P0= new AMSPoint(trdtrack->Coo);
     AMSDir *Dir = new AMSDir(trdtrack->Theta,trdtrack->Phi);
     Init_Base();
@@ -127,7 +127,7 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrdTrackR *trdtrack, float Rigidity){
     delete Dir;
 }
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack, float Rigidity){
+TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack, float Rigidity) : TRDHitCollection(TRDTubeCollection) {
     AMSPoint *P0= new AMSPoint(trdtrack->Coo);
     AMSDir *Dir = new AMSDir(trdtrack->Dir);
     Init_Base();
@@ -139,7 +139,7 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrdHTrackR *trdtrack, float Rigidity){
 
 }
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower){
+TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower) : TRDHitCollection(TRDTubeCollection) {
     AMSPoint *P0= new AMSPoint(shower->CofG);
     AMSDir *Dir = new AMSDir(shower->Dir);
     Init_Base();
@@ -150,7 +150,7 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, EcalShowerR *shower){
 
 }
 /////////////////////////////////////////////////////////////////////
-TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity){
+TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity) : TRDHitCollection(TRDTubeCollection) {
     AMSPoint *P0=new AMSPoint();
     AMSDir *Dir=new AMSDir();
     double dummy_time;
@@ -166,7 +166,7 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, BetaHR *betah,float Rigidity){
 /////////////////////////////////////////////////////////////////////
 
 
-TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir):TRDHitCollection(_collection)
+TrdKCluster::TrdKCluster(const vector<TrdKHit>& _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir):TRDHitCollection(_collection)
 {
 
     Init_Base();
@@ -548,7 +548,10 @@ void TrdKCluster::Init_Base(){
     corridor_p = AMSPoint(0,0,0);
     corridor_d = AMSDir(0,0,-1);
     if(DefaultMCXePressure<=0)SetDefaultMCXePressure(780);
-    if(TRDTubeCollection.size()!=TrdHCalibR::n_tubes)Construct_TRDTube();
+    if(TRDTubeCollection.size()!=TrdHCalibR::n_tubes) {
+        Construct_TRDTube();
+        TRDHitCollection = TRDTubeCollection;
+    }
     if(map_TRDOnline.size()==0) InitXePressure();
     if(!TRDImpactlikelihood)TRDImpactlikelihood=new TRD_ImpactParameter_Likelihood();
     if(!_DB_instance) _DB_instance=GetTRDKCalibHead();
@@ -615,27 +618,13 @@ void TrdKCluster::FillHitCollection(AMSEventR* evt){
     int NTRDHit=evt->nTrdRawHit();
     if(!NTRDHit)return;
 
-    if(NHits())TRDHitCollection.clear();
-
-    TRDHitCollection.reserve(TrdHCalibR::n_tubes);
-    //Create helper array
-    bool hit_status[TrdHCalibR::n_tubes];
-    for(int i=0;i<TrdHCalibR::n_tubes;++i) {
-	    hit_status[i] = false;
-    }
     //Add Raw Hits
     for(int i=0;i<NTRDHit;i++){
         TrdRawHitR* _trd_hit=evt->pTrdRawHit(i);
         if(!_trd_hit) continue;
 	int id;
         TrdHCalibR::GetTubeIdFromLLT(_trd_hit->Layer,_trd_hit->Ladder,_trd_hit->Tube, id);
-	hit_status[id] = true;
-        TRDHitCollection.push_back(TrdKHit(_trd_hit,Zshift));
-    }
-    for(int i=0;i<TrdHCalibR::n_tubes;++i) {
-        if(!hit_status[i]) {
-		TRDHitCollection.push_back(TRDTubeCollection[i]);
-	}
+        TRDHitCollection[id] = TrdKHit(_trd_hit,Zshift);
     }
 }
 

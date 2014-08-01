@@ -93,7 +93,7 @@ public:
     TrdKCluster();
 
     // Constructor for ToyMC Study
-    TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir);
+    TrdKCluster(const vector<TrdKHit>& _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir);
 
     // Constructor for Analysis on AMS Root files
     TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode);
