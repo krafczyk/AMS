@@ -631,20 +631,22 @@ void TrdKCluster::FillHitCollection(AMSEventR* evt){
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::SelectClosest(){
-    vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
-    for (;Hit_it!=TRDHitCollection.end(); ) {
-        vector<TrdKHit>::iterator  Hit_it2=TRDHitCollection.begin();
-        bool removed=0;
-        for (;Hit_it2!=TRDHitCollection.end(); ) {
-            if(Hit_it==Hit_it2)Hit_it2++;
-            else if(int((*Hit_it).tubeid/16)!=int((*Hit_it2).tubeid/16))Hit_it2++;
-            else if(abs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))<abs((*Hit_it2).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))) Hit_it2 =TRDHitCollection.erase(Hit_it2);
-            else if (abs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>abs((*Hit_it2).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))){
-                Hit_it =TRDHitCollection.erase(Hit_it);
-                removed=1;
-            }else Hit_it2++;
+    vector<int>::iterator  Hit_it=corridor_hits.begin();
+    for (;Hit_it!=corridor_hits.end(); ) {
+        vector<int>::iterator  Hit_it2=corridor_hits.begin();
+        bool removed=false;
+        for (;Hit_it2!=corridor_hits.end(); ) {
+            TrdKHit* hit1 = GetCorridorHit(*Hit_it);
+	    TrdKHit* hit2 = GetCorridorHit(*Hit_it2);
+            if(Hit_it==Hit_it2)++Hit_it2;
+            else if(int(hit1->tubeid/16)!=int(hit2->tubeid/16))Hit_it2++;
+            else if(abs(hit1->Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))<abs(hit2->Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))) Hit_it2 =corridor_hits.erase(Hit_it2);
+            else if (abs(hit1->Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>abs(hit2->Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))){
+                Hit_it =corridor_hits.erase(Hit_it);
+                removed=true;
+            }else ++Hit_it2;
         }
-        if(!removed)Hit_it++;
+        if(!removed)++Hit_it;
     }
 }
 
