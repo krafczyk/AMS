@@ -224,9 +224,9 @@ public:
     void GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.);
 
     // Number of Hits and Total Amplitude of On-Track Tubes
-    void GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = -1.);
-    void GetNearTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.);
-    void GetNearTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.);
+    void GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float radius, float threshold = -1.);
+    void GetNearTrackHit_TrTrack(int& nhits, float & amp, float radius, float threshold = -1.);
+    void GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius, float threshold = -1.);
 
     // Number of Hits and Total Amplitude of Off-Track Tubes
     void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = -1.);
