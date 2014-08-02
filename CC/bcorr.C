@@ -32,7 +32,7 @@ nsens=0;
 ncceb=0;
 if(! AMSSetupR::gethead())return;
 
-for(int k=0;k<sizeof(stemp)/sizeof(stemp[0]);k++){
+for(unsigned int k=0;k<sizeof(stemp)/sizeof(stemp[0]);k++){
  vector<float>value;
  int ret= AMSSetupR::gethead()->fSlowControl.GetData(sensort[k].c_str(),utime,0.5,value);
  if(!ret && value.size()){
@@ -71,7 +71,7 @@ else if(method==2){
  beg=4;
  end=sizeof(stemp)/sizeof(stemp[0]);
 }
-else if(method<0 && method>=-sizeof(stemp)/sizeof(stemp[0])){
+else if(method<0 && method>=-int(sizeof(stemp)/sizeof(stemp[0]))){
 beg=-method-1;
 end=beg+1;
 }

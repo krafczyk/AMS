@@ -277,11 +277,6 @@ bool TofTrack::MakeSpatialFitWithOnlyLongitudinalCoordinates() {
     return false;
   }
   // one hit on each layer
-  bool layer[4] = {false,false,false,false};
-  for (int itof=0; itof<GetNhits(); itof++) {
-    TofClusterR* cluster = GetHit(itof);
-    layer[cluster->Layer-1] = true;
-  } 
   if ( (GetHitLayer(1)==0)||
        (GetHitLayer(2)==0)||
        (GetHitLayer(3)==0)||

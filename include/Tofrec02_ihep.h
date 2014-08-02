@@ -36,42 +36,49 @@ protected:
   static AMSEventR *ev;
   #pragma omp threadprivate (ev)
 /// Real or MC
-  static int realdata; 
+  static int realdata;
+public:
   #pragma omp threadprivate (realdata)
 /// TofRawSideR vector for TofClusterH build
-  static vector<TofRawSideR> tfraws;
+  static vector<TofRawSideR>* tfraws;
   #pragma omp threadprivate (tfraws)
 #ifndef __ROOTSHAREDLIBRARY__
-  static vector<TOF2RawSide*> tf2raws;
+  static vector<TOF2RawSide*>* tf2raws;
+  #pragma omp threadprivate (tf2raws)
 #endif
-public:
   static bool RebuildBetaHInReadHeader;
-protected:
 /// TofClusterH 4layer vector  pointer
-  static vector<TofClusterHR*>tofclh[4];
+  static vector<TofClusterHR*>* tofclh[4];
+  #pragma omp threadprivate (tofclh)
 /// TofClusterH UpPair+DownPair BetaH Raw
-  static vector<pair <TofClusterHR*,TofClusterHR* > >tofclp[2];
+  static vector<pair <TofClusterHR*,TofClusterHR* > >*tofclp[2];
+  #pragma omp threadprivate (tofclp)
 /// TofClusterH UpPair+DownPair BetaH Select Candidate
-  static vector<pair <TofClusterHR*,TofClusterHR* > >tofclc[2];
+  static vector<pair <TofClusterHR*,TofClusterHR* > >*tofclc[2];
+  #pragma omp threadprivate (tofclc)
 
 /// Track vector pointer
-  static vector<TrTrackR*> track;
+  static vector<TrTrackR*>* track;
+  #pragma omp threadprivate (track)
 #ifndef __ROOTSHAREDLIBRARY__
-  static vector<AMSTrTrack*> amstrack;  
+  static vector<AMSTrTrack*>* amstrack;  
+  #pragma omp threadprivate (amstrack)
 #endif
 
 /// TrdTrack vector
-  static vector<TrdTrackR>trdtrack;
+  static vector<TrdTrackR>* trdtrack;
   #pragma omp threadprivate (trdtrack)
 #ifndef __ROOTSHAREDLIBRARY__
-  static vector<AMSTRDTrack*>amstrdtrack;
+  static vector<AMSTRDTrack*>* amstrdtrack;
+  #pragma omp threadprivate (amstrdtrack)
 #endif
 
 /// EcalShower vector
-  static vector<EcalShowerR> ecalshow;
+  static vector<EcalShowerR>* ecalshow;
   #pragma omp threadprivate (ecalshow)
 #ifndef __ROOTSHAREDLIBRARY__
-  static vector<AMSEcalShower*>amsecalshow;
+  static vector<AMSEcalShower*>* amsecalshow;
+  #pragma omp threadprivate (amsecalshow)
 #endif
 
 /// Charge Signal Type

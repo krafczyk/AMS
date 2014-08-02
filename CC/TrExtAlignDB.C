@@ -84,7 +84,7 @@ const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
   if (lay == 8 && it0 == L8.begin()) return &(it1->second);
   if (lay == 9 && it0 == L9.begin()) return &(it1->second);
 
-  int tt = (it0->first+it1->first)/2;
+  unsigned int tt = (it0->first+it1->first)/2;
   if (time > tt) {
     it0 = it1; it1++;
     if (lay == 8 && it1 == L8.end()) return &(it0->second);
@@ -97,11 +97,12 @@ const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
   int dt1 = -(time-tt1);
   if (dt0 < 0 || dt1 < 0) return 0;
 
-  static TrExtAlignPar eapar;
+  static TrExtAlignPar* eapar = 0;
 #pragma omp threadprivate (eapar)
-  eapar = (it0->second*dt1+it1->second*dt0)/(dt0+dt1);
+  eapar = new TrExtAlignPar;
+  *eapar = (it0->second*dt1+it1->second*dt0)/(dt0+dt1);
 
-  return &eapar;
+  return eapar;
 }
 
 TrExtAlignPar &TrExtAlignDB::GetM(int lay, uint time){
@@ -206,9 +207,9 @@ Bool_t TrExtAlignDB::Load(TFile *f8, TFile *f9)
 
   Head = new TrExtAlignDB;
 
-  for (int i = 0; i < v8.size(); i++)
+  for (unsigned int i = 0; i < v8.size(); i++)
     Head->Fill(8, v8.at(i), db8->GetM(8, v8.at(i)));
-  for (int i = 0; i < v9.size(); i++)
+  for (unsigned int i = 0; i < v9.size(); i++)
     Head->Fill(9, v9.at(i), db9->GetM(9, v9.at(i)));
 
   return kTRUE;
@@ -219,7 +220,7 @@ int TrExtAlignDB::Check(void)
   // This check should be called only when number of entries are too many
   if (L8.size() <= 500 || L9.size() <= 500) return 0;
 
-  int rmin = 1300000000;
+  unsigned int rmin = 1300000000;
   int ndel = 0;
 
   for (ealgIT it = L8.begin(); it != L8.end(); )
@@ -358,17 +359,17 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 }
 
 TrExtAlignPar & TrExtAlignDB::GetMDyn(int layerJ,uint time){
-  static TrExtAlignPar Pars;
+  static TrExtAlignPar* Pars = 0;
 #pragma omp threadprivate(Pars)
-
-  Pars.Init();
+  Pars = new TrExtAlignPar;
+  Pars->Init();
 
   
-  if(layerJ!=1 && layerJ!=9) return Pars;
+  if(layerJ!=1 && layerJ!=9) return *Pars;
   // Retrieve alignment parameters
-  if(!DynAlManager::UpdateParameters(0,time)) return Pars;
+  if(!DynAlManager::UpdateParameters(0,time)) return *Pars;
   DynAlFitParameters pars;
-  if(!DynAlManager::dynAlFitContainers[layerJ].Find(time,pars)) return Pars;
+  if(!DynAlManager::dynAlFitContainers[layerJ].Find(time,pars)) return *Pars;
   AMSPoint pos;
   AMSRotMat rot;
   pars.GetParameters(time,0,pos,rot);
@@ -378,20 +379,20 @@ TrExtAlignPar & TrExtAlignDB::GetMDyn(int layerJ,uint time){
   // Take into account the difference in the reference frames
   // between the local geometry and the one used in the computation
   TkPlane* pl = TkDBc::Head->GetPlane(layerJ==1?5:6);
-  if (!pl) return Pars;
+  if (!pl) return *Pars;
   AMSPoint o(0,0,offset);
   pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos()); 
   
   double alpha,beta,gamma;
   rot.GetRotAngles(alpha,beta,gamma);
-  Pars.SetPar(pos[0],pos[1],pos[2],alpha,beta,gamma);
+  Pars->SetPar(pos[0],pos[1],pos[2],alpha,beta,gamma);
 
   // Retrieve the errors (not all of them, but the most relevant since covariance matrix is not taken into account)
   double ex,ey,ez;
   DynAlManager::RetrieveAlignmentErrors(time,layerJ,ex,ey,ez);
-  Pars.SetErr(ex,ey,ez,0,0,0);
+  Pars->SetErr(ex,ey,ez,0,0,0);
 
-  return Pars;
+  return *Pars;
 }
 
 int TrExtAlignDB::RecalcAllExtHitCoo(int kind){
@@ -590,7 +591,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   static int nprint=0;
 
   int mar=TKGEOMFFKEY.MaxAlignedRun; //MAXALIGNEDRUN;
-  if(time > TKGEOMFFKEY.MaxAlignedRun){ //MAXALIGNEDRUN
+  if(int(time) > TKGEOMFFKEY.MaxAlignedRun){ //MAXALIGNEDRUN
     if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBc-W- Warning no dyn alignment available after %d, this message will be repeted only 10 times \n",mar);
     SL1[0]=SL1[1]=SL1[2]=SL1[3]=SL1[4]=SL1[5]=0.;
     SL9[0]=SL9[1]=SL9[2]=SL9[3]=SL9[4]=SL9[5]=0.;
@@ -783,7 +784,7 @@ void TrExtAlignDB::ExAlign2Lin()
     std::vector<uint> vt = GetVt(layer);
 
     int n = 0;
-    for (int j = 0; j < vt.size(); j++) {
+    for (unsigned int j = 0; j < vt.size(); j++) {
       uint time = vt.at(j);
       if (time == 0) continue;
 

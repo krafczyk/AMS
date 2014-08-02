@@ -360,7 +360,7 @@ if(AMSJob::gethead() && AMSJob::gethead()->isSimulation()){
     _ta.Write("TrackerAlignment");
 #else
     TrCalDB::Head->Write();
-    TkDBc  ::Head->Write();
+    //TkDBc  ::Head->Write();
     TrParDB::Head->Write();
     // TrPdfDB::GetHead()->Write(); // don't save it, create it every time
     if (TrGainDB::GetHead()) TrGainDB::GetHead()->Write();

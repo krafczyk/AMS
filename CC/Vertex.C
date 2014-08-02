@@ -115,7 +115,7 @@ const char* VertexR::Info(int iRef){
   aa.append(Form("Vtx #%d ",iRef));
   _PrepareOutput(0);
   aa.append(sout);
-  int len=MAXINFOSIZE;
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
@@ -139,7 +139,7 @@ void VertexR::BuildTracksIndex()
   VCon *cont2 = GetVCon()->GetCont("AMSTrTrack");
   if (!cont2) return;
   fTrTrack.clear();
-  for (int i = 0; i < _pTrTrack.size(); i++) {
+  for (unsigned int i = 0; i < _pTrTrack.size(); i++) {
     fTrTrack.push_back(cont2->getindex(_pTrTrack[i]));
   }
   delete cont2;

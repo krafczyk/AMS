@@ -331,7 +331,7 @@ int EcalPDF::init(const char* fdatabase){
     return has_init;
 }
 EcalPDF::~EcalPDF(){
-   for(int i1=0;i1<pdf_names.size();i1++)
+   for(unsigned int i1=0;i1<pdf_names.size();i1++)
        gDirectory->Delete(pdf_names[i1].c_str());
    cout<<"EcalPDF::~EcalPDF-I-deconstruction function!"<<endl;
    //exit(0);
@@ -343,7 +343,7 @@ float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
     }
     if(flayer<0||flayer>17)
         return -1;
-    float ret,ret0,ret1 ;
+	float ret=0,ret0=0,ret1=0;
     int binx0,binx1     ;
     float x,x0,x1       ;
     float param_lf[6]   ;
@@ -390,7 +390,7 @@ float EcalPDF::get_rms (int flayer,float coo,float Erg,int type){
         cerr<<"EcalPDF::get_rms-E-EcalPDF has not been loaded!"<<endl;
         return -1;
     }
-    float ret,ret0,ret1 ;
+    float ret=0,ret0=0,ret1=0;
     int binx0,binx1     ;
     float x,x0,x1       ;
     float param_lf[6]   ;
@@ -439,7 +439,7 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
     }
     if(flayer<0||flayer>17)
         return -1;
-    float ret,ret0,ret1 ;
+    float ret=0,ret0=0,ret1=0;
     int binx0,binx1     ;
     float x,x0,x1       ;
     float param_lf[3]   ;
@@ -601,7 +601,7 @@ double EcalPDF::myfunc_lf(float x,float* par,int type){
     return ret;
 }
 float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
-    float ret;
+    float ret=0;
     if(algorithm!=2){
         cout<<"EcalPDF::normalize_chi2-W-Currently only normalization of chi2 from lateral fit is provided!"<<endl;
         return _chi2;
@@ -624,7 +624,7 @@ float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
 }
 
 float EcalPDF::normalize_f2edep(float _f2edep, float _EnergyE){
-    float ret;
+    float ret=0;
     if(_EnergyE<=15)
         _EnergyE=15.01	;
     if(Version==1&&_EnergyE>=200.)
@@ -947,7 +947,7 @@ float  EcalChi2::process(AMSEventR* ev, TrTrackR* trtrack, int iTrTrackPar){
         }
     }
     _erg=ev->pEcalShower(nmax)->EnergyD/1000.;
-    for(int i1=0;i1<ev->NEcalHit();i1++){
+    for(unsigned int i1=0;i1<ev->NEcalHit();i1++){
         Edep_raw[ev->pEcalHit(i1)->Plane*72+ev->pEcalHit(i1)->Cell]=ev->pEcalHit(i1)->Edep;
     }
 
@@ -1639,7 +1639,7 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
     else
         sign=-1;
     //cout<<run<<"<->"<<ev->Run()<<", "<<event<<"<->"<<ev->Event()<<", "<<algorithmHasCalculated<<"<->"<<algorithm<<endl;
-    if(run==ev->Run()&&event==ev->Event()&&(algorithmHasCalculated&algorithm)==algorithm){
+    if(run==int(ev->Run())&&event==int(ev->Event())&&(algorithmHasCalculated&algorithm)==algorithm){
 	//cout<<"algo "<<algorithm<<" has been calculated!"<<endl;
 	for(int i1=0;i1<5;i1++){
 		int a=(1<<i1);

@@ -978,10 +978,10 @@ public:
   friend class TOF2RawSide;
   friend class AMSEventR;
   virtual ~TofRawSideR(){};
-  int getftdc(int i){return i<fftdc.size()?fftdc[i]:0;}
-  int getstdc(int i){return i<fstdc.size()?fstdc[i]:0;}
-  int getsumht(int i){return i<fsumht.size()?fsumht[i]:0;}
-  int getsumsht(int i){return i<fsumsht.size()?fsumsht[i]:0;}
+  int getftdc(unsigned int i){return i<fftdc.size()?fftdc[i]:0;}
+  int getstdc(unsigned int i){return i<fstdc.size()?fstdc[i]:0;}
+  int getsumht(unsigned int i){return i<fsumht.size()?fsumht[i]:0;}
+  int getsumsht(unsigned int i){return i<fsumsht.size()?fsumsht[i]:0;}
 
   ClassDef(TofRawSideR ,6)       //TofRawSideR
 #pragma omp threadprivate(fgIsA)
@@ -3183,11 +3183,11 @@ class ChargeSubDR{
   /// number of charge hypothesis stored in charge vectors
   int    getSize(){return ChargeI.size();}
   /// charge index (0:e, 1:H, 2:He ...) for the i'th most likely hypothesis
-  int getChargeI(int i=0){return i<ChargeI.size()?ChargeI.at(max(i,0)):-1;}
+  int getChargeI(unsigned int i=0){return i<ChargeI.size()?ChargeI.at(i):-1;}
   /// loglikelihood value for the i'th most likely hypothesis
-  float getLkhd(int i=0){return i<Lkhd.size()?Lkhd.at(max(i,0)):0;}
+  float getLkhd(unsigned int i=0){return i<Lkhd.size()?Lkhd.at(i):0;}
   /// estimated probablility for the i'th most likely hypothesis
-  float getProb(int i=0){return i<Prob.size()?Prob.at(max(i,0)):0;}
+  float getProb(unsigned int i=0){return i<Prob.size()?Prob.at(i):0;}
   /// print subdetector specific information (attributes and values)
   void dumpAttr(){for(map<TString,float>::iterator i=Attr.begin();i!=Attr.end();i++) cout<<i->first<<" = "<<i->second<<endl;}
   /// return value corresponding to a subdetector specific attribute
@@ -3246,11 +3246,11 @@ class ChargeR{
   /// number of charge hypothesis stored in charge vectors
   int    getSize(){return ChargeI.size();}
   /// charge index (0:e, 1:H, 2:He ...) for the i'th most probable hypothesis
-  int getChargeI(int i=0){return i<ChargeI.size()?ChargeI.at(max(i,0)):-1;}
+  int getChargeI(unsigned int i=0){return i<ChargeI.size()?ChargeI.at(i):-1;}
   /// loglikelihood value for the i'th most probable hypothesis
-  float getLkhd(int i=0){return i<Lkhd.size()?Lkhd.at(max(i,0)):0;}
+  float getLkhd(unsigned int i=0){return i<Lkhd.size()?Lkhd.at(i):0;}
   /// estimated probablility for the i'th most probable hypothesis
-  float getProb(int i=0){return i<Prob.size()?Prob.at(max(i,0)):0;}
+  float getProb(unsigned int i=0){return i<Prob.size()?Prob.at(i):0;}
   /// return a pointer to the ChargeSubDR object using its ID or 0 if not reconstructed
   ChargeSubDR *getSubD(TString ID);
 
@@ -3897,8 +3897,8 @@ map <int,float> fEl;   ///< elements & number of atoms per volume
   virtual ~MCTrackR(){};
   int fEl_size(){return fEl.size();}
   float fEl_num(int i){return fEl.find(i)==fEl.end()?0:fEl.find(i)->second;}
-  int fEl_i(int i){if(i<0 || i>=fEl.size())return -1;
-                   int s=0;
+  int fEl_i(unsigned int i){if(i<0 || i>=fEl.size())return -1;
+                   unsigned int s=0;
                    typedef std::map<int,float>::iterator k_i;
                    for(k_i k=fEl.begin();k!=fEl.end();k++){  
                     if(s++==i)return k->first;

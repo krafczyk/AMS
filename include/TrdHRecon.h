@@ -137,7 +137,7 @@ public:
     iy = int((y-Ylo)*Fy);
     //    iz = int((z-Zlo)*Fz);
     add=true;
-    for( int i=0; i<bins.size(); i++ ){
+    for( unsigned int i=0; i<bins.size(); i++ ){
       if( ix==bins[i].x && iy==bins[i].y){// && iz == bins[i].z){
         bins[i].c+=weight;
 	bins[i].z+=(za+zb)/2.;

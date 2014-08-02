@@ -225,7 +225,7 @@ _particleGun[_cpart].SetParticlePosition(G4ThreeVector(Pos[0]*cm,Pos[1]*cm,Pos[2
 void AMSG4GeneratorInterface::GeneratePrimaries(G4Event* anEvent){
 
 static integer event=0;
-(void)event;
+std::cout << "event=" << event << " seeds " << HepRandom::getTheSeeds()[0] << " " << HepRandom::getTheSeeds()[1] << std::endl;
 
 AMSJob::gethead()->getg4generator()->Reset();
 

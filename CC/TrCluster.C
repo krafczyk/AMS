@@ -196,7 +196,7 @@ const char* TrClusterR::Info(int iRef){
   aa.append(Form("TrCluster #%d ",iRef));
   _PrepareOutput(0);
   aa.append(sout);
-  int len=MAXINFOSIZE;
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;

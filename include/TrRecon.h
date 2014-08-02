@@ -325,7 +325,7 @@ protected:
     /// Get a hit at [iclx][icly]
     TrRecHitR *at(int iclx, int icly) const { 
       int i = index(iclx, icly);
-      return (0 <= i && i < size()) ? vector<TrRecHitR*>::at(i) : 0;
+      return (0 <= i && i < int(size())) ? vector<TrRecHitR*>::at(i) : 0;
     }
   };
 

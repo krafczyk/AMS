@@ -9,12 +9,12 @@ int TrdRawHitR::num=0;
 
 int TrdHSegmentR::NTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
-int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
+int TrdHSegmentR::iTrdRawHit(unsigned int i){return int(i)<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
 #ifdef __ROOTSHAREDLIBRARY__
   if(AMSEventR::Head()->Version()<=538){
-    if(hits.size()<=i&&i<Nhits){
+    if(hits.size()<=i&&int(i)<Nhits){
       hits.clear();
       VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
       for(int i=0;i<cont2->getnelem();i++){
@@ -33,11 +33,11 @@ TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){
   }
 #endif
 
-  if(hits.size()<=i&&i<Nhits){
+  if(hits.size()<=i&&int(i)<Nhits){
     hits.clear();
     VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
     for(int i=0;i<cont2->getnelem();i++){
-      for(int n=0;n<fTrdRawHit.size();n++){
+      for(unsigned int n=0;n<fTrdRawHit.size();n++){
 	if(i==fTrdRawHit[n])
 	  hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
       }
@@ -280,7 +280,7 @@ void TrdHSegmentR::AddHit(TrdRawHitR hit,int iter){
 }
 
 void TrdHSegmentR::RemoveHit(int iter){
-  if(iter>hits.size())
+  if(iter>int(hits.size()))
     cerr<<"TrdHSegmentR::RemoveHit-E-trying to delete hit "<<iter<<" of "<<hits.size()<<endl;
   hits.erase(hits.begin()+iter);
   fTrdRawHit.erase(fTrdRawHit.begin()+iter);

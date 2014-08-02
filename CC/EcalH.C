@@ -585,7 +585,7 @@ const char *EcalHR::Info(int iref)
   _PrepareOutput(0);
   str.append(sout);
 
-  int len = MAXINFOSIZE;
+  unsigned int len = MAXINFOSIZE;
   if (str.size() < len) len = str.size();
   strncpy(_Info, str.c_str(), len+1);
 

@@ -65,11 +65,10 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   float m[2]={0.,0.};
   float em[2]={0.,0.};
   float r[2]={0.,0.};
-  float er[2]={0.,0.};
   float z[2]={0.,0.};
   
-  em[s1->d]=s1->em;m[s1->d]=s1->m;r[s1->d]=s1->r;er[s1->d]=s1->er;z[s1->d]=s1->z;
-  em[s2->d]=s2->em;m[s2->d]=s2->m;r[s2->d]=s2->r;er[s2->d]=s2->er;z[s2->d]=s2->z;
+  em[s1->d]=s1->em;m[s1->d]=s1->m;r[s1->d]=s1->r;z[s1->d]=s1->z;
+  em[s2->d]=s2->em;m[s2->d]=s2->m;r[s2->d]=s2->r;z[s2->d]=s2->z;
   
   if(debug)for(int d=0;d!=2;d++)
     cout<<"TrdHReconR::SegToTrack-I-d "<<d<<" m "<<m[d]<<" em "<<em[d]<<" r "<<r[d]<<" z "<<z[d]<<endl;
@@ -115,10 +114,10 @@ int TrdHReconR::DoPrefit(int debug){
   TH2V H2V_mvry("y", "y", 314,-105.,105., 119, -3., 3.);
 
   int pairs_x=0,pairs_y=0;;
-  for(int i=0;i<rhits.size();i++){
+  for(unsigned int i=0;i<rhits.size();i++){
     if(rhits.at(i).Amp<tracking_min_amp)continue;
     TRDHitRZD rzdi=TRDHitRZD(rhits.at(i));
-    for(int j=i+1;j<rhits.size();j++){
+    for(unsigned int j=i+1;j<rhits.size();j++){
       if(rhits.at(j).Amp<tracking_min_amp)continue;
       TRDHitRZD rzdj=TRDHitRZD(rhits.at(j));
       
@@ -191,7 +190,7 @@ int TrdHReconR::DoPrefit(int debug){
       if(i->c<=0.)
 	cerr<<"TrdHReconR::DoPrefit-F-maximum content <= 0!!"<<endl;
     }
-    if(numpeaks>0)while(maxima.size()>numpeaks)maxima.pop_back();
+    if(numpeaks>0)while(int(maxima.size())>numpeaks)maxima.pop_back();
     else while(maxima.size()>1&&maxima.back().c<5)maxima.pop_back();
     
     float width=1.;
@@ -263,7 +262,7 @@ int TrdHReconR::DoPrefit(int debug){
       seg->fTrdRawHit.clear();
       seg->em=0.6/(it->zmax-it->zmin);
       
-      for(int h=0;h!=rhits.size();h++){	
+      for(unsigned int h=0;h!=rhits.size();h++){	
 	if(rhits.at(h).Amp<tracking_min_amp)continue;
 	TRDHitRZD rzd=TRDHitRZD(rhits.at(h));
 	if(rzd.d!=d)continue;
@@ -292,7 +291,7 @@ int TrdHReconR::DoPrefit(int debug){
 	seg->fTrdRawHit.clear();	
 	seg->hits.clear();	
 	
-	for(int h=0;h!=rhits.size();h++){	
+	for(unsigned int h=0;h!=rhits.size();h++){	
 	  if(rhits.at(h).Amp<tracking_min_amp)continue;
 	  TRDHitRZD rzd=TRDHitRZD(rhits.at(h));
 	  if(rzd.d!=d)continue;
@@ -348,7 +347,7 @@ int TrdHReconR::clean_segvec(int debug){
   }
 
   bool keepseg[hsegvec.size()];
-  for(int i=0;i!=hsegvec.size();i++)keepseg[i]=1;
+  for(unsigned int i=0;i!=hsegvec.size();i++)keepseg[i]=1;
 
   int c1=0;
   for(vector<TrdHSegmentR>::iterator s1=hsegvec.begin();s1!=hsegvec.end();s1++,c1++){
@@ -501,8 +500,8 @@ vector<pair<int,int> > TrdHReconR::check_secondaries(int debug){
   // rough division of TRD height in dm (0=0-10 cm, 6=60-70 cm)
   int zvec[7];for(int i=0;i!=7;i++)zvec[i]=0;
 
-  for(int s1=0;s1!=hsegvec.size();s1++){
-    for(int s2=s1+1;s2!=hsegvec.size();s2++){
+  for(unsigned int s1=0;s1!=hsegvec.size();s1++){
+    for(unsigned int s2=s1+1;s2!=hsegvec.size();s2++){
       if(hsegvec.at(s1).d==hsegvec.at(s2).d){
 
 	// check for z of crossing
@@ -514,14 +513,14 @@ vector<pair<int,int> > TrdHReconR::check_secondaries(int debug){
 	if(hsegvec.at(s1).d==0&&(z_cross>120||z_cross<102))continue;
 
 	float s1zmax=0.,s1zmin=200.;
-	for(int hit1=0;hit1!=hsegvec.at(s1).fTrdRawHit.size();hit1++){
+	for(unsigned int hit1=0;hit1!=hsegvec.at(s1).fTrdRawHit.size();hit1++){
 	  TRDHitRZD rzd1=TRDHitRZD(*(hsegvec.at(s1)).pTrdRawHit(hit1));
 	  
 	  if(rzd1.z>s1zmax)s1zmax=rzd1.z;
 	  if(rzd1.z<s1zmin)s1zmin=rzd1.z;
 	}
 	float s2zmax=0.,s2zmin=200.;
-	for(int hit2=0;hit2!=hsegvec.at(s2).fTrdRawHit.size();hit2++){
+	for(unsigned int hit2=0;hit2!=hsegvec.at(s2).fTrdRawHit.size();hit2++){
 	  TRDHitRZD rzd2=TRDHitRZD(*hsegvec.at(s2).pTrdRawHit(hit2));
 
 	  if(rzd2.z>s2zmax)s1zmax=rzd2.z;
@@ -608,16 +607,16 @@ int TrdHReconR::combine_segments(int debug){
   bool s_done[hsegvec.size()];
   bool s_poss[hsegvec.size()][hsegvec.size()];
   
-  for(int i=0;i!=hsegvec.size();i++){
+  for(unsigned int i=0;i!=hsegvec.size();i++){
     s_done[i]=0;
-    for(int j=0;j!=hsegvec.size();j++){
+    for(unsigned int j=0;j!=hsegvec.size();j++){
       if(j==i||hsegvec[i].d==hsegvec[j].d){s_poss[i][j]=0;s_poss[j][i]=0;}
       else {s_poss[i][j]=1;s_poss[j][i]=1;}
     }
   }
   
-  for(int i=0;i!=hsegvec.size();i++){
-    for(int j=i+1;j!=hsegvec.size();j++){
+  for(unsigned int i=0;i!=hsegvec.size();i++){
+    for(unsigned int j=i+1;j!=hsegvec.size();j++){
       if(s_poss[i][j]==0)continue;
 
       if(hsegvec[i].fTrdRawHit.size()<3){s_poss[i][j]=0;s_poss[j][i]=0;continue;}
@@ -627,14 +626,14 @@ int TrdHReconR::combine_segments(int debug){
   }
   
   int n_poss[hsegvec.size()];
-  for(int i=0;i!=hsegvec.size();i++){
+  for(unsigned int i=0;i!=hsegvec.size();i++){
     if(s_done[i]==1)continue;
     
     n_poss[i]=0;
-    for(int j=0;j!=hsegvec.size();j++)if(s_poss[i][j]==1)n_poss[i]++;
+    for(unsigned int j=0;j!=hsegvec.size();j++)if(s_poss[i][j]==1)n_poss[i]++;
     
     if(n_poss[i]==1)
-      for(int j=0;j!=hsegvec.size();j++){
+      for(unsigned int j=0;j!=hsegvec.size();j++){
 	if(s_poss[i][j]!=1)continue;
 	if(s_done[j]==1)continue;
 	TrdHTrackR *tr=SegToTrack(i,j);
@@ -649,8 +648,8 @@ int TrdHReconR::combine_segments(int debug){
     }
   }
 
-  int n_done=0;
-  for(int i=0;i!=hsegvec.size();i++)if(s_done[i]==1)n_done++;
+  unsigned int n_done=0;
+  for(unsigned int i=0;i!=hsegvec.size();i++)if(s_done[i]==1)n_done++;
   if(hsegvec.size()==n_done)return htrvec.size();
 
   // check for vertices
@@ -671,7 +670,7 @@ int TrdHReconR::combine_segments(int debug){
   */
 
   n_done=0;
-  for(int i=0;i!=hsegvec.size();i++)if(s_done[i]==1)n_done++;
+  for(unsigned int i=0;i!=hsegvec.size();i++)if(s_done[i]==1)n_done++;
 
   if(debug)cout<<"TrdHReconR::combine_segments-I-associated segments :"<<n_done<<" of "<<hsegvec.size()<<endl;
   
@@ -688,11 +687,11 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
   hsegvec.clear();
   htrvec.clear();
 
-  for(int i=0;i!=r.size();i++){
+  for(unsigned int i=0;i!=r.size();i++){
     rhits.push_back(r[i]);
   }
-  for(int i=0;i!=s.size();i++)hsegvec.push_back(s[i]);  
-  for(int i=0;i!=t.size();i++)htrvec.push_back(t[i]);
+  for(unsigned int i=0;i!=s.size();i++)hsegvec.push_back(s[i]);  
+  for(unsigned int i=0;i!=t.size();i++)htrvec.push_back(t[i]);
 }
 
 void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
@@ -707,7 +706,7 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
 
   //  clear();
   if(r.size()<3)return;
-  for(int n=0;n<r.size();n++)
+  for(unsigned int n=0;n<r.size();n++)
     AddHit(&r[n]);
 
   retrdhevent(debug);
@@ -963,7 +962,7 @@ int TrdHReconR::SelectEvent(int level){
     }
   
   int nhit=0;
-  for(int i=0;i!=rhits.size();i++){
+  for(unsigned int i=0;i!=rhits.size();i++){
     TrdRawHitR* rhit=&rhits.at(i);
     if(!rhit)continue;
     if(rhit->Amp>15)nhit++;

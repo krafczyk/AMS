@@ -43,7 +43,7 @@ TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig):TrElem(orig)  {
   _addressword = orig._addressword;
   _lengthword  = orig._lengthword;
   Status       = orig.Status;
-  for (int i = 0; i < orig._signal.size(); i++) _signal.push_back(orig._signal.at(i));
+  for (unsigned int i = 0; i < orig._signal.size(); i++) _signal.push_back(orig._signal.at(i));
 }
 
 TrRawClusterR::TrRawClusterR(int tkid, int clsaddwrd, int clslenwrd, short int* adc) {
@@ -151,7 +151,7 @@ const char* TrRawClusterR::Info(int iRef){
   aa.append(Form("TrRawCluster #%d ",iRef));
   _PrepareOutput(0);
   aa.append(sout);
-  int len=MAXINFOSIZE;
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;

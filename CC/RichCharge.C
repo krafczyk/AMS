@@ -71,7 +71,7 @@ RichPMTCalib* RichPMTCalib::Update(int run){
     // Check if AMSSetup contains information
     AMSSetupR *setup=AMSSetupR::gethead();
     if(setup && setup->fRichConfig.size()){
-      if (setup->fRichConfig.at(0).runID==AMSEventR::Head()->fHeader.Run) {
+      if (setup->fRichConfig.at(0).runID==int(AMSEventR::Head()->fHeader.Run)) {
 	if (!RichPMTCalib::getHead()) {_header=new RichPMTCalib();currentDir="";}
 	if (!setup->fRichConfig.at(0).dumpToRichPMTCalib(*RichPMTCalib::getHead())) return 0;
 	return RichPMTCalib::getHead();
@@ -367,7 +367,7 @@ void RichPMTCalib::updatePMTs(int run, bool force) {
   if (verbosityLevel>0)
     cout << "RichPMTCalib::updatePMTs: Number of declared Bad PMTs = " << BadPMTs.size() << endl;
   if (DEBUG)
-    for (int i=0; i<BadPMTs.size(); i++) 
+    for (unsigned int i=0; i<BadPMTs.size(); i++) 
       cout << "RichPMTCalib::updatePMTs :  " << i << " : " << BadPMTs[i] << endl;
 
 }
@@ -460,7 +460,7 @@ bool RichPMTCalib::initPMTs() {
   if (verbosityLevel>0)
     cout << "RichPMTCalib::initPMTs: Number of declared Bad PMTs = " << BadPMTs.size() << endl;
   if (DEBUG)
-    for (int i=0; i<BadPMTs.size(); i++) 
+    for (unsigned int i=0; i<BadPMTs.size(); i++) 
       cout << "RichPMTCalib::initPMTs :  " << i << " : " << BadPMTs[i] << endl;
 
   //
@@ -610,13 +610,16 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 
   const int NDTS = 48, NPMT = 680;
 
-  static vector<int>   v_pmt_dts;
-  static vector<int>   v_utime;
-  static vector<float> v_temp[NDTS];
+  static vector<int>* v_pmt_dts = 0;
+  static vector<int>* v_utime = 0;
+  static vector<float>* v_temp[NDTS] = {0};
 
   static int last_rec = -1, prev_rec = -1;
 #pragma omp threadprivate(v_pmt_dts,v_utime,v_temp,last_rec,prev_rec)
 
+  v_pmt_dts = new std::vector<int>;
+  v_utime = new std::vector<int>;
+  for (int i = 0; i < NDTS; ++i) v_temp[i] = new std::vector<float>;
 
   vector<float> v_dts_x;
   vector<float> v_dts_y;
@@ -720,7 +723,7 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
     }
 
     // PMT - DST Mapping
-    v_pmt_dts.assign(NPMT, 0);
+    v_pmt_dts->assign(NPMT, 0);
 
     for (int i=0; i<NPMT; i++) {
       int dts=-1;
@@ -738,7 +741,7 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 	}
       }
 
-      if (dts>=0) v_pmt_dts[i] = dts; 
+      if (dts>=0) v_pmt_dts->at(i) = dts; 
       else {
 	cout << "RichPMTCalib::checkRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << i << endl;
 	return checkRichPmtTemperatures;
@@ -758,12 +761,12 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 
     while ( TemperaturesFile >> utime ) {
 
-      v_utime.push_back(utime);
+      v_utime->push_back(utime);
 
       ndts = 0;
       while ( ndts++<NDTS && TemperaturesFile >> dts >> temp >> age ) {
 
-	if (dts<NDTS) v_temp[dts].push_back(temp);
+	if (dts<NDTS) v_temp[dts]->push_back(temp);
 	else {
 	cout << "RichPMTCalib::checkRichPmtTemperatures: Error in DTS Temperatures File. " 
 	     << "utime: " << utime << " dts: " << dts << " temp: " << temp << " age: " << age << endl;
@@ -777,8 +780,8 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
     TemperaturesFile.close();
 
     if (verbosityLevel>0)
-      cout << "RichPMTCalib::checkRichPmtTemperatures: Number of Temperature Records Read : " << v_utime.size() << endl;
-    if (!v_utime.size()) 
+      cout << "RichPMTCalib::checkRichPmtTemperatures: Number of Temperature Records Read : " << v_utime->size() << endl;
+    if (!v_utime->size()) 
       return checkRichPmtTemperatures;
 
     initok = true;
@@ -794,17 +797,17 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 
   utime = AMSEventR::Head()->fHeader.Time[0];
 
-  if (utime>=v_utime[last_rec] && utime < v_utime[last_rec+1]) {
+  if (utime>=v_utime->at(last_rec) && utime < v_utime->at(last_rec+1)) {
     checkRichPmtTemperatures = true;
     return checkRichPmtTemperatures; 
   }
-  else if (utime>=v_utime[last_rec+1]) {
-    while (++last_rec<v_utime.size()-1 && utime>=v_utime[last_rec+1]) {};
-    if (last_rec<v_utime.size()-1)
+  else if (utime>=v_utime->at(last_rec+1)) {
+    while (++last_rec<int(v_utime->size())-1 && utime>=v_utime->at(last_rec+1)) {};
+    if (last_rec<int(v_utime->size())-1)
       checkRichPmtTemperatures = true;
   }
   else {
-    while (--last_rec>-1 && utime<v_utime[last_rec]) {};
+    while (--last_rec>-1 && utime<v_utime->at(last_rec)) {};
     if (last_rec>=0) 
       checkRichPmtTemperatures = true;
     else
@@ -813,19 +816,19 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 
   if (last_rec != prev_rec) {
     cout << "RichPMTCalib::checkRichPmtTemperatures: NewRecord found for time " << utime 
-         << ". Record Utime " << v_utime[last_rec]
-	 << " Temp[ 0] " << v_temp[ 0][last_rec] << " Temp[ 9] " << v_temp[ 9][last_rec] 
-	 << " Temp[12] " << v_temp[12][last_rec] << " Temp[21] " << v_temp[21][last_rec] 
-	 << " Temp[24] " << v_temp[25][last_rec] << " Temp[33] " << v_temp[34][last_rec] 
-	 << " Temp[36] " << v_temp[25][last_rec] << " Temp[45] " << v_temp[34][last_rec] << endl; 
+         << ". Record Utime " << v_utime->at(last_rec)
+	 << " Temp[ 0] " << v_temp[ 0]->at(last_rec) << " Temp[ 9] " << v_temp[ 9]->at(last_rec) 
+	 << " Temp[12] " << v_temp[12]->at(last_rec) << " Temp[21] " << v_temp[21]->at(last_rec) 
+	 << " Temp[24] " << v_temp[25]->at(last_rec) << " Temp[33] " << v_temp[34]->at(last_rec) 
+	 << " Temp[36] " << v_temp[25]->at(last_rec) << " Temp[45] " << v_temp[34]->at(last_rec) << endl; 
     prev_rec = last_rec;
   }
 
   // PMT-DTS temperature map
   if (checkRichPmtTemperatures) {
     for (int pmt=0; pmt<NPMT; pmt++) {
-      dts = v_pmt_dts[pmt];
-      v_pmt_temp[pmt] = v_temp[dts][last_rec];
+      dts = v_pmt_dts->at(pmt);
+      v_pmt_temp[pmt] = v_temp[dts]->at(last_rec);
       if (DEBUG)
 	cout << "RichPMTCalib::checkRichPmtTemperatures: PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" <<  endl;
       if (v_pmt_temp[pmt]<pmtMinTemperature || v_pmt_temp[pmt]>pmtMaxTemperature) 
@@ -853,12 +856,16 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
   const int NDTS = 96, NPMT = 680;
 
-  static vector<int> v_pmt_rep;
-
-  static vector<string> v_dts_el;
-  static vector<string> v_dts_nn;
-  static multimap<float,int> m_pmt_d2_dts[NPMT];
+  static vector<int>* v_pmt_rep = 0;
+  static vector<string>* v_dts_el = 0;
+  static vector<string>* v_dts_nn = 0;
+  static multimap<float,int>* m_pmt_d2_dts[NPMT] = {0};
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
+
+  if (!v_pmt_rep) v_pmt_rep = new vector<int>;
+  if (!v_dts_el) v_dts_el = new vector<string>;
+  if (!v_dts_nn) v_dts_nn = new vector<string>;
+  if (!m_pmt_d2_dts[0]) { for (int i = 0; i < NPMT; ++i) m_pmt_d2_dts[i] = new multimap<float,int>; }
 
 #ifdef __ROOTSHAREDLIBRARY__
   const int MAX_REP = 5;
@@ -889,7 +896,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
     init = false;
 
     v_pmt_temp.assign(NPMT, pmtRefTemperature); // Default PMT Temperatures
-    v_pmt_rep.assign(NPMT, 0);
+    v_pmt_rep->assign(NPMT, 0);
     pmt_mean_temp = pmtRefTemperature;
 
     TString DBDir=currentDir+TString("/RichPMTCalib/");
@@ -908,8 +915,8 @@ bool RichPMTCalib::getRichPmtTemperatures() {
     v_dts_g.assign(NDTS, 0);
     v_dts_x.assign(NDTS, 0);
     v_dts_y.assign(NDTS, 0);
-    v_dts_el.assign(NDTS, "");
-    v_dts_nn.assign(NDTS, "");
+    v_dts_el->assign(NDTS, "");
+    v_dts_nn->assign(NDTS, "");
     int ndts = 0;
     while ( DtsPositionsFile >> dts >> id >> pos >> element >> node >> x >> y ) {
 
@@ -918,8 +925,8 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 	v_dts_g[dts] = (id/100);
 	v_dts_x[dts] = x;
 	v_dts_y[dts] = y;
-      	v_dts_el[dts] = element;
-	v_dts_nn[dts] = node;
+	v_dts_el->at(dts) = element;
+	v_dts_nn->at(dts) = node;
 	//cout << " DTS " << dts << " GRID " << v_dts_g[dts]
 	//     << " X " << v_dts_x[dts] << " Y " << v_dts_y[dts]
 	//     << " " << v_dts_el[dts] << " " << v_dts_nn[dts] << endl;
@@ -989,16 +996,16 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
     // PMT-DST Distance Map
     for (pmt=0; pmt<NPMT; pmt++) {
-      m_pmt_d2_dts[pmt].clear();
+      m_pmt_d2_dts[pmt]->clear();
       for (dts=0; dts<NDTS; dts++) {
 	if (v_dts_g[dts] == v_pmt_g[pmt]) {
 	  dx = v_dts_x[dts] - v_pmt_x[pmt];
 	  dy = v_dts_y[dts] - v_pmt_y[pmt];
           d2 = dx*dx + dy*dy;
-	  m_pmt_d2_dts[pmt].insert( pair<float,int>(d2,dts) );
+	  m_pmt_d2_dts[pmt]->insert( pair<float,int>(d2,dts) );
 	}
       }
-      if (!m_pmt_d2_dts[pmt].size()) {
+      if (!m_pmt_d2_dts[pmt]->size()) {
 	cout << "RichPMTCalib::getRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << pmt << endl;
 	return RichPmtTemperatures;
       }
@@ -1021,19 +1028,19 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   // Retrieve DTS temperatures
   v_dts_temp.assign(NDTS,HUGE_VALF);
   int method = 1; // 1: linear interpolation, 0: no interpolation
-  if (AMSEventR::Head()->fHeader.Run!=last_run ||
-      (!skip_run && AMSEventR::Head()->fHeader.Time[0]>=last_time+temperatureUpdatePeriod)) {
+  if (int(AMSEventR::Head()->fHeader.Run)!=last_run ||
+      (!skip_run && int(AMSEventR::Head()->fHeader.Time[0])>=last_time+temperatureUpdatePeriod)) {
     last_run = AMSEventR::Head()->fHeader.Run;
     last_time = AMSEventR::Head()->fHeader.Time[0];
     skip_run = 0;
     for (int dts=0; dts<NDTS; dts++) {
       rc = AMSSetupR::gethead()->fSlowControl.GetData(
-						      v_dts_el[dts].c_str(),
+						      v_dts_el->at(dts).c_str(),
 						      AMSEventR::Head()->fHeader.Time[0],
 						      0,
 						      value,
 						      method,
-						      v_dts_nn[dts].c_str()
+						      v_dts_nn->at(dts).c_str()
 						      );
       if (!rc && value[0]<127.) v_dts_temp[dts] = value[0]; // protection against crazy DB values
       else if (rc==1) {
@@ -1050,7 +1057,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   // PMT-DTS temperature map : closest DTS in grid
   v_pmt_temp.assign(NPMT,HUGE_VALF);
   for (int pmt=0; pmt<NPMT; pmt++) {
-    for (it=m_pmt_d2_dts[pmt].begin(); it!=m_pmt_d2_dts[pmt].end(); it++) {
+    for (it=m_pmt_d2_dts[pmt]->begin(); it!=m_pmt_d2_dts[pmt]->end(); it++) {
       dts = it->second;
       if (v_dts_temp[dts]==HUGE_VALF) continue;
       v_pmt_temp[pmt] = v_dts_temp[dts];
@@ -1058,12 +1065,12 @@ bool RichPMTCalib::getRichPmtTemperatures() {
     }
     if (v_pmt_temp[pmt]==HUGE_VALF) {
       if (DEBUG)
-	if (v_pmt_rep[pmt]++ < MAX_REP) 
+	if (v_pmt_rep->at(pmt)++ < MAX_REP) 
 	  cout << "RichPMTCalib::getRichPmtTemperatures: "
 	       << " Run "   << AMSEventR::Head()->fHeader.Run 
 	       << " Event " << AMSEventR::Head()->fHeader.Event 
 	       << " NoValidTempFoundForPMT " << pmt 
-	       << " (Reported/Max " << v_pmt_rep[pmt] << "/" << MAX_REP << ")" << endl;
+	       << " (Reported/Max " << v_pmt_rep->at(pmt) << "/" << MAX_REP << ")" << endl;
       v_pmt_temp[pmt] = pmtRefTemperature;
       RichPmtTemperatures = false;
     }
@@ -1103,12 +1110,16 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 
   const int NDTS = 8, NPMT = 680;
 
-  static vector<int> v_pmt_rep;
-
-  static vector<string> v_dts_el;
-  static vector<string> v_dts_nn;
-  static multimap<float,int> m_pmt_d2_dts[NPMT];
+  static vector<int>* v_pmt_rep = 0;
+  static vector<string>* v_dts_el = 0;
+  static vector<string>* v_dts_nn = 0;
+  static multimap<float,int>* m_pmt_d2_dts[NPMT] = {0};
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
+
+  if (!v_pmt_rep) v_pmt_rep = new vector<int>;
+  if (!v_dts_el) v_dts_el = new vector<string>;
+  if (!v_dts_nn) v_dts_nn = new vector<string>;
+  if (!m_pmt_d2_dts[0]) { for (int i = 0; i < NPMT; ++i) m_pmt_d2_dts[i] = new multimap<float,int>; }
 
 #ifdef __ROOTSHAREDLIBRARY__
   const int MAX_REP = 5;
@@ -1137,7 +1148,7 @@ bool RichPMTCalib::getRichBrickTemperatures() {
     init = false;
 
     v_brick_temp.assign(NPMT, brickRefTemperature); // Default HV Brick Temperatures
-    v_pmt_rep.assign(NPMT, 0);
+    v_pmt_rep->assign(NPMT, 0);
 
     TString DBDir=currentDir+TString("/RichPMTCalib/");
     TString DtsPositionsFileName, PmtPositionsFileName;
@@ -1153,16 +1164,16 @@ bool RichPMTCalib::getRichBrickTemperatures() {
     }
 
     v_dts_b.assign(NDTS, 0);
-    v_dts_el.assign(NDTS, "");
-    v_dts_nn.assign(NDTS, "");
+    v_dts_el->assign(NDTS, "");
+    v_dts_nn->assign(NDTS, "");
     int ndts = 0;
     while ( DtsPositionsFile >> dts >> brick >> element >> node ) {
 
       if (dts<NDTS) {
 	ndts++;
 	v_dts_b[dts] = brick;
-      	v_dts_el[dts] = element;
-	v_dts_nn[dts] = node;
+	v_dts_el->at(dts) = element;
+	v_dts_nn->at(dts) = node;
 	//cout << " DTS " << dts << " BRICK " << v_dts_b[dts]
 	//     << " " << v_dts_el[dts] << " " << v_dts_nn[dts] << endl;
       }
@@ -1230,12 +1241,12 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 
     // PMT-DST Map
     for (pmt=0; pmt<NPMT; pmt++) {
-      m_pmt_d2_dts[pmt].clear();
+      m_pmt_d2_dts[pmt]->clear();
       for (dts=0; dts<NDTS; dts++) {
 	if (v_dts_b[dts] == v_pmt_b[pmt])
-	  m_pmt_d2_dts[pmt].insert( pair<float,int>(1,dts) );
+	  m_pmt_d2_dts[pmt]->insert( pair<float,int>(1,dts) );
       }
-      if (!m_pmt_d2_dts[pmt].size()) {
+      if (!m_pmt_d2_dts[pmt]->size()) {
 	cout << "RichPMTCalib::getRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << pmt << endl;
 	return RichBrickTemperatures;
       }
@@ -1258,19 +1269,19 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   // Retrieve DTS temperatures
   v_dts_temp.assign(NDTS,HUGE_VALF);
   int method = 1; // 1: linear interpolation, 0: no interpolation
-  if (AMSEventR::Head()->fHeader.Run!=last_run ||
-      (!skip_run && AMSEventR::Head()->fHeader.Time[0]>=last_time+temperatureUpdatePeriod)) {
+  if (int(AMSEventR::Head()->fHeader.Run)!=last_run ||
+      (!skip_run && int(AMSEventR::Head()->fHeader.Time[0])>=last_time+temperatureUpdatePeriod)) {
     last_run = AMSEventR::Head()->fHeader.Run;
     last_time = AMSEventR::Head()->fHeader.Time[0];
     skip_run = 0;
     for (int dts=0; dts<NDTS; dts++) {
       rc = AMSSetupR::gethead()->fSlowControl.GetData(
-						      v_dts_el[dts].c_str(),
+						      v_dts_el->at(dts).c_str(),
 						      AMSEventR::Head()->fHeader.Time[0],
 						      0,
 						      value,
 						      method,
-						      v_dts_nn[dts].c_str()
+						      v_dts_nn->at(dts).c_str()
 						      );
       if (!rc && value[0]<127.) v_dts_temp[dts] = value[0]; // protection against crazy DB values
       else if (rc==1) {
@@ -1288,7 +1299,7 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   for (int pmt=0; pmt<NPMT; pmt++) {
     int n=0;
     float sum=0;
-    for (it=m_pmt_d2_dts[pmt].begin(); it!=m_pmt_d2_dts[pmt].end(); it++) {
+    for (it=m_pmt_d2_dts[pmt]->begin(); it!=m_pmt_d2_dts[pmt]->end(); it++) {
       dts = it->second;
       if (v_dts_temp[dts]==HUGE_VALF) continue;
       n++;
@@ -1297,12 +1308,12 @@ bool RichPMTCalib::getRichBrickTemperatures() {
     if (n) v_brick_temp[pmt] = sum/n; 
     if (v_brick_temp[pmt]==HUGE_VALF) {
       if (DEBUG)
-	if (v_pmt_rep[pmt]++ < MAX_REP) 
+	if (v_pmt_rep->at(pmt)++ < MAX_REP) 
 	  cout << "RichPMTCalib::getRichBrickTemperatures: "
 	       << " Run "   << AMSEventR::Head()->fHeader.Run 
 	       << " Event " << AMSEventR::Head()->fHeader.Event 
 	       << " NoValidTempFoundForPMT " << pmt 
-	       << " (Reported/Max " << v_pmt_rep[pmt] << "/" << MAX_REP << ")" << endl;
+	       << " (Reported/Max " << v_pmt_rep->at(pmt) << "/" << MAX_REP << ")" << endl;
       v_brick_temp[pmt] = brickRefTemperature;
       RichBrickTemperatures = false;
     }
@@ -1372,41 +1383,51 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
   static bool initok = false;
 #pragma omp threadprivate(init,initok)
 
-  static map<int,string> m_tag[NTAG];
+  static map<int,string>* m_tag[NTAG] = {0};
 #pragma omp threadprivate(m_tag)
+  if (!m_tag[0]) { for (int i = 0; i < NTAG; ++i) m_tag[i] = new map<int, string>; }
   map<int,string>::iterator it;
 
-  static vector<unsigned short> w_pmt_stat, w_pmt_volt;
-
-  static vector<string> v_brick_name[NBRICK];
-  static vector<int> v_brick_busa[NBRICK], v_brick_busb[NBRICK], v_brick_fgin[NBRICK];
+  static vector<unsigned short>* w_pmt_stat = 0, *w_pmt_volt = 0;
+  static vector<string>* v_brick_name[NBRICK] = {0};
+  static vector<int>* v_brick_busa[NBRICK] = {0}, *v_brick_busb[NBRICK] = {0}, *v_brick_fgin[NBRICK] = {0};
 #pragma omp threadprivate(w_pmt_stat,w_pmt_volt,v_brick_name,v_brick_busa,v_brick_busb,v_brick_fgin)
+
+  if (!w_pmt_stat) w_pmt_stat = new vector<unsigned short>;
+  if (!w_pmt_volt) w_pmt_volt = new vector<unsigned short>;
+  if (!v_brick_name[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_name[i] = new vector<string>; }
+  if (!v_brick_busa[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_busa[i] = new vector<int>; }
+  if (!v_brick_busb[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_busb[i] = new vector<int>; }
+  if (!v_brick_fgin[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_fgin[i] = new vector<int>; }
 
   unsigned short richRunTag = richRunDflt; 
 
   static int run_prev = 0;
   static unsigned short richRunTag_prev; 
-  static vector<unsigned short> v_pmt_stat_prev, v_pmt_volt_prev;
+  static vector<unsigned short>* v_pmt_stat_prev = 0, *v_pmt_volt_prev = 0;
 #pragma omp threadprivate(run_prev,richRunTag_prev,v_pmt_stat_prev,v_pmt_volt_prev)
+  if (!v_pmt_stat_prev) v_pmt_stat_prev = new vector<unsigned short>;
+  if (!v_pmt_volt_prev) v_pmt_volt_prev = new vector<unsigned short>;
+
   if (init) {
 
     init = false;
 
-    w_pmt_stat.assign(NPMT, richRunDflt << 8 | richPmtDflt);
-    w_pmt_volt.assign(NPMT, richVltDflt);
+    w_pmt_stat->assign(NPMT, richRunDflt << 8 | richPmtDflt);
+    w_pmt_volt->assign(NPMT, richVltDflt);
 
-    v_pmt_stat = w_pmt_stat;
-    v_pmt_volt = w_pmt_volt;
+    v_pmt_stat = *w_pmt_stat;
+    v_pmt_volt = *w_pmt_volt;
 
     richRunTag_prev = richRunTag;
-    v_pmt_stat_prev = v_pmt_stat;
-    v_pmt_volt_prev = v_pmt_volt;
+    *v_pmt_stat_prev = v_pmt_stat;
+    *v_pmt_volt_prev = v_pmt_volt;
 
   }
 
   if (run == run_prev) {
-    v_pmt_stat = v_pmt_stat_prev;
-    v_pmt_volt = v_pmt_volt_prev;
+    v_pmt_stat = *v_pmt_stat_prev;
+    v_pmt_volt = *v_pmt_volt_prev;
     return richRunTag_prev;
   }
 
@@ -1419,7 +1440,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
       char line[256];
       TString RunTagFileName, RunTagFileIndexName;
 
-      m_tag[tag].clear();
+      m_tag[tag]->clear();
 
       for (int ind=0; ind<3; ind++) {
 
@@ -1459,7 +1480,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
 	    istringstream ssline(sline);
 	    int utime;
 	    ssline >> utime;
-	    m_tag[tag].insert(pair<int,string>(utime,sline));
+	    m_tag[tag]->insert(pair<int,string>(utime,sline));
 	  }
 
 	  RunTagFile.close();
@@ -1471,7 +1492,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
       }
 
       if (verbosityLevel>0)
-	cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << m_tag[tag].size() << endl;
+	cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << m_tag[tag]->size() << endl;
       //for (it=m_tag[tag].begin(); it!=m_tag[tag].end(); it++)
       //	cout << it->first << " : " << it->second << endl;
 
@@ -1493,10 +1514,10 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
     }
 
     for (brick=0; brick<NBRICK; brick++) {
-      v_brick_name[brick].assign(NSIDE, name);
-      v_brick_busa[brick].assign(NSIDE, -1);
-      v_brick_busb[brick].assign(NSIDE, -1);
-      v_brick_fgin[brick].assign(NSIDE, -1);
+      v_brick_name[brick]->assign(NSIDE, name);
+      v_brick_busa[brick]->assign(NSIDE, -1);
+      v_brick_busb[brick]->assign(NSIDE, -1);
+      v_brick_fgin[brick]->assign(NSIDE, -1);
     }
     int nbside = 0;
     while ( HVBrickMapFile >> brick >> side >> name >> busa >> busb >> fgin ) {
@@ -1504,10 +1525,10 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
 	cout << brick << " " << side << " " << name << " " << busa << " " << busb << " " << fgin << endl;
       if (brick<NBRICK && side<NSIDE) {
 	nbside++;
-	v_brick_name[brick][side] = name;
-	v_brick_busa[brick][side] = busa;
-	v_brick_busb[brick][side] = busb;
-	v_brick_fgin[brick][side] = fgin;
+	v_brick_name[brick]->at(side) = name;
+	v_brick_busa[brick]->at(side) = busa;
+	v_brick_busb[brick]->at(side) = busb;
+	v_brick_fgin[brick]->at(side) = fgin;
       }
 
     }
@@ -1529,13 +1550,13 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
 
   }
 
-  v_pmt_stat = w_pmt_stat;
-  v_pmt_volt = w_pmt_volt;
+  v_pmt_stat = *w_pmt_stat;
+  v_pmt_volt = *w_pmt_volt;
 
   run_prev = run;
   richRunTag_prev = richRunTag;
-  v_pmt_stat_prev = v_pmt_stat;
-  v_pmt_volt_prev = v_pmt_volt;
+  *v_pmt_stat_prev = v_pmt_stat;
+  *v_pmt_volt_prev = v_pmt_volt;
 
   if (!initok) return richRunTag;
 
@@ -1543,20 +1564,20 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
   // All stuff comes here ...
   for (int tag=0; tag<NTAG; tag++) {
 
-    if (!m_tag[tag].size()) continue;
-    it = m_tag[tag].upper_bound(run);
+    if (!m_tag[tag]->size()) continue;
+    it = m_tag[tag]->upper_bound(run);
 
     switch (tag) {
 
     case kTagJ:
-      if (it!=m_tag[tag].begin()) it--;
+      if (it!=m_tag[tag]->begin()) it--;
       if (run-it->first<0 || run-it->first>MaxRunDelay) {
 	if (verbosityLevel>0)
 	  cout << "RichPMTCalib::CheckRichRun : CNF-J-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
       }
       else {
 	richRunTag ^= (1<<kTagJ);
-        RichDecodeJ(it->second, v_brick_fgin, v_pmt_stat, v_pmt_volt);
+        RichDecodeJ(it->second, *v_brick_fgin, v_pmt_stat, v_pmt_volt);
       }
       break;
 
@@ -1566,12 +1587,12 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
 	break;
       else {
 	richRunTag ^= (1<<kTagJHK);
-        RichDecodeJHK(it->second, v_brick_busa, v_brick_busb, v_pmt_stat);
+        RichDecodeJHK(it->second, *v_brick_busa, *v_brick_busb, v_pmt_stat);
       }
       break;
 
     case kTagR:
-      if (it!=m_tag[tag].begin()) it--;
+      if (it!=m_tag[tag]->begin()) it--;
       if (run-it->first<0 || run-it->first>MaxRunDelay) {
 	if (verbosityLevel>0)
 	  cout << "RichPMTCalib::CheckRichRun : CNF-R-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
@@ -1611,8 +1632,8 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
 
 
   richRunTag_prev = richRunTag;
-  v_pmt_stat_prev = v_pmt_stat;
-  v_pmt_volt_prev = v_pmt_volt;
+  *v_pmt_stat_prev = v_pmt_stat;
+  *v_pmt_volt_prev = v_pmt_volt;
 
   return richRunTag;
 
@@ -1673,35 +1694,46 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
   static bool initok = false;
 #pragma omp threadprivate(init,initok)
 
-  static map<int,string> m_tag[NTAG];
+  static map<int,string>* m_tag[NTAG] = {0};
 #pragma omp threadprivate(m_tag)
+
+  if (!m_tag[0]) { for (int i = 0; i < NTAG; ++i) m_tag[i] = new map<int,string>; }
   map<int,string>::iterator it;
 
-  static vector<unsigned short> w_pmt_stat, w_pmt_volt;
-
-  static vector<string> v_brick_name[NBRICK];
-  static vector<int> v_brick_busa[NBRICK], v_brick_busb[NBRICK], v_brick_fgin[NBRICK];
+  static vector<unsigned short>* w_pmt_stat = 0, *w_pmt_volt = {0};
+  static vector<string>* v_brick_name[NBRICK] = {0};
+  static vector<int>* v_brick_busa[NBRICK] = {0}, *v_brick_busb[NBRICK] = {0}, *v_brick_fgin[NBRICK] = {0};
 #pragma omp threadprivate(w_pmt_stat,w_pmt_volt,v_brick_name,v_brick_busa,v_brick_busb,v_brick_fgin)
+
+  if (!w_pmt_stat) w_pmt_stat = new vector<unsigned short>;
+  if (!w_pmt_volt) w_pmt_volt = new vector<unsigned short>;
+  if (!v_brick_name[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_name[i] = new vector<string>; }
+  if (!v_brick_busa[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_busa[i] = new vector<int>; }
+  if (!v_brick_busb[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_busb[i] = new vector<int>; }
+  if (!v_brick_fgin[0]) { for (int i = 0; i < NBRICK; ++i) v_brick_fgin[i] = new vector<int>; }
 
   unsigned short richRunTag = richRunDflt; 
 
   static int run_prev = 0;
   static unsigned short richRunTag_prev; 
-  static vector<unsigned short> v_pmt_stat_prev, v_pmt_volt_prev;
+  static vector<unsigned short>* v_pmt_stat_prev = 0, *v_pmt_volt_prev = 0;
 #pragma omp threadprivate(run_prev,richRunTag_prev,v_pmt_stat_prev,v_pmt_volt_prev)
+  if (!v_pmt_stat_prev) v_pmt_stat_prev = new vector<unsigned short>;
+  if (!v_pmt_volt_prev) v_pmt_volt_prev = new vector<unsigned short>;
+
   if (init) {
 
     init = false;
 
-    w_pmt_stat.assign(NPMT, richRunDflt << 8 | richPmtDflt);
-    w_pmt_volt.assign(NPMT, richVltDflt);
+    w_pmt_stat->assign(NPMT, richRunDflt << 8 | richPmtDflt);
+    w_pmt_volt->assign(NPMT, richVltDflt);
 
-    v_pmt_stat = w_pmt_stat;
-    v_pmt_volt = w_pmt_volt;
+    v_pmt_stat = *w_pmt_stat;
+    v_pmt_volt = *w_pmt_volt;
 
     richRunTag_prev = richRunTag;
-    v_pmt_stat_prev = v_pmt_stat;
-    v_pmt_volt_prev = v_pmt_volt;
+    *v_pmt_stat_prev = v_pmt_stat;
+    *v_pmt_volt_prev = v_pmt_volt;
 
     TString TAGDir=currentDir+("/RichPMTCalib/");
 
@@ -1710,7 +1742,7 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
       char line[256];
       TString RunTagFileName;
 
-      m_tag[tag].clear();
+      m_tag[tag]->clear();
 
       RunTagFileName = TAGDir + TString(fName[tag]);
       if (verbosityLevel>0)
@@ -1727,13 +1759,13 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
 	istringstream ssline(sline);
 	int utime;
 	ssline >> utime;
-	m_tag[tag].insert(pair<int,string>(utime,sline));
+	m_tag[tag]->insert(pair<int,string>(utime,sline));
       }
 
       RunTagFile.close();
 
       if (verbosityLevel>0)
-	cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << m_tag[tag].size() << endl;
+	cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << m_tag[tag]->size() << endl;
       //for (it=m_tag[tag].begin(); it!=m_tag[tag].end(); it++)
       //cout << it->first << " : " << it->second << endl;
 
@@ -1754,10 +1786,10 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
     }
 
     for (brick=0; brick<NBRICK; brick++) {
-      v_brick_name[brick].assign(NSIDE, name);
-      v_brick_busa[brick].assign(NSIDE, -1);
-      v_brick_busb[brick].assign(NSIDE, -1);
-      v_brick_fgin[brick].assign(NSIDE, -1);
+      v_brick_name[brick]->assign(NSIDE, name);
+      v_brick_busa[brick]->assign(NSIDE, -1);
+      v_brick_busb[brick]->assign(NSIDE, -1);
+      v_brick_fgin[brick]->assign(NSIDE, -1);
     }
     int nbside = 0;
     while ( HVBrickMapFile >> brick >> side >> name >> busa >> busb >> fgin ) {
@@ -1765,10 +1797,10 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
 	cout << brick << " " << side << " " << name << " " << busa << " " << busb << " " << fgin << endl;
       if (brick<NBRICK && side<NSIDE) {
 	nbside++;
-	v_brick_name[brick][side] = name;
-	v_brick_busa[brick][side] = busa;
-	v_brick_busb[brick][side] = busb;
-	v_brick_fgin[brick][side] = fgin;
+	v_brick_name[brick]->at(side) = name;
+	v_brick_busa[brick]->at(side) = busa;
+	v_brick_busb[brick]->at(side) = busb;
+	v_brick_fgin[brick]->at(side) = fgin;
       }
 
     }
@@ -1791,25 +1823,25 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
   }
 
   if (run == run_prev) {
-    v_pmt_stat = v_pmt_stat_prev;
-    v_pmt_volt = v_pmt_volt_prev;
+    v_pmt_stat = *v_pmt_stat_prev;
+    v_pmt_volt = *v_pmt_volt_prev;
     return richRunTag_prev;
   }
 
-  v_pmt_stat = w_pmt_stat;
-  v_pmt_volt = w_pmt_volt;
+  v_pmt_stat = *w_pmt_stat;
+  v_pmt_volt = *w_pmt_volt;
 
   run_prev = run;
   richRunTag_prev = richRunTag;
-  v_pmt_stat_prev = v_pmt_stat;
-  v_pmt_volt_prev = v_pmt_volt;
+  *v_pmt_stat_prev = v_pmt_stat;
+  *v_pmt_volt_prev = v_pmt_volt;
 
   if (!initok) return richRunTag;
 
   // All stuff comes here ...
   for (int tag=0; tag<NTAG; tag++) {
 
-    it = m_tag[tag].upper_bound(run);
+    it = m_tag[tag]->upper_bound(run);
 
     //cout << run << " " << tag << " " << it->first << " " << it->first-run << endl;
 
@@ -1823,7 +1855,7 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
       }
       else {
 	richRunTag ^= (1<<kTagJ);
-        RichDecodeJ(it->second, v_brick_fgin, v_pmt_stat, v_pmt_volt);
+        RichDecodeJ(it->second, *v_brick_fgin, v_pmt_stat, v_pmt_volt);
       }
       break;
 
@@ -1833,7 +1865,7 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
 	break;
       else {
 	richRunTag ^= (1<<kTagJHK);
-        RichDecodeJHK(it->second, v_brick_busa, v_brick_busb, v_pmt_stat);
+        RichDecodeJHK(it->second, *v_brick_busa, *v_brick_busb, v_pmt_stat);
       }
       break;
 
@@ -1877,8 +1909,8 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
 
 
   richRunTag_prev = richRunTag;
-  v_pmt_stat_prev = v_pmt_stat;
-  v_pmt_volt_prev = v_pmt_volt;
+  *v_pmt_stat_prev = v_pmt_stat;
+  *v_pmt_volt_prev = v_pmt_volt;
 
   return richRunTag;
 
@@ -2102,7 +2134,7 @@ bool RichPMTCalib::ReadPmtDB() {
 
 
 bool RichPMTCalib::buildCorrections(){
-  if(AMSEventR::Head()->fHeader.Event==lastEvent && AMSEventR::Head()->fHeader.Run==lastRun) return true;
+  if(int(AMSEventR::Head()->fHeader.Event)==lastEvent && int(AMSEventR::Head()->fHeader.Run)==lastRun) return true;
   lastEvent=AMSEventR::Head()->fHeader.Event;
   lastRun=AMSEventR::Head()->fHeader.Run;
   RichPMTCalib *corr=RichPMTCalib::Update();

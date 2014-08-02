@@ -775,7 +775,7 @@ void AMSTRDTrack::StrLineFit(bool upd){
     const integer mp=40;
     number f,x[mp];
 #ifndef NO_NAG
-	numebr w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+	number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
 #endif
     number yy=0;
     number xx=0;

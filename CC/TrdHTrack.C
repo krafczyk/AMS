@@ -48,7 +48,7 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
 
 int TrdHTrackR::NTrdHSegment() {return fTrdHSegment.size();;}
 int TrdHTrackR::nTrdHSegment() {return fTrdHSegment.size();}
-int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<nTrdHSegment()?fTrdHSegment[i]:-1);}
+int TrdHTrackR::iTrdHSegment(unsigned int i){return (int(i)<nTrdHSegment()?fTrdHSegment[i]:-1);}
 
 TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){
   if(segments.size()<=i&&i<2){

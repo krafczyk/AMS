@@ -133,7 +133,7 @@ public:
   float ES1  (int i) const { return Ecell(i, 2); }
   float ES3  (int i) const { return Ecell(i, 1)+Ecell(i, 2)+Ecell(i, 3); }
 
-  bool    Chk(int i) const { return (0 <= i && i < _hid.size()); }
+  bool    Chk(int i) const { return (0 <= i && i < int(_hid.size())); }
   int     Hid(int i) const { return Chk(i) ? _hid.at(i) : -1; }
   int    Proj(int i) const { return Chk(i) ? Hid(i)%10  : -1; }
   int    Cell(int i) const { return Chk(i) ?(Hid(i)/10)    %100 : -1; }

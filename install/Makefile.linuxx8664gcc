@@ -169,11 +169,11 @@ endif
 
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
-CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC 
+CFLAGSB=  -Wall -Werror -Wno-unused-function -Wno-strict-aliasing -Wno-deprecated -Wno-write-strings  -fPIC 
 DEFINES+= -D__root_$(NEW) -D__X8664__
 
 ifdef AMSPARALLEL
-  CFLAGSB+= -D__AMSPARALLEL__ -openmp 
+  CFLAGSB+= -D__AMSPARALLEL__ -fopenmp 
 endif
 
 ifdef AMSPROFILE

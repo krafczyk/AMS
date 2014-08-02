@@ -3534,7 +3534,8 @@ void AMSEcalShower::ProfileFit(){
 #ifndef NO_NAG
     const integer lwc=1000;
     const integer liwc=lwc/4;
-    number ww[lwc],iww[liwc];
+    number ww[lwc];
+	integer iww[liwc];
 #endif
 	number bound,epsa,epsr,result=0;
     integer inf;
@@ -3606,7 +3607,8 @@ void AMSEcalShower::ProfileFit(){
 #ifndef NO_NAG     
     const integer lwc=1000;
     const integer liwc=lwc/4;
-	number abserr,ww[lwc],iww[liwc];
+	number abserr, ww[lwc];
+	integer iww[liwc];
     int liw=liwc;
     int lw=lwc;
     d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);

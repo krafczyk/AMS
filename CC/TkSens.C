@@ -489,14 +489,14 @@ AMSPoint TkSens::FindCloseSensorCenter(){
 
   float distM=9999;
   int sM=-1;
-  for (int ii=0;ii<csM.size();ii++){
+  for (unsigned int ii=0;ii<csM.size();ii++){
     float dd=fabs(oo[0]-csM[ii]);
     if( dd< distM) {distM=dd; sM=ii;}
   }
 
   float distP=9999;
   int sP=-1;
-  for (int ii=0;ii<csP.size();ii++){
+  for (unsigned int ii=0;ii<csP.size();ii++){
     float dd=fabs(oo[0]-csP[ii]);
     if( dd< distP) {distP=dd; sP=ii;}
   }

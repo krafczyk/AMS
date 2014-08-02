@@ -43,40 +43,32 @@ TofBetaPar TofRecH::betapar;
 AMSEventR *TofRecH::ev=0;
 int        TofRecH::realdata=1;
 //--Cluster
-vector<TofRawSideR>   TofRecH::tfraws;
+vector<TofRawSideR>*   TofRecH::tfraws = new vector<TofRawSideR>;
 #ifndef __ROOTSHAREDLIBRARY__
-vector<TOF2RawSide*>  TofRecH::tf2raws;
-  #pragma omp threadprivate (TofRecH::tf2raws)
+vector<TOF2RawSide*>*  TofRecH::tf2raws = new vector<TOF2RawSide*>;;
 #endif
   bool  TofRecH::RebuildBetaHInReadHeader=true;
 
-vector<TofClusterHR*> TofRecH::tofclh[4];
-  #pragma omp threadprivate (TofRecH::tofclh)
+vector<TofClusterHR*>* TofRecH::tofclh[4] = { new vector<TofClusterHR*>, new vector<TofClusterHR*>, new vector<TofClusterHR*>, new vector<TofClusterHR*> };
 
-vector<pair <TofClusterHR*,TofClusterHR* > > TofRecH::tofclp[2];
-  #pragma omp threadprivate (TofRecH::tofclp)
+vector<pair <TofClusterHR*,TofClusterHR* > >* TofRecH::tofclp[2] = { new vector<pair <TofClusterHR*,TofClusterHR* > >, new vector<pair <TofClusterHR*,TofClusterHR* > > };
  
-vector<pair <TofClusterHR*,TofClusterHR* > > TofRecH::tofclc[2];
-  #pragma omp threadprivate (TofRecH::tofclc)
+vector<pair <TofClusterHR*,TofClusterHR* > >* TofRecH::tofclc[2] = { new vector<pair <TofClusterHR*,TofClusterHR* > >, new vector<pair <TofClusterHR*,TofClusterHR* > > };
 
 //--Track
-vector<TrTrackR*>     TofRecH::track;
-  #pragma omp threadprivate ( TofRecH::track)
+vector<TrTrackR*>*     TofRecH::track = new vector<TrTrackR*>;
 #ifndef __ROOTSHAREDLIBRARY__
-vector<AMSTrTrack*>   TofRecH::amstrack;
-  #pragma omp threadprivate ( TofRecH::amstrack)
+vector<AMSTrTrack*>*   TofRecH::amstrack = new vector<AMSTrTrack*>;
 #endif
 
-vector<TrdTrackR>   TofRecH::trdtrack;
+vector<TrdTrackR>*   TofRecH::trdtrack = new vector<TrdTrackR>;
 #ifndef __ROOTSHAREDLIBRARY__
-vector<AMSTRDTrack*> TofRecH::amstrdtrack;
-  #pragma omp threadprivate (TofRecH::amstrdtrack)
+vector<AMSTRDTrack*>* TofRecH::amstrdtrack = new vector<AMSTRDTrack*>;
 #endif
 
-vector<EcalShowerR>   TofRecH::ecalshow;
+vector<EcalShowerR>*   TofRecH::ecalshow = new vector<EcalShowerR>;
 #ifndef __ROOTSHAREDLIBRARY__
-vector<AMSEcalShower*> TofRecH::amsecalshow;
-  #pragma omp threadprivate (TofRecH::amsecalshow)
+vector<AMSEcalShower*>* TofRecH::amsecalshow = new vector<AMSECalShower*>;
 #endif
 
 TF1  *TofRecH::BirkFun=0;
@@ -101,16 +93,14 @@ int TofRecH::Init(){
   static int nerr=0;
 //---
   int tdvstat=0;
-  unsigned int time,trun;
+  unsigned int trun;
 //----Initial TDV
 #ifndef __ROOTSHAREDLIBRARY__
   realdata=AMSJob::gethead()->isRealData();
-  time=AMSEvent::gethead()->gettime();
   trun=AMSEvent::gethead()->getrun();
 #else
   ev=AMSEventR::Head();
   realdata=(ev->nMCEventg()==0)?1:0;
-  time=ev->UTime();
   trun=ev->Run();
 //--Adding Protection for MC
   if(realdata==0){
@@ -131,24 +121,24 @@ int TofRecH::Init(){
 
 //========================================================
 int TofRecH::ClearBuildTofClH(){
-   tfraws.clear();
+   tfraws->clear();
 #ifndef __ROOTSHAREDLIBRARY__
-   tf2raws.clear();
+   tf2raws->clear();
 #endif   
   return 0;
 }
 
 //========================================================
 int TofRecH::ClearBuildBetaH(){
-    for(int ilay=0;ilay<4;ilay++)tofclh[ilay].clear();
-    for(int iud=0;iud<2;iud++){tofclp[iud].clear();tofclc[iud].clear();}
-    track.clear();
-    trdtrack.clear();
-    ecalshow.clear();
+    for(int ilay=0;ilay<4;ilay++)tofclh[ilay]->clear();
+    for(int iud=0;iud<2;iud++){tofclp[iud]->clear();tofclc[iud]->clear();}
+    track->clear();
+    trdtrack->clear();
+    ecalshow->clear();
 #ifndef __ROOTSHAREDLIBRARY__
-    amstrack.clear();
-    amstrdtrack.clear();
-    amsecalshow.clear();
+    amstrack->clear();
+    amstrdtrack->clear();
+    amsecalshow->clear();
 #endif
    return 0;
 }
@@ -187,22 +177,22 @@ int TofRecH::BuildTofClusterH(){
 #else
     cont->eraseC();
     vector<pair <integer,integer > >sideid;
-    tfraws=ev->TofRawSide();
-    for(int i=0;i<tfraws.size();i++){
-      sideid.push_back(make_pair<integer,integer>(i,tfraws.at(i).swid));
+    *tfraws=ev->TofRawSide();
+    for(unsigned int i=0;i<tfraws->size();i++){
+      sideid.push_back(make_pair<integer,integer>(i,tfraws->at(i).swid));
     }
 //--increase id
-    sort(tfraws.begin(),tfraws.end(),SideCompare);
+    sort(tfraws->begin(),tfraws->end(),SideCompare);
     sort(sideid.begin(),sideid.end(),IdCompare<integer>);
     TofRawSideR *tfhraws[2]={0};
 #endif  
 //-----  
-  for(int i=0;i<tfraws.size();i++){
-     idd=tfraws.at(i).swid;
+  for(unsigned int i=0;i<tfraws->size();i++){
+     idd=tfraws->at(i).swid;
      il=idd/10/100-1;
      ib=idd/10%100-1;
      is=idd%10-1;
-     stat[is]=tfraws[i].stat;
+     stat[is]=tfraws->at(i).stat;
      if(stat[is]%10!=0)continue;//validation status(FTtime is required)
 #ifndef __ROOTSHAREDLIBRARY__
     if(!TOF2Brcal::scbrcal[il][ib].SideOK(is)||!TOFBPeds::scbrped[il][ib].PedAchOK(is)){continue;}
@@ -212,13 +202,13 @@ int TofRecH::BuildTofClusterH(){
 #endif
 
 //--already check get data
-     TofSideRec(&tfraws[i],adca[is],nadcd[is],adcd[is],sdtm[is],sstatus[is],ltdcw[is],htdcw[is],shtdcw[is]);
+     TofSideRec(&tfraws->at(i),adca[is],nadcd[is],adcd[is],sdtm[is],sstatus[is],ltdcw[is],htdcw[is],shtdcw[is]);
      if(TOFGeom::Npmt[il][ib]==2&&adcd[is][TOFGeom::Npmt[il][ib]]>0){
         cerr<<"<<---Error Dynode Non Exist PMT-ADC>0"<<endl;adcd[is][TOFGeom::Npmt[il][ib]]=0;
      }
 
 //--different LBB// combine to one bar
-     if((i==tfraws.size()-1)||(tfraws[i+1].swid/10!=tfraws[i].swid/10)){
+     if((i==tfraws->size()-1)||(tfraws->at(i+1).swid/10!=tfraws->at(i).swid/10)){
         idsoft=il*1000+ib*100;
         if(((sstatus[0]&TOFDBcN::BAD)>0)||(tfhraws[0]==0))status|=TOFDBcN::BADN;
         else                                            pattern|=TOFDBcN::SIDEN;
@@ -440,7 +430,7 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
          number minhldt=FLT_MAX,dt=0;
           //----if no HT and no SHT try to narrow
          if((htdcw.size()==0)&&(shtdcw.size()==0)){
-           for(i=0;i<ltdcw.size();i++){//tight guide
+           for(i=0;i<int(ltdcw.size());i++){//tight guide
              dt=ltdcw[i]-(TofRecPar::FTgate2[0]+TofRecPar::FTgate2[1])/2.;//using TF MPV gate to choose
              if(fabs(dt)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt);}
              if((ltdcw[i]>TofRecPar::FTgate2[0])&&(ltdcw[i]<TofRecPar::FTgate2[1])){ltok++;}
@@ -452,8 +442,8 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
         else {
          //---First using ht match
          if(htdcw.size()>0){
-           for(i=0;i<ltdcw.size();i++){//real impossible two LT match HT due to 30ns LT lock
-              for(j=0;j<htdcw.size();j++){//With self associate j
+           for(i=0;i<int(ltdcw.size());i++){//real impossible two LT match HT due to 30ns LT lock
+              for(j=0;j<int(htdcw.size());j++){//With self associate j
                 dt=ltdcw[i]-htdcw[j];//lt must >ht time
                 if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
                 if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ltok++;}//find LT should match in window
@@ -462,8 +452,8 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
           }
          //---Otherwise try using sht
           if((!ltok)&&(shtdcw.size()>0)){
-           for(i=0;i<ltdcw.size();i++){//to find LT should match in windows
-              for(j=0;j<shtdcw.size();j++)     
+           for(i=0;i<int(ltdcw.size());i++){//to find LT should match in windows
+              for(j=0;j<int(shtdcw.size());j++)     
                 dt=ltdcw[i]-shtdcw[j];//lt must >sht time 
                 if(fabs(dt-TofRecPar::LHMPV)<minhldt){sdtm=ltdcw[i];minhldt=fabs(dt-TofRecPar::LHMPV);}
                 if((dt>TofRecPar::LHgate[0])&&(dt<TofRecPar::LHgate[1])){ ltok++;}
@@ -487,10 +477,10 @@ int TofRecH::LTRefind(int idsoft,number trlcoo,number sdtm[2],number adca[2],uin
     uinteger ustatus=0;
 
 //--search by mindis
-    for(int i=0;i<ltdcw[0].size();i++){//side0
+    for(unsigned int i=0;i<ltdcw[0].size();i++){//side0
       sdtm1[0]=ltdcw[0].at(i);
 
-      for(int j=0;j<ltdcw[1].size();j++){//side1
+      for(unsigned int j=0;j<ltdcw[1].size();j++){//side1
         sdtm1[1]=ltdcw[1].at(j);
         ustatus=0; 
         TimeCooRec(idsoft,sdtm1,adca,tms,tm,etm,lcoo,elcoo,ustatus);
@@ -1189,10 +1179,10 @@ int TofRecH::BuildBetaH(int verse){
     if (cont){
        for (int itr=0;itr<cont->getnelem();itr++){
          TrTrackR* tr=(TrTrackR*) cont->getelem(itr);
-         track.push_back(tr);
+         track->push_back(tr);
        }
     }
-   ntracks=track.size();
+   ntracks=track->size();
    delete cont;
 
 //--V4 Part
@@ -1200,10 +1190,10 @@ int TofRecH::BuildBetaH(int verse){
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTrTrack  *ptrack= (AMSTrTrack*)  AMSEvent::gethead()->getheadC("AMSTrTrack",0);
     while (ptrack){
-       amstrack.push_back(ptrack);
+       amstrack->push_back(ptrack);
        ptrack=ptrack->next();
     }
-    ntracks=amstrack.size();
+    ntracks=amstrack->size();
 #else 
 //---V4.00 root mode no interpolate
    return -1;
@@ -1214,24 +1204,24 @@ int TofRecH::BuildBetaH(int verse){
 #ifndef __ROOTSHAREDLIBRARY__
    AMSTRDTrack *ptrackT=(AMSTRDTrack *)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1);
    while(ptrackT){ 
-      trdtrack.push_back(TrdTrackR(ptrackT));
-      amstrdtrack.push_back(ptrackT);
+      trdtrack->push_back(TrdTrackR(ptrackT));
+      amstrdtrack->push_back(ptrackT);
       ptrackT=ptrackT->next();
    }
 #else
-   trdtrack=ev->TrdTrack();
+   *trdtrack=ev->TrdTrack();
 #endif
 
 //----Then Ecal
 #ifndef __ROOTSHAREDLIBRARY__
       AMSEcalShower * pecalshow=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,1);
       while(pecalshow){
-        ecalshow.push_back(EcalShowerR(pecalshow));
-        amsecalshow.push_back(pecalshow);
+        ecalshow->push_back(EcalShowerR(pecalshow));
+        amsecalshow->push_back(pecalshow);
         pecalshow=pecalshow->next();
       }
 #else
-     ecalshow=ev->EcalShower();
+     *ecalshow=ev->EcalShower();
 #endif
 
 
@@ -1239,7 +1229,7 @@ int TofRecH::BuildBetaH(int verse){
     cont = GetVCon()->GetCont("AMSTOFClusterH");
     for(i=0;i<cont->getnelem();i++){
        TofClusterHR *tofhit=(TofClusterHR *)cont->getelem(i);
-       tofclh[tofhit->Layer].push_back(tofhit);
+       tofclh[tofhit->Layer]->push_back(tofhit);
     }
    delete cont;
 //----   
@@ -1259,24 +1249,24 @@ tktrdf:
 //---Not Use Track+TRD
      if(BuildOpt==2)break;
 //---if trdtrack
-     if     (iktr==0){ntracks=track.size();}
-     else if(iktr==1){ntracks=trdtrack.size();}
+     if     (iktr==0){ntracks=track->size();}
+     else if(iktr==1){ntracks=trdtrack->size();}
 //----
      for(int itr=0;itr<ntracks;itr++){
        uinteger status=(iktr==0)?(TOFDBcN::TKTRACK):(TOFDBcN::TRDTRACK);
        if(tktrdflag!=0)status|=(iktr==0)?(TOFDBcN::TKTRACK2):(TOFDBcN::TRDTRACK2);
 #if defined (_PGTRACK_) || defined (__ROOTSHAREDLIBRARY__)
        TrTrackR *ptrack;  TrTrackR *usetr=0;
-       if(iktr==0){ptrack=track.at(itr);usetr=ptrack;}
+       if(iktr==0){ptrack=track->at(itr);usetr=ptrack;}
 #if defined (_PGTRACK_)
-       else        ptrack=new TrTrackR(number(trdtrack.at(itr).Theta),number(trdtrack.at(itr).Phi),AMSPoint(trdtrack.at(itr).Coo));
+       else        ptrack=new TrTrackR(number(trdtrack->at(itr).Theta),number(trdtrack->at(itr).Phi),AMSPoint(trdtrack->at(itr).Coo));
 #else
        else        return -1;
 #endif
 #else
        AMSTrTrack *ptrack; AMSTrTrack *usetr=0;
-       if(iktr==0){ptrack=amstrack.at(itr);usetr=ptrack;}
-       else        ptrack=new AMSTrTrack(number(trdtrack.at(itr).Theta),number(trdtrack.at(itr).Phi),AMSPoint(trdtrack.at(itr).Coo));
+       if(iktr==0){ptrack=amstrack->at(itr);usetr=ptrack;}
+       else        ptrack=new AMSTrTrack(number(trdtrack->at(itr).Theta),number(trdtrack->at(itr).Phi),AMSPoint(trdtrack->at(itr).Coo));
 #endif
 
 //----
@@ -1285,7 +1275,7 @@ tktrdf:
       if(iktr==1)usetrd=ev->pTrdTrack(itr);
 #else
       AMSTRDTrack *usetrd=0;AMSEcalShower *useshow=0;
-      if(iktr==1)usetrd=amstrdtrack.at(itr);
+      if(iktr==1)usetrd=amstrdtrack->at(itr);
 #endif
 //--- 
          TofClusterHR *phit[4]={0}; int pattern[4]={0};number len[4]={0},tklcoo[4]={0},tkcosz[4]={1.,1.,1.,1.},cres[4][2]={{0}};
@@ -1379,20 +1369,20 @@ tktrdf:
   
   if(found==0&&(npairu>=1||npaird>=1)){   
 ///---If EcalShower
-    if((ecalshow.size()>0)&&(!(BuildOpt>=10&&(BuildOpt/100%10==0)))){
+    if((ecalshow->size()>0)&&(!(BuildOpt>=10&&(BuildOpt/100%10==0)))){
        number cooshow[3];
-       for(int ish=0;ish<ecalshow.size();ish++){
-         if(ecalshow.at(ish).Entry[2]>ecalshow.at(ish).Exit[2]){
-           cooshow[0]=ecalshow.at(ish).Entry[0];
-           cooshow[1]=ecalshow.at(ish).Entry[1];
-           cooshow[2]=ecalshow.at(ish).Entry[2];
+       for(unsigned int ish=0;ish<ecalshow->size();ish++){
+         if(ecalshow->at(ish).Entry[2]>ecalshow->at(ish).Exit[2]){
+           cooshow[0]=ecalshow->at(ish).Entry[0];
+           cooshow[1]=ecalshow->at(ish).Entry[1];
+           cooshow[2]=ecalshow->at(ish).Entry[2];
          }
          else {
-           cooshow[0]=ecalshow.at(ish).Exit[0];
-           cooshow[1]=ecalshow.at(ish).Exit[1];
-           cooshow[2]=ecalshow.at(ish).Exit[2];
+           cooshow[0]=ecalshow->at(ish).Exit[0];
+           cooshow[1]=ecalshow->at(ish).Exit[1];
+           cooshow[2]=ecalshow->at(ish).Exit[2];
          }
-         AMSDir showdir(ecalshow.at(ish).Dir);
+         AMSDir showdir(ecalshow->at(ish).Dir);
 //-----Build Up+Down
          TofClusterHR *tfhitu[2]={0},*tfhitd[2]={0};
          TOFPairPreSel(0,cooshow,showdir,TofRecPar::TFEcalAMatch);
@@ -1409,7 +1399,7 @@ tktrdf:
          TofTrackFit(phit,betapar,1,1); //
          betapar.Status|=TOFDBcN::ECALTRACK;
 #ifndef __ROOTSHAREDLIBRARY__
-         AMSTrTrack *usetr=0; AMSTRDTrack *usetrd=0; AMSEcalShower *useshow=amsecalshow.at(ish);
+         AMSTrTrack *usetr=0; AMSTRDTrack *usetrd=0; AMSEcalShower *useshow=amsecalshow->at(ish);
          cont->addnext(new AMSBetaH(phit,dynamic_cast<AMSTrTrack *>(usetr),usetrd,useshow,betapar));
 #else
          TrTrackR *usetr=0; TrdTrackR *usetrd=0; EcalShowerR *useshow=ev->pEcalShower(ish);
@@ -1426,19 +1416,19 @@ tktrdf:
 ///---Dump Track Tof Self Reconstruction
     if(found==0&&(!(BuildOpt>=10&&(BuildOpt/10%10==0)))){
 //--Pair+Pair
-       for(int iclu=0;iclu<tofclp[0].size();iclu++){
+       for(unsigned int iclu=0;iclu<tofclp[0]->size();iclu++){
 
 //----Up Search Down
-         int bestdid=PairSearchUD(tofclp[0].at(iclu),0,0);
+         int bestdid=PairSearchUD(tofclp[0]->at(iclu),0,0);
          if(bestdid<0)continue;
 
 //----Down Search Up again to see if up is the same best match
-         int bestuid=PairSearchUD(tofclp[1].at(bestdid),1,0);
-         if(bestuid!=iclu)continue;
+         int bestuid=PairSearchUD(tofclp[1]->at(bestdid),1,0);
+         if(bestuid!=int(iclu))continue;
 //---
          TofClusterHR *phit[4]={0};
-         phit[0]=tofclp[0].at(iclu).first;    phit[1]=tofclp[0].at(iclu).second;
-         phit[2]=tofclp[1].at(bestdid).first; phit[3]=tofclp[1].at(bestdid).second;
+         phit[0]=tofclp[0]->at(iclu).first;    phit[1]=tofclp[0]->at(iclu).second;
+         phit[2]=tofclp[1]->at(bestdid).first; phit[3]=tofclp[1]->at(bestdid).second;
          betapar.Init();
          TofTrackFit(phit,betapar,1,1);
          betapar.Status|=TOFDBcN::TOFTRACK;
@@ -1456,21 +1446,21 @@ tktrdf:
        }//loop1
 
 //----Pair+1Counter
-      if(found==0&&(tofclp[0].size()>=1||tofclp[1].size()>=1)){
+      if(found==0&&(tofclp[0]->size()>=1||tofclp[1]->size()>=1)){
 //---
        for(int iud=0;iud<2;iud++){
 //---sort by Time
-         if(tofclp[iud].size()==0)continue;
-         sort(tofclp[iud].begin(),tofclp[iud].end(),PairCompare);
+         if(tofclp[iud]->size()==0)continue;
+         sort(tofclp[iud]->begin(),tofclp[iud]->end(),PairCompare);
 //---best Pair+1Layer
-         for(int icl=0;icl<tofclp[iud].size();icl++){
-           int bestdid=PairSearchUD(tofclp[iud].at(icl),iud,1);
+         for(unsigned int icl=0;icl<tofclp[iud]->size();icl++){
+           int bestdid=PairSearchUD(tofclp[iud]->at(icl),iud,1);
            if(bestdid<0)continue;
 
 //--found+prepare
            TofClusterHR *phit[4]={0};
-           phit[iud*2]=tofclp[iud].at(icl).first;    phit[iud*2+1]=tofclp[iud].at(icl).second;
-           phit[bestdid/1000]=tofclh[bestdid/1000].at(bestdid%1000); 
+           phit[iud*2]=tofclp[iud]->at(icl).first;    phit[iud*2+1]=tofclp[iud]->at(icl).second;
+           phit[bestdid/1000]=tofclh[bestdid/1000]->at(bestdid%1000); 
            betapar.Init();
            TofTrackFit(phit,betapar,1,1);
            betapar.Status|=TOFDBcN::TOFTRACK;
@@ -1518,9 +1508,9 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
 
 ///--First search
     vector<pair <integer,number> >fbarid;
-    for(int i=0;i<tofclh[ilay].size();i++){
-       AMSPoint tfcoo (tofclh[ilay].at(i)->Coo);
-       nowbar=         tofclh[ilay].at(i)->Bar;
+    for(unsigned int i=0;i<tofclh[ilay]->size();i++){
+       AMSPoint tfcoo (tofclh[ilay]->at(i)->Coo);
+       nowbar=         tofclh[ilay]->at(i)->Bar;
 //---Intepolate 
        AMSDir tkdir(0,0,1);AMSPoint tkcoo;   
 #if defined (_PGTRACK_) || ! defined (__ROOTSHAREDLIBRARY__)
@@ -1549,14 +1539,14 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
         }
 //---
         if(transcut){
-          AMSPoint tfcoo (tofclh[ilay].at(ib)->Coo);
-          nowbar=         tofclh[ilay].at(ib)->Bar;
-          tfhstat=        tofclh[ilay].at(ib)->Status;
-          npattern=       tofclh[ilay].at(ib)->Pattern%10;
+          AMSPoint tfcoo (tofclh[ilay]->at(ib)->Coo);
+          nowbar=         tofclh[ilay]->at(ib)->Bar;
+          tfhstat=        tofclh[ilay]->at(ib)->Status;
+          npattern=       tofclh[ilay]->at(ib)->Pattern%10;
           if(ib==0)                    prebar=-1000;
-          else                         prebar=tofclh[ilay].at(ib-1)->Bar;
-          if(ib==tofclh[ilay].size()-1)nextbar=-1000;
-          else                         nextbar=tofclh[ilay].at(ib+1)->Bar;
+          else                         prebar=tofclh[ilay]->at(ib-1)->Bar;
+          if(ib==int(tofclh[ilay]->size())-1)nextbar=-1000;
+          else                         nextbar=tofclh[ilay]->at(ib+1)->Bar;
 //---Intepolate 
           AMSDir tkdir(0,0,1);AMSPoint tkcoo;
 #if defined (_PGTRACK_) || ! defined (__ROOTSHAREDLIBRARY__)
@@ -1565,7 +1555,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
           return -1;
 #endif
 //---
-          (*tfhit)=tofclh[ilay].at(ib);
+          (*tfhit)=tofclh[ilay]->at(ib);
           tklen=sleng;
           tklcoo=tkcoo[1-iscoo]; tkcosz=cos(theta);//tkcosz=fabs(tkdir[2]);
           pattern=npattern;
@@ -1580,7 +1570,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
         }
     }
      
-   pattern+=1000*tofclh[ilay].size();
+   pattern+=1000*tofclh[ilay]->size();
 
    return 0;
 }
@@ -1640,9 +1630,9 @@ int TofRecH::TOFPairSel(int ud,TofClusterHR* tfhit[2]){
 
     int candid=-1,qmaxid=-1,tminid=-1;//
     number qmax[2]={0.},tmin=FLT_MAX;
-    for(int icl=0;icl<tofclc[ud].size();icl++){//Up part
-       TofClusterHR *cl0=tofclc[ud].at(icl).first;
-       TofClusterHR *cl1=tofclc[ud].at(icl).second;
+    for(unsigned int icl=0;icl<tofclc[ud]->size();icl++){//Up part
+       TofClusterHR *cl0=tofclc[ud]->at(icl).first;
+       TofClusterHR *cl1=tofclc[ud]->at(icl).second;
 ///--Find Emax
        if(cl0->GetQSignal(-1)+cl1->GetQSignal(-1)>qmax[0]){
          qmaxid=icl;
@@ -1658,7 +1648,7 @@ int TofRecH::TOFPairSel(int ud,TofClusterHR* tfhit[2]){
      if(qmaxid>=0){
        if(qmax[1]<=0||qmax[0]<0||(qmax[0]/qmax[1]>TofRecPar::PairQRgate))candid=qmaxid;  //Ion Case
        else candid=tminid;//Back Spalish suppression
-       tfhit[0]=tofclc[ud].at(candid).first; tfhit[1]=tofclc[ud].at(candid).second;
+       tfhit[0]=tofclc[ud]->at(candid).first; tfhit[1]=tofclc[ud]->at(candid).second;
      }
    return 0;
 }
@@ -1666,19 +1656,19 @@ int TofRecH::TOFPairSel(int ud,TofClusterHR* tfhit[2]){
 //=======================================================
 int  TofRecH::TOFPairPreSel(int ud,number coref[],AMSDir diref,number cutangle){
 
-    tofclc[ud].clear();
+    tofclc[ud]->clear();
 ///---
     number cop[3],disa;//pair coo
-    for(int iclp=0;iclp<tofclp[ud].size();iclp++){//Up part
-       TofClusterHR *cl0=tofclp[ud].at(iclp).first;
-       TofClusterHR *cl1=tofclp[ud].at(iclp).second;
+    for(unsigned int iclp=0;iclp<tofclp[ud]->size();iclp++){//Up part
+       TofClusterHR *cl0=tofclp[ud]->at(iclp).first;
+       TofClusterHR *cl1=tofclp[ud]->at(iclp).second;
        cop[cl0->GetDirection()]= cl0->Coo[cl0->GetDirection()];
        cop[cl1->GetDirection()]= cl1->Coo[cl1->GetDirection()];
        cop[2]=(cl0->Coo[2]+cl1->Coo[2])/2.;
        AMSDir dirnew=AMSDir(cop[0]-coref[0],cop[1]-coref[1],cop[2]-coref[2]);
        disa=fabs(dirnew.prod(diref));
        disa=acos(disa)*180./3.1415926;
-       if(disa<cutangle){tofclc[ud].push_back(tofclp[ud].at(iclp));}
+       if(disa<cutangle){tofclc[ud]->push_back(tofclp[ud]->at(iclp));}
    }
    return 0;
 }
@@ -1695,19 +1685,19 @@ int TofRecH::EcalSearchD(TofClusterHR* tfhitu[2], TofClusterHR* tfhitd[2],number
 ///--Dir
    AMSDir dirnew=AMSDir(cop[0]-cooshow[0],cop[1]-cooshow[1],cop[2]-cooshow[2]);
    for(int ilay=2;ilay<4;ilay++){
-      for(int i=0;i<tofclh[ilay].size();i++){
-         if(!(tofclh[ilay].at(i)->IsGoodSide(0))||!(tofclh[ilay].at(i)->IsGoodSide(1)))continue;
-         AMSPoint tfcoo (tofclh[ilay].at(i)->Coo);
+      for(unsigned int i=0;i<tofclh[ilay]->size();i++){
+         if(!(tofclh[ilay]->at(i)->IsGoodSide(0))||!(tofclh[ilay]->at(i)->IsGoodSide(1)))continue;
+         AMSPoint tfcoo (tofclh[ilay]->at(i)->Coo);
          coodis[0]=dirnew[0]/dirnew[2]*(tfcoo[2]-cooshow[2])+cooshow[0]-tfcoo[0];
          coodis[1]=dirnew[1]/dirnew[2]*(tfcoo[2]-cooshow[2])+cooshow[1]-tfcoo[1];
 //---Coo Match
          if(fabs(coodis[TOFGeom::Proj[ilay]])>TofRecPar::PairLSMatch)continue;//Project
-         if(fabs(coodis[1-TOFGeom::Proj[ilay]])>tofclh[ilay].at(i)->GetBarWidth())continue;
+         if(fabs(coodis[1-TOFGeom::Proj[ilay]])>tofclh[ilay]->at(i)->GetBarWidth())continue;
 ///---TMatch
-         tmatch[0]=tofclh[ilay].at(i)->Time-timeup<((cop[2]-tfcoo[2])*1.414/(TofRecPar::NonTkBetaCutL*cvel)+TofRecPar::PairTMatch);
-         tmatch[1]=tofclh[ilay].at(i)->Time-timeup>((cop[2]-tfcoo[2])/(TofRecPar::NonTkBetaCutU*cvel)-TofRecPar::PairTMatch);
+         tmatch[0]=tofclh[ilay]->at(i)->Time-timeup<((cop[2]-tfcoo[2])*1.414/(TofRecPar::NonTkBetaCutL*cvel)+TofRecPar::PairTMatch);
+         tmatch[1]=tofclh[ilay]->at(i)->Time-timeup>((cop[2]-tfcoo[2])/(TofRecPar::NonTkBetaCutU*cvel)-TofRecPar::PairTMatch);
          if(!(tmatch[0]&&tmatch[1]))continue;//time match windows
-         if(tofclh[ilay].at(i)->Time<tmind[ilay-2]){tmind[ilay-2]=tofclh[ilay].at(i)->Time;tfhitd[ilay-2]=tofclh[ilay].at(i);}
+         if(tofclh[ilay]->at(i)->Time<tmind[ilay-2]){tmind[ilay-2]=tofclh[ilay]->at(i)->Time;tfhitd[ilay-2]=tofclh[ilay]->at(i);}
        }
     }
    return 0;
@@ -1721,7 +1711,7 @@ int TofRecH::TofTrackFit(TofClusterHR *tfhit[4],TofBetaPar &par,int attrefit,int
    
 ///--Get Par
    for(int ilay=0;ilay<4;ilay++){
-     pattern[ilay]=1000*tofclh[ilay].size();
+     pattern[ilay]=1000*tofclh[ilay]->size();
      if(tfhit[ilay]==0)continue;
      coo[0][nhits]= tfhit[ilay]->Coo[0];
      coo[1][nhits]= tfhit[ilay]->Coo[1];
@@ -1732,10 +1722,10 @@ int TofRecH::TofTrackFit(TofClusterHR *tfhit[4],TofBetaPar &par,int attrefit,int
      hitl[nhits]=ilay;
      pattern[ilay]+=4;
 //--fill to par
-     for(int i=0;i<tofclh[ilay].size();i++){
-       if(tofclh[ilay].at(i)==tfhit[ilay]){
-        if(i!=0)                    {pattern[ilay]+=(tfhit[ilay]->Bar-tofclh[ilay].at(i-1)->Bar)*100;}
-        if(i!=tofclh[ilay].size()-1){pattern[ilay]+=(tofclh[ilay].at(i+1)->Bar-tfhit[ilay]->Bar)*10;}
+     for(unsigned int i=0;i<tofclh[ilay]->size();i++){
+       if(tofclh[ilay]->at(i)==tfhit[ilay]){
+        if(i!=0)                    {pattern[ilay]+=(tfhit[ilay]->Bar-tofclh[ilay]->at(i-1)->Bar)*100;}
+        if(i!=tofclh[ilay]->size()-1){pattern[ilay]+=(tofclh[ilay]->at(i+1)->Bar-tfhit[ilay]->Bar)*10;}
       }
      }
 //----
@@ -1793,33 +1783,33 @@ int TofRecH::TOFClMakePair(int il0,int il1,int isdown){
    number q0,q1,dco[3];
    bool   ematch,cmatch[2],tmatch;
 ///--one layer
-   for(int i=0;i<tofclh[il0].size();i++){
-       if(!(tofclh[il0].at(i)->IsGoodSide(0))||!(tofclh[il0].at(i)->IsGoodSide(1)))continue;
-       q0=tofclh[il0].at(i)->GetQSignal(-1);
+   for(unsigned int i=0;i<tofclh[il0]->size();i++){
+       if(!(tofclh[il0]->at(i)->IsGoodSide(0))||!(tofclh[il0]->at(i)->IsGoodSide(1)))continue;
+       q0=tofclh[il0]->at(i)->GetQSignal(-1);
 ///--other laye
-       for(int j=0;j<tofclh[il1].size();j++){
-         if(!(tofclh[il1].at(j)->IsGoodSide(0))||!(tofclh[il1].at(j)->IsGoodSide(1)))continue;
-         q1=tofclh[il1].at(j)->GetQSignal(-1); 
+       for(unsigned int j=0;j<tofclh[il1]->size();j++){
+         if(!(tofclh[il1]->at(j)->IsGoodSide(0))||!(tofclh[il1]->at(j)->IsGoodSide(1)))continue;
+         q1=tofclh[il1]->at(j)->GetQSignal(-1); 
 //--qgate cut  0
          if(q0<TofRecPar::PairQgate||q1<TofRecPar::PairQgate)continue;
 //--qmatch cut 1
          ematch=(q1/q0<TofRecPar::PairQRgate&&q0/q1<TofRecPar::PairQRgate);
          if(!ematch)continue;
 //--coo match cut ilay0 Lcoo- ilay1 Scoo
-         dco[0]=tofclh[il0].at(i)->Coo[TOFGeom::Proj[il0]]-tofclh[il1].at(j)->Coo[TOFGeom::Proj[il0]];//lay0 lcoo -lay1 scoo <lay1 offset
-         dco[1]=tofclh[il1].at(j)->Coo[TOFGeom::Proj[il1]]-tofclh[il0].at(i)->Coo[TOFGeom::Proj[il1]]; //lay1 lcoo- lay0 scoo <lay0 offset
-         dco[2]=tofclh[il0].at(i)->Coo[2]-tofclh[il1].at(j)->Coo[2];
-         cmatch[0]=(fabs(dco[0])<tofclh[il1].at(j)->GetBarWidth()/2.+TofRecPar::PairLSMatch+fabs(dco[2]));//45 degree
-         cmatch[1]=(fabs(dco[1])<tofclh[il0].at(i)->GetBarWidth()/2.+TofRecPar::PairLSMatch+fabs(dco[2]));
+         dco[0]=tofclh[il0]->at(i)->Coo[TOFGeom::Proj[il0]]-tofclh[il1]->at(j)->Coo[TOFGeom::Proj[il0]];//lay0 lcoo -lay1 scoo <lay1 offset
+         dco[1]=tofclh[il1]->at(j)->Coo[TOFGeom::Proj[il1]]-tofclh[il0]->at(i)->Coo[TOFGeom::Proj[il1]]; //lay1 lcoo- lay0 scoo <lay0 offset
+         dco[2]=tofclh[il0]->at(i)->Coo[2]-tofclh[il1]->at(j)->Coo[2];
+         cmatch[0]=(fabs(dco[0])<tofclh[il1]->at(j)->GetBarWidth()/2.+TofRecPar::PairLSMatch+fabs(dco[2]));//45 degree
+         cmatch[1]=(fabs(dco[1])<tofclh[il0]->at(i)->GetBarWidth()/2.+TofRecPar::PairLSMatch+fabs(dco[2]));
          if(!cmatch[0]||!cmatch[1])continue;
 //---time match cut
-         tmatch=fabs(tofclh[il0].at(i)->Time-tofclh[il1].at(j)->Time)<(fabs(dco[2])*1.414/(TofRecPar::NonTkBetaCutL*cvel)+TofRecPar::PairTMatch);//45degree 0.3c slow
+         tmatch=fabs(tofclh[il0]->at(i)->Time-tofclh[il1]->at(j)->Time)<(fabs(dco[2])*1.414/(TofRecPar::NonTkBetaCutL*cvel)+TofRecPar::PairTMatch);//45degree 0.3c slow
          if(!tmatch)continue;
-         tofclp[isdown].push_back(make_pair<TofClusterHR*,TofClusterHR*>(tofclh[il0].at(i),tofclh[il1].at(j)));
+         tofclp[isdown]->push_back(make_pair<TofClusterHR*,TofClusterHR*>(tofclh[il0]->at(i),tofclh[il1]->at(j)));
     }
   }
 
-  return tofclp[isdown].size(); 
+  return tofclp[isdown]->size(); 
 }
 
 
@@ -1859,15 +1849,15 @@ int  TofRecH::PairSearchUD(pair <TofClusterHR*,TofClusterHR* >sedpair,int sedud,
 
 //--pair+pair
    if(opt==0){
-    for(int icl=0;icl<tofclp[1-sedud].size();icl++){
+    for(unsigned int icl=0;icl<tofclp[1-sedud]->size();icl++){
 
 //--match
-       if(PairMatchUD(sedpair,tofclp[1-sedud].at(icl),edis)){
+       if(PairMatchUD(sedpair,tofclp[1-sedud]->at(icl),edis)){
 	  TofClusterHR *phitc[4]={0};
 	  phitc[2*sedud]=      sedpair.first;
 	  phitc[2*sedud+1]=    sedpair.second;
-	  phitc[2*(1-sedud)]=  tofclp[1-sedud].at(icl).first;
-	  phitc[2*(1-sedud)+1]=tofclp[1-sedud].at(icl).second;
+	  phitc[2*(1-sedud)]=  tofclp[1-sedud]->at(icl).first;
+	  phitc[2*(1-sedud)+1]=tofclp[1-sedud]->at(icl).second;
 	  betapar.Init();
 	  TofTrackFit(phitc,betapar,0,0);
 	  if(betapar.Chi2C>TofRecPar::DPairChi2CCut)continue;
@@ -1892,17 +1882,17 @@ int  TofRecH::PairSearchUD(pair <TofClusterHR*,TofClusterHR* >sedpair,int sedud,
      for(int ilay=slay;ilay<=slay+1;ilay++){
 
 //---all layer candidate
-       for(int i=0;i<tofclh[ilay].size();i++){
-         if(!(tofclh[ilay].at(i)->IsGoodSide(0))||!(tofclh[ilay].at(i)->IsGoodSide(1)))continue;//Side OK
-         if(fabs(tofclh[ilay].at(i)->Coo[TOFGeom::Proj[ilay]])>TOFGeom::Sci_l[ilay][tofclh[ilay].at(i)->Bar]/2.+15)continue;//5sigma 15cm
+       for(unsigned int i=0;i<tofclh[ilay]->size();i++){
+         if(!(tofclh[ilay]->at(i)->IsGoodSide(0))||!(tofclh[ilay]->at(i)->IsGoodSide(1)))continue;//Side OK
+         if(fabs(tofclh[ilay]->at(i)->Coo[TOFGeom::Proj[ilay]])>TOFGeom::Sci_l[ilay][tofclh[ilay]->at(i)->Bar]/2.+15)continue;//5sigma 15cm
          TofClusterHR *clnu=0; 
 
 ///--check match
-         if(PairMatchUD(sedpair,make_pair(tofclh[ilay].at(i),clnu),edis)){
+         if(PairMatchUD(sedpair,make_pair(tofclh[ilay]->at(i),clnu),edis)){
             TofClusterHR *phitc[4]={0};
             phitc[2*sedud]=      sedpair.first;
             phitc[2*sedud+1]=    sedpair.second;
-            phitc[ilay]=tofclh[ilay].at(i);
+            phitc[ilay]=tofclh[ilay]->at(i);
             betapar.Init();
             TofTrackFit(phitc,betapar,0,0);
             if(betapar.Chi2C>TofRecPar::DPairChi2CCut2)continue;
@@ -1934,16 +1924,16 @@ int TofRecH::TOFClErase(TofClusterHR *tfhit[4]){
 //---Erase From Pair
    for(int ilay=0;ilay<4;ilay++){
       if(tfhit[ilay]==0)continue;
-      for(int iclp=0;iclp<tofclp[ilay/2].size();iclp++){
-        if(tofclp[ilay/2].at(iclp).first==tfhit[ilay]||tofclp[ilay/2].at(iclp).second==tfhit[ilay]){
-          tofclp[ilay/2].erase(tofclp[ilay/2].begin()+iclp);
+      for(unsigned int iclp=0;iclp<tofclp[ilay/2]->size();iclp++){
+        if(tofclp[ilay/2]->at(iclp).first==tfhit[ilay]||tofclp[ilay/2]->at(iclp).second==tfhit[ilay]){
+          tofclp[ilay/2]->erase(tofclp[ilay/2]->begin()+iclp);
           iclp=-1;//Size Change-From Begin Re-search To Erase
         }
        }
 //--From From Layer vector
-    for(int iclh=0;iclh<tofclh[ilay].size();iclh++){
-       if(tofclh[ilay].at(iclh)==tfhit[ilay]){
-         tofclh[ilay].erase(tofclh[ilay].begin()+iclh);break;
+    for(unsigned int iclh=0;iclh<tofclh[ilay]->size();iclh++){
+       if(tofclh[ilay]->at(iclh)==tfhit[ilay]){
+         tofclh[ilay]->erase(tofclh[ilay]->begin()+iclh);break;
         }
       }
     }
@@ -2338,20 +2328,20 @@ int TofRecH::MassRec(TofBetaPar &par,number rig,number charge,number evrig,int i
 //========================================================
 int  TofRecH::BetaHLink(TrTrackR* ptrack,TrdTrackR *trdtrack,EcalShowerR *ecalshow){
   if(ptrack){
-      for(int ii=0;ii<ev->NCharge();ii++)  {
+      for(unsigned int ii=0;ii<ev->NCharge();ii++)  {
          if(ev->pCharge(ii)->pBeta()->pTrTrack()==ptrack){ev->pCharge(ii)->setBetaH(ev->NBetaH()-1);break;}
        }
-        for(int ii=0;ii<ev->NParticle();ii++){
+        for(unsigned int ii=0;ii<ev->NParticle();ii++){
          if(ev->pParticle(ii)->pTrTrack()==ptrack)       {ev->pParticle(ii)->setBetaH(ev->NBetaH()-1);break;}
        }
    }
    else if(trdtrack){
-      for(int ii=0;ii<ev->NParticle();ii++){
+      for(unsigned int ii=0;ii<ev->NParticle();ii++){
          if(ev->pParticle(ii)->pTrdTrack()==trdtrack)    {ev->pParticle(ii)->setBetaH(ev->NBetaH()-1);break;}
        }
    }
    else if(ecalshow){
-       for(int ii=0;ii<ev->NParticle();ii++){
+       for(unsigned int ii=0;ii<ev->NParticle();ii++){
          if(ev->pParticle(ii)->pEcalShower()==ecalshow)    {ev->pParticle(ii)->setBetaH(ev->NBetaH()-1);break;}
        }
    }
@@ -2365,20 +2355,20 @@ int  TofRecH::BetaHReLink(){
     vector<int >fBetaH;
     for(int ii=0;ii<ev->nBetaH();ii++){//candidate
        bool used=0; 
-       for(int jj=0;jj<ev->NParticle();jj++){
+       for(unsigned int jj=0;jj<ev->NParticle();jj++){
          if(ev->pParticle(jj)->iBetaH()==ii)used=1;
       }
       if(!used)fBetaH.push_back(ii);
    }
 
 ///----Then Assemble
-   for(int ii=0;ii<ev->NParticle();ii++){
+   for(unsigned int ii=0;ii<ev->NParticle();ii++){
       if(ev->pParticle(ii)->iBetaH()>=0)continue;
 //----Refind  TRD or TRDH or EcalShower
       int ibest=0; 
       number mindis=999999,nowdis,time; 
       AMSPoint pnt; AMSDir dir;
-      for(int jj=0;jj<fBetaH.size();jj++){
+      for(unsigned int jj=0;jj<fBetaH.size();jj++){
 ///---Trd
          if(ev->pParticle(ii)->iTrdTrack()>=0){
             TrdTrackR *ptrd=ev->pParticle(ii)->pTrdTrack();

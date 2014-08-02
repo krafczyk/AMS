@@ -957,7 +957,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   double errx = (err) ? err[0] : TRFITFFKEY.ErrX;
   double erry = (err) ? err[1] : TRFITFFKEY.ErrY;
   double errz = (err) ? err[2] : TRFITFFKEY.ErrZ;
-  double zh0  = 0;
   int hitbits = 0;
 
   if (chrg > 1.5) {
@@ -1064,7 +1063,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 // 	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
 
     hitbits |= (1 << (hit->GetLayer()-1));
-    if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
   if (mscat) {
@@ -1211,7 +1209,7 @@ const char *  TrTrackR::Info(int iRef) {
   aa.append(Form("TrTrack #%d ",iRef));
   _PrepareOutput(0);
   aa.append(sout);
-  int len=MAXINFOSIZE;
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
@@ -1560,7 +1558,7 @@ char * TrTrackR::GetFitNameFromID(int fitnum){
 }
 
 int TrTrackR::GetFitID(int pos){
-  if(pos >= _TrackPar.size()) return 0;
+  if(pos >= int(_TrackPar.size())) return 0;
   int count=0;
   map<int, TrTrackPar>::iterator it;
   
@@ -1707,7 +1705,6 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool FitExists=ParExists(fittype);
 
   if(refit>=2 || (!FitExists && refit==1)) { 
-    int rret=0;
     //    if (refit >= 3 || CIEMATFlag){
     if (refit >= 3 ){
       if(CIEMATFlag>=1){
@@ -1715,11 +1712,11 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 	TrRecHitR *hit9=GetHitLJ(9);
 	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
 	int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
-	rret=UpdateExtLayer(1,l1,l9);
+	UpdateExtLayer(1,l1,l9);
 	if(CIEMATFlag>1)UpdateExtLayer(0);
       }
       else 
-	rret=UpdateExtLayer(0);
+	UpdateExtLayer(0);
 	  UpdateInnerDz();
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();

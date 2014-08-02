@@ -163,7 +163,7 @@ const char* TrMCClusterR::Info(int iRef){
   aa.append(Form("TrMCCluster #%d ",iRef));
   _PrepareOutput(0);
   aa.append(sout);
-  int len=MAXINFOSIZE;
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
@@ -213,7 +213,7 @@ void TrMCClusterR::GenSimClusters(){
   // Print();
   if (VERBOSE) {
     printf("TrSim::GenSimClusters-V  tkid = %+4d   loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   edep(keV) = %7.2f   nsens = %2d   itra = %4d\n",
-           GetTkId(),ip[0],ip[1],ia[0],ia[1],edep,nsensor,abs(_itra));
+           GetTkId(),ip[0],ip[1],ia[0],ia[1],edep,nsensor,(int)abs(_itra));
     printf("TrSim::GenSimClusters-V  laddcoo(x,y) = (%7.4f,%7.4f)   readout(x,y) = (%4d,%4d)   mult = %2d\n",
            _glo2loc.GetLaddCoo().x(),_glo2loc.GetLaddCoo().y(),_glo2loc.GetStripX(),_glo2loc.GetStripY(),imult);
   }

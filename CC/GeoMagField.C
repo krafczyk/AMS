@@ -749,8 +749,8 @@ int GeoMagField::shval3(int igdgc, double flat, double flon, double elev,
   double r;
   double a2;
   double b2;
-  double rr;
-  double fm,fn;
+  double rr=0;
+  double fm,fn=0;
   double sl[14];
   double cl[14];
   double p[119];

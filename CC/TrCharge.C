@@ -249,7 +249,7 @@ bool TrCharge::GoodHitForLogProb(TrRecHitR* hit, int iside) {
   if (hit==0) return false;
   iside = iside%3;
   // cluster exist
-  TrClusterR* cls;
+  TrClusterR* cls = 0;
   if (iside==0) cls = hit->GetXCluster();
   if (iside==1) cls = hit->GetYCluster();
   if (!cls) return false;
@@ -261,7 +261,7 @@ bool TrCharge::GoodHitForLogProb(TrRecHitR* hit, int iside) {
   int Mult = hit->GetResolvedMultiplicity();
   if ( (cls->GetQStatus(1,Mult)&0x1FD)!=0 ) return false;
   // other-side cluster
-  TrClusterR* clo;
+  TrClusterR* clo = 0;
   if (iside==0) clo = hit->GetYCluster();
   if (iside==1) clo = hit->GetXCluster();
   if ( (clo) && (clo->GetQStatus(1,Mult)&0x100)!=0 ) return false;

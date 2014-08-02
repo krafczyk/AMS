@@ -954,7 +954,6 @@ int TrdHCalibR::bgmap(char *fname){
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
-  int ifile=0;
   float x,p0,p1,p2;
 
   double xarr[1000];
@@ -965,7 +964,7 @@ int TrdHCalibR::bgmap(char *fname){
   int n=0,ndf;
 
   while( !feof (file) ){
-    ifile=fscanf(file, "%f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&chi2,&ndf);
+    fscanf(file, "%f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&chi2,&ndf);
     //    printf("%f %f %f %f\n",x,p0,p1,p2);
 
     xarr[n]=x;
@@ -1061,7 +1060,6 @@ int TrdHCalibR::pathmap(char *fname){
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
-  int ifile=0;
   float x,p0,p1,p2,p3;
 
   double xarr[1000];
@@ -1073,7 +1071,7 @@ int TrdHCalibR::pathmap(char *fname){
   int n=0,ndf;
 
   while( !feof (file) ){
-    ifile=fscanf(file, "%f %f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&p3,&chi2,&ndf);
+    fscanf(file, "%f %f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&p3,&chi2,&ndf);
     //    printf("%f %f %f %f %f\n",x,p0,p1,p2,p3);
 
     xarr[n]=x;
