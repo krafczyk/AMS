@@ -457,7 +457,7 @@ COMMON_FILES += $(SCC)MVAmanager.C $(SCC)ConfigParser.C \
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
 ifdef PGTRACK
-ROOTDICTFILES +=  ../include/TkPlane.h ../include/TkSens.h \
+ROOTDICTFILES +=  ../include/CintUInt8.h ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrCalDB.h ../include/TrGainDB.h ../include/TrChargeLossDB.h ../include/TrOccDB.h \
 		../include/TrEDepDB.h ../include/TrMipDB.h ../include/TrLinearDB.h ../include/TrLikeDB.h \
 		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
