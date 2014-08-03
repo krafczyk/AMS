@@ -2786,7 +2786,7 @@ if(MCEventgR::Rebuild){
 #endif
 AMSEventR::AMSEventR():TSelector(){
   if(_Count++)cerr<<"AMSEventR::ctor-W-OnlyOneSingletonAllowed "<<this<<" "<<_Count<<endl;
-  else{ cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
+  else{ // cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
 #ifdef _OPENMP
     cout <<"  thread "<<omp_get_thread_num()<<endl;
 #endif
