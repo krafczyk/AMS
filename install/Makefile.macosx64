@@ -7,7 +7,7 @@
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-VERGCC       := $(shell gcc --version | grep 4.1)
+VERGCC       := $(shell gcc --version 2>&1| grep 4.1)
 
 ifdef VER
 NEW = 
@@ -32,7 +32,7 @@ ifneq "$(origin FF )" "environment"
 endif
   FFOLD=$(FF)
 ifneq "$(origin LD )" "environment" 
-  LD  = g++ -m64 -v
+  LD  = g++ -m64
 endif
   FORTRAN2_LIBS=
   FORTRAN_LIBS=
@@ -88,8 +88,10 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 
-CFLAGSB=  -Wno-pragmas -Wno-deprecated -Wno-write-strings   
-#CFLAGSB+= -Wall -Wfloat-equal -Wshadow -Wsign-compare -Winline 
+# Wno-unused-function requires a rework of cfotran.h (move all functions into cfortran.c)
+# Wno-missing-braces requires still lots of work in Tofdbc.C (after that it can be removed.)
+# Same for Wno-gnu-static-float-init & Wno-deprecated-writable-strings (requires lots of work.)
+CFLAGSB=-Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 #OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
@@ -136,17 +138,7 @@ else
     FFLAGSn      += -O2  
 endif
 
-# -undefined dynamic_lookup to have not the linker complaining for the undefined symbols (like in Linux)
-# -shared -dynamiclib -dynamic means ~ the same but not all the versions of Apple gcc understand the same option...
-MY_IF_GCC=$(shell test $(1) -$(2) $(3); echo $$?)
-GCC_LT_480 := $(call MY_IF_GCC,$(VERGCC_LONG),lt,480)
-# the logics of test is inverted...
-ifeq "$(GCC_LT_480)" "0"
-SOFLAGS = --dynamic --shared --dynamiclib -undefined dynamic_lookup
-else
 SOFLAGS = --shared -undefined dynamic_lookup
-endif
-
 
 ifdef SLC4system
 ifdef VER
