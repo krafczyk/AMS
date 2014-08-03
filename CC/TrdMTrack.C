@@ -334,7 +334,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
       }
     }
 
-    else if( trd_coo[i][0]==0 && ((i==0 && (trd_coo[1][0]>0 || tr_coo[i-1][0]>0)) || (i==19 && (trd_coo[18][0]>0 || tr_coo[i+1][0]>0)))){
+    else if( trd_coo[i][0]==0 && ((i==0 && (trd_coo[1][0]>0 || tr_coo[1][0]>0)) || (i==19 && (trd_coo[18][0]>0 || tr_coo[18][0]>0)))){
       float z;
       if(i==0) z=get_trd_rz(i+1,trd_coo[i+1][1] , 0, 1)-2.9;
       else z=get_trd_rz(i-1,trd_coo[i-1][1] , 0, 1)+2.9;
