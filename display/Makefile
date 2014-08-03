@@ -96,6 +96,8 @@ else ifeq ($(GCC_VER_MIDDLE),7)
 VERGCCH := 1
 else ifeq ($(GCC_VER_MIDDLE),8)
 VERGCCH := 1
+else ifeq ($(GCC_VER_MIDDLE),9)
+VERGCCH := 1
 endif
 endif 
 
