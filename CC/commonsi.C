@@ -195,6 +195,7 @@ void AMSCommonsI::init(){
           else if(strstr(syscom,"E5") or strstr(syscom,"X5"))_cor=1.6;
           else if(strstr(syscom,"Xeon"))_cor=0.8;
           else if(strstr(syscom,"Athlon"))_cor=1.15;
+          else if(strstr(syscom,"Opteron"))_cor=1.15;
           else if(strstr(syscom,"Core(TM)2 Duo"))_cor=1.35;
           else if(strstr(syscom,"Phenom"))_cor=1.3;
           else if(strstr(syscom,"i7"))_cor=1.6;
