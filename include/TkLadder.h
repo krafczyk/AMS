@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.12 2012/05/07 09:02:35 pzuccon Exp $
+// $Id$
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2012/05/07 09:02:35 $
+///$Date$
 ///
-///$Revision: 1.12 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -168,7 +168,7 @@ public:
   //! Check if it is an active ladder
   bool IsActive() { return (GetHwId()>=0); }
 
-  void Print(Option_t* = "")const{ cout << putout(cout);}
+  void Print(Option_t* = "")const{ putout(cout);}
   //! stream out the content of a the class
   friend ostream &operator << (ostream &o,  TkLadder& b)
   {return b.putout(o);}
