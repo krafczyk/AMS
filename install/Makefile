@@ -106,6 +106,7 @@ endif
 G4LIBS=
 G4LIBSI=
 G4=
+ifdef G4AMS
 G4VIS_USE:= 1
 G4:=G4
 
