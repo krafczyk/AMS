@@ -106,23 +106,27 @@ endif
 G4LIBS=
 G4LIBSI=
 G4=
-ifdef G4AMS
-  G4VIS_USE:= 1
-  G4:=G4
-  ifdef G4VIS_USE
-    include $(G4INSTALL)/config/G4UI_USE.gmk
-    include $(G4INSTALL)/config/G4VIS_USE.gmk
-  endif
-  include $(G4INSTALL)/config/architecture.gmk
-  DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
-  INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/  -I$(G4INCLUDE)
-  CLHEP_LIBS=
-  ifdef CLHEP_BASE_DIR
-    CLHEP_LIBS= -L$(CLHEP_BASE_DIR)/lib -lCLHEP
-  endif
-  G4LIBS= $(CLHEP_LIBS) -L$(G4LIBDIR) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global
-  G4LIBSI= -L$(G4LIBDIR) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
-  AR=ar
+G4VIS_USE:= 1
+G4:=G4
+
+ifdef G4VIS_USE
+include $(G4INSTALL)/config/G4UI_USE.gmk
+include $(G4INSTALL)/config/G4VIS_USE.gmk
+endif
+include $(G4INSTALL)/config/architecture.gmk
+
+DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
+INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
+G4LIBS=   -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
+
+ifdef G4LIB_BUILD_CLHEP
+G4LIBS+=  -lG4clhep 
+else
+G4LIBS+= -L$(CLHEP_BASE_DIR)/lib  -lCLHEP
+endif
+
+G4LIBSI= -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
+AR=ar
 endif
 
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
