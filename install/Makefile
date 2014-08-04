@@ -117,8 +117,8 @@ endif
 include $(G4INSTALL)/config/architecture.gmk
 
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
-INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
-G4LIBS=   -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
+INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INCLUDE) -I$(G4INSTALL)/include/geant4/ 
+G4LIBS=   -L$(G4LIBDIR) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
 
 ifdef G4LIB_BUILD_CLHEP
 G4LIBS+=  -lG4clhep 

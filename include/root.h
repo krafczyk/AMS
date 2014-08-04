@@ -3897,7 +3897,7 @@ map <int,float> fEl;   ///< elements & number of atoms per volume
   virtual ~MCTrackR(){};
   int fEl_size(){return fEl.size();}
   float fEl_num(int i){return fEl.find(i)==fEl.end()?0:fEl.find(i)->second;}
-  int fEl_i(unsigned int i){if(i<0 || i>=fEl.size())return -1;
+  int fEl_i(unsigned int i){if(i>=fEl.size())return -1;
                    unsigned int s=0;
                    typedef std::map<int,float>::iterator k_i;
                    for(k_i k=fEl.begin();k!=fEl.end();k++){  
