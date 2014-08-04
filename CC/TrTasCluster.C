@@ -84,7 +84,7 @@ double TrTasClusterR::Fit(TH1 *hist, int ibeam, int mode, double *par,
 	}
       }
       for (Int_t i = 1; i <= nb2; i++) {
-	if (hist->GetBinContent(ib-i) > 0) {
+	if (hist->GetBinContent(ib+i) > 0) {
 	  sx += hist->GetBinContent(ib+i)*hist->GetBinCenter(ib+i);
 	  sw += hist->GetBinContent(ib+i);
 	}
