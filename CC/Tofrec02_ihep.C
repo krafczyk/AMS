@@ -45,7 +45,7 @@ int        TofRecH::realdata=1;
 //--Cluster
 vector<TofRawSideR>*   TofRecH::tfraws = new vector<TofRawSideR>;
 #ifndef __ROOTSHAREDLIBRARY__
-vector<TOF2RawSide*>*  TofRecH::tf2raws = new vector<TOF2RawSide*>;;
+vector<TOF2RawSide*>*  TofRecH::tf2raws = new vector<TOF2RawSide*>;
 #endif
   bool  TofRecH::RebuildBetaHInReadHeader=true;
 
@@ -68,7 +68,7 @@ vector<AMSTRDTrack*>* TofRecH::amstrdtrack = new vector<AMSTRDTrack*>;
 
 vector<EcalShowerR>*   TofRecH::ecalshow = new vector<EcalShowerR>;
 #ifndef __ROOTSHAREDLIBRARY__
-vector<AMSEcalShower*>* TofRecH::amsecalshow = new vector<AMSECalShower*>;
+vector<AMSEcalShower*>* TofRecH::amsecalshow = new vector<AMSEcalShower*>;
 #endif
 
 TF1  *TofRecH::BirkFun=0;
@@ -167,8 +167,8 @@ int TofRecH::BuildTofClusterH(){
 #ifndef __ROOTSHAREDLIBRARY__
   TOF2RawSide *ptr=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0,1);
   while (ptr){
-    tfraws.push_back(TofRawSideR(ptr)); 
-    tf2raws.push_back(ptr);
+    tfraws->push_back(TofRawSideR(ptr)); 
+    tf2raws->push_back(ptr);
     ptr=ptr->next();
   }
   TOF2RawSide *tfhraws[2]={0};
@@ -196,7 +196,7 @@ int TofRecH::BuildTofClusterH(){
      if(stat[is]%10!=0)continue;//validation status(FTtime is required)
 #ifndef __ROOTSHAREDLIBRARY__
     if(!TOF2Brcal::scbrcal[il][ib].SideOK(is)||!TOFBPeds::scbrped[il][ib].PedAchOK(is)){continue;}
-    tfhraws[is]=tf2raws[i];
+    tfhraws[is]=tf2raws->at(i);
 #else
     tfhraws[is]=ev->pTofRawSide(sideid[i].first);
 #endif
