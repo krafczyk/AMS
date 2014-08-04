@@ -244,7 +244,7 @@ public:
     AMSDir GetPropogated_TrTrack_Dir();
 
     // Hit manipulation/operation
-    TrdKHit* GetHit(int i){if(i>=NHits())return 0;return &(TRDHitCollection.at(i));}
+    TrdKHit* GetHit(int i){if(i>=TRDHitCollection.size())return 0;return &(TRDHitCollection.at(i));}
     TrdKHit* GetCorridorHit(int i) {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
 
