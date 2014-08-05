@@ -137,7 +137,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    if (ECALBCHI2_TMVAVER==0)
      {
        ECALBCHI2_TMVAVER = 412;
-       if ( TMVA_RELEASE == "4.1.4" ) ECALBCHI2_TMVAVER = 414;
+       if ( strcmp(TMVA_RELEASE,"4.1.4") == 0 ) ECALBCHI2_TMVAVER = 414;
        //For BDTCHI2 versions >4 only 4.1.4 used for training
        if (iBDTCHI2VERSION>4 )  ECALBCHI2_TMVAVER = 414;
      }

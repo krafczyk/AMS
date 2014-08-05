@@ -125,7 +125,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    if (ECALBDT_TMVAVER==0)
      {
        ECALBDT_TMVAVER = 412;
-       if ( TMVA_RELEASE == "4.1.4" ) ECALBDT_TMVAVER = 414;
+       if ( strcmp(TMVA_RELEASE,"4.1.4") == 0 ) ECALBDT_TMVAVER = 414;
        //For BDT versions >6 only 4.1.4 used for training
        if ( iBDTVERSION>6 )  ECALBDT_TMVAVER = 414;
      }
