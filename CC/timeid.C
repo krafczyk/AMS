@@ -16,7 +16,7 @@
 #include "amsdbc.h"
 #include "amsstl.h"
 #include <cstdio>
-#include <strstream>
+#include <sstream>
 #include <limits.h>
 #if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "commonsi.h"
@@ -236,10 +236,9 @@ bool AMSTimeID::write(const char * dir, int slp){
     system((const char*)mkdir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    char name[255];
-    ostrstream ost(name,sizeof(name));
-    ost << "."<<_Insert<<ends;
-    fnam+=name;     
+    stringstream ost;
+    ost << "."<<_Insert<<endl;
+    fnam+=ost.str().c_str();     
     //      }
     fbin.clear();
     fbin.open((const char *)fnam,ios::in);
@@ -452,10 +451,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	fnam+="/";
 	fnam+=getname();
 	fnam+= getid()==0?".0":".1";
-	char name[255];
-	ostrstream ost(name,sizeof(name));
-	ost << "."<<run<<ends;
-	fnam+=name;     
+	stringstream ost;
+	ost << "."<<run<<endl;
+	fnam+=ost.str().c_str();     
       }
       else{
 	fnam+=".";
