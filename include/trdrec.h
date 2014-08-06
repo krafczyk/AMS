@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.26 2011/06/10 16:26:15 choutko Exp $
+//  $Id$
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -25,7 +25,7 @@ void _writeEl();
 static AMSTRDCluster* _Head[trdconst::maxlay];
 #pragma omp threadprivate (_Head)
 public:
-AMSTRDCluster(uinteger status, uinteger layer,AMSPoint coo, number hsr, number hdz,AMSDir dir, float edep,int multip, int hmultip, AMSTRDRawHit* pmaxhit):AMSlink(status,0),_Coo(coo),_ClSizeR(hsr),_ClSizeZ(hdz),_CooDir(dir),_Edep(edep),_Multiplicity(multip),_HighMultiplicity(hmultip),_pmaxhit(pmaxhit),_layer(layer){};
+AMSTRDCluster(uinteger status, uinteger layer,AMSPoint coo, number hsr, number hdz,AMSDir dir, float edep,int multip, int hmultip, AMSTRDRawHit* pmaxhit):AMSlink(status,0),_Coo(coo),_layer(layer),_ClSizeR(hsr),_ClSizeZ(hdz),_CooDir(dir),_Multiplicity(multip),_HighMultiplicity(hmultip),_Edep(edep),_pmaxhit(pmaxhit){};
 static integer build(int rerun=0);
 static integer Out(integer status);
 static double RangeCorr(double range,double norm);
@@ -99,13 +99,13 @@ static integer _addnext(integer pat, integer nhit, uinteger iseg,AMSTRDCluster* 
 void _addnextR(uinteger iseg);
 public:
 int getori()const {return _Orientation;};
-AMSTRDSegment():AMSlink(),_Chi2(-1),_Orientation(-1),_NHits(0),_Pattern(-1),_SuperLayer(-1){
+AMSTRDSegment():AMSlink(),_Orientation(-1),_Chi2(-1),_NHits(0),_Pattern(-1),_SuperLayer(-1){
 _FitPar[0]=_FitPar[1]=0;
 for(int i=0;i<trdconst::maxhits;i++){
   _pCl[i]=0;
 }
 }
-AMSTRDSegment(integer slay,integer Pattern,uinteger nhits,integer ori,AMSTRDCluster *pcl[]):_Chi2(-1),_Orientation(ori),_NHits(nhits),_Pattern(Pattern),_SuperLayer(slay){
+AMSTRDSegment(integer slay,integer Pattern,uinteger nhits,integer ori,AMSTRDCluster *pcl[]):_Orientation(ori),_Chi2(-1),_NHits(nhits),_Pattern(Pattern),_SuperLayer(slay){
 _FitPar[0]=_FitPar[1]=0;
 for(int i=0;i<(_NHits<trdconst::maxhits?_NHits:trdconst::maxhits);i++){
  _pCl[i]=pcl[i];
@@ -256,9 +256,9 @@ static integer _TrSearcher(int icall);
 static integer _addnext(integer pat, integer nhit, AMSTRDSegment* pthit[]);
 void _addnextR();
 public:
-AMSTRDTrack():AMSlink(),_Base(),_Charge(),_BaseS(),_StrLine(),_Real(),_update(false){};
-AMSTRDTrack(const AMSTRDTrack::TrackBase & Base, const AMSTRDTrack::TrackBaseS & BaseS, const AMSTRDTrack::TrackPar & StrLine):AMSlink(),_Charge(),_Base(Base),_BaseS(BaseS),_StrLine(StrLine),_Real(),_update(false){};
-AMSTRDTrack(const AMSTRDTrack::TrackBaseS & BaseS):AMSlink(),_Base(),_BaseS(BaseS),_StrLine(),_Real(),_update(false),_Charge(){};
+AMSTRDTrack():AMSlink(),_StrLine(),_Real(),_Base(),_BaseS(),_Charge(),_update(false){};
+AMSTRDTrack(const AMSTRDTrack::TrackBase & Base, const AMSTRDTrack::TrackBaseS & BaseS, const AMSTRDTrack::TrackPar & StrLine):AMSlink(),_StrLine(StrLine),_Real(),_Base(Base),_BaseS(BaseS),_Charge(),_update(false){};
+AMSTRDTrack(const AMSTRDTrack::TrackBaseS & BaseS):AMSlink(),_StrLine(),_Real(),_Base(),_BaseS(BaseS),_Charge(),_update(false){};
 static integer build(int rerun=0);
 static bool ResolveAmb(AMSTrTrack *ptrack);
 void StrLineFit(bool update=true);

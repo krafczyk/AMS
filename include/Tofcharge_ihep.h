@@ -265,6 +265,7 @@ protected:
 
 public:
   TofPDFH(){};
+  virtual ~TofPDFH(){}
   /// ReBuild For BetaH-Charge
   static int ReBuild(BetaHR *betah,TofChargeHR &tofch);
   /// Fill ZProb to TofChargePar

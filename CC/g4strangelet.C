@@ -149,10 +149,7 @@ StrCS::GetZandACrossSection(const G4DynamicParticle* theProjectile,
 
   const G4double AT = AA;
   const G4double ZT = ZZ;
-  const G4double EA = theProjectile->GetKineticEnergy()/MeV;
   const G4double AP = theProjectile->GetDefinition()->GetBaryonNumber();
-  const G4double ZP = theProjectile->GetDefinition()->GetPDGCharge();
-  G4double E  = EA / AP;
 
   // Determine target mass and energy within the centre-of-mass frame.
 
@@ -162,7 +159,6 @@ StrCS::GetZandACrossSection(const G4DynamicParticle* theProjectile,
   G4LorentzVector pT(0.0, 0.0, 0.0, mT);
   G4LorentzVector pP(theProjectile->Get4Momentum());
   pT = pT + pP;
-  G4double E_cm = (pT.mag()-mT-pP.m())/MeV;
    
   double r0target = 1.22*fermi;
   double r0str = 1.10*fermi;
@@ -410,11 +406,6 @@ G4bool StrHP::IsApplicable (const G4HadProjectile &theTrack, G4Nucleus &theTarge
 // Get relevant information about the projectile and target (A, Z)
 //
   const G4ParticleDefinition *definitionP = theTrack.GetDefinition();
-  G4int AP   = definitionP->GetBaryonNumber();
-  G4int ZP   = G4int(definitionP->GetPDGCharge()/eplus + 0.5);
-    G4int AT   = theTarget.GetA_asInt();
-    G4int ZT   = theTarget.GetZ_asInt();
-
   bool ret= strstr((const char*)(definitionP->GetParticleName()),"strangelet")!=0;
   return ret;
 }
@@ -438,11 +429,8 @@ G4HadFinalState *StrHP::ApplyYourself (const G4HadProjectile &theTrack, G4Nucleu
   G4double M          = definitionP->GetPDGMass();
   G4ThreeVector pP    = theTrack.Get4Momentum().vect();
   G4double T          = theTrack.GetKineticEnergy()/G4double(AP);   // Units are MeV/nuc 
-  G4double E          = theTrack.GetTotalEnergy()/G4double(AP);	    // Units are MeV/nuc
     G4double AT         = theTarget.GetA_asInt();
     G4double ZT         = theTarget.GetZ_asInt();
-  //G4double AT         = theTarget.GetN();
-  //G4double ZT         = theTarget.GetZ();
   G4double mpnt  = theTarget.AtomicMass(AT, ZT);
   G4double TotalEPre  = theTrack.GetTotalEnergy() + mpnt;
     //    theTarget.AtomicMass(AT, ZT) + theTarget.GetEnergyDeposit();

@@ -122,7 +122,7 @@ void TofChargeHR::UpdateZ(int pattern,int opt){
   vector<TofChargePar> cparu;
 
 ///--Select Matched-TOF Layer
-  int nsel=TofPDFH::SelectM(pattern,cpar,fTrTrack,cparu);
+  TofPDFH::SelectM(pattern,cpar,fTrTrack,cparu);
 
   number MeanQ,RMSQ;
 ///--LikeLihood -Calculation
@@ -631,7 +631,7 @@ number TofPDFH::GetProbZ(int ilay,int ibar,number Z,number QLA,number QLD,number
   int isanode=ChooseDA(ilay,ibar,Z,QLA,QLD,QLARaw,QLDRaw,QL);
   if(QL<=0)return TofPDFPar::ProbLimit;
 
-  number probv;
+  number probv=0;
   for(int iz=0;iz<TofPDFPar::nPDFCh;iz++){
     if(Z==TofPDFPar::PDFCh[iz]){//Find Charge PDF
       probv= GetProbZI(ilay,ibar,iz,QL,betah,isanode);break;
@@ -737,7 +737,6 @@ Double_t TofPDFH::PDFPrHe(Double_t *x, Double_t *par){
      //  par[5]  -> 2nd exp prob
      //  par[6]  -> 2nd exp param 
 
-     Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
      double summ[3]={0,0,0};
 
 //--Gaus cov Expo(0)+ Gaus cov Expo(1)

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.52 2013/11/14 21:44:44 sdifalco Exp $
+//  $Id$
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -233,8 +233,8 @@ class ECcalib{
   ECcalib(){};
   ECcalib(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
 	  geant h2lo[4], geant a2dr, geant lfs, geant lsl, geant fsf, geant conv):
-    _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),
-    _lslow(lsl),_fastf(fsf),_adc2mev(conv){
+    _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_adc2mev(conv),_lfast(lfs),
+    _lslow(lsl),_fastf(fsf){
     for(int i=0;i<4;i++){
       _status[i]=sta[i];
       _scgain[i]=scg[i];

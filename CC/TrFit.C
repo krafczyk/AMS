@@ -1676,7 +1676,7 @@ Feb 2012 PZ update interface to new RKMS.F format
 {
   static int initialized=0;
   static float zpos[trconst::maxlay];
-  int npo = 0, npl[NPma], ipa = 14;
+  int npo = 0, npl[NPma];
   float xyz[NPma*3], dxyz[NPma*3];
   int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
   float out[41];

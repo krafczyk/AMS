@@ -204,7 +204,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
   for( int i=0; i<20; i++){
     if(trd_coo[i][0]==0 && tr_coo[i][0]==0 && i>0 && i<19 ){
       if((trd_coo[i-1][0]>0 || tr_coo[i-1][0]>0) && (trd_coo[i+1][0]>0 || tr_coo[i+1][0]>0)){
-	int lad, tub;
 	
 	float z=0.12+get_trd_rz(i-1,trd_coo[i-1][1] , 0, 1)+(get_trd_rz(i+1,trd_coo[i+1][1] , 0, 1)-get_trd_rz(i-1,trd_coo[i-1][1] , 0, 1))/2;
 	
@@ -242,7 +241,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 
 	    float denorm=a*c-b*b;
 	    if(denorm==0)cout<<"ERROR: Track Tube in Parrarel orientation"<<endl;
-	    float sc=(b*e-c*d)/denorm;
 	    float tc=(a*e-b*d)/denorm;
 	    
 	    AMSPoint TubePos=TRDGap_0+TRDTube_Dir*tc;
@@ -251,7 +249,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	     
 	    AMSPoint check=trdtk_pnt-TRDGap_0;
 	    AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
-	    float abstand = (check.prod(check2))/check2.norm();
 	    //	    float z_res=abstand*check2.z()/check2.norm();
 	    
 	    AMSDir zdir(0,0,1);
@@ -303,16 +300,14 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
  
 	    float denorm=a*c-b*b;
 	    if(denorm==0)cout<<"ERROR: Track Tube in Parrarel orientation"<<endl;
-	    float sc=(b*e-c*d)/denorm;
-	    float tc=(a*e-b*d)/denorm;
-	    
+        float tc=(a*e-b*d)/denorm;
+
 	    AMSPoint TubePos=TRDGap_0+TRDTube_Dir*tc;
 	    	     
 	    track->Interpolate(TubePos.z(), trdtk_pnt, trdtk_dir, _id);
 	    
 	    AMSPoint check=trdtk_pnt-TRDGap_0;
 	    AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
-	    float abstand = (check.prod(check2))/check2.norm();
 	    // float z_res=abstand*check2.z()/check2.norm();
 	    
 	    AMSDir zdir(0,0,1);
@@ -371,7 +366,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	
 	float denorm=a*c-b*b;
 	if(denorm==0)cout<<"ERROR: Track Tube in Parrarel orientation"<<endl;
-	float sc=(b*e-c*d)/denorm;
 	float tc=(a*e-b*d)/denorm;
 	
 	AMSPoint TubePos=TRDGap_0+TRDTube_Dir*tc;
@@ -380,7 +374,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	
 	AMSPoint check=trdtk_pnt-TRDGap_0;
 	AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
-	float abstand = (check.prod(check2))/check2.norm();
 	//	float z_res=abstand*check2.z()/check2.norm();
 	 
 	AMSDir zdir(0,0,1);
@@ -943,7 +936,6 @@ void TrdMTrack::Init_Alignment(){
     
     if( !fi) {cout<<"TrdMTrack::Init_Alignment: Could not read Alignment! "<<zname<<endl; return;}
 
-    char gname[80];
     double z;
     double time;
     int test;
@@ -1160,9 +1152,7 @@ void TrdMTrack::Init_PDFs(){
     
     if(!f) {cout<<"TrdMTrack::Init_PDFs: Could not read PDFs! "<<name<<endl; return;}
     
-    int test;
-    double x, y;
-    char gname[80], modname[80];
+    char gname[80];
     for(int j=0; j<6; j++){
       for(int i=0; i<30; i++){
 	//	sprintf(gname, "grTrdS_Prot_%i_%i", j, i);
@@ -1412,7 +1402,7 @@ void TrdMTrack::SetAlignment(){
   else if(TrdAlignType==1){
     
     AMSPoint T[20];
-    AMSRotMat R[20], RI[20];
+    AMSRotMat R[20];
     AMSPoint Center[20];
     
     int read = trdk_db->readDB_Alignment(evt->Run());

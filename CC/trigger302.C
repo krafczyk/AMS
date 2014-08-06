@@ -41,7 +41,7 @@ void TriggerAuxLVL302::addnoisetk(integer crate){
     int i,j;
     integer ierr=0;
     integer nn=0;
-    int16u drp,strip,va,side;
+    int16u drp,strip,side;
     geant d=0;
     for(i=0;i<2;i++){
       geant xn=LVL3SIMFFKEY.NoiseProb[i]*NTRHDRP/2*TkDBc::Head->NStripsDrp(i);
@@ -239,9 +239,9 @@ geant TriggerLVL302::TRDAux_DEF::_CooMatrix[trdid::nute][trdconst::maxtube][trdi
 
 
 TriggerLVL302::TriggerLVL302(bool tofin, bool trdin ):
-  _TRDTrigger(0),_TOFTrigger(0),_MainTrigger(0),
-  _TrackerTrigger(0),_NPatFound(0),_Time(0),_NTrHits(0),
-  _TrEnergyLoss(0),_TriggerInputs(0),TRDAux(),_TOFDirection(0){
+  _TriggerInputs(0),_TOFTrigger(0),_TRDTrigger(0),_TrackerTrigger(0),
+  _MainTrigger(0),_TOFDirection(0),_NTrHits(0),_NPatFound(0),_TrEnergyLoss(0),
+  TRDAux(),_Time(0){
   
   if(!trdin)_TriggerInputs =_TriggerInputs | TRDIN; 
   if(!tofin)_TriggerInputs =_TriggerInputs | TOFIN; 
@@ -786,7 +786,6 @@ integer TriggerLVL302::toftrdok(){
 
   _TOFTrigger=0;
   int i,j;
-  int ntof=0;
   for(i=0;i<_NTOF[0];i++){
     for(j=0;j<_NTOF[AMSTOFCluster::planes()-1];j++){
       if(_TOFPattern[_TOFAux[0][i]][_TOFAux[AMSTOFCluster::planes()-1][j]]){
@@ -1129,7 +1128,7 @@ void TriggerLVL302::build(){
       //
       //===> ECAL: create Edep-pattern, check EM, Tracker-matching:
       //
-      int pmc,pm,sl,proj,ip;
+      int pmc,pm,sl;
       number ah,al,amp,ectot,efrnt,ebase,epeak;
       number EClprof[ECSLMX];
       number ECemap[ECSLMX][ECPMSMX];
@@ -1192,7 +1191,7 @@ void TriggerLVL302::build(){
 	geant ewthr(18);
 	int wxcut(10);
 	int wycut(14);
-	geant p2brat,p2frat;
+	geant p2brat;
 	if(LVL3FFKEY.histprf>0){
 #pragma omp critical (hf1)
 {
@@ -1274,7 +1273,6 @@ void TriggerLVL302::build(){
 	//
 	number ecogt[ECSLMX],ecogl,crms[ECSLMX];
 	geant ectx(0),ecty(0),ecx0(0),ecy0(0);
-	geant eccrxe(0),eccrye(0),ectxe(0),ectye(0);
 	number etl[ECSLMX];
 	number cel2,epm,elsx,elsy,epmin;
 	geant epmmx,eclt;
@@ -1372,7 +1370,7 @@ void TriggerLVL302::build(){
 	    //
 	    //---> linear fit in proj:
 	    //
-	    geant fpnt,suz,sux,suxz,suz2,sud,sg2,ct,cz,ctsg,slim(15),ass;
+	    geant fpnt,suz,sux,suxz,suz2,sud,sg2,ct,cz,ctsg;
 	    geant etlr[ECSLMX];
 	    fpnt=0;
 	    suz=0;
@@ -1740,7 +1738,7 @@ void TriggerLVL302::fit(integer idum){
   //
   // Here  LVL3 Tracker Algorithm ( extremely stupid but very effective)
   //
-  int i,j,k,l,ic,n1,n2,n3,n4;
+  int i,j,k,l,ic;
   //
   // suppress splitted hits
   //
@@ -4212,8 +4210,6 @@ void TriggerLVL302::_writeEl(){
 
 // Fill the ntuple
 #ifdef __WRITEROOT__
-    int trdhits = TRDAux._NHits[0]+TRDAux._NHits[1];
-    int hmult   = TRDAux._HMult;
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 /*

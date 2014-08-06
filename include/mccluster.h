@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.44 2013/11/07 22:49:41 bbeische Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -36,10 +36,10 @@ public:
  integer getid() const {return idsoft;}
  static integer Out(integer);
  AMSTOFMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof,number _beta,number _edepr,number _step, integer _parentid, integer _particle) :
- idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof),beta(_beta),edepr(_edepr),step(_step),parentid(_parentid),particle(_particle), gtrkid(-2){_next=0;};
+ idsoft(_idsoft), parentid(_parentid),particle(_particle),gtrkid(-2),xcoo(_xcoo),tof(_tof),beta(_beta),edep(_edep),edepr(_edepr),step(_step){_next=0;};
 
  AMSTOFMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof,number _beta,number _edepr,number _step, integer _parentid, integer _particle, integer _gtrkid) :
- idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof),beta(_beta),edepr(_edepr),step(_step),parentid(_parentid),particle(_particle), gtrkid(_gtrkid){_next=0;};
+ idsoft(_idsoft), parentid(_parentid),particle(_particle), gtrkid(_gtrkid),xcoo(_xcoo),tof(_tof),beta(_beta),edep(_edep),edepr(_edepr),step(_step){_next=0;};
  AMSTOFMCCluster(){_next=0;};
  ~AMSTOFMCCluster(){};
  void _printEl(ostream &stream){stream <<"AMSTOFMCCluster "<<idsoft<<" "<<edep<<" "<<xcoo<<endl;}
@@ -114,9 +114,9 @@ protected:
 
 public:
   AMSAntiMCCluster(integer idsoft,AMSPoint xcoo,number edep, number tof) :
- _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof), _gtrkid(-2) {_next=0;};
+ _idsoft(idsoft), _xcoo(xcoo),_tof(tof),_edep(edep), _gtrkid(-2) {_next=0;};
  AMSAntiMCCluster(integer idsoft,AMSPoint xcoo,number edep, number tof, integer gtrkid) :
- _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof), _gtrkid(gtrkid) {_next=0;};
+ _idsoft(idsoft), _xcoo(xcoo),_tof(tof),_edep(edep), _gtrkid(gtrkid) {_next=0;};
  AMSAntiMCCluster(){_next=0;};
  ~AMSAntiMCCluster(){};
  void _printEl(ostream &stream){stream <<"AMSAntiMCCluster "<<_idsoft<<" "<<_edep<<endl;}
@@ -150,7 +150,7 @@ protected:
 public:
  
  AMSEcalMCHit(integer idsoft,AMSPoint xcoo,number edep, number tof) :
- _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof){_next=0;};
+ _idsoft(idsoft), _xcoo(xcoo),_tof(tof),_edep(edep){_next=0;};
  AMSEcalMCHit(){_next=0;};
  ~AMSEcalMCHit(){};
  void _printEl(ostream &stream){stream <<"AMSEcalMCHit "<<_idsoft<<" "<<_edep<<endl;}
@@ -260,21 +260,21 @@ protected:
  static integer Out(integer);
 public:
  // Constructor for noise and crosstalk
- AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra, integer gtrkid):AMSlink(),_idsoft(id),_xgl(0,0,0),_step(0),_edep(energy),_itra(itra),_ekin(0), _gtrkid(gtrkid), _procid(0) {};
+ AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra, integer gtrkid):AMSlink(),_idsoft(id),_itra(itra),_gtrkid(gtrkid),_procid(0),_xgl(0,0,0),_step(0),_edep(energy),_ekin(0) {};
  // Constructor for geant track
    AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra):AMSlink(),
-   _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(-2), _procid(0){}
+   _idsoft(idsoft),_itra(itra),_ipart(ipart),_gtrkid(-2), _procid(0),_xgl(xgl),_step(step),_edep(edep),_ekin(energy){}
 
 // Constructor for geant track
  AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra,integer gtrkid, integer procid):AMSlink(),
-   _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl), _gtrkid(gtrkid), _procid(procid) {}
+   _idsoft(idsoft),_itra(itra),_ipart(ipart),_gtrkid(gtrkid), _procid(procid),_xgl(xgl),_step(step),_edep(edep),_ekin(energy){}
 
  static void    sitrdhits(integer idsoft ,geant vect[],
 			  geant destep, geant ekin, geant step,integer ipart, integer itra, integer gtrkid=-2, integer procid=0);   
 
  // Constructor for daq
  AMSTRDMCCluster (AMSPoint xgl, integer itra): AMSlink(),
-  _idsoft(0),_xgl(xgl),_edep(0),_ekin(0),_step(0),_itra(itra){}
+  _idsoft(0),_itra(itra),_xgl(xgl),_step(0),_edep(0),_ekin(0){}
 
  AMSTRDMCCluster():AMSlink(){};
  ~AMSTRDMCCluster(){};

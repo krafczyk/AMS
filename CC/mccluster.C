@@ -234,7 +234,7 @@ void AMSRichMCHit::sirichhits(integer id,
     
     if(channel.pmt_geom_id>=0){
       // Take into account the quantum efficiency
-      geant dummy;
+      geant dummy =0;
       if(RNDM(dummy)<=channel.rel_eff)
 	AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 				     new AMSRichMCHit(id,channel.GetPacked(),adc,
@@ -252,7 +252,6 @@ void AMSRichMCHit::noisyhit(integer channel,int mode){
 
 
 geant AMSRichMCHit::adc_hit(integer n,integer channel,int mode){ // ADC counts for a set of hits
-  geant u1,u2,dummy,r;
   assert(mode==0 || mode==1);
 
   RichPMTChannel calibration(channel);
@@ -275,7 +274,6 @@ geant AMSRichMCHit::adc_hit(integer n,integer channel,int mode){ // ADC counts f
 }
 
 geant AMSRichMCHit::adc_empty(integer channel,integer mode){ // ADC count without a hit
-  geant u1,u2,dummy,r;
   assert(mode==0 || mode==1);
   RichPMTChannel calibration(channel);
   //  r=sqrt(-2.*log(1.-RNDM(dummy)));
@@ -289,7 +287,7 @@ geant AMSRichMCHit::adc_empty(integer channel,integer mode){ // ADC count withou
 geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the pedestal
   AMSgObj::BookTimer.start("SIRINoise");
   assert(mode==0 || mode==1);  
-  geant u1,u2,dummy,r;
+  geant u1,dummy=0,r;
   
   RichPMTChannel current(channel);
 

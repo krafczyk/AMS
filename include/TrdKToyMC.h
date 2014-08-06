@@ -53,7 +53,6 @@ private:
 
     int Seed;
     TF1 *f_rigidity[3];
-    double norm_rigidity[3];
 
 
     vector<TrdKHit> select_tube;

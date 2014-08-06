@@ -98,7 +98,7 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
 	  if (!lad) continue;
 	  
 	  // Build ladder
-	  AMSgvolume *vlad = BuildLadder(vplane, tkid);
+	  BuildLadder(vplane, tkid);
 	  nladder++;
 	  
 	  // Build electronics
@@ -385,8 +385,6 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
   std::ostrstream ost(name,sizeof(name));
   ost << "FOA" << layer << std::ends;
   
-  int nsen = lad->GetNSensors();
-  double signp = (layer%2 == 1) ? -1 : 1;
 
   geant par[3];
   par[0] = TkCoo::GetLadderLength(tkid)/2;

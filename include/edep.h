@@ -1,4 +1,4 @@
-// $Id: edep.h,v 1.6 2012/04/24 01:58:32 oliva Exp $
+// $Id$
 
 #ifndef __AMSEnergyLoss__
 #define __AMSEnergyLoss__
@@ -105,6 +105,7 @@ class AMSEnergyLoss {
   static Double_t GetTrackerLayerLogBetaGammaCorrection(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
   /**@}*/
 
+  virtual ~AMSEnergyLoss() { }
   ClassDef(AMSEnergyLoss,1); 
 };
 

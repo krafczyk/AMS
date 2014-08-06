@@ -295,7 +295,6 @@ TH2D* TrGainDB::GetGainHistogram() {
 bool TrGainDB::IsDefault() {
   for (int icrate=0; icrate<8; icrate++) {
     for (int itdr=0; itdr<24; itdr++) {
-      int iladder = icrate*24 + itdr;
       int hwid = icrate*100 + itdr;
       TrLadGain* ladgain = (TrLadGain*) FindGainHwId(hwid);
       if (!ladgain->IsDefault()) return false;
@@ -372,7 +371,6 @@ bool TrLadGain::GainDBToLinear(float* offset) {
 
 bool TrLadGain::LinearToGainDB(float* offset) {
   if (!offset) return false;
-  int index = 0;
   SetHwId((int)offset[0]);
   SetGain(offset+1);
   SetOffset(offset+1+16);

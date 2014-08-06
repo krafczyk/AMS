@@ -230,9 +230,8 @@ int  TrCalDB::SaveCal2DB(){
   time_t endtime=bb+24*3600*31;
   tm begin;
   tm end;
-  tm* mtim=localtime_r(&bb,&begin);
-
-  tm* mtim2=localtime_r(&endtime,&end);
+  localtime_r(&bb,&begin);
+  localtime_r(&endtime,&end);
 
 
   AMSTimeID* tt= new AMSTimeID(
@@ -244,14 +243,13 @@ int  TrCalDB::SaveCal2DB(){
 			       AMSTimeID::Standalone,
 			       1);
   tt->UpdateMe();
-  int pp=tt->write(AMSDATADIR.amsdatabase);
+  tt->write(AMSDATADIR.amsdatabase);
 
   return 0;
 
 }
 
 void TrCalDB::updtrcalib2009S(integer n, int16u* p){
-  uinteger leng=(n&65535);
   uinteger in=(n>>16);
   uinteger ic=in/trconst::ntdr;
   uinteger tdr=in%trconst::ntdr;
@@ -343,7 +341,6 @@ void TrCalDB::updtrcalib2009S(integer n, int16u* p){
 int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
 
   CaloutDSP cal;
-  ushort size;
   int16u* offset=rr;
   int cpar=*(rr++);
   if(pri>0) printf("Command parameter is: %X \n",cpar); 

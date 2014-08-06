@@ -37,13 +37,11 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
   integer PhysBPatt(0);//Lvl1 phys.branches pattern(e,p,gamma,unbiased,...,external; 8 in total)
   integer JMembPatt(0);//Lvl1 joined members pattern(FTC,FTZ,FTE,ACC0,...,BZ,ECAL-F_and,...; 16 in total)
   integer auxtrpat(0);
-  int i,il,ib,ibmx,ns1,ns2;
-  integer ntof=0;
+  int i,ibmx,ns1,ns2;
   integer tofpatt1[TOF2GC::SCLRS]={0,0,0,0};//all sides,FTC(z>=1)
   integer tofpatt2[TOF2GC::SCLRS]={0,0,0,0};//all sides,BZ(z>=2)
   geant rates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//TrigCompRates(Hz)
-  integer tflg(-1);
-  integer toftrcode(-1),tofcpcode(0),tofbzflag(0);
+  integer tofcpcode(0),tofbzflag(0);
   integer toftrcode1(-1),toftrcode2(-1);//0->4planes,(1-4)->3plns,(5-8)->2plns, <0->none
   integer ftpatt;
   integer nanti=0;
@@ -524,8 +522,7 @@ void Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from 
   uinteger iutct;
   tm begin;
   time_t utct;
-  int mrfp;
-  int mcvn,rlvn,dig,endflab(0);
+  int endflab(0);
 //
 //reset:
  _globftmask=0;
@@ -749,7 +746,7 @@ void Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from 
 void Lvl1TrigConfig::redefbydc(){
 //called from siamsinitevent(), redefine in memory some trigconfig settings by DataCards
   integer lut1,lut2,toflc,toflcz,toflcsz,cftmask,ftpatreq(0),sorand,ewcode;
-  integer i,j,k,l,code1,code2,trtype;
+  integer i,j,k,l,trtype;
   geant pwextt,pwextb;
 //---
   trtype=TGL1FFKEY.trtype;
@@ -1350,7 +1347,7 @@ void Trigger2LVL1::_writeEl(){
 
 void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
 // on input p points to 1st word of the block (after length)
-  int i,j,nwords(0);
+  int i,nwords(0);
   integer val;
   int16u inpat[15]={15,14,13,11,7,5,9,6,10,3,12,1,2,4,8};//CPpatt vs tofflag(0-14)
   uinteger ltim(0);
@@ -1531,7 +1528,6 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
 
 //----------------------------------------------------------------------------------
 void Trigger2LVL1::buildraw(integer len, int16u *p){
-int cid=(len>>16)+1;
 //
 // on input: len=tot_block_length as given at the beginning of block
 //           *p=pointer_to_beggining_of_block_data (next to the length word)
@@ -1545,14 +1541,9 @@ int cid=(len>>16)+1;
 //
   integer lencalc(0);
   integer JMembPatt(0),PhysBPatt(0),TofFlag1(-1),TofFlag2(-1),AntiPatt(0),EcalFlag(0);
-  integer TofPatt1[TOF2GC::SCLRS],TofPatt2[TOF2GC::SCLRS];
-  int16u EcTrPatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes)
-  int16u ftzwdcode(0);
   geant LiveTime[2]={0,0};
   geant livetm[2];
   geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  number tgrates[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  number dtrates[5]={0,0,0,0,0};
   static number evtprev(-1);
   number evtcurr(0),delevt;
   uinteger ltimec[2];
@@ -1561,6 +1552,7 @@ int cid=(len>>16)+1;
   uinteger time[2]={0,0};
   uinteger trtime[5]={0,0,0,0,0};
   uinteger busypat[2]={0,0};//1st word->bits 0-31, 2nd word-> bits 32-39 of 40-bits busy patt.word
+  int16u nw3;
   bool busyerr(0);
   bool PreAssRD=(AMSJob::gethead()->isRealData()
                  && (AMSEvent::gethead()->getrun() < 1213470000)) ;//flag to identify RD of preassembly period
@@ -1570,39 +1562,22 @@ int cid=(len>>16)+1;
   int16u ecpat[6][3]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//.....(after decoding of EC-data)
   geant ectrs=0;//........................................................................
 //
-  integer i,j,iw,il,ib,is,ic,lent,dlen,wvar;
-  int16u bit,rrr;
-  int16u blid,btyp,naddr,word,wordi,wordf,nword,luti,lutf;
+  integer i,j,ib;
+  int16u bit;
+  int16u word,wordi,wordf;
   uinteger lword;
   uinteger ltim(0);
-  geant tgate(0),tgatelt(0),tgatetr(0),tgatesc(0);
+  geant tgate(0);
   uinteger timgid;
 //
   static integer err(0),err1(0),err2(0),err3(0),err4(0);
 //  
-  int16u datyp(0),formt(0),evnum;
-  int16u jbias,jblid,jleng,jaddr,csid,psfcode;
-  int16u cpmask(0),ctmask(0),bzmask(0),trstmsk(0);
+  int16u datyp(0),formt(0);
+  int16u jblid,jleng,jaddr,csid;
   integer auxtrpat(0);
-  int16u cpinmask[TOF2GC::SCLRS],bzinmask[TOF2GC::SCLRS];//my reordered masks
-  uinteger febusymsk[2]={0,0};//to store 24+16 bits of FEbusy-mask
-  integer antinmask[ANTI2C::MAXANTI]={1,1,1,1,1,1,1,1};//s1&s2 in
-  integer antoamask[ANTI2C::MAXANTI]={0,0,0,0,0,0,0,0};//and
-  integer ecprjmask(1111),ecorand(1);
-  integer tofoamask[TOF2GC::SCLRS]={1,1,1,1};//or
-  integer tofoazmask[TOF2GC::SCLRS]={1,1,1,1};//or
-  integer gftmsk(0),ftzlmsk(0),toflcsz(0);
-  integer toflut1(0),toflut2(0),toflutbz(0);
-  integer tofextwid(0);
-  integer globftmask(0);
-  integer globl1mask(0);
-  integer antsectmx[2]={0,0};
-  integer physbrmemb[8]={0,0,0,0,0,0,0,0};
-  integer phbrprescf[8]={1,1,1,1,1,1,1,1};
 //
   int16u rstatw1(0),rstatw2(0),rstatw3(0);
   int16u nrdow1(0),nrdow2(0),nrdow3(0);
-  int16u nw1,nw2,nw3;
 //
   int ltimbias;//tempor bias to live-time data(in "trig"-block)
   int trgsbias;//bias to trig.setup/status block
@@ -2223,8 +2198,6 @@ int cid=(len>>16)+1;
   }
 // Don't save here to file/DB - tofinmask,tofinzmask may be not yet decoded, so save later in Trigger2LVL1::build
 //---------------------------------------------------------------------------------------------------
-  int16u tgid;
-  number scrate;
 #ifdef _OPENMP
 // tempor debugging: decode scalers here and compare with latest ones in static arr(done in Early(Pre)Decoding): 
 //
@@ -2456,7 +2429,6 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
 //
   integer lenoncall,lencalc(0);
-  static geant tgprev[2]={-1,-1};
   static number evtprev(-1);
   static int16u parbitpatt[3]={0,0,0};
   number evtcurr(0),delevt;
@@ -2467,9 +2439,9 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   bool PreAssRD=(AMSJob::gethead()->isRealData()
           && (DAQEvent::gethead()->runno()<1213470000)) ;//flag to identify RD of preassembly period
 //
-  integer i,j,iw,il,ib,is,ic,lent,dlen,wvar;
+  integer i,j,ib,wvar;
   int16u bit,rrr;
-  int16u blid,btyp,naddr,word,wordi,wordf,nword,luti,lutf;
+  int16u word,nword,luti,lutf;
   uinteger lword;
   uinteger ltim(0);
   geant tgate(0);
@@ -2480,10 +2452,9 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   integer gftmsk(0),ftzlmsk(0);
   int16u ftzwdcode(0);
   geant LiveTime[2]={0,0};
-  geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 //  
-  int16u datyp(0),formt(0),evnum;
-  int16u jbias,jblid,jleng,jaddr,csid,psfcode;
+  int16u datyp(0),formt(0);
+  int16u jblid,jleng,jaddr,csid,psfcode;
 //
   int16u rstatw1(0),rstatw2(0),rstatw3(0);
   int16u nrdow1(0),nrdow2(0),nrdow3(0);
@@ -2505,9 +2476,8 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   csid=int16u((len>>16)&(0xFFFFL))+1;//S(s=1-4=>a,b,p,s) as return by my "checkblockid"
   jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(present if not JMDC request)
 //
-  bool dataf=((jblid&(0x8000))>0);//data-fragment
+  //bool dataf=((jblid&(0x8000))>0);//data-fragment
   bool crcer=((jblid&(0x4000))>0);//CRC-error
-  bool asser=((jblid&(0x2000))>0);//assembly-error
 //  asser=false;
   bool amswer=((jblid&(0x1000))>0);//amsw-error   
   bool timoer=((jblid&(0x0800))>0);//timeout-error   
@@ -2518,8 +2488,6 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   bool LTwinv=false;
 //
   uinteger runn=DAQEvent::gethead()->runno();
-  time_t run_utct=time_t(runn);
-  uinteger evn=DAQEvent::gethead()->eventno();
   time_t evtime=DAQEvent::gethead()->time();
 //
   if(AMSUser::PreviousRunN()!=runn){

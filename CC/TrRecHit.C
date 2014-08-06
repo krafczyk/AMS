@@ -435,7 +435,6 @@ static double HitCorrelation_MeanPar[7] = {0, 1.10018e+00,-6.99183e-03,-1.92904e
 // monotonic function (explodes after 123 ADC counts)!
 static double HitCorrelation_XMax = 160;
 static double HitCorrelation_SigmPar[7] = {1,-5.50738e-02, 1.24566e-02,-4.60968e-04,7.55153e-06,-5.75738e-08,1.67042e-10}; 
-static double HitCorrelation_SigmMin = 1;
 // list of low gain on p (added on nov. 2013)
 static int HitCorrelation_TkId_Gain15[15] = {-803, 307, 305, 802, 813, -813, 811, -610, 611, 110, 703, 503, 603, -706, -903};
 static int HitCorrelation_TkId_Gain20[ 2] = {213, -904};

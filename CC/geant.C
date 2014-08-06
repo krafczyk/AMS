@@ -184,7 +184,6 @@ void gams::UGINIT(int argc,  char * argv[]){
 #endif
   GCTLIT.ITCKOV=1;
   GCPHYS.IRAYL=1;
-  integer mone=-1;
 
 #ifndef __AMSVMC__
  GFFGO();
@@ -388,7 +387,6 @@ if(MISCFFKEY.G3On)
 GLAST();
 
 
-int nevents= GCFLAG.IEVENT;
        delete AMSJob::gethead();
        
 #ifdef __CORBA__

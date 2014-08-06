@@ -455,6 +455,7 @@ class SamplingUnfolding{
   }
 
   SamplingUnfolding():Regularization(1.0){}
+  virtual ~SamplingUnfolding() { }
 };
 
 
@@ -484,6 +485,7 @@ class BayesianConsistent{
   virtual double GetGOF(TH2D &matrix,TH1D &measured,TH1D &unfolded);            // Get the goodness of fit (whatever is it); 
   virtual double Metric(TH1D &h1,TH1D &h2);                        // Metric used to infer the number of iterations by minimizing it     
 
+  virtual ~BayesianConsistent() { }
 };
 
 

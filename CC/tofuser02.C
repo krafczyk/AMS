@@ -27,8 +27,8 @@
 void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   integer i,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status,sector;
   integer nanti(0),nantit(0);
-  integer il,ib,ix,iy,chan,nbrlc[TOF2GC::SCLRS],brnlc[TOF2GC::SCLRS];
-  geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
+  integer il,ib,nbrlc[TOF2GC::SCLRS],brnlc[TOF2GC::SCLRS];
+  geant zc[4],tgx,tgy,cost;
   number coo[TOF2GC::SCLRS],coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
   number ama[2],amd[2];
   number adca1[TOF2GC::SCLRS],adca2[TOF2GC::SCLRS];
@@ -37,21 +37,18 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   number am1[TOF2GC::SCLRS],am2[TOF2GC::SCLRS];
   number am[2],eanti(0),eacl;
   number am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS];
-  geant ainp[2],dinp[2],cinp;
   number ltim[TOF2GC::SCLRS],tdif[TOF2GC::SCLRS],trle[TOF2GC::SCLRS],trlr[TOF2GC::SCLRS];
-  number ldif[TOF2GC::SCLRS];
   number tm[2];
   number tmss[TOF2GC::SCLRS];
   number cltim[TOF2GC::SCLRS];
   integer clmem[TOF2GC::SCLRS];
-  number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof=0,lflgt;
+  number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof=0;
   number sigt[4]={0.15,0.15,0.15,0.15};// time meas.accuracy 
   number cvel(29.979);// light velocity
   number eacut=0.3;// cut on E-anti (mev)
-  int16u otyp,mtyp,crat,slot,tsens;
+  int16u crat,slot;
   integer swid,hwid,shwid;
-  number temper,stimes[4],strr,offs,tinp,tout;
-  number tinpp,toutp,first(0);
+  number temper;
   integer brnum;
   TOF2RawSide *ptrt;
   TOF2RawCluster *ptr;
@@ -79,8 +76,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   TOF2JobStat::addre(21);
 //---> some trigger study:
   plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  integer JMembPatt=plvl1->getJMembPatt();
-  integer PhysBPatt=plvl1->getPhysBPatt();
+  //integer JMembPatt=plvl1->getJMembPatt();
+  //integer PhysBPatt=plvl1->getPhysBPatt();
 /*
 //  cout<<"---> JMembPatt="<<hex<<JMembPatt<<dec<<endl;
 //  for(i=15;i>=0;i--)cout<<(plvl1->JMembPattBitSet(i))<<"|";
@@ -240,7 +237,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //------> check  TofClust/layer=low :
   bool TofClMultOK=true;
   bool TofClOneMem(true);
-  geant zcoo;
 //
   for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] != 1)TofClMultOK=false;
   for(i=0;i<TOF2GC::SCLRS;i++)if(clstok[i]==0)TofClMultOK=false;//require good status also
@@ -253,7 +249,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   TOF2JobStat::addre(50);
 //======================================> Ecal-test:
   AMSEcalShower * ptsh;
-  number ecshen,ecshener,efront,chi2dir,difosum,ecshsleak,ecshrleak,ecshdleak,ecsholeak;
+  number ecshen;
   AMSEcalHit * ptr1;
   integer maxpl,nhtot(0);
   geant padc[3];
@@ -310,12 +306,12 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 // 
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[TOF2GC::SCTHMX1];
   geant adca;
-  int16u id,idN,sta;
+  int16u id,idN;
   number ampe[2],uptm[2];
   number ama1[ANTI2C::MAXANTI],ama2[ANTI2C::MAXANTI];
   integer frsecn[ANTI2C::MAXANTI],frsect;
-  integer j,jmax,isid,nsds,stat,chnum,n1,n2,i1min,i2min;
-  geant ftdel[2],padlen,padrad,padth,padfi,paddfi,ped[2],sig[2];
+  integer isid,nsds,chnum;
+  geant padlen,padrad,padth,paddfi,ped[2],sig[2];
   int nphsok;
   padlen=ANTI2DBc::scleng();//z-size
   padrad=ANTI2DBc::scradi();//int radious
@@ -454,12 +450,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //===================================> get parameters from tracker:
 //
     number pmas(0.938),mumas(0.1057),imass;
-    number pmom,mom,bet,chi2,betm,pcut[2],massq,beta,chi2t,chi2s;
+    number pmom,bet,chi2,pcut[2],beta,chi2t,chi2s;
     number momentum;
     number the,phi,trl,rid,err,ctran,charge,partq;
     integer chargeTOF(0),chargeTracker(0),betpatt(-1),trpatt,trhits(0);
     uintl traddr(0,0);
-    integer ilad[2][8]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
     AMSPoint cooCyl(0,0,0);
@@ -468,12 +463,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     AMSContainer *cptr;
     AMSParticle *ppart;
     AMSTrTrack *ptrack;
-    AMSTrTrack *ptrack_r;
     AMSTRDTrack *ptrd;
     AMSCharge  *pcharge;
     AMSBeta * pbeta;
-    int npart,ipatt,envindx(0);
-    bool trktr,trdtr,ecaltr,nottr,badint;
+    int npart,envindx(0);
+    bool trdtr,ecaltr,nottr,badint;
     number toftrlen[TOF2GC::SCLRS]={0,0,0,0};
 //
     npart=0;
@@ -829,9 +823,7 @@ Nextp:
 // =================================>  find track crossing points/angles with Tof-counters:
 //
     bool TofTrackMatch(true);
-    bool TofWithExtPad(false);
     geant barw,dtcut,dlcut(8);
-    bool slopepos,slopeneg;
     bad=0;
     C0[0]=0.;
     C0[1]=0.;
@@ -1049,7 +1041,7 @@ Nextp:
 //---> for equiliz.procedure:
     if(TFCAFFKEY.spares[0]==1){//PMEquilization Mode
       plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-      bool intrig=plvl1->checktofpattor(il,ib);
+	  (void)plvl1->checktofpattor(il,ib);
     }
 
 //===================================
@@ -1178,7 +1170,6 @@ Nextp:
 }
 //----------------------------
 void TOF2User::InitJob(){
-  int i;
   if(TFREFFKEY.reprtf[1]>0){
     HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
     HBOOK1(1500,"TofUser:Particle Rigidity(gv),Beta>0",90,-15.,15.,0.);
@@ -1367,7 +1358,6 @@ void TOF2User::EndJob(){
   int i;
   char chopt[6]="qb";
   char chfun[6]="g";
-  char chopt1[5]="LOGY";
   geant par[3],step[3],pmin[3],pmax[3],sigp[3],chi2;
 //
   if(TFREFFKEY.reprtf[1]==0)return;

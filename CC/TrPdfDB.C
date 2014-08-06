@@ -370,9 +370,6 @@ TH1D* TrPdfDB::GetSliceY(TH2D* th2, int ixbin) {
     return 0;
   }
   // binning
-  int   nxbins = th2->GetXaxis()->GetNbins();
-  float   xmin = th2->GetXaxis()->GetXmin();
-  float   xmax = th2->GetXaxis()->GetXmax();
   int   nybins = th2->GetYaxis()->GetNbins();
   float   ymin = th2->GetYaxis()->GetXmin();
   float   ymax = th2->GetYaxis()->GetXmax();

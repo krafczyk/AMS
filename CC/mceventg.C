@@ -93,12 +93,12 @@ if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
 
 
 AMSmceventg::AMSmceventg(integer ipart, geant mom, const AMSPoint & coo,
-			 const AMSDir & dir, integer nskip):_trkid(1),_parentid(0),_nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0),_parinfo(1),_ipart(ipart),_delay(0){
+			 const AMSDir & dir, integer nskip):_coo(coo),_dir(dir),_mom(mom),_delay(0),_ipart(ipart),_trkid(1),_parentid(0),_nskip(nskip),_tbline(0),_parinfo(1){
 if(abs(_parinfo)==1)init(ipart);
 
 }
 
-AMSmceventg::AMSmceventg(integer ipart, integer trackid, integer parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer parinfo,float charge,float mass,integer nskip):_trkid(trackid), _parentid(parentid), _nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0),_parinfo(parinfo),_charge(charge),_mass(mass),_ipart(ipart),_delay(0){
+AMSmceventg::AMSmceventg(integer ipart, integer trackid, integer parentid, geant mom, const AMSPoint & coo, const AMSDir & dir, integer parinfo,float charge,float mass,integer nskip):_coo(coo),_dir(dir),_mom(mom),_mass(mass),_charge(charge),_delay(0),_ipart(ipart),_trkid(trackid), _parentid(parentid), _nskip(nskip),_tbline(0),_parinfo(parinfo){
 if(abs(_parinfo)==1)init(ipart);
 _mom=sqrt( (_mom+_mass)*(_mom+_mass)-_mass*_mass);
 
@@ -157,7 +157,6 @@ void AMSmceventg::gener(){
     static int index=0;
     static int maxlist=0;
     static vector<tbpos> poslist;
-    int d=1;
     if(readfile==0){
 
       poslist.clear();
@@ -245,7 +244,6 @@ void AMSmceventg::gener(){
   }
   else {
     number _gamma=0;
-    static integer ini=0;
     integer curp=0;
     number phi;
     number theta;
@@ -443,7 +441,7 @@ void AMSmceventg::gener(){
       _coo=_r_c[k];
       //   add 1cm of normal distribution 
       //   
-      float dummy;
+      float dummy = 0;
       double t=2*3.1415926*RNDM(dummy);
       double r=sqrt(-0.2*log(RNDM(dummy)));
       _coo[0]+=r*cos(t);
@@ -549,7 +547,7 @@ void AMSmceventg::gener(){
       //
       if(CCFFKEY.low==2){//sea-level muons
 	if(_dir[2]>0)goto again;
-	geant dummy;
+	geant dummy = 0;
 	number u=RNDM(dummy);
 	if(u>=pow(fabs(_dir[2]),_gamma))goto again;
 	//      cout <<"accepted  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
@@ -678,7 +676,6 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       for(int i=0;i<nchan;i++){
         geant xm=i*binw+al+binw/2;
         number xmom=xm/1000;
-       number xr=xmom/charge;
         number xkin=(sqrt(xmom*xmom+mass*mass)-mass);
         geant y=2.4*exp(-0.8*xkin)+100*exp(-4.26*xkin);
         if(xkin>0.005)HF1(_hid,xm,y);
@@ -1191,7 +1188,6 @@ bool AMSmceventg::SpecialCuts(integer cut){
      for(int i=0;i<3;i++)p[i]=spa->getcooA(i);
      for(int i=0;i<3;i++)ps[i]=spa->getpar(i);
     AMSgvolume *ams=AMSJob::gethead()->getgeomvolume(AMSID("FMOT",1));
-     number para[3];
      for(int i=0;i<3;i++)amss[i]=ams->getpar(i);
      }  
      else{ 
@@ -1306,7 +1302,6 @@ integer AMSmceventg::accept(){
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
-         geant d;
           if(SpecialCuts(CCFFKEY.SpecialCut%10)){
 //        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate)
             if((CCFFKEY.low==0 || CCFFKEY.low==6 || CCFFKEY.low==11)  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
@@ -1858,7 +1853,7 @@ void AMSmceventg::buildraw(integer n, int16u *p){
 } 
 
 integer AMSmceventg::calcdaqlength(integer i){
- AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg");
+ AMSEvent::gethead()->getC("AMSmceventg");
 int maxl=1200;
    integer l=1;
    bool sec=false;
@@ -2090,7 +2085,6 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    G4ThreeVector pos = aTrack->GetPosition();
    bool isPrimary = aTrack->GetParentID() == 0;
    G4ParticleDefinition * pdef = aTrack->GetDynamicParticle()->GetDefinition();
-   G4int pdgid = aTrack->GetDynamicParticle()->GetDefinition()->GetPDGEncoding();
    //bool isNeutrino = abs(pdgid)==14 or abs(pddid)==16 or abs(pdgid)==18;
    bool isNeutrino = pdef->GetPDGCharge()==0 and pdef->GetLeptonNumber()!=0;
 
@@ -2121,7 +2115,6 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    float charge=pdef->GetPDGCharge();
    float mass=pdef->GetPDGMass()/GeV;
    AMSPoint point( pos.x(), pos.y(), pos.z() );
-   float parr[3] = { float(pos.x()), float(pos.y()), float(pos.z()) };
    AMSDir dir( mom.x(), mom.y(), mom.z() );
 
 ///--Create Process Record Adding by Q.Yan
@@ -2236,14 +2229,6 @@ void AMSmceventg::endjob(){
 //
 integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, geant phi){
   static integer first=1;
-  geant ztof1t=66.5;//tempor
-  geant ztof1b=64.0;//tempor
-  geant ztof2t=63.5;//tempor
-  geant ztof2b=61.0;//tempor
-  geant xtof1=131/2;//tempor
-  geant ytof1=114/2;//tempor
-  geant xtof2=120/2;//tempor
-  geant ytof2=133/2;//tempor
   geant zanti;
   geant ranti;
   geant zcal=ECALDBc::gendim(7);

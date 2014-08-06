@@ -57,7 +57,6 @@ using namespace ANTI2C;
 //------
 AMSSCIds::AMSSCIds(int swid):_dummy(0){
 //
-int16u slt;
   _swid=swid;//LBBSPM(tof) or BSPM(anti)
   _layer=swid/100000;
   _mtyp=swid%10;
@@ -165,8 +164,8 @@ AMSSCIds::AMSSCIds(int16u bar, int16u side, int16u pmt, int16u mtyp):_dummy(0){
   }
 }
 //------
-AMSSCIds::AMSSCIds(int16u crate, int16u slot, int16u rdch):_crate(crate),_slot(slot),
-                                          _rdch(rdch),_dummy(0){
+AMSSCIds::AMSSCIds(int16u crate, int16u slot, int16u rdch):_dummy(0),_crate(crate),_slot(slot),
+                                          _rdch(rdch){
 //
   _hwid=(_crate+1)*10000+(_slot+1)*100+(_rdch+1);//CSSRR
   _sltyp=sltymap[_crate][_slot];

@@ -171,6 +171,7 @@ class DynAlContinuity{
   int Layer;
   DynAlContinuity():Fit(FitOrder),CurrentRun(-1){};
   DynAlContinuity(TString dir,TString prefix,int run=-1):Fit(FitOrder){ForceUpdate(dir,prefix,run);}; //  
+  virtual ~DynAlContinuity() {}
   void ForceUpdate(TString dir,TString prefix,int run);
   bool Update(int run);
   void Fill(TString dir,TString prefix,int run);

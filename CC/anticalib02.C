@@ -38,9 +38,8 @@ using namespace ANTI2C;
 //
 //--------------------------
 void AntiCalib::init(){ // ----> initialization for AMPL-calibration 
-  integer i,j,il,ib,ii,jj,id,nadd,nbnr,chan,is,ic,ie,logs,phys;
-  geant blen,dd,bw,bl,bh,hll,hhl;
-  char title[127];
+  integer ib,id,is,ic,ie,logs,phys;
+  geant hll,hhl;
   char hname[127];
   geant padlen=ANTI2DBc::scleng();//z-size
 //
@@ -75,17 +74,16 @@ void AntiCalib::init(){ // ----> initialization for AMPL-calibration
 //--------------------------------------
 //
 void AntiCalib::select(){ // ------> event selection for AMPL-calibration
-  bool anchok;
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[TOF2GC::SCTHMX1];
   geant adca;
-  int16u id,idN,sta;
+  int16u id,idN;
   number ampe[2],uptm[2];
   number am1[ANTI2C::MAXANTI],am2[ANTI2C::MAXANTI];
   integer frsecn[ANTI2C::MAXANTI],frsect;
-  integer i,j,jmax,sector,isid,nsds,stat,chnum,n1,n2,i1min,i2min;
+  integer i,sector,isid,nsds,chnum;
   integer status(0);
   uinteger Runum(0);
-  geant ftdel[2],padlen,padrad,padth,padfi,paddfi,ped,sig,tzer;
+  geant padlen,padrad,padth,padfi,paddfi,ped,sig,tzer;
   int nphsok;
   Anti2RawEvent *ptr;
   Anti2RawEvent *ptrN;
@@ -170,9 +168,9 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //------> get parameters from tracker:
 //
     number pmas;
-    number pmom,mom,bet(0.97),chi2,betm,pcut[2];
-    number the,phi,trl,rigid(2),err,ctran;
-    integer chargeTOF,chargeTracker,charge,trpatt,betpatt;
+    number pmom,bet(0.97),chi2;
+    number the,phi,trl,rigid(2),err;
+    integer chargeTracker,charge,trpatt,betpatt;
     number chi2t,chi2s;
     AMSPoint C0(0,0,0);
     AMSPoint cooCyl(0,0,0);
@@ -184,8 +182,8 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     AMSCharge  *pcharge;
     AMSTRDTrack *ptrd;
     AMSBeta *pbeta;
-    int npart(0),ipatt,bad(1),envindx(0);
-    bool trktr,trdtr,ecaltr,nottr,badint;
+    int npart(0),bad(1),envindx(0);
+    bool trdtr,ecaltr,nottr,badint;
 //
     for(i=0;i<2;i++){//i=0->keeps parts.with true(Trk/Trd)-track, i=1->...false(nonTrk/Trd)-track
       cptr=AMSEvent::gethead()->getC("AMSParticle",i);// get pointer to part-envelop "i"
@@ -474,11 +472,10 @@ void AntiCalib::fill(integer isec, geant am[2], geant coo){
 //            ---> fit-program to get final Anti-calibration consts:
 void AntiCalib::fit(){
 //
-  integer i,j,k,chan,isd,nev,nmin,nmax,lsec;
-  integer phys,logs,bin,id,nbins(0);
-  int ndef[2]={0,0};
+  integer i,j,k,isd,nev,nmin,nmax;
+  integer phys,logs,bin,id;
   geant elos(1.6/2);//m.p. eloss/pad, norm.inc., per side
-  geant atl[2],att,adc2pe,mev2pe;
+  geant mev2pe;
   geant profl[ANTI2C::LongBins],profle[ANTI2C::LongBins];
   number *pntr[ANTI2C::BinEvsMX];
   geant paddl=ANTI2DBc::scleng();//sector length
@@ -497,7 +494,7 @@ void AntiCalib::fit(){
   int ifit[4];
   char pnam[4][6],pnm[6];
   number argl[10];
-  int iargl[10],ier;
+  int ier;
   number start[4],pstep[4],plow[4],phigh[4];
   number defslop=0.004;//250cm
   strcpy(pnam[0],"slope");
@@ -753,7 +750,7 @@ void AntiCalib::fit(){
 //--------
 void AntiCalib::mfun(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
-  int i,j;
+  int i;
   number ff,fitval;
   f=0.;
 //
@@ -800,7 +797,6 @@ void AntiCalib::mfun(int &np, number grad[], number &f, number x[]
 void ANTPedCalib::initb(){//called in retof2initjob() if TOF+AC is requested for OnBoard-calib data proc 
 // histograms booking / reset vars
   integer i,j;
-  char hmod[2]=" ";
 //
   if(TFREFFKEY.reprtf[1]>0)cout<<endl;
 //
@@ -840,7 +836,6 @@ void ANTPedCalib::resetb(){ // run-by-run reset for OnBoardPedTable processing
 //called in buildonbP
   integer i,j;
   char hmod[2]=" ";
-  static int first(0);
 //
   cout<<endl;
 //
@@ -996,7 +991,6 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 // ---> write OnBoardPedTable to ped-file:
 //
    if(flg==3 && AMSFFKEY.Update==0){
-     integer endflab(12345);
      char fname[1024];
      char name[80];
      char buf[20];
@@ -1052,7 +1046,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 }
 //--------------------------------------------------------------------
 void ANTPedCalib::init(){ // ----> initialization for AccPed-calibration(Class/DS) 
-  integer i,j,k,il,ib,id,ii,jj,chan;
+  integer i,j,k,id;
   char htit1[60],htit2[60];
   char inum[11];
   char in[2]="0";
@@ -1150,7 +1144,7 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
    geant ped,sig,sig2,spikethr;
    bool accept(true);
    geant por2rem,p2r;
-   geant pedmn,pedmx,sigmn,sigmx;
+   geant sigmn,sigmx;
    geant apor2rm[10]={0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,};
    number ad,ad2,dp,ds;
    geant pedi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
@@ -1358,7 +1352,6 @@ void ANTPedCalib::outp(int flg){// very preliminary
    }
 // ---> write MC/RD ped-file:
    if(flg==1 || flg==2){
-     integer endflab(12345);
      char fname[1024];
      char name[80];
      char buf[20];

@@ -1334,7 +1334,7 @@ void  TofSimUtil::InitialBarPar(int ilay,int ibar){
 
 }
 
-TOFgvolume::TOFgvolume(const char matter[],const char shape[],G4int npar, G4double par[],G4LogicalVolume *pg4l):_npar(npar),AMSNode(0){
+TOFgvolume::TOFgvolume(const char matter[],const char shape[],G4int npar, G4double par[],G4LogicalVolume *pg4l):AMSNode(0),_npar(npar){
     _shape =new char[strlen(shape)>3?strlen(shape)+1:5];
     _matter=new char[strlen(matter)>3?strlen(matter)+1:5];
     strcpy(_shape,shape);

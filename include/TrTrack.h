@@ -144,15 +144,15 @@ public:
 
   /// Default constructor to fill default values
   TrTrackPar()
-    : FitDone(false), HitBits(0), ChisqX(-1), ChisqY(-1), 
-      NdofX(0), NdofY(0), Chisq(-1), Rigidity(0), ErrRinv(0), 
-      P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)),Bcorr(1.) {
+    : HitBits(0), FitDone(false), ChisqX(-1), ChisqY(-1), 
+      NdofX(0), NdofY(0), Bcorr(1.), Chisq(-1), Rigidity(0), ErrRinv(0), 
+      P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {
     for (int i = 0; i < trconst::maxlay; i++){
       Residual[i][0] = Residual[i][1] = 0;
       weight[i][0] = weight[i][1] = 0;
     }
   }
-  ~TrTrackPar(){}
+  virtual ~TrTrackPar(){}
   void Print(int full=0) const;
   void Print_stream(std::string &ostr,int full=0) const;
   friend class TrTrackR;

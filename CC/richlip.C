@@ -719,8 +719,6 @@ extern "C" void lipgetrad_(float *x,float *y,float *z,float *theta,float *phi, i
   
   float xams,yams,zams;
   float thetaams,phiams;
-  number radentp[3];
-  number radentd[3];
 
   // Convert arguments to AMS coordinates
   RichLIPRec::coordlip2ams(*x,*y,*z,xams,yams,zams);

@@ -415,7 +415,7 @@ void RichPMTsManager::ReadFromFile(const char *filename){
 
   for(int geom_id=0;geom_id<RICmaxpmts;geom_id++){
       // Read the identification information
-      int pos,pmtaddh,pmtaddc,pmtnumb;
+      int pos;
 
       //      calib >> pos >> pmtaddh >> pmtaddc >> pmtnumb;
       calib >> pos;
@@ -817,9 +817,6 @@ int RichPMTsManager::FindPMT(geant x,geant y){
   
   if(pmt==-1) return -1;
   
-  double pmt_x=_pmts[pmt]._global_position[0];
-  double pmt_y=_pmts[pmt]._global_position[1];
-
   return pmt;
 }
 

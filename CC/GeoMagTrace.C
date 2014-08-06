@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.C,v 1.6 2012/11/17 22:48:36 shaino Exp $
+//  $Id$
 
 #include "GeoMagTrace.h"
 #include "GeoMagField.h"
@@ -169,7 +169,6 @@ int GeoMagTrace::Propagate(int nmax, int verb, double step)
 void GeoMagTrace::Print(int option) const
 {
   char ss[Nstat+2] = "TFAPSU";
-  int is = (1 <= _stat && _stat <= Nstat) ? _stat-1 : Nstat;
 
   double r, th, ph, dr, dth, dph;
   CartToAng( _x,  _y,  _z,  r,  th,  ph, true);

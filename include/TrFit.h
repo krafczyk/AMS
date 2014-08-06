@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.32 2013/02/02 16:43:52 shaino Exp $
+//  $Id$
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2013/02/02 16:43:52 $
+///$Date$
 ///
-///$Revision: 1.32 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -100,7 +100,7 @@ public:
 	 double theta = 0, double phi = 0, double rigidity = 0);
   /// Constructor with AMSPoint and AMSDir
   TrProp(AMSPoint p0, AMSDir dir, double rigidity = 0);
-
+  virtual ~TrProp() { }
   // Access functions
   double GetP0x (void) const { return _p0x;  }
   double GetP0y (void) const { return _p0y;  }
@@ -259,7 +259,7 @@ public:
   TrFit(void);
 
   /// Destructor
-  ~TrFit();
+  virtual ~TrFit();
   double GetBeta();
   
   int    GetNhit  (void) const { return _nhit;   }

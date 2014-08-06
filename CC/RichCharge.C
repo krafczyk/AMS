@@ -475,7 +475,7 @@ bool RichPMTCalib::initPMTs() {
   }
 
   npmt = 0;
-  float dGdT, dGdTe, dEdT, dEdTe, offe, tlow, thgh, chi2E, chi2G;
+  float dGdT, dGdTe, dEdT, dEdTe, tlow, thgh, chi2E, chi2G;
   int nbn;
   while ( PmtCorrectionsFile >> pmt >> dEdT >> dEdTe >> dGdT >> dGdTe >> tlow >> thgh >> nbn >> chi2E >> chi2G ) {
     if (pmt<NPMT) {
@@ -843,7 +843,7 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 
 bool RichPMTCalib::getRichPmtTemperatures() {
 
-  int dts, id, pos, pmt, brick, grid, utime, rc;
+  int dts, id, pos, pmt, brick, grid;
   float x, y, dx, dy, d2;
   string element, node;
 
@@ -853,7 +853,6 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
   const int NDTS = 96, NPMT = 680;
 
-  const int MAX_REP = 5;
   static vector<int> v_pmt_rep;
 
   static vector<string> v_dts_el;
@@ -861,9 +860,13 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   static multimap<float,int> m_pmt_d2_dts[NPMT];
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
 
-  static int last_run=0, last_time=0, skip_run=0;
+#ifdef __ROOTSHAREDLIBRARY__
+  const int MAX_REP = 5;
+  int rc;
+  static int last_time=0,last_run=0, skip_run=0;
   static bool last_stat=false;
 #pragma omp threadprivate(last_run,last_time,skip_run,last_stat)
+#endif
 
   multimap<float,int>::iterator it;
 
@@ -1090,8 +1093,8 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
 bool RichPMTCalib::getRichBrickTemperatures() {
 
-  int dts, id, pos, pmt, brick, grid, utime, rc;
-  float x, y, dx, dy, d2;
+  int dts, pmt, brick, grid;
+  float x, y;
   string element, node;
 
   static bool init = true;
@@ -1100,7 +1103,6 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 
   const int NDTS = 8, NPMT = 680;
 
-  const int MAX_REP = 5;
   static vector<int> v_pmt_rep;
 
   static vector<string> v_dts_el;
@@ -1108,9 +1110,13 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   static multimap<float,int> m_pmt_d2_dts[NPMT];
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
 
+#ifdef __ROOTSHAREDLIBRARY__
+  const int MAX_REP = 5;
+  int rc;
   static int last_run=0, last_time=0, skip_run=0;
   static bool last_stat=false;
 #pragma omp threadprivate(last_run,last_time,skip_run,last_stat)
+#endif
 
   multimap<float,int>::iterator it;
 
@@ -1886,7 +1892,7 @@ void RichPMTCalib::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
 
   istringstream ssline(sline);
   int utime;
-  int brick, side, hvchn, fgin;
+  int brick, hvchn, fgin;
   char code[4][100], c[100];
 
   for (int pmt=0; pmt<NPMT; pmt++) {

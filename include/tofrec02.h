@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.22 2011/05/12 15:43:01 choumilo Exp $
+//  $Id$
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -175,14 +175,14 @@ public:
  AMSTOFCluster(integer status, integer ntof, integer plane, number edep, 
     number edepd, AMSPoint coo, AMSPoint ecoo, number time, number etime, integer nm,
                                                                      AMSlink * ptr[]):
- AMSlink(status,0),_ntof(ntof),_plane(plane),_edep(edep),_edepd(edepd),
- _Coo(coo),_ErrorCoo(ecoo),_time(time), _etime(etime), _nmemb(nm){
+ AMSlink(status,0),_ntof(ntof),_plane(plane),_edep(edep),_edepd(edepd),_time(time),_etime(etime),
+ _Coo(coo),_ErrorCoo(ecoo),_nmemb(nm){
    for(int i=0;i<nm;i++)_mptr[i]=ptr[i];
  }
 //
  AMSTOFCluster(integer status, integer ntof, integer plane):
-        AMSlink(status,0),_ntof(ntof),_plane(plane),_edep(0),_edepd(0),
-                 _Coo(0,0,0),_ErrorCoo(0,0,0),_time(0), _etime(0), _nmemb(0){
+        AMSlink(status,0),_ntof(ntof),_plane(plane),_edep(0),_edepd(0),_time(0), _etime(0),
+                 _Coo(0,0,0),_ErrorCoo(0,0,0),_nmemb(0){
    for(int i=0;i<2;i++)_mptr[i]=0;
  }
 //

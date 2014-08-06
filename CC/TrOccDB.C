@@ -1,4 +1,4 @@
-// $Id: TrOccDB.C,v 1.2 2013/01/28 10:26:26 oliva Exp $
+// $Id$
 
 
 #include "TrOccDB.h"
@@ -254,11 +254,11 @@ TH2D* TrOccDB::GetOccupancyLadderHisto() {
 
 void TrOccDB::PrintCalibrationComparisonTable() {
   Init();
-  int cal[2][3] = {0};        // bad/noisy/dead in cal per side
-  int occ[2][3] = {0};        // bad/noisy/dead in occ per side
-  int both[2][3] = {0};       // bad/noisy/dead in cal and in occ per side
-  int cal_no_occ[2][3] = {0}; // bad/noisy/dead in cal not in occ per side
-  int occ_no_cal[2][3] = {0}; // bad/noisy/dead in occ not in cal per side
+  int cal[2][3] = {{0,0,0},{0,0,0}};        // bad/noisy/dead in cal per side
+  int occ[2][3] = {{0,0,0},{0,0,0}};        // bad/noisy/dead in occ per side
+  int both[2][3] = {{0,0,0},{0,0,0}};       // bad/noisy/dead in cal and in occ per side
+  int cal_no_occ[2][3] = {{0,0,0},{0,0,0}}; // bad/noisy/dead in cal not in occ per side
+  int occ_no_cal[2][3] = {{0,0,0},{0,0,0}}; // bad/noisy/dead in occ not in cal per side
   for (int icrate=0; icrate<8; icrate++) {
     for (int itdr=0; itdr<24; itdr++) {
       int hwid = icrate*100 + itdr;
@@ -397,7 +397,6 @@ void TrLadOcc::Info(int verbosity) {
   if (verbosity>0) {
     TrLadCal* ladcal = TrCalDB::Head->FindCal_HwId(GetHwId()); // additional infos
     for (int address=0; address<1024; address++) {
-      int iside = (address<640) ? 1 : 0;
       printf("  Address:%4d  Occ.:%8.3f  OccStatus:%4d  Ped.:%8.3f  SigmaRaw:%8.3f  Sigma:%8.3f  Status:%4d\n",
         address,GetOccupancy(address),GetStatus(address),
         ladcal->GetPedestal(address),ladcal->GetSigmaRaw(address),ladcal->GetSigma(address),ladcal->GetStatus(address)
@@ -429,7 +428,6 @@ bool TrLadOcc::OccDBToLinear(float* offset) {
 
 bool TrLadOcc::LinearToOccDB(float* offset) {
   if (!offset) return false;
-  int index = 0;
   SetHwId((int)offset[0]);
   SetMedian(offset+1);
   SetDeviation(offset+1+2);

@@ -293,7 +293,6 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   // Retrieve the parameters
   int layerJ[2]={1,9};
   int plane[2]={5,6};
-  int layer[2]={8,9};
   bool skip[2]={false,false};
   if(lad1!=-1 || lad9!=-1){
     skip[0]=(lad1==-1);
@@ -475,7 +474,7 @@ void TrExtAlignDB::SmearExtAlign()
   AMSEventR::GetRandArray(3375420, 1, 2, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
-   float d;
+   float d = 0;
   for (int i = 0; i < 2; i++) rd[i] = RNDM(d);
 #endif
 
@@ -485,7 +484,7 @@ s1[1]=fabs(TRMCFFKEY.OuterSmearing[1][1]);
 
 double s2[2]={13.,14};
 double s3[2]={33,33};
-double r[2][3]={1.,0.12/2.,0.01/2,1.,0.12/2.,0.003/2.};
+double r[2][3]={{1.,0.12/2.,0.01/2},{1.,0.12/2.,0.003/2.}};
 for(int l=0;l<2;l++){
 double sum=0;
 for(int k=0;k<3;k++)sum+=r[l][k];

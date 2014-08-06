@@ -260,8 +260,8 @@ G4double G4DPMJET2_5CrossSection::GetIsoZACrossSection
     G4double cc2 = (*ptr)[2];
     sigma = cc0 + cc1*lnECM + cc2*lnECM*lnECM;
     sigma = sigma * millibarn;
-    double p[3]={0.48639E-01,0.41653E-04,0.77188E-03};
-    double corr=p[0]+p[1]*AT+p[2]*AT*AT;
+    //double p[3]={0.48639E-01,0.41653E-04,0.77188E-03};
+    //double corr=p[0]+p[1]*AT+p[2]*AT*AT;
 #if G4VERSION_NUMBER  > 945
 //    sigma/=(1+corr);
 #endif

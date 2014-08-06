@@ -3127,17 +3127,7 @@ int ISSGTOD(float *r, float *theta, float *phi, float *v, float *vtheta, float *
 	vector_t vel=zero_vector;
 	vector_t pos=zero_vector;
 
-	/* Satellite Az, El, Range, Range rate */
-	vector_t obs_set;
-
-	/* Solar ECI position vector  */
-	vector_t solar_vector=zero_vector;
-
-	/* Solar observed azi and ele vector  */
-	vector_t solar_set;
-
 	/* Satellite's predicted geodetic position */
-	geodetic_t sat_geodetic;
         daynum=time/86400.0-3651.0;
 	jul_utc=daynum+2444238.5;
 

@@ -147,14 +147,14 @@ void AMSCommonsI::init(){
         if(pri)cout <<" 32 bit machine. "<<_MaxMem<<endl;
        }
         
-       AMSDBc dummy;
+       AMSDBc dummy; (void)dummy;
        AMSDBc::amsdatabase=new char[strlen(AMSDATADIR.amsdatabase)+1];
        strcpy(AMSDBc::amsdatabase,AMSDATADIR.amsdatabase);
        _pid=getpid();
+#ifndef __DARWIN__
        //  get mips
        char *fname = tempnam("/tmp",NULL);
        char syscom[255];
-#ifndef __DARWIN__
 {
        strcpy(syscom,"cat /proc/cpuinfo | grep -i -e 'cpu mhz'  > ");
        strcat(syscom,fname);

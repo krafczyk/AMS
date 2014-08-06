@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.63 2012/04/20 07:43:26 choutko Exp $
+//  $Id$
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -29,7 +29,6 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
      while(ptr){
        AMSTRDIdSoft id(ptr->getidsoft());
        integer ilay=id.getlayer();
-       integer ilad=id.getladder();
        if(ptr->testlast()){
         if(!id.checkstatus(AMSDBc::BAD))adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
         ptra[ptr->getidsoft().gettube()]=ptr;
@@ -390,7 +389,6 @@ void AMSTRDSegment::_addnextR(uinteger iseg){
 
 bool AMSTRDSegment::Distance1D(number par[2], AMSTRDCluster *ptr){
 
-   number maxdist=ptr->getEHit()*3;
    return fabs(par[1]+par[0]*ptr->getHit(1)-ptr->getHit(0))/
             sqrt(1+par[0]*par[0]) > ptr->getEHit()*3;
 }
@@ -767,13 +765,18 @@ extern "C" void e04ccf_(int &n, number xc[], number &fc, number &tol, int &iw, n
 
 void AMSTRDTrack::StrLineFit(bool upd){
 
+#ifndef NO_NAG
     void (*palfun)(int &n, double xc[], double &fc, AMSTRDTrack *p)=&AMSTRDTrack::alfun;
     void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=&AMSTRDTrack::monit;
+#endif
     _Base._NHits=0;    
      _StrLine._FitDone=false;
   // Fit Here
     const integer mp=40;
-    number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+    number f,x[mp];
+#ifndef NO_NAG
+	number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+#endif
     number yy=0;
     number xx=0;
     number yz=0;
@@ -851,12 +854,13 @@ else{
     x[4]=Dir.gettheta();
       
   // number of parameters to fit
-    integer n=5;
+	integer n=5;
+#ifndef NO_NAG
     integer iw=n+1;
-    integer ifail=1;
     integer maxcal=1000;
     number tol=2.99e-2;
-    int i,j;
+#endif
+    integer ifail=1;
     _update=false;
 #ifndef NO_NAG    
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,(void*)this);
@@ -940,15 +944,12 @@ void AMSTRDTrack::alfun(integer &n, number xc[], number &fc, AMSTRDTrack *p){
 
 void AMSTRDTrack::RealFit(){
   _Real._FitDone=false;
-  integer fit=0;
-  integer ims=0;
   integer npt=_Base._NHits;
   const integer maxhits=trdconst::maxlay;
   geant hits[maxhits][3];
   geant sigma[maxhits][3];
   geant normal[maxhits][3];
   integer layer[maxhits];
-  integer ialgo=1;
   geant out[40];
   for(int i=0;i<npt;i++){
     normal[i][0]=0;
@@ -960,7 +961,6 @@ void AMSTRDTrack::RealFit(){
       sigma[npt-1-i][j]=_Base._EHit[i][j];
     }
   }
-  int ipart=14;
 #ifdef _PGTRACK_
   //PZ FIXME 
   TrFit fitg;
@@ -991,6 +991,9 @@ void AMSTRDTrack::RealFit(){
  
  
 #else
+  integer ims=0;
+  integer ialgo=1;
+  int ipart=14;
   zeromagstat_();
   TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
   resetmagstat_();
@@ -1076,7 +1079,6 @@ double d2=delta.prod(delta);
 double a=1-nl*nl;
 double b=dn*nl-dl;
 double c=d2-dn*dn-R*R;
-double rmin2=-b*b/a+(d2-dn*dn);
 double d=b*b-a*c;
 double range=d<0?0:2*sqrt(d)/a;
             double norm=AMSTRDCluster::RangeCorr(0.57,1.);        
@@ -1238,7 +1240,6 @@ if (AMSEvent::gethead()->getC("AMSTRDTrack",0)->getnelem()<2)return false;
 
 //try to find two projections of two tracks which match with track
 
-double theta,phi,sleng;
   AMSPoint cmin(0,0,85.);
   AMSPoint cmax(0,0,140.);
   AMSDir dir(0,0,1.);
@@ -1247,6 +1248,7 @@ double theta,phi,sleng;
     _ptrack->Interpolate(cmin[2], cmini,dir);
     _ptrack->Interpolate(cmax[2], cmaxi,dir);
 #else
+double theta,phi,sleng;
 _ptrack->interpolate(cmin,dir,cmini,theta,phi,sleng);
  _ptrack->interpolate(cmax,dir,cmaxi,theta,phi,sleng);
 #endif

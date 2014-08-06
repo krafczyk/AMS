@@ -159,7 +159,7 @@ geant TOF2Scan::gettm2(const geant r, const int i1, const int i2){
 // function to create TOFWScan objects for all sc. bars :
 void TOFWScan::build(){
 //
-  int i,ic,nverst,ivers,dig,nctot(0);
+  int i,ic,ivers;
   int brfnam[TOF2GC::SCBTPN];
   char fname[1024];
   char name[256];
@@ -167,7 +167,7 @@ void TOFWScan::build(){
   char inum[11];
   char ext[80];
   char tdisfn[20]="TofSfmapMC.";//file-name for time-scan-files-map file
-  int ctyp,ntypes,mcvern[10];
+  int ntypes,mcvern[10];
   int date[2],year,mon,day,hour,min,sec;
   integer iutct;
   tm begin;
@@ -240,7 +240,7 @@ void TOFWScan::build(){
   cout<<"      MC-TimeScanMap file succsessfully read !"<<endl;
 //-------------------
 //                                  <-- now read t-distr. files
- int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,dnumm,mult,dnumo;
+ int j,brt,isp,nsp,dnum,dnumm,mult;
  integer nb;
  int iscp[TOF2GC::SCANPNT];
  geant scp[TOF2GC::SCANPNT];
@@ -257,7 +257,6 @@ void TOFWScan::build(){
  geant wdivxl[TOF2GC::SCANWDS];
  geant wdivxh[TOF2GC::SCANWDS];
  integer idiv;
- geant eff1,eff2;
  cout<<"      Reading MC-TimeScan files ...."<<endl;
 //
   for(brt=0;brt<TOF2GC::SCBTPN;brt++){   // <-------- loop bar-types
@@ -345,34 +344,29 @@ void TOF2Tovt::build()
   static AMSDistr scpmsesp(19,0.,0.279,arr);// p/h spectrum ready (not used now ?)
 //                   ( scale in mV@50ohm to have 1.5mV as m.p. value!!!)
 //
-  integer id,idN,idd,ibar,ilay,ibtyp,cnum,is;
+  integer id,idd,ibar,ilay,ibtyp,cnum;
   static integer cnumo;
   geant tslice1[TOF2GC::SCTBMX+1]; //  flash ADC array for side-1
   geant tslice2[TOF2GC::SCTBMX+1]; //  flash ADC array for side-2
   geant tslice[TOF2GC::SCTBMX+1]; //  flash ADC array
-  geant bnw,bwid; 
   integer warr[TOFGC::AMSDISL]; 
-  int i,i0,j,jj,ij,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
-  int status[2]={0,0};
+  int i,i0,j,ij,k,nelec,ierr(0);
   integer nhitl[TOF2GC::SCLRS];
   geant edepl[TOF2GC::SCLRS],edepb;
-  geant dummy(-1);
-  geant time,qtime,x,y,z,am,am0,am2,sig,r,rnd,eff,rgn,de,tm,eps(0.002);
-  geant vl,vh;
-  geant nel0,nel,nelb,nesig,nphot;
+  geant time,qtime,x,y,z,am,am0,am2,sig,r,eff,rgn,de,tm,eps(0.002);
+  geant nel0,nel;
   geant shar1[TOF2GC::PMTSMX],shar2[TOF2GC::PMTSMX];
   geant wshar1[TOF2GC::PMTSMX],wshar2[TOF2GC::PMTSMX];
   AMSPoint cloc(999.,999.,999.);
   AMSgvolume *p;
   AMSTOFMCCluster *ptr;
-  AMSTOFMCCluster *ptrN;
   int i1,i2,idivx,nwdivs,npmts;
   static geant bthick;
 //
   static integer first=0;
   static integer npshbn;
   static geant pmplsh[1000];  // PM s.e. pulse shape
-  static geant fadcb,ifadcb,trts,tmax,zlmx,convr;
+  static geant fadcb,ifadcb,tmax,zlmx,convr;
   static geant sesmp[TOF2GC::SCBTPN],sesig[TOF2GC::SCBTPN];
   static geant sesav[TOF2GC::SCBTPN],sesas[TOF2GC::SCBTPN],sesrat;
   int nsebnd(30);//use asimptotic spectrum if Nse/bin >= nsebnd
@@ -895,29 +889,23 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 {
 //!!! Logic is preliminary:wait for detailed SFET slecrtrical logic from Diego(Guido)
 //
-  integer i,ii,j,ij,ilay,ibar,isid,id,_sta,stat(0);
-  geant tm,a,am,am0,amd,tmp,amp,amx,amxq;
-  geant iq0,it0,itau;
-  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
-  number _ttr1u[TOF2GC::SCTHMX1],_ttr2u[TOF2GC::SCTHMX1],_ttr3u[TOF2GC::SCTHMX1];
-  number _ttr1d[TOF2GC::SCTHMX1],_ttr2d[TOF2GC::SCTHMX1],_ttr3d[TOF2GC::SCTHMX1];
-  number _tftdc[TOF2GC::SCTHMX2],_tftdcd[TOF2GC::SCTHMX2];
+  integer i,ilay,ibar,isid,id,_sta,stat(0);
+  geant tm,am,tmp,amp,amx;
+  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadcd;
+  number _ttr1u[TOF2GC::SCTHMX1],_ttr3u[TOF2GC::SCTHMX1];
+  number _ttr1d[TOF2GC::SCTHMX1],_ttr3d[TOF2GC::SCTHMX1];
   number _tstdc[TOF2GC::SCTHMX3];
   number _adca;
   number _adcd[TOF2GC::PMTSMX];
-  number tovt,aqin;
-  int updsh;
+  number aqin;
   int imax,imin;
-  geant a2dr[2],adc2q;
-  static geant a2ds[2],adc2qs;
-  geant tshd,tshup,charge,saturf;
-  geant tbn,w,bo1,bo2,bn1,bn2,tmark;
+  geant charge,saturf;
+  geant tmark;
   static integer first=0;
-  static integer nshbn,mxcon,mxshc,mxshcg;
   static geant fladcb,cconv;
-  geant daqt0,daqt1,daqt2,daqt3,daqt4,fdaqt0;
-  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
-  static geant daqp11,daqp12;
+  geant daqt0,daqt1,daqt2,fdaqt0;
+  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp7,daqp8,daqp9,daqp10;
+  static geant daqp11;
   number adcs;
   int16u otyp,mtyp,crat,slot,tsens;
 //
@@ -1252,8 +1240,8 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 	  HF1(1071,geant(_ntr3+10),1.);
 	}
 //**************************************************************************
-        number ped,sig,gain,eqs;
-	geant pmgn,dsum(0),asum(0),rrr;
+        number ped,sig,eqs;
+	geant pmgn;
 	integer brtyp,npmts;
 	brtyp=TOF2DBc::brtype(ilay,ibar)-1;//0-10
         npmts=TOFWScan::scmcscan[brtyp].getnpmts();//real # of pmts per side
@@ -1336,10 +1324,9 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 // It is LVL1 FTCP0/FTCP1 flags in Lin's paper and input CP-pattern
 //
 number TOF2Tovt::ftctime(number fttime, int &trcode, int &cpcode){
-  integer i1,i2,isd,isds(0),first(0);
-  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig,sorand,toflc(-1);
+  integer i1,i2,isd,isds(0);
+  integer i,j,ilay,ibar,ntr,idd,id,intrig,sorand;
   integer lut1,lut2;
-  uinteger sbt,lsbit(1);
   number ftime(-1),ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant t1,t2;
   int16u lpat;
@@ -1553,10 +1540,9 @@ else{//Mode: recreate cpcode/lpatt for LVL1(i.e. use globFT-pulse to "latch" inp
 // was not satisfied)
 //
 number TOF2Tovt::ftztime(int &trcode){
-  integer i1,i2,isd,isds(0),first(0);
-  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig,sorand,toflcsz(-1);
-  uinteger sbt,lsbit(1);
-  integer ewcode,lutbz;
+  integer i1,i2,isd,isds(0);
+  integer j,ilay,ibar,ntr,idd,id,intrig,sorand,toflcsz(-1);
+  integer ewcode;
   number ftime(-1),ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant t1,t2;
   geant pwextt,pwextb;
@@ -1571,7 +1557,6 @@ number TOF2Tovt::ftztime(int &trcode){
   pwextt=geant(20*(1+(ewcode&31)));//ext.width for top-coinc. signal
   pwextb=geant(20*(1+((ewcode&(31<<5))>>5)));//ext.width for bot-coins. signal
 //
-  geant cgate=TOF2DBc::daqpwd(6);//gate(FTZ-pulse width)(SlowZ>=2)
   trcode=-1;
 //
   toflcsz=Trigger2LVL1::l1trigconf.toflcsz();//FTZ layers config(MN) from DB/File(already redef. by DC)
@@ -1673,9 +1658,9 @@ number TOF2Tovt::ftztime(int &trcode){
 // BZ may be "false" when trcode>=0, but don't match lutbz 
 //
 bool TOF2Tovt::bztrig(number ftime, int &trcode){
-  integer i1,i2,j,isd,isds(0),first(0);
-  integer ilay,ibar,ntr,idd,id,stat,intrig,sorand,toflcz(-1);
-  integer lutbz,lut(0);
+  integer i1,i2,j,isd,isds(0);
+  integer ilay,ibar,ntr,idd,id,intrig,sorand;
+  integer lutbz;
   number ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant t1,t2;
   AMSBitstr trbs[2];
@@ -1797,7 +1782,7 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
   AMSBitstr gate;
   TOF2Tovt *ptr;
   integer i1,i2,ig1,ig2;
-  int16u otyp,mtyp,crat,slot;
+  int16u otyp,mtyp,crat;
   bool coinc;
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){
@@ -1951,7 +1936,6 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 //
 void AMSBitstr::bitset(const int il, const int ih){
 //
-  static unsigned short int allzer(0x0000);
   static unsigned short int allone(0xFFFF);
   static unsigned short int setone[16]={
        0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
@@ -2100,7 +2084,6 @@ void AMSBitstr::display(char comment[]){
 //-----------------------------------------------------------------------
 void AMSBitstr::clatchJLV(){
 //---> make latching with JLV1trig.electronics clock: 
-  static unsigned short int allzer(0x0000);
   static unsigned short int allone(0xFFFF);
   static unsigned short int setone[16]={
        0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
@@ -2139,7 +2122,6 @@ void AMSBitstr::clatchJLV(){
 //-----------------------------------------------------------------------
 void AMSBitstr::clatchSPT(int crt){
 //---> make latching with SPTpreTrig.electronics(S-crates) clock: 
-  static unsigned short int allzer(0x0000);
   static unsigned short int allone(0xFFFF);
   static unsigned short int setone[16]={
        0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
@@ -2192,18 +2174,18 @@ void AMSBitstr::setclkphase(){
 //               
 void TOF2RawSide::mc_build(int &status)
 {
-  integer i,j,jj,ilay,last,ibar,isd,stat(0);
+  integer i,j,jj,ilay,ibar,isd;
   int16u id,idd,_sta;
-  integer nhits,hid,hidt,hidq[4];
-  integer nftdc,nstdc,nsumh,nsumsh,nadcd,itt,ntstdc,ntadcd;
+  integer nhits,hidt,hidq[4];
+  integer nftdc,nstdc,nsumh,nsumsh,nadcd,ntstdc,ntadcd;
   number tstdc[TOF2GC::SCTHMX3];
   number tadca,tadcd[TOF2GC::PMTSMX];
   integer  ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3],sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
   geant adca,adcd[TOF2GC::PMTSMX];
-  number t,t1,t2,t3,t4,ttrig,dt,lev1tm,tl1d,ftrig,ecftrig;
+  number ttrig,lev1tm,ftrig;
   number ftctime,ftztime,ftetime,ftmin,dummy;
-  geant charge,edep,strr[2][2],str,offs,temT,temC,temP;
-  geant daqta,daqtd,rrr;
+  geant charge,edep,temT,temC,temP;
+  geant daqta,daqtd;
   number pedv,peds,amp;
   integer iamp;
   integer trcode,trcodez,cpcode(0),ftzcode(-1);
@@ -2211,14 +2193,12 @@ void TOF2RawSide::mc_build(int &status)
   bool bztr(0);
   integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
   integer trpattz[TOF2GC::SCLRS]={0,0,0,0};
-  integer it,it1,it2,it3,it4,it0;
   integer phbit,maxv;
   integer ftpatt(0),ftpatreq(0);
   integer trtype(0);
   integer cftmask(0);
   geant trtmax=TOF2DBc::trigtb()*(1+TOFGC::SCBITM);//max possible abs.trig-time(=myTrigTimeScale)
   TOF2Tovt *ptr;
-  TOF2Tovt *ptrN;
   int fmask[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];//mask of fired sides
   status=1;// bad(=> no_globFT)
   phbit=TOF2GC::SCPHBP;
@@ -2606,7 +2586,6 @@ void TOF2RawSide::mc_build(int &status)
   int phn,nhn,nhnmin;
   geant tprev,tnext;
   integer itprev;
-  integer sumHTd=floor(0.5+TFMCFFKEY.sumHTdel/TOF2DBc::tdcbin(1));//sumHT-LT signal h/w delay for MC(tdc-ch)
   geant apw=TOF2DBc::daqpwd(11);//PW>=tdcDT for SumHT-ch on ACTEL-output(= TDC-input) 
   for(int ic=0;ic<TOF2GC::SCCRAT;ic++){
     for(int sl=0;sl<TOF2GC::SCFETA-1;sl++){
@@ -2991,8 +2970,7 @@ integer TOF2RawSide::lvl3format(int16 *ptr, integer rest){
 // Note: at the moment of call FT-time is still not attached to RawSide-obj, so i need to take FT
 // from static store, where FT-times stored after decoding as crat/slot arrays !!!
   integer ilay,ibar,isid;
-  int i,j,nrwt,hwid;
-  int statdb[2];
+  int i,nrwt,hwid;
   int16u crat,otyp(0),mtyp(0),slot,tsens;
   int16u id,rwt[10];
   int16 rawt;
@@ -3108,7 +3086,7 @@ int TOF2RawSide::GetTofSensorTemper(int lay, int side, int mode, geant &temper){
 //
   int retval(-1);
   int rvarr[3]={0,0,0};
-  geant temp(0),avtemp[2];
+  geant avtemp[2];
   geant tmch[2],tmsd[3];
   int retv[2];
   int ngpnt[2];

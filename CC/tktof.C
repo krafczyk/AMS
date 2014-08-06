@@ -47,12 +47,10 @@ bool TkTOFMatch2(TrTrackR* ptrack,int select_tag) {
   
   
   
-  int mfit = TrTrackR::kSimple;
   mtof_hitH tmhit[4];  
   
   
   // 0 -- Search for the geometrically matching TOF Hits  
-  int tofcoo[4]={1,0,0,1};
 
   //-----new cont
   VCon* tcont = GetVCon()->GetCont("AMSTOFClusterH");

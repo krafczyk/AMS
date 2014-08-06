@@ -43,7 +43,7 @@ ClassImp(AMSChain);
 
 AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr,unsigned int size)
   :TChain(name),fThreads(thr),fSize(size),
-   _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
+   _EVENT(NULL),_ENTRY(-1),_NAME(name),_TREENUMBER(-1),_FILE(0)
 {
   fout=0;
   amsnew=0;
@@ -358,7 +358,6 @@ AMSEventR* AMSChain::GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind){
 int AMSChain::ValidateFromFile(const char *fname,bool stage){
   FILE* listfile = fopen(fname,"r");
   int i=0;
-  bool castor=false;
   if (listfile) {
     char rname[1024];
     while (!feof(listfile)){
@@ -617,6 +616,7 @@ int  AMSChain::LoadUF(char* fname){
   if(!$i){
 #ifdef __DARWIN__
     sprintf(cmd1,"ld  -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
+	(void)elf;
 #else
     sprintf(cmd1,"ld %s  -shared %s.o -o libuserAMSEVD.so",elf,nameonly.c_str());
 #endif
@@ -745,7 +745,6 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
       if(nentr>nentries || it==fmap.end()){
 	continue;
       }
-      TChainElement* element;
       TFile* file;
       TTree *tree;
       TSelector *curp=(TSelector*)((char*)pev+thr*fSize);
@@ -1225,7 +1224,9 @@ int AMSChain::GenUFSkel(char* filename){
 
 Int_t AMSChain::Add(const char* name, Long64_t Nentries){
 Long64_t nentries=Nentries<-1?abs(Nentries):Nentries;
+#ifdef CASTORSTATIC 
 bool timeout=Nentries<-1;
+#endif
 //check if svcClass present in name
 
          string cname=name;

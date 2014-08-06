@@ -102,7 +102,6 @@ float EcalShowerR::GetEcalBDTCHI2(unsigned int iBDTCHI2VERSION, int TMVAClassifi
 float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION)
 {
   int TMVAClassifier=0;
-  int EnergyFlag=0;
   return GetEcalBDTCHI2(pev, iBDTCHI2VERSION, TMVAClassifier);
 }
 
@@ -160,8 +159,6 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
   
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
-   const Float_t ecalZEntry = -142.792;
-   const Float_t ecalZExit = -158.457;
    const Float_t EneDepThreshold = 2.;//threshold on single cell in MeV (1MeV~2ADC)
 
    float MapEneDep[nLAYERs][nCELLs]; // Energy deposit in every cell of ECAL [GeV]
