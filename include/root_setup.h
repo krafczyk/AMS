@@ -143,7 +143,7 @@ int DataMC; ///<0 MC 2: Data
 TString Name; ///< TDV Name; 
 TString FilePath; ///<File Path
 TDVR():Begin(0),End(0),Insert(0),Size(0),CRC(0),Data(),DataMC(0),Name(""),FilePath(""){}
-TDVR(const TDVR &a):Begin(a.Begin),End(a.End),Insert(a.Insert),Size(a.Size),CRC(a.CRC),Data(a.Data),Name(a.Name),FilePath(a.FilePath){} // FIXME: DataMC missing!
+TDVR(const TDVR &a):Begin(a.Begin),End(a.End),Insert(a.Insert),Size(a.Size),CRC(a.CRC),Data(a.Data),DataMC(a.DataMC),Name(a.Name),FilePath(a.FilePath){}
   friend ostream &operator << (ostream &o, const TDVR &b );
 virtual ~TDVR() {}
 ///  Copy out Data vector to Out Structure
