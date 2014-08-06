@@ -8,21 +8,21 @@
 ClassImp(AMSPoint);
 ClassImp(AMSDir);
 
-AMSPoint  AMSPoint::mm3(number m1[][3]){
+AMSPoint AMSPoint::mm3(const number m1[][3]){
    number x,y,z;
     x=m1[0][0]*_x+m1[0][1]*_y+m1[0][2]*_z;
     y=m1[1][0]*_x+m1[1][1]*_y+m1[1][2]*_z;
     z=m1[2][0]*_x+m1[2][1]*_y+m1[2][2]*_z;
    return AMSPoint(x,y,z);
   }
-AMSPoint  AMSPoint::mm3i(number m1[][3]){
+AMSPoint AMSPoint::mm3i(const number m1[][3]){
    number x,y,z;
     x=m1[0][0]*_x+m1[1][0]*_y+m1[2][0]*_z;
     y=m1[0][1]*_x+m1[1][1]*_y+m1[2][1]*_z;
     z=m1[0][2]*_x+m1[1][2]*_y+m1[2][2]*_z;
    return AMSPoint(x,y,z);
   }
-AMSPoint  AMSPoint::mm3i(AMSRotMat m1){
+AMSPoint AMSPoint::mm3i(const AMSRotMat& m1){
    number x,y,z;
     x=m1.GetEl(0, 0)*_x+m1.GetEl(1, 0)*_y+m1.GetEl(2, 0)*_z;
     y=m1.GetEl(0, 1)*_x+m1.GetEl(1, 1)*_y+m1.GetEl(2, 1)*_z;
@@ -31,7 +31,7 @@ AMSPoint  AMSPoint::mm3i(AMSRotMat m1){
   }
 
 
-void AMSDir::_copy(number u, number v, number w){
+void AMSDir::_copy(const number u,const number v,const number w) {
   if(u==0 && v==0 && w==0){
    _x=0;
    _y=0;
@@ -47,19 +47,19 @@ void AMSDir::_copy(number u, number v, number w){
   }
 }
 
-AMSDir::AMSDir(number theta, number phi){
+AMSDir::AMSDir(const number theta, const number phi){
  _z=cos(theta);
  _x=sin(theta)*cos(phi);
  _y=sin(theta)*sin(phi);
 }
 
-AMSDir AMSDir::cross(const AMSDir & o){
+AMSDir AMSDir::cross(const AMSDir & o) const {
  number x=_y*o._z-_z*o._y;
  number y=_z*o._x-_x*o._z;
  number z=_x*o._y-_y*o._x;
  return AMSDir(x,y,z);
 }
-AMSPoint AMSPoint::crossp(const AMSPoint & o){
+AMSPoint AMSPoint::crossp(const AMSPoint & o) const {
  number x=_y*o._z-_z*o._y;
  number y=_z*o._x-_x*o._z;
  number z=_x*o._y-_y*o._x;
@@ -67,13 +67,13 @@ AMSPoint AMSPoint::crossp(const AMSPoint & o){
 }
 
 
-AMSRotMat::AMSRotMat(number** nin){
+AMSRotMat::AMSRotMat(const number** nin){
   for(int ii=0;ii<3;ii++)
     for(int jj=0;jj<3;jj++)
       _nrm[ii][jj]=nin[ii][jj];
 
 }
-AMSRotMat::AMSRotMat(number nin[][3]){
+AMSRotMat::AMSRotMat(const number nin[][3]){
   
    for(int ii=0;ii<3;ii++)
     for(int jj=0;jj<3;jj++)
@@ -97,13 +97,13 @@ void AMSRotMat::Reset(){
   
 }
 
-void AMSRotMat::SetMat(number** nin){
+void AMSRotMat::SetMat(const number** nin){
   for(int ii=0;ii<3;ii++)
     for(int jj=0;jj<3;jj++)
       _nrm[ii][jj]=nin[ii][jj];
 
 }
-void AMSRotMat::SetMat(number nin[][3]){
+void AMSRotMat::SetMat(const number nin[][3]){
   
    for(int ii=0;ii<3;ii++)
     for(int jj=0;jj<3;jj++)
@@ -177,7 +177,7 @@ void AMSRotMat::ZParity(){
   return;
 }
 
-void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
+void  AMSRotMat::SetRotAngles(const double alpha, const double beta, const double gamma){
   
   number nn1[3][3];
   nn1[0][0]=cos(alpha);
@@ -234,7 +234,7 @@ void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
 }
 
 
-void  AMSRotMat::GetRotAngles(double& alpha, double& beta, double& gamma){
+void  AMSRotMat::GetRotAngles(double& alpha, double& beta, double& gamma) const {
 
   gamma = atan2(_nrm[1][2],_nrm[2][2]);
   alpha = atan2(_nrm[0][1],_nrm[0][0]);
