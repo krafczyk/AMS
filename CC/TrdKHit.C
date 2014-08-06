@@ -127,19 +127,19 @@ void TrdKHit::PredictCrossing(AMSPoint *P0, AMSDir *u, int tracktype){
 
 }
 
-double TrdKHit::Tube_Track_Distance_3D(AMSPoint *C2, AMSDir *D2){
+double TrdKHit::Tube_Track_Distance_3D(const AMSPoint *C2, const AMSDir *D2){
     AMSPoint diff=(*C2)-TRDTube_Center;
     AMSPoint cross=(*D2).crossp(TRDTube_Dir);
     return ((diff.prod(cross)))/cross.norm();
 }
 
-double TrdKHit::Tube_Track_Distance_3D_Raw(AMSPoint *C2, AMSDir *D2){
+double TrdKHit::Tube_Track_Distance_3D_Raw(const AMSPoint *C2, const AMSDir *D2){
     AMSPoint diff=(*C2)-TRDTube_Center_Raw;
     AMSPoint cross=(*D2).crossp(TRDTube_Dir_Raw);
     return ((diff.prod(cross)))/cross.norm();
 }
 
-double TrdKHit::Tube_Track_Distance_2D(AMSPoint *C2, AMSDir *D2){
+double TrdKHit::Tube_Track_Distance_2D(const AMSPoint *C2, const AMSDir *D2){
 
     if(TRDHit_Direction==0){
         double kx=D2->x()/D2->z();
@@ -156,7 +156,7 @@ double TrdKHit::Tube_Track_Distance_2D(AMSPoint *C2, AMSDir *D2){
     return 999;
 }
 
-double TrdKHit::Tube_Track_3DLength_New(double d, AMSDir *Dir){
+double TrdKHit::Tube_Track_3DLength_New(const double d, const AMSDir *Dir){
     double ll=Tube_radius*Tube_radius-d*d;
     if(ll<=0)return 0;
     double l=sqrt(ll);
@@ -166,12 +166,12 @@ double TrdKHit::Tube_Track_3DLength_New(double d, AMSDir *Dir){
     else return 2*sqrt(l*l*(1+kx*kx/(1+ky*ky)));
 }
 
-double TrdKHit::Tube_Track_3DLength_New(AMSPoint *X0, AMSDir *Dir){
+double TrdKHit::Tube_Track_3DLength_New(const AMSPoint *X0, const AMSDir *Dir){
     double d=Tube_Track_Distance_2D(X0,Dir);
     return Tube_Track_3DLength_New(d,Dir);
 }
 
-double TrdKHit::Tube_Track_3DLength(AMSPoint *X0, AMSDir *Dir){
+double TrdKHit::Tube_Track_3DLength(const AMSPoint *X0, const AMSDir *Dir){
 
     float tubelength=190;  //======Relistic tube lenght dimention needed====
 
