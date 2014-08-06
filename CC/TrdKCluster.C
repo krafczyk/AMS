@@ -1447,7 +1447,6 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
     if(Rigidity!=0)TRDTrack_Rigidity=Rigidity;
     else TRDTrack_Rigidity=Track_Rigidity;
     HasTRDTrack=true;
-    SetCorridor(track_extrapolated_P0, track_extrapolated_Dir);
 
 
     //    for(int i=0;i<NHits();i++){
