@@ -523,6 +523,7 @@ FILE_PATTERNS          = root.h \
 			 TrElem.h TrRawCluster.h TrCluster.h \
                          TrMCCluster.h TrRecHit.h TrTrack.h \
                          TrCalDB.h TrLadCal.h Vertex.h \
+			 TrTasDB.h TrTasCluster.h \
 			 TkObject.h TkPlane.h TkLadder.h TkDBc.h TkCoo.h \
 			 TkSens.h TrFit.h MagField.h \
                          TrdRawHit.h \
