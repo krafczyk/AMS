@@ -81,7 +81,7 @@ void TrdKCluster::Init(AMSEventR *evt){
     }
 
 
-    HasTRDTrack=0;
+    HasTRDTrack=false;
 
     int getpressure=GetXePressure();
     if(getpressure==-1|| Pressure_Xe>1100 || Pressure_Xe<600){
@@ -180,7 +180,7 @@ TrdKCluster::TrdKCluster(const vector<TrdKHit>& _collection,AMSPoint *P0, AMSPoi
 
     TRDtrack_extrapolated_P0=*TRDTrack_P0;
     TRDtrack_extrapolated_Dir=*TRDTrack_Dir;
-    HasTRDTrack=1;
+    HasTRDTrack=true;
 
 
 
@@ -1446,7 +1446,7 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
     TRDtrack_extrapolated_P0=*P0;
     if(Rigidity!=0)TRDTrack_Rigidity=Rigidity;
     else TRDTrack_Rigidity=Track_Rigidity;
-    HasTRDTrack=1;
+    HasTRDTrack=true;
     SetCorridor(track_extrapolated_P0, track_extrapolated_Dir);
 
 
@@ -1495,7 +1495,7 @@ int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &
 int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, float ECAL_Energy_Hypothesis, double *LL, int fitmethod, int particle_hypothesis){
 
     if(!HasTRDTrack && !fitmethod)fitmethod=1;
-    if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
+    if(!HasTRDTrack || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
     double dummy_L[3];
     float dummy_length;
     float dummy_amp;
@@ -1505,7 +1505,7 @@ int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &
 
 int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, double* L, int &nhits,float &total_pathlength, float &total_amp , int fitmethod, int particle_hypothesis,int flag_debug, float ECAL_Energy_Hypothesis){
     if(!HasTRDTrack && !fitmethod)fitmethod=1;
-    if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
+    if(!HasTRDTrack || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
     if(flag_debug<0)return GetLikelihoodRatio(threshold, LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
     else return GetLikelihoodRatio_DEBUG(threshold, LLR,L,nhits,total_pathlength,total_amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir,flag_debug,ECAL_Energy_Hypothesis);
 }
@@ -1801,7 +1801,7 @@ void TrdKCluster::GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshol
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold){
-    if(HasTRDTrack==0){
+    if(!HasTRDTrack){
         cout<<"~~~WARNING~~~~TrdKCluster, Get OffTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
         nhits=-1;
         amp=-1;
@@ -1838,7 +1838,7 @@ void TrdKCluster::GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold){
-    if(HasTRDTrack==0){
+    if(!HasTRDTrack){
         cout<<"~~~WARNING~~~~TrdKCluster, Get OnTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
         nhits=-1;
         amp=-1;
@@ -1876,7 +1876,7 @@ void TrdKCluster::GetNearTrackHit_TrTrack(int& nhits, float & amp, float radius,
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius, float threshold){
-    if(HasTRDTrack==0){
+    if(!HasTRDTrack){
         cout<<"~~~WARNING~~~~TrdKCluster, Get NearTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
         nhits=-1;
         amp=-1;
