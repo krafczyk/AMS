@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.17 2010/12/11 18:30:38 choutko Exp $
+//  $Id$
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -95,7 +95,7 @@ public:
   ANTI2SPcal(integer sid, geant m2p[4], geant dthr, geant hthr, 
                                  geant tzer[2], geant ftd[2]):
                                           softid(sid),
-                                          dqthr(dthr),hdthr(hthr){
+                                          hdthr(hthr),dqthr(dthr){
     tzero[0]=tzer[0];
     tzero[1]=tzer[1];
     ftdel[0]=ftd[0];

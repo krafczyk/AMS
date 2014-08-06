@@ -601,8 +601,8 @@ TrSimCluster TrSimSensor::MakeCluster(double senscoo, double sensangle, int nsen
 double TrSimSensor::GetkeVtoADC(float keV)  {
   double x = keV/81; // energy loss in MIP units
   double pside_uncorr_pars[6] = { 2.07483, 30.2233, -0.895041, 0.0125374, -5.89888e-05, 70.2948};
-  double pside_corr_pars[4]   = { 18.4885, 20.2601, 0.00336957, -0.00016007};
-  double nside_nosat_pars[2]  = {-4.42436, 44.6219};
+  // double pside_corr_pars[4]   = { 18.4885, 20.2601, 0.00336957, -0.00016007};
+  // double nside_nosat_pars[2]  = {-4.42436, 44.6219};
   double mip = 1; // mip in mip units!
   double value = 0.;
   switch (GetSensorType()) {
@@ -652,7 +652,6 @@ double TrSimSensor::pside_uncorr_charge_dependence_function(double *x, double *p
     return par[0] + par[1]*x1 + par[2]*x2 + par[3]*x3 + par[4]*x4;
   }
   // if x>x0, y = a + bx (continuos, with continuous derivative)
-  double xs1 = xs;
   double xs2 = xs*xs;
   double xs3 = xs*xs2;
   double xs4 = xs*xs3;

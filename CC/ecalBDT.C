@@ -88,7 +88,6 @@ float EcalShowerR::GetEcalBDT(unsigned int iBDTVERSION, int TMVAClassifier, int 
 float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION)
 {
   int TMVAClassifier=0;
-  int EnergyFlag=0;
   return GetEcalBDT(pev, iBDTVERSION, TMVAClassifier);
 }
 
@@ -125,7 +124,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
    if (ECALBDT_TMVAVER==0)
      {
        ECALBDT_TMVAVER = 412;
-       if ( TMVA_RELEASE == "4.1.4" ) ECALBDT_TMVAVER = 414;
+       if ( strcmp(TMVA_RELEASE,"4.1.4") == 0 ) ECALBDT_TMVAVER = 414;
        //For BDT versions >6 only 4.1.4 used for training
        if ( iBDTVERSION>6 )  ECALBDT_TMVAVER = 414;
      }
@@ -136,8 +135,6 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 
    const unsigned int nLAYERs = 18;
    const unsigned int nCELLs  = 72;
-   const Float_t ecalZEntry = -142.792;
-   const Float_t ecalZExit = -158.457;
    const Float_t EneDepThreshold = 2.;//threshold on single cell in MeV (1MeV~2ADC)
 
    float MapEneDep[nLAYERs][nCELLs]; // Energy deposit in every cell of ECAL [GeV]

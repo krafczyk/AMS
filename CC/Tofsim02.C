@@ -61,13 +61,13 @@ int   TOF2TovtN::ftdcnb(){
 //------------------------------------------------------------------
 void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, geant tofdt,geant stepl,integer parentid){
 
-  integer id,pmtid,ibar,ilay,is,ipm,ibtyp,cnum;
+  integer id,pmtid,ibar,ilay,is,ipm,cnum;
   integer i,kk,i1,i2;
   geant edep1,x,y,z,time,dtime,sharep,eff,r,rand;
   geant nel0,nels,nelp;
   int neles,photongen=0;
   integer idivx,nwdivs,npmts;
-  geant phtral=0,phene=0,tfpos[3]={0,0,0},tfdir[3]={0,0,0};
+  geant tfpos[3]={0,0,0};
   number phtiml=0,phtim=0,phtims=0,phtimd=0;
   char vname[5];
   char histn[100];
@@ -169,14 +169,12 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
 void TOF2TovtN::build()
 {
   integer id,idd,ibar,ilay,is,ipm,prbar=-1,nowbar=-1;
-  integer i,j,ij,iph,nph;
+  integer i,ij,iph,nph;
   uinteger ii;
-  geant edep,edepb=-1,time,pmtime,am;
+  geant edepb=-1,time,pmtime,am;
   geant tslice[TOF2GC::PMTSMX][TOFCSN::FLTDCBM+1]; //  flash ADC array only use
   static int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
 //---
-  geant dummy(-1);int ierr(0);
-  integer nhitl[TOF2GC::SCLRS];
   static geant ifadcb=1./ftdcbw();
   static integer eleth=200;
   static int prlevel=1;
@@ -371,30 +369,22 @@ geant TOF2TovtN::pmsatur(geant am,int ilay,int ibar,int is,int ipm){
 void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCBM+1])
 {
 //!!! Logic is preliminary:wait for detailed SFET slecrtrical logic from Diego(Guido)
-  integer i,k,ii,j,ij,ipm,ilay,ibar,isid,id,_sta,stat(0);
-  geant tm,a,am,am0,amd,tmp,amp,amx,amxq;
-  geant iq0,it0,itau;
-  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
-  number _ttr1u[TOF2GC::SCTHMX1],_ttr2u[TOF2GC::SCTHMX1],_ttr3u[TOF2GC::SCTHMX1];
-  number _ttr1d[TOF2GC::SCTHMX1],_ttr2d[TOF2GC::SCTHMX1],_ttr3d[TOF2GC::SCTHMX1];
-  number _tftdc[TOF2GC::SCTHMX2],_tftdcd[TOF2GC::SCTHMX2];
+  integer i,ipm,ilay,ibar,isid,id,_sta,stat(0);
+  geant tm,am,tmp,amp,amx;
+  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadcd;
+  number _ttr1u[TOF2GC::SCTHMX1],_ttr3u[TOF2GC::SCTHMX1];
+  number _ttr1d[TOF2GC::SCTHMX1],_ttr3d[TOF2GC::SCTHMX1];
   number _tstdc[TOF2GC::SCTHMX3];
   number _adca;
   number _adcd[TOF2GC::PMTSMX];
-  number tovt,aqin;
-  int updsh;
   int imax,imin;
-  geant a2dr[2],adc2q;
-  static geant a2ds[2],adc2qs;
-  geant tshd,tshup,saturf;
   number charge,charged[TOF2GC::PMTSMX];
-  geant tbn,w,bo1,bo2,bn1,bn2,tmark;
+  geant tmark;
   static integer first=0;
-  static integer nshbn,mxcon,mxshc,mxshcg;
   static geant fladcb,cconv;
-  geant daqt0,daqt1,daqt2,daqt3,daqt4,fdaqt0;
-  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
-  static geant daqp11,daqp12;
+  geant daqt0,daqt1,daqt2,fdaqt0;
+  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp7,daqp8,daqp9,daqp10;
+  static geant daqp11;
   number adcs;
   int16u otyp,mtyp,crat,slot,tsens;
 //
@@ -748,8 +738,7 @@ pmtansat:
 	  HF1(1071,geant(_ntr3+10),1.);
 	}
 //**************************************************************************
-        number ped,sig,gain,eqs;
-	geant pmgn,dsum(0),asum(0),rrr;
+        number ped,sig;
 	integer brtyp,npmts;
 	brtyp=TOF2DBc::brtype(ilay,ibar)-1;//0-10
         npmts=TOFWScanN::scmcscan1[ilay][ibar].getnpmts();//real # of pmts per side

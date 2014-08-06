@@ -20,10 +20,8 @@ GetZandACrossSection(const G4DynamicParticle* aParticle, G4int ZZ,
 {
 
    G4int Ap = aParticle->GetDefinition()->GetBaryonNumber();
-   G4int Zp = G4int(aParticle->GetDefinition()->GetPDGCharge()/eplus + 0.5 ); 
 
    G4int At = AA;
-   G4int Zt = ZZ;
  
    G4double one_third = 1.0 / 3.0;
 

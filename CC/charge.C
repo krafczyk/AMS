@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.110 2013/11/21 15:41:14 oliva Exp $
+//  $Id$
 // Author V. Choutko 5-june-1996
 //
 //
@@ -500,7 +500,6 @@ int AMSCharge::BuildTRD() {
   AMSTRDTrack *ptrd=NULL;
   bool notrefitted=true;
 again:
-  int ntrd=0;
   AMSTRDTrack* p=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
   while(p){
 #ifndef _PGTRACK_
@@ -568,7 +567,7 @@ int AMSCharge::BuildRich() {
 int AMSCharge::BuildCombine() {
   clear();
   int indmx = -1; 
-  int charge = getvotedcharge(indmx);
+  getvotedcharge(indmx);
   if (indmx<0 ) {
     cout << "AMSCharge::BuildCombine-W-NoValidAMSChargeFound " << endl;
     // print();
@@ -667,7 +666,6 @@ int AMSCharge::BuildUpper() {
 
   // combine charges
   AMSChargeUpper *chargeupper = new AMSChargeUpper();
-  int nused = 0;
   chargeupper->copyvalues(getvotedcharge(list));
   if (chargeupper->isok()) _charges[chargeupper->_ID] = chargeupper;
   else delete chargeupper;
@@ -1231,7 +1229,6 @@ int AMSChargeTOF::Fill(int refit) {
   double etof[TOF2GC::SCLRS];
   double EdepTOF[TOF2GC::SCLRS];
   AMSTOFCluster *pTOFc[TOF2GC::SCLRS];
-  int TypeTOF[TOF2GC::SCLRS];
   // init
   int nhitTOF=0, nallTOF=0;
   AMSTrTrack *ptrack=pbeta->getptrack();
@@ -1279,7 +1276,7 @@ int AMSChargeTOF::Fill(int refit) {
   double mean, trunres, trunmax;
   double rescut=CHARGEFITFFKEY.ResCut[0];//use/not(>=0/-1) incomp.clus exclusion
   //double resmx=resmax(etof,nallTOF,0,rescut,imx,mean,trunres,trunmax);//TOF(raw(non-corr!) hits trunc.mean)
-  double resmx=resmax(EdepTOF,nhitTOF,0,rescut,imx,mean,trunres,trunmax);//TOF hits trunc.mean)
+  resmax(EdepTOF,nhitTOF,0,rescut,imx,mean,trunres,trunmax);//TOF hits trunc.mean)
   if(!CHARGEFITFFKEY.TrMeanRes) _TruncatedMean=trunmax;//normal("-highest hit") TruncMean
   else _TruncatedMean=trunres;//"-incomp.cluster" TruncMean
   int bstatus = !pbeta->checkstatus(AMSDBc::AMBIG);
@@ -1335,7 +1332,7 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
 // likelihood values and charge probabilities
     double lkhtof[MaxZTypes];
     lkhcalc(0,beta,nhitTOF,etofh,typetof,lkhtof);//"0" means TOF
-    double probtof=probcalc(refit,nhittoftyp,lkhtof);
+	probcalc(refit,nhittoftyp,lkhtof);
     _ProbSum=0;
     for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
     //for (int i=0; i<MaxZTypes; i++)

@@ -240,10 +240,10 @@ class AC_TrdHits {
   float  Dxy, Dz;
 
  AC_TrdHits(): Lad(-1), Lay(-1), Tub(-1), Mod(-1), Straw(-1), GC(-1),GG(-1), 
-    hitD(-1), hitXY(0), hitZ(0), hitR(0), hitXYraw(0), hitZraw(0),
+    hitD(-1), hitXYraw(0), hitZraw(0), hitXY(0), hitZ(0), hitR(0),
     EadcR(0), EadcC1(0), EadcCS(0),corrEadc(0),
-    TrdD(0), TrkD(0), TrdDraw(0), TrkDraw(0), Dxy(0), Dz(0),
-    Len2D(0), Len3D(0) {
+    TrdDraw(0), TrkDraw(0), TrdD(0), TrkD(0),
+    Len2D(0), Len3D(0), Dxy(0), Dz(0) {
    
     _ilayer=_iladder=_itube=_ihaddr=_istraw=_igasgrp=_igascir=_imodule=_ihitD=0;
     _ihitXY =_ihitZ=_ihitR= 0;
@@ -256,7 +256,7 @@ class AC_TrdHits {
     SetHitPos();
   }
   
-  ~AC_TrdHits() {};
+  virtual ~AC_TrdHits() {}
 
   /// check TrdRawHit information
   void CheckTrdRawHit (void)
@@ -452,6 +452,7 @@ class TrdSChi2Fit{
   
   ///  chisq minimization for multiple scattering correction
   TrdSChi2Fit():RmsX(0.),RmsY(0.),nTrdHits(0),Debug(0){};
+  virtual ~TrdSChi2Fit(){}
   ClassDef(TrdSChi2Fit,1)
 };
 
@@ -688,7 +689,7 @@ class TrdSCalibR {
 
   TrdSCalibR();
 
- ~TrdSCalibR(); 
+ virtual ~TrdSCalibR(); 
 
  /// clear vectors
   void Clear(){

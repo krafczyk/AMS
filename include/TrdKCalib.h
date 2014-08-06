@@ -65,8 +65,8 @@ public:
 
 class TRDAlignmentDB_Global{
 public:
-    TRDAlignmentDB_Global():IsValidate(0),time_end(0),time_start(0),interval(0),MAX_SIZE(0),size(0){}
-    TRDAlignmentDB_Global(double t_start, int _interval):size(0),IsValidate(0),time_start(t_start),interval(_interval),MAX_SIZE(500){
+    TRDAlignmentDB_Global():size(0),IsValidate(0),MAX_SIZE(0),interval(0),time_start(0),time_end(0){}
+    TRDAlignmentDB_Global(double t_start, int _interval):size(0),IsValidate(0),MAX_SIZE(500),interval(_interval),time_start(t_start){
         //        for(int i=0;i<MAX_SIZE;i++)status[i]=0;
         //        for(int i=0;i<MAX_SIZE;i++)globalpar[i]=TRDAlignmentPar();
         time_end=time_start+interval*size;
@@ -133,7 +133,7 @@ public:
 
 class TRDAlignmentDB_Plane{
 public:
-    TRDAlignmentDB_Plane():time_start(0),interval(0),time_end(0),status(0),flag(0){};
+    TRDAlignmentDB_Plane():status(0),flag(0),interval(0),time_start(0),time_end(0){}
     TRDAlignmentDB_Plane(int _interval,TRDAlignmentPar _planepar[20]/*, TRDAlignmentPar _globalpar*/):
         interval(_interval)/*,globalpar(_globalpar)*/{
         for(int i=0;i<20;i++) planepar[i]=_planepar[i];
@@ -217,7 +217,7 @@ public:
         //        tid_Align_Global=0;
     };
 
-    ~TrdKCalib(){};
+    virtual ~TrdKCalib(){}
 
 
 

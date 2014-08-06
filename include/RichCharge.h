@@ -48,7 +48,7 @@ namespace RichPMTCalibConstants{
 class RichPMTCalib{
  private:
   RichPMTCalib(){};
-  ~RichPMTCalib(){};
+  virtual ~RichPMTCalib(){}
   static RichPMTCalib *_header;     // This is used to make it singleton
 #pragma omp threadprivate(_header)
  public:

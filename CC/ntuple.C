@@ -89,8 +89,10 @@ static float empv_arr[20][18][16];
 
 #endif
 
+#ifdef __MEMMONITOR__
 const int MEMUPD = 100; // update Memory Monitor Histograms each 
                         // MEMUPD events 
+#endif
 
 #ifdef _OPENMP
 omp_lock_t AMSNtuple::fLock;
@@ -451,7 +453,6 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
     delete _rfile;
     _rfile=0;
   }
-  struct stat64 f_stat;
 //    char cmd[1024]="rm -f ";
 //    strcat(cmd,fname);
 //    system(cmd);
@@ -1117,7 +1118,6 @@ if(AMSJob::gethead() && AMSJob::gethead()->isSimulation() && Get_setup02())Get_s
 
 	void AMSNtuple::readRSetup(AMSEvent *ev){
 	if(!_rfile)return;
-	int tmout=0;
 	string name=_rfile->GetName();
 	//_rfile->Write();
 	//_rfile->Close();

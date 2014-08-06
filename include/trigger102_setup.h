@@ -79,6 +79,7 @@
 #endif
     friend class AMSSetupR;
 #ifndef __ROOTINC__
+    virtual ~ScalerMon() { }
 ClassDef(ScalerMon,1)       //ScalerMon
 #endif
  };
@@ -137,6 +138,7 @@ ClassDef(ScalerMon,1)       //ScalerMon
 #endif
    friend class AMSSetupR;
 #ifndef __ROOTINC__
+   virtual ~Lvl1TrigConfig() { }
 ClassDef(Lvl1TrigConfig,1)       //Lvl1TrigConfig 
 #endif
  };

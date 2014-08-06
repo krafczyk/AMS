@@ -46,6 +46,7 @@ TString NodeName;  ///< Like TTCE
 TString BranchName; ///< Like TTCE-A
 int datatype; ///< DataType:
 int subtype; ///< SubType
+virtual ~Element() { }
 ClassDef (Element,1) //element
 };
 /*
@@ -88,6 +89,7 @@ rtable_m fRTable;  ///< Conversion Map (To speed up the search)
 void print(); ///< print element info for elements with non-zero entries
 void printElementNames(const char*name=0); ///< print element names using in GetData
 SlowControlR():fBegin(0),fEnd(0){}
+virtual ~SlowControlR() {}
 
          //! SlowControlElement Accessor
 	/*! 
@@ -140,9 +142,10 @@ vector<unsigned int> Data; ///<Data
 int DataMC; ///<0 MC 2: Data
 TString Name; ///< TDV Name; 
 TString FilePath; ///<File Path
-TDVR():Begin(0),End(0),Insert(0),CRC(0),Size(0),DataMC(0),Name(""),FilePath(""),Data(){}
-TDVR(const TDVR &a):Begin(a.Begin),End(a.End),Insert(a.Insert),CRC(a.CRC),Size(a.Size),Name(a.Name),FilePath(a.FilePath),Data(a.Data){}
+TDVR():Begin(0),End(0),Insert(0),Size(0),CRC(0),Data(),DataMC(0),Name(""),FilePath(""){}
+TDVR(const TDVR &a):Begin(a.Begin),End(a.End),Insert(a.Insert),Size(a.Size),CRC(a.CRC),Data(a.Data),DataMC(a.DataMC),Name(a.Name),FilePath(a.FilePath){}
   friend ostream &operator << (ostream &o, const TDVR &b );
+virtual ~TDVR() {}
 ///  Copy out Data vector to Out Structure
 ///  \return true if success
 bool CopyOut(void * Out); 
@@ -179,6 +182,7 @@ unsigned int Event;  ///<Event (Usually first event of Epoche)
 unsigned int EventLast; ///<Last event with  the same Epoche
 vector<unsigned int> Epoche; ///< GPS Time Epoche Format
 GPS():Run(0),Event(0),EventLast(0){}
+virtual ~GPS() { }
 ClassDef(GPS,3)
 };
 
@@ -256,7 +260,7 @@ static int Loadopt;//< load option
 /// \return Version id
 static int UseLatest();
 //---
- RTI():evno(0),evnol(0),good(-1),run(0),mphe(0),lf(0),theta(0),phi(0),nev(0),nerr(0),ntrig(0),npart(0),glat(-2),glong(-2),utime(0),nhwerr(0),mtrdh(0){
+ RTI():run(0),evno(0),evnol(0),lf(0),mphe(0),theta(0),phi(0),glat(-2),glong(-2),nev(0),nerr(0),ntrig(0),nhwerr(0),npart(0),mtrdh(0),good(-1),utime(0){
         for(int ifv=0;ifv<4;ifv++){
           for(int ipn=0;ipn<2;ipn++){cf[ifv][ipn]=0;cfi[ifv][ipn]=0;}
         }
@@ -266,6 +270,7 @@ static int UseLatest();
         usec[0]=usec[1]=0;
         utctime[0]=utctime[1]=0;
    }
+ virtual ~RTI() { }
 ClassDef(RTI,8)
 };
 
@@ -282,6 +287,7 @@ class RunI{
   unsigned int bt; ///< begin time of this run, JMDC Time
   unsigned int et; ///< end time of this run, JMDC Time
   vector<string>fname;///< root file name
+  virtual ~RunI() {}
   RunI():run(0),bt(0),et(0){}
   RunI(unsigned int _run,unsigned int _bt, unsigned int _et, string _fn):run(_run),bt(_bt),et(_et){
     fname.push_back(_fn);
@@ -301,6 +307,8 @@ public:
   unsigned int val; ///< validity
   float fom;    ///< figure of merit
   float fomv;   ///< figure of merit velocity
+  virtual ~GPSWGS84() {}
+
 ClassDef(GPSWGS84,1)
 };
 
@@ -325,12 +333,14 @@ public:
     v=v/r;
     r*=100000;
   }
+  virtual ~GPSWGS84R() {}
 ClassDef(GPSWGS84R,1)
 };
 
 class JGCR{
 //  JMDC- GPS Correction
 public:
+virtual ~JGCR() { }
 unsigned int Validity[2];  ///< validity range unix time
 double A[2]; ///< A[0]+A[1]*x correction
 double Par[3]; ///<Par[0]*sin(Par[1]*x+Par[2]) add correction
@@ -361,6 +371,7 @@ public:
 float Roll; ///< Roll in LVLH, Rad
 float Pitch; ///< Pitch in LVLH, Rad
 float Yaw; ///< Yaw in LVLH, Rad
+virtual ~ISSAtt() {}
 ClassDef(ISSAtt,1)       //ISS Attitude Data
 };
 
@@ -371,6 +382,7 @@ float b1a; ///< beta 1a  degrees
 float b3a; ///< beta 2a  --
 float b1b; ///< beta 1b  --
 float b3b; ///< beta 3b  --
+virtual ~ISSSA() {}
 ClassDef(ISSSA,1)       //ISS Solar Arrays Data
 };
 
@@ -383,6 +395,7 @@ float cam_ra;     ///< stk camera right ascension degrees
 float cam_dec;    ///< stk declination degrees       
 float cam_or;     ///<  stk orientatoin
 AMSSTK():ams_ra(0),ams_dec(0),cam_id(-1),cam_ra(0),cam_dec(0),cam_or(0){};
+virtual ~AMSSTK() {}
 ClassDef(AMSSTK,1)     // AMS Star Tracker Data
 };
 
@@ -395,6 +408,7 @@ float z; ///< z
 float vx; ///< v_x km/s
 float vy; ///< v_y km/s
 float vz; ///< v_z km/s
+virtual ~ISSCTRS() {}
 ClassDef(ISSCTRS,1)       //ISS CTRS coordinates data
 };
 
@@ -408,6 +422,7 @@ float vphi; ///< (rad)
 float vtheta; ///< (rad)
 ISSCTRSR():r(0),phi(0),theta(0),v(0),vphi(0),vtheta(0){};
 ISSCTRSR(const ISSCTRS &a);
+virtual ~ISSCTRSR() {}
 ClassDef(ISSCTRSR,1)       //ISS Solar Arrays Data
 };
 
@@ -417,6 +432,7 @@ float Roll;  ///< Roll  in INTL, Rad
 float Pitch; ///< Pitch in INTL, Rad
 float Yaw;   ///< Yaw   in INTL, Rad
 ISSINTL():Roll(0),Pitch(0),Yaw(0){}
+virtual ~ISSINTL() {}
 ClassDef(ISSINTL,1)       //ISS Attitude data (INTL coordinate system)
 };
 
@@ -426,8 +442,9 @@ public:
  unsigned int begin; //First Second (unix time)is bad 
  unsigned int end;   // Last second (unix time) is bad
  unsigned int run;   // Run number
-BadRun(const char* str, unsigned int r, unsigned int b=0,unsigned int e=4294967295L):reason(str),run(r),begin(b),end(e){};
+BadRun(const char* str, unsigned int r, unsigned int b=0,unsigned int e=4294967295L):reason(str),begin(b),end(e),run(r){};
 BadRun():reason(""),begin(0),end(0),run(0){};
+virtual ~BadRun() {}
 ClassDef(BadRun,1)       //BadRun
 };
 
@@ -440,6 +457,7 @@ float v; ///< velocity in rad/s
 float vphi; ///< (rad)
 float vtheta; ///< (rad)
 ISSGTOD():r(0),phi(0),theta(0),v(0),vphi(0),vtheta(0){};
+virtual ~ISSGTOD() {}
 ClassDef(ISSGTOD,1)       //ISS GTOD
 };
 
@@ -465,6 +483,7 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
      Nodes_100_11F=0;Nodes_120_13F=0;Nodes_140_15F=0;Nodes_160_17F=0;
      Nodes_180_19F=0;Nodes_1A0_1BF=0;Nodes_1C0_1DF=0;Nodes_1E0_1FF=0;
    };///< Standard constructor
+   virtual ~DSPError() {}
    unsigned int TimeStart; ///< Start of NOT validity period due to DSP error (unixtime) (also key of the map AMSRootSetupR::DSPError_m). \li TimeStart<=t<TimeEnd is affected by DSP error
    unsigned int TimeEnd; ///< End of NOT validity period due to DSP error (unixtime). \li TimeStart<=t<TimeEnd is affected by DSP error
    unsigned int Nodes_000_01F; ///< Bitted map of affected nodes (from NA=0x000 [LSB] to NA=0x01F [MSB])
@@ -507,6 +526,7 @@ public:
   runtag_m fRunTag;
   Header():Run(0),FEvent(0),LEvent(0),FEventTime(0),LEventTime(0),
   BuildTime(0),BuildNo(0),OS(0){}
+  virtual ~Header() {}
         //! RunTagModifier 
         /*!
 
@@ -890,6 +910,7 @@ static int _select (const dirent64 * entry);
  void ResetMC();
  int GetEntry(unsigned int run,unsigned int event); ///< GetEntry for run,event; return -1 if not found
  AMSSetupR();
+ virtual ~AMSSetupR() {}
  static bool LoadISSMC;///< Load/Not LOAd ISS info for the MC runs
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);

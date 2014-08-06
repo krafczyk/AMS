@@ -40,16 +40,15 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   integer nadca;
   geant adca;
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX];
-  int16u id,idN,stat;
+  int16u id,stat;
   integer sector,isid,isds;
   integer tmfound,complm;
-  integer i,j,im,nhit,chnum,am[2],sta,st,chn;
+  integer i,nhit,chnum,chn;
   int16u mtyp(0),otyp(0),crat(0),slot(0),tsens(0);
-  geant ped,sig,temp;
-  number adcf,rdthr,dt;
+  geant temp;
+  number dt;
   int bad;
   Anti2RawEvent *ptr;
-  Anti2RawEvent *ptrN;
 //
   status=1;//bad
   ptr=(Anti2RawEvent*)AMSEvent::gethead()
@@ -229,22 +228,19 @@ geant Anti2RawEvent::accsatur(geant x){//return Ain vs Aout (linearity correctio
 }
 //----------------------------------------------------
 void Anti2RawEvent::mc_build(int &stat){
-  geant up(0),down(0),slope[2],athr[2],tau,q2pe,temp;
+  geant temp;
   geant eup(0),edown(0),tup(0),tdown(0);
-  geant thresh[2];
-  int i,nup,ndown,sector,sectorN,ierr,it,sta[2];
+  int i,sector,sectorN,ierr,it;
   number npest[2][2];
-  uinteger j,ibmn[2],ibmx[2],nsides(0);
-  uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
-  int16u atrpat[2]={0,0};
-  int16u phbit,maxv,id,chsta;
+  uinteger j,ibmn[2],ibmx[2];
+  uinteger trpatt(0);
+  int16u id,chsta;
   geant adca,daqthr,pe2adc,peaka,speaka;
-  integer nftdc,ftdc[ANTI2C::ANTHMX], nhtdc,htdc[ANTI2C::ANTHMX],itt;
-  number edep,ede,edept(0),time,z,tlev1,ftrig,lev1tm,lev1tms,htims,t1,t2,dt;
+  integer nftdc,ftdc[ANTI2C::ANTHMX], nhtdc,htdc[ANTI2C::ANTHMX];
+  number edep,ede,edept(0),time,z,ftrig,lev1tm,lev1tms,htims,t1,t2,dt;
   geant fadcb[2][ANTI2C::ANFADC+1];
-  geant hdthr,tdthr,gain[2],fladcb,htdcb,htdpr,hdmn;
-  geant ped,sig,am,amp,tm,tmp,tmd1u,tmd1d,td1b1u,td1b1d,td1b2u,td1b2d,tmark;
-  int upd1,upd11,upd12,stackof;
+  geant hdthr,fladcb,htdcb;
+  geant ped,sig,am,amp,tm,tmp,tmark;
   integer iamp,ncoinc,ncoinct(0);
   number esignal[2][ANTI2C::MAXANTI];
   number htup[ANTI2C::ANTHMX];
@@ -261,9 +257,6 @@ void Anti2RawEvent::mc_build(int &stat){
   AMSBitstr trbl[ANTI2C::MAXANTI];
   geant trigb=TOF2DBc::trigtb();
   integer i1,i2,intrig,sorand;
-  geant daqp7,daqp10;
-  geant nebav;
-  int nebin;
   int16u crat(0),sslot(0);
   bool anchok;
 //
@@ -825,7 +818,6 @@ void Anti2RawEvent::mc_build(int &stat){
 void AMSAntiCluster::_writeEl(){
 //
   if(AMSAntiCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-   int i;
 #ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
@@ -871,19 +863,17 @@ void AMSAntiCluster::build2(int &statt){
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX];
   geant adca;
   int16u id,idN,sta;
-  int16u pbitn;
-  int16u pbanti;
-  number adcf,edep[2],uptm[2][ANTI2C::ANTHMX],edep2,ass,zc,erz,erfi,err;
+  number adcf,edep[2],uptm[2][ANTI2C::ANTHMX],edep2,zc,erz,erfi,err;
   integer nuptm[2];
   integer ftc,ftcin[2];
-  integer i,j,jmax,sector,isid,nsds,isdn[2],stat,chnum,n1,n2,i1min,i2min;
+  integer i,j,sector,isid,nsds,isdn[2],chnum,n1,n2,i1min,i2min;
   number zcoo[2*ANTI2C::ANTHMX],times[2*ANTI2C::ANTHMX],etimes[2*ANTI2C::ANTHMX];
-  number edept,t1,t2,t1mn,t2mn,dt,z1,z2;
+  number edept,t1,t2,dt;
   integer ntimes,npairs,nclust(0),nclustc(0),nclustp(0),status(0);
-  geant padlen,padrad,padfi,paddfi,zcer1,zcer2,ped,sig,dtmin,tzer;
-  geant attlen[2],pe2adc[2],pes[2];
+  geant padlen,padrad,padfi,paddfi,zcer1,sig,dtmin,tzer;
+  geant attlen[2],pe2adc[2];
   int16u mtyp(0),otyp(0),crat(0),slot(0);
-  geant fttim,ftsum,ftnum;
+  geant fttim;
   geant ftdel,ftwin;
   geant mev2pe,mev2pea;
   geant rdthr;
@@ -1199,7 +1189,6 @@ integer AMSAntiCluster::Out(integer status){
 void Anti2RawEvent::_writeEl(){
 //
   if(Anti2RawEvent::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-   int i;
 #ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif

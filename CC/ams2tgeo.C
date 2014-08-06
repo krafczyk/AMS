@@ -366,6 +366,7 @@ TGeoManager* ams2tgeo::Build(char* name, char* title, char* filename) {
     if (debug_med) for (int i=0; i<8; ++i) cout << param[i] << endl;
 
     TGeoMedium* tmed = new TGeoMedium(medname,im,tmat,param);
+    (void) tmed; //
 
     // next medium 
     amsmed = amsmed->next();

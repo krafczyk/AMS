@@ -82,7 +82,9 @@ integer DAQEvent::_BufferLock=0;
 size_t DAQEvent::_FileSize=0;
 integer DAQEvent::_Buffer2Lock=0;
 integer DAQEvent::_Length2=0;
+#ifndef __AMS02DAQ__
 const integer lover=2;
+#endif
 uinteger      Time_1;
 
 DAQEvent::~DAQEvent(){
@@ -392,10 +394,8 @@ void DAQEvent::buildDAQ(uinteger btype){
 	  //  only jmdc block is compressed
 	  //  Mark  jmdc data type as 4 instead of 1
 	  // 
-	  const int HDRMAX=4;
 
 	  AMSgObj::BookTimer.start("SIZIP");
-	  static int ziperr=0;
 	  uint l2c=*(pjinj)-2;
 	  size_t outl=DAQCompress::compressable((unsigned short *)(pjinj+2), l2c, _Run);
 	  if(outl) {
@@ -405,7 +405,7 @@ void DAQEvent::buildDAQ(uinteger btype){
 	      *(pjinj+1)+=3;
 	      char *src=(char*)pjinj;
 	      int hdrsize=sizeof(_pData[0])*2;
-	      int inputl=DAQCompress::decompressable((unsigned short *)ostream, outl, _Run);
+		  DAQCompress::decompressable((unsigned short *)ostream, outl, _Run);
 	      //    cout <<"  *** imput/output "<<inputl<<" "<<l2c<<" "<<outl;
 	      memcpy(src+hdrsize,ostream,outl);
 	      if(outl%2){
@@ -834,7 +834,6 @@ integer DAQEvent::_EventOK(){
   if(_GetBlType()==0 && AMSJob::gethead()->isRealData())_HeaderOK();
   if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b && _GetBlType()!= 896) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
   int preset=getpreset(_pData); 
-  int ntot=0;
   //  if(!_ComposedBlock())return 1;
   if(_Length >1 && _pData ){
     integer ntot=preset;
@@ -856,7 +855,7 @@ integer DAQEvent::_EventOK(){
 	uint l2c=DAQCompress::decompressable((unsigned short *)(_pcur+_cll(_pcur)+1), l2u, _Run);
 	if(l2c){
           uinteger bl=(_pcur-_pData-_cll(_pData))*sizeof(_pData[0]);
-          uinteger cl=(_pcur+_cl(_pcur)-_pData-_cll(_pData));
+          // uinteger cl=(_pcur+_cl(_pcur)-_pData-_cll(_pData));
           integer al=(_pData+_Length-_pcur-_cl(_pcur))*sizeof(_pData[0]);
           if(al<0){
             cerr<<" DAQEvent::_EVentOK-LogicError "<<al<<endl;
@@ -1120,7 +1119,6 @@ bool DAQEvent::CalibRequested(unsigned int crate,unsigned int xdr){
 }
 integer DAQEvent::_HeaderOK(){
   const integer Laser=204;
-  static int lr=-1;
   if(!_ComposedBlock() && _GetBlType()!= 0x1b  &&_GetBlType()!=896)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     _Time=(*(_pcur-1)) |  (*(_pcur-2))<<16;
@@ -1132,7 +1130,7 @@ integer DAQEvent::_HeaderOK(){
       _Event=++event;
       _Run=run;
       _RunType=_GetBlType();
-      const uinteger _OffsetT=0x12d53d80;
+      // const uinteger _OffsetT=0x12d53d80;
       //_Time+=_OffsetT;
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
@@ -1387,7 +1385,6 @@ integer DAQEvent::_HeaderOK(){
 
 
 integer DAQEvent::_DDGSBOK(){
-  const integer Laser=204;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
 
 #ifdef __TRDOFFLINE__
@@ -1402,7 +1399,7 @@ integer DAQEvent::_DDGSBOK(){
 	return 0;
       }
       static int nprint=0;
-      int ok=lv3.lv3_unpack(_pcur,_Event,AMSJob::gethead()->isRealData()?false:true);
+	  lv3.lv3_unpack(_pcur,_Event,AMSJob::gethead()->isRealData()?false:true);
       if(_isjinj(*(_pcur+_cll(_pcur)))){
 	int16u event=*(_pcur+_cll(_pcur)+1);
 	if(event !=  (_Event&((1<<16)-1)) && nprint++<100 ){
@@ -1508,6 +1505,8 @@ integer DAQEvent::_DDGSBOK(){
 #ifdef __AMSDEBUG__
 	  int16u status=(*(p+*p))>>5;
 	  cout <<"  JINF Port "<<port <<"  Length "<<*p<<" Status "<<status<<endl;
+#else
+      (void)port;
 #endif
 	}
 	if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
@@ -1732,7 +1731,6 @@ void DAQEvent::buildRawStructuresEarly(){
       _convertl(l16[1]);
       int length=_cl(l16);
       if(length>65535)length=65535;
-      int16u buf[256];
       setoffset(of);
       fbin.read((char*)_Buffer2,length);
       setoffset(of);
@@ -1802,7 +1800,6 @@ integer DAQEvent::read(){
     }
     if(fbin.good() && !fbin.eof()){
       int16u l16[2];
-      int16u l16c[2];
       fbin.read(( char*)(l16),sizeof(l16));
       _convertl(l16[0]);
       _convertl(l16[1]);
@@ -2189,7 +2186,9 @@ strcpy(fnam,fnamei.c_str());
 void DAQEvent::initO(integer run,integer eventno,time_t tt){
   enum open_mode{binary=0x80};
   integer mode=DAQCFFKEY.mode;
+#ifdef __CORBA__
  again:
+#endif
   if(mode/10 ){
     if(ofnam){
       char name[255];
@@ -3454,15 +3453,7 @@ unsigned short int  DAQlv3::lv3_jinj_slave[32] = {
 
 void DAQlv3::lv3_xdr_proc(unsigned short detector, unsigned short len, unsigned short *ptr, bool mc) {
 
-
-  unsigned short register reg = 0, var, nht, i, j;
-  unsigned short k, stat;
-
-  unsigned short *p, l;
-
-  unsigned long register reg0, reg1, reg2 = 0;
-
-  stat = ptr[len-1];
+  unsigned short stat = ptr[len-1];
 
 if(mc){
   stat |= 0x0020;

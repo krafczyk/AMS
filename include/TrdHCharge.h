@@ -80,7 +80,7 @@ class TrdHChargeR{
   };
 
   /// dtor
-  ~TrdHChargeR(){
+  virtual ~TrdHChargeR(){
     for(int i=0;i<pdfs.size();i++)
       delete pdfs[i];
     pdfs.clear();

@@ -517,7 +517,7 @@ bool TrClusterR::CheckK7(int mult, int verbosity) {
   // check that seed and all the strips are in the same sensor
   int seed_index = GetSeedIndex();
   int seed_sensor;
-  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  GetSensorAddress(seed_sensor,seed_index,mult);
   for (int stri_index=0; stri_index<GetNelem(); stri_index++) {
     int stri_sensor;
     int stri_addsens = GetSensorAddress(stri_sensor,stri_index,mult,verbosity);
@@ -542,7 +542,7 @@ int TrClusterR::GetNStripWithCalibrationStatus(int nstrip_from_seed, int mask, i
   int nstatus = 0;
   int seed_index = GetSeedIndex();
   int seed_sensor;
-  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  GetSensorAddress(seed_sensor,seed_index,mult);
   TrLadCal* ladcal = TrCalDB::Head->FindCal_TkId(GetTkId()); 
   for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
     // has the strip a valid position (address,mult) ?  
@@ -566,7 +566,7 @@ int TrClusterR::GetNStripWithOccupancyStatus(int nstrip_from_seed, int mask, int
   int nstatus = 0;
   int seed_index = GetSeedIndex();
   int seed_sensor;
-  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  GetSensorAddress(seed_sensor,seed_index,mult);
   for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
     // has the strip a valid position (address,mult) ?  
     int stri_sensor;
@@ -591,7 +591,7 @@ int TrClusterR::GetNStripWithGainStatus(int nstrip_from_seed, int mask, int mult
   int nstatus = 0;
   int seed_index = GetSeedIndex();
   int seed_sensor;
-  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  GetSensorAddress(seed_sensor,seed_index,mult);
   for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
     // has the strip a valid position (address,mult) ?  
     int stri_sensor;
@@ -623,7 +623,7 @@ int TrClusterR::GetNStripOnTheEdgeOfSensor(int nstrip_from_seed, int mult) {
   if (GetSide()==1) mult = 0;
   int seed_index = GetSeedIndex();
   int seed_sensor;
-  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  GetSensorAddress(seed_sensor,seed_index,mult);
   for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
     // has the strip a valid position (address,mult) ?  
     int stri_sensor;
@@ -648,7 +648,7 @@ int TrClusterR::GetNStripOnTheEdgeOfVA(int nstrip_from_seed, int mult) {
   if (GetSide()==1) mult = 0;
   int seed_index = GetSeedIndex();
   int seed_sensor;
-  int seed_addsen = GetSensorAddress(seed_sensor,seed_index,mult);
+  GetSensorAddress(seed_sensor,seed_index,mult);
   for (int stri_index=seed_index-nstrip_from_seed; stri_index<=seed_index+nstrip_from_seed; stri_index++) {
     // has the strip a valid position (address,mult) ?  
     int stri_sensor;
@@ -904,7 +904,7 @@ float TrClusterR::BetaRigidityCorrection(float beta, float rigidity, float mass_
   - Old gain
   - Forced to pass through 0,0
   - A point at charge 50 is added extrapolating linerly from the two last points (for around Iron stuff)
-*/
+
 static Int_t    npoints_x_iss11 = 14;
 static Double_t sqrtmip_x_iss11[14] = {
    0.000000,  1.000000,  2.000000,  3.000000,  4.000000,  5.000000,  6.000000,
@@ -923,6 +923,8 @@ static Double_t sqrtadc_y_iss11[14] = {
    0.000000,  5.567749, 11.480528, 17.141417, 21.615240, 25.100355, 27.365740,
    29.365822, 30.827951, 33.765102, 37.085659, 40.455532, 64.482658,112.536911
 };
+*/
+
 /* 
   MIP correction parameters from Pierre (as result of the charge loss procedure)
   - New charge reconstruction (Sep. 2012): full range charge loss corrections, new gain tables 

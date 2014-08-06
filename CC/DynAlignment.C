@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.71 2013/10/04 14:38:35 mdelgado Exp $
+//  $Id$
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -547,7 +547,6 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 
       // Shift the Z origin
       double zHit=event.RawHit[2]-ZOffset;
-      double zTr=event.TrackHit[2]-ZOffset;
       
       // Fit in Y axis
       float &xHit=event.RawHit[0];
@@ -1696,15 +1695,12 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history,map<Int_t,Doub
 
 void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history,DynAlFitContainer &layerAlignment,map<Int_t,Double_t> *errors){
   // Compute the local alignment nfirst
-  const long timeStep=5; // seconds
   DynAlFit fit(DynAlContinuity::FitOrder);
   fit.MinRigidity=DynAlContinuity::RigidityCut;
   fit.MinBeta=DynAlContinuity::BetaCut;
-  int minutes=DynAlContinuity::FitWindow;
   sort(history.Events.begin(),history.Events.end());
   map<int,DynAlHistory> historyPerLadder;
   Layer=history.Layer;
-  long lastTime=0;
   for(int point=0;point<history.Size();point++){
     if(point%10000==0)
       fprintf(stderr,"%i of %i\r",point,history.Size()-1);
@@ -1831,7 +1827,7 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   for(int point=historyC.FirstOfCurrentRun;point<=historyC.LastOfCurrentRun;point++){
     // Take the time of the event
     DynAlEvent ev=history.Get(point);
-    int Id=GetId(ev);
+    GetId(ev);
 
     if(ev.Time[0]==prev_second) continue;
     ev.Time[1]=500000;
@@ -2351,7 +2347,6 @@ DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
   DynAlFit fit(DynAlContinuity::FitOrder);
   fit.MinRigidity=DynAlContinuity::RigidityCut;
   fit.MinBeta=DynAlContinuity::BetaCut;
-  int minutes=DynAlContinuity::FitWindow;
   sort(history.Events.begin(),history.Events.end());
   map<int,DynAlHistory> historyPerLadder;
   for(int point=0;point<history.Size();point++){

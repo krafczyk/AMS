@@ -56,13 +56,13 @@ int TrMCClusterR::_NoiseMarker(555);
 
 
 TrMCClusterR::TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, integer gtrkid, int status)
-  : _idsoft(idsoft), _itra(itra), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep),_gtrkid(gtrkid), Status(status) {
+  : _idsoft(idsoft), _itra(itra), _gtrkid(gtrkid), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep), Status(status) {
   Init();
 }
 
 
 TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra, geant edep):
-  _idsoft(0), _step(0), _itra(itra), _xgl(xgl), _dir(0,0,0), _mom(0), _edep(edep) {
+  _idsoft(0), _itra(itra), _step(0), _xgl(xgl), _dir(0,0,0), _mom(0), _edep(edep) {
   Init();
   TkSens pp(_xgl,1);
   if(pp.LadFound()){
@@ -192,7 +192,6 @@ void TrMCClusterR::GenSimClusters(){
   float    step = GetStep()*1.e4;     // step [um] 
   AMSPoint glo = GetXgl();            // coordinate [cm]
   AMSDir   dir = GetDir();            // direction 
-  float    momentum = GetMomentum();  // momentum vector [GeV/c]
   float    edep = GetEdep()*1.e6;     // energy deposition [keV] 
   int hcharge=0;
   if(abs(_itra)>=47) hcharge=1;

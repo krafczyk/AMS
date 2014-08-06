@@ -139,21 +139,16 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
 //
-  integer i,j,ic,icn;
+  integer i,ic,icn;
   bool jinf=leng_j<0;
   int leng=abs(leng_j);
   integer swid,hwid,crsta(0);
   int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
-  int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
+  int16u datyp,formt;
   int16u jbias,ebias,jblid,eblid,jleng,eleng,jaddr,eaddr,csid;
   int16u rawlen;
   integer comlen;
-  int16u word,nword,nnword;
-  int16u fmt;
-  int16u osbit;
   int16 slots;
-  integer bufpnt(0),lbbs;
-  uinteger val32;
   geant padc[3];
   int16u cdpmsk1(0),cdpmsk2(0);
   bool newdataf(false);
@@ -164,12 +159,7 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
   int16u PedSubt[ECSLOTS]={1,1,1,1,1,1,1};//0/1->no/yes PedSubtr at RawEvent creation
   int16u SlRawFmt[ECSLOTS]={1,1,1,1,1,1,1};//1/0-> raw/not format in slot
 // for PedCalTable(onboard calib)
-  static integer FirstPedBlk(0);
-  static integer TotPedBlks(0);
 //  static integer PedBlkCrat[ECRT][ECEDRS]={0,0,0,0,0,0,0,0,0,0,0,0};
-  bool PedBlkOK(false);
-  geant ped,sig;
-  int16u sts,nblkok;
 //
   uinteger swvbuf[2*ECRCMX];
 // keep:       ADC-values; 1st half -> comp/raw when alone, 2nd half -> comp when in mixt mode 
@@ -745,23 +735,19 @@ void DAQECBlock::buildonbP1(integer leng, int16u *p){
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
 //
-  integer i,j,ic,icn,isl,isd;
-  integer swid,hwid,crsta(0);
-  int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
-  int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
+  integer i,j,ic,isl,isd;
+  integer swid;
+  int16u rdch,slot,crat;
+  int16u datyp,formt;
   int16u jbias,ebias,jblid,eblid,jleng,eleng,jaddr,eaddr,csid;
-  int16u word,nword,nnword;
-  int16u fmt;
-  int16u osbit;
+  int16u word;
   int16 slots;
-  integer bufpnt(0),lbbs;
-  uinteger val32;
   integer portid,crdid;
   uinteger runn;
   bool PedBlkOK(false);
   bool newrun;
   geant ped,sig,dped,thrs;
-  int16u sts,nblkok;
+  int16u nblkok;
   bool bad;
 //
   bool pcreq(false);
@@ -777,7 +763,6 @@ void DAQECBlock::buildonbP1(integer leng, int16u *p){
   bool noerr;
   bool empty;
   bool badtyp;
-  char * p2tdvnam;
   bool badexit;
 //
 #pragma omp critical (ec_pedc_onb)
@@ -1019,25 +1004,19 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
 //
-  integer i,j,ic,icn,isl,isd;
-  integer swid,hwid,crsta(0);
-  int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
-  int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
-  int16u jbias,ebias,jblid,eblid,jleng,eleng,jaddr,eaddr,csid;
+  integer i,j,ic,isl;
+  integer swid;
+  int16u rdch,slot,crat;
+  int16u datyp,formt;
+  int16u ebias,eblid,eleng,eaddr,csid;
   int16u word,nword,nnword,nnnword;
   int16u bias1,bias2;
-  int16u fmt;
-  int16u osbit;
-  int16 slots;
-  integer bufpnt(0),lbbs;
-  uinteger val32;
-  integer portid,crdid;
   uinteger runn;
   bool PedBlkOK(false);
   bool newrun;
   bool OnbFmtOK(false);
   geant ped,sig,dped,thr;
-  int16u sts,nblkok;
+  int16u nblkok;
   int16u calstat(0);
   int16u crslsd;
   int16u bllen;
@@ -1056,7 +1035,6 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   reflen+=2;//add calstat+slavestat, now =729(3x243)+2=731
 // total block length=731+2(headers)+1crc=734 
 //
-  bool pcreq(false);
   bool sidedoubled(false);
   bool dataf;//data-fragment
   bool crcer;//CRC-error
@@ -1067,9 +1045,6 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   bool seqer;//sequencer-error
   bool cdpnod;//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
-  bool empty;
-  bool badtyp;
-  char * p2tdvnam;
   bool badexit;
 //
 #pragma omp critical (ec_pedc_onb)
@@ -1287,24 +1262,19 @@ void DAQECBlock::buildonbP2(integer leng, int16u *p){
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
 //
-  integer i,j,ic,icn,isl,isd;
-  integer swid,hwid,crsta(0);
-  int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
-  int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
+  integer i,j,ic,isl;
+  integer swid;
+  int16u rdch,slot,crat;
+  int16u datyp,formt;
   int16u jbias,ebias,jblid,eblid,jleng,eleng,jaddr,eaddr,csid;
   int16u word,nword,nnword,nnnword;
   int16u bias1,bias2;
-  int16u fmt;
-  int16u osbit;
   int16 slots;
-  integer bufpnt(0),lbbs;
-  uinteger val32;
-  integer portid,crdid;
   uinteger runn;
   bool PedBlkOK(false);
   bool newrun;
   geant ped,sig,dped,thr;
-  int16u sts,nblkok;
+  int16u nblkok;
   int16u calstat(0);
   bool bad;
 //<-- check ped-block sections: 
@@ -1315,7 +1285,6 @@ void DAQECBlock::buildonbP2(integer leng, int16u *p){
   if(dpedin)reflen+=ECEDRC;
   if(thrsin)reflen+=ECEDRC;//1 EDR-data  reflen does not count calstat words 
 //
-  bool pcreq(false);
   bool sidedoubled(false);
   bool dataf;//data-fragment
   bool crcer;//CRC-error
@@ -1328,7 +1297,6 @@ void DAQECBlock::buildonbP2(integer leng, int16u *p){
   bool noerr;
   bool empty;
   bool badtyp;
-  char * p2tdvnam;
   bool badexit;
 //
 #pragma omp critical (ec_pedc_onb)
@@ -1342,7 +1310,7 @@ void DAQECBlock::buildonbP2(integer leng, int16u *p){
   }
 //
   EcalJobStat::daqs1(0);//count entries
-  DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
+  (void)AMSEvent::gethead()->getheadC("DAQEvent",6);
   bad=false;//ok
   runn=AMSEvent::gethead()->getrun();
   newrun=(_PrevRunNum!=runn);
@@ -1635,11 +1603,11 @@ integer DAQECBlock::getmaxblocks(){return 2;}//only one JINF per crate is implie
 integer DAQECBlock::calcblocklength(integer ibl){
 //calc. JINF-block length from MC-data
 //cout<<"------> In calcblocklength, block="<<ibl<<endl;
-  int i,j,k;
+  int i;
   integer id,idd;
-  integer nqwords(0),nwords(0);
+  integer nwords(0);
   int16u nwslot[ECEDRS];
-  int16u isl,pmt,pix,gain,crate,slot,stat;
+  int16u isl,pmt,pix,gain,crate,slot;
   geant padc[3],adcd;
   AMSEcalRawEvent * ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                                      getheadC("AMSEcalRawEvent",ibl,0);
@@ -1701,13 +1669,11 @@ integer DAQECBlock::calcblocklength(integer ibl){
 void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
 //create JINF-block from MC-data
 //cout<<"------> In buildblock, block="<<ibl<<endl;
-  int i,j,k;
+  int i,j;
   integer sta,id,idd;
   int16u isl,pmt,pix,gain,crate,slot,chan,stat;
   geant padc[3];
-  integer swid;
-  geant peda,pedd,adca,adcd;
-  int16u trpatt[6][3];//dyn.trig.patt([6]=>suplayers:2-7; [3]=>3x16bits used for triggered dynodes)
+  geant peda,pedd,adcd;
   AMSEcalRawEvent * ptr;
   int16u edrbuf[ECEDRS][ECEDRC];
   int16u nwslot[ECEDRS];

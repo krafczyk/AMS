@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.52 2014/02/11 14:45:55 bbeische Exp $
+//  $Id$
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -97,7 +97,7 @@ void AMSTRDRawHit::sitrddigi(){
 
      ptr=ptr->next();
     }
-    int cl=AMSEvent::gethead()->getC("AMSTRDRawHit",0)->getnelem();
+	AMSEvent::gethead()->getC("AMSTRDRawHit",0)->getnelem();
 
   if(TRDMCFFKEY.NoiseOn && TOF2RawSide::GlobFasTrigOK())AMSTRDRawHit::sitrdnoise();
 
@@ -492,8 +492,6 @@ void AMSTRDRawHit::builddaq(int i, int length,int16u*p){
      int16u amp=0;
      while(ptr){
        AMSTRDIdSoft id(ptr->getidsoft());
-       integer ilay=id.getlayer();
-       integer ilad=id.getladder();
        integer udr=id.getudr();
         if(udr!=iudr){
           ptr=ptr->next();
@@ -543,8 +541,6 @@ integer AMSTRDRawHit::calcdaqlength(integer i){
      int16u amp=0;
      while(ptr){
        AMSTRDIdSoft id(ptr->getidsoft());
-       integer ilay=id.getlayer();
-       integer ilad=id.getladder();
        integer udr=id.getudr();
 //        if(!id.checkstatus(AMSDBc::BAD)){
          amp+=ptr->getamp();

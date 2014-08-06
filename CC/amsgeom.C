@@ -304,9 +304,7 @@ char name[5]="MAGN";
 geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
-AMSNode * cur;
 AMSNode * dau;
-AMSgtmed *p;
       gid=1;
       par[0]=112./2;
       par[1]=129.6/2;
@@ -361,26 +359,20 @@ number nrm4[3][3]={-1.,0.,0.,0.,1.,0., 0.,0.,-1.};// sc(1)(-x) in nonrot.planes(
 //                                                  (sc(2:n) are in MRS) 
 number rmd1[3][3]={1.,0.,0.,0.,-1.,0.,0.,0.,-1.};// dummy trang.vol. at -Yc
 //                                                 (dummy vol.at +Yc is in sc.r.s.)
-number inrm[3][3];
-geant dz,dz1,dz2,zc,dx,dxi,dxo,dxt;
+geant dz,dxi,dxo,dxt;
 geant ocxc,ocyc,ocwd,ocewd,brlen,lglen,lgxb;
 integer btyp,nbm,irot,nrot(0);
 int ii,kk;
 char inum[11];
 char in[2]="0";
 char vname[5];
-char name[5];
 number co[3]={0.,0.,0.};
 geant coc[3]={0.,0.,0.};
 geant coo[3]={0.,0.,0.};
 geant cow[3]={0.,0.,0.};
-geant cod[3]={0.,0.,0.};
-integer gid(0),id(0);
-integer nmed;
+integer gid(0);
 AMSNode *ptofc;
-AMSNode *cur;
 AMSNode *dau;
-AMSgtmed *p;
 AMSID amsid;
 //
 strcpy(inum,"0123456789");
@@ -555,7 +547,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
 //-------
 //        <---  Now put Boxes with PMTs:
 //
-  geant xbias,ybias,zbias;
+  geant xbias,zbias;
 //
 // --------> for top TOF:
 //            common box at +X, -X :                                   
@@ -713,7 +705,7 @@ geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number nrd[3][3];
 geant coo[3]={0.,0.,0.};
-integer i,nrot,gid=0,gidd=0;
+integer i,nrot,gid=0;
 geant scradi,scinth,scleng,wrapth,groovr,pdlgap,stradi,stleng,stthic;
 geant rs,phi,phib,dphis,dphi,dphig;
 geant degrad,raddeg;
@@ -860,9 +852,7 @@ char name[5]="MAGN";
 geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
-AMSNode * cur;
 AMSgvolume * dau;
-AMSgtmed *p;
      geant magnetl=86.+86.;
       gid=1;
       par[0]=113.2/2;
@@ -914,7 +904,6 @@ void amsgeom::magnetgeom02p(AMSgvolume & mother){
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
   integer gid;
   char name[5]="MAGN";
-  AMSNode * cur;
   AMSNode * dau;
 //
   geant rmagi(55.75),drmagi(0.3),rmago(65.35),drmago(0.4),magh(80.);
@@ -1219,10 +1208,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant cro[3]={0.,0.,0.};
  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};//"no rotation" matrix
  number nrm0[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};//working array
- int i,j,ii;
- char inum[11];
- char in[2]="0";
- char vname[5];
+ int i,j;
  integer gid,nrot;
  AMSNode * cur;
  AMSNode * dau;
@@ -1717,7 +1703,6 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant us1y1=99.9;//(final) inner edge y-pos(with us1x1 are defined by attach to VC
 //                             at R=141.3cm and angle 45 degr.)                            
  geant us1z1=68.12-us1dz/2.;//(final) inner/bot edge z-pos 
- geant us1x2=us1x1;// outer edge x-pos
  geant us1y2=192.;//(final+cutted) outer edge y-pos
  geant us1z2=59.5-us1dz/2.;//(final+cutted) outer edge z-pos
  geant us1dy=sqrt(pow(us1y2-us1y1,2)+pow(us1z1-us1z2,2));
@@ -1735,7 +1720,6 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant us2x1=99.9-us2dx/2.;//(final)inner(wrt AMS "0") edge x-pos
  geant us2y1=us1y1;// inner edge y-pos
  geant us2z1=-90.14+0.5*us2dz*cos(us2aan);//(final) inner edge  z-pos
- geant us2x2=us2x1;// outer edge x-pos
  geant us2z2=us1z2-48.;//(final+cutted) outer edge z-pos
  geant us2y2=us2y1+(us2z2-us2z1)/tan(us2aan);//(final) outer edge y-pos
 // (this y-pos is calc.from hand-fixed z-pos and known angle 46.3)
@@ -1879,9 +1863,7 @@ char name[5]="MAGN";
 geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
-AMSNode * cur;
 AMSNode * dau;
-AMSgtmed *p;
      geant magnetl=80.;
       gid=1;
       par[0]=113.2/2;
@@ -1923,15 +1905,9 @@ void amsgeom::ext2structure(AMSgvolume & mother){
 AMSID amsid;
 geant par[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-number inrm[3][3];
 integer nrot;
-char name[5];
 geant coo[3]={0.,0.,0.};
-integer gid=0;
-AMSNode * cur;
-AMSNode * dau;
-AMSgtmed *p;
-      gid=1;
+integer gid=1;
 
  nrot=TOF2GC::SCROTN+300;
 // Low quadrant(frame)
@@ -2007,7 +1983,6 @@ geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,5*0.};
 geant fleeceParams[3]={0.,0.,0.};
 geant fleeceCoord[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-number inrm[3][3];
 char name[5];
 geant coo[3]={0.,0.,0.};
 geant bulkheadCoord[3] = {0.0,0.0,0.0};
@@ -2015,11 +1990,9 @@ integer gid(0);
 uinteger rgid(0);
 uinteger status;
 integer nrot=TRDROTMATRIXNO; 
-AMSNode * cur;
 AMSgvolume * dau;
 AMSgvolume * daug4;
 AMSgvolume * fleece;
-AMSgvolume * tubeVolume;
 AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
@@ -2467,8 +2440,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    cutoutCoord[1] = 0.0;
    cutoutCoord[2] = distanceToBulkhead - plateWidth / 2.0;
 
-   // remove fleece above the straw module
-   number strawModuleUpperEdge = stripCoord[1] + TRDDBc::StripsDim(1) / 2.0;
    // the half-height of fleece cutout
    cutoutDimensions[1] = fleeceParams[1];
    cutoutDimensions[0] = fleeceParams[0];
@@ -2715,9 +2686,9 @@ geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number nrd[3][3];
 geant coo[3]={0.,0.,0.};
-integer i,nrot,gid=0,gidd=0;
+integer i,gid=0;
 geant scradi,scinth,scleng,wrapth,groovr,pdlgap,stradi,stleng,stthic;
-geant rs,phi,phib,dphis,dphi,dphig,phigr;
+geant rs,phi,phib,dphis,dphi,dphig;
 geant dx1g,dx2g,dzg,dyg;
 geant dx1b,dx2b,dzb,dyb;
 geant ddfi;
@@ -2725,9 +2696,7 @@ geant degrad,raddeg;
 integer nscpad;
 AMSNode * pAmother;
 AMSgvolume * pSegm;
-AMSNode * pGroov;
 AMSNode * p;
-AMSgvolume *dummy;
 //
   raddeg=AMSDBc::raddeg;
   degrad=AMSDBc::pi/180.;
@@ -2867,8 +2836,8 @@ ECALDBc::readgconf();//
   number nrm2[3][3]={0.,0.,1.,0.,1.,0., -1.,0.,0.}; // for Y-proj fibers
 
   geant coo[3]={0.,0.,0.};
-  geant dx1,dy1,dx2,dy2,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz;
-  geant dzrad1,zmrad1,alpth,flen,zposfl,dxe;
+  geant dx1,dy1,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz;
+  geant dzrad1,zmrad1,alpth,flen,dxe;
   geant fshift;
   geant claddrx,claddry;
   int layer;
@@ -2876,7 +2845,6 @@ ECALDBc::readgconf();//
   integer isupl,ifibl,ifib,iproj,ip;
   int i,j,k;
   float lastflend,al_thickness;
-  integer vlist[10]={0,0,0,0,0,0,0,0,0,0};
   char inum[11];
   char in[2]="0";
   char vname[5];
@@ -3258,10 +3226,7 @@ char name2[]="My2ndReplica";
 geant coo[3]={0.,0.,12.};
 number nrm[3][3]={0,0,1,1,0,0,0,1,0};
 integer gid=0;
-AMSNode * cur;
 AMSgvolume * dau;
-AMSgtmed *p;
-     geant magnetl=86.;
       gid=1;
       par[0]=0.;
       par[1]=10./2;

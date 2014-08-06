@@ -124,20 +124,19 @@ void ECREUNcalib::init(){
 }
 //-----------------------------
 void ECREUNcalib::select(){
-  int i,j,k;
-  integer sta,status,dbstat,id,idd,isl,pmt,sbc,pmsl,rdir,ipl;
+  int i,k;
+  integer sta,id,isl,pmt,sbc,pmsl,rdir,ipl;
   integer nhtot(0);
   geant padc[3];
   integer npmx,nslmx,maxpl,maxcl,nraw,ovfl[2],proj,plane,cell,lbin;
   number radc[2],binw,trc[3],pmb[3],rrr,sbl,sbr,crl,crr;
-  number ct1,ct2,cl1,cl2,dct,z1,z2,hflen,ctcr,ctpm,clcr,clsh,clpm,acorr;
-  number sumh[ECPMSMX][4],suml[ECPMSMX][4],pmsum,pmdis;
+  number ct1,ct2,cl1,cl2,z1,z2,hflen,ctcr,clcr,clsh,clpm,acorr;
+  number sumh[ECPMSMX][4],pmdis;
   number sumhe[ECPMSMX][4]; 
   number wbuff[ECSLMX][ECPMMX][4];
   number webuff[ECSLMX][ECPMMX][4];
-  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl,apmt,epmt,epix,apix,an2dy;
+  geant pedh[4],pedl[4],sigh[4],sigl[4],ph,pl,sh,sl,apmt,epmt,epix,apix;
   geant pmpit,pxsiz;
-  AMSEcalRawEvent * ptr;
   AMSEcalHit * ptr1;
 //
   AMSContainer *cptr;
@@ -147,7 +146,7 @@ void ECREUNcalib::select(){
   AMSBeta  *pbeta;
   AMSPoint C0,Cout1,Cout2,Cpmt;
   AMSDir dir(0,0,1.);
-  int ntrk,ipatt;
+  int ntrk;
   number chi2,the,phi,rid,err,trl,beta,ebeta,momentum,betap,pmass;
   integer chargeTOF,chargeTracker;
 //
@@ -162,7 +161,7 @@ void ECREUNcalib::select(){
 //
   EcalJobStat::addca(0);
 // 
-  bool trktr,trdtr,ecaltr,nottr,badint;
+  bool trdtr,ecaltr,nottr,badint;
   integer trpatt;
 //
   rid=0;
@@ -287,7 +286,7 @@ void ECREUNcalib::select(){
 //--------------------------------> select Punch-Through events and fill working arrays:
 //   (use EcalHits with Edep already gain-corrected(though using Previous(!) calibration)
 //
-  number edthr,edep,edlpr[2*ECSLMX],edtpr[2*ECPMSMX];
+  number edep,edlpr[2*ECSLMX],edtpr[2*ECPMSMX];
   integer nsclpr[2*ECSLMX];
   integer refsl,refpm,imax,imin;
   int badsc,badscl(0);
@@ -410,7 +409,7 @@ geant pm17(0),pm18(0),pmd17(0),pmd18(0);
   number *pntro[2*ECSLMX];
   number *pntrn[2*ECSLMX];
   integer ngd(0);
-  number ampo,ampn,edept;
+  number edept;
   for(ipl=0;ipl<maxpl;ipl++){
     pntro[ipl]=&edlpr[ipl];
     pntrn[ipl]=&edlpr[ipl];
@@ -802,16 +801,13 @@ geant pm17(0),pm18(0),pmd17(0),pmd18(0);
 }
 //-----------------------------------------------------------
 void ECREUNcalib::makeToyRLGAfile(){
-  int i,j,k,bad;
-  integer sl,pm,sc,pmsl,lb,npmx,slpmc;
-  integer pmslr,refsl,refpm;
+  integer sl,pm,sc,pmsl,npmx;
   char inum[11];
   char in[2]="0";
 //
   strcpy(inum,"0123456789");
   npmx=ECALDBc::slstruc(4);//numb.of PM's/sl
   char fname[1024];
-  char frdate[30];
   char vers1[3]="mc";
   char vers2[3]="sd";
   integer cfvn;
@@ -1125,14 +1121,13 @@ void ECREUNcalib::makeToyRLGAfile(){
 void ECREUNcalib::mfit(){
 //
   int i,j,k,bad;
-  integer sl,pm,sc,pmsl,lb,npmx,slpmc;
+  integer sl,pm,sc,pmsl,lb,npmx;
   integer pmslr,refsl,refpm;
   geant arr[ECPMSMX*2];
   geant glscscan[2*ECSLMX];
   int nlscan,nof4;
   number rrr,sum4,sum4c,eff,hflen,binw;
   char htit1[60];
-  char htit2[60];
   char ext[10];
   char inum[11];
   char in[2]="0";
@@ -1345,12 +1340,10 @@ void ECREUNcalib::mfit(){
 //-------------->FIAT-calib: calc./FIT average resp. in each long.bin:
 //
   geant pmprof[ECCLBMX],pmprer[ECCLBMX];
-  int first(1); 
   int ier;  
   int ifit[4];
   char pnam[4][6],pnm[6];
   number argl[10];
-  int iargl[10];
   number start[4],pstep[4],plow[4],phigh[4];
   strcpy(pnam[0],"anorm");
   strcpy(pnam[1],"lenhi");
@@ -1681,7 +1674,6 @@ void ECREUNcalib::mfit(){
   integer hchok[ECPMSL*4],ibinw;
   int ngdbins[ECPMSL*4];
   int gsbins,nevft;
-  number offsf(0.5);//fixed offset for "fixed offset" fit
 //
   ibinw=integer(floor(number(ECCADCR)/ECCHBMX));
   cout<<endl<<"<==== Start Hi2LowR calculation, HichBinw="<<ibinw<<endl;
@@ -1850,10 +1842,8 @@ void ECREUNcalib::mfit(){
   char vers1[3]="MC";
   char vers2[3]="RD";
   char fext[20];
-  integer cfvn;
   uinteger StartRun,overid,verid;
   time_t StartTime;
-  int dig;
 //
 //--> create RLGA output file(PM/SubCell rel.gains,Hi2Low-ratios,An2Dyn-ratios):
 // 
@@ -2081,7 +2071,7 @@ void ECREUNcalib::mfit(){
 //--------
 void ECREUNcalib::mfun(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
-  int i,j;
+  int i;
   number ff;
   f=0.;
 //
@@ -2151,15 +2141,13 @@ void ECREUNcalib::fill_3(integer pmsl, number ad, number a4){
 //
 //=============================================================================
 void ECREUNcalib::selecte(){// <--- for ANOR calibration
-  int i,j,k;
-  integer sta,status,dbstat,padc[2],id,idd,isl,pmt,sbc,pmsl,rdir;
-  integer npmx,nslmx,maxpl,maxcl,nraw,ovfl[2],proj,plane,cell,lbin;
-  number radc[2],binw,trc[3],pmb[3],rrr,sbl,sbr,crl,crr;
-  number ct,cl,dct,z,hflen,ctcr,ctpm,clcr,clsh,clpm,acorr;
-  number sumh[ECPMSMX][4],suml[ECPMSMX][4],pmsum,pmdis; 
-  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl,apmt;
+  int i,k;
+  integer sta,status,isl,pmt,sbc,rdir;
+  integer npmx,nslmx,maxpl,maxcl,proj,plane,cell;
+  number rrr;
+  number ct,cl,dct,z,hflen,ctcr,clcr,clsh,clpm,acorr;
+  number pmdis; 
   geant pmpit,pxsiz;
-  AMSEcalRawEvent * ptr;
   AMSEcalHit * ptr1;
   AMSAntiCluster *ptra;
 //
@@ -2176,18 +2164,19 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 #ifndef _PGTRACK_
   AMSTrIdSoft idx;
   AMSTrIdSoft idy;
+  number gchi2,gthe,gphi,grid,gerr;
+  AMSPoint Cout[2];
+  number hphi[2],hthe[2],herr[2],hchi2[2];
 #endif
   integer ilay,hitla,nxcl[trconst::maxlay],nycl[trconst::maxlay];
   number axtcl[trconst::maxlay],aytcl[trconst::maxlay];
   number axbcl[trconst::maxlay],aybcl[trconst::maxlay];
-  number amp;
 //
-  integer chargeTOF,chargeTracker,AdvFit,ntrh;
-  AMSPoint C0,gC0,Cout1,Cout2,Cpmt,Cout[2];
+  integer chargeTracker,AdvFit,ntrh;
+  AMSPoint C0,gC0,Cout1,Cout2,Cpmt;
   AMSDir dir(0,0,1.);
-  int ntrk,ipatt;
-  number chi2,the,phi,rid,err,trl,hchi2[2],hrid[2],herr[2],hthe[2],hphi[2],ass,beta;
-  number gchi2,gthe,gphi,grid,gerr;
+  int ntrk;
+  number chi2,the,phi,rid,err,trl,ass,beta,hrid[2];
   int badtrlx,badtrly,badtrl,badebkg,badclam;
 //
   npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl
@@ -2231,7 +2220,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 //
 // ---------------> get track info :
 //
-  bool trktr,trdtr,ecaltr,nottr,badint;
+  bool trdtr,ecaltr,nottr,badint;
   integer trpatt;
 //
   ntrk=0;
@@ -2507,7 +2496,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 // (EcalHits  ALREADY gain-corrected using RLGA/(FIAT) part(s) of REUN-calibration)
 // (Absolute normalization(mev) is STILL from previous (OLD) calibration !!!)
 //
-  number edthr,edep,edept,esleak,ebleak,edlpr[2*ECSLMX],edtpr[2*ECSLMX][2*ECPMSMX];
+  number edep,edept,esleak,ebleak,edlpr[2*ECSLMX],edtpr[2*ECSLMX][2*ECPMSMX];
   integer nsclpr[2*ECSLMX];
   integer refsl,refpm,ipl,imax,imin,plholes[2*ECSLMX];
   int nnn,bad1,bad2,bad3,spikes,badscl(0);
@@ -2945,18 +2934,13 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 //----------------------------
 void ECREUNcalib::mfite(){
 //
-  int i,j,k,bad;
-  integer sl,pm,sc,pmsl,lb,npmx,slpmc;
+  integer npmx;
   integer pmslr,refsl,refpm;
   geant ad2mv,anorf;
-  number rrr,sum4,eff,hflen,binw;
-  char htit1[60];
-  char htit2[60];
+  number hflen;
   char inum[11];
-  char in[2]="0";
   char chopt[6]="qb";
   char chfun[6]="g";
-  char chopt1[5]="LOGY";
   geant par[3],step[3],pmin[3],pmax[3],sigp[3],chi2;
 //
   strcpy(inum,"0123456789");
@@ -2995,10 +2979,8 @@ void ECREUNcalib::mfite(){
   char vers1[3]="MC";
   char vers2[3]="RD";
   char fext[20];
-  integer cfvn;
   uinteger StartRun;
   time_t StartTime;
-  int dig;
   integer endfm(12345);
 //
 //--> create ANOR output file(absolute normalization factor(the same for all PM's):
@@ -3076,12 +3058,10 @@ void ECREUNcalib::mfite(){
 //-----
  void ECPedCalib::initb(){//called in reecalinitjob() in EC is requested for OnBoard-calib data proc
 // histograms booking / reset vars
-   int16u i,sl,pm,pix,gn,gnm;
+   int16u sl,pm,pix,gn,gnm;
    int hnm,ch;
    char buf[6];
    char htit[80];
-   static int first(0);
-   char hmod[2]=" ";
 //
 //
  if((CALIB.SubDetInCalib%10)>1){//histograms are requested
@@ -3210,7 +3190,7 @@ void ECREUNcalib::mfite(){
 //-----
  void ECPedCalib::filltb(integer swid, geant ped, geant dped, geant thr, geant sig){
 //
-   int16u i,sl,pm,pix,gn,ch,is;
+   int16u sl,pm,pix,gn,ch;
 // sl=0->, pm=0->, pix=1-3=>anodes,=4->dynode, gn=0/1->hi/low(for dynodes only hi)
 // swid=>LTTPG(SupLayer/PMTube/Pixel/Gain)
 //
@@ -3230,7 +3210,7 @@ void ECREUNcalib::mfite(){
 //----------
  void ECPedCalib::outptb(int flg){//called in buildonbP
 // flg=1/2/3=>/write2DB/NoAction(hist only)/(write2file+hist)
-   int i,j;
+   int i;
    int totchs(0),goodtbch(0),goodchs(0);
    geant goodchp(0);
    geant pedo,sigo;
@@ -3634,17 +3614,17 @@ void ECREUNcalib::mfite(){
 // sl=0->, pm=0->, pix=1-3=>anodes,=4->dynode, gn=0/1->hi/low(for dynodes only hi)
 // swid=>LTTPG(SupLayer/PMTube/Pixel/Gain)
    geant ped,sig,sig2;
-   geant hi2lr,a2dr,gainf,spikethr;
+   geant gainf,spikethr;
    bool accept(true);
    int pml,pmr;
 //
    integer evs2rem;
-   geant por2rem,p2r;
+   geant p2r;
    geant apor2rm[10]={0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,};
    number ad,ad2,dp,ds;
    geant pedi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
    geant sigi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
-   geant pedmin,pedmax,sigmin,sigmax,smn2;
+   geant sigmin,sigmax,smn2;
 //
    sigmin=ECCAFFKEY.siglim[0];
    sigmax=ECCAFFKEY.siglim[1];
@@ -3779,7 +3759,7 @@ void ECREUNcalib::mfite(){
 //-----
  void ECPedCalib::outp(int flg){//called in ecalendjob
 // flg=0/1/2=>HistosOnly/write2DB+File/write2file
-   int i,j;
+   int i;
    geant pdiff;
    geant por2rem,p2r;
    geant pedmin,pedmax,sigmin,sigmax,smn2;
@@ -3791,7 +3771,6 @@ void ECREUNcalib::mfite(){
    char DataDate[30],WrtDate[30];
    int totchs(0),goodchs(0);
    geant goodchp(0);
-   geant sigdef(0.4);//to use when sig=0
 //   strcpy(DataDate,asctime(localtime(&begin)));
    strcpy(DataDate,asctime(localtime(&begin)));
    time(&insert);

@@ -1281,8 +1281,6 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
 
   dir.setp(0, 0, 1);
 
-  int tkid = 0;
-  int sens = -1;
   TrRecHitR *hit = GetHitLO(ily);
   if(hit)
     pnt.setp(0,0,hit->GetCoord()[2]);
@@ -1290,7 +1288,7 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
      dir.setp(0, 0, 1);
      pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily));
 
-     double ret = tprop.Interpolate(pnt, dir);
+     tprop.Interpolate(pnt, dir);
      TkSens tks(pnt,0);
      AMSPoint dd=tks.FindCloseSensorCenter();
      dir.setp(0, 0, 1);
@@ -1601,7 +1599,6 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   if (refit==14 ||(refit >13&&refit<20)|| refit>23 ||refit <0||(refit>5&&refit<10)) return -1;
 
   // Load alignment in case of explicit refit
-  int ret1 = 0;
 //   if (refit==4) { ret1 = UpdateExtLayer(0); refit =  3; }
 //   if (refit==5) { ret1 = UpdateExtLayer(1); refit = 13; }
 //   if (ret1 !=0) return -5;
@@ -1723,7 +1720,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
       }
       else 
 	rret=UpdateExtLayer(0);
-      int ret0=UpdateInnerDz();
+	  UpdateInnerDz();
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();
       RecalcHitCoordinates();
@@ -1914,8 +1911,6 @@ int TrTrackR::RebuildHits(void)
   int id0 = iTrTrackPar(0);
   if (id0 < 0) return -1;
 
-  float pmrg = 100e-4;
-
   static int nwar = 0;
 
   for (int i = 0; i < trconst::maxlay; i++) {
@@ -1954,9 +1949,7 @@ int TrTrackR::RebuildHits(void)
 
     int mult = tks.GetMultIndex();
     float wx = GetFitWeightXLayerJ(layj, id0);
-    float wy = GetFitWeightYLayerJ(layj, id0);
-
-    AMSPoint pc = tks.GetSensCoo();
+    // float wy = GetFitWeightYLayerJ(layj, id0);
 
     int    stx = tks.GetStripX()+640;
     int    sty = tks.GetStripY();

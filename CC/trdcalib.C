@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.13 2011/01/29 03:48:37 mmilling Exp $
+//  $Id$
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -33,27 +33,13 @@ for(i=0;i<getnchan();i++){
 
 
 void AMSTRDIdCalib::ntuple(integer s){
-    char hfile[161];
-    UHTOC(IOPA.hfile,40,hfile,160);  
-    char filename[256];
-    integer iostat;
-    integer rsize=1024;
-    sprintf(filename,"%s_trd.%d",hfile,s);
-/*
-    HROPEN(IOPA.hlun+1,"trdcalibration",filename,"NP",rsize,iostat);
-    if(iostat){
-     cerr << "Error opening trdcalib ntuple file "<<filename<<endl;
-     exit(1);
-    }
-    else cout <<"trdcalib ntuple file "<<filename<<" opened."<<endl;
-*/
   if(IOPA.hlun){
    static TRDCalib_def TRDCALIB;
    CALIB.Ntuple++;
     cout <<  " CALIB " <<CALIB.Ntuple<<endl;
    HBNT(CALIB.Ntuple,"trd calibaration"," ");
    HBNAME(CALIB.Ntuple,"TrdCalib",(int*)(&TRDCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
-   int i,j,k,l,m;
+   int i,j,k;
      for(i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){
@@ -70,16 +56,6 @@ void AMSTRDIdCalib::ntuple(integer s){
         }
     }
 }
-/*
-  char hpawc[256]="//PAWC";
-  HCDIR (hpawc, " ");
-  char houtput[]="//trdcalibration";
-  HCDIR (houtput, " ");
-  integer ICYCL=0;
-  HROUT (CALIB.Ntuple, ICYCL, " ");
-  HREND ("trdcalibration");
-  CLOSEF(IOPA.hlun+1);
-*/
 }
   
 
@@ -126,7 +102,7 @@ void AMSTRDIdCalib::printbadchanlist(){
   fcluster.open("../datacards/TRDBadChannelList.Clusters",ios::out);
 
 
- int i,j,k,l,m;
+ int i,j,k;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){
@@ -153,7 +129,7 @@ void AMSTRDIdCalib::printbadchanlist(){
 void AMSTRDIdCalib::_calc(){
 
 int badp=0;
- int i,j,k,l,m;
+ int i,j,k;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){
@@ -177,7 +153,7 @@ int badp=0;
 }
 
 void AMSTRDIdCalib::_update(){
- int i,j,k,l,m;
+ int i,j,k;
      int total=0;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
@@ -284,7 +260,7 @@ static integer hist=0;
 int cnt=0;
 double acc=0;
 if(++counter%TRDCALIB.EventsPerCheck == 0 || forcedw){
- int i,j,k,l,m;
+ int i,j,k;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){

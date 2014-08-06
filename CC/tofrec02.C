@@ -56,18 +56,17 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
   integer sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
   geant adca;
   geant adcd[TOF2GC::PMTSMX];
-  integer ilay,last,ibar,isid,isds(0),pedrun(0);
+  integer ilay,ibar,isid,pedrun(0);
   int ill;
-  integer i,j,im,tmfound,complm,chnum,brnum;
-  int16u id,idd,idN,stat,idr;
+  integer i,im,tmfound,complm,chnum,brnum;
+  int16u id,idd,stat,idr;
   integer hisid;
   number dt;
-  geant peda,pedd;
   int16u otyp,mtyp,crat,slot,tsens;
   integer hwidt(0);
   integer hwidq[4]={0,0,0,0};
   int bad(1);
-  geant charge,temp,temT,temC,temP;
+  geant charge,temp;
   TOF2RawSide *ptr;
   integer trpat[TOF2GC::SCLRS],trpatz[TOF2GC::SCLRS];
   TOF2RawSide::getpatt(trpat);
@@ -99,7 +98,6 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
 //---------------------------------------------------------------
 // ====> check for PedCalib data if PedCalJob :
 //
-  int chan,il,ib,is;
   if(AMSJob::gethead()->isCalibration() && (TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)){
 //PedCalJob(Class/DS)
     TOF2JobStat::addre(45);
@@ -497,48 +495,43 @@ void TOF2RawCluster::build(int &ostatus){
   geant adca[2];
   geant adcd[2][TOF2GC::PMTSMX];
   integer SumHTuse;
-  static integer err1(0),err2(0);
   
-  integer ilay,last,ibar,isid,isds,isd,isdsl[TOF2GC::SCLRS],slnu,tdcc;
-  int16u crat,slot,tsens,sslot;
-  integer i,j,k,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2];
-  integer nmpts;
-  uinteger trpatt[TOF2GC::SCLRS];
+  integer ilay,ibar,isid,isds,isd,isdsl[TOF2GC::SCLRS];
+  int16u crat,slot,sslot;
+  integer i,j,chnum,brnum,sta,st,smty[2];
   uinteger Runum(0);
-  int statdb[2];
   int16u pbitn;
   int16u pbanti;
-  int16u id,idd,idN,stat[2],amf[2];
+  int16u id,idd,idN,stat[2];
   int16u mtyp(0),otyp(0);
   number ama[2],amd[2],amc[2];
-  geant peds[2],sigs[2];
-  number zc,elosa,elosal,elosd,elosdl,tmf[2],time,coo,ecoo;//input to RawCluster Constr
+  geant sigs[2];
+  number zc,elosa,elosd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
   number aedep,dedep;
-  number tm[2],tf,tff,dt,fstd,tmr[2];
-  number timeD,tamp;
+  number tm[2],dt;
   number tempT[2]={0.,0.};
   number tempC[2]={0.,0.};
   number tempP[2]={0.,0.};
   number charg[2]={0.,0.};
-  number t1,t2,t3,t4;
-  geant blen,co,eco,point,brlm,pcorr,td2p,etd2p,clong[TOF2GC::SCLRS];
+  number t1;
+  geant blen,co,eco,brlm,pcorr,clong[TOF2GC::SCLRS];
   TOF2RawSide *ptr;
   TOF2RawSide *ptrN;
   integer nmemb(0);
   AMSlink *membp[2]={0,0};
   integer nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS];
-  int bad,tsfl(0),anchok,anlchok,dychok,dylchok,hlf;
+  int anchok,dychok,hlf;
 // some variables for histogramming:
-  geant gdt,tch,pch1[TOF2GC::SCLRS],pch2[TOF2GC::SCLRS],rrr[2];
+  geant gdt,pch1[TOF2GC::SCLRS],pch2[TOF2GC::SCLRS];
   geant edepa[TOF2GC::SCLRS],edepd[TOF2GC::SCLRS];
   geant tcorr[TOF2GC::SCLRS],elosn;
   geant tuncorr[TOF2GC::SCLRS],tdiff[TOF2GC::SCLRS],td13,td24,td14;
-  geant gnd,dh2l,a2d;
-  number aaa,ddd;
-  int dovfl,dlovfl;
+  geant gnd;
+  number aaa;
+  int dovfl;
   integer npmts;
   number adcdr[2][TOF2GC::PMTSMX];
-  integer hwidt,hwidq[4],tdcch[4];
+  integer hwidt,tdcch[4];
   number tdcor;
 //
   bool PMEQmode=(TFCAFFKEY.spares[0]==1);
@@ -1349,9 +1342,6 @@ void TOF2RawCluster::build(int &ostatus){
 //
 // ----------> recover missing sides
 //
-  number stin[2],stout[2],timin,timout,edin,edout,clin,clout;//tempor for test
-  integer isdb(1),isdg;// bad/good side
-  number ddt;
   if(TFREFFKEY.relogic[3]){// do recovering of missing side
     while(ptrc){ // loop over counters(raw clusters)
       il=ptrc->getntof()-1;
@@ -1442,7 +1432,7 @@ void TOF2RawCluster::build(int &ostatus){
 }
 //-----------------------------------------------------------------------
 void TOF2RawCluster::recovers(number x){ // function to recover missing side
-  geant gn[2],gnd[2],csl,sl[2],dt0,upr[2*TOF2GC::SCPROFP],vel,xerr,sqr,hclen,co,eco,pcorr;
+  geant gn[2],csl,sl[2],dt0,upr[2*TOF2GC::SCPROFP],vel,xerr,sqr,hclen,co,eco,pcorr;
   number q[2],tm[2],tcor;
   number tot[2],adc[2];
   int il,ib,hlf;
@@ -1693,7 +1683,7 @@ void AMSTOFCluster::build2(int &stat){
   integer ntof,barn,status,statusn,plrot;
   geant barl,barw,cl,cle,ct,cte,cln,clne,ctn,ctne,cz,czn,clm,clnm;
   geant barwn;
-  geant edep,edepn,edepa,edepd,edepdl,edepdn,edass;
+  geant edep,edepn,edepa,edepd,edepdn,edass;
   geant time,etime,timen,etimen,speedl,err;
   integer timeoks,timeokn;
 //-----
@@ -1995,7 +1985,7 @@ void AMSTOFCluster::recovers2(AMSTrTrack * ptr){ // recreate TOFCluster
   AMSDir dir(0,0,1.);
   AMSPoint coo;
   AMSPoint outp;
-  number theta,phi,sleng,ctr,clo,newt;
+  number theta,phi,sleng,ctr,clo=0,newt;
 //
   if(_nmemb==1){// only for 1-memb clusters
     nm=0;

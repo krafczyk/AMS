@@ -2001,7 +2001,6 @@ void AMSJob::udata(){
 
   //-
 
-  int len;
   //=======
   setsetup(setupname);
   if(getsetup())setname(strcat(jobname,getsetup()));
@@ -2144,7 +2143,6 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     else
       TkDBc::Head->init(pgtrack_DB_ver);
 
-    char disname[400];
     if(TKGEOMFFKEY.LoadMCDisalign%10>0){
       char disname[200];
       char fname[1601];
@@ -2726,7 +2724,7 @@ void AMSJob::_sitrdinitjob(){
     for (int i=0;i<TRDDBc::LayersNo(0);i++){
       for (int j=0;j<TRDDBc::LaddersNo(0,i);j++){
 	for (int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
-	  geant d;
+	  geant d = 0;
 	  AMSTRDIdSoft id(i,j,k);
 	  id.setped()=TRDMCFFKEY.ped+rnormx()*TRDMCFFKEY.pedsig;
 	  id.clearstatus(~0);
@@ -3033,8 +3031,6 @@ void AMSJob::_reecalinitjob(){
 
   integer pr,pl,cell;
   number ct,cl,cz;
-  integer fid,cid[4]={0,0,0,0};
-  number w[4]={0.,0.,0.,0.};
   //
   AMSgObj::BookTimer.book("REECALEVENT");
   AMSgObj::BookTimer.book("ReEcalShowerFit");
@@ -3248,7 +3244,7 @@ void AMSJob::_timeinitjob(){
       begin=AMSmceventg::Orbit.End;
       end=AMSmceventg::Orbit.Begin;
     }
-    AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
+	(void) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
 							       isRealData()),begin,end,-getstatustable()->getsize(),
 							 getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/100000)%10));
     cout <<" timeinitjob calib.subdetrequest "<<(CALIB.SubDetRequestCalib/100000)%10<<" "<<CALIB.SubDetRequestCalib<<endl;
@@ -3392,7 +3388,6 @@ void AMSJob::_timeinitjob(){
     //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
     //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));
   }
-  bool NeededByDefault=isSimulation();
   //----------------------------
   //
   // Pedestals, Gains,  Sigmas & commons noise for tracker
@@ -3871,7 +3866,7 @@ void AMSJob::_timeinitjob(){
                            TofPMDAlign->TDVBlock,
                            server,1,TofPMDAlignPar::HeadLoadTDVPar));
 //---Charge Par
-      TofCAlignPar *TofCAlign=TofCAlignPar::GetHead();
+	  (void) TofCAlignPar::GetHead();
 //---Charge Ion Par
       TofCAlignIonPar *TofCAlignIon=TofCAlignIonPar::GetHead();
       TID.add (new AMSTimeID(AMSID(TofCAlignIon->TDVName,isRealData()),begin,end,
@@ -3901,7 +3896,6 @@ void AMSJob::_timeinitjob(){
       time_t bdbw=MISCFFKEY.dbwrbeg;
       time_t edbw=MISCFFKEY.dbwrend;
       int jobt=AMSFFKEY.Jobtype;
-      int need=0;
       if(jobt==211){//real data reco/calib
 	tm * begdbw = localtime(& bdbw);
 	TFREFFKEY.sec[0]=begdbw->tm_sec;
@@ -4303,7 +4297,6 @@ void AMSJob::_timeinitjob(){
       time_t bdbw=MISCFFKEY.dbwrbeg;
       time_t edbw=MISCFFKEY.dbwrend;
       int jobt=AMSFFKEY.Jobtype;
-      int need=0;
       if(jobt==911){//real data reco/calib
 	tm * begdbw = localtime(& bdbw);
 	ECREFFKEY.sec[0]=begdbw->tm_sec;
@@ -4481,8 +4474,6 @@ void AMSJob::_timeinitjob(){
   if(isRealData()){
 
     // CCEB:
-    tm begin;
-    tm end;
     /*
       if(AMSFFKEY.Update==187){
       begin=AMSmceventg::Orbit.Begin;
@@ -4638,7 +4629,7 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
   else return  dynamic_cast<AMSTimeID*>(p);
 }
 
-AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0),_NtupleActive(false)
+AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_NtupleActive(false),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
   _TDVC[0][0]='\0';
   _TDVN=0;
@@ -4787,8 +4778,6 @@ void AMSJob::urinit(integer run, integer eventno, time_t tt)
     strcpy(_rootfilename,(const char*)_rextname+offset+1);
     AString mdir("mkdir -p ");
     mdir+=_rootfilename;
-    integer iostat;
-    integer rsize=8000;
     if(eventno){
       char event[80];  
       if(isProduction()){

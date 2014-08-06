@@ -1,4 +1,4 @@
-//  $Id: io.C,v 1.30 2008/03/10 20:07:38 choutko Exp $
+//  $Id$
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "io.h"
@@ -17,8 +17,8 @@ fstream AMSIO::fbin;
 AMSIO::AMSIO(integer run, integer event, time_t time, time_t nsec, integer ipart, 
 integer seed[], AMSPoint coo,AMSDir dir, number mom, number pole,
 number stheta, number sphi, integer nskip, number rad, number velt, number velp,number yaw, number roll, number pitch, number angvel): _run(run),_event(event),
-  _ipart(ipart),_mom(mom),_time(time),_polephi(pole),_stationtheta(stheta),
-_stationphi(sphi),_nskip(nskip),_rflight(rad),_veltheta(velt), _velphi(velp),
+  _time(time),_ipart(ipart),_mom(mom),_polephi(pole),_stationtheta(stheta),
+_stationphi(sphi),_nskip(nskip),_rflight(rad),_velphi(velp),_veltheta(velt),
 _yaw(yaw),_pitch(pitch),_roll(roll),_angvel(angvel),_nsec(nsec){
 _seed[0]=seed[0];
 _seed[1]=seed[1];

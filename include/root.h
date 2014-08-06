@@ -3196,6 +3196,7 @@ class ChargeSubDR{
 
   ChargeSubDR(AMSChargeSubD* ptr);
   ChargeSubDR(){};
+  virtual ~ChargeSubDR(){}
   friend class AMSEventR;
   friend class ChargeR;
   ClassDef(ChargeSubDR,1)
@@ -3256,6 +3257,7 @@ class ChargeR{
   void setBetaH(int iBetaH){fBetaH=iBetaH;}
   ChargeR(AMSCharge* ptr);
   ChargeR(){};
+  virtual ~ChargeR(){}
   friend class AMSEventR;
   friend class AMSCharge;
 

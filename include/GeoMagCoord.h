@@ -1,4 +1,4 @@
-//  $Id: GeoMagCoord.h,v 1.1 2012/10/16 19:37:49 shaino Exp $
+//  $Id$
 #ifndef __GeoMagCoord__
 #define __GeoMagCoord__
 
@@ -24,6 +24,7 @@ public:
   static void MagToGeog(double  r, double  tm, double  pm,
 			           double &th, double &ph, bool deg = false);
 
+  virtual ~GeoMagCoord() { }
   ClassDef(GeoMagCoord, 1)
 };
 

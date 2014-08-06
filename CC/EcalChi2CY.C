@@ -765,7 +765,6 @@ float EcalChi2::energyp(float ec_ec,float ec_rl,float phi,float theta,bool mcc){
         phi=atan2(-ny,-nx);
         theta=acos(-nz);
       }
-      static int k=0;
       if(phi>3.1415926)phi=phi-2*3.1415926;
       double cphi=(1+5.45e-3*cos(4*fabs(phi)));
       ec_ec*=cphi;
@@ -1195,12 +1194,10 @@ float EcalChi2::cal_f2dep(){
 }
 
 int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& chi2,float& chi22,float& chi23,float& chi24,float sign){
-    bool flag;
     int i1=0;
     double cell_mean[72],cell_rms[72], cell_prob[72],cell_probbar[72];
     double summ=0.,sumxm=0.;
     double chisq_prob,chisq_chi2,delta,chisq;
-    int k1,k2;
     int count=0;
     if(start_cell<0) start_cell=0;
     if(start_cell>71) start_cell=71;
@@ -1254,7 +1251,6 @@ int EcalChi2::cal_chi2(int start_cell,int end_cell,int layer,double coo,float& c
         if(fdead_cell[layer][i1]==0&&Edep_raw[layer*72+i1]>0){
             summ+=cell_mean[i1];
             sumxm+=Edep_raw[layer*72+i1];
-            k1++;
         }
     }
     for(i1=start_cell;i1<=end_cell;i1++){
@@ -1398,7 +1394,6 @@ bool EcalAxis::init_lf(){
     gMinuit_EcalAxis->SetFCN(fcn_EcalAxis_Chi2);
     gMinuit_EcalAxis->SetObjectFit(this);
     double arglist[10];
-    int ret;
     int ierflg;
     arglist[0]=-1;
     gMinuit_EcalAxis->mnexcm("SET PRINT", arglist, 1,ierflg);
@@ -1974,16 +1969,16 @@ bool EcalAxis::init_cr(){
 float EcalAxis::get_slope_cr(int flayer){
     float slope_cr[18];
     float p0[18]    = {0.,0.,0.,3.35297,7.12363,3.26488,-1.61848,-1.63469,-0.383966,-0.141785, -0.172576, 0.412143,0.799396, 1.08324, -0.10977, -0.0125473, 0., 0.};
-    float errp0[18] = {0.,0.,0.,0.346605, 0.257378, 0.218957, 0.20647,0.195194, 0.185196, 0.185387, 0.190938, 0.200293, 0.204818, 0.218977, 0.273406, 0.283186, 0., 0.};
+    //float errp0[18] = {0.,0.,0.,0.346605, 0.257378, 0.218957, 0.20647,0.195194, 0.185196, 0.185387, 0.190938, 0.200293, 0.204818, 0.218977, 0.273406, 0.283186, 0., 0.};
     float p1[18]    = {0.,0.,0.,-17.654,-27.0108,-18.2289, -7.57984, -6.19202, -6.6958, -6.46684,-5.97743, -6.23, -5.77442, -5.66404, -2.18609, -1.84701, 0. , 0.};
-    float errp1[18] = {0., 0., 0., 0.870339, 0.636702, 0.537672, 0.508595, 0.479077, 0.449094, 0.447786, 0.462006, 0.48296, 0.489205, 0.521647,0.661204, 0.677242, 0., 0.};
+    // float errp1[18] = {0., 0., 0., 0.870339, 0.636702, 0.537672, 0.508595, 0.479077, 0.449094, 0.447786, 0.462006, 0.48296, 0.489205, 0.521647,0.661204, 0.677242, 0., 0.};
     float p2[18]    = {0.,0.,0., 11.081,19.6107,13.1886, 5.59706 , 4.25144, 3.87708, 3.79357, 3.69053, 3.74557, 3.07479, 2.98225, 0.319258, 0.0521284,0.,0.};
-    float errp2[18] = {0.,0.,0.,0.785294,0.566947, 0.475815, 0.451701, 0.424245, 0.393173, 0.39078,0.404119,0.421223, 0.422771,  0.449608, 0.578109, 0.585638, 0. ,0.};
+    //float errp2[18] = {0.,0.,0.,0.785294,0.566947, 0.475815, 0.451701, 0.424245, 0.393173, 0.39078,0.404119,0.421223, 0.422771,  0.449608, 0.578109, 0.585638, 0. ,0.};
     float p3[18]    = {0.,0.,0.,-2.9457, -6.20248, -4.22114, -1.9128, -1.4114, -1.09021 , -1.12017, -1.18253, -1.18025,-0.890959,-0.870741 ,-0.00477062,0.0734578   ,0.,0.};
-    float errp3[18] = {1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1,1.,1.,1.,1.};//remember to complete this part!!!
+    //float errp3[18] = {1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1,1.,1.,1.,1.};//remember to complete this part!!!
     float p4[18]    = {0.,0.,0.,0.28909, 0.725524,0.501178, 0.243317, 0.176231, 0.116297,0.127854, 0.146521, 0.14473 , 0.104466, 0.103275, 5.78124e-05, -0.00796261  ,0.,0.};
 
-    float errp4[18] = {1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1,1.,1.,1.,1.};//remember to complete this part!!!
+    //float errp4[18] = {1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1,1.,1.,1.,1.};//remember to complete this part!!!
     //****Define the slope as a function of logE - using 4th order polinomial
     slope_cr[flayer]= p0[flayer] + p1[flayer]*log10(EnergyE) +  p2[flayer]*pow(log10(EnergyE),2) + p3[flayer]*pow(log10(EnergyE),3) + p4[flayer]*pow(log10(EnergyE),4);
 
@@ -2000,7 +1995,7 @@ float EcalAxis::get_deltaxy_cr(int flayer){
 bool EcalAxis::straight_line_fit(float *x ,float*y, int npoints,float &a, float&b,float &fchi2,float* weight){
     double Ax[2][2],Bx[2];
     double w=1.0;
-    double detx,ret;
+    double detx,ret=0;
     double err[18],sumerr=0.,sumerr2=0.,merr,errrms;
     int flag[18];
     Ax[0][0]=0.0;Ax[0][1]=0.0;Ax[1][0]=0.0;Ax[1][1]=0.0;Bx[0]=0.0;Bx[1]=0.0;
@@ -2459,9 +2454,6 @@ int EcalCR::get_esh_axis(float* Edep_raw,int* Max_layer_cell,float* init_raw_cr,
 	sc_local_CoG=init_raw_cr;
 	//Simple check of max cell compatibility
 	bool goodsl[9];
-	bool goodl[18];
-	double dx=0.,dy=0.;
-	int    ndx=0,ndy=0;
 	for(int i1=0;i1<9;i1++){
 		if(fabs(Max_layer_cell[2*i1]-Max_layer_cell[2*i1+1])<2)
 			goodsl[i1]=true;

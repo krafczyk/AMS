@@ -63,7 +63,7 @@ AMSECIds::AMSECIds(int16u crate, int16u side, int16u slot, int16u rdch):
 }
 //-----------
 //                            LTTP
-AMSECIds::AMSECIds(integer sswid):_aside(0),_gainf(0){//used in MC buildRaw, Root-file fill
+AMSECIds::AMSECIds(integer sswid):_gainf(0),_aside(0){//used in MC buildRaw, Root-file fill
   _slay=sswid/1000-1;
   _pmt=(sswid%1000)/10-1;
   _pixel=sswid%10-1;//0-4 (4->dynode)
@@ -78,7 +78,7 @@ AMSECIds::AMSECIds(integer sswid):_aside(0),_gainf(0){//used in MC buildRaw, Roo
 }
 //-----------
 //                            0-17            0-71  
-AMSECIds::AMSECIds(integer layer, integer cell):_aside(0),_gainf(0){//used in 1D-Cluster search
+AMSECIds::AMSECIds(integer layer, integer cell):_gainf(0),_aside(0){//used in 1D-Cluster search
 //                        
   _slay=layer/2;//0-8
   _pmt=cell/2;//0-35
@@ -102,7 +102,7 @@ AMSECIds::AMSECIds(integer layer, integer cell):_aside(0),_gainf(0){//used in 1D
 // constructor for buildDAQ:
 //                          0-8         0-35          0-4          0-1
 AMSECIds::AMSECIds(int16u sl, int16u pmt, int16u pix, int16u gnf, int16u side):
-                                        _aside(side),_slay(sl),_pmt(pmt),_pixel(pix),_gainf(gnf){
+                                        _slay(sl),_pmt(pmt),_pixel(pix),_gainf(gnf),_aside(side){
 //
   _swid=(_slay+1)*10000+(_pmt+1)*100+(_pixel+1)*10+_gainf+1;//swid=LTTPG
   _swch=swseqn(_slay,_pmt,_pixel,_gainf);//sw sequential number(0->...2915)
@@ -205,7 +205,7 @@ void AMSECIds::inittable(){
 int16u AMSECIds::hwseqn(int16u crate, int16u slot, int16u rdch){
 //crate=0,1,...;slot(edr)=0,1,...5;rdch=0,1,...242
 // calc. global sequential hw-channel(0,1,...242;no empty chan !!):
-  int16u hwch(0),slt;
+  int16u hwch(0);
 //
   //assert(crate<ECRT && slot<ECEDRS && rdch<ECEDRC);
   if(!(crate<ECRT && slot<ECEDRS && rdch<ECEDRC)){

@@ -126,7 +126,7 @@ AMSRichRing *AMSRichCal::event_selection(){
 #endif
 
   AMSContainer * pcnt;
-  int i,npart,ncharge,nbeta=0;
+  int i,npart;
 
   Trigger2LVL1 *ptr2;
   ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);

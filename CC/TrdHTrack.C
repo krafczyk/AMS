@@ -3,7 +3,7 @@
 #include "TrdHCharge.h"
 ClassImp(TrdHTrackR)
 
-  TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0),elikelihood(0.)
+  TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):Chi2(0.),Nhits(0),elikelihood(0.),status(0)
 {
   float mag=0.;
   for (int i=0;i!=3;i++){
@@ -18,7 +18,7 @@ ClassImp(TrdHTrackR)
 };
 
 
-TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0),elikelihood(0.){
+TrdHTrackR::TrdHTrackR():Chi2(0.),Nhits(0),elikelihood(0.),status(0){
   for(int i=0;i!=3;i++){
     Coo[i]=0.;
     Dir[i]=0.;

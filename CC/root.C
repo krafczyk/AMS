@@ -861,7 +861,6 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
 }
 
 void AMSEventR::hf1(int idd, float a, float w){
-  static int sem[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
    
   AMSID id(idd,Dir);
   Service::hb1i i1=Service::hb1.find(id);
@@ -921,7 +920,6 @@ void AMSEventR::hfp(int idd, float a, float w=1){
 
 
 void AMSEventR::hf2(int idd, float a, float b, float w=1){
-  static int sem[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   AMSID id(idd,Dir);
   Service::hb2i i1=Service::hb2.find(id);
   if(i1 != Service::hb2.end()){
@@ -1082,7 +1080,11 @@ bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],float angle_factor[],int 
   float ThresmV[nsuplayrs]={26.7,60.,46.7,20.,33.,33.};
   float anglecut[2]={74,138};
 
-  float MvOnPMT[nPMTs][nsuplayrs]={0};
+  float MvOnPMT[nPMTs][nsuplayrs];
+  for (int i = 0; i < nPMTs; ++i) {
+    for (int j = 0; j < nsuplayrs; ++j)
+      MvOnPMT[i][j]=0;
+  }
 
   // Front end electronics parameters  
   const float GainTrigger=10.; 
@@ -1120,8 +1122,12 @@ bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],float angle_factor[],int 
   
   // Find number of PMTs over threshold and fill the bit pattern mask
   int NumhitPMT[nsuplayrs]={0};
-  int hitPMT[nsuplayrs][nPMTs]={0};
-  int dummyint=0;
+  int hitPMT[nsuplayrs][nPMTs];
+  for (int j = 0; j < nsuplayrs; ++j) {
+    for (int i = 0; i < nPMTs; ++i)
+	  hitPMT[j][i] = 0;
+  }
+
   for (int isuplayr=0; isuplayr<nsuplayrs;isuplayr++){
     // loop on PMTs
     for (int ipmt=0;ipmt<nPMTs;ipmt++){	  
@@ -3483,8 +3489,8 @@ AntiMCClusterR::AntiMCClusterR(AMSAntiMCCluster *ptr)
 
 double BetaR::GetTRDBetaCorr(int datamc){
 if(datamc!=0)datamc=1;
-              double p[2][3]={0.522677,-0.16927,0.676221,
-                              0.522677,-0.16927,0.676221};
+              static double p[2][3]={{0.522677,-0.16927,0.676221},
+                                     {0.522677,-0.16927,0.676221}};
               double betamc1=0;
               for(int k=0;k<sizeof(p)/sizeof(p[0][0])/2;k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
               double x=(betamc1+fabs(Beta))/2;
@@ -3939,7 +3945,6 @@ if(AMSJob::gethead())mcc=AMSJob::gethead()->isRealData()?false:true;
                 phi=atan2(-ny,-nx);
                 theta=acos(-nz);
               }
-              static int k=0;
               if(phi>3.1415926)phi=phi-2*3.1415926;
               double cphi=(1+5.45e-3*cos(4*fabs(phi)));
               ec_ec*=cphi;
@@ -4184,7 +4189,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	float edep_cell[18][72]={{0}};
 	float edep_layer[18]={0};
 	int nhitcell[18]={0};
-	int necalcl;
 	float bplane;
 	float bplane2;
 	int cell,plane,proj;
@@ -4210,9 +4214,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 
 	float edep_h;
 	float s1,s3,s5;
-
-	Double_t epro[4]={0.};
-	Double_t zpro[4]={0.};
 
 	float zv3[18];
 
@@ -4240,7 +4241,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				hedepc[jj][ii]=0.;
 			}
 		}
-		necalcl=0;
 
 		
 		
@@ -4787,7 +4787,6 @@ float EcalShowerR::GetESEv3Rejection(){
 
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
-        float NewESEv2;
         float nEnergyC;
         float nEcalStandaloneEstimator,necalBDT,nMomentum,nEnergyE,nRigInn;
 
@@ -4878,17 +4877,11 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
   Zprofilev1[1]=-1.;
   Zprofilev1[2]=-1.;
   Zprofilev1[3]=-1.;
-  int necalcl=0;
-  int ihit,cell,plane,proj;
-  int nhits_cl;
   float etot=0.;
   float err;
   float par0,par1,par2;
-  float xmin, xmax;
-  float par[3];
-  float chi2n,chis,zmax1,zmax,xx,yu,yu1,yu2,yu3,xt,fitn,fitval;
+  float xx;
   float frac[18]={0.};
-  float fracv2[18]={0.};
   float ECalEdepFrac[18]={0.};
 
    for (Int_t i2dcluster = 0; i2dcluster < NEcal2DCluster(); ++i2dcluster){
@@ -4920,15 +4913,11 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
       }
     }
      Double_t arglist[10];
-      Double_t a1,erra1;
       // The z values   
       Double_t zprof[3],errprof[3];
       xx=-1.;
-      int ix=-1;  
-      float zint=0.;
       par0=1.;
       par1=0.5; 
-      float erec0=1000.;
       Int_t ierflg = 0;
     if(nbinsv1>3){
          
@@ -5049,7 +5038,6 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
 
 
 
-  const int nECAL_VIEWs  = 2;
    const int nLAYERs = 18;
    const int nCELLs  = 72;
 
@@ -5062,8 +5050,6 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    float F2LFrac = 0.; // Energy fraction of first 2 layer wrt energy deposit
    float ShowerFootprintX = ShowerFootprint[1]; 
    float ShowerFootprintY = ShowerFootprint[2];
-   float S1S3x  = S13Rpi[0]; // Energy fraction in the cells near the maximum deposit cell on x wrt maximum deposit
-   float S1S3y  = S13Rpi[1]; // Energy fraction in the cells near the maximum deposit cell on y wrt maximum deposit
    float S3totx = S3tot[1];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
    float S3toty = S3tot[2];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
    float S5totx = S5tot[1];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
@@ -5071,14 +5057,12 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    float R3cmFrac = Energy3C[0]; // Energy fraction in a circle +- 3 cm around maximum wrt to total energy
    float R5cmFrac = Energy3C[1]; // Energy fraction in a circle +- 5 cm around maximum wrt to total energy
    float LayerClusterEnergy[nLAYERs];      // Corrected energy deposit [GeV] in each layer (sum of clusters' energy for each layer)
-   float LayerTruncClusterEnergy[nLAYERs]; // Corrected energy [GeV] for each layer between 3 sigma from the maximum
    float ShowerMean  = 0.; // Longitudinal mean [layer]: (sum_i i*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float ShowerSigma = 0.; // Longitudinal sigma [layer]: TMath::Sqrt((sum_i (i-ShowerMean)^2*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i]))
    float ShowerSkewness = 0.; // Longitudinal skewness [layer^3]: (sum_i (i-ShowerMean)^3*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float ShowerKurtosis = 0.; // Longitudinal kurtosis [layer^4]: (sum_i (i-ShowerMean)^4*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float LayerEnergy = 0.; // sum_i LayerClusterEnergy[i]
 
-   float LayerTruncSigma[nLAYERs]; // Sigma [cell] for each layer, between 3 sigma from the maximum
    for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
    {      LayerClusterEnergy[ilayer] = 0.;
       for (Int_t icell = 0; icell < nCELLs; ++icell) MapEneDep[ilayer][icell] = 0.;
@@ -5134,7 +5118,6 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
 
    float mean;
    float sigma;
-   unsigned int ivar = 0;
 
 
    mean = 4.6675+(0.979051*log(EnergyE+1.18325));
@@ -5420,7 +5403,6 @@ float EcalShowerR::EcalChargeEstimator() {
 	// Filling the Map
 
 	float hMap[18][72]={{0}};
-	int nbLay=0; // nbr layers hit
 	float aE[18]={0}; // energy 	for each layer
 	float aX[18]={0}; // PL 		for each layer
 
@@ -6423,7 +6405,6 @@ double ParticleR::RichBetasAverage(){
 
 double ParticleR::RichBetasDiscrepancy(){
   if(pRichRing() && pRichRingB()){
-    double beta=pRichRing()->getBeta();
     double betaB=pRichRingB()->Beta;
     double factor=1;
     
@@ -6636,7 +6617,6 @@ return  maxtube*maxlad*Layer+maxtube*Ladder+Tube;
 }
 
 float TrdRawHitR::getped(int & error){
- unsigned int id=getid();
  const string name("TRDPedestals");
  AMSEventR::if_t value;
  value.u=0;
@@ -6645,7 +6625,6 @@ float TrdRawHitR::getped(int & error){
 }
 
 float TrdRawHitR::getsig(int & error){
- unsigned int id=getid();
  const string name("TRDSigmas");
  AMSEventR::if_t value;
  value.u=0;
@@ -6653,7 +6632,6 @@ float TrdRawHitR::getsig(int & error){
  return value.f;
 }
 float TrdRawHitR::getgain(int & error){
- unsigned int id=getid();
  const string name("TRDGains");
  AMSEventR::if_t value;
  value.u=0;
@@ -7446,8 +7424,6 @@ void RichRingR::updateCalibration(AMSEventR &event){
   if(weight<_tileCalEvents) return;
   sum/=weight;
 
-  double mean_index=_sumIndex[tile]/_totalIndex[tile];
-
   //
   // We  got the value, store it
   //
@@ -8083,7 +8059,6 @@ float EcalHitR::GetECALPed(int layer, int cell, int channel) {
 	// SlowControlDB Initialisation :
 	//AMSEventR* ev=chain->GetEvent(0);
 	//SlowControlDB* scdb=SlowControlDB::GetPointer();
-	AMSSetupR::SlowControlR *cr=&AMSEventR::getsetup()->fSlowControl;
 	AMSEventR::if_t value;
 	value.u=0;
 
@@ -8110,7 +8085,6 @@ float EcalHitR::GetECALRms(int layer, int cell, int channel) {
 	// SlowControlDB Initialisation :
 	//AMSEventR* ev=chain->GetEvent(0);
 	//SlowControlDB* scdb=SlowControlDB::GetPointer();
-	AMSSetupR::SlowControlR *cr=&AMSEventR::getsetup()->fSlowControl;
 	AMSEventR::if_t value;
 	value.u=0;
 
@@ -8381,7 +8355,6 @@ double d2=delta.prod(delta);
 double a=1-nl*nl;
 double b=dn*nl-dl;
 double c=d2-dn*dn-R*R;
-double rmin2=-b*b/a+(d2-dn*dn);
 double d=b*b-a*c;
 double ret=d<0?0:2*sqrt(d)/a;
 return ret; 
@@ -9531,12 +9504,12 @@ void AMSEventR::GetAllContents() {
 
 AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),
 fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),
-fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),
+fEcalShower(o.fEcalShower),fEcalH(o.fEcalH),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),
 fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fTofClusterH(o.fTofClusterH),
 fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),
 fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),
 fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fTrdHSegment(o.fTrdHSegment),
-fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fEcalH(o.fEcalH),fTofChargeH(o.fTofChargeH),fCharge(o.fCharge),
+fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fTofChargeH(o.fTofChargeH),fCharge(o.fCharge),
 fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),
 fTofMCCluster(o.fTofMCCluster),fTofMCPmtHit(o.fTofMCPmtHit),fEcalMCHit(o.fEcalMCHit),fTrdMCCluster(o.fTrdMCCluster),
 fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux)
@@ -9779,7 +9752,6 @@ int AMSEventR::isInShadow(AMSPoint&  ic,ParticleR & part){
         //...If there is intersection tell which Solar Array (wh==0 --> 1A ; wh==1 --> 3A; wh==-1 No intersection)
         int wh=-1;
         //..................sign of r if ==0 (>0) if ==1 (<0)
-        int sr[2];
 
         //.......................................begin for k==0 1A ; k==1 3A 
         for(int k=0; k<2 ; k++){
@@ -10673,10 +10645,9 @@ int AMSEventR::GetRTIdL1L9(int extlay,AMSPoint &nxyz, AMSPoint &dxyz,unsigned in
 double HeaderR::Zenith(){
 
         if(Pitch==0 && Yaw==0 && Roll==0){
-                int ret=getISSAtt();
+		  getISSAtt();
         }
         double  cb = cos(Pitch);
-        double  sb = sin(Pitch);
         double  cg = cos(Roll);
         double  sg = sin(Roll);
 
@@ -10709,9 +10680,9 @@ char * HeaderR::Info(unsigned long long status){
 	alpha=0;
 	b1a=0;
 	b3a=0;
-	int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
+	getISSSA(alpha,b1a,b3a,b1b,b3b);
 	float r,phi,theta,v,vphi,vtheta;
-	int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
+	getISSCTRS(r,theta,phi,v,vtheta,vphi);
 
 	AMSSetupR::DSPError a;
 	int dsperr = getDSPError(a);
@@ -10746,7 +10717,7 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 
 
 	if(pev && pev->Version()<566){
-		int k=Loc2Gl(pev);
+		Loc2Gl(pev);
 	}
 	if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
 	float lt=pev?pev->LiveTime():1;
@@ -11003,7 +10974,7 @@ if(!_TreeSetup)return 2;
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fHeader",true);
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fEntries",true);
      if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
-     int nb=_TreeSetup->GetEntry(entry);
+	 _TreeSetup->GetEntry(entry);
      return 0;
 
 }
@@ -11315,7 +11286,7 @@ double HeaderR::getBetaSun(){
 //Beta=sunPos.GetBetaAngle();
 // return Beta;
 
- unsigned int time,err;
+ unsigned int time;
  float ialtitude=RadS; 
  float ilatitude=ThetaS; 
  float ilongitude=PhiS;
@@ -11354,7 +11325,7 @@ int HeaderR::getSunAMS(double & azimut, double & elevation ){
 // sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll); 
 // if (!sunPos.GetSunFromAMS(elevation,azimut)) return -1;
 // return sunPos.ISSday_night();
- unsigned int time,err;
+ unsigned int time;
  float ialtitude=RadS; 
  float ilatitude=ThetaS; 
  float ilongitude=PhiS;
@@ -12613,8 +12584,6 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt, int &AccSectPatt)
     else strcpy(toftypz,"unkn");
 //
     double xtime=TrigTime[4]/1000.;
-    int b15=(JMembPatt>>15)&1;
-    int b14=(JMembPatt>>14)&1;
 
     sprintf(_Info,"TrigLev1: TofZ>=1 %s, TofZ>1 %s, EcalFT  %s, EcalLev1 %d,  TimeD[ms]%6.2f LiveTime%6.2f, PhysTr=|uTf:%d|Z>=1:%d|Ion:%d|SIon:%d|e:%d|ph:%d|uEc:%d|",toftyp,toftypz,IsEcalFtrigOK()?"Yes":"No",EcalFlag,xtime,LiveTime,pat[0],pat[1],pat[2],pat[3],pat[4],pat[5],pat[6]);
     return _Info;
@@ -13049,7 +13018,6 @@ if(!pecal)return 3; // Logic error ecal not present while should be
   if(ecal_dir[2]>0){
     ecal_dir=AMSDir(-pecal->Dir[0],-pecal->Dir[1],-pecal->Dir[2]);
   } 
-  float zcofg=pecal->CofG[2];
 if(!usetrdh){
   TrdTrackR *ptrd=pTrdTrack();
   if(!ptrd)return 4;// Logic error trd not present while should be
@@ -13209,7 +13177,6 @@ again:
    int p2[10]; 
    int pmulti[10]; 
    int pmulti2[10]; 
-    int masky = 0x7f, maskc = 0x7f;
   for(int layer=0;layer<9;layer++){
    p[layer]=-1;
    pmulti[layer]=-1;
@@ -13263,7 +13230,6 @@ again:
      ap[1]=newdir[1]/newdir[2]*(ap[2]-newcoo[2])+newcoo[1];
      dist=trh.HitPointDist(ap,mult);
      if(fabs(dist[0])<DistX && fabs(dist[1])<DistY){
-       double r=sqrt((dist[0]/DistX)*(dist[0]/DistX)+(dist[1]/DistY)*(dist[1]/DistY));
        if(fabs(dist[0])<mdistx && fabs(dist[1])<=mdisty+100e-4){
          p2[layer]=p[layer];
          p[layer]=i;
@@ -13689,7 +13655,6 @@ again:
    int p2[10]; 
    int pmulti[10]; 
    int pmulti2[10]; 
-    int masky = 0x7f, maskc = 0x7f;
   for(int layer=0;layer<9;layer++){
    p[layer]=-1;
    pmulti[layer]=-1;
@@ -13743,7 +13708,6 @@ again:
      ap[1]=newdir[1]/newdir[2]*(ap[2]-newcoo[2])+newcoo[1];
      dist=trh.HitPointDist(ap,mult);
      if(fabs(dist[0])<DistX && fabs(dist[1])<DistY){
-       double r=sqrt((dist[0]/DistX)*(dist[0]/DistX)+(dist[1]/DistY)*(dist[1]/DistY));
        if(fabs(dist[0])<mdistx && fabs(dist[1])<=mdisty+100e-4){
          p2[layer]=p[layer];
          p[layer]=i;
@@ -14264,7 +14228,7 @@ return 0;
 }
 double corr;
 
-int ret=AMSEventR::getsetup()->GetJMDCGPSCorr(corr,error,time);
+AMSEventR::getsetup()->GetJMDCGPSCorr(corr,error,time);
 return corr;
 }
 
@@ -14588,7 +14552,6 @@ int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
 
   int   ndv = 5;
   int   err = 0;
-  double ms = 0;
 
   do {
     double b = TMath::Abs(TrFit::GuFld(p1).x());
@@ -14755,7 +14718,6 @@ int AMSEventR::GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu,
 	    if(tfcl.NBetaHUsed()>0)continue;//used by BetaHtfcl.Time();
 	    if(!tfcl.IsGoodTime())continue;
 	    float cltime=tfcl.Time;//ns
-	    float ed=tfcl.GetEdep();//mev
 	    float dt=cltime-ltime;//later cluster has positive dt
 	    //	       if(itb==0)prsh10->Fill(dt,1.);
 	    //	       if(itb==1)prsh11->Fill(dt,1.);
@@ -14922,7 +14884,7 @@ void AMSEventR::RebuildBetaH(){
            if(!betah)continue;
            TofClusterHR *tfhit[4]={0};        
            double tklcoo[4]={0},tkcosz[4]={1,1,1,1};
-           double zpl,time;AMSPoint pnt;AMSDir dir;
+           double time;AMSPoint pnt;AMSDir dir;
            for(int ilay=0;ilay<4;ilay++){
              tfhit[ilay]=betah->GetClusterHL(ilay);
              if(tfhit[ilay]){

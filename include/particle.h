@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.70 2012/07/19 19:22:19 qyan Exp $
+//  $Id$
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -125,7 +125,7 @@ public:
   static number trdpspect[30];
   AMSParticle *  next(){return (AMSParticle*)_next;}
   AMSParticle(AMSVtx *pvert);
-  AMSParticle():   _pbeta(0),_pbetah(0), _pcharge(0), _ptrack(0),_ptrd(0),_pvert(0),_prich(0),_prichB(0),_phtrd(0),_pShower(0),AMSlink()
+  AMSParticle():   AMSlink(),_pbeta(0),_pbetah(0), _pcharge(0), _ptrack(0),_ptrd(0),_phtrd(0),_pvert(0),_prich(0),_prichB(0),_pShower(0)
   {
     int i;
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
@@ -156,9 +156,8 @@ public:
   AMSParticle(AMSBeta * pbeta,AMSBetaH *pbetah, AMSCharge * pcharge, AMSTrTrack * ptrack,
 	      number beta, number ebeta,number mass, number errmass, number momentum, number errmomentum,
 	      number charge, number theta, number phi, AMSPoint coo): 
-    _pbeta(pbeta),_pbetah(pbetah), _pcharge(pcharge), _ptrack(ptrack), 
-    _Mass(mass),_Beta(beta),_ErrBeta(ebeta),_ptrd(0),_phtrd(0),_pvert(0),_prich(0),_prichB(0),_pShower(0),
-    _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
+    _pbeta(pbeta),_pbetah(pbetah), _pcharge(pcharge), _ptrack(ptrack),_ptrd(0),_phtrd(0),_pvert(0),_prich(0),_prichB(0),_pShower(0), 
+    _Mass(mass),_ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),_Beta(beta),_ErrBeta(ebeta),
     _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
   {
     int i;

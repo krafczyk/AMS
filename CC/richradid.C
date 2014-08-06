@@ -237,8 +237,6 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
 }
 
 void RichRadiatorTileManager::_compute_tables(){
-  geant eff_index;
-  geant eff_height;
   for(int current=0;current<_number_of_rad_tiles;current++)     recompute_tables(current,_tiles[current]->index);
 }
 
@@ -284,8 +282,6 @@ void RichRadiatorTileManager::Finish_Default(){
 
 
 integer RichRadiatorTileManager::get_tile_number(geant x,geant y){
-  int closer=-1;
-  double dist=1e6;
   for(int i=0;i<_number_of_rad_tiles;i++){
     double dx=x-_tiles[i]->position[0];
     double dy=y-_tiles[i]->position[1];
@@ -538,7 +534,6 @@ void RichRadiatorTileManager::GetFromTDV(){
   if(RichRadiatorTileManager::_IgnoreDB) return;
   // Go one by one with the current TDV, compare with current values used,
   // and if it is new, load and update
-  time_t insert,begin,end;
   //
   // Deal with parameters
   //
@@ -607,8 +602,6 @@ extern "C" geant getphotons_(geant *charge,geant *min_index,geant *vect,geant *s
   //
 
   double mean=0;
-  double dp=0;
-  double ge=0;
   _cherenkov_integral[0]=0;
   _cherenkov_border=1;
   for(int i=1;i<RICmaxentries;i++){

@@ -670,7 +670,6 @@ if(! (exedir && strlen(exedir))){
    }
    exedir=local;
  }
-const char *version=AMSCommonsI::getversion(); 
 const char *nvr=AMSCommonsI::getosversion(); 
 if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
  char t1[1024];
@@ -886,8 +885,7 @@ slc+="/SlowControlDir";
 }
   char tmps[512];
    time_t t1=fHeader.FEventTime;
-  tm * tm1=localtime(&t1);
-  int tzz=timezone;
+  localtime(&t1);
   tm * tmp=gmtime(&t1);
   tmp->tm_hour=0;
   tmp->tm_min=0;
@@ -940,7 +938,6 @@ slc+="/SlowControlDir";
     int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
 #endif
 
-    bool found=false;
         vector <trio> tv;
 	for(int i=0;i<nptr;i++) {
 	  int valid=0;
@@ -1050,8 +1047,6 @@ if(! (exedir && strlen(exedir))){
    }
    exedir=local;
  }
-const char *version=AMSCommonsI::getversion(); 
-const char *nvr=AMSCommonsI::getosversion(); 
 if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
 int maxtry=12;
     unsigned int tmout=600;
@@ -2398,8 +2393,11 @@ r*=100000;
 
 
 int AMSSetupR::getISSTLE(float RTP[3],float VelTP[3],double xtime){
+#ifdef __ROOTSHAREDLIBRARY__
 bool notagain=true;
 again:
+#endif
+
 #ifdef __ROOTSHAREDLIBRARY__
   static unsigned int ssize=0;
   static unsigned int stime[2]={1,1};
@@ -2478,9 +2476,8 @@ int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR &a, double xtime)
   static int debug_level = 0;
   if (debug_level>0) cout<<Form("====CALLING AMSSetupR::%s====",__func__)<<endl;
 
-  static int is_begin = 1;
-
 #ifdef __ROOTSHAREDLIBRARY__ 
+  static int is_begin = 1;
   static unsigned int ssize=0;
   static unsigned int rotsize=0;
   static unsigned int stime[2]={0,0};
@@ -2523,7 +2520,7 @@ if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
 	ssize=fISSCTRS.size();
       }
       if(!ssize && fRotMatrices.size()==0){
-	int rot=LoadRotationMatrices(stime[0],stime[1]);
+	LoadRotationMatrices(stime[0],stime[1]);
 	rotsize=fRotMatrices.size();
       }
     }
@@ -2584,8 +2581,8 @@ if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
       if (kk==3) cout<<"[...]"<<endl; kk++;
     }
 
-    double U[3][3]={0}, dUdt[3][3]={0}, w[3]={0};
-    double U_T[3][3]={0}, dUdt_T[3][3]={0};
+    double U[3][3]={{0,0,0},{0,0,0},{0,0,0}}, dUdt[3][3]={{0,0,0},{0,0,0},{0,0,0}};
+    double U_T[3][3]={{0,0,0},{0,0,0},{0,0,0}}, dUdt_T[3][3]={{0,0,0},{0,0,0},{0,0,0}};
     if (debug_level>2) cout<<"AMSSetupR::U_T: ";      
     for(int r=0; r<3; r++) for(int c=0; c<3; c++) {
 	U_T[r][c] = RM[r][c];
@@ -2935,7 +2932,6 @@ k--;
   double ang2=l->second.x;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
 // try quadratic interpolation
   double v1=k->second.vx;
   double v2=l->second.vx;
@@ -2948,7 +2944,6 @@ k--;
   double ang2=l->second.y;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   double v1=k->second.vy;
   double v2=l->second.vy;
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
@@ -2960,7 +2955,6 @@ k--;
   double ang2=l->second.z;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   double v1=k->second.vz;
   double v2=l->second.vz;
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
@@ -3913,7 +3907,7 @@ else{
 	
 	if (isdigit(line[0])) {
  	  TMatrixD CTRS2ICRS(3,3);
-	  double U_T[3][3]={0};
+	  double U_T[3][3]={{0,0,0},{0,0,0},{0,0,0}};
 	  char *pch;
 	  pch=strtok(line,".");
 	  if (pch) {
@@ -4314,9 +4308,6 @@ else{
 	    strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
 	    time_t tf=mktime(&tmf)+tzd;
 	    pch=strtok(NULL,",");
-	    char tm1[80];
-//	    sprintf(tm1,".%s",pch);
-//	    double tc=tf+atof(tm1);
             double frac=atol(pch);
             frac/=1000;
 	    double tc=tf+frac;
@@ -4532,7 +4523,6 @@ char tmp2[255];
          char *pch;
          pch=strtok(line,".");
          ISSGTOD a;
-         double vx,vy,vz,rx,ry,rz;
          if(pch){
           strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
           //cout <<" pch "<<pch<<endl;
@@ -5057,7 +5047,6 @@ void AMSSetupR::RearrangeTwoDSPErrors(DSPError dsperr, vector<DSPError>& vec, in
     //    printf("%d\n", (int)vec.size());//only for debug
   }
   else {
-    int vec_size_prev=(int)vec.size();
     if (dsperr.TimeStart<vec[in].TimeStart) {//d starts before v start
       //      printf("dsperr starts before vec[%d] start\n", in);//only for debug
       if (dsperr.TimeEnd==vec[in].TimeEnd) {//d and v end togheter --> they overlap between vec[in].TimeStart and vec[in].TimeEnd, 2 pieces

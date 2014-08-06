@@ -74,9 +74,6 @@ extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *v
 #include "Tofrec02_ihep.h"
 #include "EcalH.h"
 
-static geant   Tcpu0 = 0; 
-static time_t  T0    = 0;
-
 #ifdef __DARWIN__
 #include <unistd.h> // For sleep()
 #endif
@@ -391,7 +388,7 @@ void AMSEvent::_reamsinitevent(){
 }
 
 void AMSEvent::_signinitevent(){
-  AMSNode *ptr = add (
+  (void) add (
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
   add (
   new AMSContainer(AMSID("AMSContainer:AMSmctrack",0),0));
@@ -406,8 +403,7 @@ void AMSEvent::SetTimeCoo(integer rec){
     static number dtime=AMSmceventg::Orbit.FlightTime/
       (GCFLAG.NEVENT+1);
     static number curtime=0;
-    geant dd; 
-    int i;
+    geant dd = 0; 
     number xsec=0;
     if(CCFFKEY.low==0&&GMFFKEY.GammaSource==0){ //equispaced events for sources for now
       xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
@@ -878,7 +874,6 @@ void AMSEvent::_sitofinitevent(){
   int il;
   geant dummy(-1);
   AMSNode *ptr;
-  integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
 //
 //           declare some TOF containers for MC:
 //
@@ -934,7 +929,7 @@ void AMSEvent::_reantiinitevent(){
       add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",1),0));
 {
-      AMSNode *p =add(
+	  (void) add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiCluster",0),0));
 //      cout <<" anti "<<p<<" "<<AMSEvent::gethead()<<" "<<get_thread_num()<<endl;
 }
@@ -1490,7 +1485,7 @@ void AMSEvent::event(){
   AMSUser::InitEvent();
   try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();
-    AMSmceventg *ptr=(AMSmceventg*)getheadC("AMSmceventg",0);
+	(void) getheadC("AMSmceventg",0);
     
 
     if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
@@ -1621,7 +1616,7 @@ void AMSEvent::_reamsevent(){
     _redaqevent();//create subdetectors RawEvent-Objects
   }
 #endif
-  geant d;
+  geant d = 0;
   static double addon=1;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>addon*IOPA.Portion && GCFLAG.NEVENT>100){
      
@@ -2314,7 +2309,7 @@ void AMSEvent::_retrdevent(){
   }
 #endif
 
-  int nseg=buildC("AMSTRDSegment");
+  buildC("AMSTRDSegment");
 #ifdef __AMSDEBUG__
   for(int i=0;i<trdconst::maxseg;i++){
    AMSContainer *p =getC("AMSTRDSegment",i);
@@ -2356,7 +2351,6 @@ void AMSEvent::_retrdevent(){
 }
 void AMSEvent::_rerichevent(){
   Trigger2LVL1 *ptr;
-  int stat;
   bool globftok(0),extrigok(0);
 //
   AMSgObj::BookTimer.start("RERICH");
@@ -2900,8 +2894,7 @@ void AMSEvent:: _retrigevent(){
 
 //===============================================================
 void AMSEvent:: _sitof2event(int &cftr){
-  AMSContainer *p;
-  int stat,i;
+  int stat;
 //
   AMSgObj::BookTimer.start("SITOFDIGI");
    AMSgObj::BookTimer.start("TOF:Ghit->Tovt");
@@ -3307,7 +3300,7 @@ while(offspring){
     offspring=(AMSTimeID*)offspring->next();
     continue;
   }
-  integer nb=offspring->GetNbytes();
+  offspring->GetNbytes();
 #ifdef __AMSDEBUG__
   //          char * tmp =new char[nb];
   //          assert(tmp !=NULL);
@@ -4645,7 +4638,7 @@ integer AMSEvent::checkccebid(int16u id){
 //
 integer AMSEvent::checktofstid(int16u id){
   int valid(0);
-  int16u addr=((id>>5)&(0x1FF));
+  // int16u addr=((id>>5)&(0x1FF));
   int16u dtyp=(id&0x1F);
 //  cout<<"---> In AMSEvent::checktofstid:id="<<hex<<id<<dec<<" addr="<<addr<<" dtyp="<<dtyp<<endl;
   if(!(dtyp==24 || dtyp==25))return 0;
@@ -4675,11 +4668,10 @@ integer AMSEvent::checktofstid(int16u id){
 //
 }
 void AMSEvent::buildtofst(integer leng, int16u* p){
-  int16u len,uls,abps,rdcy,side,bus,stat;
+  int16u len,uls,rdcy,side,bus,stat;
   int16u word1,word2,word3,ams,als,age;
   int16u tms,tls,tmp;
   geant arr[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  int msta[2][2]={0,0,0,0};
   int navp[2][2]={0,0,0,0};
   geant avrp[2][2]={0,0,0,0};// aver. pm-temp [il][is]
   geant avrc[2][2]={0,0,0,0};// aver. sfec-temp [il][is]
@@ -4696,8 +4688,6 @@ void AMSEvent::buildtofst(integer leng, int16u* p){
   bool LTof(0);
   bool Lfmt(0);
   bool sfec(0);
-  geant wtemp[2][4]={0,0,0,0,0,0,0,0};
-  int wstat[2][4]={0,0,0,0,0,0,0,0};
 //
   static int recU=0;
   static int recL=0;

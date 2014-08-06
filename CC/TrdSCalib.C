@@ -186,12 +186,13 @@ std::vector<double> TrdSCalibR::zTrks(7);
 
 //--------------------------------------------------------------------------------------------------
 
-TrdSCalibR::TrdSCalibR(): SCalibLevel(6), TrdTrackLevel(1), TrdGainMethod(1),TrdAlignMethod(1), iFlag(3), 
-			  iPabs(0), iQabs(0), iRsigned(0),iRerrinv(0), iRabs(0), iChisq(-1), 
-			  TrdTkD(0), TrdTkDa(0), grTrdS_Xe(0), 
+
+TrdSCalibR::TrdSCalibR(): 
 			  algo(1), patt(0), refit(0), 
 			  _ierror(0), _nOntrackhit(0), _nOfftrackhit(0),
-  dummy(0) {
+			  SCalibLevel(6), TrdTrackLevel(1), TrdGainMethod(1),TrdAlignMethod(1),
+			  iPabs(0), iQabs(0), iRsigned(0),iRerrinv(0), iRabs(0), iChisq(-1),
+			  TrdTkD(0), TrdTkDa(0), iFlag(3), dummy(0), grTrdS_Xe(0)  {
     FirstCall   = true;
     FirstLLCall = true;
     FirstMCCall = true;
@@ -552,7 +553,6 @@ double AC_TrdHits::DistanceFromLine(double cx, double cy,
   double r 	       	= r_numerator / r_denomenator;
   
   double px = ax + r*(bx-ax);
-  double py = ay + r*(by-ay);
   
   double s  = ((ay-cy)*(bx-ax)-(ax-cx)*(by-ay) ) / r_denomenator;
   
@@ -731,9 +731,6 @@ int TrdSCalibR::AC_InitTrdMove( char* fname, int Debug ){
   ifstream fp;
   fp.open(fname);
   if (! fp.good() ) return 1;
-
-  int Imod = 0;
-  float Imod_Dz=0, Imod_Arz=0;
 
   while (fp.good()) {
     fp >> TRD_SHIFT[0] >> TRD_SHIFT[1] >> TRD_SHIFT[2]
@@ -1323,7 +1320,6 @@ bool TrdSCalibR::Get03TrdCalibration(TString fname, int Debug) {
 	  double y_0 	= pDum0->GetBinContent(iBin);
 	  double ey_0   = pDum0->GetBinError(iBin);
 	  double y_t 	= pDum1->GetBinContent(iBin);
-	  double ey_t   = pDum1->GetBinError(iBin);
 	  if (y_t<TrdMeanMPV-2 || y_t>TrdMeanMPV+2) continue;
 	  
 	  vecX.push_back(x_0);
@@ -1708,7 +1704,6 @@ vector<double> TrdSCalibR::GenLogBinning(int nBinLog, double Tmin, double Tmax) 
 bool TrdSCalibR::TrdLR_CalcIniPDF(int Debug) {
   
   std::string hname;
-  char aname[100];
   char fname[100];
   char grName[100];
 
@@ -1735,9 +1730,6 @@ bool TrdSCalibR::TrdLR_CalcIniPDF(int Debug) {
   }    
   std::cout << "TrdSCalibR::TrdLR_CalcIniPDF-I- Trd LiklihoodFunctions read in from " << fname << std::endl;
  
-
-  // true if the normalisation of the PDF's should be checked
-  bool CheckNormPDF = false;
 
   /// clean vectors
   for (vector<TGraph*>::iterator iter = TrdLR_Gr_Prot.begin(); iter != TrdLR_Gr_Prot.end(); ++iter) 
@@ -2840,10 +2832,6 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
     return 6;
 
   if(Debug > 1) {
-    int thread=0;
-#ifdef _OPENMP
-    thread=omp_get_thread_num();
-#endif
     std::cout << Form("TrdSCalibLevel=%d TrdTrackLevel=%d TrdiFlag=%d ", SCalibLevel, TrdTrackLevel, iFlag)
 	      << Form("Pabs=%6.3f Htime=%6d Xtime=%8.4f", fMom, Htime, Xtime)
 	      << std::endl;
@@ -2882,10 +2870,6 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTr
     return 6;
 
   if(Debug > 1) {
-    int thread=0;
-#ifdef _OPENMP
-    thread=omp_get_thread_num();
-#endif
     std::cout << Form("TrdSCalibLevel=%d TrdTrackLevel=%d TrdiFlag=%d ", SCalibLevel, TrdTrackLevel, iFlag)
 	      << Form("Pabs=%6.3f Htime=%6d Xtime=%8.4f", fMom, Htime, Xtime)
 	      << std::endl;
@@ -3410,10 +3394,8 @@ vector<int> TrdSCalibR::CalPathLen3D(vector<AC_TrdHits> &TrdHits, TrTrackR *Trtr
   if(Debug)
   std::cout << Form("*** IterateTrk4MS .... nStep=%d", nStep) << std::endl;
 
-  double Chi2Opt	= Results.at(0);
   double DeltaX_Opt  	= Results.at(1);
   double DeltaY_Opt  	= Results.at(2);
-  int	nTrdHits_Opt 	= (int) Results.at(3);
 	
 
   ///================================ 3rd
@@ -3511,7 +3493,6 @@ int TrdSCalibR::TrdTrkChi2(vector<AC_TrdHits> TrdHits,
   
   Chi2 		= 0.0;
   nTrdHits 	= 0;
-  int nAll	= 0;
   AMSPoint lcTrk;  AMSDir ldTrk;
   
   for (vector<AC_TrdHits>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) {

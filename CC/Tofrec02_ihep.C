@@ -160,10 +160,9 @@ int TofRecH::BuildTofClusterH(){
   if(Init()!=0)return -1; 
   ClearBuildTofClH();
 //---  
-  integer i,j,hassid;
-  integer idd=0,il=0,ib=0,is=0,idsoft=-1,pattern=0,nraws=0;
+  integer idd=0,il=0,ib=0,is=0,idsoft=-1,pattern=0;
   integer stat[2];
-  uinteger sstatus[2]={0},status=0,recovsid[2];
+  uinteger sstatus[2]={0},status=0;
   integer nadcd[2]={0};
   number sdtm[2]={0},adca[2]={0},timers[2]={0},timer=0,etimer=0,edepa=0,edepd=0,edep=0,q2pa[2]={0},q2pd[2][TOF2GC::PMTSMX]={{0}};
   number adcd[2][TOF2GC::PMTSMX]={{0}};
@@ -301,7 +300,6 @@ int TofRecH::TofSideRec(TofRawSideR *ptr,number &adca, integer &nadcd,number adc
      integer ltok=0;
      number ftdch[TOF2GC::SCTHMX1],ltdch[TOF2GC::SCTHMX3],htdch[TOF2GC::SCTHMX2],shtdch[TOF2GC::SCTHMX2];
      number ftdc[TOF2GC::SCTHMX1], ltdc[TOF2GC::SCTHMX3], htdc[TOF2GC::SCTHMX2], shtdc[TOF2GC::SCTHMX2];
-     geant radcd[TOF2GC::PMTSMX];
 //---init
      sstatus=0;
 
@@ -617,8 +615,8 @@ int TofRecH::EdepRec(int idsoft,number adca[],number adcd[][TOF2GC::PMTSMX],numb
 
 //========================================================
 int  TofRecH::EdepRecR(int ilay,int ibar,geant adca[],geant adcd[][TOF2GC::PMTSMX],number lcoo,geant q2pa[],geant q2pd[][TOF2GC::PMTSMX],geant &edepa,geant &edepd){
-  number adca1[2]={0},adcd1[2][TOF2GC::PMTSMX]={0};
-  number q2pa1[2]={0},q2pd1[2][TOF2GC::PMTSMX]={0};
+  number adca1[2]={0},adcd1[2][TOF2GC::PMTSMX]={{0,0,0},{0,0,0}};
+  number q2pa1[2]={0},q2pd1[2][TOF2GC::PMTSMX]={{0,0,0},{0,0,0}};
   number edepa1=0,edepd1=0;
   uinteger sstatus[2]={0};
   TofRecPar::IdCovert(ilay,ibar);
@@ -749,7 +747,6 @@ number TofRecH::BirkCor(int idsoft,number q2,int opt){//Counter Level
 
   if(q2<=0)return q2;
 
-  TofCAlignPar   *CPar=TofCAlignPar::GetHead();
   idsoft=idsoft/100*100;//Counter Bar lever 
  
  //--Birk Saturation Correction
@@ -1181,10 +1178,6 @@ int TofRecH::BuildBetaH(int verse){
    
     integer i;
     AMSPoint tkcoo,tfcoo,tfecoo;
-    number theta,phi,sleng,mscoo,mlcoo,dscoo,dlcoo,mintm,barw;
-    int iscoo[4]={1,0,0,1},nowbar,prebar,nextbar,pretm,nexttm,tminbar;//short coo Trans
-    bool leftf=0,rightf=0;
-    number Beta,InvErrBeta,BetaC,InvErrBetaC,Chi2;
     int found=0;//
     int tktrdflag=0;
     int ntracks=0;
@@ -1518,7 +1511,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
 //---init
     int nowbar=0,prebar=-1000,nextbar=-1000,npattern=0;
     uinteger tfhstat=0;
-    number mscoo=1000,dscoo=1000;
+    number dscoo=1000;
     number theta,phi,sleng;
     int iscoo=1-TOFGeom::Proj[ilay];//short coo y x x y
      (*tfhit)=0; tklen=0;pattern=0;cres[0]=cres[1]=1000;
@@ -1647,7 +1640,6 @@ int TofRecH::TOFPairSel(int ud,TofClusterHR* tfhit[2]){
 
     int candid=-1,qmaxid=-1,tminid=-1;//
     number qmax[2]={0.},tmin=FLT_MAX;
-    int mysize=tofclc[ud].size();
     for(int icl=0;icl<tofclc[ud].size();icl++){//Up part
        TofClusterHR *cl0=tofclc[ud].at(icl).first;
        TofClusterHR *cl1=tofclc[ud].at(icl).second;
@@ -1803,7 +1795,6 @@ int TofRecH::TOFClMakePair(int il0,int il1,int isdown){
 ///--one layer
    for(int i=0;i<tofclh[il0].size();i++){
        if(!(tofclh[il0].at(i)->IsGoodSide(0))||!(tofclh[il0].at(i)->IsGoodSide(1)))continue;
-       int isig=1;
        q0=tofclh[il0].at(i)->GetQSignal(-1);
 ///--other laye
        for(int j=0;j<tofclh[il1].size();j++){

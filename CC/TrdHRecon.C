@@ -125,7 +125,6 @@ int TrdHReconR::DoPrefit(int debug){
       if(rzdi.d==rzdj.d && rzdi.z!=rzdj.z){
 	float s = (rzdi.r-rzdj.r)/(rzdi.z-rzdj.z); //slope
 	float o = rzdi.r - (rzdi.z-TRDz0)*s; //offset
-	float z = (rzdi.z + rzdj.z)/2.;
 	
 	if(rzdj.d==0){H2V_mvrx.Fill(o,s,rzdi.z,rzdj.z,1.);pairs_x++;}
 	else if(rzdj.d==1){H2V_mvry.Fill(o,s,rzdi.z,rzdj.z,1.);pairs_y++;}
@@ -198,7 +197,7 @@ int TrdHReconR::DoPrefit(int debug){
     float width=1.;
     int miter2=0;
     for(vector<BIN>::iterator j=maxima.begin();j!=maxima.end();j++,miter2++){
-      float w=0.0, sx=0.0, sy=0.0, sz=0.0,sw=0.0,zmin=200.0,zmax=0.0,sc=0.0;
+      float w=0.0, sx=0.0, sy=0.0, sz=0.0,sw=0.0,zmin=200.0,zmax=0.0;
       for(vector<BIN>::iterator b=hist->bins.begin();b!=hist->bins.end();b++){
 	if( fabs(b->x-j->x)<=width &&
 	    fabs(b->y-j->y)<=width   ){
