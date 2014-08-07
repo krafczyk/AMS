@@ -1550,7 +1550,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   uinteger time[2]={0,0};
   uinteger trtime[5]={0,0,0,0,0};
   uinteger busypat[2]={0,0};//1st word->bits 0-31, 2nd word-> bits 32-39 of 40-bits busy patt.word
+#ifdef _OPENMP
   int16u nw3;
+#endif
   bool busyerr(0);
   bool PreAssRD=(AMSJob::gethead()->isRealData()
                  && (AMSEvent::gethead()->getrun() < 1213470000)) ;//flag to identify RD of preassembly period
