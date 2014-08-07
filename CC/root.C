@@ -3492,7 +3492,7 @@ if(datamc!=0)datamc=1;
               static double p[2][3]={{0.522677,-0.16927,0.676221},
                                      {0.522677,-0.16927,0.676221}};
               double betamc1=0;
-              for( int k=0;k<sizeof(p)/sizeof(p[0][0])/2;k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
+              for(int k=0;k<int(sizeof(p)/sizeof(p[0][0])/2);k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
               double x=(betamc1+fabs(Beta))/2;
               if(x>0.96)x=0.96;
               double norm=1.8377e-1;
@@ -4861,7 +4861,6 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
   float etot=0.;
   float err;
   float par0,par1,par2;
-  float xx;
   float frac[18]={0.};
   float ECalEdepFrac[18]={0.};
 
@@ -4896,7 +4895,6 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
      Double_t arglist[10];
       // The z values   
       Double_t zprof[3],errprof[3];
-      xx=-1.;
       par0=1.;
       par1=0.5; 
       Int_t ierflg = 0;

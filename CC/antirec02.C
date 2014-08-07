@@ -39,7 +39,7 @@ using namespace std;
 void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   integer nadca;
   geant adca;
-  integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX];
+  integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX]={0};
   int16u id,stat;
   integer sector,isid,isds;
   integer tmfound,complm;

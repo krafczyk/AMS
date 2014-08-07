@@ -1424,7 +1424,7 @@ tktrdf:
 ///---Dump Track Tof Self Reconstruction
     if(found==0&&(!(BuildOpt>=10&&(BuildOpt/10%10==0)))){
 //--Pair+Pair
-       for(unsigned int iclu=0;iclu<tofclp[0].size();iclu++){
+       for(int iclu=0;iclu<int(tofclp[0].size());iclu++){
 
 //----Up Search Down
          int bestdid=PairSearchUD(tofclp[0].at(iclu),0,0);
@@ -1432,7 +1432,7 @@ tktrdf:
 
 //----Down Search Up again to see if up is the same best match
          int bestuid=PairSearchUD(tofclp[1].at(bestdid),1,0);
-         if(bestuid!=int(iclu))continue;
+         if(bestuid!=iclu)continue;
 //---
          TofClusterHR *phit[4]={0};
          phit[0]=tofclp[0].at(iclu).first;    phit[1]=tofclp[0].at(iclu).second;
@@ -1461,7 +1461,7 @@ tktrdf:
          if(tofclp[iud].size()==0)continue;
          sort(tofclp[iud].begin(),tofclp[iud].end(),PairCompare);
 //---best Pair+1Layer
-         for(unsigned int icl=0;icl<tofclp[iud].size();icl++){
+         for(int icl=0;icl<int(tofclp[iud].size());icl++){
            int bestdid=PairSearchUD(tofclp[iud].at(icl),iud,1);
            if(bestdid<0)continue;
 
@@ -1932,7 +1932,7 @@ int TofRecH::TOFClErase(TofClusterHR *tfhit[4]){
 //---Erase From Pair
    for(int ilay=0;ilay<4;ilay++){
       if(tfhit[ilay]==0)continue;
-      for(unsigned int iclp=0;iclp<tofclp[ilay/2].size();iclp++){
+      for(int iclp=0;iclp<int(tofclp[ilay/2].size());iclp++){
         if(tofclp[ilay/2].at(iclp).first==tfhit[ilay]||tofclp[ilay/2].at(iclp).second==tfhit[ilay]){
           tofclp[ilay/2].erase(tofclp[ilay/2].begin()+iclp);
           iclp=-1;//Size Change-From Begin Re-search To Erase
