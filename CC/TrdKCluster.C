@@ -352,11 +352,9 @@ int TrdKCluster::FindBestMatch_FromECAL(){
     // 1. find the highest energetic shower
     Double_t e_candidate = 0.;
     Int_t    i_candidate_ecal = -1,
-            i_candidate_part = -1,
             i_candidate_trd  = -1,
             i_candidate_trdh = -1,
             i_candidate_trk  = -1,
-            i_candidate_beta = -1,
             i_candidate_betah= -1;
 
     int necal = pev->nEcalShower();
@@ -369,14 +367,6 @@ int TrdKCluster::FindBestMatch_FromECAL(){
         if( pev->pEcalShower(i)->EnergyD > e_candidate ){
             e_candidate = pev->pEcalShower(i)->EnergyD;
             i_candidate_ecal = i;
-        }
-    }
-
-
-    // Particle associated with Shower
-    for(Int_t i=0; i<pev->nParticle(); i++){
-        if( pev->pParticle(i) && pev->pParticle(i)->iEcalShower() == i_candidate_ecal ){
-            i_candidate_part = i;
         }
     }
 
@@ -438,12 +428,7 @@ int TrdKCluster::FindBestMatch_FromECAL(){
             break;
         }
     }
-    if( i_candidate_part>= 0 ){
-        i_candidate_beta = pev->pParticle(i_candidate_part)->iBeta();
-    }
-    else{
-        i_candidate_beta = pev->pParticle(0)->iBeta();
-    }
+
 
     ptrk  = _HeadE->pTrTrack(i_candidate_trk);
     ptrd  = _HeadE->pTrdTrack(i_candidate_trd);
@@ -625,7 +610,7 @@ void TrdKCluster::AddEmptyTubes(float cut_distance){
     selected_tube_collection.reserve(200);
     selected_tube_collection.clear();
 
-    for(int i=0;i<TRDTubeCollection.size();i++){
+    for(unsigned int i=0;i<TRDTubeCollection.size();i++){
         TrdKHit *tube=&(TRDTubeCollection.at(i));
         if(fabs(tube->Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>cut_distance)continue;
         selected_tube_collection.push_back(*tube);
@@ -646,7 +631,7 @@ void TrdKCluster::AddEmptyTubes(float cut_distance){
         if(!removed)Hit_it++;
     }
 
-    for(int i=0;i<selected_tube_collection.size();i++){
+    for(unsigned int i=0;i<selected_tube_collection.size();i++){
         TrdKHit *tube=&(selected_tube_collection.at(i));
         this->TRDHitCollection.push_back(*tube);
     }
@@ -718,7 +703,7 @@ AMSDir TrdKCluster::GetPropogated_TrTrack_Dir(){
 
 bool  TrdKCluster::IsCalibrated(){
     bool v=1;
-    for(int i=0;i<TRDHitCollection.size();i++)
+    for(unsigned int i=0;i<TRDHitCollection.size();i++)
         if(!GetHit(i)->IsCalibrated)v=0;
     return v;
 }
@@ -727,7 +712,7 @@ bool  TrdKCluster::IsCalibrated(){
 
 bool  TrdKCluster::IsAligned(){
     bool v=1;
-    for(int i=0;i<TRDHitCollection.size();i++)
+    for(unsigned int i=0;i<TRDHitCollection.size();i++)
         if(!GetHit(i)->IsAligned)v=0;
     return v;
 }
@@ -1724,7 +1709,7 @@ int TrdKCluster::GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double *
     //    for(int i=0;i<v_p.size();i++){cout<<i<<", "<<v_p.at(i).likelihood<<endl;}
 
     Track_nhits=0;
-    for(int i=start_index;i<v_p.size();i++){
+    for(unsigned int i=start_index;i<v_p.size();i++){
         LL_pdf_track_particle[0]*=(v_e.at(i).likelihood);
         LL_pdf_track_particle[1]*=(v_p.at(i).likelihood);
         LL_pdf_track_particle[2]*=(v_h.at(i).likelihood);
@@ -1950,7 +1935,7 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     }
 
     //Find minimum of likelihood
-    double QTRD,QTRD1;
+    double QTRD=0,QTRD1=0;
     double QTRDLikelihood,QTRDLikelihoodMin;
     QTRDLikelihoodMin=BigNumber;
     for(double Z=1;Z<=49;Z=Z+1)
@@ -1984,7 +1969,7 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     }
 
     //Estimate error using a simple parabola fit
-    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    double x0,x1,x2,y0,y1,y2,a,ExpErr,ErrorTemp;
     x0=QTRD;
     ExpErr=0.1*x0;
     if(ExpErr>3) ExpErr=3;
@@ -1996,16 +1981,14 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     y1=GetTRDChargeLikelihood(x1,Option);
     y2=GetTRDChargeLikelihood(x2,Option);
     a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
-    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
-    c=y0-a*x0*x0-b*x0;
     //  TRDChargeValue=-b/a/2;
     //  TRDChargeError=1/sqrt(2*a);
     ErrorTemp=1/sqrt(2*a);
 
     //Parabola fit to get minimum and error
     double X[7],Y[7],NFitPoint;
-    double X0,DD,alpha,beta,gamma;
-    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+    double X0,DD,alpha,beta;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,b1,b2,b3;
 
     X[3]=QTRD;
     Y[3]=QTRDLikelihoodMin;
@@ -2069,11 +2052,9 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     a13 = m12*m23 - m13*m22;
     a22 = m11*m33 - m13*m13;
     a23 = m12*m13 - m11*m23;
-    a33 = m11*m22 - m12*m12;
 
     alpha = b1*a11 + b2*a12 + b3*a13;
     beta  = b1*a12 + b2*a22 + b3*a23;
-    gamma = b1*a13 + b2*a23 + b3*a33;
 
     if(alpha/DD<=0)
     {
@@ -2345,7 +2326,7 @@ double TrdKCluster::GetTRDChargeUpper()
     if(QTRDHitCollectionNucleiUpper.size()<2) return 0;
 
     //Find minimum of likelihood
-    double QTRD,QTRD1;
+    double QTRD=0,QTRD1=0;
     double QTRDLikelihood,QTRDLikelihoodMin;
     double BigNumber=100000000;
     QTRDLikelihoodMin=BigNumber;
@@ -2375,7 +2356,7 @@ double TrdKCluster::GetTRDChargeUpper()
     if(QTRD==0) return 0;
 
     //Estimate error using a simple parabola fit
-    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    double x0,x1,x2,y0,y1,y2,a,ExpErr,ErrorTemp;
     x0=QTRD;
     ExpErr=0.1*x0;
     if(ExpErr>3) ExpErr=3;
@@ -2387,16 +2368,14 @@ double TrdKCluster::GetTRDChargeUpper()
     y1=GetTRDChargeLikelihoodUpper(x1);
     y2=GetTRDChargeLikelihoodUpper(x2);
     a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
-    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
-    c=y0-a*x0*x0-b*x0;
     //  TRDChargeValue=-b/a/2;
     //  TRDChargeError=1/sqrt(2*a);
     ErrorTemp=1/sqrt(2*a);
 
     //Parabola fit to get minimum and error
     double X[7],Y[7],NFitPoint;
-    double X0,DD,alpha,beta,gamma;
-    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+    double X0,DD,alpha,beta;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,b1,b2,b3;
 
     X[3]=QTRD;
     Y[3]=QTRDLikelihoodMin;
@@ -2457,11 +2436,9 @@ double TrdKCluster::GetTRDChargeUpper()
     a13 = m12*m23 - m13*m22;
     a22 = m11*m33 - m13*m13;
     a23 = m12*m13 - m11*m23;
-    a33 = m11*m22 - m12*m12;
 
     alpha = b1*a11 + b2*a12 + b3*a13;
     beta  = b1*a12 + b2*a22 + b3*a23;
-    gamma = b1*a13 + b2*a23 + b3*a33;
 
     if(alpha/DD<=0) return 0;
 
@@ -2481,7 +2458,7 @@ double TrdKCluster::GetTRDChargeLower()
     if(QTRDHitCollectionNucleiLower.size()<2) return 0;
 
     //Find minimum of likelihood
-    double QTRD,QTRD1;
+    double QTRD=0,QTRD1=0;
     double QTRDLikelihood,QTRDLikelihoodMin;
     double BigNumber=100000000;
     QTRDLikelihoodMin=BigNumber;
@@ -2511,7 +2488,7 @@ double TrdKCluster::GetTRDChargeLower()
     if(QTRD==0) return 0;
 
     //Estimate error using a simple parabola fit
-    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    double x0,x1,x2,y0,y1,y2,a,ExpErr,ErrorTemp;
     x0=QTRD;
     ExpErr=0.1*x0;
     if(ExpErr>3) ExpErr=3;
@@ -2523,16 +2500,14 @@ double TrdKCluster::GetTRDChargeLower()
     y1=GetTRDChargeLikelihoodLower(x1);
     y2=GetTRDChargeLikelihoodLower(x2);
     a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
-    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
-    c=y0-a*x0*x0-b*x0;
     //  TRDChargeValue=-b/a/2;
     //  TRDChargeError=1/sqrt(2*a);
     ErrorTemp=1/sqrt(2*a);
 
     //Parabola fit to get minimum and error
     double X[7],Y[7],NFitPoint;
-    double X0,DD,alpha,beta,gamma;
-    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+    double X0,DD,alpha,beta;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,b1,b2,b3;
 
     X[3]=QTRD;
     Y[3]=QTRDLikelihoodMin;
@@ -2593,11 +2568,9 @@ double TrdKCluster::GetTRDChargeLower()
     a13 = m12*m23 - m13*m22;
     a22 = m11*m33 - m13*m13;
     a23 = m12*m13 - m11*m23;
-    a33 = m11*m22 - m12*m12;
 
     alpha = b1*a11 + b2*a12 + b3*a13;
     beta  = b1*a12 + b2*a22 + b3*a23;
-    gamma = b1*a13 + b2*a23 + b3*a33;
 
     if(alpha/DD<=0) return 0;
 

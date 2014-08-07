@@ -593,9 +593,9 @@ if(nph==1){
 
 //===========================================================
 TOFTpointsN::TOFTpointsN(int nbin, geant bnl, geant bnw, geant arr[]){//constructor
-  int i,it,nb,nbf,fst,nbl;
+  int i,it,nb,nbf=0,fst,nbl=0;
   geant cint,low,hig,tot(0.);
-  geant bl,bh,cdis[TOFCSN::SCANMT];
+  geant bl,cdis[TOFCSN::SCANMT];
 
 //
 //  cout<<"arr"<<endl;
@@ -622,7 +622,6 @@ TOFTpointsN::TOFTpointsN(int nbin, geant bnl, geant bnw, geant arr[]){//construc
     cint=it*bini;
     while(nb<=nbl){// <--- loop over cumul.distr. bins
       bl=bnl+nb*bnw;
-      bh=bl+bnw;
       if(nb==nbf)low=0.;
       else low=cdis[nb-1];
       hig=cdis[nb];

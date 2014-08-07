@@ -188,8 +188,8 @@ void VCon_root::eraseC(){
   }
   if( strstr(contname,"AMSBetaH")) {
     ev->fHeader.BetaHs = 0;
-    for(int ii=0;ii<ev->NCharge();ii++)  {ev->pCharge(ii)->setBetaH(-1);}
-    for(int ii=0;ii<ev->NParticle();ii++){ev->pParticle(ii)->setBetaH(-1);}
+    for(unsigned int ii=0;ii<ev->NCharge();ii++)  {ev->pCharge(ii)->setBetaH(-1);}
+    for(unsigned int ii=0;ii<ev->NParticle();ii++){ev->pParticle(ii)->setBetaH(-1);}
     ev->BetaH().clear();
     ev->TofChargeH().clear();
   }
@@ -289,42 +289,42 @@ int  VCon_root::getindex(TrElem* aa){
  if(!ev)  return 0;
 #ifdef _PGTRACK_
  if( strstr(contname,"TrMCCluster"))
-   for(int ii=0;ii<ev->NTrMCCluster();ii++)
+   for(unsigned int ii=0;ii<ev->NTrMCCluster();ii++)
      if(ev->pTrMCCluster(ii)==aa) return ii;
   if( strstr(contname,"TrCluster"))
-    for(int ii=0;ii<ev->NTrCluster();ii++)
+    for(unsigned int ii=0;ii<ev->NTrCluster();ii++)
       if(ev->pTrCluster(ii)==aa) return ii;
   if( strstr(contname,"TrRawCluster"))
-   for(int ii=0;ii<ev->NTrRawCluster();ii++)
+   for(unsigned int ii=0;ii<ev->NTrRawCluster();ii++)
      if(ev->pTrRawCluster(ii)==aa) return ii;
   if( strstr(contname,"TrRecHit"))
-   for(int ii=0;ii<ev->NTrRecHit();ii++)
+   for(unsigned int ii=0;ii<ev->NTrRecHit();ii++)
      if(ev->pTrRecHit(ii)==aa) return ii;
   if( strstr(contname,"TrTrack"))
-   for(int ii=0;ii<ev->NTrTrack();ii++)
+   for(unsigned int ii=0;ii<ev->NTrTrack();ii++)
      if(ev->pTrTrack(ii)==aa) return ii;
   if( strstr(contname,"Vtx"))
-   for(int ii=0;ii<ev->NVertex();ii++)
+   for(unsigned int ii=0;ii<ev->NVertex();ii++)
      if(ev->pVertex(ii)==aa) return ii;
 #endif
   if( strstr(contname,"AMSTRDHSegment"))
-   for(int ii=0;ii<ev->NTrdHSegment();ii++)
+   for(unsigned int ii=0;ii<ev->NTrdHSegment();ii++)
      if(ev->pTrdHSegment(ii)==aa) return ii;
   if( strstr(contname,"AMSTRDHTrack"))
-   for(int ii=0;ii<ev->NTrdHTrack();ii++)
+   for(unsigned int ii=0;ii<ev->NTrdHTrack();ii++)
      if(ev->pTrdHTrack(ii)==aa) return ii;
   if( strstr(contname,"AMSTRDRawHit"))
-   for(int ii=0;ii<ev->NTrdRawHit();ii++)
+   for(unsigned int ii=0;ii<ev->NTrdRawHit();ii++)
      if(ev->pTrdRawHit(ii)==aa) return ii;
 
   if( strstr(contname,"AMSTOFClusterH"))
-   for(int ii=0;ii<ev->NTofClusterH();ii++)
+   for(unsigned int ii=0;ii<ev->NTofClusterH();ii++)
      if(ev->pTofClusterH(ii)==aa) return ii;
   if( strstr(contname,"AMSBetaH"))
-    for(int ii=0;ii<ev->NBetaH();ii++)
+    for(unsigned int ii=0;ii<ev->NBetaH();ii++)
       if(ev->pBetaH(ii)==aa) return ii;
   if( strstr(contname,"AMSEcalH"))
-    for(int ii=0;ii<ev->NEcalH();ii++)
+    for(unsigned int ii=0;ii<ev->NEcalH();ii++)
       if(ev->pEcalH(ii)==aa) return ii;
 
   return 0;
@@ -338,7 +338,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
   if ( (el1==el2)||(!el1)||(!el2) ) return;
 #ifdef _PGTRACK_
   if (strstr(contname,"TrMCCluster")) {
-    for(int ii=0;ii<ev->NTrMCCluster();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrMCCluster();ii++) {
       if (ev->pTrMCCluster(ii)==el1) i1=ii;
       if (ev->pTrMCCluster(ii)==el2) i2=ii;
     }
@@ -346,7 +346,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TrMCCluster().at(i1),ev->TrMCCluster().at(i2));
   }
   if (strstr(contname,"TrCluster")) {
-    for(int ii=0;ii<ev->NTrCluster();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrCluster();ii++) {
       if (ev->pTrCluster(ii)==el1) i1=ii;
       if (ev->pTrCluster(ii)==el2) i2=ii;
     }
@@ -354,7 +354,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TrCluster().at(i1),ev->TrCluster().at(i2));
   }
   if (strstr(contname,"TrRawCluster")) {
-    for(int ii=0;ii<ev->NTrRawCluster();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrRawCluster();ii++) {
       if (ev->pTrRawCluster(ii)==el1) i1=ii;
       if (ev->pTrRawCluster(ii)==el2) i2=ii;
     }
@@ -362,7 +362,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TrRawCluster().at(i1),ev->TrRawCluster().at(i2));
   }
   if (strstr(contname,"TrRecHit")) {
-    for(int ii=0;ii<ev->NTrRecHit();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrRecHit();ii++) {
       if (ev->pTrRecHit(ii)==el1) i1=ii;
       if (ev->pTrRecHit(ii)==el2) i2=ii;
     }
@@ -370,7 +370,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TrRecHit().at(i1),ev->TrRecHit().at(i2));
   }
   if (strstr(contname,"TrTrack")) {
-    for(int ii=0;ii<ev->NTrTrack();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrTrack();ii++) {
       if (ev->pTrTrack(ii)==el1) i1=ii;
       if (ev->pTrTrack(ii)==el2) i2=ii;
     }
@@ -378,7 +378,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TrTrack().at(i1),ev->TrTrack().at(i2));
   }
   if (strstr(contname,"Vtx")) {
-    for(int ii=0;ii<ev->NVertex();ii++) {
+    for(unsigned int ii=0;ii<ev->NVertex();ii++) {
       if (ev->pVertex(ii)==el1) i1=ii;
       if (ev->pVertex(ii)==el2) i2=ii;
     }
@@ -387,7 +387,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
   }
 #endif
   if (strstr(contname,"AMSTRDHSegment")) {
-    for(int ii=0;ii<ev->NTrdHSegment();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrdHSegment();ii++) {
       if (ev->pTrdHSegment(ii)==el1) i1=ii;
       if (ev->pTrdHSegment(ii)==el2) i2=ii;
     }
@@ -395,7 +395,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TrdHSegment().at(i1),ev->TrdHSegment().at(i2));
   }
   if (strstr(contname,"AMSTRDHTrack")) {
-    for(int ii=0;ii<ev->NTrdHTrack();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrdHTrack();ii++) {
       if (ev->pTrdHTrack(ii)==el1) i1=ii;
       if (ev->pTrdHTrack(ii)==el2) i2=ii;
     }
@@ -403,7 +403,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TrdHTrack().at(i1),ev->TrdHTrack().at(i2));
   }
   if (strstr(contname,"AMSTRDRawHit")) {
-    for(int ii=0;ii<ev->NTrdRawHit();ii++) {
+    for(unsigned int ii=0;ii<ev->NTrdRawHit();ii++) {
       if (ev->pTrdRawHit(ii)==el1) i1=ii;
       if (ev->pTrdRawHit(ii)==el2) i2=ii;
     }
@@ -412,7 +412,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
   }
 
   if (strstr(contname,"AMSTOFClusterH")) {
-    for(int ii=0;ii<ev->NTofClusterH();ii++) {
+    for(unsigned int ii=0;ii<ev->NTofClusterH();ii++) {
       if (ev->pTofClusterH(ii)==el1) i1=ii;
       if (ev->pTofClusterH(ii)==el2) i2=ii;
     }
@@ -420,7 +420,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->TofClusterH().at(i1),ev->TofClusterH().at(i2));
   }
   if (strstr(contname,"AMSBetaH")) {
-    for(int ii=0;ii<ev->NBetaH();ii++) {
+    for(unsigned int ii=0;ii<ev->NBetaH();ii++) {
       if (ev->pBetaH(ii)==el1) i1=ii;
       if (ev->pBetaH(ii)==el2) i2=ii;
     }
@@ -428,7 +428,7 @@ void  VCon_root::exchangeEl(TrElem* el1, TrElem* el2) {
     swap(ev->BetaH().at(i1),ev->BetaH().at(i2));
   }
   if (strstr(contname,"AMSEcalH")) {
-    for(int ii=0;ii<ev->NEcalH();ii++) {
+    for(unsigned int ii=0;ii<ev->NEcalH();ii++) {
       if (ev->pEcalH(ii)==el1) i1=ii;
       if (ev->pEcalH(ii)==el2) i2=ii;
     }

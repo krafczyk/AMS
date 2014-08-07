@@ -346,7 +346,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
         assert(ib>=0 && ib < _bperpl[il]);
       }
 #endif
-  geant dz,zc;
+  geant dz,zc=0;
   dz=_plnstr[5];// counter thickness
   if(il==0)
     zc=_supstr[0]-_plnstr[0]-dz/2.;//mid-plane of closest to topHC counters
@@ -522,7 +522,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  integer sta[2],stat[TOF2GC::SCBLMX][2],npm;
  integer sid,brt,endflab(0);
  geant gna[2],a2dr[2],tth,strat[2][2];
- geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+ geant slope=0,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX];
  geant slops[2],slops1[TOF2GC::SCLRS][TOF2GC::SCMXBR],slops2[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
@@ -1062,7 +1062,7 @@ geant TOF2Brcal::poscor(geant point){
 //(return light-out corr.factor, input 'point' is Y-coord. in bar loc.r.s.)
   integer nmx=nscanp-1;
   int i;
-  geant corr;
+  geant corr=1;
   if(point >= yscanp[nmx])corr=relout[nmx]+(relout[nmx]-relout[nmx-1])
                          *(point-yscanp[nmx])/(yscanp[nmx]-yscanp[nmx-1]);
   if(point < yscanp[0])corr=relout[0]+(relout[1]-relout[0])
@@ -1592,11 +1592,10 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
 void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //
  integer i,ila,ibr,cnum;
- integer sta[2],stat[TOF2GC::SCBLMX][2],npm;
- integer sid,brt,endflab;
+ integer sta[2],stat[TOF2GC::SCBLMX][2];
+ integer sid,endflab;
  geant gna[2],a2dr[2],strat[2][2];
  geant gaina[TOF2GC::SCBLMX][2];
- geant hblen;
  geant a2drf[TOF2GC::SCBLMX][2];
 //
  geant gaind[TOF2GC::SCBLMX][2][TOF2GC::PMTSMX];//buff.for dyn.pmts relat.gains
@@ -1795,9 +1794,6 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
   cnum=0;
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-    brt=TOF2DBc::brtype(ila,ibr);
-    npm=TOFWScan::scmcscan[brt-1].getnpmts();//get pmts/side 
-    hblen=0.5*TOF2DBc::brlen(ila,ibr);
     gna[0]=gaina[cnum][0];
     gna[1]=gaina[cnum][1];
 //
@@ -1856,7 +1852,7 @@ void TOFBrcalMS::q2a2q(int cof, int sdf, int hlf, number &adc, number &q){
 //
 void TOFBPeds::mcbuild(){// create MC TOFBPeds-objects for each sc.bar
 //
-  int i,ila,ibr,cnum,brt;
+  int i,ila,ibr,cnum;
   integer sid;
   char fname[1024];
   char name[256];
@@ -1933,7 +1929,6 @@ void TOFBPeds::mcbuild(){// create MC TOFBPeds-objects for each sc.bar
   cnum=0;
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-    brt=TOF2DBc::brtype(ila,ibr);
     sid=100*(ila+1)+(ibr+1);
     for(i=0;i<2;i++){
       stata[i]=asta[cnum][i];
@@ -1958,7 +1953,7 @@ void TOFBPeds::mcbuild(){// create MC TOFBPeds-objects for each sc.bar
 //
 void TOFBPeds::build(){// tempor solution for RealData peds.
 //
-  int i,ila,ibr,cnum,brt;
+  int i,ila,ibr,cnum;
   integer sid;
   char fname[1024];
   char name[256];
@@ -2037,7 +2032,6 @@ void TOFBPeds::build(){// tempor solution for RealData peds.
   cnum=0;
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-    brt=TOF2DBc::brtype(ila,ibr);
     sid=100*(ila+1)+(ibr+1);
     for(i=0;i<2;i++){
       stata[i]=asta[cnum][i];
@@ -3710,7 +3704,7 @@ int TofSlowTemp::gettempC(int crat, int slot, geant & atemp){
   sid1=cr*100+sl;
   if(sl==8 || sl==10)sid2=cr*100+sl+1;
   if(sl==9 || sl==11)sid2=cr*100+sl-1;
-  for(int l=0;l<TOF2GC::SCLRS;l++){
+  for(int l=0;l<2;l++){ // FIXME: NIKO
     for(int c=0;c<2;c++){
       for(int n=0;n<8;n++){
         sensid=AMSSCIds::getenvsensid(l,c,n);

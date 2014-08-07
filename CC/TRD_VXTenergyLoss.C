@@ -585,7 +585,7 @@ void TRD_VXTenergyLoss::BuildAngleTable()
 G4PhysicsFreeVector* TRD_VXTenergyLoss::GetAngleVector(G4double energy, G4int n)
 {
   G4double theta=0., result, tmp=0., cof1, cof2, cofMin, cofPHC, angleSum  = 0.;
-  G4int iTheta, k, kMax, kMin;
+  G4int iTheta, k, kMin;
 
   G4PhysicsFreeVector* angleVector = new G4PhysicsFreeVector(n);
   
@@ -601,7 +601,6 @@ G4PhysicsFreeVector* TRD_VXTenergyLoss::GetAngleVector(G4double energy, G4int n)
   kMin = G4int(cofMin);
   if (cofMin > kMin) kMin++;
 
-  kMax = kMin + fBinTR -1;
   if(fVerbose > 2)
   {
     G4cout<<"n-1 = "<<n-1<<"; theta = "
@@ -750,7 +749,7 @@ void TRD_VXTenergyLoss::BuildGlobalAngleTable()
 G4VParticleChange* TRD_VXTenergyLoss::PostStepDoIt( const G4Track& aTrack, 
 		                                  const G4Step&  aStep   )
 {
-  G4int iTkin, iPlace;
+  G4int iTkin;
   G4double energyTR, theta,theta2, phi, dirX, dirY, dirZ;
  
 
@@ -794,7 +793,6 @@ G4VParticleChange* TRD_VXTenergyLoss::PostStepDoIt( const G4Track& aTrack,
     {
       if(TkinScaled < fProtonEnergyVector->GetLowEdgeEnergy(iTkin))  break;    
     }
-    iPlace = iTkin - 1;
 
     if(iTkin == 0) // Tkin is too small, neglect of TR photon generation
     {

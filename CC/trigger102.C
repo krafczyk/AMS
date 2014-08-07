@@ -927,7 +927,7 @@ void Lvl1TrigConfig::saveRD(int flg){//save current Lvl1TrigConfig-params(masks,
   strcpy(WrtDate,asctime(localtime(&insert)));
 //
   cout<<"====> Lvl1TrigConfig::saveRD: Config is going to be saved in file and DB !!!"<<endl;
-  if(runno!=runn){
+  if(runno!=int(runn)){
     cout<<"      New/old Runn="<<runn<<"/"<<runno<<endl;
     if(uinteger(begin)!=runn){
       cout<<"<---- Lvl1TrigConfig::saveRD: Warning - RunN/1stEvtTime mismatch, 1stEvtT:"<<uinteger(begin)<<endl;
@@ -1546,8 +1546,6 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   static number evtprev(-1);
   number evtcurr(0),delevt;
-  uinteger ltimec[2];
-  geant ltimeg[2];
   uinteger ntrst(0),timcal(0);
   uinteger time[2]={0,0};
   uinteger trtime[5]={0,0,0,0,0};
@@ -1928,8 +1926,6 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       else if(timgid==0)tgate=0.25;
       else if(timgid==1)tgate=0.5;
       else tgate=1;
-      ltimec[j]=ltim;
-      ltimeg[j]=tgate;
       livetm[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
       if(livetm[j]>1){
       if((TGL1FFKEY.printfl/10)>=1)cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
@@ -2441,20 +2437,18 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
   integer i,j,ib,wvar;
   int16u bit,rrr;
-  int16u word,nword,luti,lutf;
+  int16u word,nword,luti,lutf=0;
   uinteger lword;
   uinteger ltim(0);
   geant tgate(0);
   geant tgatelt(0),tgatetr(0),tgatesc(0);
-  uinteger ltimec[2];
-  geant ltimeg[2];
   uinteger timgid;
   integer gftmsk(0),ftzlmsk(0);
   int16u ftzwdcode(0);
   geant LiveTime[2]={0,0};
 //  
   int16u datyp(0),formt(0);
-  int16u jblid,jleng,jaddr,csid,psfcode;
+  int16u jblid,jleng,csid,psfcode;
 //
   int16u rstatw1(0),rstatw2(0),rstatw3(0);
   int16u nrdow1(0),nrdow2(0),nrdow3(0);
@@ -2463,7 +2457,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   int ltimbias;//tempor bias to live-time data(in "trig"-block)
   int trgsbias;//bias to trig.setup/status block
   int pattbias;//bias to trig.patt sub-block
-  int scalbias;//bias to scalers sub-block
+  int scalbias=0;//bias to scalers sub-block
 //
   lenoncall=(len&(0xFFFFL));
   TGL1JobStat::daqs1(40);//count entries
@@ -2502,7 +2496,6 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
     AMSUser::PreviousRunN()=runn;
   }
 //
-  jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
 //    
   if(jleng>1){
@@ -2597,8 +2590,6 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
       else if(timgid==0)tgate=0.25;
       else if(timgid==1)tgate=0.5;
       else tgate=1;
-      ltimec[j]=ltim;
-      ltimeg[j]=tgate;
       LiveTime[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
       if(LiveTime[j]>1){
 //        LiveTime[j]=1; 
@@ -2748,6 +2739,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         if((word&4)==0)gftmsk+=100;
         l1trigconf.globftmask()=gftmsk;//update globFTmask(FTE|FTZ|FTC)
         if((word&(1<<7))>0)ftzlmsk+=10;//OR of top/bot in FTZ-trig
+        // FIXME: FIX THIS LOGICAL BUG!
         if((word&(1<<5))>0 & (word&(1<<6))>0)ftzlmsk+=3;//(1|2)+(3|4)
         else if((word&(1<<5))>0 & (word&(1<<6))==0)ftzlmsk+=2;//(1|2)+(3&4)
         else if((word&(1<<5))==0 & (word&(1<<6))>0)ftzlmsk+=1;//(1&2)+(3|4)
@@ -2892,8 +2884,6 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         else if(timgid==0)tgate=0.25;
         else if(timgid==1)tgate=0.5;
         else tgate=1;
-        ltimec[j]=ltim;
-        ltimeg[j]=tgate;
 	if(tgate!=scalmon.TGateLT()){//just check Kunin
 	  if((TGL1FFKEY.printfl/10)>=1)cout<<" <---- Trigger2LVL1::BuildRawEarly:W - Event/static LiveTime-gate mismatch: "<<
 	                                             tgate<<"/"<<scalmon.TGateLT()<<endl;
@@ -3036,11 +3026,11 @@ uinteger Trigger2LVL1::Scalers::_GetIndex(time_t time ){
 static integer k=0;
 // first check k; then either k+1 or run binary search
 
-  if(time>=_Tls[0][k] && time < (k<_Nentries-1?_Tls[0][k+1]:time+1)){
+  if(time>=_Tls[0][k] && time < (k<int(_Nentries)-1?_Tls[0][k+1]:time+1)){
    return k;
   }
-  else if(k++<_Nentries-1 ){
-   if(time>=_Tls[0][k] && time < (k<_Nentries-1?_Tls[0][k+1]:time+1)){
+  else if(k++<int(_Nentries)-1 ){
+   if(time>=_Tls[0][k] && time < (k<int(_Nentries)-1?_Tls[0][k+1]:time+1)){
    return k;
    }
   }

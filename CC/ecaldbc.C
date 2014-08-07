@@ -212,7 +212,7 @@ number ECALDBc::segarea(number r, number ds){//smaller_segment area fraction (wr
 void ECALDBc::fid2cida(integer fid, integer cid[4], number w[4]){
   integer fidd,fff,ss,ll,ip,nfl,npm,pm,cell,bran,tbc;
   number cleft,tleft,bdis,ztop,ct,cz,ww;
-  geant pit,piz,pmdis,dist,pmpit,pmsiz,pxsiz,fr;
+  geant pit,piz,pmdis,dist,pmsiz,pxsiz,fr;
   geant fshift,effmn,deffmx,slope;
   cid[0]=0;
   cid[1]=0;
@@ -222,7 +222,6 @@ void ECALDBc::fid2cida(integer fid, integer cid[4], number w[4]){
   npm=_slstruc[3];// numb.of PM's per super-layer
   pit=_fpitch[0];// fiber pitch(transv)
   piz=_fpitch[1];// fiber pitch(in z)
-  pmpit=_rdcell[6];//PM-pitch(transv)
   pmsiz=_rdcell[4]*2.;//PM_size
   pxsiz=_rdcell[4];// SubCell(pixel) size
   fr=_rdcell[3]/2;//   fiber radious 
@@ -2094,10 +2093,10 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //==========================================================================
 //  ECALVarp class functions :
 //
-void ECALVarp::init(geant daqth[20], geant cuts[5]){
+void ECALVarp::init(geant daqth[15], geant cuts[5]){
 
   int i;
-  for(i=0;i<20;i++)_daqthr[i]=daqth[i];
+  for(i=0;i<15;i++)_daqthr[i]=daqth[i];
   for(i=0;i<5;i++)_cuts[i]=cuts[i];
 }
 //==========================================================================

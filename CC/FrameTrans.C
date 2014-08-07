@@ -657,7 +657,7 @@ void	FT_ECI2LVLH(double &x, double &y, double &z, double ISSx,double ISSy,double
   /* 2nd step: create the martix R_m elements*/
   /* X_v, Y_v, Z_v vectors must be unitary */
   double X_x,X_y,X_z,Y_x,Y_y,Y_z,Z_x,Z_y,Z_z;
-  double X_w,Y_w,Z_w; /* vector magnitude*/
+  double X_w,Y_w; /* vector magnitude*/
    /* Y_v */
   Y_x=V_y*R_z-V_z*R_y;  
   Y_y=-(V_x*R_z-V_z*R_x);
@@ -670,7 +670,6 @@ void	FT_ECI2LVLH(double &x, double &y, double &z, double ISSx,double ISSy,double
   Z_x=-R_x;
   Z_y=-R_y;
   Z_z=-R_z;
-  Z_w=sqrt(Z_x*Z_x+Z_y*Z_y +Z_z*Z_z);
    /* X_v */
   X_x=V_x*R_z*R_z +V_x*R_y*R_y -V_z*R_x*R_z -V_y*R_x*R_y;  
   X_y=V_y*R_x*R_x +V_y*R_z*R_z -V_x*R_x*R_y -V_z*R_y*R_z;
@@ -718,7 +717,7 @@ void	FT_LVLH2ECI(double &x, double &y, double &z, double ISSx,double ISSy,double
      /* 2nd step: create the martix R_m elements*/
   /* X_v, Y_v, Z_v vectors must be unitary */
   double X_x,X_y,X_z,Y_x,Y_y,Y_z,Z_x,Z_y,Z_z;
-  double X_w,Y_w,Z_w; /* vector magnitude*/
+  double X_w,Y_w; /* vector magnitude*/
    /* Y_v */
   Y_x=V_y*R_z-V_z*R_y;  
   Y_y=-(V_x*R_z-V_z*R_x);
@@ -731,7 +730,6 @@ void	FT_LVLH2ECI(double &x, double &y, double &z, double ISSx,double ISSy,double
   Z_x=-R_x;
   Z_y=-R_y;
   Z_z=-R_z;
-  Z_w=sqrt(Z_x*Z_x+Z_y*Z_y +Z_z*Z_z);
    /* X_v */
   X_x=V_x*R_z*R_z +V_x*R_y*R_y -V_z*R_x*R_z -V_y*R_x*R_y;  
   X_y=V_y*R_x*R_x +V_y*R_z*R_z -V_x*R_x*R_y -V_z*R_y*R_z;

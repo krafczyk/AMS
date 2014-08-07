@@ -873,12 +873,12 @@ AMSEventR::hf1(_hid,xm,y);
        iftxt.ignore(1024,'%');
        if(iftxt.good() && iftxt.get()=='P'){
          iftxt.ignore(1024,'=');
-         if(zmax-zmin+1>sizeof(_particle)/sizeof(_particle[0])){
+         if(zmax-zmin+1>int(sizeof(_particle)/sizeof(_particle[0]))){
           cerr <<"MCEventg::setcuts-F-ToManySpectraIn "<<fnam<<endl;
           exit(1);
          }
          else {
-          for(int i=0;i<sizeof(_particle)/sizeof(_particle[0]);i++){
+          for(unsigned int i=0;i<sizeof(_particle)/sizeof(_particle[0]);i++){
            _particle[i]=-1;          
            _flux[i]=0;          
            _spectra[i]=0;          
@@ -954,7 +954,7 @@ AMSEventR::hf1(_hid,xm,y);
        cerr <<"MCEventg::setspectra-F-ProblemsToReadFluxFile "<<fnam<<endl;
        exit(1);
       }
-      for(int i=0;i<sizeof(_spectra)/sizeof(_spectra[0]);i++){
+      for(unsigned int i=0;i<sizeof(_spectra)/sizeof(_spectra[0]);i++){
          if(_spectra[i])delete[] _spectra[i];
       }        
 
@@ -2407,7 +2407,7 @@ else if(icase==1){
      return false;
   }
  int processed=0;
- for(int i=0;i<daqbuffer.size();i++){
+ for(unsigned int i=0;i<daqbuffer.size();i++){
   if(curtime-daqbuffer[i]>LVTMFFKEY.MeanTime*(i+1)){
    processed=i+1;
   }
@@ -2419,7 +2419,7 @@ else if(icase==1){
   }
   else daqbuffer[i]+= LVTMFFKEY.MeanTime*processed;
  }
-if(daqbuffer.size()>=LVTMFFKEY.BufSize){
+if(int(daqbuffer.size())>=LVTMFFKEY.BufSize){
      return false;
 }
 else if(daqbuffer.size()==0)daqbuffer.push_back(curtime);

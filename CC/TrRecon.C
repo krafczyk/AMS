@@ -2261,8 +2261,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
     int      imin[NL];
     AMSPoint hmin[NL];
     double   dmin[NL];
-    double   smin[4];
-    double   pmin[2];
+    double   smin[4] = {0};
+    double   pmin[2] = {0};
     
     for (int k = 0; k < NL; k++) imin[k] = 0;
 
@@ -3251,7 +3251,7 @@ int TrRecon::PreselTrTracksVertex()
 #ifndef __ROOTSHAREDLIBRARY__
 #ifndef _STANDALONE_
   int ntrc = 0;
-  for (int i = 0; i < TRDDBc::nlay(); i++) {
+  for (unsigned int i = 0; i < TRDDBc::nlay(); i++) {
     AMSTRDCluster *trc = AMSTRDCluster::gethead(i);
     for (; trc; trc = trc->next()) ntrc++;
   }
@@ -3761,7 +3761,7 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
   enum { NX = 200 };
 
   double hitx[NX*NL], hitz[NX*NL];
-  int    hmlt[NX*NL], nhml[NL];
+  int    nhml[NL];
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("TrTrack1Vhmlt");
@@ -3769,7 +3769,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 
   for (int ic = 0; ic < NC; ic++) {
 
-  for (int i = 0; i < NL*NX; i++) hmlt[i] = -1;
   for (int i = 0; i < NL;    i++) nhml[i] =  0;
 
    if (cmin[ic] == csth) continue;
@@ -3793,7 +3792,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 	AMSPoint coo = hh->GetCoord(k);
 	hitx[nhml[il]+il*NX] = coo.x();
 	hitz[nhml[il]+il*NX] = coo.z();
-	hmlt[nhml[il]+il*NX] = j*100+k;
 	nhml[il]++;
       }
     }
@@ -3938,8 +3936,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
   AMSgObj::BookTimer.start("TrTrack2Build"); 
 #endif
 
-  TrTrackR *tref = 0;
-
   for (int it = 0; it < 2; it++) {
 #ifndef __ROOTSHAREDLIBRARY__
    AMSTrTrack *track = new AMSTrTrack(0);
@@ -4022,7 +4018,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
  //if (tshr && tshr != tref && nshr > 2) {
    if (tshr && nshr > 2) {
      tshr->setstatus(AMSDBc::TOFFORGAMMA);
-     tref = tshr;
      delete track;
      continue;
    }
@@ -4530,14 +4525,13 @@ int TrRecon::FillHistos(int trstat, int refit)
 
   ////////// Check simulation momentum and rigidity //////////
   bool ismc = false;
-  double pmc = 0, rmc = 0;
+  double rmc = 0;
 #ifndef __ROOTSHAREDLIBRARY__
   if (AMSJob::gethead()->isMCData()) {
     AMSmceventg *mcg 
       = (AMSmceventg *)AMSEvent::gethead()->getC("AMSmceventg")->gethead();
     if (mcg) {
       ismc = true;
-       pmc = mcg->getmom();
        rmc = (mcg->getcharge() != 0) ? mcg->getmom()/mcg->getcharge() : 0;
     }
   }
@@ -4546,7 +4540,6 @@ int TrRecon::FillHistos(int trstat, int refit)
   MCEventgR *mcg = (evt) ? evt->pMCEventg(0) : 0;
   if (mcg) {
     ismc = true;
-     pmc = mcg->Momentum;
      rmc = (mcg->Charge != 0) ? mcg->Momentum/mcg->Charge : 0;
   }
 #endif
@@ -4661,7 +4654,7 @@ int TrRecon::FillHistos(int trstat, int refit)
 	  1.2 < qtof[1] && qtof[1] < 2.5) psel |= 1;
     }
 
-    for (int i = 0; i < TRDDBc::nlay(); i++) {
+    for (unsigned int i = 0; i < TRDDBc::nlay(); i++) {
       AMSPoint dmin;
       AMSTRDCluster *trc = AMSTRDCluster::gethead(i);
       for (; trc; trc = trc->next()) {
@@ -4876,7 +4869,7 @@ int TrRecon::FillHistos(int trstat, int refit)
 #ifndef _STANDALONE_
   double ttm[4], sln[4];
   for (int j = 0; j < 4; j++) {
-    double dmin = 25, dxmin, dymin;
+    double dmin = 25, dxmin = 0, dymin = 0;
     ttm[j] = sln[j] = 0;
     int itc = (j == 0 || j == 3) ? 1 : 0;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -5733,9 +5726,6 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
     float yyy = sqrt(hit->GetYCluster()->GetTotSignal());
     hman.Fill("ySig5",xxx,yyy);
     if ( (TRCLFFKEY.TrackFindChargeCutActive)&&( (yyy>xxx+15)||(yyy<xxx-15) ) ) continue;
-
-    int idx=0;
-    if (hit->OnlyY()) idx=1;
 
     int il = -1;
     if (hit->GetLayer() == lyext[0]) il = 0;

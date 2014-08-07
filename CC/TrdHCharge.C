@@ -511,7 +511,6 @@ int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug
 
   time_t begin,end,insert;
 
-  bool ok=true;
   for(map<string,AMSTimeID*>::const_iterator it=tdvmap.begin();it!=tdvmap.end();it++){
     it->second->UpdateMe()=1;
     unsigned int crcold=it->second->getCRC();
@@ -538,7 +537,6 @@ int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug
       
       if(!it->second->write(tdname)) {
 	cerr <<"TrdHChargeR::writeAllTDV-E-can not update tdv "<<it->first<<endl;
-	ok=false;
       }
     }
   }

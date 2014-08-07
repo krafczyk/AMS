@@ -99,7 +99,7 @@ void * AMSaPool::insert(size_t st){
   if(ptr) return ptr+sizeof(ALIGN);
   else{
     try{
-      if(_free==0 || _lc+st > _head->_length  ){
+      if(_free==0 || int(_lc+st) > _head->_length  ){
         AMSaPool::_grow(st); 
       }
       if(_free){

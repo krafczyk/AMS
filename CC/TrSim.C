@@ -839,11 +839,11 @@ void TrSim::MergeMCCluster(){
   
   for(iter=TrLadMap.begin();iter!=TrLadMap.end();iter++){
     vector< pair<int,TrMCClusterR*> > & mm= iter->second;
-    for(int jj=0;jj<mm.size();jj++){
+    for(unsigned int jj=0;jj<mm.size();jj++){
       if(mm[jj].first==1) continue;
       locstor.push_back(*(mm[jj].second));
       mm[jj].first=1;
-      for (int ii=jj+1; ii<mm.size(); ii++) {
+      for (unsigned int ii=jj+1; ii<mm.size(); ii++) {
 	if(mm[ii].first==1) continue;
 	TrMCClusterR* cl = mm[ii].second;
 	AMSPoint dd=locstor.rbegin()->_xgl-cl->_xgl;
@@ -857,7 +857,7 @@ void TrSim::MergeMCCluster(){
 
   if(locstor.size()>0){
     container->eraseC();
-    for(int ii=0;ii<locstor.size();ii++)
+    for(unsigned int ii=0;ii<locstor.size();ii++)
 #ifdef __ROOTSHAREDLIBRARY__
       container->addnext( new TrMCClusterR(locstor[ii]) );
 #else
@@ -914,7 +914,7 @@ void TrSim::MergeMCCluster2() {
     map<int,vector<TrMCClusterR*> > TrTrkIdMap;
     map<int,vector<TrMCClusterR*> >::iterator TrTrkIdMapIter;
     vector<TrMCClusterR*>& cluster_list = TrLadMapIter->second;
-    for(int jj=0; jj<cluster_list.size(); jj++) { 
+    for(unsigned int jj=0; jj<cluster_list.size(); jj++) { 
       TrMCClusterR* cluster = (TrMCClusterR*) cluster_list.at(jj);
       if (!cluster) { 
         printf("TrSim::MergeMCCluster2-W found an empty pointer in the AMSTrMCCluster container. Jump!");
@@ -990,7 +990,7 @@ void TrSim::MergeMCCluster2() {
   // redo container
   if(locstor.size()>0) {
     container->eraseC();
-    for(int ii=0;ii<locstor.size();ii++)
+    for(unsigned int ii=0;ii<locstor.size();ii++)
 #ifdef __ROOTSHAREDLIBRARY__
       container->addnext( new TrMCClusterR(*locstor[ii]) );
 #else

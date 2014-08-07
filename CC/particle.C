@@ -445,8 +445,7 @@ void AMSParticle::ecalfit(){
     AMSPoint coo;
     number theta, phi, sleng;
     Ecal1DCluster * ptr;   
-    integer maxpl,ipl;
-    maxpl=2*ECALDBc::slstruc(3);
+    integer ipl;
     for(ipl=0;ipl<2;ipl++){ //loop over containers(proj)
       ptr=(Ecal1DCluster*)AMSEvent::gethead()->getheadC("Ecal1DCluster",ipl,0);
       if(ptr){
@@ -577,7 +576,7 @@ void AMSParticle::trd_likelihood(){
 
   number loglikelihood=0.;
 
-  for (int n=0;n<AMSTRDIdSoft::ncrates();n++){
+  for (unsigned int n=0;n<AMSTRDIdSoft::ncrates();n++){
     AMSTRDRawHit * ptr=
       (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,2); 
 

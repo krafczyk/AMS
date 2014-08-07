@@ -1387,9 +1387,10 @@ double TrFit::ChoutkoFit(void)
       if (FillDmsc(dmsc, DmscFact) < 0) return -1;
     }
 
-    double len [LMAX];
+    /*double len [LMAX];
     for (int i = 0; i < _nhit; i++)
       len[i] = (i > 0) ? _zh[i]-_zh[i-1] : 0;
+    */
 
     // Loop for each point
     //for (int i = 0; i < _nhit; i++) {
@@ -2672,7 +2673,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 /*----------------------------------------------- Runge Kutta */
   if (RkmsDebug >= 3) cout<<" rk_trk "<<Nst<<" "<<Stot<<" "<<step<<endl;
 
-  double w0[3][NPma];
+  // double w0[3][NPma];
 
   int np = 1;
   for (int i = 0; i < Nst; i++) {
@@ -2688,9 +2689,9 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 	double w = (zc[np-1]-vout[2])/(vect[2]-vout[2]);
 	x0   [np-1] = vect[0]*w + vout[0]*(1.-w);
 	y0   [np-1] = vect[1]*w + vout[1]*(1.-w);
-	w0[0][np-1] = vect[3]*w + vout[3]*(1.-w);
-	w0[1][np-1] = vect[4]*w + vout[4]*(1.-w);
-	w0[2][np-1] = vect[5]*w + vout[5]*(1.-w);
+	//w0[0][np-1] = vect[3]*w + vout[3]*(1.-w);
+	//w0[1][np-1] = vect[4]*w + vout[4]*(1.-w);
+	//w0[2][np-1] = vect[5]*w + vout[5]*(1.-w);
 
 	if (RkmsDebug >= 3) {
 	  cout<<Form(" np %2d", np) << endl;

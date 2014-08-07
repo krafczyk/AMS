@@ -35,9 +35,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrGainDB),
  charge corrections (via TrChargeLossDB) and coordinates (via TkCoo). 
 
- $Date: 2013/07/18 14:39:23 $
+ $Date$
 
- $Revision: 1.39 $
+ $Revision$
 
 */
 
@@ -111,7 +111,7 @@ class TrClusterR :public TrElem{
   /// Pointer to the parameters database
   static TrParDB* _trpardb;
   /// load the std::string sout with the info for a future output
-  void _PrepareOutput(int full=0);
+  std::string _PrepareOutput(int full=0);
 
   /// Conversion between sqrt(ADC) and number of MIPs
   static TSpline3* sqrtadc_to_sqrtmip_spline[2];

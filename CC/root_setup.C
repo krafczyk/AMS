@@ -486,7 +486,7 @@ if(AMSJob::gethead()->isProduction() || IOPA.WriteTDVDataInRoot){
 a.Data.clear();
 a.Size/=sizeof(uinteger);
 a.Size--;
-for(int i=0;i<a.Size;i++){
+for(unsigned int i=0;i<a.Size;i++){
 a.Data.push_back(*(tdv->_pData+i));
 }
 }
@@ -511,7 +511,7 @@ a.FilePath=(const char*)tdv->_fname;
 a.Data.clear();
 a.Size/=sizeof(uinteger);
 a.Size--;
-for(int i=0;i<a.Size;i++){
+for(unsigned int i=0;i<a.Size;i++){
 a.Data.push_back(*(tdv->_pData+i));
 }
 string s=tdv->getname();
@@ -535,7 +535,7 @@ if(Data.size()!=Size){
 cerr<<"AMSSetupR::TDVR::CopyOut-E-SizeDeclared "<<Size <<" Real "<<Data.size()<<endl;
 return false;
 }
-for(int k=0;k<Data.size();k++){
+for(unsigned int k=0;k<Data.size();k++){
  memcpy((unsigned int*)Out+k,&Data[k],sizeof(Data[0]));
 }
 return true;
@@ -813,7 +813,7 @@ void AMSSetupR::updateSlowControlFilePath(string & slc){
           unsigned int t1=0;
           unsigned int t2=0;
           size_t pos=slc.find("/SCDB");
-	  for(int k=pos;k<strlen(slc.c_str());k++){
+	  for(unsigned int k=pos;k<strlen(slc.c_str());k++){
            
             if(slc.c_str()[k]=='.'){
                  valid++;
@@ -941,7 +941,6 @@ slc+="/SlowControlDir";
         vector <trio> tv;
 	for(int i=0;i<nptr;i++) {
 	  int valid=0;
-	  int kvalid=-1;
 	  int kvalid1=-1;
 	  int kvalid2=-1;
 	  int kvalid3=-1;
@@ -955,10 +954,9 @@ slc+="/SlowControlDir";
             stat64(t.filename.c_str(),&statbuf);
             t.tmod=statbuf.st_mtime;
             //cout <<" slow "<<t.filename<<endl;
-	  for(int k=0;k<strlen(namelist[i]->d_name);k++){
+	  for(unsigned int k=0;k<strlen(namelist[i]->d_name);k++){
 	    if((namelist[i]->d_name)[k]=='.' ){
               valid++;
-	      kvalid=k;
 	      if(valid==1)kvalid1=k;
 	      if(valid==2)kvalid2=k;
 	      if(valid==3)kvalid3=k;
@@ -984,7 +982,7 @@ slc+="/SlowControlDir";
 	if(nptr>0)free(namelist);
          int k=-1;
          unsigned int maxt=0;
-         for(int i=0;i<tv.size();i++){
+         for(unsigned int i=0;i<tv.size();i++){
            if(tv[i].t1<=fHeader.FEventTime && tv[i].t2>=fHeader.LEventTime && maxt<=tv[i].tmod){
               maxt=tv[i].tmod;
              k=i;
@@ -1058,7 +1056,7 @@ int maxtry=12;
     else break;
     wait=true;
     slept+=2;
-    if(slept>tmout){
+    if(slept>int(tmout)){
         AMSNtuple::Bell();
         slept=0;
     }
@@ -1220,13 +1218,13 @@ init_error=LoadJMDCGPSCorr();
    return 3;
  }
  else{
-  if(hint>=0 && hint<fJGCR.size() && time>=fJGCR[hint].Validity[0] && time<fJGCR[hint].Validity[1]){
+  if(hint>=0 && hint<int(fJGCR.size()) && time>=fJGCR[hint].Validity[0] && time<fJGCR[hint].Validity[1]){
    JGCR &a=fJGCR[hint];
    corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
    err=a.Err[1];
    return 0;
   } 
-  for(hint=0;hint<fJGCR.size();hint++){
+  for(hint=0;hint<int(fJGCR.size());hint++){
   if(time>=fJGCR[hint].Validity[0] && time<fJGCR[hint].Validity[1]){
    JGCR &a=fJGCR[hint];
    corr=a.A[0]+a.A[1]*(time-ti)+a.Par[0]*sin(a.Par[1]*(time-ti)+a.Par[2]);
@@ -2426,7 +2424,9 @@ if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
     }
   }
 #endif 
+#ifdef __ROOTSHAREDLIBRARY__
   bool resetmaybe=false;
+#endif
   static unsigned int time=0;
 #pragma omp threadprivate (time)
   const double pi2= 3.1415926535*2;
@@ -2436,7 +2436,9 @@ if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
     if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
   }
   if(tl!=time && tl){
+#ifdef __ROOTSHAREDLIBRARY__
     resetmaybe=true;
+#endif
     time=tl;
     ISSData_i i=fISSData.find(time);
     if(i!=fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
@@ -2479,11 +2481,9 @@ int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR &a, double xtime)
 #ifdef __ROOTSHAREDLIBRARY__ 
   static int is_begin = 1;
   static unsigned int ssize=0;
-  static unsigned int rotsize=0;
   static unsigned int stime[2]={0,0};
 #pragma omp threadprivate (stime)
 #pragma omp threadprivate (ssize)
-#pragma omp threadprivate (rotsize)
   if (debug_level>2) cout<<"AMSSetupR::getISSCTRS stime[0]="<<stime[0]<<" stime[1]="<<stime[1]<<" xtime="<<xtime<<endl;
   if (debug_level>1) cout<<Form("1-    AMSSetupR::%s: ",__func__)<<" fISSCTRS.size()="<<fISSCTRS.size()<<endl;         
   if(stime[0] && stime[1] && (xtime<stime[0] || xtime>stime[1])) {
@@ -2521,7 +2521,6 @@ if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
       }
       if(!ssize && fRotMatrices.size()==0){
 	LoadRotationMatrices(stime[0],stime[1]);
-	rotsize=fRotMatrices.size();
       }
     }
   }
@@ -2568,12 +2567,12 @@ if(fHeader.FEventTime-dt<ref && fHeader.LEventTime+1>ref && ref!=0){
     const double earth_w = 7.2921158553e-5; //!< Earth's angular velocity [1/s]
 
     if (debug_level>1) {
-      if (kk<3 || kk>fISSCTRS.size()-3)
+      if (kk<3 || kk>int(fISSCTRS.size())-3)
 	cout<<"===AMSSetupR::getISSCTRS::Looking for "<<fixed<<setprecision(3)<<(double) k->first<<" -- "
 	    <<(ktm->tm_year+1900)<<"-"<<(ktm->tm_mon+1)<<"-"<<ktm->tm_mday<<":"<<ktm->tm_hour
 	    <<":"<<ktm->tm_min<<":"<<ktm->tm_sec<<endl;
       
-      if (kk<3 || kk>fISSCTRS.size()-3) { 
+      if (kk<3 || kk>int(fISSCTRS.size())-3) { 
 	cout<<"===AMSSetupR::getISSCTRS::getRotationMatrix-Dump "<<ktime<<' ';
 	for(int r=0; r<3; r++) for(int c=0; c<3; c++) cout<<RM[r][c]<<' ';
 	cout<<endl;                         
@@ -4780,7 +4779,7 @@ int AMSSetupR::LoadRichConfig(unsigned int run){
    RichConfigManager::useExternalFiles=true;
    RichConfigManager::defaultDir="";
    if(!RichConfigManager::UpdateParameters(run,0,directory)){
-     if(runError!=run){
+     if(runError!=int(run)){
        cout<<"AMSSetupR::LoadRichConfig-W-Failed to find files in "<<directory<<" for run "<<run<<endl;
        runError=run;
      }
@@ -5012,7 +5011,7 @@ void AMSSetupR::RearrangeManyDSPErrors(vector<DSPError>& vec){
       vec.erase(vec.begin());//I remove processed element in vec
       //      printf("after_rearrange) vec.size=%d\n", (int)vec.size());//only for debug
       //      printf("after_rearrange) vec2.size=%d\n", (int)vec2.size());//only for debug
-      while (vec2.size()>(index_vec2+1)) {//I move all elements after 'index_vec2'th in vec2 to vec
+      while (int(vec2.size())>(index_vec2+1)) {//I move all elements after 'index_vec2'th in vec2 to vec
 	vec.push_back(*(vec2.rbegin()));
 	vec2.pop_back();
 	//	printf("second_while) vec.size=%d\n", (int)vec.size());//only for debug

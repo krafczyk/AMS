@@ -33,7 +33,7 @@ void PATT::clear(){
 void PATT::init(int atreffekypar){
   // initialize patterns
   InitPattern();
-  int cpat;
+  unsigned int cpat;
   for(cpat=0;cpat<npat();cpat++){
     //ams02
     if(_patpoints[cpat]>4)_patallow[cpat]=1;
@@ -131,10 +131,10 @@ void PATT::InitPattern(){
   _patpoints =new integer[_Npat];
   _patallow =new integer[_Npat];
   _patallow2 =new integer[_Npat];
-  int cpat=0;
+  unsigned int cpat=0;
   for (cpat=0;cpat<npat();cpat++){
     for(int npt=1;npt<TkDBc::Head->nlay();npt++){
-      if(cpat<_patd[npt]){
+      if(static_cast<int>(cpat)<_patd[npt]){
         _patpoints[cpat]=TkDBc::Head->nlay()-npt+1;
         int vmini=cpat-_patd[npt-1];
 	int count=0;

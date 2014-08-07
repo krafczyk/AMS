@@ -44,7 +44,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   integer sector,isid,isds;
   integer tmfound,complm;
   integer i,nhit,chnum,chn;
-  int16u mtyp(0),otyp(0),crat(0),slot(0),tsens(0);
+  int16u mtyp(0),otyp(0),crat(0),tsens(0);
   geant temp;
   number dt;
   int bad;
@@ -100,7 +100,6 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     otyp=0;
     AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
     crat=antid.getcrate();
-    slot=antid.getslot();//sequential slot#(0,1,...10)(4 last are fictitious for d-adcs)
     tsens=antid.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!; =link#)
     temp=TOF2JobStat::gettemp(crat,tsens-1);//fast(SFEA) temper. from static array(may be undef for MC or some RD)
     if(AMSJob::gethead()->isRealData())ptr->settemp(temp);
@@ -239,16 +238,16 @@ void Anti2RawEvent::mc_build(int &stat){
   integer nftdc,ftdc[ANTI2C::ANTHMX], nhtdc,htdc[ANTI2C::ANTHMX];
   number edep,ede,edept(0),time,z,ftrig,lev1tm,lev1tms,htims,t1,t2,dt;
   geant fadcb[2][ANTI2C::ANFADC+1];
-  geant hdthr,fladcb,htdcb;
-  geant ped,sig,am,amp,tm,tmp,tmark;
-  integer iamp,ncoinc,ncoinct(0);
+  geant hdthr,fladcb;
+  geant ped,sig,am,amp,tm,tmp,tmark=0;
+  integer iamp,ncoinct(0);
   number esignal[2][ANTI2C::MAXANTI];
   number htup[ANTI2C::ANTHMX];
   number ptup[ANTI2C::ANTHMX],ptdn[ANTI2C::ANTHMX];
   number edepts(0);
   integer nhtup,nptr;
   integer ssta,nphys,nlogs,nlogsN,nmchts(0);
-  geant domn,dimn,didt,tgpw,tgdt,tdcd,dacc,pgate,tg1,tg2,mev2p,clfdel,attlen,attf;
+  geant domn,dimn,didt,tgpw,tgdt,tdcd,dacc,tg1,mev2p,clfdel,attf;
   AMSAntiMCCluster * ptr;
   AMSAntiMCCluster * ptrN;
   geant * parr;
@@ -286,7 +285,6 @@ void Anti2RawEvent::mc_build(int &stat){
   VZERO(esignal,2*ANTI2C::MAXANTI*sizeof(esignal[0][0])/sizeof(geant));
   stat=1;//bad
   fladcb=ANTI2DBc::fadcbw();//flash-adc bin-width
-  htdcb=ANTI2DBc::htdcbw();//hist/ft-tdc bin width
   domn=ANTI2DBc::dopwmn();// min.outPW of discr.(outPW=inpTovT-dimn when outPW>domn)
   dimn=ANTI2DBc::dipwmn();// minimal inp.pulse width(TovT) to fire discr.(its "rise time")
   didt=ANTI2DBc::didtim();// inp dead time of generic discr(outpDT=didt+dimn)(daqp4 analog)
@@ -295,7 +293,6 @@ void Anti2RawEvent::mc_build(int &stat){
 //                                      (Guido: ACTEL-inp is faster than Discr, so no ACTEL-inp DT check)
   tdcd=ANTI2DBc::tdcdtm();//dead time of TDC-inputs, the same for LT-/FT-inputs[ns](analog of daqp7)
   dacc=ANTI2DBc::daccur();//generic discr. intrinsic accuracy[ns](analog od daqp10)
-  pgate=ANTI2DBc::pbgate();// FT-gate, applied to "pattern" pulses
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
   Anti2RawEvent::setncoinc(ncoinct);// reset # of coinc.sectors  to Anti2RawEvent::
 //
@@ -362,7 +359,6 @@ void Anti2RawEvent::mc_build(int &stat){
 //
 //--->simulate side-2(up) responce caused by given geant-hit:    
 //    
-    attlen=ANTI2VPcal::antivpcal[nlogs].getatlen(nphys,1);
     mev2p=ANTI2DBc::mev2pe()*ANTI2SPcal::antispcal[nlogs].getmev2pe(nphys,1);//aver*indiv.corrections
     if(nphys==0)ssta=ANTI2VPcal::antivpcal[nlogs].getstat1(1);
     else ssta=ANTI2VPcal::antivpcal[nlogs].getstat2(1);
@@ -386,7 +382,6 @@ void Anti2RawEvent::mc_build(int &stat){
 //
 //--->simulate side-1(down) responce caused by given geant-hit:
 //
-    attlen=ANTI2VPcal::antivpcal[nlogs].getatlen(nphys,0);
     mev2p=ANTI2DBc::mev2pe()*ANTI2SPcal::antispcal[nlogs].getmev2pe(nphys,0);//aver*indiv.corrections
     if(nphys==0)ssta=ANTI2VPcal::antivpcal[nlogs].getstat1(0);
     else ssta=ANTI2VPcal::antivpcal[nlogs].getstat2(0);
@@ -458,7 +453,6 @@ void Anti2RawEvent::mc_build(int &stat){
       }//--->endof "average pes/bin" T-buffer loop
 //cout<<"    new ibmn/mx="<<ibmn[j]<<" "<<ibmx[j]<<endl;
 //---
-      ncoinc=0;
       nptr=0;
       nhtup=0;
       id=(nlogs+1)*10+j+1;//BBS (BB=ReadoutPaddle, S=side(1->down,2->up))
@@ -487,7 +481,6 @@ void Anti2RawEvent::mc_build(int &stat){
       geant td1ref=-9999;
 //
       int upd11=0;//up flag for history=precise_time(branche-1 of discr-1)
-      geant tmd11u=-9999.;//branche-1 up-time
       geant tmd11d=-9999.;//branche-1 down-time
 //
       int upd12=0;//up flag for "pattern"(branche-2 of discr-1)
@@ -508,7 +501,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //====>
       geant maxamp=0;
       geant qtotal=0;
-      for(i=ibmn[j];i<=ibmx[j];i++){//<====== flash-adc buffer loop
+      for(i=ibmn[j];i<=int(ibmx[j]);i++){//<====== flash-adc buffer loop
         tm+=fladcb;//high edge of the current bin
         am=fadcb[j][i];//instant ampl.(adc-ch) from flash-adc buffer
 //        am=am+5.*rnormx();//tempor high freq. noise(5mv rms)
@@ -548,7 +541,6 @@ void Anti2RawEvent::mc_build(int &stat){
           if(upd11==0){//try to set branch-1 up
             if((tm-tmd11d)>tdcd){ // branch-1(TDC-input itself) dead time(buzy) check
               upd11=1;  // set up-state 
-              tmd11u=tm;//store up-time 
               if(nhtup<ANTI2C::ANTHMX){//store upto ANTHMX up-edges
                 htup[nhtup]=td1ref+dacc*rnormx();//store precise up-time + intrinsic fluct.
                 nhtup+=1;
@@ -573,7 +565,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //
 // "TimeHistory"-branche(#1) of Discr1
         if(upd11==1){ // branch is up - try reset it
-          if(tm==tmd1d || i==ibmx[j]){//reset(go-to-ready) on D1 "down"-edge or on "time-out"(immediately)
+          if(tm==tmd1d || i==int(ibmx[j])){//reset(go-to-ready) on D1 "down"-edge or on "time-out"(immediately)
 	    upd11=0;
 	    tmd11d=tm;//store down-time to use in next i-loop set-up (DT) check
 	  }
@@ -582,12 +574,12 @@ void Anti2RawEvent::mc_build(int &stat){
 // "TrigPatt"-branch(#2) of Discr1(imply fixed outp.pulse width made by ACTEL)
         if(upd12==1){// branch is up - try reset it(depend.of discr-1 state)
 	  maxtu=max(tmd12u,tmd1u);//latest from br12-up and d1-up
-          if((tm-maxtu)>tgpw || i==ibmx[j]){//self-reset in "tgpw" after latest event: d1-up|br12-up|timeout
+          if((tm-maxtu)>tgpw || i==int(ibmx[j])){//self-reset in "tgpw" after latest event: d1-up|br12-up|timeout
             upd12=0;
 	    tmd12d=tm;//store down-time to use in next i-loop set-up stage
             if(nptr<ANTI2C::ANTHMX){//store upto ANTHMX up-edges
               ptup[nptr]=tmd12u;//don't need accurate up-time for trigger
-              if(i<ibmx[j])ptdn[nptr]=tmd12d;
+              if(i<int(ibmx[j]))ptdn[nptr]=tmd12d;
               else ptdn[nptr]=maxtu+tgpw;//"internal time-out" case, use fixed pwid starting from
 //                                      max(tmd12u,tmd1u)(if there is exra D1up during bran12 "up"state, tmd1u > tmd12u)
 	      if(ATMCFFKEY.mcprtf)HF1(2640,geant(ptdn[nptr]-ptup[nptr]),1.);//tempor
@@ -687,10 +679,8 @@ void Anti2RawEvent::mc_build(int &stat){
                        new Anti2RawEvent(id,chsta,temp,adca,nftdc,ftdc,nhtdc,htdc));//write object
 //--->check GlobFT/SideTrigPattSignal correlation(physically done in JLV1-crate)
         intrig=Trigger2LVL1::l1trigconf.antinmask(int(nlogs));//AntiInTrig from DB
-        if(intrig==1 || (intrig>1 && (intrig-2)!=j)){//<--sector/side is in trigger(not masked)
+        if(intrig==1 || (intrig>1 && (intrig-2)!=int(j))){//<--sector/side is in trigger(not masked)
           tg1=ftrig-ATMCFFKEY.FTdel;//GateUpTime=glFTime(at JLV1 !!!) 
-          tg2=tg1+pgate;//gate_end_time
-	  ncoinc=0;
 	  for(i=0;i<nptr;i++){// 1-side "trig-pattern" pulses -> 1-side bitstream pattern
             trbi.bitclr(1,0);
             t1=ptup[i];//"trig-pattern" pulse up-time
@@ -745,7 +735,6 @@ void Anti2RawEvent::mc_build(int &stat){
 //(bits 1-8->sectors in coinc.with FT)
 //This pattern is produced in JLV1 !!!, So i need JLV1 FT-time, i.e.need to subtr.delay from S-cr time 
   tg1=ftrig-ATMCFFKEY.FTdel;//GateUpTime=ScrateFTime-delay (come back to JLV1 FT-time)
-  tg2=tg1+pgate;//gate_end_time
   trpatt=0;//reset patt.
 //-->count FT-coincided sectors,create sector's pattern :
   for(i=0;i<ANTI2C::MAXANTI;i++){//apply 240ns gate
@@ -863,16 +852,19 @@ void AMSAntiCluster::build2(int &statt){
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX];
   geant adca;
   int16u id,idN,sta;
-  number adcf,edep[2],uptm[2][ANTI2C::ANTHMX],edep2,zc,erz,erfi,err;
+  number adcf,edep[2],uptm[2][ANTI2C::ANTHMX],edep2,zc=0,erz=0,erfi,err;
   integer nuptm[2];
   integer ftc,ftcin[2];
-  integer i,j,sector,isid,nsds,isdn[2],chnum,n1,n2,i1min,i2min;
+  integer i,j,sector,isid,nsds,isdn[2],chnum,n1,n2,i1min=0,i2min=0;
   number zcoo[2*ANTI2C::ANTHMX],times[2*ANTI2C::ANTHMX],etimes[2*ANTI2C::ANTHMX];
   number edept,t1,t2,dt;
   integer ntimes,npairs,nclust(0),nclustc(0),nclustp(0),status(0);
   geant padlen,padrad,padfi,paddfi,zcer1,sig,dtmin,tzer;
-  geant attlen[2],pe2adc[2];
-  int16u mtyp(0),otyp(0),crat(0),slot(0);
+  geant attlen[2];
+  int16u mtyp(0),otyp(0);
+#ifdef __AMSDEBUG__
+  int16u crat(0);
+#endif
   geant fttim;
   geant ftdel,ftwin;
   geant mev2pe,mev2pea;
@@ -923,11 +915,10 @@ void AMSAntiCluster::build2(int &statt){
     mtyp=0;
     otyp=0;
     AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
-    crat=antid.getcrate();
 #ifdef __AMSDEBUG__
+    crat=antid.getcrate();
     assert(crat<TOF2GC::SCCRAT);
 #endif
-    slot=antid.getslot();//sequential slot#(0,1,...10)(but only one is SFEA-slot)
     chnum=sector*2+isid;//channels numbering
     sta=ptr->getstat();//ijk after validation
     tempT[isid]=ptr->gettemp();//SFEA-slot temper(was set at Validation-stage from static job-store)
@@ -1007,8 +998,6 @@ void AMSAntiCluster::build2(int &statt){
       err=ANTI2DBc::scinth()/sqrt(12.);
       attlen[0]=ANTI2VPcal::antivpcal[sector].getatlenc(0);
       attlen[1]=ANTI2VPcal::antivpcal[sector].getatlenc(1);
-      pe2adc[0]=ANTI2VPcal::antivpcal[sector].getpe2adcc(0);//proportional to (electronics+pm) gain
-      pe2adc[1]=ANTI2VPcal::antivpcal[sector].getpe2adcc(1);
       status=0;//sector ok
       ntimes=0;
       npairs=0;

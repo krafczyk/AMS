@@ -71,9 +71,9 @@ geant AMSDistr::getrand(const geant &rnd){
 }
 //===========================================================
 TOFTpoints::TOFTpoints(int nbin, geant bnl, geant bnw, geant arr[]){//constructor
-  int i,it,nb,nbf,fst,nbl;
+  int i,it,nb,nbf=0,fst,nbl=0;
   geant cint,low,hig,tot(0.);
-  geant bl,bh,cdis[TOFGC::AMSDISL];
+  geant bl,cdis[TOFGC::AMSDISL];
 //
   fst=0;
   for(i=0;i<nbin;i++){
@@ -95,7 +95,6 @@ TOFTpoints::TOFTpoints(int nbin, geant bnl, geant bnw, geant arr[]){//constructo
     cint=it*bini;
     while(nb<=nbl){// <--- loop over cumul.distr. bins
       bl=bnl+nb*bnw;
-      bh=bl+bnw;
       if(nb==nbf)low=0.;
       else low=cdis[nb-1];
       hig=cdis[nb];
@@ -353,20 +352,20 @@ void TOF2Tovt::build()
   int i,i0,j,ij,k,nelec,ierr(0);
   integer nhitl[TOF2GC::SCLRS];
   geant edepl[TOF2GC::SCLRS],edepb;
-  geant time,qtime,x,y,z,am,am0,am2,sig,r,eff,rgn,de,tm,eps(0.002);
+  geant time,qtime,x,y,z,am,am0,am2,sig,r,eff,rgn,de,tm;
   geant nel0,nel;
   geant shar1[TOF2GC::PMTSMX],shar2[TOF2GC::PMTSMX];
   geant wshar1[TOF2GC::PMTSMX],wshar2[TOF2GC::PMTSMX];
   AMSPoint cloc(999.,999.,999.);
   AMSgvolume *p;
   AMSTOFMCCluster *ptr;
-  int i1,i2,idivx,nwdivs,npmts;
+  int i1,i2,idivx,npmts;
   static geant bthick;
 //
   static integer first=0;
   static integer npshbn;
   static geant pmplsh[1000];  // PM s.e. pulse shape
-  static geant fadcb,ifadcb,tmax,zlmx,convr;
+  static geant fadcb,ifadcb,tmax,convr;
   static geant sesmp[TOF2GC::SCBTPN],sesig[TOF2GC::SCBTPN];
   static geant sesav[TOF2GC::SCBTPN],sesas[TOF2GC::SCBTPN],sesrat;
   int nsebnd(30);//use asimptotic spectrum if Nse/bin >= nsebnd
@@ -450,7 +449,6 @@ void TOF2Tovt::build()
     fadcb=TOF2DBc::fladctb();
     ifadcb=1./fadcb;
     tmax=TOF2GC::SCTBMX*fadcb-1.;// ns
-    zlmx=TOF2DBc::plnstr(6)/2.+eps;
     convr=1000.*TOF2DBc::edep2ph();
     AMSmceventg::RestoreSeeds();
     cout<<"<---- TOF2Tovt::build: SE-spectrum related data prepared !"<<endl;
@@ -529,7 +527,6 @@ void TOF2Tovt::build()
     }
     qtime=time*ifadcb;//G-hit abs.time in FADC-channel units
     cnum=TOF2DBc::barseqn(ilay,ibar);// solid sequential numbering(0->33)
-    nwdivs=TOFWScan::scmcscan[ibtyp].getndivs();//real # of wdivs
     npmts=TOFWScan::scmcscan[ibtyp].getnpmts();//real # of pmts per side
     idivx=TOFWScan::scmcscan[ibtyp].getwbin(x);// x-div #
     if(idivx<0 || (fabs(z)-bthick)>0.01){
@@ -889,9 +886,9 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 {
 //!!! Logic is preliminary:wait for detailed SFET slecrtrical logic from Diego(Guido)
 //
-  integer i,ilay,ibar,isid,id,_sta,stat(0);
+  integer i,ilay,ibar,isid,id,_sta;
   geant tm,am,tmp,amp,amx;
-  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadcd;
+  integer _ntr1,_ntr3,_nstdc,_nadcd;
   number _ttr1u[TOF2GC::SCTHMX1],_ttr3u[TOF2GC::SCTHMX1];
   number _ttr1d[TOF2GC::SCTHMX1],_ttr3d[TOF2GC::SCTHMX1];
   number _tstdc[TOF2GC::SCTHMX3];
@@ -899,15 +896,14 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
   number _adcd[TOF2GC::PMTSMX];
   number aqin;
   int imax,imin;
-  geant charge,saturf;
-  geant tmark;
+  geant charge;
+  geant tmark=0;
   static integer first=0;
-  static geant fladcb,cconv;
+  static geant fladcb;
   geant daqt0,daqt1,daqt2,fdaqt0;
-  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp7,daqp8,daqp9,daqp10;
-  static geant daqp11;
+  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp7,daqp8,daqp10;
   number adcs;
-  int16u otyp,mtyp,crat,slot,tsens;
+  int16u otyp,mtyp,crat,tsens;
 //
 //cout<<"======>Enter TOF2Tovt::totovt with id="<<idd<<endl;
   id=idd/10;// LBB
@@ -918,12 +914,10 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
   otyp=0;
   AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
   crat=tofid.getcrate();//current crate#
-  slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
   tsens=tofid.gettempsn();//... sensor#(1,2,...,5 == sequential SFET(A)'s number !!!)
 //
   if(first++==0){
     fladcb=TOF2DBc::fladctb();          //prepare some time-stable parameters
-    cconv=fladcb/50.; // for mV->pC (50 Ohm load)
     daqp0=TOF2DBc::daqpwd(0);// fixed PW of "FTC(HT)"-branch output pulse(ACTEL-outp going to SPT)
     daqp1=TOF2DBc::daqpwd(1);// minimal inp.pulse width(TovT) to fire discr.(its rise time)
     daqp2=TOF2DBc::daqpwd(2);// fixed PW of "FTZ(SHT)"-branch output pulse(ACTEL-outp going to SPT) 
@@ -932,10 +926,8 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
     daqp7=TOF2DBc::daqpwd(7);// dead time of TDC-inputs(ns,the same for LT-/FT-/Sum-inputs) 
     daqp8=TOF2DBc::daqpwd(8);// dead time of "HT/SHT-trig"-branch on ACTEL-output(going to SPT-inp)
 //                                      (Guido: ACTEL-inp is faster than Discr, so no ACTEL-inp DT check)
-    daqp9=TOF2DBc::daqpwd(9);// dead time of "SumHT(SHT)"-branch on ACTEL-output(going to TDC-inp) 
 //                                      (Guido: ACTEL-inp is faster than Discr, so no ACTEL-inp DT check)
     daqp10=TOF2DBc::daqpwd(10);// generic discr. intrinsic accuracy
-    daqp11=TOF2DBc::daqpwd(11);// fixed PW of "SumHT(SHT)"-branch on ACTEL-output(going to TDC)
   }
 // time-dependent parameters(thresholds mainly) !!! :
   daqt0=TOF2Varp::tofvpar.daqthr(0); //discr-1 thresh(Low) for LT-channel 
@@ -966,9 +958,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 //cout<<"---->InTovT:id/imax="<<idd<<" "<<imax<<endl;
         charge=0.;
         _ntr1=0;
-        _ntr2=0;
         _ntr3=0;
-        _nftdc=0;
         _nstdc=0;
 //--->
 //   Based on available from Guido information, i created the following logic of
@@ -990,7 +980,6 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
      geant td1ref=-9999;
      
      int upd11=0;//up-flag for branche-1
-     geant tmd11u=-9999.;//branche-1 up-time
      geant tmd11d=-9999.;//branche-1 down-time
 //
      int upd2=0; //up-flag for discr-2(HiThr, followed by 1 branche: Z>=1(FTC)-trig)
@@ -1109,7 +1098,6 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
             if(upd11==0){//try to set branch up
               if((tm-tmd11d)>daqp7){ // branch-1(TDC-input itself) dead time(buzy) check
                 upd11=1;  // set up-state 
-                tmd11u=tm;//store up-time 
                 if(_nstdc<TOF2GC::SCTHMX3){//store upto SCTHMX3 up-edges
                   _tstdc[_nstdc]=td1ref+daqp10*rnormx();//store precise up-time + intrinsic fluct.
                   _nstdc+=1;
@@ -1216,7 +1204,6 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
         } //      --- end of time bin loop for time measurements --->
 //---------------------------         
         charge=charge*fladcb/50.; // get total charge (pC)
-        saturf=TOF2Tovt::pmsatur(charge);//true charge reduction fact. due to satur.
         if(TFMCFFKEY.mcprtf[2]!=0){
           if(idd==1011)HF1(1081,amx,1.);// ampl.spectrum for ref.bar
           if(idd==1041)HF1(1082,amx,1.);// ampl.spectrum for ref.bar
@@ -1288,7 +1275,6 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 //      if(_ntr1>0){// if counter_side FT-signal(HT) exists->create object
       if(_nstdc>0){//if counter_side LT-signal exists->create object 
         _sta=0;    
-        stat=0;
 	if(TFMCFFKEY.mcprtf[3]>1){
           cout<<"  --->TOFTovT-obj created for id="<<idd<<endl;
           cout<<"      nLThits="<<_nstdc<<endl;
@@ -1299,12 +1285,12 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
           for(int ih=0;ih<_ntr3;ih++)cout<<"Tup/down="<<_ttr3u[ih]<<" "<<_ttr1d[ih]<<endl;
           cout<<"      adca="<<_adca<<" nadcd="<<_nadcd<<" "<<_adcd[0]<<" "<<_adcd[1]<<" "<<_adcd[2]<<endl;
 	}
-        if(AMSEvent::gethead()->addnext(AMSID("TOF2Tovt",ilay), new
+		AMSEvent::gethead()->addnext(AMSID("TOF2Tovt",ilay), new
              TOF2Tovt(idd,_sta,charge,edepb,
              _ntr1,_ttr1u,_ttr1d,_ntr3,_ttr3u,_ttr3d,
              _nstdc,_tstdc,
              _adca,
-	     _nadcd,_adcd)))stat=1;
+	     _nadcd,_adcd));
       }
 //
       return;
@@ -1324,7 +1310,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 // It is LVL1 FTCP0/FTCP1 flags in Lin's paper and input CP-pattern
 //
 number TOF2Tovt::ftctime(number fttime, int &trcode, int &cpcode){
-  integer i1,i2,isd,isds(0);
+  integer i1,i2,isd;
   integer i,j,ilay,ibar,ntr,idd,id,intrig,sorand;
   integer lut1,lut2;
   number ftime(-1),ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
@@ -1348,7 +1334,6 @@ number TOF2Tovt::ftctime(number fttime, int &trcode, int &cpcode){
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
                                getheadC("TOF2Tovt",ilay,0);
-    isds=0;
     trbl[ilay].bitclr(1,0);
     trbs[0].bitclr(1,0);
     trbs[1].bitclr(1,0);
@@ -1540,7 +1525,7 @@ else{//Mode: recreate cpcode/lpatt for LVL1(i.e. use globFT-pulse to "latch" inp
 // was not satisfied)
 //
 number TOF2Tovt::ftztime(int &trcode){
-  integer i1,i2,isd,isds(0);
+  integer i1,i2,isd;
   integer j,ilay,ibar,ntr,idd,id,intrig,sorand,toflcsz(-1);
   integer ewcode;
   number ftime(-1),ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
@@ -1564,7 +1549,6 @@ number TOF2Tovt::ftztime(int &trcode){
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
                                getheadC("TOF2Tovt",ilay,0);
-    isds=0;
     trbl[ilay].bitclr(1,0);
     trbs[0].bitclr(1,0);
     trbs[1].bitclr(1,0);
@@ -1658,7 +1642,7 @@ number TOF2Tovt::ftztime(int &trcode){
 // BZ may be "false" when trcode>=0, but don't match lutbz 
 //
 bool TOF2Tovt::bztrig(number ftime, int &trcode){
-  integer i1,i2,j,isd,isds(0);
+  integer i1,i2,j,isd;
   integer ilay,ibar,ntr,idd,id,intrig,sorand;
   integer lutbz;
   number ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
@@ -1676,7 +1660,6 @@ bool TOF2Tovt::bztrig(number ftime, int &trcode){
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
                                getheadC("TOF2Tovt",ilay,0);
-    isds=0;
     trbl[ilay].bitclr(1,0);
     trbs[0].bitclr(1,0);
     trbs[1].bitclr(1,0);
@@ -2174,17 +2157,17 @@ void AMSBitstr::setclkphase(){
 //               
 void TOF2RawSide::mc_build(int &status)
 {
-  integer i,j,jj,ilay,ibar,isd;
+  integer i,j,jj,ilay,ibar=0,isd=0;
   int16u id,idd,_sta;
-  integer nhits,hidt,hidq[4];
+  integer nhits,hidt=0,hidq[4];
   integer nftdc,nstdc,nsumh,nsumsh,nadcd,ntstdc,ntadcd;
   number tstdc[TOF2GC::SCTHMX3];
   number tadca,tadcd[TOF2GC::PMTSMX];
   integer  ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3],sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
   geant adca,adcd[TOF2GC::PMTSMX];
   number ttrig,lev1tm,ftrig;
-  number ftctime,ftztime,ftetime,ftmin,dummy;
-  geant charge,edep,temT,temC,temP;
+  number ftctime,ftztime,ftetime=0,ftmin;
+  geant charge=0,temT,temC,temP;
   geant daqta,daqtd;
   number pedv,peds,amp;
   integer iamp;
@@ -2193,7 +2176,6 @@ void TOF2RawSide::mc_build(int &status)
   bool bztr(0);
   integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
   integer trpattz[TOF2GC::SCLRS]={0,0,0,0};
-  integer phbit,maxv;
   integer ftpatt(0),ftpatreq(0);
   integer trtype(0);
   integer cftmask(0);
@@ -2201,8 +2183,6 @@ void TOF2RawSide::mc_build(int &status)
   TOF2Tovt *ptr;
   int fmask[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];//mask of fired sides
   status=1;// bad(=> no_globFT)
-  phbit=TOF2GC::SCPHBP;
-  maxv=phbit-1;//max possible TDC value (16383)
   daqta=TOF2Varp::tofvpar.daqthr(3);//daq readout thr (anode, ped sigmas)
   daqtd=TOF2Varp::tofvpar.daqthr(4);//daq readout thr (dynode, ped sigmas)
 //  cout<<"======>Enter TOF2RawSide::mc_build"<<endl;
@@ -2294,7 +2274,7 @@ void TOF2RawSide::mc_build(int &status)
     }
 //
 //--> make TOF L-patt/cpcode for LEV1:
-    dummy=TOF2Tovt::ftctime(ttrig,trcode,cpcode);//get L-patt/cpcode for LVL1
+    TOF2Tovt::ftctime(ttrig,trcode,cpcode);//get L-patt/cpcode for LVL1
     if((TGL1FFKEY.printfl/10)>=3){
       cout<<"     For LVL1: trcode/cpcode="<<trcode<<" "<<cpcode<<endl;
     }
@@ -2413,7 +2393,6 @@ void TOF2RawSide::mc_build(int &status)
       hidt=100000*(crat+1)+10000*sslot;//non standard time-hwid=CSIIII (Cr=1-4;Sslot=1-9;Inch=1-8)
       _sta=ptr->getstat();
       charge=ptr->getcharg();
-      edep=ptr->getedep();
 //----------------
 //AnodeTime(LTchan):
       ntstdc=ptr->getstdc(tstdc);// get number and times of TDC LTtime-hits
@@ -2602,7 +2581,8 @@ void TOF2RawSide::mc_build(int &status)
 	  TOF2RawSide::SumHTh[ic][sl]+=1;
 	  nhnmin=phn+1;
 	  for(nhn=nhnmin;nhn<nhits;nhn++){//<---TOF2Tovt next hit loop
-	    tnext=TOF2Tovt::SumHTt[ic][sl][nhn];
+	    assert(nhn < TOF2GC::SCTHMX2);
+		tnext=TOF2Tovt::SumHTt[ic][sl][nhn];
 	    if((tnext-tprev-apw)<=0)continue;//bad(fall in tdcDT) "next"-hit, try next one
 	    break;//good next hit
 	  }
@@ -2624,6 +2604,7 @@ void TOF2RawSide::mc_build(int &status)
 	  TOF2RawSide::SumSHTh[ic][sl]+=1;
 	  nhnmin=phn+1;
 	  for(nhn=nhnmin;nhn<nhits;nhn++){//<---TOF2Tovt next hit loop
+	    assert(nhn < TOF2GC::SCTHMX2);
 	    tnext=TOF2Tovt::SumSHTt[ic][sl][nhn];
 	    if((tnext-tprev-apw)<=0)continue;//bad(fall in tdcDT) "next"-hit, try next one
 	    break;//good next hit
@@ -2782,7 +2763,6 @@ void TOF2RawSide::mc_build(int &status)
               temP=999;
               nftdc=0;
 	      nstdc=0;
-	      edep=0;
               nsumh=0;
               nsumsh=0;
 //
@@ -2971,7 +2951,7 @@ integer TOF2RawSide::lvl3format(int16 *ptr, integer rest){
 // from static store, where FT-times stored after decoding as crat/slot arrays !!!
   integer ilay,ibar,isid;
   int i,nrwt,hwid;
-  int16u crat,otyp(0),mtyp(0),slot,tsens;
+  int16u crat,otyp(0),mtyp(0),tsens;
   int16u id,rwt[10];
   int16 rawt;
   integer nftt,ftt[TOF2GC::SCTHMX1];
@@ -2986,7 +2966,6 @@ integer TOF2RawSide::lvl3format(int16 *ptr, integer rest){
   if(TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid)){ // side OK(F&S&A), read out it
     hwid=tofid.gethwid();//CSRR(Crate|Slot|Readout_channel)
     crat=tofid.getcrate();//current crate#(0,1,..)
-    slot=tofid.getslot();//sequential slot# in crate(0,1,...10)(4 last are fictitious for d-adcs)
     tsens=tofid.gettempsn();//... sensor#(1,2,...,5),coinsides with SFET(A) seq.slot number!
     nftt=TOF2RawSide::FThits[crat][tsens-1];
     if(nftt>0)for(i=0;i<nftt;i++)ftt[i]=TOF2RawSide::FTtime[crat][tsens-1][i];
@@ -3088,7 +3067,6 @@ int TOF2RawSide::GetTofSensorTemper(int lay, int side, int mode, geant &temper){
   int rvarr[3]={0,0,0};
   geant avtemp[2];
   geant tmch[2],tmsd[3];
-  int retv[2];
   int ngpnt[2];
   int ngchn[2];
   int pnt;
@@ -3112,11 +3090,9 @@ int TOF2RawSide::GetTofSensorTemper(int lay, int side, int mode, geant &temper){
     for(int chain=0;chain<2;chain++){//<-- chain loop
       ngchn[chain]=0;
       tmch[chain]=999;
-      retv[chain]=999;
       strcpy(nodename,NodeNames[chain+2*bot]);
       retval=AMSNtuple::Get_setup02()->fSlowControl.GetData(elemname,utime,frac,var,methode,nodename);
 //cout<<"  SFEC:sensnum="<<sensnum<<" elname="<<elemname<<" chain="<<chain<<" nodename="<<nodename<<" retval="<<retval<<endl;
-      retv[chain]=retval;
       if(retval==0){
         if(var.size()==1){
 //          cout<<" chain="<<chain<<"  var[0]= "<<var[0]<<endl;

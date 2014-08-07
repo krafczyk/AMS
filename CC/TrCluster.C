@@ -154,16 +154,15 @@ float TrClusterR::GetGCoord(int imult)  {
 
 
 void TrClusterR::Print(int opt) { 
-  _PrepareOutput(opt);
-  cout << sout;
+  cout << _PrepareOutput(opt);
 }
 
 
-void TrClusterR::_PrepareOutput(int opt){
-  sout.clear();
+std::string TrClusterR::_PrepareOutput(int opt){
+  std::string sout;
   sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %3d  Signal(ADC): %10.3f  Edep(MeV): %8.3f  QStatus: %8X\n",
     GetTkId(),GetSide(),GetAddress(),GetNelem(),getstatus(),GetTotSignal(0),GetEdep(),GetQStatus()));
-  if(!opt) return;
+  if(!opt) return sout;
   if (opt>1) {
     int strip = -1;
     int address = GetAddress(strip);
@@ -188,15 +187,15 @@ void TrClusterR::_PrepareOutput(int opt){
       sout.append(Form("Address: %4d                      Sigma: %10.5f                   Status: %3d\n",
         address,GetSigma(strip),GetStatus(strip))); 
   }
+  return sout;
 }
 
 
 const char* TrClusterR::Info(int iRef){
   string aa;
   aa.append(Form("TrCluster #%d ",iRef));
-  _PrepareOutput(0);
-  aa.append(sout);
-  int len=MAXINFOSIZE;
+  aa.append(_PrepareOutput(0));
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
@@ -204,8 +203,7 @@ const char* TrClusterR::Info(int iRef){
 
 
 std::ostream &TrClusterR::putout(std::ostream &ostr) {
-  _PrepareOutput(1);
-  return ostr << sout  << std::endl;
+  return ostr << _PrepareOutput(1) << std::endl;
 }
 
 

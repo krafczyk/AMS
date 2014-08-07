@@ -957,7 +957,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   double errx = (err) ? err[0] : TRFITFFKEY.ErrX;
   double erry = (err) ? err[1] : TRFITFFKEY.ErrY;
   double errz = (err) ? err[2] : TRFITFFKEY.ErrZ;
-  double zh0  = 0;
   int hitbits = 0;
 
   if (chrg > 1.5) {
@@ -1064,7 +1063,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 // 	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
 
     hitbits |= (1 << (hit->GetLayer()-1));
-    if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
   if (mscat) {
@@ -1187,9 +1185,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 }
 
 void TrTrackR::Print(int opt) {
-  _PrepareOutput(opt);
-  cout <<sout;
- return;
+  cout << _PrepareOutput(opt);
 }
 
 bool TrTrackR::CheckLayFit(int fittype,int lay) const{
@@ -1209,23 +1205,20 @@ bool TrTrackR::CheckLayFit(int fittype,int lay) const{
 const char *  TrTrackR::Info(int iRef) {
   string aa;
   aa.append(Form("TrTrack #%d ",iRef));
-  _PrepareOutput(0);
-  aa.append(sout);
-  int len=MAXINFOSIZE;
+  aa.append(_PrepareOutput(0));
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 std::ostream &TrTrackR::putout(std::ostream &ostr) {
-  _PrepareOutput(1);
-
-  return ostr << sout  << std::endl; 
+  return ostr << _PrepareOutput(1) << std::endl;
     
 }
 
-void TrTrackR::_PrepareOutput(int full )
+std::string TrTrackR::_PrepareOutput(int full )
 {
-  sout.clear();
+  std::string sout;
   int fcode=iTrTrackPar(2,0,0);
   float RAlcaraz=1;
   if(fcode>=0) RAlcaraz=GetRigidity(fcode);
@@ -1234,12 +1227,13 @@ void TrTrackR::_PrepareOutput(int full )
 		   trdefaultfit,Chi2FastFitf(),RAlcaraz));
   const TrTrackPar &bb=GetPar();
   bb.Print_stream(sout,full);
-  if(!full) return;
+  if(!full) return sout;
   map<int, TrTrackPar>::const_iterator it=_TrackPar.begin();
   for(;it!=_TrackPar.end();it++){
     sout.append(Form("\nFit mode 0x%06x ",it->first));
     it->second.Print_stream(sout,full);
   }
+  return sout;
 }
   
 
@@ -1560,7 +1554,7 @@ char * TrTrackR::GetFitNameFromID(int fitnum){
 }
 
 int TrTrackR::GetFitID(int pos){
-  if(pos >= _TrackPar.size()) return 0;
+  if(pos >= int(_TrackPar.size())) return 0;
   int count=0;
   map<int, TrTrackPar>::iterator it;
   
@@ -1707,7 +1701,6 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool FitExists=ParExists(fittype);
 
   if(refit>=2 || (!FitExists && refit==1)) { 
-    int rret=0;
     //    if (refit >= 3 || CIEMATFlag){
     if (refit >= 3 ){
       if(CIEMATFlag>=1){
@@ -1715,11 +1708,11 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 	TrRecHitR *hit9=GetHitLJ(9);
 	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
 	int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
-	rret=UpdateExtLayer(1,l1,l9);
+	UpdateExtLayer(1,l1,l9);
 	if(CIEMATFlag>1)UpdateExtLayer(0);
       }
       else 
-	rret=UpdateExtLayer(0);
+	UpdateExtLayer(0);
 	  UpdateInnerDz();
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();

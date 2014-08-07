@@ -260,7 +260,7 @@ static int Loadopt;//< load option
 /// \return Version id
 static int UseLatest();
 //---
- RTI():run(0),evno(0),evnol(0),lf(0),mphe(0),theta(0),phi(0),glat(-2),glong(-2),nev(0),nerr(0),ntrig(0),nhwerr(0),npart(0),mtrdh(0),good(-1),utime(0){
+ RTI():run(0),evno(0),evnol(0),lf(0),mphe(0),theta(0),phi(0),r(0),zenith(0),glat(-2),glong(-2),nev(0),nerr(0),ntrig(0),nhwerr(0),npart(0),mtrdh(0),good(-1),utime(0){
         for(int ifv=0;ifv<4;ifv++){
           for(int ipn=0;ipn<2;ipn++){cf[ifv][ipn]=0;cfi[ifv][ipn]=0;}
         }
@@ -575,8 +575,8 @@ public:
  TDVRC_m fTDVRC;
  vector<TDVR> fTDV_Time; ///<Return of getAllTDV thanks to rootcint bug;
  vector<TDVR> fTDV_Name; ///<Return of getAllTDV thanks to rootcint bug;
- void printAllTDV_Time(){for( int i=0;i<fTDV_Time.size();i++){cout <<fTDV_Time[i]<<endl;}}
- void printAllTDV_Name(){for (int i=0;i<fTDV_Name.size();i++){cout <<fTDV_Name[i]<<endl;}} 
+ void printAllTDV_Time(){for( unsigned int i=0;i<fTDV_Time.size();i++){cout <<fTDV_Time[i]<<endl;}}
+ void printAllTDV_Name(){for (unsigned int i=0;i<fTDV_Name.size();i++){cout <<fTDV_Name[i]<<endl;}} 
  int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns fTDV_Time
  int getAllTDV(const string & name);  ///<Get All TDV for the current TDV name; Returns fTDV_Name 
  int getTDV(const string & name, unsigned int time, TDVR & tdv); ///<Return TDV tdv with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t

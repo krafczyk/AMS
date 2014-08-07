@@ -151,7 +151,7 @@ bool  TofChargeHR::TestExistHL(int ilay){
 ///=======================================================
 TofChargePar  TofChargeHR::gTofChargePar(int ilay){
     
-   for(int im=0;im<cpar.size();im++){
+   for(unsigned int im=0;im<cpar.size();im++){
      if(cpar.at(im).Layer==ilay){return cpar.at(im);}
    }
    return TofChargePar(); 
@@ -161,7 +161,7 @@ TofChargePar  TofChargeHR::gTofChargePar(int ilay){
 TofChargePar*  TofChargeHR::GetTofChargePar(int ilay){
 
     TofChargePar *chpar=0;
-    for(int im=0;im<cpar.size();im++){
+    for(unsigned int im=0;im<cpar.size();im++){
        if(cpar.at(im).Layer==ilay){return &(cpar.at(im));}
     }
     return chpar;
@@ -207,7 +207,7 @@ int   TofChargeHR::GetZI(int Z,int pattern){
 
 /// Try To Find
   int indexz=-1;
-  for(int iz=0;iz<like[pattern].size();iz++){
+  for(unsigned int iz=0;iz<like[pattern].size();iz++){
     if(like[pattern].at(iz).Z==Z){indexz=iz;break;}
   }
   return indexz;
@@ -219,7 +219,7 @@ int TofChargeHR::GetZ(int &nlay,float &Prob,int IZ,int pattern){
 /// First Update and Check
   UpdateZ(pattern);
 
-  if(IZ>=like[pattern].size()||IZ<0)return -1;//Not Found
+  if(IZ>=int(like[pattern].size())||IZ<0)return -1;//Not Found
 
 //---Get Z Par
   Prob=like[pattern].at(IZ).Prob;
@@ -233,7 +233,7 @@ TofLikelihoodPar TofChargeHR::gTofLikelihoodPar(int IZ, int pattern){
 /// First Update and Check
   UpdateZ(pattern);
 
-  if(IZ>=like[pattern].size()||IZ<0)return TofLikelihoodPar();
+  if(IZ>=int(like[pattern].size())||IZ<0)return TofLikelihoodPar();
 
   return like[pattern].at(IZ);
 }
@@ -245,7 +245,7 @@ TofLikelihoodPar * TofChargeHR::GetTofLikelihoodPar(int IZ, int pattern){
   UpdateZ(pattern);
 
   TofLikelihoodPar *likepar=0;
-  if(IZ>=like[pattern].size()||IZ<0)return likepar;
+  if(IZ>=int(like[pattern].size())||IZ<0)return likepar;
 //---
   return &(like[pattern].at(IZ));
 }
@@ -307,7 +307,7 @@ int  TofChargeHR::ReFit(float fbeta,int opt,float frig){
   if(frig!=0)rig=frig;  
 //----ReFit by new fbeta
    number QLA1,QLD1;
-   for(int im=0;im<cpar.size();im++){
+   for(unsigned int im=0;im<cpar.size();im++){
      number nbeta=(fbeta==0)?cpar.at(im).Beta:fbeta;
      TofRecPar::IdCovert(cpar.at(im).Layer,cpar.at(im).Bar);
      QLA1= TofRecH::GetQSignal(TofRecPar::Idsoft,1,(TofRecH::kBetaCor|kRigidity),cpar.at(im).QLARaw,0,1,nbeta,rig);
@@ -399,7 +399,7 @@ int TofPDFH::FillProbV(vector<TofChargePar> &cpar){
 //---Find Limit and Clean
    int  MinZ=2*TofPDFPar::ZHLim,MaxZ=0,MinIZ=0,MaxIZ=0;
    float LProb=FLT_MAX,HProb=FLT_MAX;
-   for(int im=0;im<cpar.size();im++){
+   for(unsigned int im=0;im<cpar.size();im++){
 //----Clear Prob
        cpar.at(im).ProbZ.clear(); 
 //----GetQ
@@ -431,7 +431,7 @@ int TofPDFH::FillProbV(vector<TofChargePar> &cpar){
 
 
 //--Fill Prob for Z
-  for(int im=0;im<cpar.size();im++){
+  for(unsigned int im=0;im<cpar.size();im++){
      cpar.at(im).FillProbZ(MinZ,MaxZ);
   }
 
@@ -447,14 +447,14 @@ void TofPDFH::LikelihoodCal(const vector<TofChargePar> &cpars,vector<TofLikeliho
 
 /// Likelihood Use Layer Pattern
     int   lpattern=0;
-    for(int im=0;im<cpars.size();im++){lpattern+=int(pow(10.,3-cpars.at(im).Layer));}
+    for(unsigned int im=0;im<cpars.size();im++){lpattern+=int(pow(10.,3-cpars.at(im).Layer));}
 
 /// Protection
     if(cpars.size()==0){like.push_back(TofLikelihoodPar(lpattern,-1,0));return;}
 
 /// For Each Z Calculate 
     float slike=0;int nhit=cpars.size();
-    for(int iz=0;iz<cpars.at(0).ProbZ.size();iz++){
+    for(unsigned int iz=0;iz<cpars.at(0).ProbZ.size();iz++){
        float plike=GetLikelihood(iz,cpars);
        int   zvar=cpars.at(0).ProbZ.at(iz).first;
        like.push_back(TofLikelihoodPar(lpattern,zvar,plike));
@@ -465,7 +465,7 @@ void TofPDFH::LikelihoodCal(const vector<TofChargePar> &cpars,vector<TofLikeliho
     sort(like.begin(),like.end());
 
 /// Calculate Prob
-    for(int ilk=0;ilk<like.size();ilk++){
+    for(unsigned int ilk=0;ilk<like.size();ilk++){
        like.at(ilk).Prob=exp(like.at(ilk).Likelihood/nhit)/slike;
    }
 
@@ -475,7 +475,7 @@ void TofPDFH::LikelihoodCal(const vector<TofChargePar> &cpars,vector<TofLikeliho
 number TofPDFH::GetLikelihood(int IZ,const vector<TofChargePar> &cpars){
 
    number likelihood=0;
-   for(int im=0;im<cpars.size();im++){
+   for(unsigned int im=0;im<cpars.size();im++){
        number probv=cpars.at(im).ProbZ.at(IZ).second;
        likelihood+=log(probv);
    }
@@ -490,7 +490,7 @@ number TofPDFH::GetLikelihoodQ(vector<TofChargePar> &cpars,number &MeanQ,number 
     number DZ=0,LZ=2*TofPDFPar::ZHLim,HZ=0,QL;
     int nm=0;
     RMSQ=0;
-    for(int im=0;im<cpars.size();im++){
+    for(unsigned int im=0;im<cpars.size();im++){
        QL=cpars.at(im).GetQ();
        if(QL<=0){cout<<"<<----Error Q"<<endl;continue;}
        if(QL<LZ)LZ=QL;
@@ -543,7 +543,7 @@ number TofPDFH::GetLikelihoodQ(vector<TofChargePar> &cpars,number &MeanQ,number 
 void TofPDFH::GetLikelihoodF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */ ){
  
    number likelihood=0;
-   for(int im=0;im<chargepar.size();im++){
+   for(unsigned int im=0;im<chargepar.size();im++){
        number probv=chargepar.at(im).GetProbZ(par[0]);
        likelihood+=log(probv);
    }
@@ -559,7 +559,7 @@ int TofPDFH::SelectM(int pattern,const vector<TofChargePar> &cpar,int fTrTrack,v
    cpars=cpar;
 
 ///---Erase Nagtive
-    for(int im=0;im<cpars.size();im++){
+    for(unsigned int im=0;im<cpars.size();im++){
       if(cpars.at(im).GetQ()<=0){
          cpars.erase(cpars.begin()+im);//0 Erase
          im--;
@@ -569,7 +569,7 @@ int TofPDFH::SelectM(int pattern,const vector<TofChargePar> &cpar,int fTrTrack,v
 
 //--Use Select Pattern
     if(pattern>0){
-      for(int im=0;im<cpars.size();im++){
+      for(unsigned int im=0;im<cpars.size();im++){
          int ilay=cpars.at(im).Layer;
          if(pattern/int(pow(10.,3-ilay))%10==1)continue;//Select Countinue;
          cpars.erase(cpars.begin()+im);//0 Erase
@@ -579,7 +579,7 @@ int TofPDFH::SelectM(int pattern,const vector<TofChargePar> &cpar,int fTrTrack,v
 
 //---Pool PathLength ReMove // -2
     if(pattern<0&&(pattern>=-10)&&fTrTrack>=0&&cpars.size()>2){
-       for(int im=0;im<cpars.size();im++){
+       for(unsigned int im=0;im<cpars.size();im++){
           if(cpars.at(im).IsGoodPath)continue;//Good Continue
           cpars.erase(cpars.begin()+im);//Bad Erase
           im--;
@@ -593,10 +593,10 @@ int TofPDFH::SelectM(int pattern,const vector<TofChargePar> &cpar,int fTrTrack,v
 //---ReMove Bad-Q
     else if(pattern%10==-1) {
        vector<int>WL;vector<int>OL;
-       for(int iz=0;iz<cpars.at(0).ProbZ.size();iz++){//for All Z Find Max-Windows Layer
+       for(unsigned int iz=0;iz<cpars.at(0).ProbZ.size();iz++){//for All Z Find Max-Windows Layer
 //---
          vector<int>WNL;vector<int>ONL;//Z in Windows
-         for(int im=0;im<cpars.size();im++){
+         for(unsigned int im=0;im<cpars.size();im++){
            if(cpars.at(im).ProbZ.at(iz).second>TofPDFPar::ProbLimit)WNL.push_back(im);
            else ONL.push_back(im);
          }
@@ -608,7 +608,7 @@ int TofPDFH::SelectM(int pattern,const vector<TofChargePar> &cpar,int fTrTrack,v
 ///--ReMove Max-Q
     else if(pattern%10==-2){
        float  maxq=0; int imax=0;
-       for(int im=0;im<cpars.size();im++){
+       for(unsigned int im=0;im<cpars.size();im++){
          if(cpars.at(im).GetQ()>maxq){maxq=cpars.at(im).GetQ();imax=im;}
        }
        cpars.erase(cpars.begin()+imax);//0 Erase
@@ -695,7 +695,7 @@ number TofPDFH::GetProbZI(int ilay,int ibar,int ZI,number QL,number betah,int is
 
   if(ivh<0){cerr<<"<<----TofPDF: Error Find Beta Bin"<<endl;return 0;}
 //--- 
- number wwl,wwh;
+ number wwl=0,wwh=0;
  if(ivl>=0){ //Interpolation
    wwh=fabs(betah-TofPDFPar::pdfvel[ZI][ivl]);
    wwl=fabs(TofPDFPar::pdfvel[ZI][ivh]-betah);

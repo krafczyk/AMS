@@ -64,7 +64,7 @@ uinteger gethmult()const {return _HighMultiplicity;}
 
 AMSTRDCluster *  next(){return (AMSTRDCluster*)_next;}
 void resethash(integer i, AMSlink *head){
-if(i>=0 && i <TRDDBc::nlay())_Head[i]=(AMSTRDCluster*)head;
+if(i>=0 && i <int(TRDDBc::nlay()))_Head[i]=(AMSTRDCluster*)head;
 }
 ~AMSTRDCluster(){if(_pos==1)_Head[_layer]=0;};
 
@@ -101,13 +101,13 @@ public:
 int getori()const {return _Orientation;};
 AMSTRDSegment():AMSlink(),_Orientation(-1),_Chi2(-1),_NHits(0),_Pattern(-1),_SuperLayer(-1){
 _FitPar[0]=_FitPar[1]=0;
-for(int i=0;i<trdconst::maxhits;i++){
+for(unsigned int i=0;i<trdconst::maxhits;i++){
   _pCl[i]=0;
 }
 }
 AMSTRDSegment(integer slay,integer Pattern,uinteger nhits,integer ori,AMSTRDCluster *pcl[]):_Orientation(ori),_Chi2(-1),_NHits(nhits),_Pattern(Pattern),_SuperLayer(slay){
 _FitPar[0]=_FitPar[1]=0;
-for(int i=0;i<(_NHits<trdconst::maxhits?_NHits:trdconst::maxhits);i++){
+for(unsigned int i=0;i<(_NHits<trdconst::maxhits?_NHits:trdconst::maxhits);i++){
  _pCl[i]=pcl[i];
 }
 }
@@ -179,7 +179,7 @@ AMSPoint _Hit[trdconst::maxlay];
 AMSPoint _EHit[trdconst::maxlay];
 AMSDir _HDir[trdconst::maxlay];
 TrackBase(const TrackBase & o):_NHits(o._NHits),_Pattern(o._Pattern){
- for (int i=0;i<trdconst::maxlay;i++){
+ for (unsigned int i=0;i<trdconst::maxlay;i++){
   _PCluster[i]=o._PCluster[i];
   _Hit[i]=o._Hit[i];
   _EHit[i]=o._EHit[i];
@@ -187,7 +187,7 @@ TrackBase(const TrackBase & o):_NHits(o._NHits),_Pattern(o._Pattern){
  }
 }
 TrackBase():_NHits(0),_Pattern(-1){
- for (int i=0;i<trdconst::maxlay;i++){
+ for (unsigned int i=0;i<trdconst::maxlay;i++){
   _PCluster[i]=0;
   _Hit[i]=0;
   _EHit[i]=0;
@@ -203,8 +203,8 @@ float Nused;
 short int Charge[10];
 float ChargeP[10];
 TrackCharge():Q(0),Nused(0){
-for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
-for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
+for(unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
+for(unsigned int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
 }
 static float ChargePDF[10030]; //0-100 kev; [1000]=0.1  [1001] charge [1002] not set
 static float* getTRDPDF(){return ChargePDF;}
@@ -217,17 +217,18 @@ integer _NSeg;
 integer _Pattern;
 AMSTRDSegment * _PSeg[trdconst::maxseg];
 TrackBaseS(const TrackBaseS & o):_NSeg(o._NSeg),_Pattern(o._Pattern){
- for (int i=0;i<trdconst::maxseg;i++){
+ for (unsigned int i=0;i<trdconst::maxseg;i++){
   _PSeg[i]=o._PSeg[i];
  }
 }
 TrackBaseS(int pat, int nhit, AMSTRDSegment * ps[]):_NSeg(nhit),_Pattern(pat){
+ for (unsigned int i=0;i<trdconst::maxseg;i++) _PSeg[i]=0;
  for (int i=0;i<nhit;i++){
   _PSeg[i]=ps[i];
  }
 }
 TrackBaseS():_NSeg(0),_Pattern(-1){
- for (int i=0;i<trdconst::maxseg;i++){
+ for (unsigned int i=0;i<trdconst::maxseg;i++){
   _PSeg[i]=0;
  }
 }

@@ -32,7 +32,7 @@ LxMCcutoff::LxMCcutoff (const char *FileName,TH1D *h, double safetyfactor, LxMCc
   hExp->SetTitle("MC Exposure;Rigidity [GV];Exposure time fraction");
   TFile *in = TFile::Open(FileName);
   if (!in) { LxMCcutoff::Head = 0; return; }
-  TH2F* Rcut ;
+  TH2F* Rcut = 0;
   if(RcutDist == LxMCcutoff::_RcutVert) Rcut = (TH2F*) in->Get("hRcut");
   else if(RcutDist == LxMCcutoff::_RcutMin25) Rcut = (TH2F*) in->Get("hRcutMin");
   else if(RcutDist == LxMCcutoff::_RcutAcc25) Rcut = (TH2F*) in->Get("hRcutAcc");

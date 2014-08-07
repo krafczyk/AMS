@@ -48,8 +48,8 @@ void AMSIO::init(integer mode,integer format){
           integer runold=0;
           integer pidold=0;
           integer ok=1;
-          integer seed0,seed1,skip;
-          number theta,phi,pole;
+          integer seed0=0,seed1=0,skip=0;
+          number theta=0,phi=0,pole=0;
           time_t time;
           while(ok){
            ok=mode/10?io.readA():io.read();

@@ -49,7 +49,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   number radc[2]; 
   geant padc[3];
   integer swid;
-  geant pedh[4],pedl[4],sigh[4],sigl[4],ph,pl,sh,sl;
+  geant pedh[4],pedl[4],sigh[4],sigl[4],ph,pl;
   integer ovfl[2];
   AMSEcalRawEvent * ptr;
   integer ecalflg(0);
@@ -181,14 +181,8 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
         radc[0]=number(padc[0]);//ADC-high-chain
         radc[1]=number(padc[1]);//ADC-low-chain
         ph=pedh[subc];
-        sh=sigh[subc];
         pl=pedl[subc];
-        sl=sigl[subc];
 	if(AMSJob::gethead()->isSimulation()){
-          if(ECMCFFKEY.silogic[0]==1){
-            sh=0.;
-            sl=0.;
-          }
           if(ECMCFFKEY.silogic[0]==2){
             ph=0.;
 	    pl=0.;
@@ -227,18 +221,16 @@ void AMSEcalRawEvent::mc_build(int &stat){
 
   int j,k,ic;
   integer fid,cid,cidar[4],nhits,nraw,nrawd,il,pm,sc,proj,rdir,nslhits;
-  number x,y,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
+  number x,y,coo,hflen=0,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attfdir,attfrfl,ww[4],anen,dyen;
   number attfdir0,attfrfl0;
   geant attf,attf0;
   number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
-  int dytmap[ECSLMX][ECPMSMX],dytrc[ECSLMX];
+  int dytrc[ECSLMX];
   int dycog[ECSLMX];//to work with integer as in real EC trigger
   number pmedepr[4];
-  integer zhitmap[ECSLMX];
   integer adch,adcl,adcd;
   geant radc,a2dr,h2lr,mev2adc,ares,phel,pmrgn,scgn;
-  geant h2lo;
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4],pedd,sigd;
   AMSEcalMCHit * ptr;
@@ -269,12 +261,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
   adcdmx=0;
   for(il=0;il<ECSLMX;il++){
     pmlprof[il]=0.;
-    zhitmap[il]=0;
     dytrc[il]=0;
     dycog[il]=0;
     for(int ipm=0;ipm<ECPMSMX;ipm++){
       pmtmap[il][ipm]=0.;
-      dytmap[il][ipm]=0;
     }
   }
   mevtot=0.;
@@ -414,7 +404,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM to fill ADC's
         EcalJobStat::addzprmc2(il,sum[ipm][k]);//geant SL(PM-assigned)-profile
 	h2lr=ECcalib::ecpmcal[il][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
-	h2lo=ECcalib::ecpmcal[il][ipm].hi2lowo(k);//PM subcell high/low ratio from DB
 	scgn=ECcalib::ecpmcal[il][ipm].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
  	// Gain dependence on Temperature
  	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
@@ -591,7 +580,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
   //===> Create FT/LVL1 parts of EC-trigger(now Pisa-algorithm only):
   //
   uinteger trflen(0),trflwd(0);
-  geant ethrmip;
   // trflen(energy(mult).trig.flag)=0/1/2/3->Etot<mip/>=mip/multLow/multOK
   // trflwd(angle(width) trig.flag)=0/1/2->unknown/bad/OK
   integer nprx(0),npry(0);
@@ -599,7 +587,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number dyslmx[ECSLMX]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
   number dytrsum(0),dysl;
   int word,bit;
-  ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
   trigfl=0;
   for(il=0;il<nslmx;il++){//prepare trigger Dynode map(variab.thr vs layer)
     for(pm=0;pm<npmmx;pm++){
@@ -611,7 +598,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
       //      }
       
       if(dysl>ECALVarp::ecalvpar.daqthr(5+il) && !ECcalib::ecpmcal[il][pm].DCHisBad()){//incl."in-trig" check
-        dytmap[il][pm]=1;
 	dytrc[il]+=1;//count PMs>thr per layer
 	dycog[il]+=(pm+1);
 	if(il>=1 && il<=6){//set trig.pattern bits for 6 "trigger" sup-layers
@@ -836,12 +822,12 @@ void AMSEcalHit::build(int &stat){
   integer proj,plane,cell,icont;
   number radc[3],edep,edepc,adct,fadc,qmeas,saturf,emeast,coot,cool,cooz;
   number adchovfl; 
-  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,pd,sh,sl,sd,peds[2];
+  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,pd,sl,sd;
   geant h2lo;
   integer ovfl[3];
   geant padc[3],bpadc[4][2];
-  integer iddn,bsta[4],bsubc[4],bid[4],bovfl[4][2],nsubc,nsubco;
-  number bedep[4],bfadc[4],edepgd,dedep,etrue,edcort;
+  integer iddn,bsta[4],bsubc[4],bid[4],nsubc,nsubco;
+  number bedep[4],edepgd,dedep,etrue,edcort;
   AMSEcalRawEvent * ptr;
   AMSEcalRawEvent * ptrn;
   geant scgn,deltaT,Tcorr;
@@ -885,12 +871,10 @@ void AMSEcalHit::build(int &stat){
       radc[1]=number(padc[1]);//ADC-low-chain
       //      if(radc[2]>0)cout << " found Dyn "<<radc[0]<<" "<<radc[1]<<" "<<radc[2]<<endl;
       ph=pedh[subc];
-      sh=sigh[subc];
       pl=pedl[subc];
       sl=sigl[subc];
       if(AMSJob::gethead()->isSimulation()){
         if(ECMCFFKEY.silogic[0]==1){
-          sh=0;
           sl=0;
         }
         if(ECMCFFKEY.silogic[0]==2){
@@ -898,8 +882,6 @@ void AMSEcalHit::build(int &stat){
 	  pl=0;
         }
       }
-      peds[0]=ph;
-      peds[1]=pl;
       ovfl[0]=0;
       ovfl[1]=0;
       if(radc[0]+ph>=adchovfl)ovfl[0]=1;// mark as HiChan ADC-Overflow
@@ -984,11 +966,9 @@ void AMSEcalHit::build(int &stat){
 	bsubc[nsubc]=subc+1;
 	bid[nsubc]=id;
 	for(i=0;i<2;i++){//high/low gain
-	  bovfl[nsubc][i]=ovfl[i];
 	  bpadc[nsubc][i]=padc[i];
 	}
 	bedep[nsubc]=edep;
-	bfadc[nsubc]=fadc;//in units of hi-chan.adc
 	qmeas+=(fadc*ECMCFFKEY.adc2q);//sum to get pm tot.charge(pC)
 	nsubc+=1;
       }
@@ -1441,13 +1421,11 @@ integer Ecal1DCluster::build(int rerun){
       proj=ptr->getproj();
     }
     number emax=-1;
-    integer imax=-1;
     while(ptr){
       number edep=ptr->getedep();      
       if(!ptr->checkstatus(AMSDBc::BAD) && edep>emax){
         emax=edep;
-        imax=ptr->getcell();
-      };
+      }
 #ifdef __AMSDEBUG__
       if(ptr->getcell()>=Maxcell){
 	cerr<<"Ecal1DCluster::buils-S-wrong cell "<<ptr->getcell()<<endl;
@@ -1820,7 +1798,7 @@ integer AMSEcal2DCluster::build(int rerun){
 	VZERO(p1c,sizeof(p1c)/sizeof(integer));
 	p1c[pshmax->getplane()]=pshmax;
 	Ecal1DCluster *plast=pshmax;
-	for(int ipl=pshmax->getplane()+1;ipl<ECALDBc::GetLayersNo();ipl++){
+	for(int ipl=pshmax->getplane()+1;ipl<int(ECALDBc::GetLayersNo());ipl++){
 	  Ecal1DCluster *pcan=0;
 	  for(Ecal1DCluster *p=p1d[ipl];p;p=p->next()){
 	    if(p->Good() && p->Distance(plast)<ECREFFKEY.Thr2DMax){
@@ -1851,7 +1829,7 @@ integer AMSEcal2DCluster::build(int rerun){
 	bool suc=StrLineFit(p1c,ECALDBc::GetLayersNo(),proj,reset,NULL,tot,chi2,t0,tantz);
 	if(suc && chi2<ECREFFKEY.Chi22DMax){
 	  //       cout <<" 2dcluster found proj"<<proj<<" tot "<<tot<<" tantz "<<tantz<<" chi2 "<<chi2<<endl;
-	  for(int ipl=0;ipl<ECALDBc::GetLayersNo();ipl++){
+	  for(int ipl=0;ipl<int(ECALDBc::GetLayersNo());ipl++){
 	    if(p1c[ipl])p1c[ipl]->setstatus(AMSDBc::USED);
 	  }
 	  AMSEcal2DCluster *pcl=new AMSEcal2DCluster(proj,tot,p1c,t0,tantz,chi2);
@@ -1982,7 +1960,7 @@ void AMSEcal2DCluster::_AddOrphane(Ecal1DCluster *ptr){
 void AMSEcal2DCluster::_AddOneCluster(Ecal1DCluster *ptr, bool addpointer){
   if(addpointer){
     ptr->setstatus(AMSDBc::USED);
-    if(_NClust<sizeof(_pCluster)/sizeof(_pCluster[0]))_pCluster[_NClust++]=ptr;
+    if(_NClust<int(sizeof(_pCluster)/sizeof(_pCluster[0])))_pCluster[_NClust++]=ptr;
     else cerr <<"AMSEcal2DCluster::_AddOneCluster-E-UnabletoAddCluster "<<ptr->getEnergy()<<"  mev energy lost "<<endl;
   }
   _EnergyC+=ptr->getEnergy();
@@ -1992,7 +1970,7 @@ void AMSEcal2DCluster::_AddOneCluster(Ecal1DCluster *ptr, bool addpointer){
   number cm3=3;
   number cm5=5;
   number cm9=1.;
-  for(int i=0;i<ptr->getNHits();i++){
+  for(unsigned int i=0;i<ptr->getNHits();i++){
     number cosa=fabs(cos(atan(gettan())));
     if(fabs(intercep-ptr->getphit(i)->getcoot())*cosa<cm3){
       _Energy3C+=ptr->getphit(i)->getedep();
@@ -2449,7 +2427,7 @@ void AMSEcalShower::EnergyFit(){
     for(int ic=0;ic<n1cl;ic++){
       p1cl=_pCl[proj]->getpClust(ic);
       _Nhits+=p1cl->getNHits();
-      for(int ih=0;ih<p1cl->getNHits();ih++){
+      for(unsigned int ih=0;ih<p1cl->getNHits();ih++){
 	AMSEcalHit * phit=p1cl->getphit(ih);
 	if(phit->getedep()>s1[phit->getplane()]){
 	  is1[phit->getplane()]=phit->getcell();
@@ -2529,7 +2507,7 @@ void AMSEcalShower::EnergyFit(){
     n1cl=_pCl[proj]->getNClust();
     for(int ic=0;ic<n1cl;ic++){
       p1cl=_pCl[proj]->getpClust(ic);
-      for(int ih=0;ih<p1cl->getNHits();ih++){
+      for(unsigned int ih=0;ih<p1cl->getNHits();ih++){
 	AMSEcalHit * phit=p1cl->getphit(ih);
 	//LAPP S1, S3 calculation (M.P. April 26, 2011)
 	if((phit->getcell()-icofgcell[phit->getplane()])==0)
@@ -2646,7 +2624,7 @@ void AMSEcalShower::EnergyFit(){
   }
 
   _CofG=AMSPoint(0,0,0);
-  for(int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
+  for(unsigned int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
   number ec=0;
   //float efinal=0;
   _ShowerMax=-1;
@@ -3104,22 +3082,16 @@ void AMSEcalShower::ZProfile()
   float etot=0.;
   float err;
   float par0,par1,par2;
-  float xx;
   float frac[18]={0.};
   float fracv2[18]={0.};
   float ECalEdepFrac[18]={0.};
    
   // Impact point correction for version #2
-  float cora,corx,cory;
-  corx=1.;
   float ratio= _S1totx/_S3totx;
   if (ratio<=0.5) ratio=0.5;
-  if (ratio>=0.5&&ratio<0.75) corx=1./(0.379*ratio+0.717);// 
   //
-  cory=1.;
   ratio=_S1toty/_S3toty;
   if (ratio<0.5) ratio=0.5;
-  if (ratio>=0.5&&ratio<0.75) cory=1./(0.3749*ratio+0.7187);
 
   // Loop over 2d clusters
   for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
@@ -3144,9 +3116,6 @@ void AMSEcalShower::ZProfile()
   //     std::cout << "EShower " <<  _EnergyPIC << std::endl;
   for(int a=0;a<18;a++){
     // Impact point correction layer by layer version #2
-    cora=1.;
-    if (((a/2)%2)==1&&corx>0.7) cora=corx;
-    if (((a/2)%2)==0&&cory>0.7) cora=cory;
     fracv2[a] = ECalEdepFrac[a]/etot;	      
     err = fracv2[a] * 0.1;  
     if (err<.009&&etot<10000.) err=0.009;
@@ -3174,7 +3143,6 @@ void AMSEcalShower::ZProfile()
   Double_t arglist[10];
   // The z values	
   Double_t zprof[3],errprof[3];
-  xx=-1.;
   par0=1.;
   par1=0.5; 
   Int_t ierflg = 0;
@@ -3284,8 +3252,6 @@ void AMSEcalShower::LAPPVariables(){
 
   float bcell_lat[18];
   float bcell2_lat[18];
-  float bcell_latx[18];
-  float bcell_laty[18];
   float s_cell_w[18];
   float s_cell2_w[18];
   float edep_cell[18][72];
@@ -3294,8 +3260,6 @@ void AMSEcalShower::LAPPVariables(){
   for (int elay=0; elay<18; elay++){
     bcell_lat[elay]=0.;
     bcell2_lat[elay]=0.;
-    bcell_latx[elay]=0.;
-    bcell_laty[elay]=0.;
     s_cell_w[elay]=0.;
     s_cell2_w[elay]=0.; 
     edep_layer[elay]=0.;
@@ -3305,7 +3269,7 @@ void AMSEcalShower::LAPPVariables(){
     }    
   }  
   int necalcl=0;
-  int cell,plane,proj;
+  int cell,plane;
   int nhits_cl;
 
  
@@ -3328,7 +3292,6 @@ void AMSEcalShower::LAPPVariables(){
 
 	cell = _pCl[cl2]->getpClust(cl)->getphit(ie)->getcell();
 	plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
-	proj = _pCl[cl2]->getpClust(cl)->getphit(ie)->getproj();
 
 	if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep())){
             
@@ -3607,7 +3570,7 @@ void AMSEcalShower::ProfileFit(){
 #ifndef NO_NAG     
     const integer lwc=1000;
     const integer liwc=lwc/4;
-	number abserr,ww[lwc];
+	number abserr, ww[lwc];
 	integer iww[liwc];
     int liw=liwc;
     int lw=lwc;
@@ -3768,7 +3731,7 @@ void AMSEcalShower::EMagFit(){
     for (int i=0;i<_pCl[proj]->getNClust();i++){
       Ecal1DCluster *ptr=_pCl[proj]->getpClust(i);
       number intercep=_pCl[proj]->getcoo()+ptr->getcoo()[2]*_pCl[proj]->gettan();
-      for(int j=0;j<ptr->getNHits();j++){
+      for(unsigned int j=0;j<ptr->getNHits();j++){
 	number cosa=fabs(cos(atan(_pCl[proj]->gettan())));
 	number dist=fabs(intercep-ptr->getphit(j)->getcoot())*cosa;
 	integer chan=floor((dist/step));
@@ -4006,7 +3969,7 @@ void AMSEcalShower::AddOrphan(AMSEcal2DCluster *ptr){
   ptr->setstatus(AMSDBc::USED);
   _Orp2DEnergy+=ptr->_EnergyC/1000;
 
-  if(_N2dCl<sizeof(_pCl)/sizeof(_pCl[0])){
+  if(_N2dCl<int(sizeof(_pCl)/sizeof(_pCl[0]))){
     _pCl[_N2dCl++]=ptr;
   }
   else{
@@ -4154,7 +4117,7 @@ void AMSEcalShower::_AttCorr(){
   //  Attenuation Energy Corr & pmtnonl corr
   for(int i=0;i<_N2dCl;i++){
     for(int j=0;j<_pCl[i]->getNClust();j++){
-      for (int k=0;k<_pCl[i]->getpClust(j)->getNHits();k++){
+      for (unsigned int k=0;k<_pCl[i]->getpClust(j)->getNHits();k++){
         int over=_pCl[i]->getpClust(j)->getproj()==0?1:0;
         number coo=0;
         if(_Dir[2]){
@@ -4321,17 +4284,15 @@ void AMSEcalShower::_ReFitDirCR(){
 
   for(int i=0;i<_N2dCl;i++){
     for(int j=0;j<_pCl[i]->getNClust();j++){
-      for (int k=0;k<_pCl[i]->getpClust(j)->getNHits();k++){
+      for (unsigned int k=0;k<_pCl[i]->getpClust(j)->getNHits();k++){
 	AMSEcalHit * phit=_pCl[i]->getpClust(j)->getphit(k);
 	_CellEdep[phit->getplane()][phit->getcell()]+=phit->getedep();
       }
     }
   }
-  int normal =0;
   //Calculate COOCOG & COOCR
   for(int il =0;il<18;il++){
     int proj = 1- il/2%2;   //0 for x, 1 for y;
-    normal = 1;
     Alpha[il] =  -1.*P1[proj] - P2[proj]*(il+0.5);  //Used for Calculate COOCR for layer
 
     //Find Bin_Max in the Layer;

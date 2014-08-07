@@ -721,7 +721,6 @@ AMSJob::gethead()->addup(&tmed);
 
 
 tmed.add (new AMSgtmed("AIR","AIR",0));
-AMSgtmed * rich_pvac;
 {
 // vacuum has to be trd aware
  geant uwbuf[5];
@@ -740,7 +739,6 @@ else{
   uwbuf[3]=0;
   uwbuf[4]=0;
 AMSgtmed * pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);  
-  rich_pvac=pvac;   // DO NOT MODIFY
  uwbuf[2]=6;
  pvac->setubuf(nwbuf,uwbuf);
  tmed.add (pvac );

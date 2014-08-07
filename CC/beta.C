@@ -1564,7 +1564,7 @@ bool AMSBeta::BadBetaAlreadyExists(int patb){
 double AMSBeta::GetTRDBetaCorr(){
 //              double p[3]={0.522677,-0.16927,0.676221};
               double betamc1=0;
-              for(int k=0;k<sizeof(BETAFITFFKEY.TRDP)/sizeof(BETAFITFFKEY.TRDP[0]);k++)betamc1+=BETAFITFFKEY.TRDP[k]*pow(fabs(_Beta),k);
+              for(unsigned int k=0;k<sizeof(BETAFITFFKEY.TRDP)/sizeof(BETAFITFFKEY.TRDP[0]);k++)betamc1+=BETAFITFFKEY.TRDP[k]*pow(fabs(_Beta),k);
               double x=(betamc1+fabs(_Beta))/2;
               if(x>0.96)x=0.96;
 //              double norm=1.8377e-1;

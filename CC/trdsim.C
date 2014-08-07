@@ -24,12 +24,12 @@ void AMSTRDRawHit::init_delay_table(){
   // Initialize delay table based on VA waveform
 
   number sumall=0;
-  for (int i=0;i<numvawf;i++){
+  for (unsigned int i=0;i<numvawf;i++){
       sumall+=va_waveform[i];
   }
-  for (int i=0;i<numvawf;i++){
+  for (unsigned int i=0;i<numvawf;i++){
       number sum=0;
-      for (int j=i;j<numvawf;j++){
+      for (unsigned int j=i;j<numvawf;j++){
 	  sum+=va_waveform[j];
 	}
       if (fabs(sumall)>0.){
@@ -109,10 +109,10 @@ void AMSTRDRawHit::sitrdnoise(){
 //   brute force now
 //   if necessary should be changed a-la sitknoise
 
-for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
-      for (int j=0;j<TRDDBc::LayersNo(i);j++){
-	  for(int k=0;k<TRDDBc::LaddersNo(i,j);k++){
-            for (int l=0;l<TRDDBc::TubesNo(i,j,k);l++){
+for ( unsigned int i=0;i<TRDDBc::TRDOctagonNo();i++){
+      for (unsigned int j=0;j<TRDDBc::LayersNo(i);j++){
+	  for(unsigned int k=0;k<TRDDBc::LaddersNo(i,j);k++){
+            for (unsigned int l=0;l<TRDDBc::TubesNo(i,j,k);l++){
              float amp=rnormx();
              if(amp>TRDMCFFKEY.Thr1R){
               AMSTRDIdGeom id(j,k,l,i);
@@ -157,7 +157,7 @@ integer AMSTRDRawHit::getdaqid(int16u crate){
 integer AMSTRDRawHit::checkdaqidS(int16u id){
  
  for(int i=0;i<getmaxblocks();i++){
- for(int j=0;j<trdid::nudr;j++){
+ for(unsigned int j=0;j<trdid::nudr;j++){
   char sstr[128];
   sprintf(sstr,"UDR%X%X",i,j);
   if(DAQEvent::ismynode(id,sstr)){
@@ -266,7 +266,7 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
   int nc=0;
   int ncp=0;
   for(int i=0;i<getmaxblocks();i++){
-   for (int j=0;j<trdid::nudr;j++){
+   for (unsigned int j=0;j<trdid::nudr;j++){
     bool creq=false;
     for(int k=0;k<4;k++){
      creq=creq || (pdaq && pdaq->CalibRequested(getdaqid(i),j*4+k));
@@ -282,7 +282,7 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
   if(update){
     AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
    for(int i=0;i<getmaxblocks();i++){
-    for (int j=0;j<trdid::nudr;j++){
+    for (unsigned int j=0;j<trdid::nudr;j++){
      AMSTRDIdSoft::_Calib[i][j]=0;
     }
    }
@@ -321,7 +321,7 @@ void AMSTRDRawHit::updtrdcalib2009(int n, int16u* p){
   if(DAQEvent::CalibInit(1)){
    cout<<"AMSTrRRDRawHit::updtrdcalib2009S-I-InitCalib "<<endl;
    for(int i=0;i<getmaxblocks();i++){
-    for (int j=0;j<trdid::nudr;j++){
+    for (unsigned int j=0;j<trdid::nudr;j++){
      AMSTRDIdSoft::_Calib[i][j]=0;
     }
    }
@@ -362,7 +362,7 @@ void AMSTRDRawHit::updtrdcalib2009(int n, int16u* p){
   if(update){
     AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
    for(int i=0;i<getmaxblocks();i++){
-    for (int j=0;j<trdid::nudr;j++){
+    for (unsigned int j=0;j<trdid::nudr;j++){
      if(AMSTRDIdSoft::_Calib[i][j]==-1){
        update=false;
      }
@@ -407,7 +407,7 @@ for (int16u* p=pbeg;p<pbeg+length-1-add2;p+=*p+1){
  bool raw=DAQEvent::isRawMode(*(p+*p));
  bool compressed=DAQEvent::isCompMode(*(p+*p));
  int udr=((*(p+*p))&31)/4;
- if(udr>=trdid::nudr){
+ if(udr>=int(trdid::nudr)){
    cerr<<"AMSTRDRawHit::buildraw-E-udrOutOfRange "<<udr<<endl;
    continue;
  }
@@ -455,7 +455,7 @@ DAQCFFKEY.Mode=len%2==0?2:1;
         int cha=adr%64;
         int roch=cha%16;
         int ute=cha/16;
-        if(ufe>=trdid::nufe){
+        if(ufe>=int(trdid::nufe)){
          static int nmsg=0;
          if(nmsg++<100)cerr<<"AMSTRDRawHit::buildraw-E-ufeOutOfRange "<<ufe<<endl;
          continue;
@@ -483,7 +483,7 @@ DAQCFFKEY.Mode=len%2==0?2:1;
 
 void AMSTRDRawHit::builddaq(int i, int length,int16u*p){
    int index=0;
-   for(int iudr=0;iudr<trdid::nudr;iudr++){
+   for(unsigned int iudr=0;iudr<trdid::nudr;iudr++){
      int indexp=0;
      int len=0;
      bool first=true;
@@ -493,7 +493,7 @@ void AMSTRDRawHit::builddaq(int i, int length,int16u*p){
      while(ptr){
        AMSTRDIdSoft id(ptr->getidsoft());
        integer udr=id.getudr();
-        if(udr!=iudr){
+        if(udr!=int(iudr)){
           ptr=ptr->next();
           continue;
         }        
@@ -546,7 +546,7 @@ integer AMSTRDRawHit::calcdaqlength(integer i){
          amp+=ptr->getamp();
 //        }
        if(1 || ptr->testlast()){
-        if(amp>0 && udr<trdid::nudr){
+        if(amp>0 && udr<int(trdid::nudr)){
          length+=2;
          udra[udr]=1;
         }
@@ -555,7 +555,7 @@ integer AMSTRDRawHit::calcdaqlength(integer i){
        ptr=ptr->next();
      }
      if(length>0){
-       for(int i=0;i<trdid::nudr;i++){
+       for(unsigned int i=0;i<trdid::nudr;i++){
         if(udra[i])length+=2;
      }
      length++;

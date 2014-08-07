@@ -120,15 +120,12 @@ void TrDAQ::buildraw(integer n, int16u *pbeg){
   //  have to split integer n; add crate number on the upper part...
   unsigned int leng=n&0xFFFF;
   uinteger ic=(n>>16);
-  int cmn=0;
   int16u st=*(pbeg-1+leng);
   int num=st&0x1F;
   char Jname[20];
   sprintf(Jname,"JINF %d",num);
   int ret=TestBoardErrors(Jname,st,0);
   if( ret<0) return;
-  if(TRCALIB.Version==0)cmn=16;
-  else cmn=0;
   //  integer ic1=checkdaqid(*(pbeg-1+leng))-1;
   (void)checkdaqid(num);
   //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
@@ -252,8 +249,6 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 	count++;
       }
       clcount++;
-      int sid=0;
-      if(clusadd>640) sid=1;
       // Bug in the 3e73 DSP code: delete cluster on the 1022 and 1023 strip
       if ( (run>1258105753)&&(run<1258318946) ) {
 	if (clusadd>=1022) continue;	

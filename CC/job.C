@@ -2131,6 +2131,7 @@ TKGEOMFFKEY.LoadMCDisalign=0;
       STD_DB_ver=3;
       pgtrack_DB_ver=2;
     }
+	(void) STD_DB_ver;
 #ifdef _PGTRACK_
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
@@ -2721,9 +2722,9 @@ void AMSJob::_sitrdinitjob(){
     HBOOK1(8001,"trd ped",1000,0.,1000.,0.);
     HBOOK1(8002,"trd sig",1000,0.,50.,0.);
     HBOOK1(8003,"trd gain",1000,0.,2.,0.);
-    for (int i=0;i<TRDDBc::LayersNo(0);i++){
-      for (int j=0;j<TRDDBc::LaddersNo(0,i);j++){
-	for (int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
+    for (unsigned int i=0;i<TRDDBc::LayersNo(0);i++){
+      for (unsigned int j=0;j<TRDDBc::LaddersNo(0,i);j++){
+	for (unsigned int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
 	  geant d = 0;
 	  AMSTRDIdSoft id(i,j,k);
 	  id.setped()=TRDMCFFKEY.ped+rnormx()*TRDMCFFKEY.pedsig;
@@ -3258,7 +3259,8 @@ void AMSJob::_timeinitjob(){
     //
     // Magnetic Field Map
     //
-    tm begin;
+#ifndef _PGTRACK_
+	tm begin;
     tm end;
     begin.tm_isdst=0;
     end.tm_isdst=0;
@@ -3274,15 +3276,9 @@ void AMSJob::_timeinitjob(){
     end.tm_mday=TKFIELD.iday[1];
     end.tm_mon=TKFIELD.imon[1];
     end.tm_year=TKFIELD.iyear[1];
+#endif
 
-
-
-
-
-
-
-
-    int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
+	int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
     char FieldMapName[100];    
     if(strstr(getsetup(),"AMS02D") ){    
       sprintf(FieldMapName,"MagneticFieldMapD");
@@ -3316,7 +3312,8 @@ void AMSJob::_timeinitjob(){
       sprintf(FieldMapName,"MagneticFieldMap07");
       }
     */
-    {
+    (void) ssize;
+	{
 
       //
       // Magnetic field map status
@@ -4260,15 +4257,14 @@ void AMSJob::_timeinitjob(){
     int use_alignment=isRealData() && ((RICDBFFKEY.dump/10)%10)==0 &&
       !strstr(AMSJob::gethead()->getsetup(),"PreAss");
 
-    AMSTimeID *pdtv;
 
-    pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
+    TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
 					      begin,end,
 					      RICmaxtiles*4*sizeof(RichRadiatorTileManager::_optical_parameters[0]),
 					      (void*)&RichRadiatorTileManager::_optical_parameters[0],
 					      server,use_radiator));
 
-    pdtv=(AMSTimeID*) TID.add (new AMSTimeID(AMSID("RichAlignmentParameters",isRealData()),
+    TID.add (new AMSTimeID(AMSID("RichAlignmentParameters",isRealData()),
 					     begin,end,
 					     12*sizeof(RichAlignment::_align_parameters[0]),
 					     (void*)&RichAlignment::_align_parameters[0],
@@ -4771,7 +4767,7 @@ void AMSJob::urinit(integer run, integer eventno, time_t tt)
     //   trail leading blancs if any
     //  
     int offset=-1; 
-    for(int i=0;i<strlen((const char*)_rextname);i++){
+    for(unsigned int i=0;i<strlen((const char*)_rextname);i++){
       if(*((const char*)_rextname+i)!=' ')break;
       else offset=i;
     } 
@@ -4846,7 +4842,7 @@ void AMSJob::uhinit(integer run, integer eventno, time_t tt)
     cout <<"Trying to open histo file "<<_ntuplefilename<<endl;
     npq_(); 
     int beg=-1;
-    for (int k=0;k<strlen(_ntuplefilename);k++){
+    for (unsigned int k=0;k<strlen(_ntuplefilename);k++){
       if(_ntuplefilename[k]!=' ')break;
       beg=k;
     }

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.27 2011/04/20 20:59:20 choumilo Exp $
+//  $Id$
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -209,6 +209,7 @@ public:
     if(x<divxl[0])return(div);
     if(x>=divxl[nwdivs-1])return(nwdivs-1);
     for(int i=0;i<nwdivs-1;i++){
+	  assert(i + 1 < TOF2GC::SCANWDS);
       if(x>=divxl[i] && x<divxl[i+1])div=i; 
     }
     return(div);

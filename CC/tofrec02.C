@@ -56,17 +56,16 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
   integer sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
   geant adca;
   geant adcd[TOF2GC::PMTSMX];
-  integer ilay,ibar,isid,pedrun(0);
-  int ill;
-  integer i,im,tmfound,complm,chnum,brnum;
+  integer ilay,ibar,isid;
+  integer i,im,tmfound,complm,chnum;
   int16u id,idd,stat,idr;
   integer hisid;
   number dt;
-  int16u otyp,mtyp,crat,slot,tsens;
+  int16u otyp,mtyp,crat,tsens;
   integer hwidt(0);
   integer hwidq[4]={0,0,0,0};
   int bad(1);
-  geant charge,temp;
+  geant temp;
   TOF2RawSide *ptr;
   integer trpat[TOF2GC::SCLRS],trpatz[TOF2GC::SCLRS];
   TOF2RawSide::getpatt(trpat);
@@ -114,7 +113,6 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
       adca=ptr->getadca();
       nadcd=ptr->getadcd(adcd);
       if(stat==1){//not PedSubtractedData, fill PedCal arrays
-        pedrun=1;
 	if(adca>0)TOFPedCalib::fill(ilay,ibar,isid,0,adca);
 	for(int pmt=0;pmt<TOF2DBc::npmtps(ilay,ibar);pmt++)
 	                          if(adcd[pmt]>0)TOFPedCalib::fill(ilay,ibar,isid,pmt+1,adcd[pmt]);
@@ -126,7 +124,6 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
     return;//PedCalJob always exit here with status=1(bad) to bypass next reco-stages !!!
   }//<=== endof PedCalJob(Class/DS) processing
 //---------------------------------------------------------------
-  bool UTof;
 //
 // =============> check/combine adc/tdc/Ft/temper data :
 //
@@ -162,8 +159,6 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
     idd=ptr->getsid();//LBBS
     id=idd/10;// short id=LBB
     ilay=id/100-1;//0-3
-    UTof=(ilay<2);
-    ill=(ilay%2);//0/1->L1(3)/L2(4)
     ibar=id%100-1;
     isid=idd%10-1;
     stat=ptr->getstat();//upto now it is just ped-subtr flag(should be =0(PedSubtracted))
@@ -193,7 +188,6 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
     otyp=0;
     AMSSCIds tofida(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
     crat=tofida.getcrate();//current crate#(0,1,2,3)
-    slot=tofida.getslot();//sequential slot#(0,1,...10)(4 last are fictitious to identify SFECs)
     tsens=tofida.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
     temp=TOF2JobStat::gettemp(crat,tsens-1);//fast temper. from static array(may be undef for MC or some RD)
     if(AMSJob::gethead()->isRealData())ptr->settempT(temp);
@@ -205,8 +199,6 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
     }
 //<---
     chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channels numbering
-    brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering
-    charge=ptr->getcharg();
 //
     tmfound=0;
     complm=0;
@@ -317,8 +309,7 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
 //---> set event status:
       ptr->updstat(stat);//set RawSide-obj status to filter at reco-stage(befor it was =0(ok))
 //---
-      number pedv,peds;
-      pedv=TOFBPeds::scbrped[ilay][ibar].apeda(isid);
+      number peds;
       peds=TOFBPeds::scbrped[ilay][ibar].asiga(isid);
       if((adca+3*peds)>=number(TOF2GC::SCPUXMX)){
 //                                     +3*peds to be sure in high value of Anode(close to PUX-ovfl)
@@ -486,7 +477,7 @@ void TOF2RawCluster::build(int &ostatus){
   integer nadca[2]={0,0};
   integer nadcd[2]={0,0};
   number ftdc[2][TOF2GC::SCTHMX1],stdc[2][TOF2GC::SCTHMX3],ttdc[2][TOF2GC::SCTHMX3];
-  number htdc[2][TOF2GC::SCTHMX2],shtdc[2][TOF2GC::SCTHMX2];
+  number htdc[2][TOF2GC::SCTHMX2];
   integer itmatch[2][TOF2GC::SCTHMX3],itftcor[2][TOF2GC::SCTHMX3];
   integer ittdc[2][TOF2GC::SCTHMX3];
   integer itmbest[2];
@@ -498,10 +489,7 @@ void TOF2RawCluster::build(int &ostatus){
   
   integer ilay,ibar,isid,isds,isd,isdsl[TOF2GC::SCLRS];
   int16u crat,slot,sslot;
-  integer i,j,chnum,brnum,sta,st,smty[2];
-  uinteger Runum(0);
-  int16u pbitn;
-  int16u pbanti;
+  integer i,j,chnum,brnum,sta,smty[2];
   int16u id,idd,idN,stat[2];
   int16u mtyp(0),otyp(0);
   number ama[2],amd[2],amc[2];
@@ -514,7 +502,7 @@ void TOF2RawCluster::build(int &ostatus){
   number tempP[2]={0.,0.};
   number charg[2]={0.,0.};
   number t1;
-  geant blen,co,eco,brlm,pcorr,clong[TOF2GC::SCLRS];
+  geant blen,co,eco,brlm,pcorr;
   TOF2RawSide *ptr;
   TOF2RawSide *ptrN;
   integer nmemb(0);
@@ -525,7 +513,7 @@ void TOF2RawCluster::build(int &ostatus){
   geant gdt,pch1[TOF2GC::SCLRS],pch2[TOF2GC::SCLRS];
   geant edepa[TOF2GC::SCLRS],edepd[TOF2GC::SCLRS];
   geant tcorr[TOF2GC::SCLRS],elosn;
-  geant tuncorr[TOF2GC::SCLRS],tdiff[TOF2GC::SCLRS],td13,td24,td14;
+  geant td13,td24;
   geant gnd;
   number aaa;
   int dovfl;
@@ -538,9 +526,6 @@ void TOF2RawCluster::build(int &ostatus){
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"======> Enter TOF2RawCluster::build..."<<endl;
   ptr=(TOF2RawSide*)AMSEvent::gethead()
                                     ->getheadC("TOF2RawSide",0);
-  Runum=AMSEvent::gethead()->getrun();// current run number
-  pbitn=TOF2GC::SCPHBP;//phase bit position
-  pbanti=pbitn-1;// mask to avoid it.
   ostatus=1;// event output status(init. as bad)
   isds=0;
   for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
@@ -650,7 +635,6 @@ void TOF2RawCluster::build(int &ostatus){
       nstdc[isid]=nwltt;
       for(i=0;i<nwsht;i++)htdc[isid][i]=fttm-fwsht[i]*TOF2DBc::tdcbin(1);//Rel.SumHTtime +TDCch->ns
       nhtdc[isid]=nwsht;
-      for(i=0;i<nwssht;i++)shtdc[isid][i]=fttm-fwssht[i]*TOF2DBc::tdcbin(1);//Rel.SumSHTtime +TDCch->ns
       nshtdc[isid]=nwssht;
       if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         cout<<"     rel.times:"<<endl;
@@ -783,11 +767,9 @@ void TOF2RawCluster::build(int &ostatus){
 // -----> loop over all(original) LT(stdc)-hits to find best_matching_SumHT pair (if any):
 //
           geant sdtmin[2][TOF2GC::SCTHMX3];
-	  integer sumhtcor[2];
 //	  
 	  for(isd=0;isd<2;isd++){//side loop
 	    for(i=0;i<TOF2GC::SCTHMX3;i++)itmatch[isd][i]=-1;//reset(no sumHT match)
-	    sumhtcor[isd]=0; 
             if(smty[isd]>0 && nttdc[isd]>0){//side has complete measurement(+ FT/LT matching)
               for(i=0;i<nstdc[isd];i++){ // all LTtime-hits loop
 	        dtmin[isd][i]=9999;
@@ -795,7 +777,6 @@ void TOF2RawCluster::build(int &ostatus){
 	        for(j=0;j<nhtdc[isd];j++){ // all SumHTtime-hits-loop
                   dt=stdc[isd][i]-htdc[isd][j]-TOF2Varp::tofvpar.lhtdmp();//around LT-sHT m.p.(i.e~0)
                   if(fabs(dt) < TOF2Varp::tofvpar.lhtdw()){//check match window
-	            sumhtcor[isd]=1; 
 		    if(fabs(dt)<dtmin[isd][i]){//find best matching(to choose optimal match window)
 		      dtmin[isd][i]=fabs(dt);
 		      itmatch[isd][i]=j;//mark matched LTtime-hits(stdc) with index of best matched SumHT-hit
@@ -1177,19 +1158,15 @@ void TOF2RawCluster::build(int &ostatus){
               edepa[ilay]=aedep;
               edepd[ilay]=dedep;
               tcorr[ilay]=time;
-              tuncorr[ilay]=0.5*(tmf[0]+tmf[1]);// layer A-non.cor. time
-              tdiff[ilay]=0.5*(tmf[0]-tmf[1]);// layer A-non.cor. time-diff.(ns) 
               pch1[ilay]=geant(charg[0]);
               pch2[ilay]=geant(charg[1]);
               brnl[ilay]=ibar;
-              clong[ilay]=co;
-              st=0;
               coo=co;// Local long-coord.!!!
               ecoo=eco;
               if(isds==1)ecoo=blen/sqrt(12.);//for single-sided counters
-              if(AMSEvent::gethead()->addnext(AMSID("TOF2RawCluster",0)
+              AMSEvent::gethead()->addnext(AMSID("TOF2RawCluster",0)
                         ,new TOF2RawCluster(sta,ilay+1,ibar+1,zc,ama,amd,adcdr,
-                              aedep,dedep,tm,time,coo,ecoo,nmemb,membp)))st=1;;//store value
+                              aedep,dedep,tm,time,coo,ecoo,nmemb,membp));
 //	cout<<" TofRawCluster created: "<<" IL/IB="<<ilay+1<<" "<<ibar+1<<"  RawSide nmemb="<<nmemb<<"  pointers="<<hex<<membp[0]<<" "<<membp[1]<<dec<<endl;
 //	if(membp[0]>0)idd=dynamic_cast<TOF2RawSide*>(membp[0])->getsid();//LBBS
 //        cout<<"   Side-1 lbbs1="<<idd<<endl;
@@ -1390,7 +1367,6 @@ void TOF2RawCluster::build(int &ostatus){
   trlen24=(zcb[1]-zcb[3])*cosi;//2->4
   td13=(tcorr[0]-tcorr[2]);
   td24=(tcorr[1]-tcorr[3]);
-  td14=tuncorr[0]-tuncorr[3];
 //
   geant zpl1,zpl2,trlnor;
   zpl1=TOF2DBc::supstr(1)-
@@ -1433,7 +1409,7 @@ void TOF2RawCluster::build(int &ostatus){
 //-----------------------------------------------------------------------
 void TOF2RawCluster::recovers(number x){ // function to recover missing side
   geant gn[2],csl,sl[2],dt0,upr[2*TOF2GC::SCPROFP],vel,xerr,sqr,hclen,co,eco,pcorr;
-  number q[2],tm[2],tcor;
+  number q[2],tm[2],tcor=0;
   number tot[2],adc[2];
   int il,ib,hlf;
   int isg(1),isb(0);
@@ -1681,8 +1657,7 @@ void AMSTOFCluster::build2(int &stat){
   AMSPoint coo,ecoo;
   int i,j,il,ib,bmax;
   integer ntof,barn,status,statusn,plrot;
-  geant barl,barw,cl,cle,ct,cte,cln,clne,ctn,ctne,cz,czn,clm,clnm;
-  geant barwn;
+  geant barl,barw,cl,cle,ct,cte,cln,clne,ctn,cz,czn,clm,clnm;
   geant edep,edepn,edepa,edepd,edepdn,edass;
   geant time,etime,timen,etimen,speedl,err;
   integer timeoks,timeokn;
@@ -1701,9 +1676,9 @@ void AMSTOFCluster::build2(int &stat){
     }
 //
     while (ptr){// scan to put all fired bars of layer "il" in buffer
-      if(ptr->getntof()==il+1){
+      if(ptr->getntof()==int(il+1)){
         ib=ptr->getplane();
-        if(il>=0 && il<sizeof(count)/sizeof(count[0]))count[il]++;
+        if(il>=0 && il<int(sizeof(count)/sizeof(count[0])))count[il]++;
 #ifdef __AMSDEBUG__
         assert(ib>0 && ib <= TOF2GC::SCMXBR);
 #endif
@@ -1785,9 +1760,6 @@ void AMSTOFCluster::build2(int &stat){
         clne=ptrn->getetimeD();
         clnm=0.5*barl;// limit on max. long. coord.
         ctn=TOF2DBc::gettsc(il,ib+1);   //transv.pos. of  bar
-        if((ib+1)>0 && (ib+2)<bmax)barwn=TOF2DBc::plnstr(5);//stand.(not outer) bar width
-        else barwn=TOF2DBc::outcp(il,1);//outer counter width
-        ctne=(barw/2+0.3)/3;//0.25 for safety, /3 to have 3*sigma~barw/2
         statusn=ptrn->getstatus();//may be !=0(bad history/t_meas or single-sided)
         edepn=eplane[ib+1];
         timen=ptrn->gettime();// time from ib+1 bar(ns) 
@@ -1981,15 +1953,14 @@ void AMSTOFCluster::recovers2(AMSTrTrack * ptr){ // recreate TOFCluster
 //  time through recovering(using tracker) of 1-sided TOFRawCluster-members
 // (only for 1-member clusters: 2-memb.clusters are 2-sided by definition(creation))
 // called from beta.C
-  integer status,nm,mib,mil;
+  integer nm,mib,mil;
   AMSDir dir(0,0,1.);
   AMSPoint coo;
   AMSPoint outp;
-  number theta,phi,sleng,ctr,clo=0,newt;
+  number theta,phi,sleng,clo=0,newt;
 //
   if(_nmemb==1){// only for 1-memb clusters
     nm=0;
-    status=dynamic_cast<TOF2RawCluster*>(_mptr[nm])->getstatus();
     mil=dynamic_cast<TOF2RawCluster*>(_mptr[nm])->getntof()-1;
     mib=dynamic_cast<TOF2RawCluster*>(_mptr[nm])->getplane()-1;
     if(nm==0){// 
@@ -1999,12 +1970,10 @@ void AMSTOFCluster::recovers2(AMSTrTrack * ptr){ // recreate TOFCluster
       ptr->interpolate(coo,dir,outp,theta,phi,sleng);
       if(TOF2DBc::plrotm(mil)==0){
         clo=outp[1];// unrot.(X-meas) -> Y-cross = long.c(loc.r.s.=abs.r.s.)
-        ctr=outp[0];// transv. coord.(abs. r.s.)(X-cross) 
       }
       else {
         clo=outp[0];// rot.(Y-meas) -> take X-cross for long.c.
 //        clo=-clo;// go to bar local r.s.
-        ctr=outp[1];// transv. coord.(abs. r.s.)(Y-cross) 
       }
     }
       dynamic_cast<TOF2RawCluster*>(_mptr[nm])->recovers(clo);//missing side recovering

@@ -832,7 +832,7 @@ bool DAQEvent::_ComposedBlock(){
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
   if(_GetBlType()==0 && AMSJob::gethead()->isRealData())_HeaderOK();
-  if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b && _GetBlType()!= 896) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
+  if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b && _GetBlType()!= 896) || !(DAQCFFKEY.BTypeInDAQ[0]<=int(_GetBlType()) && DAQCFFKEY.BTypeInDAQ[1]>=int(_GetBlType())))return 0;
   int preset=getpreset(_pData); 
   //  if(!_ComposedBlock())return 1;
   if(_Length >1 && _pData ){
@@ -840,7 +840,7 @@ integer DAQEvent::_EventOK(){
     for(_pcur=_pData+preset;_pcur<_pData+_Length && _pcur>=_pData;_pcur+=_cl(_pcur)) {
       ntot+=_cl(_pcur);
     }
-    if(ntot != _Length)goto wrong;
+    if(ntot != int(_Length))goto wrong;
  
 
     ntot=preset;
@@ -912,7 +912,7 @@ integer DAQEvent::_EventOK(){
       }
     }
   wrong:
-    if(ntot != _Length){            
+    if(ntot != int(_Length)){            
       cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
 	_Length<<" Blocks say length is "<<ntot<<" "<<_GetBlType()<<endl;
       cerr <<" SubBlock dump follows"<<endl;
@@ -1167,7 +1167,7 @@ integer DAQEvent::_HeaderOK(){
 	uinteger _JinjSlaveMask(0);
 	if(((w1>>8)&255)==0)_JinjSlaveMask=(((w1&255)<<16) | w2);//include SDRs as ports !!!
 	//fill _CalibData[portj] for SDRs only(has no slaves):
-	for(int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++){
+	for(unsigned int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++){
 	  if((_JinjSlaveMask&(1<<i))>0){
 	    if(strstr(_PortNamesJ[i],"SDR-")!=0)_CalibData[i]=1;
 	  }
@@ -1462,7 +1462,7 @@ integer DAQEvent::_DDGSBOK(){
 
        
 	}
-	if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
+	if(ntot !=int(_cl(_pcur)-2-1-1-_cll(_pcur))){
 	  cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<ntot<<endl;
 	  return 0;
 	}
@@ -1509,7 +1509,7 @@ integer DAQEvent::_DDGSBOK(){
       (void)port;
 #endif
 	}
-	if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
+	if(ntot !=int(_cl(_pcur)-2-1-1-_cll(_pcur))){
 	  cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<ntot<<endl;
 	  return 0;
 	}
@@ -1586,7 +1586,7 @@ void DAQEvent::buildRawStructures(){
 #ifdef __AMSDEBUG__
 	      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<"  Error "<<isError(*(pdown+*pdown))<<endl;
 #endif
-	      if(_getportj(*(pdown+*pdown))<sizeof(_JError)/sizeof(_JError[0])){
+	      if(_getportj(*(pdown+*pdown))<int(sizeof(_JError)/sizeof(_JError[0]))){
 		_JError[_getportj(*(pdown+*pdown))]=(*(pdown+*pdown))>>8;
 	      }
 	      
@@ -1888,8 +1888,8 @@ void DAQEvent::select(){
   DAQEvent daq;
   int ok;
   while((ok=daq.read())){
-    if(daq.runno() == SELECTFFKEY.Run &&
-       daq.eventno() >= SELECTFFKEY.Event)break;
+    if(int(daq.runno()) == SELECTFFKEY.Run &&
+       int(daq.eventno()) >= SELECTFFKEY.Event)break;
     daq.shrink();
   }
   // pos back if fbin.good
@@ -1934,8 +1934,6 @@ DAQEvent::InitResult DAQEvent::init(){
 	integer run=-1;
 	integer ok=1;
 	integer iposr=0;
-	uinteger tfevent=0;
-	uinteger tlevent=0;
 	integer fevent=0;
 	integer levent=0;
 	while(ok){
@@ -1951,7 +1949,7 @@ DAQEvent::InitResult DAQEvent::init(){
 	    }
 
 	    iposr++;
-	    if (daq.runno() != run){
+	    if (int(daq.runno()) != run){
 	      if(run>0){
 		cout <<" DAQEvent::init-I-Run "<<run<<" events "<<SELECTFFKEY.Event-1<<" "<<fevent<<" "<<levent<<endl;
 	      }
@@ -1959,16 +1957,14 @@ DAQEvent::InitResult DAQEvent::init(){
 	      run=daq.runno();
 	      Time_1 = 0;
 	      fevent=daq.eventno();
-	      tfevent=daq.time();
 	      if(Run==-1){
 		SELECTFFKEY.Event=1;
 	      }
 	    } 
 	    levent=daq.eventno();
-	    tlevent=daq.time();
-	    if(Event >=0 && daq.runno() == Run &&
-	       daq.eventno() >= Event)break;
-	    if(daq.runno() == Run && iposr ==-Event)break;
+	    if(Event >=0 && int(daq.runno()) == Run &&
+	       int(daq.eventno()) >= Event)break;
+	    if(int(daq.runno()) == Run && iposr ==-Event)break;
 	    run=daq.runno();
 	    daq.shrink();
 	  }
@@ -2284,7 +2280,7 @@ void DAQEvent::_convert(){
   if(AMSDBc::BigEndian){
     unsigned char tmp;
     unsigned char *pc = (unsigned char*)(_pData);
-    int i;
+    unsigned int i;
     for(i=0;i<_Length;i++){
       tmp=*pc;
       *pc=*(pc+1);
@@ -2416,7 +2412,7 @@ uint16  DAQEvent::sdetlength(uint16 sdetid) {
     l  = _pData[offset - 1];
     if (id == sdetid) return l;
     offset = offset  + l + 1;
-    if (offset > getlength()/sizeof(_pData[0])) break;
+    if (offset > int(getlength()/sizeof(_pData[0]))) break;
   }
   return 1;
 }  
@@ -2431,7 +2427,7 @@ integer DAQEvent::sdet(uint16 sdetid) {
     l  = _pData[offset-1];
     if (id == sdetid) return offset;
     offset = offset  + l + 1;
-    if (offset > getlength()/sizeof(_pData[0])) break;
+    if (offset > int(getlength()/sizeof(_pData[0]))) break;
   }
   return -1;
 }  
@@ -2461,7 +2457,7 @@ void DAQEvent::dump(uint16 sdetid) {
 	return;
       }
       offset = offset  + l + 1;
-      if (offset > getlength()/sizeof(_pData[0])) break;
+      if (offset > int(getlength()/sizeof(_pData[0]))) break;
     }
   }
 }  
@@ -2484,7 +2480,7 @@ int DAQEvent::parser(char a[], char **& fname){
   if(kl<0)kl=0;
   // cout << " kl "<<kl<<endl;
 
-  if(kl==0 || kl==strlen(a)){
+  if(kl==0 || kl==int(strlen(a))){
     // Whole directory  wanted
     AString fdir(a);
 
@@ -2531,13 +2527,13 @@ int DAQEvent::parser(char a[], char **& fname){
 
 
   {
-    int coma=kl-1;
-    for(int i=kl;i<strlen(a)+1;i++){
+    unsigned int coma=kl-1;
+    for(unsigned int i=kl;i<strlen(a)+1;i++){
       if(a[i]==',' || i==strlen(a)){
 	if(i-coma > 1){
 	  // find -
 	  int tire=0;
-	  for(int j=coma+1;j<i;j++){
+	  for(unsigned int j=coma+1;j<i;j++){
 	    if(a[j]=='-' && j != coma+1 && j != i-1){
 	      istrstream osta(a+coma+1,j-coma-1);
 	      int ia= 1000000000;
@@ -2559,13 +2555,13 @@ int DAQEvent::parser(char a[], char **& fname){
   fname =new char*[ntot];
   ntot=0;
   {
-    int coma=kl-1;
-    for(int i=kl;i<strlen(a)+1;i++){
+    unsigned int coma=kl-1;
+    for(unsigned int i=kl;i<strlen(a)+1;i++){
       if(a[i]==',' || i==strlen(a)){
 	if(i-coma > 1){
 	  // find -
 	  int tire=0;
-	  for(int j=coma+1;j<i;j++){
+	  for(unsigned int j=coma+1;j<i;j++){
 	    if(a[j]=='-' && j!=coma+1 && j!=i-1){
 	      istrstream osta(a+coma+1,j-coma-1);
 	      int ia= 1000000000;
@@ -2576,15 +2572,15 @@ int DAQEvent::parser(char a[], char **& fname){
 	      if(ib >=ia){
 		//add leading zero(s)
 		int lz=0;
-		int l;
+		unsigned int l;
 		for(l=coma+1;l<j;l++){
 		  if(a[l]=='0')lz++;
 		  else break;
 		}
 		for(int k=ia;k<=ib;k++){
 		  fname[ntot++]=new char[255];
-		  for(l=0;l<kl;l++)fname[ntot-1][l]=a[l];
-		  for(l=kl;l<kl+lz;l++)fname[ntot-1][l]='0';
+		  for(l=0;int(l)<kl;l++)fname[ntot-1][l]=a[l];
+		  for(l=kl;int(l)<kl+lz;l++)fname[ntot-1][l]='0';
 		  for(l=kl+lz;l<255;l++)fname[ntot-1][l]='\0';
 		  ostrstream ost(fname[ntot-1]+kl+lz,255-kl-lz);
 		  ost <<k;
@@ -2595,9 +2591,9 @@ int DAQEvent::parser(char a[], char **& fname){
 	  }
 	  if(tire==0){
 	    fname[ntot++]=new char[255];
-	    int l;
+	    unsigned int l;
 	    for(l=0;l<255;l++)fname[ntot-1][l]='\0';
-	    for(l=0;l<kl;l++)fname[ntot-1][l]=a[l];
+	    for(l=0;int(l)<kl;l++)fname[ntot-1][l]=a[l];
 	    for(l=kl;l<i-coma-1+kl;l++)fname[ntot-1][l]=a[l-kl+coma+1];
 	  }
 	  coma=i;
@@ -2622,7 +2618,7 @@ integer DAQEvent::_select(dirent64 *entry)
   integer DAQEvent::_select( const dirent *entry)
 #endif
 {
-  for(int i=0;i<strlen(entry->d_name);i++){
+  for(unsigned int i=0;i<strlen(entry->d_name);i++){
     if(!isdigit((entry->d_name)[i]))return 0;
   }
 
@@ -2677,7 +2673,7 @@ char * DAQEvent::_getNextFile(integer & run, integer &event){
 	result = strtok( NULL, delims );
       }
       bool digit=true;
-      for(int j=0;j<strlen(dir);j++){
+      for(unsigned int j=0;j<strlen(dir);j++){
 	if(!isdigit(dir[j])){
 	  digit=false;
 	  break;
@@ -2842,7 +2838,7 @@ char * DAQEvent::_getNextFile(integer & run, integer &event){
     }
     _Waiting=false;
     int kb=0;
-    for(int k=0;k<strlen(ifnam[KIFiles]);k++){
+    for(unsigned int k=0;k<strlen(ifnam[KIFiles]);k++){
       if( *(ifnam[KIFiles]+k)==' ')kb++;
       else break;
     }
@@ -2853,7 +2849,7 @@ char * DAQEvent::_getNextFile(integer & run, integer &event){
       if(KIFiles<InputFiles){
 	_NeventsPerRun=0;
 	int kb=0;
-	for(int k=0;k<strlen(ifnam[KIFiles]);k++){
+	for(unsigned int k=0;k<strlen(ifnam[KIFiles]);k++){
 	  if( *(ifnam[KIFiles]+k)==' ')kb++;
 	  else break;
 	}
@@ -2869,7 +2865,7 @@ char * DAQEvent::_getNextFile(integer & run, integer &event){
       cerr<<"DAQEvent::_getNextFile-E-FileTooShort "<<_NeventsPerRun<<" "<<ifnam[KIFiles-1]<<endl;
     }
     int kb=0;
-    for(int k=0;k<strlen(ifnam[KIFiles-1]);k++){
+    for(unsigned int k=0;k<strlen(ifnam[KIFiles-1]);k++){
       if( *(ifnam[KIFiles-1]+k)==' ')kb++;
       else break;
     }
@@ -2902,7 +2898,7 @@ extern "C" size_t _compressable(Bytef * istream, size_t inputl){
 
 
   size_t outputlb=0;
-  for(int i=0;i<inputl;i++){
+  for(unsigned int i=0;i<inputl;i++){
     if(istream[i]==0)outputlb++;
     else outputlb+=CHAR_BIT+1;
   }
@@ -2994,13 +2990,14 @@ extern "C" bool _compress(Bytef * istream, size_t inputl,Bytef * ostream, size_t
   */
   size_t id=0;
   size_t off=0;
-  for(int i=0;i<inputl;i++){
+  for(unsigned int i=0;i<inputl;i++){
     if(id>=outputl){
       return false;
     }
     if(istream[i]){
       ostream[id]+=(1<<off);
-      off=(++off)%CHAR_BIT;
+      ++off;
+	  off=off%CHAR_BIT;
       if(off){
         ostream[id++]+=(istream[i]<<off);
         ostream[id]=(istream[i]>>(CHAR_BIT-off));     
@@ -3008,7 +3005,8 @@ extern "C" bool _compress(Bytef * istream, size_t inputl,Bytef * ostream, size_t
       else ostream[(++id)++]=istream[i];
     }
     else{
-      off=(++off)%CHAR_BIT;
+	  ++off;
+      off=off%CHAR_BIT;
       if(!off)id++;
     }
   }
@@ -3308,7 +3306,7 @@ size_t DAQCompress::decompressable(unsigned short *istream, size_t length, unsig
 bool DAQCompress::decompress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl)
 {
 
-  int i;
+  unsigned int i;
 
   if(!_huffman_init)                    return false;
 

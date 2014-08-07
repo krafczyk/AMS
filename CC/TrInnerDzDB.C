@@ -197,11 +197,11 @@ int TrInnerDzDB::TDV2DB(){
 		TrInnerLin2DB);
   int dbsize= tid.GetDataBaseSize();
   for (int ii=0;ii<dbsize;ii++){
-    uint ltimes[5];
+    uint ltimes[5] = {0};
     tid.GetDBRecordTimes(ii,ltimes);
     times.push_back(ltimes[2]+1);
   }
-  for (int jj=0;jj<times.size();jj++){
+  for (unsigned int jj=0;jj<times.size();jj++){
     time_t tt= (time_t)times[jj];
     tid.validate(tt);
   }

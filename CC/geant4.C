@@ -566,7 +566,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
     }
-    if(G4FFKEY.MemoryLimit>0 && mall-minit>G4FFKEY.MemoryLimit){
+    if(G4FFKEY.MemoryLimit>0 && long(mall-minit)>G4FFKEY.MemoryLimit){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
       cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<mall<<endl;
@@ -837,7 +837,7 @@ if(!_pv){
   G4PhysicalVolumeStore* phystore = G4PhysicalVolumeStore::GetInstance();
 if(G4FFKEY.OverlapTol &&phystore){
   cout <<" AMSgvolume::MakeG4Volumes-I-Total of "<<phystore->size()<<" volumes found"<<endl;
-  for(int i=0;i<phystore->size();i++){
+  for(unsigned int i=0;i<phystore->size();i++){
     G4VPhysicalVolume*p=(*phystore)[i];
      if(p && p->CheckOverlaps(1000,G4FFKEY.OverlapTol*cm,false)){
        cerr<<"  AMSgvolume::MakeG4Volumes-E-OverlapFoundFor "<<p->GetName()<<endl;
@@ -1068,7 +1068,7 @@ if(!Step)return;
 	for (int i = 0; i < NE;   i++) xsec[i] = 0;
 	nevt = 0;
       }
-      if (evno != AMSEvent::gethead()->getEvent()) {
+      if (evno != int(AMSEvent::gethead()->getEvent())) {
 	  evno  = AMSEvent::gethead()->getEvent();
 	for (int i = 0; i < NE*3; i++) wsum[i] = 0;
 	fpl1 = 0;
@@ -1167,7 +1167,7 @@ if(!Step)return;
       if (material) {
 	G4double slen = Step->GetStepLength();
 	G4double dens = material->GetDensity();
-	for (G4int i = 0; i < material->GetNumberOfElements(); i++) {
+	for (unsigned int i = 0; i < material->GetNumberOfElements(); i++) {
 	  const G4Element *elm = material->GetElement(i);
 	  G4int Z = elm->GetZ();
 	  if (Z < 1 || NZ < Z) continue;
@@ -1257,7 +1257,7 @@ if(!Step)return;
                         pos[i] = pre_pos[i]/cm;
                      }
                      map <int,float>felmap;
-                      for (int i=0; i<material->GetNumberOfElements(); ++i) {
+                      for (unsigned int i=0; i<material->GetNumberOfElements(); ++i) {
                       int Zi = (*material->GetElementVector())[i]->GetZ();
                       float Ni=material->GetVecNbOfAtomsPerVolume()[i];
                       felmap.insert(make_pair(Zi,Ni));
@@ -1521,16 +1521,12 @@ if(!Step)return;
 	  //------------------------------------------------------------
 	  //    TOF: (imply here that Pre or Post volume is sensitive as defined by above check !!!)
 	  //
-	  geant x,y,z;
-	  geant dee,tof,pstep;
-	  geant tdedx;
-	  int numv,iprt;
+	  geant dee,tof;
+	  int numv;
 	  integer tbegtof(0);
 	  integer tendtof(0);
-	  integer intof(0);
 	  if(PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='F')tbegtof=1;
 	  if(PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='F')tendtof=1;
-	  if(tbegtof==1 || tendtof==1)intof=1;
 	  //
 	  //------------------------------------------------------------------
 	  //  TOF simple :
@@ -1538,17 +1534,10 @@ if(!Step)return;
 	  numv=PrePV->GetCopyNo();
 	  dee=GCTRAK.destep;
 	  tof=GCTRAK.tofg;
-	  pstep=GCTRAK.step;
-	  iprt=GCKINE.ipart;
-	  x=GCTRAK.vect[0];
-	  y=GCTRAK.vect[1];
-	  z=GCTRAK.vect[2];
 	  if(tendtof==1 && GCTRAK.inwvol==1){// just enter TFnn
 	    //cout<<"---> Enter TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<" Edep="<<dee<<" numv="<<numv<<" pstep="<<pstep<<endl;  
 	  }
 	  if(tbegtof==1 && GCTRAK.destep>0.){
-	    if(pstep!=0)tdedx=1000*dee/pstep;
-	    else tdedx=0;
 	    number rkb=0.0011;
 	    number c=0.52;
 	    number dedxcm=1000*dee/GCTRAK.step;
@@ -1648,12 +1637,12 @@ if(!Step)return;
 	  //------------------------------------------------------------------
 	  //  ANTI :
 	  //
-	  integer isphys,islog;
+	  integer isphys;
 	  if(PrePV->GetName()(0)== 'A' && PrePV->GetName()(1)=='N' &&
 	     PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='S' && GCTRAK.destep>0.){
 	    dee=GCTRAK.destep;
 	    isphys=PrePV->GetCopyNo();
-	    islog=floor(0.5*(isphys-1))+1;//not used now
+	    // islog=floor(0.5*(isphys-1))+1;//not used now
 	    number rkb=0.0011;
 	    number c=0.52;
 	    number dedxcm=1000*dee/GCTRAK.step;

@@ -106,8 +106,8 @@ class GeomHash: public TObject{
   static int    bufferSize;       //!
   void checkBuffers();
 
-#pragma omp threadprivate(fgIsA)
   ClassDef(GeomHash,1);
+#pragma omp threadprivate(fgIsA)
 };
 
 

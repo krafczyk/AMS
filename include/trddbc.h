@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.25 2014/02/15 18:05:26 traiha Exp $
+//  $Id$
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include "typedefs.h"
@@ -185,9 +185,9 @@ public:
   static integer patconfH(uinteger pat, uinteger lay,uinteger seg){return segconf(seg,_patconfH[seg][lay][pat]-1);}
   static integer patdH(uinteger lay,uinteger seg){return _patdH[seg][lay];}
   static integer npatH(uinteger iseg){return iseg<trdconst::maxseg?_NpatH[iseg]:0;}
-  static uinteger patallowH(uinteger pat,uinteger seg){return pat<npatH(seg)?_patallowH[seg][pat]:0;}
-  static uinteger patallow2H(uinteger pat,uinteger seg){return pat<npatH(seg)?_patallow2H[seg][pat]:0;}
-  static uinteger patpointsH(uinteger pat,uinteger seg){return pat<npatH(seg)?_patpointsH[seg][pat]:0;}
+  static uinteger patallowH(uinteger pat,uinteger seg){return int(pat)<npatH(seg)?_patallowH[seg][pat]:0;}
+  static uinteger patallow2H(uinteger pat,uinteger seg){return int(pat)<npatH(seg)?_patallow2H[seg][pat]:0;}
+  static uinteger patpointsH(uinteger pat,uinteger seg){return int(pat)<npatH(seg)?_patpointsH[seg][pat]:0;}
   static uinteger nlayH(uinteger iseg){return iseg<trdconst::maxseg?_NlayH[iseg]:0;}
 
   TRDDBc(): _status(0){}
@@ -322,7 +322,7 @@ public:
     static  integer LadderOrientation(uinteger oct, uinteger lay){return lay<LayersNo(oct)?_LadderOrientation[oct][lay]:0;}     
     static  integer LadderShift(uinteger oct, uinteger lay,uinteger lad){return lad%2?-1:1;}
     static number SpacerWidth(){return _SpacerDim[0];}
-    static number SpacerDim(int n){return n<sizeof(_SpacerDim)/sizeof(_SpacerDim[0])?_SpacerDim[n]:-1;}
+    static number SpacerDim(int n){return n<int(sizeof(_SpacerDim)/sizeof(_SpacerDim[0]))?_SpacerDim[n]:-1;}
     static  integer NumberSpacers(uinteger tube){return tube<trdconst::maxtube?_NumberSpacers[tube]:0;}     
     static  number  AngleMainOctagon(){return _AngleMainOctagon;}
 

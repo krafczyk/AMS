@@ -15,7 +15,7 @@ uinteger AMSTRDIdCalib::_CurRun=0;
 
 
 void AMSTRDIdCalib::_clear(){
-int i;
+unsigned int i;
 for(i=0;i<getnchan();i++){
  _Count[i]=0;
  _ADC[i]=0;
@@ -39,7 +39,7 @@ void AMSTRDIdCalib::ntuple(integer s){
     cout <<  " CALIB " <<CALIB.Ntuple<<endl;
    HBNT(CALIB.Ntuple,"trd calibaration"," ");
    HBNAME(CALIB.Ntuple,"TrdCalib",(int*)(&TRDCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
-   int i,j,k;
+   unsigned int i,j,k;
      for(i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){
@@ -73,7 +73,7 @@ if(!AMSEvent::gethead())return;
     _BeginTime=AMSEvent::gethead()->gettime();
   }
   
-  for(int icll=0;icll<AMSTRDIdSoft::ncrates();icll++){
+  for(unsigned int icll=0;icll<AMSTRDIdSoft::ncrates();icll++){
    int nn=0;
    int nnt=0;
    AMSTRDRawHit *p=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",icll);
@@ -102,7 +102,7 @@ void AMSTRDIdCalib::printbadchanlist(){
   fcluster.open("../datacards/TRDBadChannelList.Clusters",ios::out);
 
 
- int i,j,k;
+ unsigned int i,j,k;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){
@@ -129,7 +129,7 @@ void AMSTRDIdCalib::printbadchanlist(){
 void AMSTRDIdCalib::_calc(){
 
 int badp=0;
- int i,j,k;
+ unsigned int i,j,k;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){
@@ -153,7 +153,7 @@ int badp=0;
 }
 
 void AMSTRDIdCalib::_update(){
- int i,j,k;
+ unsigned int i,j,k;
      int total=0;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
@@ -260,7 +260,7 @@ static integer hist=0;
 int cnt=0;
 double acc=0;
 if(++counter%TRDCALIB.EventsPerCheck == 0 || forcedw){
- int i,j,k;
+ unsigned int i,j,k;
      for( i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
         for(k=0;k<trdconst::maxtube;k++){

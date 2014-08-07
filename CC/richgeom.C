@@ -595,7 +595,6 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 {
   AMSgvolume *rich;
-  AMSNode *dummy;
   AMSNode *lig;
   geant par[20],coo[3];
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz}
@@ -1001,7 +1000,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   coo[0]=(full_naf_block_length/2-par[0]);
   coo[1]=(full_naf_block_length/2-par[0]);
   coo[2]=0;
-  dummy=naf_block->add(new AMSgvolume("RICH PORON",
+  naf_block->add(new AMSgvolume("RICH PORON",
 				      0,
 				      "NHOL",
 				      "BOX",
@@ -1018,7 +1017,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   coo[0]=-(full_naf_block_length/2-par[0]);
   coo[1]=(full_naf_block_length/2-par[0]);
   coo[2]=0;
-  dummy=naf_block->add(new AMSgvolume("RICH PORON",
+  naf_block->add(new AMSgvolume("RICH PORON",
 				      0,
 				      "NHOL",
 				      "BOX",
@@ -1034,7 +1033,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   coo[0]=(full_naf_block_length/2-par[0]);
   coo[1]=-(full_naf_block_length/2-par[0]);
   coo[2]=0;
-  dummy=naf_block->add(new AMSgvolume("RICH PORON",
+  naf_block->add(new AMSgvolume("RICH PORON",
 				      0,
 				      "NHOL",
 				      "BOX",
@@ -1050,7 +1049,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   coo[0]=-(full_naf_block_length/2-par[0]);
   coo[1]=-(full_naf_block_length/2-par[0]);
   coo[2]=0;
-  dummy=naf_block->add(new AMSgvolume("RICH PORON",
+  naf_block->add(new AMSgvolume("RICH PORON",
 				      0,
 				      "NHOL",
 				      "BOX",
@@ -1190,7 +1189,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[2]=RICpmtsupportheight/2;
 
   
-  dummy=rich->add(new AMSgvolume("RICH CARBON",
+  rich->add(new AMSgvolume("RICH CARBON",
                                  0,            
                                  "PMS0",       
                                  "BOX ",       
@@ -1206,7 +1205,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
   coo[1]*=-1;
 
-  dummy=rich->add(new AMSgvolume("RICH CARBON",
+  rich->add(new AMSgvolume("RICH CARBON",
                                  0,
                                  "PMS0",
                                  "BOX ",
@@ -1230,7 +1229,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[2]=RICpmtsupportheight/2;
 
   
-  dummy=rich->add(new AMSgvolume("RICH CARBON",
+  rich->add(new AMSgvolume("RICH CARBON",
                                  0,
                                  "PMS1",
                                  "BOX ",
@@ -1245,7 +1244,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
   coo[0]*=-1;
 
-  dummy=rich->add(new AMSgvolume("RICH CARBON",
+  rich->add(new AMSgvolume("RICH CARBON",
                                  0,
                                  "PMS1",
                                  "BOX ",

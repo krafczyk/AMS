@@ -59,7 +59,7 @@ void TofRecon::Print(int verbosity) {
 
 void TofRecon::DumpTofClustersContainer(AMSEventR* event) {
   printf("TofRecon::DumpTofClustersContainer-V n. clusters %2d\n",event->NTofCluster());
-  for (int icluster=0; icluster<event->NTofCluster(); icluster++) {
+  for (unsigned int icluster=0; icluster<event->NTofCluster(); icluster++) {
     TofClusterR* cluster = (TofClusterR*) event->pTofCluster(icluster);
     if (cluster==0) continue;
     printf("    cluster %2d  status %7d  layer %1d   bar %2d  edep %7.2f  edepd %7.2f  t %7.2f  et %7.2f  coo (%7.2f,%7.2f,%7.2f) ecoo (%7.2f,%7.2f,%7.2f)\n",
@@ -71,7 +71,7 @@ void TofRecon::DumpTofClustersContainer(AMSEventR* event) {
 
 void TofRecon::DumpTofRawClustersContainer(AMSEventR* event) {
   printf("TofRecon::DumpTofRawClustersContainer-V n. raw clusters %2d\n",event->NTofRawCluster());
-  for (int icluster=0; icluster<event->NTofRawCluster(); icluster++) {
+  for (unsigned int icluster=0; icluster<event->NTofRawCluster(); icluster++) {
     TofRawClusterR* cluster = (TofRawClusterR*) event->pTofRawCluster(icluster);
     if (cluster==0) continue;
     printf("    raw %2d  status %7d  layer %1d   bar %2d  edepa %8.2f  edepd %8.2f  t %8.2f  cool %8.2f\n",
@@ -287,7 +287,7 @@ bool TofRecon::NoPreviousFT(AMSEventR* event, float time) {
   }
   // I know this is stupid but I will check that other channels behave in the same way of reference one
   bool bad_check = false;
-  for (int itof=1; itof<event->NTofRawSide(); itof++) {
+  for (unsigned int itof=1; itof<event->NTofRawSide(); itof++) {
     TofRawSideR* raw = (TofRawSideR*) event->pTofRawSide(itof);
     int          nft = raw->nftdc; 
     float        lft = 0.0244*1e-3*raw->getftdc(nft-1);
@@ -347,7 +347,7 @@ int TofRecon::BuildTofTracks(AMSEventR* event, int level) {
     ///////////////////////////////////////////////
 
     vector<TofClusterR*> good_tof_clusters_list[4];
-    for (int itof=0; itof<event->NTofCluster(); itof++) {
+    for (unsigned int itof=0; itof<event->NTofCluster(); itof++) {
       TofClusterR* cluster = event->pTofCluster(itof);
       if (cluster==0) continue; 
       if (GoodTofCluster(cluster,lvl1,"build")) good_tof_clusters_list[cluster->Layer-1].push_back(cluster);
@@ -713,7 +713,7 @@ TofTrack* TofRecon::BuildATofTrackFromTrTrack(AMSEventR* event, TrTrackR* trk_tr
   // - get only the good ones
   // - test if the track is passing through the paddle 
   TofClusterR* clusters[4] = {0,0,0,0};
-  for (int itof=0; itof<event->NTofCluster(); itof++) {
+  for (unsigned int itof=0; itof<event->NTofCluster(); itof++) {
     TofClusterR* cluster = event->pTofCluster(itof);
     if (cluster==0) continue;
     if (!GoodTofCluster(cluster,lvl1,"fromtrtrack")) continue;
@@ -763,7 +763,7 @@ bool TofRecon::AssociateTrTracksToTofTracks(AMSEventR* event, int id) {
     // 4. reorder the list on base of Y chisq
     ///////////////////////////////////////////////
 
-    for (int itrktr=0; itrktr<event->NTrTrack(); itrktr++) {
+    for (unsigned int itrktr=0; itrktr<event->NTrTrack(); itrktr++) {
       TrTrackR* trk_track = (TrTrackR*) event->pTrTrack(itrktr);
       // compatibility
       if (!trk_track) continue;
@@ -944,7 +944,7 @@ void TofRecon::FillComparisonBetweenBetaAndTofTrackStatistics(AMSEventR* event) 
   // check the TOF tracks inside Beta (Beta > TOF tracks)
   int ntoftrack_in_beta = 0;
   // loop on beta 
-  for (int ibeta=0; ibeta<event->NBeta(); ibeta++) {
+  for (unsigned int ibeta=0; ibeta<event->NBeta(); ibeta++) {
     BetaR* beta = event->pBeta(ibeta);
     // loop on tof tracks
     for (int itrack=0; itrack<NTofTrack(); itrack++) {
@@ -1017,7 +1017,7 @@ BetaR* TofRecon::GetIncludedBeta(TofTrack* tof_track, AMSEventR* event) {
     return 0;
   }
   // loop on beta 
-  for (int ibeta=0; ibeta<event->NBeta(); ibeta++) {
+  for (unsigned int ibeta=0; ibeta<event->NBeta(); ibeta++) {
     BetaR* beta = event->pBeta(ibeta);
     float diff  = 0;
     int   nhits = 0;
@@ -1321,7 +1321,7 @@ EcalShowerR* TofRecon::GetClosestEcalShower(TofTrack* tof_track, AMSEventR* even
   float min_distance = 10000;
   float min_costheta = 0;
   // match at calorimeter entry (-142 or -157 ... ?) 
-  for (int ishower=0; ishower<event->NEcalShower(); ishower++) {
+  for (unsigned int ishower=0; ishower<event->NEcalShower(); ishower++) {
     EcalShowerR* shower = event->pEcalShower(ishower);
     AMSPoint ecal_point(shower->Entry);
     AMSDir   ecal_dir(shower->Dir);
@@ -1350,7 +1350,7 @@ TrdTrackR* TofRecon::GetClosestTrdTrack(TofTrack* tof_track, AMSEventR* event) {
   float min_distance = 10000;
   float min_costheta = 0;
   // match at one of the beginning layers (around 110 cm)  
-  for (int itrack=0; itrack<event->NTrdTrack(); itrack++) {
+  for (unsigned int itrack=0; itrack<event->NTrdTrack(); itrack++) {
     TrdTrackR* track = event->pTrdTrack(itrack);
     AMSPoint trd_point(track->Coo);
     AMSDir   trd_dir(track->Theta,track->Phi);
@@ -1379,7 +1379,7 @@ RichRingR* TofRecon::GetClosestRichRing(TofTrack* tof_track, AMSEventR* event) {
   float min_distance = 10000;
   float min_costheta = 0;
   // match at the top of the radiator 
-  for (int iring=0; iring<event->NRichRing(); iring++) {
+  for (unsigned int iring=0; iring<event->NRichRing(); iring++) {
     RichRingR* ring = event->pRichRing(iring);
     AMSPoint rich_point(ring->AMSTrPars[0],ring->AMSTrPars[1],ring->AMSTrPars[2]);
     AMSDir   rich_dir(ring->AMSTrPars[3],ring->AMSTrPars[4]);
@@ -1480,7 +1480,7 @@ void TofTimeCalibration::RecalculateTofClusterTimes(AMSEventR* event) {
     if ( (run>=calibration_run[i]) && (run<calibration_run[i+1]) ) 
       cal_file=calibration_run_file[i];
   // improve
-  for (int icluster=0; icluster<event->NTofCluster(); icluster++) {
+  for (unsigned int icluster=0; icluster<event->NTofCluster(); icluster++) {
     TofClusterR* cluster = event->pTofCluster(icluster);
     float timesum=0;
     for (int irawcluster=0; irawcluster<cluster->NTofRawCluster(); irawcluster++) {

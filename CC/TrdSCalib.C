@@ -1941,7 +1941,7 @@ int TrdSCalibR::TrdLR_CalcXe(double xDay, float Rabs, int iFlag, int Debug) {
     Error("TrdSCalibR::TrdLR_CalcXe-E- ", "First call TrdLR_CalcXe");
     return 22;
   }
-  for (unsigned int i=0; i<iMax; i++) {
+  for (int i=0; i<iMax; i++) {
     if (Rabs >= TrdS_PDF_xProt.at(i) && Rabs < TrdS_PDF_xProt.at(i+1)) {
       iR = i;
       break;
@@ -2146,7 +2146,7 @@ int TrdSCalibR::TrdLR_MC_CalcXe(double xDay, float Rabs, vector<bool> PartId, in
     Error("TrdSCalibR::TrdLR_MC_CalcXe-E- ", "First call TrdLR_MC_CalcIniXe");
     return 3;
   }
-  for (unsigned int i=0; i<iMax; i++) {
+  for (int i=0; i<iMax; i++) {
     if (Rabs >= TrdS_PDF_xProt.at(i) && Rabs < TrdS_PDF_xProt.at(i+1)) {
       iR = i;
       break;
@@ -2167,7 +2167,7 @@ int TrdSCalibR::TrdLR_MC_CalcXe(double xDay, float Rabs, vector<bool> PartId, in
 
   
   int j = 0;
-  bool IsProton, IsHelium, IsElectron, IsPositron, IsAntiProton;
+  bool IsProton = false, IsHelium = false, IsElectron = false, IsPositron = false, IsAntiProton = false;
   for(vector<bool>::iterator id = PartId.begin(); id != PartId.end(); ++id ) {
     
     if(Debug) std::cout << Form("[%d:%s] ", j, (*id)?"true":"false");
@@ -2648,7 +2648,7 @@ int TrdSCalibR::TrdScalibBinarySearch(double key, int iMod, int Debug) {
   
   /// find the closest day
   double Distance1 = 0, Distance2 = 0;
-  if (TrdScalibXdaysMpv[iMod].at(iP)<key && iP<TrdScalibXdaysMpv[iMod].size()-2) 
+  if (TrdScalibXdaysMpv[iMod].at(iP)<key && iP<int(TrdScalibXdaysMpv[iMod].size())-2) 
     {
       do 
 	{
@@ -2658,7 +2658,7 @@ int TrdSCalibR::TrdScalibBinarySearch(double key, int iMod, int Debug) {
 	  if(Debug > 1)
 	    std::cout << Form("1. iP=%4d %8.4f Distance1=%8.4f Distance2=%8.4f\n",
 			      iP,TrdScalibXdaysMpv[iMod].at(iP),Distance1,Distance2) << std::endl;
-	} while (Distance2<Distance1 && iP<TrdScalibXdaysMpv[iMod].size()-2);
+	} while (Distance2<Distance1 && iP<int(TrdScalibXdaysMpv[iMod].size())-2);
       iP--;
     } else if (TrdScalibXdaysMpv[iMod].at(iP)>key && iP>0 )
     {
@@ -2699,12 +2699,12 @@ int TrdSCalibR::TrdScalibBinarySearch(double key, vector<double> &TrdScalibXdays
  
   /// find the closest day
   double Distance1, Distance2;
-  if (TrdScalibXdays.at(iP)<key && iP+2<TrdScalibXdays.size()) {
+  if (TrdScalibXdays.at(iP)<key && iP+2<int(TrdScalibXdays.size())) {
     do {
       Distance1 = std::fabs(TrdScalibXdays.at(iP)-key);
       iP++;
       Distance2 = std::fabs(TrdScalibXdays.at(iP)-key);
-    } while (Distance2<Distance1 && iP+2<TrdScalibXdays.size());
+    } while (Distance2<Distance1 && iP+2<int(TrdScalibXdays.size()));
     iP--;
   } else if (TrdScalibXdays.at(iP)>key && iP>0){
     do {
@@ -2737,12 +2737,12 @@ double TrdSCalibR::TrdScalibInterpolate(int iMod, double xDayRef, int &xP, int D
 
   
   double mpv = TrdMeanMPV;
-  if (xP<0 || xP>TrdScalibXdaysMpv[iMod].size()-1) return mpv;
+  if (xP<0 || xP>int(TrdScalibXdaysMpv[iMod].size())-1) return mpv;
   
   mpv = TrdScalibMpv[iMod][xP];
     
   double x1=0,x2=0, y1=0,y2=0;
-  if (TrdScalibXdaysMpv[iMod][xP]<xDayRef && xP<TrdScalibXdaysMpv[iMod].size()-2) {
+  if (TrdScalibXdaysMpv[iMod][xP]<xDayRef && xP<int(TrdScalibXdaysMpv[iMod].size())-2) {
     x1  = TrdScalibXdaysMpv[iMod][xP];
     y1  = TrdScalibMpv[iMod][xP];
     x2  = TrdScalibXdaysMpv[iMod][xP+1];
@@ -2783,14 +2783,14 @@ double TrdSCalibR::TrdScalibInterpolate(double xDayRef, int &xP,
     xP = TrdScalibBinarySearch(xDayRef,TrdScalibXdays, Debug);				
   }
   if(Debug > 1) std::cout << "2++++++++++++++++++++++++++++ xP=" << xP << std::endl;
-  if (xP<0 || xP>TrdScalibXdays.size()-1) return 1;
+  if (xP<0 || xP>int(TrdScalibXdays.size())-1) return 1;
 
   double val = TrdScalibVal.at(xP);
   if(Debug > 1) std::cout << "3++++++++++++++++++++++++++++ val=" << val << std::endl;
   
   //== linear interpolation
   double x1,x2, y1,y2;
-  if (TrdScalibXdays.at(xP)<xDayRef && xP+2<TrdScalibXdays.size()) {
+  if (TrdScalibXdays.at(xP)<xDayRef && xP+2<int(TrdScalibXdays.size())) {
     if(Debug > 1) std::cout << "4.1++++++++++++++++++++++++++++ xP=" << xP 
     			<< " TrdScalibXdays.size()=" << TrdScalibXdays.size() << std::endl;
     x1  = TrdScalibXdays.at(xP);
@@ -2900,7 +2900,7 @@ int TrdSCalibR::BuildTrdSHits(TrdHTrackR *TrdHtrk, int Debug){
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
 
   int itrdhit = 0;
-  for (unsigned int iseg=0; iseg < TrdHtrk->NTrdHSegment(); iseg++) {
+  for (int iseg=0; iseg < TrdHtrk->NTrdHSegment(); iseg++) {
     if(!TrdHtrk->pTrdHSegment(iseg)) continue;
     for(int ir=0; ir < (int)TrdHtrk->pTrdHSegment(iseg)->fTrdRawHit.size();ir++) {
       TrdRawHitR* rhit=TrdHtrk->pTrdHSegment(iseg)->pTrdRawHit(ir);
@@ -3104,13 +3104,11 @@ int TrdSCalibR::ProcessTrdHit(TrTrackR *Trtrk, int Debug){
   
   
   int TrdStrkLevel = 2;
-  int nLayNearStrk=0, nLayOnStrk=0, nHitOnStrk=0, nHitNearStrk=0;
+  int nHitOnStrk=0, nHitNearStrk=0;
   vector<int> nTrdStat;
   nTrdStat.assign(3,0);
   if(Debug) std::cout << Form("*** CalPathLen3D in ProcessTrdHit") << std::endl;
   nTrdStat = CalPathLen3D(TrdSHits, Trtrk, TrdStrkLevel, Debug);
-  nLayNearStrk 	= nTrdStat.at(0); 
-  nLayOnStrk	= nTrdStat.at(1); 
   nHitOnStrk	= nTrdStat.at(2); 
   nHitNearStrk 	= TrdSHits.size(); 
 
@@ -3452,7 +3450,7 @@ int TrdSCalibR::IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits> &TrdHits, vect
 
   /// start values for parameters
 
-  for(int i=0;i<TrdHits.size();i++)
+  for(unsigned int i=0;i<TrdHits.size();i++)
     fit.TrdHits.push_back(TrdHits.at(i));
 
   TVirtualFitter::SetDefaultFitter("Minuit2");
@@ -4382,12 +4380,12 @@ TrdSCalibR::~TrdSCalibR(){
   if(fTrdSigmaDy) delete fTrdSigmaDy;
   if(fTrd95Da)    delete fTrd95Da;
  
-  for(int i=0; i< h_TrdGasCirMPV.size();i++) delete h_TrdGasCirMPV[i];
-  for(int i=0; i< h_TrdModuleMPV.size();i++) delete h_TrdModuleMPV[i];
-  for(int i=0; i< g_TrdCalibMPV.size();i++)  delete g_TrdCalibMPV[i];
-  for(int i=0; i< h_TrdLR_Prot.size() ;i++)  delete h_TrdLR_Prot[i];
-  for(int i=0; i< h_TrdLR_Elec.size();i++)   delete h_TrdLR_Elec[i];
-  for(int i=0; i< h_TrdLR_Heli.size();i++)   delete h_TrdLR_Heli[i];
+  for(unsigned int i=0; i< h_TrdGasCirMPV.size();i++) delete h_TrdGasCirMPV[i];
+  for(unsigned int i=0; i< h_TrdModuleMPV.size();i++) delete h_TrdModuleMPV[i];
+  for(unsigned int i=0; i< g_TrdCalibMPV.size();i++)  delete g_TrdCalibMPV[i];
+  for(unsigned int i=0; i< h_TrdLR_Prot.size() ;i++)  delete h_TrdLR_Prot[i];
+  for(unsigned int i=0; i< h_TrdLR_Elec.size();i++)   delete h_TrdLR_Elec[i];
+  for(unsigned int i=0; i< h_TrdLR_Heli.size();i++)   delete h_TrdLR_Heli[i];
  
   TrdPDF_xProt.clear();
   TrdPDF_nProt.clear();
@@ -4404,18 +4402,18 @@ TrdSCalibR::~TrdSCalibR(){
   TrdS_PDF_xHeli.clear();
   TrdS_PDF_xElec.clear();
   
-  for(int i=0; i< TrdLR_Gr_Prot.size();i++)  delete TrdLR_Gr_Prot[i];
-  for(int i=0; i< TrdLR_Gr_Elec.size();i++)  delete TrdLR_Gr_Elec[i];
-  for(int i=0; i< TrdLR_Gr_Heli.size();i++)  delete TrdLR_Gr_Heli[i];
+  for(unsigned int i=0; i< TrdLR_Gr_Prot.size();i++)  delete TrdLR_Gr_Prot[i];
+  for(unsigned int i=0; i< TrdLR_Gr_Elec.size();i++)  delete TrdLR_Gr_Elec[i];
+  for(unsigned int i=0; i< TrdLR_Gr_Heli.size();i++)  delete TrdLR_Gr_Heli[i];
 
   for(int j=0; j<nBinfPXe; j++) {
-    for(int i=0; i< grTrdS_PDF_Prot[j].size();i++) delete grTrdS_PDF_Prot[j][i];
-    for(int i=0; i< grTrdS_PDF_Heli[j].size();i++) delete grTrdS_PDF_Heli[j][i];
-    for(int i=0; i< grTrdS_PDF_Elec[j].size();i++) delete grTrdS_PDF_Elec[j][i];
+    for(unsigned int i=0; i< grTrdS_PDF_Prot[j].size();i++) delete grTrdS_PDF_Prot[j][i];
+    for(unsigned int i=0; i< grTrdS_PDF_Heli[j].size();i++) delete grTrdS_PDF_Heli[j][i];
+    for(unsigned int i=0; i< grTrdS_PDF_Elec[j].size();i++) delete grTrdS_PDF_Elec[j][i];
 
-    for(int i=0; i< fTrdLR_fProton[j].size();i++)  delete fTrdLR_fProton[j][i];
-    for(int i=0; i< fTrdLR_fHelium[j].size();i++)  delete fTrdLR_fHelium[j][i];
-    for(int i=0; i< fTrdLR_fElectron[j].size();i++) delete fTrdLR_fElectron[j][i];
+    for(unsigned int i=0; i< fTrdLR_fProton[j].size();i++)  delete fTrdLR_fProton[j][i];
+    for(unsigned int i=0; i< fTrdLR_fHelium[j].size();i++)  delete fTrdLR_fHelium[j][i];
+    for(unsigned int i=0; i< fTrdLR_fElectron[j].size();i++) delete fTrdLR_fElectron[j][i];
   }
 
   if(grTrdS_Xe) delete grTrdS_Xe;

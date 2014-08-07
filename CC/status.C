@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.60 2013/12/20 22:21:04 choutko Exp $
+//  $Id$
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -318,7 +318,7 @@ integer AMSStatus::_statusok(statusI status){
         else {
           uinteger st=STATUSFFKEY.status[i];
           uinteger nbit=32.*log(2.)/log(number(STATUSFFKEY.status[nsta+1]))+0.5;
-          for (int j=0;j<nbit;j++){
+          for (unsigned int j=0;j<nbit;j++){
             uinteger stbit=(st%STATUSFFKEY.status[nsta+1])>0?1:0;
             if((stbit<<j) & (1<<Status[i])){
           //    if(i==15){
