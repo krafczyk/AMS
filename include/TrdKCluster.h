@@ -181,9 +181,9 @@ public:
 
 
     // Cluster status
-    int  NHits(){return corridor_hits.size();}
-    bool IsCalibrated();
-    bool IsAligned();
+    int  NHits() const {return corridor_hits.size();}
+    bool IsCalibrated() const;
+    bool IsAligned() const;
 
 
     // Set TrTrack, fitcode
@@ -219,33 +219,35 @@ public:
 
 
     // Number of Hits and Total Amplitude of On-Track Tubes
-    void GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = -1.);
-    void GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.);
-    void GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.);
+    void GetOnTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float threshold = -1.) const;
+    void GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.) const;
+    void GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.) const;
 
     // Number of Hits and Total Amplitude of On-Track Tubes
-    void GetNearTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float radius, float threshold = -1.);
-    void GetNearTrackHit_TrTrack(int& nhits, float & amp, float radius, float threshold = -1.);
-    void GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius, float threshold = -1.);
+    void GetNearTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float radius, float threshold = -1.) const;
+    void GetNearTrackHit_TrTrack(int& nhits, float & amp, float radius, float threshold = -1.) const;
+    void GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius, float threshold = -1.) const;
 
     // Number of Hits and Total Amplitude of Off-Track Tubes
-    void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = -1.);
-    void GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.);
-    void GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.);
+    void GetOffTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float threshold = -1.) const;
+    void GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.) const;
+    void GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.) const;
 
     // Get Refitted TRD Track, accroding to the latest refit
-    int GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir);
+    int GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir) const;
 
     // Get TrTrack Extrapolation of current TrTrack
-    int GetTrTrackExtrapolation(AMSPoint &P0, AMSDir &Dir);
-    float GetTrTrackRigidity(){return Track_Rigidity;};
+    int GetTrTrackExtrapolation(AMSPoint &P0, AMSDir &Dir) const;
+    float GetTrTrackRigidity() const {return Track_Rigidity;};
 
     AMSPoint GetPropogated_TrTrack_P0();
     AMSDir GetPropogated_TrTrack_Dir();
 
     // Hit manipulation/operation
     TrdKHit* GetHit(int i){if(i>=TRDHitCollection.size())return 0;return &(TRDHitCollection.at(i));}
+    const TrdKHit* GetConstHit(int i) const {if(i>=TRDHitCollection.size())return 0;return &(TRDHitCollection.at(i));}
     TrdKHit* GetCorridorHit(int i) {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
+    const TrdKHit* GetCorridorConstHit(int i) const {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
 
     // Advanced operation , to select differenet collecionion of hits
@@ -262,7 +264,7 @@ public:
 
 
     // Globlal Validity flag
-    int GetValidity(){return IsValid;}
+    int GetValidity() const {return IsValid;}
 
 
     // Default TrTrack fit parameters
