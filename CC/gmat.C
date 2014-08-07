@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.123 2014/02/06 21:58:03 pzuccon Exp $
+//  $Id$
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -721,7 +721,6 @@ AMSJob::gethead()->addup(&tmed);
 
 
 tmed.add (new AMSgtmed("AIR","AIR",0));
-AMSgtmed * rich_pvac;
 {
 // vacuum has to be trd aware
  geant uwbuf[5];
@@ -740,7 +739,6 @@ else{
   uwbuf[3]=0;
   uwbuf[4]=0;
 AMSgtmed * pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);  
-  rich_pvac=pvac;   // DO NOT MODIFY
  uwbuf[2]=6;
  pvac->setubuf(nwbuf,uwbuf);
  tmed.add (pvac );
@@ -850,7 +848,6 @@ tmed.add (new AMSgtmed("ALUMLI","ALUMINIUM",0));
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("BGO","BGO",1,'Y',birks));
 }
-int ip=27;
 
 tmed.add (new AMSgtmed("ATC_PTAE","TEFLON3",0));//30
 tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));

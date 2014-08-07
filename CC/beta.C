@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.96 2013/11/14 23:35:39 shaino Exp $
+//  $Id$
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -113,7 +113,6 @@ AMSTrTrack * AMSBeta::FindFalseTrackForBeta(int refit){
   // Loop on TOF patterns
   for ( int pat=0; pat<npatb; pat++){
     AMSTOFCluster * phit[4]={0,0,0,0};
-    number sleng[4];
     if(BETAFITFFKEY.pattern[pat]){
       int fp=patpoints[pat]-1;    
       // Try to make StrLine Fit
@@ -192,9 +191,8 @@ void mtof_hit::MatchCheck(){
 int FindCloserTOF(TrTrackR* ptrack,mtof_hit* tmhit){
 
   // 0 -- Search for the geometrically matching TOF Hits  
-  int tofcoo[4]={1,0,0,1};
   for (int TOFlay=0;TOFlay<4;TOFlay++){
-    int cluster=AMSEvent::gethead()->getC(AMSID("AMSTOFCluster",TOFlay))->getnelem();
+	(void) AMSEvent::gethead()->getC(AMSID("AMSTOFCluster",TOFlay))->getnelem();
     tmhit[TOFlay].min_d= AMSPoint(1000,1000,1000);
 
     // 1 -- FIND on each TOF layer the hit closer to the track
@@ -224,7 +222,6 @@ int FindCloserTOF(TrTrackR* ptrack,mtof_hit* tmhit){
 
 bool TkTOFMatch(TrTrackR* tr,int select_tag=0);
 bool TkTOFMatch(TrTrackR* ptrack,int select_tag) {
-  int mfit = TrTrackR::kSimple;
   mtof_hit tofhit[4];  
   FindCloserTOF( ptrack,tofhit);
   bool g_YMatch=tofhit[0].Ymatch && tofhit[3].Ymatch;
@@ -267,7 +264,6 @@ int AMSBeta::BuildBeta(AMSTrTrack* ptrack, integer Master){
   
   int bfound=0;
   AMSTOFCluster * phit[4]={0,0,0,0};
-  number sleng[4]={0,0,0,0};
   number chi2space=0;
   integer tofpatt=0;
 
@@ -311,6 +307,7 @@ int AMSBeta::BuildBeta(AMSTrTrack* ptrack, integer Master){
       break;
     }
   }
+  number sleng[4]={0,0,0,0};
   for (int ii=0;ii<idx;ii++) { phit[ii]=tofhit2[ii].phit; sleng[ii]=tofhit2[ii].sleng;}
 
   if(sel_patt>=0&& sel_patt<9)  
@@ -587,13 +584,12 @@ integer AMSBeta::build_old(integer refit,integer Master){
 
 
   // Loop on TOF patterns
-  TriggerLVL302 *ptr=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+  (void) AMSEvent::gethead()->getheadC("TriggerLVL3",0);
   AMSTrTrack * ptrackF=0;
 //  if(1 || (ptr && ptr->TOFOK() && LVL3FFKEY.Accept==0)){
     if(!bfound){
     for ( int pat=0; pat<npatb; pat++){
       AMSTOFCluster * phit[4]={0,0,0,0};
-      number sleng[4];
       if(BETAFITFFKEY.pattern[pat]){
 	int fp=patpoints[pat]-1;    
 	// Try to make StrLine Fit
@@ -1143,7 +1139,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
   int nh;
   integer status;
 
-  TriggerLVL302 *plvl3=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
+  (void) AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
 
   if(!ptrackc->checkstatus(AMSDBc::FalseTOFX)   &&  
      !ptrackc->checkstatus(AMSDBc::WEAK)        )
@@ -1568,7 +1564,7 @@ bool AMSBeta::BadBetaAlreadyExists(int patb){
 double AMSBeta::GetTRDBetaCorr(){
 //              double p[3]={0.522677,-0.16927,0.676221};
               double betamc1=0;
-              for(int k=0;k<sizeof(BETAFITFFKEY.TRDP)/sizeof(BETAFITFFKEY.TRDP[0]);k++)betamc1+=BETAFITFFKEY.TRDP[k]*pow(fabs(_Beta),k);
+              for(int k=0;k<int(sizeof(BETAFITFFKEY.TRDP)/sizeof(BETAFITFFKEY.TRDP[0]));k++)betamc1+=BETAFITFFKEY.TRDP[k]*pow(fabs(_Beta),k);
               double x=(betamc1+fabs(_Beta))/2;
               if(x>0.96)x=0.96;
 //              double norm=1.8377e-1;

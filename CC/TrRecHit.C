@@ -219,13 +219,12 @@ void TrRecHitR::Clear() {
 
 
 void TrRecHitR::Print(int opt){
-  _PrepareOutput(opt);
-  cout <<sout;
+  cout << _PrepareOutput(opt);
 }
 
 
-void TrRecHitR::_PrepareOutput(int opt) { 
-  sout.clear();
+std::string TrRecHitR::_PrepareOutput(int opt) { 
+  std::string sout;
   if(_imult>0) 
     sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d  QStatus: %8X\n",
 		     _tkid,_imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z(),
@@ -238,19 +237,19 @@ void TrRecHitR::_PrepareOutput(int opt) {
                      (GetYCluster()) ? GetYCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
                      (GetXCluster()) ? GetXCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
 		     GetCorrelationProb(),getstatus(),GetQStatus()));
-  if(!opt) return;
+  if(!opt) return sout;
   for(int ii=0;ii<_mult;ii++)
     sout.append(Form("mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",
 		     ii,GetCoord(ii).x(),GetCoord(ii).y(),GetCoord(ii).z()));
+  return sout;
 }
 
 
 const char *  TrRecHitR::Info(int iRef){
   string aa;
   aa.append(Form("TrRecHit #%d ",iRef));
-  _PrepareOutput(0);
-  aa.append(sout);
-  int len=MAXINFOSIZE;
+  aa.append(_PrepareOutput(0));
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
@@ -258,8 +257,7 @@ const char *  TrRecHitR::Info(int iRef){
 
 
 std::ostream &TrRecHitR::putout(std::ostream &ostr)  {
-  _PrepareOutput(1);
-  return ostr << sout  << std::endl; 
+  return ostr << _PrepareOutput(1) << std::endl; 
 }
 
 
@@ -435,7 +433,6 @@ static double HitCorrelation_MeanPar[7] = {0, 1.10018e+00,-6.99183e-03,-1.92904e
 // monotonic function (explodes after 123 ADC counts)!
 static double HitCorrelation_XMax = 160;
 static double HitCorrelation_SigmPar[7] = {1,-5.50738e-02, 1.24566e-02,-4.60968e-04,7.55153e-06,-5.75738e-08,1.67042e-10}; 
-static double HitCorrelation_SigmMin = 1;
 // list of low gain on p (added on nov. 2013)
 static int HitCorrelation_TkId_Gain15[15] = {-803, 307, 305, 802, 813, -813, 811, -610, 611, 110, 703, 503, 603, -706, -903};
 static int HitCorrelation_TkId_Gain20[ 2] = {213, -904};

@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.23 2011/03/22 11:20:41 choumilo Exp $
+//  $Id$
 #include "typedefs.h"
 #include <stdlib.h>
 #include "cern.h"
@@ -35,12 +35,11 @@ void AMSUser::InitEvent(){
 }
 
 void AMSUser::Event(){
-  bool glft(false),tofft(false);
+  bool glft(false);
 //------
   if(TFREFFKEY.relogic[0]==0 && !(AMSJob::gethead()->isCalibration())){
       Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
       if(ptr)glft=ptr->GlobFasTrigOK();
-      if(ptr)tofft=ptr->TofFasTrigOK();
       if(!glft)return;// "no globFT in LVL1-trigger"
 //      if(!tofft)return;// "no tofFT in LVL1-trigger"
       TOF2User::Event();

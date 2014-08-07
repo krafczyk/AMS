@@ -394,8 +394,8 @@ int GeoMagField::getshc(const char *file, int iflag, long int strec,
 
   char  inbuff[MAXINBUFF];
   char irat[9];
-  int ii,m,n,mm,nn;
-  int ios;
+  int ii = 0,m,n,mm,nn;
+  int ios = 0;
   int line_num;
   double g,hh;
   double trash;
@@ -408,8 +408,6 @@ int GeoMagField::getshc(const char *file, int iflag, long int strec,
     }
   else
     {
-      ii = 0;
-      ios = 0;
       fseek(stream,strec,SEEK_SET);
       for ( nn = 1; nn <= nmax_of_gh; ++nn)
         {
@@ -751,8 +749,8 @@ int GeoMagField::shval3(int igdgc, double flat, double flon, double elev,
   double r;
   double a2;
   double b2;
-  double rr;
-  double fm,fn;
+  double rr=0;
+  double fm,fn=0;
   double sl[14];
   double cl[14];
   double p[119];

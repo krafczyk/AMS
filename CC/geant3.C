@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.162 2013/11/29 07:27:39 choutko Exp $
+//  $Id$
 
 #include "Tofsim02.h"
 #include "typedefs.h"
@@ -238,21 +238,16 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
   // TOF
 
   int tflv;  
-  char name[4];
-  char media[20];
   geant t,x,y,z;
-  geant de,dee,dtr2,div,tof,prtq,pstep;
-  geant coo[3],dx,dy,dz,dt,stepel;
-  geant wvect[6],snext,safety;
-  geant origstep,origedep;
-  int i,nd,numv,iprt,numl,numvp,tfprf(0);
+  geant de,dee,tof;
+  geant coo[3];
+  int numv,numl;
   tflv=GCVOLU.nlevel-1;  
 //---> print some GEANT standard values(for debugging):
 //  if(GCFLAG.IEVENT==3118)tfprf=1;
 //  if(GCFLAG.IEVENT==3118)TOF2DBc::debug=1;
   numl=GCVOLU.nlevel;
   numv=GCVOLU.number[numl-1];
-  numvp=GCVOLU.number[numl-2];
 //  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
 //  UHTOC(GCTMED.natmed,4,media,20);
 //
@@ -260,9 +255,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
             && GCVOLU.names[tflv][0]=='T' && GCVOLU.names[tflv][1]=='F'){// <=== charged part. in "TFnn"
 //
     if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-    iprt=GCKINE.ipart;
-    prtq=GCKINE.charge;
-    pstep=GCTRAK.step;
     numv=GCVOLU.number[tflv];
     x=GCTRAK.vect[0];
     y=GCTRAK.vect[1];
@@ -326,7 +318,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //  UHTOC(GCTMED.natmed,4,media,20);
 //  cout<<" Media "<<media<<endl;
 //--->
-  integer manti(0),isphys,islog;
+  integer manti(0),isphys;
   if(lvl==3 && GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='N'
                                        && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
@@ -334,7 +326,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
      dee=GCTRAK.destep; 
      if(TFMCFFKEY.birks)GBIRK(dee);
      isphys=GCVOLU.number[lvl];
-     islog=floor(0.5*(isphys-1))+1;//not used now
      AMSAntiMCCluster::siantihits(isphys,GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
@@ -871,6 +862,7 @@ AMSgObj::BookTimer.start("GUKINE");
 
 abinelclear_();
 static integer event=0;
+(void)event;
 
 #ifdef __DB_All__
   if (AMSFFKEY.Read > 1) {
@@ -940,7 +932,9 @@ try{
         static bool Waiting=false; 
         double cpulimit=AMSFFKEY.CpuLimit;
 
+#ifdef _OPENMP
     static int forcemaxthread=0;
+#endif
    for(;;){
 #ifdef __CORBA__
     AMSProducer::gethead()->Transfer()=true;
@@ -950,7 +944,10 @@ try{
     AMSProducer::gethead()->Transfer()=false;
 #endif
      if(res==DAQEvent::OK){ 
-       uinteger run;
+       uinteger run=0;
+#ifndef __CORBA__
+       (void) run;
+#endif
        uinteger event=0;
        time_t tt=0;
        time_t oldtime=0;

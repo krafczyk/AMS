@@ -12,7 +12,6 @@ float TrdHCalibR::tube_gain[6064];
 void TrdHCalibR::update_medians(TrdHTrackR* track,int version,int opt,float beta,float corr,int debug){
 #pragma omp critical (trdmed)
   {
-    int layer,ladder,tube;
     int tubeid;
     float amp;
     for(int seg=0;seg<2;seg++){
@@ -112,7 +111,6 @@ float TrdHCalibR::MeanGaussMedian(int opt){
 
 float TrdHCalibR::MeanGaussGain(int opt){
   TH1F h("h_gain","",100,0.,3.);
-  int layer,ladder,tube;
 
   for(int i=0;i<n_tubes;i++){
     int mod=i/16;
@@ -136,7 +134,6 @@ float TrdHCalibR::MeanGaussGain(int opt){
 
 int TrdHCalibR::FillMedianFromTDV(int debug){
   bool toReturn = true;
-  int layer,ladder,tube;
   
   norm_mop=tube_gain[5788];
 
@@ -205,7 +202,6 @@ int TrdHCalibR::FillTDVFromMedian(int debug){
   for(int i=0;i<10;i++)tube_gain[5790+i]=mf_medians[i];
   for(int i=0;i<82;i++)tube_gain[5800+i]=hv_medians[i];
 
-  int layer,ladder,tube;
   float mean=0.;
   for(int i=0;i<n_tubes;i++){
     int ntdv=GetNTDV(i);
@@ -958,7 +954,6 @@ int TrdHCalibR::bgmap(char *fname){
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
-  int ifile=0;
   float x,p0,p1,p2;
 
   double xarr[1000];
@@ -969,7 +964,7 @@ int TrdHCalibR::bgmap(char *fname){
   int n=0,ndf;
 
   while( !feof (file) ){
-    ifile=fscanf(file, "%f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&chi2,&ndf);
+    fscanf(file, "%f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&chi2,&ndf);
     //    printf("%f %f %f %f\n",x,p0,p1,p2);
 
     xarr[n]=x;
@@ -1004,8 +999,7 @@ int TrdHCalibR::bgmap(int opt){
   double p0arr[27];
   double p1arr[27];
   double p2arr[27];
-  float chi2;
-  int n=27,ndf;
+  int n=27;
 
   xarr[0]=0.050; p0arr[0]=-7.65e-02; p1arr[0]=6.93e-01; p2arr[0]=1.92e-04; 
   xarr[1]=0.150; p0arr[1]=-8.81e-01; p1arr[1]=7.88e-01; p2arr[1]=-3.36e-04;
@@ -1066,7 +1060,6 @@ int TrdHCalibR::pathmap(char *fname){
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
-  int ifile=0;
   float x,p0,p1,p2,p3;
 
   double xarr[1000];
@@ -1078,7 +1071,7 @@ int TrdHCalibR::pathmap(char *fname){
   int n=0,ndf;
 
   while( !feof (file) ){
-    ifile=fscanf(file, "%f %f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&p3,&chi2,&ndf);
+    fscanf(file, "%f %f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&p3,&chi2,&ndf);
     //    printf("%f %f %f %f %f\n",x,p0,p1,p2,p3);
 
     xarr[n]=x;
@@ -1113,7 +1106,6 @@ int TrdHCalibR::pathmap(char *fname){
 }
 
 int TrdHCalibR::pathmap(int opt){
-  float x,p0,p1,p2,p3;
 
   double xarr[69];
   double p0arr[69];

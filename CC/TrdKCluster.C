@@ -336,22 +336,15 @@ int TrdKCluster::FindBestMatch_FromECAL(){
     // 1. find the highest energetic shower
     Double_t e_candidate = 0.;
     Int_t    i_candidate_ecal = -1,
-            i_candidate_part = -1,
             i_candidate_trd  = -1,
             i_candidate_trdh = -1,
             i_candidate_trk  = -1,
-            i_candidate_beta = -1,
             i_candidate_betah= -1;
 
     int necal = pev->nEcalShower();
     if(necal<=0)return 0;
 
-    int npart = pev->nParticle();
-    int ntrd  = pev->nTrdTrack();
-    int ntrdh = pev->nTrdHTrack();
     int ntrk  = pev->nTrTrack();
-    int nbetah= pev->nBetaH();
-    int nbeta = pev->nBeta();
 
     // Most energetic Shower
     for(Int_t i=0; i<pev->nEcalShower(); i++){
@@ -361,22 +354,13 @@ int TrdKCluster::FindBestMatch_FromECAL(){
         }
     }
 
-
-    // Particle associated with Shower
-    for(Int_t i=0; i<pev->nParticle(); i++){
-        if( pev->pParticle(i) && pev->pParticle(i)->iEcalShower() == i_candidate_ecal ){
-            i_candidate_part = i;
-        }
-    }
-
     AMSPoint ecal_coo( pev->pEcalShower(i_candidate_ecal)->CofG );
     AMSDir   ecal_dir( pev->pEcalShower(i_candidate_ecal)->Dir );
 
     // 2. find best matched TRD
     AMSPoint trd_coo, trd_coo_ecalcog;
     AMSDir   trd_dir;
-    Double_t min_dist = 10000., min_dang = 10000.,
-            dist, dang;
+    Double_t min_dist = 10000., dist;
     for(Int_t i=0; i<pev->nTrdTrack(); i++){
         trd_coo = AMSPoint( pev->pTrdTrack(i)->Coo );
         trd_dir = AMSDir( pev->pTrdTrack(i)->Theta, pev->pTrdTrack(i)->Phi );
@@ -428,12 +412,7 @@ int TrdKCluster::FindBestMatch_FromECAL(){
             break;
         }
     }
-    if( i_candidate_part>= 0 ){
-        i_candidate_beta = pev->pParticle(i_candidate_part)->iBeta();
-    }
-    else{
-        i_candidate_beta = pev->pParticle(0)->iBeta();
-    }
+
 
     ptrk  = _HeadE->pTrTrack(i_candidate_trk);
     ptrd  = _HeadE->pTrdTrack(i_candidate_trd);
@@ -475,8 +454,7 @@ int TrdKCluster::FindBestMatch_FromTrTrack(){
     int i_candidate_trdh=-1;
     AMSPoint trd_coo, trd_coo_atTrTrack;
     AMSDir   trd_dir;
-    Double_t min_dist = 10000., min_dang = 10000.,
-            dist, dang;
+    Double_t min_dist = 10000., dist;
 
 
 
@@ -673,7 +651,7 @@ AMSDir TrdKCluster::GetPropogated_TrTrack_Dir(){
 
 bool  TrdKCluster::IsCalibrated() const {
     bool v=1;
-    for(int i=0;i<TRDHitCollection.size();i++)
+    for(unsigned int i=0;i<TRDHitCollection.size();i++)
         if(!GetConstHit(i)->IsCalibrated)v=0;
     return v;
 }
@@ -682,7 +660,7 @@ bool  TrdKCluster::IsCalibrated() const {
 
 bool  TrdKCluster::IsAligned() const {
     bool v=1;
-    for(int i=0;i<TRDHitCollection.size();i++)
+    for(unsigned int i=0;i<TRDHitCollection.size();i++)
         if(!GetConstHit(i)->IsAligned)v=0;
     return v;
 }
@@ -764,7 +742,7 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
 
 Double_t TrdKCluster::trd_parabolic_fit(Int_t N, Double_t *X, Double_t *Y, Double_t *V) {
 
-    Int_t    i, j;
+    Int_t    i;
     Double_t X0, DD, x_min, x_max, y_min, alpha, beta, gamma;
     Double_t m11, m12, m13, m22, m23, m33, a11, a12, a13, a22, a23, a33, b1, b2, b3;
 
@@ -1125,7 +1103,6 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 
 
     float x0,y0,z0,dx,dy,dz;
-    float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
 
     //    x0=gMinuit_TRDTrack->GetParameter(0);
     //    y0=gMinuit_TRDTrack->GetParameter(1);
@@ -1189,7 +1166,7 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
 
 
     double DD1[2]={0,0};
-    double DD2[2][2]={0,0,0,0};
+    double DD2[2][2]={{0,0},{0,0}};
 
     float radius=0.3;
     float width=0.03;
@@ -1314,7 +1291,6 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
 
     float x0,y0,z0,dx,dy,dz;
-    float x0_e,y0_e,z0_e,dx_e,dy_e,dz_e;
 
     //    x0=gMinuit_TRDTrack->GetParameter(0);
     //    y0=gMinuit_TRDTrack->GetParameter(1);
@@ -1357,10 +1333,6 @@ void TrdKCluster::FitTRDTrack_PathLength_KFit(int particle_hypothesis){
 
     Refit_hypothesis=particle_hypothesis;
     float init_z0=115;
-    float init_x0=0;
-    float init_y0=0;
-    float init_dx=0;
-    float init_dy=0;
 
     Propogate_TrTrack(init_z0);
     AMSPoint P0=GetPropogated_TrTrack_P0();
@@ -1393,7 +1365,6 @@ void TrdKCluster::FitTRDTrack_Analytical(){
 
 
         double track_yz_y;
-        double track_yz_z=P0.z();
         double track_yz_dy;
         AnalyticalFit_2D(1,P0.y(),P0.z(),Dir.y(),Dir.z(),track_yz_y,track_yz_dy);
 
@@ -1689,7 +1660,7 @@ int TrdKCluster::GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double *
     //    for(int i=0;i<v_p.size();i++){cout<<i<<", "<<v_p.at(i).likelihood<<endl;}
 
     Track_nhits=0;
-    for(int i=start_index;i<v_p.size();i++){
+    for(unsigned int i=start_index;i<v_p.size();i++){
         LL_pdf_track_particle[0]*=(v_e.at(i).likelihood);
         LL_pdf_track_particle[1]*=(v_p.at(i).likelihood);
         LL_pdf_track_particle[2]*=(v_h.at(i).likelihood);
@@ -1989,7 +1960,7 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     }
 
     //Find minimum of likelihood
-    double QTRD,QTRD1;
+    double QTRD=0,QTRD1=0;
     double QTRDLikelihood,QTRDLikelihoodMin;
     QTRDLikelihoodMin=BigNumber;
     for(double Z=1;Z<=49;Z=Z+1)
@@ -2023,7 +1994,7 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     }
 
     //Estimate error using a simple parabola fit
-    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    double x0,x1,x2,y0,y1,y2,a,ExpErr,ErrorTemp;
     x0=QTRD;
     ExpErr=0.1*x0;
     if(ExpErr>3) ExpErr=3;
@@ -2035,16 +2006,14 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     y1=GetTRDChargeLikelihood(x1,Option);
     y2=GetTRDChargeLikelihood(x2,Option);
     a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
-    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
-    c=y0-a*x0*x0-b*x0;
     //  TRDChargeValue=-b/a/2;
     //  TRDChargeError=1/sqrt(2*a);
     ErrorTemp=1/sqrt(2*a);
 
     //Parabola fit to get minimum and error
     double X[7],Y[7],NFitPoint;
-    double X0,DD,alpha,beta,gamma;
-    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+    double X0,DD,alpha,beta;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,b1,b2,b3;
 
     X[3]=QTRD;
     Y[3]=QTRDLikelihoodMin;
@@ -2108,11 +2077,9 @@ int TrdKCluster::CalculateTRDCharge(int Option, double Velocity)
     a13 = m12*m23 - m13*m22;
     a22 = m11*m33 - m13*m13;
     a23 = m12*m13 - m11*m23;
-    a33 = m11*m22 - m12*m12;
 
     alpha = b1*a11 + b2*a12 + b3*a13;
     beta  = b1*a12 + b2*a22 + b3*a23;
-    gamma = b1*a13 + b2*a23 + b3*a33;
 
     if(alpha/DD<=0)
     {
@@ -2384,7 +2351,7 @@ double TrdKCluster::GetTRDChargeUpper()
     if(QTRDHitCollectionNucleiUpper.size()<2) return 0;
 
     //Find minimum of likelihood
-    double QTRD,QTRD1;
+    double QTRD=0,QTRD1=0;
     double QTRDLikelihood,QTRDLikelihoodMin;
     double BigNumber=100000000;
     QTRDLikelihoodMin=BigNumber;
@@ -2414,7 +2381,7 @@ double TrdKCluster::GetTRDChargeUpper()
     if(QTRD==0) return 0;
 
     //Estimate error using a simple parabola fit
-    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    double x0,x1,x2,y0,y1,y2,a,ExpErr,ErrorTemp;
     x0=QTRD;
     ExpErr=0.1*x0;
     if(ExpErr>3) ExpErr=3;
@@ -2426,16 +2393,14 @@ double TrdKCluster::GetTRDChargeUpper()
     y1=GetTRDChargeLikelihoodUpper(x1);
     y2=GetTRDChargeLikelihoodUpper(x2);
     a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
-    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
-    c=y0-a*x0*x0-b*x0;
     //  TRDChargeValue=-b/a/2;
     //  TRDChargeError=1/sqrt(2*a);
     ErrorTemp=1/sqrt(2*a);
 
     //Parabola fit to get minimum and error
     double X[7],Y[7],NFitPoint;
-    double X0,DD,alpha,beta,gamma;
-    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+    double X0,DD,alpha,beta;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,b1,b2,b3;
 
     X[3]=QTRD;
     Y[3]=QTRDLikelihoodMin;
@@ -2496,11 +2461,9 @@ double TrdKCluster::GetTRDChargeUpper()
     a13 = m12*m23 - m13*m22;
     a22 = m11*m33 - m13*m13;
     a23 = m12*m13 - m11*m23;
-    a33 = m11*m22 - m12*m12;
 
     alpha = b1*a11 + b2*a12 + b3*a13;
     beta  = b1*a12 + b2*a22 + b3*a23;
-    gamma = b1*a13 + b2*a23 + b3*a33;
 
     if(alpha/DD<=0) return 0;
 
@@ -2520,7 +2483,7 @@ double TrdKCluster::GetTRDChargeLower()
     if(QTRDHitCollectionNucleiLower.size()<2) return 0;
 
     //Find minimum of likelihood
-    double QTRD,QTRD1;
+    double QTRD=0,QTRD1=0;
     double QTRDLikelihood,QTRDLikelihoodMin;
     double BigNumber=100000000;
     QTRDLikelihoodMin=BigNumber;
@@ -2550,7 +2513,7 @@ double TrdKCluster::GetTRDChargeLower()
     if(QTRD==0) return 0;
 
     //Estimate error using a simple parabola fit
-    double x0,x1,x2,y0,y1,y2,a,b,c,ExpErr,ErrorTemp;
+    double x0,x1,x2,y0,y1,y2,a,ExpErr,ErrorTemp;
     x0=QTRD;
     ExpErr=0.1*x0;
     if(ExpErr>3) ExpErr=3;
@@ -2562,16 +2525,14 @@ double TrdKCluster::GetTRDChargeLower()
     y1=GetTRDChargeLikelihoodLower(x1);
     y2=GetTRDChargeLikelihoodLower(x2);
     a=((y1-y0)/(x1-x0)-(y2-y0)/(x2-x0))/(x1-x2);
-    b=(y1-y0)*(x2+x0)/(x1-x0)/(x2-x1)-(y2-y0)*(x1+x0)/(x2-x0)/(x2-x1);
-    c=y0-a*x0*x0-b*x0;
     //  TRDChargeValue=-b/a/2;
     //  TRDChargeError=1/sqrt(2*a);
     ErrorTemp=1/sqrt(2*a);
 
     //Parabola fit to get minimum and error
     double X[7],Y[7],NFitPoint;
-    double X0,DD,alpha,beta,gamma;
-    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,a33,b1,b2,b3;
+    double X0,DD,alpha,beta;
+    double m11,m12,m13,m22,m23,m33,a11,a12,a13,a22,a23,b1,b2,b3;
 
     X[3]=QTRD;
     Y[3]=QTRDLikelihoodMin;
@@ -2632,11 +2593,9 @@ double TrdKCluster::GetTRDChargeLower()
     a13 = m12*m23 - m13*m22;
     a22 = m11*m33 - m13*m13;
     a23 = m12*m13 - m11*m23;
-    a33 = m11*m22 - m12*m12;
 
     alpha = b1*a11 + b2*a12 + b3*a13;
     beta  = b1*a12 + b2*a22 + b3*a23;
-    gamma = b1*a13 + b2*a23 + b3*a33;
 
     if(alpha/DD<=0) return 0;
 

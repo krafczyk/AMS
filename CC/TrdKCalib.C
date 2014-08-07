@@ -31,8 +31,8 @@ void TrdKCalib::fillDB(TString s_type,  T *_db, Double_t time_start, Double_t ti
     time_t endtime=(time_t)time_end;
     tm begin;
     tm end;
-    tm* mtim=localtime_r(&starttime,&begin);
-    tm* mtim2=localtime_r(&endtime,&end);
+	localtime_r(&starttime,&begin);
+	localtime_r(&endtime,&end);
     AMSTimeID *tid= new AMSTimeID(
                 AMSID(s_type,1),
                 begin,
@@ -42,7 +42,7 @@ void TrdKCalib::fillDB(TString s_type,  T *_db, Double_t time_start, Double_t ti
                 AMSTimeID::Standalone,
                 1);
     tid->UpdateMe();
-    int pp=tid->write(AMSDATADIR.amsdatabase);
+	tid->write(AMSDATADIR.amsdatabase);
     //        int pp=tid->write(getenv("TRDDataDir"));
     delete tid;
 }
@@ -73,8 +73,8 @@ int TrdKCalib::readDB(TString s_type,  T *db, Double_t asktime){
         time_t starttime=time+1;
         tm begin;
         tm end;
-        tm* mtim=localtime_r(&starttime,&begin);
-        tm* mtim2=localtime_r(&endtime,&end);
+		localtime_r(&starttime,&begin);
+		localtime_r(&endtime,&end);
         *tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
 
 //        cout<<"DEBUG: tid: " <<(*tid)<<endl;
@@ -345,7 +345,7 @@ void TrdKCalib::WriteDBFromRoot_Calib_TB(TString f_input){
 void TrdKCalib::WriteDBFromRoot_Calib(vector<TString> f_input){
     //        printf("Write into AMSDataDir:  %s \n",AMSDATADIR_DEF::amsdatabase);
     TChain *fChain=new TChain("calib");
-    for(int i=0;i<f_input.size();i++){
+    for(unsigned int i=0;i<f_input.size();i++){
         //            printf("Read Calibration Constant from  Input File: %s \n",f_input.at(i));
         fChain->Add(f_input.at(i));
     }

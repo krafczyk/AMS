@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.15 2013/02/17 16:32:18 mduranti Exp $ 
+/// $Id$ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2013/02/17 16:32:18 $
+/// $Date$
 ///
-/// $Revision: 1.15 $
+/// $Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -43,7 +43,7 @@ TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig):TrElem(orig)  {
   _addressword = orig._addressword;
   _lengthword  = orig._lengthword;
   Status       = orig.Status;
-  for (int i = 0; i < orig._signal.size(); i++) _signal.push_back(orig._signal.at(i));
+  for (unsigned int i = 0; i < orig._signal.size(); i++) _signal.push_back(orig._signal.at(i));
 }
 
 TrRawClusterR::TrRawClusterR(int tkid, int clsaddwrd, int clslenwrd, short int* adc) {
@@ -127,31 +127,29 @@ short TrRawClusterR::GetStatus(int ii) {
 }
 
 std::ostream &TrRawClusterR::putout(std::ostream &ostr){
-  this->_PrepareOutput(1);
-  return ostr << sout << std::endl;
+  return ostr << _PrepareOutput(1) << std::endl;
 }
 
 void TrRawClusterR::Print(int full) { 
-   _PrepareOutput(full);
-  cout<<sout;
+  cout << _PrepareOutput(full);
 }
 
-void TrRawClusterR::_PrepareOutput(int full) { 
-  sout.clear();
+std::string TrRawClusterR::_PrepareOutput(int full) { 
+  std::string sout;
   sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %7.2f  SeedSN: %7.2f  CNStatus: %2d  PwStatus: %1d\n",
 		   GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal(),GetDSPSeedSN(),GetCNStatus(),GetPowerStatus()));
-  if(!full) return;
+  if(!full) return sout;
   for (int ii=0; ii<GetNelem(); ii++) 
     sout.append(Form("Address: %4d  Signal: %8.3f  Sigma: %8.3f  S/N: %8.3f  Status: %3d\n",
 	       ii+GetAddress(),GetSignal(ii),GetSigma(ii),GetSN(ii),GetStatus(ii)));
+  return sout;
 }
 
 const char* TrRawClusterR::Info(int iRef){
   string aa;
   aa.append(Form("TrRawCluster #%d ",iRef));
-  _PrepareOutput(0);
-  aa.append(sout);
-  int len=MAXINFOSIZE;
+  aa.append(_PrepareOutput(0));
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;

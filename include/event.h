@@ -289,20 +289,20 @@ return 1;
 #endif
 }
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
-uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_VelTheta(VelT),_VelPhi(VelP),_time(time),_usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_ccebp(0),_Utoftp(0),_Ltoftp(0),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
+uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_runtype(runtype),_Error(0),_StationRad(StationR),_StationTheta(stationT),_StationPhi(stationP),_NorthPolePhi(pole),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0),_Yaw(yaw),_Pitch(pitch),_Roll(roll),_StationSpeed(StationS),_SunRad(SunR),_VelTheta(VelT),_VelPhi(VelP),_time(time),_usec(usec),_ccebp(0),_Utoftp(0),_Ltoftp(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
-   _runtype(runtype), _time(time), _usec(usec),_Error(0),_ccebp(0),_Utoftp(0),_Ltoftp(0){
+   _runtype(runtype), _Error(0),_time(time), _usec(usec),_ccebp(0),_Utoftp(0),_Ltoftp(0){
    _Head[get_thread_num()]=this;
     _RunEv[get_thread_num()]=getrunev();
    _status[0]=0;
    _status[1]=0;
-   for (int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)_GPS[k]=0;
+   for (unsigned int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)_GPS[k]=0;
    _GPSL=0;
 }
 void SetGPSTime(unsigned int gpsl,unsigned int gps[]){
  _GPSL=gpsl;
  if(_GPSL>=sizeof(_GPS)/sizeof(_GPS[0]))_GPSL=sizeof(_GPS)/sizeof(_GPS[0]);
- for(int k=0;k<_GPSL;k++)_GPS[k]=gps[k];
+ for(unsigned int k=0;k<_GPSL;k++)_GPS[k]=gps[k];
 }
 
 ~AMSEvent(){_RunEv[get_thread_num()]=0;_Head[get_thread_num()]=0;}
@@ -320,21 +320,21 @@ static int & ThreadWait()  {return _Wait[get_thread_num()];}
 static uinteger & ThreadSize()  {return _Size[get_thread_num()];}
 static bool Waitable(){
 int zero=0;
-for (int k=0;k<AMSEvent::get_num_threads();k++){
+for (unsigned int k=0;k<AMSEvent::get_num_threads();k++){
  if(k!=AMSEvent::get_thread_num() && _Wait[k]==0)zero++;
 }
 return zero!=0;
 }
 static void ResetThreadWait(int f=0){
-if(f)for(int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)_Wait[k]=0;
+if(f)for(unsigned int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)_Wait[k]=0;
 else{
-for(int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)if(_Wait[k]>0 && !Waitable())_Wait[k]=0;
+for(unsigned int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)if(_Wait[k]>0 && !Waitable())_Wait[k]=0;
 }
 }
 
-static uinteger TotalSize(){integer s=0;for(int k=0;k<get_num_threads();k++)s+=_Size[k];return s;}
+static uinteger TotalSize(){integer s=0;for(unsigned int k=0;k<get_num_threads();k++)s+=_Size[k];return s;}
 static uinteger MaxMem(){return AMSCommonsI::MaxMem();}
-static uinteger AvMem(){int nact=0;for(int k=0;k<get_num_threads();k++)if(_Wait[k]==0)nact++;return nact>0?TotalSize()/nact:MaxMem()/maxthread;}
+static uinteger AvMem(){int nact=0;for(unsigned int k=0;k<get_num_threads();k++)if(_Wait[k]==0)nact++;return nact>0?TotalSize()/nact:MaxMem()/maxthread;}
 static integer debug;
 AMSlink * getheadC(const char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}
@@ -359,8 +359,7 @@ void GetISSCoo(number & ra, number & dec){
   ra=_StationEqAsc;dec=_StationEqDec;} // ISN 
 void GetAMSCoo(number & ra, number & dec){
   ra=_AMSEqAsc;dec=_AMSEqDec;} // ISN 
-static void  sethead(AMSEvent* head) {int thr=0;
- _Head[get_thread_num()]=head;if(_Head[get_thread_num()])AMSEvent::EventMap.map(*(_Head[get_thread_num()]));}
+static void  sethead(AMSEvent* head) { _Head[get_thread_num()]=head;if(_Head[get_thread_num()])AMSEvent::EventMap.map(*(_Head[get_thread_num()]));}
 static void  sethead2(AMSEvent* head){ _Head[get_thread_num()]=head;}
 integer removeC();
 void Recovery(bool finish=false);

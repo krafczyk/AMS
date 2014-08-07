@@ -169,7 +169,7 @@ endif
 
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
-CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC 
+CFLAGSB= -Wall -Wno-missing-braces -Wno-strict-aliasing -Wno-unused-function -Wno-unknown-pragmas -Wno-deprecated -Wno-write-strings  -fPIC 
 DEFINES+= -D__root_$(NEW) -D__X8664__
 
 ifdef AMSPROFILE

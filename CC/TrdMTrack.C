@@ -99,7 +99,7 @@ float TrdMTrack::GetLogLikelihood(AMSEventR *_evt, ParticleR *par){
   if(TrdAlignType==2 && ((unsigned int)_Time> _calibtime+10000000 ||(unsigned int)_Time< _calibtime) ) update_alignment_vectors((unsigned long)_Time);
   // cout << "Utime: " << evt->UTime() <<endl ;
 
-  if(_Time>=FirstRun && _Time<=LastRun) IsValid=true;
+  if(_Time>=int(FirstRun) && _Time<=int(LastRun)) IsValid=true;
   else { TrdGainType=-1; TrdAlignType=-1; IsValid=true;}
 
   n_mhX=0;
@@ -204,7 +204,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
   for( int i=0; i<20; i++){
     if(trd_coo[i][0]==0 && tr_coo[i][0]==0 && i>0 && i<19 ){
       if((trd_coo[i-1][0]>0 || tr_coo[i-1][0]>0) && (trd_coo[i+1][0]>0 || tr_coo[i+1][0]>0)){
-	int lad, tub;
 	
 	float z=0.12+get_trd_rz(i-1,trd_coo[i-1][1] , 0, 1)+(get_trd_rz(i+1,trd_coo[i+1][1] , 0, 1)-get_trd_rz(i-1,trd_coo[i-1][1] , 0, 1))/2;
 	
@@ -242,7 +241,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 
 	    float denorm=a*c-b*b;
 	    if(denorm==0)cout<<"ERROR: Track Tube in Parrarel orientation"<<endl;
-	    float sc=(b*e-c*d)/denorm;
 	    float tc=(a*e-b*d)/denorm;
 	    
 	    AMSPoint TubePos=TRDGap_0+TRDTube_Dir*tc;
@@ -251,7 +249,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	     
 	    AMSPoint check=trdtk_pnt-TRDGap_0;
 	    AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
-	    float abstand = (check.prod(check2))/check2.norm();
 	    //	    float z_res=abstand*check2.z()/check2.norm();
 	    
 	    AMSDir zdir(0,0,1);
@@ -303,16 +300,14 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
  
 	    float denorm=a*c-b*b;
 	    if(denorm==0)cout<<"ERROR: Track Tube in Parrarel orientation"<<endl;
-	    float sc=(b*e-c*d)/denorm;
-	    float tc=(a*e-b*d)/denorm;
-	    
+        float tc=(a*e-b*d)/denorm;
+
 	    AMSPoint TubePos=TRDGap_0+TRDTube_Dir*tc;
 	    	     
 	    track->Interpolate(TubePos.z(), trdtk_pnt, trdtk_dir, _id);
 	    
 	    AMSPoint check=trdtk_pnt-TRDGap_0;
 	    AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
-	    float abstand = (check.prod(check2))/check2.norm();
 	    // float z_res=abstand*check2.z()/check2.norm();
 	    
 	    AMSDir zdir(0,0,1);
@@ -371,7 +366,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	
 	float denorm=a*c-b*b;
 	if(denorm==0)cout<<"ERROR: Track Tube in Parrarel orientation"<<endl;
-	float sc=(b*e-c*d)/denorm;
 	float tc=(a*e-b*d)/denorm;
 	
 	AMSPoint TubePos=TRDGap_0+TRDTube_Dir*tc;
@@ -380,7 +374,6 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	
 	AMSPoint check=trdtk_pnt-TRDGap_0;
 	AMSPoint check2=trdtk_dir.crossp(TRDTube_Dir);
-	float abstand = (check.prod(check2))/check2.norm();
 	//	float z_res=abstand*check2.z()/check2.norm();
 	 
 	AMSDir zdir(0,0,1);
@@ -433,7 +426,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
      float serr=0.0020, berr=0.0030;
      if(l1)  _fit->Add(trhit[0], tr_err[0]);
      //  printf("mh: pl1 hit added");
-     for(int p=0; p<trdtk_pntvec.size(); p++){
+     for(unsigned int p=0; p<trdtk_pntvec.size(); p++){
        if(tr_num+p<20){
 	 if(dirvec[(int)dirvec.size()-1-p]<4 || dirvec[(int)dirvec.size()-1-p]>15 ) {
 	   AMSPoint test(0, trdtk_pntvec[(int)trdtk_pntvec.size()-1-p].y(), trdtk_pntvec[(int)trdtk_pntvec.size()-1-p].z() ); 
@@ -451,7 +444,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
      }
      
 
-     for(int l=0; l<trhit.size(); l++){
+     for(unsigned int l=0; l<trhit.size(); l++){
        if(!l1 && l==0) _fit->Add(trhit[l], tr_err[l]);
        if( l>0) _fit->Add(trhit[l], tr_err[l]);
        //  printf("mh: tracker hit added");
@@ -478,7 +471,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	tr_err.push_back(trerr); 
       }
     }
-    for(int l=0; l<trhit.size(); l++){
+    for(unsigned int l=0; l<trhit.size(); l++){
       _fit->Add(trhit[l], tr_err[l]);
       // printf("no mh: tracker hit added");
        }
@@ -517,7 +510,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track){
       tr_err.push_back(trerr); 
     }
   }
-  for(int l=0; l<trhit.size(); l++){
+  for(unsigned int l=0; l<trhit.size(); l++){
     _fit->Add(trhit[l], tr_err[l]);
     // printf("no mh: tracker hit added");
     
@@ -943,14 +936,12 @@ void TrdMTrack::Init_Alignment(){
     
     if( !fi) {cout<<"TrdMTrack::Init_Alignment: Could not read Alignment! "<<zname<<endl; return;}
 
-    char gname[80];
     double z;
     double time;
-    int test;
     
     TGraph *zg=(TGraph*)fi->Get("grModul_zmeasurement");
     for(int j=0; j<328; j++){
-      test=zg->GetPoint(j, time, z);
+      zg->GetPoint(j, time, z);
       z_corr[j][0]=(float)time;
       z_corr[j][1]=(float)z;
     }
@@ -1072,7 +1063,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
     char gname[80];
     double z;
     double time;
-    int test, t;
+    int test = -1;
 
     for(int j=0; j<328; j++){
       mod_time[j].clear();
@@ -1100,7 +1091,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
       sprintf(gname, "grModul_rinc_%i", j);
       g2=(TGraph*)f->Get(gname);
       for(int i=0; i<g2->GetN(); i++){
-	t=g2->GetPoint(i, time, z);
+	g2->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][1].push_back((float)z);
       }
       g2->Clear();
@@ -1110,7 +1101,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
       sprintf(gname, "grModul_zres_%i", j);
       g3=(TGraph*)f->Get(gname);
       for(int i=0; i<g3->GetN(); i++){
-	t=g3->GetPoint(i, time, z);
+  	g3->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][2].push_back((float)z);
       }
       g3->Clear();
@@ -1120,7 +1111,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
       sprintf(gname, "grModul_zinc_%i", j);
       g4=(TGraph*)f->Get(gname);
       for(int i=0; i<g4->GetN(); i++){
-	t=g4->GetPoint(i, time, z);
+	  g4->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][3].push_back((float)z);
       }
       g4->Clear();
@@ -1160,9 +1151,7 @@ void TrdMTrack::Init_PDFs(){
     
     if(!f) {cout<<"TrdMTrack::Init_PDFs: Could not read PDFs! "<<name<<endl; return;}
     
-    int test;
-    double x, y;
-    char gname[80], modname[80];
+    char gname[80];
     for(int j=0; j<6; j++){
       for(int i=0; i<30; i++){
 	//	sprintf(gname, "grTrdS_Prot_%i_%i", j, i);
@@ -1412,7 +1401,7 @@ void TrdMTrack::SetAlignment(){
   else if(TrdAlignType==1){
     
     AMSPoint T[20];
-    AMSRotMat R[20], RI[20];
+    AMSRotMat R[20];
     AMSPoint Center[20];
     
     int read = trdk_db->readDB_Alignment(evt->Run());

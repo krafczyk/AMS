@@ -116,7 +116,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   // Get the JINF number
   uint id=status.slaveId;  
   int JINF=-1;
-  for(int i=0;i<RICH_JINFs;i++) if(JINFId[i]==id) {JINF=i;break;}
+  for(int i=0;i<RICH_JINFs;i++) if(JINFId[i]==int(id)) {JINF=i;break;}
   if(JINF==-1) Do(kJINFIdError);
   
 
@@ -514,7 +514,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     cout <<" nc "<<nc<<" "<<ncp<<" "<<update<<endl;
     if(update){
       for(int i=0;i<2;i++){
-	for(int j=0;j<sizeof(_Calib)/sizeof(_Calib[0][0])/2;j++){
+	for(unsigned int j=0;j<sizeof(_Calib)/sizeof(_Calib[0][0])/2;j++){
 	  _Calib[i][j]=0;
 	}
       }

@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.63 2012/04/20 07:43:26 choutko Exp $
+//  $Id$
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -13,7 +13,7 @@
 
 AMSTRDCluster * AMSTRDCluster::_Head[trdconst::maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 integer AMSTRDCluster::build(int rerun){
-for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
+for(unsigned int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
 //for(int mode=0;mode<AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
     number Thr1A=TRDCLFFKEY.Thr1A/TRDCLFFKEY.ADC2KeV;
     number Thr1S=TRDCLFFKEY.Thr1S/TRDCLFFKEY.ADC2KeV;
@@ -23,13 +23,12 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
     AMSTRDRawHit * ptra[trdconst::maxtube+3];
     VZERO(adc,sizeof(adc)/sizeof(integer));
     VZERO(ptra,sizeof(ptra)/sizeof(integer));
-    for (int n=mode;n<mode+AMSTRDIdSoft::ncrates();n++){
+    for (unsigned int n=mode;n<mode+AMSTRDIdSoft::ncrates();n++){
      AMSTRDRawHit * ptr=
      (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,2);  
      while(ptr){
        AMSTRDIdSoft id(ptr->getidsoft());
        integer ilay=id.getlayer();
-       integer ilad=id.getladder();
        if(ptr->testlast()){
         if(!id.checkstatus(AMSDBc::BAD))adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
         ptra[ptr->getidsoft().gettube()]=ptr;
@@ -39,8 +38,8 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
         }
 #endif
         number ref=-FLT_MAX;
-        int status=0;
-        for(int i=0;i<trdconst::maxtube+1;i++){
+        unsigned int status=0;
+        for(unsigned int i=0;i<trdconst::maxtube+1;i++){
          if(adc[i]<ref){
           if( adc[i]< adc[i+1] && adc[i+1]> Thr1A){
              status=AMSDBc::WIDE;
@@ -67,7 +66,7 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
             right=adc[i]==0?center:center+1;
           }
           else right=center+2;
-          if(right>trdconst::maxtube-1)right=trdconst::maxtube-1;
+          if(right>int(trdconst::maxtube)-1)right=trdconst::maxtube-1;
           for( int k=right;k>center;k--){
            id.upd(k);
            if(adc[k]<=0 || id.checkstatus(AMSDBc::BAD)|| k-left>TRDCLFFKEY.MaxHitsInCluster)right--;
@@ -278,7 +277,7 @@ integer AMSTRDTrack::_case=0;
 integer AMSTRDSegment::build(int rerun){
   int nseg=0;
  for(_case=0;_case<2;_case++){
-for(int iseg=0;iseg<TRDDBc::nlayS();iseg++){  
+for(unsigned int iseg=0;iseg<TRDDBc::nlayS();iseg++){  
   bool      WeakCaseWanted=true;
   integer NTrackFound=-1;
   for ( pat=0;pat<TRDDBc::npatH(iseg);pat++){
@@ -334,7 +333,7 @@ integer AMSTRDSegment::_TrSearcher(int icall,uinteger iseg){
            phit[icall]=AMSTRDCluster::gethead(TRDDBc::patconfH(pat,icall,iseg)-1);
            while(phit[icall]){
              if(phit[icall]->Good(AMSDBc::RECOVERED,_case) && !Distance1D(par,phit[icall])){
-              if(TRDDBc::patpointsH(pat,iseg) >icall+2){         
+              if(int(TRDDBc::patpointsH(pat,iseg)) >icall+2){         
                 return _TrSearcher(++icall,iseg); 
               }                
               else {
@@ -376,7 +375,7 @@ abort();
 
 void AMSTRDSegment::_addnextR(uinteger iseg){
 
-         int i;
+         unsigned int i;
          // Mark hits as USED
          for( i=0;i<_NHits;i++){
            if(_pCl[i]->checkstatus(AMSDBc::USED))
@@ -390,7 +389,6 @@ void AMSTRDSegment::_addnextR(uinteger iseg){
 
 bool AMSTRDSegment::Distance1D(number par[2], AMSTRDCluster *ptr){
 
-   number maxdist=ptr->getEHit()*3;
    return fabs(par[1]+par[0]*ptr->getHit(1)-ptr->getHit(0))/
             sqrt(1+par[0]*par[0]) > ptr->getEHit()*3;
 }
@@ -402,7 +400,7 @@ number x=0;
 number x2=0;
 number y=0;
 number xy=0;
-for (int i=0;i<_NHits;i++){
+for (unsigned int i=0;i<_NHits;i++){
  x+=_pCl[i]->getHit(1);
  y+=_pCl[i]->getHit(0);
  xy+=_pCl[i]->getHit(1)*_pCl[i]->getHit(0);
@@ -415,7 +413,7 @@ for (int i=0;i<_NHits;i++){
  _FitPar[0]=(xy-x*y)/(x2-x*x);
  _FitPar[1]=y-_FitPar[0]*x;
  _Chi2=0;
- for(int i=0;i<_NHits;i++){
+ for(unsigned int i=0;i<_NHits;i++){
   number d=(_pCl[i]->getHit(0)-_FitPar[0]*_pCl[i]->getHit(1)-_FitPar[1]);
   _Chi2+=d*d/_pCl[i]->getEHit()/_pCl[i]->getEHit();
  }
@@ -471,7 +469,7 @@ void AMSTRDSegment::_copyEl(){
  if(PointerNotSet())return;
   TrdSegmentR & ptr =AMSJob::gethead()->getntuple()->Get_evroot02()->TrdSegment(_vpos); 
    
-    for (int i=0; i<_NHits; i++) {
+    for (unsigned int i=0; i<_NHits; i++) {
       if (_pCl[i]) ptr.fTrdCluster.push_back(_pCl[i]->GetClonePointer());
     }
 #endif
@@ -530,7 +528,7 @@ integer AMSTRDTrack::build(int rerun){
   _Start();
 
   int nrh=0;
-  for(int i=0;i<TRDDBc::nlayS();i++){
+  for(unsigned int i=0;i<TRDDBc::nlayS();i++){
     nrh+= (AMSEvent::gethead()->getC("AMSTRDSegment",i))->getnelem();
   }
   if(nrh>=TRDFITFFKEY.MaxSegAllowed){
@@ -550,7 +548,7 @@ again:
 
   for( _case=0;_case<2;_case++){
     bool      WeakCaseWanted=false;
-    for (pat=0;pat<TRDDBc::npatS();pat++){
+    for (pat=0;pat<int(TRDDBc::npatS());pat++){
       if(TRDDBc::patallowS(pat) || (TRDDBc::patallow2S(pat) && WeakCaseWanted)){
 	int fp=TRDDBc::patpointsS(pat)-1;    
 	// Try to make StrLine Fit
@@ -767,13 +765,18 @@ extern "C" void e04ccf_(int &n, number xc[], number &fc, number &tol, int &iw, n
 
 void AMSTRDTrack::StrLineFit(bool upd){
 
+#ifndef NO_NAG
     void (*palfun)(int &n, double xc[], double &fc, AMSTRDTrack *p)=&AMSTRDTrack::alfun;
     void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=&AMSTRDTrack::monit;
+#endif
     _Base._NHits=0;    
      _StrLine._FitDone=false;
   // Fit Here
     const integer mp=40;
-    number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+    number f,x[mp];
+#ifndef NO_NAG
+	number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+#endif
     number yy=0;
     number xx=0;
     number yz=0;
@@ -784,7 +787,7 @@ void AMSTRDTrack::StrLineFit(bool upd){
     number nxz=0;
    if(_BaseS._NSeg>2){
     for (int i=0;i<_BaseS._NSeg;i++){
-     for(int k=0;k<_BaseS._PSeg[i]->getNHits();k++){
+     for(unsigned int k=0;k<_BaseS._PSeg[i]->getNHits();k++){
       if(fabs(_BaseS._PSeg[i]->getpHit(k)->getCooDir()[0])>0.9){
         yz+=-_BaseS._PSeg[i]->getFitPar(0);      
         yy+=-_BaseS._PSeg[i]->getFitPar(1);      
@@ -819,7 +822,6 @@ void AMSTRDTrack::StrLineFit(bool upd){
    }
 
 else{
-     number yz,yy,xz,xx;
     for (int i=0;i<_BaseS._NSeg;i++){
       if(fabs(_BaseS._PSeg[i]->getpHit(0)->getCooDir()[0])>0.9){
         yz=-_BaseS._PSeg[i]->getFitPar(0);      
@@ -829,7 +831,7 @@ else{
         xz=_BaseS._PSeg[i]->getFitPar(0);      
         xx=_BaseS._PSeg[i]->getFitPar(1);      
       }
-     for(int k=0;k<_BaseS._PSeg[i]->getNHits();k++){
+     for(unsigned int k=0;k<_BaseS._PSeg[i]->getNHits();k++){
       _Base._PCluster[_Base._NHits++]=_BaseS._PSeg[i]->getpHit(k);
      }
     } 
@@ -851,12 +853,13 @@ else{
     x[4]=Dir.gettheta();
       
   // number of parameters to fit
-    integer n=5;
+	integer n=5;
+#ifndef NO_NAG
     integer iw=n+1;
-    integer ifail=1;
     integer maxcal=1000;
     number tol=2.99e-2;
-    int i,j;
+#endif
+    integer ifail=1;
     _update=false;
 #ifndef NO_NAG    
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,(void*)this);
@@ -940,27 +943,27 @@ void AMSTRDTrack::alfun(integer &n, number xc[], number &fc, AMSTRDTrack *p){
 
 void AMSTRDTrack::RealFit(){
   _Real._FitDone=false;
-  integer fit=0;
-  integer ims=0;
   integer npt=_Base._NHits;
   const integer maxhits=trdconst::maxlay;
   geant hits[maxhits][3];
   geant sigma[maxhits][3];
+#ifndef _PGTRACK_
   geant normal[maxhits][3];
   integer layer[maxhits];
-  integer ialgo=1;
   geant out[40];
+#endif
   for(int i=0;i<npt;i++){
+#ifndef _PGTRACK_
     normal[i][0]=0;
     normal[i][1]=0;
     normal[i][2]=-1;
     layer[npt-1-i]=_Base._PCluster[i]->getlayer();
+#endif
     for(int j=0;j<3;j++){
       hits[npt-1-i][j]=_Base._Hit[i][j];
       sigma[npt-1-i][j]=_Base._EHit[i][j];
     }
   }
-  int ipart=14;
 #ifdef _PGTRACK_
   //PZ FIXME 
   TrFit fitg;
@@ -973,7 +976,6 @@ void AMSTRDTrack::RealFit(){
    
   
   fitg.LinearFit();
-  out[7]=fitg.GetChisq();
  
  
   _Real._FitDone=true;
@@ -991,6 +993,9 @@ void AMSTRDTrack::RealFit(){
  
  
 #else
+  integer ims=0;
+  integer ialgo=1;
+  int ipart=14;
   zeromagstat_();
   TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
   resetmagstat_();
@@ -1029,7 +1034,7 @@ bool AMSTRDTrack::IsEcalCandidate(){
     mul+=_Base._PCluster[i]->getmult();
     hmul+=_Base._PCluster[i]->gethmult();
    }
-   if(hmul>trdconst::maxlay/5 && hmul<trdconst::maxlay*4/5+1)return true;
+   if(hmul>int(trdconst::maxlay/5) && hmul<int(trdconst::maxlay*4/5+1))return true;
    else return false;   
 
 }
@@ -1049,7 +1054,7 @@ bool AMSTRDTrack::IsHighGammaTrack(){
 
 bool AMSTRDTrack::Veto(int last){
  for (int i=0;i<_Base._NHits;i++){
-  if(_Base._PCluster[i]->getlayer()>last)return false;
+  if(int(_Base._PCluster[i]->getlayer())>last)return false;
  }
  return true;
 }
@@ -1076,7 +1081,6 @@ double d2=delta.prod(delta);
 double a=1-nl*nl;
 double b=dn*nl-dl;
 double c=d2-dn*dn-R*R;
-double rmin2=-b*b/a+(d2-dn*dn);
 double d=b*b-a*c;
 double range=d<0?0:2*sqrt(d)/a;
             double norm=AMSTRDCluster::RangeCorr(0.57,1.);        
@@ -1086,23 +1090,23 @@ double range=d<0?0:2*sqrt(d)/a;
    }
  }
 
- if(edepc.size()>TRDFITFFKEY.MinFitPoints){
+ if(int(edepc.size())>TRDFITFFKEY.MinFitPoints){
 
    sort(edepc.begin(),edepc.end());
    double medianc=0;            
-   if(edepc.size()%2)for(int k=edepc.size()/2-2;k<edepc.size()/2+3;k++)medianc+=edepc[k]/5;
-   else for(int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
+   if(edepc.size()%2)for(int k=int(edepc.size())/2-2;k<int(edepc.size())/2+3;k++)medianc+=edepc[k]/5;
+   else for(int k=int(edepc.size())/2-2;k<int(edepc.size())/2+2;k++)medianc+=edepc[k]/4;
    _Charge.Q=sqrt(medianc/beta)*TRDFITFFKEY.QP[0]+TRDFITFFKEY.QP[1];
  }
 
 
    //lkhd
    const int span =sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0])/(sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]));
-   for (int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+   for (unsigned int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
     if(TrackCharge::ChargePDF[k*span+span-1]){
     _Charge.Charge[k]=TrackCharge::ChargePDF[k*span+span-2];  
     _Charge.ChargeP[k]=0;
-    for(int i=0;i<edepc.size();i++){
+    for(unsigned int i=0;i<edepc.size();i++){
       int ch=edepc[i]/beta/TrackCharge::ChargePDF[k*span+span-3];
       if(ch<0)ch=0;
       if(ch>span-3)ch=span-3;
@@ -1115,7 +1119,7 @@ double range=d<0?0:2*sqrt(d)/a;
          _Charge.Charge[k]=TrackCharge::ChargePDF[k*span+span-2];  
          _Charge.ChargeP[k]=0;
          float factor=_Charge.Charge[l]/_Charge.Charge[k];
-          for(int i=0;i<edepc.size();i++){
+          for(unsigned int i=0;i<edepc.size();i++){
             int ch=edepc[i]*factor*factor/beta/TrackCharge::ChargePDF[l*span+span-3];
             if(ch<0)ch=0;
             if(ch>span-3)ch=span-3;
@@ -1128,16 +1132,16 @@ double range=d<0?0:2*sqrt(d)/a;
     
    }
    double prsum=0;
-   for(int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+   for(unsigned int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
      prsum+=exp(-double(_Charge.ChargeP[k]));
    }
     
-   for(int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+   for(unsigned int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
      _Charge.ChargeP[k]+=log(prsum);
    }
 
    multimap<float,short int> chmap;
-   for(int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+   for(unsigned int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
      chmap.insert(make_pair(_Charge.ChargeP[k],_Charge.Charge[k]));
    }
    int l=0;
@@ -1164,7 +1168,7 @@ double AMSTRDCluster::RangeCorr(double range, double norm){
   if(rng<TRDCLFFKEY.RNGB[0])rng=TRDCLFFKEY.RNGB[0];
   if(rng>TRDCLFFKEY.RNGB[1])rng=TRDCLFFKEY.RNGB[1];
   
-  for(int i=0;i<sizeof(TRDCLFFKEY.RNGP)/sizeof(TRDCLFFKEY.RNGP[0]);i++){
+  for(unsigned int i=0;i<sizeof(TRDCLFFKEY.RNGP)/sizeof(TRDCLFFKEY.RNGP[0]);i++){
     corr+=TRDCLFFKEY.RNGP[i]*pow(rng,double(i));
   }
   return corr/norm;
@@ -1186,7 +1190,7 @@ if(!file){
  cerr<<"AMSTRDTrack::Charge::ChargePDF-E-UnableToOpen "<<fnam <<" "<<getenv("TRDChargePDFFile")<<endl;
 return false;
 }
-for(int k=0;k<sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0]);k++)TrackCharge::ChargePDF[k]=0;
+for(unsigned int k=0;k<sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0]);k++)TrackCharge::ChargePDF[k]=0;
 int ptr=0;
 const int span=1003;
 while(file.good() && !file.eof()){
@@ -1224,7 +1228,7 @@ if(ptr<3){
  cerr<<"AMSTRDTrack::Charge::ChargePDF-E-minimal 3 PDF Needed "<<endl;
  return false;
 }
-for(int i=ptr;i<sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0])/span;i++){
+for(unsigned int i=ptr;i<sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0])/span;i++){
   TrackCharge::ChargePDF[i*span+span-2]=i;
 }
 
@@ -1238,7 +1242,6 @@ if (AMSEvent::gethead()->getC("AMSTRDTrack",0)->getnelem()<2)return false;
 
 //try to find two projections of two tracks which match with track
 
-double theta,phi,sleng;
   AMSPoint cmin(0,0,85.);
   AMSPoint cmax(0,0,140.);
   AMSDir dir(0,0,1.);
@@ -1247,6 +1250,7 @@ double theta,phi,sleng;
     _ptrack->Interpolate(cmin[2], cmini,dir);
     _ptrack->Interpolate(cmax[2], cmaxi,dir);
 #else
+double theta,phi,sleng;
 _ptrack->interpolate(cmin,dir,cmini,theta,phi,sleng);
  _ptrack->interpolate(cmax,dir,cmaxi,theta,phi,sleng);
 #endif

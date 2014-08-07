@@ -77,8 +77,8 @@ int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
   time_t endtime=0; 
   tm begin;
   tm end;
-  tm* mtim=gmtime_r(&starttime,&begin);
-  tm* mtim2=gmtime_r(&endtime,&end);
+  gmtime_r(&starttime,&begin);
+  gmtime_r(&endtime,&end);
     
   static AMSTimeID *tid=0;
 #pragma omp threadprivate (tid)
@@ -132,8 +132,8 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
   time_t endtime=it1->first+3600;
   tm begin;
   tm end;
-  tm* mtim=gmtime_r(&starttime,&begin);
-  tm* mtim2=gmtime_r(&endtime,&end);
+  gmtime_r(&starttime,&begin);
+  gmtime_r(&endtime,&end);
     
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),
@@ -183,8 +183,8 @@ int TrInnerDzDB::TDV2DB(){
   time_t endtime=0;
   tm begin;
   tm end;
-  tm* mtim=gmtime_r(&starttime,&begin);
-  tm* mtim2=gmtime_r(&endtime,&end);
+  gmtime_r(&starttime,&begin);
+  gmtime_r(&endtime,&end);
     
   AMSTimeID tid(
 		AMSID("TrInnerDzAlign",1),
@@ -197,11 +197,11 @@ int TrInnerDzDB::TDV2DB(){
 		TrInnerLin2DB);
   int dbsize= tid.GetDataBaseSize();
   for (int ii=0;ii<dbsize;ii++){
-    uint ltimes[5];
+    uint ltimes[5] = {0};
     tid.GetDBRecordTimes(ii,ltimes);
     times.push_back(ltimes[2]+1);
   }
-  for (int jj=0;jj<times.size();jj++){
+  for (unsigned int jj=0;jj<times.size();jj++){
     time_t tt= (time_t)times[jj];
     tid.validate(tt);
   }

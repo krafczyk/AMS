@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.65 2013/11/29 16:05:23 sdifalco Exp $
+//  $Id$
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -130,7 +130,6 @@ class AMSEcalRawEvent: public AMSlink{
     static    AMSID  getTDVcalibTslo(){return AMSID("EcalTslo",AMSJob::gethead()->isRealData());}
  protected:
     void _printEl(ostream &stream){
-      int i;
       stream <<"AMSEcalRawEvent: id="<<dec<<_idsoft<<endl;
       stream <<" Status="<<hex<<_status<<" Adc="<<_padc[0]<<" "<<_padc[1]<<endl;
       stream <<dec<<endl<<endl;
@@ -196,7 +195,6 @@ class AMSEcalHit: public AMSlink{
       //
  protected:
       void _printEl(ostream &stream){
-	int i;
 	stream <<"AMSEcalHit: Proj/Plane/cell= "<<_proj<<" "<<_plane<<" "<<_cell<<endl;
 	stream <<"Status="<<hex<<_status<<dec<<" id="<<_idsoft<<"  Edep="<<_edep<<" EdCorr="<<_edepc<<endl; 
 	stream <<"Coot/l/z= "<<_coot<<" "<<_cool<<" "<<_cooz<<endl;
@@ -246,7 +244,7 @@ class Ecal1DCluster: public AMSlink{
     Ecal1DCluster * next(){return (Ecal1DCluster*)_next;}
     //
     uinteger getNHits()const{return _NHits;}
-    AMSEcalHit * getphit(uinteger i)const{return i<_NHits?_pHit[i]:0;}
+    AMSEcalHit * getphit(uinteger i)const{return int(i)<_NHits?_pHit[i]:0;}
     integer operator < (AMSlink & o)const{
       Ecal1DCluster *p =dynamic_cast<Ecal1DCluster*>(&o);
       if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
@@ -278,7 +276,6 @@ class Ecal1DCluster: public AMSlink{
  protected:
 
     void _printEl(ostream &stream){
-      int i;
       stream <<"AMSEcalCluster: Proj= "<<_proj<<" plane="<<_plane<<endl;
       stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
       stream <<"Coord="<<_Coo[0]<<" "<<_Coo[1]<<" "<<_Coo[2]<<endl;
@@ -341,7 +338,7 @@ class AMSEcal2DCluster: public AMSlink{
     number getEnergy()const {return _EnergyC;}
     number getNClustKernel()const {return _NClustKernel;}
     number getNClust()const {return _NClust;}
-    Ecal1DCluster *getpClust(uinteger i)const {return i<_NClust?_pCluster[i]:0;} 
+    Ecal1DCluster *getpClust(uinteger i)const {return int(i)<_NClust?_pCluster[i]:0;} 
     //
     static integer build(int stat=0);
     static integer Out(integer);
@@ -352,7 +349,6 @@ class AMSEcal2DCluster: public AMSlink{
     void _AddOneCluster(Ecal1DCluster *ptr, bool addpointer=false);
     void _Fit();
     void _printEl(ostream &stream){
-      int i;
       stream <<"AMSEcal2DCluster: Proj= "<<_proj<<endl;
       stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
       stream <<"Coord="<<_Coo<<" "<<_Tan<<endl;

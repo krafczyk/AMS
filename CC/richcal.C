@@ -32,7 +32,7 @@ void AMSRichCal::reportCuts(){
   unsigned int all_entries=cuts_entries[cuts_order[0]];
   unsigned int prev_entries=all_entries;
   printf("\nCuts Efficiency report ------------------------------------------\n");
-  for(int i=0;i<cuts_order.size();i++){
+  for(unsigned int i=0;i<cuts_order.size();i++){
     string &name=cuts_order[i];
     unsigned int entries=cuts_entries[name];
     if(cuts_isMask[i]){
@@ -62,7 +62,7 @@ void AMSRichCal::resetCuts(){
 }
 
 void AMSRichCal::initCuts(){
-  for(int i=0;i<cuts_order.size();i++) cuts_passed[cuts_order[i]]=false;
+  for(unsigned int i=0;i<cuts_order.size();i++) cuts_passed[cuts_order[i]]=false;
 }
 
 // Macros to facilitate using these guys
@@ -126,14 +126,14 @@ AMSRichRing *AMSRichCal::event_selection(){
 #endif
 
   AMSContainer * pcnt;
-  int i,npart,ncharge,nbeta=0;
+  int i,npart;
 
   Trigger2LVL1 *ptr2;
   ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   SELECT("Has LVL1",ptr2 && ptr2->GlobFasTrigOK());
 
   npart=0;
-  AMSParticle *particle;
+  AMSParticle *particle = 0;
   for(i=0;;i++){
     pcnt=AMSEvent::gethead()->getC("AMSParticle",i);
     if(pcnt){npart+=pcnt->getnelem();if(AMSEvent::gethead()->getheadC("AMSParticle",i)) particle=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",i);}
@@ -223,7 +223,7 @@ void AMSRichCal::process_event(){
   AMSRichRing *ring=event_selection();
   if(!ring) return;
 
-  if(AMSEvent::gethead()->getrun()>last_run) last_run=AMSEvent::gethead()->getrun();
+  if(int(AMSEvent::gethead()->getrun())>last_run) last_run=AMSEvent::gethead()->getrun();
   if(AMSEvent::gethead()->gettime()>last_time) last_time=AMSEvent::gethead()->gettime();
 
   /********************* INDEX CALIBRATION ******************/
@@ -261,7 +261,7 @@ void AMSRichCal::process_event(){
       signal[channel].push_back(npe);
       
       // Check if we should update the calibration
-      if(signal[channel].size()>=gainEvents){
+      if(int(signal[channel].size())>=gainEvents){
 	// Find the median (which is more robust to outliers than mean)
 	double value=computeMedian(signal[channel]);
 	if(value>0){

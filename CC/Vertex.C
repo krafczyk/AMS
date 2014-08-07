@@ -92,9 +92,9 @@ VertexR::VertexR(TrTrackR *track1, TrTrackR *track2)
 }
 
 
-void VertexR::_PrepareOutput(int full){ 
+std::string VertexR::_PrepareOutput(int full){ 
 
-                     
+  std::string sout;
   sout.append(Form("Vtx: #tracks %d  Mom %f ErrMom  %f Chrg %d Coo: (%f, %f, %f)",
 		   NTrTrack(), Momentum, ErrMomentum, Charge,Vertex[0],Vertex[1],Vertex[2]));
   
@@ -103,27 +103,27 @@ void VertexR::_PrepareOutput(int full){
   else
     sout.append(Form("Theta %f  Phi %f Chi2/Ndf %f/%d \n",
 		   Theta,Phi, Chi2, Ndof));
+
+  return sout;
 }
+
 void VertexR::Print(int opt) { 
-  _PrepareOutput(opt);
-  cout << sout;
+  cout << _PrepareOutput(opt);
 }
 
 
 const char* VertexR::Info(int iRef){
   string aa;
   aa.append(Form("Vtx #%d ",iRef));
-  _PrepareOutput(0);
-  aa.append(sout);
-  int len=MAXINFOSIZE;
+  aa.append(_PrepareOutput(0));
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 
 std::ostream &VertexR::putout(std::ostream &ostr) {
-  _PrepareOutput(1);
-  return ostr << sout  << std::endl;
+  return ostr << _PrepareOutput(1) << std::endl;
 }
 
 
@@ -139,7 +139,7 @@ void VertexR::BuildTracksIndex()
   VCon *cont2 = GetVCon()->GetCont("AMSTrTrack");
   if (!cont2) return;
   fTrTrack.clear();
-  for (int i = 0; i < _pTrTrack.size(); i++) {
+  for (unsigned int i = 0; i < _pTrTrack.size(); i++) {
     fTrTrack.push_back(cont2->getindex(_pTrTrack[i]));
   }
   delete cont2;

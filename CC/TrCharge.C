@@ -249,7 +249,7 @@ bool TrCharge::GoodHitForLogProb(TrRecHitR* hit, int iside) {
   if (hit==0) return false;
   iside = iside%3;
   // cluster exist
-  TrClusterR* cls;
+  TrClusterR* cls = 0;
   if (iside==0) cls = hit->GetXCluster();
   if (iside==1) cls = hit->GetYCluster();
   if (!cls) return false;
@@ -261,7 +261,7 @@ bool TrCharge::GoodHitForLogProb(TrRecHitR* hit, int iside) {
   int Mult = hit->GetResolvedMultiplicity();
   if ( (cls->GetQStatus(1,Mult)&0x1FD)!=0 ) return false;
   // other-side cluster
-  TrClusterR* clo;
+  TrClusterR* clo = 0;
   if (iside==0) clo = hit->GetYCluster();
   if (iside==1) clo = hit->GetXCluster();
   if ( (clo) && (clo->GetQStatus(1,Mult)&0x100)!=0 ) return false;
@@ -276,8 +276,6 @@ bool TrCharge::StoreClusterInfo(TrTrackR* track, int type, int iside, double bet
   // check pointer
   if (track==0) return false; 
   // init
-  double qtot_x= 0.;
-  double qtot_y= 0.;
   int default_opt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kMIP|TrClusterR::kLoss|TrClusterR::kBeta|TrClusterR::kRigidity;
   // loop on hits
   for (int ihit=0; ihit<track->GetNhits(); ihit++) {
@@ -453,7 +451,6 @@ int TrCharge::GetZ(vector<like_t>& likelihood, TrTrackR* track, int type, int is
   // check 
   if (!track) return -2;
   int Zbest = -1;
-  int NPoints = 0;
 
   // min npoints required at first iteration
   int MinNP = 6;

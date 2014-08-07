@@ -80,12 +80,12 @@ class TrdHChargeR{
   };
 
   /// dtor
-  ~TrdHChargeR(){
-    for(int i=0;i<pdfs.size();i++)
+  virtual ~TrdHChargeR(){
+    for(unsigned int i=0;i<pdfs.size();i++)
       delete pdfs[i];
     pdfs.clear();
     
-    for(int i=0;i<spectra.size();i++)
+    for(unsigned int i=0;i<spectra.size();i++)
       delete spectra[i];
     spectra.clear();
     

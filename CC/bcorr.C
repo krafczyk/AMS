@@ -1,4 +1,4 @@
-//  $Id: bcorr.C,v 1.12 2013/04/05 11:37:59 choutko Exp $
+//  $Id$
 #include "root.h"
 #include "root_setup.h"
 #include "bcorr.h"
@@ -24,15 +24,15 @@ extern "C" void btempcor_(float& factor) {
 
 void MagnetVarp::MagnetTemperature::loadValues(unsigned int utime,bool ccebload){
 const string sensort[12]={"Port","Ram","Starboard","Wake","M-3X:31:UCF3","M-3X:32:UCF4","M-3X:35:UCF7","M-3X:36:UCF8","M-3X:39:LCF3","M-3X:40:LCF4","M-3X:43:LCF7","M-3X:44:LCF8"};
-const string sensorb[4][4]={"B-Field P0 Component X","B-Field P0 Component Y","B-Field P0 Component Z","B-Field P0 Sensor Tmp",
-"B-Field P1 Component X","B-Field P1 Component Y","B-Field P1 Component Z","B-Field P1 Sensor Tmp",
-"B-Field P2 Component X","B-Field P2 Component Y","B-Field P2 Component Z","B-Field P2 Sensor Tmp",
-"B-Field P3 Component X","B-Field P3 Component Y","B-Field P3 Component Z","B-Field P3 Sensor Tmp"};
+const string sensorb[4][4]={{"B-Field P0 Component X","B-Field P0 Component Y","B-Field P0 Component Z","B-Field P0 Sensor Tmp"},
+{"B-Field P1 Component X","B-Field P1 Component Y","B-Field P1 Component Z","B-Field P1 Sensor Tmp"},
+{"B-Field P2 Component X","B-Field P2 Component Y","B-Field P2 Component Z","B-Field P2 Sensor Tmp"},
+{"B-Field P3 Component X","B-Field P3 Component Y","B-Field P3 Component Z","B-Field P3 Sensor Tmp"}};
 nsens=0;
 ncceb=0;
 if(! AMSSetupR::gethead())return;
 
-for(int k=0;k<sizeof(stemp)/sizeof(stemp[0]);k++){
+for(unsigned int k=0;k<sizeof(stemp)/sizeof(stemp[0]);k++){
  vector<float>value;
  int ret= AMSSetupR::gethead()->fSlowControl.GetData(sensort[k].c_str(),utime,0.5,value);
  if(!ret && value.size()){
@@ -71,7 +71,7 @@ else if(method==2){
  beg=4;
  end=sizeof(stemp)/sizeof(stemp[0]);
 }
-else if(method<0 && method>=-sizeof(stemp)/sizeof(stemp[0])){
+else if(method<0 && method>=-int(sizeof(stemp)/sizeof(stemp[0]))){
 beg=-method-1;
 end=beg+1;
 }

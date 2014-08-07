@@ -557,9 +557,9 @@ double EcalHR::Peak(double x1, double y1, double x2, double y2,
   return (p2 != 0) ? -p1/p2/2 : 0;
 }
 
-void EcalHR::_PrepareOutput(int opt)
+std::string EcalHR::_PrepareOutput(int opt)
 {
-  sout.clear();
+  std::string sout;
   sout.append(Form("EcalHR nhit= %d E(S1,3,5)= %.2f %.2f %.2f Chisq= %.2f",
 		   Nhit(), Ecen(0)*1e-3, Ecen(1)*1e-3, Ecen(2)*1e-3, Tcsq()));
 
@@ -570,22 +570,22 @@ void EcalHR::_PrepareOutput(int opt)
 		       Plane(i), Cell(i), Hxy(i), Hz(i), dE(i)));
 		       
   }
+
+  return sout;
 }
 
 void EcalHR::Print(int opt)
 {
-  _PrepareOutput(opt);
-  cout << sout << endl;
+  cout << _PrepareOutput(opt) << endl;
 }
 
 const char *EcalHR::Info(int iref)
 {
   string str;
   str.append(Form("EcalH%d ", iref));
-  _PrepareOutput(0);
-  str.append(sout);
+  str.append(_PrepareOutput(0));
 
-  int len = MAXINFOSIZE;
+  unsigned int len = MAXINFOSIZE;
   if (str.size() < len) len = str.size();
   strncpy(_Info, str.c_str(), len+1);
 
@@ -594,8 +594,7 @@ const char *EcalHR::Info(int iref)
 
 std::ostream &EcalHR::putout(std::ostream &ostr)
 {
-  _PrepareOutput();
-  return ostr << sout << std::endl; 
+  return ostr << _PrepareOutput() << std::endl; 
 }
 
 #ifndef __ROOTSHAREDLIBRARY__

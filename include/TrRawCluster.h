@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.17 2013/02/17 16:32:18 mduranti Exp $ 
+// $Id$ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2013/02/17 16:32:18 $
+/// $Date$
 ///
-/// $Revision: 1.17 $
+/// $Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ class TrRawClusterR : public TrElem {
   /// Pointer to the calibration database
   static TrCalDB* _trcaldb;
   /// load the std::string sout with the info for a future output
-  void _PrepareOutput(int full=0);
+  std::string _PrepareOutput(int full=0);
 
  public:
 /** @name   CONSTRUCTORS & C. */

@@ -9,15 +9,14 @@ int TrdRawHitR::num=0;
 
 int TrdHSegmentR::NTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
-int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
+int TrdHSegmentR::iTrdRawHit(unsigned int i){return int(i)<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
 #ifdef __ROOTSHAREDLIBRARY__
   if(AMSEventR::Head()->Version()<=538){
-    if(hits.size()<=i&&i<Nhits){
+    if(hits.size()<=i&&int(i)<Nhits){
       hits.clear();
       VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
-      int n=0;
       for(int i=0;i<cont2->getnelem();i++){
 	TRDHitRZD rzd=TRDHitRZD(*(TrdRawHitR*)cont2->getelem(i));
 	if(rzd.d!=d)continue;
@@ -34,11 +33,11 @@ TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){
   }
 #endif
 
-  if(hits.size()<=i&&i<Nhits){
+  if(hits.size()<=i&&int(i)<Nhits){
     hits.clear();
     VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
     for(int i=0;i<cont2->getnelem();i++){
-      for(int n=0;n<fTrdRawHit.size();n++){
+      for(unsigned int n=0;n<fTrdRawHit.size();n++){
 	if(i==fTrdRawHit[n])
 	  hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
       }
@@ -61,7 +60,7 @@ TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0
 
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,float z_, float w_)
-  : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_), Nhits(0), Chi2(0.) 
+  : d(d_), m(m_), r(r_), z(z_), w(w_), em(em_), er(er_), Nhits(0), Chi2(0.) 
 {
   fTrdRawHit.clear();
 #ifndef __ROOTSHAREDLIBRARY__
@@ -71,7 +70,7 @@ TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,floa
 };
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_, float z_, float w_, int Nhits_, TrdRawHitR* pthit[])
-  : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_) , w(w_), Nhits(Nhits_)
+  : d(d_), m(m_), r(r_), z(z_), w(w_), em(em_), er(er_), Nhits(Nhits_)
 {
   fTrdRawHit.clear();
 #ifndef __ROOTSHAREDLIBRARY__
@@ -247,7 +246,6 @@ int TrdHSegmentR::Refit(int debug){
   int lr=LinReg(debug);
   
   int lay[20];for(int l=0;l!=20;l++)lay[l]=0;
-  float sum=0.;
   float zmax=0.,zmin=200.;
   int nhits=0;
   for(int h=0;h!=nTrdRawHit();h++){	
@@ -282,7 +280,7 @@ void TrdHSegmentR::AddHit(TrdRawHitR hit,int iter){
 }
 
 void TrdHSegmentR::RemoveHit(int iter){
-  if(iter>hits.size())
+  if(iter>int(hits.size()))
     cerr<<"TrdHSegmentR::RemoveHit-E-trying to delete hit "<<iter<<" of "<<hits.size()<<endl;
   hits.erase(hits.begin()+iter);
   fTrdRawHit.erase(fTrdRawHit.begin()+iter);

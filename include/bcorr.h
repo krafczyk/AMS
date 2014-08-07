@@ -1,4 +1,4 @@
-//  $Id: bcorr.h,v 1.7 2013/02/12 15:50:07 choutko Exp $
+//  $Id$
 #ifndef __AMSMFIELD__
 #define __AMSMFIELD__
 #include "typedefs.h"
@@ -18,7 +18,8 @@ public:
 public:
   void loadValues(unsigned int time,bool cceb=false);
   int getmeanmagnettemp(float &temp,int method=1); ///< get meanmagnet temp method 0 all sensors method 1 0...3 method 2 4...11 ; return 0 if ok
-  MagnetTemperature():ncceb(0),nsens(0),time(0){};
+  MagnetTemperature():nsens(0),ncceb(0),time(0){};
+  virtual ~MagnetTemperature() {}
  ClassDef(MagnetTemperature,1)       //MagnetTemperature;
  };
  static MagnetTemperature mgtt;
@@ -64,6 +65,7 @@ public:
   */
   static int btempcor(float &factor,unsigned int time=0,int method=1); ///< method 0..2 like in getmeanmagnettemp method 3 direct magfield estimation ; return 0 if ok
 
+  virtual ~MagnetVarp() {}
  ClassDef(MagnetVarp,1)       //MagnetVarp;
 };
 

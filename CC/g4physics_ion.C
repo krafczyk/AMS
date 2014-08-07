@@ -40,8 +40,8 @@
 using namespace std;
 
 // -----------------------------------------------------------
-IonDPMJETPhysics::IonDPMJETPhysics(G4bool val)
-  : G4VHadronPhysics("ionInelasticDPMJET"),theIonBC(0),theIonBC1(0),useDPMJETXS(val)
+IonDPMJETPhysics::IonDPMJETPhysics()
+  : G4VHadronPhysics("ionInelasticDPMJET"),theIonBC(0),theIonBC1(0)
 {
   fTripathi = fTripathiLight = fShen = fIonH =0;
    theDPM=0;

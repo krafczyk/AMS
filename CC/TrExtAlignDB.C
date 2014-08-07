@@ -84,7 +84,7 @@ const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
   if (lay == 8 && it0 == L8.begin()) return &(it1->second);
   if (lay == 9 && it0 == L9.begin()) return &(it1->second);
 
-  int tt = (it0->first+it1->first)/2;
+  unsigned int tt = (it0->first+it1->first)/2;
   if (time > tt) {
     it0 = it1; it1++;
     if (lay == 8 && it1 == L8.end()) return &(it0->second);
@@ -206,9 +206,9 @@ Bool_t TrExtAlignDB::Load(TFile *f8, TFile *f9)
 
   Head = new TrExtAlignDB;
 
-  for (int i = 0; i < v8.size(); i++)
+  for (unsigned int i = 0; i < v8.size(); i++)
     Head->Fill(8, v8.at(i), db8->GetM(8, v8.at(i)));
-  for (int i = 0; i < v9.size(); i++)
+  for (unsigned int i = 0; i < v9.size(); i++)
     Head->Fill(9, v9.at(i), db9->GetM(9, v9.at(i)));
 
   return kTRUE;
@@ -219,7 +219,7 @@ int TrExtAlignDB::Check(void)
   // This check should be called only when number of entries are too many
   if (L8.size() <= 500 || L9.size() <= 500) return 0;
 
-  int rmin = 1300000000;
+  unsigned int rmin = 1300000000;
   int ndel = 0;
 
   for (ealgIT it = L8.begin(); it != L8.end(); )
@@ -293,7 +293,6 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   // Retrieve the parameters
   int layerJ[2]={1,9};
   int plane[2]={5,6};
-  int layer[2]={8,9};
   bool skip[2]={false,false};
   if(lad1!=-1 || lad9!=-1){
     skip[0]=(lad1==-1);
@@ -475,7 +474,7 @@ void TrExtAlignDB::SmearExtAlign()
   AMSEventR::GetRandArray(3375420, 1, 2, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
-   float d;
+   float d = 0;
   for (int i = 0; i < 2; i++) rd[i] = RNDM(d);
 #endif
 
@@ -485,7 +484,7 @@ s1[1]=fabs(TRMCFFKEY.OuterSmearing[1][1]);
 
 double s2[2]={13.,14};
 double s3[2]={33,33};
-double r[2][3]={1.,0.12/2.,0.01/2,1.,0.12/2.,0.003/2.};
+double r[2][3]={{1.,0.12/2.,0.01/2},{1.,0.12/2.,0.003/2.}};
 for(int l=0;l<2;l++){
 double sum=0;
 for(int k=0;k<3;k++)sum+=r[l][k];
@@ -591,7 +590,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   static int nprint=0;
 
   int mar=TKGEOMFFKEY.MaxAlignedRun; //MAXALIGNEDRUN;
-  if(time > TKGEOMFFKEY.MaxAlignedRun){ //MAXALIGNEDRUN
+  if(int(time) > TKGEOMFFKEY.MaxAlignedRun){ //MAXALIGNEDRUN
     if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBc-W- Warning no dyn alignment available after %d, this message will be repeted only 10 times \n",mar);
     SL1[0]=SL1[1]=SL1[2]=SL1[3]=SL1[4]=SL1[5]=0.;
     SL9[0]=SL9[1]=SL9[2]=SL9[3]=SL9[4]=SL9[5]=0.;
@@ -784,7 +783,7 @@ void TrExtAlignDB::ExAlign2Lin()
     std::vector<uint> vt = GetVt(layer);
 
     int n = 0;
-    for (int j = 0; j < vt.size(); j++) {
+    for (unsigned int j = 0; j < vt.size(); j++) {
       uint time = vt.at(j);
       if (time == 0) continue;
 

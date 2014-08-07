@@ -2001,7 +2001,6 @@ void AMSJob::udata(){
 
   //-
 
-  int len;
   //=======
   setsetup(setupname);
   if(getsetup())setname(strcat(jobname,getsetup()));
@@ -2132,6 +2131,7 @@ TKGEOMFFKEY.LoadMCDisalign=0;
       STD_DB_ver=3;
       pgtrack_DB_ver=2;
     }
+	(void) STD_DB_ver;
 #ifdef _PGTRACK_
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
@@ -2144,7 +2144,6 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     else
       TkDBc::Head->init(pgtrack_DB_ver);
 
-    char disname[400];
     if(TKGEOMFFKEY.LoadMCDisalign%10>0){
       char disname[200];
       char fname[1601];
@@ -2723,10 +2722,10 @@ void AMSJob::_sitrdinitjob(){
     HBOOK1(8001,"trd ped",1000,0.,1000.,0.);
     HBOOK1(8002,"trd sig",1000,0.,50.,0.);
     HBOOK1(8003,"trd gain",1000,0.,2.,0.);
-    for (int i=0;i<TRDDBc::LayersNo(0);i++){
-      for (int j=0;j<TRDDBc::LaddersNo(0,i);j++){
-	for (int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
-	  geant d;
+    for (unsigned int i=0;i<TRDDBc::LayersNo(0);i++){
+      for (unsigned int j=0;j<TRDDBc::LaddersNo(0,i);j++){
+	for (unsigned int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
+	  geant d = 0;
 	  AMSTRDIdSoft id(i,j,k);
 	  id.setped()=TRDMCFFKEY.ped+rnormx()*TRDMCFFKEY.pedsig;
 	  id.clearstatus(~0);
@@ -3033,8 +3032,6 @@ void AMSJob::_reecalinitjob(){
 
   integer pr,pl,cell;
   number ct,cl,cz;
-  integer fid,cid[4]={0,0,0,0};
-  number w[4]={0.,0.,0.,0.};
   //
   AMSgObj::BookTimer.book("REECALEVENT");
   AMSgObj::BookTimer.book("ReEcalShowerFit");
@@ -3217,7 +3214,7 @@ void AMSJob::settrigger(char *setup, integer N,integer orr){
 void AMSJob::settdv(char *setup, integer N){
   assert(N < maxtdv);
   if(setup){
-    if(strlen(setup)<maxtdvsize)strcpy(_TDVC[N],setup);
+    if(int(strlen(setup))<maxtdvsize)strcpy(_TDVC[N],setup);
     else cerr << "AMSJOB::settdv-E-length of "<<setup<< " "<<strlen(setup)<<
       ", exceeds "<<maxtdvsize<<". Card ignored"<<endl;
   }
@@ -3248,7 +3245,7 @@ void AMSJob::_timeinitjob(){
       begin=AMSmceventg::Orbit.End;
       end=AMSmceventg::Orbit.Begin;
     }
-    AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
+	(void) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
 							       isRealData()),begin,end,-getstatustable()->getsize(),
 							 getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/100000)%10));
     cout <<" timeinitjob calib.subdetrequest "<<(CALIB.SubDetRequestCalib/100000)%10<<" "<<CALIB.SubDetRequestCalib<<endl;
@@ -3262,7 +3259,8 @@ void AMSJob::_timeinitjob(){
     //
     // Magnetic Field Map
     //
-    tm begin;
+#ifndef _PGTRACK_
+	tm begin;
     tm end;
     begin.tm_isdst=0;
     end.tm_isdst=0;
@@ -3278,15 +3276,9 @@ void AMSJob::_timeinitjob(){
     end.tm_mday=TKFIELD.iday[1];
     end.tm_mon=TKFIELD.imon[1];
     end.tm_year=TKFIELD.iyear[1];
+#endif
 
-
-
-
-
-
-
-
-    int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
+	int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
     char FieldMapName[100];    
     if(strstr(getsetup(),"AMS02D") ){    
       sprintf(FieldMapName,"MagneticFieldMapD");
@@ -3320,7 +3312,8 @@ void AMSJob::_timeinitjob(){
       sprintf(FieldMapName,"MagneticFieldMap07");
       }
     */
-    {
+    (void) ssize;
+	{
 
       //
       // Magnetic field map status
@@ -3392,7 +3385,6 @@ void AMSJob::_timeinitjob(){
     //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
     //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));
   }
-  bool NeededByDefault=isSimulation();
   //----------------------------
   //
   // Pedestals, Gains,  Sigmas & commons noise for tracker
@@ -3871,7 +3863,7 @@ void AMSJob::_timeinitjob(){
                            TofPMDAlign->TDVBlock,
                            server,1,TofPMDAlignPar::HeadLoadTDVPar));
 //---Charge Par
-      TofCAlignPar *TofCAlign=TofCAlignPar::GetHead();
+	  (void) TofCAlignPar::GetHead();
 //---Charge Ion Par
       TofCAlignIonPar *TofCAlignIon=TofCAlignIonPar::GetHead();
       TID.add (new AMSTimeID(AMSID(TofCAlignIon->TDVName,isRealData()),begin,end,
@@ -3901,7 +3893,6 @@ void AMSJob::_timeinitjob(){
       time_t bdbw=MISCFFKEY.dbwrbeg;
       time_t edbw=MISCFFKEY.dbwrend;
       int jobt=AMSFFKEY.Jobtype;
-      int need=0;
       if(jobt==211){//real data reco/calib
 	tm * begdbw = localtime(& bdbw);
 	TFREFFKEY.sec[0]=begdbw->tm_sec;
@@ -4266,15 +4257,14 @@ void AMSJob::_timeinitjob(){
     int use_alignment=isRealData() && ((RICDBFFKEY.dump/10)%10)==0 &&
       !strstr(AMSJob::gethead()->getsetup(),"PreAss");
 
-    AMSTimeID *pdtv;
 
-    pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
+    TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
 					      begin,end,
 					      RICmaxtiles*4*sizeof(RichRadiatorTileManager::_optical_parameters[0]),
 					      (void*)&RichRadiatorTileManager::_optical_parameters[0],
 					      server,use_radiator));
 
-    pdtv=(AMSTimeID*) TID.add (new AMSTimeID(AMSID("RichAlignmentParameters",isRealData()),
+    TID.add (new AMSTimeID(AMSID("RichAlignmentParameters",isRealData()),
 					     begin,end,
 					     12*sizeof(RichAlignment::_align_parameters[0]),
 					     (void*)&RichAlignment::_align_parameters[0],
@@ -4303,7 +4293,6 @@ void AMSJob::_timeinitjob(){
       time_t bdbw=MISCFFKEY.dbwrbeg;
       time_t edbw=MISCFFKEY.dbwrend;
       int jobt=AMSFFKEY.Jobtype;
-      int need=0;
       if(jobt==911){//real data reco/calib
 	tm * begdbw = localtime(& bdbw);
 	ECREFFKEY.sec[0]=begdbw->tm_sec;
@@ -4481,8 +4470,6 @@ void AMSJob::_timeinitjob(){
   if(isRealData()){
 
     // CCEB:
-    tm begin;
-    tm end;
     /*
       if(AMSFFKEY.Update==187){
       begin=AMSmceventg::Orbit.Begin;
@@ -4638,7 +4625,7 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
   else return  dynamic_cast<AMSTimeID*>(p);
 }
 
-AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0),_NtupleActive(false)
+AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_NtupleActive(false),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
   _TDVC[0][0]='\0';
   _TDVN=0;
@@ -4780,15 +4767,13 @@ void AMSJob::urinit(integer run, integer eventno, time_t tt)
     //   trail leading blancs if any
     //  
     int offset=-1; 
-    for(int i=0;i<strlen((const char*)_rextname);i++){
+    for(unsigned int i=0;i<strlen((const char*)_rextname);i++){
       if(*((const char*)_rextname+i)!=' ')break;
       else offset=i;
     } 
     strcpy(_rootfilename,(const char*)_rextname+offset+1);
     AString mdir("mkdir -p ");
     mdir+=_rootfilename;
-    integer iostat;
-    integer rsize=8000;
     if(eventno){
       char event[80];  
       if(isProduction()){
@@ -4857,7 +4842,7 @@ void AMSJob::uhinit(integer run, integer eventno, time_t tt)
     cout <<"Trying to open histo file "<<_ntuplefilename<<endl;
     npq_(); 
     int beg=-1;
-    for (int k=0;k<strlen(_ntuplefilename);k++){
+    for (unsigned int k=0;k<strlen(_ntuplefilename);k++){
       if(_ntuplefilename[k]!=' ')break;
       beg=k;
     }

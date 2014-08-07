@@ -257,9 +257,9 @@ void TrdKToyMC::GeneratePattern(AMSPoint* P0, AMSDir *Dir){
 
 
     Int_t i, j, k, l, m;
-    Double_t x, y, z, v, d, p;
+    Double_t x, z;
 
-    int layer, ladder,dir;
+    int layer, dir;
     int tubeid;
 
     select_tube.clear();

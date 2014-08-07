@@ -148,8 +148,6 @@ int AMSRichRawEvent::photoElectrons(double sigmaOverQ){
 
   float Npe=getnpe();
   int org=int(floor(Npe));
-  double maximum=-HUGE_VAL;
-  int best=0;
   double sum=0;
   double weight=0;
   for(int n=max(org-3,1);n<=org+3;n++){
@@ -471,7 +469,6 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
     (RICHDB::bottom_radius/false_height);
   double c2=zk/(1+zk);
   double c=sqrt(c2);
-  double alp=1/sqrt(1+zk);
   
   RichPMTChannel channel(_channel);
   double xf=channel.x();
@@ -586,7 +583,7 @@ void AMSRichRing::getSobol(float &x,float &y,bool reset){
   // Returns two quasi-random numbers for a 2-dimensional Sobel
   // sequence. Adapted from Numerical Recipies in C.
 
-  int j, k, l;
+  unsigned int j, k, l;
   unsigned long i, im,ipp;
 
   // The following variables are "static" since we want their
@@ -708,7 +705,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   }
 
 
-  if(bit==crossed_pmt_bit){
+  if(bit==int(crossed_pmt_bit)){
     //cout<<" AMSRichRing::build-too-many-tracks "<<endl;
     return 0;
   }
@@ -800,7 +797,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   _emission_d=dird;
 
   if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHHITS"); //DEBUG
-  integer actual=0,counter=0;
+  integer actual=0;
   AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows];
   
   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
@@ -1065,7 +1062,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   }else local_dir[2]*=-1;
   //  local_dir[2]*=-1;
 
-  const integer NSTL=15,NSTP=70; // Z=1 optimized
+  const integer NSTP=70; // Z=1 optimized
   const geant dphi=2*PI/NSTP;
 
 
@@ -1105,17 +1102,16 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   }
   
 
-  geant l,dL,phi;
+  geant l,phi;
   geant efftr,xb,yb,lentr,lfoil,lguide,geftr,
     reftr,beftr,ggen,rgen,bgen;
-  geant nexp,nexpg,nexpr,nexpb,prob,vice,pvice;
+  geant nexp,nexpg,nexpr,nexpb;
   geant dfnrm=0,dfnrmh=0;
   integer tflag;
 
   AMSPoint r;
 
   l=_height/local_dir[2];
-  dL=l/NSTL;
   integer i,j,k;
 
 #define SOBOL
@@ -1244,6 +1240,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   for(int i=0;i<680;NpExpPMT[i++]*=_height/local_dir[2]/counter);
 
 #else
+  geant dL=l/NSTL;
 
   for(nexp=0,nexpg=0,nexpr=0,nexpb=0,j=0;j<NSTL;j++){
     l=(j+.5)*dL;
@@ -1435,13 +1432,11 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 			 integer *tflag,float beta_gen)
 {
   geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],r3[3],n[3];
-  geant cc,sc,cp,sp,cn,sn,f,l,a,b,c,d,maxxy,rbase;
-  int i,ed;
+  geant cc,sc,cp,sp,cn,sn,f,l,a,b,c,d,rbase;
+  int i;
   const geant exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap; 
   const geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
   const geant ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
-  const geant bx=RICHDB::hole_radius[0];
-  const geant by=RICHDB::hole_radius[1];
   const geant mir_eff=RICmireff;
 
 
@@ -1700,7 +1695,9 @@ float AMSRichRing::generated(geant length,
   const float ALPHA=0.0072973530764; 
   const float k=2*PI*ALPHA;
   const float tl=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
+#ifdef __AMSDEBUG__
   const float abslref=(RICHDB::lg_abs[0]+RICHDB::lg_abs[1])/2;
+#endif
   const float factor=1.;
   const int ENTRIES=RICmaxentries;
 
@@ -1708,7 +1705,6 @@ float AMSRichRing::generated(geant length,
   float fmn=RICHDB::foil_height,fmx=1.5*RICHDB::foil_height;
   float gmn=RICHDB::lg_height,gmx=1.7*RICHDB::lg_height;
   int i,lr,lf,lg,nf;
-  float beta;
   float f=0.;
 
   if(_generated_initialization){for(int i=0;i<_TILES_;i++) _first_radiator_call[i]=1;_generated_initialization=0;}
@@ -1761,7 +1757,6 @@ float AMSRichRing::generated(geant length,
       _effb[lr][lf][_tile_index]=0;
       _rinb[lr][lf][_tile_index]=0;
       for(lg=0;lg<NGUIDE;lg++){
-       float gl=gmn+lg*(gmx-gmn)/NGUIDE;
        _effd[lr][lf][lg][_tile_index]=0;
        _rind[lr][lf][lg][_tile_index]=0;
        for(i=0;i<ENTRIES-1;i++){
@@ -1852,10 +1847,8 @@ geant AMSRichRing::lgeff(AMSPoint r,
   float v[3],w[3];
   float f=0;
   int wnd,iw;
-  int i,j,k;
 
   const float LG_Tran=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
-  const float Eff_Area=SQR(RICHDB::lg_length/pitch);
   const float bwd=0.04;
 
 #ifdef __AMSDEBUG__
@@ -1979,7 +1972,7 @@ int AMSRichRing::locsmpl(int id,
 geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 			    geant &length,geant beta){
 
-  number theta,phi,sleng;  // Track parameter
+  number phi;  // Track parameter
   integer i;
   const integer NPHI=400;
   const geant twopi=3.14159265359*2;
@@ -2016,13 +2009,11 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
   geant exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap;
   geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
   geant ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
-  geant bx=RICHDB::hole_radius[0];
-  geant by=RICHDB::hole_radius[1];
   geant mir_eff=RICmireff;
   
 
   for(phi=0;phi<twopi;phi+=twopi/NPHI){
-    geant cc,sc,cp,sp,cn,sb,f,sn;
+    geant cc,sc,cp,sp,cn,f,sn;
     geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],n[3],r3[3];
 
 
@@ -2146,7 +2137,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
 			 geant seed_beta,
 			 geant recs[RICmaxpmts*RICnwindows][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows],uinteger size,int ring,
 			 uinteger status,integer build_charge):
-  AMSlink(status),_ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta)
+  AMSlink(status),_ptrack(track),_used(used),_mused(mused),_beta(beta),_wbeta(wbeta),_quality(quality)
 {
 
 #ifdef _OPENMP
@@ -2193,7 +2184,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
   _hit_used.clear();
 
   if(RICRECFFKEY.store_rec_hits)
-  for(int i=0;i<size;i++){
+  for(unsigned int i=0;i<size;i++){
     int reflected=fabs(recs[i][1]-seed_beta)<=fabs(recs[i][2]-seed_beta)?1:2;
     int closest=AMSRichRing::closest(seed_beta,recs[i]);
     _beta_direct.push_back(recs[i][0]);
@@ -2676,7 +2667,7 @@ geant AMSRichRingNewSet::_Time=0;
 AMSRichRingNewSet::AMSRichRingNewSet () {ringset.clear();}
 
 AMSRichRingNewSet::~AMSRichRingNewSet () {
-  for (int i=0; i<ringset.size(); i++) {
+  for (unsigned int i=0; i<ringset.size(); i++) {
     delete ringset[i];
   }
   ringset.clear();
@@ -2688,7 +2679,7 @@ void AMSRichRingNewSet::reset() {
 
 
 AMSRichRingNew* AMSRichRingNewSet::getring(int i) {
-  if (i<ringset.size()) {
+  if (i<int(ringset.size())) {
     return ringset[i];
   }
   else {

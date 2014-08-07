@@ -38,10 +38,8 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
  */
 
 
-        double phi,lambda,phig,lambdag,phi2,lambda2;
-        double phin,lambdan,phin2,lambdan2,phig2,lambdag2;
-        double blat,blong,distd,elat,elong,gam,a,b,c,d,e,fp,fn;
-        double galt,galt2,pcut2,pcutd,dp2,pcut3;
+        double blat,blong,distd,elong,gam,a,b,d,e,fp,fn;
+        double pcut2,pcutd=0,dp2;
         double Moment,Stormer;
         double Re = 6371.2;             //Earth radius in km
  
@@ -90,18 +88,6 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
                 //Calculate Pole location
                 GM_PoleLocation(Model, &Pole);
 
-               //south pole in DEG
-                phi = 90 - Pole.phi;
-                lambda = Pole.lambda;
-                //south pole in RAD
-                phi2 = DEG2RAD(90 - Pole.phi);
-                lambda2 = DEG2RAD(Pole.lambda);
-                //north pole in DEG
-                phin = -(90 - Pole.phi);
-                lambdan = (Pole.lambda + 180.);
-                //north pole in RAD
-                phin2 = -DEG2RAD(90 - Pole.phi);
-                lambdan2 = DEG2RAD(Pole.lambda + 180.);
                 Moment = Pole.M;
                 //magnetic moment of the Earth A*m^2 (needed in Gauss*cm^3 there is a factor 1e3 
 		//used below for Stormer Constant
@@ -113,13 +99,6 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
 
                // function for dipole center location
                 GM_DipoleLocation(Model, &DipoleSpherical);
-
-                // dipole center DEG
-                phig = DipoleSpherical.phig;
-                lambdag = DipoleSpherical.lambda;
-                // dipole center RAD
-                phig2 = DEG2RAD(DipoleSpherical.phig);
-                lambdag2 = DEG2RAD(DipoleSpherical.lambda);
 
                 // function for Geomagnetic coord
                 GM_GeomagCoordLocation(CoordInput, DipoleSpherical, Pole, &MagSpherical);
@@ -133,7 +112,6 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
                 // function for geomagnetic from direction
                 GM_GeomagCoordDirection(GeoDir, DipoleSpherical, Pole, &MagDir);
 
-                elat = RAD2DEG(MagDir.phi);
                 elong = RAD2DEG(MagDir.lambda);
 
 
@@ -152,7 +130,6 @@ double GeoMagCutoff(time_t Utime, double Altitude , double thetaPart, double phi
 
                         a = cos(gam);
                         b = cos(DEG2RAD(blat));
-                        c = a*b;
                         d = pow(b,3);
                         e = a*d;
 

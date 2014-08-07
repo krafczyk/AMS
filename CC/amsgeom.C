@@ -304,40 +304,37 @@ char name[5]="MAGN";
 geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
-AMSNode * cur;
-AMSNode * dau;
-AMSgtmed *p;
       gid=1;
       par[0]=112./2;
       par[1]=129.6/2;
       par[2]=40.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
       gid=2;
       par[0]=111.4/2.;
       par[1]=112.0/2.;
       par[2]=40.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
       gid=3;
       par[0]=129.6/2.;
       par[1]=130.4/2.;
       par[2]=40.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
       par[0]=112/2.;
       par[1]=165./2.;
       par[2]=0.75;
       coo[2]=40.75;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
       par[0]=112/2.;
       par[1]=165.6/2.;
       par[2]=0.75;
       coo[2]=-40.75;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
 }
@@ -361,26 +358,19 @@ number nrm4[3][3]={-1.,0.,0.,0.,1.,0., 0.,0.,-1.};// sc(1)(-x) in nonrot.planes(
 //                                                  (sc(2:n) are in MRS) 
 number rmd1[3][3]={1.,0.,0.,0.,-1.,0.,0.,0.,-1.};// dummy trang.vol. at -Yc
 //                                                 (dummy vol.at +Yc is in sc.r.s.)
-number inrm[3][3];
-geant dz,dz1,dz2,zc,dx,dxi,dxo,dxt;
-geant ocxc,ocyc,ocwd,ocewd,brlen,lglen,lgxb;
-integer btyp,nbm,irot,nrot(0);
+geant dz,dxi,dxo;
+geant ocxc,ocyc,ocwd=0,ocewd=0,brlen,lglen,lgxb;
+integer nbm,irot=0,nrot(0);
 int ii,kk;
 char inum[11];
 char in[2]="0";
 char vname[5];
-char name[5];
 number co[3]={0.,0.,0.};
 geant coc[3]={0.,0.,0.};
 geant coo[3]={0.,0.,0.};
 geant cow[3]={0.,0.,0.};
-geant cod[3]={0.,0.,0.};
-integer gid(0),id(0);
-integer nmed;
+integer gid(0);
 AMSNode *ptofc;
-AMSNode *cur;
-AMSNode *dau;
-AMSgtmed *p;
 AMSID amsid;
 //
 strcpy(inum,"0123456789");
@@ -399,7 +389,7 @@ coo[0]=TOF2DBc::supstr(3);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(4);    // y-shift ...
 coo[2]=TOF2DBc::supstr(1)+TOF2DBc::supstr(9)/2;// z-centre of top supp. honeycomb
 cout<<"TOF_TopHoneycomb:z(botface)/hsize="<<(coo[2]-par[2])<<" "<<par[2]<<endl;
-dau=mother.add(new AMSgvolume(
+mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
 //          <-- create/position bot supp. honeycomb plate
@@ -411,7 +401,7 @@ coo[0]=TOF2DBc::supstr(5);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(6);    // y-shift ...
 coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(12)/2.;// z-centre of bot supp. honeycomb
 cout<<"TOF_BotHoneycomb:z(topface)/hsize="<<(coo[2]+par[2])<<" "<<par[2]<<endl;
-dau=mother.add(new AMSgvolume(
+mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
 //             <-- create/position S1-S4 sc. planes :
@@ -423,7 +413,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
 //
   dxo=TOF2DBc::outcp(ip,1);//dx(width) of outer sc.paddles
   nbm=TOF2DBc::getbppl(ip);                      // num. of bars in layer ip
-  dxt=(nbm-3)*(dxi-TOF2DBc::plnstr(4)); // sc.paddles distance for "normal" counters
+  // dxt=(nbm-3)*(dxi-TOF2DBc::plnstr(4)); // sc.paddles distance for "normal" counters
 //                                    (betw.centers, taking into ccount overlaping)
   if(ip<2){
     co[0]=TOF2DBc::supstr(3);// <--top TOF-subsystem X-shift
@@ -442,7 +432,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     if(ib==0 || ib==(nbm-1))prc[0]=0.5*dxo;//dx/2 of outer sc.padds
     else prc[0]=0.5*dxi;//dx/2 of inner sc.padds
 //
-    btyp=TOF2DBc::brtype(ip,ib);
+    //btyp=TOF2DBc::brtype(ip,ib);
     brlen=TOF2DBc::brlen(ip,ib);//sc.length(loc.y-dir)
     lglen=TOF2DBc::lglen(ip,ib);//eff.lg.length(loc.y-dir)
     prc[1]=brlen/2; // dy/2  
@@ -511,10 +501,10 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
       cow[0]=ocwd/2-ocxc/4;//in paddle RefSyst
       cow[1]=brlen/2-ocyc/2;
       cow[2]=0.;
-      dau=ptofc->add(new AMSgvolume(
+      ptofc->add(new AMSgvolume(
       "TOF_VAC",0,"TOD1","TRAP",pard,11,cow,nrm1,"ONLY",gid==101?1:-1,gid,1));
       cow[1]=-cow[1];
-      dau=ptofc->add(new AMSgvolume(
+      ptofc->add(new AMSgvolume(
       "TOF_VAC",nrot++,"TOD2","TRAP",pard,11,cow,rmd1,"ONLY",gid==101?1:-1,gid,1));
     }
 //
@@ -531,10 +521,10 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
       if(ib==0)coo[0]=coo[0]+lgxb;//corr. for LG-bias of outer paddles
       if(ib==(nbm-1))coo[0]=coo[0]-lgxb;
       coo[1]=co[1]-(brlen+lglen)/2;//y-pos(long)
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
         "TOF_LG",0,"TOL1","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));//at -Yc
       coo[1]=co[1]+(brlen+lglen)/2;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
         "TOF_LG",0,"TOL2","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));//at +Yc
     }
     else{                                // <-- rotated planes
@@ -543,10 +533,10 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
       if(ib==(nbm-1))coo[1]=coo[1]-lgxb;
       coo[0]=co[0]-(brlen+lglen)/2;//x-pos(long)
       nrot+=1;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
         "TOF_LG",nrot,"TOL1","BOX",par,3,coo,nrm2,"ONLY",1,gid,1));//at -Yc
       coo[0]=co[0]+(brlen+lglen)/2;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
        "TOF_LG",nrot,"TOL2","BOX",par,3,coo,nrm2,"ONLY",1,gid,1));//at +Yc
     }      
 //
@@ -555,7 +545,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
 //-------
 //        <---  Now put Boxes with PMTs:
 //
-  geant xbias,ybias,zbias;
+  geant xbias,zbias;
 //
 // --------> for top TOF:
 //            common box at +X, -X :                                   
@@ -571,11 +561,11 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     coo[1]=TOF2DBc::supstr(4);
     coo[2]=TOF2DBc::supstr(1)-zbias;// box abs. z-center(no overl with Hon - it is shorter)
     gid=1;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
     gid=2;
     coo[0]=TOF2DBc::supstr(3)-xbias-TOF2DBc::plnstr(11)/2-0.1;//"0.1" for safety
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //
 //           common ring-sector at +Y,-Y : 
@@ -592,12 +582,12 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     coo[1]=TOF2DBc::supstr(4);
     coo[2]=TOF2DBc::supstr(1)-zbias+TOF2DBc::plnstr(17)/2.;// ring Z-center
     gid=1;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
     gid=2;
     par[3]=270.-0.5*TOF2DBc::plnstr(18);    // phi1
     par[4]=par[3]+TOF2DBc::plnstr(18);    // phi2
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
 //
 // --------> for bot TOF:
@@ -614,11 +604,11 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     coo[1]=TOF2DBc::supstr(6);
     coo[2]=TOF2DBc::supstr(2)+zbias;// z-center
     gid=3;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
     gid=4;
     coo[0]=TOF2DBc::supstr(5)-xbias-TOF2DBc::plnstr(11)/2-0.1;//"0.1" for safety
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //
 //           common ring-sector at +Y,-Y : 
@@ -635,12 +625,12 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     coo[1]=TOF2DBc::supstr(6);
     coo[2]=TOF2DBc::supstr(2)+zbias-TOF2DBc::plnstr(17)/2.;// Z-center
     gid=3;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
     gid=4;
     par[3]=270.-0.5*TOF2DBc::plnstr(20);    // phi1
     par[4]=par[3]+TOF2DBc::plnstr(20);    // phi2
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
 //
 //-----
@@ -665,22 +655,22 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     coo[1]=TOF2DBc::supstr(4);
     coo[2]=TOF2DBc::supstr(1)-zbias1;// plate-1 z-center
     gid=1;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF,plt-1(outer)
     coo[2]=TOF2DBc::supstr(1)-zbias2;// plate-2 z-center
     gid=2;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF,plt-2(inner)
 //
     coo[0]=TOF2DBc::supstr(5);
     coo[1]=TOF2DBc::supstr(6);
     coo[2]=TOF2DBc::supstr(2)+zbias1;// plate-1 z-center
     gid=3;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-1
     coo[2]=TOF2DBc::supstr(2)+zbias2;// plate-2 z-center
     gid=4;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-2
 //
 //-----
@@ -694,7 +684,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     coo[1]=TOF2DBc::supstr(4);
     coo[2]=zconv;// conv. z-center
     gid=1;
-    dau=mother.add(new AMSgvolume(
+    mother.add(new AMSgvolume(
     "TOF_TOP_CONV",0,"TFCO","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF converter
     cout<<"<---- Amsgeom::tofgeom02:TOF_CONVERTER is installed !!! dz="<<TFMCFFKEY.dzconv<<endl;
   }
@@ -713,8 +703,8 @@ geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number nrd[3][3];
 geant coo[3]={0.,0.,0.};
-integer i,nrot,gid=0,gidd=0;
-geant scradi,scinth,scleng,wrapth,groovr,pdlgap,stradi,stleng,stthic;
+integer i,nrot,gid=0;
+geant scradi,scinth,scleng,wrapth,pdlgap,stradi,stleng,stthic;
 geant rs,phi,phib,dphis,dphi,dphig;
 geant degrad,raddeg;
 geant dx1g,dx2g,dzg,dyg;
@@ -722,9 +712,6 @@ geant dx1b,dx2b,dzb,dyb;
 geant ddfi;
 integer nscpad;
 AMSNode * pAmother;
-AMSNode * pSegm;
-AMSNode * pGroov;
-AMSNode * p;
 //
   raddeg=AMSDBc::raddeg;
   degrad=AMSDBc::pi/180.;
@@ -734,7 +721,7 @@ AMSNode * p;
   scinth=ANTI2DBc::scinth();
   scleng=ANTI2DBc::scleng();
   wrapth=ANTI2DBc::wrapth();
-  groovr=ANTI2DBc::groovr();
+  // groovr=ANTI2DBc::groovr();
   pdlgap=ANTI2DBc::pdlgap();
   stradi=ANTI2DBc::stradi();
   stleng=ANTI2DBc::stleng();
@@ -760,7 +747,7 @@ AMSNode * p;
   par[1]=stradi+stthic;
   par[2]=stleng/2.;
   gid=100;
-  p=mother.add(new AMSgvolume(
+  mother.add(new AMSgvolume(
        "ANTI_SUPTB",0,"ASTB","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
 //
 // create ANTI-counter mother volume as wrapper-made cylinder:
@@ -805,7 +792,7 @@ AMSNode * p;
     par[1]=dx2b/2;
     par[2]=dyb/2;
     par[3]=dzb/2;
-    p=pAmother->add(new AMSgvolume(
+    pAmother->add(new AMSgvolume(
        "ANTI_SCINT",nrot++,"ANTB","TRD1",par,4,coo,nrd, "ONLY",1,gid,1));
 //
 //     create/pos groove in A-mother:
@@ -831,7 +818,7 @@ AMSNode * p;
     par[1]=dx2g/2;
     par[2]=dyg/2;
     par[3]=dzg/2;
-    pGroov=pAmother->add(new AMSgvolume(
+    pAmother->add(new AMSgvolume(
        "ANTI_WRAP",nrot++,"AGRV","TRD1",par,4,coo,nrd, "MANY",1,gid,1));
 //
 //     create/pos sc. segment in A-mother:
@@ -844,7 +831,7 @@ AMSNode * p;
     coo[0]=0.;
     coo[1]=0.;
     coo[2]=0.;
-    pSegm=pAmother->add(new AMSgvolume(
+    pAmother->add(new AMSgvolume(
        "ANTI_SCINT",0,"ANTS","TUBS",par,5,coo,nrm, "MANY",1,gid,1));
   }// ---> end of sector loop
 //
@@ -860,15 +847,12 @@ char name[5]="MAGN";
 geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
-AMSNode * cur;
-AMSgvolume * dau;
-AMSgtmed *p;
      geant magnetl=86.+86.;
       gid=1;
       par[0]=113.2/2;
       par[1]=129.6/2;
       par[2]=magnetl/2.;
-      dau=(AMSgvolume*)mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
       gid=2;
@@ -887,7 +871,7 @@ AMSgtmed *p;
       par[0]=129.6/2.;
       par[1]=130.4/2.;
       par[2]=magnetl/2.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
       par[0]=112/2.;
       par[1]=165./2.;
@@ -914,8 +898,6 @@ void amsgeom::magnetgeom02p(AMSgvolume & mother){
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
   integer gid;
   char name[5]="MAGN";
-  AMSNode * cur;
-  AMSNode * dau;
 //
   geant rmagi(55.75),drmagi(0.3),rmago(65.35),drmago(0.4),magh(80.);
   geant rmagro(82.5),dzmagr(1.5);
@@ -932,28 +914,28 @@ void amsgeom::magnetgeom02p(AMSgvolume & mother){
   coo[0]=0;
   coo[1]=0;
   coo[2]=0;
-  dau=mother.add(new AMSgvolume("MAGNET",0,name,"TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//magn.body
+  mother.add(new AMSgvolume("MAGNET",0,name,"TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//magn.body
   
   gid=2;
   par[0]=rmagi;
   par[1]=rmagi+drmagi;
   par[2]=magh/2;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHI","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//inn.shell
+  mother.add(new AMSgvolume("1/2ALUM",0,"MSHI","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//inn.shell
   gid=3;
   par[0]=rmago-drmago;
   par[1]=rmago;
   par[2]=magh/2;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHO","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//out.shell
+  mother.add(new AMSgvolume("1/2ALUM",0,"MSHO","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//out.shell
   
   par[0]=rmagi;
   par[1]=rmagro;
   par[2]=dzmagr/2;
   coo[2]=magh/2+dzmagr/2;
   gid=4;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHT","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.shell
+  mother.add(new AMSgvolume("1/2ALUM",0,"MSHT","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.shell
   coo[2]=-coo[2];
   gid=5;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHB","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.shell
+  mother.add(new AMSgvolume("1/2ALUM",0,"MSHB","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.shell
   
 //---> modified vac.case:
   par[0]=rvaco;
@@ -963,7 +945,7 @@ void amsgeom::magnetgeom02p(AMSgvolume & mother){
   coo[1]=0;
   coo[2]=0;
   gid=6;
-  dau=mother.add(new AMSgvolume("MVCASEMED",0,"VCCL","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//v-case outer cyl
+  mother.add(new AMSgvolume("MVCASEMED",0,"VCCL","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//v-case outer cyl
   
   par[0]=conflgh/2;  
   par[1]=rflgi1;  
@@ -972,7 +954,7 @@ void amsgeom::magnetgeom02p(AMSgvolume & mother){
   par[4]=rflgo2;
   coo[2]=magh/2+dzmagr+conflgh/2;
   gid=7;
-  dau=mother.add(new AMSgvolume("MVCASEMED",0,"VCFT","CONE",par,5,coo,nrm,"ONLY",0,gid,1));//v-case top con-flange
+  mother.add(new AMSgvolume("MVCASEMED",0,"VCFT","CONE",par,5,coo,nrm,"ONLY",0,gid,1));//v-case top con-flange
   par[0]=conflgh/2;  
   par[1]=rflgo1;  
   par[2]=rflgo2;  
@@ -980,27 +962,27 @@ void amsgeom::magnetgeom02p(AMSgvolume & mother){
   par[4]=rflgi2;
   coo[2]=-coo[2];
   gid=8;
-  dau=mother.add(new AMSgvolume("MVCASEMED",0,"VCFB","CONE",par,5,coo,nrm,"ONLY",0,gid,1));//v-case bot con-flange
+  mother.add(new AMSgvolume("MVCASEMED",0,"VCFB","CONE",par,5,coo,nrm,"ONLY",0,gid,1));//v-case bot con-flange
   
   par[0]=rflgo2;
   par[1]=rflgro;
   par[2]=dzflgr/2;
   coo[2]=dzmag-dzflgr/2;
   gid=9;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR1T","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.vac-case ring1
+  mother.add(new AMSgvolume("1/2ALUM",0,"CR1T","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.vac-case ring1
   coo[2]=-coo[2];
   gid=10;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR1B","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.vac-case ring1
+  mother.add(new AMSgvolume("1/2ALUM",0,"CR1B","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.vac-case ring1
   
   par[0]=rvaco;
   par[1]=rvaco+drring2;
   par[2]=(dzmag-dzflgr-vach)/2;
   coo[2]=vach+par[2];
   gid=11;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR2T","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.vac-case ring2
+  mother.add(new AMSgvolume("1/2ALUM",0,"CR2T","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.vac-case ring2
   coo[2]=-coo[2];
   gid=12;
-  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR2B","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.vac-case ring2
+  mother.add(new AMSgvolume("1/2ALUM",0,"CR2B","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.vac-case ring2
 //
   cout<<"<---- Amsgeom::magnetgeom02p: AMS02P G3/G4-compatible magnet geometry is successfully done!"<<endl<<endl;
 }
@@ -1021,7 +1003,6 @@ AMSNode * mmoth ;
 AMSNode * mivol;
 AMSNode * coil;
 AMSNode * lhves;
-AMSNode * cur;
      geant casl1=40.;     //vac.case half-length at inner radious
      geant casl2;//      .......................... outer .......
      geant casl1i,casl2i; // same for its internal surface
@@ -1109,7 +1090,7 @@ AMSNode * cur;
        par[0]=rcradp-rcrads/2.+rcrth;//rmin
        par[1]=rcradp+rcrads/2.-rcrth;//rmax
        par[2]=rchizs;//dz
-       cur=coil->add(new AMSgvolume(
+       coil->add(new AMSgvolume(
           "MVACMED",0,"MRHO","TUBS",par,5,coo,nrm,"ONLY",gid==1?1:-1,gid,1));//ret-coil hole
      }
 //
@@ -1135,7 +1116,7 @@ AMSNode * cur;
      par[2]=dczhs-dczth;//dz
      coo[0]=0.;
      gid=1;
-     cur=coil->add(new AMSgvolume(
+     coil->add(new AMSgvolume(
           "MVACMED",0,"MDH1","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//coil-1 hole
 //----
      par[0]=dcxth/2.;//dx
@@ -1149,7 +1130,7 @@ AMSNode * cur;
      par[2]=dczhs-dczth;//dz
      coo[0]=0.;
      gid=1;
-     cur=coil->add(new AMSgvolume(
+     coil->add(new AMSgvolume(
           "MVACMED",0,"MDH2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//coil-2 hole
 //
 // -----> inter-fixation of dipole and return coils:
@@ -1167,11 +1148,11 @@ AMSNode * cur;
      coo[1]=0.;
      coo[2]=0.;
      gid=1;
-     cur=mivol->add(new AMSgvolume(
+     mivol->add(new AMSgvolume(
         "MVCASEMED",0,"DRF1","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//dip/ret.coil fix.1
      par[3]=180.-drfopang;
      par[4]=180.+drfopang;
-     cur=mivol->add(new AMSgvolume(
+     mivol->add(new AMSgvolume(
         "MVCASEMED",0,"DRF2","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//dip/ret.coil fix.2
 //
 // -----> liq.helium vessel + helium/vacuum:
@@ -1196,12 +1177,12 @@ AMSNode * cur;
      par[1]=hvrpos+hvrs/2.-hvwth;//rmax
      par[2]=hvihzs;//dz
      if(MAGSFFKEY.magstat>=0){
-       cur=lhves->add(new AMSgvolume(
+       lhves->add(new AMSgvolume(
           "MLHEMED",0,"MLHE","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//liq.helium
        cout<<"      magnet cold state selected !"<<endl;
      }
      else{
-       cur=lhves->add(new AMSgvolume(
+       lhves->add(new AMSgvolume(
           "MVACMED",0,"MLHE","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//vacuum
        cout<<"      mafnet warm state selected"<<endl;
      }
@@ -1219,10 +1200,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant cro[3]={0.,0.,0.};
  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};//"no rotation" matrix
  number nrm0[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};//working array
- int i,j,ii;
- char inum[11];
- char in[2]="0";
- char vname[5];
+ int i,j;
  integer gid,nrot;
  AMSNode * cur;
  AMSNode * dau;
@@ -1717,7 +1695,6 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant us1y1=99.9;//(final) inner edge y-pos(with us1x1 are defined by attach to VC
 //                             at R=141.3cm and angle 45 degr.)                            
  geant us1z1=68.12-us1dz/2.;//(final) inner/bot edge z-pos 
- geant us1x2=us1x1;// outer edge x-pos
  geant us1y2=192.;//(final+cutted) outer edge y-pos
  geant us1z2=59.5-us1dz/2.;//(final+cutted) outer edge z-pos
  geant us1dy=sqrt(pow(us1y2-us1y1,2)+pow(us1z1-us1z2,2));
@@ -1735,7 +1712,6 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant us2x1=99.9-us2dx/2.;//(final)inner(wrt AMS "0") edge x-pos
  geant us2y1=us1y1;// inner edge y-pos
  geant us2z1=-90.14+0.5*us2dz*cos(us2aan);//(final) inner edge  z-pos
- geant us2x2=us2x1;// outer edge x-pos
  geant us2z2=us1z2-48.;//(final+cutted) outer edge z-pos
  geant us2y2=us2y1+(us2z2-us2z1)/tan(us2aan);//(final) outer edge y-pos
 // (this y-pos is calc.from hand-fixed z-pos and known angle 46.3)
@@ -1879,41 +1855,38 @@ char name[5]="MAGN";
 geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
-AMSNode * cur;
-AMSNode * dau;
-AMSgtmed *p;
      geant magnetl=80.;
       gid=1;
       par[0]=113.2/2;
       par[1]=129.6/2;
       par[2]=magnetl/2.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
       gid=2;
       par[0]=111.4/2.;
       par[1]=112.0/2.;
       par[2]=magnetl/2.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
       gid=3;
       par[0]=129.6/2.;
       par[1]=130.4/2.;
       par[2]=magnetl/2.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
       par[0]=112/2.;
       par[1]=165./2.;
       par[2]=0.75;
       coo[2]=magnetl/2.+par[2];
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
       par[0]=112/2.;
       par[1]=165.6/2.;
       par[2]=0.75;
       coo[2]=-magnetl/2.-par[2];
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
 }
@@ -1923,15 +1896,9 @@ void amsgeom::ext2structure(AMSgvolume & mother){
 AMSID amsid;
 geant par[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-number inrm[3][3];
 integer nrot;
-char name[5];
 geant coo[3]={0.,0.,0.};
-integer gid=0;
-AMSNode * cur;
-AMSNode * dau;
-AMSgtmed *p;
-      gid=1;
+integer gid=1;
 
  nrot=TOF2GC::SCROTN+300;
 // Low quadrant(frame)
@@ -2007,7 +1974,6 @@ geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,5*0.};
 geant fleeceParams[3]={0.,0.,0.};
 geant fleeceCoord[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-number inrm[3][3];
 char name[5];
 geant coo[3]={0.,0.,0.};
 geant bulkheadCoord[3] = {0.0,0.0,0.0};
@@ -2015,17 +1981,17 @@ integer gid(0);
 uinteger rgid(0);
 uinteger status;
 integer nrot=TRDROTMATRIXNO; 
-AMSNode * cur;
-AMSgvolume * dau;
-AMSgvolume * daug4;
+AMSgvolume * dau = 0;
+#ifdef __G4AMS__
+AMSgvolume * daug4 = 0;
+#endif
 AMSgvolume * fleece;
-AMSgvolume * tubeVolume;
 AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
 int sub0=ZShift!=0?1:0;
 
-int i;
+unsigned int i;
 for ( i=0;i<TRDDBc::PrimaryOctagonNo()-sub0;i++){
  ost.clear();
  ost.seekp(0);  
@@ -2193,7 +2159,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
 for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
   // Put in the bulkheads
- int b,j,k,l;
+ unsigned int b,j,k,l;
  for(b=0;b<TRDDBc::BulkheadsNo(i);b++){
 
    int ip;
@@ -2231,7 +2197,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 	{
 	  for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
 	    for(l=0;l<TRDDBc::CutoutsNo(i,j,k);l++) {
-	      int bhno;
+	      unsigned int bhno;
 	      bhno=TRDDBc::CutoutsBH(i,j,l);
 	      if (bhno == b)
 		{
@@ -2467,8 +2433,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    cutoutCoord[1] = 0.0;
    cutoutCoord[2] = distanceToBulkhead - plateWidth / 2.0;
 
-   // remove fleece above the straw module
-   number strawModuleUpperEdge = stripCoord[1] + TRDDBc::StripsDim(1) / 2.0;
    // the half-height of fleece cutout
    cutoutDimensions[1] = fleeceParams[1];
    cutoutDimensions[0] = fleeceParams[0];
@@ -2526,7 +2490,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 //  tubes
 
-   int l;
+   unsigned int l;
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
          ost.clear();
    ost.seekp(0);  
@@ -2636,7 +2600,7 @@ if(ZShift==0){
    number nrml[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
     gid=0;
     for (int i=0;i<4;i++){
-     for (int j=0;j<trdconst::maxspikes;j++){
+     for (unsigned int j=0;j<trdconst::maxspikes;j++){
       // spikes go to 6th primary octagon directly
        for(int ip=0;ip<3;ip++)coo[ip]=TRDDBc::getSpikesPar(j,i,ip);
        for(int ip=0;ip<3;ip++)par[ip]=TRDDBc::getSpikesPar(j,i,ip+3);
@@ -2651,7 +2615,7 @@ if(ZShift==0){
 //  Assuming Mirroring of 4 quadrants  
     gid=0;
     for (int i=0;i<4;i++){
-     for (int j=0;j<trdconst::maxpipes;j++){
+     for (unsigned int j=0;j<trdconst::maxpipes;j++){
        for(int ip=0;ip<3;ip++)coo[ip]=TRDDBc::getPipesPar(j,i,ip);
        for(int ip=0;ip<3;ip++)par[ip]=TRDDBc::getPipesPar(j,i,ip+3);
        coo[2]-=par[1];
@@ -2715,9 +2679,9 @@ geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number nrd[3][3];
 geant coo[3]={0.,0.,0.};
-integer i,nrot,gid=0,gidd=0;
-geant scradi,scinth,scleng,wrapth,groovr,pdlgap,stradi,stleng,stthic;
-geant rs,phi,phib,dphis,dphi,dphig,phigr;
+integer i,gid=0;
+geant scradi,scinth,scleng,wrapth,pdlgap,stradi,stleng,stthic;
+geant rs,phi,phib,dphis,dphi,dphig;
 geant dx1g,dx2g,dzg,dyg;
 geant dx1b,dx2b,dzb,dyb;
 geant ddfi;
@@ -2725,9 +2689,6 @@ geant degrad,raddeg;
 integer nscpad;
 AMSNode * pAmother;
 AMSgvolume * pSegm;
-AMSNode * pGroov;
-AMSNode * p;
-AMSgvolume *dummy;
 //
   raddeg=AMSDBc::raddeg;
   degrad=AMSDBc::pi/180.;
@@ -2737,7 +2698,7 @@ AMSgvolume *dummy;
   scinth=ANTI2DBc::scinth();
   scleng=ANTI2DBc::scleng();
   wrapth=ANTI2DBc::wrapth();
-  groovr=ANTI2DBc::groovr();
+  //groovr=ANTI2DBc::groovr();
   pdlgap=ANTI2DBc::pdlgap();
   stradi=ANTI2DBc::stradi();
   stleng=ANTI2DBc::stleng();
@@ -2765,7 +2726,7 @@ AMSgvolume *dummy;
   par[3]=0.;
   par[4]=360.;
   gid=100;
-  p=mother.add(new AMSgvolume(
+  mother.add(new AMSgvolume(
        "ANTI_SUPTB",0,"ASTB","TUBS",par,5,coo,nrm, "ONLY",0,gid,1));
 //
 // create ANTI-counter mother volume as wrapper-made cylinder:
@@ -2867,8 +2828,8 @@ ECALDBc::readgconf();//
   number nrm2[3][3]={0.,0.,1.,0.,1.,0., -1.,0.,0.}; // for Y-proj fibers
 
   geant coo[3]={0.,0.,0.};
-  geant dx1,dy1,dx2,dy2,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz;
-  geant dzrad1,zmrad1,alpth,flen,zposfl,dxe;
+  geant dx1,dy1,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz;
+  geant dzrad1,zmrad1,alpth,flen,dxe;
   geant fshift;
   geant claddrx,claddry;
   int layer;
@@ -2876,20 +2837,15 @@ ECALDBc::readgconf();//
   integer isupl,ifibl,ifib,iproj,ip;
   int i,j,k;
   float lastflend,al_thickness;
-  integer vlist[10]={0,0,0,0,0,0,0,0,0,0};
   char inum[11];
   char in[2]="0";
   char vname[5];
-
-  AMSNode *pECgap;
-  AMSNode *pECendp;
 
   AMSNode * pECrad;
   AMSNode * pECfbl;
   AMSNode * pECfib;
   AMSNode * pECfsen;
   AMSNode * ECmother;
-  AMSNode * p;
 //
 
   strcpy(inum,"0123456789");
@@ -2979,11 +2935,11 @@ ECALDBc::readgconf();//
   coo[1]=0.;
   coo[2]=0.+dz/2.+dzh/2.;
   gid=1;
-  p=ECmother->add(new AMSgvolume(
+  ECmother->add(new AMSgvolume(
        "EC_HONEYC",0,"ECHN","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));// top honeycomb plate
   coo[2]=0.-dz/2.-dzh/2.;
   gid=2;
-  p=ECmother->add(new AMSgvolume(
+  ECmother->add(new AMSgvolume(
        "EC_HONEYC",0,"ECHN","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));// bot honeycomb plate
 //------------------------------------
 //
@@ -2996,11 +2952,11 @@ ECALDBc::readgconf();//
   coo[0]=-dx1/2.-dxe/2.;
   coo[1]=0.;
   gid=1;
-  p=ECmother->add(new AMSgvolume(
+  ECmother->add(new AMSgvolume(
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//-X box
   coo[0]=dx1/2.+dxe/2.;
   gid=2;
-  p=ECmother->add(new AMSgvolume(
+  ECmother->add(new AMSgvolume(
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+X box
 //2 sides along X:
   par[0]=dx1/2.+dxe;
@@ -3008,11 +2964,11 @@ ECALDBc::readgconf();//
   coo[0]=0.;
   coo[1]=-dy1/2.-dxe/2.;
   gid=3;
-  p=ECmother->add(new AMSgvolume(
+  ECmother->add(new AMSgvolume(
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//-Y box
   coo[1]=dy1/2.+dxe/2.;
   gid=4;
-  p=ECmother->add(new AMSgvolume(
+  ECmother->add(new AMSgvolume(
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+Y box
 //------------------------------------
 //
@@ -3157,7 +3113,7 @@ ECALDBc::readgconf();//
 	    }
 	    coo[2]=0.;
 	    gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
-	    pECgap=pECfbl->add(new AMSgvolume("EC_FWALL",0,"ECGA","BOX",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
+		pECfbl->add(new AMSgvolume("EC_FWALL",0,"ECGA","BOX",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
 	  }
 	} // ---> end of fiber loop
 //-----------
@@ -3176,7 +3132,7 @@ ECALDBc::readgconf();//
 	coo[2]=0.;
 	cout << "===========================================" << endl;
 	cout << "Aluminum end plate: dx=" << par[0] << " dy=" << par[1] << " dz="<< par[2] << "    x=" << coo[0]<< "/" << dzrad1/2 << endl;
-        pECendp=pECrad->add(new AMSgvolume(
+		pECrad->add(new AMSgvolume(
                "EC_ELBOX",0,"ALEP","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));//cr. end plate in ECrad
       }
     } // ---> end of superlayer loop
@@ -3258,10 +3214,7 @@ char name2[]="My2ndReplica";
 geant coo[3]={0.,0.,12.};
 number nrm[3][3]={0,0,1,1,0,0,0,1,0};
 integer gid=0;
-AMSNode * cur;
 AMSgvolume * dau;
-AMSgtmed *p;
-     geant magnetl=86.;
       gid=1;
       par[0]=0.;
       par[1]=10./2;

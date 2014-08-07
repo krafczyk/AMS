@@ -1,4 +1,4 @@
-//  $Id: TrTrackSelection.h,v 1.4 2012/01/04 19:35:49 oliva Exp $
+//  $Id$
 #ifndef __TrTrackSelection__
 #define __TrTrackSelection__
 
@@ -8,6 +8,7 @@
 class TrTrackSelection {
 
 public:
+  virtual ~TrTrackSelection() { }
   enum ESpanFlags { 
     kMaxInt   = 0x101, ///< Max  span of internal tracker (L1  && (L6||L7))
     kHalfL1N  = 0x102, ///< Half span with Layer 1N       (L1N && (L6||L7))

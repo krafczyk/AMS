@@ -671,7 +671,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
     if(f1 &&!f1p){
       TString t(f1->GetName());
       if(t.BeginsWith("hb1")){
-        for(int i=4;i<strlen(f1->GetName());i++){
+        for(unsigned int i=4;i<strlen(f1->GetName());i++){
           if(i>4 && f1->GetName()[i] =='_'){
 	    TString st(f1->GetName()+4,i-4);
 	      TString st1(f1->GetName()+5,i-5);
@@ -701,7 +701,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
       if(f1){
 	TString t(f1->GetName());
 	if(t.BeginsWith("hb2")){
-	  for(int i=4;i<strlen(f1->GetName());i++){
+	  for(unsigned int i=4;i<strlen(f1->GetName());i++){
 	    if(i>4 && f1->GetName()[i] =='_'){
 	      TString st(f1->GetName()+4,i-4);
 	      TString st1(f1->GetName()+5,i-5);
@@ -731,7 +731,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh, const char pat[]){
 	if(f1){
 	  TString t(f1->GetName());
 	  if(t.BeginsWith("hbp")){
-	    for(int i=4;i<strlen(f1->GetName());i++){
+	    for(unsigned int i=4;i<strlen(f1->GetName());i++){
 	      if(i>4 && f1->GetName()[i] =='_'){
 		TString st(f1->GetName()+4,i-4);
 	      TString st1(f1->GetName()+5,i-5);
@@ -861,7 +861,6 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
 }
 
 void AMSEventR::hf1(int idd, float a, float w){
-  static int sem[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
    
   AMSID id(idd,Dir);
   Service::hb1i i1=Service::hb1.find(id);
@@ -921,7 +920,6 @@ void AMSEventR::hfp(int idd, float a, float w=1){
 
 
 void AMSEventR::hf2(int idd, float a, float b, float w=1){
-  static int sem[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   AMSID id(idd,Dir);
   Service::hb2i i1=Service::hb2.find(id);
   if(i1 != Service::hb2.end()){
@@ -1082,7 +1080,11 @@ bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],float angle_factor[],int 
   float ThresmV[nsuplayrs]={26.7,60.,46.7,20.,33.,33.};
   float anglecut[2]={74,138};
 
-  float MvOnPMT[nPMTs][nsuplayrs]={0};
+  float MvOnPMT[nPMTs][nsuplayrs];
+  for (int i = 0; i < nPMTs; ++i) {
+    for (int j = 0; j < nsuplayrs; ++j)
+      MvOnPMT[i][j]=0;
+  }
 
   // Front end electronics parameters  
   const float GainTrigger=10.; 
@@ -1120,8 +1122,12 @@ bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],float angle_factor[],int 
   
   // Find number of PMTs over threshold and fill the bit pattern mask
   int NumhitPMT[nsuplayrs]={0};
-  int hitPMT[nsuplayrs][nPMTs]={0};
-  int dummyint=0;
+  int hitPMT[nsuplayrs][nPMTs];
+  for (int j = 0; j < nsuplayrs; ++j) {
+    for (int i = 0; i < nPMTs; ++i)
+	  hitPMT[j][i] = 0;
+  }
+
   for (int isuplayr=0; isuplayr<nsuplayrs;isuplayr++){
     // loop on PMTs
     for (int ipmt=0;ipmt<nPMTs;ipmt++){	  
@@ -1563,9 +1569,9 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 	
 	// look for any side in each TOF plane
 	
-	bool TOF_OK;
+	bool TOF_OK = false;
 	bool layer_ok[4]={false,false,false,false};
-	for(int irc=0; irc<NTofRawSide(); irc++) {
+	for(unsigned int irc=0; irc<NTofRawSide(); irc++) {
 		ptofrs = pTofRawSide(irc);
 		if (ptofrs->stat==0) { // check row cluster OK
 			int layer=ptofrs->swid/1000; 
@@ -2562,7 +2568,7 @@ bool AMSEventR::ReadHeader(int entry){
     // Fix trdefaultfit
     if(Version()>700 && Version()<714){
       int fix=0;
-      for(int i=0;i<NTrTrack();i++){
+      for(unsigned int i=0;i<NTrTrack();i++){
 	TrTrackR *trk=pTrTrack(i);
 	if (trk->Gettrdefaultfit()==7) { trk->Resettrdefaultfit(); fix=1; }
       }
@@ -2575,7 +2581,7 @@ bool AMSEventR::ReadHeader(int entry){
     if(Version()<160){
       // Fix rich rings
       NRichHit();
-      for(int i=0;i<NRichRing();i++){
+      for(unsigned int i=0;i<NRichRing();i++){
 	RichRingR *ring=pRichRing(i);
 	ring->FillRichHits(i);
       }
@@ -3294,7 +3300,7 @@ void AMSEventR::AddAMSObject(AMSTOFMCCluster *ptr)
 void  AMSEventR::AddAMSObject(AMSTOFMCPmtHit *ptr)
 {
   if(ptr) {
-    if(fTofMCPmtHit.size()<=MAXTOFMCPMT){
+    if(int(fTofMCPmtHit.size())<=MAXTOFMCPMT){
       fTofMCPmtHit.push_back(TofMCPmtHitR(ptr));
       ptr->SetClonePointer(fTofMCPmtHit.size()-1);
       if(fTofMCPmtHit.size()==MAXTOFMCPMT-1) {
@@ -3441,7 +3447,7 @@ void HeaderR::Set(EventNtuple02* ptr){
   Pitch=     ptr->Pitch;
   Roll=      ptr->Roll;
   GPSTime.clear();
-  for(int k=0;k<ptr->GPSL;k++)GPSTime.push_back(ptr->GPS[k]);
+  for(unsigned int k=0;k<ptr->GPSL;k++)GPSTime.push_back(ptr->GPS[k]);
   VelocityS= ptr->VelocityS;
   VelTheta=  ptr->VelTheta;
   VelPhi=    ptr->VelPhi;
@@ -3464,7 +3470,7 @@ AntiRawSideR::AntiRawSideR(Anti2RawEvent *ptr)
   adca = ptr->_adca;
   nftdc = ptr->_nftdc;
   for(int i=0;i<nftdc;i++)ftdc[i] = ptr->_ftdc[i];
-  ntdct = ptr->_ntdct<sizeof(tdct)/sizeof(tdct[0])?ptr->_ntdct:sizeof(tdct)/sizeof(tdct[0]);
+  ntdct = ptr->_ntdct<int(sizeof(tdct)/sizeof(tdct[0]))?ptr->_ntdct:sizeof(tdct)/sizeof(tdct[0]);
   for(int i=0;i<ntdct;i++)tdct[i] = ptr->_tdct[i];
 #endif
 }
@@ -3483,10 +3489,10 @@ AntiMCClusterR::AntiMCClusterR(AMSAntiMCCluster *ptr)
 
 double BetaR::GetTRDBetaCorr(int datamc){
 if(datamc!=0)datamc=1;
-              double p[2][3]={0.522677,-0.16927,0.676221,
-                              0.522677,-0.16927,0.676221};
+              static double p[2][3]={{0.522677,-0.16927,0.676221},
+                                     {0.522677,-0.16927,0.676221}};
               double betamc1=0;
-              for(int k=0;k<sizeof(p)/sizeof(p[0][0])/2;k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
+              for(int k=0;k<int(sizeof(p)/sizeof(p[0][0])/2);k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
               double x=(betamc1+fabs(Beta))/2;
               if(x>0.96)x=0.96;
               double norm=1.8377e-1;
@@ -3524,7 +3530,7 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalS
    for(int il=0;il<4;il++){
      fLayer[il]=-1;
      if(phith[il]){
-        for(int ii=0;ii<ev->NTofClusterH();ii++){if(ev->pTofClusterH(ii)==phith[il]){fLayer[il]=ii;break;};}
+        for(unsigned int ii=0;ii<ev->NTofClusterH();ii++){if(ev->pTofClusterH(ii)==phith[il]){fLayer[il]=ii;break;};}
         phith[il]->Status|=TOFDBcN::USED; phith[il]->Pattern+=1000;
         fTofClusterH.push_back(fLayer[il]);
        }
@@ -3533,8 +3539,8 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalS
    double mass,emass,rigidity,charge,evrig;
    fTrTrack=-1;fTrdTrack=-1,fEcalShower=-1;
    if(ptrack){
-      for(int ii=0;ii<ev->NTrTrack();ii++)   {if(ev->pTrTrack(ii)==ptrack){fTrTrack=ii;break;}}
-      for(int ii=0;ii<ev->NParticle();ii++)  {
+      for(unsigned int ii=0;ii<ev->NTrTrack();ii++)   {if(ev->pTrTrack(ii)==ptrack){fTrTrack=ii;break;}}
+      for(unsigned int ii=0;ii<ev->NParticle();ii++)  {
         if(ev->pParticle(ii)->pTrTrack()==ptrack){
           fTrdTrack=ev->pParticle(ii)->iTrdTrack();
           fEcalShower=ev->pParticle(ii)->iEcalShower();
@@ -3542,7 +3548,7 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalS
         }
       }
 #ifdef _PGTRACK_
-      for(int ii=0;ii<ev->NCharge();ii++)    {
+      for(unsigned int ii=0;ii<ev->NCharge();ii++)    {
          if(ev->pCharge(ii)->pBeta()->pTrTrack()==ptrack){
           rigidity=ptrack->GetRigidity();
           evrig=   ptrack->GetErrRinv();
@@ -3553,10 +3559,10 @@ BetaHR::BetaHR(TofClusterHR *phith[4],TrTrackR* ptrack,TrdTrackR *trdtrack,EcalS
 #endif
     }
    if(trdtrack){//trd betah
-      for(int ii=0;ii<ev->NTrdTrack();ii++)  {if(ev->pTrdTrack(ii)==trdtrack){fTrdTrack=ii;break;}}//Find Trd Index No Tk Index
+      for(unsigned int ii=0;ii<ev->NTrdTrack();ii++)  {if(ev->pTrdTrack(ii)==trdtrack){fTrdTrack=ii;break;}}//Find Trd Index No Tk Index
    }
    if(show){ // ecal betah
-      for(int ii=0;ii<ev->NEcalShower();ii++)  {if(ev->pEcalShower(ii)==show){fEcalShower=ii;break;}}
+      for(unsigned int ii=0;ii<ev->NEcalShower();ii++)  {if(ev->pEcalShower(ii)==show){fEcalShower=ii;break;}}
    }
    fTofChargeH=-1;
  
@@ -3939,7 +3945,6 @@ if(AMSJob::gethead())mcc=AMSJob::gethead()->isRealData()?false:true;
                 phi=atan2(-ny,-nx);
                 theta=acos(-nz);
               }
-              static int k=0;
               if(phi>3.1415926)phi=phi-2*3.1415926;
               double cphi=(1+5.45e-3*cos(4*fabs(phi)));
               ec_ec*=cphi;
@@ -4171,23 +4176,17 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	float LayerSigma[18];
 	 
 	float _ShowerLongDisp={0};  
-	float _ShowerDepth;	  
 
-	int _NbLayerX;
-	int _NbLayerY;
 	float bcell_lat[18]={0};
 	float bcell2_lat[18]={0};
-	float bcell_latx[18]={0};
-	float bcell_laty[18]={0};
 	float s_cell_w[18]={0};
 	float s_cell2_w[18]={0};
 	float edep_cell[18][72]={{0}};
 	float edep_layer[18]={0};
 	int nhitcell[18]={0};
-	int necalcl;
 	float bplane;
 	float bplane2;
-	int cell,plane,proj;
+	int cell,plane;
 
 	float EcalEdepFrac[18];
 
@@ -4201,7 +4200,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	float ShowerLatDisp[3]={0};
 
 	float EnergyDh;
-	float S3S5=0,S3S5x=0,S3S5y=0,S1S3=0;
+	float S3S5=0,S3S5x=0,S3S5y=0;
 	
 	float hedepl[18];
 	float hedepc[18][72];
@@ -4210,9 +4209,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 
 	float edep_h;
 	float s1,s3,s5;
-
-	Double_t epro[4]={0.};
-	Double_t zpro[4]={0.};
 
 	float zv3[18];
 
@@ -4226,8 +4222,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			LayerSigma [jj]=0.;
 			bcell_lat[jj]=0.;
 			bcell2_lat[jj]=0.;
-			bcell_latx[jj]=0.;
-			bcell_laty[jj]=0.;
 			s_cell_w[jj]=0.;
 			s_cell2_w[jj]=0.;
 			
@@ -4240,7 +4234,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				hedepc[jj][ii]=0.;
 			}
 		}
-		necalcl=0;
 
 		
 		
@@ -4278,9 +4271,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				//
 				adc_hi=hit.ADC[0];
 				adc_low=hit.ADC[1];						
-				//
-				
-				 proj = hit.Proj;			
 				//
 				
 				edep_layer[plane]      += hit.Edep;
@@ -4395,8 +4385,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 						}				
 					}
 				}
-			_NbLayerX = nbcellx;
-			_NbLayerY = nbcelly;
 		
 		
 			_ShowerLongDisp =bplane2/EnergyDh-pow((bplane/EnergyDh),2);
@@ -4407,8 +4395,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				S5tot[0]=S5tot[1]+S5tot[2];			
 			}
 			edep_tot=edep_totx+edep_toty;
-			//Calculate shower depth
-			_ShowerDepth = TMath::Log(shower_depth_op);
 			
 			//Calculate shower shower Cofg_z
 			bplane=bplane/edep_tot;
@@ -4481,7 +4467,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			ShowerFootprint[2]=TMath::Sqrt(TMath::Abs(sigmay2*sigmaz2_y-pow(sigmayz,2)));
 			ShowerFootprint[0]= ShowerFootprint[1] + ShowerFootprint[2];	 
 			
-			S1S3  = (S3tot[0]==0.)?0.:(S1tot[0]/S3tot[0]); 
 			S3S5  = (S5tot[0]==0.)?0.:(S3tot[0]/S5tot[0]); 
 			S3S5x = (S5tot[1]==0.)?0.:(S3tot[1]/S5tot[1]); 
 			S3S5y = (S5tot[2]==0.)?0.:(S3tot[2]/S5tot[2]); 
@@ -4516,7 +4501,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 		TH1F *hfitecal = new TH1F("hfitecal","",18,0.,18.);
 		if (EnergyDh/1000>100) par0=0.95;
 		float zmax=-1;  
-		int   amax=19;
 		float az=0; 
 
 		for(int a=0;a<18;a++){
@@ -4532,7 +4516,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			zv3[a]=frac; 
 			if (zv3[a]>zmax) {
 				zmax=zv3[a];
-				amax=a;
 			}
 
 			az+=zv3[a]; 
@@ -4787,7 +4770,6 @@ float EcalShowerR::GetESEv3Rejection(){
 
 float EcalShowerR::EcalStandaloneEstimatorV2(){
 
-        float NewESEv2;
         float nEnergyC;
         float nEcalStandaloneEstimator,necalBDT,nMomentum,nEnergyE,nRigInn;
 
@@ -4868,27 +4850,18 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
                 }
         } 
     }
-    
+	(void) S1totL;
+	(void) S3totL;
+	(void) S5totL;
+
 
    // FIT ZPROFILE
-    float Zprofilev1[4];
     float ZprofileChi2v1=-1.;
 
-  Zprofilev1[0]=-1.;
-  Zprofilev1[1]=-1.;
-  Zprofilev1[2]=-1.;
-  Zprofilev1[3]=-1.;
-  int necalcl=0;
-  int ihit,cell,plane,proj;
-  int nhits_cl;
   float etot=0.;
   float err;
   float par0,par1,par2;
-  float xmin, xmax;
-  float par[3];
-  float chi2n,chis,zmax1,zmax,xx,yu,yu1,yu2,yu3,xt,fitn,fitval;
   float frac[18]={0.};
-  float fracv2[18]={0.};
   float ECalEdepFrac[18]={0.};
 
    for (Int_t i2dcluster = 0; i2dcluster < NEcal2DCluster(); ++i2dcluster){
@@ -4920,15 +4893,10 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
       }
     }
      Double_t arglist[10];
-      Double_t a1,erra1;
       // The z values   
       Double_t zprof[3],errprof[3];
-      xx=-1.;
-      int ix=-1;  
-      float zint=0.;
       par0=1.;
       par1=0.5; 
-      float erec0=1000.;
       Int_t ierflg = 0;
     if(nbinsv1>3){
          
@@ -4962,10 +4930,6 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
       Double_t amin,edm,errdef;
       Int_t nvpar,nparx,icstat;
       minuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
-      Zprofilev1[0] = zprof[0];
-      Zprofilev1[2] = zprof[2];
-      Zprofilev1[3] = par2;
-      Zprofilev1[1] = zprof[1];
       ZprofileChi2v1 = amin/(nbinsv1-3);
     }
   
@@ -5049,7 +5013,6 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
 
 
 
-  const int nECAL_VIEWs  = 2;
    const int nLAYERs = 18;
    const int nCELLs  = 72;
 
@@ -5062,8 +5025,6 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    float F2LFrac = 0.; // Energy fraction of first 2 layer wrt energy deposit
    float ShowerFootprintX = ShowerFootprint[1]; 
    float ShowerFootprintY = ShowerFootprint[2];
-   float S1S3x  = S13Rpi[0]; // Energy fraction in the cells near the maximum deposit cell on x wrt maximum deposit
-   float S1S3y  = S13Rpi[1]; // Energy fraction in the cells near the maximum deposit cell on y wrt maximum deposit
    float S3totx = S3tot[1];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
    float S3toty = S3tot[2];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
    float S5totx = S5tot[1];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
@@ -5071,14 +5032,12 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
    float R3cmFrac = Energy3C[0]; // Energy fraction in a circle +- 3 cm around maximum wrt to total energy
    float R5cmFrac = Energy3C[1]; // Energy fraction in a circle +- 5 cm around maximum wrt to total energy
    float LayerClusterEnergy[nLAYERs];      // Corrected energy deposit [GeV] in each layer (sum of clusters' energy for each layer)
-   float LayerTruncClusterEnergy[nLAYERs]; // Corrected energy [GeV] for each layer between 3 sigma from the maximum
    float ShowerMean  = 0.; // Longitudinal mean [layer]: (sum_i i*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float ShowerSigma = 0.; // Longitudinal sigma [layer]: TMath::Sqrt((sum_i (i-ShowerMean)^2*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i]))
    float ShowerSkewness = 0.; // Longitudinal skewness [layer^3]: (sum_i (i-ShowerMean)^3*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float ShowerKurtosis = 0.; // Longitudinal kurtosis [layer^4]: (sum_i (i-ShowerMean)^4*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
    float LayerEnergy = 0.; // sum_i LayerClusterEnergy[i]
 
-   float LayerTruncSigma[nLAYERs]; // Sigma [cell] for each layer, between 3 sigma from the maximum
    for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
    {      LayerClusterEnergy[ilayer] = 0.;
       for (Int_t icell = 0; icell < nCELLs; ++icell) MapEneDep[ilayer][icell] = 0.;
@@ -5134,7 +5093,6 @@ ESENEnergy3C2 = (Energy3C[1] - (0.977856+log10E*0.0272133+pow(log10E,2)*-0.01575
 
    float mean;
    float sigma;
-   unsigned int ivar = 0;
 
 
    mean = 4.6675+(0.979051*log(EnergyE+1.18325));
@@ -5420,7 +5378,6 @@ float EcalShowerR::EcalChargeEstimator() {
 	// Filling the Map
 
 	float hMap[18][72]={{0}};
-	int nbLay=0; // nbr layers hit
 	float aE[18]={0}; // energy 	for each layer
 	float aX[18]={0}; // PL 		for each layer
 
@@ -5496,7 +5453,7 @@ float EcalShowerR::EcalChargeEstimator() {
 	ParticleR* part;
 	int particleid=-1;
 
-  	for (UInt_t iparticle = 0; iparticle < ev->nParticle(); ++iparticle)
+  	for (int iparticle = 0; iparticle < ev->nParticle(); ++iparticle)
 	{
 		part = ev->pParticle(iparticle);
 		if (part->pEcalShower() == this)
@@ -5599,7 +5556,7 @@ Level1R::Level1R(Trigger2LVL1 *ptr){
   EcalTrSum= ptr->_ectrsum;
   LiveTime   = ptr->_LiveTime;
   for(int i=0; i<19; i++)TrigRates[i]  = ptr->_TrigRates[i];
-  for(int i=0; i<sizeof(TrigTime)/sizeof(TrigTime[0]); i++){
+  for(unsigned int i=0; i<sizeof(TrigTime)/sizeof(TrigTime[0]); i++){
     TrigTime[i]  = ptr->_TrigTime[i];
   }
 #endif
@@ -6423,7 +6380,6 @@ double ParticleR::RichBetasAverage(){
 
 double ParticleR::RichBetasDiscrepancy(){
   if(pRichRing() && pRichRingB()){
-    double beta=pRichRing()->getBeta();
     double betaB=pRichRingB()->Beta;
     double factor=1;
     
@@ -6465,7 +6421,7 @@ TofClusterHR::TofClusterHR(unsigned int sstatus[2],unsigned int status,int patte
     AQ2[is]=q2pa[is];
     for(int ipm=0;ipm<3;ipm++){Dadc[is][ipm]=adcd[is][ipm];DQ2[is][ipm]=q2pd[is][ipm];}
     if(tfraws[is]){
-      for(int ii=0;ii<AMSEventR::Head()->NTofRawSide();ii++){if(AMSEventR::Head()->pTofRawSide(ii)==tfraws[is]){index[is]=ii;}}
+      for(unsigned int ii=0;ii<AMSEventR::Head()->NTofRawSide();ii++){if(AMSEventR::Head()->pTofRawSide(ii)==tfraws[is]){index[is]=ii;}}
     }
     fTofRawSide.push_back(index[is]);
   }
@@ -6575,7 +6531,7 @@ TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
   for(int i=0; i<nsumsh; i++)fsumsht.push_back(ptr->_sumsht[i]);
   adca=ptr->_adca;
   nadcd=ptr->_nadcd;
-  for(int ip=0;ip<TOF2GC::PMTSMX && ip<sizeof(adcd)/sizeof(adcd[0]);ip++)adcd[ip]=ptr->_adcd[ip];
+  for(int ip=0;ip<TOF2GC::PMTSMX && ip<int(sizeof(adcd)/sizeof(adcd[0]));ip++)adcd[ip]=ptr->_adcd[ip];
   temp=ptr->_tempT;
   tempC=ptr->_tempC;
   tempP=ptr->_tempP;
@@ -6636,7 +6592,6 @@ return  maxtube*maxlad*Layer+maxtube*Ladder+Tube;
 }
 
 float TrdRawHitR::getped(int & error){
- unsigned int id=getid();
  const string name("TRDPedestals");
  AMSEventR::if_t value;
  value.u=0;
@@ -6645,7 +6600,6 @@ float TrdRawHitR::getped(int & error){
 }
 
 float TrdRawHitR::getsig(int & error){
- unsigned int id=getid();
  const string name("TRDSigmas");
  AMSEventR::if_t value;
  value.u=0;
@@ -6653,7 +6607,6 @@ float TrdRawHitR::getsig(int & error){
  return value.f;
 }
 float TrdRawHitR::getgain(int & error){
- unsigned int id=getid();
  const string name("TRDGains");
  AMSEventR::if_t value;
  value.u=0;
@@ -6778,7 +6731,7 @@ else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
  if(AMSEventR::Head()->getsetup()->fTDV_Name.size()){
   if(AMSEventR::Head()->getsetup()->fTDV_Name[0].Size == AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()){ 
  cout <<    "Charge::ChargePDF-I-FoundTDVSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<<endl;
- for(int k=0;k<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size;k++){
+ for(unsigned int k=0;k<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size;k++){
 /*
      union if_t{
      float f;
@@ -6823,46 +6776,46 @@ if(!file){
  cerr<<"Charge::ChargePDF-E-UnableToOpen "<<fnam <<" "<<getenv("TRDChargePDFFile")<<endl;
 return false;
 }
-for(int k=0;k<sizeof(ChargePDF)/sizeof(ChargePDF[0]);k++)ChargePDF[k]=0;
-int ptr=0;
-const int span=1003;
+for(unsigned int k=0;k<sizeof(ChargePDF)/sizeof(ChargePDF[0]);k++)ChargePDF[k]=0;
+unsigned int ptr=0;
+const unsigned int span=1003;
 while(file.good() && !file.eof()){
 
 file>>ChargePDF[ptr*span+span-3];  //e2c
 file>>ChargePDF[ptr*span+span-2];  //id
 file>>ChargePDF[ptr*span+span-1];  //ok
-for(int k=0;k<span-3;k++)file>>ChargePDF[ptr*span+k];
+for(unsigned int k=0;k<span-3;k++)file>>ChargePDF[ptr*span+k];
 double smax=0;
-for(int k=0;k<span-3;k++){
+for(unsigned int k=0;k<span-3;k++){
   float a=ChargePDF[ptr*span+k];
   if(a<=0){
     float sum=0;
-    for(int j=k;j<span-3;j++){
+    for(unsigned int j=k;j<span-3;j++){
       if(ChargePDF[ptr*span+j]<10)sum+=ChargePDF[ptr*span+j];
     }
-    for(int j=k;j<span-3;j++){
+    for(unsigned int j=k;j<span-3;j++){
         if(ChargePDF[ptr*span+j]<10)ChargePDF[ptr*span+j]=(sum==0?1:sum)/(span-3-k);
       }
     }
   }
  
-for(int k=0;k<span-3;k++){
+for(unsigned int k=0;k<span-3;k++){
 smax+=ChargePDF[ptr*span+k];
 }
-for(int k=0;k<span-3;k++)ChargePDF[ptr*span+k]/=smax;
+for(unsigned int k=0;k<span-3;k++)ChargePDF[ptr*span+k]/=smax;
 if(ChargePDF[ptr*span+span-1])ptr++;
 
 
 }
 
 cout <<"Charge::ChargePDF-I- "<<ptr<<" pdf loaded for ";
-for(int k=0;k<ptr;k++)cout<<ChargePDF[k*span+span-2]<<" ";
+for(unsigned int k=0;k<ptr;k++)cout<<ChargePDF[k*span+span-2]<<" ";
 cout <<endl;
 if(ptr<3){
  cerr<<"Charge::ChargePDF-E-minimal 3 PDF Needed "<<endl;
  return false;
 }
-for(int i=ptr;i<sizeof(ChargePDF)/sizeof(ChargePDF[0])/span;i++){
+for(unsigned int i=ptr;i<sizeof(ChargePDF)/sizeof(ChargePDF[0])/span;i++){
   ChargePDF[i*span+span-2]=i;
 }
   int thr=0;
@@ -6872,7 +6825,7 @@ for(int i=ptr;i<sizeof(ChargePDF)/sizeof(ChargePDF[0])/span;i++){
 static int done=0;
 for(int k=0;k<10;k++){
  if(!done) AMSEventR::hbook1(-50000-k-thr*100,"pdf func ",1000,0.,100.);
-  for(int j=0;j<span-3;j++){
+  for(unsigned int j=0;j<span-3;j++){
      AMSEventR::hf1(-50000-k-thr*100,j/10.+0.05,ChargePDF[span*k+j]);
 }
 }
@@ -6883,8 +6836,8 @@ return true;
 
 
 void TrdTrackR::ComputeCharge(double betacorr){
-            for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
-            for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
+            for(unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
+            for(unsigned int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
             vector<float>edepc;
      for(int k=0;k<NTrdSegment();k++){
         TrdSegmentR tseg=*(pTrdSegment(k));
@@ -6902,18 +6855,18 @@ void TrdTrackR::ComputeCharge(double betacorr){
 
    sort(edepc.begin(),edepc.end());
    double medianc=0;            
-   if(edepc.size()%2)for(int k=edepc.size()/2-2;k<edepc.size()/2+3;k++)medianc+=edepc[k]/5;
-   else for(int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
+   if(edepc.size()%2)for(unsigned int k=edepc.size()/2-2;k<edepc.size()/2+3;k++)medianc+=edepc[k]/5;
+   else for(unsigned int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
    Q=sqrt(medianc/betacorr)*1/1.0925+0.115/1.0925;
 
     
    //lkhd
    const int span =sizeof(ChargePDF)/sizeof(ChargePDF[0])/(sizeof(Charge)/sizeof(Charge[0]));
-   for (int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+   for (unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
     if(ChargePDF[k*span+span-1]){
     Charge[k]=ChargePDF[k*span+span-2];  
     ChargeP[k]=0;
-    for(int i=0;i<edepc.size();i++){
+    for(unsigned int i=0;i<edepc.size();i++){
       int ch=edepc[i]/betacorr/ChargePDF[k*span+span-3];
       if(ch<0)ch=0;
       if(ch>span-3)ch=span-3;
@@ -6926,7 +6879,7 @@ void TrdTrackR::ComputeCharge(double betacorr){
          Charge[k]=ChargePDF[k*span+span-2];  
          ChargeP[k]=0;
          float factor=Charge[l]/Charge[k];
-          for(int i=0;i<edepc.size();i++){
+          for(unsigned int i=0;i<edepc.size();i++){
             int ch=edepc[i]*factor*factor/betacorr/ChargePDF[l*span+span-3];
             if(ch<0)ch=0;
             if(ch>span-3)ch=span-3;
@@ -6940,15 +6893,15 @@ void TrdTrackR::ComputeCharge(double betacorr){
    }
 
    double prsum=0;
-   for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+   for(unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
      prsum+=exp(-double(ChargeP[k]));
    }
     
-   for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+   for(unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
      ChargeP[k]+=log(prsum);
    }
    multimap<float,short int> chmap;
-   for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+   for(unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
      chmap.insert(make_pair(ChargeP[k],Charge[k]));
    }
    int l=0;
@@ -6996,9 +6949,9 @@ if(&o!=this){
  Phi=o.Phi; 
  Theta=o.Theta; 
  Q=o.Q;
- for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=o.Charge[k];
- for(int k=k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=o.ChargeP[k];
- for(int i=0;i<o.fTrdSegment.size();i++)fTrdSegment.push_back(o.fTrdSegment[i]);  
+ for(unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=o.Charge[k];
+ for(unsigned int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=o.ChargeP[k];
+ for(unsigned int i=0;i<o.fTrdSegment.size();i++)fTrdSegment.push_back(o.fTrdSegment[i]);  
 }
 }
 
@@ -7014,8 +6967,8 @@ TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
   Chi2  = ptr->_StrLine._Chi2;
   Pattern = ptr->_BaseS._Pattern;
   Q=ptr->_Charge.Q;
-  for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=ptr->_Charge.Charge[k];
-  for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=ptr->_Charge.ChargeP[k];
+  for(unsigned int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=ptr->_Charge.Charge[k];
+  for(unsigned int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=ptr->_Charge.ChargeP[k];
 #endif
 }
 
@@ -7446,8 +7399,6 @@ void RichRingR::updateCalibration(AMSEventR &event){
   if(weight<_tileCalEvents) return;
   sum/=weight;
 
-  double mean_index=_sumIndex[tile]/_totalIndex[tile];
-
   //
   // We  got the value, store it
   //
@@ -7695,13 +7646,13 @@ int RichRingR::getTileIndex(){
 
 void RichRingR::FillRichHits(int ring){
   fRichHit.clear();
-  for(int i=0;i<AMSEventR::Head()->NRichHit();i++){
+  for(unsigned int i=0;i<AMSEventR::Head()->NRichHit();i++){
     RichHitR hit=AMSEventR::Head()->RichHit(i);
     if((hit.Status>>ring)%2){
       fRichHit.push_back(i);
     }
   }
-  if(Used!=fRichHit.size())cerr<<" problem hits for ring "<<ring<<" "<<Used<<" "<<fRichHit.size()<<endl;
+  if(Used!=int(fRichHit.size()))cerr<<" problem hits for ring "<<ring<<" "<<Used<<" "<<fRichHit.size()<<endl;
 }
 
 float RichRingR::getBetaConsistency(){
@@ -7789,9 +7740,9 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
       }
 
     if(write_mode==2){ 	// Store all the betas for all the hits
-      for(int i=0;i<(ptr->_beta_direct).size();i++)
+      for(unsigned int i=0;i<(ptr->_beta_direct).size();i++)
 	if((ptr->_beta_direct)[i]>0) fBetaHit.push_back((ptr->_beta_direct)[i]);
-      for(int i=0;i<(ptr->_beta_reflected).size();i++)
+      for(unsigned int i=0;i<(ptr->_beta_reflected).size();i++)
 	if((ptr->_beta_reflected)[i]>0) fBetaHit.push_back((ptr->_beta_reflected)[i]);
     }
   
@@ -8011,7 +7962,7 @@ DaqEventR::DaqEventR(DAQEvent *ptr){
   L3dr=ptr->_lvl3[0] | (ptr->_lvl3[1]<<16);
   L3VEvent=ptr->_lvl3[3] | (ptr->_lvl3[2]<<16);;
   L3TimeD=ptr->_lvl3[4];
-  for(int k=0;k<sizeof(JError)/sizeof(JError[0]);k++){
+  for(unsigned int k=0;k<sizeof(JError)/sizeof(JError[0]);k++){
       JError[k]=ptr->getjerror(k);
   }
   for(int ii=0;ii<4;ii++)
@@ -8083,7 +8034,6 @@ float EcalHitR::GetECALPed(int layer, int cell, int channel) {
 	// SlowControlDB Initialisation :
 	//AMSEventR* ev=chain->GetEvent(0);
 	//SlowControlDB* scdb=SlowControlDB::GetPointer();
-	AMSSetupR::SlowControlR *cr=&AMSEventR::getsetup()->fSlowControl;
 	AMSEventR::if_t value;
 	value.u=0;
 
@@ -8110,7 +8060,6 @@ float EcalHitR::GetECALRms(int layer, int cell, int channel) {
 	// SlowControlDB Initialisation :
 	//AMSEventR* ev=chain->GetEvent(0);
 	//SlowControlDB* scdb=SlowControlDB::GetPointer();
-	AMSSetupR::SlowControlR *cr=&AMSEventR::getsetup()->fSlowControl;
 	AMSEventR::if_t value;
 	value.u=0;
 
@@ -8195,7 +8144,7 @@ TofRawSideR* TofClusterHR::pTofRawSide(unsigned int i){
 }
 
 TofRawSideR* TofClusterHR::GetRawSideHS(int is){
-  return (AMSEventR::Head() && is<fTofRawSide.size()&&fTofRawSide[is]>=0)?AMSEventR::Head()->pTofRawSide(fTofRawSide[is]):0;
+  return (AMSEventR::Head() && is<int(fTofRawSide.size())&&fTofRawSide[is]>=0)?AMSEventR::Head()->pTofRawSide(fTofRawSide[is]):0;
 }
 
 int TofClusterHR::DefaultQOpt=(TofRecH::kThetaCor|TofRecH::kBirkCor|TofRecH::kReAttCor|TofRecH::kBetaCor|TofRecH::kQ2Q);
@@ -8360,7 +8309,7 @@ double TrdClusterR::RangeCorr(double range, double norm){
   if(rng<b[0])rng=b[0];
   if(rng>b[1])rng=b[1];
   
-  for(int i=0;i<sizeof(p)/sizeof(p[0]);i++){
+  for(unsigned int i=0;i<sizeof(p)/sizeof(p[0]);i++){
     corr+=p[i]*pow(rng,double(i));
   }
   return corr/norm;
@@ -8381,7 +8330,6 @@ double d2=delta.prod(delta);
 double a=1-nl*nl;
 double b=dn*nl-dl;
 double c=d2-dn*dn-R*R;
-double rmin2=-b*b/a+(d2-dn*dn);
 double d=b*b-a*c;
 double ret=d<0?0:2*sqrt(d)/a;
 return ret; 
@@ -8665,7 +8613,7 @@ int BetaHR::BetaReFit(TofBetaPar &betapar,int pattern,int mode,int update){
  
 //---Further Selction
   double time[4],etime[4],len[4],chisl=0,cres,ecoo; int nhit=0,layc1[4];
-  for(int il=0;il<layc.size();il++){
+  for(unsigned int il=0;il<layc.size();il++){
      int ilay=layc.at(il);
      if((pattern==-1)&&(ilay==maxltres))continue;//Using TResidual
      else if(pattern==-2){//Optimize Using CResidual
@@ -8911,7 +8859,7 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern,float fb
 //---Pool PathLength ReMove Candiadte  For Default-Q
      if(pattern<0&&ql.size()>2&&qbn>0&&fTrTrack>=0&&(pattern>=-10)){
 //----
-         for(int i=0; i<qg.size();i++){
+         for(unsigned int i=0; i<qg.size();i++){
             if(qg.at(i))continue;//Good Keep
             ql.erase(ql.begin()+i);
             qg.erase(qg.begin()+i);
@@ -8924,11 +8872,10 @@ float BetaHR::GetQ(int &nlay,float &qrms,int pmtype,int opt,int pattern,float fb
 
 //-----GetMean
     float mean=0,sig=0,qmax=0,qmean=0,qmin=99999999;
-    int imin=0;int imax=0;
-    for(int i=0; i<ql.size();i++){
+    for(unsigned int i=0; i<ql.size();i++){
        mean+=ql.at(i); sig+=ql.at(i)*ql.at(i);
-       if(ql.at(i)>qmax){qmax=ql.at(i);imax=i;}
-       if(ql.at(i)<qmin){qmin=ql.at(i);imin=i;}
+       if(ql.at(i)>qmax){qmax=ql.at(i);}
+       if(ql.at(i)<qmin){qmin=ql.at(i);}
     }
 
 //----Fill Var
@@ -9174,9 +9121,9 @@ string frej=filename;
       ofstream ofbrej;
       int nrej=0;
 //      cout<<" filename "<<strlen(filename)<<" "<<filename<<(*pService).fProcessed.size()<<endl;
-      for(int k=0;k<fRequested.size();k++){
+      for(unsigned int k=0;k<fRequested.size();k++){
        bool found=false;
-       for(int l=0;l<(*pService).fProcessed.size();l++){
+       for(unsigned int l=0;l<(*pService).fProcessed.size();l++){
           if(strstr(fRequested[k].c_str(),(*pService).fProcessed[l].c_str())){
               found=true;
               break;
@@ -9215,8 +9162,8 @@ string frej=filename;
       UTerminate();
       (*pService)._w.Stop();
       if(fgThickMemory)hjoin();
-      for(int k=0;k<sizeof(_ClonedTree)/sizeof(_ClonedTree[0]);k++)_ClonedTree[k]=0;
-      for(int k=0;k<sizeof(_ClonedTreeSetup)/sizeof(_ClonedTreeSetup[0]);k++)_ClonedTreeSetup[k]=0;
+      for(unsigned int k=0;k<sizeof(_ClonedTree)/sizeof(_ClonedTree[0]);k++)_ClonedTree[k]=0;
+      for(unsigned int k=0;k<sizeof(_ClonedTreeSetup)/sizeof(_ClonedTreeSetup[0]);k++)_ClonedTreeSetup[k]=0;
       cout <<"AMSEventR::Terminate-I-CputimeSpent "<<(*pService)._w.CpuTime()<<" sec"<<endl;
       cout <<"AMSEventR::Terminate-I-Total/Bad "<<(*pService).TotalEv<<"/"<<(*pService).BadEv<<" events processed "<<endl;
       cout <<"AMSEventR::Terminate-I-ApproxTotal of "<<(*pService).TotalTrig<<" triggers processed "<<endl;
@@ -9224,7 +9171,7 @@ string frej=filename;
 	(*pService)._pDir->cd(); 
 	(*pService)._pOut->Write();
 	cout <<"AMSEventR::Terminate-I-WritedFile "<<GetOption()<<endl;
-      for(int k=0;k<sizeof(fgOutSep)/sizeof(fgOutSep[0]);k++){
+      for(unsigned int k=0;k<sizeof(fgOutSep)/sizeof(fgOutSep[0]);k++){
 	if(fgOutSep[k]){
          fgOutSep[k]->Write();
          fgOutSep[k]->Close();
@@ -9285,7 +9232,7 @@ string frej=filename;
      if(_NFiles ==0){
       ofstream ofbrej;
       int nrej=0;
-      for(int k=0;k<fRequested.size();k++){
+      for(unsigned int k=0;k<fRequested.size();k++){
           cerr<<"AMSEventR::Terminate-W-FileWasRequestedButNotProcessed "<<fRequested[k]<<endl;
           int  ifound=fRequested[k].find("?svcClass=");
           string aname=fRequested[k];
@@ -9531,12 +9478,12 @@ void AMSEventR::GetAllContents() {
 
 AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),
 fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),
-fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),
+fEcalShower(o.fEcalShower),fEcalH(o.fEcalH),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),
 fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fTofClusterH(o.fTofClusterH),
 fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),
 fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),
 fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fTrdHSegment(o.fTrdHSegment),
-fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fEcalH(o.fEcalH),fTofChargeH(o.fTofChargeH),fCharge(o.fCharge),
+fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fTofChargeH(o.fTofChargeH),fCharge(o.fCharge),
 fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),
 fTofMCCluster(o.fTofMCCluster),fTofMCPmtHit(o.fTofMCPmtHit),fEcalMCHit(o.fEcalMCHit),fTrdMCCluster(o.fTrdMCCluster),
 fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux)
@@ -9779,7 +9726,6 @@ int AMSEventR::isInShadow(AMSPoint&  ic,ParticleR & part){
         //...If there is intersection tell which Solar Array (wh==0 --> 1A ; wh==1 --> 3A; wh==-1 No intersection)
         int wh=-1;
         //..................sign of r if ==0 (>0) if ==1 (<0)
-        int sr[2];
 
         //.......................................begin for k==0 1A ; k==1 3A 
         for(int k=0; k<2 ; k++){
@@ -10547,7 +10493,7 @@ int AMSEventR::RecordRTIRun(){
   else {//Exist Run Check File
     if(nt<fRunList[nr].bt)fRunList[nr].bt=nt;
     if(nt>fRunList[nr].et)fRunList[nr].et=nt;
-    for(int ifn=0;ifn<fRunList[nr].fname.size();ifn++){
+    for(unsigned int ifn=0;ifn<fRunList[nr].fname.size();ifn++){
       if(fRunList[nr].fname.at(ifn)==nf)return 2;//exist
     }
     fRunList[nr].fname.push_back(nf); //new file
@@ -10597,8 +10543,8 @@ if(AMSSetupR::RTI::Version!=vrti){
 
 int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2]){
 
-  const int pt=1000;//Run window Pr
-  const int dt=3600;//Run window Af 1~hour 20min
+  const unsigned int pt=1000;//Run window Pr
+  const unsigned int dt=3600;//Run window Af 1~hour 20min
   unsigned int bt=(runid<=pt)?1:runid-pt;
   unsigned int et=runid+dt;
   time[0]=time[1]=runid;//Not Found
@@ -10673,10 +10619,9 @@ int AMSEventR::GetRTIdL1L9(int extlay,AMSPoint &nxyz, AMSPoint &dxyz,unsigned in
 double HeaderR::Zenith(){
 
         if(Pitch==0 && Yaw==0 && Roll==0){
-                int ret=getISSAtt();
+		  getISSAtt();
         }
         double  cb = cos(Pitch);
-        double  sb = sin(Pitch);
         double  cg = cos(Roll);
         double  sg = sin(Roll);
 
@@ -10709,9 +10654,9 @@ char * HeaderR::Info(unsigned long long status){
 	alpha=0;
 	b1a=0;
 	b3a=0;
-	int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
+	getISSSA(alpha,b1a,b3a,b1b,b3b);
 	float r,phi,theta,v,vphi,vtheta;
-	int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
+	getISSCTRS(r,theta,phi,v,vtheta,vphi);
 
 	AMSSetupR::DSPError a;
 	int dsperr = getDSPError(a);
@@ -10746,7 +10691,7 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 
 
 	if(pev && pev->Version()<566){
-		int k=Loc2Gl(pev);
+		Loc2Gl(pev);
 	}
 	if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
 	float lt=pev?pev->LiveTime():1;
@@ -10856,7 +10801,7 @@ static int master=0;
     
 
 try{
-    unsigned int save=TKGEOMFFKEY.MaxAlignedRun;
+	int save=TKGEOMFFKEY.MaxAlignedRun;
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
      if(TKGEOMFFKEY.MaxAlignedRun<save){
@@ -11003,7 +10948,7 @@ if(!_TreeSetup)return 2;
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fHeader",true);
      if(ProcessSetup>0)_TreeSetup->SetBranchStatus("run.fEntries",true);
      if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
-     int nb=_TreeSetup->GetEntry(entry);
+	 _TreeSetup->GetEntry(entry);
      return 0;
 
 }
@@ -11128,7 +11073,7 @@ int AMSEventR::ProcessSetup=2;
 
 bool AMSEventR::isBadRun(unsigned int run){
  
-for(int k=0;k<BadRunList.size();k++){
+for(unsigned int k=0;k<BadRunList.size();k++){
 if(run==BadRunList[k])return true;
 }
 return false;
@@ -11136,7 +11081,7 @@ return false;
 
 bool AMSEventR::RunTypeSelected(unsigned int runtype){
 if(!RunType.size())return true; 
-for(int k=0;k<RunType.size();k++){
+for(unsigned int k=0;k<RunType.size();k++){
 if(runtype==RunType[k])return true;
 }
 return false;
@@ -11164,7 +11109,7 @@ if(gps.Epoche.size()){
 
  } 
  fHeader.GPSTime.clear();
- for(int k=0;k<gps.Epoche.size();k++)fHeader.GPSTime.push_back(gps.Epoche[k]);
+ for(unsigned int k=0;k<gps.Epoche.size();k++)fHeader.GPSTime.push_back(gps.Epoche[k]);
 }
 }
 }
@@ -11315,7 +11260,7 @@ double HeaderR::getBetaSun(){
 //Beta=sunPos.GetBetaAngle();
 // return Beta;
 
- unsigned int time,err;
+ unsigned int time;
  float ialtitude=RadS; 
  float ilatitude=ThetaS; 
  float ilongitude=PhiS;
@@ -11354,7 +11299,7 @@ int HeaderR::getSunAMS(double & azimut, double & elevation ){
 // sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll); 
 // if (!sunPos.GetSunFromAMS(elevation,azimut)) return -1;
 // return sunPos.ISSday_night();
- unsigned int time,err;
+ unsigned int time;
  float ialtitude=RadS; 
  float ilatitude=ThetaS; 
  float ilongitude=PhiS;
@@ -12414,9 +12359,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
 //returns: two new trig-patterns and flag: 0/1 --> "Not"/"Was" PhysTrig
   L1TrMemPatt=0;
   PhysTrPatt=0;
-  int TrigPatt(0),PhysTrigPatt(0);
   int tofpattft[4]={0,0,0,0};
-  int tofpattbz[4]={0,0,0,0};
   int AccPatt(0),NAccs(0);
   int TOFTrigFl1(-1),TOFTrigFl2(-1),ECTrigFl(-1);
   bool FTZ(0);
@@ -12433,10 +12376,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt){
 //------> get current trig. parameters:
   for(int ii=0;ii<4;ii++){
     tofpattft[ii]=TofPatt1[ii];
-    tofpattbz[ii]=TofPatt2[ii];
   }
-  TrigPatt=JMembPatt;
-  PhysTrigPatt=PhysBPatt;
 //  FTZ=((TrigPatt&(1<<5))!=0);//SlowIon setting is disabled to match with Data 
   AccPatt=AntiPatt;
   TOFTrigFl1=TofFlag1;
@@ -12498,9 +12438,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt, int &AccSectPatt)
 //returns: two new trig-patterns and flag: 0/1 --> "Not"/"Was" PhysTrig
   L1TrMemPatt=0;
   PhysTrPatt=0;
-  int TrigPatt(0),PhysTrigPatt(0);
   int tofpattft[4]={0,0,0,0};
-  int tofpattbz[4]={0,0,0,0};
   int AccPatt(0),NAccs(0);
   int TOFTrigFl1(-1),TOFTrigFl2(-1),ECTrigFl(-1);
   bool FTZ(0);
@@ -12517,10 +12455,7 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt, int &AccSectPatt)
 //------> get current trig. parameters:
   for(int ii=0;ii<4;ii++){
     tofpattft[ii]=TofPatt1[ii];
-    tofpattbz[ii]=TofPatt2[ii];
   }
-  TrigPatt=JMembPatt;
-  PhysTrigPatt=PhysBPatt;
 //  FTZ=((TrigPatt&(1<<5))!=0);//SlowIon setting is disabled to match with Data 
   AccSectPatt=AntiPatt;
   AccPatt=AntiPatt;
@@ -12613,8 +12548,6 @@ int Level1R::RebuildTrigPatt(int &L1TrMemPatt,int &PhysTrPatt, int &AccSectPatt)
     else strcpy(toftypz,"unkn");
 //
     double xtime=TrigTime[4]/1000.;
-    int b15=(JMembPatt>>15)&1;
-    int b14=(JMembPatt>>14)&1;
 
     sprintf(_Info,"TrigLev1: TofZ>=1 %s, TofZ>1 %s, EcalFT  %s, EcalLev1 %d,  TimeD[ms]%6.2f LiveTime%6.2f, PhysTr=|uTf:%d|Z>=1:%d|Ion:%d|SIon:%d|e:%d|ph:%d|uEc:%d|",toftyp,toftypz,IsEcalFtrigOK()?"Yes":"No",EcalFlag,xtime,LiveTime,pat[0],pat[1],pat[2],pat[3],pat[4],pat[5],pat[6]);
     return _Info;
@@ -13049,7 +12982,6 @@ if(!pecal)return 3; // Logic error ecal not present while should be
   if(ecal_dir[2]>0){
     ecal_dir=AMSDir(-pecal->Dir[0],-pecal->Dir[1],-pecal->Dir[2]);
   } 
-  float zcofg=pecal->CofG[2];
 if(!usetrdh){
   TrdTrackR *ptrd=pTrdTrack();
   if(!ptrd)return 4;// Logic error trd not present while should be
@@ -13081,7 +13013,7 @@ again:
     double dmax_cosmax=distmax;
     int j=-1;
     int jspace=-1;
-   for(int i=0;i<AMSEventR::Head()->NTrTrack();i++){
+   for(unsigned int i=0;i<AMSEventR::Head()->NTrTrack();i++){
      try{
        TrTrackR &trk= AMSEventR::Head()->TrTrack(i);
        if(trk.GetChisq()>chisq_thr)continue;
@@ -13144,31 +13076,31 @@ again:
   _build(newtrack->GetRigidity(iddflt),newtrack->GetErrRinv(iddflt),Charge,Beta,ErrBeta,Mass,ErrMass,Momentum,ErrMomentum);
   for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0(iddflt)[k];
   Loc2Gl(AMSEventR::Head());
-  for(int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TOFCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(EcalCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TrCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TRDCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(RichCoo[k][2],pnt,dir,iddflt);
@@ -13186,9 +13118,9 @@ again:
     return done?0:7; 
  }
   else{
-     TrTrackR* track=0;
-  if(iTrTrack()>=0){
-     track=AMSEventR::Head()->pTrTrack(iTrTrack());
+     //TrTrackR* track=0;
+  //if(iTrTrack()>=0){
+  //   track=AMSEventR::Head()->pTrTrack(iTrTrack());
 //     for(int k=0;k<track->NTrRecHit();k++){
 //       cout <<" k hit "<<AMSEventR::Head()->TrRecHit(track->iTrRecHit(k)).GetCoord()<<endl;
 //     }
@@ -13199,7 +13131,7 @@ again:
 //         if(id>=0)cout<<" kewfit "<<k<<" "<<track->gTrTrackPar(id).Rigidity<<endl;
 //     }
          
-  } 
+//  } 
 // no track should construct it
    TrTrackR *newtrack= new TrTrackR();
    int mfit1 = TrTrackR::kChoutko;
@@ -13209,7 +13141,6 @@ again:
    int p2[10]; 
    int pmulti[10]; 
    int pmulti2[10]; 
-    int masky = 0x7f, maskc = 0x7f;
   for(int layer=0;layer<9;layer++){
    p[layer]=-1;
    pmulti[layer]=-1;
@@ -13248,7 +13179,7 @@ again:
        ibeg=-1;
        iend=-1;
      }
-   for(int i=0;i<AMSEventR::Head()->NTrRecHit();i++){
+   for(unsigned int i=0;i<AMSEventR::Head()->NTrRecHit();i++){
      TrRecHitR &trh= AMSEventR::Head()->TrRecHit(i);
      if(trh.GetLayerJ()!=layer+1)continue;
      if(trh.Sum()<thr)continue;
@@ -13263,7 +13194,6 @@ again:
      ap[1]=newdir[1]/newdir[2]*(ap[2]-newcoo[2])+newcoo[1];
      dist=trh.HitPointDist(ap,mult);
      if(fabs(dist[0])<DistX && fabs(dist[1])<DistY){
-       double r=sqrt((dist[0]/DistX)*(dist[0]/DistX)+(dist[1]/DistY)*(dist[1]/DistY));
        if(fabs(dist[0])<mdistx && fabs(dist[1])<=mdisty+100e-4){
          p2[layer]=p[layer];
          p[layer]=i;
@@ -13428,31 +13358,31 @@ if(change){
 
   for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0(iddflt)[k];
   Loc2Gl(AMSEventR::Head());
-  for(int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TOFCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(EcalCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TrCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TRDCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(RichCoo[k][2],pnt,dir,iddflt);
@@ -13497,8 +13427,6 @@ int ParticleR::ReBuildTrdTOF(float distmax,float dirmax,float DistX,float DistY,
 if(iVertex()>=0 )return 6; // vertex
 if(iBetaH()<0)return 1; // no betah
 //if(iTrdTrack()<0 && iTrdHTrack()<0)return 2;
-bool usetrdh=false;
-if(iTrdTrack()<0 && iTrdHTrack()>=0)usetrdh=true;
 BetaHR *ph=pBetaH();
 if(!ph)return 3; // Logic error betah not present while should be
 float zcofg=-130;
@@ -13562,7 +13490,7 @@ again:
     double dmax_cosmax=distmax;
     int j=-1;
     int jspace=-1;
-   for(int i=0;i<AMSEventR::Head()->NTrTrack();i++){
+   for(unsigned int i=0;i<AMSEventR::Head()->NTrTrack();i++){
      try{
        TrTrackR &trk= AMSEventR::Head()->TrTrack(i);
        if(trk.GetChisq()>chisq_thr)continue;
@@ -13624,31 +13552,31 @@ again:
   _build(newtrack->GetRigidity(iddflt),newtrack->GetErrRinv(iddflt),Charge,Beta,ErrBeta,Mass,ErrMass,Momentum,ErrMomentum);
   for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0(iddflt)[k];
   Loc2Gl(AMSEventR::Head());
-  for(int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TOFCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(EcalCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TrCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TRDCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(RichCoo[k][2],pnt,dir,iddflt);
@@ -13666,9 +13594,9 @@ again:
     return done?0:7; 
  }
   else{
-     TrTrackR* track=0;
-  if(iTrTrack()>=0){
-     track=AMSEventR::Head()->pTrTrack(iTrTrack());
+  //   TrTrackR* track=0;
+ // if(iTrTrack()>=0){
+ //    track=AMSEventR::Head()->pTrTrack(iTrTrack());
 //     for(int k=0;k<track->NTrRecHit();k++){
 //       cout <<" k hit "<<AMSEventR::Head()->TrRecHit(track->iTrRecHit(k)).GetCoord()<<endl;
 //     }
@@ -13679,7 +13607,7 @@ again:
 //         if(id>=0)cout<<" kewfit "<<k<<" "<<track->gTrTrackPar(id).Rigidity<<endl;
 //     }
          
-  } 
+  //} 
 // no track should construct it
    TrTrackR *newtrack= new TrTrackR();
    int mfit1 = TrTrackR::kChoutko;
@@ -13689,7 +13617,6 @@ again:
    int p2[10]; 
    int pmulti[10]; 
    int pmulti2[10]; 
-    int masky = 0x7f, maskc = 0x7f;
   for(int layer=0;layer<9;layer++){
    p[layer]=-1;
    pmulti[layer]=-1;
@@ -13728,7 +13655,7 @@ again:
        ibeg=-1;
        iend=-1;
      }
-   for(int i=0;i<AMSEventR::Head()->NTrRecHit();i++){
+   for(unsigned int i=0;i<AMSEventR::Head()->NTrRecHit();i++){
      TrRecHitR &trh= AMSEventR::Head()->TrRecHit(i);
      if(trh.GetLayerJ()!=layer+1)continue;
      if(trh.Sum()<thr)continue;
@@ -13743,7 +13670,6 @@ again:
      ap[1]=newdir[1]/newdir[2]*(ap[2]-newcoo[2])+newcoo[1];
      dist=trh.HitPointDist(ap,mult);
      if(fabs(dist[0])<DistX && fabs(dist[1])<DistY){
-       double r=sqrt((dist[0]/DistX)*(dist[0]/DistX)+(dist[1]/DistY)*(dist[1]/DistY));
        if(fabs(dist[0])<mdistx && fabs(dist[1])<=mdisty+100e-4){
          p2[layer]=p[layer];
          p[layer]=i;
@@ -13907,31 +13833,31 @@ if(change){
 
   for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0(iddflt)[k];
   Loc2Gl(AMSEventR::Head());
-  for(int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TOFCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(EcalCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TrCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(TRDCoo[k][2],pnt,dir,iddflt);
    for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
   }  
-  for(int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+  for(unsigned int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
    newtrack->Interpolate(RichCoo[k][2],pnt,dir,iddflt);
@@ -14002,13 +13928,11 @@ int  UpdateInnerDz(){
   // not active for MC events!!
   if(AMSEventR::Head()->nMCEventgC() ) return 0;
 
-  uint time,run;
+  uint time;
 #ifdef __ROOTSHAREDLIBRARY__ 
   time=AMSEventR::Head()->UTime();
-  run=AMSEventR::Head()->Run();
 #else
   time=AMSEvent::gethead()->gettime();
-  run=AMSEvent::gethead()->getrun();
 #endif
   // PZ Update also the Inner DzDB
   return TrInnerDzDB::GetHead()->UpdateTkDBc(time);
@@ -14065,7 +13989,7 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 
   TrMCClusterR *mc = 0;
   double      dmin = dmax;
-  for (int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
+  for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
     TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
     if (!m || m->GetTkId() != tkid) continue;
 
@@ -14194,7 +14118,7 @@ int DropExtHits(void)
 
   int ndrop = 0;
 
-  for (int i = 0; i < AMSEventR::Head()->NTrTrack(); i++) {
+  for (unsigned int i = 0; i < AMSEventR::Head()->NTrTrack(); i++) {
     TrTrackR *trk = AMSEventR::Head()->pTrTrack(i);
     if (trk && trk->HasExtLayers()) {
       trk->RecalcHitCoordinates();
@@ -14264,7 +14188,7 @@ return 0;
 }
 double corr;
 
-int ret=AMSEventR::getsetup()->GetJMDCGPSCorr(corr,error,time);
+AMSEventR::getsetup()->GetJMDCGPSCorr(corr,error,time);
 return corr;
 }
 
@@ -14337,7 +14261,7 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
   int ntry =  0;
   int eofs = -1;
   AMSEventR *evt = 0;
-  while ((!evt || evt->Event() != event) && ntry++ < 5) {
+  while ((!evt || int(evt->Event()) != event) && ntry++ < 5) {
     evt   = ach.GetEvent(event+eofs);
     eofs -= evt->Event()-event;
   }
@@ -14347,7 +14271,7 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
 	 << event << endl;
     return -1;
   }
-  if (evt->Event() != event) {
+  if (int(evt->Event()) != event) {
     cout << "AMSEventR::DumpTrTrackPar-E-Event number mismatch: " 
 	 << evt->Event() << " " << event << endl;
     return -1;
@@ -14588,7 +14512,6 @@ int AMSEventR::GetElementAbundance(const AMSPoint &pnt,
 
   int   ndv = 5;
   int   err = 0;
-  double ms = 0;
 
   do {
     double b = TMath::Abs(TrFit::GuFld(p1).x());
@@ -14755,7 +14678,6 @@ int AMSEventR::GetNTofClustersInTime(BetaHR *betah, int ncls[4], float cutu,
 	    if(tfcl.NBetaHUsed()>0)continue;//used by BetaHtfcl.Time();
 	    if(!tfcl.IsGoodTime())continue;
 	    float cltime=tfcl.Time;//ns
-	    float ed=tfcl.GetEdep();//mev
 	    float dt=cltime-ltime;//later cluster has positive dt
 	    //	       if(itb==0)prsh10->Fill(dt,1.);
 	    //	       if(itb==1)prsh11->Fill(dt,1.);
@@ -14887,8 +14809,8 @@ void AMSEventR::RebuildBetaH(){
        TofClusterH().clear();
 ///---
        fHeader.BetaHs = 0;
-       for(int i=0;i<NParticle();i++)pParticle(i)->setBetaH(-1);
-       for(int i=0;i<NCharge();i++)pCharge(i)->setBetaH(-1);
+       for(unsigned int i=0;i<NParticle();i++)pParticle(i)->setBetaH(-1);
+       for(unsigned int i=0;i<NCharge();i++)pCharge(i)->setBetaH(-1);
        BetaH().clear();
      }
 
@@ -14898,7 +14820,7 @@ void AMSEventR::RebuildBetaH(){
       TofRecH::Init();
 //---TofClusterHR
       if(Version()<=621){   
-        for(int i=0;i<NTofClusterH();i++){
+        for(unsigned int i=0;i<NTofClusterH();i++){
            TofClusterHR *tfclh=pTofClusterH(i);
            if(!tfclh)continue;
            TofRecH::EdepRecR(tfclh->Layer,tfclh->Bar,tfclh->Aadc,tfclh->Dadc,tfclh->Coo[tfclh->GetDirection()],tfclh->AQ2,tfclh->DQ2,tfclh->AEdep,tfclh->DEdep);
@@ -14910,19 +14832,19 @@ void AMSEventR::RebuildBetaH(){
 //----BetaH
       else if(Version()<=621){        
         bool ftk=0;
-        for(int i=0;i<NBetaH();i++){//First Search if Trd-Track Mode
+        for(unsigned int i=0;i<NBetaH();i++){//First Search if Trd-Track Mode
            BetaHR *betah=pBetaH(i);
            if(!betah)continue;
            if(betah->iTrTrack()>=0||betah->iTrdTrack()>=0){ftk=1;break;}
          }
 //----
         if(ftk){  //Track Mode or Trd Mode only need Part Reconstruction
-         for(int i=0;i<NBetaH();i++){
+         for(unsigned int i=0;i<NBetaH();i++){
            BetaHR *betah=pBetaH(i);
            if(!betah)continue;
            TofClusterHR *tfhit[4]={0};        
            double tklcoo[4]={0},tkcosz[4]={1,1,1,1};
-           double zpl,time;AMSPoint pnt;AMSDir dir;
+           double time;AMSPoint pnt;AMSDir dir;
            for(int ilay=0;ilay<4;ilay++){
              tfhit[ilay]=betah->GetClusterHL(ilay);
              if(tfhit[ilay]){
@@ -14943,7 +14865,7 @@ void AMSEventR::RebuildBetaH(){
 //---
   }//End 622
   if(Version()<632){
-    for(int i=0;i<NBetaH();i++)pBetaH(i)->setChargeHI(-1);
+    for(unsigned int i=0;i<NBetaH();i++)pBetaH(i)->setChargeHI(-1);
   }
 }
 
@@ -14978,7 +14900,7 @@ unsigned int AMSEventR::NTrTrackG(){
         int ret=0;
 #ifdef _PGTRACK_
        const unsigned int tfg= (unsigned int)(1<<31);
-       for(int k=0;k<fTrTrack.size();k++){
+       for(unsigned int k=0;k<fTrTrack.size();k++){
          if(!fTrTrack[k].checkstatus(tfg))ret++;
       }
 #endif
@@ -14995,7 +14917,7 @@ bool newmc=Version()>700;
 bool old=Version()<600;
 if(pos<0)search=-1;
 if(!newmc && search<0)return NULL;
-for(int k=0;k<NMCEventg();k++){
+for(unsigned int k=0;k<NMCEventg();k++){
 MCEventgR &mc=MCEventg(k);
 if(old && mc.Particle>0 && mc.Particle<256)return &mc; 
 else if (mc.parentID==0 &&!newmc )return &mc; 

@@ -136,7 +136,6 @@ void OrbGen::GenDir(){
 
 void OrbGen::GetPos(uint t, double & Lat, double& Lon){
 
-  double r=6761200.92;
   double omega_iss=2*M_PI*15.60585804/(24*3600);
   double omega_E=2*M_PI/(23.9436*3600);
   double incl=51.6382/180*M_PI;

@@ -56,8 +56,8 @@ class TH2A{
  public:
   TH2A(){Hxy=0;}
  ~TH2A(){if(Hxy)delete[] Hxy;Hxy=0;} 
-  TH2A(const char* name, const char* title, int nbx, double Xlo, double Xup, int nby, double Ylo, double Yup)
-    : nbx(nbx), Xlo(Xlo), Xup(Xup), nby(nby), Ylo(Ylo), Yup(Yup)
+  TH2A(const char* name, const char* title, int _nbx, double _Xlo, double _Xup, int _nby, double _Ylo, double _Yup)
+    : nbx(_nbx), nby(_nby), Xlo(_Xlo), Xup(_Xup), Ylo(_Ylo), Yup(_Yup)
     { Hxy  =  new double[nbx*nby]; 
       Fx   = (double)nbx/(Xup-Xlo);
       Fy   = (double)nby/(Yup-Ylo);
@@ -91,7 +91,7 @@ class TH2A{
 class  BIN {
 public:
   int x,y;
-  float c,z,zmin,zmax;
+  float z,c,zmin,zmax;
   BIN(int x_,int y_,float z_, float c_):x(x_),y(y_),z(z_),c(c_),zmin(z_),zmax(z_){}
 
     bool operator<(const BIN& other) const {
@@ -108,9 +108,9 @@ public:
   float Xlo,Xup,Ylo,Yup,Fx,Fy;
   vector<BIN> bins;
 
-  TH2V(const char* name, const char* title, int nbx, float Xlo, float Xup, int
-       nby, float Ylo, float Yup)
-    : nbx(nbx), Xlo(Xlo), Xup(Xup), nby(nby), Ylo(Ylo), Yup(Yup)
+  TH2V(const char* name, const char* title, int _nbx, float _Xlo, float _Xup, int
+       _nby, float _Ylo, float _Yup)
+    : nbx(_nbx), nby(_nby), Xlo(_Xlo), Xup(_Xup), Ylo(_Ylo), Yup(_Yup)
   { Fx =(float)nbx/(Xup-Xlo);
     Fy =(float)nby/(Yup-Ylo);  }
 
@@ -137,7 +137,7 @@ public:
     iy = int((y-Ylo)*Fy);
     //    iz = int((z-Zlo)*Fz);
     add=true;
-    for( int i=0; i<bins.size(); i++ ){
+    for( unsigned int i=0; i<bins.size(); i++ ){
       if( ix==bins[i].x && iy==bins[i].y){// && iz == bins[i].z){
         bins[i].c+=weight;
 	bins[i].z+=(za+zb)/2.;
@@ -208,7 +208,7 @@ class TrdHReconR{
     refhits.clear();
   };
 
-  ~TrdHReconR(){
+  virtual ~TrdHReconR(){
     rhits.clear();
 #ifndef __ROOTSHAREDLIBRARY__
     gbhits.clear();

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.78 2012/05/17 17:57:46 barao Exp $
+//  $Id$
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -115,7 +115,6 @@ public:
 
 protected:
   void _printEl(ostream &stream){
-    int i;
     stream <<"AMSRichRawEvent: id="<<_channel<<endl;
     stream <<" Adc="<<_counts<<endl;
     stream <<" Status="<<_status<<endl;

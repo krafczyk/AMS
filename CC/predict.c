@@ -1045,7 +1045,7 @@ void Deep(int ientry, tle_t * tle, deep_arg_t * deep_arg)
 	g533, gam, sinq, sinzf, sis, sl, sll, sls, stem, temp, temp1, x1,
 	x2, x2li, x2omi, x3, x4, x5, x6, x7, x8, xl, xldot, xmao, xnddt,
 	xndot, xno2, xnodce, xnoi, xomi, xpidot, z1, z11, z12, z13, z2,
-	z21, z22, z23, z3, z31, z32, z33, ze, zf, zm, zmo, zn, zsing,
+	z21, z22, z23, z3, z31, z32, z33, ze, zf, zm, zn, zsing,
 	zsinh, zsini, zcosg, zcosh, zcosi, delt=0, ft=0;
 
 	switch (ientry)
@@ -1099,7 +1099,6 @@ void Deep(int ientry, tle_t * tle, deep_arg_t * deep_arg)
 		  cc=c1ss;
 		  zn=zns;
 		  ze=zes;
-		  zmo=zmos;
 		  xnoi=1/xnq;
 
 		  /* Loop breaks when Solar terms are done a second */
@@ -1200,7 +1199,6 @@ void Deep(int ientry, tle_t * tle, deep_arg_t * deep_arg)
 			zn=znl;
 			cc=c1l;
 			ze=zel;
-			zmo=zmol;
 			SetFlag(LUNAR_TERMS_DONE_FLAG);
 		}
 
@@ -2618,11 +2616,10 @@ double CurrentDaynum()
 	/* Read the system clock and return the number
 	   of days since 31Dec79 00:00:00 UTC (daynum 0) */
 
-	int x;
 	struct timeval tptr;
 	double usecs, seconds;
 
-	x=gettimeofday(&tptr,NULL);
+	gettimeofday(&tptr,NULL);
 
 	usecs=0.000001*(double)tptr.tv_usec;
 	seconds=usecs+(double)tptr.tv_sec;
@@ -2677,7 +2674,7 @@ double daynum;
 	   http://www.geocities.com/s_perona/ingles/poslun.htm. */
 
 	double	jd, ss, t, t1, t2, t3, d, ff, l1, m, m1, ex, om, l,
-		b, w1, w2, bt, p, lm, h, ra, dec, z, ob, n, e, el,
+		b, w1, w2, bt, p, lm, h, ra, dec, z, ob, n, el,
 		az, teg, th, mm, dv;
 
 	jd=daynum+2444238.5;
@@ -2816,7 +2813,6 @@ double daynum;
 	/* dec = declination */
 
 	n=qth.stnlat*deg2rad;    /* North latitude of tracking station */
-	e=-qth.stnlong*deg2rad;  /* East longitude of tracking station */
 
 	/* Find siderial time in radians */
 
@@ -3127,17 +3123,7 @@ int ISSGTOD(float *r, float *theta, float *phi, float *v, float *vtheta, float *
 	vector_t vel=zero_vector;
 	vector_t pos=zero_vector;
 
-	/* Satellite Az, El, Range, Range rate */
-	vector_t obs_set;
-
-	/* Solar ECI position vector  */
-	vector_t solar_vector=zero_vector;
-
-	/* Solar observed azi and ele vector  */
-	vector_t solar_set;
-
 	/* Satellite's predicted geodetic position */
-	geodetic_t sat_geodetic;
         daynum=time/86400.0-3651.0;
 	jul_utc=daynum+2444238.5;
 

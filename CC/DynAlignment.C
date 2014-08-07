@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.71 2013/10/04 14:38:35 mdelgado Exp $
+//  $Id$
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -547,7 +547,6 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 
       // Shift the Z origin
       double zHit=event.RawHit[2]-ZOffset;
-      double zTr=event.TrackHit[2]-ZOffset;
       
       // Fit in Y axis
       float &xHit=event.RawHit[0];
@@ -731,7 +730,7 @@ void DynAlFit::getRange(vector<double> &array,double &Min,double &Max,int bucket
   // Get the range
   Min=HUGE_VAL;
   Max=-HUGE_VAL;
-  for(int i=0;i<array.size();i++){
+  for(unsigned int i=0;i<array.size();i++){
     if(array[i]<Min) Min=array[i];
     if(array[i]>Max) Max=array[i];
   }
@@ -764,7 +763,7 @@ bool DynAlFit::bucketSort(vector<double> &array,double Min,double Max,const int 
   for(int i=0;i<buckets;i++) bucket[i]=0;
 
   // Fill the buckets
-  for(int i=0;i<array.size();i++){
+  for(unsigned int i=0;i<array.size();i++){
     int b=getbin(array[i]); 
     if(b<0 || b>=buckets) continue;
     bucket[b]++;
@@ -809,7 +808,7 @@ bool DynAlFit::findPeak(vector<double> array,const double fraction,double Min,do
 
   width=HUGE_VAL;
   int maxPosition=-1;
-  for(int i=window;i<array.size();i++){
+  for(unsigned int i=window;i<array.size();i++){
     double l=array[i]-array[i-window];
     if(l<width){
       width=l;
@@ -867,7 +866,7 @@ void _summary(int counter=1000){
   static int mycounter=0;
   if(mycounter++!=counter) return;
   cout<<"SUMMARY"<<endl;
-  for(int i=0;i<_order.size();i++)
+  for(unsigned int i=0;i<_order.size();i++)
     cout<<"CUT: "<<_order[i]<<" SELECTED "<<_cuts[_order[i]]<<endl;
   cout<<endl<<endl;
   mycounter=0;
@@ -959,7 +958,7 @@ void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString 
     AMSEventR *pev = ch.GetEvent(entry);
 
     if(!select(pev,layer)) continue;
-    if(pev->fHeader.Run!=current_run) break;
+    if(int(pev->fHeader.Run)!=current_run) break;
     
     DynAlEvent event;
     if(!DynAlEvent::buildEvent(*pev,layer,event)) continue;
@@ -1041,19 +1040,19 @@ void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run){
 
   // Find the position of current run
   int position=-1;
-  for(int i=0;i<runs.size();i++)
+  for(unsigned int i=0;i<runs.size();i++)
     if(runs[i]==CurrentRun){position=i;break;}
 
   if(position==-1) return;
 
   // Join the different runs
-  if(position>0 && position<runs.size()-1){
+  if(position>0 && position<int(runs.size())-1){
     // Normal case
     if(position-1>=0) Fill(dir,prefix,runs.at(position-1));
     FirstOfCurrentRun=History.Size();
     Fill(dir,prefix,runs.at(position));
     LastOfCurrentRun=History.Size()-1;
-    if(position+1<runs.size()) Fill(dir,prefix,runs.at(position+1));
+    if(position+1<int(runs.size())) Fill(dir,prefix,runs.at(position+1));
     return;
   }
 
@@ -1066,7 +1065,7 @@ void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run){
     FirstOfCurrentRun=History.Size();
     Fill(dir,prefix,runs.at(position));
     LastOfCurrentRun=History.Size()-1;
-    if(position+1<runs.size()) Fill(dir,prefix,runs.at(position+1));
+    if(position+1<int(runs.size())) Fill(dir,prefix,runs.at(position+1));
     return;
   }
 
@@ -1097,7 +1096,7 @@ void DynAlContinuity::Fill(TString dir,TString prefix,int run){
     cout<<"Object "<<(prefix+TString("idx"))<<" not found in "<<(dir+file_name)<<endl;
     return;
   }
-  for(int i=0;i<h->Size();i++)  History.Push(h->Get(i));
+  for(unsigned int i=0;i<h->Size();i++)  History.Push(h->Get(i));
   Layer=History.Layer=h->Layer;
 
 #ifdef VERBOSE__
@@ -1173,7 +1172,7 @@ void DynAlFitParameters::ApplyAlignment(int seconds,int museconds,double &x,doub
   double dt=1;
 
 #define Do(xx) _##xx+=dt* xx.at(i) 
-  for(int i=0;i<DX.size();i++){
+  for(unsigned int i=0;i<DX.size();i++){
     Do(DX);
     Do(DY);
     Do(DZ);
@@ -1206,7 +1205,7 @@ void DynAlFitParameters::GetParameters(int seconds,int museconds,AMSPoint &posA,
   double dt=1;
 
 #define Do(xx) _##xx+=dt* xx.at(i) 
-  for(int i=0;i<DX.size();i++){
+  for(unsigned int i=0;i<DX.size();i++){
     Do(DX);
     Do(DY);
     Do(DZ);
@@ -1258,7 +1257,7 @@ void DynAlFitParameters::GetParameters(float &rotZ,float &rotY,float &rotX,float
   double dt=1;
 
 #define Do(xx) _##xx+=dt* xx.at(i) 
-  for(int i=0;i<DX.size();i++){
+  for(unsigned int i=0;i<DX.size();i++){
     Do(DX);
     Do(DY);
     Do(DZ);
@@ -1291,7 +1290,7 @@ void DynAlFitParameters::dumpToLinearSpace(SingleFitLinear &fit,int when,int id)
 #undef CL
   
 #define Do(_xx) fit._xx+=dt*_xx.at(i) 
-  for(int i=0;i<DX.size();i++){
+  for(unsigned int i=0;i<DX.size();i++){
     Do(DX);
     Do(DY);
     Do(DZ);
@@ -1420,7 +1419,7 @@ void DynAlFitContainer::TestDump(){
   for(map<int,DynAlFitParameters>::iterator i=FitParameters.begin();i!=FitParameters.end();i++){
     cout<<"ZOffset "<<i->second.ZOffset<<" "<<layer1.FitParameters[i->first].ZOffset<<" "<<layer9.FitParameters[i->first].ZOffset<<endl;
     cout<<"TOffset "<<i->second.TOffset<<" "<<layer1.FitParameters[i->first].TOffset<<" "<<layer9.FitParameters[i->first].TOffset<<endl;
-#define Do(xx) for(int j=0;j<i->second.xx.size();j++) cout<<#xx<<" "<<j<<" "<<i->second.xx[j]<<" "<<layer1.FitParameters[i->first].xx[j]<<" "<<layer9.FitParameters[i->first].xx[j]<<endl;
+#define Do(xx) for(unsigned int j=0;j<i->second.xx.size();j++) cout<<#xx<<" "<<j<<" "<<i->second.xx[j]<<" "<<layer1.FitParameters[i->first].xx[j]<<" "<<layer9.FitParameters[i->first].xx[j]<<endl;
     Do(DX);
     Do(DY);
     Do(DZ);
@@ -1502,7 +1501,7 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
   if(DynAlManager::need2bookTDV){
     int lay=fit.ZOffset>0?0:1;
     if(AMSFFKEY.ExtAlignErrorThreshold[lay]>0 && 
-       1e4*fit.EY>AMSFFKEY.ExtAlignErrorThreshold[lay]>0){
+       1e4*fit.EY>AMSFFKEY.ExtAlignErrorThreshold[lay]){
       if(!largeErrorSet[lay]) cerr <<" DynAlFitContainer::Find-F-Alignment error for external layer "<<dec<<(lay?9:1)<<" exceeds the threshold. "<<fit.EY*1e4<<">"<<AMSFFKEY.ExtAlignErrorThreshold[lay]<<endl;
       if(!largeErrorSet[0] && !largeErrorSet[1]) seterror;
       largeErrorSet[lay]=true;
@@ -1615,7 +1614,7 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history,map<Int_t,Doub
   map<int,DynAlHistory> historyPerLadder;
   Layer=history.Layer;
   long lastTime=0;
-  for(int point=0;point<history.Size();point++){
+  for(unsigned int point=0;point<history.Size();point++){
     if(point%10000==0)
       fprintf(stderr,"%i of %i\r",point,history.Size()-1);
     // Take the time of the event
@@ -1696,16 +1695,13 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history,map<Int_t,Doub
 
 void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history,DynAlFitContainer &layerAlignment,map<Int_t,Double_t> *errors){
   // Compute the local alignment nfirst
-  const long timeStep=5; // seconds
   DynAlFit fit(DynAlContinuity::FitOrder);
   fit.MinRigidity=DynAlContinuity::RigidityCut;
   fit.MinBeta=DynAlContinuity::BetaCut;
-  int minutes=DynAlContinuity::FitWindow;
   sort(history.Events.begin(),history.Events.end());
   map<int,DynAlHistory> historyPerLadder;
   Layer=history.Layer;
-  long lastTime=0;
-  for(int point=0;point<history.Size();point++){
+  for(unsigned int point=0;point<history.Size();point++){
     if(point%10000==0)
       fprintf(stderr,"%i of %i\r",point,history.Size()-1);
     // Take the time of the event
@@ -1805,7 +1801,7 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
 
   // Copy it 
   DynAlHistory history;
-  for(int i=0;i<historyC.History.Size();i++){
+  for(unsigned int i=0;i<historyC.History.Size();i++){
     DynAlEvent ev=historyC.History.Get(i);
     if(ApplyLocalAlignment){
       int Id=GetId(ev);
@@ -1831,7 +1827,7 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   for(int point=historyC.FirstOfCurrentRun;point<=historyC.LastOfCurrentRun;point++){
     // Take the time of the event
     DynAlEvent ev=history.Get(point);
-    int Id=GetId(ev);
+    GetId(ev);
 
     if(ev.Time[0]==prev_second) continue;
     ev.Time[1]=500000;
@@ -2083,7 +2079,7 @@ bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME,DynAlFitC
   }
   sort(files.begin(),files.end());
 
-  for(int ii=0;ii<files.size();ii++){
+  for(unsigned int ii=0;ii<files.size();ii++){
     TString &entry=files[ii];
     const char *name=entry.Data();
     // Open the file
@@ -2211,7 +2207,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       AMSSetupR *setup=AMSSetupR::gethead();
       if(!setup) TDVUPDATE;
 
-      if(time<begin || time>end){
+      if(time<int(begin) || time>int(end)){
 	// Find the TDV prefix in TDV names
 	bool failed=true;
 	AMSSetupR::TDVR tdv;
@@ -2224,7 +2220,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
 	}
 
 	// Check time validity
-	if(!failed) if(time<tdv.Begin || time>tdv.End) failed=true;  
+	if(!failed) if(time<int(tdv.Begin) || time>int(tdv.End)) failed=true;  
 	if(failed) TDVUPDATE;
 	
 	// Search for the proper TDV
@@ -2351,10 +2347,9 @@ DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
   DynAlFit fit(DynAlContinuity::FitOrder);
   fit.MinRigidity=DynAlContinuity::RigidityCut;
   fit.MinBeta=DynAlContinuity::BetaCut;
-  int minutes=DynAlContinuity::FitWindow;
   sort(history.Events.begin(),history.Events.end());
   map<int,DynAlHistory> historyPerLadder;
-  for(int point=0;point<history.Size();point++){
+  for(unsigned int point=0;point<history.Size();point++){
     // Take the time of the event
     DynAlEvent event=history.Get(point);
     if(!UpdateParameters(0,event.Time[0])) continue;
@@ -2378,7 +2373,7 @@ DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
     double dt=1;
 
 #define Do(xx) _##xx+=dt* fit.xx.at(i) 
-    for(int i=0;i<fit.DX.size();i++){
+    for(unsigned int i=0;i<fit.DX.size();i++){
       Do(DX);
       Do(DY);
       Do(DZ);

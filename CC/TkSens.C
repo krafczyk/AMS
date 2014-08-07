@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.24 2014/01/09 15:14:32 pzuccon Exp $ 
+/// $Id$ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2014/01/09 15:14:32 $
+///$Date$
 ///
-/// $Revision: 1.24 $
+/// $Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -127,7 +127,6 @@ void TkSens::Recalc(){
   ImpactPointY=(LaddCoo[1]-cooY1)/abs(cooY1-cooY2);
   
   mult = -1;
-  int layer=abs(lad_tkid)/100;
   number cooX1,cooX2;  
   TkLadder* ll = TkDBc::Head->FindTkId(lad_tkid);
   if(!ll){
@@ -399,7 +398,6 @@ int TkSens::FindLadder(){
 //! It takes a point in global coo and chek if it is inside the ladder pointed by the tkid
 int TkSens::FindLadder(int lay){
   TkLadder* lad=0;
-  bool found=0;
 
   int nslot = (lay == 9) ? 8 : 15;
   for (int slot = -nslot; slot <= nslot; slot++) {
@@ -477,7 +475,6 @@ AMSPoint TkSens::FindCloseSensorCenter(){
   }
   if(!TkDBc::Head->FindTkId(otkid)) return pret;
 
-  int slot=abs(otkid)%100;
   int msens=-1;
   vector<float> csM;
   vector<float> csP;
@@ -492,14 +489,14 @@ AMSPoint TkSens::FindCloseSensorCenter(){
 
   float distM=9999;
   int sM=-1;
-  for (int ii=0;ii<csM.size();ii++){
+  for (unsigned int ii=0;ii<csM.size();ii++){
     float dd=fabs(oo[0]-csM[ii]);
     if( dd< distM) {distM=dd; sM=ii;}
   }
 
   float distP=9999;
   int sP=-1;
-  for (int ii=0;ii<csP.size();ii++){
+  for (unsigned int ii=0;ii<csP.size();ii++){
     float dd=fabs(oo[0]-csP[ii]);
     if( dd< distP) {distP=dd; sP=ii;}
   }

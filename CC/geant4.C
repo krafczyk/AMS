@@ -200,7 +200,7 @@ void AMSG4MagneticField::GetFieldValue(const double x[3], double *B) const{
 
 
 #include "G4ParticleGun.hh"
-AMSG4GeneratorInterface::AMSG4GeneratorInterface(G4int npart):_npart(npart),_cpart(0),AMSNode(AMSID("AMSG4GeneratorInterface",0)),G4VUserPrimaryGeneratorAction(){
+AMSG4GeneratorInterface::AMSG4GeneratorInterface(G4int npart):AMSNode(AMSID("AMSG4GeneratorInterface",0)),G4VUserPrimaryGeneratorAction(),_npart(npart),_cpart(0){
   _particleGun = new G4ParticleGun[_npart];
 
 }
@@ -225,6 +225,7 @@ _particleGun[_cpart].SetParticlePosition(G4ThreeVector(Pos[0]*cm,Pos[1]*cm,Pos[2
 void AMSG4GeneratorInterface::GeneratePrimaries(G4Event* anEvent){
 
 static integer event=0;
+(void)event;
 
 AMSJob::gethead()->getg4generator()->Reset();
 
@@ -426,7 +427,6 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
  cl=pow(10.,cl);
   g4_cpu_limit=cl/AMSCommonsI::getmips()*5000.;
 
- DAQEvent * pdaq=0;
  if(!AMSJob::gethead()->isSimulation()){
     //
     // read daq    
@@ -566,7 +566,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
     }
-    if(G4FFKEY.MemoryLimit>0 && mall-minit>G4FFKEY.MemoryLimit){
+    if(G4FFKEY.MemoryLimit>0 && long(mall-minit)>G4FFKEY.MemoryLimit){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
       cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<mall<<endl;
@@ -837,7 +837,7 @@ if(!_pv){
   G4PhysicalVolumeStore* phystore = G4PhysicalVolumeStore::GetInstance();
 if(G4FFKEY.OverlapTol &&phystore){
   cout <<" AMSgvolume::MakeG4Volumes-I-Total of "<<phystore->size()<<" volumes found"<<endl;
-  for(int i=0;i<phystore->size();i++){
+  for(unsigned int i=0;i<phystore->size();i++){
     G4VPhysicalVolume*p=(*phystore)[i];
      if(p && p->CheckOverlaps(1000,G4FFKEY.OverlapTol*cm,false)){
        cerr<<"  AMSgvolume::MakeG4Volumes-E-OverlapFoundFor "<<p->GetName()<<endl;
@@ -893,7 +893,7 @@ AMSG4RotationMatrix::AMSG4RotationMatrix(number nrm[3][3]):G4RotationMatrix(nrm[
 void AMSG4RotationMatrix::Test(){
    AMSmceventg::SaveSeeds();   
    AMSPoint xp,yp,zp;
-   float d;
+   float d = 0;
    number nrm[3][3];
 // Test against possible CLHEP changes in the future
    for (int i=0;i<10;i++){
@@ -1068,7 +1068,7 @@ if(!Step)return;
 	for (int i = 0; i < NE;   i++) xsec[i] = 0;
 	nevt = 0;
       }
-      if (evno != AMSEvent::gethead()->getEvent()) {
+      if (evno != int(AMSEvent::gethead()->getEvent())) {
 	  evno  = AMSEvent::gethead()->getEvent();
 	for (int i = 0; i < NE*3; i++) wsum[i] = 0;
 	fpl1 = 0;
@@ -1167,7 +1167,7 @@ if(!Step)return;
       if (material) {
 	G4double slen = Step->GetStepLength();
 	G4double dens = material->GetDensity();
-	for (G4int i = 0; i < material->GetNumberOfElements(); i++) {
+	for (unsigned int i = 0; i < material->GetNumberOfElements(); i++) {
 	  const G4Element *elm = material->GetElement(i);
 	  G4int Z = elm->GetZ();
 	  if (Z < 1 || NZ < Z) continue;
@@ -1257,7 +1257,7 @@ if(!Step)return;
                         pos[i] = pre_pos[i]/cm;
                      }
                      map <int,float>felmap;
-                      for (int i=0; i<material->GetNumberOfElements(); ++i) {
+                      for (unsigned int i=0; i<material->GetNumberOfElements(); ++i) {
                       int Zi = (*material->GetElementVector())[i]->GetZ();
                       float Ni=material->GetVecNbOfAtomsPerVolume()[i];
                       felmap.insert(make_pair(Zi,Ni));
@@ -1521,24 +1521,12 @@ if(!Step)return;
 	  //------------------------------------------------------------
 	  //    TOF: (imply here that Pre or Post volume is sensitive as defined by above check !!!)
 	  //
-	  geant t,x,y,z;
-	  char name[5]="dumm";
-	  char media[21]="dummy_media         ";
-	  geant de,dee,dtr2,div,tof,prtq,pstep;
-	  geant tdedx;
-	  geant trcut2(0.25);// Max. transv.shift (0.5cm)**2
-	  geant stepmin(0.25);//(cm) min. step/cumul.step to store hit(0.5cm/2)
-	  geant estepmin(1.e-5);//10kev
-	  geant coo[3],dx,dy,dz,dt;
-	  geant wvect[6],snext,safety;
-	  int i,nd,numv,iprt,numl,numvp,tfprf(0);
-	  static int numvo(-999),iprto(-999);
+	  geant dee,tof;
+	  int numv;
 	  integer tbegtof(0);
 	  integer tendtof(0);
-	  integer intof(0);
 	  if(PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='F')tbegtof=1;
 	  if(PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='F')tendtof=1;
-	  if(tbegtof==1 || tendtof==1)intof=1;
 	  //
 	  //------------------------------------------------------------------
 	  //  TOF simple :
@@ -1546,17 +1534,10 @@ if(!Step)return;
 	  numv=PrePV->GetCopyNo();
 	  dee=GCTRAK.destep;
 	  tof=GCTRAK.tofg;
-	  pstep=GCTRAK.step;
-	  iprt=GCKINE.ipart;
-	  x=GCTRAK.vect[0];
-	  y=GCTRAK.vect[1];
-	  z=GCTRAK.vect[2];
 	  if(tendtof==1 && GCTRAK.inwvol==1){// just enter TFnn
 	    //cout<<"---> Enter TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<" Edep="<<dee<<" numv="<<numv<<" pstep="<<pstep<<endl;  
 	  }
 	  if(tbegtof==1 && GCTRAK.destep>0.){
-	    if(pstep!=0)tdedx=1000*dee/pstep;
-	    else tdedx=0;
 	    number rkb=0.0011;
 	    number c=0.52;
 	    number dedxcm=1000*dee/GCTRAK.step;
@@ -1656,12 +1637,12 @@ if(!Step)return;
 	  //------------------------------------------------------------------
 	  //  ANTI :
 	  //
-	  integer isphys,islog;
+	  integer isphys;
 	  if(PrePV->GetName()(0)== 'A' && PrePV->GetName()(1)=='N' &&
 	     PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='S' && GCTRAK.destep>0.){
 	    dee=GCTRAK.destep;
 	    isphys=PrePV->GetCopyNo();
-	    islog=floor(0.5*(isphys-1))+1;//not used now
+	    // islog=floor(0.5*(isphys-1))+1;//not used now
 	    number rkb=0.0011;
 	    number c=0.52;
 	    number dedxcm=1000*dee/GCTRAK.step;
@@ -1681,9 +1662,9 @@ if(!Step)return;
 	      //     birks law dirty way
 	      //
 
-	      number rkb=0.0011;
-	      number c=0.52;
-	      number dedxcm=1000*dee/GCTRAK.step;
+	      // number rkb=0.0011;
+	      // number c=0.52;
+	      // number dedxcm=1000*dee/GCTRAK.step;
 	      //      dee=dee/(1+c*atan(rkb/c*dedxcm));
 	      dee=dee/ECMCFFKEY.sbcgn;//correction for too high signal vrt g3
 	      static unsigned int np=0; if(np==0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
@@ -1920,7 +1901,6 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
   if( (z_pre < ECAL_Z*cm) && (z_post >  ECAL_Z*cm) ){
     G4Track * aTrack = Step->GetTrack();
     G4ParticleDefinition * pdef = aTrack->GetDynamicParticle()->GetDefinition();
-    G4int pdgid = aTrack->GetDynamicParticle()->GetDefinition()->GetPDGEncoding();
     bool isNeutrino = pdef->GetPDGCharge()==0 and pdef->GetLeptonNumber()!=0;
     G4double ekin = aTrack->GetKineticEnergy();
     if( ekin < 1*MeV or isNeutrino ) return;
@@ -1936,7 +1916,6 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
     if(g3code==AMSG4Physics::_G3DummyParticle)return;
     G4ThreeVector pos = aTrack->GetPosition();
     AMSPoint point( pos.x(), pos.y(), pos.z() );
-    float parr[3] = { float(pos.x()), float(pos.y()), float(pos.z()) };
     AMSDir dir( mom.x(), mom.y(), mom.z() );
     int nskip = -2; //indicates that this is step of backsplashed particle
    float charge=pdef->GetPDGCharge();

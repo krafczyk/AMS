@@ -171,7 +171,6 @@ float AntiClusterR::FindPhiGuess(float betawrong, float costh, int qtrue){
     float fret = log10(2.*medep*fabs(costh)/(fbeta*qtrue*qtrue));
     float lmin = AntiRecoPG::gethead()->pth_min[Sector-1];
     float lmax = AntiRecoPG::gethead()->pth_max[Sector-1];
-    float lmed = 0.5*(lmin+lmax);
     float dl = (lmax-lmin);
     float ltop = lmax+2.*dl;
     float lbot = lmin-2.*dl; 
@@ -571,8 +570,7 @@ void AntiRecoPG::DefaultCal(int run_type){
     TempCal[7][0] = -0.005805;
     TempCal[7][1] = -0.0115087;
 
-    //thresholds for phiguess                                                  \
-
+    //thresholds for phiguess
     pth_min[0] = -0.1;
     pth_max[0] = -0.028;
     pth_min[1] = -0.078;
@@ -1311,7 +1309,7 @@ float AntiRecoPG::BayesEstimation(float value, float error, float low, float upp
   
   float tguess = 0.;
   int nguess = 0;
-  for(int i=0; i<evt->NTofClusterH(); i++){
+  for(unsigned int i=0; i<evt->NTofClusterH(); i++){
     TofClusterHR* ptcl=evt->pTofClusterH(i);
     if( !ptcl) continue;
     tguess+=(ptcl->Time);
@@ -1423,8 +1421,8 @@ float AntiRecoPG::GetAvgTempAcc(){
 int AntiRecoPG::ReLoadAcc(){  
   int iret = 0; // no raw sides
   AMSEventR* evt = AMSEventRHead()?AMSEventRHead():AMSEventR::Head();
-  if (evt->Event() == evto && evt->Run() == runo) return nrsd;
-  if (evt->Run() != runo || ifild>0 || ifild%2 != 0){ // needs to reload calibrations
+  if (int(evt->Event()) == evto && int(evt->Run()) == runo) return nrsd;
+  if (int(evt->Run()) != runo || ifild>0 || ifild%2 != 0){ // needs to reload calibrations
   int run_type = SelectRun();
   InitCal(run_type,NVER);}
   
@@ -1436,7 +1434,7 @@ int AntiRecoPG::ReLoadAcc(){
       adctable[k][isect-1]=0.; // adc values
       for(int i=0; i<16; i++){
 	timetable[i][k][isect-1]=0; }}}
-  for(int ir=0; ir<evt->NAntiRawSide(); ir++){
+  for(unsigned int ir=0; ir<evt->NAntiRawSide(); ir++){
     AntiRawSideR* rsd = evt->pAntiRawSide(ir);
     if( !rsd) continue;
     int swid = rsd->swid;
@@ -1454,7 +1452,7 @@ int AntiRecoPG::ReLoadAcc(){
     int iftt=rsd->nftdc-1;
     if (iftt>7) iftt=7;
     timeindx[0][side][sect-1]=iftt+1;
-    if(iftt<0) {iftt=iftt; 
+    if(iftt<0) {iftt=0;
       if (maxerr<errmax)  {
 	cerr << "AntiRecoPG::ReLoadAcc-E open Error null or negative number of #FT= " << iftt+1 << "| Run= " << evt->Run() << " event= " << evt->Event() << endl;
 	maxerr++;}}

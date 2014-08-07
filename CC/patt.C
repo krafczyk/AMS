@@ -33,7 +33,7 @@ void PATT::clear(){
 void PATT::init(int atreffekypar){
   // initialize patterns
   InitPattern();
-  int cpat;
+  unsigned int cpat;
   for(cpat=0;cpat<npat();cpat++){
     //ams02
     if(_patpoints[cpat]>4)_patallow[cpat]=1;
@@ -104,10 +104,8 @@ void PATT::init(int atreffekypar){
 void PATT::InitPattern(){
 
 
-  int k;
   integer ordermiss[maxlay]={0,0,0,0,0,0,0,0,0};
   integer vmiss[maxlay]={0,0,0,0,0,0,0,0,0};
-  integer vorder[maxlay]={1,2,3,4,5,6,7,8,9};
   int minc;
   int iq=0;
   ordermiss[TkDBc::Head->nlay()-3]=2;
@@ -133,10 +131,10 @@ void PATT::InitPattern(){
   _patpoints =new integer[_Npat];
   _patallow =new integer[_Npat];
   _patallow2 =new integer[_Npat];
-  int cpat=0;
+  unsigned int cpat=0;
   for (cpat=0;cpat<npat();cpat++){
     for(int npt=1;npt<TkDBc::Head->nlay();npt++){
-      if(cpat<_patd[npt]){
+      if(static_cast<int>(cpat)<_patd[npt]){
         _patpoints[cpat]=TkDBc::Head->nlay()-npt+1;
         int vmini=cpat-_patd[npt-1];
 	int count=0;

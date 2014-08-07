@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.27 2012/08/01 17:04:08 choutko Exp $
+//  $Id$
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -99,7 +99,7 @@ void * AMSaPool::insert(size_t st){
   if(ptr) return ptr+sizeof(ALIGN);
   else{
     try{
-      if(_free==0 || _lc+st > _head->_length  ){
+      if(_free==0 || int(_lc+st) > _head->_length  ){
         AMSaPool::_grow(st); 
       }
       if(_free){
@@ -319,7 +319,7 @@ void AMSaPool::dlink::_erase(integer &nbl ){
   //  cerr <<" after delete this. "<<nbl<<endl;
 }
 
-AMSaPool::AMSaPool(const AMSaPool & o):_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(),_head(0),_free(0),_lc(o._lc){
+AMSaPool::AMSaPool(const AMSaPool & o):_head(0),_free(0),_lc(o._lc),_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(){
  SetLastResort(1000000);
   cout <<"  run "<<endl;
   dlink * curo=o._head;

@@ -151,7 +151,7 @@ class TrdHCalibR{
   };
   
   /// dtor
-  ~TrdHCalibR(){};
+  virtual ~TrdHCalibR(){}
   
   /// Get the pointer to singleton
   static TrdHCalibR* gethead(){

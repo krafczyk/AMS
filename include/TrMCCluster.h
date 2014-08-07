@@ -171,7 +171,7 @@ class TrMCClusterR : public TrElem {
  protected:
 
   //! Prepare output  
-  void _PrepareOutput(int full);
+  std::string _PrepareOutput(int full);
 
  public:
 

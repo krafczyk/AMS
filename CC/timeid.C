@@ -60,7 +60,7 @@ uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
                      void *pdata, AMSTimeID::CType server,bool verify,trigfun_type fun):
-  AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),_Type(server),_updateable(-1){
+  AMSNode(id),_updateable(-1),_UpdateMe(0),_verify(verify),_pData((uinteger*)pdata),_Type(server){
   setmapdir();
   _fname="";
   _trigfun=fun;
@@ -186,7 +186,7 @@ integer AMSTimeID::validate(time_t & Time, integer reenter){
 
 uinteger AMSTimeID::_CalcCRC(){
   _InitTable();
-  int i,j,k;
+  int i,j;
     if(_Nbytes>_NbytesM){
       cerr<<"  AMSTimeID::_CalcCRC-E-NbytesTooBig "<<_NbytesM<<" "<<_Nbytes<<endl;
       _Nbytes=_NbytesM;
@@ -628,7 +628,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	integer index=AMSbiel(_pDataBaseEntries[3],time,_DataBaseSize);
 	//cout <<getname()<<" "<<index<<" "<<time<<" "<<_pDataBaseEntries[3][index]<<" "<<_DataBaseSize<<endl;
 	rec=-1;
-	int insert= (time>=_Begin && time<=_End)?_Insert:0;
+	unsigned int insert= (time>=_Begin && time<=_End)?_Insert:0;
 	for (int i=index<0?_DataBaseSize:index;i<_DataBaseSize;i++){
 	  if(time>=_pDataBaseEntries[2][i] && insert<_pDataBaseEntries[1][i]){
 	    insert=     _pDataBaseEntries[1][i];
@@ -747,7 +747,9 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	return tm;
       }
       void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
+#ifdef __CORBASERVER__
 	bool zero=false;
+#endif
 	int everythingok=1;
 	int i;
 	for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
@@ -811,7 +813,6 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #ifdef __CORBASERVER__
 	    usemap:
 #endif
-	      char buf[100];
 	      fbin.clear();
 	      fbin.close();
 	      fbin.open(fmap,ios::in);
@@ -819,12 +820,14 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		fbin>>_DataBaseSize;
 		cout <<"AMSTimeId::_fillDB-I-DataBaseSizeReadFromMap"<<_DataBaseSize<<" "<<getname()<<endl;
 #endif
+#ifdef __CORBASERVER__
 		zero=false;
+#endif
 		if(!_DataBaseSize){
 		  fbin.close();
 		  cout<<"AMSTimeID::_fillDB-W-MapHasZeroEnrtries "<<(const char *)fmap<<endl;
-		  zero=true;
 #ifdef   __CORBASERVER__     
+		  zero=true;
           
 		  goto notrust;
 #endif
@@ -836,6 +839,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		  for(int k=0;k<_DataBaseSize;k++){
 		    uinteger tmp;
 #ifdef _WEBACCESS_
+	        char buf[100];
 		    url_fgets(buf,100,ffbin);
 		    tmp=atoi(buf);
 #else
@@ -915,7 +919,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		  for(i=0;i<nptr;i++) {
 		    int valid=0;
 		    int kvalid=0;
-		    for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
+		    for(unsigned int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
 		      if((namelist[i]->d_name)[k]=='.' )valid++;
 		      if((namelist[i]->d_name)[k]=='.')kvalid=k;
 		    }
@@ -1060,7 +1064,6 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	    if((!stat64((const char *)fmap,&statbuf_map)&&
 		mtime < statbuf_map.st_mtime) && !force){
 	    usemap:    
-	      char buf[100];
 	      fbin.clear();
 	      fbin.close();
 	      fbin.open(fmap,ios::in);
@@ -1089,7 +1092,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		    return;
 		  }
 		}
-		else if(dbs<_DataBaseSize){
+		else if(int(dbs)<_DataBaseSize){
 		  cerr <<"AMSTimeId::_fillDBServer-E-DataBaseSizeShrinked "<<getname()<<" "<<fmap<<" "<<statbuf_map.st_mtime<<" "<<dbs<<" "<<_DataBaseSize<<endl;
         string _map_dir=dir;
         if(map_dir.size()>0){
@@ -1194,7 +1197,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		  for(int i=0;i<nptr;i++) {
 		    int valid=0;
 		    int kvalid=0;
-		    for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
+		    for(unsigned int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
 		      if((namelist[i]->d_name)[k]=='.' )valid++;
 		      if((namelist[i]->d_name)[k]=='.')kvalid=k;
 		    }
@@ -1306,7 +1309,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 
 	  char* AMSTimeID::_getsubdirname(time_t begin){
 	    static char  _buf[32];
-	    tm * tm1=localtime(&begin);
+		localtime(&begin);
 	    int tzz=timezone;
 	    tm * tmp=gmtime(&begin);
 	    tmp->tm_hour=0;
@@ -1349,7 +1352,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      for(i=0;i<nptr;i++) {
 		int valid=0;
 		int kvalid=0;
-		for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
+		for(unsigned int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
 		  if((namelist[i]->d_name)[k]=='.' )valid++;
 		  if((namelist[i]->d_name)[k]=='.')kvalid=k;
 		}

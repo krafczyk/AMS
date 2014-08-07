@@ -22,7 +22,7 @@ class G4IonsHEAOCrossSection;
 class IonDPMJETPhysics : public G4VHadronPhysics
 {
  public:
-    IonDPMJETPhysics(G4bool val=1);
+    IonDPMJETPhysics();
     virtual ~IonDPMJETPhysics();
     void ConstructProcess();
    
@@ -40,7 +40,6 @@ class IonDPMJETPhysics : public G4VHadronPhysics
   G4IonsHEAOCrossSection * HEAOXS;
   G4DPMJET2_5Model*        theDPM;
 #endif
-  G4bool useDPMJETXS;
   G4BinaryLightIonReaction*  theIonBC;
   G4BinaryLightIonReaction*  theIonBC1;
 };

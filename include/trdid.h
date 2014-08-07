@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.16 2011/11/27 22:04:32 mmilling Exp $
+//  $Id$
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
@@ -29,10 +29,10 @@ void _check();
 public:
 friend ostream &operator << (ostream &o, const  AMSTRDIdGeom &b )
    {return o<<" lay "<<b._layer<<" lad "<<b._ladder<<" tube "<<b._tube<<endl;}
-AMSTRDIdGeom():_layer(0),_ladder(0),_tube(0),_octagon(0){};
+AMSTRDIdGeom():_octagon(0),_layer(0),_ladder(0),_tube(0){};
 ~AMSTRDIdGeom(){};
 AMSTRDIdGeom(integer layer,integer ladder,integer tube, integer octagon=0):
-_layer(layer),_ladder(ladder),_tube(tube),_octagon(octagon){
+_octagon(octagon),_layer(layer),_ladder(ladder),_tube(tube){
 #ifdef __AMSDEBUG__
 _check();
 #endif

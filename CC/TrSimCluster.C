@@ -226,7 +226,6 @@ void TrSimCluster::GaussianizeFraction(int iside, int hcharge, double fraction,f
   //experimental version PZ
   if (fraction ==0) return;
   int iseed=FindSeedIndex(0,1);
-  double totsig=GetTotSignal();
   int isl=iseed-1;
   int isr=iseed+1;
   float sr=0,sl=0;
@@ -241,7 +240,7 @@ void TrSimCluster::GaussianizeFraction(int iside, int hcharge, double fraction,f
   }
 
   float fra1=TRMCFFKEY.NearStripMult[hcharge][iside][0];
-  float fra2=TRMCFFKEY.NearStripMult[hcharge][iside][1];
+  // float fra2=TRMCFFKEY.NearStripMult[hcharge][iside][1]; FIXME: This should probably be used some lines below!
   float fra3=TRMCFFKEY.NearStripMult[hcharge][iside][2];
 
   if((LL-1)>=0){

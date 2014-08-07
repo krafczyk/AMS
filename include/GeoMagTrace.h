@@ -1,4 +1,4 @@
-//  $Id: GeoMagTrace.h,v 1.5 2012/11/17 22:48:39 shaino Exp $
+//  $Id$
 #ifndef __GeoMagTrace__
 #define __GeoMagTrace__
 
@@ -62,7 +62,7 @@ public:
 	                                double beta   = 1,
 	                                int stat = 0);
 
- ~GeoMagTrace() {}
+ virtual ~GeoMagTrace() {}
 
   /// Initialize with GTOD pos,vel and att.
   void Init(double pos[3], double vel[3], double ypr[3], double xtime, 

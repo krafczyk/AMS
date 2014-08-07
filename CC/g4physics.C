@@ -199,8 +199,7 @@ void AMSG4Physics::ConstructProcess()
 //--Qi Yan
       else if (G4FFKEY.IonPhysicsModel%10==3) {
          cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section)."<<endl; 
-         bool vers=1;
-         IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(vers); //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
+         IonDPMJETPhysics* pamshi = new IonDPMJETPhysics; //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
          if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       } 
     }
@@ -976,7 +975,7 @@ void AMSG4Physics::ConstructXRay()
 #if G4VERSION_NUMBER  < 945 
 
   G4cout << " Construction TR Processes "<<endl;
-  G4XRayTRDP*   pd = new G4XRayTRDP("XRayDiscrete");
+  // G4XRayTRDP*   pd = new G4XRayTRDP("XRayDiscrete");
   G4XRayTRCP*   pc = new G4XRayTRCP("XRayCont");
 
   theParticleIterator->reset();
@@ -1214,8 +1213,7 @@ void AMSG4Physics::_init(){
   geant *g3mass = new geant[g3part];
   geant *g3charge = new geant[g3part];
   G4ParticleDefinition** g3tog4p= new G4ParticleDefinition*[g3part];
-  for (unsigned int i = 0; i < g3part; ++i)
-    g3tog4p[i] = 0;
+  for (int i = 0; i < g3part; ++i) g3tog4p[i] = 0;
   g3part=0;
   for(ipart=0;ipart<1000;ipart++){
     char chp[22]="";
@@ -1289,7 +1287,7 @@ void AMSG4Physics::_init(){
       if(Q<0){
 	//         cout <<"  starting anti "<<endl;
       }
-      G4ParticleDefinition* dummy=((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+	  ((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
       double fdelta=1000000;
       G4ParticleDefinition* cand=0;
       theParticleIterator->reset();

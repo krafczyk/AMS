@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.110 2013/11/21 15:41:14 oliva Exp $
+//  $Id$
 // Author V. Choutko 5-june-1996
 //
 //
@@ -285,7 +285,6 @@ double AMSChargeSubD::resmax(double x[],int ntot,int refit,double rescut,int &im
   mean=0;
   trres=0;
   double xmx=0;
-  int imx=-1;
   int n=0;
   for(int i=0; i<ntot; i++){//ntot>=2
     if(x[i]>0){
@@ -294,7 +293,6 @@ double AMSChargeSubD::resmax(double x[],int ntot,int refit,double rescut,int &im
       if(i!=imax) trres+=x[i];
       if(x[i]>xmx){
         xmx=x[i];//store max.hit value
-	imx=i;//index
       }
     }
   }
@@ -360,8 +358,8 @@ int AMSChargeSubD::sortlkhd() {
 
   // unfortunate heritage from previous versions ... (TO BE REMOVED) 
   // here we fill index for the unsorted vectors 
-  for(int i=0;i<lkhs.size();i++)
-    for(int j=0;j<_Lkhdz.size();j++) {
+  for(unsigned int i=0;i<lkhs.size();i++)
+    for(unsigned int j=0;j<_Lkhdz.size();j++) {
       if(lkhs[i] == _Lkhdz[j] && _Indxz[j]<0) {
         _Indxz[j]=i;
         lkhs[i] = -HUGE_VAL;
@@ -500,7 +498,6 @@ int AMSCharge::BuildTRD() {
   AMSTRDTrack *ptrd=NULL;
   bool notrefitted=true;
 again:
-  int ntrd=0;
   AMSTRDTrack* p=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
   while(p){
 #ifndef _PGTRACK_
@@ -568,7 +565,7 @@ int AMSCharge::BuildRich() {
 int AMSCharge::BuildCombine() {
   clear();
   int indmx = -1; 
-  int charge = getvotedcharge(indmx);
+  getvotedcharge(indmx);
   if (indmx<0 ) {
     cout << "AMSCharge::BuildCombine-W-NoValidAMSChargeFound " << endl;
     // print();
@@ -667,7 +664,6 @@ int AMSCharge::BuildUpper() {
 
   // combine charges
   AMSChargeUpper *chargeupper = new AMSChargeUpper();
-  int nused = 0;
   chargeupper->copyvalues(getvotedcharge(list));
   if (chargeupper->isok()) _charges[chargeupper->_ID] = chargeupper;
   else delete chargeupper;
@@ -1231,7 +1227,6 @@ int AMSChargeTOF::Fill(int refit) {
   double etof[TOF2GC::SCLRS];
   double EdepTOF[TOF2GC::SCLRS];
   AMSTOFCluster *pTOFc[TOF2GC::SCLRS];
-  int TypeTOF[TOF2GC::SCLRS];
   // init
   int nhitTOF=0, nallTOF=0;
   AMSTrTrack *ptrack=pbeta->getptrack();
@@ -1279,7 +1274,7 @@ int AMSChargeTOF::Fill(int refit) {
   double mean, trunres, trunmax;
   double rescut=CHARGEFITFFKEY.ResCut[0];//use/not(>=0/-1) incomp.clus exclusion
   //double resmx=resmax(etof,nallTOF,0,rescut,imx,mean,trunres,trunmax);//TOF(raw(non-corr!) hits trunc.mean)
-  double resmx=resmax(EdepTOF,nhitTOF,0,rescut,imx,mean,trunres,trunmax);//TOF hits trunc.mean)
+  resmax(EdepTOF,nhitTOF,0,rescut,imx,mean,trunres,trunmax);//TOF hits trunc.mean)
   if(!CHARGEFITFFKEY.TrMeanRes) _TruncatedMean=trunmax;//normal("-highest hit") TruncMean
   else _TruncatedMean=trunres;//"-incomp.cluster" TruncMean
   int bstatus = !pbeta->checkstatus(AMSDBc::AMBIG);
@@ -1287,6 +1282,7 @@ int AMSChargeTOF::Fill(int refit) {
   sortandfill();
   _Q = sqrt ( _TruncatedMean * EdepBetaCorrection(getindex(),beta) / CHARGEFITFFKEY.TOFMeVperMip );
   if (refit) setstatus(AMSDBc::REFITTED);
+  (void) etof;
   return 1;
 }
 
@@ -1295,7 +1291,7 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
   static double ETOF[TOF2GC::SCLRS];
 #pragma omp threadprivate(ETOF)
   int typetof[TOF2GC::SCLRS], nhittoftyp;
-  double TOFresmax, etofh[TOF2GC::SCLRS], x[TOF2GC::SCLRS];
+  double etofh[TOF2GC::SCLRS], x[TOF2GC::SCLRS];
   int TOFhitmax;
   int i,j;
 // init
@@ -1309,7 +1305,7 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
     double mean,trunres,trunmax;
     int hitmax;
     for(j=0; j<nhitTOF; j++) x[j]=etof[j];
-    TOFresmax=resmax(x,nhitTOF,refit,rescut,hitmax,mean,trunres,trunmax);
+	resmax(x,nhitTOF,refit,rescut,hitmax,mean,trunres,trunmax);
     TOFhitmax=hitmax;//incomp.clus.index/-1(if not requested)
     for(j=0; j<nhitTOF; j++) if(j==TOFhitmax) etof[j]=0;//delete incomp.hit(if requested)
   }
@@ -1335,9 +1331,9 @@ int AMSChargeTOF::Fit(int refit, double beta, int bstatus, int nhitTOF, AMSTOFCl
 // likelihood values and charge probabilities
     double lkhtof[MaxZTypes];
     lkhcalc(0,beta,nhitTOF,etofh,typetof,lkhtof);//"0" means TOF
-    double probtof=probcalc(refit,nhittoftyp,lkhtof);
+	probcalc(refit,nhittoftyp,lkhtof);
     _ProbSum=0;
-    for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
+    for (unsigned int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
     //for (int i=0; i<MaxZTypes; i++)
     //   cout << "i lkhd prob " << i << " " << _Lkhdz[i] << " " << _Probz[i] << endl;
   }

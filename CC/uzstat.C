@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.32 2010/12/03 11:58:35 shaino Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -202,12 +202,10 @@ else{
 
 
 extern "C" number HighResTime(){
-  float ar[2];
 
-  static unsigned int count=0;
-  float ltime=0;
-#pragma omp threadprivate (count)
 #ifdef __LVL3ONLY__
+  float ar[2];
+  float ltime=0;
   static number ETimeLast;
   static timeval  TPSLast;
   static struct timezone  TZ;
@@ -247,6 +245,10 @@ extern "C" number HighResTime(){
 #ifdef _PGTRACK_
   return AMSgettime();
 #else
+  static unsigned int count=0;
+  float ltime=0;
+#pragma omp threadprivate (count)
+
     TIMEX(ltime);
 //  if(!AMSCommonsI::remote()){
 //    ltime=ETIMEU(ar);

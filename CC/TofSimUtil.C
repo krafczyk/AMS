@@ -649,13 +649,13 @@ void TofSimUtil::DefineTOF_PME(){
   if (TOFPM_Et)return;
   TOFPM_Et= new G4PhysicsTable();
   G4PhysicsOrderedFreeVector* PMTEnVector=new G4PhysicsOrderedFreeVector();
-  for (size_t i=0; i<ENUM; i++){
+  for (int i=0; i<ENUM; i++){
      PMTEnVector->InsertValues(PhEnergy[i], EnEFF[i]);
    }
    TOFPM_Et->insertAt(0,PMTEnVector);
 
   G4PhysicsOrderedFreeVector* PMTAnVector=new G4PhysicsOrderedFreeVector();
-  for (size_t i=0; i<ANUM; i++){
+  for (int i=0; i<ANUM; i++){
      PMTAnVector->InsertValues(CosAn[i], AnEFF[i]);
    }
    TOFPM_Et->insertAt(1,PMTAnVector);
@@ -1334,7 +1334,7 @@ void  TofSimUtil::InitialBarPar(int ilay,int ibar){
 
 }
 
-TOFgvolume::TOFgvolume(const char matter[],const char shape[],G4int npar, G4double par[],G4LogicalVolume *pg4l):_npar(npar),AMSNode(0){
+TOFgvolume::TOFgvolume(const char matter[],const char shape[],G4int npar, G4double par[],G4LogicalVolume *pg4l):AMSNode(0),_npar(npar){
     _shape =new char[strlen(shape)>3?strlen(shape)+1:5];
     _matter=new char[strlen(matter)>3?strlen(matter)+1:5];
     strcpy(_shape,shape);

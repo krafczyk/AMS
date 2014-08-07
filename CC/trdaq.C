@@ -120,17 +120,14 @@ void TrDAQ::buildraw(integer n, int16u *pbeg){
   //  have to split integer n; add crate number on the upper part...
   unsigned int leng=n&0xFFFF;
   uinteger ic=(n>>16);
-  int cmn=0;
   int16u st=*(pbeg-1+leng);
   int num=st&0x1F;
   char Jname[20];
   sprintf(Jname,"JINF %d",num);
   int ret=TestBoardErrors(Jname,st,0);
   if( ret<0) return;
-  if(TRCALIB.Version==0)cmn=16;
-  else cmn=0;
   //  integer ic1=checkdaqid(*(pbeg-1+leng))-1;
-  integer ic1=checkdaqid(num)-1;
+  (void)checkdaqid(num);
   //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
   int add2=0;
   if(DAQCFFKEY.DAQVersion==1)add2=2;
@@ -211,7 +208,6 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
     //dump clusters
     int  count=RawOffset+TDROff;
     while (count<(tsize-rwords)){
-      int bad=0;
 
       int cluslenraw=blocks[count++];
       int clusaddraw=blocks[count++];
@@ -238,8 +234,6 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 	if(junkerr++<100)cerr << "TrDAQ::buildraw-E-ClusterOutsideBoundary add " << clusadd << " len " << cluslen << endl;
       }
       short int  signal[1024];
-      float      sigma[1024];
-      short int  status[1024];
       if(pri>3)printf("Cluster: add: %d  lenght: %d\n",clusadd,cluslen);
       //count+=(cluslen-1);
       if(cluslen>1024) cluslen=1024;
@@ -255,8 +249,6 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 	count++;
       }
       clcount++;
-      int sid=0;
-      if(clusadd>640) sid=1;
       // Bug in the 3e73 DSP code: delete cluster on the 1022 and 1023 strip
       if ( (run>1258105753)&&(run<1258318946) ) {
 	if (clusadd>=1022) continue;	
@@ -380,7 +372,6 @@ void TrDAQMC::builddaq_old(integer i, integer length, int16u *p){
 
 void TrDAQMC::buildraw_old(integer n, int16u *p){
   integer ip;
-  geant mom;
   int len=n&65535;
   for(int16u *ptr=p;ptr<p+len-1;ptr+=8){ 
     ip=*(ptr);

@@ -77,12 +77,12 @@ integer AMSgvolume::_LastRotMatrixOutOfOrder=0;
 AMSgvolume::AMSgvolume (const char  matter[],integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
-           integer posp,integer gid, integer rel) :
-     _npar(npar), _posp(posp),_rotmno(rotmno),
+           integer posp,integer gid, integer rel) : AMSNode(0)
 #ifdef __G4AMS__
-   _pg4v(0),_pg4l(0),_pg4rm(0),_offspring(0),_smartless(2),
+     , _pg4v(0),_pg4l(0),_pg4rm(0),_offspring(0),_smartless(2)
 #endif
-     _gid(abs(gid)),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
+	 , _rotmno(rotmno),_posp(posp),_gid(abs(gid)),_npar(npar),
+     _rel(rel),_cooA(coo[0],coo[1],coo[2]){
       if(_rel!=1){
        cerr<<" AMSgvolume::ctor-W-Absolute position used for "<<name<<endl;
       }
@@ -511,7 +511,7 @@ integer AMSgvolume::_Norp=0;
        cerr<<"AMSgvolume::_MakeG4Volumes-F-ReplicaShapeNotSupported "<<_shape<<endl;
        exit(1);
      }
-     EAxis paxis;
+     EAxis paxis = kXAxis;
      switch(_gonly[3]){
      case 'X':
      case 'x':

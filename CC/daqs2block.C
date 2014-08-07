@@ -176,31 +176,26 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //           *p=pointer_to_beggining_of_block_data(i.e. NEXT to len-word !!!) 
 // Length counting does not includes length-word itself !!! 
 //
-  integer i,j,il,ib,is,ic,icn,nh,lent,im,irl1,irl2,irs1,irs2;
-  int swid,swidn,pmmx,hwid,hwidc,hwidt,hwidq[4],hwidtc;
+  integer i,j,il,ib,is,ic,icn,nh,irl1=0,irl2=0,irs1=0,irs2=0;
+  int swid,swidn=0,pmmx,hwid,hwidc,hwidt,hwidq[4],hwidtc;
   int16u sswid,sswidn,shwid;
-  int16u mt,pmt,mtyp,swch,bpnt,rdch,inch,slot,crat,slid,csid,val16,tsens,sslot;
-  int16u blid,dtyp,naddr,datyp,len,lenraw(0),lencom(0),sdrlen,formt,evnum;
-  int16u word,nword,nnword,lastw,bias,dlink,plink,tostim,toscha,parerr,fmt;
-  int16u osbit,wtyp,tdcerr(0);
-  int16u tdcerfl,mxtw,hts2tdc(0);
-  int16u iw,qchmsk,qlowchf;
+  int16u pmt,mtyp,swch,bpnt,rdch,inch,slot=0,crat,slid,csid,val16,tsens,sslot;
+  int16u blid,dtyp=0,naddr,datyp,len,lenraw(0),lencom(0),formt;
+  int16u word,nword,nnword,bias,dlink,plink;
+  int16u osbit,wtyp;
+  int16u qchmsk,qlowchf;
   int16u biasmx;
   int16u n16wrds;
   int16u nhitmx;
   int16u crsd;
 //
-  int16u rfmttrf(0);//raw-fmt truncation flag
-  int16u mfmttrf(0);//mixt-fmt truncation flag
   int16u ltmoutf(0);//SFET/SFEA/SFEC(link) time-out flags (from raw-eos or from compressed-part)
   int16u sptcmdh(0);//spt_cmd_h (from raw-eos or from compressed-part)
   int16u wcount(0);//sequencer Word-counter(raw)
   int16u mwcount(0);//sequencer Word-counter(mix)
   int16u svermsk(0);//stat.verification mask in TrPatt/Stat-block of ComprFMT 
-  geant ped,sig,pedc,sigc;
-  int16u sta,stac,nblkok;
-  AMSTimeID *ptdv;
-  time_t begin,end,insert,BeginTime,CurTime;
+  geant ped,sig;
+  int16u sta;
   static integer firstevs(0);
 // for classic ped-run events or for DownScaled events
   bool TofPedCal(false);//Separate TofPedCal-job(ev-by-ev) using RawFMT(class/DownScaled mode)  
@@ -217,18 +212,17 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
   uinteger tdcbfh[SCFETA][8*SCTHMX2+4];//Raw-fmt TDC-buff,"+4" to count temper,header,error and trailer words
   uinteger wds2tdc,wttem,wthed,wterr,wttrl,tem1,tem2,htime;
-  int16u nwtdcb,eventID,eventIDt,bunchID,ltedge,ntimbh;
+  int16u nwtdcb,ntimbh;
 //
   int16u *pr;
   integer bufpnt(0),lbbs;
   uinteger val32;
-  geant temp,charge;
+  geant temp,charge=0;
 //
   bool tmout;
   int16u eoslenr(10);//length of end-of-segment record for raw format
   int16u sptcmdt;//SPT-reading command-type (i.e. format of prig-patt block, =0(err)/1/2/3)
   bool sptgen;//SPT test-generator bit setting
-  int16u datf;
 //
   uinteger swcbuf[2*SCRCMX][SCTHMX2];
 // keep: 1st half->LT/FT/HT-time+ampl values for raw/compr. fmt; 2nd->for raw if mixed fmt   
@@ -275,8 +269,6 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   blid=*(p+len);// fragment's last word: Status+slaveID
 //  cout<<"    blid="<<hex<<blid<<dec<<endl;
   dataf=((blid&(0x8000))>0);//data-fragment
-  if(dataf)datf=1;
-  else datf=0;
   crcer=((blid&(0x4000))>0);//CRC-error
   asser=((blid&(0x2000))>0);//assembly-error
   amswer=((blid&(0x1000))>0);//amsw-error   
@@ -391,7 +383,6 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //cout<<" RawSubSegm_WordCounter(hex)="<<hex<<wcount<<dec<<" biasmx="<<biasmx<<endl;
     if((wcount&(0x8000))!=0){//raw-subsegm. is truncated
       TOF2JobStat::daqscr(0,crat-1,1);// RawForm max.length ovfl
-      rfmttrf=1;//set raw-subseg truncation flag
     }
     wcount=(wcount&(0x7FF));//counts raw-subseg length=lenraw-evnum-itself(ovfl-bit removed)
 //    cout<<"    wcount(dec)="<<wcount<<endl;  
@@ -696,10 +687,7 @@ SkipTPpr:
       TOF2JobStat::puttemp(crat-1,tsens-1,temp);
 //
       val32=tdcbfh[slid-1][1];//2nd word(header)
-      eventID=int16u((val32&(0xFFF000L))>>12);
-      bunchID=int16u((val32&(0xFFFL)));
       val32=tdcbfh[slid-1][nwtdcb-1];//last word(trailer)
-      eventIDt=int16u((val32&(0xFFF000L))>>12);
       ntimbh=nwtdcb-3;//number of time-hits(all channels in current TDC)
       for(int ih=0;ih<ntimbh;ih++){//<---loop over all time-hits
         val32=tdcbfh[slid-1][ih+2];//time-word
@@ -899,7 +887,6 @@ SkipTPpr1:
 	mwcount=*(pss+bias+5);//sequencer Counter (as in rawFMT)
         if((mwcount&(0x8000))!=0){//mix-subsegm. is truncated
           TOF2JobStat::daqscr(1,crat-1,3);// subsegment truncated
-          mfmttrf=1;//set mix-data truncation flag
         }
         mwcount=(mwcount&(0x7FF));//counts raw-subseg length=lenraw-evnum-itself(ovfl-bit removed)
 	svermsk=*(pss+bias+6);//status verif.mask
@@ -1168,9 +1155,8 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
   geant adca; // Anode-channel ADC hit (ADC-counts, float)
   integer nadcd;         // number of NONZERO Dynode-channels(max PMTSMX)
   geant adcd[PMTSMX]; // ALL Dynodes ADC hits(ADC-counts, positional, float)
-  int16u aslt,sslt;
+  int16u sslt;
   integer nsumh,nsumsh,sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
-  integer crsta;
   geant athr,dthr,anthr;
   athr=TOF2Varp::tofvpar.daqthr(3);//tof daq readout thr(ped sigmas) for anode
   dthr=TOF2Varp::tofvpar.daqthr(4);//tof daq-thr. for dynode
@@ -1315,7 +1301,6 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
 // (after 1st swid>0 sswid is = last filled LBBS, sswidn is = LBBS of next nonempty channel or =9999)
 //  at this stage temp is not defined, will be redefined at validation-stage using static job-store or DB)
 // here FT/sHT/sSHT Inp.ch# in hwidt are still not defined(will be added during validate-stage from static arr)	  
-      crsta=0;
       if(dtyp==1){//TOF
 	if(nstdc>0 || adca>0 || nadcd>0){//create tof-raw-side obj
 	  if(subtpedTof || formt>0)sta=0;//ok(normal TOF2RawSide object with subtracted ped)
@@ -1334,13 +1319,13 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
 	    cout<<"    adca="<<adca<<" nadcd="<<nadcd<<"  dynh="<<adcd[0]<<" "<<adcd[1]<<" "<<adcd[2]<<endl;
           }
 // for the moment i do not use hwidq (no Q-linearity coorr foreseen now !??)
-          if(AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",icca),
+          AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",icca),
                  new TOF2RawSide(sswid,hwidt,hwidq,sta,charge,temp1,temp2,temp3,
 		                                                   nftdc,ftdc,nstdc,stdc,
 		                                                   nsumh,sumht,
 								   nsumsh,sumsht,
                                                                    adca,
-			                                           nadcd,adcd)))crsta=1;
+			                                           nadcd,adcd));
 	}
       }
       else{//ANTI 
@@ -1475,11 +1460,7 @@ BadExit:
 //----------------------------------------------------
 void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
   int16u blid,len,naddr,datyp;
-  int16u crsd,crat,csid;
   len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
-  crsd=int16u((leng>>16)&(0x3FFFL));//CS(c=1-4,s=1-4=>a,b,p,s) as return by my "checkblockid"-1
-  crat=(crsd+1)/10;
-  csid=(crsd+1)%10;
   blid=*(p+len);// fragment's last word: Status+slaveID
   bool dataf=((blid&(0x8000))>0);//data-fragment(not calib)
   bool crcer=((blid&(0x4000))>0);//CRC-error
@@ -1536,43 +1517,25 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
 //           *p=pointer_to_beggining_of_block_data(i.e. NEXT to len-word !!!) 
 // Length counting does not includes length-word itself !!! 
 //
-  integer i,j,il,ib,is,ic,icn,nh,lent,im,irl1,irl2,irs1,irs2;
-  int swid,swidn,pmmx,hwid,hwidc,hwidt,hwidq[4],hwidtc;
-  int16u sswid,sswidn,shwid;
-  int16u mt,pmt,mtyp,swch,bpnt,rdch,inch,slot,crat,slid,csid,val16,tsens,sslot;
-  int16u blid,dtyp,naddr,datyp,len,lenraw(0),lencom(0),sdrlen,formt,evnum;
-  int16u word,nword,nnword,nnnword,lastw,bias,dlink,plink,tostim,toscha,parerr,fmt;
+  integer i,il,ib,is;
+  int swid;
+  int16u pmt,mtyp,rdch,inch,slot,crat,slid,csid;
+  int16u blid,dtyp,naddr,len;
+  int16u word,nword,nnword,nnnword,bias;
   int16u bias1,bias2;
-  int16u osbit,wtyp,tdcerr(0);
-  int16u tdcerfl,mxtw,hts2tdc(0);
-  int16u iw,qchmsk,qlowchf;
-  int16u biasmx;
-  int16u n16wrds;
   int16u calstat(0);//calib.status (1st word after block length word)
   int16u crsd;
   int16u headw1;
-  int16u headw2;
 //
-  int16u rfmttrf(0);//raw-fmt truncation flag
-  int16u ltmoutf(0);//SFET/SFEA/SFEC(link) time-out flags (from raw-eos or from compressed-part)
-  int16u sptcmdh(0);//spt_cmd_h (from raw-eos or from compressed-part)
-  int16u wcount(0);//sequencer Word-counter
-  int16u svermsk(0);//stat.verification mask in TrPatt/Stat-block of ComprFMT 
-  int16u datf;
 // for onboard ped-cal tables:
-  integer portid,crdid,nodeid;
   uinteger runn;
-  bool PedBlkOK(false);
   bool PedBlkReqw(false);
   bool ONBpedblk(true);//because buildOnbP() is called only for that case
   bool newrun;
-  geant ped,sig,pedc,sigc;
+  geant ped,sig;
   geant dped,thr;
-  int16u sta,stac,nblkok;
-  bool pcreq(false);
+  int16u nblkok;
   bool sidedoubled(false);
-  AMSTimeID *ptdv;
-  time_t begin,end,insert,BeginTime,CurTime;
   integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
   bool dpedin=((spatt&16)==16);//dynam.peds-section present(90 words)
   bool ptrwin=((spatt&8)==8);//pretrigwords ............(4 ...)
@@ -1590,10 +1553,6 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   bool tofout,accout;
   int outflg; 
 //
-  int16u *pr;
-  integer bufpnt(0),lbbs;
-  uinteger val32;
-  geant temp,charge;
 //
   bool dataf;
   bool crcer;
@@ -1604,9 +1563,6 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   bool seqer;
   bool cdpnod;
   bool noerr;
-  bool tmout;
-  bool bad;
-  char * p2tdvnam;
   bool badexit;
 //-----
 #pragma omp critical (tfac_pedc_onb)
@@ -1620,7 +1576,7 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   }
 //
   TOF2JobStat::daqsfr(60);//count entries
-  DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
+  (void)AMSEvent::gethead()->getheadC("DAQEvent",6);
   runn=AMSEvent::gethead()->getrun();
   newrun=(_PrevRunNum!=runn);
 //
@@ -1677,7 +1633,6 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
 //
 //--------
   headw1=*(p-2);
-  headw2=*(p-1);
   calstat=*p;
 //  cout<<"  hw1="<<hex<<*(p-2)<<"  hw2="<<*(p-1)<<"  calstat="<<*p<<dec<<endl;
   naddr=((headw1>>5)&0x1FF);//node addr from 1st header word
@@ -1722,8 +1677,6 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   blid=*(p+reflen-1);//slave status word
 //  cout<<"   slavestat="<<hex<<blid<<dec<<endl;
   dataf=((blid&(0x8000))>0);//data-fragment(sci) if >0, otherwise OnbCalib
-  if(dataf)datf=1;
-  else datf=0;
   crcer=((blid&(0x4000))>0);//CRC-error
   asser=((blid&(0x2000))>0);//assembly-error
   amswer=((blid&(0x1000))>0);//amsw-error   
@@ -1731,7 +1684,6 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   fpower=((blid&(0x0400))>0);//FEpower-error   
   seqer=((blid&(0x0200))>0);//sequencer-error
   cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
-  datyp=((blid&(0x00C0))>>6);//(0-should not be for data(may be for calib)),1,2,3
 //
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug
     cout<<"      data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/lastlevel/="<<
@@ -1776,7 +1728,6 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
 //
   bias=1;
   _FoundPedBlks+=1;
-  PedBlkOK=false;
 //
   PedBlkReqw=(_PedBlkCrat[crat-1]==0);//true if requested 
   if(!PedBlkReqw){
@@ -1870,7 +1821,7 @@ Exit:
 //----------------------------------------------------
 integer DAQS2Block::calcblocklength(integer ibl){
 //imply compressed format for Tof and Acc !!!
-  integer i,j,il,ib,is,icr,isl,ich,iht,nadcd,ach,iqm,lbbs,totl(0);
+  integer i,icr,isl,nadcd,iqm,totl(0);
   geant adca,adcd[TOF2GC::PMTSMX];
   integer tdch[TOF2GC::SCTHMX];
   integer hwidt;//CSIIII->Cr(1-4)|SeqSlot(1-5)|Inpch(1-5)LT||Inpch(6)FT|Inpch(7)SumHT|Inpch(8)SumSHT
@@ -1894,7 +1845,6 @@ integer DAQS2Block::calcblocklength(integer ibl){
     nadcd=ptrt->getnadcd();
     for(iqm=0;iqm<4;iqm++){//a,d1,d2,d3 loop
       isl=((hwidq[iqm]%1000)/100)-1;//seq.slot(link)# 0-8
-      ich=(hwidq[iqm]%100);//1-10
       if(iqm==0 && adca>0){
         qhpersl[isl]+=1;
       }
@@ -1993,9 +1943,7 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){
 // on input: len=tot_block_length as was defined by call to calcblocklength
 //           *p=pointer_to_beginning_of_block_data (word next to length)
 //
-  integer i,j,il,ib,is,icr,isl,ich,ichmx,iht,nadcd,ach,iqm,lbbs;
-  int16u slaveid;
-  integer crid;
+  integer i,j,il,ib,is,icr,isl,ich,ichmx,iht,nadcd,iqm,lbbs;
   integer hwidt;//CSIIII->Cr(1-4)|SeqSlot(1-5)|Inpch(1-5)LT||Inpch(6)FT|Inpch(7)SumHT|Inpch(8)SumSHT
   integer hwidq[4];//Q_hwid(A,D1,D2,D3 each coded as CSII(C=1-4, S=1-9(SFET(A,C)seq.slot#), II=1-10)
   int16u sptpat[4]={0,0,0,0};
@@ -2026,7 +1974,6 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){
   Anti2RawEvent *ptra;
   ptrt=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0);
   ptra=(Anti2RawEvent*)AMSEvent::gethead()->getheadC("Anti2RawEvent",0);
-  crid=getportid(int16u(ibl),0);//sdr=crate(=port as seen by JINJ)id for side 0 (only 1 side in MC)
 // 
 //------>collect TOF-info:
   while(ptrt){// <--- loop over TOF RawSide hits
@@ -2228,8 +2175,8 @@ NextACObj:
 //-------------
 //--->time data:
   int16u nwtt(0);//tot.words(16bits) in T-section (excluding itself)
-  integer thit,ithit,expan;
-  int16u word16[3];
+  integer thit,ithit;
+  int16u word16[3] = {0};
   integer lbuf32[1+8*TOF2GC::SCTHMX];//link_buff(temp+8ch*nhitmx)=max 129 32bits-words if nhitmx=16
   int16u nlb32;//nwords in it
   int16u lhead(0);

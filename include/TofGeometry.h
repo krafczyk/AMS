@@ -1,4 +1,4 @@
-// $Id: TofGeometry.h,v 1.2 2012/04/19 16:11:45 oliva Exp $
+// $Id$
 
 #ifndef __TofGeometry__
 #define __TofGeometry__
@@ -60,6 +60,7 @@ class TofGeometry {
   static float    PathLengthInAPaddle(int il, int ib, AMSPoint point, AMSDir dir);
   /**@}*/
 
+  virtual ~TofGeometry() { }
   ClassDef(TofGeometry,1); 
 };
 

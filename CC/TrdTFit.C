@@ -1,4 +1,4 @@
-//  $Id: TrdTFit.C,v 1.5 2012/09/25 21:10:23 mkrafczy Exp $
+//  $Id$
 #include "TrdTFit.h"
 #include <fstream>
 #include "root.h"
@@ -309,7 +309,6 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
     end=posTvec->end();
     
     //number of fit degrees
-    int m = posTvec->size();
 
     //array of Parameters to be fitted
     int N=7;

@@ -31,15 +31,19 @@ namespace TOFCSN{
    const integer NSLOT=4;
    const integer NCHANNEL=8;
    const integer CSId[SCLRS][NSIDE][SCMXBR]={  //Electronic: Crate-4 Slot-7(4 SFET) ID
-      11, 12, 11, 12, 11, 12, 11, 12, 0,  0,//L0-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
-      21, 22, 21, 22, 21, 22, 21, 22, 0,  0,//L0-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
-      23, 24, 23, 24, 23, 24, 23, 24, 0,  0,//L1-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
-      13, 14, 13, 14, 13, 14, 13, 14, 0,  0,//L1-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
-
-      43, 44, 43, 44, 43, 44, 43, 44, 43, 44,//L2-n //LT Channel 1 1 2 2 3 3 4 4 5 5//FT Channel 6 HT 7 SHT 8
-      33, 34, 33, 34, 33, 34, 33, 34, 33, 34,//L2-p //LT Channel 1 1 2 2 3 3 4 4 5 5//FT Channel 6 HT 7 SHT 8
-      41, 42, 41, 42, 41, 42, 41, 42, 0,  0, //L3-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
-      31, 32, 31, 32, 31, 32, 31, 32, 0,  0, //L3-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      {
+        {11, 12, 11, 12, 11, 12, 11, 12, 0,  0},  //L0-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+        {21, 22, 21, 22, 21, 22, 21, 22, 0,  0}   //L0-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      },{
+        {23, 24, 23, 24, 23, 24, 23, 24, 0,  0},  //L1-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+        {13, 14, 13, 14, 13, 14, 13, 14, 0,  0}   //L1-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      },{
+        {43, 44, 43, 44, 43, 44, 43, 44, 43, 44}, //L2-n //LT Channel 1 1 2 2 3 3 4 4 5 5//FT Channel 6 HT 7 SHT 8
+        {33, 34, 33, 34, 33, 34, 33, 34, 33, 34}  //L2-p //LT Channel 1 1 2 2 3 3 4 4 5 5//FT Channel 6 HT 7 SHT 8
+      },{
+        {41, 42, 41, 42, 41, 42, 41, 42, 0,  0},  //L3-n //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+        {31, 32, 31, 32, 31, 32, 31, 32, 0,  0}   //L3-p //LT Channel 1 1 2 2 3 3 4 4    //FT Channel 6 HT 7 SHT 8
+      }
    };
 
 ///--MC only
@@ -320,7 +324,7 @@ class TofTDVTool{
    int   ERun;//end   run id
 //----
  public:
-   TofTDVTool():TDVSize(0),TDVBlock(0),TDVName(0),Isload(0),BRun(0),ERun(0),TDVParN(0){};
+   TofTDVTool():TDVSize(0),TDVParN(0),TDVBlock(0),TDVName(0),Isload(false),BRun(0),ERun(0){}
    virtual void LoadTDVPar(){};//copy TDV to class
    virtual void GetTDVPar(){};//copy class to TDV
    virtual int  ReadTDV(int rtime,int real=1);

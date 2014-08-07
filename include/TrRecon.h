@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.54 2012/12/27 10:31:20 shaino Exp $ 
+// $Id$ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2012/12/27 10:31:20 $
+/// $Date$
 ///
-/// $Revision: 1.54 $
+/// $Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -325,7 +325,7 @@ protected:
     /// Get a hit at [iclx][icly]
     TrRecHitR *at(int iclx, int icly) const { 
       int i = index(iclx, icly);
-      return (0 <= i && i < size()) ? vector<TrRecHitR*>::at(i) : 0;
+      return (0 <= i && i < int(size())) ? vector<TrRecHitR*>::at(i) : 0;
     }
   };
 

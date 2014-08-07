@@ -1,4 +1,4 @@
-//  $Id: upool.C,v 1.8 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 #include "upool.h"
@@ -16,7 +16,7 @@ void * AMSuPool::insert(size_t st){
 #ifdef __AMSDEBUG__
   _Count++;
 #endif
-  if(_free==0 || _lc+st > _head->_length  ){
+  if(_free==0 || int(_lc+st) > _head->_length  ){
     AMSuPool::_grow(st); 
       
   }
@@ -41,7 +41,7 @@ void AMSuPool::_grow(size_t st){
   if(_head==0) {
     _Nreq++;
     _head =new dlink();
-    _head->_length=_size > st ? st*(_size/st): st; 
+    _head->_length=_size > int(st) ? st*(_size/st): st; 
     _head->_address = new char[_head->_length];
     _free=(void*)(_head->_address);
     _lc=0;
@@ -52,7 +52,7 @@ void AMSuPool::_grow(size_t st){
     _head->_next=new dlink;
     (_head->_next)->_prev=_head;
     _head=_head->_next;   
-    _head->_length=_size > st ? st*(_size/st): st;
+    _head->_length=_size > int(st) ? st*(_size/st): st;
     _head->_address = new char[_head->_length];
     _free=(void*)(_head->_address);
     _lc=0;

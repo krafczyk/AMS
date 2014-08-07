@@ -386,7 +386,7 @@ bool DEMinimizer::searchMinimum(TH1D &output,double maxChangeAllowed,int batchSi
 
   // Compute the first round of values
   PopulationValues.clear();
-  for(int i=0;i<Population.size();i++){
+  for(unsigned int i=0;i<Population.size();i++){
     double value=(*Function)(Population[i]);
     if(value!=value) value=HUGE_VAL;
     PopulationValues.push_back(value);
@@ -551,7 +551,6 @@ double MCSampler::scanParameter(int par,const double scale){
   double x[2]={0,scale}; // Initial guess
   double y[2];
   y[0]=(*Function)(Parameters);
-  double origin=y[0];
   TH1D newpars=Parameters;
   newpars.SetBinContent(par,Parameters.GetBinContent(par)*(1+x[1]));
   y[1]=(*Function)(newpars);
@@ -906,7 +905,7 @@ void StochasticUnfolding::unfoldFast(TH2D &joint,TH1D &measured,TH1D &output,boo
 
   double entries=measured.Integral();
   TH1D originalPrior=Prior;
-  double originalCounter=Counter;
+  // double originalCounter=Counter;
 
   for(int sample=0;sample<samples;sample++){
     //    cout<<"DEALING WITH REALIZATION "<<sample+1<<" of "<<samples<<endl;
@@ -1005,7 +1004,6 @@ double FUnfolding::cost(TH1D &parameters){
     sum+=output.GetBinContent(i)-(Measured.GetBinContent(i)?Measured.GetBinContent(i)*log(output.GetBinContent(i)):0);
     if(Measured.GetBinContent(i)>0) sum-=Measured.GetBinContent(i)-Measured.GetBinContent(i)*log(Measured.GetBinContent(i)); // To make interpretation simpler
   }
-  double sum1=sum;
   
   // Compute the regularization parameters
   for(int i=1;i<=spectrum.GetNbinsX();i++) sum+=log(sqrt(spectrum.GetBinContent(i))+1);

@@ -56,13 +56,13 @@ int TrMCClusterR::_NoiseMarker(555);
 
 
 TrMCClusterR::TrMCClusterR(int idsoft, float step, AMSPoint xgl, AMSPoint dir, float mom, float edep, int itra, integer gtrkid, int status)
-  : _idsoft(idsoft), _itra(itra), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep),_gtrkid(gtrkid), Status(status) {
+  : _idsoft(idsoft), _itra(itra), _gtrkid(gtrkid), _step(step), _xgl(xgl), _dir(dir), _mom(mom), _edep(edep), Status(status) {
   Init();
 }
 
 
 TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra, geant edep):
-  _idsoft(0), _step(0), _itra(itra), _xgl(xgl), _dir(0,0,0), _mom(0), _edep(edep) {
+  _idsoft(0), _itra(itra), _step(0), _xgl(xgl), _dir(0,0,0), _mom(0), _edep(edep) {
   Init();
   TkSens pp(_xgl,1);
   if(pp.LadFound()){
@@ -147,31 +147,28 @@ int TrMCClusterR::GetTkId(){
 
 
 std::ostream& TrMCClusterR::putout(std::ostream &ostr ){
-  _PrepareOutput(1);
-  return ostr << sout  << std::endl;
+  return ostr << _PrepareOutput(1) << std::endl;
 }
 
 
 void TrMCClusterR::Print(int opt) { 
-  _PrepareOutput(opt);
-  cout << sout;
+  cout << _PrepareOutput(opt);
 }
 
 
 const char* TrMCClusterR::Info(int iRef){
   string aa;
   aa.append(Form("TrMCCluster #%d ",iRef));
-  _PrepareOutput(0);
-  aa.append(sout);
-  int len=MAXINFOSIZE;
+  aa.append(_PrepareOutput(0));
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 
 
-void TrMCClusterR::_PrepareOutput(int full) {
-  sout.clear();
+std::string TrMCClusterR::_PrepareOutput(int full) {
+  std::string sout;
   sout.append(
     Form("Part: %3d  Mom(GeV): %12.6f TkId: %+04d  Sens: %2d  Edep(keV): %9.3f  Step(um): %7.1f   X:%8.3f Y:%8.3f Z:%8.3f   Cx: %8.5f Cy: %8.5f Cz: %8.5f   TkId:%d\n",
       _itra,
@@ -181,7 +178,7 @@ void TrMCClusterR::_PrepareOutput(int full) {
       _gtrkid
     )
   );
-  return;
+  return sout;
 }
 
 
@@ -192,7 +189,6 @@ void TrMCClusterR::GenSimClusters(){
   float    step = GetStep()*1.e4;     // step [um] 
   AMSPoint glo = GetXgl();            // coordinate [cm]
   AMSDir   dir = GetDir();            // direction 
-  float    momentum = GetMomentum();  // momentum vector [GeV/c]
   float    edep = GetEdep()*1.e6;     // energy deposition [keV] 
   int hcharge=0;
   if(abs(_itra)>=47) hcharge=1;
@@ -214,7 +210,7 @@ void TrMCClusterR::GenSimClusters(){
   // Print();
   if (VERBOSE) {
     printf("TrSim::GenSimClusters-V  tkid = %+4d   loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   edep(keV) = %7.2f   nsens = %2d   itra = %4d\n",
-           GetTkId(),ip[0],ip[1],ia[0],ia[1],edep,nsensor,abs(_itra));
+           GetTkId(),ip[0],ip[1],ia[0],ia[1],edep,nsensor,(int)abs(_itra));
     printf("TrSim::GenSimClusters-V  laddcoo(x,y) = (%7.4f,%7.4f)   readout(x,y) = (%4d,%4d)   mult = %2d\n",
            _glo2loc.GetLaddCoo().x(),_glo2loc.GetLaddCoo().y(),_glo2loc.GetStripX(),_glo2loc.GetStripY(),imult);
   }
