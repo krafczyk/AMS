@@ -2741,10 +2741,9 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         if((word&4)==0)gftmsk+=100;
         l1trigconf.globftmask()=gftmsk;//update globFTmask(FTE|FTZ|FTC)
         if((word&(1<<7))>0)ftzlmsk+=10;//OR of top/bot in FTZ-trig
-        // FIXME: FIX THIS LOGICAL BUG!
-        if((word&(1<<5))>0 & (word&(1<<6))>0)ftzlmsk+=3;//(1|2)+(3|4)
-        else if((word&(1<<5))>0 & (word&(1<<6))==0)ftzlmsk+=2;//(1|2)+(3&4)
-        else if((word&(1<<5))==0 & (word&(1<<6))>0)ftzlmsk+=1;//(1&2)+(3|4)
+        if((word&(1<<5))>0 && (word&(1<<6))>0)ftzlmsk+=3;//(1|2)+(3|4)
+        else if((word&(1<<5))>0 && (word&(1<<6))==0)ftzlmsk+=2;//(1|2)+(3&4)
+        else if((word&(1<<5))==0 && (word&(1<<6))>0)ftzlmsk+=1;//(1&2)+(3|4)
         l1trigconf.toflcsz()=ftzlmsk;//update FTZ layers or/and mask
         if((word&(1<<8))>0)l1trigconf.ecorand()=1;//update FTE-proj or/and(1/2->or/and) requir.
         else l1trigconf.ecorand()=2;
