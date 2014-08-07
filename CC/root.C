@@ -3492,7 +3492,7 @@ if(datamc!=0)datamc=1;
               static double p[2][3]={{0.522677,-0.16927,0.676221},
                                      {0.522677,-0.16927,0.676221}};
               double betamc1=0;
-              for(unsigned int k=0;k<sizeof(p)/sizeof(p[0][0])/2;k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
+              for( int k=0;k<sizeof(p)/sizeof(p[0][0])/2;k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
               double x=(betamc1+fabs(Beta))/2;
               if(x>0.96)x=0.96;
               double norm=1.8377e-1;
