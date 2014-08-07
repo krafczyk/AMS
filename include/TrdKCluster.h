@@ -244,10 +244,10 @@ public:
     AMSDir GetPropogated_TrTrack_Dir();
 
     // Hit manipulation/operation
-    TrdKHit* GetHit(int i){if(i>=TRDHitCollection.size())return 0;return &(TRDHitCollection.at(i));}
-    const TrdKHit* GetConstHit(int i) const {if(i>=TRDHitCollection.size())return 0;return &(TRDHitCollection.at(i));}
-    TrdKHit* GetCorridorHit(int i) {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
-    const TrdKHit* GetCorridorConstHit(int i) const {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
+    TrdKHit* GetHit(unsigned int i){if(i>=TRDHitCollection.size())return 0;return &(TRDHitCollection.at(i));}
+    const TrdKHit* GetConstHit(unsigned int i) const {if(i>=TRDHitCollection.size())return 0;return &(TRDHitCollection.at(i));}
+    TrdKHit* GetCorridorHit(unsigned int i) {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
+    const TrdKHit* GetCorridorConstHit(unsigned int i) const {if(i>=corridor_hits.size()) return 0;return &(TRDHitCollection.at(corridor_hits[i]));}
     //    TrdRawHitR* pTrdRawHit(int i){if(i>NHits())return 0;return GetHit(i)->_rawhit;}
 
     // Advanced operation , to select differenet collecionion of hits
