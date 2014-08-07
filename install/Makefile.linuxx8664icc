@@ -160,7 +160,7 @@ ifdef TFAPEDC
 DEFINES+=  -D__TFAPEDC__
 endif
 
-CFLAGSB= -Wall -Wno-deprecated -fPIC  
+CFLAGSB= -Wno-deprecated -fPIC  
 
 DEFINES += -D__root_$(NEW) -D__ICC__
 ifdef SLC6system
