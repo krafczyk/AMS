@@ -3214,7 +3214,7 @@ void AMSJob::settrigger(char *setup, integer N,integer orr){
 void AMSJob::settdv(char *setup, integer N){
   assert(N < maxtdv);
   if(setup){
-    if(strlen(setup)<maxtdvsize)strcpy(_TDVC[N],setup);
+    if(int(strlen(setup))<maxtdvsize)strcpy(_TDVC[N],setup);
     else cerr << "AMSJOB::settdv-E-length of "<<setup<< " "<<strlen(setup)<<
       ", exceeds "<<maxtdvsize<<". Card ignored"<<endl;
   }

@@ -1225,9 +1225,9 @@ void TofTmAmCalib::select(){  // calibr. event selection
 //------> Look for the TRACK :
 //
     number pmas(0.938),mumas(0.1057);
-    number momentum;
-    number pmom=0,bet,chi2,betm,beta;
-    number chi2t,chi2s,crc;
+    number momentum=0;
+    number pmom=0,bet,chi2,betm,beta=0;
+    number chi2t=0,chi2s=0,crc;
     number the,phi,rigid,err,trl;
     number trlr[TOF2GC::SCLRS],trlen[TOF2GC::SCLRS-1];
     number ramm[TOF2GC::SCLRS];
@@ -1968,7 +1968,7 @@ Exit:
 void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   int lspflg(1);//0/1->use single/array  for Lspeed
   integer il,ib,chan,nb,btyp,nev,bins,binsl[TOF2GC::SCLRS];
-  number co,t,t2,dis,sli,meansl(0),bintot(0),speedl,avsll[TOF2GC::SCLRS];
+  number co,t,t2,dis,sli,meansl(0),bintot(0),speedl=0,avsll[TOF2GC::SCLRS];
   number sl[TOF2GC::SCBLMX],t0[TOF2GC::SCBLMX],sumc,sumc2,sumt,sumt2,sumct,sumid,chi2[TOF2GC::SCBLMX];
   geant tdf[TOF2GC::SCTDBM];
   integer gchan,gsbins;

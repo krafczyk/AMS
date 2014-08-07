@@ -33,7 +33,7 @@ int    TkDBc::_setup=3;
 int    TkDBc::ForceFromTDV=0;
  
 TkDBc::TkDBc(){
-  for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
+  for(unsigned int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
 }
 
 void TkDBc::CreateTkDBc(int force_delete){
@@ -66,7 +66,7 @@ TkDBc::~TkDBc(){
   PGlocal.clear();
   MDlocal.clear();
 
-  for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)delete planes[j];
+  for(unsigned int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)delete planes[j];
 //   for (int jj=0;jj<planes2.size();jj++)
 //     if(planes2[jj]) delete planes2[jj];
 //   planes2.clear();
@@ -750,7 +750,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 number TkDBc::GetSlotY(int layer, int slot,int side){
   number ladpitch= _ladder_Ypitch;
   number ladder_Ygap= _ladder_Ypitch - _ssize_inactive[1];
-  number central_gap= 0.8  ; // layer 9 central additional gap
+  // number central_gap= 0.8  ; // layer 9 central additional gap
   //Y coo of  the first S/p readout channel for the ladder on slot 9 X negative
   // 0.5 ladder_Ygap + distance from first readout channel to near ladder edge
   number distXN = (_ssize_inactive[1]-_ssize_active[1])/2 + 0.5 * ladder_Ygap;
@@ -763,9 +763,9 @@ number TkDBc::GetSlotY(int layer, int slot,int side){
   
 //   printf("  _ladder_Ypitch %f\n", _ladder_Ypitch );
 //   printf(" ladpitch %f ladder_Ygap %f distXN %f distXF  %f \n",_ladder_Ypitch,ladder_Ygap,distXN,distXF);
-  number addspaces=0;
-  if(abs(slot)>4) addspaces=ladder_Ygap-central_gap/2.;
-  else            addspaces=central_gap/2.;
+  // number addspaces=0;
+  // if(abs(slot)>4) addspaces=ladder_Ygap-central_gap/2.;
+  // else            addspaces=central_gap/2.;
   if(layer==9){
     if(side==0)
       return _lay9Ypos[side][slot-1]+(_ssize_inactive[1]-_ssize_active[1])/2;
@@ -832,8 +832,6 @@ number TkDBc::GetSlotX(int layer, int slot,int side){
   // (N-1)*sensor pitch  X+ sensor_size -  the distance between the first readout channelX and the sensor edge
   number lenght=(sensors-1)*(_ssize_inactive[0]+0.004)+_ssize_inactive[0]- (_ssize_inactive[0] - _ssize_active[0])/2.;
   if(side==0) lenght*=-1;
-  int otherside=1;
-  if(side==1) otherside=0;
 
   // PZ Add the DIVIC infos on plane assembly
   return lenght+(_LadDeltaX[side][layer-1][slot-1]/10.);
@@ -1123,13 +1121,13 @@ int TkDBc::LoadExtLocalAlign(char *fname, int type,int pri){
   }  
 
   if (type==0){
-    for(int ii=0;ii<PGlocal.size();ii++){
+    for(unsigned int ii=0;ii<PGlocal.size();ii++){
       int ttkid=PGlocal[ii].GetTkId();
       TkLadder* orig= FindTkId(ttkid);
       (*orig)= PGlocal[ii];
     }
   }else{
-    for(int ii=0;ii<MDlocal.size();ii++){
+    for(unsigned int ii=0;ii<MDlocal.size();ii++){
       int ttkid=MDlocal[ii].GetTkId();
       TkLadder* orig= FindTkId(ttkid);
       (*orig)= MDlocal[ii];

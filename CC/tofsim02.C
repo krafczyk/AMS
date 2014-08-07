@@ -576,14 +576,14 @@ void TOF2Tovt::build()
       tm=TOFWScan::scmcscan[ibtyp].gettm1(idivx,r,i1,i2);//phel.arrival time from interpol.distr.
       tm=tm+0.1*rnormx();//tempor**2 additional TSS
       uinteger ii=uinteger(floor(tm*ifadcb));
-      if(ii<TOFGC::AMSDISL)warr[ii]+=1;
+      if(ii<int(TOFGC::AMSDISL))warr[ii]+=1;
     }
     i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice1)
     if((qtime-geant(i0))>0.5)i0+=1;// to compensate(partially) binning influence
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       uinteger ii=i0+i;
-      if(ii>TOF2GC::SCTBMX)break;//ignore "out of FADC time-range" 
+      if(ii>int(TOF2GC::SCTBMX))break;//ignore "out of FADC time-range" 
       nelec=warr[i];
       if(nelec!=0){
         if(nelec<nsebnd){//direct simulation of Atot of nelec(if low statistics)
@@ -619,14 +619,14 @@ void TOF2Tovt::build()
       tm=TOFWScan::scmcscan[ibtyp].gettm2(idivx,r,i1,i2);//phel.arrival time from interpol.distr.
       tm=tm+0.1*rnormx();//tempor**2 additional TSS
       uinteger ii=uinteger(floor(tm*ifadcb));
-      if(ii<TOFGC::AMSDISL)warr[ii]+=1;
+      if(ii<int(TOFGC::AMSDISL))warr[ii]+=1;
     }
     i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice2)
     if((qtime-geant(i0))>0.5)i0+=1;// to compensate(partially) binning influence
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       uinteger ii=i0+i;
-      if(ii>TOF2GC::SCTBMX)break;//ignore "out of FADC time-range"
+      if(ii>int(TOF2GC::SCTBMX))break;//ignore "out of FADC time-range"
       nelec=warr[i];
       if(nelec!=0){
         if(nelec<nsebnd){
@@ -2158,7 +2158,7 @@ void AMSBitstr::setclkphase(){
 void TOF2RawSide::mc_build(int &status)
 {
   integer i,j,jj,ilay,ibar=0,isd=0;
-  int16u id,idd,_sta;
+  int16u id,idd,_sta=0;
   integer nhits,hidt=0,hidq[4];
   integer nftdc,nstdc,nsumh,nsumsh,nadcd,ntstdc,ntadcd;
   number tstdc[TOF2GC::SCTHMX3];

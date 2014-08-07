@@ -1722,7 +1722,7 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
 //for(i=0;i<ECEDRS;i++)cout<<nwslot[i]<<" ";
 //cout<<endl;
 //--->extract ETRG info:
-  int16u val16,ibit,slay,slid,trppmt;
+  int16u val16,ibit,slay,slid,trppmt=0;
   int16u trpbuf[7];
 //
   crate=ibl+1;//1-2

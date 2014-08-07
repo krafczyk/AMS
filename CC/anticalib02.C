@@ -154,7 +154,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     number pmas=0;
     number pmom,bet(0.97),chi2;
     number the,phi,trl,rigid(2),err;
-    integer chargeTracker,charge;
+    integer chargeTracker,charge=0;
 #ifndef _PGTRACK_
 	integer trpatt;
 #endif
@@ -257,7 +257,7 @@ Nextp:
 //
 // ----->  find track crossing points/angles with sectors:
 //
-    number dir,cpsn,cpcs,cphi,dphi1,dphi2,phil,phih,zcut,zscr,thes;
+    number dir,cpsn,cpcs,cphi,dphi1,dphi2=0,phil,phih,zcut,zscr=0,thes=0;
     integer nseccr(0),isphys(-1);
     phil=padfi-0.5*paddfi;//boundaries of fired sector
     phih=padfi+0.5*paddfi;

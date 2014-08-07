@@ -705,7 +705,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   }
 
 
-  if(bit==crossed_pmt_bit){
+  if(bit==int(crossed_pmt_bit)){
     //cout<<" AMSRichRing::build-too-many-tracks "<<endl;
     return 0;
   }

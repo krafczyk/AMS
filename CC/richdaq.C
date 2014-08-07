@@ -116,7 +116,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   // Get the JINF number
   uint id=status.slaveId;  
   int JINF=-1;
-  for(unsigned int i=0;i<RICH_JINFs;i++) if(JINFId[i]==int(id)) {JINF=i;break;}
+  for(int i=0;i<RICH_JINFs;i++) if(JINFId[i]==int(id)) {JINF=i;break;}
   if(JINF==-1) Do(kJINFIdError);
   
 

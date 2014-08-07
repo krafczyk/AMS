@@ -1821,7 +1821,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 #ifdef _OPENMP
  trtime[4]=DAQEvent::gethead()->trigtime();
 #else
- if (trtime[4]!=DAQEvent::gethead()->trigtime()){
+ if (int(trtime[4])!=DAQEvent::gethead()->trigtime()){
   cerr<<"TriggerLVL1-E-TrigTimeDiff NotMatch "<<trtime[4]<<" "<<DAQEvent::gethead()->trigtime()<<endl;
  }
 #endif

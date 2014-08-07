@@ -649,13 +649,13 @@ void TofSimUtil::DefineTOF_PME(){
   if (TOFPM_Et)return;
   TOFPM_Et= new G4PhysicsTable();
   G4PhysicsOrderedFreeVector* PMTEnVector=new G4PhysicsOrderedFreeVector();
-  for (size_t i=0; i<ENUM; i++){
+  for (int i=0; i<ENUM; i++){
      PMTEnVector->InsertValues(PhEnergy[i], EnEFF[i]);
    }
    TOFPM_Et->insertAt(0,PMTEnVector);
 
   G4PhysicsOrderedFreeVector* PMTAnVector=new G4PhysicsOrderedFreeVector();
-  for (size_t i=0; i<ANUM; i++){
+  for (int i=0; i<ANUM; i++){
      PMTAnVector->InsertValues(CosAn[i], AnEFF[i]);
    }
    TOFPM_Et->insertAt(1,PMTAnVector);

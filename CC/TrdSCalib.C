@@ -1539,7 +1539,7 @@ int TrdSCalibR::GetTrdSum8(int Debug) {
   /// consider only two subset from raw and cs values
   TrdSum8Amp.assign(2, -1.);
   
-  if (TrdSHits.size() >= trdconst::nTrdMinHits) {
+  if (int(TrdSHits.size()) >= trdconst::nTrdMinHits) {
     vector<float> TrdEadcR, TrdEadcCS; 
 
     vector<AC_TrdHits>::iterator iter;
@@ -1585,7 +1585,7 @@ int TrdSCalibR::GetTruncatedMean(int Debug) {
   /// consider only two subset from raw and cs values 
   TruncatedMean.assign(2,0.0);
   
-  if (TrdSHits.size() >= trdconst::nTrdMinHits) {
+  if (int(TrdSHits.size()) >= trdconst::nTrdMinHits) {
     vector<float> TrdEadcR, TrdEadcCS; 
 
     for (vector<AC_TrdHits>::iterator iter = TrdSHits.begin(); iter != TrdSHits.end(); ++iter){
@@ -1640,7 +1640,7 @@ int TrdSCalibR::GetTrdMedian(int Debug) {
   /// median for raw and cs values 
   TrdMedian.assign(2, -1.);
   
-  if (TrdSHits.size() >= trdconst::nTrdMinHits) {
+  if (int(TrdSHits.size()) >= trdconst::nTrdMinHits) {
     vector<float> TrdEadcR, TrdEadcCS;
 
     for (vector<AC_TrdHits>::iterator iter = TrdSHits.begin(); iter != TrdSHits.end(); ++iter){
@@ -1825,7 +1825,7 @@ bool TrdSCalibR::TrdLR_CalcIniPDF(int Debug) {
 
   for (int iXe=0; iXe<nBinfPXe; iXe++) {
     TrdS_PDF_nElec[iXe].assign(trdconst::nTrdLayers,1.0);
-    for (unsigned int iV=0; iV<trdconst::nTrdLayers; iV++) {
+    for (int iV=0; iV<trdconst::nTrdLayers; iV++) {
       sprintf(grName,"grTrdS_Elec_%d_%d",iXe,iV);
       grTrdS_PDF_Elec[iXe].push_back((TGraph*)input->Get(grName));
       if (grTrdS_PDF_Elec[iXe].at(iV)==NULL) {
@@ -2100,7 +2100,7 @@ bool TrdSCalibR::TrdLR_MC_CalcIniXe(int Debug) {
     fTrdLR_fHelium.push_back(fp);
 
     fp.clear();
-    for (unsigned int iV=0; iV<trdconst::nTrdLayers; iV++) {
+    for (int iV=0; iV<trdconst::nTrdLayers; iV++) {
       sprintf(fName,"fTrdLR_fElectron_%d_%d",iXe, iV);
       TF1* feTrdLR = new TF1(fName, this, &TrdSCalibR::TrdS_PDF_fElectron, 0.0,TrdMaxAdcLen,2);
       feTrdLR->SetParameter(0,double(iXe));	
@@ -2910,7 +2910,7 @@ int TrdSCalibR::BuildTrdSHits(TrdHTrackR *TrdHtrk, int Debug){
     }
   }
 
-  if(TrdNHits.size()<trdconst::nTrdMinHits) {ClearTrdNHits(); return 1;}
+  if(int(TrdNHits.size())<trdconst::nTrdMinHits) {ClearTrdNHits(); return 1;}
   
   int jtrdhit = 0;
   for (vector<AC_TrdHits>::iterator iter = TrdNHits.begin(); iter != TrdNHits.end(); ++iter) {
@@ -2966,7 +2966,7 @@ int TrdSCalibR::BuildTrdSHits(TrdTrackR *Trdtrk, int Debug){
     }
   }
   
-  if(TrdNHits.size()<trdconst::nTrdMinHits) {ClearTrdNHits(); return 1;}
+  if(int(TrdNHits.size())<trdconst::nTrdMinHits) {ClearTrdNHits(); return 1;}
   
   int jtrdhit = 0;
   for (vector<AC_TrdHits>::iterator iter = TrdNHits.begin(); iter != TrdNHits.end(); ++iter) {

@@ -360,7 +360,7 @@ integer AMSStatus::getnextok(){
 const int maxthr=256;
 const long long max32=4294967296LL;
   uint64 off64=_Offset+_Status[i].off;
-if(i<maxthr && _Status[i].off>_Status[maxthr].off && off64>=max32){
+if(i<maxthr && _Status[i].off>_Status[maxthr].off && off64>=uint64(max32)){
    cerr<<"AMSSetatus::getnextok-W-32bitProblemfound "<<i<<" "<<_Status[i].off<<" "<<_Offset<<" "<<off64%max32<<endl;
      off64=off64%max32;
 }

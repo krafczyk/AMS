@@ -1709,7 +1709,7 @@ integer TriggerLVL302::TRDAux_DEF::addnewhit(uinteger crate,uinteger udr, uinteg
     _nhits[_nufe]=0;
     _haddrs[_nufe]=_lasthaddr;
   }
-  if(_nhits[_nufe]<trigger302const::maxhitstrd){
+  if(_nhits[_nufe]<int(trigger302const::maxhitstrd)){
     _coo[_nufe][_nhits[_nufe]][0]=ute;
     _coo[_nufe][_nhits[_nufe]][1]=tube;
     _coo[_nufe][_nhits[_nufe]][2]=amp;
@@ -2018,7 +2018,7 @@ void TriggerLVL302::TRDAux_DEF::build(){
 	  //        cout <<" ufe/udr/crt "<<ufe<<" "<<udr<< " "<<crt<<" "<<l1<<" "<<l2<<" "<<t1<<" "<<t2<<" "<<_Dir[ufe][udr][crt]<<" "<<ta<<" "<<coo<<endl;        
 	  uinteger itan=(ta-_TanLimits[0])/_TanBinSize+0.5;
 	  uinteger icoo=(coo-_CooLimits[0])/_CooBinSize+0.5;
-	  if(itan<trigger302const::matrixsize && icoo<trigger302const::matrixsize){
+	  if(itan<int(trigger302const::matrixsize) && icoo<int(trigger302const::matrixsize)){
 	    _DistrMatrix[_Dir[ufe][udr][crt]][itan][icoo]++;
 	    if( xmax[_Dir[ufe][udr][crt]]<_DistrMatrix[_Dir[ufe][udr][crt]][itan][icoo]){
 	      xmax[_Dir[ufe][udr][crt]]=_DistrMatrix[_Dir[ufe][udr][crt]][itan][icoo];

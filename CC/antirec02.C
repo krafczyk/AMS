@@ -371,7 +371,7 @@ void Anti2RawEvent::mc_build(int &stat){
       if(j<ibmn[1])ibmn[1]=j;//min.bin
       for(i=0;i<ndisp;i++){//apply PEs time dispersion
         ii=j+i;
-        if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+        if(ii>int(ANTI2C::ANFADC))ii=ANTI2C::ANFADC;//time ovfl-bin
 	if(i>=ANTI2C::ANFADC)break;
         pevstm[1][ii]+=eup*pedisp[i];//accumulate aver.PEs per time-bin 
         if(ii>ibmx[1])ibmx[1]=ii;//max.bin
@@ -394,7 +394,7 @@ void Anti2RawEvent::mc_build(int &stat){
       if(j<ibmn[0])ibmn[0]=j;//min.bin
       for(i=0;i<ndisp;i++){//apply pe's time dispersion
         ii=j+i;
-        if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+        if(ii>int(ANTI2C::ANFADC))ii=ANTI2C::ANFADC;//time ovfl-bin
 	if(i>=ANTI2C::ANFADC)break;
         pevstm[0][ii]+=edown*pedisp[i];//accumulate aver.pe's per time-bin per side;
         if(ii>ibmx[0])ibmx[0]=ii;//max.bin
@@ -445,7 +445,7 @@ void Anti2RawEvent::mc_build(int &stat){
 	if(speaka>0){//apply pulse shape for time-measurement
           for(int ish=0;ish<nshap;ish++){//pulse-shape bins loop
             ii=ish+i;
-            if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+            if(ii>int(ANTI2C::ANFADC))ii=ANTI2C::ANFADC;//time ovfl-bin
             fadcb[j][ii]+=(speaka*pshape[ish]*pe2mv);//pe->mV to get flash-adc ampl[mV] in T-channel
           }
           if(ii>ibmx[j])ibmx[j]=ii;//new max.bin(expanding of time-range is going only to higher values)
@@ -490,7 +490,7 @@ void Anti2RawEvent::mc_build(int &stat){
       amp=0.;
       tmp=fladcb*ibmn[j];//low edge of ibmn[j]-bin
       tm=tmp;
-      if(ibmx[j]==ANTI2C::ANFADC){
+      if(ibmx[j]==int(ANTI2C::ANFADC)){
         ANTI2JobStat::addmc(1);
 #ifdef __AMSDEBUG__
         cout<<"AntiRawEvent::mc_build-W: Flash-TDC buffer ovfl,id/mV_last="

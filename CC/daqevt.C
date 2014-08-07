@@ -317,7 +317,7 @@ void DAQEvent::buildDAQ(uinteger btype){
   int preset=ntotm?4+5:4;
   _Length=preset+ntot+_OffsetL;
   const int thr=32767;
-  if((_Length-_OffsetL)*sizeof(*_pcur) > thr){
+  if(int((_Length-_OffsetL)*sizeof(*_pcur)) > thr){
     cout<<"DAQEvent::buildDAQ-W-lengthToobig "<<_Length<<" "<<ntotm<<endl;
     _Length++;
     if((ntotm+5-_OffsetL)*sizeof(*_pcur)>32767)_Length++;
@@ -1139,11 +1139,11 @@ integer DAQEvent::_HeaderOK(){
       else TRCALIB.Version=0;
       DAQCFFKEY.DAQVersion=0;
       if(_Run>=1240000000 && AMSJob::gethead()->isRealData())DAQCFFKEY.DAQVersion=1;  
-      if(_RunType%256==Laser && TRCALIB.LaserRun==0){
+      if(int(_RunType)%256==Laser && TRCALIB.LaserRun==0){
 	TRCALIB.LaserRun=22;
 	cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
       }
-      else if((_RunType&256)!=Laser && TRCALIB.LaserRun==22){
+      else if((int(_RunType)&256)!=Laser && TRCALIB.LaserRun==22){
 	cout<<"DAQEvent::_HeaderOK-I-NormalRunDetected "<<endl;
 	TRCALIB.LaserRun=0;
       }
@@ -2369,7 +2369,7 @@ integer DAQEvent::_create(uinteger btype){
     //   
 
     const int thr=32767;
-    if((_Length-_OffsetL)*2<=thr){
+    if(int((_Length-_OffsetL)*2)<=thr){
       _pData[0]=(_Length-_OffsetL)*2;
       _pData[1]=(btype) | (1<<15) ;
       _pData[2]=0;

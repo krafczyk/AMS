@@ -975,7 +975,7 @@ void AMSG4Physics::ConstructXRay()
 #if G4VERSION_NUMBER  < 945 
 
   G4cout << " Construction TR Processes "<<endl;
-  G4XRayTRDP*   pd = new G4XRayTRDP("XRayDiscrete");
+  // G4XRayTRDP*   pd = new G4XRayTRDP("XRayDiscrete");
   G4XRayTRCP*   pc = new G4XRayTRCP("XRayCont");
 
   theParticleIterator->reset();

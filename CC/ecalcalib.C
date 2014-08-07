@@ -1121,7 +1121,7 @@ void ECREUNcalib::mfit(){
   geant arr[ECPMSMX*2];
   geant glscscan[2*ECSLMX];
   int nlscan,nof4;
-  number rrr,sum4,sum4c,eff,hflen,binw;
+  number rrr,sum4,sum4c,eff=0,hflen,binw;
   char htit1[60];
   char ext[10];
   char inum[11];
@@ -2169,7 +2169,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   AMSPoint C0,gC0,Cout1,Cout2,Cpmt;
   AMSDir dir(0,0,1.);
   int ntrk;
-  number chi2,the,phi,rid,err,trl,ass,beta=0,hrid[2];
+  number chi2,the,phi,rid,err,trl,ass,beta=0,hrid[2]={0};
   int badtrl,badebkg,badclam;
 //
   npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl
