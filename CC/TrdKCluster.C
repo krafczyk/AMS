@@ -1890,7 +1890,7 @@ void TrdKCluster::GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius
 void TrdKCluster::GetNearTrackHit(int& nhits, float & amp, AMSPoint* P0, AMSDir* Dir, float radius, float threshold){
     nhits=0;
     amp=0;
-    for(int i=0;i<NHits();i++){
+    for(int i=0;i<TrdHCalibR::n_tubes;i++){
         TrdKHit *hit=GetHit(i);
         float dist=fabs(hit->Tube_Track_Distance_3D(P0,Dir));
         float Amp=hit->TRDHit_Amp;
