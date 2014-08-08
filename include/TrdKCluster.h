@@ -437,7 +437,7 @@ private:
     float corridor_radius;
     AMSPoint corridor_p;
     AMSDir corridor_d;
-    vector<int> corridor_hits;
+    vector<unsigned int> corridor_hits;
 
     // Additinal Initilizationa
     void Init_Base();

@@ -171,7 +171,6 @@ TrdKCluster::TrdKCluster(const vector<TrdKHit>& _collection,AMSPoint *P0, AMSPoi
 
     Init_Base();
 
-    float TRDCenter=115;
     Track_Rigidity=100000;
 
     track_extrapolated_Dir= *Dir;
@@ -609,9 +608,9 @@ void TrdKCluster::FillHitCollection(AMSEventR* evt){
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::SelectClosest(){
-    vector<int>::iterator  Hit_it=corridor_hits.begin();
+    vector<unsigned int>::iterator  Hit_it=corridor_hits.begin();
     for (;Hit_it!=corridor_hits.end(); ) {
-        vector<int>::iterator  Hit_it2=corridor_hits.begin();
+        vector<unsigned int>::iterator  Hit_it2=corridor_hits.begin();
         bool removed=false;
         for (;Hit_it2!=corridor_hits.end(); ) {
             TrdKHit* hit1 = GetCorridorHit(*Hit_it);
@@ -1527,8 +1526,8 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, double * L , i
     int Track_nhits=0;
     double LL_pdf_track_particle[3]={1,1,1};
     double Likelihood_pdf_track_particle[3]={0,0,0};
-    for(int i=0;i<corridor_hits.size();i++){
-        TrdKHit *hit=GetHit(corridor_hits[i]);
+    for(unsigned int i=0;i<corridor_hits.size();i++){
+        TrdKHit *hit=GetCorridorHit(i);
 
         if(ForceReadCalibration>0 && hit->IsCalibrated ==0 ){
             if(DebugOn)  cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
@@ -1609,8 +1608,8 @@ int TrdKCluster::GetLikelihoodRatio_DEBUG(float threshold, double* LLR, double *
     double LL_pdf_track_particle[3]={1,1,1};
     double Likelihood_pdf_track_particle[3]={0,0,0};
     vector<LikelihoodObject> v_p,v_e,v_h;
-    for(int i=0;i<corridor_hits.size();i++){
-        TrdKHit *hit=GetHit(corridor_hits[i]);
+    for(unsigned int i=0;i<corridor_hits.size();i++){
+        TrdKHit *hit=GetCorridorHit(i);
 
         if(ForceReadCalibration>0 && hit->IsCalibrated ==0 ){
             if(DebugOn)  cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
@@ -2683,7 +2682,7 @@ double TrdKCluster::GetAsyD()
 void TrdKCluster::SetCorridorHits() {
 	corridor_hits.clear();
 	corridor_hits.reserve(200);
-	for(int i=0;i<TRDHitCollection.size();++i) {
+	for(unsigned int i=0;i<TRDHitCollection.size();++i) {
 		if(IsHitGood(&(TRDHitCollection[i]))) {
 			corridor_hits.push_back(i);
 		}
