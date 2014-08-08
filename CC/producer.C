@@ -636,7 +636,6 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 
 {
 
-
    struct stat64 statbuf;
     stat64((const char*)a(bstart), &statbuf);
       ntend->Insert=statbuf.st_ctime;
@@ -758,16 +757,18 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  char *means=getenv("TransferBy");
  AString fmake;
  AString fcopy;
+
 againcpmeans:
+ string rfio=destdir;
+ char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+ char *localbin=0;
+ if(getenv("AMSDataDir")) localbin=getenv("AMSDataDir");
+ else                     localbin=local;
  if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
 
-  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
-   char *localbin=0;
-   if(getenv("AMSDataDir"))localbin=getenv("AMSDataDir");
-   else localbin=local;
    fmake=localbin;
    fmake+="/DataManagement/exe/linux/timeout --signal 9 9 ";
    fmake+="nsmkdir -p ";
@@ -780,20 +781,60 @@ againcpmeans:
   fcopy=means;
   fcopy+=" ";
  } 
+ else if (rfio.find("/eos/ams")!=-1){
+  if (getenv("EosTransferMakeDir")) {
+    fmake=getenv("EosTransferMakeDir");
+    fmake+=" ";
+  }
+  else {
+    fmake=localbin;
+    fmake+="/DataManagement/exe/linux/timeout --signal 9 9 ";
+    fmake+="/afs/cern.ch/project/eos/installation/ams/bin/eos.select mkdir -p ";
+  }
+  if (getenv("EosTransferRawBy")) {
+    fcopy=getenv("EosTransferRawBy");
+    fcopy+=" ";
+  }
+  else {
+    fcopy=localbin;
+    fcopy+="/DataManagement/exe/linux/timeout --signal 9 900 ";
+    fcopy+="/afs/cern.ch/project/eos/installation/ams/bin/eos.select cp ";
+  }
+ }
  else{
   fmake="mkdir -p ";
   fcopy="cp ";
  }
-  string rfio=destdir;
+
   if(rfio.find("/castor/cern.ch")!=-1){
     fmake+=rfio.c_str()+rfio.find("/castor/cern.ch");
+  }
+  else if (rfio.find("/eos/ams")!=-1) {
+    fmake+=rfio.c_str()+rfio.find("/eos/ams");
   }
   else fmake+=rfio.c_str();
 // fmake+='/';
 // for (int k=bnt;k<bend;k++)fmake+=a[k];
+
  int imake=system((const char*)fmake);
- fcopy+=(const char*)a(bstart);
- fcopy+="  ";
+ if (imake)
+   cerr << "AMSProducer::sendNtupleEnd-E- Unable create dst dest  dir " << (const char*)fmake << endl;
+ if (rfio.find("/eos/ams")!=-1) {
+   // eos does not like double slash
+   string src = (const char*)a(bstart);
+   string dst;
+   char last = '\0';
+   for (int i=0; i<src.length(); i++) {
+      if (src[i] == '/' && last == '/')
+         continue;
+      last = src[i];
+      dst += last;
+   }   
+   fcopy+=dst.c_str();
+ }
+ else
+   fcopy+=(const char*)a(bstart);
+ fcopy+=" ";
  fcopy+=destdir; 
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
@@ -803,20 +844,40 @@ if(strstr((const char *)fcopy,"rfcp"))tmc=10800;
 int ntry=3;
  bool suc=false;
  bool retryonce=false;
+
 againcp:
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));
   if(!_Solo)sendCurrentRunInfo();
   cout <<"SendNtupleEnd-I-StartCopyingDST "<<j<<" Try "<<(const char*)fcopy<<endl;
-  if(!system((const char*)fcopy)){
+	// eos option check
+	int i;
+	if (strstr((const char*)fcopy,"/eos/ams")) {
+		string fcopy2 = (const char*)fcopy;
+		if (fcopy2[fcopy2.length()-1] != '/')
+			fcopy2 += '/';
+		i = system(fcopy2.c_str());
+	}
+	else {
+		i = system((const char*)fcopy);
+	}
+//!!!!!
+// if (strstr((const char*)fcopy,"eos/ams")) i=1;
+//!!!!!
+
+  if(!i){
    suc=true;
    cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
  // add more validation here
  //
     string file2v="";    
     string ff=(const char*)fcopy;
-  if(ff.find("/castor/cern.ch")!=-1 && ff.find("root:/")==-1){
-     file2v+="rfio:";
+  if(ff.find("/castor/cern.ch")!=-1){
+  	if(ff.find("root:/")==-1) 
+	  file2v+="rfio:";
+  }
+  else if(ff.find("/eos/ams")!=-1){
+     file2v+="root://eosams.cern.ch/";
   }
   file2v+=destdir;
   file2v+='/';
@@ -877,16 +938,14 @@ goto againcp;
 }
 }
 
-
-
-        
+       
   if(!_Solo)sendCurrentRunInfo();
    if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
     1){
     AString rm="rm -rf ";
     rm+=a(bstart);
     system((const char*)rm);
-    cout <<"SendNtupleEnd-I-DeletingDSTBy "<<(const char*)rm<<endl;
+    cout <<"SendNtupleEnd-I-DeletingDSTBy "<<(const char*)rm<<endl; 
      struct statfs64 buffer;
      int fail=statfs64((const char*)destdir, &buffer);
     if(fail){
@@ -911,6 +970,7 @@ goto againcp;
    break;
   }
  }
+ 
  if(!suc && means){
    if(!_Solo)sendid(3600);
    cerr <<"SendNtupleEnd-E-UnabletoCopyDSTSuccesfully "<<" Tried "<<(const char*)fcopy<<endl;
@@ -984,13 +1044,40 @@ goto againcp;
 
 char *means=getenv("TransferBy");
 
- if(!means){
- 
-    struct stat64 statbuf;
-    stat64((const char*)a(bstart), &statbuf);
-
-ntend->Insert=statbuf.st_ctime;
-ntend->size=statbuf.st_size/1024./1024.+0.5;
+if(!means){
+	if(!strstr((const char*)a(bstart),"/eos/ams")){
+	    struct stat64 statbuf;
+	    stat64((const char*)a(bstart), &statbuf);
+	    ntend->Insert=statbuf.st_ctime;
+    	ntend->size=statbuf.st_size/1024./1024.+0.5;
+	}
+	else {
+		char tfnm[80];
+		sprintf(tfnm,"/tmp/raw2.%d",getpid());
+ 		string cmd;
+ 		if(getenv("AMSDataDir")) cmd=getenv("AMSDataDir");
+   		else                     cmd="/afs/cern.ch/ams/Offline/AMSDataDir";
+   		cmd += "/DataManagement/exe/linux/timeout --signal 9 30 ";
+		cmd += "/afs/cern.ch/project/eos/installation/ams/bin/eos.select fileinfo ";
+		cmd += (const char*)a(bstart);
+		cmd += " >& ";
+		cmd += tfnm;
+		int i = system(cmd.c_str());
+		if (i == 0) {
+			fstream tfs(tfnm,fstream::in);
+			while (!tfs.eof()) {
+				string txt;
+				std::getline(tfs,txt);
+				if (txt.find("Modify:") != string::npos && txt.find("Timestamp:") != string::npos) {
+					string sts = txt.c_str()+txt.find("Timestamp:")+strlen("Timestamp:");
+					ntend->Insert = atol(sts.c_str());
+					break;
+				}
+			}
+			tfs.close();
+		}
+		unlink(tfnm);
+	}
 }
 ntend->ErrorNumber=0;
 
@@ -1316,39 +1403,60 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
    
  char *means=getenv("TransferBy");
  AString fmake;
+ char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+ char *localbin=0;
+ if(getenv("AMSDataDir"))localbin=getenv("AMSDataDir");
+   else localbin=local;
+ string rfio=destdir;
+ 
  if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
-  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
-   char *localbin=0;
-   if(getenv("AMSDataDir"))localbin=getenv("AMSDataDir");
-   else localbin=local;
    fmake=localbin;
-   fmake+="/DataManagement/exe/linux/timeout --signal 9 9 ";
+   fmake+="/DataManagement/exe/linux/timeout --signal 9 30 ";
    fmake+="nsmkdir -p ";
   if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
-  string rfio=destdir;
   if(rfio.find("/castor/cern.ch")!=-1){
     fmake+=rfio.c_str()+rfio.find("/castor/cern.ch");
   }
   else fmake+=rfio.c_str();
  }
+ else if (rfio.find("/eos/ams")!=-1) {
+   if (getenv("EosTransferMakeDir")) {
+     fmake=getenv("EosTransferMakeDir");
+     fmake+=" ";
+   }
+   else {
+     fmake=localbin;
+     fmake+="/DataManagement/exe/linux/timeout --signal 9 30 ";
+     fmake+="/afs/cern.ch/project/eos/installation/ams/bin/eos.select mkdir -p ";
+   }
+   fmake+=rfio.c_str()+rfio.find("/eos/ams");
+ }
  else{
   fmake="mkdir -p ";
   fmake+=destdir;
  }
-   cout <<"SendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
+ cout <<"SendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
 
- if(system((const char*)fmake)){
+ int i = system((const char*)fmake);
+ //!!!!!
+ //if (!strstr((const char*)fmake,"castor")) i=1;
+ //!!!!!
+ if(i){
        cerr<<"AMSProducer::sendNtupleStart-E-Unable create dst dest  dir "<<fmake<<endl;
         if(!strstr((const char*)destdir,"/castor/cern.ch/ams")){
            int bstart=0;
+		   int k = 1;
+		   if (strstr((const char*)destdir,"/eos/ams"))
+		     k++;
            for(int i=1;i<strlen(destdir);i++){
-            if(destdir[i]=='/'){
+            if(destdir[i]=='/')
+			  if (--k <= 0){
                 bstart=i;
                 break;
-            }
+              }
            }
            if(bstart){
              setenv("TransferBy",getenv("TransferRawBy")?getenv("TransferRawBy"):"rfcp ",1);
@@ -1561,12 +1669,12 @@ unlink( DAQEvent::getfile());
 }
      if(res!=DAQEvent::OK && (res!=DAQEvent::NoInputFile || _cinfo.LastEventProcessed==0) ){
  _cinfo.Status=DPS::Producer::Failed;
-if(_reinfo->Run!=0){
+ if(_reinfo->Run!=0){
     FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
-}
-else{
+ }
+ else{
     FMessage("AMSProducer::sendRunEnd-I-RunFinished ",DPS::Client::CInAbort);
-}
+ }
 }
 else _cinfo.Status=DPS::Producer::Finished;
 
@@ -1581,7 +1689,6 @@ else _cinfo.Status=DPS::Producer::Finished;
        _cinfo.Status=DPS::Producer::Failed;
         cerr<<"AMSProducer::sendRunEnd-S-NotAllEvetnsProcessed "<<_cinfo.LastEventProcessed<<" "<<_reinfo->LastEvent<<" "<<endl;
       FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
-
     }
     else if(_cinfo.LastEventProcessed-_reinfo->LastEvent>1){
         cerr<<"AMSProducer::sendRunEnd-W-TooManyEventsProcessed "<<_cinfo.LastEventProcessed<<" "<<_reinfo->LastEvent<<" "<<endl;
