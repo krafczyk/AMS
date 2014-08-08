@@ -2026,7 +2026,7 @@ again:
 	      string local(getenv("NtupleDir"));
 	      setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
 	      if(getenv("TransferSharedLib")){
-		setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
+		     setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
 	      }
 	      string cp(getenv("TransferRawBy")?getenv("TransferRawBy"):"rfcp ");
 	      cp+=castor;
@@ -2034,25 +2034,14 @@ again:
 	      cp+=local;
 		  
 		  // copy eos
-      	  string cpeos = "/afs/cern.ch/ams/local/bin/timeout --signal 9 550 /afs/cern.ch/project/eos/installation/ams/bin/eos.select cp ";
+      	  string cpeos;
+	      if (getenv("EosTransferRawBy")) 
+		    cpeos=getenv("EosTransferRawBy");
+		  else
+		    cpeos = "/afs/cern.ch/ams/local/bin/timeout --signal 9 600 /afs/cern.ch/project/eos/installation/ams/bin/eos.select cp";
+          cpeos += " ";
 	      cpeos += eos+" "+local+"/"; 
-		  char tfnm[80];
-		  sprintf(tfnm,"/tmp/raw2.%d",getpid());
-		  cpeos += string(" 1>")+tfnm+" 2>&1";
 	      int i=system(cpeos.c_str());
-		  if (!i++) {
-		  	fstream tfs(tfnm,fstream::in);
-	  	  	while (!tfs.eof()) {
-		    	string txt;
-	  			std::getline(tfs,txt);
-				if (txt.find("copied") != string::npos) {
-					i = 0;
-					break;
-				}
-	  	  	}
-	  	  	tfs.close();
-		  	unlink(tfnm);
-		  }
 	      if(!i) goto okcp;
 		  cerr <<"DAQEvent::init-E-Unableto "<<cpeos.c_str()<<endl;
 		  
