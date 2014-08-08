@@ -162,6 +162,77 @@ endif
 
 CFLAGSB= -Wno-deprecated -fPIC  
 
+# Disable warnings triggered by ROOT
+
+# remark #383: value copied to temporary, reference to temporary used
+CFLAGSB += -wd383
+
+# remark #444: destructor for base class "std::iterator<... (declared at line 104 of "/usr/include/c++/4.4.7/bits/stl_iterator_base_types.h") is not virtual
+CFLAGSB += -wd444
+
+# remark #1418: external function definition with no prior declaration
+CFLAGSB += -wd1418
+
+# remark #522: function "TArrayD::At" redeclared "inline" after being called
+CFLAGSB += -wd522
+
+# remark #2259: non-pointer conversion from "int" to "Short_t={short}" may lose significant bits
+CFLAGSB += -wd2259
+
+# remark #981: operands are evaluated in unspecified order
+CFLAGSB += -wd981
+
+# remark #869: parameter "o" was never referenced
+CFLAGBS += -wd869
+
+# remark #193: zero used for undefined preprocessing identifier "_FILE_OFFSET_BITS"
+CFLAGSB += -wd193
+
+# Disable warnings triggered by us.
+
+# remark #177: variable "charge" was declared but never referenced
+# Similar to Wunused-function in GCC (needed for cfortran.h static functions)
+CFLAGSB += -wd177
+
+# remark #174: expression has no effect
+CFLAGSB += -wd174
+
+# remark #869: parameter "i" was never referenced
+CFLAGSB += -wd869
+
+# remark #185: dynamic initialization in unreachable code
+CFLAGSB += -wd185
+
+# remark #310: old-style parameter list (anachronism)
+CFLAGSB += -wd310
+
+# remark #271: trailing comma is nonstandard
+CFLAGSB += -wd271
+
+# remark #1572: floating-point equality and inequality comparisons are unreliable
+CFLAGSB += -wd1572
+
+# remark #111: statement is unreachable
+CFLAGSB += -wd111
+
+# remark #181: argument is incompatible with corresponding format string conversion
+CFLAGSB += -wd181
+
+# remark #82: storage class is not first
+CFLAGSB += -wd82
+
+# remark #424: extra ";" ignored
+CFLAGSB += -wd424
+
+# remark #1419: external declaration in primary source file
+CFLAGSB += -wd1419
+
+# remark #1599: declaration hides variable "f1" (declared at line 669)
+CFLAGSB += -wd1599
+
+# remark #593: variable "S5totL" was set but never used
+CFLAGSB += -wd593
+
 DEFINES += -D__root_$(NEW) -D__ICC__
 ifdef SLC6system
   DEFINES += -D__LINUXSLC6__ -D__LINUXGNU__

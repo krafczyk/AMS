@@ -130,7 +130,6 @@ G4bool G4FullGlaubAADataSet::CreateGlauberData (const G4int AP1, const G4int AT1
   nucc_.ijproj   = 1;					// IJPROJ=1
   collis_.ijprox = 1;					// IJPROX=1
   nuccc_.jjproj  = 1;					// JJPROJ=1
-  G4int jjprox   = 1;					// JJPROX=1
   G4int ishc     = 0;					// ISHC=0
 
   G4int ZP1 = stabZ[AP];
@@ -155,7 +154,6 @@ G4bool G4FullGlaubAADataSet::CreateGlauberData (const G4int AP1, const G4int AT1
   nucc_.ijproj   = 13;					// IJPROJ=13
   collis_.ijprox = 13;					// IJPROX=13
   nuccc_.jjproj  = 13;					// JJPROJ=13
-  jjprox         = 13;					// JJPROX=13
 
   for (G4int ig = 0; ig < maxig; ig++)
   {

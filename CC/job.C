@@ -2446,7 +2446,7 @@ void AMSJob::_sitkinitjob(){
             number oldone=0;
             for(int k=0;k<TKDBc::NStripsDrp(i+1,l);k++){
 	      id.upd(k);
-	      geant d;
+	      geant d = 0;
 	      id.setped()=TRMCFFKEY.ped[l]*(1+RNDM(d));
 	      id.clearstatus(~0);
 	      if(RNDM(d)<TRMCFFKEY.BadCh[l]){
