@@ -474,7 +474,7 @@ void TrExtAlignDB::SmearExtAlign()
   AMSEventR::GetRandArray(3375420, 1, 4, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
-   float d = 0;
+   float d;  //do not initialize
   for (int i = 0; i < 4; i++) rd[i] = RNDM(d);
 #endif
 
