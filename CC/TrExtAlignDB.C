@@ -468,22 +468,22 @@ extern "C" double rnormx();
 void TrExtAlignDB::SmearExtAlign()
 {
   double rnd[8];
-  double rd[2];
+  double rd[4];
 #ifdef __ROOTSHAREDLIBRARY__
   AMSEventR::GetRandArray(4173792, 2, 8, rnd);
-  AMSEventR::GetRandArray(3375420, 1, 2, rd);
+  AMSEventR::GetRandArray(3375420, 1, 4, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
-   float d = 0;
-  for (int i = 0; i < 2; i++) rd[i] = RNDM(d);
+   float d ;
+  for (int i = 0; i < 4; i++) rd[i] = RNDM(d);
 #endif
 
-double s1[2]={7.5,8.3};
+double s1[2]={7.5e-4,8.3e-4};
 s1[0]=fabs(TRMCFFKEY.OuterSmearing[0][1]);
 s1[1]=fabs(TRMCFFKEY.OuterSmearing[1][1]);
 
-double s2[2]={13.,14};
-double s3[2]={33,33};
+double s2[2]={13e-4,14e-4};
+double s3[2]={33e-4,33e-4};
 double r[2][3]={{1.,0.12/2.,0.01/2},{1.,0.12/2.,0.003/2.}};
 for(int l=0;l<2;l++){
 double sum=0;
@@ -497,7 +497,7 @@ double pg[2]={0,0};
 
 for(int k=0;k<2;k++){
 {
-double r1=rd[0];
+double r1=rd[0+2*k]; 
 if(r1<r[k][0]){
  md[k]+=s1[k];
 }
@@ -507,7 +507,7 @@ else if(r1<r[k][0]+r[k][1]){
 else md[k]+=s3[k];
 }
 {
-double r1=rd[1];
+double r1=rd[1+2*k];
 if(r1<r[k][0]){
  pg[k]=s1[k];
 }
