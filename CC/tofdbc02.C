@@ -3704,7 +3704,7 @@ int TofSlowTemp::gettempC(int crat, int slot, geant & atemp){
   sid1=cr*100+sl;
   if(sl==8 || sl==10)sid2=cr*100+sl+1;
   if(sl==9 || sl==11)sid2=cr*100+sl-1;
-  for(int l=0;l<2;l++){ // FIXME: NIKO
+  for(int l=0;l<TOF2GC::SCLRS;l++){
     for(int c=0;c<2;c++){
       for(int n=0;n<8;n++){
         sensid=AMSSCIds::getenvsensid(l,c,n);
