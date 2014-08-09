@@ -1582,6 +1582,8 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //
 #ifdef __G4AMS__
      ((AMSgvolume*)cur )->Smartless()=-2;
+#else
+    (void)cur;
 #endif            
    }
  }//--->endof loop
@@ -1971,21 +1973,21 @@ using trdconst::TRDROTMATRIXNO;
    TRDDBc::read();
 
 geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,5*0.};
-geant fleeceParams[3]={0.,0.,0.};
-geant fleeceCoord[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 char name[5];
 geant coo[3]={0.,0.,0.};
-geant bulkheadCoord[3] = {0.0,0.0,0.0};
 integer gid(0);
 uinteger rgid(0);
 uinteger status;
 integer nrot=TRDROTMATRIXNO; 
 AMSgvolume * dau = 0;
 #ifdef __G4AMS__
+geant bulkheadCoord[3] = {0.0,0.0,0.0};
+geant fleeceCoord[3]={0.,0.,0.};
+geant fleeceParams[3]={0.,0.,0.};
 AMSgvolume * daug4 = 0;
-#endif
 AMSgvolume * fleece;
+#endif
 AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
@@ -2174,13 +2176,12 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    //            cout <<name<<" "<<j<<" "<<
    //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
-
+#ifdef __G4AMS__
    bulkheadCoord[0] = coo[0];
    bulkheadCoord[1] = coo[1];
    bulkheadCoord[2] = coo[2];
 
-#ifdef __G4AMS__
-     if(MISCFFKEY.G4On){
+	 if(MISCFFKEY.G4On){
 // TR: bulkheads enabled 10-Dec-2013
        daug4 = 
       (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
@@ -2391,6 +2392,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
 
+#ifdef __G4AMS__
    fleeceParams[0] = par[0];
    // top fleece layer below the bottommost central straw modules (y-direction)
    // is four times thinner
@@ -2403,6 +2405,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    fleeceCoord[0] = coo[0];
    fleeceCoord[1] = coo[1];
    fleeceCoord[2] = coo[2] + 0.3286 + TRDDBc::StripsDim(1) / 2.0 + fleeceParams[1];
+#endif
    par[1] = 0.3286 + TRDDBc::StripsDim(1) / 2.0;
 
 #ifdef __G4AMS__
@@ -2506,6 +2509,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
 #ifdef __G4AMS__
            ((AMSgvolume*)ptrd )->Smartless()=-2;
+#else
+   (void)ptrd;
 #endif            
 
    }
@@ -2539,6 +2544,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
      ptrd->add(new AMSgvolume(TRDDBc::WiresMedia(),
 			      0,name,"TUBE",par,3,wireCoord,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));
    }
+#else
+   (void)ptrd;
 #endif
 
    }
@@ -2834,7 +2841,7 @@ ECALDBc::readgconf();//
   geant claddrx,claddry;
   int layer;
   integer nrot,gid(0),nsupl,nflpsl,nfpl[2],nf;
-  integer isupl,ifibl,ifib,iproj,ip;
+  integer isupl,ifibl,ifib,iproj=0,ip;
   int i,j,k;
   float lastflend,al_thickness;
   char inum[11];
@@ -3089,6 +3096,8 @@ ECALDBc::readgconf();//
             "EC_FCORE",0,"ECFC","TUBE",par,3,coo,nrm0,"ONLY",0,gid,1));
 #ifdef __G4AMS__
            ((AMSgvolume*)pECfsen )->Smartless()=-2;
+#else
+        (void) pECfsen;
 #endif            
 	  }
 	  // GAPS

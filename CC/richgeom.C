@@ -216,6 +216,8 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
+#else
+  (void) dummy;
 #endif
 
 
@@ -372,6 +374,8 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 						 rel));
 #ifdef __G4AMS__
   wall->Smartless()=-2;
+#else
+  (void) wall;
 #endif
 
 #ifdef __G4AMS__
