@@ -350,7 +350,7 @@ else
 #Tracker
 TRACK_BASE +=   $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C  $(SCC)trcalib.C $(SCC)tralig.C  \
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
-		$(SFF)tszfit.F     $(SCC)trfit.C $(SFF)txyfit.F  $(SCC)trrawcluster.C $(SCC)GausBF.C \
+		$(SFF)tszfit.F     $(SCC)trfit.C $(SFF)txyfit.F  $(SCC)trrawcluster.C \
 		$(SFF)tptcir.F     $(SCC)gsen.C    $(SCC)TrPdf.C \
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C $(SCC)vtx.C
 TRACK_ADD=      $(SFF)mfield.F     $(SCC)bcorr.C  $(SCC)DynAlignment.C
