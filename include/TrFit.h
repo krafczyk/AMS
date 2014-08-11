@@ -36,6 +36,7 @@
 /// ALCARAZ   : Fitting method by J.Alcaraz (NIMA 533 (2005) 613)
 /// CHOUTKO   : Fitting method by V.Choutko (default method in tkfitg)
 /// CHIKANIAN : Fitting method by A.Chikanian using TMinuit
+/// GAUSBF    : ROOT/MINUIT fit with Gaussianized magnetic field model
 ///
 ///
 ///\date  2007/12/12 SH  First import (SimpleFit)
@@ -206,7 +207,7 @@ public:
     PMAX = 10
   };
   enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIANC,
-		 CHIKANIANF };
+		 CHIKANIANF, GAUSBF };
 
 protected:
   /// Multiple scattering switch
@@ -337,6 +338,7 @@ public:
    \li CHOUTKO
    \li CHIKANIANC
    \li CHIKANIANF
+   \li GAUSBF
    \param mscat  (0/1) activate the multiple scattering treatment
    \param eloss  (0/1) activate the energy loss treatment (to be implemented)
    \param charge charge of the fitted particle
@@ -370,6 +372,9 @@ public:
 
   /// Chikanian fit Fortran
   double ChikanianFitF();
+
+  /// ROOT/MINUIT fit with Gaussianized magnetic field model
+  double GausBFFit(int fixs = 0);
 
   /// Linear fitting for X-Z (side=1), Y-Z (side=2) or X-S (side=3)
   double LinearFit(int side);

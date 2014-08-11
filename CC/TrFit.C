@@ -126,6 +126,7 @@ double TrFit::DoFit(int method, int mscat, int eloss,
   else if (method ==   CHOUTKO)  ret = ChoutkoFit();
   else if (method == CHIKANIANC) ret = ChikanianFitCInt(1);
   else if (method == CHIKANIANF) ret = ChikanianFitF();
+  else if (method ==    GAUSBF)  ret = GausBFFit();
 
   ParLimits();
   return ret;
@@ -149,6 +150,62 @@ double TrFit::GetBeta(){
   return bb;
 }
 
+#include "GausBF.h"
+#include "TF1.h"
+#include "TGraphErrors.h"
+
+double TrFit::GausBFFit(int fixs)
+{
+  int l = _nhit-1;
+  AMSPoint p1(_xh[0], _yh[0], _zh[0]);
+  AMSPoint p2(_xh[l], _yh[l], _zh[l]);
+
+  Int_t ibf = GausBF::Find(p1, p2);
+  if (ibf < 0) return -1;
+
+  if (GausBF::Head()->GetPar(0, 0, 0) == 0) return -2;
+
+  AMSDir dir = p2-p1;
+  Int_t is1 = ibf%100;
+  Int_t is9 = ibf/100;
+
+  Int_t ip1 = 5; //26;
+  Int_t ip2 = 8; //29;
+
+  TF1 *func = GausBF::Head()->GetPr(is1, is9, 100);
+  if (fixs&1) func->FixParameter(ip1, 0); else func->ReleaseParameter(ip1);
+  if (fixs&2) func->FixParameter(ip2, 0); else func->ReleaseParameter(ip2);
+
+  TGraphErrors gp;
+  for (int i = 0; i < _nhit; i++) {
+    gp.SetPoint     (i, _zh[i], _yh[i]);
+    gp.SetPointError(i,      0, _ys[i]);
+  }
+  gp.Fit(func, "q0");
+
+  _param[0] = func->GetParameter(ip1); _param[2] = func->GetParError(ip1);
+  _param[1] = func->GetParameter(ip2); _param[3] = func->GetParError(ip2);
+
+  _chisqx = _nhit; _chisqy =  0;
+  _ndofx  = _nhit; _ndofy  = -3;
+
+  for (int i = 0; i < _nhit; i++) {
+    _xr[i] = 0;
+    _yr[i] = gp.GetY()[i]-func->Eval(gp.GetX()[i]);
+    _chisqy += _yr[i]*_yr[i]/_ys[i]/_ys[i]; _ndofy++;
+  }
+
+  _chisq = (_ndofy > 0) ? _chisqy/_ndofy : -1;
+  _p0x  = _xh[0];
+  _p0z  = _zh[0];
+  _dxdz = dir.x()/dir.z();
+  _p0y  = func->GetParameter(0);
+  _dydz = func->GetParameter(1);
+  _rigidity = 1/func->GetParameter(2);
+  _errrinv  =   func->GetParError (2);
+
+  return _chisq;
+}
 
 double TrFit::LinearFit(void)
 {

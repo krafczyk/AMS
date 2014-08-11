@@ -44,6 +44,7 @@
 #pragma link C++ class MagField;
 #pragma link C++ class TrFit+;
 #pragma link C++ class TrProp+;
+#pragma link C++ class GausBF+;
 //#pragma link C++ class TrAlignFit;
 #pragma link C++ class TrTrackPar+;
 #pragma link C++ class TrTasClusterR+;
