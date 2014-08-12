@@ -406,7 +406,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	h2lr=ECcalib::ecpmcal[il][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
 	scgn=ECcalib::ecpmcal[il][ipm].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
  	// Gain dependence on Temperature
- 	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
+ 	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(k)/100.*deltaT;
   	if ( Tcorr > 0 ){
   	  scgn*=Tcorr;
   	}
