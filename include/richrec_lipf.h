@@ -43,14 +43,14 @@
       real cerang,pbeta,pchg
 
       common /richsimc/ cerang,pbeta,pchg
-      !$OMP THREADPRIVATE (/richsimc/)
+!$OMP THREADPRIVATE (/richsimc/)
 * --- nb counted photons
         integer nphb_nscat,nphb_nscat_ref,nphb_nscat_nref
         common /richphotc/
      +  nphb_nscat,     !nb photons at base (non-scatt and from primary)
      +  nphb_nscat_ref, !nb photons at base reflected
      +  nphb_nscat_nref !nb photons at base non-reflected
-      !$OMP THREADPRIVATE (/richphotc/)
+!$OMP THREADPRIVATE (/richphotc/)
 
 * --- ratios
         real rat_nphb_nscat_ref,
@@ -61,7 +61,7 @@
      +  rat_nphb_nscat_ref,
      +  rat_nphb_nscat_nref,
      +  xphnint,xphnint_frac
-      !$OMP THREADPRIVATE (/richphotr/)
+!$OMP THREADPRIVATE (/richphotr/)
 
 *****************************
 *** CODE FROM richgen.inc ***
@@ -73,7 +73,7 @@
         common /richwrkc/ icevt,        ! number of events read
      +                    itevt         ! event number (nb trials)
 
-      !$OMP THREADPRIVATE (/richwrkc/)
+!$OMP THREADPRIVATE (/richwrkc/)
 *****************************
 *** CODE FROM richcrd.inc ***
 *****************************
@@ -112,7 +112,7 @@
      +                  cerlim(2),      !limits for bracketing
      +                  reflec          !mirror reflectivity
 
-      !$OMP THREADPRIVATE (/cardc/)
+!$OMP THREADPRIVATE (/cardc/)
 *****************************
 *** CODE FROM richgeo.inc ***
 *****************************
@@ -172,7 +172,7 @@
      +                    REFMIRS        !reflectivity of each mirror sector
 
 ! detection matrix
-      !$OMP THREADPRIVATE (/patgeomc/)
+!$OMP THREADPRIVATE (/patgeomc/)
 
         REAL PMTWX, PMTWY, SHIELDW, LG_PITCH, LG_TOP_WIDTH, LG_BOT_WIDTH
 
@@ -184,12 +184,12 @@
      +                    LG_TOP_WIDTH,  !Light Guide Top Width (34mm)
      +                    LG_BOT_WIDTH   !Light Guide Bottom Width
 
-       !$OMP THREADPRIVATE (/pmtgenc/)
+!$OMP THREADPRIVATE (/pmtgenc/)
 
         REAL XPC,XBC,XBD,YEF
 
         COMMON /PMTPOS/XPC,XBC,XBD,YEF
-        !$OMP THREADPRIVATE (/PMTPOS/)
+!$OMP THREADPRIVATE (/PMTPOS/)
 
         INTEGER LEVGEOM, LEVGRAD, LEVACC, LEVGHIT
 
@@ -199,7 +199,7 @@
      +                  LEVACC,		 !acceptance calculation 0/1 = ring line/ring width
      +                  LEVGHIT 	 !exclusion of ring near track zone 0/1 = off/on
 
-       !$OMP THREADPRIVATE (/CLEVEL/)
+!$OMP THREADPRIVATE (/CLEVEL/)
 
         real XCRAD,YCRAD,XDRAD,YDRAD,XCPMM,YCPMM,
      &       DIMXPROT,DIMYPROT,XLIMPROT,YLIMPROT,
@@ -220,7 +220,7 @@
      +                    MIRPHILD(2),   !mirror phi limits for DRAWING
      +                    MIRPHILG(2)   !mirror phi limits for GEOMETRY check
 
-        !$OMP THREADPRIVATE (/patprotoc/)
+!$OMP THREADPRIVATE (/patprotoc/)
 
         INTEGER NBPMTX,NBPMTY
         PARAMETER(NBPMTX=10,NBPMTY=11)
@@ -235,7 +235,7 @@
      +                    nonpmt,
      +                    ionpmt(110),
      +                    ipmtstat(nbpmtlip)
-       !$OMP THREADPRIVATE (/pmtprotoc/)
+!$OMP THREADPRIVATE (/pmtprotoc/)
 
 *****************************
 *** CODE FROM richdat.inc ***
@@ -257,7 +257,7 @@
      +         hitstat(nbhitsmax)     ! hit status flag:
                                       !    0 = good
                                       !    1 = TB2002 bad
-       !$OMP THREADPRIVATE (/richdatc/)
+!$OMP THREADPRIVATE (/richdatc/)
 *****************************
 *** CODE FROM richtrk.inc ***
 *****************************
@@ -288,7 +288,7 @@ C ... Track information (be used in reconstructions)
                                         ! to optimized depth (1.8cm below RP)
      +                  pcoopmtoptradius ! part point extrap@PMT radius
 
-       !$OMP THREADPRIVATE (/richparc/)
+!$OMP THREADPRIVATE (/richparc/)
 C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 *     -------------------------------------------------------------------
       real pcoopmtopthint
@@ -300,7 +300,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
                                            !          in this common
      +                  pcoopmtopthint(3)  ! particle point hint @PMT from
                                            ! LG signals
-       !$OMP THREADPRIVATE (/rec5parc/)
+!$OMP THREADPRIVATE (/rec5parc/)
 
 *****************************
 *** CODE FROM richrec.inc ***
@@ -322,7 +322,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +         nmirefhit,  ! nb of mirror reflections of current hit
      +         msechit     ! mirror sector of reflected hit
 
-       !$OMP THREADPRIVATE (/cerwrkc1/)
+!$OMP THREADPRIVATE (/cerwrkc1/)
         real pcervtx,refindex,clari
         character chradid*3
 
@@ -332,7 +332,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +         refindex,   ! current refractive index
      +         chradid     ! current radiator name
 
-       !$OMP THREADPRIVATE (/cerwrkc2/)
+!$OMP THREADPRIVATE (/cerwrkc2/)
         real cangrecup, cangreclow, cang1, cang2
         INTEGER nhitscan, iphihintkind, iphihintflag
 
@@ -348,7 +348,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
                             !                  = 2 phi geometrical at thcmax (once)
      +         iphihintflag ! hit phi finding flag: = 0 no phi hint scanned yet
                             !                       = 1 phi hint scanned
-       !$OMP THREADPRIVATE (/cerlimc/)
+!$OMP THREADPRIVATE (/cerlimc/)
 * --------------------------------------------------------------------------
 * --- variables for cerenkov angle reconstruction (per event)
 * --------------------------------------------------------------------------
@@ -362,7 +362,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
       common /richauxc/ nbhits_nass,      ! nb hits non-associated to particle
      +                  ip_nass(nhitmax)  ! pointers to non-assoc to particle hits
 
-      !$OMP THREADPRIVATE (/richauxc/)
+!$OMP THREADPRIVATE (/richauxc/)
 * --- fit variables
       real chi2hit_fit,phihit_fit,chi2rec_fit
       integer nbushits_fit,ipushits_fit,nbminshit_fit,ireflechit_fit,
@@ -379,7 +379,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +                    ireflechit_fit(nhitmax),
      +                    imsechit_fit(nhitmax)
 
-       !$OMP THREADPRIVATE (/richfitc/)
+!$OMP THREADPRIVATE (/richfitc/)
 * --- beta reconstruction: final results
 
       integer ipthetac,ntherec,nbushits,
@@ -419,26 +419,26 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +         phihit(ntherecmax,nhitmax),     ! hit phi from chosen minimum
      +         cangrecdif(ntherecmax)          ! quality of minimum
 
-       !$OMP THREADPRIVATE (/richbetc/)
+!$OMP THREADPRIVATE (/richbetc/)
 
       common /richbetauxc/
      +         pkolmog(ntherecmax),            ! kolmogorov estimator for the
                                                ! azimuthal hit uniformity
      +         flatevt(2)                      ! event flatness (sin,cos)
 
-       !$OMP THREADPRIVATE (/richbetauxc/)
+!$OMP THREADPRIVATE (/richbetauxc/)
 
       common /chgprobres/
      +         chgtest1,chgtest2,chgtest3,     ! test charge values
      +         chgprob1,chgprob2,chgprob3      ! test charge probabilities
 
-       !$OMP THREADPRIVATE (/chgprobres/)
+!$OMP THREADPRIVATE (/chgprobres/)
 
 
       common /likeres/
      +         resvlike                        ! likelihood function value at minimum
 
-       !$OMP THREADPRIVATE (/likeres/)
+!$OMP THREADPRIVATE (/likeres/)
 * -----------------------------------------------------------------------
 * --- variables for cerenkov charge reconstruction (per event)
 * -----------------------------------------------------------------------
@@ -466,7 +466,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        chgrec_gapdir,    !
      +        chgrec_gapref     !
 
-      !$OMP THREADPRIVATE (/richchgc/)
+!$OMP THREADPRIVATE (/richchgc/)
       integer nphirmax
       parameter(NPHIRMAX=500)
 
@@ -492,7 +492,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richacc_msec1(nmaxmirsecc),  ! pattern acceptance by MIRROR SECTOR (2nd ref)
      +        richacc_gapmsec(nmaxmirsecc)  ! gap efficiency by MIRROR SECTOR
 
-       !$OMP THREADPRIVATE (/richaccg/)
+!$OMP THREADPRIVATE (/richaccg/)
 
        real richeff_rad, richeff_lg, richeff_dir, richeff_1rf,
      +      richeff_2rf, richeff_tot,richeff_pni, richeff_avz,
@@ -515,7 +515,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richeff_msec1(nmaxmirsecc),  ! efficiency for each mirror sector (2nd ref)
      +        richeff_msec_gap(nmaxmirsecc)  ! eff by mir sect with gap effect
 
-       !$OMP THREADPRIVATE (/richeffc/)
+!$OMP THREADPRIVATE (/richeffc/)
 
       real richerwdir,richerwref,richerwmsec
 
@@ -524,14 +524,14 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richarwref,      ! acc in radiator poron walls (reflected branch)
      +        richarwmsec(nmaxmirsec) ! acc in radiator poron walls (ref branch by mirror sector)
 
-       !$OMP THREADPRIVATE (/richaccrwall/)
+!$OMP THREADPRIVATE (/richaccrwall/)
 
 	real a_beta, b_beta
 
        common /richbetawidthc/
      +        a_beta,           ! statistical uncertainty for beta
      +        b_beta            ! systematic uncertainty for beta
-       !$OMP THREADPRIVATE (/richbetawidthc/)
+!$OMP THREADPRIVATE (/richbetawidthc/)
 
 ****************************
 *** CODE FROM matrix.inc ***
@@ -541,10 +541,10 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
       real figrotm(3,3)
 
       common /matrixf/ irotflg
-      !$OMP THREADPRIVATE (/matrixf/)
+!$OMP THREADPRIVATE (/matrixf/)
 
       common /matrixc/ figrotm
-      !$OMP THREADPRIVATE (/matrixc/)
+!$OMP THREADPRIVATE (/matrixc/)
 C      data irotflg /0/
 
 
@@ -580,7 +580,7 @@ C      data irotflg /0/
      + HITRESMAX, !Residue cut to reject hits used in reconstruction
      + CHGWIN     !Charge window association width (cm)
 
-      !$OMP THREADPRIVATE (/liprecparc/)
+!$OMP THREADPRIVATE (/liprecparc/)
 *********************************
 *** CODE FROM richrec5par.inc ***
 *********************************
@@ -602,7 +602,7 @@ C      data irotflg /0/
                                          !vparer(3)=error in y coord at matrix, correct LG depth
                                          !vparer(4)=error in x coord at top of radiator
                                          !vparer(5)=error in y coord at top of radiator
-       !$OMP THREADPRIVATE (/richrec5parc/)
+!$OMP THREADPRIVATE (/richrec5parc/)
 *******************************************
 *** NEW CODE: TOF reconstruction result ***
 *******************************************
@@ -634,7 +634,7 @@ C      data irotflg /0/
      +                  pphi_rectof,             ! rec phi
      +                  epphi_rectof             ! error in rec phi
 
-       !$OMP THREADPRIVATE (/rtofdata/)
+!$OMP THREADPRIVATE (/rtofdata/)
 **************************************************
 *** NEW CODE: standalone reconstruction result ***
 **************************************************
@@ -667,7 +667,7 @@ C      data irotflg /0/
      +                  epphi_recstd             ! error in rec phi
 
 
-       !$OMP THREADPRIVATE (/rstddata/)
+!$OMP THREADPRIVATE (/rstddata/)
 ********************************************
 *** NEW CODE: standalone grid parameters ***
 ********************************************
@@ -688,7 +688,7 @@ C      data irotflg /0/
      +                    herrtop,       ! initial perturbation in radiator x/y coords
      +                    herrbot        ! initial perturbation in matrix x/y coords
 
-       !$OMP THREADPRIVATE (/stdgridpar/)
+!$OMP THREADPRIVATE (/stdgridpar/)
 *****************************************
 *** NEW CODE: standalone hint details ***
 *****************************************
@@ -728,7 +728,7 @@ C      data irotflg /0/
      +                 candrkhint,      ! rank of pointers to candidate hints
      +                 candrkfit        ! rank of pointers to candidate fits
 
-       !$OMP THREADPRIVATE (/stdhint/)
+!$OMP THREADPRIVATE (/stdhint/)
 **************************************************************
 *** NEW CODE: standalone reconstruction details for saving ***
 **************************************************************
@@ -751,7 +751,7 @@ C      data irotflg /0/
      +                 crecpkol	       ! Kolmogorov probability
 
 
-      !$OMP THREADPRIVATE (/rstddet/)
+!$OMP THREADPRIVATE (/rstddet/)
 
 ***************************************************************************
 *** NEW CODE: alternative velocity reconstruction (added December 2011) ***
@@ -780,7 +780,7 @@ C      data irotflg /0/
      +                 chideriv(nhitmax,nchizeromax),
      +                 thcres,
      +                 d2loglike
-      !$OMP THREADPRIVATE (/richraltres/)
+!$OMP THREADPRIVATE (/richraltres/)
 
       real facthcminscanagl,facthcmaxscanagl,
      +     facthcminscannaf,facthcmaxscannaf,
@@ -804,7 +804,7 @@ C      data irotflg /0/
      +                 dvmaxnaf,
      +                 tollinagl,
      +                 tollinnaf
-      !$OMP THREADPRIVATE (/richraltpar/)
+!$OMP THREADPRIVATE (/richraltpar/)
 
 ************************************************************************
 *** NEW CODE: PMT-by-PMT acceptance calculation (added April 2012)   ***
@@ -837,7 +837,7 @@ C      data irotflg /0/
      +		  ipmtneigh(nringscanmax,9),
      +		  pmtsmfrac(nringscanmax,9),
      +		  pixsmfrac(nringscanmax,9,16)
-      !$OMP THREADPRIVATE (/richrspoint/)
+!$OMP THREADPRIVATE (/richrspoint/)
 
       integer ipmttouch_withgap,ipmttouch_nogap,ipmttouch_smear,
      +        ipixtouch_smear
@@ -1228,7 +1228,7 @@ C      data irotflg /0/
      +		  sumeffbypix_ref1ms_smear(nmaxmirsec),
      +		  sumeffbypix_ref2_smear,
      +		  sumeffbypix_ref2ms_smear(nmaxmirsec)
-      !$OMP THREADPRIVATE (/richrstotal/)
+!$OMP THREADPRIVATE (/richrstotal/)
 
       integer nringseg_withgap,ipmtringseg_withgap,irefringseg_withgap,
      +        nringseg_nogap,ipmtringseg_nogap,irefringseg_nogap,
@@ -1261,4 +1261,4 @@ C      data irotflg /0/
      +		  irefringsegpix_smear(nringsegpixmax),
      +		  angringsegpix_smear(nringsegpixmax,2),
      +		  effringsegpix_smear(nringsegpixmax,3)
-      !$OMP THREADPRIVATE (/richrsres/)
+!$OMP THREADPRIVATE (/richrsres/)
