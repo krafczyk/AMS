@@ -15,7 +15,6 @@
 using namespace AMSChargConst;
 //
 TOF2Varp TOF2Varp::tofvpar; // mem.reserv. TOF general parameters 
-TofSlowTemp TofSlowTemp::tofstemp; // mem.reserv. TOF slow temperatures 
 TOF2Brcal TOF2Brcal::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// mem.reserv. TOF indiv.bar param.
 uinteger TOF2Brcal::CFlistC[11]; 
 TOFBrcalMS TOFBrcalMS::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// the same for "MC Seeds" 
@@ -3684,100 +3683,6 @@ void TOF2JobStat::outpmc(){
          HPRINT(1080);
 //         if(TFCAFFKEY.mcainc)TOF2Tovt::aintfit();
        }
-}
-//==========================================================================
-int TofSlowTemp::gettempC(int crat, int slot, geant & atemp){
-//crat=0-3,slot=0-10
-//make average of 2 SFEC-sensors corresponding to my slots 8,9 or 10,11
-// return 1/0->ok/fail
-  #ifdef __AMSDEBUG__
-    if(TOF2DBc::debug){
-        assert(crat>=0 && crat<=3);
-        assert(slot==7 || slot==8 || slot==9 || slot==10);
-    }
-  #endif
-  geant temp;
-  atemp=0;
-  int sensid,sid1(0),sid2(0),cr,sl,stat,nmem(0);
-  cr=crat+1;
-  sl=slot+1;
-  sid1=cr*100+sl;
-  if(sl==8 || sl==10)sid2=cr*100+sl+1;
-  if(sl==9 || sl==11)sid2=cr*100+sl-1;
-  for(int l=0;l<TOF2GC::SCLRS;l++){
-    for(int c=0;c<2;c++){
-      for(int n=0;n<8;n++){
-        sensid=AMSSCIds::getenvsensid(l,c,n);
-	if(sensid>411)continue;//look for CSS
-	temp=_stemp[l][n+8*c];
-	stat=_sta[l][n+8*c];
-	if((sensid==sid1 || sensid==sid2) && stat==1){
-	  nmem+=1;
-	  atemp+=temp;
-	}
-      }
-    } 
-  }
-  if(nmem>0){
-    atemp/=geant(nmem);
-    return 1;
-  }
-  else return 0; 
-}
-//---------------------------
-int TofSlowTemp::gettempP(int lay, int sid, geant & atemp){
-//make average over all sensors in L**S (max 2*3)
-// return 1/0->ok/fail
-  #ifdef __AMSDEBUG__
-    if(TOF2DBc::debug){
-        assert(lay>=0 && lay<TOF2GC::SCLRS);
-	assert(sid>=0 && sid<=1);
-    }
-  #endif
-  geant temp;
-  atemp=0;
-  int sensid,ssid,sd,stat,nmem(0);
-  sd=sid+1;
-//
-  for(int c=0;c<2;c++){
-    for(int n=0;n<8;n++){
-      sensid=AMSSCIds::getenvsensid(lay,c,n);
-      if(sensid<10111)continue;//look for LBBSP
-      ssid=(sensid%100)/10;//side
-      temp=_stemp[lay][n+8*c];
-      stat=_sta[lay][n+8*c];
-      if(ssid==sd && stat==1){
-	nmem+=1;
-	atemp+=temp;
-      }
-    }
-  }
-// 
-  if(nmem>0){
-    atemp/=geant(nmem);
-    return 1;
-  }
-  else return 0; 
-}
-//---------------------------
-void TofSlowTemp::init(){
-//set defs for temp/stat
-  int id;
-  for(int l=0;l<TOF2GC::SCLRS;l++){
-    for(int c=0;c<2;c++){
-      for(int n=0;n<8;n++){
-        id=AMSSCIds::getenvsensid(l,c,n);//CSS or LBBSP
-        if(id<500){//CSS
-	  _stemp[l][n+8*c]=999;//undefined val for TempC
-	}
-	else{//LBBSPM
-	  _stemp[l][n+8*c]=999;//undefined val for TempP
-	}
-	_sta[l][n+8*c]=1;//sensor ok
-      }
-    } 
-  }
-  
 }
 //==========================================================================
 void TOF2Varp::init(geant daqth[5], geant cuts[10]){

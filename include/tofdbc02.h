@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.51 2011/03/22 11:20:58 choumilo Exp $
+//  $Id$
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -138,28 +138,6 @@ public:
 //  
   static integer debug;
 };
-//===================================================================
-// 
-// --------------> Class for TOF2 slow temperature data :
-class TofSlowTemp {
-  private:
-    geant _stemp[TOF2GC::SCLRS][16];//2*8(chain A->B) sensors temperatures
-    uinteger _sta[TOF2GC::SCLRS][16];//2*8 sensors status (0/1->bad/ok)
-  public:
-    static TofSlowTemp tofstemp; 
-  TofSlowTemp(){};
-// member functions :
-//lay=0,3;side=0,1;sen=0,7;chain=0,1->A,B.
-  geant gettemp(int lay, int sen, int chain){return _stemp[lay][sen+8*chain];}
-  uinteger getsta(int lay, int sen, int chain){return _sta[lay][sen+8*chain];}
-  void settemp(int lay, int sen, int chain, geant temp){_stemp[lay][sen+8*chain]=temp;}
-  void setsta(int lay, int sen, int chain, uinteger sta){_sta[lay][sen+8*chain]=sta;}
-  int gettempC(int crat, int slot, geant & atemp);//average(over 2 sensors) SFEC-card temper
-// (return 1/0->ok/fail)
-  int gettempP(int lay, int side, geant & atemp);//average(over  
-//"PM"-sensors(2*3) in layer/side of TOF-plane envelop) temper, return 1/0->ok/fail
-  void init(); 
-};  
 //===================================================================
 // 
 // --------------> Class for general "time-Variable"  parameters :
