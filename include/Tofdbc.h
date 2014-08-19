@@ -318,7 +318,7 @@ class TofTDVTool{
    int   TDVSize;
    int   TDVParN;
    T1*   TDVBlock;//
-   char *TDVName;
+   const char *TDVName;
    bool  Isload;//has load or not
    int   BRun;//begin run id
    int   ERun;//end   run id

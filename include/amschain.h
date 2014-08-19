@@ -95,7 +95,7 @@ AddFromfile(rootfilelist,beg,end,-1,0,pattern);
 in this case the files will be prestaged if on castor but actual try will be done during runtime.  In case files are unaccessible by any reason, they will be bypassed and their names will be written in file_beg_end_RUNTIMETNOUT so can be reused for the subsequent attempt
 
  */
-  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, int stagedonly=-1,unsigned int timeout=0,char *pattern=0);
+  int AddFromFile(const char* rootfilelist,int beg=0,int end=INT_MAX, int stagedonly=-1,unsigned int timeout=0,const char *pattern=0);
   /// Get number of TFiles in  a text file 
   int ValidateFromFile(const char* rootfilelist,bool stage=false);
 
@@ -141,10 +141,10 @@ in this case the files will be prestaged if on castor but actual try will be don
   const char* ChainName(){return _NAME;} 
   
   ///Load the user event selection function compiling the selected ile
-  int  LoadUF(char* fname="AMSNtupleSelect.C");
+  int  LoadUF(const char* fname="AMSNtupleSelect.C");
   
   /// Generate a skeleton to be used as  user event selection function
-  int GenUFSkel(char* fname="AMSNtupleSelect.C");
+  int GenUFSkel(const char* fname="AMSNtupleSelect.C");
 
   /// Opens the file to output selected events
   int OpenOutputFile(const char* filename);
@@ -209,7 +209,7 @@ public:
   int GetRun(int i); ///<Retrieve run  number for entry ith in the list
   int GetEvent(int i); ///<Retrieve event number for entry ith in the list
 
-  int ExtractFromDirs(char* dirlistfile);
+  int ExtractFromDirs(const char* dirlistfile);
   ClassDef(AMSEventList,3)       //AMSEventList
 #pragma omp threadprivate(fgIsA)
     };

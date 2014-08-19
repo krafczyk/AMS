@@ -543,7 +543,7 @@ void AMSEventR::hfit1(int id, char func[],double xmin, double xmax){
   }
 }
 
-void AMSEventR::hprint(int idd, char opt[]){
+void AMSEventR::hprint(int idd, const char opt[]){
   AMSID id(idd,Dir);
   Service::hb1i i1=Service::hb1.find(id);
   if(i1 != Service::hb1.end()){
@@ -570,7 +570,7 @@ bool AMSEventR::Status(unsigned int bit){
   if(bit<64)return (fStatus & (1<<bit));
   else return false;
 }
-void AMSEventR::hlist(char ptit[]){
+void AMSEventR::hlist(const char ptit[]){
   for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
     if(strlen(ptit)<1 || strstr(i->second->GetTitle(),ptit))cout<<" 1D "<<i->first<<" "<<i->second->GetTitle()<<endl;
   }
@@ -1743,7 +1743,7 @@ int AMSEventR::_Entry=-1;
 unsigned long long  AMSEventR::_Lock=0;
 int AMSEventR::_EntrySetup=-1;
 AMSEventR::MY_TLS_ITEM  AMSEventR::_RunSetup;
-char* AMSEventR::_Name="ev.";   
+const char* AMSEventR::_Name="ev.";   
 
 // Calibration correction modes
 int RichRingR::shouldLoadCorrection=RichRingR::tileCorrection;
@@ -10954,7 +10954,7 @@ if(!_TreeSetup)return 2;
 }
 
 
-bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger run){
+bool AMSEventR::InitSetup(TFile *_FILE, const char *name,uinteger run){
   if (ProcessSetup<0) return false;
 static int master=0;
 bool suc=false;
@@ -11029,7 +11029,7 @@ master=1;
 return suc;
 }
 
-int AMSEventR::GetSlowControlData(char *en, vector<float>&v, int method){
+int AMSEventR::GetSlowControlData(const char* en, vector<float>&v, int method){
 if(!getsetup()) {
   return -2;
 }

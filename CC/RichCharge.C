@@ -1350,7 +1350,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
   /////////////////////////////////////
 
   // Rich Tag Dirs
-  char *dName[NTAG] = {
+  const char *dName[NTAG] = {
     "RunClassifierJ", "RunClassifierJHK",
     "RunClassifierR", "RunClassifierRHK"
   };
@@ -1654,7 +1654,7 @@ unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_
   /////////////////////////////////////
 
   // Rich Tag Files
-  char *fName[NTAG] = {
+  const char *fName[NTAG] = {
     "RunClassifierJ_merged.txt", "RunClassifierJHK_merged.txt",
     "RunClassifierR_merged.txt", "RunClassifierRHK_merged.txt"
   };

@@ -43,7 +43,7 @@ float TrExtAlignDB::Sofs2[12]={0,         0, 3.7e-4, 6.0e-4,
 
 
 
-void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,char* CIEMAT_name){
+void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,const char* CIEMAT_name){
 /*
   TrExtAlignDB::ForceFromTDV=1;
   TkDBc::ForceFromTDV=1;

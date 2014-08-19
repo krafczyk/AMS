@@ -449,7 +449,7 @@ int TrdHChargeR::readSpecificTDV(string which,unsigned int t, int debug){
   return error;
 }
 
-int TrdHChargeR::initAllTDV(unsigned int bgtime, unsigned int edtime, int type,char * databasedirname){
+int TrdHChargeR::initAllTDV(unsigned int bgtime, unsigned int edtime, int type,const char * databasedirname){
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
@@ -503,7 +503,7 @@ int TrdHChargeR::initAllTDV(unsigned int bgtime, unsigned int edtime, int type,c
 }
 
 // write calibration to TDV
-int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug, char * databasedirname){
+int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug, const char * databasedirname){
   if( !FillTDVFromPDFs() ){
     cout<<"TrdHChargeR::writeAllTDV-W-FillTDVFromMedian returned error"<<endl;
     return 1;
@@ -544,7 +544,7 @@ int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug
   return 0;
 };
 
-int TrdHChargeR::writeSpecificTDV(string which,unsigned int bgtime, unsigned int edtime, int debug, char * databasedirname){
+int TrdHChargeR::writeSpecificTDV(string which,unsigned int bgtime, unsigned int edtime, int debug, const char * databasedirname){
   time_t begin,end,insert;
   
   bool ok=true;
@@ -579,7 +579,7 @@ int TrdHChargeR::writeSpecificTDV(string which,unsigned int bgtime, unsigned int
   return ok;
 };
 
-int TrdHChargeR::Initialize(AMSEventR* pev, char *databasedir){
+int TrdHChargeR::Initialize(AMSEventR* pev, const char *databasedir){
   if(lastrun!=pev->Run()){
     int bgntime=pev->Run();
     int endtime=pev->Run()+10;

@@ -91,7 +91,7 @@ bool TofTrack::DropHit(int ii) {
 }
 
 
-char* PlaneName[2] = {"UTOF", "LTOF"};
+const char* PlaneName[2] = {"UTOF", "LTOF"};
 void TofTrack::Print(int verbosity) {
   // general infos
   printf("TofTrack::Print-V nHhits %1d   Theta %8.5f   Phi %8.5f   Beta %8.5f   Chi2T %7.2f   Chi2XY %7.2f   Mean (%7.5f,%7.5f)   RelErr (%7.5f,%7.5f)   N (%1d,%1d)\n",

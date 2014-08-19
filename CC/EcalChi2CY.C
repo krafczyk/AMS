@@ -11,7 +11,7 @@ EcalPDF::EcalPDF(const char* fdatabase){
         init(fdatabase);
 }
 EcalPDF::EcalPDF(){
-    char* amsdatadir=getenv("AMSDataDir");
+    const char* amsdatadir=getenv("AMSDataDir");
     string tempname ;
     if(!amsdatadir)
         amsdatadir="/afs/cern.ch/ams/Offline/AMSDataDir/";
@@ -717,7 +717,7 @@ double EcalPDF::nns(TH2D* hsig,TH2D* hbkg,double range,double x,double y,double 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int EcalChi2::Version=2         ;
 EcalChi2::EcalChi2(int ftype){
-    char* amsdatadir=getenv("AMSDataDir");
+    const char* amsdatadir=getenv("AMSDataDir");
     string tempname;
     if(!amsdatadir)
         amsdatadir="/afs/cern.ch/ams/Offline/AMSDataDir/";
@@ -1314,7 +1314,7 @@ int EcalAxis::algorithmHasCalculated=0	  ;
 float EcalAxis::d0Cached[5][3]		  ;
 float EcalAxis::p0Cached[5][3]		  ;
 EcalAxis::EcalAxis(int ftype){
-    char* amsdatadir=getenv("AMSDataDir");
+    const char* amsdatadir=getenv("AMSDataDir");
     string tempname;
     if(!amsdatadir)
         amsdatadir="/afs/cern.ch/ams/Offline/AMSDataDir/";

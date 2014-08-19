@@ -1,4 +1,4 @@
-//  $Id: TkObject.C,v 1.6 2011/09/27 23:50:03 pzuccon Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2011/09/27 23:50:03 $
+///$Date$
 ///
-///$Revision: 1.6 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -21,7 +21,7 @@
 
 ClassImp(TkObject);
 
-TkObject::TkObject(char* namein){
+TkObject::TkObject(const char* namein){
   sprintf(name,"%s",namein);
   pos=0;
   rot.Reset();
@@ -34,7 +34,7 @@ TkObject::TkObject(char* namein){
 }
 
 
-TkObject::TkObject(char* namein,AMSPoint posin,AMSRotMat rotin){
+TkObject::TkObject(const char* namein,AMSPoint posin,AMSRotMat rotin){
 
   sprintf(name,"%s",namein);
   pos=posin;

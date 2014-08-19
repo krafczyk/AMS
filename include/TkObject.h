@@ -1,4 +1,4 @@
-// $Id: TkObject.h,v 1.7 2012/05/07 09:02:35 pzuccon Exp $
+// $Id$
 
 #ifndef __TkObject__
 #define __TkObject__
@@ -22,9 +22,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2012/05/07 09:02:35 $
+///$Date$
 ///
-///$Revision: 1.7 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -72,9 +72,9 @@ protected:
 
 public:
   //! explicit constructor
-  TkObject(char* namein,AMSPoint posin,AMSRotMat rotin);
+  TkObject(const char* namein,AMSPoint posin,AMSRotMat rotin);
   //! Standard constructor. It sets the position to (0,0,0) and rotmat to the identy matrix
-  TkObject(char* namein="");
+  TkObject(const char* namein="");
   //! The destructor
   virtual ~TkObject(){}
 

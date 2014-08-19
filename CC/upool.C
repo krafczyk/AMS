@@ -99,7 +99,7 @@ void AMSuPool::erase(integer tol){
   _lc=0;
 }
 
-AMSuPoolError::AMSuPoolError(char * name){
+AMSuPoolError::AMSuPoolError(const char* name){
   if(name){
     integer n=strlen(name)+1;
     if(n>255)n=255;

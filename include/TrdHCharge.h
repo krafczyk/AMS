@@ -117,16 +117,16 @@ class TrdHChargeR{
   int CreateBins(int decades=3, int base=1, int binsperdecade=10 );
   
   /// Initialization for event analysis 
-  int Initialize(AMSEventR* ev, char *databasedir="");
+  int Initialize(AMSEventR* ev, const char *databasedir="");
 
   /// Initialize interfaces to TDV for ALL Containers
-  int initAllTDV(unsigned int bgtime, unsigned int edtime, int type,char *databasedir="");
+  int initAllTDV(unsigned int bgtime, unsigned int edtime, int type,const char *databasedir="");
 
   /// Write ALL available TDV interfaces (loaded by Init*) to TDV at 'databasedir'
-  int writeAllTDV(unsigned int begin, unsigned int end,int debug=0,char *databasedir="");
+  int writeAllTDV(unsigned int begin, unsigned int end,int debug=0,const char *databasedir="");
   
   /// Write single TDV interface 'which' (loaded by Init*) to TDV at 'databasedir'
-  int writeSpecificTDV(string which,unsigned int begin, unsigned int end,int debug=0,char *databasedir="");
+  int writeSpecificTDV(string which,unsigned int begin, unsigned int end,int debug=0,const char *databasedir="");
   
   /// Read ALL loaded TDV interfaces for time 't'
   int readAllTDV(unsigned int t, int debug=0);

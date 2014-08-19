@@ -372,14 +372,14 @@ public:
   //!  Read the sensor alignement data from a file with a format "tkid sx[0-14] sy[0-14]"
   int readAlignmentSensor(const char* filename, int pri=0);
   //! Special function to load PG local external alignment from Files
-  int LoadPGExtAlign(char *ff="PGExtLocalAlign.txt"){
+  int LoadPGExtAlign(const char *ff="PGExtLocalAlign.txt"){
     return LoadExtLocalAlign(ff,0);
   }
   //! Special function to load PG local external alignment from Files
-  int LoadMDExtAlign(char *ff="MDExtLocalAlign.txt"){
+  int LoadMDExtAlign(const char *ff="MDExtLocalAlign.txt"){
     return LoadExtLocalAlign(ff,1);
   }  
-  int LoadExtLocalAlign(char *fname, int type,int pri=0);
+  int LoadExtLocalAlign(const char *fname, int type,int pri=0);
   
   
   //! Returns the number of active planes
