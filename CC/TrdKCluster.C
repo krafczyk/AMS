@@ -1874,6 +1874,21 @@ void TrdKCluster::GetNearTrackHit(int& nhits, float & amp, const AMSPoint* P0, c
 
 /////////////////////////////////////////////////////////////////////
 
+void TrdKCluster::GetTotalPathlength(float& pathlength, const AMSPoint* P0, const AMSDir* Dir, float threshold) const {
+    pathlength = 0.;
+    for(int i=0;i<TrdHCalibR::n_tubes;++i){
+        const TrdKHit *hit=GetConstHit(i);
+        float path=fabs(hit->Tube_Track_3DLength(P0,Dir));
+        float Amp=hit->TRDHit_Amp;
+        if(Amp > threshold && path != 0.){
+	    pathlength += path;
+        }
+    }
+    return;
+}
+
+/////////////////////////////////////////////////////////////////////
+
 int TrdKCluster::GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir) const {
 
     if(!HasTRDTrack){

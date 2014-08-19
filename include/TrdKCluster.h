@@ -233,6 +233,9 @@ public:
     void GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.) const;
     void GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.) const;
 
+    // Total pathlength
+    void GetTotalPathlength(float& pathlength, const AMSPoint* P0, const AMSDir* Dir, float threshold = -1.) const;
+
     // Get Refitted TRD Track, accroding to the latest refit
     int GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir) const;
 
