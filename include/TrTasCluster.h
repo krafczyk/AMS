@@ -6,9 +6,9 @@
 //////////////////////////////////////////////////////////////////////////
 ///
 ///\file  TrTasCluster.h
-///\brief Header file of TrTasCluster class
+///\brief Header file of TrTasClusterR class
 ///
-///\class TrTasCluster
+///\class TrTasClusterR
 ///\brief TAS cluster
 ///\ingroup tkrec
 ///

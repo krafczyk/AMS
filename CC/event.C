@@ -785,7 +785,7 @@ void AMSEvent::_regnevent(){
     integer chint;
     if(_time < ArrayB[hintb].Time){
      chint=hintb-1;
-     if(chint<0)cerr<<"BeamTime-S-LogicError-chint<0 "<<_time<<" "<< ArrayB[hintb].Time<<endl;
+     if(chint<0) { cerr<<"BeamTime-S-LogicError-chint<0 "<<_time<<" "<< ArrayB[hintb].Time<<endl; chint = 0; }
     }
     else chint=hintb;
      // check the runtag
