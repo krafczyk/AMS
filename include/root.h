@@ -4001,7 +4001,7 @@ static bool RunTypeSelected(unsigned int runtype);
 
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
-bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
+bool InitSetup(TFile* file,const char *name, uinteger time); ///< Load AMSRootSetup Tree
 bool UpdateSetup(uinteger run);  ///< Update RootSetup for the new Run
 int  GetSetup(uinteger entry);   ///< Update RootSetup for the entry 
 const char * GetCurrentFileName(bool setup=false);
@@ -4171,7 +4171,7 @@ struct MY_TLS_ITEM{
 };
 
 static MY_TLS_ITEM _RunSetup;
-static char      * _Name;
+static const char * _Name;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(_Tree,_Entry,_Head)
 #pragma omp threadprivate(_TreeSetup,_EntrySetup,_RunSetup)
@@ -4180,7 +4180,7 @@ public:
 static unsigned long long & Lock(){return
 _Lock;}
  static AMSEventR* & Head()  {return _Head;}
- static char *  BranchName() {return _Name;}
+ static const char *  BranchName() {return _Name;}
 // void SetBranchA(TTree *tree);   // don;t use it anymore use Init
 
 
@@ -4211,10 +4211,10 @@ static  TH2D *h2(int id);
 static  TProfile *hp(int id);
 /// print histogram (eg from root session)
 /// AMSEventR::hprint(id,"same");
-static  void hprint(int id, char opt[]="");
+static  void hprint(int id, const char opt[]="");
 /// list histos with title contains ptit or all if ptit==""
 /// AMSEventR::hlist("xyz");
-static  void hlist(char ptit[]="");
+static  void hlist(const char ptit[]="");
 /// reset histogram by  id or all if id==0
 static  void hreset(int id);
 /// scale histogram id content by fac
@@ -4810,7 +4810,7 @@ int GetTDVEl(const string & tdvname,unsigned int index, if_t &value);
           return -2  if no instance of AMSSetupR found
 
         */
-int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
+int GetSlowControlData(const char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
 
 float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers map return -1 if error
 

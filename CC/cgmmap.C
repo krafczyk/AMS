@@ -54,7 +54,7 @@ int CGMmap::GetCGM(double lat,double lon,double &clat,double &clon){
 
 
 
-void CGMmap::Read(char *fnam){
+void CGMmap::Read(const char *fnam){
   FILE* ff=fopen(fnam,"r");
   if(!ff) return;
   int nread=0;

@@ -96,13 +96,13 @@ class TrdHCalibR{
   double bgval(float x,float dE);
   double bgcorr(float x,float dE);
   TF1 *bgfunc(float x);
-  int bgmap(char* fname="fitfile.txt");
+  int bgmap(const char* fname="fitfile.txt");
   int bgmap(int opt);
 
   double pathval(float x,float dE);
   double pathcorr(float x,float dE);
   TF1 *pathfunc(float x);
-  int pathmap(char* fname="fitfile.txt");
+  int pathmap(const char* fname="fitfile.txt");
   int pathmap(int opt);
 
   float additional_modcorr(int mod);
@@ -242,22 +242,22 @@ class TrdHCalibR{
   int FillTDVFromMedian(int debug=0);
   
   /// Initialization for event analysis 
-  int Initialize(AMSEventR* ev, char *databasedir=""); 
+  int Initialize(AMSEventR* ev, const char *databasedir=""); 
   
   /// Initialize interfaces to TDV for ALL Containers TRDPedestals, TRDSigmas, TRDGains, TRDStatus (,TRDMCGains)
-  bool InitTDV(unsigned int bgtime, unsigned int edtime, int type,char *databasedir="");
+  bool InitTDV(unsigned int bgtime, unsigned int edtime, int type,const char *databasedir="");
   
   /// Initialize single interface to TDV for 'which' Container (float values) - e.g. TRDGains
-  bool InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,char *databasedir="");
+  bool InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,const char *databasedir="");
   
   /// Initialize single interface to TDV for 'which' Container (unsigned int values) - esp. TRDStatus
-  bool InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,char *databasedir="");
+  bool InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,const char *databasedir="");
   
   /// Write ALL available TDV interfaces (loaded by Init*) to TDV at 'databasedir'
-  int writeTDV(unsigned int begin, unsigned int end,int debug=0, char *databasedir="");
+  int writeTDV(unsigned int begin, unsigned int end,int debug=0, const char *databasedir="");
   
   /// Write single TDV interface 'which' (loaded by Init*) to TDV at 'databasedir'
-  int writeSpecificTDV(string which,unsigned int insert,unsigned int begin, unsigned int end,int debug=0, char *databasedir="");
+  int writeSpecificTDV(string which,unsigned int insert,unsigned int begin, unsigned int end,int debug=0, const char *databasedir="");
   
   /// Read ALL loaded TDV interfaces for time 't'
   bool readTDV(unsigned int t, int debug=0);

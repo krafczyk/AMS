@@ -1068,7 +1068,7 @@ void TkDBc::GetLayerRot(int lay, number nrm[][3]){
   return;
 }
 
-int TkDBc::LoadExtLocalAlign(char *fname, int type,int pri){
+int TkDBc::LoadExtLocalAlign(const char *fname, int type,int pri){
   static int wcount=0;
   static int firsttime[2]={1,1};
   if(type!=0) type=1;

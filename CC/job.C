@@ -2937,7 +2937,6 @@ void AMSJob::_retof2initjob(){
   // ===> some inits, common for reco/simu :
   //
   TOF2JobStat::clear();//Clear JOB-stat arrays, set fast temp. defaults=undefined(999) for SFET(A)(TempT)
-  TofSlowTemp::tofstemp.init(); // set default values for TOF slow temperatures(TempC,TempP)=undefined
   // formally def=undefined settings autom.provide true(TOF2Varp-based) def.value at valid-stage if some 
   //temper.data was not found !!! 
   //
@@ -4421,17 +4420,6 @@ void AMSJob::_timeinitjob(){
 
   }
 #endif
-  //---------------------------
-  {
-    // TOF Slow Temperature  data (some PMTs inside of TOF-envelops + SFEC)
-    if(isRealData()){
-      tm begin=AMSmceventg::Orbit.End;
-      tm end=AMSmceventg::Orbit.Begin;
-      TID.add (new AMSTimeID(AMSID("TofEnvelopsTemper",isRealData()),
-			     begin,end,
-			     sizeof(TofSlowTemp::tofstemp),(void*)&TofSlowTemp::tofstemp,server,0));
-    }  
-  }
   //-----------------------------
   {
     // Scaler Data

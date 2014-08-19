@@ -107,7 +107,7 @@ class AMSuPoolError{
 private:
   char msg[256];
 public:
-  AMSuPoolError(char * name);
+  AMSuPoolError(const char * name);
   char * getmessage();
 };
 

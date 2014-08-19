@@ -12,7 +12,7 @@ public:
   CGMmap(){}
   ~CGMmap(){}
   
-  void Read(char *fnam="map.txt");
+  void Read(const char *fnam="map.txt");
   /// Takes input geo (lat,long) and gives back CGM (clat,clon) all coo in deg
   static int GetCGM(double lat,double lon,double &clat,double &clon);
   static int GetCGMRad(double lat,double lon,double &clat,double &clon);

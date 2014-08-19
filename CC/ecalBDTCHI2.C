@@ -35,7 +35,7 @@ TMVA::Reader *ecalBDTCHI2readerS_E_v5_EVEN = NULL;  //uses GetCorrectedEnergy(2,
 const unsigned int nPIBCHI2VARs = 44;
 float piBCHI2normvar[nPIBCHI2VARs + 1];
 float piBCHI2inputvar[nPIBCHI2VARs + 1];
-char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
+const char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
 	 "ShowerMean",    "ShowerSigma",   "L2LFrac",       "R3cmFrac",      "S3totx",       "S3toty",
 	 "NEcalHits",     "ShowerFootprintX", "ShowerFootprintY",
 	 "LayerEneFrac0", "LayerEneFrac1", "LayerEneFrac2", "LayerEneFrac3", "LayerEneFrac4", "LayerEneFrac5",

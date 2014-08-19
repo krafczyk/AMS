@@ -43,7 +43,7 @@ float TrExtAlignDB::Sofs2[12]={0,         0, 3.7e-4, 6.0e-4,
 
 
 
-void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,char* CIEMAT_name){
+void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,const char* CIEMAT_name){
 /*
   TrExtAlignDB::ForceFromTDV=1;
   TkDBc::ForceFromTDV=1;
@@ -474,8 +474,11 @@ void TrExtAlignDB::SmearExtAlign()
   AMSEventR::GetRandArray(3375420, 1, 4, rd);
 #else
   for (int i = 0; i < 8; i++) rnd[i] = rnormx();
-   float d;  //do not initialize
-  for (int i = 0; i < 4; i++) rd[i] = RNDM(d);
+   float d(0); 
+  rd[0]=RNDM(d);
+  rd[1]=RNDM(d);
+  rd[2]=RNDM(d);
+  rd[3]=RNDM(d);
 #endif
 
 double s1[2]={7.5e-4,8.3e-4};

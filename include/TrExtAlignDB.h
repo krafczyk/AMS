@@ -390,7 +390,7 @@ public:
   static AMSPoint  GetAlDist(TrRecHitR *hit);
 
   // Force using the latest alignment fomr TDV
-  static void ForceLatestAlignmentFromTDV(int pgversion=2,char* CIEMAT_name="DynAlignmentV5T120628");
+  static void ForceLatestAlignmentFromTDV(int pgversion=2,const char* CIEMAT_name="DynAlignmentV5T120628");
 
 
   ClassDef(TrExtAlignDB,4);

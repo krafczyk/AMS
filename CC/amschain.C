@@ -393,7 +393,7 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
   
   return i;
 }
-int AMSChain::AddFromFile(const char *fname,int first,int last, int stagedonly,unsigned int timeout,char *pattern){
+int AMSChain::AddFromFile(const char* fname,int first,int last, int stagedonly,unsigned int timeout,const char *pattern){
   AMSEventR::fRequested.clear();
   sprintf(AMSEventR::filename,"%s_%06d_%06d_RUNTIMETMOUT",fname,first,last);
   ofstream  rejfile;
@@ -584,7 +584,7 @@ againeos:
 }
 
 
-int  AMSChain::LoadUF(char* fname){
+int  AMSChain::LoadUF(const char* fname){
   char cmd[200];
   char cmd1[200];
 	
@@ -1108,7 +1108,7 @@ void AMSEventList::Write(AMSChain* chain,const char * outfilename){
   return;
 };
 
-int AMSEventList::ExtractFromDirs(char* fname){
+int AMSEventList::ExtractFromDirs(const char* fname){
 
   vector<string> dirs;
   FILE* listfile = fopen(fname,"r");
@@ -1148,7 +1148,7 @@ int AMSEventList::ExtractFromDirs(char* fname){
 }
 
 
-int AMSChain::GenUFSkel(char* filename){
+int AMSChain::GenUFSkel(const char* filename){
   FILE*fname= fopen(filename,"w");
   if(!fname){
     printf("Problem opening new file %s\n",filename);

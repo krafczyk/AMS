@@ -1,4 +1,4 @@
-//  $Id: apool.h,v 1.16 2011/04/01 13:25:41 choutko Exp $
+//  $Id$
 // Author V. Choutko 19-jul-1996
  
 #ifndef __AMSAPOOL__
@@ -94,7 +94,7 @@ class AMSaPoolError{
 private:
   char msg[256];
 public:
-  AMSaPoolError(char * name);
+  AMSaPoolError(const char * name);
   char * getmessage();
 };
 

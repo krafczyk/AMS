@@ -33,7 +33,7 @@ TMVA::Reader *ecalpisareaderS_E_v7_EVEN = NULL;  //uses GetCorrectedEnergy(2,2) 
 const unsigned int nPISABDTVARs = 61;
 float pisanormvar[nPISABDTVARs + 1];
 float pisainputvar[nPISABDTVARs + 1];
-char *pisavarname[nPISABDTVARs + 1] = {
+const char *pisavarname[nPISABDTVARs + 1] = {
    "ShowerMean", "ShowerSigma",
    "L2LFrac", "R3cmFrac", "S3totx", "S3toty",
    "NEcalHits",

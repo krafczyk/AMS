@@ -192,20 +192,20 @@ class TofRecon {
    * - each single paddle has to be part of the tigger (LT and HT consistency)
    * - time consistency check (lenght of the paddle)
    */
-  static bool      GoodTofRawCluster(TofRawClusterR* tofcluster, Level1R* lvl1 = 0, char* add_name = "default");
+  static bool      GoodTofRawCluster(TofRawClusterR* tofcluster, Level1R* lvl1 = 0, const char* add_name = "default");
   //! Good TofCluster for reconstruction/analysis purposes (all the raw cluster belonging to TOF cluster should be good for GoodTofRawCluster)
-  static bool      GoodTofCluster(TofClusterR* tofcluster, Level1R* lvl1 = 0, char* add_name = "default");
+  static bool      GoodTofCluster(TofClusterR* tofcluster, Level1R* lvl1 = 0, const char* add_name = "default");
   //! Good TofCandidate for reconstruction/analysis purposes:
   /*!
    * No cuts if it is made by 1 cluster. If it is made by two clusters: 
    * - inside a minimum distance (parameters in datacard) 
    * - a good charge compatibility (parameters in datacard)
    */
-  static bool      GoodTofCandidate(TofCandidate* candidate, char* add_name = "default");
+  static bool      GoodTofCandidate(TofCandidate* candidate, const char* add_name = "default");
   //! Distance comparison between two TOF candidates
   static bool      CompareTofCandidateDistance(TofCandidate* a, TofCandidate* b) { return (a->GetDistance()<b->GetDistance()); }
   //! Good combination between two candidates (charge compatibility cut)
-  static bool      GoodTofCandidateCombination(TofCandidate* candidate1, TofCandidate* candidate2, char* add_name = "default");
+  static bool      GoodTofCandidateCombination(TofCandidate* candidate1, TofCandidate* candidate2, const char* add_name = "default");
   //! Loose selection for the last step of reconstruction (parameters in datacard)
   /*!
    *  - no error in the computation of TOF track standalone quantities
@@ -213,7 +213,7 @@ class TofRecon {
    *  - loose cut on spatial chisq2
    *  - loose cut on charge reconstruction relative error
    */
-  static bool      GoodTofTrackLooseSelection(TofTrack* tof_track, char* add_name = "default");
+  static bool      GoodTofTrackLooseSelection(TofTrack* tof_track, const char* add_name = "default");
   /**@}*/
 
 
@@ -248,17 +248,17 @@ class TofRecon {
     */
   /**@{*/
   //! 
-  static bool      GoodTofTrack(TofTrack* tof_track, Level1R* lvl1, char* add_name = "default"); 
+  static bool      GoodTofTrack(TofTrack* tof_track, Level1R* lvl1, const char* add_name = "default"); 
   //! Good TofClusters associated to TOF track (all clusters belonging to TofTrack should be good for GoodTofCluster)
-  static bool      GoodTofTrackClusters(TofTrack* tof_track, Level1R* lvl1 = 0, char* add_name = "default");
+  static bool      GoodTofTrackClusters(TofTrack* tof_track, Level1R* lvl1 = 0, const char* add_name = "default");
   //! 
-  static int       DropBadTofTrackClusters(TofTrack* tof_track, Level1R* lvl1 = 0, char* add_name = "default"); 
+  static int       DropBadTofTrackClusters(TofTrack* tof_track, Level1R* lvl1 = 0, const char* add_name = "default"); 
   //! Check if the TrTrack passes through all the TOF paddles (using the pathlength calculator of \c TofGeometry class) 
   static bool      IsInsidePaddles(TofTrack* tof_track, TrTrackR* trk_track, int id = 0);
   //!
   static int       DropOutsideTofTrackClusters(TofTrack* tof_track, TrTrackR* trk_track, int id = 0);
   //! Good match between TrTrack and TofTrack (based on cluster chisq wrt to the TrTrack interpolation)
-  static bool      GoodTofTrackTrTrackMatch(TofTrack* tof_track, TrTrackR* trk_track, int id = 0, char* add_name = "default");
+  static bool      GoodTofTrackTrTrackMatch(TofTrack* tof_track, TrTrackR* trk_track, int id = 0, const char* add_name = "default");
 
   //! Ask for a no FT before the last one (the one promoted to LVL1), inside a fiducial time window (from 1.04 mus up to 9 mus)    
   static bool      NoPreviousFT(AMSEventR* event, float time = 1.5 /*mus*/);
@@ -302,7 +302,7 @@ class TofRecon {
   //! Fill comparison plots of TOF track statistics with GBATCH Beta statistics 
   static void   FillComparisonBetweenBetaAndTofTrackStatistics(AMSEventR* event);
   //! Fill residual plots
-  static void   FillTofTrackResiduals(TofTrack* tof_track, char* add_name = "default");
+  static void   FillTofTrackResiduals(TofTrack* tof_track, const char* add_name = "default");
   /**@}*/
 
 
@@ -339,9 +339,9 @@ class TofRecon {
    *  This function will create an histogram on the TofRecon histogram manager
    *  and fills it with the passed values \c x and \c y.
    */ 
-  static void Histogram(char* name, char* title, int nxbin, float xmin, float xmax, int nybin, float ymin, float ymax, float x, float y);
+  static void Histogram(const char* name, const char* title, int nxbin, float xmin, float xmax, int nybin, float ymin, float ymax, float x, float y);
   //! Create/fill 1D histogram (maybe should be propagated to HistoMan)
-  static void Histogram(char* name, char* title, int nxbin, float xmin, float xmax, float x);
+  static void Histogram(const char* name, const char* title, int nxbin, float xmin, float xmax, float x);
   //! Enable the ntupple filling
   static void EnableNtuple()  { EnabledNtuple = true; }
   //! Disable the ntple filling
@@ -349,7 +349,7 @@ class TofRecon {
   //! Initialize the ntuple
   static void InitNtuple();
   //! Histogram of properties of reconstructed TOF tracks  
-  static void FillTofTrackHistograms(TofTrack* tof_track, char* add_name  = "default");
+  static void FillTofTrackHistograms(TofTrack* tof_track, const char* add_name  = "default");
   //! Tree of properties of reconstructed TOF tracks
   static void FillTofTrackNtuple(TofTrack* tof_track);
   //! Write plots and/or ntuple on a file

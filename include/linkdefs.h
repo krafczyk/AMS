@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.53 2014/01/26 14:50:04 choutko Exp $
+//  $Id$
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -24,6 +24,7 @@
 #pragma link C++ class TrRecon;
 #pragma link C++ class TrFit;
 #pragma link C++ class TrProp;
+#pragma link C++ class GausBF+;
 #pragma link C++ class TrAlignFit;
 #pragma link C++ class VCon;
 #ifdef __ROOTSHAREDLIBRARY__
