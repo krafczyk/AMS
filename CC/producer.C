@@ -971,10 +971,10 @@ goto againcp;
   }
  }
  
- if(!suc && means){
+ if(!suc && (means || strstr((const char*)fcopy,"/eos/ams"))){
    if(!_Solo)sendid(3600);
    cerr <<"SendNtupleEnd-E-UnabletoCopyDSTSuccesfully "<<" Tried "<<(const char*)fcopy<<endl;
-  if(getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
+  if(means && getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
     setenv("TransferBy",getenv("TransferRawByB"),1);
     unsetenv("TransferRawByB");
     means=getenv("TransferBy");
