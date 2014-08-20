@@ -1595,8 +1595,14 @@ void EcalAxis::get_z(){
 }
 int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
 #ifdef _PGTRACK_ 
-    float fedep[1296];
-    int   fcell[1296], fplane[1296],nEcalHits,ret;
+    int nEcalHits=ev->nEcalHit() ;
+    if(nEcalHits<0)nEcalHits=0;
+    else if(nEcalHits>2000){
+      cerr<<"EcalAxis::process-E-TooManyHitsTruncatedTo2000 "<<nEcalHits<<endl;
+      nEcalHits=2000;
+    }
+    float fedep[nEcalHits+1];
+    int   fcell[nEcalHits+1], fplane[nEcalHits+1],ret;
     float EnergyD, _EnergyE, sign;
     nEcalHits=ev->nEcalHit()     ;
     for(int i1=0;i1<nEcalHits;i1++){
@@ -1783,10 +1789,21 @@ bool EcalAxis::init_cr2(){
 int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
     if(!esh)
 	return -1;
-    float fedep[1296];
-    int   fcell[1296], fplane[1296],nEcalHits,ret;
+int nh=0;
+  for(int i1=0;i1<esh->NEcal2DCluster();i1++){
+        Ecal2DClusterR * ecal2d=esh->pEcal2DCluster(i1);
+        for(int i2=0;i2<ecal2d->NEcalCluster();i2++){
+            EcalClusterR* ecalclt=ecal2d->pEcalCluster(i2);
+            for(int i3=0;i3<ecalclt->NEcalHit();i3++){
+                nh++;
+            }
+        }
+    }
+
+    float fedep[nh+1];
+    int   fcell[nh+1], fplane[nh+1],ret;
     float EnergyD, _EnergyE;
-    nEcalHits=0;
+    int nEcalHits=0;
     for(int i1=0;i1<esh->NEcal2DCluster();i1++){
         Ecal2DClusterR * ecal2d=esh->pEcal2DCluster(i1);
         for(int i2=0;i2<ecal2d->NEcalCluster();i2++){
