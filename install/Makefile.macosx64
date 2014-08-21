@@ -8,6 +8,7 @@
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
 VERGCC       := $(shell gcc --version 2>&1| grep 4.1)
+VERGCC48       := $(shell gcc --version 2>&1| grep 4.8)
 
 ifdef VER
 NEW = 
@@ -99,7 +100,11 @@ OSXVER_LT_1090 := $(call TEST_OSXVER,$(OSXVER),lt,1090)
 ifeq "$(OSXVER_LT_1090)" "0"
 CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings
 else
+ifdef VERGCC48
+CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings -Wno-unknown-pragmas -Wno-strict-aliasing -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-strict-overflow #just a temporary workaround
+else
 CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
+endif
 endif
 
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
