@@ -946,7 +946,8 @@ float  EcalChi2::process(AMSEventR* ev, TrTrackR* trtrack, int iTrTrackPar){
             nmax =i1                          ;
         }
     }
-    _erg=ev->pEcalShower(nmax)->EnergyD/1000.;
+    if(nmax>=0)_erg=ev->pEcalShower(nmax)->EnergyD/1000.;
+    else _erg=0;
     for(unsigned int i1=0;i1<ev->NEcalHit();i1++){
         Edep_raw[ev->pEcalHit(i1)->Plane*72+ev->pEcalHit(i1)->Cell]=ev->pEcalHit(i1)->Edep;
     }
@@ -1620,6 +1621,7 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
             nmax =i1                          ;
         }
     }
+    if(nmax<0)return -1;
     _EnergyE=ev->pEcalShower(nmax)->EnergyE;
     EnergyD =ev->pEcalShower(nmax)->EnergyD;
     if(Version==3){
