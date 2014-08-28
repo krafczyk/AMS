@@ -14000,6 +14000,18 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
     }
   }
   if (mc) {
+   if(ds<0){
+   double rnd[1];
+#ifdef __ROOTSHAREDLIBRARY__
+  int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+  AMSEventR::GetRandArray(8993306+lj, 2,  1,rnd);
+#else
+rnd[1]=rnormx();
+#endif
+     coo[1]+=-ds*rnd[1];
+     return 1;
+   }
+   else{
     if (ds < dmax && TMath::Abs(dmin) > ds) {
       coo[1] += (dmin > 0) ? -ds : ds;
       return 1;
@@ -14008,7 +14020,8 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
       coo = mc->GetXgl();
       return 1;
     }
-  } 
+  }}
+ 
 
 #endif
   return 0;
