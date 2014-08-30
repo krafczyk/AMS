@@ -65,14 +65,28 @@ class AMSG4EventAction: public G4UserEventAction{
     virtual void EndOfEventAction(const G4Event*);
 
     void AddRegisteredTrack(int gtrkid);
-    bool IsRegistered(int gtrkid);
     void AddRegisteredParentChild(int gtrkid, int gparentid, int processid);
     void FindClosestRegisteredTrack(int& gtrkid, int& processid);
 
  private:
 
-    set<int> fset_reg_tracks;
-    map< int, pair<int,int> > fmap_det_tracks; 
+    struct track_information {
+      track_information()
+        : parent(-1)
+        , process(-1)
+        , registered(false) {}
+
+      track_information(int _parent, int _process, bool _registered)
+        : parent(_parent)
+        , process(_process)
+        , registered(_registered) {}
+
+      int parent;
+      int process;
+      bool registered;
+    };
+
+    map< int, track_information > fmap_det_tracks;
     int flast_trkid;
     int flast_resultid;
     int flast_processid;
