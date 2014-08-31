@@ -14006,7 +14006,7 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
   int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
   AMSEventR::GetRandArray(8993306+lj, 2,  1,rnd);
 #else
-rnd[1]=rnormx();
+rnd[0]=rnormx();
 #endif
      coo[1]+=-ds*rnd[0];
      return 1;
