@@ -14008,7 +14008,7 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 #else
 rnd[1]=rnormx();
 #endif
-     coo[1]+=-ds*rnd[1];
+     coo[1]+=-ds*rnd[0];
      return 1;
    }
    else{
