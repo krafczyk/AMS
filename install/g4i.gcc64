@@ -1,18 +1,61 @@
-#  $Id: g4i.gcc64,v 1.1 2011/09/27 23:44:01 pzuccon Exp $
+#  $Id$
 setenv GEANT4NEW 1
 
-setenv G4SYSTEM Linux-g++64
-setenv CLHEP_BASE_DIR $BASE_ARCH_DIR/CLHEP/
+if `$ROOTSYS/bin/root-config --arch` == "linux" then
+setenv G4SYSTEM Linux-g++
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.7.gcc32
+endif
+
+
+if `$ROOTSYS/bin/root-config --arch` == "linuxx8664icc" then
+setenv G4LIB_BUILD_GDML 1
+setenv G4SYSTEM  Linux-icc
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.7.icc64
+if  `cat /etc/redhat-release` == "Scientific Linux CERN SLC release 6.2 (Carbon)" then
+setenv G4SYSTEM  Linux-icc.slc6
+endif
+if  `cat /etc/redhat-release` == "Scientific Linux CERN SLC release 6.3 (Carbon)" then
+setenv G4SYSTEM  Linux-icc.slc6
+endif
+
+
+endif
+
+if `$ROOTSYS/bin/root-config --arch` == "linuxx8664gcc" then
+setenv G4LIB_BUILD_GDML 1
+setenv G4SYSTEM  Linux-g++.64
+if ($?DEBUGFLAG) then
+setenv G4SYSTEM  Linux-g++.64.debug
+endif
+
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.7.gcc64
+if  `cat /etc/redhat-release` == "Scientific Linux CERN SLC release 6.2 (Carbon)" then
+setenv G4SYSTEM  Linux-g++.slc6
+endif
+
+if  `cat /etc/redhat-release` == "Scientific Linux CERN SLC release 6.3 (Carbon)" then
+setenv G4SYSTEM  Linux-g++.slc6
+endif
+
+
+endif
+
+
+
+if `$ROOTSYS/bin/root-config --arch` == "linuxia64ecc" then
+setenv G4SYSTEM Linux-icc.ia64
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP/2.0.4.5/sles_ia64_icc41
+endif
 
 setenv G4USE_STL 1
 setenv OGLHOME /usr
 setenv  G4WORKDIR /tmp
-setenv G4INSTALL $BASE_ARCH_DIR/geant4_ams
+setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.9.4.p04
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv G4VIS_BUILD_DAWNFILE_DRIVER 1
 setenv G4VIS_BUILD_DAWN_DRIVER         1
-setenv G4VIS_USE_DAWN       1
+setenv G4VIS_USE_DAWN       1 
 setenv G4VIS_USE_DAWNFILE         1
 setenv G4VIS_BUILD_OPENGLX_DRIVER     1  # Uses OpenGL and Motif
 setenv G4VIS_USE_OPENGLX     1
@@ -24,9 +67,11 @@ setenv G4UI_BUILD 1
 #setenv G4DAWNFILE_VIEWER david
 setenv G4VIS_BUILD_ASCIITREE_DRIVER 1
 setenv G4VIS_USE_ASCIITREE 1
-setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.0
-setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadiativeDecay3.0
-setenv G4LEDATA $G4INSTALL/data/G4EMLOW4.0
-setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL3.9
+setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.1
+setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadioactiveDecay3.3
+setenv G4LEDATA $G4INSTALL/data/G4EMLOW6.19
+setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL3.14
+setenv G4NEUTRONXSDATA $G4INSTALL/data/G4NEUTRONXS1.0
+setenv G4PIIDATA $G4INSTALL/data/G4PII1.2
 setenv G4ELASTIC $G4INSTALL/data/G4ELASTIC1.1
-
+setenv G4DPMJET2_5DATA $G4INSTALL/data/DPMJET/GlauberData

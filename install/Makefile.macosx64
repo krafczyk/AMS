@@ -8,6 +8,7 @@
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
 VERGCC       := $(shell gcc --version 2>&1| grep 4.1)
+VERGCC48       := $(shell gcc --version 2>&1| grep 4.8)
 
 ifdef VER
 NEW = 
@@ -87,16 +88,26 @@ ifdef TFAPEDC
 DEFINES+=  -D__TFAPEDC__
 endif
 
+#OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
+DEFINES+=-D__OSXVER__=$(OSXVER)
 
 # Wno-unused-function requires a rework of cfotran.h (move all functions into cfortran.c)
 # Wno-missing-braces requires still lots of work in Tofdbc.C (after that it can be removed.)
 # Same for Wno-gnu-static-float-init & Wno-deprecated-writable-strings (requires lots of work.)
+TEST_OSXVER=$(shell test $(1) -$(2) $(3); echo $$?)
+OSXVER_LT_1090 := $(call TEST_OSXVER,$(OSXVER),lt,1090)
+ifeq "$(OSXVER_LT_1090)" "0"
+CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings
+else
+ifdef VERGCC48
+CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings -Wno-unknown-pragmas -Wno-strict-aliasing -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-strict-overflow #just a temporary workaround
+else
 CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
-DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
+endif
+endif
 
-#OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
-OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
-DEFINES+=-D__OSXVER__=$(OSXVER)
+DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg

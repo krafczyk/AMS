@@ -404,6 +404,10 @@ bool TofTrack::MakePathLength() {
     float z = cluster->Coo[2];
     for (int irc=0; irc<cluster->NTofRawCluster(); irc++){
       TofRawClusterR* rawcluster = cluster->pTofRawCluster(irc);
+      if(!rawcluster){
+        cerr<<" TofTrack::MakePathLength-E-NoRawCluster "<<endl;
+        continue;
+      }
       int ibar = rawcluster->Bar - 1;
       AMSPoint hit_point;
       AMSDir hit_dir;

@@ -1,13 +1,25 @@
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/527.icc64
-set path=($ROOTSYS/bin /opt/intel/Compiler/11.1/073/bin/intel64 $path . /usr/sbin  )
-setenv LD_LIBRARY_PATH .:/opt/intel/Compiler/11.1/073/idb/lib/intel64/:/opt/intel/Compiler/11.1/073/lib/intel64/:$ROOTSYS/lib:/opt/intel/compiler80/lib
+set path=($ROOTSYS/bin /afs/cern.ch/ams/opt/intel/Compiler/11.1/073/bin/intel64 $path . /usr/sbin  )
+setenv LD_LIBRARY_PATH .:/afs/cern.ch/ams/opt/intel/Compiler/11.1/073/idb/lib/intel64/:/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/lib/intel64/:$ROOTSYS/lib:/opt/intel/compiler80/lib
+if  `cat /etc/redhat-release` == "Scientific Linux CERN SLC release 6.3 (Carbon)" then
+setenv LD_LIBRARY_PATH .:/afs/cern.ch/ams/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64/:$ROOTSYS/lib:/opt/intel/compiler80/lib:$ROOTSYS/lib
+set path=($ROOTSYS/bin /opt/intel/composer_xe_2011_sp1.9.293/compiler/bin/intel64 $path . /usr/sbin  )
+
+endif
+if  `cat /etc/redhat-release` == "Scientific Linux CERN SLC release 6.2 (Carbon)" then
+setenv LD_LIBRARY_PATH .:/afs/cern.ch/ams/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64/:$ROOTSYS/lib:/opt/intel/compiler80/lib:$ROOTSYS/lib
+set path=($ROOTSYS/bin /afs/cern.ch/ams/opt/intel/composer_xe_2011_sp1.9.293/compiler//bin/intel64 $path . /usr/sbin  )
+
+endif
+
 setenv CVSROOT $Offline/CVS
-#setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
+#setenv CVSROOT :ext:`whoami`@lxplus.cern.ch:/afs/cern.ch/ams/Offline/CVS
 setenv CVS_RSH ssh
 setenv ProductionRunsDir /s0dat0/Data/Deframing
 setenv AMSDataDir $Offline/AMSDataDir
 setenv AMSDataDirRW $Offline/AMSDataDirRW
 setenv EDITOR  emacs
+setenv CASTORSTATIC 1
 setenv CVSEDITOR  emacs
 setenv RunsDir $Offline/RunsDir
 setenv AMSDataNtuplesDir $Offline/ntuples
@@ -25,8 +37,6 @@ setenv offmon        $Offline/vdev/exe/linuxicc/offmon
 setenv offmonc        $Offline/vdev/exe/linuxicc/offmonc      
 
 setenv AMSDynAlignment $AMSDataDirRW/ExtAlig/AlignmentFiles/
-setenv G4DPMJET2_5DATA  $AMSWD/DPMJET/GlauberData
-
 
 setenv AMSICC 1
 setenv AMSP 1
@@ -34,3 +44,9 @@ limit core 0
 limit data 700000
 limit stack 32000
 
+# Enable Aachen TrdQt interface
+#setenv AMS_ACQT_INTERFACE 1
+setenv ACROOTSOFTWARE $AMSDataDir/v5.00/TRD
+setenv ACROOTLOOKUPS $ACROOTSOFTWARE/acroot/data/
+setenv QTDIR_STATIC /afs/cern.ch/ams/Offline/AMSsoft/AMSQtCore/qt-4.8.3/
+setenv QTDIR_STATIC_32 /afs/cern.ch/ams/Offline/AMSsoft/AMSQtCore/qt-4.8.3-32bit/

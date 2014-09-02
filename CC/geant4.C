@@ -414,10 +414,8 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
 
- fset_reg_tracks.clear();
  fmap_det_tracks.clear();
- fset_reg_tracks.insert(1); //primary track
- fmap_det_tracks.insert( std::pair<int, std::pair<int,int> >(1, std::pair<int,int>(0,0)) );
+ fmap_det_tracks.insert( std::pair<int, track_information>(1, track_information(0,0,true)) );
  flast_trkid=flast_resultid=flast_processid=-1;
        G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
        g4_primary_momentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +                                       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +                                       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
@@ -697,20 +695,16 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 
 void AMSG4EventAction::AddRegisteredTrack(int gtrkid)
 {
-  fset_reg_tracks.insert(gtrkid);
+  struct track_information& info = fmap_det_tracks[gtrkid];
+  info.registered = true;
 }
 
 
 void AMSG4EventAction::AddRegisteredParentChild(int gtrkid, int gparentid, int processid)
 {
-  fmap_det_tracks.insert( std::pair<int, std::pair<int,int> >( gtrkid, std::pair<int,int>(gparentid,processid) ) );
-}
-
-bool AMSG4EventAction::IsRegistered(int gtrkid)
-{
-  set<int>::iterator it = find(fset_reg_tracks.begin(), fset_reg_tracks.end(), gtrkid);
-  if( it==fset_reg_tracks.end() ) return false;
-  return true;
+  struct track_information& info = fmap_det_tracks[gtrkid];
+  info.parent = gparentid;
+  info.process = processid;
 }
 
 void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid ){
@@ -722,54 +716,51 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
     return;
   }
 
-  if( IsRegistered( gtrkid ) ) {
-    flast_trkid = gtrkid;
-    flast_resultid = gtrkid;
-    flast_processid = processid;
+  bool err = false;
+  int current_par_id = gtrkid;
+  int current_process_id = processid;
+
+  std::map<int, track_information>::const_iterator end_it = fmap_det_tracks.end();
+  std::map<int, track_information>::const_iterator it = end_it;
+
+  while ( true ) {
+    it = fmap_det_tracks.find( current_par_id );
+    if ( it == end_it ) {
+      err = true;
+      break;
+    }
+    if (it->second.registered) {
+      // no change to input variables but cache result
+      if (current_par_id == gtrkid) {
+        flast_trkid = gtrkid;
+        flast_resultid = gtrkid;
+        flast_processid = processid;
+        return;
+      }
+      // found match
+      break;
+    }
+    current_par_id = it->second.parent;
+    current_process_id = it->second.process;
+  }
+
+  if (err) {
+    cout<<"!!!Error, chain is broken on track: "<<current_par_id<<endl;
     return;
   }
 
-  bool found = false;
-  bool err = false;
-  int par_id = gtrkid;
-  int process_id = 0;
-
-  /*  cout<<"Finding clsest track to: "<< gtrkid<<endl;
-  cout<<"Content of set: ";
-  for( set<int>::iterator it = fset_reg_tracks.begin(); it!=fset_reg_tracks.end(); ++it ) cout<<" "<<*it;
-  cout<<endl;
-
-  cout<<"Content of map: ";
-  for( map<int,int>::iterator itm = fmap_det_tracks.begin(); itm!=fmap_det_tracks.end(); ++itm ) cout<<" ("<<itm->first<<" "<<itm->second<<")";
-  cout<<endl;*/
-
-  while( (!found) && (!err)  ){
-    
-    std::map<int, pair<int,int> >::iterator it = fmap_det_tracks.find( par_id );
-    if( it==fmap_det_tracks.end() ){  
-      err = true;
-
-      //   cout<<"!!!Error, chain is broken on track: "<<par_id<<endl;
-    }
-    par_id = (it->second).first;
-    process_id = (it->second).second;
-
-    if( IsRegistered( par_id ) ) found = true;
-
-    //  cout<<"("<<par_id<<","<<it->second<<")="<<found<<endl;
-  }
-
   // flip sign of parent ID to signify that this parent is indirectly associated
-  par_id = -par_id;
+  int result_par_id = -current_par_id;
+  int result_process_id = current_process_id;
 
   // store results for this input gtrkid for future retrieval
   flast_trkid = gtrkid;
-  flast_resultid = par_id;
-  flast_processid = process_id;
+  flast_resultid = result_par_id;
+  flast_processid = result_process_id;
 
   // store results in input references
-  gtrkid = flast_resultid;
-  process_id = flast_processid;
+  gtrkid = result_par_id;
+  processid = result_process_id;
 }
 
  G4VPhysicalVolume* AMSG4DetectorInterface::Construct(){
@@ -1819,11 +1810,11 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
     if(!RICHDB::detcer(e)) return fKill; // Kill discarded Cerenkov photons
   }
   if( !aTrack->GetCurrentStepNumber() ){ //don't fill twice for the same track
-    AMSmceventg::FillMCInfoG4( aTrack );
     AMSG4EventAction* evt_act =(AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
     const G4VProcess* process = aTrack->GetCreatorProcess();
     int process_id = process ? ( (process->GetProcessType() << 24) | (process->GetProcessSubType() & 0xFFFFFF) ) : 0;
     evt_act->AddRegisteredParentChild( aTrack->GetTrackID(), aTrack->GetParentID(), process_id );
+    AMSmceventg::FillMCInfoG4( aTrack );
   }
 
   return fWaiting;
