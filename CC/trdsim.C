@@ -91,8 +91,8 @@ void AMSTRDRawHit::sitrddigi(){
         new AMSTRDRawHit(idsoft,(amp-idsoft.getped())*TRDMCFFKEY.f2i));
 //         cout <<"  raw cluster-0 "<<idsoft.getsig()<<" "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<(amp-idsoft.getped())*TRDMCFFKEY.f2i<<endl;
         
-        edep=0;       
         }
+        edep=0;
      }
 
      ptr=ptr->next();

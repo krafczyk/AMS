@@ -28,6 +28,7 @@
 #include "G4CrossSectionElastic.hh"
 #if G4VERSION_NUMBER  > 945
 #include "G4ComponentGGNuclNuclXsc.hh"
+#include "G4UAtomicDeexcitation.hh"
 #endif
 #include "G4IonTable.hh"
 #include "G4ShortLivedConstructor.hh"
@@ -1772,6 +1773,16 @@ void AMSG4Physics::ConstructEM2( void ){
 						       trdSimUtil.GetTrdGasThickness(),
 						       (G4int)trdSimUtil.GetTrdFoilNumber(),
 						       "GammaXTRadiator" );
+
+#ifdef __G4AMS__
+  G4VAtomDeexcitation* deexcitation = new G4UAtomicDeexcitation();
+  G4LossTableManager::Instance()->SetAtomDeexcitation(deexcitation);
+  deexcitation->SetDeexcitationActiveRegion("TrdGasRegion", true, false, false);
+  deexcitation->SetFluo(false);
+  deexcitation->SetAuger(false);
+  deexcitation->SetPIXE(false);
+#endif
+
 #endif
 
   if( !processXTR ){
