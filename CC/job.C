@@ -3510,8 +3510,12 @@ void AMSJob::_timeinitjob(){
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM3",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
-	  else 	  if(TKGEOMFFKEY.alignver>3)
+	  else 	  if(TKGEOMFFKEY.alignver==4)
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM4",isRealData()),begin,end,
+				   TkDBc::GetLinearSize(),TkDBc::linear,
+				   server,need,SLin2Align));
+	  else 	  if(TKGEOMFFKEY.alignver>4)
+	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM5",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
 	}

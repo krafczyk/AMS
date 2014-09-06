@@ -17,7 +17,7 @@ I 5  Calib FormatVer =1 Pre-Integration
 		     =2 Flight (default);
 I 6   fname   (400*'') file name for dbase from file
 I 406 disfname(400*'') Disalignment file name
-I 806 alignver(def 2)  Alignment version; 1 :preflight, >1 flight
+I 806 alignver(def 5)  Alignment version; 1 :preflight, >1 flight, 4:PM4, 5:PM5
 I 807 LoadMCDisalign   MN Enable MC disalign (
                         N=0 disabled(default), N=1 from default file, N=2 from file specified at 406
                        M=0 no aligment loded M=1 Aligment from MC TDV

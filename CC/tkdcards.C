@@ -25,7 +25,7 @@ void TKGEOMFFKEY_DEF::init(){
   CalibVer=3;
   memset(fname,400,sizeof(fname[0]));
   memset(disfname,400,sizeof(disfname[0]));
-  alignver=4;
+  alignver=5;
   LoadMCDisalign=1;
   EnableExtMov=0;
   float p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
