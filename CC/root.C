@@ -14083,7 +14083,7 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
   MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
   if (!mc || mc->Charge == 0) return 0;
   double p = mc->Momentum;
-  double lp=log10(p);
+  double lp=log10(p/fabs(mc->Charge));
   double c=log10(2.);
   if(lp<c)lp=c;
   if(lp>2)lp=2;
