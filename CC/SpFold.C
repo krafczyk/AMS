@@ -70,11 +70,6 @@ TF1 *SpFold::Fit(TH1 *hrt, TGraph *gac,
   Bool_t invx = (fXtype == RINV) ? 1 : 0;
 
   TF1 *func = SpFold::GetF(model, HtoG(hrt, 1, invx), nn, xn);
-
-  Double_t par[7] = { 757.3, 4.029, 0.3142, 2.069e-3, 6.855e-5,
-		      -1.596e-2, -2.862 };
-//  func->SetParameters(par);
-
   if (opt) {
     Norm(hrt);
     hrt->Fit(func, opt, "", xmin, xmax);
@@ -82,6 +77,18 @@ TF1 *SpFold::Fit(TH1 *hrt, TGraph *gac,
   }
 
   return func;
+}
+
+Double_t SpFold::GetX(TF1 *fflx, Double_t bl, Double_t bu)
+{
+  Double_t bw = bu-bl;
+  if (bw == 0) return bl;
+
+  Double_t bi = fflx->Integral(bl, bu);
+  Double_t x  = fflx->GetX(bi/bw, bl, bu);
+  if (x <= bl || bu <= x) x = TMath::Sqrt(bl*bu);
+
+  return x;
 }
 
 Double_t SpFold::PDF(Double_t *xp, Double_t *par)
@@ -133,7 +140,9 @@ Double_t SpFold::PDF(Double_t *xp, Double_t *par)
 
 Double_t SpFold::Ratio(Double_t *xp, Double_t *par)
 {
-  return PDF(xp, par)/Flux(xp, par);
+  Double_t acc = GetA(xp[0]);
+  Double_t flx = Flux(xp, par);
+  return (acc > 0 && flx > 0) ? PDF(xp, par)/flx/acc : 0;
 }
 
 Double_t SpFold::Prod(Double_t rgen, Double_t rrec, Double_t *par)
@@ -345,6 +354,20 @@ void SpFold::Norm(TH1 *hist, Bool_t rev)
       hist->SetBinContent(i+1, hist->GetBinContent(i+1)/bw);
       hist->SetBinError  (i+1, hist->GetBinError  (i+1)/bw);
     }
+  }
+}
+
+void SpFold::Scale(TH1 *hist, Double_t pwr, TF1 *fflx)
+{
+  for (Int_t i = 0; i < hist->GetNbinsX(); i++) {
+    Double_t bl = hist->GetBinLowEdge(i+1);
+    Double_t bu = hist->GetBinLowEdge(i+2);
+    Double_t bc = hist->GetBinContent(i+1);
+    Double_t be = hist->GetBinError  (i+1);
+    Double_t x  = GetX(fflx, bl, bu);
+    Double_t p  = TMath::Power(x, pwr);
+    hist->SetBinContent(i+1, bc*p);
+    hist->SetBinError  (i+1, be*p);
   }
 }
 

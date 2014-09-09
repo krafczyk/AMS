@@ -311,6 +311,16 @@ public:
 		  Option_t *opt = "I", Double_t xmin = 0, Double_t xmax = 0,
 		  Int_t model = SPLOG, Int_t nnode = 0, Double_t *xnode = 0);
 
+  /** Get bin center according to Lafferty and Wyatt, NIM 355 (1995) 541.
+   * The value is obtained by solving an equation 
+   *  F(xc)(xu-xl) = int_xl^xu F(x)dx
+   * \param[in] fflx  TF1 of flux VS R(GV)
+   * \param[in] bl    Lower bin boundary in GV
+   * \param[in] bu    Upper bin boundary in GV
+   * \return          Bin center in GV
+   */
+  static Double_t GetX(TF1 *fflx, Double_t bl, Double_t bu);
+
   /// Folded spectrum PDF; xp[0]= rrec (fXtype=RREC) or 1/rrec (fXtype=RINV)
   static Double_t PDF(Double_t *xp, Double_t *par);
 
@@ -340,6 +350,9 @@ public:
 
   /// Normalize (or reverse) TH1 with bin width 
   static void Norm(TH1 *hist, Bool_t reverse = 0); 
+
+  /// Scale TH1 with X^pwr from @ref GetX based on fflx
+  static void Scale(TH1 *hist, Double_t pwr, TF1 *fflx);
 
   /// Flux specified with fModel
   static Double_t Flux(Double_t *xp, Double_t *par);
