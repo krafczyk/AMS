@@ -257,7 +257,7 @@ TF1 *SpFold::GetF(Int_t model, TGraph *gr, Int_t n, Double_t *xn)
   Double_t y3 = func->GetParameter(n-1), y4 = gg.Eval(x4)/GetA(x4);
   Double_t u1 = x1, u2 = x2, u3 = x3, u4 = x4;
 
-  if (x1 > 0 && x2 > 0 & x3 > 0 && x4 > 0) {
+  if (x1 > 0 && x2 > 0 && x3 > 0 && x4 > 0) {
     u1 = TMath::Log10(x1); u2 = TMath::Log10(x2);
     u3 = TMath::Log10(x3); u4 = TMath::Log10(x4);
   }
@@ -509,7 +509,7 @@ Double_t SpFold::FluxSpl(Double_t *xp, Double_t *par)
 
     if (fVcont >= 0) {
       fVcont++;
-      cout << Form("%4d", fVcont) << "\033[4D" << flush;
+      cout << Form("%5d", fVcont) << "\033[5D" << flush;
     }
   }
  }}
