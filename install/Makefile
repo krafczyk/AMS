@@ -1116,7 +1116,7 @@ $(BIN)Make-depend:    $(INCS)
 ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
 		 touch $(BIN)Make-depend
 endif
-		makedepend $(DEFINES) -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN) > /dev/null 2>&1
+		@makedepend $(DEFINES) -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN) > /dev/null 2>&1
 		cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
 		rm -f $(BIN)Make-depend
 	mv $(BIN)Make-depend.new $(BIN)Make-depend
