@@ -2024,6 +2024,7 @@ againcp:
 again:
 	    if(getenv("NtupleDir")){
 	      string local(getenv("NtupleDir"));
+		  string rmfile = local + "/" + file;
 	      setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
 	      if(getenv("TransferSharedLib")){
 		     setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
@@ -2041,14 +2042,18 @@ again:
 		    cpeos = "/afs/cern.ch/ams/local/bin/timeout --signal 9 600 /afs/cern.ch/project/eos/installation/ams/bin/eos.select cp";
           cpeos += " ";
 	      cpeos += eos+" "+local+"/"; 
+		  cout << "DAQEvent::InitResult-I-Copying " << cpeos << endl;
 	      int i=system(cpeos.c_str());
 	      if(!i) goto okcp;
-		  cerr <<"DAQEvent::init-E-Unableto "<<cpeos.c_str()<<endl;
+		  cerr <<"DAQEvent::init-E-Unableto "<< cpeos.c_str() << endl;
+		  unlink(rmfile.c_str()); 
 		  
 		  // copy castor
+		  cout << "DAQEvent::InitResult-I-Copying " << cp << endl;
 	      i=system(cp.c_str());
 	      if(i){
-		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
+		cerr <<"DAQEvent::init-E-Unableto "<< cp.c_str() << endl;
+		unlink(rmfile.c_str()); 
 		if(getenv("NtupleDir2") ){
 		  char *nt2=getenv("NtupleDir2");
 		  setenv("NtupleDir02",getenv("NtupleDir2"),1);
@@ -2080,7 +2085,7 @@ again:
 okcp:
 		local+="/";
 		local+=file;
-		cout<<"DAQEvent::init-I-CopiedTo "<<local<<endl;
+		cout<<"DAQEvent::InitResult-I-CopiedTo "<<local<<endl;
 		setenv("TMPRawFile",local.c_str(),1);
 		strcpy(fnam,local.c_str());
               }
@@ -2140,6 +2145,7 @@ againscp:
 	      cp+=fnam;
 	      cp+=" ";
 	      cp+=local;
+		  cout << "DAQEvent::InitResult-I-Copying " << cp << endl;
 	      int i=system(cp.c_str());
 	      if(i){
 		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;

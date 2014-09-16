@@ -764,24 +764,7 @@ againcpmeans:
  char *localbin=0;
  if(getenv("AMSDataDir")) localbin=getenv("AMSDataDir");
  else                     localbin=local;
- if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
-                if(getenv("TransferSharedLib")){
-                 setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
-                }
-
-   fmake=localbin;
-   fmake+="/DataManagement/exe/linux/timeout --signal 9 9 ";
-   fmake+="nsmkdir -p ";
-  if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
-  fcopy=means;
-  fcopy+=" ";
- }
- else if(means){
-  fmake+="mkdir -p ";
-  fcopy=means;
-  fcopy+=" ";
- } 
- else if (rfio.find("/eos/ams")!=-1){
+ if (rfio.find("/eos/ams")!=-1){
   if (getenv("EosTransferMakeDir")) {
     fmake=getenv("EosTransferMakeDir");
     fmake+=" ";
@@ -801,6 +784,23 @@ againcpmeans:
     fcopy+="/afs/cern.ch/project/eos/installation/ams/bin/eos.select cp ";
   }
  }
+ else if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
+                if(getenv("TransferSharedLib")){
+                 setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
+                }
+
+   fmake=localbin;
+   fmake+="/DataManagement/exe/linux/timeout --signal 9 9 ";
+   fmake+="nsmkdir -p ";
+  if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
+  fcopy=means;
+  fcopy+=" ";
+ }
+ else if(means){
+  fmake+="mkdir -p ";
+  fcopy=means;
+  fcopy+=" ";
+ } 
  else{
   fmake="mkdir -p ";
   fcopy="cp ";
@@ -816,9 +816,10 @@ againcpmeans:
 // fmake+='/';
 // for (int k=bnt;k<bend;k++)fmake+=a[k];
 
+ cout << "AMSProducer::sendNtupleEnd-I-MakingDestDir " << (const char*)fmake << endl;
  int imake=system((const char*)fmake);
  if (imake)
-   cerr << "AMSProducer::sendNtupleEnd-E- Unable create dst dest  dir " << (const char*)fmake << endl;
+   cerr << "AMSProducer::sendNtupleEnd-E- Unable create dest  dir " << (const char*)fmake << endl;
  if (rfio.find("/eos/ams")!=-1) {
    // eos does not like double slash
    string src = (const char*)a(bstart);
@@ -849,25 +850,25 @@ againcp:
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));
   if(!_Solo)sendCurrentRunInfo();
-  cout <<"SendNtupleEnd-I-StartCopyingDST "<<j<<" Try "<<(const char*)fcopy<<endl;
 	// eos option check
 	int i;
 	if (strstr((const char*)fcopy,"/eos/ams")) {
 		string fcopy2 = (const char*)fcopy;
-		if (fcopy2[fcopy2.length()-1] != '/')
+		if (fcopy2[fcopy2.length()-1] != '/') {
 			fcopy2 += '/';
-		i = system(fcopy2.c_str());
+			fcopy = fcopy2.c_str();
+		}
 	}
-	else {
-		i = system((const char*)fcopy);
-	}
+	cout << "AMSProducer::sendNtupleEnd-I-Copying " << (const char*)fcopy << endl;
+	i = system((const char*)fcopy);
+//i = 1;	//!!!!!
 //!!!!!
 // if (strstr((const char*)fcopy,"eos/ams")) i=1;
 //!!!!!
 
   if(!i){
    suc=true;
-   cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
+   cout <<"AMSProducer::SendNtupleEnd-I-CopiedDSTSuccesfully "<<endl;
  // add more validation here
  //
     string file2v="";    
@@ -993,6 +994,7 @@ goto againcp;
    unsetenv("NtupleDestDirBackup");
    fmake="mkdir -p ";
    fmake+=tmp;  
+   cout << "AMSProducer::sendNtupleEnd-I-MakingDestDir " << (const char*)fmake << endl;
    int i=system((const char*)fmake);
    if(!i){
    fcopy="cp ";
@@ -1004,7 +1006,7 @@ goto againcp;
    goto againcp;
    }
    else{
-   cerr <<"SendNtupleEnd-E-UnabletoMakeDirBy "<<(const char*)fmake<<endl;
+   cerr <<"AMSProducer::sendNtupleEnd-E-UnabletoMakeDirBy "<<(const char*)fmake<<endl;
    }
   }
   else if(nd20 &&strlen(nd20)){
@@ -1014,6 +1016,7 @@ goto againcp;
     fmake+=host;
     fmake+=" mkdir -p ";
     fmake+=nd20;
+   cout << "AMSProducer::sendNtupleEnd-I-MakingDestDir " << (const char*)fmake << endl;
    int i=system((const char*)fmake);
    if(!i){
    fcopy="scp ";
@@ -1409,7 +1412,19 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
    else localbin=local;
  string rfio=destdir;
  
- if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
+ if (rfio.find("/eos/ams")!=-1) {
+   if (getenv("EosTransferMakeDir")) {
+     fmake=getenv("EosTransferMakeDir");
+     fmake+=" ";
+   }
+   else {
+     fmake=localbin;
+     fmake+="/DataManagement/exe/linux/timeout --signal 9 30 ";
+     fmake+="/afs/cern.ch/project/eos/installation/ams/bin/eos.select mkdir -p ";
+   }
+   fmake+=rfio.c_str()+rfio.find("/eos/ams");
+ }
+ else if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
@@ -1422,30 +1437,18 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
   }
   else fmake+=rfio.c_str();
  }
- else if (rfio.find("/eos/ams")!=-1) {
-   if (getenv("EosTransferMakeDir")) {
-     fmake=getenv("EosTransferMakeDir");
-     fmake+=" ";
-   }
-   else {
-     fmake=localbin;
-     fmake+="/DataManagement/exe/linux/timeout --signal 9 30 ";
-     fmake+="/afs/cern.ch/project/eos/installation/ams/bin/eos.select mkdir -p ";
-   }
-   fmake+=rfio.c_str()+rfio.find("/eos/ams");
- }
  else{
   fmake="mkdir -p ";
   fmake+=destdir;
  }
- cout <<"SendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
+ cout <<"AMSProducer::sendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
 
  int i = system((const char*)fmake);
  //!!!!!
  //if (!strstr((const char*)fmake,"castor")) i=1;
  //!!!!!
  if(i){
-       cerr<<"AMSProducer::sendNtupleStart-E-Unable create dst dest  dir "<<fmake<<endl;
+       cerr<<"AMSProducer::sendNtupleStart-E-Unable create dest  dir "<<fmake<<endl;
         if(!strstr((const char*)destdir,"/castor/cern.ch/ams")){
            int bstart=0;
 		   int k = 1;
