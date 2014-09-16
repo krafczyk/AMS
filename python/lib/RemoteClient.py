@@ -1705,7 +1705,7 @@ class RemoteClient:
                    if(odisk!=None):
                        if(fsmutexes.has_key(odisk)):
                            fsmutexes[odisk].release()
-                   if (self.castoronly):
+                   if (inputfile.find('/castor/cern.ch') >= 0 and self.castoronly):
                        outputpatha = '/castor/cern.ch/ams'
                    else:
                        try:
