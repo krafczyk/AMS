@@ -578,26 +578,18 @@ Double_t SpFold::SolMod(Double_t *xp, Double_t *par)
 Double_t SpReso::fPref[2] = { 5e-4, 0.1 };
 Double_t SpReso::fNorm = 1/4e-2;
 
-Double_t SpReso::fSp0[Np*2+2] = { -0.1, 0.1, 0.5, 1.0, 2.0, 2.9, 3.6,
-				    0.0117, 0.0137, 0.0172, 0.0170,
-				    0.0124, 0.0146, 0.0151, 0.020, 0 };
-Double_t SpReso::fSp1[Np*2+2] = { -0.219, -4.36, 0.939 };
-Double_t SpReso::fSp2[Np*2+2] = { -0.1,    1.0,   2.0,   2.9,   3.6,    0, 0,
-				    1.31,   0.870, 1.13,  0.829, 0.884,  0, 0,
-				   -1.25,   0 };
-Double_t SpReso::fSp3[Np*2+2] = { -0.1,    1.0,   2.0,   2.9,   3.6,    0, 0,
-				    0.0884, 0.200, 0.253, 0.362, 0.284,  0, 0,
-				    0.29,  -0.19 };
-Double_t SpReso::fSp4[Np*2+2] = { -0.1,    1.0,   2.0,   2.9,   3.6,    0, 0,
-				    2.1,    1.89,  1.97,  1.78,  1.91,   0, 0,
-				    0.0,    0.46 };
-Double_t SpReso::fSp5[Np*2+2] = {  2.4,    2.7,   3.0,   3.4,   3.7,    0, 0,
-				    0.00152, -0.000354, -0.00525,
-				    0.00391, -0.0362,    0, 0,
-				    0.04, -0.26 };
-Double_t SpReso::fSp6[Np*2+2] = { -0.2,    0.0,   2.2,   2.4,   3.7,    0, 0,
-				    2.9,    3.56,  9.45,  11.4,  6.84,
-				    6.1,   -4.3 };
+Double_t SpReso::fXn[SpReso::Nx] = { 2, 4, 6, 10 };
+Double_t SpReso::fRn[SpReso::Nr] = { 5, 10, 20, 100, 500, 4000 };
+
+Double_t SpReso::fSp[SpReso::Np*(SpReso::Nr+2)+2]
+ = { 0.0172, 0.0161, 0.0148, 0.0121, 0.0130, 0.0144,  0.00560,  0.000409,
+    -0.054, -0.019,  0.019,  0.098,  0.048,  0.013, -0.157, -0.007, 
+     0.030,  0.055,  0.093,  0.158,  0.182,  0.166, -0.080, -0.016, 
+     0.064,  0.113,  0.169,  0.272,  0.304,  0.255, -0.068, -0.015, 
+     0.088,  0.236,  0.293,  0.429,  0.491,  0.443, -0.232, -0.008, 
+     0.000,  0.000,  0.000,  0.000,  0.000,  0.000,  0.000,  0.000, 
+     0.650,  0.650,  0.650,  0.651,  0.706,  0.835, -0.000,  0.007, 
+    -0.842, -3.440 };
 
 Double_t SpReso::PDFvR(Double_t *xp, Double_t *par)
 {
@@ -619,18 +611,37 @@ Double_t SpReso::PDFpar(Double_t *xp, Double_t *par)
   // This should be applied after dividing x by
   //  rr = TMath::Sqrt(fPref[0]*fPref[0]+fPref[1]*fPref[1]/rgen/rgen);
   //
-  // x      : 1/Rrec-1/Rgen
-  // par[0] : Norm
-  // par[1] : Mean
-  // par[2] : Sig0
-  // par[3] : Sig1
-  // par[4] : Sig2
+  /*  PDF of xp[0]= 1/Rrec-1/Rgen with par[]= Norm,Mean,Sig0,Sig1,Sig2
+   * \param[in] xp [0]    1/Rgen-1/Rrec
+   * \param[in] par[0]    Norm
+   * \param[in] par[1]    Mean
+   * \param[in] par[2-5]  Sigma spline position
+   * \param[in] par[6,7]  Sigma spline dY/dX at lower/upper boundary
+   * \param[in] par[8]    x scaling
+   * \return    PDF 
+   */
 
-  Double_t x  =  xp[0];
-  Double_t s2 = par[2]*par[2]+
-                par[3]*par[3]*TMath::Power(TMath::Abs(x), par[4]);
+  Double_t x = xp[0];
+  if (par[8] != 0) x *= par[8];
 
-  return par[0]*TMath::Exp(-0.5*(x-par[1])*(x-par[1])/s2);
+  x -= par[1];
+  if (x == 0) x = 1e-9;
+
+  Double_t ln[Nx];
+  Double_t d2[Nx];
+  for (Int_t i = 0; i < Nx; i++) ln[i] = TMath::Log10(fXn[i]);
+
+  SplFit::Spline(Nx, ln, &par[2], &par[2+Nx], d2);
+
+  Double_t lx = TMath::Log10(TMath::Abs(x));
+  Double_t ls = (lx < ln[0]) ? par[2]+par[6]*(lx-ln[0])
+             : ((lx > ln[3]) ? par[5]+par[7]*(lx-ln[3])
+	     : SplFit::Splint(Nx, ln, &par[2], d2, lx, SplFit::NORMAL));
+
+  Double_t sig = TMath::Power(10, ls);
+  if (par[0] == 0) return (par[8] != 0) ? sig/par[8] : sig;
+
+  return par[0]*TMath::Exp(-0.5*x*x/sig/sig);
 }
 
 Double_t SpReso::PARrg(Double_t *xp, Double_t *par)
@@ -638,24 +649,6 @@ Double_t SpReso::PARrg(Double_t *xp, Double_t *par)
   // x      : Rgen
   // par[0] : Index
   return GetPar(xp[0], (Int_t)par[0]);
-}
-
-Double_t *SpReso::GetSp(Int_t i, Int_t type)
-{
-  Double_t *sp = 0;
-  if (i == 0) sp = fSp0;
-  if (i == 2) sp = fSp2;
-  if (i == 3) sp = fSp3;
-  if (i == 4) sp = fSp4;
-  if (i == 5) sp = fSp5;
-  if (i == 6) sp = fSp6;
-
-  if (sp) {
-    if (type == 0) return  sp;
-    if (type == 1) return &sp[Np];
-    if (type == 2) return &sp[Np*2];
-  }
-  return 0;
 }
 
 Double_t SpReso::GetNorm(Double_t rgen, Int_t type)
@@ -672,31 +665,43 @@ Double_t SpReso::GetPDF(Double_t rgen, Double_t x)
 {
   if (rgen == 0) return 0;
 
-  Double_t p0 = GetPar(rgen, 0);
+  Double_t p0 = GetPar(rgen, 0)*fNorm;
   Double_t p1 = GetPar(rgen, 1);
 
   Double_t rr = TMath::Sqrt(fPref[0]*fPref[0]+fPref[1]*fPref[1]/rgen/rgen);
   if (rr > 0) x /= rr;
 
-  if (rgen > 220) p0 /= 1+GetPar(rgen, 5);
-  p0 *= fNorm;
+  Double_t ss = GetSig(rgen, x-p1);
+  if (ss == 0) return 0;
 
-  Double_t ee = -0.5*(x-p1)*(x-p1)/GetSig(rgen, x-p1);
+  Double_t ee = -0.5*(x-p1)*(x-p1)/ss/ss;
   return (ee > -20) ? p0*TMath::Exp(ee) : 0;
 }
 
 Double_t SpReso::GetSig(Double_t rgen, Double_t x)
 {
-  Double_t p[4];
-  for (Int_t i = 0; i < 3; i++) p[i] = GetPar(rgen, i+2);
+  Double_t ln[Nx];
+  for (Int_t i = 0; i < Nx; i++) ln[i] =  TMath::Log10(fXn[i]);
 
-  p[3] = GetPar(rgen, 6);
+  Double_t par[Nx+2];
+  for (Int_t i = 0; i < Nx+2; i++) par[i] = GetPar(rgen, i+2);
 
-  Double_t bx = TMath::Power(TMath::Abs(rgen), 0.4)+4;
-  x = TMath::Abs(Satur(TMath::Abs(x), p[3]+bx, 5));
+  static Double_t Rgen = 0;
+  static Double_t D2[Nx];
+#ifdef _OPENMP
+#pragma omp threadprivate(Rgen,D2)
+#endif
+  if (Rgen == 0 || Rgen != rgen) {
+    SplFit::Spline(Nx, ln, par, &par[Nx], D2);
+    Rgen = rgen;
+  }
 
-  Double_t sig = p[0]*p[0]+p[1]*p[1]*TMath::Power(x, p[2]);
-  return sig;
+  Double_t lx = TMath::Log10(TMath::Abs(x));
+  Double_t ls = (lx < ln[0]) ? par[0]+par[4]*(lx-ln[0])
+             : ((lx > ln[3]) ? par[3]+par[5]*(lx-ln[3])
+	     : SplFit::Splint(Nx, ln, par, D2, lx, SplFit::NORMAL));
+
+  return TMath::Power(10, ls);
 }
 
 Double_t SpReso::Satur(Double_t x, Double_t s0, Double_t s1)
@@ -709,33 +714,41 @@ Double_t SpReso::Satur(Double_t x, Double_t s0, Double_t s1)
 
 Double_t SpReso::GetPar(Double_t rgen, Int_t i)
 {
+  if (i < 0 || i >= Nx+4) return 0;
+
+  enum { np = Nr+1, ns = Nr+2 };
+
+  Double_t ln[Nr];
+  for (Int_t j = 0; j < Nr; j++) ln[j] = TMath::Log10(fRn[j]);
+
+  Double_t rs = TMath::Abs(rgen);
+  Double_t x  = TMath::Log10(rs);
+  Double_t x1 = ln[0];
+  Double_t x2 = ln[Nr-1];
+
+  if (i == 1) return TMath::Exp(fSp[56]+fSp[57]*x);
+
+  if (i == Nx+2) return fSp[40];
+  if (i == Nx+3 && rs < 200) return fSp[48];
+
   static Double_t *D2 = 0;
   if (!D2) {
 #ifdef _OPENMP
 #pragma omp critical (d2chk)
 #endif
    if (!D2) {
-    D2 = new Double_t[Np*6];
-    SplFit::Spline(7, fSp0, &fSp0[Np], &fSp0[Np*2], &D2[ 0]);
-    SplFit::Spline(5, fSp2, &fSp2[Np], &fSp2[Np*2], &D2[Np]);
-    SplFit::Spline(5, fSp3, &fSp3[Np], &fSp3[Np*2], &D2[Np*2]);
-    SplFit::Spline(5, fSp4, &fSp4[Np], &fSp4[Np*2], &D2[Np*3]);
-    SplFit::Spline(5, fSp5, &fSp5[Np], &fSp5[Np*2], &D2[Np*4]);
-    SplFit::Spline(5, fSp6, &fSp6[Np], &fSp6[Np*2], &D2[Np*5]);
+     D2 = new Double_t[Nr*Np];
+     for (Int_t j = 0; j < np; j++)
+       SplFit::Spline(Nr, ln, &fSp[j*ns], &fSp[j*ns+Nr], &D2[j*Nr]);
    }
   }
 
-  if (rgen == 0) return 0;
+  Int_t   ip = (i == 0) ? 0 : i-1;
+  Double_t y = SplFit::Splint(Nr, ln, &fSp[ip*ns], &D2[ip*Nr], x);
+  if (x < x1) y = fSp[ip*ns]     +fSp[ip*ns+Nr]  *(x-x1);
+  if (x > x2) y = fSp[ip*ns+Nr-1]+fSp[ip*ns+Nr+1]*(x-x2);
 
-  Double_t x = TMath::Log10(TMath::Abs(rgen));
-  if (i == 1) return TMath::Exp(fSp1[0]+fSp1[1]*x+fSp1[2]*x*x);
-
-  Int_t     np = (i == 0) ?  7 : 5;
-  Double_t *d2 = (i == 0) ? D2 : &D2[Np*(i-1)];
-  Double_t *sp = GetSp(i, 0);
-  if (!sp) return 0;
-
-  return SplFit::Splint(np, sp, &sp[Np], d2, x, SplFit::NORMAL);
+  return y;
 }
 
 void SpReso::REtest(Double_t x)
@@ -771,7 +784,10 @@ TF1 *SplFit::Fit(TGraph *gr, Int_t n, Double_t *x, Double_t *b,
   TF1 *func = GetF(gr, n, x, b, opt, xmin, xmax);
   if (!func) return 0;
 
-  gr->Fit(func, opt, "", xmin, xmax);
+  TString sopt = opt; sopt.ToLower();
+  sopt.ReplaceAll("bfl", "");
+  sopt.ReplaceAll("bfu", "");
+  gr->Fit(func, sopt, "", xmin, xmax);
   return func;
 }
 
@@ -788,7 +804,10 @@ TF1 *SplFit::Fit(TH1 *hist, Int_t n, Double_t *x, Double_t *b,
   if (!func) return 0;
   delete gr;
 
-  hist->Fit(func, opt, "", xmin, xmax);
+  TString sopt = opt; sopt.ToLower();
+  sopt.ReplaceAll("bfl", "");
+  sopt.ReplaceAll("bfu", "");
+  hist->Fit(func, sopt, "", xmin, xmax);
   return func;
 }
 

@@ -123,9 +123,6 @@ public:
    * \param[out] d   2nd derivatives */
   static void Spline(Int_t n, Double_t *xn,
 		              Double_t *yn, Double_t *bn, Double_t *d);
-
-  // Dummy destructor to avoid compile warnings
-  virtual ~SplFit() {}
   ClassDef(SplFit, 1)
 };
 
@@ -167,20 +164,22 @@ public:
   static Double_t PDFdR(Double_t *xp, Double_t *par);
 
   /** PDF of xp[0]= 1/Rrec-1/Rgen with par[]= Norm,Mean,Sig0,Sig1,Sig2
-   * \param[in] xp[0]  1/Rgen-1/Rrec
-   * \param[in] par[]  Norm,Mean,Sig0,Sig1,Sig2
+   * \param[in] xp [0]    1/Rgen-1/Rrec
+   * \param[in] par[0]    Norm
+   * \param[in] par[1]    Mean
+   * \param[in] par[2-5]  Sigma spline position
+   * \param[in] par[6,7]  Sigma spline dY/dX at lower/upper boundary
+   * \param[in] par[8]    x scaling
    * \return    PDF */
   static Double_t PDFpar(Double_t *xp, Double_t *par);
 
-  enum { Np = 7                  ///< Max. number of parameterization nodes
+  enum { Nx = 4,                    ///< Number of spline nodes in d1/R
+	 Nr = 6,                    ///< Number of spline nodes in Rgen
+	 Np = Nx+3                  ///< Number of spline parameters
        };
-  static Double_t fSp0[Np*2+2];  ///< Normalization
-  static Double_t fSp1[Np*2+2];  ///< Gaussian mean
-  static Double_t fSp2[Np*2+2];  ///< Gaussian sigma-0
-  static Double_t fSp3[Np*2+2];  ///< Gaussian sigma-1
-  static Double_t fSp4[Np*2+2];  ///< Gaussian sigma-2
-  static Double_t fSp5[Np*2+2];  ///< Normalization correction
-  static Double_t fSp6[Np*2+2];  ///< Sigma saturation
+  static Double_t fXn[Nx];          ///< Spline nodes in d1/R
+  static Double_t fRn[Nr];          ///< Spline nodes in Rgen
+  static Double_t fSp[Np*(Nr+2)+2]; ///< Spline parameters
 
   /// Parameters of resolution scaling : sqrt(p0^2+p1^2/R/R)
   static Double_t fPref[2];
@@ -195,9 +194,6 @@ public:
   static Double_t SATUR(Double_t *xp, Double_t *par) {
     return Satur(xp[0], par[0], par[1]);
   }
-
-  /// Accessor of Spline parameters, fSp_i with type= 0:X 1:Y 2:B
-  static Double_t *GetSp(Int_t i, Int_t type = 0);
 
   /// PDF normalization factor with type= 1:PDFvR 2:PDFdR
   static Double_t GetNorm(Double_t rgen, Int_t type);
@@ -217,8 +213,6 @@ public:
   /// Reentrant test
   static void REtest(Double_t x = 0);
 
-  // Dummy destructor to avoid compile warnings
-  virtual ~SpReso() {}
   ClassDef(SpReso, 1)
 };
 
@@ -403,8 +397,6 @@ public:
    * \param[out] xp[0]  Modulated rigidity */
   static Double_t SolMod(Double_t *xp, Double_t *par);
 
-  // Dummy destructor to avoid compile warnings
-  virtual ~SpFold() {}
   ClassDef(SpFold, 1)
 };
 
