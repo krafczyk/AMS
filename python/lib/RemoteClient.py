@@ -1705,20 +1705,23 @@ class RemoteClient:
                    if(odisk!=None):
                        if(fsmutexes.has_key(odisk)):
                            fsmutexes[odisk].release()
-                   try:
-                       (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
-                   except IOError,e:
-                       print e
-                       print "Problem to getoutputpath file ",path
-                       return None,0,None,0
-                   except OSError,e:
-                       print e
-                       print "Problem to getoutputpath file ",path
-                       return None,0,None,0
-                   if(odisk==None):
-                       print "odisk Problem to getoutputpath file ",path
-                       return None,0,None,0
-                   print "acquired:  ",outputpatha,gb,odisk,stime
+                   if (self.castoronly):
+                       outputpatha = '/castor/cern.ch/ams'
+                   else:
+                       try:
+                           (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
+                       except IOError,e:
+                           print e
+                           print "Problem to getoutputpath file ",path
+                           return None,0,None,0
+                       except OSError,e:
+                           print e
+                           print "Problem to getoutputpath file ",path
+                           return None,0,None,0
+                       if(odisk==None):
+                           print "odisk Problem to getoutputpath file ",path
+                           return None,0,None,0
+                       print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
                    self.setprocessingflag(0,timenow,1)
