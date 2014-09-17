@@ -104,8 +104,7 @@ else
 ifdef VERGCC48
 CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings -Wno-unknown-pragmas -Wno-strict-aliasing -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-strict-overflow #just a temporary workaround
 else
-CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings -Wno-delete-non-virtual-dtor #just a temporary workaround
-#CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
+CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
 endif
 endif
 
