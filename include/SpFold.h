@@ -123,6 +123,9 @@ public:
    * \param[out] d   2nd derivatives */
   static void Spline(Int_t n, Double_t *xn,
 		              Double_t *yn, Double_t *bn, Double_t *d);
+
+  // Dummy destructor to avoid compile warnings
+  virtual ~SplFit() {}
   ClassDef(SplFit, 1)
 };
 
@@ -213,6 +216,8 @@ public:
   /// Reentrant test
   static void REtest(Double_t x = 0);
 
+  // Dummy destructor to avoid compile warnings
+  virtual ~SpReso() {}
   ClassDef(SpReso, 1)
 };
 
@@ -397,6 +402,8 @@ public:
    * \param[out] xp[0]  Modulated rigidity */
   static Double_t SolMod(Double_t *xp, Double_t *par);
 
+  // Dummy destructor to avoid compile warnings
+  virtual ~SpFold() {}
   ClassDef(SpFold, 1)
 };
 
