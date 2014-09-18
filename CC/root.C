@@ -14085,12 +14085,18 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
   double p = mc->Momentum;
   double lp=log10(p/fabs(mc->Charge));
   double c=log10(2.);
+  double d=1000;
+  if(prob>100){
+   d=int(prob);
+   prob-=d;
+  } 
+  d=log10(d);
   if(lp<c)lp=c;
-  if(lp>2)lp=2;
+  if(lp>d)lp=d;
 
   double rnd[4];
   AMSEventR::GetRandArray(57538922+layj, 1, 1, rnd);
-  if ( rnd[0]>prob*(3-lp)/2.)return 0;
+  if ( rnd[0]>prob*(d-lp)/2.)return 0;
 
   AMSEventR::GetRandArray(9886838+layj, 1, 4, rnd);
 
