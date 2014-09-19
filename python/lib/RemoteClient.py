@@ -3410,6 +3410,11 @@ class RemoteClient:
                                     outputpath = outputpatha
                                     if (outputpath != None):
                                         mvntuples.append(outputpath)
+                                    else:
+                                        print "Cannot find an active disk, skipping ", jobid
+                                        os.system("mv %s %s" %(inputwork, inputfile))
+                                        mutex.release()
+                                        return 0, copylog                                        
                                     output.write("doCopy return status : %d \n" %(rstatus))
                                     if (rstatus == 1):
                                         if (castortime == 0):
