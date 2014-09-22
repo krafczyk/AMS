@@ -2393,7 +2393,7 @@ class RemoteClient:
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
             vcode=os.system(validatecmd)
-            while(fname.find('/castor/cern.ch')>=0 and vcode/256==134):
+            if (fname.find('/castor/cern.ch')>=0 and vcode/256==134):
                 os.system("stager_get -M %s" %(fname))
                 time.sleep(30)
                 vcode=os.system(validatecmd)
