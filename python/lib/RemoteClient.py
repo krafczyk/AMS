@@ -2395,8 +2395,11 @@ class RemoteClient:
             vcode=os.system(validatecmd)
             if (fname.find('/castor/cern.ch')>=0 and vcode/256==134):
                 os.system("stager_get -M %s" %(fname))
-                time.sleep(30)
+                time.sleep(5)
                 vcode=os.system(validatecmd)
+                while (sys.argv[0].find('parsejf') >=0 and vcode/256==134):
+                    time.sleep(30)
+                    vcode=os.system(validatecmd)
             print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
             print "got  mutex in validate", validatecmd
