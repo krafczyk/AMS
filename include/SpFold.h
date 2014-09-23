@@ -213,6 +213,12 @@ public:
   /// Get stretched Gaussian parameters (0:Norm,1:Mean,2:Sig0,3:Sig1,4:Sig2)
   static Double_t GetPar(Double_t rgen, Int_t i);
 
+  /** Set spline resolution parameters with different condition
+   * \param[in] scat   MCscat 0:Org  1:New R<400 GV
+   * \param[in] cfw    MC cutoff 0:Not applied  1:Applied
+   */
+  static void SetPar(Int_t scat, Int_t cfw);
+
   /// Reentrant test
   static void REtest(Double_t x = 0);
 
