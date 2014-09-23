@@ -13987,7 +13987,7 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 {
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
-  if (AMSEventR::Head()->Version() >= 817) return 0;
+//  if (AMSEventR::Head()->Version() >= 817) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
   TrMCClusterR *mc = 0;
