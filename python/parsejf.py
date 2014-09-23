@@ -25,5 +25,5 @@ for x in sys.argv:
     elif x == "-m": m=1
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
-if(html.ServerConnect()):
-    html.parseJournalFiles(d,i,v,h,s,m,mt,castoronly)
+#if(html.ServerConnect()):
+html.parseJournalFiles(d,i,v,h,s,m,mt,castoronly)

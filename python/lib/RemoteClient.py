@@ -1028,6 +1028,7 @@ class RemoteClient:
         r1=self.sqlserver.Query("select count(path)  from ntuples where run="+str(run.Run))
         r2=self.sqlserver.Query("select count(path)  from datafiles where type like 'MC%' and run="+str(run.Run))
         status=ro[0][1]
+        status2=""
         if(status== 'Completed' and r1[0][0]==0 and r2[0][0]==0):
             status="Unchecked"
         if(status != 'Completed' and status != self.dbclient.cr(run.Status)):
@@ -1178,7 +1179,9 @@ class RemoteClient:
                                                 else:
                                                     self.thrusted=self.thrusted+1
                                             else:
-                                                i= i>>8
+                                                i= i>>8 
+                                                if(i==134):
+                                                    status2="STAGEIN"
                                                 if(i/128):
                                                     events=0
                                                     status="Bad"+str(i-128)
@@ -1252,6 +1255,9 @@ class RemoteClient:
                              
                         else:
                             status="Unchecked"
+#                        print "status ",status,len(status2),status2
+                        if(len(status2)>0):
+                            status=status2
                         if(status == "Completed"):
                             self.GoodRuns[0]=self.GoodRuns[0]+1
                         elif (status =="Failed"):
@@ -1350,6 +1356,7 @@ class RemoteClient:
         ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
         r1=self.sqlserver.Query("select count(path)  from ntuples where jid="+str(run.uid))
         status=ro[0][1]
+        status2=""
         if(status== 'Completed' and r1[0][0]==0):
             status="Unchecked"
         if(status != 'Completed' and status != self.dbclient.cr(run.Status)):
@@ -1504,6 +1511,8 @@ class RemoteClient:
                                                     self.thrusted=self.thrusted+1
                                             else:
                                                 i= i>>8
+                                                if(i==134):
+                                                    status2="STAGEIN"
                                                 if(i/128):
                                                     events=0
                                                     status="Bad"+str(i-128)
@@ -1582,6 +1591,9 @@ class RemoteClient:
                             status="Completed"
                         else:
                             status="Unchecked"
+#                        print "status ",status,len(status2),status2
+                        if(len(status2)>0):
+                            status=status2
                         if(status == "Completed"):
                             self.GoodRuns[0]=self.GoodRuns[0]+1
                         elif (status =="Failed"):
@@ -1676,7 +1688,7 @@ class RemoteClient:
             return 0
     
     def doCopy(self,run,inputfile,crc,version,outputpath,path='/MC'):
-       self.sqlserver.Commit()
+#       self.sqlserver.Commit()
        time0=time.time()
        time00=0
        (dbv,gbv,osv)=self.getDSTVersion(version)
