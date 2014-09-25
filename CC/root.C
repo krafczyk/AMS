@@ -14095,15 +14095,18 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
   } 
   d=log10(d);
   if(lp>d)lp=d;
-
+  double a=log10(3);
   double rnd[4];
   AMSEventR::GetRandArray(57538922+layj, 1, 1, rnd);
 if(New){
   if(lp>c){
      if ( rnd[0]>prob*(d-lp)/2.)return 0;
   }
+  else if(lp>a){
+     if ( rnd[0]>prob*(d-c)/2.)return 0;
+  }
   else{
-     if ( rnd[0]>prob*(d-c)/2./c*lp)return 0;
+     if ( rnd[0]>prob*(d-c)/2./3./a*(2*lp+a))return 0;
   }    
 }
 else{
