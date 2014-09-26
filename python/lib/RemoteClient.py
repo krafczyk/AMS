@@ -1919,7 +1919,7 @@ class RemoteClient:
         if(timeout>1800):
             timeout=1800
         tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 %d " %(timeout) 
-        cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=amscdr'" 
+        cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=%s'" %(os.environ['STAGE_SVCCLASS']) 
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
@@ -2120,7 +2120,7 @@ class RemoteClient:
                 for i in range (2,len(junk)):
                     cmove=cmove+'/'+junk[i]
                 # try first xrdcp and then rfcp
-                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
+                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -ODsvcClass=%s "+output+" \"root://castorpublic.cern.ch//"+cmove+"\"" %(os.environ['STAGE_SVCCLASS'])
                 i=os.system(cmd)
                 if(i):
                     print "xrdcp failed, trying rfcp..."
@@ -2200,7 +2200,7 @@ class RemoteClient:
                         mutex.acquire()
                         print "copyFile-E-FailedCastorOnly ",input,output
                         return 1
-            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 900 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp \"root://castorpublic.cern.ch//"+input+"\" "+output
+            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 900 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -OSsvcClass=%s \"root://castorpublic.cern.ch//"+input+"\" "+output %(os.environ['STAGE_SVCCLASS'])
             if(self.castoronly):
                 mutex.acquire()
                 return 1024
@@ -2382,6 +2382,8 @@ class RemoteClient:
         else:
             dir="/afs/cern.ch/ams/Offline/AMSDataDir"
             os.environ['AMSDataDirRW']=dir
+        if(not os.environ.has_key('STAGE_SVCCLASS')):
+            os.environ['STAGE_SVCCLASS']='amscdr'
         self.env['AMSDataDir']=dir
         key='AMSSoftwareDir'
         sql="select myvalue from Environment where mykey='"+key+"'";
