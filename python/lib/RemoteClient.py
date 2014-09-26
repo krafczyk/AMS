@@ -2120,7 +2120,7 @@ class RemoteClient:
                 for i in range (2,len(junk)):
                     cmove=cmove+'/'+junk[i]
                 # try first xrdcp and then rfcp
-                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -ODsvcClass=%s "+output+" \"root://castorpublic.cern.ch//"+cmove+"\"" %(os.environ['STAGE_SVCCLASS'])
+                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -ODsvcClass=" + os.environ['STAGE_SVCCLASS'] + " "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
                 i=os.system(cmd)
                 if(i):
                     print "xrdcp failed, trying rfcp..."
@@ -2200,7 +2200,7 @@ class RemoteClient:
                         mutex.acquire()
                         print "copyFile-E-FailedCastorOnly ",input,output
                         return 1
-            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 900 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -OSsvcClass=%s \"root://castorpublic.cern.ch//"+input+"\" "+output %(os.environ['STAGE_SVCCLASS'])
+            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 900 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -OSsvcClass=" + os.environ['STAGE_SVCCLASS'] + " \"root://castorpublic.cern.ch//"+input+"\" "+output
             if(self.castoronly):
                 mutex.acquire()
                 return 1024
