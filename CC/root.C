@@ -10047,7 +10047,7 @@ double  AMSEventR::SolidAngleInShadow(double AMSfov0){
         double xyzRb[4][3];
         double xyzRba[4][3];
         double beta=0; //----> to be define according to the Solar Array
-        double s;
+        double s=0;
 
         //..........1A
         if(p==0){
