@@ -1522,10 +1522,10 @@ catch(std::bad_alloc a){
     //    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
     //   }
   }
-  if(AMSStatus::isDBWriteR()){
+  if(AMSStatus::isDBWriteR() &&  AMSEvent::gethead()->getheadC("DAQEvent",0)){
     AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
   }
-  else if(AMSStatus::isDBUpdateR()){
+  else if(AMSStatus::isDBUpdateR() &&  AMSEvent::gethead()->getheadC("DAQEvent",0)){
     AMSJob::gethead()->getstatustable()->updates(getrun(),getid(),getstatus(),gettime());
   }
 }
