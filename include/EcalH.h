@@ -10,6 +10,7 @@
 ///\date  2013/11/06 SH  Introduction of the class
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
+///\data  2014/09/30 QY  ECAL Charge added
 ///
 ///$Date$
 ///
@@ -52,6 +53,14 @@ public:
   */
   static double GetMipEdep(AMSPoint &p_entry, AMSPoint &p_last);
 #endif
+
+///--ECAL Charge
+  static const int nech=7;
+  static const int rech[nech];
+  static float GetMipQLI(int ich,float rig,int il,int lh);
+  static float GetMipQLZ(int charge,float rig,int il,int lh);
+  static float GetMipQL(float edep,float rig,int il,int lh);
+///--
 
 public:
   enum { NL = 18,           ///< Number of layers

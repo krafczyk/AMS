@@ -5364,6 +5364,34 @@ float EcalShowerR::EcalStandaloneEstimator(){
 	return estimator;
 }
 
+float EcalShowerR::GetEcalLayerQ(int ilay,float edep,int edeptype,float frig){
+#ifdef __ROOTSHAREDLIBRARY__
+   return  EcalHR::GetMipQL(edep,frig,ilay,edeptype);
+#endif
+   return 0;
+}
+
+float EcalShowerR::GetLayerQ(int ilay,int edeptype,float frig){
+
+  float ecal_el=0,ecal_eh=0;
+  for(int i2dcl=0;i2dcl<NEcal2DCluster();i2dcl++){//2dCl
+      Ecal2DClusterR *e2dcl=pEcal2DCluster(i2dcl);
+      for(int icl=0;icl<e2dcl->NEcalCluster();icl++){//1dCl
+        EcalClusterR *ecl=e2dcl->pEcalCluster(icl);
+        for(int ihit=0;ihit<ecl->NEcalHit();ihit++){//Nhit
+          EcalHitR *ehit=ecl->pEcalHit(ihit);
+          if(ehit->Plane!=ilay)continue;
+          float edep=ehit->Edep;
+          ecal_el+=edep;
+          if(edep>ecal_eh){ecal_eh=edep;}
+        }
+     }
+   }
+   ecal_el/=1000.;//MeV->GeV
+   ecal_eh/=1000.;//MeV->GeV
+   if(edeptype==0)return GetEcalLayerQ(ilay,ecal_el,edeptype,frig); 
+   else           return GetEcalLayerQ(ilay,ecal_eh,edeptype,frig);
+}
 
 float EcalShowerR::EcalChargeEstimator() {
 

@@ -835,7 +835,21 @@ public:
   float NS13R;
   float NEnergy3C2;
   float NEnergy3C3;
-
+/// ECAL charge estimator based on energy deposition for each layer (qyan@cern.ch)
+/*!
+ *   @param[in] ilay: ECAL layer(0-17)
+ *   @param[in] edep: energy depositon in ECAL layer(GeV)
+ *   @param[in] edeptype: 0-total layer edep(sum up all cell) to get charge, 1-single cell edep(Max edep cell) to get charge
+ *   @param[in] frig: particle rigidity[GV], correct dE/dx increase with rigidity
+ */
+  static float GetEcalLayerQ(int ilay,float edep,int edeptype=0,float frig=0);
+/// ECAL charge estimator based on shower energy deposition for each layer (qyan@cern.ch)
+/*!
+ *   @param[in] ilay: ECAL layer(0-17)
+ *   @param[in] edeptype: 0-total layer edep(sum up all cell) to get charge, 1-single cell edep(Max edep cell) to get charge
+ *   @param[in] frig: particle rigidity[GV], correct dE/dx increase with rigidity
+ */
+  float GetLayerQ(int ilay,int edeptype=0,float frig=0);
   float EcalChargeEstimator(); ///< Charge estimator based on ECAl-only ; it is advised to discard low-rigidity events and to use events having only one EcalShower.
 
   /// Function to obtain the best reconstructed energy for the shower according to a particle hyptothesis: partid=1(photon),2=(electron/positron). Using different methods to recover anode efficiency, rear leakage, lateral leakage and temperature effects. EnergyC correction (method=0) is also known as EnergyP ("energy patched").  EnergyA (method=1) correction not yet implemented. EnergyE for candidate electrons retrieves negative values in case of unphysical energy fraction in last two layers or deposited energy in case of negative correction.
