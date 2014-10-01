@@ -282,6 +282,10 @@ void TRMCFFKEY_DEF::init(){
   OuterSmearing[0][1]= 9.0e-4; //L1 Y
   OuterSmearing[1][0]= 8.0e-4; //L9 X
   OuterSmearing[1][1]=11.5e-4; //L9 Y
+  OuterSmearingC[0][0]=0.;  //L1 X
+  OuterSmearingC[0][1]=0.;  //L1 Y
+  OuterSmearingC[1][0]=0.;  //L9 X
+  OuterSmearingC[1][1]=0.;  //L9 Y
 
   // new stuff 2013 (PZ)
 
