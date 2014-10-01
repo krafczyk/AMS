@@ -130,6 +130,7 @@ for (int ii=0;ii<9;ii++){
   TrackFindChargeCutActive = 0; 
   NhitXForTRDTrackHelp = 3;
   logChisqXmax = 3; 
+  AllowYonlyTracks = 0;
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;

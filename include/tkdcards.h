@@ -423,9 +423,12 @@ public:
   //! R 74 MatchTOF_TRD: Maximum logChisqX to declare a good multiplicity resolution after TRD match
   geant logChisqXmax; 
 
+  //! I 75 BuildTrTracksSimple: Allow Yonly tracks, to be used TTCS-off runs
+  int   AllowYonlyTracks;
+
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,6);
+  ClassDef(TRCLFFKEY_DEF,7);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
