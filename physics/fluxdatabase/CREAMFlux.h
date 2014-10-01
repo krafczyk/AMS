@@ -8,6 +8,8 @@
 #ifndef _CREAMFlux_
 #define _CREAMFlux_
 
+/// TGraphErrors*  HEFLUXRCREAM  : CREAM-I helium flux VS Rigidity
+
 //#   He Flux in Rigidity[GV] CREAM-I(2004/12-2005/01)
 const int creamhenb=10;
 

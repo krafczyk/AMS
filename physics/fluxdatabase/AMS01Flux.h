@@ -7,6 +7,9 @@
 //////////////////////////////////////////////////////////////////////////
 #ifndef _AMS01Flux_
 #define _AMS01Flux_
+
+/// TGraphErrors*  HEFLUXRAMS01  : AMS-01 helium flux VS Rigidity
+
 //#   Pr Flux AMS01
 
 //#   He Flux in Rigidity[GV] AMS01(1998/06)

@@ -8,6 +8,8 @@
 #ifndef _ATICFlux_
 #define _ATICFlux_
 
+/// TGraphErrors*  HEFLUXRATIC02  : ATIC02 helium flux VS Rigidity
+
 
 //#   He Flux in Rigidity[GV] ATIC02(2003/01)
 const int atic02henb=15;
