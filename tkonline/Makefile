@@ -28,9 +28,15 @@ else
 endif
 CXXFLAGS       += $(shell $(ROOTCFG) --cflags) 
 DEFINES        := -I../include -I$(INCDIR) -I$(OBJDIR)
+ifeq ($(ARCH),macosx64)
+  DEFINES     += -D__DARWIN__ 
+else
+  DEFINES     += -D__LINUXGNU__
+endif
 ARCH           := $(shell $(ROOTCFG) --arch)
 LIBS           := -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -lntuple_slc4_PG
-LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA
+#LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA
+LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA
 ifneq ($(ARCH),macosx64)
 LIBS           += -lRFIO
 endif
@@ -108,7 +114,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.C
 ### ROOT Dictionary
 $(DICTSOURCE):
 	@echo Creating $@ ROOT dictionary ...
-	$(CINT) -f $@ -c -p $(DEFINES) $(DICTINC)
+	$(CINT) -f $@ -c -p $(DEFINES) $(PWD)/../include/CintUInt8.h $(DICTINC)
 
 ### Clean
 clean:
