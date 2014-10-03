@@ -102,6 +102,9 @@
 #pragma link C++ class SamplingUnfolding;
 #pragma link C++ class BayesianConsistent;
 #endif
+#pragma link C++ class SplFit+;
+#pragma link C++ class SpReso+;
+#pragma link C++ class SpFold+;
 ///////////////////////////////////////////////////////
 #pragma link C++ class TrPdf+;
 #pragma link C++ class VCon;

@@ -37,7 +37,10 @@
 #include "TList.h"
 #include "TCollection.h"
 
+#ifndef __DARWIN__
 #include <stdint.h>
+#endif
+
 #include <vector>
 #include <map>
 

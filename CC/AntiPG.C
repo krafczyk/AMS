@@ -1452,10 +1452,11 @@ int AntiRecoPG::ReLoadAcc(){
     int iftt=rsd->nftdc-1;
     if (iftt>7) iftt=7;
     timeindx[0][side][sect-1]=iftt+1;
-    if(iftt<0) {iftt=0;
+    if(iftt<0) {
       if (maxerr<errmax)  {
 	cerr << "AntiRecoPG::ReLoadAcc-E open Error null or negative number of #FT= " << iftt+1 << "| Run= " << evt->Run() << " event= " << evt->Event() << endl;
-	maxerr++;}}
+	maxerr++;}
+    }
     else{
     for (int itdc = 0; itdc<rsd->ntdct; itdc++){
       if (itdc>15) continue;

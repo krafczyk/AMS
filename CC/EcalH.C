@@ -8,6 +8,7 @@
 ///\date  2013/11/06 SH  Introduction of the class
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
+///\data  2014/09/30 QY  ECAL Charge added
 ///
 ///$Date$
 ///
@@ -105,6 +106,135 @@ double EcalHR::GetMipEdep(AMSPoint &pent, AMSPoint &papx)
   return esum*1e-3;
 }
 #endif
+
+///--ECAL Charge
+const int EcalHR::rech[nech]={2,3,4,5,6,7,8};
+
+///----
+float EcalHR::GetMipQLI(int ich,float rig,int il,int lh){
+
+  const float rigcut=1.;////Const
+  float rigp=fabs(rig)<rigcut? fabs(rigcut) :fabs(rig);
+  float xv=log(rigp);
+//----
+  const int nel=2;
+  const int npar=7;
+  float qpar[nel][nech][npar]={
+   0.0035795, 0.2193598, 0.0057460, 2.1314707, -0.0008672, -0.0018276, -0.0022184,
+   0.0004175, 1.1024648, 0.0093856, 1.8886726, -0.0004029, 0.0008303, -0.0012436,
+   0.0016347, 0.6026584, 0.0074301, 2.5867866, 0.0003743, -0.0005029, -0.0006735,
+   0.0014857, 0.6250636, 0.0073819, 2.9331780, 0.0006354, -0.0005248, -0.0005220,
+   0.0022324, 0.4151077, 0.0064493, 2.9937316, 0.0004657, -0.0006369, -0.0004559,
+   0.0049960, 0.2271327, 0.0032035, 2.9956650, 0.0006081, -0.0004139, -0.0003568,
+   0.0067264, 0.1722969, 0.0010454, 2.3927553, 0.0011925,  0.0008345, -0.0000263,
+//---
+   0.0044904, 0.1774051,  0.0047072, 2.3338160, -0.0003557, -0.0011491, -0.0014756,
+   0.0073711, 0.2286910,  0.0011965, 2.3774302,-0.0002569, -0.0011187, -0.0013604,
+   0.0077551, 0.2201344,  0.0006320, 2.5790768, 0.0003184, -0.0005586, -0.0007132,
+   0.0090063, 0.2144770, -0.0011699, 2.8430237, 0.0004613, -0.0007122, -0.0006306,
+   0.0102461, 0.1689230, -0.0024292, 2.6141357, 0.0006254, -0.0002991, -0.0005191,
+   0.0081225, 0.2398849, -0.0010444, 2.9957323, 0.0005018, -0.0005557, -0.0003967,
+   0.0069713, 0.2051592,  0.0004876, 2.9957323, 0.0008232, -0.0001456, -0.0002250,
+ };
+
+  float qparh[nel][nech][npar]={
+   0.0033852, 0.1642835, 0.0057009, 2.3583422, -0.0005074, -0.0011155, -0.0013167, 
+   0.0041534, 0.1908753, 0.0044455, 2.5553095,-0.0001746, -0.0009929, -0.0011107,
+   0.0059363, 0.1315843, 0.0026752, 2.5790121, 0.0000351, -0.0004369, -0.0006106,
+   0.0054295, 0.1579859, 0.0028164, 2.9101918, 0.0000610, -0.0006341, -0.0005190,
+   0.0049082, 0.1595940, 0.0031412, 2.9957319, 0.0000726, -0.0005582, -0.0003957,
+   0.0045814, 0.1048758, 0.0035331, 2.9956942,-0.0000276, -0.0006257, -0.0003798,
+   0.0042253, 0.1289715, 0.0035286, 2.9957283, 0.0002943, -0.0001746, -0.0001916,
+//--
+   0.0042430, 0.1476668, 0.0047559, 2.5950428, -0.0002014, -0.0007800, -0.0008929,
+   0.0013325, 0.4731990, 0.0073966, 1.8972400, -0.0024835, -0.0023062, -0.0025389,
+   0.0019650, 0.4158217, 0.0064635, 2.5328378, 0.0000101, -0.0006223,  -0.0007190,
+   0.0031217, 0.2941562, 0.0050289, 2.7486656, 0.0003867, -0.0003584,  -0.0005250,
+   0.0060492, 0.1574287, 0.0019576, 2.7097291, 0.0006838, 0.0000137,   -0.0003483,
+   0.0018440, 0.3918771, 0.0059615, 1.8724726, 0.0004666, 0.0030902,    0.0015550,
+   0.0006379, 0.7889126, 0.0069417, 1.7709279, 0.0004461, 0.0039338,    0.0028757,
+ };
+
+//---Init Par
+   int uil=(il<nel)?il:nel-1;
+   float  par[7]={0};
+   par[0]=qpar[uil][ich][0];
+   par[1]=qpar[uil][ich][1];
+   par[2]=qpar[uil][ich][2];
+   par[3]=qpar[uil][ich][3];
+   par[4]=qpar[uil][ich][4];
+   par[5]=qpar[uil][ich][5];
+   par[6]=qpar[uil][ich][6];
+   if(lh==1){
+      par[0]=qparh[uil][ich][0];
+      par[1]=qparh[uil][ich][1];
+      par[2]=qparh[uil][ich][2];
+      par[3]=qparh[uil][ich][3];
+      par[4]=qparh[uil][ich][4];
+      par[5]=qparh[uil][ich][5];
+      par[6]=qparh[uil][ich][6];
+   }
+//---CorV
+  float corv=par[0]*pow(xv,par[1])+par[2];
+  if(xv<par[3]){
+      corv= par[0]*pow(par[3],par[1])+par[2];
+      corv=corv+par[4]*(xv-par[3])+par[5]*pow(xv-par[3],2)+par[6]*pow(xv-par[3],3);
+   }
+   return corv;
+}
+
+
+float EcalHR::GetMipQLZ(int charge,float rig,int il,int lh){
+
+  if(charge<=0)return 1;
+  float corvar=1;
+
+  for(int ich=0;ich<nech;ich++){
+     if(charge<rech[0]||charge==rech[ich]||ich==nech-1){
+         corvar=GetMipQLI(ich,rig,il,lh); //Rigidity Correction
+         break;
+   }
+  else if(charge>rech[ich]&&charge<rech[ich+1]){
+        float  ww1=charge*charge-rech[ich]*rech[ich];
+        number  ww2=rech[ich+1]*rech[ich+1]-charge*charge;
+        corvar=(ww2*GetMipQLI(ich,rig,il,lh)+ww1*GetMipQLI(ich+1,rig,il,lh))/(ww1+ww2);//Rigidity Correction
+        break;
+      }
+   }
+   return corvar;
+}
+
+
+float  EcalHR::GetMipQL(float edep,float rig,int il,int lh){
+
+  if(edep<=0)return edep;
+  if(rig==0)rig=100;
+
+///--Finding Algorithm 
+   int nowch=rech[0];
+   float cor1,cor2,ch1,ch2;
+   float rigcor=1;
+   while (1){
+      cor1=GetMipQLZ(nowch,rig,il,lh);
+      cor2=GetMipQLZ(nowch+1,rig,il,lh);
+      ch1=sqrt(edep/cor1);
+      ch2=sqrt(edep/cor2);
+///--Find LowLimit
+     if(ch1<rech[0]||ch2<rech[0]||nowch==0){
+        rigcor=cor1;break;
+      }
+///--Find Gap
+   else if((ch1>=nowch&&ch2<=nowch+1)||(ch1<=nowch&&ch2>=nowch+1)){
+         float ww1=fabs(ch1*ch1-nowch*nowch);float ww2=fabs(ch2*ch2-(nowch+1)*(nowch+1));
+         rigcor=(ww2*cor1+ww1*cor2)/(ww1+ww2);break;
+      }
+      else if(ch1>=nowch+1||ch2>=nowch+1){nowch=(ch1>ch2)? int(ch1):int(ch2);}
+      else if(ch1<=nowch||ch2<=nowch)    {nowch--;}
+      else {cerr<<"Error Rig Correction"<<endl;break;}
+   }
+   return sqrt(edep/rigcor);
+}
+  
 
 EcalHR::EcalHR()
 {

@@ -72,7 +72,28 @@ again2:
 if(!staged){
            stager_get="stager_qry -M ";
            stager_get+=(fname+pos);
-           stager_get+=" | grep -c STAGEIN 2>&1";
+           stager_get+=" | grep -c 'No such file or directory' 2>&1";
+           FILE *fp=popen(stager_get.c_str(),"r");
+           char path[1024];
+           if(fp==NULL){
+             stagein=false;
+           }
+           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"0")){
+              if(iver>0)cout<<" stagein again "<<again<<endl;
+             if(again<10){
+                again++;
+                pclose(fp);
+                goto again2;
+             }
+             stagein=true;
+           }
+           else stagein=false;
+           pclose(fp);
+}
+if(!stagein && !staged){
+           stager_get="stager_qry -M ";
+           stager_get+=(fname+pos);
+           stager_get+=" | grep -c 'not on this service class' 2>&1";
            FILE *fp=popen(stager_get.c_str(),"r");
            char path[1024];
            if(fp==NULL){

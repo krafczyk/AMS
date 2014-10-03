@@ -40,7 +40,43 @@ float TrExtAlignDB::Sofs2[12]={0,         0, 3.7e-4, 6.0e-4,
 			       10e-4, 20e-4,  51e-4,  20e-4,
 			        6e-6,     0,      0,      0};
 
+void TrExtAlignDB::TuneSofs2(uint time)
+{
+  if (TKGEOMFFKEY.L2AlignPar[2] > 0) {
+    TKGEOMFFKEY.L2AlignPar[2] = 0;
+    Double_t y2s = 3600*24*365;
+    Double_t yr  = (TKGEOMFFKEY.L2AlignPar[0]-time)/y2s;
+    Double_t dy1 = yr*1.45e-4;
+    Double_t dy9 = yr*0.98e-4;
+    TrExtAlignDB::Sofs2[0] += dy1; TrExtAlignDB::Sofs2[1] += dy9;
+    TrExtAlignDB::Sofs2[2] += dy1; TrExtAlignDB::Sofs2[3] += dy9;
 
+    static int n = 0;
+    if (n++ < 10)
+      cout << "TrExtAlignDB::TuneSofs2-I-yr,Sofs2= " << yr << " "
+	   << TrExtAlignDB::Sofs2[0]*1e4 << " "
+	   << TrExtAlignDB::Sofs2[1]*1e4 << " "
+	   << TrExtAlignDB::Sofs2[2]*1e4 << " "
+	   << TrExtAlignDB::Sofs2[3]*1e4 << endl;
+  }
+}
+
+Double_t TrExtAlignDB::CorrectRigidity(uint time, Double_t rgt,
+				                  Double_t factor)
+{
+  if (rgt == 0) return 0;
+
+  Double_t t0  = 1347000000;   // TKGEOMFFKEY.L2AlignPar[0]
+  Double_t y2s = 3600*24*365;
+  Double_t p0  =  0.049*(time-t0)/y2s;
+  Double_t p1  = -0.015*(time-t0)/y2s;
+  Double_t p2  =  0.768;
+  Double_t p3  =  0.438;
+  Double_t lr  = TMath::Log10(TMath::Abs(rgt));
+  Double_t dr  = (p0+p1*TMath::Erfc((lr-p2)/p3))*1e-3;
+
+  return 1/(1/rgt+dr*factor);
+}
 
 
 void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,const char* CIEMAT_name){
@@ -467,13 +503,13 @@ extern "C" double rnormx();
 
 void TrExtAlignDB::SmearExtAlign()
 {
-  double rnd[8];
+  double rnd[10];
   double rd[4];
 #ifdef __ROOTSHAREDLIBRARY__
-  AMSEventR::GetRandArray(4173792, 2, 8, rnd);
+  AMSEventR::GetRandArray(4173792, 2, 10, rnd);
   AMSEventR::GetRandArray(3375420, 1, 4, rd);
 #else
-  for (int i = 0; i < 8; i++) rnd[i] = rnormx();
+  for (int i = 0; i < 10; i++) rnd[i] = rnormx();
    float d(0); 
   rd[0]=RNDM(d);
   rd[1]=RNDM(d);
@@ -482,6 +518,7 @@ void TrExtAlignDB::SmearExtAlign()
 #endif
 
 double s1[2]={7.5e-4,8.3e-4};
+
 s1[0]=fabs(TRMCFFKEY.OuterSmearing[0][1]);
 s1[1]=fabs(TRMCFFKEY.OuterSmearing[1][1]);
 
@@ -527,18 +564,23 @@ else pg[k]=s3[k];
   // PG
   SL1[0] = rnd[0]*TRMCFFKEY.OuterSmearing[0][0];
   if(TRMCFFKEY.OuterSmearing[0][1]>=0)SL1[1] = rnd[1]*TRMCFFKEY.OuterSmearing[0][1];
-  else SL1[1] = rnd[1]*pg[0];
+  else {
+     SL1[1] = rnd[1]*pg[0]+rnd[8]*(pg[0]+md[0])/2*TRMCFFKEY.OuterSmearingC[0][1];
+     }
   SL9[0] = rnd[2]*TRMCFFKEY.OuterSmearing[1][0];
   if(TRMCFFKEY.OuterSmearing[1][1]>=0)SL9[1] = rnd[3]*TRMCFFKEY.OuterSmearing[1][1];
-  else SL9[1] = rnd[3]*pg[1];
-
+  else {
+   SL9[1] = rnd[3]*pg[1]+rnd[9]*(pg[1]+md[1])/2*TRMCFFKEY.OuterSmearingC[1][1];
+  }
   // CIEMAT
   SL1[6] = rnd[4]*TRMCFFKEY.OuterSmearing[0][0];
   if(TRMCFFKEY.OuterSmearing[0][1]>=0)SL1[7] = rnd[5]*TRMCFFKEY.OuterSmearing[0][1];
-  else SL1[7] = rnd[5]*md[0];
+  else {
+    SL1[7] = rnd[5]*md[0]+rnd[8]*(pg[0]+md[0])/2*TRMCFFKEY.OuterSmearingC[0][1];
+  }
   SL9[6] = rnd[6]*TRMCFFKEY.OuterSmearing[1][0];
   if(TRMCFFKEY.OuterSmearing[1][1]>=0)SL9[7] = rnd[7]*TRMCFFKEY.OuterSmearing[1][1];
-  else SL9[7] = rnd[7]*md[1];
+  else SL9[7] = rnd[7]*md[1]+rnd[9]*(pg[1]+md[1])/2*TRMCFFKEY.OuterSmearingC[1][1];
 
 #ifdef __ROOTSHAREDLIBRARY__
   // Workaround to retune the MC scatterng

@@ -1041,6 +1041,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     float ferx = (hit->OnlyY()) ? 0 : 1;
     float fery = (hit->OnlyX()) ? 0 : 1;
 
+    if (TRCLFFKEY.AllowYonlyTracks) ferx = 100;
+
     if (((id & kUpperHalf) || 
 	 (id & kLowerHalf)) && ferx == 0) ferx = 10;
 

@@ -25,7 +25,7 @@ void TKGEOMFFKEY_DEF::init(){
   CalibVer=3;
   memset(fname,400,sizeof(fname[0]));
   memset(disfname,400,sizeof(disfname[0]));
-  alignver=4;
+  alignver=5;
   LoadMCDisalign=1;
   EnableExtMov=0;
   float p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
@@ -130,6 +130,7 @@ for (int ii=0;ii<9;ii++){
   TrackFindChargeCutActive = 0; 
   NhitXForTRDTrackHelp = 3;
   logChisqXmax = 3; 
+  AllowYonlyTracks = 0;
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;
@@ -282,6 +283,10 @@ void TRMCFFKEY_DEF::init(){
   OuterSmearing[0][1]= 9.0e-4; //L1 Y
   OuterSmearing[1][0]= 8.0e-4; //L9 X
   OuterSmearing[1][1]=11.5e-4; //L9 Y
+  OuterSmearingC[0][0]=0.;  //L1 X
+  OuterSmearingC[0][1]=0.;  //L1 Y
+  OuterSmearingC[1][0]=0.;  //L9 X
+  OuterSmearingC[1][1]=0.;  //L9 Y
 
   // new stuff 2013 (PZ)
 

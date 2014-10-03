@@ -1898,6 +1898,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
   
   int hskip = 0;
   int cskip = 0;
+
+  double dpsmax = 0.2;
+  if (TRCLFFKEY.AllowYonlyTracks) dpsmax = 2;
   
   int i[NP];
   for (i[1] = 0; i[1] < nc[1]; i[1]++) {  // Plane 2 (Layer 2, 3)
@@ -1957,7 +1960,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	  if (i[0] == nc[0]) {
 	    double dps = std::fabs(CY(2)-Intpol1(CZ(1), CZ(3), 
 						 CY(1), CY(3), CZ(2)));
-	    if (dps > 0.2) continue;
+	    if (dps > dpsmax) continue;
 	    
 	    int jr;
 	    for (jr = 0; jr < NC && tmin[jr].csq > 0; jr++) {
@@ -2244,7 +2247,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 
     int nlx = 0;
     for (int k = 0; k < NL; k++) if (nhx[k] > 0) nlx++;
-    if (nlx < 2) continue;
+
+    if (!TRCLFFKEY.AllowYonlyTracks && nlx < 2) continue;
     TR_DEBUG_CODE_110;
 
     if (trdh &&
@@ -2272,6 +2276,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       AMSDir   dtrd;
       double   xtrd_match = 6;
       double   ytrd_match = 3;
+      if (TRCLFFKEY.AllowYonlyTracks) { xtrd_match = 10; ytrd_match = 5; }
+
 #ifndef __ROOTSHAREDLIBRARY__
       AMSTRDTrack *trd = (AMSTRDTrack*)AMSEvent::gethead()
 	                               ->getheadC("AMSTRDTrack", 0, 1);
@@ -5974,10 +5980,14 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
 
   // 1st. step Fit
   int mfit1 = (MagFieldOn()) ? TrTrackR::kChoutko : TrTrackR::kLinear;
+
   float ret = track->FitT(mfit1);
+  int ndofy = track->GetNdofY(mfit1);
+  if (TRCLFFKEY.AllowYonlyTracks && ndofy == 0) ndofy = 1; 
   if (ret < 0 || 
       track->GetChisqX(mfit1) < 0 || track->GetChisqY(mfit1) <= 0 ||
-      track->GetNdofX (mfit1) < 0 || track->GetNdofY (mfit1) <= 0) {
+      track->GetNdofX (mfit1) < 0 || ndofy <= 0) {
+
     if (TrDEBUG >= 1)
       cout << "1st.fit failed; " << ret << " "
 	   << track->GetChisqX(mfit1) << " " << track->GetChisqY(mfit1) << " "

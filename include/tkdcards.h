@@ -192,9 +192,9 @@ public:
   // 2014.07.09 VC : update with Q2 model
   //  In case MCscat[0] < 0 Q2 model is used (recommended)
   // [0]: b(gev/c)^-2 coefficient of exp(b*q2)       (typically put -15)
-  // [1]: probability of quasi-elastic scattering L1 (typically put 0.05)
-  // [2]: probability of quasi-elastic scattering L9 (typically put 0.04)
-
+  // [1]: <1probability of quasi-elastic scattering L1 (typically put 0.05)
+  // [2]: <1probability of quasi-elastic scattering L9 (typically put 0.04)
+  // [1,2] >1 energy at which scattering probability=0 default=1000 gev  
   geant MCscat[3];   //=0,0,0  typically put (-15,0.05,0.04) to activate
 
   // 2014.07.02 AO  
@@ -206,7 +206,9 @@ public:
   // p-side non-linearity 
   int   UseNonLinearity;
 
+  //2014.09.29  VC Introduce outersmearing corr
   /// Read from AMSRoot file or not
+  geant OuterSmearingC[2][2];  //correlaton coefficient betwen MD-PG  /expected to be 0.25 /
   static int ReadFromFile;
 
   TRMCFFKEY_DEF():TObject(){init();}
@@ -215,7 +217,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,9);
+  ClassDef(TRMCFFKEY_DEF,10);
 
 
 };
@@ -421,9 +423,12 @@ public:
   //! R 74 MatchTOF_TRD: Maximum logChisqX to declare a good multiplicity resolution after TRD match
   geant logChisqXmax; 
 
+  //! I 75 BuildTrTracksSimple: Allow Yonly tracks, to be used TTCS-off runs
+  int   AllowYonlyTracks;
+
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,6);
+  ClassDef(TRCLFFKEY_DEF,7);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)

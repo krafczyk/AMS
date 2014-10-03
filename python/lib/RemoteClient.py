@@ -1028,6 +1028,7 @@ class RemoteClient:
         r1=self.sqlserver.Query("select count(path)  from ntuples where run="+str(run.Run))
         r2=self.sqlserver.Query("select count(path)  from datafiles where type like 'MC%' and run="+str(run.Run))
         status=ro[0][1]
+        status2=""
         if(status== 'Completed' and r1[0][0]==0 and r2[0][0]==0):
             status="Unchecked"
         if(status != 'Completed' and status != self.dbclient.cr(run.Status)):
@@ -1178,7 +1179,9 @@ class RemoteClient:
                                                 else:
                                                     self.thrusted=self.thrusted+1
                                             else:
-                                                i= i>>8
+                                                i= i>>8 
+                                                if(i==134):
+                                                    status2="STAGEIN"
                                                 if(i/128):
                                                     events=0
                                                     status="Bad"+str(i-128)
@@ -1252,6 +1255,9 @@ class RemoteClient:
                              
                         else:
                             status="Unchecked"
+#                        print "status ",status,len(status2),status2
+                        if(len(status2)>0):
+                            status=status2
                         if(status == "Completed"):
                             self.GoodRuns[0]=self.GoodRuns[0]+1
                         elif (status =="Failed"):
@@ -1350,6 +1356,7 @@ class RemoteClient:
         ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
         r1=self.sqlserver.Query("select count(path)  from ntuples where jid="+str(run.uid))
         status=ro[0][1]
+        status2=""
         if(status== 'Completed' and r1[0][0]==0):
             status="Unchecked"
         if(status != 'Completed' and status != self.dbclient.cr(run.Status)):
@@ -1504,6 +1511,8 @@ class RemoteClient:
                                                     self.thrusted=self.thrusted+1
                                             else:
                                                 i= i>>8
+                                                if(i==134):
+                                                    status2="STAGEIN"
                                                 if(i/128):
                                                     events=0
                                                     status="Bad"+str(i-128)
@@ -1582,6 +1591,9 @@ class RemoteClient:
                             status="Completed"
                         else:
                             status="Unchecked"
+#                        print "status ",status,len(status2),status2
+                        if(len(status2)>0):
+                            status=status2
                         if(status == "Completed"):
                             self.GoodRuns[0]=self.GoodRuns[0]+1
                         elif (status =="Failed"):
@@ -1676,7 +1688,7 @@ class RemoteClient:
             return 0
     
     def doCopy(self,run,inputfile,crc,version,outputpath,path='/MC'):
-       self.sqlserver.Commit()
+#       self.sqlserver.Commit()
        time0=time.time()
        time00=0
        (dbv,gbv,osv)=self.getDSTVersion(version)
@@ -1907,7 +1919,7 @@ class RemoteClient:
         if(timeout>1800):
             timeout=1800
         tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 %d " %(timeout) 
-        cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=amscdr'" 
+        cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=%s'" %(os.environ['STAGE_SVCCLASS']) 
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
@@ -2107,10 +2119,13 @@ class RemoteClient:
             if(self.castorcopy):
                 for i in range (2,len(junk)):
                     cmove=cmove+'/'+junk[i]
-                cmd="/usr/bin/rfcp "+output+" "+cmove
-                # Temporary fix for castor problem on 21 Jul 2014.
-                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
+                # try first xrdcp and then rfcp
+                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -ODsvcClass=" + os.environ['STAGE_SVCCLASS'] + " "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
                 i=os.system(cmd)
+                if(i):
+                    print "xrdcp failed, trying rfcp..."
+                    cmd="/usr/bin/rfcp "+output+" "+cmove
+                    i=os.system(cmd)
                 if(i==0):
                     if(self.castorcopy>0):
                         mutex.acquire()
@@ -2185,9 +2200,7 @@ class RemoteClient:
                         mutex.acquire()
                         print "copyFile-E-FailedCastorOnly ",input,output
                         return 1
-            cmd="rfcp "+input+" "+output
-            # Temporary fix for castor problem on 21 Jul 2014.
-            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 900 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp \"root://castorpublic.cern.ch//"+input+"\" "+output
+            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 900 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -OSsvcClass=" + os.environ['STAGE_SVCCLASS'] + " \"root://castorpublic.cern.ch//"+input+"\" "+output
             if(self.castoronly):
                 mutex.acquire()
                 return 1024
@@ -2200,6 +2213,12 @@ class RemoteClient:
                 cmd="mv "+input+" "+output
         #cmd="cp -pi -d -v "+input+" "+output
         cmdstatus=os.system(cmd)
+        if (cmdstatus and cmd.find("xrdcp") >= 0):
+            # try first xrdcp and then rfcp
+            print "xrdcp failed, trying rfcp..."
+            cmd="rfcp "+input+" "+output
+            cmdstatus=os.system(cmd)
+
         print "acquirung  mutex in copyfile ", cmd
         mutex.acquire()
         print "got  mutex in copyfile ", cmd
@@ -2363,6 +2382,8 @@ class RemoteClient:
         else:
             dir="/afs/cern.ch/ams/Offline/AMSDataDir"
             os.environ['AMSDataDirRW']=dir
+        if(not os.environ.has_key('STAGE_SVCCLASS')):
+            os.environ['STAGE_SVCCLASS']='amscdr'
         self.env['AMSDataDir']=dir
         key='AMSSoftwareDir'
         sql="select myvalue from Environment where mykey='"+key+"'";
@@ -2393,9 +2414,13 @@ class RemoteClient:
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
             vcode=os.system(validatecmd)
-            if(fname.find('/castor/cern.ch')>=0 and vcode/256==134):
+            if (fname.find('/castor/cern.ch')>=0 and vcode/256==134):
+                os.system("stager_get -M %s" %(fname))
                 time.sleep(5)
                 vcode=os.system(validatecmd)
+                while (sys.argv[0].find('parsejf') >=0 and vcode/256==134):
+                    time.sleep(30)
+                    vcode=os.system(validatecmd)
             print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
             print "got  mutex in validate", validatecmd
@@ -3410,6 +3435,11 @@ class RemoteClient:
                                     outputpath = outputpatha
                                     if (outputpath != None):
                                         mvntuples.append(outputpath)
+                                    else:
+                                        print "Cannot find an active disk, skipping ", jobid
+                                        os.system("mv %s %s" %(inputwork, inputfile))
+                                        mutex.release()
+                                        return 0, copylog                                        
                                     output.write("doCopy return status : %d \n" %(rstatus))
                                     if (rstatus == 1):
                                         if (castortime == 0):

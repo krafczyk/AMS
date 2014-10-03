@@ -4,11 +4,12 @@
 
 #   Architecture linux g++
 
+GCC := $(shell $(ROOTSYS)/bin/root-config  --cc)
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-VERGCC       := $(shell gcc --version 2>&1| grep 4.1)
-VERGCC48       := $(shell gcc --version 2>&1| grep 4.8)
+VERGCC       := $(shell $(GCC) --version 2>&1| grep 4.1)
+VERGCC48       := $(shell $(GCC) --version 2>&1| grep 4.8)
 
 ifdef VER
 NEW = 
@@ -16,24 +17,24 @@ else
 NEW = _new
 endif
 
-#VERGCC_LONG  := $(shell gcc --version | grep GCC | awk '{ print $$3 }' | sed 's/\.//g')
-VERGCC_LONG  := $(shell gcc -dumpversion | sed 's/\.//g')
+#VERGCC_LONG  := $(shell $(GCC) --version | grep GCC | awk '{ print $$3 }' | sed 's/\.//g')
+VERGCC_LONG  := $(shell $(GCC) -dumpversion | sed 's/\.//g')
 
 ########################################################################
 #Compilers
 ########################################################################
 ifneq "$(origin CC )" "environment" 
-  CC  = gcc  -m64
+  CC  = $(shell $(ROOTSYS)/bin/root-config --cc) -m64
 endif
 ifneq "$(origin CXX)" "environment" 
-  CXX = g++ -m64
+  CXX = $(shell $(ROOTSYS)/bin/root-config --cxx) -m64
 endif
 ifneq "$(origin FF )" "environment" 
-  FF  = gfortran -m64 
+  FF  = $(shell $(ROOTSYS)/bin/root-config --f77) -m64 
 endif
   FFOLD=$(FF)
 ifneq "$(origin LD )" "environment" 
-  LD  = g++ -m64
+  LD  = $(shell $(ROOTSYS)/bin/root-config --ld) -m64
 endif
   FORTRAN2_LIBS=
   FORTRAN_LIBS=

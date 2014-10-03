@@ -21354,7 +21354,10 @@ sub RemoveFromDisks{
 #  output par:
 #   1 if ok  0 otherwise
 #
-    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify,$force)= @_;
+    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify,$force,$eos)= @_;
+    my $eosexe = `grep eos= /afs/cern.ch/project/eos/installation/ams/etc/setup.sh | awk -F= '{print \$2}'`;
+    chomp $eosexe;
+
     if(system("mkdir -p $tmp;touch $tmp/qq")){
       if($verbose){
         print " Unable to write $tmp \n "
@@ -21432,7 +21435,12 @@ sub RemoveFromDisks{
     if($run2p < 0 and -$run2p < $run->[0]){
       next;
     }
-        $sql="select path,crc from ntuples where  jid=$run->[1] and path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
+      my $cond = "path not like '/castor%'";
+      if ($eos) {
+          $cond = 'eostime > 0';
+      }
+
+        $sql="select path,crc from ntuples where  jid=$run->[1] and path like '%$dir%' and castortime>0 and $cond and datamc=$datamc";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       if(not defined $ret_nt->[0][0]){
@@ -21445,9 +21453,17 @@ sub RemoveFromDisks{
          if($ntuple->[0]=~/^#/ ){
           next;
          }
-         my @junk=split $name_s,$ntuple->[0];
-         my $castor=$castorPrefix."/$name$junk[1]";
+         my $castor;
+         if ($ntuple->[0] =~ /\/castor\//) {
+             $castor = $ntuple->[0];
+         }
+         else {
+             my @junk=split $name_s,$ntuple->[0];
+             $castor=$castorPrefix."/$name$junk[1]";
+         }
          my @junk2=split /\//,$ntuple->[0];
+         my $eospath = $castor;
+         $eospath =~ s#/castor/cern.ch#/eos#g;
          $sys=$rfcp.$castor." $tmp";
          if($notverify){
             my $ctmp="/tmp/castor.tmp";
@@ -21455,6 +21471,9 @@ sub RemoveFromDisks{
            system($sys);
            my $ltmp="/tmp/local.tmp";
            $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+           if ($eos) {
+                $sys = "$eosexe ls -l $eospath 1> $ltmp 2>\&1";
+           }
           $i=system($sys);
             if(not $i){
                  open(FILE,"<$ctmp") or die "Unable to open $ctmp \n";
@@ -21538,12 +21557,18 @@ sub RemoveFromDisks{
 # 
               
               if($update){
+               if (not $eos) {
                $sql="insert into ntuples_deleted select * from ntuples where ntuples.jid=$run->[1]";
                $self->{sqlserver}->Update($sql);
 #               $sql="update ntuples_deleted set timestamp=$timenow where jid=$run->[1]";
 #               $self->{sqlserver}->Update($sql);
+               }
                foreach my $ntuple (@{$ret_nt}){
                    my $castor=$castorPrefix;
+                   if ($ntuple->[0] =~ /\/castor\//) {
+                       $castor = $ntuple->[0];
+                   }
+                   else {
                    if($did<0){
                        my @junk=split '\/',$ntuple->[0];
                        for my $j (3...$#junk){
@@ -21554,10 +21579,24 @@ sub RemoveFromDisks{
                     my @junk=split $name_s,$ntuple->[0];
                      $castor=$castor."/$name$junk[1]";
                    }
+                   }
+                   if ($eos) {
+                       $sql="update ntuples set eostime=0 where path='$ntuple->[0]'";
+                       $self->{sqlserver}->Update($sql);
+                       $self->{sqlserver}->Commit();
+                   }
+                   else {
                 $sql="update ntuples set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
                 $self->{sqlserver}->Update($sql);
                 $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
+                   }
                 
+                if ($eos) {
+                    my $eospath = $castor;
+                    $eospath =~ s#/castor/cern.ch#/eos#g;
+                    $sys = "$eosexe $irm $eospath";
+                }
+                else {
                 $sys=$irm." $ntuple->[0]";
                 if($ntuple->[0]=~/^#/){
                  $sys="sleep 1";
@@ -21566,9 +21605,11 @@ sub RemoveFromDisks{
 #                 $sql="update ntuples_deleted set path='$newp' where path='$ntuple->[0]'";
  
                 }
+                }
                 $i=system($sys);
                 if(!$i){
                   $self->{sqlserver}->Update($sql);
+                  $self->{sqlserver}->Commit();
                 }
                 else{
                  if($verbose){

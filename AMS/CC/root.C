@@ -5364,34 +5364,6 @@ float EcalShowerR::EcalStandaloneEstimator(){
 	return estimator;
 }
 
-float EcalShowerR::GetEcalLayerQ(int ilay,float edep,int edeptype,float frig){
-#ifdef __ROOTSHAREDLIBRARY__
-   return  EcalHR::GetMipQL(edep,frig,ilay,edeptype);
-#endif
-   return 0;
-}
-
-float EcalShowerR::GetLayerQ(int ilay,int edeptype,float frig){
-
-  float ecal_el=0,ecal_eh=0;
-  for(int i2dcl=0;i2dcl<NEcal2DCluster();i2dcl++){//2dCl
-      Ecal2DClusterR *e2dcl=pEcal2DCluster(i2dcl);
-      for(int icl=0;icl<e2dcl->NEcalCluster();icl++){//1dCl
-        EcalClusterR *ecl=e2dcl->pEcalCluster(icl);
-        for(int ihit=0;ihit<ecl->NEcalHit();ihit++){//Nhit
-          EcalHitR *ehit=ecl->pEcalHit(ihit);
-          if(ehit->Plane!=ilay)continue;
-          float edep=ehit->Edep;
-          ecal_el+=edep;
-          if(edep>ecal_eh){ecal_eh=edep;}
-        }
-     }
-   }
-   ecal_el/=1000.;//MeV->GeV
-   ecal_eh/=1000.;//MeV->GeV
-   if(edeptype==0)return GetEcalLayerQ(ilay,ecal_el,edeptype,frig); 
-   else           return GetEcalLayerQ(ilay,ecal_eh,edeptype,frig);
-}
 
 float EcalShowerR::EcalChargeEstimator() {
 
@@ -10075,7 +10047,7 @@ double  AMSEventR::SolidAngleInShadow(double AMSfov0){
         double xyzRb[4][3];
         double xyzRba[4][3];
         double beta=0; //----> to be define according to the Solar Array
-        double s=0;
+        double s;
 
         //..........1A
         if(p==0){
@@ -14015,7 +13987,7 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 {
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
-//  if (AMSEventR::Head()->Version() >= 817) return 0;
+  if (AMSEventR::Head()->Version() >= 817) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
   TrMCClusterR *mc = 0;
@@ -14111,36 +14083,15 @@ int MCscatq2(AMSPoint &coo, int layj, float b,float prob){
   MCEventgR *mc = AMSEventR::Head()->GetPrimaryMC();
   if (!mc || mc->Charge == 0) return 0;
   double p = mc->Momentum;
-  double lp=log10(p/fabs(mc->Charge));
-  bool New=prob<0;
-  prob=fabs(prob);
+  double lp=log10(p);
   double c=log10(2.);
-  if(New)c=log10(5.);
-  double d=1000;
-  if(prob>100){
-   d=int(prob);
-   prob-=d;
-  } 
-  d=log10(d);
-  if(lp>d)lp=d;
-  double a=log10(3);
+  if(lp<c)lp=c;
+  if(lp>2)lp=2;
+
   double rnd[4];
   AMSEventR::GetRandArray(57538922+layj, 1, 1, rnd);
-if(New){
-  if(lp>c){
-     if ( rnd[0]>prob*(d-lp)/2.)return 0;
-  }
-  else if(lp>a){
-     if ( rnd[0]>prob*(d-c)/2.)return 0;
-  }
-  else{
-     if ( rnd[0]>prob*(d-c)/2./3./a*(2*lp+a))return 0;
-  }    
-}
-else{
-   if(lp<c)lp=c;
-   if ( rnd[0]>prob*(d-lp)/2.)return 0;
-}
+  if ( rnd[0]>prob*(3-lp)/2.)return 0;
+
   AMSEventR::GetRandArray(9886838+layj, 1, 4, rnd);
 
   int lay=(layj==1)?0:1;
