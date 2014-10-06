@@ -4217,7 +4217,7 @@ class RemoteClient:
                             os.system(eoschmod + " 750 " + eosdir)
                             eosdel="/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select rm  "+eosfile
                             i=os.system(eosdel)
-                            os.system(eoschmod + " 550 " + eosdir)
+#                            os.system(eoschmod + " 550 " + eosdir)
                             if(i):
                                 print " EosCommand Failed ",eosdel
         if(len(files)==0):
