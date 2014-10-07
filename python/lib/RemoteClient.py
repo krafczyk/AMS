@@ -455,7 +455,8 @@ class RemoteClient:
                    continue           
                res=""
                os.unlink(stf)
-               pair = commands.getstatusoutput("df -P %s | grep -v ^Filesystem | awk '{print $2, $3, $4}'" %(fs[0]))
+               tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
+               pair = commands.getstatusoutput("%s df -P %s | grep -v ^Filesystem | awk '{print $2, $3, $4}'" %(tmout, fs[0]))
                df_output = pair[1]
                print df_output
 #               try:
@@ -463,13 +464,17 @@ class RemoteClient:
 #               except:
 #                   print fs[0]," Is Offline"
 #               if len(res) == 0:
-               if (df_output == None or df_output == ""):
+               if (df_output == None or df_output == "" or df_output == 'Killed'):
                    isonline=0
                else:
                    blocks, occ, bavail = df_output.split(' ')
-                   blocks = int(blocks)
-                   occ = int(occ)
-                   bavail = int(bavail)
+                   try:
+                       blocks = int(blocks)
+                       occ = int(occ)
+                       bavail = int(bavail)
+                   except:
+                       print fs[0]," Is Offline (by df)"
+                       continue
                    timestamp=int(time.time())
 #                   bsize=res[1]
 #                   blocks=res[2]
