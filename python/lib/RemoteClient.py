@@ -455,20 +455,30 @@ class RemoteClient:
                    continue           
                res=""
                os.unlink(stf)
-               try:
-                   res=os.statvfs(os.path.realpath(fs[0]))
-               except:
-                   print fs[0]," Is Offline"
-               if len(res) == 0:
+               pair = commands.getstatusoutput("df -P %s | grep -v ^Filesystem | awk '{print $2, $3, $4}'" %(fs[0]))
+               df_output = pair[1]
+               print df_output
+#               try:
+#                   res=os.statvfs(os.path.realpath(fs[0]))
+#               except:
+#                   print fs[0]," Is Offline"
+#               if len(res) == 0:
+               if (df_output == None or df_output == ""):
                    isonline=0
                else:
+                   blocks, occ, bavail = df_output.split(' ')
+                   blocks = int(blocks)
+                   occ = int(occ)
+                   bavail = int(bavail)
                    timestamp=int(time.time())
-                   bsize=res[1]
-                   blocks=res[2]
-                   bfree=res[3]
-                   bavail=res[4]
-                   files=res[5]
-                   ffree=res[6]
+#                   bsize=res[1]
+#                   blocks=res[2]
+#                   bfree=res[3]
+#                   bavail=res[4]
+#                   files=res[5]
+#                   ffree=res[6]
+                   bsize = 1024
+                   bfree = bavail
                    isonline=1
                    fac=float(bsize)/1024/1024
                    tot=blocks*fac
