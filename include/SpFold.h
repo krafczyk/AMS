@@ -166,23 +166,25 @@ public:
    * \return    PDF */
   static Double_t PDFdR(Double_t *xp, Double_t *par);
 
-  /** PDF of xp[0]= 1/Rrec-1/Rgen with par[]= Norm,Mean,Sig0,Sig1,Sig2
-   * \param[in] xp [0]    1/Rgen-1/Rrec
-   * \param[in] par[0]    Norm
-   * \param[in] par[1]    Mean
-   * \param[in] par[2-5]  Sigma spline position
-   * \param[in] par[6,7]  Sigma spline dY/dX at lower/upper boundary
-   * \param[in] par[8]    x scaling
-   * \return    PDF */
+  /** PDF of xp[0]= 1/Rrec-1/Rgen with par[]= Norm,Mean,Sig_i
+   * \param[in] xp [0]     1/Rgen-1/Rrec
+   * \param[in] par[0]     Norm
+   * \param[in] par[1]     Mean
+   * \param[in] par[2-9]   Sigma^2 spline position in Y
+   * \param[in] par[10,11] Sigma^2 spline dY/dX at lower/upper boundary
+   * \param[in] par[12]    x scaling
+   * \return    PDF or sigma^2 (if par[0]=0)
+   */
   static Double_t PDFpar(Double_t *xp, Double_t *par);
 
-  enum { Nx = 4,                    ///< Number of spline nodes in d1/R
-	 Nr = 6,                    ///< Number of spline nodes in Rgen
-	 Np = Nx+3                  ///< Number of spline parameters
+  enum { Nx = 8,           ///< Number of spline nodes in d1/R
+	 Nr = 7,           ///< Number of spline nodes in Rgen
+	 Np = Nx+4,        ///< Number of parameters   in d1/R (p0,p1,y0,y1...)
+	 Nt = Np*(Nr+2)    ///< Number of spline parameters in total
        };
-  static Double_t fXn[Nx];          ///< Spline nodes in d1/R
-  static Double_t fRn[Nr];          ///< Spline nodes in Rgen
-  static Double_t fSp[Np*(Nr+2)+2]; ///< Spline parameters
+  static Double_t fXn[Nx]; ///< Spline nodes in d1/R
+  static Double_t fRn[Nr]; ///< Spline nodes in Rgen
+  static Double_t fSp[Nt]; ///< Spline parameters
 
   /// Parameters of resolution scaling : sqrt(p0^2+p1^2/R/R)
   static Double_t fPref[2];
@@ -190,7 +192,7 @@ public:
   /// Overall normalization
   static Double_t fNorm;
 
-  /// Parameters of PDFpar with xp[0]= Rgen and par[0]= index [0:4]
+  /// Parameters of PDFpar with xp[0]= Rgen and par[0]= index [0:Np-1]
   static Double_t PARrg(Double_t *xp, Double_t *par);
 
   /// Saturation fuction
@@ -214,10 +216,18 @@ public:
   static Double_t GetPar(Double_t rgen, Int_t i);
 
   /** Set spline resolution parameters with different condition
-   * \param[in] scat   MCscat 0:Org  1:New R<400 GV
+   * \param[in] part   Particle 1:p 2:He
    * \param[in] cfw    MC cutoff 0:Not applied  1:Applied
    */
-  static void SetPar(Int_t scat, Int_t cfw);
+  static void SetPar(Int_t part, Int_t cfw);
+
+  /** Fit a histogram with PDFpar
+   * \param[in] hist   Histogram to fit: (1/Rrec-1/Rgen)/sigma0
+   * \param[in] option Fitting option, recommended to add "L", no fit if =0
+   * \param[in] range  Fitting range (xmin= -range, xmax= range)
+   * \return    TF1 of fitted function, 0 in case of error
+   */
+  static TF1 *Fit(TH1 *hist, Option_t *option = "Lq0", Double_t range = 20);
 
   /// Reentrant test
   static void REtest(Double_t x = 0);
@@ -306,7 +316,7 @@ public:
   static Double_t fSolMod[3];
 
   /** Fit on event rate.
-   * \param[in] hrt    Event rate (1/sec) either in R or 1/R
+   * \param[in] hrt    Event rate (1/sec/GV) either in R or 1/R
    * \param[in] gac    Acceptance in TGraph (cm^2 sr) or provide fPacc
    * \param[in] rpdf   Resolution function; @ref fRtype should be specified
    * \param[in] opt    Fitting option. Use "I" to have enough precision
