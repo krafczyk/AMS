@@ -338,7 +338,7 @@ if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
  _startofrun();
 }
 
-if(AMSJob::gethead()->isRealData()){
+if(AMSJob::gethead()->isRealData() && !AMSJob::gethead()->isMonitoring()){
 AMSNtuple::readRSetup(this);
 }
 else  AMSSetupR::SlowControlR::ReadFromExternalFile=0;
