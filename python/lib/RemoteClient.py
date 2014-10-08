@@ -455,20 +455,35 @@ class RemoteClient:
                    continue           
                res=""
                os.unlink(stf)
-               try:
-                   res=os.statvfs(os.path.realpath(fs[0]))
-               except:
-                   print fs[0]," Is Offline"
-               if len(res) == 0:
+               tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
+               pair = commands.getstatusoutput("%s df -P %s | grep -v ^Filesystem | awk '{print $2, $3, $4}'" %(tmout, fs[0]))
+               df_output = pair[1]
+               print df_output
+#               try:
+#                   res=os.statvfs(os.path.realpath(fs[0]))
+#               except:
+#                   print fs[0]," Is Offline"
+#               if len(res) == 0:
+               if (df_output == None or df_output == "" or df_output == 'Killed'):
                    isonline=0
                else:
+                   blocks, occ, bavail = df_output.split(' ')
+                   try:
+                       blocks = int(blocks)
+                       occ = int(occ)
+                       bavail = int(bavail)
+                   except:
+                       print fs[0]," Is Offline (by df)"
+                       continue
                    timestamp=int(time.time())
-                   bsize=res[1]
-                   blocks=res[2]
-                   bfree=res[3]
-                   bavail=res[4]
-                   files=res[5]
-                   ffree=res[6]
+#                   bsize=res[1]
+#                   blocks=res[2]
+#                   bfree=res[3]
+#                   bavail=res[4]
+#                   files=res[5]
+#                   ffree=res[6]
+                   bsize = 1024
+                   bfree = bavail
                    isonline=1
                    fac=float(bsize)/1024/1024
                    tot=blocks*fac
@@ -4217,7 +4232,7 @@ class RemoteClient:
                             os.system(eoschmod + " 750 " + eosdir)
                             eosdel="/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select rm  "+eosfile
                             i=os.system(eosdel)
-                            os.system(eoschmod + " 550 " + eosdir)
+#                            os.system(eoschmod + " 550 " + eosdir)
                             if(i):
                                 print " EosCommand Failed ",eosdel
         if(len(files)==0):
