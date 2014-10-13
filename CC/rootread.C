@@ -36,8 +36,8 @@ int firstevent=-1;
  }
  //TFile * rfile= new TFile(fname,"READ");
  //TFile *rfile=TFile::Open(fname,"READ");
-         TRegexp d("^-root:",false);
-        TRegexp e("^-rfio:",false);
+         TRegexp d("^root:",false);
+        TRegexp e("^rfio:",false);
         TRegexp c("/castor/",false);
  TFile *rfile=0;
 TString name(fname);
@@ -68,6 +68,21 @@ again2:
            else staged=false;
            pclose(fp);
 
+}
+if(!staged && name.Contains(e)){
+           stager_get="/usr/bin/stager_qry -M ";
+           stager_get+=(fname+pos);
+           stager_get+=" | grep -c CANBEMIGR 2>&1";
+           FILE *fp=popen(stager_get.c_str(),"r");
+           char path[1024];
+           if(fp==NULL){
+             staged=false;
+           }
+           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
+             staged=true;
+           }
+           else staged=false;
+           pclose(fp);
 }
 if(!staged){
            stager_get="stager_qry -M ";
@@ -123,7 +138,7 @@ else if(stagein)return -6;
         if(name.Contains(d))rfile=new TXNetFile(fname,"READ");
         else if(name.Contains(e)){
        rfile=new TRFIOFile(fname,"READ");
-       rfile=new TCastorFile(fname,"READ");
+       //rfile=new TCastorFile(fname,"READ");
        }
   else rfile=TFile::Open(fname,"READ");
 if(!rfile){
