@@ -760,6 +760,11 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
 
 againcpmeans:
  string rfio=destdir;
+ if (rfio.find("/eosams")!=-1) {
+ 	string noeos = rfio.c_str()+rfio.find("/",rfio.find("/eosams")+1);
+	rfio = "/eos/ams" + noeos;
+ } 
+ 
  char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
  char *localbin=0;
  if(getenv("AMSDataDir")) localbin=getenv("AMSDataDir");
@@ -820,6 +825,7 @@ againcpmeans:
  int imake=system((const char*)fmake);
  if (imake)
    cerr << "AMSProducer::sendNtupleEnd-E- Unable create dest  dir " << (const char*)fmake << endl;
+
  if (rfio.find("/eos/ams")!=-1) {
    // eos does not like double slash
    string src = (const char*)a(bstart);
@@ -836,7 +842,7 @@ againcpmeans:
  else
    fcopy+=(const char*)a(bstart);
  fcopy+=" ";
- fcopy+=destdir; 
+ fcopy+=rfio.c_str();	//[ae] instead of fcopy+=destdir; 
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
 int tmc=3600;
@@ -861,9 +867,11 @@ againcp:
 	}
 	cout << "AMSProducer::sendNtupleEnd-I-Copying " << (const char*)fcopy << endl;
 	i = system((const char*)fcopy);
-//i = 1;	//!!!!!
-//!!!!!
-// if (strstr((const char*)fcopy,"eos/ams")) i=1;
+//!!!!! Debug 
+// test cp
+// if (strstr((const char*)fcopy,"/castor") || strstr((const char*)fcopy,"/eos")) i=1;
+// test castor
+// if (!strstr((const char*)fcopy,"/castor")) i=1;
 //!!!!!
 
   if(!i){
@@ -880,7 +888,7 @@ againcp:
   else if(ff.find("/eos/ams")!=-1){
      file2v+="root://eosams.cern.ch/";
   }
-  file2v+=destdir;
+  file2v+=rfio;	//[ae] instead of file2v+=destdir;
   file2v+='/';
   for (int k=bend;k<a.length();k++)file2v+=a[k];
 if(type!=DPS::Producer::RawFile){
@@ -1002,7 +1010,8 @@ goto againcp;
    fcopy+="  ";
    fcopy+=tmp; 
 //   destdir=nd2;
-   destdir=destdirc.c_str(); 
+   destdir=destdirc.c_str();
+   rfio=destdir;
    goto againcp;
    }
    else{
@@ -1027,6 +1036,7 @@ goto againcp;
    fcopy+=nd20; 
    suc=true;
    destdir=nd20;
+   rfio=destdir;
    goto againcp;
    }
    else{
@@ -1410,7 +1420,12 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  char *localbin=0;
  if(getenv("AMSDataDir"))localbin=getenv("AMSDataDir");
    else localbin=local;
+ 
  string rfio=destdir;
+ if (rfio.find("/eosams")!=-1) {
+ 	string noeos = rfio.c_str()+rfio.find("/",rfio.find("/eosams")+1);
+	rfio = "/eos/ams" + noeos;
+ } 
  
  if (rfio.find("/eos/ams")!=-1) {
    if (getenv("EosTransferMakeDir")) {
@@ -1438,15 +1453,16 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
   else fmake+=rfio.c_str();
  }
  else{
-  fmake="mkdir -p ";
-  fmake+=destdir;
+   fmake="mkdir -p ";
+   fmake+=rfio.c_str();
  }
+ 
  cout <<"AMSProducer::sendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
-
  int i = system((const char*)fmake);
- //!!!!!
- //if (!strstr((const char*)fmake,"castor")) i=1;
- //!!!!!
+//!!!!! Debug 
+// test castor
+// if (!strstr((const char*)fmake,"castor")) i=1;
+//!!!!!
  if(i){
        cerr<<"AMSProducer::sendNtupleStart-E-Unable create dest  dir "<<fmake<<endl;
         if(!strstr((const char*)destdir,"/castor/cern.ch/ams")){

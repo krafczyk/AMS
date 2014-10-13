@@ -2016,11 +2016,18 @@ againcp:
 	  string txt;
 	  getline(ftxt,txt);
 	  if(txt.find("->")!=string::npos){
-	    string castor("/castor/cern.ch/ams");
 	    string file(txt.c_str()+txt.rfind("/")+1);
-	    castor+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);
+	    string castor("/castor/cern.ch/ams");
 	    string eos("/eos/ams");
-	    eos+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);	
+		string path = txt.c_str()+txt.find("->")+2;
+		if (path.find(castor.c_str()) == -1)
+	    	castor+=path.c_str()+path.find("/",path.find("/")+1);
+		else
+	    	castor=path.c_str() + path.find("/");
+		if (path.find(eos.c_str()) == -1)
+    		eos+=path.c_str()+path.find("/",path.find("/")+1);
+		else
+	    	eos=path.c_str() + path.find("/");
 again:
 	    if(getenv("NtupleDir")){
 	      string local(getenv("NtupleDir"));
@@ -2035,22 +2042,24 @@ again:
 	      cp+=local;
 		  
 		  // copy eos
-      	  string cpeos;
-	      if (getenv("EosTransferRawBy")) 
-		    cpeos=getenv("EosTransferRawBy");
-		  else
-		    cpeos = "/afs/cern.ch/ams/local/bin/timeout --signal 9 600 /afs/cern.ch/project/eos/installation/ams/bin/eos.select cp";
-          cpeos += " ";
-	      cpeos += eos+" "+local+"/"; 
-		  cout << "DAQEvent::InitResult-I-Copying " << cpeos << endl;
-	      int i=system(cpeos.c_str());
-	      if(!i) goto okcp;
-		  cerr <<"DAQEvent::init-E-Unableto "<< cpeos.c_str() << endl;
-		  unlink(rmfile.c_str()); 
+		  if (path.find("/castor/cern.ch/ams") == -1) {
+	      	  string cpeos;
+		      if (getenv("EosTransferRawBy")) 
+			    cpeos=getenv("EosTransferRawBy");
+			  else
+			    cpeos = "/afs/cern.ch/ams/local/bin/timeout --signal 9 600 /afs/cern.ch/project/eos/installation/ams/bin/eos.select cp";
+			  cpeos += " ";
+		      cpeos += eos+" "+local+"/"; 
+			  cout << "DAQEvent::InitResult-I-Copying " << cpeos << endl;
+		      int i=system(cpeos.c_str());
+		      if(!i) goto okcp;
+			  cerr <<"DAQEvent::init-E-Unableto "<< cpeos.c_str() << endl;
+			  unlink(rmfile.c_str()); 
+		  }
 		  
 		  // copy castor
 		  cout << "DAQEvent::InitResult-I-Copying " << cp << endl;
-	      i=system(cp.c_str());
+	      int i=system(cp.c_str());
 	      if(i){
 		cerr <<"DAQEvent::init-E-Unableto "<< cp.c_str() << endl;
 		unlink(rmfile.c_str()); 
