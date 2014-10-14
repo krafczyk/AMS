@@ -2785,7 +2785,7 @@ class RemoteClient:
             self.BadRunID.append(0)
             self.gbDST.append(0)
         minJobID=0
-        ret=self.sqlserver.Query("SELECT dirpath,journals.timelast,name,journals.cid FROM journals,cites WHERE journals.cid=cites.cid and cites.cid=19")
+        ret=self.sqlserver.Query("SELECT dirpath,journals.timelast,name,journals.cid FROM journals,cites WHERE journals.cid=cites.cid")
         cid=-1
         global mutex
 #        mutex=thread.allocate_lock()
