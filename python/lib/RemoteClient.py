@@ -2302,7 +2302,7 @@ class RemoteClient:
             if (input.find('/eosams/') == 0):
                 input = self.eosLink2Real(input)
             if (cmd.find('/eosams/') >= 0):
-                cmd = self.eosselect + " cp -nS " + input + " " + output
+                cmd = self.eosselect + " cp -n -S " + input + " " + output
 #
 #      check if same disk
 #
