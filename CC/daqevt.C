@@ -2046,16 +2046,14 @@ again:
 			  cpeos += " ";
 		      cpeos += eos+" "+local+"/"; 
 			  cout << "DAQEvent::InitResult-I-Copying " << cpeos << endl;
-		      int i=system(cpeos.c_str());
-		      if(!i) goto okcp;
+		      if(!system(cpeos.c_str())) goto okcp;
 			  cerr <<"DAQEvent::init-E-Unableto "<< cpeos.c_str() << endl;
 			  unlink(rmfile.c_str()); 
 		  }
 
 		  // copy castor
 		  cout << "DAQEvent::InitResult-I-Copying " << cp << endl;
-	      int i=system(cp.c_str());
-	      if(i){
+	      if(system(cp.c_str())){
 		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
 		if(getenv("NtupleDir2") ){
 		  char *nt2=getenv("NtupleDir2");
