@@ -2252,11 +2252,12 @@ public:
   float getsig(int &error);   ///< return sigma
   float getgain(int &error);  ///< return gain from TRDGains
   float getgain2(int &error);  ///< return gain from TRDGains2
+  float getgain3(int &error);  ///< return gain from TRDGains3
   TrdRawHitR(){};
   TrdRawHitR(AMSTRDRawHit *ptr);
 
   virtual ~TrdRawHitR(){};
-ClassDef(TrdRawHitR,4)       //TrdRawHitR
+ClassDef(TrdRawHitR,5)       //TrdRawHitR
 #pragma omp threadprivate(fgIsA)
 };*/
 

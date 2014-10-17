@@ -1357,7 +1357,7 @@ void AMSJob:: _reamsdata(){
   CALIB.InsertTimeProc=1;  // Insert Time by daq-time
   CALIB.Ntuple=0;
   CALIB.SubDetInCalib=11111;//SubDets selection for proc. of OnBoard-calib data(msb->lsb =>trd|tof+acc|trk|rich|ec)
-  CALIB.SubDetRequestCalib=111021111;
+  CALIB.SubDetRequestCalib=111031111;
   FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 
 
@@ -3733,7 +3733,15 @@ void AMSJob::_timeinitjob(){
 			   begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
 			   (void*)AMSTRDIdSoft::_ped,server,1));
 
-    if((CALIB.SubDetRequestCalib/10000)%10==2){
+    if((CALIB.SubDetRequestCalib/10000)%10==3){
+      TID.add (new AMSTimeID(AMSID("TRDGains3",isRealData()),
+			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
+			     (void*)AMSTRDIdSoft::_gain,server,1));
+      TID.add (new AMSTimeID(AMSID("TRDStatus3",isRealData()),
+			     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
+			     (void*)AMSTRDIdSoft::_status,server,1));
+    }
+    else if((CALIB.SubDetRequestCalib/10000)%10==2){
       TID.add (new AMSTimeID(AMSID("TRDGains2",isRealData()),
 			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
 			     (void*)AMSTRDIdSoft::_gain,server,1));
