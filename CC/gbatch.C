@@ -67,20 +67,20 @@ std::set_unexpected (my_unexpected);
 #else
      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
 #endif
-      //signal(SIGABRT,handler);
-      //signal(SIGFPE, handler);
-     signal(SIGCONT, handler);
-     signal(SIGTERM, handler);
-     signal(SIGXCPU,handler);
-     signal(SIGINT, handler);
-     signal(SIGQUIT, handler);
-     signal(SIGUSR1, handler); 
-     signal(SIGUSR2, handler); 
-     signal(SIGHUP, handler); 
-     signal(SIGTSTP, handler); 
-     signal(SIGURG, handler);
-     signal(SIGTTIN, handler); 
-     signal(SIGTTOU, handler); 
+      //*signal(SIGABRT,handler);
+      //   *signal(SIGFPE, handler);
+     *signal(SIGCONT, handler);
+     *signal(SIGTERM, handler);
+     *signal(SIGXCPU,handler);
+     *signal(SIGINT, handler);
+     *signal(SIGQUIT, handler);
+     *signal(SIGUSR1, handler); 
+     *signal(SIGUSR2, handler); 
+     *signal(SIGHUP, handler); 
+     *signal(SIGTSTP, handler); 
+    *signal(SIGURG, handler);
+     *signal(SIGTTIN, handler); 
+     *signal(SIGTTOU, handler); 
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
@@ -247,9 +247,7 @@ catch (std::bad_alloc abab){
 #endif
 if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1)){
 //#ifdef __G4AMS__
-#ifdef __CORBA__
 lasthope:
-#endif
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
   cerr<<"OPool Released"<<endl;
