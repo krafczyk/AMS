@@ -1,6 +1,7 @@
 #include <iostream>
 #include "TBranch.h"
 #include "root.h"
+#include "amschain.h"
 #include <stdio.h>
 #include "TObjString.h"
 #include <fstream>
@@ -10,6 +11,7 @@
 #include <TXNetFile.h>
 #include <TRegexp.h>
 #include <TEnv.h>
+#include "TChainElement.h"
 using namespace std;
 
 //    TRFIOFile f("");
@@ -36,7 +38,7 @@ int firstevent=-1;
  }
  //TFile * rfile= new TFile(fname,"READ");
  //TFile *rfile=TFile::Open(fname,"READ");
-         TRegexp d("^root:",false);
+         TRegexp d("^-root:",false);
         TRegexp e("^rfio:",false);
         TRegexp c("/castor/",false);
  TFile *rfile=0;
@@ -140,7 +142,17 @@ else if(stagein)return -6;
        rfile=new TRFIOFile(fname,"READ");
        //rfile=new TCastorFile(fname,"READ");
        }
-  else rfile=TFile::Open(fname,"READ");
+  else {
+     AMSChain chain;
+     chain.Add(fname);
+           TObjArray* arr=chain.GetListOfFiles();
+	  TIter next(arr);
+	  TChainElement* el=(TChainElement*) next();
+	  if(el){
+           rfile=TFile::Open(el->GetTitle(),"READ");
+          }
+          else TFile::Open(fname,"READ");
+  }
 if(!rfile){
         if(iver>0)cout <<"problem to open file "<<fname<<" "<<endl;
 	return -1;
