@@ -423,9 +423,14 @@ void TrSim::sitkdigi() {
 #endif
       } 
 
-      // Put the  ADC 12-bit  hard cieling to the signal amplitude in ADC
-      for (int ii=0;ii<1024;ii++)
-	if(ladbuf[ii]+ladcal->GetPedestal(ii)>4096) ladbuf[ii]=4096-ladcal->GetPedestal(ii);
+
+      for (int ii=0;ii<1024;ii++) {
+        // Put the  ADC 12-bit  hard cieling to the signal amplitude in ADC
+ 	if (ladbuf[ii]+ladcal->GetPedestal(ii)>4096) ladbuf[ii]=4096-ladcal->GetPedestal(ii);
+        // FTE off
+        if ( (ladcal->Power_failureS!=0)&&(ii<640) ) ladbuf[ii] = 0;    
+        if ( (ladcal->Power_failureK!=0)&&(ii>=640) ) ladbuf[ii] = 0;
+      }
 
       // DSP Simulation
       if ( (TRMCFFKEY.NoiseType==1) ||  // DSP on all ladders
