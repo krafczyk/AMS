@@ -2272,7 +2272,9 @@ void AMSEvent::_reecalevent(){
       for(int i=0;i<2;i++){
        buildC("Ecal1DCluster",i);
        buildC("Ecal2DCluster",i);
+//      AMSgObj::BookTimer.start((char*)(i==0?"ReEcalSFit_0":"ReEcalSFit_1"));
        int suc=buildC("EcalShower",i);
+//      AMSgObj::BookTimer.stop((char*)(i==0?"ReEcalSFit_0":"ReEcalSFit_1"));
 //        cout <<" succ*** "<<i<<" "<<suc<<endl;
        if(!suc)break;
        nsuc+=1;

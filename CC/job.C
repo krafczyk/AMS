@@ -3034,6 +3034,13 @@ void AMSJob::_reecalinitjob(){
   //
   AMSgObj::BookTimer.book("REECALEVENT");
   AMSgObj::BookTimer.book("ReEcalShowerFit");
+  AMSgObj::BookTimer.book("ReEcalSFit_0");
+  AMSgObj::BookTimer.book("ReEcalSFit_1");
+    AMSgObj::BookTimer.book("ReEcalAttEnFit");
+    AMSgObj::BookTimer.book("ReEcalPFit");
+    AMSgObj::BookTimer.book("ReEcalDFit");
+    AMSgObj::BookTimer.book("ReEcalLAPPFit");
+    AMSgObj::BookTimer.book("ReEcalEmSpFit");
   //
   ECALDBc::getscinfoa(0,0,0,pr,pl,cell,ct,cl,cz);// <--- init. PMCell-readout tables
   //

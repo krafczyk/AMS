@@ -2093,9 +2093,11 @@ integer AMSEcalShower::build(int rerun){
       pes->SphFit();
     }
     else pes->_AttCorr();
+    AMSgObj::BookTimer.start("ReEcalLAPPFit");
     // LAPP
     pes->LAPPVariables();    
     pes->ZProfile();    
+    AMSgObj::BookTimer.stop("ReEcalLAPPFit");
   }
   return found;
 }
