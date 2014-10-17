@@ -1057,13 +1057,51 @@ goto againcp;
 
 char *means=getenv("TransferBy");
 
- if(!means){
- 
-    struct stat64 statbuf;
-    stat64((const char*)a(bstart), &statbuf);
-
-ntend->Insert=statbuf.st_ctime;
-ntend->size=statbuf.st_size/1024./1024.+0.5;
+if(!means){
+	string flio = (const char*)a(bstart);
+	if (flio.find("/eosams")!=-1) {
+ 		string noeos = flio.c_str()+flio.find("/",flio.find("/eosams")+1);
+		flio = "/eos/ams" + noeos;
+	} 
+	if(flio.find("/eos/ams")==-1){ 
+	    struct stat64 statbuf;
+	    stat64(flio.c_str(), &statbuf);
+	    ntend->Insert=statbuf.st_ctime;
+	    ntend->size=statbuf.st_size/1024./1024.+0.5;
+	}
+	else {
+		char tfnm[80];
+		sprintf(tfnm,"/tmp/raw3.%d",getpid());
+ 		string cmd;
+ 		if(getenv("AMSDataDir")) cmd=getenv("AMSDataDir");
+   		  else                   cmd="/afs/cern.ch/ams/Offline/AMSDataDir";
+   		cmd += "/DataManagement/exe/linux/timeout --signal 9 30 ";
+		cmd += "/afs/cern.ch/project/eos/installation/ams/bin/eos.select fileinfo ";
+		cmd += flio.c_str();
+		cmd += " >& ";
+		cmd += tfnm;
+		if (system(cmd.c_str()) == 0) {
+			fstream tfs(tfnm,fstream::in);
+			int found_fields = 0;
+			while (!tfs.eof() && found_fields<2) {
+				string txt;
+				std::getline(tfs,txt);
+				if (txt.find("Change:") != -1 && txt.find("Timestamp:") != -1) {
+					string sts = txt.c_str()+txt.find("Timestamp:")+strlen("Timestamp:");
+					ntend->Insert = atol(sts.c_str());
+					found_fields++;
+				}
+				else if (txt.find("Size:") != -1) {
+					string sts = txt.c_str()+txt.find("Size:")+strlen("Size:");
+					ntend->size = atol(sts.c_str())/1024./1024.+0.5;
+					found_fields++;
+				}
+				
+			}
+			tfs.close();
+		}
+		unlink(tfnm);
+	}
 }
 ntend->ErrorNumber=0;
 
