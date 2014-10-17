@@ -1475,5 +1475,5 @@ I 3 SubDetInCalib (11111) //(ijklm) 5 digits pattern to select SubDets for
 //                        i(j,k,l,m)=0 automatically means no_processing(no call from VC
 //                        for related SubDets)
 //------------------------------------------------------------------------------
-I 4 SubDetRequestCalib (111111111) //(aijklm) 6 digits pattern (a for eventstatus, ijklm like  above (SubDetInCalib))  to book (1) or not (0)  subdet-specific TDV (see also job.C)
+I 4 SubDetRequestCalib (111031111) //(aijklm) 6 digits pattern (a for eventstatus, ijklm like  above (SubDetInCalib))  to book (1++) or not (0)  subdet-specific TDV (see also job.C) 3 == trdgains3 
 
