@@ -31,6 +31,7 @@
 #endif
 #if G4VERSION_NUMBER  >  999 
 #include "G4AntiDeuteron.hh" 
+#include "G4AntiDeuteronInelasticProcess.hh"
 #endif
 #include "G4HadronElasticProcess.hh"
 #include "G4HadronElasticDataSet.hh"
