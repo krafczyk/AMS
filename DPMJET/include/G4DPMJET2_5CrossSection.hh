@@ -60,6 +60,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 #include "globals.hh"
+ #include "G4PhysicalConstants.hh"
+ #include "G4SystemOfUnits.hh"
 
 #include "G4VCrossSectionDataSet.hh"
 #include "G4DPMJET2_5CrossSectionParamSet.hh"
