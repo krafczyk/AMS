@@ -171,6 +171,7 @@ void AMSG4Physics::ConstructProcess()
        pname == "GenericIon"    || 
        pname == "alpha"     ||
        pname == "deuteron"  ||
+       pname == "anti_deuteron"  ||
        pname == "triton"    ||
        pname == "He3"       )) {
 
@@ -510,6 +511,9 @@ void AMSG4Physics::ConstructEM()
 #include "G4KaonMinusInelasticProcess.hh"
 #include "G4ProtonInelasticProcess.hh"
 #include "G4AntiProtonInelasticProcess.hh"
+#if G4VERSION_NUMBER > 999 
+#include "G4AntiDeuteronInelasticProcess.hh"
+#endif
 #include "G4NeutronInelasticProcess.hh"
 #include "G4AntiNeutronInelasticProcess.hh"
 #include "G4LambdaInelasticProcess.hh"
@@ -1724,6 +1728,7 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "anti_xi_c+" ||
                particleName == "anti_xi-" ||
                particleName == "deuteron" ||
+               particleName == "anti_deuteron" ||
                particleName == "kaon+" ||
                particleName == "kaon-" ||
                particleName == "lambda_c+" ||
@@ -1921,6 +1926,7 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "anti_xi_c+" ||
                particleName == "anti_xi-" ||
                particleName == "deuteron" ||
+               particleName == "anti_deuteron" ||
                particleName == "kaon+" ||
                particleName == "kaon-" ||
                particleName == "lambda_c+" ||

@@ -29,6 +29,9 @@
 #if G4VERSION_NUMBER  > 945 
 #include  "G4GGNuclNuclCrossSection.hh"
 #endif
+#if G4VERSION_NUMBER  >  999 
+#include "G4AntiDeuteron.hh" 
+#endif
 #include "G4HadronElasticProcess.hh"
 #include "G4HadronElasticDataSet.hh"
 #include "G4IonsShenCrossSection.hh"
@@ -92,6 +95,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     G4LEAlphaInelastic* fAlphaModel = new G4LEAlphaInelastic;
     fAlphaModel->SetMaxEnergy(100.0*MeV);
 #endif
+#if G4VERSION_NUMBER  >  999 
+    G4AntiDeuteronInelasticProcess* fAntiDeuteronProcess = new G4AntiDeuteronInelasticProcess();
+#endif
     G4DeuteronInelasticProcess* fDeuteronProcess = new G4DeuteronInelasticProcess();
  
     G4TritonInelasticProcess* fTritonProcess = new G4TritonInelasticProcess();
@@ -103,7 +109,20 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     if(G4FFKEY.IonPhysicsModel%10==1){
 
 	cout<<"Use G4BinaryLightIonReaction for All the Ions"<<endl;
+	//======AntiDeuteron
+#if G4VERSION_NUMBER  >  999 
+	particle = G4AntiDeuteron::AntiDeuteron();
+	pManager = particle->GetProcessManager();
+        fAntiDeuteronProcess->AddDataSet(fShen);
+        if (G4FFKEY.IonPhysicsModel/10==3) fAntiDeuteronProcess->AddDataSet(HEAOXS);
+        if (G4FFKEY.IonPhysicsModel/10==2) fAntiDeuteronProcess->AddDataSet(generalCrossSection);
+#if G4VERSION_NUMBER  > 945 
+        if (G4FFKEY.IonPhysicsModel/10==1) fAntiDeuteronProcess->AddDataSet(fGG);
+#endif
+	fAntiDeuteronProcess->RegisterMe(theGenIonBC);
+	pManager->AddDiscreteProcess(fAntiDeuteronProcess);
 
+#endif
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
