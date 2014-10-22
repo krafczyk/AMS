@@ -2015,11 +2015,11 @@ againcp:
 	    string castor("/castor/cern.ch/ams");
 	    string eos("/eos/ams");
 		string path = txt.c_str()+txt.find("->")+2;
-		if (path.find(castor.c_str()) == -1)
+		if (path.find(castor.c_str()) == string::npos)
 	    	castor+=path.c_str()+path.find("/",path.find("/")+1);
 		else
 	    	castor=path.c_str() + path.find("/");
-		if (path.find(eos.c_str()) == -1)
+		if (path.find(eos.c_str()) == string::npos)
     		eos+=path.c_str()+path.find("/",path.find("/")+1);
 		else
 	    	eos=path.c_str() + path.find("/");
@@ -2037,7 +2037,7 @@ again:
 	      cp+=local;
 		  
 		  // copy eos
-		  if (path.find("/castor/cern.ch/ams") == -1) {
+		  if (path.find("/castor/cern.ch/ams") == string::npos) {
 	      	  string cpeos;
 		      if (getenv("EosTransferRawBy")) 
 			    cpeos=getenv("EosTransferRawBy");
