@@ -2205,6 +2205,7 @@ class RemoteClient:
                 cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v -ODsvcClass=" + os.environ['STAGE_SVCCLASS'] + " "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
                 i=os.system(cmd)
                 if(i):
+                    print cmd
                     print "xrdcp failed, trying rfcp..."
                     cmd="/usr/bin/rfcp "+output_orig+" "+cmove
                     i=os.system(cmd)
@@ -2316,6 +2317,7 @@ class RemoteClient:
         cmdstatus=os.system(cmd)
         if (cmdstatus and cmd.find("xrdcp") >= 0):
             # try first xrdcp and then rfcp
+            print cmd
             print "xrdcp failed, trying rfcp..."
             cmd="rfcp "+input_orig+" "+output_orig
             cmdstatus=os.system(cmd)

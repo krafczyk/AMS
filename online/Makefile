@@ -113,7 +113,7 @@ LDD	= 	$(LD) -Bdynamic
 ifdef PGTRACK
 LFORT= -lifcore
 else
-LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L$(AMSDEPLIB)/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft.32/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L$(AMSDEPLIB)/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 endif
 
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
@@ -195,7 +195,7 @@ LDD	= 	$(LD) -rdynamic
 ifdef PGTRACK
 LFORT= -lgfortran
 else
-LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_gcc32/2005/lib -lgeant321  -lpacklib -lmathlib -lkernlib  -lgfortran
+LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft.32/linux_slc5_gcc32/2005/lib -lgeant321  -lpacklib -lmathlib -lkernlib  -lgfortran
 endif
 
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF $(LFORT)
