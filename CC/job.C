@@ -1357,7 +1357,7 @@ void AMSJob:: _reamsdata(){
   CALIB.InsertTimeProc=1;  // Insert Time by daq-time
   CALIB.Ntuple=0;
   CALIB.SubDetInCalib=11111;//SubDets selection for proc. of OnBoard-calib data(msb->lsb =>trd|tof+acc|trk|rich|ec)
-  CALIB.SubDetRequestCalib=111021111;
+  CALIB.SubDetRequestCalib=111031111;
   FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 
 
@@ -2599,8 +2599,58 @@ setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
 
 
 }
+else if(strstr((const char *)G4Version,"geant4-10-01")){
+string add="geant4.10.01.b01";
+ g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
+ setenv("G4INSTALL",g4is.c_str(),1);
+ cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
+/*
+ * setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.3
+ * setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadioactiveDecay3.6
+ * setenv G4LEDATA $G4INSTALL/data/G4EMLOW6.32
+ * setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL4.2
+ * setenv G4NEUTRONXSDATA $G4INSTALL/data/G4NEUTRONXS1.2
+ * setenv G4PIIDATA $G4INSTALL/data/G4PII1.3
+ * setenv G4ELASTIC $G4INSTALL/data/G4ELASTIC1.1
+ * setenv G4DPMJET2_5DATA $G4INSTALL/data/DPMJET/GlauberData
+ * setenv G4SAIDXSDATA $G4INSTALL/data/G4SAIDDATA1.1
+ * */
+g4i=getenv("G4INSTALL");
+string g4is=g4i;
+g4is+="/data/PhotonEvaporation2.3";
+setenv("G4LEVELGAMMADATA", g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/RadioactiveDecay3.6";
+setenv("G4RADIOACTIVEDATA"  ,g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/G4EMLOW6.32";
+setenv("G4LEDATA" ,g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/G4NDL4.2";
+setenv("NeutronHPCrossSections" ,g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/G4NEUTRONXS1.2";
+setenv("G4NEUTRONXSDATA" ,g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/G4PII1.3";
+setenv("G4PIIDATA" ,g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/G4ELASTIC1.1";
+setenv("G4ELASTIC" ,g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/DPMJET/GlauberData";
+setenv("G4DPMJET2_5DATA" ,g4is.c_str(),1);
+g4is=g4i;
+g4is+="/data/G4SAIDDATA1.1";
+setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
+ cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
+
+
+}
+
 else{
 cerr<<"AMSJob::_signinitjob-E-UnknowG4VersionDetected "<<G4Version<<endl;
+abort();
 }
 }
 }
@@ -3034,6 +3084,13 @@ void AMSJob::_reecalinitjob(){
   //
   AMSgObj::BookTimer.book("REECALEVENT");
   AMSgObj::BookTimer.book("ReEcalShowerFit");
+  AMSgObj::BookTimer.book("ReEcalSFit_0");
+  AMSgObj::BookTimer.book("ReEcalSFit_1");
+    AMSgObj::BookTimer.book("ReEcalAttEnFit");
+    AMSgObj::BookTimer.book("ReEcalPFit");
+    AMSgObj::BookTimer.book("ReEcalDFit");
+    AMSgObj::BookTimer.book("ReEcalLAPPFit");
+    AMSgObj::BookTimer.book("ReEcalEmSpFit");
   //
   ECALDBc::getscinfoa(0,0,0,pr,pl,cell,ct,cl,cz);// <--- init. PMCell-readout tables
   //
@@ -3733,7 +3790,15 @@ void AMSJob::_timeinitjob(){
 			   begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
 			   (void*)AMSTRDIdSoft::_ped,server,1));
 
-    if((CALIB.SubDetRequestCalib/10000)%10==2){
+    if((CALIB.SubDetRequestCalib/10000)%10==3){
+      TID.add (new AMSTimeID(AMSID("TRDGains3",isRealData()),
+			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
+			     (void*)AMSTRDIdSoft::_gain,server,1));
+      TID.add (new AMSTimeID(AMSID("TRDStatus3",isRealData()),
+			     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
+			     (void*)AMSTRDIdSoft::_status,server,1));
+    }
+    else if((CALIB.SubDetRequestCalib/10000)%10==2){
       TID.add (new AMSTimeID(AMSID("TRDGains2",isRealData()),
 			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
 			     (void*)AMSTRDIdSoft::_gain,server,1));

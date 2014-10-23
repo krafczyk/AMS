@@ -17,9 +17,9 @@ public:
     static unsigned int oldev=0;
     //cout <<" q "<<ev<<endl;
   if(ev){
-     if(ev->nParticle()){
+     if(ev->nParticle() && ev->nEcalShower() && ev->nTrTrack()){
         //cout <<ev->nTrdTrack()<<ev->Particle(0).Charge<<endl;
-        if(ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).Charge>1 &&ev->nTrdTrack()>5){
+        if(ev->Particle(0).iTrTrack()>=0  ){
 return true;
 }
 else return false;

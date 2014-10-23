@@ -27,6 +27,7 @@ class TrdRawHitR: public TrElem{
     float getsig(int &error);   ///< return sigma
     float getgain(int &error);  ///< return gain  from TRDGains
     float getgain2(int &error);  ///< return gain  from TRDGains2
+    float getgain3(int &error);  ///< return gain  from TRDGains3
 
     bool operator==(const TrdRawHitR& other) const {
       if(Layer != other.Layer)return 0;

@@ -28,14 +28,13 @@
 #include "G4Trd.hh"
 #include "G4Trap.hh"
 #include "G4Polyhedra.hh"
-#include "G4BREPSolidPolyhedra.hh"
 #include "G4Polycone.hh"
 #include "G4PVPlacement.hh"
 #include "geant4.h"
 #include "g4physics.h"
 #include "G4VisAttributes.hh"
 #include "G4PVReplica.hh"
-#include "G4Assembly.hh"
+//#include "G4Assembly.hh"
 //#include "G4AssemblyCreator.hh"
 #include "G4OpBoundaryProcess.hh"
 #include "TRD_SimUtil.h"
@@ -345,7 +344,6 @@ integer AMSgvolume::_Norp=0;
         if(maxstep>(rmax[i]-rmin[i])/cm && rmax[i]-rmin[i]>0)maxstep=(rmax[i]-rmin[i])/cm;
        }       
        psolid=new G4Polyhedra(G4String(_name),_par[0]*degree,_par[1]*degree,int(_par[2]),nsurf,z,rmin,rmax);
-//       psolid=new G4BREPSolidPolyhedra(G4String(_name),_par[0]*degree,_par[1]*degree,int(_par[2]),nsurf,z[0],z,rmin,rmax);
        delete[] z;
        delete[] rmin;
        delete[] rmax;

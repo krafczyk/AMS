@@ -32,6 +32,10 @@
 #include <omp.h>
 #endif
 
+#ifdef __G4AMS__
+ #include "G4PhysicalConstants.hh"
+ #include "G4SystemOfUnits.hh"
+#endif
 
 class TRMFFKEY_DEF{
  public:
