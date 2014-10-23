@@ -1318,8 +1318,15 @@ void AMSG4Physics::_init(){
       G4int Q=g3charge[ipart];
       if(Q<0){
 	//         cout <<"  starting anti "<<endl;
+#if G4VERSION_NUMBER 	>999
+        continue;
+#endif
       }
-	  ((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+#if G4VERSION_NUMBER    >999
+	  ((G4IonTable *)pIonT)->GetIon(Z,A);
+#else
+((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+#endif
       double fdelta=1000000;
       G4ParticleDefinition* cand=0;
       theParticleIterator->reset();
@@ -1343,7 +1350,7 @@ void AMSG4Physics::_init(){
   }
 
 
-
+#if G4VERSION_NUMBER < 1000 
 G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCharge);
 
 
@@ -1358,7 +1365,7 @@ G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCh
  }  
 
 
-
+#endif
 
   //  NowBuildTable
   _Ng3tog4=0;
@@ -2008,7 +2015,9 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
   ion->SetAntiPDGEncoding(0);
   AddProcessManager(ion);
   G4ProcessManager* ionMan=ion->GetProcessManager();
+if(ionMan){
   G4ProcessVector* plist=ionMan->GetProcessList() ;
+if(plist){
   for(int k=ionMan->GetProcessListLength()-1;k>=0;k--){
    G4VProcess *process= (*plist)[k];
 //   cout<<process->GetProcessName()<< " "<<process->GetProcessType()<<endl;
@@ -2017,7 +2026,8 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
      ionMan->RemoveProcess(process);
   }
 }
-
+}
+}
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess("strangeleteInelastic", ion);
   ionMan->AddDiscreteProcess(hadi);
   hadi->AddDataSet(new StrCS());
