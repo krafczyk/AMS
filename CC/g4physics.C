@@ -139,7 +139,7 @@ void AMSG4Physics::ConstructProcess()
     }
     if(GCPHYS.IHADR)ConstructHad();
   }
-  else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2){
+  else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2 || G4FFKEY.PhysicsListUsed==3){
     
     if(GCPHYS.ILOSS){
       ConstructEM2();
@@ -187,9 +187,29 @@ void AMSG4Physics::ConstructProcess()
 
 
     if(G4FFKEY.PhysicsListUsed==1){
-      cout<<"QGSP_BIC Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+      cout<<"QGSP Physics List will be used. "<<endl;
+#else
+      cout<<"QGSP Physics_BIC List will be used. "<<endl;
+     G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
+#endif
+      if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+      if(G4FFKEY.HCrossSectionBias!=1){
+      cout<<"HadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias<<endl;
+#if G4VERSION_NUMBER < 1000
+       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+#else
+       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+
+#endif
+      }
+    }
+
+    if(G4FFKEY.PhysicsListUsed==3){
+      cout<<"QGSP_BIC Physics List will be used. "<<endl;
+#if G4VERSION_NUMBER < 1000
+      HadronPhysicsQGSP_BIC* pqgsp=new HadronPhysicsQGSP_BIC();
 #else
      G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
 #endif
@@ -204,6 +224,9 @@ void AMSG4Physics::ConstructProcess()
 #endif
       }
     }
+
+
+
     if(G4FFKEY.PhysicsListUsed==2){
 #if G4VERSION_NUMBER < 1000
        cout<<"QGSC Physics List will be used. "<<endl;       
