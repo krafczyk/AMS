@@ -1991,6 +1991,7 @@ DAQEvent::InitResult DAQEvent::init(){
     }
     else{ 
     cerr<<"DAQEvent::init-E-cannot open file "<<fnam<<" in mode input"<<endl;
+
 againcp:
       //    try castor
       if(getenv("NtupleDir") && !strstr(fnam,getenv("NtupleDir"))){
@@ -2010,22 +2011,49 @@ againcp:
 	  string txt;
 	  getline(ftxt,txt);
 	  if(txt.find("->")!=string::npos){
-	    string castor("/castor/cern.ch/ams");
 	    string file(txt.c_str()+txt.rfind("/")+1);
-	    castor+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);
-	  again:
+	    string castor("/castor/cern.ch/ams");
+	    string eos("/eos/ams");
+		string path = txt.c_str()+txt.find("->")+2;
+		if (path.find(castor.c_str()) == string::npos)
+	    	castor+=path.c_str()+path.find("/",path.find("/")+1);
+		else
+	    	castor=path.c_str() + path.find("/");
+		if (path.find(eos.c_str()) == string::npos)
+    		eos+=path.c_str()+path.find("/",path.find("/")+1);
+		else
+	    	eos=path.c_str() + path.find("/");
+again:
 	    if(getenv("NtupleDir")){
 	      string local(getenv("NtupleDir"));
 	      setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
+		  string rmfile = local + "/" + file;
 	      if(getenv("TransferSharedLib")){
-		setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
+			setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
 	      }
 	      string cp(getenv("TransferRawBy")?getenv("TransferRawBy"):"rfcp ");
 	      cp+=castor;
 	      cp+=" ";
 	      cp+=local;
-	      int i=system(cp.c_str());
-	      if(i){
+		  
+		  // copy eos
+		  if (path.find("/castor/cern.ch/ams") == string::npos) {
+	      	  string cpeos;
+		      if (getenv("EosTransferRawBy")) 
+			    cpeos=getenv("EosTransferRawBy");
+			  else
+			    cpeos = "/afs/cern.ch/ams/local/bin/timeout --signal 9 600 /afs/cern.ch/project/eos/installation/ams/bin/eos.select cp";
+			  cpeos += " ";
+		      cpeos += eos+" "+local+"/"; 
+			  cout << "DAQEvent::InitResult-I-Copying " << cpeos << endl;
+		      if(!system(cpeos.c_str())) goto okcp;
+			  cerr <<"DAQEvent::init-E-Unableto "<< cpeos.c_str() << endl;
+			  unlink(rmfile.c_str()); 
+		  }
+
+		  // copy castor
+		  cout << "DAQEvent::InitResult-I-Copying " << cp << endl;
+	      if(system(cp.c_str())){
 		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
 		if(getenv("NtupleDir2") ){
 		  char *nt2=getenv("NtupleDir2");
@@ -2055,6 +2083,7 @@ againcp:
 
 	      }
               else{
+okcp:
 		local+="/";
 		local+=file;
 		cout<<"DAQEvent::init-I-CopiedTo "<<local<<endl;
@@ -2101,7 +2130,7 @@ strcpy(fnam,fnamei.c_str());
 	    string castor("/castor/cern.ch/ams");
 	    string file(txt.c_str()+txt.rfind("/")+1);
 	    castor+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);
-	  againscp:
+againscp:
 	    if(getenv("NtupleDir")){
 	      string local(getenv("NtupleDir"));
 	      setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
@@ -2117,6 +2146,7 @@ strcpy(fnam,fnamei.c_str());
 	      cp+=fnam;
 	      cp+=" ";
 	      cp+=local;
+		  cout << "DAQEvent::InitResult-I-Copying " << cp << endl;
 	      int i=system(cp.c_str());
 	      if(i){
 		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;

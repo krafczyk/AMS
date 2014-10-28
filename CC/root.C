@@ -6728,6 +6728,7 @@ float TrdRawHitR::getgain2(int & error){
  }
  else init=3;
 }
+
       
  AMSEventR::if_t value;
  value.u=0;
@@ -6735,6 +6736,103 @@ float TrdRawHitR::getgain2(int & error){
  if(init==3)error=init;
  return value.f;
 }
+
+
+
+
+
+float TrdRawHitR::getgain3(int & error){
+// ugly function to get trdgains3
+//  init==3  unable to get correct tdv from db
+//  init==1  gains3 already in root file
+//  init==2  gains3 correctly read from db and put into root file
+
+  const string name("TRDGains3");
+ static AMSTimeID *tdvdb=0; 
+ static int init=0;
+ static int *gain3=0;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate(init,tdvdb,gain3)
+#endif
+ if( !init){
+   AMSEventR::if_t value;
+  value.u=0;
+  if(!AMSEventR::Head()){
+   cerr<<"TrdRawHitR::getgain3-NoEventRHeadFound "<<endl;
+   init =3;
+  }
+  else{
+   error=AMSEventR::Head()->GetTDVEl(name,getid(),value);
+   if(error==1){
+    cerr<<"TrdRawHitR::getgain3-NoTDVFound "<<endl;
+    tm begin;
+    tm end;
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+    const int maxtube=16;
+    const int maxlad=18;
+    const int maxlay=20;
+    int size=maxtube*maxlad*maxlay+maxtube*maxlad+maxtube;
+    int ssize=size*sizeof(int);
+    gain3=new int[size];
+{
+    AMSCommonsI a;
+   tdvdb=new AMSTimeID(AMSID(name.c_str(),1),
+                        begin,end,ssize,
+                        (void*)gain3,AMSTimeID::Standalone,true);
+//    cout <<"  init passed "<<omp_get_thread_num()<<endl;
+    time_t tmt=AMSEventR::Head()->UTime();
+//     cout <<"  before validate passed "<<endl;
+    int ret=tdvdb->validate(tmt);
+//    cout <<"  validate passed "<<endl;
+      if(ret){
+//      if(AMSEventR::Head()->getsetup())AMSEventR::Head()->getsetup()->TDVRC_Add(tmt,tdvdb);
+      init =2;
+    }
+    else {
+         cerr<<"TrdRawHitR::getgain3-UnableToValidateTDV "<<endl;
+         init=3;
+    }
+}
+   }
+
+   else init=1;
+ }
+ }
+ else if(init==2){
+    if(tdvdb){
+      time_t tmt=AMSEventR::Head()->UTime();
+
+       int ret=tdvdb->validate(tmt);
+       if(ret){
+//         if(AMSEventR::Head()->getsetup())AMSEventR::Head()->getsetup()->TDVRC_Add(tmt,tdvdb);
+       }
+       else init=3;
+    
+ }
+ else init=3;
+}
+
+      
+ AMSEventR::if_t value;
+ value.u=0;
+ error=AMSEventR::Head()->GetTDVEl(name,getid(),value);
+ if(init==3)error=init;
+ return value.f;
+}
+
 
 
 TrdSegmentR::TrdSegmentR(AMSTRDSegment *ptr){

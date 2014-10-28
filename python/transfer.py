@@ -1,12 +1,12 @@
 #!/usr/bin/env python2.4
-#  $Id: transfer.py,v 1.9 2013/03/14 14:26:51 bshan Exp $
+#  $Id$
 # this script suppose to check & transfer data files from
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
 import sys, os
-sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
+#sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
 sys.path.insert(0,os.environ['Offline'] + '/vdev/python/lib')
-sys.path.insert(0,'lib')
+#sys.path.insert(0,'lib')
 import RemoteClient
 p=0
 c=1

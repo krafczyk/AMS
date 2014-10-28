@@ -7,6 +7,8 @@
 //        Created:       2012-Apr-09  Q.Yan
 //        Modified:
 // -----------------------------------------------------------
+ #include "G4PhysicalConstants.hh"
+ #include "G4SystemOfUnits.hh"
 
 #include "G4Version.hh"
 #include "g4tof.h"

@@ -17,6 +17,7 @@ h=0
 u=0
 mt=0
 force=0
+eos=0
 #u =1 for reverse unchecked runs to tobererun & deleting ntuples
 
 for x in sys.argv:
@@ -28,6 +29,7 @@ for x in sys.argv:
     elif x == "-u": u=1
     elif x == "-force": force=1
     elif x == "-mt": mt=1
+    elif x == "-eos": eos=1
     elif x[0:2] == "-b":
         b=1
         if(len(x)>2):
@@ -39,6 +41,6 @@ if(d==0):
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
 if(html.ServerConnect(5)):
-    html.ValidateRuns(run2p,i,v,d,h,b,u,mt,0,force,0,1)
+    html.ValidateRuns(run2p,i,v,d,h,b,u,mt,0,force,0,1,0,eos)
 
 

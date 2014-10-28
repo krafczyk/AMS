@@ -67,7 +67,7 @@ my $maxtime=2000000000;
         unlink "/tmp/strami.$$";
          if(time()-$maxtime>86400*2){
              my $ctime=localtime(time());
-             warn "scdb.perl-E-DataBaseNotUpdating-T-$ctime \n";
+             warn "scdb.perl-E-DataBaseNotUpdating-T-$ctime $maxtime\n";
              sleep 600;
              $max=4000000000;
              goto begin;

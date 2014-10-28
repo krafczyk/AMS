@@ -1,5 +1,5 @@
 #include "G4Version.hh"
-#if G4VERSION_NUMBER  > 945 
+#if G4VERSION_NUMBER  > 945  && G4VERSION_NUMBER  <1000
 #define __G4PROTONBUG962only__
 #endif
 //
@@ -509,7 +509,7 @@ G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
 
 */
 #endif
-#if G4VERSION_NUMBER  > 945 
+#if G4VERSION_NUMBER  > 945 && G4VERSION_NUMBER  <1000 
 #include "G4HadronElasticPhysics.hh"
 
 #include "G4SystemOfUnits.hh"
