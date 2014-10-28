@@ -139,7 +139,7 @@ void AMSG4Physics::ConstructProcess()
     }
     if(GCPHYS.IHADR)ConstructHad();
   }
-  else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2){
+  else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2 || G4FFKEY.PhysicsListUsed==3){
     
     if(GCPHYS.ILOSS){
       ConstructEM2();
@@ -187,9 +187,29 @@ void AMSG4Physics::ConstructProcess()
 
 
     if(G4FFKEY.PhysicsListUsed==1){
-      cout<<"QGSP_BIC Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+      cout<<"QGSP Physics List will be used. "<<endl;
+#else
+      cout<<"QGSP Physics_BIC List will be used. "<<endl;
+     G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
+#endif
+      if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+      if(G4FFKEY.HCrossSectionBias!=1){
+      cout<<"HadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias<<endl;
+#if G4VERSION_NUMBER < 1000
+       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+#else
+       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+
+#endif
+      }
+    }
+
+    if(G4FFKEY.PhysicsListUsed==3){
+      cout<<"QGSP_BIC Physics List will be used. "<<endl;
+#if G4VERSION_NUMBER < 1000
+      HadronPhysicsQGSP_BIC* pqgsp=new HadronPhysicsQGSP_BIC();
 #else
      G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
 #endif
@@ -204,6 +224,9 @@ void AMSG4Physics::ConstructProcess()
 #endif
       }
     }
+
+
+
     if(G4FFKEY.PhysicsListUsed==2){
 #if G4VERSION_NUMBER < 1000
        cout<<"QGSC Physics List will be used. "<<endl;       
@@ -1318,8 +1341,15 @@ void AMSG4Physics::_init(){
       G4int Q=g3charge[ipart];
       if(Q<0){
 	//         cout <<"  starting anti "<<endl;
+#if G4VERSION_NUMBER 	>999
+        continue;
+#endif
       }
-	  ((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+#if G4VERSION_NUMBER    >999
+	  ((G4IonTable *)pIonT)->GetIon(Z,A);
+#else
+((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+#endif
       double fdelta=1000000;
       G4ParticleDefinition* cand=0;
       theParticleIterator->reset();
@@ -1343,7 +1373,7 @@ void AMSG4Physics::_init(){
   }
 
 
-
+#if G4VERSION_NUMBER < 1000 
 G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCharge);
 
 
@@ -1358,7 +1388,7 @@ G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCh
  }  
 
 
-
+#endif
 
   //  NowBuildTable
   _Ng3tog4=0;
@@ -2008,7 +2038,9 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
   ion->SetAntiPDGEncoding(0);
   AddProcessManager(ion);
   G4ProcessManager* ionMan=ion->GetProcessManager();
+if(ionMan){
   G4ProcessVector* plist=ionMan->GetProcessList() ;
+if(plist){
   for(int k=ionMan->GetProcessListLength()-1;k>=0;k--){
    G4VProcess *process= (*plist)[k];
 //   cout<<process->GetProcessName()<< " "<<process->GetProcessType()<<endl;
@@ -2017,7 +2049,8 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
      ionMan->RemoveProcess(process);
   }
 }
-
+}
+}
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess("strangeleteInelastic", ion);
   ionMan->AddDiscreteProcess(hadi);
   hadi->AddDataSet(new StrCS());

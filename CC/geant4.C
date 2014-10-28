@@ -745,7 +745,8 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
   }
 
   if (err) {
-    cout<<"!!!Error, chain is broken on track: "<<current_par_id<<endl;
+    static int smax=0;
+    if(smax++<100)cerr<<"AMSG4EventAction::FindClosestRegisteredTrack-E-chain is broken on track: "<<current_par_id<<endl;
     return;
   }
 

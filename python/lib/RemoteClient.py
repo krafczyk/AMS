@@ -2680,10 +2680,11 @@ class RemoteClient:
             return 1
         else:
             return rstatus
-    def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0,eos=0):
+    def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0,eos=0,force=0):
         self.castoronly=co
         self.castorcopy=1
         self.eos=eos
+        self.force=force
         firstjobname=0
         lastjobname=0
         HelpTxt = """
@@ -2727,7 +2728,7 @@ class RemoteClient:
         self.needfsmutex=0
         sql = "SELECT flag, timestamp from FilesProcessing"
         ret = self.sqlserver.Query(sql)
-        if(ret[0][0]==1 and timenow-ret[0][1]<100000):
+        if(ret[0][0]==1 and timenow-ret[0][1]<100000 and self.force == 0):
             print "ParseJournalFiles-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
         else: 

@@ -1763,13 +1763,13 @@ int TrdKCluster::GetXePressure(){
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold) const {
+void TrdKCluster::GetOffTrackHit_TrTrack(int& nhits, float & amp, const float threshold) const {
     GetOffTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir, threshold);
 }
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold) const {
+void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp, const float threshold) const {
     if(!HasTRDTrack){
         cout<<"~~~WARNING~~~~TrdKCluster, Get OffTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
         nhits=-1;
@@ -1782,7 +1782,7 @@ void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp, float thresho
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOffTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float threshold) const {
+void TrdKCluster::GetOffTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, const float threshold) const {
     nhits=0;
     amp=0;
     for(int i=0;i<TrdHCalibR::n_tubes;i++){
@@ -1800,13 +1800,13 @@ void TrdKCluster::GetOffTrackHit(int& nhits, float & amp, const AMSPoint* P0, co
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold) const {
+void TrdKCluster::GetOnTrackHit_TrTrack(int& nhits, float & amp, const float threshold) const {
     GetOnTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir, threshold);
 }
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold) const {
+void TrdKCluster::GetOnTrackHit_TRDRefit(int& nhits, float & amp, const float threshold) const {
     if(!HasTRDTrack){
         cout<<"~~~WARNING~~~~TrdKCluster, Get OnTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
         nhits=-1;
@@ -1819,7 +1819,7 @@ void TrdKCluster::GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshol
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOnTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float threshold) const {
+void TrdKCluster::GetOnTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, const float threshold) const {
     nhits=0;
     amp=0;
     for(int i=0;i<TrdHCalibR::n_tubes;i++){
@@ -1838,13 +1838,13 @@ void TrdKCluster::GetOnTrackHit(int& nhits, float & amp, const AMSPoint* P0, con
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetNearTrackHit_TrTrack(int& nhits, float & amp, float radius, float threshold) const {
+void TrdKCluster::GetNearTrackHit_TrTrack(int& nhits, float & amp, const float radius, const float threshold) const {
     GetNearTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir, radius, threshold);
 }
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius, float threshold) const {
+void TrdKCluster::GetNearTrackHit_TRDRefit(int& nhits, float & amp, const float radius, const float threshold) const {
     if(!HasTRDTrack){
         cout<<"~~~WARNING~~~~TrdKCluster, Get NearTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
         nhits=-1;
@@ -1857,7 +1857,7 @@ void TrdKCluster::GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetNearTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float radius, float threshold) const {
+void TrdKCluster::GetNearTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, const float radius, const float threshold) const {
     nhits=0;
     amp=0;
     for(int i=0;i<TrdHCalibR::n_tubes;i++){
@@ -1874,7 +1874,7 @@ void TrdKCluster::GetNearTrackHit(int& nhits, float & amp, const AMSPoint* P0, c
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetTotalPathlength(float& pathlength, const AMSPoint* P0, const AMSDir* Dir, float threshold) const {
+void TrdKCluster::GetTotalPathlength(float& pathlength, const AMSPoint* P0, const AMSDir* Dir, const float threshold) const {
     pathlength = 0.;
     for(int i=0;i<TrdHCalibR::n_tubes;++i){
         const TrdKHit *hit=GetConstHit(i);
