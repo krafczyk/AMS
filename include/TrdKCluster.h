@@ -219,22 +219,22 @@ public:
 
 
     // Number of Hits and Total Amplitude of On-Track Tubes
-    void GetOnTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float threshold = -1.) const;
-    void GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.) const;
-    void GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.) const;
+    void GetOnTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, const float threshold = -1.) const;
+    void GetOnTrackHit_TrTrack(int& nhits, float & amp, const float threshold = -1.) const;
+    void GetOnTrackHit_TRDRefit(int& nhits, float & amp, const float threshold = -1.) const;
 
     // Number of Hits and Total Amplitude of On-Track Tubes
-    void GetNearTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float radius, float threshold = -1.) const;
-    void GetNearTrackHit_TrTrack(int& nhits, float & amp, float radius, float threshold = -1.) const;
-    void GetNearTrackHit_TRDRefit(int& nhits, float & amp, float radius, float threshold = -1.) const;
+    void GetNearTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, const float radius, const float threshold = -1.) const;
+    void GetNearTrackHit_TrTrack(int& nhits, float & amp, const float radius, const float threshold = -1.) const;
+    void GetNearTrackHit_TRDRefit(int& nhits, float & amp, const float radius, const float threshold = -1.) const;
 
     // Number of Hits and Total Amplitude of Off-Track Tubes
-    void GetOffTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, float threshold = -1.) const;
-    void GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold = -1.) const;
-    void GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold = -1.) const;
+    void GetOffTrackHit(int& nhits, float & amp, const AMSPoint* P0, const AMSDir* Dir, const float threshold = -1.) const;
+    void GetOffTrackHit_TrTrack(int& nhits, float & amp, const float threshold = -1.) const;
+    void GetOffTrackHit_TRDRefit(int& nhits, float & amp, const float threshold = -1.) const;
 
     // Total pathlength
-    void GetTotalPathlength(float& pathlength, const AMSPoint* P0, const AMSDir* Dir, float threshold = -1.) const;
+    void GetTotalPathlength(float& pathlength, const AMSPoint* P0, const AMSDir* Dir, const float threshold = -1.) const;
 
     // Get Refitted TRD Track, accroding to the latest refit
     int GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir) const;
