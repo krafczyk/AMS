@@ -5982,7 +5982,7 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
   int mfit1 = (MagFieldOn()) ? TrTrackR::kChoutko : TrTrackR::kLinear;
 
   float ret = track->FitT(mfit1);
-  int ndofy = track->GetNdofY(mfit1);
+  int ndofy = (ret > 0) ? track->GetNdofY(mfit1) : 0;
   if (TRCLFFKEY.AllowYonlyTracks && ndofy == 0) ndofy = 1; 
   if (ret < 0 || 
       track->GetChisqX(mfit1) < 0 || track->GetChisqY(mfit1) <= 0 ||
