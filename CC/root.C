@@ -14877,20 +14877,21 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
     TFile *fbin = 0;
 
     if (!hbin) {
-      TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin.root";
+      TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin2.root";
       fbin = TFile::Open(sfn);
       if (!fbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin file not found" << endl;
 	return -1;
       }
-      hbin = (TH1D *)fbin->Get("hist2");
+      hbin = (TH1D *)fbin->Get("hist1");
       if (!hbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin histogram not found"
 	     << endl;
 	return -1;
       }
     }
-    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+  //TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RTIcut.root";
     if (getenv("RcutAll")) sfn = getenv("RcutAll");
 
     int nBin = hbin->GetNbinsX();
