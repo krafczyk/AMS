@@ -833,17 +833,14 @@ double TrFit::SimpleFitTop(void)
 				     +(_yh[i]-_yh[i-1])*(_yh[i]-_yh[i-1])
 				     +(_zh[i]-_zh[i-1])*(_zh[i]-_zh[i-1]));
   }
+  for (int i = 1; i < _nhit; i++) if (len[i] == 0) return -4;
 
   double pintx[LMAX][3];
   double pintu[LMAX][3];
+  for (int j = 0; j < 3; j++) pintx[0][j] = pintu[0][j] = 0;
 
   // Calculate path integrals
-  for (int i = 0; i < _nhit; i++) {
-    if (i == 0 || len[i] <= 0) {
-      for (int j = 0; j < 3; j++) pintx[i][j] = pintu[i][j] = 0;
-      continue;
-    }
-     
+  for (int i = 1; i < _nhit; i++) {
     double u[3];
     u[0] = (_xh[i]-_xh[i-1])/len[i];
     u[1] = (_yh[i]-_yh[i-1])/len[i];
