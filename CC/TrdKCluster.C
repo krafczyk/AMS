@@ -1813,13 +1813,13 @@ int TrdKCluster::GetXePressure(){
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOffTrackHit_TrTrack(int& nhits, float & amp){
-    GetOffTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir);
+void TrdKCluster::GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold){
+    GetOffTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir, threshold);
 }
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp){
+void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold){
     if(HasTRDTrack==0){
         cout<<"~~~WARNING~~~~TrdKCluster, Get OffTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
         nhits=-1;
@@ -1827,19 +1827,55 @@ void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp){
         return;
     }
 
-    GetOffTrackHit(nhits,amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
+    GetOffTrackHit(nhits,amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir, threshold);
 }
 
 /////////////////////////////////////////////////////////////////////
 
-void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir){
+void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold){
     nhits=0;
     amp=0;
     for(int i=0;i<NHits();i++){
         TrdKHit *hit=GetHit(i);
         float path_length=hit->Tube_Track_3DLength(P0,Dir);
         float Amp=hit->TRDHit_Amp;
-        if(Amp>0 && path_length==0){
+        if(Amp>threshold && path_length==0){
+            nhits++;
+            amp+=Amp;
+        }
+    }
+    return;
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold){
+    GetOnTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir, threshold);
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold){
+    if(HasTRDTrack==0){
+        cout<<"~~~WARNING~~~~TrdKCluster, Get OffTrackHit from TRDRefit, TRDTrack not yet defined"<<endl;
+        nhits=-1;
+        amp=-1;
+        return;
+    }
+
+    GetOnTrackHit(nhits,amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir, threshold);
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TrdKCluster::GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold){
+    nhits=0;
+    amp=0;
+    for(int i=0;i<NHits();i++){
+        TrdKHit *hit=GetHit(i);
+        float path_length=hit->Tube_Track_3DLength(P0,Dir);
+        float Amp=hit->TRDHit_Amp;
+        if(Amp>threshold && path_length!=0.){
             nhits++;
             amp+=Amp;
         }

@@ -219,9 +219,13 @@ public:
 
 
     // Number of Hits and Total Amplitude of Off-Track Tubes
-    void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
-    void GetOffTrackHit_TrTrack(int& nhits, float & amp);
-    void GetOffTrackHit_TRDRefit(int& nhits, float & amp);
+    void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float theshold = 0.);
+    void GetOffTrackHit_TrTrack(int& nhits, float & amp, float threshold = 0.);
+    void GetOffTrackHit_TRDRefit(int& nhits, float & amp, float threshold = 0.);
+
+    void GetOnTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir, float threshold = 0.);
+    void GetOnTrackHit_TrTrack(int& nhits, float & amp, float threshold = 0.);
+    void GetOnTrackHit_TRDRefit(int& nhits, float & amp, float threshold = 0.);
 
     // Get Refitted TRD Track, accroding to the latest refit
     int GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir);
