@@ -270,7 +270,7 @@ ifdef DEBUGFLAG
     FFLAGS       += -g     
     FFLAGSn      += -g    
 else
-    CFLAGS       += -O3      
+    CFLAGS       += -O2      
     CFLAGSTOFSIM += -O1
     CFLAGSn      += -O2    
     CFLAGSDAQ    += -O2 
