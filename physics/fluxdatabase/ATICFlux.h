@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 #ifndef _ATICFlux_
 #define _ATICFlux_
-
+#include "TGraphErrors.h"
 /// TGraphErrors*  HEFLUXRATIC02  : ATIC02 helium flux VS Rigidity
 
 

@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 #ifndef _PAMELAFlux_
 #define _PAMELAFlux_
-
+#include "TGraphErrors.h"
 /// TGraphErrors*  PRFLUXRPAMELA   : PAMELA proton flux VS Rigidity
 /// TGraphErrors*  PRFLUXEPAMELA   : PAMELA proton flux VS Ekin
 /// TGraphErrors*  HEFLUXRPAMELA   : PAMELA helium flux VS Rigidity
@@ -98,7 +98,6 @@ TGraphErrors*  HEFLUXEPAMELA= new TGraphErrors(pamelahenb,PAMELAHEENX,PAMELAHEEN
 //#   proton/He ratio in Rigidity[GV] PAMELA(2006/07-2008/12)
 //#   Adriani et al., Science 132, 69 (2011)
 
-const int pamelaprnb=83;
 
 double PAMELAPHRX[pamelaprnb]={
   1.01,1.06,1.11,1.16,1.22,1.28,1.34,1.4,1.47,1.54,1.61,1.68,1.76,1.85,1.93,2.02,2.12,2.22,2.32,2.43,2.55,2.67,2.79,2.92,3.06,3.21,3.36,3.52,3.68,3.86,4.04,4.23,4.43,4.64,4.85,5.08,5.45,5.97,6.55,7.18,7.87,8.63,9.46,10.38,11.38,12.47,13.68,15,16.44,18.03,19.77,21.68,23.77,26.06,28.57,31.33,34.35,37.67,41.3,45.29,49.66,54.45,59.7,65.46,71.77,78.7,86.29,94.62,106.12,121.84,139.89,160.62,184.42,211.74,243.11,279.12,320.47,367.95,422.47,485.06,582.46,749.72,1010.34};

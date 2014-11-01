@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 #ifndef _AMS01Flux_
 #define _AMS01Flux_
-
+#include "TGraphErrors.h"
 /// TGraphErrors*  HEFLUXRAMS01  : AMS-01 helium flux VS Rigidity
 
 //#   Pr Flux AMS01
