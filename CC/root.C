@@ -14139,12 +14139,12 @@ double ds=dsxy[0];
 #else
 rnd[0]=rnormx();
 #endif
-     coo[1]+=-ds*rnd[0];
+     coo[0]+=-ds*rnd[0];
      return 1;
    }
    else{
     if (ds < dmax && TMath::Abs(dmin) > ds) {
-      coo[1] += (dmin > 0) ? -ds : ds;
+      coo[0] += (dmin > 0) ? -ds : ds;
       return 1;
     }
     if (ds > dmax) {
