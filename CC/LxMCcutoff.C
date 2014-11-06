@@ -28,7 +28,7 @@ LxMCcutoff::LxMCcutoff (const char *FileName,TH1D *h, double safetyfactor, LxMCc
   TH1D::AddDirectory(false); 
   TFile *in = TFile::Open(FileName);
   if (!in) { LxMCcutoff::Head = 0; return; }
-  TH2F* Rcut ;
+  TH2F* Rcut=0 ;
   if(RcutDist == LxMCcutoff::_RcutVert) Rcut = (TH2F*) in->Get("hRcut");
   else if(RcutDist == LxMCcutoff::_RcutMin25) Rcut = (TH2F*) in->Get("hRcutMin");
   else if(RcutDist == LxMCcutoff::_RcutMax25) Rcut = (TH2F*) in->Get("hRcutMin");
@@ -110,7 +110,7 @@ TH2F *LxMCcutoff::GetEff( double N0) {
   TH2F *h2 = new TH2F("hEff","hEff;R_{GEN} [GV];R_{REC} [GV]", hExp->GetNbinsX(), hExp->GetXaxis()->GetXbins()->GetArray(),
 		      hExp->GetNbinsX(), hExp->GetXaxis()->GetXbins()->GetArray());
 
-  int nx = RcutI->GetXaxis()->GetNbins();
+  //int nx = RcutI->GetXaxis()->GetNbins();
   for(int ii = 0; ii < hExp->GetNbinsX()+2; ii++) {
     double Rgen = hExp->GetXaxis()->GetBinCenterLog(ii);
     //cout << Rgen << endl;
