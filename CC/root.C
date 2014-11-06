@@ -14109,11 +14109,59 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   return ret;
 } 
 
-int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
+int MCtune(AMSPoint &coo, int tkid, double dmax, float dsxy[2])
 {
+//x
+{
+double ds=dsxy[0];
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
-//  if (AMSEventR::Head()->Version() >= 817) return 0;
+  if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
+
+  TrMCClusterR *mc = 0;
+  double      dmin = dmax;
+  for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
+    TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
+    if (!m || m->GetTkId() != tkid) continue;
+
+    double d = coo.x()-m->GetXgl().x();
+    if (TMath::Abs(d) < TMath::Abs(dmin)) {
+      mc   = m;
+      dmin = d;
+    }
+  }
+  if (mc) {
+   if(ds<0){
+   double rnd[1];
+#ifdef __ROOTSHAREDLIBRARY__
+  int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+  AMSEventR::GetRandArray(8993306-lj-1, 2,  1,rnd);
+#else
+rnd[0]=rnormx();
+#endif
+     coo[1]+=-ds*rnd[0];
+     return 1;
+   }
+   else{
+    if (ds < dmax && TMath::Abs(dmin) > ds) {
+      coo[1] += (dmin > 0) ? -ds : ds;
+      return 1;
+    }
+    if (ds > dmax) {
+      coo = mc->GetXgl();
+      return 1;
+    }
+  }}
+ 
+
+#endif
+ 
+}
+//y
+{
+double ds=dsxy[1];
+#ifdef __ROOTSHAREDLIBRARY__
+  if (!AMSEventR::Head()) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
   TrMCClusterR *mc = 0;
@@ -14153,7 +14201,10 @@ rnd[0]=rnormx();
  
 
 #endif
-  return 0;
+ 
+}
+
+ return 0;
 }
 
 int MCshift(AMSPoint &coo, double ds)

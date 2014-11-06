@@ -340,8 +340,8 @@ void TRMCFFKEY_DEF::init(){
   // 2014.05.23 SH
   // Workaround to retune the MC resolution (not activated by default)
   MCtuneDmax = 0;   // typically put 100e-4 to activate
-  MCtuneDs   = 0;   // typically put   1e-4 to improve the resolution
-                    //                -1e-4 to smare
+  MCtuneDs[0]=MCtuneDs[1]   = 0;   // typically put   1e-4 to improve the resolution
+                    //                -1e-4 to smear
                     // if MCtuneDs > MCtuneDmax, use exactly as MC coo
   MCtuneDy9  = 0;   // typically put   1e-4 to mitigate the propagation bug
 

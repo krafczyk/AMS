@@ -45,7 +45,7 @@
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 int  UpdateInnerDz();
-int  MCtune (AMSPoint &coo, int tkid, double dmax, double ds);
+int  MCtune (AMSPoint &coo, int tkid, double dmax, float ds[2]);
 int  MCshift(AMSPoint &coo,                        double ds);
 
 int my_int_pow(int base, int exp){
@@ -1031,7 +1031,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     // Workaround to retune the MC resolution (not activated by default)
 //    if (hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
     if (
-	TRMCFFKEY.MCtuneDmax > 0 && TRMCFFKEY.MCtuneDs != 0)
+	TRMCFFKEY.MCtuneDmax > 0 && (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0))
       MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
 
     // Workaround to mitigate the MC propagation error
