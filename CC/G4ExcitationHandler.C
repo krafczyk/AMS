@@ -749,6 +749,11 @@ G4double G4ComponentGGNuclNuclXsc::
 GetZandACrossSection(const G4DynamicParticle* aParticle,
                      G4int tZ, G4int tA)
 {
+  static double fScale=fHadronNucleonXsc;
+  static int init=0;
+  if(!init++){
+    G4cout<<"  G4ComponentGGNuclNuclXsc::GetZandACrossSection-I-CrossectionScaledBy "<<fScale<<G4endl;
+  }
   G4double xsection;
   G4double sigma;
   G4double cofInelastic = 2.4;
@@ -835,6 +840,13 @@ GetZandACrossSection(const G4DynamicParticle* aParticle,
     fElasticXsc    = 0.;
     fProductionXsc = 0.;
   }
+// hack
+    fInelasticXsc*=  fScale;
+    fTotalXsc*= fScale;
+    fElasticXsc*= fScale;
+    fProductionXsc*= fScale;
+    fDiffractionXsc*= fScale;
+  
   return fInelasticXsc;   // xsection; 
 }
 

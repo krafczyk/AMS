@@ -159,8 +159,10 @@ void AMSG4Physics::ConstructProcess()
   G4HadronElastic* lhep3 = 0;
   if((G4FFKEY.IonPhysicsModel/1000)%10==2)lhep3=new G4HadronElastic(G4String("ionelasticVC"));
   else lhep3=new G4HadronElastic();
+  G4ComponentGGNuclNuclXsc*pgg=  new G4ComponentGGNuclNuclXsc();
+     pgg->setScale(G4FFKEY.HCrossSectionBias);
   G4CrossSectionElastic* nucxs = 
-    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
+    new G4CrossSectionElastic(pgg);
   theParticleIterator->reset();
   while( (*theParticleIterator)() )
   {
