@@ -175,8 +175,11 @@ $(BIN)fastntrd.o:         $(SCC)fastntrd.C
 $(BIN)fntread.o:         ../F/fntread.F
 	$(FF) -c $(FFLAGS) ../F/fntread.F -o $(BIN)fntread.o
 
-$(BIN)rootread.o:    	 $(SCC)rootread.C
+$(BIN)rootread.o:    	 $(SCC)rootread.C ../include/root_methods.h
 	$(CC) -c $(CFLAGS) $(SCC)rootread.C -o $(BIN)rootread.o
+
+../include/root_methods.h:   ../perl/root.perl
+	perl ../perl/root.perl
 
 $(BIN)commonsi.o:    	 $(SCC)commonsi.C
 	$(CC) -c $(CFLAGS) -D__FASTNTRD__ $(SCC)commonsi.C -o $(BIN)commonsi.o
