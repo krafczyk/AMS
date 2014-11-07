@@ -14111,6 +14111,7 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
 
 int MCtune(AMSPoint &coo, int tkid, double dmax, float dsxy[2])
 {
+int ret=0;
 //x
 {
 double ds=dsxy[0];
@@ -14140,16 +14141,16 @@ double ds=dsxy[0];
 rnd[0]=rnormx();
 #endif
      coo[0]+=-ds*rnd[0];
-     return 1;
+     ret=1;
    }
    else{
     if (ds < dmax && TMath::Abs(dmin) > ds) {
       coo[0] += (dmin > 0) ? -ds : ds;
-      return 1;
+      ret=1;
     }
     if (ds > dmax) {
       coo = mc->GetXgl();
-      return 1;
+      ret=1;
     }
   }}
  
@@ -14186,16 +14187,16 @@ double ds=dsxy[1];
 rnd[0]=rnormx();
 #endif
      coo[1]+=-ds*rnd[0];
-     return 1;
+     ret+=10;
    }
    else{
     if (ds < dmax && TMath::Abs(dmin) > ds) {
       coo[1] += (dmin > 0) ? -ds : ds;
-      return 1;
+      ret+=10;
     }
     if (ds > dmax) {
       coo = mc->GetXgl();
-      return 1;
+      ret+=10;
     }
   }}
  
@@ -14204,7 +14205,7 @@ rnd[0]=rnormx();
  
 }
 
- return 0;
+ return ret;
 }
 
 int MCshift(AMSPoint &coo, double ds)
