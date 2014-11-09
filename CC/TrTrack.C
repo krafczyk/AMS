@@ -1433,6 +1433,10 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 		   number& Theta, number& Phi, AMSPoint& X0) const {
     /// FastFit is assumed as normal (Choutko) fit without MS
   int id = kChoutko;
+  if (!ParExists(id)) id = TrTrackR::kAlcaraz;
+  if (!ParExists(id)) id = TrTrackR::kSimple;
+  if (!ParExists(id)) { Chi2=Err=-1;Rig=Theta=Phi=-1; return; }
+
   if(_MagFieldOn==0) id=kLinear;
   if(trdefaultfit==kDummy) id=kDummy;
   Chi2 = GetChisq(id); Rig = GetRigidity(id); Err = GetErrRinv(id); 
