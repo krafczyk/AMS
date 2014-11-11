@@ -217,7 +217,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,10);
+  ClassDef(TRMCFFKEY_DEF,11);
 
 
 };
