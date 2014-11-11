@@ -991,7 +991,11 @@ void AMSParticle::pid(){
     for( int patt=0;patt<npat;patt++){
       AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
 	getheadC("AMSTrTrack",patt);
+#ifdef _PGTRACK_
       while(ptrack && ptrack->ParExists(AMSTrTrack::kChoutko)){   
+#else
+      while(ptrack ){   
+#endif
 	if(
 #ifdef _PGTRACK_
 	   // PZ FIXME Track format
