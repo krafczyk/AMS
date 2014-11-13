@@ -4210,7 +4210,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	int   hcmax[18];
 	float adc_hi, adc_low;
 
-	float edep_h;
 	float s1,s3,s5;
 
 	float zv3[18];
@@ -4275,24 +4274,23 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				adc_hi=hit.ADC[0];
 				adc_low=hit.ADC[1];						
 				//
-				
-				edep_layer[plane]      += hit.Edep;
-				edep_cell[plane][cell]  =  hit.Edep;
-				s_cell_w[plane]        += (cell+1)*hit.Edep;
-				s_cell2_w[plane]       += pow((cell+1),2.)*hit.Edep;
+
+            float Edep=	isnan(hit.Edep)?0:hit.Edep;
+				edep_layer[plane]      += Edep;
+				edep_cell[plane][cell]  = Edep;
+				s_cell_w[plane]        += (cell+1)*Edep;
+				s_cell2_w[plane]       += pow((cell+1),2.)*Edep;
 				//
 				nhitcell[plane]++;			
 				//
 				if (adc_low>4) npixl+=1;
 				if ( (adc_hi>4&&adc_low<=4) || adc_low>4 ) npix+=1; 
 				
-				EnergyDh		+= hit.Edep;
+				EnergyDh		+= Edep;
 				
-				edep_h=0.;
 				if (adc_hi>4)  {
-					edep_h=hit.Edep;
-					hedepl[plane]		+=	edep_h;
-					hedepc[plane][cell]=	edep_h;
+					hedepl[plane]		+=	Edep;
+					hedepc[plane][cell]=	Edep;
 				}
 
 
@@ -4534,7 +4532,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 
 		if(nblayer>5){
 
-			// new bounds for the
+			// new bounds for the fit
 			float xmin=3.5;
 			float xmax=18.;  
 			if (EnergyDh/1000.<=150) xmin=3;
@@ -4558,8 +4556,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			zprofile[3]  =fitf->GetParameter(3);
 			zprofile[4] = fitf->GetChisquare()/fitf->GetNDF();
 
-
-						
+         delete fitf;
 		}
 
 		delete hfitecal;	
@@ -4579,7 +4576,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	
 	if(AMSEventR::Head()->nMCEventgC()){
 
-		TRandom3 R;
+		TRandom3 R(0);
 		// footprint
 		FP[0]=1.5; 
 		FP[1]=1.5;
