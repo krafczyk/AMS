@@ -161,7 +161,7 @@ void AMSG4Physics::ConstructProcess()
   else lhep3=new G4HadronElastic();
   G4ComponentGGNuclNuclXsc*pgg=  new G4ComponentGGNuclNuclXsc();
 #if G4VERSION_NUMBER  <1000
-     pgg->setScale(G4FFKEY.HCrossSectionBias);
+     pgg->setScale(G4FFKEY.HCrossSectionBias*G4FFKEY.HCrossSectionBias);
 #else
      if(G4FFKEY.HCrossSectionBias!=1){
        cerr<<"AMSG4Physics::ConstructProcess-F-CrossectionBiasNotSupportedinThis geantversion"<<endl;
