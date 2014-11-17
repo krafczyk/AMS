@@ -1943,7 +1943,7 @@ class RemoteClient:
         tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 %d " %(timeout) 
         input_xrootd = input
         if (input.find('/eosams/') == 0):
-            input_xrootd = self.eosLink2Xrootd(intput)
+            input_xrootd = self.eosLink2Xrootd(input)
         cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v "+input_xrootd+" 'root://castorpublic.cern.ch//"+output+"?svcClass=%s'" %(os.environ['STAGE_SVCCLASS']) 
         cmdstatus=os.system(cmd)
         if(cmdstatus):
