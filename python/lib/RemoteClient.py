@@ -2113,22 +2113,22 @@ class RemoteClient:
 #            print "Testing write-in"
             ret = os.system("touch /eosams/test && date >> /eosams/test")
             if (ret):
-                return -2
+                return -2, os.path.exists(self.eoslink)
 #            print "Testing readout"
             pair=commands.getstatusoutput("cat /eosams/test")
             if (pair[0]):
-                return -3
+                return -3, os.path.exists(self.eoslink)
 #            print pair
 #            print "Testing remove"
             pair=commands.getstatusoutput("rm -v /eosams/test")
             if (pair[0]):
-                return -4
+                return -4, os.path.exists(self.eoslink)
 #            print pair
             return (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
         else:
             print "EOS quota problem: ", quota
             self.sendmailmessage('baosong.shan@cern.ch', 'EOS quota', quota)
-            return -1
+            return -1, os.path.exists(self.eoslink)
            
     def getOutputPathRaw(self,period,path='/MC'):
         # try eos if self.eos is set
