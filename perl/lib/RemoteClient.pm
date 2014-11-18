@@ -2815,6 +2815,8 @@ sub Connect{
     else{
         $self->{ok}=1;
     }
+    # Flag to indicate if using /eosams/ as NTDIR
+    $self->{eos} = 1;
          my $cem=lc($self->{q}->param("CEM"));
          if (defined $cem and not ($self->{q}->param("queryDB04"))){
           if(not $self->findemail($cem)){
@@ -7122,14 +7124,19 @@ if( not defined $dbserver->{dbfile}){
                if($dataset->{datamc} !=0 and not defined $dataset->{MC}){
                  $path='/Data';
                }
-               my $sqlfs="select disk,path,available from filesystems where status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available DESC";
-               my $fs = $self->{sqlserver}->Query($sqlfs);
-               if(not defined $fs->[0][0]){
-                 $self->ErrorPlus("Unable to Obtain Active File System $sqlfs");               }
-               else{
-                   $ntdir = $fs->[0][0].$fs->[0][1]."/".$ProductionPeriod."/$dataset->{name}";
+               if ($self->{eos} == 1) {
+                   $ntdir = '/eosams'.$path."/".$ProductionPeriod."/$dataset->{name}";
                }
-
+               else {
+                   my $sqlfs="select disk,path,available from filesystems where status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available DESC";
+                   my $fs = $self->{sqlserver}->Query($sqlfs);
+                   if(not defined $fs->[0][0]){
+                       $self->ErrorPlus("Unable to Obtain Active File System $sqlfs");
+                   }
+                   else{
+                       $ntdir = $fs->[0][0].$fs->[0][1]."/".$ProductionPeriod."/$dataset->{name}";
+                   }
+               }
 
 #               my $maxavail=0;
 #               foreach my $fs (@{$self->{FilesystemT}}){
