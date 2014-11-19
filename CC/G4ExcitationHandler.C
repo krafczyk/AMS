@@ -605,7 +605,7 @@ void G4HadronElasticPhysics::ConstructProcess()
 	       << " added for " << particle->GetParticleName() << G4endl;
       }
 
-    } else if(pname == "proton") {   
+     }else if(pname == "proton") {   
 
       G4HadronElasticProcess* hel = new G4HadronElasticProcess("protonelastic");
       //hel->AddDataSet(new G4BGGNucleonElasticXS(particle));
@@ -666,7 +666,7 @@ void G4HadronElasticPhysics::ConstructProcess()
        pname == "anti_triton"    ||
        pname == "anti_He3"       ) {
 
-      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess("antielastic");
       hel->AddDataSet(anucxs);
       hel->RegisterMe(lhep2);
       hel->RegisterMe(anuc);

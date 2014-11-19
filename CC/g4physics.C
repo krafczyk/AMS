@@ -2132,6 +2132,7 @@ void AMSG4Physics::SaveXS(int ipart){
               for(G4int j=0; j<processVector->size(); j++){
                 bool inelok=false;
                  if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="ProtonInelastic" ;
+                 else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="AntiProtonInelastic" ;
                  else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="alphaInelastic"  ;
                  else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="He3Inelastic"    ;
                  else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="tInelastic"    ;
@@ -2189,6 +2190,7 @@ void AMSG4Physics::SaveXS(int ipart){
               for(G4int j=0; j<processVector->size(); j++){
                 bool inelok=false;
                  if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="protonelastic" ;
+                 else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="antielastic" ;
                  else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"  ;
                  else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"    ;
                  else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="ionelastic"    ;
