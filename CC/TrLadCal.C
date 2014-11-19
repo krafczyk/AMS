@@ -292,7 +292,7 @@ geant TrLadCal::GetSigmaMean(int side) {
     mean += GetSigma(ii);
     ngoodchannels++;
   }
-  return mean/ngoodchannels;
+  return (ngoodchannels>0) ? mean/ngoodchannels : 0;
 }
 
 geant TrLadCal::GetSigmaRMS(int side) {
