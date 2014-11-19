@@ -2664,6 +2664,8 @@ class RemoteClient:
     def calculateCRC(self,filename,crc):
         self.crcCalls=self.crcCalls+1
         time0=time.time()
+        if (filename.find('/eosams/') == 0):
+            filename = self.eosLink2Xrootd(filename)
         mutex.release()
         crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
         rstatus=os.system(crccmd)
