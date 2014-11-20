@@ -670,6 +670,10 @@ void G4HadronElasticPhysics::ConstructProcess()
        pname == "anti_He3"       ) {
 
       G4HadronElasticProcess* hel = new G4HadronElasticProcess("antielastic");
+      if(G4FFKEY.HCrossSectionBias[1]!=1){
+         hel->aScaleFactor=G4FFKEY.HCrossSectionBias[1];
+         cout<<"G4HadronElasticProcess-I-AntiProtonElasticCrossSectionScaledBy "<< hel->aScaleFactor<<endl;
+      }
       hel->AddDataSet(anucxs);
       hel->RegisterMe(lhep2);
       hel->RegisterMe(anuc);
