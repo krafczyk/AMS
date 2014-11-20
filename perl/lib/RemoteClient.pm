@@ -339,6 +339,8 @@ sub Init{
     my $sql  = undef;
     my $ret  = undef;
 
+    $self->{eosselect} = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select';
+
     $t0Init = time();
 #just temporary skeleton to check basic princ
 #should be replaced by real db servers
@@ -19874,9 +19876,11 @@ sub UploadToCastor{
                 return 0;
             }
         }
-        $sql="select path,sizemb from ntuples where  jid=$run->[2]  and path like '%$dir%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=$datamc";
     if($datamc>1){
         $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' $castor and path not like '/castor%' and type like '$delim%'";
+    }
+    else {
+        $sql="select path,sizemb from ntuples where  jid=$run->[2]  and path like '%$dir%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=$datamc";
     }
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
@@ -19909,7 +19913,7 @@ sub UploadToCastor{
 #         check fs is active
 #
          my @junk=split '\/',$ntuple->[0];
-         if(not $self->DiskIsOnline("/$junk[1]")){
+         if(not $junk[1] =~ /eosams/ and not $self->DiskIsOnline("/$junk[1]")){
           print " Disk $junk[1] is Offline, skipped \n";
           $suc=0;
           last;
@@ -19930,6 +19934,9 @@ sub UploadToCastor{
           my $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
           system($sys);
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          if ($ntuple->[0] =~ /^\/eosams/) {
+              $sys = "$self->{eosselect} $sys";
+          }
           my $res=system($sys);
           if($res){
               print "problem with $sys \n";
@@ -19955,10 +19962,25 @@ sub UploadToCastor{
              $sys="echo $castor ";
          }
          my $i=system($sys);
+         if ($i) { #rfcp failed, retrying with xrdcp
+             if($verbose){
+                 print " $sys failed (retcode=$i)\n";
+                 print "Now trying to copy with xrdcp...\n";
+             }
+             if (not defined $ENV{'STAGE_SVCCLASS'} or $ENV{'STAGE_SVCCLASS'} eq '') {
+                 $ENV{'STAGE_SVCCLASS'} = 'amscdr';
+             }
+             my $inputfile = $ntuple->[0];
+             if ($inputfile =~ /^\/eosams/) {
+                 $inputfile = $self->eosLink2Xrootd($inputfile);
+             }
+             $sys = "/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v -ODsvcClass=" . $ENV{'STAGE_SVCCLASS'} . " ".$inputfile." \"root://castorpublic.cern.ch//".$castor."\"";
+             $i = system($sys);
+         }
          if($i){
           $suc=0;
           if($verbose){
-            print " $sys failed \n";
+            print " $sys failed  (retcode=$i)\n";
           }
           last;
          }
@@ -20029,6 +20051,10 @@ sub UploadToCastor{
           my $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
           system($sys);
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          if ($ntuple->[0] =~ /^\/eosams/) {
+              $sys = "$self->{eosselect} $sys";
+          }
+
           my $try=0;
 again:
           my $res=system($sys);
@@ -22111,4 +22137,12 @@ sub getactiveppstring{
         $jobspid="";
     }
     return $jobspid;
+}
+
+sub eosLink2Xrootd {
+    my $self = shift;
+    my $path = shift;
+
+    $path =~ s#^/eosams/#root://eosams.cern.ch//eos/ams/#g;
+    return $path;
 }
