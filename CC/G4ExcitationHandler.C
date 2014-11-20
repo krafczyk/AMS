@@ -88,7 +88,6 @@
 #include "G4PhotonEvaporation.hh"
 #include "G4FermiBreakUp.hh"
 #include "G4FermiFragmentsPool.hh"
-
 G4ExcitationHandler::G4ExcitationHandler():
   maxZForFermiBreakUp(9),maxAForFermiBreakUp(17),minEForMultiFrag(4*GeV),
   minExcitation(keV),OPTxs(3),useSICB(false),isEvapLocal(true)
@@ -538,6 +537,7 @@ G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
 #include "G4ComponentAntiNuclNuclearXS.hh"  
 #include "G4CrossSectionElastic.hh"
 #include "G4ComponentGGNuclNuclXsc.hh"
+#include "commons.h"
 void G4HadronElasticPhysics::ConstructProcess()
 {
   if(wasActivated) { return; }
@@ -609,7 +609,10 @@ void G4HadronElasticPhysics::ConstructProcess()
 
       G4HadronElasticProcess* hel = new G4HadronElasticProcess("protonelastic");
       //hel->AddDataSet(new G4BGGNucleonElasticXS(particle));
-
+      if(G4FFKEY.HCrossSectionBias[1]!=1){
+         hel->aScaleFactor=G4FFKEY.HCrossSectionBias[1];
+         cout<<"G4HadronElasticProcess-I-ProtonElasticCrossSectionScaledBy "<< hel->aScaleFactor<<endl;
+      }
       //      hel->AddDataSet(new G4ChipsProtonElasticXS());
       hel->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4ChipsProtonElasticXS::Default_Name()));
      
