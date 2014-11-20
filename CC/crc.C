@@ -1,10 +1,12 @@
-#include <iostream.h>
+#include <iostream>
 #include <stdlib.h>
-#include <fstream.h>
+#include <fstream>
 #include <dirent.h>
 #include "astring.h"
 #include <sys/stat.h>
 #include <stdio.h>
+#include <TFile.h>
+#include <TXNetFile.h>
 unsigned int * _Table=0;
 const unsigned int CRC32=0x04c11db7;
 void _inittable();
@@ -12,6 +14,8 @@ extern "C" int _select(const dirent64 *entry);
 extern "C" int _selectsdir(const dirent64 *entry);
 extern "C" int _sort(const dirent64 ** e1, const dirent64 ** e2);
 extern "C" int _sorta(const dirent64 ** e1, const dirent64 ** e2);
+int crc_xrootd(AString furl, unsigned int crc_to_compare);
+static unsigned int chunk[38200000];
 
 // return codes 
 //       1         everything ok
@@ -33,6 +37,9 @@ extern "C" int _sorta(const dirent64 ** e1, const dirent64 ** e2);
       _inittable();
       AString fdir(argv[1]);
       AString fout(fdir);
+      if (strncmp((const char*)fdir, "root://", 7) == 0) {
+          return crc_xrootd(fdir, crc_to_compare);
+      }
           struct stat64 statdir_map;
           stat64((const char*)fdir,&statdir_map);
          ifstream fbin;
@@ -61,7 +68,6 @@ extern "C" int _sorta(const dirent64 ** e1, const dirent64 ** e2);
           struct stat64 statbuf_map;
           stat64((const char*)fnam,&statbuf_map);
           long long fsize=statbuf_map.st_size;
-          unsigned int chunk[1024000]; 
          int i=0;
          for(;;){
            if(!fsize) break;
@@ -102,13 +108,12 @@ extern "C" int _sorta(const dirent64 ** e1, const dirent64 ** e2);
          unsigned int data;
          unsigned int crc;
           long long  fsize=statdir_map.st_size;
-          unsigned int chunk[8200000]; 
          int i=0;
          for(;;){
            if(!fsize) break;
            int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
            fbin.read((char*)chunk,myread);
-        cout <<" fsixe "<<fsize<<endl;
+//           cout <<" fsize "<<fsize<<endl;
            fsize-=myread;
            if(fbin.good() && !fbin.eof()){
            int beg;
@@ -217,4 +222,43 @@ for (int i=strlen(tmp)-1;i>=0;i--){
   else return 1;
  }
  else return 1;
+}
+
+int crc_xrootd(AString furl, unsigned int crc_to_compare) {
+    TXNetFile *rfile = new TXNetFile(furl+"?filetype=raw", "READ");
+    if (!rfile) {
+        return 128+3;
+    }
+    Long64_t fsize = rfile->GetSize();
+    unsigned int data;
+    unsigned int crc;
+    int i=0;
+    for(;;){
+         if(!fsize) break;
+         int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
+//         cout <<" fsixe "<<fsize<<endl;
+         fsize-=myread;
+         Bool_t ret = rfile->ReadBuffer((char*)chunk,myread);
+         if (!ret) {
+             int beg;
+             if(i==0){
+                 crc=~chunk[0];
+                 beg=1;
+             }
+             else{
+                 beg=0;
+             }
+             for(int m=beg;m<myread/sizeof(chunk[0]);m++){
+                 for(int j=0;j<3;j++)crc=_Table[crc>>24]^(crc<<8);
+                 crc=crc^chunk[m];
+             }
+             i++;
+         }
+         else break;
+    }
+    crc=~crc;
+    rfile->Close();
+    if(crc_to_compare==crc)return 1;
+    cout <<furl<<" "<<crc<<" "<<crc_to_compare<<endl;
+    return 0;
 }
