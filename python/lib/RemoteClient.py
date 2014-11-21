@@ -2113,6 +2113,7 @@ class RemoteClient:
 #            print "Testing write-in"
             ret = os.system("touch /eosams/test && date >> /eosams/test")
             if (ret):
+                os.system("ls -l /eosams/")
                 return -2, os.path.exists(self.eoslink)
 #            print "Testing readout"
             pair=commands.getstatusoutput("cat /eosams/test")
@@ -2120,9 +2121,9 @@ class RemoteClient:
                 return -3, os.path.exists(self.eoslink)
 #            print pair
 #            print "Testing remove"
-            pair=commands.getstatusoutput("rm -v /eosams/test")
-            if (pair[0]):
-                return -4, os.path.exists(self.eoslink)
+#            pair=commands.getstatusoutput("rm -v /eosams/test")
+#            if (pair[0]):
+#                return -4, os.path.exists(self.eoslink)
 #            print pair
             return (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
         else:
