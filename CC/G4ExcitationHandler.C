@@ -734,8 +734,11 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
   }
   G4double q1 = 1.0 - std::exp(-bb*tmax);
   G4double q2 = 1.0 - std::exp(-dd*tmax);
-  G4double s1 = q1*aa;
-  G4double s2 = q2*cc;
+  double bias=G4FFKEY.HCrossSectionBias[2];
+ // std::cout <<" aa  cc "<<aa<<" "<<cc<<" "<<bias<<" "<<plab/GeV<<" "<<bb<<" "<<dd<<std::endl;
+  G4double s1 = q1*aa*bias;
+  G4double s2 = q2*(cc+aa*(1-bias));
+  if(s2<0)s2=0;
   if((s1 + s2)*G4UniformRand() < s2) {
     q1 = q2;
     bb = dd;
