@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 #ifndef _BESSFlux_
 #define _BESSFlux_
-
+#include "TGraphErrors.h"
 /// TGraphErrors*  PRFLUXEBESSTEV  : BESS-TeV proton flux VS Ekin
 /// TGraphErrors*  HEFLUXEBESSTEV  : BESS-TeV helium flux VS Ekin
 

@@ -88,7 +88,6 @@
 #include "G4PhotonEvaporation.hh"
 #include "G4FermiBreakUp.hh"
 #include "G4FermiFragmentsPool.hh"
-
 G4ExcitationHandler::G4ExcitationHandler():
   maxZForFermiBreakUp(9),maxAForFermiBreakUp(17),minEForMultiFrag(4*GeV),
   minExcitation(keV),OPTxs(3),useSICB(false),isEvapLocal(true)
@@ -538,6 +537,7 @@ G4bool G4IonProtonCrossSection::IsIsoApplicable(const G4DynamicParticle* dp,
 #include "G4ComponentAntiNuclNuclearXS.hh"  
 #include "G4CrossSectionElastic.hh"
 #include "G4ComponentGGNuclNuclXsc.hh"
+#include "commons.h"
 void G4HadronElasticPhysics::ConstructProcess()
 {
   if(wasActivated) { return; }
@@ -605,11 +605,14 @@ void G4HadronElasticPhysics::ConstructProcess()
 	       << " added for " << particle->GetParticleName() << G4endl;
       }
 
-    } else if(pname == "proton") {   
+     }else if(pname == "proton") {   
 
       G4HadronElasticProcess* hel = new G4HadronElasticProcess("protonelastic");
       //hel->AddDataSet(new G4BGGNucleonElasticXS(particle));
-
+      if(G4FFKEY.HCrossSectionBias[1]!=1){
+         hel->aScaleFactor=G4FFKEY.HCrossSectionBias[1];
+         cout<<"G4HadronElasticProcess-I-ProtonElasticCrossSectionScaledBy "<< hel->aScaleFactor<<endl;
+      }
       //      hel->AddDataSet(new G4ChipsProtonElasticXS());
       hel->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4ChipsProtonElasticXS::Default_Name()));
      
@@ -666,7 +669,11 @@ void G4HadronElasticPhysics::ConstructProcess()
        pname == "anti_triton"    ||
        pname == "anti_He3"       ) {
 
-      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess("antielastic");
+      if(G4FFKEY.HCrossSectionBias[1]!=1){
+         hel->aScaleFactor=G4FFKEY.HCrossSectionBias[1];
+         cout<<"G4HadronElasticProcess-I-AntiProtonElasticCrossSectionScaledBy "<< hel->aScaleFactor<<endl;
+      }
       hel->AddDataSet(anucxs);
       hel->RegisterMe(lhep2);
       hel->RegisterMe(anuc);
@@ -727,8 +734,11 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
   }
   G4double q1 = 1.0 - std::exp(-bb*tmax);
   G4double q2 = 1.0 - std::exp(-dd*tmax);
-  G4double s1 = q1*aa;
-  G4double s2 = q2*cc;
+  double bias=G4FFKEY.HCrossSectionBias[2];
+ // std::cout <<" aa  cc "<<aa<<" "<<cc<<" "<<bias<<" "<<plab/GeV<<" "<<bb<<" "<<dd<<std::endl;
+  G4double s1 = q1*aa*bias;
+  G4double s2 = q2*(cc+aa*(1-bias));
+  if(s2<0)s2=0;
   if((s1 + s2)*G4UniformRand() < s2) {
     q1 = q2;
     bb = dd;
@@ -749,6 +759,11 @@ G4double G4ComponentGGNuclNuclXsc::
 GetZandACrossSection(const G4DynamicParticle* aParticle,
                      G4int tZ, G4int tA)
 {
+  static double fScale=fHadronNucleonXsc;
+  static int init=0;
+  if(!init++){
+    G4cout<<"  G4ComponentGGNuclNuclXsc::GetZandACrossSection-I-CrossectionScaledBy "<<fScale<<G4endl;
+  }
   G4double xsection;
   G4double sigma;
   G4double cofInelastic = 2.4;
@@ -835,6 +850,13 @@ GetZandACrossSection(const G4DynamicParticle* aParticle,
     fElasticXsc    = 0.;
     fProductionXsc = 0.;
   }
+// hack
+    fInelasticXsc*=  fScale;
+    fTotalXsc*= fScale;
+    fElasticXsc*= fScale;
+    fProductionXsc*= fScale;
+    fDiffractionXsc*= fScale;
+  
   return fInelasticXsc;   // xsection; 
 }
 
@@ -842,3 +864,248 @@ GetZandACrossSection(const G4DynamicParticle* aParticle,
 
 #endif
 
+#if G4VERSION_NUMBER  > 945  && G4VERSION_NUMBER  <1000
+//
+// ********************************************************************
+// * License and Disclaimer                                           *
+// *                                                                  *
+// * The  Geant4 software  is  copyright of the Copyright Holders  of *
+// * the Geant4 Collaboration.  It is provided  under  the terms  and *
+// * conditions of the Geant4 Software License,  included in the file *
+// * LICENSE and available at  http://cern.ch/geant4/license .  These *
+// * include a list of copyright holders.                             *
+// *                                                                  *
+// * Neither the authors of this software system, nor their employing *
+// * institutes,nor the agencies providing financial support for this *
+// * work  make  any representation or  warranty, express or implied, *
+// * regarding  this  software system or assume any liability for its *
+// * use.  Please see the license in the file  LICENSE  and URL above *
+// * for the full disclaimer and the limitation of liability.         *
+// *                                                                  *
+// * This  code  implementation is the result of  the  scientific and *
+// * technical work of the GEANT4 collaboration.                      *
+// * By using,  copying,  modifying or  distributing the software (or *
+// * any work based  on the software)  you  agree  to acknowledge its *
+// * use  in  resulting  scientific  publications,  and indicate your *
+// * acceptance of all terms of the Geant4 Software license.          *
+// ********************************************************************
+//
+//  Calculation of the total, elastic and inelastic cross-sections
+//  of anti-nucleon and anti-nucleus interactions with nuclei
+//  based on Glauber approach and V. Grishine formulaes for
+//  interpolations (ref. V.M.Grichine, Eur.Phys.J., C62(2009) 399;
+//  NIM, B267 (2009) 2460) and our parametrization of hadron-nucleon
+//  cross-sections
+// 
+// 
+//   Created by A.Galoyan and V. Uzhinsky, 18.11.2010
+
+
+#include "G4ComponentAntiNuclNuclearXS.hh"
+
+#include "G4PhysicalConstants.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4ParticleTable.hh"
+#include "G4IonTable.hh"
+#include "G4ParticleDefinition.hh"
+
+///////////////////////////////////////////////////////////////////////////////
+
+G4ComponentAntiNuclNuclearXS::G4ComponentAntiNuclNuclearXS() 
+: G4VComponentCrossSection("AntiAGlauber"), fUpperLimit(10000*GeV),
+  fLowerLimit(10*MeV), fRadiusEff(0.0), fRadiusNN2(0.0),
+  fTotalXsc(0.0), fElasticXsc(0.0), fInelasticXsc(0.0),
+  fAntiHadronNucleonTotXsc(0.0), fAntiHadronNucleonElXsc(0.0),
+  Elab(0.0), S(0.0), SqrtS(0) 
+{
+  theAProton       = G4AntiProton::AntiProton();
+  theANeutron      = G4AntiNeutron::AntiNeutron();
+  theADeuteron     = G4AntiDeuteron::AntiDeuteron();
+  theATriton       = G4AntiTriton::AntiTriton();
+  theAAlpha        = G4AntiAlpha::AntiAlpha();
+  theAHe3          = G4AntiHe3::AntiHe3();
+
+ Mn       = 0.93827231;           // GeV
+ b0       = 11.92;                // GeV^(-2)
+ b2       = 0.3036;               // GeV^(-2)
+ SqrtS0   = 20.74;                // GeV
+ S0       = 33.0625;              // GeV^2
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//
+
+G4ComponentAntiNuclNuclearXS::~G4ComponentAntiNuclNuclearXS()
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Calculation of total CrossSection of Anti-Nucleus - Nucleus 
+
+
+G4double G4ComponentAntiNuclNuclearXS::GetTotalElementCrossSection
+(const G4ParticleDefinition* aParticle, G4double kinEnergy, G4int Z, G4double A)
+{
+   G4double xsection,   sigmaTotal, sigmaElastic;
+
+ const G4ParticleDefinition* theParticle = aParticle;
+
+    sigmaTotal        = GetAntiHadronNucleonTotCrSc(theParticle,kinEnergy);
+    sigmaElastic      = GetAntiHadronNucleonElCrSc(theParticle,kinEnergy);
+
+// calculation of squared radius of  NN-collision
+   fRadiusNN2=sigmaTotal*sigmaTotal*0.1/(8.*sigmaElastic*pi) ;  //fm^2   
+
+// calculation of effective nuclear radius for Pbar and Nbar interactions (can be changed)
+
+  //A.R. 29-Jan-2013 : use antiprotons/antineutrons as the default case,
+  //                   to be used for instance, as first approximation
+  //                   without validation, for anti-hyperons. 
+  //if ( (theParticle == theAProton) || (theParticle == theANeutron) ) {   
+     if(int(A+0.5)==1)
+     { fTotalXsc = sigmaTotal * millibarn;
+        return fTotalXsc;  }
+ 
+   fRadiusEff = 1.34*std::pow(A,0.23)+1.35/std::pow(A,1./3.);   //fm
+  
+   if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 3.800;     //fm
+   if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 3.300;  
+   if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 3.300;  
+   if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.376;     
+ //}
+      
+//calculation of effective nuclear radius for AntiDeuteron interaction (can be changed)
+  if (theParticle == theADeuteron) 
+ { fRadiusEff = 1.46 * std::pow(A,0.21) + 1.45 / std::pow(A,1./3.);
+
+    if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 3.238;     //fm
+    if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 3.144;     
+    if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 3.144;      
+    if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.544;     
+ }
+// calculation of effective nuclear radius for AntiHe3 interaction (can be changed)
+
+  if( (theParticle ==theAHe3) || (theParticle ==theATriton) )
+ { fRadiusEff = 1.40* std::pow(A,0.21)+1.63/std::pow(A,1./3.);
+
+    if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 3.144;     //fm
+    if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 3.075;  
+    if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 3.075;  
+    if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.589;  
+  }
+
+//calculation of effective nuclear radius for AntiAlpha interaction (can be changed)
+
+  if (theParticle == theAAlpha) 
+ {
+  fRadiusEff = 1.35* std::pow(A,0.21)+1.1/std::pow(A,1./3.);
+  
+    if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 2.544;     //fm
+    if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 2.589;   
+    if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 2.589;   
+    if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.241;    
+  
+ }
+
+   G4double R2 = fRadiusEff*fRadiusEff;
+   G4double REf2  = R2+fRadiusNN2;
+   G4double ApAt = std::abs(theParticle->GetBaryonNumber())  *  A;
+
+ xsection = 2*pi*REf2*10.*std::log(1+(ApAt*sigmaTotal/(2*pi*REf2*10.)));  //mb
+ xsection =xsection *millibarn; 
+ fTotalXsc   = xsection;
+
+  return fTotalXsc; 
+}
+
+
+////////////////////////////////////////////////////////////////
+// Calculation of inelastic CrossSection of Anti-Nucleus - Nucleus
+////////////////////////////////////////////////////////////////
+
+G4double G4ComponentAntiNuclNuclearXS::GetInelasticElementCrossSection
+(const G4ParticleDefinition* aParticle, G4double kinEnergy, G4int Z, G4double A)
+{
+  G4double  inelxsection,  sigmaTotal, sigmaElastic;
+
+  const G4ParticleDefinition* theParticle = aParticle;
+
+    sigmaTotal        = GetAntiHadronNucleonTotCrSc(theParticle,kinEnergy);
+    sigmaElastic      = GetAntiHadronNucleonElCrSc(theParticle,kinEnergy);
+  
+// calculation of sqr of radius NN-collision
+   fRadiusNN2=sigmaTotal*sigmaTotal*0.1/(8.*sigmaElastic*pi);   // fm^2   
+
+
+// calculation of effective nuclear radius for Pbar and Nbar interaction (can be changed)
+
+  //A.R. 29-Jan-2013 : use antiprotons/antineutrons as the default case,
+  //                   to be used for instance, as first approximation
+  //                   without validation, for anti-hyperons. 
+  //if ( (theParticle == theAProton) || (theParticle == theANeutron) ) {   
+  if (int(A+0.5)==1)
+      { fInelasticXsc = (sigmaTotal - sigmaElastic) * millibarn;
+        return fInelasticXsc;  
+      } 
+ fRadiusEff = 1.31*std::pow(A, 0.22)+0.9/std::pow(A, 1./3.);  //fm
+    
+    if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 3.582;               //fm
+    if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 3.105;               
+    if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 3.105;
+    if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.209;
+ //}
+
+//calculation of effective nuclear radius for AntiDeuteron interaction (can be changed)
+
+  if (theParticle ==theADeuteron) 
+{ 
+ fRadiusEff = 1.38*std::pow(A, 0.21)+1.55/std::pow(A, 1./3.);
+  
+    if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 3.169;            //fm
+    if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 3.066;
+    if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 3.066;
+    if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.498;
+ }
+
+//calculation of effective nuclear radius for AntiHe3 interaction (can be changed)
+
+  if( (theParticle ==theAHe3) || (theParticle ==theATriton) )
+ {
+  fRadiusEff = 1.34 * std::pow(A, 0.21)+1.51/std::pow(A, 1./3.);
+  
+    if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 3.066;           //fm
+    if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 2.973;
+    if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 2.973;
+    if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.508;
+  
+ }
+
+//calculation of effective nuclear radius for AntiAlpha interaction (can be changed)
+
+  if (theParticle == theAAlpha) 
+ {
+  fRadiusEff = 1.3*std::pow(A, 0.21)+1.05/std::pow(A, 1./3.);
+    
+    if( (Z==1) && (int(A+0.5)==2) ) fRadiusEff = 2.498;            //fm
+    if( (Z==1) && (int(A+0.5)==3) ) fRadiusEff = 2.508;
+    if( (Z==2) && (int(A+0.5)==3) ) fRadiusEff = 2.508;
+    if( (Z==2) && (int(A+0.5)==4) ) fRadiusEff = 2.158;
+ }
+  G4double R2 = fRadiusEff*fRadiusEff;
+  G4double REf2  = R2+fRadiusNN2;
+  G4double  ApAt= std::abs(theParticle->GetBaryonNumber())  *  A;
+
+ inelxsection  = pi*REf2 *10* std::log(1+(ApAt*sigmaTotal/(pi*REf2*10.))); //mb
+ inelxsection  = inelxsection * millibarn;  
+   fInelasticXsc =  inelxsection; 
+   return fInelasticXsc;
+}
+
+#endif

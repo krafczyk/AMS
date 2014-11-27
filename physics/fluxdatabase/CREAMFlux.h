@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 #ifndef _CREAMFlux_
 #define _CREAMFlux_
-
+#include "TGraphErrors.h"
 /// TGraphErrors*  HEFLUXRCREAM  : CREAM-I helium flux VS Rigidity
 
 //#   He Flux in Rigidity[GV] CREAM-I(2004/12-2005/01)

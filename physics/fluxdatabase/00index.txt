@@ -1,5 +1,8 @@
 # $Id$
 
+FluxManager.h // Tool for Manage Flux
+                 Convert TGraphErrors Flux bewteen Rigidity(GV) and Kinetic Energy(GeV/n)...
+
 AMS01Flux.h  // AMS-01 flux measurement
                 TGraphErrors* HEFLUXRAMS01 : AMS-01 helium flux VS Rigidity
 

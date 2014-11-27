@@ -11,6 +11,7 @@
 ///\date  2008/02/28 AO  Bug fixing
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
+///\date  2014/11/19 SH  TTCS off simulation
 ///
 /// $Date$
 ///
@@ -266,6 +267,25 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
     TrSim::sitkdigi();
   }
 
+  if (flag/100000 > 0) {
+    int   config   = (flag/100000)%10;
+    float noise[4] = { 0.9, 0.8, 0.8, 0.7 };
+
+    // Layers 2-8
+    if (TRMCFFKEY.TrSim2010_AddNoise[0] >= 0) {
+      noise[0] = TRMCFFKEY.TrSim2010_AddNoise[0];           // K
+      noise[1] = TRMCFFKEY.TrSim2010_AddNoise[0]*0.8/0.9;   // S
+    }
+    // Layer 9
+    if (TRMCFFKEY.TrSim2010_AddNoise[1] >= 0) {
+      noise[2] = TRMCFFKEY.TrSim2010_AddNoise[1];           // K
+      noise[3] = TRMCFFKEY.TrSim2010_AddNoise[1]*0.7/0.8;   // S
+    }
+
+    SimulateTTCSoff(config, noise);
+    flag -= config*100000;
+  }
+
   int nraw = cont->getnelem();
   delete cont;
 
@@ -483,6 +503,157 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
   return trstat;
 }
 
+
+//////////////////////////
+// --- RAW CLUSTERS --- //
+//////////////////////////
+
+#include "TRandom3.h"
+
+class TrRawClusterRS : public TrRawClusterR {
+public:
+  static TRandom3 *RND;
+#pragma omp threadprivate(RND)
+
+  static void Init(int run, int evt) {
+    if (RND) delete RND;
+    TRandom3 rr(evt);
+    int seed = run^rr.Integer(0x7fffffff);
+    RND = new TRandom3(seed);
+  }
+  void AddNoise(float noise) {
+    for (vector<float>::iterator it  = _signal.begin(); 
+	                         it != _signal.end(); it++)
+      *it += RND->Gaus()*noise;
+  }
+};
+
+TRandom3 *TrRawClusterRS::RND = 0;
+
+int TrRecon::SimulateTTCSoff(int config, float add_noise[4])
+{
+  /*
+   * \param[in]  config    Configuration ID
+   * 1: RUN 1412285225 - 1412688825 L2,4,6,8:Yonly    L9:XY-on
+   * 2: RUN 1413209505 - 1413874948 L2,4,6,8:NCL Off  L9:XY-on
+   * 3: RUN 1413897220 -            L2,4,6,8:NCL OFF  L9:Yonly
+   *  (Layer 1 is always XY-on, L3,5,7 are always off)
+   *
+   * \param[in] add_noise[4]  Additional noise to L2-8(0:x,1:y) and L9(2:x,3:y)
+   *  typically put : { 0.9, 0.8, 0.8, 0.7 };
+   */
+
+  VCon *cont = GetVCon()->GetCont("AMSTrRawCluster");
+  if (!cont) {
+    printf("TrRecon::SimulateTTCSoff Can't Find AMSTrRawCluster Container\n");
+    return -1;
+  }
+
+  static bool first = true;
+  if (first) {
+#pragma omp critical (simulatettcsoff)
+    {if (first) {
+	cout << "TrRecon::SimulateTTCSoff-I-"
+	     << "config= " << config << " add_noise= "
+	     << add_noise[0] << " " << add_noise[1] << " "
+	     << add_noise[2] << " " << add_noise[3] << endl;
+	first = false;
+      }
+    }
+  }
+
+  int run = 0, evt = 0;
+#ifndef __ROOTSHAREDLIBRARY__
+  run = AMSEvent::gethead()->getrun();
+  evt = AMSEvent::gethead()->getEvent();
+#else
+  AMSEventR *ev = AMSEventR::Head();
+  run = (ev) ? ev->Run  () : 0;
+  evt = (ev) ? ev->Event() : 0;
+#endif
+  TrRawClusterRS::Init(run, evt);
+
+  int nrm = 0;
+
+  TrRawClusterR *prev = 0;
+  for (int i = 0; i < cont->getnelem(); i++) {
+    TrRawClusterR *raw = (TrRawClusterR *)cont->getelem(i);
+    int lay  = raw->GetLayerJ();
+    int side = raw->GetSide();
+    int ison = 1;
+
+    // Layer 1 is always nominal condition (do nothing)
+    if (lay == 1) ;
+
+    // Layer 9 is Yonly if config=3
+    else if (lay == 9) {
+      if (config == 3 && side == 0) ison = 0;
+    }
+
+    // Layers 3,5,7 are always off
+    else if (lay == 3 || lay == 5 || lay == 7) ison = 0;
+
+    // Layers 2,4,6,8
+    else if (lay == 2 || lay == 4 || lay == 6 || lay == 8) {
+      // config:1 Y-only
+      if (config == 1) {
+	if (side == 0) ison = 0;
+      }
+      // config:2,3 NCL off
+      else if (config == 2 || config == 3) {
+	int tkid = TMath::Abs(raw->GetTkId());
+	 if (lay == 2 && (tkid <= 103 || 113 <= tkid)) ison = 0;
+	 if (lay == 4 && (tkid <= 303 || 313 <= tkid)) ison = 0;
+	 if (lay == 6 && (tkid <= 503 || 513 <= tkid)) ison = 0;
+	 if (lay == 8 && (tkid <= 703 || 713 <= tkid)) ison = 0;
+
+	if (side == 0) {
+	 if (lay == 2 && (tkid <= 105 || 111 <= tkid)) ison = 0;
+	 if (lay == 4 && (tkid <= 305 || 311 <= tkid)) ison = 0;
+	 if (lay == 6 && (tkid <= 505 || 511 <= tkid)) ison = 0;
+	 if (lay == 8 && (tkid <= 705 || 711 <= tkid)) ison = 0;
+	}
+      }
+    }
+
+    // Add noise if ON (layers 2-9)
+    if (lay != 1) {
+      float noise = 0;
+      if (lay == 9) noise = (side == 0) ? add_noise[2] : add_noise[3];
+      else          noise = (side == 0) ? add_noise[0] : add_noise[1];
+      if (noise > 0) ((TrRawClusterRS *)raw)->AddNoise(noise);
+    }
+
+    // Remove TrRawCluster if the corresponding ladder/side is OFF
+    if (!ison) {
+      static int npri = 0;
+      if (npri < 10) {
+#pragma omp critical (simulatettcsoffpri)
+	{if (npri < 10) {
+	    cout << "TrRecon::SimulateTTCSoff-I-Removing TkID= "
+		 << raw->GetTkId() << " layJ= " << raw->GetLayerJ()
+		 << " side= " <<raw->GetSide() << endl;
+	    npri++;
+	  }
+	}
+      }
+      cont->removeEl(prev);
+      nrm++;
+      i--;
+    }
+    else prev = raw;
+  }
+  delete cont;
+
+  TrLadCal::AddNoiseK[1] = TrLadCal::AddNoiseK[3] = 
+  TrLadCal::AddNoiseK[5] = TrLadCal::AddNoiseK[7] = add_noise[0];
+  TrLadCal::AddNoiseS[1] = TrLadCal::AddNoiseS[3] = 
+  TrLadCal::AddNoiseS[5] = TrLadCal::AddNoiseS[7] = add_noise[1];
+  TrLadCal::AddNoiseK[8]                          = add_noise[2];
+  TrLadCal::AddNoiseS[8]                          = add_noise[3];
+
+  return nrm;
+}
 
 
     
@@ -5982,7 +6153,7 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
   int mfit1 = (MagFieldOn()) ? TrTrackR::kChoutko : TrTrackR::kLinear;
 
   float ret = track->FitT(mfit1);
-  int ndofy = track->GetNdofY(mfit1);
+  int ndofy = (ret > 0) ? track->GetNdofY(mfit1) : 0;
   if (TRCLFFKEY.AllowYonlyTracks && ndofy == 0) ndofy = 1; 
   if (ret < 0 || 
       track->GetChisqX(mfit1) < 0 || track->GetChisqY(mfit1) <= 0 ||

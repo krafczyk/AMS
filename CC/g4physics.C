@@ -159,8 +159,22 @@ void AMSG4Physics::ConstructProcess()
   G4HadronElastic* lhep3 = 0;
   if((G4FFKEY.IonPhysicsModel/1000)%10==2)lhep3=new G4HadronElastic(G4String("ionelasticVC"));
   else lhep3=new G4HadronElastic();
+  G4ComponentGGNuclNuclXsc*pgg=  new G4ComponentGGNuclNuclXsc();
+#if G4VERSION_NUMBER  <1000
+     pgg->setScale(G4FFKEY.HCrossSectionBias[1]);
+     if(G4FFKEY.HCrossSectionBias[1]!=1){
+       cout<<"AMSG4Physics::ConstructProcess-I-HadronElasticCrossectionBias "<<G4FFKEY.HCrossSectionBias[1]<<endl;
+     }
+#else
+     if(G4FFKEY.HCrossSectionBias[1]!=1){
+       cerr<<"AMSG4Physics::ConstructProcess-F-CrossectionBiasNotSupportedinThis geantversion"<<endl;
+       abort;
+}
+#endif
+    
+
   G4CrossSectionElastic* nucxs = 
-    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
+    new G4CrossSectionElastic(pgg);
   theParticleIterator->reset();
   while( (*theParticleIterator)() )
   {
@@ -195,12 +209,12 @@ void AMSG4Physics::ConstructProcess()
      G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
 #endif
       if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
-      if(G4FFKEY.HCrossSectionBias!=1){
-      cout<<"HadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias<<endl;
+      if(G4FFKEY.HCrossSectionBias[0]!=1){
+      cout<<"InelasticHadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
 #if G4VERSION_NUMBER < 1000
-       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 #else
-       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 #endif
       }
@@ -214,12 +228,12 @@ void AMSG4Physics::ConstructProcess()
      G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
 #endif
       if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
-      if(G4FFKEY.HCrossSectionBias!=1){
-      cout<<"HadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias<<endl;
+      if(G4FFKEY.HCrossSectionBias[0]!=1){
+      cout<<"HadronicInElasticCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
 #if G4VERSION_NUMBER < 1000
-       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 #else
-       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 #endif
       }
@@ -2121,6 +2135,7 @@ void AMSG4Physics::SaveXS(int ipart){
               for(G4int j=0; j<processVector->size(); j++){
                 bool inelok=false;
                  if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="ProtonInelastic" ;
+                 else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="AntiProtonInelastic" ;
                  else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="alphaInelastic"  ;
                  else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="He3Inelastic"    ;
                  else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="tInelastic"    ;
@@ -2137,7 +2152,7 @@ void AMSG4Physics::SaveXS(int ipart){
 #if G4VERSION_NUMBER  > 945 
                     G4Material mat("mymat",1,1);
                     mat.AddElement(element,1);
-                    xs = hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+                    xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
 #else
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
 #endif
@@ -2178,6 +2193,7 @@ void AMSG4Physics::SaveXS(int ipart){
               for(G4int j=0; j<processVector->size(); j++){
                 bool inelok=false;
                  if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="protonelastic" ;
+                 else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="antielastic" ;
                  else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"  ;
                  else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"    ;
                  else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="ionelastic"    ;
@@ -2194,7 +2210,7 @@ void AMSG4Physics::SaveXS(int ipart){
 #if G4VERSION_NUMBER  > 945 
                     G4Material mat("mymat",1,1);
                     mat.AddElement(element,1);
-                    xs = hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+                    xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
 #else
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
 #endif

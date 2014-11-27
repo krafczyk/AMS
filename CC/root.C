@@ -4210,7 +4210,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	int   hcmax[18];
 	float adc_hi, adc_low;
 
-	float edep_h;
 	float s1,s3,s5;
 
 	float zv3[18];
@@ -4275,24 +4274,23 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				adc_hi=hit.ADC[0];
 				adc_low=hit.ADC[1];						
 				//
-				
-				edep_layer[plane]      += hit.Edep;
-				edep_cell[plane][cell]  =  hit.Edep;
-				s_cell_w[plane]        += (cell+1)*hit.Edep;
-				s_cell2_w[plane]       += pow((cell+1),2.)*hit.Edep;
+
+            float Edep=	isnan(hit.Edep)?0:hit.Edep;
+				edep_layer[plane]      += Edep;
+				edep_cell[plane][cell]  = Edep;
+				s_cell_w[plane]        += (cell+1)*Edep;
+				s_cell2_w[plane]       += pow((cell+1),2.)*Edep;
 				//
 				nhitcell[plane]++;			
 				//
 				if (adc_low>4) npixl+=1;
 				if ( (adc_hi>4&&adc_low<=4) || adc_low>4 ) npix+=1; 
 				
-				EnergyDh		+= hit.Edep;
+				EnergyDh		+= Edep;
 				
-				edep_h=0.;
 				if (adc_hi>4)  {
-					edep_h=hit.Edep;
-					hedepl[plane]		+=	edep_h;
-					hedepc[plane][cell]=	edep_h;
+					hedepl[plane]		+=	Edep;
+					hedepc[plane][cell]=	Edep;
 				}
 
 
@@ -4534,7 +4532,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 
 		if(nblayer>5){
 
-			// new bounds for the
+			// new bounds for the fit
 			float xmin=3.5;
 			float xmax=18.;  
 			if (EnergyDh/1000.<=150) xmin=3;
@@ -4558,8 +4556,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			zprofile[3]  =fitf->GetParameter(3);
 			zprofile[4] = fitf->GetChisquare()/fitf->GetNDF();
 
-
-						
+         delete fitf;
 		}
 
 		delete hfitecal;	
@@ -4579,7 +4576,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	
 	if(AMSEventR::Head()->nMCEventgC()){
 
-		TRandom3 R;
+		TRandom3 R(0);
 		// footprint
 		FP[0]=1.5; 
 		FP[1]=1.5;
@@ -14109,11 +14106,60 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   return ret;
 } 
 
-int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
+int MCtune(AMSPoint &coo, int tkid, double dmax, float dsxy[2])
 {
+int ret=0;
+//x
+{
+double ds=dsxy[0];
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
-//  if (AMSEventR::Head()->Version() >= 817) return 0;
+  if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
+
+  TrMCClusterR *mc = 0;
+  double      dmin = dmax;
+  for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
+    TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
+    if (!m || m->GetTkId() != tkid) continue;
+
+    double d = coo.x()-m->GetXgl().x();
+    if (TMath::Abs(d) < TMath::Abs(dmin)) {
+      mc   = m;
+      dmin = d;
+    }
+  }
+  if (mc) {
+   if(ds<0){
+   double rnd[1];
+#ifdef __ROOTSHAREDLIBRARY__
+  int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+  AMSEventR::GetRandArray(8993306-lj-1, 2,  1,rnd);
+#else
+rnd[0]=rnormx();
+#endif
+     coo[0]+=-ds*rnd[0];
+     ret=1;
+   }
+   else{
+    if (ds < dmax && TMath::Abs(dmin) > ds) {
+      coo[0] += (dmin > 0) ? -ds : ds;
+      ret=1;
+    }
+    if (ds > dmax) {
+      coo = mc->GetXgl();
+      ret=1;
+    }
+  }}
+ 
+
+#endif
+ 
+}
+//y
+{
+double ds=dsxy[1];
+#ifdef __ROOTSHAREDLIBRARY__
+  if (!AMSEventR::Head()) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
   TrMCClusterR *mc = 0;
@@ -14138,22 +14184,25 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 rnd[0]=rnormx();
 #endif
      coo[1]+=-ds*rnd[0];
-     return 1;
+     ret+=10;
    }
    else{
     if (ds < dmax && TMath::Abs(dmin) > ds) {
       coo[1] += (dmin > 0) ? -ds : ds;
-      return 1;
+      ret+=10;
     }
     if (ds > dmax) {
       coo = mc->GetXgl();
-      return 1;
+      ret+=10;
     }
   }}
  
 
 #endif
-  return 0;
+ 
+}
+
+ return ret;
 }
 
 int MCshift(AMSPoint &coo, double ds)
@@ -14877,20 +14926,21 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
     TFile *fbin = 0;
 
     if (!hbin) {
-      TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin.root";
+      TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin2.root";
       fbin = TFile::Open(sfn);
       if (!fbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin file not found" << endl;
 	return -1;
       }
-      hbin = (TH1D *)fbin->Get("hist2");
+      hbin = (TH1D *)fbin->Get("hist1");
       if (!hbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin histogram not found"
 	     << endl;
 	return -1;
       }
     }
-    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+  //TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RTIcut.root";
     if (getenv("RcutAll")) sfn = getenv("RcutAll");
 
     int nBin = hbin->GetNbinsX();

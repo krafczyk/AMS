@@ -1943,7 +1943,7 @@ class RemoteClient:
         tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 %d " %(timeout) 
         input_xrootd = input
         if (input.find('/eosams/') == 0):
-            input_xrootd = self.eosLink2Xrootd(intput)
+            input_xrootd = self.eosLink2Xrootd(input)
         cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v "+input_xrootd+" 'root://castorpublic.cern.ch//"+output+"?svcClass=%s'" %(os.environ['STAGE_SVCCLASS']) 
         cmdstatus=os.system(cmd)
         if(cmdstatus):
@@ -2113,22 +2113,23 @@ class RemoteClient:
 #            print "Testing write-in"
             ret = os.system("touch /eosams/test && date >> /eosams/test")
             if (ret):
-                return -2
+                os.system("ls -l /eosams/")
+                return -2, os.path.exists(self.eoslink)
 #            print "Testing readout"
             pair=commands.getstatusoutput("cat /eosams/test")
             if (pair[0]):
-                return -3
+                return -3, os.path.exists(self.eoslink)
 #            print pair
 #            print "Testing remove"
-            pair=commands.getstatusoutput("rm -v /eosams/test")
-            if (pair[0]):
-                return -4
+#            pair=commands.getstatusoutput("rm -v /eosams/test")
+#            if (pair[0]):
+#                return -4, os.path.exists(self.eoslink)
 #            print pair
             return (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
         else:
             print "EOS quota problem: ", quota
             self.sendmailmessage('baosong.shan@cern.ch', 'EOS quota', quota)
-            return -1
+            return -1, os.path.exists(self.eoslink)
            
     def getOutputPathRaw(self,period,path='/MC'):
         # try eos if self.eos is set
@@ -2664,6 +2665,8 @@ class RemoteClient:
     def calculateCRC(self,filename,crc):
         self.crcCalls=self.crcCalls+1
         time0=time.time()
+        if (filename.find('/eosams/') == 0):
+            filename = self.eosLink2Xrootd(filename)
         mutex.release()
         crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
         rstatus=os.system(crccmd)

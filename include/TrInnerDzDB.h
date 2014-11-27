@@ -43,6 +43,9 @@ public:
     ClassDef(TrInnerDzDB::DzElem,1);
   };
 
+  /// TDV version (0: with PM4  2: with PM5) 
+  static int version;  // It should be thread-common
+
   static float LDZA[kLaynum];
 #pragma omp threadprivate (LDZA) 
   static uint UTIME;
