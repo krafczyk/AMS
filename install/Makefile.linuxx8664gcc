@@ -80,11 +80,21 @@ endif
 ########################################################################
 #Compilers
 ########################################################################
+
+#If using Geant, we now have to check CC_env since origin environment is removed
+ifneq "$(CC_env)" ""
+  CC  = $(CC_env)
+else
 ifneq "$(origin CC )" "environment" 
   CC  = gcc  
 endif
+endif
+ifneq "$(CXX_env)" ""
+  CXX = $(CXX_env)
+else
 ifneq "$(origin CXX)" "environment" 
   CXX = g++ 
+endif
 endif
 ifdef VERGCC 
 ifneq "$(origin FF )" "environment" 

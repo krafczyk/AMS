@@ -103,11 +103,31 @@ ifdef G4AMS
 G4VIS_USE:= 1
 G4:=G4
 
+#We need to restore externally defined CC. Geant doesn't respect it
+#Save the environment value
+CC_env := ""
+ifeq "$(origin CC)" "environment"
+	CC_env := $(CC)
+endif
+CXX_env := ""
+ifeq "$(origin CXX)" "environment"
+	CXX_env := $(CXX)
+endif
+
 ifdef G4VIS_USE
 include $(G4INSTALL)/config/G4UI_USE.gmk
 include $(G4INSTALL)/config/G4VIS_USE.gmk
 endif
 include $(G4INSTALL)/config/architecture.gmk
+
+#We need to restore externally defined CC. Geant doesn't respect it
+#Restore environment value
+ifneq "$(CC_env)" ""
+	CC := $(CC_env)
+endif
+ifeq "$(CXX_env)" ""
+	CXX := $(CXX_env)
+endif
 
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
 INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
