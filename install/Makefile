@@ -110,11 +110,11 @@ G4:=G4
 
 #We need to restore externally defined CC. Geant doesn't respect it
 #Save the environment value
-CC_env := ""
+CC_env :=
 ifeq "$(origin CC)" "environment"
 	CC_env := $(CC)
 endif
-CXX_env := ""
+CXX_env :=
 ifeq "$(origin CXX)" "environment"
 	CXX_env := $(CXX)
 endif
