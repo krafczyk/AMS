@@ -2975,6 +2975,7 @@ bool AMSEventR::IsTestbeamMC()
 
 int AMSEventR::SetDefaultMCTuningParameters()
 {
+#ifdef _PGTRACK_
   // return if this is not MC
   if (!nMCEventgC()) return 1;
 
@@ -3040,6 +3041,9 @@ int AMSEventR::SetDefaultMCTuningParameters()
   }
 
   return 0;
+#else 
+return 1
+#endif
 }
 
 //------------- AddAMSObject 
