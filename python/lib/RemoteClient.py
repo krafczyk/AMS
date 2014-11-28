@@ -4176,21 +4176,21 @@ class RemoteClient:
         self.verbose=v
         self.run2p=run2p
         self.force=f
-	arun2p=""
+        arun2p=""
         if(run2p.find(",")>=0):
-	    arun2p=" and ( run=-1 "
+            arun2p=" and ( run=-1 "
             junk=run2p.split(',')
-	    run2p=0
-	    for run in junk:
-		srun2p=" or run=%s " %(run)
+            run2p=0
+            for run in junk:
+                srun2p=" or run=%s " %(run)
                 arun2p=arun2p+srun2p
             arun2p=arun2p+" ) "
-	else:
-	    try:
-	        run2p=int(run2p)	
- 	    except:
+        else:
+            try:
+                run2p=int(run2p)	
+            except:
                 run2p=0
-	rund=""
+        rund=""
         runn=""
         runnd=""
         runst=" "
@@ -4343,7 +4343,7 @@ class RemoteClient:
             if(datamc==0):
                 if(donly==0):
                     df=1
-                    sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s " %(datapath,runndf) 
+                    sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s %s " %(datapath,runndf,arun2p) 
                     files=self.sqlserver.Query(sql)
         if(len(files)>0 or self.force!=0):
             if(buildno>0):
