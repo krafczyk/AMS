@@ -2919,7 +2919,128 @@ void AMSEventR::clear(){
 
 }
 
+static void split(const std::string& s, char delim, std::vector<std::string>& elems) {
+  std::stringstream ss(s);
+  std::string item;
+  while (std::getline(ss, item, delim)) {
+    if (!item.empty())
+      elems.push_back(item);
+  }
+}
 
+bool AMSEventR::IsTestbeamMC()
+{
+  // if this is not MC: return false
+  if (!nMCEventgC()) return false;
+
+  // static variables to track result of subsequent calls to the function.
+  static unsigned int run = 0;
+  static bool cachedResult = false;
+
+  // if the run did not change, return previous result
+  if (Run() == run)
+    return cachedResult;
+
+  // update run
+  run = Run();
+
+  // get filename of AMS ROOT file
+  std::string filename = GetCurrentFileName();
+
+  // get folders in path
+  std::vector<std::string> folders;
+  split(filename, '/', folders);
+
+  // find "AMS02" in path
+  std::vector<std::string>::iterator it = find(folders.begin(), folders.end(), "AMS02");
+  int index = (it - folders.begin()) + 3;
+
+  // if "AMS02" could not be found or the number of subsequent directories is not large enough print error
+  if (it == folders.end() || index < 0 || index >= (int)folders.size()) {
+    std::cout << "AMSEventR::IsTestbeamMC-E-Could not interprete path" << std::endl;
+    return cachedResult;
+  }
+
+  // this is the directory we want to interprete: pr.pl1.ecal.400.tb (for example)
+  const std::string& folder = folders[index];
+
+  // split pr.pl1.ecal.400.tb into pr pl1 ecal 400 tb
+  std::vector<std::string> tokens;
+  split(folder, '.', tokens);
+
+  // return whether or not an isolated string with content "tb" was found.
+  cachedResult = (find(tokens.begin(), tokens.end(), "tb") != tokens.end());
+  return cachedResult;
+}
+
+int AMSEventR::SetDefaultMCTuningParameters()
+{
+  // return if this is not MC
+  if (!nMCEventgC()) return 1;
+
+  MCEventgR* mcGen = GetPrimaryMC();
+  if (!mcGen) return 2;
+
+  // particle G3 id.
+  short particle = fabs(mcGen->Particle);
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Simulate residual misalignment by smearing external layers (not for testbeam MC)
+
+  if (!IsTestbeamMC()) {
+    TRMCFFKEY.OuterSmearing[0][1] = -7.5e-4;
+    TRMCFFKEY.OuterSmearing[1][1] = -8.3e-4;
+    TRMCFFKEY.OuterSmearing[0][0] = 7.5e-4;
+    TRMCFFKEY.OuterSmearing[1][0] = 8.5e-4;
+  }
+  else {
+    TRMCFFKEY.OuterSmearing[0][0] = 0.;
+    TRMCFFKEY.OuterSmearing[1][0] = 0.;
+    TRMCFFKEY.OuterSmearing[0][1] = 0.;
+    TRMCFFKEY.OuterSmearing[1][1] = 0.;
+  }
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Tuning of single point resolution
+
+  // common setting
+  TRMCFFKEY.MCtuneDmax = 100e-4;
+
+  // fix propagation bug in Geant4 for MC older than B817
+  if (Version() < 817) {
+    TRMCFFKEY.MCtuneDy9 = 1.0e-4;
+  }
+  else  TRMCFFKEY.MCtuneDy9 = 0;
+  // helium
+  if (particle == 47) {
+    TRMCFFKEY.MCtuneDs[0] =  0.0;
+    TRMCFFKEY.MCtuneDs[1] = -3.0e-4;
+  }
+  // tested only for protons with B620dev, but apply for everything except
+  // Helium which is handled above, until better parameters are found
+  else {
+    TRMCFFKEY.MCtuneDs[0] = -9.0e-4;
+    TRMCFFKEY.MCtuneDs[1] =  2.0e-4;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // MC scattering for protons / antiprotons
+
+  // (tested only for protons with B620dev. For B930: fix by scaling cross sections)
+  if ( (particle == 14 ) && Version() <= 930) {
+    TRMCFFKEY.MCscat[0] = -15.0;
+    TRMCFFKEY.MCscat[1] = -440.06;
+    TRMCFFKEY.MCscat[2] = -440.05;
+  }
+  else{
+    TRMCFFKEY.MCscat[0] = 0;
+    TRMCFFKEY.MCscat[1] = 0;
+    TRMCFFKEY.MCscat[2] = 0;
+  }
+
+  return 0;
+}
 
 //------------- AddAMSObject 
 #ifndef __ROOTSHAREDLIBRARY__

@@ -4014,6 +4014,9 @@ static int ProcessSetup;
 static bool isBadRun(unsigned int run);
 static bool RunTypeSelected(unsigned int runtype);
 
+bool IsTestbeamMC();
+int SetDefaultMCTuningParameters();
+
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
 bool InitSetup(TFile* file,const char *name, uinteger time); ///< Load AMSRootSetup Tree
