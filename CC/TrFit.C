@@ -4206,6 +4206,10 @@ TkDBc *TrProp::TkDBc()
   return TkDBc::Head;
 }
 
+Double_t BsclX = 1;
+Double_t BsclY = 1;
+Double_t BsclZ = 1;
+
 void TrProp::GuFld(double *p, double *b)
 {
   b[0] = b[1] = b[2] = 0;
@@ -4234,7 +4238,9 @@ void TrProp::GuFld(double *p, double *b)
     if (err) return;
   }
 
-  float pp[3] = { (float)p[0], (float)p[1], (float)p[2] };
+  float pp[3] = { (float)p[0]*BsclX, 
+		  (float)p[1]*BsclY,
+		  (float)p[2]*BsclZ };
   float bb[3];
   GUFLD(pp, bb);
 
