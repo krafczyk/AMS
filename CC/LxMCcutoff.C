@@ -306,7 +306,6 @@ double QBincutoff::GetMCTimeWeight(double lbv,double Rgen,double margin,double c
 //========================================================
 double QBincutoff::GetMCTimeWeight(TH1 *hev,double Rrec,double Rgen,double margin,double cutoffoffset){
  double Rrec1=fabs(Rrec);
- static TH1 *hevpr=0;
  static double lbvpr=0,hbvpr=0;
  if(hev!=qhev||Rrec1<lbvpr||Rrec1>hbvpr){//refind cutoff
      int ibrc=hev->FindBin(Rrec1);
