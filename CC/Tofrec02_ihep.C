@@ -42,6 +42,8 @@ ClassImp(TofRecH)
 TofBetaPar TofRecH::betapar;
 AMSEventR *TofRecH::ev=0;
 int        TofRecH::realdata=1;
+const double TofRecH::cvel=29.9792;
+
 //--Cluster
 vector<TofRawSideR>   TofRecH::tfraws;
 #ifndef __ROOTSHAREDLIBRARY__

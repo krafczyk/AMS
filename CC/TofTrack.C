@@ -9,6 +9,7 @@
 
 ClassImp(TofTrack);
 
+const float TofTrack::c_speed = 29.9792458;
 
 // correct final charge (from Z=3 to Z=8)
 // static float par_final[3]={0.9653,0.024876,-0.0024437};
