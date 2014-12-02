@@ -988,7 +988,7 @@ double TrFit::AlcarazFit(int fixr)
   int    ilay[LMAX];
 
   // Estimate layer number
-  for (int i = 0; i < _nhit; i++) {
+  for (int i = 0; _mscat && i < _nhit; i++) {
     ilay[i] = GetLayer(_zh[i]);
     if (ilay[i] == 8) ilay[i] = 0;
     if (ilay[i] == 9) ilay[i] = 8;
