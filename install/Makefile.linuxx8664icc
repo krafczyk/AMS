@@ -92,7 +92,7 @@ ifneq "$(origin INTELVER)" "environment"
 endif
 #compiler bug
 #   INTELOPT=-axAVX -msse3
-   INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals
+   INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals 
 
 #   INTELOPT=-axsse4.2,ssse3,AVX 
 ifdef AMSMIC
@@ -101,7 +101,7 @@ endif
 endif
 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(INTELOPT) -vec-report0  $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(INTELOPT)  -std=c++11 -vec-report0  $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) $(PARALLEL) 
   LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save
