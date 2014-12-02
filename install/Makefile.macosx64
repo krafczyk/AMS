@@ -90,7 +90,7 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 #OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
-OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
+OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; elif [ `sw_vers -productVersion | sed 's/\.//g'` == "1010" ]; then echo 10100; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
 DEFINES+=-D__OSXVER__=$(OSXVER)
 
 # Wno-unused-function requires a rework of cfotran.h (move all functions into cfortran.c)
