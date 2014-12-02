@@ -257,6 +257,7 @@ int  QBincutoff::Init(){
 int  QBincutoff::Clear(){
   if(qsexp)delete qsexp;
    qsexp=0;
+   return 0;
 }
 
 //========================================================
