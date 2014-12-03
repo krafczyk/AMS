@@ -2161,9 +2161,11 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     if(TKGEOMFFKEY.alignver==3) TkLadder::version=2;
     if(TKGEOMFFKEY.alignver==4) TkLadder::version=3;
     if(TKGEOMFFKEY.alignver>=5) TkLadder::version=4;
+    if(TKGEOMFFKEY.alignver>=6) TrInnerDzDB::version=2;
     TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
   cout << "AMSJob::update-I- "
        << "TkLadder::version= "     << TkLadder::version << " "
+       << "TrInnerDzDB::version= "  << TrInnerDzDB::version << " "
        << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
 
 #else
@@ -3504,8 +3506,7 @@ void AMSJob::_timeinitjob(){
 			     server,need,SLin2ExAlign));
 
       TrInnerDzDB::GetHead();
-      TID.add ( new AMSTimeID(
-			      AMSID("TrInnerDzAlign",isRealData()),
+      TID.add ( new AMSTimeID(AMSID(TrInnerDzDB::GetTDVName(),isRealData()),
 			      begin,
 			      end,
 			      TrInnerDzDB::GetTDVSwapSize(),

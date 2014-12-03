@@ -81,6 +81,9 @@ public:
   /// In the case the time is not available it tries to seach fot it in the TDV 
   int UpdateTkDBc(uint timeid);
 
+  /// Get TDV name
+  static const char *GetTDVName();
+
   /// search on the TDV the data good for the requested time and update the DB
   int GetFromTDV(uint timeid, bool force = false);
  

@@ -1550,6 +1550,7 @@ void TkDBc::RebuildMap()
 
 
 #include "TrExtAlignDB.h"
+#include "TrInnerDzDB.h"
 #include "DynAlignment.h"
 #ifdef __ROOTSHAREDLIBRARY__
 #include "root.h"
