@@ -1549,6 +1549,7 @@ void TkDBc::RebuildMap()
 }
 
 
+#include "tkdcards.h"
 #include "TrExtAlignDB.h"
 #include "TrInnerDzDB.h"
 #include "DynAlignment.h"
@@ -1593,35 +1594,41 @@ void TkDBc::UseVersion(int ver, int reset)
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 3;
   }
-  // PM5 static alignment + old MD
+  // PM5 static alignment + L2Y movement + old MD
   else if (ver == 5) {
     TkDBc       ::ForceFromTDV = 5;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
+    TKGEOMFFKEY.L2AlignPar[2]  = 0.31;   //  L2Y Shift (um) / year
     dyn = "DynAlignmentV5T140713PM5";
   }
-  // PM5 static alignment + new MD
+  // PM5 static alignment + L2Y movement + old MD
   else if (ver == 6) {
     TkDBc       ::ForceFromTDV = 5;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
+    TKGEOMFFKEY.L2AlignPar[2]  = 0.31;   //  L2Y Shift (um) / year
     dyn = "DynAlignmentV5T290713PM5";
   }
-  // PM5 static alignment + new InnerDz + new MD + new PG
+  // PM5 static alignment + L2y static + new InnerDz + new PG + new MD
   else if (ver == 7) {
     TkDBc       ::ForceFromTDV = 5;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 5;
     TrInnerDzDB ::version      = 2;
+    TKGEOMFFKEY.L2AlignPar[2]  = 0;      //  L2Y Shift disabled
     dyn = "DynAlignmentV5T290713PM5";
   }
   else {
     cerr << "TkDBc::UseVersion-F-Unsupported version: " << ver << endl;
     exit(-1);
   }
+  // Disable reading TRGEOMFFKEY from AMSRoot file
+  TKGEOMFFKEY_DEF::ReadFromFile = 0;
 
   cout << "TkDBc::UseVersion-I- "
        << "TkDBc::ForceFromTDV= " << TkDBc::ForceFromTDV << " "
+       << "TKGEOMFFKEY.L2AlignPar[2]= " << TKGEOMFFKEY.L2AlignPar[2] << " "
        << "TrExtAlignDB::ForceFromTDV= " << TrExtAlignDB::ForceFromTDV << " "
        << "TrExtAlignDB::version= " << TrExtAlignDB::version << " "
        << "DynAlManager::TDVName= " << dyn.Data() << endl;

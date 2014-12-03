@@ -17,7 +17,7 @@ I 5  Calib FormatVer =1 Pre-Integration
 		     =2 Flight (default);
 I 6   fname   (400*'') file name for dbase from file
 I 406 disfname(400*'') Disalignment file name
-I 806 alignver(def 5)  Alignment version; 1 :preflight, >1 flight, 4:PM4, 5:PM5
+I 806 alignver(def 5)  Alignment version; 1 :preflight, >1 flight, 4:PM4, 5:PM5, 6:PM5+InnerDz2
 I 807 LoadMCDisalign   MN Enable MC disalign (
                         N=0 disabled(default), N=1 from default file, N=2 from file specified at 406
                        M=0 no aligment loded M=1 Aligment from MC TDV
@@ -26,9 +26,17 @@ F [809,814] L1Amp[6]   L1 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dThe
 F [815,820] L1Phase[6] L1 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
 F [821,826] L9Amp[6]   L9 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
 F [827,832] L9Phase[6] L9 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
-I [833]     exalignver PG External Alignment version; 1: no errors,  2: with errors (def)
+I [833]     exalignver PG External Alignment version; 1: no errors,  2: with errors (def),  3:new with PM3, 4:new with PM5 (with L2y movement), 5:new with PM5 (L2y static)
 I [834]   MdExAlignTag CIEMAT External Alignment tag; 0: default,  otherwise version tag
 I [835]   MaxAlignedRun PG/MD Max aligned run
+
+#### Alignment Datacards corresponding to TkDBc::UseVersion #### 
+TkDBc::UseVersion(3) : 806=3 833=2 834=120628     PM3 static alignment
+TkDBc::UseVersion(4) : 806=4 833=3 834=120628     PM4 static alignment
+TkDBc::UseVersion(5) : 806=5 833=4 834=140713PM5  PM5 +L2Y
+TkDBc::UseVersion(6) : 806=5 833=4 834=290713PM5  PM5 +L2Y +new MD
+TkDBc::UseVersion(7) : 806=6 833=5 834=290713PM5? PM5 +noL2Y +new PG +new MD
+#### Alignment Datacards corresponding to TkDBc::UseVersion #### 
 
 TRMC
 I 564        SimulationType            0 GBATCH: old algorythm (DEPRECATED)

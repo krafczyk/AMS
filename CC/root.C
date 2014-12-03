@@ -11053,7 +11053,8 @@ static int master=0;
 
 try{
 	int save=TKGEOMFFKEY.MaxAlignedRun;
-                                 if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
+                                 
+     if (TKGEOMFFKEY.ReadFromFile && _FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
      if(TKGEOMFFKEY.MaxAlignedRun<save){
          TKGEOMFFKEY.MaxAlignedRun=save;

@@ -2163,10 +2163,17 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     if(TKGEOMFFKEY.alignver>=5) TkLadder::version=4;
     if(TKGEOMFFKEY.alignver>=6) TrInnerDzDB::version=2;
     TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
+
+    // Introduce L2Y movement for PM5 (for previous PG and MD alignment)
+    if (TkLadder::version==4 &&
+	(TrExtAlignDB::version==3 || TrExtAlignDB::version==4) &&
+	TKGEOMFFKEY.L2AlignPar[2]==0) TKGEOMFFKEY.L2AlignPar[2] = 0.31;
+
   cout << "AMSJob::update-I- "
        << "TkLadder::version= "     << TkLadder::version << " "
        << "TrInnerDzDB::version= "  << TrInnerDzDB::version << " "
-       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+       << "TrExtAlignDB::version= " << TrExtAlignDB::version << " "
+       << "TKGEOMFFKEY.L2AlignPar[2]= " << TKGEOMFFKEY.L2AlignPar[2] << endl;
 
 #else
     AMSTrIdGeom::init(STD_DB_ver);

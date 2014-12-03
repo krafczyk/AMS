@@ -58,6 +58,10 @@ public:
   ///[836-840] Time dependent L2 alignment parameters (used only with PM5)
   float L2AlignPar[5];
 
+
+  /// Option to enable/disable reading TKGEOMFFKEY from AMSRoot file
+  static int ReadFromFile;
+
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
   ClassDef(TKGEOMFFKEY_DEF,9);

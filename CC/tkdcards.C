@@ -25,7 +25,7 @@ void TKGEOMFFKEY_DEF::init(){
   CalibVer=3;
   memset(fname,400,sizeof(fname[0]));
   memset(disfname,400,sizeof(disfname[0]));
-  alignver=5;
+  alignver=6;
   LoadMCDisalign=1;
   EnableExtMov=0;
   float p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
@@ -38,17 +38,20 @@ void TKGEOMFFKEY_DEF::init(){
     L9Amp[ii]=p9[ii];
     L9Phase[ii]=phase9[ii];
   }
-  exalignver=3;
+  exalignver=5;
   MdExAlignTag=0;
   MaxAlignedRun=1411945675;  // Updated on Dec/3,2014
 
   /// Time dependent L2 alignment parameters (used only with PM5)
   L2AlignPar[0] = 1347000000; // Reference time
   L2AlignPar[1] = 0;          // Offset (um)
-  L2AlignPar[2] = 0.31;       //  Shift (um) / year
+//L2AlignPar[2] = 0.31;       //  Shift (um) / year
+  L2AlignPar[2] = 0;          //  Shift (um) / year : disabled on Dec/3,2014
   L2AlignPar[3] = 0;          // Reserved for the future use
   L2AlignPar[4] = 0;          // Reserved for the future use
 }
+
+int TKGEOMFFKEY_DEF::ReadFromFile = 1;
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
 #ifdef __ROOTSHAREDLIBRARY__
