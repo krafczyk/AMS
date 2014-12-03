@@ -749,7 +749,7 @@ R 18 OverlapTol(0)     // Tolerance for overlap check (cm); no overlap check if 
 I 19 DumpCrossSections(0)  // 0 nothing 
                            // 1 dump inelastic cross sections for proton, helium and carbon projectiles over carbon
                            // 2 make a MC dry-run to calculate interaction probabilities P(C->X) for process C12 + C12 -> X + stuff (avoid this with production) 
-R 20 HCrossectionBias[3](1,1,1)    // Change (hadronic) nelastic/elastic/qelastic crossection by multiplying by this number 
+R 20 HCrossectionBias[3](1,1,1)    // Change (hadronic) inelastic/elastic/qelastic crossection by multiplying by this number 
 I23 DumpCrossSectionsAt(12)  // Target mass   number for DumpCrossSections
 I24 DumpCrossSectionsZt(6)   // Target atomic number for DumpCrossSections
 I25 ApplyCPULimit(1)         // apply or not cpulimt
