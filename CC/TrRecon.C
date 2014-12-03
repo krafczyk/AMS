@@ -268,6 +268,15 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
     TrSim::sitkdigi();
   }
 
+#ifdef __ROOTSHAREDLIBRARY__
+  if (rebuild) {
+    VCon *contt = GetVCon()->GetCont("AMSTrTrack");
+    if (!contt) return -1;
+    contt->eraseC();
+    delete contt;
+  }
+#endif
+
   if (flag/100000 > 0) {
     int   config   = (flag/100000)%10;
     float noise[4] = { 0.9, 0.8, 0.8, 0.7 };
@@ -478,6 +487,14 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
     AMSgObj::BookTimer.stop("TrTrack");
 #endif
 
+#ifdef __ROOTSHAREDLIBRARY__
+  if (rebuild) {
+    AMSEventR *ev = AMSEventR::Head();
+    for (int i = 0; i < ev->NParticle(); i++)
+      // Update TrTrack index
+      ev->pParticle(i)->UpdateTrTrack(5, 5);
+  }
+#endif
 
   }
   if (CpuTimeUp()) {
