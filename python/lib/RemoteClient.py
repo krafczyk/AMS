@@ -2022,7 +2022,7 @@ class RemoteClient:
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
             else:
-                print "EOS has some problem in quota or not mounted, trying normal disk..."
+                print "EOS has some problem in quota or not mounted (checkEOS() returned %d, %d), trying normal disk..." %(gb, eosmounted)
         #
         # select disk to be used to store ntuples
         #
@@ -2103,8 +2103,15 @@ class RemoteClient:
         self.eosreservegb = 100  #GBype reserved on EOS
         chkeoscmd = "%s quota -m %s%s | grep \"space=%s/ \" | grep \"gid=va\"" %(self.eosselect, self.eoshome, path, self.eoshome)
         pair=commands.getstatusoutput(chkeoscmd)
+        if (pair[0] != 0):
+            print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
+            return -4, os.path.exists(self.eoslink)
         out=pair[1]
-        quota = dict(s.split('=') for s in out.split())
+        try:
+            quota = dict(s.split('=') for s in out.split())
+        except:
+            print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
+            return -5, os.path.exists(self.eoslink)
         if (not os.path.exists(self.eoslink)):
             os.system(eosumount + ' $HOME/eos')
             os.system(eosmount + ' $HOME/eos')
@@ -2140,7 +2147,7 @@ class RemoteClient:
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
             else:
-                print "EOS has some problem in quota or not mounted, trying normal disk..."
+                print "EOS has some problem in quota or not mounted (checkEOS() returned %d, %d), trying normal disk..." %(gb, eosmounted)
         #
         # select disk to be used to store ntuples
         #
