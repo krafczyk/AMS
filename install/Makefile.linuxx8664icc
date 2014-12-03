@@ -75,7 +75,6 @@ ifndef INTELDIR
   INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
 endif
 endif
-CXXSTD=
 ifneq "$(origin INTELVER)" "environment" 
   INTELVER=Compiler/11.1/073/
 ifdef SLC6system
@@ -89,7 +88,11 @@ endif
 ifdef SLC64system
 ifneq "$(origin INTELVER)" "environment" 
   INTELVER=composer_xe_2013_sp1.3.174/compiler/
+ifdef CXXSTD
+CXXSTD=
+else
   CXXSTD=  -std=c++11 
+endif
 endif
 #compiler bug
 #   INTELOPT=-axAVX -msse3
@@ -100,6 +103,8 @@ ifdef AMSMIC
 INTELOPT=-mmic 
  CXXSTD=
 endif
+else 
+CXXSTD=
 endif
 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
