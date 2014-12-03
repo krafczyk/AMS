@@ -14147,6 +14147,110 @@ return 10;
 }
 
 
+int ParticleR::UpdateTrTrack(float distmax,float dirmax)
+{
+#ifndef _PGTRACK_
+  return -1;
+#else
+  if(iVertex()>=0 )return 6; // vertex
+
+  AMSEventR *evt = AMSEventR::Head();
+  if (!evt) return -1;
+
+  fTrTrack = -1;
+
+  TrTrackR *newtrack = 0;
+  float dmin = distmax;
+  float cmax = cos(dirmax/180*3.1415926);
+
+  AMSDir dcmp(Theta, Phi);
+
+  for (unsigned int i = 0; i < evt->NTrTrack(); i++) {
+    TrTrackR *trk = evt->pTrTrack(i);
+    if (!trk || trk->Gettrdefaultfit() <= 0) continue;
+
+    AMSPoint pnt;
+    AMSDir   dir;
+    trk->Interpolate(Coo[2], pnt, dir);
+    if (dir.z()*dcmp.z() < 0) dir = dir*(-1);
+
+    if (dir.prod(dcmp) < cmax) continue;
+
+    float dm = dmin;
+    for (unsigned int k = 0; k < sizeof(TrCoo)/3/sizeof(TrCoo[0][0]); k++) {
+      trk->Interpolate(TrCoo[k][2], pnt, dir);
+      AMSPoint p(TrCoo[k]);
+      float d = p.dist(pnt);
+
+      if (d < dm) dm = d;
+    }
+
+    if (dm < dmin) {
+      fTrTrack = i;
+      newtrack = trk;
+      dmin = dm;
+    }
+  }
+
+  class RichRingRT  :public RichRingR {public: void set(int i){fTrTrack = i;}};
+  class RichRingBRT :public RichRingBR{public: void set(int i){fTrTrack = i;}};
+  class BetaRT      :public BetaR     {public: void set(int i){fTrTrack = i;}};
+
+// update TrTrack indexes
+  if (pRichRing ()) ((RichRingRT *)pRichRing ())->set(fTrTrack);
+  if (pRichRingB()) ((RichRingBRT*)pRichRingB())->set(fTrTrack);
+  if (pBeta     ()) ((BetaRT     *)pBeta     ())->set(fTrTrack);
+
+//  update particle pars
+if (newtrack) {
+  _build(newtrack->GetRigidity(),newtrack->GetErrRinv(),Charge,Beta,ErrBeta,Mass,ErrMass,Momentum,ErrMomentum);
+  newtrack->setstatus(AMSDBc::USED);
+   
+  AMSDir dtrk(newtrack->GetTheta(),newtrack->GetPhi());
+  if((Beta<0 && dtrk[2]<0) || (Beta>0 && dtrk[2]>0))
+     for(int i=0;i<3;i++)dtrk[i]=-dtrk[i];
+  Theta=dtrk.gettheta();
+  Phi=dtrk.getphi();
+
+  for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0()[k];
+  Loc2Gl(AMSEventR::Head());
+  for(unsigned int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TOFCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(EcalCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TrCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TRDCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(RichCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)RichCoo[k][l]=pnt[l];
+  }  
+}
+  TofRecH::ReBuild(Charge);
+
+#endif
+  return 0;
+}
+
 void ParticleR::_calcmass(float momentum,float emomentum, float beta, float ebeta, float &mass, float &emass){
   if(fabs(beta)<=1.e-10 ){
     mass=FLT_MAX;

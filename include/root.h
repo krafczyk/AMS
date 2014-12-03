@@ -3517,6 +3517,9 @@ public:
 int ReBuildTrdEcal(float DisMax=20, float DirMax=10, float DistX=1,float DistY=2,bool force=false); ///<  Rebuild particle if both Trd and EcalShower present
 int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=3.5,bool force=false); ///<  Rebuild particle if both Trd and TOF present
 
+
+int UpdateTrTrack(float DisMax=5, float DirMax=10); ///< Update TrTrack index
+
   int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 
   /*!
