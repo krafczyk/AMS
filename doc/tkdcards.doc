@@ -56,7 +56,7 @@ I [598,599]  TrSim2010_DiffType        0 Box
                                        4 Sum of Gauss distributions
 R [600,601]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
 R [602,603]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
-R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
+R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts) ; also used for TTCS-off simulation 0:L2-8 1:L9, in case of (-1,-1) use magtemp
 I 606        ActivateShielding;        Activate ladder shielding
 I 607        ShieldingDensity;         Density of the shielding
 R [608,611]  OuterSmearing[2][2]       Outer smearing to simulate residual disalignment [0:L1,1:L9][0:X,1:Y]
@@ -73,7 +73,7 @@ R [638,639]  GlobalNoiseFactor[2]      Tuning of number of noise cluster
 //  TRACKER RECONSTRUCTION
 //==============================
 TRCL
-I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks; =1111 with BuildTrTracksSimple; =11111 photon vertex recon; if negative the MC digitization is redone
+I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks; =1111 with BuildTrTracksSimple; =11111 photon vertex recon; if negative the MC digitization is redone; +200000 TTCS-off simulation (L9-XY); +300000 TTCS-off simulation (L9-Yonly) use TRMC [604,605] to tune noise level
 R [2,19] Seed S/N Threshold per layer (1-9)  for 2-10:n(X) 11-19:p(Y) side
 R [20,21] expansion S/N Threshold for 4:n(X) 5:p(Y) side
 I [22,23] Min Distance between seeds for 6:n(X) 7:p(Y) side
