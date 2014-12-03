@@ -23,6 +23,7 @@
 #include "TrMap.h"
 #include "tkdcards.h"
 #include "MagField.h"
+#include "bcorr.h"
 
 #include "TkDBc.h"
 #include "TrFit.h"
@@ -270,6 +271,18 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
   if (flag/100000 > 0) {
     int   config   = (flag/100000)%10;
     float noise[4] = { 0.9, 0.8, 0.8, 0.7 };
+
+    // Noise fluctuation according to magnet temperature
+    if (TRMCFFKEY.TrSim2010_AddNoise[0] < 0 &&
+	TRMCFFKEY.TrSim2010_AddNoise[1] < 0) {
+      float temp = 0;
+      if (MagnetVarp::btempcor(temp, 0, 1) == 0 && 
+	  MagnetVarp::mgtt.getmeanmagnettemp(temp, 1) == 0) {
+	// Coefficient and offset tuned from actual TTCS-off data (2014/Oct)
+	float dn = (temp-7)/40;
+	for (int i = 0; i < 4; i++) noise[i] += dn;
+      }
+    }
 
     // Layers 2-8
     if (TRMCFFKEY.TrSim2010_AddNoise[0] >= 0) {
