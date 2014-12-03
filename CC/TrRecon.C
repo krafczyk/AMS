@@ -5399,7 +5399,7 @@ bool TrRecon::PreScan(int nlay, TrHitIter &it) const
   double pz   = it.coo[it.ilay[nlay]][2];
   double pc   = it.coo[it.ilay[nlay]][it.side];
   double intp = it.param[0]+it.param[1]*pz+it.param[2]*pz*pz;
-  if(!isnormal(intp)) intp=0;
+  if(!std::isnormal(intp)) intp=0;
   //PZ Bug fix if put on the return line is converted to an integer
   //and often fail the comparison.
   double ddiff=fabs(pc-intp);

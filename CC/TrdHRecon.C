@@ -59,7 +59,7 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   if(debug)cout<<"TrdHReconR::SegToTrack-I-segment1 "<<s1<<"(i "<<is1<<") segment2 "<<s2<<"(i "<<is2<<")"<<endl;
   if(!s1||!s2)return 0;
   if(s1->d+s2->d!=1)return 0;
-  if(isnan(s1->m)||isnan(s2->m))return 0;
+  if(std::isnan(s1->m)||std::isnan(s2->m))return 0;
   if(debug)cout<<"TrdHReconR::SegToTrack-I-valid segments of different projections"<<endl;
 
   float m[2]={0.,0.};
@@ -529,26 +529,26 @@ vector<pair<int,int> > TrdHReconR::check_secondaries(int debug){
 
 	if(s1zmax<z_cross+3){
 	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary downward track s1 at z "<<z_cross<<endl;
-	  toReturn.push_back(make_pair<int, int>(s2,-s1));
+	  toReturn.push_back(make_pair(s2,-s1));
 	}
 	else if(s2zmax<z_cross+3){
 	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary downward track s2 at z "<<z_cross<<endl;
-	  toReturn.push_back(make_pair<int, int>(s1,-s2));
+	  toReturn.push_back(make_pair(s1,-s2));
 	}
 	else if(s1zmin>z_cross-3){
 	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary upward track s1 at z "<<z_cross<<endl;
-	  toReturn.push_back(make_pair<int, int>(s2,s1));
+	  toReturn.push_back(make_pair(s2,s1));
 	}
 	else if(s2zmin>z_cross-3){
 	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary upward track s2 at z "<<z_cross<<endl;
-	  toReturn.push_back(make_pair<int, int>(s1,s2));
+	  toReturn.push_back(make_pair(s1,s2));
 	}
       }
     }
   }
 
   for(int i=0;i!=7;i++)
-    if(zvec[i]>4)toReturn.push_back(make_pair<int,int>(99,99));
+    if(zvec[i]>4)toReturn.push_back(make_pair(99,99));
 
   return toReturn;
 }
@@ -1051,7 +1051,7 @@ void fcn_mlfit(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t ifl
   trptr_->Coo[2]=113.55;
 
   f = TrdHReconR::gethead(0)->getFitLik(trptr_);
-  if(f<0||isinf(f)||isnan(f))f=1.e6;
+  if(f<0||std::isinf(f)||std::isnan(f))f=1.e6;
 }
 
 double quadadd(double a, double b){return sqrt(pow(a,2)+pow(b,2));}

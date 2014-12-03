@@ -216,12 +216,12 @@ int TrdHSegmentR::LinReg(int debug)
     cout<<"TrdHSegmentR::LinReg-I-SDr "<<SDr<<" SDz "<<SDz<<endl;
 
 
-  if(SDr == 0.0 || isnan(SDr)){
+  if(SDr == 0.0 || std::isnan(SDr)){
     r=WMr;m=0.;Chi2=0.;er=0.6/sqrt(12);
     if(debug)
       cerr<<"TrdHSegmentR::LinReg-E- SDr "<<SDr<<" -> r "<<r<<" m "<<m<<" Chi2 "<<Chi2<<" er "<<er<<endl;
   }
-  if(SDr*SDz == 0.0 || isnan(SDr*SDz)){
+  if(SDr*SDz == 0.0 || std::isnan(SDr*SDz)){
     if(debug>0)
       cerr<<"TrdHSegmentR::LinReg-E-SDr "<<SDr<<" SDz "<<SDz<<endl;
     return -1;

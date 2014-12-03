@@ -3105,7 +3105,7 @@ void AMSEcalShower::ZProfile()
       // Loop over hits in cluster 1d
       for (int ie=0; ie<nhits_cl; ie++){ 
 	plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
-	if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep()))
+	if(!std::isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep()))
 	  ECalEdepFrac[plane] += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
 	etot += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
       }
@@ -3130,7 +3130,7 @@ void AMSEcalShower::ZProfile()
     err=(ECalEdepFrac[a]/(_EnergyPIC*1000.))*0.10; 
     if (err<.009&&_EnergyPIC<1000.) err=0.009;
     if (err<.004&&_EnergyPIC>1000.) err=0.004;
-    if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
+    if(!std::isnan(frac[a]) && !std::isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
       if((par2>8&&a>4)||(par2<8&&a<15)){
 	z[nbins] = frac[a];
 	errorz[nbins] = err;
@@ -3295,7 +3295,7 @@ void AMSEcalShower::LAPPVariables(){
 	cell = _pCl[cl2]->getpClust(cl)->getphit(ie)->getcell();
 	plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
 
-	if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep())){
+	if(!std::isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep())){
             
 	  edep_layer[plane]      += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
 	  edep_cell[plane][cell] =  _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
