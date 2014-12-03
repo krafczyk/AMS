@@ -1573,30 +1573,45 @@ cout << "TkDBc::UseFinal-I-UsingVersion "<<iver<<endl;
 void TkDBc::UseVersion(int ver, int reset)
 {
   TString dyn = "DynAlignmentV5T120628";
+  TrExtAlignDB::version = 2;
+  TrInnerDzDB ::version = 0;
+  // Use the alignment stored in AMSRoot file
   if (ver == 0) {
     TkDBc       ::ForceFromTDV = 0;
     TrExtAlignDB::ForceFromTDV = 0;
   }
+  // PM3 static alignment
   else if (ver == 3) {
     TkDBc       ::ForceFromTDV = 3;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 2;
   }
+  // PM4 static alignment
   else if (ver == 4) {
     TkDBc       ::ForceFromTDV = 4;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 3;
   }
+  // PM5 static alignment + old MD
   else if (ver == 5) {
     TkDBc       ::ForceFromTDV = 5;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
     dyn = "DynAlignmentV5T140713PM5";
   }
+  // PM5 static alignment + new MD
   else if (ver == 6) {
     TkDBc       ::ForceFromTDV = 5;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
+    dyn = "DynAlignmentV5T290713PM5";
+  }
+  // PM5 static alignment + new InnerDz + new MD + new PG
+  else if (ver == 7) {
+    TkDBc       ::ForceFromTDV = 5;
+    TrExtAlignDB::ForceFromTDV = 1;
+    TrExtAlignDB::version      = 5;
+    TrInnerDzDB ::version      = 2;
     dyn = "DynAlignmentV5T290713PM5";
   }
   else {

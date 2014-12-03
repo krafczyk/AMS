@@ -40,7 +40,7 @@ void TKGEOMFFKEY_DEF::init(){
   }
   exalignver=3;
   MdExAlignTag=0;
-  MaxAlignedRun=1393649013;  // Updated on Mar/11,2014
+  MaxAlignedRun=1411945675;  // Updated on Dec/3,2014
 
   /// Time dependent L2 alignment parameters (used only with PM5)
   L2AlignPar[0] = 1347000000; // Reference time
