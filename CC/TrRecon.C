@@ -6064,44 +6064,44 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
     good_base2=(mfit & 0xfffffff0) + TrTrackR::kAlcaraz;
   else if(base==TrTrackR::kAlcaraz)
     good_base2=(mfit & 0xfffffff0) + TrTrackR::kChoutko;
-  
 
+ int pgmd[3] = { TrTrackR::kAltExtAl, 0, TrTrackR::kExtAverage };
+ for (int i = 0; i < 3; i++) {
   if(iadd[0]==1) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer8);
-    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8))
-      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8);
-    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8))
-      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8);
+    track->DoAdvancedFit(TrTrackR::kFitLayer8|pgmd[i]);
+    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8|pgmd[i]))
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8|pgmd[i]);
+    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8|pgmd[i]))
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8|pgmd[i]);
   }
   if(iadd[1]==1) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer9);
-    if(       track->FitDone(good_base1|TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer9);
-    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer9);
+    track->DoAdvancedFit(TrTrackR::kFitLayer9|pgmd[i]);
+    if(       track->FitDone(good_base1|TrTrackR::kFitLayer9|pgmd[i]))
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer9|pgmd[i]);
+    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer9|pgmd[i]))
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer9|pgmd[i]);
   }
   
   if(iadd[0]==1 && iadd[1]==1) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9);
+    track->DoAdvancedFit(TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]);
 
-    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
-    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
-
+    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]))
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]);
+    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]))
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]);
   }
-
-  else if ( track->ParExists(mfit | TrTrackR::kFitLayer8) &&
-            track->ParExists(mfit | TrTrackR::kFitLayer9) &&
-           !track->ParExists(mfit | TrTrackR::kFitLayer8 |
-			            TrTrackR::kFitLayer9)) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9);
+  else if ( track->ParExists(mfit|TrTrackR::kFitLayer8|pgmd[i]) &&
+            track->ParExists(mfit|TrTrackR::kFitLayer9|pgmd[i]) &&
+           !track->ParExists(mfit|TrTrackR::kFitLayer8|
+			          TrTrackR::kFitLayer9|pgmd[i])) {
+    track->DoAdvancedFit(TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]);
     
-    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
-    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
+    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]))
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]);
+    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]))
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9|pgmd[i]);
   }
+ }
 
 #ifndef __ROOTSHAREDLIBRARY__
      AMSgObj::BookTimer.stop("TrTrack6FitE");
