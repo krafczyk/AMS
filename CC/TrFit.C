@@ -4231,8 +4231,9 @@ void TrProp::GuFld(double *p, double *b)
 	  magerr = -1;
 	  err = 1;
 	}
-	mfp->SetMagstat(1);
-	mfp->SetScale(1.);
+	// commented out otherwise it will overwrite fscale
+	//mfp->SetMagstat(1);
+	//mfp->SetScale(1.);
       }
     }
     if (err) return;
