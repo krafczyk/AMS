@@ -29,7 +29,6 @@
 #include "G4PhysicsFreeVector.hh"
 #include "G4PhysicsLinearVector.hh"
  #include "G4Version.hh"
-using namespace std;
 using namespace CLHEP;
 
 int TestRotMatrix( const G4ThreeVector &newX,

@@ -14,7 +14,7 @@
 
 #include "TROOT.h"
 #include "Rtypes.h"
-#include "math.h"
+#include "typedefs.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "iostream"
@@ -24,7 +24,6 @@
 #include "TH1F.h"
 #include "TRandom3.h"
 #include "TSpline.h"
-using namespace std;
 
 class TrdKPDF:public TObject{
 

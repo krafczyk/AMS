@@ -3,11 +3,8 @@
 #include "TObject.h"
 #include "TChain.h"
 #include "TString.h" 
-#include <vector>
-#include <map>
-#include <string>
+#include "typedefs.h"
 
-using namespace std;
 
 //
 // A class to define and validate RICH Configuration

@@ -3433,7 +3433,7 @@ void fcn_sfit(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t ifla
   double Chi2=0.;
   if(fit->TrdHits.size()>0){
     TrdSCalibR::gethead()->TrdTrkChi2(fit->TrdHits, par[0], par[1], Chi2, fit->nTrdHits, 0);
-    if(Chi2<=0.||std::isnan(Chi2)||std::isinf(Chi2))Chi2=1.e6;
+    if(Chi2<=0.||isnan(Chi2)||std::isinf(Chi2))Chi2=1.e6;
     Chi2 += pow(par[0]/(2.0*fit->RmsX),2) + pow(par[1]/(2.0*fit->RmsY),2);
     f=Chi2;
   }

@@ -59,7 +59,7 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   if(debug)cout<<"TrdHReconR::SegToTrack-I-segment1 "<<s1<<"(i "<<is1<<") segment2 "<<s2<<"(i "<<is2<<")"<<endl;
   if(!s1||!s2)return 0;
   if(s1->d+s2->d!=1)return 0;
-  if(std::isnan(s1->m)||std::isnan(s2->m))return 0;
+  if(isnan(s1->m)||isnan(s2->m))return 0;
   if(debug)cout<<"TrdHReconR::SegToTrack-I-valid segments of different projections"<<endl;
 
   float m[2]={0.,0.};
@@ -1051,7 +1051,7 @@ void fcn_mlfit(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t ifl
   trptr_->Coo[2]=113.55;
 
   f = TrdHReconR::gethead(0)->getFitLik(trptr_);
-  if(f<0||std::isinf(f)||std::isnan(f))f=1.e6;
+  if(f<0||std::isinf(f)||isnan(f))f=1.e6;
 }
 
 double quadadd(double a, double b){return sqrt(pow(a,2)+pow(b,2));}

@@ -20,7 +20,6 @@ const int maxtrdhrecon=256;
 
 const float TRDz0=113.5;
 const float RSDmax=0.6;
-using namespace std;
 
 /// internal class to store peaks in histogram prefit
 class PeakXYZW {

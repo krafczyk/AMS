@@ -238,7 +238,7 @@ G4VParticleChange*
 RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 {
   // I do not know where these guys come, but I kill them explicitly
-  if(std::isnan(aTrack.GetPosition()[0]) || std::isnan(aTrack.GetMomentum()[0])){
+  if(isnan(aTrack.GetPosition()[0]) || isnan(aTrack.GetMomentum()[0])){
     aParticleChange.ProposeTrackStatus(fStopAndKill);
     return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
   }
@@ -254,7 +254,7 @@ RichG4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep
   G4StepPoint* pPostStepPoint = aStep.GetPostStepPoint();
 
 
-  if(std::isnan(pPreStepPoint->GetPosition()[0])){
+  if(isnan(pPreStepPoint->GetPosition()[0])){
     aParticleChange.ProposeTrackStatus(fStopAndKill);
     return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
   }

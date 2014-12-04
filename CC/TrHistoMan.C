@@ -13,7 +13,6 @@
 
 #include <iostream>
 
-using namespace std;
 
 ClassImp(TrHistoManHeader);
 ClassImp(TrHistoMan);

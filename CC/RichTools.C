@@ -7,8 +7,6 @@
 #undef _DEBUG_
 #define ASSERT(x) 
 
-using namespace std;
-
 ClassImp(GeomHash);
 
 using namespace GeomHashConstants;

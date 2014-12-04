@@ -21,7 +21,6 @@
 
 
 
-using namespace std;
 using namespace trconst;
 using namespace trigger302const;
 using namespace ecalconst;
@@ -2122,7 +2121,6 @@ void TriggerLVL302::TRDAux_DEF::build(){
 #include "trrawcluster.h"
 #include "trdsim.h"
 #include "ntuple.h"
-using namespace std;
 using namespace trconst;
 using namespace trigger302const;
 using namespace ecalconst;

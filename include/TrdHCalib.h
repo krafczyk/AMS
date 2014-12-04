@@ -1,6 +1,6 @@
 #ifndef _TrdHCalib_
 #define _TrdHCalib_
-#include <map>
+#include "typedefs.h"
 #include "TObject.h"
 #include "TGraph.h"
 
@@ -11,7 +11,6 @@ class TGraphErrors;
 class TrdRawHitR;
 class TrdHTrackR;
 
-using namespace std;
 
 /// class to perform and store TRD H calibration
 class TrdHCalibR{

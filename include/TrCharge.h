@@ -11,9 +11,9 @@
  \class TrCharge
  \brief An almost static class for the Tracker charge reconstruction
 
- $Date: 2013/11/12 16:18:39 $
+ $Date$
 
- $Revision: 1.15 $
+ $Revision$
 */
 
 #include "VCon.h"
@@ -38,7 +38,6 @@
 #include <algorithm>
 
 
-using namespace std;
 
 
 //! Class used to retrieve results of a mean calculation

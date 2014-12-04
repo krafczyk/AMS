@@ -96,7 +96,7 @@ void AMSgmat::_init(){
     }
     else{
       char namz[255];
-      ostrstream ost(namz,sizeof(namz));
+      std::ostrstream ost(namz,sizeof(namz));
       _pamsg4m= new G4Material(G4String(_name),_rho*g/cm3,_npar);
       for(int i=0;i<_npar;i++){
 	ost.clear();

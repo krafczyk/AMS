@@ -22,7 +22,6 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
 
-using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
 int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;

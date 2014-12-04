@@ -237,7 +237,7 @@ bool AMSTimeID::write(const char * dir, int slp){
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
     char name[255];
-    ostrstream ost(name,sizeof(name));
+    std::ostrstream ost(name,sizeof(name));
     ost << "."<<_Insert<<ends;
     fnam+=name;     
     //      }
@@ -453,7 +453,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	fnam+=getname();
 	fnam+= getid()==0?".0":".1";
 	char name[255];
-	ostrstream ost(name,sizeof(name));
+	std::ostrstream ost(name,sizeof(name));
 	ost << "."<<run<<ends;
 	fnam+=name;     
       }

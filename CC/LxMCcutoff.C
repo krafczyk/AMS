@@ -5,10 +5,7 @@
 #include "TH2.h"
 #include "TMath.h"
 #include "TRandom3.h"
-
-#include <iostream>
-#include <cstdlib>
-using namespace std;
+#include "typedefs.h"
 
 ClassImp(LxMCcutoff);
 

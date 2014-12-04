@@ -22,7 +22,6 @@
 #ifdef _PGTRACK_
 #include "MagField.h"
 #endif
-using namespace std;
 using namespace ANTI2C;
 //
 //

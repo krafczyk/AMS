@@ -40,7 +40,6 @@
 #include "G4DPMJET2_5CrossSection.hh"
 #include "G4IonsHEAOCrossSection.hh"
 
-using namespace std;
 
 // -----------------------------------------------------------
 IonDPMJETPhysics::IonDPMJETPhysics()

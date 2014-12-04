@@ -1,7 +1,5 @@
 #include "ams2tgeo.h"
 
-using namespace std;
-
 bool ams2tgeo::debug_mat = false;
 bool ams2tgeo::debug_med = false;
 bool ams2tgeo::debug_geo = false;

@@ -12,11 +12,11 @@
 #include "commons.h"
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <strstream>
 #include <ctype.h>
 #include "astring.h"
 #include <fstream>
 #include <unistd.h>
-#include <strstream>
 #include "daqs2block.h"
 #include "tofsim02.h"
 #include "richdaq.h"

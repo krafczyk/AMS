@@ -5,14 +5,12 @@
 #include "TMath.h"
 #include "TGraphErrors.h"
 #include "TVirtualFitter.h"
+#include "typedefs.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 #define NTHR 8
-
-#include <iostream>
-using namespace std;
 
 ClassImp(SplFit);
 ClassImp(SpFold);

@@ -18,7 +18,6 @@
 #include <math.h>
 #include "FrameTrans.h"
 
-using namespace std;
 //Pi value obtained with Wolfram-Mathematica 8
 #define twopi  6.2831853071795864769252867665590057683943387987502    // 2*Pi
 #define pi     3.1415926535897932384626433832795028841971693993751    // Pi

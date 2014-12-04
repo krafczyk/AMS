@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.239 2012/05/21 10:36:28 shaino Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -33,7 +33,6 @@
 #endif
 //
 
-using namespace std;
 
 
 

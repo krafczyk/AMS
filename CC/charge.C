@@ -29,7 +29,6 @@
 #include "job.h"
 
 
-using namespace std;
 using namespace trconst;
 using namespace AMSChargConst;
 
@@ -1199,7 +1198,7 @@ int AMSChargeTOF::Fill(int refit) {
       int charge = likelihood->Z;
       double loglike = -likelihood->Likelihood/nhit; // convention 
       double prob = likelihood->Prob;
-      if ((prob<0)||std::isnan(prob)||std::isnan(loglike)) continue;
+      if ((prob<0)||isnan(prob)||isnan(loglike)) continue;
       _Indxz.push_back(charge);
       _Lkhdz.push_back(loglike);   
       _Probz.push_back(prob);

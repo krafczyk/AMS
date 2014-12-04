@@ -11,7 +11,6 @@
 
 class AMSEventR;
 
-using namespace std;
 
 //namespace TRDTFIT{
 class Tfunc{ 

@@ -16,7 +16,6 @@ class TrRecHitR;
 class AMSChain;
 #endif
 
-using namespace std;
 
 //
 // The class DynAlEvent contains all the needed information for a single event used in the alignment procedure

@@ -11,7 +11,6 @@ ClassImp(amsvmc_MagField)
 extern "C" void gufldvmc_(float [], float []);
 
 
-using namespace std;
 
 amsvmc_MagField::amsvmc_MagField()
 {

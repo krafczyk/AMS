@@ -30,7 +30,6 @@
 #include "ntuple.h"
 #include "mceventg.h"
 #include "anticalib02.h"
-using namespace std;
 //
 //
  uinteger Anti2RawEvent::trpatt=0;

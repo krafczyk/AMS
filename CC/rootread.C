@@ -12,7 +12,6 @@
 #include <TRegexp.h>
 #include <TEnv.h>
 #include "TChainElement.h"
-using namespace std;
 
 //    TRFIOFile f("");
 //     TXNetFile g("");

@@ -65,7 +65,6 @@
 #endif
 
 
-using namespace std;
 #ifdef __SLC3__
 char* operator+( std::streampos&, char* );
 #endif
