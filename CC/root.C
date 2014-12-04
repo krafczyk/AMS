@@ -14663,19 +14663,34 @@ return ret;
 #include "amschain.h"
 #include "bcorr.h"
 
-int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
+int AMSEventR::DumpTrTrackPar(int run, int event, int itrack, int refit1,
+			      int refit2, int ichrg, const char *path)
 {
-  TString dir = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4";
-  TString xrd = "root://eosams.cern.ch/"+dir+"/";
+  TString xrd = "root://eosams.cern.ch/";
   TString eos = "/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select";
 
   static AMSChain ach;
-  static TString  str;
   static int srun = 0;
 
-  if (run != srun) {
-    str = gSystem->GetFromPipe(eos+" ls "+dir+Form(" | grep %d", run));
+  TString sph = path;
 
+  if (run != srun) {
+   if (sph.EndsWith(".root")) {
+     ach.Reset();
+     ach.Add(sph);
+   }
+   else {
+    TString str;
+    TString srr;
+    if (!sph.EndsWith("/")) sph += "/";
+    if (sph.BeginsWith("/eos")) {
+           srr = xrd+sph;
+           str = gSystem->GetFromPipe(eos+" ls "+sph+Form(" | grep %d", run));
+    }
+    else { srr = sph;
+           str = gSystem->GetFromPipe(     "ls "+sph+Form(" | grep %d", run));
+    }
+           
     TObjArray *sar = str.Tokenize("\n");
     if (sar->GetEntries() == 0) {
       cout << "AMSEventR::DumpTrTrackPar-E-No AMSRoot file found" << endl;
@@ -14687,9 +14702,9 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
 
     ach.Reset();
     for (int i = 0; i < sar->GetEntries(); i++)
-      ach.Add(xrd+sar->At(i)->GetName());
+      ach.Add(srr+sar->At(i)->GetName());
     delete sar;
-
+   }
     int ntr = ach.GetNtrees();
     int nen = ach.GetEntries();
     if (ntr <= 0 || nen <= 0) {
@@ -14698,11 +14713,13 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
       return -1;
     }
     srun = run;
-  }
+   }
 
   int ntry =  0;
   int eofs = -1;
-  AMSEventR *evt = 0;
+  AMSEventR *evt = ach.GetEvent(0);
+  eofs = -evt->Event();
+
   while ((!evt || int(evt->Event()) != event) && ntry++ < 5) {
     evt   = ach.GetEvent(event+eofs);
     eofs -= evt->Event()-event;
@@ -14732,24 +14749,38 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
     return -1;
   }
 
-  int itp0 = trk->iTrTrackPar(1, 3,  3);
-  int itp1 = trk->iTrTrackPar(1, 7, 23);
+  float mass = TrFit::Mproton;
+  float chrg = 1;
+  if (ichrg > 1) { mass = TrFit::Mhelium; chrg = 2; }
+
+  int itp0 = trk->iTrTrackPar(1, 3, refit1, mass, chrg);
+  int itp1 = trk->iTrTrackPar(1, 7, refit2, mass, chrg);
+
+  float bcr0 = (itp0 > 0) ? trk->GetBcorr(itp0) : 1;
+  float bcr1 = (itp1 > 0) ? trk->GetBcorr(itp1) : 1;
+
   cout << endl;
   cout << "AMSEventR::DumpTrTrackPar-I-Dump: " << endl;
   cout << "Run/Event : " << evt->Run() << " " << evt->Event() << endl;
-  cout << Form("btempcor= %.4f", bcor) << endl;
-  cout << Form("iTrTrackPar(1, 3,  3)= %7d", itp0);
+  if (bcr0 == 1 && bcr1 == 1)
+    cout << Form("btempcor= %.4f", bcor) << endl;
+  if (bcr0 != 1) cout << Form("Bcorr(already applied on refit %2d)= %.4f", 
+			      refit1, bcr0) << endl;
+  if (bcr1 != 1) cout << Form("Bcorr(already applied on refit %2d)= %.4f", 
+			      refit2, bcr1) << endl;
+  cout << Form("iTrTrackPar(1, 3, %2d, %5.3f, %3.1f) ", refit1, mass, chrg);
   if (itp0 > 0) {
     cout << Form(" Rigidity= %9.3f",   trk->GetRigidity  (itp0));
     cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp0));
   }
   cout << endl;
-  cout << Form("iTrTrackPar(1, 7, 23)= %7d", itp1);
+  cout << Form("iTrTrackPar(1, 7, %2d, %5.3f, %3.1f) ", refit2, mass, chrg);
   if (itp1 > 0) {
     cout << Form(" Rigidity= %9.3f",   trk->GetRigidity  (itp1));
     cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp1));
   }
   cout << endl;
+
 
   TrRecHitR *hit1 = trk->GetHitLJ(1);
   TrRecHitR *hit9 = trk->GetHitLJ(9);

@@ -4839,7 +4839,8 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
   /*!
    *! Dump TrTrack variables with the current alignment settings
    */
-static int DumpTrTrackPar(int run, int event, int itrack = 0);
+  static int DumpTrTrackPar(int run, int event, int itrack = 0, int refit1 = 3, int refit2 = 23, int ichrg = 1,
+			    const char *path = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4/");
 #endif
   /*!
    * @param[in]  ilay    Tracker  ilay(1-9) (J scheme)
