@@ -9321,10 +9321,10 @@ void AMSEventR::Begin(TTree *tree){
       char dir[1024];
       sprintf(dir,"thread_%d",thr);
       if(fgThickMemory)Dir=dir;
-      UBegin();
 #ifdef _PGTRACK_
          TRFITFFKEY.init();
 #endif
+      UBegin();
       pService=&fService; 
     }
   }
