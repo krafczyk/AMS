@@ -81,7 +81,9 @@ ifndef NOCTYPE
 endif
 
 ifdef SLC6system
-RH9add+= -ltinfo
+  ifndef NOTINFO
+    RH9add+= -ltinfo
+  endif
 endif
 
 ########################################################################
