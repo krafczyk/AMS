@@ -1,5 +1,4 @@
 //  $Id$
-#include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
 #include <TFile.h>
@@ -35,13 +34,8 @@ void OpenChain(AMSChain & chain, char * filename);
 
 #ifndef WIN32
 #ifdef __APPLE__
-#if __OSXVER__ >= 1080
 static int Selectsdir(const dirent *entry=0);
 static int Select(const dirent *entry=0);
-#else
-static int Selectsdir(dirent *entry=0);
-static int Select(dirent *entry=0);
-#endif
 static int Sort( dirent ** e1,   dirent ** e2);
 #else
 static int Selectsdir(const dirent64 *entry=0);
@@ -99,11 +93,11 @@ int main(int argc, char *argv[]){
   // by TRint (which inherits from TApplication) you will be able
   // to execute CINT commands once in the eventloop (via Run()).
 #ifndef WIN32
-  *signal(SIGFPE, handler);
-  *signal(SIGCONT, handler);
-  *signal(SIGTERM, handler);
-  *signal(SIGINT, handler);
-  *signal(SIGQUIT, handler);
+  (void)*signal(SIGFPE, handler);
+  (void)*signal(SIGCONT, handler);
+  (void)*signal(SIGTERM, handler);
+  (void)*signal(SIGINT, handler);
+  (void)*signal(SIGQUIT, handler);
 #endif
   bool pall=false;
   int c;
@@ -185,7 +179,6 @@ int main(int argc, char *argv[]){
   //gVirtualX=new TGX11("X11","Root Interface to X11");
   //gGuiFactory=new TRootGuiFactory();
   //gDebug=2;
-  TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
   gGuiFactory=new TRootGuiFactory();  
   theApp->SetStatic();
@@ -204,8 +197,8 @@ int main(int argc, char *argv[]){
 
   char geoFile[256];
   strcpy(geoFile,geo_dir);
-  char *geoFile_new = "ams02.geom";
-  char *geofile_perm="ams02.pm.geom";
+  const char *geoFile_new = "ams02.geom";
+  const char *geofile_perm="ams02.pm.geom";
   cout <<" pchain->getsetup() "<<pchain->getsetup()<<endl; 
   if(!strcmp(pchain->getsetup(),"AMS02P")){
     strcat(geoFile,geofile_perm);
@@ -356,11 +349,7 @@ void OpenChain(AMSChain & chain, char * filenam){
 		//                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
-#if __OSXVER__ >= 1080
                 int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent**, const dirent**)>(&Sort));
-#else
-		int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
-#endif
 #elif defined(__LINUXNEW__)
                 dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
@@ -405,11 +394,7 @@ void OpenChain(AMSChain & chain, char * filenam){
 	    cout <<"  scanning wild"<<ts<<endl;
 #ifdef __APPLE__
 	    dirent ** namelistsubdir;
-#if __OSXVER__ >= 1080
 	    int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent**, const dirent**)>(&Sort));
-#else
-	    int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
-#endif
 #elif defined(__LINUXNEW__)
 	    dirent64 ** namelistsubdir;
 	    int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
@@ -483,11 +468,7 @@ void OpenChain(AMSChain & chain, char * filenam){
 #ifndef WIN32
 
 #ifdef __APPLE__
-#if __OSXVER__ >= 1080
 int Selectsdir(const dirent *entry)
-#else
-  int Selectsdir(dirent *entry)
-#endif
 #else
   int Selectsdir(  const dirent64 *entry)
 #endif
@@ -506,11 +487,7 @@ int Selectsdir(const dirent *entry)
 #ifndef WIN32
 
 #ifdef __APPLE__
-#if __OSXVER__ >= 1080
 int Select(const dirent *entry)
-#else
-  int Select(dirent *entry)
-#endif
 #else
   int Select( const dirent64 *entry)
 #endif

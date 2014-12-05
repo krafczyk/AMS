@@ -1,4 +1,4 @@
-//  $Id: main.h,v 1.9 2010/11/16 16:47:20 choutko Exp $
+//  $Id$
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
@@ -8,8 +8,10 @@
 //#include <TGWin32.h>
 //#include <TTF.h>
 #else
+#ifndef __APPLE__
 #include <TGX11.h>
 #include <TGX11TTF.h>
+#endif
 #endif
 #include <THistPainter.h>
 #include <TFitter.h>
@@ -29,6 +31,7 @@ public:
        exit(1);
      }
 #ifndef WIN32
+#ifndef __APPLE__
        const char *ttpath = gEnv->GetValue("Root.TTFontPath","$(HOME)/ttf/fonts");
    if(ttpath && !getenv("OffmonNoTTF")){
     char file[512];
@@ -42,6 +45,7 @@ public:
    else{
      cerr<<"Myapp-ctor-W-TrueTypeFontsWillNotBeUsed"<<endl;
    }
+#endif
 #endif
 //    TVirtualFitter::SetFitter(&b);
 //     gROOT->GetListOfTypes(true);

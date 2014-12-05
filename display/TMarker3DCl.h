@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.h,v 1.4 2004/01/29 10:44:52 choutko Exp $
+//  $Id$
 
 #ifndef ROOT_TMarker3DCl
 #define ROOT_TMarker3DCl
@@ -34,7 +34,11 @@
 #include "TAtt3D.h"
 #endif
 #ifndef ROOT_X3DBuffer
+#ifndef __CINT__
 #include "X3DBuffer.h"
+#else
+class X3DBuffer;
+#endif
 #endif
 #include <vector>
 class TH1;
