@@ -105,8 +105,8 @@ ifdef SLC64system
 INTELOPT=-mmic 
 endif
 
-  FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(INTELOPT) -vec-report0  $(PARALLEL)
+  FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(INTELOPT) -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) $(PARALLEL) 
   LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save
