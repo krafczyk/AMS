@@ -69,10 +69,17 @@ SLC4system=1
 RH9=1
 RH9add=
 ifdef RH9
- RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+ RH9add=-pthread  -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+ ifndef NOCTYPE
+   RH9add+=$(BIN)ctype.o
+ endif
 endif
 
-RH9add=-pthread $(BIN)ctype.o 
+RH9add=-pthread
+ifndef NOCTYPE
+  RH9add+=$(BIN)ctype.o
+endif
+
 ifdef SLC6system
 RH9add+= -ltinfo
 endif
