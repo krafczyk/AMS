@@ -34,6 +34,9 @@ int    TkDBc::ForceFromTDV=0;
  
 TkDBc::TkDBc(){
   for(unsigned int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
+  //  for (unsigned int i = 0; i < max_tkidmap_entries; ++i) tkidmap_fast[i] = 0;
+  memset(tkidmap_fast,0,max_tkidmap_entries*sizeof(tkidmap_fast[0]));
+
 }
 
 void TkDBc::CreateTkDBc(int force_delete){
@@ -73,7 +76,6 @@ TkDBc::~TkDBc(){
   
   for ( tkidIT pp=tkidmap.begin();pp!=tkidmap.end();++pp)
     if(pp->second) delete pp->second;
-
 }
 
 TkPlane* TkDBc::GetPlane(int ii) {
@@ -707,6 +709,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 		tkassemblymap[aa->GetAssemblyId()]=aa;
 	      }
 	      tkidmap[tkid]=aa;
+              tkidmap_fast[tkid+1000]=aa;
 	      hwidmap[hwid]=aa;
 	      // SH FIXME pgid is not an unique ID for 192 ladders
 	      //              pgidmap[pgid]=aa;
@@ -892,6 +895,9 @@ int TkDBc::read(const char* filename, int pri){
 
   // Clear maps
   tkidmap.clear();
+  //  for (unsigned int i = 0; i < max_tkidmap_entries; ++i) tkidmap_fast[i] = 0;
+  memset(tkidmap_fast,0,max_tkidmap_entries*sizeof(tkidmap_fast[0]));
+
   hwidmap.clear();
   lnamemap.clear();
   tkassemblymap.clear();
@@ -923,6 +929,7 @@ int TkDBc::read(const char* filename, int pri){
     if(fileout.eof()){ delete aa; break;}
     if(!fileout.good()) cerr <<" Error in TkDBc::read the channel is not good"<<endl;
     tkidmap[aa->GetTkId()]=aa;
+    tkidmap_fast[aa->GetTkId()+1000]=aa;
     hwidmap[aa->GetHwId()]=aa;
     string bb=aa->name;
     lnamemap[bb]=aa;
@@ -1520,6 +1527,8 @@ void TkDBc::RebuildMap()
   lnamemap     .clear();
   JMDCNumMap   .clear();
 
+  //  for (unsigned int i = 0; i < max_tkidmap_entries; ++i) tkidmap_fast[i] = 0;
+  memset(tkidmap_fast,0,max_tkidmap_entries*sizeof(tkidmap_fast[0]));
   // Rebuild all the maps
   //
   // 
@@ -1536,6 +1545,7 @@ void TkDBc::RebuildMap()
     //    pgidmap      [pgid] = lad;
     lnamemap     [lnam] = lad;
     JMDCNumMap   [jmdc] = lad;
+    tkidmap_fast[lad->GetTkId()+1000] = lad;
   }
   // SH FIXME size of pgidmap is only 24
   cout << "TkDBc::Maps have been rebuilt: "
