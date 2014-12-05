@@ -73,6 +73,8 @@ endif
 endif
 endif
 
+ROOTINCDIR := $(shell root-config --incdir)
+
 #
 
 SHELL=/bin/sh
@@ -100,6 +102,14 @@ VISLIBS:=
 endif
 ifndef UILIBS
 UILIBS:=
+endif
+G4LIBDIR=$(G4INSTALL)/lib/geant4/$(G4SYSTEM)
+ifdef G4LIB
+  G4LIBDIR = $(G4LIB)/$(G4SYSTEM)
+endif
+G4INCLUDEDIR=$(G4INSTALL)/include/geant4/
+ifdef G4INCLUDE
+  G4INCLUDEDIR = $(G4INCLUDE)
 endif
 G4LIBS=
 G4LIBSI=
@@ -141,8 +151,8 @@ ifeq "$(CXX_env)" ""
 endif
 
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
-INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
-G4LIBS=   -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
+INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INCLUDEDIR)
+G4LIBS=   -L$(G4LIBDIR) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
 
 ifdef G4LIB_BUILD_CLHEP
 G4LIBS+=  -lG4clhep 
@@ -150,7 +160,7 @@ else
 G4LIBS+= -L$(CLHEP_BASE_DIR)/lib  -lCLHEP
 endif
 
-G4LIBSI= -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
+G4LIBSI= -L$(G4LIBDIR) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
 AR=ar
 endif
 
@@ -166,8 +176,7 @@ DEFINES += -DCASTORSTATIC
 endif
 
 DEFINES  +=    -D__WRITEROOT__    
-INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include  
-
+INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTINCDIR)
 
 CPPFLAGS += $(DEFINES)  $(INCDIRS)
 
