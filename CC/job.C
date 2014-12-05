@@ -3506,21 +3506,23 @@ void AMSJob::_timeinitjob(){
       end.tm_year=0;
       TrExtAlignDB::CreateLinear();
 
+      int needtrextalig = ((CALIB.SubDetRequestCalib/100)%10)>0;
       TID.add (new AMSTimeID(AMSID(TrExtAlignDB::GetTDVName(),
 				   isRealData()),begin,end,
 			     TrExtAlignDB::GetLinearSize(),
 			     TrExtAlignDB::fLinear,
-			     server,need,SLin2ExAlign));
+			     server,needtrextalig,SLin2ExAlign));
 
       TrInnerDzDB::GetHead();
+
+      int needtrindzalig = ((CALIB.SubDetRequestCalib/100)%10)>0;
       TID.add ( new AMSTimeID(AMSID(TrInnerDzDB::GetTDVName(),isRealData()),
 			      begin,
 			      end,
 			      TrInnerDzDB::GetTDVSwapSize(),
 			      TrInnerDzDB::TDVSwap,
-			      server,need,
-			      TrInnerLin2DB));
-		
+			      server,needtrindzalig,TrInnerLin2DB));
+
       DynAlManager::need2bookTDV=((CALIB.SubDetRequestCalib/100)%10)>0;
       DynAlManager::tdvdb=new AMSTimeID(AMSID(DynAlManager::GetTDVName(TKGEOMFFKEY.MdExAlignTag).Data(),1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
       TID.add(DynAlManager::tdvdb);
