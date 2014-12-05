@@ -212,15 +212,23 @@ LDFLAGSI=    -static $(G4LIBS) $(FORTRAN2_LIBS) \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre -lcrypt      -lkrb5   -lssl -lcrypto  -lcom_err -lresolv  -lcrypto  $(LZMAL)  \
+-lcrypt -lcrypto -ldl -lpcre -lcrypt      -lkrb5   -lssl -lcrypto  -lresolv  -lcrypto  $(LZMAL)  \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
+
+ifndef NOCOMERR
+  LDFLAGSI += -lcom_err
+endif
 
 LDFLAGS=   $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnaggcc64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto  -lssl -lcrypto  -lcom_err -lfreetype  -ldl    -lpcre  $(LZMAL)\
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto  -lssl -lcrypto  -lfreetype  -ldl    -lpcre  $(LZMAL)\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
+
+ifndef NOCOMERR
+  LDFLAGS += -lcom_err
+endif
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg
