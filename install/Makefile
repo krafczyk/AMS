@@ -719,13 +719,20 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 #  Gbatch standalone batch processing
 
 STANDALONE:=$(EXE)gbatch$(G4)$(PG).exe 
+STANDALONED:=$(EXE)gbatchd$(G4)$(PG).exe
 
 gbatch: amswd $(STANDALONE)
+gbatchd: amswd $(STANDALONED)
 
 $(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	@echo Linking $@ ...
 	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
+
+$(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
+	@echo Linking $@ ...
+	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
 
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
 	 $(AT)$(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o

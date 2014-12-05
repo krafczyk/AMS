@@ -206,6 +206,7 @@ ifdef AMSPROFILE
   LDFLAGS+=-pg
 endif
 
+LDFLAGSDYNAMIC:=   $(LDFLAGS) $(RH9add)
 LDFLAGSSTATIC:=    $(LDFLAGS) $(RH9add) 
 
 
