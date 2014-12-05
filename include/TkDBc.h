@@ -297,6 +297,8 @@ private:
   map<int,TkLadder*> tkassemblymap;   //! it is rebuilt when loaded
   //! Map for fast binary search based on TkId 
   map<int,TkLadder*> tkidmap;
+  static const unsigned int max_tkidmap_entries = 2000; //! do not store in ROOT file
+  TkLadder* tkidmap_fast[max_tkidmap_entries];          //! do not store in ROOT file
   //! Map for fast binary search based on HwId
   map<int,TkLadder*> hwidmap;         //! it is rebuilt when loaded
 //   //! Map for fast binary search based on PgId
@@ -408,7 +410,8 @@ public:
   //! Returns the pointer to the ladder object with the required Assembly id. In case of failure returns a NULL pointer
   TkLadder* FindTkAssemblyId( int tkassemblyid){ return Findmap(tkassemblymap,tkassemblyid);}
   //! Returns the pointer to the ladder object with the required tkid. In case of failure returns a NULL pointer
-  TkLadder* FindTkId( int tkid){ return Findmap(tkidmap,tkid);}
+  /* TkLadder* FindTkId( int tkid){ return Findmap(tkidmap,tkid);} */
+  TkLadder* FindTkId( int tkid){ return tkidmap_fast[tkid+1000];}
   //! Returns the pointer to the ladder object with the required HwId. In case of failure returns a NULL pointer
   TkLadder* FindHwId( int hwid){ return Findmap(hwidmap,hwid);}
 //   //! Returns the pointer to the ladder object with the required PgId. In case of failure returns a NULL pointer
@@ -525,7 +528,7 @@ public:
   */
   static void UseVersion(int ver, int reset = 0);
 
-  ClassDef(TkDBc, 10);
+  ClassDef(TkDBc, 11);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;
