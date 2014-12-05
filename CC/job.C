@@ -3512,6 +3512,12 @@ void AMSJob::_timeinitjob(){
 			     TrExtAlignDB::GetLinearSize(),
 			     TrExtAlignDB::fLinear,
 			     server,needtrextalig,SLin2ExAlign));
+      // For std production
+      // Increase a window of outer layer pick up by x10 (default 0.5)
+      if (!needtrextalig) {
+	if (TRFITFFKEY.MergeExtLimX < 5) TRFITFFKEY.MergeExtLimX = 5;
+	if (TRFITFFKEY.MergeExtLimY < 5) TRFITFFKEY.MergeExtLimY = 5;
+      }
 
       TrInnerDzDB::GetHead();
 
