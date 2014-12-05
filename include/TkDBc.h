@@ -461,7 +461,7 @@ public:
   void GetLayerRot(int lay,number nrm[][3]);
 
   //! Kill TkLadder
-  void KillTkId(int tkid) { tkidmap[tkid] = 0; tkidmap_fast[tkid+1000]=0}
+  void KillTkId(int tkid) { tkidmap[tkid] = 0; tkidmap_fast[tkid+1000]=0;}
 
   int NStripsDrp(int type){  return (type==0)?_NReadoutChanK: _NReadoutChanS;}
 
