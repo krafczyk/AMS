@@ -201,13 +201,13 @@ ifdef AMSPROFILE
 endif
 
 ifdef DEBUGFLAG
-    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g    
-    CFLAGS       += -g
-    CFLAGSTOFSIM += -g
-    CFLAGSn      += -g
-    CFLAGSDAQ    += -g
-    FFLAGS       += -g
-    FFLAGSn      += -g
+    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g -gdwarf-2    
+    CFLAGS       += -g -gdwarf-2
+    CFLAGSTOFSIM += -g -gdwarf-2
+    CFLAGSn      += -g -gdwarf-2
+    CFLAGSDAQ    += -g -gdwarf-2
+    FFLAGS       += -g -gdwarf-2
+    FFLAGSn      += -g -gdwarf-2
 else
     CFLAGS       += -O3      
     CFLAGSTOFSIM += -O1
@@ -292,8 +292,8 @@ CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/includ
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I/$(ORBIT2DIR)/include/orbit-2.0 -I$(BIN)
 
 ifdef DEBUGFLAG
-CXX_ORBIT+= -g
-CCC_ORBIT+= -g
+CXX_ORBIT+= -g -gdwarf-2
+CCC_ORBIT+= -g -gdwarf-2
 else
 CXX_ORBIT+= -O3
 CCC_ORBIT+= -O3

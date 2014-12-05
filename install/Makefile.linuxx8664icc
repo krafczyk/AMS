@@ -53,7 +53,7 @@ endif
 
 RH9add=-pthread $(BIN)ctype.o 
 ifdef DEBUGFLAG
-RH9add+= -g
+RH9add+= -g -gdwarf-2
 endif
 ifdef AMSPARALLEL
   PARALLEL= -D__X8664__ -D__AMSPARALLEL__ -openmp 
@@ -270,12 +270,12 @@ ifdef AMSPROFILE
 endif
 
 ifdef DEBUGFLAG
-    CFLAGS       += -g      
-    CFLAGSTOFSIM += -g
-    CFLAGSn      += -g     
-    CFLAGSDAQ    += -g  
-    FFLAGS       += -g     
-    FFLAGSn      += -g    
+    CFLAGS       += -g -gdwarf-2      
+    CFLAGSTOFSIM += -g -gdwarf-2
+    CFLAGSn      += -g -gdwarf-2     
+    CFLAGSDAQ    += -g -gdwarf-2  
+    FFLAGS       += -g -gdwarf-2     
+    FFLAGSn      += -g -gdwarf-2    
 else
     CFLAGS       += -O2      
     CFLAGSTOFSIM += -O1
@@ -358,8 +358,8 @@ CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I$(BIN)
 
 ifdef DEBUGFLAG
-CXX_ORBIT+= -g
-CCC_ORBIT+= -g
+CXX_ORBIT+= -g -gdwarf-2
+CCC_ORBIT+= -g -gdwarf-2
 else
 CXX_ORBIT+= -O3
 CCC_ORBIT+= -O3
