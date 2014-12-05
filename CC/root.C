@@ -14153,7 +14153,17 @@ int ParticleR::UpdateTrTrack(float distmax,float dirmax)
 #ifndef _PGTRACK_
   return -1;
 #else
-  if(iVertex()>=0 )return 6; // vertex
+  class RichRingRT  :public RichRingR {public: void set(int i){fTrTrack = i;}};
+  class RichRingBRT :public RichRingBR{public: void set(int i){fTrTrack = i;}};
+  class BetaRT      :public BetaR     {public: void set(int i){fTrTrack = i;}};
+
+  if(iVertex()>=0 ){
+    if (pRichRing ()) ((RichRingRT *)pRichRing ())->set(-1);
+    if (pRichRingB()) ((RichRingBRT*)pRichRingB())->set(-1);
+    if (pBeta     ()) ((BetaRT     *)pBeta     ())->set(-1);
+    TofRecH::ReBuild(0);
+    return 1;
+  }
 
   AMSEventR *evt = AMSEventR::Head();
   if (!evt) return -1;
@@ -14192,10 +14202,6 @@ int ParticleR::UpdateTrTrack(float distmax,float dirmax)
       dmin = dm;
     }
   }
-
-  class RichRingRT  :public RichRingR {public: void set(int i){fTrTrack = i;}};
-  class RichRingBRT :public RichRingBR{public: void set(int i){fTrTrack = i;}};
-  class BetaRT      :public BetaR     {public: void set(int i){fTrTrack = i;}};
 
 // update TrTrack indexes
   if (pRichRing ()) ((RichRingRT *)pRichRing ())->set(fTrTrack);
