@@ -68,53 +68,113 @@ endif
 
 
 ########################################################################
-#Compilers
+# Compilers
 ########################################################################
-ifneq "$(origin INTELDIR)" "environment" 
+
 ifndef INTELDIR
   INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
 endif
-endif
-ifneq "$(origin INTELVER)" "environment" 
-  INTELVER=Compiler/11.1/073/
-ifdef SLC6system
-  INTELVER=composer_xe_2011_sp1.9.293/compiler/
-endif
-#  INTELVER=composer_xe_2011_sp1.9.293/compiler/
+
+INTELVER_DEFAULT=Compiler/11.1/073
+INTELVER_SLC6=composer_xe_2011_sp1.9.293
+INTELVER_SLC64=composer_xe_2013_sp1.3.174
+
+ifndef INTELVER
+  INTELVER=$(INTELVER_DEFAULT)
+  ifdef SLC6system
+    INTELVER=$(INTELVER_SLC6)
+  endif
+  ifdef SLC64system
+    INTELVER=$(INTELVER_SLC64)
+  endif
 endif
 
-  INTELOPT=-axsse4.2,ssse3 
-  INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals
-ifdef SLC64system
-ifneq "$(origin INTELVER)" "environment" 
-  INTELVER=composer_xe_2013_sp1.3.174/compiler/
-ifdef CXXSTD
-CXXSTD=
+
+########################################################################
+# Compiler flags
+########################################################################
+
+INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals
+
+ifeq ("$(INTELVER)", "$(INTELVER_SLC64)")
+  ifdef AMSMIC
+    INTELOPT=-mmic
+    NOCXXSTD=1
+  endif
 else
-  CXXSTD=  -std=c++11 
-endif
-endif
-#compiler bug
-#   INTELOPT=-axAVX -msse3
-   INTELOPT=-axsse4.2,ssse3,AVX -fp-model source -fast-transcendentals 
-
-#   INTELOPT=-axsse4.2,ssse3,AVX 
-ifdef AMSMIC
-INTELOPT=-mmic 
- CXXSTD=
-endif
-else 
-CXXSTD=
+  NOCXXSTD=1
 endif
 
-  FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(CXXSTD) $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
-  CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) $(PARALLEL) 
-  LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  $(INTELOPT)  $(PARALLEL) 
-  FFOLD=$(FF)  -save
-  FFLAGSSAVE= -save
-  FORTRAN_LIBS=
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
+ifndef NOCXXSTD
+  CXXSTD=-std=c++11
+else
+  CXXSTD=
+endif
+
+########################################################################
+# Try to find INTELBIN
+########################################################################
+
+ifeq ("$(INTELBIN)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/bin/intel64/icc)","")
+    INTELBIN = $(INTELDIR)/$(INTELVER)/compiler/bin/intel64
+  endif
+endif
+
+ifeq ("$(INTELBIN)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/bin/intel64/icc)","")
+    INTELBIN = $(INTELDIR)/$(INTELVER)/bin/intel64
+  endif
+endif
+
+ifeq ("$(INTELBIN)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/bin/icc)","")
+    INTELBIN = $(INTELDIR)/$(INTELVER)/bin
+  endif
+endif
+
+ifeq ("$(INTELBIN)", "")
+  $(error Could not find intel compiler!)
+endif
+
+########################################################################
+# Try to find INTELLIB
+########################################################################
+
+ifeq ("$(INTELLIB)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/compiler/lib/intel64/libimf*)","")
+    INTELLIB = $(INTELDIR)/$(INTELVER)/compiler/lib/intel64
+  endif
+endif
+
+ifeq ("$(INTELLIB)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/lib/intel64/libimf*)","")
+    INTELLIB = $(INTELDIR)/$(INTELVER)/lib/intel64
+  endif
+endif
+
+ifeq ("$(INTELLIB)", "")
+  ifneq ("$(wildcard $(INTELDIR)/$(INTELVER)/lib/libimf*)","")
+    INTELLIB = $(INTELDIR)/$(INTELVER)/lib
+  endif
+endif
+
+ifeq ("$(INTELLIB)", "")
+  $(error Could not find intel compiler!)
+endif
+
+########################################################################
+# Setup compiler variables
+########################################################################
+
+FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  -diag-disable cpu-dispatch $(PARALLEL)
+CXX=$(INTELBIN)/icc  $(INTELOPT) $(CXXSTD) -diag-disable cpu-dispatch $(PARALLEL)
+CC=$(INTELBIN)/icc   $(INTELOPT) $(PARALLEL)
+LD=$(INTELBIN)/icpc  $(INTELOPT)  $(PARALLEL)
+FFOLD=$(FF)  -save
+FFLAGSSAVE= -save
+FORTRAN_LIBS=
+FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELLIB) -lifport -lifcoremt -limf  -lipgo -lirc_s
 
 ORBIT2DIR=$(AMSDEPLIB)/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
@@ -294,7 +354,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+= $(INTELLIB)/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
 ifndef NOXROOTD
 SOFLAGS += -lNetx
 endif
