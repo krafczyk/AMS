@@ -182,6 +182,10 @@ endif
 CFLAGSB= -Wall -Wno-missing-braces -Wno-strict-aliasing -Wno-unused-function -Wno-unknown-pragmas -Wno-deprecated -Wno-write-strings  -fPIC 
 DEFINES+= -D__root_$(NEW) -D__X8664__
 
+ifdef AMSPARALLEL
+  CFLAGSB+= -D__AMSPARALLEL__ -openmp
+endif
+
 ifdef AMSPROFILE
   CFLAGSB+=-pg
 endif
