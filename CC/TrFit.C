@@ -4239,9 +4239,11 @@ void TrProp::GuFld(double *p, double *b)
     if (err) return;
   }
 
-  float pp[3] = { (float)p[0]*BsclX, 
-		  (float)p[1]*BsclY,
-		  (float)p[2]*BsclZ };
+  float pp[3];
+  pp[0] = (float)p[0]*BsclX;
+  pp[1] = (float)p[1]*BsclY;
+  pp[2] = (float)p[2]*BsclZ;
+
   float bb[3];
   GUFLD(pp, bb);
 

@@ -490,7 +490,7 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 #ifdef __ROOTSHAREDLIBRARY__
   if (rebuild) {
     AMSEventR *ev = AMSEventR::Head();
-    for (int i = 0; i < ev->NParticle(); i++)
+    for (unsigned int i = 0; i < ev->NParticle(); i++)
       // Update TrTrack index
       ev->pParticle(i)->UpdateTrTrack(5, 5);
   }

@@ -14342,6 +14342,7 @@ int ret=0;
 //x
 {
 double ds=dsxy[0];
+(void)ds;
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
@@ -14388,6 +14389,7 @@ rnd[0]=rnormx();
 //y
 {
 double ds=dsxy[1];
+(void)ds;
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
