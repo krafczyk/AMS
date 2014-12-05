@@ -3,6 +3,12 @@
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
 #
+#
+# verbose output
+VERBOSE=0
+AT_0:=@
+AT_1:=
+AT=$(AT_$(VERBOSE))
 # List of SLC6 changes
 #
 ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
@@ -505,35 +511,39 @@ $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a:
 
 $(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO) $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a 
 		@if ! [ -d $(AMSWD)/exe/$(ARCH)$(VERSIONP) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH)$(VERSIONP); fi
+		@echo Linking executable $(AMSPRG)
 #		@echo $(__XROOTDPATH__)
 #		@echo $(MENOELLEXROOTD)
 #		@echo $(XRDLIB)
-#		$(LDS) $(LDFLAGS) $^ $(LIBSA) $(MENOELLEXROOTD) -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -o $(@)
-		$(LDS) $(LDFLAGS) $^ $(LIBSA) $(MENOELLEXROOTD) $(XRDLIB) -o $(@)
+#		$(AT)$(LDS) $(LDFLAGS) $^ $(LIBSA) $(MENOELLEXROOTD) -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -o $(@)
+		$(AT)$(LDS) $(LDFLAGS) $^ $(LIBSA) $(MENOELLEXROOTD) $(XRDLIB) -o $(@)
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/lib/$(ARCH)$(VERSIONP)/lib$(AMSLIB).a 
 		@if ! [ -d $(AMSWD)/exe/$(ARCH)$(VERSIONP) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH)$(VERSIONP); fi
-		$(LDD)   $(LDFLAGS) $^  $(LIBS) -o $(@) 
+		@echo Linking executable $(AMSPRGC)
+		$(AT)$(LDD)   $(LDFLAGS) $^  $(LIBS) -o $(@)
 		@echo "$(AMSPRGC) done"
 
 ifeq ($(ARCH),macosx64)
 $(AMSPRGCC):	$(OBJSN)  $(OBJS) $(DICTO)  
 		@if ! [ -d $(AMSWD)/exe/$(ARCH)$(VERSIONP) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH)$(VERSIONP); fi
-		$(LDD)   $(LDFLAGS) $^  $(LIBSD) -o $(@) 
-		install_name_tool -change $(AMSWD)/lib/macosx64$(VERSIONP)//lib$(AMSLIB).so lib$(AMSLIB).so $(@)
+		@echo Linking executable $(AMSPRGCC)
+		$(AT)$(LDD)   $(LDFLAGS) $^  $(LIBSD) -o $(@)
+		$(AT)install_name_tool -change $(AMSWD)/lib/macosx64$(VERSIONP)//lib$(AMSLIB).so lib$(AMSLIB).so $(@)
 		@echo "$(AMSPRGCC) done"
 else
 $(AMSPRGCC):	$(OBJSN)  $(OBJS) $(DICTO)  
 		@if ! [ -d $(AMSWD)/exe/$(ARCH)$(VERSIONP) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH)$(VERSIONP); fi
-		$(LDD)   $(LDFLAGS) $^  $(LIBSD) -o $(@) 
+		@echo Linking executable $(AMSPRGCC)
+		$(AT)$(LDD)   $(LDFLAGS) $^  $(LIBSD) -o $(@) 
 		@echo "$(AMSPRGCC) done"
 endif
 
 
 $(DICT):        $(HDRS) LinkDef.h
 		@echo "Generating dictionary ..."
-		$(ROOTSYS)/bin/rootcint -f $@ -c $(CPPFLAGS)  $(HDRS) LinkDef.h
+		$(AT)$(ROOTSYS)/bin/rootcint -f $@ -c $(CPPFLAGS)  $(HDRS) LinkDef.h
 
 
 dep:
@@ -560,10 +570,12 @@ $(DEPDIR)/%.d : %.cxx
 
 
 $(PREFIX)%.o : $(PREFIX)%.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	@echo Compiling $< ...
+	$(AT)$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	@echo Compiling $< ...
+	$(AT)$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 
 
