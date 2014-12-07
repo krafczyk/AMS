@@ -31,7 +31,11 @@ float* TkDBc::linear=0;
 char   TkDBc::_setupname[4][30]={"Unknown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
 int    TkDBc::_setup=3;
 int    TkDBc::ForceFromTDV=0;
- 
+
+
+int TkDBc::_tkidfast=0;
+
+
 TkDBc::TkDBc(){
   for(unsigned int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
   //  for (unsigned int i = 0; i < max_tkidmap_entries; ++i) tkidmap_fast[i] = 0;

@@ -17,6 +17,8 @@
 #include "TFile.h"
 #include "tkpatt.h"
 
+typedef map<int,TkLadder*>::const_iterator tkidIT;
+typedef map<string,TkLadder*>::const_iterator lnameIT;
 /*!\class TkDBc
 \brief The new AMS Tracker database class
 \ingroup tkdbc
@@ -69,6 +71,8 @@ class TkDBc : public TObject{
   //! the setup index 
   static int _setup;
   static char _setupname[4][30];
+  static int _tkidfast;
+
   //! number of active planes in the setup
   int nplanes;
   //! number of silicon layers in the setup
@@ -337,7 +341,10 @@ public:
   //! Static function used to create the TkDBc Singleton. If force_delete>0 it deletes and recreates  the single istance of the class
   static void CreateTkDBc(int force_delete=0);
   ~TkDBc();
-
+  //! Set the implementation used for tkidmap: 0 = map based, safe, reccomended;  1 = array based, faster, experimental
+  static void SetTkIDFast(int ss){_tkidfast=ss; return;}
+  //! Get the implementation used for tkidmap: 0 = map based, safe, reccomended;  1 = array based, faster, experimental
+  static int GetTkIDFast(){return _tkidfast;}
   //! Do all the initialization stuff
   void init(int setup=3,const char* inputfilename=0, int pri=0);
 
@@ -410,8 +417,9 @@ public:
   //! Returns the pointer to the ladder object with the required Assembly id. In case of failure returns a NULL pointer
   TkLadder* FindTkAssemblyId( int tkassemblyid){ return Findmap(tkassemblymap,tkassemblyid);}
   //! Returns the pointer to the ladder object with the required tkid. In case of failure returns a NULL pointer
-  /* TkLadder* FindTkId( int tkid){ return Findmap(tkidmap,tkid);} */
-  TkLadder* FindTkId( int tkid){ return tkidmap_fast[tkid+1000];}
+  TkLadder* FindTkId( int tkid){ if (_tkidfast==0) return Findmap(tkidmap,tkid); else return tkidmap_fast[tkid+1000];} 
+
+
   //! Returns the pointer to the ladder object with the required HwId. In case of failure returns a NULL pointer
   TkLadder* FindHwId( int hwid){ return Findmap(hwidmap,hwid);}
 //   //! Returns the pointer to the ladder object with the required PgId. In case of failure returns a NULL pointer
@@ -531,8 +539,6 @@ public:
   ClassDef(TkDBc, 11);
 };
 
-typedef map<int,TkLadder*>::const_iterator tkidIT;
-typedef map<string,TkLadder*>::const_iterator lnameIT;
 
 void SLin2Align();
 
