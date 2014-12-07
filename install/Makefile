@@ -216,6 +216,7 @@ EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
 SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX)_PG.so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG.a
+SHLD_LINK=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG_dynamic.so
 else
 PG=
 BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt/$(G4)/
@@ -224,6 +225,7 @@ EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
 SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX).so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX).a
+SHLD_LINK=$(LIB)/libntuple_$(AMSLIBSUFFIX)_dynamic.so
 endif
 #----Qi Yan
 ifdef G4AMS
@@ -883,16 +885,23 @@ SHLIBO+=$(BIN)OutHistoManager.o
 
 endif
 
-shared : amswd $(SHLD)
+shared : amswd $(SHLD) $(SHLD_LINK)
+
 $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
 	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
 	@echo Creating shared library  $(SHLD) ...
 	$(AT)$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
 
+$(SHLD_LINK): $(SHLD)
+	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
+	@echo Creating symlink  $(SHLD_LINK) ...
+	$(AT)ln -sf $(shell basename $(SHLD)) $(SHLD_LINK)
+
 static : amswd $(NTLD)
+
 $(NTLD): $(SHLIBBO)
 	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
-	@echo Creating static Library $(NTLD) ...
+	@echo Creating static Library  $(NTLD) ...
 	$(AT)$(AR) cr   $(NTLD) $(SHLIBBO)
 
 #-------------------------------------------------------------------------------
@@ -1288,7 +1297,7 @@ clean :
 	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
 	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
-	rm -f $(NTLD) $(SHLD)
+	rm -f $(NTLD) $(SHLD) $(SHLD_LINK)
 	rm -f $(DPMBIN)*.o
 cleanALL : 
 	rm -rf `find $(AMSWD)/bin -type f | grep -v 'CVS'`
