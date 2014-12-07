@@ -1147,7 +1147,12 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   for (int i = 0; i < trconst::maxlay; i++) {
     if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
       TrRecHitR *hit = GetHitLO(i+1);
-      AMSPoint pint  = InterpolateLayerO(i+1, id);
+      AMSPoint pint;
+      AMSDir   pdir;
+      double lz = (hit) ? hit->GetCoord().z() : TkDBc::Head->GetZlayerA(i+1);
+      Interpolate(lz, pint, pdir, id);
+//    AMSPoint pchk  = InterpolateLayerO(i+1, id);
+
       if (hit){
 	AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
 	if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
@@ -1282,7 +1287,7 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
     pnt.setp(0,0,hit->GetCoord()[2]);
   else {
      dir.setp(0, 0, 1);
-     pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily));
+     pnt.setp(0, 0, TkDBc::Head->GetZlayerA(ily));
 
      tprop.Interpolate(pnt, dir);
      TkSens tks(pnt,0);
