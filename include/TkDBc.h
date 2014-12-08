@@ -417,7 +417,7 @@ public:
   //! Returns the pointer to the ladder object with the required Assembly id. In case of failure returns a NULL pointer
   TkLadder* FindTkAssemblyId( int tkassemblyid){ return Findmap(tkassemblymap,tkassemblyid);}
   //! Returns the pointer to the ladder object with the required tkid. In case of failure returns a NULL pointer
-  TkLadder* FindTkId( int tkid){ if (_tkidfast==0) return Findmap(tkidmap,tkid); else return tkidmap_fast[tkid+1000];} 
+  TkLadder* FindTkId( int tkid){ unsigned int ia=tkid+1000; if(_tkidfast==0||ia>=max_tkidmap_entries) return Findmap(tkidmap,tkid); else return tkidmap_fast[ia];} 
 
 
   //! Returns the pointer to the ladder object with the required HwId. In case of failure returns a NULL pointer
@@ -469,7 +469,7 @@ public:
   void GetLayerRot(int lay,number nrm[][3]);
 
   //! Kill TkLadder
-  void KillTkId(int tkid) { tkidmap[tkid] = 0; tkidmap_fast[tkid+1000]=0;}
+  void KillTkId(int tkid) { tkidmap[tkid] = 0; unsigned int ia=tkid+1000; if(ia<max_tkidmap_entries)tkidmap_fast[ia]=0;}
 
   int NStripsDrp(int type){  return (type==0)?_NReadoutChanK: _NReadoutChanS;}
 

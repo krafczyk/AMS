@@ -713,7 +713,14 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 		tkassemblymap[aa->GetAssemblyId()]=aa;
 	      }
 	      tkidmap[tkid]=aa;
-              tkidmap_fast[tkid+1000]=aa;
+	      unsigned int ia=aa->GetTkId()+1000;
+	      if(ia<sizeof(tkidmap_fast)/sizeof(tkidmap_fast[0]))
+		tkidmap_fast[ia]=aa;
+	      else{
+		cerr<<"TkDBc::Fatal Error: tkidmap_fast out of bound array! THIS MUST NOT HAPPEN EVER! "<<ia<<endl;
+		exit(-1);
+	      }
+
 	      hwidmap[hwid]=aa;
 	      // SH FIXME pgid is not an unique ID for 192 ladders
 	      //              pgidmap[pgid]=aa;
@@ -933,7 +940,13 @@ int TkDBc::read(const char* filename, int pri){
     if(fileout.eof()){ delete aa; break;}
     if(!fileout.good()) cerr <<" Error in TkDBc::read the channel is not good"<<endl;
     tkidmap[aa->GetTkId()]=aa;
-    tkidmap_fast[aa->GetTkId()+1000]=aa;
+    unsigned int ia=aa->GetTkId()+1000;
+    if(ia<sizeof(tkidmap_fast)/sizeof(tkidmap_fast[0]))
+      tkidmap_fast[ia]=aa;
+    else{
+      cerr<<"TkDBc::Fatal Error: tkidmap_fast out of bound array! THIS MUST NOT HAPPEN EVER! "<<ia<<endl;
+      exit(-1);
+    }
     hwidmap[aa->GetHwId()]=aa;
     string bb=aa->name;
     lnamemap[bb]=aa;
@@ -1549,7 +1562,14 @@ void TkDBc::RebuildMap()
     //    pgidmap      [pgid] = lad;
     lnamemap     [lnam] = lad;
     JMDCNumMap   [jmdc] = lad;
-    tkidmap_fast[lad->GetTkId()+1000] = lad;
+    unsigned int ia=lad->GetTkId()+1000;
+    if(ia<sizeof(tkidmap_fast)/sizeof(tkidmap_fast[0]))
+      tkidmap_fast[ia]=lad;
+    else{
+      cerr<<"TkDBc::Fatal Error: tkidmap_fast out of bound array! THIS MUST NOT HAPPEN EVER! "<<ia<<endl;
+      exit(-1);
+    }
+
   }
   // SH FIXME size of pgidmap is only 24
   cout << "TkDBc::Maps have been rebuilt: "
