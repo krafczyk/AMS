@@ -26,7 +26,7 @@ char AMSCommonsI::_version[]="v4.00";
 #else
 char AMSCommonsI::_version[]="v5.01";
 #endif
-uinteger AMSCommonsI::_build=933;
+uinteger AMSCommonsI::_build=934;
 uinteger AMSCommonsI::_buildtime=0;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
