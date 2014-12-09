@@ -1,4 +1,5 @@
 //  $Id$
+#include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
 #include <TFile.h>
@@ -184,6 +185,7 @@ int main(int argc, char *argv[]){
   //gVirtualX=new TGX11("X11","Root Interface to X11");
   //gGuiFactory=new TRootGuiFactory();
   //gDebug=2;
+  TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
   gGuiFactory=new TRootGuiFactory();  
   theApp->SetStatic();
@@ -202,8 +204,8 @@ int main(int argc, char *argv[]){
 
   char geoFile[256];
   strcpy(geoFile,geo_dir);
-  const char *geoFile_new  = "ams02.geom";
-  const char *geofile_perm = "ams02.pm.geom";
+  char *geoFile_new = "ams02.geom";
+  char *geofile_perm="ams02.pm.geom";
   cout <<" pchain->getsetup() "<<pchain->getsetup()<<endl; 
   if(!strcmp(pchain->getsetup(),"AMS02P")){
     strcat(geoFile,geofile_perm);
