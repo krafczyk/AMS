@@ -221,10 +221,10 @@ void MagField::Print(){
       for (int iz=0;iz<mm->nz();iz++)
 	
 	printf(" %2d %2d %2d X: %+6.1f Y: %+6.1f Z: %+6.1f BX: %+f BY: %+f BZ: %+f BdX0: %+f BdY0: %+f BdZ0: %+f BdX1: %+f BdY1: %+f BdZ1: %+f  \n",
-	       ix,iy,iz,mm->_x(ix),mm->_y(iy),mm->_z(iz),mm->_bx(iz,iy,ix),mm->_by(iz,iy,ix),mm->_bz(iz,iy,ix),
-	       mm->_bdx(0,iz,iy,ix),mm->_bdy(0,iz,iy,ix),mm->_bdz(0,iz,iy,ix),
-	       mm->_bdx(1,iz,iy,ix),mm->_bdy(1,iz,iy,ix),mm->_bdz(1,iz,iy,ix));
-  //	       mm->_bxc(iz,iy,ix),mm->_byc(iz,iy,ix),mm->_bzc(iz,iy,ix));
+	       ix,iy,iz,mm->_x(ix),mm->_y(iy),mm->_z(iz),mm->_bx(ix,iy,iz),mm->_by(ix,iy,iz),mm->_bz(ix,iy,iz),
+	       mm->_bdx(0,ix,iy,iz),mm->_bdy(0,ix,iy,iz),mm->_bdz(0,ix,iy,iz),
+	       mm->_bdx(1,ix,iy,iz),mm->_bdy(1,ix,iy,iz),mm->_bdz(1,ix,iy,iz));
+  //	       mm->_bxc(ix,iy,iz),mm->_byc(ix,iy,iz),mm->_bzc(ix,iy,iz));
 }
 
 
