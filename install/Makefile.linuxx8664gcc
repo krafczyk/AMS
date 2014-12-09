@@ -228,6 +228,14 @@ else
     CFLAGSDAQ    += -O2 
     FFLAGS       += -O3    
     FFLAGSn      += -O2  
+ifdef RELWITHDEBUGFLAG
+    CFLAGS       += -g -gdwarf-2
+    CFLAGSTOFSIM += -g -gdwarf-2
+    CFLAGSn      += -g -gdwarf-2
+    CFLAGSDAQ    += -g -gdwarf-2
+    FFLAGS       += -g -gdwarf-2
+    FFLAGSn      += -g -gdwarf-2
+endif
 endif
 
 SOFLAGS = -shared
@@ -320,6 +328,10 @@ CCC_ORBIT+= -g -gdwarf-2
 else
 CXX_ORBIT+= -O3
 CCC_ORBIT+= -O3
+ifdef RELWITHDEBUGFLAG
+CXX_ORBIT+= -g -gdwarf-2
+CCC_ORBIT+= -g -gdwarf-2
+endif
 endif
 
 

@@ -62,6 +62,10 @@ endif
 ifdef DEBUGFLAG
 RH9add+= -g -gdwarf-2
 endif
+ifdef RELWITHDEBUGFLAG
+RH9add+= -g -gdwarf-2
+endif
+
 ifdef AMSPARALLEL
   PARALLEL= -D__X8664__ -D__AMSPARALLEL__ -openmp 
 else
@@ -344,12 +348,20 @@ ifdef DEBUGFLAG
     FFLAGS       += -g -gdwarf-2     
     FFLAGSn      += -g -gdwarf-2    
 else
-    CFLAGS       += -O2      
+    CFLAGS       += -O2
     CFLAGSTOFSIM += -O1
-    CFLAGSn      += -O2    
-    CFLAGSDAQ    += -O2 
-    FFLAGS       += -O2    
-    FFLAGSn      += -O2  
+    CFLAGSn      += -O2
+    CFLAGSDAQ    += -O2
+    FFLAGS       += -O2
+    FFLAGSn      += -O2
+ifdef RELWITHDEBUGFLAG
+    CFLAGS       += -g -gdwarf-2
+    CFLAGSTOFSIM += -g -gdwarf-2
+    CFLAGSn      += -g -gdwarf-2
+    CFLAGSDAQ    += -g -gdwarf-2
+    FFLAGS       += -g -gdwarf-2
+    FFLAGSn      += -g -gdwarf-2
+endif
 endif
 
 
@@ -431,6 +443,10 @@ CCC_ORBIT+= -g -gdwarf-2
 else
 CXX_ORBIT+= -O3
 CCC_ORBIT+= -O3
+ifdef RELWITHDEBUGFLAG
+CXX_ORBIT+= -g -gdwarf-2
+CCC_ORBIT+= -g -gdwarf-2
+endif
 endif
 
 
