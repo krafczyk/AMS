@@ -5,7 +5,11 @@
 #
 #
 # verbose output
+ifdef  VERBOSE
+VERBOSE=1
+else
 VERBOSE=0
+endif
 AT_0:=@
 AT_1:=
 AT=$(AT_$(VERBOSE))
