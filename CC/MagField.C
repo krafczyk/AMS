@@ -92,6 +92,7 @@ int MagField::Read(const char *fname)
   if(na[0]/10000){ na[0]=na[0]%10000; type=1;printf(" 1st Octant ");}
   else printf(" Full ");
   printf(" and Size %d %d %d\n",na[0],na[1],na[2]);
+  if (mm) delete mm;
   mm= new magserv(na[0],na[1],na[2],type);
 
   return   mm->Read(fname,_header_size);
