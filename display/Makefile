@@ -163,7 +163,7 @@ else
 LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft.32/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 endif
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lASImage -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT) 
 ifndef NOCASTOR
 ROOTLIBS += -lRCastor
 endif
@@ -246,7 +246,7 @@ endif
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS  =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS  =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lASImage -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
 ifndef NOCASTOR
 ROOTLIBS += -lRCastor
 endif
@@ -263,7 +263,7 @@ ROOTLIBSA += -lncurses $(LFORT)
 #LIBS          =   -Bstatic $(ROOTLIBSA)  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm   -Bdynamic -ldl 
 LIBS          =   -Bstatic $(ROOTLIBSA) $(LZMAL)  -lm   $(XRDLIBP) $(XRDLIB) -Bdynamic    -lshift -ldl 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm  $(XRDLIBP) $(XRDLIB) -ldl 
-LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  -ljpeg -lpng  $(XRDLIBP) $(XRDLIB)
+LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  -ljpeg -lpng  $(XRDLIBP) $(XRDLIB) 
 
 endif
 
@@ -287,7 +287,7 @@ LDD	= 	$(LD)
 
 
 ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lASImage -lXMLIO -lMLP -lTreePlayer
 ifndef NOCASTOR
 ROOTLIBSA += -lRCastor
 ROOTLIBS += -lRCastor
@@ -322,7 +322,7 @@ LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft.32/linux_slc5_gcc32/2005/lib -lgeant
 endif
 
 
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lASImage -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
 ifndef NOCASTOR
 ROOTLIBS += -lRCastor
 endif
@@ -378,7 +378,7 @@ else
   LFORT =  -L$(CERNDIRLIB) -lgeant321 -lpacklib -lmathlib -lkernlib  -lgfortran
 endif
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lTMVA -lASImage -lXMLIO -lMLP -lTreePlayer -lGX11 -lGX11TTF $(CASTORLIB) $(LFORT)
 ifndef NOCASTOR
 ROOTLIBS += -lRCastor
 endif
