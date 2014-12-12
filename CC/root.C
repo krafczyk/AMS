@@ -9322,7 +9322,9 @@ void AMSEventR::Begin(TTree *tree){
       sprintf(dir,"thread_%d",thr);
       if(fgThickMemory)Dir=dir;
 #ifdef _PGTRACK_
+      int magtemp_save = TRFITFFKEY.magtemp;
          TRFITFFKEY.init();
+	 TRFITFFKEY.magtemp = magtemp_save;
 #endif
       UBegin();
       pService=&fService; 
@@ -14672,20 +14674,29 @@ return ret;
 #include "bcorr.h"
 
 int AMSEventR::DumpTrTrackPar(int run, int event, int itrack, int refit1,
-			      int refit2, int ichrg, const char *path)
+			      int refit2, int ichrg, int bcorr,
+			      const char *path)
 {
   TString xrd = "root://eosams.cern.ch/";
   TString eos = "/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select";
 
-  static AMSChain ach;
+  static AMSChain *ach = 0;
   static int srun = 0;
 
-  TString sph = path;
+  static TString sph;
+  if (sph == "") sph = path;
+  if (sph != path) { 
+    sph = path; srun = 0;
+    delete ach; ach = 0;
+    AMSEventR::Head() = 0; 
+  }
+
+  if (!ach) ach = new AMSChain;
 
   if (run != srun) {
    if (sph.EndsWith(".root")) {
-     ach.Reset();
-     ach.Add(sph);
+     ach->Reset();
+     ach->Add(sph);
    }
    else {
     TString str;
@@ -14708,13 +14719,13 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack, int refit1,
     cout << "AMSEventR::DumpTrTrackPar-I-Number of files found: "
 	 << sar->GetEntries() << endl;
 
-    ach.Reset();
+    ach->Reset();
     for (int i = 0; i < sar->GetEntries(); i++)
-      ach.Add(srr+sar->At(i)->GetName());
+      ach->Add(srr+sar->At(i)->GetName());
     delete sar;
    }
-    int ntr = ach.GetNtrees();
-    int nen = ach.GetEntries();
+    int ntr = ach->GetNtrees();
+    int nen = ach->GetEntries();
     if (ntr <= 0 || nen <= 0) {
       cout << "AMSEventR::DumpTrTrackPar-E-Invalid Ntrees,Entreis: "
 	   << ntr << " " << nen << endl;
@@ -14723,13 +14734,16 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack, int refit1,
     srun = run;
    }
 
+  TRFITFFKEY_DEF::ReadFromFile = 0;
+  TRFITFFKEY.magtemp = bcorr;
+
   int ntry =  0;
   int eofs = -1;
-  AMSEventR *evt = ach.GetEvent(0);
+  AMSEventR *evt = ach->GetEvent(0);
   eofs = -evt->Event();
 
   while ((!evt || int(evt->Event()) != event) && ntry++ < 5) {
-    evt   = ach.GetEvent(event+eofs);
+    evt   = ach->GetEvent(event+eofs);
     eofs -= evt->Event()-event;
   }
 
