@@ -4838,8 +4838,16 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
 #ifdef __ROOTSHAREDLIBRARY__
   /*!
    *! Dump TrTrack variables with the current alignment settings
+   * @param[in]  run       Run number
+   * @param[in]  event     Event number
+   * @param[in]  itrtrack  TrTrack index in AMSEventR::pTrTrack
+   * @param[in]  refit1    Refit mode for the first  fit (typically inner)
+   * @param[in]  refit2    Refit mode for the second fit (typically full span)
+   * @param[in]  ichrg     Charge assumption (1:p 2:He,...) for resolution
+   * @param[in]  magtemp   Magnet temperature correction during the fitting
+   * @param[in]  path      Search path to look for run and event
    */
-  static int DumpTrTrackPar(int run, int event, int itrack = 0, int refit1 = 3, int refit2 = 23, int ichrg = 1,
+  static int DumpTrTrackPar(int run, int event, int itrack = 0, int refit1 = 3, int refit2 = 23, int ichrg = 1, int magtemp = 0,
 			    const char *path = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4/");
 #endif
   /*!
