@@ -415,8 +415,9 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 	Sofs2[1+6]=60e-4;
 	Sofs2[1+10]=0;
       }
-    }
 #endif
+    }
+
 
 
     if (TkLadder::version == 3) ll[7]+=Sofs[i+2];
