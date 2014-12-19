@@ -254,6 +254,7 @@ static int Version; ///< RTI Version id
   2:  2013-12 B700         \n
   3:  2014-03 B620 latest  \n 
   503:2014-03 B800(p5) latest \n
+  513:2014-12 B800(p5) std latest (TTCS study) \n
 */
 static int Loadopt;//< load option
 /// use latest RTI Version
