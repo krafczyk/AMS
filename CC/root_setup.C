@@ -1397,9 +1397,15 @@ double AMSSetupR::RTI::gettime(int itm, int iev){
 }
 
 float AMSSetupR::RTI::getthetam(){
-  
+
    double deg2rad = TMath::DegToRad();
    time_t Utime =utime;
+   static time_t prtime=0;
+   static float  prthetam=1000;
+   if(Utime==prtime){
+     return prthetam;
+   }
+   prtime=Utime;
         //...km
         double Re =  6371.2; //km Earth radius
         double Altitude = r/1.e5-Re;
@@ -1411,7 +1417,7 @@ float AMSSetupR::RTI::getthetam(){
         float thetaM = GM_GetThetaM(Utime, Altitude, ThetaISS, PhiISS);
         //--opposite sign and deg-->rad:
         thetaM= thetaM*(-1)*deg2rad;
-
+      prthetam=thetaM;
       return thetaM;
 }
 
@@ -1487,23 +1493,37 @@ TGraph *AMSSetupR::RTI::GetSAAedge()
 
 bool AMSSetupR::RTI::IsInSAA()
 {
+        static float prtheta=1000,prphi=1000;
+        static bool prisinsaa=0; 
+        if(theta==prtheta&&phi==prphi){
+           return prisinsaa;
+        } 
+        prtheta=theta; prphi=phi;
+       
 	AMSSetupR::RTI::GetSAAedge();
 
 	float rtiLong = phi*TMath::RadToDeg();
 	float rtiLat  = theta*TMath::RadToDeg();
-
+  
 	while (rtiLong > 180.0f) rtiLong-=360.0f;
-
-	if( AMSSetupR::RTI::SAAedge->IsInside(rtiLong,rtiLat) )
-		return true;
-
-	return false;
+        
+	if( AMSSetupR::RTI::SAAedge->IsInside(rtiLong,rtiLat) ){
+            prisinsaa=1;
+        }
+        else prisinsaa=0;
+	return prisinsaa;
 }
 
 float AMSSetupR::RTI::getphim(){
 
    double deg2rad = TMath::DegToRad();
    time_t Utime =utime;
+   static time_t prtime=0;
+   static float  prphim=1000;
+   if(Utime==prtime){
+     return prphim;
+   }
+   prtime=Utime;
         //...km
         double Re =  6371.2; //km Earth radius
         double Altitude = r/1.e5-Re;
@@ -1515,7 +1535,7 @@ float AMSSetupR::RTI::getphim(){
         float phiM = GM_GetPhiM(Utime, Altitude, ThetaISS, PhiISS);
         //--opposite sign and deg-->rad:
         phiM= phiM*(-1)*deg2rad;
-
+      prphim=phiM;
       return phiM;
 }
 
@@ -1555,8 +1575,10 @@ else{
  bool isnewv2  =((t1>=1374268537)||(RTI::Version>=2));
  bool isnewv3  =((t2>1385484728) ||(RTI::Version>=3));
  bool isnewv3p5=((t2>1385484728) ||(RTI::Version>=503));
+ bool isnewv3p5t=((t2>1385484728) && (RTI::Version>=513)); 
 // bool isnewv3=(RTI::Version>=3);
- if     (isnewv3p5)AMSISSlocal+="V3_20140324_P5/";
+ if     (isnewv3p5t)AMSISSlocal+="V3_20140324_P5T/";
+ else if(isnewv3p5)AMSISSlocal+="V3_20140324_P5/";
  else if(isnewv3)  AMSISSlocal+="V3_20140324/";
  else if(isnewv2)  AMSISSlocal+="V2_20131220/";
  else if(isnewv )  AMSISSlocal+="V1_20130802/";
