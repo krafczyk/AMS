@@ -100,6 +100,13 @@ ifndef INTELVER
   endif
 endif
 
+ifndef IFORTDIR
+  IFORTDIR=$(INTELDIR)
+endif
+
+ifndef IFORTVER
+  IFORTVER=$(INTELVER)
+endif
 
 ########################################################################
 # Compiler flags
@@ -149,6 +156,32 @@ ifeq ("$(INTELBIN)", "")
 endif
 
 ########################################################################
+# Try to find IFORTBIN
+########################################################################
+
+ifeq ("$(IFORTBIN)", "")
+  ifneq ("$(wildcard $(IFORTDIR)/$(IFORTVER)/compiler/bin/intel64/ifort)","")
+    IFORTBIN = $(IFORTDIR)/$(IFORTVER)/compiler/bin/intel64
+  endif
+endif
+
+ifeq ("$(IFORTBIN)", "")
+  ifneq ("$(wildcard $(IFORTDIR)/$(IFORTVER)/bin/intel64/ifort)","")
+    IFORTBIN = $(IFORTDIR)/$(IFORTVER)/bin/intel64
+  endif
+endif
+
+ifeq ("$(IFORTBIN)", "")
+  ifneq ("$(wildcard $(IFORTDIR)/$(IFORTVER)/bin/ifort)","")
+    IFORTBIN = $(IFORTDIR)/$(IFORTVER)/bin
+  endif
+endif
+
+ifeq ("$(IFORTBIN)", "")
+  $(error Could not find intel fortran compiler!)
+endif
+
+########################################################################
 # Try to find INTELLIB
 ########################################################################
 
@@ -178,7 +211,7 @@ endif
 # Setup compiler variables
 ########################################################################
 
-FF=$(INTELBIN)/ifort -W0  $(INTELOPT)  -diag-disable cpu-dispatch $(PARALLEL)
+FF=$(IFORTBIN)/ifort -W0  $(INTELOPT)  -diag-disable cpu-dispatch $(PARALLEL)
 CXX=$(INTELBIN)/icc  $(INTELOPT) $(CXXSTD) -diag-disable cpu-dispatch $(PARALLEL)
 CC=$(INTELBIN)/icc   $(INTELOPT) $(PARALLEL)
 LD=$(INTELBIN)/icpc  $(INTELOPT)  $(PARALLEL)
