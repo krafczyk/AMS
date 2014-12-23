@@ -346,6 +346,7 @@ else
   CPPFLAGS+= -D__LINUXGNU__
 endif
 endif
+
 ifeq ($(ARCH),linuxx8664gcc)
 
 ifeq ($(VERSION),5.34)
@@ -358,16 +359,16 @@ endif
 
 endif
 
-CXX           =  g++ 
+CXX           =  g++
 CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 NOOPT         = -g
 
-LD            = g++ 
+LD            = g++
 LDFLAGS       = -g
 LDS	= 	$(LD) -static
-LD            = g++ 
+LD            = g++
 LDFLAGS       = -g
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
@@ -393,7 +394,7 @@ endif
 ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage  -lpcre $(LZMAL) -lcrypto  -lncurses \
 	             $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lexpat -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
                  -lXpm -lXmu -lXt -lXext -lX11 $(LIBJPEGFLAG) -ljpeg -lpng -ltiff    $(LFORT)
-LIBS          =  -Bstatic $(ROOTLIBSA)    $(XRDLIBP) $(XRDLIB) -lm -Bdynamic    -lshift  -ldl
+LIBS          =  -Wl,--allow-multiple-definition -Bstatic $(ROOTLIBSA)    $(XRDLIBP) $(XRDLIB) -lm -Bdynamic    -lshift  -ldl
 
 LIBSA         =  $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm      $(XRDLIBP) $(XRDLIB) -ldl 
 LIBSD         =  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)/ -l$(AMSLIB) $(ROOTLIBS)  $(LIBJPEGFLAG) -ljpeg -lpng $(XRDLIBP) $(XRDLIB)
