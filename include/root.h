@@ -4754,7 +4754,7 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
 //--------------------------------------------------------------------------------------------------
 ///
        //! Return status of AMS Exposure-Time for each second
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem(please not use this second for Flux Cal)
        */  
        int GetRTIStat();
@@ -4765,21 +4765,29 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
        */
        int RecordRTIRun();
        //! get AMS Exposure-Time RTI information for each second
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem 
        */ 
        int GetRTI(AMSSetupR::RTI & a);
        //!  AMS Exposure-Time RTI for each second off-rootfile mode
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem 
            \param[in] xtime JMDC Time
        */
        static int GetRTI(AMSSetupR::RTI & a, unsigned int  xtime);
-       //!  get AMS Run Begin and End Time from RTI according to run id
+       //!  AMS Exposure-Time RTI for each second by UTC Time(instead of JMDC Time),not recommended for Exposure-Time calculation
+       /*! return 0: if success
+          !=0: RIT second has problem 
+          \param[in] xtime UTC Time
+        */
+       static int GetRTIUTC(AMSSetupR::RTI & a, unsigned int  xtime);
+       //!  get AMS Run Begin and End Time from RTI according to run id(with and without event id)
        /*    \param[in]  runid: run id
              \param[out] time[0]: Run Begin Time, time[1]: Run End Time; JMDC Time
+             \param[in]  begev: begin event id
+             \param[in]  endev: end   event id
        */
-       static int GetRTIRunTime(unsigned int runid,unsigned int time[2]);
+       static int GetRTIRunTime(unsigned int runid,unsigned int time[2],int begev=-1,int endev=-1);
        //!  get  difference(um) bewteen PG ad CIEMAT alignment of L1(L9)(XYZ)  in choosen time window
        /*    \param[in]  extlay: Track External Layer: 0-L1, 1-L9
              \param[out] nxyz:  Events number with X(YZ) Hit

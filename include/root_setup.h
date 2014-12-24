@@ -215,7 +215,7 @@ float cfi[4][2]; ///< max IGRF cutoff for 25,30,35,40 degrees (gv) for neg+pos
 float mphe;   ///< most probable He rigidity;
 float theta;  ///< theta gtod (rad)
 float phi;    ///< phi gtod (rad)
-float r;      ///< rad (cm)
+float r;      ///< rad gtod (cm)
 float zenith; ///< ams zenith angle (degrees)
 float glat;   ///< ams pointing galatic latitude (degrees) -1 faild
 float glong;  ///< ams pointing galatic longitude (degrees) -1 faild
@@ -245,8 +245,8 @@ double utctime[2];   ///< UTC time for first and last event
  * @param[in] iev  0: first event, 1: last event
  */
 double gettime(int itm=0, int iev=0); 
-float  getthetam(); ///< PhiM (degrees)
-float  getphim();   ///< ThetaM(degrees)
+float  getthetam(); ///< PhiM (rad)
+float  getphim();   ///< ThetaM(rad)
 static int Version; ///< RTI Version id
 /*!< 
   0:  2013-01 B620 default \n
@@ -272,7 +272,7 @@ static int UseLatest();
         utctime[0]=utctime[1]=0;
    }
  virtual ~RTI() { }
-ClassDef(RTI,8)
+ClassDef(RTI,9)
 };
 
 
@@ -286,14 +286,16 @@ class RunI{
  public: 
   unsigned int run;///< run
   unsigned int bt; ///< begin time of this run, JMDC Time
-  unsigned int et; ///< end time of this run, JMDC Time
+  unsigned int et; ///< end   time of this run, JMDC Time
+  unsigned int begev; ///< begin event id of this run
+  unsigned int endev; ///< end   event id of this run
   vector<string>fname;///< root file name
   virtual ~RunI() {}
-  RunI():run(0),bt(0),et(0){}
-  RunI(unsigned int _run,unsigned int _bt, unsigned int _et, string _fn):run(_run),bt(_bt),et(_et){
+  RunI():run(0),bt(0),et(0),begev(0),endev(0){}
+  RunI(unsigned int _run,unsigned int _bt, unsigned int _et,unsigned int _begev, unsigned int _endev, string _fn):run(_run),bt(_bt),et(_et),begev(_begev),endev(_endev){
     fname.push_back(_fn);
   }
-  ClassDef(RunI,1)
+  ClassDef(RunI,2)
 };
 
 

@@ -10729,10 +10729,13 @@ int AMSEventR::RecordRTIRun(){
 //----Find rootfile
   unsigned int nt=fHeader.Time[0];
   unsigned int nr=fHeader.Run;
+  unsigned int evno=fHeader.Event;
   string nf=Tree()->GetCurrentFile()->GetName();
   if(nf==pf){
      if(nt<fRunList[nr].bt)fRunList[nr].bt=nt;
      if(nt>fRunList[nr].et)fRunList[nr].et=nt;
+     if(evno<fRunList[nr].begev)fRunList[nr].begev=evno;
+     if(evno>fRunList[nr].endev)fRunList[nr].endev=evno;
      return 2;//exist
   }
 
@@ -10740,12 +10743,14 @@ int AMSEventR::RecordRTIRun(){
 //----  
   map<unsigned int,AMSSetupR::RunI>::iterator it=fRunList.find(nr);
   if(it==fRunList.end()){//Find Run
-     fRunList.insert(make_pair(nr,AMSSetupR::RunI(nr,nt,nt,nf)));
+     fRunList.insert(make_pair(nr,AMSSetupR::RunI(nr,nt,nt,evno,evno,nf)));
      return 0;//new run
   }
   else {//Exist Run Check File
     if(nt<fRunList[nr].bt)fRunList[nr].bt=nt;
     if(nt>fRunList[nr].et)fRunList[nr].et=nt;
+    if(evno<fRunList[nr].begev)fRunList[nr].begev=evno;
+    if(evno>fRunList[nr].endev)fRunList[nr].endev=evno;
     for(unsigned int ifn=0;ifn<fRunList[nr].fname.size();ifn++){
       if(fRunList[nr].fname.at(ifn)==nf)return 2;//exist
     }
@@ -10793,25 +10798,67 @@ if(AMSSetupR::RTI::Version!=vrti){
   return 2;
 }
 
+int AMSEventR::GetRTIUTC(AMSSetupR::RTI & a, unsigned int  xtime){
 
-int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2]){
+#ifdef __ROOTSHAREDLIBRARY__
+  static AMSSetupR::RTI_m fRTIUTC;
+  static unsigned int stime[2]={1,1};
+  const int pt=3600*3;
+  const int dt=3600*24;
+  const int mt=3600;//max margin between JMDCTime and UTCTime
+ if(stime[0]==1||xtime>stime[1]||xtime<stime[0]){
+    stime[0]=(xtime<=pt)?1:xtime-pt;
+    stime[1]=xtime+dt;
+    fRTIUTC.clear();
+    AMSSetupR::RTI a;
+    unsigned int utc=1;
+    for(unsigned int t=stime[0];t<=stime[1];t++){
+      if(GetRTI(a,t)!=0)continue; 
+      if(int(a.utctime[0])<=utc)continue;
+      utc=int(a.utctime[0]);
+      fRTIUTC.insert(make_pair(utc,a));
+    }
+    stime[0]+=mt;
+    stime[1]-=mt;
+ }
+//---Status 
+  AMSSetupR::RTI b;
+  a=b;
+  AMSSetupR::RTI_i k=fRTIUTC.lower_bound(xtime);
+  if (fRTIUTC.size()==0)return 2;
+  if(k==fRTIUTC.end())return 1;
+
+  if(xtime==k->first){//find
+    a=(k->second);
+    return 0;
+  }
+#endif
+  return 2;  
+}
+
+int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2],int begev,int endev){
 
   const unsigned int pt=1000;//Run window Pr
   const unsigned int dt=3600;//Run window Af 1~hour 20min
   unsigned int bt=(runid<=pt)?1:runid-pt;
   unsigned int et=runid+dt;
   time[0]=time[1]=runid;//Not Found
-
 //----Find BT
   AMSSetupR::RTI a;
   for(unsigned int t=bt;t<=et;t++){      
-     if(GetRTI(a,t)!=0)continue; 
-     if(a.run==runid){time[0]=t;break;}
+     if(GetRTI(a,t)!=0)continue;
+     if(a.run==runid){
+       bool evok=((endev<=0||begev>endev)||(a.evnol>=begev));
+       if(evok){time[0]=t;break;}
+     }
   }
 //---Find ET
   for(unsigned int t=et;t>=bt;t--){
      if(GetRTI(a,t)!=0)continue;
-     if(a.run==runid){time[1]=t;break;}
+     if(a.run==runid){
+       bool evok=((endev<=0||begev>endev)||(a.evno<=endev));
+       if(evok){time[1]=t;break;}
+     }
   }
 
 //--Result
