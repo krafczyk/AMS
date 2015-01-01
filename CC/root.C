@@ -14269,7 +14269,7 @@ if (newtrack) {
   Phi=dtrk.getphi();
 
   for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0()[k];
-  Loc2Gl(AMSEventR::Head());
+  if (AMSEventR::Head() && !AMSEventR::Head()->pMCEventg(0)) Loc2Gl(AMSEventR::Head());
   for(unsigned int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
    AMSPoint pnt;
    AMSDir dir;
