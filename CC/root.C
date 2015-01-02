@@ -19,6 +19,9 @@
 #ifdef _PGTRACK_
 #include "TrExtAlignDB.h"
 #include "TrInnerDzDB.h"
+#ifdef __ROOTSHAREDLIBRARY__
+#include "TrRecon.h"
+#endif
 #endif
 #include "timeid.h"
 #include "commonsi.h"
@@ -2577,6 +2580,17 @@ bool AMSEventR::ReadHeader(int entry){
 	fHeader.BetaHs = NBetaH();
       }
     }
+#ifdef __ROOTSHAREDLIBRARY__
+    // Workaround to fix FS-XY hit efficiency
+    if(Version()==935 && AMSEventR::Head()->nMCEventgC()) {
+      static int nerr = 0;
+      TrRecon rec;
+      int nr = rec.RecoverExtHits();
+      if (nr > 0 && nerr++ < 10)
+	cout << "AMSEvent::ReadHeader-I-RecoverExtHits recovered at "
+	     << Event() << " " << nr << endl;
+    }
+#endif
 #endif
     if(Version()<160){
       // Fix rich rings

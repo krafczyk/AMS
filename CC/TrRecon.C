@@ -4407,6 +4407,90 @@ double TrRecon::FitVtx(int n1, double *x1, double *y1,
   return chisq;
 }
 
+int TrRecon::RecoverExtHits()
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  AMSEventR *ev = AMSEventR::Head();
+  if (!ev) return -1;
+  if (!ev->pParticle(0) || !ev->pParticle(0)->pTrTrack()) return 0;
+
+  TrTrackR *trk = ev->pParticle(0)->pTrTrack();
+  if (trk->HasExtLayers() == 0 || 
+     (trk->GetBitPatternXY()&0x180) == 3) return 0;
+
+  int DEBUG = 0;
+
+  vector<TrRawClusterR> &vr = ev->TrRawCluster();
+  vr.clear();
+  TrSim::sitkdigi();
+
+  int nr = 0;
+  for (vector<TrRawClusterR>::iterator i = vr.begin(); i != vr.end();) {
+    if (i->GetLayer() < 8 || i->GetSide() != 0) i = vr.erase(i);
+    else { ++i; nr++; }
+  }
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-nraw= " << nr << endl;
+  if (nr == 0) return 0;
+
+  vector<TrClusterR> &vc = ev->TrCluster();
+  vector<TrRecHitR>  &vh = ev->TrRecHit();
+  vector<TrClusterR>::iterator i0 = vc.end(); --i0;
+
+  BuildTrClusters(0);
+  ++i0;
+
+  int nh0 = ev->nTrRecHit();
+
+  for (vector<TrClusterR>::iterator i = i0; i != vc.end();) {
+    int tk = i->GetTkId();
+    int a1 = i->GetAddress(0), a2 = i->GetAddress(i->GetNelem()-1);
+    for (vector<TrRecHitR>::iterator j = vh.begin(); j != vh.end(); ++j)
+      if (!j->OnlyY() && j->GetTkId() == tk) {
+	TrClusterR *xc = j->GetXCluster();
+	if (xc && a1 <= xc->GetAddress(xc->GetNelem()-1) &&
+	                xc->GetAddress(0) <= a2) {
+	  i = vc.erase(i); tk = 0; break;
+	}
+      }
+    if (tk == 0) continue;
+
+    for (vector<TrClusterR>::iterator j = vc.begin(); j != i0; ++j) {
+      if (j->GetTkId() == tk && j->GetSide() == 1) {
+	TrRecHitR hit(tk, &(*i), &(*j), 0);
+	float prob = hit.GetCorrelationProb();
+        if (prob > TRCLFFKEY.CorrelationProbThr) vh.push_back(hit);
+      }
+    }
+    ++i;
+  }
+
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-nhit= " 
+		  << vh.size() << " " << nh0 << endl;
+
+  if (vh.size() == nh0) return 0;
+
+  int nm = 0;
+  for (int i = 0; i < ev->nTrTrack(); i++) {
+    TrTrackR *trk = ev->pTrTrack(i);
+    int bx0 = (trk->GetBitPatternXY()&0x180)>>7;
+
+    TrRecHitR *h1 = trk->GetHitLJ(1); if (h1) h1->ClearUsed();
+    TrRecHitR *h9 = trk->GetHitLJ(9); if (h9) h9->ClearUsed();
+
+    MergeExtHits(trk, trk->Gettrdefaultfit());
+    int bx1 = (trk->GetBitPatternXY()&0x180)>>7;
+
+    if (bx1 > bx0) nm++;
+
+    if (DEBUG) cout << "TrRecon::RecoverExtHits-I-bx= " 
+		    << bx0 << " " << bx1 << endl;
+  }
+
+  return nm;
+
+#endif
+  return 0;
+}
 
 void TrRecon::PurgeGhostHits()
 {
