@@ -4434,12 +4434,17 @@ int TrRecon::RecoverExtHits()
 
   vector<TrClusterR> &vc = ev->TrCluster();
   vector<TrRecHitR>  &vh = ev->TrRecHit();
-  vector<TrClusterR>::iterator i0 = vc.end(); --i0;
+  int nc0 = ev->nTrCluster();
+  int nh0 = ev->nTrRecHit();
 
   BuildTrClusters(0);
-  ++i0;
 
-  int nh0 = ev->nTrRecHit();
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-ncls= "
+		  << ev->NTrCluster() << " " << nc0 << endl;
+  if (ev->NTrCluster() <= nc0) return 0;
+
+  vector<TrClusterR>::iterator i0 = vc.begin();
+  advance(i0, nc0);
 
   for (vector<TrClusterR>::iterator i = i0; i != vc.end();) {
     int tk = i->GetTkId();
