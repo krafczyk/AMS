@@ -2586,6 +2586,8 @@ bool AMSEventR::ReadHeader(int entry){
       static int nerr = 0;
       TrRecon rec;
       int nr = rec.RecoverExtHits();
+      fHeader.TrClusters = NTrCluster();
+      fHeader.TrRecHits  = NTrRecHit();
       if (nr > 0 && nerr++ < 10)
 	cout << "AMSEvent::ReadHeader-I-RecoverExtHits recovered at "
 	     << Event() << " " << nr << endl;
