@@ -4418,11 +4418,14 @@ int TrRecon::RecoverExtHits()
   if (trk->HasExtLayers() == 0 || 
      (trk->GetBitPatternXY()&0x180) == 3) return 0;
 
-  int DEBUG = 0;
+  int DEBUG = TrDEBUG;
 
   vector<TrRawClusterR> &vr = ev->TrRawCluster();
   vr.clear();
+
+  int ntyp = TRMCFFKEY.NoiseType; TRMCFFKEY.NoiseType = 0;
   TrSim::sitkdigi();
+  TRMCFFKEY.NoiseType = ntyp;
 
   int nr = 0;
   for (vector<TrRawClusterR>::iterator i = vr.begin(); i != vr.end();) {
@@ -4437,6 +4440,10 @@ int TrRecon::RecoverExtHits()
   int nc0 = ev->nTrCluster();
   int nh0 = ev->nTrRecHit();
 
+  FillChargeSeeds();
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-htm= "
+		  << sqrt(_htmx) << " " << sqrt(_htmy) << endl;
+
   BuildTrClusters(0);
 
   if (DEBUG) cout << "TrRecon::RecoverExtHits-I-ncls= "
@@ -4447,6 +4454,9 @@ int TrRecon::RecoverExtHits()
   advance(i0, nc0);
 
   for (vector<TrClusterR>::iterator i = i0; i != vc.end();) {
+    if (i->GetTotSignal() < 100 ||  // Small tuning
+	(TRCLFFKEY.ChargeSeedTagActive && 
+	 !CompatibilityWithChargeSeed(&*i))) { i = vc.erase(i); continue; }
     int tk = i->GetTkId();
     int a1 = i->GetAddress(0), a2 = i->GetAddress(i->GetNelem()-1);
     for (vector<TrRecHitR>::iterator j = vh.begin(); j != vh.end(); ++j)
@@ -4463,7 +4473,16 @@ int TrRecon::RecoverExtHits()
       if (j->GetTkId() == tk && j->GetSide() == 1) {
 	TrRecHitR hit(tk, &(*i), &(*j), 0);
 	float prob = hit.GetCorrelationProb();
-        if (prob > TRCLFFKEY.CorrelationProbThr) vh.push_back(hit);
+	if (DEBUG >= 2)
+	  cout << Form("hit %4d %5.3f %d %5.1f %5.1f", tk, prob,
+		       CompatibilityWithChargeSeed(&hit),
+		       i->GetTotSignal(), j->GetTotSignal()) << endl;
+        if (prob > TRCLFFKEY.CorrelationProbThr && 
+	    (TRCLFFKEY.ChargeSeedTagActive == 0 ||
+	     CompatibilityWithChargeSeed(&hit))) {
+	      hit.setstatus(TrRecHitR::ZSEED);
+	      vh.push_back(hit);
+	}
       }
     }
     ++i;
@@ -4479,16 +4498,30 @@ int TrRecon::RecoverExtHits()
     TrTrackR *trk = ev->pTrTrack(i);
     int bx0 = (trk->GetBitPatternXY()&0x180)>>7;
 
-    TrRecHitR *h1 = trk->GetHitLJ(1); if (h1) h1->ClearUsed();
-    TrRecHitR *h9 = trk->GetHitLJ(9); if (h9) h9->ClearUsed();
+    int ifit = TrTrackR::DefaultFitID;
+    if (trk->ParExists(ifit)) {
+      TrRecHitR *h1 = trk->GetHitLJ(1); if (h1) h1->ClearUsed();
+      TrRecHitR *h9 = trk->GetHitLJ(9); if (h9) h9->ClearUsed();
+      MergeExtHits(trk, ifit, TrRecHitR::ZSEED);
+    }
 
-    MergeExtHits(trk, trk->Gettrdefaultfit());
     int bx1 = (trk->GetBitPatternXY()&0x180)>>7;
-
     if (bx1 > bx0) nm++;
 
     if (DEBUG) cout << "TrRecon::RecoverExtHits-I-bx= " 
 		    << bx0 << " " << bx1 << endl;
+
+    if (bx1 == 3) {
+      TrRecHitR *h1 = trk->GetHitLJ(1);
+      TrRecHitR *h9 = trk->GetHitLJ(9);
+      if (DEBUG) cout << "TrRecon::RecoverExtHits-I-qq= " 
+		      << ev->Event() << " "
+		      << bx0 << " " << bx1 << " "
+		      << h1->GetXCluster()->GetTotSignal() << " "
+		      << h9->GetXCluster()->GetTotSignal() << " "
+		      << h1->GetCorrelationProb() << " "
+		      << h9->GetCorrelationProb() << endl;
+    }
   }
 
   return nm;
