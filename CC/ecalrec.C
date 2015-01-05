@@ -31,7 +31,6 @@
 #define __DARWIN__
 #endif
 
-using namespace std;
 using namespace ecalconst;
 //
 uinteger AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Axis.cxx,v 1.1 2003/07/08 16:20:38 choutko Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -15,7 +15,7 @@
 
 
 //_____________________________________________________________________________
-AMSR_Axis::AMSR_Axis(Float_t x, Float_t y, Float_t z, char * title) 
+AMSR_Axis::AMSR_Axis(Float_t x, Float_t y, Float_t z, const char * title)
      : TPolyLine3D(2)
 {
    //
@@ -38,7 +38,7 @@ AMSR_Axis::AMSR_Axis(Float_t x, Float_t y, Float_t z, char * title)
 
 
 //_____________________________________________________________________________
-AMSR_Axis::AMSR_Axis(Float_t end[3], char * title) 
+AMSR_Axis::AMSR_Axis(Float_t end[3], const char * title)
      : TPolyLine3D(2)
 {
    Float_t p[6];

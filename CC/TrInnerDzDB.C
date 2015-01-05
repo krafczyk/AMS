@@ -72,6 +72,13 @@ int TrInnerDzDB::GetEntry(uint Timeid, float* Dz, int kind){
   return 0;
 }
 
+const char *TrInnerDzDB::GetTDVName()
+{
+  static TString stn;
+  stn = "TrInnerDzAlign";
+  if (version >= 2) stn += Form("%d", version);
+  return stn.Data();
+}
 
 int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
   time_t starttime=0;

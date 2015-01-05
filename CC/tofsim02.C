@@ -25,7 +25,6 @@
 #include "root.h"
 #include "ntuple.h"
 //
-using namespace std;
 //
 TOFWScan TOFWScan::scmcscan[TOF2GC::SCBTPN];
 //

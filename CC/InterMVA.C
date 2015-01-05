@@ -49,7 +49,6 @@
 //some constants
 #include "constants.h"
 
-using namespace std;
 
 InterMVA::InterMVA(string cfile) {
 fmva=0;

@@ -27,7 +27,6 @@
 #define VERBOSE 0
 #define WARNING 0
 
-using namespace std;
 
 class TrSimCluster {
 

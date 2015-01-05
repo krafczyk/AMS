@@ -288,7 +288,6 @@ void TrCalDB::updtrcalib2009S(integer n, int16u* p){return;}
 #include "job.h"
 #include "event.h"
 
-using namespace std;
 
 int  TrCalDB::SaveCal2DB(){
 

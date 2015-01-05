@@ -33,7 +33,6 @@
 #include <math.h>
 #include "point.h"
 
-using namespace std;
 
 int get_ams_ra_dec_fromGTOD_ref(double AMS_x, double AMS_y,double AMS_z, double &ra, double &dec, double PosISS[3], double VelISS[2], double ypr[3], double xtime);
 

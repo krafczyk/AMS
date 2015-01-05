@@ -22,7 +22,6 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
 
-using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
 int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;
@@ -392,6 +391,7 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     if(TkLadder::version >= 4 && 
        strcmp("DynAlignmentV5T290713PM5",DynAlManager::tdvdb->getname())==0){
      
+#ifdef _CUSTOM_SOFS2_
       if(run>0){
 	Sofs2[0+2]=3.7e-4;
 	Sofs2[0+6]=51e-4;
@@ -415,8 +415,8 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 	Sofs2[1+6]=60e-4;
 	Sofs2[1+10]=0;
       }
+#endif
     }
-
 
 
 

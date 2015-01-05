@@ -8,9 +8,9 @@
  \class TrPdfDB
  \brief The tracker PDF manager
  
- $Date: 2012/01/04 19:35:49 $
+ $Date$
 
- $Revision: 1.5 $
+ $Revision$
 */
 
 #include "tkdcards.h"
@@ -29,7 +29,6 @@
 #include <string>
 #include <map>
 
-using namespace std;
 
 class TrPdfDB : public TObject {
 

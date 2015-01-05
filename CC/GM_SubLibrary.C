@@ -1,5 +1,3 @@
-#include <iostream>
-using namespace std;
 //--------------------------------------------------------
 //    
 //   Library Functions to Calculate Stoermer Rigidity cutoff
@@ -14,10 +12,9 @@ using namespace std;
 //
 //--------------------------------------------------------
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
+#include "typedefs.h"
+#include <cmath>
+#include <cstring>
 #include <time.h>
 #include "GM_SubLibrary.h"
         static GMtype_Data G10, G11, H11, G20, G21, H21, G22, H22;

@@ -6,7 +6,6 @@
 #include <cmath>
 #include "TrElem.h"
 
-using namespace std;
 
 class AMSTRDRawHit;
 

@@ -4,7 +4,6 @@ int tkpatt::PatternID=0;
 
 tkpatt* patt; 
 
-using namespace std;
 //***************************************************************************
 void tkpatt::BuildHitPatterns(int nmask, int ilyr, int mask)
 //***************************************************************************

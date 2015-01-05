@@ -14,17 +14,10 @@
 #ifndef BachTracingMIB_h
 #define BachTracingMIB_h 1
 
-#include <vector>
-#include <stdio.h>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstdlib>
+#include "typedefs.h"
 #include <time.h>
 
 
-using namespace std;
 
 class BackTracingMIB {
 

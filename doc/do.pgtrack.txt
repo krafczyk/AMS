@@ -521,7 +521,7 @@ FILE_PATTERNS          = root.h \
 			 introductionPG.doc \
 			 main.doc \
 			 TrElem.h TrRawCluster.h TrCluster.h \
-                         TrMCCluster.h TrRecHit.h TrTrack.h \
+                         TrMCCluster.h TrRecHit.h TrTrack.h TrRecon.h \
                          TrCalDB.h TrLadCal.h Vertex.h \
 			 TrTasDB.h TrTasCluster.h GausBF.h \
 			 TkObject.h TkPlane.h TkLadder.h TkDBc.h TkCoo.h \

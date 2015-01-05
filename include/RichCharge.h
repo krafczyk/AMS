@@ -11,7 +11,6 @@ Implementation of tools for rich charge
 #include "TString.h" 
 #include "RichTools.h"
 
-using namespace std;
 
 //
 // Constants

@@ -1027,7 +1027,7 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
   int i;
   int nhalfL=0; 
   for ( i=0;i<TKDBc::nlay();i++){
-    ostrstream ost(name,sizeof(name));
+    std::ostrstream ost(name,sizeof(name));
     ost << "STK"<<i+1<<ends;
     coo[0]=TKDBc::xposl(i);
     coo[1]=TKDBc::yposl(i);

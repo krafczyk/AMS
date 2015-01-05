@@ -2022,7 +2022,7 @@ class RemoteClient:
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
             else:
-                print "EOS has some problem in quota or not mounted, trying normal disk..."
+                print "EOS has some problem in quota or not mounted (checkEOS() returned %d, %d), trying normal disk..." %(gb, eosmounted)
         #
         # select disk to be used to store ntuples
         #
@@ -2103,8 +2103,15 @@ class RemoteClient:
         self.eosreservegb = 100  #GBype reserved on EOS
         chkeoscmd = "%s quota -m %s%s | grep \"space=%s/ \" | grep \"gid=va\"" %(self.eosselect, self.eoshome, path, self.eoshome)
         pair=commands.getstatusoutput(chkeoscmd)
+        if (pair[0] != 0):
+            print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
+            return -4, os.path.exists(self.eoslink)
         out=pair[1]
-        quota = dict(s.split('=') for s in out.split())
+        try:
+            quota = dict(s.split('=') for s in out.split())
+        except:
+            print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
+            return -5, os.path.exists(self.eoslink)
         if (not os.path.exists(self.eoslink)):
             os.system(eosumount + ' $HOME/eos')
             os.system(eosmount + ' $HOME/eos')
@@ -2140,7 +2147,7 @@ class RemoteClient:
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
             else:
-                print "EOS has some problem in quota or not mounted, trying normal disk..."
+                print "EOS has some problem in quota or not mounted (checkEOS() returned %d, %d), trying normal disk..." %(gb, eosmounted)
         #
         # select disk to be used to store ntuples
         #
@@ -4176,21 +4183,21 @@ class RemoteClient:
         self.verbose=v
         self.run2p=run2p
         self.force=f
-	arun2p=""
+        arun2p=""
         if(run2p.find(",")>=0):
-	    arun2p=" and ( run=-1 "
+            arun2p=" and ( run=-1 "
             junk=run2p.split(',')
-	    run2p=0
-	    for run in junk:
-		srun2p=" or run=%s " %(run)
+            run2p=0
+            for run in junk:
+                srun2p=" or run=%s " %(run)
                 arun2p=arun2p+srun2p
             arun2p=arun2p+" ) "
-	else:
-	    try:
-	        run2p=int(run2p)	
- 	    except:
+        else:
+            try:
+                run2p=int(run2p)	
+            except:
                 run2p=0
-	rund=""
+        rund=""
         runn=""
         runnd=""
         runst=" "
@@ -4343,7 +4350,7 @@ class RemoteClient:
             if(datamc==0):
                 if(donly==0):
                     df=1
-                    sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s " %(datapath,runndf) 
+                    sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s %s " %(datapath,runndf,arun2p) 
                     files=self.sqlserver.Query(sql)
         if(len(files)>0 or self.force!=0):
             if(buildno>0):

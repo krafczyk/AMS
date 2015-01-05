@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.63 2013/02/21 14:44:03 ams Exp $
+//  $Id$
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -72,7 +72,7 @@ virtual void _PurgeQueue()=0;
   void _UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientStatus status);
   void _UpdateHosts();
  public:
-// class Eqs :public unary_function<DPS::Client::ActiveClient,bool>{
+// class Eqs :public std::unary_function<DPS::Client::ActiveClient,bool>{
  class Eqs{
  DPS::Client::ActiveClient _a;
  public:
@@ -99,13 +99,13 @@ virtual void _PurgeQueue()=0;
  explicit Eqs_nh( const  DPS::Client::NominalHost & b):_b(b){}
   bool operator () (const DPS::Client::NominalHost_var & b){return strstr((const char*)(b->HostName),(const char *)(_b.HostName));}
 };
- class find :public unary_function<DPS::Client::ActiveClient,bool>{
+ class find :public std::unary_function<DPS::Client::ActiveClient,bool>{
  DPS::Client::ClientStatus _st;
  public:
  explicit find( const  DPS::Client::ClientStatus st):_st(st){}
   bool operator () (const DPS::Client::ActiveClient_var & a){return a->Status==_st;}
 };
-class NCL_find: public unary_function<DPS::Client::NominalClient,bool>{
+class NCL_find: public std::unary_function<DPS::Client::NominalClient,bool>{
 AString _a;
 public:
  explicit NCL_find(const char * s){if(s && strlen(s))_a=s;}
@@ -113,7 +113,7 @@ public:
   return strstr((const char *) _a, (const char *) a.HostName);
 }
 };
-class NHL_find: public unary_function<DPS::Client::NominalHost,bool>{
+class NHL_find: public std::unary_function<DPS::Client::NominalHost,bool>{
 AString _a;
 public:
  explicit NHL_find(const char * s){if(s && strlen(s))_a=s;}
@@ -427,7 +427,7 @@ void PropagateDST(const DPS::Producer::DST & ri, DPS::Client::RecordChange rc,  
 bool PropagateDSTDB(const DPS::Producer::DST & ri, DPS::Client::RecordChange rc);
 bool PropagateDSTInfoDB(const DPS::Producer::DSTInfo & ri, DPS::Client::RecordChange rc);
 
-class DSTInfo_find: public unary_function<DPS::Producer::DSTInfo,bool>{
+class DSTInfo_find: public std::unary_function<DPS::Producer::DSTInfo,bool>{
 DPS::Client::CID _cid;
 public:
  explicit DSTInfo_find(const DPS::Client::CID & cid):_cid(cid){};
@@ -435,7 +435,7 @@ public:
   return  strstr((const char *) _cid.HostName, (const char *) a.HostName);
 }
 };
-class DSTInfo_Eqs: public unary_function<DPS::Producer::DSTInfo,bool>{
+class DSTInfo_Eqs: public std::unary_function<DPS::Producer::DSTInfo,bool>{
 DPS::Producer::DSTInfo _cid;
 public:
  explicit DSTInfo_Eqs(const DPS::Producer::DSTInfo & cid):_cid(cid){};
@@ -443,7 +443,7 @@ public:
   return  a.uid==_cid.uid;
 }
 };
-class REInfo_find: public unary_function<DPS::Producer::RunEvInfo,bool>{
+class REInfo_find: public std::unary_function<DPS::Producer::RunEvInfo,bool>{
 DPS::Client::CID _cid;
 DPS::Producer::RunStatus _rs;
 bool _status;
@@ -453,7 +453,7 @@ public:
   return (a.Status==DPS::Producer::ToBeRerun ||  !_status) && (a.History==_rs || a.History==DPS::Producer::Foreign) && (_rs==DPS::Producer::ToBeRerun || strcmp((const char *) _cid.HostName, (const char *) a.cinfo.HostName)) && (_status ||  (_cid.uid==a.Run && (a.Status==DPS::Producer::Allocated || a.Status==DPS::Producer::Foreign)) );
 }
 };
-class REInfo_process: public unary_function<DPS::Producer::RunEvInfo,bool>{
+class REInfo_process: public std::unary_function<DPS::Producer::RunEvInfo,bool>{
 public:
  explicit REInfo_process(){}
  bool operator()(const DPS::Producer::RunEvInfo & a){
@@ -461,7 +461,7 @@ public:
 }
 };
 
-class REInfo_Eqs: public unary_function<DPS::Producer::RunEvInfo,bool>{
+class REInfo_Eqs: public std::unary_function<DPS::Producer::RunEvInfo,bool>{
 DPS::Producer::RunEvInfo _re;
 public:
  explicit REInfo_Eqs(const DPS::Producer::RunEvInfo & re):_re(re){}
@@ -469,20 +469,20 @@ public:
  bool operator()(const DPS::Producer::RunEvInfo & a){return a.uid== _re.uid;}
 };
 
-class REInfo_Count: public unary_function<DPS::Producer::RunEvInfo,bool>{
+class REInfo_Count: public std::unary_function<DPS::Producer::RunEvInfo,bool>{
 public:
  explicit REInfo_Count(){}
  bool operator()(const DPS::Producer::RunEvInfo & a){return a.Status== DPS::Producer::ToBeRerun || a.Status==DPS::Producer::Processing;}
 };
 
-class REInfo_EqsClient: public unary_function<DPS::Producer::RunEvInfo,bool>{
+class REInfo_EqsClient: public std::unary_function<DPS::Producer::RunEvInfo,bool>{
 DPS::Client::CID _cid;
 public:
  explicit REInfo_EqsClient(const DPS::Client::CID & cid):_cid(cid){}
  bool operator()(const DPS::Producer::RunEvInfo & a){return a.cuid== _cid.uid;}
 };
 
-class REInfo_EqsClient2: public unary_function<DPS::Producer::RunEvInfo,bool>{
+class REInfo_EqsClient2: public std::unary_function<DPS::Producer::RunEvInfo,bool>{
 DPS::Client::CID _cid;
 public:
  explicit REInfo_EqsClient2(const DPS::Client::CID & cid):_cid(cid){}

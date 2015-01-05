@@ -29,7 +29,6 @@
 #include "job.h"
 
 
-using namespace std;
 using namespace trconst;
 using namespace AMSChargConst;
 

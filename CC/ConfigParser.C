@@ -1,6 +1,6 @@
 #include "ConfigParser.h"
+#include "typedefs.h"
 
-using namespace std;
 ConfigParser::ConfigParser(std::string const& configFile) {
   std::ifstream file(configFile.c_str());
   if(!file)  {std::cout<<" ***config file not found "<<configFile<<std::endl;}

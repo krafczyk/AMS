@@ -19,8 +19,8 @@
 #include "G4GeometryTolerance.hh"
 
 #include "G4EmProcessSubType.hh"
+#include "typedefs.h"
 
-using namespace std;
 //--Scint
 TOFG4Scintillation::TOFG4Scintillation(const G4String& processName,
                                        G4ProcessType type)

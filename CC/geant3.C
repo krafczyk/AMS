@@ -964,9 +964,9 @@ omp_set_dynamic(MISCFFKEY.DynThreads);
 //kmp_set_stacksize_s(32000000);
 #endif
 
+#ifdef _OPENMP
 const int maxt=32;
 long long ia[maxt*16];
-#ifdef _OPENMP
 int nchunk=(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs())*MISCFFKEY.ChunkThreads;        
 if(MISCFFKEY.DivideBy)AMSFFKEY.CpuLimit=cpulimit*(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs());
 #else
@@ -978,8 +978,8 @@ forcemaxthread=0;
 omp_set_num_threads(omp_get_num_procs());
 nchunk=omp_get_num_procs()*10;
 }
-#endif
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
+#endif
 //cout <<"  new chunk "<<nchunk<<endl;
 
 #pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq), copyin(LIPC2F) 

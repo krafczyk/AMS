@@ -17,7 +17,6 @@
 #ifdef __G4AMS__
 #include "g4util.h"
 #endif
-using namespace std;
 extern "C" void indetra_(float&);
 
 number AMSEcalMCHit::impoint[2];

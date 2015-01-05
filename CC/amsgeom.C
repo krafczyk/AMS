@@ -21,6 +21,7 @@
 #include "gmat.h"
 #include "extC.h"
 #include <stdlib.h>
+#include <strstream>
 #include "gvolume.h"
 #include "amsgobj.h"
 #include "job.h"
@@ -28,7 +29,6 @@
 #ifdef _PGTRACK_
 #include "MagField.h"
 #endif
-#include <strstream>
 
 namespace amsgeom{
 extern void tkgeom02(AMSgvolume &);
@@ -1950,7 +1950,6 @@ geant frameztop=-135.95;//(final)Z-pos of the frame(top face)
 //
   cout<<"<---- Amsgeom::ext2structure: Low_USS_frame geometry(G3/G4-compatible) done!"<<endl<<endl;
 }
-using namespace std;
 //--------------------------------------------------------------
 //    tkgeom02 moved to tkgeom.C
 //--------------------------------------------------------------
@@ -1989,7 +1988,7 @@ AMSgvolume * daug4 = 0;
 AMSgvolume * fleece;
 #endif
 AMSgvolume * oct[maxo];
- ostrstream ost(name,sizeof(name));
+ std::ostrstream ost(name,sizeof(name));
 
 int sub0=ZShift!=0?1:0;
 

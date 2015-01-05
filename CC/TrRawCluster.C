@@ -21,7 +21,6 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
 ClassImp(TrRawClusterR);
 
 TrCalDB* TrRawClusterR::_trcaldb = NULL;

@@ -462,7 +462,6 @@ void OpenChain(AMSChain & chain, char * filenam){
 	  if(el){
             TFile * rfile=TFile::Open(el->GetTitle(),"READ");
             if(rfile){
-              cout <<el->GetTitle()<<endl;
               s.Read("DataCards");
               cout <<s.String()<<endl; 
             }

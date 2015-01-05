@@ -1,5 +1,5 @@
 #include "TrPdf.h"
-
+#include <cmath>
 
 ClassImp(TrPdf);
 

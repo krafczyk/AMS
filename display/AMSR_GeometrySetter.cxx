@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.10 2010/08/19 06:41:00 choutko Exp $
+//  $Id$
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -130,7 +130,7 @@ AMSR_GeometrySetter::AMSR_GeometrySetter(TGeometry * geo)
 }
 
 
-void    AMSR_GeometrySetter::recur(TObjLink *lnk, char *exclude, bool what){
+void    AMSR_GeometrySetter::recur(TObjLink *lnk, const char *exclude, bool what){
          while (lnk) {       
           TNode * obj=(TNode*)lnk->GetObject();              
           const char * name=obj->GetName();

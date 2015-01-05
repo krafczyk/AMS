@@ -7,8 +7,6 @@
 #undef _DEBUG_
 #define ASSERT(x) 
 
-using namespace std;
-
 ClassImp(GeomHash);
 
 using namespace GeomHashConstants;
@@ -379,6 +377,9 @@ void GeomHash::grow_internal(int *pointers,int size,int *scratch,int parent){
     double rms1=(totalMean2-acc2)/n1-(totalMean-acc)/n1*(totalMean-acc)/n1; 
     double value=n0*rms0+n1*rms1-n01*rms01;
     
+    // Currently this is disabled on purpose by adding a negative sign into the first comparison
+    // The reason for this is to avoid too unbalanced trees which give rise to problems
+    // Somehow this has to be corrected in some moment
     if(value<-0.05*n01*rms01 && n0>0.5*minSize && n1>0.5*minSize)  // Large enough correction and enough entries on it
       if(value<bestValue){
 	bestValue=value;

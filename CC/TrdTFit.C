@@ -527,7 +527,7 @@ int TrdTFit::fill(const char *name,float temp){
     }
     
     if(!got)
-      SensPosAmpVec->push_back(make_pair<AMSPoint,float>(sit->second,temp));
+      SensPosAmpVec->push_back(make_pair(sit->second,temp));
   }
   return 0;
 }

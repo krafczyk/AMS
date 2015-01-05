@@ -8205,7 +8205,8 @@ if(defined $dataset->{buildno} ){
         my $bufb;
         read(FILEI,$bufb,1638400) or next;
         close FILEI;
-       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 }
         if($dataset->{g4}=~/g4/){
         my $dir="$self->{AMSSoftwareDir}/Templates";
@@ -8214,7 +8215,8 @@ if(defined $dataset->{buildno} ){
         my $bufb;
         read(FILEI,$bufb,1638400) or next;
         close FILEI;
-      $tmpb=~ s/TERM\n!/$bufb\nTERM\n!/;
+#      $tmpb=~ s/TERM\n!/$bufb\nTERM\n!/;
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 
     }
          if($self->{CCT} eq "local"){
@@ -9900,7 +9902,11 @@ try{
         my $bufb;
         read(FILE1,$bufb,1638400) or next;
         close FILE1;
-       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#       Move content in common.job and commong4.job the beginning of
+#       datacards, instead of the end, to avoid overwriting datacards
+#       in job template.
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 }
         if($dataset->{g4}=~/g4/){
         my $dir="$self->{AMSSoftwareDir}/Templates";
@@ -9909,7 +9915,8 @@ try{
         my $bufb;
         read(FILE1,$bufb,1638400) or next;
         close FILE1;
-      $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#      $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 
     }
          print FILE $tmpb;

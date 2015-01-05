@@ -4,11 +4,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 ///
-///\class LxMCcutoff
+///\class LxMCcutoff || QBincutoff
 ///\brief A class to simulate cutoff on MC data
 ///
 ///\date  2014/07/17 L.Derome
 ///\date  2014/10/29 L.Derome new version
+///\date  2014/12/01 Q.Yan QBincutoff introduced(for bin-by-bin unfolding||MC bin-by-bin exposure-time reweight)
 ///
 ///$Revision$
 ///
@@ -61,5 +62,45 @@ public:
   ClassDef(LxMCcutoff, 2);
 };
 
+//////////////////////////////////////////////////////////////////////////
+#include "TSpline.h"
+
+class QBincutoff {
+
+public:
+   QBincutoff();
+
+   QBincutoff(const char *fname);
+   QBincutoff(TH1* hexp); 
+/// Expsure-Time(Cutoff) weight for flux based on BinLowEdge
+/*!
+ *   @param[in] lbv:          meausred rigidity(R)-BinLowEdge[GV] 
+ *   @param[in] Rgen:         flux generated rigidity[GV] 
+ *   @param[in] margin:       cutoff safety factor used for bin-by-bin(1.2cutoff...)
+ *   @param[in] cutoffoffset: ture cutoff=meausred cutoff/cutoffoffset 
+ */
+   double GetMCTimeWeight(double lbv,double Rgen,double margin=1.2,double cutoffoffset=1.2);
+/// Expsure-Time(Cutoff) weight for MC event
+/*!
+  *   @param[in] hev:          MC events Histogram(meausred rigidity[R]-Xaxis)
+  *   @param[in] Rrec:         MC reconstructed rigidity[GV]
+  *   @param[in] Rgen:         MC generated rigidity[GV] 
+  *   @param[in] margin:       cutoff safety factor used for bin-by-bin(1.2cutoff...)
+  *   @param[in] cutoffoffset: ture cutoff=meausred cutoff/cutoffoffset 
+*/
+   double GetMCTimeWeight(TH1 *hev,double Rrec,double Rgen,double margin=1.2,double cutoffoffset=1.2); 
+
+private:
+   int Init();
+   int Clear();
+   double qmargin;
+   double qcutoffset;
+   TH1 *qhev;
+   TH1 *qhexp;
+   TSpline3 *qsexp;
+    ~QBincutoff(){Clear();}
+
+  ClassDef(QBincutoff, 1);  
+};
 
 #endif /* end of include guard: LXMCCUTOFF_H */

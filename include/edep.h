@@ -11,7 +11,6 @@
 
 #define MAXBETA 0.999999
 
-using namespace std;
 
 /* 
  * Library for the treatment of the energy depositions formulas.

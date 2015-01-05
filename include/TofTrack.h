@@ -1,4 +1,4 @@
-// $Id: TofTrack.h,v 1.7 2012/04/27 18:06:33 oliva Exp $
+// $Id$
 
 #ifndef __TofTrack__
 #define __TofTrack__
@@ -67,7 +67,7 @@ class TofTrack {
  private:
 
   //! Light speed constant
-  static const float c_speed = 29.9792458; // light speed in cm/ns 
+  static const float c_speed; // light speed in cm/ns
 
   //! Vector of hit pointers (... a vector of indexes instead?)
   vector<TofClusterR*> _Hits;

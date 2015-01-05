@@ -5,10 +5,7 @@
 #include "TH2.h"
 #include "TMath.h"
 #include "TRandom3.h"
-
-#include <iostream>
-#include <cstdlib>
-using namespace std;
+#include "typedefs.h"
 
 ClassImp(LxMCcutoff);
 
@@ -239,3 +236,83 @@ TH1D* LxMCcutoff::GetExp()
   return hExp;
 }
 */
+
+//////////////////////////////////////////////////////////////////////////
+ClassImp(QBincutoff);
+
+//========================================================
+int  QBincutoff::Init(){
+  qmargin=1.2;
+  qcutoffset=1.2;
+  qhev=0;
+  qhexp=0;
+  qsexp=0;
+  return 0;
+}
+
+//========================================================
+int  QBincutoff::Clear(){
+  if(qsexp)delete qsexp;
+   qsexp=0;
+   return 0;
+}
+
+//========================================================
+QBincutoff::QBincutoff(){
+  Init();
+  TFile *f=TFile::Open(Form("%s/v5.01/Expotime_Cutoff20120520_20131126.root",getenv("AMSDataDir")));
+  qhexp=(TH1 *)f->Get("ExpoTime_Cutoff");
+//---cutoff time-spline
+  qsexp=new TSpline3(qhexp);
+}
+
+//========================================================
+QBincutoff::QBincutoff(const char *fname){
+  Init();
+  TFile *f=TFile::Open(fname);
+  qhexp=(TH1 *)f->Get("ExpoTime_Cutoff");
+//---cutoff time-spline
+  qsexp=new TSpline3(qhexp);
+}
+ 
+//========================================================
+QBincutoff::QBincutoff(TH1* hexp){
+  Init();
+  qhexp=hexp;
+//---cutoff time-spline
+  qsexp=new TSpline3(qhexp);
+}
+
+//========================================================
+double QBincutoff::GetMCTimeWeight(double lbv,double Rgen,double margin,double cutoffoffset){
+//----Based on Measured-Rigidity
+  static double tww=1;
+  if      (Rgen<0.7)return 0;//no events below 0.7GV(due to cutoff)
+  else  if(Rgen>30)return 1;//cutoff<30GV
+  double lbvmax=58; //58GV Max-onebin
+  double lbv1=fabs(lbv)>lbvmax?lbvmax:fabs(lbv);
+  double mescutoff=lbv1/margin;//LowEdge
+  double gencutoff=mescutoff/cutoffoffset;//Generate Lower
+  if(Rgen<gencutoff) {//
+     tww=qsexp->Eval(Rgen*cutoffoffset)/qsexp->Eval(gencutoff*cutoffoffset);
+  }
+  else tww=1;
+  return tww;
+}
+
+//========================================================
+double QBincutoff::GetMCTimeWeight(TH1 *hev,double Rrec,double Rgen,double margin,double cutoffoffset){
+ double Rrec1=fabs(Rrec);
+ static double lbvpr=0,hbvpr=0;
+ if(hev!=qhev||Rrec1<lbvpr||Rrec1>hbvpr){//refind cutoff
+     int ibrc=hev->FindBin(Rrec1);
+     lbvpr=hev->GetBinLowEdge(ibrc);
+     hbvpr=hev->GetXaxis()->GetBinUpEdge(ibrc);
+     if(ibrc==hev->GetNbinsX())hbvpr=1000*Rrec1;//Last-bin
+     qhev=hev;
+  }
+  return GetMCTimeWeight(lbvpr,Rgen,margin,cutoffoffset);
+}
+
+
+//========================================================

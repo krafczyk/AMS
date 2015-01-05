@@ -504,6 +504,9 @@ public:
   /// Event pre selection for photon vertex pattern
   int PreselTrTracksVertex();
 
+  /// Recover XY hits in outer layers (for B935 MC)
+  int RecoverExtHits();
+
   /// Merge hits shared by two tracks
   //int MergeSharedHits(TrTrackR *track, int fit_method);
 

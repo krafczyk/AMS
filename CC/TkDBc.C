@@ -31,9 +31,16 @@ float* TkDBc::linear=0;
 char   TkDBc::_setupname[4][30]={"Unknown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
 int    TkDBc::_setup=3;
 int    TkDBc::ForceFromTDV=0;
- 
+
+
+int TkDBc::_tkidfast=0;
+
+
 TkDBc::TkDBc(){
   for(unsigned int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
+  //  for (unsigned int i = 0; i < max_tkidmap_entries; ++i) tkidmap_fast[i] = 0;
+  memset(tkidmap_fast,0,max_tkidmap_entries*sizeof(tkidmap_fast[0]));
+
 }
 
 void TkDBc::CreateTkDBc(int force_delete){
@@ -73,7 +80,6 @@ TkDBc::~TkDBc(){
   
   for ( tkidIT pp=tkidmap.begin();pp!=tkidmap.end();++pp)
     if(pp->second) delete pp->second;
-
 }
 
 TkPlane* TkDBc::GetPlane(int ii) {
@@ -707,6 +713,14 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 		tkassemblymap[aa->GetAssemblyId()]=aa;
 	      }
 	      tkidmap[tkid]=aa;
+	      unsigned int ia=aa->GetTkId()+1000;
+	      if(ia<sizeof(tkidmap_fast)/sizeof(tkidmap_fast[0]))
+		tkidmap_fast[ia]=aa;
+	      else{
+		cerr<<"TkDBc::Fatal Error: tkidmap_fast out of bound array! THIS MUST NOT HAPPEN EVER! "<<ia<<endl;
+		exit(-1);
+	      }
+
 	      hwidmap[hwid]=aa;
 	      // SH FIXME pgid is not an unique ID for 192 ladders
 	      //              pgidmap[pgid]=aa;
@@ -892,6 +906,9 @@ int TkDBc::read(const char* filename, int pri){
 
   // Clear maps
   tkidmap.clear();
+  //  for (unsigned int i = 0; i < max_tkidmap_entries; ++i) tkidmap_fast[i] = 0;
+  memset(tkidmap_fast,0,max_tkidmap_entries*sizeof(tkidmap_fast[0]));
+
   hwidmap.clear();
   lnamemap.clear();
   tkassemblymap.clear();
@@ -923,6 +940,13 @@ int TkDBc::read(const char* filename, int pri){
     if(fileout.eof()){ delete aa; break;}
     if(!fileout.good()) cerr <<" Error in TkDBc::read the channel is not good"<<endl;
     tkidmap[aa->GetTkId()]=aa;
+    unsigned int ia=aa->GetTkId()+1000;
+    if(ia<sizeof(tkidmap_fast)/sizeof(tkidmap_fast[0]))
+      tkidmap_fast[ia]=aa;
+    else{
+      cerr<<"TkDBc::Fatal Error: tkidmap_fast out of bound array! THIS MUST NOT HAPPEN EVER! "<<ia<<endl;
+      exit(-1);
+    }
     hwidmap[aa->GetHwId()]=aa;
     string bb=aa->name;
     lnamemap[bb]=aa;
@@ -1520,6 +1544,8 @@ void TkDBc::RebuildMap()
   lnamemap     .clear();
   JMDCNumMap   .clear();
 
+  //  for (unsigned int i = 0; i < max_tkidmap_entries; ++i) tkidmap_fast[i] = 0;
+  memset(tkidmap_fast,0,max_tkidmap_entries*sizeof(tkidmap_fast[0]));
   // Rebuild all the maps
   //
   // 
@@ -1536,6 +1562,14 @@ void TkDBc::RebuildMap()
     //    pgidmap      [pgid] = lad;
     lnamemap     [lnam] = lad;
     JMDCNumMap   [jmdc] = lad;
+    unsigned int ia=lad->GetTkId()+1000;
+    if(ia<sizeof(tkidmap_fast)/sizeof(tkidmap_fast[0]))
+      tkidmap_fast[ia]=lad;
+    else{
+      cerr<<"TkDBc::Fatal Error: tkidmap_fast out of bound array! THIS MUST NOT HAPPEN EVER! "<<ia<<endl;
+      exit(-1);
+    }
+
   }
   // SH FIXME size of pgidmap is only 24
   cout << "TkDBc::Maps have been rebuilt: "
@@ -1549,7 +1583,9 @@ void TkDBc::RebuildMap()
 }
 
 
+#include "tkdcards.h"
 #include "TrExtAlignDB.h"
+#include "TrInnerDzDB.h"
 #include "DynAlignment.h"
 #ifdef __ROOTSHAREDLIBRARY__
 #include "root.h"
@@ -1573,39 +1609,60 @@ cout << "TkDBc::UseFinal-I-UsingVersion "<<iver<<endl;
 void TkDBc::UseVersion(int ver, int reset)
 {
   TString dyn = "DynAlignmentV5T120628";
+  TrExtAlignDB::version = 2;
+  TrInnerDzDB ::version = 0;
+  // Use the alignment stored in AMSRoot file
   if (ver == 0) {
     TkDBc       ::ForceFromTDV = 0;
     TrExtAlignDB::ForceFromTDV = 0;
   }
+  // PM3 static alignment
   else if (ver == 3) {
     TkDBc       ::ForceFromTDV = 3;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 2;
   }
+  // PM4 static alignment
   else if (ver == 4) {
     TkDBc       ::ForceFromTDV = 4;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 3;
   }
+  // PM5 static alignment + L2Y movement + old MD
   else if (ver == 5) {
     TkDBc       ::ForceFromTDV = 5;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
+    TKGEOMFFKEY.L2AlignPar[2]  = 0.31;   //  L2Y Shift (um) / year
     dyn = "DynAlignmentV5T140713PM5";
   }
+  // PM5 static alignment + L2Y movement + old MD
   else if (ver == 6) {
     TkDBc       ::ForceFromTDV = 5;
     TrExtAlignDB::ForceFromTDV = 1;
     TrExtAlignDB::version      = 4;
+    TKGEOMFFKEY.L2AlignPar[2]  = 0.31;   //  L2Y Shift (um) / year
+    dyn = "DynAlignmentV5T290713PM5";
+  }
+  // PM5 static alignment + L2y static + new InnerDz + new PG + new MD
+  else if (ver == 7) {
+    TkDBc       ::ForceFromTDV = 5;
+    TrExtAlignDB::ForceFromTDV = 1;
+    TrExtAlignDB::version      = 5;
+    TrInnerDzDB ::version      = 2;
+    TKGEOMFFKEY.L2AlignPar[2]  = 0;      //  L2Y Shift disabled
     dyn = "DynAlignmentV5T290713PM5";
   }
   else {
     cerr << "TkDBc::UseVersion-F-Unsupported version: " << ver << endl;
     exit(-1);
   }
+  // Disable reading TRGEOMFFKEY from AMSRoot file
+  TKGEOMFFKEY_DEF::ReadFromFile = 0;
 
   cout << "TkDBc::UseVersion-I- "
        << "TkDBc::ForceFromTDV= " << TkDBc::ForceFromTDV << " "
+       << "TKGEOMFFKEY.L2AlignPar[2]= " << TKGEOMFFKEY.L2AlignPar[2] << " "
        << "TrExtAlignDB::ForceFromTDV= " << TrExtAlignDB::ForceFromTDV << " "
        << "TrExtAlignDB::version= " << TrExtAlignDB::version << " "
        << "DynAlManager::TDVName= " << dyn.Data() << endl;

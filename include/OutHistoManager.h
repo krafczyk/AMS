@@ -1,8 +1,7 @@
 #ifndef OUTHISTOMANAGER_HH
 #define OUTHISTOMANAGER_HH
 
-#include <iostream>
-#include <string>
+#include "typedefs.h"
 #include <TClass.h>
 #include <TFile.h>
 #include <TGraph.h>
@@ -11,7 +10,6 @@
 
 
 
-using namespace std;
 
 /** Simple outputHisto manager TH2F, TH1F
   * 3.07.2012-  VZ 
