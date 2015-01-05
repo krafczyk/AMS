@@ -110,7 +110,7 @@ select opt in $OPTIONS;do
      export COMPK=icc
      break
   elif [ "$opt" = "gcc" ];then
-     export COMP=1
+     export COMP=0
      export COMPK=gcc
      break
   else
@@ -214,7 +214,7 @@ mecho
 mexport CCWD \$PWD
 mecho "cd \$Offline/AMSsoft/linux_\$SLC\_\$CC\64/geant4_ams/bin/"
 mecho "source geant4.$MYSHELL"
-mecho "cd $CCWD"
+mecho "cd \$CCWD"
 mexport G4INSTALL  \$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/geant4_ams
 mexport G4SYSTEM  Linux-\$CXX
 mexport G4DPMJET2_5DATA  \$Offline/AMSsoft/shared/geant4/data/DPMJET/GlauberData

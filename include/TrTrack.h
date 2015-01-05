@@ -533,6 +533,8 @@ public:
   double GetNormChisqX(int id= 0) const;
   /// Get normalized chisquare in Y
   double GetNormChisqY(int id= 0) const;
+  /// Get applied Bfield Temp correction 
+  float  GetBcorr     (int id= 0) const { return GetPar(id).Bcorr; }
 
   /// Get track entry point (first layer of the fitting) from TrTrackPar corresponding to id
   AMSPoint GetPentry(int id = 0) const;

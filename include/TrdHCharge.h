@@ -9,7 +9,6 @@ class AMSEventR;
 class TrdHTrackR;
 
 
-using namespace std;
 
 /// class to perform and store TRD H charge reconstruction
 class TrdHChargeR{

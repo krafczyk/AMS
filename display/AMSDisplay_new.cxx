@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.23 2013/11/19 15:13:51 choutko Exp $
+//  $Id$
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -48,6 +48,7 @@ AMSDisplay *gAMSDisplay;
 
 AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec, bool monit,bool scanout):
   m_chain(chain), m_sec(sec),m_nodate(false),TObject(),m_chain_Entries(0){
+     m_idle = false;
      m_sec=abs(sec);
      m_nodate=sec<0;
      fCooDef[0][0]=-115.;
@@ -894,6 +895,8 @@ switch (type){
      return d_mcinfo;
    case kgeometry:
      return d_geometry;
+   default:
+     return false;
 }
     return false;
 }

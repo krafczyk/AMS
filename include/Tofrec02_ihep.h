@@ -28,7 +28,7 @@ class TofRecH{
 /// Data part
 protected:
 /// light velocity
-  static const double cvel=29.9792;//c vel(cm/ns)
+  static const double cvel;//c vel(cm/ns)
 /// Fit Beta Par
   static TofBetaPar betapar;
   #pragma omp threadprivate (betapar)

@@ -215,7 +215,7 @@ integer AMSParticle::build(integer refit){
 	//PZ FPE FIX often ecal ene is very large double > 1e209 or NAN
         double ecal_ene=pecal->getEnergyC();
         double ecal_ene_err=pecal->getEnergyErr();
-	if(!isfinite(ecal_ene)){
+	if(!std::isfinite(ecal_ene)){
 	  //	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result is Not a Good floating number "<< ecal_ene<<" !!!"<<endl;
 	  continue;
 	}
@@ -991,7 +991,11 @@ void AMSParticle::pid(){
     for( int patt=0;patt<npat;patt++){
       AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
 	getheadC("AMSTrTrack",patt);
+#ifdef _PGTRACK_
+      while(ptrack && ptrack->ParExists(AMSTrTrack::kChoutko)){   
+#else
       while(ptrack ){   
+#endif
 	if(
 #ifdef _PGTRACK_
 	   // PZ FIXME Track format

@@ -20,7 +20,6 @@
 #include <time.h>
 
 
-using namespace std;
 //using namespace TMVA;
 
 MVAmanager::MVAmanager(ConfigParser*  aconf) {

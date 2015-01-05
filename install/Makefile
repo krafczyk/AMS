@@ -52,21 +52,28 @@
 #
 ifndef  SLC6system
 SLC6system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC6system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6")
 endif
 endif
 ifndef  SLC64system
 SLC64system=
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.4")
 endif
 ifndef SLC64system
-ifneq "$(wildcard /etc/redhat-release)" ""
+ifneq ("$(wildcard /etc/redhat-release)","")
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
 endif
 endif
+ifndef SLC64system
+ifneq ("$(wildcard /etc/redhat-release)","")
+ SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.6")
 endif
+endif
+endif
+
+ROOTINCDIR := $(shell root-config --incdir)
 
 #
 
@@ -79,7 +86,10 @@ ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
-    LZMAL = -llzma  
+    LZMAL = -llzma
+    ifdef LINKLIBZ
+	LZMAL += -lz
+    endif
 endif
 
 
@@ -96,6 +106,14 @@ endif
 ifndef UILIBS
 UILIBS:=
 endif
+G4LIBDIR=$(G4INSTALL)/lib/geant4/$(G4SYSTEM)
+ifdef G4LIB
+  G4LIBDIR = $(G4LIB)/$(G4SYSTEM)
+endif
+G4INCLUDEDIR=$(G4INSTALL)/include/geant4/
+ifdef G4INCLUDE
+  G4INCLUDEDIR = $(G4INCLUDE)
+endif
 G4LIBS=
 G4LIBSI=
 G4=
@@ -103,15 +121,41 @@ ifdef G4AMS
 G4VIS_USE:= 1
 G4:=G4
 
+ifneq ("$(wildcard $(AMSWD)/.git)","")
+  GITSHA = $(shell git --git-dir=${AMSWD}/.git rev-parse HEAD | tr -d '\n')
+else
+  GITSHA = CVS
+endif
+
+#We need to restore externally defined CC. Geant doesn't respect it
+#Save the environment value
+CC_env :=
+ifeq "$(origin CC)" "environment"
+	CC_env := $(CC)
+endif
+CXX_env :=
+ifeq "$(origin CXX)" "environment"
+	CXX_env := $(CXX)
+endif
+
 ifdef G4VIS_USE
 include $(G4INSTALL)/config/G4UI_USE.gmk
 include $(G4INSTALL)/config/G4VIS_USE.gmk
 endif
 include $(G4INSTALL)/config/architecture.gmk
 
+#We need to restore externally defined CC. Geant doesn't respect it
+#Restore environment value
+ifneq "$(CC_env)" ""
+	CC := $(CC_env)
+endif
+ifeq "$(CXX_env)" ""
+	CXX := $(CXX_env)
+endif
+
 DEFINES  += -D__NAMESPACE__ -D__G4AMS__ 
-INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
-G4LIBS=   -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
+INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INCLUDEDIR)
+G4LIBS=   -L$(G4LIBDIR) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global 
 
 ifdef G4LIB_BUILD_CLHEP
 G4LIBS+=  -lG4clhep 
@@ -119,7 +163,7 @@ else
 G4LIBS+= -L$(CLHEP_BASE_DIR)/lib  -lCLHEP
 endif
 
-G4LIBSI= -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
+G4LIBSI= -L$(G4LIBDIR) $(VISLIBS) $(G4LIBS) -lG4interfaces -lGL -lGLU
 AR=ar
 endif
 
@@ -135,8 +179,7 @@ DEFINES += -DCASTORSTATIC
 endif
 
 DEFINES  +=    -D__WRITEROOT__    
-INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include  
-
+INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTINCDIR)
 
 CPPFLAGS += $(DEFINES)  $(INCDIRS)
 
@@ -173,6 +216,7 @@ EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
 SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX)_PG.so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG.a
+SHLD_LINK=$(LIB)/libntuple_$(AMSLIBSUFFIX)_PG_dynamic.so
 else
 PG=
 BINMT=$(AMSWD)/bin/$(MARCH)$(VERSIONP)/mt/$(G4)/
@@ -181,6 +225,7 @@ EXE=$(AMSWD)/exe/$(MARCH)$(VERSIONP)/
 LIB=$(AMSWD)/lib/$(MARCH)$(VERSIONP)/
 SHLD=$(LIB)/ntuple_$(AMSLIBSUFFIX).so
 NTLD=$(LIB)/libntuple_$(AMSLIBSUFFIX).a
+SHLD_LINK=$(LIB)/libntuple_$(AMSLIBSUFFIX)_dynamic.so
 endif
 #----Qi Yan
 ifdef G4AMS
@@ -221,6 +266,16 @@ endif
 local_makefile = Makefile.$(MARCH)
 include $(local_makefile)
 
+# verbose output
+ifdef  VERBOSE
+VERBOSE=1
+else
+VERBOSE=0
+endif
+AT_0:=@
+AT_1:=
+AT=$(AT_$(VERBOSE))
+
 # combine compiler flags with pre-processor flags
 CPPFLAGSI := $(CPPFLAGS)
 CFLAGSI   := $(CFLAGSB) $(CPPFLAGSI) 
@@ -241,37 +296,37 @@ CFLAGSB+= $(CPPFLAGS)
 $(BIN)%.o : $(SFF)%.F
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(AT)$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%_s.o : $(SFF)%.F
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(FF) -c $(FFLAGS) -D__ROOTSHAREDLIBRARY__  -I$(CERNDIR)/include $< -o $@
+	$(AT)$(FF) -c $(FFLAGS) -D__ROOTSHAREDLIBRARY__  -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%.o : $(SFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(AT)$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%.o : $(SCC)%.C
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(CFLAGS) $< -o $@
+	$(AT)$(CXX) -c $(CFLAGS) $< -o $@
 
 
 $(BIN)%_s.o: $(SCC)%.C ../include/root_methods$(PG).h
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
+	$(AT)$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
 
 
 $(BIN)%.o : $(SCC)%.c
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(AT)$(CC) -c $(CFLAGS) $< -o $@
 
 #------------------------------------------------------------------------------
 # gbatch source files
@@ -608,13 +663,13 @@ ifdef G4AMS
 $(DPMBIN)%.o : $(DPMFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(DPMBIN) ] ; then mkdir -p $(DPMBIN); fi
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(AT)$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(DPMBIN)%.o : $(DPMSCC)%.cc
 	@echo Compiling  $< ...
 	@if ! [ -d $(DPMBIN) ] ; then mkdir -p $(DPMBIN); fi
-	$(CXX) -c $(CFLAGS) -I$(CERNDIR)/include -I$(DPMDIR)/include -I../include  $< -o $@
+	$(AT)$(CXX) -c $(CFLAGS) -I$(CERNDIR)/include -I$(DPMDIR)/include -I../include  $< -o $@
 
 DPMSCCLIST= $(wildcard $(DPMSCC)/*.cc)
 DPMSCCLIST1= $(notdir $(DPMSCCLIST))
@@ -673,20 +728,29 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 #  Gbatch standalone batch processing
 
 STANDALONE:=$(EXE)gbatch$(G4)$(PG).exe 
+STANDALONED:=$(EXE)gbatchd$(G4)$(PG).exe
 
 gbatch: amswd $(STANDALONE)
+gbatchd: amswd $(STANDALONED)
 
 $(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
+	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@echo Linking $@ ...
+	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
+
+$(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
+	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@echo Linking $@ ...
+	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
 
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
-	 $(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
+	 $(AT)$(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
 
 readdaq:amswd  $(EXE)readdaq$(PG)
 
 $(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o 
-	$(LD) $(FLAGSSTATIC)  -o  $@  $(OBJECTR) $(TIMEL) $(LDFLAGSSTATIC)
+	@echo Linking $@ ...
+	$(AT)$(LD) $(FLAGSSTATIC)  -o  $@  $(OBJECTR) $(TIMEL) $(LDFLAGSSTATIC)
 
 #------------------------------------------------------------------------------
 #  Gbatch standalone interactive session
@@ -697,32 +761,39 @@ gxint :	amswd $(INTERACTIVE)
 
 
 $(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) -v -o $@  $(OBJECTSI) $(LDFLAGSI)
+	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@echo Linking $@ ...
+	$(AT)$(LD) -o $@  $(OBJECTSI) $(LDFLAGSI)
 
 
 $(BIN)geanti.o:      $(SCC)geant.C
-	$(CXX) -c  $(CFLAGSI) $(SCC)geant.C -o $(BIN)/geanti.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c  $(CFLAGSI) $(SCC)geant.C -o $(BIN)/geanti.o
 
 $(BIN)geant3i.o:      $(SCC)geant3.C
-	$(CXX) -c  $(CFLAGSI) $(SCC)geant3.C -o $(BIN)/geant3i.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c  $(CFLAGSI) $(SCC)geant3.C -o $(BIN)/geant3i.o
 else
 INTERACTIVE:=$(EXE)gxint$(G4)$(PG).exe 
 gxint :	amswd $(INTERACTIVE)
 
 
 $(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) -v -o $@  $(OBJECTSI) $(LDFLAGSI)
+	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@echo Linking $@ ...
+	$(AT)$(LD) -o $@  $(OBJECTSI) $(LDFLAGSI)
 
 
 $(BIN)geant4i.o:      $(SCC)geant4.C
-	$(CXX) -c  $(CFLAGSI) -DG4VIS_USE $(SCC)geant4.C -o $(BIN)/geant4i.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c  $(CFLAGSI) -DG4VIS_USE $(SCC)geant4.C -o $(BIN)/geant4i.o
 
 $(BIN)geanti.o:      $(SCC)geant.C
-	$(CXX) -c  $(CFLAGSI) $(SCC)geant.C -o $(BIN)/geanti.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c  $(CFLAGSI) $(SCC)geant.C -o $(BIN)/geanti.o
 $(BIN)gbatchi.o:      $(SCC)gbatch.C
-	$(CXX) -c  $(CFLAGSI) $(SCC)gbatch.C -o $(BIN)/gbatchi.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c  $(CFLAGSI) $(SCC)gbatch.C -o $(BIN)/gbatchi.o
 endif
 #---------------------------------------------------------------------------------
 # Client TARGET (producer)
@@ -734,16 +805,18 @@ producer: amswd	$(CLIENT)
 
 #                   Orbit-C      Orbit-C++   gbatch
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(BIN)predict.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@echo Linking $@ ...
+	$(AT)$(LD) $(FLAGSSTATIC) -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 
 producer6: amswd	$(CLIENT6)
 
 #                   Orbit-C      Orbit-C++   gbatch
 $(CLIENT6):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype_l6.o $(BIN)predict.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) $(BIN)ctype_l6.o
+	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@echo Linking $@ ...
+	$(AT)$(LD) $(FLAGSSTATIC) -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) $(BIN)ctype_l6.o
 
 
 #---------------------------------------------------------------------------------
@@ -757,8 +830,9 @@ test: $(OBJECTCO)
 server: amswd	$(SERVER)
 #               Orbit-C   Orbit-C++-Ser
 $(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL)  
+	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@echo Linking $@ ...
+	$(AT)$(LD) -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL)
 
 
 #------------------------------------------------------------------------------
@@ -780,7 +854,7 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
         $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdMcDatacards.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib_s.o $(BIN)TrdKToyMC_s.o  $(BIN)TrdMTrack_s.o  $(BIN)TrdKCluster_s.o $(BIN)TrdKHit_s.o $(BIN)TrdKPDF_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)commonsi.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)GammaFit_s.o \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o   $(BIN)GM_SubLibrary.o $(BIN)LxMCcutoff.o \
-	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o
+	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o $(BIN)predict.o $(BIN)gitsha.o
 SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)bcorr_s.o
 
 SHLIBO+=$(BIN)BackTracingMIB.o
@@ -797,9 +871,9 @@ SHLIBO+=$(BIN)OutHistoManager.o
 
 SHLIBBO:=$(SHLIBO)
 else
-SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)LxMCcutoff.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)AntiPG_s.o
+SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)LxMCcutoff.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)AntiPG_s.o $(BIN)gitsha.o
 SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)bcorr_s.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)LxMCcutoff.o
-SHLIBO+=$(BIN)UnfoldingTools.o $(BIN)SpFold.o
+SHLIBO+=$(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)gitsha.o
 SHLIBO+=$(BIN)AntiPG_s.o
 
 
@@ -811,162 +885,211 @@ SHLIBO+=$(BIN)OutHistoManager.o
 
 endif
 
-shared : amswd $(SHLD)
+shared : amswd $(SHLD) $(SHLD_LINK)
+
 $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
-	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
+	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
+	@echo Creating shared library  $(SHLD) ...
+	$(AT)$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
+
+$(SHLD_LINK): $(SHLD)
+	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
+	@echo Creating symlink  $(SHLD_LINK) ...
+	$(AT)ln -sf $(shell basename $(SHLD)) $(SHLD_LINK)
 
 static : amswd $(NTLD)
+
 $(NTLD): $(SHLIBBO)
-	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(AR) rv   $(NTLD) $(SHLIBBO)
+	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
+	@echo Creating static Library  $(NTLD) ...
+	$(AT)$(AR) cr   $(NTLD) $(SHLIBBO)
 
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
 
 ifndef VGM_INSTALL
 $(BIN)geant.o: 	 $(SCC)geant.C
-	$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
 else
 $(BIN)geant.o: 	 $(SCC)geant.C
-	$(CXX) -c $(CFLAGS) -D_USEVGM_ -I$(VGM_INSTALL)/include -D__BATCH__  $< -o $@
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -D_USEVGM_ -I$(VGM_INSTALL)/include -D__BATCH__  $< -o $@
 endif
 
 $(BIN)geant3.o:	 $(SCC)geant3.C
-	$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
 
 $(BIN)ctype.o: $(SCC)ctype.c
-ifeq  "$(shell uname)"  "Linux" 
-	$(CC) -c $< -o$@
+ifeq  "$(shell uname)"  "Linux"
+	@echo Compiling  $< ... 
+	$(AT)$(CC) -c $< -o$@
 else 
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
 
 $(BIN)ctype_l6.o: $(SCC)ctype.c
-	$(CC) -c -D__LXPLUS6__ $< -o$@
+	@echo Compiling  $< ...
+	$(AT)$(CC) -c -D__LXPLUS6__ $< -o$@
 $(BIN)predict.o:  $(SCC)predict.c
-	$(CC) -c $(CFLAGS) $< -o$@
+	@echo Compiling  $< ...
+	$(AT)$(CC) -c $(CFLAGS) $< -o$@
 
 ../include/root_methods$(PG).h:      ../perl/root.perl
-	perl ../perl/root.perl
+	@echo Generating $@ ...
+	$(AT)perl ../perl/root.perl
 
 ifdef PGTRACK
 $(BIN)rootdict.C:  $(ROOTDICTFILES)
-	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
-	@echo "OK"
+	@echo Generating dictionary ...
+	$(AT)$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) -I$(ROOTINCDIR) -I../include $^
+	@echo Generating dictionary ... OK
 
 $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/amschain.h $(ROOTDICTFILES)
-	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
-	@echo "OK"
+	@echo Generating dictionary ...
+	$(AT)$(ROOTSYSRUN)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTINCDIR) -I../include $^
+	@echo Generating dictionary ... OK
 else
 $(BIN)rootdict.C: ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/root_setup.h ../include/trigger102_setup.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h  ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/LxMCcutoff.h ../include/SpFold.h ../include/bcorr.h ../include/linkdef.h
-	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
-	@echo "OK"
+	@echo Generating dictionary ...
+	$(AT)$(ROOTSYSRUN)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTINCDIR) -I../include $^
+	@echo Generating dictionary ... OK
 
 $(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/LxMCcutoff.h ../include/bcorr.h ../include/UnfoldingTools.h ../include/SpFold.h ../include/AntiPG.h ../include/linkdef.h
-	@echo "Generating dictionary"
-	$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
-	@echo "OK"
+	@echo Generating dictionary ...
+	$(AT)$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTINCDIR) -I../include  $^
+	@echo Generating dictionary ... OK
 
 endif
 
 $(BIN)commonsi_time.C:      $(SCC)commonsi.C
-	sed "s_buildtime=[^buildtime=]*;_buildtime=$(shell date +%s);_" $(SCC)commonsi.C > $(BIN)commonsi_time.C
+	@echo Generating $@ ...
+	$(AT)sed "s_buildtime=[^buildtime=]*;_buildtime=$(shell date +%s);_" $(SCC)commonsi.C > $(BIN)commonsi_time.C
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
-	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o
+
+$(BIN)commonsi_s.o:	$(BIN)commonsi_time.C
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(BIN)commonsi_time.C -o $(BIN)commonsi_s.o
 
 $(BIN)commonsi.o:	$(BIN)commonsi_time.C
-	$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o 
+	@echo Compiling  $< ..
+	$(AT)$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o
+
+$(BIN)gitsha.o: $(SCC)gitsha.C
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -DGBATCHGITSHA=$(GITSHA) $< -o $@
+
 $(BIN)daqevt.o:         $(SCC)daqevt.C
-	$(CXX) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(SCC)daqevt.C -o $(BIN)daqevt.o 
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(SCC)daqevt.C -o $(BIN)daqevt.o
 
 $(BIN)daqevt_c.o:         $(SCC)daqevt.C
-	$(CXX_ORBIT) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o
 
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
-	$(CXX) -c $(CFLAGS)  $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS)  $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o
 
 
 $(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods$(PG).h
-	$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
 
 
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 
 ifdef AMSMEMMONITOR
-	$(CXX) -c -D__MEMMONITOR__ $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c -D__MEMMONITOR__ $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 else
-	$(CXX) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 endif
 
 $(BIN)ntuple_c.o:   $(SCC)ntuple.C
-	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_c.o                                                                                  
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_c.o
 $(BIN)TrackFit_utils_c.o:   $(SFF)TrackFit_utils.F
-	$(FF) -c $(FFLAGSn) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGSn) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o
 $(BIN)TrackFit_utils.o:	$(SFF)TrackFit_utils.F
-	$(FF) -c $(FFLAGSn)  $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils.o                                                                      
-
-
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGSn)  $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils.o
 
 $(BIN)Geant3_utils.o:   $(SFF)Geant3_utils.F
-	$(FF) -c $(FFLAGS) $(FFLAGSSAVE)  -I$(CERNDIR)/include $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o                                                                                
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGS) $(FFLAGSSAVE)  -I$(CERNDIR)/include $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o
 $(BIN)trd.o:   $(SFF)trd.F
-	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)trd.F -o $(BIN)trd.o                                                                                
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)trd.F -o $(BIN)trd.o
 $(BIN)rkms.o:   $(SFF)rkms.F
-	$(FF) -c $(FFLAGS) $(FFLAGSOPT) -I$(CERNDIR)/include $(SFF)rkms.F -o $(BIN)rkms.o                                                                                
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGS) $(FFLAGSOPT) -I$(CERNDIR)/include $(SFF)rkms.F -o $(BIN)rkms.o
 $(BIN)BackTracing.o:   $(SFF)BackTracing.F
-	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)BackTracing.F -o $(BIN)BackTracing.o
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)BackTracing.F -o $(BIN)BackTracing.o
 
 $(BIN)UnfoldingTools.o:   $(SCC)UnfoldingTools.C
-	$(CXX) -c $(CFLAGS) $(SCC)UnfoldingTools.C -o $(BIN)UnfoldingTools.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) $(SCC)UnfoldingTools.C -o $(BIN)UnfoldingTools.o
 
 $(BIN)AntiPG_s.o: $(SCC)AntiPG.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)AntiPG.C -o $(BIN)AntiPG_s.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)AntiPG.C -o $(BIN)AntiPG_s.o
 
 $(BIN)AntiPG.o: $(SCC)AntiPG.C
-	$(CXX) -c $(CFLAGS) $(SCC)AntiPG.C -o $(BIN)AntiPG.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) $(SCC)AntiPG.C -o $(BIN)AntiPG.o
 
 ifeq  "$(shell uname)"  "SunOS" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
-	f77 -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
+	@echo Compiling  $< ...
+	$(AT)f77 -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "HP-UX" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
-	f77 -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
+	@echo Compiling  $< ...
+	$(AT)f77 -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "Darwin" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
-	$(FF) -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "Linux" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
-	$(FF) -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIX" 
 
 $(BIN)mtx.o:                   $(SFF)mtx.F
-	xlf90 -c $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
+	@echo Compiling  $< ...
+	$(AT)xlf90 -c $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIXold" 
 
 $(BIN)mtx.o:                   $(SFF)mtx.F
-	xlf90 -c $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
+	@echo Compiling  $< ...
+	$(AT)xlf90 -c $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
 endif
 
 ifeq  "$(shell uname)"  "OSF1" 
 
 $(BIN)mtx.o:                   $(SFF)mtx.F
-	f90 -c -free $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
+	@echo Compiling  $< ...
+	$(AT)f90 -c -free $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
 endif
 
 
@@ -975,63 +1098,81 @@ endif
 #===============================================================================
 
 $(SFF)flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
-	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC || defined __INTEL_COMPILER\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
+	@echo Generating $@ ...
+	$(AT)sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC || defined __INTEL_COMPILER\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
 
 
 $(SFF)gbirk.F:      $(CERNSRCDIR)/src/geant321/gphys/gbirk.F
-	sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n       IF(MODEL.EQ.0)THEN\n        C=C*DENS**2     \n        RKB=RKB*DENS \n       EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*DEDXCM))\n      ELSE\n       EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n      ENDIF\n  99  RETURN/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
+	@echo Generating $@ ...
+	$(AT)sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n       IF(MODEL.EQ.0)THEN\n        C=C*DENS**2     \n        RKB=RKB*DENS \n       EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*DEDXCM))\n      ELSE\n       EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n      ENDIF\n  99  RETURN/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
 
 
 $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
-	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
+	@echo Generating $@ ...
+	$(AT)sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
 
 $(BIN)grfile.o:      $(SFF)grfile.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
 
 $(SFF)gstord.F:      $(CERNSRCDIR)/src/geant321/gtrak/gstord.F
-	sed  "s/DO 30/       if(jpolar.lt.jstak .and.jplast+NWPOLA.gt.jstak)then\n          write(*,*)' jpolar overwrite??? ',jplast,jstak\n           return\n            endif\n       DO 30/"   $(CERNSRCDIR)/src/geant321/gtrak/gstord.F > $(SFF)gstord.F
+	@echo Generating $@ ...
+	$(AT)sed  "s/DO 30/       if(jpolar.lt.jstak .and.jplast+NWPOLA.gt.jstak)then\n          write(*,*)' jpolar overwrite??? ',jplast,jstak\n           return\n            endif\n       DO 30/"   $(CERNSRCDIR)/src/geant321/gtrak/gstord.F > $(SFF)gstord.F
 
 $(BIN)gstord.o:      $(SFF)gstord.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gstord.F -o $(BIN)gstord.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gstord.F -o $(BIN)gstord.o
 
 $(SFF)gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
-	sed  "s/IQ(JSTAK+1)+N2-N1+1-IQ(JPOLAR-1)\/3/IQ(JSTAK+2)-IQ(JPOLAR-1)\/3/g;s/N2-N1/NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
+	@echo Generating $@ ...
+	$(AT)sed  "s/IQ(JSTAK+1)+N2-N1+1-IQ(JPOLAR-1)\/3/IQ(JSTAK+2)-IQ(JPOLAR-1)\/3/g;s/N2-N1/NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
 
 #$(BIN)gskpho.o:      $(SFF)gskpho.F
-#	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
+#	@echo Compiling  $< ...
+#	$(AT)$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
 
 $(BIN)ggckov.o:      $(SFF)ggckov.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)ggckov.F -o $(BIN)ggckov.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)ggckov.F -o $(BIN)ggckov.o
 
 $(BIN)graylc.o:      $(SFF)graylc.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)graylc.F -o $(BIN)graylc.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)graylc.F -o $(BIN)graylc.o
 
 $(BIN)gtckov.o:      $(SFF)gtckov.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gtckov.F -o $(BIN)gtckov.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gtckov.F -o $(BIN)gtckov.o
 
 $(SFF)hadevv.F:      $(CERNSRCDIR)/src/geant321/fluka/hadevv.F
-	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > $(SFF)hadevv.F.tmp
-	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./"  $(SFF)hadevv.F.tmp > $(SFF)hadevv.F
-	rm -rf $(SFF)hadevv.F.tmp 
+	@echo Generating $@ ...
+	$(AT)sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > $(SFF)hadevv.F.tmp
+	$(AT)sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./"  $(SFF)hadevv.F.tmp > $(SFF)hadevv.F
+	$(AT)rm -rf $(SFF)hadevv.F.tmp
 
 $(BIN)hadevv.o:      $(SFF)hadevv.F
-	$(FFOLD) -c $(FFLAGS) -DCERNLIB_DOUBLE -I$(CERNDIR)/include $(SFF)hadevv.F -o $(BIN)hadevv.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -DCERNLIB_DOUBLE -I$(CERNDIR)/include $(SFF)hadevv.F -o $(BIN)hadevv.o
 
 $(SFF)sbcomp.F:      $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F
-	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > $(SFF)sbcomp.F
+	@echo Generating  $@ ...
+	$(AT)sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > $(SFF)sbcomp.F
 
 $(BIN)sbcomp.o:      $(SFF)sbcomp.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include -DCERNLIB_DOUBLE $(SFF)sbcomp.F -o $(BIN)sbcomp.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include -DCERNLIB_DOUBLE $(SFF)sbcomp.F -o $(BIN)sbcomp.o
 
 
 $(BIN)flinit.o:      $(SFF)flinit.F
-	$(FFOLD) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)flinit.F -o $(BIN)flinit.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)flinit.F -o $(BIN)flinit.o
 
 $(BIN)gbirk.o:      $(SFF)gbirk.F
-	$(FFOLD) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)gbirk.F -o $(BIN)gbirk.o
+	@echo Compiling  $< ...
+	$(AT)$(FFOLD) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)gbirk.F -o $(BIN)gbirk.o
 
 $(BIN)richpmtlibo.o:	$(SFF)richpmtlib.F
-	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)richpmtlib.F -o $(BIN)richpmtlib.o
+	@echo Compiling  $< ...
+	$(AT)$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)richpmtlib.F -o $(BIN)richpmtlib.o
 
 
 
@@ -1062,48 +1203,62 @@ $(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
 
 
 $(BIN)gbatch_c.o:         $(SCC)gbatch.C
-	$(CXX_ORBIT) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
 
 $(BIN)geant_c.o: 	 $(SCC)geant.C
-	$(CXX_ORBIT) -c $(CFLAGSB) -D__BATCH__ $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGSB) -D__BATCH__ $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
 
 
 $(BIN)job_c.o: 	 $(SCC)job.C
-	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
 
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C
-	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
 
 $(BIN)geant4_c.o:        $(SCC)geant4.C
-	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) -UG4VIS_USE $(SCC)geant4.C -o $(BIN)geant4_c.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) -UG4VIS_USE $(SCC)geant4.C -o $(BIN)geant4_c.o
 
 $(BIN)geant4.o: 	 $(SCC)geant4.C
-	$(CXX) -c $(CFLAGS) -D__BATCH__ -UG4VIS_USE $(SCC)geant4.C -o $(BIN)geant4.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -D__BATCH__ -UG4VIS_USE $(SCC)geant4.C -o $(BIN)geant4.o
 
 
 $(BIN)event_c.o: 	 $(SCC)event.C
-	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)timeid_c.o:        $(SCC)timeid.C
-	$(CXX_ORBIT) -c $(CFLAGSTOFSIM) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGSTOFSIM) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
 
 $(BIN)timeid.o:        $(SCC)timeid.C
-	$(CXX) -c $(CFLAGSTOFSIM) $(SCC)timeid.C -o $(BIN)timeid.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGSTOFSIM) $(SCC)timeid.C -o $(BIN)timeid.o
 
 $(BIN)timeid_server.o:        $(SCC)timeid.C
-	$(CXX_ORBIT) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_server.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_server.o
 
 $(BIN)producer.o: 	 $(SCC)producer.C
-	$(CXX_ORBIT) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
-	$(CXX_ORBIT) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
-	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+	@echo Compiling  $< ...
+	$(AT)$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
 
 $(BIN)VCon_s.o: ../include/VCon_root.h
 
@@ -1119,13 +1274,14 @@ touch_depend:
 
 $(BIN)Make-depend:    $(INCS)
 		@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
-		 touch $(BIN)Make-depend
+ifneq "$(shell du -a  $(BIN)Make-depend 2>&1 | grep -c  ake)" "1"
+		 @touch $(BIN)Make-depend
 endif
-		@makedepend $(DEFINES) -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN) > /dev/null 2>&1
-		cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
-		rm -f $(BIN)Make-depend
-	mv $(BIN)Make-depend.new $(BIN)Make-depend
+		@echo Running makedepend ...
+		$(AT)makedepend $(DEFINES) -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN) > /dev/null 2>&1
+		$(AT)cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
+		$(AT)rm -f $(BIN)Make-depend
+		$(AT)mv $(BIN)Make-depend.new $(BIN)Make-depend
 
 special-links:
 	@if ! [ -d $(AMSWD)/$(MARCH) ] ; then mkdir $(AMSWD)/$(MARCH); fi
@@ -1141,7 +1297,7 @@ clean :
 	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
 	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
-	rm -f $(NTLD) $(SHLD)
+	rm -f $(NTLD) $(SHLD) $(SHLD_LINK)
 	rm -f $(DPMBIN)*.o
 cleanALL : 
 	rm -rf `find $(AMSWD)/bin -type f | grep -v 'CVS'`
@@ -1198,9 +1354,12 @@ allold:
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
 
+
+ifneq ("$(wildcard /etc/redhat-release)","")
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
 	#@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
+endif
 endif
 
 

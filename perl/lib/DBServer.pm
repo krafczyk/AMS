@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.26 2011/12/27 15:04:00 choutko Exp $
+# $Id$
 
 package DBServer;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -690,6 +690,156 @@ sub InitDBFile{
     close(LOCK);
     return 1;
 
+}
+
+
+#
+# [ae-03.Nov.2014]  
+# Next 2 subroutines: InitExport & InitDBFileExport has been 
+# added to provide BDB export interface from C++ monitorUI to
+# make a backpup BDB copy
+# Parameters (also see ../dbserver.exp.perl):
+#     -v<amsprodserver_id> 
+#     -U<dbserver_uid> 
+#     -i<amsprodserver_ior>
+#     -F<existant_BDB_file> | -A<newly_created_BDB_file>
+#
+
+sub InitExport{
+my $ior;
+my $amsprodlogdir;
+my $amsprodlogfile;
+my $uid;
+foreach my $chop  (@ARGV){
+    if($chop =~/^-U/){
+        $uid=unpack("x2 A*",$chop);
+    }
+    elsif($chop =~/^-i/){
+     $ior=unpack("x2 A*",$chop);
+    }
+    elsif($chop=~/^-A/){
+     $amsprodlogdir=unpack("x2 A*",$chop);
+    }
+    elsif($chop=~/^-F/){
+     $amsprodlogfile=unpack("x2 A*",$chop);
+    }
+}
+
+
+ my $ref=shift;
+ my $standalone=shift;
+ $ref->{cid}->{uid}=$uid;
+ $ref->{ok}=0;
+ if((not defined $standalone) and (not defined $ior)){ 
+     warn "NoIor, Exiting";
+     return 0;
+ }
+if (defined $ior){
+ chomp $ior;
+ my $tm={};
+ try{
+  $tm = $ref->{orb}->string_to_object($ior);
+  $ref->{arsref}=[$tm];
+     $ref->{ok}=1;
+ }
+ catch CORBA::MARSHAL with{
+     carp "MARSHAL Error "."\n";
+ }
+ catch CORBA::COMM_FAILURE with{
+     carp "Commfailure Error "."\n";
+ }
+ catch CORBA::SystemException with{
+     carp "SystemException Error "."\n";
+ };
+ if(not $ref->{ok}){
+   return 0;
+ }
+ if((not $ref->UpdateARS())){
+     $ref->Exiting(" Unable to get ARS From Server ","CInAbort");
+     return 0;
+ } 
+}
+  $ref->{dbfile}=$amsprodlogfile;
+  if(not $ref->InitDBFileExport($amsprodlogdir)){
+      my $dbfile=$ref->{dbfile};
+     $ref->Exiting(" Unable to open  DB File $dbfile","CInAbort");
+     return 0;
+  }
+return 1;
+}
+
+sub InitDBFileExport{
+    my %hash;
+    local *DBM;
+    my $db;
+    my $ref=shift;
+    my $amsprodlogdir=undef;
+    if(ref($ref)){
+      $amsprodlogdir=shift;
+    }
+    else{
+         $ref=shift;
+#        $amsprodlogdir=shift;
+    }
+    if (defined $ref->{dbfile}){
+        my $lock="$ref->{dbfile}.lock";
+        sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
+        my $ntry=0;
+        until (flock LOCK, LOCK_EX|LOCK_NB){
+          sleep 1;
+          $ntry=$ntry+1;
+          if($ntry>30){
+            $ref->Exiting("Unable to get lock for $lock","CInAbort");
+            close(LOCK);
+            return 0;
+          }
+        }
+        $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+    }
+    else{
+#       die " tried to init db file sobaka";
+        my $tmpname=tmpnam();
+        $ref->{dbfile}=$amsprodlogdir;
+        $db=tie %hash, "MLDBM",$ref->{dbfile},O_CREAT | O_RDWR, 0644 ;
+        system "chmod o+w $ref->{dbfile}";
+    }
+    if(not $db){
+      $ref->Exiting("Unable to tie db_file $ref->{dbfile}","CInAbort");
+      close(LOCK);
+      return 0;
+    }
+    undef $db;
+
+    if(not $ref->UpdateEverything()){
+      $ref->Exiting("Unable to get Tables From Server","CInAbort");
+      close(LOCK);
+      return 0;
+    }       
+    $hash{nhl}=$ref->{nhl};
+    $hash{ahls}=$ref->{ahls};
+    $hash{ahlp}=$ref->{ahlp};
+    $hash{acl}=$ref->{acl};
+    $hash{aml}=$ref->{aml};
+    $hash{asl}=$ref->{asl};
+    $hash{asl_maxc}=$ref->{asl_maxc};
+    $hash{adbsl}=$ref->{adbsl};
+    $hash{adbsl_maxc}=$ref->{adbsl_maxc};
+    $hash{acl_maxc}=$ref->{acl_maxc};
+    $hash{aml_maxc}=$ref->{aml_maxc};
+    $hash{nsl}=$ref->{nsl};
+    $hash{nkl}=$ref->{nkl};
+    $hash{ncl}=$ref->{ncl};
+    $hash{dsti}=$ref->{dsti};
+    $hash{dsts}=$ref->{dsts};
+    $hash{rtb}=$ref->{rtb};
+    $hash{env}=$ref->{env};
+    $hash{db}=$ref->{db};
+    $hash{rn}=$ref->{rn};
+    $hash{rtb_maxr}=$ref->{rtb_maxr};
+
+    untie %hash;
+    close(LOCK);
+    return 1;
 }
 
 

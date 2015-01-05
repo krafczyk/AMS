@@ -8,7 +8,6 @@
 #include <cmath>
 #include "Rtypes.h"
 class AMSRotMat;
-using namespace std;
 
 
 //! A General AMS class for defining a point in space

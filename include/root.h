@@ -65,7 +65,6 @@
 #endif
 
 
-using namespace std;
 #ifdef __SLC3__
 char* operator+( std::streampos&, char* );
 #endif
@@ -3517,6 +3516,9 @@ public:
 int ReBuildTrdEcal(float DisMax=20, float DirMax=10, float DistX=1,float DistY=2,bool force=false); ///<  Rebuild particle if both Trd and EcalShower present
 int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=3.5,bool force=false); ///<  Rebuild particle if both Trd and TOF present
 
+
+int UpdateTrTrack(float DisMax=5, float DirMax=10); ///< Update TrTrack index
+
   int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 
   /*!
@@ -4013,6 +4015,9 @@ static unsigned int MaxRun;
 static int ProcessSetup;
 static bool isBadRun(unsigned int run);
 static bool RunTypeSelected(unsigned int runtype);
+
+bool IsTestbeamMC();
+int SetDefaultMCTuningParameters();
 
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
@@ -4634,7 +4639,7 @@ particle (datacards: ESTA 1=1110) for most other status bits
 
 bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set
 bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group
-int Version() const {return fabs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):fHeader.Version/4;} ///< \return producer version number
+int Version() const {return std::abs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):fHeader.Version/4;} ///< \return producer version number
 ///
 static AMSSetupR *  getsetup(){return AMSSetupR::gethead();} ///< \return RootSetup Tree Singleton
 int OS() const {return fHeader.Version/16>465?fHeader.Version%16:fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun  12 linux 64bit )
@@ -4749,7 +4754,7 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
 //--------------------------------------------------------------------------------------------------
 ///
        //! Return status of AMS Exposure-Time for each second
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem(please not use this second for Flux Cal)
        */  
        int GetRTIStat();
@@ -4760,21 +4765,29 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
        */
        int RecordRTIRun();
        //! get AMS Exposure-Time RTI information for each second
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem 
        */ 
        int GetRTI(AMSSetupR::RTI & a);
        //!  AMS Exposure-Time RTI for each second off-rootfile mode
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem 
            \param[in] xtime JMDC Time
        */
        static int GetRTI(AMSSetupR::RTI & a, unsigned int  xtime);
-       //!  get AMS Run Begin and End Time from RTI according to run id
+       //!  AMS Exposure-Time RTI for each second by UTC Time(instead of JMDC Time),not recommended for Exposure-Time calculation
+       /*! return 0: if success
+          !=0: RIT second has problem 
+          \param[in] xtime UTC Time
+        */
+       static int GetRTIUTC(AMSSetupR::RTI & a, unsigned int  xtime);
+       //!  get AMS Run Begin and End Time from RTI according to run id(with and without event id)
        /*    \param[in]  runid: run id
              \param[out] time[0]: Run Begin Time, time[1]: Run End Time; JMDC Time
+             \param[in]  begev: begin event id
+             \param[in]  endev: end   event id
        */
-       static int GetRTIRunTime(unsigned int runid,unsigned int time[2]);
+       static int GetRTIRunTime(unsigned int runid,unsigned int time[2],int begev=-1,int endev=-1);
        //!  get  difference(um) bewteen PG ad CIEMAT alignment of L1(L9)(XYZ)  in choosen time window
        /*    \param[in]  extlay: Track External Layer: 0-L1, 1-L9
              \param[out] nxyz:  Events number with X(YZ) Hit
@@ -4833,8 +4846,17 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
 #ifdef __ROOTSHAREDLIBRARY__
   /*!
    *! Dump TrTrack variables with the current alignment settings
+   * @param[in]  run       Run number
+   * @param[in]  event     Event number
+   * @param[in]  itrtrack  TrTrack index in AMSEventR::pTrTrack
+   * @param[in]  refit1    Refit mode for the first  fit (typically inner)
+   * @param[in]  refit2    Refit mode for the second fit (typically full span)
+   * @param[in]  ichrg     Charge assumption (1:p 2:He,...) for resolution
+   * @param[in]  magtemp   Magnet temperature correction during the fitting
+   * @param[in]  path      Search path to look for run and event
    */
-static int DumpTrTrackPar(int run, int event, int itrack = 0);
+  static int DumpTrTrackPar(int run, int event, int itrack = 0, int refit1 = 3, int refit2 = 23, int ichrg = 1, int magtemp = 0,
+			    const char *path = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4/");
 #endif
   /*!
    * @param[in]  ilay    Tracker  ilay(1-9) (J scheme)

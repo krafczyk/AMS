@@ -43,7 +43,6 @@ static int errmax = 99;
 
 TrkLH* TrkLH::head=0;
 
-using namespace std;
 
 ClassImp(TrkLH)
 
@@ -762,7 +761,6 @@ void TrkLH::SetDefaultMask(){
 
 #include "TrkLH.h"
 
-using namespace std;
 
 ClassImp(TrkLHVar)
 

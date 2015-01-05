@@ -22,7 +22,6 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-using namespace std;
 
 TRD_PAIModel::TRD_PAIModel(const G4ParticleDefinition* p, const G4String& nam)
   : G4VEmModel(nam),G4VEmFluctuationModel(nam),

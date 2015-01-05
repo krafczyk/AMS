@@ -1,16 +1,11 @@
 #ifndef _RICHANALYSIS_
 #define _RICHANALYSIS_
 
-#include <vector>
-#include <fstream>
-#include <assert.h>
+#include "typedefs.h"
 #include "TObject.h"
 
-using namespace std;
 
 ///// A geometrical hash useful for multidimensional studies
-#include<stdlib.h>
-#include<math.h>
 
 namespace GeomHashConstants{
   const int nBuffers=4;

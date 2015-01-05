@@ -5,7 +5,6 @@
 #include "TSpline.h"
 #include "TProfile.h"
 
-using namespace std;
 
 
 int BayesianUnfolder::MaxIters=1000;

@@ -3,7 +3,6 @@
 
 ClassImp(TrdMTrack);
 
-using namespace std;
 
 TrdKCalib *TrdMTrack::trdk_db = NULL;
 TrdKPDF *TrdMTrack::Epdf=NULL;

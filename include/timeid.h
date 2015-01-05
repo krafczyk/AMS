@@ -8,7 +8,6 @@
 #include <list>
 #include <map>
 
-using namespace std;
 #ifdef __DARWIN__
 struct dirent;
 #else

@@ -18,7 +18,6 @@
 #include <vector>
 #include <algorithm>
 
-using namespace std;
 
 ClassImp(TrLadCal);
 
@@ -31,6 +30,23 @@ void  TrLadCal::SetVersion(int ver){
   else if (ver==2) { version=ver; printf("TrLadCal:: Set the Pre-Flight Cal Format %d\n",ver); }
   else if (ver==1) { version=ver; printf("TrLadCal:: Set the Pre-Integration Cal Format %d\n",ver); }
   else             { printf("TrLadCal:: Unknown Cal Format %d\n I Give Up",ver); exit(3); }
+}
+
+float TrLadCal::AddNoiseK[9] = { 0,0,0,0,0,0,0,0,0 };
+float TrLadCal::AddNoiseS[9] = { 0,0,0,0,0,0,0,0,0 };
+
+float TrLadCal::GetSigma(int ii)
+{
+  int  tkid = TkDBc::Head->HwId2Tkid(HwId);
+  int  layj = TkDBc::Head->GetJFromLayer(abs(tkid/100));
+  float add = 0;
+  if (1 <= layj && layj <= 9)
+    add = (ii >= 640) ? AddNoiseK[layj-1] : AddNoiseS[layj-1];
+
+  float sig = _getnum(_Sigma,ii);
+  if (add > 0) sig = sqrt(sig*sig+add*add);
+
+  return sig;
 }
 
 geant TrLadCal::_getnum(geant * pp, int ii){
@@ -292,7 +308,7 @@ geant TrLadCal::GetSigmaMean(int side) {
     mean += GetSigma(ii);
     ngoodchannels++;
   }
-  return mean/ngoodchannels;
+  return (ngoodchannels>0) ? mean/ngoodchannels : 0;
 }
 
 geant TrLadCal::GetSigmaRMS(int side) {

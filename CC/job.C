@@ -341,7 +341,9 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.ProcessOff=0;//111 Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on) 
   G4FFKEY.OverlapTol=0;
   G4FFKEY.DumpCrossSections=0;
-  G4FFKEY.HCrossSectionBias=1;
+  G4FFKEY.HCrossSectionBias[0]=1;
+  G4FFKEY.HCrossSectionBias[1]=1;
+  G4FFKEY.HCrossSectionBias[2]=1;
   G4FFKEY.ApplyCPULimit=1;  
   G4FFKEY.DumpCrossSectionsAt=12;
   G4FFKEY.DumpCrossSectionsZt=6;
@@ -2159,10 +2161,19 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     if(TKGEOMFFKEY.alignver==3) TkLadder::version=2;
     if(TKGEOMFFKEY.alignver==4) TkLadder::version=3;
     if(TKGEOMFFKEY.alignver>=5) TkLadder::version=4;
+    if(TKGEOMFFKEY.alignver>=6) TrInnerDzDB::version=2;
     TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
+
+    // Introduce L2Y movement for PM5 (for previous PG and MD alignment)
+    if (TkLadder::version==4 &&
+	(TrExtAlignDB::version==3 || TrExtAlignDB::version==4) &&
+	TKGEOMFFKEY.L2AlignPar[2]==0) TKGEOMFFKEY.L2AlignPar[2] = 0.31;
+
   cout << "AMSJob::update-I- "
        << "TkLadder::version= "     << TkLadder::version << " "
-       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+       << "TrInnerDzDB::version= "  << TrInnerDzDB::version << " "
+       << "TrExtAlignDB::version= " << TrExtAlignDB::version << " "
+       << "TKGEOMFFKEY.L2AlignPar[2]= " << TKGEOMFFKEY.L2AlignPar[2] << endl;
 
 #else
     AMSTrIdGeom::init(STD_DB_ver);
@@ -3495,22 +3506,29 @@ void AMSJob::_timeinitjob(){
       end.tm_year=0;
       TrExtAlignDB::CreateLinear();
 
+      int needtrextalig = ((CALIB.SubDetRequestCalib/100)%10)>0;
       TID.add (new AMSTimeID(AMSID(TrExtAlignDB::GetTDVName(),
 				   isRealData()),begin,end,
 			     TrExtAlignDB::GetLinearSize(),
 			     TrExtAlignDB::fLinear,
-			     server,need,SLin2ExAlign));
+			     server,needtrextalig,SLin2ExAlign));
+      // For std production
+      // Increase a window of outer layer pick up by x10 (default 0.5)
+      if (!needtrextalig) {
+	if (TRFITFFKEY.MergeExtLimX < 5) TRFITFFKEY.MergeExtLimX = 5;
+	if (TRFITFFKEY.MergeExtLimY < 5) TRFITFFKEY.MergeExtLimY = 5;
+      }
 
       TrInnerDzDB::GetHead();
-      TID.add ( new AMSTimeID(
-			      AMSID("TrInnerDzAlign",isRealData()),
+
+      int needtrindzalig = ((CALIB.SubDetRequestCalib/100)%10)>0;
+      TID.add ( new AMSTimeID(AMSID(TrInnerDzDB::GetTDVName(),isRealData()),
 			      begin,
 			      end,
 			      TrInnerDzDB::GetTDVSwapSize(),
 			      TrInnerDzDB::TDVSwap,
-			      server,need,
-			      TrInnerLin2DB));
-		
+			      server,needtrindzalig,TrInnerLin2DB));
+
       DynAlManager::need2bookTDV=((CALIB.SubDetRequestCalib/100)%10)>0;
       DynAlManager::tdvdb=new AMSTimeID(AMSID(DynAlManager::GetTDVName(TKGEOMFFKEY.MdExAlignTag).Data(),1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
       TID.add(DynAlManager::tdvdb);

@@ -833,17 +833,14 @@ double TrFit::SimpleFitTop(void)
 				     +(_yh[i]-_yh[i-1])*(_yh[i]-_yh[i-1])
 				     +(_zh[i]-_zh[i-1])*(_zh[i]-_zh[i-1]));
   }
+  for (int i = 1; i < _nhit; i++) if (len[i] == 0) return -4;
 
   double pintx[LMAX][3];
   double pintu[LMAX][3];
+  for (int j = 0; j < 3; j++) pintx[0][j] = pintu[0][j] = 0;
 
   // Calculate path integrals
-  for (int i = 0; i < _nhit; i++) {
-    if (i == 0 || len[i] <= 0) {
-      for (int j = 0; j < 3; j++) pintx[i][j] = pintu[i][j] = 0;
-      continue;
-    }
-     
+  for (int i = 1; i < _nhit; i++) {
     double u[3];
     u[0] = (_xh[i]-_xh[i-1])/len[i];
     u[1] = (_yh[i]-_yh[i-1])/len[i];
@@ -991,7 +988,7 @@ double TrFit::AlcarazFit(int fixr)
   int    ilay[LMAX];
 
   // Estimate layer number
-  for (int i = 0; i < _nhit; i++) {
+  for (int i = 0; _mscat && i < _nhit; i++) {
     ilay[i] = GetLayer(_zh[i]);
     if (ilay[i] == 8) ilay[i] = 0;
     if (ilay[i] == 9) ilay[i] = 8;
@@ -4209,6 +4206,10 @@ TkDBc *TrProp::TkDBc()
   return TkDBc::Head;
 }
 
+Double_t BsclX = 1;
+Double_t BsclY = 1;
+Double_t BsclZ = 1;
+
 void TrProp::GuFld(double *p, double *b)
 {
   b[0] = b[1] = b[2] = 0;
@@ -4230,14 +4231,19 @@ void TrProp::GuFld(double *p, double *b)
 	  magerr = -1;
 	  err = 1;
 	}
-	mfp->SetMagstat(1);
-	mfp->SetScale(1.);
+	// commented out otherwise it will overwrite fscale
+	//mfp->SetMagstat(1);
+	//mfp->SetScale(1.);
       }
     }
     if (err) return;
   }
 
-  float pp[3] = { (float)p[0], (float)p[1], (float)p[2] };
+  float pp[3];
+  pp[0] = (float)p[0]*BsclX;
+  pp[1] = (float)p[1]*BsclY;
+  pp[2] = (float)p[2]*BsclZ;
+
   float bb[3];
   GUFLD(pp, bb);
 

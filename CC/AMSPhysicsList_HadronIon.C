@@ -135,7 +135,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fDeuteronProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fDeuteronProcess);
-        if (G4FFKEY.HCrossSectionBias!=1) fDeuteronProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fDeuteronProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======Triton
 	particle = G4Triton::Triton();
@@ -148,7 +148,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fTritonProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fTritonProcess);
-        if (G4FFKEY.HCrossSectionBias!=1) fTritonProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fTritonProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======Alpha
 	particle = G4Alpha::Alpha();
@@ -161,7 +161,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fAlphaProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fAlphaProcess);
-        if (G4FFKEY.HCrossSectionBias!=1) fAlphaProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fAlphaProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======He3
 	particle = G4He3::He3();
@@ -175,7 +175,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fhe3Ion->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fhe3Ion);
-        if (G4FFKEY.HCrossSectionBias!=1) fhe3Ion->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fhe3Ion->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======GenericIon
 	particle = G4GenericIon::GenericIon();
@@ -189,7 +189,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fGenericIon->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fGenericIon);
-        if (G4FFKEY.HCrossSectionBias!=1) fGenericIon->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fGenericIon->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	if(G4FFKEY.UseEMDModel==1){
 	  cout<<"Also Use EMD Model"<<endl;
@@ -227,7 +227,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fDeuteronProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fDeuteronProcess);
-        if (G4FFKEY.HCrossSectionBias!=1) fDeuteronProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fDeuteronProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======Triton
 	particle = G4Triton::Triton();
@@ -240,7 +240,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fTritonProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fTritonProcess);
-        if (G4FFKEY.HCrossSectionBias!=1) fTritonProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fTritonProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======Alpha
 	particle = G4Alpha::Alpha();
@@ -253,7 +253,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fAlphaProcess->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fAlphaProcess);
-        if (G4FFKEY.HCrossSectionBias!=1) fAlphaProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fAlphaProcess->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======He3
 	particle = G4He3::He3();
@@ -267,7 +267,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fhe3Ion->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fhe3Ion);
-        if (G4FFKEY.HCrossSectionBias!=1) fhe3Ion->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fhe3Ion->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	//======GenericIon
 	particle = G4GenericIon::GenericIon();
@@ -281,7 +281,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 #endif
 	fGenericIon->RegisterMe(theGenIonQMD);
 	pManager->AddDiscreteProcess(fGenericIon);
-        if (G4FFKEY.HCrossSectionBias!=1) fGenericIon->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+        if (G4FFKEY.HCrossSectionBias[0]!=1) fGenericIon->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 
 	if(G4FFKEY.UseEMDModel==1){
 	  cout<<"Also Use EMD Model"<<endl;

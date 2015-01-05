@@ -42,6 +42,8 @@ ClassImp(TofRecH)
 TofBetaPar TofRecH::betapar;
 AMSEventR *TofRecH::ev=0;
 int        TofRecH::realdata=1;
+const double TofRecH::cvel=29.9792;
+
 //--Cluster
 vector<TofRawSideR>   TofRecH::tfraws;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -187,7 +189,7 @@ int TofRecH::BuildTofClusterH(){
     vector<pair <integer,integer > >sideid;
     tfraws=ev->TofRawSide();
     for(unsigned int i=0;i<tfraws.size();i++){
-      sideid.push_back(make_pair<integer,integer>(i,tfraws.at(i).swid));
+      sideid.push_back(make_pair(i,tfraws.at(i).swid));
     }
 //--increase id
     sort(tfraws.begin(),tfraws.end(),SideCompare);
@@ -1527,7 +1529,7 @@ int  TofRecH::BetaFindTOFCl(AMSTrTrack *ptrack,int ilay,TofClusterHR **tfhit,num
        return -1;
 #endif
        dscoo=fabs(tkcoo[iscoo]-tfcoo[iscoo])-TOFGeom::Sci_w[ilay][nowbar]/2.;
-       fbarid.push_back(make_pair<integer,number>(i,dscoo)); 
+       fbarid.push_back(make_pair(i,dscoo)); 
      }
 
 //--sort id by distance+fix index     
@@ -1813,7 +1815,7 @@ int TofRecH::TOFClMakePair(int il0,int il1,int isdown){
 //---time match cut
          tmatch=fabs(tofclh[il0].at(i)->Time-tofclh[il1].at(j)->Time)<(fabs(dco[2])*1.414/(TofRecPar::NonTkBetaCutL*cvel)+TofRecPar::PairTMatch);//45degree 0.3c slow
          if(!tmatch)continue;
-         tofclp[isdown].push_back(make_pair<TofClusterHR*,TofClusterHR*>(tofclh[il0].at(i),tofclh[il1].at(j)));
+         tofclp[isdown].push_back(make_pair(tofclh[il0].at(i),tofclh[il1].at(j)));
     }
   }
 

@@ -8,9 +8,9 @@
  \class TrPdf
  \brief The tracker PDF class 
  
- $Date: 2011/05/26 01:30:29 $
+ $Date$
 
- $Revision: 1.3 $
+ $Revision$
 */
 
 #include "TGraph.h"
@@ -22,15 +22,11 @@
 #include "TRandom.h"
 #include "TString.h"
 
-#include <cstring>
-#include <iostream>
-#include <cstdio>
-#include <cmath> 
+#include "typedefs.h"
 #include <vector>
 
 #define VERBOSE 0
 
-using namespace std;
 
 class TrPdf : public TObject {
 	

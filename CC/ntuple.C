@@ -29,6 +29,7 @@ extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #include "TrHistoMan.h"
 #endif
 #include <signal.h>
+#include <strstream>
 #include <iostream>
 #include <iomanip>
 #ifndef __DARWIN__
@@ -517,7 +518,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
   const int size=5000000;
   char * name=new char[size];
   if(name){
-    ostrstream ost(name,size);
+    std::ostrstream ost(name,size);
     AMSJob::gethead()->getgeom()->printN(ost);
     _ag.SetString(name);
     //     cout <<_ag.GetString();

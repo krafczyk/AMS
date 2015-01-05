@@ -173,7 +173,7 @@ public:
   /// Get ii-th strip pedestal ADC value
   geant GetPedestal(int ii)   { return Pedestal(ii); }
   /// Get ii-th strip sigma (CN subtracted pedestal sigma) ADC value
-  geant GetSigma(int ii)      { return _getnum(_Sigma,ii); }
+  geant GetSigma(int ii);
   /// Get ii-th strip sigma-pedestal ADC value
   geant GetSigmaRaw(int ii)   { return _getnum(_SigmaRaw,ii); }
   /// Get ii-th status 
@@ -218,6 +218,11 @@ public:
 
   static  void SetVersion(int ver); 
   static int GetVersion(){return version;} 
+
+  /// Additional noise in K side
+  static float AddNoiseK[9];
+  /// Additional noise in S side
+  static float AddNoiseS[9];
 
   /// It copy the calibration data to a linear vector 
   ///  in memory starting at address offset

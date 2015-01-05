@@ -34,12 +34,14 @@ GeoMagField *GeoMagField::GetHead()
 int GeoMagField::InitModel(const char *mdfile, double date)
 {
   if (fInitStat != 0) return fInitStat;
-
+#ifdef _OPENMP
+#pragma omp critical  (initmodel)
+#endif
+ {
   if (fModelFile.Contains("$"))
     fModelFile = gSystem->ExpandPathName(fModelFile.Data());
-
   if (!mdfile) mdfile = fModelFile.Data();
-
+ }
   int ret = readmdf(mdfile);
   if (ret < 0) {
     fInitStat = -1;

@@ -17,6 +17,7 @@ TrInnerDzDB* TrInnerDzDB::Head=0;
 float TrInnerDzDB::TDVSwap[2*(1+kLaynum)];
 
 int TrInnerDzDB::ForceFromTDV=0;
+int TrInnerDzDB::version=0;
 
 float TrInnerDzDB::LDZA[kLaynum]={0.,0.,0.,0.,0.,0.,0.};
 uint  TrInnerDzDB::UTIME=0;
@@ -71,6 +72,13 @@ int TrInnerDzDB::GetEntry(uint Timeid, float* Dz, int kind){
   return 0;
 }
 
+const char *TrInnerDzDB::GetTDVName()
+{
+  static TString stn;
+  stn = "TrInnerDzAlign";
+  if (version >= 2) stn += Form("%d", version);
+  return stn.Data();
+}
 
 int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
   time_t starttime=0;
@@ -84,9 +92,12 @@ int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
 #pragma omp threadprivate (tid)
   if (tid && force) { delete tid; tid = 0; }
 
+  TString sdn = "TrInnerDzAlign";
+  if (version > 0) sdn = Form("TrInnerDzAlign%d", version);
+
   if(!tid){
     tid= new AMSTimeID(
-		       AMSID("TrInnerDzAlign",1),
+		       AMSID(sdn,1),
 		       begin,
 		       end,
 		       TrInnerDzDB::GetTDVSwapSize(),

@@ -58,6 +58,10 @@ public:
   ///[836-840] Time dependent L2 alignment parameters (used only with PM5)
   float L2AlignPar[5];
 
+
+  /// Option to enable/disable reading TKGEOMFFKEY from AMSRoot file
+  static int ReadFromFile;
+
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
   ClassDef(TKGEOMFFKEY_DEF,9);
@@ -176,7 +180,7 @@ public:
   // 2014.05.23 SH
   // Workaround to retune the MC resolution (not activated by default)
   geant MCtuneDmax;  //=0  typically put 100e-4 to activate
-  geant MCtuneDs;    //=0  typically put   1e-4 to improve the resolution
+  geant MCtuneDs[2];     //=0  typically put   1e-4 to improve the resolution
                      //                   -1e-4 to smare
                      //    if MCtuneDs > MCtuneDmax, use exactly as MC coo
   geant MCtuneDy9;   //=0  typically put   1e-4 to mitigate the propagation bug
@@ -217,7 +221,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,10);
+  ClassDef(TRMCFFKEY_DEF,11);
 
 
 };

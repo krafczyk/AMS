@@ -19,6 +19,9 @@
 #ifdef _PGTRACK_
 #include "TrExtAlignDB.h"
 #include "TrInnerDzDB.h"
+#ifdef __ROOTSHAREDLIBRARY__
+#include "TrRecon.h"
+#endif
 #endif
 #include "timeid.h"
 #include "commonsi.h"
@@ -2577,6 +2580,19 @@ bool AMSEventR::ReadHeader(int entry){
 	fHeader.BetaHs = NBetaH();
       }
     }
+#ifdef __ROOTSHAREDLIBRARY__
+    // Workaround to fix FS-XY hit efficiency
+    if(Version()==935 && AMSEventR::Head()->nMCEventgC()) {
+      static int nerr = 0;
+      TrRecon rec;
+      int nr = rec.RecoverExtHits();
+      fHeader.TrClusters = NTrCluster();
+      fHeader.TrRecHits  = NTrRecHit();
+      if (nr > 0 && nerr++ < 10)
+	cout << "AMSEvent::ReadHeader-I-RecoverExtHits recovered at "
+	     << Event() << " " << nr << endl;
+    }
+#endif
 #endif
     if(Version()<160){
       // Fix rich rings
@@ -2919,7 +2935,132 @@ void AMSEventR::clear(){
 
 }
 
+static void split(const std::string& s, char delim, std::vector<std::string>& elems) {
+  std::stringstream ss(s);
+  std::string item;
+  while (std::getline(ss, item, delim)) {
+    if (!item.empty())
+      elems.push_back(item);
+  }
+}
 
+bool AMSEventR::IsTestbeamMC()
+{
+  // if this is not MC: return false
+  if (!nMCEventgC()) return false;
+
+  // static variables to track result of subsequent calls to the function.
+  static unsigned int run = 0;
+  static bool cachedResult = false;
+
+  // if the run did not change, return previous result
+  if (Run() == run)
+    return cachedResult;
+
+  // update run
+  run = Run();
+
+  // get filename of AMS ROOT file
+  std::string filename = GetCurrentFileName();
+
+  // get folders in path
+  std::vector<std::string> folders;
+  split(filename, '/', folders);
+
+  // find "AMS02" in path
+  std::vector<std::string>::iterator it = find(folders.begin(), folders.end(), "AMS02");
+  int index = (it - folders.begin()) + 3;
+
+  // if "AMS02" could not be found or the number of subsequent directories is not large enough print error
+  if (it == folders.end() || index < 0 || index >= (int)folders.size()) {
+    std::cout << "AMSEventR::IsTestbeamMC-E-Could not interprete path" << std::endl;
+    return cachedResult;
+  }
+
+  // this is the directory we want to interprete: pr.pl1.ecal.400.tb (for example)
+  const std::string& folder = folders[index];
+
+  // split pr.pl1.ecal.400.tb into pr pl1 ecal 400 tb
+  std::vector<std::string> tokens;
+  split(folder, '.', tokens);
+
+  // return whether or not an isolated string with content "tb" was found.
+  cachedResult = (find(tokens.begin(), tokens.end(), "tb") != tokens.end());
+  return cachedResult;
+}
+
+int AMSEventR::SetDefaultMCTuningParameters()
+{
+#ifdef _PGTRACK_
+  // return if this is not MC
+  if (!nMCEventgC()) return 1;
+
+  MCEventgR* mcGen = GetPrimaryMC();
+  if (!mcGen) return 2;
+
+  // particle G3 id.
+  short particle = fabs(mcGen->Particle);
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Simulate residual misalignment by smearing external layers (not for testbeam MC)
+
+  if (!IsTestbeamMC()) {
+    TRMCFFKEY.OuterSmearing[0][1] = -7.5e-4;
+    TRMCFFKEY.OuterSmearing[1][1] = -8.3e-4;
+    TRMCFFKEY.OuterSmearing[0][0] = 7.5e-4;
+    TRMCFFKEY.OuterSmearing[1][0] = 8.5e-4;
+  }
+  else {
+    TRMCFFKEY.OuterSmearing[0][0] = 0.;
+    TRMCFFKEY.OuterSmearing[1][0] = 0.;
+    TRMCFFKEY.OuterSmearing[0][1] = 0.;
+    TRMCFFKEY.OuterSmearing[1][1] = 0.;
+  }
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Tuning of single point resolution
+
+  // common setting
+  TRMCFFKEY.MCtuneDmax = 100e-4;
+
+  // fix propagation bug in Geant4 for MC older than B817
+  if (Version() < 817) {
+    TRMCFFKEY.MCtuneDy9 = 1.0e-4;
+  }
+  else  TRMCFFKEY.MCtuneDy9 = 0;
+  // helium
+  if (particle == 47) {
+    TRMCFFKEY.MCtuneDs[0] =  0.0;
+    TRMCFFKEY.MCtuneDs[1] = -3.0e-4;
+  }
+  // tested only for protons with B620dev, but apply for everything except
+  // Helium which is handled above, until better parameters are found
+  else {
+    TRMCFFKEY.MCtuneDs[0] = -9.0e-4;
+    TRMCFFKEY.MCtuneDs[1] =  2.0e-4;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // MC scattering for protons / antiprotons
+
+  // (tested only for protons with B620dev. For B930: fix by scaling cross sections)
+  if ( (particle == 14 ) && Version() <= 930) {
+    TRMCFFKEY.MCscat[0] = -15.0;
+    TRMCFFKEY.MCscat[1] = -440.06;
+    TRMCFFKEY.MCscat[2] = -440.05;
+  }
+  else{
+    TRMCFFKEY.MCscat[0] = 0;
+    TRMCFFKEY.MCscat[1] = 0;
+    TRMCFFKEY.MCscat[2] = 0;
+  }
+
+  return 0;
+#else 
+return 1;
+#endif
+}
 
 //------------- AddAMSObject 
 #ifndef __ROOTSHAREDLIBRARY__
@@ -4210,7 +4351,6 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	int   hcmax[18];
 	float adc_hi, adc_low;
 
-	float edep_h;
 	float s1,s3,s5;
 
 	float zv3[18];
@@ -4275,24 +4415,23 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				adc_hi=hit.ADC[0];
 				adc_low=hit.ADC[1];						
 				//
-				
-				edep_layer[plane]      += hit.Edep;
-				edep_cell[plane][cell]  =  hit.Edep;
-				s_cell_w[plane]        += (cell+1)*hit.Edep;
-				s_cell2_w[plane]       += pow((cell+1),2.)*hit.Edep;
+
+            float Edep=	isnan(hit.Edep)?0:hit.Edep;
+				edep_layer[plane]      += Edep;
+				edep_cell[plane][cell]  = Edep;
+				s_cell_w[plane]        += (cell+1)*Edep;
+				s_cell2_w[plane]       += pow((cell+1),2.)*Edep;
 				//
 				nhitcell[plane]++;			
 				//
 				if (adc_low>4) npixl+=1;
 				if ( (adc_hi>4&&adc_low<=4) || adc_low>4 ) npix+=1; 
 				
-				EnergyDh		+= hit.Edep;
+				EnergyDh		+= Edep;
 				
-				edep_h=0.;
 				if (adc_hi>4)  {
-					edep_h=hit.Edep;
-					hedepl[plane]		+=	edep_h;
-					hedepc[plane][cell]=	edep_h;
+					hedepl[plane]		+=	Edep;
+					hedepc[plane][cell]=	Edep;
 				}
 
 
@@ -4534,7 +4673,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 
 		if(nblayer>5){
 
-			// new bounds for the
+			// new bounds for the fit
 			float xmin=3.5;
 			float xmax=18.;  
 			if (EnergyDh/1000.<=150) xmin=3;
@@ -4558,8 +4697,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 			zprofile[3]  =fitf->GetParameter(3);
 			zprofile[4] = fitf->GetChisquare()/fitf->GetNDF();
 
-
-						
+         delete fitf;
 		}
 
 		delete hfitecal;	
@@ -4579,7 +4717,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 	
 	if(AMSEventR::Head()->nMCEventgC()){
 
-		TRandom3 R;
+		TRandom3 R(0);
 		// footprint
 		FP[0]=1.5; 
 		FP[1]=1.5;
@@ -9199,10 +9337,12 @@ void AMSEventR::Begin(TTree *tree){
       char dir[1024];
       sprintf(dir,"thread_%d",thr);
       if(fgThickMemory)Dir=dir;
-      UBegin();
 #ifdef _PGTRACK_
+      int magtemp_save = TRFITFFKEY.magtemp;
          TRFITFFKEY.init();
+	 TRFITFFKEY.magtemp = magtemp_save;
 #endif
+      UBegin();
       pService=&fService; 
     }
   }
@@ -10605,10 +10745,13 @@ int AMSEventR::RecordRTIRun(){
 //----Find rootfile
   unsigned int nt=fHeader.Time[0];
   unsigned int nr=fHeader.Run;
+  unsigned int evno=fHeader.Event;
   string nf=Tree()->GetCurrentFile()->GetName();
   if(nf==pf){
      if(nt<fRunList[nr].bt)fRunList[nr].bt=nt;
      if(nt>fRunList[nr].et)fRunList[nr].et=nt;
+     if(evno<fRunList[nr].begev)fRunList[nr].begev=evno;
+     if(evno>fRunList[nr].endev)fRunList[nr].endev=evno;
      return 2;//exist
   }
 
@@ -10616,12 +10759,14 @@ int AMSEventR::RecordRTIRun(){
 //----  
   map<unsigned int,AMSSetupR::RunI>::iterator it=fRunList.find(nr);
   if(it==fRunList.end()){//Find Run
-     fRunList.insert(make_pair(nr,AMSSetupR::RunI(nr,nt,nt,nf)));
+     fRunList.insert(make_pair(nr,AMSSetupR::RunI(nr,nt,nt,evno,evno,nf)));
      return 0;//new run
   }
   else {//Exist Run Check File
     if(nt<fRunList[nr].bt)fRunList[nr].bt=nt;
     if(nt>fRunList[nr].et)fRunList[nr].et=nt;
+    if(evno<fRunList[nr].begev)fRunList[nr].begev=evno;
+    if(evno>fRunList[nr].endev)fRunList[nr].endev=evno;
     for(unsigned int ifn=0;ifn<fRunList[nr].fname.size();ifn++){
       if(fRunList[nr].fname.at(ifn)==nf)return 2;//exist
     }
@@ -10669,25 +10814,67 @@ if(AMSSetupR::RTI::Version!=vrti){
   return 2;
 }
 
+int AMSEventR::GetRTIUTC(AMSSetupR::RTI & a, unsigned int  xtime){
 
-int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2]){
+#ifdef __ROOTSHAREDLIBRARY__
+  static AMSSetupR::RTI_m fRTIUTC;
+  static unsigned int stime[2]={1,1};
+  const int pt=3600*3;
+  const int dt=3600*24;
+  const int mt=3600;//max margin between JMDCTime and UTCTime
+ if(stime[0]==1||xtime>stime[1]||xtime<stime[0]){
+    stime[0]=(xtime<=pt)?1:xtime-pt;
+    stime[1]=xtime+dt;
+    fRTIUTC.clear();
+    AMSSetupR::RTI a;
+    unsigned int utc=1;
+    for(unsigned int t=stime[0];t<=stime[1];t++){
+      if(GetRTI(a,t)!=0)continue; 
+      if(int(a.utctime[0])<=utc)continue;
+      utc=int(a.utctime[0]);
+      fRTIUTC.insert(make_pair(utc,a));
+    }
+    stime[0]+=mt;
+    stime[1]-=mt;
+ }
+//---Status 
+  AMSSetupR::RTI b;
+  a=b;
+  AMSSetupR::RTI_i k=fRTIUTC.lower_bound(xtime);
+  if (fRTIUTC.size()==0)return 2;
+  if(k==fRTIUTC.end())return 1;
+
+  if(xtime==k->first){//find
+    a=(k->second);
+    return 0;
+  }
+#endif
+  return 2;  
+}
+
+int AMSEventR::GetRTIRunTime(unsigned int runid,unsigned int time[2],int begev,int endev){
 
   const unsigned int pt=1000;//Run window Pr
   const unsigned int dt=3600;//Run window Af 1~hour 20min
   unsigned int bt=(runid<=pt)?1:runid-pt;
   unsigned int et=runid+dt;
   time[0]=time[1]=runid;//Not Found
-
 //----Find BT
   AMSSetupR::RTI a;
   for(unsigned int t=bt;t<=et;t++){      
-     if(GetRTI(a,t)!=0)continue; 
-     if(a.run==runid){time[0]=t;break;}
+     if(GetRTI(a,t)!=0)continue;
+     if(a.run==runid){
+       bool evok=((endev<=0||begev>endev)||(a.evnol>=begev));
+       if(evok){time[0]=t;break;}
+     }
   }
 //---Find ET
   for(unsigned int t=et;t>=bt;t--){
      if(GetRTI(a,t)!=0)continue;
-     if(a.run==runid){time[1]=t;break;}
+     if(a.run==runid){
+       bool evok=((endev<=0||begev>endev)||(a.evno<=endev));
+       if(evok){time[1]=t;break;}
+     }
   }
 
 //--Result
@@ -10931,7 +11118,8 @@ static int master=0;
 
 try{
 	int save=TKGEOMFFKEY.MaxAlignedRun;
-                                 if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
+                                 
+     if (TKGEOMFFKEY.ReadFromFile && _FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
      if(TKGEOMFFKEY.MaxAlignedRun<save){
          TKGEOMFFKEY.MaxAlignedRun=save;
@@ -14025,6 +14213,116 @@ return 10;
 }
 
 
+int ParticleR::UpdateTrTrack(float distmax,float dirmax)
+{
+#ifndef _PGTRACK_
+  return -1;
+#else
+  class RichRingRT  :public RichRingR {public: void set(int i){fTrTrack = i;}};
+  class RichRingBRT :public RichRingBR{public: void set(int i){fTrTrack = i;}};
+  class BetaRT      :public BetaR     {public: void set(int i){fTrTrack = i;}};
+
+  if(iVertex()>=0 ){
+    if (pRichRing ()) ((RichRingRT *)pRichRing ())->set(-1);
+    if (pRichRingB()) ((RichRingBRT*)pRichRingB())->set(-1);
+    if (pBeta     ()) ((BetaRT     *)pBeta     ())->set(-1);
+    TofRecH::ReBuild(0);
+    return 1;
+  }
+
+  AMSEventR *evt = AMSEventR::Head();
+  if (!evt) return -1;
+
+  fTrTrack = -1;
+
+  TrTrackR *newtrack = 0;
+  float dmin = distmax;
+  float cmax = cos(dirmax/180*3.1415926);
+
+  AMSDir dcmp(Theta, Phi);
+
+  for (unsigned int i = 0; i < evt->NTrTrack(); i++) {
+    TrTrackR *trk = evt->pTrTrack(i);
+    if (!trk || trk->Gettrdefaultfit() <= 0) continue;
+
+    AMSPoint pnt;
+    AMSDir   dir;
+    trk->Interpolate(Coo[2], pnt, dir);
+    if (dir.z()*dcmp.z() < 0) dir = dir*(-1);
+
+    if (dir.prod(dcmp) < cmax) continue;
+
+    float dm = dmin;
+    for (unsigned int k = 0; k < sizeof(TrCoo)/3/sizeof(TrCoo[0][0]); k++) {
+      trk->Interpolate(TrCoo[k][2], pnt, dir);
+      AMSPoint p(TrCoo[k]);
+      float d = p.dist(pnt);
+
+      if (d < dm) dm = d;
+    }
+
+    if (dm < dmin) {
+      fTrTrack = i;
+      newtrack = trk;
+      dmin = dm;
+    }
+  }
+
+// update TrTrack indexes
+  if (pRichRing ()) ((RichRingRT *)pRichRing ())->set(fTrTrack);
+  if (pRichRingB()) ((RichRingBRT*)pRichRingB())->set(fTrTrack);
+  if (pBeta     ()) ((BetaRT     *)pBeta     ())->set(fTrTrack);
+
+//  update particle pars
+if (newtrack) {
+  _build(newtrack->GetRigidity(),newtrack->GetErrRinv(),Charge,Beta,ErrBeta,Mass,ErrMass,Momentum,ErrMomentum);
+  newtrack->setstatus(AMSDBc::USED);
+   
+  AMSDir dtrk(newtrack->GetTheta(),newtrack->GetPhi());
+  if((Beta<0 && dtrk[2]<0) || (Beta>0 && dtrk[2]>0))
+     for(int i=0;i<3;i++)dtrk[i]=-dtrk[i];
+  Theta=dtrk.gettheta();
+  Phi=dtrk.getphi();
+
+  for(int k=0;k<3;k++)Coo[k]=newtrack->GetP0()[k];
+  if (AMSEventR::Head() && !AMSEventR::Head()->pMCEventg(0)) Loc2Gl(AMSEventR::Head());
+  for(unsigned int k=0;k<sizeof(TOFCoo)/3/sizeof(TOFCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TOFCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)TOFCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(EcalCoo)/3/sizeof(EcalCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(EcalCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)EcalCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(TrCoo)/3/sizeof(TrCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TrCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)TrCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(TRDCoo)/3/sizeof(TRDCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(TRDCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)TRDCoo[k][l]=pnt[l];
+  }  
+  for(unsigned int k=0;k<sizeof(RichCoo)/3/sizeof(RichCoo[0][0]);k++){
+   AMSPoint pnt;
+   AMSDir dir;
+   newtrack->Interpolate(RichCoo[k][2],pnt,dir);
+   for(int l=0;l<3;l++)RichCoo[k][l]=pnt[l];
+  }  
+}
+  TofRecH::ReBuild(Charge);
+
+#endif
+  return 0;
+}
+
 void ParticleR::_calcmass(float momentum,float emomentum, float beta, float ebeta, float &mass, float &emass){
   if(fabs(beta)<=1.e-10 ){
     mass=FLT_MAX;
@@ -14109,11 +14407,62 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   return ret;
 } 
 
-int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
+int MCtune(AMSPoint &coo, int tkid, double dmax, float dsxy[2])
 {
+int ret=0;
+//x
+{
+double ds=dsxy[0];
+(void)ds;
 #ifdef __ROOTSHAREDLIBRARY__
   if (!AMSEventR::Head()) return 0;
-//  if (AMSEventR::Head()->Version() >= 817) return 0;
+  if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
+
+  TrMCClusterR *mc = 0;
+  double      dmin = dmax;
+  for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
+    TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
+    if (!m || m->GetTkId() != tkid) continue;
+
+    double d = coo.x()-m->GetXgl().x();
+    if (TMath::Abs(d) < TMath::Abs(dmin)) {
+      mc   = m;
+      dmin = d;
+    }
+  }
+  if (mc) {
+   if(ds<0){
+   double rnd[1];
+#ifdef __ROOTSHAREDLIBRARY__
+  int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+  AMSEventR::GetRandArray(8993306-lj-1, 2,  1,rnd);
+#else
+rnd[0]=rnormx();
+#endif
+     coo[0]+=-ds*rnd[0];
+     ret=1;
+   }
+   else{
+    if (ds < dmax && TMath::Abs(dmin) > ds) {
+      coo[0] += (dmin > 0) ? -ds : ds;
+      ret=1;
+    }
+    if (ds > dmax) {
+      coo = mc->GetXgl();
+      ret=1;
+    }
+  }}
+ 
+
+#endif
+ 
+}
+//y
+{
+double ds=dsxy[1];
+(void)ds;
+#ifdef __ROOTSHAREDLIBRARY__
+  if (!AMSEventR::Head()) return 0;
   if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
   TrMCClusterR *mc = 0;
@@ -14138,22 +14487,25 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, double ds)
 rnd[0]=rnormx();
 #endif
      coo[1]+=-ds*rnd[0];
-     return 1;
+     ret+=10;
    }
    else{
     if (ds < dmax && TMath::Abs(dmin) > ds) {
       coo[1] += (dmin > 0) ? -ds : ds;
-      return 1;
+      ret+=10;
     }
     if (ds > dmax) {
       coo = mc->GetXgl();
-      return 1;
+      ret+=10;
     }
   }}
  
 
 #endif
-  return 0;
+ 
+}
+
+ return ret;
 }
 
 int MCshift(AMSPoint &coo, double ds)
@@ -14384,19 +14736,43 @@ return ret;
 #include "amschain.h"
 #include "bcorr.h"
 
-int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
+int AMSEventR::DumpTrTrackPar(int run, int event, int itrack, int refit1,
+			      int refit2, int ichrg, int bcorr,
+			      const char *path)
 {
-  TString dir = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4";
-  TString xrd = "root://eosams.cern.ch/"+dir+"/";
+  TString xrd = "root://eosams.cern.ch/";
   TString eos = "/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select";
 
-  static AMSChain ach;
-  static TString  str;
+  static AMSChain *ach = 0;
   static int srun = 0;
 
-  if (run != srun) {
-    str = gSystem->GetFromPipe(eos+" ls "+dir+Form(" | grep %d", run));
+  static TString sph;
+  if (sph == "") sph = path;
+  if (sph != path) { 
+    sph = path; srun = 0;
+    delete ach; ach = 0;
+    AMSEventR::Head() = 0; 
+  }
 
+  if (!ach) ach = new AMSChain;
+
+  if (run != srun) {
+   if (sph.EndsWith(".root")) {
+     ach->Reset();
+     ach->Add(sph);
+   }
+   else {
+    TString str;
+    TString srr;
+    if (!sph.EndsWith("/")) sph += "/";
+    if (sph.BeginsWith("/eos")) {
+           srr = xrd+sph;
+           str = gSystem->GetFromPipe(eos+" ls "+sph+Form(" | grep %d", run));
+    }
+    else { srr = sph;
+           str = gSystem->GetFromPipe(     "ls "+sph+Form(" | grep %d", run));
+    }
+           
     TObjArray *sar = str.Tokenize("\n");
     if (sar->GetEntries() == 0) {
       cout << "AMSEventR::DumpTrTrackPar-E-No AMSRoot file found" << endl;
@@ -14406,26 +14782,31 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
     cout << "AMSEventR::DumpTrTrackPar-I-Number of files found: "
 	 << sar->GetEntries() << endl;
 
-    ach.Reset();
+    ach->Reset();
     for (int i = 0; i < sar->GetEntries(); i++)
-      ach.Add(xrd+sar->At(i)->GetName());
+      ach->Add(srr+sar->At(i)->GetName());
     delete sar;
-
-    int ntr = ach.GetNtrees();
-    int nen = ach.GetEntries();
+   }
+    int ntr = ach->GetNtrees();
+    int nen = ach->GetEntries();
     if (ntr <= 0 || nen <= 0) {
       cout << "AMSEventR::DumpTrTrackPar-E-Invalid Ntrees,Entreis: "
 	   << ntr << " " << nen << endl;
       return -1;
     }
     srun = run;
-  }
+   }
+
+  TRFITFFKEY_DEF::ReadFromFile = 0;
+  TRFITFFKEY.magtemp = bcorr;
 
   int ntry =  0;
   int eofs = -1;
-  AMSEventR *evt = 0;
+  AMSEventR *evt = ach->GetEvent(0);
+  eofs = -evt->Event();
+
   while ((!evt || int(evt->Event()) != event) && ntry++ < 5) {
-    evt   = ach.GetEvent(event+eofs);
+    evt   = ach->GetEvent(event+eofs);
     eofs -= evt->Event()-event;
   }
 
@@ -14453,24 +14834,38 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack)
     return -1;
   }
 
-  int itp0 = trk->iTrTrackPar(1, 3,  3);
-  int itp1 = trk->iTrTrackPar(1, 7, 23);
+  float mass = TrFit::Mproton;
+  float chrg = 1;
+  if (ichrg > 1) { mass = TrFit::Mhelium; chrg = 2; }
+
+  int itp0 = trk->iTrTrackPar(1, 3, refit1, mass, chrg);
+  int itp1 = trk->iTrTrackPar(1, 7, refit2, mass, chrg);
+
+  float bcr0 = (itp0 > 0) ? trk->GetBcorr(itp0) : 1;
+  float bcr1 = (itp1 > 0) ? trk->GetBcorr(itp1) : 1;
+
   cout << endl;
   cout << "AMSEventR::DumpTrTrackPar-I-Dump: " << endl;
   cout << "Run/Event : " << evt->Run() << " " << evt->Event() << endl;
-  cout << Form("btempcor= %.4f", bcor) << endl;
-  cout << Form("iTrTrackPar(1, 3,  3)= %7d", itp0);
+  if (bcr0 == 1 && bcr1 == 1)
+    cout << Form("btempcor= %.4f", bcor) << endl;
+  if (bcr0 != 1) cout << Form("Bcorr(already applied on refit %2d)= %.4f", 
+			      refit1, bcr0) << endl;
+  if (bcr1 != 1) cout << Form("Bcorr(already applied on refit %2d)= %.4f", 
+			      refit2, bcr1) << endl;
+  cout << Form("iTrTrackPar(1, 3, %2d, %5.3f, %3.1f) ", refit1, mass, chrg);
   if (itp0 > 0) {
     cout << Form(" Rigidity= %9.3f",   trk->GetRigidity  (itp0));
     cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp0));
   }
   cout << endl;
-  cout << Form("iTrTrackPar(1, 7, 23)= %7d", itp1);
+  cout << Form("iTrTrackPar(1, 7, %2d, %5.3f, %3.1f) ", refit2, mass, chrg);
   if (itp1 > 0) {
     cout << Form(" Rigidity= %9.3f",   trk->GetRigidity  (itp1));
     cout << Form(" NormChisqY= %8.3f", trk->GetNormChisqY(itp1));
   }
   cout << endl;
+
 
   TrRecHitR *hit1 = trk->GetHitLJ(1);
   TrRecHitR *hit9 = trk->GetHitLJ(9);
@@ -14877,20 +15272,21 @@ double AMSEventR::GetMCCutoffWeight(double rgen, double rrec,
     TFile *fbin = 0;
 
     if (!hbin) {
-      TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin.root";
+      TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/phe_bin2.root";
       fbin = TFile::Open(sfn);
       if (!fbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin file not found" << endl;
 	return -1;
       }
-      hbin = (TH1D *)fbin->Get("hist2");
+      hbin = (TH1D *)fbin->Get("hist1");
       if (!hbin) {
 	cerr << "AMSEventR::GetMCCutoffWeight-E-Bin histogram not found"
 	     << endl;
 	return -1;
       }
     }
-    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+  //TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RcutAll.root";
+    TString sfn = getenv("AMSDataDir"); sfn += "/v5.01/RTIcut.root";
     if (getenv("RcutAll")) sfn = getenv("RcutAll");
 
     int nBin = hbin->GetNbinsX();

@@ -1,0 +1,59 @@
+Berkeley DB Migration guide
+---------------------------
+
+The purpose of this migration is to change Berkeley DB server used by amsprodserver
+from perl (old BDB) to c++ implementation (new BDB).
+
+What changed in the Offline software
+------------------------------------
+
+dbserver.start    - the script changed to add a new BDB software kicker
+dbserver.exp.perl - the script added to provide BDB export to c++ and perl database
+lib/DBServer.pm   - 2 subroutines added: InitExport & InitDBFileExport
+
+What should be changed in the production server configuration
+-------------------------------------------------------------
+
+Only the files ServerRestart_v5,v6,v9  should be changed to switch to the  new BDB or 
+roll-back, for understanding of migration procedure see  ServerRestart_v6 as a sample.
+
+The sequence of migration to the new BDB (amsprodserver -v5)
+------------------------------------------------------------
+
+1. create new BDB folder: /dat0/local/prod.log/db/v5, to isolate databases if the host 
+   contains several running amsprodservers
+
+2. uncomment 2 lines of code in ServerRestart_v5:
+                 export AMSDBServCpp=1
+                 export AMSDBServDbg=0
+
+3. run runMonitorUI.sh -v5 -uadmin on the same host where amsprodserver is running 
+
+4. export database with <Tools>::<Export to c++ BDB> menu item, set proper new BDB name, 
+   and save the result in /dat0/local/prod.log/db/v5, for transparency use the following 
+   naming convention: <new BDB name> ::= <old BDB name>_cpp
+   Warning: format of new and old BDBs is not the same, so simple copy of BDB instead of 
+   export will never work
+
+5. kill all running processes of amsprodserver -v5
+
+6. restart ServerRestart_v5 &
+
+The sequence of roll-back to the old BDB (amsprodserver -v5)
+------------------------------------------------------------
+
+1. comment 2 lines of code in ServerRestart_v5:
+                 #export AMSDBServCpp=1
+                 #export AMSDBServDbg=0
+
+2. run runMonitorUI.sh -v5 -uadmin on the same host where amsprodserver is running 
+
+3. export database with <Tools>::<Export to perl BDB> menu item, set proper old BDB name, 
+   and save the result in /dat0/local/prod.log/db
+   Warning: format of new and old BDBs is not the same, so simple  copy of BDB instead of 
+   export will never work
+
+4. kill all running processes of amsprodserver -v5
+
+5. restart ServerRestart_v5 &
+

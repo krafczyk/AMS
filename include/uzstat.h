@@ -80,7 +80,7 @@ public:
 #ifdef __MIC__ 
  void book(char * name, int freq=1,int thr=256);
 #else
-void book(char * name, int freq=1,int thr=64);
+void book(char * name, int freq=1,int thr=128);
 #endif
   void accu();
   ///Starts the timer

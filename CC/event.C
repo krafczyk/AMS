@@ -4047,7 +4047,7 @@ void AMSEvent::_collectstatus(){
         if(ptr->getpshower()){
         number en=ptr->getpshower()->getEnergy()/1000.;
 
-        if(!isnan(en)&&!isinf(en)){
+        if(!isnan(en)&&!std::isinf(en)){
 	  if(en<2)z1=0;        
 	  else if(en<8)z1=1;        
 	  else if(en<32)z1=2;        

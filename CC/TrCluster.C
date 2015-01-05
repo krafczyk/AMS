@@ -105,25 +105,28 @@ short TrClusterR::GetStatus(int ii) {
 
 
 int TrClusterR::GetSensorAddress(int& sens, int ii, int mult, int verbose) {
+  int tkid = GetTkId();
+  bool isK7 = IsK7();
+  int side = GetSide();
   // it could happen that multiplicity exceeds by one the max (only in case of cluster on the last sensor of K7)
-  int max_mult = TkCoo::GetMaxMult(GetTkId(),GetSeedAddress());
-  if ( (IsK7())&&((mult-max_mult)==1) ) mult = max_mult; 
+  int max_mult = TkCoo::GetMaxMult(tkid,GetSeedAddress());
+  if ( isK7&&((mult-max_mult)==1) ) mult = max_mult;
   // mult, by XCofG method convention, is referred to seed strip
-  int seedadd = GetAddress() + GetSeedIndex(); 
+  int seedadd = GetAddress() + GetSeedIndex();
   // here I convert multiplicity of seed to multiplicity of first strip
-  if ( (GetSide()==0)&&(IsK7())&&(seedadd>1023) ) mult--; // if seed > left margin the mult of first strip is mult-1 
-  if ( (GetSide()==0)&&(IsK7())&&(seedadd< 640) ) mult++; // if seed < right margin the mult of first strip is mult+1 (this case is possible only if ii<0 & K7)
+  if ( (side==0)&&isK7&&(seedadd>1023) ) mult--; // if seed > left margin the mult of first strip is mult-1
+  if ( (side==0)&&isK7&&(seedadd< 640) ) mult++; // if seed < right margin the mult of first strip is mult+1 (this case is possible only if ii<0 & K7)
   // now take the address without regarding of cyclicity accounted in the following algorithm
-  int address = GetAddress() + ii; 
+  int address = GetAddress() + ii;
   // detect multiplicity jump in case of K7
-  while ( (GetSide()==0)&&(IsK7())&&(address>1023) ) { address -= 384; mult++; }
-  while ( (GetSide()==0)&&(IsK7())&&(address< 640) ) { address += 384; mult--; }
-  if ( ( (GetSide()==0)&&( (address<640)||(address>1023) ) ) ||
-       ( (GetSide()==1)&&( (address<  0)||(address> 639) ) ) ) {
-    if (verbose>0) printf("TrClusterR::GetSensorAddress-W address out of bounds (%d) for side %1d. Return -5.\n",address,GetSide());
+  while ( (side==0)&&isK7&&(address>1023) ) { address -= 384; mult++; }
+  while ( (side==0)&&isK7&&(address< 640) ) { address += 384; mult--; }
+  if ( ( (side==0)&&( (address<640)||(address>1023) ) ) ||
+       ( (side==1)&&( (address<  0)||(address> 639) ) ) ) {
+    if (verbose>0) printf("TrClusterR::GetSensorAddress-W address out of bounds (%d) for side %1d. Return -5.\n",address,side);
     return -5;
   }
-  return TkCoo::GetSensorAddress(GetTkId(),address,mult,sens,verbose);
+  return TkCoo::GetSensorAddress(tkid,address,mult,sens,verbose);
 }
 
 

@@ -45,7 +45,7 @@
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 int  UpdateInnerDz();
-int  MCtune (AMSPoint &coo, int tkid, double dmax, double ds);
+int  MCtune (AMSPoint &coo, int tkid, double dmax, float ds[2]);
 int  MCshift(AMSPoint &coo,                        double ds);
 
 int my_int_pow(int base, int exp){
@@ -1031,7 +1031,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     // Workaround to retune the MC resolution (not activated by default)
 //    if (hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
     if (
-	TRMCFFKEY.MCtuneDmax > 0 && TRMCFFKEY.MCtuneDs != 0)
+	TRMCFFKEY.MCtuneDmax > 0 && (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0))
       MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
 
     // Workaround to mitigate the MC propagation error
@@ -1147,7 +1147,12 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   for (int i = 0; i < trconst::maxlay; i++) {
     if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
       TrRecHitR *hit = GetHitLO(i+1);
-      AMSPoint pint  = InterpolateLayerO(i+1, id);
+      AMSPoint pint;
+      AMSDir   pdir;
+      double lz = (hit) ? hit->GetCoord().z() : TkDBc::Head->GetZlayerA(i+1);
+      Interpolate(lz, pint, pdir, id);
+//    AMSPoint pchk  = InterpolateLayerO(i+1, id);
+
       if (hit){
 	AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
 	if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
@@ -1282,7 +1287,7 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
     pnt.setp(0,0,hit->GetCoord()[2]);
   else {
      dir.setp(0, 0, 1);
-     pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily));
+     pnt.setp(0, 0, TkDBc::Head->GetZlayerA(ily));
 
      tprop.Interpolate(pnt, dir);
      TkSens tks(pnt,0);
@@ -1433,6 +1438,10 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 		   number& Theta, number& Phi, AMSPoint& X0) const {
     /// FastFit is assumed as normal (Choutko) fit without MS
   int id = kChoutko;
+  if (!ParExists(id)) id = TrTrackR::kAlcaraz;
+  if (!ParExists(id)) id = TrTrackR::kSimple;
+  if (!ParExists(id)) { Chi2=Err=-1;Rig=Theta=Phi=-1; return; }
+
   if(_MagFieldOn==0) id=kLinear;
   if(trdefaultfit==kDummy) id=kDummy;
   Chi2 = GetChisq(id); Rig = GetRigidity(id); Err = GetErrRinv(id); 

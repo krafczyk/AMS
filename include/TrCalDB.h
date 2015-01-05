@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.15 2011/05/26 01:30:29 pzuccon Exp $
+// $Id$
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/26 01:30:29 $
+///$Date$
 ///
-///$Revision: 1.15 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -71,6 +71,9 @@ public:
 
   int GetEntries(){return trcal_hwidmap.size();}
   TrLadCal* GetEntry(int ii);
+
+  //! Get the mean of TrLadCal::GetSigmaMean for the p(1) and n(0) sides; layer= 0:all layers, 10:inner layers(2J-8J), 1~9:specific layer(OLD scheme)
+  float GetSigmaMean(int side, int layer=0);
   
   //! write the content of the DB to an ascii file
   int write(char* filename){return 0;}
@@ -120,6 +123,9 @@ public:
 
   //! Save cal to TDV DB
   static int  SaveCal2DB();
+
+  /// Load from TDV
+  static int GetFromTDV(unsigned int timeid, bool force = false);
 
   void PrintInfo(int verb){for(int ii=0;ii<GetEntries();ii++) GetEntry(ii)->PrintInfo(verb);}
   ClassDef(TrCalDB,3);

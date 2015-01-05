@@ -8,7 +8,6 @@
 #include "TFile.h"
 
 
-using namespace std;
 using namespace RichPMTCalibConstants;
 
 

@@ -193,7 +193,7 @@ bool TrOccDB::CreateFromRawOccupanciesHisto(TH2F* histo, float norm) {
       deviation[1-iside] = (values.at(place[iside]-1) + values.at(place[iside]))/2.;
       // normalized occupancy 
       for (int address=limits[iside]; address<limits[iside+1]; address++) {
-        occupancy[address] = (fabs(deviation[1-iside]<1e-6)) ? 
+        occupancy[address] = (fabs(deviation[1-iside])<1e-6) ? 
           BadOccupancyValue : 
           (histo->GetBinContent(iladder+1,address+1)-median[1-iside])/deviation[1-iside];
       }

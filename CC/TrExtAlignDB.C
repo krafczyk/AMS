@@ -22,7 +22,6 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
 
-using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
 int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;
@@ -386,6 +385,40 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     float *ll= (plane[i]==5)?SL1:SL9;
     ll[6]=pos[0]; ll[7]=pos[1];ll[8]=pos[2];
     ll[9]=a;ll[10]=b;ll[11]=c;
+
+
+    // Simple Hardwire Database
+    if(TkLadder::version >= 4 && 
+       strcmp("DynAlignmentV5T290713PM5",DynAlManager::tdvdb->getname())==0){
+     
+#ifdef _CUSTOM_SOFS2_
+      if(run>0){
+	Sofs2[0+2]=3.7e-4;
+	Sofs2[0+6]=51e-4;
+	Sofs2[0+10]=0;
+	Sofs2[1+2]=6.0e-4;
+	Sofs2[1+6]=20e-4;
+	Sofs2[1+10]=0;
+      }
+
+
+      if(run>1386071385-30){
+	static bool first=true;
+	if(first){
+	  cout<<"INITIALIZING SOFS2 CORRECTION"<<endl;
+	  first=false;
+	}
+	Sofs2[0+2]=0;
+	Sofs2[0+6]=20e-4;
+	Sofs2[0+10]=0; 
+	Sofs2[1+2]=1.5e-4;
+	Sofs2[1+6]=60e-4;
+	Sofs2[1+10]=0;
+      }
+#endif
+    }
+
+
 
     if (TkLadder::version == 3) ll[7]+=Sofs[i+2];
     if (TkLadder::version >= 4){ll[7]+=Sofs2[i+2]; ll[8]+=Sofs2[i+6]; ll[9]+=Sofs2[i+10];}

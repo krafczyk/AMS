@@ -1943,7 +1943,7 @@ class RemoteClient:
         tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 %d " %(timeout) 
         input_xrootd = input
         if (input.find('/eosams/') == 0):
-            input_xrootd = self.eosLink2Xrootd(intput)
+            input_xrootd = self.eosLink2Xrootd(input)
         cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v "+input_xrootd+" 'root://castorpublic.cern.ch//"+output+"?svcClass=%s'" %(os.environ['STAGE_SVCCLASS']) 
         cmdstatus=os.system(cmd)
         if(cmdstatus):
@@ -2022,7 +2022,7 @@ class RemoteClient:
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
             else:
-                print "EOS has some problem in quota or not mounted, trying normal disk..."
+                print "EOS has some problem in quota or not mounted (checkEOS() returned %d, %d), trying normal disk..." %(gb, eosmounted)
         #
         # select disk to be used to store ntuples
         #
@@ -2103,8 +2103,15 @@ class RemoteClient:
         self.eosreservegb = 100  #GBype reserved on EOS
         chkeoscmd = "%s quota -m %s%s | grep \"space=%s/ \" | grep \"gid=va\"" %(self.eosselect, self.eoshome, path, self.eoshome)
         pair=commands.getstatusoutput(chkeoscmd)
+        if (pair[0] != 0):
+            print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
+            return -4, os.path.exists(self.eoslink)
         out=pair[1]
-        quota = dict(s.split('=') for s in out.split())
+        try:
+            quota = dict(s.split('=') for s in out.split())
+        except:
+            print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
+            return -5, os.path.exists(self.eoslink)
         if (not os.path.exists(self.eoslink)):
             os.system(eosumount + ' $HOME/eos')
             os.system(eosmount + ' $HOME/eos')
@@ -2113,22 +2120,23 @@ class RemoteClient:
 #            print "Testing write-in"
             ret = os.system("touch /eosams/test && date >> /eosams/test")
             if (ret):
-                return -2
+                os.system("ls -l /eosams/")
+                return -2, os.path.exists(self.eoslink)
 #            print "Testing readout"
             pair=commands.getstatusoutput("cat /eosams/test")
             if (pair[0]):
-                return -3
+                return -3, os.path.exists(self.eoslink)
 #            print pair
 #            print "Testing remove"
-            pair=commands.getstatusoutput("rm -v /eosams/test")
-            if (pair[0]):
-                return -4
+#            pair=commands.getstatusoutput("rm -v /eosams/test")
+#            if (pair[0]):
+#                return -4, os.path.exists(self.eoslink)
 #            print pair
             return (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
         else:
             print "EOS quota problem: ", quota
             self.sendmailmessage('baosong.shan@cern.ch', 'EOS quota', quota)
-            return -1
+            return -1, os.path.exists(self.eoslink)
            
     def getOutputPathRaw(self,period,path='/MC'):
         # try eos if self.eos is set
@@ -2139,7 +2147,7 @@ class RemoteClient:
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
             else:
-                print "EOS has some problem in quota or not mounted, trying normal disk..."
+                print "EOS has some problem in quota or not mounted (checkEOS() returned %d, %d), trying normal disk..." %(gb, eosmounted)
         #
         # select disk to be used to store ntuples
         #
@@ -2664,6 +2672,8 @@ class RemoteClient:
     def calculateCRC(self,filename,crc):
         self.crcCalls=self.crcCalls+1
         time0=time.time()
+        if (filename.find('/eosams/') == 0):
+            filename = self.eosLink2Xrootd(filename)
         mutex.release()
         crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
         rstatus=os.system(crccmd)
@@ -4173,21 +4183,21 @@ class RemoteClient:
         self.verbose=v
         self.run2p=run2p
         self.force=f
-	arun2p=""
+        arun2p=""
         if(run2p.find(",")>=0):
-	    arun2p=" and ( run=-1 "
+            arun2p=" and ( run=-1 "
             junk=run2p.split(',')
-	    run2p=0
-	    for run in junk:
-		srun2p=" or run=%s " %(run)
+            run2p=0
+            for run in junk:
+                srun2p=" or run=%s " %(run)
                 arun2p=arun2p+srun2p
             arun2p=arun2p+" ) "
-	else:
-	    try:
-	        run2p=int(run2p)	
- 	    except:
+        else:
+            try:
+                run2p=int(run2p)	
+            except:
                 run2p=0
-	rund=""
+        rund=""
         runn=""
         runnd=""
         runst=" "
@@ -4340,7 +4350,7 @@ class RemoteClient:
             if(datamc==0):
                 if(donly==0):
                     df=1
-                    sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s " %(datapath,runndf) 
+                    sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s %s " %(datapath,runndf,arun2p) 
                     files=self.sqlserver.Query(sql)
         if(len(files)>0 or self.force!=0):
             if(buildno>0):

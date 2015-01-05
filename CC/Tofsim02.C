@@ -35,7 +35,6 @@
 #endif
 #include "tofsim02.h"
 //
-using namespace std;
 //------------------------------------------------------------------
 map<integer,TH1D*> TOF2TovtN::phmap;
 map<integer,TH1D*>::iterator TOF2TovtN::phmapiter;

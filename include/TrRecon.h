@@ -17,6 +17,7 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
+///\date  2014/11/19 SH  TTCS off simulation
 ///
 /// $Date$
 ///
@@ -228,6 +229,19 @@ public:
   /// Expand the TrRawCluster in the buffer structure
   int  ExpandClusterInBuffer(TrRawClusterR* cluster);
 
+  /** Remove TrRawClusters to simulate TTCS-OFF runs
+   * \param[in]  config    Configuration ID
+   * 1: RUN 1412285225 - 1412688825 L2,4,6,8:Yonly    L9:XY-on
+   * 2: RUN 1413209505 - 1413874948 L2,4,6,8:NCL Off  L9:XY-on
+   * 3: RUN 1413897220 -            L2,4,6,8:NCL OFF  L9:Yonly
+   *  (Layer 1 is always XY-on, L3,5,7 are always off)
+   *
+   * \param[in] add_noise[4]  Additional noise to L2-8(0:x,1:y) and L9(2:x,3:y)
+   *  typically put : { 0.9, 0.8, 0.8, 0.7 };
+   *
+   * \return number of TrRawClusters removed, <0 in case of errors
+   */
+  int SimulateTTCSoff(int config, float add_noise[4]);
 
   /// Builds all the TrClusters (returns the number of TrCluster built) 
   int  BuildTrClusters(int rebuild=0);
@@ -489,6 +503,9 @@ public:
 
   /// Event pre selection for photon vertex pattern
   int PreselTrTracksVertex();
+
+  /// Recover XY hits in outer layers (for B935 MC)
+  int RecoverExtHits();
 
   /// Merge hits shared by two tracks
   //int MergeSharedHits(TrTrackR *track, int fit_method);

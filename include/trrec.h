@@ -36,7 +36,6 @@ class AMSTRDTrack;
 #include "event.h"
 #include <vector>
 
-using namespace std;
 
 
 

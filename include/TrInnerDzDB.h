@@ -43,6 +43,9 @@ public:
     ClassDef(TrInnerDzDB::DzElem,1);
   };
 
+  /// TDV version (0: with PM4  2: with PM5) 
+  static int version;  // It should be thread-common
+
   static float LDZA[kLaynum];
 #pragma omp threadprivate (LDZA) 
   static uint UTIME;
@@ -77,6 +80,9 @@ public:
   /// look up on the DB and update the LDZA static array used to calculate the coo
   /// In the case the time is not available it tries to seach fot it in the TDV 
   int UpdateTkDBc(uint timeid);
+
+  /// Get TDV name
+  static const char *GetTDVName();
 
   /// search on the TDV the data good for the requested time and update the DB
   int GetFromTDV(uint timeid, bool force = false);

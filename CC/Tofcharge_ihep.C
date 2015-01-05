@@ -48,7 +48,7 @@ float TofChargePar::GetProbZ(float Z){
 void   TofChargePar::FillProbZ(int ZL,int ZH){
 
    for(int Z=ZL;Z<=ZH;Z++){
-      ProbZ.push_back(make_pair<int, float>(Z,GetProbZ(float(Z))));
+      ProbZ.push_back(make_pair(Z,GetProbZ(float(Z))));
    }
 }
 
