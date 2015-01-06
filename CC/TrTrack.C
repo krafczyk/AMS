@@ -1164,6 +1164,11 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	    coo= (GetHitCooLJ(hit->GetLayerJ(),0)+GetHitCooLJ(hit->GetLayerJ(),1))/2.;
 	  else if (cookind==5)
 	    coo= hit->GetCoord(-1,cookind);  
+
+	  if (TRMCFFKEY.MCtuneDmax > 0 &&
+	     (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0))
+	    MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax,
+		                        TRMCFFKEY.MCtuneDs);
 	}
 	par.Residual[i][0] = (coo-pint)[0];
 	par.Residual[i][1] = (coo-pint)[1];
