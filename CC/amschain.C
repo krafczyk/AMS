@@ -249,7 +249,7 @@ static map<unsigned long long, unsigned long long>::iterator itsav;
 int prcs=AMSEventR::ProcessSetup;
 map<unsigned long long, unsigned long long>::iterator it=m_chain_entryindex.begin();
 if(seq){
-  if(seqsav && abs(seq-seqsav)<seq){
+  if(seqsav && std::abs(seq-seqsav)<seq){
     it=itsav;
     std::advance(it,seq-seqsav);
   }
@@ -293,7 +293,7 @@ AMSEventR::ProcessSetup=prcs;
  it=m_chain_entryindex.begin();
 
 if(seq){
-  if(seqsav && abs(seq-seqsav)<seq){
+  if(seqsav && std::abs(seq-seqsav)<seq){
     it=itsav;
     std::advance(it,seq-seqsav);
   }
@@ -1226,7 +1226,7 @@ int AMSChain::GenUFSkel(const char* filename){
 }
 
 Int_t AMSChain::Add(const char* name, Long64_t Nentries){
-Long64_t nentries=Nentries<-1?abs(Nentries):Nentries;
+Long64_t nentries=Nentries<-1?std::abs(Nentries):Nentries;
 #ifdef CASTORSTATIC 
 bool timeout=Nentries<-1;
 #endif

@@ -2653,7 +2653,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 
 // SH
   double dd = -std::sqrt(par[0]*par[0]+par[1]*par[1]+1); // down-going
-  double pp = (par[2] != 0) ? abs(1/par[2]) : 0;         // abs.momentum
+  double pp = (par[2] != 0) ? std::abs(1/par[2]) : 0;         // abs.momentum
   pin[0] = par[0]/dd*pp; // ! Px
   pin[1] = par[1]/dd*pp; // ! Py
   pin[2] =      1/dd*pp; // ! Pz
@@ -4069,7 +4069,7 @@ double TrProp::VCFitParCyl(double *init, double *out, double *point)
                 (point[2]-out[2])*point[5];
     double sdist = point[6]-std::sqrt(s1-s2*s2);
     double sd2   = out[3]*point[3]+out[4]*point[4]+out[5]*point[5];
-    double sd1   = std::sqrt(abs(1-sd2*sd2));
+    double sd1   = std::sqrt(std::abs(1-sd2*sd2));
     sdist = sdist/(sd1+1.e-10);
 
     if (nit == 1 && sdist < 0) {

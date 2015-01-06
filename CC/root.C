@@ -6056,7 +6056,7 @@ int ParticleR::DoBacktracing(int out_type)
     double phm = ptr->  PhiM*180./M_PI;
     double thm = ptr->ThetaM*180./M_PI;
     double trm = ptr->ThetaM;
-    double arg = abs(rgt);
+    double arg = std::abs(rgt);
     double lrg = log10(arg);
     if (phg > 180) phg -= 360;
     if (phm > 180) phm -= 360;
@@ -10176,9 +10176,9 @@ int AMSEventR::isInShadow(AMSPoint&  ic,ParticleR & part){
 
                 //...............................all uncertainties together
                 // distance of intersection point to SA center
-                double dxc=abs(Int0[k][0]- xyzC[k][0]);
-                double dyc=abs(Int0[k][1]- xyzC[k][1]);
-                double dzc=abs(Int0[k][2]- xyzC[k][2]);
+	  double dxc=std::abs(Int0[k][0]- xyzC[k][0]);
+	  double dyc=std::abs(Int0[k][1]- xyzC[k][1]);
+	  double dzc=std::abs(Int0[k][2]- xyzC[k][2]);
 
         if( dxc<= dx+ sigmax && dyc<= dy+ sigmay && dzc<= dz+ sigmaz  ){
                         // 1A , 3A or no ? 

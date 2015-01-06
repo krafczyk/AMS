@@ -219,7 +219,7 @@ void AMSmceventg::gener(){
     _mom=orb->Rigidity;
     _tbline=0;
     init(orb->Pid);
-    _mom=orb->Rigidity*abs(_charge);
+    _mom=orb->Rigidity*fabs(_charge);
 #endif
   }else  if(CCFFKEY.low==-2){
     //
@@ -1280,9 +1280,9 @@ Removed by VC 2014.02.03 as no documentation for this codde exists
       AMSPoint pnt1 = _coo+_dir*(z1-_coo.z())/_dir.z();
       AMSPoint pnt2 = _coo+_dir*(z2-_coo.z())/_dir.z();
       bool cut0 = (sqrt(pnt0.x()*pnt0.x()+pnt0.y()*pnt0.y()) < 55 && 
-		                               abs(pnt0.y()) < 40);
+		                               fabs(pnt0.y()) < 40);
       bool cut1 = (sqrt(pnt1.x()*pnt1.x()+pnt1.y()*pnt1.y()) < 60);
-      bool cut2 = (abs(pnt2.x()) < 45 && abs(pnt2.y()) < 30);
+      bool cut2 = (fabs(pnt2.x()) < 45 && fabs(pnt2.y()) < 30);
       if (!cut0) return false;
       if (cut == 5 && (cut1 && cut2)) return true;
       if (cut == 6 && (cut1 || cut2)) return true;

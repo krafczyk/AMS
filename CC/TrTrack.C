@@ -1930,8 +1930,8 @@ int TrTrackR::RebuildHits(void)
     for (int slot = -15; slot <= 15; slot++) {
       int   tkidchk = TMath::Sign(layr*100+TMath::Abs(slot), slot);
       AMSPoint diff = hcoo-TkCoo::GetLadderCenter(tkidchk);
-      if (abs(diff[0]) < TkCoo::GetLadderLength(tkidchk)/2 &&
-	  abs(diff[1]) < TkDBc::Head->_ladder_Ypitch/2) {
+      if (fabs(diff[0]) < TkCoo::GetLadderLength(tkidchk)/2 &&
+	  fabs(diff[1]) < TkDBc::Head->_ladder_Ypitch/2) {
 	tkid = tkidchk;
 	break;
       }

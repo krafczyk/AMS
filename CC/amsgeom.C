@@ -3068,8 +3068,8 @@ ECALDBc::readgconf();//
    	    coo[1]=cleft+ifib*fpitx;
           }
 	  angle_max=2.*atan2(par[0],flen);
-	  if (abs(angle[isupl])<angle_max){ 
-	    par[2]=(flen-par[0]*abs(sin(angle[isupl])))/cos(angle[isupl])-0.001; 
+	  if (std::abs(angle[isupl])<angle_max){ 
+	    par[2]=(flen-par[0]*std::abs(sin(angle[isupl])))/cos(angle[isupl])-0.001; 
 	  }
 	  else{
 	    par[2]=flen-0.001;
