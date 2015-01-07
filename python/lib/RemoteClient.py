@@ -2695,6 +2695,7 @@ class RemoteClient:
         self.castorcopy=1
         self.eos=eos
         self.force=force
+        self.crczero=0
         firstjobname=0
         lastjobname=0
         HelpTxt = """
