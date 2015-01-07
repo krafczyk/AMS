@@ -14500,10 +14500,11 @@ double ds=dsxy[1];
       };
       if(lj>=2&&lj<=8){//implement for TkInner only L2->L8
         double res=TMath::Abs(dmin)*10000.;//cm->um
-        TSpline3 tkspline("tkspline",nodefn,shinkparn[lj-2],nnodefn,"b1e1",0,0);
+        static TSpline3 *tkspline[9]={0};
+        if(tkspline[lj-1]==0)tkspline[lj-1]=new TSpline3(Form("tktunespline_l%d",lj),nodefn,shinkparn[lj-2],nnodefn,"b1e1",0,0);
         if      (res<nodefn[0])res=nodefn[0];
         else if (res>nodefn[nnodefn-1])res=nodefn[nnodefn-1];
-        double scale=tkspline.Eval(res);
+        double scale=tkspline[lj-1]->Eval(res);
         coo[1] =dmin*scale+mc->GetXgl().y();//Smear by Scale
         ret+=10;
       }
