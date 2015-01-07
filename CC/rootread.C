@@ -228,7 +228,7 @@ again:
    if(iver && i%100==0)cout <<" i "<<i<<" "<<nevents<<endl;
    if((pev->fStatus/1073741824)%2)nbadev++;
    if(firstevent<0)firstevent=pev->fHeader.Event;
-   if(lastevent && abs(lastevent-int(pev->fHeader.Event))>diff){
+   if(lastevent && std::abs(lastevent-int(pev->fHeader.Event))>diff){
      diff=std::abs(lastevent-int(pev->fHeader.Event));
    }
    lastevent=pev->fHeader.Event;
@@ -240,7 +240,7 @@ again:
    float rate=(lastevent+1-firstevent)/nevread;
    if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<" "<<rate<<" "<<diff<<endl; 
    if(iver)cout <<" LastEvent,,,"<<lastevent << ",,,"<<firstevent<<",,,"<<ver<<",,,"<<nevread<<endl;
-   if(0 && abs(LastEvent-lastevent)>15*rate && abs(LastEvent-lastevent)>3*diff){
+   if(0 && std::abs(LastEvent-lastevent)>15*rate && std::abs(LastEvent-lastevent)>3*diff){
      return -5;
    } 
   }

@@ -207,36 +207,36 @@ double TrdKHit::Tube_Track_3DLength(AMSPoint *X0, AMSDir *Dir){
 
 
     if(TRDHit_Direction==1){
-        if(abs(P1.x())>tubelength && abs(P2.x())>tubelength){
+        if(fabs(P1.x())>tubelength && fabs(P2.x())>tubelength){
             return 0;
         }
-        if(abs(P1.x())>tubelength){
+        if(fabs(P1.x())>tubelength){
             if(P1.x()>0){
-                float deltax=abs(P1.x()-tubelength);
+                float deltax=fabs(P1.x()-tubelength);
                 P1=P1-DirPRIME*(deltax/DirPRIME.x());
             }
         }
-        if(abs(P2.x())>tubelength){
+        if(fabs(P2.x())>tubelength){
             if(P2.x()>0){
-                float deltax=abs(P2.x()-tubelength);
+                float deltax=fabs(P2.x()-tubelength);
                 P2=P2-DirPRIME*(deltax/DirPRIME.x());
             }
         }
     }
 
     if(TRDHit_Direction==0){
-        if(abs(P1.y())>tubelength && abs(P2.y())>tubelength){
+        if(fabs(P1.y())>tubelength && fabs(P2.y())>tubelength){
             return 0;
         }
-        if(abs(P1.y())>tubelength){
+        if(fabs(P1.y())>tubelength){
             if(P1.y()>0){
-                long double deltax=abs(P1.y()-tubelength);
+                long double deltax=fabs(P1.y()-tubelength);
                 P1=P1-DirPRIME*(deltax/DirPRIME.y());
             }
         }
-        if(abs(P2.y())>tubelength){
+        if(fabs(P2.y())>tubelength){
             if(P2.y()>0){
-                long double deltax=abs(P2.y()-tubelength);
+                long double deltax=fabs(P2.y()-tubelength);
                 P2=P2-DirPRIME*(deltax/DirPRIME.y());
             }
         }

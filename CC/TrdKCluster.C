@@ -270,7 +270,7 @@ int TrdKCluster::Build(){
     if(pecal){ ene = fabs(pecal->EnergyE);	}
 
     float assume_rig=rig;
-    if(abs(rig)<5 && ene > 5)assume_rig=ene;
+    if(fabs(rig)<5 && ene > 5)assume_rig=ene;
     else assume_rig=100;
 
     if(ptrd){
@@ -651,8 +651,8 @@ void TrdKCluster::SelectClosest(){
         for (;Hit_it2!=TRDHitCollection.end(); ) {
             if(Hit_it==Hit_it2)Hit_it2++;
             else if(int((*Hit_it).tubeid/16)!=int((*Hit_it2).tubeid/16))Hit_it2++;
-            else if(abs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))<abs((*Hit_it2).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))) Hit_it2 =TRDHitCollection.erase(Hit_it2);
-            else if (abs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>abs((*Hit_it2).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))){
+            else if(fabs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))<fabs((*Hit_it2).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))) Hit_it2 =TRDHitCollection.erase(Hit_it2);
+            else if (fabs((*Hit_it).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))>fabs((*Hit_it2).Tube_Track_Distance_3D(&track_extrapolated_P0,&track_extrapolated_Dir))){
                 Hit_it =TRDHitCollection.erase(Hit_it);
                 removed=1;
             }else Hit_it2++;
@@ -772,9 +772,9 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
     for(int i=0;i<size;i++){
         hit=GetHit(i);
         pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
-        if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
-        else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
-        else if(Refit_hypothesis==2) likelihood=kpdf_h->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,fabs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,fabs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        else if(Refit_hypothesis==2) likelihood=kpdf_h->GetLikelihood(hit->TRDHit_Amp,fabs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
         else{
             cout<<"~~~~~WARNING~~~~TrdKCluster, Refit using PathLength Likelihood, Particle Hypothesis not found: "<<Refit_hypothesis<<endl;
             return -999;

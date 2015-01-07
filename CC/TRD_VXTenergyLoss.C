@@ -618,7 +618,7 @@ G4PhysicsFreeVector* TRD_VXTenergyLoss::GetAngleVector(G4double energy, G4int n)
 
     result = (k - cof1)*(k - cof1)*(k + cof2)*(k + cof2);
 
-    tmp = sin(tmp)*sin(tmp)*abs(k-cofMin)/result;
+    tmp = sin(tmp)*sin(tmp)*std::abs(k-cofMin)/result;
 
     if( k == kMin && kMin == G4int(cofMin) )
     {
@@ -628,7 +628,7 @@ G4PhysicsFreeVector* TRD_VXTenergyLoss::GetAngleVector(G4double energy, G4int n)
     {
       angleSum   += tmp; // sin(tmp)*sin(tmp)*abs(k-cofMin)/result;
     }
-    theta = abs(k-cofMin)*cofPHC/energy/(fPlateThick + fGasThick);
+    theta = std::abs(k-cofMin)*cofPHC/energy/(fPlateThick + fGasThick);
     if(fVerbose > 2)
     {
       G4cout<<"iTheta = "<<iTheta<<"; k = "<<k<<"; theta = "
@@ -1240,7 +1240,7 @@ G4double TRD_VXTenergyLoss::AngleXTRdEdx(G4double varAngle)
         tmp1 = hbarc*energy1/( energy1*energy1*(1./fGamma/fGamma + varAngle) + fSigma2 );
 	tmp *= (tmp1-tmp2)*(tmp1-tmp2);
 	tmp1 = cof1/(4*hbarc) - cof2/(4*hbarc*energy1*energy1);
-	tmp2 = abs(tmp1);
+	tmp2 = std::abs(tmp1);
 	if(tmp2 > 0.) tmp /= tmp2;
         else continue;
       }
@@ -1254,7 +1254,7 @@ G4double TRD_VXTenergyLoss::AngleXTRdEdx(G4double varAngle)
         tmp1 = hbarc*energy2/( energy2*energy2*(1./fGamma/fGamma + varAngle) + fSigma2 );
 	tmp *= (tmp1-tmp2)*(tmp1-tmp2);
 	tmp1 = cof1/(4*hbarc) - cof2/(4*hbarc*energy2*energy2);
-	tmp2 = abs(tmp1);
+	tmp2 = std::abs(tmp1);
 	if(tmp2 > 0.) tmp /= tmp2;
         else continue;
       }

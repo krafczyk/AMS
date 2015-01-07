@@ -798,7 +798,7 @@ integer TriggerLVL302::toftrdok(){
   for(i =0;i<AMSTOFCluster::planes();i++){
     if (_NTOF[i]>0 && _NTOF[i]<=2){
       _TOFTrigger+= (1<<i);
-      if(_NTOF[i]>1 && abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
+      if(_NTOF[i]>1 && std::abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
     }
   }
   if((_TOFTrigger&1) ==0 || (_TOFTrigger>>(AMSTOFCluster::planes()-1)&1) ==0){
@@ -823,10 +823,10 @@ void TriggerLVL302::preparetracker(){
       geant addtofup=TOF2DBc::plnstr(5)*0.6;
       geant addtofdown=TOF2DBc::plnstr(5)*0.6;
       if((_TOFTrigger>>(AMSTOFCluster::planes()+toftop[icase])) & 1){
-	addtofup+=abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
+	addtofup+=std::abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
       }
       if((_TOFTrigger>>(AMSTOFCluster::planes()+tofbot[icase])) & 1){
-	addtofdown+=abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
+	addtofdown+=std::abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
       }
       for(int i=0;i<TkDBc::Head->nlay();i++){
 	geant coo=coodown+(cooup-coodown)/(_TOFCoo[toftop[icase]][0][2]-_TOFCoo[tofbot[icase]][0][2])*
@@ -1569,8 +1569,8 @@ void TriggerLVL302::build(){
 	    }
 	    //cout<<"TriggerLVL302::build-I-layer "<<layer<<" "<<drp<<" "<<crate<<" "<<ptr[1]<<" "<<strip<<" "<<side<<endl;
 	    integer num = ((*ptr)&63);
-	    if(abs(LVL3FFKEY.SeedThr)>0 ){
-	      if(((*((int16u*)ptr)>>6) & 63) <abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
+	    if(std::abs(LVL3FFKEY.SeedThr)>0 ){
+	      if(((*((int16u*)ptr)>>6) & 63) <std::abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
 	      int count=0;
 	      for(int k=2;k<num+3;k++){
 		if(*(ptr+k)>=6)count++;    //  Here very important parameter (6)
@@ -2903,7 +2903,7 @@ out:
      for(i =0;i<AMSTOFCluster::planes();i++){
       if (_NTOF[i]>0 && _NTOF[i]<=2){
         _TOFTrigger+= (1<<i);
-        if(_NTOF[i]>1 && abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
+        if(_NTOF[i]>1 && std::abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
        }
     }
     if((_TOFTrigger&1) ==0 || (_TOFTrigger>>(AMSTOFCluster::planes()-1)&1) ==0){
@@ -2928,10 +2928,10 @@ out:
       geant addtofup=TOF2DBc::plnstr(5)*0.6;
       geant addtofdown=TOF2DBc::plnstr(5)*0.6;
       if((_TOFTrigger>>(AMSTOFCluster::planes()+toftop[icase])) & 1){
-       addtofup+=abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
+       addtofup+=std::abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
       }
       if((_TOFTrigger>>(AMSTOFCluster::planes()+tofbot[icase])) & 1){
-       addtofdown+=abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
+       addtofdown+=std::abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
       }
     for(int i=0;i<TKDBc::nlay();i++){
       geant coo=coodown+(cooup-coodown)/(_TOFCoo[toftop[icase]][0][2]-_TOFCoo[tofbot[icase]][0][2])*
@@ -3664,8 +3664,8 @@ int TriggerLVL302::eccrosscheck(geant ect){
        //cout<<"TriggerLVL302::build-I-layer "<<layer<<" "<<drp<<" "<<crate<<" "<<ptr[1]<<" "<<strip<<" "<<side<<endl;
 #endif      
       integer num = ((*ptr)&63);
-      if(abs(LVL3FFKEY.SeedThr)>0 ){
-        if(((*((int16u*)ptr)>>6) & 63) <abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
+      if(std::abs(LVL3FFKEY.SeedThr)>0 ){
+        if(((*((int16u*)ptr)>>6) & 63) <std::abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
         int count=0;
         for(int k=2;k<num+3;k++){
           if(*(ptr+k)>=6)count++;    //  Here very important parameter (6)

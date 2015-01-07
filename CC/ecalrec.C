@@ -674,12 +674,12 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number dby35(-99),dby57(-99),dby37(-99),dbym(-99);
   int wdxcut,wdycut;//to follow the real electronics logic
   if(trflen>=2){//<-- FT OK
-    if(dytrc[1]>0 && dytrc[3]>0)dbx24=abs(dycog[1]-dycog[3]);
-    if(dytrc[3]>0 && dytrc[5]>0)dbx46=abs(dycog[3]-dycog[5]);
-    if(dytrc[1]>0 && dytrc[5]>0)dbx26=abs(dycog[1]-dycog[5])/2;
-    if(dytrc[2]>0 && dytrc[4]>0)dby35=abs(dycog[2]-dycog[4]);
-    if(dytrc[4]>0 && dytrc[6]>0)dby57=abs(dycog[4]-dycog[6]);
-    if(dytrc[2]>0 && dytrc[6]>0)dby37=abs(dycog[2]-dycog[6])/2;
+    if(dytrc[1]>0 && dytrc[3]>0)dbx24=std::abs(dycog[1]-dycog[3]);
+    if(dytrc[3]>0 && dytrc[5]>0)dbx46=std::abs(dycog[3]-dycog[5]);
+    if(dytrc[1]>0 && dytrc[5]>0)dbx26=std::abs(dycog[1]-dycog[5])/2;
+    if(dytrc[2]>0 && dytrc[4]>0)dby35=std::abs(dycog[2]-dycog[4]);
+    if(dytrc[4]>0 && dytrc[6]>0)dby57=std::abs(dycog[4]-dycog[6]);
+    if(dytrc[2]>0 && dytrc[6]>0)dby37=std::abs(dycog[2]-dycog[6])/2;
     //
     if(dbx26>=0)dbxm=dbx26;
     else{
@@ -1625,13 +1625,13 @@ integer Ecal1DCluster::build(int rerun){
 	      e=adc[k]/2;
 	    }
 	    else e=adc[k];
-	    if(abs(k-center)<2){
+	    if(std::abs(k-center)<2){
 	      ec3+=e;
 	    }
-	    if(abs(k-center)<3){
+	    if(std::abs(k-center)<3){
 	      ec5+=e;
 	    }
-	    if(abs(k-center)<5){
+	    if(std::abs(k-center)<5){
 	      ec9+=e;
 	    }
 	    ec+=e;
@@ -2526,14 +2526,14 @@ void AMSEcalShower::EnergyFit(){
     AMSEcalHit *ptr=(AMSEcalHit*)AMSEvent::gethead()->
       getheadC("AMSEcalHit",ipl,1);
     while(ptr){
-      if(abs(ptr->getcell()-is1[ipl])==1)s3[ipl]+=ptr->getedep();
+      if(std::abs(ptr->getcell()-is1[ipl])==1)s3[ipl]+=ptr->getedep();
       //LAPP S1, S3 calculation (M.P. April 26, 2011)
-      if(abs(ptr->getcell()-icofgcell[ipl])==1)
+      if(std::abs(ptr->getcell()-icofgcell[ipl])==1)
 	{
 	  s3a[ipl]+=ptr->getedep();
 	  s5a[ipl]+=ptr->getedep();
 	}
-      if(abs(ptr->getcell()-icofgcell[ipl])==2)s5a[ipl]+=ptr->getedep();
+      if(std::abs(ptr->getcell()-icofgcell[ipl])==2)s5a[ipl]+=ptr->getedep();
       //ptr->getadc(madc);
       //if (madc[0]>4){// count only hits with adc_highgain>4 ADC
       if (ptr->getedep()>=2){// count only hits with edep >=2 MeV

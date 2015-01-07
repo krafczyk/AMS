@@ -798,9 +798,9 @@ double InterMVA::GetMVAOut(AMSEventR* pev) {
    if((*ip)->name=="deltaToftmax1") 
       {(*ip)->val=ftree->GetTreePar("deltaToftmax1");}
    if((*ip)->name=="abs(deltaTrd_ay)") 
-    {(*ip)->val=abs(ftree->GetTreePar("deltaTrd_ay"));}
+    {(*ip)->val=fabs(ftree->GetTreePar("deltaTrd_ay"));}
   if((*ip)->name=="abs(deltaTrd_ay+deltaTrd_ax)") 
-    {(*ip)->val=abs(ftree->GetTreePar("deltaTrd_ay")+ftree->GetTreePar("deltaTrd_ax"));}
+    {(*ip)->val=fabs(ftree->GetTreePar("deltaTrd_ay")+ftree->GetTreePar("deltaTrd_ax"));}
    if((*ip)->name=="trkQ") 
     {(*ip)->val=ftree->GetTreePar("trkQ");}
    if((*ip)->name=="tofQ")     {(*ip)->val=ftree->GetTreePar("tofQ");}
