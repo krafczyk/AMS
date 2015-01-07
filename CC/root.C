@@ -14431,7 +14431,14 @@ double ds=dsxy[0];
     }
   }
   if (mc) {
-   if(ds<0){
+   if(ds<-0.1){//global scale
+     double scale=TMath::Abs(ds-int(ds)/10*10);
+     if(scale>0.1&&scale<10){
+       coo[0] =(coo[0]-mc->GetXgl().x())*scale+mc->GetXgl().x();
+       ret=1;
+     }
+   }
+   else if(ds<0){
    double rnd[1];
 #ifdef __ROOTSHAREDLIBRARY__
   int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
@@ -14478,7 +14485,37 @@ double ds=dsxy[1];
     }
   }
   if (mc) {
-   if(ds<0){
+   if(ds<=-200){//helium point by point resolution tuning B930-c115b MC (Q.Yan 2015-01-06 V1)
+      int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+      const int nnodefn=10;
+      double nodefn[nnodefn]={5,7,10,15,20,25,30,35,40,55};
+      double shinkparn[][nnodefn]={
+        1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L2=L3
+        1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L3
+        1.369,1.265,1.188,1.146,1.135,1.112,1.059,1.005, 0.9585,0.8616,//L4 
+        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L5
+        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L6=L5
+        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L7=L5
+        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L8=L5
+      };
+      if(lj>=2&&lj<=8){//implement for TkInner only L2->L8
+        double res=TMath::Abs(dmin)*10000.;//cm->um
+        TSpline3 tkspline("tkspline",nodefn,shinkparn[lj-2],nnodefn,"b1e1",0,0);
+        if      (res<nodefn[0])res=nodefn[0];
+        else if (res>nodefn[nnodefn-1])res=nodefn[nnodefn-1];
+        double scale=tkspline.Eval(res);
+        coo[1] =dmin*scale+mc->GetXgl().y();//Smear by Scale
+        ret+=10;
+      }
+   }
+   if(ds<-0.1){//global scale could be together with point by point resolution tuning
+     double scale=TMath::Abs(ds-int(ds)/10*10);
+     if(scale>0.1&&scale<10){
+       coo[1] =(coo[1]-mc->GetXgl().y())*scale+mc->GetXgl().y();
+       ret+=10;
+     }
+   }
+   else if(ds<0){
    double rnd[1];
 #ifdef __ROOTSHAREDLIBRARY__
   int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
