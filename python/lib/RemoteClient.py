@@ -3182,7 +3182,7 @@ class RemoteClient:
 #                return (jobid, copylog)
             if(block.find('RunIncomplete')>=0):
                 if(startingrunR ==1):
-                    output.write("RunIncomplete : ntuples validated: %d Continue \n" %(validated))
+                    output.write("RunIncomplete : ntuples validated: %d Continue \n" %(validated_ntuples))
                     output.write(block + "\n")
                     patternsmatched=0
                     RunIncompletePatterns=("RunIncomplete","Host","Run","EventsProcessed","LastEvent","Errors","CPU","Elapsed","CPU/Event","Status")
