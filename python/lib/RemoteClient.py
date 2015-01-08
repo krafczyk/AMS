@@ -2101,9 +2101,9 @@ class RemoteClient:
         self.eoshome = '/eos/ams'
         self.eoslink = '/eosams'
         self.eosreservegb = 100  #GBype reserved on EOS
-        chkeoscmd = "%s quota -m %s%s | grep \"space=%s/ \" | grep \"gid=va\"" %(self.eosselect, self.eoshome, path, self.eoshome)
+        chkeoscmd = "%s quota -m %s%s | grep \"space=%s/ \" | grep \"gid=va\"; test ${PIPESTATUS[0]} -eq 0" %(self.eosselect, self.eoshome, path, self.eoshome)
         pair=commands.getstatusoutput(chkeoscmd)
-        if (pair[0] != 0):
+        if (pair[0] != 0 or len(pair) < 2):
             print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
             return -4, os.path.exists(self.eoslink)
         out=pair[1]
