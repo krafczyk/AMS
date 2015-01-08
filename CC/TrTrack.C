@@ -1565,6 +1565,7 @@ char * TrTrackR::GetFitNameFromID(int fitnum){
   if(fitnum   & kPattern     ) strcat(out," | kPattern");
   if(fitnum   & kSameWeight  ) strcat(out," | kSameWeight");
   if(fitnum   & kAltExtAl    ) strcat(out," | kAltExtAl");
+  if(fitnum   & kExtAverage  ) strcat(out," | kExtAverage");
   if(fitnum   & kDisExtAlCorr) strcat(out," | kDisExtAlCorr");
   return out;
 }
