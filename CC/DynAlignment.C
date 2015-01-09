@@ -2465,7 +2465,7 @@ TString DynAlManager::GetTDVName(int tag=0){
   if(tag==120628 || tag==120719)
     return TString(Form("%s%i",TDVNAMEPREFIX,tag));  // Built
   
-  return TString(Form("%s%iPM5",TDVNAMEPREFIX,tag));  // Built with new naming convention (which is not backwards compatible)
+  return TString(Form("%s%06iPM5",TDVNAMEPREFIX,tag));  // Built with new naming convention (which is not backwards compatible)
 
 }
 
