@@ -14490,6 +14490,7 @@ double ds=dsxy[1];
       const int nnodefn=10;
       double nodefn[nnodefn]={5,7,10,15,20,25,30,35,40,55};
       double shinkparn[][nnodefn]={
+	1.405,1.285,1.197,1.136,1.097,1.071,1.028,0.9809,0.9376,0.8740,//L1=av
         1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L2=L3
         1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L3
         1.369,1.265,1.188,1.146,1.135,1.112,1.059,1.005, 0.9585,0.8616,//L4 
@@ -14497,14 +14498,17 @@ double ds=dsxy[1];
         1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L6=L5
         1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L7=L5
         1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L8=L5
+	1.405,1.285,1.197,1.136,1.097,1.071,1.028,0.9809,0.9376,0.8740 //L9=av
       };
-      if(lj>=2&&lj<=8){//implement for TkInner only L2->L8
+    //if(lj>=2&&lj<=8){//implement for TkInner only L2->L8
+      if(lj>=1&&lj<=9){
         double res=TMath::Abs(dmin)*10000.;//cm->um
-        static TSpline3 *tkspline[9]={0};
-        if(tkspline[lj-1]==0)tkspline[lj-1]=new TSpline3(Form("tktunespline_l%d",lj),nodefn,shinkparn[lj-2],nnodefn,"b1e1",0,0);
+        static TSpline3 *tkspline[9]={0,0,0,0,0,0,0,0,0};
+        if(tkspline[lj-1]==0)tkspline[lj-1]=new TSpline3(Form("tktunespline_l%d",lj),nodefn,shinkparn[lj-1],nnodefn,"b1e1",0,0);
         if      (res<nodefn[0])res=nodefn[0];
         else if (res>nodefn[nnodefn-1])res=nodefn[nnodefn-1];
         double scale=tkspline[lj-1]->Eval(res);
+
         coo[1] =dmin*scale+mc->GetXgl().y();//Smear by Scale
         ret+=10;
       }

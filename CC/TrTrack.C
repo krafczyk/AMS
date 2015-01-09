@@ -994,6 +994,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (!hit) continue;
 
     AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
+    AMSPoint cna;
     if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
       if(cookind==0) 
 	coo = GetHitCooLJ(hit->GetLayerJ(),0);
@@ -1003,6 +1004,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	coo= (GetHitCooLJ(hit->GetLayerJ(),0)+GetHitCooLJ(hit->GetLayerJ(),1))/2.;
       else if (cookind==5)
 	coo= hit->GetCoord(-1,cookind);
+      
+      cna= hit->GetCoord(-1,5); // No Ext-alignment (nor smearing)
     }
     // printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
 
@@ -1031,8 +1034,18 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     // Workaround to retune the MC resolution (not activated by default)
 //    if (hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
     if (
-	TRMCFFKEY.MCtuneDmax > 0 && (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0))
+        TRMCFFKEY.MCtuneDmax > 0 && (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0)) {
+      AMSPoint cdif = coo-cna;
+
+      // Remove ext-smearing
+      if(hit->GetLayerJ()==1||hit->GetLayerJ()==9) coo = cna;
+
+      // Apply MCtune without smearing
       MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
+
+      // Apply ext-smearing here
+      if(hit->GetLayerJ()==1||hit->GetLayerJ()==9) coo = coo+cdif;
+    }
 
     // Workaround to mitigate the MC propagation error
     if (hit->GetLayerJ() == 9 && TRMCFFKEY.MCtuneDy9 != 0)
@@ -1166,9 +1179,13 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	    coo= hit->GetCoord(-1,cookind);  
 
 	  if (TRMCFFKEY.MCtuneDmax > 0 &&
-	     (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0))
+	     (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0)) {
+            AMSPoint cna= hit->GetCoord(-1,5); 
+	    AMSPoint cdif= coo-cna; coo = cna;
 	    MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax,
 		                        TRMCFFKEY.MCtuneDs);
+	    coo= coo+cdif;
+	  }
 	}
 	par.Residual[i][0] = (coo-pint)[0];
 	par.Residual[i][1] = (coo-pint)[1];
