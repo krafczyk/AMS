@@ -1651,7 +1651,7 @@ void TkDBc::UseVersion(int ver, int reset)
     TrExtAlignDB::version      = 5;
     TrInnerDzDB ::version      = 2;
     TKGEOMFFKEY.L2AlignPar[2]  = 0;      //  L2Y Shift disabled
-    dyn = "DynAlignmentV5T290713PM5";
+    dyn = "DynAlignmentV5T090115PM5";
   }
   else {
     cerr << "TkDBc::UseVersion-F-Unsupported version: " << ver << endl;

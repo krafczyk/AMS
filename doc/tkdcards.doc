@@ -35,7 +35,7 @@ TkDBc::UseVersion(3) : 806=3 833=2 834=120628      PM3 static alignment
 TkDBc::UseVersion(4) : 806=4 833=3 834=120628      PM4 static alignment
 TkDBc::UseVersion(5) : 806=5 833=4 834=140713      PM5 +L2Y
 TkDBc::UseVersion(6) : 806=5 833=4 834=290713      PM5 +L2Y +new MD
-TkDBc::UseVersion(7) : 806=6 833=5 834=290713(TBD) PM5 +noL2Y +new PG +new MD
+TkDBc::UseVersion(7) : 806=6 833=5 834= 90115      PM5 +noL2Y +new PG +new MD
 #### Alignment Datacards corresponding to TkDBc::UseVersion #### 
 
 TRMC
