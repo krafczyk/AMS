@@ -3959,6 +3959,11 @@ static bool Rebuild;
     sprintf(_Info,"McParticle No %d Pid=%d, TrkId=%i, ParentId=%i, Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f Momentum(Gev)=%7.2g Mass=%7.2g Q=%4.0f",number,Particle, trkID, parentID, Coo[0],Coo[1],Coo[2],acos(Dir[2]),atan2(Dir[1],Dir[0]),Momentum,Mass,Charge);
   return _Info;
   }
+  /// \return human readable info about MCEventgR including Nskip
+  const char *Info2(int number);
+  /// \return human readable particle name from Geant3 particle id
+  static const char *GetParticleName(int g3pid);
+  static void Dump();
   virtual ~MCEventgR(){};
 ClassDef(MCEventgR,5)       //MCEventgR
 #pragma omp threadprivate(fgIsA)
@@ -4651,6 +4656,7 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 
    void UpdateGPS();  ///< Update GPSTime from getsetup(AMSSetupR *head);
 
+   void UpdateTrRecon();  ///< Update nTrCluster/nTrRecHit/nTrTrack
 
    /*!
     \return 0  if succcess ; 1 if no gps time; 2 wrong time format; 3 int logic error; 4 gps time not valid; 5 no lvl1 block; 6 no coarse reg in lvl1 block

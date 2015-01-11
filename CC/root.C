@@ -5772,6 +5772,105 @@ MCEventgR::MCEventgR(AMSmceventg *ptr){
 #endif
 }           
 
+
+const char *MCEventgR::Info2(int number)
+{
+  _Info[0] = '\0';
+  if (number >= 0) sprintf(_Info, 
+  "Idx    Particle  trkID  parent   CooX   CooY   CooZ P(GeV/c) Info\n");
+
+  TString spn = GetParticleName(Particle);
+  if (abs(PartInfo) == 2) spn = Form("PID%d(G4)", Particle);
+
+  int l = strlen(_Info);
+  sprintf(&_Info[l], 
+	  "%3d %11s %6d  %6d %6.1f %6.1f %6.1f %8.4g ",
+	  abs(number), spn.Data(), trkID, parentID, 
+	  Coo[0],Coo[1],Coo[2],Momentum);
+
+  AMSEventR *ev = AMSEventR::Head();
+  if (ev && ev->Version() >= 800) {
+    l = strlen(_Info);
+    if (Nskip > 0 && PartInfo == 0)
+      sprintf(&_Info[l], "Prim.Gen%d", Nskip);
+    else if (-1020 <= Nskip && Nskip <= -1000) 
+      sprintf(&_Info[l], "Prim.Step%d", -Nskip-1000);
+    else if (Nskip == -2) sprintf(&_Info[l], "BackSplash");
+    else {
+      int pt = Nskip>>24;
+      if (pt == 2) sprintf(&_Info[l], "Sec.EM");
+      if (pt == 3) sprintf(&_Info[l], "Sec.Optical");
+      if (pt == 4) sprintf(&_Info[l], "Sec.Hadronic");
+      if (pt == 5) sprintf(&_Info[l], "Sec.PhotoHad");
+      if (pt == 6) sprintf(&_Info[l], "Sec.Decay");
+      if (pt == 7) sprintf(&_Info[l], "Sec.General");
+      l = strlen(_Info);
+      sprintf(&_Info[l], "%d", Nskip&0xFFFFFF);
+    }
+  }
+
+  return _Info;
+}
+
+const char *MCEventgR::GetParticleName(int g3pid)
+{
+  int pid = abs(g3pid);
+  if (pid ==  1) return "Gamma";
+  if (pid ==  2) return "Positron";
+  if (pid ==  3) return "Electron";
+  if (pid ==  4) return "Neutrino";
+  if (pid ==  5) return "Muon+";
+  if (pid ==  6) return "Muon-";
+  if (pid ==  7) return "Pion0";
+  if (pid ==  8) return "Pion+";
+  if (pid ==  9) return "Pion-";
+  if (pid == 10) return "Kaon0 long";
+  if (pid == 11) return "Kaon+";
+  if (pid == 12) return "Kaon-";
+  if (pid == 13) return "Neutron";
+  if (pid == 14) return "Proton";
+  if (pid == 15) return "Antiproton";
+  if (pid == 16) return "Kaon0 short";
+  if (pid == 25) return "Antineutron";
+  if (pid == 45) return "Deuteron";
+  if (pid == 46) return "Tritium";
+  if (pid == 47) return "Alpha";
+  if (pid == 48) return "Geantino";
+  if (pid == 49) return "He3";
+  if (pid == 61) return "Li6";
+  if (pid == 62) return "Li7";
+  if (pid == 63) return "Be7";
+  if (pid == 64) return "Be9";
+  if (pid == 65) return "B10";
+  if (pid == 66) return "B11";
+  if (pid == 67) return "C12";
+  if (pid == 68) return "N14";
+  if (pid == 69) return "O16";
+
+  return Form("PID%d", g3pid);
+}
+
+void MCEventgR::Dump()
+{
+  AMSEventR *ev = AMSEventR::Head();
+  if (!ev || !ev->pMCEventg(0)) return;
+
+  vector<int> tid; tid.reserve(100); tid.push_back(0);
+  for (int i = 0; i < tid.size(); i++) {
+    for (int j = 0; j < ev->nMCEventg(); j++) {
+      if (ev->pMCEventg(j)->parentID == tid.at(i)) {
+	cout << ev->pMCEventg(j)->Info2(-j) << endl;
+
+	int chk = 0;
+	for (int k = 0; k < tid.size(); k++)
+	  if (tid.at(k) == ev->pMCEventg(j)->trkID) { chk = 1; break; }
+
+	if (!chk) tid.push_back(ev->pMCEventg(j)->trkID);
+      }
+    }
+  }
+}
+
 MCTrackR::MCTrackR(AMSmctrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   RadL = ptr->_radl;
@@ -11429,6 +11528,15 @@ if(gps.Epoche.size()){
  for(unsigned int k=0;k<gps.Epoche.size();k++)fHeader.GPSTime.push_back(gps.Epoche[k]);
 }
 }
+}
+
+void AMSEventR::UpdateTrRecon()
+{
+  fHeader.TrMCClusters  = NTrMCCluster();
+  fHeader.TrRawClusters = NTrRawCluster();
+  fHeader.TrClusters    = NTrCluster();
+  fHeader.TrRecHits     = NTrRecHit();
+  fHeader.TrTracks      = NTrTrack();
 }
 
 int HeaderR::GetGPSEpoche(unsigned int &sec, unsigned int & nsec){
