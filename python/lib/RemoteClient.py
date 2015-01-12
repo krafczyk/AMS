@@ -3210,7 +3210,7 @@ class RemoteClient:
                             j=0
                             while j<len(RunIncompletePatterns) and found==0 :
                                 if (jj[0] == RunIncompletePatterns[j]):
-                                    runincomplete[j]=trimblanks(jj[1])
+                                    runincomplete[j]=self.trimblanks(jj[1])
                                     patternsmatched=patternsmatched+1
                                     found=1
                                 j=j+1
