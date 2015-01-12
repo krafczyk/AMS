@@ -2528,8 +2528,8 @@ class RemoteClient:
             validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
             vcode=os.system(validatecmd)
             if (fname.find('/castor/cern.ch')>=0 and vcode/256==134):
-                os.system("stager_get -M %s" %(fname))
-                time.sleep(5)
+                os.system("stager_get -M %s -S \*" %(fname))
+#                time.sleep(5)
                 vcode=os.system(validatecmd)
                 while (sys.argv[0].find('parsejf') >=0 and vcode/256==134):
                     time.sleep(30)
@@ -2676,10 +2676,11 @@ class RemoteClient:
             filename = self.eosLink2Xrootd(filename)
         mutex.release()
         crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
-        rstatus=os.system(crccmd)
-        rstatus=rstatus>>8
         if(filename.find('/castor/cern.ch')>=0):
             rstatus=1
+        else:
+            rstatus=os.system(crccmd)
+            rstatus=rstatus>>8
         print "acquirung  mutex in calccrc", filename
         mutex.acquire()
         print "got  mutex in calccrc", filename
@@ -3140,6 +3141,9 @@ class RemoteClient:
                             if (pair[0] != 0 or len(pair) < 2 or pair[1].find('STAGED') < 0 and pair[1].find('CANBEMIGR') < 0):
                                 os.system("stager_get -M %s" %(realpath))
                                 unstaged += 1
+                                print "%s has not been staged." %(realpath)
+                            else:
+                                print pair[1]
                 if (unstaged > 0):
                     print "run %s not yet staged.  Postponed " %(sp2[0])
                     os.system("mv %s %s" %(inputwork, inputfile))
