@@ -384,8 +384,15 @@ static unsigned int loadextdone=0;
 #pragma omp critical (loadext)
 #endif
 if(loadextdone!=time && _Head && (!fRTable.size() || !fETable.size())){
- if(_Head->LoadExt())loadextdone=time;
-
+ if(_Head->LoadExt()){
+    loadextdone=time;
+ }
+ else if(!fRTable.size() || !fETable.size()){
+#ifndef __ROOTSHAREDLIBRARY__
+  cerr<<"AMSSetupR::SlowControlR::GetData-F-SomeTableAreZeroExiting "<<fRTable.size()<<" "<<fETable.size()<<endl;
+  abort();
+#endif
+ }
 }
 
 if(elementname && strlen(elementname)>0){
@@ -998,7 +1005,7 @@ slc+="/SlowControlDir";
 
 //          sprintf(tmps,"/%u/SCDB.%u.%u.root",mktime(tmp)-3600-tzz,fHeader.FEventTime,fHeader.LEventTime);
 //         slc+=tmps;
-          cout <<"AMSSetupR::getslowcontrolfilepath-I-"<<slc<<endl;                    
+          cout <<"AMSSetupR::getslowcontrolfilepath-I-"<<slc<<" "<<t1<<endl;                    
 //#endif
 return t1;
 }
