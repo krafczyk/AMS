@@ -3135,10 +3135,11 @@ class RemoteClient:
                             mutex.release()
                             return 0, ""
                         realpath=os.path.realpath(dirpath+"/"+file)
-                        pair=commands.getstatusoutput("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_qry -M %s -S \*" %(realpath))
-                        if (pair[0] != 0 or len(pair) < 2 or pair[1].find('STAGED') < 0 and pair[1].find('CANBEMIGR') < 0):
-                            os.system("stager_get -M %s" %(realpath))
-                            unstaged += 1
+                        if (realpath.find('/castor/') >=0 ):
+                            pair=commands.getstatusoutput("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_qry -M %s -S \*" %(realpath))
+                            if (pair[0] != 0 or len(pair) < 2 or pair[1].find('STAGED') < 0 and pair[1].find('CANBEMIGR') < 0):
+                                os.system("stager_get -M %s" %(realpath))
+                                unstaged += 1
                 if (unstaged > 0):
                     print "run %s not yet staged.  Postponed " %(sp2[0])
                     os.system("mv %s %s" %(inputwork, inputfile))
