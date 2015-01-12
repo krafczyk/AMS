@@ -2104,7 +2104,7 @@ class RemoteClient:
         chkeoscmd = "%s quota -m %s%s | grep \"space=%s/ \" | grep \"gid=va\"; test ${PIPESTATUS[0]} -eq 0" %(self.eosselect, self.eoshome, path, self.eoshome)
         pair=commands.getstatusoutput(chkeoscmd)
         if (pair[0] != 0 or len(pair) < 2):
-            print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
+            print "%s\nreturned %d\n" %(chkeoscmd, pair[0])
             return -4, os.path.exists(self.eoslink)
         out=pair[1]
         try:
@@ -3118,17 +3118,32 @@ class RemoteClient:
                     files=os.listdir(dirpath)
                 except  IOError,e:
                     print e
+                    os.system("mv %s %s" %(inputwork, inputfile))
+                    mutex.release()
+                    return 0, ""
                 tnow=int(time.time())
+                unstaged = 0
                 for file in files:
-                   if(file.find(sp2[0])>=0):
-                       try:
-                           mtim=os.stat(dirpath+"/"+file)[ST_MTIME]
-                       except OSError,e:
-                           mtim = 0
-                       if(tnow-mtim<300):
-                           print "run %s not yet completed.  Postponed " %(sp2[0])
-                           mutex.release()
-                           return 0, ""
+                    if(file.find(sp2[0])>=0):
+                        try:
+                            mtim=os.stat(dirpath+"/"+file)[ST_MTIME]
+                        except OSError,e:
+                            mtim = 0
+                        if(tnow-mtim<300):
+                            print "run %s not yet completed.  Postponed " %(sp2[0])
+                            os.system("mv %s %s" %(inputwork, inputfile))
+                            mutex.release()
+                            return 0, ""
+                        realpath=os.path.realpath(dirpath+"/"+file)
+                        pair=commands.getstatusoutput("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_qry -M %s -S \*" %(realpath))
+                        if (pair[0] != 0 or len(pair) < 2 or pair[1].find('STAGED') < 0 and pair[1].find('CANBEMIGR') < 0):
+                            os.system("stager_get -M %s" %(realpath))
+                            unstaged += 1
+                if (unstaged > 0):
+                    print "run %s not yet staged.  Postponed " %(sp2[0])
+                    os.system("mv %s %s" %(inputwork, inputfile))
+                    mutex.release()
+                    return 0, ""
         blocks=buf.split("-I-TimeStamp")
         cpntuples=[]
         mvntuples=[]
