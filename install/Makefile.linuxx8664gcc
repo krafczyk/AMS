@@ -94,7 +94,7 @@ endif
 ifneq "$(CC_env)" ""
   CC  = $(CC_env)
 else
-ifneq "$(origin CC )" "environment" 
+ifneq "$(origin CC)" "environment" 
   CC  = gcc  
 endif
 endif
@@ -106,18 +106,18 @@ ifneq "$(origin CXX)" "environment"
 endif
 endif
 ifdef VERGCC 
-ifneq "$(origin FF )" "environment" 
+ifneq "$(origin FF)" "environment" 
   FF  = gfortran  
 endif
   FORTRAN_LIBS=  -lgfortran 
 else  
-ifneq "$(origin FF )" "environment" 
+ifneq "$(origin FF)" "environment" 
   FF  = g77  
 endif
   FORTRAN_LIBS=
 endif
   FFOLD=$(FF)
-ifneq "$(origin LD )" "environment" 
+ifneq "$(origin LD)" "environment" 
   LD  = g++ 
 endif
   FORTRAN2_LIBS=
