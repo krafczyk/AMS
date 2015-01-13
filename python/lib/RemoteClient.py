@@ -2527,8 +2527,8 @@ class RemoteClient:
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
             vcode=os.system(validatecmd)
-            if (fname.find('/castor/cern.ch')>=0 and vcode/256==134):
-                os.system("stager_get -M %s -S \*" %(fname))
+            if (fname.find('/castor/cern.ch')>=0 and vcode != 0 and vcode/256==134):
+                os.system("stager_get -M %s " %(fname))
 #                time.sleep(5)
                 vcode=os.system(validatecmd)
                 while (sys.argv[0].find('parsejf') >=0 and vcode/256==134):
@@ -3222,7 +3222,7 @@ class RemoteClient:
                        runincomplete[0]="RunIncomplete"
                        run=int(runincomplete[2])
                        runfinishedR=1
-                       sql="SELECT run FROM runs WHERE run = %d AND levent=%d" %(run,runincomplete[4])
+                       sql="SELECT run FROM runs WHERE run = %d AND levent=%s" %(run,runincomplete[4])
                        ret=self.sqlserver.Query(sql)
                        
                        if(len(ret)==0):
@@ -3474,7 +3474,7 @@ class RemoteClient:
                                     os.unlink(tmpf)
                                 except IOError,e:
                                     print e
-                            os.system("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_get -M %s" %(dstfile))
+#                            os.system("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_get -M %s" %(dstfile))
                             cmd = "/usr/bin/nsls -l %s >%s" %(dstfile, tmpf)
                             i = os.system(cmd)
                             if (i == 0):
