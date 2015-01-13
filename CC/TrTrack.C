@@ -1167,6 +1167,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 //    AMSPoint pchk  = InterpolateLayerO(i+1, id);
 
       if (hit){
+        AMSPoint cdif(0,0,0);
 	AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
 	if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
 	  if(cookind==0) 
@@ -1178,15 +1179,15 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	  else if (cookind==5)
 	    coo= hit->GetCoord(-1,cookind);  
 
-	  if (TRMCFFKEY.MCtuneDmax > 0 &&
-	     (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0)) {
-            AMSPoint cna= hit->GetCoord(-1,5); 
-	    AMSPoint cdif= coo-cna; coo = cna;
-	    MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax,
-		                        TRMCFFKEY.MCtuneDs);
-	    coo= coo+cdif;
-	  }
+          AMSPoint cna= hit->GetCoord(-1,5);
+          cdif= coo-cna; coo = cna;
 	}
+         if (TRMCFFKEY.MCtuneDmax > 0 &&
+             (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0)) {
+            MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax,
+                                        TRMCFFKEY.MCtuneDs);
+        }
+        coo = coo+cdif;
 	par.Residual[i][0] = (coo-pint)[0];
 	par.Residual[i][1] = (coo-pint)[1];
 	  
