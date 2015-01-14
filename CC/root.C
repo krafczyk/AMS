@@ -4116,7 +4116,7 @@ void EcalShowerR::NormaliseVariableLAPP(){
       tc1D = tc2D->pEcalCluster(b);
       for(int c=0;c<tc1D->NEcalHit();c++){
         thit = tc1D->pEcalHit(c);
-	if(!isnan(thit->Edep)){
+	if(!(isnan(thit->Edep)||isinf(thit->Edep))){
         	etot += thit->Edep;
         	EnergyFractionLayer[thit->Plane] += thit->Edep;
 	}
@@ -4416,7 +4416,7 @@ float EcalShowerR::EcalStandaloneEstimatorV3(){
 				adc_low=hit.ADC[1];						
 				//
 
-            float Edep=	isnan(hit.Edep)?0:hit.Edep;
+            float Edep=	(isnan(hit.Edep)||isinf(hit.Edep))?0:hit.Edep;
 				edep_layer[plane]      += Edep;
 				edep_cell[plane][cell]  = Edep;
 				s_cell_w[plane]        += (cell+1)*Edep;
@@ -5009,7 +5009,7 @@ float EcalShowerR::EcalStandaloneEstimatorV2(){
         for (Int_t icluster = 0; icluster < pEcal2DCluster(i2dcluster)->NEcalCluster(); ++icluster){
             for (Int_t ihit = 0; ihit < pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->NEcalHit(); ++ihit){
                 EcalHitR *hit = pEcal2DCluster(i2dcluster)->pEcalCluster(icluster)->pEcalHit(ihit);
-                if (!isnan(hit->Edep)){
+                if (!( isnan(hit->Edep) || isinf(hit->Edep)) ){
                         ECalEdepFrac[hit->Plane] += hit->Edep;
 			etot += hit->Edep;
         	}
