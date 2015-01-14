@@ -135,10 +135,10 @@ public:
   /// Propagete on the track up to Z=zpl plane
   /*
    *  _p0x,_p0y,_p0z,_dxdz,_dydz are changed as of _p0z = zpl */
-  double Propagate(double zpl);
+  double Propagate(const double zpl);
 
   /// Build interpolation lists onto Z=zpl[i] (0<=i<nz) planes given
-  void Interpolate(int nz, double *zpl,
+  void Interpolate(const int nz, const double *zpl,
                    AMSPoint *plist, AMSDir *dlist = 0, double *llist = 0);
 
   /// Track interpolation (onto general plane)

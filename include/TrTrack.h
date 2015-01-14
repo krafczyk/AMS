@@ -663,7 +663,7 @@ public:
    * \param[in]  id   Fitting method ID
    * \return          Path length between Z=P0z(usually 0) and Z=zpl
    */
-  double Interpolate(double zpl, AMSPoint &pnt, AMSDir &dir, 
+  double Interpolate(const double zpl, AMSPoint &pnt, AMSDir &dir, 
 		     int id = 0) const;
 
 
@@ -724,7 +724,7 @@ public:
    * lvec[0] is length between Z=P0z and Z=zpl[0],
    * lvec[i] is length between Z=zpl[i] and Z=zpl[i-1] for i>0
    */
-  void Interpolate(int nz, double *zpl, 
+  void Interpolate(const int nz, const double *zpl, 
 		   AMSPoint *pvec, AMSDir *dvec = 0, double *lvec = 0,
 		   int id = 0) const;
 
