@@ -39,7 +39,7 @@ void TKGEOMFFKEY_DEF::init(){
     L9Phase[ii]=phase9[ii];
   }
   exalignver=5;
-  MdExAlignTag=0;
+  MdExAlignTag=90115;
   MaxAlignedRun=1411991495;  // Updated on Dec/9,2014
 
   /// Time dependent L2 alignment parameters (used only with PM5)

@@ -1601,7 +1601,7 @@ void TkDBc::UseLatest(int reset)
 
 void TkDBc::UseFinal(int reset)
 {
-int iver=6;
+int iver=7;
 cout << "TkDBc::UseFinal-I-UsingVersion "<<iver<<endl;
   UseVersion(iver, reset);
 }
