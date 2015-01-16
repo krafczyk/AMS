@@ -14661,7 +14661,8 @@ int MCtune(AMSPoint &coo, int tkid, double dmax, float dsxy[2])
 					1.40, 1.20, 1.1, 1.05, 1.03,
 					1.01, 1.0
 				}; 
-				static TSpline3 *spline3_MCtune_z1 = new TSpline3("spline3_MCtune_z1", spline_x, vstart, kNpar, "b2e2", 0, 0 );
+				static TSpline3 *spline3_MCtune_z1 = 0;
+				if( spline3_MCtune_z1==0 ) spline3_MCtune_z1 = new TSpline3("spline3_MCtune_z1", spline_x, vstart, kNpar, "b2e2", 0, 0 );
 
 				double scale = ds - int(ds/10)*10; // should be around 1
 				double invs = TMath::Abs(dmin)<0.01?spline3_MCtune_z1->Eval( 1e4*TMath::Abs(dmin) ):1.0;
