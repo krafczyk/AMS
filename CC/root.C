@@ -3034,6 +3034,11 @@ int AMSEventR::SetDefaultMCTuningParameters()
     TRMCFFKEY.MCtuneDs[0] =  0.0;
     TRMCFFKEY.MCtuneDs[1] = -3.0e-4;
   }
+  else if( particle==14 || particle==15 ){ // proton and antiproton
+	  // tuned based on B928 proton MC, smearing X direction, unsmearing Y direction by moving point towards the MC cluster
+	  TRMCFFKEY.MCtuneDs[0] = -9.0e-4;
+	  TRMCFFKEY.MCtuneDs[1] =  101.0;  // Zx100 + Version x 10 + Scale(should be around 1.0, variate around 1 to study systematic effect)
+  }
   // tested only for protons with B620dev, but apply for everything except
   // Helium which is handled above, until better parameters are found
   else {
@@ -14515,147 +14520,176 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   return ret;
 } 
 
+
+
 int MCtune(AMSPoint &coo, int tkid, double dmax, float dsxy[2])
 {
-int ret=0;
-//x
-{
-double ds=dsxy[0];
-(void)ds;
+	int ret=0;
+	//x
+	{
+		double ds=dsxy[0];
+		(void)ds;
 #ifdef __ROOTSHAREDLIBRARY__
-  if (!AMSEventR::Head()) return 0;
-  if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
+		if (!AMSEventR::Head()) return 0;
+		if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
-  TrMCClusterR *mc = 0;
-  double      dmin = dmax;
-  for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
-    TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
-    if (!m || m->GetTkId() != tkid) continue;
+		TrMCClusterR *mc = 0;
+		double      dmin = dmax;
+		for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
+			TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
+			if (!m || m->GetTkId() != tkid) continue;
 
-    double d = coo.x()-m->GetXgl().x();
-    if (TMath::Abs(d) < TMath::Abs(dmin)) {
-      mc   = m;
-      dmin = d;
-    }
-  }
-  if (mc) {
-   if(ds<-0.1){//global scale
-     double scale=TMath::Abs(ds-int(ds)/10*10);
-     if(scale>0.1&&scale<10){
-       coo[0] =(coo[0]-mc->GetXgl().x())*scale+mc->GetXgl().x();
-       ret=1;
-     }
-   }
-   else if(ds<0){
-   double rnd[1];
+			double d = coo.x()-m->GetXgl().x();
+			if (TMath::Abs(d) < TMath::Abs(dmin)) {
+				mc   = m;
+				dmin = d;
+			}
+		}
+		if (mc) {
+			if(ds<-0.1){//global scale
+				double scale=TMath::Abs(ds-int(ds)/10*10);
+				if(scale>0.1&&scale<10){
+					coo[0] =(coo[0]-mc->GetXgl().x())*scale+mc->GetXgl().x();
+					ret=1;
+				}
+			}
+			else if(ds<0){
+				double rnd[1];
 #ifdef __ROOTSHAREDLIBRARY__
-  int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
-  AMSEventR::GetRandArray(8993306-lj-1, 2,  1,rnd);
+				int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+				AMSEventR::GetRandArray(8993306-lj-1, 2,  1,rnd);
 #else
-rnd[0]=rnormx();
+				rnd[0]=rnormx();
 #endif
-     coo[0]+=-ds*rnd[0];
-     ret=1;
-   }
-   else{
-    if (ds < dmax && TMath::Abs(dmin) > ds) {
-      coo[0] += (dmin > 0) ? -ds : ds;
-      ret=1;
-    }
-    if (ds > dmax) {
-      coo = mc->GetXgl();
-      ret=1;
-    }
-  }}
- 
+				coo[0]+=-ds*rnd[0];
+				ret=1;
+			}
+			else{
+				if (ds < dmax && TMath::Abs(dmin) > ds) {
+					coo[0] += (dmin > 0) ? -ds : ds;
+					ret=1;
+				}
+				if (ds > dmax) {
+					coo = mc->GetXgl();
+					ret=1;
+				}
+			}}
+
 
 #endif
- 
-}
-//y
-{
-double ds=dsxy[1];
-(void)ds;
+
+	}
+	//y
+	{
+		double ds=dsxy[1];
+		(void)ds;
 #ifdef __ROOTSHAREDLIBRARY__
-  if (!AMSEventR::Head()) return 0;
-  if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
+		if (!AMSEventR::Head()) return 0;
+		if (AMSEventR::Head()->NTrMCCluster() == 0) return 0;
 
-  TrMCClusterR *mc = 0;
-  double      dmin = dmax;
-  for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
-    TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
-    if (!m || m->GetTkId() != tkid) continue;
+		TrMCClusterR *mc = 0;
+		double      dmin = dmax;
+		for (unsigned int i = 0; i < AMSEventR::Head()->NTrMCCluster(); i++) {
+			TrMCClusterR *m = AMSEventR::Head()->pTrMCCluster(i);
+			if (!m || m->GetTkId() != tkid) continue;
 
-    double d = coo.y()-m->GetXgl().y();
-    if (TMath::Abs(d) < TMath::Abs(dmin)) {
-      mc   = m;
-      dmin = d;
-    }
-  }
-  if (mc) {
-   if(ds<=-200){//helium point by point resolution tuning B930-c115b MC (Q.Yan 2015-01-06 V1)
-      int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
-      const int nnodefn=10;
-      double nodefn[nnodefn]={5,7,10,15,20,25,30,35,40,55};
-      double shinkparn[][nnodefn]={
-	1.405,1.285,1.197,1.136,1.097,1.071,1.028,0.9809,0.9376,0.8740,//L1=av
-        1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L2=L3
-        1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L3
-        1.369,1.265,1.188,1.146,1.135,1.112,1.059,1.005, 0.9585,0.8616,//L4 
-        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L5
-        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L6=L5
-        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L7=L5
-        1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L8=L5
-	1.405,1.285,1.197,1.136,1.097,1.071,1.028,0.9809,0.9376,0.8740 //L9=av
-      };
-    //if(lj>=2&&lj<=8){//implement for TkInner only L2->L8
-      if(lj>=1&&lj<=9){
-        double res=TMath::Abs(dmin)*10000.;//cm->um
-        static TSpline3 *tkspline[9]={0,0,0,0,0,0,0,0,0};
-        if(tkspline[lj-1]==0)tkspline[lj-1]=new TSpline3(Form("tktunespline_l%d",lj),nodefn,shinkparn[lj-1],nnodefn,"b1e1",0,0);
-        if      (res<nodefn[0])res=nodefn[0];
-        else if (res>nodefn[nnodefn-1])res=nodefn[nnodefn-1];
-        double scale=tkspline[lj-1]->Eval(res);
+			double d = coo.y()-m->GetXgl().y();
+			if (TMath::Abs(d) < TMath::Abs(dmin)) {
+				mc   = m;
+				dmin = d;
+			}
+		}
+		if (mc) {
+			if(ds<=-200){//helium point by point resolution tuning B930-c115b MC (Q.Yan 2015-01-06 V1)
+				int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+				const int nnodefn=10;
+				double nodefn[nnodefn]={5,7,10,15,20,25,30,35,40,55};
+				double shinkparn[][nnodefn]={
+					1.405,1.285,1.197,1.136,1.097,1.071,1.028,0.9809,0.9376,0.8740,//L1=av
+					1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L2=L3
+					1.394,1.284,1.197,1.139,1.092,1.052,1.003,0.9567,0.9157,0.8545,//L3
+					1.369,1.265,1.188,1.146,1.135,1.112,1.059,1.005, 0.9585,0.8616,//L4 
+					1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L5
+					1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L6=L5
+					1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L7=L5
+					1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L8=L5
+					1.405,1.285,1.197,1.136,1.097,1.071,1.028,0.9809,0.9376,0.8740 //L9=av
+				};
+				if(lj>=1&&lj<=9){
+					double res=TMath::Abs(dmin)*10000.;//cm->um
+					static TSpline3 *tkspline[9]={0,0,0,0,0,0,0,0,0};
+					if(tkspline[lj-1]==0)tkspline[lj-1]=new TSpline3(Form("tktunespline_l%d",lj),nodefn,shinkparn[lj-1],nnodefn,"b1e1",0,0);
+					if      (res<nodefn[0])res=nodefn[0];
+					else if (res>nodefn[nnodefn-1])res=nodefn[nnodefn-1];
+					double scale=tkspline[lj-1]->Eval(res);
 
-        coo[1] =dmin*scale+mc->GetXgl().y();//Smear by Scale
-        ret+=10;
-      }
-   }
-   if(ds<-0.1){//global scale could be together with point by point resolution tuning
-     double scale=TMath::Abs(ds-int(ds)/10*10);
-     if(scale>0.1&&scale<10){
-       coo[1] =(coo[1]-mc->GetXgl().y())*scale+mc->GetXgl().y();
-       ret+=10;
-     }
-   }
-   else if(ds<0){
-   double rnd[1];
+					coo[1] =dmin*scale+mc->GetXgl().y();//Smear by Scale
+					ret+=10;
+				}
+			}
+			if(ds<-0.1){//global scale could be together with point by point resolution tuning
+				double scale=TMath::Abs(ds-int(ds)/10*10);
+				if(scale>0.1&&scale<10){
+					coo[1] =(coo[1]-mc->GetXgl().y())*scale+mc->GetXgl().y();
+					ret+=10;
+				}
+			}
+			else if(ds<0){
+				double rnd[1];
 #ifdef __ROOTSHAREDLIBRARY__
-  int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
-  AMSEventR::GetRandArray(8993306+lj, 2,  1,rnd);
+				int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+				AMSEventR::GetRandArray(8993306+lj, 2,  1,rnd);
 #else
-rnd[0]=rnormx();
+				rnd[0]=rnormx();
 #endif
-     coo[1]+=-ds*rnd[0];
-     ret+=10;
-   }
-   else{
-    if (ds < dmax && TMath::Abs(dmin) > ds) {
-      coo[1] += (dmin > 0) ? -ds : ds;
-      ret+=10;
-    }
-    if (ds > dmax) {
-      coo = mc->GetXgl();
-      ret+=10;
-    }
-  }}
- 
+				coo[1]+=-ds*rnd[0];
+				ret+=10;
+			}
+			else if( ds > 100 && ds < 200 ){ // proton point-by-point resolution tuning, WXU, 2015-01-13
+				static int count = 0;
+				if( count ++ < 20 ) cout << "using new proton tuning in root.C, Ds[1]=" << ds << endl;
+				// Ds=101.0
+				// Scale = Ds - int(Ds/10)*10
+				const int kNpar=12;
+				static double spline_x[kNpar] = {
+					0,  5,  10,  15, 20,
+					30, 40, 50,  60, 75,
+					100,  150
+				};
+				static double vstart[kNpar] = {
+					1.55, 1.54, 1.53, 1.52, 1.50,
+					1.40, 1.20, 1.1, 1.05, 1.03,
+					1.01, 1.0
+				}; 
+				static TSpline3 *spline3_MCtune_z1 = new TSpline3("spline3_MCtune_z1", spline_x, vstart, kNpar, "b2e2", 0, 0 );
+
+				double scale = ds - int(ds/10)*10; // should be around 1
+				double invs = TMath::Abs(dmin)<0.01?spline3_MCtune_z1->Eval( 1e4*TMath::Abs(dmin) ):1.0;
+				double shift = (1/invs-1)*dmin*0.5*scale; // in cm
+				if( TMath::Abs(shift) < dmax && TMath::Abs(dmin) > shift) {
+					coo[1] += shift; // move the hit toward MC cluster
+				}
+				if( count < 20 ) 
+					cout << "invs=" << invs << ", dmin=" << dmin << ", shift=" << shift << ", tkid=" << tkid << ", coo[1]=" << coo[1] << endl;
+				ret+=10;
+			}
+			else{
+				if (ds < dmax && TMath::Abs(dmin) > ds) {
+					coo[1] += (dmin > 0) ? -ds : ds;
+					ret+=10;
+				}
+				if (ds > dmax) {
+					coo = mc->GetXgl();
+					ret+=10;
+				}
+			}}
+
 
 #endif
- 
-}
 
- return ret;
+	}
+
+	return ret;
 }
 
 int MCshift(AMSPoint &coo, double ds)
