@@ -3049,8 +3049,8 @@ int AMSEventR::SetDefaultMCTuningParameters()
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   // MC scattering for protons / antiprotons
 
-  // (tested only for protons with B620dev. For B930: fix by scaling cross sections)
-  if ( (particle == 14 ) && Version() <= 930) {
+  // (tested only for protons with B620dev. For B900+: fix by scaling cross sections)
+  if ( (particle == 14 ) && Version() < 900) {
     TRMCFFKEY.MCscat[0] = -15.0;
     TRMCFFKEY.MCscat[1] = -440.06;
     TRMCFFKEY.MCscat[2] = -440.05;
