@@ -3034,7 +3034,7 @@ int AMSEventR::SetDefaultMCTuningParameters()
     TRMCFFKEY.MCtuneDs[0] =  0.0;
     TRMCFFKEY.MCtuneDs[1] = -3.0e-4;
   }
-  else if( particle==14 || particle==15 ){ // proton and antiproton
+  else if( Version()>=928 && ( particle==14 || particle==15) ){ // proton and antiproton
 	  // tuned based on B928 proton MC, smearing X direction, unsmearing Y direction by moving point towards the MC cluster
 	  TRMCFFKEY.MCtuneDs[0] = -9.0e-4;
 	  TRMCFFKEY.MCtuneDs[1] =  101.0;  // Zx100 + Version x 10 + Scale(should be around 1.0, variate around 1 to study systematic effect)
