@@ -128,6 +128,8 @@ class AMSEcalRawEvent: public AMSlink{
     static    AMSID  getTDVcalibMS(){return AMSID("EcalpmcalibMS",AMSJob::gethead()->isRealData());}
     static    AMSID  getTDVvpar(){return AMSID("Ecalvpar",AMSJob::gethead()->isRealData());}
     static    AMSID  getTDVcalibTslo(){return AMSID("EcalTslo",AMSJob::gethead()->isRealData());}
+    static    AMSID  getTDVcalibMipD(){return AMSID("EcalMipD",AMSJob::gethead()->isRealData());}
+    static    AMSID  getTDVcalibLonT(){return AMSID("EcalLonT",AMSJob::gethead()->isRealData());}
  protected:
     void _printEl(ostream &stream){
       stream <<"AMSEcalRawEvent: id="<<dec<<_idsoft<<endl;
