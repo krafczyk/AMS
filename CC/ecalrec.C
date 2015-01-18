@@ -54,7 +54,8 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   integer ecalflg(0);
   Trigger2LVL1 *ptrt;
   bool ecalftok(false);
-  number asum4[ECPMSL],pixrg;
+  //  number asum4[ECPMSL],pixrg;
+  number asum4[ECPMSL],mip_value,mip_factor;
   integer npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl(36)
   integer nslmx=ECALDBc::slstruc(3);//numb.of Slayers(9)
   //
@@ -83,23 +84,23 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
     if(ptrt){
       if(ecalftok){
 	for(int sl=0;sl<6;sl+=2){
-	  for(int pm=0;pm<36;pm++){
+	  for(int ipm=0;ipm<36;ipm++){
 	    k=floor(geant(sl)/2);
-	    if(ptrt->EcalDynON(sl,pm)){
+	    if(ptrt->EcalDynON(sl,ipm)){
 #pragma omp critical (hf1)
 	      {
-		HF1(ecalconst::ECHISTR+28,geant(pm+1+40*k),1.);
+		HF1(ecalconst::ECHISTR+28,geant(ipm+1+40*k),1.);
 	      }
 	    }
 	  }
 	}
 	for(int sl=1;sl<6;sl+=2){
-	  for(int pm=0;pm<36;pm++){
+	  for(int ipm=0;ipm<36;ipm++){
 	    k=floor(geant(sl)/2);
-	    if(ptrt->EcalDynON(sl,pm)){
+	    if(ptrt->EcalDynON(sl,ipm)){
 #pragma omp critical (hf1)
 	      {
-		HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
+		HF1(ecalconst::ECHISTR+29,geant(ipm+1+40*k),1.);
 	      }
 	    }
 	  }
@@ -171,8 +172,10 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
         pmsl=pmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
         ptr->getpadc(padc);
 	sta=ptr->getstatus();
-        pixrg=ECcalib::ecpmcal[isl][pmt].pmscgain(subc)*
-	  ECcalib::ecpmcal[isl][pmt].pmrgain();// pix gain corr(really 1/pmscg) from DB
+        //pixrg=ECcalib::ecpmcal[isl][pmt].pmscgain(subc)*
+	//	  ECcalib::ecpmcal[isl][pmt].pmrgain();// pix gain corr(really 1/pmscg) from DB
+	mip_value=ECDailyMip::ecmipday[isl][pmt].mipday(subc);//Mip value for this cell
+	mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
         ECPMPeds::pmpeds[isl][pmt].getpedh(pedh);
         ECPMPeds::pmpeds[isl][pmt].getsigh(sigh);
         ECPMPeds::pmpeds[isl][pmt].getpedl(pedl);
@@ -195,16 +198,17 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 #pragma omp critical (ecval_fill2)
           ECREUNcalib::fill_2(isl,pmt,subc,radc);//<--fill
         }
-	if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0)asum4[pmsl]+=(radc[0]*pixrg);//sum4-Gcorrected(for a2d ratio) 
+	//	if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0) asum4[pmsl]+=(radc[0]*pixrg);//sum4-Gcorrected(for a2d ratio) 
+	if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0) asum4[pmsl]+=(radc[0]*mip_factor);//sum4-Gcorrected(for a2d ratio) 
         ptr=ptr->next();  
       } // ---> end of RawEvent-hits loop in crate
       //
     } // ---> end of crates loop
     //--> fill a2d arrays:
-    for(isl=0;isl<nslmx;isl++){
-      for(pmt=0;pmt<npmx;pmt++){
-        pmsl=pmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
-        padc[2]=AMSEcalRawEvent::getadcd(isl,pmt);//Dynode
+    for(int isl=0;isl<nslmx;isl++){
+      for(int ipmt=0;ipmt<npmx;ipmt++){
+        pmsl=ipmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
+        padc[2]=AMSEcalRawEvent::getadcd(isl,ipmt);//Dynode
 	if(padc[2]>1.5*ECCAFFKEY.adcmin && asum4[pmsl]>30*ECCAFFKEY.adcmin){
 #pragma omp critical (ecval_fill3)
 	  ECREUNcalib::fill_3(pmsl,padc[2],asum4[pmsl]);
@@ -218,8 +222,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //----------------------------------------------------
 void AMSEcalRawEvent::mc_build(int &stat){
 
-  int j,k,ic;
-  integer fid,cid,cidar[4],nhits,nraw,nrawd,il,pm,sc,proj,rdir,nslhits;
+  integer fid,cid,cidar[4],nhits,nraw,nrawd,pm,sc,proj,rdir,nslhits;
   number x,y,coo,hflen=0,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attfdir,attfrfl,ww[4],anen,dyen;
   number attfdir0,attfrfl0;
@@ -229,7 +232,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   int dycog[ECSLMX];//to work with integer as in real EC trigger
   number pmedepr[4];
   integer adch,adcl,adcd;
-  geant radc,a2dr,h2lr,mev2adc,ares,phel,pmrgn,scgn;
+  geant radc,a2dr,h2lr,mev2adc,ares,phel;
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4],pedd,sigd;
   AMSEcalMCHit * ptr;
@@ -239,8 +242,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number an4resp,an4respt,an4qin;// (for trigger)
   number qin,saturf,a4maxq(0);
   integer adchmx,adclmx,adcdmx;
-  float Tsim,Tref,deltaT,Tcorr;
   float mevtot;
+  geant mip_value,mip_factor,mip_4factor;
   //
   nslmx=ECALDBc::slstruc(3);
   npmmx=ECALDBc::slstruc(4);
@@ -258,41 +261,41 @@ void AMSEcalRawEvent::mc_build(int &stat){
   adchmx=0;
   adclmx=0;
   adcdmx=0;
-  for(il=0;il<ECSLMX;il++){
-    pmlprof[il]=0.;
-    dytrc[il]=0;
-    dycog[il]=0;
+  for(int isl=0;isl<ECSLMX;isl++){
+    pmlprof[isl]=0.;
+    dytrc[isl]=0;
+    dycog[isl]=0;
     for(int ipm=0;ipm<ECPMSMX;ipm++){
-      pmtmap[il][ipm]=0.;
+      pmtmap[isl][ipm]=0.;
     }
   }
   mevtot=0.;
   //
-  for(il=0;il<nslmx;il++){ // <-------------- super-layer loop
+  for(int isl=0;isl<nslmx;isl++){ // <-------------- super-layer loop
     ptr=(AMSEcalMCHit*)AMSEvent::gethead()->
-      getheadC("AMSEcalMCHit",il,0);   
+      getheadC("AMSEcalMCHit",isl,0);   
     for(int ipm=0;ipm<npmmx;ipm++)
-      for(k=0;k<4;k++)sum[ipm][k]=0.; 
+      for(int k=0;k<4;k++)sum[ipm][k]=0.; 
     nslhits=0;
     while(ptr){ // <------------------- geant-hits loop in superlayer:
       nhits+=1;
       nslhits+=1;
       fid=ptr->getid();//SSLLFFF
       edep=ptr->getedep()*1000;// MeV(dE/dX)
-      //      if(il==0 && (fid%100000)/1000>=1 &&
+      //      if(isl==0 && (fid%100000)/1000>=1 &&
       //                    (fid%100000)/1000<=5 && (fid%1000)==254)edep=0.;//tempor test(in pl/sc=1/38 )
       edept+=edep;
       if(edep<=0){
-        cout<<"======>ECEdep<0::il="<<il<<" edep="<<edep<<endl;
+        cout<<"======>ECEdep<0::isl="<<isl<<" edep="<<edep<<endl;
       }
-      EcalJobStat::addzprmc1(il,edep);//geant SL-profile
+      EcalJobStat::addzprmc1(isl,edep);//geant SL-profile
       time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
       timet+=edep*time;
       x=ptr->getcoo(0);// global coord.
       y=ptr->getcoo(1);
       x=x-ECALDBc::gendim(5);// go to local (ECAL-radiator) system
       y=y-ECALDBc::gendim(6);
-      proj=(1-2*(il%2))*(2*ECALDBc::slstruc(1)-1);//proj=+1/-1=>Y/X
+      proj=(1-2*(isl%2))*(2*ECALDBc::slstruc(1)-1);//proj=+1/-1=>Y/X
       if(proj>0){ // <-- fiber from Y-proj
         coo=x;// get X-coord(along fiber)
         hflen=ECALDBc::gendim(1)/2.;// 0.5*fiber length in X-dir
@@ -302,13 +305,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
         hflen=ECALDBc::gendim(2)/2.;// 0.5*fiber length in Y-dir
       }
       //
-      for(k=0;k<4;k++){
+      for(int k=0;k<4;k++){
         cidar[k]=0;
 	ww[k]=0.;
       }
       ECALDBc::fid2cida(fid,cidar,ww);//cidar=SSPPC
       //
-      for(j=0;j<4;j++){ // <-- loop over coupled PM's
+      for(int j=0;j<4;j++){ // <-- loop over coupled PM's
         cid=cidar[j];
         if(cid>0){
           sc=cid%10-1; // SubCell(pixel)
@@ -319,9 +322,14 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  //
           pmdis=coo+hflen;//to count from "-" edge of fiber (0-2*hflen)
           if(rdir<0)pmdis=2.*hflen-pmdis;
-	  lfs=ECcalib::ecpmcal[il][pm].alfast();//att_len(fast comp) from DB(MC-Seeds)
-	  lsl=ECcalib::ecpmcal[il][pm].alslow();//att_len(slow comp) from DB(MC-Seeds)
-	  ffr=ECcalib::ecpmcal[il][pm].fastfr();//fast comp. fraction from DB(MC-Seeds)
+	  /*
+	  lfs=ECcalib::ecpmcal[isl][pm].alfast();//att_len(fast comp) from DB(MC-Seeds)
+	  lsl=ECcalib::ecpmcal[isl][pm].alslow();//att_len(slow comp) from DB(MC-Seeds)
+	  ffr=ECcalib::ecpmcal[isl][pm].fastfr();//fast comp. fraction from DB(MC-Seeds)
+	  */
+	  lfs=ECLongTerm::eclongterm[isl][pm].alfast(sc);//att_len(fast comp) from DB(MC-Seeds)
+	  lsl=ECLongTerm::eclongterm[isl][pm].alslow(sc);//att_len(slow comp) from DB(MC-Seeds)
+	  ffr=ECLongTerm::eclongterm[isl][pm].fastfr(sc);//fast comp. fraction from DB(MC-Seeds)
           attfdir=(1.-ffr)*exp(-pmdis/lsl)+ffr*exp(-pmdis/lfs);//fiber att.factor(direct light)
 	  attfrfl=((1-ffr)*exp(-(2*hflen-pmdis)/lsl)+ffr*exp(-(2*hflen-pmdis)/lfs))
 	    *((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl)
@@ -336,44 +344,39 @@ void AMSEcalRawEvent::mc_build(int &stat){
     } // ---------------> end of geant-hit-loop in superlayer
     //
     //
-    for(int ipm=0;ipm<npmmx;ipm++){ // <------- loop over PM's in this(il) S-layer
-      a2dr=ECcalib::ecpmcal[il][ipm].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
+    for(int ipm=0;ipm<npmmx;ipm++){ // <------- loop over PM's in this(isl) S-layer
+      // a2dr=ECcalib::ecpmcal[isl][ipm].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
+      a2dr=ECLongTerm::eclongterm[isl][ipm].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
       mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 10th channel
       //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
-      pmrgn=ECcalib::ecpmcal[il][ipm].pmrgain();// PM gain(wrt ref. one) from DB(MC-Seeds)
-      ECPMPeds::pmpeds[il][ipm].getpedh(pedh);//No PedSeeds used due to very small real ped sigmas !!!
-      ECPMPeds::pmpeds[il][ipm].getsigh(sigh);
-      ECPMPeds::pmpeds[il][ipm].getpedl(pedl);
-      ECPMPeds::pmpeds[il][ipm].getsigl(sigl);
-      pedd=ECPMPeds::pmpeds[il][ipm].pedd();
-      sigd=ECPMPeds::pmpeds[il][ipm].sigd();
+      ECPMPeds::pmpeds[isl][ipm].getpedh(pedh);//No PedSeeds used due to very small real ped sigmas !!!
+      ECPMPeds::pmpeds[isl][ipm].getsigh(sigh);
+      ECPMPeds::pmpeds[isl][ipm].getpedl(pedl);
+      ECPMPeds::pmpeds[isl][ipm].getsigl(sigl);
+      pedd=ECPMPeds::pmpeds[isl][ipm].pedd();
+      sigd=ECPMPeds::pmpeds[isl][ipm].sigd();
       //---  
-      lfs=ECcalib::ecpmcal[il][ipm].alfast();//att_len(fast comp) from DB(MC-Seeds)
-      lsl=ECcalib::ecpmcal[il][ipm].alslow();//att_len(slow comp) from DB(MC-Seeds)
-      ffr=ECcalib::ecpmcal[il][ipm].fastfr();//fast comp. fraction from DB(MC-Seeds)
-      attfdir0=(1.-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs);//fiber att.factor(direct light, center)
-      attfrfl0=((1-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs))
-  	*((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl, center)
-      attf0=0.5*(attfdir0+attfrfl0);
+      /*
+	lfs=ECcalib::ecpmcal[isl][ipm].alfast();//att_len(fast comp) from DB(MC-Seeds)
+	lsl=ECcalib::ecpmcal[isl][ipm].alslow();//att_len(slow comp) from DB(MC-Seeds)
+	ffr=ECcalib::ecpmcal[isl][ipm].fastfr();//fast comp. fraction from DB(MC-Seeds)
+      */
       //
       //---
       an4qin=0;//PM Anode-resp(4cells,pC)
-      for(ic=0;ic<4;ic++)pmedepr[ic]=0; 
-      Tref= ECREFFKEY.Tref;
-      Tsim= ECMCFFKEY.Tsim;
-      deltaT=Tsim-Tref;     
-      if ( !ECCAFFKEY.useTslope || AMSEvent::gethead()->getrun()<1305763200) deltaT=0.; // T correction not applied for rund before May 19, 2011  
-      for(ic=0;ic<4;ic++){//<--- PM 4-subc loop to calc. common PMsatur(due to divider !)
+      for(int ic=0;ic<4;ic++)pmedepr[ic]=0; 
+      for(int ic=0;ic<4;ic++){//<--- PM 4-subc loop to calc. common PMsatur(due to divider !)
         if(sum[ipm][ic]>0){
-	  scgn=ECcalib::ecpmcal[il][ipm].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
-  	  // include Gain dependence on Temperature
- 	  Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
- 	  if ( Tcorr > 0 ){
-  	    scgn*=Tcorr;
-  	  }
-  	  else{
-  	    cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
-  	  }
+	  lfs=ECLongTerm::eclongterm[isl][ipm].alfast(ic);//att_len(fast comp) from DB(MC-Seeds)
+	  lsl=ECLongTerm::eclongterm[isl][ipm].alslow(ic);//att_len(slow comp) from DB(MC-Seeds)
+	  ffr=ECLongTerm::eclongterm[isl][ipm].fastfr(ic);//fast comp. fraction from DB(MC-Seeds)
+	  attfdir0=(1.-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs);//fiber att.factor(direct light, center)
+	  attfrfl0=((1-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs))
+	    *((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl, center)
+	  attf0=0.5*(attfdir0+attfrfl0);
+	  //
+	  mip_value=ECDailyMip::ecmipday[isl][ipm].mipday(ic);//Mip value for this cell
+	  mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
  	  //
 	  ares=0.;
 	  phel=sum[ipm][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)(mev2pes incl trapping+Quant.eff)
@@ -384,8 +387,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  }
 	  else edepr=0;
 	  if(edepr<0)edepr=0;
-	  pmedepr[ic]=edepr;//Evis(incl.Npes fluct, still not cell-individual)
-	  qin=(edepr/scgn)*mev2adc*ECMCFFKEY.adc2q;//AnodeCell "ic" charge(pC)(Evis->ADC->Q)
+	  pmedepr[ic]=edepr;//Evis(incl.Npes fluct, still not cell-individual) 
+	  qin=(edepr/mip_factor)*mev2adc*ECMCFFKEY.adc2q;//AnodeCell "ic" charge(pC)(Evis->ADC->Q)
 	  an4qin+=qin;
 	}
       }//--->endof 4-subc loop
@@ -400,26 +403,20 @@ void AMSEcalRawEvent::mc_build(int &stat){
       dyresp=0;//PM Dynode-resp(tempor in mev)
       anen=0.;
       dyen=0.;
-      for(k=0;k<4;k++){//<--- loop over 4-subcells in PM to fill ADC's
-        EcalJobStat::addzprmc2(il,sum[ipm][k]);//geant SL(PM-assigned)-profile
-	h2lr=ECcalib::ecpmcal[il][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
-	scgn=ECcalib::ecpmcal[il][ipm].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
- 	// Gain dependence on Temperature
- 	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(k)/100.*deltaT;
-  	if ( Tcorr > 0 ){
-  	  scgn*=Tcorr;
-  	}
-  	else{
-  	  cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
-  	} 
+      for(int k=0;k<4;k++){//<--- loop over 4-subcells in PM to fill ADC's
+        EcalJobStat::addzprmc2(isl,sum[ipm][k]);//geant SL(PM-assigned)-profile
+	//	h2lr=ECcalib::ecpmcal[isl][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
+	h2lr=ECLongTerm::eclongterm[isl][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
+	mip_value=ECDailyMip::ecmipday[isl][ipm].mipday(k);//Mip value for this cell
+	mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
 	edepr=pmedepr[k];//Evis(incl.Npe-fluct, mev)
 	emeast+=edepr;
-	anen+=saturf*edepr/scgn;//sum for 4xSubc. signal(for trig.study)
+	anen+=saturf*edepr/mip_factor;//sum for 4xSubc. signal(for trig.study)
 	dyen+=edepr;//summing to get dyn.signal for FT and Dadc(no satur.for Dynode ??)
 	mevtot+=edepr;
 	// ---------> digitization:
 	// High-gain channel:
-        radc=saturf*edepr*mev2adc/scgn;//Evis(mev)->indiv.Em(adc)
+        radc=saturf*edepr*mev2adc/mip_factor;//Evis(mev)->indiv.Em(adc)
         if(ECMCFFKEY.silogic[0]==0){
 	  radc+=(pedh[k]+sigh[k]*rnormx());//+ped+noise
 	}
@@ -446,7 +443,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  else{ adc[0]=0;}
 	}
 	// Low-gain channel:
-        radc=saturf*edepr*mev2adc/h2lr/scgn;//Evis(mev)->indiv.Em/h2lr(adc)
+        radc=saturf*edepr*mev2adc/h2lr/mip_factor;//Evis(mev)->indiv.Em/h2lr(adc)
 	//        radc=h2lo+saturf*edepr*mev2adc/h2lr/scgn;//Evis(mev)->indiv.Em/h2lr(adc) + low vs hi offset
         if(ECMCFFKEY.silogic[0]==0){
 	  radc+=(pedl[k]+sigl[k]*rnormx());//+ped+noise
@@ -474,7 +471,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  else{ adc[1]=0;}
 	}
 	// <---------
-	id=(k+1)+10*(ipm+1)+1000*(il+1);// LTTP(sLayer|Tube|Pixel)
+	id=(k+1)+10*(ipm+1)+1000*(isl+1);// LTTP(sLayer|Tube|Pixel)
         AMSECIds ids(id);
 	if(ids.HCHisBad())adc[0]=0;
 	if(ids.LCHisBad())adc[1]=0;
@@ -493,7 +490,12 @@ void AMSEcalRawEvent::mc_build(int &stat){
       }//<---- end of 4-PMSubcell-loop
       //---
       // Dynode channel:
-      radc=dyen*pmrgn*mev2adc/a2dr;//Ev(mev)->Em/a2dr(adc)=Emd
+      mip_4factor=0;
+      for (int isc=0;isc<4;isc++){
+	mip_4factor+= ECREFFKEY.mipTB/ECDailyMip::ecmipday[isl][ipm].mipday(isc);
+      }
+      mip_4factor/=4;
+      radc=dyen/mip_4factor*mev2adc/a2dr;//Ev(mev)->Em/a2dr(adc)=Emd
       if(ECMCFFKEY.silogic[0]==0){
         radc+=(pedd+sigd*rnormx());//+ped+noise
       }
@@ -520,23 +522,24 @@ void AMSEcalRawEvent::mc_build(int &stat){
         else{ radc=0;}
       }
       //
-      if(ECPMPeds::pmpeds[il][ipm].DCHisBad() || ECcalib::ecpmcal[il][ipm].DCHisBad())radc=0;
+      //      if(ECPMPeds::pmpeds[isl][ipm].DCHisBad() || ECcalib::ecpmcal[isl][ipm].DCHisBad())radc=0;
+      if(ECPMPeds::pmpeds[isl][ipm].DCHisBad() || ECLongTerm::eclongterm[isl][ipm].DCHisBad())radc=0;
       if(radc>0){
 	nrawd+=1;
-	id=1000*(il+1)+10*(ipm+1)+5;// LTTP(sLayer|Tube|Pixel=5)
+	id=1000*(isl+1)+10*(ipm+1)+5;// LTTP(sLayer|Tube|Pixel=5)
         AMSECIds ids(id);
 	if(ECREFFKEY.reprtf[2]>0){
 	  cout<<"<----- Add Dyn:LTTP/adc="<<id<<" "<<radc<<" to crate/slot(edr)="<<
 	    ids.getcrate()<<" "<<ids.getslot()
 	      <<" ped="<<pedd<<endl;
 	}
-	dynadc[il][ipm]=radc;//store in static array of AMSEcalRawEvent class
+	dynadc[isl][ipm]=radc;//store in static array of AMSEcalRawEvent class
       }
       //
       an4resp=anen;//PM 4anode-sum resp(true mev ~ mV !!!)
       //      dyresp=dyen*pmrgn/ECMCFFKEY.physa2d;//dyn.signal for EC_FT(tempor in DynodeMev ~ real mV !!!)
       //                                      (later to add some factor to conv. to mV)
-      dyresp=dyen*pmrgn;//Tempor dyn.signal for EC_FT in AnodeMevs ~ real mV !!!
+      dyresp=dyen/mip_4factor;//Tempor dyn.signal for EC_FT in AnodeMevs ~ real mV !!!
       an4respt+=an4resp;
       dyrespt+=dyresp;
       if(ECMCFFKEY.mcprtf>0){
@@ -544,8 +547,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
         if(dyresp>0 && an4resp<5000.)HF1(ECHIST+6,geant(an4resp/dyresp),1.);
       }
       //            arrays for trigger study:
-      pmtmap[il][ipm]=dyresp;//tempor Dynode-resp in Anode scale(mev)
-      pmlprof[il]+=dyresp; 
+      pmtmap[isl][ipm]=dyresp;//tempor Dynode-resp in Anode scale(mev)
+      pmlprof[isl]+=dyresp; 
       //
     }//-------> end of PM-loop in superlayer
     //
@@ -554,9 +557,9 @@ void AMSEcalRawEvent::mc_build(int &stat){
   if(ECREFFKEY.reprtf[2]>1){
     cout<<endl;
     cout<<"-----> DynodesMap: "<<endl<<endl;
-    for(il=0;il<nslmx;il++){//prepare trigger Dynode map(variab.thr vs layer)
+    for(int isl=0;isl<nslmx;isl++){//prepare trigger Dynode map(variab.thr vs layer)
       for(int ipm=0;ipm<npmmx;ipm++){
-        if(dynadc[il][ipm]>0)cout<<1<<" ";
+        if(dynadc[isl][ipm]>0)cout<<1<<" ";
 	else cout<<0<<" ";
       }
       cout<<endl;
@@ -587,38 +590,39 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number dytrsum(0),dysl;
   int word,bit;
   trigfl=0;
-  for(il=0;il<nslmx;il++){//prepare trigger Dynode map(variab.thr vs layer)
-    for(pm=0;pm<npmmx;pm++){
-      dysl=pmtmap[il][pm];
+  for(int isl=0;isl<nslmx;isl++){//prepare trigger Dynode map(variab.thr vs layer)
+    for(int ipm=0;ipm<npmmx;ipm++){
+      dysl=pmtmap[isl][ipm];
       dytrsum+=dysl;
-      if(dysl>dyslmx[il])dyslmx[il]=dysl;
+      if(dysl>dyslmx[isl])dyslmx[isl]=dysl;
       //      if(ECMCFFKEY.mcprtf>0){
-      //        if(dysl>0)HF1(ECHIST+30+il,geant(dysl),1.);
+      //        if(dysl>0)HF1(ECHIST+30+isl,geant(dysl),1.);
       //      }
       
-      if(dysl>ECALVarp::ecalvpar.daqthr(5+il) && !ECcalib::ecpmcal[il][pm].DCHisBad()){//incl."in-trig" check
-	dytrc[il]+=1;//count PMs>thr per layer
-	dycog[il]+=(pm+1);
-	if(il>=1 && il<=6){//set trig.pattern bits for 6 "trigger" sup-layers
-	  word=pm/16;//0-2
-	  bit=pm%16;//0-15
-	  trpatt[il-1][word]|=(1<<bit);
+      //      if(dysl>ECALVarp::ecalvpar.daqthr(5+isl) && !ECcalib::ecpmcal[isl][ipm].DCHisBad()){//incl."in-trig" check
+      if(dysl>ECALVarp::ecalvpar.daqthr(5+isl) && !ECLongTerm::eclongterm[isl][ipm].DCHisBad()){//incl."in-trig" check
+	dytrc[isl]+=1;//count PMs>thr per layer
+	dycog[isl]+=(ipm+1);
+	if(isl>=1 && isl<=6){//set trig.pattern bits for 6 "trigger" sup-layers
+	  word=ipm/16;//0-2
+	  bit=ipm%16;//0-15
+	  trpatt[isl-1][word]|=(1<<bit);
 	}
       }
     }
-    if(dytrc[il]>0){
-      dycog[il]*=64;//as in real trigger electronics(according Stefano Di Falco)
-      dycog[il]=integer(geant(dycog[il])/dytrc[il]);//layer COG
+    if(dytrc[isl]>0){
+      dycog[isl]*=64;//as in real trigger electronics(according Stefano Di Falco)
+      dycog[isl]=integer(geant(dycog[isl])/dytrc[isl]);//layer COG
     }
   }
   //
   if(ECMCFFKEY.mcprtf>0){// histogr of max in SL
-    for(il=0;il<nslmx;il++)if(dyslmx[il]>0)HF1(ECHIST+30+il,geant(dyslmx[il]),1.);
+    for(int isl=0;isl<nslmx;isl++)if(dyslmx[isl]>0)HF1(ECHIST+30+isl,geant(dyslmx[isl]),1.);
   }
   //
-  for(il=0;il<5;il+=2){//count in SL 2:7
-    if(dytrc[il+1]>0)nprx+=1;//counts SLs with at least 1 PMs above threshold in each proj
-    if(dytrc[il+2]>0)npry+=1;
+  for(int isl=0;isl<5;isl+=2){//count in SL 2:7
+    if(dytrc[isl+1]>0)nprx+=1;//counts SLs with at least 1 PMs above threshold in each proj
+    if(dytrc[isl+2]>0)npry+=1;
   }
   EcalJobStat::addsr(0);
   if(nprx>0 || npry>0){
@@ -728,9 +732,9 @@ void AMSEcalRawEvent::mc_build(int &stat){
   //--->print trigpatt:
   if(ECREFFKEY.reprtf[2]>1){
     cout<<"      TrigPattern(slayer=1-6, pmt=1-36):"<<endl<<endl;
-    for(il=0;il<ECSLMX-3;il++){
-      for(pm=0;pm<ECPMMX;pm++){
-        if(AMSEcalRawEvent::gettrpbit(il,pm)>0)cout<<1<<"|";
+    for(int isl=0;isl<ECSLMX-3;isl++){
+      for(int ipm=0;ipm<ECPMMX;ipm++){
+        if(AMSEcalRawEvent::gettrpbit(isl,ipm)>0)cout<<1<<"|";
         else cout<<0<<"|";
       }
       cout<<endl;
@@ -816,7 +820,6 @@ void AMSEcalRawEvent::BeamTestLinCorr(int gain,int id,
 }
 //---------------------------------------------------
 void AMSEcalHit::build(int &stat){
-  int i;
   integer sta,id,idd,isl,pmc,subc,nraw,nhits;
   integer proj,plane,cell,icont;
   number radc[3],edep,edepc,adct,fadc,qmeas,saturf,emeast,coot,cool,cooz;
@@ -829,10 +832,8 @@ void AMSEcalHit::build(int &stat){
   number bedep[4],edepgd,dedep,etrue,edcort;
   AMSEcalRawEvent * ptr;
   AMSEcalRawEvent * ptrn;
-  geant scgn,deltaT,Tcorr;
+  geant mip_value,mip_factor,mip_4factor;
   geant mevtot;
-  int ReadTemp;
-  float T_PMT;
   //
   stat=1;//bad
   nhits=0;
@@ -849,8 +850,8 @@ void AMSEcalHit::build(int &stat){
       getheadC("AMSEcalRawEvent",nc,0);
     nsubc=0;//clear buff.arr.
     qmeas=0.;
-    for(i=0;i<4;i++)bsubc[i]=0;
-    for(i=0;i<4;i++)bedep[i]=0;
+    for(int i=0;i<4;i++)bsubc[i]=0;
+    for(int i=0;i<4;i++)bedep[i]=0;
     while(ptr){ // <--- RawEvent-hits loop in superlayer:
       isl=ptr->getslay();//0,1,...
       nraw+=1;
@@ -864,8 +865,10 @@ void AMSEcalHit::build(int &stat){
       ECPMPeds::pmpeds[isl][pmc].getsigh(sigh);
       ECPMPeds::pmpeds[isl][pmc].getpedl(pedl);
       ECPMPeds::pmpeds[isl][pmc].getsigl(sigl);
-      h2lr=ECcalib::ecpmcal[isl][pmc].hi2lowr(subc);
-      h2lo=ECcalib::ecpmcal[isl][pmc].hi2lowo(subc);
+      //      h2lr=ECcalib::ecpmcal[isl][pmc].hi2lowr(subc);
+      //h2lo=ECcalib::ecpmcal[isl][pmc].hi2lowo(subc);
+      h2lr=ECLongTerm::eclongterm[isl][pmc].hi2lowr(subc);
+      h2lo=ECLongTerm::eclongterm[isl][pmc].hi2lowo(subc);
       radc[0]=number(padc[0]);//ADC-high-chain
       radc[1]=number(padc[1]);//ADC-low-chain
       //      if(radc[2]>0)cout << " found Dyn "<<radc[0]<<" "<<radc[1]<<" "<<radc[2]<<endl;
@@ -917,38 +920,10 @@ void AMSEcalHit::build(int &stat){
       if(ids.HCHisBad())sta|=AMSDBc::ECHCISBAD;
       if(ids.LCHisBad())sta|=AMSDBc::ECLCISBAD;
       //
-      // read temperature from map
-      if (AMSJob::gethead()->isRealData()){
- 	ReadTemp= ECTslope::ecpmtslo[isl][pmc].GetECALSensorTemper(isl,pmc,&T_PMT);
- 	if (ReadTemp==0) {	  
- 	  deltaT=T_PMT-ECREFFKEY.Tref;
- 	}
- 	else{
- 	  //cout << "WARNING: No T sensor found for SL " << isl << " PMT " << pmc  << endl;
-	  deltaT=0.;
-	}
-      }
-      else{
- 	deltaT=ECMCFFKEY.Tsim-ECREFFKEY.Tref;
-      }
-      if ( !ECCAFFKEY.useTslope || AMSEvent::gethead()->getrun()<1305763200) deltaT=0.; // T correction not applied for runs before May 19, 2011
-      //
-      scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
-      // correct for Gain dependence on Temperature
-      Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;
-      //Additional temperature correction to shift from Reference temperature Tref
-      //to TestBeam temperature Ttb using global slope Tgsl
-      //Not to be applied to MC
-      //(4/6/13: Tref=10deg, Ttb=23deg, Tgsl=0.25%/deg)
-      if (AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()>=1305763200) 
-	Tcorr=Tcorr*(1.+ECREFFKEY.Tgsl/100.*(ECREFFKEY.Tref-ECREFFKEY.Ttb));
-      if ( Tcorr > 0 ){
-  	scgn*=Tcorr;
-      }
-      else{
-  	cout << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
-      }
-      edep=fadc*scgn;
+      mip_value=ECDailyMip::ecmipday[isl][pmc].mipday(subc);//Mip value for this cell
+      mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+      if ( AMSEvent::gethead()->getrun()>1305763200) mip_factor*=ECREFFKEY.mipTB2ISS; // if not Test Beam reference mip is shifted because of Bethe Bloch: rigidity at test beam is 400 GeV, on ISS is >= x GeV   
+      edep=fadc*mip_factor;
       //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
       if(ECREFFKEY.reprtf[0]>1 && edep>2){
 #pragma omp critical (hf1)
@@ -958,13 +933,14 @@ void AMSEcalHit::build(int &stat){
 	}
       }
       adct+=edep;//tot.adc
-      edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
+      //      edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
+      edep=edep*ECLongTerm::eclongterm[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
       if(fadc>0.){// store good (h+l)-hit info in buffer:
 	mevtot+=edep;
 	bsta[nsubc]=sta;
 	bsubc[nsubc]=subc+1;
 	bid[nsubc]=id;
-	for(i=0;i<2;i++){//high/low gain
+	for(int i=0;i<2;i++){//high/low gain
 	  bpadc[nsubc][i]=padc[i];
 	}
 	bedep[nsubc]=edep;
@@ -994,19 +970,29 @@ void AMSEcalHit::build(int &stat){
         ovfl[2]=0;
         if(radc[2]+pd>=ECADCMX[2]-1)ovfl[2]=1;// mark as Dynode-ADC-Overflow
 	int dychok=0;
+	mip_4factor=0;
+	for (int isc=0;isc<4;isc++){
+	  mip_4factor+= ECREFFKEY.mipTB/ECDailyMip::ecmipday[isl][pmc].mipday(isc);
+	}
+	mip_4factor/=4;
         if(radc[2]>max(3.*sd,3.) && ovfl[2]==0 && !ids.DCHisBad()){//to use for possible pix-ovfl treatment
 	  dychok=1;//<-one can use dy-chan
 	  fadc=radc[2];
-	  dedep=fadc*ECcalib::ecpmcal[isl][pmc].adc2mev()
+	  /*
+	    dedep=fadc*ECcalib::ecpmcal[isl][pmc].adc2mev()
 	    *ECcalib::ecpmcal[isl][pmc].an2dyr()
-	    /ECcalib::ecpmcal[isl][pmc].pmrgain();//PM(4xSubc=Dy) gain(wrt ref. one)
+	    *mip_4factor; //PM(4xSubc=Dy) gain(wrt ref. one)
+	    */
+	  dedep=fadc*ECLongTerm::eclongterm[isl][pmc].adc2mev()
+	    *ECLongTerm::eclongterm[isl][pmc].an2dyr()
+	    *mip_4factor;//PM(4xSubc=Dy) gain(wrt ref. one)
 	}
 	dychok=0;//tempor to prevent any corrections
 	//
 	// --->  2nd: buffer->AMSEcalHit + l-ch ovfl correction(if needed) by dynode info:
         edepgd=0;//PM(4xSubc) "nonoverflowed" energy 
 	nsubco=0;//number of overflowed subcells
-        for(i=0;i<nsubc;i++){//count l-ch ovfls
+        for(int i=0;i<nsubc;i++){//count l-ch ovfls
 	  if((bsta[i]&AMSDBc::AOVERFLOW)>0)nsubco+=1;
 	  else edepgd+=bedep[i]; 
 	}
@@ -1016,7 +1002,7 @@ void AMSEcalHit::build(int &stat){
 	saturf=1;//tempor to prevent any satur.corrections(tot.pm-charge satur due divider extra-current)
         if(saturf<0)EcalJobStat::addsr(10);
 	//
-        for(i=0;i<nsubc;i++){//buffer(subcells) loop to fill AMSEcalHit
+        for(int i=0;i<nsubc;i++){//buffer(subcells) loop to fill AMSEcalHit
           nhits+=1;
 	  edep=bedep[i];
 	  sta=bsta[i];
@@ -1051,8 +1037,8 @@ void AMSEcalHit::build(int &stat){
 	//
 	nsubc=0;//clear buffer arrays
 	qmeas=0;
-        for(i=0;i<4;i++)bsubc[i]=0;
-        for(i=0;i<4;i++)bedep[i]=0;
+        for(int i=0;i<4;i++)bsubc[i]=0;
+        for(int i=0;i<4;i++)bedep[i]=0;
       }
       ptr=ptr->next();  
     } // ---> end of RawEvent-hits loop
@@ -1183,6 +1169,8 @@ void AMSEcalHit::attcor(number coo){//correct measured _edep for atten.in fibers
     int sl=_plane/2;
     int pm=_cell/2;
     int rdir=1-2*(pm%2);
+    int subcell;
+    subcell=_plane%2==0?_cell%2:_cell%2+2;
     _cool=coo;
     if(_proj==1){//Y-proj hit
       coo=coo-ECALDBc::gendim(5);//convert coo(from X-proj) into ECAL coord.syst.
@@ -1196,11 +1184,15 @@ void AMSEcalHit::attcor(number coo){//correct measured _edep for atten.in fibers
     }
     pmdist=coo+hflen;
     if(rdir<0)pmdist=2*hflen-pmdist;
-    attfdir=ECcalib::ecpmcal[sl][pm].attfdir(pmdist);//fiber att.factor(direct light)
-    attfrfl=ECcalib::ecpmcal[sl][pm].attfrfl(pmdist,hflen);//(refl)
+    //    attfdir=ECcalib::ecpmcal[sl][pm].attfdir(pmdist);//fiber att.factor(direct light)
+    //attfrfl=ECcalib::ecpmcal[sl][pm].attfrfl(pmdist,hflen);//(refl)
+    attfdir=ECLongTerm::eclongterm[sl][pm].attfdir(subcell,pmdist);//fiber att.factor(direct light)
+    attfrfl=ECLongTerm::eclongterm[sl][pm].attfrfl(subcell,pmdist,hflen);//(refl)
     attf=0.5*(attfdir+attfrfl);//pmdist=[0,2*hflen]
-    attf0=0.5*(ECcalib::ecpmcal[sl][pm].attfdir(hflen)
-	       +ECcalib::ecpmcal[sl][pm].attfrfl(hflen,hflen));//attf at center
+    //    attf0=0.5*(ECcalib::ecpmcal[sl][pm].attfdir(hflen)
+    //	       +ECcalib::ecpmcal[sl][pm].attfrfl(hflen,hflen));//attf at center
+    attf0=0.5*(ECLongTerm::eclongterm[sl][pm].attfdir(subcell,hflen)
+	       +ECLongTerm::eclongterm[sl][pm].attfrfl(subcell,hflen,hflen));//attf at center
     _attcor=_edep*(attf0/attf-1.);
 
     _edep+=_attcor;
@@ -2918,13 +2910,8 @@ void AMSEcalShower::EnergyFit(){
     //Pisa version
     efrac /= (1+_S13LeakYPI)*ec;
     
-    if(efrac>0.01)
+    if(efrac>0.001)
       {   
-	
-	//float EALPHA0=-3.0;
-	//float EBETA=75.2;
-	//float EGAMMA=563.3;
-	//float EALPHA_PAR[2]={-5.,0.0143};
 	
 	float EshiftInPercent= ECREFFKEY.ealpha0+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
 	float ecorr2ebeam=1.+EshiftInPercent/100.;
@@ -2933,14 +2920,16 @@ void AMSEcalShower::EnergyFit(){
 	float alphae =  ECREFFKEY.ealpha_par[0]+ ECREFFKEY.ealpha_par[1]*_EnergyPIC/1000;
 	EshiftInPercent=alphae+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
 	
-	if(EshiftInPercent<=0)
+	//tolerate a negative correction of 1%, possibly due to 
+	//overcorrecting EnergyD for lateral leakage or cathode non-uniformity
+	if(EshiftInPercent<=-1.)
 	  {
-	    //	    setstatus(AMSDBc::CATLEAK);
+	    // setstatus(AMSDBc::CATLEAK);
 	    EcalJobStat::addre(11);
 #ifdef __AMSDEBUG__
 	    cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<<efrac<<endl;
 #endif
-	    EshiftInPercent=0;
+	    EshiftInPercent=-1.;
 	  }
 	
 	ecorr2ebeam=1.+EshiftInPercent/100.;
@@ -3499,9 +3488,9 @@ void AMSEcalShower::ProfileFit(){
     const integer lwc=1000;
     const integer liwc=lwc/4;
     number ww[lwc];
-	integer iww[liwc];
+    integer iww[liwc];
 #endif
-	number bound,epsa,epsr,result=0;
+    number bound,epsa,epsr,result=0;
     integer inf;
     ifail=1;
     for(int i=Maxrow-1;i>=0;i--){
@@ -3555,7 +3544,7 @@ void AMSEcalShower::ProfileFit(){
     _ProfilePar[7]=x[2]!=0?1./x[2]:FLT_MAX;    
     _ProfilePar[9]=f;
 
-	number bound,epsa,epsr,result=0;
+    number bound,epsa,epsr,result=0;
     integer inf;
     ifail=1;
     epsa=1.e-4;
@@ -3571,8 +3560,8 @@ void AMSEcalShower::ProfileFit(){
 #ifndef NO_NAG     
     const integer lwc=1000;
     const integer liwc=lwc/4;
-	number abserr, ww[lwc];
-	integer iww[liwc];
+    number abserr, ww[lwc];
+    integer iww[liwc];
     int liw=liwc;
     int lw=lwc;
     d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
@@ -3759,7 +3748,7 @@ void AMSEcalShower::EMagFit(){
     integer iw=n+1;
     integer maxcal=25000;
     number tol=3.99e-2;
-	number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+    number w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
     integer ifail=1;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
 #endif
@@ -4015,6 +4004,10 @@ void AMSEcalRawEvent::setTDV(){
   ptdv = AMSJob::gethead()->gettimestructure(getTDVvpar());
   if(ptdv)ptdv->Verify()=true;
   ptdv = AMSJob::gethead()->gettimestructure(getTDVcalibTslo());
+  if(ptdv)ptdv->Verify()=true; 
+  ptdv = AMSJob::gethead()->gettimestructure(getTDVcalibMipD());
+  if(ptdv)ptdv->Verify()=true; 
+  ptdv = AMSJob::gethead()->gettimestructure(getTDVcalibLonT());
   if(ptdv)ptdv->Verify()=true; 
 }
 
@@ -4627,12 +4620,12 @@ void AMSEcalShower::_ReCalEnergy(){
   }
    
   /* Z.Li original leakage correction 
-  if(EnergyD_Corr!=0&&(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr<0.5){
-    _EnergyH = EnergyD_Corr/1000./(LastFrac_ECorrParA + LastFrac_ECorrParB*(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr);
-  }
-  else{
-    _EnergyH=EnergyD_Corr+elayer_corr[16]+elayer_corr[17];
-  }
+     if(EnergyD_Corr!=0&&(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr<0.5){
+     _EnergyH = EnergyD_Corr/1000./(LastFrac_ECorrParA + LastFrac_ECorrParB*(elayer_corr[16]+elayer_corr[17])/EnergyD_Corr);
+     }
+     else{
+     _EnergyH=EnergyD_Corr+elayer_corr[16]+elayer_corr[17];
+     }
   */
   number kink_highenergy = 850;
   number kink_lowenergy = 5;
@@ -4642,7 +4635,7 @@ void AMSEcalShower::_ReCalEnergy(){
   double parleak_1[5]={1.04922,-1.95889e-01,2.61411e-01,-1.12636e-08,2.07651};
   double parleak_2[5]={7.33469e-01,5.12555e+02,-2.19282e+05,-8.21973e+04,-5.12837e+01};
   if(_EnergyPIC<kink_lowenergy)
-      alpha = parleak_0[0]+parleak_0[1]/_EnergyPIC+parleak_0[2]/TMath::Power(_EnergyPIC,2)+parleak_0[3]*TMath::Power(_EnergyPIC,parleak_0[4]);
+    alpha = parleak_0[0]+parleak_0[1]/_EnergyPIC+parleak_0[2]/TMath::Power(_EnergyPIC,2)+parleak_0[3]*TMath::Power(_EnergyPIC,parleak_0[4]);
   else
     if(_EnergyPIC<kink_highenergy)
       alpha = parleak_1[0]+parleak_1[1]/_EnergyPIC+parleak_1[2]/TMath::Power(_EnergyPIC,2)+parleak_1[3]*TMath::Power(_EnergyPIC,parleak_1[4]);  
@@ -4664,7 +4657,7 @@ void AMSEcalShower::_ReCalEnergy(){
       
   //second iteration
   if(energy<kink_lowenergy)
-      alpha = parleak_0[0]+parleak_0[1]/energy+parleak_0[2]/TMath::Power(energy,2)+parleak_0[3]*TMath::Power(energy,parleak_0[4]);
+    alpha = parleak_0[0]+parleak_0[1]/energy+parleak_0[2]/TMath::Power(energy,2)+parleak_0[3]*TMath::Power(energy,parleak_0[4]);
   else
     if(energy<kink_highenergy)
       alpha = parleak_1[0]+parleak_1[1]/energy+parleak_1[2]/TMath::Power(energy,2)+parleak_1[3]*TMath::Power(energy,parleak_1[4]);  
