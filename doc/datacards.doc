@@ -1291,6 +1291,12 @@ R 121 VarYA[1](0.75)
 R 122 VarYA[2](41.12)
 R 123 VarYA[3](21.6)
 
+R 124 Ttb(23.)     // (124)   TestBeam reference temperature (obsolete)
+R 125 Tgsl(0.25)   // (125)  Global temperature slope: 1% ecah 4 degrees (obsolete since new calibration based on mip mpv variation)
+
+R 126 mipTB(16.45)        // (126) Average MIP value at test beam
+R 127 mipTB2ISS(0.98)     // (127) Factor to convert TB mip (400 GeV protons) to ISS mips (R>5 GeV/c) used for calibration
+
    ECAL calibration:
 
 ECCA
