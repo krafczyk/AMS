@@ -734,12 +734,12 @@ gbatch: amswd $(STANDALONE)
 gbatchd: amswd $(STANDALONED)
 
 $(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
-	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
 	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
 
 $(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
-	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
 	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
 
@@ -761,7 +761,7 @@ gxint :	amswd $(INTERACTIVE)
 
 
 $(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
-	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
 	$(AT)$(LD) -o $@  $(OBJECTSI) $(LDFLAGSI)
 
@@ -779,7 +779,7 @@ gxint :	amswd $(INTERACTIVE)
 
 
 $(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
-	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
 	$(AT)$(LD) -o $@  $(OBJECTSI) $(LDFLAGSI)
 
@@ -805,7 +805,7 @@ producer: amswd	$(CLIENT)
 
 #                   Orbit-C      Orbit-C++   gbatch
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(BIN)predict.o
-	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
 	$(AT)$(LD) $(FLAGSSTATIC) -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
@@ -814,7 +814,7 @@ producer6: amswd	$(CLIENT6)
 
 #                   Orbit-C      Orbit-C++   gbatch
 $(CLIENT6):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype_l6.o $(BIN)predict.o
-	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
 	$(AT)$(LD) $(FLAGSSTATIC) -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) $(BIN)ctype_l6.o
 
@@ -830,7 +830,7 @@ test: $(OBJECTCO)
 server: amswd	$(SERVER)
 #               Orbit-C   Orbit-C++-Ser
 $(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
-	@if [[ ! -d $(EXE) ]] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
+	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
 	$(AT)$(LD) -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL)
 
@@ -888,19 +888,19 @@ endif
 shared : amswd $(SHLD) $(SHLD_LINK)
 
 $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
-	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
+	@if [ ! -d $(LIB) ] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
 	@echo Creating shared library  $(SHLD) ...
 	$(AT)$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
 
 $(SHLD_LINK): $(SHLD)
-	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
+	@if [ ! -d $(LIB) ] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
 	@echo Creating symlink  $(SHLD_LINK) ...
 	$(AT)ln -sf $(shell basename $(SHLD)) $(SHLD_LINK)
 
 static : amswd $(NTLD)
 
 $(NTLD): $(SHLIBBO)
-	@if [[ ! -d $(LIB) ]] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
+	@if [ ! -d $(LIB) ] ; then mkdir -p $(LIB); echo "Creating the $(LIB) directory ...."; fi
 	@echo Creating static Library  $(NTLD) ...
 	$(AT)$(AR) cr   $(NTLD) $(SHLIBBO)
 
