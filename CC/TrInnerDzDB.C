@@ -32,6 +32,7 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
       LDZA[ii]=Dz[ii];
     return 0;
   }
+#ifdef __ROOTSHAREDLIBRARY__
   else if(ret ==-2 || ret==-3){ //Fall back to TDV
     int retTDV=GetFromTDV(Timeid);
     if(retTDV<0) return -2;
@@ -44,6 +45,7 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
     }
     else return -3;    
   }
+#endif
   return -4;
 }
 
