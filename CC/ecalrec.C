@@ -175,7 +175,10 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
         //pixrg=ECcalib::ecpmcal[isl][pmt].pmscgain(subc)*
 	//	  ECcalib::ecpmcal[isl][pmt].pmrgain();// pix gain corr(really 1/pmscg) from DB
 	mip_value=ECDailyMip::ecmipday[isl][pmt].mipday(subc);//Mip value for this cell
-	mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+	if (mip_value>0.01){
+	  mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+	}
+	else mip_factor=1.;
         ECPMPeds::pmpeds[isl][pmt].getpedh(pedh);
         ECPMPeds::pmpeds[isl][pmt].getsigh(sigh);
         ECPMPeds::pmpeds[isl][pmt].getpedl(pedl);
@@ -376,7 +379,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  attf0=0.5*(attfdir0+attfrfl0);
 	  //
 	  mip_value=ECDailyMip::ecmipday[isl][ipm].mipday(ic);//Mip value for this cell
-	  mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+	  if (mip_value>0.01){
+	    mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+	  }
+	  else mip_factor=1.;
  	  //
 	  ares=0.;
 	  phel=sum[ipm][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)(mev2pes incl trapping+Quant.eff)
@@ -408,7 +414,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	//	h2lr=ECcalib::ecpmcal[isl][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
 	h2lr=ECLongTerm::eclongterm[isl][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
 	mip_value=ECDailyMip::ecmipday[isl][ipm].mipday(k);//Mip value for this cell
-	mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+	if (mip_value>0.01){
+	  mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+	}
+	else mip_factor=1.;
 	edepr=pmedepr[k];//Evis(incl.Npe-fluct, mev)
 	emeast+=edepr;
 	anen+=saturf*edepr/mip_factor;//sum for 4xSubc. signal(for trig.study)
@@ -921,7 +930,10 @@ void AMSEcalHit::build(int &stat){
       if(ids.LCHisBad())sta|=AMSDBc::ECLCISBAD;
       //
       mip_value=ECDailyMip::ecmipday[isl][pmc].mipday(subc);//Mip value for this cell
-      mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+      if (mip_value>0.01){
+	mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
+      }
+      else mip_factor=1.;
       if ( AMSEvent::gethead()->getrun()>1305763200) mip_factor*=ECREFFKEY.mipTB2ISS; // if not Test Beam reference mip is shifted because of Bethe Bloch: rigidity at test beam is 400 GeV, on ISS is >= x GeV   
       edep=fadc*mip_factor;
       //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
