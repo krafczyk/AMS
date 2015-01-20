@@ -45,7 +45,7 @@
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 int  UpdateInnerDz();
-int  MCtune (AMSPoint &coo, int tkid, double dmax, double ds);
+int  MCtune (AMSPoint &coo, int tkid, double dmax, float ds[2]);
 int  MCshift(AMSPoint &coo,                        double ds);
 
 int my_int_pow(int base, int exp){
@@ -957,7 +957,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   double errx = (err) ? err[0] : TRFITFFKEY.ErrX;
   double erry = (err) ? err[1] : TRFITFFKEY.ErrY;
   double errz = (err) ? err[2] : TRFITFFKEY.ErrZ;
-  double zh0  = 0;
   int hitbits = 0;
 
   if (chrg > 1.5) {
@@ -995,6 +994,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (!hit) continue;
 
     AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
+    AMSPoint cna;
     if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
       if(cookind==0) 
 	coo = GetHitCooLJ(hit->GetLayerJ(),0);
@@ -1004,6 +1004,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	coo= (GetHitCooLJ(hit->GetLayerJ(),0)+GetHitCooLJ(hit->GetLayerJ(),1))/2.;
       else if (cookind==5)
 	coo= hit->GetCoord(-1,cookind);
+      
+      cna= hit->GetCoord(-1,5); // No Ext-alignment (nor smearing)
     }
     // printf("cookind %d  Layer %d",cookind,hit->GetLayerJ()); coo.Print();
 
@@ -1032,8 +1034,18 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     // Workaround to retune the MC resolution (not activated by default)
 //    if (hit->GetLayerJ() != 1 && hit->GetLayerJ() != 9 &&
     if (
-	TRMCFFKEY.MCtuneDmax > 0 && TRMCFFKEY.MCtuneDs != 0)
+        TRMCFFKEY.MCtuneDmax > 0 && (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0)) {
+      AMSPoint cdif = coo-cna;
+
+      // Remove ext-smearing
+      if(hit->GetLayerJ()==1||hit->GetLayerJ()==9) coo = cna;
+
+      // Apply MCtune without smearing
       MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax, TRMCFFKEY.MCtuneDs);
+
+      // Apply ext-smearing here
+      if(hit->GetLayerJ()==1||hit->GetLayerJ()==9) coo = coo+cdif;
+    }
 
     // Workaround to mitigate the MC propagation error
     if (hit->GetLayerJ() == 9 && TRMCFFKEY.MCtuneDy9 != 0)
@@ -1041,6 +1053,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
     float ferx = (hit->OnlyY()) ? 0 : 1;
     float fery = (hit->OnlyX()) ? 0 : 1;
+
+    if (TRCLFFKEY.AllowYonlyTracks) ferx = 100;
 
     if (((id & kUpperHalf) || 
 	 (id & kLowerHalf)) && ferx == 0) ferx = 10;
@@ -1064,7 +1078,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 // 	            fery*ery *fmscy, errz, bf[0], bf[1], bf[2]);
 
     hitbits |= (1 << (hit->GetLayer()-1));
-    if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
   if (mscat) {
@@ -1089,7 +1102,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   if (done && method != TrFit::LINEAR && _TrFit.GetRigidity() == 0)
     done = false;
   float retbad=0;
-  if(fdone>10E4) fdone=10E4;
+  if(fdone>1E4) fdone=1E4;
   if (!done) retbad=-90000+fdone;
 
   // Return if fitting values are not to be over written
@@ -1147,8 +1160,14 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   for (int i = 0; i < trconst::maxlay; i++) {
     if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
       TrRecHitR *hit = GetHitLO(i+1);
-      AMSPoint pint  = InterpolateLayerO(i+1, id);
+      AMSPoint pint;
+      AMSDir   pdir;
+      double lz = (hit) ? hit->GetCoord().z() : TkDBc::Head->GetZlayerA(i+1);
+      Interpolate(lz, pint, pdir, id);
+//    AMSPoint pchk  = InterpolateLayerO(i+1, id);
+
       if (hit){
+        AMSPoint cdif(0,0,0);
 	AMSPoint coo =  GetHitCooLJ(hit->GetLayerJ());
 	if((hit->GetLayerJ()==1||hit->GetLayerJ()==9)){
 	  if(cookind==0) 
@@ -1159,7 +1178,16 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	    coo= (GetHitCooLJ(hit->GetLayerJ(),0)+GetHitCooLJ(hit->GetLayerJ(),1))/2.;
 	  else if (cookind==5)
 	    coo= hit->GetCoord(-1,cookind);  
+
+          AMSPoint cna= hit->GetCoord(-1,5);
+          cdif= coo-cna; coo = cna;
 	}
+         if (TRMCFFKEY.MCtuneDmax > 0 &&
+             (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0)) {
+            MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax,
+                                        TRMCFFKEY.MCtuneDs);
+        }
+        coo = coo+cdif;
 	par.Residual[i][0] = (coo-pint)[0];
 	par.Residual[i][1] = (coo-pint)[1];
 	  
@@ -1187,9 +1215,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 }
 
 void TrTrackR::Print(int opt) {
-  _PrepareOutput(opt);
-  cout <<sout;
- return;
+  cout << _PrepareOutput(opt);
 }
 
 bool TrTrackR::CheckLayFit(int fittype,int lay) const{
@@ -1209,23 +1235,20 @@ bool TrTrackR::CheckLayFit(int fittype,int lay) const{
 const char *  TrTrackR::Info(int iRef) {
   string aa;
   aa.append(Form("TrTrack #%d ",iRef));
-  _PrepareOutput(0);
-  aa.append(sout);
-  int len=MAXINFOSIZE;
+  aa.append(_PrepareOutput(0));
+  unsigned int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 std::ostream &TrTrackR::putout(std::ostream &ostr) {
-  _PrepareOutput(1);
-
-  return ostr << sout  << std::endl; 
+  return ostr << _PrepareOutput(1) << std::endl;
     
 }
 
-void TrTrackR::_PrepareOutput(int full )
+std::string TrTrackR::_PrepareOutput(int full )
 {
-  sout.clear();
+  std::string sout;
   int fcode=iTrTrackPar(2,0,0);
   float RAlcaraz=1;
   if(fcode>=0) RAlcaraz=GetRigidity(fcode);
@@ -1234,12 +1257,13 @@ void TrTrackR::_PrepareOutput(int full )
 		   trdefaultfit,Chi2FastFitf(),RAlcaraz));
   const TrTrackPar &bb=GetPar();
   bb.Print_stream(sout,full);
-  if(!full) return;
+  if(!full) return sout;
   map<int, TrTrackPar>::const_iterator it=_TrackPar.begin();
   for(;it!=_TrackPar.end();it++){
     sout.append(Form("\nFit mode 0x%06x ",it->first));
     it->second.Print_stream(sout,full);
   }
+  return sout;
 }
   
 
@@ -1286,7 +1310,7 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
     pnt.setp(0,0,hit->GetCoord()[2]);
   else {
      dir.setp(0, 0, 1);
-     pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily));
+     pnt.setp(0, 0, TkDBc::Head->GetZlayerA(ily));
 
      tprop.Interpolate(pnt, dir);
      TkSens tks(pnt,0);
@@ -1437,6 +1461,10 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 		   number& Theta, number& Phi, AMSPoint& X0) const {
     /// FastFit is assumed as normal (Choutko) fit without MS
   int id = kChoutko;
+  if (!ParExists(id)) id = TrTrackR::kAlcaraz;
+  if (!ParExists(id)) id = TrTrackR::kSimple;
+  if (!ParExists(id)) { Chi2=Err=-1;Rig=Theta=Phi=-1; return; }
+
   if(_MagFieldOn==0) id=kLinear;
   if(trdefaultfit==kDummy) id=kDummy;
   Chi2 = GetChisq(id); Rig = GetRigidity(id); Err = GetErrRinv(id); 
@@ -1555,12 +1583,13 @@ char * TrTrackR::GetFitNameFromID(int fitnum){
   if(fitnum   & kPattern     ) strcat(out," | kPattern");
   if(fitnum   & kSameWeight  ) strcat(out," | kSameWeight");
   if(fitnum   & kAltExtAl    ) strcat(out," | kAltExtAl");
+  if(fitnum   & kExtAverage  ) strcat(out," | kExtAverage");
   if(fitnum   & kDisExtAlCorr) strcat(out," | kDisExtAlCorr");
   return out;
 }
 
 int TrTrackR::GetFitID(int pos){
-  if(pos >= _TrackPar.size()) return 0;
+  if(pos >= int(_TrackPar.size())) return 0;
   int count=0;
   map<int, TrTrackPar>::iterator it;
   
@@ -1707,7 +1736,6 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool FitExists=ParExists(fittype);
 
   if(refit>=2 || (!FitExists && refit==1)) { 
-    int rret=0;
     //    if (refit >= 3 || CIEMATFlag){
     if (refit >= 3 ){
       if(CIEMATFlag>=1){
@@ -1715,11 +1743,11 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 	TrRecHitR *hit9=GetHitLJ(9);
 	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
 	int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
-	rret=UpdateExtLayer(1,l1,l9);
+	UpdateExtLayer(1,l1,l9);
 	if(CIEMATFlag>1)UpdateExtLayer(0);
       }
       else 
-	rret=UpdateExtLayer(0);
+	UpdateExtLayer(0);
 	  UpdateInnerDz();
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();
@@ -1926,8 +1954,8 @@ int TrTrackR::RebuildHits(void)
     for (int slot = -15; slot <= 15; slot++) {
       int   tkidchk = TMath::Sign(layr*100+TMath::Abs(slot), slot);
       AMSPoint diff = hcoo-TkCoo::GetLadderCenter(tkidchk);
-      if (abs(diff[0]) < TkCoo::GetLadderLength(tkidchk)/2 &&
-	  abs(diff[1]) < TkDBc::Head->_ladder_Ypitch/2) {
+      if (fabs(diff[0]) < TkCoo::GetLadderLength(tkidchk)/2 &&
+	  fabs(diff[1]) < TkDBc::Head->_ladder_Ypitch/2) {
 	tkid = tkidchk;
 	break;
       }

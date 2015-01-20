@@ -3,7 +3,6 @@
 
 ClassImp(TrdMTrack);
 
-using namespace std;
 
 TrdKCalib *TrdMTrack::trdk_db = NULL;
 TrdKPDF *TrdMTrack::Epdf=NULL;
@@ -99,7 +98,7 @@ float TrdMTrack::GetLogLikelihood(AMSEventR *_evt, ParticleR *par){
   if(TrdAlignType==2 && ((unsigned int)_Time> _calibtime+10000000 ||(unsigned int)_Time< _calibtime) ) update_alignment_vectors((unsigned long)_Time);
   // cout << "Utime: " << evt->UTime() <<endl ;
 
-  if(_Time>=FirstRun && _Time<=LastRun) IsValid=true;
+  if(_Time>=int(FirstRun) && _Time<=int(LastRun)) IsValid=true;
   else { TrdGainType=-1; TrdAlignType=-1; IsValid=true;}
 
   n_mhX=0;
@@ -426,7 +425,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
      float serr=0.0020, berr=0.0030;
      if(l1)  _fit->Add(trhit[0], tr_err[0]);
      //  printf("mh: pl1 hit added");
-     for(int p=0; p<trdtk_pntvec.size(); p++){
+     for(unsigned int p=0; p<trdtk_pntvec.size(); p++){
        if(tr_num+p<20){
 	 if(dirvec[(int)dirvec.size()-1-p]<4 || dirvec[(int)dirvec.size()-1-p]>15 ) {
 	   AMSPoint test(0, trdtk_pntvec[(int)trdtk_pntvec.size()-1-p].y(), trdtk_pntvec[(int)trdtk_pntvec.size()-1-p].z() ); 
@@ -444,7 +443,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
      }
      
 
-     for(int l=0; l<trhit.size(); l++){
+     for(unsigned int l=0; l<trhit.size(); l++){
        if(!l1 && l==0) _fit->Add(trhit[l], tr_err[l]);
        if( l>0) _fit->Add(trhit[l], tr_err[l]);
        //  printf("mh: tracker hit added");
@@ -471,7 +470,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track, TrdTrackR *trd){
 	tr_err.push_back(trerr); 
       }
     }
-    for(int l=0; l<trhit.size(); l++){
+    for(unsigned int l=0; l<trhit.size(); l++){
       _fit->Add(trhit[l], tr_err[l]);
       // printf("no mh: tracker hit added");
        }
@@ -510,7 +509,7 @@ void TrdMTrack::SetupMHTrack(TrTrackR *track){
       tr_err.push_back(trerr); 
     }
   }
-  for(int l=0; l<trhit.size(); l++){
+  for(unsigned int l=0; l<trhit.size(); l++){
     _fit->Add(trhit[l], tr_err[l]);
     // printf("no mh: tracker hit added");
     
@@ -938,11 +937,10 @@ void TrdMTrack::Init_Alignment(){
 
     double z;
     double time;
-    int test;
     
     TGraph *zg=(TGraph*)fi->Get("grModul_zmeasurement");
     for(int j=0; j<328; j++){
-      test=zg->GetPoint(j, time, z);
+      zg->GetPoint(j, time, z);
       z_corr[j][0]=(float)time;
       z_corr[j][1]=(float)z;
     }
@@ -1064,7 +1062,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
     char gname[80];
     double z;
     double time;
-    int test, t;
+    int test = -1;
 
     for(int j=0; j<328; j++){
       mod_time[j].clear();
@@ -1092,7 +1090,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
       sprintf(gname, "grModul_rinc_%i", j);
       g2=(TGraph*)f->Get(gname);
       for(int i=0; i<g2->GetN(); i++){
-	t=g2->GetPoint(i, time, z);
+	g2->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][1].push_back((float)z);
       }
       g2->Clear();
@@ -1102,7 +1100,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
       sprintf(gname, "grModul_zres_%i", j);
       g3=(TGraph*)f->Get(gname);
       for(int i=0; i<g3->GetN(); i++){
-	t=g3->GetPoint(i, time, z);
+  	g3->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][2].push_back((float)z);
       }
       g3->Clear();
@@ -1112,7 +1110,7 @@ void TrdMTrack::update_alignment_vectors(unsigned long evttime){
       sprintf(gname, "grModul_zinc_%i", j);
       g4=(TGraph*)f->Get(gname);
       for(int i=0; i<g4->GetN(); i++){
-	t=g4->GetPoint(i, time, z);
+	  g4->GetPoint(i, time, z);
 	if(test!=-1) mod_corr[j][3].push_back((float)z);
       }
       g4->Clear();

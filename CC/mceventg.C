@@ -219,7 +219,7 @@ void AMSmceventg::gener(){
     _mom=orb->Rigidity;
     _tbline=0;
     init(orb->Pid);
-    _mom=orb->Rigidity*abs(_charge);
+    _mom=orb->Rigidity*fabs(_charge);
 #endif
   }else  if(CCFFKEY.low==-2){
     //
@@ -873,12 +873,12 @@ AMSEventR::hf1(_hid,xm,y);
        iftxt.ignore(1024,'%');
        if(iftxt.good() && iftxt.get()=='P'){
          iftxt.ignore(1024,'=');
-         if(zmax-zmin+1>sizeof(_particle)/sizeof(_particle[0])){
+         if(zmax-zmin+1>int(sizeof(_particle)/sizeof(_particle[0]))){
           cerr <<"MCEventg::setcuts-F-ToManySpectraIn "<<fnam<<endl;
           exit(1);
          }
          else {
-          for(int i=0;i<sizeof(_particle)/sizeof(_particle[0]);i++){
+          for(unsigned int i=0;i<sizeof(_particle)/sizeof(_particle[0]);i++){
            _particle[i]=-1;          
            _flux[i]=0;          
            _spectra[i]=0;          
@@ -954,7 +954,7 @@ AMSEventR::hf1(_hid,xm,y);
        cerr <<"MCEventg::setspectra-F-ProblemsToReadFluxFile "<<fnam<<endl;
        exit(1);
       }
-      for(int i=0;i<sizeof(_spectra)/sizeof(_spectra[0]);i++){
+      for(unsigned int i=0;i<sizeof(_spectra)/sizeof(_spectra[0]);i++){
          if(_spectra[i])delete[] _spectra[i];
       }        
 
@@ -1280,9 +1280,9 @@ Removed by VC 2014.02.03 as no documentation for this codde exists
       AMSPoint pnt1 = _coo+_dir*(z1-_coo.z())/_dir.z();
       AMSPoint pnt2 = _coo+_dir*(z2-_coo.z())/_dir.z();
       bool cut0 = (sqrt(pnt0.x()*pnt0.x()+pnt0.y()*pnt0.y()) < 55 && 
-		                               abs(pnt0.y()) < 40);
+		                               fabs(pnt0.y()) < 40);
       bool cut1 = (sqrt(pnt1.x()*pnt1.x()+pnt1.y()*pnt1.y()) < 60);
-      bool cut2 = (abs(pnt2.x()) < 45 && abs(pnt2.y()) < 30);
+      bool cut2 = (fabs(pnt2.x()) < 45 && fabs(pnt2.y()) < 30);
       if (!cut0) return false;
       if (cut == 5 && (cut1 && cut2)) return true;
       if (cut == 6 && (cut1 || cut2)) return true;
@@ -2407,7 +2407,7 @@ else if(icase==1){
      return false;
   }
  int processed=0;
- for(int i=0;i<daqbuffer.size();i++){
+ for(unsigned int i=0;i<daqbuffer.size();i++){
   if(curtime-daqbuffer[i]>LVTMFFKEY.MeanTime*(i+1)){
    processed=i+1;
   }
@@ -2419,7 +2419,7 @@ else if(icase==1){
   }
   else daqbuffer[i]+= LVTMFFKEY.MeanTime*processed;
  }
-if(daqbuffer.size()>=LVTMFFKEY.BufSize){
+if(int(daqbuffer.size())>=LVTMFFKEY.BufSize){
      return false;
 }
 else if(daqbuffer.size()==0)daqbuffer.push_back(curtime);

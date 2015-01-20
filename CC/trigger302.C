@@ -21,7 +21,6 @@
 
 
 
-using namespace std;
 using namespace trconst;
 using namespace trigger302const;
 using namespace ecalconst;
@@ -41,13 +40,12 @@ void TriggerAuxLVL302::addnoisetk(integer crate){
     int i,j;
     integer ierr=0;
     integer nn=0;
-    int16u drp,strip,side;
+    int16u drp,strip;
     geant d=0;
     for(i=0;i<2;i++){
       geant xn=LVL3SIMFFKEY.NoiseProb[i]*NTRHDRP/2*TkDBc::Head->NStripsDrp(i);
       POISSN(xn,nn,ierr);
       for(j=0;j<nn;j++){
-	side=i;
 	drp=RNDM(d)*NTRHDRP;
 	if(drp >= NTRHDRP)drp=NTRHDRP-1;
 	strip=RNDM(d)*TkDBc::Head->NStripsDrp(i);
@@ -261,10 +259,10 @@ TriggerLVL302::TriggerLVL302(bool tofin, bool trdin ):
 
 
 integer TriggerLVL302::TOFOr(uinteger paddle,uinteger plane){
-  return plane<AMSTOFCluster::planes() && paddle<AMSTOFCluster::padspl(plane) ? _TOFOr[plane][paddle]:-1;}
+  return int(plane)<AMSTOFCluster::planes() && int(paddle)<AMSTOFCluster::padspl(plane) ? _TOFOr[plane][paddle]:-1;}
 //
 integer TriggerLVL302::TOFInFastTrigger(uinteger paddle, uinteger plane){
-  return plane<AMSTOFCluster::planes() && paddle<AMSTOFCluster::padspl(plane) ? !_TOFStatus[plane][paddle]:-1;}
+  return int(plane)<AMSTOFCluster::planes() && int(paddle)<AMSTOFCluster::padspl(plane) ? !_TOFStatus[plane][paddle]:-1;}
 
 
 //------------------------------------------------------
@@ -541,15 +539,15 @@ void TriggerLVL302::init(){
   TRDAux_DEF::_TanLimits[0]=-1.5;
   TRDAux_DEF::_TanLimits[1]=+1.5;
   TRDAux_DEF::_TanBinSize=(TRDAux_DEF::_TanLimits[1]-TRDAux_DEF::_TanLimits[0])/trigger302const::matrixsize;
-  for(i=0;i<trdid::nufe;i++){
-    for(int j=0;j<trdid::nudr;j++){
-      for(int ij=0;ij<trdid::ncrt;ij++){
+  for(i=0;i<int(trdid::nufe);i++){
+    for(int j=0;j<int(trdid::nudr);j++){
+      for(int ij=0;ij<int(trdid::ncrt);ij++){
 	for(int k=0;k<3;k++)TRDAux_DEF::_Coo[i][j][ij][k]=0;
 	TRDAux_DEF::_Dir[i][j][ij]   =0;
    
 	int nsf=0;
-	for(int k=0;k<trdconst::maxtube;k++){
-	  for(int l=0;l<trdid::nute;l++){
+	for(int k=0;k<int(trdconst::maxtube);k++){
+	  for(int l=0;l<int(trdid::nute);l++){
 	    AMSTRDIdSoft ids(ij,j,i,l,k);
 	    if(!ids.dead()){
          
@@ -587,14 +585,14 @@ void TriggerLVL302::init(){
   }
  
 
-  for(i=0;i<trdid::nute;i++){
-    for(int j=0;j<trdconst::maxtube;j++){
+  for(i=0;i<int(trdid::nute);i++){
+    for(int j=0;j<int(trdconst::maxtube);j++){
       TRDAux_DEF::_CooZ[i][j]=0;
       TRDAux_DEF::_CooT[i][j]=0;
       int nsf=0;
-      for (int k=0;k<trdid::ncrt;k++){
-        for(int l=0;l<trdid::nudr;l++){
-	  for(int m=0;m<trdid::nufe;m++){
+      for (int k=0;k<int(trdid::ncrt);k++){
+        for(int l=0;l<int(trdid::nudr);l++){
+	  for(int m=0;m<int(trdid::nufe);m++){
 	    AMSTRDIdSoft ids(k,l,m,i,j);
 	    if(!ids.dead()){
 	      AMSTRDIdGeom id(ids);     
@@ -625,10 +623,10 @@ void TriggerLVL302::init(){
     }
   }
 
-  for(i=0;i<trdid::nute;i++){
-    for(int j=0;j<trdconst::maxtube;j++){
-      for(int k=i+1;k<trdid::nute;k++){
-	for(int l=0;l<trdconst::maxtube;l++){
+  for(i=0;i<int(trdid::nute);i++){
+    for(int j=0;j<int(trdconst::maxtube);j++){
+      for(int k=i+1;k<int(trdid::nute);k++){
+	for(int l=0;l<int(trdconst::maxtube);l++){
 	  TRDAux_DEF::_IncMatrix[i][j][k-1][l]=(TRDAux_DEF::_CooT[i][j]-TRDAux_DEF::_CooT[k][l])/
 	    (TRDAux_DEF::_CooZ[i][j]-TRDAux_DEF::_CooZ[k][l]);
 	  TRDAux_DEF::_CooMatrix[i][j][k-1][l]=-TRDAux_DEF::_IncMatrix[i][j][k-1][l]*(TRDAux_DEF::_CooZ[i][j]+TRDAux_DEF::_CooZ[k][l])/2+(TRDAux_DEF::_CooT[i][j]+TRDAux_DEF::_CooT[k][l])/2;
@@ -800,7 +798,7 @@ integer TriggerLVL302::toftrdok(){
   for(i =0;i<AMSTOFCluster::planes();i++){
     if (_NTOF[i]>0 && _NTOF[i]<=2){
       _TOFTrigger+= (1<<i);
-      if(_NTOF[i]>1 && abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
+      if(_NTOF[i]>1 && std::abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
     }
   }
   if((_TOFTrigger&1) ==0 || (_TOFTrigger>>(AMSTOFCluster::planes()-1)&1) ==0){
@@ -825,10 +823,10 @@ void TriggerLVL302::preparetracker(){
       geant addtofup=TOF2DBc::plnstr(5)*0.6;
       geant addtofdown=TOF2DBc::plnstr(5)*0.6;
       if((_TOFTrigger>>(AMSTOFCluster::planes()+toftop[icase])) & 1){
-	addtofup+=abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
+	addtofup+=std::abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
       }
       if((_TOFTrigger>>(AMSTOFCluster::planes()+tofbot[icase])) & 1){
-	addtofdown+=abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
+	addtofdown+=std::abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
       }
       for(int i=0;i<TkDBc::Head->nlay();i++){
 	geant coo=coodown+(cooup-coodown)/(_TOFCoo[toftop[icase]][0][2]-_TOFCoo[tofbot[icase]][0][2])*
@@ -1005,7 +1003,7 @@ void TriggerLVL302::build(){
     getheadC("TriggerLVL1",0);
   if(plvl1){
     int16 * ptr;
-    number tt1,tt2;
+    number tt1=0,tt2=0;
 #pragma omp critical (lvl3c)
     _flowc[1]+=1;
     TriggerAuxLVL302 aux[trconst::ncrt];
@@ -1049,7 +1047,7 @@ void TriggerLVL302::build(){
       geant tofrt[TOF2GC::SCLRS][TOF2GC::SCMXBR],toft[TOF2GC::SCLRS];
       geant ttop,tbot,dt;
       int16 ntofrt[TOF2GC::SCLRS][TOF2GC::SCMXBR];
-      int16 idd,id,il,ib,is;
+      int16 idd,id,il,ib;
       plvl3->settofdir(0);//reset TOF-dir flag
       //
       if(plvl3->UseTOFTime()){// <--- generate/use TOF-dir info
@@ -1068,7 +1066,6 @@ void TriggerLVL302::build(){
 	  id=idd/10;// short id=LBB, where L=1,4 BB=1,12
 	  il=id/100-1;
 	  ib=id%100-1;
-	  is=idd%10-1;
 	  tofrt[il][ib]+=(*(ptr+2))*TOF2DBc::tdcbin(1);//sum raw side-time, TDCch->ns
 	  ntofrt[il][ib]+=1;
 	  ptr=auxtof.readtof();//to take next
@@ -1128,7 +1125,7 @@ void TriggerLVL302::build(){
       //
       //===> ECAL: create Edep-pattern, check EM, Tracker-matching:
       //
-      int pmc,pm,sl;
+      int pm,sl;
       number ah,al,amp,ectot,efrnt,ebase,epeak;
       number EClprof[ECSLMX];
       number ECemap[ECSLMX][ECPMSMX];
@@ -1158,7 +1155,6 @@ void TriggerLVL302::build(){
 	while(ptr){
 	  id=*ptr;//SSPPC
 	  idd=id/10;
-	  pmc=id%10-1;//PMSubCell(0-3)
 	  pm=idd%100-1;//PM(0-...)
 	  sl=idd/100-1;//superlayer
 	  ah=number(*(ptr+1));//for real algor. may be need /16
@@ -1276,7 +1272,7 @@ void TriggerLVL302::build(){
 	number etl[ECSLMX];
 	number cel2,epm,elsx,elsy,epmin;
 	geant epmmx,eclt;
-	int npmcl[ECSLMX],npmmx,pmin,pmax,pmngb;
+	int npmcl[ECSLMX],npmmx=0,pmin,pmax,pmngb;
 	geant ecnoisl(5);//to discrim. from noise(mev)
 	geant eshcut;
 	eshcut=ECALVarp::ecalvpar.rtcuts(9);//boundary-cut between "aver" and "peak" methods
@@ -1371,7 +1367,7 @@ void TriggerLVL302::build(){
 	    //---> linear fit in proj:
 	    //
 	    geant fpnt,suz,sux,suxz,suz2,sud,sg2,ct,cz,ctsg;
-	    geant etlr[ECSLMX];
+	    geant etlr[ECSLMX] = {0};
 	    fpnt=0;
 	    suz=0;
 	    sux=0;
@@ -1484,7 +1480,7 @@ void TriggerLVL302::build(){
     
       if(plvl3->UseTRD()){
         integer crate;
-	for(crate=0;crate<AMSTRDIdSoft::ncrates();crate++){
+	for(crate=0;crate<int(AMSTRDIdSoft::ncrates());crate++){
 	  ptr=auxtrd[crate].readtrd(1);  
 	  while(ptr){
 	    uinteger udr,ufe,ute,chan;
@@ -1573,8 +1569,8 @@ void TriggerLVL302::build(){
 	    }
 	    //cout<<"TriggerLVL302::build-I-layer "<<layer<<" "<<drp<<" "<<crate<<" "<<ptr[1]<<" "<<strip<<" "<<side<<endl;
 	    integer num = ((*ptr)&63);
-	    if(abs(LVL3FFKEY.SeedThr)>0 ){
-	      if(((*((int16u*)ptr)>>6) & 63) <abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
+	    if(std::abs(LVL3FFKEY.SeedThr)>0 ){
+	      if(((*((int16u*)ptr)>>6) & 63) <std::abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
 	      int count=0;
 	      for(int k=2;k<num+3;k++){
 		if(*(ptr+k)>=6)count++;    //  Here very important parameter (6)
@@ -1699,7 +1695,7 @@ integer TriggerLVL302::TRDAux_DEF::addnewhit(uinteger crate,uinteger udr, uinteg
   // strongly assumin ufe are following each other!!!!!
   //
   uinteger newaddr=ufe|(udr<<3)|(crate<<6);
-  if(newaddr!=_lasthaddr){
+  if(int(newaddr)!=_lasthaddr){
     if(_nufe>=0 && _nhits[_nufe]<2){
       //cout <<" suppressed "<<AMSTRDIdSoft((_lasthaddr>>6)&1,(_lasthaddr>>3)&7,(_lasthaddr&7),_coo[_nufe][0][0],_coo[_nufe][0][1])<<endl;
     }
@@ -1712,7 +1708,7 @@ integer TriggerLVL302::TRDAux_DEF::addnewhit(uinteger crate,uinteger udr, uinteg
     _nhits[_nufe]=0;
     _haddrs[_nufe]=_lasthaddr;
   }
-  if(_nhits[_nufe]<trigger302const::maxhitstrd){
+  if(_nhits[_nufe]<int(trigger302const::maxhitstrd)){
     _coo[_nufe][_nhits[_nufe]][0]=ute;
     _coo[_nufe][_nhits[_nufe]][1]=tube;
     _coo[_nufe][_nhits[_nufe]][2]=amp;
@@ -1779,13 +1775,14 @@ void TriggerLVL302::fit(integer idum){
 	for(k=0;k<_nhits[Patt->patconf3(j,0)];k++){
 	  coou=_coo[Patt->patconf3(j,0)][k];
 	  amp[0]=_eloss[Patt->patconf3(j,0)][k];
-	  for(l=0;l<_nhits[Patt->patconf3(j,Patt->patpoints(j)-1)];l++){
-            cood=_coo[Patt->patconf3(j,Patt->patpoints(j)-1)][l];
-            amp[Patt->patpoints(j)-1]=_eloss[Patt->patconf3(j,Patt->patpoints(j)-1)][l];
-            b=TkDBc::Head->GetZlayer(Patt->patconf3(j,Patt->patpoints(j)-1)+1)-
-	      TkDBc::Head->GetZlayer(Patt->patconf3(j,0)+1);
-            zmean=TkDBc::Head->GetZlayer(Patt->patconf3(j,Patt->patpoints(j)-1)+1)+
-	      TkDBc::Head->GetZlayer(Patt->patconf3(j,0)+1);
+	  int index = Patt->patpoints(j)-1;
+	  assert(index >= 0);
+	  assert(index < trconst::maxlay);
+	  for(l=0;l<_nhits[Patt->patconf3(j,index)];l++){
+            cood=_coo[Patt->patconf3(j,index)][l];
+  			amp[index]=_eloss[Patt->patconf3(j,index)][l];
+            b=TkDBc::Head->GetZlayer(Patt->patconf3(j,index)+1)-TkDBc::Head->GetZlayer(Patt->patconf3(j,0)+1);
+            zmean=TkDBc::Head->GetZlayer(Patt->patconf3(j,index)+1)+TkDBc::Head->GetZlayer(Patt->patconf3(j,0)+1);
             factor=1/fabs(b);
             s=sqrt((cood-coou)*(cood-coou)+b*b);
             a=(cood-coou);
@@ -2006,8 +2003,8 @@ void TriggerLVL302::TRDAux_DEF::build(){
     uinteger ufe=(_haddrs[i])&7;
     uinteger udr=(_haddrs[i]>>3)&7;
     uinteger crt=(_haddrs[i]>>6)&(trdid::ncrt-1);
-    for(int j=0;j<_nhits[i];j++){
-      for(int k=j+1;k<_nhits[i];k++){
+    for(unsigned int j=0;j<_nhits[i];j++){
+      for(unsigned int k=j+1;k<_nhits[i];k++){
 	if(_coo[i][j][0] < _coo[i][k][0]){
 	  int l1=_coo[i][j][0];
 	  int l2=_coo[i][k][0]-1;
@@ -2020,7 +2017,7 @@ void TriggerLVL302::TRDAux_DEF::build(){
 	  //        cout <<" ufe/udr/crt "<<ufe<<" "<<udr<< " "<<crt<<" "<<l1<<" "<<l2<<" "<<t1<<" "<<t2<<" "<<_Dir[ufe][udr][crt]<<" "<<ta<<" "<<coo<<endl;        
 	  uinteger itan=(ta-_TanLimits[0])/_TanBinSize+0.5;
 	  uinteger icoo=(coo-_CooLimits[0])/_CooBinSize+0.5;
-	  if(itan<trigger302const::matrixsize && icoo<trigger302const::matrixsize){
+	  if(itan<int(trigger302const::matrixsize) && icoo<int(trigger302const::matrixsize)){
 	    _DistrMatrix[_Dir[ufe][udr][crt]][itan][icoo]++;
 	    if( xmax[_Dir[ufe][udr][crt]]<_DistrMatrix[_Dir[ufe][udr][crt]][itan][icoo]){
 	      xmax[_Dir[ufe][udr][crt]]=_DistrMatrix[_Dir[ufe][udr][crt]][itan][icoo];
@@ -2057,9 +2054,9 @@ void TriggerLVL302::TRDAux_DEF::build(){
 	  uinteger ufe=(_haddrs[ip])&7;
 	  uinteger udr=(_haddrs[ip]>>3)&7;
 	  uinteger crt=(_haddrs[ip]>>6)&(trdid::ncrt-1);
-	  if(_Dir[ufe][udr][crt]==i){
-	    for(int j=0;j<_nhits[ip];j++){
-	      for(int k=0;k<_nhits[ip];k++){
+	  if(int(_Dir[ufe][udr][crt])==i){
+	    for(unsigned int j=0;j<_nhits[ip];j++){
+	      for(unsigned int k=0;k<_nhits[ip];k++){
 		if(_coo[i][j][0] != _coo[i][k][0]){
 		  int l1=_coo[ip][j][0];
 		  int l2=_coo[ip][k][0];
@@ -2124,7 +2121,6 @@ void TriggerLVL302::TRDAux_DEF::build(){
 #include "trrawcluster.h"
 #include "trdsim.h"
 #include "ntuple.h"
-using namespace std;
 using namespace trconst;
 using namespace trigger302const;
 using namespace ecalconst;
@@ -2144,7 +2140,6 @@ void TriggerAuxLVL302::addnoisetk(integer crate){
    geant xn=LVL3SIMFFKEY.NoiseProb[i]*NTRHDRP/2*TKDBc::NStripsDrp(1,i);
    POISSN(xn,nn,ierr);
    for(j=0;j<nn;j++){
-    side=i;
     drp=RNDM(d)*NTRHDRP;
     if(drp >= NTRHDRP)drp=NTRHDRP-1;
     strip=RNDM(d)*TKDBc::NStripsDrp(1,i);
@@ -2908,7 +2903,7 @@ out:
      for(i =0;i<AMSTOFCluster::planes();i++){
       if (_NTOF[i]>0 && _NTOF[i]<=2){
         _TOFTrigger+= (1<<i);
-        if(_NTOF[i]>1 && abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
+        if(_NTOF[i]>1 && std::abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)_TOFTrigger+=((1<<AMSTOFCluster::planes())<<i);
        }
     }
     if((_TOFTrigger&1) ==0 || (_TOFTrigger>>(AMSTOFCluster::planes()-1)&1) ==0){
@@ -2933,10 +2928,10 @@ out:
       geant addtofup=TOF2DBc::plnstr(5)*0.6;
       geant addtofdown=TOF2DBc::plnstr(5)*0.6;
       if((_TOFTrigger>>(AMSTOFCluster::planes()+toftop[icase])) & 1){
-       addtofup+=abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
+       addtofup+=std::abs(_TOFAux[toftop[icase]][0]-_TOFAux[toftop[icase]][1]-1)*TOF2DBc::plnstr(5);
       }
       if((_TOFTrigger>>(AMSTOFCluster::planes()+tofbot[icase])) & 1){
-       addtofdown+=abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
+       addtofdown+=std::abs(_TOFAux[tofbot[icase]][0]-_TOFAux[tofbot[icase]][1])*TOF2DBc::plnstr(5);
       }
     for(int i=0;i<TKDBc::nlay();i++){
       geant coo=coodown+(cooup-coodown)/(_TOFCoo[toftop[icase]][0][2]-_TOFCoo[tofbot[icase]][0][2])*
@@ -3669,8 +3664,8 @@ int TriggerLVL302::eccrosscheck(geant ect){
        //cout<<"TriggerLVL302::build-I-layer "<<layer<<" "<<drp<<" "<<crate<<" "<<ptr[1]<<" "<<strip<<" "<<side<<endl;
 #endif      
       integer num = ((*ptr)&63);
-      if(abs(LVL3FFKEY.SeedThr)>0 ){
-        if(((*((int16u*)ptr)>>6) & 63) <abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
+      if(std::abs(LVL3FFKEY.SeedThr)>0 ){
+        if(((*((int16u*)ptr)>>6) & 63) <std::abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
         int count=0;
         for(int k=2;k<num+3;k++){
           if(*(ptr+k)>=6)count++;    //  Here very important parameter (6)
@@ -3871,13 +3866,14 @@ void TriggerLVL302::fit(integer idum){
       for(k=0;k<_nhits[TKDBc::patconf3(j,0)];k++){
          coou=_coo[TKDBc::patconf3(j,0)][k];
          amp[0]=_eloss[TKDBc::patconf3(j,0)][k];
-         for(l=0;l<_nhits[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)];l++){
-            cood=_coo[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)][l];
-            amp[TKDBc::patpoints(j)-1]=_eloss[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)][l];
-            b=_TrackerCooZ[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)]-
-            _TrackerCooZ[TKDBc::patconf3(j,0)];
-            zmean=_TrackerCooZ[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)]+
-            _TrackerCooZ[TKDBc::patconf3(j,0)];
+         int index = TKDBc::patpoints(j)-1;
+         assert(index >= 0);
+         assert(index < trconst::maxlay);
+         for(l=0;l<_nhits[TKDBc::patconf3(j,index)];l++){
+            cood=_coo[TKDBc::patconf3(j,index)][l];
+            amp[index]=_eloss[TKDBc::patconf3(j,index)][l];
+            b=_TrackerCooZ[TKDBc::patconf3(j,index)]-_TrackerCooZ[TKDBc::patconf3(j,0)];
+            zmean=_TrackerCooZ[TKDBc::patconf3(j,index)]+_TrackerCooZ[TKDBc::patconf3(j,0)];
             factor=1/fabs(b);
             s=sqrt((cood-coou)*(cood-coou)+b*b);
             a=(cood-coou);

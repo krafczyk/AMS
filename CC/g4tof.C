@@ -7,6 +7,8 @@
 //        Created:       2012-Apr-09  Q.Yan
 //        Modified:
 // -----------------------------------------------------------
+ #include "G4PhysicalConstants.hh"
+ #include "G4SystemOfUnits.hh"
 
 #include "G4Version.hh"
 #include "g4tof.h"
@@ -17,8 +19,8 @@
 #include "G4GeometryTolerance.hh"
 
 #include "G4EmProcessSubType.hh"
+#include "typedefs.h"
 
-using namespace std;
 //--Scint
 TOFG4Scintillation::TOFG4Scintillation(const G4String& processName,
                                        G4ProcessType type)
@@ -101,9 +103,6 @@ TOFG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
                                       GetConstProperty("RESOLUTIONSCALE");
 
         // Birks law saturation:
-
-        G4double constBirks = 0.0;
-        constBirks = aMaterial->GetIonisation()->GetBirksConstant();
 
         G4double MeanNumberOfPhotons;
 

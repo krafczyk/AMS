@@ -126,6 +126,7 @@ double TrFit::DoFit(int method, int mscat, int eloss,
   else if (method ==   CHOUTKO)  ret = ChoutkoFit();
   else if (method == CHIKANIANC) ret = ChikanianFitCInt(1);
   else if (method == CHIKANIANF) ret = ChikanianFitF();
+  else if (method ==    GAUSBF)  ret = GausBFFit();
 
   ParLimits();
   return ret;
@@ -149,6 +150,62 @@ double TrFit::GetBeta(){
   return bb;
 }
 
+#include "GausBF.h"
+#include "TF1.h"
+#include "TGraphErrors.h"
+
+double TrFit::GausBFFit(int fixs)
+{
+  int l = _nhit-1;
+  AMSPoint p1(_xh[0], _yh[0], _zh[0]);
+  AMSPoint p2(_xh[l], _yh[l], _zh[l]);
+
+  Int_t ibf = GausBF::Find(p1, p2);
+  if (ibf < 0) return -1;
+
+  if (GausBF::Head()->GetPar(0, 0, 0) == 0) return -2;
+
+  AMSDir dir = p2-p1;
+  Int_t is1 = ibf%100;
+  Int_t is9 = ibf/100;
+
+  Int_t ip1 = 5; //26;
+  Int_t ip2 = 8; //29;
+
+  TF1 *func = GausBF::Head()->GetPr(is1, is9, 100);
+  if (fixs&1) func->FixParameter(ip1, 0); else func->ReleaseParameter(ip1);
+  if (fixs&2) func->FixParameter(ip2, 0); else func->ReleaseParameter(ip2);
+
+  TGraphErrors gp;
+  for (int i = 0; i < _nhit; i++) {
+    gp.SetPoint     (i, _zh[i], _yh[i]);
+    gp.SetPointError(i,      0, _ys[i]);
+  }
+  gp.Fit(func, "q0");
+
+  _param[0] = func->GetParameter(ip1); _param[2] = func->GetParError(ip1);
+  _param[1] = func->GetParameter(ip2); _param[3] = func->GetParError(ip2);
+
+  _chisqx = _nhit; _chisqy =  0;
+  _ndofx  = _nhit; _ndofy  = -3;
+
+  for (int i = 0; i < _nhit; i++) {
+    _xr[i] = 0;
+    _yr[i] = gp.GetY()[i]-func->Eval(gp.GetX()[i]);
+    _chisqy += _yr[i]*_yr[i]/_ys[i]/_ys[i]; _ndofy++;
+  }
+
+  _chisq = (_ndofy > 0) ? _chisqy/_ndofy : -1;
+  _p0x  = _xh[0];
+  _p0z  = _zh[0];
+  _dxdz = dir.x()/dir.z();
+  _p0y  = func->GetParameter(0);
+  _dydz = func->GetParameter(1);
+  _rigidity = 1/func->GetParameter(2);
+  _errrinv  =   func->GetParError (2);
+
+  return _chisq;
+}
 
 double TrFit::LinearFit(void)
 {
@@ -776,17 +833,14 @@ double TrFit::SimpleFitTop(void)
 				     +(_yh[i]-_yh[i-1])*(_yh[i]-_yh[i-1])
 				     +(_zh[i]-_zh[i-1])*(_zh[i]-_zh[i-1]));
   }
+  for (int i = 1; i < _nhit; i++) if (len[i] == 0) return -4;
 
   double pintx[LMAX][3];
   double pintu[LMAX][3];
+  for (int j = 0; j < 3; j++) pintx[0][j] = pintu[0][j] = 0;
 
   // Calculate path integrals
-  for (int i = 0; i < _nhit; i++) {
-    if (i == 0 || len[i] <= 0) {
-      for (int j = 0; j < 3; j++) pintx[i][j] = pintu[i][j] = 0;
-      continue;
-    }
-     
+  for (int i = 1; i < _nhit; i++) {
     double u[3];
     u[0] = (_xh[i]-_xh[i-1])/len[i];
     u[1] = (_yh[i]-_yh[i-1])/len[i];
@@ -934,7 +988,7 @@ double TrFit::AlcarazFit(int fixr)
   int    ilay[LMAX];
 
   // Estimate layer number
-  for (int i = 0; i < _nhit; i++) {
+  for (int i = 0; _mscat && i < _nhit; i++) {
     ilay[i] = GetLayer(_zh[i]);
     if (ilay[i] == 8) ilay[i] = 0;
     if (ilay[i] == 9) ilay[i] = 8;
@@ -1387,9 +1441,10 @@ double TrFit::ChoutkoFit(void)
       if (FillDmsc(dmsc, DmscFact) < 0) return -1;
     }
 
-    double len [LMAX];
+    /*double len [LMAX];
     for (int i = 0; i < _nhit; i++)
       len[i] = (i > 0) ? _zh[i]-_zh[i-1] : 0;
+    */
 
     // Loop for each point
     //for (int i = 0; i < _nhit; i++) {
@@ -2598,7 +2653,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 
 // SH
   double dd = -std::sqrt(par[0]*par[0]+par[1]*par[1]+1); // down-going
-  double pp = (par[2] != 0) ? abs(1/par[2]) : 0;         // abs.momentum
+  double pp = (par[2] != 0) ? std::abs(1/par[2]) : 0;         // abs.momentum
   pin[0] = par[0]/dd*pp; // ! Px
   pin[1] = par[1]/dd*pp; // ! Py
   pin[2] =      1/dd*pp; // ! Pz
@@ -2672,7 +2727,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 /*----------------------------------------------- Runge Kutta */
   if (RkmsDebug >= 3) cout<<" rk_trk "<<Nst<<" "<<Stot<<" "<<step<<endl;
 
-  double w0[3][NPma];
+  // double w0[3][NPma];
 
   int np = 1;
   for (int i = 0; i < Nst; i++) {
@@ -2688,9 +2743,9 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 	double w = (zc[np-1]-vout[2])/(vect[2]-vout[2]);
 	x0   [np-1] = vect[0]*w + vout[0]*(1.-w);
 	y0   [np-1] = vect[1]*w + vout[1]*(1.-w);
-	w0[0][np-1] = vect[3]*w + vout[3]*(1.-w);
-	w0[1][np-1] = vect[4]*w + vout[4]*(1.-w);
-	w0[2][np-1] = vect[5]*w + vout[5]*(1.-w);
+	//w0[0][np-1] = vect[3]*w + vout[3]*(1.-w);
+	//w0[1][np-1] = vect[4]*w + vout[4]*(1.-w);
+	//w0[2][np-1] = vect[5]*w + vout[5]*(1.-w);
 
 	if (RkmsDebug >= 3) {
 	  cout<<Form(" np %2d", np) << endl;
@@ -4014,7 +4069,7 @@ double TrProp::VCFitParCyl(double *init, double *out, double *point)
                 (point[2]-out[2])*point[5];
     double sdist = point[6]-std::sqrt(s1-s2*s2);
     double sd2   = out[3]*point[3]+out[4]*point[4]+out[5]*point[5];
-    double sd1   = std::sqrt(abs(1-sd2*sd2));
+    double sd1   = std::sqrt(std::abs(1-sd2*sd2));
     sdist = sdist/(sd1+1.e-10);
 
     if (nit == 1 && sdist < 0) {
@@ -4151,6 +4206,10 @@ TkDBc *TrProp::TkDBc()
   return TkDBc::Head;
 }
 
+Double_t BsclX = 1;
+Double_t BsclY = 1;
+Double_t BsclZ = 1;
+
 void TrProp::GuFld(double *p, double *b)
 {
   b[0] = b[1] = b[2] = 0;
@@ -4172,14 +4231,19 @@ void TrProp::GuFld(double *p, double *b)
 	  magerr = -1;
 	  err = 1;
 	}
-	mfp->SetMagstat(1);
-	mfp->SetScale(1.);
+	// commented out otherwise it will overwrite fscale
+	//mfp->SetMagstat(1);
+	//mfp->SetScale(1.);
       }
     }
     if (err) return;
   }
 
-  float pp[3] = { (float)p[0], (float)p[1], (float)p[2] };
+  float pp[3];
+  pp[0] = (float)p[0]*BsclX;
+  pp[1] = (float)p[1]*BsclY;
+  pp[2] = (float)p[2]*BsclZ;
+
   float bb[3];
   GUFLD(pp, bb);
 

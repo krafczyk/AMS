@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.77 2012/05/05 19:44:03 choumilo Exp $
+//  $Id$
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -3036,7 +3036,7 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
       number xcl=-5.;
       number ycl=3;
       number zcl=2;
-      geant d;
+      geant d = 0;
       number xc=RNDM(d);
       number yc=RNDM(d);
       number zc=RNDM(d);

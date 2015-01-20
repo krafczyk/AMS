@@ -6,14 +6,8 @@
 
 //  AMS AString (AString)
 
-
-#include <iostream>
-using namespace std;
-extern "C" {
-#include <string.h>
-}
-
-
+#include "typedefs.h"
+#include <cstring>
 
 class AString{
 

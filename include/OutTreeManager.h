@@ -1,8 +1,7 @@
 #ifndef OUTTREEMANAGER_HH
 #define OUTTREEMANAGER_HH
 
-#include <iostream>
-#include <string>
+#include "typedefs.h"
 #include <TTimeStamp.h>
 #include <TClass.h>
 #include <TTree.h>
@@ -13,7 +12,6 @@
 #include <TH2.h>
 
 
-using namespace std;
 
 /** Generic out TreeManager
  * all branchecs are declared as double

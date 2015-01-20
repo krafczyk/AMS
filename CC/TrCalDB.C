@@ -17,6 +17,7 @@
 #include "TrCalDB.h"
 #include "TkDBc.h"
 #include "TFile.h"
+#include "timeid.h"
 
 ClassImp(TrCalDB);
 
@@ -116,6 +117,22 @@ TrLadCal* TrCalDB::GetEntry(int ii){
   return 0;
 }
 
+float TrCalDB::GetSigmaMean(int side, int layer)
+{
+  float mean = 0;
+  int  nmean = 0;
+  for(int ii=0;ii<GetEntries();ii++) {
+    TrLadCal *cal = GetEntry(ii);
+    int tkid = TkDBc::Head->HwId2Tkid(cal->GetHwId());
+    int clay = abs(tkid)/100;
+
+    if (layer == 0 || layer == clay || (layer == 10 && clay < 8)) {
+      float mn = cal->GetSigmaMean(side);
+      if (mn > 0) { mean += mn; nmean++; }
+    }
+  }
+  return (nmean > 0) ? mean/nmean : 0;
+}
 
 void TrCalDB::Load(char * filename){
   TFile* f=TFile::Open(filename);
@@ -175,10 +192,12 @@ void TrCalDB::Lin2CalDB(){
       printf(" TrCalDB::Lin2CalDB-W- ACCESSING A PRE-FLIGHT CALIBRATION (V2) while version  is set to: %d \n",TrLadCal::GetVersion());
     }
   }
-  else{
+  else {
     run=run_to_decode&0x7FFFFFFF;
+   if (TrLadCal::GetVersion()!=3){
     TrLadCal::SetVersion(3);
     printf(" TrCalDB::Lin2CalDB-W- ACCESSING A FLIGHT CALIBRATION (V3) while version  is set to: %d\n",TrLadCal::GetVersion());
+   }
   }
   for (trcalIT aa=trcal_hwidmap.begin(); aa!=trcal_hwidmap.end();aa++){
     int hwid=aa->second->GetHwId();
@@ -199,7 +218,60 @@ void SLin2CalDB(){
   return;
 }
 
+#include "TrRecon.h"
+#include "TrCluster.h"
 
+int TrCalDB::GetFromTDV(unsigned int time, bool force)
+{
+  time_t tt=time;
+  static AMSTimeID* db=0;
+#pragma omp threadprivate(db)
+  if (db && force) {
+    delete db;
+    db = 0;
+  }
+
+  if(!db) {
+    tm begin;
+    tm end;
+  
+    begin.tm_isdst=0;
+    end.tm_isdst=0;    
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+      
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+
+    if (!Head) {
+      if (!TkDBc::Head) TkDBc::GetFromTDV(time,5);
+      TrCalDB *cc = new TrCalDB;
+      cc->init();
+    }
+    TrLadCal::SetVersion(TKGEOMFFKEY.CalibVer);
+    Head->CreateLinear();
+
+    TrClusterR::UsingTrCalDB(Head);
+    TrRawClusterR::UsingTrCalDB(Head);
+    TrRecon::UsingTrCalDB(Head);
+
+    db=new AMSTimeID(AMSID("TrackerCals",1),begin,end,
+		     TrCalDB::GetLinearSize(),
+		     TrCalDB::linear,
+		     AMSTimeID::Standalone,1,SLin2CalDB);
+  }
+  int ret=db->validate(tt);
+
+  return ret;
+}
 
 
 
@@ -210,14 +282,12 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rri,int pri){return 0;}
 void TrCalDB::updtrcalib2009S(integer n, int16u* p){return;}
 
 #else
-#include "timeid.h"
 #include "commonsi.h"
 #include "daqevt.h"
 #include "id.h"
 #include "job.h"
 #include "event.h"
 
-using namespace std;
 
 int  TrCalDB::SaveCal2DB(){
 
@@ -532,6 +602,5 @@ int TrCalDB::checkdaqidS(unsigned short int id){
   }
   return 0;
 }
-
 
 #endif

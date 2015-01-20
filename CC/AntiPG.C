@@ -7,7 +7,6 @@
 static int maxerr = 0;
 static int errmax = 99;
 
-using namespace std;
 
 char  AntiClusterR::_Info[255];
 
@@ -1309,7 +1308,7 @@ float AntiRecoPG::BayesEstimation(float value, float error, float low, float upp
   
   float tguess = 0.;
   int nguess = 0;
-  for(int i=0; i<evt->NTofClusterH(); i++){
+  for(unsigned int i=0; i<evt->NTofClusterH(); i++){
     TofClusterHR* ptcl=evt->pTofClusterH(i);
     if( !ptcl) continue;
     tguess+=(ptcl->Time);
@@ -1421,8 +1420,8 @@ float AntiRecoPG::GetAvgTempAcc(){
 int AntiRecoPG::ReLoadAcc(){  
   int iret = 0; // no raw sides
   AMSEventR* evt = AMSEventRHead()?AMSEventRHead():AMSEventR::Head();
-  if (evt->Event() == evto && evt->Run() == runo) return nrsd;
-  if (evt->Run() != runo || ifild>0 || ifild%2 != 0){ // needs to reload calibrations
+  if (int(evt->Event()) == evto && int(evt->Run()) == runo) return nrsd;
+  if (int(evt->Run()) != runo || ifild>0 || ifild%2 != 0){ // needs to reload calibrations
   int run_type = SelectRun();
   InitCal(run_type,NVER);}
   
@@ -1434,7 +1433,7 @@ int AntiRecoPG::ReLoadAcc(){
       adctable[k][isect-1]=0.; // adc values
       for(int i=0; i<16; i++){
 	timetable[i][k][isect-1]=0; }}}
-  for(int ir=0; ir<evt->NAntiRawSide(); ir++){
+  for(unsigned int ir=0; ir<evt->NAntiRawSide(); ir++){
     AntiRawSideR* rsd = evt->pAntiRawSide(ir);
     if( !rsd) continue;
     int swid = rsd->swid;
@@ -1452,10 +1451,11 @@ int AntiRecoPG::ReLoadAcc(){
     int iftt=rsd->nftdc-1;
     if (iftt>7) iftt=7;
     timeindx[0][side][sect-1]=iftt+1;
-    if(iftt<0) {iftt=0;
+    if(iftt<0) {
       if (maxerr<errmax)  {
 	cerr << "AntiRecoPG::ReLoadAcc-E open Error null or negative number of #FT= " << iftt+1 << "| Run= " << evt->Run() << " event= " << evt->Event() << endl;
-	maxerr++;}}
+	maxerr++;}
+    }
     else{
     for (int itdc = 0; itdc<rsd->ntdct; itdc++){
       if (itdc>15) continue;

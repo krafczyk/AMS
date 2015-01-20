@@ -1,6 +1,6 @@
-//  $Id: g4xray.old.C,v 1.2 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id$
 //
-// GEANT4 tag $Name:  $
+// GEANT4 tag $Name$
 //
 // 
 // ----------------------------------------------------------------------
@@ -218,7 +218,7 @@ G4double G4XRay::ConvertCutToKineticEnergy(
     G4double T2 = Tmax;
     G4double T3 = sqrt(T1*T2);
     G4double r3 = absorptionLengthVector->GetValue(T3,isOut);
-    while ( abs(1.-r3/theCutInMaxInteractionLength)>epsilon ) {
+    while ( std::abs(1.-r3/theCutInMaxInteractionLength)>epsilon ) {
       if ( theCutInMaxInteractionLength <= r3 ) 
         T2 = T3;
       else 

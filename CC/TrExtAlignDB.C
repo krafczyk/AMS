@@ -22,7 +22,6 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
 
-using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
 int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;
@@ -40,10 +39,46 @@ float TrExtAlignDB::Sofs2[12]={0,         0, 3.7e-4, 6.0e-4,
 			       10e-4, 20e-4,  51e-4,  20e-4,
 			        6e-6,     0,      0,      0};
 
+void TrExtAlignDB::TuneSofs2(uint time)
+{
+  if (TKGEOMFFKEY.L2AlignPar[2] > 0) {
+    TKGEOMFFKEY.L2AlignPar[2] = 0;
+    Double_t y2s = 3600*24*365;
+    Double_t yr  = (TKGEOMFFKEY.L2AlignPar[0]-time)/y2s;
+    Double_t dy1 = yr*1.45e-4;
+    Double_t dy9 = yr*0.98e-4;
+    TrExtAlignDB::Sofs2[0] += dy1; TrExtAlignDB::Sofs2[1] += dy9;
+    TrExtAlignDB::Sofs2[2] += dy1; TrExtAlignDB::Sofs2[3] += dy9;
+
+    static int n = 0;
+    if (n++ < 10)
+      cout << "TrExtAlignDB::TuneSofs2-I-yr,Sofs2= " << yr << " "
+	   << TrExtAlignDB::Sofs2[0]*1e4 << " "
+	   << TrExtAlignDB::Sofs2[1]*1e4 << " "
+	   << TrExtAlignDB::Sofs2[2]*1e4 << " "
+	   << TrExtAlignDB::Sofs2[3]*1e4 << endl;
+  }
+}
+
+Double_t TrExtAlignDB::CorrectRigidity(uint time, Double_t rgt,
+				                  Double_t factor)
+{
+  if (rgt == 0) return 0;
+
+  Double_t t0  = 1347000000;   // TKGEOMFFKEY.L2AlignPar[0]
+  Double_t y2s = 3600*24*365;
+  Double_t p0  =  0.049*(time-t0)/y2s;
+  Double_t p1  = -0.015*(time-t0)/y2s;
+  Double_t p2  =  0.768;
+  Double_t p3  =  0.438;
+  Double_t lr  = TMath::Log10(TMath::Abs(rgt));
+  Double_t dr  = (p0+p1*TMath::Erfc((lr-p2)/p3))*1e-3;
+
+  return 1/(1/rgt+dr*factor);
+}
 
 
-
-void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,char* CIEMAT_name){
+void TrExtAlignDB::ForceLatestAlignmentFromTDV(int pgversion,const char* CIEMAT_name){
 /*
   TrExtAlignDB::ForceFromTDV=1;
   TkDBc::ForceFromTDV=1;
@@ -84,7 +119,7 @@ const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
   if (lay == 8 && it0 == L8.begin()) return &(it1->second);
   if (lay == 9 && it0 == L9.begin()) return &(it1->second);
 
-  int tt = (it0->first+it1->first)/2;
+  unsigned int tt = (it0->first+it1->first)/2;
   if (time > tt) {
     it0 = it1; it1++;
     if (lay == 8 && it1 == L8.end()) return &(it0->second);
@@ -206,9 +241,9 @@ Bool_t TrExtAlignDB::Load(TFile *f8, TFile *f9)
 
   Head = new TrExtAlignDB;
 
-  for (int i = 0; i < v8.size(); i++)
+  for (unsigned int i = 0; i < v8.size(); i++)
     Head->Fill(8, v8.at(i), db8->GetM(8, v8.at(i)));
-  for (int i = 0; i < v9.size(); i++)
+  for (unsigned int i = 0; i < v9.size(); i++)
     Head->Fill(9, v9.at(i), db9->GetM(9, v9.at(i)));
 
   return kTRUE;
@@ -219,7 +254,7 @@ int TrExtAlignDB::Check(void)
   // This check should be called only when number of entries are too many
   if (L8.size() <= 500 || L9.size() <= 500) return 0;
 
-  int rmin = 1300000000;
+  unsigned int rmin = 1300000000;
   int ndel = 0;
 
   for (ealgIT it = L8.begin(); it != L8.end(); )
@@ -351,6 +386,40 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     ll[6]=pos[0]; ll[7]=pos[1];ll[8]=pos[2];
     ll[9]=a;ll[10]=b;ll[11]=c;
 
+
+    // Simple Hardwire Database
+    if(TkLadder::version >= 4 && 
+       strcmp("DynAlignmentV5T290713PM5",DynAlManager::tdvdb->getname())==0){
+     
+#ifdef _CUSTOM_SOFS2_
+      if(run>0){
+	Sofs2[0+2]=3.7e-4;
+	Sofs2[0+6]=51e-4;
+	Sofs2[0+10]=0;
+	Sofs2[1+2]=6.0e-4;
+	Sofs2[1+6]=20e-4;
+	Sofs2[1+10]=0;
+      }
+
+
+      if(run>1386071385-30){
+	static bool first=true;
+	if(first){
+	  cout<<"INITIALIZING SOFS2 CORRECTION"<<endl;
+	  first=false;
+	}
+	Sofs2[0+2]=0;
+	Sofs2[0+6]=20e-4;
+	Sofs2[0+10]=0; 
+	Sofs2[1+2]=1.5e-4;
+	Sofs2[1+6]=60e-4;
+	Sofs2[1+10]=0;
+      }
+#endif
+    }
+
+
+
     if (TkLadder::version == 3) ll[7]+=Sofs[i+2];
     if (TkLadder::version >= 4){ll[7]+=Sofs2[i+2]; ll[8]+=Sofs2[i+6]; ll[9]+=Sofs2[i+10];}
   }
@@ -467,23 +536,27 @@ extern "C" double rnormx();
 
 void TrExtAlignDB::SmearExtAlign()
 {
-  double rnd[8];
-  double rd[2];
+  double rnd[10];
+  double rd[4];
 #ifdef __ROOTSHAREDLIBRARY__
-  AMSEventR::GetRandArray(4173792, 2, 8, rnd);
-  AMSEventR::GetRandArray(3375420, 1, 2, rd);
+  AMSEventR::GetRandArray(4173792, 2, 10, rnd);
+  AMSEventR::GetRandArray(3375420, 1, 4, rd);
 #else
-  for (int i = 0; i < 8; i++) rnd[i] = rnormx();
-   float d = 0;
-  for (int i = 0; i < 2; i++) rd[i] = RNDM(d);
+  for (int i = 0; i < 10; i++) rnd[i] = rnormx();
+   float d(0); 
+  rd[0]=RNDM(d);
+  rd[1]=RNDM(d);
+  rd[2]=RNDM(d);
+  rd[3]=RNDM(d);
 #endif
 
-double s1[2]={7.5,8.3};
+double s1[2]={7.5e-4,8.3e-4};
+
 s1[0]=fabs(TRMCFFKEY.OuterSmearing[0][1]);
 s1[1]=fabs(TRMCFFKEY.OuterSmearing[1][1]);
 
-double s2[2]={13.,14};
-double s3[2]={33,33};
+double s2[2]={13e-4,14e-4};
+double s3[2]={33e-4,33e-4};
 double r[2][3]={{1.,0.12/2.,0.01/2},{1.,0.12/2.,0.003/2.}};
 for(int l=0;l<2;l++){
 double sum=0;
@@ -497,7 +570,7 @@ double pg[2]={0,0};
 
 for(int k=0;k<2;k++){
 {
-double r1=rd[0];
+double r1=rd[0+2*k]; 
 if(r1<r[k][0]){
  md[k]+=s1[k];
 }
@@ -507,7 +580,7 @@ else if(r1<r[k][0]+r[k][1]){
 else md[k]+=s3[k];
 }
 {
-double r1=rd[1];
+double r1=rd[1+2*k];
 if(r1<r[k][0]){
  pg[k]=s1[k];
 }
@@ -524,18 +597,23 @@ else pg[k]=s3[k];
   // PG
   SL1[0] = rnd[0]*TRMCFFKEY.OuterSmearing[0][0];
   if(TRMCFFKEY.OuterSmearing[0][1]>=0)SL1[1] = rnd[1]*TRMCFFKEY.OuterSmearing[0][1];
-  else SL1[1] = rnd[1]*pg[0];
+  else {
+     SL1[1] = rnd[1]*pg[0]+rnd[8]*(pg[0]+md[0])/2*TRMCFFKEY.OuterSmearingC[0][1];
+     }
   SL9[0] = rnd[2]*TRMCFFKEY.OuterSmearing[1][0];
   if(TRMCFFKEY.OuterSmearing[1][1]>=0)SL9[1] = rnd[3]*TRMCFFKEY.OuterSmearing[1][1];
-  else SL9[1] = rnd[3]*pg[1];
-
+  else {
+   SL9[1] = rnd[3]*pg[1]+rnd[9]*(pg[1]+md[1])/2*TRMCFFKEY.OuterSmearingC[1][1];
+  }
   // CIEMAT
   SL1[6] = rnd[4]*TRMCFFKEY.OuterSmearing[0][0];
   if(TRMCFFKEY.OuterSmearing[0][1]>=0)SL1[7] = rnd[5]*TRMCFFKEY.OuterSmearing[0][1];
-  else SL1[7] = rnd[5]*md[0];
+  else {
+    SL1[7] = rnd[5]*md[0]+rnd[8]*(pg[0]+md[0])/2*TRMCFFKEY.OuterSmearingC[0][1];
+  }
   SL9[6] = rnd[6]*TRMCFFKEY.OuterSmearing[1][0];
   if(TRMCFFKEY.OuterSmearing[1][1]>=0)SL9[7] = rnd[7]*TRMCFFKEY.OuterSmearing[1][1];
-  else SL9[7] = rnd[7]*md[1];
+  else SL9[7] = rnd[7]*md[1]+rnd[9]*(pg[1]+md[1])/2*TRMCFFKEY.OuterSmearingC[1][1];
 
 #ifdef __ROOTSHAREDLIBRARY__
   // Workaround to retune the MC scatterng
@@ -590,7 +668,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   static int nprint=0;
 
   int mar=TKGEOMFFKEY.MaxAlignedRun; //MAXALIGNEDRUN;
-  if(time > TKGEOMFFKEY.MaxAlignedRun){ //MAXALIGNEDRUN
+  if(int(time) > TKGEOMFFKEY.MaxAlignedRun){ //MAXALIGNEDRUN
     if(nprint++<10) printf("TrExtAlignDB::UpdateTkDBc-W- Warning no dyn alignment available after %d, this message will be repeted only 10 times \n",mar);
     SL1[0]=SL1[1]=SL1[2]=SL1[3]=SL1[4]=SL1[5]=0.;
     SL9[0]=SL9[1]=SL9[2]=SL9[3]=SL9[4]=SL9[5]=0.;
@@ -783,7 +861,7 @@ void TrExtAlignDB::ExAlign2Lin()
     std::vector<uint> vt = GetVt(layer);
 
     int n = 0;
-    for (int j = 0; j < vt.size(); j++) {
+    for (unsigned int j = 0; j < vt.size(); j++) {
       uint time = vt.at(j);
       if (time == 0) continue;
 

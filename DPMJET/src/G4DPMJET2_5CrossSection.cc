@@ -118,7 +118,7 @@ G4DPMJET2_5CrossSection::~G4DPMJET2_5CrossSection ()
   bool ret=false;
   if(!mat)return ret;
   const G4ElementVector*elv=mat->GetElementVector();
-  for(int k=0;k<elv->size();k++){
+  for(unsigned int k=0;k<elv->size();k++){
     G4Element *el=(*elv)[k];
     if(Z==el->GetZ()){
       if(IsApplicable(theProjectile,el))return true;
@@ -292,7 +292,7 @@ G4double G4DPMJET2_5CrossSection::GetIsoZACrossSection
 //
 G4double G4DPMJET2_5CrossSection::GetElementCrossSection(const G4DynamicParticle* theProjectile,G4int Z,const G4Material*mat){
   const G4ElementVector*elv=mat->GetElementVector();
-  for(int k=0;k<elv->size();k++){
+  for(unsigned int k=0;k<elv->size();k++){
     G4Element *el=(*elv)[k];
     if(Z==el->GetZ()){
       return GetCrossSection( theProjectile, el,293*kelvin);

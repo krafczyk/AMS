@@ -239,16 +239,15 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
   int tflv;  
   geant t,x,y,z;
-  geant de,dee,tof,prtq,pstep;
+  geant de,dee,tof;
   geant coo[3];
-  int numv,iprt,numl,numvp;
+  int numv,numl;
   tflv=GCVOLU.nlevel-1;  
 //---> print some GEANT standard values(for debugging):
 //  if(GCFLAG.IEVENT==3118)tfprf=1;
 //  if(GCFLAG.IEVENT==3118)TOF2DBc::debug=1;
   numl=GCVOLU.nlevel;
   numv=GCVOLU.number[numl-1];
-  numvp=GCVOLU.number[numl-2];
 //  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
 //  UHTOC(GCTMED.natmed,4,media,20);
 //
@@ -256,9 +255,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
             && GCVOLU.names[tflv][0]=='T' && GCVOLU.names[tflv][1]=='F'){// <=== charged part. in "TFnn"
 //
     if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-    iprt=GCKINE.ipart;
-    prtq=GCKINE.charge;
-    pstep=GCTRAK.step;
     numv=GCVOLU.number[tflv];
     x=GCTRAK.vect[0];
     y=GCTRAK.vect[1];
@@ -322,7 +318,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //  UHTOC(GCTMED.natmed,4,media,20);
 //  cout<<" Media "<<media<<endl;
 //--->
-  integer manti(0),isphys,islog;
+  integer manti(0),isphys;
   if(lvl==3 && GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='N'
                                        && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
@@ -330,7 +326,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
      dee=GCTRAK.destep; 
      if(TFMCFFKEY.birks)GBIRK(dee);
      isphys=GCVOLU.number[lvl];
-     islog=floor(0.5*(isphys-1))+1;//not used now
      AMSAntiMCCluster::siantihits(isphys,GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
@@ -949,7 +944,10 @@ try{
     AMSProducer::gethead()->Transfer()=false;
 #endif
      if(res==DAQEvent::OK){ 
-       uinteger run;
+       uinteger run=0;
+#ifndef __CORBA__
+       (void) run;
+#endif
        uinteger event=0;
        time_t tt=0;
        time_t oldtime=0;
@@ -966,9 +964,9 @@ omp_set_dynamic(MISCFFKEY.DynThreads);
 //kmp_set_stacksize_s(32000000);
 #endif
 
+#ifdef _OPENMP
 const int maxt=32;
 long long ia[maxt*16];
-#ifdef _OPENMP
 int nchunk=(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs())*MISCFFKEY.ChunkThreads;        
 if(MISCFFKEY.DivideBy)AMSFFKEY.CpuLimit=cpulimit*(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs());
 #else
@@ -980,8 +978,8 @@ forcemaxthread=0;
 omp_set_num_threads(omp_get_num_procs());
 nchunk=omp_get_num_procs()*10;
 }
-#endif
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
+#endif
 //cout <<"  new chunk "<<nchunk<<endl;
 
 #pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq), copyin(LIPC2F) 

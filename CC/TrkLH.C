@@ -43,7 +43,6 @@ static int errmax = 99;
 
 TrkLH* TrkLH::head=0;
 
-using namespace std;
 
 ClassImp(TrkLH)
 
@@ -650,10 +649,9 @@ int TrkLH::filltrklhvarfromgbatch(TrkLHVar& var1, AMSEventR* evt, int nptc){
     if (noise_y[layer-1]<var1.minoise3 && noise_y[layer-1] >0.001 && trk_layer_pattern[layer-1] ==1 && layer != lminoise1 && layer != lminoise2)
       {var1.minoise3 = noise_y[layer-1]; lminoise3=layer;}}
   var1.minoise4=7.;
-  int lminoise4 = -1;
   for (int layer=1; layer<=9; layer++) {
     if (noise_y[layer-1]<var1.minoise4 && noise_y[layer-1] >0.001 && trk_layer_pattern[layer-1] ==1 && layer != lminoise1 && layer != lminoise2 && layer != lminoise3)
-      {var1.minoise4 = noise_y[layer-1]; lminoise4=layer;}}
+      {var1.minoise4 = noise_y[layer-1];}}
 
   // ECAL RELATED
 
@@ -763,7 +761,6 @@ void TrkLH::SetDefaultMask(){
 
 #include "TrkLH.h"
 
-using namespace std;
 
 ClassImp(TrkLHVar)
 

@@ -17,6 +17,8 @@
 #include "TFile.h"
 #include "tkpatt.h"
 
+typedef map<int,TkLadder*>::const_iterator tkidIT;
+typedef map<string,TkLadder*>::const_iterator lnameIT;
 /*!\class TkDBc
 \brief The new AMS Tracker database class
 \ingroup tkdbc
@@ -69,6 +71,8 @@ class TkDBc : public TObject{
   //! the setup index 
   static int _setup;
   static char _setupname[4][30];
+  static int _tkidfast;
+
   //! number of active planes in the setup
   int nplanes;
   //! number of silicon layers in the setup
@@ -297,6 +301,8 @@ private:
   map<int,TkLadder*> tkassemblymap;   //! it is rebuilt when loaded
   //! Map for fast binary search based on TkId 
   map<int,TkLadder*> tkidmap;
+  static const unsigned int max_tkidmap_entries = 2000; //! do not store in ROOT file
+  TkLadder* tkidmap_fast[max_tkidmap_entries];          //! do not store in ROOT file
   //! Map for fast binary search based on HwId
   map<int,TkLadder*> hwidmap;         //! it is rebuilt when loaded
 //   //! Map for fast binary search based on PgId
@@ -335,7 +341,10 @@ public:
   //! Static function used to create the TkDBc Singleton. If force_delete>0 it deletes and recreates  the single istance of the class
   static void CreateTkDBc(int force_delete=0);
   ~TkDBc();
-
+  //! Set the implementation used for tkidmap: 0 = map based, safe, reccomended;  1 = array based, faster, experimental
+  static void SetTkIDFast(int ss){_tkidfast=ss; return;}
+  //! Get the implementation used for tkidmap: 0 = map based, safe, reccomended;  1 = array based, faster, experimental
+  static int GetTkIDFast(){return _tkidfast;}
   //! Do all the initialization stuff
   void init(int setup=3,const char* inputfilename=0, int pri=0);
 
@@ -372,14 +381,14 @@ public:
   //!  Read the sensor alignement data from a file with a format "tkid sx[0-14] sy[0-14]"
   int readAlignmentSensor(const char* filename, int pri=0);
   //! Special function to load PG local external alignment from Files
-  int LoadPGExtAlign(char *ff="PGExtLocalAlign.txt"){
+  int LoadPGExtAlign(const char *ff="PGExtLocalAlign.txt"){
     return LoadExtLocalAlign(ff,0);
   }
   //! Special function to load PG local external alignment from Files
-  int LoadMDExtAlign(char *ff="MDExtLocalAlign.txt"){
+  int LoadMDExtAlign(const char *ff="MDExtLocalAlign.txt"){
     return LoadExtLocalAlign(ff,1);
   }  
-  int LoadExtLocalAlign(char *fname, int type,int pri=0);
+  int LoadExtLocalAlign(const char *fname, int type,int pri=0);
   
   
   //! Returns the number of active planes
@@ -408,7 +417,9 @@ public:
   //! Returns the pointer to the ladder object with the required Assembly id. In case of failure returns a NULL pointer
   TkLadder* FindTkAssemblyId( int tkassemblyid){ return Findmap(tkassemblymap,tkassemblyid);}
   //! Returns the pointer to the ladder object with the required tkid. In case of failure returns a NULL pointer
-  TkLadder* FindTkId( int tkid){ return Findmap(tkidmap,tkid);}
+  TkLadder* FindTkId( int tkid){ unsigned int ia=tkid+1000; if(_tkidfast==0||ia>=max_tkidmap_entries) return Findmap(tkidmap,tkid); else return tkidmap_fast[ia];} 
+
+
   //! Returns the pointer to the ladder object with the required HwId. In case of failure returns a NULL pointer
   TkLadder* FindHwId( int hwid){ return Findmap(hwidmap,hwid);}
 //   //! Returns the pointer to the ladder object with the required PgId. In case of failure returns a NULL pointer
@@ -458,7 +469,7 @@ public:
   void GetLayerRot(int lay,number nrm[][3]);
 
   //! Kill TkLadder
-  void KillTkId(int tkid) { tkidmap[tkid] = 0; }
+  void KillTkId(int tkid) { tkidmap[tkid] = 0; unsigned int ia=tkid+1000; if(ia<max_tkidmap_entries)tkidmap_fast[ia]=0;}
 
   int NStripsDrp(int type){  return (type==0)?_NReadoutChanK: _NReadoutChanS;}
 
@@ -525,11 +536,9 @@ public:
   */
   static void UseVersion(int ver, int reset = 0);
 
-  ClassDef(TkDBc, 10);
+  ClassDef(TkDBc, 11);
 };
 
-typedef map<int,TkLadder*>::const_iterator tkidIT;
-typedef map<string,TkLadder*>::const_iterator lnameIT;
 
 void SLin2Align();
 

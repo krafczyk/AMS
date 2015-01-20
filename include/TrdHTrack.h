@@ -132,9 +132,8 @@ class TrdHTrackR:public TrElem{
 
   void Print(int opt=0);
 
-  void _PrepareOutput(int opt=0){
-    sout.clear();
-    sout.append("TrdHTrack Info");
+  std::string _PrepareOutput(int opt=0){
+    return "TrdHTrack Info";
   };
 
   const char* Info(int iRef=0){
@@ -143,8 +142,7 @@ class TrdHTrackR:public TrElem{
   };
 
   std::ostream& putout(std::ostream &ostr = std::cout){
-    _PrepareOutput(1);
-    return ostr << sout  << std::endl; 
+    return ostr << _PrepareOutput(1) << std::endl;
   };
 
   /// ROOT definition

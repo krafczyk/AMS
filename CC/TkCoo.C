@@ -170,7 +170,7 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
 
   // Sensor alignment correction
   double Ax= (TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
-  int sens = (int)(abs(loc[0]+Ax)/TkDBc::Head->_SensorPitchK);
+  int sens = (int)(std::abs(loc[0]+Ax)/TkDBc::Head->_SensorPitchK);
   if (TRCLFFKEY.UseSensorAlign==1 && 
       0 <= sens && sens < trconst::maxsen) {
     oo2[0] -= ll->_sensx[sens];
@@ -235,7 +235,7 @@ float TkCoo::GetLocalCoo(int tkid, float readchann,int mult){
       cooY2=TkCoo::GetLocalCooS(channel+1);
     else
       cooY2=TkCoo::GetLocalCooS(channel-1);
-    return cooY1 + (readchann-channel)*abs(cooY1-cooY2);
+    return cooY1 + (readchann-channel)*std::abs(cooY1-cooY2);
   }
   else{
     if(ll->IsK7()) {
@@ -245,7 +245,7 @@ float TkCoo::GetLocalCoo(int tkid, float readchann,int mult){
 	cooX2=TkCoo::GetLocalCooK7(channel+1,mult);
       else
 	cooX2=TkCoo::GetLocalCooK7(channel-1,mult);
-      return cooX1 + (readchann-channel)*abs(cooX1-cooX2);
+      return cooX1 + (readchann-channel)*std::abs(cooX1-cooX2);
     }
     else {
       number cooX1,cooX2;  
@@ -254,7 +254,7 @@ float TkCoo::GetLocalCoo(int tkid, float readchann,int mult){
 	cooX2=TkCoo::GetLocalCooK5(channel+1,mult);
       else
 	cooX2=TkCoo::GetLocalCooK5(channel-1,mult);
-      return cooX1 + (readchann-channel)*abs(cooX1-cooX2);
+      return cooX1 + (readchann-channel)*std::abs(cooX1-cooX2);
     }
   }
 }

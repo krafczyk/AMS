@@ -1,4 +1,4 @@
-//  $Id: snode.h,v 1.8 2008/12/08 15:15:19 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSNODEMAP__
@@ -67,7 +67,7 @@ class AMSNodeMapError{
 private:
  char msg[256];
 public:
- AMSNodeMapError(char * name){
+ AMSNodeMapError(const char * name){
    if(name){
     integer n=strlen(name)+1;
     if(n>255)n=255;

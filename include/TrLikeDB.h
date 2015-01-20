@@ -20,7 +20,6 @@
 #include <map>
 
 
-using namespace std;
 
 class TrLikeDB : public TObject {
 

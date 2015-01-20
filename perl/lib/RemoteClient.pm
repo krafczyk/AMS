@@ -339,6 +339,8 @@ sub Init{
     my $sql  = undef;
     my $ret  = undef;
 
+    $self->{eosselect} = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select';
+
     $t0Init = time();
 #just temporary skeleton to check basic princ
 #should be replaced by real db servers
@@ -2815,6 +2817,8 @@ sub Connect{
     else{
         $self->{ok}=1;
     }
+    # Flag to indicate if using /eosams/ as NTDIR
+    $self->{eos} = 1;
          my $cem=lc($self->{q}->param("CEM"));
          if (defined $cem and not ($self->{q}->param("queryDB04"))){
           if(not $self->findemail($cem)){
@@ -7122,14 +7126,19 @@ if( not defined $dbserver->{dbfile}){
                if($dataset->{datamc} !=0 and not defined $dataset->{MC}){
                  $path='/Data';
                }
-               my $sqlfs="select disk,path,available from filesystems where status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available DESC";
-               my $fs = $self->{sqlserver}->Query($sqlfs);
-               if(not defined $fs->[0][0]){
-                 $self->ErrorPlus("Unable to Obtain Active File System $sqlfs");               }
-               else{
-                   $ntdir = $fs->[0][0].$fs->[0][1]."/".$ProductionPeriod."/$dataset->{name}";
+               if ($self->{eos} == 1) {
+                   $ntdir = '/eosams'.$path."/".$ProductionPeriod."/$dataset->{name}";
                }
-
+               else {
+                   my $sqlfs="select disk,path,available from filesystems where status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available DESC";
+                   my $fs = $self->{sqlserver}->Query($sqlfs);
+                   if(not defined $fs->[0][0]){
+                       $self->ErrorPlus("Unable to Obtain Active File System $sqlfs");
+                   }
+                   else{
+                       $ntdir = $fs->[0][0].$fs->[0][1]."/".$ProductionPeriod."/$dataset->{name}";
+                   }
+               }
 
 #               my $maxavail=0;
 #               foreach my $fs (@{$self->{FilesystemT}}){
@@ -8196,7 +8205,8 @@ if(defined $dataset->{buildno} ){
         my $bufb;
         read(FILEI,$bufb,1638400) or next;
         close FILEI;
-       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 }
         if($dataset->{g4}=~/g4/){
         my $dir="$self->{AMSSoftwareDir}/Templates";
@@ -8205,7 +8215,8 @@ if(defined $dataset->{buildno} ){
         my $bufb;
         read(FILEI,$bufb,1638400) or next;
         close FILEI;
-      $tmpb=~ s/TERM\n!/$bufb\nTERM\n!/;
+#      $tmpb=~ s/TERM\n!/$bufb\nTERM\n!/;
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 
     }
          if($self->{CCT} eq "local"){
@@ -9891,7 +9902,11 @@ try{
         my $bufb;
         read(FILE1,$bufb,1638400) or next;
         close FILE1;
-       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#       Move content in common.job and commong4.job the beginning of
+#       datacards, instead of the end, to avoid overwriting datacards
+#       in job template.
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 }
         if($dataset->{g4}=~/g4/){
         my $dir="$self->{AMSSoftwareDir}/Templates";
@@ -9900,7 +9915,8 @@ try{
         my $bufb;
         read(FILE1,$bufb,1638400) or next;
         close FILE1;
-      $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+#      $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+       $tmpb=~ s/LIST\n/LIST\n$bufb\n/;
 
     }
          print FILE $tmpb;
@@ -19867,9 +19883,11 @@ sub UploadToCastor{
                 return 0;
             }
         }
-        $sql="select path,sizemb from ntuples where  jid=$run->[2]  and path like '%$dir%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=$datamc";
     if($datamc>1){
         $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' $castor and path not like '/castor%' and type like '$delim%'";
+    }
+    else {
+        $sql="select path,sizemb from ntuples where  jid=$run->[2]  and path like '%$dir%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=$datamc";
     }
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
@@ -19902,7 +19920,7 @@ sub UploadToCastor{
 #         check fs is active
 #
          my @junk=split '\/',$ntuple->[0];
-         if(not $self->DiskIsOnline("/$junk[1]")){
+         if(not $junk[1] =~ /eosams/ and not $self->DiskIsOnline("/$junk[1]")){
           print " Disk $junk[1] is Offline, skipped \n";
           $suc=0;
           last;
@@ -19923,6 +19941,9 @@ sub UploadToCastor{
           my $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
           system($sys);
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          if ($ntuple->[0] =~ /^\/eosams/) {
+              $sys = "$self->{eosselect} $sys";
+          }
           my $res=system($sys);
           if($res){
               print "problem with $sys \n";
@@ -19948,10 +19969,25 @@ sub UploadToCastor{
              $sys="echo $castor ";
          }
          my $i=system($sys);
+         if ($i) { #rfcp failed, retrying with xrdcp
+             if($verbose){
+                 print " $sys failed (retcode=$i)\n";
+                 print "Now trying to copy with xrdcp...\n";
+             }
+             if (not defined $ENV{'STAGE_SVCCLASS'} or $ENV{'STAGE_SVCCLASS'} eq '') {
+                 $ENV{'STAGE_SVCCLASS'} = 'amscdr';
+             }
+             my $inputfile = $ntuple->[0];
+             if ($inputfile =~ /^\/eosams/) {
+                 $inputfile = $self->eosLink2Xrootd($inputfile);
+             }
+             $sys = "/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v -ODsvcClass=" . $ENV{'STAGE_SVCCLASS'} . " ".$inputfile." \"root://castorpublic.cern.ch//".$castor."\"";
+             $i = system($sys);
+         }
          if($i){
           $suc=0;
           if($verbose){
-            print " $sys failed \n";
+            print " $sys failed  (retcode=$i)\n";
           }
           last;
          }
@@ -20022,6 +20058,10 @@ sub UploadToCastor{
           my $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
           system($sys);
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          if ($ntuple->[0] =~ /^\/eosams/) {
+              $sys = "$self->{eosselect} $sys";
+          }
+
           my $try=0;
 again:
           my $res=system($sys);
@@ -21354,7 +21394,10 @@ sub RemoveFromDisks{
 #  output par:
 #   1 if ok  0 otherwise
 #
-    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify,$force)= @_;
+    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify,$force,$eos)= @_;
+    my $eosexe = `grep eos= /afs/cern.ch/project/eos/installation/ams/etc/setup.sh | awk -F= '{print \$2}'`;
+    chomp $eosexe;
+
     if(system("mkdir -p $tmp;touch $tmp/qq")){
       if($verbose){
         print " Unable to write $tmp \n "
@@ -21432,7 +21475,12 @@ sub RemoveFromDisks{
     if($run2p < 0 and -$run2p < $run->[0]){
       next;
     }
-        $sql="select path,crc from ntuples where  jid=$run->[1] and path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
+      my $cond = "path not like '/castor%'";
+      if ($eos) {
+          $cond = 'eostime > 0';
+      }
+
+        $sql="select path,crc from ntuples where  jid=$run->[1] and path like '%$dir%' and castortime>0 and $cond and datamc=$datamc";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       if(not defined $ret_nt->[0][0]){
@@ -21445,9 +21493,17 @@ sub RemoveFromDisks{
          if($ntuple->[0]=~/^#/ ){
           next;
          }
-         my @junk=split $name_s,$ntuple->[0];
-         my $castor=$castorPrefix."/$name$junk[1]";
+         my $castor;
+         if ($ntuple->[0] =~ /\/castor\//) {
+             $castor = $ntuple->[0];
+         }
+         else {
+             my @junk=split $name_s,$ntuple->[0];
+             $castor=$castorPrefix."/$name$junk[1]";
+         }
          my @junk2=split /\//,$ntuple->[0];
+         my $eospath = $castor;
+         $eospath =~ s#/castor/cern.ch#/eos#g;
          $sys=$rfcp.$castor." $tmp";
          if($notverify){
             my $ctmp="/tmp/castor.tmp";
@@ -21455,6 +21511,9 @@ sub RemoveFromDisks{
            system($sys);
            my $ltmp="/tmp/local.tmp";
            $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+           if ($eos) {
+                $sys = "$eosexe ls -l $eospath 1> $ltmp 2>\&1";
+           }
           $i=system($sys);
             if(not $i){
                  open(FILE,"<$ctmp") or die "Unable to open $ctmp \n";
@@ -21538,12 +21597,18 @@ sub RemoveFromDisks{
 # 
               
               if($update){
+               if (not $eos) {
                $sql="insert into ntuples_deleted select * from ntuples where ntuples.jid=$run->[1]";
                $self->{sqlserver}->Update($sql);
 #               $sql="update ntuples_deleted set timestamp=$timenow where jid=$run->[1]";
 #               $self->{sqlserver}->Update($sql);
+               }
                foreach my $ntuple (@{$ret_nt}){
                    my $castor=$castorPrefix;
+                   if ($ntuple->[0] =~ /\/castor\//) {
+                       $castor = $ntuple->[0];
+                   }
+                   else {
                    if($did<0){
                        my @junk=split '\/',$ntuple->[0];
                        for my $j (3...$#junk){
@@ -21554,10 +21619,24 @@ sub RemoveFromDisks{
                     my @junk=split $name_s,$ntuple->[0];
                      $castor=$castor."/$name$junk[1]";
                    }
+                   }
+                   if ($eos) {
+                       $sql="update ntuples set eostime=0 where path='$ntuple->[0]'";
+                       $self->{sqlserver}->Update($sql);
+                       $self->{sqlserver}->Commit();
+                   }
+                   else {
                 $sql="update ntuples set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
                 $self->{sqlserver}->Update($sql);
                 $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
+                   }
                 
+                if ($eos) {
+                    my $eospath = $castor;
+                    $eospath =~ s#/castor/cern.ch#/eos#g;
+                    $sys = "$eosexe $irm $eospath";
+                }
+                else {
                 $sys=$irm." $ntuple->[0]";
                 if($ntuple->[0]=~/^#/){
                  $sys="sleep 1";
@@ -21566,9 +21645,11 @@ sub RemoveFromDisks{
 #                 $sql="update ntuples_deleted set path='$newp' where path='$ntuple->[0]'";
  
                 }
+                }
                 $i=system($sys);
                 if(!$i){
                   $self->{sqlserver}->Update($sql);
+                  $self->{sqlserver}->Commit();
                 }
                 else{
                  if($verbose){
@@ -22063,4 +22144,12 @@ sub getactiveppstring{
         $jobspid="";
     }
     return $jobspid;
+}
+
+sub eosLink2Xrootd {
+    my $self = shift;
+    my $path = shift;
+
+    $path =~ s#^/eosams/#root://eosams.cern.ch//eos/ams/#g;
+    return $path;
 }

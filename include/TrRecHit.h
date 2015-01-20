@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.47 2013/03/14 09:29:38 oliva Exp $
+//  $Id$
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -75,7 +75,7 @@ class TrRecHitR : public TrElem {
   static float GGintegral;
 
   /// load the std::string sout with the info for a future output
-  void _PrepareOutput(int full=0);
+  std::string _PrepareOutput(int full=0);
 
 public:
 

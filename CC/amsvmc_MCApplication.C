@@ -723,7 +723,7 @@ void amsvmc_MCApplication::Stepping()
 		  float etr[1000],str[1000];
 		  float vect[7];
 		  geant step= vmc_step;
-		  geant charge= abs(gMC->TrackCharge());
+		  geant charge= std::abs(gMC->TrackCharge());
 		  if(_param4==3 && vmc_inwvol==1) gentrdi_(charge,gamma,step,ntr,etr,str);
 		  else if(_param4==1)
 		    {
@@ -953,7 +953,7 @@ void amsvmc_MCApplication::Stepping()
 
 	  if(TRDMCFFKEY.mode==0)     //simde_()
 	    {
-	      if(abs(vmc_charge)==1 && vmc_istop ==0 && vmc_step >=0)// keep GEANT3 DESTEP for IONS
+	      if(std::abs(vmc_charge)==1 && vmc_istop ==0 && vmc_step >=0)// keep GEANT3 DESTEP for IONS
 		{
 		  int mdr=10,ndr,i;
 		  float edr[mdr],sdr[mdr];
@@ -1457,25 +1457,25 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 	   
 			   int mode=0;
 	   
-		 	   if(vmc_version==2 && abs(vmc_charge)>0.0000001 && mode<=2){
+		 	   if(vmc_version==2 && std::abs(vmc_charge)>0.0000001 && mode<=2){
 	          
 		 	     float gbirk_rkb,gbirk_c;
 		 	     double density=CurrentMat->GetDensity();
 		 	     gbirk_rkb=0.0011/density;
 		 	     gbirk_c=0.52/(density*density);
 	        
-		 	     if(mode==1 && abs(vmc_charge)>=2)gbirk_rkb=gbirk_rkb*7.2/12.6;
+		 	     if(mode==1 && std::abs(vmc_charge)>=2)gbirk_rkb=gbirk_rkb*7.2/12.6;
 			     	     float dedxcm=1000*10;
 		 	     dee=vmc_destep/(1.+gbirk_rkb*dedxcm+gbirk_c*dedxcm*dedxcm);
                 
-		 	     if(mode==1 && abs(vmc_charge)>=2)gbirk_c=0;
+		 	     if(mode==1 && std::abs(vmc_charge)>=2)gbirk_c=0;
                 
-		 	     if(abs(vmc_charge)>=2){
+		 	     if(std::abs(vmc_charge)>=2){
 		 	       float gamass=vmc_totalenergy+vmc_mass;
 		 	       float bet2=vmc_kine*gamass/(vmc_totalenergy*vmc_totalenergy);
 		 	       float bet=sqrt(bet2);
 		 	       float w1=1.034-0.1777*exp(-0.08114*vmc_charge);
-		 	       float w2=bet/pow(abs(vmc_charge),2/3);
+		 	       float w2=bet/pow(std::abs(vmc_charge),2/3);
 		 	       float w3=121.4139*w2+0.0378*sin(190.7165*w2);
 		 	       float charge1=vmc_charge*(1.-w1*exp(-w3));
 		 	       if(charge1<0) vmc_charge=1;

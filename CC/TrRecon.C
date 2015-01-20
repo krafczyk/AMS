@@ -11,6 +11,7 @@
 ///\date  2008/02/28 AO  Bug fixing
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
+///\date  2014/11/19 SH  TTCS off simulation
 ///
 /// $Date$
 ///
@@ -22,6 +23,7 @@
 #include "TrMap.h"
 #include "tkdcards.h"
 #include "MagField.h"
+#include "bcorr.h"
 
 #include "TkDBc.h"
 #include "TrFit.h"
@@ -266,6 +268,46 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
     TrSim::sitkdigi();
   }
 
+#ifdef __ROOTSHAREDLIBRARY__
+  if (rebuild) {
+    VCon *contt = GetVCon()->GetCont("AMSTrTrack");
+    if (!contt) return -1;
+    contt->eraseC();
+    delete contt;
+  }
+#endif
+
+  if (flag/100000 > 0) {
+    int   config   = (flag/100000)%10;
+    float noise[4] = { 0.9, 0.8, 0.8, 0.7 };
+
+    // Noise fluctuation according to magnet temperature
+    if (TRMCFFKEY.TrSim2010_AddNoise[0] < 0 &&
+	TRMCFFKEY.TrSim2010_AddNoise[1] < 0) {
+      float temp = 0;
+      if (MagnetVarp::btempcor(temp, 0, 1) == 0 && 
+	  MagnetVarp::mgtt.getmeanmagnettemp(temp, 1) == 0) {
+	// Coefficient and offset tuned from actual TTCS-off data (2014/Oct)
+	float dn = (temp-7)/40;
+	for (int i = 0; i < 4; i++) noise[i] += dn;
+      }
+    }
+
+    // Layers 2-8
+    if (TRMCFFKEY.TrSim2010_AddNoise[0] >= 0) {
+      noise[0] = TRMCFFKEY.TrSim2010_AddNoise[0];           // K
+      noise[1] = TRMCFFKEY.TrSim2010_AddNoise[0]*0.8/0.9;   // S
+    }
+    // Layer 9
+    if (TRMCFFKEY.TrSim2010_AddNoise[1] >= 0) {
+      noise[2] = TRMCFFKEY.TrSim2010_AddNoise[1];           // K
+      noise[3] = TRMCFFKEY.TrSim2010_AddNoise[1]*0.7/0.8;   // S
+    }
+
+    SimulateTTCSoff(config, noise);
+    flag -= config*100000;
+  }
+
   int nraw = cont->getnelem();
   delete cont;
 
@@ -445,6 +487,14 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
     AMSgObj::BookTimer.stop("TrTrack");
 #endif
 
+#ifdef __ROOTSHAREDLIBRARY__
+  if (rebuild) {
+    AMSEventR *ev = AMSEventR::Head();
+    for (unsigned int i = 0; i < ev->NParticle(); i++)
+      // Update TrTrack index
+      ev->pParticle(i)->UpdateTrTrack(5, 5);
+  }
+#endif
 
   }
   if (CpuTimeUp()) {
@@ -483,6 +533,157 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
   return trstat;
 }
 
+
+//////////////////////////
+// --- RAW CLUSTERS --- //
+//////////////////////////
+
+#include "TRandom3.h"
+
+class TrRawClusterRS : public TrRawClusterR {
+public:
+  static TRandom3 *RND;
+#pragma omp threadprivate(RND)
+
+  static void Init(int run, int evt) {
+    if (RND) delete RND;
+    TRandom3 rr(evt);
+    int seed = run^rr.Integer(0x7fffffff);
+    RND = new TRandom3(seed);
+  }
+  void AddNoise(float noise) {
+    for (vector<float>::iterator it  = _signal.begin(); 
+	                         it != _signal.end(); it++)
+      *it += RND->Gaus()*noise;
+  }
+};
+
+TRandom3 *TrRawClusterRS::RND = 0;
+
+int TrRecon::SimulateTTCSoff(int config, float add_noise[4])
+{
+  /*
+   * \param[in]  config    Configuration ID
+   * 1: RUN 1412285225 - 1412688825 L2,4,6,8:Yonly    L9:XY-on
+   * 2: RUN 1413209505 - 1413874948 L2,4,6,8:NCL Off  L9:XY-on
+   * 3: RUN 1413897220 -            L2,4,6,8:NCL OFF  L9:Yonly
+   *  (Layer 1 is always XY-on, L3,5,7 are always off)
+   *
+   * \param[in] add_noise[4]  Additional noise to L2-8(0:x,1:y) and L9(2:x,3:y)
+   *  typically put : { 0.9, 0.8, 0.8, 0.7 };
+   */
+
+  VCon *cont = GetVCon()->GetCont("AMSTrRawCluster");
+  if (!cont) {
+    printf("TrRecon::SimulateTTCSoff Can't Find AMSTrRawCluster Container\n");
+    return -1;
+  }
+
+  static bool first = true;
+  if (first) {
+#pragma omp critical (simulatettcsoff)
+    {if (first) {
+	cout << "TrRecon::SimulateTTCSoff-I-"
+	     << "config= " << config << " add_noise= "
+	     << add_noise[0] << " " << add_noise[1] << " "
+	     << add_noise[2] << " " << add_noise[3] << endl;
+	first = false;
+      }
+    }
+  }
+
+  int run = 0, evt = 0;
+#ifndef __ROOTSHAREDLIBRARY__
+  run = AMSEvent::gethead()->getrun();
+  evt = AMSEvent::gethead()->getEvent();
+#else
+  AMSEventR *ev = AMSEventR::Head();
+  run = (ev) ? ev->Run  () : 0;
+  evt = (ev) ? ev->Event() : 0;
+#endif
+  TrRawClusterRS::Init(run, evt);
+
+  int nrm = 0;
+
+  TrRawClusterR *prev = 0;
+  for (int i = 0; i < cont->getnelem(); i++) {
+    TrRawClusterR *raw = (TrRawClusterR *)cont->getelem(i);
+    int lay  = raw->GetLayerJ();
+    int side = raw->GetSide();
+    int ison = 1;
+
+    // Layer 1 is always nominal condition (do nothing)
+    if (lay == 1) ;
+
+    // Layer 9 is Yonly if config=3
+    else if (lay == 9) {
+      if (config == 3 && side == 0) ison = 0;
+    }
+
+    // Layers 3,5,7 are always off
+    else if (lay == 3 || lay == 5 || lay == 7) ison = 0;
+
+    // Layers 2,4,6,8
+    else if (lay == 2 || lay == 4 || lay == 6 || lay == 8) {
+      // config:1 Y-only
+      if (config == 1) {
+	if (side == 0) ison = 0;
+      }
+      // config:2,3 NCL off
+      else if (config == 2 || config == 3) {
+	int tkid = TMath::Abs(raw->GetTkId());
+	 if (lay == 2 && (tkid <= 103 || 113 <= tkid)) ison = 0;
+	 if (lay == 4 && (tkid <= 303 || 313 <= tkid)) ison = 0;
+	 if (lay == 6 && (tkid <= 503 || 513 <= tkid)) ison = 0;
+	 if (lay == 8 && (tkid <= 703 || 713 <= tkid)) ison = 0;
+
+	if (side == 0) {
+	 if (lay == 2 && (tkid <= 105 || 111 <= tkid)) ison = 0;
+	 if (lay == 4 && (tkid <= 305 || 311 <= tkid)) ison = 0;
+	 if (lay == 6 && (tkid <= 505 || 511 <= tkid)) ison = 0;
+	 if (lay == 8 && (tkid <= 705 || 711 <= tkid)) ison = 0;
+	}
+      }
+    }
+
+    // Add noise if ON (layers 2-9)
+    if (lay != 1) {
+      float noise = 0;
+      if (lay == 9) noise = (side == 0) ? add_noise[2] : add_noise[3];
+      else          noise = (side == 0) ? add_noise[0] : add_noise[1];
+      if (noise > 0) ((TrRawClusterRS *)raw)->AddNoise(noise);
+    }
+
+    // Remove TrRawCluster if the corresponding ladder/side is OFF
+    if (!ison) {
+      static int npri = 0;
+      if (npri < 10) {
+#pragma omp critical (simulatettcsoffpri)
+	{if (npri < 10) {
+	    cout << "TrRecon::SimulateTTCSoff-I-Removing TkID= "
+		 << raw->GetTkId() << " layJ= " << raw->GetLayerJ()
+		 << " side= " <<raw->GetSide() << endl;
+	    npri++;
+	  }
+	}
+      }
+      cont->removeEl(prev);
+      nrm++;
+      i--;
+    }
+    else prev = raw;
+  }
+  delete cont;
+
+  TrLadCal::AddNoiseK[1] = TrLadCal::AddNoiseK[3] = 
+  TrLadCal::AddNoiseK[5] = TrLadCal::AddNoiseK[7] = add_noise[0];
+  TrLadCal::AddNoiseS[1] = TrLadCal::AddNoiseS[3] = 
+  TrLadCal::AddNoiseS[5] = TrLadCal::AddNoiseS[7] = add_noise[1];
+  TrLadCal::AddNoiseK[8]                          = add_noise[2];
+  TrLadCal::AddNoiseS[8]                          = add_noise[3];
+
+  return nrm;
+}
 
 
     
@@ -1898,6 +2099,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
   
   int hskip = 0;
   int cskip = 0;
+
+  double dpsmax = 0.2;
+  if (TRCLFFKEY.AllowYonlyTracks) dpsmax = 2;
   
   int i[NP];
   for (i[1] = 0; i[1] < nc[1]; i[1]++) {  // Plane 2 (Layer 2, 3)
@@ -1957,7 +2161,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	  if (i[0] == nc[0]) {
 	    double dps = std::fabs(CY(2)-Intpol1(CZ(1), CZ(3), 
 						 CY(1), CY(3), CZ(2)));
-	    if (dps > 0.2) continue;
+	    if (dps > dpsmax) continue;
 	    
 	    int jr;
 	    for (jr = 0; jr < NC && tmin[jr].csq > 0; jr++) {
@@ -2244,7 +2448,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 
     int nlx = 0;
     for (int k = 0; k < NL; k++) if (nhx[k] > 0) nlx++;
-    if (nlx < 2) continue;
+
+    if (!TRCLFFKEY.AllowYonlyTracks && nlx < 2) continue;
     TR_DEBUG_CODE_110;
 
     if (trdh &&
@@ -2261,8 +2466,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
     int      imin[NL];
     AMSPoint hmin[NL];
     double   dmin[NL];
-    double   smin[4];
-    double   pmin[2];
+    double   smin[4] = {0};
+    double   pmin[2] = {0};
     
     for (int k = 0; k < NL; k++) imin[k] = 0;
 
@@ -2272,6 +2477,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       AMSDir   dtrd;
       double   xtrd_match = 6;
       double   ytrd_match = 3;
+      if (TRCLFFKEY.AllowYonlyTracks) { xtrd_match = 10; ytrd_match = 5; }
+
 #ifndef __ROOTSHAREDLIBRARY__
       AMSTRDTrack *trd = (AMSTRDTrack*)AMSEvent::gethead()
 	                               ->getheadC("AMSTRDTrack", 0, 1);
@@ -3251,7 +3458,7 @@ int TrRecon::PreselTrTracksVertex()
 #ifndef __ROOTSHAREDLIBRARY__
 #ifndef _STANDALONE_
   int ntrc = 0;
-  for (int i = 0; i < TRDDBc::nlay(); i++) {
+  for (unsigned int i = 0; i < TRDDBc::nlay(); i++) {
     AMSTRDCluster *trc = AMSTRDCluster::gethead(i);
     for (; trc; trc = trc->next()) ntrc++;
   }
@@ -3761,7 +3968,7 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
   enum { NX = 200 };
 
   double hitx[NX*NL], hitz[NX*NL];
-  int    hmlt[NX*NL], nhml[NL];
+  int    nhml[NL];
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("TrTrack1Vhmlt");
@@ -3769,7 +3976,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 
   for (int ic = 0; ic < NC; ic++) {
 
-  for (int i = 0; i < NL*NX; i++) hmlt[i] = -1;
   for (int i = 0; i < NL;    i++) nhml[i] =  0;
 
    if (cmin[ic] == csth) continue;
@@ -3793,7 +3999,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
 	AMSPoint coo = hh->GetCoord(k);
 	hitx[nhml[il]+il*NX] = coo.x();
 	hitz[nhml[il]+il*NX] = coo.z();
-	hmlt[nhml[il]+il*NX] = j*100+k;
 	nhml[il]++;
       }
     }
@@ -3938,8 +4143,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
   AMSgObj::BookTimer.start("TrTrack2Build"); 
 #endif
 
-  TrTrackR *tref = 0;
-
   for (int it = 0; it < 2; it++) {
 #ifndef __ROOTSHAREDLIBRARY__
    AMSTrTrack *track = new AMSTrTrack(0);
@@ -4022,7 +4225,6 @@ int TrRecon::BuildTrTracksVertex(int rebuild)
  //if (tshr && tshr != tref && nshr > 2) {
    if (tshr && nshr > 2) {
      tshr->setstatus(AMSDBc::TOFFORGAMMA);
-     tref = tshr;
      delete track;
      continue;
    }
@@ -4205,6 +4407,128 @@ double TrRecon::FitVtx(int n1, double *x1, double *y1,
   return chisq;
 }
 
+int TrRecon::RecoverExtHits()
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  AMSEventR *ev = AMSEventR::Head();
+  if (!ev) return -1;
+  if (!ev->pParticle(0) || !ev->pParticle(0)->pTrTrack()) return 0;
+
+  TrTrackR *trk = ev->pParticle(0)->pTrTrack();
+  if (trk->HasExtLayers() == 0 || 
+     (trk->GetBitPatternXY()&0x180) == 3) return 0;
+
+  int DEBUG = TrDEBUG;
+
+  vector<TrRawClusterR> &vr = ev->TrRawCluster();
+  vr.clear();
+
+  int ntyp = TRMCFFKEY.NoiseType; TRMCFFKEY.NoiseType = 0;
+  TrSim::sitkdigi();
+  TRMCFFKEY.NoiseType = ntyp;
+
+  int nr = 0;
+  for (vector<TrRawClusterR>::iterator i = vr.begin(); i != vr.end();) {
+    if (i->GetLayer() < 8 || i->GetSide() != 0) i = vr.erase(i);
+    else { ++i; nr++; }
+  }
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-nraw= " << nr << endl;
+  if (nr == 0) return 0;
+
+  vector<TrClusterR> &vc = ev->TrCluster();
+  vector<TrRecHitR>  &vh = ev->TrRecHit();
+  int nc0 = ev->nTrCluster();
+  int nh0 = ev->nTrRecHit();
+
+  FillChargeSeeds();
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-htm= "
+		  << sqrt(_htmx) << " " << sqrt(_htmy) << endl;
+
+  BuildTrClusters(0);
+
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-ncls= "
+		  << ev->NTrCluster() << " " << nc0 << endl;
+  if (ev->NTrCluster() <= nc0) return 0;
+
+  vector<TrClusterR>::iterator i0 = vc.begin();
+  advance(i0, nc0);
+
+  for (vector<TrClusterR>::iterator i = i0; i != vc.end();) {
+    if (i->GetTotSignal() < 100 ||  // Small tuning
+	(TRCLFFKEY.ChargeSeedTagActive && 
+	 !CompatibilityWithChargeSeed(&*i))) { i = vc.erase(i); continue; }
+    int tk = i->GetTkId();
+    int a1 = i->GetAddress(0), a2 = i->GetAddress(i->GetNelem()-1);
+    for (vector<TrRecHitR>::iterator j = vh.begin(); j != vh.end(); ++j)
+      if (!j->OnlyY() && j->GetTkId() == tk) {
+	TrClusterR *xc = j->GetXCluster();
+	if (xc && a1 <= xc->GetAddress(xc->GetNelem()-1) &&
+	                xc->GetAddress(0) <= a2) {
+	  i = vc.erase(i); tk = 0; break;
+	}
+      }
+    if (tk == 0) continue;
+
+    for (vector<TrClusterR>::iterator j = vc.begin(); j != i0; ++j) {
+      if (j->GetTkId() == tk && j->GetSide() == 1) {
+	TrRecHitR hit(tk, &(*i), &(*j), 0);
+	float prob = hit.GetCorrelationProb();
+	if (DEBUG >= 2)
+	  cout << Form("hit %4d %5.3f %d %5.1f %5.1f", tk, prob,
+		       CompatibilityWithChargeSeed(&hit),
+		       i->GetTotSignal(), j->GetTotSignal()) << endl;
+        if (prob > TRCLFFKEY.CorrelationProbThr && 
+	    (TRCLFFKEY.ChargeSeedTagActive == 0 ||
+	     CompatibilityWithChargeSeed(&hit))) {
+	      hit.setstatus(TrRecHitR::ZSEED);
+	      vh.push_back(hit);
+	}
+      }
+    }
+    ++i;
+  }
+
+  if (DEBUG) cout << "TrRecon::RecoverExtHits-I-nhit= " 
+		  << vh.size() << " " << nh0 << endl;
+
+  if (vh.size() == nh0) return 0;
+
+  int nm = 0;
+  for (int i = 0; i < ev->nTrTrack(); i++) {
+    TrTrackR *trk = ev->pTrTrack(i);
+    int bx0 = (trk->GetBitPatternXY()&0x180)>>7;
+
+    int ifit = TrTrackR::DefaultFitID;
+    if (trk->ParExists(ifit)) {
+      TrRecHitR *h1 = trk->GetHitLJ(1); if (h1) h1->ClearUsed();
+      TrRecHitR *h9 = trk->GetHitLJ(9); if (h9) h9->ClearUsed();
+      MergeExtHits(trk, ifit, TrRecHitR::ZSEED);
+    }
+
+    int bx1 = (trk->GetBitPatternXY()&0x180)>>7;
+    if (bx1 > bx0) nm++;
+
+    if (DEBUG) cout << "TrRecon::RecoverExtHits-I-bx= " 
+		    << bx0 << " " << bx1 << endl;
+
+    if (bx1 == 3) {
+      TrRecHitR *h1 = trk->GetHitLJ(1);
+      TrRecHitR *h9 = trk->GetHitLJ(9);
+      if (DEBUG) cout << "TrRecon::RecoverExtHits-I-qq= " 
+		      << ev->Event() << " "
+		      << bx0 << " " << bx1 << " "
+		      << h1->GetXCluster()->GetTotSignal() << " "
+		      << h9->GetXCluster()->GetTotSignal() << " "
+		      << h1->GetCorrelationProb() << " "
+		      << h9->GetCorrelationProb() << endl;
+    }
+  }
+
+  return nm;
+
+#endif
+  return 0;
+}
 
 void TrRecon::PurgeGhostHits()
 {
@@ -4530,14 +4854,13 @@ int TrRecon::FillHistos(int trstat, int refit)
 
   ////////// Check simulation momentum and rigidity //////////
   bool ismc = false;
-  double pmc = 0, rmc = 0;
+  double rmc = 0;
 #ifndef __ROOTSHAREDLIBRARY__
   if (AMSJob::gethead()->isMCData()) {
     AMSmceventg *mcg 
       = (AMSmceventg *)AMSEvent::gethead()->getC("AMSmceventg")->gethead();
     if (mcg) {
       ismc = true;
-       pmc = mcg->getmom();
        rmc = (mcg->getcharge() != 0) ? mcg->getmom()/mcg->getcharge() : 0;
     }
   }
@@ -4546,7 +4869,6 @@ int TrRecon::FillHistos(int trstat, int refit)
   MCEventgR *mcg = (evt) ? evt->pMCEventg(0) : 0;
   if (mcg) {
     ismc = true;
-     pmc = mcg->Momentum;
      rmc = (mcg->Charge != 0) ? mcg->Momentum/mcg->Charge : 0;
   }
 #endif
@@ -4661,7 +4983,7 @@ int TrRecon::FillHistos(int trstat, int refit)
 	  1.2 < qtof[1] && qtof[1] < 2.5) psel |= 1;
     }
 
-    for (int i = 0; i < TRDDBc::nlay(); i++) {
+    for (unsigned int i = 0; i < TRDDBc::nlay(); i++) {
       AMSPoint dmin;
       AMSTRDCluster *trc = AMSTRDCluster::gethead(i);
       for (; trc; trc = trc->next()) {
@@ -4876,7 +5198,7 @@ int TrRecon::FillHistos(int trstat, int refit)
 #ifndef _STANDALONE_
   double ttm[4], sln[4];
   for (int j = 0; j < 4; j++) {
-    double dmin = 25, dxmin, dymin;
+    double dmin = 25, dxmin = 0, dymin = 0;
     ttm[j] = sln[j] = 0;
     int itc = (j == 0 || j == 3) ? 1 : 0;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -5216,7 +5538,7 @@ bool TrRecon::PreScan(int nlay, TrHitIter &it) const
   double pz   = it.coo[it.ilay[nlay]][2];
   double pc   = it.coo[it.ilay[nlay]][it.side];
   double intp = it.param[0]+it.param[1]*pz+it.param[2]*pz*pz;
-  if(!isnormal(intp)) intp=0;
+  if(!std::isnormal(intp)) intp=0;
   //PZ Bug fix if put on the return line is converted to an integer
   //and often fail the comparison.
   double ddiff=fabs(pc-intp);
@@ -5734,9 +6056,6 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
     hman.Fill("ySig5",xxx,yyy);
     if ( (TRCLFFKEY.TrackFindChargeCutActive)&&( (yyy>xxx+15)||(yyy<xxx-15) ) ) continue;
 
-    int idx=0;
-    if (hit->OnlyY()) idx=1;
-
     int il = -1;
     if (hit->GetLayer() == lyext[0]) il = 0;
     if (hit->GetLayer() == lyext[1]) il = 1;
@@ -5867,7 +6186,6 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
     good_base2=(mfit & 0xfffffff0) + TrTrackR::kAlcaraz;
   else if(base==TrTrackR::kAlcaraz)
     good_base2=(mfit & 0xfffffff0) + TrTrackR::kChoutko;
-  
 
   if(iadd[0]==1) {
     track->DoAdvancedFit(TrTrackR::kFitLayer8);
@@ -5885,25 +6203,23 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
   }
   
   if(iadd[0]==1 && iadd[1]==1) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9);
+    track->DoAdvancedFit(TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
 
-    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
-    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
-
+    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9))
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
+    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9))
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
   }
-
-  else if ( track->ParExists(mfit | TrTrackR::kFitLayer8) &&
-            track->ParExists(mfit | TrTrackR::kFitLayer9) &&
-           !track->ParExists(mfit | TrTrackR::kFitLayer8 |
-			            TrTrackR::kFitLayer9)) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9);
+  else if ( track->ParExists(mfit|TrTrackR::kFitLayer8) &&
+            track->ParExists(mfit|TrTrackR::kFitLayer9) &&
+           !track->ParExists(mfit|TrTrackR::kFitLayer8|
+			          TrTrackR::kFitLayer9)) {
+    track->DoAdvancedFit(TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
     
-    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
-    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
+    if(       track->FitDone(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9))
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
+    else if  (track->FitDone(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9))
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
   }
 
 #ifndef __ROOTSHAREDLIBRARY__
@@ -5984,10 +6300,14 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
 
   // 1st. step Fit
   int mfit1 = (MagFieldOn()) ? TrTrackR::kChoutko : TrTrackR::kLinear;
+
   float ret = track->FitT(mfit1);
+  int ndofy = (ret > 0) ? track->GetNdofY(mfit1) : 0;
+  if (TRCLFFKEY.AllowYonlyTracks && ndofy == 0) ndofy = 1; 
   if (ret < 0 || 
       track->GetChisqX(mfit1) < 0 || track->GetChisqY(mfit1) <= 0 ||
-      track->GetNdofX (mfit1) < 0 || track->GetNdofY (mfit1) <= 0) {
+      track->GetNdofX (mfit1) < 0 || ndofy <= 0) {
+
     if (TrDEBUG >= 1)
       cout << "1st.fit failed; " << ret << " "
 	   << track->GetChisqX(mfit1) << " " << track->GetChisqY(mfit1) << " "

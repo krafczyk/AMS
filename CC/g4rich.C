@@ -1,4 +1,6 @@
 //---Modify by Qi Yan OpBoundaryProcess->public TOFG4OpBoundaryProcess
+ #include "G4PhysicalConstants.hh"
+ #include "G4SystemOfUnits.hh"
 #include "G4EmProcessSubType.hh"
 #include "G4LossTableManager.hh"
 #include "G4MaterialCutsCouple.hh"

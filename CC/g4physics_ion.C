@@ -31,13 +31,15 @@
 #if G4VERSION_NUMBER  > 945 
 #include  "G4GGNuclNuclCrossSection.hh"
 #endif
+#if G4VERSION_NUMBER  > 999
+#include "G4AntiDeuteron.hh"
+#endif
 
 #include "G4DPMJET2_5Model.hh"
 #include "G4DPMJET2_5Interface.hh"
 #include "G4DPMJET2_5CrossSection.hh"
 #include "G4IonsHEAOCrossSection.hh"
 
-using namespace std;
 
 // -----------------------------------------------------------
 IonDPMJETPhysics::IonDPMJETPhysics()
@@ -87,7 +89,9 @@ void IonDPMJETPhysics::ConstructProcess()
   dpmXS = new G4DPMJET2_5CrossSection;//DPMJET Cross-section<1000TeV
   HEAOXS = new G4IonsHEAOCrossSection();//HEAO  Cross-section
   AddProcess("dInelastic",G4Deuteron::Deuteron(),false);
-
+#if G4VERSION_NUMBER  > 999
+  AddProcess("adInelastic",G4AntiDeuteron::AntiDeuteron(),false);
+#endif
   AddProcess("tInelastic",G4Triton::Triton(),false);
   AddProcess("He3Inelastic",G4He3::He3(),true);
   AddProcess("alphaInelastic",G4Alpha::Alpha(),true);
@@ -152,6 +156,6 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   hadi->RegisterMe(theIonBC);
   hadi->RegisterMe(theIonBC1);
   hadi->RegisterMe(theDPM);
-  if (G4FFKEY.HCrossSectionBias!=1) hadi->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+  if (G4FFKEY.HCrossSectionBias[0]!=1) hadi->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 }
 // -----------------------------------------------------------

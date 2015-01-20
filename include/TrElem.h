@@ -8,9 +8,6 @@
 //! Abstract class used to define a  Generic Tracker Rec/Sim Object
 class TrElem{
 protected:
-  //! std::string used to form an Info string the can be sent to vasrius outputs
-  static std::string sout;
-#pragma omp threadprivate (sout)
   //! C string of fixed sizer used for the event display interface
   static char _Info[MAXINFOSIZE];
 #pragma omp threadprivate (_Info)
@@ -18,8 +15,8 @@ protected:
   TrElem(){}
   //! Destructor
   virtual ~TrElem(){}
-  //! Function that fills up sout with meaningful info
-  virtual void _PrepareOutput(int opt=0)=0;
+  //! Function that returns meaningful info
+  virtual std::string _PrepareOutput(int opt=0)=0;
 
 public:
   //! it Prints Infos to std output

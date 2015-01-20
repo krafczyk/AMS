@@ -423,9 +423,14 @@ void TrSim::sitkdigi() {
 #endif
       } 
 
-      // Put the  ADC 12-bit  hard cieling to the signal amplitude in ADC
-      for (int ii=0;ii<1024;ii++)
-	if(ladbuf[ii]+ladcal->GetPedestal(ii)>4096) ladbuf[ii]=4096-ladcal->GetPedestal(ii);
+
+      for (int ii=0;ii<1024;ii++) {
+        // Put the  ADC 12-bit  hard cieling to the signal amplitude in ADC
+ 	if (ladbuf[ii]+ladcal->GetPedestal(ii)>4096) ladbuf[ii]=4096-ladcal->GetPedestal(ii);
+        // FTE off
+        if ( (ladcal->Power_failureS!=0)&&(ii<640) ) ladbuf[ii] = 0;    
+        if ( (ladcal->Power_failureK!=0)&&(ii>=640) ) ladbuf[ii] = 0;
+      }
 
       // DSP Simulation
       if ( (TRMCFFKEY.NoiseType==1) ||  // DSP on all ladders
@@ -839,11 +844,11 @@ void TrSim::MergeMCCluster(){
   
   for(iter=TrLadMap.begin();iter!=TrLadMap.end();iter++){
     vector< pair<int,TrMCClusterR*> > & mm= iter->second;
-    for(int jj=0;jj<mm.size();jj++){
+    for(unsigned int jj=0;jj<mm.size();jj++){
       if(mm[jj].first==1) continue;
       locstor.push_back(*(mm[jj].second));
       mm[jj].first=1;
-      for (int ii=jj+1; ii<mm.size(); ii++) {
+      for (unsigned int ii=jj+1; ii<mm.size(); ii++) {
 	if(mm[ii].first==1) continue;
 	TrMCClusterR* cl = mm[ii].second;
 	AMSPoint dd=locstor.rbegin()->_xgl-cl->_xgl;
@@ -857,7 +862,7 @@ void TrSim::MergeMCCluster(){
 
   if(locstor.size()>0){
     container->eraseC();
-    for(int ii=0;ii<locstor.size();ii++)
+    for(unsigned int ii=0;ii<locstor.size();ii++)
 #ifdef __ROOTSHAREDLIBRARY__
       container->addnext( new TrMCClusterR(locstor[ii]) );
 #else
@@ -914,7 +919,7 @@ void TrSim::MergeMCCluster2() {
     map<int,vector<TrMCClusterR*> > TrTrkIdMap;
     map<int,vector<TrMCClusterR*> >::iterator TrTrkIdMapIter;
     vector<TrMCClusterR*>& cluster_list = TrLadMapIter->second;
-    for(int jj=0; jj<cluster_list.size(); jj++) { 
+    for(unsigned int jj=0; jj<cluster_list.size(); jj++) { 
       TrMCClusterR* cluster = (TrMCClusterR*) cluster_list.at(jj);
       if (!cluster) { 
         printf("TrSim::MergeMCCluster2-W found an empty pointer in the AMSTrMCCluster container. Jump!");
@@ -990,7 +995,7 @@ void TrSim::MergeMCCluster2() {
   // redo container
   if(locstor.size()>0) {
     container->eraseC();
-    for(int ii=0;ii<locstor.size();ii++)
+    for(unsigned int ii=0;ii<locstor.size();ii++)
 #ifdef __ROOTSHAREDLIBRARY__
       container->addnext( new TrMCClusterR(*locstor[ii]) );
 #else

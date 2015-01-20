@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.h,v 1.3 2003/07/09 14:56:34 choutko Exp $
+//  $Id$
 #ifndef AMSR_GeometrySetter_H
 #define AMSR_GeometrySetter_H
 
@@ -54,7 +54,7 @@ enum EVisibility {
 
 
 struct AMSR_GeoToggle {  
-  char * name;  EVisibility vis; void * sw;  // TNode * node;
+  const char * name;  EVisibility vis; void * sw;  // TNode * node;
 };
 
 static const Int_t nToggle=6;
@@ -62,7 +62,7 @@ static const Int_t nToggle=6;
 class AMSR_GeometrySetter {
 
 protected:
-   void recur(TObjLink * lnk, char *name,bool what=false);
+   void recur(TObjLink * lnk, const char *name,bool what=false);
    static AMSR_GeoToggle m_Toggle[];
    TGeometry   *m_Geometry;	// pointer to the geometry
 

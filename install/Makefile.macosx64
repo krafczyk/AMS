@@ -4,10 +4,12 @@
 
 #   Architecture linux g++
 
+GCC := $(shell $(ROOTSYS)/bin/root-config  --cc)
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-VERGCC       := $(shell gcc --version 2>&1| grep 4.1)
+VERGCC       := $(shell $(GCC) --version 2>&1| grep 4.1)
+VERGCC48       := $(shell $(GCC) --version 2>&1| grep 4.8)
 
 ifdef VER
 NEW = 
@@ -15,24 +17,24 @@ else
 NEW = _new
 endif
 
-#VERGCC_LONG  := $(shell gcc --version | grep GCC | awk '{ print $$3 }' | sed 's/\.//g')
-VERGCC_LONG  := $(shell gcc -dumpversion | sed 's/\.//g')
+#VERGCC_LONG  := $(shell $(GCC) --version | grep GCC | awk '{ print $$3 }' | sed 's/\.//g')
+VERGCC_LONG  := $(shell $(GCC) -dumpversion | sed 's/\.//g')
 
 ########################################################################
 #Compilers
 ########################################################################
 ifneq "$(origin CC )" "environment" 
-  CC  = gcc  -m64
+  CC  = $(shell $(ROOTSYS)/bin/root-config --cc) -m64
 endif
 ifneq "$(origin CXX)" "environment" 
-  CXX = g++ -m64
+  CXX = $(shell $(ROOTSYS)/bin/root-config --cxx) -m64
 endif
 ifneq "$(origin FF )" "environment" 
-  FF  = gfortran -m64 
+  FF  = $(shell $(ROOTSYS)/bin/root-config --f77) -m64 
 endif
   FFOLD=$(FF)
 ifneq "$(origin LD )" "environment" 
-  LD  = g++ -m64
+  LD  = $(shell $(ROOTSYS)/bin/root-config --ld) -m64
 endif
   FORTRAN2_LIBS=
   FORTRAN_LIBS=
@@ -87,16 +89,26 @@ ifdef TFAPEDC
 DEFINES+=  -D__TFAPEDC__
 endif
 
+#OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
+OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; elif [ `sw_vers -productVersion | sed 's/\.//g'` == "1010" ]; then echo 10100; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
+DEFINES+=-D__OSXVER__=$(OSXVER)
 
 # Wno-unused-function requires a rework of cfotran.h (move all functions into cfortran.c)
 # Wno-missing-braces requires still lots of work in Tofdbc.C (after that it can be removed.)
 # Same for Wno-gnu-static-float-init & Wno-deprecated-writable-strings (requires lots of work.)
+TEST_OSXVER=$(shell test $(1) -$(2) $(3); echo $$?)
+OSXVER_LT_1090 := $(call TEST_OSXVER,$(OSXVER),lt,1090)
+ifeq "$(OSXVER_LT_1090)" "0"
+CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings
+else
+ifdef VERGCC48
+CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings -Wno-unknown-pragmas -Wno-strict-aliasing -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-strict-overflow #just a temporary workaround
+else
 CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
-DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
+endif
+endif
 
-#OSXVER := $(shell sw_vers -productVersion | sed 's/\.//g')
-OSXVER := $(shell if [ `sw_vers -productVersion | sed 's/\.//g'` == "109" ]; then echo 1090; else echo `sw_vers -productVersion | sed 's/\.//g'`; fi)
-DEFINES+=-D__OSXVER__=$(OSXVER)
+DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
@@ -181,8 +193,8 @@ LDFLAGS=      $(FORTRAN2_LIBS) \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifndef NO_NAG
-LDFLAGSI += -L$(NAGDIR)  -lnag
-LDFLAGS += -L$(NAGDIR)  -lnag
+LDFLAGSI += -L$(NAGDIR)  -lnagmac64
+LDFLAGS += -L$(NAGDIR)  -lnagmac64
 endif
 
 ifdef G4AMS
@@ -194,6 +206,7 @@ ifdef AMSPROFILE
   LDFLAGS+=-pg
 endif
 
+LDFLAGSDYNAMIC:=   $(LDFLAGS) $(RH9add)
 LDFLAGSSTATIC:=    $(LDFLAGS) $(RH9add) 
 
 

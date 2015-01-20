@@ -8,7 +8,6 @@
 #include <TClass.h>
 
 
-using namespace std;
 
 OutTreeManager::OutTreeManager() {
   Debug=0;

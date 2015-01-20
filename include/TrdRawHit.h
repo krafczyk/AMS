@@ -27,6 +27,7 @@ class TrdRawHitR: public TrElem{
     float getsig(int &error);   ///< return sigma
     float getgain(int &error);  ///< return gain  from TRDGains
     float getgain2(int &error);  ///< return gain  from TRDGains2
+    float getgain3(int &error);  ///< return gain  from TRDGains3
 
     bool operator==(const TrdRawHitR& other) const {
       if(Layer != other.Layer)return 0;
@@ -36,16 +37,14 @@ class TrdRawHitR: public TrElem{
       return 1;
     }
 
-    void _PrepareOutput(int opt=0){
-      sout.clear();
-      sout.append("TrdRawHit _PrepareOutput");
+	std::string _PrepareOutput(int opt=0){
+	  return "TrdRawHit _PrepareOutput";
     };
 
     const char* Info(int iRef=0){return "TrdRawHit::Info";};
 
     std::ostream& putout(std::ostream &ostr = std::cout){
-      _PrepareOutput(1);
-      return ostr << sout  << std::endl; 
+      return ostr << _PrepareOutput(1) << std::endl; 
     };
 
     /// printout

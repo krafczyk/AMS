@@ -35,7 +35,6 @@
 #endif
 #include "tofsim02.h"
 //
-using namespace std;
 //------------------------------------------------------------------
 map<integer,TH1D*> TOF2TovtN::phmap;
 map<integer,TH1D*>::iterator TOF2TovtN::phmapiter;
@@ -66,8 +65,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   geant edep1,x,y,z,time,dtime,sharep,eff,r,rand;
   geant nel0,nels,nelp;
   int neles,photongen=0;
-  integer idivx,nwdivs,npmts;
-  geant tfpos[3]={0,0,0};
+  integer idivx,npmts;
   number phtiml=0,phtim=0,phtims=0,phtimd=0;
   char vname[5];
   char histn[100];
@@ -93,7 +91,6 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   x=cloc[0];y=cloc[1];z=cloc[2];
   //cout<<"loc x="<<x<<" loc y="<<y<<" locz="<<z<<endl;
   TOF2JobStat::addmc(12);
-  nwdivs=TOFWScanN::scmcscan1[ilay][ibar].getndivs();//wdivs-x
   npmts=TOFWScanN::scmcscan1[ilay][ibar].getnpmts();//pmts per side
   idivx=TOFWScanN::scmcscan1[ilay][ibar].getwbin(x);//wdivs-x-idiv
   cnum=TOF2DBc::barseqn(ilay,ibar);// solid sequential numbering(0->33)
@@ -140,9 +137,6 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
       for(i=0;i<neles;i++){//for each side
          rand=RNDM(-1); 
 	 phtims=dtime*rand;//photon begin step time 
-         tfpos[0]=vect[0]+stepl*rand*vect[3];
-         tfpos[1]=vect[1]+stepl*rand*vect[4];
-         tfpos[2]=vect[2]+stepl*rand*vect[5];
 	 phtimd=TOFPMT::phriset();//photon rise time+decay time
 	 if(is==0)phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm1(idivx,r,i1,i2);
 	 else     phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm2(idivx,r,i1,i2);
@@ -169,8 +163,8 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
 void TOF2TovtN::build()
 {
   integer id,idd,ibar,ilay,is,ipm,prbar=-1,nowbar=-1;
-  integer i,ij,iph,nph;
-  uinteger ii;
+  integer ij,iph,nph;
+  uinteger i, ii;
   geant edepb=-1,time,pmtime,am;
   geant tslice[TOF2GC::PMTSMX][TOFCSN::FLTDCBM+1]; //  flash ADC array only use
   static int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
@@ -191,7 +185,7 @@ void TOF2TovtN::build()
 
 
     for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
-       for(i=0;i<=ftdcnbmax;i++){
+       for(i=0;int(i)<=ftdcnbmax;i++){
          tslice[ipm][i]=0;
       }
     }
@@ -246,7 +240,7 @@ void TOF2TovtN::build()
         if(edepb>TFMCFFKEY.Thr)TOF2TovtN::totovtn(idd,edepb,tslice);//put PMT for side
         //cout<<"end process totovtn"<<endl;
         for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
-          for(i=0;i<=ftdcnbmax;i++)tslice[ipm][i]=0;
+          for(i=0;int(i)<=ftdcnbmax;i++)tslice[ipm][i]=0;
         }
         //cout<<"end tofcluster edep="<<edepb<<endl;
       }
@@ -266,7 +260,7 @@ void TOF2TovtN::build()
         ipm= id%10;
 //        cout<<"id="<<id<<endl;
 //--for pmt bin
-        for(ii=1;ii<=(*phmapiter).second->GetNbinsX();ii++){
+        for(ii=1;int(ii)<=(*phmapiter).second->GetNbinsX();ii++){
            nph=integer((*phmapiter).second->GetBinContent(ii));
            nphoton+=nph;
            if(nph<1)continue;//zero photon
@@ -314,7 +308,7 @@ void TOF2TovtN::build()
            idd=1000*(ilay+1)+10*(ibar+1)+(is+1);//LBBS
            if(edepb>TFMCFFKEY.Thr)TOF2TovtN::totovtn(idd,edepb,tslice);//put PMT for side
            for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
-              for(i=0;i<=ftdcnbmax;i++)tslice[ipm][i]=0;
+              for(i=0;int(i)<=ftdcnbmax;i++)tslice[ipm][i]=0;
             }
          }
 //-----
@@ -369,24 +363,23 @@ geant TOF2TovtN::pmsatur(geant am,int ilay,int ibar,int is,int ipm){
 void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCBM+1])
 {
 //!!! Logic is preliminary:wait for detailed SFET slecrtrical logic from Diego(Guido)
-  integer i,ipm,ilay,ibar,isid,id,_sta,stat(0);
+  integer i,ipm,ilay,ibar,isid,id,_sta;
   geant tm,am,tmp,amp,amx;
-  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadcd;
+  integer _ntr1,_ntr3,_nstdc,_nadcd;
   number _ttr1u[TOF2GC::SCTHMX1],_ttr3u[TOF2GC::SCTHMX1];
   number _ttr1d[TOF2GC::SCTHMX1],_ttr3d[TOF2GC::SCTHMX1];
   number _tstdc[TOF2GC::SCTHMX3];
   number _adca;
   number _adcd[TOF2GC::PMTSMX];
-  int imax,imin;
+  int imax=0,imin=0;
   number charge,charged[TOF2GC::PMTSMX];
-  geant tmark;
+  geant tmark=0;
   static integer first=0;
-  static geant fladcb,cconv;
+  static geant fladcb;
   geant daqt0,daqt1,daqt2,fdaqt0;
-  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp7,daqp8,daqp9,daqp10;
-  static geant daqp11;
+  static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp7,daqp8,daqp10;
   number adcs;
-  int16u otyp,mtyp,crat,slot,tsens;
+  int16u otyp,mtyp,crat,tsens;
 //
 //cout<<"======>Enter TOF2TovtN::totovt with id="<<idd<<endl;
   id=idd/10;// LBB
@@ -397,14 +390,12 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCB
   otyp=0;
   AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
   crat=tofid.getcrate();//current crate#
-  slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
   tsens=tofid.gettempsn();//... sensor#(1,2,...,5 == sequential SFET(A)'s number !!!)
 //
   if(first++==0){
     if(ftdcnb()>TOFCSN::FLTDCBM)cerr<<"<<---Error TOF2Tovt::FLASH TDC Length<1000ns"<<endl;
     fladcb=ftdcbw();
     cout<<"TOF2Tovt::FLASH TDC Width="<<(fladcb*1000)<<"ps"<<endl;
-    cconv=fladcb/50.; // for mV->pC (50 Ohm load)
     daqp0=TOF2DBc::daqpwd(0);// fixed PW of "FTC(HT)"-branch output pulse(ACTEL-outp going to SPT)
     daqp1=TOF2DBc::daqpwd(1);// minimal inp.pulse width(TovT) to fire discr.(its rise time)
     daqp2=TOF2DBc::daqpwd(2);// fixed PW of "FTZ(SHT)"-branch output pulse(ACTEL-outp going to SPT) 
@@ -413,10 +404,7 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCB
     daqp7=TOF2DBc::daqpwd(7);// dead time of TDC-inputs(ns,the same for LT-/FT-/Sum-inputs) 
     daqp8=TOF2DBc::daqpwd(8);// dead time of "HT/SHT-trig"-branch on ACTEL-output(going to SPT-inp)
 //                                      (Guido: ACTEL-inp is faster than Discr, so no ACTEL-inp DT check)
-    daqp9=TOF2DBc::daqpwd(9);// dead time of "SumHT(SHT)"-branch on ACTEL-output(going to TDC-inp) 
-//                                      (Guido: ACTEL-inp is faster than Discr, so no ACTEL-inp DT check)
     daqp10=TOF2DBc::daqpwd(10);// generic discr. intrinsic accuracy
-    daqp11=TOF2DBc::daqpwd(11);// fixed PW of "SumHT(SHT)"-branch on ACTEL-output(going to TDC)
   }
    daqt0=TOFPMT::daqthr[ilay][ibar][isid][0];
    fdaqt0=0.1*daqt0;// lowered threshold to select "working" part of pulse(m.b. loose some charge !!!)
@@ -477,9 +465,7 @@ pmtansat:
 //
 //cout<<"---->InTovT:id/imax="<<idd<<" "<<imax<<endl;
         _ntr1=0;
-        _ntr2=0;
         _ntr3=0;
-        _nftdc=0;
         _nstdc=0;
 //--->
 //   Based on available from Guido information, i created the following logic of
@@ -501,7 +487,6 @@ pmtansat:
      geant td1ref=-9999;
      
      int upd11=0;//up-flag for branche-1
-     geant tmd11u=-9999.;//branche-1 up-time
      geant tmd11d=-9999.;//branche-1 down-time
 //
      int upd2=0; //up-flag for discr-2(HiThr, followed by 1 branche: Z>=1(FTC)-trig)
@@ -614,7 +599,6 @@ pmtansat:
             if(upd11==0){//try to set branch up
               if((tm-tmd11d)>daqp7){ //previous down time+20ns can get new signal  inputs branch-1(TDC-input itself) dead time(buzy) check
                 upd11=1;  // set up-state 
-                tmd11u=tm;//store up-time 
                 if(_nstdc<TOF2GC::SCTHMX3){//store upto SCTHMX3 up-edges
                   _tstdc[_nstdc]=td1ref+daqp10*rnormx();//store precise up-time + intrinsic fluct.
                   _nstdc+=1;
@@ -739,8 +723,7 @@ pmtansat:
 	}
 //**************************************************************************
         number ped,sig;
-	integer brtyp,npmts;
-	brtyp=TOF2DBc::brtype(ilay,ibar)-1;//0-10
+	integer npmts;
         npmts=TOFWScanN::scmcscan1[ilay][ibar].getnpmts();//real # of pmts per side
         _adca=0;
         _nadcd=0;
@@ -775,7 +758,6 @@ pmtansat:
 //      if(_ntr1>0){// if counter_side FT-signal(HT) exists->create object
       if(_nstdc>0){//if counter_side LT-signal exists->create object 
         _sta=0;    
-        stat=0;
 	if(TFMCFFKEY.mcprtf[3]>1){
           cout<<"  --->TOFTovT-obj created for id="<<idd<<endl;
           cout<<"      nLThits="<<_nstdc<<endl;
@@ -786,12 +768,12 @@ pmtansat:
           for(int ih=0;ih<_ntr3;ih++)cout<<"Tup/down="<<_ttr3u[ih]<<" "<<_ttr1d[ih]<<endl;
           cout<<"      adca="<<_adca<<" nadcd="<<_nadcd<<" "<<_adcd[0]<<" "<<_adcd[1]<<" "<<_adcd[2]<<endl;
 	}
-        if(AMSEvent::gethead()->addnext(AMSID("TOF2Tovt",ilay), new
+        AMSEvent::gethead()->addnext(AMSID("TOF2Tovt",ilay), new
              TOF2Tovt(idd,_sta,charge,edepb,
              _ntr1,_ttr1u,_ttr1d,_ntr3,_ttr3u,_ttr3d,
              _nstdc,_tstdc,
              _adca,
-	     _nadcd,_adcd)))stat=1;
+	     _nadcd,_adcd));
       }
       return;
 //

@@ -130,11 +130,11 @@ int TofGeometry::GetTofPaddleIndexYZ(float y, float z) {
 
 bool TofGeometry::HitCounter(float x, float y, int il, int ic, float delta) {
   int ic_max;
-  float x0; float x1; float x2; float x3;
-  float y0; float y1; float y2; float y3;
+  float x0=0; float x1=0; float x2=0; float x3=0;
+  float y0=0; float y1=0; float y2=0; float y3=0;
   float a; float b;
-  float y_calc;
-  float x_calc;
+  float y_calc=0;
+  float x_calc=0;
   if(il<0 || il>3) return false;
   if (il==2) {
     ic_max=10;
@@ -334,8 +334,8 @@ float TofGeometry::LengthInsideCounter(int il, int ib, float x, float y, AMSDir 
 void TofGeometry::DrawTof(int il) {
   TLine *line[10][6];
   int ic_max;
-  float x0; float x1; float x2; float x3;
-  float y0; float y1; float y2; float y3;
+  float x0=0; float x1=0; float x2=0; float x3=0;
+  float y0=0; float y1=0; float y2=0; float y3=0;
   if (il==2) {ic_max=10;}else{ic_max=8;}
   for (int ic=0; ic<ic_max; ic++) {
     if (ic==0 || ic==ic_max-1) {

@@ -29,6 +29,7 @@ extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #include "TrHistoMan.h"
 #endif
 #include <signal.h>
+#include <strstream>
 #include <iostream>
 #include <iomanip>
 #ifndef __DARWIN__
@@ -346,7 +347,7 @@ if(AMSEventR::h1(AMSmceventg::_hid+1)){
 if(AMSJob::gethead() && AMSJob::gethead()->isSimulation()){
     TDirectory* xs=_rfile->mkdir("xs");
     xs->cd();
-    for(int k=0;k<AMSG4Physics::XSId.size();k++){
+    for(unsigned int k=0;k<AMSG4Physics::XSId.size();k++){
       if(AMSEventR::h1(AMSG4Physics::XSId[k]))AMSEventR::h1(AMSG4Physics::XSId[k])->Write();
       if(AMSEventR::h1(-AMSG4Physics::XSId[k]))AMSEventR::h1(-AMSG4Physics::XSId[k])->Write();
     }
@@ -517,7 +518,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
   const int size=5000000;
   char * name=new char[size];
   if(name){
-    ostrstream ost(name,size);
+    std::ostrstream ost(name,size);
     AMSJob::gethead()->getgeom()->printN(ost);
     _ag.SetString(name);
     //     cout <<_ag.GetString();
@@ -616,8 +617,8 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
     }
 
 
-    if(evmap.size()>2*size_break)mode_yeld=true;
-    else if(evmap.size()<size_break/2)mode_yeld=false;
+    if(int(evmap.size())>2*size_break)mode_yeld=true;
+    else if(int(evmap.size())<size_break/2)mode_yeld=false;
 }
   
 
@@ -645,7 +646,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
     nthr=omp_get_num_threads();
 #endif
       static int _Size=0;
-      if(evmap.size()>_Size ){
+      if(int(evmap.size())>_Size ){
       long long ssize=0;
       for(evmapi i=evmap.begin();i!=evmap.end();i++){
 	ssize+=i->second->Size();
@@ -680,14 +681,14 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 	del.push_back(i->second); 
 	evmapi idel=i++;
 	evmap.erase(idel);
-        if(del.size()>size_break)break;
+        if(int(del.size())>size_break)break;
       }
     }
    }
   if(del.size()){
     //cout << " lock write "<<AMSEvent::get_thread_num()<<" "<<_Lastev<<" "<<del.size()<<endl;
     //#pragma omp critical (wr2)
-    for(int k=0;k<del.size();k++){
+    for(unsigned int k=0;k<del.size();k++){
       if(_tree){
 	AMSEventR::Head()=del[k];
         if(Get_setup02()->UpdateHeader(AMSEventR::Head())!=2){
@@ -708,7 +709,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       }
       if(AMSCommonsI::AB_catch!=1){
         //cout << " lock deleting "<<AMSEvent::get_thread_num()<<" "<<_Lastev<<" "<<del.size()<<endl;
-	for(int k=0;k<del.size();k++)delete del[k];
+	for(unsigned int k=0;k<del.size();k++)delete del[k];
       }
       else{
 	cout<<"  AMSNtuple::writeR-I-AbortCatched "<<endl;
@@ -1228,7 +1229,7 @@ char name[256]="";
         cout <<"AMSNtuple::Lock-I-AttemptingtoFreeNamelist "<<endl; 
 	free(namelist);
         int ok=0;
-        for(int i=0;i<tv.size();i++){
+        for(unsigned int i=0;i<tv.size();i++){
           if(-tnow+tv[i].tmout+tv[i].tmod>ok){
             ok=-tnow+tv[i].tmout+tv[i].tmod;
           }

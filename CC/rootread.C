@@ -1,6 +1,7 @@
 #include <iostream>
 #include "TBranch.h"
 #include "root.h"
+#include "amschain.h"
 #include <stdio.h>
 #include "TObjString.h"
 #include <fstream>
@@ -10,7 +11,7 @@
 #include <TXNetFile.h>
 #include <TRegexp.h>
 #include <TEnv.h>
-using namespace std;
+#include "TChainElement.h"
 
 //    TRFIOFile f("");
 //     TXNetFile g("");
@@ -37,7 +38,7 @@ int firstevent=-1;
  //TFile * rfile= new TFile(fname,"READ");
  //TFile *rfile=TFile::Open(fname,"READ");
          TRegexp d("^-root:",false);
-        TRegexp e("^-rfio:",false);
+        TRegexp e("^rfio:",false);
         TRegexp c("/castor/",false);
  TFile *rfile=0;
 TString name(fname);
@@ -69,10 +70,46 @@ again2:
            pclose(fp);
 
 }
+if(!staged && name.Contains(e)){
+           stager_get="/usr/bin/stager_qry -M ";
+           stager_get+=(fname+pos);
+           stager_get+=" | grep -c CANBEMIGR 2>&1";
+           FILE *fp=popen(stager_get.c_str(),"r");
+           char path[1024];
+           if(fp==NULL){
+             staged=false;
+           }
+           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"1")){
+             staged=true;
+           }
+           else staged=false;
+           pclose(fp);
+}
 if(!staged){
            stager_get="stager_qry -M ";
            stager_get+=(fname+pos);
-           stager_get+=" | grep -c STAGEIN 2>&1";
+           stager_get+=" | grep -c 'No such file or directory' 2>&1";
+           FILE *fp=popen(stager_get.c_str(),"r");
+           char path[1024];
+           if(fp==NULL){
+             stagein=false;
+           }
+           else if(fgets(path, sizeof(path), fp) != NULL && strstr(path,"0")){
+              if(iver>0)cout<<" stagein again "<<again<<endl;
+             if(again<10){
+                again++;
+                pclose(fp);
+                goto again2;
+             }
+             stagein=true;
+           }
+           else stagein=false;
+           pclose(fp);
+}
+if(!stagein && !staged){
+           stager_get="stager_qry -M ";
+           stager_get+=(fname+pos);
+           stager_get+=" | grep -c 'not on this service class' 2>&1";
            FILE *fp=popen(stager_get.c_str(),"r");
            char path[1024];
            if(fp==NULL){
@@ -102,9 +139,19 @@ else if(stagein)return -6;
         if(name.Contains(d))rfile=new TXNetFile(fname,"READ");
         else if(name.Contains(e)){
        rfile=new TRFIOFile(fname,"READ");
-       rfile=new TCastorFile(fname,"READ");
+       //rfile=new TCastorFile(fname,"READ");
        }
-  else rfile=TFile::Open(fname,"READ");
+  else {
+     AMSChain chain;
+     chain.Add(fname);
+           TObjArray* arr=chain.GetListOfFiles();
+	  TIter next(arr);
+	  TChainElement* el=(TChainElement*) next();
+	  if(el){
+           rfile=TFile::Open(el->GetTitle(),"READ");
+          }
+          else TFile::Open(fname,"READ");
+  }
 if(!rfile){
         if(iver>0)cout <<"problem to open file "<<fname<<" "<<endl;
 	return -1;
@@ -181,7 +228,7 @@ again:
    if(iver && i%100==0)cout <<" i "<<i<<" "<<nevents<<endl;
    if((pev->fStatus/1073741824)%2)nbadev++;
    if(firstevent<0)firstevent=pev->fHeader.Event;
-   if(lastevent && abs(lastevent-int(pev->fHeader.Event))>diff){
+   if(lastevent && std::abs(lastevent-int(pev->fHeader.Event))>diff){
      diff=std::abs(lastevent-int(pev->fHeader.Event));
    }
    lastevent=pev->fHeader.Event;
@@ -193,7 +240,7 @@ again:
    float rate=(lastevent+1-firstevent)/nevread;
    if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<" "<<rate<<" "<<diff<<endl; 
    if(iver)cout <<" LastEvent,,,"<<lastevent << ",,,"<<firstevent<<",,,"<<ver<<",,,"<<nevread<<endl;
-   if(0 && abs(LastEvent-lastevent)>15*rate && abs(LastEvent-lastevent)>3*diff){
+   if(0 && std::abs(LastEvent-lastevent)>15*rate && std::abs(LastEvent-lastevent)>3*diff){
      return -5;
    } 
   }

@@ -353,7 +353,7 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
   geant coo[3];
   coo[0] = oo.x() +sign*(TkCoo::GetLadderLength(tkid)/2+par[0]+0.003);
   coo[1] = oo.y();
-  coo[2] = (abs(oo.z())/oo.z())*(TkDBc::Head->_sup_hc_w[plane-1]/2.+par[2]+0.1); 
+  coo[2] = (std::abs(oo.z())/oo.z())*(TkDBc::Head->_sup_hc_w[plane-1]/2.+par[2]+0.1); 
   if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
   if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
   if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
@@ -407,7 +407,7 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
   geant coo[3];
   coo[0] = oo.x();
   coo[1] = oo.y();
-  coo[2] = (abs(oo.z())/oo.z())*(abs(oo.z())-TkDBc::Head->_silicon_z/2-par[2]-sup_foam_tol);
+  coo[2] = (std::abs(oo.z())/oo.z())*(std::abs(oo.z())-TkDBc::Head->_silicon_z/2-par[2]-sup_foam_tol);
   if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
   if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
   if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
@@ -432,7 +432,7 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
 
     coo[0] = oo.x();
     coo[1] = oo.y();
-    coo[2] = (abs(oo.z())/oo.z())*(abs(oo.z())+TkDBc::Head->_silicon_z/2+par[2]+0.1);
+    coo[2] = (std::abs(oo.z())/oo.z())*(std::abs(oo.z())+TkDBc::Head->_silicon_z/2+par[2]+0.1);
     if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
     if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
     if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
@@ -1027,7 +1027,7 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
   int i;
   int nhalfL=0; 
   for ( i=0;i<TKDBc::nlay();i++){
-    ostrstream ost(name,sizeof(name));
+    std::ostrstream ost(name,sizeof(name));
     ost << "STK"<<i+1<<ends;
     coo[0]=TKDBc::xposl(i);
     coo[1]=TKDBc::yposl(i);

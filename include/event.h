@@ -296,13 +296,13 @@ AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMS
     _RunEv[get_thread_num()]=getrunev();
    _status[0]=0;
    _status[1]=0;
-   for (int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)_GPS[k]=0;
+   for (unsigned int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)_GPS[k]=0;
    _GPSL=0;
 }
 void SetGPSTime(unsigned int gpsl,unsigned int gps[]){
  _GPSL=gpsl;
  if(_GPSL>=sizeof(_GPS)/sizeof(_GPS[0]))_GPSL=sizeof(_GPS)/sizeof(_GPS[0]);
- for(int k=0;k<_GPSL;k++)_GPS[k]=gps[k];
+ for(unsigned int k=0;k<_GPSL;k++)_GPS[k]=gps[k];
 }
 
 ~AMSEvent(){_RunEv[get_thread_num()]=0;_Head[get_thread_num()]=0;}
@@ -320,21 +320,21 @@ static int & ThreadWait()  {return _Wait[get_thread_num()];}
 static uinteger & ThreadSize()  {return _Size[get_thread_num()];}
 static bool Waitable(){
 int zero=0;
-for (int k=0;k<AMSEvent::get_num_threads();k++){
+for (unsigned int k=0;k<AMSEvent::get_num_threads();k++){
  if(k!=AMSEvent::get_thread_num() && _Wait[k]==0)zero++;
 }
 return zero!=0;
 }
 static void ResetThreadWait(int f=0){
-if(f)for(int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)_Wait[k]=0;
+if(f)for(unsigned int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)_Wait[k]=0;
 else{
-for(int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)if(_Wait[k]>0 && !Waitable())_Wait[k]=0;
+for(unsigned int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)if(_Wait[k]>0 && !Waitable())_Wait[k]=0;
 }
 }
 
-static uinteger TotalSize(){integer s=0;for(int k=0;k<get_num_threads();k++)s+=_Size[k];return s;}
+static uinteger TotalSize(){integer s=0;for(unsigned int k=0;k<get_num_threads();k++)s+=_Size[k];return s;}
 static uinteger MaxMem(){return AMSCommonsI::MaxMem();}
-static uinteger AvMem(){int nact=0;for(int k=0;k<get_num_threads();k++)if(_Wait[k]==0)nact++;return nact>0?TotalSize()/nact:MaxMem()/maxthread;}
+static uinteger AvMem(){int nact=0;for(unsigned int k=0;k<get_num_threads();k++)if(_Wait[k]==0)nact++;return nact>0?TotalSize()/nact:MaxMem()/maxthread;}
 static integer debug;
 AMSlink * getheadC(const char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}

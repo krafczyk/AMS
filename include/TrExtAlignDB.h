@@ -184,6 +184,18 @@ public:
   // Offset correction for PM5 alignment (dY, dZ, dY/X)
   static float Sofs2[12];
 
+  // Tune Sofs2 to revert time dependent L2 dY
+  static void TuneSofs2(uint time);
+
+  /** Equivalent correction to revert time dependent L2 dY
+   * \param[in]  time   Unix time (AMSEventR::UTime())
+   * \param[in]  rgt    Rigidity
+   * \param[in]  factor Correction factor (1=Revert L2 dY, 2.5=Solve time dep.)
+   * \return            Corrected rigidity
+   */
+  static Double_t CorrectRigidity(uint time, Double_t rgt,
+				             Double_t factor = 1);
+
   static float SL1[18];
 #pragma omp threadprivate(SL1)
   static float SL9[18];
@@ -390,7 +402,7 @@ public:
   static AMSPoint  GetAlDist(TrRecHitR *hit);
 
   // Force using the latest alignment fomr TDV
-  static void ForceLatestAlignmentFromTDV(int pgversion=2,char* CIEMAT_name="DynAlignmentV5T120628");
+  static void ForceLatestAlignmentFromTDV(int pgversion=2,const char* CIEMAT_name="DynAlignmentV5T120628");
 
 
   ClassDef(TrExtAlignDB,4);

@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.63 2013/08/30 19:22:28 pzuccon Exp $
+//  $Id$
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>

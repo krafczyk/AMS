@@ -13,7 +13,6 @@
 
 #include <iostream>
 
-using namespace std;
 
 ClassImp(TrHistoManHeader);
 ClassImp(TrHistoMan);
@@ -297,13 +296,13 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
   }
   
   // beam histograms
-  for (int iclus=0; iclus<event->NTrCluster(); iclus++) {
+  for (unsigned int iclus=0; iclus<event->NTrCluster(); iclus++) {
     TrClusterR* cluster = event->pTrCluster(iclus);
     int side = cluster->GetSide();
     if      (side==0) FillLayer(kFALSE,cluster,"ClusterX",cluster->GetGCoord(0)); // max-multiplicity
     else if (side==1) FillLayer(kFALSE,cluster,"ClusterY",cluster->GetGCoord(0));
   }
-  for (int ihit=0; ihit<event->NTrRecHit(); ihit++) {
+  for (unsigned int ihit=0; ihit<event->NTrRecHit(); ihit++) {
     TrRecHitR* hit = event->pTrRecHit(ihit);
     if ( (hit->GetXCluster()!=0)&&(hit->GetYCluster()!=0) ) {
       AMSPoint point = hit->GetCoord(0); // max-multiplicity
@@ -317,7 +316,7 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
 
 
   // loop on tracks
-  for (int itrack=0; itrack<event->NTrTrack(); itrack++) {
+  for (unsigned int itrack=0; itrack<event->NTrTrack(); itrack++) {
 
     TrTrackR*  track    = event->pTrTrack(itrack);
     TrTrackPar par      = track->GetPar();

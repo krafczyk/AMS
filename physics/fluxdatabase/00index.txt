@@ -1,0 +1,30 @@
+# $Id$
+
+FluxManager.h // Tool for Manage Flux
+                 Convert TGraphErrors Flux bewteen Rigidity(GV) and Kinetic Energy(GeV/n)...
+
+AMS01Flux.h  // AMS-01 flux measurement
+                TGraphErrors* HEFLUXRAMS01 : AMS-01 helium flux VS Rigidity
+
+AMS02Flux.h  // AMS-02 flux measurement(published only)
+       
+
+PAMELAFlux.h // PAMELA flux measurement
+                TGraphErrors* PRFLUXRPAMELA   : PAMELA proton flux VS Rigidity
+                TGraphErrors* PRFLUXEPAMELA   : PAMELA proton flux VS Ekin
+                TGraphErrors* HEFLUXRPAMELA   : PAMELA helium flux VS Rigidity
+                TGraphErrors* HEFLUXEPAMELA   : PAMELA helium flux VS Ekin
+                TGraphErrors* PHRATIORPAMELA  : PAMELA proton/helium ratio VS Rigidity
+
+
+BESSFlux.h   // BESS flux measurement
+                TGraphErrors* PRFLUXEBESSTEV  : BESS-TeV proton flux VS Ekin
+                TGraphErrors* HEFLUXEBESSTEV  : BESS-TeV helium flux VS Ekin
+
+
+ATICFlux.h   // ATIC flux measurement
+                TGraphErrors*  HEFLUXRATIC02  : ATIC02 helium flux VS Rigidity
+
+
+CREAMFlux.h  // CREAM flux measurement
+                TGraphErrors*  HEFLUXRCREAM  : CREAM-I helium flux VS Rigidity

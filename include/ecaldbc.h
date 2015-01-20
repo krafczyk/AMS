@@ -18,6 +18,9 @@ namespace ecalconst{
   const integer ECFBCMX=12; // max. fibers per layer in PMcell
   const integer ECSLMX=9; // max. S(uper)-layers
   const integer ECPMMX=36;//max PMTs per superLayer
+  const integer ECLAYERMX=18; // max. layers
+  const integer ECCELLMX=72;//max CELLs per Layer
+  const integer ECSUBCELLMX=4;//max SUBCELLs per PMT
   const integer ECPMSMX=ECPMMX; //same for backw.compatibility
   const integer ECPMSL=ECSLMX*ECPMSMX;// Max. total PM's in all S-layers
   const integer ECSTYPS=2;//active(keeping pmt-data) slot-types (EDR2,ETRG)
@@ -36,21 +39,21 @@ namespace ecalconst{
   // for anode correction
   const double ECCommonOffSetMC[2] = {-0.13,0.075}; //MC common shift
   const double ECOffSetMC[9][2] = { 843.7, 1150.9, -597.1, -1183.0, -1.6, 118.5, -503.3, -634.0,
-			      873.0, 402.6, -350.4, -383.1, -252.0, -386.3, 1613.9, 1373.9, -192.5, -1333.3 };
+				    873.0, 402.6, -350.4, -383.1, -252.0, -386.3, 1613.9, 1373.9, -192.5, -1333.3 };
   
   const double ECCommonOffSetBT[2] = { -0.17, 0.085 };
   const double ECOffSetBT[9][2] = { -0.009, 0.005, 0.005, -0.005, -0.005, -0.002, 0.001, 0.005,
-			      -0.000, -0.002, 0.004, 0.003, 0.003, -0.002, 0.004, -0.008, -0.001, 0.005 };
+				    -0.000, -0.002, 0.004, 0.003, 0.003, -0.002, 0.004, -0.008, -0.001, 0.005 };
   const double ECCommonOffSetISS[2] = { -0.13, 0.075 };
   const double ECOffSetISS[9][2] = { -108.7, 14.7, 46.1, -223.1, -60.5, -57.1, 157.5, 22.8, 
-					  25.5, -86.3, 215.4, 123.4, 25.6, -67.1, 245.7, 2.2, 170.7, -70.3 };
+				     25.5, -86.3, 215.4, 123.4, 25.6, -67.1, 245.7, 2.2, 170.7, -70.3 };
   const double EClayer_Z[18] = { -143.215-0.005, -144.135+0.005, -145.065-0.005, -145.985+0.005, 
-    -146.915-0.005, -147.835+0.005, -148.765-0.005, -149.685+0.005, -150.615-0.005,
-    -151.535+0.005, -152.465-0.005, -153.385+0.005, -154.315-0.005, -155.235+0.005,
-    -156.165-0.005, -157.085+0.005, -158.015-0.005, -158.935+0.005 };
+				 -146.915-0.005, -147.835+0.005, -148.765-0.005, -149.685+0.005, -150.615-0.005,
+				 -151.535+0.005, -152.465-0.005, -153.385+0.005, -154.315-0.005, -155.235+0.005,
+				 -156.165-0.005, -157.085+0.005, -158.015-0.005, -158.935+0.005 };
   const  double ECfiberRotation[9] = {
-      0.0004797,  0.0009035,  0.0001849,  0.0002104, -0.0007271, 
-      3.608e-05,  -0.000221,  0.0003725,  -0.001776 };
+    0.0004797,  0.0009035,  0.0001849,  0.0002104, -0.0007271, 
+    3.608e-05,  -0.000221,  0.0003725,  -0.001776 };
 };
 //
 //geometry :
@@ -231,9 +234,9 @@ class ECcalib{
   static ECcalib ecpmcal[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   static uinteger CFlistC[7];//Cflist-file content
   ECcalib(){};
-  ECcalib(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
-	  geant h2lo[4], geant a2dr, geant lfs, geant lsl, geant fsf, geant conv):
-    _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_adc2mev(conv),_lfast(lfs),
+ ECcalib(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
+	 geant h2lo[4], geant a2dr, geant lfs, geant lsl, geant fsf, geant conv):
+  _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_adc2mev(conv),_lfast(lfs),
     _lslow(lsl),_fastf(fsf){
     for(int i=0;i<4;i++){
       _status[i]=sta[i];
@@ -242,26 +245,26 @@ class ECcalib{
       _hi2lowo[i]=h2lo[i];
     }
   };
-    integer & getstat(int i){return _status[i];}
-    geant &pmrgain(){return _pmrgain;}
-    geant &pmscgain(int i){return _scgain[i];}
-    bool HCHisBad(int i){ return (_status[i]%100)/10>0;}
-    bool LCHisBad(int i){ return _status[i]%10>0;}
-    bool DCHisBad(){ return _statusd%10>0;}
-    geant &hi2lowr(integer subc){return _hi2lowr[subc];}
-    geant &hi2lowo(integer subc){return _hi2lowo[subc];}
-    geant & adc2mev(){return _adc2mev;}
-    geant &an2dyr(){return _an2dyr;}
-    geant& alfast(){return _lfast;}
-    geant& alslow(){return _lslow;}
-    geant& fastfr(){return _fastf;}
-    geant attfdir(geant pmd){ return((1-_fastf)*exp(-pmd/_lslow)+_fastf*exp(-pmd/_lfast));}
-    geant attfrfl(geant pmd, geant hflen){
-      return ((1-_fastf)*exp(-(2*hflen-pmd)/_lslow)+_fastf*exp(-(2*hflen-pmd)/_lfast))
-	*((1-_fastf)*exp(-2*hflen/_lslow)+_fastf*exp(-2*hflen/_lfast))*ECMCFFKEY.fendrf;
-    }
-    static void build();
-    static number pmsatf1(int dir, number q);
+  integer & getstat(int i){return _status[i];}
+  geant &pmrgain(){return _pmrgain;}
+  geant &pmscgain(int i){return _scgain[i];}
+  bool HCHisBad(int i){ return (_status[i]%100)/10>0;}
+  bool LCHisBad(int i){ return _status[i]%10>0;}
+  bool DCHisBad(){ return _statusd%10>0;}
+  geant &hi2lowr(integer subc){return _hi2lowr[subc];}
+  geant &hi2lowo(integer subc){return _hi2lowo[subc];}
+  geant & adc2mev(){return _adc2mev;}
+  geant &an2dyr(){return _an2dyr;}
+  geant& alfast(){return _lfast;}
+  geant& alslow(){return _lslow;}
+  geant& fastfr(){return _fastf;}
+  geant attfdir(geant pmd){ return((1-_fastf)*exp(-pmd/_lslow)+_fastf*exp(-pmd/_lfast));}
+  geant attfrfl(geant pmd, geant hflen){
+    return ((1-_fastf)*exp(-(2*hflen-pmd)/_lslow)+_fastf*exp(-(2*hflen-pmd)/_lfast))
+      *((1-_fastf)*exp(-2*hflen/_lslow)+_fastf*exp(-2*hflen/_lfast))*ECMCFFKEY.fendrf;
+  }
+  static void build();
+  static number pmsatf1(int dir, number q);
 };
 //===========================================================================
 // ---------------> Class to store ECAL calibration(MC-Seeds) constants :
@@ -283,9 +286,9 @@ class ECcalibMS{
  public:
   static ECcalibMS ecpmcal[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECcalibMS(){};
-  ECcalibMS(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
-	    geant h2lo[4], geant a2dr, geant lfs, geant lsl, geant fsf):
-    _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),
+ ECcalibMS(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
+	   geant h2lo[4], geant a2dr, geant lfs, geant lsl, geant fsf):
+  _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),
     _lslow(lsl),_fastf(fsf){
     for(int i=0;i<4;i++){
       _status[i]=sta[i];
@@ -294,20 +297,20 @@ class ECcalibMS{
       _hi2lowo[i]=h2lo[i];
     }
   };
-    integer & getstat(int i){return _status[i];}
-    geant &pmrgain(){return _pmrgain;}
-    geant &pmscgain(int i){return _scgain[i];}
-    bool HCHisBad(int i){ return (_status[i]%100)/10>0;}
-    bool LCHisBad(int i){ return _status[i]%10>0;}
-    bool DCHisBad(){ return _statusd%10>0;}
-    geant &hi2lowr(integer subc){return _hi2lowr[subc];}
-    geant &hi2lowo(integer subc){return _hi2lowo[subc];}
-    geant &an2dyr(){return _an2dyr;}
-    geant& alfast(){return _lfast;}
-    geant& alslow(){return _lslow;}
-    geant& fastfr(){return _fastf;}
-    geant attf(geant pmd){ return((1-_fastf)*exp(-pmd/_lslow)+_fastf*exp(-pmd/_lfast));}
-    static void build();
+  integer & getstat(int i){return _status[i];}
+  geant &pmrgain(){return _pmrgain;}
+  geant &pmscgain(int i){return _scgain[i];}
+  bool HCHisBad(int i){ return (_status[i]%100)/10>0;}
+  bool LCHisBad(int i){ return _status[i]%10>0;}
+  bool DCHisBad(){ return _statusd%10>0;}
+  geant &hi2lowr(integer subc){return _hi2lowr[subc];}
+  geant &hi2lowo(integer subc){return _hi2lowo[subc];}
+  geant &an2dyr(){return _an2dyr;}
+  geant& alfast(){return _lfast;}
+  geant& alslow(){return _lslow;}
+  geant& fastfr(){return _fastf;}
+  geant attf(geant pmd){ return((1-_fastf)*exp(-pmd/_lslow)+_fastf*exp(-pmd/_lfast));}
+  static void build();
 };
 //
 //===========================================================================
@@ -378,11 +381,11 @@ class ECPMPeds{
  public:
   static ECPMPeds pmpeds[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECPMPeds(){};
-  ECPMPeds(integer sid, uinteger stah[4], uinteger stal[4], uinteger stad,
-	   geant pedh[4], geant sigh[4],
-	   geant pedl[4], geant sigl[4],
-	   geant pedd, geant sigd)
-    :_softid(sid),_stad(stad),_pedd(pedd),_sigd(sigd){
+ ECPMPeds(integer sid, uinteger stah[4], uinteger stal[4], uinteger stad,
+	  geant pedh[4], geant sigh[4],
+	  geant pedl[4], geant sigl[4],
+	  geant pedd, geant sigd)
+   :_softid(sid),_stad(stad),_pedd(pedd),_sigd(sigd){
     for(int i=0;i<4;i++){
       _pedh[i]=pedh[i];
       _sigh[i]=sigh[i];
@@ -392,30 +395,30 @@ class ECPMPeds{
       _staL[i]=stal[i]; 
     }
   };
-    geant &ped(uinteger chan, uinteger gain)  {return gain==0?_pedh[chan<4?chan:0]:_pedl[chan<4?chan:0];}  
-    geant & sig(uinteger chan, uinteger gain)  {return gain==0?_sigh[chan<4?chan:0]:_sigl[chan<4?chan:0];}
-    uinteger &sta(uinteger chan, uinteger gain){return gain==0?_staH[chan<4?chan:0]:_staL[chan<4?chan:0];}
-    geant &pedd()  {return _pedd;}
-    geant &sigd()  {return _sigd;}
-    uinteger &stad()  {return _stad;}
-    bool HCHisBad(uinteger chan){return (_staH[chan]!=0);}
-    bool LCHisBad(uinteger chan){return (_staL[chan]!=0);}
-    bool DCHisBad(){return (_stad!=0);}
-    void getpedh(geant pedh[4]){
-      for(int i=0;i<4;i++)pedh[i]=_pedh[i];
-    }
-    void getpedl(geant pedl[4]){
-      for(int i=0;i<4;i++)pedl[i]=_pedl[i];
-    }
-    void getsigh(geant sigh[4]){
-      for(int i=0;i<4;i++)sigh[i]=_sigh[i];
-    }
-    void getsigl(geant sigl[4]){
-      for(int i=0;i<4;i++)sigl[i]=_sigl[i];
-    }
-    integer getsid(){return _softid;}
-    static void build();
-    static void mcbuild();
+  geant &ped(uinteger chan, uinteger gain)  {return gain==0?_pedh[chan<4?chan:0]:_pedl[chan<4?chan:0];}  
+  geant & sig(uinteger chan, uinteger gain)  {return gain==0?_sigh[chan<4?chan:0]:_sigl[chan<4?chan:0];}
+  uinteger &sta(uinteger chan, uinteger gain){return gain==0?_staH[chan<4?chan:0]:_staL[chan<4?chan:0];}
+  geant &pedd()  {return _pedd;}
+  geant &sigd()  {return _sigd;}
+  uinteger &stad()  {return _stad;}
+  bool HCHisBad(uinteger chan){return (_staH[chan]!=0);}
+  bool LCHisBad(uinteger chan){return (_staL[chan]!=0);}
+  bool DCHisBad(){return (_stad!=0);}
+  void getpedh(geant pedh[4]){
+    for(int i=0;i<4;i++)pedh[i]=_pedh[i];
+  }
+  void getpedl(geant pedl[4]){
+    for(int i=0;i<4;i++)pedl[i]=_pedl[i];
+  }
+  void getsigh(geant sigh[4]){
+    for(int i=0;i<4;i++)sigh[i]=_sigh[i];
+  }
+  void getsigl(geant sigl[4]){
+    for(int i=0;i<4;i++)sigl[i]=_sigl[i];
+  }
+  integer getsid(){return _softid;}
+  static void build();
+  static void mcbuild();
 };
 //
 //===========================================================================
@@ -430,16 +433,89 @@ class ECTslope{
   static ECTslope ecpmtslo[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   static uinteger CFlistC[7];//Cflist-file content
   ECTslope(){};
-  ECTslope(integer sid, geant tslo[4]):
-    _softid(sid){
+ ECTslope(integer sid, geant tslo[4]):
+  _softid(sid){
     for(int i=0;i<4;i++){
       _tslope[i]=tslo[i];
     }
   };
-    geant &tslope(int i){return _tslope[i];}
-    int GetECALSensorTemper(int superlayer,int column,float* temp);
+  geant &tslope(int i){return _tslope[i];}
+  int GetECALSensorTemper(int superlayer,int column,float* temp);
+  static void build();
+};
+//
+//===========================================================================
+// ---------------> Class to store ECAL Daily MIP calibration (MC/RealData) constants :
+//
+class ECDailyMip{
+  //
+ private:
+  integer _softid;  // LLCC (LL->layer number, CC->cell number)
+  geant _mipday[4]; // Value of the Mips for the 4 PMT's subcells in the day 
+ public:
+  static ECDailyMip ecmipday[ecalconst::ECSLMX][ecalconst::ECPMSMX];
+  static uinteger CFlistC[7];//Cflist-file content
+  ECDailyMip(){};
+ ECDailyMip(integer sid, geant mipday[4]):
+  _softid(sid){
+    for(int i=0;i<4;i++){
+      _mipday[i]=mipday[i];
+    }
+  };
+  geant &mipday(int i){return _mipday[i];}
 
-    static void build();
+  static void build();
+};
+//
+//===========================================================================
+// ---------------> Class to store ECAL Long Term calibration (MC/RealData) constants :
+//
+class ECLongTerm{
+  //
+ private:
+  integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
+  integer _status[4];  //4-SubCells calib.status(MN->Hch/Lch, M(N)=0/1 -> OK/BAD)
+  integer _statusd;//  calib.status of Dynode(=0/1->OK/BAD) 
+  geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
+  geant _hi2lowo[4]; // offset of gains of high- and low-chains (for each of 4 SubCells)
+  geant _an2dyr;    // 4xAnode_pixel/dynode signal ratio  
+  geant _adc2mev;   // Global(hope) Signal(ADCchannel)->Emeas(MeV) conv. factor (MeV/ADCch)
+  geant _lfast[4];// att.length(fast comp.)
+  geant _lslow[4];// att.length(slow comp.)
+  geant _fastf[4];// percentage of fast comp.
+ public:
+  static ECLongTerm eclongterm[ecalconst::ECSLMX][ecalconst::ECPMSMX];
+  static uinteger CFlistC[7];//Cflist-file content
+  ECLongTerm(){};
+ ECLongTerm(integer sid, integer sta[4], integer stad, geant h2lr[4], 
+	    geant h2lo[4], geant a2dr, geant lfs[4], geant lsl[4], geant fsf[4],geant conv):
+  _softid(sid),_statusd(stad),_an2dyr(a2dr),_adc2mev(conv){
+    for(int i=0;i<4;i++){
+      _status[i]=sta[i];
+      _hi2lowr[i]=h2lr[i];
+      _hi2lowo[i]=h2lo[i];
+      _lfast[i]=lfs[i];
+      _lslow[i]=lsl[i];
+      _fastf[i]=fsf[i];
+    }
+  };
+  integer & getstat(int i){return _status[i];}
+  bool HCHisBad(int i){ return (_status[i]%100)/10>0;}
+  bool LCHisBad(int i){ return _status[i]%10>0;}
+  bool DCHisBad(){ return _statusd%10>0;}
+  geant &hi2lowr(integer subc){return _hi2lowr[subc];}
+  geant &hi2lowo(integer subc){return _hi2lowo[subc];}
+  geant & adc2mev(){return _adc2mev;}
+  geant &an2dyr(){return _an2dyr;}
+  geant& alfast(int i){return _lfast[i];}
+  geant& alslow(int i){return _lslow[i];}
+  geant& fastfr(int i){return _fastf[i];}
+  geant attfdir(int i,geant pmd){ return((1-_fastf[i])*exp(-pmd/_lslow[i])+_fastf[i]*exp(-pmd/_lfast[i]));}
+  geant attfrfl(int i, geant pmd, geant hflen){
+    return ((1-_fastf[i])*exp(-(2*hflen-pmd)/_lslow[i])+_fastf[i]*exp(-(2*hflen-pmd)/_lfast[i]))
+      *((1-_fastf[i])*exp(-2*hflen/_lslow[i])+_fastf[i]*exp(-2*hflen/_lfast[i]))*ECMCFFKEY.fendrf;
+  }
+  static void build();
 };
 //
 #endif

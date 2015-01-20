@@ -583,7 +583,7 @@ void AMSRichRing::getSobol(float &x,float &y,bool reset){
   // Returns two quasi-random numbers for a 2-dimensional Sobel
   // sequence. Adapted from Numerical Recipies in C.
 
-  int j, k, l;
+  unsigned int j, k, l;
   unsigned long i, im,ipp;
 
   // The following variables are "static" since we want their
@@ -705,7 +705,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   }
 
 
-  if(bit==crossed_pmt_bit){
+  if(bit==int(crossed_pmt_bit)){
     //cout<<" AMSRichRing::build-too-many-tracks "<<endl;
     return 0;
   }
@@ -1062,7 +1062,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   }else local_dir[2]*=-1;
   //  local_dir[2]*=-1;
 
-  const integer NSTL=15,NSTP=70; // Z=1 optimized
+  const integer NSTP=70; // Z=1 optimized
   const geant dphi=2*PI/NSTP;
 
 
@@ -1102,7 +1102,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   }
   
 
-  geant l,dL,phi;
+  geant l,phi;
   geant efftr,xb,yb,lentr,lfoil,lguide,geftr,
     reftr,beftr,ggen,rgen,bgen;
   geant nexp,nexpg,nexpr,nexpb;
@@ -1112,7 +1112,6 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   AMSPoint r;
 
   l=_height/local_dir[2];
-  dL=l/NSTL;
   integer i,j,k;
 
 #define SOBOL
@@ -1241,6 +1240,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   for(int i=0;i<680;NpExpPMT[i++]*=_height/local_dir[2]/counter);
 
 #else
+  geant dL=l/NSTL;
 
   for(nexp=0,nexpg=0,nexpr=0,nexpb=0,j=0;j<NSTL;j++){
     l=(j+.5)*dL;
@@ -2184,7 +2184,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
   _hit_used.clear();
 
   if(RICRECFFKEY.store_rec_hits)
-  for(int i=0;i<size;i++){
+  for(unsigned int i=0;i<size;i++){
     int reflected=fabs(recs[i][1]-seed_beta)<=fabs(recs[i][2]-seed_beta)?1:2;
     int closest=AMSRichRing::closest(seed_beta,recs[i]);
     _beta_direct.push_back(recs[i][0]);
@@ -2667,7 +2667,7 @@ geant AMSRichRingNewSet::_Time=0;
 AMSRichRingNewSet::AMSRichRingNewSet () {ringset.clear();}
 
 AMSRichRingNewSet::~AMSRichRingNewSet () {
-  for (int i=0; i<ringset.size(); i++) {
+  for (unsigned int i=0; i<ringset.size(); i++) {
     delete ringset[i];
   }
   ringset.clear();
@@ -2679,7 +2679,7 @@ void AMSRichRingNewSet::reset() {
 
 
 AMSRichRingNew* AMSRichRingNewSet::getring(int i) {
-  if (i<ringset.size()) {
+  if (i<int(ringset.size())) {
     return ringset[i];
   }
   else {

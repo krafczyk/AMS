@@ -29,7 +29,6 @@
 #define MAXADC 5000
 #define NSTEPSGAUSSSUM 100
 
-using namespace std;
 
 class TrSimSensor {
 

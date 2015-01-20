@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string>
-using namespace std;
 extern "C" double Julian_Date_of_Epoch(double epoch);
 extern "C" char KepCheck(char *line1, char* line2);
 extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);

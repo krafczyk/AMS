@@ -124,7 +124,7 @@ void TkSens::Recalc(){
     cooY2=TkCoo::GetLocalCooS(ReadChanY+1);
   else
     cooY2=TkCoo::GetLocalCooS(ReadChanY-1);
-  ImpactPointY=(LaddCoo[1]-cooY1)/abs(cooY1-cooY2);
+  ImpactPointY=(LaddCoo[1]-cooY1)/fabs(cooY1-cooY2); // Bugfix 2015/01/01 SH
   
   mult = -1;
   number cooX1,cooX2;  
@@ -156,7 +156,7 @@ void TkSens::Recalc(){
     else
       cooX2=TkCoo::GetLocalCooK5(640+ReadChanX-1,mult);
   }
-  ImpactPointX=(LaddCoo[0]-cooX1)/abs(cooX1-cooX2);
+  ImpactPointX=(LaddCoo[0]-cooX1)/fabs(cooX1-cooX2); // Bugfix 2015/01/01 SH
 
   if(SensDir.z()!=0){
     ImpactAngleXZ = atan(SensDir.x()/SensDir.z());
@@ -309,7 +309,7 @@ int TkSens::GetSens(){
 	      TkDBc::Head->_ssize_active[0])/2;
 
   //Sensor number
-  int nsens = (int)(abs(SensCoo[0]+Ax)/TkDBc::Head->_SensorPitchK);
+  int nsens = (int)(fabs(SensCoo[0]+Ax)/TkDBc::Head->_SensorPitchK); // Bugfix 2015/01/01 SH
 
   AMSPoint gcoo = GlobalCoo;
 
@@ -470,7 +470,7 @@ AMSPoint TkSens::FindCloseSensorCenter(){
     AMSPoint  pos = lad->GetPos()+lad->GetPosA();
     AMSPoint  loc(hlen, hwid, 0);
     AMSPoint  Center = rot*loc+pos;
-    float dist=abs(oo[1]-Center[1]);
+    float dist=fabs(oo[1]-Center[1]);  // Bugfix 2015/01/01 SH
     if(dist<max) {otkid=tkid; max=dist;}
   }
   if(!TkDBc::Head->FindTkId(otkid)) return pret;
@@ -489,14 +489,14 @@ AMSPoint TkSens::FindCloseSensorCenter(){
 
   float distM=9999;
   int sM=-1;
-  for (int ii=0;ii<csM.size();ii++){
+  for (unsigned int ii=0;ii<csM.size();ii++){
     float dd=fabs(oo[0]-csM[ii]);
     if( dd< distM) {distM=dd; sM=ii;}
   }
 
   float distP=9999;
   int sP=-1;
-  for (int ii=0;ii<csP.size();ii++){
+  for (unsigned int ii=0;ii<csP.size();ii++){
     float dd=fabs(oo[0]-csP[ii]);
     if( dd< distP) {distP=dd; sP=ii;}
   }
@@ -518,9 +518,9 @@ bool TkSens::IsInsideLadder(TkLadder* lad){
   int flag= (_isMC)?1:0;
   AMSPoint diff= GlobalCoo-TkCoo::GetLadderCenter(tkid,flag);
 
-
-  if (abs(diff[0]) < TkCoo::GetLadderLength(tkid)/2 &&
-      abs(diff[1]) < TkDBc::Head->_ssize_active[1]/2) return true;
+  // Bugfix 2015/01/01 SH
+  if (fabs(diff[0]) < TkCoo::GetLadderLength(tkid)/2 &&
+      fabs(diff[1]) < TkDBc::Head->_ssize_active[1]/2) return true;
   return false;
 
   // The following code doesn't work for Layer 8 (aka Layer 1N) for AMS02P

@@ -301,7 +301,7 @@ protected:
   static int NhitHalf;
 
   /// load the std::string sout with the info for a future output
-  void _PrepareOutput(int full=0);
+  std::string _PrepareOutput(int full=0);
   /// Service function to check if a layer is included in a fit
   bool CheckLayFit(int fittype,int lay) const;
 public:
@@ -533,6 +533,8 @@ public:
   double GetNormChisqX(int id= 0) const;
   /// Get normalized chisquare in Y
   double GetNormChisqY(int id= 0) const;
+  /// Get applied Bfield Temp correction 
+  float  GetBcorr     (int id= 0) const { return GetPar(id).Bcorr; }
 
   /// Get track entry point (first layer of the fitting) from TrTrackPar corresponding to id
   AMSPoint GetPentry(int id = 0) const;

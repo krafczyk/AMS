@@ -66,13 +66,13 @@ endif
   INTELOPT=-axsse4.2,ssse3 
   
 ifdef SLC6system
-  FF=$(INTELDIR)/$(INTELVERF)/ifort -W0 -m32 -gcc-version=430 $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 -gcc-version=430 $(INTELOPT) -vec-report0  $(PARALLEL)
+  FF=$(INTELDIR)/$(INTELVERF)/ifort -W0 -m32 -gcc-version=430 $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 -gcc-version=430 $(INTELOPT) -vec-report0  -diag-disable cpu-dispatch $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVERC)/icc  -m32  -gcc-version=430 $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVERC)/icpc -m32  -gcc-version=430 $(INTELOPT)  $(PARALLEL) -g 
 else
-  FF=$(INTELDIR)/$(INTELVERF)/ifort -W0 -m32 -gcc-version=340 $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 -gcc-version=330 $(INTELOPT) -vec-report0  $(PARALLEL)
+  FF=$(INTELDIR)/$(INTELVERF)/ifort -W0 -m32 -gcc-version=340 $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 -gcc-version=330 $(INTELOPT) -vec-report0  -diag-disable cpu-dispatch $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVERC)/icc  -m32  -gcc-version=340 $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVERC)/icpc -m32  -gcc-version=340 $(INTELOPT)  $(PARALLEL) -g 
 endif

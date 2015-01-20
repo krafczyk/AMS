@@ -4,7 +4,7 @@
 #include "TH2F.h"
 #include "TH1D.h"
 #include "TH2D.h"
-#include "math.h"
+#include "typedefs.h"
 
 //! Bayesian unfolding tool
 /*!
@@ -283,7 +283,6 @@ class DEMinimizer{
 #include <iostream>
 #include <algorithm>
 
-using namespace std;
 
 class StochasticUnfolding{
  public:

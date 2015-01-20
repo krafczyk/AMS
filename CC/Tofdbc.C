@@ -593,9 +593,9 @@ if(nph==1){
 
 //===========================================================
 TOFTpointsN::TOFTpointsN(int nbin, geant bnl, geant bnw, geant arr[]){//constructor
-  int i,it,nb,nbf,fst,nbl;
+  int i,it,nb,nbf=0,fst,nbl=0;
   geant cint,low,hig,tot(0.);
-  geant bl,bh,cdis[TOFCSN::SCANMT];
+  geant bl,cdis[TOFCSN::SCANMT];
 
 //
 //  cout<<"arr"<<endl;
@@ -622,7 +622,6 @@ TOFTpointsN::TOFTpointsN(int nbin, geant bnl, geant bnw, geant arr[]){//construc
     cint=it*bini;
     while(nb<=nbl){// <--- loop over cumul.distr. bins
       bl=bnl+nb*bnw;
-      bh=bl+bnw;
       if(nb==nbf)low=0.;
       else low=cdis[nb-1];
       hig=cdis[nb];
@@ -1346,6 +1345,8 @@ TofCAlignPar* TofCAlignPar::GetHead(){
   if(!Head)Head = new TofCAlignPar();
   return Head;
 }
+
+const float TofCAlignPar::ProEdep=1.67;
 
 const int TofCAlignPar::BetaCh[TofCAlignPar::nBetaCh]={
    1,2,3,4,5,6,7,8,10,12,14,16,20,26,
@@ -2590,6 +2591,8 @@ const int TofPDFPar::PDFCh[nPDFCh]={
  1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,26,
 };
 
+const float TofPDFPar::ProbLimit=1e-4;
+
 //=======================================================
 const float TofPDFPar::pdfvel[nPDFCh][nPDFVel]={
 //Z=1
@@ -2651,11 +2654,28 @@ int   TofRecPar::iLay=0;
 int   TofRecPar::iBar=0;
 int   TofRecPar::iSide=0;
 int   TofRecPar::Idsoft=0;
+const double TofRecPar::Tdcbin=0.0244141;
 const float TofRecPar::FTgate[2]={40,640};
 const float TofRecPar::FTgate2[2]={40,640};
 const float TofRecPar::LHgate[2]={3,11};
+const float TofRecPar::LHMPV=4.5;
 const float TofRecPar::BetaHReg[2]={3,3};
 const int   TofRecPar::BetaHMinL[2]={2,2};
+const float TofRecPar::Dynodegate=5;
+const float TofRecPar::PairQDA=6;
+const float TofRecPar::PairQgate=0.8;
+const float TofRecPar::PairQRgate=1.8;
+const float TofRecPar::PairLSMatch=9.;
+const float TofRecPar::PairTMatch=0.5;
+const float TofRecPar::TFEcalAMatch=10;
+const float TofRecPar::DPairChi2TCut=100;
+const float TofRecPar::DPairChi2CCut=200;
+const float TofRecPar::NonTkBetaCutL=0.3;
+const float TofRecPar::NonTkBetaCutU=1.5;
+const float TofRecPar::NonTkBetaCutL2=0.36;
+const float TofRecPar::NonTkBetaCutU2=1.2;
+const float TofRecPar::DPairChi2TCut2=10;
+const float TofRecPar::DPairChi2CCut2=10;
 
 float TofRecPar::TimeSigma[MaxCharge]={
  0.154481, 0.0773964, 0.0586908, 0.0499433, 0.0476004, 0.0478878,

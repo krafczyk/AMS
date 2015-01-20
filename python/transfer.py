@@ -1,12 +1,12 @@
 #!/usr/bin/env python2.4
-#  $Id: transfer.py,v 1.9 2013/03/14 14:26:51 bshan Exp $
+#  $Id$
 # this script suppose to check & transfer data files from
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
 import sys, os
-sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
+#sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
 sys.path.insert(0,os.environ['Offline'] + '/vdev/python/lib')
-sys.path.insert(0,'lib')
+#sys.path.insert(0,'lib')
 import RemoteClient
 p=0
 c=1
@@ -17,6 +17,7 @@ run2p=0
 h=0
 source=""
 disk=""
+eos=0
 if(os.environ.has_key('ProductionRunsDir')):
     source=os.environ['ProductionRunsDir']
 for x in sys.argv:
@@ -27,6 +28,7 @@ for x in sys.argv:
     elif x== "-p" : p=1
     elif x== "-pp" : p=2
     elif x == "-c0": c=0
+    elif x == "-eos": eos=1
     elif x[0:2] == "-r" :
         run2p=int(x[2:len(x)])
     elif x[0:2] == "-d" :
@@ -39,6 +41,6 @@ if(len(source)<2):
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
 #if(html.ServerConnect(1)):
-html.TransferDataFiles(run2p,i,v,u,h,source,c,p,disk)
+html.TransferDataFiles(run2p,i,v,u,h,source,c,p,disk,eos)
 
 

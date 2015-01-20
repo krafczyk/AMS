@@ -67,20 +67,20 @@ std::set_unexpected (my_unexpected);
 #else
      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
 #endif
-      //signal(SIGABRT,handler);
-      //signal(SIGFPE, handler);
-     signal(SIGCONT, handler);
-     signal(SIGTERM, handler);
-     signal(SIGXCPU,handler);
-     signal(SIGINT, handler);
-     signal(SIGQUIT, handler);
-     signal(SIGUSR1, handler); 
-     signal(SIGUSR2, handler); 
-     signal(SIGHUP, handler); 
-     signal(SIGTSTP, handler); 
-     signal(SIGURG, handler);
-     signal(SIGTTIN, handler); 
-     signal(SIGTTOU, handler); 
+      //*signal(SIGABRT,handler);
+      //   *signal(SIGFPE, handler);
+     (void)*signal(SIGCONT, handler);
+     (void)*signal(SIGTERM, handler);
+     (void)*signal(SIGXCPU,handler);
+     (void)*signal(SIGINT, handler);
+     (void)*signal(SIGQUIT, handler);
+     (void)*signal(SIGUSR1, handler);
+     (void)*signal(SIGUSR2, handler);
+     (void)*signal(SIGHUP, handler);
+     (void)*signal(SIGTSTP, handler);
+    (void)*signal(SIGURG, handler);
+     (void)*signal(SIGTTIN, handler);
+     (void)*signal(SIGTTOU, handler);
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
@@ -181,7 +181,9 @@ return 0;
 }
 void (handler)(int sig){
   using namespace glconst;
+#ifdef _OPENMP
   int nthr=0;
+#endif
   switch(sig){
   case SIGABRT:
     cerr <<" ABORT Detected "<<AMSCommonsI::AB_catch<<" "<<endl;
@@ -301,7 +303,6 @@ lasthope:
   case SIGTTOU:
 #pragma omp master
     {
-      nthr=0;
 #ifdef _OPENMP
       nthr=omp_get_num_threads();
       if(nthr>1)nthr--;
@@ -315,7 +316,6 @@ lasthope:
   case SIGTTIN:
 #pragma omp master
     {
-      nthr=0;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
     if(nthr<omp_get_num_procs())nthr++;

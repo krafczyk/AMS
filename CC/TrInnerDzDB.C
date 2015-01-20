@@ -17,6 +17,7 @@ TrInnerDzDB* TrInnerDzDB::Head=0;
 float TrInnerDzDB::TDVSwap[2*(1+kLaynum)];
 
 int TrInnerDzDB::ForceFromTDV=0;
+int TrInnerDzDB::version=0;
 
 float TrInnerDzDB::LDZA[kLaynum]={0.,0.,0.,0.,0.,0.,0.};
 uint  TrInnerDzDB::UTIME=0;
@@ -31,6 +32,7 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
       LDZA[ii]=Dz[ii];
     return 0;
   }
+#ifdef __ROOTSHAREDLIBRARY__
   else if(ret ==-2 || ret==-3){ //Fall back to TDV
     int retTDV=GetFromTDV(Timeid);
     if(retTDV<0) return -2;
@@ -43,6 +45,7 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
     }
     else return -3;    
   }
+#endif
   return -4;
 }
 
@@ -71,6 +74,13 @@ int TrInnerDzDB::GetEntry(uint Timeid, float* Dz, int kind){
   return 0;
 }
 
+const char *TrInnerDzDB::GetTDVName()
+{
+  static TString stn;
+  stn = "TrInnerDzAlign";
+  if (version >= 2) stn += Form("%d", version);
+  return stn.Data();
+}
 
 int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
   time_t starttime=0;
@@ -84,9 +94,12 @@ int TrInnerDzDB::GetFromTDV( uint Timeid, bool force) {
 #pragma omp threadprivate (tid)
   if (tid && force) { delete tid; tid = 0; }
 
+  TString sdn = "TrInnerDzAlign";
+  if (version > 0) sdn = Form("TrInnerDzAlign%d", version);
+
   if(!tid){
     tid= new AMSTimeID(
-		       AMSID("TrInnerDzAlign",1),
+		       AMSID(sdn,1),
 		       begin,
 		       end,
 		       TrInnerDzDB::GetTDVSwapSize(),
@@ -197,11 +210,11 @@ int TrInnerDzDB::TDV2DB(){
 		TrInnerLin2DB);
   int dbsize= tid.GetDataBaseSize();
   for (int ii=0;ii<dbsize;ii++){
-    uint ltimes[5];
+    uint ltimes[5] = {0};
     tid.GetDBRecordTimes(ii,ltimes);
     times.push_back(ltimes[2]+1);
   }
-  for (int jj=0;jj<times.size();jj++){
+  for (unsigned int jj=0;jj<times.size();jj++){
     time_t tt= (time_t)times[jj];
     tid.validate(tt);
   }

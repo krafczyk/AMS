@@ -2,6 +2,9 @@
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #ifdef CASTORSTATIC 
 #include "TRFIOFile.h"
 #include "TXNetFile.h"
@@ -189,7 +192,7 @@ map<unsigned long long, unsigned long long>::iterator it=m_chain_entryindex.find
 if(it!=m_chain_entryindex.end())return it->second;
 
 
-if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
+if(m_chain_Entries!=GetEntries() || static_cast<unsigned long long>(m_chain_Entries) >maxent){
  m_chain_Entries=GetEntries();
  unsigned long long msum=0;
  m_chain_entryindex.clear();
@@ -197,7 +200,7 @@ if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
   AMSEventR::ProcessSetup=1;
  for(int i1=0;i1<GetListOfFiles()->GetEntries();i1++){
    TChainElement* elem=(TChainElement*)GetListOfFiles()->At(i1);
-if(runinfilename && m_chain_Entries>maxent){
+if(runinfilename && static_cast<unsigned long long>(m_chain_Entries)>maxent){
    TString name(elem->GetTitle());
    TString t1("/");
    TString t2(".");
@@ -214,7 +217,7 @@ if(runinfilename && m_chain_Entries>maxent){
       
       if(_EVENT &&_EVENT->getsetup()){
        m_chain_Runs.insert(make_pair(_EVENT->Run(),msum));
-       if(  m_chain_Entries>maxent && _EVENT->Run() !=run){
+       if(  static_cast<unsigned long long>(m_chain_Entries)>maxent && _EVENT->Run() !=run){
          msum+=elem->GetEntries();
          break;
        }
@@ -246,7 +249,7 @@ static map<unsigned long long, unsigned long long>::iterator itsav;
 int prcs=AMSEventR::ProcessSetup;
 map<unsigned long long, unsigned long long>::iterator it=m_chain_entryindex.begin();
 if(seq){
-  if(seqsav && abs(seq-seqsav)<seq){
+  if(seqsav && std::abs(seq-seqsav)<seq){
     it=itsav;
     std::advance(it,seq-seqsav);
   }
@@ -258,7 +261,7 @@ if(it!=m_chain_entryindex.end()){
   return it->second;
 }
 
-if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
+if(m_chain_Entries!=GetEntries() || static_cast<unsigned long long>(m_chain_Entries) >maxent){
  m_chain_Entries=GetEntries();
  seqsav=0;
  unsigned long long msum=0;
@@ -270,7 +273,7 @@ if(m_chain_Entries!=GetEntries() || m_chain_Entries >maxent){
       GetEvent(msum);    
       if(_EVENT &&_EVENT->getsetup()){
        m_chain_Runs.insert(make_pair(_EVENT->Run(),msum));
-       if(  m_chain_Entries>maxent ){
+       if(  static_cast<unsigned long long>(m_chain_Entries)>maxent ){
          msum+=elem->GetEntries();
          break;
        }
@@ -290,7 +293,7 @@ AMSEventR::ProcessSetup=prcs;
  it=m_chain_entryindex.begin();
 
 if(seq){
-  if(seqsav && abs(seq-seqsav)<seq){
+  if(seqsav && std::abs(seq-seqsav)<seq){
     it=itsav;
     std::advance(it,seq-seqsav);
   }
@@ -313,7 +316,7 @@ AMSEventR* AMSChain::GetEventFast(UInt_t run, Int_t ev, bool runinfilename, unsi
  unsigned int frun=_EVENT?_EVENT->Run():0;
  if(entry>=0){
         GetEvent(entry);
-        if(_EVENT && _EVENT->Run()==run && _EVENT->Event()==ev){
+        if(_EVENT && _EVENT->Run()==run && _EVENT->Event()==static_cast<unsigned long long>(ev)){
              if(frun!=run)_EVENT->UpdateSetup(run);
              return _EVENT;
         }
@@ -332,7 +335,7 @@ AMSEventR* AMSChain::GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind){
   if (!kDontRewind) Rewind();//Go to start of chain
   // Get events in turn
   while  (GetEvent() &&
-	  !(_EVENT->Run()==run && _EVENT->Event()==ev) ){
+	  !(_EVENT->Run()==run && _EVENT->Event()==static_cast<unsigned long long>(ev)) ){
     //    printf("%u) Looking for run=%u, event=%d into run=%u, event=%d...\n", _ENTRY, run, ev, _EVENT->Run(), _EVENT->Event());//only for debug
     if (_ENTRY==(GetEntries()-1)) {
       static bool kRewindAlreadyDid=false;
@@ -390,7 +393,7 @@ int AMSChain::ValidateFromFile(const char *fname,bool stage){
   
   return i;
 }
-int AMSChain::AddFromFile(const char *fname,int first,int last, int stagedonly,unsigned int timeout,char *pattern){
+int AMSChain::AddFromFile(const char* fname,int first,int last, int stagedonly,unsigned int timeout,const char *pattern){
   AMSEventR::fRequested.clear();
   sprintf(AMSEventR::filename,"%s_%06d_%06d_RUNTIMETMOUT",fname,first,last);
   ofstream  rejfile;
@@ -581,7 +584,7 @@ againeos:
 }
 
 
-int  AMSChain::LoadUF(char* fname){
+int  AMSChain::LoadUF(const char* fname){
   char cmd[200];
   char cmd1[200];
 	
@@ -713,7 +716,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     bool bad=false;
     TChainElement *el=(TChainElement*) fFiles->At(i);
     if(dofill && el)AMSEventR::fRequested.push_back(string((const char*)el->GetTitle()));
-    for(int is=0;is<AMSEventR::BadRunList.size();is++){
+    for(unsigned int is=0;is<AMSEventR::BadRunList.size();is++){
          if(k==AMSEventR::BadRunList[is]){
            bad=true;
              break;
@@ -724,7 +727,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     delete ar1;
   }
   fmapi it=fmap.begin();
-  if(ntree>fmap.size())ntree=fmap.size();
+  if(static_cast<unsigned int>(ntree)>fmap.size())ntree=fmap.size();
   cout <<"  AMSChain::Process-I-Files to be processed "<<ntree<<" out of "<<fNtrees<<endl;
   if(nthreads>ntree)nthreads=ntree;
   int*ia= new int[nthreads];
@@ -857,7 +860,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 	  break;
 	}
       }
-      if(work)usleep(kmp_get_blocktime());  
+      if(work)usleep(200); // FIXME: This only works with ICC, and should not be necessary. kmp_get_blocktime());  
       else break;
     }
 #endif
@@ -998,7 +1001,7 @@ void AMSEventList::Remove(int run, int event){
   _runeve.erase(GetRE(run,event));
   pp=_runeve.lower_bound(GetRE(run,0));
   if((  pp      == _runeve.end()) || 
-     ((*pp)>>32 != run  )     ){
+     ((*pp)>>32 != static_cast<unsigned int>(run)  )     ){
     _RUNs.erase(run);
   }
   return;
@@ -1105,7 +1108,7 @@ void AMSEventList::Write(AMSChain* chain,const char * outfilename){
   return;
 };
 
-int AMSEventList::ExtractFromDirs(char* fname){
+int AMSEventList::ExtractFromDirs(const char* fname){
 
   vector<string> dirs;
   FILE* listfile = fopen(fname,"r");
@@ -1124,7 +1127,7 @@ int AMSEventList::ExtractFromDirs(char* fname){
   AMSChain chain;
   set<int>::iterator rr;
   for (rr=_RUNs.begin();rr!=_RUNs.end();rr++){
-    for(int dd=0;dd<dirs.size();dd++){
+    for(unsigned int dd=0;dd<dirs.size();dd++){
       char nnn[700];
       sprintf(nnn,"%s/%d.*.root",dirs[dd].c_str(), *rr);
       printf("AMSEventList::ExtractFromDirs-I- addinf %s\n",nnn);
@@ -1145,7 +1148,7 @@ int AMSEventList::ExtractFromDirs(char* fname){
 }
 
 
-int AMSChain::GenUFSkel(char* filename){
+int AMSChain::GenUFSkel(const char* filename){
   FILE*fname= fopen(filename,"w");
   if(!fname){
     printf("Problem opening new file %s\n",filename);
@@ -1223,7 +1226,7 @@ int AMSChain::GenUFSkel(char* filename){
 }
 
 Int_t AMSChain::Add(const char* name, Long64_t Nentries){
-Long64_t nentries=Nentries<-1?abs(Nentries):Nentries;
+Long64_t nentries=Nentries<-1?std::abs(Nentries):Nentries;
 #ifdef CASTORSTATIC 
 bool timeout=Nentries<-1;
 #endif

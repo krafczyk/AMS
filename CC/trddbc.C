@@ -379,7 +379,7 @@ TRDDBc* TRDDBc::_HeadTubePos=0;
 void TRDDBc::init(){
 
    // Quantities
-    int i,j,k,l,b;
+    unsigned int i,j,k,l,b;
     for(i=0;i<TRDOctagonNo();i++){
      for(j=0;j<LayersNo(i);j++){
       for(k=0;k<LaddersNo(i,j);k++){
@@ -1720,8 +1720,8 @@ void TRDDBc::init(){
        // theta
 
 
-       for (int r=0;r<SideHolesNo(i);r++){
-	 for (int s=0;s<SideHolesPieceNo(i,r);s++){
+       for (unsigned int r=0;r<SideHolesNo(i);r++){
+	 for (unsigned int s=0;s<SideHolesPieceNo(i,r);s++){
 
 	   // "Center" is the intersection of the lines joining
 	   // midpoints of each side, not the centroid
@@ -1779,8 +1779,8 @@ void TRDDBc::init(){
 	// VC 06-06-2005 
 	// try to fix KS bug
        //        for(i=0;i<TRDOctagonNo();i++){
-       for(int h=0;h<TRDDBc::SideHolesNo(i);h++){
-	 for (int hp=0;hp<TRDDBc::SideHolesPieceNo(i,h);hp++){
+       for(unsigned int h=0;h<TRDDBc::SideHolesNo(i);h++){
+	 for (unsigned int hp=0;hp<TRDDBc::SideHolesPieceNo(i,h);hp++){
 	   for(int ip=0;ip<11;ip++){
 	     if(RadiatorSideHolePieceDimensions(i,h,hp,ip)<0 && ip!=1 && ip!=2 && ip!=6 && ip!=10){
 	       //	       cerr <<"TRDDBc::init-W-RadiatorSideHolePieceDimensions<0 "<<RadiatorSideHolePieceDimensions(i,h,hp,ip)<<" "<<ip<<endl;
@@ -1849,7 +1849,7 @@ void TRDDBc::init(){
 
 //    for (int r=0;r<SideHolesNo(i);r++){
     for (int r=0;r<2;r++){
-      for (int s=0;s<SideHolesPieceNo(i,r);s++){
+      for (unsigned int s=0;s<SideHolesPieceNo(i,r);s++){
          number top_xcent = (RadiatorSideHolePieceDimensions(i,r,s,8)+
                                  RadiatorSideHolePieceDimensions(i,r,s,9))/2.;
          number bottom_xcent = (RadiatorSideHolePieceDimensions(i,r,s,4)+
@@ -1967,7 +1967,7 @@ void TRDDBc::init(){
 	SetRadiatorHole(2,k,j,i,status,coo,unitnrm,gid);
 	
  
-        for(int l=0;l<TubesNo(i,j,k);l++){
+        for(unsigned int l=0;l<TubesNo(i,j,k);l++){
 
 	   // x, y positions of tubes wrt ladder
 
@@ -2015,7 +2015,7 @@ void TRDDBc::init(){
 
 //  Assuming Mirroring of 4 quadrants  for spikes
 
-    for (int is=0;is<trdconst::maxspikes;is++){
+    for (unsigned int is=0;is<trdconst::maxspikes;is++){
      for(int i=0;i<4;i++){
        for(int k=0;k<6;k++)_SpikesPar[is][i][k]=_SpikesPar[is][3][k];
        switch(i){
@@ -2039,7 +2039,7 @@ void TRDDBc::init(){
   number cr=cos(ang/180.*M_PI);
   number sr=sin(ang/180.*M_PI);
   number nrmr[3][3]={cr,sr,0,-sr,cr,0,0,0,1};
-  for (int i=0;i<trdconst::maxspikes;i++){
+  for (unsigned int i=0;i<trdconst::maxspikes;i++){
   for (int iq=0;iq<4;iq++){
    geant coo[3]={0,0,0};  
    for (int j=0;j<3;j++){
@@ -2128,7 +2128,7 @@ void TRDDBc::init(){
 
 //  Assuming rotating of 4 quadrants  for pipes
 
-    for (int is=0;is<trdconst::maxpipes;is++){
+    for (unsigned int is=0;is<trdconst::maxpipes;is++){
      for(int i=0;i<4;i++){
        for(int k=0;k<7;k++)_PipesPar[is][i][k]=_PipesPar[is][3][k];
        for (int k=0;k<3;k++){
@@ -2179,7 +2179,7 @@ void TRDDBc::init(){
   number cr=cos(22.5/180.*M_PI);
   number sr=sin(22.5/180.*M_PI);
   number nrmr[3][3]={cr,sr,0,-sr,cr,0,0,0,1};
-  for (int i=0;i<trdconst::maxpipes;i++){
+  for (unsigned int i=0;i<trdconst::maxpipes;i++){
   for (int iq=0;iq<4;iq++){
    geant coo[3]={0,0,0};  
    number nrm[3][3]={0,0,0,0,0,0,0,0,0};
@@ -2475,7 +2475,7 @@ void TRDDBc::InitPattern(){
 */
 
 
-for(int i=0;i<nlayS();i++){
+for(unsigned int i=0;i<nlayS();i++){
   _segpoints[i]=_NlayH[i];
 }
 
@@ -2485,7 +2485,7 @@ for(int i=0;i<nlayS();i++){
 
     integer ordermiss[trdconst::maxseg]={0,0,0,0,0};
     integer vmiss[trdconst::maxseg]={0,0,0,0,0};
-    int minc;
+    unsigned int minc;
     int iq=0;
     for(minc=0;minc<nlayS()-2;minc+=2){
        ordermiss[iq]=nlayS()-1-minc;
@@ -2502,7 +2502,7 @@ for(int i=0;i<nlayS();i++){
      _NpatS+=Factorial(nlayS())/Factorial(minc)/Factorial(nlayS()-minc);
      _patdS[nlayS()-minc+1]=_NpatS;
    }
-   for(int nl=0;nl<nlayS();nl++){
+   for(unsigned int nl=0;nl<nlayS();nl++){
      _patmissS[nl]=new integer[_NpatS];
      _patconfS[nl]=new integer[_NpatS];
    }   
@@ -2510,14 +2510,15 @@ for(int i=0;i<nlayS();i++){
    _patallowS =new integer[_NpatS];
    _patallow2S =new integer[_NpatS];
    int cpat=0;
-   for (cpat=0;cpat<npatS();cpat++){
-     for(int npt=1;npt<nlayS();npt++){
+   for (cpat=0;cpat<int(npatS());cpat++){
+     for(unsigned int npt=1;npt<nlayS();npt++){
        if(cpat<_patdS[npt]){
          _patpointsS[cpat]=nlayS()-npt+1;
          int vmini=cpat-_patdS[npt-1];
          int count=0;
-         int v,i1,i2,i3,i4;
-         for(v=0;v<nlayS();v++)vmiss[v]=0;
+         int v;
+		 unsigned int i1,i2,i3,i4;
+         for(v=0;v<int(nlayS());v++)vmiss[v]=0;
          switch(npt-1){
           case 0:
            break;
@@ -2576,7 +2577,7 @@ for(int i=0;i<nlayS();i++){
              for(i2=i1+1;i2<nlayS();i2++){
               for(i3=i2+1;i3<nlayS();i3++){
               for(i4=i3+1;i4<nlayS();i4++){
-               for(int i5=i4+1;i5<nlayS();i5++){
+               for(int i5=i4+1;i5<int(nlayS());i5++){
                if(vmini==count){
                 vmiss[nlayS()-1]=ordermiss[i5];
                 vmiss[nlayS()-2]=ordermiss[i4];
@@ -2595,12 +2596,12 @@ for(int i=0;i<nlayS();i++){
            cerr<<"TRDDBc::init-F-PatternLogicError"<<endl;
            exit(1);
          }
-         for(v=0;v<nlayS();v++)_patmissS[v][cpat]=vmiss[v];
-         for(v=0;v<nlayS();v++)_patconfS[v][cpat]=0;
+         for(v=0;v<int(nlayS());v++)_patmissS[v][cpat]=vmiss[v];
+         for(v=0;v<int(nlayS());v++)_patconfS[v][cpat]=0;
            int av=0; 
-         for(v=0;v<nlayS();v++){
+         for(v=0;v<int(nlayS());v++){
            _patconfS[av][cpat]=v+1;
-           for(int vv=1;vv<nlayS()+1;vv++){
+           for(int vv=1;vv<int(nlayS())+1;vv++){
               if(_patmissS[vv-1][cpat]==v+1){
                 _patconfS[av][cpat]=0;
                av--;
@@ -2615,7 +2616,7 @@ for(int i=0;i<nlayS();i++){
    }
 
 //Allow 
-      for(int cpat=0;cpat<npatS();cpat++){
+      for(unsigned int cpat=0;cpat<npatS();cpat++){
          if(_patpointsS[cpat]>2)_patallowS[cpat]=1;
          else _patallowS[cpat]=0;
          if(_patpointsS[cpat]>1)_patallow2S[cpat]=1;
@@ -2628,7 +2629,7 @@ for(int i=0;i<nlayS();i++){
 // 3: no (15)    {9}
 // 2:  (12) (13) (14) (25) (35) (45)  {6}
 // total of 21 allowed
-      for(int cpat=0;cpat<npatS();cpat++){
+      for(unsigned int cpat=0;cpat<npatS();cpat++){
          if(_patpointsS[cpat]==3){
           if((_patmissS[nlayS()-2][cpat]==1 &&  _patmissS[nlayS()-1][cpat]==5) ||
              (_patmissS[nlayS()-2][cpat]==5 &&  _patmissS[nlayS()-1][cpat]==1))
@@ -2652,7 +2653,7 @@ else if (nlayS()==trdconst::maxseg-1){
 // wanted all 4, all 3 
 // 2:  (12) (13)  (23) (24)
 // total of 9 allowed
-      for(int cpat=0;cpat<npatS();cpat++){
+      for(unsigned int cpat=0;cpat<npatS();cpat++){
          if(_patpointsS[cpat]==2){
           for (int k=0;k<_patpointsS[cpat];k++){
              if(_patconfS[k][cpat]==1 || _patconfS[k][cpat]==4){
@@ -2668,7 +2669,7 @@ else if (nlayS()==trdconst::maxseg-1){
 }
 }
 else if (nlayS()==trdconst::maxseg-2){
-      for(int cpat=0;cpat<npatS();cpat++){
+      for(unsigned int cpat=0;cpat<npatS();cpat++){
          if(_patpointsS[cpat]==2){
           for (int k=0;k<_patpointsS[cpat];k++){
              if(_patconfS[k][cpat]==1 || _patconfS[k][cpat]==3){
@@ -2684,14 +2685,14 @@ else if (nlayS()==trdconst::maxseg-2){
 }
 }
 else{
-      for(int cpat=0;cpat<npatS();cpat++){
+      for(unsigned int cpat=0;cpat<npatS();cpat++){
          if(_patpointsS[cpat]==2){
              _patallowS[cpat]=1;
         }
       }
 }
        int allow=0;
-      for(int cpat=0;cpat<npatS();cpat++){
+      for(unsigned int cpat=0;cpat<npatS();cpat++){
         if(_patallowS[cpat])allow++;
       }
       cout <<" TRDDBc::InitPattern-I-"<<allow<<" SegmentPatternsAllowedOutOf "<<npatS()<<endl;
@@ -2714,12 +2715,12 @@ else{
 }
 
 
-for(int iseg=0;iseg<nlayS();iseg++){
+for(unsigned int iseg=0;iseg<nlayS();iseg++){
 
 
     integer ordermiss[trdconst::maxhits]={0,0,0,0,0,0,0,0,0,0,0,0};
     integer vmiss[trdconst::maxhits]={0,0,0,0,0,0,0,0,0,0,0,0};
-    int minc;
+    unsigned int minc;
     int iq=0;
     for(minc=0;minc<nlayH(iseg)-2;minc+=2){
        ordermiss[iq]=nlayH(iseg)-1-minc;
@@ -2730,26 +2731,26 @@ for(int iseg=0;iseg<nlayS();iseg++){
     ordermiss[nlayH(iseg)-1]=1;
 //initialize patterns
    int smin=nlayH(iseg)-7>1?nlayH(iseg)-7:1;
-   for(minc=nlayH(iseg);minc>smin;minc--){
+   for(minc=nlayH(iseg);int(minc)>smin;minc--){
      _NpatH[iseg]+=TRDDBc::Cnk(nlayH(iseg),minc);
      _patdH[iseg][nlayH(iseg)-minc+1]=_NpatH[iseg];
    }
-   for(int nl=0;nl<nlayH(iseg);nl++){
+   for(unsigned int nl=0;nl<nlayH(iseg);nl++){
      _patmissH[iseg][nl]=new integer[_NpatH[iseg]];
      _patconfH[iseg][nl]=new integer[_NpatH[iseg]];
    }   
    _patpointsH[iseg] =new integer[_NpatH[iseg]];
-   for(int i=0;i<_NpatH[iseg];i++)_patpointsH[iseg][i]=0;
+   for(unsigned int i=0;i<_NpatH[iseg];i++)_patpointsH[iseg][i]=0;
    _patallowH[iseg] =new integer[_NpatH[iseg]];
    _patallow2H[iseg] =new integer[_NpatH[iseg]];
    int cpat=0;
    for (cpat=0;cpat<npatH(iseg);cpat++){
-     for(int npt=1;npt<nlayH(iseg);npt++){
+     for(unsigned int npt=1;npt<nlayH(iseg);npt++){
        if(cpat<_patdH[iseg][npt]){
          _patpointsH[iseg][cpat]=nlayH(iseg)-npt+1;
          int vmini=cpat-_patdH[iseg][npt-1];
          int count=0;
-         int v,i1,i2,i3,i4;
+		 unsigned int v, i1,i2,i3,i4;
          for(v=0;v<nlayH(iseg);v++)vmiss[v]=0;
          switch(npt-1){
           case 0:
@@ -2809,7 +2810,7 @@ for(int iseg=0;iseg<nlayS();iseg++){
              for(i2=i1+1;i2<nlayH(iseg);i2++){
               for(i3=i2+1;i3<nlayH(iseg);i3++){
               for(i4=i3+1;i4<nlayH(iseg);i4++){
-               for(int i5=i4+1;i5<nlayH(iseg);i5++){
+               for(unsigned int i5=i4+1;i5<nlayH(iseg);i5++){
                if(vmini==count){
                 vmiss[nlayH(iseg)-1]=ordermiss[i5];
                 vmiss[nlayH(iseg)-2]=ordermiss[i4];
@@ -2829,8 +2830,8 @@ for(int iseg=0;iseg<nlayS();iseg++){
              for(i2=i1+1;i2<nlayH(iseg);i2++){
               for(i3=i2+1;i3<nlayH(iseg);i3++){
               for(i4=i3+1;i4<nlayH(iseg);i4++){
-               for(int i5=i4+1;i5<nlayH(iseg);i5++){
-               for(int i6=i5+1;i6<nlayH(iseg);i6++){
+               for(unsigned int i5=i4+1;i5<nlayH(iseg);i5++){
+               for(unsigned int i6=i5+1;i6<nlayH(iseg);i6++){
                if(vmini==count){
                 vmiss[nlayH(iseg)-1]=ordermiss[i6];
                 vmiss[nlayH(iseg)-2]=ordermiss[i5];
@@ -2856,8 +2857,8 @@ for(int iseg=0;iseg<nlayS();iseg++){
            int av=0; 
          for(v=0;v<nlayH(iseg);v++){
            _patconfH[iseg][av][cpat]=v+1;
-           for(int vv=1;vv<nlayH(iseg)+1;vv++){
-              if(_patmissH[iseg][vv-1][cpat]==v+1){
+           for(unsigned int vv=1;vv<nlayH(iseg)+1;vv++){
+              if(_patmissH[iseg][vv-1][cpat]==int(v+1)){
                 _patconfH[iseg][av][cpat]=0;
                av--;
                break;
@@ -2918,7 +2919,7 @@ return oct;
 
 uinteger TRDDBc::getnumBulkhead(uinteger bulkhead,uinteger oct){
        int num=0;
-       int i,j;
+       unsigned int i,j;
        for ( i=0;i<oct;i++){
         for ( j=0;j<BulkheadsNo(i);j++)num++;
        }
@@ -2940,7 +2941,7 @@ uinteger TRDDBc::getnumSideHolePiece(uinteger hole,uinteger sidehole, uinteger o
 
 
        int num=0;
-       int i,j,k;
+       unsigned int i,j,k;
        for ( i=0;i<oct;i++){
         for ( j=0;j<SideHolesNo(i);j++){
          for ( k=0;k<SideHolesPieceNo(i,j);k++)num++;
@@ -2970,7 +2971,7 @@ uinteger TRDDBc::getnumSideHolePiece(uinteger hole,uinteger sidehole, uinteger o
 
 uinteger TRDDBc::getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
-       int i,j,k,l;
+       unsigned int i,j,k,l;
        for ( i=0;i<oct;i++){
         for ( j=0;j<LayersNo(i);j++){
          for ( k=0;k<LaddersNo(i,j);k++){
@@ -3011,7 +3012,7 @@ uinteger TRDDBc::getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinte
 
 uinteger TRDDBc::getnumHole(uinteger hole,uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
-       int i,j,k,l;
+       unsigned int i,j,k,l;
        for ( i=0;i<oct;i++){
         for ( j=0;j<LayersNo(i);j++){
          for ( k=0;k<LaddersNo(i,j);k++){
@@ -3052,7 +3053,7 @@ uinteger TRDDBc::getnumHole(uinteger hole,uinteger ladder, uinteger layer, uinte
 
 uinteger TRDDBc::getnumLadder(uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
-       int i,j,k;
+       unsigned int i,j,k;
        for ( i=0;i<oct;i++){
         for ( j=0;j<LayersNo(i);j++){
          for ( k=0;k<LaddersNo(i,j);k++)num++;
@@ -3079,7 +3080,7 @@ uinteger TRDDBc::getnumLadder(uinteger ladder, uinteger layer, uinteger oct){
 
 uinteger TRDDBc::getnumCutout(uinteger cutout, uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
-       int i,j,k,b;
+       unsigned int i,j,k,b;
        for ( i=0;i<oct;i++){
         for ( j=0;j<LayersNo(i);j++){
 	  for ( k=0;k<LaddersNo(i,j);k++){
@@ -3128,7 +3129,7 @@ assert(oct<OctagonNo());
 #endif
    _HeadOctagonPos[oct]._status=status;     
    _HeadOctagonPos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadOctagonPos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3147,7 +3148,7 @@ assert(oct<OctagonNo());
    oct=getnumOctagon(oct);
    status=_HeadOctagonPos[oct]._status;     
    gid=_HeadOctagonPos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadOctagonPos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3164,7 +3165,7 @@ void TRDDBc::SetBulkhead(uinteger bulkhead,uinteger oct,
     oct=getnumBulkhead(bulkhead,oct);    
    _HeadBulkheadPos[oct]._status=status;     
    _HeadBulkheadPos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadBulkheadPos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3181,7 +3182,7 @@ void TRDDBc::GetBulkhead(uinteger bulkhead, uinteger oct,
    oct=getnumBulkhead(bulkhead,oct);    
    status=_HeadBulkheadPos[oct]._status;     
    gid=_HeadBulkheadPos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadBulkheadPos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3200,7 +3201,7 @@ void TRDDBc::SetLadder(uinteger ladder, uinteger layer,uinteger oct,
     oct=getnumLadder(ladder,layer,oct);    
    _HeadLadderPos[oct]._status=status;     
    _HeadLadderPos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadLadderPos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3219,7 +3220,7 @@ void TRDDBc::GetLadder(uinteger ladder, uinteger layer, uinteger oct,
    oct=getnumLadder(ladder,layer,oct);    
    status=_HeadLadderPos[oct]._status;     
    gid=_HeadLadderPos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadLadderPos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3237,7 +3238,7 @@ void TRDDBc::SetCutout(uinteger bh, uinteger ladder,
 
    _HeadCutoutPos[oct]._status=status;     
    _HeadCutoutPos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadCutoutPos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3254,7 +3255,7 @@ void TRDDBc::GetCutout(uinteger bh,uinteger ladder,
    oct=getnumCutout(bh,ladder,layer,oct);    
    status=_HeadCutoutPos[oct]._status;     
    gid=_HeadCutoutPos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadCutoutPos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3273,7 +3274,7 @@ void TRDDBc::SetRadiatorHole(uinteger hole, uinteger ladder, uinteger layer,uint
     oct=getnumHole(hole,ladder,layer,oct);    
    _HeadRadiatorHolePos[oct]._status=status;     
    _HeadRadiatorHolePos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadRadiatorHolePos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3292,7 +3293,7 @@ void TRDDBc::GetRadiatorHole(uinteger hole,uinteger ladder, uinteger layer, uint
    oct=getnumHole(hole,ladder,layer,oct);    
    status=_HeadRadiatorHolePos[oct]._status;     
    gid=_HeadRadiatorHolePos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadRadiatorHolePos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3308,7 +3309,7 @@ void TRDDBc::SetRadiatorSideHolePiece(uinteger hole,uinteger sidehole, uinteger 
 
    _HeadRadiatorSideHolePiecePos[oct]._status=status;     
    _HeadRadiatorSideHolePiecePos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadRadiatorSideHolePiecePos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3324,7 +3325,7 @@ void TRDDBc::GetRadiatorSideHolePiece(uinteger hole, uinteger sidehole,uinteger 
    oct=getnumSideHolePiece(hole,sidehole,oct);    
    status=_HeadRadiatorSideHolePiecePos[oct]._status;     
    gid=_HeadRadiatorSideHolePiecePos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadRadiatorSideHolePiecePos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3343,7 +3344,7 @@ void TRDDBc::SetTubeBox(uinteger ladder, uinteger layer,uinteger oct,
     oct=getnumLadder(ladder,layer,oct);    
    _HeadTubeBoxPos[oct]._status=status;     
    _HeadTubeBoxPos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadTubeBoxPos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3363,7 +3364,7 @@ void TRDDBc::GetTubeBox(uinteger ladder, uinteger layer, uinteger oct,
    oct=getnumLadder(ladder,layer,oct);    
    status=_HeadTubeBoxPos[oct]._status;     
    gid=_HeadTubeBoxPos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadTubeBoxPos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3380,7 +3381,7 @@ void TRDDBc::SetTube(uinteger tube,uinteger ladder, uinteger layer,uinteger oct,
     oct=getnumTube(tube,ladder,layer,oct);    
    _HeadTubePos[oct]._status=status;     
    _HeadTubePos[oct]._gid=gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     _HeadTubePos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
@@ -3400,7 +3401,7 @@ void TRDDBc::GetTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct
    oct=getnumTube(tube,ladder,layer,oct);    
    status=_HeadTubePos[oct]._status;     
    gid=_HeadTubePos[oct]._gid;     
-   int i,j;
+   unsigned int i,j;
    for(i=0;i<3;i++){
     coo[i]=_HeadTubePos[oct]._coo[i];
     for(j=0;j<3;j++){
@@ -3531,7 +3532,7 @@ char* TRDDBc::CodeLad(uinteger gid){
  static char output[3]={'\0','\0','\0'};
  static char code[]="QWERTYUIOPASFGJKLZXVNM1234567890";
  integer size=strlen(code);
- if(gid<size*size-size){
+ if(int(gid)<size*size-size){
   output[0]=code[gid%size]; 
   output[1]=code[gid/size]; 
  }
@@ -3552,14 +3553,14 @@ uinteger TRDDBc::Cnk(uinteger n,uinteger k){
     k=n-k;
    } 
     uinteger waitingrow=2;
-    for (int i=k+1;i<n+1;i++){
+    for (unsigned int i=k+1;i<n+1;i++){
      result*=i;
      if(waitingrow<=nk && (result/waitingrow)*waitingrow==result){
       result=result/waitingrow;
       waitingrow++;
      }
     }
-    for( int i=waitingrow;i<=nk;i++)result/=i;
+    for( unsigned int i=waitingrow;i<=nk;i++)result/=i;
     return result;
   }
   else return 1;

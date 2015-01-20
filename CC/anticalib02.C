@@ -22,7 +22,6 @@
 #ifdef _PGTRACK_
 #include "MagField.h"
 #endif
-using namespace std;
 using namespace ANTI2C;
 //
 //
@@ -77,14 +76,11 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[TOF2GC::SCTHMX1];
   geant adca;
   int16u id,idN;
-  number ampe[2],uptm[2];
+  number ampe[2];
   number am1[ANTI2C::MAXANTI],am2[ANTI2C::MAXANTI];
   integer frsecn[ANTI2C::MAXANTI],frsect;
-  integer i,sector,isid,nsds,chnum;
-  integer status(0);
-  uinteger Runum(0);
-  geant padlen,padrad,padth,padfi,paddfi,ped,sig,tzer;
-  int nphsok;
+  integer i,sector,nsds;
+  geant padlen,padrad,padth,padfi,paddfi;
   Anti2RawEvent *ptr;
   Anti2RawEvent *ptrN;
 //
@@ -92,7 +88,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
                   ->getheadC("Anti2RawEvent",0);// already sorted after validation
 //----
   ANTI2JobStat::addre(11);
-  Runum=AMSEvent::gethead()->getrun();// current run number
   padlen=ANTI2DBc::scleng();//z-size
   padrad=ANTI2DBc::scradi();//int radious
   padth=ANTI2DBc::scinth();//thickness
@@ -100,29 +95,19 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
   frsect=0;
   nsds=0;
   ntdct=0;
-  uptm[0]=0;
-  uptm[1]=0;
   ampe[0]=0;
   ampe[1]=0;
   while(ptr){ // <------ RawEvent hits loop
     id=ptr->getid();//BBS
     sector=id/10-1;//Readout(logical) sector number (0-7)
-    isid=id%10-1;
-    chnum=sector*2+isid;//channels numbering
     adca=ptr->getadca();
     ntdct=ptr->gettdct(tdct);
     nftdc=ptr->getftdc(ftdc);
     if(ntdct>0 && ntdct<=5 && nftdc==1){//select only low mult. Hist/FT-hit events
 //
-      ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
-      sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
       ampe[nsds]=number(adca);
 //cout<<"    decoded signal="<<ampe[nsds]<<endl; 
 //TDC-ch-->time(ns):
-      nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
-      if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
-      else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
-      uptm[nsds]=(ftdc[0]-tdct[0])*ANTI2DBc::htdcbw() + tzer;//TDC-ch-->ns + compens.tzero
 //cout<<"    decoded Up-time="<<uptm[nsds]<<endl;
 //
       nsds+=1;
@@ -146,8 +131,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
       ntdct=0;
       ampe[0]=0;
       ampe[1]=0;
-      uptm[0]=0;
-      uptm[1]=0;
     }//--->endof next sector check
 //---
     ptr=ptr->next();// take next RawEvent hit
@@ -167,11 +150,13 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //
 //------> get parameters from tracker:
 //
-    number pmas;
+    number pmas=0;
     number pmom,bet(0.97),chi2;
     number the,phi,trl,rigid(2),err;
-    integer chargeTracker,charge,trpatt,betpatt;
-    number chi2t,chi2s;
+    integer chargeTracker,charge=0;
+#ifndef _PGTRACK_
+	integer trpatt;
+#endif
     AMSPoint C0(0,0,0);
     AMSPoint cooCyl(0,0,0);
     AMSPoint crcCyl;
@@ -180,7 +165,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     AMSParticle *ppart;
     AMSTrTrack *ptrack;
     AMSCharge  *pcharge;
-    AMSTRDTrack *ptrd;
     AMSBeta *pbeta;
     int npart(0),bad(1),envindx(0);
     bool trdtr,ecaltr,nottr,badint;
@@ -201,16 +185,12 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",envindx);
     bool TrkTrPart=false;
-    bool AnyTrPart=false;
     bool GoodTrPart=false;
-    bool GoodTrkTrack=false;
 //			      
     while(ppart){
       ptrack=ppart->getptrack();//get pointer of the Track used in given particle
       if(ptrack){
-        AnyTrPart=true;
         ANTI2JobStat::addre(20);
-        ptrd=ppart->getptrd();//get pointer of the TRD-track, used in given particle
         trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
         ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
         nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
@@ -221,7 +201,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 	if(!trdtr){//tracker-track based part
 	  TrkTrPart=true;
 	  ANTI2JobStat::addre(22);
-          trpatt=ptrack->getpattern();//TRK-track pattern
 	  //PZ if(trpatt>=0){
 #ifdef _PGTRACK_
 	  if(!(ptrack->IsFake())){
@@ -231,18 +210,17 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 	    the=ptrack->GetTheta(AMSTrTrack::kChoutko);
 	    phi=ptrack->GetPhi(AMSTrTrack::kChoutko);
 	    C0=ptrack->GetP0(AMSTrTrack::kChoutko);
+		(void) err;
+		(void) chi2;
 #else
+      trpatt=ptrack->getpattern();//TRK-track pattern
 	  if(trpatt>=0){
             ptrack->getParFastFit(chi2,rigid,err,the,phi,C0);
 #endif
-            status=ptrack->getstatus();
             pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
             pbeta=ppart->getpbeta();
 	    if(pbeta){
-              betpatt=pbeta->getpattern();
               bet=pbeta->getbeta();
-              chi2t=pbeta->getchi2();
-              chi2s=pbeta->getchi2S();
 	    }
             pmas=ppart->getmass();
             chargeTracker=pcharge->getchargeTracker();
@@ -250,7 +228,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //                                    <--- put here good TRK-track selection(chi2,...)
 	    bad=0;
 	    ANTI2JobStat::addre(23);
-            GoodTrkTrack=true;
           }
 	}//--->endof "trk-track particle" check
 	else{//trd-track based particle
@@ -279,7 +256,7 @@ Nextp:
 //
 // ----->  find track crossing points/angles with sectors:
 //
-    number dir,cpsn,cpcs,cphi,dphi1,dphi2,phil,phih,zcut,zscr,thes,phis;
+    number dir,cpsn,cpcs,cphi,dphi1,dphi2=0,phil,phih,zcut,zscr=0,thes=0;
     integer nseccr(0),isphys(-1);
     phil=padfi-0.5*paddfi;//boundaries of fired sector
     phih=padfi+0.5*paddfi;
@@ -327,7 +304,6 @@ Nextp:
 	  else isphys=2*frsecn[0]+1;
 	  zscr=crcCyl[2];
 	  thes=the;//rads !!!
-	  phis=phi;//degrees
           nseccr+=1;
 	  dphi2=cphi-phi;//PHIcrp-PHIimpp
 	  if(dphi2>180)dphi2=360-dphi2;
@@ -869,7 +845,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 // flg=1/2/3=>/write2DB/NoAction(hist only)/(write2file+hist)
    int i,sr,sd;
    int totch(0),goodtbch(0),goodch(0);
-   geant pedo,sigo,pdiff;
+   geant pedo,pdiff;
    geant pedmn,pedmx,sigmn,sigmx;
    int stao;
    uinteger runn=BRun();//run# 
@@ -908,7 +884,6 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
      for(sd=0;sd<2;sd++){
        totch+=1;
        pedo=ANTIPeds::anscped[sr].apeda(sd);//extract prev.calib ped/sig/sta for comparison
-       sigo=ANTIPeds::anscped[sr].asiga(sd);
        stao=ANTIPeds::anscped[sr].astaa(sd);
        pdiff=peds[sr][sd]-pedo;
        if(DAQS2Block::CalFirstSeq() || stao==1)pdiff=0;//to exclude pdiff-check for 1st run or bad prev.channel
@@ -1050,7 +1025,6 @@ void ANTPedCalib::init(){ // ----> initialization for AccPed-calibration(Class/D
   char htit1[60],htit2[60];
   char inum[11];
   char in[2]="0";
-  geant por2rem;
 //
   strcpy(inum,"0123456789");
 //
@@ -1076,8 +1050,6 @@ void ANTPedCalib::init(){ // ----> initialization for AccPed-calibration(Class/D
      return;
    }
 */
-  if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
-  else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
 //  nstacksz=integer(floor(por2rem*ATPCEVMX+0.5));
   nstacksz=ATPCSTMX;
   if(nstacksz>ATPCSTMX){
@@ -1143,15 +1115,13 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
    geant lohil[2]={0,9999};//means no limits on val, if partial ped is bad
    geant ped,sig,sig2,spikethr;
    bool accept(true);
-   geant por2rem,p2r;
+   geant p2r;
    geant sigmn,sigmx;
    geant apor2rm[10]={0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,};
    number ad,ad2,dp,ds;
    geant pedi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
    geant sigi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 //
-   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//def ClassPed(random)
-   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//def DownScaled(in trigger)
    sigmn=ATCAFFKEY.siglim[0];
    sigmx=ATCAFFKEY.siglim[1];
 //
@@ -1266,7 +1236,7 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
 void ANTPedCalib::outp(int flg){// very preliminary
 // flg=0/1/2=>HistOnly/write2DB+file/write2file
    int i,sr,sd,statmin(9999);
-   geant pdiff,por2rem,p2r;
+   geant pdiff,por2rem=0,p2r;
    geant pedmn,pedmx,sigmn,sigmx;
    uinteger runn=AMSUser::JobFirstRunN();//job 1st run# 
    time_t begin=time_t(runn);//begin time => runn

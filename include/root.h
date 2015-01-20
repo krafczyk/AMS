@@ -65,7 +65,6 @@
 #endif
 
 
-using namespace std;
 #ifdef __SLC3__
 char* operator+( std::streampos&, char* );
 #endif
@@ -835,7 +834,21 @@ public:
   float NS13R;
   float NEnergy3C2;
   float NEnergy3C3;
-
+/// ECAL charge estimator based on energy deposition for each layer (qyan@cern.ch)
+/*!
+ *   @param[in] ilay: ECAL layer(0-17)
+ *   @param[in] edep: energy depositon in ECAL layer(GeV)
+ *   @param[in] edeptype: 0-total layer edep(sum up all cell) to get charge, 1-single cell edep(Max edep cell) to get charge
+ *   @param[in] frig: particle rigidity[GV], correct dE/dx increase with rigidity
+ */
+  static float GetEcalLayerQ(int ilay,float edep,int edeptype=0,float frig=0);
+/// ECAL charge estimator based on shower energy deposition for each layer (qyan@cern.ch)
+/*!
+ *   @param[in] ilay: ECAL layer(0-17)
+ *   @param[in] edeptype: 0-total layer edep(sum up all cell) to get charge, 1-single cell edep(Max edep cell) to get charge
+ *   @param[in] frig: particle rigidity[GV], correct dE/dx increase with rigidity
+ */
+  float GetLayerQ(int ilay,int edeptype=0,float frig=0);
   float EcalChargeEstimator(); ///< Charge estimator based on ECAl-only ; it is advised to discard low-rigidity events and to use events having only one EcalShower.
 
   /// Function to obtain the best reconstructed energy for the shower according to a particle hyptothesis: partid=1(photon),2=(electron/positron). Using different methods to recover anode efficiency, rear leakage, lateral leakage and temperature effects. EnergyC correction (method=0) is also known as EnergyP ("energy patched").  EnergyA (method=1) correction not yet implemented. EnergyE for candidate electrons retrieves negative values in case of unphysical energy fraction in last two layers or deposited energy in case of negative correction.
@@ -976,10 +989,10 @@ public:
   friend class TOF2RawSide;
   friend class AMSEventR;
   virtual ~TofRawSideR(){};
-  int getftdc(int i){return i<fftdc.size()?fftdc[i]:0;}
-  int getstdc(int i){return i<fstdc.size()?fstdc[i]:0;}
-  int getsumht(int i){return i<fsumht.size()?fsumht[i]:0;}
-  int getsumsht(int i){return i<fsumsht.size()?fsumsht[i]:0;}
+  int getftdc(unsigned int i){return i<fftdc.size()?fftdc[i]:0;}
+  int getstdc(unsigned int i){return i<fstdc.size()?fstdc[i]:0;}
+  int getsumht(unsigned int i){return i<fsumht.size()?fsumht[i]:0;}
+  int getsumsht(unsigned int i){return i<fsumsht.size()?fsumsht[i]:0;}
 
   ClassDef(TofRawSideR ,6)       //TofRawSideR
 #pragma omp threadprivate(fgIsA)
@@ -1318,14 +1331,12 @@ class TofClusterHR :public TrElem {
   bool operator<(const TofClusterHR &right){
     return Layer*1000+Bar*100<(right.Layer*1000+right.Bar*100);
   }
-  void _PrepareOutput(int opt=0){
-    sout.clear();
-    sout.append("TofClusterHR Info");
+  std::string _PrepareOutput(int opt=0){
+	return "TofClusterHR Info";
   };
 
   void Print(int opt=0){
-    _PrepareOutput();
-    cout<<sout<<endl;
+    cout << _PrepareOutput() << endl;
   }
 
   const char * Info(int number=-1){
@@ -1334,8 +1345,7 @@ class TofClusterHR :public TrElem {
   }
   
    std::ostream& putout(std::ostream &ostr = std::cout){
-    _PrepareOutput(1);
-    return ostr << sout  << std::endl;
+    return ostr << _PrepareOutput(1) << std::endl;
   };
 
 //-------
@@ -2241,11 +2251,12 @@ public:
   float getsig(int &error);   ///< return sigma
   float getgain(int &error);  ///< return gain from TRDGains
   float getgain2(int &error);  ///< return gain from TRDGains2
+  float getgain3(int &error);  ///< return gain from TRDGains3
   TrdRawHitR(){};
   TrdRawHitR(AMSTRDRawHit *ptr);
 
   virtual ~TrdRawHitR(){};
-ClassDef(TrdRawHitR,4)       //TrdRawHitR
+ClassDef(TrdRawHitR,5)       //TrdRawHitR
 #pragma omp threadprivate(fgIsA)
 };*/
 
@@ -3122,14 +3133,12 @@ class BetaHR: public TrElem{
    int FindNearBar(int ilay,float x, float y,float &dis,bool &isinbar,float z=0){return TOFGeom::FindNearBar(ilay,x,y,dis,isinbar,z);}
 /**@}*/
 
-  void _PrepareOutput(int opt=0){
-    sout.clear();
-    sout.append("BetaHR Info");
+  std::string _PrepareOutput(int opt=0){
+	return "BetaHR Info";
   };
 
   void Print(int opt=0){
-    _PrepareOutput();
-    cout<<sout<<endl;
+    cout << _PrepareOutput() <<endl;
   }
 
   const char * Info(int number=-1){
@@ -3138,8 +3147,7 @@ class BetaHR: public TrElem{
   }
 
   std::ostream& putout(std::ostream &ostr = std::cout){
-    _PrepareOutput(1);
-    return ostr << sout  << std::endl;
+    return ostr << _PrepareOutput(1)  << std::endl;
   };
 
 //---- 
@@ -3181,11 +3189,11 @@ class ChargeSubDR{
   /// number of charge hypothesis stored in charge vectors
   int    getSize(){return ChargeI.size();}
   /// charge index (0:e, 1:H, 2:He ...) for the i'th most likely hypothesis
-  int getChargeI(int i=0){return i<ChargeI.size()?ChargeI.at(max(i,0)):-1;}
+  int getChargeI(unsigned int i=0){return i<ChargeI.size()?ChargeI.at(i):-1;}
   /// loglikelihood value for the i'th most likely hypothesis
-  float getLkhd(int i=0){return i<Lkhd.size()?Lkhd.at(max(i,0)):0;}
+  float getLkhd(unsigned int i=0){return i<Lkhd.size()?Lkhd.at(i):0;}
   /// estimated probablility for the i'th most likely hypothesis
-  float getProb(int i=0){return i<Prob.size()?Prob.at(max(i,0)):0;}
+  float getProb(unsigned int i=0){return i<Prob.size()?Prob.at(i):0;}
   /// print subdetector specific information (attributes and values)
   void dumpAttr(){for(map<TString,float>::iterator i=Attr.begin();i!=Attr.end();i++) cout<<i->first<<" = "<<i->second<<endl;}
   /// return value corresponding to a subdetector specific attribute
@@ -3244,11 +3252,11 @@ class ChargeR{
   /// number of charge hypothesis stored in charge vectors
   int    getSize(){return ChargeI.size();}
   /// charge index (0:e, 1:H, 2:He ...) for the i'th most probable hypothesis
-  int getChargeI(int i=0){return i<ChargeI.size()?ChargeI.at(max(i,0)):-1;}
+  int getChargeI(unsigned int i=0){return i<ChargeI.size()?ChargeI.at(i):-1;}
   /// loglikelihood value for the i'th most probable hypothesis
-  float getLkhd(int i=0){return i<Lkhd.size()?Lkhd.at(max(i,0)):0;}
+  float getLkhd(unsigned int i=0){return i<Lkhd.size()?Lkhd.at(i):0;}
   /// estimated probablility for the i'th most probable hypothesis
-  float getProb(int i=0){return i<Prob.size()?Prob.at(max(i,0)):0;}
+  float getProb(unsigned int i=0){return i<Prob.size()?Prob.at(i):0;}
   /// return a pointer to the ChargeSubDR object using its ID or 0 if not reconstructed
   ChargeSubDR *getSubD(TString ID);
 
@@ -3507,6 +3515,9 @@ public:
 ///
 int ReBuildTrdEcal(float DisMax=20, float DirMax=10, float DistX=1,float DistY=2,bool force=false); ///<  Rebuild particle if both Trd and EcalShower present
 int ReBuildTrdTOF(float DisMax=20, float DirMax=10, float DistX=3.5,float DistY=3.5,bool force=false); ///<  Rebuild particle if both Trd and TOF present
+
+
+int UpdateTrTrack(float DisMax=5, float DirMax=10); ///< Update TrTrack index
 
   int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 
@@ -3895,8 +3906,8 @@ map <int,float> fEl;   ///< elements & number of atoms per volume
   virtual ~MCTrackR(){};
   int fEl_size(){return fEl.size();}
   float fEl_num(int i){return fEl.find(i)==fEl.end()?0:fEl.find(i)->second;}
-  int fEl_i(int i){if(i<0 || i>=fEl.size())return -1;
-                   int s=0;
+  int fEl_i(unsigned int i){if(i>=fEl.size())return -1;
+                   unsigned int s=0;
                    typedef std::map<int,float>::iterator k_i;
                    for(k_i k=fEl.begin();k!=fEl.end();k++){  
                     if(s++==i)return k->first;
@@ -3948,6 +3959,11 @@ static bool Rebuild;
     sprintf(_Info,"McParticle No %d Pid=%d, TrkId=%i, ParentId=%i, Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f Momentum(Gev)=%7.2g Mass=%7.2g Q=%4.0f",number,Particle, trkID, parentID, Coo[0],Coo[1],Coo[2],acos(Dir[2]),atan2(Dir[1],Dir[0]),Momentum,Mass,Charge);
   return _Info;
   }
+  /// \return human readable info about MCEventgR including Nskip
+  const char *Info2(int number);
+  /// \return human readable particle name from Geant3 particle id
+  static const char *GetParticleName(int g3pid);
+  static void Dump();
   virtual ~MCEventgR(){};
 ClassDef(MCEventgR,5)       //MCEventgR
 #pragma omp threadprivate(fgIsA)
@@ -4005,9 +4021,12 @@ static int ProcessSetup;
 static bool isBadRun(unsigned int run);
 static bool RunTypeSelected(unsigned int runtype);
 
+bool IsTestbeamMC();
+int SetDefaultMCTuningParameters();
+
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
-bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
+bool InitSetup(TFile* file,const char *name, uinteger time); ///< Load AMSRootSetup Tree
 bool UpdateSetup(uinteger run);  ///< Update RootSetup for the new Run
 int  GetSetup(uinteger entry);   ///< Update RootSetup for the entry 
 const char * GetCurrentFileName(bool setup=false);
@@ -4177,7 +4196,7 @@ struct MY_TLS_ITEM{
 };
 
 static MY_TLS_ITEM _RunSetup;
-static char      * _Name;
+static const char * _Name;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(_Tree,_Entry,_Head)
 #pragma omp threadprivate(_TreeSetup,_EntrySetup,_RunSetup)
@@ -4186,7 +4205,7 @@ public:
 static unsigned long long & Lock(){return
 _Lock;}
  static AMSEventR* & Head()  {return _Head;}
- static char *  BranchName() {return _Name;}
+ static const char *  BranchName() {return _Name;}
 // void SetBranchA(TTree *tree);   // don;t use it anymore use Init
 
 
@@ -4217,10 +4236,10 @@ static  TH2D *h2(int id);
 static  TProfile *hp(int id);
 /// print histogram (eg from root session)
 /// AMSEventR::hprint(id,"same");
-static  void hprint(int id, char opt[]="");
+static  void hprint(int id, const char opt[]="");
 /// list histos with title contains ptit or all if ptit==""
 /// AMSEventR::hlist("xyz");
-static  void hlist(char ptit[]="");
+static  void hlist(const char ptit[]="");
 /// reset histogram by  id or all if id==0
 static  void hreset(int id);
 /// scale histogram id content by fac
@@ -4625,7 +4644,7 @@ particle (datacards: ESTA 1=1110) for most other status bits
 
 bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set
 bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group
-int Version() const {return fabs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):fHeader.Version/4;} ///< \return producer version number
+int Version() const {return std::abs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):fHeader.Version/4;} ///< \return producer version number
 ///
 static AMSSetupR *  getsetup(){return AMSSetupR::gethead();} ///< \return RootSetup Tree Singleton
 int OS() const {return fHeader.Version/16>465?fHeader.Version%16:fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun  12 linux 64bit )
@@ -4637,6 +4656,7 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 
    void UpdateGPS();  ///< Update GPSTime from getsetup(AMSSetupR *head);
 
+   void UpdateTrRecon();  ///< Update nTrCluster/nTrRecHit/nTrTrack
 
    /*!
     \return 0  if succcess ; 1 if no gps time; 2 wrong time format; 3 int logic error; 4 gps time not valid; 5 no lvl1 block; 6 no coarse reg in lvl1 block
@@ -4740,7 +4760,7 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
 //--------------------------------------------------------------------------------------------------
 ///
        //! Return status of AMS Exposure-Time for each second
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem(please not use this second for Flux Cal)
        */  
        int GetRTIStat();
@@ -4751,21 +4771,29 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
        */
        int RecordRTIRun();
        //! get AMS Exposure-Time RTI information for each second
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem 
        */ 
        int GetRTI(AMSSetupR::RTI & a);
        //!  AMS Exposure-Time RTI for each second off-rootfile mode
-       /*! return 0: if sucess
+       /*! return 0: if success
            !=0: RIT second has problem 
            \param[in] xtime JMDC Time
        */
        static int GetRTI(AMSSetupR::RTI & a, unsigned int  xtime);
-       //!  get AMS Run Begin and End Time from RTI according to run id
+       //!  AMS Exposure-Time RTI for each second by UTC Time(instead of JMDC Time),not recommended for Exposure-Time calculation
+       /*! return 0: if success
+          !=0: RIT second has problem 
+          \param[in] xtime UTC Time
+        */
+       static int GetRTIUTC(AMSSetupR::RTI & a, unsigned int  xtime);
+       //!  get AMS Run Begin and End Time from RTI according to run id(with and without event id)
        /*    \param[in]  runid: run id
              \param[out] time[0]: Run Begin Time, time[1]: Run End Time; JMDC Time
+             \param[in]  begev: begin event id
+             \param[in]  endev: end   event id
        */
-       static int GetRTIRunTime(unsigned int runid,unsigned int time[2]);
+       static int GetRTIRunTime(unsigned int runid,unsigned int time[2],int begev=-1,int endev=-1);
        //!  get  difference(um) bewteen PG ad CIEMAT alignment of L1(L9)(XYZ)  in choosen time window
        /*    \param[in]  extlay: Track External Layer: 0-L1, 1-L9
              \param[out] nxyz:  Events number with X(YZ) Hit
@@ -4816,7 +4844,7 @@ int GetTDVEl(const string & tdvname,unsigned int index, if_t &value);
           return -2  if no instance of AMSSetupR found
 
         */
-int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
+int GetSlowControlData(const char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
 
 float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers map return -1 if error
 
@@ -4824,8 +4852,17 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
 #ifdef __ROOTSHAREDLIBRARY__
   /*!
    *! Dump TrTrack variables with the current alignment settings
+   * @param[in]  run       Run number
+   * @param[in]  event     Event number
+   * @param[in]  itrtrack  TrTrack index in AMSEventR::pTrTrack
+   * @param[in]  refit1    Refit mode for the first  fit (typically inner)
+   * @param[in]  refit2    Refit mode for the second fit (typically full span)
+   * @param[in]  ichrg     Charge assumption (1:p 2:He,...) for resolution
+   * @param[in]  magtemp   Magnet temperature correction during the fitting
+   * @param[in]  path      Search path to look for run and event
    */
-static int DumpTrTrackPar(int run, int event, int itrack = 0);
+  static int DumpTrTrackPar(int run, int event, int itrack = 0, int refit1 = 3, int refit2 = 23, int ichrg = 1, int magtemp = 0,
+			    const char *path = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4/");
 #endif
   /*!
    * @param[in]  ilay    Tracker  ilay(1-9) (J scheme)

@@ -97,27 +97,27 @@ return maxtube*maxlad*_layer+maxtube*_ladder;
 integer AMSTRDIdSoft::_NROCh=0;
 
 void AMSTRDIdSoft::init(){
-for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
-      for (int j=0;j<TRDDBc::LayersNo(i);j++){
-	  for(int k=0;k<TRDDBc::LaddersNo(i,j);k++){
+for ( unsigned int i=0;i<TRDDBc::TRDOctagonNo();i++){
+      for (unsigned int j=0;j<TRDDBc::LayersNo(i);j++){
+	  for(unsigned int k=0;k<TRDDBc::LaddersNo(i,j);k++){
            _NROCh+=TRDDBc::TubesNo(i,j,k);
           }
       }
 }
 _ped=new geant[getpedsize()];
-for (int i = 0; i < getpedsize(); ++i) _ped[i] = 0;
+for (unsigned int i = 0; i < getpedsize(); ++i) _ped[i] = 0;
 
 _sig=new geant[getsigsize()];
-for (int i = 0; i < getsigsize(); ++i) _sig[i] = 0;
+for (unsigned int i = 0; i < getsigsize(); ++i) _sig[i] = 0;
 
 _gain=new geant[getgaisize()];
-for (int i = 0; i < getgaisize(); ++i) _gain[i] = 0;
+for (unsigned int i = 0; i < getgaisize(); ++i) _gain[i] = 0;
 
 _mcgain=new geant[getgaisize()];
-for (int i = 0; i < getgaisize(); ++i) _mcgain[i] = 0;
+for (unsigned int i = 0; i < getgaisize(); ++i) _mcgain[i] = 0;
 
 _status=new uinteger[getstasize()];
-for (int i = 0; i < getstasize(); ++i) _status[i] = 0;
+for (unsigned int i = 0; i < getstasize(); ++i) _status[i] = 0;
 cout <<"AMSTRDIdSoft::init()-I-"<<_NROCh<<"/"<<getpedsize()<<" readout channels initialized"<<endl;
 }
 
@@ -145,9 +145,9 @@ geant * AMSTRDIdSoft::_sig=0;
 uinteger AMSTRDIdSoft::CalcBadCh(uinteger crateno){
 uinteger badch=0;
 uinteger zerog=0;
-for (int i=0;i<TRDDBc::LayersNo(0);i++){
-  for(int j=0;j<TRDDBc::LaddersNo(0,i);j++){
-    for(int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
+for (unsigned int i=0;i<TRDDBc::LayersNo(0);i++){
+  for(unsigned int j=0;j<TRDDBc::LaddersNo(0,i);j++){
+    for(unsigned int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
     AMSTRDIdSoft id(i,j,k);
     if(!id.dead()){
     if(id.getcrate()==crateno && id.checkstatus(AMSDBc::BAD))badch++;
@@ -202,12 +202,12 @@ void AMSTRDIdSoft::inittable(){
 
      //     integer AMSTRDIdSoft::_GetGeo[ncrt]][nudr][nufe][nute][3];
      //     integer AMSTRDIdSoft::_GetHard[maxlay][maxlad][4];     
-     int i,j,k;
+     unsigned int i,j,k;
      for(i=0;i<trdid::ncrt;i++){
        for( j=0;j<trdid::nudr;j++){
         _Calib[i][j]=0;
         for(k=0;k<trdid::nufe;k++){
-        for(int l=0;l<trdid::nute;l++){
+        for(unsigned int l=0;l<trdid::nute;l++){
          for(int m=0;m<3;m++)_GetGeo[i][j][k][l][m]=-1;
         }
        }
@@ -223,415 +223,415 @@ void AMSTRDIdSoft::inittable(){
 
 
 
-  for(int s=0;s<trdid::ncrt;s++)_CrateNo[s]=s;
+  for(unsigned int s=0;s<trdid::ncrt;s++)_CrateNo[s]=s;
 
 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][4][3][k][0]=0*trdid::nute+k; 
     _GetGeo[1][4][3][k][1]=0; 
     _GetGeo[1][4][3][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][4][4][k][0]=0*trdid::nute+k; 
     _GetGeo[1][4][4][k][1]=1; 
     _GetGeo[1][4][4][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][1][3][k][0]=0*trdid::nute+k; 
     _GetGeo[1][1][3][k][1]=2; 
     _GetGeo[1][1][3][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][1][4][k][0]=0*trdid::nute+k; 
     _GetGeo[1][1][4][k][1]=3; 
     _GetGeo[1][1][4][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][4][5][k][0]=0*trdid::nute+k; 
     _GetGeo[1][4][5][k][1]=4; 
     _GetGeo[1][4][5][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][4][6][k][0]=0*trdid::nute+k; 
     _GetGeo[1][4][6][k][1]=5; 
     _GetGeo[1][4][6][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][1][5][k][0]=0*trdid::nute+k; 
     _GetGeo[1][1][5][k][1]=6; 
     _GetGeo[1][1][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][4][5][k][0]=0*trdid::nute+k; 
     _GetGeo[0][4][5][k][1]=7; 
     _GetGeo[0][4][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][1][4][k][0]=0*trdid::nute+k; 
     _GetGeo[0][1][4][k][1]=8; 
     _GetGeo[0][1][4][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][1][3][k][0]=0*trdid::nute+k; 
     _GetGeo[0][1][3][k][1]=9; 
     _GetGeo[0][1][3][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][4][4][k][0]=0*trdid::nute+k; 
     _GetGeo[0][4][4][k][1]=10; 
     _GetGeo[0][4][4][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][4][3][k][0]=0*trdid::nute+k; 
     _GetGeo[0][4][3][k][1]=11; 
     _GetGeo[0][4][3][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][1][2][k][0]=0*trdid::nute+k; 
     _GetGeo[0][1][2][k][1]=12; 
     _GetGeo[0][1][2][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][1][1][k][0]=0*trdid::nute+k; 
     _GetGeo[0][1][1][k][1]=13; 
     _GetGeo[0][1][1][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][1][1][k][0]=1*trdid::nute+k; 
     _GetGeo[1][1][1][k][1]=0; 
     _GetGeo[1][1][1][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][1][2][k][0]=1*trdid::nute+k; 
     _GetGeo[1][1][2][k][1]=1; 
     _GetGeo[1][1][2][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][4][1][k][0]=1*trdid::nute+k; 
     _GetGeo[0][4][1][k][1]=2; 
     _GetGeo[0][4][1][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][4][2][k][0]=1*trdid::nute+k; 
     _GetGeo[0][4][2][k][1]=3; 
     _GetGeo[0][4][2][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][3][5][k][0]=1*trdid::nute+k; 
     _GetGeo[1][3][5][k][1]=4; 
     _GetGeo[1][3][5][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][3][6][k][0]=1*trdid::nute+k; 
     _GetGeo[1][3][6][k][1]=5; 
     _GetGeo[1][3][6][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][3][5][k][0]=1*trdid::nute+k; 
     _GetGeo[0][3][5][k][1]=6; 
     _GetGeo[0][3][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][3][6][k][0]=1*trdid::nute+k; 
     _GetGeo[0][3][6][k][1]=7; 
     _GetGeo[0][3][6][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][3][4][k][0]=1*trdid::nute+k; 
     _GetGeo[1][3][4][k][1]=8; 
     _GetGeo[1][3][4][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][3][3][k][0]=1*trdid::nute+k; 
     _GetGeo[1][3][3][k][1]=9; 
     _GetGeo[1][3][3][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][2][6][k][0]=1*trdid::nute+k; 
     _GetGeo[0][2][6][k][1]=10; 
     _GetGeo[0][2][6][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][2][5][k][0]=1*trdid::nute+k; 
     _GetGeo[0][2][5][k][1]=11; 
     _GetGeo[0][2][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][4][2][k][0]=1*trdid::nute+k; 
     _GetGeo[1][4][2][k][1]=12; 
     _GetGeo[1][4][2][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][4][1][k][0]=1*trdid::nute+k; 
     _GetGeo[1][4][1][k][1]=13; 
     _GetGeo[1][4][1][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][1][0][k][0]=1*trdid::nute+k; 
     _GetGeo[0][1][0][k][1]=14; 
     _GetGeo[0][1][0][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][0][0][k][0]=1*trdid::nute+k; 
     _GetGeo[0][0][0][k][1]=15; 
     _GetGeo[0][0][0][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][1][0][k][0]=2*trdid::nute+k; 
     _GetGeo[1][1][0][k][1]=0; 
     _GetGeo[1][1][0][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][0][0][k][0]=2*trdid::nute+k; 
     _GetGeo[1][0][0][k][1]=1; 
     _GetGeo[1][0][0][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][5][0][k][0]=2*trdid::nute+k; 
     _GetGeo[0][5][0][k][1]=2; 
     _GetGeo[0][5][0][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][4][0][k][0]=2*trdid::nute+k; 
     _GetGeo[0][4][0][k][1]=3; 
     _GetGeo[0][4][0][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][2][5][k][0]=2*trdid::nute+k; 
     _GetGeo[1][2][5][k][1]=4; 
     _GetGeo[1][2][5][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][2][6][k][0]=2*trdid::nute+k; 
     _GetGeo[1][2][6][k][1]=5; 
     _GetGeo[1][2][6][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][3][3][k][0]=2*trdid::nute+k; 
     _GetGeo[0][3][3][k][1]=6; 
     _GetGeo[0][3][3][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][3][4][k][0]=2*trdid::nute+k; 
     _GetGeo[0][3][4][k][1]=7; 
     _GetGeo[0][3][4][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][3][2][k][0]=2*trdid::nute+k; 
     _GetGeo[1][3][2][k][1]=8; 
     _GetGeo[1][3][2][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][3][1][k][0]=2*trdid::nute+k; 
     _GetGeo[1][3][1][k][1]=9; 
     _GetGeo[1][3][1][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][2][4][k][0]=2*trdid::nute+k; 
     _GetGeo[0][2][4][k][1]=10; 
     _GetGeo[0][2][4][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][2][3][k][0]=2*trdid::nute+k; 
     _GetGeo[0][2][3][k][1]=11; 
     _GetGeo[0][2][3][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][5][6][k][0]=2*trdid::nute+k; 
     _GetGeo[1][5][6][k][1]=12; 
     _GetGeo[1][5][6][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][5][5][k][0]=2*trdid::nute+k; 
     _GetGeo[1][5][5][k][1]=13; 
     _GetGeo[1][5][5][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][1][6][k][0]=2*trdid::nute+k; 
     _GetGeo[0][1][6][k][1]=14; 
     _GetGeo[0][1][6][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][1][5][k][0]=2*trdid::nute+k; 
     _GetGeo[0][1][5][k][1]=15; 
     _GetGeo[0][1][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][5][5][k][0]=3*trdid::nute+k; 
     _GetGeo[0][5][5][k][1]=0; 
     _GetGeo[0][5][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][5][6][k][0]=3*trdid::nute+k; 
     _GetGeo[0][5][6][k][1]=1; 
     _GetGeo[0][5][6][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][2][1][k][0]=3*trdid::nute+k; 
     _GetGeo[1][2][1][k][1]=2; 
     _GetGeo[1][2][1][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][2][2][k][0]=3*trdid::nute+k; 
     _GetGeo[1][2][2][k][1]=3; 
     _GetGeo[1][2][2][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][2][0][k][0]=3*trdid::nute+k; 
     _GetGeo[0][2][0][k][1]=4; 
     _GetGeo[0][2][0][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][3][0][k][0]=3*trdid::nute+k; 
     _GetGeo[0][3][0][k][1]=5; 
     _GetGeo[0][3][0][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][2][3][k][0]=3*trdid::nute+k; 
     _GetGeo[1][2][3][k][1]=6; 
     _GetGeo[1][2][3][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][2][4][k][0]=3*trdid::nute+k; 
     _GetGeo[1][2][4][k][1]=7; 
     _GetGeo[1][2][4][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][3][2][k][0]=3*trdid::nute+k; 
     _GetGeo[0][3][2][k][1]=8; 
     _GetGeo[0][3][2][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][3][1][k][0]=3*trdid::nute+k; 
     _GetGeo[0][3][1][k][1]=9; 
     _GetGeo[0][3][1][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][3][0][k][0]=3*trdid::nute+k; 
     _GetGeo[1][3][0][k][1]=10; 
     _GetGeo[1][3][0][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][2][0][k][0]=3*trdid::nute+k; 
     _GetGeo[1][2][0][k][1]=11; 
     _GetGeo[1][2][0][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][2][2][k][0]=3*trdid::nute+k; 
     _GetGeo[0][2][2][k][1]=12; 
     _GetGeo[0][2][2][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][2][1][k][0]=3*trdid::nute+k; 
     _GetGeo[0][2][1][k][1]=13; 
     _GetGeo[0][2][1][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][5][4][k][0]=3*trdid::nute+k; 
     _GetGeo[1][5][4][k][1]=14; 
     _GetGeo[1][5][4][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][5][3][k][0]=3*trdid::nute+k; 
     _GetGeo[1][5][3][k][1]=15; 
     _GetGeo[1][5][3][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][0][6][k][0]=3*trdid::nute+k; 
     _GetGeo[0][0][6][k][1]=16; 
     _GetGeo[0][0][6][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][0][5][k][0]=3*trdid::nute+k; 
     _GetGeo[0][0][5][k][1]=17; 
     _GetGeo[0][0][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][0][1][k][0]=4*trdid::nute+k; 
     _GetGeo[1][0][1][k][1]=0; 
     _GetGeo[1][0][1][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][0][2][k][0]=4*trdid::nute+k; 
     _GetGeo[1][0][2][k][1]=1; 
     _GetGeo[1][0][2][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][5][0][k][0]=4*trdid::nute+k; 
     _GetGeo[1][5][0][k][1]=2; 
     _GetGeo[1][5][0][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][4][0][k][0]=4*trdid::nute+k; 
     _GetGeo[1][4][0][k][1]=3; 
     _GetGeo[1][4][0][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][0][3][k][0]=4*trdid::nute+k; 
     _GetGeo[1][0][3][k][1]=4; 
     _GetGeo[1][0][3][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][0][4][k][0]=4*trdid::nute+k; 
     _GetGeo[1][0][4][k][1]=5; 
     _GetGeo[1][0][4][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][5][1][k][0]=4*trdid::nute+k; 
     _GetGeo[1][5][1][k][1]=6; 
     _GetGeo[1][5][1][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][5][2][k][0]=4*trdid::nute+k; 
     _GetGeo[1][5][2][k][1]=7; 
     _GetGeo[1][5][2][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][0][6][k][0]=4*trdid::nute+k; 
     _GetGeo[1][0][6][k][1]=8; 
     _GetGeo[1][0][6][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[1][0][5][k][0]=4*trdid::nute+k; 
     _GetGeo[1][0][5][k][1]=9; 
     _GetGeo[1][0][5][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][0][4][k][0]=4*trdid::nute+k; 
     _GetGeo[0][0][4][k][1]=10; 
     _GetGeo[0][0][4][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][0][3][k][0]=4*trdid::nute+k; 
     _GetGeo[0][0][3][k][1]=11; 
     _GetGeo[0][0][3][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][5][4][k][0]=4*trdid::nute+k; 
     _GetGeo[0][5][4][k][1]=12; 
     _GetGeo[0][5][4][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][5][3][k][0]=4*trdid::nute+k; 
     _GetGeo[0][5][3][k][1]=13; 
     _GetGeo[0][5][3][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][0][2][k][0]=4*trdid::nute+k; 
     _GetGeo[0][0][2][k][1]=14; 
     _GetGeo[0][0][2][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][0][1][k][0]=4*trdid::nute+k; 
     _GetGeo[0][0][1][k][1]=15; 
     _GetGeo[0][0][1][k][2]=0; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][5][2][k][0]=4*trdid::nute+k; 
     _GetGeo[0][5][2][k][1]=16; 
     _GetGeo[0][5][2][k][2]=1; 
    } 
-   for(int k=0;k<trdid::nute;k++){ 
+   for(unsigned int k=0;k<trdid::nute;k++){ 
     _GetGeo[0][5][1][k][0]=4*trdid::nute+k; 
     _GetGeo[0][5][1][k][1]=17; 
     _GetGeo[0][5][1][k][2]=1; 
@@ -643,13 +643,13 @@ void AMSTRDIdSoft::inittable(){
    // check double match
      for(i=0;i<trdid::ncrt;i++){
       for(j=0;j<trdid::nudr;j++){
-       for(int k=0;k<trdid::nufe;k++){
-        for(int l=0;l<trdid::nute;l++){
+       for(unsigned int k=0;k<trdid::nufe;k++){
+        for(unsigned int l=0;l<trdid::nute;l++){
     
-               for(int i1=0;i1<trdid::ncrt;i1++){
-                 for(int j1=0;j1<trdid::nudr;j1++){
-                 for(int k1=0;k1<trdid::nufe;k1++){
-                   for(int l1=0;l1<trdid::nute;l1++){
+               for(unsigned int i1=0;i1<trdid::ncrt;i1++){
+                 for(unsigned int j1=0;j1<trdid::nudr;j1++){
+                 for(unsigned int k1=0;k1<trdid::nufe;k1++){
+                   for(unsigned int l1=0;l1<trdid::nute;l1++){
                     if(!(i1==i && j1==j && k1==k  && l1==l)){
                       if((_GetGeo[i][j][k][l][0]>=0 && _GetGeo[i][j][k][l][0]==_GetGeo[i1][j1][k1][l1][0]) &&                        (_GetGeo[i][j][k][l][1]==_GetGeo[i1][j1][k1][l1][1])){
                         cerr <<"  AMSTRDIdSoft::inittable-F-DoubleRecordFound "<<                      i<<" "<<j<< "  "<<k<<" "<<l<<" "<<i1<<" "<<j1<<" "<<k1<<" "<<l1<<endl;
@@ -671,14 +671,14 @@ void AMSTRDIdSoft::inittable(){
 
      //     integer AMSTRDIdSoft::_GetHard[maxlay][maxlad][4];     
 
-   for(int i1=0;i1<TRDDBc::LayersNo(0);i1++){
-    for(int j1=0;j1<TRDDBc::LaddersNo(0,i1);j1++){
+   for(unsigned int i1=0;i1<TRDDBc::LayersNo(0);i1++){
+    for(unsigned int j1=0;j1<TRDDBc::LaddersNo(0,i1);j1++){
      bool found=false;
      for(i=0;i<trdid::ncrt;i++){
       for(j=0;j<trdid::nudr;j++){
-       for(int k=0;k<trdid::nufe;k++){
-        for(int l=0;l<trdid::nute;l++){
-           if(_GetGeo[i][j][k][l][0]==i1 && _GetGeo[i][j][k][l][1]==j1){
+       for(unsigned int k=0;k<trdid::nufe;k++){
+        for(unsigned int l=0;l<trdid::nute;l++){
+           if(_GetGeo[i][j][k][l][0]==int(i1) && _GetGeo[i][j][k][l][1]==int(j1)){
              if(!found){
               found=true;
               _GetHard[i1][j1][3]=i;
@@ -706,7 +706,7 @@ void AMSTRDIdSoft::inittable(){
 
 void AMSTRDIdSoft::ResetGains(){
 int nr=0;
-for(int i=0;i<getgaisize();i++){
+for(unsigned int i=0;i<getgaisize();i++){
   if(_gain[i]!=0){
     nr++;
     _gain[i]=1;

@@ -22,6 +22,10 @@ ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
 ECALVarp ECALVarp::ecalvpar;// .........................for ECAL general run-time param.  
 ECTslope ECTslope::ecpmtslo[ECSLMX][ECPMSMX];// mem.reserv.for ECAL Temperature slopes 
 uinteger ECTslope::CFlistC[7]; 
+ECDailyMip ECDailyMip::ecmipday[ECSLMX][ECPMMX];// mem.reserv.for ECAL Cell Mip Peaks
+uinteger ECDailyMip::CFlistC[7]; 
+ECLongTerm ECLongTerm::eclongterm[ECSLMX][ECPMMX];// mem.reserv.for ECAL Cell Mip Peaks
+uinteger ECLongTerm::CFlistC[7]; 
 //-----------------------------------------------------------------------
 //  =====> ECALDBc class variables definition :
 //
@@ -212,7 +216,7 @@ number ECALDBc::segarea(number r, number ds){//smaller_segment area fraction (wr
 void ECALDBc::fid2cida(integer fid, integer cid[4], number w[4]){
   integer fidd,fff,ss,ll,ip,nfl,npm,pm,cell,bran,tbc;
   number cleft,tleft,bdis,ztop,ct,cz,ww;
-  geant pit,piz,pmdis,dist,pmpit,pmsiz,pxsiz,fr;
+  geant pit,piz,pmdis,dist,pmsiz,pxsiz,fr;
   geant fshift,effmn,deffmx,slope;
   cid[0]=0;
   cid[1]=0;
@@ -222,7 +226,6 @@ void ECALDBc::fid2cida(integer fid, integer cid[4], number w[4]){
   npm=_slstruc[3];// numb.of PM's per super-layer
   pit=_fpitch[0];// fiber pitch(transv)
   piz=_fpitch[1];// fiber pitch(in z)
-  pmpit=_rdcell[6];//PM-pitch(transv)
   pmsiz=_rdcell[4]*2.;//PM_size
   pxsiz=_rdcell[4];// SubCell(pixel) size
   fr=_rdcell[3]/2;//   fiber radious 
@@ -1632,7 +1635,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
     }
   }
   //
-  // ---> read PM-SubCell hi2low ratious:
+  // ---> read PM-SubCell hi2low ratios:
   //
   for(isl=0;isl<slmx;isl++){   
     for(isc=0;isc<4;isc++){   
@@ -1841,7 +1844,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   geant h2lo[4];
   integer slmx,pmmx;
   slmx=ECSLMX;//max.S-layers
-  pmmx=ECPMSMX;//max.PM's in S-layer
+  pmmx=ECPMSMX;//max.PMs in S-layer
   cout<<endl<<"====> ECcalibMS::build: start build with total PMs="<<ECPMSL<<endl;
   //
   char fname[1024];
@@ -2094,10 +2097,10 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //==========================================================================
 //  ECALVarp class functions :
 //
-void ECALVarp::init(geant daqth[20], geant cuts[5]){
+void ECALVarp::init(geant daqth[15], geant cuts[5]){
 
   int i;
-  for(i=0;i<20;i++)_daqthr[i]=daqth[i];
+  for(i=0;i<15;i++)_daqthr[i]=daqth[i];
   for(i=0;i<5;i++)_cuts[i]=cuts[i];
 }
 //==========================================================================
@@ -2115,7 +2118,7 @@ void ECPMPeds::build(){// create MC/RD ECPeds-objects for each cell from MC/RD- 
   uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4],pmstad[ECPMSL];
   integer slmx,pmmx;
   slmx=ECSLMX;//max.S-layers
-  pmmx=ECPMSMX;//max.PM's in S-layer
+  pmmx=ECPMSMX;//max.PMs in S-layer
   //
   //   --->  Read high/low pedestals default file :
   //
@@ -2241,7 +2244,7 @@ void ECPMPeds::mcbuild(){// create MC ECPeds-objects for each cell by smearing o
   uinteger pmstad[ECPMSL];
   integer slmx,pmmx;
   slmx=ECSLMX;//max.S-layers
-  pmmx=ECPMSMX;//max.PM's in S-layer
+  pmmx=ECPMSMX;//max.PMs in S-layer
   //
   // ---> create High(Low,dynode)Gain peds/sigmas/sta:
   //
@@ -2309,7 +2312,7 @@ void ECTslope::build(){// <--- create MC/RealData ecpmtslo-objects
   //
   integer slmx,pmmx;
   slmx=ECSLMX;//max.S-layers
-  pmmx=ECPMSMX;//max.PM's in S-layer
+  pmmx=ECPMSMX;//max.PMs in S-layer
   //
   int cnum;
   geant tslope[ECPMSL][4];
@@ -2388,7 +2391,6 @@ void ECTslope::build(){// <--- create MC/RealData ecpmtslo-objects
     cout << "WARNING: EcalCflist file too hold for T slopes: no T correction applied" << endl;
     for(int isl=0;isl<slmx;isl++){
       for(int ipm=0;ipm<pmmx;ipm++){
-	cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(32)
 	sid=(ipm+1)+100*(isl+1);
 	for(int isc=0;isc<4;isc++) tslopesc[isc]=0.;
 	ecpmtslo[isl][ipm]=ECTslope(sid,tslopesc);
@@ -2451,7 +2453,7 @@ void ECTslope::build(){// <--- create MC/RealData ecpmtslo-objects
   //
   for(int isl=0;isl<slmx;isl++){
     for(int ipm=0;ipm<pmmx;ipm++){
-      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(32)
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
       sid=(ipm+1)+100*(isl+1);
       for(int isc=0;isc<4;isc++) tslopesc[isc]=tslope[cnum][isc];
       ecpmtslo[isl][ipm]=ECTslope(sid,tslopesc);
@@ -2549,4 +2551,467 @@ int ECTslope::GetECALSensorTemper(int superlayer,int column,float* temp){
   *temp/=nsens;
 
   return 0;
+}
+
+//==========================================================================
+//  ECDailyMip class functions :
+//
+void ECDailyMip::build(){// <--- create MC/RealData ecmipday-objects
+  int cnum;
+  //
+  char fname[1024];
+  char name[80];
+  char datt[3];
+  char ext[80];
+  int ntypes;
+  uinteger verids[10];
+  int date[2],year,mon,day,hour,min,sec;
+  tm begin;
+  time_t utct;
+  uinteger iutct;
+  int ctyp;
+  uinteger verid;
+  //
+  geant mipday[ECPMSL][ECSUBCELLMX];
+  integer endflab;
+  integer sid;
+  geant mip_day[ECSUBCELLMX];
+  //
+  // ---> read list of calibration-files version-numbers (menu-file) :
+  //
+  strcpy(name,"EcalCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",ECMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",ECREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+  //
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"====> ECDailyMip::build:Opening Calib_vers_list-file: "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  if(!vlfile){
+    cerr <<"<---- ECDailyMip_build:Error: missing Calib_vers_list-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(int i=0;i<ntypes;i++){
+    vlfile >> verids[i];
+    CFlistC[i+1]=verids[i]; 
+  }
+  CFlistC[0]=ntypes;
+  //
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      EcalCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+    CFlistC[ntypes+1]=ECMCFFKEY.calvern;
+    CFlistC[ntypes+2]=date[0];
+    CFlistC[ntypes+3]=date[1];
+  }
+  else{
+    utct=time_t(TFREFFKEY.calutc);
+    printf("      EcalCflistRD-file begin_date: %s",ctime(&utct)); 
+    CFlistC[ntypes+1]=ECREFFKEY.calutc;
+  }
+  //
+  vlfile.close();
+  //------------------------------
+  //
+  //   --->  Read DailyMip calib. file :
+  //
+  if (ntypes<5) {
+    cout << "WARNING: EcalCflist file too hold for Mip values: reference equalization applied (not yet implemented)" << endl;
+
+    for(int isl=0;isl<ECSLMX;isl++){
+      for(int ipm=0;ipm<ECPMMX;ipm++){
+	cnum=isl*ECPMMX+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+	sid=(ipm+1)+100*(isl+1);
+	for(int isc=0;isc<4;isc++) mip_day[isc]=16.; // to be changed
+	ecmipday[isl][ipm]=ECDailyMip(sid,mip_day);
+      }
+    }
+    return;
+  }
+
+  ctyp=5;//5th type of calibration is MIP value
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"EcalMipD");
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening DailyMip-calib file "<<fname<<" ..."<<endl;
+  ifstream mipdayfile(fname,ios::in); // open  file for reading
+  if(!mipdayfile){
+    cerr <<"<---- ECDailyMip_build: Error: missing DailyMip-file !!? "<<fname<<endl;
+    exit(1);
+  }
+  // ---> read Cell MIP values:
+  //
+  for (int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){
+    for (int isubcell=0;isubcell<ECSUBCELLMX;isubcell++){
+      for (int ipmt=0;ipmt<ECPMMX;ipmt++){
+        cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+	mipdayfile >> mipday[cnum][isubcell];
+      }
+    }
+  }
+  // DailyMip reading DEBUG
+  int superlayer,pmt,subcell;
+  if (ECREFFKEY.reprtf[1]==2){
+    for(int ilayer=0;ilayer<ECLAYERMX;ilayer++){ 
+      superlayer = ilayer/2;
+      for(int icell=0;icell<ECCELLMX;icell++){ 
+	pmt = icell/2;
+        cnum= superlayer*ECPMMX+pmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+	subcell= (ilayer%2==0?icell%2:icell%2+2);
+	cout << "********* LAYER " << ilayer << " CELL " << icell << " ";
+	cout <<  mipday[cnum][subcell] << endl;
+      }
+      cout << endl;
+    }
+    cout << endl;
+  }
+  // ---> read endfile-label:
+  //
+  mipdayfile >> endflab;
+  //
+  mipdayfile.close();
+  if(endflab==12345){
+    cout<<"      DailyMip-calibration file is successfully read !"<<endl;
+  }
+  else{cout<<"<---- ECDailyMip::build: ERROR: problems while reading DailyMip-calib.file !!?"<<endl;
+    exit(1);
+  }
+  //
+  for(int isl=0;isl<ECSLMX;isl++){
+    for(int ipm=0;ipm<ECPMMX;ipm++){
+      cnum=isl*ECPMMX+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      sid=(ipm+1)+100*(isl+1);
+      for(int isc=0;isc<4;isc++) mip_day[isc]=mipday[cnum][isc];
+      ecmipday[isl][ipm]=ECDailyMip(sid,mip_day);
+    }
+  }
+  cout<<"<---- ECDailyMip::build: successfully done !"<<endl<<endl;
+}
+//==========================================================================
+//  ECLongTerm class functions :
+//
+void ECLongTerm::build(){// <--- create MC/RealData eclongterm-objects
+  int cnum;
+  integer sid,sta[ECSUBCELLMX],stad,endflab;
+  geant h2lr[ECSUBCELLMX],a2m,a2dr,lfs[ECSUBCELLMX],lsl[ECSUBCELLMX],ffr[ECSUBCELLMX];
+  geant h2lo[ECSUBCELLMX];
+
+  char fname[1024];
+  char name[80];
+  char datt[3];
+  char ext[80];
+  int ntypes;
+  uinteger verids[10];
+  int date[2],year,mon,day,hour,min,sec;
+  tm begin;
+  time_t utct;
+  uinteger iutct;
+  int ctyp;
+  uinteger verid;
+  //
+  //
+  integer status[ECPMSL][ECSUBCELLMX],statusd[ECPMSL];
+  geant sch2lr[ECPMSL][ECSUBCELLMX],an2dyr[ECPMSL],adc2mev;
+  geant sch2lo[ECPMSL][ECSUBCELLMX];
+  geant lfast[ECPMSL][ECSUBCELLMX],lslow[ECPMSL][ECSUBCELLMX],fastf[ECPMSL][ECSUBCELLMX];
+
+
+  // ---> read list of calibration-files version-numbers (menu-file) :
+  //
+  strcpy(name,"EcalCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",ECMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",ECREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+  //
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"====> ECLongTerm::build:Opening Calib_vers_list-file: "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  if(!vlfile){
+    cerr <<"<---- ECLongTerm_build:Error: missing Calib_vers_list-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(int i=0;i<ntypes;i++){
+    vlfile >> verids[i];
+    CFlistC[i+1]=verids[i]; 
+  }
+  CFlistC[0]=ntypes;
+  //
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      EcalCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+    CFlistC[ntypes+1]=ECMCFFKEY.calvern;
+    CFlistC[ntypes+2]=date[0];
+    CFlistC[ntypes+3]=date[1];
+  }
+  else{
+    utct=time_t(TFREFFKEY.calutc);
+    printf("      EcalCflistRD-file begin_date: %s",ctime(&utct)); 
+    CFlistC[ntypes+1]=ECREFFKEY.calutc;
+  }
+  //
+  vlfile.close();
+  //------------------------------
+  //
+  //   --->  Read LongTerm calib. file :
+  //
+  if (ntypes<6) {
+    cout << "WARNING: EcalCflist file too hold for Long Term calibration: reference calibration applied (not yet implemented)" << endl;
+
+    for(int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){
+      for(int ipmt=0;ipmt<ECPMMX;ipmt++){
+	cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(32)
+	sid=(ipmt+1)+100*(isuperlayer+1);
+	for(int isc=0;isc<ECSUBCELLMX;isc++)sta[isc]=0;//anode pixels
+	stad=0;//dynode
+	for(int isc=0;isc<ECSUBCELLMX;isc++) h2lr[isc]=33;
+	for(int isc=0;isc<ECSUBCELLMX;isc++) h2lo[isc]=0;
+	a2dr=1;
+	
+	for(int isc=0;isc<ECSUBCELLMX;isc++) lfs[isc]=30;
+	for(int isc=0;isc<ECSUBCELLMX;isc++) lsl[isc]=300;
+	for(int isc=0;isc<ECSUBCELLMX;isc++) ffr[isc]=0.3;
+	a2m=0.4704;
+	eclongterm[isuperlayer][ipmt]=ECLongTerm(sid,sta,stad,h2lr,h2lo,a2dr,lfs,lsl,ffr,a2m);
+      }
+    }
+    
+    return;
+  }
+  //================================================================== 
+  //
+  //   --->  Read abs.norm. calib. file :
+  //
+  ctyp=3;//3rd type of calibration 
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"EcalAnor");
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening ANOR-calib.file "<<fname<<" ..."<<endl;
+  ifstream anrfile(fname,ios::in); // open  file for reading
+  if(!anrfile){
+    cerr <<"<---- ECcalib_build:Error: missing ANOR-calib file !!? "<<fname<<endl;
+    exit(1);
+  }
+  //
+  // ---> read common(hope) adc2mev convertion factor(abs.norm):
+  //
+  anrfile >> adc2mev;
+  // DEBUG
+  if (ECREFFKEY.reprtf[1]==2) cout << "ADC2MEV=" << adc2mev << endl;
+  //
+  // ---> read endfile-label:
+  //
+  anrfile >> endflab;
+  //
+  anrfile.close();
+  if(endflab==12345){
+    cout<<"      ANOR-calibration file is successfully read !"<<endl;
+  }
+  else{cout<<"<---- ECcalib_build: ERROR: problems while reading ANOR-calib.file !!?"<<endl;
+    exit(1);
+  }
+    
+
+
+  ctyp=6;//6th type of calibration contains long term calibration constants
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"EcalLonT");
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening LongTerm-calib file "<<fname<<" ..."<<endl;
+  ifstream longtermfile(fname,ios::in); // open  file for reading
+  if(!longtermfile){
+    cerr <<"<---- ECLongTerm_build: Error: missing LongTerm-file !!? "<<fname<<endl;
+    exit(1);
+  }
+
+  //
+  // ---> read Cells att.parameters(Latt_fast/Latt_slow/Fast_fraction): 
+  //
+  for (int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){
+    for (int isubcell=0;isubcell<ECSUBCELLMX;isubcell++){
+      for (int ipmt=0;ipmt<ECPMMX;ipmt++){
+        cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+	longtermfile >> lfast[cnum][isubcell];
+      }
+    }
+  }
+  //  cout << "LAST lfast=" << lfast[cnum][3] << endl;
+  for (int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){
+    for (int isubcell=0;isubcell<ECSUBCELLMX;isubcell++){
+      for (int ipmt=0;ipmt<ECPMMX;ipmt++){
+        cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+	longtermfile >> lslow[cnum][isubcell];
+      }
+    }
+  }
+  //  cout << "LAST lslow=" << lslow[cnum][3] << endl;
+  for (int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){
+    for (int isubcell=0;isubcell<ECSUBCELLMX;isubcell++){
+      for (int ipmt=0;ipmt<ECPMMX;ipmt++){
+        cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+	longtermfile >> fastf[cnum][isubcell];
+      }
+    }
+  }
+  // cout << "LAST fastf=" << fastf[cnum][3] << endl;
+
+  //
+  // ---> read anode and dynode status:
+  //
+  for(int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){   
+    for(int isc=0;isc<ECSUBCELLMX;isc++){   
+      for(int ipmt=0;ipmt<ECPMMX;ipmt++){  
+        cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+        longtermfile >> status[cnum][isc];//pixel's status
+      }
+    }
+    for(int ipmt=0;ipmt<ECPMMX;ipmt++){
+      cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+      longtermfile >> statusd[cnum];//dynode's status
+    }
+  } 
+  //  cout << "LAST anode status=" << status[cnum][3] << endl;
+  //  cout << "LAST dynode status=" << statusd[cnum] << endl;
+
+  //
+  // ---> read PM-SubCell high/low gain ratios:
+  //
+  for(int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){   
+    for(int isc=0;isc<ECSUBCELLMX;isc++){   
+      for(int ipmt=0;ipmt<ECPMMX;ipmt++){  
+        cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+        longtermfile >> sch2lr[cnum][isc];
+      }
+    }
+  }
+  // cout << "LAST hi/lo ratio=" << sch2lr[cnum][3] << endl;
+
+  //
+  // ---> read PM-SubCell high/low gain offsets:
+  //
+  for(int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){   
+    for(int isc=0;isc<ECSUBCELLMX;isc++){   
+      for(int ipmt=0;ipmt<ECPMMX;ipmt++){  
+        cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+        longtermfile >> sch2lo[cnum][isc];
+      }
+    }
+  }
+  //  cout << "LAST hi/lo offset=" << sch2lo[cnum][3] << endl;
+
+  //
+  // ---> read PM anode(sum of 4-SubCells)-to-Dynode ratious:
+  //
+  for(int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){ 
+    for(int ipmt=0;ipmt<ECPMMX;ipmt++){ 
+      cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(324)
+      longtermfile >> an2dyr[cnum];
+    }
+  }
+  //  cout << "LAST anode/dynode=" << an2dyr[cnum] << endl;
+  // ---> read endfile-label:
+  //
+  longtermfile >> endflab;
+  //
+  longtermfile.close();
+  if(endflab==12345){
+    cout<<"   ECAL   LONGTERM-calibration file is successfully read !"<<endl;
+  }
+  else{cout<<"<---- ECLongTerm::build: ERROR: problems while reading EcalLonT-calib.file !!?"<<endl;
+    exit(1);
+  }  
+  //
+  for(int isuperlayer=0;isuperlayer<ECSLMX;isuperlayer++){
+    for(int ipmt=0;ipmt<ECPMMX;ipmt++){
+      cnum=isuperlayer*ECPMMX+ipmt; // sequential PM numbering(0 - SL*PMperSL)(32)
+      sid=(ipmt+1)+100*(isuperlayer+1);
+      for(int isc=0;isc<ECSUBCELLMX;isc++)sta[isc]=status[cnum][isc];//anode pixels
+      stad=statusd[cnum];//dynode
+      for(int isc=0;isc<ECSUBCELLMX;isc++) h2lr[isc]=sch2lr[cnum][isc];
+      for(int isc=0;isc<ECSUBCELLMX;isc++) h2lo[isc]=sch2lo[cnum][isc];
+      a2dr=an2dyr[cnum];
+
+      for(int isc=0;isc<ECSUBCELLMX;isc++) lfs[isc]=lfast[cnum][isc];
+      for(int isc=0;isc<ECSUBCELLMX;isc++) lsl[isc]=lslow[cnum][isc];
+      for(int isc=0;isc<ECSUBCELLMX;isc++) ffr[isc]=fastf[cnum][isc];
+      a2m=adc2mev;
+      eclongterm[isuperlayer][ipmt]=ECLongTerm(sid,sta,stad,h2lr,h2lo,a2dr,lfs,lsl,ffr,a2m);
+    }
+  }
+  cout<<"<---- ECLongTerm::build: successfully done !"<<endl<<endl;
 }

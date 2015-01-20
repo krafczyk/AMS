@@ -1,0 +1,12 @@
+#!/bin/tcsh
+source $ROOTSYS/../root-v5-34-9-icc64-slc5/amsvar
+setenv PGTRACK 1
+unsetenv G4AMS
+setenv AMSWD ..
+gmake lib -j
+source $ROOTSYS/../root-v5-34-9-gcc64-slc5/amsvar
+setenv PGTRACK 1
+unsetenv G4AMS
+setenv AMSWD ..
+gmake lib -j
+ 

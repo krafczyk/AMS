@@ -9,6 +9,7 @@
 
 ClassImp(TofTrack);
 
+const float TofTrack::c_speed = 29.9792458;
 
 // correct final charge (from Z=3 to Z=8)
 // static float par_final[3]={0.9653,0.024876,-0.0024437};
@@ -91,7 +92,7 @@ bool TofTrack::DropHit(int ii) {
 }
 
 
-char* PlaneName[2] = {"UTOF", "LTOF"};
+const char* PlaneName[2] = {"UTOF", "LTOF"};
 void TofTrack::Print(int verbosity) {
   // general infos
   printf("TofTrack::Print-V nHhits %1d   Theta %8.5f   Phi %8.5f   Beta %8.5f   Chi2T %7.2f   Chi2XY %7.2f   Mean (%7.5f,%7.5f)   RelErr (%7.5f,%7.5f)   N (%1d,%1d)\n",
@@ -277,11 +278,6 @@ bool TofTrack::MakeSpatialFitWithOnlyLongitudinalCoordinates() {
     return false;
   }
   // one hit on each layer
-  bool layer[4] = {false,false,false,false};
-  for (int itof=0; itof<GetNhits(); itof++) {
-    TofClusterR* cluster = GetHit(itof);
-    layer[cluster->Layer-1] = true;
-  } 
   if ( (GetHitLayer(1)==0)||
        (GetHitLayer(2)==0)||
        (GetHitLayer(3)==0)||
@@ -409,6 +405,10 @@ bool TofTrack::MakePathLength() {
     float z = cluster->Coo[2];
     for (int irc=0; irc<cluster->NTofRawCluster(); irc++){
       TofRawClusterR* rawcluster = cluster->pTofRawCluster(irc);
+      if(!rawcluster){
+        cerr<<" TofTrack::MakePathLength-E-NoRawCluster "<<endl;
+        continue;
+      }
       int ibar = rawcluster->Bar - 1;
       AMSPoint hit_point;
       AMSDir hit_dir;

@@ -135,10 +135,8 @@ if(AMSEvent::get_thread_num()==0){
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
       cout << " Starting to update "<<*ptdv; 
-      bool fail=false;
       if(  !ptdv->write(AMSDATADIR.amsdatabase)){
          cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
-          fail=true;
       }
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
@@ -176,8 +174,8 @@ void AMSEvent::_init(){
    
 
   // check old run & 
-   if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
-  if(_run != SRun){
+   if(int(_run)!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
+  if(int(_run) != SRun){
    AMSEvent::ResetThreadWait(1);
 Barrier()=true;
 #pragma omp barrier 
@@ -186,7 +184,7 @@ Barrier()=true;
 if(AMSEvent::get_thread_num()==0)
 {
    // get rid of crazy runs
-   if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
+   if(int(_run)<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
    }
    DAQEvent::initO(_run,getid(),gettime());
@@ -207,7 +205,7 @@ if(AMSEvent::get_thread_num()==0)
 	 UHTOC(IOPA.rfile,40,rdir,160);  
 
          int offs = 0; 
-         for (int i = 0; i < strlen(rdir) && rdir[i] == ' '; i++) offs++;
+         for (unsigned int i = 0; i < strlen(rdir) && rdir[i] == ' '; i++) offs++;
 
          int len = strlen(rdir);
          if (rdir[len-5] == '.' && 
@@ -235,7 +233,7 @@ if(AMSEvent::get_thread_num()==0)
    Barrier()=false;
 
 
-  if(_run != SRun){
+  if(int(_run) != SRun){
     if (AMSFFKEY.Update && !AMSJob::gethead()->isCalibration()){
      AMSTimeID * offspring = 
      (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
@@ -340,7 +338,7 @@ if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
  _startofrun();
 }
 
-if(AMSJob::gethead()->isRealData()){
+if(AMSJob::gethead()->isRealData() && !AMSJob::gethead()->isMonitoring()){
 AMSNtuple::readRSetup(this);
 }
 else  AMSSetupR::SlowControlR::ReadFromExternalFile=0;
@@ -526,20 +524,20 @@ void AMSEvent::SetTimeCoo(integer rec){
 #pragma omp threadprivate (hint)
     //get right record
     if( Array[hint].Time<=_time && 
-	_time<Array[hint+2>=sizeof(Array)/sizeof(Array[0])?
+	_time<Array[hint+2>=int(sizeof(Array)/sizeof(Array[0]))?
 		    sizeof(Array)/sizeof(Array[0])-1:hint+2].Time){
       // got it
       if(_time>=Array[hint+1].Time)hint++;
     }
     else{
       //find from scratch
-      for(hint=1;hint<sizeof(Array)/sizeof(Array[0]);hint++){
+      for(hint=1;hint<int(sizeof(Array)/sizeof(Array[0]));hint++){
         if(Array[hint].Time>_time){
           hint--;
           break;
         }
       }
-      if(hint>=sizeof(Array)/sizeof(Array[0]))hint=sizeof(Array)/sizeof(Array[0])-1;
+      if(hint>=int(sizeof(Array)/sizeof(Array[0])))hint=sizeof(Array)/sizeof(Array[0])-1;
     }
     
     
@@ -677,20 +675,20 @@ void AMSEvent::_regnevent(){
 
     //get right record
     if( ArrayC[hintc].Time<=_time && 
-       _time<ArrayC[hintc+2>=sizeof(ArrayC)/sizeof(ArrayC[0])?
+       _time<ArrayC[hintc+2>=int(sizeof(ArrayC)/sizeof(ArrayC[0]))?
                   sizeof(ArrayC)/sizeof(ArrayC[0])-1:hintc+2].Time){
       // got it
       if(_time>=ArrayC[hintc+1].Time)hintc++;
     }
     else{
       //find from scratch
-      for(hintc=1;hintc<sizeof(ArrayC)/sizeof(ArrayC[0]);hintc++){
+      for(hintc=1;hintc<int(sizeof(ArrayC)/sizeof(ArrayC[0]));hintc++){
         if(ArrayC[hintc].Time>_time){
           hintc--;
           break;
         }
       }
-      if(hintc>=sizeof(ArrayC)/sizeof(ArrayC[0]))hintc=sizeof(ArrayC)/sizeof(ArrayC[0])-1;
+      if(hintc>=int(sizeof(ArrayC)/sizeof(ArrayC[0])))hintc=sizeof(ArrayC)/sizeof(ArrayC[0])-1;
     }
     integer chint;
     if(_time < ArrayC[hintc].Time){
@@ -726,13 +724,13 @@ void AMSEvent::_regnevent(){
     static integer utofc(0),ltofc(0);
 #pragma omp threadprivate (utofc,ltofc)
 //-> get pointer to the right UTof-record(for the moment start from scratch because array is short):
-    for(utofc=1;utofc<sizeof(UTofTemp)/sizeof(UTofTemp[0]);utofc++){
+    for(utofc=1;utofc<int(sizeof(UTofTemp)/sizeof(UTofTemp[0]));utofc++){
       if(UTofTemp[utofc].Time>_time){
         utofc--;
         break;
       }
     }
-    if(utofc>=sizeof(UTofTemp)/sizeof(UTofTemp[0]))utofc=sizeof(UTofTemp)/sizeof(UTofTemp[0])-1;
+    if(utofc>=int(sizeof(UTofTemp)/sizeof(UTofTemp[0])))utofc=sizeof(UTofTemp)/sizeof(UTofTemp[0])-1;
     integer utofp;
     if(_time < UTofTemp[utofc].Time){//error
      utofp=utofc-1;
@@ -743,13 +741,13 @@ void AMSEvent::_regnevent(){
     _Utoftp=&(UTofTemp[utofp]);//set the pointer for later usage in temper.extraction at Tof-validation stage
 //  
 //-> get pointer to the right LTof-record(for the moment start from scratch because array is short):
-    for(ltofc=1;ltofc<sizeof(LTofTemp)/sizeof(LTofTemp[0]);ltofc++){
+    for(ltofc=1;ltofc<int(sizeof(LTofTemp)/sizeof(LTofTemp[0]));ltofc++){
       if(LTofTemp[ltofc].Time>_time){
         ltofc--;
         break;
       }
     }
-    if(ltofc>=sizeof(LTofTemp)/sizeof(LTofTemp[0]))ltofc=sizeof(LTofTemp)/sizeof(LTofTemp[0])-1;
+    if(ltofc>=int(sizeof(LTofTemp)/sizeof(LTofTemp[0])))ltofc=sizeof(LTofTemp)/sizeof(LTofTemp[0])-1;
     integer ltofp;
     if(_time < LTofTemp[ltofc].Time){//error
      ltofp=ltofc-1;
@@ -769,25 +767,25 @@ void AMSEvent::_regnevent(){
 #pragma omp threadprivate (hintb)
     //get right record
     if( ArrayB[hintb].Time<=_time && 
-       _time<ArrayB[hintb+2>=sizeof(ArrayB)/sizeof(ArrayB[0])?
+       _time<ArrayB[hintb+2>=int(sizeof(ArrayB)/sizeof(ArrayB[0]))?
                   sizeof(ArrayB)/sizeof(ArrayB[0])-1:hintb+2].Time){
       // got it
       if(_time>=ArrayB[hintb+1].Time)hintb++;
     }
     else{
       //find from scratch
-      for(hintb=1;hintb<sizeof(ArrayB)/sizeof(ArrayB[0]);hintb++){
+      for(hintb=1;hintb<int(sizeof(ArrayB)/sizeof(ArrayB[0]));hintb++){
         if(ArrayB[hintb].Time>_time){
           hintb--;
           break;
         }
       }
-      if(hintb>=sizeof(ArrayB)/sizeof(ArrayB[0]))hintb=sizeof(ArrayB)/sizeof(ArrayB[0])-1;
+      if(hintb>=int(sizeof(ArrayB)/sizeof(ArrayB[0])))hintb=sizeof(ArrayB)/sizeof(ArrayB[0])-1;
     }
     integer chint;
     if(_time < ArrayB[hintb].Time){
      chint=hintb-1;
-     if(chint<0)cerr<<"BeamTime-S-LogicError-chint<0 "<<_time<<" "<< ArrayB[hintb].Time<<endl;
+     if(chint<0) { cerr<<"BeamTime-S-LogicError-chint<0 "<<_time<<" "<< ArrayB[hintb].Time<<endl; chint = 0; }
     }
     else chint=hintb;
      // check the runtag
@@ -843,10 +841,9 @@ void AMSEvent::_siantiinitevent(){
 
 void AMSEvent::_siecalinitevent(){
   int i;
-  AMSNode *ptr;
 //
   for(i=0;i<ECALDBc::slstruc(3);i++){// book containers for EcalMCHit-object
-    ptr = add (
+    add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
   }
 //  AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
@@ -873,21 +870,20 @@ void AMSEvent::_sitrdinitevent(){
 void AMSEvent::_sitofinitevent(){
   int il;
   geant dummy(-1);
-  AMSNode *ptr;
 //
 //           declare some TOF containers for MC:
 //
 // container for geant hits:
 //
-  ptr = add (
+   add (
   new AMSContainer(AMSID("AMSContainer:AMSTOFMCCluster",0),0));
 //
-  ptr = add (
+   add (
   new AMSContainer(AMSID("AMSContainer:AMSTOFMCPmtHit",0),0)); 
 //    container for time_over_threshold hits (digi step):
 //
   for(il=0;il<TOF2GC::SCLRS;il++){
-    ptr=add(
+    add(
         new AMSContainer(AMSID("AMSContainer:TOF2Tovt",il),0));
   }
 //<--- clear arrays for SumHT(SHT)-channel
@@ -941,13 +937,12 @@ void AMSEvent::_reantiinitevent(){
 //=====================================================================
 void AMSEvent::_retof2initevent(){
   integer i;
-  AMSNode *ptr;
 //---
 // container for TOF2RawSide hits(same structure for MC/REAL events) : 
 //
-   ptr=add(
+   add(
        new AMSContainer(AMSID("AMSContainer:TOF2RawSide",0),0));
-   ptr=add(
+   add(
        new AMSContainer(AMSID("AMSContainer:TOF2RawSide",1),0));
 //
 //<--- clear static arrays for SumHT(SHT)-channel:
@@ -993,17 +988,17 @@ void AMSEvent::_retof2initevent(){
 //---
 //  container for RawCluster hits :
 //
-   ptr=  add (
+     add (
       new AMSContainer(AMSID("AMSContainer:TOF2RawCluster",0),0));
 //---
 // container for Cluster hits :
 //
-   for( i=0;i<TOF2GC::SCLRS;i++)  ptr = add (
+   for( i=0;i<TOF2GC::SCLRS;i++)  add (
        new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
 
 //--TOFClusterH
 //   for( i=0;i<TOF2GC::SCLRS;i++)  
-    ptr = add (
+    add (
      new AMSContainer(AMSID("AMSContainer:AMSTOFClusterH",0),0));
 
 //
@@ -1011,19 +1006,17 @@ void AMSEvent::_retof2initevent(){
 }
 //=====================================================================
 void AMSEvent::_reecalinitevent(){
-  integer i,maxp,maxc;
-  AMSNode *ptr;
+  integer i,maxp;
   maxp=2*ECALDBc::slstruc(3);// max SubCell(pixel)-planes
-  maxc=4*ECALDBc::slstruc(3)*ECALDBc::slstruc(4);// max number of SubCell
   for(i=0;i<AMSECIds::ncrates();i++){// <-- book crate type containers for EcalRawEvent
-    ptr=add (
+    add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
   }
 //
   AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
 //
   for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalHit
-    ptr=add (
+    add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalHit",i),0));
   }
 
@@ -1041,17 +1034,17 @@ void AMSEvent::_reecalinitevent(){
 }
 void AMSEvent::_retrdinitevent(){
 
-  for(int i=0;i<2*AMSTRDIdSoft::ncrates();i++) add (
+  for(unsigned int i=0;i<2*AMSTRDIdSoft::ncrates();i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDRawHit",i),0));
 
   if(TRDFITFFKEY.FitMethod!=1){
-  for(int i=0;i<trdconst::maxlay;i++) add (
+  for(unsigned int i=0;i<trdconst::maxlay;i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDCluster",i),&AMSTRDCluster::build,0));
 
-  for(int i=0;i<trdconst::maxseg;i++) add (
+  for(unsigned int i=0;i<trdconst::maxseg;i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDSegment",i),&AMSTRDSegment::build,0));
 
-  for(int i=0;i<1;i++) add (
+  for(unsigned int i=0;i<1;i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDTrack",i),&AMSTRDTrack::build,0));
   }
 
@@ -1066,12 +1059,11 @@ void AMSEvent::_retrdinitevent(){
 }
 
 void AMSEvent::_rerichinitevent(){
-  AMSNode *ptr;
-    ptr=add(
+    add(
      new AMSContainer(AMSID("AMSContainer:AMSRichRawEvent",0),0));
-  ptr=add(
+  add(
     new AMSContainer(AMSID("AMSContainer:AMSRichRing",0),0));
-  ptr=add(
+  add(
     new AMSContainer(AMSID("AMSContainer:AMSRichRingNew",0),0));
 
   // Update the necessary tables if database have been updated
@@ -1088,11 +1080,10 @@ void AMSEvent::_rerichinitevent(){
 //=====================================================================
 void AMSEvent::_reaxinitevent(){
   integer i;
-  AMSNode *ptr;
-  for( i=0;i<npatb;i++)  ptr = add (
+  for( i=0;i<npatb;i++)  add (
   new AMSContainer(AMSID("AMSContainer:AMSBeta",i),&AMSBeta::build,0));
 
-  for( i=0;i<npatb;i++)  ptr = add (
+  for( i=0;i<npatb;i++)  add (
   new AMSContainer(AMSID("AMSContainer:AMSBetaB",i),&AMSBeta::build,0));
  
   add (
@@ -1197,20 +1188,20 @@ void  AMSEvent::write(int trig){
   getheadC("AMSTrCluster",1,2); 
 
  
-  for(int il=0;il<TKDBc::nlay();il++){
+  for(unsigned int il=0;il<TKDBc::nlay();il++){
     getheadC("AMSTrRecHit",il,2); 
   }
 #endif
   getheadC("AMSmceventg",0,2); 
-  for(int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
+  for(unsigned int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
     getheadC("AMSTRDRawHit",il,2); 
   }
   if(TRDFITFFKEY.FitMethod!=1){
-  for(int il=0;il<trdconst::maxlay;il++){
+  for(unsigned int il=0;il<trdconst::maxlay;il++){
     getheadC("AMSTRDCluster",il,2); 
   }
 
-  for(int il=0;il<trdconst::maxseg;il++){
+  for(unsigned int il=0;il<trdconst::maxseg;il++){
     getheadC("AMSTRDSegment",il,2); 
   }
   }
@@ -1521,10 +1512,10 @@ catch(std::bad_alloc a){
     //    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
     //   }
   }
-  if(AMSStatus::isDBWriteR()){
+  if(AMSStatus::isDBWriteR() && AMSEvent::gethead()->getheadC("DAQEvent",0)){
     AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
   }
-  else if(AMSStatus::isDBUpdateR()){
+  else if(AMSStatus::isDBUpdateR() && AMSEvent::gethead()->getheadC("DAQEvent",0)){
     AMSJob::gethead()->getstatustable()->updates(getrun(),getid(),getstatus(),gettime());
   }
 }
@@ -2281,7 +2272,9 @@ void AMSEvent::_reecalevent(){
       for(int i=0;i<2;i++){
        buildC("Ecal1DCluster",i);
        buildC("Ecal2DCluster",i);
+//      AMSgObj::BookTimer.start((char*)(i==0?"ReEcalSFit_0":"ReEcalSFit_1"));
        int suc=buildC("EcalShower",i);
+//      AMSgObj::BookTimer.stop((char*)(i==0?"ReEcalSFit_0":"ReEcalSFit_1"));
 //        cout <<" succ*** "<<i<<" "<<suc<<endl;
        if(!suc)break;
        nsuc+=1;
@@ -2645,7 +2638,7 @@ cout <<endl;
 }
 //----
 void AMSEvent::_retrdinitrun(){
-   for (int i=0;i<AMSTRDIdSoft::ncrates();i++){
+   for (unsigned int i=0;i<AMSTRDIdSoft::ncrates();i++){
       cout <<"AMSEvent::_retrdevent-I-"<<AMSTRDIdSoft::CalcBadCh(i)<<
       " bad channels found for crate "<<i<<endl;
 }
@@ -3094,10 +3087,10 @@ void AMSEvent::_writeEl(){
   EN->Yaw=_Yaw;
   EN->Pitch=_Pitch;
   EN->Roll=_Roll;
-  for(int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)EN->GPS[k]=0;
+  for(unsigned int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)EN->GPS[k]=0;
   EN->GPSL=_GPSL;
-  if(EN->GPSL>=  sizeof(_GPS)/sizeof(_GPS[0]))EN->GPSL=sizeof(_GPS)/sizeof(_GPS[0]);
-  for(int k=0;k<EN->GPSL;k++)EN->GPS[k]=_GPS[k];
+  if(EN->GPSL>=  int(sizeof(_GPS)/sizeof(_GPS[0])))EN->GPSL=sizeof(_GPS)/sizeof(_GPS[0]);
+  for(unsigned int k=0;k<EN->GPSL;k++)EN->GPS[k]=_GPS[k];
   
   EN->Alpha=_Alpha;
   EN->B1a=_B1a;
@@ -3644,7 +3637,7 @@ void AMSEvent::buildraw2009(
    if(time<1000000000 && AMSJob::gethead()->isRealData()){
         time+=_OffsetT;
     }
-    for(int k=0;k<GPS_COUNT;k++)_GPS[k]=0;
+    for(unsigned int k=0;k<GPS_COUNT;k++)_GPS[k]=0;
     _GPSL=0;
     // lvl3
     for(int k=0;k<5;k++)lvl3[k]=0;
@@ -3775,7 +3768,7 @@ return False;
 
 void AMSEvent::SetCCEBPar(){
 //create default cceb record;
-  for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
+  for(unsigned int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
    for(int j=0;j<4;j++){
     ArrayC[i].B[0][j]=j==0?-1:0;
     ArrayC[i].B[1][j]=0;
@@ -3789,7 +3782,7 @@ void AMSEvent::SetCCEBPar(){
 } 
 
 void AMSEvent::SetShuttlePar(){
-  for(int i=0;i<sizeof(Array)/sizeof(Array[0]);i++){
+  for(unsigned int i=0;i<sizeof(Array)/sizeof(Array[0]);i++){
     Array[i].StationR=AMSmceventg::Orbit.AlphaAltitude;
     Array[i].StationTheta=AMSmceventg::Orbit.ThetaI;  
     Array[i].StationPhi=AMSmceventg::Orbit.PhiI;
@@ -4054,7 +4047,7 @@ void AMSEvent::_collectstatus(){
         if(ptr->getpshower()){
         number en=ptr->getpshower()->getEnergy()/1000.;
 
-        if(!isnan(en)&&!isinf(en)){
+        if(!isnan(en)&&!std::isinf(en)){
 	  if(en<2)z1=0;        
 	  else if(en<8)z1=1;        
 	  else if(en<32)z1=2;        
@@ -4375,8 +4368,8 @@ uint64 AMSEvent::getrunev()const {
 uinteger AMSEvent::getmid()const{
 #ifdef _OPENMP
 uinteger evt=0;
-for(int i=0;i<get_num_threads();i++){
- if(_Head[i] && _Head[i]->getid()>evt)evt=_Head[i]->getid();
+for(unsigned int i=0;i<get_num_threads();i++){
+ if(_Head[i] && _Head[i]->getid()>int(evt))evt=_Head[i]->getid();
 }
 return evt;
 #else
@@ -4388,8 +4381,8 @@ return getid();
 uinteger AMSEvent::getmiid(){
 #ifdef _OPENMP
 uinteger evt=INT_MAX;
-for(int i=0;i<get_num_threads();i++){
- if(_Head[i] && _Head[i]->getid()<evt && _Head[i]->getid()>0)evt=_Head[i]->getid();
+for(unsigned int i=0;i<get_num_threads();i++){
+ if(_Head[i] && _Head[i]->getid()<int(evt) && _Head[i]->getid()>0)evt=_Head[i]->getid();
 }
 return evt;
 #else
@@ -4403,7 +4396,7 @@ return getid();
 time_t AMSEvent::getmtime()const{
 #ifdef _OPENMP
 time_t evt=0;
-for(int i=0;i<get_num_threads();i++){
+for(unsigned int i=0;i<get_num_threads();i++){
  if(_Head[i] && _Head[i]->gettime()>evt)evt=_Head[i]->gettime();
 }
 return evt;
@@ -4416,7 +4409,7 @@ return gettime();
 time_t AMSEvent::getmitime()const{
 #ifdef _OPENMP
 time_t evt=INT_MAX;
-for(int i=0;i<get_num_threads();i++){
+for(unsigned int i=0;i<get_num_threads();i++){
  if(_Head[i] && _Head[i]->gettime()<=evt && _Head[i]->getid()>0)evt=_Head[i]->gettime();
 }
 return evt;
@@ -4586,7 +4579,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                   AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("CCEBPar",AMSJob::gethead()->isRealData()));
                 int diff=ArrayC[sizeof(ArrayC)/sizeof(ArrayC[0])-1].Time-ArrayC[0].Time;
                 bool ok=diff>0 && diff<864000;
-    for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
+    for(unsigned int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
        cout<<" Time " <<i<< " "<<ArrayC[i].Time<<endl;
                 }
                 if(ptdv && ok){
@@ -4607,7 +4600,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
    HBNT(CALIB.Ntuple,"CCEB"," ");
    static CCEBPar TRCALIB;
    HBNAME(CALIB.Ntuple,"CCEB",(int*)(&TRCALIB),"Time:I,B(4,3):R,T(4):R");
-               for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
+               for(unsigned int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
                 ucopy_(&ArrayC[i],&TRCALIB,sizeof(TRCALIB)/sizeof(integer));
                 HFNT(CALIB.Ntuple);
                }
@@ -4675,7 +4668,7 @@ void AMSEvent::buildtofst(integer leng, int16u* p){
   int navp[2][2]={0,0,0,0};
   geant avrp[2][2]={0,0,0,0};// aver. pm-temp [il][is]
   geant avrc[2][2]={0,0,0,0};// aver. sfec-temp [il][is]
-  int id,il,ill,ib,is,ul; 
+  int id,il,ill,ib=0,is,ul; 
   time_t dtst;
   uinteger htime;
   geant temp;
@@ -4841,7 +4834,7 @@ cout<<"PMTS-temp, L1(S1/S2)="<<avrp[0][0]<<"/"<<avrp[0][1]<<" L2(S1/S2)="<<avrp[
     AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("UTofSTempPar",AMSJob::gethead()->isRealData()));
     int diff=UTofTemp[sizeof(UTofTemp)/sizeof(UTofTemp[0])-1].Time-UTofTemp[0].Time;
     bool ok=diff>0 && diff<86400;
-    for(int i=0;i<sizeof(UTofTemp)/sizeof(UTofTemp[0]);i++){
+    for(unsigned int i=0;i<sizeof(UTofTemp)/sizeof(UTofTemp[0]);i++){
        cout<<"Static array UTof Time " <<i<< " "<<UTofTemp[i].Time<<endl;
     }
     if(ptdv && ok){
@@ -4881,7 +4874,7 @@ cout<<"PMTS-temp, L1(S1/S2)="<<avrp[0][0]<<"/"<<avrp[0][1]<<" L2(S1/S2)="<<avrp[
     AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("LTofSTempPar",AMSJob::gethead()->isRealData()));
     int diff=LTofTemp[sizeof(LTofTemp)/sizeof(LTofTemp[0])-1].Time-LTofTemp[0].Time;
     bool ok=diff>0 && diff<86400;
-    for(int i=0;i<sizeof(LTofTemp)/sizeof(LTofTemp[0]);i++){
+    for(unsigned int i=0;i<sizeof(LTofTemp)/sizeof(LTofTemp[0]);i++){
        cout<<"Static array LTof Time " <<i<< " "<<LTofTemp[i].Time<<endl;
     }
     if(ptdv && ok){
@@ -4919,7 +4912,7 @@ void AMSEvent::SetTofSTemp(){
 //create default TofSTemp records, called in _timeinitjob().
   char frdate[30];
   time_t data;
-  for(int i=0;i<sizeof(UTofTemp)/sizeof(UTofTemp[0]);i++){
+  for(unsigned int i=0;i<sizeof(UTofTemp)/sizeof(UTofTemp[0]);i++){
     for(int j=0;j<2;j++){//lay loop
       for(int k=0;k<4;k++){
         UTofTemp[i].temp[j][k]=1;//degr.C
@@ -4931,7 +4924,7 @@ void AMSEvent::SetTofSTemp(){
 //cout<<"<--- UTime="<<mktime(&AMSmceventg::Orbit.Begin)<<"  "<<frdate<<endl;
     UTofTemp[i].chain=0;
   }
-  for(int i=0;i<sizeof(LTofTemp)/sizeof(LTofTemp[0]);i++){
+  for(unsigned int i=0;i<sizeof(LTofTemp)/sizeof(LTofTemp[0]);i++){
     for(int j=0;j<2;j++){//lay loop
       for(int k=0;k<4;k++){
         LTofTemp[i].temp[j][k]=-1;//degr.C

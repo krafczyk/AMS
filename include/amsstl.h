@@ -287,8 +287,8 @@ template <class T> void AMSsortNAG(T *rv[], integer m2){
 #ifdef _OPENMP
 #pragma omp threadprivate (rand)
 #endif
-  integer leng, ierr, istk, ilow[100];
-//#pragma omp threadprivate (leng,ierr,istk,ilow)
+  integer leng, istk, ilow[100];
+//#pragma omp threadprivate (leng,istk,ilow)
   T *a;
    integer i, j, k;
 //#pragma omp threadprivate (i,j,k)
@@ -299,7 +299,6 @@ template <class T> void AMSsortNAG(T *rv[], integer m2){
 //#pragma omp threadprivate (ihigh,order,i1,i2,j1,j2,m1)
 
 
-  ierr = 0;
   m1 = 0;
   m2=m2-1;
   *order = 'a';
@@ -503,9 +502,9 @@ template <class T> void AMSsortNAGa(T rv[], integer m2){
 #ifdef _OPENMP
 #pragma omp threadprivate (rand)
 #endif
-  static integer leng, ierr, istk, ilow[100];
+  static integer leng, istk, ilow[100];
 #ifdef _OPENMP
-#pragma omp threadprivate (leng,ierr,istk,ilow)
+#pragma omp threadprivate (leng,istk,ilow)
 #endif
   T a;
   static integer i, j, k;
@@ -521,7 +520,6 @@ template <class T> void AMSsortNAGa(T rv[], integer m2){
 #endif
 
 
-  ierr = 0;
   m1 = 0;
   m2=m2-1;
   *order = 'a';

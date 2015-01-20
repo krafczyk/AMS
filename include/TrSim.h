@@ -38,7 +38,6 @@
 
 #define DEADSTRIPADC -1000
 
-using namespace std;
 
 class TrSim {
 

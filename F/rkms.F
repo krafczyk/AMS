@@ -445,7 +445,7 @@ c      if(Chi2.gt.1000.) ier=7
 *------------------------------
       implicit none
       integer Npa,np2,np,i
-      double precision par(Npa)
+      double precision par(*)
 *----------------
 #include "rkms.h"
 *----------------
@@ -854,7 +854,7 @@ c      if(bega.lt.0.5) bega=0.5 !!!
 *     -------------------------------------
       real dTc   ! ####
       real dTms(NPma),oco(NPma),E,be,P
-      real*8 Par(NPma)
+      real*8 Par(*)
       integer np2
 *     -------------------------------------
       integer itr,nw

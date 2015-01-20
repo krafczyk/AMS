@@ -10,6 +10,7 @@
 ///\date  2013/11/06 SH  Introduction of the class
 ///\date  2013/11/08 SH  Methods implemented
 ///\date  2013/11/10 SH  Parameters added
+///\data  2014/09/30 QY  ECAL Charge added
 ///
 ///$Date$
 ///
@@ -52,6 +53,14 @@ public:
   */
   static double GetMipEdep(AMSPoint &p_entry, AMSPoint &p_last);
 #endif
+
+///--ECAL Charge
+  static const int nech=7;
+  static const int rech[nech];
+  static float GetMipQLI(int ich,float rig,int il,int lh);
+  static float GetMipQLZ(int charge,float rig,int il,int lh);
+  static float GetMipQL(float edep,float rig,int il,int lh);
+///--
 
 public:
   enum { NL = 18,           ///< Number of layers
@@ -133,7 +142,7 @@ public:
   float ES1  (int i) const { return Ecell(i, 2); }
   float ES3  (int i) const { return Ecell(i, 1)+Ecell(i, 2)+Ecell(i, 3); }
 
-  bool    Chk(int i) const { return (0 <= i && i < _hid.size()); }
+  bool    Chk(int i) const { return (0 <= i && i < int(_hid.size())); }
   int     Hid(int i) const { return Chk(i) ? _hid.at(i) : -1; }
   int    Proj(int i) const { return Chk(i) ? Hid(i)%10  : -1; }
   int    Cell(int i) const { return Chk(i) ?(Hid(i)/10)    %100 : -1; }
@@ -225,7 +234,7 @@ public:
   // --- TrElem overoverriders ---
 
 protected:
-  void _PrepareOutput(int opt  = 0);
+  std::string _PrepareOutput(int opt  = 0);
 
 public:
   void          Print(int opt  = 0);

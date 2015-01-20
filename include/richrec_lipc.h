@@ -174,7 +174,7 @@
      +                  tollinagl_c2f,             ! Tolerance in linearity for aerogel
      +                  tollinnaf_c2f              ! Tolerance in linearity for NaF
 
-      !$OMP THREADPRIVATE (/lipc2f/) 
+!$OMP THREADPRIVATE (/lipc2f/) 
 * ===============================================================================================
 
       integer resb_iflag,resb_itype,resb_itrk,resb_nhit,resb_phit,
@@ -271,7 +271,7 @@
      +                 rstd_crecbeta(50,nmaxliprec),    ! rec beta
      +                 rstd_crecuhits(50,nmaxliprec),   ! number of used hits
      +                 rstd_crecpkol(50,nmaxliprec)     ! Kolmogorov probability
-      !$OMP THREADPRIVATE (/lipf2c/)
+!$OMP THREADPRIVATE (/lipf2c/)
 
 ***********************************************************************
 * OBSOLETE COMMON FOR OUTPUT VARIABLES, kept for debugging
@@ -287,4 +287,4 @@
      +              likep,        ! likelihood f. probability
      +              chi2beta,     ! chi2 
      +              rprob         ! kolmogorov test prob.
-      !$OMP THREADPRIVATE (/lipvar/)
+!$OMP THREADPRIVATE (/lipvar/)

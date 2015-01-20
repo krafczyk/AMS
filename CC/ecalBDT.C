@@ -33,7 +33,7 @@ TMVA::Reader *ecalpisareaderS_E_v7_EVEN = NULL;  //uses GetCorrectedEnergy(2,2) 
 const unsigned int nPISABDTVARs = 61;
 float pisanormvar[nPISABDTVARs + 1];
 float pisainputvar[nPISABDTVARs + 1];
-char *pisavarname[nPISABDTVARs + 1] = {
+const char *pisavarname[nPISABDTVARs + 1] = {
    "ShowerMean", "ShowerSigma",
    "L2LFrac", "R3cmFrac", "S3totx", "S3toty",
    "NEcalHits",
@@ -112,7 +112,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
      {
        if (BDT_HISTOS_DECLARE)
 	 {
-	   for (int i=0; i<nPISABDTVARs; i++)
+	   for (unsigned int i=0; i<nPISABDTVARs; i++)
 	     {
 	       std::cout<<" GetEcalBDT :: Defining histogram hECALBDT["<<i<<"]\n"<<flush;
 	       hECALBDT[i] = new TH1F(Form("hECALBDT_%02d",i),Form("hECALBDT_%02d",i),1000,-10.,10.);
@@ -321,7 +321,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
       float S3 = S1;
       if (imaxcell==0 || imaxcell==71) S3 += LatLeak[0];
       if (imaxcell > 0) S3 += MapEneDep[ilayer][imaxcell - 1];
-      if (imaxcell < nCELLs - 1) S3 += MapEneDep[ilayer][imaxcell + 1];
+      if (imaxcell < int(nCELLs) - 1) S3 += MapEneDep[ilayer][imaxcell + 1];
 
       if (!proj) S3totx += S3;
       else S3toty += S3;
@@ -1391,7 +1391,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	     }
 
 	   //request 2 consecutive layers with MIP like energy deposit
-	   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
+	   for (int ilayer = first_lay; ilayer < last_lay; ++ilayer)
 	     {
 	       if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
 	     }
@@ -1687,7 +1687,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 	     }
 
 	   //request 2 consecutive layers with MIP like energy deposit
-	   for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
+	   for (int ilayer = first_lay; ilayer < last_lay; ++ilayer)
 	     {
 	       if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
 	     }
@@ -2303,7 +2303,7 @@ float EcalShowerR::GetEcalBDT(AMSEventR *pev, unsigned int iBDTVERSION, int TMVA
 
    if (BDT_HISTOS)
      {
-       for (int i=0; i<nPISABDTVARs; i++)
+       for (unsigned int i=0; i<nPISABDTVARs; i++)
 	 {
 	   hECALBDT[i]->Fill(pisanormvar[i]);
 	 }

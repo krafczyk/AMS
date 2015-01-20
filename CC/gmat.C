@@ -96,7 +96,7 @@ void AMSgmat::_init(){
     }
     else{
       char namz[255];
-      ostrstream ost(namz,sizeof(namz));
+      std::ostrstream ost(namz,sizeof(namz));
       _pamsg4m= new G4Material(G4String(_name),_rho*g/cm3,_npar);
       for(int i=0;i<_npar;i++){
 	ost.clear();
@@ -721,7 +721,6 @@ AMSJob::gethead()->addup(&tmed);
 
 
 tmed.add (new AMSgtmed("AIR","AIR",0));
-AMSgtmed * rich_pvac;
 {
 // vacuum has to be trd aware
  geant uwbuf[5];
@@ -740,7 +739,6 @@ else{
   uwbuf[3]=0;
   uwbuf[4]=0;
 AMSgtmed * pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);  
-  rich_pvac=pvac;   // DO NOT MODIFY
  uwbuf[2]=6;
  pvac->setubuf(nwbuf,uwbuf);
  tmed.add (pvac );

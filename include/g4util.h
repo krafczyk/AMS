@@ -16,7 +16,7 @@ service(geant parray[],uinteger larray, geant xmi, geant xma, integer id):
 _id(id),_xmi(xmi),_range(xma-xmi),_next(0){
  if(larray){
   number * _parray=new number[larray];
-  for (int i=0;i<larray;i++)_parray[i]=parray[i];
+  for (unsigned int i=0;i<larray;i++)_parray[i]=parray[i];
   _pgenerator=new CLHEP::RandGeneral(_parray,larray);
   delete[] _parray;
  } 

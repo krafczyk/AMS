@@ -5,7 +5,6 @@
 #include "TSpline.h"
 #include "TProfile.h"
 
-using namespace std;
 
 
 int BayesianUnfolder::MaxIters=1000;
@@ -386,7 +385,7 @@ bool DEMinimizer::searchMinimum(TH1D &output,double maxChangeAllowed,int batchSi
 
   // Compute the first round of values
   PopulationValues.clear();
-  for(int i=0;i<Population.size();i++){
+  for(unsigned int i=0;i<Population.size();i++){
     double value=(*Function)(Population[i]);
     if(value!=value) value=HUGE_VAL;
     PopulationValues.push_back(value);

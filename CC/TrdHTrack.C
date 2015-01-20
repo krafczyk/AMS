@@ -48,7 +48,7 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
 
 int TrdHTrackR::NTrdHSegment() {return fTrdHSegment.size();;}
 int TrdHTrackR::nTrdHSegment() {return fTrdHSegment.size();}
-int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<nTrdHSegment()?fTrdHSegment[i]:-1);}
+int TrdHTrackR::iTrdHSegment(unsigned int i){return (int(i)<nTrdHSegment()?fTrdHSegment[i]:-1);}
 
 TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){
   if(segments.size()<=i&&i<2){
@@ -123,7 +123,7 @@ float TrdHTrackR::mx(){
      cout<<"TrdHTrackR::ETheta-I-r "<<r<<" drdx "<<drdx<<" drdy "<<drdy<<" er "<<er<<" dfdr "<<dfdr<<endl;
    //       printf("r %.2f drdx %.2f drdy %.2f er %.2f dfdr %.2f\n",r,drdx,drdy,er,dfdr);
    
-   if(isnan(dfdr*er)||isinf(dfdr*er))return -1.;
+   if(isnan(dfdr*er)||std::isinf(dfdr*er))return -1.;
    return dfdr*er;
  }
 
@@ -139,7 +139,7 @@ float TrdHTrackR::mx(){
    if(debug)//printf("dfdx %.2f dfdy %.2f toReturn %.2f \n",dfdx,dfdy,toReturn);
      cout<<"TrdHTrackR::EPhi-I-dfdx "<<dfdx<<" dfdy "<<dfdy<<" ephi "<<toReturn<<endl;
    
-   if(isnan(toReturn)||isinf(toReturn))return -1.;
+   if(isnan(toReturn)||std::isinf(toReturn))return -1.;
    return toReturn;
  }
 

@@ -44,6 +44,7 @@
 #pragma link C++ class MagField;
 #pragma link C++ class TrFit+;
 #pragma link C++ class TrProp+;
+#pragma link C++ class GausBF+;
 //#pragma link C++ class TrAlignFit;
 #pragma link C++ class TrTrackPar+;
 #pragma link C++ class TrTasClusterR+;
@@ -101,6 +102,9 @@
 #pragma link C++ class SamplingUnfolding;
 #pragma link C++ class BayesianConsistent;
 #endif
+#pragma link C++ class SplFit+;
+#pragma link C++ class SpReso+;
+#pragma link C++ class SpFold+;
 ///////////////////////////////////////////////////////
 #pragma link C++ class TrPdf+;
 #pragma link C++ class VCon;
@@ -114,6 +118,7 @@
 #pragma link C++ class GeoMagTrace+;
 #pragma link C++ class GeoMagCoord+;
 #pragma link C++ class LxMCcutoff+;
+#pragma link C++ class QBincutoff+;
 
 #pragma link C++ class TrMCClusterR+;
 #pragma link C++ class TrRawClusterR+;

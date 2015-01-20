@@ -56,7 +56,6 @@
  *  05.2013 -VZ
 */
 
-using namespace std;
 
 class InterMVA{
 public:

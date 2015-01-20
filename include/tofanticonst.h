@@ -1,4 +1,4 @@
-//  $Id: tofanticonst.h,v 1.1 2010/12/11 18:30:39 choutko Exp $
+//  $Id$
 #ifndef __TOFANTICONST__
 #define __TOFANTICONST__
 namespace TOFGC{
@@ -63,7 +63,7 @@ const integer SCJSTA=60;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
 const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
 const integer SCPDFBM=100;//max bins in TOF-eloss Prob Density Functions(need additional 2 for ovfls)
-const integer SCTHMX=max(SCTHMX2,SCTHMX3);
+const integer SCTHMX=16; // max(SCTHMX2,SCTHMX3);
 //
 //      Calibration:
 // TDIF

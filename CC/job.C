@@ -259,7 +259,7 @@ void AMSJob::_siamsdata(){
   IOPA.ntuple=1;//42
   IOPA.WriteAll=101;//43
   IOPA.Portion=.2;//44
-IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
+  IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
 
   VBLANK(IOPA.TriggerC,40);
   VBLANK(AMSFFKEY.TDVC,400);
@@ -332,7 +332,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.SigTerm=0;
   G4FFKEY.ExEmPhysics=0;
   G4FFKEY.NeutronTkCut=0;
-//  G4FFKEY.TFNewGeant4=2;//Using Old TOF support structure geometry in MC <2014-07-27
+  //  G4FFKEY.TFNewGeant4=2;//Using Old TOF support structure geometry in MC <2014-07-27
   G4FFKEY.TFNewGeant4=12;//Using New TOF support structure geometry in MC 2014-07-27
   G4FFKEY.MemoryLimit=-1;
   G4FFKEY.DetectorCut=0;//11 set detector cut as below,Tracker+TRD+TOF+RICH+ECAL+AMS(0 cut off, 1 new cut).
@@ -341,7 +341,9 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.ProcessOff=0;//111 Hadron Inelastic+ Ion Inelastic+ Cherenkov (1 process off, 0 process on) 
   G4FFKEY.OverlapTol=0;
   G4FFKEY.DumpCrossSections=0;
-  G4FFKEY.HCrossSectionBias=1;
+  G4FFKEY.HCrossSectionBias[0]=1;
+  G4FFKEY.HCrossSectionBias[1]=1;
+  G4FFKEY.HCrossSectionBias[2]=1;
   G4FFKEY.ApplyCPULimit=1;  
   G4FFKEY.DumpCrossSectionsAt=12;
   G4FFKEY.DumpCrossSectionsZt=6;
@@ -919,7 +921,7 @@ void AMSJob::_sitof2data(){
   char tfdb[80]="TofGainPMag_v10polish_LTof.dat";
   UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46
   TFMCFFKEY.g4hfnoise=9.;//146 new g4tof high freq. noise 
-//  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
+  //  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
   TFMCFFKEY.anodesat=2;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
   TFMCFFKEY.writeall=0;   //148 write photon information to rootfile(table mode)->on(1) off(0)
   TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
@@ -927,7 +929,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.threref[1]=1.19;//151  HT  reference to normal value
   TFMCFFKEY.threref[2]=0.95;//152  SHT reference to normal value
   TFMCFFKEY.fladctbref=0.2;//153 "flash-ADC" internal time binning reference to normal value(0.1ns*0.2=20ns) 
-//---
+  //---
 
   FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -984,7 +986,7 @@ void AMSJob::_siecaldata(){
   //     
   ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrMCSeeds|MCPeds:C=1/0->Read MSCalibFile/DB
   //                                          P=1/0->ReadFromFile/ReadFromDB
-  ECMCFFKEY.calvern=4;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
+  ECMCFFKEY.calvern=5;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
   //
   ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
   // 
@@ -1088,11 +1090,11 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.LAPPRearLeak[6]=0.5;
   // end of LAPP rear-leakage correction parameters
 
-  ECREFFKEY.ealpha0=-3.0; // (57)
-  ECREFFKEY.ebeta=75.2;   // (58)
-  ECREFFKEY.egamma=563.3;  // (59)
-  ECREFFKEY.ealpha_par[0]=-5.; // (60-61)
-  ECREFFKEY.ealpha_par[1]=0.0143;
+  ECREFFKEY.ealpha0=-4.0; // (57)
+  ECREFFKEY.ebeta=50.604;   // (58)
+  ECREFFKEY.egamma=1018.43;  // (59)
+  ECREFFKEY.ealpha_par[0]=-4.476; // (60-61)
+  ECREFFKEY.ealpha_par[1]=0.019566;
 
   ECREFFKEY.CalorTransSize=32;  // (62)
   ECREFFKEY.EMDirCorrection=1.03; // (63)  
@@ -1129,13 +1131,13 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.S1S3YA[3]=0.5;
   // end of LAPP impact-point correction parameters
 
- //LAPP hit multiplicity correction parameters (M.P.) 
+  //LAPP hit multiplicity correction parameters (M.P.) 
   ECREFFKEY.LAPPHitLeak[0]=1.05;  // (90-94)
   ECREFFKEY.LAPPHitLeak[1]=13.;
   ECREFFKEY.LAPPHitLeak[2]=1.32;  
   ECREFFKEY.LAPPHitLeak[3]=15.; 
   ECREFFKEY.LAPPHitLeak[4]=1.69; 
- // end of LAPP hit multiplicity correction parameters
+  // end of LAPP hit multiplicity correction parameters
 
   ECREFFKEY.sec[0]=0;//  (95-96)
   ECREFFKEY.sec[1]=0;//
@@ -1181,6 +1183,9 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.Tgsl=0.25; // (125) -> Global slope for Temp correction (%/deg)
   //end of global Temp correction
 
+  ECREFFKEY.mipTB=16.4;  // (126) ADC value used to equalize mips at Test Beam
+
+  ECREFFKEY.mipTB2ISS=0.98;  // (127) Factor to convert TB mip (400 GeV protons) to ISS mip (E>5 GeV)
   FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   //
   // REUN-Calibration  parameters:
@@ -1357,7 +1362,7 @@ void AMSJob:: _reamsdata(){
   CALIB.InsertTimeProc=1;  // Insert Time by daq-time
   CALIB.Ntuple=0;
   CALIB.SubDetInCalib=11111;//SubDets selection for proc. of OnBoard-calib data(msb->lsb =>trd|tof+acc|trk|rich|ec)
-  CALIB.SubDetRequestCalib=111021111;
+  CALIB.SubDetRequestCalib=111031111;
   FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 
 
@@ -1783,7 +1788,7 @@ void AMSJob::_reaxdata(){
   BETAFITFFKEY.TRDP[0]=0.522677;
   BETAFITFFKEY.TRDP[1]=-0.16927;
   BETAFITFFKEY.TRDP[2]=0.676221;
-//----BETAHPAR
+  //----BETAHPAR
   BETAFITFFKEY.HSearchMode=1;//sum control search mode
   BETAFITFFKEY.HSearchLMatch=0;//require Tof LMatch or not for pattern finding
   BETAFITFFKEY.HSearchReg[0]=3.;//Tof TMatch(N Sigma)
@@ -1796,7 +1801,7 @@ void AMSJob::_reaxdata(){
   BETAFITFFKEY.HBetaChis=1000.;//check chis<
   FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
   FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
-//----BACKTRACE
+  //----BACKTRACE
   BACKTRACEFFKEY.enable   =   0;
   BACKTRACEFFKEY.use_att  =   1;
   BACKTRACEFFKEY.use_coo  =   1;
@@ -1811,7 +1816,7 @@ void AMSJob::_reaxdata(){
   BACKTRACEFFKEY.thengd   = 0.5;
   FFKEY("BACKTRACE",(float*)&BACKTRACEFFKEY,sizeof(BACKTRACEFFKEY_DEF)/sizeof(integer),"MIXED");
 
-//----ECALH
+  //----ECALH
   ECALHFFKEY.enable  =   0;
   ECALHFFKEY.emin    =  10;
   ECALHFFKEY.ethd[0] =  50;
@@ -1895,10 +1900,10 @@ void AMSJob::udata(){
   else if(MISCFFKEY.G4On)cout<<"<---- AMSJob::udata-I-Geant4Selected"<<endl<<endl;
   else cout<<"<---- AMSJob::udata-I-Geant3Selected"<<endl<<endl;
 #ifndef __G4AMS__
- if(MISCFFKEY.G4On){
-   cerr<<"<---- AMSJob::udata-F-Geant4SelectedWhileGeant3ExecWasUsed"<<endl<<endl;
-   abort();
- }
+  if(MISCFFKEY.G4On){
+    cerr<<"<---- AMSJob::udata-F-Geant4SelectedWhileGeant3ExecWasUsed"<<endl<<endl;
+    abort();
+  }
 #endif
   if(MISCFFKEY.BZCorr !=1){
     cout <<"<---- AMSJob::udata-W-magneticFieldRescaleModeOnWithFactor "<<MISCFFKEY.BZCorr<<endl<<endl;
@@ -2103,10 +2108,10 @@ void AMSJob::udata(){
   }
 
 #ifdef _PGTRACK_
-if(isRealData()){
-if(TKGEOMFFKEY.LoadMCDisalign)cerr<<"AMSJob::udata-W-TKGEOMFFKEY.LoadMCDisalignReseted  "<<TKGEOMFFKEY.LoadMCDisalign<<endl;
-TKGEOMFFKEY.LoadMCDisalign=0;
-}
+  if(isRealData()){
+    if(TKGEOMFFKEY.LoadMCDisalign)cerr<<"AMSJob::udata-W-TKGEOMFFKEY.LoadMCDisalignReseted  "<<TKGEOMFFKEY.LoadMCDisalign<<endl;
+    TKGEOMFFKEY.LoadMCDisalign=0;
+  }
   TkDBc::CreateTkDBc();
 #else
 #endif
@@ -2131,6 +2136,7 @@ TKGEOMFFKEY.LoadMCDisalign=0;
       STD_DB_ver=3;
       pgtrack_DB_ver=2;
     }
+    (void) STD_DB_ver;
 #ifdef _PGTRACK_
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
@@ -2158,10 +2164,19 @@ TKGEOMFFKEY.LoadMCDisalign=0;
     if(TKGEOMFFKEY.alignver==3) TkLadder::version=2;
     if(TKGEOMFFKEY.alignver==4) TkLadder::version=3;
     if(TKGEOMFFKEY.alignver>=5) TkLadder::version=4;
+    if(TKGEOMFFKEY.alignver>=6) TrInnerDzDB::version=2;
     TrExtAlignDB::version=TKGEOMFFKEY.exalignver;
-  cout << "AMSJob::update-I- "
-       << "TkLadder::version= "     << TkLadder::version << " "
-       << "TrExtAlignDB::version= " << TrExtAlignDB::version << endl;
+
+    // Introduce L2Y movement for PM5 (for previous PG and MD alignment)
+    if (TkLadder::version==4 &&
+	(TrExtAlignDB::version==3 || TrExtAlignDB::version==4) &&
+	TKGEOMFFKEY.L2AlignPar[2]==0) TKGEOMFFKEY.L2AlignPar[2] = 0.31;
+
+    cout << "AMSJob::update-I- "
+	 << "TkLadder::version= "     << TkLadder::version << " "
+	 << "TrInnerDzDB::version= "  << TrInnerDzDB::version << " "
+	 << "TrExtAlignDB::version= " << TrExtAlignDB::version << " "
+	 << "TKGEOMFFKEY.L2AlignPar[2]= " << TKGEOMFFKEY.L2AlignPar[2] << endl;
 
 #else
     AMSTrIdGeom::init(STD_DB_ver);
@@ -2445,7 +2460,7 @@ void AMSJob::_sitkinitjob(){
             number oldone=0;
             for(int k=0;k<TKDBc::NStripsDrp(i+1,l);k++){
 	      id.upd(k);
-	      geant d;
+	      geant d = 0;
 	      id.setped()=TRMCFFKEY.ped[l]*(1+RNDM(d));
 	      id.clearstatus(~0);
 	      if(RNDM(d)<TRMCFFKEY.BadCh[l]){
@@ -2543,66 +2558,116 @@ void AMSJob::_sitkinitjob(){
 void AMSJob::_signinitjob(){
 
 
-// add proper geant4 ets
+  // add proper geant4 ets
 #ifdef __G4AMS__
-char *g4i=getenv("G4INSTALL");
-if(g4i && !strstr((const char *)G4Version,"geant4-09-04" )&& strstr (g4i,"geant4.9.4") && isSimulation()){
-string g4is=g4i;
-int pos=g4is.find("geant4.9.4");
-if(pos>=0){
-if(strstr((const char *)G4Version,"geant4-09-06")){
-string add="geant4.9.6.p03";
- g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
- setenv("G4INSTALL",g4is.c_str(),1);
- cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
-/*
-setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.3
-setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadioactiveDecay3.6
-setenv G4LEDATA $G4INSTALL/data/G4EMLOW6.32
-setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL4.2
-setenv G4NEUTRONXSDATA $G4INSTALL/data/G4NEUTRONXS1.2
-setenv G4PIIDATA $G4INSTALL/data/G4PII1.3
-setenv G4ELASTIC $G4INSTALL/data/G4ELASTIC1.1
-setenv G4DPMJET2_5DATA $G4INSTALL/data/DPMJET/GlauberData
-setenv G4SAIDXSDATA $G4INSTALL/data/G4SAIDDATA1.1
-*/
-g4i=getenv("G4INSTALL");
-string g4is=g4i;
-g4is+="/data/PhotonEvaporation2.3";
-setenv("G4LEVELGAMMADATA", g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/RadioactiveDecay3.6";
-setenv("G4RADIOACTIVEDATA"  ,g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/G4EMLOW6.32";
-setenv("G4LEDATA" ,g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/G4NDL4.2";
-setenv("NeutronHPCrossSections" ,g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/G4NEUTRONXS1.2";
-setenv("G4NEUTRONXSDATA" ,g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/G4PII1.3";
-setenv("G4PIIDATA" ,g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/G4ELASTIC1.1";
-setenv("G4ELASTIC" ,g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/DPMJET/GlauberData";
-setenv("G4DPMJET2_5DATA" ,g4is.c_str(),1);
-g4is=g4i;
-g4is+="/data/G4SAIDDATA1.1";
-setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
- cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
+  char *g4i=getenv("G4INSTALL");
+  if(g4i && !strstr((const char *)G4Version,"geant4-09-04" )&& strstr (g4i,"geant4.9.4") && isSimulation()){
+    string g4is=g4i;
+    int pos=g4is.find("geant4.9.4");
+    if(pos>=0){
+      if(strstr((const char *)G4Version,"geant4-09-06")){
+	string add="geant4.9.6.p03";
+	g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
+	setenv("G4INSTALL",g4is.c_str(),1);
+	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
+	/*
+	  setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.3
+	  setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadioactiveDecay3.6
+	  setenv G4LEDATA $G4INSTALL/data/G4EMLOW6.32
+	  setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL4.2
+	  setenv G4NEUTRONXSDATA $G4INSTALL/data/G4NEUTRONXS1.2
+	  setenv G4PIIDATA $G4INSTALL/data/G4PII1.3
+	  setenv G4ELASTIC $G4INSTALL/data/G4ELASTIC1.1
+	  setenv G4DPMJET2_5DATA $G4INSTALL/data/DPMJET/GlauberData
+	  setenv G4SAIDXSDATA $G4INSTALL/data/G4SAIDDATA1.1
+	*/
+	g4i=getenv("G4INSTALL");
+	string g4is=g4i;
+	g4is+="/data/PhotonEvaporation2.3";
+	setenv("G4LEVELGAMMADATA", g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/RadioactiveDecay3.6";
+	setenv("G4RADIOACTIVEDATA"  ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4EMLOW6.32";
+	setenv("G4LEDATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4NDL4.2";
+	setenv("NeutronHPCrossSections" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4NEUTRONXS1.2";
+	setenv("G4NEUTRONXSDATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4PII1.3";
+	setenv("G4PIIDATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4ELASTIC1.1";
+	setenv("G4ELASTIC" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/DPMJET/GlauberData";
+	setenv("G4DPMJET2_5DATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4SAIDDATA1.1";
+	setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
+	cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
 
 
-}
-else{
-cerr<<"AMSJob::_signinitjob-E-UnknowG4VersionDetected "<<G4Version<<endl;
-}
-}
-}
+      }
+      else if(strstr((const char *)G4Version,"geant4-10-01")){
+	string add="geant4.10.01.b01";
+	g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
+	setenv("G4INSTALL",g4is.c_str(),1);
+	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
+	/*
+	 * setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.3
+	 * setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadioactiveDecay3.6
+	 * setenv G4LEDATA $G4INSTALL/data/G4EMLOW6.32
+	 * setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL4.2
+	 * setenv G4NEUTRONXSDATA $G4INSTALL/data/G4NEUTRONXS1.2
+	 * setenv G4PIIDATA $G4INSTALL/data/G4PII1.3
+	 * setenv G4ELASTIC $G4INSTALL/data/G4ELASTIC1.1
+	 * setenv G4DPMJET2_5DATA $G4INSTALL/data/DPMJET/GlauberData
+	 * setenv G4SAIDXSDATA $G4INSTALL/data/G4SAIDDATA1.1
+	 * */
+	g4i=getenv("G4INSTALL");
+	string g4is=g4i;
+	g4is+="/data/PhotonEvaporation2.3";
+	setenv("G4LEVELGAMMADATA", g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/RadioactiveDecay3.6";
+	setenv("G4RADIOACTIVEDATA"  ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4EMLOW6.39";
+	setenv("G4LEDATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4NDL4.4";
+	setenv("NeutronHPCrossSections" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4NEUTRONXS1.4";
+	setenv("G4NEUTRONXSDATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4PII1.3";
+	setenv("G4PIIDATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4ELASTIC1.1";
+	setenv("G4ELASTIC" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/DPMJET/GlauberData";
+	setenv("G4DPMJET2_5DATA" ,g4is.c_str(),1);
+	g4is=g4i;
+	g4is+="/data/G4SAIDDATA1.1";
+	setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
+	cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
+
+
+      }
+
+      else{
+	cerr<<"AMSJob::_signinitjob-E-UnknowG4VersionDetected "<<G4Version<<endl;
+	abort();
+      }
+    }
+  }
 
 
 #endif
@@ -2656,9 +2721,9 @@ void AMSJob::_sitof2initjob(){
   //
   TOF2JobStat::bookhistmc();//Book histograms for MC
   if(G4FFKEY.TFNewGeant4>0&& !isRealData() ){
-     TOFPMT::build();//New PMT information
-     if(G4FFKEY.TFNewGeant4%10>1||MISCFFKEY.G3On)TOFWScanN::build();//Table method
-   }
+    TOFPMT::build();//New PMT information
+    if(G4FFKEY.TFNewGeant4%10>1||MISCFFKEY.G3On)TOFWScanN::build();//Table method
+  }
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_siecalinitjob(){
@@ -2721,9 +2786,9 @@ void AMSJob::_sitrdinitjob(){
     HBOOK1(8001,"trd ped",1000,0.,1000.,0.);
     HBOOK1(8002,"trd sig",1000,0.,50.,0.);
     HBOOK1(8003,"trd gain",1000,0.,2.,0.);
-    for (int i=0;i<TRDDBc::LayersNo(0);i++){
-      for (int j=0;j<TRDDBc::LaddersNo(0,i);j++){
-	for (int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
+    for (unsigned int i=0;i<TRDDBc::LayersNo(0);i++){
+      for (unsigned int j=0;j<TRDDBc::LaddersNo(0,i);j++){
+	for (unsigned int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
 	  geant d = 0;
 	  AMSTRDIdSoft id(i,j,k);
 	  id.setped()=TRDMCFFKEY.ped+rnormx()*TRDMCFFKEY.pedsig;
@@ -2936,7 +3001,6 @@ void AMSJob::_retof2initjob(){
   // ===> some inits, common for reco/simu :
   //
   TOF2JobStat::clear();//Clear JOB-stat arrays, set fast temp. defaults=undefined(999) for SFET(A)(TempT)
-  TofSlowTemp::tofstemp.init(); // set default values for TOF slow temperatures(TempC,TempP)=undefined
   // formally def=undefined settings autom.provide true(TOF2Varp-based) def.value at valid-stage if some 
   //temper.data was not found !!! 
   //
@@ -2946,9 +3010,9 @@ void AMSJob::_retof2initjob(){
   //
   //---------(*.ReadConstFiles card convention : tfmc->LPTS, tfre->LQDPC)
   //--------
-//  if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(D) Take ThreshCuts-set from Data-Cards !!! now(11.12.2013->) always take from cards
-    TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//create ThrCuts-obj from Data-Cards
-//  }
+  //  if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(D) Take ThreshCuts-set from Data-Cards !!! now(11.12.2013->) always take from cards
+  TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//create ThrCuts-obj from Data-Cards
+  //  }
   //--------
   if(TFREFFKEY.ReadConstFiles%10>0){//(C) Take Paddles CalibConst from CalibFiles
     TOF2Brcal::build();//create scbrcal-objects from CalibFiles
@@ -3034,6 +3098,13 @@ void AMSJob::_reecalinitjob(){
   //
   AMSgObj::BookTimer.book("REECALEVENT");
   AMSgObj::BookTimer.book("ReEcalShowerFit");
+  AMSgObj::BookTimer.book("ReEcalSFit_0");
+  AMSgObj::BookTimer.book("ReEcalSFit_1");
+  AMSgObj::BookTimer.book("ReEcalAttEnFit");
+  AMSgObj::BookTimer.book("ReEcalPFit");
+  AMSgObj::BookTimer.book("ReEcalDFit");
+  AMSgObj::BookTimer.book("ReEcalLAPPFit");
+  AMSgObj::BookTimer.book("ReEcalEmSpFit");
   //
   ECALDBc::getscinfoa(0,0,0,pr,pl,cell,ct,cl,cz);// <--- init. PMCell-readout tables
   //
@@ -3048,6 +3119,13 @@ void AMSJob::_reecalinitjob(){
   //-------------------------
   // ===> create EC-SubCell Temperature Slopes:
   //
+  
+  if((ECREFFKEY.ReadConstFiles%1000000)/100000>0 && (isRealData() || ECMCFFKEY.calvern >= 4) ){
+    ECLongTerm::build();
+  }
+  if((ECREFFKEY.ReadConstFiles%100000)/10000>0 && (isRealData() || ECMCFFKEY.calvern >= 4) ){
+    ECDailyMip::build();
+  }
   
   if((ECREFFKEY.ReadConstFiles%10000)/1000>0 && (isRealData() || ECMCFFKEY.calvern >= 3) ){
     ECTslope::build();
@@ -3213,9 +3291,9 @@ void AMSJob::settrigger(char *setup, integer N,integer orr){
 void AMSJob::settdv(char *setup, integer N){
   assert(N < maxtdv);
   if(setup){
-    if(strlen(setup)<maxtdvsize)strcpy(_TDVC[N],setup);
+    if(int(strlen(setup))<maxtdvsize)strcpy(_TDVC[N],setup);
     else cerr << "AMSJOB::settdv-E-length of "<<setup<< " "<<strlen(setup)<<
-      ", exceeds "<<maxtdvsize<<". Card ignored"<<endl;
+	   ", exceeds "<<maxtdvsize<<". Card ignored"<<endl;
   }
   _TDVN=N+1;
 }
@@ -3244,9 +3322,9 @@ void AMSJob::_timeinitjob(){
       begin=AMSmceventg::Orbit.End;
       end=AMSmceventg::Orbit.Begin;
     }
-	(void) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
-							       isRealData()),begin,end,-getstatustable()->getsize(),
-							 getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/100000)%10));
+    (void) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
+				       isRealData()),begin,end,-getstatustable()->getsize(),
+				 getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/100000)%10));
     cout <<" timeinitjob calib.subdetrequest "<<(CALIB.SubDetRequestCalib/100000)%10<<" "<<CALIB.SubDetRequestCalib<<endl;
     if(AMSFFKEY.Update==88)return;
 
@@ -3258,6 +3336,7 @@ void AMSJob::_timeinitjob(){
     //
     // Magnetic Field Map
     //
+#ifndef _PGTRACK_
     tm begin;
     tm end;
     begin.tm_isdst=0;
@@ -3274,13 +3353,7 @@ void AMSJob::_timeinitjob(){
     end.tm_mday=TKFIELD.iday[1];
     end.tm_mon=TKFIELD.imon[1];
     end.tm_year=TKFIELD.iyear[1];
-
-
-
-
-
-
-
+#endif
 
     int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
     char FieldMapName[100];    
@@ -3316,6 +3389,7 @@ void AMSJob::_timeinitjob(){
       sprintf(FieldMapName,"MagneticFieldMap07");
       }
     */
+    (void) ssize;
     {
 
       //
@@ -3442,22 +3516,29 @@ void AMSJob::_timeinitjob(){
       end.tm_year=0;
       TrExtAlignDB::CreateLinear();
 
+      int needtrextalig = ((CALIB.SubDetRequestCalib/100)%10)>0;
       TID.add (new AMSTimeID(AMSID(TrExtAlignDB::GetTDVName(),
 				   isRealData()),begin,end,
 			     TrExtAlignDB::GetLinearSize(),
 			     TrExtAlignDB::fLinear,
-			     server,need,SLin2ExAlign));
+			     server,needtrextalig,SLin2ExAlign));
+      // For std production
+      // Increase a window of outer layer pick up by x10 (default 0.5)
+      if (!needtrextalig) {
+	if (TRFITFFKEY.MergeExtLimX < 5) TRFITFFKEY.MergeExtLimX = 5;
+	if (TRFITFFKEY.MergeExtLimY < 5) TRFITFFKEY.MergeExtLimY = 5;
+      }
 
       TrInnerDzDB::GetHead();
-      TID.add ( new AMSTimeID(
-			      AMSID("TrInnerDzAlign",isRealData()),
+
+      int needtrindzalig = ((CALIB.SubDetRequestCalib/100)%10)>0;
+      TID.add ( new AMSTimeID(AMSID(TrInnerDzDB::GetTDVName(),isRealData()),
 			      begin,
 			      end,
 			      TrInnerDzDB::GetTDVSwapSize(),
 			      TrInnerDzDB::TDVSwap,
-			      server,need,
-			      TrInnerLin2DB));
-		
+			      server,needtrindzalig,TrInnerLin2DB));
+
       DynAlManager::need2bookTDV=((CALIB.SubDetRequestCalib/100)%10)>0;
       DynAlManager::tdvdb=new AMSTimeID(AMSID(DynAlManager::GetTDVName(TKGEOMFFKEY.MdExAlignTag).Data(),1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
       TID.add(DynAlManager::tdvdb);
@@ -3514,8 +3595,12 @@ void AMSJob::_timeinitjob(){
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM3",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
-	  else 	  if(TKGEOMFFKEY.alignver>3)
+	  else 	  if(TKGEOMFFKEY.alignver==4)
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM4",isRealData()),begin,end,
+				   TkDBc::GetLinearSize(),TkDBc::linear,
+				   server,need,SLin2Align));
+	  else 	  if(TKGEOMFFKEY.alignver>4)
+	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM5",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
 	}
@@ -3733,7 +3818,15 @@ void AMSJob::_timeinitjob(){
 			   begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
 			   (void*)AMSTRDIdSoft::_ped,server,1));
 
-    if((CALIB.SubDetRequestCalib/10000)%10==2){
+    if((CALIB.SubDetRequestCalib/10000)%10==3){
+      TID.add (new AMSTimeID(AMSID("TRDGains3",isRealData()),
+			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
+			     (void*)AMSTRDIdSoft::_gain,server,1));
+      TID.add (new AMSTimeID(AMSID("TRDStatus3",isRealData()),
+			     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
+			     (void*)AMSTRDIdSoft::_status,server,1));
+    }
+    else if((CALIB.SubDetRequestCalib/10000)%10==2){
       TID.add (new AMSTimeID(AMSID("TRDGains2",isRealData()),
 			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
 			     (void*)AMSTRDIdSoft::_gain,server,1));
@@ -3767,7 +3860,7 @@ void AMSJob::_timeinitjob(){
   //      
 
 
-// changed by VC - remove them for MC
+  // changed by VC - remove them for MC
   
   {
     tm begin;
@@ -3838,58 +3931,58 @@ void AMSJob::_timeinitjob(){
     end.tm_mon=0;
     end.tm_year=0;
 
-//----TOF IHEP BetaH ClusterH TDV/ version //
-//    if(isRealData()){
-      if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
-       TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
-       if(!isRealData())TofTAlign->TDVName="TofAlign2MC";//20140419 MC Calibration
-       TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
-                              TofTAlign->TDVSize,
-                              TofTAlign->TDVBlock,
-                              server,needval,TofTAlignPar::HeadLoadTDVPar));
+    //----TOF IHEP BetaH ClusterH TDV/ version //
+    //    if(isRealData()){
+    if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
+      TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
+      if(!isRealData())TofTAlign->TDVName="TofAlign2MC";//20140419 MC Calibration
+      TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
+			     TofTAlign->TDVSize,
+			     TofTAlign->TDVBlock,
+			     server,needval,TofTAlignPar::HeadLoadTDVPar));
       //---Attunation correction
       TofAttAlignPar *TofAttAlign=TofAttAlignPar::GetHead();
       TID.add ( new AMSTimeID(AMSID(TofAttAlign->TDVName,isRealData()),begin,end,
-                           TofAttAlign->TDVSize,
-                           TofAttAlign->TDVBlock,
-                           server,1,TofAttAlignPar::HeadLoadTDVPar));
-//---Anode Gain
+			      TofAttAlign->TDVSize,
+			      TofAttAlign->TDVBlock,
+			      server,1,TofAttAlignPar::HeadLoadTDVPar));
+      //---Anode Gain
       TofPMAlignPar *TofPMAlign=TofPMAlignPar::GetHead();
       TID.add (new AMSTimeID(AMSID(TofPMAlign->TDVName,isRealData()),begin,end,
-                           TofPMAlign->TDVSize,
-                           TofPMAlign->TDVBlock,
-                           server,1,TofPMAlignPar::HeadLoadTDVPar));
-//---Dynode Gain
+			     TofPMAlign->TDVSize,
+			     TofPMAlign->TDVBlock,
+			     server,1,TofPMAlignPar::HeadLoadTDVPar));
+      //---Dynode Gain
       TofPMDAlignPar *TofPMDAlign=TofPMDAlignPar::GetHead();
       TID.add (new AMSTimeID(AMSID(TofPMDAlign->TDVName,isRealData()),begin,end,
-                           TofPMDAlign->TDVSize,
-                           TofPMDAlign->TDVBlock,
-                           server,1,TofPMDAlignPar::HeadLoadTDVPar));
-//---Charge Par
-	  (void) TofCAlignPar::GetHead();
-//---Charge Ion Par
+			     TofPMDAlign->TDVSize,
+			     TofPMDAlign->TDVBlock,
+			     server,1,TofPMDAlignPar::HeadLoadTDVPar));
+      //---Charge Par
+      (void) TofCAlignPar::GetHead();
+      //---Charge Ion Par
       TofCAlignIonPar *TofCAlignIon=TofCAlignIonPar::GetHead();
       TID.add (new AMSTimeID(AMSID(TofCAlignIon->TDVName,isRealData()),begin,end,
-                           TofCAlignIon->TDVSize,
-                           TofCAlignIon->TDVBlock,
-                           server,1,TofCAlignIonPar::HeadLoadTDVPar));
-//---PDF Par
+			     TofCAlignIon->TDVSize,
+			     TofCAlignIon->TDVBlock,
+			     server,1,TofCAlignIonPar::HeadLoadTDVPar));
+      //---PDF Par
       TofPDFPar *TofPDF=TofPDFPar::GetHead();
       TID.add (new AMSTimeID(AMSID(TofPDF->TDVName,isRealData()),begin,end,
-                           TofPDF->TDVSize,
-                           TofPDF->TDVBlock,
-                           server,1,TofPDFPar::HeadLoadTDVPar));
-//---TDC Linear New Calib
+			     TofPDF->TDVSize,
+			     TofPDF->TDVBlock,
+			     server,1,TofPDFPar::HeadLoadTDVPar));
+      //---TDC Linear New Calib
       if(isRealData()){
-         TofTdcPar *TdcPar=TofTdcPar::GetHead();
-         TID.add (new AMSTimeID(AMSID(TdcPar->TDVName,isRealData()),begin,end,
-                             TdcPar->TDVSize,
-                             TdcPar->TDVBlock,
-                             server,1,TofTdcPar::HeadLoadTDVPar));
+	TofTdcPar *TdcPar=TofTdcPar::GetHead();
+	TID.add (new AMSTimeID(AMSID(TdcPar->TDVName,isRealData()),begin,end,
+			       TdcPar->TDVSize,
+			       TdcPar->TDVBlock,
+			       server,1,TofTdcPar::HeadLoadTDVPar));
               
-       }
+      }
     }
-//    }
+    //    }
     //
     if((isCalibration() & CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
       if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
@@ -3946,28 +4039,28 @@ void AMSJob::_timeinitjob(){
     }
     else if (TFCAFFKEY.newslew==1) {
       if(!isRealData() && G4FFKEY.TFNewGeant4>0 ){
-      TID.add (new AMSTimeID(AMSID("Tofbarcal3MCNew",isRealData()),
-			     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
-			     (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
-     }
+	TID.add (new AMSTimeID(AMSID("Tofbarcal3MCNew",isRealData()),
+			       begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
+			       (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
+      }
       else{
-      TID.add (new AMSTimeID(AMSID("Tofbarcal3",isRealData()),
-			     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
-			     (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
+	TID.add (new AMSTimeID(AMSID("Tofbarcal3",isRealData()),
+			       begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
+			       (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
       }
     }
 
     end.tm_year=TFREFFKEY.year[1];
     //-----
-/*
-    if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//(D)ThreshCuts-set from DB
+    /*
+      if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//(D)ThreshCuts-set from DB
 
-    TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
-			   begin,end,sizeof(TOF2Varp::tofvpar),
-			   (void*)&TOF2Varp::tofvpar,server,needval));
+      TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
+      begin,end,sizeof(TOF2Varp::tofvpar),
+      (void*)&TOF2Varp::tofvpar,server,needval));
     
-    end.tm_year=TFREFFKEY.year[1];
-*/
+      end.tm_year=TFREFFKEY.year[1];
+    */
     //----- 
     if((TFREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(Q)ChargeCalibPDFs from DB
 
@@ -4260,19 +4353,18 @@ void AMSJob::_timeinitjob(){
     int use_alignment=isRealData() && ((RICDBFFKEY.dump/10)%10)==0 &&
       !strstr(AMSJob::gethead()->getsetup(),"PreAss");
 
-    AMSTimeID *pdtv;
 
-    pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
-					      begin,end,
-					      RICmaxtiles*4*sizeof(RichRadiatorTileManager::_optical_parameters[0]),
-					      (void*)&RichRadiatorTileManager::_optical_parameters[0],
-					      server,use_radiator));
+    TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
+			    begin,end,
+			    RICmaxtiles*4*sizeof(RichRadiatorTileManager::_optical_parameters[0]),
+			    (void*)&RichRadiatorTileManager::_optical_parameters[0],
+			    server,use_radiator));
 
-    pdtv=(AMSTimeID*) TID.add (new AMSTimeID(AMSID("RichAlignmentParameters",isRealData()),
-					     begin,end,
-					     12*sizeof(RichAlignment::_align_parameters[0]),
-					     (void*)&RichAlignment::_align_parameters[0],
-					     server,use_alignment));
+    TID.add (new AMSTimeID(AMSID("RichAlignmentParameters",isRealData()),
+			   begin,end,
+			   12*sizeof(RichAlignment::_align_parameters[0]),
+			   (void*)&RichAlignment::_align_parameters[0],
+			   server,use_alignment));
 
 
   
@@ -4344,7 +4436,20 @@ void AMSJob::_timeinitjob(){
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
 			   begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
 			   (void*)&ECcalib::ecpmcal[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
-    end.tm_year=ECREFFKEY.year[1];    
+    end.tm_year=ECREFFKEY.year[1];     
+    //--------  
+    if((ECREFFKEY.ReadConstFiles%1000000)/100000==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
+    TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibLonT(),
+			   begin,end,ecalconst::ECPMSL*sizeof(ECLongTerm::eclongterm[0][0]),
+			   (void*)&ECLongTerm::eclongterm[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
+    end.tm_year=ECREFFKEY.year[1];     
+    //--------  
+    if((ECREFFKEY.ReadConstFiles%100000)/10000==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
+    TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibMipD(),
+			   begin,end,ecalconst::ECPMSL*sizeof(ECDailyMip::ecmipday[0][0]),
+			   (void*)&ECDailyMip::ecmipday[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
+    end.tm_year=ECREFFKEY.year[1];          
+    //  
     //--------  
     if((ECREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibTslo(),
@@ -4381,7 +4486,7 @@ void AMSJob::_timeinitjob(){
 			   (void*)&ECPMPeds::pmpeds[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
     end.tm_year=ECREFFKEY.year[1];
     //-------- 
-	}
+  }
   //
   //---------------------------------------
   //
@@ -4425,17 +4530,6 @@ void AMSJob::_timeinitjob(){
 
   }
 #endif
-  //---------------------------
-  {
-    // TOF Slow Temperature  data (some PMTs inside of TOF-envelops + SFEC)
-    if(isRealData()){
-      tm begin=AMSmceventg::Orbit.End;
-      tm end=AMSmceventg::Orbit.Begin;
-      TID.add (new AMSTimeID(AMSID("TofEnvelopsTemper",isRealData()),
-			     begin,end,
-			     sizeof(TofSlowTemp::tofstemp),(void*)&TofSlowTemp::tofstemp,server,0));
-    }  
-  }
   //-----------------------------
   {
     // Scaler Data
@@ -4771,7 +4865,7 @@ void AMSJob::urinit(integer run, integer eventno, time_t tt)
     //   trail leading blancs if any
     //  
     int offset=-1; 
-    for(int i=0;i<strlen((const char*)_rextname);i++){
+    for(unsigned int i=0;i<strlen((const char*)_rextname);i++){
       if(*((const char*)_rextname+i)!=' ')break;
       else offset=i;
     } 
@@ -4846,7 +4940,7 @@ void AMSJob::uhinit(integer run, integer eventno, time_t tt)
     cout <<"Trying to open histo file "<<_ntuplefilename<<endl;
     npq_(); 
     int beg=-1;
-    for (int k=0;k<strlen(_ntuplefilename);k++){
+    for (unsigned int k=0;k<strlen(_ntuplefilename);k++){
       if(_ntuplefilename[k]!=' ')break;
       beg=k;
     }
@@ -5074,24 +5168,24 @@ void AMSJob::_dbendjob(){
     */
   }
   if( AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->gettimestructure() ){
-  AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
+    AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
     if(ptdv){
-    ptdv->SetNbytes(AMSJob::gethead()->getstatustable()->getsizeV());
-    AMSJob::gethead()->getstatustable()->Sort();
-    ptdv->UpdateMe()=1;
-    ptdv->UpdCRC();
-    time_t begin,end,insert;
-    begin=AMSJob::gethead()->getstatustable()->getbegin();
-    end=AMSJob::gethead()->getstatustable()->getend();
-    time(&insert);
-    ptdv->SetTime(insert,begin,end);
-    cout <<" Event Status info  info has been updated for "<<*ptdv;
-    ptdv->gettime(insert,begin,end);
-    cout <<" Time Insert "<<ctime(&insert);
-    cout <<" Time Begin "<<ctime(&begin);
-    cout <<" Time End "<<ctime(&end);
-   }
-   else cerr<<" AMSJob::_dbendjob-E-unable to fiund timestructure "<<endl;
+      ptdv->SetNbytes(AMSJob::gethead()->getstatustable()->getsizeV());
+      AMSJob::gethead()->getstatustable()->Sort();
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time_t begin,end,insert;
+      begin=AMSJob::gethead()->getstatustable()->getbegin();
+      end=AMSJob::gethead()->getstatustable()->getend();
+      time(&insert);
+      ptdv->SetTime(insert,begin,end);
+      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+    }
+    else cerr<<" AMSJob::_dbendjob-E-unable to fiund timestructure "<<endl;
   }
 #endif
   if( AMSFFKEY.Update && AMSStatus::isDBUpdateR()   ){

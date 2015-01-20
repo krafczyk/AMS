@@ -28,27 +28,21 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   integer i,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status,sector;
   integer nanti(0),nantit(0);
   integer il,ib,nbrlc[TOF2GC::SCLRS],brnlc[TOF2GC::SCLRS];
-  geant zc[4],tgx,tgy,cost;
-  number coo[TOF2GC::SCLRS],coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
+  geant zc[4];
+  number coot[TOF2GC::SCLRS],dx=0,dy;
   number ama[2],amd[2];
   number adca1[TOF2GC::SCLRS],adca2[TOF2GC::SCLRS];
-  number adcd1[TOF2GC::SCLRS],adcd2[TOF2GC::SCLRS];
-  geant elosa[TOF2GC::SCLRS],elosd[TOF2GC::SCLRS],elosc[TOF2GC::SCLRS];
-  number am1[TOF2GC::SCLRS],am2[TOF2GC::SCLRS];
+  geant elosa[TOF2GC::SCLRS],elosc[TOF2GC::SCLRS];
   number am[2],eanti(0),eacl;
-  number am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS];
-  number ltim[TOF2GC::SCLRS],tdif[TOF2GC::SCLRS],trle[TOF2GC::SCLRS],trlr[TOF2GC::SCLRS];
+  number tdif[TOF2GC::SCLRS],trle[TOF2GC::SCLRS],trlr[TOF2GC::SCLRS];
   number tm[2];
-  number tmss[TOF2GC::SCLRS];
   number cltim[TOF2GC::SCLRS];
   integer clmem[TOF2GC::SCLRS];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof=0;
   number sigt[4]={0.15,0.15,0.15,0.15};// time meas.accuracy 
   number cvel(29.979);// light velocity
   number eacut=0.3;// cut on E-anti (mev)
-  int16u crat,slot;
-  integer swid,hwid,shwid;
-  number temper;
+  integer swid;
   integer brnum;
   TOF2RawSide *ptrt;
   TOF2RawCluster *ptr;
@@ -58,7 +52,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   Anti2RawEvent *ptrrN;
   Trigger2LVL1 * plvl1;
   AMSPoint clco[TOF2GC::SCLRS];
-  uinteger Runum(0),Evnum(0);
   ptrt=(TOF2RawSide*)AMSEvent::gethead()->
                            getheadC("TOF2RawSide",0);
   ptr=(TOF2RawCluster*)AMSEvent::gethead()->
@@ -71,8 +64,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   number mcmom,mcmas,mcbeta;
 //
 //----
-  Runum=AMSEvent::gethead()->getrun();// current run number
-  Evnum=AMSEvent::gethead()->getid();
   TOF2JobStat::addre(21);
 //---> some trigger study:
   plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
@@ -104,18 +95,15 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   }
 */
 //
-  integer rclstok[TOF2GC::SCLRS],clstok[TOF2GC::SCLRS];
+  integer clstok[TOF2GC::SCLRS];
   for(i=0;i<TOF2GC::SCLRS;i++){
     nbrl[i]=0;
     nbrlc[i]=0;
     brnl[i]=-1;
     brnlc[i]=-1;
-    tmss[i]=0;
     clmem[i]=0;
     cltim[i]=0;
     clco[i]=0;
-    coo[i]=0;
-    rclstok[i]=0;//bad
     clstok[i]=0;//bad
   }
 //
@@ -124,12 +112,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
   while(ptrt){ // <--- loop over TOF2RawSide hits
     swid=ptrt->getsid();//LBBS
-    hwid=ptrt->gethidt();//CSIIII(Cr(1-4)|SeqSlot(1-5)|Ich(1-5)|FTIch(6)|SumHTIch(7)|SumSHTIch(8))
-    shwid=hwid/10000;
-    crat=shwid/10;
-    slot=shwid%10;//SeqSlot(1,2,3,4,5=>SFET1,SFET2,SFET3,SFET4,SFEA)
 //    ptrt->getstdc(stimes);
-    temper=ptrt->gettempT();//SFET-based temperature
 //    tinp=stimes[0]-stimes[1];
 //    tout=stimes[1]-stimes[3];
 //    cout<<"swid/hwid="<<swid<<" "<<hwid<<"  tin/out="<<tinp<<" "<<tout<<"  temp="<<temper<<endl;
@@ -160,9 +143,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     ilay=(ptr->getntof())-1;
     ibar=(ptr->getplane())-1;
 //    if((ibar==0 || (ibar+1)==TOF2DBc::getbppl(ilay)))goto next;
-    if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0 //"good_history/good_in_DB
-                                  && (status&TOFGC::SCBADB2)==0  // both sides measurement
-                                                               )rclstok[ilay]=1;
     
     elosa[ilay]=ptr->getedepa();
     ptr->getadca(ama);// Anode-ampl(ADC-ch)
@@ -171,23 +151,13 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       ptr->getadcd(amd);// Dynode(equiliz.sum)-ampl(ADC-ch)
       adca1[ilay]=ama[0];
       adca2[ilay]=ama[1];
-      adcd1[ilay]=amd[0];
-      adcd2[ilay]=amd[1];
       TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// Anode-ADC convert to charge
-      am1[ilay]=am[0];
-      am2[ilay]=am[1];
       am[0]=0;
       am[1]=0;
       if(amd[0]>0 && amd[1]>0)TOF2Brcal::scbrcal[ilay][ibar].adc2q(1,amd,am);// dynode(sum)-ADC convert to charge
-      am1d[ilay]=am[0];
-      am2d[ilay]=am[1];
       nbrl[ilay]+=1;
       brnl[ilay]=ibar;
-      elosd[ilay]=ptr->getedepd();
-      coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
-      ltim[ilay]=ptr->gettime();// get ampl-corrected time
       ptr->getsdtm(tm);// get raw side-times(A-noncorrected)
-      tmss[ilay]=0.5*(tm[0]+tm[1]);// slew-non-corrected side time sum
     }
 //next:
     ptr=ptr->next();
@@ -209,9 +179,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //=====================================> check TofCluster-hits :
 //
-  integer rclmem[4][3]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-  integer nrcls;
-  AMSlink * mptr[3];
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (TofClus containers) ---
     ptrc=(AMSTOFCluster*)AMSEvent::gethead()->
                            getheadC("AMSTOFCluster",ilay,0);
@@ -224,10 +191,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       clco[ilay]=ptrc->getcoo();
       cltim[ilay]=-(ptrc->gettime())*1.e+9;//(back from V.C. format) 
       clmem[ilay]=ptrc->getnmemb();
-      nrcls=ptrc->getmemb(mptr);
-      for(i=0;i<clmem[ilay];i++){
-	rclmem[ilay][i]=((TOF2RawCluster*)mptr[i])->getplane();
-      }
       nbrlc[ilay]+=1;
       brnlc[ilay]=ibar;
       ptrc=ptrc->next();
@@ -253,7 +216,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   AMSEcalHit * ptr1;
   integer maxpl,nhtot(0);
   geant padc[3];
-  integer cid,isl,pmt,sbc,cell,proj;
+  integer cell;
   maxpl=2*ECALDBc::slstruc(3);// SubCell(Pix) planes(18)
   int  ecshnum(0);
   ptsh=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0);
@@ -277,12 +240,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
                                getheadC("AMSEcalHit",ipl,0);
 
       while(ptr1){ // <--- EcalHits(fired subcells=pixels) loop in pix-plane:
-        cid=ptr1->getid();//LTTP(sLayer/pmTube/Pixel)
-        sbc=cid%10-1;//SubCell(0-3)
-        proj=ptr1->getproj();//0/1->X/Y (have to be corresponding to ipl)
         cell=ptr1->getcell();// 0,...71
-        isl=ipl/2;//0-8
-        pmt=cell/2;//0-35
         ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
         if(padc[0]>0){
           nhtot+=1;
@@ -307,22 +265,15 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[TOF2GC::SCTHMX1];
   geant adca;
   int16u id,idN;
-  number ampe[2],uptm[2];
+  number ampe[2];
   number ama1[ANTI2C::MAXANTI],ama2[ANTI2C::MAXANTI];
   integer frsecn[ANTI2C::MAXANTI],frsect;
-  integer isid,nsds,chnum;
-  geant padlen,padrad,padth,paddfi,ped[2],sig[2];
+  integer isid,nsds;
   int nphsok;
-  padlen=ANTI2DBc::scleng();//z-size
-  padrad=ANTI2DBc::scradi();//int radious
-  padth=ANTI2DBc::scinth();//thickness
-  paddfi=360./ANTI2C::MAXANTI;//per logical sector
 //
   frsect=0;
   nsds=0;
   ntdct=0;
-  uptm[0]=0;
-  uptm[1]=0;
   ampe[0]=0;
   ampe[1]=0;
   for(i=0;i<ANTI2C::MAXANTI;i++)frsecn[i]=0;
@@ -335,14 +286,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     id=ptrr->getid();//BBS
     sector=id/10-1;//Readout(logical) sector number (0-7)
     isid=id%10-1;
-    chnum=sector*2+isid;//channels numbering
     adca=ptrr->getadca();
     ntdct=ptrr->gettdct(tdct);
     nftdc=ptrr->getftdc(ftdc);
     if(ntdct>=0 && nftdc==1){//select only >=1 Hist/FT-hit events
 //DAQ-ch-->p.e's:
-      ped[isid]=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
-      sig[isid]=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
 //      ampe[isid]=number(adca)/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
 //              *ANTI2SPcal::antispcal[sector].getadc2pe(); //ADC-ch-->p.e.
       ampe[isid]=number(adca);       
@@ -351,7 +299,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
       if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
       else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
-      uptm[isid]=(ftdc[0]-tdct[0])*ANTI2DBc::htdcbw() + tzer;//TDC-ch-->ns + compens.tzero
 //cout<<"    decoded Up-time="<<uptm[isid]<<endl;
 //
       nsds+=1;
@@ -378,8 +325,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       ntdct=0;
       ampe[0]=0;
       ampe[1]=0;
-      uptm[0]=0;
-      uptm[1]=0;
     }//--->endof next sector check
 //---
     ptrr=ptrr->next();// take next RawEvent hit
@@ -449,11 +394,14 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //===================================> get parameters from tracker:
 //
-    number pmas(0.938),mumas(0.1057),imass;
-    number pmom,bet,chi2,pcut[2],beta,chi2t,chi2s;
-    number momentum;
-    number the,phi,trl,rid,err,ctran,charge,partq;
-    integer chargeTOF(0),chargeTracker(0),betpatt(-1),trpatt,trhits(0);
+    number pmas(0.938),mumas(0.1057);
+    number pmom,bet,chi2,beta=0,chi2t=0,chi2s=0;
+    number momentum=0;
+    number the,phi,trl,rid,err,ctran,charge=0,partq;
+    integer chargeTOF(0),chargeTracker(0),betpatt(-1);
+#ifndef _PGTRACK_
+	integer trpatt;
+#endif
     uintl traddr(0,0);
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
@@ -468,7 +416,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     AMSBeta * pbeta;
     int npart,envindx(0);
     bool trdtr,ecaltr,nottr,badint;
-    number toftrlen[TOF2GC::SCLRS]={0,0,0,0};
 //
     npart=0;
     for(i=0;i<2;i++){//i=0->parts.with true(Trk)-track, i=1->...false(nonTrk)-track
@@ -487,8 +434,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",envindx);
-    bool TrkTrPart=false;
-    bool AnyTrPart=false;
     bool GoodTrPart=false;
     bool GoodTrkTrack=false;
 
@@ -499,7 +444,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       ptrd=ppart->getptrd();//get pointer of the TRD-track, used in given particle
       if(ptrd)TOF2JobStat::addre(42);
       if(ptrack){
-        AnyTrPart=true;
         TOF2JobStat::addre(25);
         trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
         ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
@@ -513,10 +457,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 	GoodTrPart=true;
 	TOF2JobStat::addre(40);//good track part(trd|trk)
 	if(!trdtr){//tracker-track part
-	  TrkTrPart=true;
 	  TOF2JobStat::addre(41);
-          for(i=0;i<TOF2GC::SCLRS;i++)toftrlen[i]=ppart->gettoftlen(i);//exists only for trk-track
+#ifndef _PGTRACK_
           trpatt=ptrack->getpattern();//TRK-track pattern
+#endif
+
 #ifdef _PGTRACK_
 	  if(!(ptrack->IsFake()))
 #else
@@ -524,13 +469,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 #endif
 	  {//trk-track ok
             GoodTrkTrack=true;
-#ifdef _PGTRACK_
-	    //PZ FIXME UNUSED 	    traddr=ptrack->getaddress();//TRK-track ladders combination id
-	    trhits=ptrack->GetNhits();
-#else
-
+#ifndef _PGTRACK_
 	    traddr=ptrack->getaddress();//TRK-track ladders combination id
-	    trhits=ptrack->getnhits();
 #endif
             ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
             status=ptrack->getstatus();
@@ -586,15 +526,9 @@ Nextp:
     pmom=fabs(rid);
     if(TFCAFFKEY.caltyp==0){ // space calibration
       bet=pmom/sqrt(pmom*pmom+pmas*pmas);
-      imass=pmas;
-      pcut[0]=TFCAFFKEY.plhc[0];
-      pcut[1]=TFCAFFKEY.plhc[1];
     }
     else{                     // earth calibration
       bet=pmom/sqrt(pmom*pmom+mumas*mumas);
-      imass=mumas;
-      pcut[0]=TFCAFFKEY.plhec[0];
-      pcut[1]=TFCAFFKEY.plhec[1];
     }
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
@@ -830,7 +764,6 @@ Nextp:
     AMSPoint crd;
     number cllc[TOF2GC::SCLRS];//cluster long.coo
     number cltc[TOF2GC::SCLRS];//cluster tran.coo
-    number xentr(0),yentr(0),xexit(0),yexit(0);
 //
     for(il=0;il<TOF2GC::SCLRS;il++){
       crd=clco[il];//from Cluster
@@ -847,15 +780,6 @@ Nextp:
       zc[il]=TOF2DBc::getzsc(il,ib);
       C0[2]=zc[il];
       ptrack->interpolate(C0,dir,Cout,the,phi,trl);
-      if(il==0){
-        xentr=Cout[0];
-	yentr=Cout[1];
-      }
-      if(il==3){
-        xexit=Cout[0];
-	yexit=Cout[1];
-      }
-      cstr[il]=cos(the);
       trlr[il]=trl;
       if(TOF2DBc::plrotm(il)==0){
         coot[il]=Cout[1];// unrot. (X-meas) planes -> take trk Y-cross as long.c
@@ -884,8 +808,6 @@ Nextp:
 	}
       }
       dx=ctran-cltc[il];//Transv.coo_tracker-Transv.coo_TofClust
-      tgx=sin(the)*cos(phi)/cos(the);
-      tgy=sin(the)*sin(phi)/cos(the);
       if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
@@ -905,7 +827,6 @@ Nextp:
       adca2[il]*=geant(fabs(cos(the)));
     }//---> endof tof-layer loop
 //
-    cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);//average cos from track
 //----------------------------
     if(!TofTrackMatch)return;//too big difference of TOF-Track coord. in any layer
 //    if(TofWithExtPad)return;
@@ -1112,11 +1033,10 @@ Nextp:
 //
 //-----> look at angle-corrected anode amplitudes(adc-chan) for all bar-types:
 //
-    integer ibtyp,nbrs;
+    integer ibtyp;
     for(il=0;il<TOF2GC::SCLRS;il++){
       ib=brnl[il];
       if(ib<0)continue;
-      nbrs=nbrl[il];
       if(nbrl[il]==1 && fabs(coot[il])<10){//select counter center crossing
         ibtyp=TOF2DBc::brtype(il,ib)-1;
         if(TFREFFKEY.reprtf[1]>1){

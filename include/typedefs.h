@@ -1,4 +1,4 @@
-//  $Id: typedefs.h,v 1.19 2012/04/20 23:11:17 pzuccon Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 #ifndef __TYPEDEFS__
@@ -20,12 +20,74 @@ typedef unsigned int uinteger;
 typedef unsigned long int ulong;
 typedef unsigned long long uint64;
 typedef unsigned int time32;
-#include <assert.h>
-#include <iostream>
-#include <sstream>
-//#pragma omp threadprivate (std::cout,std::cerr,std::cin,std::clog)
 
-using namespace std;
+#include <cassert>
+
+// Do not import the whole std namespace, otherwise std::isnan clashes with the C99 isnan() macro.
+// Otherwise we can't build with C++11 enabled using ICC compiler and gcc 4.4 system headers (default on SLC 6.5).
+#include <iostream>
+using std::ostream;
+using std::istream;
+using std::cout;
+using std::cin;
+using std::cerr;
+using std::endl;
+using std::ends;
+using std::flush;
+
+#include <iomanip>
+using std::setprecision;
+using std::setw;
+using std::dec;
+using std::fixed;
+using std::hex;
+
+#include <string>
+using std::string;
+using std::getline;
+
+#include <set>
+using std::set;
+
+#include <new>
+using std::bad_alloc;
+
+#include <fstream>
+using std::ifstream;
+using std::ofstream;
+using std::fstream;
+using std::ios;
+using std::ios_base;
+
+#include <list>
+using std::list;
+
+#include <memory>
+using std::auto_ptr;
+
+#include <map>
+using std::map;
+
+#include <vector>
+using std::vector;
+
+#include <utility>
+using std::multimap;
+using std::pair;
+using std::make_pair;
+using std::swap;
+
+#include <bitset>
+using std::bitset;
+
+#include <algorithm>
+using std::find;
+using std::min;
+using std::max;
+
+#include <sstream>
+using std::stringstream;
+using std::istringstream;
 
 //! implementation of a 64 bit unsigned integer type
 class uintl{
@@ -80,6 +142,5 @@ public:
   //! stream operator
   friend ostream &operator << (ostream &o, const uint128 &b ){return (o<<" [0] "<<b.v(0)<<" [1] "<<b.v(1));}
 };
-
 
 #endif

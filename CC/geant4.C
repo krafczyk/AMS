@@ -414,10 +414,8 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
 
- fset_reg_tracks.clear();
  fmap_det_tracks.clear();
- fset_reg_tracks.insert(1); //primary track
- fmap_det_tracks.insert( std::pair<int, std::pair<int,int> >(1, std::pair<int,int>(0,0)) );
+ fmap_det_tracks.insert( std::pair<int, track_information>(1, track_information(0,0,true)) );
  flast_trkid=flast_resultid=flast_processid=-1;
        G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
        g4_primary_momentum = sqrt(primaryMomentumVector.x() / GeV * primaryMomentumVector.x() / GeV +                                       primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +                                       primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
@@ -566,7 +564,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
     }
-    if(G4FFKEY.MemoryLimit>0 && mall-minit>G4FFKEY.MemoryLimit){
+    if(G4FFKEY.MemoryLimit>0 && long(mall-minit)>G4FFKEY.MemoryLimit){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
       cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<mall<<endl;
@@ -697,20 +695,16 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 
 void AMSG4EventAction::AddRegisteredTrack(int gtrkid)
 {
-  fset_reg_tracks.insert(gtrkid);
+  struct track_information& info = fmap_det_tracks[gtrkid];
+  info.registered = true;
 }
 
 
 void AMSG4EventAction::AddRegisteredParentChild(int gtrkid, int gparentid, int processid)
 {
-  fmap_det_tracks.insert( std::pair<int, std::pair<int,int> >( gtrkid, std::pair<int,int>(gparentid,processid) ) );
-}
-
-bool AMSG4EventAction::IsRegistered(int gtrkid)
-{
-  set<int>::iterator it = find(fset_reg_tracks.begin(), fset_reg_tracks.end(), gtrkid);
-  if( it==fset_reg_tracks.end() ) return false;
-  return true;
+  struct track_information& info = fmap_det_tracks[gtrkid];
+  info.parent = gparentid;
+  info.process = processid;
 }
 
 void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid ){
@@ -722,54 +716,52 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
     return;
   }
 
-  if( IsRegistered( gtrkid ) ) {
-    flast_trkid = gtrkid;
-    flast_resultid = gtrkid;
-    flast_processid = processid;
+  bool err = false;
+  int current_par_id = gtrkid;
+  int current_process_id = processid;
+
+  std::map<int, track_information>::const_iterator end_it = fmap_det_tracks.end();
+  std::map<int, track_information>::const_iterator it = end_it;
+
+  while ( true ) {
+    it = fmap_det_tracks.find( current_par_id );
+    if ( it == end_it ) {
+      err = true;
+      break;
+    }
+    if (it->second.registered) {
+      // no change to input variables but cache result
+      if (current_par_id == gtrkid) {
+        flast_trkid = gtrkid;
+        flast_resultid = gtrkid;
+        flast_processid = processid;
+        return;
+      }
+      // found match
+      break;
+    }
+    current_par_id = it->second.parent;
+    current_process_id = it->second.process;
+  }
+
+  if (err) {
+    static int smax=0;
+    if(smax++<100)cerr<<"AMSG4EventAction::FindClosestRegisteredTrack-E-chain is broken on track: "<<current_par_id<<endl;
     return;
   }
 
-  bool found = false;
-  bool err = false;
-  int par_id = gtrkid;
-  int process_id = 0;
-
-  /*  cout<<"Finding clsest track to: "<< gtrkid<<endl;
-  cout<<"Content of set: ";
-  for( set<int>::iterator it = fset_reg_tracks.begin(); it!=fset_reg_tracks.end(); ++it ) cout<<" "<<*it;
-  cout<<endl;
-
-  cout<<"Content of map: ";
-  for( map<int,int>::iterator itm = fmap_det_tracks.begin(); itm!=fmap_det_tracks.end(); ++itm ) cout<<" ("<<itm->first<<" "<<itm->second<<")";
-  cout<<endl;*/
-
-  while( (!found) && (!err)  ){
-    
-    std::map<int, pair<int,int> >::iterator it = fmap_det_tracks.find( par_id );
-    if( it==fmap_det_tracks.end() ){  
-      err = true;
-
-      //   cout<<"!!!Error, chain is broken on track: "<<par_id<<endl;
-    }
-    par_id = (it->second).first;
-    process_id = (it->second).second;
-
-    if( IsRegistered( par_id ) ) found = true;
-
-    //  cout<<"("<<par_id<<","<<it->second<<")="<<found<<endl;
-  }
-
   // flip sign of parent ID to signify that this parent is indirectly associated
-  par_id = -par_id;
+  int result_par_id = -current_par_id;
+  int result_process_id = current_process_id;
 
   // store results for this input gtrkid for future retrieval
   flast_trkid = gtrkid;
-  flast_resultid = par_id;
-  flast_processid = process_id;
+  flast_resultid = result_par_id;
+  flast_processid = result_process_id;
 
   // store results in input references
-  gtrkid = flast_resultid;
-  process_id = flast_processid;
+  gtrkid = result_par_id;
+  processid = result_process_id;
 }
 
  G4VPhysicalVolume* AMSG4DetectorInterface::Construct(){
@@ -837,7 +829,7 @@ if(!_pv){
   G4PhysicalVolumeStore* phystore = G4PhysicalVolumeStore::GetInstance();
 if(G4FFKEY.OverlapTol &&phystore){
   cout <<" AMSgvolume::MakeG4Volumes-I-Total of "<<phystore->size()<<" volumes found"<<endl;
-  for(int i=0;i<phystore->size();i++){
+  for(unsigned int i=0;i<phystore->size();i++){
     G4VPhysicalVolume*p=(*phystore)[i];
      if(p && p->CheckOverlaps(1000,G4FFKEY.OverlapTol*cm,false)){
        cerr<<"  AMSgvolume::MakeG4Volumes-E-OverlapFoundFor "<<p->GetName()<<endl;
@@ -1068,7 +1060,7 @@ if(!Step)return;
 	for (int i = 0; i < NE;   i++) xsec[i] = 0;
 	nevt = 0;
       }
-      if (evno != AMSEvent::gethead()->getEvent()) {
+      if (evno != int(AMSEvent::gethead()->getEvent())) {
 	  evno  = AMSEvent::gethead()->getEvent();
 	for (int i = 0; i < NE*3; i++) wsum[i] = 0;
 	fpl1 = 0;
@@ -1167,7 +1159,7 @@ if(!Step)return;
       if (material) {
 	G4double slen = Step->GetStepLength();
 	G4double dens = material->GetDensity();
-	for (G4int i = 0; i < material->GetNumberOfElements(); i++) {
+	for (unsigned int i = 0; i < material->GetNumberOfElements(); i++) {
 	  const G4Element *elm = material->GetElement(i);
 	  G4int Z = elm->GetZ();
 	  if (Z < 1 || NZ < Z) continue;
@@ -1257,7 +1249,7 @@ if(!Step)return;
                         pos[i] = pre_pos[i]/cm;
                      }
                      map <int,float>felmap;
-                      for (int i=0; i<material->GetNumberOfElements(); ++i) {
+                      for (unsigned int i=0; i<material->GetNumberOfElements(); ++i) {
                       int Zi = (*material->GetElementVector())[i]->GetZ();
                       float Ni=material->GetVecNbOfAtomsPerVolume()[i];
                       felmap.insert(make_pair(Zi,Ni));
@@ -1521,16 +1513,12 @@ if(!Step)return;
 	  //------------------------------------------------------------
 	  //    TOF: (imply here that Pre or Post volume is sensitive as defined by above check !!!)
 	  //
-	  geant x,y,z;
-	  geant dee,tof,pstep;
-	  geant tdedx;
-	  int numv,iprt;
+	  geant dee,tof;
+	  int numv;
 	  integer tbegtof(0);
 	  integer tendtof(0);
-	  integer intof(0);
 	  if(PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='F')tbegtof=1;
 	  if(PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='F')tendtof=1;
-	  if(tbegtof==1 || tendtof==1)intof=1;
 	  //
 	  //------------------------------------------------------------------
 	  //  TOF simple :
@@ -1538,17 +1526,10 @@ if(!Step)return;
 	  numv=PrePV->GetCopyNo();
 	  dee=GCTRAK.destep;
 	  tof=GCTRAK.tofg;
-	  pstep=GCTRAK.step;
-	  iprt=GCKINE.ipart;
-	  x=GCTRAK.vect[0];
-	  y=GCTRAK.vect[1];
-	  z=GCTRAK.vect[2];
 	  if(tendtof==1 && GCTRAK.inwvol==1){// just enter TFnn
 	    //cout<<"---> Enter TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<" Edep="<<dee<<" numv="<<numv<<" pstep="<<pstep<<endl;  
 	  }
 	  if(tbegtof==1 && GCTRAK.destep>0.){
-	    if(pstep!=0)tdedx=1000*dee/pstep;
-	    else tdedx=0;
 	    number rkb=0.0011;
 	    number c=0.52;
 	    number dedxcm=1000*dee/GCTRAK.step;
@@ -1648,12 +1629,12 @@ if(!Step)return;
 	  //------------------------------------------------------------------
 	  //  ANTI :
 	  //
-	  integer isphys,islog;
+	  integer isphys;
 	  if(PrePV->GetName()(0)== 'A' && PrePV->GetName()(1)=='N' &&
 	     PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='S' && GCTRAK.destep>0.){
 	    dee=GCTRAK.destep;
 	    isphys=PrePV->GetCopyNo();
-	    islog=floor(0.5*(isphys-1))+1;//not used now
+	    // islog=floor(0.5*(isphys-1))+1;//not used now
 	    number rkb=0.0011;
 	    number c=0.52;
 	    number dedxcm=1000*dee/GCTRAK.step;
@@ -1830,11 +1811,11 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
     if(!RICHDB::detcer(e)) return fKill; // Kill discarded Cerenkov photons
   }
   if( !aTrack->GetCurrentStepNumber() ){ //don't fill twice for the same track
-    AMSmceventg::FillMCInfoG4( aTrack );
     AMSG4EventAction* evt_act =(AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
     const G4VProcess* process = aTrack->GetCreatorProcess();
     int process_id = process ? ( (process->GetProcessType() << 24) | (process->GetProcessSubType() & 0xFFFFFF) ) : 0;
     evt_act->AddRegisteredParentChild( aTrack->GetTrackID(), aTrack->GetParentID(), process_id );
+    AMSmceventg::FillMCInfoG4( aTrack );
   }
 
   return fWaiting;

@@ -35,7 +35,7 @@ TMVA::Reader *ecalBDTCHI2readerS_E_v5_EVEN = NULL;  //uses GetCorrectedEnergy(2,
 const unsigned int nPIBCHI2VARs = 44;
 float piBCHI2normvar[nPIBCHI2VARs + 1];
 float piBCHI2inputvar[nPIBCHI2VARs + 1];
-char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
+const char *piBCHI2vaname[nPIBCHI2VARs + 1] = {
 	 "ShowerMean",    "ShowerSigma",   "L2LFrac",       "R3cmFrac",      "S3totx",       "S3toty",
 	 "NEcalHits",     "ShowerFootprintX", "ShowerFootprintY",
 	 "LayerEneFrac0", "LayerEneFrac1", "LayerEneFrac2", "LayerEneFrac3", "LayerEneFrac4", "LayerEneFrac5",
@@ -125,7 +125,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
      {
        if (BCHI2_HISTOS_DECLARE)
 	 {
-	   for (int i=0; i<nPIBCHI2VARs; i++)
+	   for (unsigned int i=0; i<nPIBCHI2VARs; i++)
 	     {
 	       hECALBCHI2[i] = new TH1F(Form("hECALBCHI2_%02d",i),Form("hECALBCHI2_%02d",i),100,-3.,3.);
 	     }
@@ -177,7 +177,6 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
    float LayerSigma[nLAYERs];
    float LayerEneFrac[nLAYERs];
    float LayerS1S3[nLAYERs];
-   float LayerS3Frac[nLAYERs];
 
    float ShowerMean  = 0.;
    float ShowerSigma = 0.;
@@ -219,7 +218,6 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
       LayerSigma[ilayer] = 0.;
 
       LayerS1S3[ilayer]   =  1.;
-      LayerS3Frac[ilayer] =  1.;
 
       for (unsigned int icell = 0; icell < nCELLs; ++icell)
          MapEneDep[ilayer][icell] = 0.;
@@ -362,7 +360,6 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 
       if (LayerEneDep[ilayer] > 0.)
       {
-         LayerS3Frac[ilayer] = S3/LayerEneDep[ilayer];
          LayerMean[ilayer]   = LayerMean[ilayer]/LayerEneDep[ilayer];
       }
       else
@@ -1240,7 +1237,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 	 }
 
        //request 2 consecutive layers with MIP like energy deposit
-       for (unsigned int ilayer = first_lay; ilayer < last_lay; ++ilayer)
+       for (int ilayer = first_lay; ilayer < last_lay; ++ilayer)
 	 {
 	   if (LayerS1S3[ilayer] > 0.995 && LayerS1S3[ilayer+1] > 0.995) return -0.9993;
 	 }
@@ -1832,7 +1829,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
        return -999;
      }
 
-   for (int ivar = 0; ivar < nPIBCHI2VARs; ++ivar)
+   for (unsigned int ivar = 0; ivar < nPIBCHI2VARs; ++ivar)
      {
       if (piBCHI2normvar[ivar] != piBCHI2normvar[ivar])
       {
@@ -1851,7 +1848,7 @@ float EcalShowerR::GetEcalBDTCHI2(AMSEventR *pev, unsigned int iBDTCHI2VERSION, 
 
    if (BCHI2_DEBUG)
    {
-      for (int ivar = 0; ivar < nPIBCHI2VARs + 1; ++ivar)
+      for (unsigned int ivar = 0; ivar < nPIBCHI2VARs + 1; ++ivar)
          std::cout << Form(" ??? ivar:%02d \t %-20s \t input:%f \t norm:%f\n", ivar, piBCHI2vaname[ivar], piBCHI2inputvar[ivar], piBCHI2normvar[ivar]);
       std::cout << flush;
    }

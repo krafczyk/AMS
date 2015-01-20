@@ -128,6 +128,8 @@ class AMSEcalRawEvent: public AMSlink{
     static    AMSID  getTDVcalibMS(){return AMSID("EcalpmcalibMS",AMSJob::gethead()->isRealData());}
     static    AMSID  getTDVvpar(){return AMSID("Ecalvpar",AMSJob::gethead()->isRealData());}
     static    AMSID  getTDVcalibTslo(){return AMSID("EcalTslo",AMSJob::gethead()->isRealData());}
+    static    AMSID  getTDVcalibMipD(){return AMSID("EcalMipD",AMSJob::gethead()->isRealData());}
+    static    AMSID  getTDVcalibLonT(){return AMSID("EcalLonT",AMSJob::gethead()->isRealData());}
  protected:
     void _printEl(ostream &stream){
       stream <<"AMSEcalRawEvent: id="<<dec<<_idsoft<<endl;
@@ -244,7 +246,7 @@ class Ecal1DCluster: public AMSlink{
     Ecal1DCluster * next(){return (Ecal1DCluster*)_next;}
     //
     uinteger getNHits()const{return _NHits;}
-    AMSEcalHit * getphit(uinteger i)const{return i<_NHits?_pHit[i]:0;}
+    AMSEcalHit * getphit(uinteger i)const{return int(i)<_NHits?_pHit[i]:0;}
     integer operator < (AMSlink & o)const{
       Ecal1DCluster *p =dynamic_cast<Ecal1DCluster*>(&o);
       if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
@@ -338,7 +340,7 @@ class AMSEcal2DCluster: public AMSlink{
     number getEnergy()const {return _EnergyC;}
     number getNClustKernel()const {return _NClustKernel;}
     number getNClust()const {return _NClust;}
-    Ecal1DCluster *getpClust(uinteger i)const {return i<_NClust?_pCluster[i]:0;} 
+    Ecal1DCluster *getpClust(uinteger i)const {return int(i)<_NClust?_pCluster[i]:0;} 
     //
     static integer build(int stat=0);
     static integer Out(integer);

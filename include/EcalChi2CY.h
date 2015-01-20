@@ -16,7 +16,6 @@
 #include "TRandom3.h"
 #include "TMinuit.h"
 //#include "TVirtualFitter.h"
-using namespace std;
 
 class EcalPDF{
 public:

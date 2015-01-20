@@ -271,7 +271,7 @@ bool TrdHCalibR::readSpecificTDV(string which,unsigned int t, int debug){
   return false;
 }
 
-bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
+bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,const char* tempdirname){
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
@@ -336,7 +336,7 @@ bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char
   return true;
 }
 
-bool TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
+bool TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,const char * tempdirname){
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
@@ -369,7 +369,7 @@ bool TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int 
   return true;
 }
 
-bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
+bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,const char * tempdirname){
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
@@ -400,7 +400,7 @@ bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsign
 }
 
 // write calibration to TDV
-int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
+int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, const char * tempdirname){
   if( int nchan=FillTDVFromMedian() ){
     cerr<<"TrdHCalibR::writeTDV-W-Number of low occupancy channls "<<nchan<<endl;
   }
@@ -450,7 +450,7 @@ int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, ch
   return true;
 };
 
-int TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
+int TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int bgtime, unsigned int edtime, int debug, const char * tempdirname){
   if( int nchan=FillTDVFromMedian() ){
     cerr<<"TrdHCalibR::writeTDV-W-Number of low occupancy channls"<<nchan<<endl;
     //    return 2;
@@ -950,11 +950,10 @@ TF1 *TrdHCalibR::bgfunc(float x){
   return f;
 }
 
-int TrdHCalibR::bgmap(char *fname){
+int TrdHCalibR::bgmap(const char *fname){
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
-  int ifile=0;
   float x,p0,p1,p2;
 
   double xarr[1000];
@@ -965,7 +964,7 @@ int TrdHCalibR::bgmap(char *fname){
   int n=0,ndf;
 
   while( !feof (file) ){
-    ifile=fscanf(file, "%f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&chi2,&ndf);
+    fscanf(file, "%f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&chi2,&ndf);
     //    printf("%f %f %f %f\n",x,p0,p1,p2);
 
     xarr[n]=x;
@@ -1057,11 +1056,10 @@ TF1 *TrdHCalibR::pathfunc(float x){
   return f;
 }
 
-int TrdHCalibR::pathmap(char *fname){
+int TrdHCalibR::pathmap(const char *fname){
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
-  int ifile=0;
   float x,p0,p1,p2,p3;
 
   double xarr[1000];
@@ -1073,7 +1071,7 @@ int TrdHCalibR::pathmap(char *fname){
   int n=0,ndf;
 
   while( !feof (file) ){
-    ifile=fscanf(file, "%f %f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&p3,&chi2,&ndf);
+    fscanf(file, "%f %f %f %f %f %f %i\n",&x,&p0,&p1,&p2,&p3,&chi2,&ndf);
     //    printf("%f %f %f %f %f\n",x,p0,p1,p2,p3);
 
     xarr[n]=x;
@@ -1215,7 +1213,7 @@ int TrdHCalibR::pathmap(int opt){
   return 0;
 }
 
-int TrdHCalibR::Initialize(AMSEventR* pev,char *databasedir){
+int TrdHCalibR::Initialize(AMSEventR* pev,const char *databasedir){
   if(lastrun!=pev->Run()){
     int bgntime=pev->Run();
     int endtime=pev->Run()+10;

@@ -1,0 +1,19 @@
+cp -rdpu $AMSWD/exe/linuxx8664icc5.34/gbatch-orbitPG.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.1.$1.64
+cp -rdpu $AMSWD/exe/linuxx8664icc5.34/gbatch-orbitPG.exe.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.1.$1.64.lxplus6
+
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.0.$1.64.lxplus6 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.0.$1.lxplus6 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.1.$1.lxplus6 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.0.$1.64 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.0.$1 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.1.$1 
+
+
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.0.$1.64.lxplus6 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.1.$1.64.lxplus6 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.0.$1.lxplus6 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64.lxplus6 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.1.$1.lxplus6 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.0.$1.64 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.1.$1.64 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.0.$1 
+ln -sf gbatch-orbit.exe.v5.00.1.$1.64 $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.01.1.$1 

@@ -318,7 +318,7 @@ class TofTDVTool{
    int   TDVSize;
    int   TDVParN;
    T1*   TDVBlock;//
-   char *TDVName;
+   const char *TDVName;
    bool  Isload;//has load or not
    int   BRun;//begin run id
    int   ERun;//end   run id
@@ -472,7 +472,7 @@ class TofPMDAlignPar: public TofTDVTool<float>{// PMT Dynode Gain Align
 class TofCAlignPar: public TofTDVTool<float>{
   public:
      static const int nansat=3;// Anode Saturation Par Number
-     static const float ProEdep=1.67;//Proton Edep Norm to 1.67MeV
+     static const float ProEdep;//Proton Edep Norm to 1.67MeV
      static const int   RecMinPmD=2; //Min Dynode PM Requirement
      std::map<int, float>dycor; //id LBSP DynodeQ=dycor*Z^2/(1+birk*Z^2);
      std::map<int, float>birk[2];  //id LB00 Birk Const
@@ -544,7 +544,7 @@ class  TofPDFPar:public TofTDVTool<float>{
       static const int   PDFCh[nPDFCh];
       static const int   nPDFVel=6;
       static const int   nPDFPar=7;
-      static const float ProbLimit=1e-4;//Not Possible Case
+      static const float ProbLimit;//Not Possible Case
       static const int   ZHLim=150;//Limit of High Z
       static const float DAgate[TOFCSN::SCLRS][TOFCSN::SCMXBR];//Dynode+Anode Switch Gate
 //---
@@ -570,36 +570,36 @@ class  TofPDFPar:public TofTDVTool<float>{
 //==========================================================
 class TofRecPar: public TofTDVTool<float>{
   public:
-     static const  double Tdcbin=0.0244141;
+     static const  double Tdcbin;
      static const  float FTgate[2];//LT HT relate FTtime age-window(ns) //(FT-LT)ns [80, 200] 
      static const  float FTgate2[2];//Tight cut windows  if no HT SHT
      static const  float LHgate[2]; //LT relate HT MPV //(LT-HT)ns [3, 12]    
-     static const  float LHMPV=4.5;  //(LT-HT-MPV) pair window ns
+     static const  float LHMPV;  //(LT-HT-MPV) pair window ns
      static const  int   PUXMXCH=3700; //MAX. value of PUX-chip//an(dy)adc chan
      static const  int   MaxCharge=6;     
      static const  int   BetaHLMatch=0;//require Longitude match or not
      static const  float BetaHReg[2];//Seach Region of TMatch LMatch(N Sigma)
      static const  int   BetaHMinL[2];//Min X+Y Match Layer//U+D Match Layer
-     static const  float Dynodegate=5;//Dynode ADC should >5
+     static const  float Dynodegate;//Dynode ADC should >5
      static const  float AttLenLimit;//Attenuation Correction Limit Length
      static const  float TkLSMatch;//Tracker Trans Coo Match
      static const  float TkLSMatch2;//Tracker Trans Coo Match(Loose)
      static const  float TRDLSMatch2;//TRD Trans Coo Match(Loose)
 //---BetaH Self Recontruction Par
-     static const  float PairQDA=6;//Pair Energy Match Using Anode when Q<6
-     static const  float PairQgate=0.8;//Pair Min Energy Q 
-     static const  float PairQRgate=1.8;//Q1/Q0<1.8
-     static const  float PairLSMatch=9.;//Longitude+Tran Coo 9.cm Match windows 
-     static const  float PairTMatch=0.5;//Time Match <0.5ns (3*0.16ns)
-     static const  float TFEcalAMatch=10.;//TOF EcalShow Max Match Angle(6 deg)
-     static const  float DPairChi2TCut=100;//ChisT Cut
-     static const  float DPairChi2CCut=200;//ChisC Cut
-     static const  float NonTkBetaCutL=0.3;//beta low
-     static const  float NonTkBetaCutU=1.5;//beta ligh
-     static const  float NonTkBetaCutL2=0.36;//3TOF beta low
-     static const  float NonTkBetaCutU2=1.2;//3TOF beta ligh
-     static const  float DPairChi2TCut2=10;//3TOF ChisT Cut
-     static const  float DPairChi2CCut2=10;//3TOF ChisC Cut
+     static const  float PairQDA;//Pair Energy Match Using Anode when Q<6
+     static const  float PairQgate;//Pair Min Energy Q
+     static const  float PairQRgate;//Q1/Q0<1.8
+     static const  float PairLSMatch;//Longitude+Tran Coo 9.cm Match windows
+     static const  float PairTMatch;//Time Match <0.5ns (3*0.16ns)
+     static const  float TFEcalAMatch;//TOF EcalShow Max Match Angle(6 deg)
+     static const  float DPairChi2TCut;//ChisT Cut
+     static const  float DPairChi2CCut;//ChisC Cut
+     static const  float NonTkBetaCutL;//beta low
+     static const  float NonTkBetaCutU;//beta ligh
+     static const  float NonTkBetaCutL2;//3TOF beta low
+     static const  float NonTkBetaCutU2;//3TOF beta ligh
+     static const  float DPairChi2TCut2;//3TOF ChisT Cut
+     static const  float DPairChi2CCut2;//3TOF ChisC Cut
 //---
      static float TimeSigma[MaxCharge];
      static float CooSigma[MaxCharge][TOFCSN::SCLRS][TOFCSN::SCMXBR];

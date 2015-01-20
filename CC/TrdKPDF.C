@@ -1750,7 +1750,7 @@ void TrdKPDF::GetPar_Nuclei(Double_t Charge, Double_t Pmom, Double_t Length, Int
 Double_t TrdKPDF::GetLikelihoodDR(Double_t DAmpL,Double_t Charge,Double_t Rigidity)
 {
     double PDFValue,PDFNormalization;
-    double Par1c,Par2c,Par3c,Par4c=0,Par5c,Par6c,Par7c;
+    double Par1c=0,Par2c=0,Par3c=0,Par4c=0,Par5c=0,Par6c=0,Par7c=0;
 
     if(Charge<0) Charge=-Charge;
     if(Rigidity<0) Rigidity=-Rigidity;

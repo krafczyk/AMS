@@ -11,7 +11,7 @@ EcalPDF::EcalPDF(const char* fdatabase){
         init(fdatabase);
 }
 EcalPDF::EcalPDF(){
-    char* amsdatadir=getenv("AMSDataDir");
+    const char* amsdatadir=getenv("AMSDataDir");
     string tempname ;
     if(!amsdatadir)
         amsdatadir="/afs/cern.ch/ams/Offline/AMSDataDir/";
@@ -331,7 +331,7 @@ int EcalPDF::init(const char* fdatabase){
     return has_init;
 }
 EcalPDF::~EcalPDF(){
-   for(int i1=0;i1<pdf_names.size();i1++)
+   for(unsigned int i1=0;i1<pdf_names.size();i1++)
        gDirectory->Delete(pdf_names[i1].c_str());
    cout<<"EcalPDF::~EcalPDF-I-deconstruction function!"<<endl;
    //exit(0);
@@ -343,7 +343,7 @@ float EcalPDF::get_mean(int flayer,float coo,float Erg,int type){
     }
     if(flayer<0||flayer>17)
         return -1;
-    float ret,ret0,ret1 ;
+	float ret=0,ret0=0,ret1=0;
     int binx0,binx1     ;
     float x,x0,x1       ;
     float param_lf[6]   ;
@@ -390,7 +390,7 @@ float EcalPDF::get_rms (int flayer,float coo,float Erg,int type){
         cerr<<"EcalPDF::get_rms-E-EcalPDF has not been loaded!"<<endl;
         return -1;
     }
-    float ret,ret0,ret1 ;
+    float ret=0,ret0=0,ret1=0;
     int binx0,binx1     ;
     float x,x0,x1       ;
     float param_lf[6]   ;
@@ -439,7 +439,7 @@ float EcalPDF::get_prob(int flayer,float coo,float Erg,int type){
     }
     if(flayer<0||flayer>17)
         return -1;
-    float ret,ret0,ret1 ;
+    float ret=0,ret0=0,ret1=0;
     int binx0,binx1     ;
     float x,x0,x1       ;
     float param_lf[3]   ;
@@ -601,7 +601,7 @@ double EcalPDF::myfunc_lf(float x,float* par,int type){
     return ret;
 }
 float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
-    float ret;
+    float ret=0;
     if(algorithm!=2){
         cout<<"EcalPDF::normalize_chi2-W-Currently only normalization of chi2 from lateral fit is provided!"<<endl;
         return _chi2;
@@ -624,7 +624,7 @@ float EcalPDF::normalize_chi2(float _chi2, float _EnergyE,int algorithm){
 }
 
 float EcalPDF::normalize_f2edep(float _f2edep, float _EnergyE){
-    float ret;
+    float ret=0;
     if(_EnergyE<=15)
         _EnergyE=15.01	;
     if(Version==1&&_EnergyE>=200.)
@@ -717,7 +717,7 @@ double EcalPDF::nns(TH2D* hsig,TH2D* hbkg,double range,double x,double y,double 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int EcalChi2::Version=2         ;
 EcalChi2::EcalChi2(int ftype){
-    char* amsdatadir=getenv("AMSDataDir");
+    const char* amsdatadir=getenv("AMSDataDir");
     string tempname;
     if(!amsdatadir)
         amsdatadir="/afs/cern.ch/ams/Offline/AMSDataDir/";
@@ -946,8 +946,9 @@ float  EcalChi2::process(AMSEventR* ev, TrTrackR* trtrack, int iTrTrackPar){
             nmax =i1                          ;
         }
     }
-    _erg=ev->pEcalShower(nmax)->EnergyD/1000.;
-    for(int i1=0;i1<ev->NEcalHit();i1++){
+    if(nmax>=0)_erg=ev->pEcalShower(nmax)->EnergyD/1000.;
+    else _erg=0;
+    for(unsigned int i1=0;i1<ev->NEcalHit();i1++){
         Edep_raw[ev->pEcalHit(i1)->Plane*72+ev->pEcalHit(i1)->Cell]=ev->pEcalHit(i1)->Edep;
     }
 
@@ -1314,7 +1315,7 @@ int EcalAxis::algorithmHasCalculated=0	  ;
 float EcalAxis::d0Cached[5][3]		  ;
 float EcalAxis::p0Cached[5][3]		  ;
 EcalAxis::EcalAxis(int ftype){
-    char* amsdatadir=getenv("AMSDataDir");
+    const char* amsdatadir=getenv("AMSDataDir");
     string tempname;
     if(!amsdatadir)
         amsdatadir="/afs/cern.ch/ams/Offline/AMSDataDir/";
@@ -1595,8 +1596,14 @@ void EcalAxis::get_z(){
 }
 int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
 #ifdef _PGTRACK_ 
-    float fedep[1296];
-    int   fcell[1296], fplane[1296],nEcalHits,ret;
+    int nEcalHits=ev->nEcalHit() ;
+    if(nEcalHits<0)nEcalHits=0;
+    else if(nEcalHits>2000){
+      cerr<<"EcalAxis::process-E-TooManyHitsTruncatedTo2000 "<<nEcalHits<<endl;
+      nEcalHits=2000;
+    }
+    float fedep[nEcalHits+1];
+    int   fcell[nEcalHits+1], fplane[nEcalHits+1],ret;
     float EnergyD, _EnergyE, sign;
     nEcalHits=ev->nEcalHit()     ;
     for(int i1=0;i1<nEcalHits;i1++){
@@ -1614,6 +1621,7 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
             nmax =i1                          ;
         }
     }
+    if(nmax<0)return -1;
     _EnergyE=ev->pEcalShower(nmax)->EnergyE;
     EnergyD =ev->pEcalShower(nmax)->EnergyD;
     if(Version==3){
@@ -1639,7 +1647,7 @@ int   EcalAxis::process(AMSEventR* ev, int algorithm, TrTrackR* trtrack){
     else
         sign=-1;
     //cout<<run<<"<->"<<ev->Run()<<", "<<event<<"<->"<<ev->Event()<<", "<<algorithmHasCalculated<<"<->"<<algorithm<<endl;
-    if(run==ev->Run()&&event==ev->Event()&&(algorithmHasCalculated&algorithm)==algorithm){
+    if(run==int(ev->Run())&&event==int(ev->Event())&&(algorithmHasCalculated&algorithm)==algorithm){
 	//cout<<"algo "<<algorithm<<" has been calculated!"<<endl;
 	for(int i1=0;i1<5;i1++){
 		int a=(1<<i1);
@@ -1783,10 +1791,21 @@ bool EcalAxis::init_cr2(){
 int EcalAxis::process(EcalShowerR* esh,int algorithm,float sign){
     if(!esh)
 	return -1;
-    float fedep[1296];
-    int   fcell[1296], fplane[1296],nEcalHits,ret;
+int nh=0;
+  for(int i1=0;i1<esh->NEcal2DCluster();i1++){
+        Ecal2DClusterR * ecal2d=esh->pEcal2DCluster(i1);
+        for(int i2=0;i2<ecal2d->NEcalCluster();i2++){
+            EcalClusterR* ecalclt=ecal2d->pEcalCluster(i2);
+            for(int i3=0;i3<ecalclt->NEcalHit();i3++){
+                nh++;
+            }
+        }
+    }
+
+    float fedep[nh+1];
+    int   fcell[nh+1], fplane[nh+1],ret;
     float EnergyD, _EnergyE;
-    nEcalHits=0;
+    int nEcalHits=0;
     for(int i1=0;i1<esh->NEcal2DCluster();i1++){
         Ecal2DClusterR * ecal2d=esh->pEcal2DCluster(i1);
         for(int i2=0;i2<ecal2d->NEcalCluster();i2++){

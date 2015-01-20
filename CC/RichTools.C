@@ -7,8 +7,6 @@
 #undef _DEBUG_
 #define ASSERT(x) 
 
-using namespace std;
-
 ClassImp(GeomHash);
 
 using namespace GeomHashConstants;
@@ -65,10 +63,10 @@ int GeomHash::hash(float *point){
 
 void GeomHash::push(float value,float *x){
   // Set the minimum capacity
-  if(samples.capacity()<1024*dimension) samples.reserve(1024*dimension);
+  if(int(samples.capacity())<1024*dimension) samples.reserve(1024*dimension);
 
   // Store the point
-  for(int i=0;i<dimension;i++)  samples.push_back(x[i]);
+  for(int i=0;i<int(dimension);i++)  samples.push_back(x[i]);
 
   values.push_back(value);
 }
@@ -310,14 +308,11 @@ void GeomHash::grow_internal(int *pointers,int size,int *scratch,int parent){
   double maxValue=-INFINITY;
 
   // DEBUG
-  int minP=-1;
-  int maxP=-1;
-
   for(int index=0;index<size;index++){
     int element=pointers[index];
     float x=samples[offset(element)+direction];
-    if(x<minValue) {minValue=x;minP=index;}
-    if(x>maxValue) {maxValue=x;maxP=index;}
+    if(x<minValue) minValue=x;
+    if(x>maxValue) maxValue=x;
   }
 
 
@@ -382,6 +377,9 @@ void GeomHash::grow_internal(int *pointers,int size,int *scratch,int parent){
     double rms1=(totalMean2-acc2)/n1-(totalMean-acc)/n1*(totalMean-acc)/n1; 
     double value=n0*rms0+n1*rms1-n01*rms01;
     
+    // Currently this is disabled on purpose by adding a negative sign into the first comparison
+    // The reason for this is to avoid too unbalanced trees which give rise to problems
+    // Somehow this has to be corrected in some moment
     if(value<-0.05*n01*rms01 && n0>0.5*minSize && n1>0.5*minSize)  // Large enough correction and enough entries on it
       if(value<bestValue){
 	bestValue=value;
@@ -453,7 +451,7 @@ void GeomHashEnsemble::growOne(int minSize,bool bootstrap){
     hash.values=values;
   }else{
     checkBuffers();
-    for(int i=0;i<values.size();i++){
+    for(unsigned int i=0;i<values.size();i++){
       int pointer=int(values.size()*(rand() / (RAND_MAX + 1.0)));
       for(int j=0;j<dimension;j++) buffer[0][j]=samples[offset(pointer)+j];
       hash.push(values[pointer],buffer[0]);
@@ -474,7 +472,7 @@ void GeomHashEnsemble::Eval(float *x){
   PeakWidthRms=0;
   Hashes=0;
   
-  for(int i=0;i<hashes.size();i++){
+  for(unsigned int i=0;i<hashes.size();i++){
     Hashes++;
     GeomHash &hash=hashes[i];
     int h=hash.hash(x);

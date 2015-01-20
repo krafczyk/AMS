@@ -2,11 +2,13 @@
 //
 //
 // 
+#include "G4Version.hh"
 #include "g4physics_ion.h"
 #include "G4EmExtraPhysics.hh"
 #include "G4NeutronTrackingCut.hh"
+#if G4VERSION_NUMBER < 1000 
 #include "G4QStoppingPhysics.hh"
-
+#endif
 #include "g4physics.h"
 #include "g4xray.h"
 #include "g4strangelet.h"
@@ -28,6 +30,7 @@
 #include "G4CrossSectionElastic.hh"
 #if G4VERSION_NUMBER  > 945
 #include "G4ComponentGGNuclNuclXsc.hh"
+#include "G4UAtomicDeexcitation.hh"
 #endif
 #include "G4IonTable.hh"
 #include "G4ShortLivedConstructor.hh"
@@ -39,11 +42,15 @@
 #include "G4FastSimulationManagerProcess.hh"
 #include "G4EmStandardPhysics.hh"
 #include "G4GammaXTRadiator.hh"
+#if G4VERSION_NUMBER < 1000
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSP_BERT.hh"
 #include "HadronPhysicsQGSC_CHIPS.hh"
+#include "HadronPhysicsQGSP_BIC.hh"
+#else
+#include "G4HadronPhysicsQGSP_BIC.hh"
+#endif
 #include "G4IonPhysics.hh"
-#include "G4Version.hh"
 #if G4VERSION_NUMBER  > 899 
 #include "G4EmProcessOptions.hh"
 #include "G4eMultipleScattering.hh"
@@ -132,14 +139,19 @@ void AMSG4Physics::ConstructProcess()
     }
     if(GCPHYS.IHADR)ConstructHad();
   }
-  else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2){
+  else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2 || G4FFKEY.PhysicsListUsed==3){
     
     if(GCPHYS.ILOSS){
       ConstructEM2();
     }
     if(GCPHYS.IHADR){
+#if G4VERSION_NUMBER < 1000 
 
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
+#else
+      G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics();
+
+#endif
       hadronelastic->ConstructProcess();
 
 //    add elastice scattering to ions
@@ -147,8 +159,22 @@ void AMSG4Physics::ConstructProcess()
   G4HadronElastic* lhep3 = 0;
   if((G4FFKEY.IonPhysicsModel/1000)%10==2)lhep3=new G4HadronElastic(G4String("ionelasticVC"));
   else lhep3=new G4HadronElastic();
+  G4ComponentGGNuclNuclXsc*pgg=  new G4ComponentGGNuclNuclXsc();
+#if G4VERSION_NUMBER  <1000
+     pgg->setScale(G4FFKEY.HCrossSectionBias[1]);
+     if(G4FFKEY.HCrossSectionBias[1]!=1){
+       cout<<"AMSG4Physics::ConstructProcess-I-HadronElasticCrossectionBias "<<G4FFKEY.HCrossSectionBias[1]<<endl;
+     }
+#else
+     if(G4FFKEY.HCrossSectionBias[1]!=1){
+       cerr<<"AMSG4Physics::ConstructProcess-F-CrossectionBiasNotSupportedinThis geantversion"<<endl;
+       abort;
+}
+#endif
+    
+
   G4CrossSectionElastic* nucxs = 
-    new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
+    new G4CrossSectionElastic(pgg);
   theParticleIterator->reset();
   while( (*theParticleIterator)() )
   {
@@ -159,6 +185,7 @@ void AMSG4Physics::ConstructProcess()
        pname == "GenericIon"    || 
        pname == "alpha"     ||
        pname == "deuteron"  ||
+       pname == "anti_deuteron"  ||
        pname == "triton"    ||
        pname == "He3"       )) {
 
@@ -174,23 +201,62 @@ void AMSG4Physics::ConstructProcess()
 
 
     if(G4FFKEY.PhysicsListUsed==1){
-      cout<<"QGSP Physics List will be used. "<<endl;
+#if G4VERSION_NUMBER < 1000
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+      cout<<"QGSP Physics List will be used. "<<endl;
+#else
+      cout<<"QGSP Physics_BIC List will be used. "<<endl;
+     G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
+#endif
       if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
-      if(G4FFKEY.HCrossSectionBias!=1){
-      cout<<"HadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias<<endl;
-       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias);
+      if(G4FFKEY.HCrossSectionBias[0]!=1){
+      cout<<"InelasticHadronicCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
+#if G4VERSION_NUMBER < 1000
+       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
+#else
+       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
+
+#endif
       }
     }
-    if(G4FFKEY.PhysicsListUsed==2){
-      cout<<"QGSC Physics List will be used. "<<endl;
-      HadronPhysicsQGSC_CHIPS* pqgsp=new HadronPhysicsQGSC_CHIPS();  // default in geant4.9.6 
+
+    if(G4FFKEY.PhysicsListUsed==3){
+      cout<<"QGSP_BIC Physics List will be used. "<<endl;
+#if G4VERSION_NUMBER < 1000
+      HadronPhysicsQGSP_BIC* pqgsp=new HadronPhysicsQGSP_BIC();
+#else
+     G4HadronPhysicsQGSP_BIC* pqgsp=new G4HadronPhysicsQGSP_BIC();
+#endif
       if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+      if(G4FFKEY.HCrossSectionBias[0]!=1){
+      cout<<"HadronicInElasticCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
+#if G4VERSION_NUMBER < 1000
+       pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
+#else
+       pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
+
+#endif
+      }
+    }
+
+
+
+    if(G4FFKEY.PhysicsListUsed==2){
+#if G4VERSION_NUMBER < 1000
+       cout<<"QGSC Physics List will be used. "<<endl;       
+      HadronPhysicsQGSC_CHIPS* pqgsp=new HadronPhysicsQGSC_CHIPS();   
+      if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+#else
+            cerr<<"AMSG4Physics::ConstructProcess-F-QGSC Physics List Not Supported in geant4.10++ "<<endl;
+             abort();
+#endif
     }
    
 //--Qi Yan
+#if G4VERSION_NUMBER < 1000
       G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
       hardonstop->ConstructProcess();
+#endif
       if(G4FFKEY.IonPhysicsModel%10==1||G4FFKEY.IonPhysicsModel%10==2){
         cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
         AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
@@ -482,6 +548,9 @@ void AMSG4Physics::ConstructEM()
 #include "G4KaonMinusInelasticProcess.hh"
 #include "G4ProtonInelasticProcess.hh"
 #include "G4AntiProtonInelasticProcess.hh"
+#if G4VERSION_NUMBER > 999 
+#include "G4AntiDeuteronInelasticProcess.hh"
+#endif
 #include "G4NeutronInelasticProcess.hh"
 #include "G4AntiNeutronInelasticProcess.hh"
 #include "G4LambdaInelasticProcess.hh"
@@ -501,7 +570,7 @@ void AMSG4Physics::ConstructEM()
 #include "G4AntiOmegaMinusInelasticProcess.hh"
 
 // Low-energy Models
-
+#if G4VERSION_NUMBER < 1000
 #include "G4LElastic.hh"
 
 #include "G4LEPionPlusInelastic.hh"
@@ -566,7 +635,7 @@ void AMSG4Physics::ConstructEM()
 #else
 #include "G4KaonMinusAbsorptionAtRest.hh"
 #endif
-
+#endif
 //
 // ConstructHad()
 //
@@ -975,7 +1044,7 @@ void AMSG4Physics::ConstructXRay()
 #if G4VERSION_NUMBER  < 945 
 
   G4cout << " Construction TR Processes "<<endl;
-  G4XRayTRDP*   pd = new G4XRayTRDP("XRayDiscrete");
+  // G4XRayTRDP*   pd = new G4XRayTRDP("XRayDiscrete");
   G4XRayTRCP*   pc = new G4XRayTRCP("XRayCont");
 
   theParticleIterator->reset();
@@ -1213,8 +1282,7 @@ void AMSG4Physics::_init(){
   geant *g3mass = new geant[g3part];
   geant *g3charge = new geant[g3part];
   G4ParticleDefinition** g3tog4p= new G4ParticleDefinition*[g3part];
-  for (unsigned int i = 0; i < g3part; ++i)
-    g3tog4p[i] = 0;
+  for (int i = 0; i < g3part; ++i) g3tog4p[i] = 0;
   g3part=0;
   for(ipart=0;ipart<1000;ipart++){
     char chp[22]="";
@@ -1287,8 +1355,15 @@ void AMSG4Physics::_init(){
       G4int Q=g3charge[ipart];
       if(Q<0){
 	//         cout <<"  starting anti "<<endl;
+#if G4VERSION_NUMBER 	>999
+        continue;
+#endif
       }
-	  ((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+#if G4VERSION_NUMBER    >999
+	  ((G4IonTable *)pIonT)->GetIon(Z,A);
+#else
+((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+#endif
       double fdelta=1000000;
       G4ParticleDefinition* cand=0;
       theParticleIterator->reset();
@@ -1312,7 +1387,7 @@ void AMSG4Physics::_init(){
   }
 
 
-
+#if G4VERSION_NUMBER < 1000 
 G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCharge);
 
 
@@ -1327,7 +1402,7 @@ G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCh
  }  
 
 
-
+#endif
 
   //  NowBuildTable
   _Ng3tog4=0;
@@ -1697,6 +1772,7 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "anti_xi_c+" ||
                particleName == "anti_xi-" ||
                particleName == "deuteron" ||
+               particleName == "anti_deuteron" ||
                particleName == "kaon+" ||
                particleName == "kaon-" ||
                particleName == "lambda_c+" ||
@@ -1773,6 +1849,14 @@ void AMSG4Physics::ConstructEM2( void ){
 						       trdSimUtil.GetTrdGasThickness(),
 						       (G4int)trdSimUtil.GetTrdFoilNumber(),
 						       "GammaXTRadiator" );
+
+  G4VAtomDeexcitation* deexcitation = new G4UAtomicDeexcitation();
+  G4LossTableManager::Instance()->SetAtomDeexcitation(deexcitation);
+  deexcitation->SetDeexcitationActiveRegion("TrdGasRegion", true, false, false);
+  deexcitation->SetFluo(false);
+  deexcitation->SetAuger(false);
+  deexcitation->SetPIXE(false);
+
 #endif
 
   if( !processXTR ){
@@ -1886,6 +1970,7 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "anti_xi_c+" ||
                particleName == "anti_xi-" ||
                particleName == "deuteron" ||
+               particleName == "anti_deuteron" ||
                particleName == "kaon+" ||
                particleName == "kaon-" ||
                particleName == "lambda_c+" ||
@@ -1967,7 +2052,9 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
   ion->SetAntiPDGEncoding(0);
   AddProcessManager(ion);
   G4ProcessManager* ionMan=ion->GetProcessManager();
+if(ionMan){
   G4ProcessVector* plist=ionMan->GetProcessList() ;
+if(plist){
   for(int k=ionMan->GetProcessListLength()-1;k>=0;k--){
    G4VProcess *process= (*plist)[k];
 //   cout<<process->GetProcessName()<< " "<<process->GetProcessType()<<endl;
@@ -1976,7 +2063,8 @@ if(!G4ParticleTable::GetParticleTable()->FindParticle(name.c_str())){
      ionMan->RemoveProcess(process);
   }
 }
-
+}
+}
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess("strangeleteInelastic", ion);
   ionMan->AddDiscreteProcess(hadi);
   hadi->AddDataSet(new StrCS());
@@ -2047,6 +2135,7 @@ void AMSG4Physics::SaveXS(int ipart){
               for(G4int j=0; j<processVector->size(); j++){
                 bool inelok=false;
                  if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="ProtonInelastic" ;
+                 else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="AntiProtonInelastic" ;
                  else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="alphaInelastic"  ;
                  else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="He3Inelastic"    ;
                  else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="tInelastic"    ;
@@ -2063,7 +2152,7 @@ void AMSG4Physics::SaveXS(int ipart){
 #if G4VERSION_NUMBER  > 945 
                     G4Material mat("mymat",1,1);
                     mat.AddElement(element,1);
-                    xs = hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+                    xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
 #else
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
 #endif
@@ -2104,6 +2193,7 @@ void AMSG4Physics::SaveXS(int ipart){
               for(G4int j=0; j<processVector->size(); j++){
                 bool inelok=false;
                  if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="protonelastic" ;
+                 else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="antielastic" ;
                  else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"  ;
                  else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"    ;
                  else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="ionelastic"    ;
@@ -2120,7 +2210,7 @@ void AMSG4Physics::SaveXS(int ipart){
 #if G4VERSION_NUMBER  > 945 
                     G4Material mat("mymat",1,1);
                     mat.AddElement(element,1);
-                    xs = hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+                    xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
 #else
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
 #endif

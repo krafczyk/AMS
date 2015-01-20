@@ -32,6 +32,10 @@
 #include <omp.h>
 #endif
 
+#ifdef __G4AMS__
+ #include "G4PhysicalConstants.hh"
+ #include "G4SystemOfUnits.hh"
+#endif
 
 class TRMFFKEY_DEF{
  public:
@@ -449,6 +453,8 @@ class ECREFFKEY_DEF {
   float Tref; // Reference temperature at which ADC2MeV is calculated (4/6/13: 10deg)
   float Ttb; //Test Beam reference temperature (4/6/13: 23deg)
   float Tgsl; // Global temperature slope to correct Tref->Ttb (4/6/13: 0.25 %/deg) 
+  float mipTB; // ADC value used to equalize mips at Test Beam
+  float mipTB2ISS;  // Factor to convert TB mip (400 GeV protons) to ISS mip (E>10 GeV)
 };
 #define ECREFFKEY COMMON_BLOCK(ECREFFKEY,ecreffkey)
 COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
@@ -1171,7 +1177,7 @@ class G4FFKEY_DEF{
   float OverlapTol;
   // 
   int DumpCrossSections;
-  float HCrossSectionBias;
+  float HCrossSectionBias[3];
 
   int DumpCrossSectionsAt;
   int DumpCrossSectionsZt;

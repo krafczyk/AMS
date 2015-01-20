@@ -146,7 +146,7 @@ void AMSECIds::inittable(){
 //
  int16u crat,edr,rdch,slay,conn,cpmt,epmt,hpix,spix;
  int16u gnfl,face,half;
- int16 eibid,fdir,fhal;
+ int16 eibid,fhal;
  integer swid,hwid;
 //
  int16u hwch(0),swch(0);
@@ -159,8 +159,6 @@ void AMSECIds::inittable(){
 //       cout<<"       rdch="<<rdch<<endl;
        conn=2-(rdch/9)%3;//EDR->EIB connector#(2-0)
        eibid=_eibid[crat][edr][conn];//FHL(face|half|lay)
-       fdir=1;
-       if(eibid<0)fdir=-1;//pm_readout direction for given face (+1/-1 -> along/oppos X(Y))
        eibid=abs(eibid);
 //       cout<<"         conn/eibid/fdir="<<conn<<" "<<eibid<<" "<<fdir<<endl;
        face=eibid/100;//face#(1-4 => A-D)

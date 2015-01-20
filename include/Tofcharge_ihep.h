@@ -224,14 +224,12 @@ public:
   int  ReFit(float fbeta=0,int opt=TofChargeHR::DefaultQOpt,float frig=0);
 /**@}*/
 
-  void _PrepareOutput(int opt=0){
-    sout.clear();
-    sout.append("TofChargeHR Info");
+  std::string _PrepareOutput(int opt=0){
+	return "TofChargeHR Info";
   };
 
   void Print(int opt=0){
-   _PrepareOutput();
-   cout<<sout<<endl;
+   cout << _PrepareOutput() << endl;
   }
 
   const char * Info(int number=-1){
@@ -240,8 +238,7 @@ public:
   }
 
   std::ostream& putout(std::ostream &ostr = std::cout){
-    _PrepareOutput(1);
-    return ostr << sout  << std::endl;
+    return ostr << _PrepareOutput(1) << std::endl;
   };
 
 //----

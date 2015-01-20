@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.19 2014/01/04 16:00:13 pzuccon Exp $
+// $Id$
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2014/01/04 16:00:13 $
+///$Date$
 ///
-///$Revision: 1.19 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -92,6 +92,7 @@ int MagField::Read(const char *fname)
   if(na[0]/10000){ na[0]=na[0]%10000; type=1;printf(" 1st Octant ");}
   else printf(" Full ");
   printf(" and Size %d %d %d\n",na[0],na[1],na[2]);
+  if (mm) delete mm;
   mm= new magserv(na[0],na[1],na[2],type);
 
   return   mm->Read(fname,_header_size);
@@ -220,10 +221,10 @@ void MagField::Print(){
       for (int iz=0;iz<mm->nz();iz++)
 	
 	printf(" %2d %2d %2d X: %+6.1f Y: %+6.1f Z: %+6.1f BX: %+f BY: %+f BZ: %+f BdX0: %+f BdY0: %+f BdZ0: %+f BdX1: %+f BdY1: %+f BdZ1: %+f  \n",
-	       ix,iy,iz,mm->_x(ix),mm->_y(iy),mm->_z(iz),mm->_bx(iz,iy,ix),mm->_by(iz,iy,ix),mm->_bz(iz,iy,ix),
-	       mm->_bdx(0,iz,iy,ix),mm->_bdy(0,iz,iy,ix),mm->_bdz(0,iz,iy,ix),
-	       mm->_bdx(1,iz,iy,ix),mm->_bdy(1,iz,iy,ix),mm->_bdz(1,iz,iy,ix));
-  //	       mm->_bxc(iz,iy,ix),mm->_byc(iz,iy,ix),mm->_bzc(iz,iy,ix));
+	       ix,iy,iz,mm->_x(ix),mm->_y(iy),mm->_z(iz),mm->_bx(ix,iy,iz),mm->_by(ix,iy,iz),mm->_bz(ix,iy,iz),
+	       mm->_bdx(0,ix,iy,iz),mm->_bdy(0,ix,iy,iz),mm->_bdz(0,ix,iy,iz),
+	       mm->_bdx(1,ix,iy,iz),mm->_bdy(1,ix,iy,iz),mm->_bdz(1,ix,iy,iz));
+  //	       mm->_bxc(ix,iy,iz),mm->_byc(ix,iy,iz),mm->_bzc(ix,iy,iz));
 }
 
 
@@ -398,8 +399,8 @@ void uctoh (char* MS,int* MT,int npw, int NCHP){
   
 
 
-  int  MASK[3]  ={0xFF000000, 0xFFFF0000, 0xFFFFFF00};
-  int  IBLANK[3]={0x00202020,0x00002020,0x00000020};
+  unsigned int  MASK[3]  ={0xFF000000, 0xFFFF0000, 0xFFFFFF00};
+  unsigned int  IBLANK[3]={0x00202020,0x00002020,0x00000020};
   
   int NCH = NCHP;
   if   (!NCH) return;

@@ -32,7 +32,6 @@
 
 
 
-using namespace std;
 
 
 //#include <TRDDBClass_ROOT.h>

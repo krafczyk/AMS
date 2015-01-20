@@ -215,7 +215,7 @@ integer AMSParticle::build(integer refit){
 	//PZ FPE FIX often ecal ene is very large double > 1e209 or NAN
         double ecal_ene=pecal->getEnergyC();
         double ecal_ene_err=pecal->getEnergyErr();
-	if(!isfinite(ecal_ene)){
+	if(!std::isfinite(ecal_ene)){
 	  //	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result is Not a Good floating number "<< ecal_ene<<" !!!"<<endl;
 	  continue;
 	}
@@ -445,8 +445,7 @@ void AMSParticle::ecalfit(){
     AMSPoint coo;
     number theta, phi, sleng;
     Ecal1DCluster * ptr;   
-    integer maxpl,ipl;
-    maxpl=2*ECALDBc::slstruc(3);
+    integer ipl;
     for(ipl=0;ipl<2;ipl++){ //loop over containers(proj)
       ptr=(Ecal1DCluster*)AMSEvent::gethead()->getheadC("Ecal1DCluster",ipl,0);
       if(ptr){
@@ -577,7 +576,7 @@ void AMSParticle::trd_likelihood(){
 
   number loglikelihood=0.;
 
-  for (int n=0;n<AMSTRDIdSoft::ncrates();n++){
+  for (unsigned int n=0;n<AMSTRDIdSoft::ncrates();n++){
     AMSTRDRawHit * ptr=
       (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,2); 
 
@@ -992,7 +991,11 @@ void AMSParticle::pid(){
     for( int patt=0;patt<npat;patt++){
       AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
 	getheadC("AMSTrTrack",patt);
+#ifdef _PGTRACK_
+      while(ptrack && ptrack->ParExists(AMSTrTrack::kChoutko)){   
+#else
       while(ptrack ){   
+#endif
 	if(
 #ifdef _PGTRACK_
 	   // PZ FIXME Track format

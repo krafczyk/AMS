@@ -76,11 +76,9 @@ integer DAQECBlock::getportid(int16u crat){
 //----
 integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("VC"'s blid)
   int valid(0);
-  int id;
   char sstr[128];
   char side[5]="ABPS";
   char str[2];
-  id=((blid>>5)&(0x1FF));
 //  if(id>=206 && id<=241)
 //    cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<id<<endl;
 //  else cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<blid<<endl;
@@ -142,19 +140,18 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
   integer i,ic,icn;
   bool jinf=leng_j<0;
   int leng=abs(leng_j);
-  integer swid,hwid,crsta(0);
-  int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
+  integer swid,hwid;
+  int16u swch,rdch,slot,aslt=0,crat,val16,ibit,slay,pmt,pix,gain,trppmt=0;
   int16u datyp,formt;
   int16u jbias,ebias,jblid,eblid,jleng,eleng,jaddr,eaddr,csid;
   int16u rawlen;
   integer comlen;
   int16 slots;
   geant padc[3];
-  int16u cdpmsk1(0),cdpmsk2(0);
+  integer swidn=0,shwid=0;
   bool newdataf(false);
 // for class/DownScaled ped-cal
   bool PedCal(false);//means PedCal job, using event-by-event in RawFMT or DownScaled 
-  bool DownScal(false);
   static int FirstDScalBlk(0);
   int16u PedSubt[ECSLOTS]={1,1,1,1,1,1,1};//0/1->no/yes PedSubtr at RawEvent creation
   int16u SlRawFmt[ECSLOTS]={1,1,1,1,1,1,1};//1/0-> raw/not format in slot
@@ -187,10 +184,6 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
   jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
   crat=(leng>>16) +1;
-  if(newdataf){
-    cdpmsk2=*(p+jleng-1);
-    cdpmsk1=*(p+jleng-2);
-  }
 //
   bool dataf=((jblid&(0x8000))>0) || jinf;//data-fragment
   bool crcer=((jblid&(0x4000))>0);//CRC-error
@@ -203,7 +196,6 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
   bool noerr;
   bool empty;
   bool badtyp;
-  bool pedbl(false);
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)
 //
   if(ECREFFKEY.reprtf[2]>1){//debug (ECRE 3=)
@@ -263,7 +255,6 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
     if(datyp==1)setrawf();
     if(datyp==2)setcomf();
     if(datyp==3)setmixf();
-    pedbl=false;//tempor
     badtyp=(datyp<1);
     empty=(eleng==1);
     formt=getformat();//0/1/2->raw/compr/mix flag for current EDR/ETRG
@@ -436,7 +427,6 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
 //---
 	else if(eleng==(ECEDRC+1)){//<--true "downscaled" event(rawfmt in comp.stream, but fmt.bit=comp!!!)
 //          if(ECREFFKEY.reprtf[2]>0)EventBitDump(eleng,p+jbias,"---> CompFMT:downscaled EvDump");
-	  DownScal=true;
 	  EcalJobStat::daqs3(crat-1,slot,16+12*formt);//lengthOK
           EcalJobStat::daqs3(crat-1,slot,4);//count downscaled events
           ebias=1;
@@ -535,7 +525,6 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
 //-------
         else if(eleng==(2*ECEDRC+1)){// raw+downscaled block during mixt mode
 //          if(ECREFFKEY.reprtf[2]>0)EventBitDump(eleng,p+jbias,"---> MixtFMT:downscaled EvDump");
-	  DownScal=true;
 	  EcalJobStat::daqs3(crat-1,slot,16+12*formt);//lengthOK
           EcalJobStat::daqs3(crat-1,slot,4);//count downscaled events
           ebias=1;
@@ -580,7 +569,7 @@ NextBlock:
 //
 //----------------------------> scan swch-buffers and create RawEvent-Objects:
 //
-  integer sswid,swidn,sswidn,shwid,subtrped,sta;
+  integer sswid,sswidn,subtrped,sta;
   geant peda,siga,pedd,sigd,athr,dthr,adca,adcd;
 //
   athr=ECALVarp::ecalvpar.daqthr(0);//daq-thr. for anode(hi/low)
@@ -665,7 +654,6 @@ NextBlock:
     if(sswid!=sswidn){//new/last LTTP found -> create RawEvent for current LTTP(i.e. all gains for given pixel)
 // (after 1st swid>0 sswid is = last filled LTTP, sswidn is = LTTP of next nonempty channel or =9999)
 //General: it is implied that given pixel info(ah/al/d) is always contained within one slot(EDR)
-      crsta=0;
       if(padc[0]>0 || padc[1]>0){//create EcalRawEvent obj
         if(ECREFFKEY.reprtf[2]>1){//debug-prints
 	  cout<<"    ==> Create EcalRawEvent: short swid/hwid="<<sswid<<" "<<shwid<<endl;
@@ -683,8 +671,8 @@ NextBlock:
 //
         if(sta>=0){
           padc[2]=0;//no valid Dyn-info in RawEvent for the moment(will be added in Validation)
-          if(AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",crat-1),
-                 new AMSEcalRawEvent(sswid,sta,csid,padc)))crsta=1;
+          AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",crat-1),
+                 new AMSEcalRawEvent(sswid,sta,csid,padc));
         }
 	else{
 	  if(ECREFFKEY.reprtf[2]>0)
@@ -1007,8 +995,8 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   integer i,j,ic,isl;
   integer swid;
   int16u rdch,slot,crat;
-  int16u datyp,formt;
-  int16u ebias,eblid,eleng,eaddr,csid;
+  int16u formt;
+  int16u ebias,eblid,eleng,csid;
   int16u word,nword,nnword,nnnword;
   int16u bias1,bias2;
   uinteger runn;
@@ -1019,10 +1007,6 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   int16u nblkok;
   int16u calstat(0);
   int16u crslsd;
-  int16u bllen;
-  int16u headw1;
-  int16u headw2;
-  int16u naddr;
   int16u len;
   bool bad;
 //<-- check ped-block sections: 
@@ -1119,11 +1103,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   if(bad)goto Exit;
   EcalJobStat::daqs1(51);// requested entries
 //--------
-  bllen=(*(p-3))/2;//BlLength (in front of header) bytes->words
-  headw1=*(p-2);
-  headw2=*(p-1);
   calstat=*p;
-  naddr=int16u((headw1>>5)&0x1FF);//node addr from 1st header word
   len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
   crslsd=int16u((leng>>16)&(0xFFFFL));//CrSlSd(c=1-2,sl=1,8,sd=1-3=>a,b,p) as return by my "checkblockidP"-1
   crat=(crslsd+1)/100;
@@ -1164,8 +1144,6 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
 //-----------
     eleng=reflen;//EDR fragment's length
     eblid=*(p-1+eleng);//EDR fragment's Status+slaveID(EDR/ETRG id) 
-    eaddr=(eblid&(0x001F));//slaveID(="NodeAddr"=ERD here) here =0(imply direct JMDC->EDR request)
-    datyp=((eblid&(0x00C0))>>6);//0,1,2(only raw or compr)
     dataf=((eblid&(0x8000))>0);//data-fragment(=0 for OnBoardPed Table)
     OnbFmtOK=(dataf==0);// OnBoardFmt OK (ignore datyp for ped-calibr)
     if(!OnbFmtOK)goto Exit;
@@ -1275,7 +1253,6 @@ void DAQECBlock::buildonbP2(integer leng, int16u *p){
   bool newrun;
   geant ped,sig,dped,thr;
   int16u nblkok;
-  int16u calstat(0);
   bool bad;
 //<-- check ped-block sections: 
   integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
@@ -1491,7 +1468,6 @@ cout<<"   EDRslot:"<<slot<<"  dataf="<<dataf<<" datyp(fmt)="<<datyp<<endl;
       bad=false;
       _FoundPedBlks+=1;
       PedBlkOK=false;
-      calstat=*(p+jbias+1);
       if(eleng==(reflen+1+1)){//<-------- PedTable length OK(extra +1 due to calstat word)
 	EcalJobStat::daqs3(crat-1,slot,5);//PedTable entrie with length OK
         PedBlkOK=(_PedBlkCrat[crat-1][slot]==0);//true if requested and leng-ok 
@@ -1670,10 +1646,10 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
 //create JINF-block from MC-data
 //cout<<"------> In buildblock, block="<<ibl<<endl;
   int i,j;
-  integer sta,id,idd;
+  integer id,idd;
   int16u isl,pmt,pix,gain,crate,slot,chan,stat;
   geant padc[3];
-  geant peda,pedd,adcd;
+  geant adcd;
   AMSEcalRawEvent * ptr;
   int16u edrbuf[ECEDRS][ECEDRC];
   int16u nwslot[ECEDRS];
@@ -1701,14 +1677,12 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
     pix=id%10-1;//Pixel(0-3)
     pmt=idd%100-1;//pmTube(0-...35)
     ptr->getpadc(padc);
-    sta=ptr->getstatus();
     if(padc[0]>0){//pix hi-gain
       gain=0;
       AMSECIds ecid(isl,pmt,pix,gain,0);
       chan=ecid.getrdch();//0-242
       slot=ecid.getslot();//0-5 -> EDRs, 6->ETRG
       crate=ecid.getcrate();
-      peda=ECPMPeds::pmpeds[isl][pmt].ped(pix,gain);//current Aped
 //      edrbuf[slot][chan]=int16u(floor((padc[0]+peda-0.5)*16));
       edrbuf[slot][chan]=int16u(floor((padc[0])*16));
       nwslot[slot]+=1;
@@ -1719,7 +1693,6 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
       chan=ecid.getrdch();//0-242
       slot=ecid.getslot();//0-5 -> EDRs, 6->ETRG
       crate=ecid.getcrate();
-      peda=ECPMPeds::pmpeds[isl][pmt].ped(pix,gain);//current Aped
 //      edrbuf[slot][chan]=int16u(floor((padc[1]+peda-0.5)*16));
       edrbuf[slot][chan]=int16u(floor((padc[1])*16));
       nwslot[slot]+=1;
@@ -1739,7 +1712,6 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
         crate=ecid.getcrate();//0,1
         if(crate==ibl){
           nwslot[slot]+=1;
-          pedd=ECPMPeds::pmpeds[isl][pmt].pedd();//current Dped
 //          edrbuf[slot][chan]=int16u(floor((adcd+pedd-0.5)*16));
           edrbuf[slot][chan]=int16u(floor((adcd)*16));
         }
@@ -1750,7 +1722,7 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
 //for(i=0;i<ECEDRS;i++)cout<<nwslot[i]<<" ";
 //cout<<endl;
 //--->extract ETRG info:
-  int16u val16,ibit,slay,slid,trppmt;
+  int16u val16,ibit,slay,slid,trppmt=0;
   int16u trpbuf[7];
 //
   crate=ibl+1;//1-2

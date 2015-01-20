@@ -25,7 +25,7 @@ void TKGEOMFFKEY_DEF::init(){
   CalibVer=3;
   memset(fname,400,sizeof(fname[0]));
   memset(disfname,400,sizeof(disfname[0]));
-  alignver=4;
+  alignver=6;
   LoadMCDisalign=1;
   EnableExtMov=0;
   float p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
@@ -38,17 +38,20 @@ void TKGEOMFFKEY_DEF::init(){
     L9Amp[ii]=p9[ii];
     L9Phase[ii]=phase9[ii];
   }
-  exalignver=3;
-  MdExAlignTag=0;
-  MaxAlignedRun=1393649013;  // Updated on Mar/11,2014
+  exalignver=5;
+  MdExAlignTag=90115;
+  MaxAlignedRun=1411991495;  // Updated on Dec/9,2014
 
   /// Time dependent L2 alignment parameters (used only with PM5)
   L2AlignPar[0] = 1347000000; // Reference time
   L2AlignPar[1] = 0;          // Offset (um)
-  L2AlignPar[2] = 0.31;       //  Shift (um) / year
+//L2AlignPar[2] = 0.31;       //  Shift (um) / year
+  L2AlignPar[2] = 0;          //  Shift (um) / year : disabled on Dec/3,2014
   L2AlignPar[3] = 0;          // Reserved for the future use
   L2AlignPar[4] = 0;          // Reserved for the future use
 }
+
+int TKGEOMFFKEY_DEF::ReadFromFile = 1;
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
 #ifdef __ROOTSHAREDLIBRARY__
@@ -130,6 +133,7 @@ for (int ii=0;ii<9;ii++){
   TrackFindChargeCutActive = 0; 
   NhitXForTRDTrackHelp = 3;
   logChisqXmax = 3; 
+  AllowYonlyTracks = 0;
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;
@@ -282,6 +286,10 @@ void TRMCFFKEY_DEF::init(){
   OuterSmearing[0][1]= 9.0e-4; //L1 Y
   OuterSmearing[1][0]= 8.0e-4; //L9 X
   OuterSmearing[1][1]=11.5e-4; //L9 Y
+  OuterSmearingC[0][0]=0.;  //L1 X
+  OuterSmearingC[0][1]=0.;  //L1 Y
+  OuterSmearingC[1][0]=0.;  //L9 X
+  OuterSmearingC[1][1]=0.;  //L9 Y
 
   // new stuff 2013 (PZ)
 
@@ -335,8 +343,8 @@ void TRMCFFKEY_DEF::init(){
   // 2014.05.23 SH
   // Workaround to retune the MC resolution (not activated by default)
   MCtuneDmax = 0;   // typically put 100e-4 to activate
-  MCtuneDs   = 0;   // typically put   1e-4 to improve the resolution
-                    //                -1e-4 to smare
+  MCtuneDs[0]=MCtuneDs[1]   = 0;   // typically put   1e-4 to improve the resolution
+                    //                -1e-4 to smear
                     // if MCtuneDs > MCtuneDmax, use exactly as MC coo
   MCtuneDy9  = 0;   // typically put   1e-4 to mitigate the propagation bug
 
@@ -520,7 +528,7 @@ void TRFITFFKEY_DEF::init(){
   ErcHeX = 0.65;
   ErcHeY = 0.65;
   /// I 21 Activates the multiple Alignmnet fitting during the reconstruction (1=PG 2=PG+MD 3=PG+MD+Averagae)
-  MultipleAlign=2;
+  MultipleAlign=3; // 2; Updated by SH 150108
   /// R 22 Determine the max |X| accepted to associate a layer 9 hit to the track
   EcalMaxX=45.;
 // I  23 magnet temp correction enabled

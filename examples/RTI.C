@@ -60,12 +60,12 @@ int RTI_CINT(AMSChain *ch,char *outfile,int Tcalopt){
 //--------------------------
 //   cfi, nhwerr, nl1l9, dl1l9:           Version>=1
 //   evnol, usec[2], mtrdh, good(bittag): Version>=2
-//   after B700 production recomended:   AMSSetupR::RTI::Version==2
+//   USE latest RTI version:   AMSSetupR::RTI::UseLatest();
 //--------------------------
-//   AMSSetupR::RTI::Version=0; //0 old (default B620)  
-   AMSSetupR::RTI::Version=1;   //1 new (2013-08 B620)
+//   AMSSetupR::RTI::Version=0; //0 old  (default B620)  
+//   AMSSetupR::RTI::Version=1; //1 new  (2013-08 B620)
 //   AMSSetupR::RTI::Version=2; //2 nnew (2013-12 B700)
-
+     AMSSetupR::RTI::Version=3; //3 nnew (2014-03 B620)
 //--Process ROOT Events Counting
    cout<<"Proces ROOT"<<endl;
    unsigned int time[2]={0};
@@ -141,19 +141,19 @@ bool TPreSelect(AMSSetupR::RTI &a){
   cut[1]=(a.npart/a.ntrig>0.07/1600*a.ntrig&&a.npart/a.ntrig<0.25);
   cut[2]=(a.lf>0.5);
   cut[3]=(a.zenith<40);
-  cut[3]=(a.nerr>=0&&a.nerr/a.nev<0.1);
-  cut[4]=(a.npart>0&&a.nev<1800);
+  cut[4]=(a.nerr>=0&&a.nerr/a.nev<0.1);
+  cut[5]=(a.npart>0&&a.nev<1800);
 //Choose or Not Choose* New 
-  cut[5]=1;
+  cut[6]=1;
   if(AMSSetupR::RTI::Version>=2){
-     if(a.good&(1<<0))cut[5]=0;//exclude duplicate events second
-     if(a.good&(1<<1))cut[5]=0;//exclude event number flip second
-     if(a.good&(1<<2))cut[5]=0;//*exclude event missing at the beginging of second
-     if(a.good&(1<<3))cut[5]=0;//*exclude event missing at the end of second 
-     if(a.good&(1<<4))cut[5]=0;//*exclude second at the begining of run
-     if(a.good&(1<<5))cut[5]=0;//*exclude second at the end of run
+     if(a.good&(1<<0))cut[6]=0;//exclude duplicate events second
+     if(a.good&(1<<1))cut[6]=0;//exclude event number flip second
+     if(a.good&(1<<2))cut[6]=0;//*exclude event missing at the beginging of second
+     if(a.good&(1<<3))cut[6]=0;//*exclude event missing at the end of second 
+     if(a.good&(1<<4))cut[6]=0;//*exclude second at the begining of run
+     if(a.good&(1<<5))cut[6]=0;//*exclude second at the end of run
    }
-  bool tcut=(cut[0]&&cut[1]&&cut[2]&&cut[3]&&cut[4]&&cut[5]);
+  bool tcut=(cut[0]&&cut[1]&&cut[2]&&cut[3]&&cut[4]&&cut[5]&&cut[6]);
   return tcut;
 }
 

@@ -59,7 +59,7 @@ void TofRecon::Print(int verbosity) {
 
 void TofRecon::DumpTofClustersContainer(AMSEventR* event) {
   printf("TofRecon::DumpTofClustersContainer-V n. clusters %2d\n",event->NTofCluster());
-  for (int icluster=0; icluster<event->NTofCluster(); icluster++) {
+  for (unsigned int icluster=0; icluster<event->NTofCluster(); icluster++) {
     TofClusterR* cluster = (TofClusterR*) event->pTofCluster(icluster);
     if (cluster==0) continue;
     printf("    cluster %2d  status %7d  layer %1d   bar %2d  edep %7.2f  edepd %7.2f  t %7.2f  et %7.2f  coo (%7.2f,%7.2f,%7.2f) ecoo (%7.2f,%7.2f,%7.2f)\n",
@@ -71,7 +71,7 @@ void TofRecon::DumpTofClustersContainer(AMSEventR* event) {
 
 void TofRecon::DumpTofRawClustersContainer(AMSEventR* event) {
   printf("TofRecon::DumpTofRawClustersContainer-V n. raw clusters %2d\n",event->NTofRawCluster());
-  for (int icluster=0; icluster<event->NTofRawCluster(); icluster++) {
+  for (unsigned int icluster=0; icluster<event->NTofRawCluster(); icluster++) {
     TofRawClusterR* cluster = (TofRawClusterR*) event->pTofRawCluster(icluster);
     if (cluster==0) continue;
     printf("    raw %2d  status %7d  layer %1d   bar %2d  edepa %8.2f  edepd %8.2f  t %8.2f  cool %8.2f\n",
@@ -124,7 +124,7 @@ void TofRecon::Write(TFile* file) {
 }
 
 
-bool TofRecon::GoodTofTrack(TofTrack* tof_track, Level1R* lvl1, char* add_name) { 
+bool TofRecon::GoodTofTrack(TofTrack* tof_track, Level1R* lvl1, const char* add_name) { 
   // int minnumber of hits
   int   min_number_hits = 3;
 
@@ -183,7 +183,7 @@ bool TofRecon::GoodTofTrack(TofTrack* tof_track, Level1R* lvl1, char* add_name) 
 }
 
 
-bool TofRecon::GoodTofRawCluster(TofRawClusterR* rawcluster, Level1R* lvl1, char* add_name) {
+bool TofRecon::GoodTofRawCluster(TofRawClusterR* rawcluster, Level1R* lvl1, const char* add_name) {
   // pointer check
   if (rawcluster==0) { 
     printf("TofRecon::GoodTofRawCluster-W an invalid tof raw cluster pointer.\n");
@@ -226,7 +226,7 @@ bool TofRecon::GoodTofRawCluster(TofRawClusterR* rawcluster, Level1R* lvl1, char
 }
 
 
-bool TofRecon::GoodTofCluster(TofClusterR* tofcluster, Level1R* lvl1, char* add_name) {
+bool TofRecon::GoodTofCluster(TofClusterR* tofcluster, Level1R* lvl1, const char* add_name) {
   // pointer check
   if (tofcluster==0) {
     printf("TofRecon::GoodTofCluster-W an invalid tof cluster pointer.\n");
@@ -241,7 +241,7 @@ bool TofRecon::GoodTofCluster(TofClusterR* tofcluster, Level1R* lvl1, char* add_
 }
 
 
-bool TofRecon::GoodTofTrackClusters(TofTrack* tof_track, Level1R* lvl1, char* add_name) {
+bool TofRecon::GoodTofTrackClusters(TofTrack* tof_track, Level1R* lvl1, const char* add_name) {
   if ( (!lvl1)||(!tof_track) ) return false;
   for (int itof=0; itof<tof_track->GetNhits(); itof++) {
     TofClusterR* cluster = tof_track->GetHit(itof);
@@ -252,7 +252,7 @@ bool TofRecon::GoodTofTrackClusters(TofTrack* tof_track, Level1R* lvl1, char* ad
 }
 
 
-int TofRecon::DropBadTofTrackClusters(TofTrack* tof_track, Level1R* lvl1, char* add_name) {
+int TofRecon::DropBadTofTrackClusters(TofTrack* tof_track, Level1R* lvl1, const char* add_name) {
   if ( (!lvl1)||(!tof_track) ) return 0;
   int ndrop = 0;
   for (int itof=tof_track->GetNhits()-1; itof>=0; itof--) {
@@ -287,7 +287,7 @@ bool TofRecon::NoPreviousFT(AMSEventR* event, float time) {
   }
   // I know this is stupid but I will check that other channels behave in the same way of reference one
   bool bad_check = false;
-  for (int itof=1; itof<event->NTofRawSide(); itof++) {
+  for (unsigned int itof=1; itof<event->NTofRawSide(); itof++) {
     TofRawSideR* raw = (TofRawSideR*) event->pTofRawSide(itof);
     int          nft = raw->nftdc; 
     float        lft = 0.0244*1e-3*raw->getftdc(nft-1);
@@ -347,7 +347,7 @@ int TofRecon::BuildTofTracks(AMSEventR* event, int level) {
     ///////////////////////////////////////////////
 
     vector<TofClusterR*> good_tof_clusters_list[4];
-    for (int itof=0; itof<event->NTofCluster(); itof++) {
+    for (unsigned int itof=0; itof<event->NTofCluster(); itof++) {
       TofClusterR* cluster = event->pTofCluster(itof);
       if (cluster==0) continue; 
       if (GoodTofCluster(cluster,lvl1,"build")) good_tof_clusters_list[cluster->Layer-1].push_back(cluster);
@@ -533,7 +533,7 @@ void TofRecon::ReorderTofTracks() {
 }
 
 
-bool TofRecon::GoodTofCandidate(TofCandidate* candidate, char* add_name) {  
+bool TofRecon::GoodTofCandidate(TofCandidate* candidate, const char* add_name) {  
   if (!candidate) return false;
   if (candidate->GetNClusters()==1) return true;
   char name = candidate->GetType();
@@ -559,7 +559,7 @@ bool TofRecon::GoodTofCandidate(TofCandidate* candidate, char* add_name) {
 }
 
 
-bool TofRecon::GoodTofCandidateCombination(TofCandidate* upper, TofCandidate* lower, char* add_name) {
+bool TofRecon::GoodTofCandidateCombination(TofCandidate* upper, TofCandidate* lower, const char* add_name) {
   if      ( ( upper)&&(!lower) ) return true;
   else if ( (!upper)&&( lower) ) return true;
   else if ( (!upper)&&(!lower) ) return false;
@@ -577,7 +577,7 @@ bool TofRecon::GoodTofCandidateCombination(TofCandidate* upper, TofCandidate* lo
 }
 
 
-bool TofRecon::GoodTofTrackLooseSelection(TofTrack* tof_track, char* add_name) {
+bool TofRecon::GoodTofTrackLooseSelection(TofTrack* tof_track, const char* add_name) {
   if (!tof_track) return false;
   // eliminate tracks with a poor number of hits (2 is too low the fits will be definitions!)
   if (tof_track->GetNhits()<MinNHits) return false;
@@ -713,7 +713,7 @@ TofTrack* TofRecon::BuildATofTrackFromTrTrack(AMSEventR* event, TrTrackR* trk_tr
   // - get only the good ones
   // - test if the track is passing through the paddle 
   TofClusterR* clusters[4] = {0,0,0,0};
-  for (int itof=0; itof<event->NTofCluster(); itof++) {
+  for (unsigned int itof=0; itof<event->NTofCluster(); itof++) {
     TofClusterR* cluster = event->pTofCluster(itof);
     if (cluster==0) continue;
     if (!GoodTofCluster(cluster,lvl1,"fromtrtrack")) continue;
@@ -763,7 +763,7 @@ bool TofRecon::AssociateTrTracksToTofTracks(AMSEventR* event, int id) {
     // 4. reorder the list on base of Y chisq
     ///////////////////////////////////////////////
 
-    for (int itrktr=0; itrktr<event->NTrTrack(); itrktr++) {
+    for (unsigned int itrktr=0; itrktr<event->NTrTrack(); itrktr++) {
       TrTrackR* trk_track = (TrTrackR*) event->pTrTrack(itrktr);
       // compatibility
       if (!trk_track) continue;
@@ -804,21 +804,21 @@ bool TofRecon::AssociateTrTracksToTofTracks(AMSEventR* event, int id) {
 }
 
 
-void TofRecon::Histogram(char* name, char* title, int nxbin, float xmin, float xmax, int nybin, float ymin, float ymax, float x, float y) {
+void TofRecon::Histogram(const char* name, const char* title, int nxbin, float xmin, float xmax, int nybin, float ymin, float ymax, float x, float y) {
   if (!EnabledHistograms) return;
   if (!TofReconHisto.Get(name)) TofReconHisto.Add(new TH2D(name,title,nxbin,xmin,xmax,nybin,ymin,ymax));
   if (TofReconHisto.Get(name)) TofReconHisto.Fill(name,x,y);
 }
 
 
-void TofRecon::Histogram(char* name, char* title, int nxbin, float xmin, float xmax, float x) {
+void TofRecon::Histogram(const char* name, const char* title, int nxbin, float xmin, float xmax, float x) {
   if (!EnabledHistograms) return;
   if (!TofReconHisto.Get(name)) TofReconHisto.Add(new TH1D(name,title,nxbin,xmin,xmax));
   if (TofReconHisto.Get(name)) TofReconHisto.Fill(name,x);
 }
 
 
-void TofRecon::FillTofTrackHistograms(TofTrack* tof_track, char* add_name) {
+void TofRecon::FillTofTrackHistograms(TofTrack* tof_track, const char* add_name) {
   Histogram(Form("Theta_vs_Phi_%s",add_name),"; #varphi; #theta",100,-3.2,3.2,100,0,1,tof_track->GetDir().getphi(),tof_track->GetDir().gettheta());
   Histogram(Form("Y_vs_X_%s",add_name),"; X (cm); Y (cm)",120,-60,60,120,-60,60,tof_track->GetPoint().x(),tof_track->GetPoint().y());
   Histogram(Form("logChiSqXY_vs_Pattern_%s",add_name),"; Pattern; log_{10}(#chi_{XY}^{2})",16,0.5,16.5,100,-3,3,tof_track->GetPattern(),log10(tof_track->GetRedChiSqXY()));  
@@ -854,7 +854,7 @@ void TofRecon::FillTofTrackNtuple(TofTrack* tof_track) {
 }
 
 
-void TofRecon::FillTofTrackResiduals(TofTrack* tof_track, char* add_name) {
+void TofRecon::FillTofTrackResiduals(TofTrack* tof_track, const char* add_name) {
   float beta = tof_track->GetBeta();
   for (int itof=0; itof<tof_track->GetNhits(); itof++) {
     TofClusterR* cluster = (TofClusterR*) tof_track->GetHit(itof);
@@ -887,7 +887,7 @@ void TofRecon::FillTofTrackResiduals(TofTrack* tof_track, char* add_name) {
 }
 
 
-bool TofRecon::GoodTofTrackTrTrackMatch(TofTrack* tof_track, TrTrackR* trk_track, int id, char* add_name) {
+bool TofRecon::GoodTofTrackTrTrackMatch(TofTrack* tof_track, TrTrackR* trk_track, int id, const char* add_name) {
   if ( (!trk_track)||(!tof_track)||(id<0) ) return false;
   float chi_x = 0;
   float chi_y = 0;
@@ -944,7 +944,7 @@ void TofRecon::FillComparisonBetweenBetaAndTofTrackStatistics(AMSEventR* event) 
   // check the TOF tracks inside Beta (Beta > TOF tracks)
   int ntoftrack_in_beta = 0;
   // loop on beta 
-  for (int ibeta=0; ibeta<event->NBeta(); ibeta++) {
+  for (unsigned int ibeta=0; ibeta<event->NBeta(); ibeta++) {
     BetaR* beta = event->pBeta(ibeta);
     // loop on tof tracks
     for (int itrack=0; itrack<NTofTrack(); itrack++) {
@@ -1017,7 +1017,7 @@ BetaR* TofRecon::GetIncludedBeta(TofTrack* tof_track, AMSEventR* event) {
     return 0;
   }
   // loop on beta 
-  for (int ibeta=0; ibeta<event->NBeta(); ibeta++) {
+  for (unsigned int ibeta=0; ibeta<event->NBeta(); ibeta++) {
     BetaR* beta = event->pBeta(ibeta);
     float diff  = 0;
     int   nhits = 0;
@@ -1321,7 +1321,7 @@ EcalShowerR* TofRecon::GetClosestEcalShower(TofTrack* tof_track, AMSEventR* even
   float min_distance = 10000;
   float min_costheta = 0;
   // match at calorimeter entry (-142 or -157 ... ?) 
-  for (int ishower=0; ishower<event->NEcalShower(); ishower++) {
+  for (unsigned int ishower=0; ishower<event->NEcalShower(); ishower++) {
     EcalShowerR* shower = event->pEcalShower(ishower);
     AMSPoint ecal_point(shower->Entry);
     AMSDir   ecal_dir(shower->Dir);
@@ -1350,7 +1350,7 @@ TrdTrackR* TofRecon::GetClosestTrdTrack(TofTrack* tof_track, AMSEventR* event) {
   float min_distance = 10000;
   float min_costheta = 0;
   // match at one of the beginning layers (around 110 cm)  
-  for (int itrack=0; itrack<event->NTrdTrack(); itrack++) {
+  for (unsigned int itrack=0; itrack<event->NTrdTrack(); itrack++) {
     TrdTrackR* track = event->pTrdTrack(itrack);
     AMSPoint trd_point(track->Coo);
     AMSDir   trd_dir(track->Theta,track->Phi);
@@ -1379,7 +1379,7 @@ RichRingR* TofRecon::GetClosestRichRing(TofTrack* tof_track, AMSEventR* event) {
   float min_distance = 10000;
   float min_costheta = 0;
   // match at the top of the radiator 
-  for (int iring=0; iring<event->NRichRing(); iring++) {
+  for (unsigned int iring=0; iring<event->NRichRing(); iring++) {
     RichRingR* ring = event->pRichRing(iring);
     AMSPoint rich_point(ring->AMSTrPars[0],ring->AMSTrPars[1],ring->AMSTrPars[2]);
     AMSDir   rich_dir(ring->AMSTrPars[3],ring->AMSTrPars[4]);
@@ -1480,7 +1480,7 @@ void TofTimeCalibration::RecalculateTofClusterTimes(AMSEventR* event) {
     if ( (run>=calibration_run[i]) && (run<calibration_run[i+1]) ) 
       cal_file=calibration_run_file[i];
   // improve
-  for (int icluster=0; icluster<event->NTofCluster(); icluster++) {
+  for (unsigned int icluster=0; icluster<event->NTofCluster(); icluster++) {
     TofClusterR* cluster = event->pTofCluster(icluster);
     float timesum=0;
     for (int irawcluster=0; irawcluster<cluster->NTofRawCluster(); irawcluster++) {

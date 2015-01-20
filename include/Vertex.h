@@ -39,7 +39,7 @@ protected:
   vector<TrTrackR *> _pTrTrack; //!
   /// 
   int8 _filled;
-  void _PrepareOutput(int full=0);
+  std::string _PrepareOutput(int full=0);
 
 public:
 

@@ -34,12 +34,14 @@ GeoMagField *GeoMagField::GetHead()
 int GeoMagField::InitModel(const char *mdfile, double date)
 {
   if (fInitStat != 0) return fInitStat;
-
+#ifdef _OPENMP
+#pragma omp critical  (initmodel)
+#endif
+ {
   if (fModelFile.Contains("$"))
     fModelFile = gSystem->ExpandPathName(fModelFile.Data());
-
   if (!mdfile) mdfile = fModelFile.Data();
-
+ }
   int ret = readmdf(mdfile);
   if (ret < 0) {
     fInitStat = -1;
@@ -749,8 +751,8 @@ int GeoMagField::shval3(int igdgc, double flat, double flon, double elev,
   double r;
   double a2;
   double b2;
-  double rr;
-  double fm,fn;
+  double rr=0;
+  double fm,fn=0;
   double sl[14];
   double cl[14];
   double p[119];

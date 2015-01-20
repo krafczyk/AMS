@@ -215,7 +215,7 @@ float cfi[4][2]; ///< max IGRF cutoff for 25,30,35,40 degrees (gv) for neg+pos
 float mphe;   ///< most probable He rigidity;
 float theta;  ///< theta gtod (rad)
 float phi;    ///< phi gtod (rad)
-float r;      ///< rad (cm)
+float r;      ///< rad gtod (cm)
 float zenith; ///< ams zenith angle (degrees)
 float glat;   ///< ams pointing galatic latitude (degrees) -1 faild
 float glong;  ///< ams pointing galatic longitude (degrees) -1 faild
@@ -245,8 +245,8 @@ double utctime[2];   ///< UTC time for first and last event
  * @param[in] iev  0: first event, 1: last event
  */
 double gettime(int itm=0, int iev=0); 
-float  getthetam(); ///< PhiM (degrees)
-float  getphim();   ///< ThetaM(degrees)
+float  getthetam(); ///< PhiM (rad)
+float  getphim();   ///< ThetaM(rad)
 static int Version; ///< RTI Version id
 /*!< 
   0:  2013-01 B620 default \n
@@ -254,13 +254,14 @@ static int Version; ///< RTI Version id
   2:  2013-12 B700         \n
   3:  2014-03 B620 latest  \n 
   503:2014-03 B800(p5) latest \n
+  513:2014-12 B800(p5) std latest (TTCS study) \n
 */
 static int Loadopt;//< load option
 /// use latest RTI Version
 /// \return Version id
 static int UseLatest();
 //---
- RTI():run(0),evno(0),evnol(0),lf(0),mphe(0),theta(0),phi(0),glat(-2),glong(-2),nev(0),nerr(0),ntrig(0),nhwerr(0),npart(0),mtrdh(0),good(-1),utime(0){
+ RTI():run(0),evno(0),evnol(0),lf(0),mphe(0),theta(0),phi(0),r(0),zenith(0),glat(-2),glong(-2),nev(0),nerr(0),ntrig(0),nhwerr(0),npart(0),mtrdh(0),good(-1),utime(0){
         for(int ifv=0;ifv<4;ifv++){
           for(int ipn=0;ipn<2;ipn++){cf[ifv][ipn]=0;cfi[ifv][ipn]=0;}
         }
@@ -271,7 +272,7 @@ static int UseLatest();
         utctime[0]=utctime[1]=0;
    }
  virtual ~RTI() { }
-ClassDef(RTI,8)
+ClassDef(RTI,9)
 };
 
 
@@ -285,14 +286,16 @@ class RunI{
  public: 
   unsigned int run;///< run
   unsigned int bt; ///< begin time of this run, JMDC Time
-  unsigned int et; ///< end time of this run, JMDC Time
+  unsigned int et; ///< end   time of this run, JMDC Time
+  unsigned int begev; ///< begin event id of this run
+  unsigned int endev; ///< end   event id of this run
   vector<string>fname;///< root file name
   virtual ~RunI() {}
-  RunI():run(0),bt(0),et(0){}
-  RunI(unsigned int _run,unsigned int _bt, unsigned int _et, string _fn):run(_run),bt(_bt),et(_et){
+  RunI():run(0),bt(0),et(0),begev(0),endev(0){}
+  RunI(unsigned int _run,unsigned int _bt, unsigned int _et,unsigned int _begev, unsigned int _endev, string _fn):run(_run),bt(_bt),et(_et),begev(_begev),endev(_endev){
     fname.push_back(_fn);
   }
-  ClassDef(RunI,1)
+  ClassDef(RunI,2)
 };
 
 
@@ -575,8 +578,8 @@ public:
  TDVRC_m fTDVRC;
  vector<TDVR> fTDV_Time; ///<Return of getAllTDV thanks to rootcint bug;
  vector<TDVR> fTDV_Name; ///<Return of getAllTDV thanks to rootcint bug;
- void printAllTDV_Time(){for( int i=0;i<fTDV_Time.size();i++){cout <<fTDV_Time[i]<<endl;}}
- void printAllTDV_Name(){for (int i=0;i<fTDV_Name.size();i++){cout <<fTDV_Name[i]<<endl;}} 
+ void printAllTDV_Time(){for( unsigned int i=0;i<fTDV_Time.size();i++){cout <<fTDV_Time[i]<<endl;}}
+ void printAllTDV_Name(){for (unsigned int i=0;i<fTDV_Name.size();i++){cout <<fTDV_Name[i]<<endl;}} 
  int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns fTDV_Time
  int getAllTDV(const string & name);  ///<Get All TDV for the current TDV name; Returns fTDV_Name 
  int getTDV(const string & name, unsigned int time, TDVR & tdv); ///<Return TDV tdv with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t

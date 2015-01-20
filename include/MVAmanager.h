@@ -9,8 +9,7 @@
 #include "TMVA/Config.h"
 #include "TMVA/Tools.h"
 #include "TMVA/MethodCuts.h"
-#include<string>
-#include<vector>
+#include "typedefs.h"
 
 
 /**
@@ -25,7 +24,6 @@
 
 
 
-using namespace std;
 //using namespace TMVA;
 
 class ConfigParser;

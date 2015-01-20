@@ -4,13 +4,10 @@
 #define mipsFortran
 #endif
 #include "cfortran.h"
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
+#include "typedefs.h"
 #include <sys/stat.h>
 
 //
-using namespace std;
  PROTOCCALLSFFUN3(INT,IFNTREAD,ifntread,STRING,INT,INT)
 #define IFNTREAD(A2,A3,A4)  CCALLSFFUN3(IFNTREAD,ifntread,STRING,INT,INT,A2,A3,A4)
 //input

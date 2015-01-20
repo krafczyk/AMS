@@ -99,7 +99,7 @@ void * AMSaPool::insert(size_t st){
   if(ptr) return ptr+sizeof(ALIGN);
   else{
     try{
-      if(_free==0 || _lc+st > _head->_length  ){
+      if(_free==0 || int(_lc+st) > _head->_length  ){
         AMSaPool::_grow(st); 
       }
       if(_free){
@@ -264,7 +264,7 @@ AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),_LRS(0),
 
 
 
-AMSaPoolError::AMSaPoolError(char * name){
+AMSaPoolError::AMSaPoolError(const char * name){
   if(name){
     integer n=strlen(name)+1;
     if(n>255)n=255;

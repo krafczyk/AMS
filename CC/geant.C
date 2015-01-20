@@ -361,7 +361,7 @@ int gams::mem_not_enough(int Threshold)
    sysinfo(&info);
    unsigned long free_mem = (info.freeram + info.freeswap)*info.mem_unit/1024;
 
-   if ( ulimit_size - vm_usage < Threshold ) {
+   if ( long(ulimit_size - vm_usage) < Threshold ) {
      cerr << "gams::mem_not_enough-E-Not enough memory: ULIMIT=" << ulimit_size << ", CUR_USAGE=" << vm_usage << ". Trying to terminate gracefully..." << endl;
      return 1;
    }
