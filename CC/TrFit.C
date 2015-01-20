@@ -3683,7 +3683,7 @@ void TrProp::Clear()
   _p0x = _p0y = _p0z = _dxdz = _dydz = 0;
 }
 
-double TrProp::Propagate(double zpl)
+double TrProp::Propagate(const double zpl)
 {
   AMSPoint pnt(0, 0, zpl);
   AMSDir   dir(0, 0,   1);
@@ -3698,7 +3698,7 @@ double TrProp::Propagate(double zpl)
   return len;
 }
 
-void TrProp::Interpolate(int nz, double *zpl,
+void TrProp::Interpolate(const int nz, const double *zpl,
                          AMSPoint *plist, AMSDir *dlist, double *llist)
 {
   AMSPoint psave(_p0x, _p0y, _p0z);
