@@ -315,7 +315,12 @@ void  AMSG4RunAction::DumpCrossSections(int verbose, G4int At, G4int Zt) {
   cout << "~~~~~~~~~~~~~~~~ DumpCrossSections ~~~~~~~~~~~~~~" << endl;
   // loop on three kinds of particles (p, He, C)
   G4ParticleTable* table = G4ParticleTable::GetParticleTable();
+#if G4VERSION_NUMBER  <1000 
   G4ParticleDefinition* particle[3] = {G4Proton::Proton(),G4Alpha::Alpha(),table->GetIon(6,12,0)};
+#else
+  G4IonTable* tablei = G4IonTable::GetIonTable();
+  G4ParticleDefinition* particle[3] = {G4Proton::Proton(),G4Alpha::Alpha(),tablei->GetIon(6,12,0)};
+#endif
   for (int iparticle=0; iparticle<3; iparticle++) {
     if (!particle[iparticle]) continue; 
     particle[iparticle]->DumpTable();
