@@ -316,7 +316,7 @@ void AMSJob::_siamsdata(){
   MISCFFKEY.SaveMCTrackSecondary=1; // (26) 1/0 save/not save also secondary particles above ECAL and above minimum kinetic energy (next datacard)
   MISCFFKEY.MCTrackMinEne=1;        // (27) minimum kinetic energy in MeV to save a secondary particle above ECAL
   MISCFFKEY.ScanElemAbundance=0;    // (28) Activate a scan of element abudance along the track
-
+  MISCFFKEY.NoOrderedWrite=0;
   FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 

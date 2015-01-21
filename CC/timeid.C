@@ -167,7 +167,10 @@ integer AMSTimeID::validate(time_t & Time, integer reenter){
 #ifdef __DB__
   int ok = readDB();
 #endif
-
+  if ( _End>2147483647){
+      cerr<<"AMSTimeID::validate-F-EndBeyondUnixEpocheError "<<getname()<<" "<<_End<<endl;
+      return 0; 
+  }   
   if (Time >= _Begin && Time <= _End){
     if(ok==-1 || _CRC == _CalcCRC()){
 

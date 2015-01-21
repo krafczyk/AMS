@@ -639,6 +639,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
  //cout << " lock test passed"<<AMSEvent::get_thread_num()<<" "<<_Lastev<<endl;
 #endif
   vector<AMSEventR*> del;
+  del.clear();
 #pragma omp critical (wr1)
   {
    int nthr=1;
@@ -665,7 +666,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       bool go=true;
       //     cout <<"  go "<<i->second->Event()<<endl;
       for(int k=0;k<nthr;k++){
-	if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)){
+	if(AMSEvent::runev(k) && (AMSEvent::runev(k)<(i->first) || MISCFFKEY.NoOrderedWrite)){
 	  go=false;
 	  break;
 	}
@@ -710,6 +711,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       if(AMSCommonsI::AB_catch!=1){
         //cout << " lock deleting "<<AMSEvent::get_thread_num()<<" "<<_Lastev<<" "<<del.size()<<endl;
 	for(unsigned int k=0;k<del.size();k++)delete del[k];
+        del.clear();
       }
       else{
 	cout<<"  AMSNtuple::writeR-I-AbortCatched "<<endl;
