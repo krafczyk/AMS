@@ -666,7 +666,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       bool go=true;
       //     cout <<"  go "<<i->second->Event()<<endl;
       for(int k=0;k<nthr;k++){
-	if(AMSEvent::runev(k) && (AMSEvent::runev(k)<(i->first) || MISCFFKEY.NoOrderedWrite)){
+	if(AMSEvent::runev(k) && (AMSEvent::runev(k)<(i->first) && !MISCFFKEY.NoOrderedWrite)){
 	  go=false;
 	  break;
 	}
