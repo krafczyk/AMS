@@ -123,6 +123,7 @@ in this case the files will be prestaged if on castor but actual try will be don
   AMSEventR* GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind=false); 
   AMSEventR* GetEventFast(UInt_t run, Int_t ev, bool runinfilename=false, unsigned long long maxent=100000000);   ///< get event fast
   long long GetEntryNo(UInt_t run, Int_t ev, bool runinfilename=false, unsigned long long maxent=100000000); 
+  long long GetEntryNoSeq(UInt_t run, Int_t ev, bool runinfilename=false, unsigned long long maxent=100000000); 
   long long GetEntryNo(long long seq, unsigned long long maxent=100000000); 
   AMSEventR* GetOrderedEntry(long long seq, unsigned long long maxent=100000000);  ///< get ordered event/run sequence
 
