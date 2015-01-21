@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.18 2013/11/19 15:13:51 choutko Exp $
+//  $Id$
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -229,8 +229,20 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         gAMSDisplay->SetView(gAMSDisplay->GetView());
         gAMSDisplay->DrawTitle();
         break;
+      case 105:
+        gAMSDisplay->ReadOrdered()=!gAMSDisplay->ReadOrdered();
+        fOptionMenu->DeleteEntry(105);
+        if(gAMSDisplay->ReadOrdered()){
+         gAMSDisplay->GetOrderedSeq();
+         fOptionMenu->AddEntry("&Not Ordered Read",105);
+        }
+        else fOptionMenu->AddEntry("&Ordered Read",105);
+        gAMSDisplay->SetView(gAMSDisplay->GetView());
+        gAMSDisplay->DrawTitle();
+        break;
       case 6:
         gApplication->SetReturnFromRun(0);
+        abort();
         gApplication->Terminate(1);
 	break;
       case 1:
@@ -309,6 +321,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fOptionMenu->AddEntry("&Use Hollow Style",102);
     fOptionMenu->AddEntry("Draw &RichRings From Plex",103);
     fOptionMenu->AddEntry("Rebuild &ACC",104);
+    fOptionMenu->AddEntry("&Ordered Read",105);
     fOptionMenu->Associate(this);
 
     fHelpMenu=new TGPopupMenu(fClient->GetRoot());

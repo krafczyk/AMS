@@ -45,6 +45,15 @@ ClassImp(AMSDisplay);
 
 AMSDisplay *gAMSDisplay;
 
+void AMSDisplay::GetOrderedSeq(){
+if(m_ntuple){
+ m_seq=m_chain->GetEntryNoSeq(m_ntuple->Run(),m_ntuple->Event());
+// cout <<"  m_seq "<<m_seq<<" "<<m_ntuple->Run()<<" "<<m_ntuple->Event()<<endl;
+ShowNextEvent(0);
+}
+else m_seq=0;
+}
+
 
 AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec, bool monit,bool scanout):
   m_chain(chain), m_sec(sec),m_nodate(false),TObject(),m_chain_Entries(0){
@@ -71,6 +80,8 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
      m_trclpr=true;
      m_drawrichringfromplex=false;
      m_rebuildacc=false;
+     m_orderedread=false;
+     m_seq=0;
       m_drawsolid=true;
  
    // Initialize display default parameters
@@ -676,7 +687,11 @@ bool AMSDisplay::ShowNextEvent(Int_t delta){
 
   //     cout<<" cur "<<m_ntuple->CurrentEntry()<<" "<<delta<<endl;
 
-  int entry=m_chain->Entry()+delta;
+  if(ReadOrdered()){
+   m_seq+=delta;
+//   cout <<"  delta seq "<<m_seq<<" "<<delta<<endl;
+  }
+  int entry=ReadOrdered()?m_chain->GetEntryNo(m_seq):m_chain->Entry()+delta;
   int res;     
   static unsigned int lastrun=0;
   unsigned int run=0;

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.33 2013/11/19 15:13:51 choutko Exp $
+//  $Id$
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -65,6 +65,8 @@ private:
   bool m_trclpr;                           //  show tr cluster profile
   bool m_drawrichringfromplex;
   bool m_rebuildacc;
+  bool m_orderedread;
+  unsigned long long m_seq;
   bool m_drawsolid;                       //  box style
   TApplication *m_theapp;                   //  application
   TGeometry          *m_Geometry;	     //Pointer to the geometry
@@ -110,6 +112,8 @@ public:
   int Focus() const {return m_selected;}
   bool & DrawRichRingsFromPlex(){return m_drawrichringfromplex;}
   bool & RebuildACC(){return m_rebuildacc;}
+  bool & ReadOrdered(){return m_orderedread;}
+  void GetOrderedSeq();
   bool DrawGeometry()const {return d_geometry;}
   bool DrawUsedOnly()const {return d_usedonly;}
   bool DrawObject(EAMSType type)const;
