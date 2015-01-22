@@ -1074,10 +1074,14 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
   pmt_mean_temp = pmtRefTemperature;
   if (RichPmtTemperatures) {
+    int ndts=0;
     double sum=0;
     for (int i=0; i<(int)v_dts_temp.size(); i++)
-      sum += v_dts_temp[i];
-    pmt_mean_temp = sum/v_dts_temp.size();
+      if (v_dts_temp[i]>pmtMinTemperature && v_dts_temp[i]<pmtMaxTemperature) {
+	ndts++;
+	sum += v_dts_temp[i];
+      }
+    pmt_mean_temp = sum/ndts;
     if (DEBUG)
       cout << "RichPMTCalib::getRichPmtTemperatures: T_Mean=" << pmt_mean_temp << endl;
   }
