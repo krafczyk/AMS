@@ -2631,16 +2631,16 @@ void AMSJob::_signinitjob(){
 	 * */
 	g4i=getenv("G4INSTALL");
 	string g4is=g4i;
-	g4is+="/data/PhotonEvaporation2.3";
+	g4is+="/data/PhotonEvaporation3.1";
 	setenv("G4LEVELGAMMADATA", g4is.c_str(),1);
 	g4is=g4i;
-	g4is+="/data/RadioactiveDecay3.6";
+	g4is+="/data/RadioactiveDecay4.2";
 	setenv("G4RADIOACTIVEDATA"  ,g4is.c_str(),1);
 	g4is=g4i;
-	g4is+="/data/G4EMLOW6.39";
+	g4is+="/data/G4EMLOW6.41";
 	setenv("G4LEDATA" ,g4is.c_str(),1);
 	g4is=g4i;
-	g4is+="/data/G4NDL4.4";
+	g4is+="/data/G4NDL4.5";
 	setenv("NeutronHPCrossSections" ,g4is.c_str(),1);
 	g4is=g4i;
 	g4is+="/data/G4NEUTRONXS1.4";
