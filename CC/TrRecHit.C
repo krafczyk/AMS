@@ -273,7 +273,7 @@ float TrRecHitR::GetYloc(int nstrips, int opt) {
   TrClusterR *cls = GetYCluster();
   if (!cls) return -1000;
   if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
-  return cls->GetXCofG(nstrips, opt);
+  return cls->GetXCofG(nstrips, 0, opt);
 }
 
 

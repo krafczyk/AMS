@@ -134,6 +134,7 @@ for (int ii=0;ii<9;ii++){
   NhitXForTRDTrackHelp = 3;
   logChisqXmax = 3; 
   AllowYonlyTracks = 0;
+  UseNonLinearity = 0;
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;

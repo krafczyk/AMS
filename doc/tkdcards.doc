@@ -146,6 +146,8 @@ I 72 TrackFindChargeCutActive       (Default: 0)  BuildTrTracksSimple: charge cu
 I 73  NhitXForTRDTrackHelp          (Default: 3)  BuildTrTracksSimple: Number of x candidates to use help of TRD
 R 74  logChisqXmax                  (Default: 3)  MatchTOF_TRD: Maximum logChisqX to declare a good multiplicity resolution after TRD match
 I 75  AllowYonlyTracks              (Default: 0)  BuildTrTracksSimple: Allow Yonly tracks, to be used for TTCS-off runs
+I 76  UseNonLinearity               (Default: 0)  0: do not use, 1: use always, 2: use only with 2.5 < Qtrk < 12.5
+
 
 /*
 // This datacard is no longer in use

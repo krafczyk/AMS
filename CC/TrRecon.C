@@ -1988,6 +1988,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 
     cls->SetDxDz(0);
     cls->SetDyDz(0);
+    cls->SetQtrk(1);
 
     double sig = cls->GetTotSignal();
     int    sign = 1;

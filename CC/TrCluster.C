@@ -12,7 +12,9 @@ TrParDB* TrClusterR::_trpardb = NULL;
 float TrClusterR::Asymmetry[2] = {0.040,0.005};
 
 // the default corrections are used in reconstruction and are independent from calibration (overridden by datacard)
-int   TrClusterR::DefaultCorrOpt       = TrClusterR::kAsym|TrClusterR::kAngle; 
+int   TrClusterR::DefaultBestResidualOpt  = -1;
+int   TrClusterR::DefaultCorrOpt          = TrClusterR::kAsym|TrClusterR::kAngle; 
+int   TrClusterR::DefaultLinearityCorrOpt = TrClusterR::kAsym|TrClusterR::kAngle|TrClusterR::kGain|TrClusterR::kPStrip;
 
 // measurement corrections
 int   TrClusterR::DefaultChargeCorrOpt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kRigidity;
@@ -38,6 +40,7 @@ TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   _mult    = orig._mult;
   _dxdz    = orig._dxdz;
   _dydz    = orig._dydz;
+  _qtrk    = orig._qtrk;
 }
 
 
@@ -140,6 +143,7 @@ void TrClusterR::Clear() {
   _mult    =   0;
   _dxdz    =   0;  // vertical inclination by default 
   _dydz    =   0;  // vertical inclination by default 
+  _qtrk    =   1;  // charge 1 as default 
 }
 
 
@@ -372,6 +376,10 @@ float TrClusterR::GetXCofG(int nstrips, int imult, int opt) {
     if (GetSide() == 1 && fabs(GetDyDz()) > TwoStripThresholdY) nstrips = 3;
   } 
   if (nstrips==1) return 0.;
+  if (opt==-1) {
+    opt = DefaultCorrOpt;
+    if ( (TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5) ) ) opt = DefaultLinearityCorrOpt;
+  }
   int leftindex;  
   int rightindex;
   float numerator   = 0.;
@@ -421,6 +429,10 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
     if (GetSide() == 1 && fabs(GetDyDz()) > TwoStripThresholdY) nstrips = 3;
   }
   if (nstrips==1) return 0.;
+  if (opt==-1) {
+    opt = DefaultCorrOpt;
+    if ( (TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5) ) ) opt = DefaultLinearityCorrOpt;
+  }
   int leftindex; 
   int rightindex;
   float numerator   = 0.;
@@ -439,6 +451,10 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
 
 
 float TrClusterR::GetEta(int opt) {
+  if (opt==-1) {
+    opt = DefaultCorrOpt;
+    if ( (TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5) ) ) opt = DefaultLinearityCorrOpt;
+  }
   /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
    *      _                                    _ 
    *    l|c|r          c*0 + r*1    r        l|c|r            l*0 + c*1    c

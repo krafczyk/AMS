@@ -15,6 +15,7 @@
 #include "TrEDepDB.h"
 #include "TrMipDB.h"
 #include "TrLinearDB.h"
+#include "tkdcards.h"
 
 #include "edep.h"
 #include "amsdbc.h"
@@ -99,6 +100,8 @@ class TrClusterR :public TrElem{
   float        _dxdz;
   /// tan(ThetaYZ) of the incoming track (used for optimization of the track fitting)
   float        _dydz;
+  /// charge of the incoming track (used for optimization of the track fitting)
+  float        _qtrk;
   /// Multiplicity (on p side should be 1 on n side it is ladder dependent)
   int8         _mult;   
   /// Cluster status 
@@ -124,6 +127,10 @@ class TrClusterR :public TrElem{
   static float Asymmetry[2];
   /// Silicon intrinsic corrections
   static int DefaultCorrOpt;
+  /// Corrections for coordinate calculation considering non-linearity on Y
+  static int DefaultLinearityCorrOpt;
+  /// Best set of options for coordinate determination
+  static int DefaultBestResidualOpt;
   /// Normalization up to Z^2 scale 
   static int DefaultChargeCorrOpt;
   /// Energy deposition corrections      
@@ -289,22 +296,22 @@ class TrClusterR :public TrElem{
   /// Get cluster bounds for a given number of strips (symmetric order)  
   void  GetBoundsSymm(int &leftindex, int &rightindex, int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get the Center of Gravity with the n highest consecutive strips 
-  float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
+  float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultBestResidualOpt);
   /// Get local coordinate with center of gravity on nstrips 
-  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt);
+  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultBestResidualOpt);
   /// Get local coordinate with center of gravity on nstrips 
-  float GetXCofG_old(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
+  float GetXCofG_old(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultBestResidualOpt) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); 
   }  
   /// Get eta (center of gravity with the two higher strips) 
-  float GetEta(int opt = DefaultCorrOpt);
+  float GetEta(int opt = DefaultBestResidualOpt);
   /// Get eta (center of gravity with the two higher strips) by CofG algorythm  
-  float GetEta_CofG(int opt = DefaultCorrOpt) { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
+  float GetEta_CofG(int opt = DefaultBestResidualOpt) { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
 
-  /// Set linearity correction for intermediate ions optimized resolution (2<Z<10)
-  static void SetLinearityCorrection() { DefaultCorrOpt = kAsym|kAngle|kGain|kPStrip; }
-  /// Unset linearity correction for intermediate ions optimized resolution (2<Z<10)
-  static void UnsetLinearityCorrection() { DefaultCorrOpt = kAsym|kAngle; } 
+  /// Set linearity correction (brute force method)
+  static void SetLinearityCorrection() { DefaultCorrOpt = kAsym|kAngle|kGain|kPStrip; DefaultBestResidualOpt = kAsym|kAngle|kGain|kPStrip; }
+  /// Unset linearity correction (brute force method)
+  static void UnsetLinearityCorrection() { DefaultCorrOpt = kAsym|kAngle; DefaultBestResidualOpt = -1; } 
 
   /**@}*/ 
 
@@ -330,6 +337,11 @@ class TrClusterR :public TrElem{
   inline float GetImpactAngle() { return (GetSide()==0) ? atan(_dxdz)*180./3.14159265 : atan(_dydz)*180./3.14159265; }
   /// Get the zenith angle cosine
   inline float GetCosTheta() { return sqrt(1./(1.+GetDxDz()*GetDxDz()+GetDyDz()*GetDyDz())); } 
+
+  /// Get track charge (used for optimization of the track fitting) 
+  float GetQtrk() { return _qtrk; }
+  /// Set track charge (used for optimization of the track fitting)  
+  float SetQtrk(float q) { _qtrk = q; }
 
   /// chek some bits into cluster status
   uinteger checkstatus(integer checker) const { return Status & checker; }

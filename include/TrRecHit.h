@@ -43,7 +43,7 @@ class TrRecHitR : public TrElem {
  public:
 
   enum { XONLY = 0x100, YONLY = 0x200, TASHIT = 0x400, ZSEED = 0x800,
-	 REBLT = 0x1000 };
+	 REBLT = 0x1000, SHARED = 0x4000 };
 
  protected:
 
@@ -134,7 +134,8 @@ public:
   bool Used  () const { return checkstatus(AMSDBc::USED); }
   // AMSDBc::FalseX = 8192; (0x2000)
   bool FalseX() const { return checkstatus(AMSDBc::FalseX); }
-  bool HighZ () const { return checkstatus(ZSEED); } 
+  bool HighZ () const { return checkstatus(ZSEED); }
+  bool Shared() const { return checkstatus(SHARED); }  
   /**@}*/	
 
 
@@ -197,16 +198,16 @@ public:
   /// Returns the errors on the computed global coordinate (if resolved)
   AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
   /// Get X local coordinate (ladder reference frame)
-  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips, int opt = TrClusterR::DefaultCorrOpt);
+  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips, int opt = TrClusterR::DefaultBestResidualOpt);
   /// Get Y local coordinate (ladder reference frame)
-  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips, int opt = TrClusterR::DefaultCorrOpt);
+  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips, int opt = TrClusterR::DefaultBestResidualOpt);
 	
   /// Get local coordinate (ladder reference frame, Z is zero by definition)
   AMSPoint GetLocalCoordinate(int imult = 0, 
 			      int nstripsx = TrClusterR::DefaultUsedStrips,
 			      int nstripsy = TrClusterR::DefaultUsedStrips,
-                              int optx = TrClusterR::DefaultCorrOpt,
-                              int opty = TrClusterR::DefaultCorrOpt) { 
+                              int optx = TrClusterR::DefaultBestResidualOpt,
+                              int opty = TrClusterR::DefaultBestResidualOpt) { 
     return AMSPoint(GetXloc(imult,nstripsx,optx),GetYloc(nstripsy,opty),0.); }
 
   /// Get global coordinate with ALIGNMENT (AMS reference system) 
@@ -269,8 +270,8 @@ public:
   AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
 			       int nstripsx = TrClusterR::DefaultUsedStrips,
 			       int nstripsy = TrClusterR::DefaultUsedStrips,
-                               int optx = TrClusterR::DefaultCorrOpt,
-                               int opty = TrClusterR::DefaultCorrOpt);
+                               int optx = TrClusterR::DefaultBestResidualOpt,
+                               int opty = TrClusterR::DefaultBestResidualOpt);
   /// Set the resolved multiplicity index (-1 if not resolved)
   void  SetResolvedMultiplicity(int im) { 
     if (im < 0) im = 0;

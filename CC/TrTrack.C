@@ -1269,7 +1269,7 @@ std::string TrTrackR::_PrepareOutput(int full )
 
 
 
-double TrTrackR::Interpolate(const double zpl, AMSPoint &pnt, 
+double TrTrackR::Interpolate(double zpl, AMSPoint &pnt, 
                                AMSDir &dir, int id2) const
 {
   int id=id2;
@@ -1363,7 +1363,7 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
   // return tprop.Interpolate(pnt, dir);
 }
 
-void TrTrackR::Interpolate(const int nz, const double *zpl, 
+void TrTrackR::Interpolate(int nz, double *zpl, 
                              AMSPoint *pvec, AMSDir *dvec, double *lvec,
                              int id2) const
 {
@@ -1895,9 +1895,10 @@ void TrTrackR::RecalcHitCoordinates(int id) {
   for (int i = 0; i < GetNhits(); i++)
     zhit[i] = GetHit(i)->GetCoord().z();
   Interpolate(GetNhits(), zhit, dpoi, dtrk, 0, id);
-  // Set cluster angles and re-build coordinates
+  // set cluster angle for corrections 
   for (int i = 0; i < GetNhits(); i++) {
     TrRecHitR  *hit = (TrRecHitR*) GetHit(i);
+    if (hit->Shared()) continue; 
     TrClusterR *xcls = (TrClusterR*) hit->GetXCluster();
     TrClusterR *ycls = (TrClusterR*) hit->GetYCluster();
     TkSens sens(hit->GetTkId(),dpoi[i],dtrk[i],0);
@@ -1905,6 +1906,22 @@ void TrTrackR::RecalcHitCoordinates(int id) {
     float dydz = (fabs(sens.GetSensDir().z())>0) ? sens.GetSensDir().y()/sens.GetSensDir().z() : 0;
     if (xcls) { xcls->SetDxDz(dxdz); xcls->SetDyDz(dydz); }
     if (ycls) { ycls->SetDxDz(dxdz); ycls->SetDyDz(dydz); }
+  }
+  // set charge of inner tracker no beta correction (iterate to be more precise with CofG correction)
+  for (int iter=0; iter<3; iter++) { 
+    float qtrk = GetInnerQ();
+    for (int i = 0; i < GetNhits(); i++) {
+      TrRecHitR  *hit = (TrRecHitR*) GetHit(i);
+      if (hit->Shared()) continue;
+      TrClusterR *xcls = (TrClusterR*) hit->GetXCluster();
+      TrClusterR *ycls = (TrClusterR*) hit->GetYCluster();
+      if (xcls) { xcls->SetQtrk(qtrk); }
+      if (ycls) { ycls->SetQtrk(qtrk); }
+    }
+  }
+  // re-build coordinates
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR  *hit = (TrRecHitR*) GetHit(i);
     int ll = hit->GetLayer();
     if (ll == 8 || ll == 9) {
       // TrExtAlignDB::SetAlKind(1);
@@ -1919,11 +1936,11 @@ void TrTrackR::RecalcHitCoordinates(int id) {
       _HitCoo[ll+10] = hit->GetCoord(-1,2);
       _HitCoo[ll+20] = hit->GetCoord(-1,3);
     }
-
     hit->BuildCoordinate();
     _HitCoo[ll] = hit->GetCoord();
   }
 }
+
 
 int TrTrackR::RebuildHits(void)
 {
