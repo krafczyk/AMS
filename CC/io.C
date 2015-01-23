@@ -9,6 +9,10 @@
 #include "mceventg.h"
 #ifdef __G4AMS__
 #include "CLHEP/Random/Random.h"
+#include "G4Version.hh"
+#ifdef G4MULTITHREADED
+#include "G4MTHepRandom.hh"
+#endif
 #endif
 
 integer AMSIO::_Ntot=0;
@@ -166,7 +170,11 @@ void AMSIO::init(integer mode,integer format){
               long seedl[3]={0,0,0};
               seedl[0]=seed[0];
               seedl[1]=seed[1];
+#ifdef G4MULTITHREADED
+              G4MTHepRandom::setTheSeeds(seedl);
+#else
               HepRandom::setTheSeeds(seedl);
+#endif
 #endif              
               CCFFKEY.theta=theta;
               CCFFKEY.phi=phi;

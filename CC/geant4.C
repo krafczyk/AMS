@@ -1,4 +1,5 @@
 //  $Id$
+#include "G4Version.hh"
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -44,17 +45,22 @@
 #include "Tofsim02.h"
 #include "g4tof.h"
 #include "g4rich.h"
+#ifndef G4MULTITHREADED
+#include "G4MTHepRandom.hh"
+#endif
 #ifdef G4VIS_USE
 #include "g4visman.h"
 #endif
-
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#include "G4Threading.hh"
+#endif
 #ifndef __DARWIN__
 #include <malloc.h>
 #else
 #include <mach/task.h>
 #include <mach/mach_init.h>
 #endif
-
  extern "C" void getfield_(geant& a);
 
  static double g4_primary_momentum=0;
@@ -79,14 +85,27 @@ void g4ams::G4INIT(){
 // Initialize Random Number Generator
 
 
+#ifndef G4MULTITHREADED
 HepRandom::setTheEngine(new RanecuEngine());
+#else
+G4MTHepRandom::setTheEngine(new RanecuEngine());
+#endif
 long seed[3]={0,0,0};
 seed[0]=GCFLAG.NRNDM[0];
 seed[1]=GCFLAG.NRNDM[1];
+#ifndef G4MULTITHREADED
 HepRandom::setTheSeeds(seed);
+#else
+G4MTHepRandom::setTheSeeds(seed);
+#endif
 
+#ifdef G4MULTITHREADED
+  G4MTRunManager* pmgr = new G4MTRunManager;
+  pmgr->SetNumberOfThreads(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:G4Threading::G4GetNumberOfCores());
+#else
+  G4RunManager* pmgr = new G4RunManager;
+#endif
  
-G4RunManager * pmgr = new G4RunManager();
 
 
 
@@ -109,6 +128,8 @@ G4RunManager * pmgr = new G4RunManager();
 
 
 
+     pmgr->SetUserInitialization(new AMSG4ActionInitialization(CCFFKEY.npat));
+/*
      AMSG4GeneratorInterface* ppg=new AMSG4GeneratorInterface(CCFFKEY.npat);
      AMSJob::gethead()->getg4generator()=ppg;
      pmgr->SetUserAction(ppg);
@@ -117,7 +138,7 @@ G4RunManager * pmgr = new G4RunManager();
      pmgr->SetUserAction(new AMSG4SteppingAction);
      pmgr->SetUserAction(new AMSG4StackingAction);
 //    pmgr->SetUserAction(new AMSG4RunAction);
-
+*/
 
 #ifdef G4VIS_USE
    AMSG4VisManager::create();
@@ -170,8 +191,13 @@ void g4ams::G4RUN(){
 void g4ams::G4LAST(){
         if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
         else {
+#ifndef G4MULTITHREADED
           GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
           GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+#else
+          GCFLAG.NRNDM[0]=G4MTHepRandom::getTheSeeds()[0];
+          GCFLAG.NRNDM[1]=G4MTHepRandom::getTheSeeds()[1];
+#endif
         }
 cout <<"           **** RANDOM NUMBER GENERATOR AFTER LAST COMPLETE EVENT "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
 float TIMLFT;
@@ -224,11 +250,11 @@ _particleGun[_cpart].SetParticlePosition(G4ThreeVector(Pos[0]*cm,Pos[1]*cm,Pos[2
 
 void AMSG4GeneratorInterface::GeneratePrimaries(G4Event* anEvent){
 
-static integer event=0;
-(void)event;
+//static integer event=0;
+//(void)event;
 
-AMSJob::gethead()->getg4generator()->Reset();
-
+//AMSJob::gethead()->getg4generator()->Reset();
+Reset();
 
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
@@ -239,13 +265,18 @@ AMSJob::gethead()->getg4generator()->Reset();
     for(integer i=0;i<CCFFKEY.npat;i++){
         if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
         else {
+#ifndef G4MULTITHREADED
           GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
           GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+#else
+          GCFLAG.NRNDM[0]=G4MTHepRandom::getTheSeeds()[0];
+          GCFLAG.NRNDM[1]=G4MTHepRandom::getTheSeeds()[1];
+#endif
         }
         AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
-     genp->runG4(GCKINE.ikine);
+     genp->runG4(this,GCKINE.ikine);
     }
     }
    }
@@ -259,7 +290,7 @@ AMSJob::gethead()->getg4generator()->Reset();
      AMSmceventg* genp=new AMSmceventg(io);
      if(genp){
       AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
-      genp->runG4();
+      genp->runG4(this);
       //genp->_printEl(cout);
      }
     }
@@ -644,8 +675,13 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       AMSEvent::gethead()->printA(AMSEvent::debug);
         if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
         else {
+#ifndef G4MULTITHREADED
           GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
           GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+#else
+          GCFLAG.NRNDM[0]=G4MTHepRandom::getTheSeeds()[0];
+          GCFLAG.NRNDM[1]=G4MTHepRandom::getTheSeeds()[1];
+#endif
         }
        cout <<" RNDM "<<GCFLAG.NRNDM[0]<<" " <<GCFLAG.NRNDM[1]<<endl;
 }
@@ -1924,4 +1960,33 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
     AMSG4EventAction* evt_act = (AMSG4EventAction*)G4EventManager::GetEventManager()->GetUserEventAction();
     evt_act->AddRegisteredTrack( aTrack->GetTrackID() );
   }
+}
+
+
+AMSG4ActionInitialization::AMSG4ActionInitialization(int npart)
+ : G4VUserActionInitialization(),_npart(npart)
+{}
+
+
+AMSG4ActionInitialization::~AMSG4ActionInitialization()
+{}
+
+
+void AMSG4ActionInitialization::BuildForMaster() const
+{
+  SetUserAction(new AMSG4RunAction);
+}
+
+
+void AMSG4ActionInitialization::Build() const
+{
+     AMSG4GeneratorInterface* ppg=new AMSG4GeneratorInterface(_npart);
+  SetUserAction(ppg);
+  SetUserAction(new AMSG4RunAction);
+
+  AMSG4EventAction* eventAction = new AMSG4EventAction;
+  SetUserAction(eventAction);
+
+  SetUserAction(new AMSG4SteppingAction);
+  SetUserAction(new AMSG4StackingAction);
 }

@@ -187,7 +187,7 @@ public:
 
 
 #ifdef __G4AMS__
-  void runG4(integer ipart=0);
+  void runG4( AMSG4GeneratorInterface* gen,integer ipart=0);
 #endif
   void InitSeed();
   void gener();

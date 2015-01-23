@@ -19,10 +19,15 @@ if [ -z "$PGTRACK" ] ; then
 PG=
 else 
 PG=G4PG
+if [ -z "$G4MULTITHREADED" ] ; then 
+MT=
+else
+MT=MT
+fi
     MACHINE="$ARCH"5.34
 fi
 WHO=`whoami`
-$AMSWD/exe/$MACHINE/gbatch$PG.exe <<!
+$AMSWD/exe/$MACHINE/gbatch$PG$MT.exe <<!
 LIST
 KINE 15
 LOSS 1
@@ -34,14 +39,14 @@ CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 TRIG 10 
 DEBUG -1 1 1
 C          Nparticles 
-MISC 4=0 5=1       
+MISC 4=0 5=1 8=1      
 MCGEN 1=-10. 2=-10. 3=180. 4=10. 5=10. 6=180.
 7=0. 8=0. 9=-1. 10=0. 11=0. 12=-1.
 C 12=-0.95 
 13=1. 14=200. 15=0 16=1. 19=101 20=5 21=0  
 25=20102011 27=21102011
 
-IOPA 1=0 127=2 128='/f2users/$WHO/ap$ARCH.root' 43=101
+IOPA 1=0 127=2 128='/f2users/$WHO/pr$ARCH$MT.root' 43=101
 45='TriggerLVL1   ' 126=10000 
 C RNDM 191483493 13582325
 C RNDM  2010916395 53071516

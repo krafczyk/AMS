@@ -174,5 +174,17 @@ public:
     virtual void PrepareNewEvent(){};
 
 };
+
+#include "G4VUserActionInitialization.hh"
+class AMSG4ActionInitialization: public G4VUserActionInitialization{
+
+ public:
+ int _npart;
+ AMSG4ActionInitialization(int npart=1);
+ virtual ~AMSG4ActionInitialization();
+    virtual void BuildForMaster() const;
+    virtual void Build() const;
+
+};
 #endif
 

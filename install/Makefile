@@ -120,7 +120,10 @@ G4=
 ifdef G4AMS
 G4VIS_USE:= 1
 G4:=G4
-
+ifdef G4MULTITHREADED
+G4:=G4MT
+CFLAGSB+=  -DG4MULTITHREADED
+endif
 ifneq ("$(wildcard $(AMSWD)/.git)","")
   GITSHA = $(shell git --git-dir=${AMSWD}/.git rev-parse HEAD | tr -d '\n')
 else

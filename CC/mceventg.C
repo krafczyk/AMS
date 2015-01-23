@@ -45,6 +45,10 @@ extern TGeant3* geant3;
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
 #include <iostream>
+#include "G4Version.hh"
+#ifdef G4MULTITHREADED
+#include "G4MTHepRandom.hh"
+#endif
 #endif
 
 #if defined __AMSVMC__
@@ -1485,8 +1489,13 @@ void AMSmceventg::run(integer ipart){
   // Set seed
 #ifdef __G4AMS__
   if(!MISCFFKEY.G3On){
+#ifndef G4MULTITHREADED
     _seed[0]=HepRandom::getTheSeeds()[0];
     _seed[1]=HepRandom::getTheSeeds()[1];
+#else
+    _seed[0]=G4MTHepRandom::getTheSeeds()[0];
+    _seed[1]=G4MTHepRandom::getTheSeeds()[1];
+#endif
   }
   else
 #endif
@@ -1538,8 +1547,13 @@ void AMSmceventg::runvmc(integer ipart, TVirtualMCStack* fStack,int vmc_version)
 
     // Set seed
 if(vmc_version==2){
+#ifndef G4MULTITHREADED
   _seed[0]=CLHEP::HepRandom::getTheSeeds()[0];
   _seed[1]=CLHEP::HepRandom::getTheSeeds()[1];
+#else
+  _seed[0]=G4MTHepRandom::getTheSeeds()[0];
+  _seed[1]=G4MTHepRandom::getTheSeeds()[1];
+#endif
 }
 else
    GRNDMQ(_seed[0],_seed[1],0,"G");
@@ -1717,7 +1731,11 @@ if(IOPA.VMCVersion==2){
  long seedl[3]={0,0,0};
  seedl[0]=_seed[0];
  seedl[1]=_seed[1];
+#ifndef G4MULTITHREADED
  HepRandom::setTheSeeds(seedl);
+#else
+ G4MTHepRandom::setTheSeeds(seedl);
+#endif
 }
 else{
 #endif
@@ -1968,7 +1986,7 @@ void orbit::UpdateAxis(number vt, number vp, number t, number p){
 
 #ifdef __G4AMS__
 #include "geant4.h"
-  void AMSmceventg::runG4(integer ipart){
+  void AMSmceventg::runG4( AMSG4GeneratorInterface* gen,integer ipart){
   if(ipart){
    init(ipart);
     do{
@@ -1985,19 +2003,24 @@ void orbit::UpdateAxis(number vt, number vp, number t, number p){
     // Set seed
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){
+#ifndef G4MULTITHREADED
 _seed[0]=HepRandom::getTheSeeds()[0];
 _seed[1]=HepRandom::getTheSeeds()[1];
+#else
+_seed[0]=G4MTHepRandom::getTheSeeds()[0];
+_seed[1]=G4MTHepRandom::getTheSeeds()[1];
+#endif
 }
 else
 #endif
    GRNDMQ(_seed[0],_seed[1],0,"G");
 // cout <<"seed[ "<<_seed[0]<<" "<<_seed[1]<<endl;
 // cout <<_coo<<" "<<_dir<<endl;
-   AMSJob::gethead()->getg4generator()->SetParticleGun(_ipart,_mom,_coo,_dir);
+   gen->SetParticleGun(_ipart,_mom,_coo,_dir);
   }
   else{
    if(acceptio()){
-    AMSJob::gethead()->getg4generator()->SetParticleGun(_ipart,_mom,_coo,_dir);
+    gen->SetParticleGun(_ipart,_mom,_coo,_dir);
    }   
   }
 }
@@ -2287,8 +2310,13 @@ if(!MISCFFKEY.G3On){
 #else
 if(IOPA.VMCVersion==2){
 #endif
+#ifndef G4MULTITHREADED
 GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
 GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+#else
+GCFLAG.NRNDM[0]=G4MTHepRandom::getTheSeeds()[0];
+GCFLAG.NRNDM[1]=G4MTHepRandom::getTheSeeds()[1];
+#endif
 }
 else
 #endif
@@ -2314,7 +2342,11 @@ if(IOPA.VMCVersion==2){
  long seedl[3]={0,0,0};
  seedl[0]=GCFLAG.NRNDM[0];
  seedl[1]=GCFLAG.NRNDM[1];
+#ifndef G4MULTITHREADED
  HepRandom::setTheSeeds(seedl);
+#else
+ G4MTHepRandom::setTheSeeds(seedl);
+#endif
 }
 else
 #endif
@@ -2330,7 +2362,11 @@ if(!MISCFFKEY.G3On){
 #else
 if(IOPA.VMCVersion==2){
 #endif
+#ifndef G4MULTITHREADED
  HepRandom::setTheSeed(seed);
+#else
+ G4MTHepRandom::setTheSeed(seed);
+#endif
 }
 else{
 #endif

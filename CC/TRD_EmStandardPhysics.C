@@ -1,5 +1,5 @@
 
-// $Id: TRD_EmStandardPhysics.C,v 1.2 2010/11/14 20:17:46 mdelgado Exp $
+// $Id$
 
 #include "TRD_EmStandardPhysics.hh"
 
@@ -9,7 +9,7 @@
 #include "TG4GeometryServices.h"
 #include "TG4GeometryManager.h"
 #include "G4LogicalVolumeStore.hh"
-#include "G4RunManager.hh"
+//#include "G4RunManager.hh"
 
 #include "G4ParticleDefinition.hh"
 #include "G4ProcessManager.hh"

@@ -1,6 +1,6 @@
 #include "TRD_TrdPhysics.hh"
 //#include "TRD_DetecorConstruction.hh"
-#include "G4RunManager.hh"
+//#include "G4RunManager.hh"
 #include "TRD_GammaXTRadiator.hh"
 #include "G4Gamma.hh"
 #include "G4Electron.hh"
