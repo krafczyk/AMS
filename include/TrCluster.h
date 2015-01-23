@@ -341,7 +341,7 @@ class TrClusterR :public TrElem{
   /// Get track charge (used for optimization of the track fitting) 
   float GetQtrk() { return _qtrk; }
   /// Set track charge (used for optimization of the track fitting)  
-  float SetQtrk(float q) { _qtrk = q; }
+  void SetQtrk(float q) { _qtrk = q; }
 
   /// chek some bits into cluster status
   uinteger checkstatus(integer checker) const { return Status & checker; }
