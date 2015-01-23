@@ -10,7 +10,10 @@
 #else
 #define mipsFortran
 #endif
+
+#ifndef __CINT__
 #include "cfortran.h"
+#endif
 
 //########################################################
 // WARNING do not touch the order of the variables unless 

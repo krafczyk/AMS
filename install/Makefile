@@ -73,7 +73,7 @@ endif
 endif
 endif
 
-ROOTINCDIR := $(shell root-config --incdir)
+ROOTINCDIR := $(shell $(ROOTSYS)/bin/root-config --incdir)
 
 #
 
