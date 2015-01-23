@@ -45,7 +45,7 @@
 #include "Tofsim02.h"
 #include "g4tof.h"
 #include "g4rich.h"
-#ifndef G4MULTITHREADED
+#ifdef G4MULTITHREADED
 #include "G4MTHepRandom.hh"
 #endif
 #ifdef G4VIS_USE
@@ -127,9 +127,9 @@ G4MTHepRandom::setTheSeeds(seed);
      pph->DumpCutValuesTable();
 
 
-
+#if G4VERSION_NUMBER  > 999
      pmgr->SetUserInitialization(new AMSG4ActionInitialization(CCFFKEY.npat));
-/*
+#else
      AMSG4GeneratorInterface* ppg=new AMSG4GeneratorInterface(CCFFKEY.npat);
      AMSJob::gethead()->getg4generator()=ppg;
      pmgr->SetUserAction(ppg);
@@ -138,7 +138,7 @@ G4MTHepRandom::setTheSeeds(seed);
      pmgr->SetUserAction(new AMSG4SteppingAction);
      pmgr->SetUserAction(new AMSG4StackingAction);
 //    pmgr->SetUserAction(new AMSG4RunAction);
-*/
+#endif
 
 #ifdef G4VIS_USE
    AMSG4VisManager::create();
@@ -1962,6 +1962,7 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
   }
 }
 
+#if G4VERSION_NUMBER  > 999
 
 AMSG4ActionInitialization::AMSG4ActionInitialization(int npart)
  : G4VUserActionInitialization(),_npart(npart)
@@ -1990,3 +1991,4 @@ void AMSG4ActionInitialization::Build() const
   SetUserAction(new AMSG4SteppingAction);
   SetUserAction(new AMSG4StackingAction);
 }
+#endif

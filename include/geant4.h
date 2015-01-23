@@ -174,7 +174,8 @@ public:
     virtual void PrepareNewEvent(){};
 
 };
-
+#include "G4Version.hh"
+#if G4VERSION_NUMBER  > 999 
 #include "G4VUserActionInitialization.hh"
 class AMSG4ActionInitialization: public G4VUserActionInitialization{
 
@@ -186,5 +187,6 @@ class AMSG4ActionInitialization: public G4VUserActionInitialization{
     virtual void Build() const;
 
 };
+#endif
 #endif
 
