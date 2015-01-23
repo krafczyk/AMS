@@ -1269,7 +1269,7 @@ std::string TrTrackR::_PrepareOutput(int full )
 
 
 
-double TrTrackR::Interpolate(const double zpl, AMSPoint &pnt, 
+double TrTrackR::Interpolate(double zpl, AMSPoint &pnt, 
                                AMSDir &dir, int id2) const
 {
   int id=id2;
@@ -1363,7 +1363,7 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
   // return tprop.Interpolate(pnt, dir);
 }
 
-void TrTrackR::Interpolate(const int nz, const double *zpl, 
+void TrTrackR::Interpolate(int nz, double *zpl, 
                              AMSPoint *pvec, AMSDir *dvec, double *lvec,
                              int id2) const
 {
