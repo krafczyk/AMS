@@ -15,7 +15,6 @@
 #include "TrEDepDB.h"
 #include "TrMipDB.h"
 #include "TrLinearDB.h"
-#include "tkdcards.h"
 
 #include "edep.h"
 #include "amsdbc.h"
