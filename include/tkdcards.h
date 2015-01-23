@@ -430,9 +430,12 @@ public:
   //! I 75 BuildTrTracksSimple: Allow Yonly tracks, to be used TTCS-off runs
   int   AllowYonlyTracks;
 
+  //! I 76 0: do not use, 1: use always, 2: use only with 2.5 < Qtrk < 12.5
+  int   UseNonLinearity;
+
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,7);
+  ClassDef(TRCLFFKEY_DEF,8);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
