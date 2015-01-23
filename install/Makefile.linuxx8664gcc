@@ -188,6 +188,10 @@ else
   DEFINES+=  -D__LINUXGNU__
 endif
 
+ifdef NOUPDATEABLEMAPDIR
+  DEFINES += -DNOUPDATEABLEMAPDIR
+endif
+
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
 CFLAGSB= -Wall -Wno-missing-braces -Wno-strict-aliasing -Wno-unused-function -Wno-unknown-pragmas -Wno-deprecated -Wno-write-strings  -fPIC 

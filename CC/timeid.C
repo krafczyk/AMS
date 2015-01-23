@@ -1631,6 +1631,7 @@ map_dir+='/';
 
 bool AMSTimeID::setupdateablemapdir(const char *dir){
 
+#ifndef NOUPDATEABLEMAPDIR
             if(_updateable==-1){
              string mkdir="mkdir -p ";
              mkdir+=dir;
@@ -1653,4 +1654,9 @@ bool AMSTimeID::setupdateablemapdir(const char *dir){
             }
 
            return _updateable==1; 
+#else
+	   _updateable=0;
+ 	   cerr <<"AMSTimeID::setupdateablemapdir-W-Unable to initialize map dir "<<file<< " because updateable map dirs are turned off." << endl; 
+	   return false;
+#endif
 }
