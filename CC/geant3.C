@@ -965,7 +965,7 @@ omp_set_dynamic(MISCFFKEY.DynThreads);
 #endif
 
 #ifdef _OPENMP
-const int maxt=32;
+const int maxt=264;
 long long ia[maxt*16];
 int nchunk=(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs())*MISCFFKEY.ChunkThreads;        
 if(MISCFFKEY.DivideBy)AMSFFKEY.CpuLimit=cpulimit*(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs());
