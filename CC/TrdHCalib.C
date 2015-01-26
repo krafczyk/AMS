@@ -10,6 +10,7 @@ TrdHCalibR *TrdHCalibR::head=0;
 float TrdHCalibR::tube_gain[6064];
 
 void TrdHCalibR::update_medians(TrdHTrackR* track,int version,int opt,float beta,float corr,int debug){
+	printf("TrdHCalibR::update_medians(TrdHTrackR* track,int version,int opt,float beta,float corr,int debug) - Begin\n");
 #pragma omp critical (trdmed)
   {
     int tubeid;
@@ -76,6 +77,7 @@ void TrdHCalibR::update_medians(TrdHTrackR* track,int version,int opt,float beta
 }
 
 void TrdHCalibR::init_calibration(float start_value){
+	printf("TrdHCalibR::init_calibration(float start_value) - Begin\n");
   calibrate=true;
 
   det_median=start_value;
@@ -89,12 +91,14 @@ void TrdHCalibR::init_calibration(float start_value){
 }
 
 float TrdHCalibR::MeanOccupancy(int opt){
+	printf("TrdHCalibR::MeanOccupancy(int opt) - Begin\n");
   float sum=0.;
   for(int i=0;i<5248;i++)sum+=tube_occupancy[i];
   return sum/5248.;
 }
 
 float TrdHCalibR::MeanGaussMedian(int opt){
+	printf("TrdHCalibR::MeanGaussMedian(int opt) - Begin\n");
   TH1F h("h_gain","",100,0.,120.);
   for(int i=0;i<5248;i++){
     int mod=i/16;
@@ -110,6 +114,7 @@ float TrdHCalibR::MeanGaussMedian(int opt){
 }
 
 float TrdHCalibR::MeanGaussGain(int opt){
+	printf("TrdHCalibR::MeanGaussGain(int opt) - Begin\n");
   TH1F h("h_gain","",100,0.,3.);
 
   for(int i=0;i<5248;i++){
@@ -133,6 +138,7 @@ float TrdHCalibR::MeanGaussGain(int opt){
 }
 
 int TrdHCalibR::FillMedianFromTDV(int debug){
+	printf("TrdHCalibR::FillMedianFromTDV(int debug) - Begin\n");
   bool toReturn = true;
   
   norm_mop=tube_gain[5788];
@@ -144,6 +150,8 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
     det_median=norm_mop;
   
   if(debug)cout<<"TrdHCalibR::FillMedianFromTDV-I-DET median "<<det_median<<" (in TDV "<<tube_gain[5789]<<")"<<endl;
+
+  exit(-1);
   
   // manifold median stored in tdv array
   for(int i=0;i<10;i++){
@@ -197,6 +205,7 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
 }
 
 int TrdHCalibR::FillTDVFromMedian(int debug){
+	printf("TrdHCalibR::FillTDVFromMedian(int debug) - Begin\n");
   tube_gain[5788]=norm_mop;
   tube_gain[5789]=det_median;
   for(int i=0;i<10;i++)tube_gain[5790+i]=mf_medians[i];
@@ -223,6 +232,7 @@ int TrdHCalibR::FillTDVFromMedian(int debug){
 
 
 bool TrdHCalibR::closeTDV(){
+	printf("TrdHCalibR::closeTDV() - Begin\n");
   lastrun=0;
   for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++){
     delete it->second;
@@ -232,6 +242,7 @@ bool TrdHCalibR::closeTDV(){
 }
 
 bool TrdHCalibR::readTDV(unsigned int t, int debug){
+	printf("TrdHCalibR::readTDV(unsigned int t, int debug) - Begin\n");
   time_t thistime=(time_t)t;
 
   bool ok=true;
@@ -258,6 +269,7 @@ bool TrdHCalibR::readTDV(unsigned int t, int debug){
 }
 
 bool TrdHCalibR::readSpecificTDV(string which,unsigned int t, int debug){
+	printf("TrdHCalibR::readSpecificTDV(string which,unsigned int t, int debug) - Begin\n");
   time_t thistime=(time_t)t;
   for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
     if(it->first==which){
@@ -272,6 +284,7 @@ bool TrdHCalibR::readSpecificTDV(string which,unsigned int t, int debug){
 }
 
 bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,const char* tempdirname){
+	printf("TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,const char* tempdirname) - Begin\n");
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
@@ -337,6 +350,7 @@ bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,cons
 }
 
 bool TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,const char * tempdirname){
+	printf("TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,const char * tempdirname) - Begin\n");
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
@@ -370,6 +384,7 @@ bool TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int 
 }
 
 bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,const char * tempdirname){
+	printf("TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,const char * tempdirname) - Begin\n");
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
@@ -401,6 +416,7 @@ bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsign
 
 // write calibration to TDV
 int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, const char * tempdirname){
+	printf("TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, const char * tempdirname) - Begin\n");
   if( int nchan=FillTDVFromMedian() ){
     cerr<<"TrdHCalibR::writeTDV-W-Number of low occupancy channls "<<nchan<<endl;
   }
@@ -451,6 +467,7 @@ int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, co
 };
 
 int TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int bgtime, unsigned int edtime, int debug, const char * tempdirname){
+	printf("TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int bgtime, unsigned int edtime, int debug, const char * tempdirname) - Begin\n");
   if( int nchan=FillTDVFromMedian() ){
     cerr<<"TrdHCalibR::writeTDV-W-Number of low occupancy channls"<<nchan<<endl;
     //    return 2;
@@ -494,6 +511,7 @@ int TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int b
 
 
 void TrdHCalibR::GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid){
+	printf("TrdHCalibR::GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid) - Begin\n");
   if(layer>3)ladder+=14;
   if(layer>7)ladder+=16;
   if(layer>11)ladder+=16;
@@ -503,6 +521,7 @@ void TrdHCalibR::GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid){
 }
 
 void GetLLTfromTDV(int &layer, int &ladder, int &tube,int idsoft){
+	printf("void GetLLTfromTDV(int &layer, int &ladder, int &tube,int idsoft) - Begin\n");
   tube=(idsoft-1)%16;
   ladder=((idsoft-1)/16)%18;
   layer=((idsoft-1)/16/18)%20;
@@ -510,6 +529,7 @@ void GetLLTfromTDV(int &layer, int &ladder, int &tube,int idsoft){
 
 
 void TrdHCalibR::GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid){
+	printf("TrdHCalibR::GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid) - Begin\n");
   tube=tubeid%16;
   int hvid=tubeid/64;
   layer=tubeid%64/16;
@@ -525,6 +545,7 @@ const float par[4]={3.85478e+01,5.26885e-01,8.08710e-02,2.42610e+01};
 const float path_pol3[4]={66.4444,-43.7317,10.9122,-0.575106};
 
 float TrdHCalibR::PathParametrization(float path,int opt,int debug){
+	printf("TrdHCalibR::PathParametrization(float path,int opt,int debug) - Begin\n");
   if(opt==1)return par[0]/(1+exp((par[1]-path)/par[2]))+par[3];
   else{
     float val=0.;
@@ -536,6 +557,7 @@ float TrdHCalibR::PathParametrization(float path,int opt,int debug){
 const double betapar[7]={1.94728e+01,-5.96794e+00,1.58489e-02,9.52168e-03,8.18354e+01,6.00944e+00,1.54202e+03};
 const double betapar_pol4[5]={9161.75,-35936.6,53297.3,-35295.1,8828.5};
 float TrdHCalibR::BetaParametrization(float beta,int opt,int debug){
+	printf("TrdHCalibR::BetaParametrization(float beta,int opt,int debug) - Begin\n");
   if(opt==1){
     double x=beta/sqrt(1-beta*beta);//log10(betagamma)
     return betapar[0]*pow((1+1/x/x),betapar[1])*(pow(fabs(log(betapar[2]*x*x)),betapar[3])+betapar[4]*pow(1+1/x/x,betapar[5])) - betapar[6];
@@ -548,6 +570,7 @@ float TrdHCalibR::BetaParametrization(float beta,int opt,int debug){
 }
 
 float TrdHCalibR::GetBetaCorr(double beta, double tobeta, int opt,int debug){
+	printf("TrdHCalibR::GetBetaCorr(double beta, double tobeta, int opt,int debug) - Begin\n");
   double toReturn=0;
   if(fabs(beta)>0.95)toReturn=1.;
   else if (fabs(beta)<0.5)toReturn =0.;
@@ -559,12 +582,14 @@ float TrdHCalibR::GetBetaCorr(double beta, double tobeta, int opt,int debug){
 }
 
 float TrdHCalibR::GetBetaGammaCorr(double betagamma,double dE, int opt,int debug){
+	printf("TrdHCalibR::GetBetaGammaCorr(double betagamma,double dE, int opt,int debug) - Begin\n");
   double toReturn=pow(bgcorr(log10(betagamma),dE),0.9);//remove slight overcorrection
   if(debug)cout<<"TrdHCalibR::GetBetaGammaCorr-I-bg "<<betagamma<<" dE "<< dE <<" correction "<< toReturn <<endl;
   return toReturn;
 }
 
 float TrdHCalibR::GetPathCorr(float path, float val,int opt,int debug){
+	printf("TrdHCalibR::GetPathCorr(float path, float val,int opt,int debug) - Begin\n");
   if(opt==3)
     return pathcorr(path,val);
 
@@ -579,11 +604,13 @@ float TrdHCalibR::GetPathCorr(float path, float val,int opt,int debug){
 
 
 unsigned int TrdHCalibR::GetStatus(TrdRawHitR* hit,int opt, int debug){
+	printf("TrdHCalibR::GetStatus(TrdRawHitR* hit,int opt, int debug) - Begin\n");
   if(!hit)cerr<<"TrdHCalibR::GetStatus-W-hit not found"<<endl;
   return GetStatus(hit->Layer,hit->Ladder,hit->Tube,opt,debug);
 }
 
 unsigned int TrdHCalibR::GetStatus(int layer, int ladder, int tube,int opt,int debug){
+	printf("TrdHCalibR::GetStatus(int layer, int ladder, int tube,int opt,int debug) - Begin\n");
   //  int ntdv=layer*18*16+ladder*16+tube;
   int ntdv=GetNTDV(layer,ladder,tube);
   if(debug)cout<<"TrdHCalibR::GetStatus-I-hit "<<layer<<""<<ladder<<""<<tube<<" - tdvid "<<ntdv<<endl;
@@ -619,11 +646,13 @@ unsigned int TrdHCalibR::GetStatus(int layer, int ladder, int tube,int opt,int d
 }
 
 float TrdHCalibR::GetGainCorr(TrdRawHitR* hit,int opt, int debug){
+	printf("TrdHCalibR::GetGainCorr(TrdRawHitR* hit,int opt, int debug) - Begin\n");
   if(!hit)cerr<<"TrdHCalibR::GetGainCorr-W-hit not found"<<endl;
   return GetGainCorr(hit->Layer,hit->Ladder,hit->Tube,opt,debug);
 }
 
 float TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug){
+	printf("TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug) - Begin\n");
   int ntdv=GetNTDV(layer,ladder,tube);
   int tubeid;
   GetTubeIdFromLLT(layer,ladder,tube,tubeid);
@@ -707,6 +736,7 @@ static int mnf7_4[4]={1 ,14,20,36};
 static int mnf7_5[4]={0 ,18,31,34};
 
 int TrdHCalibR::GetManifold(int gascirc){
+	printf("TrdHCalibR::GetManifold(int gascirc) - Begin\n");
   if(gascirc==33)
     return 7;
   else{
@@ -735,6 +765,7 @@ static int gc_lefttoparr [13]={0, 4, 5, 6,24,25,26,28,30,-1,-1,-1,-1};
 static int gc_righttoparr[13]={1, 2, 3,23,27,29,31,-1,-1,-1,-1,-1,-1};
 
 int TrdHCalibR::GetInletGeom(int gascirc){
+	printf("TrdHCalibR::GetInletGeom(int gascirc) - Begin\n");
   int inletgeom=-1;
   for(int i=0;i!=13;i++){
     if(gc_leftbotarr[i]==gascirc){
@@ -762,6 +793,7 @@ int TrdHCalibR::GetInletGeom(int gascirc){
 }
 
 void TrdHCalibR::LLT2GCM(int layer, int ladder, int &gascirc_, int &gasmod){
+	printf("TrdHCalibR::LLT2GCM(int layer, int ladder, int &gascirc_, int &gasmod) - Begin\n");
   int templadder=ladder;
   if(layer>3)templadder+=14;
   if(layer>7)templadder+=16;
@@ -807,6 +839,7 @@ void TrdHCalibR::LLT2GCM(int layer, int ladder, int &gascirc_, int &gasmod){
 }
 
 int TrdHCalibR::DynamicCalibration(AMSEventR *pev, int opt){
+	printf("TrdHCalibR::DynamicCalibration(AMSEventR *pev, int opt) - Begin\n");
 
   if(pev->nLevel1()!=1)return 0;
   int n=0;
@@ -898,6 +931,7 @@ int TrdHCalibR::DynamicCalibration(AMSEventR *pev, int opt){
 }
 
 int TrdHCalibR::GetNTDV(int tubeid){
+	printf("TrdHCalibR::GetNTDV(int tubeid) - Begin\n");
   if(tubeid<0||tubeid>5247){
     cerr<<"TrdHCalibR::GetNTDV-E-undefined tube id "<<tubeid<<endl;
     return -1;
@@ -908,6 +942,7 @@ int TrdHCalibR::GetNTDV(int tubeid){
 }
 
 int TrdHCalibR::GetNTDV(TrdRawHitR* hit){
+	printf("TrdHCalibR::GetNTDV(TrdRawHitR* hit) - Begin\n");
   if(!hit){
     cerr<<"TrdHCalibR::GetNTDV-E-hit poiter not found "<<hit<<endl;
     return -1;
@@ -916,6 +951,7 @@ int TrdHCalibR::GetNTDV(TrdRawHitR* hit){
 }
 
 int TrdHCalibR::GetNTDV(int layer, int ladder, int tube){
+	printf("TrdHCalibR::GetNTDV(int layer, int ladder, int tube) - Begin\n");
   if(layer<0||layer>19)
     cerr<<"TrdHCalibR::GetNTDV-F-undefined layer "<<layer<<endl;
   
@@ -929,28 +965,33 @@ int TrdHCalibR::GetNTDV(int layer, int ladder, int tube){
 }
 
 double TrdHCalibR::GraphXmax(TGraph *g){
+	printf("TrdHCalibR::GraphXmax(TGraph *g) - Begin\n");
   double xmax=-1.e6;
   for(int i=0;i<g->GetN();i++)
     if(g->GetX()[i]>xmax)xmax=g->GetX()[i];
   return xmax;
 }
 double TrdHCalibR::bgval(float x,float dE){
+	printf("TrdHCalibR::bgval(float x,float dE) - Begin\n");
   //  if(x>s_bg_p0->GetXmax())x=s_bg_p0->GetXmax();
   //  if(x>GraphXmax(s_bg_p0))x=GraphXmax(s_bg_p0);
   return s_bg_p0->Eval(x)+s_bg_p1->Eval(x)*dE+s_bg_p2->Eval(x)*dE*dE;
 }
 double TrdHCalibR::bgcorr(float x,float dE){
+	printf("TrdHCalibR::bgcorr(float x,float dE) - Begin\n");
   return bgval(x,dE)/dE;
   //  return dE/bgval(x,dE);
 }
 
 TF1 *TrdHCalibR::bgfunc(float x){
+	printf("TrdHCalibR::bgfunc(float x) - Begin\n");
   TF1 *f=new TF1("f","val([0],x)");
   f->SetParameter(1,x);
   return f;
 }
 
 int TrdHCalibR::bgmap(const char *fname){
+	printf("TrdHCalibR::bgmap(const char *fname) - Begin\n");
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
@@ -995,6 +1036,7 @@ int TrdHCalibR::bgmap(const char *fname){
 }
 
 int TrdHCalibR::bgmap(int opt){
+	printf("TrdHCalibR::bgmap(int opt) - Begin\n");
   double xarr[27];
   double p0arr[27];
   double p1arr[27];
@@ -1042,21 +1084,25 @@ int TrdHCalibR::bgmap(int opt){
 }
 
 double TrdHCalibR::pathval(float x,float dE){
+	printf("TrdHCalibR::pathval(float x,float dE) - Begin\n");
   //  if(x>GraphXmax(s_path_p0))x=GraphXmax(s_path_p0);
   return s_path_p0->Eval(x)+s_path_p1->Eval(x)*dE+s_path_p2->Eval(x)*dE*dE+s_path_p3->Eval(x)*sqrt(dE);
 }
 
 double TrdHCalibR::pathcorr(float x,float dE){
+	printf("TrdHCalibR::pathcorr\n");
   return pathval(x,dE)/dE;
 }
 
 TF1 *TrdHCalibR::pathfunc(float x){
+	printf("TrdHCalibR::pathfunc\n");
   TF1 *f=new TF1("f","[0]+[1]*x+[2]*x*x+[3]*TMath::Sqrt(x)");
   f->SetParameters(s_path_p0->Eval(x),s_path_p1->Eval(x),s_path_p2->Eval(x),s_path_p3->Eval(x));
   return f;
 }
 
 int TrdHCalibR::pathmap(const char *fname){
+	printf("TrdHCalibR::pathmap(const char *fname) - Begin\n");
   FILE *file;
   file=fopen(fname,"r");
   if(!file)return 1;
@@ -1106,6 +1152,7 @@ int TrdHCalibR::pathmap(const char *fname){
 }
 
 int TrdHCalibR::pathmap(int opt){
+	printf("TrdHCalibR::pathmap\n");
 
   double xarr[69];
   double p0arr[69];
@@ -1214,6 +1261,7 @@ int TrdHCalibR::pathmap(int opt){
 }
 
 int TrdHCalibR::Initialize(AMSEventR* pev,const char *databasedir){
+  printf("TrdHCalibR::Initialize\n");
   if(lastrun!=pev->Run()){
     int bgntime=pev->Run();
     int endtime=pev->Run()+10;
@@ -1293,6 +1341,7 @@ int TrdHCalibR::Initialize(AMSEventR* pev,const char *databasedir){
 }
 
 float TrdHCalibR::additional_modcorr(int mod){
+	printf("TrdHCalibR::additional_modcorr - Begin\n");
   if(mod<0||mod>327)return 0.;
   TGraphErrors *gre=g_additional_modcorr;
   if(!g_additional_modcorr){
@@ -1970,6 +2019,7 @@ float TrdHCalibR::additional_modcorr(int mod){
 }
 
 float TrdHCalibR::bgcorr_helium(float bg){
+	printf("TrdHCalibR::bgcorr_helium - Begin\n");
   if(!g_bgcorr_helium){
     g_bgcorr_helium=new TGraphErrors(26);
     g_bgcorr_helium->SetPoint(0,-0.05,380.363*1.15);
@@ -2026,6 +2076,7 @@ float TrdHCalibR::bgcorr_helium(float bg){
     g_bgcorr_helium->SetPointError(25,0,2675.14);
   }  
 
+printf("TrdHCalibR::bgcorr_helium - End\n");
   return g_bgcorr_helium->Eval(0.445)/g_bgcorr_helium->Eval(bg);
 }
 

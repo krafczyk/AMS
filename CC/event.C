@@ -266,7 +266,7 @@ if(AMSEvent::get_thread_num()==0)
     
     TrdHChargeR::gethead()->FillPDFsFromTDV();
     for(int i=0;i<6064;i++)TrdHCalibR::gethead()->tube_gain[i]=AMSTRDIdSoft::_gain[i];
-    TrdHCalibR::gethead()->FillMedianFromTDV();
+    TrdHCalibR::gethead()->FillMedianFromTDV(1);
   }
 
    cout <<" AMS-I-New Run "<<_run<<endl;

@@ -111,6 +111,7 @@ class TrdHCalibR{
   
   /// default ctor
   TrdHCalibR(){
+    printf("TrdHCalibR::TrdHCalibR - CTOR called!\n");
     norm_mop=49.;
     min_occupancy=50;
     calibrate=0;
