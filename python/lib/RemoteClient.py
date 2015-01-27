@@ -1135,7 +1135,7 @@ class RemoteClient:
                                 events=ntuple.EventNumber
                                 status="OK"
                                 rcp=1
-                                if( not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
+                                if( not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0 and fpath.find('/eosams/')<0):
                                         # try to copy to local dir
                                         parser=str(ntuple.Name).split(':')
                                         if(len(parser)>1):
@@ -1168,7 +1168,7 @@ class RemoteClient:
                                                else:
                                                    cmd="ssh -x -2 "+host+" rm "+fpath
                                                    rmcmd.append(cmd)
-                                        if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
+                                        if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0 and fpath.find('/eosams/')<0):
                                             print "unable to open file ",fpath
                                 retcrc=self.calculateCRC(fpath,ntuple.crc)
                                 if(retcrc !=1):
@@ -1303,11 +1303,15 @@ class RemoteClient:
                             self.sqlserver.Update(sql)
                         for ntuple in cpntuples:
                             cmd="rm "+ntuple
-                            rmpath=ntuple.split('/')
                             rmdir="rm -r "
                             if(ntuple.find('/castor/cern.ch')>=0):
                                 cmd="rfrm "+ntuple;
                                 rmdir="nsrmdir  "
+                            if(ntuple.find('/eosams/')>=0):
+                                ntuple = self.eosLink2Real(ntuple)
+                                cmd="%s rm %s" %(self.eosselect, ntuple)
+                                rmdir="%s rmdir  " %(self.eosselect)
+                            rmpath=ntuple.split('/')
                             for i in range (1,len(rmpath)-1):
                                 rmdir=rmdir+"/"+rmpath[i]
                             for mn in mvntuples:
@@ -1466,7 +1470,7 @@ class RemoteClient:
                                 events=ntuple.EventNumber
                                 status="OK"
                                 rcp=1
-                                if( not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
+                                if( not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0 and fpath.find('/eosams/')<0):
                                         # try to copy to local dir
                                         parser=str(ntuple.Name).split(':')
                                         if(len(parser)>1):
@@ -1499,7 +1503,7 @@ class RemoteClient:
                                                else:
                                                    cmd="ssh -x -2 "+host+" rm "+fpath
                                                    rmcmd.append(cmd)
-                                        if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
+                                        if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0 and fpath.find('/eosams/')<0):
                                             print "unable to open file ",fpath
                                 retcrc=self.calculateCRC(fpath,ntuple.crc)
                                 if(retcrc !=1):
@@ -1633,11 +1637,15 @@ class RemoteClient:
                             self.sqlserver.Update(sql)
                         for ntuple in cpntuples:
                             cmd="rm "+ntuple
-                            rmpath=ntuple.split('/')
                             rmdir="rm -r "
                             if(ntuple.find('/castor/cern.ch')>=0):
                                 cmd="rfrm "+ntuple;
                                 rmdir="nsrmdir  "
+                            if(ntuple.find('/eosams/')>=0):
+                                ntuple = self.eosLink2Real(ntuple)
+                                cmd="%s rm %s" %(self.eosselect, ntuple)
+                                rmdir="%s rmdir  " %(self.eosselect)
+                            rmpath=ntuple.split('/')
                             for i in range (1,len(rmpath)-1):
                                 rmdir=rmdir+"/"+rmpath[i]
                             for mn in mvntuples:
@@ -1715,7 +1723,7 @@ class RemoteClient:
        junk=inputfile.split('/')
        file=junk[len(junk)-1]
        filesize=1
-       if(inputfile.find('/castor/cern.ch')<0):
+       if(inputfile.find('/castor/cern.ch')<0 and inputfile.find('/eosams/')<0):
            try:
                filesize=os.stat(inputfile)[ST_SIZE]
            except:
@@ -2017,7 +2025,7 @@ class RemoteClient:
         # try eos if self.eos is set
         if (self.eos):
             gb, eosmounted = self.checkEOS()
-            if (gb > self.eosreservegb and eosmounted):
+            if (gb > self.eosreservegb):
                 outputpath = "%s%s/%s" %(self.eoslink, path, period)
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
@@ -2118,14 +2126,14 @@ class RemoteClient:
         if (quota['statusbytes'] == 'ok' and quota['statusfiles'] == 'ok'):
 #            print (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
 #            print "Testing write-in"
-            ret = os.system("touch /eosams/test && date >> /eosams/test")
-            if (ret):
-                os.system("ls -l /eosams/")
-                return -2, os.path.exists(self.eoslink)
+#            ret = os.system("touch /eosams/test && date >> /eosams/test")
+#            if (ret):
+#                os.system("ls -l /eosams/")
+#                return -2, os.path.exists(self.eoslink)
 #            print "Testing readout"
-            pair=commands.getstatusoutput("cat /eosams/test")
-            if (pair[0]):
-                return -3, os.path.exists(self.eoslink)
+#            pair=commands.getstatusoutput("cat /eosams/test")
+#            if (pair[0]):
+#                return -3, os.path.exists(self.eoslink)
 #            print pair
 #            print "Testing remove"
 #            pair=commands.getstatusoutput("rm -v /eosams/test")
@@ -2531,6 +2539,8 @@ class RemoteClient:
                 prefix="rfio:"
             else:
                 prefix=""   
+            if(fname.find('/eosams/')==0):
+                fname = self.eosLink2Xrootd(fname)
             validatecmd="/exe/linux/fastntrd64.exe %s%s %d %d %d " %(prefix,fname,nevents,dtype,levent)
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
@@ -3717,6 +3727,8 @@ class RemoteClient:
                             self.sqlserver.Commit(1)
                     for ntuple in cpntuples:
                         cmd = self.rm + ntuple
+                        if (ntuple.find('/eosams/') == 0):
+                            cmd = "%s rm %s" %(self.eosselect, eosLink2Real(ntuple))
                         output.write(cmd + "\n")
                         os.system(cmd)
                         output.write("Validation done : system command %s \n" %(cmd))
@@ -3730,6 +3742,8 @@ class RemoteClient:
                 self.BadRuns[self.nCheckedCite] += 1
                 for ntuple in mvntuples:
                     cmd = "%s %s" %(self.rm, ntuple)
+                    if (ntuple.find('/eosams/') == 0):
+                        cmd = "%s rm %s" %(self.eosselect, eosLink2Real(ntuple))
                     output.write("Validation failed : system command %s \n" %(cmd))
                     output.write(cmd + "\n")
                     os.system(cmd)
