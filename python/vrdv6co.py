@@ -20,6 +20,7 @@ u=0
 mt=0
 force=0
 eos=0
+skipcrc=0
 #u =1 for reverse unchecked runs to tobererun & deleting ntuples
 
 for x in sys.argv:
@@ -33,6 +34,7 @@ for x in sys.argv:
     elif x == "-localdel": localdel=1
     elif x == "-force": force=1
     elif x == "-eos": eos=1
+    elif x == "-skipcrc": skipcrc=1
     elif x[0:3] == "-mt":
         mt=1
         if(len(x)>3):
@@ -50,6 +52,6 @@ html.ConnectDB(1)
 if(castorcopy and localdel):
     castorcopy=-1
 if(html.ServerConnect(2)):
-    html.ValidateRuns(run2p,i,v,d,h,b,u,mt,1,force,0,1,castorcopy,eos)
+    html.ValidateRuns(run2p,i,v,d,h,b,u,mt,1,force,0,1,castorcopy,eos,skipcrc)
 
 

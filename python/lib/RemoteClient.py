@@ -639,7 +639,7 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0,castoronly=0,castorcopy=0,eos=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0,castoronly=0,castorcopy=0,eos=0,skipcrc=0):
         self.s=""
         self.castorcopy=castorcopy
         self.castoronly=castoronly
@@ -654,6 +654,7 @@ class RemoteClient:
         self.gbDST=0
         self.run2p=run2p
         self.eos=eos
+        self.skipcrc=skipcrc
         timenow=int(time.time())
         global rflag
         rglag=0
@@ -1220,7 +1221,11 @@ class RemoteClient:
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
                                                         self.nBadCopiesInRow=0
-                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.Run,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,castortime,run.DataMC)
+                                                        if (self.skipcrc):
+                                                            crctime = 0
+                                                        else:
+                                                            crctime = ntuple.Insert
+                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.Run,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,crctime,1,castortime,run.DataMC)
                                                         output.write("insert %d %s %s %d" %(run.Run, outputpath, status,int(ntuple.size)))
                                                         self.copied=self.copied+1
                                                         self.gbDST=self.gbDST+ntuple.size
@@ -1559,7 +1564,11 @@ class RemoteClient:
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
                                                         self.nBadCopiesInRow=0
-                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.uid,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,castortime,run.DataMC)
+                                                        if (self.skipcrc):
+                                                            crctime = 0
+                                                        else:
+                                                            crctime = ntuple.Insert
+                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.uid,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,crctime,1,castortime,run.DataMC)
                                                         output.write("insert %d %s %s %d" %(run.Run, outputpath, status,int(ntuple.size)))
                                                         self.copied=self.copied+1
                                                         self.gbDST=self.gbDST+ntuple.size
@@ -2688,6 +2697,8 @@ class RemoteClient:
 
       
     def calculateCRC(self,filename,crc):
+        if (self.skipcrc):
+            return 1
         self.crcCalls=self.crcCalls+1
         time0=time.time()
         if (filename.find('/eosams/') == 0):
@@ -3613,7 +3624,11 @@ class RemoteClient:
                                                 print " %s failed" %(rfcp)
                                             else:
                                                 castortime = int(time.time())
-                                        self.InsertNtuple(run, version, nttype, jobid, dstfevent, dstlevent, ntevents, badevents, timestamp, dstsize, ntstatus, outputpath, ntcrc, timestamp, 1, castortime, runtype%2, feti, leti)
+                                        if (self.skipcrc):
+                                            crctime = 0
+                                        else:
+                                            crctime = timestamp
+                                        self.InsertNtuple(run, version, nttype, jobid, dstfevent, dstlevent, ntevents, badevents, timestamp, dstsize, ntstatus, outputpath, ntcrc, crctime, 1, castortime, runtype%2, feti, leti)
                                         output.write("insert ntuple : %d, %s, %s\n" %(run, outputpath, closedst[1]))
                                         self.gbDST[self.nCheckedCite] += float(dstsize)
                                         cpntuples.append(dstlink)
