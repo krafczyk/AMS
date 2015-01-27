@@ -2215,7 +2215,7 @@ class RemoteClient:
                 if(i):
                     print cmd
                     print "xrdcp failed, trying rfcp..."
-                    cmd="/usr/bin/rfcp "+output_orig+" "+cmove
+                    cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp "+output_orig+" "+cmove
                     i=os.system(cmd)
                 if(i==0):
                     if(self.castorcopy>0):
@@ -2306,12 +2306,19 @@ class RemoteClient:
                 output = self.eosLink2Xrootd(output)
             cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v -OSsvcClass=" + os.environ['STAGE_SVCCLASS'] + " \"root://castorpublic.cern.ch//"+input+"\" \""+output+"\""
         else:
-            if (output.find('/eosams/') == 0):
-                output = self.eosLink2Real(output)
-            if (input.find('/eosams/') == 0):
-                input = self.eosLink2Real(input)
             if (cmd.find('/eosams/') >= 0):
-                cmd = self.eosselect + " cp -n -S " + input + " " + output
+                if (output.find('/eosams/') == 0):
+                    output_xrd = self.eosLink2Xrootd(output)
+                    output = self.eosLink2Real(output)
+                else:
+                    output_xrd = output
+                if (input.find('/eosams/') == 0):
+                    input_xrd = self.eosLink2Xrootd(input)
+                    input = self.eosLink2Real(input)
+                else:
+                    input_xrd = input
+#                cmd = self.eosselect + " cp -n -S " + input + " " + output
+                cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v -OSsvcClass=" + os.environ['STAGE_SVCCLASS'] + " \""+input_xrd+"\" \""+output_xrd+"\""
 #
 #      check if same disk
 #
@@ -2319,7 +2326,8 @@ class RemoteClient:
         ofa=output.split("/")
         if(ifa[1]==ofa[1]):
             if (ifa[1].find('eosams') < 0 or self.eosmounted):
-                cmd="mv "+input_orig+" "+output_orig
+#                cmd="mv "+input_orig+" "+output_orig
+                cmd = self.eosselect + " file rename " + input + " " + output
         #cmd="cp -pi -d -v "+input+" "+output
         print cmd
         cmdstatus=os.system(cmd)
@@ -2327,7 +2335,7 @@ class RemoteClient:
             # try first xrdcp and then rfcp
             print cmd
             print "xrdcp failed, trying rfcp..."
-            cmd="rfcp "+input_orig+" "+output_orig
+            cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 rfcp "+input_orig+" "+output_orig
             cmdstatus=os.system(cmd)
 
         print "acquirung  mutex in copyfile ", cmd
@@ -3587,9 +3595,9 @@ class RemoteClient:
                                             castordir = castorPrefix
                                             for i in range(2, len(junk)-1):
                                                 castordir += "/%s" %(junk[i])
-                                            sys = "/usr/bin/nsmkdir -p %s" %(castordir)
+                                            sys = "/afs/cern.ch/ams/local/bin/timeout --signal 9 90 /usr/bin/nsmkdir -p %s" %(castordir)
                                             i = os.system(sys)
-                                            rfcp = "/usr/bin/rfcp %s %s" %(outputpath, castordir)
+                                            rfcp = "/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp %s %s" %(outputpath, castordir)
                                             failure = os.system(rfcp)
                                             if (failure):
                                                 print " %s failed" %(rfcp)
