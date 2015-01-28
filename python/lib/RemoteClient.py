@@ -2229,7 +2229,7 @@ class RemoteClient:
                     output = self.eosLink2Xrootd(output)
                 cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v -ODsvcClass=" + os.environ['STAGE_SVCCLASS'] + " "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
                 i=os.system(cmd)
-                if(i):
+                if(i and output.find('/eosams/') < 0):
                     print cmd
                     print "xrdcp failed, trying rfcp..."
                     cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp "+output_orig+" "+cmove
