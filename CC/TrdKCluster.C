@@ -515,7 +515,7 @@ int TrdKCluster::FindBestMatch_FromTrTrack(){
 void TrdKCluster::Constrcut_TRDTube(){
     cout<<"Construct TRD Tube: "<<endl;
     TRDTubeCollection.clear();
-    for(int i=0;i<5248;i++){
+    for(int i=0;i<TrdHCalibR::n_tubes;i++){
         int layer,ladder, tube;
         TrdHCalibR::gethead()->GetLLTFromTubeId(layer,ladder,tube,i);
         TrdRawHitR *_trdhit=new TrdRawHitR(layer,ladder,tube,0);
@@ -538,7 +538,7 @@ void TrdKCluster::Init_Base(){
     Minimum_dR=2;
     TRDCenter=115;
     if(DefaultMCXePressure<=0)SetDefaultMCXePressure(780);
-    if(TRDTubeCollection.size()!=5248)Constrcut_TRDTube();
+    if(TRDTubeCollection.size()!=TrdHCalibR::n_tubes)Constrcut_TRDTube();
     if(map_TRDOnline.size()==0) InitXePressure();
     if(!TRDImpactlikelihood)TRDImpactlikelihood=new TRD_ImpactParameter_Likelihood();
     if(!_DB_instance) _DB_instance=GetTRDKCalibHead();

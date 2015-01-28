@@ -28,6 +28,9 @@ class TrdHCalibR{
   /// total number of tubes
   static const int n_tubes = 5248;
 
+  /// total number of modules
+  static const int n_modules = 328;
+
   /// flag if calibration should be performed  
   bool calibrate;
 
@@ -41,7 +44,7 @@ class TrdHCalibR{
   int tube_occupancy[n_tubes];
   
   /// container for module medians
-  float mod_medians[328];
+  float mod_medians[n_modules];
 
   /// container for HVchannel medians
   float hv_medians[82];
@@ -124,7 +127,7 @@ class TrdHCalibR{
     for(int i=0;i<n_tubes;i++){
       if(i<10)mf_medians[i]=1.;
       if(i<82)hv_medians[i]=1.;
-      if(i<328)mod_medians[i]=1.;
+      if(i<n_modules)mod_medians[i]=1.;
       tube_occupancy[i]=0;
       tube_medians[i]=1.;
     }

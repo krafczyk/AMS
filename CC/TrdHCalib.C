@@ -82,7 +82,7 @@ void TrdHCalibR::init_calibration(float start_value){
   for(int i=0;i<n_tubes;i++){
     if(i<10)mf_medians[i]=1.;
     if(i<82)hv_medians[i]=1.;
-    if(i<328)mod_medians[i]=1.;
+    if(i<n_modules)mod_medians[i]=1.;
     tube_occupancy[i]=0;
     tube_medians[i]=1.;
   }
@@ -158,7 +158,7 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
   }  
 
   // module median NOT stored - needs to be calculated - first sum up tube amps of modules
-  for(int i=0;i<328;i++)mod_medians[i]=0.;
+  for(int i=0;i<n_modules;i++)mod_medians[i]=0.;
   bool allone=true;
   for(int i=0;i<n_tubes;i++){
     int ntdv=GetNTDV(i);
@@ -167,7 +167,7 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
   }
 
   // divide mean module amplitude by HV 'median' to get module gain
-  for(int i=0;i<328;i++){
+  for(int i=0;i<n_modules;i++){
     int hv=i/4;
     int mf=GetManifold(hv/2);
     float mean=mod_medians[i]/16.;

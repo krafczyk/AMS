@@ -28,7 +28,7 @@
 #include <TGraph.h>
 #include <amsdbc.h>
 #include <TChain.h>
-
+#include "TrdHCalib.h"
 
 
 
@@ -159,17 +159,17 @@ public:
 class TRDCalibPar{
 public:
     TRDCalibPar():Time_S(0),Time_E(0),Time_A(0),Theta(0),Phi(0){
-        memset(Par,0,sizeof(float)*5248);
-        memset(Err,0,sizeof(float)*5248);
-        memset(Gain,0,sizeof(float)*328);
-        memset(Rate,0,sizeof(float)*328);
+        memset(Par,0,sizeof(float)*TrdHCalibR::n_tubes);
+        memset(Err,0,sizeof(float)*TrdHCalibR::n_tubes);
+        memset(Gain,0,sizeof(float)*TrdHCalibR::n_modules);
+        memset(Rate,0,sizeof(float)*TrdHCalibR::n_modules);
     };
-    TRDCalibPar(int _time_start, int _time_end, double _time_average, double _theta, double _phi, float _par[5248], float _err[5248], float _gain[328], float _rate[328]):
+    TRDCalibPar(int _time_start, int _time_end, double _time_average, double _theta, double _phi, float _par[TrdHCalibR::n_tubes], float _err[TrdHCalibR::n_tubes], float _gain[TrdHCalibR::n_modules], float _rate[TrdHCalibR::n_modules]):
         Time_S(_time_start),Time_E(_time_end),Time_A(_time_average),Theta(_theta),Phi(_phi){
-        memcpy (Par,_par,sizeof(float)*5248);
-        memcpy (Err,_err,sizeof(float)*5248);
-        memcpy (Gain,_gain,sizeof(float)*328);
-        memcpy (Rate,_rate,sizeof(float)*328);
+        memcpy (Par,_par,sizeof(float)*TrdHCalibR::n_tubes);
+        memcpy (Err,_err,sizeof(float)*TrdHCalibR::n_tubes);
+        memcpy (Gain,_gain,sizeof(float)*TrdHCalibR::n_modules);
+        memcpy (Rate,_rate,sizeof(float)*TrdHCalibR::n_modules);
     };
 
     int Time_S;
@@ -177,21 +177,21 @@ public:
     Double_t Time_A;
     Double_t Theta;
     Double_t Phi;
-    float Par[5248];
-    float Err[5248];
-    float Gain[328];
-    float Rate[328];
+    float Par[TrdHCalibR::n_tubes];
+    float Err[TrdHCalibR::n_tubes];
+    float Gain[TrdHCalibR::n_modules];
+    float Rate[TrdHCalibR::n_modules];
 
 
 
 
     double GetGainCorrectionFactorTube(int tubeid, double asktime){
-        if(tubeid>=5248)printf("******Error******TubeID exceed 5247******\n");
+        if(tubeid>=TrdHCalibR::n_tubes)printf("******Error******TubeID exceed 5247******\n");
         if(!Gain[int(tubeid/16)])return 1;
         return Par[tubeid]+(asktime-Time_A)*Rate[int(tubeid/16)]*Par[tubeid]/Gain[int(tubeid/16)];
     };
     double GetGainCorrectionFactorModule(int Moduleid, double asktime){
-        if(Moduleid>=328)printf("******Error******ModuleId exceed 327******\n");
+        if(Moduleid>=TrdHCalibR::n_modules)printf("******Error******ModuleId exceed 327******\n");
         if(!Gain[Moduleid])return 1;
         return Gain[Moduleid]+(asktime-Time_A)*Rate[Moduleid];
     };

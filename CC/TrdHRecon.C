@@ -978,7 +978,7 @@ int TrdHReconR::SelectEvent(int level){
 bool TrdHReconR::update_tdv_array(int debug){
   bool toReturn=false;
 #ifndef __ROOTSHAREDLIBRARY__
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<TrdHCalibR::n_tubes;i++){
     if(TrdHCalibR::gethead()->tube_occupancy[i]>0){
       int layer,ladder,tube;
       TrdHCalibR::gethead()->GetLLTFromTubeId(layer,ladder,tube,i);
@@ -1023,7 +1023,7 @@ float TrdHReconR::getFitLik(TrdHTrackR *tr){
     globallik-=log(lik);
   }
 
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<TrdHCalibR::n_tubes;i++){
     TrdHCalibR::gethead()->GetLLTFromTubeId(layer,ladder,tube,i);
     if(layers[layer])continue;
     double dr=tr->TubePath(layer,ladder,tube,0,2)*10.;

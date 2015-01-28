@@ -1,4 +1,5 @@
 #include <TrdKCalib.h>
+#include "TrdHCalib.h"
 #include <commonsi.h>
 #include <timeid.h>
 ClassImp(TrdKCalib)
@@ -293,9 +294,9 @@ void TrdKCalib::WriteDBFromRoot_Calib_TB(TString f_input){
     fChain->Add(f_input);
 
     // Declaration of leaf types
-    Float_t         Ind[5248];
-    Float_t         Par[5248];
-    Float_t         Err[5248];
+    Float_t         Ind[TrdHCalibR::n_tubes];
+    Float_t         Par[TrdHCalibR::n_tubes];
+    Float_t         Err[TrdHCalibR::n_tubes];
 
     // List of branches
     TBranch        *b_Ind;   //!
@@ -318,14 +319,14 @@ void TrdKCalib::WriteDBFromRoot_Calib_TB(TString f_input){
     int Time_A=Time_S;
     float The_A=0;
     float Phi_A=0;
-    float Gain[328];
-    float Rate[328];
+    float Gain[TrdHCalibR::n_modules];
+    float Rate[TrdHCalibR::n_modules];
 
-    for(int i=0;i<5248;i++){
+    for(int i=0;i<TrdHCalibR::n_tubes;i++){
         Par[i]*=1.30;
     }
 
-    for(int i=0;i<328;i++){
+    for(int i=0;i<TrdHCalibR::n_modules;i++){
         Rate[i]=-1*2.3e-7/1.30;
         Gain[i]=1;
     }
@@ -355,10 +356,10 @@ void TrdKCalib::WriteDBFromRoot_Calib(vector<TString> f_input){
     Double_t        Time_A;
     Double_t        The_A;
     Double_t        Phi_A;
-    Float_t         Par[5248];
-    Float_t         Err[5248];
-    Float_t         Gain[328];
-    Float_t         Rate[328];
+    Float_t         Par[TrdHCalibR::n_tubes];
+    Float_t         Err[TrdHCalibR::n_tubes];
+    Float_t         Gain[TrdHCalibR::n_modules];
+    Float_t         Rate[TrdHCalibR::n_modules];
 
     // List of branches
     TBranch        *b_Time_S;   //!

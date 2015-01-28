@@ -19,7 +19,7 @@ void TrdKToyMC::PrepareToyMC(int _seed, float Rigidity_Min,float Rigidity_Max){
 
     //==Prepare Tube Geometry==
     TRDAlignmentPar *par=new TRDAlignmentPar(0,0.00,0.00,0.00,0.000,0.000,0.000,0.00,0.00,115);
-    for(int i=0;i<5248;i++){
+    for(int i=0;i<TrdHCalibR::n_tubes;i++){
         int layer,ladder, tube;
         TrdHCalibR::gethead()->GetLLTFromTubeId(layer,ladder,tube,i);
         TrdRawHitR *_trdhit=new TrdRawHitR(layer,ladder,tube,0);
