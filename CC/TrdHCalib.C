@@ -79,7 +79,7 @@ void TrdHCalibR::init_calibration(float start_value){
   calibrate=true;
 
   det_median=start_value;
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<n_tubes;i++){
     if(i<10)mf_medians[i]=1.;
     if(i<82)hv_medians[i]=1.;
     if(i<328)mod_medians[i]=1.;
@@ -90,13 +90,13 @@ void TrdHCalibR::init_calibration(float start_value){
 
 float TrdHCalibR::MeanOccupancy(int opt){
   float sum=0.;
-  for(int i=0;i<5248;i++)sum+=tube_occupancy[i];
-  return sum/5248.;
+  for(int i=0;i<n_tubes;i++)sum+=tube_occupancy[i];
+  return sum/((float)n_tubes);
 }
 
 float TrdHCalibR::MeanGaussMedian(int opt){
   TH1F h("h_gain","",100,0.,120.);
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<n_tubes;i++){
     int mod=i/16;
     int hv=mod/4;
     int gc=hv/2;
@@ -112,7 +112,7 @@ float TrdHCalibR::MeanGaussMedian(int opt){
 float TrdHCalibR::MeanGaussGain(int opt){
   TH1F h("h_gain","",100,0.,3.);
 
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<n_tubes;i++){
     int mod=i/16;
     int hv=mod/4;
     int gc=hv/2;
@@ -160,7 +160,7 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
   // module median NOT stored - needs to be calculated - first sum up tube amps of modules
   for(int i=0;i<328;i++)mod_medians[i]=0.;
   bool allone=true;
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<n_tubes;i++){
     int ntdv=GetNTDV(i);
     int mod=i/16;
     mod_medians[mod]+=tube_gain[ntdv]*norm_mop;//sum up tube amplitudes
@@ -178,7 +178,7 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
   }
   
   // divide tube amplitude by module mean amplitude 
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<n_tubes;i++){
     int ntdv=GetNTDV(i);
     
     int mod=i/16;
@@ -203,7 +203,7 @@ int TrdHCalibR::FillTDVFromMedian(int debug){
   for(int i=0;i<82;i++)tube_gain[5800+i]=hv_medians[i];
 
   float mean=0.;
-  for(int i=0;i<5248;i++){
+  for(int i=0;i<n_tubes;i++){
     int ntdv=GetNTDV(i);
     int mod=i/16;
     int hv=mod/4;
@@ -217,7 +217,7 @@ int TrdHCalibR::FillTDVFromMedian(int debug){
     mean+=current_median;
   }
   
-  if(debug)cout<<"TrdHCalibR::FillTDVFromMedian-detector mean "<<mean/5248.<<endl;
+  if(debug)cout<<"TrdHCalibR::FillTDVFromMedian-detector mean "<<mean/((float)n_tubes)<<endl;
   return 0;
 }
 
@@ -241,7 +241,7 @@ bool TrdHCalibR::readTDV(unsigned int t, int debug){
   if(ok&&FillMedianFromTDV()) ok=false;
 
   if(debug)
-    for(int i=0;i<5248;i++){
+    for(int i=0;i<n_tubes;i++){
       if(i%500==0){
 	int ntdv=GetNTDV(i);
 	int mod=i/16;
@@ -282,7 +282,7 @@ bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,cons
     tube_gain[i]=1.;
     tube_status[i]=0;
   }
-  for(int i=0;i<5248;i++)
+  for(int i=0;i<n_tubes;i++)
     tube_occupancy[i]=0;
   
   AMSTimeID::CType server=AMSTimeID::Standalone;
@@ -407,7 +407,7 @@ int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, co
   
   time_t begin,end,insert;
   if(debug)
-    for(int i=0;i<5248;i++){
+    for(int i=0;i<n_tubes;i++){
       if(i%500==0){
 	int ntdv=GetNTDV(i);
 	cout<<"TrdHCalibR::writeTDV-I-tube "<<i<<" occ "<<tube_occupancy[i]<<" median "<<tube_medians[i]<<" - writing gain "<<tube_gain[ntdv]<<" status "<<tube_status[ntdv]<<endl;
@@ -1281,7 +1281,7 @@ int TrdHCalibR::Initialize(AMSEventR* pev,const char *databasedir){
       }  
     }
     
-    for(int i=0;i<5248;i++)tube_occupancy[i]=0;
+    for(int i=0;i<n_tubes;i++)tube_occupancy[i]=0;
     InitSpecificTDV("TRDGains2",6064,tube_gain,bgntime,endtime,int(pev->nMCEventg()==0),databasedir);
     readSpecificTDV("TRDGains2",bgntime+1,1);
     FillMedianFromTDV();
