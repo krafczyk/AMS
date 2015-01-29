@@ -80,7 +80,7 @@ void AMSCommonsI::init(){
    //char dt[128]="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){
-    AMSDATADIR.amsdlength=strlen(gtv)+strlen(getversion())+2;
+    AMSDATADIR.amsdlength=strlen(gtv)+strlen(getversion())+2+8;
     if(AMSDATADIR.amsdlength>127){
       if(prierr)cerr <<"AMSCommonsI::init-F-AMSDataDirLength>127 "<<
         AMSDATADIR.amsdlength<<endl;
@@ -94,7 +94,12 @@ void AMSCommonsI::init(){
       strcpy(AMSDATADIR.amsdatabase,gtv);
       strcat(AMSDATADIR.amsdatabase,"/");
       strcat(AMSDATADIR.amsdatabase,"DataBase");
+       if(getenv("AMSDataBaseEnv")){
+          cout<<"AMSCommonsi-I-AMASDataBaseRedefined "<<getenv("AMSDataBaseEnv")<<endl;
+        strcpy(AMSDATADIR.amsdatabase,AMSDATADIR.amsdatabase);
+      } 
       strcat(AMSDATADIR.amsdatabase,"/");
+ 
       AMSDATADIR.amsdblength=strlen(AMSDATADIR.amsdatabase);
      
    }
