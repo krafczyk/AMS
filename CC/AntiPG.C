@@ -7,6 +7,7 @@
 static int maxerr = 0;
 static int errmax = 99;
 
+using namespace std;
 
 char  AntiClusterR::_Info[255];
 
@@ -1375,7 +1376,7 @@ float AntiRecoPG::GetExtrapolation(TH1D* h, double xx,double p0, double p1){
       double yright = h->GetBinContent(bright);
       double xleft = h->GetBinCenter(bleft);
       double yleft = h->GetBinContent(bleft);
-      return yleft+(yright-yleft)/(xright+xleft);
+      return yleft+(xx-xleft)*(yright-yleft)/(xright-xleft);
     }
   }
 
@@ -1454,8 +1455,7 @@ int AntiRecoPG::ReLoadAcc(){
     if(iftt<0) {
       if (maxerr<errmax)  {
 	cerr << "AntiRecoPG::ReLoadAcc-E open Error null or negative number of #FT= " << iftt+1 << "| Run= " << evt->Run() << " event= " << evt->Event() << endl;
-	maxerr++;}
-    }
+	maxerr++;}}
     else{
     for (int itdc = 0; itdc<rsd->ntdct; itdc++){
       if (itdc>15) continue;
