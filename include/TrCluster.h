@@ -462,7 +462,7 @@ class TrClusterR :public TrElem{
 
 
   /// ROOT definition
-  ClassDef(TrClusterR, 4)
+  ClassDef(TrClusterR, 5)
 };
 
 
