@@ -7,8 +7,6 @@
 static int maxerr = 0;
 static int errmax = 99;
 
-using namespace std;
-
 char  AntiClusterR::_Info[255];
 
 #ifdef __USEANTICLUSTERPG__
