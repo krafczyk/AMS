@@ -62,7 +62,7 @@ else{
      }
      break;
     case 'A': //amsdatadir
-      setenv("AMSDataDir",++pchar,1);
+      setenv("AMSDataDir",++pchar,0);
       break;
     case 'S':   // Solo, no IOR 
       if(pchar+1 && *(pchar+1)=='Y'){
