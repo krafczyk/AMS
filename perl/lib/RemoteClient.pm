@@ -7039,8 +7039,8 @@ if( not defined $dbserver->{dbfile}){
                if($rn>=0){
                 if($rn<$maxr){
                  $jbs=$maxr-$rn;
-                 if($jbs<99){
-                   $jbs=99;
+                 if($jbs<$maxr/2){
+                   $jbs=$maxr/2;
                  }
                 }
                 else{
@@ -7056,7 +7056,8 @@ if( not defined $dbserver->{dbfile}){
         }
 
                  if($rntbr>=0 and $rntfi>=0){
-                   my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
+#                   my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
+                   my $tot=int(($rn-$rntbr-$rntfi)/4+$rntfi/16+$rntbr);
                    $jbs=$maxr-$tot;
                    if($jbs<=0){
                     $jbs=49-$rntbr;
