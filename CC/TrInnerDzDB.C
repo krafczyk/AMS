@@ -149,7 +149,7 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
   gmtime_r(&endtime,&end);
     
   AMSTimeID tid(
-		AMSID("TrInnerDzAlign",1),
+                AMSID(GetTDVName(),1),
 		begin,
 		end,
 		TrInnerDzDB::GetTDVSwapSize(),
