@@ -221,8 +221,15 @@ void AMSTimeID::_InitTable(){
   }
 }
 
-bool AMSTimeID::write(const char * dir, int slp){
-
+bool AMSTimeID::write(const char * dirc, int slp){
+  unsigned int ll=strlen(dirc)>32767?strlen(dirc)+1:32768;
+  char * env=getenv(getname());
+  if(env && strlen(env)>=ll)ll=strlen(env)+1;
+  char dir[ll];
+        strcpy(dir,dirc);
+        if(env && strlen(env)&& *(env+strlen(env)-1)=='/'){
+         strcpy(dir,env);               
+        }
   // add explicitely one second delay to prevent same insert time
   if(slp)sleep(1);
   if(_Type!=Client){
@@ -412,7 +419,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
    
   }
 
-  bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
+  bool AMSTimeID::read(const char * dirc,int run, time_t begin,int index){
 #if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
     //   Add check remote client here
     ifstream fbin;
@@ -434,6 +441,16 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
     fbin.close();
 
 #endif
+ unsigned int ll=strlen(dirc)>32767?strlen(dirc)+1:32768;
+  char * env=getenv(getname());
+   //cout <<" env "<<getname()<<" "<<endl;
+  if(env && strlen(env)>=ll)ll=strlen(env)+1;
+  char dir[ll];
+  strcpy(dir,dirc);
+        if(env && strlen(env) && *(env+strlen(env)-1)=='/'){
+    //      cout <<"    copy dir !@!! " <<env<<endl;
+         strcpy(dir,env);
+        }
 
     if(_Type!=Client){
       enum open_mode{binary=0x80};
@@ -466,6 +483,8 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	fnam+= getid()==0?".0":".1";
 	cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
       }
+
+
 #ifdef _WEBACCESS_
       URL_FILE* ffbin=url_fopen((const char *)fnam,"r");
       if(ffbin){
@@ -733,6 +752,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	for(int is=0;is<nptrdir;is++){
 	  AString fsdir(dir);
 	  fsdir+=namelistsubdir[is]->d_name;
+          char *env=getenv(namelistsubdir[is]->d_name);
+          if(env && strlen(env)&& *(env+strlen(env)-1)=='/'){
+	   fsdir=dir;
+   	   fsdir+=namelistsubdir[is]->d_name;
+          }
 	  if(namelistsubdir[is]->d_name[0]!= '.' && !stat64 ((const char*)fsdir,&statbuf_dir)){
 	    if(S_ISDIR(statbuf_dir.st_mode)){
 	      //          cout <<"  dirs "<<fsdir<<endl;
@@ -890,6 +914,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      for(int is=0;is<nptrdir;is++){
 		AString fsdir(fdir);
 		fsdir+=namelistsubdir[is]->d_name;
+          char *env=getenv(namelistsubdir[is]->d_name);
+          if(env && strlen(env)&& *(env+strlen(env)-1)=='/'){
+	   fsdir=dir;
+   	   fsdir+=namelistsubdir[is]->d_name;
+          }
 		fsdir+="/";     
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 		dirent64 ** namelist;
@@ -1168,6 +1197,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      for(int is=0;is<nptrdir;is++){
 		AString fsdir(fdir);
 		fsdir+=namelistsubdir[is]->d_name;
+          char *env=getenv(namelistsubdir[is]->d_name);
+          if(env && strlen(env)&& *(env+strlen(env)-1)=='/'){
+	   fsdir=dir;
+   	   fsdir+=namelistsubdir[is]->d_name;
+          }
 		fsdir+="/";     
 #if defined(__LINUXNEW__) || defined(__LINUXGNU__)
 		dirent64 ** namelist;
@@ -1325,6 +1359,10 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	  void AMSTimeID::_checkcompatibility(const char *dir){
 	    fstream fbin;
 	    AString fdir(dir);
+          char *env=getenv(getname());
+          if(env && strlen(env)&& *(env+strlen(env)-1)=='/'){
+	   fdir=dir;
+          }
 	    fdir+=getname();
 	    fdir+="/";
 	    AString fnam(getname());
