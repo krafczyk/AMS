@@ -57,6 +57,9 @@
 #include "G4MuMultipleScattering.hh"
 #include "G4hMultipleScattering.hh"
 #endif
+#ifdef G4MULTITHREADED
+#include "G4Threading.hh"
+#endif
 
 vector<int> AMSG4Physics::XSId;
 #include "TRD_SimUtil.h"
@@ -2077,6 +2080,12 @@ if(plist){
 #include "job.h"
 #include <memory>
 void AMSG4Physics::SaveXS(int ipart){
+#if G4VERSION_NUMBER  > 999
+if(G4Threading::IsWorkerThread() ){
+return ;
+}
+#endif
+
    XSId.clear();
    const char *name=AMSJob::gethead()->getg4physics()->G3toG4(ipart);
   G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();
@@ -2115,6 +2124,7 @@ void AMSG4Physics::SaveXS(int ipart){
            hname+=" HadronInElastic ";
            hname+=element->GetName();
            const int id=element->GetN();
+           cout <<" hbbok1 id "<<id<<" "<<hname.c_str()<<endl;
            AMSEventR::hbook1(id,hname.c_str(),nbins,arr);
            hname=name;
            hname+= " EMD ";

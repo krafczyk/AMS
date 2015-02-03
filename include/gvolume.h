@@ -16,9 +16,11 @@
 #include "point.h"
 #include "gmat.h"
 #include "geantnamespace.h"
+#include <map>
 #ifdef __G4AMS__
 using namespace CLHEP;
 #endif
+ class AMSG4DummySD;
 class G4VSolid;
 class AMSgvolume : public AMSNode {
  protected:
@@ -103,6 +105,8 @@ class AMSgvolume : public AMSNode {
     AMSgtmed* getpgtmed() const {return _pgtmed;}
 #ifdef __G4AMS__
  void MakeG4Volumes();
+ static std::map<G4LogicalVolume*,AMSG4DummySD*> SensMap;
+ typedef std::map<G4LogicalVolume*,AMSG4DummySD*>::iterator SensMapi;
 //void ReadG4StepVolumes(char * fnam);
 
   AMSgvolume* offspring(){return _offspring;}

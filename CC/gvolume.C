@@ -40,7 +40,7 @@
 #include "TRD_SimUtil.h"
 #endif
 
-
+ std::map<G4LogicalVolume*,AMSG4DummySD*> AMSgvolume::SensMap;
 integer AMSgvolume::debug=0;
 AMSgvolume::_amsrm AMSgvolume::_UnitRM;
 AMSgvolume::_amsrm::_amsrm(){
@@ -455,6 +455,7 @@ integer AMSgvolume::_Norp=0;
 	trdSimUtil.radlv=_pg4l;
 #endif
         _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(1));  // Radiator
+        SensMap.insert(make_pair(_pg4l,AMSG4DummySD::pSD(1)));
       }
       else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
 #ifdef __G4AMS__
@@ -462,9 +463,11 @@ integer AMSgvolume::_Norp=0;
         trdSimUtil.gasRegion->AddRootLogicalVolume(_pg4l);
 #endif
        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas
+      SensMap.insert(make_pair(_pg4l,AMSG4DummySD::pSD(2)));
       }
       else{
       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
+      SensMap.insert(make_pair(_pg4l,AMSG4DummySD::pSD()));
       }
      }
 // Add user limits 

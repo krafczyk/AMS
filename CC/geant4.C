@@ -90,6 +90,9 @@ HepRandom::setTheEngine(new RanecuEngine());
 #else
 G4MTHepRandom::setTheEngine(new RanecuEngine());
 #endif
+//  to be verified can we do this?
+//
+//G4Random::setTheEngine(new RanecuEngine());
 long seed[3]={0,0,0};
 seed[0]=GCFLAG.NRNDM[0];
 seed[1]=GCFLAG.NRNDM[1];
@@ -102,6 +105,7 @@ G4MTHepRandom::setTheSeeds(seed);
 #ifdef G4MULTITHREADED
   G4MTRunManager* pmgr = new G4MTRunManager;
   pmgr->SetNumberOfThreads(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:G4Threading::G4GetNumberOfCores());
+  cout <<"g4ams::G4INIT-I-SetNumberOfThreads "<<MISCFFKEY.NumThreads<<endl;
 #else
   G4RunManager* pmgr = new G4RunManager;
 #endif
@@ -121,10 +125,6 @@ G4MTHepRandom::setTheSeeds(seed);
     pmgr->SetUserInitialization(pph);
 
 
-     pmgr->Initialize();
-
-     cout<<"~~~~~~Dump All Geant4 range cut: "<<endl;
-     pph->DumpCutValuesTable();
 
 
 #if G4VERSION_NUMBER  > 999
@@ -139,6 +139,10 @@ G4MTHepRandom::setTheSeeds(seed);
      pmgr->SetUserAction(new AMSG4StackingAction);
 //    pmgr->SetUserAction(new AMSG4RunAction);
 #endif
+     pmgr->Initialize();
+
+     cout<<"~~~~~~Dump All Geant4 range cut: "<<endl;
+     pph->DumpCutValuesTable();
 
 #ifdef G4VIS_USE
    AMSG4VisManager::create();
@@ -252,10 +256,11 @@ void AMSG4GeneratorInterface::GeneratePrimaries(G4Event* anEvent){
 
 //static integer event=0;
 //(void)event;
+//cout <<"  running blia "<<endl;
 
 //AMSJob::gethead()->getg4generator()->Reset();
 Reset();
-
+//cout <<"  running blia b"<<endl;
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
     AMSgObj::BookTimer.start("GEANTTRACKING");
@@ -276,7 +281,10 @@ Reset();
         AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+//cout <<"  running blia c"<<endl;
      genp->runG4(this,GCKINE.ikine);
+//cout <<"  running blia d"<<endl;
+
     }
     }
    }
@@ -301,11 +309,15 @@ Reset();
     }   
    }
 
+//cout <<"  running blia e "<<_cpart<<endl;
 
 
   for(int ipart=0;ipart<_cpart;ipart++){
 //     cout <<_particleGun[ipart].GetParticleDefinition()->GetParticleName()<<endl;
+
+//cout <<"  running blia f "<<ipart<<endl;
      _particleGun[ipart].GeneratePrimaryVertex(anEvent);
+//cout <<"  running blia g "<<ipart<<endl;
   }
 
   }
@@ -321,10 +333,16 @@ delete[] _particleGun;
 
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
   static unsigned int iq=0;
+#if G4VERSION_NUMBER  > 999
+if(IsMaster() ){
+#else
+if(1){
+#endif
   if(iq++==0){ 
     cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
     pph->_init();
   }
+}
 }
 
 
@@ -561,7 +579,6 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 
 
-//   cout <<" guout in"<<endl;
    if(AMSJob::gethead()->isSimulation()){
 
        G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
@@ -618,7 +635,9 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 }
       CCFFKEY.curtime=AMSEvent::gethead()->gettime();
    try{
-          if(anEvent && AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
+          if(anEvent && AMSEvent::gethead()->HasNoErrors()){
+            AMSEvent::gethead()->event();
+          }
    }
    catch (AMSuPoolError e){
      cerr << e.getmessage()<<endl;
@@ -905,7 +924,14 @@ if(G4FFKEY.OverlapTol &&phystore){
 
 
 }
-
+  void AMSG4DetectorInterface::ConstructSDandField(){
+#if G4VERSION_NUMBER  > 999
+ typedef std::map<G4LogicalVolume*,AMSG4DummySD*>::iterator mapi;
+  for(AMSgvolume::SensMapi i=AMSgvolume::SensMap.begin();i!=AMSgvolume::SensMap.end();++i ){
+    SetSensitiveDetector(i->first,i->second);
+  }
+#endif   
+ }
 AMSG4RotationMatrix::AMSG4RotationMatrix(number nrm[3][3]):G4RotationMatrix(nrm[0][0],nrm[0][1],nrm[0][2],nrm[1][0],nrm[1][1],nrm[1][2],nrm[2][0],nrm[2][1],nrm[2][2]){
 //AMSG4RotationMatrix::AMSG4RotationMatrix(number nrm[3][3]):G4RotationMatrix(nrm[0][0],nrm[1][0],nrm[2][0],nrm[0][1],nrm[1][1],nrm[2][1],nrm[0][2],nrm[1][2],nrm[2][2]){
 #ifdef __AMSDEBUG__
@@ -993,8 +1019,8 @@ if(!_Count++){
 
 AMSG4DummySDI::~AMSG4DummySDI(){
  if(--_Count==0){
-  for(int i=0;i<3;i++)delete AMSG4DummySD::pSD(i);
-  delete[] AMSG4DummySD::_pSD;
+//  for(int i=0;i<3;i++)delete AMSG4DummySD::pSD(i);
+ // delete[] AMSG4DummySD::_pSD;
 }
 }
 #include "G4SteppingManager.hh"
@@ -1324,14 +1350,13 @@ if(!Step)return;
   G4StepPoint * PrePoint = Step->GetPreStepPoint();
   G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
   if(PostPV && PrePV){
-   //  cout << "Stepping Pre  "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+//     cout << "Stepping Pre  "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
 //     cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<" " <<Step->GetTotalEnergyDeposit()/GeV<<endl;
 //     cout << "Part ID " << Step->GetTrack()->GetDefinition()->GetParticleName()<<endl;
 //   cout <<endl;
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
       PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
     GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
-     
     //   if(PrePoint->GetProcessDefinedStep())cout<<" b "<<PrePoint->GetProcessDefinedStep()->GetProcessName()<<endl;
     //   if(PostPoint->GetProcessDefinedStep())cout<<"a "<<PostPoint->GetProcessDefinedStep()->GetProcessName()<<endl;
     G4Track * Track = Step->GetTrack();
@@ -1379,7 +1404,7 @@ if(!Step)return;
 
     if(GCTMED.isvol){// <========== we are in sensitive volume !!!
       //
-      //      cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+//            cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
       // gothering some info and put it into geant3 commons
 
       GCTRAK.inwvol= PostPV != PrePV;
@@ -1488,6 +1513,7 @@ if(!Step)return;
 	  G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;
 	  //-------------------------------------------------------------
 	  // TRD
+//          cout <<GCTRAK.destep<<  " "<< PrePV->GetName()<<endl;
 	  if(GCTRAK.destep && PrePV->GetName()(0)=='T' && PrePV->GetName()(1)=='R' 
 	     &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
 	    //cout <<" trd "<<GCKINE.itra<<" "<<GCKINE.ipart<<endl;
@@ -1700,8 +1726,8 @@ if(!Step)return;
 	      // number dedxcm=1000*dee/GCTRAK.step;
 	      //      dee=dee/(1+c*atan(rkb/c*dedxcm));
 	      dee=dee/ECMCFFKEY.sbcgn;//correction for too high signal vrt g3
-	      static unsigned int np=0; if(np==0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
-		  ++np;
+//	      static unsigned int np=0; if(np==0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
+//		  ++np;
 	      AMSEcalMCHit::siecalhits(PrePV->GetMother()->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
 	    }
 	  }
@@ -1962,6 +1988,7 @@ void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
   }
 }
 
+
 #if G4VERSION_NUMBER  > 999
 
 AMSG4ActionInitialization::AMSG4ActionInitialization(int npart)
@@ -1975,6 +2002,7 @@ AMSG4ActionInitialization::~AMSG4ActionInitialization()
 
 void AMSG4ActionInitialization::BuildForMaster() const
 {
+ cout <<" build for master"<<endl;
   SetUserAction(new AMSG4RunAction);
 }
 
@@ -1992,3 +2020,4 @@ void AMSG4ActionInitialization::Build() const
   SetUserAction(new AMSG4StackingAction);
 }
 #endif
+

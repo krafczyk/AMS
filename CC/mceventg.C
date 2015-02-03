@@ -312,7 +312,7 @@ void AMSmceventg::gener(){
       if(MISCFFKEY.G4On){
         _mom=AMSRandGeneral::hrndm1(_hid)/1000.;
         if(AMSEventR::h1(_hid+1))AMSEventR::hf1(_hid+1,_mom);
-         //cout <<" **********mom    .... "<<_mom<<endl; 
+//         cout <<" **********mom    .... "<<_mom<<endl; 
       }
       else
 #endif
@@ -851,6 +851,26 @@ if(CCFFKEY.earth)fac=1;
 AMSEventR::hf1(_hid,xm,y);
 
       }//--->endof "nchan"-loop
+
+// set spectra for low==0
+#ifdef __G4AMS__
+      if(MISCFFKEY.G4On){
+          TH1D *hp=AMSEventR::h1(_hid);
+          if(hp){
+           int zero=0;
+           for(int k=0;k<hp->GetNbinsX()+2;k++){
+             if(hp->GetBinLowEdge(k)>_momrange[1]*1000. || hp->GetBinLowEdge(k)+hp->GetBinWidth(k)<_momrange[0]*1000.){
+              hp->SetBinContent(k,0);
+              zero++;
+           }
+          }
+          if(zero)cout<<" AMSmceventg::setspectra-I-BinsZeroed "<<zero<<" in "<<_hid<<" out of "<<hp->GetNbinsX()<<" "<<_momrange[0]<<" "<<_momrange[1]<<endl;
+          }
+          else cerr<<" AMSmceventg::setspectra-E-_hidNotDefined "<<_hid<<endl;
+      }
+#endif
+
+
     }//--->endof "low=0"
 //
     else if(low==6){
@@ -1100,7 +1120,6 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
     for ( i=1;i<6;i++)area[i]=area[i]+area[i-1];
     for ( i=0;i<6;i++)_planesw[i]=area[5]>0?area[i]/area[5]:(i+1.)/6.;
 
- 
 
 }
 

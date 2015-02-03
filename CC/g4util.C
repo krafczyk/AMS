@@ -1,5 +1,6 @@
-//  $Id: g4util.C,v 1.4 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id$
 #include "g4util.h"
+#include "root.h"
 AMSRandGeneral* AMSRandGeneral::_pstatic=0;
 void AMSRandGeneral::book(geant parray[], uinteger larray, geant xmi, geant xma, integer hid){
   if(!_pstatic)_pstatic=new AMSRandGeneral();
@@ -21,7 +22,18 @@ void AMSRandGeneral::book(geant parray[], uinteger larray, geant xmi, geant xma,
 }
 
 void AMSRandGeneral::book(integer hid){
- if (hid && HEXIST(hid)){
+ if(hid && AMSEventR::h1(hid)){
+   int nx=AMSEventR::h1(hid)->GetNbinsX();
+   geant* array=new geant[nx];
+   geant xmi=   AMSEventR::h1(hid)->GetBinLowEdge(1);
+   geant xma=   AMSEventR::h1(hid)->GetBinLowEdge(nx)+AMSEventR::h1(hid)->GetBinWidth(nx);
+   for(int k=1;k<nx+1;k++){
+    array[k-1]= AMSEventR::h1(hid)->GetBinContent(k);
+   }
+    book(array,nx,xmi,xma,hid);
+    delete[] array;
+ }
+ else if (hid && HEXIST(hid)){
   char CHTITL[81];
   integer nx,ny,nwt,loc;
   geant xmi,xma,ymi,yma;
@@ -38,6 +50,9 @@ void AMSRandGeneral::book(integer hid){
 number AMSRandGeneral::hrndm1(integer hid){
 static integer hlast=0;
 static AMSRandGeneral::service * plast=0;
+#ifdef _OPENMP
+#pragma omp threadprivate (hlast,plast)
+#endif
 if(_pstatic && hid){
  if(hid==hlast)return plast->_xmi+plast->_pgenerator->shoot()*plast->_range;
  else{
@@ -52,6 +67,8 @@ if(_pstatic && hid){
     return 0;
  }
 }
+static int ip=0;
+if(ip++<100)cerr<<"AMSRandGeneral::hrndm1-E-UnableToGenerate "<<hid<<" "<<_pstatic<<endl;
 return 0;
 
 }
