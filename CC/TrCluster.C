@@ -269,7 +269,7 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
   // old correction scheme
   if (kOld&opt) {
     // if (kLoss&opt) sum *= GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle()); // correction no longer in use
-    if (kLoss&opt) sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),GetCofG(),GetImpactAngle(),sum*GetCosTheta())/GetCosTheta();
+    if (kLoss&opt) sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),GetCofG(DefaultUsedStrips,TrClusterR::kAsym|TrClusterR::kAngle),GetImpactAngle(),sum*GetCosTheta())/GetCosTheta();
     // if (kPN&opt) sum = ConvertToPSideScale(sum); // correction no longer in use
     if (kMIP&opt) sum = GetNumberOfMIPs(sum);
     if (kAngle&opt) sum *= GetCosTheta();
@@ -288,7 +288,7 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
     // charge loss correction
     if (kLoss&opt) {
       int interstrip = (res_mult>=0) ? GetNInterstrip(res_mult) : -1; 
-      sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),interstrip,GetCofG(),GetImpactAngle(),sum,1);
+      sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),interstrip,GetCofG(DefaultUsedStrips,TrClusterR::kAsym|TrClusterR::kAngle),GetImpactAngle(),sum,1);
     } 
     // beta/rigidity correction
     if ( (kBeta&opt)&&(kRigidity&opt)&&(fabs(rigidity)>1e-6) ) 
@@ -378,7 +378,7 @@ float TrClusterR::GetXCofG(int nstrips, int imult, int opt) {
   if (nstrips==1) return 0.;
   if (opt==-1) {
     opt = DefaultCorrOpt;
-    if ( (TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5) ) ) opt = DefaultLinearityCorrOpt;
+    if ( (GetSide()==1)&&((TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5))) ) opt = DefaultLinearityCorrOpt;
   }
   int leftindex;  
   int rightindex;
@@ -431,7 +431,7 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
   if (nstrips==1) return 0.;
   if (opt==-1) {
     opt = DefaultCorrOpt;
-    if ( (TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5) ) ) opt = DefaultLinearityCorrOpt;
+    if ( (GetSide()==1)&&((TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5))) ) opt = DefaultLinearityCorrOpt;
   }
   int leftindex; 
   int rightindex;
@@ -453,7 +453,7 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
 float TrClusterR::GetEta(int opt) {
   if (opt==-1) {
     opt = DefaultCorrOpt;
-    if ( (TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5) ) ) opt = DefaultLinearityCorrOpt;
+    if ( (GetSide()==1)&&((TRCLFFKEY.UseNonLinearity==1)||( (TRCLFFKEY.UseNonLinearity==2)&&(GetQtrk()>2.5)&&(GetQtrk()<12.5))) ) opt = DefaultLinearityCorrOpt;
   }
   /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
    *      _                                    _ 
