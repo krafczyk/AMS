@@ -65,9 +65,9 @@
     AMSG4MagneticField*  AMSG4DetectorInterface::pf=0;
 #else
 #ifdef G4MULTITHREADING
-    G4ThreadLocal AMSG4GeneratorInterface::AMSG4MagneticField*pf=0;
+    G4ThreadLocal AMSG4DetectorInterface::AMSG4MagneticField*pf=0;
 #else
-    AMSG4MagneticField* AMSG4GeneratorInterface::pf=0;
+    AMSG4MagneticField* AMSG4DetectorInterface::pf=0;
 #endif
 #endif
 

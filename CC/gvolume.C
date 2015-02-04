@@ -40,7 +40,9 @@
 #include "TRD_SimUtil.h"
 #endif
 
+#ifdef __G4AMS__
  std::map<G4LogicalVolume*,AMSG4DummySD*> AMSgvolume::SensMap;
+#endif
 integer AMSgvolume::debug=0;
 AMSgvolume::_amsrm AMSgvolume::_UnitRM;
 AMSgvolume::_amsrm::_amsrm(){
