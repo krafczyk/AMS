@@ -16,6 +16,17 @@
 #include "node.h"
 
 class G4VPhysicalVolume;
+
+class AMSG4MagneticField : public G4MagneticField{
+  public:
+    AMSG4MagneticField();
+    void GetFieldValue( const  G4double Point[3],
+                               G4double *Bfield ) const;
+};
+
+
+
+
 class AMSG4DetectorInterface: public G4VUserDetectorConstruction{
 protected:
 G4VPhysicalVolume * _pv;
@@ -23,16 +34,18 @@ public:
  AMSG4DetectorInterface(G4VPhysicalVolume * pv=0):_pv(pv){}
  G4VPhysicalVolume* Construct();
  void ConstructSDandField();
+#ifdef _OPENMP
+    static  AMSG4MagneticField* pf;
+    #pragma omp threadprivate (pf)
+#else
+#ifdef G4MULTITHREADING
+    static G4ThreadLocal AMSG4MagneticField* pf;
+#else
+    static  AMSG4MagneticField* pf;
+#endif
+#endif
+
 };
-
-
-class AMSG4MagneticField : public G4MagneticField{
-  public:
-
-    void GetFieldValue( const  G4double Point[3],
-                               G4double *Bfield ) const;
-};
-
 
 
 

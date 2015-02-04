@@ -61,6 +61,16 @@
 #include <mach/task.h>
 #include <mach/mach_init.h>
 #endif
+#ifdef _OPENMP
+    AMSG4MagneticField*  AMSG4DetectorInterface::pf=0;
+#else
+#ifdef G4MULTITHREADING
+    G4ThreadLocal AMSG4GeneratorInterface::AMSG4MagneticField*pf=0;
+#else
+    AMSG4MagneticField* AMSG4GeneratorInterface::pf=0;
+#endif
+#endif
+
  extern "C" void getfield_(geant& a);
 
  static double g4_primary_momentum=0;
@@ -187,6 +197,7 @@ void g4ams::G4RUN(){
     GCFLAG.IEVENT=1;
     TIMEL(GCTIME.TIMINT);
 #ifndef G4VIS_USE
+   cout <<"  run for "<<GCFLAG.NEVENT-GCFLAG.IEVENT+1<<endl;
    G4RunManager::GetRunManager()->BeamOn(GCFLAG.NEVENT-GCFLAG.IEVENT+1);
 #endif
 }
@@ -823,14 +834,56 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
   gtrkid = result_par_id;
   processid = result_process_id;
 }
+ AMSG4MagneticField::AMSG4MagneticField():G4MagneticField(){
+      G4FieldManager*  fieldMgr =G4TransportationManager::GetTransportationManager()->GetFieldManager();
+     fieldMgr->SetDetectorField(this);
+     G4double delta =G4FFKEY.Delta*cm;
+     if(G4FFKEY.BFOrder){
+      G4ChordFinder *pchord;
+      G4Mag_EqRhs* fEquation = new G4Mag_UsualEqRhs(this);
+      const G4double stepMinimum = 1.e-4 * cm;
+      if(G4FFKEY.BFOrder ==3){
+        pchord=new G4ChordFinder(this,stepMinimum,new G4SimpleHeum(fEquation));
+      }
+      else if(G4FFKEY.BFOrder ==2){
+        pchord=new G4ChordFinder(this,stepMinimum,new G4ImplicitEuler(fEquation));
+      }
+      else if(G4FFKEY.BFOrder ==1){
+       pchord=new G4ChordFinder(this,stepMinimum,new G4ExplicitEuler(fEquation));
+      }
+      else if(G4FFKEY.BFOrder==4){
+       pchord=new G4ChordFinder(this,stepMinimum,new G4ClassicalRK4(fEquation));
+      }
+      else {
+       cerr<<"gams::G4INIT-F-No"<<G4FFKEY.BFOrder<<"OrderRunge-KuttaFound"<<endl;
+       exit(1);
+      }
+      fieldMgr->SetChordFinder(pchord);
+      cout <<"g4ams::G4INIT-I-"<<G4FFKEY.BFOrder<<"Order Runge-Kutta Selected "<<endl;
+     }
+     else{
+      cout <<"g4ams::G4INIT-I-DefaultTrackingSelected "<<endl;
+      fieldMgr->CreateChordFinder(this);
+     }
+     cout << "AMSG4DetectorInterface::Construct()-I-chord was "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
+     fieldMgr->GetChordFinder()->SetDeltaChord(delta);
+     cout << "AMSG4DetectorInterface::Construct()-I-chord set "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
 
+
+
+double mxs=G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep();
+G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(50);
+
+     cout << "AMSG4DetectorInterface::Construct()-I-MaxStep was/ set "<<mxs<<" "<<G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep()<<endl;
+
+}
  G4VPhysicalVolume* AMSG4DetectorInterface::Construct(){
-
 //Mag Field
-    static AMSG4MagneticField * pf=0;
      G4FieldManager*  fieldMgr =G4TransportationManager::GetTransportationManager()->GetFieldManager();
-    if(!pf && G4FFKEY.UniformMagField!=-1){
-     AMSG4MagneticField * pf = new AMSG4MagneticField();
+#if G4VERSION_NUMBER  <1000
+
+    if( !pf && G4FFKEY.UniformMagField!=-1){
+     pf = new AMSG4MagneticField();
      fieldMgr->SetDetectorField(pf);
      G4double delta =G4FFKEY.Delta*cm;
      if(G4FFKEY.BFOrder){
@@ -864,7 +917,10 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
      fieldMgr->GetChordFinder()->SetDeltaChord(delta);
      cout << "AMSG4DetectorInterface::Construct()-I-chord set "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
 
-
+#else
+    if( !AMSG4DetectorInterface::pf && G4FFKEY.UniformMagField!=-1){
+//     pf = new AMSG4MagneticField();
+#endif
 
 double mxs=G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep();
 G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(50);
@@ -926,6 +982,24 @@ if(G4FFKEY.OverlapTol &&phystore){
 }
   void AMSG4DetectorInterface::ConstructSDandField(){
 #if G4VERSION_NUMBER  > 999
+     cout <<" AMSG4DetectorInterface::ConstructSDandField-I-Entered "<<endl;
+if(!pf && G4FFKEY.UniformMagField!=-1){
+     cout <<" AMSG4DetectorInterface::ConstructSDandField-I-SetUp Magneticfield for Thread ";
+#ifdef _OPENMP
+cout <<" openmp "<< AMSEvent::get_thread_num();
+#endif
+#ifdef G4MULTITHREADED
+cout <<" g4 "<< G4Threading::G4GetThreadId();
+#endif
+cout <<endl;
+     pf = new AMSG4MagneticField();
+
+double mxs=G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep();
+G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->SetLargestAcceptableStep(50);
+
+     cout << "AMSG4DetectorInterface::Construct()-I-MaxStep was/ set "<<mxs<<" "<<G4TransportationManager::GetTransportationManager()->GetPropagatorInField()->GetLargestAcceptableStep()<<endl;
+     
+}
  typedef std::map<G4LogicalVolume*,AMSG4DummySD*>::iterator mapi;
   for(AMSgvolume::SensMapi i=AMSgvolume::SensMap.begin();i!=AMSgvolume::SensMap.end();++i ){
     SetSensitiveDetector(i->first,i->second);
