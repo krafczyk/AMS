@@ -122,6 +122,10 @@ void AMSG4Physics::ConstructParticle()
 
 void AMSG4Physics::ConstructProcess()
 {
+#ifdef _OPENMP
+#pragma omp critical (g4CP)
+#endif
+{
   AddTransportation();
   theParticleIterator->reset();
   bool first=true;
@@ -294,6 +298,7 @@ void AMSG4Physics::ConstructProcess()
   ConstructGeneral();
   //  if(TRDMCFFKEY.mode>=0)ConstructXRay();
   if(GCTLIT.ITCKOV&&(G4FFKEY.ProcessOff%10==0))ConstructOp();
+}
 }
 
 
