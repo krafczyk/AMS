@@ -20,7 +20,7 @@
 #include <limits.h>
 #if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "commonsi.h"
-#ifdef _OPENMP
+#if defined  _OPENMP || defined G4MULTITHREADED
 #include "event.h"
 #endif
 #endif
@@ -371,6 +371,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 // kind of my barrier using atomic change
 //
 //
+#ifdef G4MULTITHREADED
 #pragma omp atomic
 AMSEvent::BBarrier++;
 #pragma omp critical (mbar)
@@ -381,6 +382,7 @@ AMSEvent::BBarrier=-1;
 break;
 }
 }
+#endif
 #pragma omp barrier 
   if( AMSEvent::get_thread_num()==0) {
 #pragma omp critical (mbar)
@@ -435,6 +437,7 @@ break;
 
 #endif
 #ifndef __ROOTSHAREDLIBRARY__
+#ifdef G4MULTITHREADED
 #pragma omp atomic
 AMSEvent::UBarrier++;
 for(;;){
@@ -447,7 +450,7 @@ break;
 }
 #pragma omp critical (mbar)
   cout <<" leaving barrier AMSTimeId::readDB-I-BarrierReachedFor "<<AMSEvent::gethead()->get_thread_num()<<" "<<" "<<AMSEvent::BBarrier<<" "<<AMSEvent::UBarrier<<endl;
-
+#endif
 #pragma omp barrier 
 #endif
     return ok;

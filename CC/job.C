@@ -1835,6 +1835,7 @@ void AMSJob::_resrddata(){
 //-----------------------------
 
 void AMSJob::udata(){
+#ifdef _PGTRACK_
 
   // Book histograms (MC gen+rec mode) if not yet
   if (isSimulation() ) {
@@ -1846,7 +1847,7 @@ void AMSJob::udata(){
         hman.BookHistos(0);
       }
 
-
+#endif
       
 
 
