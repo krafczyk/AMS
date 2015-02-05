@@ -224,7 +224,7 @@ void HistoMan::BookHistos(int simmode){
   gROOT->cd();
   TDirectory *dir = new TDirectory("HistoMan", "HistoMan");
   dir->cd();
-  printf("HistoMan::BookHistos: Directroy HistoMan created in memory\n");
+  printf("HistoMan::BookHistos: Directory HistoMan created in memory %d\n",simmode);
 
   Add(new TH2D("1N_XY","1N_XY",200,-10,10,200,-10,10));
   Add(new TH2D("1N_Y","1N_Y",200,-10,10,200,-10,10));
@@ -421,6 +421,8 @@ void HistoMan::BookHistos(int simmode){
     // mceventg
     Add(TH2D_L("Pgen", "Pgen", 5000, 1e-1, 1e4, 200, -1, 1, 1, 0));
     Add(TH2D_L("Pacc", "Pacc", 5000, 1e-1, 1e4, 200, -1, 1, 1, 0));
+    printf("HistoMan::BookHistos: histograms for MC-sim booked\n");
+
     // events that were skipped because of exceeded CPU time limit
     Add(new TH1F("Pskipped", "Pskipped", 10000, 0.01, 10000));
     Add(new TH1F("PAll", "PAll", 1000, -1., 4.));

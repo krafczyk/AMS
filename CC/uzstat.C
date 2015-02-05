@@ -3,6 +3,10 @@
 #ifdef _OPENMP
 #include <omp.h> 
 #endif
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#include "G4Threading.hh"
+#endif
 #ifndef _PGTRACK_
 #include "cern.h"
 #endif
@@ -65,7 +69,13 @@ void AMSStat::book(char *name, int freq,int mthr){
 void AMSStat::start(char *name){
 int thread=0;
 #ifdef _OPENMP
+#ifdef G4MULTITHREADED
+int id=G4Threading::G4GetThreadId();
+if(id<0)return ;
+else thread=id;
+#else
 thread=omp_get_thread_num();
+#endif
 #endif
   AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p){
@@ -79,9 +89,6 @@ thread=omp_get_thread_num();
 }
 number AMSStat::check(char * name){
 int thread=0;
-#ifdef _OPENMP
-thread=omp_get_thread_num();
-#endif
   AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p){
     return HighResTime()-p->_time;
@@ -92,7 +99,13 @@ thread=omp_get_thread_num();
 void AMSStat::print(char *name){
 int thread=0;
 #ifdef _OPENMP
+#ifdef G4MULTITHREADED
+int id=G4Threading::G4GetThreadId();
+if(id<0)return ;
+else thread=id;
+#else
 thread=omp_get_thread_num();
+#endif
 #endif
   AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p){
@@ -103,7 +116,13 @@ thread=omp_get_thread_num();
 number AMSStat::stop(char *name, integer force){
 int thread=0;
 #ifdef _OPENMP
+#ifdef G4MULTITHREADED
+int id=G4Threading::G4GetThreadId();
+if(id<0)return 0;
+else thread=id;
+#else
 thread=omp_get_thread_num();
+#endif
 #endif
   AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   number time=0;
@@ -140,7 +159,13 @@ thread=omp_get_thread_num();
 number AMSStat::Get(char *name){
 int thread=0;
 #ifdef _OPENMP
+#ifdef G4MULTITHREADED
+int id=G4Threading::G4GetThreadId();
+if(id<0)return 0;
+else thread=id;
+#else
 thread=omp_get_thread_num();
+#endif
 #endif
   AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p &&p->_startstop==0)
@@ -303,7 +328,13 @@ void AMSStatErr::book(char *name, char severity){
 void AMSStatErr::print(char *name, char *message, uinteger maxprint){
 int thread=0;
 #ifdef _OPENMP
+#ifdef G4MULTITHREADED
+int id=G4Threading::G4GetThreadId();
+if(id<0)return ;
+else thread=id;
+#else
 thread=omp_get_thread_num();
+#endif
 #endif
   AMSStatErrNode *p=(AMSStatErrNode*)getp(AMSID(name,thread));
   if(p){

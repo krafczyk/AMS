@@ -93,6 +93,8 @@ extern LMS* lms;
 
 //#include "HistoMan.h"
 
+int AMSEvent::BBarrier=0;
+int AMSEvent::UBarrier=0;
 bool AMSEvent::_Barrier=false;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -3285,7 +3287,7 @@ integer AMSEvent::replace(AMSID id, AMSlink *p, AMSlink *prev){
 
 void AMSEvent::_validate(int print){
 AMSgObj::BookTimer.start("TDV");
-
+//cout <<"  validating "<<get_thread_num()<<" "<<_time<<endl;
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=dynamic_cast<AMSTimeID*>(ptid->down());
 while(offspring){
@@ -3302,11 +3304,10 @@ while(offspring){
   //          delete[] tmp;
 #endif
   if(offspring->validate(_time)){
-#ifdef __AMSDEBUG__
-    if(print)cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
-      " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
+//#ifdef __AMSDEBUG__
+    if(print)cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<" validated.  CRC = "<<
       offspring->getCRC()<<endl;                                              
-#endif
+//#endif
    }
     else 
 #pragma omp critical (tdvnotvalidated)

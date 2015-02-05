@@ -1,4 +1,6 @@
 // $Id$
+// kH
+// /
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1833,6 +1835,23 @@ void AMSJob::_resrddata(){
 //-----------------------------
 
 void AMSJob::udata(){
+
+  // Book histograms (MC gen+rec mode) if not yet
+  if (isSimulation() ) {
+    hman.Enable();
+    hman.BookHistos(3);
+  }
+  else{
+        hman.Enable();
+        hman.BookHistos(0);
+      }
+
+
+      
+
+
+
+
   if((CALIB.SubDetRequestCalib/100000)%10==0){
     const int size=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0]);
     int one=0;
@@ -2350,7 +2369,6 @@ void AMSJob::udata(){
 
 void AMSJob::init(){
   AMSEvent::debug=AMSFFKEY.Debug;
-
 
 #ifdef _PGTRACK_
   if (TRCLFFKEY.TrTimeLim > 0 && 

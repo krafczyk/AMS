@@ -249,10 +249,10 @@ void TrSim::sitkdigi() {
   }
 
   // Book histograms (MC gen+rec mode) if not yet
-  if (!hman.IsEnabled()) {
-    hman.Enable();
-    hman.BookHistos(3);
-  }
+//  if (!hman.IsEnabled()) {
+//    hman.Enable();
+//    hman.BookHistos(3);
+//  }
 
   // Beginning of other digitizations (GBATCH, TrSim2010)
 #ifndef __ROOTSHAREDLIBRARY__

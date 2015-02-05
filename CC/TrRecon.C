@@ -2961,10 +2961,10 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	*(par++) = tmin[jc].rmrg[2];   // 8
       }
       
-      if (!hman.IsEnabled()) {
-	hman.Enable();
-	hman.BookHistos(0);
-      }
+//      if (!hman.IsEnabled()) {
+//	hman.Enable();
+//	hman.BookHistos(0);
+//      }
       if (tmin[jc].ic[0] == 0) {
 	hman.Fill("TfCsq3", rgt2, csq1);
 	hman.Fill("TfCsq4", rgt2, csq2);

@@ -10,6 +10,10 @@
 
 #ifndef __AMSEVENT__
 #define __AMSEVENT__
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#include "G4Threading.hh"
+#endif
 #include <fstream>
 #include "job.h"
 #include "typedefs.h"
@@ -252,12 +256,36 @@ integer _setheadC( AMSID id, AMSlink * p);
 void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
+static int BBarrier;
+static int UBarrier;
 static bool & Barrier(){return _Barrier;}
 virtual void _init();
 void _init(DAQEvent*pdaq);
+static uinteger get_num_threads(){
+#ifdef _OPENMP
+#ifdef G4MULTITHREADED
+return G4MTRunManager::GetMasterRunManager()?G4MTRunManager::GetMasterRunManager()->GetNumberOfThreads():1;
+#else
+return omp_get_num_threads();
+#endif
+#else
+return 1;
+#endif
+}
 static uinteger get_thread_num(){
 #ifdef _OPENMP
+#ifdef G4MULTITHREADED
+int id=G4Threading::G4GetThreadId();
+if(id<0){
+id=maxthread-1;
+//cerr<<"AMSEvent::get_thread_num-F-G4MasterThreadDetected "<<endl;
+//abort();
+
+}
+return id;
+#else
 return omp_get_thread_num();
+#endif
 #else
 return 0;
 #endif
@@ -281,13 +309,7 @@ MISCFFKEY.NumThreads=1;
 #endif
 }
 
-static uinteger get_num_threads(){
-#ifdef _OPENMP
-return omp_get_num_threads();
-#else
-return 1;
-#endif
-}
+
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
 uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_runtype(runtype),_Error(0),_StationRad(StationR),_StationTheta(stationT),_StationPhi(stationP),_NorthPolePhi(pole),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0),_Yaw(yaw),_Pitch(pitch),_Roll(roll),_StationSpeed(StationS),_SunRad(SunR),_VelTheta(VelT),_VelPhi(VelP),_time(time),_usec(usec),_ccebp(0),_Utoftp(0),_Ltoftp(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),

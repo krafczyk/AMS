@@ -357,9 +357,7 @@ ifdef G4AMS
 COMMON_FILES +=   $(SCC)TRD_SimUtil.C  $(SCC)g4physics_ion.C \
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C $(SCC)geant4.C \
 	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C  $(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4strangelet.C $(SCC)G4ExcitationHandler.C 
-#$(SCC)/G4SDStructure.C  
-
-#  $(SCC)G4MTRunManager.C $(SCC)G4RunManager.C $(SCC)G4EventManager.C $(SCC)G4WorkerRunManager.C
+#$(SCC)G4MagIntegratorDriver.C $(SCC)G4MTRunManager.C $(SCC)G4RunManager.C $(SCC)G4EventManager.C $(SCC)G4WorkerRunManager.C
 
 COMMON_FILES += $(SCC)g4rich.C $(SCC)g4tof.C $(SCC)TofSimUtil.C
 
