@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.19 2014/01/04 16:00:14 pzuccon Exp $
+//  $Id$
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -65,9 +65,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2014/01/04 16:00:14 $
+///$Date$
 ///
-///$Revision: 1.19 $
+///$Revision$
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -195,7 +195,8 @@ protected:
 
   static MagField* _ptr;  ///< Self pointer
   double fscale;
-  float mag_temp;
+  float mag_temp[2];
+  int _flag;
   MagField(void);
 
 public:
@@ -241,10 +242,14 @@ public:
   void   SetScale(double scal) { fscale = scal; }
   int    GetMagstat() const { return MAGSFFKEY.magstat; }
   double GetScale  () const { return fscale; }
+  int    GetScaleFlag  () const { return _flag; }
   //! returns the magnet temperature
-  float  GetMagTemp() const { return mag_temp;}
+  float  GetMagTemp(int slot) const { return mag_temp[slot];}
+  //! returns the magnet temperature flag
+  int  GetMagTempFlag() const { return _flag;}
   //! Sets the temp for the Correction of the B fiels (18.5 degrees = no correction 
-  void   SetMagTemp(float temp )  {  mag_temp=temp; fscale=BCorrFactor(mag_temp);}
+  void   SetMagTemp(float temp1,float temp2=0, int flag=1 );  
+
   //! Updated the Magnet temp store in the object to correct the resulting Magfield
   //! returns 0 in case of success 
   //! in case of failure preserve the last set temperature correction paramenter

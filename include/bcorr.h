@@ -23,6 +23,8 @@ public:
  ClassDef(MagnetTemperature,1)       //MagnetTemperature;
  };
  static MagnetTemperature mgtt;
+  ///! the function returning the B correction at a given  temperature
+ static float _RAW_btempcor(float temp );
 #pragma omp threadprivate(mgtt)
 //
 public:

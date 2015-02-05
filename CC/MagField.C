@@ -50,7 +50,9 @@ MagField::MagField(void)
 {
   iniok=0;
   fscale=1;
-  mag_temp=18.5;
+  mag_temp[0]=18.5;
+  mag_temp[1]=18.5;
+  _flag=0;
   for(int ii=0;ii<2;ii++)
     isec[ii]=imin[ii]=ihour[ii]=iday[ii]=imon[ii]=iyear[ii]=0;
   na[0]=na[1]=na[2]=0;
@@ -539,24 +541,49 @@ void uctoh (char* MS,int* MT,int npw, int NCHP){
 }
 
 float  MagField::BCorrFactor(float temp){
-  float dBdT=8.37e-4+5.07e-6*temp;
-  const float TETH=18.5;
-  return 1.-dBdT*(temp-TETH);
+  return MagnetVarp::_RAW_btempcor(temp);
 }
 
 int MagField::UpdateMagTemp(unsigned int time){
 
-  float temp=18.5;
+  float temp1=18.5;
+  float temp2=18.5;
   if(time!=MagnetVarp::mgtt.time){
     MagnetVarp::mgtt.loadValues(time,true);
-    if(time!=MagnetVarp::mgtt.time)return -1;
+    if(time!=MagnetVarp::mgtt.time){
+      _flag=_flag|4;
+      return -1;
+    }
   }
+  int flag=0;
+  int ret1=MagnetVarp::mgtt.getmeanmagnettemp(temp1,1);
+  int ret2=MagnetVarp::mgtt.getmeanmagnettemp(temp2,2);
+  if(ret1==0) flag=flag|1; 
+  if(ret2==0) flag=flag|2; 
   
-  int ret=MagnetVarp::mgtt.getmeanmagnettemp(temp);
-  if(ret)return -2;
-  
-  SetMagTemp(temp);
+  SetMagTemp(temp1,temp2,flag);
   return 0;
 }
 
+
+void   MagField::SetMagTemp(float temp1,float temp2 ,int flag){
+ 
+  _flag=flag;
+  mag_temp[0]=temp1;
+  mag_temp[1]=temp2; 
+  if(flag==0) 
+    fscale=1.;
+  else if(flag==1)
+    fscale=BCorrFactor(mag_temp[0]);
+  else if(flag==2)
+    fscale=BCorrFactor(mag_temp[1]);
+  else if(flag==3)
+    fscale=(BCorrFactor(mag_temp[0])+BCorrFactor(mag_temp[1]))/2;
+  else{
+    fscale=1.;
+    printf("MagField::SetMagTemp-W-Warning Flag= %d,  No Tempreture correction to B field\n",flag);
+  }
+  return;
+ }
 #endif
+  

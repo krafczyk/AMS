@@ -79,6 +79,17 @@ public:
   short int NdofY;
   /// Applied Bfield Temp correction 
   float Bcorr;
+  /// Flag for the type of bcorr, bitwise
+  ///  bit 0 enabled = odd  sensors temp included
+  ///  bit 1 enabled = even sensors temp included
+  ///  bit 2 enabled = temp not updated since last check 
+  ///  examples:
+  /// value 0 no correction Bcoorr=1
+  /// value 1 - average of odd magnet temperature sensors
+  /// value 2 - average of even magnet temperature sensors
+  /// value 3 - average of 1 and 2 ( best case)
+  /// value 7 - Updated temp not available - using the previous available info from all the sensors
+  short int BcorrFlag;
 public:
   /// Normalized chisquare, Chisq(x+y)/Ndof(x+y)
   /*!
@@ -145,7 +156,7 @@ public:
   /// Default constructor to fill default values
   TrTrackPar()
     : HitBits(0), FitDone(false), ChisqX(-1), ChisqY(-1), 
-      NdofX(0), NdofY(0), Bcorr(1.), Chisq(-1), Rigidity(0), ErrRinv(0), 
+      NdofX(0), NdofY(0), Bcorr(1.),BcorrFlag(0), Chisq(-1), Rigidity(0), ErrRinv(0), 
       P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {
     for (int i = 0; i < trconst::maxlay; i++){
       Residual[i][0] = Residual[i][1] = 0;
@@ -157,7 +168,7 @@ public:
   void Print_stream(std::string &ostr,int full=0) const;
   friend class TrTrackR;
   friend class VertexR;
-  ClassDef(TrTrackPar,5);
+  ClassDef(TrTrackPar,6);
 } ; 
 
 
@@ -535,6 +546,8 @@ public:
   double GetNormChisqY(int id= 0) const;
   /// Get applied Bfield Temp correction 
   float  GetBcorr     (int id= 0) const { return GetPar(id).Bcorr; }
+  /// Get applied Bfield Temp correction Flag
+  float  GetBcorrFlag (int id= 0) const { return GetPar(id).BcorrFlag; }
 
   /// Get track entry point (first layer of the fitting) from TrTrackPar corresponding to id
   AMSPoint GetPentry(int id = 0) const;
