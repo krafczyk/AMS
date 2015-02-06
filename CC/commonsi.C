@@ -96,7 +96,7 @@ void AMSCommonsI::init(){
       strcat(AMSDATADIR.amsdatabase,"DataBase");
        if(getenv("AMSDataBaseEnv")){
           cout<<"AMSCommonsi-I-AMASDataBaseRedefined "<<getenv("AMSDataBaseEnv")<<endl;
-        strcpy(AMSDATADIR.amsdatabase,AMSDATADIR.amsdatabase);
+        strcpy(AMSDATADIR.amsdatabase,getenv("AMSDataBaseEnv"));
       } 
       strcat(AMSDATADIR.amsdatabase,"/");
  
@@ -155,6 +155,7 @@ void AMSCommonsI::init(){
        AMSDBc dummy; (void)dummy;
        AMSDBc::amsdatabase=new char[strlen(AMSDATADIR.amsdatabase)+1];
        strcpy(AMSDBc::amsdatabase,AMSDATADIR.amsdatabase);
+       cout <<"AMSCommonsI-I-amsdatabase "<<AMSDBc::amsdatabase<<endl;
        _pid=getpid();
 #ifndef __DARWIN__
        //  get mips

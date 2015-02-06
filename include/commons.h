@@ -1448,8 +1448,11 @@ class LIPC2F_DEF{
 #define LIPC2F COMMON_BLOCK(LIPC2F,lipc2f)
 COMMON_BLOCK_DEF(LIPC2F_DEF,LIPC2F);
 //LA 18Out10
-//#pragma omp threadprivate(LIPC2F)
-
+#ifdef _OPENMP
+#ifndef G4MULTITHREADED
+#pragma omp threadprivate(LIPC2F)
+#endif
+#endif
 // output data (see richrec_lipc.h for details)
 
 class LIPF2C_DEF{

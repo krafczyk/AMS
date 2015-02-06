@@ -159,7 +159,6 @@ integer AMSTimeID::CopyOut  (void *pdata) {
 
 integer AMSTimeID::validate(time_t & Time, integer reenter){
 
-
 #ifndef __DB__
   int ok = readDB(AMSDBc::amsdatabase,Time,reenter);
 #endif

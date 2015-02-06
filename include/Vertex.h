@@ -20,9 +20,9 @@ public:
   number ErrMomentum;  ///< Error in 1 / Momentum Sum (1/GeV)
   number Theta;        ///< Theta (rad)
   number Phi;          ///< Phi  (rad)
-  int8   Charge;       ///< Charge at vertex
+  int16   fCharge;       ///< Charge at vertex
+  uint16  fNdof;         ///< Number of degrees of freedom
   number Chi2;         ///< Chi2
-  uint8  Ndof;         ///< Number of degrees of freedom
   float  Vertex [3];   ///< Vertex position (cm)
 
   /// Vector holding the index to tracks connected to the vertex
@@ -47,9 +47,9 @@ public:
   ///dummy constructor
   VertexR(){Clear();}
   /// Explicit constructor it builds up a vertex
-  VertexR(int ntracks, TrTrackR *ptrack[]);
+  VertexR(int ntracks, TrTrackR *ptrack[],double beta=1);
   /// Explicit constructor with two tracks (assuming photon vertex)
-  VertexR(TrTrackR *track1, TrTrackR *track2);
+  VertexR(TrTrackR *track1, TrTrackR *track2,double beta=1);
 
   ~VertexR(){Clear(); }
   /// Clean up the class to "zero" default  
@@ -80,11 +80,11 @@ public:
   /// Return Rec mass at vertex (GeV)
   number        getmass()    const  {return Mass;}
   /// Return Total Charge at vertex
-  integer       getcharge()  const  {return Charge;}
+  integer       getcharge()  const  {return fCharge;}
   /// Chi2
   number        getchi2()    const  {return Chi2;}
   /// Number of degrees of freedom
-  integer       getndof()    const  {return Ndof;}
+  integer       getndof()    const  {return fNdof;}
   /// Return true if the vertex has been properly built 
   bool           IsFilled()   const  {return _filled!=0;}
   /// Return true if the vertex is build with an assumption of photon
@@ -119,14 +119,14 @@ public:
   void set_vertex();
 
   /// Fit vertex with two tracks
-  double FitV(TrTrackR *trk1, TrTrackR *trk2);
+  double FitV(TrTrackR *trk1, TrTrackR *trk2,double beta);
 
   static double ZrefV;
  
   // Friends
   friend class AMSTrTrack;
 
-  ClassDef(VertexR,3);
+  ClassDef(VertexR,4);
 
 };
 // End VertexR CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

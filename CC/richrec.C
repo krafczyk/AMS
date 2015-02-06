@@ -2300,7 +2300,12 @@ _TrackRec.clear();
 }
 
 int AMSRichRingNew::buildlip(){
-
+#ifdef G4MULTITHREADED
+// fixme
+static int mess=0;
+if(!mess++)cerr<<"AMSRichRingNew::buildlip-E-WillnotRunFaulty to bad LIPC2F common "<<endl;
+return 0;
+#endif
   int ARRAYSIZE=(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem();
   if(ARRAYSIZE==0) return 0;
 

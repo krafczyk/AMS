@@ -981,9 +981,11 @@ nchunk=omp_get_num_procs()*10;
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 #endif
 //cout <<"  new chunk "<<nchunk<<endl;
-
+#ifdef G4MULTITHREADED
 #pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)
-//, copyin(LIPC2F) 
+#else
+#pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq), copyin(LIPC2F)
+#endif
 {
 
    AMSEvent::ResetThreadWait(1);

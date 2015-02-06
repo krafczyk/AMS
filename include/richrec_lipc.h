@@ -173,8 +173,9 @@
      +                  dvmaxnaf_c2f,              ! Maximum distance derivative for NaF
      +                  tollinagl_c2f,             ! Tolerance in linearity for aerogel
      +                  tollinnaf_c2f              ! Tolerance in linearity for NaF
-
-*!$OMP THREADPRIVATE (/lipc2f/) 
+#ifndef G4MULTITHREADED 
+!$OMP THREADPRIVATE (/lipc2f/) 
+#endif
 * ===============================================================================================
 
       integer resb_iflag,resb_itype,resb_itrk,resb_nhit,resb_phit,

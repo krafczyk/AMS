@@ -21,9 +21,9 @@ void VertexR::Clear(){
   Theta=0;
    Phi=0;
   Mass=0;
-  Charge=0;
+  fCharge=0;
   Chi2=0;
-  Ndof=0;
+  fNdof=0;
   fTrTrack.clear();
   _pTrTrack.clear();
   Vertex[0]=Vertex[1]=Vertex[2]=0;
@@ -34,7 +34,7 @@ void VertexR::Clear(){
 //
 ///////////////////////////////////////////////////////////
 
-VertexR::VertexR(int ntracks, TrTrackR *ptrack[]) {
+VertexR::VertexR(int ntracks, TrTrackR *ptrack[],double beta) {
   
   //Reset to initial values
   Clear();
@@ -52,17 +52,18 @@ VertexR::VertexR(int ntracks, TrTrackR *ptrack[]) {
     _pTrTrack[i]->setstatus(AMSDBc::USED);
     number rig =  _pTrTrack[i]->GetRigidity();
     number en =  fabs(rig);
+    int  charge= int(_pTrTrack[i]->GetQ(beta)+0.5);
     number erig =  _pTrTrack[i]->GetErrRinv()*en*en;
-    Momentum += en;
-    Charge += (rig>=0.0)? 1:-1;
-    ErrMomentum += erig*erig;
+    Momentum += en*charge;
+    fCharge += (rig>=0.0)? charge:-charge;
+    ErrMomentum += erig*erig*charge*charge;
     Chi2 += _pTrTrack[i]->GetChi2(); 
-    Ndof += 2*_pTrTrack[i]->GetNhits() - 5; 
+    fNdof += 2*_pTrTrack[i]->GetNhits() - 5; 
     AMSDir dir = AMSDir(_pTrTrack[i]->GetTheta(),_pTrTrack[i]->GetPhi());
     dir.getp(u);
-    mom[0] += en*u[0]; 
-    mom[1] += en*u[1]; 
-    mom[2] += en*u[2];
+    mom[0] += en*charge*u[0]; 
+    mom[1] += en*charge*u[1]; 
+    mom[2] += en*charge*u[2];
   }
 
   ErrMomentum = sqrt(ErrMomentum)/Momentum/Momentum;
@@ -78,7 +79,7 @@ VertexR::VertexR(int ntracks, TrTrackR *ptrack[]) {
 
 }
 
-VertexR::VertexR(TrTrackR *track1, TrTrackR *track2)
+VertexR::VertexR(TrTrackR *track1, TrTrackR *track2,double beta)
 {
   Clear();
   _pTrTrack.push_back(track1);
@@ -88,7 +89,7 @@ VertexR::VertexR(TrTrackR *track1, TrTrackR *track2)
   track1->setstatus(AMSDBc::USED);
   track2->setstatus(AMSDBc::USED);
 
-  FitV(track1, track2);
+  FitV(track1, track2,beta);
 }
 
 
@@ -96,13 +97,13 @@ std::string VertexR::_PrepareOutput(int full){
 
   std::string sout;
   sout.append(Form("Vtx: #tracks %d  Mom %f ErrMom  %f Chrg %d Coo: (%f, %f, %f)",
-		   NTrTrack(), Momentum, ErrMomentum, Charge,Vertex[0],Vertex[1],Vertex[2]));
+		   NTrTrack(), Momentum, ErrMomentum, fCharge,Vertex[0],Vertex[1],Vertex[2]));
   
   if(!full)
     sout.append("\n");
   else
     sout.append(Form("Theta %f  Phi %f Chi2/Ndf %f/%d \n",
-		   Theta,Phi, Chi2, Ndof));
+		   Theta,Phi, Chi2, fNdof));
 
   return sout;
 }
@@ -299,7 +300,7 @@ void VertexR::Recover()
   BuildTracksIndex();
 }
 
-double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2)
+double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2,double beta)
 {
   if (!trk1 || !trk2) return -1;
 
@@ -531,18 +532,20 @@ double VertexR::FitV(TrTrackR *trk1, TrTrackR *trk2)
 	tpar.weight  [j][0] = tpar.weight  [j][1] = 0;
       }
     }
+     int  charge= i==0?int(trk1->GetQ(beta)+0.5):int(trk2->GetQ(beta)+0.5);
 
-    Momentum    += fabs(rgt[i]);
-    Charge      += (rgt[i] > 0) ? 1 : -1;
-    ErrMomentum += erv[i]*erv[i];
+ 
+    Momentum    += fabs(rgt[i])*charge;
+    fCharge      += (rgt[i] > 0) ? charge : -charge;
+    ErrMomentum += erv[i]*erv[i]*charge*charge;
     Chi2        += csqx[i]+csqy[i];
-    Ndof        += ndfx[i]+ndfy[i];
+    fNdof        += ndfx[i]+ndfy[i];
   }
   if (Momentum <= 0) return -4;
 
   ErrMomentum = std::sqrt(ErrMomentum);
-  Ndof += 2;
-  Chi2 /= (Ndof > 0) ? Ndof : 1;
+  fNdof += 2;
+  Chi2 /= (fNdof > 0) ? fNdof : 1;
 
   Theta = pdir[0].gettheta();
   Phi   = pdir[0].getphi();

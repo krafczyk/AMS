@@ -112,7 +112,7 @@ integer AMSParticle::build(integer refit){
   AMSVtx *pcand=0;
   for( AMSVtx *pvert=(AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",0);pvert!=NULL;pvert=pvert->next()){   
     // VC pvert
-    if(abs(pvert->getcharge())<2 && !pvert->checkstatus(AMSDBc::BAD)){    
+    if(abs(pvert->getcharge())<1 && !pvert->checkstatus(AMSDBc::BAD)){    
       if(pvert->getmass()/pvert->getmom()<mbig){
 	mbig=pvert->getmass()/pvert->getmom();
 	pcand=pvert;
