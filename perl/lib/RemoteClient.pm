@@ -19944,6 +19944,7 @@ sub UploadToCastor{
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
           if ($ntuple->[0] =~ /^\/eosams/) {
               $sys = "$self->{eosselect} $sys";
+              $sys =~ s#/eosams/#/eos/ams/#g;
           }
           my $res=system($sys);
           if($res){
