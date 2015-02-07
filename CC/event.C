@@ -95,6 +95,38 @@ extern LMS* lms;
 
 int AMSEvent::BBarrier=0;
 int AMSEvent::UBarrier=0;
+
+void AMSEvent::SetBarrier(int phase){
+#ifdef _OPENMP
+//  set barrier a-la openmp for g4
+if(phase==0){
+#pragma omp atomic
+BBarrier++;
+for(;;){
+if(BBarrier==-1 ||BBarrier==get_num_threads()){
+BBarrier=-1;
+return;
+}
+}
+}
+else{
+
+#pragma omp atomic
+UBarrier++;
+for(;;){
+if(BBarrier==0)return;
+if(UBarrier==get_num_threads()){
+  UBarrier=0;
+  BBarrier=0;
+  return;
+}
+}
+
+}
+
+#endif
+}
+
 bool AMSEvent::_Barrier=false;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -116,6 +148,9 @@ void AMSEvent::_init(DAQEvent*pdaq){
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime(),pdaq)){
     AMSEvent::ResetThreadWait(1);
+#ifdef G4MULTITHREADED
+AMSEvent::SetBarrier(0);
+#endif
 #pragma omp barrier  
 if(AMSEvent::get_thread_num()==0){
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
@@ -152,6 +187,9 @@ if(AMSEvent::get_thread_num()==0){
       ptdv->SetTime(inserto,begino,endo);
       AMSJob::gethead()->getstatustable()->reset();      
     }
+#ifdef G4MULTITHREADED
+AMSEvent::SetBarrier(1);
+#endif
 #pragma omp barrier 
 }
 #ifdef __CORBA__
@@ -180,6 +218,9 @@ void AMSEvent::_init(){
   if(int(_run) != SRun){
    AMSEvent::ResetThreadWait(1);
 Barrier()=true;
+#ifdef G4MULTITHREADED
+AMSEvent::SetBarrier(0);
+#endif
 #pragma omp barrier 
 //#pragma omp master
 //cout <<"AMSAEvent::_init in barrier "<<AMSEvent::get_thread_num()<<endl;
@@ -277,6 +318,9 @@ if(AMSEvent::get_thread_num()==0)
     cout<<*(AMSJob::gethead()->getstatustable())<<" Triggers "<<GCFLAG.IEVENT<<endl;;
   }
 }
+#ifdef G4MULTITHREADED
+AMSEvent::SetBarrier(1);
+#endif
 #pragma omp barrier 
 }
   // Initialize containers & aob
@@ -1332,6 +1376,9 @@ void  AMSEvent::write(int trig){
          cerr<<" AMSEvent-W-ClosingFile "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<" "<<GCFLAG.ITEST<<" "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
 	  AMSEvent::ResetThreadWait(1);
 	  Barrier()=true;
+#ifdef G4MULTITHREADED
+AMSEvent::SetBarrier(0);
+#endif
 #pragma omp barrier 
 	  cout <<"AMSAEvent::writefile in barrier "<<AMSEvent::get_thread_num()<<endl;
 	  
@@ -1345,6 +1392,9 @@ if(AMSJob::gethead()->isRealData()){
 }
 	      Barrier()=false;
 	    }
+#ifdef G4MULTITHREADED
+AMSEvent::SetBarrier(1);
+#endif
 #pragma omp barrier 
 	  if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
 	  
@@ -1404,8 +1454,6 @@ void AMSEvent::copy(){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
-  if(GCFLAG.IEVENT==1000){
-  }
   addnext(AMSID("WriteAll",0),new Test());
   // First Selected Events
   if(_SelectedEvents){

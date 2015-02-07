@@ -371,16 +371,17 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 //
 //
 #ifdef G4MULTITHREADED
-#pragma omp atomic
-AMSEvent::BBarrier++;
+AMSEvent::SetBarrier(0);
+//#pragma omp atomic
+//AMSEvent::BBarrier++;
 #pragma omp critical (mbar)
   cout <<" in barrier AMSTimeId::readDB-I-BarrierReachedFor "<<AMSEvent::gethead()->get_thread_num()<<" "<<" "<<AMSEvent::BBarrier<<" "<<AMSEvent::UBarrier<<endl;
-for(;;){
-if(AMSEvent::BBarrier==-1 ||AMSEvent::BBarrier==AMSEvent::get_num_threads()){
-AMSEvent::BBarrier=-1;
-break;
-}
-}
+//for(;;){
+//if(AMSEvent::BBarrier==-1 ||AMSEvent::BBarrier==AMSEvent::get_num_threads()){
+//AMSEvent::BBarrier=-1;
+//break;
+//}
+//}
 #endif
 #pragma omp barrier 
   if( AMSEvent::get_thread_num()==0) {
@@ -437,16 +438,17 @@ break;
 #endif
 #ifndef __ROOTSHAREDLIBRARY__
 #ifdef G4MULTITHREADED
-#pragma omp atomic
-AMSEvent::UBarrier++;
-for(;;){
-if(AMSEvent::BBarrier==0)break;
-if(AMSEvent::UBarrier==AMSEvent::get_num_threads()){
-  AMSEvent::UBarrier=0;
-  AMSEvent::BBarrier=0;
-break;
-}
-}
+  AMSEvent::SetBarrier(1);
+//#pragma omp atomic
+//AMSEvent::UBarrier++;
+//for(;;){
+//if(AMSEvent::BBarrier==0)break;
+//if(AMSEvent::UBarrier==AMSEvent::get_num_threads()){
+//  AMSEvent::UBarrier=0;
+//  AMSEvent::BBarrier=0;
+//break;
+//}
+//}
 #pragma omp critical (mbar)
   cout <<" leaving barrier AMSTimeId::readDB-I-BarrierReachedFor "<<AMSEvent::gethead()->get_thread_num()<<" "<<" "<<AMSEvent::BBarrier<<" "<<AMSEvent::UBarrier<<endl;
 #endif

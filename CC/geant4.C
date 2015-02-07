@@ -75,6 +75,9 @@
 
  static double g4_primary_momentum=0;
  static double g4_cpu_limit=0;
+#ifdef _OPENMP
+#pragma omp threadprivate(g4_primary_momentum,g4_cpu_limit) 
+#endif
 size_t get_memory_usage() {
 
 #ifndef __DARWIN__
@@ -279,7 +282,13 @@ Reset();
    if(IOPA.mode%10 !=1 ){
 //    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
 //    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
-     AMSEvent *pn= new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0);
+AMSEvent *pn=0;
+#ifdef _OPENMP
+#pragma omp critical (newg4event)
+#endif
+{
+     pn= new AMSEvent(AMSID("Event",GCFLAG.IEVENT++),CCFFKEY.run,0,0,0);
+}
      pn->_init();
      AMSEvent::sethead(pn);
     for(integer i=0;i<CCFFKEY.npat;i++){
@@ -549,8 +558,8 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
    cout <<" GCFLAG.IEVENT C "<<GCFLAG.IEVENT<<" "<< GCFLAG.IEOTRI<<" "<<GCFLAG.IEORUN<<endl;
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
 #ifdef _OPENMP
-#pragma omp atomic
-      GCFLAG.IEVENT++;
+//#pragma omp atomic
+//      GCFLAG.IEVENT++;
 #endif
   }
   else{
@@ -659,13 +668,9 @@ if(!G4Threading::IsWorkerThread() )return;
     } 
 }
       CCFFKEY.curtime=AMSEvent::gethead()->gettime();
-#ifdef G4MULTITHREADED
-   bool simrec=G4MTRunManager::GetMasterRunManager() && G4MTRunManager::GetMasterRunManager()->GetNumberOfThreads()<2;
-#else
-bool simrec=true;
-#endif
    try{
-          if(anEvent && AMSEvent::gethead()->HasNoErrors() &&simrec){
+
+          if(anEvent && AMSEvent::gethead()->HasNoErrors() ){
             AMSEvent::gethead()->event();
           }
    }
@@ -760,8 +765,10 @@ bool simrec=true;
          else break;
         }
         if(trigl==0)trig=0;
+
        }
      }
+     //    cout << "trigger "<<trig<<endl;  
 // try to manipulate the conditions for writing....
 //   if(trig ){ 
 //     AMSEvent::gethead()->copy();
@@ -776,11 +783,11 @@ bool simrec=true;
    UPool.erase(2000000);
 
 #ifdef _OPENMP
-#pragma omp atomic
-   GCFLAG.IEVENT++;
+//#pragma omp atomic
+//   GCFLAG.IEVENT++;
 #endif
 //   cout <<" GCFLAG.IEVENT A "<<GCFLAG.NEVENT<<" "<<GCFLAG.IEVENT<<" "<< GCFLAG.IEOTRI<<" "<<GCFLAG.IEORUN<<endl;
-   if(GCFLAG.IEVENT>=GCFLAG.NEVENT){
+   if(GCFLAG.IEVENT>GCFLAG.NEVENT){
     GCFLAG.IEOTRI=1;
     GCFLAG.IEORUN=1;
    }
@@ -1100,14 +1107,6 @@ AMSG4DummySDI::~AMSG4DummySDI(){
 #include "G4ParticleTypes.hh"
 
 void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
-/*
-#ifdef G4MULTITHREADED
-   bool simrec=G4MTRunManager::GetMasterRunManager() && G4MTRunManager::GetMasterRunManager()->GetNumberOfThreads()<2;
-#else
-bool simrec=true;
-#endif
-if(!simrec)return;
-*/
 if(!Step)return;
   // just do as in example N04
   // don't really understand the stuff
@@ -1155,7 +1154,7 @@ if(!Step)return;
     if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit<<endl;
     report=false;
     AMSEvent::gethead()->SetEventSkipped(true);
-   return;
+    return;
   }
   else if(freq<10){
    freq=10;
@@ -1165,14 +1164,14 @@ if(!Step)return;
   /// <SH> Scan of element abundance along the track
   if (MISCFFKEY.ScanElemAbundance && MISCFFKEY.G4On == 1
                                   && MISCFFKEY.G3On == 0) {
-    static double Z1 =   53.1*cm;  // Before L2
-    static double Z2 =  -29.3*cm;  // After  L8
-    static double Z3 = -135.7*cm;  // Before L9
+     double Z1 =   53.1*cm;  // Before L2
+     double Z2 =  -29.3*cm;  // After  L8
+     double Z3 = -135.7*cm;  // Before L9
 
-    static double par1[4] = { 63.14, 48.4,  158.9, 67.14 };
-    static double par9[4] = { 46.62, 34.5, -135.7, 67.14 };
-    static AMSPoint crp1;
-    static AMSPoint crp9;
+     double par1[4] = { 63.14, 48.4,  158.9, 67.14 };
+     double par9[4] = { 46.62, 34.5, -135.7, 67.14 };
+     AMSPoint crp1;
+     AMSPoint crp9;
 
     if (crp1.norm() == 0) crp1.setp(par1[0], par1[1], par1[2]);
     if (crp9.norm() == 0) crp9.setp(par9[0], par9[1], par9[2]);
@@ -1186,15 +1185,15 @@ if(!Step)return;
 
       enum { NZ = 14, NE = 6 };
                          // 1   2  3  4  5  6  7  8   9 10 11 12 13 14
-      static int iZ[NZ] = { 0, -1,-1,-1,-1, 1, 2, 3, -1,-1,-1,-1, 4, 5 };
-      static int evno =  -1;
-      static int nevt =   0;
-      static int nxsc =   0;
-      static int fpl1 =   0;
-      static int intv = 100;
-      static double wsum[NE*3];
-      static double wavg[NE*3];
-      static double xsec[NE];
+       int iZ[NZ] = { 0, -1,-1,-1,-1, 1, 2, 3, -1,-1,-1,-1, 4, 5 };
+       int evno =  -1;
+       int nevt =   0;
+       int nxsc =   0;
+       int fpl1 =   0;
+       int intv = 100;
+       double wsum[NE*3];
+       double wavg[NE*3];
+       double xsec[NE];
       if (evno < 0) {
 	G4cout << "AMSG4SteppingAction::UserSteppingAction-I-Initialize "
 	       << "element abundance vector" << G4endl;
@@ -1332,9 +1331,9 @@ if(!Step)return;
    // only for Geant4
    if (MISCFFKEY.SaveMCTrack == 1 && MISCFFKEY.G4On == 1 && MISCFFKEY.G3On == 0)
    {
-      static double ECAL_Z = ECALDBc::ZOfEcalTopHoneycombSurface()*cm;
-      static double ene_threshold = MISCFFKEY.MCTrackMinEne*MeV;
-      static bool   save_sec = MISCFFKEY.SaveMCTrackSecondary == 1;
+       double ECAL_Z = ECALDBc::ZOfEcalTopHoneycombSurface()*cm;
+       double ene_threshold = MISCFFKEY.MCTrackMinEne*MeV;
+       bool   save_sec = MISCFFKEY.SaveMCTrackSecondary == 1;
 
       G4Track *step_trk = Step->GetTrack();
 
@@ -1424,6 +1423,7 @@ if(!Step)return;
   G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
   G4StepPoint * PrePoint = Step->GetPreStepPoint();
   G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
+
   if(PostPV && PrePV){
 //     cout << "Stepping Pre  "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
 //     cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<" " <<Step->GetTotalEnergyDeposit()/GeV<<endl;
@@ -1701,6 +1701,9 @@ if(!Step)return;
 	      //check boundary           
 	      G4OpBoundaryProcessStatus TOFPMBoundaryStatus=Undefined;
 	      static RichG4OpBoundaryProcess* boundary=NULL;
+#ifdef _OPENMP
+#pragma omp threadprivate (boundary)
+#endif
 	      if(!boundary){
 		G4ProcessManager* pm= Step->GetTrack()->GetDefinition()->GetProcessManager();
 		G4int nprocesses = pm->GetProcessListLength();
@@ -1895,7 +1898,7 @@ if(!Step)return;
 	  cerr << "GUSTEP  "<< e.getmessage();
 	  GCTRAK.istop =1;
 	  AMSEvent::gethead()->Recovery();
-	  return;
+	  return; 
 	}
 	catch (AMSaPoolError e){
 	  cerr << "GUSTEP  "<< e.getmessage();
@@ -1910,9 +1913,10 @@ if(!Step)return;
       Track->SetTrackStatus(fStopAndKill);
     }
 
-  }
-
 }
+return;
+}
+
 
 G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track * aTrack)
 { 
@@ -2028,7 +2032,7 @@ void AMSG4SteppingAction::FillPrimaryInfo( const G4Step *Step){
 
 
 void AMSG4SteppingAction::FillBackSplash( const G4Step *Step){
-  static double ECAL_Z = ECALDBc::ZOfEcalTopHoneycombSurface();
+  double ECAL_Z = ECALDBc::ZOfEcalTopHoneycombSurface();
   double z_post = Step->GetPostStepPoint()->GetPosition().z();
   double z_pre = Step->GetPreStepPoint()->GetPosition().z();
 

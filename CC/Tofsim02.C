@@ -37,8 +37,6 @@
 //
 //------------------------------------------------------------------
 map<integer,TH1D*> TOF2TovtN::phmap;
-map<integer,TH1D*>::iterator TOF2TovtN::phmapiter;
-map<integer,TH1D*>::iterator TOF2TovtN::phmapitern;
 
 //------------------------------------------------------------------
 number TOF2TovtN::ftdclw(){
@@ -70,8 +68,8 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   char vname[5];
   char histn[100];
   integer ierr(0);
-  static geant bthick=0.5*TOF2DBc::plnstr(6);
-  static geant convr =TOF2DBc::edep2ph();//
+  geant bthick=0.5*TOF2DBc::plnstr(6);
+  geant convr =TOF2DBc::edep2ph();//
 
   //--
   id=idsoft;
@@ -123,7 +121,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
       TH1D *hph=0;
 //----Add Map Check
       if(neles>0){
-         phmapiter=phmap.find(pmtid);
+         phmapi phmapiter=phmap.find(pmtid);
          if(phmapiter==phmap.end()){
              sprintf(histn,"TOFPh_id%d",pmtid);
              pair<integer,TH1D*>phelem(pmtid,new TH1D(histn,histn,ftdcnb(),0,ftdclw()));
@@ -167,10 +165,10 @@ void TOF2TovtN::build()
   uinteger i, ii;
   geant edepb=-1,time,pmtime,am;
   geant tslice[TOF2GC::PMTSMX][TOFCSN::FLTDCBM+1]; //  flash ADC array only use
-  static int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
+  int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
 //---
-  static geant ifadcb=1./ftdcbw();
-  static integer eleth=200;
+  geant ifadcb=1./ftdcbw();
+  integer eleth=200;
   static int prlevel=1;
 
   if(prlevel==1){
@@ -252,7 +250,7 @@ void TOF2TovtN::build()
 //---Table
   else {
 
-    for(phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++){
+    for(phmapi phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++){
         id=  (*phmapiter).first;
         ilay=id/1000%10;
         ibar=id/100%10;
@@ -290,7 +288,7 @@ void TOF2TovtN::build()
         }
 
 //---another side
-          phmapitern=phmapiter;
+          phmapi phmapitern=phmapiter;
           phmapitern++;
          if((phmapitern==phmap.end())||((*(phmapitern)).first/10!=(*phmapiter).first/10)){
            nowbar=100*(ilay+1)+ibar+1;
@@ -318,7 +316,7 @@ void TOF2TovtN::build()
        
 //    cout<<"TFNew MC photon="<<nphoton<<endl;
 //--ready clear phmap
-     for(phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++)
+     for(phmapi phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++)
        delete (*phmapiter).second;
      phmap.clear();
 //-------
@@ -376,9 +374,10 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCB
   geant tmark=0;
   static integer first=0;
   static geant fladcb;
+  
   geant daqt0,daqt1,daqt2,fdaqt0;
   static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp7,daqp8,daqp10;
-  number adcs;
+ number adcs;
   int16u otyp,mtyp,crat,tsens;
 //
 //cout<<"======>Enter TOF2TovtN::totovt with id="<<idd<<endl;
@@ -392,7 +391,12 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCB
   crat=tofid.getcrate();//current crate#
   tsens=tofid.gettempsn();//... sensor#(1,2,...,5 == sequential SFET(A)'s number !!!)
 //
-  if(first++==0){
+ if(!first)
+#ifdef _OPENMP
+#pragma omp critical(first)
+#endif
+{
+    first=1; 
     if(ftdcnb()>TOFCSN::FLTDCBM)cerr<<"<<---Error TOF2Tovt::FLASH TDC Length<1000ns"<<endl;
     fladcb=ftdcbw();
     cout<<"TOF2Tovt::FLASH TDC Width="<<(fladcb*1000)<<"ps"<<endl;
@@ -413,7 +417,7 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOFCSN::FLTDCB
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
   geant tslice[TOFCSN::FLTDCBM+1];
-  static int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
+   int ftdcnbmax=(ftdcnb()<TOFCSN::FLTDCBM)?ftdcnb():TOFCSN::FLTDCBM;
   geant gainref=1;
   bool gainflag=1;
   if(TFMCFFKEY.anodesat==2)gainflag=0;

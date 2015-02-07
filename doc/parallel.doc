@@ -70,3 +70,38 @@ under fedora 8,9, SLC5 creates exec with one mthreaded process  /recommended/
 
 
    
+
+
+//  Geant4 Multithreading
+
+a mariage between g4 threads and openmp
+
+openmp pragmas working :
+
+critical, threadprivate
+
+not working barrier, master
+
+
+barrier was emulated using AMSEvent::SetBarrier
+
+AMSNtuple::write use slower algo using only omp ragmas and not omp_locks /to be worked in/
+
+//basically works
+
+to compile setenv G4MULTITHREADING 1
+
+or use vars in /Offlne/vdev/install/build410_mt.sh
+
+
+RNDM not checked /no reproducibility/
+
+Number of threads can not bec changed dynamically /may be changed in the future//
+
+To Activate use same MISC 8=nthr datacards
+
+as simulation can take long time is is dtronglt recommended use also MISC 29=1
+
+the events in the root file will be not ordered, however amschain. getentryordered can be used to get the ordered events
+
+

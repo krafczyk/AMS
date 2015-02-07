@@ -256,6 +256,7 @@ integer _setheadC( AMSID id, AMSlink * p);
 void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
+static void SetBarrier(int phase);
 static int BBarrier;
 static int UBarrier;
 static bool & Barrier(){return _Barrier;}

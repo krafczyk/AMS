@@ -587,9 +587,12 @@ extern "C" geant rrtmindex_(geant *x,geant *y,geant *wvl){
 // Get the number of Cherenkov photons. Prepare integration table
 //
 
-double _cherenkov_integral[RICmaxentries];
-double _cherenkov_index[RICmaxentries];
-int _cherenkov_border;
+static double _cherenkov_integral[RICmaxentries];
+static double _cherenkov_index[RICmaxentries];
+static int _cherenkov_border;
+#ifdef _OPENMP
+#pragma omp threadprivate (_cherenkov_integral,_cherenkov_index, _cherenkov_border)
+#endif
 
 extern "C" geant getphotons_(geant *charge,geant *min_index,geant *vect,geant *step){
   const geant rfact=369.81E9;
@@ -703,11 +706,12 @@ extern "C" geant getmomentum_(geant *index){
 
   // This a test to look for problems
   if(*index<1 || *index>2){
-    cerr<<"BIG PROBLEM AT getphoton_@richradid.C "<<bin_min<<" "<<bin_max<<" "<<ratio<<endl;
+    cerr<<"getmomentum_-F-BIG PROBLEM AT getphoton_@richradid.C "<<bin_min<<" "<<bin_max<<" "<<ratio<< " "<<*index <<endl;
     cerr<<endl<<"DUMPING TABLE "<<endl;
     for(int i=0;i<_cherenkov_border-1;i++)
-      cerr<<"WV "<<RICHDB::wave_length[i]<<" INDEX "<<_cherenkov_index[i]<<" INTEGRAL "<<_cherenkov_integral[i]<<endl;
-    exit(1);
+      cerr<<"WV "<<i<<" "<<integral<<" "<<RICHDB::wave_length[i]<<" INDEX "<<_cherenkov_index[i]<<" INTEGRAL "<<_cherenkov_integral[i]<<endl;
+       abort();
+      return 0;
   }
 
   return momentum;

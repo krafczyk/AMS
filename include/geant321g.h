@@ -1,4 +1,4 @@
-//  $Id: geant321g.h,v 1.16 2010/06/24 09:39:31 zweng Exp $
+//  $Id$
 #ifndef __GEANT321G__
 #define __GEANT321G__
 #ifdef __ALPHA__
@@ -543,7 +543,9 @@ integer ipaold;
 };
 #define GCKINE COMMON_BLOCK(GCKINE,gckine)
 COMMON_BLOCK_DEF(GCKINE_DEF,GCKINE);
-
+#ifdef G4MULTITHREADED
+#pragma omp threadprivate (GCKINE)
+#endif
 //      PARAMETER (MAXMEC=30)
 //      COMMON/GCTRAK/VECT(7),GETOT,GEKIN,VOUT(7),NMEC,LMEC(MAXMEC)
 //     + ,NAMEC(MAXMEC),NSTEP ,MAXNST,DESTEP,DESTEL,SAFETY,SLENG
@@ -588,7 +590,9 @@ integer istory;
 
 #define GCTRAK COMMON_BLOCK(GCTRAK,gctrak)
 COMMON_BLOCK_DEF(GCTRAK_DEF,GCTRAK);
-
+#ifdef G4MULTITHREADED
+#pragma omp threadprivate(GCTRAK)
+#endif
 
 
 //      COMMON/GCPHYS/IPAIR,SPAIR,SLPAIR,ZINTPA,STEPPA

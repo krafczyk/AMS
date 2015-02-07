@@ -572,6 +572,116 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
 
 
 uinteger AMSNtuple::writeR(){
+#ifdef G4MULTITHREADED
+#ifdef __WRITEROOT__
+
+  if (ATCAFFKEY.antiPG>1){
+    Get_evroot02()->RebuildAntiClusters();
+}
+
+if(Trigger2LVL1::SetupIsChanged){
+#pragma omp critical (g4)
+Get_setup02()->fLVL1Setup.insert(make_pair(AMSEvent::gethead()->gettime(),Trigger2LVL1::l1trigconf));
+
+}
+if(Trigger2LVL1::ScalerIsChanged){
+#pragma omp critical (g4)
+{
+Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger2LVL1::scalmon));
+}
+}
+AMSEventR *evn=0;
+
+vector<AMSEventR*> del;
+#pragma omp critical (wr1)
+  {
+    Get_evroot02()->SetCont();
+    static int _Size=0;
+    int nthr=1;
+#ifdef _OPENMP
+    nthr=AMSEvent::get_num_threads();
+#endif
+    uint64 runv=AMSEvent::gethead()->getrunev();
+   if(evmap.find(runv)!=evmap.end()){
+      cerr<<"AMSEventR::writeR-E-dupliucatedEventInMapFound "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
+    }
+    else{
+     evn=new AMSEventR(_evroot02);
+    evmap.insert(make_pair(runv,evn));
+    for(evmapi i=evmap.begin();i!=evmap.end();){
+      bool go=true;
+     for(int k=0;k<nthr;k++){
+        if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)&& !MISCFFKEY.NoOrderedWrite){
+          go=false;
+          break;
+        }
+      }
+      if(!go)break;
+      else {
+        for(int k=0;k<nthr;k++){
+          if(AMSEvent::runev(k)==(i->first)){
+            AMSEvent::runev(k)=0;
+            break;
+          }
+        }
+        del.push_back(i->second);
+        evmapi idel=i++;
+        evmap.erase(idel);
+      }
+    }
+    }
+    if(evmap.size()>_Size){
+      long long ssize=0;
+      for(evmapi i=evmap.begin();i!=evmap.end();i++){
+        ssize+=i->second->Size();
+      }
+      float maxsize=1000.*AMSEvent::get_num_threads()/4.;
+      if(maxsize<1000)maxsize=1000;
+      if(ssize/1024/1024>maxsize){
+      cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<AMSEvent::gethead()->get_thread_num()<<" "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
+        if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
+      }
+      _Size=evmap.size();
+     if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
+   } 
+
+#ifdef _PGTRACK_
+   if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->Fill(evn);
+#endif
+
+  }
+  if(del.size()){
+#pragma omp critical (wr2)
+    for(int k=0;k<del.size();k++){
+      if(_tree){
+        if(!_lun )_Nentries++;
+        AMSEventR::Head()=del[k];
+        _Lastev=del[k]->Event();
+        _Lasttime=del[k]->UTime();
+         Get_setup02()->UpdateHeader(AMSEventR::Head());
+        _tree->Fill();
+      }
+    }
+#pragma omp critical (wr1)
+    {
+      if(AMSCommonsI::AB_catch<0){
+        AMSCommonsI::AB_catch=0;
+        sigsetjmp(AMSCommonsI::AB_buf,0);
+        cout <<"  AMSNtuple:writeR-I-sigsetjmp set "<<AMSEvent::get_thread_num()<<endl;
+      }
+      if(AMSCommonsI::AB_catch!=1){
+        for(int k=0;k<del.size();k++)delete del[k];
+      }
+      else{
+        cout<<"  AMSNtuple::writeR-I-AbortCatched "<<endl;
+      }
+    }
+  }
+
+#endif
+  return _Lastev;
+
+#else
 #ifdef __WRITEROOT__
 
   if (ATCAFFKEY.antiPG>1){
@@ -726,6 +836,7 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
 #endif
 #endif
   return _Lastev;
+#endif
 }
 
 

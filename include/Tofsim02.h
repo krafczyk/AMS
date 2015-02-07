@@ -16,8 +16,10 @@
 class TOF2TovtN: public AMSlink{
 public:
  static map<integer,TH1D*>phmap;//photon number map for bar
- static map<integer,TH1D*>::iterator phmapiter;
- static map<integer,TH1D*>::iterator phmapitern;
+ typedef  map<integer,TH1D*>::iterator phmapi;
+#ifdef G4MULTITHREADED
+#pragma omp threadprivate (phmap)
+#endif
  TOF2TovtN(){};
 //
  ~TOF2TovtN(){};
