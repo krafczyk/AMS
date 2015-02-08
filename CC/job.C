@@ -295,6 +295,10 @@ void AMSJob::_siamsdata(){
   MISCFFKEY.BZCorr=1;//(3)
   MISCFFKEY.G3On=1;//(4)
   MISCFFKEY.G4On=0;//(5)
+#ifdef G4MULTITHREADED
+  MISCFFKEY.G3On=0;
+  MISCFFKEY.G4On=1;
+#endif
   MISCFFKEY.dbwrbeg=0;//(6)DBwriter UTC-time begin 
   MISCFFKEY.dbwrend=0;//(7)DBwriter UTC-time end
   MISCFFKEY.NumThreads=1; // (8)
@@ -318,7 +322,12 @@ void AMSJob::_siamsdata(){
   MISCFFKEY.SaveMCTrackSecondary=1; // (26) 1/0 save/not save also secondary particles above ECAL and above minimum kinetic energy (next datacard)
   MISCFFKEY.MCTrackMinEne=1;        // (27) minimum kinetic energy in MeV to save a secondary particle above ECAL
   MISCFFKEY.ScanElemAbundance=0;    // (28) Activate a scan of element abudance along the track
-  MISCFFKEY.NoOrderedWrite=0;
+#ifdef G4MULTITHREADED
+  MISCFFKEY.NoOrderedWrite=1;
+#else
+  MISCFFKEY.NoOrderdWrite=0;
+#endif
+
   FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
