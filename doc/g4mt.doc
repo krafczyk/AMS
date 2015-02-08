@@ -1,0 +1,40 @@
+//  Geant4 Multithreading + ams software openmp
+
+only icc 15 openmp version is supported
+
+using G4 Threading model + amssoftware basically as it is, with few exceptions.
+
+
+   thread id is taken from geant4 , not from openmp
+
+
+ openmp pragmas not working:
+
+ barrier, master,parallel (therefore no copyin directives)
+
+openmp locks are not working
+
+barrier was emulated using AMSEvent::SetBarrier
+
+AMSNtuple::write use more memory consuming  algo using only omp pragmas and not omp_locks /to be worked in/
+
+//Status
+
+to compile setenv G4MULTITHREADING 1
+
+or use vars in /Offline/vdev/install/build410_mt.sh
+
+ examples/g4mt.job is runing example
+
+to activate multithreading  use same MISC=nthr datacards
+//TBD
+ 
+RNDM not checked /no reproducibility, to be worked in /
+
+Number of threads can not be changed dynamically /may be changed in the future//
+
+// Features
+
+the events in the root file will be not ordered by default (MISC 29=0 will change this with heavy performance penalty), however amschain getentryordered can be used to get the ordered events
+
+
