@@ -1143,15 +1143,19 @@ if(!Step)return;
   AMSEvent::gethead()->SetEventSkipped(false);
   static integer freq=10;
   static integer trig=0;
-  trig=(trig+1)%freq;
   static bool report=true;
+#ifdef _OPENMP
+#pragma omp threadprivate (trig,report,freq)
+#endif
+trig=(trig+1)%freq;
+
   if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
     Track->SetTrackStatus(fStopAndKill);
     AMSEvent::gethead()->seterror();
-    if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit<<endl;
+    if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<endl;
     report=false;
     AMSEvent::gethead()->SetEventSkipped(true);
     return;
