@@ -1807,10 +1807,9 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   *(p+nwrite)=stat;//status word
   nwrite+=1;
 //
-//  cout<<"<--- exit: call/internal length="<<len<<" "<<nwrite<<endl;
   if(nwrite!=len){
-    cout<<"<--- DAQECBlock::buildblock:length mismatch, call/intern length="<<len<<" "<<nwrite<<endl;
-//    exit(10);
+    cerr<<"<--- DAQECBlock::buildblock:length mismatch,-F- call/intern length="<<len<<" "<<nwrite<<endl;
+    abort();
   }
 //
 }

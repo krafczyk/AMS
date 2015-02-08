@@ -2252,9 +2252,9 @@ NextACObj:
 //cout<<"<----- Final length="<<nwtot<<endl<<endl;
 //-------------  
   if(len != nwtot){
-    cout<<"<----- DAQS2Block::buildblock: length-mismatch !!! for block "<<ibl<<endl;
-    cout<<"       OnCall length="<<len<<" but really "<<nwtot<<" words was written "<<endl<<endl;
-    exit(1);
+    cerr<<"<----- DAQS2Block::buildblock: -F-length-mismatch !!! for block "<<ibl<<endl;
+    cerr<<"       OnCall length="<<len<<" but really "<<nwtot<<" words was written "<<endl<<endl;
+    abort();
   }
 //---------------
   if(ibl==(TOF2GC::SCCRAT-1))  //clear RawEvent/Hit container after last block processed

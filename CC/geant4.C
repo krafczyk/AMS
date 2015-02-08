@@ -852,7 +852,7 @@ void AMSG4EventAction::FindClosestRegisteredTrack( int& gtrkid, int& processid )
   }
 
   if (err) {
-    static int smax=0;
+    static unsigned int smax=0;
     if(smax++<100)cerr<<"AMSG4EventAction::FindClosestRegisteredTrack-E-chain is broken on track: "<<current_par_id<<endl;
     return;
   }

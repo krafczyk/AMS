@@ -142,6 +142,7 @@ class AMSG4SteppingAction : public G4UserSteppingAction
     void FillBackSplash(const G4Step* Step);
     void FillPrimaryInfo(const G4Step* Step);
     static const double facc_pl[21];
+
 };
 
 

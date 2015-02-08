@@ -103,8 +103,9 @@ if(phase==0){
 #pragma omp atomic
 BBarrier++;
 for(;;){
-if(BBarrier==-1 ||BBarrier==get_num_threads()){
-BBarrier=-1;
+if(BBarrier==-1)return;
+if( BBarrier==get_num_threads()){
+    BBarrier=-1;
 return;
 }
 }
@@ -120,6 +121,7 @@ if(UBarrier==get_num_threads()){
   BBarrier=0;
   return;
 }
+if(UBarrier==0)return;
 }
 
 }
@@ -3563,8 +3565,10 @@ void AMSEvent::_sidaqevent(){
 
 DAQEvent *  pdaq = new DAQEvent();
 addnext(AMSID("DAQEvent",0), pdaq);      
-pdaq->buildDAQ();
-
+//#pragma omp critical (builddaq)
+{
+ pdaq->buildDAQ();
+}
 // H/K simulation 
 
 //pdaq=new DAQEvent();
