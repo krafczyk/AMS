@@ -37,4 +37,10 @@ Number of threads can not be changed dynamically /may be changed in the future//
 
 the events in the root file will be not ordered by default (MISC 29=0 will change this with heavy performance penalty), however amschain getentryordered can be used to get the ordered events
 
+richlip reconstruction not working (common blocks need to be fixed by authors)
 
+//Performance
+
+ memory use ~ 1 gb+0.1gb*nthr 
+
+ scalability  
