@@ -288,6 +288,12 @@ static int SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of TDC SumHT-chann
 static geant SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC SumSHT-channel time-hits(vs CRATE/SFET)
 static int SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of TDC SumSHT-channel time-hits
 static number TofATdcT0[TOF2GC::SCCRAT][TOF2GC::SCFETA];//SFET(A) T0s withing 2048*25ns TDC CCount(11bit)-ovfl period
+
+#ifdef _OPENMP
+#pragma omp threadprivate (SumHTt,SumHTh,SumSHTt,SumSHTh,TofATdcT0)
+#endif
+
+
 // 
 TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
   integer _ntr1, number _ttr1u[], number _ttr1d[], integer _ntr3, number _ttr3u[], number _ttr3d[],
