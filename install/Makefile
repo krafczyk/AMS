@@ -1278,9 +1278,7 @@ touch_depend:
 
 $(BIN)Make-depend:    $(INCS)
 		@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-ifneq "$(shell du -a  $(BIN)Make-depend 2>&1 | grep -c  ake)" "1"
-		 @touch $(BIN)Make-depend
-endif
+		@if ! [ -e $(BIN)Make-depend ] ; then touch $(BIN)Make-depend; fi
 		@echo Running makedepend ...
 		$(AT)makedepend $(DEFINES) -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN) > /dev/null 2>&1
 		$(AT)cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
