@@ -36,7 +36,11 @@
 #include "tofsim02.h"
 //
 //------------------------------------------------------------------
+typedef  map<integer,TH1D*>::iterator phmapi;
 map<integer,TH1D*> TOF2TovtN::phmap;
+#ifdef _OPENMP
+#pragma omp threadprivate (TOF2TovtN::phmap)
+#endif
 
 //------------------------------------------------------------------
 number TOF2TovtN::ftdclw(){
@@ -66,7 +70,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   integer idivx,npmts;
   number phtiml=0,phtim=0,phtims=0,phtimd=0;
   char vname[10];
-  char histn[100];
+  char histn[255];
   integer ierr(0);
   geant bthick=0.5*TOF2DBc::plnstr(6);
   geant convr =TOF2DBc::edep2ph();//
@@ -115,7 +119,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
      nels=nel0*eff;// mean total number of photoelectrons side
 //--for pmt
     for(ipm=0;ipm<npmts;ipm++){
-      pmtid =ilay*1000+ibar*100+is*10+ipm;
+      pmtid =ilay*1000+ibar*100+is*10+ipm+AMSEvent::gethead()->get_thread_num()*100000;
       if(is==0)sharep=TOFWScanN::scmcscan1[ilay][ibar].getps1(ipm,idivx,r,i1,i2);//share 0side
       else    sharep=TOFWScanN::scmcscan1[ilay][ibar].getps2(ipm,idivx,r,i1,i2);
       if(sharep>1)sharep=1;
@@ -125,17 +129,17 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
       TH1D *hph=0;
 //----Add Map Check
       if(neles>0){
-{
          phmapi phmapiter=phmap.find(pmtid);
-         if(phmapiter==phmap.end()){
-             sprintf(histn,"TOFPh_id%d_thread_%d",pmtid,AMSEvent::gethead()->get_thread_num());
-             pair<integer,TH1D*>phelem(pmtid,new TH1D(histn,histn,ftdcnb(),0,ftdclw()));
+         if(phmapiter==phmap.end())
 #pragma omp critical (setdirectory)
-             phelem.second->SetDirectory(0);
-             phmap.insert(phelem);
+{
+             sprintf(histn,"TOFPh_id%d",pmtid);
+             hph=new TH1D(histn,histn,ftdcnb(),0,ftdclw());
+             hph->SetDirectory(0);
+             phmap.insert(make_pair(pmtid,hph));
+//             cout <<" TOF2TovtN::covtoph-I-inserting "<<pmtid<<" "<<hph->GetTitle()<<endl;
          }
-         hph=phmap[pmtid];
-       }
+         else hph=phmapiter->second;
 }
 //-----
       //            cout<<"pmt="<<ipm<<" sum pmt phton="<<neles<<endl;
@@ -143,8 +147,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
          rand=RNDM(-1); 
 	 phtims=dtime*rand;//photon begin step time 
 	 phtimd=TOFPMT::phriset();//photon rise time+decay time
-	 if(is==0)phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm1(idivx,r,i1,i2);
-	 else     phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm2(idivx,r,i1,i2);
+	 if(is==0)phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm1(idivx,r,i1,i2);	 else     phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm2(idivx,r,i1,i2);
 	 phtim=time+phtims+phtimd+phtiml;
 /*         if(phtim>500){
              cout<<"ilay ibar is ipm idiv i1 i2"<<ilay<<" "<<ibar<<" "<<is<<" "<<ipm<<" "<<idivx<<" "<<i1<<" "<<i2<<endl;
@@ -154,7 +157,6 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
 //---Adding PMT Transmmit Time
           phtim+=TOFPMT::pmttm[ilay][ibar][is][ipm];//Transmit time Mean about 7.2ns
           phtim+=TOFPMT::pmtts[ilay][ibar][is][ipm]*rnormx()-1.9;//Transmit time Spread (-1.9) convert to pulse begin time  
-//          phmap[pmtid]
           hph->Fill(phtim);
 //----
 	  photongen++;
@@ -258,7 +260,7 @@ void TOF2TovtN::build()
   else {
 
     for(phmapi phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++){
-        id=  (*phmapiter).first;
+        id=  (phmapiter->first)%100000;
         ilay=id/1000%10;
         ibar=id/100%10;
         is=  id/10%10;
@@ -297,7 +299,7 @@ void TOF2TovtN::build()
 //---another side
           phmapi phmapitern=phmapiter;
           phmapitern++;
-         if((phmapitern==phmap.end())||((*(phmapitern)).first/10!=(*phmapiter).first/10)){
+         if((phmapitern==phmap.end())||((phmapitern->first%100000)/10!=(phmapiter->first%100000)/10)){
            nowbar=100*(ilay+1)+ibar+1;
            if(nowbar!=prbar){//recount Edep
              edepb=0.;//GeV
@@ -323,11 +325,10 @@ void TOF2TovtN::build()
        
 //    cout<<"TFNew MC photon="<<nphoton<<endl;
 //--ready clear phmap
-     for(phmapi phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++)
-       delete (*phmapiter).second;
-     phmap.clear();
-//-------
-
+// do not clear phmap, what a crazy idea?
+     for(phmapi phmapiter=phmap.begin(); phmapiter!=phmap.end(); ++phmapiter){
+      phmapiter->second->Reset();
+     }
 // <--- arrange in incr.order TOF2TovtN::SumHT/SumSHT-arrays,created by all calls to TOF2TovtN::totovt(...)-routine:
   int nhth;
   for(int ic=0;ic<TOF2GC::SCCRAT;ic++){
