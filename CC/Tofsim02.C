@@ -90,7 +90,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   else      sprintf(vname,"TF0%d",kk);
   AMSgvolume *p=AMSJob::gethead()->getgeomvolume(AMSID(vname,id));// pointer to volume "TFnn",id
  if(!p){
- cerr <<"TOF2TovtN::covtoph-E-PointerIzZeroTo "<<  AMSID(vname,id)<<" "<<p<<" "<<cglo<<" "<<kk<<" "<<id<<" "<<ilay<<" "<<ibar<<" "<<AMSEvent::gethead()->get_thread_num<<endl;
+ cerr <<"TOF2TovtN::covtoph-E-PointerIzZeroTo "<<  AMSID(vname,id)<<" "<<p<<" "<<cglo<<" "<<kk<<" "<<id<<" "<<ilay<<" "<<ibar<<" "<<AMSEvent::gethead()->get_thread_num()<<endl;
   return;
  }
   AMSPoint cloc=p->gl2loc(cglo);// convert global coord. to local
