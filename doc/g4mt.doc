@@ -19,7 +19,7 @@ barrier was emulated using AMSEvent::SetBarrier
 
 //Status
 
-to compile setenv G4MULTITHREADING 1
+to compile setenv G4MULTITHREADED 1
 
 or use vars in /Offline/vdev/install/build410_mt.sh
 
