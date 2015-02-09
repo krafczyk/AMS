@@ -65,7 +65,7 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   int neles,photongen=0;
   integer idivx,npmts;
   number phtiml=0,phtim=0,phtims=0,phtimd=0;
-  char vname[5];
+  char vname[10];
   char histn[100];
   integer ierr(0);
   geant bthick=0.5*TOF2DBc::plnstr(6);
@@ -85,6 +85,10 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
   if(kk>=10)sprintf(vname,"TF%d",kk);
   else      sprintf(vname,"TF0%d",kk);
   AMSgvolume *p=AMSJob::gethead()->getgeomvolume(AMSID(vname,id));// pointer to volume "TFnn",id
+ if(!p){
+ cerr <<"TOF2TovtN::covtoph-E-PointerIzZeroTo "<<  AMSID(vname,id)<<" "<<p<<" "<<cglo<<" "<<kk<<" "<<id<<" "<<ilay<<" "<<ibar<<" "<<AMSEvent::gethead()->get_thread_num<<endl;
+  return;
+ }
   AMSPoint cloc=p->gl2loc(cglo);// convert global coord. to local
   x=cloc[0];y=cloc[1];z=cloc[2];
   //cout<<"loc x="<<x<<" loc y="<<y<<" locz="<<z<<endl;
@@ -121,15 +125,18 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
       TH1D *hph=0;
 //----Add Map Check
       if(neles>0){
+{
          phmapi phmapiter=phmap.find(pmtid);
          if(phmapiter==phmap.end()){
-             sprintf(histn,"TOFPh_id%d",pmtid);
+             sprintf(histn,"TOFPh_id%d_thread_%d",pmtid,AMSEvent::gethead()->get_thread_num());
              pair<integer,TH1D*>phelem(pmtid,new TH1D(histn,histn,ftdcnb(),0,ftdclw()));
+#pragma omp critical (setdirectory)
              phelem.second->SetDirectory(0);
              phmap.insert(phelem);
          }
          hph=phmap[pmtid];
        }
+}
 //-----
       //            cout<<"pmt="<<ipm<<" sum pmt phton="<<neles<<endl;
       for(i=0;i<neles;i++){//for each side

@@ -28,15 +28,18 @@ or use vars in /Offline/vdev/install/build410_mt.sh
 to activate multithreading  use same MISC=nthr datacards
 //TBD
  
-RNDM not checked /no reproducibility, to be worked in /
-
-Number of threads can not be changed dynamically /may be changed in the future//
 
 // Features
 
 the events in the root file will be not ordered by default (MISC 29=0 will change this with some memory penalty), however amschain getentryordered can be used to get the ordered events
 
 richlip reconstruction not working (common blocks need to be fixed by authors)
+
+RNDM not checked /no reproducibility, to be worked in /
+
+Number of threads can not be changed dynamically /may be changed in the future//
+
+Nuclear still not work in mt mode, as dpmjet need to be shared
 
 //Performance
 
@@ -55,4 +58,4 @@ richlip reconstruction not working (common blocks need to be fixed by authors)
 
 16  9.38
 
-32 10.32 
+32 10.82 

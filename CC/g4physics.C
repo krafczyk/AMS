@@ -2158,18 +2158,30 @@ return ;
                  else if ( strstr((const char*)theParticle->GetParticleName(),"strangelet"))inelok=  (*processVector)[j]->GetProcessName()=="strangeletInelastic"    ;
                  else if( strstr((const char*)theParticle->GetParticleType(),"nucleus"))inelok=  ((*processVector)[j]->GetProcessName()=="ionInelastic" || (*processVector)[j]->GetProcessName()=="IonInelastic");               
                  G4HadronInelasticProcess * hadronInelasticProcess = dynamic_cast<G4HadronInelasticProcess*>((*processVector)[j]);
+#if G4VERSION_NUMBER  > 999 
+                    char mymat[255];
+                    sprintf(mymat,"mymatine_j_%d_i_%d",j,i*10000+1000);
+                    G4Material * pm=new G4Material(mymat,1.,1);
+                    G4Material &mat=*pm;
+                    mat.AddElement(element,1);
+#endif
                  if(inelok && hadronInelasticProcess){
                   for(int k=1;k<nbins+1;k++){
                     double xs=0;
                     const G4double R = AMSEventR::h1(id)->GetBinCenter(k)*GeV;
                     lv.setZ(R*theParticle->GetAtomicNumber());
                     p.SetMomentum(lv);
-#if G4VERSION_NUMBER  > 945 
+#if G4VERSION_NUMBER  > 999 
+                    xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+#else
+#if G4VERSION_NUMBER  > 945
                     G4Material mat("mymat",1,1);
                     mat.AddElement(element,1);
                     xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+
 #else
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
+#endif
 #endif
 //                    if(k%100==1)cout << element->GetName()<<" "<<R<<" "<<xs<<endl;
                                      AMSEventR::h1(id)->SetBinContent(k,xs);
@@ -2186,17 +2198,28 @@ return ;
                  else if( strstr((const char*)theParticle->GetParticleType(),"nucleus"))inelok=  ((*processVector)[j]->GetProcessName()=="IonEMD");
                  G4HadronInelasticProcess * hadronInelasticProcess = dynamic_cast<G4HadronInelasticProcess*>((*processVector)[j]);
                  if(inelok && hadronInelasticProcess){
+#if G4VERSION_NUMBER  > 999
+                    char mymat[255];
+                    sprintf(mymat,"mymatemd_j_%d_i_%d",j,i*10000+1000);
+                    G4Material * pm=new G4Material(mymat,1.,1);
+                    G4Material &mat=*pm;
+                    mat.AddElement(element,1);
+#endif
                   for(int k=0;k<nbins+1;k++){
                     double xs=0;
                     const G4double R = AMSEventR::h1(-id)->GetBinCenter(k)*GeV;
                     lv.setZ(R*theParticle->GetAtomicNumber());
                     p.SetMomentum(lv);
+#if G4VERSION_NUMBER > 999
+xs = hadronInelasticProcess->GetElementCrossSection(&p, element, &mat) / millibarn; // v9.6.p02
+#else
 #if G4VERSION_NUMBER  > 945 
                     G4Material mat("mymat",1,1);
                     mat.AddElement(element,1);
                     xs = hadronInelasticProcess->GetElementCrossSection(&p, element, &mat) / millibarn; // v9.6.p02
 #else
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
+#endif
 #endif
                                      AMSEventR::h1(-id)->SetBinContent(k,xs);
                                      AMSEventR::h1(-id)->SetBinError(k,0);
@@ -2217,17 +2240,29 @@ return ;
                  else if( strstr((const char*)theParticle->GetParticleType(),"nucleus"))inelok=  ((*processVector)[j]->GetProcessName()=="ionelastic" );               
                  G4HadronElasticProcess * hadronInelasticProcess = dynamic_cast<G4HadronElasticProcess*>((*processVector)[j]);
                  if(inelok && hadronInelasticProcess){
+#if G4VERSION_NUMBER  > 999
+                    char mymat[255];
+                    sprintf(mymat,"mymatela_j_%d_i_%d",j,i*10000+1000);
+                    G4Material * pm=new G4Material(mymat,1.,1);
+                    G4Material &mat=*pm;
+                    mat.AddElement(element,1);
+#endif
+
                   for(int k=1;k<nbins+1;k++){
                     double xs=0;
                     const G4double R = AMSEventR::h1(100000+id)->GetBinCenter(k)*GeV;
                     lv.setZ(R*theParticle->GetAtomicNumber());
                     p.SetMomentum(lv);
+#if G4VERSION_NUMBER > 999
+                    xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
+#else
 #if G4VERSION_NUMBER  > 945 
                     G4Material mat("mymat",1,1);
                     mat.AddElement(element,1);
                     xs = hadronInelasticProcess->aScaleFactor*hadronInelasticProcess->GetElementCrossSection(&p, element,&mat) / millibarn; // v9.6.p02
 #else
                     xs = hadronInelasticProcess->GetMicroscopicCrossSection(&p, element, 295*kelvin) / millibarn; // v9.4.p04
+#endif
 #endif
 //                    if(k%100==1)cout << element->GetName()<<" "<<R<<" "<<xs<<endl;
                                      AMSEventR::h1(100000+id)->SetBinContent(k,xs);

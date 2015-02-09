@@ -486,7 +486,7 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
   if (G4FFKEY.DumpCrossSections>0) DumpCrossSections(G4FFKEY.DumpCrossSections,
 						     G4FFKEY.DumpCrossSectionsAt,
 						     G4FFKEY.DumpCrossSectionsZt);
-    AMSG4Physics::SaveXS(GCKINE.ikine);
+AMSG4Physics::SaveXS(GCKINE.ikine);
 }
 
 
@@ -1433,7 +1433,7 @@ trig=(trig+1)%freq;
 //     cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<" " <<Step->GetTotalEnergyDeposit()/GeV<<endl;
 //     cout << "Part ID " << Step->GetTrack()->GetDefinition()->GetParticleName()<<endl;
 //   cout <<endl;
-    GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
+    int gctmed_isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
       PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
     GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
     //   if(PrePoint->GetProcessDefinedStep())cout<<" b "<<PrePoint->GetProcessDefinedStep()->GetProcessName()<<endl;
@@ -1481,7 +1481,7 @@ trig=(trig+1)%freq;
     */
         
 
-    if(GCTMED.isvol){// <========== we are in sensitive volume !!!
+    if(gctmed_isvol){// <========== we are in sensitive volume !!!
       //
 //            cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
       // gothering some info and put it into geant3 commons
@@ -1673,7 +1673,6 @@ trig=(trig+1)%freq;
 	  dee=GCTRAK.destep;
 	  tof=GCTRAK.tofg;
 	  if(tendtof==1 && GCTRAK.inwvol==1){// just enter TFnn
-	    //cout<<"---> Enter TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<" Edep="<<dee<<" numv="<<numv<<" pstep="<<pstep<<endl;  
 	  }
 	  if(tbegtof==1 && GCTRAK.destep>0.){
 	    number rkb=0.0011;

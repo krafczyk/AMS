@@ -16,7 +16,9 @@
 #include <malloc.h>
 #include <netdb.h>
 #include <sys/utsname.h>
-
+#ifdef G4MULTITHREADED
+#include "G4Threading.hh"
+#endif
 AMSProducer * AMSProducer::_Head=0;
 AString * AMSProducer::_dc=0; 
 AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false),_Transfer(false),_FreeSpace(-1){
@@ -126,7 +128,11 @@ if(!cpuf){
     _pid.threads_change=0;
     cout <<"  Mips:  "<<_pid.Mips<<" Threads "<<_pid.threads<<endl;
    #ifdef _OPENMP
+#ifdef G4MULTITHREADED
+       int maxt=G4Threading::G4GetNumberOfCores();
+#else
        int maxt=omp_get_num_procs();
+#endif
     if(1){
         if(_pid.threads!=maxt && _pid.threads>maxt/2){
            AMSEvent::set_num_threads(  maxt/2);
