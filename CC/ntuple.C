@@ -607,12 +607,14 @@ vector<AMSEventR*> del;
     }
     else{
      evn=new AMSEventR(_evroot02);
+//     cout <<" MISCFFKEY.NoOrderedWrite "<<MISCFFKEY.NoOrderedWrite<<endl;
     evmap.insert(make_pair(runv,evn));
     for(evmapi i=evmap.begin();i!=evmap.end();){
       bool go=true;
      for(int k=0;k<nthr;k++){
         if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)&& !MISCFFKEY.NoOrderedWrite){
           go=false;
+//          cout <<" get go "<< AMSEvent::runev(k)<<" "<<i->first<<endl;
           break;
         }
       }
@@ -659,6 +661,7 @@ vector<AMSEventR*> del;
         _Lastev=del[k]->Event();
         _Lasttime=del[k]->UTime();
          Get_setup02()->UpdateHeader(AMSEventR::Head());
+//         cout <<" writing "<<AMSEventR::Head()->Event()<<endl;
         _tree->Fill();
       }
     }

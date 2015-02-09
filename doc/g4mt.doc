@@ -16,7 +16,6 @@ openmp locks are not working
 
 barrier was emulated using AMSEvent::SetBarrier
 
-AMSNtuple::write use more memory consuming  algo using only omp pragmas and not omp_locks /to be worked in/
 
 //Status
 
@@ -35,7 +34,7 @@ Number of threads can not be changed dynamically /may be changed in the future//
 
 // Features
 
-the events in the root file will be not ordered by default (MISC 29=0 will change this with heavy performance penalty), however amschain getentryordered can be used to get the ordered events
+the events in the root file will be not ordered by default (MISC 29=0 will change this with some memory penalty), however amschain getentryordered can be used to get the ordered events
 
 richlip reconstruction not working (common blocks need to be fixed by authors)
 
@@ -43,4 +42,17 @@ richlip reconstruction not working (common blocks need to be fixed by authors)
 
  memory use ~ 1 gb+0.1gb*nthr 
 
- scalability  
+ scalability  sec per event /protons 100 to 200 gev/  
+
+
+1
+
+2   7.85
+
+4   7.97
+
+8   8.73
+
+16  9.38
+
+32 10.32 

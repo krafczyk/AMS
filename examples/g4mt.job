@@ -31,7 +31,7 @@ export AMSDataDir=/cvmfs/ams.cern.ch/Offline/AMSDataDir
 PG=G4MTPG
 ARCH=linuxx8664icc
 MACHINE="$ARCH"5.34
-$AMSWD/exe/$MACHINE/gbatch$PG.exe <<!
+/usr/bin/time $AMSWD/exe/$MACHINE/gbatch$PG.exe <<!
 LIST
 KINE 14
 LOSS 1
@@ -43,7 +43,7 @@ CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 TRIG 10000 
 DEBUG -1 1 10
 C          Nparticles 
-MISC 4=0 5=1 8=$1 29=1     
+MISC 4=0 5=1 8=$1 29=0    
 MCGEN 1=-10. 2=-10. 3=180. 4=10. 5=10. 6=180.
 7=0. 8=0. 9=-1. 10=0. 11=0. 12=-1.
 C 12=-0.95 
