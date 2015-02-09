@@ -364,15 +364,17 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH2D("TrSimple","; rec. step; n. candidates",10,-0.5,9.5,100,-0.5,99.5));
 
   // Charge seed plot
-  Add(new TH2D("CSxCSy","; x charge seed (#sqrt{ADC}); y charge seed (#sqrt{ADC})",200,0,200,200,0,200));
-  Add(new TH2D("CSrCSy","; y charge seed (#sqrt{ADC}); x charge seed (#sqrt{ADC}) / y charge seed (#sqrt{ADC})",200,0,200,200,0,4));
-  Add(new TH2D("CSrCSx","; x charge seed (#sqrt{ADC}); y charge seed (#sqrt{ADC}) / x charge seed (#sqrt{ADC})",200,0,200,200,0,4));
+  Add(new TH2D("CSxCSy", "; y charge seed (#sqrt{ADC}); x charge seed (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("CSxCSyC","; y charge seed (#sqrt{ADC}); x charge seed (#sqrt{ADC})",200,0,200,200,0,200));
   // Charge seed cut
-  Add(new TH2D("AmpyCSy", "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",400,0,200,400,0,200));
-  Add(new TH2D("AmpxCSx", "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",400,0,200,400,0,200));
+  Add(new TH2D("AmpyCSy", "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("AmpxCSx", "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("AmpyCSyC","; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("AmpxCSxC","; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",200,0,200,200,0,200));
   // Hit compatibility plots
-  Add(new TH2D("AmpyAmpx","; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
-  Add(new TH2D("ProbAmpx","; x signal corr. (#sqrt{ADC}); log_{10}(correlation probability)",150,0,150,100,-15,1));
+  Add(new TH2D("AmpyAmpx", "; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
+  Add(new TH2D("ProbAmpx", "; x signal corr. (#sqrt{ADC}); log_{10}(correlation probability)",150,0,150,100,-15,1));
+  Add(new TH2D("AmpyAmpxC","; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
   // Y Clusters Signal-to-noise ratio
   Add(new TH2D("SeedSNyN","; number of strips; seed SN",10,0.5,10.5,200,0,100));
   Add(new TH2D("SignalyN","; number of strips; cluster signal (ADC)",10,0.5,10.5,200,0,200));
@@ -392,10 +394,13 @@ void HistoMan::BookHistos(int simmode){
 
   // Plots after reconstruction
   Add(new TH2D("QxQy_final","; Q_{x}; Q_{y}",600,0,30,600,0,30));
-  Add(new TH2D("AmpyCSy_final", "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",400,0,200,400,0,200));
-  Add(new TH2D("AmpxCSx_final", "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",400,0,200,400,0,200));
-  Add(new TH2D("AmpyAmpx_final","; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
-  Add(new TH2D("ProbAmpx_final","; x signal corr. (#sqrt{ADC}); log_{10}(correlation probability)",150,0,150,100,-15,1));
+  Add(new TH2D("AmpyCSy_final",  "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("AmpxCSx_final",  "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("AmpyCSyC_final", "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("AmpxCSxC_final", "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("AmpyAmpx_final", "; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
+  Add(new TH2D("AmpyAmpxC_final","; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
+  Add(new TH2D("ProbAmpx_final", "; x signal corr. (#sqrt{ADC}); log_{10}(correlation probability)",150,0,150,100,-15,1));
 
   // Sim. reconstruction
   if (simmode & 2) {

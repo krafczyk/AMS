@@ -1057,6 +1057,9 @@ int TrRecon::BuildTrRecHits(int rebuild)
         float prob = hit->GetCorrelationProb();
         hman.Fill("AmpyAmpx",sqrt(sigx),sqrt(sigy));
         hman.Fill("ProbAmpx",sqrt(sigx),log10(hit->GetCorrelationProb()));
+        float sigx_corr = clX->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);
+        float sigy_corr = clY->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);        
+        hman.Fill("AmpyAmpxC",sqrt(sigx_corr),sqrt(sigy_corr));
         // bad association
 	if (prob<TRCLFFKEY.CorrelationProbThr) { 
           delete hit;
@@ -3020,12 +3023,20 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	TrClusterR* clX = hit->GetXCluster();
 	TrClusterR* clY = hit->GetYCluster();
 	if ( (clX==0)||(clY==0) ) continue;
-	float sigx = clX->GetTotSignal();
-	float sigy = clY->GetTotSignal();
+	float sigx = clX->GetTotSignal(TrClusterR::kAsym);
+	float sigy = clY->GetTotSignal(TrClusterR::kAsym);
 	hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
 	hman.Fill("AmpyCSy_final",sqrt(GetChargeSeed(1)),sqrt(sigy));
 	hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
 	hman.Fill("ProbAmpx_final",sqrt(sigx),log10(hit->GetCorrelationProb()));
+        float sigx_corr = clX->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);
+        float sigy_corr = clY->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);
+        hman.Fill("AmpyAmpxC_final",sqrt(sigx_corr),sqrt(sigy_corr));
+        sigx_corr = clX->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle);
+        sigy_corr = clY->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle);
+        hman.Fill("AmpxCSxC_final",sqrt(_htmx_corr),sqrt(sigx_corr));
+        hman.Fill("AmpyCSyC_final",sqrt(_htmy_corr),sqrt(sigy_corr));
+
       /*
       if ( (sqrt(sigx)<(0.8*sqrt(GetChargeSeed(0))-4))||
            (sqrt(sigy)<(0.8*sqrt(GetChargeSeed(1))-4)) ) {
@@ -7243,26 +7254,32 @@ int TrRecon::BuildVertex(integer refit){
 void TrRecon::ClearChargeSeeds() {
   _htmy = 0;
   _htmx = 0;
+  _htmx_corr = 0;
+  _htmy_corr = 0; 
 }
 
 void TrRecon::FillChargeSeeds() {
-  // unbiased charge (corrections indipendent from calibration procedure) 
-  _htmx = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kX).Mean;
-  _htmy = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kY).Mean;
+  _htmx = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kX,TrClusterR::kAsym|TrClusterR::kAngle).Mean;
+  _htmy = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kY,TrClusterR::kAsym|TrClusterR::kAngle).Mean;
+  _htmx_corr = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kX,TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle).Mean;
+  _htmy_corr = TrCharge::GetMeanHighestFourClusters(TrCharge::kInner|TrCharge::kTruncMean,TrCharge::kY,TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle).Mean;  
   hman.Fill("CSxCSy",sqrt(_htmy),sqrt(_htmx));
-  hman.Fill("CSrCSx",sqrt(_htmx),sqrt(_htmy)/sqrt(_htmx));
-  hman.Fill("CSrCSy",sqrt(_htmy),sqrt(_htmx)/sqrt(_htmy));
+  hman.Fill("CSxCSyC",sqrt(_htmy_corr),sqrt(_htmx_corr));
 }
 
 bool TrRecon::CompatibilityWithChargeSeed(TrClusterR* cluster) {
   int   iside  = cluster->GetSide();
-  float signal = cluster->GetTotSignal();
+  float signal = cluster->GetTotSignal(TrClusterR::kAsym|TrClusterR::kAngle); 
   float chseed = GetChargeSeed(iside);
-  // fill some plot
   if (iside==0) hman.Fill("AmpxCSx",sqrt(chseed),sqrt(signal)); 
   else          hman.Fill("AmpyCSy",sqrt(chseed),sqrt(signal)); 
-  // test (box)
-  if (sqrt(signal)>(0.8*sqrt(chseed)-4)) return true;
+  float signal_corr = cluster->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle); 
+  float chseed_corr = (iside==0) ? _htmx_corr : _htmy_corr; 
+  if (iside==0) hman.Fill("AmpxCSxC",sqrt(chseed_corr),sqrt(signal_corr));
+  else          hman.Fill("AmpyCSyC",sqrt(chseed_corr),sqrt(signal_corr));
+  // test 
+  // if (sqrt(signal)>(0.8*sqrt(chseed)-4)) return true;
+  if (sqrt(signal_corr)>(0.7*sqrt(chseed_corr)-4)) return true; 
   return false;
 }
 

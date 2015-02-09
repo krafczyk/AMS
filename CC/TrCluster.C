@@ -181,7 +181,7 @@ std::string TrClusterR::_PrepareOutput(int opt){
   }
   for (int ii=0; ii<GetNelem(); ii++) {
     sout.append(Form("Address: %4d  Signal: %10.5f  Sigma: %10.5f  S/N: %10.5f  Status: %3d  ",
-      GetAddress(ii),GetSignal(ii,DefaultCorrOpt),GetSigma(ii),GetSN(ii,TrClusterR::kAsym),GetStatus(ii)));
+      GetAddress(ii),GetSignal(ii,0),GetSigma(ii),GetSN(ii,0),GetStatus(ii)));
     if (ii==GetSeedIndex()) sout.append("<<< SEED\n");
     else sout.append(" \n");
   }
@@ -295,7 +295,7 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
       sum = pow(TrEDepDB::GetHead()->GetEDepCorrectedValue(GetLayerJ(),sqrt(sum),beta,rigidity,mass_on_Z,GetSide(),1),2.); 
     else if (kBeta&opt)
       sum = pow(TrEDepDB::GetHead()->GetEDepCorrectedValue(GetLayerJ(),sqrt(sum),beta,0,0,GetSide(),1),2.); 
-    else // if no correction requested apply however relativistic particles normalization 
+    else if (kMIP&opt) // if no correction requested, but MIP scale wanted, apply relativistic particles normalization 
       sum = pow(TrEDepDB::GetHead()->GetEDepCorrectedValue(GetLayerJ(),sqrt(sum),1,0,0,GetSide(),1),2.);
     // MIP normalization
     if (kMIP&opt) {

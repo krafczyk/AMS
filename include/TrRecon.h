@@ -166,6 +166,8 @@ protected:
   /// track finding - charge seeds 
   float _htmy;
   float _htmx;
+  float _htmy_corr;
+  float _htmx_corr;
 
 private:
   
