@@ -28,12 +28,12 @@ public:
 
     void DoGainCalibration(float corr);
     void DoAlignment(TRDAlignmentPar *par);
-    void PredictCrossing(AMSPoint *P0, AMSDir *u, int tracktype=0);
-    double Tube_Track_Distance_3D(AMSPoint *C2, AMSDir *D2);
-    double Tube_Track_Distance_2D(AMSPoint *C2, AMSDir *D2);
-    double Tube_Track_3DLength(AMSPoint *C2, AMSDir *D2);
-    double Tube_Track_3DLength_New(double d, AMSDir *Dir);
-    double Tube_Track_3DLength_New(AMSPoint *X0, AMSDir *Dir);
+    void PredictCrossing(const AMSPoint *P0, const AMSDir *u, const int tracktype=0);
+    double Tube_Track_Distance_3D(const AMSPoint *C2, const AMSDir *D2) const;
+    double Tube_Track_Distance_2D(const AMSPoint *C2, const AMSDir *D2) const;
+    double Tube_Track_3DLength(const AMSPoint *C2, const AMSDir *D2) const;
+    double Tube_Track_3DLength_New(const double d, const AMSDir *Dir) const;
+    double Tube_Track_3DLength_New(const AMSPoint *X0, const AMSDir *Dir) const;
 
     double Time;
 
