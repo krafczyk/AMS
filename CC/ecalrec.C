@@ -934,7 +934,7 @@ void AMSEcalHit::build(int &stat){
 	mip_factor=ECREFFKEY.mipTB/mip_value; // equalization and calibration factor coming from mips
       }
       else mip_factor=1.;
-      if ( AMSEvent::gethead()->getrun()>1305763200) mip_factor*=ECREFFKEY.mipTB2ISS; // if not Test Beam reference mip is shifted because of Bethe Bloch: rigidity at test beam is 400 GeV, on ISS is >= x GeV   
+      if (AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()>1305763200) mip_factor*=ECREFFKEY.mipTB2ISS; // if not Test Beam reference mip is shifted because of Bethe Bloch: rigidity at test beam is 400 GeV, on ISS is >= x GeV   
       edep=fadc*mip_factor;
       //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
       if(ECREFFKEY.reprtf[0]>1 && edep>2){
