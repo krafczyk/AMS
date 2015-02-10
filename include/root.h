@@ -892,7 +892,9 @@ public:
   /// Version number:
   /// iBDTVERSION=3           trained with B552 \ *pev is not required
   /// iBDTVERSION=4           trained with B610 /      for these versions
-  /// iBDTVERSION=5 (default) trained with B620 -> NEEDS *pev as input
+  /// iBDTVERSION=5           trained with B620 -> NEEDS *pev as input
+  /// iBDTVERSION=6           BUG -> do not use!
+  /// iBDTVERSION=7 (default) trained with B700 -> *pev not necessary anymore
   /// TMVA Classifier:
   /// TMVAClassifier=0 (default) standard BDTG
   /// TMVAClassifier=1           BDT with smoothing
@@ -911,6 +913,8 @@ public:
   /// Version number:
   /// iBDTCHI2VERSION = 2           trained with B620 ecalaxis->process(pev,2)
   /// iBDTCHI2VERSION = 3 (default) trained with B620 ecalaxis->process(pev,8) (cell center found with Neighbour Cell algorithm; much faster than process(pev,2)); 
+  /// iBDTCHI2VERSION=4           BUG -> do not use!
+  /// iBDTCHI2VERSION=5 (def) trained with B700 -> *pev not necessary anymore
   /// TMVA Classifier:
   /// TMVAClassifier=0 (default) standard BDTG
   /// TMVAClassifier=1           BDT with smoothing
