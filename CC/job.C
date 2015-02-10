@@ -1196,7 +1196,7 @@ void AMSJob::_reecaldata(){
 
   ECREFFKEY.mipTB=16.4;  // (126) ADC value used to equalize mips at Test Beam
 
-  ECREFFKEY.mipTB2ISS=0.98;  // (127) Factor to convert TB mip (400 GeV protons) to ISS mip (E>5 GeV)
+  ECREFFKEY.mipTB2ISS=1.03;  // (127) Factor to convert TB mip (400 GeV protons) to ISS mip (E>5 GeV)
   FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   //
   // REUN-Calibration  parameters:
