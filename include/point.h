@@ -120,7 +120,7 @@ public:
   friend AMSPoint operator*(const AMSRotMat  &mat, const AMSPoint &Point);
 
   //! it returns an AMSPoint which is the vector cross product
-  AMSPoint crossp(const AMSPoint & o);
+  AMSPoint crossp(const AMSPoint & o) const;
 
   //! do some printout
   void Print(){printf("point: %f  %f %f\n",_x,_y,_z);}
@@ -177,7 +177,7 @@ class AMSDir :public AMSPoint{
   //! it sets the direction from an array
   void setd(number fx[]){_copy(fx[0],fx[1],fx[2]);}
   //! it does the vector cross product of two AMSDir
-  AMSDir cross(const AMSDir & o);
+  AMSDir cross(const AMSDir & o) const;
   //! do some printout
   void Print(){AMSPoint::Print();}
     ClassDef(AMSDir,1);
