@@ -1296,7 +1296,7 @@ R 124 Ttb(23.)     // (124)   TestBeam reference temperature (obsolete)
 R 125 Tgsl(0.25)   // (125)  Global temperature slope: 1% ecah 4 degrees (obsolete since new calibration based on mip mpv variation)
 
 R 126 mipTB(16.45)        // (126) Average MIP value at test beam
-R 127 mipTB2ISS(0.98)     // (127) Factor to convert TB mip (400 GeV protons, free fit) to ISS mips (R>5 GeV/c, template fit) used for calibration
+R 127 mipTB2ISS(1.03)     // (127) Factor to convert TB mip (400 GeV protons, free fit) to ISS mips (R>5 GeV/c, template fit) used for calibration
 
    ECAL calibration:
 
