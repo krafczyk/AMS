@@ -137,6 +137,9 @@ in this case the files will be prestaged if on castor but actual try will be don
   
   ///Get the current event pointer
   AMSEventR* pEvent() {return _EVENT;} 
+
+  ///Set the current event pointer
+  void SetEvent(AMSEventR *ev) {_EVENT=ev;} 
   
   ///Get the name of the tree
   const char* ChainName(){return _NAME;} 

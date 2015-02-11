@@ -978,6 +978,21 @@ public:
   /// Update and fix TrTrack Parameters (needed for B584/pass2)
   int FixAndUpdate(void);
 
+  /// Enhance the point resolution performance for Z=1 particles
+  /*
+   \param[in] opt +1: Remove hits with bad strip(s) around the seed
+                  +2: Remove hits with YCluster->TotSignal > qmax
+                  +4: Remove hits with YCluster->TotSignal < func(Nelem)
+                  +8: Tune _HitCoo according to eta
+		 +16: Tune _HitCoo for wrong pickup of the neighboring strip
+              +0x100: Apply inner layers only
+              +0x200: Apply outer layers only
+   \param[in] qmax   qmax for opt+2
+   \param[in] rmax   rmin for opt+16 (in unit of strip pitch, 1= 110um)
+   \return  Number of hits removed
+   */
+  int Enhance(int opt = 0x1f, float qmax = 60, float rmin = 0.15);
+
   /// Update _bit_pattern and _bit_patternX
   int UpdateBitPattern(void);
 

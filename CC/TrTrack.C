@@ -1868,6 +1868,94 @@ int TrTrackR::FixAndUpdate()
   return 0;
 }
 
+#ifdef __ROOTSHAREDLIBRARY__
+#include "TSpline.h"
+
+int TrTrackR::Enhance(int opt, float qmax, float rmin)
+{
+  int pat = 0;
+
+  static TSpline3 *spl1 = 0;
+  static TSpline3 *spl2 = 0;
+  if (!spl1) {
+    double x[5] = {  1,  2,  3,  4,  6 };
+    double y[5] = { 20, 16, 25, 30, 40 };
+    spl1 = new TSpline3("spl1", x, y, 5, "e2");
+    cout << "TrTrackR::Enhance-I-TSpline-1 created" << endl;
+  }
+  if (!spl2) {
+    double x[8] = { 0.05, 0.1,  0.2, 0.3, 0.7, 0.8, 0.9, 0.95 };
+    double y[8] = { 1.84, 5.01, 0.730, -0.341, -0.307, -1.29, -5.58, -2.58 };
+    for (int i = 0; i < 8; i++) y[i] *= 0.01;
+    spl2 = new TSpline3("spl2", x, y, 8, "");
+    cout << "TrTrackR::Enhance-I-TSpline-2 created" << endl;
+  }
+
+  if ((opt&0x300) == 0x300) opt -= 0x300;
+
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (!hit) continue;
+
+    int lay = hit->GetLayer();
+    if ((opt&0x100) && lay >= 8) continue;
+    if ((opt&0x200) && lay <  8) continue;
+
+    TrClusterR *cl = hit->GetYCluster();
+    if (!cl) continue;
+
+    if (opt&1) {
+      int is = cl->GetSeedIndex();
+      if (cl->GetStatus(is-1) ||
+	  cl->GetStatus(is)   ||
+	  cl->GetStatus(is+1)) { pat |= (1<<lay); continue; }
+    }
+
+    int    nelm = cl->GetNelem();
+    double stot = cl->GetTotSignal();
+    double eta  = cl->GetCofG(2); if (eta < 0) eta += 1;
+
+    if ((opt&2) && stot > qmax)             { pat |= (1<<lay); continue; }
+    if ((opt&4) && stot < spl1->Eval(nelm)) { pat |= (1<<lay); continue; }
+
+    map<int,AMSPoint>::iterator it = _HitCoo.find(lay);
+    if (it == _HitCoo.end()) continue;
+
+    TkLadder *lad = TkDBc::Head->FindTkId(cl->GetTkId());
+    double     dy = TkDBc::Head->_PitchS*lad->GetRotMat().GetEl(1, 1);
+    AMSPoint &coo = it->second;
+
+    if ((opt&8)  && 0.05 < eta && eta < 0.95) coo[1] -= spl2->Eval(eta)*dy;
+    if ((opt&16) &&  0.1 < eta && eta < 0.9 && lay < 8) {
+      int ita = iTrTrackPar(2, 3, 0);
+      int lyj = hit->GetLayerJ();
+      if (FitT(ita, lyj, false) > 0) { 
+	TrFit  *fit = GetTrFit(); fit->Propagate(coo.z());
+	double ares = (GetHitCooLJ(lyj).y()-fit->GetP0y())/dy;
+	double rthd = rmin;
+	if ((eta < 0.5 && ares > eta*2-0.35) ||
+	    (eta > 0.5 && ares < eta*2-1.65)) {
+	  if (lyj == 2) rthd *= 1.5;
+	  if (lyj == 7 ||
+	      lyj == 8) rthd *= 1.3;
+	  if (eta < 0.5 && ares >  rthd) coo[1] -= 2*dy*   eta;
+	  if (eta < 0.9 && ares < -rthd) coo[1] += 2*dy*(1-eta);
+	}
+      }
+    }
+  }
+
+  int nrm = 0;
+  for (int i = 0; i < 9; i++)
+    if (pat&(1<<(i+1))) { RemoveHitOnLayer(i+1); nrm++; }
+
+  return nrm;
+}
+
+#else // __ROOTSHAREDLIBRARY__
+int TrTrackR::Enhance(int, float, float) { return 0; }
+#endif
+
 int TrTrackR::UpdateBitPattern()
 {
   _bit_pattern = _bit_patternX = 0;
@@ -2247,7 +2335,7 @@ int TrTrackR::DropExtHits(void)
 
   int ndrop = 0;
 
-  for (Int_t i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++) {
     TrRecHitR *hit = (i == 0) ? GetHitLJ(1) : GetHitLJ(9);
     if (!hit) continue;
 
