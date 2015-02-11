@@ -2558,7 +2558,7 @@ class RemoteClient:
                 os.system("stager_get -M %s " %(fname))
 #                time.sleep(5)
                 vcode=os.system(validatecmd)
-                while (sys.argv[0].find('parsejf') >=0 and vcode/256==134):
+                while (sys.argv[0].find('parsejf') >=0 and sys.argv[0].find('parsejf.data') < 0 and vcode/256==134):
                     time.sleep(30)
                     vcode=os.system(validatecmd)
             print "acquirung  mutex in validate", validatecmd
@@ -2720,12 +2720,13 @@ class RemoteClient:
             return 1
         else:
             return rstatus
-    def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0,eos=0,force=0):
+    def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0,eos=0,force=0,skipcrc=0):
         self.castoronly=co
         self.castorcopy=1
         self.eos=eos
         self.force=force
         self.crczero=0
+        self.skipcrc=skipcrc
         firstjobname=0
         lastjobname=0
         HelpTxt = """
@@ -3582,6 +3583,11 @@ class RemoteClient:
                                     self.thrusted += 1
                             else:
                                 i >>= 8
+                                if(i==134):
+                                    ntstatus="STAGEIN"
+                                    os.system("mv -v %s %s" %(inputwork, inputorig))
+                                    mutex.release()
+                                    return 0, copylog
                                 if (int(i/128)):
                                     ntevents = 0
                                     badevents = "NULL"
@@ -3743,7 +3749,7 @@ class RemoteClient:
                     for ntuple in cpntuples:
                         cmd = self.rm + ntuple
                         if (ntuple.find('/eosams/') == 0):
-                            cmd = "%s rm %s" %(self.eosselect, eosLink2Real(ntuple))
+                            cmd = "%s rm %s" %(self.eosselect, self.eosLink2Real(ntuple))
                         output.write(cmd + "\n")
                         os.system(cmd)
                         output.write("Validation done : system command %s \n" %(cmd))
@@ -3758,7 +3764,7 @@ class RemoteClient:
                 for ntuple in mvntuples:
                     cmd = "%s %s" %(self.rm, ntuple)
                     if (ntuple.find('/eosams/') == 0):
-                        cmd = "%s rm %s" %(self.eosselect, eosLink2Real(ntuple))
+                        cmd = "%s rm %s" %(self.eosselect, self.eosLink2Real(ntuple))
                     output.write("Validation failed : system command %s \n" %(cmd))
                     output.write(cmd + "\n")
                     os.system(cmd)
