@@ -670,13 +670,11 @@ double TrFit::VKResidual(double x, double y, double *par)
 
 double TrFit::SimpleFit(void)
 {
-//  cout <<" simple fit entered "<<endl;
   if (_nhitx < 2 || _nhity < 3) return -1;
 
   double pc[3];
   int ic = GetPcen(pc);
   if (ic <= 0) return -1;
-//  cout <<" simple fit entered2 "<<endl;
 
   double len  [LMAX];
   double pintx[LMAX][2];
@@ -703,7 +701,6 @@ double TrFit::SimpleFit(void)
       pos[1] = pc[1];
       pos[2] = pc[2];
       GuFld(pos[0], pos[1], pos[2], bbf);
-//      cout <<" bbf "<<bbf[0]<<endl;
     }
     else {
       pos[0] = _xh[i-di];
@@ -817,7 +814,6 @@ double TrFit::SimpleFit(void)
   _p0z = 0;
 
   _rigidity = (_param[4] != 0) ? Clight*1e-12/_param[4] : 0;
-//  cout <<" trfitrig "<<_rigidity<<" "<<_param[4]<<endl;
   return _chisq;
 }
 
