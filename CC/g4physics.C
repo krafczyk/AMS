@@ -1381,6 +1381,7 @@ G4ParticleDefinition* particle=	  ((G4IonTable *)pIonT)->GetIon(Z,A);
         }
 #else
 G4ParticleDefinition* dummy=((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+(void)dummy;
 #endif
       theParticleIterator->reset();
       while( (*theParticleIterator)() ){
