@@ -527,7 +527,7 @@ int EcalHR::FitL(int s, float par[3], float err[3], int method)
   if (!EcalH::mnt) {
     int thr = 0;
 #ifdef _OPENMP
-#pragma omp critical (tminuit)
+//FIXME will not work for G4MULTITHREADED
     thr = omp_get_thread_num();
 #endif
     EcalH::mnt = new TMinuit(3);

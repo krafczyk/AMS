@@ -45,6 +45,7 @@
 #include "Tofsim02.h"
 #include "g4tof.h"
 #include "g4rich.h"
+#include "richlip.h"
 #ifdef G4MULTITHREADED
 #include "G4MTHepRandom.hh"
 #endif
@@ -2100,6 +2101,8 @@ void AMSG4ActionInitialization::Build() const
 
   SetUserAction(new AMSG4SteppingAction);
   SetUserAction(new AMSG4StackingAction);
+  AMSJob::addblocktype();
+  RichLIPRec::InitGlobal();
 }
 #endif
 

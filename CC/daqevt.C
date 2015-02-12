@@ -29,6 +29,10 @@
 ofstream fbin1("/f2users/choutko/AMS/examples/zip.txt",ios::out);
 #endif
 
+DAQBlockType::DAQBlockType(const DAQBlockType & b):_maxbl(b._maxbl),_plength(0),_pgmb(b._pgmb),_pgetdata(b._pgetdata),_pgetlength(b._pgetlength),_next(0){
+if(_maxbl)_plength=new integer(_maxbl);
+if(b._next)_next=new DAQBlockType(*(b._next));
+}
 
 
 #ifndef __ALPHA__
@@ -132,6 +136,7 @@ void DAQEvent::shrink(){
 
 DAQSubDet * DAQEvent::_pSD[nbtps]={0,0,0,0,0,0,0,0};
 DAQBlockType * DAQEvent::_pBT[nbtps]={0,0,0,0,0,0,0,0};
+DAQBlockType * DAQEvent::_pBTshared[nbtps]={0,0,0,0,0,0,0,0};
 
 void DAQEvent::addsubdetector(pid pgetid, pputdata pput, uinteger btype){
   DAQSubDet * p= new DAQSubDet(pgetid, pput);
@@ -285,6 +290,7 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
 
 
 void DAQEvent::buildDAQ(uinteger btype){
+//if(!_pBTshared[btype])_pBTshared[btype]=new DAQBlockType(*_pBT[btype]);
   DAQBlockType *fpl=_pBT[btype];
   if(fpl == NULL && btype){
     static int init=0;
@@ -300,7 +306,7 @@ void DAQEvent::buildDAQ(uinteger btype){
   integer ntot=0;
   integer ntotm=0;
 #ifdef _OPENMP
-#pragma omp critical (builddaq)
+//#pragma omp critical (builddaq)
 #endif
   while(fpl){
     for(int i=0;i<fpl->_maxbl;i++){

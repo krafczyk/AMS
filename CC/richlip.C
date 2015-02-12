@@ -344,7 +344,13 @@ void RichLIPRec::InitGlobal(){
 ////////////////////////////////////////////////////////////////////////
 
 void RichLIPRec::InitEvent() {
-
+#ifdef NOTIMPG4MULTITHREADED
+// fixme
+ static int mess=0;
+ if(!mess++)cerr<<"RichLIPRec::InitEvent-E-WillnotRunFaulty to bad LIPC2F common "<<endl;
+ return ;
+ #endif
+//
   // global detector data were moved to initialization routines in job.C
 
   // hit data

@@ -2300,7 +2300,7 @@ _TrackRec.clear();
 }
 
 int AMSRichRingNew::buildlip(){
-#ifdef G4MULTITHREADED
+#ifdef NOTIMPG4MULTITHREADED
 // fixme
 static int mess=0;
 if(!mess++)cerr<<"AMSRichRingNew::buildlip-E-WillnotRunFaulty to bad LIPC2F common "<<endl;

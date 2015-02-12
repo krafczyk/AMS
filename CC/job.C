@@ -5236,7 +5236,64 @@ void AMSJob::_dbendjob(){
   }
 }
 
+void AMSJob::addblocktype(){
 
+
+        DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+	DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
+			       &AMSmceventg::builddaq);
+			
+#ifdef _PGTRACK_
+	DAQEvent::addblocktype(&TrDAQMC::getmaxblocks,&TrDAQMC::calcdaqlength,
+			       &TrDAQMC::builddaq);
+#else		
+	DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
+			       &AMSTrMCCluster::builddaq);
+#endif
+	DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
+			       &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
+			
+			
+	DAQEvent::addblocktype(&AMSEvent::getmaxblocks,
+			       &AMSEvent::calcdaqlength,&AMSEvent::builddaq);
+			
+			
+      // lvl1
+
+      DAQEvent::addsubdetector(&Trigger2LVL1::checkdaqid,&Trigger2LVL1::buildraw);
+
+
+      //           lvl3
+      //    DAQEvent::addblocktype(&TriggerLVL302::getmaxblocks,&TriggerLVL302::calcdaqlength,&TriggerLVL302::builddaq);
+
+    
+    //tof + anti 
+
+    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock);
+
+
+    //trd
+
+    DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq);
+
+
+// ecal
+
+    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
+
+
+    //tracker
+#ifdef _PGTRACK_
+    DAQEvent::addblocktype(&TrDAQ::getmaxblocks,&TrDAQ::calcdaqlength,&TrDAQ::builddaq);
+
+#else
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+#endif
+
+
+
+
+}
 void AMSJob::_redaq2initjob(){
   AMSgObj::BookTimer.book("SIDAQ");
   AMSgObj::BookTimer.book("SIZIP");
@@ -5275,16 +5332,16 @@ void AMSJob::_redaq2initjob(){
      
     DAQEvent::addsubdetector(&DAQECBlock::checkblockid,&DAQECBlock::buildraw);// for RD
     DAQEvent::addsubdetector(&DAQECBlock::checkblockidJ,&DAQECBlock::buildrawJ);// for RD
-    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
     // rich
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqidnode,&DAQRichBlock::buildrawnode);
-    DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
 
 
     {  // mc
       if( !isRealData()){
 #ifndef __LVL3ONLY__
+        DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
+        DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
 	DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
 	DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
 			       &AMSmceventg::builddaq);
