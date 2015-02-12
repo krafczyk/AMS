@@ -3016,35 +3016,29 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       float qy = TrCharge::GetQ(track,TrCharge::kY,1);
       hman.Fill("QxQy_final",qx,qy);
 
-      for (int ihit=0; ihit<track->GetNhits(); ihit++) {
-	TrRecHitR* hit = track->GetHit(ihit);
-	if (hit==0) continue; 
-	if (hit->OnlyY()) continue;
-	TrClusterR* clX = hit->GetXCluster();
-	TrClusterR* clY = hit->GetYCluster();
-	if ( (clX==0)||(clY==0) ) continue;
-	float sigx = clX->GetTotSignal(TrClusterR::kAsym);
-	float sigy = clY->GetTotSignal(TrClusterR::kAsym);
-	hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
-	hman.Fill("AmpyCSy_final",sqrt(GetChargeSeed(1)),sqrt(sigy));
-	hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
-	hman.Fill("ProbAmpx_final",sqrt(sigx),log10(hit->GetCorrelationProb()));
-        float sigx_corr = clX->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);
-        float sigy_corr = clY->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);
-        hman.Fill("AmpyAmpxC_final",sqrt(sigx_corr),sqrt(sigy_corr));
-        sigx_corr = clX->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle);
-        sigy_corr = clY->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle);
-        hman.Fill("AmpxCSxC_final",sqrt(_htmx_corr),sqrt(sigx_corr));
-        hman.Fill("AmpyCSyC_final",sqrt(_htmy_corr),sqrt(sigy_corr));
-
-      /*
-      if ( (sqrt(sigx)<(0.8*sqrt(GetChargeSeed(0))-4))||
-           (sqrt(sigy)<(0.8*sqrt(GetChargeSeed(1))-4)) ) {
-        printf("ERROR ---   ChargeSeedX = %7.2f   ChargeSeedY = %7.2f\n",GetChargeSeed(0),GetChargeSeed(1));  
-        hit->Print(0);
-      }
-      */
-      }
+      if (select_tag!=0) {
+        for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+          TrRecHitR* hit = track->GetHit(ihit);
+          if (hit==0) continue; 
+          if (hit->OnlyY()) continue;
+          TrClusterR* clX = hit->GetXCluster();
+          TrClusterR* clY = hit->GetYCluster();
+          if ( (clX==0)||(clY==0) ) continue;
+          float sigx = clX->GetTotSignal(TrClusterR::kAsym);
+          float sigy = clY->GetTotSignal(TrClusterR::kAsym);
+          hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
+          hman.Fill("AmpyCSy_final",sqrt(GetChargeSeed(1)),sqrt(sigy));
+          hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
+          hman.Fill("ProbAmpx_final",sqrt(sigx),log10(hit->GetCorrelationProb()));
+          float sigx_corr = clX->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);
+          float sigy_corr = clY->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain);
+          hman.Fill("AmpyAmpxC_final",sqrt(sigx_corr),sqrt(sigy_corr));
+          sigx_corr = clX->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle);
+          sigy_corr = clY->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle);
+          hman.Fill("AmpxCSxC_final",sqrt(_htmx_corr),sqrt(sigx_corr));
+          hman.Fill("AmpyCSyC_final",sqrt(_htmy_corr),sqrt(sigy_corr));
+        }
+      } 
 
 #ifndef __ROOTSHAREDLIBRARY__
       AMSgObj::BookTimer.start("TrTrack3Extension");
@@ -7277,9 +7271,7 @@ bool TrRecon::CompatibilityWithChargeSeed(TrClusterR* cluster) {
   float chseed_corr = (iside==0) ? _htmx_corr : _htmy_corr; 
   if (iside==0) hman.Fill("AmpxCSxC",sqrt(chseed_corr),sqrt(signal_corr));
   else          hman.Fill("AmpyCSyC",sqrt(chseed_corr),sqrt(signal_corr));
-  // test 
-  // if (sqrt(signal)>(0.8*sqrt(chseed)-4)) return true;
-  if (sqrt(signal_corr)>(0.7*sqrt(chseed_corr)-4)) return true; 
+  if (sqrt(signal_corr)>(0.8*sqrt(chseed_corr)-4)) return true;
   return false;
 }
 
