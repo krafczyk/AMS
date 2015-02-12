@@ -102,6 +102,7 @@ protected:
 public:
   DAQBlockType():_maxbl(0),_plength(0),_pgmb(0),_pgetdata(0),_pgetlength(0),_next(){}
   DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget):_maxbl(0),_plength(0),_pgmb(pgmb),_pgetdata(pget),_pgetlength(pgl),_next(){}
+  DAQBlockType(const DAQBlockType &o);
 
   friend class DAQEvent;
 };
@@ -150,7 +151,11 @@ protected:
   int16u _JStatus[4];
   static DAQSubDet * _pSD[nbtps];
   static DAQBlockType * _pBT[nbtps];
-//  #pragma omp threadprivate(_pBT)
+  static DAQBlockType * _pBTshared[nbtps];
+#ifdef _OPENMP
+  #pragma omp threadprivate(_pBT)
+  #pragma omp threadprivate(_pBTshared)
+#endif
   static const integer _OffsetL;
   integer _DDGSBOK();
   integer _EventOK();

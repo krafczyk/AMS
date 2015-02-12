@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.65 2011/02/26 20:18:37 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -160,6 +160,7 @@ void _timeinitjob();
 void _richendjob();
 
 public:
+static void addblocktype();
 void SetNtuplePath(const char * hname){_hextname=hname;}
 const char *GetNtuplePath(){return _hextname;}
 void SetRootPath(const char * hname){_rextname=hname;}
