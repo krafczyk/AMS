@@ -199,7 +199,7 @@ void g4ams::G4RUN(){
     GCFLAG.IEVENT=1;
     TIMEL(GCTIME.TIMINT);
 #ifndef G4VIS_USE
-   cout <<"  run for "<<GCFLAG.NEVENT-GCFLAG.IEVENT+1<<endl;
+   cout <<"g4ams::G4RUN-I-RunRequestedFor "<<GCFLAG.NEVENT-GCFLAG.IEVENT+1<<endl;
    G4RunManager::GetRunManager()->BeamOn(GCFLAG.NEVENT-GCFLAG.IEVENT+1);
 #endif
 }
@@ -355,7 +355,7 @@ AMSG4GeneratorInterface::~AMSG4GeneratorInterface(){
 delete[] _particleGun;
 }
 
-
+#include "Tofsim02.h"
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
   static unsigned int iq=0;
 #if G4VERSION_NUMBER  > 999

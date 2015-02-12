@@ -288,6 +288,9 @@ void DAQEvent::buildDAQ(uinteger btype){
   DAQBlockType *fpl=_pBT[btype];
   if(fpl == NULL && btype){
     static int init=0;
+#ifdef _OPENMP
+#pragma omp threadprivate (init) 
+#endif
     if(init++==0)cerr << "DAQEvent::build-S-NoSubdetectors in DAQ"<<endl;
     return;
   }
@@ -296,6 +299,9 @@ void DAQEvent::buildDAQ(uinteger btype){
   int16u* pjinj=0;
   integer ntot=0;
   integer ntotm=0;
+#ifdef _OPENMP
+#pragma omp critical (builddaq)
+#endif
   while(fpl){
     for(int i=0;i<fpl->_maxbl;i++){
       int len=(fpl->_pgetlength)(i);
@@ -1749,11 +1755,15 @@ void DAQEvent::buildRawStructuresEarly(){
 void DAQEvent::write(){
   if(_Length && fbout.is_open()){
     _convert();
+#ifdef _OPENMP
+#pragma omp critical (fixmewritepdaq)
+{
     fbout.write((char*)_pData,sizeof(_pData[0])*_Length);
-    _NeventsO++;
-    //  should flush output for each event
-    //
     fbout.flush();
+}
+#pragma omp atomic
+    _NeventsO++;
+#endif
   }
 
 }

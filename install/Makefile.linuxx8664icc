@@ -60,10 +60,10 @@ ifndef NOCTYPE
 endif
 
 ifdef DEBUGFLAG
-RH9add+= -g -gdwarf-2
+RH9add+= -g -gdwarf-2 -O0 -debug 
 endif
 ifdef RELWITHDEBUGFLAG
-RH9add+= -g -gdwarf-2
+RH9add+= -g -gdwarf-2 -O0 -debug 
 endif
 
 ifdef AMSPARALLEL
@@ -374,12 +374,12 @@ ifdef AMSPROFILE
 endif
 
 ifdef DEBUGFLAG
-    CFLAGS       += -g -gdwarf-2      
-    CFLAGSTOFSIM += -g -gdwarf-2
-    CFLAGSn      += -g -gdwarf-2     
-    CFLAGSDAQ    += -g -gdwarf-2  
-    FFLAGS       += -g -gdwarf-2     
-    FFLAGSn      += -g -gdwarf-2    
+    CFLAGS       += -g -gdwarf-2 -O0 -debug       
+    CFLAGSTOFSIM += -g -gdwarf-2 -O0 -debug 
+    CFLAGSn      += -g -gdwarf-2 -O0 -debug      
+    CFLAGSDAQ    += -g -gdwarf-2 -O0 -debug   
+    FFLAGS       += -g -gdwarf-2 -O0 -debug      
+    FFLAGSn      += -g -gdwarf-2 -O0 -debug     
 else
     CFLAGS       += -O2
     CFLAGSTOFSIM += -O1
@@ -388,12 +388,12 @@ else
     FFLAGS       += -O2
     FFLAGSn      += -O2
 ifdef RELWITHDEBUGFLAG
-    CFLAGS       += -g -gdwarf-2
-    CFLAGSTOFSIM += -g -gdwarf-2
-    CFLAGSn      += -g -gdwarf-2
-    CFLAGSDAQ    += -g -gdwarf-2
-    FFLAGS       += -g -gdwarf-2
-    FFLAGSn      += -g -gdwarf-2
+    CFLAGS       += -g -gdwarf-2 -O0 -debug 
+    CFLAGSTOFSIM += -g -gdwarf-2 -O0 -debug 
+    CFLAGSn      += -g -gdwarf-2 -O0 -debug 
+    CFLAGSDAQ    += -g -gdwarf-2 -O0 -debug 
+    FFLAGS       += -g -gdwarf-2 -O0 -debug 
+    FFLAGSn      += -g -gdwarf-2 -O0 -debug 
 endif
 endif
 
@@ -471,14 +471,14 @@ CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I$(BIN)
 
 ifdef DEBUGFLAG
-CXX_ORBIT+= -g -gdwarf-2
-CCC_ORBIT+= -g -gdwarf-2
+CXX_ORBIT+= -g -gdwarf-2 -O0 -debug 
+CCC_ORBIT+= -g -gdwarf-2 -O0 -debug 
 else
 CXX_ORBIT+= -O3
 CCC_ORBIT+= -O3
 ifdef RELWITHDEBUGFLAG
-CXX_ORBIT+= -g -gdwarf-2
-CCC_ORBIT+= -g -gdwarf-2
+CXX_ORBIT+= -g -gdwarf-2 -O0 -debug 
+CCC_ORBIT+= -g -gdwarf-2 -O0 -debug 
 endif
 endif
 

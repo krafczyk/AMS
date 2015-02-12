@@ -52,7 +52,6 @@
 
 #include "G4VGlauberDataSet.hh"
 
-#include "G4DPMJET2_5Interface.hh"
 
 #include <iomanip>
 #include <iostream>

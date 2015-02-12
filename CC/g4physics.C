@@ -115,8 +115,8 @@ void AMSG4Physics::ConstructParticle()
   ConstructAllBarions();
   ConstructAllIons();
   ConstructAllShortLiveds();
-
- G4XRay::XRayDefinition();
+  G4GenericIon::GenericIonDefinition() ;
+   G4XRay::XRayDefinition();
   //   _init();                // We now construct Tables in Begin of Run Action, to avoid conflict of "GenericIon" implementation in Geant4
 }
 
@@ -264,13 +264,15 @@ void AMSG4Physics::ConstructProcess()
       G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
       hardonstop->ConstructProcess();
 #endif
+bool worker=true;
+
       if(G4FFKEY.IonPhysicsModel%10==1||G4FFKEY.IonPhysicsModel%10==2){
         cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
         AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
         if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       }
 //--Qi Yan
-      else if (G4FFKEY.IonPhysicsModel%10==3) {
+      else if (G4FFKEY.IonPhysicsModel%10==3 && worker) {
          cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section)."<<endl; 
          IonDPMJETPhysics* pamshi = new IonDPMJETPhysics; //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
          if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
@@ -1367,18 +1369,24 @@ void AMSG4Physics::_init(){
         continue;
 #endif
       }
-#if G4VERSION_NUMBER    >999
-	  ((G4IonTable *)pIonT)->GetIon(Z,A);
-#else
-((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
-#endif
       double fdelta=1000000;
       G4ParticleDefinition* cand=0;
+#if G4VERSION_NUMBER    >999
+G4ParticleDefinition* particle=	  ((G4IonTable *)pIonT)->GetIon(Z,A);
+        if(g3charge[ipart] == particle->GetPDGCharge()){
+          if(fabs(g3mass[ipart]*GeV-particle->GetPDGMass())<fdelta){
+            fdelta=fabs(g3mass[ipart]*GeV-particle->GetPDGMass());
+            cand=particle;
+          }
+        }
+#else
+G4ParticleDefinition* dummy=((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
+#endif
       theParticleIterator->reset();
       while( (*theParticleIterator)() ){
         G4ParticleDefinition* particle = theParticleIterator->value();
         if(g3charge[ipart] == particle->GetPDGCharge()){
-          if(fabs(g3mass[ipart]*GeV-particle->GetPDGMass())<fdelta){
+          if(fabs(g3mass[ipart]*GeV-particle->GetPDGMass())<=fdelta){
             fdelta=fabs(g3mass[ipart]*GeV-particle->GetPDGMass());
             cand=particle;
           }
@@ -1386,14 +1394,12 @@ void AMSG4Physics::_init(){
       }
       if(fdelta<0.01*g3mass[ipart]*GeV){
         g3tog4p[ipart]=cand;
-	// cout <<" c "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
       }
       else{
-        cerr <<"AMSG4Physics-WG4IonNotFound "<<g3pid[ipart]<<" "<<fdelta<<" "<<g3mass[ipart]*GeV<<endl;
+        cerr <<"AMSG4Physics-W-G4IonNotFound "<<g3pid[ipart]<<" "<<fdelta<<" "<<g3mass[ipart]*GeV<<endl;
       }
     }
   }
-
 
 #if G4VERSION_NUMBER < 1000 
 G4ParticleDefinition *thepart= ConstructStrangelet(CCFFKEY.StrMass,CCFFKEY.StrCharge);

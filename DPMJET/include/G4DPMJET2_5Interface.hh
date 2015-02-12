@@ -423,8 +423,8 @@ struct ccdpm25rptshm
 struct ccdpm25dtumat
 {
   G4double bsiten[50][24][200], bsitem[50][24][200],
-           rprojj[50], rtagg[50], bstepp[50], bmaxx[50],
-           ntaxx[50], nztaxx[50], nprxx[50], nzprxx[50];
+           rprojj[50], rtagg[50], bstepp[50], bmaxx[50];
+  G4int    ntaxx[50], nztaxx[50], nprxx[50], nzprxx[50];
 };
 struct ccdpm25collap
 {
@@ -444,7 +444,7 @@ struct ccdpm25diqi
 };
 struct ccdpm25dpar
 {
-  char     aname[210];
+  char     aname[210*8];    //VC fix  
   G4double aam[210], ga[210], tau[210];
   G4int    iich[210],
            iibar[210], k1[210], k2[210];
@@ -632,6 +632,20 @@ extern "C"
  extern struct ccdpm25hboo   hboo_;
  extern struct ccdpm25xsecnu xsecnu_;
  extern struct ccdpm25glaber glaber_;
+#if defined _OPENMP and defined G4MULTITHREADED
+#pragma omp threadprivate (user1_,user2_,casadi_,cmhico_,cronin_,colle_,collis_,coulo_,diffradpm_,diqsum_,diquax_,diqrej_,dprin_,dropjj_,droppt_,edens_)
+#pragma omp threadprivate (evappp_,ferfor_,final_,fluctu_,secint_,frbkcm_,gluspl_,hadthr_,hdjase_,hettp_,ifragm_,inpflg_,kglaub_)
+#pragma omp threadprivate (nstari_,ncshxx_,nncms_,nucc_,nuccc_,nucimp_,nuclea_,parevt_,pomtab_,pomtyp_,popcor_,popcck_,projk_,promu_,pshow_)
+#pragma omp threadprivate (ptlarg_,ptsamp_,pydat1_,recom_,seadiq_,seaqxx_,seasu3_,sincha_,strufu_,taufo_,vxsvd_,xseadi_,zentra_,bufueh_,bufues_)
+#pragma omp threadprivate (ncouch_,ncoucs_,dshm_,rptshm_)
+#pragma omp threadprivate (dtumat_)
+#pragma omp threadprivate (collap_)
+#pragma omp threadprivate  (diqi_)
+#pragma omp threadprivate (dpar_)
+#pragma omp threadprivate (extevt_)
+#pragma omp  threadprivate (hkkevt_)
+#pragma omp threadprivate (ifroto_,paname_,shmakl_,sigma_,xsecpt_,nucros_,hboo_,xsecnu_,glaber_)
+#endif
 }
 // NOTE Should there be a semicolon after the close-curly bracket ??  Some
 // compilers think yes, others no!

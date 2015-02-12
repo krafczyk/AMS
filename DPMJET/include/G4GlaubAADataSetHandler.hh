@@ -111,7 +111,9 @@ class G4GlaubAADataSetHandler
     G4String GetTargetStringID (const G4int AT) const;
     
     static G4GlaubAADataSetHandler *instance;
-
+#ifdef _OPENMP
+#pragma omp threadprivate (instance)
+#endif    
     G4GlaubAADataSetIndex          theIndex;
     G4String                       glauberDataSetDir;
 

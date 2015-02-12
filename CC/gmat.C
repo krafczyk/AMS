@@ -90,6 +90,7 @@ void AMSgmat::_init(){
 #ifdef __G4AMS__
   }
   if(MISCFFKEY.G4On){
+    if(!_pamsg4m){
     if(_npar==1 ){
       if(_temp==0)_pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3);
       else _pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3,kStateGas,_temp*kelvin,1.e-18*_rho*g/cm3/universe_mean_density*_temp*kelvin*pascal); 
@@ -106,6 +107,7 @@ void AMSgmat::_init(){
 	int natoms=int(_w[i]);
 	_pamsg4m->AddElement(new G4Element(name," ",_z[i],_a[i]*g/mole),natoms);
       }
+    }
     }
   }
 #endif

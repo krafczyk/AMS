@@ -130,7 +130,10 @@ G4bool G4DPMJET2_5CrossSection::IsApplicable
   (const G4DynamicParticle* theProjectile, const G4Element* theTarget)
 {
   static G4StableIsotopes theDefaultIsotopes;  // natural abundances and 
-                                               // stable isotopes
+#if defined _OPENMP and defined G4MULTITHREADED
+#pragma omp threadprivate (theDefaultIsotopes)
+#endif
+// stable isotopes
 //
 //
 // Determine first if the user has defined her own isotopic composition for the
@@ -308,6 +311,9 @@ G4double G4DPMJET2_5CrossSection::GetCrossSection
 //  DumpPhysicsTable(*(theProjectile->GetDefinition()));
   static G4StableIsotopes theDefaultIsotopes;  // natural abundances and 
                                                // stable isotopes
+#if defined _OPENMP and defined G4MULTITHREADED
+#pragma omp threadprivate (theDefaultIsotopes)
+#endif
 //
 //
 // Determine first if the user has defined her own isotopic composition for the
@@ -378,6 +384,9 @@ void G4DPMJET2_5CrossSection::Initialise ()
 {
   static G4StableIsotopes theDefaultIsotopes;  // natural abundances and 
                                                // stable isotopes
+#if defined _OPENMP and defined G4MULTITHREADED
+#pragma omp threadprivate (theDefaultIsotopes)
+#endif
   //verboseLevel = 2;
 //
 //

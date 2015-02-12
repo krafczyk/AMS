@@ -1529,10 +1529,8 @@ void AMSEvent::event(){
   try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();
 	(void) getheadC("AMSmceventg",0);
-    
 
     if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
-
       if(_id<=IOPA.skip) return;
       try{
 _reamsevent();
@@ -3565,7 +3563,6 @@ void AMSEvent::_sidaqevent(){
 
 DAQEvent *  pdaq = new DAQEvent();
 addnext(AMSID("DAQEvent",0), pdaq);      
-//#pragma omp critical (builddaq)
 {
  pdaq->buildDAQ();
 }

@@ -11,18 +11,17 @@
 #include <stdlib.h>
 #include <time.h>
 #include <map>
-#include "TH1D.h"
+#include "TH1F.h"
 //===========================================================================
 class TOF2TovtN: public AMSlink{
 public:
-static map<integer,TH1D*> phmap;//photon number map for bar
+static map<int, TH1F*> phmap;//photon number map for bar
  TOF2TovtN(){};
 //
  ~TOF2TovtN(){};
  static number ftdclw();/// <ftdc total length
  static number ftdcbw();/// <ftdc bin with
  static int    ftdcnb();/// <ftdc nbin ideal
-
  TOF2TovtN * next(){return (TOF2TovtN*)_next;}
  static void covtoph(integer idsoft, geant vect[], geant edep,geant tofg, geant tofdt,geant stepl,integer parentid);
  static void build();

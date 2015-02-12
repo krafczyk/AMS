@@ -23,15 +23,12 @@ PG=G4PG
 else
 PG=G4MTPG
 fi
-
+PG=G4MTPG
     MACHINE="$ARCH"5.34
 fi
 WHO=`whoami`
 export AMSDataDir=/cvmfs/ams.cern.ch/Offline/AMSDataDir
-PG=G4MTPG
-ARCH=linuxx8664icc
-MACHINE="$ARCH"5.34
-/usr/bin/time $AMSWD/exe/$MACHINE/gbatch$PG.exe <<!
+$AMSWD/exe/$MACHINE/gbatch$PG.exe <<!
 LIST
 KINE $1
 LOSS 1
@@ -41,17 +38,18 @@ CKOV 1
 RAYL 1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 TRIG 10000 
-DEBUG -1 1 10
+DEBUG -1 1 1
 C          Nparticles 
-MISC 4=0 5=1 8=$2     
+MISC 4=0 5=1 8=$2 29=1     
 MCGEN 1=-10. 2=-10. 3=180. 4=10. 5=10. 6=180.
 7=0. 8=0. 9=-1. 10=0. 11=0. 12=-1.
 C 12=-0.95 
-13=100. 14=200. 15=0 16=1. 19=101 20=0 21=0  
+13=100. 14=200. 15=0 16=1. 19=101 20=5 21=0  
 25=20102011 27=21102011
 
-IOPA 1=0 127=2 128='/f2users/$WHO/pr_$1_$ARCH$PG_$2.root' 43=101
-45='TriggerLVL1   ' 126=10000 
+IOPA 1=0 127=-2 
+128='/f2users/$WHO/$1_$2_$3_$ARCH$PG.root' 
+43=101 45='TriggerLVL1   ' 126=10000 
 C RNDM 191483493 13582325
 C RNDM  2010916395 53071516
 RNDM  187027471 173988007
@@ -61,7 +59,7 @@ C Special HP-UX
 TIME 3=10000000
 TERM 1234567890
 L3REC 11=0
-G4FF 4=1 5=3 6=0 12=12
+G4FF 4=1 5=3 6=0 12=$3
 C TRDMC 1=-2
 C ECCA 1=3
 C TRFIT 74=1
@@ -69,6 +67,6 @@ C TKGEOM 1=0
 G4FF 7=2013 20=1.1
 TKGEOM 807=1
 
-C DAQC 1=610 42='/f2users/choutko/g4v1g4.raw' 127=1
+DAQC 1=10 42='/f2users/choutko/g4v1g4_$1_$2_$3.raw' 127=0
 END
 !

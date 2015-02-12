@@ -150,7 +150,7 @@ protected:
   int16u _JStatus[4];
   static DAQSubDet * _pSD[nbtps];
   static DAQBlockType * _pBT[nbtps];
-  #pragma omp threadprivate(_pBT)
+//  #pragma omp threadprivate(_pBT)
   static const integer _OffsetL;
   integer _DDGSBOK();
   integer _EventOK();

@@ -36,12 +36,12 @@
 #include "tofsim02.h"
 //
 //------------------------------------------------------------------
-typedef  map<integer,TH1D*>::iterator phmapi;
-map<integer,TH1D*> TOF2TovtN::phmap;
+typedef  map<integer,TH1F*>::iterator phmapi;
+map<integer,TH1F*> TOF2TovtN::phmap;
 #ifdef _OPENMP
 #pragma omp threadprivate (TOF2TovtN::phmap)
 #endif
-
+//void TOF2TovtN::init(){phmap.clear();}
 //------------------------------------------------------------------
 number TOF2TovtN::ftdclw(){
   
@@ -119,25 +119,27 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
      nels=nel0*eff;// mean total number of photoelectrons side
 //--for pmt
     for(ipm=0;ipm<npmts;ipm++){
-      pmtid =ilay*1000+ibar*100+is*10+ipm+AMSEvent::gethead()->get_thread_num()*100000;
+      pmtid =ilay*1000+ibar*100+is*10+ipm;
       if(is==0)sharep=TOFWScanN::scmcscan1[ilay][ibar].getps1(ipm,idivx,r,i1,i2);//share 0side
       else    sharep=TOFWScanN::scmcscan1[ilay][ibar].getps2(ipm,idivx,r,i1,i2);
       if(sharep>1)sharep=1;
       nelp=nels*sharep;
       //            cout<<"nelp="<<nelp<<endl;
       POISSN(nelp,neles,ierr);
-      TH1D *hph=0;
+      TH1F *hph=0;
 //----Add Map Check
       if(neles>0){
          phmapi phmapiter=phmap.find(pmtid);
-         if(phmapiter==phmap.end())
+         if(phmapiter==phmap.end()){
+             sprintf(histn,"TOFPh_id%d",pmtid+AMSEvent::gethead()->get_thread_num()*100000);
 #pragma omp critical (setdirectory)
 {
-             sprintf(histn,"TOFPh_id%d",pmtid);
-             hph=new TH1D(histn,histn,ftdcnb(),0,ftdclw());
+             hph=new TH1F(histn,histn,ftdcnb(),0,ftdclw());
              hph->SetDirectory(0);
+ }         
              phmap.insert(make_pair(pmtid,hph));
-//             cout <<" TOF2TovtN::covtoph-I-inserting "<<pmtid<<" "<<hph->GetTitle()<<endl;
+//           cout <<" TOF2TovtN::covtoph-I-inserting "<<pmtid<<" "<<hph->GetTitle()<<endl;
+          
          }
          else hph=phmapiter->second;
 }
@@ -260,7 +262,7 @@ void TOF2TovtN::build()
   else {
 
     for(phmapi phmapiter=phmap.begin(); phmapiter!=phmap.end(); phmapiter++){
-        id=  (phmapiter->first)%100000;
+        id=  (phmapiter->first);
         ilay=id/1000%10;
         ibar=id/100%10;
         is=  id/10%10;
@@ -299,7 +301,7 @@ void TOF2TovtN::build()
 //---another side
           phmapi phmapitern=phmapiter;
           phmapitern++;
-         if((phmapitern==phmap.end())||((phmapitern->first%100000)/10!=(phmapiter->first%100000)/10)){
+         if((phmapitern==phmap.end())||((phmapitern->first)/10!=(phmapiter->first)/10)){
            nowbar=100*(ilay+1)+ibar+1;
            if(nowbar!=prbar){//recount Edep
              edepb=0.;//GeV
@@ -324,10 +326,9 @@ void TOF2TovtN::build()
    } //end all if
        
 //    cout<<"TFNew MC photon="<<nphoton<<endl;
-//--ready clear phmap
-// do not clear phmap, what a crazy idea?
+//--ready  reset histos
      for(phmapi phmapiter=phmap.begin(); phmapiter!=phmap.end(); ++phmapiter){
-      phmapiter->second->Reset();
+      if(phmapiter->second->GetEntries()>0)phmapiter->second->Reset();
      }
 // <--- arrange in incr.order TOF2TovtN::SumHT/SumSHT-arrays,created by all calls to TOF2TovtN::totovt(...)-routine:
   int nhth;

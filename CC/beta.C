@@ -21,6 +21,9 @@
 #include "tkpatt.h"
 #include "TrRecon.h"
 #endif
+#include <vector>
+bool TRCmp(AMSTrTrack * a, AMSTrTrack* b){return fabs(a->GetRigidity())*a->GetQ(1)>fabs(b->GetRigidity()*b->GetQ(1));
+}
 
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 
@@ -340,7 +343,6 @@ AMSPoint AMSBeta::Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
 
 
 integer AMSBeta::build_old(integer refit,integer Master){
-  
   // Pattern recognition + fit
   AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
 		     BETAFITFFKEY.SearchReg[2]);
@@ -363,9 +365,20 @@ integer AMSBeta::build_old(integer refit,integer Master){
       // Loop on track patterns
       
       // Loop on tracks
-      AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
-      for ( ; ptrack ; ptrack=ptrack->next()) {
-	
+//      AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
+//      for ( ; ptrack ; ptrack=ptrack->next()) {
+//   VC 2015-02-10
+//
+      std::vector<AMSTrTrack*> tr;
+      for (AMSTrTrack *ptrack= (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1); ptrack ; ptrack=ptrack->next()) {
+        tr.push_back(ptrack);
+      } 
+      std::sort(tr.begin(),tr.end(),TRCmp);
+
+        for(int kv=0;kv<tr.size();kv++){
+ 
+	  AMSTrTrack *ptrack=tr[kv];
+          //cout <<" ptrack "<<kv <<" "<<ptrack->GetRigidity()<< " "<<ptrack->checkstatus(AMSDBc::TOFFORGAMMA)<<" "<<ptrack->checkstatus(AMSDBc::FalseTOFX)<<endl;
 	if (Sonly==0) {
 	  if (!ptrack->checkstatus(AMSDBc::TOFFORGAMMA)) continue;
 	} else if (Sonly==1) {
@@ -1102,6 +1115,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 
 #ifdef _PGTRACK_
     if(patt->GetHitPatternNmask(ptrack->getpattern())!=patt->GetHitPatternNmask(ptrackc->getpattern()))continue;    
+    if(ptrack->GetNhitsXY()<ptrackc->GetNhitsXY())continue;
 #else
     if(TKDBc::patpoints(ptrack->getpattern())!=TKDBc::patpoints(ptrackc->getpattern()))continue;    
 #endif

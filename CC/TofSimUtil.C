@@ -1143,7 +1143,7 @@ AMSgmat* TofSimUtil::GetAMSgmat(G4Material *mat){
   G4String name= mat->GetName();
   
 //--
-  AMSgmat* amsmat=new AMSgmat(name, a, z, w, n, density/g*cm3,radl/m,absl/m);
+  AMSgmat* amsmat=new AMSgmat(name, a, z, w, n, density/g*cm3,radl/m,absl/m,273./kelvin,mat);
   return amsmat;  
 }
 

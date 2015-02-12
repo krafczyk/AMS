@@ -223,7 +223,7 @@ AMSgmat *TrdSimUtil::GetKaptonMaterial( void ){
   geant absl=   trdKaptonMaterial->GetNuclearInterLength();
 
   //  delete H,C,N,O;
-  AMSgmat *thismat=new AMSgmat ("Kapton", a, z, w, n, density/g*cm3,radl/m,absl/m,temp/kelvin);
+  AMSgmat *thismat=new AMSgmat ("Kapton", a, z, w, n, density/g*cm3,radl/m,absl/m,temp/kelvin,trdKaptonMaterial);
   
   if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::GetKaptonMaterial\n");
   return thismat;

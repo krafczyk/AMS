@@ -27,8 +27,8 @@ public:
 
   AMSgmat (const char name[], 
 	   geant a[] , geant z[], geant w[], integer npar, 
-	   geant rho, geant radl=0, geant absl=0, geant temp=0 ): 
-    AMSNode(0),_pamsg4m(0),_imate(++_GlobalMatI),_npar(npar), _rho(rho), _radl(radl), _absl(absl),_temp(temp){
+	   geant rho, geant radl=0, geant absl=0, geant temp=0,G4Material *p=0 ): 
+    AMSNode(0),_pamsg4m(p),_imate(++_GlobalMatI),_npar(npar), _rho(rho), _radl(radl), _absl(absl),_temp(temp){
 #ifdef __AMSDEBUG__
     assert(npar>0);
 #endif    
@@ -49,8 +49,8 @@ public:
 
   AMSgmat (const char name[], 
 	   geant a , geant z,  
-	   geant rho, geant radl, geant absl, geant temp=0 ): 
-    AMSNode(0),_pamsg4m(0),_imate(++_GlobalMatI), _rho(rho), _radl(radl), _absl(absl),_temp(temp){
+	   geant rho, geant radl, geant absl, geant temp=0, G4Material *p=0 ): 
+    AMSNode(0),_pamsg4m(p),_imate(++_GlobalMatI), _rho(rho), _radl(radl), _absl(absl),_temp(temp){
     
     setname(name);
     setid(0);
@@ -101,7 +101,7 @@ protected:
   geant _radl; //X_0
   geant _absl; //Abs l
   geant _ubuf[1];
-  geant _temp;
+  geant _temp;  
   virtual ostream & print(ostream &)const;
 };
 

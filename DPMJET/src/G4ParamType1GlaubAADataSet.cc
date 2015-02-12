@@ -51,9 +51,8 @@
 
 
 #include "G4ParamType1GlaubAADataSet.hh"
-
-using namespace std;
 #include "G4DPMJET2_5Interface.hh"
+using namespace std;
 
 #include <iomanip>
 ///////////////////////////////////////////////////////////////////////////////
