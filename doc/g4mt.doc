@@ -34,7 +34,6 @@ to activate multithreading  use same MISC=nthr datacards
 
 the events in the root file will be not ordered by default (MISC 29=0 will change this with some memory penalty), however amschain getentryordered can be used to get the ordered events
 
-richlip reconstruction not working (common blocks need to be fixed by authors)
 
 RNDM hase still no reproducibility, to be worked in , however it does not change quality of results
 
@@ -45,7 +44,7 @@ Nuclear simulation with DPMJET2.5 model still have some runtime problems in MT m
 Software not checked:  Trigger simulation
 
 
-DAQ File Writing not ordered (not currently to order it via datacard, to be work out)
+DAQ File Writing not ordered (currently not possible to order it via datacard, to be work out)
 
 //Performance
 
