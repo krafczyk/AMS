@@ -13,6 +13,7 @@ using G4 Threading model + amssoftware basically as it is, with few exceptions.
  barrier, master,parallel (therefore no copyin directives)
 
 openmp locks are not working
+openmp functions lke omp_get_thread_num and others are not working
 
 barrier was emulated using AMSEvent::SetBarrier
 
