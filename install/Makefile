@@ -587,6 +587,10 @@ MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTS+=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
+DPMFFLIST= $(wildcard $(DPMFF)/*.f)
+DPMFFLIST1= $(notdir $(DPMFFLIST))
+DPMFFOBJ=$(patsubst %.f, $(DPMBIN)%.o, $(DPMFFLIST1))
+
 #########################################################################
 ## please put those objs which need special command to generate here ####
 #########################################################################
@@ -595,7 +599,11 @@ SPECIAL_OBJS=$(BIN)trigger302.o
 OBJECTS:=$(filter-out $(SPECIAL_OBJS),$(OBJECTS)) 
 SPOPT=-O0
 endif
-
+ifdef G4MULTITHREADED
+SPECIAL_OBJF=$(DPMBIN)dpm25nuc1g4.o
+SPOPT=-O0
+DPMFFOBJ:=$(filter-out $(SPECIAL_OBJF),$(DPMFFOBJ))
+endif
 
 #------------------------------------------------------------------------------
 # File list for readdaq  gbatch compilation
@@ -670,7 +678,7 @@ ifdef G4AMS
 $(DPMBIN)%.o : $(DPMFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(DPMBIN) ] ; then mkdir -p $(DPMBIN); fi
-	$(AT)$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(AT)$(FF) -c $(FFLAGS)  -I$(CERNDIR)/include $< -o $@
 
 
 $(DPMBIN)%.o : $(DPMSCC)%.cc
@@ -740,19 +748,22 @@ STANDALONED:=$(EXE)gbatchd$(G4)$(PG).exe
 gbatch: amswd $(STANDALONE)
 gbatchd: amswd $(STANDALONED)
 
-$(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
+$(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
 	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
+	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(TIMEL) $(LDFLAGSSTATIC)
 
-$(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
+$(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
 	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
+	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS)   $(SPECIAL_OBJF) $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
 
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
 	 $(AT)$(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
 
+$(SPECIAL_OBJF):$(SPECIAL_OBJF: %.o=%.f)
+	 $(AT)$(FF) -c $(FFLAGS) $(SPOPT)  -I$(CERNDIR)/include $(DPMFF)dpm25nuc1g4.f -o $(DPMBIN)dpm25nuc1g4.o
+ 
 readdaq:amswd  $(EXE)readdaq$(PG)
 
 $(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o 
