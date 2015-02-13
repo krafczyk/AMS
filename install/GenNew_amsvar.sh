@@ -260,7 +260,7 @@ mecho
 mecho
 mexport CVSROOT  \$Offline/CVS
 mexport CVS_RSH  ssh
-mexport AMSDataDir  \$Offline/AMSDataDirRW
+mexport AMSDataDir  \$Offline/AMSDataDir
 mexport AMSDataDirRW  \$Offline/AMSDataDirRW
 mexport CASTORSTATIC  1
 
@@ -294,7 +294,8 @@ mecho
 mecho
 
 IfTest AMSWD 
-mexport AMSWD  ..
+mexport AMSWD  $PWD/..
+mexport AMSSRC  $PWD/..
 EndIf
 
 mecho
