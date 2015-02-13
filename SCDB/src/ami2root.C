@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.20 2012/05/16 07:31:41 choutko Exp $
+//  $Id$
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]){
   char hostlocal[]="http://ams.cern.ch:8081";
 
   if(! (host && strlen(host)))host=hostlocal;
-  sprintf(xmlurl, "%s/AMI/insert/call/xmlrpc", host);
+  sprintf(xmlurl, "%s/AMI/show/call/xmlrpc", host);
 
   // prepare xmlrpc environment
   if (xmlrpc_init(&s, xmlurl, 1)) {

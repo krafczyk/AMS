@@ -119,7 +119,7 @@ int main(int argc, char *argv[]){
 
   //  sprintf(amihost, "ams.cern.ch:8081");
   sprintf(amihost, "pcposk0:8081");
-  sprintf(xmlurl, "http://%s/AMI/insert/call/xmlrpc", amihost);
+  sprintf(xmlurl, "http://%s/AMI/show/call/xmlrpc", amihost);
   // prepare xmlrpc environment
   if (xmlrpc_init(&s, xmlurl, 0)) {
     /* xmlrpc already printd the problem */

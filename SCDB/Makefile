@@ -40,7 +40,7 @@ ConvertAMI2: src/ConvertAMI.cc $(AMICLIB)/libAMI.a  SCDBDict.o
 
 ami2root: src/ami2root.C $(AMICLIB)/libAMI.a  SCDBDict.o
 ifndef SLC5system
-	$(CXX) $(CFLAGS) -static -o ami2root.exe src/ami2root.C $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB) -lpthread -L$(KRB5LIB)/lib -lkrb5support `$(KRB5LIB)/bin/krb5-config --libs` -lselinux -lsepol -lkeyutils -lresolv `$(WWWLIB)/bin/libwww-config --libs` -lxmltok -L$(ROOTSYS)/lib -lRoot -lpcre -ldl -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
+	$(CXX) $(CFLAGS) -static -o ami2root.exe src/ami2root.C $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB) -lpthread -L$(KRB5LIB)/lib -lkrb5support `$(KRB5LIB)/bin/krb5-config --libs` -lselinux -lsepol -lkeyutils -lresolv `$(WWWLIB)/bin/libwww-config --libs` -lxmltok -L$(ROOTSYS)/lib -lRoot -llzma -lpcre -ldl -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
 else
 	$(CXX) $(CFLAGS) -static -o ami2root.exe -L/usr/lib64/lib src/ami2root.C $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB) -lpthread -lkrb5support `/usr/kerberos/bin/krb5-config --libs` -lselinux -lsepol -lkeyutils -lresolv `/usr/bin/libwww-config --libs` -lxmltok -L$(ROOTSYS)/lib -lRoot -lpcre -ldl -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
 endif	
