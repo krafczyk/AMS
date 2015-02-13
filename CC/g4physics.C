@@ -167,7 +167,7 @@ void AMSG4Physics::ConstructProcess()
   if((G4FFKEY.IonPhysicsModel/1000)%10==2)lhep3=new G4HadronElastic(G4String("ionelasticVC"));
   else lhep3=new G4HadronElastic();
   G4ComponentGGNuclNuclXsc*pgg=  new G4ComponentGGNuclNuclXsc();
-#if G4VERSION_NUMBER  <1000
+#if G4VERSION_NUMBER  <2000
      pgg->setScale(G4FFKEY.HCrossSectionBias[1]);
      if(G4FFKEY.HCrossSectionBias[1]!=1){
        cout<<"AMSG4Physics::ConstructProcess-I-HadronElasticCrossectionBias "<<G4FFKEY.HCrossSectionBias[1]<<endl;

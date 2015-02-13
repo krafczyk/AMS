@@ -693,6 +693,38 @@ void G4HadronElasticPhysics::ConstructProcess()
 
   }
 }
+#endif
+#if G4VERSION_NUMBER  > 945 && G4VERSION_NUMBER  <2000 
+#if G4VERSION_NUMBER>999
+#include "G4HadronElasticPhysics.hh"
+
+#include "G4SystemOfUnits.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ProcessManager.hh"
+
+#include "G4MesonConstructor.hh"
+#include "G4BaryonConstructor.hh"
+#include "G4IonConstructor.hh"
+
+#include "G4HadronElasticProcess.hh"
+#include "G4HadronElastic.hh"
+#include "G4ElasticHadrNucleusHE.hh"
+#include "G4AntiNuclElastic.hh"
+
+#include "G4BGGNucleonElasticXS.hh"
+#include "G4BGGPionElasticXS.hh"
+#include "G4NeutronElasticXS.hh"
+
+#include "G4CrossSectionDataSetRegistry.hh"
+
+#include "G4ChipsProtonElasticXS.hh"
+#include "G4ChipsNeutronElasticXS.hh"
+
+#include "G4ComponentAntiNuclNuclearXS.hh"  
+#include "G4CrossSectionElastic.hh"
+#include "G4ComponentGGNuclNuclXsc.hh"
+#include "commons.h"
+#endif
 #include "G4HadronElastic.hh"
 extern "C" void     abcross_(int &icas,float &a_p,float &a_t,float &zp_p,float &z_t,float &p_p,float &sigma_t,float sigma_el[],float sigma_q[]);
 G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
@@ -736,8 +768,8 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
   G4double q2 = 1.0 - std::exp(-dd*tmax);
   double bias=G4FFKEY.HCrossSectionBias[2];
  // std::cout <<" aa  cc "<<aa<<" "<<cc<<" "<<bias<<" "<<plab/GeV<<" "<<bb<<" "<<dd<<std::endl;
-  G4double s1 = q1*aa*bias;
-  G4double s2 = q2*(cc+aa*(1-bias));
+  G4double s1 = q1*aa;
+  G4double s2 = q2*cc*bias;
   if(s2<0)s2=0;
   if((s1 + s2)*G4UniformRand() < s2) {
     q1 = q2;
