@@ -17,6 +17,7 @@ openmp functions lke omp_get_thread_num and others are not working
 
 barrier was emulated using AMSEvent::SetBarrier
 
+all other omp pragmas are working (sic!)  atomic,critical,threadprivate etc
 
 //Status
 
@@ -32,16 +33,14 @@ to activate multithreading  use same MISC=nthr datacards
 
 // Features
 
-the events in the root file will be not ordered by default (MISC 29=0 will change this with some memory penalty), however amschain getentryordered can be used to get the ordered events
+the events in the root file will be not ordered by default (MISC 29=0 will change this with some /may be big/  memory penalty), however amschain getentryordered can be used to get the ordered events
 
 
 RNDM hase still no reproducibility, to be worked in , however it does not change quality of results
 
 Number of threads can not be changed dynamically /may be changed in the future//
 
-Nuclear simulation with DPMJET2.5 model still have some runtime problems in MT mode  , to be worked on
 
-Software not checked:  Trigger simulation
 
 
 DAQ File Writing not ordered (currently not possible to order it via datacard, to be work out)
