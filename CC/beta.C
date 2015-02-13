@@ -22,9 +22,12 @@
 #include "TrRecon.h"
 #endif
 #include <vector>
+#ifdef _PGTRACK_
 bool TRCmp(AMSTrTrack * a, AMSTrTrack* b){return fabs(a->GetRigidity())*a->GetQ(1)>fabs(b->GetRigidity()*b->GetQ(1));
 }
-
+#else
+bool TRCmp(AMSTrTrack * a, AMSTrTrack* b){return fabs(a->getrid())>fabs(b->getrid());}
+#endif
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 
 integer AMSBeta::patconf[npatb][4]={  1,2,3,4,        // 1234  0
