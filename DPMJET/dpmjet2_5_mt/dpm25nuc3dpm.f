@@ -509,16 +509,27 @@ C       FERMI MOMENTUM A LA C. CIOFI DEGLI ATTI ET AL PRC53(96)1689
       COMMON/FATTAD/DAKA(101),FATT(101)
 !$OMP THREADPRIVATE (/FATTAD/)
       DATA PAR10/1.61D0,2.74D0,3.24D0,3.57D0,1.80D0,0.D0/
+!$OMP THREADPRIVATE (PAR10)
       DATA PAR20/2.66D0,3.33D0,3.72D0,4.97D0,4.77D0,0.D0/
+!$OMP THREADPRIVATE (PAR20)
       DATA PAR30/3.54D0,6.66D0,0.D0,0.D0,0.D0,0.D0/
+!$OMP THREADPRIVATE (PAR30)
       DATA PAR40/0.D0,0.D0,11.1D0,19.8D0,25.5D0,0.D0/
+!$OMP THREADPRIVATE (PAR40)
       DATA PAR50/0.D0,0.D0,0.D0,15.D0,0.D0,0.D0/
+!$OMP THREADPRIVATE (PAR50)
       DATA PAR60/0.D0,0.D0,0.D0,0.D0,40.3D0,0.D0/
+!$OMP THREADPRIVATE (PAR60)
       DATA PAR11/.426D0,.326D0,.419D0,.230D0,.275D0,0.D0/
+!$OMP THREADPRIVATE (PAR11)
       DATA PAR21/1.6D0,1.4D0,1.77D0,1.2D0,1.01D0,0.D0/
+!$OMP THREADPRIVATE (PAR21)
       DATA PAR31/.0237D0,.0263D0,.0282D0,.0286D0,.0304D0,0.D0/
+!$OMP THREADPRIVATE (PAR31)
       DATA PAR41/.22D0,.22D0,.22D0,.22D0,.22D0,0.D0/
+!$OMP THREADPRIVATE (PAR41)
       DATA AIA/12.D0,16.D0,40.D0,56.D0,208.D0,209.D0/
+!$OMP THREADPRIVATE (AIA)
        INTEGER INIT 
 !$OMP THREADPRIVATE (INIT) 
       DATA INIT/0/
@@ -591,16 +602,27 @@ C       FERMI MOMENTUM A LA C. CIOFI DEGLI ATTI ET AL PRC53(96)1689
      *          PAR60(6),PAR11(6),PAR21(6),PAR31(6),PAR41(6),
      *          AIA(6),ATT(101),CATT(101),AKA(101)
       DATA PAR10/1.61D0,2.74D0,3.24D0,3.57D0,1.80D0,0.D0/
+!$OMP THREADPRIVATE (PAR10)
       DATA PAR20/2.66D0,3.33D0,3.72D0,4.97D0,4.77D0,0.D0/
+!$OMP THREADPRIVATE (PAR20)
       DATA PAR30/3.54D0,6.66D0,0.D0,0.D0,0.D0,0.D0/
+!$OMP THREADPRIVATE (PAR30)
       DATA PAR40/0.D0,0.D0,11.1D0,19.8D0,25.5D0,0.D0/
+!$OMP THREADPRIVATE (PAR40)
       DATA PAR50/0.D0,0.D0,0.D0,15.D0,0.D0,0.D0/
+!$OMP THREADPRIVATE (PAR50)
       DATA PAR60/0.D0,0.D0,0.D0,0.D0,40.3D0,0.D0/
+!$OMP THREADPRIVATE (PAR60)
       DATA PAR11/.426D0,.326D0,.419D0,.230D0,.275D0,0.D0/
+!$OMP THREADPRIVATE (PAR11)
       DATA PAR21/1.6D0,1.4D0,1.77D0,1.2D0,1.01D0,0.D0/
+!$OMP THREADPRIVATE (PAR21)
       DATA PAR31/.0237D0,.0263D0,.0282D0,.0286D0,.0304D0,0.D0/
+!$OMP THREADPRIVATE (PAR31)
       DATA PAR41/.22D0,.22D0,.22D0,.22D0,.22D0,0.D0/
+!$OMP THREADPRIVATE (PAR41)
       DATA AIA/12.D0,16.D0,40.D0,56.D0,208.D0,209.D0/
+!$OMP THREADPRIVATE (AIA)
        INTEGER INIT 
 !$OMP THREADPRIVATE (INIT) 
       DATA INIT/0/
@@ -846,6 +868,7 @@ C----------
 !$OMP THREADPRIVATE (/PROJK/)
       DIMENSION IHKKQ(-6:6),IHKKQQ(-3:3,-3:3)
       DATA IHKKQ/-6,-5,-4,-3,-1,-2,0,2,1,3,4,5,6/
+!$OMP THREADPRIVATE (IHKKQ)
       DATA IHKKQQ/-3303,-3103,-3203,0,0,0,0, -3103,-1103,-2103,0,0,0,0,
      +-3203,-2103,-2203,0,0,0,0, 0,0,0,0,0,0,0, 0,0,0,0,2203,2103,3203,
      +0,0,0,0,2103,1103,3103, 0,0,0,0,3203,3103,3303/
@@ -855,6 +878,7 @@ C   FLAVORS OF VALENCE QUARKS FROM PROJECTILE HADRON/NUCLEONS
 C
 C-----
 C
+!$OMP THREADPRIVATE (IHKKQQ)
       IF(IPEV.GE.3) WRITE(6,'(A,6I4)')
      +' FLKSAM-ENTRY: IT,ITZ, IP,IPZ, IJPROJ,IBPROJ', IT,ITZ,IP,IPZ,
      +IJPROJ,IBPROJ
@@ -1141,10 +1165,12 @@ C   FLAVORS OF VALENCE QUARKS FROM PROJECTILE HADRON/NUCLEONS
 C
 C-----
 C
+!$OMP THREADPRIVATE (PC)
       DATA INICHA/0/
 C----------------------------------------------------------------------
 C                     Initialize Charm selection at soft chain ends
 C
+!$OMP THREADPRIVATE (INICHA)
       IF(INICHA.EQ.0)THEN
         RX=8.
         X1=RX
@@ -1246,6 +1272,7 @@ C
      +-1,0, 1,2,3, -1,-2,-3, 0,0,0, 2,2,3, 1,1,3, 1,2,3, 1,-1,0, 2,-3,0,
      +3,-2,0, 2,-2,0, 3,-3,0, 0,0,0, 0,0,0, 0,0,0/
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (MQUARK)
       IF(IBAR.NE.0) THEN
         IPQ1 = MQUARK(1,ITYP)
         IPQ2 = MQUARK(2,ITYP)
@@ -1549,11 +1576,13 @@ C      UNON=2.,   UNOM=1.5,  UNOSEA=2.0
 C----------------------------------
       PARAMETER (NSEA=3,NVAL=10)
       DATA ICOUN /0/
+!$OMP THREADPRIVATE (ICOUN)
       DATA JCOUN /0/
 *  NSEA: maximum number of trials to generate x's for the required number
 *        of sea quark pairs for a given hadron
 *    changed from 10 to 3      22/04/92
 C---------------------------------------------------------------------
+!$OMP THREADPRIVATE (JCOUN)
       JCOUN=JCOUN+1
       DO 10 I=1,IP
         JSSHS(I)=0
@@ -3561,6 +3590,7 @@ C---------------------
 !$OMP THREADPRIVATE (/SECINT/)
       DATA IEVCOU/0/
 C-------------
+!$OMP THREADPRIVATE (IEVCOU)
       NNNPS=0
       IEVCOU=IEVCOU+1
       NHKKH1=NHKK
@@ -4020,6 +4050,7 @@ C---------------------
 !$OMP THREADPRIVATE (/ZSEA/)
       DIMENSION POJ(4),PAT(4)
       DATA NCALVV /0/
+!$OMP THREADPRIVATE (NCALVV)
       IF(IPHKK.GE.6)WRITE (6,'( A)') ' hadrVV'
 C-----------------------------------------------------------------
       NCALVV=NCALVV+1
@@ -4590,6 +4621,7 @@ C---------------------
       DIMENSION POJ(4),PAT(4)
       DATA NCALSV /0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALSV)
       NCALSV=NCALSV+1
       DO 50 I=1,NSV
 C-----------------------drop recombined chain pairs
@@ -5883,6 +5915,7 @@ C =====================================================================
       LOGICAL LTESHA
       PARAMETER (TINY=1.D-10)
       DATA ICHECO/0/
+!$OMP THREADPRIVATE (ICHECO)
       DATA ICHECA/0/
 C     IPCO=6
 C----------------------------------------------------------------------
@@ -5890,6 +5923,7 @@ C
 C  CHECK HADJET ENERGY CONSERVATION PPR(4)+PTA(4)  EQ  EHAD
 C                            TRANSFORM PROJECTILE INTO JET REST FRAME
 C     IF(NOBAM.EQ.4.OR.NOBAM.EQ.6) IPCO=6
+!$OMP THREADPRIVATE (ICHECA)
       IF(IPCO.GE.6) THEN
         WRITE(6,1010) GAM,BGX,BGY,BGZ,PPR,PPRJ
         WRITE(6,1000) NHAD,AMCH,PTA, IFB1,IFB2,IFB3,IFB4,I1,I2,NOBAM,
@@ -6155,7 +6189,9 @@ C     impl. mxnupa after KNO cut solved 3.92
 !$OMP THREADPRIVATE (/JSPAR/)
        PARAMETER (ONE=1.D0)
        DATA IFIRST/0/
+!$OMP THREADPRIVATE (IFIRST)
        DATA NUM/0/
+!$OMP THREADPRIVATE (NUM)
        IFIRST=IFIRST+1
        NUM=NUM+1
       PXSM=0.0
@@ -7288,6 +7324,7 @@ C------------------
       DIMENSION CXF(3),CYF(3),CZF(3)
       DATA ISTAB /2/
 C-----------------------------------------------------
+!$OMP THREADPRIVATE (ISTAB)
       IHKK=NHKKH1
 C     IPHKK=2
       IF (IPHKK.GE.2) WRITE(6,1000) IHKK,NHKK
@@ -7571,6 +7608,7 @@ C
 *     IF (ABS(XO)-0.0001D0) 1,1,2                                               
 *   1 IF (ABS(YO)-0.0001D0) 3,3,2                                               
 *   3 CONTINUE                                                                  
+!$OMP THREADPRIVATE (ANGLSQ)
       A = XO**2 + YO**2                                                         
       IF ( A .LT. ANGLSQ ) THEN                                                 
          X=SDE*CFE                                                              
@@ -7610,8 +7648,10 @@ C-------------------
 !$OMP THREADPRIVATE (/DFINPZ/)
       PARAMETER (TINY=1.D-10)
       DATA IFIRST/0/
+!$OMP THREADPRIVATE (IFIRST)
       DATA NUM/0/
 C
+!$OMP THREADPRIVATE (NUM)
       IFIRST=IFIRST+1
       NUM=NUM+1
       PXSM=0.0
@@ -8798,6 +8838,7 @@ C
       DIMENSION POJ(4),PAT(4)
       DATA NCALHH /0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALHH)
         NHARD1=NHKK+1
         DO 20 I=1,NONUJT
           NCALHH=NCALHH+1
@@ -9162,6 +9203,7 @@ C
       DIMENSION POJ(4),PAT(4)
       DATA NCALZZ /0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALZZ)
         DO 20 I=1,NONUST
           IF(NCH1(I).EQ.99.OR.NCH1(I).EQ.88)GO TO 20
           IF(NCH2(I).EQ.99.OR.NCH2(I).EQ.88)GO TO 20
@@ -9923,6 +9965,7 @@ C---------------------
 !$OMP THREADPRIVATE (/CASADI/)
       DATA NCALSV /0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALSV)
       NCALSV=NCALSV+1
       DO 50 I=1,NSV
 C-----------------------drop recombined chain pairs

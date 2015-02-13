@@ -92,6 +92,7 @@ C                              chain
 C-----------------------------------------------------------
 C                                defaults for parton showering
 C                                QCD type branchings
+!$OMP THREADPRIVATE (IPROMM)
       MSTJ(41)=1
 C                                coherent branching, angular
 C                                ordering
@@ -439,11 +440,17 @@ C-----------------------------------------------------------
       COMMON /NDON/NDONE
 !$OMP THREADPRIVATE (/NDON/)
       DATA IJOIN/1,2,3/
+!$OMP THREADPRIVATE (IJOIN)
       DATA IPROMM/0/
+!$OMP THREADPRIVATE (IPROMM)
       DATA NBAMLU /2,1,3,4,5,6,-2,-1,-3,-4/
+!$OMP THREADPRIVATE (NBAMLU)
       DATA ICOUN/0/
+!$OMP THREADPRIVATE (ICOUN)
       DATA IWARN/0/
+!$OMP THREADPRIVATE (IWARN)
       DATA NBAML/0/
+!$OMP THREADPRIVATE (NBAML)
       IF(IPROMU.NE.0)IPROMM=IPROMU
 C
 C---------------------------------------------------------
@@ -1577,6 +1584,7 @@ C-----------------------
       DIMENSION HELP(200)
       DATA MATNUM /0/
 C--------------------------------------
+!$OMP THREADPRIVATE (MATNUM)
       KKMATO=0
       IPOO=0
       IPZOO=0
@@ -1807,10 +1815,14 @@ C     -----------------------------------
       DIMENSION X(3,N),WD(4),RD(3)
       LOGICAL ISTART
       DATA SQR2/1.414216D0/
+!$OMP THREADPRIVATE (SQR2)
       DATA PDIF/0.545D0/,R2MIN/0.16D0/
+!$OMP THREADPRIVATE (PDIF)
       DATA WD/0.D0,0.178D0,0.465D0,1.D0/
+!$OMP THREADPRIVATE (WD)
       DATA RD/2.09D0,0.935D0,0.697D0/
 C     DATA RC12/1.6976D0/,WC12/0.4444444D0/
+!$OMP THREADPRIVATE (RD)
       AAN=N
       IF (N.EQ.1)THEN
         GOTO 10
@@ -2042,9 +2054,11 @@ C     COMPLEX*16 CA,CI
 C     COMPLEX*16 C
       DOUBLE COMPLEX C
       DATA ICNT/0/
+!$OMP THREADPRIVATE (ICNT)
       DATA INTCO/0/
 C------------------------------
 **sr 14.4.98
+!$OMP THREADPRIVATE (INTCO)
       CALL MODB(BSITE,NSITEB,BSTEP,B)
       INTCO=0
 **
@@ -2257,6 +2271,7 @@ C                       Symmetrize JETSET and BAMJET at small chain masses
 C                       for NOBAM=4 or 6
 C
 C-------------------------------------------------------------------------------
+!$OMP THREADPRIVATE (ISYMM)
       IF(NOBAM.EQ.4.AND.ISYMM.EQ.1)THEN
         IFB4=IFB44
         IF (AMCH.LT.3.D0)THEN
@@ -3270,6 +3285,7 @@ C***CALCULATION OF THE SPHERICAL COORDINATES OF PARTICLES 1, 2
       DOUBLE PRECISION FUNCTION DXLAMB(X,Y,Z)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DATA IDGB/0/
+!$OMP THREADPRIVATE (IDGB)
       COMMON /DGAMRE/ REDU,AMO,AMM(15 )
 !$OMP THREADPRIVATE (/DGAMRE/)
       COMMON/DDREI/TEST(12)
@@ -3575,6 +3591,36 @@ C     IB10(IA10)=BARYONS (ANTIBARYONS) (SPIN=3/2)
       DATA IP/
      *23,14,16,116,0,0,13,23,25,117,0,0,15,24,31,120,0,0,119,118,121,
      *122,14*0/
+!$OMP THREADPRIVATE (IP)
+      DATA IV/
+     *33,34,38,123,0,0,32,33,39,124,0,0,36,37,96,127,0,0,126,125,128,
+     *129,14*0/
+!$OMP THREADPRIVATE (IV)
+      DATA IB/
+     *0,1,21,140,0,0,8,22,137,0,0,97,138,0,0,146,5*0,
+     *1,8,22,137,0,0,0,20,142,0,0,98,139,0,0,147,5*0,
+     *21,22,97,138,0,0,20,98,139,0,0,0,145,0,0,148,5*0,
+     *140,137,138,146,0,0,142,139,147,0,0,145,148,50*0/
+!$OMP THREADPRIVATE (IB)
+      DATA IBB/
+     *53,54,104,161,0,0,55,105,162,0,0,107,164,0,0,167,5*0,
+     *54,55,105,162,0,0,56,106,163,0,0,108,165,0,0,168,5*0,
+     *104,105,107,164,0,0,106,108,165,0,0,109,166,0,0,169,5*0,
+     *161,162,164,167,0,0,163,165,168,0,0,166,169,0,0,170,47*0/
+!$OMP THREADPRIVATE (IBB)
+      DATA IA/
+     *0,2,99,152,0,0,9,100,149,0,0,102,150,0,0,158,5*0,
+     *2,9,100,149,0,0,0,101,154,0,0,103,151,0,0,159,5*0,
+     *99,100,102,150,0,0,101,103,151,0,0,0,157,0,0,160,5*0,
+     *152,149,150,158,0,0,154,151,159,0,0,157,160,50*0/
+!$OMP THREADPRIVATE (IA)
+      DATA IAA/
+     *67,68,110,171,0,0,69,111,172,0,0,113,174,0,0,177,5*0,
+     *68,69,111,172,0,0,70,112,173,0,0,114,175,0,0,178,5*0,
+     *110,111,113,174,0,0,112,114,175,0,0,115,176,0,0,179,5*0,
+     *171,172,174,177,0,0,173,175,178,0,0,176,179,0,0,180,47*0/
+!$OMP THREADPRIVATE (IAA)
+
       L=0
       DO 20 I=1,6
         DO 10 J=1,6
@@ -3582,9 +3628,6 @@ C     IB10(IA10)=BARYONS (ANTIBARYONS) (SPIN=3/2)
           IMPS(I,J)=IP(L)
    10   CONTINUE
    20 CONTINUE
-      DATA IV/
-     *33,34,38,123,0,0,32,33,39,124,0,0,36,37,96,127,0,0,126,125,128,
-     *129,14*0/
       L=0
       DO 40 I=1,6
         DO 30 J=1,6
@@ -3592,11 +3635,6 @@ C     IB10(IA10)=BARYONS (ANTIBARYONS) (SPIN=3/2)
           IMVE(I,J)=IV(L)
    30   CONTINUE
    40 CONTINUE
-      DATA IB/
-     *0,1,21,140,0,0,8,22,137,0,0,97,138,0,0,146,5*0,
-     *1,8,22,137,0,0,0,20,142,0,0,98,139,0,0,147,5*0,
-     *21,22,97,138,0,0,20,98,139,0,0,0,145,0,0,148,5*0,
-     *140,137,138,146,0,0,142,139,147,0,0,145,148,50*0/
       L=0
       DO 60 I=1,6
         DO 50 J=1,21
@@ -3604,11 +3642,6 @@ C     IB10(IA10)=BARYONS (ANTIBARYONS) (SPIN=3/2)
           IB08(I,J)=IB(L)
    50   CONTINUE
    60 CONTINUE
-      DATA IBB/
-     *53,54,104,161,0,0,55,105,162,0,0,107,164,0,0,167,5*0,
-     *54,55,105,162,0,0,56,106,163,0,0,108,165,0,0,168,5*0,
-     *104,105,107,164,0,0,106,108,165,0,0,109,166,0,0,169,5*0,
-     *161,162,164,167,0,0,163,165,168,0,0,166,169,0,0,170,47*0/
       L=0
       DO 80 I=1,6
         DO 70 J=1,21
@@ -3616,11 +3649,6 @@ C     IB10(IA10)=BARYONS (ANTIBARYONS) (SPIN=3/2)
           IB10(I,J)=IBB(L)
    70   CONTINUE
    80 CONTINUE
-      DATA IA/
-     *0,2,99,152,0,0,9,100,149,0,0,102,150,0,0,158,5*0,
-     *2,9,100,149,0,0,0,101,154,0,0,103,151,0,0,159,5*0,
-     *99,100,102,150,0,0,101,103,151,0,0,0,157,0,0,160,5*0,
-     *152,149,150,158,0,0,154,151,159,0,0,157,160,50*0/
       L=0
       DO 100 I=1,6
         DO 90 J=1,21
@@ -3628,11 +3656,6 @@ C     IB10(IA10)=BARYONS (ANTIBARYONS) (SPIN=3/2)
           IA08(I,J)=IA(L)
    90   CONTINUE
   100 CONTINUE
-      DATA IAA/
-     *67,68,110,171,0,0,69,111,172,0,0,113,174,0,0,177,5*0,
-     *68,69,111,172,0,0,70,112,173,0,0,114,175,0,0,178,5*0,
-     *110,111,113,174,0,0,112,114,175,0,0,115,176,0,0,179,5*0,
-     *171,172,174,177,0,0,173,175,178,0,0,176,179,0,0,180,47*0/
       L=0
       DO 120 I=1,6
         DO 110 J=1,21
@@ -3843,9 +3866,11 @@ C------------------
 C
 !$OMP THREADPRIVATE (/JNI/)
       DATA IPRIOP/1/
+!$OMP THREADPRIVATE (IPRIOP)
       DATA INDX/1,8,10,10,10,10,7,2,7,10,10,7,3,4,5,6,
      *11,12,7,13,14,15,16,17,18/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (INDX)
       GO TO (10,60,100),IOP
    10 CONTINUE
       KPL=1
@@ -4636,6 +4661,7 @@ C     COMPLEX*16 C
       DOUBLE COMPLEX C
       DATA IRW /0/
 C--------
+!$OMP THREADPRIVATE (IRW)
       WRITE(6,*)' PROFB: RA, RB = ',RA,RB
       WRITE(6, 1000)BSTEP,NSTAT,NA,RA,NB,RB,IRW,NSITEB
  1000 FORMAT (' PROFB',E15.5,2I10,F15.5,I10,E15.5,2I10)
@@ -6226,12 +6252,14 @@ C     Tables calculated with DPMJET-II.4.2
      *     15000.D0, 20000.D0, 30000.D0, 40000.D0, 60000.D0, 
      *     80000.D0, 100000.D0, 150000.D0, 200000.D0, 300000.D0,
      *    400000.D0, 600000.D0, 800000.D0, 1000000.D0, 2000000.D0/
+!$OMP THREADPRIVATE (EC)
       DATA SD /0.D0, 0.D0, 5.00D0, 6.14D0, 6.93D0,
      *       7.64D0, 8.43D0, 8.87D0, 9.07D0, 9.17D0,
      *       9.33D0, 9.40D0, 9.49D0, 9.56D0, 9.58D0,
      *       9.69D0, 9.72D0, 9.82D0, 9.85D0, 9.97D0,
      *      10.02D0, 10.03D0, 10.13D0, 10.16D0, 10.25D0,
      *      10.28D0, 10.39D0, 10.42D0, 10.43D0, 10.53D0/
+!$OMP THREADPRIVATE (SD)
       II=1
       DO 1 I=1,29
         IF((ECM.GE.EC(I)).AND.(ECM.LT.EC(I+1)))THEN
@@ -6659,9 +6687,11 @@ C    +             99,100,101,97,102,98,103,109,115/
 *                                                                      *
 *     Conversion from paprop to part numbering                         *
 *                                                                      *
+!$OMP THREADPRIVATE (KPTOIP)
       DATA IPTOKP / 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
      & 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 99,
      & 100, 101, 97, 102, 98, 103, 109, 115 /
+!$OMP THREADPRIVATE (IPTOKP)
        
 
 *$ CREATE QQUARK.ADD

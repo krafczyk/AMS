@@ -216,12 +216,16 @@ C
       DIMENSION INDX(28)
 
       DATA IPRIOP/0/
+!$OMP THREADPRIVATE (IPRIOP)
       DATA INDX/1,8,10,10,10,10,7,2,7,10,10,7,3,4,5,6,
      *          7,7,7,7,7,7,7,7,7,7,7,7/
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (INDX)
       DATA KPL /1/
+!$OMP THREADPRIVATE (KPL)
       DATA IEVL /0/
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (IEVL)
       ZERO=0
       ONEONE=1
       TWOTWO=2
@@ -1606,6 +1610,7 @@ C    & ,ISINGD,IDUBLD,SDFRAC,PTLAR
 C----------------------------------------------------------------------
 C
 C	WRITE(6,'(A,3I5)')' Jet0 IFB1,IFB2,IFB3 ',IFB1,IFB2,IFB3
+!$OMP THREADPRIVATE (TINY)
       IF(IPCO.GE.0)WRITE(6,*)
      *' HADJSE(NHAD,AMCH,PPR,PTA,GAM,BGX,BGY,BGZ, IFB1,IFB2,',
      +'IFB3,IFB4,I1,I2,NOBAM,NNCH,NORIG,IREJ),IPCO',
@@ -2313,6 +2318,7 @@ C    & ,ISINGD,IDUBLD,SDFRAC,PTLAR
 C----------------------------------------------------------------------
 C
 C	WRITE(6,'(A,3I5)')' Jet0 IFB1,IFB2,IFB3 ',IFB1,IFB2,IFB3
+!$OMP THREADPRIVATE (TINY)
       IF(IPCO.GE.0)WRITE(6,*)
      *' HADJASE(NHAD,AMCH,PPR,PTA,GAM,BGX,BGY,BGZ, IFB1,IFB2,',
      +'IFB3,IFB4,I1,I2,NOBAM,NNCH,NORIG,IREJ),IPCO',

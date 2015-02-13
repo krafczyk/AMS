@@ -168,9 +168,11 @@ C---------------------
       PARAMETER (NUMTYP=160)
       DIMENSION AVMULT(NUMTYP),AVE(NUMTYP),AKE(NUMTYP),AVEPT(NUMTYP)
       DATA DISGEN /50*0.0/
+!$OMP THREADPRIVATE (DISGEN)
       DATA INDX/ 1, 8,-1,-1,-1,-1,-1, 2,12,-1,-1,7,3,4,5,6,13,15,7,14,
      *          14,14,19, 7, 7,-1,-1,-1/
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (INDX)
       ONEONE=1
       ZERO=0
       TWOTWO=2
@@ -700,11 +702,14 @@ C    &            ,ISINGD,IDUBLD,SDFRAC,PTLAR
       PARAMETER (NUMTYP=160)
       DIMENSION AVMULT(NUMTYP),AVE(NUMTYP),AKE(NUMTYP),AVEPT(NUMTYP)
       DATA DISGEN /50*0.0/
+!$OMP THREADPRIVATE (DISGEN)
       DATA INDX/ 1, 8,-1,-1,-1,-1,-1, 2,12,-1,-1,7,3,4,5,6,13,15,7,14,
      *          14,14,19, 7, 7,-1,-1,-1/
+!$OMP THREADPRIVATE (INDX)
       DATA NIPRIE /0/
 C----------------------------------------------------------------------
 C     CALL DISPT(IOP,NHKKH1,PO)
+!$OMP THREADPRIVATE (NIPRIE)
       GO TO (1,2,3),IOP
 *  initialization call
 1     CONTINUE
@@ -1230,9 +1235,12 @@ C       8  pbar=2                       18  THETABAR=102,103
 C       9  charged hadrons              19  neutral Kaons 12,19,24,25
 C      10  total hadrons
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (INDX)
       DATA KPL /1/
+!$OMP THREADPRIVATE (KPL)
       DATA IEVL /0/
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (IEVL)
       ZERO=0
       ONEONE=1
       TWOTWO=2

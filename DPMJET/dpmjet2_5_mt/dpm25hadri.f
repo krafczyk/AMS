@@ -483,13 +483,17 @@ C********************************************************************
 C
       DIMENSION SIKPP(8),SIKMP(8),SIAPP(8),P(8)
       DATA P /0.3D0,0.4D0,0.5D0,0.6D0,0.8D0,1.D0,1.5D0,2.D0/
+!$OMP THREADPRIVATE (P)
       DATA SIKPP / 12.0D0, 12.5D0, 13.0D0, 13.0D0, 12.7D0,
      +  12.0D0, 10.2D0, 6.82D0/
+!$OMP THREADPRIVATE (SIKPP)
       DATA SIKMP / 42.0D0, 33.0D0, 21.0D0, 16.0D0, 19.0D0,
      + 22.0D0,  9.0D0, 7.5D0 /
+!$OMP THREADPRIVATE (SIKMP)
       DATA SIAPP / 73.0D0, 70.0D0, 62.0D0, 53.0D0, 48.0D0,
      + 43.0D0, 38.0D0, 33.0D0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (SIAPP)
       ZERO=0
       ONEONE=1
       AA=ONEONE
@@ -1386,7 +1390,7 @@ C***     PI(-)-P ELASTIC CROSS SECTION DATA
 C---------------------------------------------------------------------
 C
 C***     PI(+)-P ELASTIC CROSS SECTION DATA
-      DATA (SEPIPP(IE),IE=1,50) /
+      DATA (SEPIMP(IE),IE=1,50) /
      *     1.800D+00,  4.000D+00,  9.900D+00,  2.170D+01,  4.000D+01,
      *     6.580D+01,  9.680D+01,  1.392D+02,  1.800D+02,  2.000D+02,
      *     1.655D+02,  1.420D+02,  1.225D+02,  1.032D+02,  8.400D+01,
@@ -2258,21 +2262,26 @@ C
      +1.5D0,2.D0,3.D0,4.D0,5.D0,6.D0,10.D0,
      *20.D0,50.D0,100.D0,200.D0,400.D0,1000.D0,10000.D0/
 C
+!$OMP THREADPRIVATE (P)
       DATA SEEG/0.1D0,16.D0,35.D0,42.D0/
+!$OMP THREADPRIVATE (SEEG)
       DATA PEE /0.13D0,0.19D0,0.25D0,0.30D0/
 C
+!$OMP THREADPRIVATE (PEE)
       DATA (SIG(IE),IE=1,20) / 3*0.0001D0,0.1D0,1.D0,4.D0,
      +24.5D0,25.D0,27.2D0,27.8D0,
      +28.5D0,29.2D0,29.7D0, 30.5D0,31.5D0,
      +31.7D0,32.1D0,32.9D0,34.5D0,41.2D0/
  
 C
+!$OMP THREADPRIVATE (SIG)
       DATA (SEG(IE),IE=1,20) / 42.D0,19.D0,16.1D0,17.D0,
      +22.7D0,32.5D0,24.6D0,26.2D0,
      +25.0D0,23.7D0,23.0D0,22.5D0,22.D0,
      + 21.2D0,20.8D0,20.7D0,21.D0,21.9D0,23.8D0,28.4D0/
  
 C
+!$OMP THREADPRIVATE(SEGP)
       DATA (SEGP(IE),IE=1,20) / 0.1D0,0.1D0,0.1D0,0.1D0,
      +11.D0,12.5D0,22.D0,19.2D0,21.5D0,
      +21.4D0,20.8D0,20.6D0,20.2D0, 19.8D0,19.9D0,
@@ -2285,12 +2294,14 @@ C
      +35.4D0,41.5D0/
  
 C
+!$OMP THREADPRIVATE (SIGAP)
       DATA SIGKM/ 38.D0,43.D0,23.D0,18.5D0,20.D0,
      +29.D0,25.D0,23.D0,22.5D0,21.D0,20.5D0,20.D0,
      +19.2D0, 18.5D0,17.8D0,17.8D0,18.3D0,19.2D0,
      +21.2D0,28.9D0/
  
 C
+!$OMP THREADPRIVATE (SIGKM)
       DATA SIGKP/ 0.001D0,0.001D0,0.001D0,0.001D0,
      +0.2D0,4.5D0,8.9D0,11.6D0,12.2D0,13.4D0,
      +13.6D0, 13.7D0,13.7D0,14.9D0,15.9D0,16.5D0,
@@ -2299,6 +2310,7 @@ C
 C
 C---------------------------------------------------------------------
 C
+!$OMP THREADPRIVATE (SIGKP)
       SIIN=1.0D-20
       IF(ITAR.NE.1.AND.ITAR.NE.8) THEN
         IF(IPRI.GE.1) WRITE(6,'(A/A,2I5,2(1PE15.6))')
@@ -2509,8 +2521,11 @@ C------------------
 !$OMP THREADPRIVATE (/DPRIN/)
       DIMENSION ITPRF(110)
       DATA NNN/0/
+!$OMP THREADPRIVATE (NNN)
       DATA UMODA/0./
+!$OMP THREADPRIVATE (UMODA)
       DATA ITPRF/-1,-1,5*1,-1,-1,1,1,1,-1,-1,-1,-1,6*1,-1,-1,-1,85*1/
+!$OMP THREADPRIVATE (ITPRF)
       LOWP=0
       IF (N.LE.0.OR.N.GE.111)N=1
       IF (ITPRF( N ).GT.0 .OR. ITTA.GT.8) THEN
@@ -2947,10 +2962,15 @@ C     INTEGER * 2 ICH,IBAR,K1,K2,NZK,NRK
       DATA GASUNI/
      *-1.D0,-.98D0,-.95D0,-.87D0,-.72D0,-.48D0,
      *-.17D0,.17D0,.48D0,.72D0,.87D0,.95D0,.98D0,1.D0/
+!$OMP THREADPRIVATE (GASUNI)
       DATA GAUNO/2.352D0/
+!$OMP THREADPRIVATE (GAUNO)
       DATA GAUNON/2.4D0/
+!$OMP THREADPRIVATE (GAUNON)
       DATA IO/14/
+!$OMP THREADPRIVATE (IO)
       DATA NSTAB/23/
+!$OMP THREADPRIVATE (NSTAB)
       I=1
       IF (IT.LE.0)                                              GO TO 30
       IF (IT.LE.NSTAB)                                          GO TO 20
@@ -3164,6 +3184,7 @@ C      CHARACTER*8 ZKNAME
       COMMON/DADDHN/ANAMZ(16),ZKNAMZ(153)
 !$OMP THREADPRIVATE (/DADDHN/)
       DATA IRETUR/0/
+!$OMP THREADPRIVATE (IRETUR)
       IRETUR=IRETUR+1
       AM(31)=0.48
       IF (IRETUR.GT.1) RETURN
@@ -3421,6 +3442,7 @@ C     CALCULATION OF THETA1
       SUBROUTINE DGAUSS(X,A,S)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DATA IS/0/
+!$OMP THREADPRIVATE (IS)
       IF(IS.NE.0)                                               GO TO 10
       CALL DRANDM(X)
       RO=SQRT(ABS(2.*LOG(X)))
@@ -4803,6 +4825,7 @@ C***     DCLN ARRAY
      *     5.280D-01,  5.960D-01,  2.020D+00,  6.667D-01,  1.333D+00,
      *     5.273D-01,  5.920D-01,  2.040D+00,  6.604D-01,  1.358D+00,
      *     5.273D-01,  5.862D-01,  2.069D+00,  6.538D-01,  1.385D+00/
+!$OMP THREADPRIVATE (DCLIN)
       DATA (DCLIN(I),I=81,160) /
 C***     DCIN ARRAY
      *     5.223D-01,  5.980D-01,  2.814D+00,  6.538D-01,  1.385D+00,
@@ -4844,6 +4867,7 @@ C
      *     5.456D-02,  9.804D-02,  8.084D-02,  1.208D-01,  6.520D-02,
      *     8.233D-02,  1.084D-01,  1.474D-01,  9.328D-02,  1.093D-01/
 C
+!$OMP THREADPRIVATE (PDCI)
       DATA PDCH /
      *     1.000D+03,  9.453D-02,  9.804D-02,  8.084D-02,  1.208D-01,
      *     6.520D-02,  8.233D-02,  1.084D-01,  1.474D-01,  9.328D-02,
@@ -4857,6 +4881,7 @@ C
      *     1.196D-03,  8.784D-03,  1.517D-02,  2.874D-02,  2.488D-02,
      *     4.464D-02,  8.330D-02,  2.008D-01,  2.360D-01,  3.567D-01/
 C
+!$OMP THREADPRIVATE (PDCH)
       DATA (DCHN(I),I=1,90) /
      *     4.770D-01,  4.750D-01,  4.715D-01,  4.685D-01,  4.650D-01,
      *     4.610D-01,  4.570D-01,  4.550D-01,  4.500D-01,  4.450D-01,
@@ -4876,6 +4901,7 @@ C
      *     8.750D-02,  8.700D-02,  8.650D-02,  8.550D-02,  8.500D-02,
      *     8.499D-02,  8.450D-02,  8.350D-02,  8.300D-02,  8.250D-02,
      *     8.150D-02,  8.100D-02,  8.030D-02,  8.000D-02,  7.990D-02/
+!$OMP THREADPRIVATE (DCHN)
       DATA (DCHN(I),I=91,143) /
      *     7.980D-02,  7.950D-02,  7.900D-02,  7.860D-02,  7.800D-02,
      *     7.750D-02,  7.650D-02,  7.620D-02,  7.600D-02,  7.550D-02,
@@ -4899,6 +4925,7 @@ C
      *     8.363D-01,  9.163D-01,  9.828D-01,  1.000D+00,  1.000D+00,
      *     1.000D+00/
 C
+!$OMP THREADPRIVATE (DCHNA)
       DATA DCHNB /
      *     6.300D+02,  3.800D-02,  7.164D-02,  1.275D-01,  2.171D-01,
      *     3.227D-01,  4.091D-01,  5.051D-01,  6.061D-01,  7.074D-01,
@@ -4914,6 +4941,7 @@ C
      *     1.000D+00,  1.000D+00,  1.000D+00,  1.000D+00,  1.000D+00/
 C
 C---------------------------------------------------------------
+!$OMP THREADPRIVATE (DCHNB)
       CST=1D0
 C
 C*                      IS THE KINETIC ENERGY GREATER THAN LIMIT ?
@@ -5178,9 +5206,11 @@ C------------------
      +20000.,50000.,100000.,200000.,500000.,1000000.,2000000.,
      +5000000.,10000000.,20000000.,50000000.,100000000.,
      +200000000.,500000000.,1000000000./
+!$OMP THREADPRIVATE (P)
       DATA KPROJ / 1, 8, 13, 14, 15, 16, 24, 25, 2, 9, 17, 18, 20, 21,
      +22, 23/
 C********************************************************************
+!$OMP THREADPRIVATE (KPROJ)
       WRITE(6,'(1H1)')
       WRITE(6,'(2A)') ' TEST OF CROSS SECTIONS ROUTINES APPLIED:',
      +' SHPTOT, SIHNIN, SIHNEL(SIGEL)'

@@ -52,8 +52,10 @@ C     COMMON /COUNTEV/NCDIFF,NCSDIF
 !$OMP THREADPRIVATE (/NUCCMS/)
       DATA NCIREJ /0/
 C     DATA NCDIFF /0/
+!$OMP THREADPRIVATE (NCIREJ)
       DATA SIGDIF,SIGDIH /6.788790702D0,3.631283998D0/
 *
+!$OMP THREADPRIVATE (SIGDIF,SIGDIH)
       IJLMDD= 0
       IREJ  = 0
       KTARG = 0
@@ -368,7 +370,9 @@ C                 ENDIF
       DIMENSION MQUARK(3,30),IHKKQ(-6:6),IHKKQQ(-3:3,-3:3),
      &          IDX(-4:4)
       DATA IDX   /-4,-3,-1,-2,0,2,1,3,4/
+!$OMP THREADPRIVATE (IDX)
       DATA IHKKQ /-6,-5,-4,-3,-1,-2,0,2,1,3,4,5,6/
+!$OMP THREADPRIVATE (IHKKQ)
       DATA IHKKQQ/-3301,-3103,-3203,0,   0,0,0,
      &            -3103,-1103,-2103,0,   0,   0,   0,
      &            -3203,-2103,-2203,0,   0,   0,   0,
@@ -381,6 +385,7 @@ C                 ENDIF
 *                                     1, 2, 3, 4  -   u, d, s, c
 *                                    -1,-2,-3,-4  -  au,ad,as,ac
 *
+!$OMP THREADPRIVATE (IHKKQQ)
       DATA MQUARK/
      &   1,1,2,    -1,-1,-2,       0,0,0,       0,0,0,       0,0,0,
      &   0,0,0,       0,0,0,       1,2,2,    -1,-2,-2,       0,0,0,
@@ -388,9 +393,12 @@ C                 ENDIF
      &  3,-1,0,       1,2,3,    -1,-2,-3,       0,0,0,       2,2,3,
      &   1,1,3,       1,2,3,      1,-1,0,      2,-3,0,      3,-2,0,
      &  2,-2,0,      3,-3,0,       0,0,0,       0,0,0,       0,0,0/
+!$OMP THREADPRIVATE (MQUARK)
       DATA UNON/2.0/
+!$OMP THREADPRIVATE (UNON)
       DATA NCREJ, NCXDI, NCXP, NCXT /0, 0, 0, 0/
 *
+!$OMP THREADPRIVATE (NCREJ,NCXDI,NCXP,NCXT)
       ISD   = 1
       IREJ  = 0
       IIREJ = 0
@@ -1121,6 +1129,7 @@ C    *,PHKK(3,NHKK),PHKK(4,NHKK),PHKK(5,NHKK)
 !$OMP THREADPRIVATE (/DPAR/)
       DATA NCPT /0/
 *
+!$OMP THREADPRIVATE (NCPT)
       PCH3I = SIGN(SQRT((ECH3I-AM(KCH3I))*(ECH3I+AM(KCH3I))),PCH3)
 *
 *-------------------- select transverse momenta - diffractive particle
@@ -1439,6 +1448,7 @@ C    *,PHKK(3,NHKK),PHKK(4,NHKK),PHKK(5,NHKK)
 !$OMP THREADPRIVATE (/DINPDA/)
       DATA NCNOTH,NCWD /0,0/
 *
+!$OMP THREADPRIVATE (NCNOTH,NCWD)
       GOTO (1,2,3) IOPT
 *
 *-------------------- kinematical parameters of a q-aq (in any order) chain
@@ -1714,7 +1724,9 @@ C    *,PHKK(3,NHKK),PHKK(4,NHKK),PHKK(5,NHKK)
       DIMENSION MQUARK(3,30),IHKKQ(-6:6),IHKKQQ(-3:3,-3:3),
      &          IDX(-4:4)
       DATA IDX   /-4,-3,-1,-2,0,2,1,3,4/
+!$OMP THREADPRIVATE (IDX)
       DATA IHKKQ /-6,-5,-4,-3,-1,-2,0,2,1,3,4,5,6/
+!$OMP THREADPRIVATE (IHKKQ)
       DATA IHKKQQ/-3301,-3103,-3203,0,   0,0,0,
      &            -3103,-1103,-2103,0,   0,   0,   0,
      &            -3203,-2103,-2203,0,   0,   0,   0,
@@ -1727,6 +1739,7 @@ C    *,PHKK(3,NHKK),PHKK(4,NHKK),PHKK(5,NHKK)
 *                                     1, 2, 3, 4  -   u, d, s, c
 *                                    -1,-2,-3,-4  -  au,ad,as,ac
 *
+!$OMP THREADPRIVATE (IHKKQQ)
       DATA MQUARK/
      &   1,1,2,    -1,-1,-2,       0,0,0,       0,0,0,       0,0,0,
      &   0,0,0,       0,0,0,       1,2,2,    -1,-2,-2,       0,0,0,
@@ -1734,9 +1747,12 @@ C    *,PHKK(3,NHKK),PHKK(4,NHKK),PHKK(5,NHKK)
      &  3,-1,0,       1,2,3,    -1,-2,-3,       0,0,0,       2,2,3,
      &   1,1,3,       1,2,3,      1,-1,0,      2,-3,0,      3,-2,0,
      &  2,-2,0,      3,-3,0,       0,0,0,       0,0,0,       0,0,0/
+!$OMP THREADPRIVATE (MQUARK)
       DATA UNON/2.0/
+!$OMP THREADPRIVATE (UNON)
       DATA NCREJ, NCPT /0, 0/
 *
+!$OMP THREADPRIVATE (NCREJ,NCPT)
       ISD   = 2
       IREJ  = 0
       IIREJ = 0
@@ -2252,7 +2268,9 @@ C                   Low mass double diffraction J.R. Feb/Mar 94
       DIMENSION MQUARK(3,30),IHKKQ(-6:6),IHKKQQ(-3:3,-3:3),
      &          IDX(-4:4)
       DATA IDX   /-4,-3,-1,-2,0,2,1,3,4/
+!$OMP THREADPRIVATE (IDX)
       DATA IHKKQ /-6,-5,-4,-3,-1,-2,0,2,1,3,4,5,6/
+!$OMP THREADPRIVATE (IHKKQ)
       DATA IHKKQQ/-3301,-3103,-3203,0,   0,0,0,
      &            -3103,-1103,-2103,0,   0,   0,   0,
      &            -3203,-2103,-2203,0,   0,   0,   0,
@@ -2265,6 +2283,7 @@ C                   Low mass double diffraction J.R. Feb/Mar 94
 *                                     1, 2, 3, 4  -   u, d, s, c
 *                                    -1,-2,-3,-4  -  au,ad,as,ac
 *
+!$OMP THREADPRIVATE (IHKKQQ)
       DATA MQUARK/
      &   1,1,2,    -1,-1,-2,       0,0,0,       0,0,0,       0,0,0,
      &   0,0,0,       0,0,0,       1,2,2,    -1,-2,-2,       0,0,0,
@@ -2272,9 +2291,12 @@ C                   Low mass double diffraction J.R. Feb/Mar 94
      &  3,-1,0,       1,2,3,    -1,-2,-3,       0,0,0,       2,2,3,
      &   1,1,3,       1,2,3,      1,-1,0,      2,-3,0,      3,-2,0,
      &  2,-2,0,      3,-3,0,       0,0,0,       0,0,0,       0,0,0/
+!$OMP THREADPRIVATE (MQUARK)
       DATA UNON/2.0/
+!$OMP THREADPRIVATE (UNON)
       DATA NCREJ, NCPT /0, 0/
 *
+!$OMP THREADPRIVATE (NCREJ,NCPT)
       IJLMDD= 1
       ISD   = 2
       IREJ  = 0
@@ -3286,6 +3308,7 @@ C    &          11,12,7,13,14,15,16,17,18,7,7,7/
      &           10,7,3,4,5,      6,7,7,7,7,
      &            7,7,7,7,7,      7,7,7/
 *
+!$OMP THREADPRIVATE (INDX)
       GOTO (1,2,3) IOP
 *
     1 CONTINUE
@@ -3592,8 +3615,10 @@ C     SIGDIF = DSHNEL(KPROJ,KT,ECM)*F
       DATA SQS /20.,50.,100.,200.,500.,1000.,1500.,2000.,3000.,
      *4000.,6000.,8000.,10000.,15000.,20000.,30000.,40000.,
      *60000.,80000.,100000/
+!$OMP THREADPRIVATE (SQS)
       DATA SIIV /41.6,44.6,47.9,52.3,60.,67.2,71.4,75.,79.,82.4,
      *87.2,90.4,93.2,97.3,100.7,104.7,107.9,111.7,114.7,117.2/
+!$OMP THREADPRIVATE (SIIV)
       DATA SQS22 /
      *53.,69.,91.,119.,156.,205.,268.,351.,460.,603.,
      *790.,1036.,1357.,1778.,2329.,
@@ -3603,6 +3628,7 @@ C     SIGDIF = DSHNEL(KPROJ,KT,ECM)*F
      *175734.,230255.,301690.,395288.,517925.,
      *678609.,889144.,1164997.,1526432.,2000000.
      */
+!$OMP THREADPRIVATE (SQS22)
       DATA SIIV22 /
      *44.3,45.3,46.5,47.8,49.3,51.0,53.0,55.3,57.9,60.9,
      *64.3,68.0,72.0,76.3,80.8,85.4,90.0,94.7,99.3,103.9,
@@ -3612,6 +3638,7 @@ C     SIGDIF = DSHNEL(KPROJ,KT,ECM)*F
      *171.2,175.6,180.0,184.6,189.1
      */
 *
+!$OMP THREADPRIVATE (SIIV22)
       F1 = 1.0D0
       CA = 0.0D0
       CB = 0.0D0

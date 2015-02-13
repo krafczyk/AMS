@@ -253,8 +253,10 @@ C  CHAIN DECAY CODE
 C     COMMON /XYTES/XTEST(50),XYTEST(0:11,50)
 !$OMP THREADPRIVATE (/DROPJJ/)
       DATA NCMPO/0/
+!$OMP THREADPRIVATE (NCMPO)
       DATA INICHA/0/
 C     COMMON /OUTLEV/IOUTPO,IOUTPA,IOUXEV,IOUCOL
+!$OMP THREADPRIVATE (INICHA)
       IF(XMAX1.LE.0.D0.OR.XMAX2.LE.0.D0)THEN
       WRITE(6,'(A,3I5,2F10.4)')' XPTFL(',NHARD,NSEA,IREG,XMAX1,XMAX2
 	NHARD=0
@@ -736,8 +738,10 @@ C  CHAIN DECAY CODE
 C      DATA INIPRI/0/
 !$OMP THREADPRIVATE (/SEAQXX/)
        DATA INICHA/0/
+!$OMP THREADPRIVATE (INICHA)
        DATA JTSP /0/
 C      to keep identical commons
+!$OMP THREADPRIVATE (JTSP)
        ECM=CMENER
 *
       IF(IOUXEV.GE.4)WRITE(6,*)'XPTFL1:entry:NDZ,NZD,NNDZ,NNZD,NHARD,',
@@ -1757,9 +1761,13 @@ C     INCLUDE (ABRSS)
       COMMON /ZSEA/ZSEAAV,ZSEASU,ANZSEA
 !$OMP THREADPRIVATE (/ZSEA/)
       DATA NCOUSH/0/
+!$OMP THREADPRIVATE (NCOUSH)
       DATA NCOUST/0/
+!$OMP THREADPRIVATE (NCOUST)
       DATA SUNDZ /0/
+!$OMP THREADPRIVATE (SUNDZ)
       DATA SUNZD /0/
+!$OMP THREADPRIVATE (SUNZD)
       ANZSEA=0.D0
       ZSEASU=0.D0
       ZSEAAV=0.D0
@@ -2880,7 +2888,9 @@ C-------------------------------Single Chain Option-----------
       COMMON /ZSEA/ZSEAAV,ZSEASU,ANZSEA
 !$OMP THREADPRIVATE (/ZSEA/)
       DATA ISCH/0/
+!$OMP THREADPRIVATE (ISCH)
       DATA NZSEA/0/
+!$OMP THREADPRIVATE (NZSEA)
       ISCH=ISCH+1
       ZERO=0 
 C------------------------------Single Chain Option--------------------
@@ -7591,6 +7601,7 @@ C----------------------------------------------------------------------
       DATA IHKKQ/-6,-5,-4,-3,-1,-2,0,2,1,3,4,5,6/
 C
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (IHKKQ)
       DO 101 N=1,NONUJT
         IF (JHKKEX(N).EQ.1)THEN
 C
@@ -8174,6 +8185,7 @@ C----------------------------------------------------------------------
       DATA IHKKQ/-6,-5,-4,-3,-1,-2,0,2,1,3,4,5,6/
 C
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (IHKKQ)
       DO 1001 N=1,NONUST
          DO 1002 I=1,NDZ 
            IF(IDZSS(I).EQ.N.AND.NCH1(N).EQ.99)THEN
@@ -9075,6 +9087,7 @@ C     KINEMATICS
 C
 C********************************************************************
 C
+!$OMP THREADPRIVATE (INIQEL)
       IREJ = 0
 *
       AAM(26)=AAM(23)
@@ -10620,6 +10633,7 @@ C     COMMON/BATLUND/N,K(4000,5),P(4000,5),V(4000,5)
 !$OMP THREADPRIVATE (/CLOUT/)
       LOGICAL FIRST
       DATA FIRST/.TRUE./
+!$OMP THREADPRIVATE (FIRST)
       DATA LUN /25/
        INTEGER INIT 
 !$OMP THREADPRIVATE (INIT) 

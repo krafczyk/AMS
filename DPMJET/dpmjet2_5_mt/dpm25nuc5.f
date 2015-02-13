@@ -87,10 +87,12 @@ C     COMMON /PCHARM/PCCCC
 *KEND.
 C----------
 C
+!$OMP THREADPRIVATE (PC)
       DATA INICHA/0/
 C----------------------------------------------------------------------
 C                     Initialize Charm selection at soft chain ends
 C
+!$OMP THREADPRIVATE (INICHA)
       IF(INICHA.EQ.0)THEN
         RX=8.D0
         X1=RX
@@ -1212,6 +1214,7 @@ C---------------------
 !$OMP THREADPRIVATE (/DIQSUM/)
       DIMENSION POJ(4),PAT(4)
       DATA NCALDV /0/
+!$OMP THREADPRIVATE (NCALDV)
       IF(IPHKK.GE.6)WRITE (6,'( A)') ' hadrdv'
 C-----------------------------------------------------------------------
       NCALDV=NCALDV+1
@@ -1543,10 +1546,12 @@ C     COMMON /PCHARM/PCCCC
 *KEND.
 C----------
 C
+!$OMP THREADPRIVATE (PC)
       DATA INICHA/0/
 C----------------------------------------------------------------------
 C                     Initialize Charm selection at soft chain ends
 C
+!$OMP THREADPRIVATE (INICHA)
       IF(INICHA.EQ.0)THEN
         RX=8.D0
         X1=RX
@@ -2670,6 +2675,7 @@ C---------------------
       DIMENSION POJ(4),PAT(4)
       DATA NCALVD /0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALVD)
       IF(IPHKK.GE.6)WRITE (6,'( A)') ' hadrvd'
       NCALVD=NCALVD+1
       DO 50 I=1,NVD
@@ -3007,10 +3013,12 @@ C     COMMON /PCHARM/PCCCC
 *KEND.
 C----------
 C
+!$OMP THREADPRIVATE (PC)
       DATA INICHA/0/
 C----------------------------------------------------------------------
 C                     Initialize Charm selection at soft chain ends
 C
+!$OMP THREADPRIVATE (INICHA)
       IF(INICHA.EQ.0)THEN
         RX=8.D0
         X1=RX
@@ -4192,6 +4200,7 @@ C---------------------
       DIMENSION POJ(4),PAT(4)
       DATA NCALDS /0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALDS)
       IF(IPHKK.GE.6)WRITE (6,'( A)') ' hadrds'
       NCALDS=NCALDS+1
       DO 50 I=1,NDS
@@ -4622,10 +4631,12 @@ C     COMMON /PCHARM/PCCCC
 *KEND.
 C----------
 C
+!$OMP THREADPRIVATE (PC)
       DATA INICHA/0/
 C----------------------------------------------------------------------
 C                     Initialize Charm selection at soft chain ends
 C
+!$OMP THREADPRIVATE (INICHA)
       IF(INICHA.EQ.0)THEN
         RX=8.D0
         X1=RX
@@ -5809,6 +5820,7 @@ C---------------------
       DIMENSION POJ(4),PAT(4)
       DATA NCALSD /0/
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALSD)
       IF(IPHKK.GE.6)WRITE (6,'( A)') ' hadrsd'
       NCALSD=NCALSD+1
       DO 50 I=1,NSD
@@ -6210,10 +6222,12 @@ C     COMMON /PCHARM/PCCCC
 *KEND.
 C----------
 C
+!$OMP THREADPRIVATE (PC)
       DATA INICHA/0/
 C----------------------------------------------------------------------
 C                     Initialize Charm selection at soft chain ends
 C
+!$OMP THREADPRIVATE (INICHA)
       IF(INICHA.EQ.0)THEN
         RX=8.
         X1=RX
@@ -6839,6 +6853,7 @@ C---------------------
       DATA NCALDS /0/
 C     IPHKK=3
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALDS)
       IF(IPHKK.GE.3)WRITE (6,'( A,4I10)') ' hadrdz',NDZ,NZD,
      *         NCHDS1(1),NCHDS2(1)
       NCALDS=NCALDS+1
@@ -7228,10 +7243,12 @@ C     COMMON /PCHARM/PCCCC
 *KEND.
 C----------
 C
+!$OMP THREADPRIVATE (PC)
       DATA INICHA/0/
 C----------------------------------------------------------------------
 C                     Initialize Charm selection at soft chain ends
 C
+!$OMP THREADPRIVATE (INICHA)
       IF(INICHA.EQ.0)THEN
         RX=8.
         X1=RX
@@ -7871,6 +7888,7 @@ C---------------------
       DATA NCALSD /0/
 C     IPHKK=3
 C-----------------------------------------------------------------------
+!$OMP THREADPRIVATE (NCALSD)
       IF(IPHKK.GE.3)WRITE (6,'( A,4I10)') ' hadrzd',NDZ,NZD,
      *           NCHSD1(1),NCHSD2(1)
       NCALSD=NCALSD+1

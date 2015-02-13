@@ -502,6 +502,7 @@ C    &            ,ISINGD,IDUBLD,SDFRAC,PTLAR
       DIMENSION PPTT(50),DPPTT(50)
       DATA ECM0 /0.1D0/
 C     to keep identical commons for patchy ect
+!$OMP THREADPRIVATE (ECM0)
       ECM=CMENER
       PTTHR=2.5+0.12*(LOG10(CMENER/50.))**3
       PTCUT=PTTHR      
@@ -921,6 +922,7 @@ C********************************************************************
 *KEND.
 !$OMP THREADPRIVATE (/DPRIN/)
       DATA ICHECK/0/
+!$OMP THREADPRIVATE (ICHECK)
       HELP=LOG10(EPN)
       PHELP=0.
       IF(HELP.GT.5.D0)PHELP=HELP-5.
@@ -1200,6 +1202,7 @@ C********************************************************************
 *KEND.
 !$OMP THREADPRIVATE (/DPRIN/)
       DATA ICHECK/0/
+!$OMP THREADPRIVATE (ICHECK)
       HELP=LOG10(EPN)
       PHELP=0.
       IF(HELP.GT.5.D0)PHELP=HELP-5.D0
@@ -1509,6 +1512,7 @@ C********************************************************************
 *KEND.
 !$OMP THREADPRIVATE (/DPRIN/)
       DATA ICHECK/0/
+!$OMP THREADPRIVATE (ICHECK)
       HELP=LOG10(EPN)
       PHELP=0.
       IF(HELP.GT.5.D0)PHELP=HELP-5.
@@ -1911,6 +1915,7 @@ C***
       DATA A1,A2,A3,A4,A5 /0.01575, 0.0178, 0.000710, 0.0237, 0.034/
 C
 C     WRITE (6,'(A,2I5)')' EBIND IA,IZ ',IA,IZ
+!$OMP THREADPRIVATE (A1,A2,A3,A4,A5)
       IF(IA.LE.1.OR.IZ.EQ.0)THEN
 	EBIND=0
 	RETURN
@@ -2527,6 +2532,7 @@ C-----------------------------------------------------------------------
 !$OMP THREADPRIVATE (/EVAPPP/)
       DATA IEVL /0/
 C----------------------------------------------------------------------
+!$OMP THREADPRIVATE (IEVL)
       ZERO=0
       ONEONE=1
       TWOTWO=2

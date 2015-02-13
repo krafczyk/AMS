@@ -93,8 +93,10 @@ C    *               PTTPO2
      *10.,20.,40.,100.,200.,400.,1000.,2000.,4000./
 *
 *     used in ISIG 10,40
+!$OMP THREADPRIVATE (XSQSJ)
       DATA SQS/1.,2.,3.,4.,5.,10.,20.,30.,40.,100.,200.,500.,1000./
 *
+!$OMP THREADPRIVATE (SQS)
       PI4=4.*PI
       S=ECM**2
 ***********************************************************************
@@ -521,6 +523,7 @@ C
      &    673.,  898., 1112., 1379./
 *******************************************************************
 *
+!$OMP THREADPRIVATE (XS21)
       IF( ABS(PTTHR-THREE).LT.EPSIL )     THEN
           WRITE(6,*) ' ERROR RDXSEC: invalid pdf No. ',ISTRUF
           STOP
@@ -615,6 +618,7 @@ C$
 !$OMP THREADPRIVATE (/POLMN1/)
       DATA IUNIT/37/
 C
+!$OMP THREADPRIVATE (IUNIT)
       CHARACTER*80 INIDAT
 C
 C$  Statement : setenv INIDAT /nfs/hpmac1/macro02/dpmjet/POMTAB_06.DAT 
@@ -673,9 +677,6 @@ C    *                  KK=0,MXPU50),JJ=0,MXPA25)
       CLOSE(IUNIT)
       STOP   
       END
-
-************************************************************************
-*
       SUBROUTINE QRBLM2(ECM)
 *     *     input:
 *        ECM
@@ -1822,6 +1823,7 @@ C     COMMON /POLMN1/ PLMNEE(0:MXPA25,0:MXPU50,0:MXPA13,20)
       PARAMETER (PI=3.141592654D0)
       DATA NPRINT/0/
 C                               Determine the energy index
+!$OMP THREADPRIVATE (NPRINT)
       IPOEN=1
       DO 20 II=1,NESTEP
 	IF(UMO.GE.POEN1(II).AND.UMO.LT.POEN2(II))THEN

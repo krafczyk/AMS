@@ -1999,6 +1999,8 @@ C******************************************************i****************
      &7.2603E-02,6.0131E-02,4.7893E-02,2.6613E-02,0.0000E+00,0.0000E+00/
       DATA INIWA1 /0/
       DATA INIWA2 /0/
+!$OMP THREADPRIVATE (INIWA1)
+!$OMP THREADPRIVATE (INIWA2)
 *
 *...CHECK OF X AND Q2 VALUES :
       IF ( (X.LT.0.99D-9) .OR. (X.GT.1.D0) ) THEN

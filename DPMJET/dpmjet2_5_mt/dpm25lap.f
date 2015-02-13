@@ -244,6 +244,7 @@ C     COMMON /POMENE/POEN(20),POEN1(20),POEN2(20),NESTEP
       DATA X1SU/0./ , X2SU/0./
 C
 C                                 Calculate energy index INDENE
+!$OMP THREADPRIVATE (X1SU)
       CMENER=CMENER0
       ECM=CMENER
       INDENE=1
@@ -742,6 +743,7 @@ C______________________________________________________________________
 !$OMP THREADPRIVATE (/HAXIK /)
       DATA RM / 3.31, 0.0,
      &          3.80, 0.65, 2.00, 0.65, 0.89, 0.45, 0.445, 0.89 /
+!$OMP THREADPRIVATE (RM)
       M    = MSPR
       IF     ( M.EQ.1 ) THEN
 10      CALL HAX1X2
@@ -1176,6 +1178,7 @@ C_______________________________________________________________________
 !$OMP THREADPRIVATE (/HAPARA/)
       DIMENSION PD(-6:6)
       DATA ISET / 0 /
+!$OMP THREADPRIVATE (ISET)
       DO 10 I=-6,6
 10      PD(I) = 0.0
 C  SET MAXFL - THE MAX. NUMBER OF FLAVORS TO CALCULATE
@@ -1951,6 +1954,7 @@ C
       DIMENSION ABSZ(32),WEIG(32)
       DATA FAC / 3.0 /
 
+!$OMP THREADPRIVATE (FAC)
       DO 10 M=0,MAXPRO
         DSIGM(M) = 0.0
 10    CONTINUE
@@ -2385,11 +2389,13 @@ C    &                MXSECT(0:2,-1:MAXPRO)
      *            0.215D0,0.215D0,0.215D0,
      *            0.231D0,0.231D0,0.322D0, 0.247D0,
      *            0.168D0,0.2D0,0.2D0,0.202D0 /
+!$OMP THREADPRIVATE (ALAM)
       DATA Q0S  / 5.0D0 , 5.0D0 , 5.0D0  , 5.0D0  , 5.0D0 , 0.2D0,
      *            5.0D0 , 5.0D0 , 5.0D0  , 5.0D0  , 5.0D0 , 5.0D0,
      *            5.0D0 , 5.0D0 , 5.0D0  , 4.0D0  , 4.0D0 , 4.0D0,
      *            4.0D0 , 4.0D0 ,  0.4D0 ,0.4D0 ,1.60D0     /
 C
+!$OMP THREADPRIVATE (Q0S)
         WRITE(6,*)' HARINI:NPD=',NPD
 	IF ( NOUTL.GE.1 )CALL TIMDAT
         ALASQR = ALAM(NPD)**2
@@ -2508,6 +2514,7 @@ C    &                MXSECT(0:2,-1:MAXPRO)
       DIMENSION S(-1:MAXPRO),S1(-1:MAXPRO),S2(-1:MAXPRO),F124(-1:MAXPRO)
       DATA F124 / 1.,0.,4.,2.,2.,2.,4.,1.,4.,4. /
 
+!$OMP THREADPRIVATE (F124)
       A      = (2.*PTINI(IND)/ECM)**2
       ALN    = LOG(A)
       HLN    = LOG(0.5)

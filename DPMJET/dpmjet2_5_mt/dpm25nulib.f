@@ -144,6 +144,7 @@ C==========================================================
       DIMENSION UU(97),U(6),X(6),D(6)
       DATA U / 6533892.D0, 14220222.D0, 7275067.D0, 6172232.D0,
      +8354498.D0, 10633180.D0/
+!$OMP THREADPRIVATE (U)
       CALL RNDMOU(UU,CC,CCD,CCM,II,JJ)
       CALL RNDMST(12,34,56,78)
       DO 10 II1 = 1,20000
@@ -220,6 +221,7 @@ C     X UND Y SIND GAUSSVERTEILTE ZUFALLSZAHLEN
      41HS,1HT,1HU,1HV,1HW,1HX,1HY,1H1,1H-,1H  /
 *
 *
+!$OMP THREADPRIVATE (L)
       MN=51
       AMN=MN
       DO 10 I=1,MN
@@ -507,6 +509,7 @@ C    MCHAD  PARTICLE NUMBER TO BE USED IN HADRIN
      +8, 1, 8, 23, 23, 8, 8, 2, 9, 9, 9, 9, 1, 8, 8, 8, 8, 8, 2, 9, 9,
      +9, 9, 9, 85*-1,7*-1,1,8,-1/
 C
+!$OMP THREADPRIVATE (ITRANS)
       MCHAD=ITRANS(ITDTU)
       RETURN
       END
@@ -761,6 +764,7 @@ C
 C
 C-----TABLE OF INITIAL SUBSCRIPTS FOR N=2(1)16(4)96
       DATA KTAB(2)/1/
+!$OMP THREADPRIVATE (KTAB)
       DATA KTAB(3)/2/
       DATA KTAB(4)/4/
       DATA KTAB(5)/6/
@@ -795,6 +799,9 @@ C-----TABLE OF INITIAL SUBSCRIPTS FOR N=2(1)16(4)96
       DATA KTAB(88)/186/
       DATA KTAB(92)/186/
       DATA KTAB(96)/226/
+C
+C-----TABLE OF ABSCISSAE (X) AND WEIGHTS (A) FOR INTERVAL (-1,+1).
+!$OMP THREADPRIVATE (X)
 C
 C-----TABLE OF ABSCISSAE (X) AND WEIGHTS (A) FOR INTERVAL (-1,+1).
 C
@@ -1119,6 +1126,7 @@ C*********************************************************************
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DATA ISAMPE/1/
 C                             SAMPLING FROM F(X)=1/X BETWEEN X1 AND X2
+!$OMP THREADPRIVATE (ISAMPE)
         R=RNDMDPM(V)
         AL1=LOG(X1)
         AL2=LOG(X2)
@@ -1130,6 +1138,7 @@ C*********************************************************************
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DATA ISAMPE/1/
 C                             SAMPLING FROM F(X)=1/X BETWEEN X1 AND X2
+!$OMP THREADPRIVATE (ISAMPE)
       IF(ISAMPE.EQ.0)THEN
         R=RNDMDPM(V)
         AL1=LOG(X1)
