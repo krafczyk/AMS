@@ -1,34 +1,37 @@
-//  Geant4 Multithreading + ams software openmp
+//  Geant4 Multithreading + ams software parallelization
 
-only icc 15 openmp version is supported
+Release notes
 
-using G4 Threading model + amssoftware basically as it is, with few exceptions.
-
-
-   thread id is taken from geant4 , not from openmp
+1.only icc 15 openmp version is supported
 
 
- openmp pragmas not working:
+2. Minimal software change: using G4 Threading model + amssoftware basically as it is, with few exceptions:
 
- barrier, master,parallel (therefore no copyin directives)
 
-openmp locks are not working
-openmp functions lke omp_get_thread_num and others are not working
+  thread id, number of threads and number of cores  are taken from geant4 , not from openmp
 
-barrier was emulated using AMSEvent::SetBarrier
 
-all other omp pragmas are working (sic!)  atomic,critical,threadprivate etc
+  some openmp pragmas not working barrier, master,parallel (therefore no copyin directives)
 
-//Status
+  openmp locks are not working
 
-to compile setenv G4MULTITHREADED 1
+   
 
-or use vars in /Offline/vdev/install/build410_mt.sh
+  Barriers were emulated using AMSEvent::SetBarrier
 
- examples/g4mt.job is runing example
+  all other omp pragmas are working (sic!)  atomic,critical,threadprivate etc
 
-to activate multithreading  use same MISC=nthr datacards
-//TBD
+
+
+
+
+3. To build  use  /afs/cern.ch/ams/Offline/vdev/install/build410_mt.sh
+
+
+4. /afs/cern.ch/ams/Offline/vdev/examples/g4mt.job part nthreads is runing example
+
+   To activate multithreading  use  MISC 8=nthreads datacards
+
  
 
 // Features
@@ -38,12 +41,11 @@ the events in the root file will be not ordered by default (MISC 29=0 will chang
 
 RNDM hase still no reproducibility, to be worked in , however it does not change quality of results
 
-Number of threads can not be changed dynamically /may be changed in the future//
+Number of threads can not be changed dynamically, g4 fault .
 
 
 
-
-DAQ File Writing not ordered (currently not possible to order it via datacard, to be work out)
+DAQ file writing not ordered (currently not possible to order it via datacard, to be work out)
 
 //Performance
 
