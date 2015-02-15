@@ -114,6 +114,7 @@ if( BBarrier==get_num_threads()){
     BBarrier=-1;
 return;
 }
+else usleep(1);
 }
 }
 else{
