@@ -47,13 +47,14 @@ Number of threads can not be changed dynamically, g4 fault .
 
 DAQ file writing not ordered (currently not possible to order it via datacard, to be work out)
 
-//Performance
+//Performance (protons 100-200 gev)
+
 
  memory use ~ 1.5 gb+0.1gb*nthr 
 vmemory use  ~ 2.5 gb+0.25gb*thr
 Practical example:  72 thread jobs vmemory < 20 gb memory < 10 gb
 
- MT Overhewad (protons 1000-200 gev)
+ MT Overhead
 Threads       Sec/Event/Thread
 
 1                2.2

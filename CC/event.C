@@ -95,7 +95,9 @@ extern LMS* lms;
 
 int AMSEvent::BBarrier=0;
 int AMSEvent::UBarrier=0;
-
+#ifdef G4MULTITHREADED
+#include "geant321g.h"
+#endif
 void AMSEvent::SetBarrier(int phase){
 #ifdef _OPENMP
 //  set barrier a-la openmp for g4
@@ -103,7 +105,11 @@ if(phase==0){
 #pragma omp atomic
 BBarrier++;
 for(;;){
-if(BBarrier==-1)return;
+#ifdef G4MULTITHREADED
+if(BBarrier==-1 || GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1)return;
+#else
+if(BBarrier==-1 )return ;
+#endif
 if( BBarrier==get_num_threads()){
     BBarrier=-1;
 return;
@@ -115,7 +121,11 @@ else{
 #pragma omp atomic
 UBarrier++;
 for(;;){
+#ifdef G4MULTITHREADED
+if(BBarrier==0 || GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1)return;
+#else
 if(BBarrier==0)return;
+#endif
 if(UBarrier==get_num_threads()){
   UBarrier=0;
   BBarrier=0;
