@@ -22,11 +22,11 @@
 #include "snode.h"
 #include "link.h"
 #include "cont.h"
-#include "daqevt.h"
 #include "astro.h" // ISN 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+class DAQEvent;
 
 
 

@@ -16,6 +16,7 @@
 #include <time.h>
 #include <dirent.h>
 #include "zlib.h"
+#include "event.h"
 typedef integer (*pid)(int16u id);
 typedef void  (*pputdata)(integer n, int16u* data);
 
@@ -114,6 +115,27 @@ const integer nbtps=24;    // blocks num
 
 class DAQEvent : public AMSlink{
 protected:
+class uil{
+public:
+int16u *fu;
+uinteger fl;
+uil(uinteger l=0, int16u *p=0):fl(l){
+if(fl){
+fu=new int16u[fl];
+memcpy(fu,p,sizeof(p[0])*fl);
+}
+else fu=0;
+}
+~uil(){
+if(fl)delete[] fu;
+}
+};
+typedef map<uint64,uil*> evmapr_d;
+typedef map<uint64,uil*>::iterator evmapri;
+static   evmapr_d evmap; 
+
+  static uint64 _RunEv[maxthread];
+ static uint64 & runev(uinteger k){return k<sizeof(_RunEv)/sizeof(_RunEv[0])?_RunEv[k]:_RunEv[0];}
   static DAQEvent* _DAQEvent;
   static bool _Waiting;
   static char * _RootDir;
@@ -236,6 +258,8 @@ public:
   ~DAQEvent();
   DAQEvent(): AMSlink(),_BufferOwner(0),_Checked(0),_Length(0),_Event(0),_Run(0),
 	      _RunType(0),_Offset(0),_Time(0),_usec(0),_pcur(0),_pData(0){
+    if(AMSEvent::gethead() )_RunEv[AMSEvent::get_thread_num()]=AMSEvent::gethead()->getrunev();
+    else _RunEv[AMSEvent::get_thread_num()]=0;
      _JStatus[0]=_JStatus[1]=_JStatus[2]=_JStatus[3]=0;
    for (unsigned  int i=0;i<sizeof(_JError)/sizeof(_JError[0]);i++)_JError[i]=0;
     for (unsigned int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
