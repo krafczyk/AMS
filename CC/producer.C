@@ -705,8 +705,8 @@ if(exedir && nve && AMSCommonsI::getosname()){
  		AString systemc;
  		if(getenv("AMSDataDir")) systemc=getenv("AMSDataDir");
    		  else                   systemc="/afs/cern.ch/ams/Offline/AMSDataDir";
-   		cmd += "/DataManagement/exe/linux/timeout --signal 9 1030 ";
-  systemc+ exedir;
+   		systemc+= "/DataManagement/exe/linux/timeout --signal 9 1030 ";
+  systemc+= exedir;
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
