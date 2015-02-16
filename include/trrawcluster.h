@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.38 2009/11/12 15:50:37 choutko Exp $
+//  $Id$
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -11,7 +11,7 @@
 #include "amsstl.h"
 #include "commons.h"
 #include "trid.h"
-
+#include "daqevt.h"
 // Tracker RAW bank
 
 class AMSTrRawCluster : public AMSlink{
