@@ -15,6 +15,8 @@ Release notes
 
   openmp locks are not working
 
+  DPMJET2.5  required heavy patch
+
    
 
   Barriers were emulated using AMSEvent::SetBarrier
@@ -28,15 +30,16 @@ Release notes
 3. To build  use  /afs/cern.ch/ams/Offline/vdev/install/build410_mt.sh
 
 
-4. /afs/cern.ch/ams/Offline/vdev/examples/g4mt.job part nthreads is runing example
+4. /afs/cern.ch/ams/Offline/vdev/examples/g4mt.job part nthreads 
+    is running example
 
-   To activate multithreading  use  MISC 8=nthreads datacards
+   To set number of threads    use  MISC 8=nthreads datacard
 
  
 
 // Features
 
-the events in the root file will be not ordered by default (MISC 29=0 will change this with some /may be big/  memory penalty), however amschain getentryordered can be used to get the ordered events
+the events in the root file will be not ordered by default (MISC 29=0 will change this with some /may be big/  memory penalty), however amschain AMSChain::GetEntryOrdered(unsigned long long entry)  can be used to get the ordered events
 
 
 RNDM hase still no reproducibility, to be worked in , however it does not change quality of results
