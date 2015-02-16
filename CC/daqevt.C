@@ -1763,7 +1763,6 @@ void DAQEvent::buildRawStructuresEarly(){
 void DAQEvent::write(){
   if(_Length && fbout.is_open()){
     _convert();
-    static int _Size=0;
     int nthr=1;
 #ifdef _OPENMP
     nthr=AMSEvent::get_num_threads();
