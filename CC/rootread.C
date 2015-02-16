@@ -99,7 +99,7 @@ if(!staged){
              if(again<10){
                 again++;
                 pclose(fp);
-                sleep(10);
+                sleep(int(pow(2.,again-1.)));
                 goto again2;
              }
              stagein=true;
@@ -121,7 +121,7 @@ if(!stagein && !staged){
              if(again<10){
                 again++;
                 pclose(fp);
-                sleep(10);
+                sleep(int(pow(2.,again-1.)));
                 goto again2;
              }
              stagein=true;
