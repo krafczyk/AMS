@@ -994,6 +994,26 @@ goto againcp;
   if(getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
     setenv("TransferBy",getenv("TransferRawByB"),1);
     unsetenv("TransferRawByB");
+  if(getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
+    setenv("TransferBy",getenv("TransferRawByB"),1);
+    unsetenv("TransferRawByB");
+    means=getenv("TransferBy");
+             AString newdd="";
+             if(strstr(getenv("TransferBy"),"root:")){
+             string cc=getenv("TransferBy");
+              newdd=cc.c_str()+cc.rfind("root:"); 
+
+              cc[cc.rfind("root:")]='\0'; 
+              setenv("TransferBy",cc.c_str(),1);
+              cout <<"AMSProducer::sendNtupleStart-I-TransferBy SetTo "<<getenv("TransferBy")<<endl;
+              if(!strstr(destdir,"root:")){
+                newdd+=destdir;
+                setenv("NtupleDestDir",(const char*)newdd,1); 
+                destdir=getenv("NtupleDestDir");
+                cout <<"AMSProducer::sendNtupleStart-I-NtupleDestDir SetTo "<<destdir;
+              }
+             }
+
     means=getenv("TransferBy");
     goto againcpmeans;
   }
