@@ -613,7 +613,7 @@ vector<AMSEventR*> del;
     for(evmapi i=evmap.begin();i!=evmap.end();){
       bool go=true;
      for(int k=0;k<nthr;k++){
-        if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)&& !MISCFFKEY.NoOrderedWrite){
+        if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)&& !(MISCFFKEY.NoOrderedWrite%10)){
           go=false;
 //          cout <<" get go "<< AMSEvent::runev(k)<<" "<<i->first<<endl;
           break;

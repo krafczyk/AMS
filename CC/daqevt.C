@@ -1788,7 +1788,7 @@ uil *evn=0;
      for(evmapri i=evmap.begin();i!=evmap.end();){
      bool go=true;
      for(int k=0;k<nthr;k++){
-        if(runev(k) && runev(k)<(i->first)&& !MISCFFKEY.NoOrderedWrite){
+        if(runev(k) && runev(k)<(i->first)&& !(MISCFFKEY.NoOrderedWrite/10)){
           go=false;
           break;
         }
