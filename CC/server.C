@@ -2693,7 +2693,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       char pat[]="bsub -n ";
       int pos=s.find(pat);
       int pose=s.find(" ",pos+strlen(pat)+1);
-      if(1){
+      if( 1){
 //      if( !strstr((const char*)ahlv->HostName,lxplus5) || !singlethread){
 //         read script put max cpu number for given host
            ifstream ftxt;
@@ -2727,7 +2727,8 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
                       sprintf(cmaxn,"bsub -n %u ",tr);
                       threads=tr;
                       if(pos>=0){
-                       string s1=s.replace(pos,pose-1,cmaxn);
+                       string s1=s.replace(pos,pose-pos,cmaxn);
+                       cout<<"AMSProducer::StartClients-I-threadChangedFrom "<<s1<<" pos pose cmaxn "<<pos<<" "<<pose<<" "<<cmaxn<<endl;
                        submit=s1.c_str();
                        cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
                       }
@@ -2752,7 +2753,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       int pos=s.find(pat);
       int pose=s.find(" ",pos+strlen(pat)+1);
       if(pos>=0){
-        string s1=s.replace(pos,pose-1,"bsub -n 1 ");
+        string s1=s.replace(pos,pose-pos,"bsub -n 1 ");
         submit=s1.c_str();
          cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
       }
@@ -3714,9 +3715,10 @@ int crun=0;
     char *lxplus5=getenv("AMSPublicBatch");
     if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
     lxplus5=getenv("AMSPublicBatch");
-/*
+
     NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)cid.HostName));
     bool bsub=false;
+/*
    if(cli!=_ncl.end()){
    string lp=(const char*)((*cli)->LogPath);  
       char pat[]="bsub -n ";
@@ -3733,7 +3735,6 @@ int crun=0;
       }
     }
 */
-
      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
                     NHLI li=find_if(_pser->getnhl().begin(),_pser->getnhl().end(),NHL_find((const char *)cid.HostName)); 
                     int maxn=12;
