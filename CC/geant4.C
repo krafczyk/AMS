@@ -1156,7 +1156,7 @@ trig=(trig+1)%freq;
     GCTRAK.istop =1;
     Track->SetTrackStatus(fStopAndKill);
     AMSEvent::gethead()->seterror();
-    if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<endl;
+    if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<" "<<g4_primary_momentum<<endl;
     report=false;
     AMSEvent::gethead()->SetEventSkipped(true);
     return;
