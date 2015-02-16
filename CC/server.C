@@ -2693,7 +2693,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       char pat[]="bsub -n ";
       int pos=s.find(pat);
       int pose=s.find(" ",pos+strlen(pat)+1);
-      if( pos>=0){
+      if(1){
 //      if( !strstr((const char*)ahlv->HostName,lxplus5) || !singlethread){
 //         read script put max cpu number for given host
            ifstream ftxt;
@@ -2727,7 +2727,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
                       sprintf(cmaxn,"bsub -n %u ",tr);
                       threads=tr;
                       if(pos>=0){
-                       string s1=s.replace(pos,pose,cmaxn);
+                       string s1=s.replace(pos,pose-1,cmaxn);
                        submit=s1.c_str();
                        cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
                       }
@@ -2752,7 +2752,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       int pos=s.find(pat);
       int pose=s.find(" ",pos+strlen(pat)+1);
       if(pos>=0){
-        string s1=s.replace(pos,pose,"bsub -n 1 ");
+        string s1=s.replace(pos,pose-1,"bsub -n 1 ");
         submit=s1.c_str();
          cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
       }
