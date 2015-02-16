@@ -702,7 +702,11 @@ if(type!=DPS::Producer::RawFile){
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv("NtupleValidatorExec");
 if(exedir && nve && AMSCommonsI::getosname()){
- AString systemc(exedir);
+ 		AString systemc;
+ 		if(getenv("AMSDataDir")) systemc=getenv("AMSDataDir");
+   		  else                   systemc="/afs/cern.ch/ams/Offline/AMSDataDir";
+   		cmd += "/DataManagement/exe/linux/timeout --signal 9 1030 ";
+  systemc+ exedir;
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
