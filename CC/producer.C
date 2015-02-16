@@ -994,10 +994,6 @@ goto againcp;
   if(getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
     setenv("TransferBy",getenv("TransferRawByB"),1);
     unsetenv("TransferRawByB");
-  if(getenv("TransferRawByB") && strlen(getenv("TransferRawByB"))){
-    setenv("TransferBy",getenv("TransferRawByB"),1);
-    unsetenv("TransferRawByB");
-    means=getenv("TransferBy");
              AString newdd="";
              if(strstr(getenv("TransferBy"),"root:")){
              string cc=getenv("TransferBy");
@@ -1013,7 +1009,6 @@ goto againcp;
                 cout <<"AMSProducer::sendNtupleStart-I-NtupleDestDir SetTo "<<destdir;
               }
              }
-
     means=getenv("TransferBy");
     goto againcpmeans;
   }
