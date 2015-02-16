@@ -67,6 +67,7 @@ extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #ifdef __G4AMS__
 #include "g4physics.h"
 #endif
+#include "daqevt.h"
 AMSEventR AMSNtuple::_evroot02;
 AMSSetupR AMSNtuple::_setup02;
 EventNtuple02 AMSNtuple::_event02;

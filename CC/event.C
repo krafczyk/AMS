@@ -21,6 +21,7 @@ extern "C" void setbcorr_(float *p);
 #include "TrExtAlignDB.h"
 #include "OrbGen.h"
 #endif
+#include "daqevt.h"
 extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *vp, float *grmedphi, double time);
 
 #include "trrec.h"

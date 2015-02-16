@@ -2,6 +2,7 @@
 #include "richid.h"
 #include "richrec.h"
 #include "timeid.h"
+#include "daqevt.h"
 
 //////////////////////////////////////////////////
 // RICH CDP are labelled from 0 to 23 (24 CDPs)

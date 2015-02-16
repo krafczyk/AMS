@@ -7,6 +7,7 @@
 #include "amsstl.h"
 #include "event.h"
 #include "timeid.h"
+#include "daqevt.h"
 integer AMSStatus::_Mode=0;
 void AMSStatus::_init(){
      _Nelem=0;

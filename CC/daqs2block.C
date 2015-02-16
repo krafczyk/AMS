@@ -18,6 +18,7 @@
 #include "antirec02.h"
 #include "tofcalib02.h"
 #include "anticalib02.h"
+#include "daqevt.h"
 //
 using namespace TOF2GC;
 using namespace ANTI2C;

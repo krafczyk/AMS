@@ -28,6 +28,8 @@
 #ifdef __LVL3ONLY__
 ofstream fbin1("/f2users/choutko/AMS/examples/zip.txt",ios::out);
 #endif
+DAQEvent::evmapr_d DAQEvent::evmap;
+uint64 DAQEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 DAQBlockType::DAQBlockType(const DAQBlockType & b):_maxbl(b._maxbl),_plength(0),_pgmb(b._pgmb),_pgetdata(b._pgetdata),_pgetlength(b._pgetlength),_next(0){
 if(_maxbl)_plength=new integer(_maxbl);
@@ -1761,15 +1763,64 @@ void DAQEvent::buildRawStructuresEarly(){
 void DAQEvent::write(){
   if(_Length && fbout.is_open()){
     _convert();
+    static int _Size=0;
+    int nthr=1;
+#ifdef _OPENMP
+    nthr=AMSEvent::get_num_threads();
+#endif
+vector<uil*> del;
+uil *evn=0;
+#ifdef _OPENMP
+#pragma omp critical (filldaqmap)
+#endif
+{
+    uint64 runv=AMSEvent::gethead()->getrunev();
+    if(runv!=runev(AMSEvent::get_thread_num())){
+     cerr<<" DAQEvent-E-EventNotSet "<<runv<<" "<<runev(AMSEvent::get_thread_num())<<endl;
+     _RunEv[AMSEvent::get_thread_num()]=runv;
+    }
+    if(evmap.find(runv)!=evmap.end()){
+      cerr<<"DAQEvent::writeR-E-duplicatedEventInMapFound "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
+   }
+   else{
+     evn=new uil(_Length,_pData);
+     evmap.insert(make_pair(runv,evn));
+     for(evmapri i=evmap.begin();i!=evmap.end();){
+     bool go=true;
+     for(int k=0;k<nthr;k++){
+        if(runev(k) && runev(k)<(i->first)&& !MISCFFKEY.NoOrderedWrite){
+          go=false;
+          break;
+        }
+      }
+      if(!go)break;
+      else {
+        for(int k=0;k<nthr;k++){
+          if(runev(k)==(i->first)){
+            runev(k)=0;
+            break;
+          }
+        }
+        del.push_back(i->second);
+        evmapri idel=i++;
+        evmap.erase(idel);
+      }
+    }
+   }
+   }
 #ifdef _OPENMP
 #pragma omp critical (fixmewritepdaq)
-{
-    fbout.write((char*)_pData,sizeof(_pData[0])*_Length);
+#endif
+  if(del.size()){
+    for(int k=0;k<del.size();k++){
+    fbout.write((char*)(del[k]->fu),sizeof(_pData[0])*del[k]->fl);
+}
     fbout.flush();
 }
+        for(int k=0;k<del.size();k++)delete del[k];
+
 #pragma omp atomic
     _NeventsO++;
-#endif
   }
 
 }

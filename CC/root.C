@@ -31,6 +31,7 @@
 #include "antirec02.h"
 #include "beta.h"
 #include "ecalrec.h"
+#include "daqevt.h"
 #include "mceventg.h"
 #ifdef _PGTRACK_
 //#include "TrRecon.h"

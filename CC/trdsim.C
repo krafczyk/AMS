@@ -7,6 +7,7 @@
 #include "mceventg.h"
 #include "timeid.h"
 #include "trdcalib.h"
+#include "daqevt.h"
 using namespace trdsim;
 void AMSTRDRawHit::lvl3CompatibilityAddress(int16u ptr,uinteger& udr, uinteger & ufe,uinteger& ute,uinteger& chan){
  chan = ptr & 15;

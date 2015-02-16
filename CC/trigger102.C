@@ -18,6 +18,7 @@
 #include "ntuple.h"
 #include <time.h>
 #include "timeid.h"
+#include "daqevt.h"
 using namespace ecalconst;
 //
  Trigger2LVL1::Scalers Trigger2LVL1::_scaler;

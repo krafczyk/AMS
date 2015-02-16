@@ -48,7 +48,7 @@ Number of threads can not be changed dynamically, g4 fault .
 
 
 
-DAQ file writing not ordered (currently not possible to order it via datacard, to be work out)
+DAQ file writing not ordered ((MISC 29=0 will change this with some /small/  memory penalty)
 
 //Performance (protons 100-200 gev)
 

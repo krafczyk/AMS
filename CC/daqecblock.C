@@ -9,6 +9,7 @@
 #include "daqecblock.h"
 #include "ecalrec.h"
 #include "ecalcalib.h"
+#include "daqevt.h"
 //
 using namespace ecalconst;
 //
