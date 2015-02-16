@@ -121,6 +121,7 @@ if(!stagein && !staged){
              if(again<10){
                 again++;
                 pclose(fp);
+                sleep(10);
                 goto again2;
              }
              stagein=true;
