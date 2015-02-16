@@ -3714,7 +3714,7 @@ int crun=0;
     char *lxplus5=getenv("AMSPublicBatch");
     if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
     lxplus5=getenv("AMSPublicBatch");
-
+/*
     NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)cid.HostName));
     bool bsub=false;
    if(cli!=_ncl.end()){
@@ -3732,6 +3732,7 @@ int crun=0;
        threads=thr;
       }
     }
+*/
 
      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
                     NHLI li=find_if(_pser->getnhl().begin(),_pser->getnhl().end(),NHL_find((const char *)cid.HostName)); 
