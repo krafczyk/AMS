@@ -17,6 +17,8 @@ void TRDMCFFKEY_DEF::init(){
   alpha=0;
   beta=0;
   gain=1;
+//VC 2015-02-17
+  gain=1.26;
   f2i=8;
   adcoverflow=4095;
   ped=355;

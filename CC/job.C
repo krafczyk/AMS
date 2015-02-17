@@ -1338,7 +1338,9 @@ void AMSJob::_sitrddata(){
   TRDFITFFKEY.UseTOF=2;
   FFKEY("TRDFI",(float*)&TRDFITFFKEY,sizeof(TRDFITFFKEY_DEF)/sizeof(integer),"MIXED");
 
-  TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;
+//  TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;
+// VC 2015-02-17
+  TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC;
   TRDCLFFKEY.Thr1S=0.11*3; //VC
   TRDCLFFKEY.Thr1A=0.13;
   TRDCLFFKEY.Thr1R=7;
@@ -1844,6 +1846,9 @@ void AMSJob::_resrddata(){
 //-----------------------------
 
 void AMSJob::udata(){
+  if (isSimulation() ) {
+      TRDCLFFKEY.ADC2KeV/=TRDMCFFKEY.gain;
+  }
 #ifdef _PGTRACK_
 
   // Book histograms (MC gen+rec mode) if not yet
