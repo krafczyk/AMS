@@ -9035,7 +9035,7 @@ anyagain:
          $cput=7200;
         }
         if ($dataset->{buildno} > 906) {
-            $cput = 30;
+            $cput = 50;
         }
 
         my $evno=$q->param("QEv");
