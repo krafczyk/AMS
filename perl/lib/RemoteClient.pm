@@ -1003,7 +1003,7 @@ if($#{$self->{DataSetsT}}==-1){
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
 
-       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ","OPENCLOSE");
+       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ","OPENCLOSE","THREADS");
        $template->{OPENCLOSE}=undef;
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
@@ -8880,6 +8880,12 @@ anyagain:
             if($template eq $tmp->{filename} and $tmp->{TOTALEVENTS}>0){
                 $templatebuffer=$tmp->{filebody};
                 my ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
+                if(defined $tmp->{THREADS}){
+                    $q->param("TTHREADS", $tmp->{THREADS});
+                }
+                else {
+                    $q->param("TTHREADS", 1);
+                }
                 if(not defined $q->param("QRNDM1")){
                     $q->param("QRNDM1",$rndm1);
                 }
@@ -9698,8 +9704,10 @@ if(defined $dataset->{buildno} ){
          my @junk=split '\.',$q->param("TFILENAME");
          $buf=~ s/JOB=/JOBNAME=$junk[0] \nJOB=/;
          }
-         my $threads=$q->param("TTHREADS");
-         $buf=~ s/JOB=/THREADS=1 \nJOB=/;
+         if(defined $q->param("TTHREADS")){
+            my $threads=$q->param("TTHREADS");
+            $buf=~ s/JOB=/THREADS=$threads \nJOB=/;
+         }
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/;
          $rootntuple=$q->param("RootNtuple");
          if($tmpb =~/DAQC 1=10/){
@@ -17364,7 +17372,7 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
+           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ","THREADS");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -19099,7 +19107,7 @@ sub readDataSets() {
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
+       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ","THREADS");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
