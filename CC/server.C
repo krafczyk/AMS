@@ -2545,7 +2545,7 @@ char *min_bad=getenv("AMSMaxRunFailRate");
 if(min_bad && strlen(min_bad)){
  minr=atol(min_bad)+1;
 }
-if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Producer::Failed)){
+if(0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Producer::Failed)){
         singlethread=true;
 }
         cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
@@ -2693,7 +2693,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       char pat[]="bsub -n ";
       int pos=s.find(pat);
       int pose=s.find(" ",pos+strlen(pat)+1);
-      if( 1){
+      if( !singlethread){
 //      if( !strstr((const char*)ahlv->HostName,lxplus5) || !singlethread){
 //         read script put max cpu number for given host
            ifstream ftxt;

@@ -2521,12 +2521,17 @@ else sprintf(tmpu,"%d",_pid.uid);
               lxplus6=true;
               bool lxplus6_1=((const char*)_pid.HostName)[0]=='b' && ((const char*)_pid.HostName)[1]=='6';
               bool lxplus6_2=((const char*)_pid.HostName)[0]=='p';
-              if(lxplus6_2){
+         if(lxplus6_2){
+                bool oncemore=false;
                 for(int k=1;k<strlen(_pid.HostName);k++){
                   if(((const char*)_pid.HostName)[k]=='.')break;
-                  if(!isdigit( ((const char*)_pid.HostName)[k]))lxplus6_2=false;
+                  if(!isdigit( ((const char*)_pid.HostName)[k])){
+                    if(oncemore)lxplus6_2=false;
+                    else oncemore=true;
+                  }
                 }
               }
+
               lxplus6=lxplus6 && (lxplus6_1 || lxplus6_2); 
               if(lxplus6){
                 cout <<" AMSProducer-I-lxplus6 Detected"<<endl;
