@@ -2595,7 +2595,7 @@ void AMSJob::_signinitjob(){
     if(pos>=0){
       if(strstr((const char *)G4Version,"geant4-09-06")){
 	string add="geant4.9.6.p03";
-	g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
+	g4is.replace(g4is.begin()+pos,g4is.begin()+strlen(g4i),add);
 	setenv("G4INSTALL",g4is.c_str(),1);
 	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
 	/*
@@ -2643,7 +2643,7 @@ void AMSJob::_signinitjob(){
       }
       else if(strstr((const char *)G4Version,"geant4-10-01")){
 	string add="geant4.10.01";
-	g4is.replace(g4is.begin()+pos,g4is.begin()+pos+add.length(),add);
+	g4is.replace(g4is.begin()+pos,g4is.begin()+strlen(g4i),add);
 	setenv("G4INSTALL",g4is.c_str(),1);
 	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
 	/*
