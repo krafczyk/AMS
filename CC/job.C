@@ -1848,6 +1848,7 @@ void AMSJob::_resrddata(){
 void AMSJob::udata(){
   if (isSimulation() ) {
       TRDCLFFKEY.ADC2KeV/=TRDMCFFKEY.gain;
+      TRDMCFFKEY.GeV2ADC*=TRDMCFFKEY.gain;
   }
 #ifdef _PGTRACK_
 
