@@ -9043,13 +9043,13 @@ anyagain:
         if(not $evno =~/^\d+$/ or $evno <$a ){
              $self->ErrorPlus("Events no $evno is out of range ($a,$b)");
         }
+        #die "$evno $runno $max_jobs";
         if($max_jobs<$runno){
             $runno=$max_jobs;
         }
         if(not $runno =~/^\d+$/ or $runno <$a or $runno>1000){
              $self->ErrorPlus("Runs no $runno is out of range ($a,1000)");
         }
-
 
         if($evno < $runno){
              $self->ErrorPlus("Runs no $runno greater than events no $evno");
@@ -9625,8 +9625,16 @@ if(defined $dataset->{buildno} ){
                $timbegu=time();
                $timendu=$timbegu+3600*$runno;
            }
-         my $start=$timbegu+int(($timendu-$timbegu)/$runno)*($i-1);
-             my $end=$start+int(($timendu-$timbegu)/$runno);
+         my $runnum=$srunno>$runno?$srunno:$runno;
+           
+         my $origjobspan = int(($timendu-$timbegu)/$runnum);
+         my $jobspan = $origjobspan;
+         if ($jobspan > 86400*30) {
+             $jobspan = 86400*30;
+         }
+
+         my $start=$timbegu+$jobspan*($i-1);
+             my $end=$start+$jobspan;
              my ($s,$m,$h,$date,$mon,$year)=localtime($start);
               my $hstart=$s+100*$m+10000*$h;
          my $timstart=($year+1900)+10000*($mon+1)+1000000*($date);
