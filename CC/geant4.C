@@ -1150,13 +1150,13 @@ if(!Step)return;
 #endif
 trig=(trig+1)%freq;
 
-  if((trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit) || (GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1)){
+  if((trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit) || (GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1) || (AMSEvent::Barrier()>0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit) ){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
     Track->SetTrackStatus(fStopAndKill);
     AMSEvent::gethead()->seterror();
-    if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<" "<<g4_primary_momentum<<endl;
+    if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<" "<<g4_primary_momentum<<" "<<AMSEvent::Barrier()<<endl;
     report=false;
     AMSEvent::gethead()->SetEventSkipped(true);
     return;
