@@ -39,7 +39,7 @@ Release notes
 
 // Features
 
-the events in the root file will be not ordered by default (MISC 29=0 will change this with some /may be big/  memory penalty), however amschain AMSChain::GetEntryOrdered(unsigned long long entry)  can be used to get the ordered events
+the events in the root file will be not ordered by default (MISC 29=x0 will change this with some /may be big/  memory penalty), however amschain AMSChain::GetEntryOrdered(unsigned long long entry)  can be used to get the ordered events
 
 
 RNDM hase still no reproducibility, to be worked in , however it does not change quality of results
@@ -48,7 +48,7 @@ Number of threads can not be changed dynamically, g4 fault .
 
 
 
-DAQ file writing not ordered ((MISC 29=0 will change this with some /small/  memory penalty)
+DAQ file writing is ordered by default 
 
 //Performance (protons 100-200 gev)
 
