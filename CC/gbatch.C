@@ -249,9 +249,9 @@ catch (std::bad_alloc abab){
 #endif
 if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1)){
 //#ifdef __G4AMS__
-#ifdef __CORBA__
+//#ifdef __CORBA__
 lasthope:
-#endif
+//#endif
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
   cerr<<"OPool Released"<<endl;
@@ -287,9 +287,26 @@ lasthope:
       AMSProducer::gethead()->sendCurrentRunInfo(false);
     }
     else{
+#ifdef G4MULTITHREADED
+  cerr<<"Preparing for OPool Released"<<endl;
+  OPool.ReleaseLastResort();
+  cerr<<"OPool Released"<<endl;
+#else
           goto lasthope;
+#endif
     } 
     cout << " sighup sended "<<endl;
+#else
+    cout << " sighup sended "<<endl;
+    GCFLAG.IEORUN=1;
+    GCFLAG.IEOTRI=1;
+#ifdef G4MULTITHREADED
+  cerr<<"Preparing for OPool Released"<<endl;
+  OPool.ReleaseLastResort();
+  cerr<<"OPool Released"<<endl;
+#else
+          goto lasthope;
+#endif
 #endif
     break;
   case SIGUSR1:
