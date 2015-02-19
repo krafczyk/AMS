@@ -3035,7 +3035,7 @@ int AMSEventR::SetDefaultMCTuningParameters()
   if (particle == 47) {
     TRMCFFKEY.MCtuneDs[0] =  0.0;
     TRMCFFKEY.MCtuneDs[1] = -3.0e-4;
-    if(Version()==916) TRMCFFKEY.MCtuneDs[1] = -210.;//New tuning based on each layer better than Gaus
+    if(Version()>=916) TRMCFFKEY.MCtuneDs[1] = -210.;//New tuning based on each layer better than Gaus
   }
   else if( Version()>=928 && ( particle==14 || particle==15) ){ // proton and antiproton
 	  // tuned based on B928 proton MC, smearing X direction, unsmearing Y direction by moving point towards the MC cluster
