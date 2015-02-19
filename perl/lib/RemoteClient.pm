@@ -9645,6 +9645,7 @@ if(defined $dataset->{buildno} ){
          $buf=~ s/TIMEND=/TIMEND=$timfin\nHRSEND=$hfin/;
          $buf=~ s/PART=/PART=$particleid/;
          $buf=~ s/RUN=/RUN=$run/;
+         die "$timstart $runnon $timfin $start $end $end-$start \n $buf";
          if($self->{q}->param("AdvancedQuery")){
            $buf=~ s/SPECTRUM=/SPECTRUM=$spectrum/;
            $buf=~ s/GEOCUTOFF=/GEOCUTOFF=$geocutoff/;
