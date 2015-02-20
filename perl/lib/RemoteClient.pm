@@ -9625,13 +9625,13 @@ if(defined $dataset->{buildno} ){
                $timbegu=time();
                $timendu=$timbegu+3600*$runno;
            }
-         my $runnum=$srunno>$runno?$srunno:$runno;
+#         my $runnum=$srunno>$runno?$srunno:$runno;
            
-         my $origjobspan = int(($timendu-$timbegu)/$runnum);
+         my $origjobspan = int(($timendu-$timbegu)/$runno);
          my $jobspan = $origjobspan;
-         if ($jobspan > 86400*30) {
-             $jobspan = 86400*30;
-         }
+#         if ($jobspan > 86400*30) {
+#             $jobspan = 86400*30;
+#         }
 
          my $start=$timbegu+$jobspan*($i-1);
              my $end=$start+$jobspan;
@@ -9645,7 +9645,7 @@ if(defined $dataset->{buildno} ){
          $buf=~ s/TIMEND=/TIMEND=$timfin\nHRSEND=$hfin/;
          $buf=~ s/PART=/PART=$particleid/;
          $buf=~ s/RUN=/RUN=$run/;
-         die "$timstart $runnon $timfin $start $end $end-$start \n $buf";
+#         die "$timstart $runnon $timfin $start $end $end-$start \n $buf";
          if($self->{q}->param("AdvancedQuery")){
            $buf=~ s/SPECTRUM=/SPECTRUM=$spectrum/;
            $buf=~ s/GEOCUTOFF=/GEOCUTOFF=$geocutoff/;
