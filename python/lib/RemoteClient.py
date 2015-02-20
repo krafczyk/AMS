@@ -2129,9 +2129,9 @@ class RemoteClient:
         except:
             print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
             return -5, os.path.exists(self.eoslink)
-        if (not os.path.exists(self.eoslink)):
-            os.system(eosumount + ' $HOME/eos')
-            os.system(eosmount + ' $HOME/eos')
+#        if (not os.path.exists(self.eoslink)):
+#            os.system(eosumount + ' $HOME/eos')
+#            os.system(eosmount + ' $HOME/eos')
         if (quota['statusbytes'] == 'ok' and quota['statusfiles'] == 'ok'):
 #            print (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
 #            print "Testing write-in"
@@ -2257,7 +2257,7 @@ class RemoteClient:
         i=os.system(cmd)
         if (i!=0):
             print "rfrename failed, retrying with nsrename ..."
-            cmd="nsrename "+input+" "+cmove
+            cmd="nsrename -fv "+input+" "+cmove
             i=os.system(cmd)
             
         if(i==0):
@@ -2766,6 +2766,8 @@ class RemoteClient:
             self.mt = mt
         else:
             self.mt = 0
+        if (self.eos):
+            self.checkEOS()
         whoami=pwd.getpwuid(os.getuid())[0]
         if not (whoami == None or whoami =='ams' ):
             print "parseJournalFiles -ERROR- script cannot be run from account : ",whoami 
@@ -3261,8 +3263,8 @@ class RemoteClient:
                        ret=self.sqlserver.Query(sql)
                        
                        if(len(ret)==0):
-                           cputime="%.0f" %(runincomplete[6])
-                           elapsed="%.0f" %(runincomplete[7])
+                           cputime="%.0f" %(float(runincomplete[6]))
+                           elapsed="%.0f" %(float(runincomplete[7]))
                            host=runincomplete[1]
                            sql="UPDATE Jobs SET EVENTS=%s, ERRORS=%s,CPUTIME=%s, ELAPSED=%s,HOST='%s', TIMESTAMP = %d WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = %d)" %(runincomplete[3], runincomplete[5],cputime, elapsed,host,timestamp, run)
                            output.write(sql + "\n")
@@ -3473,16 +3475,25 @@ class RemoteClient:
                     if(closedst[crcIndx]==0):
                         output.write("Status : %d, CRC %d. Skip file : : %d\n" %(closedst[statusIndx],closedst[crcIndx],closedst[fileIndx]))
                     else:
-                        junk=closedst[fileIndx].split('/')
-                        dstfile=self.trimblanks(junk[len(junk)-1])
-                        filename=dstfile
-                        dstfile=dirpath+"/"+dstfile
+                        pathwithouthost = (closedst[fileIndx].split(':'))[1]
+                        if (re.match("^/castor/cern.ch/", pathwithouthost) or re.match("^/eosams/", pathwithouthost) or re.match("^/eos/ams/", pathwithouthost)):
+                            dstfile = pathwithouthost
+                            inputfilel = dstfile
+                        else:
+                            junk=closedst[fileIndx].split('/')
+                            dstfile=self.trimblanks(junk[len(junk)-1])
+                            filename=dstfile
+                            dstfile=dirpath+"/"+dstfile
+                            inputfilel = os.path.realpath(dstfile)
                         dstlink = dstfile
-                        inputfilel = os.path.realpath(dstfile)
                         if (re.match("^/castor", inputfilel)):
                             dstfile = inputfilel
                             if (outputpath is None):
                                 ouputpath = '/castor/cern.ch/ams'
+                        elif (re.match("^/eosams/", inputfilel)):
+                            dstfile = inputfilel
+#                            if (outputpath is None):
+#                                outputpath = '/eosams'
                         elif (re.match("^/", inputfilel)):
                             junk = inputfilel.split('/')
                             if (runtype % 2 == 1):
@@ -3526,6 +3537,17 @@ class RemoteClient:
                             else:
                                 print "parsejournalfile-E-Unableto %s" %(cmd)
                             os.unlink(tmpf)
+                        elif (re.match("^/eosams/", inputfilel)):
+                            cmd = "%s ls -l %s" %(self.eosselect, self.eosLink2Real(inputfilel))
+                            pair=commands.getstatusoutput(cmd)
+                            if (pair[0] != 0 or len(pair) < 2):
+                                print "%s\nreturned %d\n" %(cmd, pair[0])
+                                print "parsejournalfile-E-Unableto open file %s" %(tmpf)
+                            else:
+                                out=pair[1]
+                                junk = out.split()
+                                if (len(junk) > 4):
+                                    dstsize = int(junk[4])
                         else:
                             try:
                                 dstsize=int(os.stat(dstfile)[ST_SIZE])
