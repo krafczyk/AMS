@@ -600,7 +600,7 @@ OBJECTS:=$(filter-out $(SPECIAL_OBJS),$(OBJECTS))
 SPOPT=-O0
 endif
 ifdef G4MULTITHREADED
-SPECIAL_OBJF=$(DPMBIN)dpm25nuc1g4.o
+SPECIAL_OBJF=$(DPMBIN)dpm25nuc1g4.o $(DPMBIN)dpm25nuc2.o
 SPOPT=-O0
 DPMFFOBJ:=$(filter-out $(SPECIAL_OBJF),$(DPMFFOBJ))
 endif
@@ -763,6 +763,10 @@ $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C)
 
 $(SPECIAL_OBJF):$(SPECIAL_OBJF: %.o=%.f)
 	 $(AT)$(FF) -c $(FFLAGS) $(SPOPT)  -I$(CERNDIR)/include $(DPMFF)dpm25nuc1g4.f -o $(DPMBIN)dpm25nuc1g4.o
+
+	$(AT)$(FF) -c $(FFLAGS) $(SPOPT)  -I$(CERNDIR)/include $(DPMFF)dpm25nuc2.f -o $(DPMBIN)dpm25nuc2.o
+
+
  
 readdaq:amswd  $(EXE)readdaq$(PG)
 

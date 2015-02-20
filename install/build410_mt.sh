@@ -23,3 +23,9 @@ setenv INTELVER xe2015/composer_xe_2015.1.133
 setenv PGTRACK 1
 setenv G4AMS 1
 gmake -j 50
+
+
+gmake producer
+gmake producer6
+
+
