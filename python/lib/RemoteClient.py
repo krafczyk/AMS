@@ -2255,6 +2255,11 @@ class RemoteClient:
             cmove=cmove+'/'+junk[i]
         cmd="rfrename "+input+" "+cmove
         i=os.system(cmd)
+        if (i!=0):
+            print "rfrename failed, retrying with nsrename ..."
+            cmd="nsrename "+input+" "+cmove
+            i=os.system(cmd)
+            
         if(i==0):
             mutex.acquire()
             return int(time.time()),cmove
@@ -3392,7 +3397,7 @@ class RemoteClient:
                 rq=self.sqlserver.Query(sql)
                 if(len(rq)>0 and rq[0][0].find('Completed')>=0):
                     print "Run ",run," already completed in database do nothing"
-                    os.system("mv %s %s.1" %(inputfile,inputorig))
+                    os.system("mv -f %s %s.1" %(inputfile,inputorig))
                     mutex.release()
                     return 0, copylog
                 if(patternsmatched == len(StartingRunPatterns)+3 or patternsmatched == len(StartingRunPatterns)+2):
@@ -3630,7 +3635,7 @@ class RemoteClient:
                                                 print " %s failed" %(rfcp)
                                             else:
                                                 castortime = int(time.time())
-                                        if (self.skipcrc):
+                                        if (self.skipcrc or (self.castoronly and outputpath.find('/castor/cern.ch/') >= 0)):
                                             crctime = 0
                                         else:
                                             crctime = timestamp
