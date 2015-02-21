@@ -195,7 +195,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  cout<<"Also Use EMD Model"<<endl;
 	  G4EMDissociation *theEMD = new G4EMDissociation();
 	  theEMD->SetMinEnergy(100.0*MeV);
-	  theEMD->SetMaxEnergy(2000.0*GeV);
+	  theEMD->SetMaxEnergy(100.0*TeV);
 	  // theEMD->SetVerboseLevel(2);
 	  G4ElementTable::iterator iter;
 	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
@@ -287,7 +287,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  cout<<"Also Use EMD Model"<<endl;
 	  G4EMDissociation *theEMD = new G4EMDissociation();
 	  theEMD->SetMinEnergy(100.0*MeV);
-	  theEMD->SetMaxEnergy(2000.0*GeV);
+	  theEMD->SetMaxEnergy(100.0*TeV);
 	  // theEMD->SetVerboseLevel(2);
 	  G4ElementTable::iterator iter;
 	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());

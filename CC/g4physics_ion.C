@@ -105,7 +105,7 @@ void IonDPMJETPhysics::ConstructProcess()
     G4ProcessManager* pManager = particle->GetProcessManager();
     G4EMDissociation *theEMD = new G4EMDissociation();
     theEMD->SetMinEnergy(100.0*MeV);
-    theEMD->SetMaxEnergy(2000.0*GeV);
+    theEMD->SetMaxEnergy(100*TeV);
     // theEMD->SetVerboseLevel(10);
     G4ElementTable::iterator iter;
     G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
