@@ -71,11 +71,11 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
     G4BinaryLightIonReaction * theGenIonBC = new G4BinaryLightIonReaction;
     theGenIonBC->SetMinEnergy(0.0*MeV);
-    theGenIonBC->SetMaxEnergy(20000.0*GeV);
+    theGenIonBC->SetMaxEnergy(100*TeV);
 
     G4QMDReaction * theGenIonQMD= new G4QMDReaction;
     theGenIonQMD->SetMinEnergy(0.0*MeV);
-    theGenIonQMD->SetMaxEnergy(20000.0*GeV);
+    theGenIonQMD->SetMaxEnergy(100.0*TeV);
 
     G4EMDissociationCrossSection *EMDCrossSection = new G4EMDissociationCrossSection;
     G4GeneralSpaceNNCrossSection * generalCrossSection =  new G4GeneralSpaceNNCrossSection;
