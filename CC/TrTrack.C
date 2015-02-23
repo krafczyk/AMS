@@ -1998,9 +1998,11 @@ void TrTrackR::RecalcHitCoordinates(int id) {
     if (xcls) { xcls->SetDxDz(dxdz); xcls->SetDyDz(dydz); }
     if (ycls) { ycls->SetDxDz(dxdz); ycls->SetDyDz(dydz); }
   }
-  // set charge of inner tracker no beta correction (iterate to be more precise with CofG correction)
-  for (int iter=0; iter<3; iter++) { 
+  // store charge in the hits only if linearity correction requests charge
+  if (TRCLFFKEY.UseNonLinearity>1) { 
+    // no need to refit many times since charge calculation is independent from linearity correction 
     float qtrk = GetInnerQ();
+    // set charge into the hits 
     for (int i = 0; i < GetNhits(); i++) {
       TrRecHitR  *hit = (TrRecHitR*) GetHit(i);
       if (hit->Shared()) continue;
