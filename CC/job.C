@@ -5256,23 +5256,23 @@ void AMSJob::_dbendjob(){
 void AMSJob::addblocktype(){
 
 
-        DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+        DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq,4);
 	DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
-			       &AMSmceventg::builddaq);
+			       &AMSmceventg::builddaq,8);
 			
 #ifdef _PGTRACK_
 	DAQEvent::addblocktype(&TrDAQMC::getmaxblocks,&TrDAQMC::calcdaqlength,
-			       &TrDAQMC::builddaq);
+			       &TrDAQMC::builddaq,11);
 #else		
 	DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
-			       &AMSTrMCCluster::builddaq);
+			       &AMSTrMCCluster::builddaq,11);
 #endif
 	DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
-			       &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
+			       &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh,10);
 			
 			
 	DAQEvent::addblocktype(&AMSEvent::getmaxblocks,
-			       &AMSEvent::calcdaqlength,&AMSEvent::builddaq);
+			       &AMSEvent::calcdaqlength,&AMSEvent::builddaq,9);
 			
 			
       // lvl1
@@ -5281,30 +5281,30 @@ void AMSJob::addblocktype(){
 
 
       //           lvl3
-      //    DAQEvent::addblocktype(&TriggerLVL302::getmaxblocks,&TriggerLVL302::calcdaqlength,&TriggerLVL302::builddaq);
+      //    DAQEvent::addblocktype(&TriggerLVL302::getmaxblocks,&TriggerLVL302::calcdaqlength,&TriggerLVL302::builddaq,7);
 
     
     //tof + anti 
 
-    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock);
+    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock,5);
 
 
     //trd
 
-    DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq);
+    DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq,2);
 
 
 // ecal
 
-    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
+    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock,3);//for MC ?
 
 
     //tracker
 #ifdef _PGTRACK_
-    DAQEvent::addblocktype(&TrDAQ::getmaxblocks,&TrDAQ::calcdaqlength,&TrDAQ::builddaq);
+    DAQEvent::addblocktype(&TrDAQ::getmaxblocks,&TrDAQ::calcdaqlength,&TrDAQ::builddaq,1);
 
 #else
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq,1);
 #endif
 
 
@@ -5357,29 +5357,29 @@ void AMSJob::_redaq2initjob(){
     {  // mc
       if( !isRealData()){
 #ifndef __LVL3ONLY__
-        DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
-        DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+        DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock,3);//for MC ?
+        DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq,4);
 	DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
 	DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
-			       &AMSmceventg::builddaq);
+			       &AMSmceventg::builddaq,8);
 			
 #ifdef _PGTRACK_
 	DAQEvent::addsubdetector(&TrDAQMC::checkdaqid,&TrDAQMC::buildraw);
 	DAQEvent::addblocktype(&TrDAQMC::getmaxblocks,&TrDAQMC::calcdaqlength,
-			       &TrDAQMC::builddaq);
+			       &TrDAQMC::builddaq,11);
 #else		
 	DAQEvent::addsubdetector(&AMSTrMCCluster::checkdaqid,&AMSTrMCCluster::buildraw);
 	DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
-			       &AMSTrMCCluster::builddaq);
+			       &AMSTrMCCluster::builddaq,11);
 #endif
 #endif
 	DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
 	DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
-			       &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
+			       &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh,10);
 			
 			
 	DAQEvent::addblocktype(&AMSEvent::getmaxblocks,
-			       &AMSEvent::calcdaqlength,&AMSEvent::builddaq);
+			       &AMSEvent::calcdaqlength,&AMSEvent::builddaq,9);
 			
 			
       }
@@ -5391,7 +5391,7 @@ void AMSJob::_redaq2initjob(){
       // lvl1
 
       DAQEvent::addsubdetector(&Trigger2LVL1::checkdaqid,&Trigger2LVL1::buildraw);
-      DAQEvent::addblocktype(&Trigger2LVL1::getmaxblocks,&Trigger2LVL1::calcdaqlength,&Trigger2LVL1::builddaq);
+      DAQEvent::addblocktype(&Trigger2LVL1::getmaxblocks,&Trigger2LVL1::calcdaqlength,&Trigger2LVL1::builddaq,6);
 
 
     }
@@ -5408,14 +5408,14 @@ void AMSJob::_redaq2initjob(){
     //tof + anti 
 
     DAQEvent::addsubdetector(&DAQS2Block::checkblockid,&DAQS2Block::buildraw);
-    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock);
+    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock,5);
 
 
     //trd
 
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::buildraw);
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidJ,&AMSTRDRawHit::buildrawJ);
-    DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq);
+    DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq,2);
 
 
 
@@ -5423,11 +5423,11 @@ void AMSJob::_redaq2initjob(){
     //tracker
 #ifdef _PGTRACK_
     DAQEvent::addsubdetector(&TrDAQ::checkdaqid,&TrDAQ::buildraw);
-    DAQEvent::addblocktype(&TrDAQ::getmaxblocks,&TrDAQ::calcdaqlength,&TrDAQ::builddaq);
+    DAQEvent::addblocktype(&TrDAQ::getmaxblocks,&TrDAQ::calcdaqlength,&TrDAQ::builddaq,1);
 
 #else
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq,1);
     //    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq_new);
 #endif
 

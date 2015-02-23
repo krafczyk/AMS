@@ -149,8 +149,8 @@ void DAQEvent::addsubdetector(pid pgetid, pputdata pput, uinteger btype){
   }
   else _pSD[btype]=p;
 }
-void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget,uinteger btype){
-  DAQBlockType * p= new DAQBlockType(pgmb,pgl,pget);
+void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget,integer id,uinteger btype){
+  DAQBlockType * p= new DAQBlockType(pgmb,pgl,pget,id);
   if(_pBT[btype]){
     DAQBlockType *paux=_pBT[btype];
     while(paux->_next)paux=paux->_next;
@@ -315,7 +315,24 @@ void DAQEvent::buildDAQ(uinteger btype){
       int len=(fpl->_pgetlength)(i);
       if(len>=16384 || len<=-32768){
 	cerr<<" DAQEvent::buildDaq-E-SubDLTooBigIgnoring "<<len<<endl;
+        if(fpl->is_tdr()){
+          lv3.err_tdr+=len>0?1:24;
+        }
+        else if(fpl->is_rdr()){
+          lv3.err_rdr+=len>0?1:12;
+        }
+        else if(fpl->is_edr()){
+          lv3.err_edr+=len>0?1:6;
+        }
+        else if(fpl->is_udr()){
+          lv3.err_udr+=len>0?1:6;
+        }
+        else if(fpl->is_sdr()){
+          lv3.err_sdr+=len>0?1:1;
+        }
 	len=0;
+	cerr<<" DAQEvent::buildDaq-E-ErrorsSet "<<" tdr  "<<lv3.err_tdr<<" rdr "<<lv3.err_rdr<<" udr "<< lv3.err_udr<<" edr "<<lv3.err_edr<<" sdr "<<lv3.err_sdr<< " id "<<fpl->getid()<<endl;
+
       }
       *(fpl->_plength+i)=len>0?len+_OffsetL:len-_OffsetL;
       if(abs(*(fpl->_plength+i))>1)ntot+=abs(*(fpl->_plength+i));
