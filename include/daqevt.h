@@ -94,6 +94,7 @@ DAQlv3():err_proc(0), err_run(0),err_event(0),err_tdr(0),err_udr(0),err_rdr(0),e
 
 class DAQBlockType  {
 protected:
+  integer _id;  // 1 tdr,2 udr,3 edr,4,rdr,5 sdr,6 lvl1, 7 lvl3, 8 mc , 9 ev, 11 trmc
   integer _maxbl;
   integer *  _plength;
   pgetmaxblocks _pgmb;
@@ -101,11 +102,18 @@ protected:
   pgetl   _pgetlength;
   DAQBlockType * _next;
 public:
-  DAQBlockType():_maxbl(0),_plength(0),_pgmb(0),_pgetdata(0),_pgetlength(0),_next(){}
-  DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget):_maxbl(0),_plength(0),_pgmb(pgmb),_pgetdata(pget),_pgetlength(pgl),_next(){}
+  DAQBlockType():_maxbl(0),_plength(0),_pgmb(0),_pgetdata(0),_pgetlength(0),_id(),_next(){}
+  DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget, integer id):_maxbl(0),_plength(0),_pgmb(pgmb),_pgetdata(pget),_pgetlength(pgl),_id(id),_next(){}
   DAQBlockType(const DAQBlockType &o);
-
-  friend class DAQEvent;
+  bool is_udr(){return _id==2;}
+  bool is_tdr(){return _id==1;}
+  bool is_rdr(){return _id==4;}
+  bool is_edr(){return _id==3;}
+  bool is_sdr(){return _id==5;}
+  bool is_lvl1(){return _id==6;}
+  bool is_lvl3(){return _id==7;} 
+  integer getid(){return _id;}
+friend class DAQEvent;
 };
 
 
@@ -319,7 +327,7 @@ public:
   static char * _getNextFile(integer & run, integer & event);
   static void initO(integer run,integer event,time_t tt);
   static void addsubdetector(pid pgetid, pputdata pput, uinteger btype=0);
-  static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget, uinteger btype=0);
+  static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget, integer id,uinteger btype=0);
 
   //+
   void    data(uint16 *buff) {memcpy(buff,_pData,getlength());}
