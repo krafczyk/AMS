@@ -102,8 +102,8 @@ protected:
   pgetl   _pgetlength;
   DAQBlockType * _next;
 public:
-  DAQBlockType():_maxbl(0),_plength(0),_pgmb(0),_pgetdata(0),_pgetlength(0),_id(),_next(){}
-  DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget, integer id):_maxbl(0),_plength(0),_pgmb(pgmb),_pgetdata(pget),_pgetlength(pgl),_id(id),_next(){}
+  DAQBlockType():_id(0),_maxbl(0),_plength(0),_pgmb(0),_pgetdata(0),_pgetlength(0),_next(){}
+  DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget, integer id):_id(id),_maxbl(0),_plength(0),_pgmb(pgmb),_pgetdata(pget),_pgetlength(pgl),_next(){}
   DAQBlockType(const DAQBlockType &o);
   bool is_udr(){return _id==2;}
   bool is_tdr(){return _id==1;}
