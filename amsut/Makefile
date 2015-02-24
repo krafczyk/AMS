@@ -71,7 +71,9 @@ endif
 ifeq "$(ARCH)" "linuxx8664gcc"
 DEFINES=
 ### Compilers ###
+ifneq "$(origin FC)" "environment"
   FC       = gfortran
+endif
   CXX      = g++ 
   LD       = g++
 endif
