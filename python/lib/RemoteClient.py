@@ -4723,6 +4723,7 @@ class RemoteClient:
         self.CheckedRuns=[0]
         self.GoodRuns=[0]
         self.BadRuns=[0]
+        self.skipcrc=0
         delay=86400
         joudir=source+"/jou";
         filesfound=0
