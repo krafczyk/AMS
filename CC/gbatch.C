@@ -291,6 +291,9 @@ lasthope:
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
   cerr<<"OPool Released"<<endl;
+    GCFLAG.IEORUN=1;
+    GCFLAG.IEOTRI=1;
+
 #else
           goto lasthope;
 #endif
