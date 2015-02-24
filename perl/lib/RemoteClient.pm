@@ -972,6 +972,7 @@ if($#{$self->{DataSetsT}}==-1){
          if($job=~/^serverno=/){
              my @vrs= split '=',$job;
              my @add=split ',',$vrs[1];
+     if(not defined $dataset->{serverno}){
              if($#add>0){
                  my $tme=time();
                $dataset->{serverno}=$add[$tme%($#add+1)];
@@ -979,7 +980,8 @@ if($#{$self->{DataSetsT}}==-1){
              else{
                $dataset->{serverno}=$vrs[1];
               }
-             last;
+         }
+          last;
          }
      }
      if(not defined $dataset->{serverno}){
@@ -1315,6 +1317,8 @@ if($#{$self->{DataSetsT}}==-1){
          if($job=~/^serverno=/){
              my @vrs= split '=',$job;
              my @add=split ',',$vrs[1];
+     if(not defined $dataset->{serverno}){
+
              if($#add>0){
                  my $tme=time();
                $dataset->{serverno}=$add[$tme%($#add+1)];
@@ -1322,6 +1326,7 @@ if($#{$self->{DataSetsT}}==-1){
              else{
                $dataset->{serverno}=$vrs[1];
               }
+}
              last;
          }
      }
