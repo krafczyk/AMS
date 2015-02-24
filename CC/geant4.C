@@ -774,6 +774,7 @@ if(!G4Threading::IsWorkerThread() )return;
 //   if(trig ){ 
 //     AMSEvent::gethead()->copy();
 //   }
+     if(GCFLAG.IEORUN || GCFLAG.IEOTRI)trig=1; 
      AMSEvent::gethead()->write(trig);
 
      UPool.Release(0);
