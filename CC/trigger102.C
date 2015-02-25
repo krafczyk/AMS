@@ -3025,6 +3025,7 @@ BadExit:
 
 uinteger Trigger2LVL1::Scalers::_GetIndex(time_t time ){
 static integer k=0;
+#pragma omp threadprivate (k)
 // first check k; then either k+1 or run binary search
 
   if(time>=_Tls[0][k] && time < (k<int(_Nentries)-1?_Tls[0][k+1]:time+1)){
