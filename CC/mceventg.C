@@ -1497,12 +1497,12 @@ void AMSmceventg::run(integer ipart){
   do{
     gener();
 #ifdef _PGTRACK_
-    hman.Fill("Pgen", _mom, _dir[2]);
+    hman.Fill("Pgen", log10(fabs(_mom)), _dir[2]);
 #endif
   }while(!accept());
 
 #ifdef _PGTRACK_
-  hman.Fill("Pacc", _mom, _dir[2]);
+  hman.Fill("Pacc", log10(fabs(_mom)), _dir[2]);
 #endif
   
   // Set seed

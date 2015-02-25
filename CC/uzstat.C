@@ -89,6 +89,15 @@ thread=omp_get_thread_num();
 }
 number AMSStat::check(char * name){
 int thread=0;
+#ifdef _OPENMP
+#ifdef G4MULTITHREADED
+int id=G4Threading::G4GetThreadId();
+if(id<0)return 0 ;
+else thread=id;
+#else
+thread=omp_get_thread_num();
+#endif
+#endif
   AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p){
     return HighResTime()-p->_time;
