@@ -281,7 +281,7 @@ void TrMCClusterR::GenSimClusters(){
       if (iside==0) _simcl[iside]->Multiply(mev_on_adc*0.93);
       else {   
         // Y-side
-        if ((TRMCFFKEY.UseNonLinearity%10)==0) _simcl[iside]->Multiply(mev_on_adc*0.45);
+        if ((TRMCFFKEY.UseNonLinearity%10)==0) _simcl[iside]->Multiply(mev_on_adc*0.95); // better lithium
         else {
           _simcl[iside]->Multiply(mev_on_adc*1.35);
           for (int ist=0; ist<_simcl[iside]->GetWidth(); ist++) { 
@@ -295,6 +295,10 @@ void TrMCClusterR::GenSimClusters(){
             double adc2 = corr*adc1;
             _simcl[iside]->SetSignal(ist,adc2);
           }
+          // some tuning of lithium/carbon signal (B1005)
+          double x = sqrt(edep/81); 
+          double frac = TMath::Max(0.75,TMath::Min(1.,0.1*x+0.45));
+          _simcl[iside]->Multiply(frac);
         }
       }
     }  
