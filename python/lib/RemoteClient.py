@@ -2727,7 +2727,7 @@ class RemoteClient:
             return rstatus
     def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0,eos=0,force=0,skipcrc=0):
         self.castoronly=co
-        self.castorcopy=1
+        self.castorcopy=0
         self.eos=eos
         self.force=force
         self.crczero=0
@@ -3485,6 +3485,7 @@ class RemoteClient:
                             filename=dstfile
                             dstfile=dirpath+"/"+dstfile
                             inputfilel = os.path.realpath(dstfile)
+                            inputfilel = inputfilel.replace("/eos/ams/", "/eosams/")
                         dstlink = dstfile
                         if (re.match("^/castor", inputfilel)):
                             dstfile = inputfilel
