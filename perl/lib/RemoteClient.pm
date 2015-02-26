@@ -969,6 +969,12 @@ if($#{$self->{DataSetsT}}==-1){
      }
      if($dataset->{datamc}==0 ){
      foreach my $job (@jobs){
+         if($job=~/^lastserverno=/){
+             my @vrs= split '=',$job;
+               $dataset->{serverno}=$vrs[1];
+             unlink "$newfile/$job";
+           last;           
+         }
          if($job=~/^serverno=/){
              my @vrs= split '=',$job;
              my @add=split ',',$vrs[1];
@@ -976,6 +982,8 @@ if($#{$self->{DataSetsT}}==-1){
              if($#add>0){
                  my $tme=time();
                $dataset->{serverno}=$add[$tme%($#add+1)];
+                 my $sys="touch $newfile/lastserverno=$dataset->{serverno}";
+                 my $i=system($sys);
              }          
              else{
                $dataset->{serverno}=$vrs[1];
@@ -1314,6 +1322,12 @@ if($#{$self->{DataSetsT}}==-1){
    }
      } # end jobs of jobs
      foreach my $job (@jobs){
+         if($job=~/^lastserverno=/){
+             my @vrs= split '=',$job;
+               $dataset->{serverno}=$vrs[1];
+             unlink "$newfile/$job";
+            last;           
+         }
          if($job=~/^serverno=/){
              my @vrs= split '=',$job;
              my @add=split ',',$vrs[1];
@@ -1322,11 +1336,13 @@ if($#{$self->{DataSetsT}}==-1){
              if($#add>0){
                  my $tme=time();
                $dataset->{serverno}=$add[$tme%($#add+1)];
+                 my $sys="touch $newfile/lastserverno=$dataset->{serverno}";
+                 my $i=system($sys);
              }          
              else{
                $dataset->{serverno}=$vrs[1];
               }
-}
+         }
              last;
          }
      }
@@ -3442,6 +3458,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
 
        $dataset = $q->param("QTempDataset");
+
        $dataset = trimblanks($dataset);
        $qtemplate = $dataset;
 #- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
@@ -7022,6 +7039,13 @@ if($self->{CCT} eq "local"){
                }
               
 my $dbserver=$self->{dbserver};
+       if(defined $q->param("SERVERNO")){
+           $dataset->{serverno}=$q->param("SERVERNO");
+       }
+       elsif(defined $dataset->{serverno}){
+           $q->param("SERVERNO",$dataset->{serverno});
+       }
+
 if( not defined $dbserver->{dbfile}){
      $dbserver=blessdb();
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
@@ -7077,10 +7101,18 @@ if( not defined $dbserver->{dbfile}){
               if($max_jobs<$jbs){
                 $jbs=$max_jobs;
               }
+       if(defined $q->param("SERVERNO")){
+           $dataset->{serverno}=$q->param("SERVERNO");
+       }
+       elsif(defined $dataset->{serverno}){
+           $q->param("SERVERNO",$dataset->{serverno});
+       }
               my $ds="";
               if(defined $dataset->{serverno}){
                  $ds=" ServerNo  $dataset->{serverno}  ";
               }
+
+
               htmlTextField("Total Jobs Requested $ds","number",7,$jbs,"QRun"," ");
                  if($self->{CCT} eq "local" or $dataset->{datamc}==1){
    print qq`
@@ -7489,6 +7521,7 @@ print qq`
         }
          my $sonly="No";
          $sonly=$q->param("SONLY");
+
 # Apr 2. 2003. a.k. uncommented/commented back
 #         if ($sonly eq "Yes") {
 #             $self->{scriptsOnly}=0;
@@ -7530,6 +7563,10 @@ print qq`
         else{
          $template=$q->param("QTemp");
         }
+       if(defined $q->param("SERVERNO") and defined $dataset){
+           $dataset->{serverno}=$q->param("SERVERNO");
+       }
+
         my $Any=-1;
         my $qrunno=$q->param("QRun");
         my $srunno=$q->param("QRun");
@@ -9040,7 +9077,7 @@ anyagain:
          $cput=7200;
         }
         if ($dataset->{buildno} > 906) {
-            $cput = 50;
+            $cput = 30;
         }
 
         my $evno=$q->param("QEv");
