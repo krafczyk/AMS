@@ -3663,6 +3663,7 @@ class RemoteClient:
                                         else:
                                             crctime = timestamp
                                         self.InsertNtuple(run, version, nttype, jobid, dstfevent, dstlevent, ntevents, badevents, timestamp, dstsize, ntstatus, outputpath, ntcrc, crctime, 1, castortime, runtype%2, feti, leti)
+                                        self.sqlserver.Commit(1)
                                         output.write("insert ntuple : %d, %s, %s\n" %(run, outputpath, closedst[1]))
                                         self.gbDST[self.nCheckedCite] += float(dstsize)
                                         cpntuples.append(dstlink)
