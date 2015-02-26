@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.39 2012/04/05 09:39:32 choumilo Exp $
+//  $Id$
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #define __ROOTINC__
@@ -46,8 +46,8 @@ public:
  static ScalerMon scalmon;//current scalers values
  static bool SetupIsChanged;
  static bool ScalerIsChanged;
-#pragma omp threadprivate(SetupIsChanged,ScalerIsChanged)
  static integer PhysBranchCount[8];
+#pragma omp threadprivate(SetupIsChanged,ScalerIsChanged,PhysBranchCount)
  static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
  
  Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer auxtrpat, integer toffl1,integer toffl2, 
@@ -126,6 +126,7 @@ class TGL1JobStat{
 //
 private:
   static integer countev[20];
+#pragma omp threadprivate(countev)
 //          i=0 -> entries(MC/RD)
 //          i=1 -> MC: Common FT OK
 //          i=2 -> 
@@ -137,6 +138,7 @@ private:
 //         i=15 => HW-created LVL1 found
 // 
   static integer daqc1[80];//daq-decoding counters
+#pragma omp threadprivate(daqc1)
 //            i=0 -> LVL1-segment entries
 //             =1 -> ............ non empty
 //             =2 -> ............ with a-side 

@@ -416,8 +416,6 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
 //==========================> apply presc.factors:
     integer prescf;
-#pragma omp critical (prescf)
-{
     for(i=0;i<8;i++)if(BranchOK[i])PhysBranchCount[i]+=1;//count fired phys.branches
     if(!(trtype==1 || trtype==64 || trtype==65
                    || trtype==128 || TGL1FFKEY.NoPrescalingInMC==1)){//disable prescaling if unbiased/ext trig. requested
@@ -428,7 +426,6 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
         }
       }
     }
-}
 //------------------------------------------------
 //
 //                         <---- count (requested & fired) phys-branches(request=>trigger_type):

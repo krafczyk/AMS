@@ -996,7 +996,6 @@ void TriggerLVL302::build(){
   // Shuttle Now Station
   //tempor    
   AMSgObj::BookTimer.start("LVL3");
-#pragma omp critical (lvl3c)
   _flowc[0]+=1;
   Trigger2LVL1 * plvl1= 
     (Trigger2LVL1*)AMSEvent::gethead()->
@@ -1004,7 +1003,6 @@ void TriggerLVL302::build(){
   if(plvl1){
     int16 * ptr;
     number tt1=0,tt2=0;
-#pragma omp critical (lvl3c)
     _flowc[1]+=1;
     TriggerAuxLVL302 aux[trconst::ncrt];
     for(int icrt=0;icrt<trconst::ncrt;icrt++){
@@ -1051,7 +1049,6 @@ void TriggerLVL302::build(){
       plvl3->settofdir(0);//reset TOF-dir flag
       //
       if(plvl3->UseTOFTime()){// <--- generate/use TOF-dir info
-#pragma omp critical (lvl3c)
 	_flowc[2]+=1;
 	for(i=0;i<TOF2GC::SCLRS;i++){
 	  for(j=0;j<TOF2GC::SCMXBR;j++){
@@ -1095,7 +1092,6 @@ void TriggerLVL302::build(){
 	else tbot=0;
 	//
 	if(ttop>0 && tbot>0){
-#pragma omp critical (lvl3c)
 	  _flowc[3]+=1;
 	  dt=ttop-tbot;
 	  if(LVL3FFKEY.histprf>0){
@@ -1143,7 +1139,6 @@ void TriggerLVL302::build(){
       match=0;
       //
       if(plvl3->UseECEMinfo() || plvl3->UseECMATinfo()){// <--- use ECAL info
-#pragma omp critical (lvl3c)
 	_flowc[4]+=1;
 	for(int i=0;i<ECSLMX;i++){
 	  EClprof[i]=0;
@@ -1195,7 +1190,6 @@ void TriggerLVL302::build(){
 }
 	}
 	if(ectot>=etcut){// >= Mip
-#pragma omp critical (lvl3c)
 	  _flowc[5]+=1;
 	  if(LVL3FFKEY.histprf>0){
 #pragma omp critical (hf1)
@@ -1254,7 +1248,6 @@ void TriggerLVL302::build(){
 	    }
 	  }
 	  plvl3->setecemag(1);//EM + Etot>Esep2
-#pragma omp critical (lvl3c)
 	  _flowc[6]+=1;
 	}//---> endof >=Mip check
       ecfin1:
@@ -1279,10 +1272,8 @@ void TriggerLVL302::build(){
 	//
 	ectrackok=0;
 	if(plvl3->UseECMATinfo()){//use EC-Match info
-#pragma omp critical (lvl3c)
 	  _flowc[7]+=1;
 	  if(ectot>=etcut){//>=MIP check
-#pragma omp critical (lvl3c)
 	    _flowc[8]+=1;
 	    ecogl=0;
 	    elsx=0;
@@ -1461,7 +1452,6 @@ void TriggerLVL302::build(){
 }
 	      }
 	      if(ech2x>=0 && ech2x<1.5 && ech2y>=0 && ech2y<2.){
-#pragma omp critical (lvl3c)
 		_flowc[9]+=1;
 		ectrackok=1;
 		plvl3->setecmatc(-1);//set EC-track flag to "noMatch"(but it may be reset later)
@@ -1502,7 +1492,6 @@ void TriggerLVL302::build(){
       if(plvl3->toftrdok() == 0) goto formed;
     
     
-#pragma omp critical (lvl3c)
       _flowc[10]+=1;
 
 
@@ -1515,13 +1504,11 @@ void TriggerLVL302::build(){
       //
       if(plvl3->UseECMATinfo()){//use EC-Match info
 	if(ectrackok){
-#pragma omp critical (lvl3c)
 	  _flowc[11]+=1;
 	  ectot/=1000;
 	  match=plvl3->eccrosscheck(ectot);//check TOF/TRD/ECAL space matching
 	  if(match){
 	    plvl3->setecmatc(1);//set EC-match flag to "Match"
-#pragma omp critical (lvl3c)
 	    _flowc[12]+=1;
 	  }
 	}
@@ -1651,7 +1638,6 @@ void TriggerLVL302::build(){
 }
       }
       AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
-#pragma omp critical (lvl3c)
       _flowc[13]+=1;
     }
     else delete plvl3;

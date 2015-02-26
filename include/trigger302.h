@@ -67,6 +67,7 @@ class TriggerLVL302: public AMSlink{
 
 protected:
  static integer _flowc[15];// prog.flow counters
+#pragma omp threadprivate(_flowc)
 //
  uinteger _TriggerInputs;   //   0 Default
                             //   1  Doesnot Require TRD      
