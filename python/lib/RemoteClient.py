@@ -3772,6 +3772,7 @@ class RemoteClient:
                             sql="UPDATE Runs SET fevent=%d, Levent=%d, fetime=%d, letime=%d WHERE jid=%d" %(fevt, ntevt-1+fevt, feti, leti, run)
                             output.write(sql + "\n")
                             self.sqlserver.Update(sql)
+                            self.sqlserver.Commit(1)
                         if (ntevt >= 0):
                             sql=" update jobs set realtriggers=%d, timekill=0 where jid=%d" %(ntevt, run)
                             output.write(sql + "\n")
