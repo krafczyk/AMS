@@ -659,6 +659,8 @@ class RemoteClient:
         global rflag
         rglag=0
         self.validated=0
+        if (self.eos):
+            self.checkEOS()
         HelpText="""
              validateRuns gets list of runs from production server
                   validates DSTs and copies them to final destination
