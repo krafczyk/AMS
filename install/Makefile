@@ -762,7 +762,7 @@ $(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)p
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
 	 $(AT)$(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
 
-$(SPECIAL_OBJF):$(SPECIAL_OBJF: %.o=%.f)
+$(SPECIAL_OBJF):$(DPMFF)dpm25nuc1g4.f $(DPMFF)dpm25nuc2.f
 	 $(AT)$(FF) -c $(FFLAGS) $(SPOPT)  -I$(CERNDIR)/include $(DPMFF)dpm25nuc1g4.f -o $(DPMBIN)dpm25nuc1g4.o
 
 	$(AT)$(FF) -c $(FFLAGS) $(SPOPT)  -I$(CERNDIR)/include $(DPMFF)dpm25nuc2.f -o $(DPMBIN)dpm25nuc2.o
