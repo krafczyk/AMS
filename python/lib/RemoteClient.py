@@ -2626,12 +2626,14 @@ class RemoteClient:
                 else:
                     sql="DELETE runs WHERE run=%d" %(run)
                     self.sqlserver.Update(sql)
+                    self.sqlserver.Commit(1)
                     doinsert=1
             else:
                 doinsert=1
             if doinsert==1:
                 sql="INSERT INTO Runs VALUES(%d,%d,%d,%d,%d,%d,%d,'%s')" %(run,jid,fevent,levent,fetime,letime,submit,status)
                 self.sqlserver.Update(sql)
+                self.sqlserver.Commit(1)
                 if(self.v):
                     print sql
                 if(status=="Completed"):
@@ -2692,12 +2694,14 @@ class RemoteClient:
                 else:
                     sql="DELETE dataruns WHERE jid=%d" %(jid)
                     self.sqlserver.Update(sql)
+                    self.sqlserver.Commit(1)
                     doinsert=1
             else:
                 doinsert=1
             if doinsert==1:
                 sql="INSERT INTO dataRuns VALUES(%d,%d,%d,%d,%d,'%s',%d,%d)" %(run,fevent,levent,fetime,letime,status,jid,submit)
                 self.sqlserver.Update(sql)
+                self.sqlserver.Commit(1)
                 if(self.v):
                     print sql
 
