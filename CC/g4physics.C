@@ -349,21 +349,16 @@ if(G4FFKEY.PhysicsListUsed==7){
 if(G4FFKEY.PhysicsListUsed==8){
 	cout<<"QGSP_INCLXX Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
-	HadronPhysicsQGSP_INCLXX *pqgsp = new HadronPhysicsQGSP_INCLXX();
+	cout << "QGSP_INCLXX Physics List NOT supported yet" << endl;
+	abort();
 #else
 	G4HadronPhysicsINCLXX* pqgsp=new G4HadronPhysicsINCLXX(); // default QGSP_INCLXX
-#endif
 	if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();
 	if(G4FFKEY.HCrossSectionBias[0]!=1){
-		cout<<"HadronicInElasticCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
-#if G4VERSION_NUMBER < 1000 
-		cout << "not yet supported, need to modify geant4.9.6" << endl;
-		//pqgsp->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
-#else
 		pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 		pqgsp->tpdata->theAntiBaryon->theAntiProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
-#endif
 	}
+#endif
 }
 if(G4FFKEY.PhysicsListUsed==9){
 	cout<<"FTFP_INCLXX Physics List will be used. "<<endl;
