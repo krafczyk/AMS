@@ -50,7 +50,9 @@ class DBServer:
 #	(length,self.dsts)=self.iorp.getDSTS(self.cid)
         maxr=1200
         (length,self.rtb,maxrun1)=self.iorp.getRunEvInfoS(self.cid,maxr)
-        self.rundummy=self.rtb[0]
+        if(length<=0):
+		return
+	self.rundummy=self.rtb[0]
         len=0
         l1=0
         for run in self.rtb:

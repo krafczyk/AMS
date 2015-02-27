@@ -51,7 +51,7 @@ html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
 if(castorcopy and localdel):
     castorcopy=-1
-if(html.ServerConnect(4)):
+if(html.ServerConnect(3)):
     html.ValidateRuns(run2p,i,v,d,h,b,u,mt,1,force,0,1,castorcopy,eos,skipcrc)
 
 

@@ -1712,9 +1712,9 @@ class RemoteClient:
 
 
 
-    def ServerConnect(self,datamc=0):
+    def ServerConnect(self,serverno=0):
         try:
-            (ior,iord)=self.getior(datamc)
+            (ior,iord)=self.getior(serverno)
             self.dbclient=DBServer(ior,iord)
             return 1
         except:
