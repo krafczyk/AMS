@@ -3644,7 +3644,7 @@ class RemoteClient:
                                         return 0, copylog                                        
                                     output.write("doCopy return status : %d \n" %(rstatus))
                                     if (rstatus == 1):
-                                        if (castortime == 0):
+                                        if (castortime == 0 and self.castorcopy):
                                             castorPrefix = '/castor/cern.ch/ams';
                                             junk = outputpath.split("/")
                                             castordir = castorPrefix
