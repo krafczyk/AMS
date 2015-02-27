@@ -603,7 +603,6 @@ endif
 ifdef G4MULTITHREADED
 SPECIAL_OBJF=$(DPMBIN)dpm25nuc1g4.o $(DPMBIN)dpm25nuc2.o
 SPOPT=-O0
-DPMFFOBJ:=$(filter-out $(SPECIAL_OBJF),$(DPMFFOBJ))
 endif
 
 #------------------------------------------------------------------------------
@@ -694,6 +693,10 @@ DPMSCCOBJ=$(patsubst %.cc, $(DPMBIN)%.o, $(DPMSCCLIST1))
 DPMFFLIST= $(wildcard $(DPMFF)/*.f)
 DPMFFLIST1= $(notdir $(DPMFFLIST))
 DPMFFOBJ=$(patsubst %.f, $(DPMBIN)%.o, $(DPMFFLIST1))
+
+ifdef G4MULTITHREADED
+DPMFFOBJ:=$(filter-out $(SPECIAL_OBJF),$(DPMFFOBJ))
+endif
 
 OBJECTS+=  $(DPMSCCOBJ) $(DPMFFOBJ)
 OBJECTSI+= $(DPMSCCOBJ) $(DPMFFOBJ)
