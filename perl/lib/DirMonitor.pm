@@ -4,11 +4,12 @@ use File::stat;
 #use strict;
 use File::Basename;
 my %field=(
-        warn_level=>32000,
+        warn_level=>20000,
         time_int=>3600,
-        src_dirs=>['/afs/cern.ch/ams/local/logs','/afs/cern.ch/ams/local/bsubs','/afs/cern.ch/ams/Offline/AMSDataDirRW/prod.log/scripts','/afs/cern.ch/ams/local/prod.log/Producer','/afs/cern.ch/ams/local/prod.log/MCProducer'],
+        src_dirs=>['/afs/cern.ch/ams/local/logs','/afs/cern.ch/ams/local/bsubs','/afs/cern.ch/ams/Offline/AMSDataDirRW/prod.log/scripts','/afs/cern.ch/ams/local/prod.log/Producer','/afs/cern.ch/ams/local/prod.log/MCProducer','/afs/cern.ch/ams/local/logs/production_logs'],
         dst_dir=>'/fc02dat0/scratch/MC/afsbackup',
-        dst_dir2=>'/f2users/scratch/MC/backupafs',
+        dst_dir2=>'/fc02dat0/scratch/MC/afsbackup',
+#        dst_dir2=>'/f2users/scratch/MC/backupafs',
         max_nfiles=>4500,
         file_life=>604800,
 				error_counter=>0,
@@ -25,7 +26,9 @@ sub new{
 	$self->{time_int}=$params->{time_int} if exists $params->{time_int};
 	$self->{src_dirs}=$params->{src_dirs} if exists $params->{src_dirs};
 	$self->{dst_dir}=$params->{dst_dir} if exists $params->{dst_dir};
-	$self->{dst_dir2}=$params->{dst_dir2} if exists $params->{dst_dir2};
+#	$self->{dst_dir2}=$params->{dst_dir2} if exists $params->{dst_dir2};
+        $self->{dst_dir}=$params->{dst_dir2} if exists $params->{dst_dir};
+
 	$self->{max_nfiles}=$params->{max_nfiles} if exists $params->{max_nfiles};
 	$self->{file_life}=$params->{file_life} if exists $params->{file_life};
 	$self->{error_counter}=$params->{error_counter} if exists $params->{error_counter};
@@ -44,7 +47,9 @@ sub new{
 	#check dst directory
 	print "Checking Dst dirs ...\n";
 	dir_ok($self,$self->{dst_dir});
-	dir_ok($self,$self->{dst_dir2});
+        dir_ok($self,$self->{dst_dir});
+
+#	dir_ok($self,$self->{dst_dir2});
 	#check warn_level
 	if($self->{warn_level}>32000){
         	print "$temp warn level", $self->{warn_level}," should be better smaller than 32000, reset warn_level to 32000\n";
@@ -78,6 +83,7 @@ sub new{
 	print "\n";
 	print "nprimary dst_dir   = ", $self->{dst_dir},"\n";
 	print "secondary dst_dir = ", $self->{dst_dir2},"\n";
+#	print "secondary dst_dir = ", $self->{dst_dir2},"\n";
 	print "max_nfiles= ", $self->{max_nfiles},"\n";
 	print "file_life = ", $self->{file_life},"\n";
 	print "time_int    = ",$self->{time_int},"\n";
@@ -106,7 +112,7 @@ sub run{
         	my $ans=dir_ok($self,$dir);
 	        my $num=-1;
         	if($ans==1){
-                	my @files=`ls -ctr $dir/* | grep $dir | grep -v :\$ 2>/dev/null`;
+                	my @files=`/bin/ls -ctr $dir/* | grep $dir | grep -v :\$ 2>/dev/null`;
 	                $num=$#files+1;
         	        #when the number of files in this directory is larger than $max_nfiles, remove old files
                         my $timenow=time();
@@ -116,7 +122,7 @@ sub run{
                 	if($num>$self->{max_nfiles}){
                         foreach my $file (@files){
                                 chomp $file;
-                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
+                                $atime=`/bin/ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
                                 chomp $atime;
                                 if($cur_time-$atime>$self->{file_life}){
                                         my $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
@@ -124,9 +130,11 @@ sub run{
                                                 #ergent case, try the secondary dst dir
                                                 if($num>$self->{warn_level}){
                                                           $self->{error_counter}--;
-	                                                        $ret=cp_rm($self,$file,$self->{dst_dir2},$self->{rm_mode});
+                                                                $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
+
+#	                                                        $ret=cp_rm($self,$file,$self->{dst_dir2},$self->{rm_mode});
         	                                                if($ret==0){
-                	                                                send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to rm fail",1);
+#                	                                                send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to rm fail",1);
                         	                                }
                                      			        				else{
 	                                                                $num--;
@@ -143,11 +151,11 @@ sub run{
                                 }
                             }
                         if($num>$self->{warn_level}){
-                  	  @files=`ls -ctr $dir/* 2>/dev/null`;
+                  	  @files=`/bin/ls -ctr $dir/* 2>/dev/null`;
 	                  $num=$#files+1;
 				foreach my $file (@files){
                                 	chomp $file;
-	                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
+	                                $atime=`/bin/ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
         	                        chomp $atime;
                 	                if($cur_time-$atime>0.1*$self->{file_life}){
                         	                my $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
@@ -155,9 +163,10 @@ sub run{
                                         	        #ergent case, try the secondary dst dir
                                                 	if($num>$self->{warn_level}){
                                                         	  $self->{error_counter}--;
-                                                                	$ret=cp_rm($self,$file,$self->{dst_dir2},$self->{rm_mode});
+                                                                       $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
+#                                                                	$ret=cp_rm($self,$file,$self->{dst_dir2},$self->{rm_mode});
 	                                                                if($ret==0){
-        	                                                                send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to rm fail",1);
+#        	                                                                send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to rm fail",1);
                 	                                                }
                         	                                        else{
                                  	                                       $num--;
@@ -175,7 +184,7 @@ sub run{
 				if($num>$self->{warn_level}){
 					$self->{error_counter}++;
 		                        $self->{error_message}=$self->{error_message}."$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to file age|can not rm|dst directory untouchable etc";
-                                	send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to file age|can not rm|dst directory untouchable etc",1);
+#                                	send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to file age|can not rm|dst directory untouchable etc",1);
 				}
                         }
                     }
@@ -186,7 +195,7 @@ sub run{
         print " totally $num files ... \n";
 }
 if($self->{error_counter}>0){
-         send_message($self,"Check Directory , $self->{error_counter} errors occurs ...\n$self->{error_message}",2);
+ #        send_message($self,"Check Directory , $self->{error_counter} errors occurs ...\n$self->{error_message}",2);
 }
 #sleep $time_int;
 
@@ -278,8 +287,8 @@ sub send_message {
         my $temp=`date +%F/%T`;
         chomp $temp;
         my $type=shift(@_);
-        my @admins_mails=('kaiwu@cern.ch');
-        my @admins_sms=('0041764879401@mail2sms.cern.ch');
+        my @admins_mails=('elin@cern.ch');
+#        my @admins_sms=('0041764879401@mail2sms.cern.ch');
         if($type==2){
                 foreach my $fadmin (@admins_mails){
                         system("echo  \"$message\"| mail $fadmin") ==0 or print $temp,"system echo  \"$message\"| mail $fadmin Failed: $? \n";
@@ -289,8 +298,8 @@ sub send_message {
                 foreach my $fadmin (@admins_mails){
                         system("echo  \"$message\"| mail $fadmin") ==0 or print $temp,"system echo  \"$message\"| mail $fadmin Failed: $? \n";
                 }
-                foreach my $fadmin (@admins_sms){
-                        system("echo  \"$message\"| mail $fadmin") ==0 or print $temp,"system echo  \"$message\"| mail $fadmin Failed: $? \n";
-                }
+                # foreach my $fadmin (@admins_sms){
+                #         system("echo  \"$message\"| mail $fadmin") ==0 or print $temp,"system echo  \"$message\"| mail $fadmin Failed: $? \n";
+                # }
         }
 }

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.171 2014/02/12 09:39:18 ams Exp $
+# $Id$
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1723,8 +1723,15 @@ sub ErrorPlus{
 }
 
 sub RemoveRuns{
+#  change it to 1 to allow remove runs
+#see also #pattern below in 2 places for removing runs
+    my $allowed=0;
  my $ref=shift;
-        foreach my $arsref (@{$ref->{arpref}}){
+if(not $allowed){
+     print " do nothing \n";
+      return;
+}
+      foreach my $arsref (@{$ref->{arpref}}){
             try{
                 print "finished  \n";
          my %cid=%{$ref->{cid}};
@@ -1743,24 +1750,29 @@ sub RemoveRuns{
                 warn "sendback corba exc";
             };
         }
- return;
       for my $row (0 ... $#{$ref->{acl}}){
         my %ac=%{${$ref->{acl}}[$row]};
                 my %cid=%{$ac{id}};
                 my $found=0;
                   for my $j (0 ... $#{$ref->{rtb}}){
                     my %rdst=%{${$ref->{rtb}}[$j]};
-                    if($rdst{uid}==$cid{uid}){
-                     if($rdst{FilePath} =~/he.pl1.4008000/){ 
-                     
+                    my $pattern=0;
+                   if($rdst{FilePath} =~/.pl1./ && $rdst{Status} eq "Foreign"){
+                    $pattern=1;
+                    }
+                    
+                     print "$rdst{FilePath} \n;";
+                    if( $rdst{uid}==$cid{uid}){
+                     if($allowed && $pattern){ 
+                          
                           $found=1;
-                          if($cid{pid}<1000000){
+                          if($cid{pid}<10000000){
                        my $cmd="ssh $cid{HostName} kill -9  $cid{pid} ";
                        print "$cmd \n";
                        system($cmd);
                    }
                           else{
-                       my $cmd="ssh lxplus5.cern.ch bkill -s9  $cid{pid} ";
+                       my $cmd="ssh lxplus.cern.ch bkill -s9  $cid{pid} >/dev/null & ";
                        system($cmd);
                         }      
                     } 
@@ -1828,7 +1840,12 @@ sub RemoveRuns{
 #     if(  $rdst{Status} eq "Canceled" and $rdst{FilePath} =~/calib/ ){
 #         print "restoring $rdst{uid} \n";
 #         $rdst{Status} = "Finished";
-                     if($rdst{FilePath} =~/he.pl1.4008000/){ 
+                    my $pattern=0;
+                   if($rdst{FilePath} =~/.pl1./ && $rdst{Status} eq "Foreign"){
+                    $pattern=1;
+                    }
+
+                     if($allowed &&$pattern){ 
 #     if( $rdst{FilePath} =~/sdssdfsdfsrpr.pl1.ecal.22100/){
 #         print FILEA "$rdst{Run},";
 #         print FILEB "$rdst{uid},";

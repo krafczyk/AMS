@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.75 2014/02/12 09:39:18 ams Exp $
+# $Id$
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -25,14 +25,14 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['amsvobox03','amsvobox04','amsvobox12','pcposc1','pcamsf3','pcamsn0','amsvobox11','amsvobox01','amsvobox02','scamsnd5','amsvobox05','amsvobox06','amsvobox07','amsvobox10','amsvobox13','amsvobox14','pcamsf9','pcamsp1','pcamsf7','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
+  excluded=>['pcamsj0','scamsnd2','scamsnd3','amsvobox03','amsvobox04','amsvobox12','pcposc1','pcamsdt1','pcamsn0','amsvobox11','amsvobox01','amsvobox02','scamsnd5','amsvobox05','amsvobox06','amsvobox07','amsvobox10','amsvobox13','amsvobox14','pcamsf9','pcamsp1','pcamsf7','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
   sbhost=>'pcamss0',
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
 #  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','scdb_j2.perl'],
 #  dbhoststargets=>['amsprodserverv5.exe','transfer.py','frame_decode','scdb_j2.perl'],
    dbhoststargets=>['amsprodserverv5.exe','transfer.py','frame_decode'],
-  filesystems=>['f2users','r0fc00','fcdat1','fc03dat1'],
+  filesystems=>['f2users','r0fc00','fc03dat1'],
   afsvolumes=>['/afs/cern.ch/ams/local','/afs/cern.ch/ams/AMSDataBase','/afs/cern.ch/ams/Offline'],
   hostsstat=>[],
   bad=>[],
@@ -51,7 +51,8 @@ my $dmfeilds={
         warn_level=>30000,
         src_dirs=>['/afs/cern.ch/ams/local/logs','/afs/cern.ch/ams/local/bsubs','/afs/cern.ch/ams/Offline/AMSDataDirRW/prod.log/scripts','/afs/cern.ch/ams/local/prod.log/Producer','/afs/cern.ch/ams/local/prod.log/MCProducer'],
         dst_dir=>'/fc02dat0/scratch/MC/afsbackup',
-        dst_dir2=>'/f2users/scratch/MC/backupafs',
+        dst_dir2=>'/fc02dat0/scratch/MC/afsbackup',
+#        dst_dir2=>'/f2users/scratch/MC/backupafs',
         max_nfiles=>25000,
         file_life=>604800,
         rm_mode=>1
@@ -70,9 +71,9 @@ my %sfields=(
              );
 $self->{sqlserver}={%sfields,};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Alexandre.Eline@cern.ch 41764874733@mail2sms.cern.ch',sent=>0,timesent=>0};
-push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
+#push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
 #push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
-#push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Jinghui.Zhang@cern.ch  41764878673@mail2sms.cern.ch',sent=>0,timesent=>0};
+push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'aegorov2@cern.ch 41764876488@mail2sms.cern.ch',sent=>0,timesent=>0};
 #push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'dmitri.filippov@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'baosong.shan@cern.ch 41764879642@mail2sms.cern.ch',sent=>0,timesent=>0};
    #  excluded hosts
@@ -379,7 +380,9 @@ my $period = '';
    my $try=0;
    my $i=0;
 oncemore:
-        $i=system($command.$host."   ps -f -uams >/tmp/dbhosts.$$");
+	my $qqq = "$command $host"."   ps -f -uams >/tmp/dbhosts.$$";
+	$i=system($qqq);
+#        $i=system($command $host."   ps -f -uams >/tmp/dbhosts.$$");
          if(!$i){
            $try++;
             sleep(2);
@@ -727,7 +730,7 @@ sub updateoracle{
 
 sub getprodservers{
     my $self=shift;
-    my $sql="select unique hostname from servers";
+    my $sql="select unique hostname from servers where hostname is not null";
 
     my $sth=$self->{sqlserver}->{dbhandler}->prepare($sql);
     $sth->execute;
