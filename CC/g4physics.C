@@ -46,13 +46,18 @@
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSC_CHIPS.hh"
 #include "HadronPhysicsQGSP_BIC.hh"
+#else
+#include "G4HadronPhysicsQGSP_BIC.hh"
+#endif
+
+#if G4VERSION_NUMBER > 945 //
+#if G4VERSION_NUMBER < 1000 //
 #include "HadronPhysicsQGSP_BERT.hh"
 #include "HadronPhysicsQGSP_FTFP_BERT.hh"
 #include "HadronPhysicsFTFP_BERT.hh"
 #include "HadronPhysicsFTFP_BERT_TRV.hh"
 #include "HadronPhysicsQGSP_INCLXX.hh"
 #else
-#include "G4HadronPhysicsQGSP_BIC.hh"
 #include "G4HadronPhysicsQGSP_BERT.hh"
 #include "G4HadronPhysicsQGSP_FTFP_BERT.hh"
 #include "G4HadronPhysicsNuBeam.hh"
@@ -60,6 +65,8 @@
 #include "G4HadronPhysicsFTFP_BERT_TRV.hh"
 #include "G4HadronPhysicsINCLXX.hh"
 #endif
+#endif
+
 #include "G4IonPhysics.hh"
 #if G4VERSION_NUMBER  > 899 
 #include "G4EmProcessOptions.hh"
@@ -260,6 +267,7 @@ void AMSG4Physics::ConstructProcess()
       }
     }
 
+#if G4VERSION_NUMBER > 945  // version > 945
 //--> Begin by WXU, 2015-02-23
 if(G4FFKEY.PhysicsListUsed==4){
 	cout<<"QGSP_BERT Physics List will be used. "<<endl;
@@ -389,6 +397,7 @@ if(G4FFKEY.PhysicsListUsed==10){
 	}
 #endif
 }
+#endif // version > 945
 //--> End by WXU
 
     if(G4FFKEY.PhysicsListUsed==2){
@@ -2316,7 +2325,7 @@ void AMSG4Physics::SaveXS(int ipart){
 					mat.AddElement(element,1);
 #endif
 					if(inelok && hadronInelasticProcess){
-						cout << "g4physics::SaveXS(): " << hadronInelasticProcess->GetProcessName() << ", aScaleFactor=" << hadronInelasticProcess->aScaleFactor << endl;
+//						cout << "g4physics::SaveXS(): " << hadronInelasticProcess->GetProcessName() << ", aScaleFactor=" << hadronInelasticProcess->aScaleFactor << endl;
 						for(int k=1;k<nbins+1;k++){
 							double xs=0;
 							const G4double R = AMSEventR::h1(id)->GetBinCenter(k)*GeV;
