@@ -86,9 +86,9 @@ ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
-    LZMAL = -llzma
+    LZMAL = -llzma -lz
     ifdef LINKLIBZ
-	LZMAL += -lz
+	LZMAL +=  -lz
     endif
 endif
 
@@ -363,6 +363,7 @@ COMMON_FILES +=   $(SCC)TRD_SimUtil.C  $(SCC)g4physics_ion.C \
 #$(SCC)G4MagIntegratorDriver.C $(SCC)G4MTRunManager.C $(SCC)G4RunManager.C $(SCC)G4EventManager.C $(SCC)G4WorkerRunManager.C
 
 COMMON_FILES += $(SCC)g4rich.C $(SCC)g4tof.C $(SCC)TofSimUtil.C
+#COMMON_FILES += $(SCC)G4CrossSectionDataSetRegistry.C #$(SCC)G4PiNuclearCrossSection.C $(SCC)G4INCLXXPionBuilder.C
 
 else
 #Geant3/AMS custom  files
