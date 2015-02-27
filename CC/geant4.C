@@ -118,8 +118,8 @@ G4MTHepRandom::setTheSeeds(seed);
 
 #ifdef G4MULTITHREADED
   G4MTRunManager* pmgr = new G4MTRunManager;
-  pmgr->SetNumberOfThreads(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:G4Threading::G4GetNumberOfCores());
-  cout <<"g4ams::G4INIT-I-SetNumberOfThreads "<<MISCFFKEY.NumThreads<<endl;
+  pmgr->SetNumberOfThreads(MISCFFKEY.NumThreads>0 && MISCFFKEY.NumThreads<G4Threading::G4GetNumberOfCores()?MISCFFKEY.NumThreads:G4Threading::G4GetNumberOfCores());
+  cout <<"g4ams::G4INIT-I-SetNumberOfThreads "<< pmgr->GetNumberOfThreads()<<endl;
 #else
   G4RunManager* pmgr = new G4RunManager;
 #endif
