@@ -431,7 +431,7 @@ void HistoMan::BookHistos(int simmode){
     // events that were skipped because of exceeded CPU time limit
     Add(new TH1F("Pskipped", "Pskipped", 7000, -1., 6.));
     Add(new TH1F("PAll", "PAll", 7000, -1., 6.));
-    Add(new TH2F("cputime", "cputime", 1000, -1., 4.,100,0.,5.));
+    Add(new TH2F("cputime", "cputime", 1000, -1., 5.,200,0.,5.));
     Add(new TH1F("PAllskipped", "PAllskipped", 7000, -1., 7.));
     Add(new TH2D("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2D("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));

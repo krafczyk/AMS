@@ -272,9 +272,18 @@ lasthope:
  }
  break;
   case SIGQUIT:
+#ifdef G4MULTITHREADED
+  cerr<<"Preparing for OPool Released"<<endl;
+  OPool.ReleaseLastResort();
+  cerr<<"OPool Released"<<endl;
+    GCFLAG.IEORUN=1;
+    GCFLAG.IEOTRI=1;
+
+#else
     cerr <<" Process suspended"<<endl;
   G4FFKEY.SigTerm=2;
     pause();
+#endif
     break;
   case SIGCONT:
     cerr <<" Process resumed"<<endl;
