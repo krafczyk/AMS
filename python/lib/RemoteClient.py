@@ -659,8 +659,7 @@ class RemoteClient:
         global rflag
         rglag=0
         self.validated=0
-        if (self.eos):
-            self.checkEOS()
+        self.checkEOS()
         HelpText="""
              validateRuns gets list of runs from production server
                   validates DSTs and copies them to final destination
@@ -2768,8 +2767,7 @@ class RemoteClient:
             self.mt = mt
         else:
             self.mt = 0
-        if (self.eos):
-            self.checkEOS()
+        self.checkEOS()
         whoami=pwd.getpwuid(os.getuid())[0]
         if not (whoami == None or whoami =='ams' ):
             print "parseJournalFiles -ERROR- script cannot be run from account : ",whoami 
@@ -4709,6 +4707,7 @@ class RemoteClient:
         mutex=thread.allocate_lock()
         mutex.acquire()
         self.v=v
+        self.checkEOS()
         self.eos=eos
         self.BadCRC=[0]
         self.CheckedDSTs=[0]
