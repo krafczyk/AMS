@@ -2606,6 +2606,10 @@ void AMSJob::_signinitjob(){
   // add proper geant4 ets
 #ifdef __G4AMS__
   char *g4i=getenv("G4INSTALL");
+   if(!g4i && isSimulation() && MISCFFKEY.G4On){
+      cerr<<" AMSJob::_signinitjob()-F-G4INSTALL Not Defined, Exiting "<<endl;
+      abort();
+   }
   if(g4i && !strstr((const char *)G4Version,"geant4-09-04" )&& strstr (g4i,"geant4.9.4") && isSimulation()){
     string g4is=g4i;
     int pos=g4is.find("geant4.9.4");
