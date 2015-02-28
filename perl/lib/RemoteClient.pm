@@ -8467,7 +8467,7 @@ try{
          }
 else{
          my @jnk=split '=', $self->{AMSDataDir2};
-if($#jnk>0){
+if($#jnk>0 and not $jnk[1] =~ /\/cvmfs\//){
          my $i=system("cp $root $jnk[1]/$self->{LocalClientsDir}");
 }
 
@@ -9994,7 +9994,7 @@ try{
      }
 else{
          my @jnk=split '=', $self->{AMSDataDir2};
-if($#jnk>0){
+if($#jnk>0 and not $jnk[1] =~ /\/cvmfs\//){
          system("cp $root $jnk[1]/$self->{LocalClientsDir}");
 }
 
