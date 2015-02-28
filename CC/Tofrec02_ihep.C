@@ -931,8 +931,10 @@ TF1 *TofRecH::GetBetaFun(){
     int thread=0;
 #ifdef _OPENMP
 #ifdef G4MULTITHREADED
+#ifndef __ROOTSHAREDLIBRARY__
 int id=G4Threading::G4GetThreadId();
 thread=id;
+#endif
 #else
 thread=omp_get_thread_num();
 #endif
