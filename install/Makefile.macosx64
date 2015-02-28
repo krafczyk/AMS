@@ -108,6 +108,10 @@ CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-f
 endif
 endif
 
+ifdef G4MULTITHREADED
+CFLAGSB+=-Wno-unused-variable -Wno-unused-label
+endif
+
 DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
