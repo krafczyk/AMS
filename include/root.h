@@ -4750,7 +4750,7 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
          /*! return  0: if success;
              retrun -1: if failure;      
              input parameters : AMSfov = AMS field of view in deg. ;
-                              : xtime = JMDC Time,or UTC Time
+                              : xtime = UTC Time
              output           : cutoff[0] = Max. Rcut [GV] for negative particles (Z==-1); 
                                 cutoff[1] = Max. Rcut [GV] for positive particles (Z== 1).
              input parameter : *fdir = IGRF file directory

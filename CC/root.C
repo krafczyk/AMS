@@ -10759,7 +10759,8 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double degbin, double cutoff[2])
     return fHeader.GetMaxIGRFCutoff(fov, degbin, cutoff, RPT, VPT, YPR, xtime);
   }
   
-  unsigned int tm = UTime();
+//  unsigned int tm = UTime();
+  unsigned int tm =int(UTCTime());
   if (degbin < -1300000000) tm = -degbin;
   return GetMaxIGRFCutoff(fov, cutoff, tm);
 }
