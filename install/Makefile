@@ -693,11 +693,6 @@ DPMSCCOBJ=$(patsubst %.cc, $(DPMBIN)%.o, $(DPMSCCLIST1))
 DPMFFLIST= $(wildcard $(DPMFF)/*.f)
 DPMFFLIST1= $(notdir $(DPMFFLIST))
 DPMFFOBJ=$(patsubst %.f, $(DPMBIN)%.o, $(DPMFFLIST1))
-
-ifdef G4MULTITHREADED
-DPMFFOBJ:=$(filter-out $(SPECIAL_OBJF),$(DPMFFOBJ))
-endif
-
 OBJECTS+=  $(DPMSCCOBJ) $(DPMFFOBJ)
 OBJECTSI+= $(DPMSCCOBJ) $(DPMFFOBJ)
 OBJECTSC+= $(DPMSCCOBJ) $(DPMFFOBJ)
@@ -755,12 +750,12 @@ gbatchd: amswd $(STANDALONED)
 $(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
 	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(TIMEL) $(LDFLAGSSTATIC)
+	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS) $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
 
 $(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
 	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS)   $(SPECIAL_OBJF) $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
+	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS) $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
 
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
 	 $(AT)$(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
