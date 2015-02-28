@@ -10889,9 +10889,9 @@ int AMSEventR::RecordRTIRun(){
 int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
 
 #ifdef __ROOTSHAREDLIBRARY__
-  static AMSSetupR setupu;
+  AMSSetupR *setupu=AMSSetupR::RTI::getsetup();
   static unsigned int stime[2]={1,1};
-#pragma omp threadprivate (setupu)
+  
 #pragma omp threadprivate (stime)
 static int vrti=-1;
 #pragma omp threadprivate (vrti)
@@ -10904,15 +10904,15 @@ if(AMSSetupR::RTI::Version!=vrti){
  if(stime[0]==1||xtime>stime[1]||xtime<stime[0]){
     stime[0]=(xtime<=pt)?1:xtime-pt;
     stime[1]=xtime+dt;
-    setupu.fRTI.clear();
-    setupu.LoadRTI(stime[0],stime[1]);
+    setupu->fRTI.clear();
+    setupu->LoadRTI(stime[0],stime[1]);
  }
 //---Status
   AMSSetupR::RTI b;
   a=b;
-  AMSSetupR::RTI_i k=setupu.fRTI.lower_bound(xtime);
-  if (setupu.fRTI.size()==0)return 2;
-  if(k==setupu.fRTI.end())return 1;
+  AMSSetupR::RTI_i k=setupu->fRTI.lower_bound(xtime);
+  if (setupu->fRTI.size()==0)return 2;
+  if(k==setupu->fRTI.end())return 1;
 
   if(xtime==k->first){//find
     a=(k->second);

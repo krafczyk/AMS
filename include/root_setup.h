@@ -194,7 +194,7 @@ ClassDef(GPS,3)
 class RTI{
 protected:
 	static TGraph *SAAedge;	///< outer boundaries of the SAA region
-
+        static AMSSetupR *setuphead;///< AMSSetup
 public:
 
 	static TGraph *GetSAAedge(); ///< Construct the boundaries of the SAA region
@@ -205,7 +205,13 @@ public:
 	 returns: true if inside SAA, false if outside.
 	 */
 	bool IsInSAA();				///< True if ISS in in SAA, false otherwize
-
+        static AMSSetupR *getsetup();/// < AMSSetup
+         //!  BadRuns accessor
+         /*!
+           returns: 0 GoodRun, 1 BadRun, 2 UnableToLoadBadRunList         
+         */
+        int IsBadRun(string &reason);
+         
 unsigned int run;  ///< run
 unsigned int evno;///< first event no in one second
 unsigned int evnol;///< last event no in one second
@@ -247,6 +253,9 @@ double utctime[2];   ///< UTC time for first and last event
 double gettime(int itm=0, int iev=0); 
 float  getthetam(); ///< PhiM (rad)
 float  getphim();   ///< ThetaM(rad)
+int    getissatt(float &roll,float &pitch,float &yaw);///<roll, pitch, yaw(rad)
+int    getisstle(float &velocitys,float &veltheta,float &velphi);///< velocitys(rad/sec),velphi(rad),veltheta(rad)
+double getbetasun();///< solar beta angle(degree)
 static int Version; ///< RTI Version id
 /*!< 
   0:  2013-01 B620 default \n

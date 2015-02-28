@@ -1521,6 +1521,19 @@ bool AMSSetupR::RTI::IsInSAA()
 	return prisinsaa;
 }
 
+AMSSetupR * AMSSetupR::RTI::setuphead=0;
+
+AMSSetupR * AMSSetupR::RTI::getsetup(){
+
+  if(setuphead==0)setuphead=new AMSSetupR();
+  return setuphead;
+}
+
+int AMSSetupR::RTI::IsBadRun(string &reason){
+    
+   return getsetup()->IsBadRun(reason,utime,run);
+}
+
 float AMSSetupR::RTI::getphim(){
 
    double deg2rad = TMath::DegToRad();
@@ -1546,6 +1559,35 @@ float AMSSetupR::RTI::getphim(){
       return phiM;
 }
 
+int AMSSetupR::RTI::getissatt(float &roll,float &pitch,float &yaw){
+
+     return getsetup()->getISSAtt(roll,pitch,yaw,(utctime[0]+utctime[1])/2.); 
+}
+
+int AMSSetupR::RTI::getisstle(float &velocitys,float &veltheta,float &velphi){
+
+     float RTP[3],VelTP[3];
+     int nstat=getsetup()->getISSTLE(RTP,VelTP,(utctime[0]+utctime[1])/2.);
+     velocitys=VelTP[0];
+     veltheta=VelTP[1];
+     velphi=VelTP[2];
+     return nstat;
+}
+
+#include "Sunposition.h"
+double AMSSetupR::RTI::getbetasun(){
+
+   double time=(utctime[0]+utctime[1])/2.;
+   float ialtitude=r; 
+   float ilatitude=theta;
+   float ilongitude=phi;
+   float ivelAng, iveltheta, ivelphi, iyaw, ipitch, iroll;
+   getisstle(ivelAng, iveltheta, ivelphi);
+   getissatt(iroll,ipitch,iyaw);  
+   SunPosition sunPos(time, ialtitude, ilatitude, ilongitude, ivelAng, iveltheta, ivelphi, iyaw, ipitch, iroll);
+   double Beta=sunPos.GetBetaAngle();
+   return Beta;
+}
 
 ///----
 int AMSSetupR::LoadRTI(unsigned int t1, unsigned int t2, const char *dir){
