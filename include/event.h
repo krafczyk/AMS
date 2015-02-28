@@ -292,12 +292,18 @@ return 0;
 #endif
 }
 static uinteger  get_num_threads_pot(){
+#ifdef G4MULTITHREADED
+if(MISCFFKEY.NumThreads>0 && MISCFFKEY.NumThreads<G4Threading::G4GetNumberOfCores())
+return (MISCFFKEY.NumThreads);
+else return G4Threading::G4GetNumberOfCores();
+#else
 #ifdef _OPENMP
 if(MISCFFKEY.NumThreads>0 && MISCFFKEY.NumThreads<omp_get_num_procs())
 return (MISCFFKEY.NumThreads);
 else return omp_get_num_procs();
 #else
 return 1;
+#endif
 #endif
 }
 
