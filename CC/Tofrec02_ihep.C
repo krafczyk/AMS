@@ -12,10 +12,10 @@
 //        Modified:      2012-Oct -1   Update TOF Charge Part
 //        Modified:      2013-Oct -28  Adding BetaH Counter Side Reconstruction
 // -----------------------------------------------------------
+#ifndef __ROOTSHAREDLIBRARY__
 #ifdef G4MULTITHREADED
 #include "G4Threading.hh"
 #endif
-#ifndef __ROOTSHAREDLIBRARY__
 #include "tofrec02.h"
 #include "tofdbc02.h"
 #include "job.h"
@@ -731,8 +731,10 @@ TF1  *TofRecH::GetBirkFun(int idsoft){
     int thread=0;
 #ifdef _OPENMP
 #ifdef G4MULTITHREADED
+#ifndef __ROOTSHAREDLIBRARY__
 int id=G4Threading::G4GetThreadId();
 thread=id;
+#endif
 #else
 thread=omp_get_thread_num();
 #endif
