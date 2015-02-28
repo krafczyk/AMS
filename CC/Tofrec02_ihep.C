@@ -2360,11 +2360,13 @@ int  TofRecH::BetaHLink(TrTrackR* ptrack,TrdTrackR *trdtrack,EcalShowerR *ecalsh
    }
    else if(trdtrack){
       for(unsigned int ii=0;ii<ev->NParticle();ii++){
+         if(ev->pParticle(ii)->iBetaH()>=0)continue; 
          if(ev->pParticle(ii)->pTrdTrack()==trdtrack)    {ev->pParticle(ii)->setBetaH(ev->NBetaH()-1);break;}
        }
    }
    else if(ecalshow){
        for(unsigned int ii=0;ii<ev->NParticle();ii++){
+         if(ev->pParticle(ii)->iBetaH()>=0)continue;
          if(ev->pParticle(ii)->pEcalShower()==ecalshow)    {ev->pParticle(ii)->setBetaH(ev->NBetaH()-1);break;}
        }
    }
