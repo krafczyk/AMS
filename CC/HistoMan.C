@@ -424,8 +424,8 @@ void HistoMan::BookHistos(int simmode){
   // Sim. generation
   if (simmode & 1) {
     // mceventg
-    Add(TH2D("Pgen", "Pgen", 7000, -1.,6., 100, -1, 1, 1, 0));
-    Add(TH2D("Pacc", "Pacc", 7000, -1., 6., 100, -1, 1, 1, 0));
+    Add(TH2D_L("Pgen", "Pgen", 7000, -1.,6., 100, -1, 1, 0, 0));
+    Add(TH2D_L("Pacc", "Pacc", 7000, -1., 6., 100, -1, 1, 0, 0));
     printf("HistoMan::BookHistos: histograms for MC-sim booked\n");
 
     // events that were skipped because of exceeded CPU time limit
