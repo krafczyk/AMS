@@ -2600,25 +2600,9 @@ void AMSJob::_sitkinitjob(){
   AMSgObj::BookTimer.book("TrMCCluster");
 }
 #endif
-void AMSJob::_signinitjob(){
 
-
-  // add proper geant4 ets
 #ifdef __G4AMS__
-  char *g4i=getenv("G4INSTALL");
-   if(!g4i && isSimulation() && MISCFFKEY.G4On){
-      cerr<<" AMSJob::_signinitjob()-F-G4INSTALL Not Defined, Exiting "<<endl;
-      abort();
-   }
-  if(g4i && !strstr((const char *)G4Version,"geant4-09-04" )&& strstr (g4i,"geant4.9.4") && isSimulation()){
-    string g4is=g4i;
-    int pos=g4is.find("geant4.9.4");
-    if(pos>=0){
-      if(strstr((const char *)G4Version,"geant4-09-06")){
-	string add="geant4.9.6.p03";
-	g4is.replace(g4is.begin()+pos,g4is.begin()+strlen(g4i),add);
-	setenv("G4INSTALL",g4is.c_str(),1);
-	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
+void set_geant4_09_06_environment_variables() {
 	/*
 	  setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.3
 	  setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadioactiveDecay3.6
@@ -2630,7 +2614,7 @@ void AMSJob::_signinitjob(){
 	  setenv G4DPMJET2_5DATA $G4INSTALL/data/DPMJET/GlauberData
 	  setenv G4SAIDXSDATA $G4INSTALL/data/G4SAIDDATA1.1
 	*/
-	g4i=getenv("G4INSTALL");
+	std::string g4i=getenv("G4INSTALL");
 	string g4is=g4i;
 	g4is+="/data/PhotonEvaporation2.3";
 	setenv("G4LEVELGAMMADATA", g4is.c_str(),1);
@@ -2658,16 +2642,11 @@ void AMSJob::_signinitjob(){
 	g4is=g4i;
 	g4is+="/data/G4SAIDDATA1.1";
 	setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
-	cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
+}
 
+void set_geant4_10_01_environment_variables() {
 
-      }
-      else if(strstr((const char *)G4Version,"geant4-10-01")){
-	string add="geant4.10.01";
-	g4is.replace(g4is.begin()+pos,g4is.begin()+strlen(g4i),add);
-	setenv("G4INSTALL",g4is.c_str(),1);
-	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
-	/*
+    /*
 	 * setenv G4LEVELGAMMADATA  $G4INSTALL/data/PhotonEvaporation2.3
 	 * setenv G4RADIOACTIVEDATA  $G4INSTALL/data/RadioactiveDecay3.6
 	 * setenv G4LEDATA $G4INSTALL/data/G4EMLOW6.32
@@ -2678,7 +2657,7 @@ void AMSJob::_signinitjob(){
 	 * setenv G4DPMJET2_5DATA $G4INSTALL/data/DPMJET/GlauberData
 	 * setenv G4SAIDXSDATA $G4INSTALL/data/G4SAIDDATA1.1
 	 * */
-	g4i=getenv("G4INSTALL");
+	std::string g4i=getenv("G4INSTALL");
 	string g4is=g4i;
 	g4is+="/data/PhotonEvaporation3.1";
 	setenv("G4LEVELGAMMADATA", g4is.c_str(),1);
@@ -2706,9 +2685,86 @@ void AMSJob::_signinitjob(){
 	g4is=g4i;
 	g4is+="/data/G4SAIDDATA1.1";
 	setenv("G4SAIDXSDATA" ,g4is.c_str(),1);
+}
+
+bool try_perform_geant4_autodetection() {
+
+  if (!getenv("G4AUTODETECT"))
+    return false;
+
+  // Autoselect the proper Geant4 environment, if G4AUTODETECT is set.
+  cout << "AMSJob::_signinitjob()-I-G4AUTODETECT detected. Automatically selecting the correct G4 environment variables." << endl;
+  bool isGeant4_9_06_build = strstr((const char *)G4Version,"geant4-09-06") != 0;
+  bool isGeant4_10_01_build = strstr((const char *)G4Version,"geant4-10-01") != 0;
+  if (!isGeant4_9_06_build && !isGeant4_10_01_build) {
+    cerr << "AMSJob::_signinitjob()-F-Couldn't interpret geant4 version string '" << G4Version << "'. Please check CC/job.C." << endl;
+    abort();
+  }
+
+  const char* g4basedir = 0;
+  const char* g4afsbasedir = "/afs/cern.ch/ams/Offline";
+  const char* g4cvmfsbasedir = "/cvmfs/ams.cern.ch/Offline";
+
+  // Find out if we this machine has CVMFS support.
+  struct stat s;
+  if (!stat(g4cvmfsbasedir, &s))
+    g4basedir = g4cvmfsbasedir;
+  else if (!stat(g4afsbasedir, &s))
+    g4basedir = g4afsbasedir;
+  else {
+    cerr << "AMSJob::_signinitjob()-F-Couldn't access " << g4afsbasedir << " nor " << g4cvmfsbasedir << ". Aborting!" << endl;
+    abort();
+  }
+
+  std::string g4installdir = g4basedir;
+  if (isGeant4_9_06_build) {
+    g4installdir += "/geant4.9.6.p03";
+    setenv("G4INSTALL", g4installdir.c_str(), 1);
+    cout << "AMSJob::_signinitjob()-I-Set G4INSTALL to " << g4installdir << endl;
+    set_geant4_09_06_environment_variables();
+  } else if (isGeant4_10_01_build) {
+    g4installdir += "/geant4.10.01";
+    setenv("G4INSTALL", g4installdir.c_str(), 1);
+    cout << "AMSJob::_signinitjob()-I-Set G4INSTALL to " << g4installdir << endl;
+    set_geant4_10_01_environment_variables();
+  }
+
+  cout << "AMSJob::_signinitjob-W-G4LEDATA " << getenv("G4LEDATA") << endl;
+  return true;
+}
+
+#endif
+
+void AMSJob::_signinitjob(){
+
+#ifdef __G4AMS__
+  if (!try_perform_geant4_autodetection()) {
+  // Old G4 autodetection, needs G4INSTALL to contain the "geant4.9.4" string, otherwise it's doing nothing.
+  char *g4i=getenv("G4INSTALL");
+  if(g4i && !strstr((const char *)G4Version,"geant4-09-04" )&& strstr (g4i,"geant4.9.4") && isSimulation()){
+   if(!g4i && isSimulation() && MISCFFKEY.G4On){
+      cerr<<" AMSJob::_signinitjob()-F-G4INSTALL Not Defined, Exiting "<<endl;
+      abort();
+   }
+    string g4is=g4i;
+    int pos=g4is.find("geant4.9.4");
+    if(pos>=0){
+      if(strstr((const char *)G4Version,"geant4-09-06")){
+	string add="geant4.9.6.p03";
+	g4is.replace(g4is.begin()+pos,g4is.begin()+strlen(g4i),add);
+	setenv("G4INSTALL",g4is.c_str(),1);
+	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
+	set_geant4_09_06_environment_variables();
 	cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
 
-
+      }
+      else if(strstr((const char *)G4Version,"geant4-10-01")){
+	string add="geant4.10.01";
+	g4is.replace(g4is.begin()+pos,g4is.begin()+strlen(g4i),add);
+	setenv("G4INSTALL",g4is.c_str(),1);
+	cout<<"AMSJob::_signitjob-W-G4INSTALLRedefined "<<getenv("G4INSTALL")<<endl;
+	set_geant4_10_01_environment_variables();
+	cout<<"AMSJob::_signinitjob-W-G4LEDATA "<<getenv("G4LEDATA")<<endl;
       }
 
       else{
@@ -2717,8 +2773,7 @@ void AMSJob::_signinitjob(){
       }
     }
   }
-
-
+  }
 #endif
   AMSgObj::BookTimer.book("SetTimeCoo");
 
