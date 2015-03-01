@@ -724,7 +724,7 @@ number TofRecH::CoverToQ2(int idsoft,int isanode,number adc){//PM Level
 
 //=======================================================
 TF1  *TofRecH::GetBirkFun(int idsoft){
-
+//next 15 lines should not be modified 2015-03-01 VC
    if(!BirkFun)
 #pragma omp critical(fun)
 {
