@@ -2557,9 +2557,12 @@ class RemoteClient:
             if(fname.find('/eosams/')==0):
                 fname = self.eosLink2Xrootd(fname)
             validatecmd="/exe/linux/fastntrd64.exe %s%s %d %d %d " %(prefix,fname,nevents,dtype,levent)
+            if (self.mt):
+                validatecmd += " 1 1 1 1 "
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
             vcode=os.system(validatecmd)
+#            mutex.release()
             if (fname.find('/castor/cern.ch')>=0 and vcode != 0 and vcode/256==134):
                 os.system("stager_get -M %s " %(fname))
 #                time.sleep(5)
