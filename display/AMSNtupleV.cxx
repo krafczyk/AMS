@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.55 2013/11/22 20:15:35 mduranti Exp $
+//  $Id$
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -355,6 +355,11 @@ if(type==kall || type==kusedonly || type==ktofclusters){
        bool Mult=GetTkMult();
        bool Used=(pTrRecHit(i)->getstatus()/32)%2;
        bool Yonly=pTrRecHit(i)->OnlyY();
+       TrClusterR *py=pTrRecHit(i)-> pTrCluster('y');
+       TrClusterR *px=0;
+       if(!Yonly)px=pTrRecHit(i)->pTrCluster('x');
+        if(py && !TkDBc::Head->FindTkId(py->GetTkId()))continue;
+        if(px && !TkDBc::Head->FindTkId(px->GetTkId()))continue;
        int rm=pTrRecHit(i)->GetResolvedMultiplicity();
        if(!gAMSDisplay->DrawUsedOnly() || Used) 
  	 if ((Yonly && GetTkDispY()) || (!Yonly)){
