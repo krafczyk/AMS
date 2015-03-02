@@ -51,7 +51,7 @@ RichG4Cerenkov::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep){
 
   G4StepPoint* pPreStepPoint  = aStep.GetPreStepPoint();
   G4StepPoint* pPostStepPoint = aStep.GetPostStepPoint();
-
+if(!aParticle || !aMaterial || !pPreStepPoint || !pPostStepPoint)return pParticleChange;
   G4ThreeVector x0 = pPreStepPoint->GetPosition();
   G4ThreeVector p0 = aStep.GetDeltaPosition().unit();
   G4double t0 = pPreStepPoint->GetGlobalTime();

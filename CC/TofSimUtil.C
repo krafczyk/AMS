@@ -779,15 +779,21 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
         }
 //--sensitive
        sci_log->SetSensitiveDetector(AMSG4DummySD::pSD());
+#if G4VERSION_NUMBER  > 999
        AMSgvolume::SensMap.insert(make_pair(sci_log,AMSG4DummySD::pSD()));
+#endif
        //lgc_log->SetSensitiveDetector(AMSG4DummySD::pSD());
        //lgc_log1->SetSensitiveDetector(AMSG4DummySD::pSD());
 //--surface property
        if(G4FFKEY.TFNewGeant4%10==1){
          pm_log-> SetSensitiveDetector(AMSG4DummySD::pSD());
+#if G4VERSION_NUMBER  > 999
          AMSgvolume::SensMap.insert(make_pair(pm_log,AMSG4DummySD::pSD()));
+#endif
          pm_log1->SetSensitiveDetector(AMSG4DummySD::pSD());
+#if G4VERSION_NUMBER  > 999
          AMSgvolume::SensMap.insert(make_pair(pm_log1,AMSG4DummySD::pSD()));
+#endif
          TOFSC_Su=TOFSC_SuA[ilay][ibar];
          TOFLG_Su=TOFSC_SuA[ilay][ibar];
          ConstructBarSurface(AsBar,mvop);

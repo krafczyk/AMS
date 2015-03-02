@@ -671,7 +671,7 @@ if(!G4Threading::IsWorkerThread() )return;
       CCFFKEY.curtime=AMSEvent::gethead()->gettime();
    try{
 
-          if(anEvent && AMSEvent::gethead()->HasNoErrors() ){
+          if(anEvent  ){
             AMSEvent::gethead()->event();
           }
    }
@@ -1156,7 +1156,7 @@ trig=(trig+1)%freq;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
     Track->SetTrackStatus(fStopAndKill);
-    AMSEvent::gethead()->seterror();
+    AMSEvent::gethead()->seterror(1);
     if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<" "<<g4_primary_momentum<<" "<<AMSEvent::Barrier()<<endl;
     report=false;
     AMSEvent::gethead()->SetEventSkipped(true);

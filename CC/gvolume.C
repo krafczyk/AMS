@@ -4,6 +4,7 @@
 #include "amsgobj.h"
 #include "gmat.h"
 #ifdef __G4AMS__
+#include "G4Version.hh"
 #include "G4PhysicalVolumeStore.hh"
 #include "G4MaterialPropertyVector.hh"
 #include "G4Material.hh"
@@ -457,7 +458,9 @@ integer AMSgvolume::_Norp=0;
 	trdSimUtil.radlv=_pg4l;
 #endif
         _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(1));  // Radiator
+#if G4VERSION_NUMBER  > 999
         SensMap.insert(make_pair(_pg4l,AMSG4DummySD::pSD(1)));
+#endif
       }
       else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
 #ifdef __G4AMS__
@@ -465,11 +468,15 @@ integer AMSgvolume::_Norp=0;
         trdSimUtil.gasRegion->AddRootLogicalVolume(_pg4l);
 #endif
        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas
+#if G4VERSION_NUMBER  > 999
       SensMap.insert(make_pair(_pg4l,AMSG4DummySD::pSD(2)));
+#endif
       }
       else{
       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
+#if G4VERSION_NUMBER  > 999
       SensMap.insert(make_pair(_pg4l,AMSG4DummySD::pSD()));
+#endif
       }
      }
 // Add user limits 
