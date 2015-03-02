@@ -2491,9 +2491,13 @@ class RemoteClient:
             sizemb="%.f" %(ntsize)
             sql="delete from datafiles where run=%d and type like '%s'" %(run,stype)
             self.sqlserver.Update(sql)
+            if (sys.argv[0].find('parsejf') >=0):
+                self.sqlserver.Commit(1)
             sql=" insert into datafiles (RUN,VERSION,TYPE,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,PATHB,CRC,CRCTIME,CASTORTIME,BACKUPTIME,TAG,FETIME,LETIME,PATHS,EOSTIME) values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s',%d)" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths,eostime)
             print "  insert ntuple before ",sql
             self.sqlserver.Update(sql)
+            if (sys.argv[0].find('parsejf') >=0):
+                self.sqlserver.Commit(1)
             return
         
         junk=path.split("/")
