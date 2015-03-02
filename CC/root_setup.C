@@ -1383,12 +1383,13 @@ return fScalersReturn.size();
 int AMSSetupR::RTI::Version=0;
 int AMSSetupR::RTI::Loadopt=0;
 
-int AMSSetupR::RTI::UseLatest(){
+int AMSSetupR::RTI::UseLatest(int pass){
 
-  RTI::Version=3;
+  if(pass>=6)RTI::Version=604; //pass6+version-4
+  else       RTI::Version=3; //pass4+version3
   static int vrti=-1;
   if(RTI::Version!=vrti){
-     cout<< "AMSSetupR::RTI::UseLatest Version="<<RTI::Version<<endl;
+     cout<< "AMSSetupR::RTI::UseLatest Pass"<<pass<<" Version="<<RTI::Version<<endl;
      vrti=RTI::Version;
   }
   return RTI::Version;
@@ -1625,12 +1626,15 @@ else{
  bool isnewv3  =((t2>1385484728) ||(RTI::Version>=3));
  bool isnewv3p5=((t2>1385484728) ||(RTI::Version>=503));
  bool isnewv3p5t=((t2>1385484728) && (RTI::Version>=513)); 
+ bool isnewv4p6=(RTI::Version>=604);
+ 
 // bool isnewv3=(RTI::Version>=3);
- if     (isnewv3p5t)AMSISSlocal+="V3_20140324_P5T/";
- else if(isnewv3p5)AMSISSlocal+="V3_20140324_P5/";
- else if(isnewv3)  AMSISSlocal+="V3_20140324/";
- else if(isnewv2)  AMSISSlocal+="V2_20131220/";
- else if(isnewv )  AMSISSlocal+="V1_20130802/";
+ if     (isnewv4p6) AMSISSlocal+="V4_20150302_P6/";
+ else if(isnewv3p5t)AMSISSlocal+="V3_20140324_P5T/";
+ else if(isnewv3p5) AMSISSlocal+="V3_20140324_P5/";
+ else if(isnewv3)   AMSISSlocal+="V3_20140324/";
+ else if(isnewv2)   AMSISSlocal+="V2_20131220/";
+ else if(isnewv )   AMSISSlocal+="V1_20130802/";
  AMSISS=AMSISSlocal.c_str();
  if(dir!=0)AMSISS=dir;
 

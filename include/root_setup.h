@@ -205,8 +205,8 @@ public:
 	 returns: true if inside SAA, false if outside.
 	 */
 	bool IsInSAA();				///< True if ISS in in SAA, false otherwize
-        static AMSSetupR *getsetup();/// < AMSSetup
-         //!  BadRuns accessor
+        static AMSSetupR *getsetup();///< AMSSetup
+         ///  BadRuns accessor
          /*!
            returns: 0 GoodRun, 1 BadRun, 2 UnableToLoadBadRunList         
          */
@@ -262,13 +262,14 @@ static int Version; ///< RTI Version id
   1:  2013-08 B620         \n
   2:  2013-12 B700         \n
   3:  2014-03 B620 latest  \n 
-  503:2014-03 B800(p5) latest \n
-  513:2014-12 B800(p5) std latest (TTCS study) \n
+  503:2014-03 B800(p5)  \n
+  513:2014-12 B800(p5) (TTCS study) \n
+  604:2015-03 B950(p6) latest \n
 */
 static int Loadopt;//< load option
 /// use latest RTI Version
 /// \return Version id
-static int UseLatest();
+static int UseLatest(int pass=4);
 //---
  RTI():run(0),evno(0),evnol(0),lf(0),mphe(0),theta(0),phi(0),r(0),zenith(0),glat(-2),glong(-2),nev(0),nerr(0),ntrig(0),nhwerr(0),npart(0),mtrdh(0),good(-1),utime(0){
         for(int ifv=0;ifv<4;ifv++){
@@ -281,7 +282,7 @@ static int UseLatest();
         utctime[0]=utctime[1]=0;
    }
  virtual ~RTI() { }
-ClassDef(RTI,9)
+ClassDef(RTI,10)
 };
 
 
