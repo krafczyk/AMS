@@ -1102,13 +1102,13 @@ try{
    AMSEvent::sethead(0);
    UPool.erase(2000000);
 
-#pragma omp critical (g3)
+#pragma omp atomic
       GCFLAG.IEVENT++;
       if(GCFLAG.IEVENT%10000==1)cout <<" events "<<GCFLAG.IEVENT<<endl;
       continue;
 */
       guout_();
-#pragma omp critical (g3)
+#pragma omp atomic
       GCFLAG.IEVENT++;
     }
     else if(AMSJob::gethead() && AMSJob::gethead()->isMonitoring()){

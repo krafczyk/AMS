@@ -1340,7 +1340,9 @@ integer AMSmceventg::accept(){
       }
     }
   }
+#pragma omp atomic
   ++Orbit.Nskip;   
+#pragma omp atomic
   ++Orbit.Nskip2;   
   return 0;
 }
@@ -1458,6 +1460,7 @@ integer AMSmceventg::EarthModulation(){
   if (_mom > mom)return 1;
   else {
   //cout <<xfac<<" "<<_mom<<" "<<mom<<endl;
+#pragma omp atomic
   ++Orbit.Nskip;
    return 0;
   }
@@ -2008,13 +2011,15 @@ void orbit::UpdateAxis(number vt, number vp, number t, number p){
   void AMSmceventg::runG4( AMSG4GeneratorInterface* gen,integer ipart){
   if(ipart){
    init(ipart);
-    do{
+for(;;){ 
       gener();
 #ifdef _PGTRACK_
     hman.Fill("Pgen", log10(fabs(_mom)), _dir[2]);
 #endif
-    }while(!accept());
-
+if(accept())break;
+#pragma omp critical (newg4event)
+GCFLAG.IEVENT++;
+}
 #ifdef _PGTRACK_
   hman.Fill("Pacc", log10(fabs(_mom)), _dir[2]);
 #endif

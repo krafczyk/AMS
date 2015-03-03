@@ -224,6 +224,7 @@ AMSEvent::SetBarrier(1);
   _init();
 }
 void AMSEvent::_init(){
+#pragma omp critical (initco)
   SetTimeCoo(IOPA.mode==1);
    
 
@@ -473,7 +474,8 @@ void AMSEvent::SetTimeCoo(integer rec){
       GCFLAG.IEORUN=1;
     }
     //    cout <<" AMSmceventg::Orbit.FlightTime "<<AMSmceventg::Orbit.FlightTime<<" "<<xsec<<" "<<curtime<<" "<<dtime<< " "<<AMSmceventg::Orbit.Nskip<<endl;
-    GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
+//#pragma omp atomic
+    //GCFLAG.IEVENT+=AMSmceventg::Orbit.Nskip;
     //    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
     //      GCFLAG.IEORUN=1;
     //      GCFLAG.IEOTRI=1;
@@ -1533,7 +1535,7 @@ void AMSEvent::event(){
       }
     }
     AMSgObj::BookTimer.stop("EventStatus");
-#pragma omp critical (g3)
+#pragma omp atomic
     GCFLAG.IEVENT+=skipped;
     if(!ok)return;
   }

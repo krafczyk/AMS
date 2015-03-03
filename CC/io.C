@@ -179,6 +179,7 @@ void AMSIO::init(integer mode,integer format){
               CCFFKEY.theta=theta;
               CCFFKEY.phi=phi;
               CCFFKEY.polephi=pole;
+#pragma omp critical (newg4event)
               GCFLAG.IEVENT=GCFLAG.IEVENT+event;
               if(otheta > theta)CCFFKEY.sdir=-1;
               else CCFFKEY.sdir=1;
