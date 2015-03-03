@@ -81,7 +81,7 @@
 vector<int> AMSG4Physics::XSId;
 #include "TRD_SimUtil.h"
 #include "G4HadronElasticPhysics.hh"
-AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsList(),_pg3tog4(0),_pg4tog3(0),_Ng3tog4(0)
+AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsList(),_pg3tog4(0),_pg4tog3(0),_Ng3tog4(0),phadronphysicsinclxx_holder(0)
 {
   // default cut value  (1.0mm) 
   defaultCutValue = 1.0*mm;
@@ -92,6 +92,17 @@ AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsLi
 
 
 AMSG4Physics::~AMSG4Physics(){
+  if(phadronphysicsinclxx_holder) {
+#if G4VERSION_NUMBER < 1000 
+    HadronPhysicsQGSP_INCLXX* temp = (HadronPhysicsQGSP_INCLXX*) phadronphysicsinclxx_holder;
+    delete temp;
+    phadronphysicsinclxx_holder = 0;
+#else
+    G4HadronPhysicsINCLXX* temp = (G4HadronPhysicsINCLXX*) phadronphysicsinclxx_holder;
+    delete temp;
+    phadronphysicsinclxx_holder = 0;
+#endif
+  }
   if(_pg3tog4)delete [] _pg3tog4;
   if(_pg4tog3)delete [] _pg4tog3;
 }
@@ -353,6 +364,7 @@ if(G4FFKEY.PhysicsListUsed==8){
 	abort();
 #else
 	G4HadronPhysicsINCLXX* pqgsp=new G4HadronPhysicsINCLXX(); // default QGSP_INCLXX
+	phadronphysicsinclxx_holder = (void*) pqgsp;
 	if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();
 	if(G4FFKEY.HCrossSectionBias[0]!=1){
 		pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
@@ -367,6 +379,7 @@ if(G4FFKEY.PhysicsListUsed==9){
 	abort();
 #else
 	G4HadronPhysicsINCLXX* pqgsp=new G4HadronPhysicsINCLXX("hInelastic INCLXX", 0, 0, 1); // FTFP_INCLXX
+	phadronphysicsinclxx_holder = (void*) pqgsp;
 	if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();
 	if(G4FFKEY.HCrossSectionBias[0]!=1){
 		cout<<"HadronicInElasticCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;

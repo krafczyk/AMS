@@ -31,6 +31,9 @@ protected:
   AMSIDi* _pg3tog4;
   AMSIDs* _pg4tog3;
   integer _Ng3tog4; 
+  //We made this void because the class name of the hadronphysics
+  //list is different depending on the version of geant used.
+  void* phadronphysicsinclxx_holder;
  // these methods Construct physics processes and register them
 
 #ifndef __AMSVMC__
