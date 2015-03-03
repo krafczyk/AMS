@@ -52,12 +52,12 @@ static unsigned int chunk[38200000];
       fbout.open((const char*)fout);
       dirent64 ** namelist;
       dirent64 ** namelistsubdir;
-      int nptrdir=scandir64((const char *)fdir,&namelistsubdir,&_selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+      int nptrdir=scandir64((const char *)fdir,&namelistsubdir,&_selectsdir,reinterpret_cast<int(*)(const dirent64 **, const dirent64 **)>(&_sort));
        for(int is=nptrdir-1;is<nptrdir;is++){
         AString fsdir(fdir);
 //        fsdir+="/";     
 //        fsdir+=namelistsubdir[is]->d_name;
-       int nptr=scandir64((const char *)fsdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sorta));
+       int nptr=scandir64((const char *)fsdir,&namelist,&_select,reinterpret_cast<int(*)(const dirent64 **, const dirent64 **)>(&_sorta));
         for(int ii=0;ii<nptr;ii++){
          AString fnam(fsdir);
          fnam+="/";
