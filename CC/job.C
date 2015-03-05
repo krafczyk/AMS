@@ -2411,6 +2411,7 @@ void AMSJob::init(){
   //AMSgObj::BookTimer.book("AMSEvent::event");
   AMSgObj::BookTimer.book("GUOUT");
   AMSgObj::BookTimer.book("GUKINE");
+  AMSgObj::BookTimer.book("MCEVENTG");
 
   _siamsinitjob();
   _reamsinitjob();
@@ -5336,7 +5337,7 @@ void AMSJob::addblocktype(){
 			
       // lvl1
 
-      DAQEvent::addsubdetector(&Trigger2LVL1::checkdaqid,&Trigger2LVL1::buildraw);
+    DAQEvent::addblocktype(&Trigger2LVL1::getmaxblocks,&Trigger2LVL1::calcdaqlength,&Trigger2LVL1::builddaq,6);
 
 
       //           lvl3
@@ -5415,6 +5416,7 @@ void AMSJob::_redaq2initjob(){
 
     {  // mc
       if( !isRealData()){
+#if G4VERSION_NUMBER  < 999
 #ifndef __LVL3ONLY__
         DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock,3);//for MC ?
         DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq,4);
@@ -5441,6 +5443,7 @@ void AMSJob::_redaq2initjob(){
 			       &AMSEvent::calcdaqlength,&AMSEvent::builddaq,9);
 			
 			
+#endif
       }
     }
   
@@ -5450,9 +5453,9 @@ void AMSJob::_redaq2initjob(){
       // lvl1
 
       DAQEvent::addsubdetector(&Trigger2LVL1::checkdaqid,&Trigger2LVL1::buildraw);
-      DAQEvent::addblocktype(&Trigger2LVL1::getmaxblocks,&Trigger2LVL1::calcdaqlength,&Trigger2LVL1::builddaq,6);
-
-
+#if G4VERSION_NUMBER  < 999  
+    DAQEvent::addblocktype(&Trigger2LVL1::getmaxblocks,&Trigger2LVL1::calcdaqlength,&Trigger2LVL1::builddaq,6);
+#endif
     }
 
 
@@ -5467,26 +5470,31 @@ void AMSJob::_redaq2initjob(){
     //tof + anti 
 
     DAQEvent::addsubdetector(&DAQS2Block::checkblockid,&DAQS2Block::buildraw);
+#if G4VERSION_NUMBER  < 999  
     DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock,5);
-
+#endif
 
     //trd
 
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::buildraw);
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidJ,&AMSTRDRawHit::buildrawJ);
+#if G4VERSION_NUMBER  < 999  
     DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq,2);
-
+#endif
 
 
 
     //tracker
 #ifdef _PGTRACK_
     DAQEvent::addsubdetector(&TrDAQ::checkdaqid,&TrDAQ::buildraw);
+#if G4VERSION_NUMBER  < 999  
     DAQEvent::addblocktype(&TrDAQ::getmaxblocks,&TrDAQ::calcdaqlength,&TrDAQ::builddaq,1);
-
+#endif
 #else
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
+#if G4VERSION_NUMBER  < 999  
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq,1);
+#endif
     //    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq_new);
 #endif
 

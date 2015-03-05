@@ -1502,7 +1502,7 @@ integer DAQEvent::_DDGSBOK(){
 	static int nerr=0;
 	for(int i=0;i<6;i++){
 	  if(getsubcount(i)>maxl[i]){
-	    if(nerr++<100)cerr<<"DAQEvent::_DDGSBOK-W-TooManyBlocksFor "<<i<<" "<<getsubcount(i)<<endl;
+	    if(nerr++<100)cerr<<"DAQEvent::_DDGSBOK-W-TooManyBlocksFor "<<i<<" "<<getsubcount(i)<<" "<<maxl[i]<<endl;
 	  }
 	}
       }

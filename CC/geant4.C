@@ -284,6 +284,7 @@ Reset();
 //    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
 //    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
 AMSEvent *pn=0;
+AMSgObj::BookTimer.start("MCEVENTG");
 #ifdef _OPENMP
 #pragma omp critical (newg4event)
 #endif
@@ -295,6 +296,10 @@ AMSEvent *pn=0;
     for(integer i=0;i<CCFFKEY.npat;i++){
         if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
         else {
+#ifdef _OPENMP
+#pragma omp critical (newg4event)
+#endif
+{
 #ifndef G4MULTITHREADED
           GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
           GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
@@ -303,7 +308,8 @@ AMSEvent *pn=0;
           GCFLAG.NRNDM[1]=G4MTHepRandom::getTheSeeds()[1];
 #endif
         }
-        AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
+ }
+       AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
 //cout <<"  running blia c"<<endl;
@@ -312,6 +318,7 @@ AMSEvent *pn=0;
 
     }
     }
+AMSgObj::BookTimer.stop("MCEVENTG");
    }
    else {
     AMSIO io;
