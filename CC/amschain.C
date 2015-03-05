@@ -102,12 +102,22 @@ AMSEventR* AMSChain::GetEventLocal(Int_t entry){
 AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
   Init();
   if (!kLocal) {//The old/standard way to call this method...
-    if(entry>=GetEntries()) return _EVENT;
+//    if(entry>=GetEntries()) return _EVENT;
+     if(entry>=GetEntries()) {//Fix BUG by Q.Yan
+       delete _EVENT; _EVENT = NULL;
+       _ENTRY = -2; 
+       return _EVENT; 
+     }
     _ENTRY = entry;
     m_tree_entry = LoadTree(_ENTRY);
   }
   else {// The "local" way to call this method.
-    if(entry>=(GetTree()->GetEntries())) return _EVENT;
+//    if(entry>=(GetTree()->GetEntries())) return _EVENT;
+    if(entry>=(GetTree()->GetEntries())){//Fix BUG by Q.Yan
+      delete _EVENT; _EVENT = NULL;
+      _ENTRY = -2;  
+      return _EVENT;
+    }
     _ENTRY = 0;//The "correct" setting of _EVENT is not supported in this mode...
     m_tree_entry = entry;
   }
