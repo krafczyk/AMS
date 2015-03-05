@@ -56,7 +56,7 @@
 #include "HadronPhysicsQGSP_FTFP_BERT.hh"
 #include "HadronPhysicsFTFP_BERT.hh"
 #include "HadronPhysicsFTFP_BERT_TRV.hh"
-#include "HadronPhysicsQGSP_INCLXX.hh"
+//#include "HadronPhysicsQGSP_INCLXX.hh"
 #else
 #include "G4HadronPhysicsQGSP_BERT.hh"
 #include "G4HadronPhysicsQGSP_FTFP_BERT.hh"
@@ -94,9 +94,10 @@ AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsLi
 AMSG4Physics::~AMSG4Physics(){
   if(phadronphysicsinclxx_holder) {
 #if G4VERSION_NUMBER < 1000 
-    HadronPhysicsQGSP_INCLXX* temp = (HadronPhysicsQGSP_INCLXX*) phadronphysicsinclxx_holder;
-    delete temp;
-    phadronphysicsinclxx_holder = 0;
+	  /*=== QGSP_INCLXX was removed for Geant4.9.x, we are not really going test it ====*/
+//    HadronPhysicsQGSP_INCLXX* temp = (HadronPhysicsQGSP_INCLXX*) phadronphysicsinclxx_holder;
+//    delete temp;
+//    phadronphysicsinclxx_holder = 0;
 #else
     G4HadronPhysicsINCLXX* temp = (G4HadronPhysicsINCLXX*) phadronphysicsinclxx_holder;
     delete temp;
