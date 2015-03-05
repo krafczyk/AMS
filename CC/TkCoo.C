@@ -55,7 +55,7 @@ AMSPoint TkCoo::GetGlobalN(int tkid, AMSPoint& loc){
   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
   if(!ll){
     printf("GetGlobalN: ERROR cant find ladder %d into the database\n",tkid);
-    return AMSPoint();
+    return AMSPoint(0,0,0);
   }
   AMSPoint loc2(loc);
   // Set ladder local coo Z to zero
@@ -102,7 +102,7 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   TkLadder* ll=TkDBc::Head->FindTkId(tkid);
   if(!ll){
    //PZ FIXME!!!!  printf("GetGlobalA: ERROR cant find ladder %d into the database\n",tkid);
-    return AMSPoint();
+    return AMSPoint(0,0,0);
   }
   AMSPoint loc2(loc);
   // Set ladder local coo Z to zero
