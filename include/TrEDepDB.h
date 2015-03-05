@@ -1,4 +1,4 @@
-// $Id: TrEDepDB.h,v 1.1 2013/03/14 09:29:38 oliva Exp $
+// $Id$
 
 #ifndef __TrEDepDB__
 #define __TrEDepDB__
@@ -103,6 +103,11 @@ class TrEDepDB : public TObject {
   static TrEDepDB* fHead;
   //! Init done
   static bool fInitDone;
+
+ public:
+
+  //! Boosting correction
+  static int fBoostBetaCorrection; 
 
  public:
 

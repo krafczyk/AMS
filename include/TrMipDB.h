@@ -1,4 +1,4 @@
-// $Id: TrMipDB.h,v 1.1 2013/03/14 09:29:38 oliva Exp $
+// $Id$
 
 #ifndef __TrMipDB__
 #define __TrMipDB__
@@ -79,6 +79,11 @@ class TrMipDB : public TObject {
   static TrMipDB* fHead;
   //! Init done
   static bool fInitDone;
+
+ public:
+
+  //! Disable MIP correction 
+  static bool fDisableMipCorrection; 
 
  public:
 

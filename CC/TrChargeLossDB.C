@@ -22,6 +22,7 @@ ClassImp(TrChargeLossTable);
 TrChargeLossDB* TrChargeLossDB::fHead = 0;
 map<int,TrChargeLossTable*> TrChargeLossDB::fTrChargeLossMap;
 bool TrChargeLossDB::fInitDone = false;
+int TrChargeLossDB::fUsedVersion = 1;
 
 
 TrChargeLossDB* TrChargeLossDB::GetHead() {
@@ -47,6 +48,8 @@ void TrChargeLossDB::Init(bool force) {
   else                         printf("TrChargeLossDB::GetHead()-V TrChargeLossDBver0 correction NOT loaded.\n"); 
   if (LoadDefaultTablesVer1()) printf("TrChargeLossDB::GetHead()-V TrChargeLossDBver1 correction loaded, %d tables in memory.\n",(int)fTrChargeLossMap.size());
   else                         printf("TrChargeLossDB::GetHead()-V TrChargeLossDBver1 correction NOT loaded.\n"); 
+  if (LoadDefaultTablesVer2()) printf("TrChargeLossDB::GetHead()-V TrChargeLossDBver2 correction loaded, %d tables in memory.\n",(int)fTrChargeLossMap.size());
+  else                         printf("TrChargeLossDB::GetHead()-V TrChargeLossDBver2 correction NOT loaded.\n");
   fInitDone = true;
 } 
 
@@ -133,7 +136,9 @@ double TrChargeLossDB::GetChargeLossCorrectedValue(int type, double ip, double i
 
 
 double TrChargeLossDB::GetChargeLossCorrectedValue(int iside, int inter, double ip, double ia, double adc, int ver) { 
-  // calculate type 
+  // if not specified/negative use default  
+  if (ver<0) ver = fUsedVersion; 
+  // calculate type      
   int type = TrChargeLossTable::CreateType(iside,inter,ver);
   if (type<0) {
     printf("TrChargeLossDB::GetChargeLossCorrectedValue-E wrong type calculation (side=%d, inter=%d, ver=%d). No correction applied.\n",iside,inter,ver);
@@ -180,13 +185,13 @@ double TrChargeLossDB::GetChargeLossCorrectedValue(int iside, int inter, double 
     return 0;
   }
   // interpolate 
-  double y0 = monotonic_cubic_interpolation(x0,n,x,y);
+  double y0 = monotonic_cubic_interpolation(x0,n,x,y); 
   return y0*y0;
 }
 
 
 bool TrChargeLossDB::LoadDefaultTablesVer0(char* dirname) {
-  // Load now
+  int pre = int(fTrChargeLossMap.size());
   int Zlist[14] = {1,2,3,4,5,6,7,8,9,10,11,12,14,26};
   for (int iz=0; iz<14; iz++) {
     int Z = Zlist[iz];
@@ -199,11 +204,12 @@ bool TrChargeLossDB::LoadDefaultTablesVer0(char* dirname) {
     bool loadY = tableY->InitTableFromTxtFile(Form("%s/v5.00/TrChargeLossDBver0/ChargeLossTable_P_Z%02d.txt",dirname,Z));
     if (loadY) AddTable(tableY,1,Z,0);
   }
-  return (int(fTrChargeLossMap.size())>0);
+  return (int(fTrChargeLossMap.size())-pre>0);
 }
 
 
 bool TrChargeLossDB::LoadDefaultTablesVer1(char* dirname) {
+  int pre = int(fTrChargeLossMap.size());
   for (int Z=1; Z<=26; Z++) {
     // 3S-side
     TrChargeLossTable* table3S = new TrChargeLossTable();
@@ -231,7 +237,36 @@ bool TrChargeLossDB::LoadDefaultTablesVer1(char* dirname) {
   FillGaps(1);
   FillGaps(2);
   FillGaps(3); 
-  return (int(fTrChargeLossMap.size())>0);
+  return (int(fTrChargeLossMap.size())-pre>0);
+}
+
+
+bool TrChargeLossDB::LoadDefaultTablesVer2(char* dirname) {
+  int pre = int(fTrChargeLossMap.size());
+  int Z[4] = {3,5,6,8};
+  for (int i=0; i<4; i++) {
+    // 3S-side
+    TrChargeLossTable* table3S = new TrChargeLossTable();
+    bool load3S = table3S->InitTableFromTxtFile(Form("%s/v5.00/TrChargeLossDBver2/ChargeLossTableSmooth_3S_Z%02d.txt",dirname,Z[i]));
+    if (load3S) TrChargeLossDB::GetHead()->AddTable(table3S,1,Z[i],2);
+    else delete table3S;
+    // 1K-side (B)
+    TrChargeLossTable* table1KB = new TrChargeLossTable();
+    bool load1KB = table1KB->InitTableFromTxtFile(Form("%s/v5.00/TrChargeLossDBver2/ChargeLossTableSmooth_1K_Z%02d.txt",dirname,Z[i]));
+    if (load1KB) TrChargeLossDB::GetHead()->AddTable(table1KB,2,Z[i],2);
+    else delete table1KB;
+    // 0K-side
+    TrChargeLossTable* table0K = new TrChargeLossTable();
+    bool load0K = table0K->InitTableFromTxtFile(Form("%s/v5.00/TrChargeLossDBver2/ChargeLossTableSmooth_0K_Z%02d.txt",dirname,Z[i]));
+    if (load0K) TrChargeLossDB::GetHead()->AddTable(table0K,3,Z[i],2);
+    else delete table0K;
+    // 1K-side (A) 
+    TrChargeLossTable* table1KA = new TrChargeLossTable();
+    bool load1KA = table1KA->InitTableFromTxtFile(Form("%s/v5.00/TrChargeLossDBver2/ChargeLossTableSmooth_1KA_Z%02d.txt",dirname,Z[i]));
+    if (load1KA) TrChargeLossDB::GetHead()->AddTable(table1KA,4,Z[i],2);
+    else delete table1KA;
+  }
+  return (int(fTrChargeLossMap.size())-pre>0);
 }
 
 
@@ -411,14 +446,16 @@ void TrChargeLossTable::Info() {
 
 
 int TrChargeLossTable::CreateType(int iside, int inter, int ver) {
-  // calculate type 
+  int k7 = int(inter/10);
+  inter = inter%10;
   int type = -1;
-  if (iside==1) type = 1;    // all  vers: 3S (used also for 1-strip clusters or edges)
+  if (iside==1) type = 1;    // all ver: 3S (used also for 1-strip clusters or edges)
   if (iside==0) {
-    type = 2;                // only ver1: 1K (used also for 1-strip clusters or edges)
-    if (inter==0) type = 3;  // only ver1: 0K (present only on K7)
-    if (ver==0) type = 0;    // in   ver0: 1K = 0K = K5  
+    type = 2;                // ver>1: 1K (used also for 1-strip clusters or edges), in ver2 1KB
+    if (inter==0) type = 3;  // ver>1: 0K (present only on K7)
+    if (ver==0) type = 0;    // only ver0: 1K = 0K = K5  
   }
+  if ( (ver==2)&&(inter==1)&&( (k7==1)||(k7==3) ) ) type = 4; // ver2: 1KA
   return type;
 }
 

@@ -408,7 +408,9 @@ class TrClusterR :public TrElem{
   /** @name More cluster quantities */
   /**@{*/
 
-  /// Get number of implant strips between the two highest readout strips (S: 3, K5: 1 or 2 (edges), K7: 1 or 0 ...)
+  /// Get number of implant strips between the two highest readout strips
+  /// N%10 = n. interstrip (ex. S: 3, K5: 1 or 2 (edges), K7: 1 or 0 ...)
+  /// N/10 = structure of K7 (1|2|3)   
   int   GetNInterstrip(int mult = 0); 
 
   /// Get number of strips with a particular calibration status mask for this cluster (checks also outside of cluster) 

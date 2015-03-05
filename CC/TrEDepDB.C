@@ -1,4 +1,4 @@
-// $Id: TrEDepDB.C,v 1.5 2013/04/02 06:17:35 oliva Exp $
+// $Id$
 
 
 #include "TrEDepDB.h"
@@ -22,6 +22,7 @@ ClassImp(TrEDepTable);
 TrEDepDB* TrEDepDB::fHead = 0;
 map<int,TrEDepTable*> TrEDepDB::fTrEDepMap;
 bool TrEDepDB::fInitDone = false;
+int TrEDepDB::fBoostBetaCorrection = -1;
 
 
 TrEDepDB* TrEDepDB::GetHead() {
@@ -115,12 +116,14 @@ double TrEDepDB::GetEDepCorrectedValue(int jlayer, double Q, double beta, double
     }
     return Q; 
   }
+  // boost (used for MC)
+  double boost = ( (fBoostBetaCorrection>0)&&(beta<1) ) ? pow(fabs(beta),-TMath::Max(0.,TMath::Min(0.1,(fBoostBetaCorrection-3)*0.02))) : 1; 
   // use beta correction 
   int type = 0;
   // if rigidity not null use beta/rigidity correction
   if (fabs(rigidity)>1e-6) type = 1;
   // calculation delivered by table
-  if (beta>=0) return table->GetCorrectedValue(Q,beta,rigidity,mass_on_Z,type);
+  if (beta>=0) return table->GetCorrectedValue(Q,beta,rigidity,mass_on_Z,type)*boost;
   // if up-going make the jlayer folding plus some gain correction between thee two layers
   int jlayer_upgoing = 9-jlayer+1;
   TrEDepTable* table_downgoing = table;
@@ -133,8 +136,8 @@ double TrEDepDB::GetEDepCorrectedValue(int jlayer, double Q, double beta, double
   double den = table_upgoing->GetCorrectedValue(Q,0.94,0,0,0);
   double num = table_downgoing->GetCorrectedValue(Q,0.94,0,0,0);
   double gain = (fabs(den)<1e-6) ? 1 : num/den; 
-  // some stretching function to be implemented ... upside/down is not ok in scale ... 
-  return value*gain; 
+  // some stretching function to be implemented ... upside/down is not ok in scale ...      
+  return value*gain*boost; 
 }
 
 

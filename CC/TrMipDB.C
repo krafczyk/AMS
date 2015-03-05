@@ -14,6 +14,7 @@ ClassImp(TrMipElem);
 TrMipDB* TrMipDB::fHead = 0;
 map<int,TrMipElem*> TrMipDB::fTrMipElemIndexMap;
 bool TrMipDB::fInitDone = false;
+bool TrMipDB::fDisableMipCorrection = false;
 
 
 TrMipDB* TrMipDB::GetHead() {
@@ -167,6 +168,7 @@ int TrMipDB::CreateIndex(int tkid, int iva, int depth) {
 
 
 double TrMipDB::GetMipCorrectedValue(double Q, int tkid, int iva, int depth) {
+  if (fDisableMipCorrection) return Q; 
   TrMipElem* elem = GetValidElem(tkid,iva,depth);  
   if (!elem) {
     // we have a couple of ladders with no available correction (-202, 405) disable error message 

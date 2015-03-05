@@ -25,6 +25,9 @@ float TrClusterR::TwoStripThresholdX = 0.70;  // tan(35deg)
 float TrClusterR::TwoStripThresholdY = 0.36;  // tan(20deg)
 
 
+void set_charge_calibration_tracker(TrClusterR* cluster); // external method (root.C)
+
+
 TrClusterR::TrClusterR(void) {
   Clear();
 }
@@ -283,12 +286,14 @@ float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_o
   }
   // new correction scheme
   else {
+    // switch to set charge calibration in data/MC 
+    set_charge_calibration_tracker(this); 
     // correct first for angle
     sum *= GetCosTheta();   
     // charge loss correction
     if (kLoss&opt) {
       int interstrip = (res_mult>=0) ? GetNInterstrip(res_mult) : -1; 
-      sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),interstrip,GetCofG(DefaultUsedStrips,TrClusterR::kAsym|TrClusterR::kAngle),GetImpactAngle(),sum,1);
+      sum = TrChargeLossDB::GetHead()->GetChargeLossCorrectedValue(GetSide(),interstrip,GetCofG(DefaultUsedStrips,TrClusterR::kAsym|TrClusterR::kAngle),GetImpactAngle(),sum);
     } 
     // beta/rigidity correction
     if ( (kBeta&opt)&&(kRigidity&opt)&&(fabs(rigidity)>1e-6) ) 
@@ -813,9 +818,9 @@ int TrClusterR::GetNInterstrip(int mult) {
   if ( (GetSide()==0)&&(IsK7()) ) {
     //  implantation  000 001 002 003 004 005 006 ... 092 093 094 095 | 096 097 098 ... 286 | 287 288 289 290 291 ... 380 381 382 383
     //  readout         0       1   2       3   4      61  62      63 |  64      65     159 |     160     161 162     221 222     223
-    if      (add<= 63) return ((add%2)==0) ? 1 : 0;
-    else if (add<=159) return 1; 
-    else               return ((add%2)==0) ? 1 : 0;
+    if      (add<= 63) return ((add%2)==0) ? 11 : 10;
+    else if (add<=159) return 21; 
+    else               return ((add%2)==0) ? 31 : 30;
   }
   return -1;
 }

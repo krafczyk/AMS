@@ -14525,6 +14525,51 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
 } 
 
 
+void set_charge_calibration_tracker(TrClusterR* cluster) {
+  float min_dist = 100; // window 
+  int Z = 0;
+  int tkid = cluster->GetTkId(); 
+  // look for the neighboring stuff 
+#ifdef __ROOTSHAREDLIBRARY__
+  for (int imc=0; imc<AMSEventR::Head()->NTrMCCluster(); imc++) {
+    TrMCClusterR* mc = AMSEventR::Head()->pTrMCCluster(imc);
+#else
+  VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
+  for (int ii=0; ii<container->getnelem(); ii++) {
+    TrMCClusterR* mc = (TrMCClusterR*) container->getelem(ii);
+#endif 
+    if ( (!mc)||(mc->GetTkId()!=tkid) ) continue;
+    int mc_z = mc->Status&0x1F; 
+    TkSens sensor(true);
+    AMSPoint mc_xgl = mc->GetXgl();
+    sensor.SetGlobalCoo(tkid,mc_xgl); 
+    if (!sensor.LadFound()) continue;
+    double mc_coord = sensor.GetLaddCoo()[cluster->GetSide()];
+    for (int imult=0; imult<=TkCoo::GetMaxMult(tkid,cluster->GetAddress()); imult++) {
+      double coord = cluster->GetXCofG(TrClusterR::DefaultUsedStrips,imult);
+      float dist = fabs(coord-mc_coord)*1e4;
+      // if (dist<min_dist) { min_dist = dist; Z = mc_z; }
+      if ( (dist<min_dist)&&(mc_z>Z) ) Z = mc_z; // not closest, but just inside the window (looser)
+    }
+  }
+  // decide which calibration should be used 
+  if ( (Z>2)&&(Z<=8) ) {
+    // MC charge calibration based on Z=3,5,6,8 of B1008 production (Mar. 2015)
+    TrChargeLossDB::fUsedVersion = 2;
+    TrMipDB::fDisableMipCorrection = true;
+    TrEDepDB::fBoostBetaCorrection = Z; 
+  }
+  else {
+    // Default data calibration (Apr. 2013)
+    TrChargeLossDB::fUsedVersion = 1;
+    TrMipDB::fDisableMipCorrection = false;
+    TrEDepDB::fBoostBetaCorrection = -1; 
+  }
+#ifndef __ROOTSHAREDLIBRARY__
+  if (container!=0) delete container;
+#endif
+}
+
 
 int MCtune(AMSPoint &coo, int tkid, double dmax, float dsxy[2])
 {

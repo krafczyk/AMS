@@ -1,4 +1,4 @@
-// $Id: TrChargeLossDB.h,v 1.2 2013/03/14 09:29:38 oliva Exp $
+// $Id$
 
 #ifndef __TrChargeLossDB__
 #define __TrChargeLossDB__
@@ -68,7 +68,7 @@ class TrChargeLossTable : public TObject {
   //! Create type number from side and number of intermediate implanted strips
   static int CreateType(int iside, int inter, int ver);
   //! Create an index (version*1000 + z*10 + type)
-  /* - type = 0: K; 1: S(=3S), 2: 1K, 3: 0K
+  /* - type = 0: K; 1: S(=3S), 2: 1K(=1KB), 3: 0K, 4: 1KA
    * - z    = charge associated to the table
    * - ver  = 0: ver0, generic table, only K and S; 1 = ver1, more specific, different correction scheme
    */
@@ -170,6 +170,11 @@ class TrChargeLossDB : public TObject {
   //! Init done
   static bool fInitDone;
 
+ public: 
+
+  //! Default version
+  static int fUsedVersion;
+ 
  public:
 
   //! Constructor (declared public because of ROOT I/O), not to be used
@@ -198,13 +203,15 @@ class TrChargeLossDB : public TObject {
 
   //! Get the corrected value (old method used in ver0)
   double GetChargeLossCorrectedValue(int type, double ip, double ia, double adc);
-  //! Alternative method for correcting the value (used by ver1)
-  double GetChargeLossCorrectedValue(int iside, int inter, double ip, double ia, double adc, int ver);
+  //! Alternative method for correcting the value (used by ver>0)
+  double GetChargeLossCorrectedValue(int iside, int inter, double ip, double ia, double adc, int ver = -1);
 
   //! Load the ver0 tables from directory 
   bool   LoadDefaultTablesVer0(char* dirname = getenv("AMSDataDir"));
   //! Load the ver1 tables from directory 
   bool   LoadDefaultTablesVer1(char* dirname = getenv("AMSDataDir"));
+  //! Load the ver2 tables (MC) from directory
+  bool   LoadDefaultTablesVer2(char* dirname = getenv("AMSDataDir"));
 
   //! Get a graph with correction function for a given CofG and impact point
   TGraph* GetCorrectionGraph(int type, double ip, double ia, int ver);
