@@ -459,6 +459,12 @@ void AMSEvent::SetTimeCoo(integer rec){
   AMSgObj::BookTimer.start("SetTimeCoo");
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation() && !rec){
+#ifdef G4MULTITHREADED
+    
+        number dtime=AMSmceventg::Orbit.FlightTime/(GCFLAG.NEVENT+1);
+        double xsec=dtime*GCFLAG.IEVENT;
+        double curtime=xsec;        
+#else
     static number dtime=AMSmceventg::Orbit.FlightTime/
       (GCFLAG.NEVENT+1);
     static number curtime=0;
@@ -469,24 +475,16 @@ void AMSEvent::SetTimeCoo(integer rec){
     }
     else xsec+=dtime*(AMSmceventg::Orbit.Nskip+1);
     curtime+=xsec;
+#endif
     if(curtime>AMSmceventg::Orbit.FlightTime){
       curtime=AMSmceventg::Orbit.FlightTime;
       GCFLAG.IEORUN=1;
     }
-    //    cout <<" AMSmceventg::Orbit.FlightTime "<<AMSmceventg::Orbit.FlightTime<<" "<<xsec<<" "<<curtime<<" "<<dtime<< " "<<AMSmceventg::Orbit.Nskip<<endl;
-//#pragma omp atomic
-    //GCFLAG.IEVENT+=AMSmceventg::Orbit.Nskip;
-    //    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
-    //      GCFLAG.IEORUN=1;
-    //      GCFLAG.IEOTRI=1;
-    //      return;
-    //    }
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
     AMSmceventg::Orbit.UpdateOrbit(curtime,_StationTheta,_StationPhi,_NorthPolePhi,_StationEqAsc,_StationEqDec,_StationGalLat,_StationGalLong,_time);
     
     _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
     
-
     AMSmceventg::Orbit.Nskip=0;        
     AMSmceventg::Orbit.Ntot++;
     _Yaw=0;

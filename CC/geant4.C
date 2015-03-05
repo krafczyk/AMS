@@ -286,7 +286,7 @@ Reset();
 AMSEvent *pn=0;
 AMSgObj::BookTimer.start("MCEVENTG");
 #ifdef _OPENMP
-#pragma omp critical (newg4event)
+#pragma omp critical (initco)
 #endif
 {
      pn= new AMSEvent(AMSID("Event",GCFLAG.IEVENT++),CCFFKEY.run,0,0,0);
@@ -297,7 +297,7 @@ AMSgObj::BookTimer.start("MCEVENTG");
         if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
         else {
 #ifdef _OPENMP
-#pragma omp critical (newg4event)
+#pragma omp critical (initco)
 #endif
 {
 #ifndef G4MULTITHREADED

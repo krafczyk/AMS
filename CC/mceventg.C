@@ -2017,7 +2017,7 @@ for(;;){
     hman.Fill("Pgen", log10(fabs(_mom)), _dir[2]);
 #endif
 if(accept())break;
-#pragma omp critical (newg4event)
+#pragma omp critical (initco)
 GCFLAG.IEVENT++;
 }
 #ifdef _PGTRACK_
