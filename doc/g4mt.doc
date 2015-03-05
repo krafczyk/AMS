@@ -44,6 +44,8 @@ the events in the root file will be not ordered by default (MISC 29=x0 will chan
 
 RNDM hase still no reproducibility, to be worked in , however it does not change quality of results
 
+Poissn distribution rndm  idoes not exist in geant4.10++ ,  CLHEP one is used instead, here breaking the thread safety and reproducibility (once again)  
+
 Number of threads can not be changed dynamically, g4 fault .
 
 
