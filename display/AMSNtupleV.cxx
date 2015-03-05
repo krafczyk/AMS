@@ -488,11 +488,16 @@ if(type==kall ||  type==kmcinfo){
  }
 }
 
-if(type==kall ||  type==kmcinfo){
+if(type==kall ||  type==kmcinfo || type==kusedonly){
  fMCEventgV.clear();
  if(gAMSDisplay->DrawObject(kmcinfo)){
   for(int i=0;i<NMCEventg();i++){
+   if(gAMSDisplay->DrawUsedOnly() && GetPrimaryMC()==pMCEventg(i)){
     fMCEventgV.push_back( MCEventgV(this,i));
+   }
+   else if(!gAMSDisplay->DrawUsedOnly()){
+    fMCEventgV.push_back( MCEventgV(this,i));
+   }
   }
  }
 }
