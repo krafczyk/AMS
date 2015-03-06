@@ -174,7 +174,7 @@ class TrChargeLossDB : public TObject {
 
   //! Default version
   static int fUsedVersion;
- 
+#pragma omp threadprivate(fUsedVersion)
  public:
 
   //! Constructor (declared public because of ROOT I/O), not to be used

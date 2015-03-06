@@ -108,7 +108,7 @@ class TrEDepDB : public TObject {
 
   //! Boosting correction
   static int fBoostBetaCorrection; 
-
+#pragma omp threadprivate(fBoostBetaCorrection)
  public:
 
   //! Constructor (declared public because of ROOT I/O), not to be used

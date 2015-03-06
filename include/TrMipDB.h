@@ -84,7 +84,7 @@ class TrMipDB : public TObject {
 
   //! Disable MIP correction 
   static bool fDisableMipCorrection; 
-
+#pragma omp threadprivate (fDisableMipCorrection)
  public:
 
   //! Constructor (declared public because of ROOT I/O), not to be used
