@@ -14524,7 +14524,9 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   return ret;
 } 
 
-
+#ifndef __ROOTSHAREDLIBRARY__
+#include "VCon_gbatch.h"
+#endif
 void set_charge_calibration_tracker(TrClusterR* cluster) {
   float min_dist = 100; // window 
   int Z = 0;
@@ -14534,9 +14536,15 @@ void set_charge_calibration_tracker(TrClusterR* cluster) {
   for (int imc=0; imc<AMSEventR::Head()->NTrMCCluster(); imc++) {
     TrMCClusterR* mc = AMSEventR::Head()->pTrMCCluster(imc);
 #else
-  VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
-  for (int ii=0; ii<container->getnelem(); ii++) {
-    TrMCClusterR* mc = (TrMCClusterR*) container->getelem(ii);
+  VCon_gb* container = (VCon_gb*)GetVCon()->GetCont("AMSTrMCCluster");
+  if(!container || container->con){
+    if (container!=0) delete container;
+    return;
+  }
+//  for (int ii=0; ii<container->getnelem(); ii++) {
+  int ii=0;
+  for(AMSlink*mce=container->con->gethead();mce &&ii++<container->getnelem();mce=mce->next()){
+    TrMCClusterR* mc = (TrMCClusterR*) mce;
 #endif 
     if ( (!mc)||(mc->GetTkId()!=tkid) ) continue;
     int mc_z = mc->Status&0x1F; 
