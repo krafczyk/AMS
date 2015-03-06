@@ -1178,7 +1178,7 @@ class G4FFKEY_DEF{
   float OverlapTol;
   // 
   int DumpCrossSections;
-  float HCrossSectionBias[3];
+  float HCrossSectionBias[4];
 
   int DumpCrossSectionsAt;
   int DumpCrossSectionsZt;
