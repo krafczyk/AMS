@@ -220,13 +220,13 @@ class TrCharge {
   //! Good hit for charge reconstruction
   static bool   GoodChargeReconHit(TrRecHitR* hit, int iside);
   //! Mean generic interface
-  static mean_t GetMean(int type, vector<float> signal);
+  static mean_t GetMean(int type, const vector<float>& signal);
   //! Mean of n signals
-  static mean_t GetPlainMean(vector<float> signal);
+  static mean_t GetPlainMean(const vector<float>& signal);
   //! Truncated mean of n signals
-  static mean_t GetTruncMean(vector<float> signal);
+  static mean_t GetTruncMean(const vector<float>& signal);
   //! Gaussianized mean of n signals (discarding out-of-3-sigma signals)
-  static mean_t GetGaussMean(vector<float> signal);
+  static mean_t GetGaussMean(const vector<float>& signal);
   //! Mean generic method
   static mean_t GetMean(int type, TrTrackR* track, int iside, float beta = 1, int jlayer = -1,
         int opt = TrClusterR::DefaultChargeCorrOpt, int fit_id = -1, float mass_on_Z = 0);

@@ -43,7 +43,7 @@ bool TrCharge::GoodChargeReconHit(TrRecHitR* hit, int iside) {
 }
 
 
-mean_t TrCharge::GetMean(int type, vector<float> signal) {
+mean_t TrCharge::GetMean(int type, const vector<float>& signal) {
   if      ( ( (type&kPlainMean))&&(!(type&kTruncMean))&&(!(type&kGaussMean)) ) return GetPlainMean(signal);
   else if ( (!(type&kPlainMean))&&( (type&kTruncMean))&&(!(type&kGaussMean)) ) return GetTruncMean(signal);
   else if ( (!(type&kPlainMean))&&(!(type&kTruncMean))&&( (type&kGaussMean)) ) return GetGaussMean(signal);
@@ -52,7 +52,7 @@ mean_t TrCharge::GetMean(int type, vector<float> signal) {
 }
 
 
-mean_t TrCharge::GetPlainMean(vector<float> signal) {
+mean_t TrCharge::GetPlainMean(const vector<float>& signal) {
   int   n    = 0;
   float mean = 0;
   float rms  = 0;
@@ -70,7 +70,7 @@ mean_t TrCharge::GetPlainMean(vector<float> signal) {
 }
 
 
-mean_t TrCharge::GetTruncMean(vector<float> signal) {
+mean_t TrCharge::GetTruncMean(const vector<float>& signal) {
   int   n       = 0;
   float mean    = 0;
   float maxampl = 0;
@@ -90,7 +90,7 @@ mean_t TrCharge::GetTruncMean(vector<float> signal) {
 }
 
 
-mean_t TrCharge::GetGaussMean(vector<float> signal) {
+mean_t TrCharge::GetGaussMean(const vector<float>& signal) {
   // calculate mean and rms
   int   n    = 0;
   float mean = 0;
