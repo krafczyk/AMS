@@ -8,6 +8,9 @@ class VCon_gb : public VCon {
  public:
   // container
   AMSContainer * con;
+//  element hint
+    int leli;
+   AMSlink *lel; 
   // c-tor
   VCon_gb(AMSContainer * cc=0);
   // d-tor
