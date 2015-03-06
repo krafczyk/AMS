@@ -14537,7 +14537,7 @@ void set_charge_calibration_tracker(TrClusterR* cluster) {
     TrMCClusterR* mc = AMSEventR::Head()->pTrMCCluster(imc);
 #else
   VCon_gb* container = (VCon_gb*)GetVCon()->GetCont("AMSTrMCCluster");
-  if(!container || container->con){
+  if(!container || !container->con){
     if (container!=0) delete container;
     return;
   }
