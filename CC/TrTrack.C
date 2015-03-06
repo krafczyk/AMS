@@ -303,7 +303,12 @@ long long TrTrackR::GetTrackPathID() const{
 TrTrackPar &TrTrackR::GetPar(int id)
 {
   int id2 = (id == 0) ? trdefaultfit : id;
-  if (ParExists(id2)) return _TrackPar[id2]; // Be careful of [] operator !
+  if (ParExists(id2) && _TrackPar.find(id2)!=_TrackPar.end()) return _TrackPar[id2]; // Be careful of [] operator !
+  static int i=0;
+   if(i++<100)
+     cerr << "TrTrackR::GetPar2-W-Parameter not exists (" << id << "): "
+          << GetFitNameFromID(id) << endl;
+
   static TrTrackPar parerr;
   return parerr;
 }

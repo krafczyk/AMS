@@ -23,7 +23,12 @@
 #endif
 #include <vector>
 #ifdef _PGTRACK_
-bool TRCmp(AMSTrTrack * a, AMSTrTrack* b){return fabs(a->GetRigidity())*a->GetQ(1)>fabs(b->GetRigidity()*b->GetQ(1));
+bool TRCmp(AMSTrTrack * a, AMSTrTrack* b){
+double aa=fabs(a->GetRigidity());
+aa*=a->GetQ(1);
+double bb=fabs(b->GetRigidity());
+bb*=b->GetQ(1);
+return (aa>bb);
 }
 #else
 bool TRCmp(AMSTrTrack * a, AMSTrTrack* b){return fabs(a->getrid())>fabs(b->getrid());}
@@ -374,7 +379,9 @@ integer AMSBeta::build_old(integer refit,integer Master){
 //
       std::vector<AMSTrTrack*> tr;
       for (AMSTrTrack *ptrack= (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1); ptrack ; ptrack=ptrack->next()) {
-        tr.push_back(ptrack);
+       tr.push_back(ptrack);
+//       double r=ptrack->GetRigidity();
+//       double q=ptrack->GetQ(1);
       } 
       std::sort(tr.begin(),tr.end(),TRCmp);
 
