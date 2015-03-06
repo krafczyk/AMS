@@ -8510,13 +8510,13 @@ C********************************************************************
             JDAHKK(2,M2M2)=M2
             ENDIF
           ENDIF
-        ENDIF
         MO1=JMOHKK(1,M1)
         MO2=JMOHKK(1,M2)
         IF(JDAHKK(1,MO1).EQ.0)JDAHKK(1,MO1)=M1
 	IF(JDAHKK(2,MO1).EQ.0)JDAHKK(2,MO1)=M1
         IF(JDAHKK(1,MO2).EQ.0)JDAHKK(1,MO2)=M2
         IF(JDAHKK(2,MO2).EQ.0)JDAHKK(2,MO2)=M2
+        ENDIF
    2  CONTINUE
 
       DO 3 I=1,NHKK
