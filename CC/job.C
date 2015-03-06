@@ -1936,6 +1936,7 @@ void AMSJob::udata(){
   }
   else if(MISCFFKEY.G4On) {
     cout<<"<---- AMSJob::udata-I-Geant4Selected"<<endl<<endl;
+{
     struct rlimit ulimit_v;
     getrlimit(RLIMIT_AS, &ulimit_v);
     if (ulimit_v.rlim_cur / 1024 < (3+MISCFFKEY.NumThreads)*1024000) {
@@ -1943,6 +1944,16 @@ void AMSJob::udata(){
         abort();
     }
     cout <<"AMSJob::udata-I-VirtualMemLimit: "<< ulimit_v.rlim_cur / 1024 <<endl<<endl;
+}
+{
+    struct rlimit ulimit_v;
+    getrlimit(RLIMIT_STACK, &ulimit_v);
+    if (ulimit_v.rlim_cur / 1024 < (0.06+MISCFFKEY.NumThreads*0.002)*1024000) {
+        cerr<<"<---- AMSJob::udata-F-StackNotEnough: "<< ulimit_v.rlim_cur / 1024 << " < " << (0.06+MISCFFKEY.NumThreads*0.002)*1024000 <<endl<<endl;
+        abort();
+    }
+    cout <<"AMSJob::udata-I-StackMemLimit: "<< ulimit_v.rlim_cur / 1024 <<endl<<endl;
+}
 
   }
   else cout<<"<---- AMSJob::udata-I-Geant3Selected"<<endl<<endl;

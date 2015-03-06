@@ -187,9 +187,9 @@ static double sigma_trunc_y_6_2013[14] = {
 mean_t TrCharge::GetCombinedMean(int type, TrTrackR* track, float beta, int jlayer, int opt, int fit_id, float mass_on_Z) {
   // check
   // if the requested type does not require TruncatedMean is not valid 
-  if (!(type&kTruncMean)) return 0;
+  if (!(type&kTruncMean)) return mean_t();
   // if the requested type is not kSqrt is not valid
-  if (!(type&kSqrt)) return 0;
+  if (!(type&kSqrt)) return mean_t();
   // init spline if needed
   if (!sigma_trunc_spline[0]) sigma_trunc_spline[0] = new TGraph(14,z_sigma_trunc,sigma_trunc_x_6);
   if (!sigma_trunc_spline[1]) sigma_trunc_spline[1] = new TGraph(14,z_sigma_trunc,sigma_trunc_y_6);
