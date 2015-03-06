@@ -263,7 +263,7 @@ const TrTrackPar &TrTrackR::GetPar(int id) const
 {
   int id2 = (id == 0) ? trdefaultfit : id;
   if (_MagFieldOn == 0 && id2 != kDummy) id2 = kLinear;
-  if (ParExists(id2)) return _TrackPar.find(id2)->second;
+  if (ParExists(id2) &&  _TrackPar.find(id2)!=_TrackPar.end() ) return _TrackPar.find(id2)->second;
   static int i=0;
    if(i++<100)
      cerr << "TrTrackR::GetPar-W-Parameter not exists (" << id << "): "

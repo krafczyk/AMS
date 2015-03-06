@@ -356,6 +356,7 @@ void AMSJob::_siamsdata(){
   G4FFKEY.HCrossSectionBias[0]=1;
   G4FFKEY.HCrossSectionBias[1]=1;
   G4FFKEY.HCrossSectionBias[2]=1;
+  G4FFKEY.HCrossSectionBias[3]=1;
   G4FFKEY.ApplyCPULimit=1;  
   G4FFKEY.DumpCrossSectionsAt=12;
   G4FFKEY.DumpCrossSectionsZt=6;

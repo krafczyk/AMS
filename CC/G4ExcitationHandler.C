@@ -727,6 +727,19 @@ void G4HadronElasticPhysics::ConstructProcess()
 #endif
 #include "G4HadronElastic.hh"
 extern "C" void     abcross_(int &icas,float &a_p,float &a_t,float &zp_p,float &z_t,float &p_p,float &sigma_t,float sigma_el[],float sigma_q[]);
+        double deltam(double bg, double m1, double m2,double pt){
+//      return delta_energy after elastic scattering
+        double p1=m1*bg;
+        double p2=m2*bg;
+        double e1=sqrt(p1*p1+m1*m1);
+        double e2=sqrt(p2*p2+m2*m2);
+        double m=m1+m2;
+        double pp=sqrt(p2*p2-pt*pt);
+        double mp=m1*m1+m2*m2+2*(e1*e2-p1*pp);
+        mp=sqrt(mp);
+        return mp-m;
+       }
+
 G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
                                   G4double plab,
                                   G4int Z, G4int A)
@@ -738,6 +751,15 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
   G4double aa, bb, cc;
   G4double dd = 10.;
   G4Pow* g4pow = G4Pow::GetInstance();
+    float a_p=p->GetBaryonNumber(); 
+    float a_t=A;
+    float z_p=int(p->GetPDGCharge()/eplus+0.5);
+    float z_t=Z;
+    float p_p=plab/GeV;
+   const G4double protonMass = 938.272/1000.;
+   const G4double neutronMass = 939.565/1000.;
+   double  m_p=p->GetPDGMass()/GeV;
+   double delta=protonMass*z_p+(a_p-z_p)*neutronMass-m_p;
   if (A <= 62) {
     bb = 14.5*g4pow->Z23(A);
     aa = g4pow->powZ(A, 1.63)/bb;
@@ -747,13 +769,7 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
     aa = g4pow->powZ(A, 1.33)/bb;
     cc = 0.4*g4pow->powZ(A, 0.4)/dd;
   }
-
   if(strstr((const char*)(this->GetModelName()),"ionelasticVC")){
-    float a_p=p->GetBaryonNumber(); 
-    float a_t=A;
-    float z_p=int(p->GetPDGCharge()/eplus+0.5);
-    float z_t=Z;
-    float p_p=plab/GeV;
     float sigma_t=0;
     float sigma_el[3]={0,0,0};
     float sigma_q[5]={0,0,0,0,0};
@@ -775,7 +791,27 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
     q1 = q2;
     bb = dd;
   }
-  return -GeV2*std::log(1.0 - G4UniformRand()*q1)/bb;
+    int mtry=100;
+    if(z_p<3 || !G4FFKEY.HCrossSectionBias[3])mtry=0;
+    
+    static unsigned int nerr=0;
+    double pt2=-GeV2*std::log(1.0 - G4UniformRand()*q1)/bb;
+   for(int itry=0;itry<mtry;itry++){
+//  neutron or proton
+    if(itry>0)pt2=-GeV2*std::log(1.0 - G4UniformRand()*q1)/bb;
+    double m2=protonMass;
+    if(  G4UniformRand()>z_p/a_p)m2=neutronMass;
+    double m1=m_p-m2;
+    double bg=p_p/m_p;
+    double pt=sqrt(pt2);
+    pt=pt/GeV;
+    double d2=deltam(bg,m1,m2,pt);
+//    G4cout <<" Q2 "<<itry<<" "<<d2<<" "<<delta<<" "<<pt<<" "<<p_p<<" "<<m_p<<" " <<bg<<" "<<m1<<" "<<m2<<G4endl;
+    if(d2<delta )return pt2;
+    else if(nerr++<mtry)G4cerr<<" G4HadronElastic::SampleInvariantT-W-Q2Toobig "<<pt2<<" "<<delta<<" "<<d2<<" "<<p_p<<G4endl;
+   }
+  if(mtry)cerr<<"G4HadronElastic::SampleInvariantT-E-UnabletoSample "<<endl;
+  return pt2;
 }
 #include "G4ComponentGGNuclNuclXsc.hh"
 
