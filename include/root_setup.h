@@ -268,7 +268,10 @@ static int Version; ///< RTI Version id
 */
 static int Loadopt;//< load option
 /// use latest RTI Version
-/// \return Version id
+/*!
+ * @param[in] pass  4: B620-p4, 6: B950-p6
+ * @return Version id
+*/
 static int UseLatest(int pass=4);
 //---
  RTI():run(0),evno(0),evnol(0),lf(0),mphe(0),theta(0),phi(0),r(0),zenith(0),glat(-2),glong(-2),nev(0),nerr(0),ntrig(0),nhwerr(0),npart(0),mtrdh(0),good(-1),utime(0){
