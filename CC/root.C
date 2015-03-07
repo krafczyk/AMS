@@ -14524,19 +14524,15 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   return ret;
 } 
 
+
 void set_charge_calibration_tracker(TrClusterR* cluster) {
   float min_dist = 100; // window 
   int Z = 0;
   int tkid = cluster->GetTkId(); 
   // look for the neighboring stuff 
-#ifdef __ROOTSHAREDLIBRARY__
-  for (int imc=0; imc<AMSEventR::Head()->NTrMCCluster(); imc++) {
-    TrMCClusterR* mc = AMSEventR::Head()->pTrMCCluster(imc);
-#else
-VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
+  VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
   for (int ii=0; ii<container->getnelem(); ii++) {
     TrMCClusterR* mc = (TrMCClusterR*)container->getelem(ii); 
-#endif 
     if ( (!mc)||(mc->GetTkId()!=tkid) ) continue;
     int mc_z = mc->Status&0x1F; 
     TkSens sensor(true);
@@ -14564,9 +14560,7 @@ VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
     TrMipDB::fDisableMipCorrection = false;
     TrEDepDB::fBoostBetaCorrection = -1; 
   }
-#ifndef __ROOTSHAREDLIBRARY__
   if (container!=0) delete container;
-#endif
 }
 
 
