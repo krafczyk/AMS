@@ -5,6 +5,7 @@ VCon_root::VCon_root(const char * cc){
   else
   sprintf(contname,"%s",cc);
   ev=AMSEventR::Head();
+  _prevel=0;
 }
 
 VCon* VCon_root::GetCont(const char * name){
@@ -27,6 +28,9 @@ VCon* VCon_root::GetCont(const char * name){
     }
   else return 0;
 }
+
+TrElem* VCon_root::first(){_prevel=0;return getelem(0);}
+TrElem* VCon_root::next(){return getelem(++_prevel);}
 
 void VCon_root::removeEl(TrElem* aa, integer res)
 {

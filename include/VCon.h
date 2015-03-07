@@ -24,6 +24,10 @@ class VCon{
   virtual void     removeEl(TrElem* prev, int restore=1)=0;
   // exchange two elements
   virtual void     exchangeEl(TrElem* el1, TrElem* el2)=0;
+  //Linked list like, access
+  virtual TrElem* first()=0;
+  //Linked list like, access
+  virtual TrElem* next()=0;
 };
 
 VCon* GetVCon();

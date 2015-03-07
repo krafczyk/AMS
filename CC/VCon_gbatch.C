@@ -4,6 +4,7 @@
 
 VCon_gb::VCon_gb(AMSContainer * cc):VCon(),leli(-1),lel(0){
   con=cc;
+  _prevel=0;
 }
 
 
@@ -37,6 +38,17 @@ void VCon_gb::eraseC(){
   if(!con) return ;
   else return con->eraseC();
 }
+
+TrElem* VCon_gb::first(){
+  _prevel=con->gethead();
+  return dynamic_cast<TrElem*> (_prevel);
+}
+
+TrElem* VCon_gb::next(){
+  _prevel=_prevel->next();
+  return dynamic_cast<TrElem*> (_prevel);
+}
+
 
 TrElem* VCon_gb::getelem(int ii){
   if(!con) return 0;

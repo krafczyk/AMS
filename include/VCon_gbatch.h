@@ -5,6 +5,8 @@
 #include "cont.h"
 
 class VCon_gb : public VCon {
+ private:
+  AMSlink* _prevel;
  public:
   // container
   AMSContainer * con;
@@ -14,7 +16,7 @@ class VCon_gb : public VCon {
   // c-tor
   VCon_gb(AMSContainer * cc=0);
   // d-tor
-  ~VCon_gb(){}
+  ~VCon_gb(){_prevel=0;}
   // get container by name
   VCon*    GetCont(const char * name);
   // get number of elements in the container
@@ -31,6 +33,10 @@ class VCon_gb : public VCon {
   void     removeEl(TrElem* prev, integer restore=1);
   // exchange two elements
   void     exchangeEl(TrElem* el1, TrElem* el2);
+  //Linked list like, access
+  TrElem* first();
+  //Linked list like, access
+  TrElem* next();
 };
 
 

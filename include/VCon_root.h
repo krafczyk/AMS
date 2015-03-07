@@ -8,6 +8,8 @@
 #include <algorithm>
 
 class VCon_root : public VCon {
+ private:
+  int _prevel;
  public:
   // event
   AMSEventR* ev;
@@ -33,6 +35,10 @@ class VCon_root : public VCon {
   void      removeEl(TrElem* prev, integer restore=1);
   // exchange two elements
   void      exchangeEl(TrElem* el1, TrElem* el2);
+  //Linked list like, access
+  TrElem* first();
+  //Linked list like, access
+  TrElem* next();
 };
 
 #endif
