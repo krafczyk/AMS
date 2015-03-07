@@ -1,12 +1,9 @@
-///  This is an simple example to use AMS-RTI to Calculate Exposure-Time for Diff Rigidity(Helium)
+///  This is an simple example to use AMS-RTI 
 // -----------------------------------------------------------
-//        Created:       2013-Jan-26  Q.Yan  qyan@cern.ch (Example and Develop)
+//        Created:       2013-Jan-26  Q.Yan  qyan@cern.ch (Example)
 //                       Time Cut by V.Choutko
 //        Run:           root -b -q RTI.C+
-//        Update:        2013-July-14  Q.Yan:  better cutoff value bin by bin
-//        Update:        2013-July-15  Q.Yan:  AMSEventR adding RecordRTIRun, used for recording all processed runs to  AMSEventR:fRunList
-//                                             reference:  Calculate Time method 2
-//        Update:        2013-Dec-21   Q.Yan   Adding RTI::Version Using Guide 
+//        Update:        2013-Dec-21   Q.Yan  RTI::Version Using Guide 
 // -----------------------------------------------------------
 
 #include <signal.h>
@@ -20,7 +17,7 @@
 #include "TTree.h"
 #include <sstream>
 #include "TString.h"
-#include <fstream.h>
+#include <fstream>
 #include <iostream>
 #include "root_RVSP.h"
 #include "amschain.h"
@@ -56,16 +53,11 @@ int RTI_CINT(AMSChain *ch,char *outfile,int Tcalopt){
 //--Book Hist
    BookHistos();
  
-//--Define Using RTI::Version (Look for "Version")
-//--------------------------
-//   cfi, nhwerr, nl1l9, dl1l9:           Version>=1
-//   evnol, usec[2], mtrdh, good(bittag): Version>=2
-//   USE latest RTI version:   AMSSetupR::RTI::UseLatest();
-//--------------------------
-//   AMSSetupR::RTI::Version=0; //0 old  (default B620)  
-//   AMSSetupR::RTI::Version=1; //1 new  (2013-08 B620)
-//   AMSSetupR::RTI::Version=2; //2 nnew (2013-12 B700)
-     AMSSetupR::RTI::Version=3; //3 nnew (2014-03 B620)
+//--Using Latest pass4(or pss6) RTI
+//-------------------------
+   int pass=4;//(pass4)  
+//   int pass=6;//(pass6)
+   AMSSetupR::RTI::UseLatest(pass);//pass4 or pass6 
 //--Process ROOT Events Counting
    cout<<"Proces ROOT"<<endl;
    unsigned int time[2]={0};
@@ -132,7 +124,7 @@ void BookHistos(){
 }
 
 
-///--RTI Time PreSelection(Provided by VC)
+///--RTI Time Selection(Provided by VC + QY)
 //---------------------------------------------
 bool TPreSelect(AMSSetupR::RTI &a){
 
@@ -143,16 +135,7 @@ bool TPreSelect(AMSSetupR::RTI &a){
   cut[3]=(a.zenith<40);
   cut[4]=(a.nerr>=0&&a.nerr/a.nev<0.1);
   cut[5]=(a.npart>0&&a.nev<1800);
-//Choose or Not Choose* New 
-  cut[6]=1;
-  if(AMSSetupR::RTI::Version>=2){
-     if(a.good&(1<<0))cut[6]=0;//exclude duplicate events second
-     if(a.good&(1<<1))cut[6]=0;//exclude event number flip second
-     if(a.good&(1<<2))cut[6]=0;//*exclude event missing at the beginging of second
-     if(a.good&(1<<3))cut[6]=0;//*exclude event missing at the end of second 
-     if(a.good&(1<<4))cut[6]=0;//*exclude second at the begining of run
-     if(a.good&(1<<5))cut[6]=0;//*exclude second at the end of run
-   }
+  cut[6]=((a.good&0x3F)==0);
   bool tcut=(cut[0]&&cut[1]&&cut[2]&&cut[3]&&cut[4]&&cut[5]&&cut[6]);
   return tcut;
 }
@@ -186,8 +169,7 @@ bool PreEvent(AMSEventR *pev){
 //---RIT+Event Cutoff-Cut
    float rig=betah->pTrTrack()->GetRigidity();//no select for TkPattern
 //--Find Cutoff
-   double ucutr=1.2*a.cf[3][1];
-   if(AMSSetupR::RTI::Version>=1)ucutr=1.2*a.cfi[3][1];//IGRF Cutoff  Recommended
+   double ucutr=1.2*a.cfi[3][1];
 //---Search Bin LowEdge>=Cutoff as Cutoff(much higher)
    TH1D* th=(TH1D *)hman1.Get("HeEvent"); 
    for(int ibr=1;ibr<=th->GetNbinsX();ibr++){
@@ -230,8 +212,7 @@ void ProcessTime(unsigned int time[2]){
      if(!TPreSelect(a))continue;//Abandon Second
 //--Time Cal
      double nt=a.lf*a.nev/(a.nev+a.nerr);
-     double ucutr=1.2*a.cf[3][1];
-    if(AMSSetupR::RTI::Version>=1)ucutr=1.2*a.cfi[3][1];//IGRF Cutoff  Recommended
+     double ucutr=1.2*a.cfi[3][1];//IGRF Cutoff  Recommended
 //--Above Cutoff LowBin>=Cutof T+ 
      for(int ibr=1;ibr<=th->GetNbinsX();ibr++){//Above CutOff Time++
         if(th->GetBinLowEdge(ibr)>=ucutr){
