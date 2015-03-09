@@ -7137,7 +7137,12 @@ if( not defined $dbserver->{dbfile}){
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" CHECKED><b> Standalone </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" ><b> Client </b><BR>\n";
+             if ($self->{CCID} == 2) {
+                 print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" ><b> Client </b><BR>\n";
+             }
+             else {
+                 print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" DISABLED=\"Yes\"><b> Client </b><BR>\n";
+             }
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
@@ -15967,7 +15972,12 @@ sub printJobParamFormatDST {
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=18000000 170=$self->{Build} 127=-2 128=\" $defROOT><b> RootFile </b><BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000  170=$self->{Build} 2=\" $defNTUPLE><b> NTUPLE </b>\n";
+            if ($self->{CCID} == 2) {
+                print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000  170=$self->{Build} 2=\" $defNTUPLE><b> NTUPLE </b>\n";
+            }
+            else {
+                print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000  170=$self->{Build} 2=\" $defNTUPLE DISABLED=\"Yes\"><b> NTUPLE </b>\n";
+            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }
@@ -15982,7 +15992,12 @@ sub printJobParamTransferDST {
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
 # Apr 1.2003 set default transfer to 'No' for both mode - remote/local
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Automatic </b><BR>\n";
+             if ($self->{CCID} == 2) {
+                 print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Automatic </b><BR>\n";
+             }
+             else {
+                 print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" DISABLED=\"Yes\"><b> Automatic </b><BR>\n";
+             }
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> Manual </b><BR>\n";
 #            }
              print "</b></font></td></tr>\n";
