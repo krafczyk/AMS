@@ -89,9 +89,13 @@ ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
-    LZMAL = -llzma 
+    LZMAL =  -llzma 
     ifdef LINKLIBZ 
-	LZMAL +=  -lz
+ifeq ($(wildcard $(ROOTSYS)/lib/libz.a),)
+	LZMAL +=      -lz 
+else
+	LZMAL += $(ROOTSYS)/lib/libz.a
+endif
     endif
 endif
 

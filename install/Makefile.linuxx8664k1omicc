@@ -288,8 +288,8 @@ LDFLAGSIDL= -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2 -lORBit-2-cpp
 LDFLAGSSTATICIDL=  $(LDFLAGSIDL)  -lglib-2.0 -lgmodule-2.0 -lgthread-2.0 -lgobject-2.0 
    
 
-CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
+CXX_ORBIT=$(CXX) -Wno-deprecated  -fpermissive -I$(ORBIT2DIR)/include/glib-2.0  -I$(ORBIT2DIR)/include/orbit-2.0 -I$(ORBIT2DIR)/include/glib-2.0 -I$(ORBIT2DIR)/lib/glib-2.0/include -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
+CC_ORBIT=$(CC)-I$(ORBIT2DIR)/include/glib-2.0  -I$(ORBIT2DIR)/include/orbit-2.0 -I$(ORBI2DIR)/include/glib-2.0 -I$(ORBIT2DIR)/lib/glib-2.0/include -I$(BIN)
 
 ifdef DEBUGFLAG
 CXX_ORBIT+= -g
