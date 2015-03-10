@@ -10836,12 +10836,12 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
 int AMSEventR::GetRTIStat(){
 
    AMSSetupR::RTI a;
-   return getsetup()->getRTI(a,fHeader.Time[0]);
+   return GetRTI(a,fHeader.Time[0]);
 }
 
 int AMSEventR::GetRTI(AMSSetupR::RTI & a){
 
-   return getsetup()->getRTI(a,fHeader.Time[0]);
+   return GetRTI(a,fHeader.Time[0]);
 }
 
 //--------
@@ -10888,10 +10888,22 @@ int AMSEventR::RecordRTIRun(){
 
 int AMSEventR::GetRTI(AMSSetupR::RTI & a, unsigned int  xtime){
 
+///--aovid load again
+  static unsigned int prtime=0;
+  static AMSSetupR::RTI pra;
+  static int prstat=2;
+  if(xtime==prtime){
+     a=pra;
+     return prstat;
+  }
+  prtime=xtime;
+
 #ifdef __ROOTSHAREDLIBRARY__
+///---get setup
   AMSSetupR *setupu=AMSSetupR::RTI::getsetup();
   static unsigned int stime[2]={1,1};
-  
+
+///--reload 
 #pragma omp threadprivate (stime)
 static int vrti=-1;
 #pragma omp threadprivate (vrti)
@@ -10907,19 +10919,20 @@ if(AMSSetupR::RTI::Version!=vrti){
     setupu->fRTI.clear();
     setupu->LoadRTI(stime[0],stime[1]);
  }
+
 //---Status
   AMSSetupR::RTI b;
-  a=b;
+  pra=a=b;
   AMSSetupR::RTI_i k=setupu->fRTI.lower_bound(xtime);
-  if (setupu->fRTI.size()==0)return 2;
-  if(k==setupu->fRTI.end())return 1;
+  if (setupu->fRTI.size()==0){prstat=2; return 2;}
+  if(k==setupu->fRTI.end()){prstat=1; return 1;}
 
   if(xtime==k->first){//find
-    a=(k->second);
-    return 0;
+    pra=a=(k->second);
+    prstat=0; return 0;
   }
 #endif
-  return 2;
+  prstat=2; return 2;
 }
 
 int AMSEventR::GetRTIUTC(AMSSetupR::RTI & a, unsigned int  xtime){
