@@ -1,0 +1,11 @@
+export Offline=/fc02dat0/mic/Offline
+export AMSDataDir=$Offline/AMSDataDir
+export ROOTSYS=$Offline/root-v5-34-9-icc64.14-mic
+export LD_LIBRARY_PATH=$ROOTSYS/lib:$Offline/mic/lib:$Offline/mic/ORBit2.2.14.mic-gcc64-47/lib64\
+:$Offline/mic/xrootd.mic-icc64-13/lib64:$Offline/mic/xrootd.mic-icc64-13/lib
+export G4AUTODETECT=1
+export G4MULTITHREADED=1
+export PGTRACK=1
+export G4AMS=1
+export G4INSTALL=/fc02dat0/cvmfs/geant4
+export G4INSTALL=$Offline/geant4.10.01

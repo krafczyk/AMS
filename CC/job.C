@@ -2714,12 +2714,12 @@ bool try_perform_geant4_autodetection() {
     abort();
   }
 
-  const char* g4basedir = 0;
+  const char* g4basedir = getenv("Offline");
   const char* g4afsbasedir = "/afs/cern.ch/ams/Offline";
   const char* g4cvmfsbasedir = "/cvmfs/ams.cern.ch/Offline";
-
   // Find out if we this machine has CVMFS support.
   struct stat s;
+if(!g4basedir){
   if (!stat(g4cvmfsbasedir, &s))
     g4basedir = g4cvmfsbasedir;
   else if (!stat(g4afsbasedir, &s))
@@ -2728,7 +2728,7 @@ bool try_perform_geant4_autodetection() {
     cerr << "AMSJob::_signinitjob()-F-Couldn't access " << g4afsbasedir << " nor " << g4cvmfsbasedir << ". Aborting!" << endl;
     abort();
   }
-
+}
   std::string g4installdir = g4basedir;
   if (isGeant4_9_06_build) {
     g4installdir += "/geant4.9.6.p03";
