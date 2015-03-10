@@ -82,12 +82,15 @@ SHELL=/bin/sh
 #-----------------------DEFAULTS------------------------------
 ### defaults can be redefined in the OS specific Makefile (Makefile.[OS])
 ## these defaults are for  Linux at CERN 
+ifdef G4AMS
+LINKLIBZ=1
+endif
 ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),) 
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
-    LZMAL = -llzma -lz
-    ifdef LINKLIBZ
+    LZMAL = -llzma 
+    ifdef LINKLIBZ 
 	LZMAL +=  -lz
     endif
 endif

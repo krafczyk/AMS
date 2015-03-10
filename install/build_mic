@@ -10,4 +10,3 @@ source /afs/cern.ch/sw/IntelSoftware/linux/all-setup.csh
 source /afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2015/composerxe/bin/compilervars.csh   intel64
 setenv INTELDIR /afs/cern.ch/sw/IntelSoftware/linux/x86_64
 setenv INTELVER xe2015/composer_xe_2015.1.133
-
