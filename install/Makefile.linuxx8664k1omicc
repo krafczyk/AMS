@@ -19,6 +19,11 @@ ifneq "$(wildcard /etc/redhat-release)" ""
  SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.5")
 endif
 endif
+ifndef SLC64system
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC64system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 6.6")
+endif
+endif
 
 #
 #[ae-2012.08.02] - some static libs we need take from slc5, initially we have there only those ones: 
@@ -87,26 +92,36 @@ endif
 ########################################################################
 #Compilers
 ########################################################################
+
 ifndef INTELDIR
   INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
 endif
 
-  INTELVER=Compiler/11.1/073/
-ifdef SLC6system
-  INTELVER=composer_xe_2011_sp1.9.293/compiler/
-endif
-#  INTELVER=composer_xe_2011_sp1.9.293/compiler/
+INTELVER_DEFAULT=Compiler/11.1/073
+INTELVER_SLC6=composer_xe_2011_sp1.9.293
+INTELVER_SLC64=composer_xe_2013_sp1.3.174
 
-  INTELOPT=-axsse4.2,ssse3 
-ifdef SLC64system
-  INTELVER=composer_xe_2013_sp1.1.106/compiler/
-#compiler bug
-#   INTELOPT=-axAVX -msse3
-INTELOPT=-mmic 
+ifndef INTELVER
+  INTELVER=$(INTELVER_DEFAULT)
+  ifdef SLC6system
+    INTELVER=$(INTELVER_SLC6)
+  endif
+  ifdef SLC64system
+    INTELVER=$(INTELVER_SLC64)
+  endif
 endif
 
-  FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(INTELOPT) -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
+ifndef IFORTDIR
+  IFORTDIR=$(INTELDIR)
+endif
+
+ifndef IFORTVER
+  IFORTVER=$(INTELVER)
+endif
+INTELOPT= -fp-model source -fast-transcendentals -mmic
+CXXSTD=-std=c++11
+  FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)   -diag-disable cpu-dispatch $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  $(INTELOPT) $(CXXSTD)  -diag-disable cpu-dispatch $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) $(PARALLEL) 
   LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save
@@ -128,13 +143,10 @@ CERN_LEVEL =2005
 
 CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib 
 
-ifndef CERNDIR
-  CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
   ifdef SLC64system
     CERNDIR=/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL).mic
   endif
 
-endif
 
 CERNSRCDIR = $(CERNDIR)
 
