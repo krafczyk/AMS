@@ -1666,15 +1666,14 @@ void G4DPMJET2_5Model::Initialise ()
   ptr1[namelen]      = '\0';
 //  ptr1               = const_cast<char*> (verboseFortranFile.c_str());
   ftnlogical opened  = LFALSE; 
-//Qi Yan
-/*  g4dpmjet_open_fort6_ (&namelen, &opened, ptr1);
+// VC
+//  g4dpmjet_open_fort6_ (&namelen, &opened, ptr1);
   delete [] ptr1;
-  if (opened == LFALSE)
-  {
-    G4cout <<"ATTEMPTED TO OPEN fort.6 TO OUTPUT VERBOSE FORTRAN TEXT" <<G4endl;
-    G4cout <<"HOWEVER THIS WAS NOT POSSIBLE" <<G4endl;
-  }
-*/
+//  if (opened == LFALSE)
+//  {
+//    G4cout <<"ATTEMPTED TO OPEN fort.6 TO OUTPUT VERBOSE FORTRAN TEXT" <<G4endl;
+//    G4cout <<"HOWEVER THIS WAS NOT POSSIBLE" <<G4endl;
+//  }
 #ifdef G4VERBOSE
   if (GetVerboseLevel()>0) {
     G4cout <<"AT G4DPMJET2_5Model::Initialise: before NUCLEAR.FMT.BIN"  <<G4endl;
