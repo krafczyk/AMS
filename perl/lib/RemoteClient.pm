@@ -6666,6 +6666,17 @@ else {
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
+         else {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\"> Production Mode</font></b><BR>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+         }
 # Script Custom/Generic
              print "<tr><td><b><font color=\"green\">Script  </font></b>\n";
              print "</td><td>\n";
@@ -6792,7 +6803,17 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
-
+         else {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\"> Production Mode</font></b><BR>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+         }
 #            $self->printJobParamTransferDST();
 
 # Script Custom/Generic
@@ -7143,6 +7164,18 @@ if( not defined $dbserver->{dbfile}){
              else {
                  print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" DISABLED=\"Yes\"><b> Client </b><BR>\n";
              }
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+         }
+         else {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\"> Production Mode</font></b><BR>\n";
+
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
