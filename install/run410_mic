@@ -7,5 +7,5 @@ export G4AUTODETECT=1
 export G4MULTITHREADED=1
 export PGTRACK=1
 export G4AMS=1
-export G4INSTALL=/fc02dat0/cvmfs/geant4
-export G4INSTALL=$Offline/geant4.10.01
+ulimit -s unlimited
+export AMSWD=..

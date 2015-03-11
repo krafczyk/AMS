@@ -67,6 +67,6 @@ C TKGEOM 1=0
 G4FF 7=2013 20=1.1
 TKGEOM 807=1
 
-DAQC 1=10 42='/f2users/choutko/g4v1g4_$1_$2_$3.raw' 127=0
+DAQC 1=10 42='/f2users/$WHO/g4v1g4_$1_$2_$3.raw' 127=0
 END
 !
