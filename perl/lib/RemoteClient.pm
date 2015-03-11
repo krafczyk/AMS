@@ -7569,10 +7569,10 @@ print qq`
 #
 # Second file for download only in StanAlone mode
         my $stalone = $q->param("STALONE");
-        if (defined $stalone and $stalone eq "Yes") {
-          $self->{dwldaddon}=1;
-        } else {
+        if (defined $stalone and $stalone eq "No") {
           $self->{dwldaddon}=0;
+        } else {
+          $self->{dwldaddon}=1;
         }
 #
 # 'C'/'G' - custom, generic
