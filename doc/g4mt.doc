@@ -52,7 +52,7 @@ Number of threads can not be changed dynamically, g4 fault .
 
 DAQ file writing is ordered by default 
 
-//Performance (protons 100-200 gev)
+Performance (protons 100-200 gev) 2 X Intel(R) Xeon(R) CPU E5-2699 v3 @ 2.30GHz
 
 
  memory use ~ 1.5 gb+0.1gb*nthr 
@@ -77,3 +77,38 @@ Threads       Sec/Event/Thread
 36                3.25
 
 2X36 [HT]         4.7    +35-40%
+
+
+Performance (protons 100-200 gev) 2 X Intel(R) Xeon(R) CPU E5-2680 v2 @ 2.80GHz
+
+Threads       Sec/Event/Thread
+
+20            3.09
+40            4.82
+
+
+Overall:   0.24 evets/sec/Processor
+
+
+MIC mode
+
+build_mic build410_mic run410_mic
+
+Performance  (protons 100-200 GeV)   0b/01, 61 X 4 way HT 16 GB Memory
+
+Threads       Sec/Event/Thread
+
+16            42.0
+
+32            42.14
+
+64            43.04
+
+122           59.0
+
+152           73.0
+  
+183           87.3
+
+243
+
