@@ -15108,6 +15108,9 @@ int AMSEventR::DumpTrTrackPar(int run, int event, int itrack, int refit1,
   float chrg = 1;
   if (ichrg > 1) { mass = TrFit::Mhelium; chrg = 2; }
 
+  if (ichrg <= 2) TrClusterR::UnsetLinearityCorrection(); 
+  if (ichrg >  2) TrClusterR::  SetLinearityCorrection();
+
   int itp0 = trk->iTrTrackPar(1, 3, refit1, mass, chrg);
   int itp1 = trk->iTrTrackPar(1, 7, refit2, mass, chrg);
 
