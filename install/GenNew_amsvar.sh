@@ -155,6 +155,7 @@ IfTest INTEL
 #mexport INTEL  /afs/cern.ch/ams/opt/intel
 mexport INTEL  /afs/cern.ch/ams/local2/opt/intel
 EndIf
+mexport INTELDIR  \$INTEL
 
 mecho 
 mecho
@@ -166,14 +167,14 @@ mexport SLC  slc5
 IfThen  \$DD    5 
 mexport INTEL_LICENSE_FILE  \$Offline/intel/licenses
 mexport PATH  \$INTEL/Compiler/11.1/073/bin/intel64:\$PATH
-mexport LD_LIBRARY_PATH  \$INTEL/Compiler/11.1/073/idb/lib/intel64/:\$INTEL/Compiler/11.1/073/lib/intel64/:\$INTEL/compiler80/lib:\$LD_LIBRARY_PATH
+mexport LD_LIBRARY_PATH  \$INTEL/Compiler/11./073/idb/lib/intel64/:\$INTEL/Compiler/11.1/073/lib/intel64/:\$INTEL/compiler80/lib:\$LD_LIBRARY_PATH
 
 
 ElseIfThen \$DD  6 
 mexport SLC  slc6
 mexport INTEL_LICENSE_FILE  \$Offline/intel/licenses
-mexport  LD_LIBRARY_PATH  \$INTEL/composer_xe_2013_sp1.1.106/compiler/lib/intel64/:\$LD_LIBRARY_PATH
-mexport  PATH  \$INTEL/composer_xe_2013_sp1.1.106/compiler/bin/intel64:\$PATH
+mexport  LD_LIBRARY_PATH  \$INTEL/composer_xe_2013_sp1.3.174/compiler/lib/intel64/:\$LD_LIBRARY_PATH
+mexport  PATH  \$INTEL/composer_xe_2013_sp1.3.174/compiler/bin/intel64:\$PATH
 
 Else
 
@@ -202,8 +203,8 @@ mecho "# Set Up ROOT Enviroment"
 mecho
 # setup ROOT
 mexport ROOTSYS  \$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/root534/
-mexport PATH  \$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/root534/bin/:\$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/xrootd/bin:\$PATH
-mexport LD_LIBRARY_PATH  \$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/root534/lib:\$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/xrootd/lib64:\$LD_LIBRARY_PATH
+mexport PATH  \$ROOTSYS/bin/:\$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/xrootd/bin:\$PATH
+mexport LD_LIBRARY_PATH  \$ROOTSYS/lib:\$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/xrootd/lib64:\$LD_LIBRARY_PATH
 
 mecho
 mecho
@@ -218,7 +219,7 @@ mecho "cd \$CCWD"
 mexport G4INSTALL  \$Offline/AMSsoft/linux_\$SLC\\_\$CC\\64/geant4_ams
 mexport G4SYSTEM  Linux-\$CXX
 mexport G4DPMJET2_5DATA  \$Offline/AMSsoft/shared/geant4/data/DPMJET/GlauberData
-
+mexport G4WORKDIR /tmp
 mecho
 mecho
 mecho
