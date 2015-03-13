@@ -369,7 +369,7 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
   static unsigned int iq=0;
 #if G4VERSION_NUMBER  > 999
 if(IsMaster() ){
-if(MISCFFKEY.G4AllocatorSize>1000000)G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
+if(MISCFFKEY.G4AllocatorSize>1000000 || MISCFFKEY.G4AllocatorSize==0)G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
 cout<<"  AMSG4RunAction::BeginOfRunAction-I-MaxG4AllocatorSize "<<G4AllocatorPool::Threshold<<endl;
 #else
 if(1){
