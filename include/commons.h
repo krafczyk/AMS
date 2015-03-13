@@ -76,6 +76,7 @@ class MISCFFKEY_DEF{
   float   MCTrackMinEne;
   integer ScanElemAbundance;
   integer NoOrderedWrite;
+  integer G4AllocatorSize;
 };
 
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);
