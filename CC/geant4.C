@@ -364,12 +364,13 @@ delete[] _particleGun;
 }
 
 #include "Tofsim02.h"
+#include "G4AllocatorPool.hh"
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
   static unsigned int iq=0;
 #if G4VERSION_NUMBER  > 999
 if(IsMaster() ){
-if(MISCFFKEY.H4AllocatorSize>1000000)G4Allocator::Threshold=MISCFFKEY.H4AllocatorSize;
-cout<<"  AMSG4RunAction::BeginOfRunAction-I-MaxG4AllocatorSize "<<G4Allocator::Threshold<<endl;
+if(MISCFFKEY.G4AllocatorSize>1000000)G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
+cout<<"  AMSG4RunAction::BeginOfRunAction-I-MaxG4AllocatorSize "<<G4AllocatorPool::Threshold<<endl;
 #else
 if(1){
 #endif
