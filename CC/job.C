@@ -328,6 +328,7 @@ void AMSJob::_siamsdata(){
 #else
   MISCFFKEY.NoOrderedWrite=0;
 #endif
+  MISCFFKEY.G4AllocatorSize=0;
 
   FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
@@ -1939,7 +1940,7 @@ void AMSJob::udata(){
 {
     struct rlimit ulimit_v;
     getrlimit(RLIMIT_AS, &ulimit_v);
-    if (ulimit_v.rlim_cur / 1024 < (3+MISCFFKEY.NumThreads)*1024000) {
+    if (ulimit_v.rlim_cur / 1024 < (3+MISCFFKEY.NumThreads)*1024000/2) {
         cerr<<"<---- AMSJob::udata-F-VirMemNotEnough: "<< ulimit_v.rlim_cur / 1024 << " < " << (3+MISCFFKEY.NumThreads)*1024000 <<endl<<endl;
         abort();
     }

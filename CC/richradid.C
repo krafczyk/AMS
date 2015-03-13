@@ -822,7 +822,10 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
     if(tile_number<0){
       continue;
     }
-    
+    else if(tile_number>=_number_of_rad_tiles){
+      cerr<<"  RichRadiatorTileManager::ReadFineMeshFromFile-E-WrongTileIndexIgnored "<<tile_number<<" "<<_number_of_rad_tiles<<endl;
+      continue;
+    }    
     _tiles[tile_number]->node_x[_tiles[tile_number]->number_of_nodes]=x;
     _tiles[tile_number]->node_y[_tiles[tile_number]->number_of_nodes]=y;
     _tiles[tile_number]->node_index[_tiles[tile_number]->number_of_nodes++]=index;

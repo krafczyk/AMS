@@ -1828,12 +1828,12 @@ uil *evn=0;
 #pragma omp critical (fixmewritepdaq)
 #endif
   if(del.size()){
-    for(int k=0;k<del.size();k++){
+    for(unsigned int k=0;k<del.size();k++){
     fbout.write((char*)(del[k]->fu),sizeof(_pData[0])*del[k]->fl);
 }
     fbout.flush();
 }
-        for(int k=0;k<del.size();k++)delete del[k];
+        for(unsigned int k=0;k<del.size();k++)delete del[k];
 
 #pragma omp atomic
     _NeventsO++;
