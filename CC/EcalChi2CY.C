@@ -1406,7 +1406,7 @@ bool EcalAxis::init_lf(){
     float init_y0=0;
     float init_dxdz=0;
     float init_dydz=0;
-    if(use_ext==0&&EnergyE>5.&&EnergyE<500.){
+    if(use_ext==0&&EnergyE>=5.&&EnergyE<=500.){
         if((_status&8)!=8){
             if(init_cr2())
                 _status+=8;
@@ -1757,7 +1757,7 @@ int EcalAxis::process(float* fedep,int* fcell,int* fplane, int nEcalhits,float E
            		d0Cached[1][0]=dir_lf[0];d0Cached[1][1]=dir_lf[1];d0Cached[1][2]=dir_lf[2];
         	}
 	}
-	if(init_cr2()&&EnergyE<500){
+	if(init_cr2()&&EnergyE<=500){
 		//cout<<ecalchi2->get_chi2()<<"---> ";
 		double param[4]={p0_cr2[0],p0_cr2[1],dir_cr2[0]/dir_cr2[2],dir_cr2[1]/dir_cr2[2]};
 		GetChi2(param);
