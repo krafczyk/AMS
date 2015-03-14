@@ -371,7 +371,7 @@ void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
   static unsigned int iq=0;
 #if G4VERSION_NUMBER  > 999
 if(IsMaster() ){
-if(MISCFFKEY.G4AllocatorSize>1000000 || MISCFFKEY.G4AllocatorSize==0)G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
+if(MISCFFKEY.G4AllocatorSize>500000 || MISCFFKEY.G4AllocatorSize==0)G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
 cout<<"  AMSG4RunAction::BeginOfRunAction-I-MaxG4AllocatorSize "<<G4AllocatorPool::Threshold<<endl;
 #else
 if(1){
@@ -666,14 +666,14 @@ if(!G4Threading::IsWorkerThread() )return;
       
     }
 #if G4VERSION_NUMBER  > 999
-    if(G4AllocatorPool::Threshold>1000000 &&gams::mem_not_enough(150000*(1+AMSEvent::get_num_threads()))){
+    if(G4AllocatorPool::Threshold>500000 &&gams::mem_not_enough(150000*(1+AMSEvent::get_num_threads()))){
 #pragma omp atomic
       G4AllocatorPool::Threshold/=sqrt(2.);
       cout<<"  AMSG4EventAction::EndOfEventAction-W-MemoryMayNotBeEnough Setting Threshold "<< G4AllocatorPool::Threshold<<endl;
             
     }
 #endif
-    if(gams::mem_not_enough(102400*(1+AMSEvent::get_num_threads()))){
+    if(gams::mem_not_enough(102400*(2+0.5*(AMSEvent::get_num_threads()-1)))){
       cout<<"  AMSG4EventAction::EndOfEventAction-E-MemoryNotEnough "<<endl;
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
