@@ -338,11 +338,13 @@ AMSgObj::BookTimer.stop("MCEVENTG");
      cout <<"SettIng IEORUN to 1 A"<<endl;
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
+#if G4VERSION_NUMBER  > 999
+     G4AllocatorPool::Threshold=0;
+#endif
      return;
     }   
    }
 
-//cout <<"  running blia e "<<_cpart<<endl;
 
 
   for(int ipart=0;ipart<_cpart;ipart++){
@@ -608,6 +610,9 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
      cout <<"  Setting IEORUN 1 B "<<endl;  
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
+#if G4VERSION_NUMBER  > 999
+     G4AllocatorPool::Threshold=0;
+#endif
      return; 
  }   
 
@@ -647,6 +652,9 @@ if(!G4Threading::IsWorkerThread() )return;
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
       GCTIME.ITIME=1;
+#if G4VERSION_NUMBER  > 999
+      G4AllocatorPool::Threshold=0; 
+#endif
     }
   }
 
@@ -657,14 +665,28 @@ if(!G4Threading::IsWorkerThread() )return;
       cout<<"  AMSG4EventAction::EndOfEventAction-I-InitialMemoryAllocation "<<mall<<" "<<minit<<" "<<G4FFKEY.MemoryLimit<<endl;
       
     }
-    if(gams::mem_not_enough(2*102400)){
+#if G4VERSION_NUMBER  > 999
+    if(G4AllocatorPool::Threshold>1000000 &&gams::mem_not_enough(150000*(1+AMSEvent::get_num_threads()))){
+#pragma omp atomic
+      G4AllocatorPool::Threshold/=sqrt(2.);
+      cout<<"  AMSG4EventAction::EndOfEventAction-W-MemoryMayNotBeEnough Setting Threshold "<< G4AllocatorPool::Threshold<<endl;
+            
+    }
+#endif
+    if(gams::mem_not_enough(102400*(1+AMSEvent::get_num_threads()))){
       cout<<"  AMSG4EventAction::EndOfEventAction-E-MemoryNotEnough "<<endl;
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
+#if G4VERSION_NUMBER  > 999
+      G4AllocatorPool::Threshold=0;
+#endif
     }
     if(G4FFKEY.MemoryLimit>0 && long(mall-minit)>G4FFKEY.MemoryLimit){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
+#if G4VERSION_NUMBER  > 999
+      G4AllocatorPool::Threshold=0;
+#endif
       cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<mall<<endl;
 #ifdef __G4MODIFIED__
       G4EventManager::GetEventManager()->trackContainer->clear();
@@ -802,6 +824,9 @@ if(!G4Threading::IsWorkerThread() )return;
    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
     GCFLAG.IEOTRI=1;
     GCFLAG.IEORUN=1;
+#if G4VERSION_NUMBER  > 999
+    G4AllocatorPool::Threshold=0;
+#endif
    }
 //   cout <<" GCFLAG.IEVENT B "<<GCFLAG.NEVENT<<" "<<GCFLAG.IEVENT<<" "<< GCFLAG.IEOTRI<<" "<<GCFLAG.IEORUN<<endl;
    if(GCFLAG.IEOTRI || GCFLAG.IEORUN){

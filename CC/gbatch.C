@@ -241,9 +241,10 @@ catch (std::bad_alloc abab){
 {
   GCFLAG.IEORUN=1;
   GCFLAG.IEOTRI=1;
-  //AMSStatus::setmode(0);
   AMSFFKEY.CpuLimit=10;
-  
+#ifdef G4MULTITHREADED
+    G4AllocatorPool::Threshold=0;
+#endif  
 #ifdef _PGTRACK_
   TrRecon::SigTERM=1;
 #endif
@@ -278,7 +279,7 @@ lasthope:
   cerr<<"OPool Released"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
-
+    G4AllocatorPool::Threshold=0;
 #else
     cerr <<" Process suspended"<<endl;
   G4FFKEY.SigTerm=2;
@@ -302,6 +303,7 @@ lasthope:
   cerr<<"OPool Released"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
+    G4AllocatorPool::Threshold=0;
 
 #else
           goto lasthope;
@@ -316,6 +318,7 @@ lasthope:
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
   cerr<<"OPool Released"<<endl;
+  G4AllocatorPool::Threshold=0; 
 #else
           goto lasthope;
 #endif
