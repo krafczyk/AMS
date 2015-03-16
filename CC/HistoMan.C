@@ -7,8 +7,10 @@
 #include "TROOT.h"
 #include "TDirectoryFile.h"
 #include "tkdcards.h"
+#ifdef G4AMS
 #ifndef __ROOTSHAREDLIBRARY__
 #include "geant321g.h"
+#endif
 #endif
 ClassImp(HistoMan)
 HistoMan hman;
@@ -432,7 +434,7 @@ void HistoMan::BookHistos(int simmode){
     printf("HistoMan::BookHistos: histograms for MC-sim booked\n");
 
     // events that were skipped because of exceeded CPU time limit
-
+#ifdef G4AMS
 #ifndef __ROOTSHAREDLIBRARY__
     double nev=int(GCFLAG.NEVENT/10000.+0.5)*10000;
     if(nev<10000)nev=10000;
@@ -440,6 +442,7 @@ void HistoMan::BookHistos(int simmode){
     Add(new TH1F("G4MemoryMB-1", "G4MemoryMB-1", 10000,st,nev+st));
     Add(new TH1F("G4MemoryMB-2", "G4MemoryMB-2", 10000,st,nev+st));
     Add(new TH1F("G4MemoryMB-3", "G4MemoryMB-3", 10000,st,nev+st));
+#endif
 #endif
     Add(new TH1F("PAll", "PAll", 7000, -1., 6.));
     Add(new TH2F("cputime", "cputime", 1000, -1., 5.,200,0.,5.));
