@@ -1,68 +1,33 @@
 #!/bin/tcsh
-
-# ICC builds
-source $ROOTSYS/../root-v5-34-9-icc64.14-slc6/amsvar
 #source /afs/cern.ch/sw/lcg/external/gcc/4.8.1/x86_64-slc6/setup.csh  /afs/cern.ch/sw/lcg/external
-setenv PGTRACK 1
-unsetenv G4AMS
-unsetenv G4MULTITHREADED
-setenv AMSWD ..
-unsetenv DEBUGFLAG 
+unsetenv DEBUGFLAG
 setenv VERBOSE 1
-cd ../amsut
-gmake -j
-cd ../install
-gmake -j
-gmake lib -j
-gmake gxint
-gmake producer
-gmake producer6
-cd ../online
-gmake osdepend -j
-cd ../display
-gmake osdepend -j
-gmake dynamic
-cd ../install
-gmake -f Makefastntrd64
-
-setenv G4AMS 1
-source g4i9.63
-gmake -j
-gmake gxint
-gmake producer
-gmake producer6
-
-# GCC builds
-source $ROOTSYS/../root-v5-34-9-gcc64-slc6/amsvar
-#source /afs/cern.ch/sw/lcg/external/gcc/4.8.1/x86_64-slc6/setup.csh  /afs/cern.ch/sw/lcg/external
+source $ROOTSYS/../root-v5-34-9-icc64.14-slc6/amsvar
 setenv PGTRACK 1
 unsetenv G4AMS
-unsetenv CERNDIR
-unsetenv AMSLIB
-unsetenv CLHEP_BASE_DIR
-unsetenv CLHEP_INCLUDE_DIR
-unsetenv CLHEP_LIB_DIR
 setenv AMSWD ..
-cd ../amsut
-gmake -j
-cd ../install
 gmake -j
 gmake lib -j
 gmake gxint
-gmake producer
+gmake producer 
 gmake producer6
 cd ../online
 gmake osdepend -j
 cd ../display
 gmake osdepend -j
-gmake dynamic
+gmake dynamic 
 cd ../install
 gmake -f Makefastntrd64
-
-# Geant4
 setenv G4AMS 1
 source g4i9.63
 gmake -j
 gmake gxint
 gmake producer
 gmake producer6
+source $ROOTSYS/../root-v5-34-9-gcc64-slc6/amsvar
+setenv PGTRACK 1
+unsetenv G4AMS
+setenv AMSWD ..
+gmake -j
+gmake lib -j
+gmake -f Makefastntrd64 
