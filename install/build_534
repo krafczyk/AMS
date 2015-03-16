@@ -7,6 +7,8 @@ setenv PGTRACK 1
 unsetenv G4AMS
 unsetenv G4MULTITHREADED
 setenv AMSWD ..
+unsetenv DEBUGFLAG 
+setenv VERBOSE 1
 cd ../amsut
 gmake -j
 cd ../install
