@@ -372,7 +372,9 @@ delete[] _particleGun;
 
 #include "Tofsim02.h"
 #include "G4AllocatorPool.hh"
+#if G4VERSION_NUMBER  > 999
 #include "G4AllocatorList.hh"
+#endif
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
   static unsigned int iq=0;
 #if G4VERSION_NUMBER  > 999
@@ -508,7 +510,9 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 AMSG4Physics::SaveXS(GCKINE.ikine);
 }
 
+#if G4VERSION_NUMBER  > 999
 #include "G4NavigationHistoryPool.hh"
+#endif
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
  AMSEvent::gethead()->SetEventSkipped(false);
   fmap_det_tracks.clear();
@@ -842,6 +846,7 @@ if(!G4Threading::IsWorkerThread() )return;
    }
 
 
+#if G4VERSION_NUMBER  > 999
 
 //  Memory Management
 
@@ -883,6 +888,7 @@ if(mess++<gmes)cout<<" g4AMSG4EventAction::EndOfEventAction-I-AllocatorsMB "<<sm
 
 
 }
+#endif
 }
 
 
@@ -1236,6 +1242,7 @@ if(!Step)return;
 #endif
 trig=(trig+1)%freq;
 
+#if G4VERSION_NUMBER  > 999
 
 if(!trig){
 
@@ -1245,7 +1252,7 @@ G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
 if(fa)totals[AMSEvent::get_thread_num()]=fa->GetAllocatedSize();
 if(fa)totall[AMSEvent::get_thread_num()]=fa->GetNoPages();
 }
-
+#endif
 
 
 
