@@ -5,14 +5,7 @@ source $ROOTSYS/../root-v5-34-9-icc64.14-slc6/amsvar
 #source /afs/cern.ch/sw/lcg/external/gcc/4.8.1/x86_64-slc6/setup.csh  /afs/cern.ch/sw/lcg/external
 setenv PGTRACK 1
 unsetenv G4AMS
-unsetenv INTELDIR
-unsetenv INTELVER
-unsetenv CERNDIR
 unsetenv G4MULTITHREADED
-unsetenv AMSLIB
-unsetenv CLHEP_BASE_DIR
-unsetenv CLHEP_INCLUDE_DIR
-unsetenv CLHEP_LIB_DIR
 setenv AMSWD ..
 cd ../amsut
 gmake -j
