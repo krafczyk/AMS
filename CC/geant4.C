@@ -62,6 +62,10 @@
 #include <mach/task.h>
 #include <mach/mach_init.h>
 #endif
+
+static long long totals[256];
+static long long totall[256];
+
 #ifdef _OPENMP
 #ifdef G4MULTITHREADED
     G4ThreadLocal AMSG4MagneticField* AMSG4DetectorInterface::pf=0;
@@ -71,6 +75,7 @@
 #else
     AMSG4MagneticField* AMSG4DetectorInterface::pf=0;
 #endif
+
 
  extern "C" void getfield_(geant& a);
 
@@ -367,11 +372,12 @@ delete[] _particleGun;
 
 #include "Tofsim02.h"
 #include "G4AllocatorPool.hh"
+#include "G4AllocatorList.hh"
 void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
   static unsigned int iq=0;
 #if G4VERSION_NUMBER  > 999
 if(IsMaster() ){
-if(MISCFFKEY.G4AllocatorSize>500000 || MISCFFKEY.G4AllocatorSize==0)G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
+G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
 cout<<"  AMSG4RunAction::BeginOfRunAction-I-MaxG4AllocatorSize "<<G4AllocatorPool::Threshold<<endl;
 #else
 if(1){
@@ -502,11 +508,11 @@ void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
 AMSG4Physics::SaveXS(GCKINE.ikine);
 }
 
-
+#include "G4NavigationHistoryPool.hh"
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
+ AMSEvent::gethead()->SetEventSkipped(false);
+  fmap_det_tracks.clear();
 
-
- fmap_det_tracks.clear();
  fmap_det_tracks.insert( std::pair<int, track_information>(1, track_information(0,0,true)) );
  flast_trkid=flast_resultid=flast_processid=-1;
        G4ThreeVector primaryMomentumVector = anEvent->GetPrimaryVertex(0)->GetPrimary(0)->GetMomentum();
@@ -634,9 +640,8 @@ if(!G4Threading::IsWorkerThread() )return;
                                        primaryMomentumVector.y() / GeV * primaryMomentumVector.y() / GeV +
                                        primaryMomentumVector.z() / GeV * primaryMomentumVector.z() / GeV);
     if (AMSEvent::gethead()->EventSkipped()) {
+       
        hman.Fill("PAllskipped", primaryMomentum?log10(fabs(primaryMomentum)):-2); 
-       hman.Fill("Pskipped", primaryMomentum);
-       AMSEvent::gethead()->SetEventSkipped(false);
      }
        hman.Fill("PAll", primaryMomentum?log10(fabs(primaryMomentum)):-2);
            
@@ -730,6 +735,7 @@ if(!G4Threading::IsWorkerThread() )return;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
       AMSEvent::gethead()->seterror();
+      AMSEvent::gethead()->setmoreerror(3);
 /*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
@@ -743,6 +749,7 @@ if(!G4Threading::IsWorkerThread() )return;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
       AMSEvent::gethead()->seterror(e.getlevel());
+      AMSEvent::gethead()->setmoreerror(10);
       if(e.getlevel()>2)throw e; 
 /*
      UPool.Release(0);
@@ -833,7 +840,50 @@ if(!G4Threading::IsWorkerThread() )return;
     cout <<" G4 AbortingRun "<<GCFLAG.NEVENT<<" "<<GCFLAG.IEVENT<<" "<< GCFLAG.IEOTRI<<" "<<GCFLAG.IEORUN<<endl;
       G4RunManager::GetRunManager()->AbortRun();
    }
-   }
+
+
+
+//  Memory Management
+
+ G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
+if(fa){
+unsigned long long garb=fa->CollectGarbage(abs(MISCFFKEY.G4AllocatorSize));
+garb/=1000000;
+const int gmes=1000;
+ static int mess=0;
+if(garb && mess++<gmes)cout<<"G4AMSG4EventAction::EndOfEventAction-I-GarbageCollected "<<garb<<endl;
+long long  ms=fa->GetAllocatedSize();
+long long  ml=fa->GetNoPages();
+
+if(MISCFFKEY.G4AllocatorSize==0){
+for(int k=0;k<fa->fList.size();k++){
+  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4Track")){
+     fa->fList[k]->ResetStorage();
+  }
+  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4DynamicParticle")){
+     fa->fList[k]->ResetStorage();
+  }
+  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
+//     G4NavigationHistoryPool* GetInstance()->Clean();
+  }
+//  cout <<" k "<<k <<" "<<fa->fList[k]->GetAllocatedSize()/1000000<<" "<<fa->fList[k]->tn<<" "<<AMSEvent::get_thread_num()<<endl;
+}
+}
+totals[AMSEvent::get_thread_num()]=ms;
+totall[AMSEvent::get_thread_num()]=ml;
+long long sms=0;
+long long sml=0;
+for(int k=0;k<sizeof(totals)/sizeof(totals[0]);k++)sms+=totals[k];
+for(int k=0;k<sizeof(totall)/sizeof(totall[0]);k++)sml+=totall[k];
+
+if(mess++<gmes)cout<<" g4AMSG4EventAction::EndOfEventAction-I-AllocatorsMB "<<sms/1000000<<" "<<sml<<endl;
+       hman.Fill("G4MemoryMB-1",GCFLAG.IEVENT,sms/1000000);
+       hman.Fill("G4MemoryMB-2",GCFLAG.IEVENT,sml);
+       hman.Fill("G4MemoryMB-3",GCFLAG.IEVENT,1);
+
+
+}
+}
 
 
 
@@ -1186,12 +1236,26 @@ if(!Step)return;
 #endif
 trig=(trig+1)%freq;
 
+
+if(!trig){
+
+
+
+G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
+if(fa)totals[AMSEvent::get_thread_num()]=fa->GetAllocatedSize();
+if(fa)totall[AMSEvent::get_thread_num()]=fa->GetNoPages();
+}
+
+
+
+
   if((trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit) || (GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1) || (AMSEvent::Barrier()>0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit) ){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
     Track->SetTrackStatus(fStopAndKill);
     AMSEvent::gethead()->seterror(1);
+      AMSEvent::gethead()->setmoreerror(0);
     if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<" "<<g4_primary_momentum<<" "<<AMSEvent::Barrier()<<endl;
     report=false;
     AMSEvent::gethead()->SetEventSkipped(true);

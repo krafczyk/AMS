@@ -538,6 +538,7 @@ integer AMSTRDTrack::build(int rerun){
     plvl3 = (TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
     if(!plvl3 || plvl3->skip()){
       AMSEvent::gethead()->seterror();
+      AMSEvent::gethead()->setmoreerror(1);
       return 0;
     }
     cout <<" but lvl3 says continue "<<endl;
@@ -674,7 +675,9 @@ integer AMSTRDTrack::pat=0;
 
 integer AMSTRDTrack::_TrSearcher(int icall){
            if( _NoMoreTime()){
+            AMSEvent::gethead()->setmoreerror(2);
             throw amsglobalerror(" AMSTRDTrack::_TrSearcher-E-Cpulimit Exceeded ",2);
+            
            }
            
            if(TRDDBc::patpointsS(pat)> icall+1)phit[icall]=AMSTRDSegment::gethead(TRDDBc::patconfS(pat,icall)-1);

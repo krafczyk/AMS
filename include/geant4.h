@@ -73,7 +73,7 @@ private:
 class AMSG4EventAction: public G4UserEventAction{
 
  public:
-
+    
     virtual void BeginOfEventAction(const G4Event*);
     virtual void EndOfEventAction(const G4Event*);
 
@@ -82,7 +82,6 @@ class AMSG4EventAction: public G4UserEventAction{
     void FindClosestRegisteredTrack(int& gtrkid, int& processid);
 
  private:
-
     struct track_information {
       track_information()
         : parent(-1)

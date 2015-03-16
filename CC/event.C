@@ -1549,6 +1549,7 @@ _reamsevent();
      }
   catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reamsevent"<<endl;
+      setmoreerror(12);
       seterror(2);
       throw;
     }
@@ -1559,6 +1560,7 @@ try{
 }
 catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retrdgein"<<endl;
+      setmoreerror(12);
       seterror(2);
       throw;
     }
@@ -1568,6 +1570,7 @@ catch(std::bad_alloc a){
     }
   }
   catch (AMSLVL3Error e){
+      setmoreerror(9);
     _collectstatus();
     // No LVL3
     //   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR()){
@@ -1618,6 +1621,7 @@ try{
   catch(std::bad_alloc a){
       cerr<<" AMSEvent::_sitkevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _sitkevent"<<endl;
       seterror(2);
+      setmoreerror(12);
       throw;
     }
   _sitrigevent();//create lev1/lev3 trig.object
@@ -1726,6 +1730,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
       seterror(2);
+      setmoreerror(12);
       throw;
     }
     try{
@@ -1734,6 +1739,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reantievent"<<endl;
       seterror(2);
+      setmoreerror(12);
       throw;
     }
 
@@ -1743,6 +1749,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retrdevent"<<endl;
       seterror(2);
+      setmoreerror(12);
       throw;
     }
     
@@ -1753,12 +1760,14 @@ if(DAQEvent::FileSize()){
       catch (std::out_of_range &re){
 	static int nerr=0;
 	if(nerr++<100)cerr <<"_retkevent range_error exception catched "<<re.what()<<endl;
+      setmoreerror(3);
 	seterror(2);
 	
       }
 
       catch(std::bad_alloc a){
 	cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
+      setmoreerror(12);
 	seterror(2);
         throw;
       }
@@ -1768,6 +1777,7 @@ if(DAQEvent::FileSize()){
     }
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _rerichevent"<<endl;
+      setmoreerror(12);
       seterror(2);
         throw;
     }
@@ -1776,6 +1786,7 @@ if(DAQEvent::FileSize()){
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
       AMSEvent::gethead()->seterror(e.getlevel());
+      setmoreerror(10);
       seterror(e.getlevel());
       if(e.getlevel()>1)throw e;
     }
@@ -1784,6 +1795,7 @@ if(DAQEvent::FileSize()){
     }
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reecalevent"<<endl;
+      setmoreerror(12);
       seterror(2);
         throw;
     }
@@ -1793,6 +1805,7 @@ if(DAQEvent::FileSize()){
   }
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reaxevent t"<<endl;
+      setmoreerror(12);
     seterror(2);
         throw;
   }
@@ -1801,6 +1814,7 @@ if(DAQEvent::FileSize()){
   }
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" AMSUser::Event"<<endl;
+      setmoreerror(12);
     seterror(2);
         throw;
   }
@@ -2476,6 +2490,7 @@ try{
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reaxevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" beta"<<endl;
     seterror(2);
+      setmoreerror(12);
   AMSgObj::BookTimer.stop("REAXEVENT");
         throw;
   }
@@ -2486,6 +2501,7 @@ try{
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reaxevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" charge"<<endl;
     seterror(2);
+      setmoreerror(12);
   AMSgObj::BookTimer.stop("REAXEVENT");
         throw;
   }
@@ -2513,6 +2529,7 @@ try{
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reaxevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" vtx"<<endl;
     seterror(2);
+      setmoreerror(12);
          AMSgObj::BookTimer.stop("Vtx");
          AMSgObj::BookTimer.stop("REAXEVENT");
         throw;
@@ -2526,6 +2543,7 @@ try{
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reaxevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" particle"<<endl;
     seterror(2);
+      setmoreerror(12);
   AMSgObj::BookTimer.stop("REAXPART");
   AMSgObj::BookTimer.stop("REAXEVENT");
         throw;
@@ -2547,6 +2565,7 @@ try{
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reaxevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" vtxph"<<endl;
       seterror(2);
+      setmoreerror(12);
       AMSgObj::BookTimer.stop("VtxPh");
       AMSgObj::BookTimer.stop("REAXEVENT");
       throw;
@@ -3126,6 +3145,7 @@ void AMSEvent::_writeEl(){
   EN->EventStatus[0]=getstatus()[0];
   EN->EventStatus[1]=getstatus()[1];
   EN->Eventno=_id;
+  EN->Error=_MoreError;
   EN->RawWords=nws<(1<<18)?nws:((1<<18)-1);
   EN->RawWords+=(AMSCommonsI::getosno())<<18;
   EN->RawWords+=(AMSCommonsI::getbuildno())<<22;

@@ -90,6 +90,7 @@ friend class AMSNtuple;
 
 class EventNtuple02 {
 public:
+  unsigned int Error;
   int Eventno;
   int Run;
   int RunType;

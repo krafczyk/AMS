@@ -1246,6 +1246,7 @@ void AMSParticle::_loc2gl(){
 		cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<" "<<amsxg<<" "<<amsyg<<" "<<amszg<<endl;
 		AMSEvent::gethead()->_printEl(cerr);
 		AMSEvent::gethead()->seterror(_errors++>100?3:2);
+                AMSEvent::gethead()->setmoreerror(11);
 	}
     number mLVLH2GEO[3][3];
 	for(int i=0 ; i < 3 ; i++) {

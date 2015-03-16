@@ -53,6 +53,7 @@ void AMSEvent::_retkevent(integer refit){
   catch (AMSTrTrackError e){
     cerr<<"AMSEvent::_retkevent-E-"<<e.getmessage()<<endl;
     seterror();
+    setmoreerror(3);
   }
   
   AMSgObj::BookTimer.stop("RETKEVENT");

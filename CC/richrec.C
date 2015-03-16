@@ -664,6 +664,7 @@ void AMSRichRing::build(){
       if(!ring) {ring=build(track,0);if(ring) ring->setstatus(dirty_ring);}
       if(ring) k++;j++;
       if(trig==0 && _NoMoreTime()){
+        AMSEvent::gethead()->setmoreerror(4);
 	throw amsglobalerror(" AMSRichRing::build-E-Cpulimit Exceeded ");
       }
 

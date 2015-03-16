@@ -475,7 +475,11 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 	                         antipatt,ectrigfl,ectrpatt,ectrsum,livetime,rates,trtime));//create lvl1trig-object
       }
 //<---
-      else AMSEvent::gethead()->seterror();
+      else {
+         AMSEvent::gethead()->seterror();
+         AMSEvent::gethead()->setmoreerror(8);
+ 
+     }
     }
   }//--->endof "MC-data"
 }
@@ -2396,6 +2400,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   else{
     TGL1JobStat::daqs1(15);//count errored entries    
     AMSEvent::gethead()->seterror();
+    AMSEvent::gethead()->setmoreerror(8);
   }
 
   return;
@@ -3038,6 +3043,7 @@ static integer k=0;
    cerr<<" Trigger2LVL1::Scalers::_GetIndex-S-IndexLessZero "<<k<<" "<<time<<endl;
    k=0;
    AMSEvent::gethead()->seterror();   
+    AMSEvent::gethead()->setmoreerror(8);
   }   
 return k;
 }

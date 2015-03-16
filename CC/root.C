@@ -3574,11 +3574,11 @@ int AMSEventR::RebuildAntiClusters(int sect, float sect_zguess, float err_sect_z
 
 #ifndef __ROOTSHAREDLIBRARY__
 void HeaderR::Set(EventNtuple02* ptr){
-
   Run=       ptr->Run;
   RunType=   ptr->RunType;
   Event=     ptr->Eventno;
   Raw=       ptr->RawWords%(1<<18);
+  Error=     ptr->Error;
   Version=   (ptr->RawWords)>>18;
   Time[0]=   ptr->Time[0];
   Time[1]=   ptr->Time[1];

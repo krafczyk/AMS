@@ -8,6 +8,7 @@ unsetenv G4AMS
 unsetenv INTELDIR
 unsetenv INTELVER
 unsetenv CERNDIR
+unsetenv G4MULTITHREADED
 unsetenv AMSLIB
 unsetenv CLHEP_BASE_DIR
 unsetenv CLHEP_INCLUDE_DIR
