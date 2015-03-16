@@ -4658,7 +4658,7 @@ unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 ///
 unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
-unsigned int Error() const {return fHeader.Error;} ///< \return Event Error
+unsigned int EventError() const {return fHeader.Error;} ///< \return Event Error
 ///
 
    void UpdateGPS();  ///< Update GPSTime from getsetup(AMSSetupR *head);
