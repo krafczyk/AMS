@@ -325,7 +325,7 @@ void AMSJob::_siamsdata(){
   MISCFFKEY.ScanElemAbundance=0;    // (28) Activate a scan of element abudance along the track
 #ifdef G4MULTITHREADED
   MISCFFKEY.NoOrderedWrite=1;
-  MISCFFKEY.G4AllocatorSize=8192000;
+  MISCFFKEY.G4AllocatorSize=-8192000;
 #else
   MISCFFKEY.NoOrderedWrite=0;
   MISCFFKEY.G4AllocatorSize=0;
