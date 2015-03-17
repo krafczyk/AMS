@@ -65,7 +65,10 @@
 
 static long long totals[256];
 static long long totall[256];
-
+static double cpu_spent=0;
+#ifdef _OPENMP
+#pragma omp threadprivate (cpu_spent)
+#endif
 #ifdef _OPENMP
 #ifdef G4MULTITHREADED
     G4ThreadLocal AMSG4MagneticField* AMSG4DetectorInterface::pf=0;
@@ -514,6 +517,7 @@ AMSG4Physics::SaveXS(GCKINE.ikine);
 #include "G4NavigationHistoryPool.hh"
 #endif
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
+ cpu_spent=0;
  AMSEvent::gethead()->SetEventSkipped(false);
   fmap_det_tracks.clear();
 
@@ -1233,7 +1237,6 @@ if(!Step)return;
      // 
 
   */
-  AMSEvent::gethead()->SetEventSkipped(false);
   static integer freq=10;
   static integer trig=0;
   static bool report=true;
@@ -1254,9 +1257,17 @@ if(fa)totall[AMSEvent::get_thread_num()]=fa->GetNoPages();
 }
 #endif
 
+if(trig==0){
+  static double cpu_prev=0;
+#ifdef _OPENMP
+#pragma omp threadprivate (cpu_prev)
+#endif
+  if(!(AMSEvent::Barrier()>0))cpu_prev=cpu_spent;
+  bool emergency= (GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1 || AMSEvent::Barrier()>0);
+  if(!emergency)cpu_prev=cpu_spent;
+  cpu_spent= AMSgObj::BookTimer.check("GEANTTRACKING");
 
-
-  if((trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit) || (GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1) || (AMSEvent::Barrier()>0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit) ){
+  if((cpu_spent>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit) ||  (emergency && cpu_spent-cpu_prev>AMSFFKEY.CpuLimit)){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
@@ -1272,7 +1283,7 @@ if(fa)totall[AMSEvent::get_thread_num()]=fa->GetNoPages();
    freq=10;
    report=true;
   }
-
+ }
   /// <SH> Scan of element abundance along the track
   if (MISCFFKEY.ScanElemAbundance && MISCFFKEY.G4On == 1
                                   && MISCFFKEY.G3On == 0) {
