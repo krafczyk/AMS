@@ -288,6 +288,7 @@ Reset();
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
     AMSgObj::BookTimer.start("GEANTTRACKING");
+    cpu_spent=0;
    if(IOPA.mode%10 !=1 ){
 //    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
 //    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
@@ -517,7 +518,6 @@ AMSG4Physics::SaveXS(GCKINE.ikine);
 #include "G4NavigationHistoryPool.hh"
 #endif
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
- cpu_spent=0;
  AMSEvent::gethead()->SetEventSkipped(false);
   fmap_det_tracks.clear();
 
@@ -1240,8 +1240,9 @@ if(!Step)return;
   static integer freq=10;
   static integer trig=0;
   static bool report=true;
+  static bool reporte=true;
 #ifdef _OPENMP
-#pragma omp threadprivate (trig,report,freq)
+#pragma omp threadprivate (trig,report,reporte,freq)
 #endif
 trig=(trig+1)%freq;
 
@@ -1258,22 +1259,18 @@ if(fa)totall[AMSEvent::get_thread_num()]=fa->GetNoPages();
 #endif
 
 if(trig==0){
-  static double cpu_prev=0;
-#ifdef _OPENMP
-#pragma omp threadprivate (cpu_prev)
-#endif
-  if(!(AMSEvent::Barrier()>0))cpu_prev=cpu_spent;
   bool emergency= (GCFLAG.IEORUN==1 || GCFLAG.IEOTRI==1 || AMSEvent::Barrier()>0);
-  if(!emergency)cpu_prev=cpu_spent;
-  cpu_spent= AMSgObj::BookTimer.check("GEANTTRACKING");
-
-  if((cpu_spent>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit) ||  (emergency && cpu_spent-cpu_prev>AMSFFKEY.CpuLimit)){
+  double ct=AMSgObj::BookTimer.check("GEANTTRACKING");
+  if(!emergency)cpu_spent=ct;
+  
+  if((ct>AMSFFKEY.CpuLimit+g4_cpu_limit&& G4FFKEY.ApplyCPULimit) || ct-cpu_spent>AMSFFKEY.CpuLimit){
     freq=1;
     G4Track * Track = Step->GetTrack();
     GCTRAK.istop =1;
     Track->SetTrackStatus(fStopAndKill);
     AMSEvent::gethead()->seterror(1);
       AMSEvent::gethead()->setmoreerror(0);
+     if(report)cerr<<" AMSG4EventAction::EndOfEventAction-E-Emergency "<<ct-cpu_spent<<endl;
     if(report)cerr<<"AMSG4EventAction::EndOfEventAction-E-CpuLimitExceeded Run Event "<<" "<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<" "<<AMSgObj::BookTimer.check("GEANTTRACKING")<<" "<<AMSFFKEY.CpuLimit+g4_cpu_limit<<" "<<g4_primary_momentum<<" "<<AMSEvent::Barrier()<<endl;
     report=false;
     AMSEvent::gethead()->SetEventSkipped(true);
