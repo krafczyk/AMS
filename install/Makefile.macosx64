@@ -99,12 +99,12 @@ DEFINES+=-D__OSXVER__=$(OSXVER)
 TEST_OSXVER=$(shell test $(1) -$(2) $(3); echo $$?)
 OSXVER_LT_1090 := $(call TEST_OSXVER,$(OSXVER),lt,1090)
 ifeq "$(OSXVER_LT_1090)" "0"
-CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings
+CFLAGSB=-Wall -Werror -Wno-reorder -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings
 else
 ifdef VERGCC48
-CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings -Wno-unknown-pragmas -Wno-strict-aliasing -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-strict-overflow #just a temporary workaround
+CFLAGSB=-Wall -Werror -Wno-reorder -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings -Wno-unknown-pragmas -Wno-strict-aliasing -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-strict-overflow #just a temporary workaround
 else
-CFLAGSB=-Wall -Werror -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
+CFLAGSB=-Wall -Werror -Wno-reorder -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
 endif
 endif
 
