@@ -83,6 +83,11 @@ void AMSTRDRawHit::sitrddigi(){
      if(ptr->testlast()){
            AMSTRDIdSoft idsoft(ptr->getid());
            number amp=(edep*idsoft.getmcgain()+idsoft.getped()+idsoft.getsig()*rnormx());
+
+           // apply additional gain scaling according to datacard value (but only if not in GenerateConst mode, because then TRDMCFFKEY.gain was already used there)
+           if (!TRDMCFFKEY.GenerateConst)
+             amp *= TRDMCFFKEY.gain;
+
            if (amp>idsoft.overflow())amp=idsoft.overflow();
           
            float sigmaDR = std::max(TRDMCFFKEY.MinSigma, idsoft.getsig()); // at least MinSigma

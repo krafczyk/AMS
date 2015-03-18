@@ -1851,8 +1851,9 @@ void AMSJob::_resrddata(){
 
 void AMSJob::udata(){
   if (isSimulation() ) {
-      TRDCLFFKEY.ADC2KeV/=TRDMCFFKEY.gain;
-      TRDMCFFKEY.GeV2ADC*=TRDMCFFKEY.gain;
+    TRDCLFFKEY.ADC2KeV *= 1./TRDMCFFKEY.gain; // scale by 1./gain to calibrate for constant gain factor which is not part of AMSTRDIdSoft::getmcgain(i)
+    TRDCLFFKEY.ADC2KeV *= 1.45;               // scale by    tube-average of TRDMCGains2 (when we later divide by 1./TRDMCGains2[tube] we want to cancel only relative tube to tube differences)
+    TRDCLFFKEY.ADC2KeV *= 1./(60./49.);       // scale by 1./time-average of TRDGains3 value from ISS to adjust gain calibration scale to TRDGains3 scale also for MC.
   }
 #ifdef _PGTRACK_
 
@@ -3963,7 +3964,7 @@ void AMSJob::_timeinitjob(){
 			     (void*)AMSTRDIdSoft::_status,server,(CALIB.SubDetRequestCalib/10000)%10));
     }
     if(!isRealData()){
-      TID.add (new AMSTimeID(AMSID("TRDMCGains",isRealData()),
+      TID.add (new AMSTimeID(AMSID("TRDMCGains2",isRealData()),
 			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
 			     (void*)AMSTRDIdSoft::_mcgain,server,isSimulation()));
     }

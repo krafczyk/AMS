@@ -29,12 +29,13 @@ for(unsigned int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrat
      while(ptr){
        AMSTRDIdSoft id(ptr->getidsoft());
        integer ilay=id.getlayer();
+       float gain = (AMSJob::gethead()->isRealData()) ? id.getgain() : id.getmcgain();
        if(ptr->testlast()){
-        if(!id.checkstatus(AMSDBc::BAD))adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
+        if(!id.checkstatus(AMSDBc::BAD))adc[ptr->getidsoft().gettube()]=ptr->Amp()/(gain>0?gain:1);
         ptra[ptr->getidsoft().gettube()]=ptr;
 #ifdef __AMSDEBUG__
-        if(id.getgain()<=0){
-          cerr <<"AMSTRDCluster::build-E-zero gain for "<<id<<" "<<id.getgain()<<endl;
+        if(gain<=0){
+          cerr <<"AMSTRDCluster::build-E-zero gain for "<<id<<" "<<gain<<endl;
         }
 #endif
         number ref=-FLT_MAX;
@@ -171,7 +172,7 @@ for(unsigned int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrat
 		 VZERO(adc,sizeof(adc)/sizeof(integer));
 	      }
 	      else{
-                 adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
+                 adc[ptr->getidsoft().gettube()]=ptr->Amp()/(gain>0?gain:1);
                  ptra[ptr->getidsoft().gettube()]=ptr;
                 }
 		ptr=ptr->next();
