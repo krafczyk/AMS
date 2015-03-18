@@ -1833,17 +1833,21 @@ class RemoteClient:
                                    rstatus=self.calculateCRC(outputpath,crc)
                                if(rstatus==1):
                                    (castortime,castorpath)=self.moveCastor(inputfile,outputpath)
-                                   if(self.castoronly and castortime>0 and castorpath!=None):
-                                       i2=inputfile
-                                       inputfile=outputpath
-                                       outputpath=castorpath
-                                       if(self.castorcopy<0 and outputpath!=inputfile and inputfile.find('/castor')<0 and i2.find('/castor')<0):
-                                           cmd="rm "+inputfile
-                                           if (outputpath.find('/eosams/') == 0):
-                                               cmd = self.eosselect + " rm " + outputpath.replace('/eosams/', '/eos/ams/')
-                                           cmdstatus=os.system(cmd)
-                                           if(cmdstatus):
-                                               print "cmd failed ",cmdstatus,cmd
+                                   if(self.castoronly):
+                                       if (castortime>0 and castorpath!=None):
+                                           i2=inputfile
+                                           inputfile=outputpath
+                                           outputpath=castorpath
+                                           if(self.castorcopy<0 and outputpath!=inputfile and inputfile.find('/castor')<0 and i2.find('/castor')<0):
+                                               cmd="rm "+inputfile
+                                               if (outputpath.find('/eosams/') == 0):
+                                                   cmd = self.eosselect + " rm " + outputpath.replace('/eosams/', '/eos/ams/')
+                                               cmdstatus=os.system(cmd)
+                                               if(cmdstatus):
+                                                   print "cmd failed ",cmdstatus,cmd
+                                       else:
+                                           print "doCopy-E-ErorrMoveCastor "
+                                           return outputpath,0,odisk,0
                                    return outputpath,1,odisk,castortime
                                else:
                                    print "doCopy-E-ErorrCRC ",rstatus
@@ -2216,15 +2220,27 @@ class RemoteClient:
         print "getoutputpath raw ",outputpath,sql
         return outputpath,gb,outputdisk,time.time()-timew
            
+    def mkdirCastor(self, cdir):
+        timeout = "/afs/cern.ch/ams/local/bin/timeout --signal 9 90 "
+        i = os.system("%s nsmkdir -p %s" %(timeout, cdir))
+        if (i):
+            i = os.system("%s rfmkdir -p %s" %(timeout, cdir))
+        return i
+
     def moveCastor(self,input,output):
         output_orig = output
         junk=output.split('/')
-        cmove='/castor/cern.ch/ams'
+        castorprefix='/castor/cern.ch/ams'
+        cdir=castorprefix
         mutex.release()
-        if(input.find(cmove)<0):
+        for i in range (2,len(junk)-1):
+            cdir += '/'+junk[i]
+        cmove = cdir + '/' + junk[len(junk)-1]
+        if(input.find(castorprefix)<0):
             if(self.castorcopy):
-                for i in range (2,len(junk)):
-                    cmove=cmove+'/'+junk[i]
+                if (self.mkdirCastor(cdir)):
+                    mutex.acquire()
+                    return 0, None
                 # try first xrdcp and then rfcp
                 if (output.find('/eosams/') == 0):
                     output = self.eosLink2Xrootd(output)
@@ -2252,8 +2268,9 @@ class RemoteClient:
                 print "moveCastor-E-1 ",input,output
                 mutex.acquire()
                 return 0,None   
-        for i in range (2,len(junk)):
-            cmove=cmove+'/'+junk[i]
+        if (self.mkdirCastor(cdir)):
+            mutex.acquire()
+            return 0, None
         cmd="rfrename "+input+" "+cmove
         i=os.system(cmd)
         if (i!=0):
@@ -3660,8 +3677,9 @@ class RemoteClient:
                                             castordir = castorPrefix
                                             for i in range(2, len(junk)-1):
                                                 castordir += "/%s" %(junk[i])
-                                            sys = "/afs/cern.ch/ams/local/bin/timeout --signal 9 90 /usr/bin/nsmkdir -p %s" %(castordir)
-                                            i = os.system(sys)
+#                                            sys = "/afs/cern.ch/ams/local/bin/timeout --signal 9 90 /usr/bin/nsmkdir -p %s" %(castordir)
+#                                            i = os.system(sys)
+                                            i = self.mkdirCastor(castordir)
                                             rfcp = "/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp %s %s" %(outputpath, castordir)
                                             failure = os.system(rfcp)
                                             if (failure):
