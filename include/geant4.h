@@ -76,6 +76,7 @@ class AMSG4EventAction: public G4UserEventAction{
     
     virtual void BeginOfEventAction(const G4Event*);
     virtual void EndOfEventAction(const G4Event*);
+      void MemoryManagement(const G4Event*);
 
     void AddRegisteredTrack(int gtrkid);
     void AddRegisteredParentChild(int gtrkid, int gparentid, int processid);
