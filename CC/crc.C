@@ -236,7 +236,7 @@ int crc_xrootd(AString furl, unsigned int crc_to_compare) {
     for(;;){
          if(!fsize) break;
          int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
-//         cout <<" fsixe "<<fsize<<endl;
+//         cout <<" fsixe "<<fsize<<endl; 
          fsize-=myread;
          Bool_t ret = rfile->ReadBuffer((char*)chunk,myread);
          if (!ret) {
