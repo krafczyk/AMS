@@ -65,6 +65,9 @@
 
 static long long totals[256];
 static long long totall[256];
+const int maxa=12;
+//static long long totala[256][maxa];
+
 static double cpu_spent=0;
 #ifdef _OPENMP
 #pragma omp threadprivate (cpu_spent)
@@ -896,10 +899,17 @@ break;
 cout <<" fmap before "<<fmap.size()<<" "<<ssize3<<" "<<inpool<<endl;
 }
 
+const int gmes=1000000;
+ static int mess=0;
+
+
 //  G4HistoryPool erase;
 
-
-
+ G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
+if(fa){
+for(int k=0;k<fa->fList.size();k++){
+  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
+int serase=0;
 int erase=0;
 for(int i=G4NavigationHistoryPool::GetInstance()->fActive.size()-1;i>=-1;i--){
 if(i==-1 || G4NavigationHistoryPool::GetInstance()->fActive[i] ){
@@ -910,24 +920,31 @@ erase=0;
 else {
 delete G4NavigationHistoryPool::GetInstance()->fPool[i];
 erase++;
+serase++;
 }
 
+}
+if(mess++<gmes/1000){
+  cout<<"G4AMSG4EventAction::MemoryManagement-I-G4NavigationHistoryPoolErased "<<serase<<endl;
+
+}
+break;
+}
 }
 
 // G4Allocators Erase
 
 
- G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
-if(fa){
 unsigned long long garb=fa->CollectGarbage(abs(MISCFFKEY.G4AllocatorSize));
 garb/=1000000;
-const int gmes=1000000;
- static int mess=0;
-if(garb && mess++<gmes/1000)cout<<"G4AMSG4EventAction::EndOfEventAction-I-GarbageCollected "<<garb<<endl;
+if(garb && mess++<gmes/1000){
+  cout<<"G4AMSG4EventAction::MemoryManagement-I-GarbageCollected "<<garb<<endl;
+}
+
 long long  ms=fa->GetAllocatedSize();
 long long  ml=fa->GetNoPages();
 
-// Unsafw Nethod if  no garbage collection done
+// Unsafe Nethod if  no garbage collection done
 if(MISCFFKEY.G4AllocatorSize==0){
 for(int k=0;k<fa->fList.size();k++){
   if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4Track")){
@@ -942,10 +959,25 @@ totals[AMSEvent::get_thread_num()]=ms;
 totall[AMSEvent::get_thread_num()]=ml;
 long long sms=0;
 long long sml=0;
+long long sma[maxa]={0,0,0,0,0,0,0,0,0,0,0};
 for(int k=0;k<sizeof(totals)/sizeof(totals[0]);k++)sms+=totals[k];
 for(int k=0;k<sizeof(totall)/sizeof(totall[0]);k++)sml+=totall[k];
 
-if(mess++<gmes)cout<<" g4AMSG4EventAction::EndOfEventAction-I-AllocatorsMB "<<sms/1000000<<" "<<sml<<endl;
+if(mess++<gmes){
+cout<<" g4AMSG4EventAction::MemoryManagement-I-AllocatorsMB "<<sms/1000000<<" "<<sml<<endl;
+/*
+for(int k=0;k<fa->fList.size();k++){
+//cout <<" lk "<<k<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
+
+if(k<maxa){
+  totala[AMSEvent::get_thread_num()][k]=fa->fList[k]->GetAllocatedSize();
+  for(int l=0;l<sizeof(totals)/sizeof(totals[0]);l++)sma[k]+=totala[l][k];
+   cout <<fa->fList[k]->tn<<" "<<sma[k]/1000000<<endl;
+}
+}
+*/
+}
+
        hman.Fill("G4MemoryMB-1",GCFLAG.IEVENT,sms/1000000);
        hman.Fill("G4MemoryMB-2",GCFLAG.IEVENT,sml);
        hman.Fill("G4MemoryMB-3",GCFLAG.IEVENT,1);
