@@ -113,6 +113,9 @@
 #pragma link C++ class VCon_root;
 #endif
 #pragma link C++ class EcalAxis+;
+#pragma link C++ class EcalFastRec+;
+#pragma link C++ class Ecal3DRec+;
+#pragma link C++ class EcalKRec+;
 #pragma link C++ class EcalCR+;
 #pragma link C++ class GeoMagField+;
 #pragma link C++ class GeoMagTrace+;

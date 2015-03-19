@@ -148,6 +148,9 @@
 #pragma link C++ class AMSSetupR+; 
 #pragma link C++ class AMSSetupR::Header+;
 #pragma link C++ class EcalAxis+;
+#pragma link C++ class EcalFastRec+;
+#pragma link C++ class Ecal3DRec+;
+#pragma link C++ class EcalKRec+;
 #pragma link C++ class EcalCR+;
 
 #pragma link C++ class SlowControlDB+;
