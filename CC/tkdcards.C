@@ -117,7 +117,7 @@ for (int ii=0;ii<9;ii++){
   TasRecon = 0;
   TasCurr  = 0;
   TasLDDR  = 0;
-  ExtMatch = 11;
+  ExtMatch = 111;
   UseSensorAlign=1;
   statflag = 1;
 

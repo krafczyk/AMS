@@ -270,6 +270,8 @@ public:
   int   GetnTrClusters(int tkid, int side);
   /// Get the cluster in the tkid/side by index
   TrClusterR* GetTrCluster(int tkid, int side, int iclus);
+  /// try to solve broken X projection
+  bool TkStraightX(TrTrackR* tr, int select_tag=0);
 
 public:
   /// Builds all the TrRecHits (combinations and spares) (returns the number of TrRecHits built)
@@ -454,6 +456,9 @@ public:
     const Hits2DArray *hits = GetHits2DArray(tkid);
     return (hits) ? hits->at(iclx, icly) : 0;
   }
+  /// fixes some recon problems on X proj; to be used if tr->SimpleChi2X()>5
+  /// reuturn 1 on success; 0 on failure
+  int FixBadX(TrTrackR* tr);
   /// Remove a row of hits from _HitsTkIdMap;
   void RemoveHits(int tkid, int icls, int side);
   /// Remove a row of hits from _HitsTkIdMap;

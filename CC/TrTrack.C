@@ -27,6 +27,7 @@
 #include <iomanip>
 #include "MagField.h"
 #include "TkDBc.h"
+#include "TFitResult.h"
 #include "point.h"
 #include "tkdcards.h"
 #include "VCon.h"
@@ -69,6 +70,14 @@ void TrTrackPar::Print(int full) const {
   if(!full)return;
   printf("HitBits: %s, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
 	 TrTrackR::HitBitsString(HitBits),ChisqX,NdofX,ChisqY,NdofY,Chisq);
+}
+
+
+void TrTrackR::PrintHits(int full) const {
+  for (int ii=1;ii<10;ii++){
+    TrRecHitR* hit=GetHitLJ(ii);
+    if(hit) hit->Print(full);
+  }
 }
 
 void  TrTrackPar::Print_stream(std::string &ostr,int full) const {
@@ -2479,3 +2488,50 @@ int TrTrackR::GetLayerJZ(vector<like_t>& like, int jlayer, float beta, int fit_i
 
 
  
+float TrTrackR::SimpleChi2X(){
+  float err=0.0030;
+  int fcode2=iTrTrackPar(1,3,0);
+  if(fcode2<0) {
+    fcode2=iTrTrackPar(2,3,0);
+    if(fcode2<0) {
+      printf("Problem\n");
+      return 1E10;
+    }
+  }
+  const TrTrackPar& trf=gTrTrackPar(fcode2);
+  if(!trf.FitDone){
+    printf("Problem2\n");
+    return 1E11;
+  }
+  float x[7],y[7],ex[7],ey[7];
+
+  int NN=0;
+  TrRecHitR* thit[7];
+  for (int ii=2;ii<9;ii++){
+    if(!trf.TestHitLayerJ(ii)) continue;
+    TrRecHitR* hh=GetHitLJ(ii);
+    if(!hh) continue;
+    if(hh->OnlyY()) continue;
+    thit[NN]=hh;
+    x[NN]=hh->GetCoord()[2];
+    y[NN]=hh->GetCoord()[0];
+    ex[NN]=0;
+    ey[NN]=err;
+    NN++;
+  }
+  if(NN<=2) return 1E12;
+  TGraphErrors gr(NN,x,y,ex,ey);
+  TFitResultPtr pp=gr.Fit("pol1","QS");
+  double qx=(*pp).Parameter(0);
+  double mx=(*pp).Parameter(1);
+  double chi2=0;
+  for (int ii=0;ii<NN;ii++){
+    double x2=(mx*thit[ii]->GetCoord()[2]+qx);
+    double res=thit[ii]->GetCoord()[0]-x2;
+    chi2+=pow(res/err,2);
+  }
+
+ 
+  return chi2/NN;
+
+}

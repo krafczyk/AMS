@@ -56,6 +56,8 @@ class mean_t;
 class like_t;
 class TrRecHitR;
 
+
+
 //! Class Used to represent the parameters coming as a result of a Track Fit
 class TrTrackPar {
 private:
@@ -410,7 +412,8 @@ public:
     if (it == _HitCoo.end()) return AMSPoint(0, 0, 0);
     return it->second;
   }
-
+  /// a plain straight fit chi2X on inner only, for tracking debug
+  float SimpleChi2X();
   /// Returns the difference between the points on ext layer calculated with PG or CIEMAT alignment
   AMSPoint GetPG_CIEMAT_diff(int layJ);
 
@@ -752,6 +755,8 @@ public:
 		      number &length, int id = 0) const;
   /// Print Track info (verbose if opt !=0 )
   void  Print(int opt=0);
+  /// Print Track Hits info (verbose if opt !=0 )
+  void  PrintHits(int full=0) const;
   /// Return a string with hit infos (used for the event display)
   const char *Info(int iRef=0);
   /**@}*/

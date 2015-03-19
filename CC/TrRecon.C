@@ -51,6 +51,7 @@
 
 ClassImp(TrReconPar);
 
+
 TrReconPar::TrReconPar()
 {
   // clustering - parameters
@@ -6824,6 +6825,38 @@ int TrRecon::BuildTrTasHits(int rebuild)
   return nhit;
 }
 
+bool TrRecon::TkStraightX(TrTrackR* tr, int select_tag){
+ int dfit=1;
+  int fcode=tr->iTrTrackPar(dfit,3,0);
+  if(fcode<0){
+    dfit=2;
+    fcode=tr->iTrTrackPar(dfit,3,0);
+    if(fcode<0) return fcode;
+  }
+
+  for (int ii=0;ii<tr->getnhits();ii++){
+    TrRecHitR* hit=tr->GetHit(ii);
+    if(!hit || hit->OnlyY()) continue;	       
+    AMSPoint chit=hit->GetCoord();
+    AMSPoint pp; AMSDir dd;
+    tr->Interpolate(chit[2],pp,dd,fcode);
+
+    double max=50;
+    int ref=-1;
+    for(int jj=0;jj<hit->GetMultiplicity();jj++){
+      AMSPoint p2=hit->GetCoord(jj);
+      double resx=fabs(p2[0]-pp[0]);
+      if( resx<max) {max=resx; ref=jj;}
+    }
+    if(ref>=0) hit->SetResolvedMultiplicity(ref);
+  }
+  
+  return (tr->iTrTrackPar(dfit,3,2)>=0);
+}
+
+
+
+
 int TrRecon::BuildTrTasTracks(int rebuild)
 {
   if (!_TasPar) return -1;
@@ -7133,16 +7166,36 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err, in
 
 bool TkTOFMatch(TrTrackR* tr, int select_tag);
 bool TkTOFMatch2(TrTrackR* tr, int select_tag);
+bool TkTOFMatch3(TrTrackR* tr, int select_tag,int flag);
 
 int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
   int  TRDdone = -10;
   bool TOFdone = false;
   //return 0;
-  if((TRCLFFKEY.ExtMatch/10)>0) {
-  tr->FitT(tr->Gettrdefaultfit());
-    TOFdone = TkTOFMatch2(tr, select_tag);
+  if((TRCLFFKEY.ExtMatch/100)>0) {
+    if(((TRCLFFKEY.ExtMatch/10)%10)>0) {
+      tr->FitT(tr->Gettrdefaultfit());
+      
+      TOFdone = TkTOFMatch3(tr, select_tag,11);
+      
+      if(log10(tr->SimpleChi2X())>4){
+	TOFdone = TkTOFMatch3(tr, select_tag,10);
+	if(log10(tr->SimpleChi2X())>4){
+	  TOFdone = TkTOFMatch3(tr, select_tag,0);
+	}
+      }
+    }
+    
+    if(log10(tr->SimpleChi2X())>4) TkStraightX(tr);
+    TOFdone=log10(tr->SimpleChi2X())<4;
+    
+      
+  }else{
+    if(((TRCLFFKEY.ExtMatch/10)%10)>0) {
+      tr->FitT(tr->Gettrdefaultfit());
+	TOFdone = TkTOFMatch2(tr, select_tag);
+    }
   }
-
   if (!(TOFdone) &&(TRCLFFKEY.ExtMatch%10)>0) {
 #ifdef __ROOTSHAREDLIBRARY__
     AMSEventR *evt = AMSEventR::Head();
@@ -7150,7 +7203,7 @@ int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
       TrdTrackR *trd = evt->pTrdTrack(i);
       AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
       AMSDir   dd(trd->Theta,  trd->Phi);
-
+	
 #else
     for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1); trd; trd=trd->next()) {
       AMSPoint pp= trd->getCooStr();
@@ -7158,18 +7211,18 @@ int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
 #endif
       TRDdone=TkTRDMatch(tr,pp,dd,select_tag); 
       if (TRDdone>0) {
-        tr->FitT(tr->Gettrdefaultfit());
-        if (log10(tr->GetNormChisqX(tr->Gettrdefaultfit()))>TRCLFFKEY.logChisqXmax) TRDdone = -9;
+	tr->FitT(tr->Gettrdefaultfit());
+	if (log10(tr->GetNormChisqX(tr->Gettrdefaultfit()))>TRCLFFKEY.logChisqXmax) TRDdone = -9;
       }
       if (TRDdone>0) break;
     }
+    
   }
-  
   if(TRDdone/10>0||TOFdone) {
     if (tr->FitT(tr->Gettrdefaultfit() > 0))
       tr->RecalcHitCoordinates(tr->Gettrdefaultfit());
   }
-
+  
   return 0;
 }
 //-----------------------------------------------------------------------
@@ -7291,6 +7344,20 @@ bool TrRecon::CompatibilityWithChargeSeed(TrRecHitR* hit) {
   return false;
 }
 
+
+
+int TrRecon::FixBadX(TrTrackR* tr){
+
+  tr->RemoveHitOnLayer(8);
+  tr->RemoveHitOnLayer(9);  
+  MatchTOF_TRD(tr,0);
+  int fcode=tr->iTrTrackPar(1,3,2);
+  if (fcode<0) fcode=tr->iTrTrackPar(2,3,2);
+  if (fcode<0) return -1;
+  MergeExtHits(tr,fcode);
+  tr->ReFit();
+  return (tr->SimpleChi2X()<4);
+}
 
 #include "TSystem.h"
 
