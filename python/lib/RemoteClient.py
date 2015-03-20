@@ -1954,7 +1954,7 @@ class RemoteClient:
         cmdstatus=os.system(cmd)
         ossize=10000000000
         if (input.find('/eosams/') == 0):
-            ossize = self.eosGetSize(inpufilel)
+            ossize = self.eosGetSize(input)
             if (ossize < 0):
                 print "unable to get size for eos file ",input
                 ossize=10000000000
