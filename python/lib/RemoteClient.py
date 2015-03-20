@@ -1845,7 +1845,8 @@ class RemoteClient:
                                                cmdstatus=os.system(cmd)
                                                if(cmdstatus):
                                                    print "cmd failed ",cmdstatus,cmd
-                                       else:
+                                       # originaly on castor, castoronly specified, and castor copy failed
+                                       elif (inputfile.find('/castor')>=0):
                                            print "doCopy-E-ErorrMoveCastor "
                                            return outputpath,0,odisk,0
                                    return outputpath,1,odisk,castortime
@@ -2271,7 +2272,7 @@ class RemoteClient:
                     mutex.acquire()
                     return 0,None   
             else:
-                print "moveCastor-E-1 ",input,output
+                print "moveCastor-W-1 ",input,output
                 mutex.acquire()
                 return 0,None   
         if (self.mkdirCastor(cdir)):
@@ -3589,7 +3590,7 @@ class RemoteClient:
                                 print "parsejournalfile-E-Unableto %s" %(cmd)
                             os.unlink(tmpf)
                         elif (re.match("^/eosams/", inputfilel)):
-                            dstsize = self.eosGetSize(inpufilel)
+                            dstsize = self.eosGetSize(inputfilel)
                             if (dstsize < 0):
                                 print "parsejournalfile-E-Unableto open file %s" %(inputfilel)
                         else:
