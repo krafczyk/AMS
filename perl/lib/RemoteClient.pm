@@ -6921,12 +6921,13 @@ DDTAB:          $self->htmlTemplateTable(" ");
            my $query=$self->{q}->param("CTT");
            my $found=0;
            my @tempnam=();
-        if (1 or $self->{CCT} eq "remote"){
-            push @tempnam,"Any";
-        }
            my $hash={};
            my @desc=();
-        if (1 or $self->{CCT} eq "remote"){
+#        if (1 or $self->{CCT} eq "remote"){
+        if ($self->{CCT} ne "remote" or $self->{CCID} == 2){
+            push @tempnam,"Any";
+#        }
+#        if (1 or $self->{CCT} eq "remote"){
            push @desc," Any";
        }
            my $cite={};
@@ -6992,9 +6993,20 @@ DDTAB:          $self->htmlTemplateTable(" ");
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Dataset : </b></td> <td colspan=1>\n";
              print "<select name=\"QTemp\" >\n";
+             my $index_selected = int(rand(scalar @tempnam));
+             if ($tempnam[0] eq "Any"){
+                 $index_selected = $index_selected + 1;
+             }
              my $i=0;
+             my $str_selected = "";
              foreach my $template (@tempnam) {
-              print "<option value=\"$template\">$desc[$i] </option>\n";
+              if ($i == $index_selected) {
+                  $str_selected = "selected";
+              }
+              else {
+                  $str_selected = "";
+              }
+              print "<option value=\"$template\" $str_selected>$desc[$i] </option>\n";
               $i++;
             }
             print "</select>\n";
@@ -7530,9 +7542,9 @@ print qq`
             $self->ErrorPlus("Welcome $cem. Your account is not yet set up.
             Please try again later.");
         }
-        if($self->{q}->param("BasicQuery") eq "Save"     or
-           $self->{q}->param("AdvancedQuery") eq "Save"  or
-           $self->{q}->param("ProductionQuery") eq "Save"){
+        if(defined($self->{q}->param("BasicQuery")) and $self->{q}->param("BasicQuery") eq "Save"     or
+           defined($self->{q}->param("AdvancedQuery")) and $self->{q}->param("AdvancedQuery") eq "Save"  or
+           defined($self->{q}->param("ProductionQuery")) and $self->{q}->param("ProductionQuery") eq "Save"){
             my $pass=$q->param("password");
             if($self->{CCT} ne "remote" or defined $pass){
              my $crypt=crypt($pass,"ams");
@@ -7590,7 +7602,7 @@ print qq`
         my $timeout=3600*24*35;
         my $dataset=undef;
         foreach my $ds (@{$self->{DataSetsT}}){
-            if ($ds->{did}==$did){
+            if (defined($ds->{did}) and $ds->{did}==$did){
                 $dataset=$ds;
                 last;
             }
@@ -7626,12 +7638,18 @@ print qq`
         }
         my $runsave=undef;
         if($template eq "Any"){
+          if ($self->{CCT} eq "remote" and $self->{CCID} != 2){
+             my $index_selected = int(rand(scalar @{$dataset->{jobs}}));
+             $template=${$dataset->{jobs}}[$index_selected]->{filename};
+          }
+          else {
           $Any=0;
           if(not defined $dataset or  $dataset->{datamc}!=1){
            $q->param("QRun",1);
            $q->param("QEv",0);
           }
           $template=${$dataset->{jobs}}[$Any]->{filename};
+          }
         }
        if(defined $dataset and $dataset->{datamc}>0){
 #  Data type dataset
@@ -8995,7 +9013,7 @@ anyagain:
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
                 my $evno=$q->param("QEv");
-                if(not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS} ){
+                if(not defined($evno) or not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS} ){
                     my $corr=1.00;
                     if (defined $q->param("QCPUType")){
                         $corr=$self->{cputypes}->{$q->param("QCPUType")};
@@ -19615,6 +19633,9 @@ foreach my $file (@allfiles){
        next;
    }
     my @sts = stat $newfile;
+    if (scalar @sts == 0) {
+        die "Failed to stat $newfile";
+    }
     if($level<$mxl){
        if($#sts>0 && $sts[2]<32000){
            if($sts[9]>$lim or $level==0){
