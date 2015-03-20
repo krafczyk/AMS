@@ -20,7 +20,7 @@
 template  <typename T1>
 int EcalTDVTool<T1>::ReadTDV(int rtime,int real){
     if(!TDVBlock || !TDVName){
-        cerr<<"--->>TDV Read Problem!!!"<<endl;
+        cerr<<"--->>Ecal TDV Read Problem!!!"<<endl;
         return -1;
     }
     time_t time=rtime;
@@ -31,7 +31,6 @@ int EcalTDVTool<T1>::ReadTDV(int rtime,int real){
     gmtime_r(&brun, &begin);
     gmtime_r(&erun, &end);
     
-    //--------Already load
     AMSTimeID* tdv=new AMSTimeID(AMSID(TDVName,real),begin,end,
                                  TDVSize,
                                  TDVBlock,
@@ -47,7 +46,7 @@ int EcalTDVTool<T1>::ReadTDV(int rtime,int real){
 template  <typename T1>
 int EcalTDVTool<T1>::WriteTDV(int brun,int erun,int real){
     if(!TDVBlock|| ! TDVName) {
-        cerr<<"---->>TDV Write Problem!!!"<<endl;
+        cerr<<"---->>Ecal TDV Write Problem!!!"<<endl;
         return -1;
     }
     
@@ -286,80 +285,6 @@ void EcalGainRatioPar::PrintTDV(){
     cout<<"<<----end of Print "<<TDVName<<endl;
 }
 
-//! EcalPedPar class
-/*!
- * Pedestal for each run
- * To check the operation of ECAL
- */
-
-EcalPedPar* EcalPedPar::Head=0;
-
-//==========================================================
-EcalPedPar *EcalPedPar::GetHead(){
-    if(!Head)Head = new EcalPedPar();
-    return Head;
-}
-
-EcalPedPar::EcalPedPar(){
-    TDVName="EcalPedestal";
-    TDVParN=(ECNLayer*ECNCell*npedpar);
-    TDVBlock=new float[TDVParN];
-    TDVSize=TDVParN*sizeof(float);
-}
-
-//==========================================================
-EcalPedPar::EcalPedPar(float *arr,int brun,int erun){
-    TDVName="EcalPedestal";
-    TDVParN=(ECNLayer*ECNCell*npedpar);
-    TDVBlock=arr;
-    TDVSize=TDVParN*sizeof(float);
-    BRun=brun;
-    ERun=erun;
-    LoadTDVPar();
-}
-
-//==========================================================
-void  EcalPedPar::LoadTDVPar(){
-    int iblock=0;
-    //----load par
-    for(int ipar=0;ipar<npedpar;ipar++){
-        for(int ilay=0;ilay<ECNLayer;ilay++){
-            for(int icell=0;icell<ECNCell;icell++){
-                int id=ilay*100+icell;
-                iblock=npedpar*(ECNCell*ilay+icell)+ipar;
-                ped[ipar][id]=TDVBlock[iblock];
-            }
-        }
-    }
-    Isload=1;
-}
-
-//==========================================================
-int  EcalPedPar::LoadFromFile(char *file){
-    ifstream vlfile(file,ios::in);
-    if(!vlfile){
-        cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
-        return -1;
-    }
-    //---load
-    vlfile>>BRun>>ERun;
-    int ib=0;
-    for(int i=0;i<TDVParN;i++){
-        vlfile>>TDVBlock[ib++];
-    }
-    LoadTDVPar();
-    vlfile.close();
-    return 0;
-}
-
-//==========================================================
-void EcalPedPar::PrintTDV(){
-    cout<<"<<----Print "<<TDVName<<endl;
-    for(int i=0;i<TDVParN;i++){cout<<TDVBlock[i]<<" ";}
-    cout<<'\n';
-    cout<<"<<----end of Print "<<TDVName<<endl;
-}
-
 /*
 /////////////////////////////////////
 // EcalAlignPar
@@ -478,14 +403,6 @@ EcalTDVManager::EcalTDVManager(int real){
     tdvmap.insert(pair<string,AMSTimeID*>(EcalGainRatio->TDVName,tdv));
 
 /*
-    //----Insert Ecal Pedestal TDV into tdvmap
-    EcalPedPar *EcalPed=EcalPedPar::GetHead();
-    tdv=new AMSTimeID(AMSID(EcalPed->TDVName,isreal),begin,end,
-                      EcalPed->TDVSize,
-                      EcalPed->TDVBlock,
-                      server,1,EcalPedPar::HeadLoadTDVPar);
-    tdvmap.insert(pair<string,AMSTimeID*>(EcalPed->TDVName,tdv));
-    
     //----Insert Ecal Alignment TDV into tdvmap
     EcalAlignPar *EcalAlign=EcalAlignPar::GetHead();
     tdv=new AMSTimeID(AMSID(EcalAlign->TDVName,isreal),begin,end,
