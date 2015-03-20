@@ -2164,7 +2164,7 @@ class RemoteClient:
         # try eos if self.eos is set
         if (self.eos):
             gb, eosmounted = self.checkEOS()
-            if (gb > self.eosreservegb and eosmounted):
+            if (gb > self.eosreservegb):
                 outputpath = "%s%s/%s" %(self.eoslink, path, period)
                 print outputpath, gb, self.eoslink, 0
                 return outputpath, gb, self.eoslink, 0
@@ -2365,9 +2365,12 @@ class RemoteClient:
         ifa=input.split("/")
         ofa=output.split("/")
         if(ifa[1]==ofa[1]):
-            if (ifa[1].find('eosams') < 0 or self.eosmounted):
-#                cmd="mv "+input_orig+" "+output_orig
+            # Already converted to real eos path
+            if (ifa[1] == 'eos'):
                 cmd = self.eosselect + " file rename " + input + " " + output
+            else:
+                cmd="mv "+input_orig+" "+output_orig
+
         #cmd="cp -pi -d -v "+input+" "+output
         print cmd
         cmdstatus=os.system(cmd)
