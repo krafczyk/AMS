@@ -14655,9 +14655,9 @@ double ds=dsxy[1];
     }
   }
   if (mc) {
-   if(ds<=-200){//helium point by point resolution tuning
+   if(ds<=-200){//helium(-200,-210)+lithium(-300)+carbon(-600) point by point resolution tuning
       int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
-//---B930
+//---B930 //helium point by point resolution tuning
       const int nnodefn930=10;
       double nodefn930[nnodefn930]={5,7,10,15,20,25,30,35,40,55};//B930-c115b MC (Q.Yan 2015-01-06 id=-200.)
       double shinkparn930[][nnodefn930]={
@@ -14671,7 +14671,7 @@ double ds=dsxy[1];
         1.415,1.286,1.196,1.132,1.102,1.089,1.053,1.005, 0.9595,0.8934,//L8=L5
 	1.405,1.285,1.197,1.136,1.097,1.071,1.028,0.9809,0.9376,0.8740 //L9=av
       };
-//--B916
+//--B916 //helium point by point resolution tuning
      const int nnodefn916=13;
      double nodefn916[nnodefn916]={5,7,10,15,20,25,30,35,40,55,60,65,70};//B916 MC (Q.Yan 2015-01-17 id=-210.)
      double shinkparn916[][nnodefn916]={
@@ -14685,29 +14685,76 @@ double ds=dsxy[1];
         1.39, 1.243,1.173,1.164,1.225, 1.188,1.163, 1.169, 1.155,1.095, 1.075, 1.06,   1.048, //L8
         1.428,1.295,1.213,1.169,1.1485,1.122,1.0925,1.0595,1.023,0.9174,0.8883,0.86285,0.8425,//L9=L2
      };
+//---B1012 //carbon point by point resolution tuning
+      const int nnodefnz6=10;
+      double nodefnz6[nnodefnz6]={5,7,10,15,20,25,30,35,40,55};//C-B1012 (Q.Yan 2015-03-18 id=-600)
+//---L1Inner-Geom P4-Time(T<2013-12-26, if include total pass6 resolution~0.8um worse)
+       double shinkparnz6[][nnodefnz6]={
+         1.42712,1.3098, 1.21832,1.14452, 1.09131, 1.03175, 0.994217,0.955925,0.921735,0.864815,//L1=av
+         1.42712,1.3098, 1.21832,1.14452, 1.09131, 1.03175, 0.994217,0.955925,0.921735,0.864815,//L2=av
+         1.26271,1.14853,1.06931,1.01942, 0.979973,0.934597,0.934497,0.908343,0.885722,0.849095,//L3(BAC)
+         1.30816,1.22202,1.15326,1.08762, 1.0284,  0.970706,0.922819,0.879225,0.841227,0.763512,//L4(BAC) 
+         1.24205,1.13464,1.05431,0.995163,0.953059,0.901274,0.890604,0.858473,0.823084,0.744802,//L5(BAC)
+         1.44917,1.34754,1.25485,1.18475, 1.14159, 1.09897, 1.05397, 1.01505, 0.980549,0.925158,//L6(BAC)
+         1.85144,1.6585, 1.52336,1.39542, 1.30327, 1.18599, 1.10944, 1.05941, 1.01928, 0.981167,//L7(BAC)
+         1.44917,1.34754,1.25485,1.18475, 1.14159, 1.09897, 1.05397, 1.01505, 0.980549,0.925158,//L8=L6(REPLACE)
+         1.42712,1.3098, 1.21832,1.14452, 1.09131, 1.03175, 0.994217,0.955925,0.921735,0.864815,//L9=av
+      };
+//---Full Span
+//---
+//---L1Inner-Geom P4-Time(T<2013-12-26, if include total pass6 resolution~)
+       const int nnodefnz3=7;
+       double nodefnz3[nnodefnz3]={5,7,10,15,20,25,30};//L-B1012 (Q.Yan 2015-03-19 id=-300)
+       double shinkparnz3[][nnodefnz3]={
+         1.60644,1.44173,1.32127,1.2472, 1.22354,1.17327,1.14759,//L1=av
+         1.60644,1.44173,1.32127,1.2472, 1.22354,1.17327,1.14759,//L2=av
+         1.60231,1.45684,1.34214,1.25359,1.22065,1.17805,1.15723,//L3
+         1.65503,1.48337,1.34281,1.24878,1.20719,1.16165,1.13652,//L4
+         1.6216, 1.44431,1.32572,1.29868,1.32546,1.2406, 1.20767,//L5(NOT_PER)
+         1.66737,1.52648,1.42462,1.34051,1.29893,1.23575,1.21424,//L6
+         1.52184,1.35587,1.23059,1.15896,1.15572,1.12615,1.09247,//L7(NOT_PER)
+         1.57049,1.38348,1.26174,1.18267,1.13331,1.09743,1.0774, //L8
+         1.60644,1.44173,1.32127,1.2472, 1.22354,1.17327,1.14759,//L9=av
+      };
+//---Full Span
+//---
 //---
       if(lj>=1&&lj<=9){//TkInner+L1+L9
         double res=TMath::Abs(dmin)*10000.;//cm->um
 //--Version
-        const int nvers=2;//version B916 or B930
-        static TSpline3 *tkspline[nvers][9]={
-          0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,
-        };
+        const int nz=3;
+        const int nvers=2;//version id
+        static TSpline3 *tkspline[nz][nvers][9]={{{0}}};
+        int iz=-1;
         int ivers=abs(int(ds)/10%10);
         if(ivers>=nvers)ivers=nvers-1;
-        if(ivers==0){//B930
-          if(tkspline[ivers][lj-1]==0)tkspline[ivers][lj-1]=new TSpline3(Form("tktunespline_l%d_v%d",lj,ivers),nodefn930,shinkparn930[lj-1],nnodefn930,"b1e1",0,0);
-          if      (res<nodefn930[0])res=nodefn930[0];
-          else if (res>nodefn930[nnodefn930-1])res=nodefn930[nnodefn930-1];
+        if(ds<=-600){//Carbon-B1012
+           iz=2;
+           if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez6_l%d_v%d",lj,ivers),nodefnz6,shinkparnz6[lj-1],nnodefnz6,"b1e1",0,0);
+           if      (res<nodefnz6[0])res=nodefnz6[0];
+           else if (res>nodefnz6[nnodefnz6-1])res=nodefnz6[nnodefnz6-1];
         }
-        else {//B916
-          if(tkspline[ivers][lj-1]==0)tkspline[ivers][lj-1]=new TSpline3(Form("tktunespline_l%d_v%d",lj,ivers),nodefn916,shinkparn916[lj-1],nnodefn916,"b1e1",0,0);
-          if      (res<nodefn916[0])res=nodefn916[0];
-          else if (res>nodefn916[nnodefn916-1])res=nodefn916[nnodefn916-1];
+        else if(ds<=-300){//Lithium-B1012
+           iz=1;
+           if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez3_l%d_v%d",lj,ivers),nodefnz3,shinkparnz3[lj-1],nnodefnz3,"b1e1",0,0);
+           if      (res<nodefnz3[0])res=nodefnz3[0];
+           else if (res>nodefnz3[nnodefnz3-1])res=nodefnz3[nnodefnz3-1];
+        }
+        else {//Helium
+          iz=0;
+          if(ivers==0){//B930
+            if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunespline_l%d_v%d",lj,ivers),nodefn930,shinkparn930[lj-1],nnodefn930,"b1e1",0,0);
+            if      (res<nodefn930[0])res=nodefn930[0];
+            else if (res>nodefn930[nnodefn930-1])res=nodefn930[nnodefn930-1];
+          }
+          else {//B916
+            if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunespline_l%d_v%d",lj,ivers),nodefn916,shinkparn916[lj-1],nnodefn916,"b1e1",0,0);
+            if      (res<nodefn916[0])res=nodefn916[0];
+            else if (res>nodefn916[nnodefn916-1])res=nodefn916[nnodefn916-1];
+          }
         }
 //----
-        double scale=tkspline[ivers][lj-1]->Eval(res);
+        double scale=tkspline[iz][ivers][lj-1]->Eval(res);
         coo[1] =dmin*scale+mc->GetXgl().y();//Smear by Scale
         ret+=10;
       }
