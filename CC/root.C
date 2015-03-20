@@ -14686,10 +14686,10 @@ double ds=dsxy[1];
         1.428,1.295,1.213,1.169,1.1485,1.122,1.0925,1.0595,1.023,0.9174,0.8883,0.86285,0.8425,//L9=L2
      };
 //---B1012 //carbon point by point resolution tuning
+//---L1Inner-Geom P4-Time(T<2013-12-26)
       const int nnodefnz6=10;
-      double nodefnz6[nnodefnz6]={5,7,10,15,20,25,30,35,40,55};//C-B1012 (Q.Yan 2015-03-18 id=-600)
-//---L1Inner-Geom P4-Time(T<2013-12-26, if include total pass6 resolution~0.8um worse)
-       double shinkparnz6[][nnodefnz6]={
+      double nodefnz6[nnodefnz6]={5,7,10,15,20,25,30,35,40,55};//C-B1012 (Q.Yan 2015-03-18 id=-600) 
+      double shinkparnz6[][nnodefnz6]={
          1.42712,1.3098, 1.21832,1.14452, 1.09131, 1.03175, 0.994217,0.955925,0.921735,0.864815,//L1=av
          1.42712,1.3098, 1.21832,1.14452, 1.09131, 1.03175, 0.994217,0.955925,0.921735,0.864815,//L2=av
          1.26271,1.14853,1.06931,1.01942, 0.979973,0.934597,0.934497,0.908343,0.885722,0.849095,//L3(BAC)
@@ -14700,9 +14700,25 @@ double ds=dsxy[1];
          1.44917,1.34754,1.25485,1.18475, 1.14159, 1.09897, 1.05397, 1.01505, 0.980549,0.925158,//L8=L6(REPLACE)
          1.42712,1.3098, 1.21832,1.14452, 1.09131, 1.03175, 0.994217,0.955925,0.921735,0.864815,//L9=av
       };
+//---L1Inner-Geom Total P6-Time
+      const int nnodefnz6p6=10;
+      double nodefnz6p6[nnodefnz6p6]={5,7,10,15,20,25,30,35,40,55};//C-B1012 (Q.Yan 2015-03-20 id=-601) 
+      double shinkparnz6p6[][nnodefnz6p6]={
+         1.51206,1.38134,1.28045,1.20266,1.14445, 1.07926, 1.03124, 0.988836,0.952372,0.899155,//L1=av
+         1.51206,1.38134,1.28045,1.20266,1.14445, 1.07926, 1.03124, 0.988836,0.952372,0.899155,//L2=av
+         1.30253,1.17955,1.10231,1.07119,1.03991, 1.00032, 0.967815,0.93271, 0.903331,0.854106,//L3
+         1.39201,1.28833,1.20625,1.13152,1.06536, 1.00088, 0.946902,0.899342,0.858501,0.776483,//L4
+         1.31173,1.18606,1.09613,1.04095,0.998933,0.951429,0.930537,0.892466,0.858622,0.787558,//L5
+         1.58128,1.4628, 1.35307,1.26517,1.21103, 1.15542, 1.10421, 1.06334, 1.0264,  0.983812,//L6
+         1.90356,1.70849,1.57189,1.44193,1.34045, 1.21211, 1.13376, 1.08182, 1.04098, 1.00916, //L7
+         1.58128,1.4628, 1.35307,1.26517,1.21103, 1.15542, 1.10421, 1.06334, 1.0264,  0.983812,//L8=L6(REPLACE)
+         1.51206,1.38134,1.28045,1.20266,1.14445, 1.07926, 1.03124, 0.988836,0.952372,0.899155,//L9=av
+      };
+ 
 //---Full Span
 //---
-//---L1Inner-Geom P4-Time(T<2013-12-26, if include total pass6 resolution~)
+//---B1012 //lithium point by point resolution tuning
+//---L1Inner-Geom P4-Time(T<2013-12-26)
        const int nnodefnz3=7;
        double nodefnz3[nnodefnz3]={5,7,10,15,20,25,30};//L-B1012 (Q.Yan 2015-03-19 id=-300)
        double shinkparnz3[][nnodefnz3]={
@@ -14715,6 +14731,20 @@ double ds=dsxy[1];
          1.52184,1.35587,1.23059,1.15896,1.15572,1.12615,1.09247,//L7(NOT_PER)
          1.57049,1.38348,1.26174,1.18267,1.13331,1.09743,1.0774, //L8
          1.60644,1.44173,1.32127,1.2472, 1.22354,1.17327,1.14759,//L9=av
+      };
+//---L1Inner-Geom Total P6-Time
+      const int nnodefnz3p6=7;
+      double nodefnz3p6[nnodefnz3p6]={5,7,10,15,20,25,30};//L-B1012 (Q.Yan 2015-03-20 id=-301)
+      double shinkparnz3p6[][nnodefnz3p6]={
+         1.6158, 1.4488, 1.32883,1.25816,1.24173,1.18868,1.16219,//L1=av
+         1.6158, 1.4488, 1.32883,1.25816,1.24173,1.18868,1.16219,//L2=av
+         1.6011, 1.45077,1.32492,1.22381,1.18006,1.13992,1.11985,//L3
+         1.68721,1.50915,1.36888,1.28398,1.25727,1.20602,1.18083,//L4
+         1.6207, 1.44785,1.33484,1.31247,1.3373, 1.24849,1.21599,//L5(NOT_PER)
+         1.68687,1.53756,1.42455,1.3303, 1.28408,1.22196,1.20023,//L6
+         1.49947,1.33994,1.22846,1.17368,1.19599,1.15913,1.12293,//L7(NOT_PER) 
+         1.59942,1.40753,1.29136,1.22474,1.19568,1.15656,1.13329,//L8
+         1.6158, 1.4488, 1.32883,1.25816,1.24173,1.18868,1.16219,//L9=av
       };
 //---Full Span
 //---
@@ -14730,15 +14760,29 @@ double ds=dsxy[1];
         if(ivers>=nvers)ivers=nvers-1;
         if(ds<=-600){//Carbon-B1012
            iz=2;
-           if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez6_l%d_v%d",lj,ivers),nodefnz6,shinkparnz6[lj-1],nnodefnz6,"b1e1",0,0);
-           if      (res<nodefnz6[0])res=nodefnz6[0];
-           else if (res>nodefnz6[nnodefnz6-1])res=nodefnz6[nnodefnz6-1];
+           if(ivers==0){//L1Inner P4-Time
+             if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez6_l%d_v%d",lj,ivers),nodefnz6,shinkparnz6[lj-1],nnodefnz6,"b1e1",0,0);
+             if      (res<nodefnz6[0])res=nodefnz6[0];
+             else if (res>nodefnz6[nnodefnz6-1])res=nodefnz6[nnodefnz6-1];
+           }
+           else {//L1Inner P6-Time
+             if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez6_l%d_v%d",lj,ivers),nodefnz6p6,shinkparnz6p6[lj-1],nnodefnz6p6,"b1e1",0,0);
+             if      (res<nodefnz6p6[0])res=nodefnz6p6[0];
+             else if (res>nodefnz6p6[nnodefnz6p6-1])res=nodefnz6p6[nnodefnz6p6-1];
+           }
         }
         else if(ds<=-300){//Lithium-B1012
            iz=1;
-           if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez3_l%d_v%d",lj,ivers),nodefnz3,shinkparnz3[lj-1],nnodefnz3,"b1e1",0,0);
-           if      (res<nodefnz3[0])res=nodefnz3[0];
-           else if (res>nodefnz3[nnodefnz3-1])res=nodefnz3[nnodefnz3-1];
+           if(ivers==0){//L1Inner P4-Time
+             if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez3_l%d_v%d",lj,ivers),nodefnz3,shinkparnz3[lj-1],nnodefnz3,"b1e1",0,0);
+             if      (res<nodefnz3[0])res=nodefnz3[0];
+             else if (res>nodefnz3[nnodefnz3-1])res=nodefnz3[nnodefnz3-1];
+            }
+           else {//L1Inner P6-Time
+             if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez3_l%d_v%d",lj,ivers),nodefnz3p6,shinkparnz3p6[lj-1],nnodefnz3p6,"b1e1",0,0);
+             if      (res<nodefnz3p6[0])res=nodefnz3p6[0];
+             else if (res>nodefnz3p6[nnodefnz3p6-1])res=nodefnz3p6[nnodefnz3p6-1];
+           }
         }
         else {//Helium
           iz=0;
