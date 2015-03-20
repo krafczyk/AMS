@@ -9,7 +9,6 @@
  * 		EcalAttPar: Attenuation parameters for each cell, static
  * 		EcalEquilPar: High gain equilization for each cell, dynamic for each day
  * 		EcalGainRatioPar: Gain ratio for each cell, static
- *    EcalPedPar: Not yet useful
  * \author: hachen@cern.ch
 */
 
@@ -178,7 +177,8 @@ public:
 class EcalAttPar: public EcalTDVTool<float>{
 public:
     static const int nattpar=3;
-    std::map<int, float>attpar[nattpar]; //---three ecalattpar for each cell, slow & fast length, fast fraction
+		//! three ecalattpar for each cell, slow & fast length, fast fraction
+    std::map<int, float>attpar[nattpar];
 public:
     EcalAttPar();
     EcalAttPar(float *arr,int brun,int erun);
@@ -188,8 +188,9 @@ public:
 #endif
     static EcalAttPar *GetHead();
     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
-    void LoadTDVPar();//copy TDV to class 
-    int  LoadFromFile(char *file);//read data from file->Block data
+    void LoadTDVPar();
+		//! read data from fstream file
+    int  LoadFromFile(char *file);
     void PrintTDV();
 };
 
@@ -200,9 +201,10 @@ public:
 
 class EcalEquilPar: public EcalTDVTool<float>{   
 public:
-    static const int nequil=1; 
-    std::map<int, float>equil; // one PM Equilization factor for each cell, reference to 1
-    //----
+    static const int nequil=1;
+		//! one equilization factor for each cell each day, reference to test beam
+    std::map<int, float>equil;
+
 public:
     EcalEquilPar();
     EcalEquilPar(float *arr,int brun,int erun);
@@ -212,8 +214,9 @@ public:
 #endif  
     static EcalEquilPar *GetHead();
     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
-    void LoadTDVPar();//copy TDV to class 
-    int  LoadFromFile(char *file);//read data from file->Block data
+    void LoadTDVPar();
+		//! read data from fstream file
+    int  LoadFromFile(char *file);
     void PrintTDV();
 };
 
@@ -225,43 +228,20 @@ public:
 class EcalGainRatioPar: public EcalTDVTool<float>{   
 public:
     static const int ngainpar=1; 
-    std::map<int, float>gain; // one PM GainRatio factor for each cell, around 33.0
-    //----
+		//! one gain ratio factor for each cell around 33.0, static correction
+    std::map<int, float>gain;
+
 public:
     EcalGainRatioPar();
-    EcalGainRatioPar(float *arr,int brun,int erun);//load 
+    EcalGainRatioPar(float *arr,int brun,int erun);
     static EcalGainRatioPar *Head;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (Head) 
 #endif  
     static EcalGainRatioPar *GetHead();
     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
-    void LoadTDVPar();//copy TDV to class 
-    int  LoadFromFile(char *file);//read data from file->Block data
-    void PrintTDV();
-};
-
-//! EcalPedPar
-/*!
- * PMT Pedestal for each cell
-*/
-
-class EcalPedPar: public EcalTDVTool<float>{   
-public:
-    static const int npedpar=6; 
-    std::map<int, float>ped[npedpar]; // PM Ped/RMS for three channels, High/Low/Dynode
-    //----
-public:
-    EcalPedPar();
-    EcalPedPar(float *arr,int brun,int erun);//load 
-    static EcalPedPar *Head;
-#ifdef __ROOTSHAREDLIBRARY__
-#pragma omp threadprivate (Head) 
-#endif  
-    static EcalPedPar *GetHead();
-    static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
-    void LoadTDVPar();//copy TDV to class 
-    int  LoadFromFile(char *file);//read data from file->Block data
+    void LoadTDVPar();
+    int  LoadFromFile(char *file);
     void PrintTDV();
 };
 
