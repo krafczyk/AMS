@@ -1819,7 +1819,7 @@ class RemoteClient:
                        outputpath=outputpath+'/'+dataset+'/'+jobname
                        cmd="mkdir -p "+outputpath
                        if (outputpath.find('/eosams/') == 0):
-                           cmd = self.eosselect + " mkdir -p " + outputpath.replace('/eosams/', '/eos/ams/')
+                           cmd = self.eosselect + " mkdir -p " +  self.eosLink2Real(outputpath)
                        cmdstatus=os.system(cmd)
                        if(cmdstatus==0):
                            outputpath=outputpath+"/"+file
@@ -1841,7 +1841,7 @@ class RemoteClient:
                                            if(self.castorcopy<0 and outputpath!=inputfile and inputfile.find('/castor')<0 and i2.find('/castor')<0):
                                                cmd="rm "+inputfile
                                                if (outputpath.find('/eosams/') == 0):
-                                                   cmd = self.eosselect + " rm " + outputpath.replace('/eosams/', '/eos/ams/')
+                                                   cmd = self.eosselect + " rm " +  self.eosLink2Real(outputpath)
                                                cmdstatus=os.system(cmd)
                                                if(cmdstatus):
                                                    print "cmd failed ",cmdstatus,cmd
@@ -1911,7 +1911,7 @@ class RemoteClient:
            outputpath=outputpath+'/'+dataset
            cmd="mkdir -p "+outputpath
            if (outputpath.find('/eosams/') == 0):
-               cmd = self.eosselect + " mkdir -p " + outputpath.replace('/eosams/', '/eos/ams/')
+               cmd = self.eosselect + " mkdir -p " +  self.eosLink2Real(outputpath)
            cmdstatus=os.system(cmd)
            if(cmdstatus==0):
                outputpath=outputpath+"/"+file
@@ -1953,10 +1953,16 @@ class RemoteClient:
         cmd=tmout+" nsrm "+output
         cmdstatus=os.system(cmd)
         ossize=10000000000
-        try:
-            ossize=os.stat(input)[ST_SIZE]
-        except:
-            print "unable to get size for ",input
+        if (input.find('/eosams/') == 0):
+            ossize = self.eosGetSize(inpufilel)
+            if (ossize < 0):
+                print "unable to get size for eos file ",input
+                ossize=10000000000
+        else:
+            try:
+                ossize=os.stat(input)[ST_SIZE]
+            except:
+                print "unable to get size for ",input
         timeout=int(3600.*ossize/10000000000)
         if(timeout<30):
             timeout=30
@@ -2313,6 +2319,20 @@ class RemoteClient:
 
     def eosLink2Real(self, path):
         return path.replace('/eosams/', '/eos/ams/')
+
+    def eosGetSize(self, path):
+        cmd = "%s ls -l %s" %(self.eosselect, self.eosLink2Real(path))
+        pair=commands.getstatusoutput(cmd)
+        eossize = -1
+        if (pair[0] != 0 or len(pair) < 2):
+            print "%s\nreturned %d\n" %(cmd, pair[0])
+            print "eosGetSize-E-of %s" %(path)
+        else:
+            out=pair[1]
+            junk = out.split()
+            if (len(junk) > 4):
+                eossize = int(junk[4])
+        return eossize
 
     def copyFile(self,input,output):
         output_orig = output
@@ -3569,16 +3589,9 @@ class RemoteClient:
                                 print "parsejournalfile-E-Unableto %s" %(cmd)
                             os.unlink(tmpf)
                         elif (re.match("^/eosams/", inputfilel)):
-                            cmd = "%s ls -l %s" %(self.eosselect, self.eosLink2Real(inputfilel))
-                            pair=commands.getstatusoutput(cmd)
-                            if (pair[0] != 0 or len(pair) < 2):
-                                print "%s\nreturned %d\n" %(cmd, pair[0])
+                            dstsize = self.eosGetSize(inpufilel)
+                            if (dstsize < 0):
                                 print "parsejournalfile-E-Unableto open file %s" %(inputfilel)
-                            else:
-                                out=pair[1]
-                                junk = out.split()
-                                if (len(junk) > 4):
-                                    dstsize = int(junk[4])
                         else:
                             try:
                                 dstsize=int(os.stat(dstfile)[ST_SIZE])
