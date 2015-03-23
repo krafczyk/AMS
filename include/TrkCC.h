@@ -1,5 +1,6 @@
 #ifndef __TRKCC_H__
 #define __TRKCC_H__
+#ifdef _PGTRACK_
 
 /*! Charge Confusion Classificators Software \n
   --basic instructions:  \n
@@ -850,5 +851,6 @@ class TrkCCPizzolotto: public TrkCCAlgorithm {
  
 static int MakeSubIdInt(TString subid);
 static void PrintError(TString err, bool exempt=false);
- 
+
+#endif // _PGTRACK_
 #endif // __TRKCC_H__

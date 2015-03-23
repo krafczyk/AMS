@@ -1,6 +1,8 @@
 #include "TrkCC.h"
 #include <stdlib.h>
 
+#ifdef _PGTRACK_
+
 #ifndef _NOGBATCH_
 AMSEventR* TrkCC::_HeadE=0;
 #endif //_NOGBATCH_ 
@@ -1221,9 +1223,9 @@ TrkCCVar* TrkCCVar::gethead() {
 }
 
 TrkCCVar::TrkCCVar(){
-  run = -1;
-  evtno = -1;
-  ppno = -1;
+  run = 0;
+  evtno = 0;
+  ppno = 0;
   Init();
 }
 
@@ -2937,3 +2939,5 @@ int MakeSubIdInt(TString subid) {
     return -99;
   }
 }
+
+#endif // _PGTRACK_
