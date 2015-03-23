@@ -411,7 +411,7 @@ TRACK_BASE= $(SCC)TkCoo.C 	\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
 	$(SCC)TrHistoMan.C  $(SCC)TrTrackSelection.C \
-	$(SCC)TrkLH.C       $(SCC)tktof.C \
+	$(SCC)tktof.C \
         $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C $(SCC)TrInnerDzDB.C
 
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C   $(SCC)TkDBc.C $(SCC)TrTrack.C  \
@@ -548,7 +548,6 @@ ROOTDICTFILES += ../include/CintUInt8.h ../include/TkPlane.h ../include/TkSens.h
 		../include/TrPdf.h ../include/TrPdfDB.h ../include/TrCharge.h \
 		../include/TrHistoMan.h ../include/HistoMan.h \
 		../include/TrTrackSelection.h \
-		../include/TrkLH.h \
 		../include/root_setup.h ../include/TrExtAlignDB.h ../include/TrInnerDzDB.h  ../include/pfunction.h
 else
 ROOTDICTFILES +=  ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h  ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h ../include/trfit.h 
