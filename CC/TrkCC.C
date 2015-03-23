@@ -375,7 +375,7 @@ int TrkCC::_NormalizeList(){
 //-------------------------------------------------------------------------
 int TrkCC::FillTH1(TH1* histo, int regtype, ULong64_t masktype){
   if (masktype==0) algCC->_usedmask=algCC->_recommendmask;
-  else if (masktype==1) algCC->_usedmask=0xFFFFFFFFFFFFF;
+  else if (masktype==1) algCC->_usedmask=0xFFFFFFFFFFFFFUL;
   else algCC->_usedmask=(masktype & algCC->_recommendmask);
   int ifill = 0;
   for (int ivv=0;ivv<_nvars;ivv++){
@@ -561,7 +561,7 @@ float TrkCC::GetNormalizedVar(int varnumber, int isnormalized) {
 
 ULong64_t TrkCC::GetRecoMask(int maskingnumber){
   // return recommendmask bitwise recommended mask based on maskingnumber
-  ULong64_t recommendmask=0xFFFFFFFFFFFFF;
+  ULong64_t recommendmask=0xFFFFFFFFFFFFFUL;
   int errfull[nTrkCCVar];
   for (int ivvar=0; ivvar<nTrkCCVar; ivvar++){
       errfull[ivvar]=0;}
@@ -662,7 +662,7 @@ ULong64_t TrkCC::_FillVarList(int maskingnumber){
   // also return recommendmask bitwise recommended mask based on maskingnumber
   float varlistfull[nTrkCCVar];
   
-  ULong64_t recommendmask=0xFFFFFFFFFFFFF;
+  ULong64_t recommendmask=0xFFFFFFFFFFFFFUL;
   int errfull[nTrkCCVar];
   for (int ivvar=0; ivvar<nTrkCCVar; ivvar++){
     int ick = varCC->CheckVar(ivvar);
@@ -868,7 +868,7 @@ ULong64_t TrkCC::_FillVarList(int maskingnumber){
     if( islog==11 && log10(fabs(varlistfull[vpos]))>flinint) intint++;
     if (islog>=10) algCC->_varlist[iv]=(float)intint;
   }
-   if(_verbose>=1 && recommendmask != 0xFFFFFFFFFFFFF) cout << maskingnumber << " masking | recommendmask unset " << std::hex << recommendmask << std::dec << endl;
+   if(_verbose>=1 && recommendmask != 0xFFFFFFFFFFFFFUL) cout << maskingnumber << " masking | recommendmask unset " << std::hex << recommendmask << std::dec << endl;
   
   return recommendmask; 
 }
@@ -949,7 +949,7 @@ int TrkCC::_CureIfSlopeCrossing(Double_t loge, Double_t& xminus2,Double_t& xminu
   if (xminus1>=median)  ret= -5;
   if (xminus2>=xminus1) ret= -6;
   if (ret==0) return 0; //everything OK                                                                                                                              
-  Double_t N = glow1->GetN();
+  Int_t N = glow1->GetN();
   Double_t minloge,maxloge, yy;
   glow1->GetPoint(N-1,maxloge,yy);
   glow1->GetPoint(0,minloge,yy);
@@ -2382,8 +2382,8 @@ void TMVAxmlReader::Get(vector <TString> &bdtvars,TString filename, Bool_t debug
 }
 
 TrkCCAlgorithm::TrkCCAlgorithm(){
-  _recommendmask=0xFFFFFFFFFFFFF;
-  _usedmask=0xFFFFFFFFFFFFF;
+  _recommendmask=0xFFFFFFFFFFFFFUL;
+  _usedmask=0xFFFFFFFFFFFFFUL;
 }
 
 TrkCCNozzoli::TrkCCNozzoli(TString subid, int version, int verbose){
@@ -2517,7 +2517,7 @@ float TrkCCNozzoli::GetRegression(int regtype, ULong64_t masktype, int fixbin){
   }
 
   if (masktype==0) _usedmask=_recommendmask;
-  else if (masktype==1) _usedmask=0xFFFFFFFFFFFFF;
+  else if (masktype==1) _usedmask=0xFFFFFFFFFFFFFUL;
   else _usedmask=masktype & _recommendmask;
 
   float reg=0;

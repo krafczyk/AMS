@@ -251,7 +251,7 @@ class TrkCC {
     if isnorm = 0 veclist is the NOT NORMALIZED and both _varlist and _varnorm are filled
     if isnorm = 1 veclist is normalized and only _varnorm is filled 
   */
-  int ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm = 1, ULong64_t recommendmask=0xFFFFFFFFFFFFF);
+  int ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm = 1, ULong64_t recommendmask=0xFFFFFFFFFFFFFUL);
     
 #ifndef _NOGBATCH_
   /*!  Process the event from GBatch version 
@@ -779,7 +779,7 @@ class TrkCCNozzoli: public TrkCCAlgorithm {
     return 0 is OK;
     return <0 problem (e.g. if return is -2 the problem is at second variable that is varnor[1])
   */
-  static int EvaluateRegression(float varnor[], float a[], float b[], float ps[], float reg[], int nvr, float& vreg, int debug = 0, ULong64_t mask=0xFFFFFFFFFFFFF);
+  static int EvaluateRegression(float varnor[], float a[], float b[], float ps[], float reg[], int nvr, float& vreg, int debug = 0, ULong64_t mask=0xFFFFFFFFFFFFFUL);
   
   static inline int Get_nVarsTrkCCNozzoliVersion(int iver=1) {
     if (iver==1) return nVarsTrkCCNozzoliVersion1;
