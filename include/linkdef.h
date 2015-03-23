@@ -121,6 +121,9 @@
 #endif
 #pragma link C++ class EcalAxis+;
 #pragma link C++ class EcalCR+;
+#pragma link C++ class EcalFastRec+;
+#pragma link C++ class Ecal3DRec+;
+#pragma link C++ class EcalKRec+;
 #pragma link C++ class GeoMagField+;
 #pragma link C++ class GeoMagTrace+;
 #pragma link C++ class GeoMagCoord+;
