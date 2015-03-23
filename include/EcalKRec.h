@@ -32,9 +32,6 @@
 #include "TString.h"
 #include "TObject.h"
 
-#include "root.h"
-#include "amschain.h"
-
 #include "EcalFastRec.h"
 #include "Ecal3DRec.h"
 

@@ -12,8 +12,8 @@
  * \author: hachen@cern.ch
 */
 
-#include "typedefs.h"
 #include "point.h"
+//#include "timeid.h"
 #include <map>
 
 class AMSTimeID;

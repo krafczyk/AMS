@@ -782,7 +782,6 @@ int Ecal3DRec::CalcCoG(){
 	fX0 = fX1 = 0;
 	fY0 = fY1 = 0;
 	int l, nm=0;
-	double lrrpar, cr;
 	for (l=0; l<18; l++) {
 		nm = SeedCell[l];
 		if ( nm > 0 ) {
@@ -1044,15 +1043,19 @@ int Ecal3DRec::DefineFootprint(){
 	if ( e_y > 0. ) Y1 /= e_y;
 
 
+	//-- rear leakage intercept--not 1.0 because only energy within footprint
 	double par0=0.85;
+
+	//-- rear leakage slope
 	double par1=0.6;
 	double par2=0.2;
-
-	double enecorr;
+	double slopecorr=1.0;
 	if(E0>0.0)
-		enecorr=par1+par2*TMath::Log(E0);
-	if((par0-enecorr*El2f/E0)>0.0)
-		E0=E0/(par0-enecorr*El2f/E0);
+		slopecorr=par1+par2*TMath::Log(E0);
+
+	double rearcorr=par0-slopecorr*El2f/E0;
+	if(rearcorr>0.0)
+		E0=E0/rearcorr;
 
 	double sqrt_E0 = sqrt(E0);
 
@@ -1164,89 +1167,18 @@ void Ecal3DRec::SetPdfPar(int ish, double ene){
 		cerr << "--Ecal3DRec--Error--SetPdfPar--:Exceed maximum number of showers" << endl;
 		return ;
 	};
-	if(1){
-		/*	
-				double p_0[20] = {80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 79.6, 79.0, 78.2,
-				77.2, 75.8, 74.4, 72.8, 71.0, 68.8, 66.2, 63.0, 58.0, 52.0};
-				double p_1[20] = {12.3, 12.3, 12.3, 12.3, 12.3, 12.3, 12.3, 12.2, 12.2, 12.1,
-				11.9, 11.7, 11.4, 11.1, 10.8, 10.5, 10.0,  9.5,  8.7,  7.7};
-				double p_2[20] = {.250, .250, .250, .250, .252, .254, .256, .260, .265, .270, 
-				.276, .282, .288, .295, .301, .306, .312, .316, .318, .320};
-				*/
 
-		double norm = TMath::Gamma(7.5);
-		for(int i=0; i<30; i++){
-			//P0x[ish][i] = 0.5+50*exp(-ene/100)+40*exp(-ene/800);//MC
-			//P0x[ish][i] = 0.5+32*exp(-ene/100)+60.2*exp(-ene/800);//ISS
-			P0x[ish][i] = 0.5+28*exp(-ene/65)+68*exp(-ene/560);//ISS
-			//P0x[ish][i] = 60.;
-			//P0x[ish][i] = TMath::Max(0.2, 150-20*log(ene));
-			//P1x[ish][i] = 5.4*TMath::Landau(0.1*i, 0.9, 0.25, 1);
-			P1x[ish][i] = (4+0.005*ene)*6.5*exp(-0.65*i)*pow(0.65*i, 6.5)/norm;
-			//			P1x[ish][i] = 4*6.5*exp(-0.65*i)*pow(0.65*i, 6.5)/norm;
-			P2x[ish][i] = 0.3;
+	double norm = TMath::Gamma(7.5);
+	for(int i=0; i<30; i++){
+		P0x[ish][i] = 0.5+28*exp(-ene/65)+68*exp(-ene/560);//ISS
+		P1x[ish][i] = (4+0.005*ene)*6.5*exp(-0.65*i)*pow(0.65*i, 6.5)/norm;
+		P2x[ish][i] = 0.3;
 
-			P0y[ish][i] = P0x[ish][i];
-			P1y[ish][i] = P1x[ish][i];
-			P2y[ish][i] = P2x[ish][i];
-			/*
-				 P0x[ish][i] = px_0[i];
-				 P1x[ish][i] = p_1[i];
-				 P2x[ish][i] = p_2[i];
-
-				 P0y[ish][i] = py_0[i];
-				 P1y[ish][i] = p_1[i];
-				 P2y[ish][i] = p_2[i];
-				 */
-		}
-	} else{
-		if( ene < 1 ) ene = 1;
-		double logene = log(ene);
-		//		if( ene > 5e3 ) ene = 5e3;
-		double P0x_p0 = 40.9 + 9.55*logene,
-					 P0x_p1 = 150 - P0x_p0,
-					 P0x_p2 = 0.267+2.94/ene;
-		//		double P1x_p0 = 9.0,
-		//					P1x_p1 = 0.80,
-		//					P1x_p2 = 0.40;
-		double P1x_p0 = 1.1 - 0.06*logene,
-					 P1x_p1 = 0.23,
-					 P1x_p2 = ene<55?4:0.253 + 0.935*logene;
-		double P2x_p0 = 0.40;
-
-		//		double P0y_p0 = 57.7 + 8.83*logene,
-		//					P0y_p1 = 150 - P0y_p0,
-		//					P0y_p2 = 0.438+2.66/ene;
-		//		double P1y_p0 = 9.0,
-		//					P1y_p1 = 0.80,
-		//					P1y_p2 = 0.40;
-		double P1y_p0 = ene<10?0.603+0.156*logene:1.1-0.06*logene,
-					 P1y_p1 = 0.23,
-					 P1y_p2 = ene<55?4:0.253 + 0.935*logene;
-		double P2y_p0 = 0.40;
-
-		double tT0=0;
-		for(int i=0; i<30; i++){
-			tT0 = 0.1*i;
-			//			P0x[ish][i] = P0x_p0*exp(-tT0/P0x_p2)+P0x_p1;
-			P0x[ish][i] = 0.5+14.6*exp(-ene/20)+84.7*exp(-ene/400);//ISS
-			P1x[ish][i] = P1x_p2*TMath::Landau(tT0, P1x_p0, P1x_p1, 1);
-			//			P1x[ish][i] = P1x_p0*exp( (P1x_p1-tT0)/P1x_p2 - exp((P1x_p1-tT0)/P1x_p2 ) );
-			P2x[ish][i] = P2x_p0;
-
-			P0y[ish][i] = P0x[ish][i];
-			P1y[ish][i] = P1x[ish][i];
-			P2y[ish][i] = P2x[ish][i];
-
-			//			P0y[ish][i] = P0y_p0*exp(-tT0/P0y_p2)+P0y_p1;
-			//			P1y[ish][i] = P1y_p2*TMath::Landau(tT0, P1y_p0, P1y_p1, 1);
-			//			P1y[ish][i] = P1y_p0*exp( (P1y_p1-tT0)/P1y_p2 - exp( (P1y_p1-tT0)/P1y_p2 ) );
-			//			P2y[ish][i] = P2y_p0;
-
-			//			printf("E %.2f, i=%d, P0x %.2f, P1x %.3f, P2x %.3f, P0y %.2f, P1y %.3f, P2y %.3f\n", ene, i, P0x[i], P1x[i], P2x[i], P0y[i], P1y[i], P2y[i]);
-			//			printf("%.2f, ", P0y[i]);		if( (i+1)%10==0 ) cout<<endl;
-		}
+		P0y[ish][i] = P0x[ish][i];
+		P1y[ish][i] = P1x[ish][i];
+		P2y[ish][i] = P2x[ish][i];
 	}
+	return;
 }
 
 
@@ -1575,7 +1507,7 @@ double Ecal3DRec::ShowerShape(int slay, double depth, double dist){
 	if( E0 <= 0 ) return 0.00001;
 
 	int i1, i2;
-	double qc, rc, rt, l1, l2, varc, vart;
+	double qc, rc, rt, varc, vart;
 
 	//	if ( T0 + depth < 0.0 ){
 	//      cout<<"Ecal3DRec::ShowerShape: T0="<<T0<<", depth="<<depth<<endl;
@@ -1829,8 +1761,8 @@ double Ecal3DRec::getCorrEs2Ed(double t, double d, double c, double kx, double b
 	int n1 = i1*120960 + i2*3024 + i3*21 + i4;
 	int m1 = j1*120960 + j2*3024 + j3*21 + j4;
 
-	double di1, di2, di3, di4, di5;
-	double dj1, dj2, dj3, dj4, dj5;
+	double di1, di2, di3, di4;
+	double dj1, dj2, dj3, dj4;
 	// derivatives for depth t
 	if ( i1 == j1 ) {
 		di1 = dj1 = 0;//(t*10-i1)*(cf_es2ed[n1+120960] - cf_es2ed[n1]);
@@ -1947,7 +1879,7 @@ double Ecal3DRec::getCorrEd2Ei(double t, double d, double c, double kx, double b
 	int m1 = j1*120960 + j2*3024 + j3*21 + j4;
 
 	double di1, di2, di3, di4, di5;
-	double dj1, dj2, dj3, dj4, dj5;
+	double dj1, dj2, dj3, dj4;
 	// derivatives for depth t
 	if ( i1 == j1 ) {
 		if( i1==0 )
@@ -2161,7 +2093,7 @@ int Ecal3DRec::ShowerProbability() {
 
 	int k, l, m;
 
-	double arg, val, reg, p0, p1, p2, beta;
+	double arg, val, reg, beta;
 
 	// !!!!!!!!!!!!!! what to do with cells(t<0)?, i.e. CellBeta[][]=0
 	//	double ltot=0.;
@@ -2218,7 +2150,7 @@ int Ecal3DRec::ShowerProbability() {
 //==================================================================
 //==================================================================
 int Ecal3DRec::ParabolaMin(int n1, int n2, double param[], double lhood[], double &L1, double &par, double &error){
-	int i, j, flag = 0;
+	int i, flag = 0;
 
 	double m11, m12, m22, m23, m33, b1, b2, b3, a11, a12, a13, a22, a23, a33, det, alpha, val, err;
 	// calculate inverse matrix a_ij
@@ -2232,7 +2164,6 @@ int Ecal3DRec::ParabolaMin(int n1, int n2, double param[], double lhood[], doubl
 		b1  += param[i]*param[i]*lhood[i];
 		b2  += param[i]*lhood[i];
 		b3  += lhood[i];
-		//    printf("Ind %d, Par %9.4f / %8.3f, Likelihood %8.3f / %8.3f\n", i, param[i], param[i]+pmin, lhood[i], lhood[i]+lmin);
 	}
 	// m22 == m13 is used explicitely
 	det = m11*m22*m33 + 2.*m12*m22*m23 - m22*m22*m22 - m12*m12*m33 - m23*m23*m11;
@@ -3212,8 +3143,11 @@ void Ecal3DRec::EMEstimatorLkhd(){
 
 int Ecal3DRec::ShowerCombineFit(){
 	int    l, m, k, n, Iter=0;
-	double l_start, l_end;
-	double L0, L1, L2;
+	double l_start=0.0;
+	double l_end=0.0;
+	double L0=0.0;
+	double L1=0.0;
+	double L2=0.0;
 
 	if ( N_Shwr>1 && (ShwrDep[0][0]>0 || ShwrDep[0][1]>0) ) {
 

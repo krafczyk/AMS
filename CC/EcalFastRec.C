@@ -2,7 +2,7 @@
 //! EcalFastRec class
 
 /*!
- * Class for fast reconstruction of ECAL Shower
+ * EcalFastRec.h source file
  * Two corrections applied:
  * 		1. Signal time dependent calibration
  * 		2. Attenuation correction
@@ -18,10 +18,6 @@
 
 using namespace std;
 using namespace Ecal3DRecDB;
-
-//==================================================================
-//-->EcalFastRec Class Definition
-//==================================================================
 
 //==================================================================
 //-->Reset Cell Status
@@ -136,10 +132,9 @@ int EcalFastRec::GainCalibration(){
 }
 
 //==================================================================
-//-->Initial Database
+//-->Initialize Database
 //==================================================================
 int EcalFastRec::InitDataBase(Double_t asktime){
-	//---
 	int tdvstat=0;
 
 	int realdata=(DataType==ISSDATA || DataType==BTDATA);
@@ -154,12 +149,9 @@ int EcalFastRec::InitDataBase(Double_t asktime){
 //-->Get High Gain correction factor
 //==================================================================
 float EcalFastRec::GetHighGainCorr(int layer, int cell){
-	////////////////////////////////
-	//---->HighGain Equilization
-	////////////////////////////////
 
 	if(EcalEquilPar::Head==0)
-		cerr<<">>>>>>>>Error EcalEquilPar Head not Initial !!!!<<<<<<<<"<<endl;
+		cerr<<">>>>>>>>Error EcalEquilPar Head not Initialized !!!!<<<<<<<<"<<endl;
 	EcalEquilPar *Equil=EcalEquilPar::GetHead();
 	if(!Equil->Isload){
 		cerr<<">>>>>>>>Error EcalEquilPar not Load yet!!!! <<<<<<<<"<<endl; 
@@ -192,12 +184,9 @@ float EcalFastRec::GetHighGainCorr(int layer, int cell){
 //-->Get High/Low gain ratio factor
 //==================================================================
 float EcalFastRec::GetGainRatioCorr(int layer, int cell){
-	////////////////////////////////
-	//---->GainRatio correction
-	////////////////////////////////
 
 	if(EcalGainRatioPar::Head==0)
-		cerr<<">>>>>>>>>Error EcalGainRatioPar Head not Initial !!!!<<<<<<<<<<"<<endl;
+		cerr<<">>>>>>>>>Error EcalGainRatioPar Head not Initialized !!!!<<<<<<<<<<"<<endl;
 
 	EcalGainRatioPar *GainRatioPar=EcalGainRatioPar::GetHead();
 	if(!GainRatioPar->Isload)
@@ -249,16 +238,15 @@ int EcalFastRec::ClearAllCellStatus(Int_t stat_ask){
 }
 
 //==================================================================
-//-->Find Shower
+//-->Shower Recognition..shower seed
 //==================================================================
 int EcalFastRec::ShowerSeedFinding(Int_t iter){
 
 	Double_t v, val;
-	Int_t lx, mx, ly, my, nm, nl;
+	Int_t lx, mx, ly, my, nm;
 	Int_t l, m;
 	KX=0;
 	KY=0;
-	Int_t nKY=0, nKX=0;
 	Int_t nw=3;
 
 	// seed layer in X projection
@@ -309,17 +297,16 @@ define_mX:
 	}
 	fEX = nm;	
 
-	// define X footprint
+	//--define X footprint
 	if ( mx >= 0 ) {
 		dEX = v;
-		// define KX use the two layers in the same superlayer of seed
+		//--define KX use the two layers in the same superlayer of seed
 		v=0.;
 
 		// go upstream
 		nm = mx;
 		for (l=(lx&0xFE)+1; l>1; l-=4) {
 			v = 0.;
-			//			if( nKX>0 ) mx = (l-lx)*KX+SeedCell[lx];
 			for (m=mx-15; m<=mx+15; m++) {
 				if ( m>=0 && m<=71 && EdepBuffer[l][m]>v ) {
 					v = EdepBuffer[l][m];
@@ -406,7 +393,6 @@ define_mY:
 					if ( EdepBuffer[l][m]>0. ) {
 						nm  += 1;
 						val += EdepBuffer[l][m];
-						//							printf("LY %02d, MY %02d, E %8.3f\n", l, m, EdepBuffer[l][m]);
 					}
 				}
 			}
@@ -414,30 +400,26 @@ define_mY:
 				if ( (((l+1) != ly) || (m != my)) && EdepBuffer[l+1][m]>0. ) {
 					nm  += 1;
 					val += EdepBuffer[l+1][m];
-					//printf("LY %02d, MY %02d, E %8.3f\n", l+1, m, EdepBuffer[l][m]);
 				}
 			}
 		}
 		if ((nm < 4) || (v > 2*val) ) {
 			EdepBuffer[ly][my] = Cutoff_MIP;
-			//			printf("LY %02d, MY %02d, Nhits %02d, Emax %8.3f, Eout %8.3f\n", ly, my, nm, v, val);
 			goto define_mY;
 		}
 	}
 	fEY = nm;
 
-	// define Y footprint
+	//--define Y footprint
 	if ( my >= 0 ) {
 		dEY = v;
-		// define KY use the two layers in the same superlayer of seed
+		//--define KY use the two layers in the same superlayer of seed
 		v=0.;
 
 		// go upstream
 		nm = my;
 		for (l=(ly&0xFE)+1; l>0; l-=4) {
 			v = 0.;
-			//			if( nKY>0 ) my = (l-ly)*KY+SeedCell[ly];// need extrapolation in case of large angle
-			//			cout << l << ": " << SeedCell[ly] << ", " << my << endl;
 			for (m=my-15; m<=my+15; m++) {
 				if ( m>=0 && m<=71 &&EdepBuffer[l][m]>v ) {
 					v = EdepBuffer[l][m];
@@ -445,7 +427,6 @@ define_mY:
 				}
 			}
 			if ( SeedCell[l]   > 0 ) my = SeedCell[l];
-			//			cout << "Layer=" << l << ", my=" << my << ", v= "<< v << endl;
 
 			v = 0.;
 			for (m=my-4; m<=my+4; m++) {
@@ -456,16 +437,12 @@ define_mY:
 			}
 
 			if      ( SeedCell[l-1] > 0 ) my = SeedCell[l-1];
-			//			cout << "Layer=" << l-1 << ", my=" << my << ", v= "<< v << endl;
-			//			else if ( SeedCell[l]   > 0 ) my = SeedCell[l];
 		}
 
 		// go downstream
 		my = nm;
 		for (l=(ly&0xFE)+4; l<18; l+=4) {
 			v = 0.;
-			//			if( nKY>0 ) my = (l-ly)*KY+SeedCell[ly];// need extrapolation in case of large angle
-			//			cout << l << ": " << SeedCell[ly] << ", " << my << endl;
 			for (m=my-15; m<=my+15; m++) {
 				if ( m>=0 && m<=71 &&EdepBuffer[l][m]>v ) {
 					v = EdepBuffer[l][m];
@@ -485,12 +462,9 @@ define_mY:
 			if( SeedCell[l+1] > 0 ) my = SeedCell[l+1];
 		}
 		my = nm;
-	} else {
+	}else {
 		dEY = 0.;
 	}
-
-	//	XSeed = mx; // to be used in DefineFootprint
-	//	YSeed = my;
 	
 	return 0;
 	
@@ -507,7 +481,7 @@ int EcalFastRec::ShowerClustering(Int_t iter){
 	EX = EY = 0.;
 	for(Int_t l=0; l<kNL; l++){
 		if(SeedCell[l]>=0){
-			// search right
+			//--search right ward
 			if( SeedCell[l]==71 ) Cell_Max[l] = 71;
 			else {
 				for(Int_t m=SeedCell[l]+1; m<72; m++){
@@ -515,7 +489,6 @@ int EcalFastRec::ShowerClustering(Int_t iter){
 						Cell_Max[l] = m;
 						break;
 					}else if( m>=2 && EdepBuffer[l][m]>1.5*EdepBuffer[l][m-1] && EdepBuffer[l][m-1]>1.2*EdepBuffer[l][m-2] && EdepBuffer[l][m]>Cutoff_SEED && EdepBuffer[l][m-2]>0){
-						//					cout << "m=" << m <<", "<< EdepBuffer[l][m] << ", m-1=" << EdepBuffer[l][m-1] << ", m-2=" << EdepBuffer[l][m-2] << endl;
 						Cell_Max[l] = m-2;
 						break;
 					}else if( m==71 ) 
@@ -523,7 +496,7 @@ int EcalFastRec::ShowerClustering(Int_t iter){
 				}
 			}
 
-			// search left
+			//--search left ward
 			if( SeedCell[l]==0 ) Cell_Min[l] = 0;
 			else {
 				for(Int_t m=SeedCell[l]-1; m>=0; m--){
@@ -531,7 +504,6 @@ int EcalFastRec::ShowerClustering(Int_t iter){
 						Cell_Min[l] = m+1;
 						break;
 					}else if( m<=69 && EdepBuffer[l][m]>1.5*EdepBuffer[l][m+1] && EdepBuffer[l][m+1]>1.2*EdepBuffer[l][m+2] && EdepBuffer[l][m]>Cutoff_SEED && EdepBuffer[l][m+2]>0){
-						//					cout << "m=" << m <<", "<< EdepBuffer[l][m] << ", m+1=" << EdepBuffer[l][m+1] << ", m+2=" << EdepBuffer[l][m+2] << endl;
 						Cell_Min[l] = m+2;
 						break;
 					}else if( m==0 )
@@ -542,15 +514,15 @@ int EcalFastRec::ShowerClustering(Int_t iter){
 				if( EdepBuffer[l][m]>0 ){
 					if( l%4<2 ) EY += EdepBuffer[l][m];
 					else        EX += EdepBuffer[l][m];
-					//					cout << "l=" << l << ", m=" << m << ", e=" << EdepBuffer[l][m] << endl;
 				}
 			}
 		}
-		//cout << "iter=" << iter << ", N_Shwr=" << N_Shwr << ", l=" << l << ", Seed=" << SeedCell[l] << ", CMIN=" << Cell_Min[l] << ", CMAX=" << Cell_Max[l] << endl;
 	}
 	return 0;
 }
 
+//==================================================================
+//-->Center of Gravity per layer
 //==================================================================
 int EcalFastRec::CalculateLayerCOG(Int_t iter){
 	fX0 = fX1 = 0;
@@ -558,7 +530,6 @@ int EcalFastRec::CalculateLayerCOG(Int_t iter){
 	Int_t l, nm=0;
 	for (l=0; l<18; l++) {
 		nm = SeedCell[l];
-		//		cout << nm << endl;
 		if ( nm >= 0 ) {
 			if( nm > 0 && nm<71 ){
 				LayAmp[l] = EdepBuffer[l][nm-1] + EdepBuffer[l][nm] + EdepBuffer[l][nm+1];
@@ -570,8 +541,6 @@ int EcalFastRec::CalculateLayerCOG(Int_t iter){
 				LayAmp[l] = EdepBuffer[l][nm-1] + EdepBuffer[l][nm];
 				LayCrd[l] = Cell_Size*((nm-36.5)*EdepBuffer[l][nm-1] + (nm-35.5)*EdepBuffer[l][nm])/LayAmp[l];
 			}
-			// check the quality of the individual projections using the remaining energy depositions
-			//		cout << nm << ", EdepBuffer[l][nm]=" << EdepBuffer[l][nm] << ", 0.8*EdepBuffer[l][nm+1]=" << 0.8*EdepBuffer[l][nm+1] << endl;
 			if ( (nm>0 && nm<71 && EdepBuffer[l][nm]>0.8*EdepBuffer[l][nm-1] && EdepBuffer[l][nm]>0.8*EdepBuffer[l][nm+1] )
 					|| (nm==0 && EdepBuffer[l][nm]>0.8*EdepBuffer[l][nm+1] )
 					||  (nm==71 && EdepBuffer[l][nm]>0.8*EdepBuffer[l][nm-1] )
@@ -605,7 +574,7 @@ int EcalFastRec::CalculateLayerCOG(Int_t iter){
 }
 
 //==================================================================
-//-->Get Shower maximum
+//-->Get Shower maximum with parabolic fit
 //==================================================================
 int EcalFastRec::ParabolaZ0Fit(){
 	//
@@ -631,7 +600,6 @@ int EcalFastRec::ParabolaZ0Fit(){
 	if ( nm < 3 ) {
 		val = v;
 		arg =  1.0 + EcalZ[0] - EcalZ[nm];
-		//    printf("L -1, arg %8.3f, val %8.3f\n", arg, val);
 		m11 += arg*arg*arg*arg;
 		m12 += arg*arg*arg;
 		m22 += arg*arg;
@@ -646,7 +614,6 @@ int EcalFastRec::ParabolaZ0Fit(){
 	for(l=TMath::Max(0,nm-3); l<TMath::Min(18,nm+4); l++ ) {
 		val = v - LayAmp[l];
 		arg = EcalZ[l] - EcalZ[nm];
-		//    printf("L %2d, arg %8.3f, val %8.3f\n", l, arg, val);
 		m11 += arg*arg*arg*arg;
 		m12 += arg*arg*arg;
 		m22 += arg*arg;
@@ -660,7 +627,6 @@ int EcalFastRec::ParabolaZ0Fit(){
 	if ( nm > 15 ) { 
 		val = v- LayAmp[2*nm-18];
 		arg =  EcalZ[17] - 1.0 - EcalZ[nm];
-		//    printf("L 18, arg %8.3f, val %8.3f\n", arg, val);
 		m11 += arg*arg*arg*arg;
 		m12 += arg*arg*arg;
 		m22 += arg*arg;
@@ -670,7 +636,6 @@ int EcalFastRec::ParabolaZ0Fit(){
 		b2  += arg*val;
 		b3  += val;
 
-		//		fZ0 = 0;
 	}
 
 	// m22 == m13 is used explicitely
@@ -731,7 +696,6 @@ int EcalFastRec::ShowerAxisFit(){
 			vx.push_back( LayCrd[l] );
 			vz.push_back( EcalZ[l]-Z0 );
 			vw.push_back( LayAmp[l] );
-			//cout << "l=" << l << ", LayCrd=" << LayCrd[l] << ", LayAmp=" << LayAmp[l] << endl;
 		}
 	}
 	if( vx.size() > 1 )
@@ -774,16 +738,14 @@ int EcalFastRec::LinearFit(Int_t n, vector<Double_t> vx, vector<Double_t> vy, ve
 int EcalFastRec::AttenuationCorrection(){
 	float attcorr=0.0;
 	float attpar[3];
-	double posfiber=0.;
+	float posfiber=0.;
 	Nhits=0;
 	for(int l=0;l<18;l++){
 		for(int c=Cell_Min[l];c<=Cell_Max[l];c++){
 			if(CheckCellStatus(l, c, USED)){
-				//				cout << "l=" << l << ", c=" << c << " USED " << endl;
 				continue;
 			}
 			if(Edep[l][c]<=0){
-				//				cout << "l=" << l << ", c=" << c << " ZERO" << endl;
 				continue;
 			}
 			GetAttenuationCorr(l, c, attpar);
@@ -809,11 +771,8 @@ int EcalFastRec::GetAttenuationCorr(int layer, int cell, float attpar[3]){
 	attpar[1]=0.0;
 	attpar[2]=0.0;
 
-	////////////////////////////////
-	//---->Attenuation Correction
-	////////////////////////////////
 	if(EcalAttPar::Head==0)
-		cerr<<">>>>>>>>Error EcalAttPar Head not Initial !!!!<<<<<<<<"<<endl;
+		cerr<<">>>>>>>>Error EcalAttPar Head not Initialized !!!!<<<<<<<<"<<endl;
 	EcalAttPar *Att=EcalAttPar::GetHead();
 	if(!Att->Isload){
 		cerr<<">>>>>>>>Error EcalAttPar not Load yet!!!! <<<<<<<<"<<endl; 
@@ -834,21 +793,17 @@ int EcalFastRec::GetAttenuationCorr(int layer, int cell, float attpar[3]){
 	return 0;
 }
 
-
 //==================================================================
 int EcalFastRec::IsolatedHitsAttCor(){
 	float posfiber;
-	float hlfiber = 36*0.9;
-	float fattcorr;
 	float attpar[3];
-	Double_t dist, mindist=FLT_MAX;
-	Double_t d1, d2;
-	double attcorr;
+	float dist, mindist=FLT_MAX;
+	float d1, d2;
+	float attcorr;
 
 	for(int l=0;l<18;l++){
 		for(int c=0;c<=71;c++){
 			if( Edep[l][c]<=0 || CheckCellStatus(l,c,USED) ) continue;
-			//			cout << l << " " << c << " Recovered as isolated hit" << endl;
 
 			GetAttenuationCorr(l, c, attpar);
 
@@ -884,7 +839,7 @@ int EcalFastRec::IsolatedHitsAttCor(){
 //----->with Attenuation correction
 //----->with Rear Leakage correction
 //==================================================================
-double EcalFastRec::GetEnergyEstimate(){
+float EcalFastRec::GetEnergyEstimate(){
 
 	E0=0.0;
 	EL2L=0.0;
@@ -898,17 +853,17 @@ double EcalFastRec::GetEnergyEstimate(){
 		}
 	}
 
-	double rearcorr=GetRearLeakCorr();
+	float rearcorr=GetRearLeakCorr();
 
 	if(rearcorr<0.0)	return E0;
 	else							return E0/rearcorr;
 }
 
 //==================================================================
-double EcalFastRec::GetRearLeakCorr(){
+float EcalFastRec::GetRearLeakCorr(){
 
-	double rearcorr=1.0;
-	double rearpar=1.0;
+	float rearcorr=1.0;
+	float rearpar=1.0;
 
 	//-->Parameterization
 	if(E0<=0.0)

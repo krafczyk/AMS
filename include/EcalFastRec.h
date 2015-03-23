@@ -1,3 +1,5 @@
+#ifndef _ECALFASTREC_
+#define _ECALFASTREC_
 
 //! EcalFastRec class
 
@@ -7,19 +9,24 @@
  * 		1. Signal time dependent calibration
  * 		2. Attenuation correction
  * Input:   AMS Event
- * Output:  Energy estimation
+ * Output:  Edep Map, shower energy estimation
+ * 
+ * Usage:
+ * 		AMSEventR *pev=ch->GetEvent();
+ * 		EcalFastRec *pecalfast=new EcalFastRec();
+ * 		pecalfast->DoFastShowerRec(pev);
+ *		
+ *		pecalfast->GetEdep(layer,cell);  //return cell edep
+ *		pecalfast->GetEnergyEstimate();  //return shower energy
+ *
  * \author: Hai Chen(hachen@cern.ch), Andrei Kounine, Zuhao Li, Weiwei Xu, Cheng Zhang
 */
-
-
-#ifndef _ECALFASTREC_
-#define _ECALFASTREC_
 
 #include <iostream>
 #include "TString.h"
 #include "TMath.h"
-#include "root_RVSP.h"
 #include "EcalKDbc.h"
+#include <root.h>
 
 using namespace Ecal3DRecDB;
 
@@ -49,9 +56,9 @@ enum EnumCellMaskType{
 	SATCELL  // Low gain saturated cell
 };
 
-class EcalFastRec:public TObject{
+class EcalFastRec{
 
-	//! Functions
+//! Functions
 	public:
 		//! A Constructor
 		EcalFastRec(){};
@@ -72,9 +79,9 @@ class EcalFastRec:public TObject{
 		int   DefineCellStatus();
 
 	public:
-		//! Signal Calibration
 		//! Initial TDV
 		int   InitDataBase(Double_t asktime);
+		//! Signal Calibration
 		int   GainCalibration();
 		float GetHighGainCorr(int layer, int cell);
 		float GetGainRatioCorr(int layer, int cell);
@@ -86,7 +93,7 @@ class EcalFastRec:public TObject{
 		//! Clear Cell Status
 		int   ClearAllCellStatus(Int_t stat_ask);
 
-		//-->Shower Axis
+		//! Shower recognition
 		int   ShowerSeedFinding(Int_t iter=0);
 		int   ShowerClustering(Int_t iter=0);
 		int   CalculateLayerCOG(Int_t iter=0); // Axis reconstruction, 0-> COG, 1->Cell ratio
@@ -94,26 +101,26 @@ class EcalFastRec:public TObject{
 		int   ShowerAxisFit();
 		int   LinearFit(Int_t n, vector<Double_t> vx, vector<Double_t> vy, vector<Double_t> vw, Double_t &kx, Double_t &x0);
 
-		//-->Attenuation
+		//! Attenuation correction
 		int   AttenuationCorrection();
 		int   GetAttenuationCorr(int layer, int cell, float attpar[3]);
 
-		int   IsolatedHitsAttCor(); // Attenuation correction for isolated hits
+		//! Attenuation correction for isolated hits
+		int   IsolatedHitsAttCor();
 
 		//! Get Energy Estimation
-		double GetEnergyEstimate();
+		float GetEnergyEstimate();
 		//! Do Rear Leakage correction
-		double GetRearLeakCorr();
+		float GetRearLeakCorr();
 
-		//-->Data accessor
+//! Data accessor
 	public:
 		//! Data accessor:Calibrated Edep
 		float  GetEdep(Int_t lay, Int_t cell){ return Edep[lay][cell]; }
 		//! Data accessor:Calibrated and Attenuation corrected Edep
 		float  GetEdepAttC(Int_t lay, Int_t cell){ return EdepAttC[lay][cell]; }
 
-
-		//-->Variables
+//! Data members
 	public:
 		EcalHitR *phit;
 
@@ -137,7 +144,7 @@ class EcalFastRec:public TObject{
 		float  EdepBuffer[kNL][nCell]; // Buffer used for shower clustering
 
 		//! Coordinate and Amplitude per layer
-		double LayCrd[kNL],
+		float  LayCrd[kNL],
 					 LayAmp[kNL];
 		//! Seed Cell per layer
 		int    SeedCell[kNL]; // Seed cell id in each layer
@@ -154,8 +161,8 @@ class EcalFastRec:public TObject{
 		//! Number of Shower
 		int    N_Shwr;
 
-		//-->Shower parameters
-		double EX,		// total energy in x-projection footprint for fit
+		//! Shower parameters
+		float  EX,		// total energy in x-projection footprint for fit
 					 EY,		// total energy in y-projection footprint for fit
 					 dEX,		// maximum cell energy in x-projection
 					 dEY,		// maximum cell energy in y-projection
@@ -171,14 +178,15 @@ class EcalFastRec:public TObject{
 
 		int    Nhits;
 
-		//-->Buffer of shower parameters
+		//! Buffer of shower parameters
 		int    ShwrCellMin[4][kNL], ShwrCellMax[4][kNL];
 		int    ShwrNhits[4];
-		double ShwrZ0[4], ShwrX0[4], ShwrY0[4];
-		double ShwrKX[4], ShwrKY[4];
+		float  ShwrZ0[4], ShwrX0[4], ShwrY0[4];
+		float  ShwrKX[4], ShwrKY[4];
 
-		double E0;
-		double EL2L;
+		//! Energy and Rear leakage correction
+		float  E0;
+		float  EL2L;
 
 		ClassDef(EcalFastRec,1);
 };
