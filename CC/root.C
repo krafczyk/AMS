@@ -15950,3 +15950,54 @@ else if(kmin<0)return &mc;
 if(kmin>=0)return & MCEventg(kmin);
 else return NULL;
 }
+
+const char* AMSEventR::GetCite () const {
+    unsigned int run=Run(); 
+    const int numcites=32;
+    static const char *const sitename[numcites+1] = {  
+    "CERN", 
+    "CERN-TEST", 
+    "BOLO",
+    "ETHZ",
+    "MILANO-CNAF",
+    "KNU",
+    "CIEMAT",
+    "LPTA",
+    "EKP",
+    "LIP",
+    "MIT",
+    "PERUGIA",
+    "SIENA",
+    "TAIWAN",
+    "LYON",
+    "UMD",
+    "YALE",
+    "ITEP",
+    "SEU",
+    "IAC",
+    "LPSC",
+    "MSU",
+    "NLAA",
+    "IHEP",
+    "IHEP",
+    "INFN-PISA",
+    "AACHEN",
+    "RWTH_APC",
+    "RWTH_JARA",
+    "UNASSIGNED0",
+    "UNASSIGNED1",
+    "RUNOUTOFLIMITS",
+    "NOTMCRUN"
+      };
+    
+    if(nMCEventg()==0)return sitename[numcites];
+    const int max_cid = 26;
+    unsigned long runmin, runmax;
+    for (int cid = 1; cid < numcites; cid++) {
+        runmin = ((cid-1) << max_cid) + 1;
+        runmax = cid << max_cid;
+        if (run >= runmin && run <= runmax)
+            return sitename[cid-1];
+    }
+    return sitename[numcites-1];
+}
