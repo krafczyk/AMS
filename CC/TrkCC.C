@@ -1665,10 +1665,10 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
       if (noise_y[layer-1]<minoise3 && noise_y[layer-1] >0.001 && trk_layer_pattern[layer-1] ==1 && layer != lminoise1 && layer != lminoise2)
 	{minoise3 = noise_y[layer-1]; lminoise3=layer;}}
     minoise4=7.;
-    int lminoise4 = -1;
+    //    int lminoise4 = -1;
     for (int layer=1; layer<=9; layer++) {
       if (noise_y[layer-1]<minoise4 && noise_y[layer-1] >0.001 && trk_layer_pattern[layer-1] ==1 && layer != lminoise1 && layer != lminoise2 && layer != lminoise3)
-	{minoise4 = noise_y[layer-1]; lminoise4=layer;}}
+	{minoise4 = noise_y[layer-1]; /*lminoise4=layer;*/}}
   }
   // SEARCH FOR MAXIMUM RESIDUAL(0) NEXT OF MAXIMUM (1) MINIMUM (2)
   maxresx0=0;
@@ -1876,7 +1876,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   double qaccmax=0;
   double tanti[8]={0,0,0,0,0,0,0,0};
   double qanti[8]={0,0,0,0,0,0,0,0};
-  double zanti[8]={0,0,0,0,0,0,0,0};
+  //  double zanti[8]={0,0,0,0,0,0,0,0};
   for (int icl = 0; icl<evt->nAntiCluster();icl++){ //scan acc                                           
     AntiClusterR* pcl = evt->pAntiCluster(icl);
     if (!pcl) continue;
@@ -1885,7 +1885,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     if(pcl->Npairs<=0) continue; // not paired                                                           
     int bar = pcl->Sector-1;
     tanti[bar]=pcl->time;
-    zanti[bar]=pcl->unfzeta;
+    //    zanti[bar]=pcl->unfzeta;
     qanti[bar]=pcl->rawq;
     if (qanti[bar]>qaccmax) qaccmax=qanti[bar];
     if (tanti[bar]>ttof[1]+4. && tanti[bar]<ttof[1]+20.) {nantibks++;  // anti is a backsplash                                   
@@ -2055,7 +2055,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   nrings=evt->nRichRing();
 
   double betarich=1;
-  double qqrich=1;
+  //  double qqrich=1;
   double wrich=1;
   double nringexph=0;
   double nringph=0;
@@ -2065,7 +2065,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     betarich=rich->getBeta();
     nringph=rich->getPhotoelectrons();
     nringexph=rich->getExpectedPhotoelectrons();
-    qqrich=rich->getCharge2Estimate();
+    //    qqrich=rich->getCharge2Estimate();
     wrich=rich->getWidth();
   }
   
@@ -2202,12 +2202,14 @@ void TrkCCVar::PathOnB(TrTrackR* tr, int kDef, MagField* magfield, Double_t& B,
   L=D_ZY;
   SenThetaX=fabs(DZ/D_ZX);//vertical means ThetaX=90 -> SenThetaX=1
   SenThetaY=fabs(DZ/D_ZY);//vertical means ThetaY=90 -> SenThetaY=1
-  static Double_t y1;
-  static Double_t y2;
-  static Double_t y3;
-  y1=inmiddleout[0].y();
-  y2=inmiddleout[1].y();
-  y3=inmiddleout[2].y();
+  /*
+    static Double_t y1;
+    static Double_t y2;
+    static Double_t y3;
+    y1=inmiddleout[0].y();
+    y2=inmiddleout[1].y();
+    y3=inmiddleout[2].y();
+  */
   static Double_t SigmaY;
   static TF1* sigmay = new TF1("sigmay", "13.75-3.437*(x-1.0)+31.86*((x-1.0)*(x-1.0))", 0.0, 1.0);
   static Double_t sigmay0=sigmay->Eval(1.0)/1000000.0;//in m

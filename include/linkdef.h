@@ -59,8 +59,8 @@
 #pragma link C++ class TrHistoManHeader;
 #pragma link C++ class TrHistoMan;
 #pragma link C++ class TrOnlineMonitor;
-//#pragma link C++ class TrkLH;
-//#pragma link C++ class TrkLHVar;
+#pragma link C++ class TrkLH;
+#pragma link C++ class TrkLHVar;
 
 #pragma link C++ class TrkCC;
 #pragma link C++ class TrkCCVar;

@@ -395,6 +395,9 @@ ifndef PGTRACK
 COMMON_FILES += $(SFF)mtx2.F     $(SFF)fint_my.F 
 endif
 
+#TrkLH
+COMMON_FILES += $(SCC)TrkLH.C
+
 #TrkCC
 COMMON_FILES += $(SCC)TrkCC.C
 
@@ -573,6 +576,9 @@ ROOTDICTFILES += ../include/AntiPG.h
 
 # MVA
 ROOTDICTFILES +=../include/MVAmanager.h ../include/ConfigParser.h  ../include/OutTreeManager.h  ../include/OutHistoManager.h
+
+#TrkLH
+ROOTDICTFILES += ../include/TrkLH.h
 
 #TrkCC
 ROOTDICTFILES += ../include/TrkCC.h
@@ -900,15 +906,22 @@ SHLIBO+=$(BIN)ConfigParser.o
 SHLIBO+=$(BIN)OutTreeManager.o
 SHLIBO+=$(BIN)OutHistoManager.o
 
+#TrkLH
+SHLIBO+=$(BIN)TrkLH_s.o
+
 #TrkCC
 SHLIBO+=$(BIN)TrkCC_s.o
 
 SHLIBBO:=$(SHLIBO)
 else
-SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)EcalKDbc.o $(BIN)EcalFastRec.o $(BIN)Ecal3DRec.o $(BIN)EcalKRec.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)LxMCcutoff.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)AntiPG_s.o $(BIN)TrkCC_s.o $(BIN)gitsha.o
+SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)EcalKDbc.o $(BIN)EcalFastRec.o $(BIN)Ecal3DRec.o $(BIN)EcalKRec.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)LxMCcutoff.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)gitsha.o
+SHLIBBO+=$(BIN)AntiPG_s.o
+SHLIBBO+=$(BIN)TrkLH_s.o
+SHLIBBO+=$(BIN)TrkCC_s.o
 SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)EcalKDbc.o $(BIN)EcalFastRec.o $(BIN)Ecal3DRec.o $(BIN)EcalKRec.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)bcorr_s.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)LxMCcutoff.o
 SHLIBO+=$(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)gitsha.o
 SHLIBO+=$(BIN)AntiPG_s.o
+SHLIBO+=$(BIN)TrkLH_s.o
 SHLIBO+=$(BIN)TrkCC_s.o
 
 SHLIBO+=$(BIN)MVAmanager.o
@@ -990,7 +1003,7 @@ $(BIN)rootdict.C: ../include/point.h ../include/edep.h ../include/root_RV.h ../i
 	$(AT)$(ROOTSYSRUN)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTINCDIR) -I../include $^
 	@echo Generating dictionary ... OK
 
-$(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/EcalKDbc.h ../include/EcalFastRec.h ../include/Ecal3DRec.h ../include/EcalKRec.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/LxMCcutoff.h ../include/bcorr.h ../include/UnfoldingTools.h ../include/SpFold.h ../include/AntiPG.h ../include/TrkCC.h ../include/linkdef.h
+$(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h ../include/Tofrec02_ihep.h ../include/Tofcharge_ihep.h ../include/EcalChi2CY.h ../include/EcalH.h ../include/EcalKDbc.h ../include/EcalFastRec.h ../include/Ecal3DRec.h ../include/EcalKRec.h ../include/GeoMagField.h ../include/GeoMagCoord.h ../include/GeoMagTrace.h ../include/LxMCcutoff.h ../include/bcorr.h ../include/UnfoldingTools.h ../include/SpFold.h ../include/AntiPG.h ../include/TrkLH.h ../include/TrkCC.h ../include/linkdef.h
 	@echo Generating dictionary ...
 	$(AT)$(ROOTSYSRUN)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTINCDIR) -I../include  $^
 	@echo Generating dictionary ... OK
@@ -1081,6 +1094,14 @@ $(BIN)AntiPG_s.o: $(SCC)AntiPG.C
 $(BIN)AntiPG.o: $(SCC)AntiPG.C
 	@echo Compiling  $< ...
 	$(AT)$(CXX) -c $(CFLAGS) $(SCC)AntiPG.C -o $(BIN)AntiPG.o
+
+$(BIN)TrkLH_s.o: $(SCC)TrkLH.C
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrkLH.C -o $(BIN)TrkLH_s.o
+
+$(BIN)TrkLH.o: $(SCC)TrkLH.C
+	@echo Compiling  $< ...
+	$(AT)$(CXX) -c $(CFLAGS) $(SCC)TrkLH.C -o $(BIN)TrkLH.o
 
 $(BIN)TrkCC_s.o: $(SCC)TrkCC.C
 	@echo Compiling  $< ...
