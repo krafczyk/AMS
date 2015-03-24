@@ -74,22 +74,6 @@ int Ecal3DRec::SetCluster(float ene_cell[][72], int ecal_cellstat[][72], bool Is
 		}
 	}
 
-	// mask the maximum cell, test the saturation recovery algo.
-	int lmax=0, cmax=0;
-	double emax = 0;
-	for(int l=0; l<18; l++){
-		for(int c=0; c<80; c++){
-			if( CellDep[l][c] > emax ){
-				emax = CellDep[l][c];
-				lmax = l;
-				cmax = c;
-			}
-		}
-	}
-
-	//	CellMask[lmax][cmax] = 1;
-	//	cout << Form("l=%d, c=%d is masked", lmax, cmax) << endl;
-
 	return 0;
 }
 
@@ -830,7 +814,7 @@ int Ecal3DRec::ParabolaZ0(){
 		if( LayAmp[l] > Cutoff_MIP*3 ){ Apex = l; break; }
 	}
 	// calculate inverse matrix a_ij
-	double m11, m12, m22, m23, m33, b1, b2, b3, a11, a12, a13, a22, a23, a33, det;
+	double m11, m12, m22, m23, m33, b1, b2, b3, a11, a12, a13, a22, a23, det;
 	double val, arg;
 	m11 = m12 = m22 = m23 = m33 = b1 = b2 = b3 = 0.;
 
@@ -887,7 +871,6 @@ int Ecal3DRec::ParabolaZ0(){
 		a13 = m12*m23 - m22*m22;
 		a22 = m11*m33 - m22*m22;
 		a23 = m12*m22 - m11*m23;
-		a33 = m11*m22 - m12*m12;
 
 		arg = b1*a11 + b2*a12 + b3*a13;
 		if ( arg > 0. ) {
@@ -1878,7 +1861,7 @@ double Ecal3DRec::getCorrEd2Ei(double t, double d, double c, double kx, double b
 	int n1 = i1*120960 + i2*3024 + i3*21 + i4;
 	int m1 = j1*120960 + j2*3024 + j3*21 + j4;
 
-	double di1, di2, di3, di4, di5;
+	double di1, di2, di3, di4;
 	double dj1, dj2, dj3, dj4;
 	// derivatives for depth t
 	if ( i1 == j1 ) {
@@ -2887,12 +2870,11 @@ void Ecal3DRec::EMEstimatorVars(){
 }
 
 void Ecal3DRec::EMEstimatorLkhd(){
-	int i, j, l;
+	int l;
 	double p0, p1, p2, p3, p4, v, t, V=0, W=0;
 	double r0, r1;
 	double p1_0, p1_1, p1_2,
-				 p2_0, p2_1, p2_2,
-				 p3_0, p3_1, p3_2;
+				 p2_0, p2_1, p2_2;
 	double logene = log(EleEne);
 	//0: Z0 
 	//	p1 = 1.04;
