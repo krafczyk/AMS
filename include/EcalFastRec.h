@@ -62,8 +62,6 @@ class EcalFastRec{
 	public:
 		//! A Constructor
 		EcalFastRec(){};
-		//! A Destructor
-		~EcalFastRec(){};
 
 	public:
 		//! Interface to Perform Fast Reconstruction
