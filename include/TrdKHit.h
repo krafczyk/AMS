@@ -74,7 +74,7 @@ public:
 
     static float Tube_radius;
 
-    ClassDef(TrdKHit,2)
+    ClassDef(TrdKHit,3)
 
 };
 
