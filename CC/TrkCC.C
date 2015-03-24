@@ -260,7 +260,7 @@ int TrkCC::ProcessEvent(float varlistfull[nTrkCCVar],int maskingnumber, float en
 
 // use if you already have an external varlist vector
 // 
-int TrkCC::ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm, ULong64_t recommendmask){
+int TrkCC::ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm, unsigned long long recommendmask){
   if (_runtype==0) _FirstLoad();
   algCC->_evenergy=energyGuess;
   algCC->_evpatt=pattern;
@@ -373,9 +373,9 @@ int TrkCC::_NormalizeList(){
 }
 
 //-------------------------------------------------------------------------
-int TrkCC::FillTH1(TH1* histo, int regtype, ULong64_t masktype){
+int TrkCC::FillTH1(TH1* histo, int regtype, unsigned long long masktype){
   if (masktype==0) algCC->_usedmask=algCC->_recommendmask;
-  else if (masktype==1) algCC->_usedmask=0xFFFFFFFFFFFFFUL;
+  else if (masktype==1) algCC->_usedmask=0xFFFFFFFFFFFFFULL;
   else algCC->_usedmask=(masktype & algCC->_recommendmask);
   int ifill = 0;
   for (int ivv=0;ivv<_nvars;ivv++){
@@ -387,7 +387,7 @@ int TrkCC::FillTH1(TH1* histo, int regtype, ULong64_t masktype){
 	{a = ((TrkCCNozzoli*)algCC)->_rweight[regtype][algCC->_evpatt][0][0][ivv];}  // will give the sign of variable fixed by the one at energy bin 0
     }
     if(fabs(a)<1.e-30) continue;
-    if( (algCC->_usedmask & ((ULong64_t) 1 << ivv)) == 0) continue;
+    if( (algCC->_usedmask & ((unsigned long long) 1 << ivv)) == 0) continue;
     ifill++;
     double varfill = algCC->_varnorm[ivv]*a/fabs(a);
     histo->Fill(varfill);
@@ -559,9 +559,9 @@ float TrkCC::GetNormalizedVar(int varnumber, int isnormalized) {
   return algCC->_varnorm[varnumber];
 }
 
-ULong64_t TrkCC::GetRecoMask(int maskingnumber){
+unsigned long long TrkCC::GetRecoMask(int maskingnumber){
   // return recommendmask bitwise recommended mask based on maskingnumber
-  ULong64_t recommendmask=0xFFFFFFFFFFFFFUL;
+  unsigned long long recommendmask=0xFFFFFFFFFFFFFULL;
   int errfull[nTrkCCVar];
   for (int ivvar=0; ivvar<nTrkCCVar; ivvar++){
       errfull[ivvar]=0;}
@@ -611,41 +611,41 @@ ULong64_t TrkCC::GetRecoMask(int maskingnumber){
     islog   = int(algCC->_listamatr[iv][1]);
     
     if (errfull[vpos]==1) {
-      recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
       //cout << iv << " masked1" << endl;
     }
     if( islog==2 && vpos==0) { //log(E/P)  (iv=21)
-      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked2" << endl;
       }
     }
     if( islog==2 && vpos==1) {//inner half Rigidity check (iv=2)
-      if (errfull[13]==1 || errfull[14]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[13]==1 || errfull[14]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked3 " <<errfull[13]<<errfull[14]<< endl;
       }
     }
     if( islog==2 && vpos==2) {// top-bottom Rigidity check (iv=27) (only fullspan)
-      if (errfull[11]==1 || errfull[12]==1 || algCC->_evpatt!=5) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[11]==1 || errfull[12]==1 || algCC->_evpatt!=5) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked4" << endl;
       }
     }
     if( islog==2 && vpos==3) {// inner-maxspan Rigidity check (iv=5) (no inner pattern)
-      if (errfull[10]==1 || errfull[5]==1 || algCC->_evpatt<2) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[10]==1 || errfull[5]==1 || algCC->_evpatt<2) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked5" << endl;
       }
     }
     if( islog==2 && vpos==4) { // choutko vs alcaratz Rigidity check (iv=28)
-      if (errfull[5]==1 || errfull[6]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[5]==1 || errfull[6]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked6 " << errfull[5]<<errfull[6]<<endl;
       }
     }
     if( islog==2 && vpos==5) {//intcompl quasifolat from int (iv=38)           
-      if (errfull[44]==1 || errfull[31]==1 || errfull[32]==1 || errfull[33]==1 || errfull[57]==1 || errfull[65]==1 || errfull[61]==1) { recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[44]==1 || errfull[31]==1 || errfull[32]==1 || errfull[33]==1 || errfull[57]==1 || errfull[65]==1 || errfull[61]==1) { recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked7" << endl;
       }
     }
     if( islog==2 && vpos==10) {// |1-E/P| (iv=22)
-      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//      cout << iv << " masked8" << endl;
       }
     }
@@ -654,7 +654,7 @@ ULong64_t TrkCC::GetRecoMask(int maskingnumber){
 }
 
 
-ULong64_t TrkCC::_FillVarList(int maskingnumber){
+unsigned long long TrkCC::_FillVarList(int maskingnumber){
   // fill the TrkCC data structure and normalize the variables
   // starting from the pre-filled human readable data structure TrkCCVar
   // also fill algCC->_evenergy with energy if energy>0 or with |Rigidity|
@@ -662,7 +662,7 @@ ULong64_t TrkCC::_FillVarList(int maskingnumber){
   // also return recommendmask bitwise recommended mask based on maskingnumber
   float varlistfull[nTrkCCVar];
   
-  ULong64_t recommendmask=0xFFFFFFFFFFFFFUL;
+  unsigned long long recommendmask=0xFFFFFFFFFFFFFULL;
   int errfull[nTrkCCVar];
   for (int ivvar=0; ivvar<nTrkCCVar; ivvar++){
     int ick = varCC->CheckVar(ivvar);
@@ -811,49 +811,49 @@ ULong64_t TrkCC::_FillVarList(int maskingnumber){
 
     algCC->_varlist[iv]=fabs(varlistfull[vpos]);
     if (errfull[vpos]==1) {
-      recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
       //cout << iv << " masked1" << endl;
 }
     if( islog==1) algCC->_varlist[iv] = log10(fabs(varlistfull[vpos])+1.e-09);
     if( islog==2 && vpos==0) { //log(E/P)  (iv=21)
       algCC->_varlist[iv] =log10(fabs(varlistfull[66]/varlistfull[5]));
-      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked2" << endl;
       }
     }
     if( islog==2 && vpos==1) {//inner half Rigidity check (iv=2)
       algCC->_varlist[iv] = log10(fabs((varlistfull[13]-varlistfull[14]+1.e-6)/(1.e-6+varlistfull[13]+varlistfull[14])));
-      if (errfull[13]==1 || errfull[14]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[13]==1 || errfull[14]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked3 " <<errfull[13]<<errfull[14]<< endl;
       }
     }
     if( islog==2 && vpos==2) {// top-bottom Rigidity check (iv=27) (only fullspan)
       algCC->_varlist[iv] = log10(fabs((varlistfull[11]-varlistfull[12]+1.e-6)/(1.e-6+varlistfull[11]+varlistfull[12])));
-      if (errfull[11]==1 || errfull[12]==1 || algCC->_evpatt!=5) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[11]==1 || errfull[12]==1 || algCC->_evpatt!=5) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked4" << endl;
       }
     }
     if( islog==2 && vpos==3) {// inner-maxspan Rigidity check (iv=5) (no inner pattern)
       algCC->_varlist[iv] = log10(fabs((varlistfull[10]-varlistfull[5]+1.e-6)/(1.e-6+varlistfull[10]+varlistfull[5])));
-      if (errfull[10]==1 || errfull[5]==1 || algCC->_evpatt<2) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[10]==1 || errfull[5]==1 || algCC->_evpatt<2) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked5" << endl;
       }
     }
     if( islog==2 && vpos==4) { // choutko vs alcaratz Rigidity check (iv=28)
       algCC->_varlist[iv] = log10(fabs((varlistfull[5]-varlistfull[6]+1.e-6)/(1.e-6+varlistfull[5]+varlistfull[6])));
-      if (errfull[5]==1 || errfull[6]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[5]==1 || errfull[6]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked6 " << errfull[5]<<errfull[6]<<endl;
       }
     }
     if( islog==2 && vpos==5) {//intcompl quasifolat from int (iv=38)                                 
       algCC->_varlist[iv] = (varlistfull[44]+varlistfull[31]+varlistfull[32]+varlistfull[33]+varlistfull[57]-varlistfull[65]-varlistfull[61]);
-      if (errfull[44]==1 || errfull[31]==1 || errfull[32]==1 || errfull[33]==1 || errfull[57]==1 || errfull[65]==1 || errfull[61]==1) { recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[44]==1 || errfull[31]==1 || errfull[32]==1 || errfull[33]==1 || errfull[57]==1 || errfull[65]==1 || errfull[61]==1) { recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked7" << endl;
       }
     }
     if( islog==2 && vpos==10) {// |1-E/P| (iv=22)
       algCC->_varlist[iv] =fabs(1.-fabs(varlistfull[66]/varlistfull[5]));
-      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((ULong64_t) 1 << iv); // unset the iv bit
+      if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//      cout << iv << " masked8" << endl;
       }
     }
@@ -868,7 +868,7 @@ ULong64_t TrkCC::_FillVarList(int maskingnumber){
     if( islog==11 && log10(fabs(varlistfull[vpos]))>flinint) intint++;
     if (islog>=10) algCC->_varlist[iv]=(float)intint;
   }
-   if(_verbose>=1 && recommendmask != 0xFFFFFFFFFFFFFUL) cout << maskingnumber << " masking | recommendmask unset " << std::hex << recommendmask << std::dec << endl;
+   if(_verbose>=1 && recommendmask != 0xFFFFFFFFFFFFFULL) cout << maskingnumber << " masking | recommendmask unset " << std::hex << recommendmask << std::dec << endl;
   
   return recommendmask; 
 }
@@ -2382,8 +2382,8 @@ void TMVAxmlReader::Get(vector <TString> &bdtvars,TString filename, Bool_t debug
 }
 
 TrkCCAlgorithm::TrkCCAlgorithm(){
-  _recommendmask=0xFFFFFFFFFFFFFUL;
-  _usedmask=0xFFFFFFFFFFFFFUL;
+  _recommendmask=0xFFFFFFFFFFFFFULL;
+  _usedmask=0xFFFFFFFFFFFFFULL;
 }
 
 TrkCCNozzoli::TrkCCNozzoli(TString subid, int version, int verbose){
@@ -2458,7 +2458,7 @@ double TrkCCNozzoli::GetEvaluator() {
 int TrkCCNozzoli::_EvaluateRegression(float varnor[], float a[], float b[], float ps[], float& vreg){
   float* reg = new float[_nvars];
   int debbugg = _verbose;
-  ULong64_t masskk = _usedmask;
+  unsigned long long masskk = _usedmask;
   float reg0 = vreg;
   int iret =  EvaluateRegression(varnor, a, b, ps, reg, _nvars, reg0, debbugg, masskk);
   vreg = reg0;
@@ -2467,7 +2467,7 @@ int TrkCCNozzoli::_EvaluateRegression(float varnor[], float a[], float b[], floa
 }
 
 //-------------------------------------------------------------------------
-int TrkCCNozzoli::EvaluateRegression(float varnor[], float a[], float b[], float ps[], float reg[], int nvr, float& vreg, int debbugg, ULong64_t masskk){
+int TrkCCNozzoli::EvaluateRegression(float varnor[], float a[], float b[], float ps[], float reg[], int nvr, float& vreg, int debbugg, unsigned long long masskk){
   // return 0 OK                                                                                       
   // return <0 problem (-2 problem at second variable that is varnor[1])                                                                 
   float* pss = new float[nvr];
@@ -2486,8 +2486,8 @@ int TrkCCNozzoli::EvaluateRegression(float varnor[], float a[], float b[], float
     //WARNING
     //    if (ivv==1 || ivv==36 || ivv == 8 || ivv == 19) {reg[ivv]=0;ps[ivv]=0;} //test no cofg no trkq
     pss[ivv]=ps[ivv];
-    //cout << std::hex << (_usedmask &  ((ULong64_t) 1  << ivv)) << std::dec << " " << ivv << endl;
-    if( (masskk & ((ULong64_t) 1 << ivv)) == 0) {
+    //cout << std::hex << (_usedmask &  ((unsigned long long) 1  << ivv)) << std::dec << " " << ivv << endl;
+    if( (masskk & ((unsigned long long) 1 << ivv)) == 0) {
       pss[ivv] = 0.;
       //cout << ivv << " variable masked"<<endl; 
     }
@@ -2509,7 +2509,7 @@ int TrkCCNozzoli::EvaluateRegression(float varnor[], float a[], float b[], float
   
 // pay attention if return 0
 // example of usage 
-float TrkCCNozzoli::GetRegression(int regtype, ULong64_t masktype, int fixbin){
+float TrkCCNozzoli::GetRegression(int regtype, unsigned long long masktype, int fixbin){
   //cout << " getregression " << endl;
   if (regtype>=_lastreg){   
     PrintError(Form("TrkCC::GetRegression %d not existing -> used 0", regtype));
@@ -2517,7 +2517,7 @@ float TrkCCNozzoli::GetRegression(int regtype, ULong64_t masktype, int fixbin){
   }
 
   if (masktype==0) _usedmask=_recommendmask;
-  else if (masktype==1) _usedmask=0xFFFFFFFFFFFFFUL;
+  else if (masktype==1) _usedmask=0xFFFFFFFFFFFFFULL;
   else _usedmask=masktype & _recommendmask;
 
   float reg=0;

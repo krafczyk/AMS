@@ -189,7 +189,7 @@ class TrkCC {
     maskingnumber = 5*n = trd missing   \n                                                                     
     maskingnumber = 7*n = rich missing  \n 
     return the recommended bitwise mask based on maskingnumber*/
-  ULong64_t _FillVarList(int maskingnumber=1);
+  unsigned long long _FillVarList(int maskingnumber=1);
   
  public:
 #ifndef _NOGBATCH_
@@ -251,7 +251,7 @@ class TrkCC {
     if isnorm = 0 veclist is the NOT NORMALIZED and both _varlist and _varnorm are filled
     if isnorm = 1 veclist is normalized and only _varnorm is filled 
   */
-  int ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm = 1, ULong64_t recommendmask=0xFFFFFFFFFFFFFUL);
+  int ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm = 1, unsigned long long recommendmask=0xFFFFFFFFFFFFFULL);
     
 #ifndef _NOGBATCH_
   /*!  Process the event from GBatch version 
@@ -305,9 +305,9 @@ class TrkCC {
     \param[in] masktype = 0 the used mask is the recommended one
     \param[in] masktype = 1 the used mask is forced with all the variables used
     \param[in] masktype > 1 the used mask is the recomended one masked with the masktype value \n
-    example: FillTH1(hh, 1,(ULong64_t) 0xFFFEFFFF7FEFD) will mask also vars 1,9,19,36
+    example: FillTH1(hh, 1,(unsigned long long) 0xFFFEFFFF7FEFD) will mask also vars 1,9,19,36
   */
-  int FillTH1(TH1* histo, int regtype=0, ULong64_t masktype=0);
+  int FillTH1(TH1* histo, int regtype=0, unsigned long long masktype=0);
   
   /*! Retrieve the recommended bitwise mask from maskingnumber \n
     maskingnumber = 2*n = ecal missing     \n                               
@@ -316,7 +316,7 @@ class TrkCC {
     maskingnumber = 7*n = rich missing  \n 
     return the recommended bitwise mask based on maskingnumber
   */
-  ULong64_t GetRecoMask(int maskingnumber=1);
+  unsigned long long GetRecoMask(int maskingnumber=1);
   
 #ifndef _NOGBATCH_
   /*! Find the run type (ISS /BT-muons/ MC)  
@@ -661,9 +661,9 @@ class TrkCCAlgorithm {
   virtual int LoadWeights(TString dbPath) = 0;
 
   // used bitwise mask in evaluation
-  ULong64_t _usedmask;
+  unsigned long long _usedmask;
   // recommendend bitwise mask in evaluation
-  ULong64_t _recommendmask;// normally filled by TrkCC::FillVarList
+  unsigned long long _recommendmask;// normally filled by TrkCC::FillVarList
 
   //! Not normalized variables
   float* _varlist;
@@ -735,10 +735,10 @@ class TrkCCNozzoli: public TrkCCAlgorithm {
     \param[in] masktype = 0 the used mask is the recommended one
     \param[in] masktype = 1 the used mask is forced with all the variables used
     \param[in] masktype > 1 the used mask is the recomended one masked with the masktype value \n
-    example: GetRegression(1,(ULong64_t) 0xFFFEFFFF7FEFD) will mask also vars 1,9,19,36 \n
+    example: GetRegression(1,(unsigned long long) 0xFFFEFFFF7FEFD) will mask also vars 1,9,19,36 \n
     fixbin>=0 is used for forcing the use of a fixed training energy bin (calibration)
   */
-  float GetRegression(int regtype=0, ULong64_t masktype=0, int fixbin=-1);
+  float GetRegression(int regtype=0, unsigned long long masktype=0, int fixbin=-1);
 
 
   int _LoadRegressionWeights(TString weightsPath);
@@ -779,7 +779,7 @@ class TrkCCNozzoli: public TrkCCAlgorithm {
     return 0 is OK;
     return <0 problem (e.g. if return is -2 the problem is at second variable that is varnor[1])
   */
-  static int EvaluateRegression(float varnor[], float a[], float b[], float ps[], float reg[], int nvr, float& vreg, int debug = 0, ULong64_t mask=0xFFFFFFFFFFFFFUL);
+  static int EvaluateRegression(float varnor[], float a[], float b[], float ps[], float reg[], int nvr, float& vreg, int debug = 0, unsigned long long mask=0xFFFFFFFFFFFFFULL);
   
   static inline int Get_nVarsTrkCCNozzoliVersion(int iver=1) {
     if (iver==1) return nVarsTrkCCNozzoliVersion1;
