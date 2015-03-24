@@ -62,7 +62,7 @@ class EcalFastRec{
 	public:
 		//! A Constructor
 		EcalFastRec(){};
-
+                virtual ~EcalFastRec(){}; 
 	public:
 		//! Interface to Perform Fast Reconstruction
 		int   DoFastShowerRec(AMSEventR *pev);
