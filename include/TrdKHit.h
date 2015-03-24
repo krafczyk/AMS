@@ -43,6 +43,7 @@ public:
     float TRDRawHit_R;
     int TRDHit_Layer;
     int TRDHit_Ladder;
+    int TRDHit_Tube;
     int tubeid;
     int mf;
     int TRDHit_Direction;  //0 for X, 1 for Y
