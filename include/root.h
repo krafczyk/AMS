@@ -4661,6 +4661,7 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 unsigned int EventError() const {return fHeader.Error;} ///< \return Event Error
 ///
 
+const char * GetCite() const ;///< \return Cite Name for MC Runs 
    void UpdateGPS();  ///< Update GPSTime from getsetup(AMSSetupR *head);
 
    void UpdateTrRecon();  ///< Update nTrCluster/nTrRecHit/nTrTrack
