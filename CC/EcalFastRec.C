@@ -593,7 +593,7 @@ int EcalFastRec::ParabolaZ0Fit(){
 	}
 
 	// calculate inverse matrix a_ij
-	Double_t m11, m12, m22, m23, m33, b1, b2, b3, a11, a12, a13, a22, a23, a33, det;
+	Double_t m11, m12, m22, m23, m33, b1, b2, b3, a11, a12, a13, a22, a23, det;
 	Double_t val, arg;
 	m11 = m12 = m22 = m23 = m33 = b1 = b2 = b3 = 0.;
 
@@ -647,7 +647,6 @@ int EcalFastRec::ParabolaZ0Fit(){
 		a13 = m12*m23 - m22*m22;
 		a22 = m11*m33 - m22*m22;
 		a23 = m12*m22 - m11*m23;
-		a33 = m11*m22 - m12*m12;
 
 		arg = b1*a11 + b2*a12 + b3*a13;
 		if ( arg > 0. ) {

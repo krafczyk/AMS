@@ -22,11 +22,11 @@ using namespace std;
 namespace Ecal3DRecDB{
 
 //! Status bit
-	const UInt_t   AOVERFLOW = 16384*2*2*2*2*2*2*2*2;
-	const UInt_t   ADCLowGainSatu = 3750;
-	const UInt_t   ADCHighGainSatu = 3750;
-	const UInt_t   MaxIteration = 10;
-	const Double_t MinDeltaLkhd = 0.5;
+	const int      AOVERFLOW = 16384*2*2*2*2*2*2*2*2;
+	const int      ADCLowGainSatu = 3750;
+	const int      ADCHighGainSatu = 3750;
+	const int      MaxIteration = 10;
+	const double   MinDeltaLkhd = 0.5;
 
 //! Geometry info
 	const Int_t nLayer = 18,
