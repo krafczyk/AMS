@@ -103,11 +103,13 @@ class TrkLHVar: public TObject {
 };
 
 #endif
+#endif
 
 //----------------------------------------------------------------
 
 #ifndef __TRKLH_H__
 #define __TRKLH_H__
+#ifdef _PGTRACK_
 
 #include <TH2D.h>
 #include <TGraph.h>

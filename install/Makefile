@@ -396,10 +396,14 @@ COMMON_FILES += $(SFF)mtx2.F     $(SFF)fint_my.F
 endif
 
 #TrkLH
+ifdef PGTRACK
 COMMON_FILES += $(SCC)TrkLH.C
+endif
 
 #TrkCC
+ifdef PGTRACK
 COMMON_FILES += $(SCC)TrkCC.C
+endif
 
 #Tracker
 ifdef PGTRACK
@@ -578,10 +582,14 @@ ROOTDICTFILES += ../include/AntiPG.h
 ROOTDICTFILES +=../include/MVAmanager.h ../include/ConfigParser.h  ../include/OutTreeManager.h  ../include/OutHistoManager.h
 
 #TrkLH
+ifdef PGTRACK
 ROOTDICTFILES += ../include/TrkLH.h
+endif
 
 #TrkCC
+ifdef PGTRACK
 ROOTDICTFILES += ../include/TrkCC.h
+endif
 
 ROOTDICTFILES += ../include/linkdef.h
 
@@ -899,30 +907,21 @@ SHLIBO+=$(BIN)BackTracingMIB.o
 SHLIBO+=$(BIN)BackTracing.o
 SHLIBO+=$(BIN)UnfoldingTools.o $(BIN)SpFold.o
 SHLIBO+=$(BIN)AntiPG_s.o
-
+SHLIBO+=$(BIN)TrkLH_s.o
+SHLIBO+=$(BIN)TrkCC_s.o
 
 SHLIBO+=$(BIN)MVAmanager.o
 SHLIBO+=$(BIN)ConfigParser.o
 SHLIBO+=$(BIN)OutTreeManager.o
 SHLIBO+=$(BIN)OutHistoManager.o
 
-#TrkLH
-SHLIBO+=$(BIN)TrkLH_s.o
-
-#TrkCC
-SHLIBO+=$(BIN)TrkCC_s.o
-
 SHLIBBO:=$(SHLIBO)
 else
 SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)EcalKDbc.o $(BIN)EcalFastRec.o $(BIN)Ecal3DRec.o $(BIN)EcalKRec.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o  $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o  $(BIN)GM_SubLibrary.o $(BIN)LxMCcutoff.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)gitsha.o
 SHLIBBO+=$(BIN)AntiPG_s.o
-SHLIBBO+=$(BIN)TrkLH_s.o
-SHLIBBO+=$(BIN)TrkCC_s.o
 SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)ecalBDTCHI2.o $(BIN)EcalChi2CY.o $(BIN)EcalH_s.o $(BIN)EcalKDbc.o $(BIN)EcalFastRec.o $(BIN)Ecal3DRec.o $(BIN)EcalKRec.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)bcorr_s.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o $(BIN)FrameTrans.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o $(BIN)Tofcharge_ihep_s.o $(BIN)GeoMagField.o $(BIN)GeoMagCoord.o $(BIN)GeoMagTrace.o $(BIN)GM_SubLibrary.o $(BIN)predict.o  $(BIN)BackTracingMIB.o $(BIN)BackTracing.o $(BIN)LxMCcutoff.o
 SHLIBO+=$(BIN)UnfoldingTools.o $(BIN)SpFold.o $(BIN)gitsha.o
 SHLIBO+=$(BIN)AntiPG_s.o
-SHLIBO+=$(BIN)TrkLH_s.o
-SHLIBO+=$(BIN)TrkCC_s.o
 
 SHLIBO+=$(BIN)MVAmanager.o
 SHLIBO+=$(BIN)ConfigParser.o

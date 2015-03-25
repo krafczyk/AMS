@@ -1,7 +1,9 @@
-// routine for tracker based likelihood to reduce charge confusion             
-
+// routine for tracker based likelihood to reduce charge confusion
 #ifndef __TRKLK_CXX__
 #define __TRKLK_CXX__
+
+#include "TrkLH.h"
+
 #ifdef _PGTRACK_
 
 #include <stdlib.h>
@@ -36,8 +38,6 @@
 #include "TofTrack.h"
 #include "TrTrackSelection.h"
 #endif
-
-#include "TrkLH.h"
 
 static int maxerr = 0;
 static int errmax = 99;
@@ -752,6 +752,7 @@ void TrkLH::SetDefaultMask(){
 }
 
 #endif
+#endif
 
 //----------------------------------------------------
 
@@ -761,7 +762,7 @@ void TrkLH::SetDefaultMask(){
 #include <stdlib.h>
 
 #include "TrkLH.h"
-
+#ifdef _PGTRACK_
 
 ClassImp(TrkLHVar)
 
