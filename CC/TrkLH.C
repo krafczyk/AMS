@@ -2,6 +2,7 @@
 
 #ifndef __TRKLK_CXX__
 #define __TRKLK_CXX__
+#ifdef _PGTRACK_
 
 #include <stdlib.h>
 #include <signal.h>
@@ -808,4 +809,5 @@ void TrkLHVar::init(){
   nanti=-99999999;    
 }
 
+#endif
 #endif

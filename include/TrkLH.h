@@ -1,5 +1,6 @@
 #ifndef __TRKLHVAR_H__
 #define __TRKLHVAR_H__
+#ifdef _PGTRACK_
 
 #include <TObject.h>
 
@@ -268,4 +269,5 @@ class TrkLH: public TObject {
   ClassDef(TrkLH,0);//0 since no I/O feature is needed
 };
 
+#endif
 #endif
