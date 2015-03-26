@@ -1242,23 +1242,19 @@ $(BIN)richpmtlibo.o:	$(SFF)richpmtlib.F
 #---------------------------------------------------------------------------------
 # Additional Rules for client/server 
 
-$(OBJECTSE):         $(SRCSCPP)
-	$(CXX_ORBIT)  -c  $(SRCSCPP) 
-	mv *.o $(BIN)
+$(OBJECTSE): $(BIN)%.o : $(SRC)%.cc
+	$(CXX_ORBIT) -c $< -o $@
 
-$(OBJECTCO):         $(SRCS)
-	$(CC_ORBIT)  -c  $(SRCS) 
-	mv *.o $(BIN)
+$(OBJECTCO): $(BIN)%.o : $(SRC)%.c
+	$(CC_ORBIT)  -c $< -o $@ 
 
 
-$(SRCS):    	 $(INCLUDE)server.idl
+$(SRC)%-stubs.c $(SRC)%-skels.c $(SRC)%-common.c : $(INCLUDE)server.idl
 	$(IDL) $(INCLUDE)server.idl
 	mv *.h $(SRC)
 	mv *.c $(SRC)
 
-
-
-$(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
+$(SRC)%-cpp-stubs.cc $(SRC)%-cpp-skels.cc $(SRC)%-cpp-common.cc : $(SRCS) $(INCLUDE)server.idl
 	$(IDLCPP) $(INCLUDE)server.idl
 	mv *.h $(SRC)
 	mv *.cc $(SRC)
@@ -1376,7 +1372,7 @@ all:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
-	$(MAKE) -i producer
+	$(MAKE) -j producer
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
@@ -1385,7 +1381,7 @@ allg4:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
-	$(MAKE) -i producer
+	$(MAKE) -j producer
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
@@ -1399,7 +1395,7 @@ allp:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
-	$(MAKE)  -i producer
+	$(MAKE) -j producer
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
@@ -1408,7 +1404,7 @@ allp:
 allold:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
-	$(MAKE)  -i producer
+	$(MAKE) -j producer
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
