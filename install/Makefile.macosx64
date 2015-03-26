@@ -159,7 +159,7 @@ SOFLAGS = --shared -undefined dynamic_lookup
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lHist -lHistPainter -lGraf -lMatrix 
+ SOFLAGS+= -L$(ROOTLIBDIR)   -lRIO -lTree -lSQL  -lNet -lHist -lHistPainter -lGraf -lMatrix 
 ifndef NOXROOTD
 SOFLAGS += -lNetx
 endif
@@ -185,7 +185,7 @@ TIMEL=
 LDFLAGSI=      $(FORTRAN2_LIBS) \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
--L$(ROOTSYS)/lib -lRoot -lMinuit -lfreetype\
+-L$(ROOTLIBDIR) -lRoot -lMinuit -lfreetype\
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -ldl -lpcre   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)

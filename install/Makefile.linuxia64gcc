@@ -187,9 +187,9 @@ ifdef SLC4system
 ifdef VER
 else
 ifndef NOCASTOR
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+ SOFLAGS+= -L$(ROOTLIBDIR)   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lTree -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+ SOFLAGS+= -L$(ROOTLIBDIR)   -lRIO -lTree -lSQL  -lTree -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 endif
 endif
 endif
@@ -210,7 +210,7 @@ LDFLAGSI=    -static $(G4LIBS) $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnaggcc64 \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
--L$(ROOTSYS)/lib -lRoot -lfreetype\
+-L$(ROOTLIBDIR) -lRoot -lfreetype\
  -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -ldl -lpcre -lcrypt      -lkrb5   -lssl -lcrypto  -lresolv  -lcrypto  $(LZMAL)  \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
@@ -223,7 +223,7 @@ LDFLAGS=   $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnaggcc64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto  -lssl -lcrypto  -lfreetype  -ldl    -lpcre  $(LZMAL)\
+-L$(ROOTLIBDIR) -lRoot -lcrypt -lkrb5 -lk5crypto  -lssl -lcrypto  -lfreetype  -ldl    -lpcre  $(LZMAL)\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifndef NOCOMERR

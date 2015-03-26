@@ -406,7 +406,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= $(INTELLIB)/libimf.a  -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+= $(INTELLIB)/libimf.a  -L$(ROOTLIBDIR)   -lRIO -lTree -lThread -lGpad   -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix   -lTMVA -lMLP -lXMLIO -lTreePlayer
 ifndef NOXROOTD
 SOFLAGS += -lNetx
 endif
@@ -435,7 +435,7 @@ LDFLAGSI=    -static  $(G4LIBSI) $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag64 \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
--L$(ROOTSYS)/lib -lRoot -lfreetype -lncurses\
+-L$(ROOTLIBDIR) -lRoot -lfreetype -lncurses\
 -L$(IMPORTS_X11R6)/lib64   -lXm -lXmu -lXt -lSM -lICE  -lXp -lXxf86vm -lXext -lX11 \
 $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre  $(LZMAL)    \
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add) 
@@ -452,7 +452,7 @@ ifdef AMSPROFILE
 endif
 
 LDFLAGSDYNAMIC:=  $(shell root-config --libs) -lTMVA -lMinuit -lGeom $(LDFLAGS) $(RH9add)
-LDFLAGSSTATIC:=  -static -L$(ROOTSYS)/lib -lRoot $(LDFLAGS) $(RH9add)
+LDFLAGSSTATIC:=  -static -L$(ROOTLIBDIR) -lRoot $(LDFLAGS) $(RH9add)
 
 LDFLAGS+= -lcxa -lcprts
 

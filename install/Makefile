@@ -74,6 +74,7 @@ endif
 endif
 
 ROOTINCDIR := $(shell $(ROOTSYS)/bin/root-config --incdir)
+ROOTLIBDIR := $(shell $(ROOTSYS)/bin/root-config --libdir)
 
 #
 
@@ -85,16 +86,16 @@ SHELL=/bin/sh
 ifdef G4AMS
 LINKLIBZ=1
 endif
-ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),) 
+ifeq ($(wildcard $(ROOTINCDIR)/Compression.h),) 
     LZMAL =
 else 
     DEFINES  +=  -D__LZMA__ 
     LZMAL =  -llzma 
     ifdef LINKLIBZ 
-ifeq ($(wildcard $(ROOTSYS)/lib/libz.a),)
+ifeq ($(wildcard $(ROOTLIBDIR)/libz.a),)
 	LZMAL +=      -lz 
 else
-	LZMAL += $(ROOTSYS)/lib/libz.a
+	LZMAL += $(ROOTLIBDIR)/libz.a
 endif
     endif
 endif

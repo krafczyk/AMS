@@ -246,7 +246,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib -lRIO -lTree -lThread -lGpad -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+= -L$(ROOTLIBDIR) -lRIO -lTree -lThread -lGpad -lNet -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA -lMLP -lXMLIO -lTreePlayer
 ifndef NOXROOTD
 SOFLAGS += -lNetx
 endif
@@ -276,7 +276,7 @@ endif
 LDFLAGSI= -static $(VGMLIBS)  $(G4LIBSI)  \
 -L$(NAGDIR) $(NAGLIB) \
 -L$(AMSLIB) -lamsut \
--L$(ROOTSYS)/lib -lRoot -lfreetype  $(LZMAL) \
+-L$(ROOTLIBDIR) -lRoot -lfreetype  $(LZMAL) \
 -L$(CERNDIRLIB) $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS) \
 -L$(IMPORTS_X11R6)/lib64 -lXm -lXmu -lXt -lSM -lICE  -lXp -lXxf86vm -lXext -lX11 \
 $(IMPORTS_SLC5_LIBS) -lcrypt -lcrypto -ldl -lpcre  -lncurses -lcrypt -lssl  -lresolv  \
@@ -304,10 +304,10 @@ endif
 ifdef WEBACCESS
   LDFLAGS+= -lcurl
   LDFLAGSDYNAMIC:= $(shell root-config --libs) -lTMVA  -lMinuit -lGeom $(LDFLAGS) -pthread
-  LDFLAGSSTATIC:= -L$(ROOTSYS)/lib -lRoot $(LDFLAGS) -pthread
+  LDFLAGSSTATIC:= -L$(ROOTLIBDIR) -lRoot $(LDFLAGS) -pthread
 else
   LDFLAGSDYNAMIC:= $(shell root-config --libs) -lTMVA  -lMinuit -lGeom $(LDFLAGS) $(RH9add)
-  LDFLAGSSTATIC:= -static -L$(ROOTSYS)/lib -lRoot $(LDFLAGS) $(RH9add)
+  LDFLAGSSTATIC:= -static -L$(ROOTLIBDIR) -lRoot $(LDFLAGS) $(RH9add)
 endif
 
 #--------------------------------------------------------------------------------------------------
