@@ -1,3 +1,4 @@
+// $Id$
 //--------------------------------------------------------
 //    
 //   Library Functions to Calculate Stoermer Rigidity cutoff
@@ -712,19 +713,22 @@ void GM_ScanIGRF(GMtype_Data *G10, GMtype_Data *G11, GMtype_Data *H11, GMtype_Da
 	char buffer[200]; 		/*check buffer!*/
 	FILE *IGRF;
         char pathFile[2048];
-        sprintf( pathFile,"%s/v5.00/%s", getenv("AMSDataDir"), "IGRF.tab" );
+        sprintf( pathFile,"%s/v5.00/%s", getenv("AMSDataDir"), "IGRF12.tab" );
         IGRF = fopen( pathFile, "r");
-
-	if(IGRF==NULL) printf("GM_SubLibrary::GM_ScanIGRF The file IGRF.tab does not exist!\n");
+        const int n25=26;
+	if(IGRF==NULL) {
+        cerr<<"GM_SubLibrary::GM_ScanIGRF-F-FileNotFound "<<pathFile<<endl;
+        abort();
+        }
 	else{
-	G10->size = 25;
-	G11->size = 25;
-	H11->size = 25;
-	G20->size = 25;
-	G21->size = 25;
-	H21->size = 25;
-	G22->size = 25;
-	H22->size = 25;
+	G10->size = n25;
+	G11->size = n25;
+	H11->size = n25;
+	G20->size = n25;
+	G21->size = n25;
+	H21->size = n25;
+	G22->size = n25;
+	H22->size = n25;
 	
 	for( i = 0; i < 4; i++)
 	{
@@ -732,76 +736,76 @@ void GM_ScanIGRF(GMtype_Data *G10, GMtype_Data *G11, GMtype_Data *H11, GMtype_Da
 	}
 	
 	fscanf(IGRF, "g 1 0 %lf ", &G10->element[0]); 	/*G10*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf(IGRF ,"%lf ", &G10->element[i]);
 	}
 	fscanf(IGRF ,"%lf\n", &temp);
-	G10->element[23] = temp * 5 + G10->element[22];
-	G10->element[24] = G10->element[23] + 5 * temp;
+	G10->element[n25-2] = temp * 5 + G10->element[n25-3];
+	G10->element[n25-1] = G10->element[n25-2] + 5 * temp;
 	
 	fscanf(IGRF, "g 1 1 %lf ", &G11->element[0]);	/*G11*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf( IGRF, "%lf ", &G11->element[i]);
 	}
 	fscanf(IGRF, "%lf\n", &temp);
-	G11->element[23] = temp * 5 + G11->element[22];
-	G11->element[24] = temp * 5 + G11->element[23];
+	G11->element[n25-2] = temp * 5 + G11->element[n25-3];
+	G11->element[n25-1] = temp * 5 + G11->element[n25-2];
 	
 	fscanf(IGRF, "h 1 1 %lf ", &H11->element[0]);	/*H11*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf( IGRF, "%lf ", &H11->element[i]);
 	}
 	fscanf(IGRF, "%lf\n", &temp);
-	H11->element[23] = temp * 5 + H11->element[22];
-	H11->element[24] = temp * 5 + H11->element[23];
+	H11->element[n25-2] = temp * 5 + H11->element[n25-3];
+	H11->element[n25-1] = temp * 5 + H11->element[n25-2];
 	
 	fscanf(IGRF, "g 2 0 %lf ", &G20->element[0]);	/*G20*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf( IGRF, "%lf ", &G20->element[i]);
 	}
 	fscanf(IGRF, "%lf\n", &temp);
-	G20->element[23] = temp * 5 + G20->element[22];
-	G20->element[24] = temp * 5 + G20->element[23];
+	G20->element[n25-2] = temp * 5 + G20->element[n25-3];
+	G20->element[n25-1] = temp * 5 + G20->element[n25-2];
 	
 	fscanf(IGRF, "g 2 1 %lf ", &G21->element[0]);	/*G21*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf( IGRF, "%lf ", &G21->element[i]);
 	}
 	fscanf(IGRF, "%lf\n", &temp);
-	G21->element[23] = temp * 5 + G21->element[22];
-	G21->element[24] = temp * 5 + G21->element[23];
+	G21->element[n25-2] = temp * 5 + G21->element[n25-3];
+	G21->element[n25-1] = temp * 5 + G21->element[n25-2];
 	
 	fscanf(IGRF, "h 2 1 %lf ", &H21->element[0]);	/*H21*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf( IGRF, "%lf ", &H21->element[i]);
 	}
 	fscanf(IGRF, "%lf\n", &temp);
-	H21->element[23] = temp * 5 + H21->element[22];
-	H21->element[24] = temp * 5 + H21->element[23];
+	H21->element[n25-2] = temp * 5 + H21->element[n25-3];
+	H21->element[n25-1] = temp * 5 + H21->element[n25-2];
 	
 	fscanf(IGRF, "g 2 2 %lf ", &G22->element[0]);	/*G22*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf( IGRF, "%lf ", &G22->element[i]);
 	}
 	fscanf(IGRF, "%lf\n", &temp);
-	G22->element[23] = temp * 5 + G22->element[22];
-	G22->element[24] = temp * 5 + G22->element[23];
+	G22->element[n25-2] = temp * 5 + G22->element[n25-3];
+	G22->element[n25-1] = temp * 5 + G22->element[n25-2];
 	
 	fscanf(IGRF, "h 2 2 %lf ", &H22->element[0]);	/*H22*/
-	for(i = 1; i <= 22; i++)
+	for(i = 1; i <= n25-3; i++)
 	{
 		fscanf( IGRF, "%lf ", &H22->element[i]);
 	}
 	fscanf(IGRF, "%lf\n", &temp);
-	H22->element[23] = temp * 5 + H22->element[22];
-	H22->element[24] = temp * 5 + H22->element[23];
+	H22->element[n25-2] = temp * 5 + H22->element[n25-3];
+	H22->element[n25-1] = temp * 5 + H22->element[n25-2];
 
 	fclose(IGRF); 
 

@@ -1,6 +1,4 @@
 // $Id$
-// kH
-// /
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
