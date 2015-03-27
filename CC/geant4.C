@@ -133,7 +133,11 @@ G4MTHepRandom::setTheSeeds(seed);
 
 #ifdef G4MULTITHREADED
   G4MTRunManager* pmgr = new G4MTRunManager;
-  pmgr->SetNumberOfThreads(MISCFFKEY.NumThreads>0 && MISCFFKEY.NumThreads<G4Threading::G4GetNumberOfCores()?MISCFFKEY.NumThreads:G4Threading::G4GetNumberOfCores());
+  if(MISCFFKEY.NumThreads<0){
+   pmgr->SetNumberOfThreads(-MISCFFKEY.NumThreads);
+   MISCFFKEY.NumThreads*=-1;
+  }
+  else pmgr->SetNumberOfThreads(MISCFFKEY.NumThreads>0 && MISCFFKEY.NumThreads<G4Threading::G4GetNumberOfCores()?MISCFFKEY.NumThreads:G4Threading::G4GetNumberOfCores());
   cout <<"g4ams::G4INIT-I-SetNumberOfThreads "<< pmgr->GetNumberOfThreads()<<endl;
 #else
   G4RunManager* pmgr = new G4RunManager;
@@ -963,7 +967,7 @@ long long sma[maxa]={0,0,0,0,0,0,0,0,0,0,0};
 for(int k=0;k<sizeof(totals)/sizeof(totals[0]);k++)sms+=totals[k];
 for(int k=0;k<sizeof(totall)/sizeof(totall[0]);k++)sml+=totall[k];
 
-if(mess++<gmes){
+if(mess++<gmes/1000){
 cout<<" g4AMSG4EventAction::MemoryManagement-I-AllocatorsMB "<<sms/1000000<<" "<<sml<<endl;
 /*
 for(int k=0;k<fa->fList.size();k++){
@@ -1880,8 +1884,16 @@ if(trig==0){
 	  numv=PrePV->GetCopyNo();
 	  dee=GCTRAK.destep;
 	  tof=GCTRAK.tofg;
-	  if(tendtof==1 && GCTRAK.inwvol==1){// just enter TFnn
-	  }
+//	  if(tendtof==1 && GCTRAK.inwvol==1){// just enter TFnn
+//	  }
+	  if(tbegtof==1 && GCTRAK.destep<=0. && GCKINE.charge>1 && GCTRAK.step>1e-7){
+            cerr<<"SteppingAction-E-DESTEP<=0 "<<GCTRAK.destep<<" "<<GCTRAK.step<<" "<<GCFLAG.IEVENT-1<<endl;
+     cout << "Stepping Pre  "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+     cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<" " <<Step->GetTotalEnergyDeposit()/GeV<<endl;
+     cout << "Part ID " << Step->GetTrack()->GetDefinition()->GetParticleName()<<endl;
+            geant beta=(PostPoint->GetVelocity()+PrePoint->GetVelocity())/2./(29.9792*cm/nanosecond);//covert to beta
+	    AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof,beta,0,GCTRAK.step,GCKINE.itra,GCKINE.ipart,gtrkid);
+}
 	  if(tbegtof==1 && GCTRAK.destep>0.){
 	    number rkb=0.0011;
 	    number c=0.52;
