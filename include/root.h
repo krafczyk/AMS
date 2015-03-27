@@ -4757,9 +4757,10 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
                               : xtime = UTC Time
              output           : cutoff[0] = Max. Rcut [GV] for negative particles (Z==-1); 
                                 cutoff[1] = Max. Rcut [GV] for positive particles (Z== 1).
-             input parameter : *fdir = IGRF file directory
+             input parameter  : *fdir = IGRF file directory
+	     input parameter  : version (=12) IGRF version (11 or 12)
         */
-        static int GetMaxIGRFCutoff(double AMSfov, double cutoff[2],unsigned int xtime,const char *fdir=0);
+        static int GetMaxIGRFCutoff(double AMSfov, double cutoff[2],unsigned int xtime,const char *fdir=0,int version=12);
 
         //! IGRF cutoff
         class IGRF { public: float theta, phi; float cf[4][2]; };

@@ -10782,7 +10782,7 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double degbin, double cutoff[2])
   return GetMaxIGRFCutoff(fov, cutoff, tm);
 }
 
-int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime,const char *fdir){
+int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime,const char *fdir, int version){
 
   cutoff[0] = cutoff[1] = 0;
 
@@ -10807,6 +10807,9 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
     if (ai && strlen(ai)) std = ai; std += "RTI/";
     if(fdir!=0) std=fdir;
     TString sfn = Form(std+"MaxIGRFCutoff_%d.csv", int(tm/10000000));
+    if (version == 12) 
+      sfn = Form(std+"MaxIGRF12Cutoff_%d.csv", int(tm/10000000));
+
     ifstream fin(sfn);
     if (!fin) {
       cerr << "AMSEventR::GetMaxIGRFCutoff-E-File not found: "
