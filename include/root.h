@@ -223,7 +223,7 @@ static char _Info[1024];
   unsigned int Run;         ///<run  number
   unsigned int RunType;     ///<runtype(data)
   unsigned int Event;      ///<event number
-  unsigned int Error;      ///<Error  bit 0 simulation problem bit 1 TRD problem bit 2 TOF Problem bit 3 TRK problem bit 4 RICH problem bit 5 ECAL Problem bit 6 ACC problem bit 7 DAQ problem bit 8 LVL1 problem bit 9 lvl3 problem 10 unspecified global rec problem 11 partivle problem 12 memory problem
+  unsigned int Error;      ///<Error  bit 0 simulation problem bit 1 TRD problem bit 2 TOF Problem bit 3 TRK problem bit 4 RICH problem bit 5 ECAL Problem bit 6 ACC problem bit 7 DAQ problem bit 8 LVL1 problem bit 9 lvl3 problem 10 unspecified global rec problem 11 particle problem 12 memory problem 13 g4tracking problem
   int Raw;            ///<raw event length in bytes
   int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
   unsigned int Time[2];        ///<unix time + usec time(data) 
@@ -484,7 +484,7 @@ int get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double 
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,24)       //HeaderR
+  ClassDef(HeaderR,25)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -4659,6 +4659,8 @@ unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
 unsigned int EventError() const {return fHeader.Error;} ///< \return Event Error
+///
+bool EventSimError() const {return fHeader.Error%2 || (fHeader.Error>>13)%2;} ///< \return Event Simulation Error
 ///
 
 const char * GetCite() const ;///< \return Cite Name for MC Runs 

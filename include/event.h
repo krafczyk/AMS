@@ -116,7 +116,7 @@ uinteger _status[2];
 uinteger _run;
 uinteger _runtype;
 uinteger _Error;
-uinteger _MoreError; //  bit 0 simulation problem bit 1 TRD problem bit 2 TOF Problem bit 3 TRK problem bit 4 RICH problem bit 5 ECAL Problem bit 6 ACC problem bit 7 DAQ problem bit 8 LVL1 problem bit 9 lvl3 problem 10 global problem
+uinteger _MoreError; //  bit 0 simulation problem bit 1 TRD problem bit 2 TOF Problem bit 3 TRK problem bit 4 RICH problem bit 5 ECAL Problem bit 6 ACC problem bit 7 DAQ problem bit 8 LVL1 problem bit 9 lvl3 problem 10 global problem 11
 geant _StationRad;    //cm 
 geant _StationTheta; 
 geant _StationPhi;   
