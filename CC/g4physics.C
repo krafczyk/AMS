@@ -5,6 +5,7 @@
 #include "G4Version.hh"
 #include "g4physics_ion.h"
 #include "G4EmExtraPhysics.hh"
+#include "G4StepLimiter.hh"
 #include "G4NeutronTrackingCut.hh"
 #if G4VERSION_NUMBER < 1000 
 #include "G4QStoppingPhysics.hh"
@@ -161,7 +162,10 @@ void AMSG4Physics::ConstructProcess()
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
-    if(G4FFKEY.Geant3CutsOn)pmanager->AddDiscreteProcess(new AMSUserSpecialCuts());
+    if(G4FFKEY.Geant3CutsOn){
+      pmanager->AddDiscreteProcess(new AMSUserSpecialCuts());
+      pmanager->AddDiscreteProcess(new G4StepLimiter());
+    }
     else if(first){
       cout <<"  AMSG4Physics-I-Geant3LikeCutsSwitchedOff"<<endl;
       first=false;

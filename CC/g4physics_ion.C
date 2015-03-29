@@ -10,7 +10,6 @@
 
 #include "commons.h"
 #include "g4physics_ion.h"
-#include "G4StepLimiter.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4ProcessManager.hh"
 #include "G4Deuteron.hh"
@@ -98,13 +97,6 @@ void IonDPMJETPhysics::ConstructProcess()
   AddProcess("alphaInelastic",G4Alpha::Alpha(),true);
   AddProcess("ionInelastic",G4GenericIon::GenericIon(),true);
   G4cout << "IonDPMJETPhysics::ConstructProcess done! " << G4endl;
-  {
-   G4StepLimiter *fs=new G4StepLimiter();
-   G4ParticleDefinition* particle = G4GenericIon::GenericIon();
-   G4ProcessManager* pManager = particle->GetProcessManager();
-   pManager->AddDiscreteProcess(fs);
-   cout<< " StepLimiterAdded "<<endl;
-  }
 
   if(G4FFKEY.UseEMDModel==1){
     cout<<"Also Use EMD Model"<<endl;
