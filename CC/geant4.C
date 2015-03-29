@@ -1650,17 +1650,16 @@ if(trig==0){
     GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
     GCKINE.itra=Track->GetParentID();
     int gtrkid = Track->GetTrackID();
-if( strstr(PrePV->GetName(),"AMSG") && (fabs(PostPoint->GetPosition()[0])<AMSDBc::ams_size[0]*5 && fabs(PostPoint->GetPosition()[1])<AMSDBc::ams_size[1]*5 && fabs(PostPoint->GetPosition()[2])<AMSDBc::ams_size[2]*5)&& (fabs(PrePoint->GetPosition()[0])<AMSDBc::ams_size[0]*5 && fabs(PrePoint->GetPosition()[1])<AMSDBc::ams_size[1]*5 && fabs(PrePoint->GetPosition()[2])<AMSDBc::ams_size[2]*5)){
+if( (strstr(PrePV->GetName(),"AMSG") && (fabs(PostPoint->GetPosition()[0])<AMSDBc::ams_size[0]*5 && fabs(PostPoint->GetPosition()[1])<AMSDBc::ams_size[1]*5 && fabs(PostPoint->GetPosition()[2])<AMSDBc::ams_size[2]*5)&& (fabs(PrePoint->GetPosition()[0])<AMSDBc::ams_size[0]*5 && fabs(PrePoint->GetPosition()[1])<AMSDBc::ams_size[1]*5 && fabs(PrePoint->GetPosition()[2])<AMSDBc::ams_size[2]*5))){
 if(Step->GetStepLength()/cm>0.01){
       AMSEvent::gethead()->seterror(1);
       AMSEvent::gethead()->setmoreerror(13);
      cerr<<"AMSG4SteppingAction-S-TrackingErrorDetectedEventWillBeAborted "<<AMSEvent::gethead()->getid()<<endl;
-}
-     cerr << "Stepping Pre  "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
-     cerr << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<" " <<Step->GetTotalEnergyDeposit()/GeV<<endl;
-     cerr << "Part ID " << Step->GetTrack()->GetDefinition()->GetParticleName()<<" "<<gctmed_isvol<<" "<< GCTRAK.destep<<" "<<Track->GetTrackStatus()<<endl;
+   }
+     cerr << "Stepping Pre  "<<" "<<setprecision(12)<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+     cerr << "Stepping  Post"<<" "<<setprecision(12)<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<" " <<Step->GetTotalEnergyDeposit()/GeV<<endl;
+     cerr << "Part ID " << Step->GetTrack()->GetDefinition()->GetParticleName()<<" "<<gctmed_isvol<<" "<< GCTRAK.destep<<" "<<Track->GetTrackStatus()<<" "<<Step->GetStepLength()<<endl;
 //   cout <<endl;
-
 }
 
     FillPrimaryInfo(Step);

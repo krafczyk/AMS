@@ -1,3 +1,4 @@
+//  $Id$
 #include <strstream>
 
 #ifdef _PGTRACK_
@@ -935,14 +936,14 @@ void BuildPlane1NSupport(AMSgvolume* mvol){
          TkDBc::Head->P1NSupportSkinThickness + 0.01 + 0.01 + mlihdz+mlidz1+mlidz2+mlidz3+logodz1/2;
   par[0]=logoxs/2;	 
   par[1]=logoys/2;
-  par[3]=logodz1/2;
+  par[2]=logodz1/2;
   mvol->add(new AMSgvolume("BCLOTHMLI",0,"LOG1",
 			      "BOX", par, 3, coo, nrm, "ONLY", 1, gid, 1));//"-X" logo,bcloth
   coo[0]=TkDBc::Head->P1NSupportCoo[0]+logoxp;
   mvol->add(new AMSgvolume("BCLOTHMLI",0,"LOG2",
 			      "BOX", par, 3, coo, nrm, "ONLY", 1, gid, 1));//"+X" logo,bcloth
 			      
-  par[3]=logodz2/2;
+  par[2]=logodz2/2;
   coo[0]=TkDBc::Head->P1NSupportCoo[0]-logoxp;
   coo[2]=coo[2]+logodz1/2+logodz2/2;
   mvol->add(new AMSgvolume("TEFLONMLI",0,"LOG3",
