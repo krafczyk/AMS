@@ -807,7 +807,7 @@ G4double G4HadronElastic::SampleInvariantT(const G4ParticleDefinition* p,
     pt=pt/GeV;
     double d2=deltam(bg,m1,m2,pt);
 //    G4cout <<" Q2 "<<itry<<" "<<d2<<" "<<delta<<" "<<pt<<" "<<p_p<<" "<<m_p<<" " <<bg<<" "<<m1<<" "<<m2<<G4endl;
-    if(d2<delta )return pt2;
+    if(d2<delta || delta<0 )return pt2;
     else if(nerr++<mtry)G4cerr<<" G4HadronElastic::SampleInvariantT-W-Q2Toobig "<<pt2<<" "<<delta<<" "<<d2<<" "<<p_p<<G4endl;
    }
   if(mtry)cerr<<"G4HadronElastic::SampleInvariantT-E-UnabletoSample "<<endl;

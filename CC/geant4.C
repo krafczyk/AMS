@@ -1336,9 +1336,8 @@ if(!Step)return;
   static integer freq=10;
   static integer trig=0;
   static bool report=true;
-  static bool reporte=true;
 #ifdef _OPENMP
-#pragma omp threadprivate (trig,report,reporte,freq)
+#pragma omp threadprivate (trig,report,freq)
 #endif
 trig=(trig+1)%freq;
 
@@ -1653,6 +1652,7 @@ if(trig==0){
 //bool print=strstr(PrePV->GetName(),"AMSG") || strstr(PostPV->GetName(),"AMSG");
 if((strstr(PrePV->GetName(),"AMSG") && ((fabs(PostPoint->GetPosition()[0])>AMSDBc::ams_size[0]*5 || fabs(PostPoint->GetPosition()[1])>AMSDBc::ams_size[1]*5 || fabs(PostPoint->GetPosition()[2])>AMSDBc::ams_size[2]*5)))){
       Track->SetTrackStatus(fStopAndKill);
+      GCTRAK.istop =1;
       return;
 }
 if(  (strstr(PrePV->GetName(),"AMSG") && (fabs(PostPoint->GetPosition()[0])<AMSDBc::ams_size[0]*5 && fabs(PostPoint->GetPosition()[1])<AMSDBc::ams_size[1]*5 && fabs(PostPoint->GetPosition()[2])<AMSDBc::ams_size[2]*5)&& (fabs(PrePoint->GetPosition()[0])<AMSDBc::ams_size[0]*5 && fabs(PrePoint->GetPosition()[1])<AMSDBc::ams_size[1]*5 && fabs(PrePoint->GetPosition()[2])<AMSDBc::ams_size[2]*5))){
