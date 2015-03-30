@@ -76,32 +76,48 @@ void AMSTRDRawHit::sitrddigi(){
 	i++;
       }
     
-     edep+=ptr->getedep()*TRDMCFFKEY.GeV2ADC;
-     //Put in scale factor for delayed event
-     if (delay>0) edep *= AMSTRDRawHit::delay_sf(delay);
+      edep+=ptr->getedep()*TRDMCFFKEY.GeV2ADC;
+      //Put in scale factor for delayed event
+      if (delay>0) edep *= AMSTRDRawHit::delay_sf(delay);
 
-     if(ptr->testlast()){
-           AMSTRDIdSoft idsoft(ptr->getid());
-           number amp=(edep*idsoft.getmcgain()+idsoft.getped()+idsoft.getsig()*rnormx());
+      if(ptr->testlast()){
+        AMSTRDIdSoft idsoft(ptr->getid());
+        number amp = edep;
 
-           // apply additional gain scaling according to datacard value (but only if not in GenerateConst mode, because then TRDMCFFKEY.gain was already used there)
-           if (!TRDMCFFKEY.GenerateConst)
-             amp *= TRDMCFFKEY.gain;
+        // apply MC gain
+        amp *= idsoft.getmcgain();
 
-           if (amp>idsoft.overflow())amp=idsoft.overflow();
-          
-           float sigmaDR = std::max(TRDMCFFKEY.MinSigma, idsoft.getsig()); // at least MinSigma
-           sigmaDR       = std::min(TRDMCFFKEY.MaxSigma, sigmaDR);         // at most MaxSigma
-           if(amp-idsoft.getped()>fabs(TRDMCFFKEY.Thr1R*sigmaDR)){
-        AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),
-        new AMSTRDRawHit(idsoft,(amp-idsoft.getped())*TRDMCFFKEY.f2i));
-//         cout <<"  raw cluster-0 "<<idsoft.getsig()<<" "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<(amp-idsoft.getped())*TRDMCFFKEY.f2i<<endl;
-        
+        // apply additional gain scaling according to datacard value (but only if not in GenerateConst mode, because then TRDMCFFKEY.gain was already used there)
+        if (!TRDMCFFKEY.GenerateConst)
+          amp *= TRDMCFFKEY.gain;
+
+        // add pedestal
+        amp += idsoft.getped();
+
+        // add random noise contribution
+        amp += idsoft.getsig()*rnormx();
+
+        // truncate to dynamic range of ADC
+        if (amp>idsoft.overflow())
+          amp=idsoft.overflow();
+
+        // subtract pedestal
+        amp -= idsoft.getped();
+
+        // calculate sigma for data reduction
+        float sigmaDR = std::max(TRDMCFFKEY.MinSigma, idsoft.getsig()); // at least MinSigma
+        sigmaDR       = std::min(TRDMCFFKEY.MaxSigma, sigmaDR);         // at most MaxSigma
+
+        // apply zero-supression
+        if(amp>fabs(TRDMCFFKEY.Thr1R*sigmaDR)){
+          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),
+                                       new AMSTRDRawHit(idsoft,amp*TRDMCFFKEY.f2i));
+          // cout <<"  raw cluster-0 "<<idsoft.getsig()<<" "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<(amp-idsoft.getped())*TRDMCFFKEY.f2i<<endl;
         }
         edep=0;
-     }
+      }
 
-     ptr=ptr->next();
+      ptr=ptr->next();
     }
 	AMSEvent::gethead()->getC("AMSTRDRawHit",0)->getnelem();
 
