@@ -485,7 +485,8 @@ integer AMSgvolume::_Norp=0;
           _pg4l->SetUserLimits(new AMSUserLimits(0.01*cm));
           cout <<" AMSG Found "<<endl;
        }
-      else _pg4l->SetUserLimits(new AMSUserLimits(maxstep*cm));
+      else _pg4l->SetUserLimits(new AMSUserLimits());
+      //else _pg4l->SetUserLimits(new AMSUserLimits(maxstep*cm));
      }    
 //  Set Cuts
 
