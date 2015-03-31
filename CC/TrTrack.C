@@ -1656,7 +1656,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   refit=refit%10;
 
   // Disable CIEMATFlag to avoid mis-use of refit=20
-  if (CIEMATFlag > 0 && refit == 0 && HasExtLayers() == 0) CIEMATFlag = 0;
+  if (CIEMATFlag > 0 && (refit == 0 || refit == 1) && pattern == 3) CIEMATFlag = 0;
 
   switch (type){
   case 0 :

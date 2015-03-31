@@ -10848,6 +10848,14 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
   cutoff[0] = a1.cf[fi][0]+(a2.cf[fi][0]-a1.cf[fi][0])*(tm-t1)/(t2-t1);
   cutoff[1] = a1.cf[fi][1]+(a2.cf[fi][1]-a1.cf[fi][1])*(tm-t1)/(t2-t1);
 
+  if (tm < t1-20 || t2+20 < tm) {
+    static int nerr = 0;
+    if (nerr++ < 20)
+      cout<< "AMSEventR::GetMaxIGRFCutoff-W-Time out of range "
+	  << t1 << " " << tm << " " << t2 << endl;
+    return 1;
+  }
+
   return 0;
 }
 

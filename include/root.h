@@ -4873,7 +4873,7 @@ float LiveTime(unsigned int time=0); ///< trying to get livetime from scalers ma
    * @param[in]  path      Search path to look for run and event
    */
   static int DumpTrTrackPar(int run, int event, int itrack = 0, int refit1 = 3, int refit2 = 23, int ichrg = 1, int magtemp = 0,
-			    const char *path = "/eos/ams/Data/AMS02/2011B/ISS.B620/pass4/");
+			    const char *path = "/eos/ams/Data/AMS02/2014/ISS.B950/pass6/");
 #endif
   /*!
    * @param[in]  ilay    Tracker  ilay(1-9) (J scheme)
