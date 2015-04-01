@@ -17,7 +17,7 @@ setenv G4SYSTEM  Linuxk1omic-icc-mt
 setenv G4USE_STL 1
 setenv OGLHOME /usr
 setenv  G4WORKDIR /tmp
-setenv G4INSTALL /afs/cern.ch/ams/Offline/geant4.10.01
+setenv G4INSTALL /afs/cern.ch/ams/Offline/geant4.10.01.p01-ams
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv G4VIS_BUILD_DAWNFILE_DRIVER 1

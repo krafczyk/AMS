@@ -1,7 +1,7 @@
 #!/bin/tcsh
 source $Offline/vdev/install/amsvar
 source $ROOTSYS/../root-v5-34-9-icc64.14-slc6/amsvar
-source $Offline/vdev/install/g4i9.63
+source $Offline/vdev/install/g4i9.64
 setenv PGTRACK 1
 setenv AMSWD ..
 setenv G4AMS 1
