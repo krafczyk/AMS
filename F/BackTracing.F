@@ -3,7 +3,7 @@
 !GLV        
 
 ******************************************************************************
-C VERSION  WITH  SUPPLEMENT SPHERICAL HARMONIC COEFFICIENTS OF THE 1995-2015
+C VERSION  WITH  SUPPLEMENT SPHERICAL HARMONIC COEFFICIENTS OF THE 1995-2020
 C REVISION OF THE INTERNATIONAL GEOMAGNETIC REFERENCE  FIELD 
 C                                 IEP SAS Kosice
 c				  Watsonova 47
@@ -11,7 +11,7 @@ c				  043 53 Kosice
 c				  Slovakia
 C
 c    Calculation trajectory of particle by program T96_01 or T05
-c    for years from 1945 to 2015 e.g.<1945,2015> 
+c    for years from 1945 to 2020 e.g.<1945,2020> 
 c*****************************************************************************
 c
 C				REFERENCES:
@@ -28,14 +28,14 @@ C
 C
 c*****************************************************************************
 c
-c	Modified November 2012 by 
+c	Modified March 2015 by 
 C
 c	Davide Grandi.
 c	INFN Milano Bicocca
 C	P.zza delle Scienze 3-20126 Milano
 c	ITALY
 C
-c	GEOPACK 2008
+c	GEOPACK 2008 dp
 C	
 C------------------------------------------------------------------------------
 
@@ -1004,7 +1004,7 @@ C     HXGSW,HYGSW,HZGSW - CARTESIAN GEOCENTRIC SOLAR-WIND COMPONENTS OF THE MAIN
 C                           FIELD IN NANOTESLA
 C
 C     LAST MODIFICATION:  MARCH 21, 2008 (DOUBLE-PRECISION VERSION)
-C     THIS VERSION OF THE CODE ACCEPTS DATES FROM 1965 THROUGH 2015.
+C     THIS VERSION OF THE CODE ACCEPTS DATES FROM 1965 THROUGH 2020.
 c
 C     AUTHOR: N. A. TSYGANENKO
 C
@@ -1132,7 +1132,7 @@ C     BR, BTHETA, BPHI - SPHERICAL COMPONENTS OF THE MAIN GEOMAGNETIC FIELD IN N
 C      (POSITIVE BR OUTWARD, BTHETA SOUTHWARD, BPHI EASTWARD)
 C
 C     LAST MODIFICATION:  MARCH 21, 2008 (DOUBLE-PRECISION VERSION)
-C     THIS VERSION OF THE  CODE ACCEPTS DATES FROM 1965 THROUGH 2015.
+C     THIS VERSION OF THE  CODE ACCEPTS DATES FROM 1965 THROUGH 2020.
 c
 C     AUTHOR: N. A. TSYGANENKO
 C
@@ -1472,6 +1472,11 @@ C
 C    AUTHOR:  N.A. TSYGANENKO
 C    DATE:    DEC.1, 1991
 C
+C    REVISION OF JANUARY 31, 2015:
+C
+C     The table of IGRF coefficients was extended to include those for the epoch 2015 (igrf-12)
+c     (for details, see http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html)
+C
 C    REVISION OF NOVEMBER 30, 2010:
 C
 C     The table of IGRF coefficients was extended to include those for the epoch 2010
@@ -1515,7 +1520,7 @@ C
       DIMENSION G65(105),H65(105),G70(105),H70(105),G75(105),H75(105),
      + G80(105),H80(105),G85(105),H85(105),G90(105),H90(105),G95(105),
      + H95(105),G00(105),H00(105),G05(105),H05(105),G10(105),H10(105),
-     + DG10(45),DH10(45)
+     + G15(105),H15(105),DG15(45),DH15(45)
 C
       DATA ISW /0/
 c
@@ -1711,54 +1716,100 @@ C
      *        0.0D0, -0.8D0,   0.3D0,  1.7D0,   -0.5D0,  -1.1D0,  0.0D0,
      *        0.6D0,  0.2D0,   0.5D0,  0.4D0,   -0.2D0,  -0.6D0, -0.9D0/
 C
-      DATA G10/0.D0,-29496.5D0, -1585.9D0, -2396.6D0, 3026.0D0,1668.6D0,
-     *     1339.7D0, -2326.3D0,  1231.7D0,   634.2D0,  912.6D0, 809.0D0,
-     *      166.6D0,  -357.1D0,    89.7D0,  -231.1D0,  357.2D0, 200.3D0,
-     *     -141.2D0,  -163.1D0,    -7.7D0,    72.8D0,   68.6D0,  76.0D0,
-     *     -141.4D0,   -22.9D0,    13.1D0,   -77.9D0,   80.4D0, -75.0D0,
-     *       -4.7D0,    45.3D0,    14.0D0,    10.4D0,    1.6D0,   4.9D0,
-     *       24.3D0,     8.2D0,   -14.5D0,    -5.7D0,  -19.3D0,  11.6D0,
-     *       10.9D0,   -14.1D0,    -3.7D0,     5.4D0,     9.4D0,  3.4D0,
-     *       -5.3D0,     3.1D0,   -12.4D0,    -0.8D0,     8.4D0, -8.4D0,
-     *      -10.1D0,    -2.0D0,    -6.3D0,     0.9D0,    -1.1D0, -0.2D0,
-     *        2.5D0,    -0.3D0,     2.2D0,     3.1D0,    -1.0D0, -2.8D0,
-     *        3.0D0,    -1.5D0,    -2.1D0,     1.6D0,    -0.5D0,  0.5D0,
-     *       -0.8D0,     0.4D0,     1.8D0,     0.2D0,     0.8D0,  3.8D0,
-     *       -2.1D0,    -0.2D0,     0.3D0,     1.0D0,    -0.7D0,  0.9D0,
-     *       -0.1D0,     0.5D0,    -0.4D0,    -0.4D0,     0.2D0, -0.8D0,
-     *        0.0D0,    -0.2D0,    -0.9D0,     0.3D0,     0.4D0, -0.4D0,
-     *        1.1D0,    -0.3D0,     0.8D0,    -0.2D0,     0.4D0,  0.0D0,
-     *        0.4D0,    -0.3D0,    -0.3D0/
+      DATA G10/0.00D0,-29496.57D0,-1586.42D0,-2396.06D0,3026.34D0,
+     *      1668.17D0,  1339.85D0,-2326.54D0, 1232.10D0, 633.73D0,
+     *       912.66D0,   808.97D0,  166.58D0, -356.83D0,  89.40D0,
+     *      -230.87D0,   357.29D0,  200.26D0, -141.05D0,-163.17D0,
+     *        -8.03D0,    72.78D0,   68.69D0,   75.92D0,-141.40D0,
+     *       -22.83D0,    13.10D0,  -78.09D0,   80.44D0, -75.00D0,
+     *        -4.55D0,    45.24D0,   14.00D0,   10.46D0,   1.64D0,
+     *         4.92D0,    24.41D0,    8.21D0,  -14.50D0,  -5.59D0,
+     *       -19.34D0,    11.61D0,   10.85D0,  -14.05D0,  -3.54D0,
+     *         5.50D0,     9.45D0,    3.45D0,   -5.27D0,   3.13D0,
+     *       -12.38D0,    -0.76D0,    8.43D0,   -8.42D0, -10.08D0,
+     *        -1.94D0,    -6.24D0,    0.89D0,   -1.07D0,  -0.16D0,
+     *         2.45D0,    -0.33D0,    2.13D0,    3.09D0,  -1.03D0,
+     *        -2.80D0,     3.05D0,   -1.48D0,   -2.03D0,   1.65D0,
+     *        -0.51D0,     0.54D0,   -0.79D0,    0.37D0,   1.79D0,
+     *         0.12D0,     0.75D0,    3.75D0,   -2.12D0,  -0.21D0,
+     *         0.30D0,     1.04D0,   -0.63D0,    0.95D0,  -0.11D0,
+     *         0.52D0,    -0.39D0,   -0.37D0,    0.21D0,  -0.77D0,
+     *         0.04D0,    -0.09D0,   -0.89D0,    0.31D0,   0.42D0,
+     *        -0.45D0,     1.08D0,   -0.31D0,    0.78D0,  -0.18D0,
+     *         0.38D0,     0.02D0,    0.42D0,   -0.26D0,  -0.26D0/
 C
-      DATA H10/0.0D0,  0.0D0,4945.1D0, 0.0D0,-2707.7D0,-575.4D0,  0.0D0,
-     *      -160.5D0,251.7D0,-536.8D0,  0.0D0, 286.4D0,-211.2D0,164.4D0,
-     *      -309.2D0,  0.0D0,  44.7D0,188.9D0,-118.1D0,   0.1D0,100.9D0,
-     *         0.0D0,-20.8D0,  44.2D0, 61.5D0, -66.3D0,   3.1D0, 54.9D0,
-     *         0.0D0,-57.8D0, -21.2D0,  6.6D0,  24.9D0,   7.0D0,-27.7D0,
-     *        -3.4D0,  0.0D0,  10.9D0,-20.0D0,  11.9D0, -17.4D0, 16.7D0,
-     *         7.1D0,-10.8D0,   1.7D0,  0.0D0, -20.5D0,  11.6D0, 12.8D0,
-     *        -7.2D0, -7.4D0,   8.0D0,  2.2D0,  -6.1D0,   7.0D0,  0.0D0,
-     *         2.8D0, -0.1D0,   4.7D0,  4.4D0,  -7.2D0,  -1.0D0, -4.0D0,
-     *        -2.0D0, -2.0D0,  -8.3D0,  0.0D0,   0.1D0,   1.7D0, -0.6D0,
-     *        -1.8D0,  0.9D0,  -0.4D0, -2.5D0,  -1.3D0,  -2.1D0, -1.9D0,
-     *        -1.8D0,  0.0D0,  -0.8D0,  0.3D0,   2.2D0,  -2.5D0,  0.5D0,
-     *         0.6D0,  0.0D0,   0.1D0,  0.3D0,  -0.9D0,  -0.2D0,  0.8D0,
-     *         0.0D0, -0.8D0,   0.3D0,  1.7D0,  -0.6D0,  -1.2D0, -0.1D0,
-     *         0.5D0,  0.1D0,   0.5D0,  0.4D0,  -0.2D0,  -0.5D0, -0.8D0/
+      DATA H10/0.00D0,  0.00D0,4944.26D0,   0.00D0,-2708.54D0,
+     *     -575.73D0,   0.00D0,-160.40D0, 251.75D0, -537.03D0, 0.00D0,
+     *      286.48D0,-211.03D0, 164.46D0,-309.72D0,    0.00D0,44.58D0,
+     *      189.01D0,-118.06D0,  -0.01D0, 101.04D0,    0.00D0,-20.90D0,
+     *       44.18D0,  61.54D0, -66.26D0,   3.02D0,   55.40D0,  0.00D0,
+     *      -57.80D0, -21.20D0,   6.54D0,  24.96D0,    7.03D0,-27.61D0,
+     *       -3.28D0,   0.00D0,  10.84D0, -20.03D0,   11.83D0,-17.41D0,
+     *       16.71D0,   6.96D0, -10.74D0,   1.64D0,    0.00D0,-20.54D0,
+     *       11.51D0,  12.75D0,  -7.14D0,  -7.42D0,    7.97D0,  2.14D0,
+     *       -6.08D0,   7.01D0,   0.00D0,   2.73D0,   -0.10D0,  4.71D0,
+     *        4.44D0,  -7.22D0,  -0.96D0,  -3.95D0,   -1.99D0, -1.97D0,
+     *       -8.31D0,   0.00D0,   0.13D0,   1.67D0,   -0.66D0, -1.76D0,
+     *        0.85D0,  -0.39D0,  -2.51D0,  -1.27D0,   -2.11D0, -1.94D0,
+     *       -1.86D0,   0.00D0,  -0.87D0,   0.27D0,    2.13D0, -2.49D0,
+     *        0.49D0,   0.59D0,   0.00D0,   0.13D0,    0.27D0, -0.86D0,
+     *       -0.23D0,   0.87D0,   0.00D0,  -0.87D0,    0.30D0,  1.66D0,
+     *       -0.59D0,  -1.14D0,  -0.07D0,   0.54D0,    0.10D0,  0.49D0,
+     *        0.44D0,  -0.25D0,  -0.53D0,  -0.79D0/
 C
-      DATA DG10/0.0D0,11.4D0,16.7D0,-11.3D0,-3.9D0, 2.7D0, 1.3D0,-3.9D0,
-     *         -2.9D0,-8.1D0,-1.4D0,  2.0D0,-8.9D0, 4.4D0,-2.3D0,-0.5D0,
-     *          0.5D0,-1.5D0,-0.7D0,  1.3D0, 1.4D0,-0.3D0,-0.3D0,-0.3D0,
-     *          1.9D0,-1.6D0,-0.2D0,  1.8D0, 0.2D0,-0.1D0,-0.6D0, 1.4D0,
-     *          0.3D0, 0.1D0,-0.8D0,  0.4D0,-0.1D0, 0.1D0,-0.5D0, 0.3D0,
-     *         -0.3D0, 0.3D0, 0.2D0, -0.5D0, 0.2D0/
-C
-      DATA DH10/0.0D0, 0.0D0,-28.8D0,0.0D0,-23.0D0,-12.9D0, 0.0D0,8.6D0,
-     *         -2.9D0,-2.1D0,  0.0D0,0.4D0,  3.2D0,  3.6D0,-0.8D0,0.0D0,
-     *          0.5D0, 1.5D0,  0.9D0,3.7D0, -0.6D0, 0.0D0,-0.1D0,-2.1D0,
-     *         -0.4D0,-0.5D0,  0.8D0,0.5D0,  0.0D0, 0.6D0, 0.3D0,-0.2D0,
-     *         -0.1D0,-0.8D0, -0.3D0,0.2D0,  0.0D0, 0.0D0, 0.2D0, 0.5D0,
-     *          0.4D0, 0.1D0, -0.1D0,0.4D0,  0.4D0/
+      DATA G15/0.D0,-29442.0D0, -1501.0D0, -2445.1D0,  3012.9D0,
+     *     1676.7D0,  1350.7D0, -2352.3D0,  1225.6D0,   582.0D0,907.6D0,
+     *      813.7D0,   120.4D0,  -334.9D0,    70.4D0,  -232.6D0,360.1D0,
+     *      192.4D0,  -140.9D0,  -157.5D0,     4.1D0,    70.0D0, 67.7D0,
+     *       72.7D0,  -129.9D0,   -28.9D0,    13.2D0,   -70.9D0, 81.6D0,
+     *      -76.1D0,    -6.8D0,    51.8D0,    15.0D0,     9.4D0, -2.8D0,
+     *        6.8D0,    24.2D0,     8.8D0,   -16.9D0,    -3.2D0,-20.6D0,
+     *       13.4D0,    11.7D0,   -15.9D0,    -2.0D0,     5.4D0,  8.8D0,
+     *        3.1D0,    -3.3D0,     0.7D0,   -13.3D0,    -0.1D0,  8.7D0,
+     *       -9.1D0,   -10.5D0,    -1.9D0,    -6.3D0,     0.1D0,  0.5D0,
+     *       -0.5D0,     1.8D0,    -0.7D0,     2.1D0,     2.4D0, -1.8D0,
+     *       -3.6D0,     3.1D0,    -1.5D0,    -2.3D0,     2.0D0, -0.8D0,
+     *        0.6D0,    -0.7D0,     0.2D0,     1.7D0,    -0.2D0,  0.4D0,
+     *        3.5D0,    -1.9D0,    -0.2D0,     0.4D0,     1.2D0, -0.8D0,
+     *        0.9D0,     0.1D0,     0.5D0,    -0.3D0,    -0.4D0,  0.2D0,
+     *       -0.9D0,     0.0D0,     0.0D0,    -0.9D0,     0.4D0,  0.5D0,
+     *       -0.5D0,     1.0D0,    -0.2D0,     0.8D0,    -0.1D0,  0.3D0,
+     *        0.1D0,     0.5D0,    -0.4D0,    -0.3D0/
+c
+      DATA H15/0.D0,     0.0D0, 4797.1D0,     0.0D0, -2845.6D0,-641.9D0,
+     *        0.0D0,  -115.3D0,  244.9D0,  -538.4D0,     0.0D0, 283.3D0,
+     *     -188.7D0,   180.9D0, -329.5D0,     0.0D0,    47.3D0, 197.0D0,
+     *     -119.3D0,    16.0D0,  100.2D0,     0.0D0,   -20.8D0,  33.2D0,
+     *       58.9D0,   -66.7D0,    7.3D0,    62.6D0,     0.0D0, -54.1D0,
+     *      -19.5D0,     5.7D0,   24.4D0,     3.4D0,   -27.4D0,  -2.2D0,
+     *        0.0D0,    10.1D0,  -18.3D0,    13.3D0,   -14.6D0,  16.2D0,
+     *        5.7D0,    -9.1D0,    2.1D0,     0.0D0,   -21.6D0,  10.8D0,
+     *       11.8D0,    -6.8D0,   -6.9D0,     7.8D0,     1.0D0,  -4.0D0,
+     *        8.4D0,     0.0D0,    3.2D0,    -0.4D0,     4.6D0,   4.4D0,
+     *       -7.9D0,    -0.6D0,   -4.2D0,    -2.8D0,    -1.2D0,  -8.7D0,
+     *        0.0D0,    -0.1D0,    2.0D0,    -0.7D0,    -1.1D0,   0.8D0,
+     *       -0.2D0,    -2.2D0,   -1.4D0,    -2.5D0,    -2.0D0,  -2.4D0,
+     *        0.0D0,    -1.1D0,    0.4D0,     1.9D0,    -2.2D0,   0.3D0,
+     *        0.7D0,    -0.1D0,    0.3D0,     0.2D0,    -0.9D0,  -0.1D0,
+     *        0.7D0,     0.0D0,   -0.9D0,     0.4D0,     1.6D0,  -0.5D0,
+     *       -1.2D0,    -0.1D0,    0.4D0,    -0.1D0,     0.4D0,   0.5D0,
+     *       -0.3D0,    -0.4D0,   -0.8D0/
+c
+      DATA DG15/0.0D0, 10.3D0,  18.1D0,  -8.7D0,  -3.3D0,  2.1D0, 3.4D0,
+     *         -5.5D0, -0.7D0, -10.1D0,  -0.7D0,   0.2D0, -9.1D0, 4.1D0,
+     *         -4.3D0, -0.2D0,   0.5D0,  -1.3D0,  -0.1D0,  1.4D0, 3.9D0,
+     *         -0.3D0, -0.1D0,  -0.7D0,   2.1D0,  -1.2D0,  0.3D0, 1.6D0,
+     *          0.3D0, -0.2D0,  -0.5D0,   1.3D0,   0.1D0, -0.6D0,-0.8D0,
+     *          0.2D0,  0.2D0,   0.0D0,  -0.6D0,   0.5D0, -0.2D0, 0.4D0,
+     *          0.1D0, -0.4D0,   0.3D0/
+c
+      DATA DH15/0.0D0,  0.0D0, -26.6D0,   0.0D0, -27.4D0,-14.1D0, 0.0D0,
+     *          8.2D0, -0.4D0,   1.8D0,   0.0D0,  -1.3D0,  5.3D0, 2.9D0,
+     *         -5.2D0,  0.0D0,   0.6D0,   1.7D0,  -1.2D0,  3.4D0, 0.0D0,
+     *          0.0D0,  0.0D0,  -2.1D0,  -0.7D0,   0.2D0,  0.9D0, 1.0D0,
+     *          0.0D0,  0.8D0,   0.4D0,  -0.2D0,  -0.3D0, -0.6D0, 0.1D0,
+     *         -0.2D0,  0.0D0,  -0.3D0,   0.3D0,   0.1D0,  0.5D0,-0.2D0,
+     *         -0.3D0,  0.3D0,   0.0D0/
 C
       IF (VGSEY.EQ.0..AND.VGSEZ.EQ.0..AND.ISW.NE.1) THEN
 c      PRINT *, ''
@@ -1782,7 +1833,7 @@ c      PRINT *, ''
 C
       IY=IYEAR
 C
-C  WE ARE RESTRICTED BY THE INTERVAL 1965-2015, FOR WHICH THE IGRF COEFFICIENTS
+C  WE ARE RESTRICTED BY THE INTERVAL 1965-2020, FOR WHICH THE IGRF COEFFICIENTS
 c    ARE KNOWN; IF IYEAR IS OUTSIDE THIS INTERVAL, THEN THE SUBROUTINE USES THE
 C      NEAREST LIMITING VALUE AND PRINTS A WARNING:
 C
@@ -1791,8 +1842,8 @@ C
 c       WRITE (*,10) IYEAR,IY
       ENDIF
 
-      IF(IY.GT.2015) THEN
-       IY=2015
+      IF(IY.GT.2020) THEN
+       IY=2020
 c       WRITE (*,10) IYEAR,IY
       ENDIF
 
@@ -1817,16 +1868,17 @@ C
       IF (IY.LT.2000) GOTO 110         !INTERPOLATE BETWEEN 1995 - 2000
       IF (IY.LT.2005) GOTO 120         !INTERPOLATE BETWEEN 2000 - 2005
       IF (IY.LT.2010) GOTO 130         !INTERPOLATE BETWEEN 2005 - 2010
+      IF (IY.LT.2015) GOTO 140         !INTERPOLATE BETWEEN 2010 - 2015
 C
-C       EXTRAPOLATE BEYOND 2010:
+C       EXTRAPOLATE BEYOND 2015:
 C
-      DT=DFLOAT(IY)+DFLOAT(IDAY-1)/365.25D0-2010.D0
+      DT=DFLOAT(IY)+DFLOAT(IDAY-1)/365.25D0-2015.D0
       DO 40 N=1,105
-         G(N)=G10(N)
-         H(N)=H10(N)
+         G(N)=G15(N)
+         H(N)=H15(N)
          IF (N.GT.45) GOTO 40
-         G(N)=G(N)+DG10(N)*DT
-         H(N)=H(N)+DH10(N)*DT
+         G(N)=G(N)+DG15(N)*DT
+         H(N)=H(N)+DH15(N)*DT
 40    CONTINUE
       GOTO 300
 C
@@ -1910,6 +1962,16 @@ C
          G(N)=G05(N)*F1+G10(N)*F2
 135      H(N)=H05(N)*F1+H10(N)*F2
       GOTO 300
+C
+C       INTERPOLATE BETWEEN 2010 - 2015:
+C
+140   F2=(DFLOAT(IY)+DFLOAT(IDAY-1)/365.25-2010)/5.
+      F1=1.-F2
+      DO 145 N=1,105
+         G(N)=G10(N)*F1+G15(N)*F2
+145      H(N)=H10(N)*F1+H15(N)*F2
+      GOTO 300
+
 C
 C   COEFFICIENTS FOR A GIVEN YEAR HAVE BEEN CALCULATED; NOW MULTIPLY
 C   THEM BY SCHMIDT NORMALIZATION FACTORS:
@@ -2089,7 +2151,7 @@ C
       SFI=Y1*EXMAGX+Y2*EXMAGY+Y3*EXMAGZ
 C
  10   FORMAT(//1X,
-     *'**** RECALC_08 WARNS: YEAR IS OUT OF INTERVAL 1965-2015: IYEAR=',
+     *'**** RECALC_08 WARNS: YEAR IS OUT OF INTERVAL 1965-2020: IYEAR=',
      *I4,/,6X,'CALCULATIONS WILL BE DONE FOR IYEAR=',I4,/)
       RETURN
       END
