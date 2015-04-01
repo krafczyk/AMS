@@ -481,12 +481,12 @@ integer AMSgvolume::_Norp=0;
      }
 // Add user limits 
      else {
-      if(strstr(_pg4l->GetName(),"AMSG")){
-          _pg4l->SetUserLimits(new AMSUserLimits(0.01*cm));
-          cout <<" AMSG Found "<<endl;
-       }
-      else _pg4l->SetUserLimits(new AMSUserLimits());
-      //else _pg4l->SetUserLimits(new AMSUserLimits(maxstep*cm));
+//      if(strstr(_pg4l->GetName(),"AMSG")){
+//          _pg4l->SetUserLimits(new AMSUserLimits(0.01*cm));
+//          cout <<" AMSG Found "<<endl;
+//       }
+//      else _pg4l->SetUserLimits(new AMSUserLimits());
+     _pg4l->SetUserLimits(new AMSUserLimits(maxstep*cm));
      }    
 //  Set Cuts
 

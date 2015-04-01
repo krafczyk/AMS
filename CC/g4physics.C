@@ -164,7 +164,8 @@ void AMSG4Physics::ConstructProcess()
     G4ProcessManager* pmanager = particle->GetProcessManager();
     if(G4FFKEY.Geant3CutsOn){
       pmanager->AddDiscreteProcess(new AMSUserSpecialCuts());
-      pmanager->AddDiscreteProcess(new G4StepLimiter());
+//   Remove step limiter 
+//      pmanager->AddDiscreteProcess(new G4StepLimiter());
     }
     else if(first){
       cout <<"  AMSG4Physics-I-Geant3LikeCutsSwitchedOff"<<endl;
