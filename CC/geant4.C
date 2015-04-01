@@ -903,6 +903,9 @@ break;
 cout <<" fmap before "<<fmap.size()<<" "<<ssize3<<" "<<inpool<<endl;
 }
 
+// no garbage collection for singlethreaded jobs by request
+if(AMSEvent::get_num_threads()==1 && !MISCFFKEY.G4AllocatorSize)return;
+
 const int gmes=1000000;
  static int mess=0;
 
