@@ -118,7 +118,7 @@ G4DPMJET2_5Model::G4DPMJET2_5Model () : G4HadronicInteraction("DPMJET2_5")
 // Set the minimum and maximum range for the model (despite nomanclature, this
 // is in energy per nucleon number).
 //
-  SetMinEnergy(5.0*GeV);
+  SetMinEnergy(1.0*GeV);
   SetMaxEnergy(1000.0*TeV);
 //
 //
@@ -185,7 +185,8 @@ G4DPMJET2_5Model::G4DPMJET2_5Model (const G4DPMJET2_5InitialisationType initType
 // Set the minimum and maximum range for the model (despite nomanclature, this
 // is in energy per nucleon number).
 //
-  SetMinEnergy(5.0*GeV);
+  SetMinEnergy(1.*GeV);
+
   SetMaxEnergy(1000.0*TeV);
 //
 //
@@ -253,7 +254,7 @@ G4DPMJET2_5Model::G4DPMJET2_5Model (G4ExcitationHandler *aExcitationHandler,
 // Set the minimum and maximum range for the model (despite nomanclature, this
 // is in energy per nucleon number).  
 //
-  SetMinEnergy(5.0*GeV);
+  SetMinEnergy(1.0*GeV);
   SetMaxEnergy(1000.0*TeV);
 //
 //
@@ -321,7 +322,7 @@ G4DPMJET2_5Model::G4DPMJET2_5Model (G4VPreCompoundModel *aPreComp,
 // Set the minimum and maximum range for the model (despite nomanclature, this
 // is in energy per nucleon number).  
 //
-  SetMinEnergy(5.0*GeV);
+  SetMinEnergy(1.0*GeV);
   SetMaxEnergy(1000.0*TeV);
 //
 //

@@ -70,7 +70,7 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 //
 G4DPMJET2_5CrossSection::G4DPMJET2_5CrossSection ():
-  upperLimit ( 1000.0 * TeV ), lowerLimit ( 5.0 * GeV ), maxA(240)
+  upperLimit ( 1000.0 * TeV ), lowerLimit ( 1.0 * GeV ), maxA(240)
 {
   theCrossSectionIndex.clear();
   Initialise();
