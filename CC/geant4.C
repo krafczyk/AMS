@@ -528,6 +528,8 @@ AMSG4Physics::SaveXS(GCKINE.ikine);
 
 #if G4VERSION_NUMBER  > 999
 #include "G4NavigationHistoryPool.hh"
+#include "G4NavigationHistory.hh"
+#include "G4Navigator.hh"
 #endif
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
@@ -909,6 +911,9 @@ if(AMSEvent::get_num_threads()==1 && !MISCFFKEY.G4AllocatorSize)return;
 const int gmes=1000000;
  static int mess=0;
 
+/*
+
+not used any more
 
 //  G4HistoryPool erase;
 
@@ -938,6 +943,42 @@ if(mess++<gmes/1000){
 break;
 }
 }
+}
+
+
+*/
+
+
+
+//  G4History erase;
+
+ G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
+/*
+if(fa){
+for(int k=0;k<fa->fList.size();k++){
+  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
+
+  G4Navigator* theNavigator =G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
+   int erase=0;
+   if(theNavigator){
+     erase=theNavigator->fHistory.fNavHistory.size();
+     if(erase>1){
+      theNavigator->fHistory.fNavHistory.erase(theNavigator->fHistory.fNavHistory.begin()+1,theNavigator->fHistory.fNavHistory.end());
+      theNavigator->fHistory.fStackDepth=0;
+     }
+     erase-=theNavigator->fHistory.fNavHistory.size();
+    }
+
+if(mess++<gmes/1000){
+  cout<<"G4AMSG4EventAction::MemoryManagement-I-G4NavigationHistoryErased "<<erase<<endl;
+
+}
+break;
+}
+}
+}
+
+*/
 
 // G4Allocators Erase
 
@@ -977,8 +1018,8 @@ for(int k=0;k<fa->fList.size();k++){
 cout <<" k "<<k<<" "<<AMSEvent::gethead()->get_thread_num()<<" "<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
 
 }
-*/
 }
+*/
 
        hman.Fill("G4MemoryMB-1",GCFLAG.IEVENT,sms/1000000);
        hman.Fill("G4MemoryMB-2",GCFLAG.IEVENT,sml);
