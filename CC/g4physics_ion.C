@@ -56,7 +56,7 @@ IonDPMJETPhysics::~IonDPMJETPhysics()
 // -----------------------------------------------------------
 void IonDPMJETPhysics::ConstructProcess()
 {
-  G4double dpmemin=5.*GeV; 
+  G4double dpmemin=1.*GeV; 
   G4double emax = 1000.*TeV;
   //--Model Binary Cascade Low Energy
   theIonBC = new G4BinaryLightIonReaction();
