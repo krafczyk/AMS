@@ -872,7 +872,7 @@ G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
 if(fa){
 for(int k=0;k<fa->fList.size();k++){
 if(strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
-cout <<" k "<<k<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
+cout <<" k "<<k<<" "<<AMSEvent::gethead()->get_thread_num()<<" "<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
 }
 }
 }
@@ -974,13 +974,8 @@ if(mess++<gmes/1000){
 cout<<" g4AMSG4EventAction::MemoryManagement-I-AllocatorsMB "<<sms/1000000<<" "<<sml<<endl;
 /*
 for(int k=0;k<fa->fList.size();k++){
-//cout <<" lk "<<k<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
+cout <<" k "<<k<<" "<<AMSEvent::gethead()->get_thread_num()<<" "<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
 
-if(k<maxa){
-  totala[AMSEvent::get_thread_num()][k]=fa->fList[k]->GetAllocatedSize();
-  for(int l=0;l<sizeof(totals)/sizeof(totals[0]);l++)sma[k]+=totala[l][k];
-   cout <<fa->fList[k]->tn<<" "<<sma[k]/1000000<<endl;
-}
 }
 */
 }
