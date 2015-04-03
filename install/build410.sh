@@ -14,8 +14,8 @@ setenv AMSWD  ../g410
 setenv G4AMS 1
 gmake -j 50
 
-gmake producer
-gmake producer6
+gmake producer -j
+gmake producer6 -j
 source $Offline/vdev/install/amsvar
 source $ROOTSYS/../root-v5-34-9-gcc64/amsvar
 source $Offline/vdev/install/g4i10.1
@@ -25,6 +25,6 @@ setenv PGTRACK 1
 setenv AMSWD  ../g410
 setenv G4AMS 1
 gmake -j 50
-gmake producer
-gmake producer6
+gmake producer -j
+gmake producer6 -j
 
