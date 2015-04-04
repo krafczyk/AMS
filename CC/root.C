@@ -10859,6 +10859,106 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
   return 0;
 }
 
+int AMSEventR::GetBeamPos(double &dist, TrTrackR *track)
+{
+  if (!track) track = pTrTrack(0);
+  if (!track) return -3;
+
+  return GetBeamPos(track->GetP0(), track->GetDir(), dist);
+}
+
+int AMSEventR::GetBeamPos(AMSPoint pnt, AMSDir dir, double &dist)
+{
+  static int       nPos = 0;
+  static AMSPoint *pPos = 0;
+  static AMSDir   *pDir = 0;
+
+  dist = 99999;
+
+  if (nPos  < 0) return -1;
+  if (nPos == 0) {
+    TString sfn = getenv("AMSDataDir"); sfn += "/v5.00/TestBeamPos_416.txt";
+    ifstream fin(sfn);
+    if (!fin) {
+      cerr << "AMSEventR::GetBeamPos-E-File not found: " << sfn.Data() << endl;
+      nPos = -1;
+      return -1;
+    }
+
+    pPos = new AMSPoint[416];
+    pDir = new AMSDir  [416];
+    for (int i = 0; i < 416; i++) {
+      float x, y, z, dx, dy, dz;
+      fin >> x >> y >> z >> dx >> dy >> dz;
+      if (fin.eof()) break;
+
+      pPos[i].setp( x,  y,  z);
+      pDir[i].setp(dx, dy, dz);
+      nPos++;
+    }
+    if (nPos != 416) {
+      cerr << "AMSEventR::GetBeamPos-E-File format is wrong: "
+	   << sfn.Data() << endl;
+      nPos = -1;
+      return -2;
+    }
+    cout << "AMSEventR::GetBeamPos-I-Read from file "
+	 << sfn.Data() << " n= " << nPos << endl;
+  }
+
+  int   imin = -1;
+  float dmin =  0;
+
+  float z1 = 159, z2 = -136;
+
+  for (int i = 0; i < nPos; i++) {
+    AMSPoint p11 = pnt+dir/dir.z()*(z1-pnt.z());
+    AMSPoint p12 = pnt+dir/dir.z()*(z2-pnt.z());
+    AMSPoint p21 = pPos[i]+pDir[i]/pDir[i].z()*(z1-pPos[i].z());
+    AMSPoint p22 = pPos[i]+pDir[i]/pDir[i].z()*(z2-pPos[i].z());
+
+    float d = p11.dist(p21)+p12.dist(p22);
+    if (imin < 0 || d < dmin) {
+      dmin = d;
+      imin = i;
+    }
+  }
+
+  if (imin >= 0) dist = dmin;
+  return imin+1;
+}
+
+float AMSEventR::GetBeamWeight(int ibeam)
+{
+  static float *W = 0;
+  static int    N = 0;
+  if (N  < 0) return 1;
+  if (N == 0) {
+    TString sfn = getenv("AMSDataDir"); sfn += "/v5.00/TestBeamWeight_416.txt";
+    ifstream fin(sfn);
+    if (!fin) {
+      cerr << "AMSEventR::GetBeamWeight-E-File not found: "
+	   << sfn.Data() << endl;
+      N = -1; return -1;
+    }
+
+    W = new float[416];
+    for (int i = 0; i < 416; i++) {
+      fin >> W[N++];
+      if (fin.eof()) break;
+    }
+    if (N != 416) {
+      cerr << "AMSEventR::GetBeamWeight-E-File format is wrong: "
+	   << sfn.Data() << " " << N << endl;
+      N = -1; return -2;
+    }
+    cout << "AMSEventR::GetBeamWeight-I-Read from file "
+	 << sfn.Data() << " n= " << N << endl;
+  }
+
+  int i = ibeam-1;
+  return (0 <= i && i < N) ? W[i] : 0;
+}
 
 //----------------------------------------------------------------------
 int AMSEventR::GetRTIStat(){

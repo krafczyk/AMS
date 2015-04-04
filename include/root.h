@@ -4768,6 +4768,31 @@ bool IsInSAA(unsigned int time = 0 ); ///< Check either the ISS is passing throu
         class IGRF { public: float theta, phi; float cf[4][2]; };
         static map<unsigned int,IGRF> fIGRF;
 
+  /// Get proton 400GV beam position ID (1-416)
+  /*!
+   * @param[out]  dist   Distance (cm)  to the closest beam position
+   * @param[in]   track  TrTrack pointer (pTrTrack(0) in case of 0)
+   *  return  beam ID (1-416), -1 in case of errors
+   */
+  int GetBeamPos(double &dist, TrTrackR *track = 0);
+
+  /// Get proton 400GV beam position ID (1-416)
+  /*!
+   * @param[in]   pnt    Track position
+   * @param[in]   dir    Track direction
+   * @param[out]  dist   Distance (cm)  to the closest beam position
+   *  return  beam ID (1-416), -1 in case of errors
+   */
+  static int GetBeamPos(AMSPoint pnt, AMSDir dir, double &dist);
+
+  /// Get proton 400GV beam weighting factor
+  /*!
+   * @param[in]   ibeam  beam ID (1-416) obtained from GetBeamPos
+   *  return  event weight factor
+   */
+  static float GetBeamWeight(int ibeam);
+
+
 //--------------------------------------------------------------------------------------------------
 ///
        //! Return status of AMS Exposure-Time for each second
