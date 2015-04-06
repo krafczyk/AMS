@@ -412,7 +412,7 @@ if(G4FFKEY.PhysicsListUsed==10){
 	}
 #endif
 }
-if(G4FFKEY.PhysicsListUsed=11){ // AMS modified QGSP_BIC
+if(G4FFKEY.PhysicsListUsed==11){ // AMS modified QGSP_BIC
 	cout << "QGSP_BIC_AMS Physics List will be used. " << endl;
 #if G4VERSION_NUMBER > 999
 	G4HadronPhysicsQGSP_BIC_AMS* pqgsp=new G4HadronPhysicsQGSP_BIC_AMS();
