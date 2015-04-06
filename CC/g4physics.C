@@ -52,23 +52,22 @@
 #endif
 
 #if G4VERSION_NUMBER > 945 //
-#if G4VERSION_NUMBER < 1000 //
-#include "HadronPhysicsQGSP_BERT.hh"
-#include "HadronPhysicsQGSP_FTFP_BERT.hh"
-#include "HadronPhysicsFTFP_BERT.hh"
-#include "HadronPhysicsFTFP_BERT_TRV.hh"
-//#include "HadronPhysicsQGSP_INCLXX.hh"
-#else
+#if G4VERSION_NUMBER > 999 //
 #include "G4HadronPhysicsQGSP_BERT.hh"
 #include "G4HadronPhysicsQGSP_FTFP_BERT.hh"
 #include "G4HadronPhysicsNuBeam.hh"
 #include "G4HadronPhysicsFTFP_BERT.hh"
 #include "G4HadronPhysicsFTFP_BERT_TRV.hh"
 #include "G4HadronPhysicsINCLXX.hh"
-
 #include "G4HadronPhysicsQGSP_BIC_AMS.h" // AMS specified physics list, based on QGSP_BIC, but no use of FTFP for proton
-#endif
-#endif
+#else
+#include "HadronPhysicsQGSP_BERT.hh"
+#include "HadronPhysicsQGSP_FTFP_BERT.hh"
+#include "HadronPhysicsFTFP_BERT.hh"
+#include "HadronPhysicsFTFP_BERT_TRV.hh"
+//#include "HadronPhysicsQGSP_INCLXX.hh"
+#endif // G4VERSION_NUMBER < 1000
+#endif // G4VERSION_NUMBER > 945
 
 #include "G4IonPhysics.hh"
 #if G4VERSION_NUMBER  > 899 
@@ -415,9 +414,7 @@ if(G4FFKEY.PhysicsListUsed==10){
 }
 if(G4FFKEY.PhysicsListUsed=11){ // AMS modified QGSP_BIC
 	cout << "QGSP_BIC_AMS Physics List will be used. " << endl;
-#if G4VERSION_NUMBER < 1000
-	cout << "QGSP_BIC_AMS Physics List Not Yet Supported, now only for Geant4.10" << endl;
-#endif
+#if G4VERSION_NUMBER > 999
 	G4HadronPhysicsQGSP_BIC_AMS* pqgsp=new G4HadronPhysicsQGSP_BIC_AMS();
 	if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
 	if(G4FFKEY.HCrossSectionBias[0]!=1){
@@ -427,6 +424,10 @@ if(G4FFKEY.PhysicsListUsed=11){ // AMS modified QGSP_BIC
 		pqgsp->tpdata->theAntiBaryon->theAntiProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
 //		cout << "CheckTheBiasFactorInProgress, AntiBaryon aScaleFactor = " << pqgsp->tpdata->thePro->theProtonInelastic->aScaleFactor << endl;
 	}
+#else 
+	cout << "QGSP_BIC_AMS Physics List Not Yet Supported, now only for Geant4.10" << endl;
+	abort();
+#endif
 }
 #endif // version > 945
 //--> End by WXU

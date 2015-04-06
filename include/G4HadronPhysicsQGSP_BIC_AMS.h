@@ -1,4 +1,3 @@
-#if G4VERSION_NUMBER > 999
 //
 // ********************************************************************
 // * License and Disclaimer                                           *
@@ -43,7 +42,8 @@
 //
 #ifndef G4HadronPhysicsQGSP_BIC_AMS_h
 #define G4HadronPhysicsQGSP_BIC_AMS_h 1
-
+#include "G4Version.hh"
+#if G4VERSION_NUMBER > 999
 #include "globals.hh"
 #include "G4ios.hh"
 
@@ -112,6 +112,5 @@ class G4HadronPhysicsQGSP_BIC_AMS : public G4VPhysicsConstructor
     // G4bool QuasiElastic;
 };
 
-#endif
-
 #endif // G4VERSION_NUMBER>999
+#endif
