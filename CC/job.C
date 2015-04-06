@@ -1940,7 +1940,7 @@ void AMSJob::udata(){
 {
     struct rlimit ulimit_v;
     getrlimit(RLIMIT_AS, &ulimit_v);
-    if (ulimit_v.rlim_cur / 1024 < uinteger(3+MISCFFKEY.NumThreads)*1024000/2) {
+    if (ulimit_v.rlim_cur / 1024 < uinteger(3+MISCFFKEY.NumThreads)*1024000) {
         cerr<<"<---- AMSJob::udata-F-VirMemNotEnough: "<< ulimit_v.rlim_cur / 1024 << " < " << (3+MISCFFKEY.NumThreads)*1024000 <<endl<<endl;
         abort();
     }
