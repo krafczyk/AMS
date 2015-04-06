@@ -65,6 +65,8 @@
 #include "G4HadronPhysicsFTFP_BERT.hh"
 #include "G4HadronPhysicsFTFP_BERT_TRV.hh"
 #include "G4HadronPhysicsINCLXX.hh"
+
+#include "G4HadronPhysicsQGSP_BIC_AMS.h" // AMS specified physics list, based on QGSP_BIC, but no use of FTFP for proton
 #endif
 #endif
 
@@ -181,7 +183,7 @@ void AMSG4Physics::ConstructProcess()
     if(GCPHYS.IHADR)ConstructHad();
   }
   //else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2 || G4FFKEY.PhysicsListUsed==3)
-  else if( G4FFKEY.PhysicsListUsed>=1 && G4FFKEY.PhysicsListUsed<=10 ){ // by WXU
+  else if( G4FFKEY.PhysicsListUsed>=1 && G4FFKEY.PhysicsListUsed<=11 ){ // by WXU
     
     if(GCPHYS.ILOSS){
       ConstructEM2();
@@ -410,6 +412,21 @@ if(G4FFKEY.PhysicsListUsed==10){
 //		cout << "CheckTheBiasFactorInProgress, AntiBaryon aScaleFactor = " << pqgsp->tpdata->thePro->theProtonInelastic->aScaleFactor << endl;
 	}
 #endif
+}
+if(G4FFKEY.PhysicsListUsed=11){ // AMS modified QGSP_BIC
+	cout << "QGSP_BIC_AMS Physics List will be used. " << endl;
+#if G4VERSION_NUMBER < 1000
+	cout << "QGSP_BIC_AMS Physics List Not Yet Supported, now only for Geant4.10" << endl;
+#endif
+	G4HadronPhysicsQGSP_BIC_AMS* pqgsp=new G4HadronPhysicsQGSP_BIC_AMS();
+	if(G4FFKEY.ProcessOff/100%10==0)pqgsp->ConstructProcess();    
+	if(G4FFKEY.HCrossSectionBias[0]!=1){
+		cout<<"HadronicInElasticCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
+		pqgsp->tpdata->thePro->theProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
+//		cout << "CheckTheBiasFactorInProgress, Proton aScaleFactor = " << pqgsp->tpdata->thePro->theProtonInelastic->aScaleFactor << endl;
+		pqgsp->tpdata->theAntiBaryon->theAntiProtonInelastic->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
+//		cout << "CheckTheBiasFactorInProgress, AntiBaryon aScaleFactor = " << pqgsp->tpdata->thePro->theProtonInelastic->aScaleFactor << endl;
+	}
 }
 #endif // version > 945
 //--> End by WXU
