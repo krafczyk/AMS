@@ -374,6 +374,7 @@ COMMON_FILES +=   $(SCC)TRD_SimUtil.C  $(SCC)g4physics_ion.C \
 
 COMMON_FILES += $(SCC)g4rich.C $(SCC)g4tof.C $(SCC)TofSimUtil.C
 #COMMON_FILES += $(SCC)G4CrossSectionDataSetRegistry.C #$(SCC)G4PiNuclearCrossSection.C $(SCC)G4INCLXXPionBuilder.C
+COMMON_FILES += $(SCC)G4HadronPhysicsQGSP_BIC_AMS.C
 
 else
 #Geant3/AMS custom  files
