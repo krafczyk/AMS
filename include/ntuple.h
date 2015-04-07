@@ -149,6 +149,8 @@ public:
   int TrStat; 
   unsigned int GPS[7];
   unsigned int GPSL;
+  unsigned int Version;
+  int G4Version;
 friend class AMSEvent;
 friend class AMSNtuple;
 };

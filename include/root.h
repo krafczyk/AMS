@@ -225,7 +225,8 @@ static char _Info[1024];
   unsigned int Event;      ///<event number
   unsigned int Error;      ///<Error  bit 0 simulation problem bit 1 TRD problem bit 2 TOF Problem bit 3 TRK problem bit 4 RICH problem bit 5 ECAL Problem bit 6 ACC problem bit 7 DAQ problem bit 8 LVL1 problem bit 9 lvl3 problem 10 unspecified global rec problem 11 particle problem 12 memory problem 13 g4tracking problem
   int Raw;            ///<raw event length in bytes
-  int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
+  int Version;        ///< os number (low 10 bits) program build number (high 21 bits)
+  int G4Version;      ///< SimVersion 41011 for 4.10.01.p01  ; -1 for realdata ; 0 not implemented
   unsigned int Time[2];        ///<unix time + usec time(data) 
   int RNDMSeed[2];  ///< MC Only RNDM(1)/RNDM(2) seeds
 
@@ -484,7 +485,7 @@ int get_gtod_coo(double & gtod_long, double & gtod_lat, double AMSTheta, double 
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,25)       //HeaderR
+  ClassDef(HeaderR,26)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -4649,10 +4650,11 @@ particle (datacards: ESTA 1=1110) for most other status bits
 
 bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set
 bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group
-int Version() const {return std::abs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):1024+fHeader.Version/16;} ///< \return producer version number
+int G4Version() const {return fHeader.G4Version;}
+int Version() const {return G4Version()?fHeader.Version/1024:(std::abs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):1024+fHeader.Version/16);} ///< \return producer version number
 ///
 static AMSSetupR *  getsetup(){return AMSSetupR::gethead();} ///< \return RootSetup Tree Singleton
-int OS() const {return fHeader.Version/16>465?fHeader.Version%16:fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun  12 linux 64bit )
+int OS() const {return  G4Version()?fHeader.Version%1024:(fHeader.Version/16>465?fHeader.Version%16:fHeader.Version%4);}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun  12 linux 64bit )
 ///
 unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 ///

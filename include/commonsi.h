@@ -1,4 +1,4 @@
-//  $Id: commonsi.h,v 1.8 2012/03/16 08:52:12 choutko Exp $
+//  $Id$
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -31,12 +31,14 @@ COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
 
 
 class AMSCommonsI{
+public:
 private:
  static integer _Count;
  static char _version[6];
  static uinteger _build;
  static uinteger _buildtime;
  static uinteger _os;
+ static integer  _g4version;
  static char _osname[255];
  static char _osversion[255];
  static uinteger _MaxMem;
@@ -51,6 +53,8 @@ static int  AB_catch;
 #pragma omp threadprivate (AB_buf,AB_catch)
  AMSCommonsI();
  void init();
+ static integer getg4version(){return _g4version;}
+ static void setg4version(int version){_g4version=version;}
  static const char * getversion(){return _version;}
  static integer getbuildno()  {return _build;}
  static uinteger getbuildtime(){return _buildtime;}
