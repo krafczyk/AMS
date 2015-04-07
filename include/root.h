@@ -4649,7 +4649,7 @@ particle (datacards: ESTA 1=1110) for most other status bits
 
 bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set
 bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group
-int Version() const {return std::abs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):fHeader.Version/4;} ///< \return producer version number
+int Version() const {return std::abs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):1024+fHeader.Version/16;} ///< \return producer version number
 ///
 static AMSSetupR *  getsetup(){return AMSSetupR::gethead();} ///< \return RootSetup Tree Singleton
 int OS() const {return fHeader.Version/16>465?fHeader.Version%16:fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun  12 linux 64bit )
