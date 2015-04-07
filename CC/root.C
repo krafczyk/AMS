@@ -10859,10 +10859,14 @@ int AMSEventR::GetMaxIGRFCutoff(double fov, double cutoff[2], unsigned int xtime
   return 0;
 }
 
+TString TestBeamPosFile = "/v5.00/TestBeamPos_416.txt";
+
 int AMSEventR::GetBeamPos(double &dist, TrTrackR *track)
 {
   if (!track) track = pTrTrack(0);
   if (!track) return -3;
+
+  if (Version() < 1020) TestBeamPosFile = "/v5.00/TestBeamPos_416.txt.old";
 
   return GetBeamPos(track->GetP0(), track->GetDir(), dist);
 }
@@ -10877,7 +10881,7 @@ int AMSEventR::GetBeamPos(AMSPoint pnt, AMSDir dir, double &dist)
 
   if (nPos  < 0) return -1;
   if (nPos == 0) {
-    TString sfn = getenv("AMSDataDir"); sfn += "/v5.00/TestBeamPos_416.txt";
+    TString sfn = getenv("AMSDataDir"); sfn += TestBeamPosFile;
     ifstream fin(sfn);
     if (!fin) {
       cerr << "AMSEventR::GetBeamPos-E-File not found: " << sfn.Data() << endl;
