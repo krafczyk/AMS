@@ -8,6 +8,7 @@ setenv VERBOSE 1
 source $ROOTSYS/../root-v5-34-9-icc64.14-slc6/amsvar
 setenv PGTRACK 1
 unsetenv G4AMS
+unsetenv G4MULTITHREADED
 setenv AMSWD ..
 gmake -j
 gmake lib -j
@@ -22,7 +23,7 @@ gmake dynamic
 cd ../install
 gmake -f Makefastntrd64
 setenv G4AMS 1
-source g4i9.63
+source g4i9.64
 gmake -j
 gmake gxint
 gmake producer

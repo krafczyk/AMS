@@ -3149,7 +3149,7 @@ void AMSEvent::_writeEl(){
   EN->RawWords=nws;
   EN->Version=(AMSCommonsI::getosno());
   EN->Version+=(AMSCommonsI::getbuildno())<<10;
-  EN->G4Version=AMSCommonsI::getg4version(); 
+  EN->G4Version=AMSCommonsI::getg4version(1); 
   EN->Run=_run;
   EN->RunType=_runtype;
   EN->Time[0]=_time;
@@ -3631,7 +3631,7 @@ uinteger _event=uinteger(_Head[get_thread_num()]->_id);
 *(p+9)=int16u((_Head[get_thread_num()]->_usec>>16)&65535);
 *(p+11)=0;
 *(p+12)=AMSCommonsI::getbuildno();
-*(p+13)=AMSCommonsI::getg4version();
+*(p+13)=AMSCommonsI::getg4version(0);
 }
 
 
