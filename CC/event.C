@@ -3146,9 +3146,10 @@ void AMSEvent::_writeEl(){
   EN->EventStatus[1]=getstatus()[1];
   EN->Eventno=_id;
   EN->Error=_MoreError;
-  EN->RawWords=nws<(1<<18)?nws:((1<<18)-1);
-  EN->RawWords+=(AMSCommonsI::getosno())<<18;
-  EN->RawWords+=(AMSCommonsI::getbuildno())<<22;
+  EN->RawWords=nws;
+  EN->Version=(AMSCommonsI::getosno());
+  EN->Version+=(AMSCommonsI::getbuildno())<<10;
+  EN->G4Version=AMSCommonsI::getg4version(); 
   EN->Run=_run;
   EN->RunType=_runtype;
   EN->Time[0]=_time;
@@ -3629,6 +3630,8 @@ uinteger _event=uinteger(_Head[get_thread_num()]->_id);
 *(p+10)=int16u(_Head[get_thread_num()]->_usec&65535);
 *(p+9)=int16u((_Head[get_thread_num()]->_usec>>16)&65535);
 *(p+11)=0;
+*(p+12)=AMSCommonsI::getbuildno();
+*(p+13)=AMSCommonsI::getg4version();
 }
 
 
@@ -3697,9 +3700,20 @@ void AMSEvent::buildraw(
     usec=(*(p+10)) |  (*(p+9))<<16;
     const uinteger _OffsetT=0x12d53d80;
     if(run<1000000000 && AMSJob::gethead()->isRealData())time+=_OffsetT;
+    if(!AMSJob::gethead()->isSimulation() && !AMSJob::gethead()->isRealData()){
+      static int mess=0;
+      uinteger build=*(p+12);
+      integer g4version=*(p+13);
+      if(!mess++){
+#pragma omp critical (g4version)
+{
+        cout<<"AMSEvent::buildraw-I-ReadingVersion "<<build<<"  Produced by G"<<g4version<<endl;
+      AMSCommonsI::setg4version(g4version);
+      }
+    }
 }
 
-
+}
 
 void AMSEvent::buildraw2009(
               integer type, int16u *p, uinteger & run, uinteger &id,

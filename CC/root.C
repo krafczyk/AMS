@@ -2525,6 +2525,7 @@ bool AMSEventR::ReadHeader(int entry){
 	}
 	else{
 	  cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+          if(G4Version()>0)cout <<"AMSSetupR::ReadHeader-I-G4Version "<<G4Version()<<endl;
 	  cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
 	  cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
 	  for(AMSSetupR::GPS_i i=getsetup()->fGPS.begin();i!=getsetup()->fGPS.end();i++){
@@ -3594,9 +3595,10 @@ void HeaderR::Set(EventNtuple02* ptr){
   Run=       ptr->Run;
   RunType=   ptr->RunType;
   Event=     ptr->Eventno;
-  Raw=       ptr->RawWords%(1<<18);
+  Raw=       ptr->RawWords;
   Error=     ptr->Error;
-  Version=   (ptr->RawWords)>>18;
+  Version=   ptr->Version;
+  G4Version= ptr->G4Version;
   Time[0]=   ptr->Time[0];
   Time[1]=   ptr->Time[1];
   RNDMSeed[0]= ptr->RNDMSeed[0];
@@ -16117,3 +16119,5 @@ const char* AMSEventR::GetCite () const {
     }
     return sitename[numcites-1];
 }
+
+
