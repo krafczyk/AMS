@@ -53,8 +53,8 @@ static int  AB_catch;
 #pragma omp threadprivate (AB_buf,AB_catch)
  AMSCommonsI();
  void init();
- static integer getg4version(){return _g4version;}
- static void setg4version(int version){_g4version=version;}
+ static integer getg4version(){return _g4version%65536;}
+ static void setg4version(int g4version,int version){_g4version=g4version+version*(1<<16);}
  static const char * getversion(){return _version;}
  static integer getbuildno()  {return _build;}
  static uinteger getbuildtime(){return _buildtime;}

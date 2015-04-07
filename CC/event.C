@@ -3700,7 +3700,7 @@ void AMSEvent::buildraw(
     usec=(*(p+10)) |  (*(p+9))<<16;
     const uinteger _OffsetT=0x12d53d80;
     if(run<1000000000 && AMSJob::gethead()->isRealData())time+=_OffsetT;
-    if(!AMSJob::gethead()->isSimulation() && !AMSJob::gethead()->isRealData()){
+    if(length>=calcdaqlength(0) && !AMSJob::gethead()->isSimulation() && !AMSJob::gethead()->isRealData()){
       static int mess=0;
       uinteger build=*(p+12);
       integer g4version=*(p+13);
@@ -3708,7 +3708,7 @@ void AMSEvent::buildraw(
 #pragma omp critical (g4version)
 {
         cout<<"AMSEvent::buildraw-I-ReadingVersion "<<build<<"  Produced by G"<<g4version<<endl;
-      AMSCommonsI::setg4version(g4version);
+      AMSCommonsI::setg4version(g4version,build);
       }
     }
 }

@@ -2525,7 +2525,7 @@ bool AMSEventR::ReadHeader(int entry){
 	}
 	else{
 	  cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
-          if(G4Version()>0)cout <<"AMSSetupR::ReadHeader-I-G4Version "<<G4Version()<<endl;
+          if(G4Version()>0)cout <<"AMSSetupR::ReadHeader-I-G4Version "<<G4Version()<<" Production Version"<<ProductionVersion()<<endl;
 	  cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
 	  cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
 	  for(AMSSetupR::GPS_i i=getsetup()->fGPS.begin();i!=getsetup()->fGPS.end();i++){

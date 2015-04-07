@@ -4650,7 +4650,8 @@ particle (datacards: ESTA 1=1110) for most other status bits
 
 bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set
 bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group
-int G4Version() const {return fHeader.G4Version;}
+int G4Version() const {return fHeader.G4Version%65536;}
+int ProductionVersion() const {return fHeader.G4Version/65536;}
 int Version() const {return G4Version()?fHeader.Version/1024:(std::abs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):1024+fHeader.Version/16);} ///< \return producer version number
 ///
 static AMSSetupR *  getsetup(){return AMSSetupR::gethead();} ///< \return RootSetup Tree Singleton

@@ -2752,7 +2752,7 @@ if(!g4basedir){
 void AMSJob::_signinitjob(){
 
 #ifdef __G4AMS__
-if(isSimulation())AMSCommonsI::setg4version(G4VERSION_NUMBER+40000);
+if(isSimulation())AMSCommonsI::setg4version(G4VERSION_NUMBER+40000,AMSCommonsI::getbuildno());
   if (!try_perform_geant4_autodetection()) {
   // Old G4 autodetection, needs G4INSTALL to contain the "geant4.9.4" string, otherwise it's doing nothing.
   char *g4i=getenv("G4INSTALL");
@@ -2790,7 +2790,7 @@ if(isSimulation())AMSCommonsI::setg4version(G4VERSION_NUMBER+40000);
   }
   }
 #else
-  if(isSimulation())AMSCommonsI::setg4version(32114);
+  if(isSimulation())AMSCommonsI::setg4version(32114,AMSCommonsI::getbuildno());
 #endif
   AMSgObj::BookTimer.book("SetTimeCoo");
 
