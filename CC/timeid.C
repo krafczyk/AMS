@@ -56,11 +56,19 @@ extern LMS* lms;
 int AMSTimeID::_WebAccess=0;
 char AMSTimeID::_WebDir[200]="";
 #endif
+int AMSTimeID::_noupdateable = -1;
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
                      void *pdata, AMSTimeID::CType server,bool verify,trigfun_type fun):
   AMSNode(id),_updateable(-1),_UpdateMe(0),_verify(verify),_pData((uinteger*)pdata),_Type(server){
+  if(_noupdateable == -1) {
+    if (test_noupdateable()) {
+      _noupdateable = 1;
+    } else {
+      _noupdateable = 0;
+    }
+  }
   setmapdir();
   _fname="";
   _trigfun=fun;
@@ -1708,6 +1716,7 @@ map_dir+='/';
 
 bool AMSTimeID::setupdateablemapdir(const char *dir){
 
+	if(_noupdateable == 0) {
             if(_updateable==-1){
              string mkdir="mkdir -p ";
              mkdir+=dir;
@@ -1728,6 +1737,18 @@ bool AMSTimeID::setupdateablemapdir(const char *dir){
              else _updateable=1;
              unlink(file.c_str());
             }
+	} else {
+ 	       cerr <<"AMSTimeID::setupdateablemapdir-W-Unable to initialize  map dir "<<dir<< " because updateablemapdirs have been disabled by the environment variable 'NOUPDATEABLEMAPDIRS'" << endl; 
+	}
 
            return _updateable==1; 
+}
+
+
+bool AMSTimeID::test_noupdateable() {
+	if( getenv("NOUPDATEABLEMAPDIR") != 0) {
+		return true;
+	} else {
+		return false;
+	}
 }

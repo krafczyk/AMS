@@ -161,6 +161,7 @@ protected:
    typedef map <string,AMSTimeID> timeid_m;
     typedef map <string,AMSTimeID>::iterator timeid_i;
     static timeid_m timeid_f;
+    static int _noupdateable;
     int _updateable;
     string map_dir; //  Directory for store the map:  changed to separate one for the convineince of multiple users access/ read-only fs etc
   IBE _ibe;
@@ -219,16 +220,17 @@ public:
   static const uinteger CRC32;
   void      setmapdir(const char *dir=0);
   bool      setupdateablemapdir(const char*dir);
+  static bool test_noupdateable();
 
 
   AMSTimeID():AMSNode(),_trigfun(0),_Variable(false),_updateable(-1),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_NbytesM(0),_CRC(0),
 	      _UpdateMe(0),_verify(true),_pData(0),_DataBaseSize(0),_Type(Standalone)
-  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";setmapdir();}
+  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";setmapdir();_noupdateable=test_noupdateable();}
   
   AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,bool verify=true,CType server=Standalone,trigfun_type fun=0):
     AMSNode(id),_updateable(-1),_Insert(0),_Begin(0),_End(0),_Nbytes(abs(nbytes)),_NbytesM(abs(nbytes)),_UpdateMe(0),_verify(verify),_pData((uinteger*)pdata),
     _DataBaseSize(0),_Type(server)
-  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";setmapdir();_Variable=nbytes<0;}
+  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";setmapdir();_Variable=nbytes<0; _noupdateable=test_noupdateable();}
   
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);
   
