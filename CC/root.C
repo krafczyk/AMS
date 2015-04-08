@@ -10872,7 +10872,8 @@ int AMSEventR::GetBeamPos(double &dist, TrTrackR *track)
     TestBeamPosFile = "/v5.00/TestBeamPos_416.txt.old";
 #ifdef _PGTRACK_
   return GetBeamPos(track->GetP0(), track->GetDir(), dist);
-#else return 0;
+#else
+  return 0;
 #endif
 }
 
