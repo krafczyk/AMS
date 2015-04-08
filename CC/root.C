@@ -10870,9 +10870,13 @@ int AMSEventR::GetBeamPos(double &dist, TrTrackR *track)
 
   if (nMCEventgC() && Version() < 1020)
     TestBeamPosFile = "/v5.00/TestBeamPos_416.txt.old";
-
+#ifdef _PGTRACK_
   return GetBeamPos(track->GetP0(), track->GetDir(), dist);
+#else return 0;
+#endif
 }
+
+
 
 int AMSEventR::GetBeamPos(AMSPoint pnt, AMSDir dir, double &dist)
 {
