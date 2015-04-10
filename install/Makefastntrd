@@ -1,11 +1,13 @@
 #
 SHELL=/bin/sh
 #
+ROOTINCDIR := $(shell $(ROOTSYS)/bin/root-config --incdir)
+ROOTLIBDIR := $(shell $(ROOTSYS)/bin/root-config --libdir)
 ifeq  "$(shell uname)"  "AIX" 
 SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 ROOTLIBS=
-CFLAGS=    -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
-CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl
+CFLAGS=    -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTINCDIR) -I../include/stl
+CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTINCDIR) -I../include/stl
 FFLAGS=    -I../include -O -qextname 
 DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
 LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag $(ROOTLIBS)
@@ -20,8 +22,8 @@ endif
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 ROOTLIBS =
-CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
-CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
+CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTINCDIR) -I../include/stl -define_templates 
+CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I$(ROOTINCDIR) -I../include/stl -define_templates 
 FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
 DFLAGS=  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
 LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys  
@@ -47,12 +49,12 @@ endif
 ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
-#CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -g
-CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+#CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTINCDIR) -g
+CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTINCDIR) -O
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib -L$(AMSWD)/lib/linuxx8664icc  -Bstatic -lntuple_slc4_PG -lRoot  -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc  -lrt
+LDFLAGS= -rdynamic -static-intel -L$(ROOTLIBDIR) -L$(AMSWD)/lib/linuxx8664icc  -Bstatic -lntuple_slc4_PG -lRoot  -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -L/opt/intel/Compiler/11.1/073/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc  -lrt
 CC=/opt/intel/Compiler/11.1/073/bin/intel64/icc  -openmp 
 FF=/opt/intel/Compiler/11.1/073/bin/intel64/ifort  -openmp 
 LD=/opt/intel/Compiler/11.1/073/bin/intel64/icpc  -openmp   $(PARALLEL) 

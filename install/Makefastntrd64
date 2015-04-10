@@ -9,6 +9,8 @@ ifndef AMSDEPLIB
 endif
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
+ROOTINCDIR   := $(shell $(ROOTSYS)/bin/root-config --incdir)
+ROOTLIBDIR   := $(shell $(ROOTSYS)/bin/root-config --libdir)
 ifeq ($(VERSION),5.27)
 VERSIONP=
 else
@@ -22,7 +24,7 @@ DEPDIR        = $(PREFIX)/dep
 AMSPRG        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/fastntrd64.exe
 AMSPRGS        = $(AMSWD)/exe/$(ARCH)$(VERSIONP)/fastntrd.exe
 AMSLIB        = $(AMSWD)/lib/$(ARCH)$(VERSIONP)/libntuple_$(AMSLIBSUFFIX).a
-ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
+ifeq ($(wildcard $(ROOTINCDIR)/Compression.h),)
     LZMAL =
 else
     DEFINES  +=  -D__LZMA__
@@ -70,12 +72,12 @@ endif
     CERNDIRLIB = /afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64.44/lib
   endif
 
-CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -g
+CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTINCDIR) -g
 FFLAGS=   -g -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGSA= -O -static -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L$(CERNDIRLIB)    -lpacklib -lmathlib -lkernlib -lgfortran  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread  $(XRDLIBP) $(XRDLIB)   -lrt
-LDFLAGS= -g -rdynamic -static-libgcc -L$(ROOTSYS)/lib -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L$(CERNDIRLIB)    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   $(XRDLIBP) $(XRDLIB)   -lrt
+LDFLAGSA= -O -static -static-libgcc -L$(ROOTLIBDIR) -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L$(CERNDIRLIB)    -lpacklib -lmathlib -lkernlib -lgfortran  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread  $(XRDLIBP) $(XRDLIB)   -lrt
+LDFLAGS= -g -rdynamic -static-libgcc -L$(ROOTLIBDIR) -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG -lRoot  $(LZMAL) -lcrypt -lcrypto -L$(CERNDIRLIB)    -lpacklib -lmathlib -lkernlib -lgfortran -Bdynamic -lshift -ldl  -Bstatic -lc -lfreetype -lpcre -lncurses -pthread   $(XRDLIBP) $(XRDLIB)   -lrt
 CC=g++ 
 FF=gfortran 
 LD=g++ 
@@ -96,7 +98,7 @@ else
 endif
 endif
 
-CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+CFLAGS=      -D__BATCH__  -I../include   -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTINCDIR) -O
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
@@ -105,8 +107,8 @@ DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl
 ifdef SLC6system
   INTELVER=composer_xe_2013_sp1.1.106/compiler/
 endif
-LDFLAGSA=  -static -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   $(XRDLIBP) $(XRDLIB) -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
-LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -Bstatic $(XRDLIBP) $(XRDLIB) -Bstatic -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
+LDFLAGSA=  -static -L$(ROOTLIBDIR)  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   $(XRDLIBP) $(XRDLIB) -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
+LDFLAGS= -rdynamic -static-intel -L$(ROOTLIBDIR)  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2005/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic -lshift -ldl -lrt  -Bstatic  -lfreetype -lpcre  -lncurses -pthread   -Bstatic $(XRDLIBP) $(XRDLIB) -Bstatic -L$(INTELDIR)/$(INTELVER)/lib/intel64/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
 
 CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  -openmp -axssse3
 FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort  -openmp -axssse3
@@ -125,14 +127,14 @@ ifeq ($(ARCH),linuxx8664k1omicc)
 #
       XRDLIBP += -Bdynamic -L$(AMSDEPLIB)/xrootd.mic-icc64-13/lib64
 #
-      CFLAGS=      -D__BATCH__  -I../include   -DNORFIOD -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+      CFLAGS=      -D__BATCH__  -I../include   -DNORFIOD -D__LINUXGNU__ -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTINCDIR) -O
       FFLAGS=   -O -I../include
       DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl
       #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c
  INTELDIR=/afs/cern.ch/ams/local2/opt/intel/
             INTELVER=composer_xe_2013_sp1.1.106/compiler/
-            LDFLAGSA=  -static -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt  -L//afs/cern.ch/exp/ams/Offline/CERN/2005.mic/lib    -lpacklib -lmathlib -lkernlib   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl -lrt  -Bstatic  -lfreetype -lpcre   -pthread   $(XRDLIBP) $(XRDLIB) -L$(INTELDIR)/$(INTELVER)/lib/mic/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
-            LDFLAGS= -rdynamic -static-intel -L$(ROOTSYS)/lib  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt  -L//afs/cern.ch/exp/ams/Offline/CERN/2005.mic/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic  -ldl -lrt  -Bstatic  -lfreetype -lpcre   -pthread   -Bstatic $(XRDLIBP) $(XRDLIB)  -L$(INTELDIR)/$(INTELVER)/lib/mic/ -lifport -lifcoremt -lintlc -lirng -lsvml -limf  -lipgo -lirc_s  -lirc
+            LDFLAGSA=  -static -L$(ROOTLIBDIR)  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt  -L//afs/cern.ch/exp/ams/Offline/CERN/2005.mic/lib    -lpacklib -lmathlib -lkernlib   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl -lrt  -Bstatic  -lfreetype -lpcre   -pthread   $(XRDLIBP) $(XRDLIB) -L$(INTELDIR)/$(INTELVER)/lib/mic/ -lifport -lifcoremt -limf  -lipgo -lirc_s -limf -lirc
+            LDFLAGS= -rdynamic -static-intel -L$(ROOTLIBDIR)  -L$(AMSWD)/lib/$(ARCH)$(VERSIONP)  -Bstatic -lntuple_$(AMSLIBSUFFIX)_PG  -lRoot $(LZMAL) -lcrypt  -L//afs/cern.ch/exp/ams/Offline/CERN/2005.mic/lib    -lpacklib -lmathlib -lkernlib  -Bdynamic  -ldl -lrt  -Bstatic  -lfreetype -lpcre   -pthread   -Bstatic $(XRDLIBP) $(XRDLIB)  -L$(INTELDIR)/$(INTELVER)/lib/mic/ -lifport -lifcoremt -lintlc -lirng -lsvml -limf  -lipgo -lirc_s  -lirc
 
             CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc  -openmp -mmic
             FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort  -openmp -mmic

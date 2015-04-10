@@ -13,9 +13,15 @@ endif
 AT_0:=@
 AT_1:=
 AT=$(AT_$(VERBOSE))
+
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
+VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
+ROOTINCDIR   := $(shell $(ROOTSYS)/bin/root-config --incdir)
+ROOTLIBDIR   := $(shell $(ROOTSYS)/bin/root-config --libdir)
+
 # List of SLC6 changes
 #
-ifeq ($(wildcard $(ROOTSYS)/include/Compression.h),)
+ifeq ($(wildcard $(ROOTINCDIR)/Compression.h),)
     LZMAL =
 else
     DEFINES  +=  -D__LZMA__
@@ -73,8 +79,6 @@ LIBJPEGFLAG=-L$(LIBJPEGDIR)
 endif
 
 
-ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
-VERSION      := $(shell $(ROOTSYS)/bin/root-config --version | cut -b1-4)
 PLATFORM      =  Linux
 ifeq ($(VERSION),5.27)
 VERSIONP=
@@ -151,7 +155,7 @@ ifeq ($(ARCH),linuxicc)
 
 CXX           =  /afs/cern.ch/ams/local2/opt/intel/Compiler/11.1/073/bin/ia32/icc 
 CPPFLAGS      =    -m32 -D__LINUXGNU__ -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
-		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
+		 -I../include -I$(ROOTINCDIR) -I/usr/include/freetype2   
 CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
 OPT           = -O3
 OPTC          = -O3
@@ -174,7 +178,7 @@ endif
 ifndef NOXROOTD
 ROOTLIBS     += -lNetx 
 endif
-ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage   $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+ROOTLIBSA     =   -L$(ROOTLIBDIR) -lRoot -pthread  -lAfterImage   $(ROOTLIBDIR)/libXrdClient.a -lpcre -lncurses \
 	              -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 $(LIBJPEGFLAG) -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
 
@@ -225,7 +229,7 @@ endif
 
 CXX = $(INTELBIN)/icc
 
-CPPFLAGS     += -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
+CPPFLAGS     += -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTINCDIR) -I/usr/include/freetype2   
 CXXFLAGS      = -Wno-deprecated -openmp  $(OPT) $(CPPFLAGS)
 OPT           = -O3 
 OPTC          = -O3
@@ -257,7 +261,7 @@ endif
 ifndef NOXROOTD
 ROOTLIBS += -lNetx
 endif
-ROOTLIBSA =  -L$(ROOTSYS)/lib -lRoot $(LZMAL) -lcrypto -pthread  -lAfterImage  -lpcre -lncurses \
+ROOTLIBSA =  -L$(ROOTLIBDIR) -lRoot $(LZMAL) -lcrypto -pthread  -lAfterImage  -lpcre -lncurses \
 	         $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
              -lXpm -lXmu -lXt -lXext -lX11 $(LIBJPEGFLAG) -ljpeg -lpng -ltiff
 
@@ -307,7 +311,7 @@ endif
 ifeq ($(ARCH),linux)
 
 CXX           =  g++ -m32 
-CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2
+CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. -I../include -I$(ROOTINCDIR) -I/usr/include/freetype2
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 NOOPT         = -g 
@@ -333,7 +337,7 @@ endif
 ifndef NOXROOTD
 ROOTLIBS += -lNetx 
 endif
-ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
+ROOTLIBSA      = -L$(ROOTLIBDIR) -lRoot -pthread  -lAfterImage $(ROOTLIBDIR)/libXrdClient.a -lpcre -lncurses \
 	          -L$(IMPORTS_X11R6)/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 $(LIBJPEGFLAG) -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys $(LFORT)
 LIBS          =   -Bstatic $(ROOTLIBSA)   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm -Bdynamic -ldl
@@ -360,7 +364,7 @@ endif
 endif
 
 CXX           =  g++
-CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTINCDIR) -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 NOOPT         = -g
@@ -391,7 +395,7 @@ ifndef NOXROOTD
 ROOTLIBS     += -lNetx
 endif
 
-ROOTLIBSA      = -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage  -lpcre $(LZMAL) -lcrypto  -lncurses \
+ROOTLIBSA      = -L$(ROOTLIBDIR) -lRoot -pthread  -lAfterImage  -lpcre $(LZMAL) -lcrypto  -lncurses \
 	             $(IMPORTS_SLC5_LIBS) -L$(IMPORTS_X11R6)/lib64 -lXft -lexpat -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
                  -lXpm -lXmu -lXt -lXext -lX11 $(LIBJPEGFLAG) -ljpeg -lpng -ltiff    $(LFORT)
 LIBS          =  -Wl,--allow-multiple-definition -Bstatic $(ROOTLIBSA)    $(XRDLIBP) $(XRDLIB) -lm -Bdynamic    -lshift  -ldl
@@ -419,13 +423,13 @@ endif
 
 #ifeq ($(ARCH),macosx)
 #CXX           =  g++  -Wno-deprecated
-#CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+#CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTINCDIR) -I/usr/include/freetype2 
 #OPT           = -O2
 #OPTC          = -O0
 #NOOPT         = -g
 #LD            = g++
 #LDFLAGS       = -g  
-#ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
+#ROOTLIBS      =  -L$(ROOTLIBDIR) -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
 
 #LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 #LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -433,29 +437,29 @@ endif
 #ifeq ($(ARCH),win32gcc)
 #PREFIX        = $(AMSWD)/display/cygwin/
 #CXX           =  g++ -Wno-deprecated
-#CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+#CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTINCDIR) -I/usr/include/freetype2 
 #OPT           = -O2
 #OPTC          = -O0
 #NOOPT         = -g
 #NOOPTC         = -g
 #LD            = g++
 #LDFLAGS       = -g 
-#ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll $(RH9add) -L/usr/lib -lshift
-#ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll $(RH9adda) -L/usr/lib -lshift
+#ROOTLIBS      =  -L$(ROOTLIBDIR) -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll $(RH9add) -L/usr/lib -lshift
+#ROOTLIBSA      =  -L$(ROOTLIBDIR) -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll $(RH9adda) -L/usr/lib -lshift
 #LIBS          =  $(ROOTLIBS) -lm 
 #LIBSA          =  $(ROOTLIBSA) -lm 
 #endif
 #ifeq ($(ARCH),win32)
 #PREFIX   = $(AMSWD)/display/wingdk/
 #CXX        =  $(ROOTSYS)/build/win/cxx.sh
-#CXXFLAGS =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -O2 -Z7 -G5 -GR -GX -MD -DWIN32 -DGDK_WIN32  -D_WINDOWS -DWINVER=0x0400 -nologo -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -FIw32pragma.h -D_X86_=1 -D_DLL -DVISUAL_CPLUSPLUS -I../include  -I$(ROOTSYS)/include  /TP
+#CXXFLAGS =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -O2 -Z7 -G5 -GR -GX -MD -DWIN32 -DGDK_WIN32  -D_WINDOWS -DWINVER=0x0400 -nologo -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -FIw32pragma.h -D_X86_=1 -D_DLL -DVISUAL_CPLUSPLUS -I../include  -I$(ROOTINCDIR)  /TP
 #OPT           = 
 #OPTC          = 
 #NOOPT         = -g
 #NOOPTC         = -g
 #LD = $(ROOTSYS)/build/win/ld.sh
 #LDFLAGS       =  -nologo -incremental:yes   -nodefaultlib:libc.lib -nodefaultlib:dfor.lib 
-#LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
+#LIBS          =  $(ROOTLIBDIR)/libCore.lib $(ROOTLIBDIR)/libCint.lib $(ROOTLIBDIR)/libHist.lib $(ROOTLIBDIR)/libHistPainter.lib $(ROOTLIBDIR)/libGui.lib  $(ROOTLIBDIR)/libMatrix.lib $(ROOTLIBDIR)/libGeom.lib $(ROOTLIBDIR)/libPhysics.lib $(ROOTLIBDIR)/libGpad.lib $(ROOTLIBDIR)/libGraf.lib $(ROOTLIBDIR)/libGraf3d.lib $(ROOTLIBDIR)/libTree.lib  $(ROOTLIBDIR)/libRint.lib advapi32.lib
 #ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
 #endif
 
