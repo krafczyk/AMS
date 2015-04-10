@@ -77,6 +77,11 @@
 #pragma link C++ class TRFITFFKEY_DEF+;
 #pragma link C++ class TRCHAFFKEY_DEF+;
 
+#pragma link C++ class threp+;
+#pragma link C++ class HistoProofMan+;
+#pragma link C++ class hashtable<threp>;
+#pragma link C++ class hashtable<TH1*>;
+
 #pragma link C++ class HistoMan;
 #pragma link C++ class TRDMCFFKEY_DEF+;
 #else
