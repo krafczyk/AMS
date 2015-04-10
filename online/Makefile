@@ -117,7 +117,7 @@ LDD	= 	$(LD) -Bdynamic
 ifdef PGTRACK
 LFORT= -lifcore
 else
-LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft.32/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L$(AMSDEPLIB)/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft.32/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L$(AMSDEPLIB)/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -liomp5 
 endif
 
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
@@ -167,7 +167,7 @@ else
   CERNDIRLIB = /afs/cern.ch/exp/ams/Offline/CERN/2005/lib
   LFORT =  -L$(CERNDIRLIB) -lgeant321  -lminuit -lpacklib -lmathlib -lkernlib  -L$(INTELVER)/lib/intel64 -lifport -lifcoremt -limf  -lipgo -lirc_s
   ifndef SLC6system
-    LFORT += -lguide
+    LFORT += -liomp5
   endif
 endif
 LDS	= 	$(LD) -Bstatic
