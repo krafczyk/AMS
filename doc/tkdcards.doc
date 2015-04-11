@@ -185,6 +185,7 @@ R 22    EcalMaxX        Determine the max |X| accepted to associate a layer 9 hi
 I 23    magtemp         magnet temp correction enabled/disabled=1/0 (default 0)
 R 24 Additional fitting error (Layer 1) due to misalignment
 R 25 Additional fitting error (Layer 9) due to misalignment
+I 26 Z-coordinate-shift correction for high charge (Z>=3) or not
 //==============================
 
 

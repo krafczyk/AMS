@@ -539,6 +539,9 @@ void TRFITFFKEY_DEF::init(){
   ErrYL1 =  9.0e-4/1.4;
   /// R 25 Additional fit point error (Layer 9)
   ErrYL9 = 11.5e-4/1.4;
+
+  /// I 26 Z-coordinate-shift correction for high charge (Z>=3) or not
+  Zshift = 0;
 }
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 

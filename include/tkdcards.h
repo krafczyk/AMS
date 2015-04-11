@@ -492,6 +492,9 @@ public:
   /// R 25 Additional fitting error (Layer 9) due to misalignment
   float ErrYL9;
 
+  /// I 26 Z-coordinate-shift correction for high charge (Z>=3) or not
+  int Zshift;
+
 
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
@@ -499,7 +502,7 @@ public:
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,9);
+  ClassDef(TRFITFFKEY_DEF,10);
 };
 //
 
