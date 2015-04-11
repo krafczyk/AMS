@@ -1001,12 +1001,12 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   // Z correction for 3<=Z<=8
   double dzl1 = 0;
   if (TRFITFFKEY.Zshift) {
-    if (chrg > 2.5) { zdyc = -11.0; dzl1 =  70; }
-    if (chrg > 3.5) { zdyc = -18.5; dzl1 =  70; }
-    if (chrg > 4.5) { zdyc = -23.5; dzl1 =  80; }
-    if (chrg > 5.5) { zdyc = -24.5; dzl1 =  90; }
-    if (chrg > 6.5) { zdyc = -25.5; dzl1 =  95; }
-    if (chrg > 7.5) { zdyc = -30.5; dzl1 = 100; }
+    if (chrg > 2.5) { zdyc = -11.0; dzl1 = 40; }
+    if (chrg > 3.5) { zdyc = -18.5; dzl1 = 40; }
+    if (chrg > 4.5) { zdyc = -23.5; dzl1 = 50; }
+    if (chrg > 5.5) { zdyc = -24.5; dzl1 = 55; }
+    if (chrg > 6.5) { zdyc = -25.5; dzl1 = 60; }
+    if (chrg > 7.5) { zdyc = -30.5; dzl1 = 60; }
     zdyc *= 1e-4;
     dzl1 *= 1e-4;
   }
