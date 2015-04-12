@@ -1212,12 +1212,24 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
           AMSPoint cna= hit->GetCoord(-1,5);
           cdif= coo-cna; coo = cna;
 	}
+
+	// Small Z-correction (charge dependent)
+	if (TkDBc::Head && dxdz != 0 && dydz != 0) {
+	  TkLadder *lad = TkDBc::Head->FindTkId(hit->GetTkId());
+	  coo[0] += (lad) ? lad->GetRotMat().GetEl(2, 2)*zdxc*dxdz : 0;
+	  coo[1] += (lad) ? lad->GetRotMat().GetEl(2, 2)*zdyc*dydz : 0;
+	  
+	  if (hit->GetLayerJ() == 1) coo[1] += dzl1*dydz;
+	}
+
          if (TRMCFFKEY.MCtuneDmax > 0 &&
              (TRMCFFKEY.MCtuneDs[0] != 0 ||  TRMCFFKEY.MCtuneDs[1]!=0)) {
             MCtune(coo, hit->GetTkId(), TRMCFFKEY.MCtuneDmax,
                                         TRMCFFKEY.MCtuneDs);
         }
         coo = coo+cdif;
+	Interpolate(coo.z(), pint, pdir, id);
+
 	par.Residual[i][0] = (coo-pint)[0];
 	par.Residual[i][1] = (coo-pint)[1];
 	  
