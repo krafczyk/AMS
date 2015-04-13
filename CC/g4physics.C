@@ -83,6 +83,9 @@
 vector<int> AMSG4Physics::XSId;
 #include "TRD_SimUtil.h"
 #include "G4HadronElasticPhysics.hh"
+#if G4VERSION_NUMBER > 999
+#include "G4HadronHElasticPhysics.hh"
+#endif
 AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsList(),_pg3tog4(0),_pg4tog3(0),_Ng3tog4(0),phadronphysicsinclxx_holder(0)
 {
   // default cut value  (1.0mm) 
@@ -181,21 +184,24 @@ void AMSG4Physics::ConstructProcess()
     }
     if(GCPHYS.IHADR)ConstructHad();
   }
-  //else if(G4FFKEY.PhysicsListUsed==1 || G4FFKEY.PhysicsListUsed==2 || G4FFKEY.PhysicsListUsed==3)
-  else if( G4FFKEY.PhysicsListUsed>=1 && G4FFKEY.PhysicsListUsed<=11 ){ // by WXU
+  else if( G4FFKEY.PhysicsListUsed>=1 ){ // by WXU
     
     if(GCPHYS.ILOSS){
       ConstructEM2();
     }
     if(GCPHYS.IHADR){
 #if G4VERSION_NUMBER < 1000 
-
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
-#else
-      G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics();
-
-#endif
       hadronelastic->ConstructProcess();
+#else
+      if( G4FFKEY.PhysicsListUsed/100 == 0 ) { // default elastic model, CHIPS for proton 
+			G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics();
+			hadronelastic->ConstructProcess();
+		}else if( G4FFKEY.PhysicsListUsed/100==1 ) { // DiffuseElastic for proton
+			G4HadronHElasticPhysics *hadronelastic = new G4HadronHElasticPhysics(); 
+			hadronelastic->ConstructProcess();
+		}
+#endif
 
 //    add elastice scattering to ions
 #if G4VERSION_NUMBER  > 945 
@@ -243,7 +249,7 @@ void AMSG4Physics::ConstructProcess()
 
 
 
-    if(G4FFKEY.PhysicsListUsed==1){
+    if(G4FFKEY.PhysicsListUsed%100==1){
 #if G4VERSION_NUMBER < 1000
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
       cout<<"QGSP Physics List will be used. "<<endl;
@@ -263,7 +269,7 @@ void AMSG4Physics::ConstructProcess()
       }
     }
 
-    if(G4FFKEY.PhysicsListUsed==3){
+    if(G4FFKEY.PhysicsListUsed%100==3){
       cout<<"QGSP_BIC Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000
       HadronPhysicsQGSP_BIC* pqgsp=new HadronPhysicsQGSP_BIC();
@@ -287,7 +293,7 @@ void AMSG4Physics::ConstructProcess()
 
 #if G4VERSION_NUMBER > 945  // version > 945
 //--> Begin by WXU, 2015-02-23
-if(G4FFKEY.PhysicsListUsed==4){
+if(G4FFKEY.PhysicsListUsed%100==4){
 	cout<<"QGSP_BERT Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
 	HadronPhysicsQGSP_BERT *pqgsp = new HadronPhysicsQGSP_BERT();
@@ -306,7 +312,7 @@ if(G4FFKEY.PhysicsListUsed==4){
 #endif
 	}
 }
-if(G4FFKEY.PhysicsListUsed==5){
+if(G4FFKEY.PhysicsListUsed%100==5){
 	cout<<"QGSP_FTFP_BERT Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
 	HadronPhysicsQGSP_FTFP_BERT *pqgsp = new HadronPhysicsQGSP_FTFP_BERT();
@@ -326,7 +332,7 @@ if(G4FFKEY.PhysicsListUsed==5){
 	}
 }
 
-if(G4FFKEY.PhysicsListUsed==6){
+if(G4FFKEY.PhysicsListUsed%100==6){
 	cout<<"FTFP_BERT Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
 	HadronPhysicsFTFP_BERT *pqgsp = new HadronPhysicsFTFP_BERT();
@@ -345,7 +351,7 @@ if(G4FFKEY.PhysicsListUsed==6){
 #endif
 	}
 }
-if(G4FFKEY.PhysicsListUsed==7){
+if(G4FFKEY.PhysicsListUsed%100==7){
 	cout<<"FTFP_BERT_TRV Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
 	HadronPhysicsFTFP_BERT_TRV *pqgsp = new HadronPhysicsFTFP_BERT_TRV();
@@ -364,7 +370,7 @@ if(G4FFKEY.PhysicsListUsed==7){
 #endif
 	}
 }
-if(G4FFKEY.PhysicsListUsed==8){
+if(G4FFKEY.PhysicsListUsed%100==8){
 	cout<<"QGSP_INCLXX Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
 	cout << "QGSP_INCLXX Physics List NOT supported yet" << endl;
@@ -379,7 +385,7 @@ if(G4FFKEY.PhysicsListUsed==8){
 	}
 #endif
 }
-if(G4FFKEY.PhysicsListUsed==9){
+if(G4FFKEY.PhysicsListUsed%100==9){
 	cout<<"FTFP_INCLXX Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
 	cout << "FTFP_INCLXX Physics List Not Supported before Geant 4.10.0 " << endl;
@@ -395,7 +401,7 @@ if(G4FFKEY.PhysicsListUsed==9){
 	}
 #endif
 }
-if(G4FFKEY.PhysicsListUsed==10){
+if(G4FFKEY.PhysicsListUsed%100==10){
 	cout<<"NuBeam Physics List will be used. "<<endl;
 #if G4VERSION_NUMBER < 1000 
 	cout << "NuBeam Physics List Not Supported before Geant 4.10.0" << endl;
@@ -412,7 +418,7 @@ if(G4FFKEY.PhysicsListUsed==10){
 	}
 #endif
 }
-if(G4FFKEY.PhysicsListUsed==11){ // AMS modified QGSP_BIC
+if(G4FFKEY.PhysicsListUsed%100==11){ // AMS modified QGSP_BIC
 	cout << "QGSP_BIC_AMS Physics List will be used. " << endl;
 #if G4VERSION_NUMBER > 999
 	G4HadronPhysicsQGSP_BIC_AMS* pqgsp=new G4HadronPhysicsQGSP_BIC_AMS();
@@ -2422,7 +2428,8 @@ void AMSG4Physics::SaveXS(int ipart){
 
 				for(G4int j=0; j<processVector->size(); j++){
 					bool inelok=false;
-					if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="protonelastic" ;
+					cout << "Process Name : " <<  (*processVector)[j]->GetProcessName() << endl;
+					if(theParticle==G4Proton::Definition())inelok= ((*processVector)[j]->GetProcessName()=="protonelastic" || (*processVector)[j]->GetProcessName()=="hadElastic") ;
 					else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="antielastic" ;
 					else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"  ;
 					else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"    ;
