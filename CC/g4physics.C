@@ -202,22 +202,26 @@ void AMSG4Physics::ConstructProcess()
 			hadronelastic->ConstructProcess();
 		}
 
-		// proton elastic scattering cross section scaling
+		// proton / antiproton elastic scattering cross section scaling
 		if(G4FFKEY.HCrossSectionBias[1]!=1){
-			cout<<"AMSG4Physics::ConstructProcess-I-ProtonElasticCrossectionBias "<<G4FFKEY.HCrossSectionBias[1]<<endl;
-			char *name = "proton";
-			G4ParticleDefinition* theParticle =	theParticleTable->FindParticle(G4String(name)); // find proton
-			G4ProcessManager * processManager = theParticle->GetProcessManager();
-			G4ProcessVector * processVector = processManager->GetProcessList();
-			for(G4int j=0; j<processVector->size(); j++){
-				bool inelok=false;
-				if(theParticle==G4Proton::Definition())inelok= (*processVector)[j]->GetProcessName()=="hadElastic" ;
-				G4HadronElasticProcess * hadronElasticProcess = dynamic_cast<G4HadronElasticProcess*>((*processVector)[j]);
-				if( inelok && hadronElasticProcess ){
-					hadronElasticProcess->BiasCrossSectionByFactor2( G4FFKEY.HCrossSectionBias[1] );
+			char *name[2] = { "proton", "anti_proton" };
+			for(int iparticle=0; iparticle<2; iparticle++){
+				G4ParticleDefinition* theParticle =	theParticleTable->FindParticle(G4String(name[iparticle])); // find particle
+				G4ProcessManager * processManager = theParticle->GetProcessManager();
+				G4ProcessVector * processVector = processManager->GetProcessList();
+				for(G4int j=0; j<processVector->size(); j++){
+					bool inelok=false;
+					if(theParticle==G4Proton::Definition()) inelok= (*processVector)[j]->GetProcessName()=="hadElastic" ;
+					else if(theParticle==G4AntiProton::Definition()) inelok= (*processVector)[j]->GetProcessName()=="hadElastic" ;
+					G4HadronElasticProcess * hadronElasticProcess = dynamic_cast<G4HadronElasticProcess*>((*processVector)[j]);
+					if( inelok && hadronElasticProcess ){
+						cout<<"AMSG4Physics::ConstructProcess-I-ElasticCrossectionBias "<<G4FFKEY.HCrossSectionBias[1] << " for particle " << name[iparticle] <<endl;
+						hadronElasticProcess->BiasCrossSectionByFactor2( G4FFKEY.HCrossSectionBias[1] );
+					}
 				}
 			}
 		}
+
 #endif
 
 //    add elastice scattering to ions
@@ -2448,7 +2452,7 @@ void AMSG4Physics::SaveXS(int ipart){
 					bool inelok=false;
 					cout << "Process Name : " <<  (*processVector)[j]->GetProcessName() << endl;
 					if(theParticle==G4Proton::Definition())inelok= ((*processVector)[j]->GetProcessName()=="protonelastic" || (*processVector)[j]->GetProcessName()=="hadElastic") ;
-					else if(theParticle==G4AntiProton::Definition())inelok= (*processVector)[j]->GetProcessName()=="antielastic" ;
+					else if(theParticle==G4AntiProton::Definition())inelok= ((*processVector)[j]->GetProcessName()=="antielastic" || (*processVector)[j]->GetProcessName()=="hadElastic" ) ;
 					else if(theParticle== G4Alpha::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"  ;
 					else if(theParticle==   G4He3::Definition())inelok= (*processVector)[j]->GetProcessName()=="ionelastic"    ;
 					else if(theParticle==   G4Triton::Definition())inelok=  (*processVector)[j]->GetProcessName()=="ionelastic"    ;
