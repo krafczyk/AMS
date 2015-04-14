@@ -3001,7 +3001,7 @@ int AMSEventR::SetDefaultMCTuningParameters()
   if (!mcGen) return 2;
 
   // particle G3 id.
-  short particle = fabs(mcGen->Particle);
+  short particle = std::abs(mcGen->Particle);
   int charge=mcGen->Charge;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
