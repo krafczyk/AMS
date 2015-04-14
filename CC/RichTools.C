@@ -131,7 +131,7 @@ void GeomHash::grow(int *pointers,int *scratch,int min_size){
 void GeomHash::store(int *pointers,int size,int parent){
   checkBuffers();
   int currentHashNumber=numNodes++;					
-  int trueParent=fabs(parent)-1;					
+  int trueParent=std::abs(parent)-1;					
   int parentNode=parent<0?0:1;						
   nodes[parentNode].at(trueParent)=-currentHashNumber-1;
   

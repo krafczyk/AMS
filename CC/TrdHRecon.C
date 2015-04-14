@@ -156,7 +156,7 @@ int TrdHReconR::DoPrefit(int debug){
       // check distance to known maxima - check in 3x3 box around maximum
       int cb=-1;
       int biter=0;
-      for(vector<BIN>::iterator b=maxima.begin();b!=maxima.end();b++,biter++)if(fabs(i->x-b->x)<=1&&fabs(i->y-b->y)<=1){cb=biter;break;}
+      for(vector<BIN>::iterator b=maxima.begin();b!=maxima.end();b++,biter++)if(std::abs(i->x-b->x)<=1&&std::abs(i->y-b->y)<=1){cb=biter;break;}
       
       // if maximum already existing (cb>-1) check to overwrite else new maximum
       if(cb==-1)maxima.push_back(*i);
@@ -167,7 +167,7 @@ int TrdHReconR::DoPrefit(int debug){
     for(vector<BIN>::iterator i=maxima.begin();i!=maxima.end();i++){
       int jiter=0;
       for(vector<BIN>::iterator j=i+1;j!=maxima.end();j++,jiter++){
-	if(fabs(i->x-j->x)<=1&&fabs(i->y-j->y)<=1){
+	if(std::abs(i->x-j->x)<=1&&std::abs(i->y-j->y)<=1){
 	  if(maxima[jiter].c<=i->c)maxima[jiter].c=0;
 	  else i->c=0;
 	}
@@ -198,8 +198,8 @@ int TrdHReconR::DoPrefit(int debug){
     for(vector<BIN>::iterator j=maxima.begin();j!=maxima.end();j++,miter2++){
       float w=0.0, sx=0.0, sy=0.0, sz=0.0,sw=0.0,zmin=200.0,zmax=0.0;
       for(vector<BIN>::iterator b=hist->bins.begin();b!=hist->bins.end();b++){
-	if( fabs(b->x-j->x)<=width &&
-	    fabs(b->y-j->y)<=width   ){
+	if( std::abs(b->x-j->x)<=width &&
+	    std::abs(b->y-j->y)<=width   ){
 	  
 	  w  =  (float)b->c * (b->zmax-b->zmin);
 	  sx += w * (hist->Xlo+(hist->Xup-hist->Xlo)*((float)b->x+0.5)/(float)hist->nbx);

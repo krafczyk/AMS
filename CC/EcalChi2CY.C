@@ -2474,7 +2474,7 @@ int EcalCR::get_esh_axis(float* Edep_raw,int* Max_layer_cell,float* init_raw_cr,
 	//Simple check of max cell compatibility
 	bool goodsl[9];
 	for(int i1=0;i1<9;i1++){
-		if(fabs(Max_layer_cell[2*i1]-Max_layer_cell[2*i1+1])<2)
+		if(std::abs(Max_layer_cell[2*i1]-Max_layer_cell[2*i1+1])<2)
 			goodsl[i1]=true;
 		else
 			goodsl[i1]=false;

@@ -1137,7 +1137,7 @@ class TrdSCalibR {
   bool TrdHitSortFunction_TrkD(AC_TrdHits* Hit1, AC_TrdHits* Hit2) {return (fabs(Hit1->TrkD)<fabs(Hit2->TrkD));}
 
   /// sort hits according to layer
-  bool TrdHitSortFunction_Lay(AC_TrdHits* Hit1, AC_TrdHits* Hit2) {return (fabs(Hit1->Lay)<fabs(Hit2->Lay));}
+  bool TrdHitSortFunction_Lay(AC_TrdHits* Hit1, AC_TrdHits* Hit2) {return (std::abs(Hit1->Lay)<std::abs(Hit2->Lay));}
 
   /// fill TrdNHits from TrdRawHit at given event
   int InitiateTrdRawHit(AMSEventR *pev, vector<AC_TrdHits> &TrdHits, int Debug=0);
