@@ -98,6 +98,8 @@ DEFINES+=-D__OSXVER__=$(OSXVER)
 # Same for Wno-gnu-static-float-init & Wno-deprecated-writable-strings (requires lots of work.)
 TEST_OSXVER=$(shell test $(1) -$(2) $(3); echo $$?)
 OSXVER_LT_1090 := $(call TEST_OSXVER,$(OSXVER),lt,1090)
+OSXVER_LT_10103 := $(call TEST_OSXVER,$(OSXVER),lt,10103)
+
 ifeq "$(OSXVER_LT_1090)" "0"
 CFLAGSB=-Wall -Werror -Wno-reorder -Wno-unused-function -Wno-missing-braces -Wno-deprecated -Wno-write-strings
 else
@@ -106,6 +108,10 @@ CFLAGSB=-Wall -Werror -Wno-reorder -Wno-unused-function -Wno-missing-braces -Wno
 else
 CFLAGSB=-Wall -Werror -Wno-reorder -Wno-unused-function -Wno-missing-braces -Wno-gnu-static-float-init -Wno-deprecated -Wno-deprecated-writable-strings
 endif
+endif
+
+ifeq "$(OSXVER_LT_10103)" "1"
+CFLAGSB+=-Wno-absolute-value -Wno-pointer-bool-conversion -Wno-undefined-bool-conversion
 endif
 
 ifdef G4MULTITHREADED
