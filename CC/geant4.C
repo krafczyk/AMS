@@ -918,13 +918,12 @@ cout <<" k "<<k<<" "<<AMSEvent::gethead()->get_thread_num()<<" "<<fa->fList[k]->
 }
 }
 */
-
+}
        hman.Fill("G4MemoryMB-1",GCFLAG.IEVENT,sms/1000000);
        hman.Fill("G4MemoryMB-2",GCFLAG.IEVENT,sml);
        hman.Fill("G4MemoryMB-3",GCFLAG.IEVENT,1);
 
 
-}
 #endif
 }
 
