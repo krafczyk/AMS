@@ -49,10 +49,10 @@
 #include "HadronPhysicsQGSP_BIC.hh"
 #else
 #include "G4HadronPhysicsQGSP_BIC.hh"
-#include "G4IonINCLXXPhysics.hh"
 #endif
 
 #if G4VERSION_NUMBER > 945 //
+#include "G4IonINCLXXPhysics.hh"
 #if G4VERSION_NUMBER > 999 //
 #include "G4HadronPhysicsQGSP_BERT.hh"
 #include "G4HadronPhysicsQGSP_FTFP_BERT.hh"
@@ -490,6 +490,7 @@ bool worker=true;
          if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       } 
   else if(G4FFKEY.IonPhysicsModel%10==4){
+#if G4VERSION_NUMBER > 999 
         cout<<"AMS IonINCLXXPhysics  will be used"<<endl;
        G4IonINCLXXPhysics *ph=new G4IonINCLXXPhysics("INCLXX");
        if(G4FFKEY.ProcessOff/10%10==0){
@@ -499,6 +500,10 @@ bool worker=true;
         cout<<"ionInElasticCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
         for(int k=0;k<ph->p_list->size();k++)(*(ph->p_list))[k]->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
        }
+#else
+cerr<<"Physics List no "<<G4FFKEY.PhysicsListUsed<<" Not Yet Supported"<<endl;
+    abort();
+#endif
 }
 
     }
