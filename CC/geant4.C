@@ -107,8 +107,8 @@ AMSG4Physics * pph = new AMSG4Physics();
 
 void g4ams::G4INIT(){
 #if G4VERSION_NUMBER  > 999
-G4AllocatorPool::Threshold=MISCFFKEY.G4AllocatorSize;
-cout<<"  g4AMS::G4INIT-I-MaxG4AllocatorSize "<<G4AllocatorPool::Threshold<<endl;
+G4AllocatorPool::gThreshold=MISCFFKEY.G4AllocatorSize;
+cout<<"  g4AMS::G4INIT-I-MaxG4AllocatorSize "<<G4AllocatorPool::gThreshold<<endl;
 #endif
 
 // Initialize Random Number Generator
@@ -361,7 +361,7 @@ AMSgObj::BookTimer.stop("MCEVENTG");
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
 #if G4VERSION_NUMBER  > 999
-     G4AllocatorPool::Threshold=0;
+     G4AllocatorPool::gThreshold=0;
 #endif
      return;
     }   
@@ -641,7 +641,7 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
 #if G4VERSION_NUMBER  > 999
-     G4AllocatorPool::Threshold=0;
+     G4AllocatorPool::gThreshold=0;
 #endif
      return; 
  }   
@@ -682,7 +682,7 @@ if(!G4Threading::IsWorkerThread() )return;
       GCFLAG.IEOTRI=1;
       GCTIME.ITIME=1;
 #if G4VERSION_NUMBER  > 999
-      G4AllocatorPool::Threshold=0; 
+      G4AllocatorPool::gThreshold=0; 
 #endif
     }
   }
@@ -695,10 +695,10 @@ if(!G4Threading::IsWorkerThread() )return;
       
     }
 #if G4VERSION_NUMBER  > 999
-    if(G4AllocatorPool::Threshold>500000 &&gams::mem_not_enough(150000*(1+AMSEvent::get_num_threads()))){
+    if(G4AllocatorPool::gThreshold>500000 &&gams::mem_not_enough(150000*(1+AMSEvent::get_num_threads()))){
 #pragma omp atomic
-      G4AllocatorPool::Threshold/=sqrt(2.);
-      cout<<"  AMSG4EventAction::EndOfEventAction-W-MemoryMayNotBeEnough Setting Threshold "<< G4AllocatorPool::Threshold<<endl;
+      G4AllocatorPool::gThreshold/=sqrt(2.);
+      cout<<"  AMSG4EventAction::EndOfEventAction-W-MemoryMayNotBeEnough Setting Threshold "<< G4AllocatorPool::gThreshold<<endl;
             
     }
 #endif
@@ -707,14 +707,14 @@ if(!G4Threading::IsWorkerThread() )return;
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
 #if G4VERSION_NUMBER  > 999
-      G4AllocatorPool::Threshold=0;
+      G4AllocatorPool::gThreshold=0;
 #endif
     }
     if(G4FFKEY.MemoryLimit>0 && long(mall-minit)>G4FFKEY.MemoryLimit){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
 #if G4VERSION_NUMBER  > 999
-      G4AllocatorPool::Threshold=0;
+      G4AllocatorPool::gThreshold=0;
 #endif
       cout<<"  AMSG4EventAction::EndOfEventAction-I-Memory Allocation "<<mall<<endl;
       cerr<<"  AMSG4EventAction::EndOfEventAction-W-TerminatingRun "<<mall<<" "<<G4FFKEY.MemoryLimit<<endl;
@@ -849,7 +849,7 @@ if(!G4Threading::IsWorkerThread() )return;
     GCFLAG.IEOTRI=1;
     GCFLAG.IEORUN=1;
 #if G4VERSION_NUMBER  > 999
-    G4AllocatorPool::Threshold=0;
+    G4AllocatorPool::gThreshold=0;
 #endif
    }
 //   cout <<" GCFLAG.IEVENT B "<<GCFLAG.NEVENT<<" "<<GCFLAG.IEVENT<<" "<< GCFLAG.IEOTRI<<" "<<GCFLAG.IEORUN<<endl;
@@ -868,42 +868,6 @@ void AMSG4EventAction::MemoryManagement(const G4Event* anEvent){
 
 //debug only
 
-if(0){
-map <G4NavigationLevelRep*,int> fmap;
-G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
-if(fa){
-for(int k=0;k<fa->fList.size();k++){
-if(strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
-cout <<" k "<<k<<" "<<AMSEvent::gethead()->get_thread_num()<<" "<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
-}
-}
-}
-
-
-for(int i=0;i<G4NavigationHistoryPool::GetInstance()->fPool.size();i++){
-for(int k=0;k<G4NavigationHistoryPool::GetInstance()->fPool[i]->size();k++){
-G4NavigationLevelRep *p=((*(G4NavigationHistoryPool::GetInstance()->fPool[i]))[k]).fLevelRep;
-fmap.insert(make_pair(p,p->fCountRef));
-}
-}
-int ssize3=0;
-for(map<G4NavigationLevelRep*,int>::iterator it=fmap.begin();it!=fmap.end();++it){
-ssize3+=it->second;
-}
-int inpool=0;
-for(int k=0;k<fa->fList.size();k++){
-if(strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
-cout <<" k "<<k<<fa->fList[k]->tn<<" "<<fa->fList[k]->GetNoPages()<<" "<<fa->fList[k]->GetAllocatedSize()<<" "<<fa->fList[k]->GetUsed()<<" "<<fa->fList[k]->GetFree()<<" "<<endl;
-for(map<G4NavigationLevelRep*,int>::iterator it=fmap.begin();it!=fmap.end();++it){
-if(fa->fList[k]->GetChunk(it->first))inpool++;
-}
-break;
-}
-}
-
-
-cout <<" fmap before "<<fmap.size()<<" "<<ssize3<<" "<<inpool<<endl;
-}
 
 // no garbage collection for singlethreaded jobs by request
 if(AMSEvent::get_num_threads()==1 && !MISCFFKEY.G4AllocatorSize)return;
@@ -911,98 +875,32 @@ if(AMSEvent::get_num_threads()==1 && !MISCFFKEY.G4AllocatorSize)return;
 const int gmes=1000000;
  static int mess=0;
 
-/*
-
-not used any more
-
-//  G4HistoryPool erase;
-
- G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
-if(fa){
-for(int k=0;k<fa->fList.size();k++){
-  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
-int serase=0;
-int erase=0;
-for(int i=G4NavigationHistoryPool::GetInstance()->fActive.size()-1;i>=-1;i--){
-if(i==-1 || G4NavigationHistoryPool::GetInstance()->fActive[i] ){
-G4NavigationHistoryPool::GetInstance()->fActive.erase(G4NavigationHistoryPool::GetInstance()->fActive.begin()+i+1,G4NavigationHistoryPool::GetInstance()->fActive.begin()+i+erase+1);
- G4NavigationHistoryPool::GetInstance()->fPool.erase(G4NavigationHistoryPool::GetInstance()->fPool.begin()+i+1,G4NavigationHistoryPool::GetInstance()->fPool.begin()+i+erase+1);
-erase=0;
-}
-else {
-delete G4NavigationHistoryPool::GetInstance()->fPool[i];
-erase++;
-serase++;
-}
-
-}
-if(mess++<gmes/1000){
-  cout<<"G4AMSG4EventAction::MemoryManagement-I-G4NavigationHistoryPoolErased "<<serase<<endl;
-
-}
-break;
-}
-}
-}
-
-
-*/
 
 
 
-//  G4History erase;
 
  G4AllocatorList *fa=G4AllocatorList::GetAllocatorListIfExist();
-/*
-if(fa){
-for(int k=0;k<fa->fList.size();k++){
-  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4NavigationLevelRep")){
-
-  G4Navigator* theNavigator =G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
-   int erase=0;
-   if(theNavigator){
-     erase=theNavigator->fHistory.fNavHistory.size();
-     if(erase>1){
-      theNavigator->fHistory.fNavHistory.erase(theNavigator->fHistory.fNavHistory.begin()+1,theNavigator->fHistory.fNavHistory.end());
-      theNavigator->fHistory.fStackDepth=0;
-     }
-     erase-=theNavigator->fHistory.fNavHistory.size();
-    }
-
-if(mess++<gmes/1000){
-  cout<<"G4AMSG4EventAction::MemoryManagement-I-G4NavigationHistoryErased "<<erase<<endl;
-
-}
-break;
-}
-}
-}
-
-*/
 
 // G4Allocators Erase
 
 
-unsigned long long garb=fa->CollectGarbage(abs(MISCFFKEY.G4AllocatorSize));
-garb/=1000000;
-if(garb && mess++<gmes/1000){
-  cout<<"G4AMSG4EventAction::MemoryManagement-I-GarbageCollected "<<garb<<endl;
-}
 
 long long  ms=fa->GetAllocatedSize();
 long long  ml=fa->GetNoPages();
 
 // Unsafe Nethod if  no garbage collection done
-if(MISCFFKEY.G4AllocatorSize==0){
-for(int k=0;k<fa->fList.size();k++){
-  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4Track")){
-     fa->fList[k]->ResetStorage();
-  }
-  if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4DynamicParticle")){
-     fa->fList[k]->ResetStorage();
-  }
-}
-}
+ if(MISCFFKEY.G4AllocatorSize==0){
+ for(int k=0;k<fa->fList.size();k++){
+   if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4Track")){
+        fa->fList[k]->ResetStorage();
+          }
+            if(fa->fList[k]->GetAllocatedSize()>abs(MISCFFKEY.G4AllocatorSize) &&strstr(fa->fList[k]->tn.c_str(),"G4DynamicParticle")){
+                 fa->fList[k]->ResetStorage();
+                   }
+                   }
+                   }
+
+
 totals[AMSEvent::get_thread_num()]=ms;
 totall[AMSEvent::get_thread_num()]=ml;
 long long sms=0;

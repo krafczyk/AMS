@@ -49,6 +49,7 @@
 #include "HadronPhysicsQGSP_BIC.hh"
 #else
 #include "G4HadronPhysicsQGSP_BIC.hh"
+#include "G4IonINCLXXPhysics.hh"
 #endif
 
 #if G4VERSION_NUMBER > 945 //
@@ -488,10 +489,23 @@ bool worker=true;
          IonDPMJETPhysics* pamshi = new IonDPMJETPhysics; //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
          if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       } 
+  else if(G4FFKEY.IonPhysicsModel%10==4){
+        cout<<"AMS IonINCLXXPhysics  will be used"<<endl;
+       G4IonINCLXXPhysics *ph=new G4IonINCLXXPhysics("INCLXX");
+       if(G4FFKEY.ProcessOff/10%10==0){
+          ph->ConstructProcess();
+       }
+       if(G4FFKEY.HCrossSectionBias[0]!=1){
+        cout<<"ionInElasticCrossectionWillBeBiasedBy   "<<G4FFKEY.HCrossSectionBias[0]<<endl;
+        for(int k=0;k<ph->p_list->size();k++)(*(ph->p_list))[k]->BiasCrossSectionByFactor2(G4FFKEY.HCrossSectionBias[0]);
+       }
+}
+
     }
   }
   
 //---
+
   else{
     cerr<<"Physics List no "<<G4FFKEY.PhysicsListUsed<<" Not Yet Supported"<<endl;
     abort();
