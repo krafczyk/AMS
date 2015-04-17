@@ -736,6 +736,7 @@ I 7 IonPhysicsModel(2013) // Physics Model for Ion as WZXY
                         //     1: BLIC, Binary Light Ion Cascade (not supposed to be valid after 10 GeV/n)
                         //     2: QMD, Quantum Molecular Dynamics (not supposed to be valid after 10 GeV/n) 
                         //     3: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) 
+                        //     4:  INCLXX +FTF 
 I 8 UseEMDModel(1)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
