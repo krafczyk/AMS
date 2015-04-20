@@ -61,7 +61,7 @@ void IonDPMJETPhysics::ConstructProcess()
   //--Model Binary Cascade Low Energy
   theIonBC = new G4BinaryLightIonReaction();
   theIonBC->SetMinEnergy(0.0);
-  theIonBC->SetMaxEnergy(5*GeV);
+  theIonBC->SetMaxEnergy(100*GeV); // FIX ME what to do with projectles with a>58 ??? 
   //--High Energy
   theIonBC1 = new G4BinaryLightIonReaction();
   theIonBC1->SetMinEnergy(dpmemin);

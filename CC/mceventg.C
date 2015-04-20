@@ -157,6 +157,8 @@ void AMSmceventg::gener(){
     //      _dir[0],_dir[1],_dir[2]);
   }
   else if(CCFFKEY.low==9){ // test beam mode from file
+#pragma omp critical (readfromgenerfile)
+    {
     static int readfile=0;
     static int index=0;
     static int maxlist=0;
@@ -168,10 +170,9 @@ void AMSmceventg::gener(){
       sprintf(filename,"%s/TestBeamPos_%03.0f.txt",AMSDATADIR.amsdatadir,CCFFKEY.dir[5]);
       maxlist=readposfromfile(filename,poslist);
       if(maxlist<0) {
-	printf("AMSmceventg::gener-E-: Cannot open file with TB postions filename:%s\n",filename);
+	printf("AMSmceventg::gener-F-: Cannot open file with TB postions filename:%s\n",filename);
 	printf("Sorry I give up \n");
-	exit(-5);
-	return;
+	abort();
       }
       readfile=1;
     }
@@ -210,7 +211,7 @@ void AMSmceventg::gener(){
 //     printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
 // 	   _coo[0],_coo[1],_coo[2],
 // 	   _dir[0],_dir[1],_dir[2]);
-
+    }
 #ifdef _PGTRACK_
   }else if(CCFFKEY.low==10){ // realistic orbit generator for plaen1/9 movement studies
 
