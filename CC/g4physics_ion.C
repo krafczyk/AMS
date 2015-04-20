@@ -61,7 +61,7 @@ void IonDPMJETPhysics::ConstructProcess()
   //--Model Binary Cascade Low Energy
   theIonBC = new G4BinaryLightIonReaction();
   theIonBC->SetMinEnergy(0.0);
-  theIonBC->SetMaxEnergy(dpmemin+0.1*GeV);
+  theIonBC->SetMaxEnergy(5*GeV);
   //--High Energy
   theIonBC1 = new G4BinaryLightIonReaction();
   theIonBC1->SetMinEnergy(dpmemin);
