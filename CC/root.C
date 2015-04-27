@@ -14911,6 +14911,23 @@ double ds=dsxy[1];
          1.76929,1.59101,1.4636, 1.35053, 1.26915, 1.15478, 1.0727,  1.02017, 0.974839,0.894613,//L8N
          1.41814,1.29551,1.21576,1.15764, 1.10748, 1.04375, 0.999109,0.960645,0.927779,0.880501,//L9N=av
      };
+
+//---boron point by point resolution tuning
+///---FullSpan-Geom Total P6-Time(-530)
+     static const int nnodefnz5p6f=9;
+     static double nodefnz5p6f[nnodefnz5p6f]={7,10,15,20,25,30,35,40,55};//B-B1024+New dY/dZ-ISSAlign (Q.Yan 2015-04-27 id=-530)
+     static double shinkparnz5p6f[][nnodefnz5p6f]={
+         0.341554,0.313877,0.264426,0.306761,0.420416,0.456799,0.523447,0.574963,0.616604,//L1=av
+         0.341554,0.313877,0.264426,0.306761,0.420416,0.456799,0.523447,0.574963,0.616604,//L2=av
+         0.336123,0.305277,0.261049,0.29516, 0.397458,0.41775, 0.483157,0.537484,0.571017,//L3N
+         0.335922,0.308575,0.248922,0.380135,0.548101,0.587011,0.653916,0.695137,0.70754, //L4N 
+         0.352119,0.333003,0.279674,0.337442,0.39558, 0.409753,0.457967,0.508691,0.565929,//L5N         
+         0.333998,0.312778,0.266261,0.304575,0.446868,0.488269,0.585206,0.651015,0.686324,//L6N
+         0.356658,0.330169,0.272512,0.29919, 0.421987,0.454466,0.525923,0.57843, 0.619245,//L7N
+         0.334506,0.293462,0.258139,0.224066,0.312501,0.383544,0.434516,0.47902, 0.549568,//L8N
+         0.341554,0.313877,0.264426,0.306761,0.420416,0.456799,0.523447,0.574963,0.616604,//L9=av
+     };
+
 /// lithium point by point resolution tuning
 //---L1Inner-Geom P4-Time(T<2013-12-26)
       static const int nnodefnz3=7;
@@ -14970,7 +14987,7 @@ double ds=dsxy[1];
       };
 
 //<<-----------Tuning Version------
-      static const int nz=3;
+      static const int nz=4;
       static const int nvers=6;
       static TSpline3 *tkspline[nz][nvers][9]={{{0}}};
       int iz=-1;
@@ -15012,6 +15029,12 @@ double ds=dsxy[1];
               if      (res<nodefnz6p6f3[0])res=nodefnz6p6f3[0];
               else if (res>nodefnz6p6f3[nnodefnz6p6f3-1])res=nodefnz6p6f3[nnodefnz6p6f3-1];
            }
+        }
+        else if(ds<=-500){//Boron //L1InnerL9Geom P6-Time id=-530
+           iz=3;
+           if(tkspline[iz][ivers][lj-1]==0)tkspline[iz][ivers][lj-1]=new TSpline3(Form("tktunesplinez5_l%d_v%d",lj,ivers),nodefnz5p6f,shinkparnz5p6f[lj-1],nnodefnz5p6f,"b1e1",0,0);
+           if      (res<nodefnz5p6f[0])res=nodefnz5p6f[0];
+           else if (res>nodefnz5p6f[nnodefnz5p6f-1])res=nodefnz5p6f[nnodefnz5p6f-1];
         }
         else if(ds<=-300){//Lithium
            iz=1;
