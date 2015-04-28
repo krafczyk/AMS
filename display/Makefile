@@ -119,6 +119,11 @@ VERGCCH := 1
 endif
 endif 
 
+ifeq ($(GCC_VER_MAJOR),5)
+VERGCC := 1
+VERGCCH := 1
+endif
+
 ifeq ($(VERSION),5.27)
 ifndef SLC6system
   XRDLIB = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 

@@ -44,6 +44,11 @@ VERGCCH := 1
 endif
 endif 
 
+ifeq ($(GCC_VER_MAJOR),5)
+VERGCC := 1
+VERGCCH := 1
+endif
+
 ifndef AMSWD
 AMSWD := ..
 endif
