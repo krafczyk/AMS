@@ -135,11 +135,14 @@ for ( unsigned int i=0;i<TRDDBc::TRDOctagonNo();i++){
       for (unsigned int j=0;j<TRDDBc::LayersNo(i);j++){
 	  for(unsigned int k=0;k<TRDDBc::LaddersNo(i,j);k++){
             for (unsigned int l=0;l<TRDDBc::TubesNo(i,j,k);l++){
-             float amp=rnormx();
-             if(amp>TRDMCFFKEY.Thr1R){
-              AMSTRDIdGeom id(j,k,l,i);
-              AMSTRDIdSoft idsoft(id);
-              AMSTRDRawHit *p =new AMSTRDRawHit(idsoft,amp*idsoft.getsig()*TRDMCFFKEY.f2i);
+             AMSTRDIdGeom id(j,k,l,i);
+             AMSTRDIdSoft idsoft(id);
+             float amp=idsoft.getsig()*rnormx();
+             // calculate sigma for data reduction
+             float sigmaDR = std::max(TRDMCFFKEY.MinSigma, idsoft.getsig()); // at least MinSigma
+             sigmaDR       = std::min(TRDMCFFKEY.MaxSigma, sigmaDR);         // at most MaxSigma
+             if(amp>fabs(TRDMCFFKEY.Thr1R*sigmaDR)){
+              AMSTRDRawHit *p =new AMSTRDRawHit(idsoft,amp*TRDMCFFKEY.f2i);
               AMSTRDRawHit *ph= (AMSTRDRawHit *)AMSEvent::gethead()->getheadC(AMSID("AMSTRDRawHit",idsoft.getcrate()));
               if(!ph){
                   AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),p);
