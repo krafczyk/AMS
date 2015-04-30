@@ -1376,7 +1376,7 @@ all:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
-	$(MAKE) -j producer
+	$(MAKE)  producer -i
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
@@ -1385,7 +1385,7 @@ allg4:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
-	$(MAKE) -j producer
+	$(MAKE)  producer -i
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
@@ -1399,7 +1399,7 @@ allp:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
-	$(MAKE) -j producer
+	$(MAKE)  producer -i
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
@@ -1408,7 +1408,7 @@ allp:
 allold:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
-	$(MAKE) -j producer
+	$(MAKE)  producer -i
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
