@@ -3047,7 +3047,12 @@ int AMSEventR::SetDefaultMCTuningParameters()
 //     TRMCFFKEY.MCtuneDs[1] = -610.;//New point tuning based on each layer, P6Time L1Inner-Geom
 //     TRMCFFKEY.MCtuneDs[1] = -600.;//New point tuning based on each layer, P4Time L1Inner-Geom
    }
-// lithium
+ // boron
+  else if(particle == 65 || particle == 66 ){
+     TRMCFFKEY.MCtuneDs[0] =  0.0;
+     TRMCFFKEY.MCtuneDs[1] = -531.3;
+  }
+ // lithium
   else if(particle == 61 || particle == 62){
      TRMCFFKEY.MCtuneDs[0] =  0.0;
      TRMCFFKEY.MCtuneDs[1] = -330.;//New point tuning based on each layer, P6Time L1InnerL9-Geom
@@ -14796,7 +14801,7 @@ double ds=dsxy[1];
     }
   }
   if (mc) {
-   if(ds<=-200){//helium(-200,-210)+lithium(-300,-310,-320,-330)+carbon(-600,-610,-620,-630,-640,-650) point by point resolution tuning
+   if(ds<=-200){//helium(-200,-210)+lithium(-300,-310,-320,-330)+carbon(-600,-610,-620,-630,-640,-650)+boron(-530) point by point resolution tuning
       int lj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
 //---B930 //helium point by point resolution tuning
       static const int nnodefn930=10;
