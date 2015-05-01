@@ -65,8 +65,8 @@ I [598,599]  TrSim2010_DiffType        0 Box
 R [600,601]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
 R [602,603]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
 R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts) ; also used for TTCS-off simulation 0:L2-8 1:L9, in case of (-1,-1) use magtemp
-I 606        ActivateShielding;        Activate ladder shielding
-I 607        ShieldingDensity;         Density of the shielding
+I [606]      ActivateShielding;        Activate ladder shielding
+I [607]      ShieldingDensity;         Density of the shielding
 R [608,611]  OuterSmearing[2][2]       Outer smearing to simulate residual disalignment [0:L1,1:L9][0:X,1:Y]
 // 2013 tuning of p He related parameters
 R [612,615]  SmearPos[2][2]            Additional position smearing
@@ -75,6 +75,20 @@ R [620,623]  SigQuadLoss[2][2]         Parameters for energy deposit scale tunin
 R [624,635]  NearStripMult[2][2][3]    Amplification factor of nearby strips
 R [636,637]  noise_fac[2]              Additional noise fraction in the signal region
 R [638,639]  GlobalNoiseFactor[2]      Tuning of number of noise cluster
+// Workaround to retune the MC 
+R [640]      MCtuneDmax                Workaround to retune the MC resolution (not activated by default)
+R [641,642]  MCtuneDs[2]               Workaround to retune the MC resolution (not activated by default)
+R [643]      MCtuneDy9                 Workaround to retune the MC resolution (not activated by default)
+R [644,646]  MCscat[3]                 Workaround to retune the MC scattering (not activated by default)
+// 2014 new tuning for ions
+I [647]      MergeMCCluster            Merging MC clusters before digitization: 
+                                       0 no erging
+                                       1 MergeMCCluster used for z<=2 
+                                       2 MergeMCCluster2 used for z>2 
+I [648]      GainType                  Gain table: use 0 for z<=2, 1 for z>2 
+I [649]      UseNonLinearity           Introduce non-linearities in signal: use 0 for z<=2, 1 for z>2  
+// outer smearing
+R [650,653]  OuterSmearingC[2][2];     Correlaton coefficient betwen MD-PG  
 
 
 //==============================
