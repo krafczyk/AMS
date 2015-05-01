@@ -82,7 +82,8 @@ R [643]      MCtuneDy9                 Workaround to retune the MC resolution (n
 R [644,646]  MCscat[3]                 Workaround to retune the MC scattering (not activated by default)
 // 2014 new tuning for ions
 I [647]      MergeMCCluster            Merging MC clusters before digitization: 
-                                       0 no erging
+                                       -1 dynamic datacard tuning selection (647=1 648=0 649=0 for z<=2, 647=2 648=1 649=1 for z>2) 
+                                       0 no merging
                                        1 MergeMCCluster used for z<=2 
                                        2 MergeMCCluster2 used for z>2 
 I [648]      GainType                  Gain table: use 0 for z<=2, 1 for z>2 
