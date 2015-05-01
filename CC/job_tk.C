@@ -115,6 +115,29 @@ void AMSJob::_tkendjob(){
 
 }
 void AMSJob::_sitkinitjob(){
+    if(TRMCFFKEY.MergeMCCluster<0){
+    char chp[22]="";
+    integer itrtyp;
+    geant mass;
+    geant charge;
+    geant tlife;
+    geant ub[1];
+    integer nwb=0;
+    GFPART(GCKINE.ikine,chp,itrtyp,mass,charge,tlife,ub,nwb);
+    charge=fabs(charge);
+    if(charge>2){
+         TRMCFFKEY.MergeMCCluster = 2;
+         TRMCFFKEY.GainType = 1;
+         TRMCFFKEY.UseNonLinearity = 1;
+    }
+    else{
+         TRMCFFKEY.MergeMCCluster = 1;
+         TRMCFFKEY.GainType = 0;
+         TRMCFFKEY.UseNonLinearity = 0;
+    }
+    }
+    cout<<"AMSJob::sitkinitjob-I-TRMC Parameters 647 648 649 "<<TRMCFFKEY.MergeMCCluster <<" "<< TRMCFFKEY.GainType<<" "<< TRMCFFKEY.UseNonLinearity<<endl;
+
 //PZ FIXME  NOISE SIM  if(TRMCFFKEY.GenerateConst){
 //     AString fnam(AMSDATADIR.amsdatadir);
 //     fnam+="trsigma.hbk";

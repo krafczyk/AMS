@@ -358,7 +358,7 @@ void TRMCFFKEY_DEF::init(){
   // 2014.07.02 AO
   // Tuning for carbon, and for the use of a new gain table    
   // (disabled, or set to previous setting by default)
-  MergeMCCluster = 1;  // 0: no merge, 1: MergeMCCluster (PZ), 2: MergeMCCluster2 (AO)   -> use 2 for ions
+  MergeMCCluster = -1;  // -1 dynamic default // 0: no merge, 1: MergeMCCluster (PZ), 2: MergeMCCluster2 (AO)   -> use 2 for ions
   GainType = 0;        // 0: old table (AO), 1: new gains (PS)                           -> better 1, but 0 is also ok
   UseNonLinearity = 0; // 0: no non-linearity on p-side, 1: non-linearity                -> use 1 (default) for ions 
 

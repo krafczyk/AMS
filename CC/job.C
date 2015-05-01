@@ -1852,6 +1852,14 @@ void AMSJob::udata(){
     TRDCLFFKEY.ADC2KeV *= 1./TRDMCFFKEY.gain; // scale by 1./gain to calibrate for constant gain factor which is not part of AMSTRDIdSoft::getmcgain(i)
     TRDCLFFKEY.ADC2KeV *= 1.45;               // scale by    tube-average of TRDMCGains2 (when we later divide by 1./TRDMCGains2[tube] we want to cancel only relative tube to tube differences)
     TRDCLFFKEY.ADC2KeV *= 1./(60./49.);       // scale by 1./time-average of TRDGains3 value from ISS to adjust gain calibration scale to TRDGains3 scale also for MC.
+   
+  }
+  else{
+    if(TRMCFFKEY.MergeMCCluster<0){
+         TRMCFFKEY.MergeMCCluster = 1;
+         TRMCFFKEY.GainType = 0;
+         TRMCFFKEY.UseNonLinearity = 0;
+    }
   }
 #ifdef _PGTRACK_
 
