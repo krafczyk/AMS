@@ -1855,11 +1855,13 @@ void AMSJob::udata(){
    
   }
   else{
+#ifdef _PGTRACK_
     if(TRMCFFKEY.MergeMCCluster<0){
          TRMCFFKEY.MergeMCCluster = 1;
          TRMCFFKEY.GainType = 0;
          TRMCFFKEY.UseNonLinearity = 0;
     }
+#endif
   }
 #ifdef _PGTRACK_
 
