@@ -80,10 +80,11 @@ public:
   float tubeEnergyCut;
   float trdProdCut;
   float tubeProdCut;
+  float electronCutOnTubeWall;
   void init();
   TRDMCFFKEY_DEF():TObject(){init();}
 #ifdef _PGTRACK_
-  ClassDef(TRDMCFFKEY_DEF,6);
+  ClassDef(TRDMCFFKEY_DEF,7);
 #endif
 };
 

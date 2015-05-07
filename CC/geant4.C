@@ -1756,6 +1756,17 @@ if(Step->GetStepLength()/cm>0.01){
 	  if(GCTRAK.destep && PrePV->GetName()(0)=='T' && PrePV->GetName()(1)=='R' 
 	     &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
 	    //cout <<" trd "<<GCKINE.itra<<" "<<GCKINE.ipart<<endl;
+	    // kill the secondary electron below electronCutOnTubeWall if it reaches tube's inner wall to avoid overestimation of energy deposit
+	    if (Track->GetParentID() != 0 && PrePV && PostPV) {
+	      if (PostPV->GetName().contains("TRDW")) {
+		if (particle == G4Electron::ElectronDefinition() ||
+		    particle == G4Positron::PositronDefinition()) {
+		  G4double kineticEnergy = PrePoint->GetKineticEnergy() / keV;
+		  if (kineticEnergy < TRDMCFFKEY.electronCutOnTubeWall)
+		    Track->SetTrackStatus(fStopButAlive);
+                }
+              }
+            }
 	    AMSTRDMCCluster::sitrdhits(PrePV->GetCopyNo(),GCTRAK.vect,
 				       GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra, gtrkid, process_id);   
 	  }

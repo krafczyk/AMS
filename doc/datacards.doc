@@ -828,6 +828,8 @@ R57   electronEnergyCut(0.001)         // electron energy cut inside TRD [MeV]
 R58   tubeEnergyCut(0.000010)          // electron and photon energy cut in straw tube walls [MeV]
 R59   trdProdCut(1.0)                  // production cut in trdRegion and radiatorRegion [mm]
 R60   tubeProdCut(0.001)               // production cut in tubeRegion [mm] (walls of straws)
+R61   electronCutOnTubeWall(200.0)     // secondary e- and e+ below electronCutOnTubeWall [keV] that
+                                       // reaches the inner wall of the tube are killed
 
 TRDCL   // TRD clustering
 

@@ -71,6 +71,7 @@ void TRDMCFFKEY_DEF::init(){
   tubeEnergyCut=0.000010;   // [MeV]
   trdProdCut=1.0;           // [mm]
   tubeProdCut=0.001;        // [mm]
+  electronCutOnTubeWall=200.0; // [keV]
 }
 
 TRDMCFFKEY_DEF TRDMCFFKEY;
