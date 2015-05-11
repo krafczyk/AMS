@@ -32,6 +32,8 @@
 #if G4VERSION_NUMBER  > 945
 #include "G4ComponentGGNuclNuclXsc.hh"
 #include "G4UAtomicDeexcitation.hh"
+#include "G4WentzelVIModel.hh"
+#include "G4CoulombScattering.hh"
 #endif
 #include "G4IonTable.hh"
 #include "G4ShortLivedConstructor.hh"
@@ -484,9 +486,10 @@ bool worker=true;
         if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       }
 //--Qi Yan
-      else if (G4FFKEY.IonPhysicsModel%10==3 && worker) {
+      else if ((G4FFKEY.IonPhysicsModel%10==3 || G4FFKEY.IonPhysicsModel%10==5) && worker) {
+         int useinclxx=(G4FFKEY.IonPhysicsModel%10==3)?0:1;
          cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section)."<<endl; 
-         IonDPMJETPhysics* pamshi = new IonDPMJETPhysics; //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
+         IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(useinclxx); //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
          if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       } 
   else if(G4FFKEY.IonPhysicsModel%10==4){
@@ -565,6 +568,9 @@ cerr<<"Physics List no "<<G4FFKEY.PhysicsListUsed<<" Not Yet Supported"<<endl;
 #include "G4MuBremsstrahlung.hh"
 #include "G4MuPairProduction.hh"
 #include "G4hIonisation.hh"
+#include "G4hBremsstrahlung.hh"
+#include "G4hPairProduction.hh"
+#include "G4MuMultipleScattering.hh"
 #endif
 
 void AMSG4Physics::ConstructEM()
@@ -1983,6 +1989,7 @@ void AMSG4Physics::ConstructEM2( void ){
 
     } else if (particleName == "pi+" ||
                particleName == "pi-" ||
+               particleName == "anti_proton" ||
                particleName == "proton" ) {
 
       G4hIonisation* thehIonisation = new G4hIonisation();
@@ -2009,7 +2016,6 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "Ds-" ||
                particleName == "anti_lambda_c+" ||
                particleName == "anti_omega-" ||
-               particleName == "anti_proton" ||
                particleName == "anti_sigma_c+" ||
                particleName == "anti_sigma_c++" ||
                particleName == "anti_sigma+" ||
@@ -2179,12 +2185,32 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
 	theIonIonisation->AddEmModel(0,pai,pai,gasregion); 
       }
-      pmanager->AddProcess(new G4hMultipleScattering,-1,1,1);
-      pmanager->AddProcess(theIonIonisation,-1,2,2);
+      if(GCPHYS.IMULS==1){
+       G4MuMultipleScattering* pimsc = new G4MuMultipleScattering();
+       pimsc->AddEmModel(0, new G4WentzelVIModel());
+       cout<<" AMSG4Physics::ConstructEM2-I-WenzelMultipleScatteringForIonsSelected "<<endl;
+       G4CoulombScattering* piss = new G4CoulombScattering();
+       pmanager->AddProcess(pimsc,-1,1,1);
+       pmanager->AddProcess(theIonIonisation,-1,2,2);
+       pmanager->AddProcess(new G4hBremsstrahlung,     -1,3, 3);
+       pmanager->AddProcess(piss);
+      }
+      else if(GCPHYS.IMULS==2) {  // old ms
+       pmanager->AddProcess(new G4hMultipleScattering,-1,1,1);
+       pmanager->AddProcess(theIonIonisation,-1,2,2);
+      }
+      else{
+       cerr<<" AMSG4Physics::ConstructEM2-W-NoMultipleScatteringForUIons "<<endl;
+       pmanager->AddProcess(theIonIonisation,-1,1,1);
+      }
       pmanager->AddDiscreteProcess(processXTR);
 
     } else if (particleName == "pi+" ||
                particleName == "pi-" ||
+               particleName == "deuteron" ||
+               particleName == "anti_deuteron" ||
+               particleName == "triton" ||
+               particleName == "anti_proton" ||
                particleName == "proton" ) {
 
       G4hIonisation* thehIonisation = new G4hIonisation();
@@ -2192,12 +2218,26 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
 	thehIonisation->AddEmModel(0,pai,pai,gasregion);
       }
+      if(GCPHYS.IMULS==1){
+       G4MuMultipleScattering* pimsc = new G4MuMultipleScattering();
+       pimsc->AddEmModel(0, new G4WentzelVIModel());
+       cout<<" AMSG4Physics::ConstructEM2-I-WenzelMultipleScatteringForIonsSelected "<<endl;
+       G4CoulombScattering* piss = new G4CoulombScattering();
+       pmanager->AddProcess(pimsc,-1,1,1);
+       pmanager->AddProcess(thehIonisation,            -1, 2, 2);
+       pmanager->AddProcess(new G4hBremsstrahlung,     -1,3, 3);
+       pmanager->AddProcess(new G4hPairProduction,     -1,4, 4);
+       pmanager->AddProcess(piss);
+      }
+      else if(GCPHYS.IMULS==2) {
       pmanager->AddProcess(new G4hMultipleScattering, -1, 1, 1);
       pmanager->AddProcess(thehIonisation,            -1, 2, 2);
+      }
+      else{
+       cerr<<" AMSG4Physics::ConstructEM2-W-NoMultipleScatteringForUIons "<<endl;
+            pmanager->AddProcess(thehIonisation,            -1, 1, 1);
+      }
       pmanager->AddDiscreteProcess(processXTR);
-      //      pmanager->AddProcess(new G4IonBremsstrahlung,     -1,-3, 3);
-      //      pmanager->AddProcess(new G4hPairProduction,     -1,-4, 4);
-
 
     } else if (particleName == "B+" ||
                particleName == "B-" ||
@@ -2207,15 +2247,12 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "Ds-" ||
                particleName == "anti_lambda_c+" ||
                particleName == "anti_omega-" ||
-               particleName == "anti_proton" ||
                particleName == "anti_sigma_c+" ||
                particleName == "anti_sigma_c++" ||
                particleName == "anti_sigma+" ||
                particleName == "anti_sigma-" ||
                particleName == "anti_xi_c+" ||
                particleName == "anti_xi-" ||
-               particleName == "deuteron" ||
-               particleName == "anti_deuteron" ||
                particleName == "kaon+" ||
                particleName == "kaon-" ||
                particleName == "lambda_c+" ||
@@ -2226,7 +2263,6 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "sigma-" ||
                particleName == "tau+" ||
                particleName == "tau-" ||
-               particleName == "triton" ||
                particleName == "xi_c+" ||
                particleName == "xi-" ) {
 

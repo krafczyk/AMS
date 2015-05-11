@@ -125,7 +125,7 @@ void AMSJob::_sitkinitjob(){
     integer nwb=0;
     GFPART(GCKINE.ikine,chp,itrtyp,mass,charge,tlife,ub,nwb);
     charge=fabs(charge);
-    if(charge>2){
+    if(charge>=2){
          TRMCFFKEY.MergeMCCluster = 2;
          TRMCFFKEY.GainType = 1;
          TRMCFFKEY.UseNonLinearity = 1;
