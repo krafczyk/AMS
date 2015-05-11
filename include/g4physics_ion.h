@@ -8,6 +8,7 @@
 //        Created:       2012-Apr-09  Q.Yan
 //        Modified:
 // -----------------------------------------------------------
+#include "G4Version.hh"
 #include "G4VHadronPhysics.hh"
 #include "globals.hh"
 class G4StrangeletP;
@@ -18,8 +19,10 @@ class G4DPMJET2_5Model;
 class G4DPMJET2_5CrossSection;
 class G4IonsHEAOCrossSection;
 #endif
+#if G4VERSION_NUMBER  > 945
 #include "G4INCLXXInterface.hh"
 #include "G4FTFBuilder.hh"
+#endif
 class IonDPMJETPhysics : public G4VHadronPhysics
 {
  public:
@@ -43,8 +46,10 @@ class IonDPMJETPhysics : public G4VHadronPhysics
   G4DPMJET2_5Model*        theDPM;
 #endif
   G4BinaryLightIonReaction*  theIonBC;
+#if G4VERSION_NUMBER  > 945
    G4INCLXXInterface*  theINCLXX;
    G4HadronicInteraction*  theFTF;
+#endif
   G4BinaryLightIonReaction*  theIonBC1;
 };
 

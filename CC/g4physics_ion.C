@@ -1,3 +1,4 @@
+//  $Id$
 // ------------------------------------------------------------
 //      AMS GEANT4 new Ion Physics 
 //      Ion Eleastic for high Energy->DPM-JET
@@ -57,6 +58,7 @@ IonDPMJETPhysics::~IonDPMJETPhysics()
 // -----------------------------------------------------------
 void IonDPMJETPhysics::ConstructProcess(){
 if(UseInclXX){
+#if G4VERSION_NUMBER  > 945 
   G4double dpmemin=3.*GeV; 
   G4double emax = 1000*TeV;
   //--Model Binary Cascade Low Energy
@@ -133,7 +135,11 @@ if(UseInclXX){
     fhe3_EMD->AddDataSet(EMDCrossSection);
     fhe3_EMD->RegisterMe(theEMD);
     pManager->AddDiscreteProcess(fhe3_EMD);
-  }
+}
+#else
+  G4cout << "IonDPMJETPhysics::ConstructProces-F-Inclxx notsupported " << G4endl;  abort();
+#endif
+  
 
 
 }
@@ -236,6 +242,7 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
 #endif
 // Should be not be used with GG
 if(UseInclXX){
+#if G4VERSION_NUMBER  > 945 
 if(isIon){
   hadi->RegisterMe(theINCLXX);
   hadi->RegisterMe(theFTF);
@@ -268,6 +275,9 @@ else{
   hadi->RegisterMe(theDPM);
 
 }
+#else
+  G4cout << "IonDPMJETPhysics::ConstructProces-F-Inclxx notsupported " << G4endl;  abort();
+#endif
 }
 else{
   if(isIon && (G4FFKEY.IonPhysicsModel/100)%10==1) { hadi->AddDataSet(fIonH); }
