@@ -8,7 +8,6 @@
 //        Created:       2012-Apr-09  Q.Yan
 //        Modified:
 // -----------------------------------------------------------
-
 #include "G4VHadronPhysics.hh"
 #include "globals.hh"
 class G4StrangeletP;
@@ -19,13 +18,16 @@ class G4DPMJET2_5Model;
 class G4DPMJET2_5CrossSection;
 class G4IonsHEAOCrossSection;
 #endif
+#include "G4INCLXXInterface.hh"
+#include "G4FTFBuilder.hh"
 class IonDPMJETPhysics : public G4VHadronPhysics
 {
  public:
     IonDPMJETPhysics();
     virtual ~IonDPMJETPhysics();
     void ConstructProcess();
-   
+    int UseInclXX;   
+    IonDPMJETPhysics(int useinclxx):UseInclXX(useinclxx),G4VHadronPhysics(){};
  private:
 
   void AddProcess(const G4String& name, G4ParticleDefinition* part,
@@ -41,6 +43,8 @@ class IonDPMJETPhysics : public G4VHadronPhysics
   G4DPMJET2_5Model*        theDPM;
 #endif
   G4BinaryLightIonReaction*  theIonBC;
+   G4INCLXXInterface*  theINCLXX;
+   G4HadronicInteraction*  theFTF;
   G4BinaryLightIonReaction*  theIonBC1;
 };
 
