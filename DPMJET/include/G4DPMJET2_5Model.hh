@@ -122,6 +122,12 @@ class G4DPMJET2_5Model : public G4HadronicInteraction
     
     void SetDPMInitialRandomSeeds (const G4int seed1, const G4int seed2);
     G4int GetDPMInitialRandomSeeds (const G4int i) const;
+  inline G4double GetMinEnergy() const
+  { return theMinEnergy; }
+
+ inline G4double GetMaxEnergy() const
+  { return theMaxEnergy; }
+
 
     G4double GetMinEnergy( const G4Material *aMaterial,
                                   const G4Element *anElement ) const;
