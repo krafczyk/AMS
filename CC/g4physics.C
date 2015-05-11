@@ -2207,9 +2207,9 @@ void AMSG4Physics::ConstructEM2( void ){
 
     } else if (particleName == "pi+" ||
                particleName == "pi-" ||
-               particleName == "deuteron" ||
-               particleName == "anti_deuteron" ||
-               particleName == "triton" ||
+               particleName == "deuteron" ||   
+               particleName == "triton" ||      
+//               particleName == "anti_deuteron" || Seg fault
                particleName == "anti_proton" ||
                particleName == "proton" ) {
 
@@ -2245,6 +2245,9 @@ void AMSG4Physics::ConstructEM2( void ){
                particleName == "D-" ||
                particleName == "Ds+" ||
                particleName == "Ds-" ||
+               particleName == "anti_deuteron" ||  
+               particleName == "deuteron" ||  
+               particleName == "triton" ||    
                particleName == "anti_lambda_c+" ||
                particleName == "anti_omega-" ||
                particleName == "anti_sigma_c+" ||
