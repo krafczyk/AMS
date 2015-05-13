@@ -12,6 +12,6 @@ setenv G4AMS 1
 setenv G4MULTITHREADED 1
 setenv AMSWD ..
 source $Offline/vdev/install/g4i10.1
-setenv CERNDIR /afs/cern.ch/work/c/choutko/ia64/cernlib/2005
+#setenv CERNDIR /afs/cern.ch/work/c/choutko/ia64/cernlib/2005
 gmake -j 16
 gmake producer 

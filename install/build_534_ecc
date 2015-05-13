@@ -11,6 +11,6 @@ setenv PGTRACK 1
 unsetenv G4AMS
 unsetenv G4MULTITHREADED
 setenv AMSWD ..
-setenv CERNDIR /afs/cern.ch/work/c/choutko/ia64/cernlib/2005
+#setenv CERNDIR /afs/cern.ch/work/c/choutko/ia64/cernlib/2005
 gmake -j 16
 gmake producer 

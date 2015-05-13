@@ -76,7 +76,7 @@ IDLCPP=$(ORBIT2DIR)/bin//orbit-idl-2 --backenddir=$(ORBIT2DIR)/lib/orbit-2.0/idl
 ########################################################################
 
 # change defaults if intel compiler 
-CERN_LEVEL =2005.ecc64.11.1.080
+CERN_LEVEL =2005.ia64.11.1.080
 
 CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib 
 

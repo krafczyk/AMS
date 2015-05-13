@@ -627,8 +627,11 @@ DPMFFOBJ=$(patsubst %.f, $(DPMBIN)%.o, $(DPMFFLIST1))
 #########################################################################
 ifeq ($(MARCH),linuxia64ecc) 
 SPECIAL_OBJS=$(BIN)trigger302.o
+SPECIAL_OBJS1= $(BIN)trddbc.o
 OBJECTS:=$(filter-out $(SPECIAL_OBJS),$(OBJECTS)) 
+OBJECTS:=$(filter-out $(SPECIAL_OBJS1),$(OBJECTS)) 
 SPOPT=-O0
+SPOPT1=-O0
 endif
 ifdef G4MULTITHREADED
 SPECIAL_OBJF=$(DPMBIN)dpm25nuc1g4.o 
@@ -777,18 +780,20 @@ STANDALONED:=$(EXE)gbatchd$(G4)$(PG).exe
 gbatch: amswd $(STANDALONE)
 gbatchd: amswd $(STANDALONED)
 
-$(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
+$(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJS1) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
 	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS) $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
+	$(AT)$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJS1) $(TIMEL) $(LDFLAGSSTATIC)
 
-$(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
+$(STANDALONED): $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJS1) $(SPECIAL_OBJF) $(BIN)ctype.o $(BIN)predict.o
 	@if [ ! -d $(EXE) ] ; then mkdir -p $(EXE); echo "Creating the $(EXE) directory ...."; fi
 	@echo Linking $@ ...
-	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS) $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSDYNAMIC)
+	$(AT)$(LD) $(FLAGSDYNAMIC)  -o $@ $(OBJECTS) $(SPECIAL_OBJS) $(SPECIAL_OBJS1) $(TIMEL) $(LDFLAGSDYNAMIC)
 
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
 	 $(AT)$(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
+$(SPECIAL_OBJS1):$(SPECIAL_OBJS1: %.o=%.C) 
+	 $(AT)$(CXX) -c  $(CFLAGS) $(SPOPT1)  $(SCC)trddbc.C -o $(BIN)/trddbc.o
 
 $(SPECIAL_OBJF):$(DPMFF)dpm25nuc1g4.f 
 	 $(AT)$(FF) -c $(FFLAGS) $(SPOPT)  -I$(CERNDIR)/include $(DPMFF)dpm25nuc1g4.f -o $(DPMBIN)dpm25nuc1g4.o
