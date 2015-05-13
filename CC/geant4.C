@@ -133,6 +133,8 @@ G4MTHepRandom::setTheSeeds(seed);
 
 #ifdef G4MULTITHREADED
   G4MTRunManager* pmgr = new G4MTRunManager;
+  if(MISCFFKEY.NumThreads<=-maxthread)MISCFFKEY.NumThreads=-maxthread+1;
+  else if(MISCFFKEY.NumThreads>=maxthread)MISCFFKEY.NumThreads=maxthread-1;
   if(MISCFFKEY.NumThreads<0){
    pmgr->SetNumberOfThreads(-MISCFFKEY.NumThreads);
    MISCFFKEY.NumThreads*=-1;
