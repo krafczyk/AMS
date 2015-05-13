@@ -55,10 +55,10 @@ endif
 ########################################################################
 
   INTELDIR=/opt/intel/
-  INTELVER=Compiler/11.1/075/
+  INTELVER=Compiler/11.1/080/
   INTELOPT= 
-  FF=$(INTELDIR)/$(INTELVER)/bin/ia64/ifort -W0  $(INTELOPT)  -vec-report0 -diag-disable cpu-dispatch $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/ia64/icc   $(INTELOPT) -vec-report0  -diag-disable cpu-dispatch $(PARALLEL)
+  FF=$(INTELDIR)/$(INTELVER)/bin/ia64/ifort -W0  $(INTELOPT)   -diag-disable cpu-dispatch $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVER)/bin/ia64/icc   $(INTELOPT)   -diag-disable cpu-dispatch $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVER)/bin/ia64/icc    $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVER)/bin/ia64/icpc   $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(FF)  -save
@@ -76,7 +76,7 @@ IDLCPP=$(ORBIT2DIR)/bin//orbit-idl-2 --backenddir=$(ORBIT2DIR)/lib/orbit-2.0/idl
 ########################################################################
 
 # change defaults if intel compiler 
-CERN_LEVEL =2005.icc64.11.1.075
+CERN_LEVEL =2005.ecc64.11.1.080
 
 CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib 
 
@@ -92,7 +92,7 @@ ifndef AMSLIB
 AMSLIB =  $(Offline)/lib/linux/ecc64
 endif
 ifndef NAGDIR
-NAGDIR  = $(Offline)/CERN/NagLib.icc64
+NAGDIR  = $(Offline)/CERN/NagLib.ecc64
 endif
 
 ########################################################################
@@ -183,19 +183,19 @@ TIMEL=
 
 
 LDFLAGSI=    -static $(G4LIBS)  $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag.icc.11.1.075 \
+-L$(NAGDIR) -lnag64 \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
--L$(ROOTLIBDIR) -lTMVA -lRoot -lfreetype\
+-L$(ROOTLIBDIR)  -lRoot -llzma -lfreetype\
  -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -ldl -lpcre   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=     $(G4LIBS)  $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag.icc.11.1.075   \
+-L$(NAGDIR) -lnag64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTLIBDIR) -lTMVA -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
+-L$(ROOTLIBDIR)  -lRoot -llzma -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE

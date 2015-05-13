@@ -1,0 +1,17 @@
+#!/bin/tcsh
+#source /afs/cern.ch/sw/lcg/external/gcc/4.8.1/x86_64-slc6/setup.csh  /afs/cern.ch/sw/lcg/external
+
+# do not modify anything under and above this line
+#
+setenv Offline /afs/cern.ch/ams/Offline
+unsetenv DEBUGFLAG
+setenv VERBOSE 1
+source $Offline/vdev/install/amsvar
+setenv PGTRACK 1
+setenv G4AMS 1
+setenv G4MULTITHREADED 1
+setenv AMSWD ..
+source $Offline/vdev/install/g4i10.1
+setenv CERNDIR /afs/cern.ch/work/c/choutko/ia64/cernlib/2005
+gmake -j 16
+gmake producer 
