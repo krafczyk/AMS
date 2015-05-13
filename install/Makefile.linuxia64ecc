@@ -66,7 +66,7 @@ endif
   FORTRAN_LIBS=
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/ia64    -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 
-ORBIT2DIR=/usr/ORBit2
+ORBIT2DIR=$(AMSDEPLIB)/ORBit2-ia64
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
 IDLCPP=$(ORBIT2DIR)/bin//orbit-idl-2 --backenddir=$(ORBIT2DIR)/lib/orbit-2.0/idl-backends  -l cpp
 
@@ -217,7 +217,7 @@ LDFLAGS+= -lcxa -lcprts
 
 TIMEL=
 
-LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
 
 LDFLAGSSTATICIDL= -static  $(LDFLAGSIDL) -lORBit-2  -L/opt/gnome/lib -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt
