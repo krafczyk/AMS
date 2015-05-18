@@ -3036,7 +3036,8 @@ int AMSEventR::SetDefaultMCTuningParameters()
   if (particle == 47|| particle == 49) {
     TRMCFFKEY.MCtuneDs[0] =  0.0;
     TRMCFFKEY.MCtuneDs[1] = -3.0e-4;
-    if(Version()>=916) TRMCFFKEY.MCtuneDs[1] = -210.;//New point tuning based on each layer better than Gaus
+    if(Version()>=916)  TRMCFFKEY.MCtuneDs[1] = -210.;//New point tuning based on each layer better than Gaus
+    if(Version()>=1025) TRMCFFKEY.MCtuneDs[1] = -220.;
   }
  // carbon
   else if(particle == 67){
