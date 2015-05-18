@@ -25,9 +25,9 @@
 #ifdef __AMSVMC__
 extern amsvmc_MCApplication*  appl = new amsvmc_MCApplication("AMSVMC", "AMS VirtualMC application");
 #endif
-
+#ifdef _G4AMS_
 #include "ams_g4exception.h"
-
+#endif
 const int NWGEAN=15000000;
 const int NWPAW=1300000;
 struct PAWC_DEF{
@@ -140,6 +140,7 @@ catch (std::bad_alloc abab){
     exit(1);
     return 1;
 }
+#ifdef _G4AMS_
 catch (ams_g4exception &){
 #ifdef __CORBA__
   AMSClientError ab("G4ExceptionRaised",DPS::Client::CInAbort);
@@ -158,6 +159,7 @@ catch (std::bad_alloc abab){
     exit(1);
     return 1;
 }
+#endif
 #ifdef __CORBA__
 catch (AMSClientError & ab){
  cerr<<ab.getMessage()<<" 1"<<endl;
