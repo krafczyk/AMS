@@ -9458,7 +9458,7 @@ void AMSEventR::Begin(TTree *tree){
           } 
 
 
-	  (fService)._pOut=new TFile(option,"RECREATE");
+	  (fService)._pOut=TFile::Open(option,"RECREATE");
 	  (fService)._pDir=gDirectory;
           _pFiles = new TTree("FILES","FILES");
           _pFiles->Branch("file",(void*)filename,"file/C",1024);  
