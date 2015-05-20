@@ -2188,10 +2188,12 @@ void AMSG4Physics::ConstructEM2( void ){
       if(GCPHYS.IMULS==1){
        G4MuMultipleScattering* pimsc = new G4MuMultipleScattering();
        G4WentzelVIModel *w=new G4WentzelVIModel();
+#if G4VERSION_NUMBER  > 999
        if(G4FFKEY.HCrossSectionBias[4]!=1){
           w->bias=G4FFKEY.HCrossSectionBias[4];
           cout<<"AMSG4Physics-MSBias "<<w->bias<<endl;
        }
+#endif
        pimsc->AddEmModel(0, w);
        cout<<" AMSG4Physics::ConstructEM2-I-WenzelMultipleScatteringForIonsSelected "<<endl;
        G4CoulombScattering* piss = new G4CoulombScattering();
@@ -2226,10 +2228,12 @@ void AMSG4Physics::ConstructEM2( void ){
       if(GCPHYS.IMULS==1){
        G4MuMultipleScattering* pimsc = new G4MuMultipleScattering();
        G4WentzelVIModel *w=new G4WentzelVIModel();
+#if G4VERSION_NUMBER  > 999
        if(G4FFKEY.HCrossSectionBias[4]!=1){
           w->bias=G4FFKEY.HCrossSectionBias[4];
           cout<<"AMSG4Physics-MSBias "<<w->bias<<endl;
        }
+#endif
        pimsc->AddEmModel(0, w);
        cout<<" AMSG4Physics::ConstructEM2-I-WenzelMultipleScatteringForIonsSelected "<<endl;
        G4CoulombScattering* piss = new G4CoulombScattering();
