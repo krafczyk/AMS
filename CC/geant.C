@@ -374,14 +374,14 @@ int gams::mem_not_enough(int Threshold)
 }
 
 
-void gams::UGLAST(const char *message){
+void gams::UGLAST(const char *message,int err){
 #ifdef __CORBA__
 try{
 #endif
 if(message)AMSJob::gethead()->setMessage(message);
 #ifdef __G4AMS__
    trdSimUtil.EndOfRun();
-if(MISCFFKEY.G4On)g4ams::G4LAST();
+if(MISCFFKEY.G4On)g4ams::G4LAST(err);
 if(MISCFFKEY.G3On)
 #endif
 GLAST();

@@ -279,8 +279,7 @@ lasthope:
 #endif
   cerr <<"gbatch-SIGTERMSIMULATION "<<endl;
   //if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
-  gams::UGLAST("SIGTERMSIM ");
-  cerr <<"gbatch-SIGTERMSIMULATIONFINISHED "<<endl;
+  gams::UGLAST("SIGTERMSIM ",1);
   exit(1);
 //#endif
 }

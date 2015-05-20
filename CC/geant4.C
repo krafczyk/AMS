@@ -229,7 +229,10 @@ void g4ams::G4RUN(){
 }
 
 
-void g4ams::G4LAST(){
+void g4ams::G4LAST(int err){
+if(err){
+AMSG4Physics::SaveXS(GCKINE.ikine);
+}
         if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
         else {
 #ifndef G4MULTITHREADED
