@@ -127,7 +127,7 @@ catch (std::bad_alloc aba){
   #ifdef __G4AMS__
    cerr<<"Preparing for OPool Released"<<endl;
    OPool.ReleaseLastResort();
-   cerr<<"OPool Released"<<endl;
+   cerr<<"OPool Released a"<<endl;
   #endif
 
     cerr <<"gbatch-catch-F-NoMemoryAvailable "<<endl;
@@ -173,6 +173,7 @@ try{
   amsvmc::VMCLAST();
 #endif
 
+    cout <<"gbatch-I-NormalTerminationStart "<<endl;
     UGLAST();
 }
 catch (amsglobalerror & a){
@@ -217,7 +218,7 @@ void (handler)(int sig){
 #ifdef __G4AMS__
 	cerr<<"Preparing for OPool Released"<<endl;
 	OPool.ReleaseLastResort();
-	cerr<<"OPool Released"<<endl;
+	cerr<<"OPool Released b"<<endl;
 	
 #ifdef __CORBA__
 	AMSClientError ab("Job Cpu limit exceeded",DPS::Client::CInAbort);
@@ -257,7 +258,7 @@ lasthope:
 //#endif
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
-  cerr<<"OPool Released"<<endl;
+  cerr<<"OPool Released c"<<endl;
 #ifdef __CORBA__
   AMSClientError ab("SIGTERM intercepted",DPS::Client::CInAbort);
   if(AMSProducer::gethead()){
@@ -278,7 +279,7 @@ lasthope:
 #ifdef G4MULTITHREADED
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
-  cerr<<"OPool Released"<<endl;
+  cerr<<"OPool Released d"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
     G4AllocatorPool::gThreshold=0;
@@ -302,7 +303,7 @@ lasthope:
 #ifdef G4MULTITHREADED
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
-  cerr<<"OPool Released"<<endl;
+  cerr<<"OPool Released e"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
     G4AllocatorPool::gThreshold=0;
@@ -319,7 +320,7 @@ lasthope:
 #ifdef G4MULTITHREADED
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
-  cerr<<"OPool Released"<<endl;
+  cerr<<"OPool Released f"<<endl;
   G4AllocatorPool::gThreshold=0; 
 #else
           goto lasthope;
