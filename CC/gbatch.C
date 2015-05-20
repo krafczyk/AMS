@@ -239,7 +239,15 @@ catch (std::bad_alloc abab){
     }
     break;
    case SIGINT:
-    cerr <<" SIGINT intercepted"<<endl;
+    cerr <<" SIGINT intercepted sleeping 10 sec"<<endl;
+  GCFLAG.IEORUN=1;
+  GCFLAG.IEOTRI=1;
+  AMSFFKEY.CpuLimit=10;
+#ifdef G4MULTITHREADED
+    G4AllocatorPool::gThreshold=0;
+#endif 
+
+    sleep(10);
     G4FFKEY.SigTerm=2;
    case SIGTERM: 
     cerr <<" SIGTERM intercepted"<<endl;

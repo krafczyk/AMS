@@ -246,7 +246,7 @@ float TIMLFT;
  geant xmean  = (GCTIME.TIMINT - TIMLFT)/GCFLAG.IEVENT;
   cout <<"           **** NUMBER OF EVENTS PROCESSED = "<<GCFLAG.IEVENT<<endl;
   cout <<"           **** TIME TO PROCESS ONE EVENT IS = "<<xmean<<" SECONDS "<<endl;
-delete  G4RunManager::GetRunManager();
+//delete  G4RunManager::GetRunManager();
 #ifdef G4VIS_USE
 AMSG4VisManager::kill();
 #endif
