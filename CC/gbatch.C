@@ -272,6 +272,7 @@ lasthope:
   cerr <<"gbatch-SIGTERMSIMULATION "<<endl;
   //if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
   gams::UGLAST("SIGTERMSIM ");
+  cerr <<"gbatch-SIGTERMSIMULATIONFINISHED "<<endl;
   exit(1);
 //#endif
 }
@@ -279,6 +280,7 @@ lasthope:
  }
  break;
   case SIGQUIT:
+cerr <<" SIGQUIT intercepted"<<endl;
 #ifdef G4MULTITHREADED
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
