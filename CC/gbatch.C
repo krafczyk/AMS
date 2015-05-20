@@ -239,7 +239,7 @@ catch (std::bad_alloc abab){
     }
     break;
   case SIGTERM: case SIGINT:
-    cerr <<" SIGINT intercepted"<<endl;a
+    cerr <<" SIGINT intercepted"<<endl;
     G4FFKEY.SigTerm=2;
    case SIGTERM: 
     cerr <<" SIGTERM intercepted"<<endl;
