@@ -139,7 +139,7 @@ int MagnetVarp::getmagfield(float &temp,unsigned int time,unsigned int sensor,un
   else return 4;
 }
 
-int MagnetVarp::btempcor(float &factor,unsigned int time,int method){
+int MagnetVarp::btempcor(float &factor,unsigned int time,int method, float * const usedTemp){
   factor=1;
   if(time==0){
 #ifdef  __ROOTSHAREDLIBRARY__
@@ -158,6 +158,7 @@ int MagnetVarp::btempcor(float &factor,unsigned int time,int method){
   int ret=MagnetVarp::mgtt.getmeanmagnettemp(temp,method);
   if(ret)return ret+2;
   factor=_RAW_btempcor(temp );
+  if(usedTemp) *usedTemp = temp;
   return 0;
 }
 

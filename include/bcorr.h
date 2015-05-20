@@ -57,6 +57,7 @@ public:
                           2:  use other 8 sensors
                           3:  use magnetic filed measurement (not implemented)
                           -1 to -12  use only sensor 1 to 12 for correction
+  \param[out] usedTemp    Magnet temperature, which was used to calculate the magnetic field temperature correction
 
   \retval     0 success
   \retval     1 time==0 and no AMSEventR found
@@ -65,7 +66,7 @@ public:
   \retval     4 no measurments available for sensors in range
   \retval     5 measurments are outside of reasonable limits
   */
-  static int btempcor(float &factor,unsigned int time=0,int method=1); ///< method 0..2 like in getmeanmagnettemp method 3 direct magfield estimation ; return 0 if ok
+  static int btempcor(float &factor, unsigned int time=0, int method=1, float * const usedTemp = 0); ///< method 0..2 like in getmeanmagnettemp method 3 direct magfield estimation ; return 0 if ok
 
   virtual ~MagnetVarp() {}
  ClassDef(MagnetVarp,1)       //MagnetVarp;
