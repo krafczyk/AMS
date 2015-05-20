@@ -1,4 +1,4 @@
-//  $Id: geantnamespace.h,v 1.11 2013/04/20 20:41:13 zhukov Exp $
+//  $Id$
 #ifndef __GEANTNAMESPACE__
 #define __GEANTNAMESPACE__
 
@@ -17,7 +17,7 @@ namespace amsvmc{
 
 namespace g4ams{
   void G4INIT();
-  void G4LAST();
+  void G4LAST(int err=0);
   void G4RUN();
   
 }
@@ -27,7 +27,7 @@ typedef CLHEP::HepRotation  amsg4rm;
 #endif
 namespace gams{
   void UGINIT(int argc, char **argv );
-  void UGLAST(const char *message=0);
+  void UGLAST(const char *message=0, int err=0);
   int mem_not_enough(int Thr=102400);
 }
 class G4VPhysicalVolume;
