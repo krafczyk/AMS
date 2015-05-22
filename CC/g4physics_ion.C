@@ -59,7 +59,7 @@ IonDPMJETPhysics::~IonDPMJETPhysics()
 void IonDPMJETPhysics::ConstructProcess(){
 if(UseInclXX){
 #if G4VERSION_NUMBER  > 945 
-  G4double dpmemin=3.*GeV; 
+  G4double dpmemin=5.*GeV; 
   G4double emax = 1000*TeV;
   //--Model Binary Cascade Low Energy
   theINCLXX = new G4INCLXXInterface();

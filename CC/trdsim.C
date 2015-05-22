@@ -142,35 +142,24 @@ for ( unsigned int i=0;i<TRDDBc::TRDOctagonNo();i++){
              float sigmaDR = std::max(TRDMCFFKEY.MinSigma, idsoft.getsig()); // at least MinSigma
              sigmaDR       = std::min(TRDMCFFKEY.MaxSigma, sigmaDR);         // at most MaxSigma
              if(amp>fabs(TRDMCFFKEY.Thr1R*sigmaDR)){
-              AMSTRDRawHit *p =new AMSTRDRawHit(idsoft,amp*TRDMCFFKEY.f2i);
-              AMSTRDRawHit *ph= (AMSTRDRawHit *)AMSEvent::gethead()->getheadC(AMSID("AMSTRDRawHit",idsoft.getcrate()));
-              if(!ph){
-                  AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),p);
+              for(AMSTRDRawHit *ph= (AMSTRDRawHit *)AMSEvent::gethead()->getheadC(AMSID("AMSTRDRawHit",idsoft.getcrate()));ph;ph=ph->next()){
+               if(idsoft==ph->_id){
+                 amp=0;
+                 break;
+               }
               }
-              else{
-              while(ph){
-                if(ph<p){
-                  AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),p);
-         //cout <<"  raw cluster0 "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<amp*idsoft.getsig()*TRDMCFFKEY.f2i<<endl;
-                  p=0;
-                  break;
-                }
-                else if(!(p<ph)){
-                  delete p;
-                  p=0;
-                  break;
-                }
-                ph=ph->next();
-              }
-              delete p;
-              }
+             }
+             if(amp){
+                   AMSTRDRawHit *p =new AMSTRDRawHit(idsoft,amp*TRDMCFFKEY.f2i);
+                   AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),p);
+             }
              }
             }
            }
           }
 }
 
-}
+
 
 integer AMSTRDRawHit::getdaqid(int16u crate){
  for(int i=0;i<31;i++){

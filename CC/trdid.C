@@ -38,6 +38,9 @@ void AMSTRDIdGeom::_check(){
 integer AMSTRDIdGeom::operator == (const AMSTRDIdGeom &o){
   return (_layer==o._layer && _ladder==o._ladder && _tube==o._tube && _octagon==o._octagon);
 }
+integer AMSTRDIdSoft::operator == (const AMSTRDIdSoft &o){
+  return (_layer==o._layer && _ladder==o._ladder && _tube==o._tube);
+}
 
 
 AMSTRDIdGeom::AMSTRDIdGeom(integer idsoft){
