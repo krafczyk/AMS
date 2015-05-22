@@ -148,15 +148,15 @@ for ( unsigned int i=0;i<TRDDBc::TRDOctagonNo();i++){
                  break;
                }
               }
-             }
              if(amp){
                    AMSTRDRawHit *p =new AMSTRDRawHit(idsoft,amp*TRDMCFFKEY.f2i);
                    AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),p);
              }
-             }
+            }
             }
            }
           }
+}
 }
 
 

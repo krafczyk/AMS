@@ -738,6 +738,7 @@ I 7 IonPhysicsModel(2013) // Physics Model for Ion as WZXY
                         //     3: BLIC (<5GeV/n) + DPMJET2.5 (5GeV/n,1000TeV/n) 
                         //     4:  INCLXX +FTF 
                         //     5:  INCLXX +dpmjet + FTF 
+                        //     6:  INCLXX+DPMJET +BLIC(ECAL)
 I 8 UseEMDModel(1)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
@@ -761,7 +762,7 @@ R 18 OverlapTol(0)     // Tolerance for overlap check (cm); no overlap check if 
 I 19 DumpCrossSections(0)  // 0 nothing 
                            // 1 dump inelastic cross sections for proton, helium and carbon projectiles over carbon
                            // 2 make a MC dry-run to calculate interaction probabilities P(C->X) for process C12 + C12 -> X + stuff (avoid this with production) 
-R 20 HCrossectionBias[5](1,1,1,0,1)    // Change (hadronic) inelastic/elastic/qelastic/multiple crossection by multiplying by this number; limit q2 by bind energy for z>2  
+R 20 HCrossectionBias[5](1,1,1,1,1)    // Change (hadronic) inelastic/elastic/qelastic/multiple crossection by multiplying by this number; limit q2 by bind energy for z>2  
 I25 DumpCrossSectionsAt(12)  // Target mass   number for DumpCrossSections
 I26 DumpCrossSectionsZt(6)   // Target atomic number for DumpCrossSections
 I27 ApplyCPULimit(1)         // apply or not cpulimt

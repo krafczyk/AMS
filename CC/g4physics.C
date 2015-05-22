@@ -486,8 +486,8 @@ bool worker=true;
         if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
       }
 //--Qi Yan
-      else if ((G4FFKEY.IonPhysicsModel%10==3 || G4FFKEY.IonPhysicsModel%10==5) && worker) {
-         int useinclxx=(G4FFKEY.IonPhysicsModel%10==3)?0:1;
+      else if ((G4FFKEY.IonPhysicsModel%10==3 || G4FFKEY.IonPhysicsModel%10==5|| G4FFKEY.IonPhysicsModel%10==6) && worker) {
+         int useinclxx=G4FFKEY.IonPhysicsModel%10-3;
          cout<<"AMS Ion NewList will be used(DPMJET or LightIon model; DPMJET+Shen+HEAO cross section)."<<endl; 
          IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(useinclxx); //Not only DPMJET, This is full package of all kinds of Ion-inelastic Procss and Cross-section
          if(G4FFKEY.ProcessOff/10%10==0)pamshi->ConstructProcess();
