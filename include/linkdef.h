@@ -68,6 +68,7 @@
 #pragma link C++ class TrkCCNozzoli;
 #pragma link C++ class TrkCCPizzolotto;
 #pragma link C++ class TMVAxmlReader;
+#pragma link C++ class TrkCCLoadDatacardX;
 
 #pragma link C++ class TKGEOMFFKEY_DEF+;
 #pragma link C++ class TRMCFFKEY_DEF+;
