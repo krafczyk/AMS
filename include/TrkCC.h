@@ -1,6 +1,10 @@
+// VERY IMPORTANT!!!!!
+// REMEMBER TO PUT ALL GBATCH STUFF inside an #ifndef _NOGBATCH_
+// IN THIS WAY WE CAN USE THIS CLASS ALSO ON OUR LAPTOP WITHOUT GBATCH  
+
 #ifndef __TRKCC_H__
 #define __TRKCC_H__
-#ifdef _PGTRACK_
+#if defined(_PGTRACK_) || defined(_NOGBATCH_) 
 
 /*! Charge Confusion Classificators Software \n
   --basic instructions:  \n
@@ -34,7 +38,7 @@
 #include "TMVA/Reader.h"
 
 //! number of variables in nTrkCCVar
-#define nTrkCCVar 73
+#define nTrkCCVar 78
 //! Number of patterns
 #define nTrkCCpatts 6
 //! Number of versions (so far only one version implemented)
@@ -50,6 +54,7 @@
 class TrkCCVar;
 class TrkCCNozzoli;
 class TrkCCPizzolotto;
+class TrkCCLoadDatacardX;
 class TrkCCAlgorithm;
 
 /*! <b> Charge Confusion Classificator </b>
@@ -240,8 +245,9 @@ class TrkCC {
     maskingnumber = 3*n = tof missing   \n                                                    
     maskingnumber = 5*n = trd missing   \n                                                                     
     maskingnumber = 7*n = rich missing  \n 
-    fill also the _recommendmask bitwise mask based on maskingnumber*/                                         
-  int ProcessEvent(float varlistfull[nTrkCCVar],int maskingnumber=1, float energyGuess=0);
+    fill also the _recommendmask bitwise mask based on maskingnumber \n
+    tonormalize=0 not execute the variable normalization*/                                         
+  int ProcessEvent(float varlistfull[],int maskingnumber=1, float energyGuess=0, int tonormalize=1);
   
   /*!  Process the event from external user-prefilled vector \n
     WARNING  TrkCCVar is not filled \n
@@ -251,7 +257,7 @@ class TrkCC {
     if isnorm = 0 veclist is the NOT NORMALIZED and both _varlist and _varnorm are filled
     if isnorm = 1 veclist is normalized and only _varnorm is filled 
   */
-  int ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm = 1, unsigned long long recommendmask=0xFFFFFFFFFFFFFULL);
+  int ProcessEventExp(float veclist[], float energyGuess, int pattern, int isnorm = 1, unsigned long long recommendmask=0xFFFFFFFFFFFFFULL);
     
 #ifndef _NOGBATCH_
   /*!  Process the event from GBatch version 
@@ -335,6 +341,7 @@ class TrkCC {
   
  public:
   inline TrkCCVar* GetTrkCCVar() { return varCC; }
+  inline TrkCCAlgorithm* GetTrkCCAlgorithm() { return algCC; }
 
  private:
 #ifndef _NOGBATCH_
@@ -459,12 +466,6 @@ class TrkCCVar {
   // TOPOLOGIC VARIABLES
   //! event maskingnumber
   int nmsk;   
-  //! presence of ly1  (derived from btp) 
-  int ly1;    
-  //! presence of ly2  (derived from btp)  
-  int ly2;    
-  //! presence of ly9  (derived from btp) 
-  int ly9;    
   //! human readable pattern (derived from btp)
   /*! human readable pattern (derived from btp) \n
     3 bit pattern code: L1L9L2 e.g. (001) = (noLy1;noLy9;Ly2 fired) \n
@@ -477,7 +478,11 @@ class TrkCCVar {
   //! max span alcaraz (algo = 2) 
   double rigidity_al; 
   //! max span chikaninan (algo = 3) 
-  double rigidity_ck; 
+  double rigidity_ck;
+  //! inner choutko normalized chisquare x 
+  double chix_inn_ch;  
+  //! inner choutko normalized chisquare y 
+  double chiy_inn_ch;  
   //! max span choutko normalized chisquare x 
   double chix_ch;  
   //! max span choutko normalized chisquare y 
@@ -495,12 +500,11 @@ class TrkCCVar {
   //! max span choutko with same weight fitting (algo = 21) 
   double err_ch;  
   
-  // E dependent Variables
-  
+  // E dependent variables 
   //! ecalaxis chisquare 
   double axischi2;  
   //! tracker max charge on all Ly9 hits also offtrk
-  double trk_ql9;  
+  double trk_qmaxl9;  
   //! lower tof charge
   double tof_qd; 
   //! max tof charge 
@@ -557,7 +561,19 @@ class TrkCCVar {
   //! tracker average rms of cluster y position alla layers 
   double trk_yrms;  
   //! tracker max charge on all (also off track) Ly1-8 hits 
-  double trk_ql18;  
+  double trk_qmaxl18;
+  //! charge of trk ly1  (-1 if not existing)
+  double ly1_q;    
+  //! charge of trk ly2  (-1 if not existing)
+  double ly2_q;    
+  //! charge of trk ly9  (-1 if not existing)
+  double ly9_q;
+  //! charge of inner
+  double trkinn_q;
+  //! charge from L2 to L4 (or the subsample avalaible)
+  double trk_ql2l4;
+  //! charge from L5 to L8 (or the subsample avalaible)
+  double trk_ql5l8;
   
   // INDEPENDENT ON E
   //! TRD ntrack (M)
@@ -597,7 +613,6 @@ class TrkCCVar {
   //! rich unused hit rms 
   double rich_rms; 
    
-
   //! minimum noise hit distance in all layers
   double minoise1; 
   //! minimum noise hit distance in all layers excluding the layer where minoise1 is 
@@ -696,7 +711,7 @@ class TrkCCAlgorithm {
 };
  
 //! max number of different regressions supported
-#define nReg 6
+#define nReg 10
 //! max number of regression energy intervals
 #define rnEne 10
  
@@ -736,9 +751,9 @@ class TrkCCNozzoli: public TrkCCAlgorithm {
     \param[in] masktype = 1 the used mask is forced with all the variables used
     \param[in] masktype > 1 the used mask is the recomended one masked with the masktype value \n
     example: GetRegression(1,(unsigned long long) 0xFFFEFFFF7FEFD) will mask also vars 1,9,19,36 \n
-    fixbin>=0 is used for forcing the use of a fixed training energy bin (calibration)
+    fixbin!=0 is used for forcing the use of a fixed training energy bin (calibration / equalization) 
   */
-  float GetRegression(int regtype=0, unsigned long long masktype=0, int fixbin=-1);
+  float GetRegression(int regtype=0, unsigned long long masktype=0, int fixbin=0);
 
 
   int _LoadRegressionWeights(TString weightsPath);
@@ -788,6 +803,7 @@ class TrkCCNozzoli: public TrkCCAlgorithm {
       return -99;
     }
   }
+  inline int Get_nene(int ireg) {return _nene[ireg];}
   double GetEvaluator();
 
   int LoadWeights(TString dbPath) { return _LoadRegressionWeights(dbPath); };
@@ -846,6 +862,49 @@ class TrkCCPizzolotto: public TrkCCAlgorithm {
   
 #ifndef _NOGBATCH_
   ClassDef(TrkCCPizzolotto,0) //0 since no I/O feature is needed
+#endif
+};
+
+
+
+//plotandnorm
+class TrkCCLoadDatacardX: public TrkCCAlgorithm {
+  /*!
+    Uset to construct the normalization files in TrkCC_DATADIR
+    \author
+    cecilia.pizzolotto@pg.infn.it \n
+    francesco.nozzoli@pg.infn.it \n
+  */  
+  
+ private:
+  //! Default contructor
+  TrkCCLoadDatacardX(TString filename, int version=0, int verbose=0);
+  
+  //! The head of the singleton
+  static TrkCCLoadDatacardX* _head[nVer];
+#pragma omp threadprivate(_head)
+
+  //! Default deconstructor
+  ~TrkCCLoadDatacardX();
+
+  //! Contains info on variable description, transformation from TrkCCVar and normalization options 
+  TTree* _list; 
+
+ public:
+  /*!
+    Accessor to the public instance of the singleton. \n
+    If no instance has been previously created it will be done at this moment.
+  */
+  static TrkCCLoadDatacardX* gethead(TString filename, int version=0, int verbose=0);
+
+  inline double GetEvaluator() {return 0;};
+  
+  int LoadWeights(TString fname) { return LoadDatacard(fname); };
+  int LoadDatacard(TString fname);
+  inline TTree* GetDatacardTree() { return _list; };
+  
+#ifndef _NOGBATCH_
+  ClassDef(TrkCCLoadDatacardX,0) //0 since no I/O feature is needed
 #endif
 };
  

@@ -1,7 +1,11 @@
+// VERY IMPORTANT!!!!!
+// REMEMBER TO PUT ALL GBATCH STUFF inside an #ifndef _NOGBATCH_
+// IN THIS WAY WE CAN USE THIS CLASS ALSO ON OUR LAPTOP WITHOUT GBATCH
+
 #include "TrkCC.h"
 #include <stdlib.h>
 
-#ifdef _PGTRACK_
+#if defined(_PGTRACK_) || defined(_NOGBATCH_)
 
 #ifndef _NOGBATCH_
 AMSEventR* TrkCC::_HeadE=0;
@@ -27,6 +31,7 @@ void PrintError(TString err, bool exempt){
 TrkCCVar* TrkCCVar::_head=NULL;
 TrkCCNozzoli* TrkCCNozzoli::_head[nReg][nVer];
 TrkCCPizzolotto* TrkCCPizzolotto::_head[nBDT][nVer];
+TrkCCLoadDatacardX* TrkCCLoadDatacardX::_head[nVer];
 
 #ifndef _NOGBATCH_
 ClassImp(TrkCC)
@@ -34,8 +39,10 @@ ClassImp(TrkCCVar)
 ClassImp(TrkCCAlgorithm)
 ClassImp(TrkCCNozzoli)
 ClassImp(TrkCCPizzolotto)
+ClassImp(TrkCCLoadDatacardX)
 ClassImp(TMVAxmlReader)
 #endif
+
 
 TrkCC::TrkCC(TString algo, TString particle, int version, int gbatchPRODversion, int gbatchCODEversion, int runtype, bool istolerant, int verbose){
   
@@ -50,11 +57,11 @@ TrkCC::TrkCC(TString algo, TString particle, int version, int gbatchPRODversion,
   _algo=algo;
 
   bool notok=true;
-  if (_algo.Contains("Nozzoli") || _algo.Contains("Pizzolotto")) {
+  if (_algo.Contains("Nozzoli") || _algo.Contains("Pizzolotto") || _algo.BeginsWith("LoadDatacardX")) {
     if (_particle=="electron" || _particle=="Electron" || _particle=="ELECTRON") _normRIG = 0;
     else if (_particle=="protonMip" || _particle=="ProtonMip" || _particle=="PROTONMIP") _normRIG = 1;
     else if (_particle=="antiprotonMip" || _particle=="AntiProtonMip" || _particle=="ANTIPROTONMIP") _normRIG = -1;
-    else if (_particle=="protonShower" || _particle=="ProtonMip" || _particle=="PROTONMIP") _normRIG = 2;
+    else if (_particle=="protonShower" || _particle=="ProtonShower" || _particle=="PROTONSHOWER") _normRIG = 2;
     else if (_particle=="antiprotonShower" || _particle=="AntiProtonShower" || _particle=="ANTIPROTONSHOWER") _normRIG = -2;
     TString subid;
     TString Letter[10]={"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
@@ -72,6 +79,14 @@ TrkCC::TrkCC(TString algo, TString particle, int version, int gbatchPRODversion,
       if (_algo.Contains("Rarity")) {
 	((TrkCCPizzolotto*)algCC)->SetRarity();
       }
+    }
+    else if (_algo.BeginsWith("LoadDatacardX")) {
+    algCC = TrkCCLoadDatacardX::gethead(algo, version, _verbose);
+    _nvars = algCC->GetNVars();
+    TrkCCLoadDatacardX* TPN = (TrkCCLoadDatacardX*) algCC;
+    _list = TPN->GetDatacardTree();
+    _LoadListaVars();  
+    _runtype=0;
     }
     notok=false;
   }
@@ -230,9 +245,9 @@ int TrkCC::ProcessEvent(TrkCCVar* extTrkCCVar, int maskingnumber, float energyGu
   if (!extTrkCCVar) return -2;
   varCC = extTrkCCVar;// since is a singleton actually pass this is useless but is more clear for the user
   algCC->_evenergy = varCC->energy;
-  if (abs(_normRIG)==1) algCC->_evenergy=fabs(varCC->rigidity_ch);
-  if (abs(_normRIG)==2) algCC->_evenergy=fabs(varCC->rigidity_ch);
-  if (algCC->_evenergy==0) algCC->_evenergy=fabs(varCC->rigidity_ch);
+  if (abs(_normRIG)==1) algCC->_evenergy=std::abs(varCC->rigidity_ch);
+  if (abs(_normRIG)==2) algCC->_evenergy=std::abs(varCC->rigidity_ch);
+  if (algCC->_evenergy==0) algCC->_evenergy=std::abs(varCC->rigidity_ch);
   if (energyGuess > 0) algCC->_evenergy=energyGuess;  // use external guess
   if (algCC->_evenergy==0 && energyGuess == 0) energyGuess=100; // savatage default
   if (algCC->_evenergy==0) algCC->_evenergy=energyGuess;
@@ -242,25 +257,25 @@ int TrkCC::ProcessEvent(TrkCCVar* extTrkCCVar, int maskingnumber, float energyGu
 }
 
 // use if you have an external vector already filled
-int TrkCC::ProcessEvent(float varlistfull[nTrkCCVar],int maskingnumber, float energyGuess){
-  if (_runtype==0) _FirstLoad();
+int TrkCC::ProcessEvent(float varlistfull[],int maskingnumber, float energyGuess, int tonormalize){
+  if (_runtype==0 && tonormalize>0) _FirstLoad();
   varCC = TrkCCVar::gethead();
   varCC->FillFromVector(varlistfull);//if there are more TrkCC this is useless since TrkCCVar is a singleton but this guarantees that if the event changed the TrkCC is filled correctly, paying not too much in terms of CPU time
   algCC->_evenergy = varCC->energy;
-  if (abs(_normRIG)==1) algCC->_evenergy=fabs(varCC->rigidity_ch);
-  if (abs(_normRIG)==2) algCC->_evenergy=fabs(varCC->rigidity_ch);
-  if (algCC->_evenergy==0) algCC->_evenergy=fabs(varCC->rigidity_ch);
+  if (abs(_normRIG)==1) algCC->_evenergy=std::abs(varCC->rigidity_ch);
+  if (abs(_normRIG)==2) algCC->_evenergy=std::abs(varCC->rigidity_ch);
+  if (algCC->_evenergy==0) algCC->_evenergy=std::abs(varCC->rigidity_ch);
   if (energyGuess > 0) algCC->_evenergy=energyGuess;  // use external guess
   if (algCC->_evenergy==0 && energyGuess == 0) energyGuess=100; // savatage default
   if (algCC->_evenergy==0) algCC->_evenergy=energyGuess;
   algCC->_recommendmask=_FillVarList(maskingnumber);
-  _NormalizeList(); 
+  if (tonormalize >0) _NormalizeList(); 
   return 1;
 }
 
 // use if you already have an external varlist vector
 // 
-int TrkCC::ProcessEvent(float veclist[], float energyGuess, int pattern, int isnorm, unsigned long long recommendmask){
+int TrkCC::ProcessEventExp(float veclist[], float energyGuess, int pattern, int isnorm, unsigned long long recommendmask){
   if (_runtype==0) _FirstLoad();
   algCC->_evenergy=energyGuess;
   algCC->_evpatt=pattern;
@@ -339,7 +354,7 @@ int TrkCC::ProcessEvent(ParticleR* part, int rebuildRefit, bool forceProcess, fl
 int TrkCC::_NormalizeList(){
   if (_verbose>=9) cout<<"TrkCC::NormalizeList-I- begin"<<endl;
   int pattern= algCC->_evpatt;
-  double logenergy=log10(fabs(algCC->_evenergy));
+  double logenergy=log10(std::abs(algCC->_evenergy));
   bool curetails= true;//<-- should be an input parameter?
 
   double normvalue;
@@ -348,23 +363,37 @@ int TrkCC::_NormalizeList(){
   for( int iv=0; iv<_nvars; iv++){
     normvalue=0.;
     value = algCC->_varlist[iv];
+    int linint = (int) algCC->_listamatr[iv][8];
 
     if (iv<_nvarf){
-    if( _gr[pattern][iv][2]!=NULL){ //median is defined:
-      normvalue=_NormBozNoz(value, logenergy, 
-			   _gr[pattern][iv][1],_gr[pattern][iv][3],_gr[pattern][iv][2],_gr[pattern][iv][0],_gr[pattern][iv][4],
-			   1, curetails);
-    } else {  //when median is NOT defined use linear normalization:
-      normvalue=_NormBozNoz(value, logenergy, 
-			   _gr[pattern][iv][1],_gr[pattern][iv][3],(TGraph*)NULL, (TGraph*)NULL, (TGraph*)NULL,
-			   0, curetails);    
-    }}
+      if((_gr[pattern][iv][1]==NULL || _gr[pattern][iv][3]==NULL )&& linint >= 1){
+	cerr << "FATAL ERROR for variable "<< iv << " some requested Normalization TGraph is NULL, exit(1)" << endl;
+	cout << "FATAL ERROR for variable "<< iv << " some requested Normalization TGraph is NULL exit(1)" << endl;
+	exit(1);
+      }
+      if(( _gr[pattern][iv][0]==NULL || _gr[pattern][iv][1]==NULL || _gr[pattern][iv][2]==NULL || _gr[pattern][iv][3]==NULL || _gr[pattern][iv][4]==NULL)&& linint == 2){
+	cerr << "FATAL ERROR for variable "<< iv << " some requested Normalization TGraph is NULL, exit(1)" << endl;
+	cout << "FATAL ERROR for variable "<< iv << " some requested Normalization TGraph is NULL exit(1)" << endl;
+	exit(1);
+      }
+
+      if( _gr[pattern][iv][2]!=NULL && linint == 2){ //median is defined:
+	normvalue=_NormBozNoz(value, logenergy, 
+			      _gr[pattern][iv][1],_gr[pattern][iv][3],_gr[pattern][iv][2],_gr[pattern][iv][0],_gr[pattern][iv][4],
+			      1, curetails);
+      } else if (linint ==1 || linint == 2){  //when median is NOT defined use linear normalization:
+	normvalue=_NormBozNoz(value, logenergy, 
+			      _gr[pattern][iv][1],_gr[pattern][iv][3],(TGraph*)NULL, (TGraph*)NULL, (TGraph*)NULL,
+			      0, curetails);    
+      }
+      else {normvalue = value;}
+    }
     else 
       {normvalue = value;}
-    if( !(fabs(normvalue)<1.e37)){ // Avoid NAN
+    if( !(std::abs(normvalue)<1.e37)){ // Avoid NAN
 	if(normvalue>1.e36)  normvalue=1.e36; //clamp + inf
 	if(normvalue<-1.e36) normvalue=-1.e36;//clamp - inf
-	if( !(fabs(normvalue)<1.e37)) normvalue = 0; // correct NAN
+	if( !(std::abs(normvalue)<1.e37)) normvalue = 0; // correct NAN
     }
     algCC->_varnorm[iv]=normvalue;
   }
@@ -379,17 +408,17 @@ int TrkCC::FillTH1(TH1* histo, int regtype, unsigned long long masktype){
   else algCC->_usedmask=(masktype & algCC->_recommendmask);
   int ifill = 0;
   for (int ivv=0;ivv<_nvars;ivv++){
-    if (!(fabs(algCC->_varnorm[ivv]) >=0)) continue;
+    if (!(std::abs(algCC->_varnorm[ivv]) >=0)) continue;
     double a = 1.;
     if (_algo.Contains("Nozzoli")){
       if (ivv>=((TrkCCNozzoli*)algCC)->_rmaxvar[regtype]) {a = 0;}
       else
 	{a = ((TrkCCNozzoli*)algCC)->_rweight[regtype][algCC->_evpatt][0][0][ivv];}  // will give the sign of variable fixed by the one at energy bin 0
     }
-    if(fabs(a)<1.e-30) continue;
+    if(std::abs(a)<1.e-30) continue;
     if( (algCC->_usedmask & ((unsigned long long) 1 << ivv)) == 0) continue;
     ifill++;
-    double varfill = algCC->_varnorm[ivv]*a/fabs(a);
+    double varfill = algCC->_varnorm[ivv]*a/std::abs(a);
     histo->Fill(varfill);
   }
 return ifill;
@@ -711,9 +740,9 @@ unsigned long long TrkCC::_FillVarList(int maskingnumber){
   }
 
   varlistfull[0]=varCC->nmsk;
-  varlistfull[1]=varCC->ly1;
-  varlistfull[2]=varCC->ly2;
-  varlistfull[3]=varCC->ly9;
+  varlistfull[1]=varCC->ly1_q;
+  varlistfull[2]=varCC->ly2_q;
+  varlistfull[3]=varCC->ly9_q;
   varlistfull[4]=varCC->pat;
   varlistfull[5]=varCC->rigidity_ch;
   varlistfull[6]=varCC->rigidity_al;
@@ -727,7 +756,7 @@ unsigned long long TrkCC::_FillVarList(int maskingnumber){
   varlistfull[14]=varCC->rigidity_itp;
   varlistfull[15]=varCC->err_ch;
   varlistfull[16]=varCC->axischi2;
-  varlistfull[17]=varCC->trk_ql9;
+  varlistfull[17]=varCC->trk_qmaxl9;
   varlistfull[18]=varCC->tof_qd;
   varlistfull[19]=varCC->tof_qmax;
   varlistfull[20]=varCC->rich_nunused;
@@ -753,7 +782,7 @@ unsigned long long TrkCC::_FillVarList(int maskingnumber){
   varlistfull[40]=varCC->tof_beta;
   varlistfull[41]=varCC->trk_q;
   varlistfull[42]=varCC->trk_yrms;
-  varlistfull[43]=varCC->trk_ql18;
+  varlistfull[43]=varCC->trk_qmaxl18;
   varlistfull[44]=varCC->trd_ntrk;
   varlistfull[45]=varCC->trd_nhit;
   varlistfull[46]=varCC->trd_ratio;
@@ -783,12 +812,17 @@ unsigned long long TrkCC::_FillVarList(int maskingnumber){
   varlistfull[70]=varCC->maxresy1;
   varlistfull[71]=varCC->minresx;
   varlistfull[72]=varCC->minresy;
+  varlistfull[73]=varCC->chix_inn_ch;
+  varlistfull[74]=varCC->chiy_inn_ch;
+  varlistfull[75]=varCC->trkinn_q;
+  varlistfull[76]=varCC->trk_ql2l4;
+  varlistfull[77]=varCC->trk_ql5l8;
 
   // now set the algCC->_evenergy and algCC->_evpatt
   algCC->_evenergy=varCC->energy;
-  if (abs(_normRIG)==1) algCC->_evenergy=fabs(varCC->rigidity_ch);
-  if (abs(_normRIG)==2) algCC->_evenergy=fabs(varCC->rigidity_ch);
-  if (algCC->_evenergy==0) algCC->_evenergy=fabs(varCC->rigidity_ch);
+  if (abs(_normRIG)==1) algCC->_evenergy=std::abs(varCC->rigidity_ch);
+  if (abs(_normRIG)==2) algCC->_evenergy=std::abs(varCC->rigidity_ch);
+  if (algCC->_evenergy==0) algCC->_evenergy=std::abs(varCC->rigidity_ch);
   algCC->_evpatt=varCC->pat;
 
   // Transform variables when needed using option in tree list
@@ -809,38 +843,39 @@ unsigned long long TrkCC::_FillVarList(int maskingnumber){
     //    cout << "listamatr" << iv << endl;
     //cout << algCC->_listamatr[iv][0] << " " << algCC->_listamatr[iv][1] << " " << algCC->_listamatr[iv][2] << " " << algCC->_listamatr[iv][3] << " " << algCC->_listamatr[iv][4] << " " << algCC->_listamatr[iv][5] << " " << algCC->_listamatr[iv][6] << " " << algCC->_listamatr[iv][7] << " " << algCC->_listamatr[iv][8] << endl;
 
-    algCC->_varlist[iv]=fabs(varlistfull[vpos]);
+    if (islog==0) algCC->_varlist[iv]=std::abs(varlistfull[vpos]);
+    if (islog==3) algCC->_varlist[iv]=(varlistfull[vpos]);
     if (errfull[vpos]==1) {
       recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
       //cout << iv << " masked1" << endl;
 }
-    if( islog==1) algCC->_varlist[iv] = log10(fabs(varlistfull[vpos])+1.e-09);
+    if( islog==1) algCC->_varlist[iv] = log10(std::abs(varlistfull[vpos])+1.e-09);
     if( islog==2 && vpos==0) { //log(E/P)  (iv=21)
-      algCC->_varlist[iv] =log10(fabs(varlistfull[66]/varlistfull[5]));
+      algCC->_varlist[iv] =log10(std::abs(varlistfull[66]/varlistfull[5]));
       if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked2" << endl;
       }
     }
     if( islog==2 && vpos==1) {//inner half Rigidity check (iv=2)
-      algCC->_varlist[iv] = log10(fabs((varlistfull[13]-varlistfull[14]+1.e-6)/(1.e-6+varlistfull[13]+varlistfull[14])));
+      algCC->_varlist[iv] = log10(std::abs((varlistfull[13]-varlistfull[14]+1.e-6)/(1.e-6+varlistfull[13]+varlistfull[14])));
       if (errfull[13]==1 || errfull[14]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked3 " <<errfull[13]<<errfull[14]<< endl;
       }
     }
     if( islog==2 && vpos==2) {// top-bottom Rigidity check (iv=27) (only fullspan)
-      algCC->_varlist[iv] = log10(fabs((varlistfull[11]-varlistfull[12]+1.e-6)/(1.e-6+varlistfull[11]+varlistfull[12])));
+      algCC->_varlist[iv] = log10(std::abs((varlistfull[11]-varlistfull[12]+1.e-6)/(1.e-6+varlistfull[11]+varlistfull[12])));
       if (errfull[11]==1 || errfull[12]==1 || algCC->_evpatt!=5) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked4" << endl;
       }
     }
     if( islog==2 && vpos==3) {// inner-maxspan Rigidity check (iv=5) (no inner pattern)
-      algCC->_varlist[iv] = log10(fabs((varlistfull[10]-varlistfull[5]+1.e-6)/(1.e-6+varlistfull[10]+varlistfull[5])));
+      algCC->_varlist[iv] = log10(std::abs((varlistfull[10]-varlistfull[5]+1.e-6)/(1.e-6+varlistfull[10]+varlistfull[5])));
       if (errfull[10]==1 || errfull[5]==1 || algCC->_evpatt<2) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked5" << endl;
       }
     }
     if( islog==2 && vpos==4) { // choutko vs alcaratz Rigidity check (iv=28)
-      algCC->_varlist[iv] = log10(fabs((varlistfull[5]-varlistfull[6]+1.e-6)/(1.e-6+varlistfull[5]+varlistfull[6])));
+      algCC->_varlist[iv] = log10(std::abs((varlistfull[5]-varlistfull[6]+1.e-6)/(1.e-6+varlistfull[5]+varlistfull[6])));
       if (errfull[5]==1 || errfull[6]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//cout << iv << " masked6 " << errfull[5]<<errfull[6]<<endl;
       }
@@ -852,20 +887,20 @@ unsigned long long TrkCC::_FillVarList(int maskingnumber){
       }
     }
     if( islog==2 && vpos==10) {// |1-E/P| (iv=22)
-      algCC->_varlist[iv] =fabs(1.-fabs(varlistfull[66]/varlistfull[5]));
+      algCC->_varlist[iv] =std::abs(1.-std::abs(varlistfull[66]/varlistfull[5]));
       if (errfull[66]==1 || errfull[5]==1) {recommendmask &= ~((unsigned long long) 1 << iv); // unset the iv bit
 	//      cout << iv << " masked8" << endl;
       }
     }
     Int_t intint=0;
     if( islog==10) intint = int(varlistfull[vpos]);
-    if( islog==11 && log10(fabs(varlistfull[vpos]))>fisflat) intint++;
-    if( islog==11 && log10(fabs(varlistfull[vpos]))>hlow)    intint++;
-    if( islog==11 && log10(fabs(varlistfull[vpos]))>hhigh)   intint++;
-    if( islog==11 && log10(fabs(varlistfull[vpos]))>fnbins)  intint++;
-    if( islog==11 && log10(fabs(varlistfull[vpos]))>hloglow) intint++;
-    if( islog==11 && log10(fabs(varlistfull[vpos]))>hloghigh) intint++;
-    if( islog==11 && log10(fabs(varlistfull[vpos]))>flinint) intint++;
+    if( islog==11 && log10(std::abs(varlistfull[vpos]))>fisflat) intint++;
+    if( islog==11 && log10(std::abs(varlistfull[vpos]))>hlow)    intint++;
+    if( islog==11 && log10(std::abs(varlistfull[vpos]))>hhigh)   intint++;
+    if( islog==11 && log10(std::abs(varlistfull[vpos]))>fnbins)  intint++;
+    if( islog==11 && log10(std::abs(varlistfull[vpos]))>hloglow) intint++;
+    if( islog==11 && log10(std::abs(varlistfull[vpos]))>hloghigh) intint++;
+    if( islog==11 && log10(std::abs(varlistfull[vpos]))>flinint) intint++;
     if (islog>=10) algCC->_varlist[iv]=(float)intint;
   }
    if(_verbose>=1 && recommendmask != 0xFFFFFFFFFFFFFULL) cout << maskingnumber << " masking | recommendmask unset " << std::hex << recommendmask << std::dec << endl;
@@ -888,7 +923,7 @@ Double_t TrkCC::_NormBozNoz(Double_t x, Double_t loge,
     Double_t lv = glow1->Eval( loge);
     Double_t uv = gupp1->Eval( loge);
     Double_t cv = (lv+uv)/2.;
-    Double_t dlt = fabs(lv-uv)/2.;  // the sigma width
+    Double_t dlt = std::abs(lv-uv)/2.;  // the sigma width
     if (dlt == 0) dlt = 1;
     norm = (x-cv)/dlt;  // number of sigma from center
   }
@@ -919,10 +954,10 @@ Double_t TrkCC::_NormBozNoz(Double_t x, Double_t loge,
     }
     else {
       if( cureTails==true && x<xminus2 ){
-	Double_t epsilon=(fabs(xminus2-xminus1)/100.);
+	Double_t epsilon=(std::abs(xminus2-xminus1)/100.);
 	norm = _ApplyTailLinearisation(delta,eta,lambda,median,x, xminus2, epsilon);
       } else if( cureTails==true && x>xplus2 ) {
-	Double_t epsilon=fabs(xplus2-xplus1)/100.  ;
+	Double_t epsilon=std::abs(xplus2-xplus1)/100.  ;
 	norm = _ApplyTailLinearisation(delta,eta,lambda,median,x, xplus2 , epsilon);
       } else {
 	norm= ApplyBozNoz(delta,eta,lambda,median , x);
@@ -1047,9 +1082,9 @@ Double_t  TrkCC::_Findc(Double_t a,Double_t b,Double_t& ex){
   }
   //  if (_verbose>=99) cout << " [FindC] qua ok" << x << "=x | a= " << a << " b= " << b << endl;
   xright = x;
-  Double_t goal = fabs(ex);   
+  Double_t goal = std::abs(ex);   
   if (goal >0.1) goal = 0.1;
-  ex = fabs((xleft-xright)/(xleft+xright));
+  ex = std::abs((xleft-xright)/(xleft+xright));
   int n=0;
   while (ex>goal && y != 0){               
     n++;
@@ -1058,7 +1093,7 @@ Double_t  TrkCC::_Findc(Double_t a,Double_t b,Double_t& ex){
     y = exp(a/x)+exp(-b/x)-2.;
     if(y<=0) {xright=x;}
     else { xleft=x;}
-    ex = fabs((xleft-xright)/(xleft+xright));
+    ex = std::abs((xleft-xright)/(xleft+xright));
   }
   return x;
 }
@@ -1131,16 +1166,16 @@ Int_t TrkCC::_NozPar(Double_t& eta, Double_t qval2, Double_t qval1, Double_t pva
 	y = (exp(x*(qmax-qmin))-exp(-x*(qmax+qmin)))/(1.-exp(-2.*x*qmin))-cost;
       }
       xright = x;
-      Double_t goal = fabs(ex);
+      Double_t goal = std::abs(ex);
       if (goal >0.1) goal = 0.1;
-      ex = fabs((xleft-xright)/(xleft+xright));
+      ex = std::abs((xleft-xright)/(xleft+xright));
       while (ex>goal && y!=0){
 	x = (xleft+xright)/2.;
 	// y = (exp(x*qmax)-exp(-x*qmax))/(exp(x*qmin)-exp(-x*qmin))-cost; // results in NAN for X large
 	y = (exp(x*(qmax-qmin))-exp(-x*(qmax+qmin)))/(1.-exp(-2.*x*qmin))-cost;
 	if(y>=0) {xright=x;}
 	else { xleft=x;}
-	ex = fabs((xleft-xright)/(xleft+xright));
+	ex = std::abs((xleft-xright)/(xleft+xright));
       }
       eta =  x;
     } 
@@ -1157,16 +1192,16 @@ Int_t TrkCC::_NozPar(Double_t& eta, Double_t qval2, Double_t qval1, Double_t pva
 	y = (log(x*qmax+1)/log(x*qmin+1))-cost;
       }
       xright = x;
-      Double_t goal = fabs(ex);
+      Double_t goal = std::abs(ex);
       if (goal >0.1) goal = 0.1;
-      ex = fabs((xleft-xright)/(xleft+xright));
+      ex = std::abs((xleft-xright)/(xleft+xright));
       while (ex>goal && y!=0){
 	x = (xleft+xright)/2.;
 	//    cout << xright << " " << xleft << " ym = " << y << endl;
 	y = (log(x*qmax+1)/log(x*qmin+1))-cost;
 	if(y<=0) {xright=x;}
 	else { xleft=x;}
-	ex = fabs((xleft-xright)/(xleft+xright));
+	ex = std::abs((xleft-xright)/(xleft+xright));
       }
       eta =  -x;
     }      
@@ -1182,7 +1217,7 @@ Double_t TrkCC::_Nozly(Double_t eta, Double_t x)
   if (eta >0){
     T = (exp(eta*x)-exp(-eta*x))/(2.*eta);
   }  else {
-    T = (x/fabs(eta*x))*log(fabs(eta*x)+1); 
+    T = (x/std::abs(eta*x))*log(std::abs(eta*x)+1); 
   }
   return T;
 }
@@ -1235,165 +1270,177 @@ TrkCCVar::~TrkCCVar(){
 
 void TrkCCVar::Init(int varnumber){
   if(varnumber<0 || varnumber==0) nmsk=0;
-  if(varnumber<0 || varnumber==1) ly1=9999;
-  if(varnumber<0 || varnumber==2) ly2=9999;
-  if(varnumber<0 || varnumber==3) ly9=9999;
-  if(varnumber<0 || varnumber==4) pat=9999;
-  if(varnumber<0 || varnumber==5) rigidity_ch=0;
-  if(varnumber<0 || varnumber==6) rigidity_al=0;
-  if(varnumber<0 || varnumber==7) x0rad=0;
-  if(varnumber<0 || varnumber==8) chix_ch=0;
-  if(varnumber<0 || varnumber==9) chiy_ch=0;
-  if(varnumber<0 || varnumber==10) rigidity_in=0;
-  if(varnumber<0 || varnumber==11) rigidity_bt=0;
-  if(varnumber<0 || varnumber==12) rigidity_tp=0;
-  if(varnumber<0 || varnumber==13) rigidity_ibt=0;
-  if(varnumber<0 || varnumber==14) rigidity_itp=0;
-  if(varnumber<0 || varnumber==15) err_ch=0;
-  if(varnumber<0 || varnumber==16) axischi2=0;
-  if(varnumber<0 || varnumber==17) trk_ql9=1;
-  if(varnumber<0 || varnumber==18) tof_qd=1;
-  if(varnumber<0 || varnumber==19) tof_qmax=1;
-  if(varnumber<0 || varnumber==20) rich_nunused=0;
-  if(varnumber<0 || varnumber==21) pMDR=9999;
-  if(varnumber<0 || varnumber==22) nlbks=0; 
-  if(varnumber<0 || varnumber==23) rich_ratio=1;
-  if(varnumber<0 || varnumber==24) rich_res=0;
-  if(varnumber<0 || varnumber==25) trk_cofgx=0;
-  if(varnumber<0 || varnumber==26) trk_dirx=0;
-  if(varnumber<0 || varnumber==27) tof_chi2c=0;
-  if(varnumber<0 || varnumber==28) tof_chi2t=0;
-  if(varnumber<0 || varnumber==29) nbks=0;
-  if(varnumber<0 || varnumber==30) ntrkcl9=1;
-  if(varnumber<0 || varnumber==31) ntrk=1;
-  if(varnumber<0 || varnumber==32) nbeta=1;
-  if(varnumber<0 || varnumber==33) nrings=1;
-  if(varnumber<0 || varnumber==34) trk_cofgy=0;
-  if(varnumber<0 || varnumber==35) trk_diry=0;
-  if(varnumber<0 || varnumber==36) trd_diry=0;
-  if(varnumber<0 || varnumber==37) tof_qu=1;
-  if(varnumber<0 || varnumber==38) tof_qrms=0;
-  if(varnumber<0 || varnumber==39) tof_nused=0;
-  if(varnumber<0 || varnumber==40) tof_beta=1;
-  if(varnumber<0 || varnumber==41) trk_q=1;
-  if(varnumber<0 || varnumber==42) trk_yrms=0;
-  if(varnumber<0 || varnumber==43) trk_ql18=1;
-  if(varnumber<0 || varnumber==44) trd_ntrk=1;
-  if(varnumber<0 || varnumber==45) trd_nhit=20;
-  if(varnumber<0 || varnumber==46) trd_ratio=1;
-  if(varnumber<0 || varnumber==47) trd_ratioff=1;
-  if(varnumber<0 || varnumber==48) trd_sumv=0;
-  if(varnumber<0 || varnumber==49) trd_noff=0;
-  if(varnumber<0 || varnumber==50) trd_path=0;
-  if(varnumber<0 || varnumber==51) trd_mindist=0;
-  if(varnumber<0 || varnumber==52) trd_q=1;   
-  if(varnumber<0 || varnumber==53) trd_chi2=0;
-  if(varnumber<0 || varnumber==54) trk_qrms=0;
-  if(varnumber<0 || varnumber==55) trk_qmax=1;
-  if(varnumber<0 || varnumber==56) ntrky5cl18=1;
-  if(varnumber<0 || varnumber==57) nint=0;
-  if(varnumber<0 || varnumber==58) dtrkavgy=0;
-  if(varnumber<0 || varnumber==59) rich_beta=1;
-  if(varnumber<0 || varnumber==60) rich_rms=0;
-  if(varnumber<0 || varnumber==61) minoise1=0;
-  if(varnumber<0 || varnumber==62) minoise2=0;
-  if(varnumber<0 || varnumber==63) minoise3=0;
-  if(varnumber<0 || varnumber==64) minoise4=0;
-  if(varnumber<0 || varnumber==65) nlayer=7;
-  if(varnumber<0 || varnumber==66) energy=0;
-  if(varnumber<0 || varnumber==67) maxresx0=0;
-  if(varnumber<0 || varnumber==68) maxresy0=0;
-  if(varnumber<0 || varnumber==69) maxresx1=0;
-  if(varnumber<0 || varnumber==70) maxresy1=0;
-  if(varnumber<0 || varnumber==71) minresx=0;
-  if(varnumber<0 || varnumber==72) minresy=0;
+  else if(varnumber==1) ly1_q=-1;
+  else if(varnumber==2) ly2_q=-1;
+  else if(varnumber==3) ly9_q=-1;
+  else if(varnumber==4) pat=9999;
+  else if(varnumber==5) rigidity_ch=0;
+  else if(varnumber==6) rigidity_al=0;
+  else if(varnumber==7) x0rad=0;
+  else if(varnumber==8) chix_ch=0;
+  else if(varnumber==9) chiy_ch=0;
+  else if(varnumber==10) rigidity_in=0;
+  else if(varnumber==11) rigidity_bt=0;
+  else if(varnumber==12) rigidity_tp=0;
+  else if(varnumber==13) rigidity_ibt=0;
+  else if(varnumber==14) rigidity_itp=0;
+  else if(varnumber==15) err_ch=0;
+  else if(varnumber==16) axischi2=0;
+  else if(varnumber==17) trk_qmaxl9=1;
+  else if(varnumber==18) tof_qd=1;
+  else if(varnumber==19) tof_qmax=1;
+  else if(varnumber==20) rich_nunused=0;
+  else if(varnumber==21) pMDR=9999;
+  else if(varnumber==22) nlbks=0; 
+  else if(varnumber==23) rich_ratio=1;
+  else if(varnumber==24) rich_res=0;
+  else if(varnumber==25) trk_cofgx=0;
+  else if(varnumber==26) trk_dirx=0;
+  else if(varnumber==27) tof_chi2c=0;
+  else if(varnumber==28) tof_chi2t=0;
+  else if(varnumber==29) nbks=0;
+  else if(varnumber==30) ntrkcl9=1;
+  else if(varnumber==31) ntrk=1;
+  else if(varnumber==32) nbeta=1;
+  else if(varnumber==33) nrings=1;
+  else if(varnumber==34) trk_cofgy=0;
+  else if(varnumber==35) trk_diry=0;
+  else if(varnumber==36) trd_diry=0;
+  else if(varnumber==37) tof_qu=1;
+  else if(varnumber==38) tof_qrms=0;
+  else if(varnumber==39) tof_nused=0;
+  else if(varnumber==40) tof_beta=1;
+  else if(varnumber==41) trk_q=1;
+  else if(varnumber==42) trk_yrms=0;
+  else if(varnumber==43) trk_qmaxl18=1;
+  else if(varnumber==44) trd_ntrk=1;
+  else if(varnumber==45) trd_nhit=20;
+  else if(varnumber==46) trd_ratio=1;
+  else if(varnumber==47) trd_ratioff=1;
+  else if(varnumber==48) trd_sumv=0;
+  else if(varnumber==49) trd_noff=0;
+  else if(varnumber==50) trd_path=0;
+  else if(varnumber==51) trd_mindist=0;
+  else if(varnumber==52) trd_q=1;   
+  else if(varnumber==53) trd_chi2=0;
+  else if(varnumber==54) trk_qrms=0;
+  else if(varnumber==55) trk_qmax=1;
+  else if(varnumber==56) ntrky5cl18=1;
+  else if(varnumber==57) nint=0;
+  else if(varnumber==58) dtrkavgy=0;
+  else if(varnumber==59) rich_beta=1;
+  else if(varnumber==60) rich_rms=0;
+  else if(varnumber==61) minoise1=0;
+  else if(varnumber==62) minoise2=0;
+  else if(varnumber==63) minoise3=0;
+  else if(varnumber==64) minoise4=0;
+  else if(varnumber==65) nlayer=7;
+  else if(varnumber==66) energy=0;
+  else if(varnumber==67) maxresx0=0;
+  else if(varnumber==68) maxresy0=0;
+  else if(varnumber==69) maxresx1=0;
+  else if(varnumber==70) maxresy1=0;
+  else if(varnumber==71) minresx=0;
+  else if(varnumber==72) minresy=0;
+  else if(varnumber==73) chix_inn_ch=0;
+  else if(varnumber==74) chiy_inn_ch=0;
+  else if(varnumber==75) trkinn_q=1;
+  else if(varnumber==76) trk_ql2l4=1;
+  else if(varnumber==77) trk_ql5l8=1;
+
   return;
 }
 
 // return 0 is ok  return -1 problem;
 int TrkCCVar::CheckVar(int varnumber){
   if(varnumber==0 && !(std::abs(nmsk)<1.e20)) return -1;
-  if(varnumber==1 && !(std::abs(ly1)<1.e20)) return -1;
-  if(varnumber==2 && !(std::abs(ly2)<1.e20)) return -1;
-  if(varnumber==3 && !(std::abs(ly9)<1.e20)) return -1;
-  if(varnumber==4 && !(std::abs(pat)<1.e20)) return -1;
-  if(varnumber==5 && !(std::abs(rigidity_ch)<1.e20)) return -1;
-  if(varnumber==6 && !(std::abs(rigidity_al)<1.e20)) return -1;
-  if(varnumber==7 && !(std::abs(x0rad)<1.e20)) return -1;
-  if(varnumber==8 && !(std::abs(chix_ch)<1.e20)) return -1;
-  if(varnumber==9 && !(std::abs(chiy_ch)<1.e20)) return -1;
-  if(varnumber==10 && !(std::abs(rigidity_in)<1.e20)) return -1;
-  if(varnumber==11 && !(std::abs(rigidity_bt)<1.e20)) return -1;
-  if(varnumber==12 && !(std::abs(rigidity_tp)<1.e20)) return -1;
-  if(varnumber==13 && !(std::abs(rigidity_ibt)<1.e20)) return -1;
-  if(varnumber==14 && !(std::abs(rigidity_itp)<1.e20)) return -1;
-  if(varnumber==15 && !(std::abs(err_ch)<1.e20)) return -1;
-  if(varnumber==16 && !(std::abs(axischi2)<1.e20)) return -1;
-  if(varnumber==17 && !(std::abs(trk_ql9)<1.e20)) return -1;
-  if(varnumber==18 && !(std::abs(tof_qd)<1.e20)) return -1;
-  if(varnumber==19 && !(std::abs(tof_qmax)<1.e20)) return -1;
-  if(varnumber==20 && !(std::abs(rich_nunused)<1.e20)) return -1;
-  if(varnumber==21 && !(std::abs(pMDR)<1.e20)) return -1;
-  if(varnumber==22 && !(std::abs(nlbks)<1.e20)) return -1;
-  if(varnumber==23 && !(std::abs(rich_ratio)<1.e20)) return -1;
-  if(varnumber==24 && !(std::abs(rich_res)<1.e20)) return -1;
-  if(varnumber==25 && !(std::abs(trk_cofgx)<1.e20)) return -1;
-  if(varnumber==26 && !(std::abs(trk_dirx)<1.e20)) return -1;
-  if(varnumber==27 && !(std::abs(tof_chi2c)<1.e20)) return -1;
-  if(varnumber==28 && !(std::abs(tof_chi2t)<1.e20)) return -1;
-  if(varnumber==29 && !(std::abs(nbks)<1.e20)) return -1;
-  if(varnumber==30 && !(std::abs(ntrkcl9)<1.e20)) return -1;
-  if(varnumber==31 && !(std::abs(ntrk)<1.e20)) return -1;
-  if(varnumber==32 && !(std::abs(nbeta)<1.e20)) return -1;
-  if(varnumber==33 && !(std::abs(nrings)<1.e20)) return -1;
-  if(varnumber==34 && !(std::abs(trk_cofgy)<1.e20)) return -1;
-  if(varnumber==35 && !(std::abs(trk_diry)<1.e20)) return -1;
-  if(varnumber==36 && !(std::abs(trd_diry)<1.e20)) return -1;
-  if(varnumber==37 && !(std::abs(tof_qu)<1.e20)) return -1;
-  if(varnumber==38 && !(std::abs(tof_qrms)<1.e20)) return -1;
-  if(varnumber==39 && !(std::abs(tof_nused)<1.e20)) return -1;
-  if(varnumber==40 && !(std::abs(tof_beta)<1.e20)) return -1;
-  if(varnumber==41 && !(std::abs(trk_q)<1.e20)) return -1;
-  if(varnumber==42 && !(std::abs(trk_yrms)<1.e20)) return -1;
-  if(varnumber==43 && !(std::abs(trk_ql18)<1.e20)) return -1;
-  if(varnumber==44 && !(std::abs(trd_ntrk)<1.e20)) return -1;
-  if(varnumber==45 && !(std::abs(trd_nhit)<1.e20)) return -1;
-  if(varnumber==46 && !(std::abs(trd_ratio)<1.e20)) return -1;
-  if(varnumber==47 && !(std::abs(trd_ratioff)<1.e20)) return -1;
-  if(varnumber==48 && !(std::abs(trd_sumv)<1.e20)) return -1;
-  if(varnumber==49 && !(std::abs(trd_noff)<1.e20)) return -1;
-  if(varnumber==50 && !(std::abs(trd_path)<1.e20)) return -1;
-  if(varnumber==51 && !(std::abs(trd_mindist)<1.e20)) return -1;
-  if(varnumber==52 && !(std::abs(trd_q)<1.e20)) return -1;
-  if(varnumber==53 && !(std::abs(trd_chi2)<1.e20)) return -1;
-  if(varnumber==54 && !(std::abs(trk_qrms)<1.e20)) return -1;
-  if(varnumber==55 && !(std::abs(trk_qmax)<1.e20)) return -1;
-  if(varnumber==56 && !(std::abs(ntrky5cl18)<1.e20)) return -1;
-  if(varnumber==57 && !(std::abs(nint)<1.e20)) return -1;
-  if(varnumber==58 && !(std::abs(dtrkavgy)<1.e20)) return -1;
-  if(varnumber==59 && !(std::abs(rich_beta)<1.e20)) return -1;
-  if(varnumber==60 && !(std::abs(rich_rms)<1.e20)) return -1;
-  if(varnumber==61 && !(std::abs(minoise1)<1.e20)) return -1;
-  if(varnumber==62 && !(std::abs(minoise2)<1.e20)) return -1;
-  if(varnumber==63 && !(std::abs(minoise3)<1.e20)) return -1;
-  if(varnumber==64 && !(std::abs(minoise4)<1.e20)) return -1;
-  if(varnumber==65 && !(std::abs(nlayer)<1.e20)) return -1;
-  if(varnumber==66 && !(std::abs(energy)<1.e20)) return -1;
-  if(varnumber==67 && !(std::abs(maxresx0)<1.e20)) return -1;
-  if(varnumber==68 && !(std::abs(maxresy0)<1.e20)) return -1;
-  if(varnumber==69 && !(std::abs(maxresx1)<1.e20)) return -1;
-  if(varnumber==70 && !(std::abs(maxresy1)<1.e20)) return -1;
-  if(varnumber==71 && !(std::abs(minresx)<1.e20)) return -1;
-  if(varnumber==72 && !(std::abs(minresy)<1.e20))  return -1; 
+  else if(varnumber==1 && !(std::abs(ly1_q)<1.e20)) return -1;
+  else if(varnumber==2 && !(std::abs(ly2_q)<1.e20)) return -1;
+  else if(varnumber==3 && !(std::abs(ly9_q)<1.e20)) return -1;
+  else if(varnumber==4 && !(std::abs(pat)<1.e20)) return -1;
+  else if(varnumber==5 && !(std::abs(rigidity_ch)<1.e20)) return -1;
+  else if(varnumber==6 && !(std::abs(rigidity_al)<1.e20)) return -1;
+  else if(varnumber==7 && !(std::abs(x0rad)<1.e20)) return -1;
+  else if(varnumber==8 && !(std::abs(chix_ch)<1.e20)) return -1;
+  else if(varnumber==9 && !(std::abs(chiy_ch)<1.e20)) return -1;
+  else if(varnumber==10 && !(std::abs(rigidity_in)<1.e20)) return -1;
+  else if(varnumber==11 && !(std::abs(rigidity_bt)<1.e20)) return -1;
+  else if(varnumber==12 && !(std::abs(rigidity_tp)<1.e20)) return -1;
+  else if(varnumber==13 && !(std::abs(rigidity_ibt)<1.e20)) return -1;
+  else if(varnumber==14 && !(std::abs(rigidity_itp)<1.e20)) return -1;
+  else if(varnumber==15 && !(std::abs(err_ch)<1.e20)) return -1;
+  else if(varnumber==16 && !(std::abs(axischi2)<1.e20)) return -1;
+  else if(varnumber==17 && !(std::abs(trk_qmaxl9)<1.e20)) return -1;
+  else if(varnumber==18 && !(std::abs(tof_qd)<1.e20)) return -1;
+  else if(varnumber==19 && !(std::abs(tof_qmax)<1.e20)) return -1;
+  else if(varnumber==20 && !(std::abs(rich_nunused)<1.e20)) return -1;
+  else if(varnumber==21 && !(std::abs(pMDR)<1.e20)) return -1;
+  else if(varnumber==22 && !(std::abs(nlbks)<1.e20)) return -1;
+  else if(varnumber==23 && !(std::abs(rich_ratio)<1.e20)) return -1;
+  else if(varnumber==24 && !(std::abs(rich_res)<1.e20)) return -1;
+  else if(varnumber==25 && !(std::abs(trk_cofgx)<1.e20)) return -1;
+  else if(varnumber==26 && !(std::abs(trk_dirx)<1.e20)) return -1;
+  else if(varnumber==27 && !(std::abs(tof_chi2c)<1.e20)) return -1;
+  else if(varnumber==28 && !(std::abs(tof_chi2t)<1.e20)) return -1;
+  else if(varnumber==29 && !(std::abs(nbks)<1.e20)) return -1;
+  else if(varnumber==30 && !(std::abs(ntrkcl9)<1.e20)) return -1;
+  else if(varnumber==31 && !(std::abs(ntrk)<1.e20)) return -1;
+  else if(varnumber==32 && !(std::abs(nbeta)<1.e20)) return -1;
+  else if(varnumber==33 && !(std::abs(nrings)<1.e20)) return -1;
+  else if(varnumber==34 && !(std::abs(trk_cofgy)<1.e20)) return -1;
+  else if(varnumber==35 && !(std::abs(trk_diry)<1.e20)) return -1;
+  else if(varnumber==36 && !(std::abs(trd_diry)<1.e20)) return -1;
+  else if(varnumber==37 && !(std::abs(tof_qu)<1.e20)) return -1;
+  else if(varnumber==38 && !(std::abs(tof_qrms)<1.e20)) return -1;
+  else if(varnumber==39 && !(std::abs(tof_nused)<1.e20)) return -1;
+  else if(varnumber==40 && !(std::abs(tof_beta)<1.e20)) return -1;
+  else if(varnumber==41 && !(std::abs(trk_q)<1.e20)) return -1;
+  else if(varnumber==42 && !(std::abs(trk_yrms)<1.e20)) return -1;
+  else if(varnumber==43 && !(std::abs(trk_qmaxl18)<1.e20)) return -1;
+  else if(varnumber==44 && !(std::abs(trd_ntrk)<1.e20)) return -1;
+  else if(varnumber==45 && !(std::abs(trd_nhit)<1.e20)) return -1;
+  else if(varnumber==46 && !(std::abs(trd_ratio)<1.e20)) return -1;
+  else if(varnumber==47 && !(std::abs(trd_ratioff)<1.e20)) return -1;
+  else if(varnumber==48 && !(std::abs(trd_sumv)<1.e20)) return -1;
+  else if(varnumber==49 && !(std::abs(trd_noff)<1.e20)) return -1;
+  else if(varnumber==50 && !(std::abs(trd_path)<1.e20)) return -1;
+  else if(varnumber==51 && !(std::abs(trd_mindist)<1.e20)) return -1;
+  else if(varnumber==52 && !(std::abs(trd_q)<1.e20)) return -1;
+  else if(varnumber==53 && !(std::abs(trd_chi2)<1.e20)) return -1;
+  else if(varnumber==54 && !(std::abs(trk_qrms)<1.e20)) return -1;
+  else if(varnumber==55 && !(std::abs(trk_qmax)<1.e20)) return -1;
+  else if(varnumber==56 && !(std::abs(ntrky5cl18)<1.e20)) return -1;
+  else if(varnumber==57 && !(std::abs(nint)<1.e20)) return -1;
+  else if(varnumber==58 && !(std::abs(dtrkavgy)<1.e20)) return -1;
+  else if(varnumber==59 && !(std::abs(rich_beta)<1.e20)) return -1;
+  else if(varnumber==60 && !(std::abs(rich_rms)<1.e20)) return -1;
+  else if(varnumber==61 && !(std::abs(minoise1)<1.e20)) return -1;
+  else if(varnumber==62 && !(std::abs(minoise2)<1.e20)) return -1;
+  else if(varnumber==63 && !(std::abs(minoise3)<1.e20)) return -1;
+  else if(varnumber==64 && !(std::abs(minoise4)<1.e20)) return -1;
+  else if(varnumber==65 && !(std::abs(nlayer)<1.e20)) return -1;
+  else if(varnumber==66 && !(std::abs(energy)<1.e20)) return -1;
+  else if(varnumber==67 && !(std::abs(maxresx0)<1.e20)) return -1;
+  else if(varnumber==68 && !(std::abs(maxresy0)<1.e20)) return -1;
+  else if(varnumber==69 && !(std::abs(maxresx1)<1.e20)) return -1;
+  else if(varnumber==70 && !(std::abs(maxresy1)<1.e20)) return -1;
+  else if(varnumber==71 && !(std::abs(minresx)<1.e20)) return -1;
+  else if(varnumber==72 && !(std::abs(minresy)<1.e20))  return -1;
+  else if(varnumber==73 && !(std::abs(chix_inn_ch)<1.e20)) return -1;
+  else if(varnumber==74 && !(std::abs(chiy_inn_ch)<1.e20)) return -1;
+  else if(varnumber==75 && !(std::abs(trkinn_q)<1.e20)) return -1;
+  else if(varnumber==76 && !(std::abs(trk_ql2l4)<1.e20)) return -1;
+  else if(varnumber==77 && !(std::abs(trk_ql5l8)<1.e20)) return -1;
+			   
   return 0;
 }
 
 
 void TrkCCVar::FillFromVector(float varlistfull[nTrkCCVar]){
   nmsk= int(varlistfull[0]);
-  ly1=  int(varlistfull[1]);
-  ly2=  int(varlistfull[2]);
-  ly9=  int(varlistfull[3]);
+  ly1_q = varlistfull[1];
+  ly2_q = varlistfull[2];
+  ly9_q = varlistfull[3];
   pat=  int(varlistfull[4]);
   rigidity_ch= varlistfull[5];
   rigidity_al=  varlistfull[6];
@@ -1407,7 +1454,7 @@ void TrkCCVar::FillFromVector(float varlistfull[nTrkCCVar]){
   rigidity_itp=  varlistfull[14];
   err_ch=  varlistfull[15];
   axischi2= varlistfull[16];
-  trk_ql9= varlistfull[17];
+  trk_qmaxl9= varlistfull[17];
   tof_qd=  varlistfull[18];
   tof_qmax=  varlistfull[19];
   rich_nunused=  int(varlistfull[20]);
@@ -1433,7 +1480,7 @@ void TrkCCVar::FillFromVector(float varlistfull[nTrkCCVar]){
   tof_beta=  varlistfull[40];
   trk_q=  varlistfull[41];
   trk_yrms=  varlistfull[42];
-  trk_ql18=  varlistfull[43];
+  trk_qmaxl18=  varlistfull[43];
   trd_ntrk=  int(varlistfull[44]);
   trd_nhit=  int(varlistfull[45]);
   trd_ratio=  varlistfull[46];
@@ -1462,86 +1509,99 @@ void TrkCCVar::FillFromVector(float varlistfull[nTrkCCVar]){
   maxresx1=  varlistfull[69];
   maxresy1=  varlistfull[70];
   minresx=  varlistfull[71];
-  minresy=  varlistfull[72];  
+  minresy=  varlistfull[72];
+  chix_inn_ch= varlistfull[73];
+  chiy_inn_ch= varlistfull[74];
+  trkinn_q= varlistfull[75];
+  trk_ql2l4= varlistfull[76];
+  trk_ql5l8= varlistfull[77];
+
   return;
 }
 
 float TrkCCVar::GetFullVectorElement(int varnumber){
   if( varnumber==0) return (float) nmsk;
-  if( varnumber==1) return (float) ly1;
-  if( varnumber==2) return (float) ly2;
-  if( varnumber==3) return (float) ly9;
-  if( varnumber==4) return (float) pat;
-  if( varnumber==5) return (float) rigidity_ch;
-  if( varnumber==6) return (float) rigidity_al;
-  if( varnumber==7) return (float) x0rad;
-  if( varnumber==8) return (float) chix_ch;
-  if( varnumber==9) return (float) chiy_ch;
-  if( varnumber==10) return (float) rigidity_in;
-  if( varnumber==11) return (float) rigidity_bt;
-  if( varnumber==12) return (float) rigidity_tp;
-  if( varnumber==13) return (float) rigidity_ibt;
-  if( varnumber==14) return (float) rigidity_itp;
-  if( varnumber==15) return (float) err_ch;
-  if( varnumber==16) return (float) axischi2;
-  if( varnumber==17) return (float) trk_ql9;
-  if( varnumber==18) return (float) tof_qd;
-  if( varnumber==19) return (float) tof_qmax;
-  if( varnumber==20) return (float) rich_nunused;
-  if( varnumber==21) return (float) pMDR;
-  if( varnumber==22) return (float) nlbks;
-  if( varnumber==23) return (float) rich_ratio;
-  if( varnumber==24) return (float) rich_res;
-  if( varnumber==25) return (float) trk_cofgx;
-  if( varnumber==26) return (float) trk_dirx;
-  if( varnumber==27) return (float) tof_chi2c;
-  if( varnumber==28) return (float) tof_chi2t;
-  if( varnumber==29) return (float) nbks;
-  if( varnumber==30) return (float) ntrkcl9;
-  if( varnumber==31) return (float) ntrk;
-  if( varnumber==32) return (float) nbeta;
-  if( varnumber==33) return (float) nrings;
-  if( varnumber==34) return (float) trk_cofgy;
-  if( varnumber==35) return (float) trk_diry;
-  if( varnumber==36) return (float) trd_diry;
-  if( varnumber==37) return (float) tof_qu;
-  if( varnumber==38) return (float) tof_qrms;
-  if( varnumber==39) return (float) tof_nused;
-  if( varnumber==40) return (float) tof_beta;
-  if( varnumber==41) return (float) trk_q;
-  if( varnumber==42) return (float) trk_yrms;
-  if( varnumber==43) return (float) trk_ql18;
-  if( varnumber==44) return (float) trd_ntrk;
-  if( varnumber==45) return (float) trd_nhit;
-  if( varnumber==46) return (float) trd_ratio;
-  if( varnumber==47) return (float) trd_ratioff;
-  if( varnumber==48) return (float) trd_sumv;
-  if( varnumber==49) return (float) trd_noff;
-  if( varnumber==50) return (float) trd_path;
-  if( varnumber==51) return (float) trd_mindist;
-  if( varnumber==52) return (float) trd_q;
-  if( varnumber==53) return (float) trd_chi2;
-  if( varnumber==54) return (float) trk_qrms;
-  if( varnumber==55) return (float) trk_qmax;
-  if( varnumber==56) return (float) ntrky5cl18;
-  if( varnumber==57) return (float) nint;
-  if( varnumber==58) return (float) dtrkavgy;
-  if( varnumber==59) return (float) rich_beta;
-  if( varnumber==60) return (float) rich_rms;
-  if( varnumber==61) return (float) minoise1;
-  if( varnumber==62) return (float) minoise2;
-  if( varnumber==63) return (float) minoise3;
-  if( varnumber==64) return (float) minoise4;
-  if( varnumber==65) return (float) nlayer;
-  if( varnumber==66) return (float) energy;
-  if( varnumber==67) return (float) maxresx0;
-  if( varnumber==68) return (float) maxresy0;
-  if( varnumber==69) return (float) maxresx1;
-  if( varnumber==70) return (float) maxresy1;
-  if( varnumber==71) return (float) minresx;
-  if( varnumber==72) return (float) minresy;
-  cerr << "TrkCCVar::GetFullVectorElement value out of range " << varnumber << endl;
-  return 0;
+  else if( varnumber==1) return (float) ly1_q;
+  else if( varnumber==2) return (float) ly2_q;
+  else if( varnumber==3) return (float) ly9_q;
+  else if( varnumber==4) return (float) pat;
+  else if( varnumber==5) return (float) rigidity_ch;
+  else if( varnumber==6) return (float) rigidity_al;
+  else if( varnumber==7) return (float) x0rad;
+  else if( varnumber==8) return (float) chix_ch;
+  else if( varnumber==9) return (float) chiy_ch;
+  else if( varnumber==10) return (float) rigidity_in;
+  else if( varnumber==11) return (float) rigidity_bt;
+  else if( varnumber==12) return (float) rigidity_tp;
+  else if( varnumber==13) return (float) rigidity_ibt;
+  else if( varnumber==14) return (float) rigidity_itp;
+  else if( varnumber==15) return (float) err_ch;
+  else if( varnumber==16) return (float) axischi2;
+  else if( varnumber==17) return (float) trk_qmaxl9;
+  else if( varnumber==18) return (float) tof_qd;
+  else if( varnumber==19) return (float) tof_qmax;
+  else if( varnumber==20) return (float) rich_nunused;
+  else if( varnumber==21) return (float) pMDR;
+  else if( varnumber==22) return (float) nlbks;
+  else if( varnumber==23) return (float) rich_ratio;
+  else if( varnumber==24) return (float) rich_res;
+  else if( varnumber==25) return (float) trk_cofgx;
+  else if( varnumber==26) return (float) trk_dirx;
+  else if( varnumber==27) return (float) tof_chi2c;
+  else if( varnumber==28) return (float) tof_chi2t;
+  else if( varnumber==29) return (float) nbks;
+  else if( varnumber==30) return (float) ntrkcl9;
+  else if( varnumber==31) return (float) ntrk;
+  else if( varnumber==32) return (float) nbeta;
+  else if( varnumber==33) return (float) nrings;
+  else if( varnumber==34) return (float) trk_cofgy;
+  else if( varnumber==35) return (float) trk_diry;
+  else if( varnumber==36) return (float) trd_diry;
+  else if( varnumber==37) return (float) tof_qu;
+  else if( varnumber==38) return (float) tof_qrms;
+  else if( varnumber==39) return (float) tof_nused;
+  else if( varnumber==40) return (float) tof_beta;
+  else if( varnumber==41) return (float) trk_q;
+  else if( varnumber==42) return (float) trk_yrms;
+  else if( varnumber==43) return (float) trk_qmaxl18;
+  else if( varnumber==44) return (float) trd_ntrk;
+  else if( varnumber==45) return (float) trd_nhit;
+  else if( varnumber==46) return (float) trd_ratio;
+  else if( varnumber==47) return (float) trd_ratioff;
+  else if( varnumber==48) return (float) trd_sumv;
+  else if( varnumber==49) return (float) trd_noff;
+  else if( varnumber==50) return (float) trd_path;
+  else if( varnumber==51) return (float) trd_mindist;
+  else if( varnumber==52) return (float) trd_q;
+  else if( varnumber==53) return (float) trd_chi2;
+  else if( varnumber==54) return (float) trk_qrms;
+  else if( varnumber==55) return (float) trk_qmax;
+  else if( varnumber==56) return (float) ntrky5cl18;
+  else if( varnumber==57) return (float) nint;
+  else if( varnumber==58) return (float) dtrkavgy;
+  else if( varnumber==59) return (float) rich_beta;
+  else if( varnumber==60) return (float) rich_rms;
+  else if( varnumber==61) return (float) minoise1;
+  else if( varnumber==62) return (float) minoise2;
+  else if( varnumber==63) return (float) minoise3;
+  else if( varnumber==64) return (float) minoise4;
+  else if( varnumber==65) return (float) nlayer;
+  else if( varnumber==66) return (float) energy;
+  else if( varnumber==67) return (float) maxresx0;
+  else if( varnumber==68) return (float) maxresy0;
+  else if( varnumber==69) return (float) maxresx1;
+  else if( varnumber==70) return (float) maxresy1;
+  else if( varnumber==71) return (float) minresx;
+  else if( varnumber==72) return (float) minresy;
+  else if( varnumber==73) return (float) chix_inn_ch;
+  else if( varnumber==74) return (float) chiy_inn_ch;
+  else if( varnumber==75) return (float) trkinn_q;
+  else if( varnumber==76) return (float) trk_ql2l4;
+  else if( varnumber==77) return (float) trk_ql5l8;
+  else {
+    cerr << "TrkCCVar::GetFullVectorElement value out of range " << varnumber << endl;
+    return 0;
+  }
 }
 
 #ifndef _NOGBATCH_
@@ -1605,7 +1665,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   AMSPoint trk0;
   AMSDir dtrk0;
   trk->Interpolate(0., trk0, dtrk0, idd);
-  x0rad=evt->GetRadiationLength(trk0,dtrk0,rigidity_ch/sqrt(fabs(btcor)),200.,0.); //BTCOR truth is in the middle?    
+  x0rad=evt->GetRadiationLength(trk0,dtrk0,rigidity_ch/sqrt(std::abs(btcor)),200.,0.); //BTCOR truth is in the middle?    
                                                            
   err_ch = 0.;
   int  iddc = trk->iTrTrackPar(21,0,ifit); // error same weight            
@@ -1630,7 +1690,12 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   if (iddc>=0) rigidity_ibt = btcor*trk->GetRigidity(iddc);
   rigidity_in = 0;
   iddc = trk->iTrTrackPar(1,3,ifit);
-  if (iddc>=0) rigidity_in = btcor*trk->GetRigidity(iddc);
+  if (iddc>=0) {
+    rigidity_in = btcor*trk->GetRigidity(iddc);
+    chix_inn_ch = trk->GetNormChisqX(iddc);
+    chiy_inn_ch = trk->GetNormChisqY(iddc);
+  }
+
 
 
   // search nearest noise hit for each layer
@@ -1642,7 +1707,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     bitexam = (bitexam & btp);
     if (bitexam>0)    trk_layer_pattern[layer-1]  = 1;  // flags hitted layers
     AMSPoint pnoise = TrTrackSelection::GetMinDist(trk, laypa, 1);
-    noise_y[layer-1]=fabs(pnoise.y());
+    noise_y[layer-1]=std::abs(pnoise.y());
     laypa=laypa*10;
   }
   nlayer = 0;
@@ -1685,10 +1750,10 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     resappoy[layer-1]=0;
     if (trk_layer_pattern[layer-1] ==1){
       trk->GetResidualKindJ(layer,pres,0,idd);
-      resappox[layer-1]=fabs(pres[0]);
-      resappoy[layer-1]=fabs(pres[1]);
-      if (maxresx0 < fabs(pres[0])) maxresx0 = fabs(pres[0]); 
-      if (maxresy0 < fabs(pres[1])) maxresy0 = fabs(pres[1]); 
+      resappox[layer-1]=std::abs(pres[0]);
+      resappoy[layer-1]=std::abs(pres[1]);
+      if (maxresx0 < std::abs(pres[0])) maxresx0 = std::abs(pres[0]); 
+      if (maxresy0 < std::abs(pres[1])) maxresy0 = std::abs(pres[1]); 
     }
   }
 
@@ -1702,22 +1767,18 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   // TRK PARAMETER EVALUATION                                                                       
   // pattern                                                                                                           
   pat = -1;
-  ly1 = trk_layer_pattern[0];
-  //  ly1 = btp%2;  // to check
-  ly9 = trk_layer_pattern[8];
-  /*
-    ly9 = 0;
-    if (btp > 255) ly9 = 1; // to check
-    ly2 = 0;
-    if(btp & (1 << 1)) ly2=1;
-  */
-  ly2 = trk_layer_pattern[1];
-  if (ly1==0 && ly9==0 && ly2==0) pat=0;  // select 000                                                               
-  if (ly1==0 && ly9==0 && ly2==1) pat=1;  // select 001                                                               
-  if (ly1==0 && ly9==1 && ly2==0) pat=2;  // select 010                                                               
-  if (ly1==0 && ly9==1 && ly2==1) pat=3;  // select 011                                                               
-  if (ly1==1 && ly9==0               ) pat=4;  // select 10x                                                          
-  if (ly1==1 && ly9==1               ) pat=5;  // select 11x                                                          
+  int ly1 = trk_layer_pattern[0];
+  int ly2 = trk_layer_pattern[1];
+  int ly9 = trk_layer_pattern[8];
+
+
+  if (ly1==0 && ly9==0 && ly2==0) pat=0;  // select 000
+  if (ly1==0 && ly9==0 && ly2==1) pat=1;  // select 001
+  if (ly1==0 && ly9==1 && ly2==0) pat=2;  // select 010
+  if (ly1==0 && ly9==1 && ly2==1) pat=3;  // select 011
+  if (ly1==1 && ly9==0               ) pat=4;  // select 10x
+  if (ly1==1 && ly9==1               ) pat=5;  // select 11x
+
   // track position and direction
   dtrkavgy=0;
   double ytrk[9]={0,0,0,0,0,0,0,0,0};
@@ -1738,7 +1799,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   double qlaymaxy[9]={0,0,0,0,0,0,0,0,0};
   double ytrcl[9]={0,0,0,0,0,0,0,0,0};
   double yytrcl[9]={0,0,0,0,0,0,0,0,0};
-  trk_ql18=0;
+  trk_qmaxl18=0;
   int ntrclu = evt->NTrCluster();
   for (int icl = 0; icl<ntrclu; icl++){ //scan trk cluster 
     TrClusterR* trcl = evt->pTrCluster(icl);
@@ -1749,18 +1810,19 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     float qapp = trcl->GetQ();
     if (trcl->GetSide()==1 && qapp>qlaymaxy[layer]) qlaymaxy[layer]=qapp;
     if (trcl->GetSide()!=1 && qapp>qlaymaxx[layer]) qlaymaxx[layer]=qapp;
-    if (layer<8 && qlaymaxx[layer]>trk_ql18) trk_ql18 = qlaymaxx[layer]; //not used
-    if (layer<8 && qlaymaxy[layer]>trk_ql18) trk_ql18 = qlaymaxy[layer];
-    if (qapp<0.75) continue; // noise hit                                                                              
+    if (layer<8 && qlaymaxx[layer]>trk_qmaxl18) trk_qmaxl18 = qlaymaxx[layer]; //not used
+    if (layer<8 && qlaymaxy[layer]>trk_qmaxl18) trk_qmaxl18 = qlaymaxy[layer];
+    if (qapp<0.75) continue; // noise hit
+
     ntrcl[layer]++;
     if(trcl->GetSide()==1){nytrcl[layer]++;
       ytrcl[layer]=ytrcl[layer]+trcl->GetGCoord(0);
-      if(fabs(trcl->GetGCoord(0)-ytrk[layer])<5.) nytrcl5[layer]++;
+      if(std::abs(trcl->GetGCoord(0)-ytrk[layer])<5.) nytrcl5[layer]++;
       yytrcl[layer]=yytrcl[layer]+(trcl->GetGCoord(0)*trcl->GetGCoord(0));
     }}
   for (int ill=0;ill<=8;ill++){
-    if(nytrcl[ill]>0) ytrcl[ill]=ytrcl[ill]/(1.*nytrcl[ill]);  // ymedio                                               
-    if(nytrcl[ill]>0) yytrcl[ill]=yytrcl[ill]/(1.*nytrcl[ill]);  // yquadro medio                                      
+    if(nytrcl[ill]>0) ytrcl[ill]=ytrcl[ill]/(1.*nytrcl[ill]);  // ymedio 
+    if(nytrcl[ill]>0) yytrcl[ill]=yytrcl[ill]/(1.*nytrcl[ill]);  // yquadro medio
   }
 
   // weighted average of rms of yclusters in each layer
@@ -1769,8 +1831,8 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     trk_yrms=trk_yrms+nytrcl[ill]*(yytrcl[ill]-ytrcl[ill]*ytrcl[ill]);}
   trk_yrms=  trk_yrms/(nytrcl[0]+nytrcl[1]+nytrcl[2]+nytrcl[3]+nytrcl[4]+nytrcl[5]+nytrcl[6]+nytrcl[7]+nytrcl[8]);
 
-  trk_ql9 = qlaymaxy[8];  // not used usually
-  if(trk_ql9<qlaymaxx[8]) trk_ql9=qlaymaxx[8];
+  trk_qmaxl9 = qlaymaxy[8];  // not used usually
+  if(trk_qmaxl9<qlaymaxx[8]) trk_qmaxl9=qlaymaxx[8];
 
   ntrkcl9 = ntrcl[8];
   ntrky5cl18 = nytrcl5[0]+nytrcl5[1]+nytrcl5[2]+nytrcl5[3]+nytrcl5[4]+nytrcl5[5]+nytrcl5[6]+nytrcl5[7];
@@ -1837,7 +1899,50 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   // track charge and max charge in the track
   trk_q=trk->GetQ(betaq);
   trk_qrms=trk->GetQ_RMS(betaq);
+  trkinn_q=trk->GetInnerQ(betaq);
+
+  int howmany=0;
+  double trk_ql2l4_temp=0;  //average charge from Ly2 to Ly4
+  if (trk_layer_pattern[1]) {
+    trk_ql2l4_temp+=trk->GetLayerJQ(2,betaq);
+    howmany++;
+  }
+  if (trk_layer_pattern[2]) {
+    trk_ql2l4_temp+=trk->GetLayerJQ(3,betaq);
+    howmany++;
+  }
+  if (trk_layer_pattern[3]) {
+    trk_ql2l4_temp+=trk->GetLayerJQ(4,betaq);
+    howmany++;
+  }
+  if (howmany>0) {trk_ql2l4_temp/=howmany;
+    trk_ql2l4 = trk_ql2l4_temp;}
+  
+  howmany=0;
+  double trk_ql5l8_temp=0;  //average charge from Ly5 to Ly8
+  if (trk_layer_pattern[4]) {
+    trk_ql5l8_temp+=trk->GetLayerJQ(5,betaq);
+    howmany++;
+  }
+  if (trk_layer_pattern[5]) {
+    trk_ql5l8_temp+=trk->GetLayerJQ(6,betaq);
+    howmany++;
+  }
+  if (trk_layer_pattern[6]) {
+    trk_ql5l8_temp+=trk->GetLayerJQ(7,betaq);
+    howmany++;
+  }
+  if (trk_layer_pattern[7]) {
+    trk_ql5l8_temp+=trk->GetLayerJQ(8,betaq);
+    howmany++;
+  }
+  if (howmany>0) {trk_ql5l8_temp/=howmany;
+    trk_ql5l8 = trk_ql5l8_temp;}
+
   trk_qmax=0;
+  if (trk_layer_pattern[0]) ly1_q = trk->GetLayerJQ(1,betaq);
+  if (trk_layer_pattern[1]) ly2_q = trk->GetLayerJQ(2,betaq);
+  if (trk_layer_pattern[8]) ly9_q = trk->GetLayerJQ(9,betaq);
   for (int layer=1; layer<=9; layer++) {
     double qapp = trk->GetLayerJQ(layer,betaq);
     if (qapp>trk_qmax) trk_qmax=qapp;}
@@ -1914,7 +2019,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     energy = ecal->EnergyE;
     //    cout << " internal energy " << energy << endl;
     static EcalAxis *ecalaxis = new EcalAxis();//ATTENTION: THIS STATIC IS SHARED BETWEEN VARIOUS INSTANCES!!!
-    double vv = ecalaxis->process(ecal,2,fabs(rigidity_ch)/rigidity_ch);//process ecalaxis using lateral fit method               
+    double vv = ecalaxis->process(ecal,2,std::abs(rigidity_ch)/rigidity_ch);//process ecalaxis using lateral fit method               
     if(vv>0){
       axischi2  =ecalaxis->ecalchi2->get_chi2() ;
       AMSPoint trkcofg;
@@ -1961,12 +2066,12 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     // inverted direction                                                                        
     Dhtrd.setp(-sin(trdtheta)*cos(trdphi),-sin(trdtheta)*sin(trdphi),-cos(trdtheta));
     PDtrd.setp(Dtrd[0],Dtrd[1],Dtrd[2]);
-    //      double cosapp = fabs(Dhtrd.prod(PDtrd));
+    //      double cosapp = std::abs(Dhtrd.prod(PDtrd));
     AMSPoint Dcrs = Dhtrd.crossp(PDtrd);
     double norm = Dcrs.norm();
     AMSPoint Phtrd;
     Phtrd.setp(Ptrd[0]-trdx,Ptrd[1]-trdy,Ptrd[2]-trdz);
-    double minapp = fabs((Phtrd.prod(Dcrs))/norm);  // componente perpendicolare distanza                 
+    double minapp = std::abs((Phtrd.prod(Dcrs))/norm);  // componente perpendicolare distanza                 
     if(minapp<mindist) {mindist=minapp; //trd_q=qtrdtrk;
       trd_diry=Dhtrd[1]-Dtrd[1]; //trd-trk
       trd_chi2=trdtrk->Chi2;  // (Thanks to Nikolay Nikonov)
@@ -1990,7 +2095,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
     TrdKCluster trdkcluster(evt, trk, idd );
     int QTRDStatus = trdkcluster.CalculateTRDCharge(0, betaq);
     if (QTRDStatus>=0) trd_q = trdkcluster.GetTRDCharge();
-    if (! (fabs(trd_q)<1.e20)) trd_q = 1.; // avoid nan
+    if (! (std::abs(trd_q)<1.e20)) trd_q = 1.; // avoid nan
     /* no more necessary
     // Get the status of the Calculation
     int trdKIsReadAlignmentOK=trdkcluster.IsReadAlignmentOK;
@@ -2111,7 +2216,7 @@ int TrkCCVar::FillFromGbatch(ParticleR* part, int rebuildRefit, int gbatchPRODve
   trk->Interpolate(zrich, trkrh, dtrkrh, idd);
   
   rich_nunused=nunusedrh;
-  rich_res=fabs(xrich-trkrh[0])+fabs(yrich-trkrh[1]);
+  rich_res=std::abs(xrich-trkrh[0])+std::abs(yrich-trkrh[1]);
   rich_rms=0.;
   if(nunusedrh>1) rich_rms=sqrt(yyrich-yrich*yrich+xxrich-xrich*xrich);
 
@@ -2194,14 +2299,14 @@ void TrkCCVar::PathOnB(TrTrackR* tr, int kDef, MagField* magfield, Double_t& B,
   static Double_t DX;
   static Double_t D_ZY;
   static Double_t D_ZX;
-  DZ=fabs(inmiddleout[2].z()-inmiddleout[0].z());
-  DY=fabs(inmiddleout[2].y()-inmiddleout[0].y());
-  DX=fabs(inmiddleout[2].x()-inmiddleout[0].x());
+  DZ=std::abs(inmiddleout[2].z()-inmiddleout[0].z());
+  DY=std::abs(inmiddleout[2].y()-inmiddleout[0].y());
+  DX=std::abs(inmiddleout[2].x()-inmiddleout[0].x());
   D_ZY=sqrt(DZ*DZ+DY*DY);
   D_ZX=sqrt(DZ*DZ+DX*DX);
   L=D_ZY;
-  SenThetaX=fabs(DZ/D_ZX);//vertical means ThetaX=90 -> SenThetaX=1
-  SenThetaY=fabs(DZ/D_ZY);//vertical means ThetaY=90 -> SenThetaY=1
+  SenThetaX=std::abs(DZ/D_ZX);//vertical means ThetaX=90 -> SenThetaX=1
+  SenThetaY=std::abs(DZ/D_ZY);//vertical means ThetaY=90 -> SenThetaY=1
   /*
     static Double_t y1;
     static Double_t y2;
@@ -2246,7 +2351,7 @@ void TrkCCVar::PathOnB(TrTrackR* tr, int kDef, MagField* magfield, Double_t& B,
     x[1]=global.y();
     x[2]=global.z();
     if (magfield) magfield->GuFld(x, _B);
-    if (modulus) B+=fabs(_B[0]);
+    if (modulus) B+=std::abs(_B[0]);
     else B+=_B[0];//va bene con il segno perchè se ci fosse una zona con campo nell'altro verso questo "diminuirebbe" la curvatura
     howmany++;
 #else
@@ -2477,14 +2582,14 @@ int TrkCCNozzoli::EvaluateRegression(float varnor[], float a[], float b[], float
   int nanflag = -1;
   for (int ivv=0;ivv<nvr;ivv++){  //single variable regression
     double vappo = varnor[ivv];
-    if (!(fabs(varnor[ivv]) >=0)) nanflag=ivv;
-    if (!(fabs(varnor[ivv]) >=0)) vappo=0;
-    if (ps[ivv]<0) vappo = ((log10(fabs(vappo))+fabs(vappo))-0.523158)/1.03787; //normalized fabs distribution
+    if (!(std::abs(varnor[ivv]) >=0)) nanflag=ivv;
+    if (!(std::abs(varnor[ivv]) >=0)) vappo=0;
+    if (ps[ivv]<0 && vappo!=0) vappo = ((log10(std::abs(vappo))+std::abs(vappo))-0.523158)/1.03787; //normalized std::abs distribution
     if(vappo>7) vappo=7.;
     if(vappo<-7) vappo=-7.;
     reg[ivv]=0;
-    if(fabs(a[ivv])>1.e-30) {reg[ivv]=(vappo-b[ivv])/a[ivv];}
-    else{ reg[ivv]=0; nanflag=ivv;}
+    if( (! (std::abs(a[ivv])<1.e30)) || (std::abs(a[ivv])<1.e-30)) { reg[ivv]=0; nanflag=ivv;} 
+    else {reg[ivv]=(vappo-b[ivv])/a[ivv];}
     //WARNING
     //    if (ivv==1 || ivv==36 || ivv == 8 || ivv == 19) {reg[ivv]=0;ps[ivv]=0;} //test no cofg no trkq
     pss[ivv]=ps[ivv];
@@ -2493,14 +2598,18 @@ int TrkCCNozzoli::EvaluateRegression(float varnor[], float a[], float b[], float
       pss[ivv] = 0.;
       //cout << ivv << " variable masked"<<endl; 
     }
-    ptot = fabs(pss[ivv])+ptot;
+    ptot = std::abs(pss[ivv])+ptot;
   }
   if (debbugg>0 && nanflag >= 0) cout << "cured problem at variable " << nanflag << " " << varnor[nanflag]<<endl;
   double reg0=0;
   for (int ivv=0;ivv<nvr;ivv++){  //total regression                           
     pss[ivv]=pss[ivv]/ptot;
-    //  if (_verbose>=9) cout << ivv << " ps=" << pss[ivv] << " reg=" << reg[ivv]<< " a="<<a[ivv]<<endl;
-    reg0 = reg0+fabs(pss[ivv])*reg[ivv];
+    //cerr << ivv << " ps=" << pss[ivv] << " reg=" << reg[ivv]<< " a="<<a[ivv]<<endl;
+    reg0 = reg0+std::abs(pss[ivv])*reg[ivv];
+      if (! (std::abs(reg0)<1.e9)){
+	PrintError(Form("TrkCCNozzoli::EvaluateRegression-E %d INF/NAN %f %f %f",ivv,pss[ivv],reg[ivv],ptot));
+	//cerr << ps[ivv] << endl;
+      }
   }
   vreg = reg0;
   //cout << vreg << " raw regression " << endl;
@@ -2524,17 +2633,18 @@ float TrkCCNozzoli::GetRegression(int regtype, unsigned long long masktype, int 
 
   float reg=0;
   float regnorm=0;
+  /* revarnorm is an old crazy idea that is superated now
   float* revarnorm = new float[_nvars];
   // revarnorm IS AN HARD-CODED redefinition of varnorm
   // I am sorry but this is necessary since some varnorm variables 
   //have the same mean but different RMS for CC/NOCC samples
-  // for this motivation you found use of fabs()
+  // for this motivation you found use of std::abs()
   // revarnorm[8] is a temptative to create a quasi-float variable from int variables.
   //    float revarnorm[_nvarf+_nvari]; // this is not allowed in cint
   for (int ivv = 0; ivv<_nvars; ivv++){
     revarnorm[ivv]=_varnorm[ivv];
     if(regtype==0 || regtype==2) {
-      if (ivv==5 || ivv == 21 || ivv == 26 || ivv == 27) revarnorm[ivv]=0.6+2.*log10(fabs(_varnorm[ivv]));
+      if (ivv==5 || ivv == 21 || ivv == 26 || ivv == 27) revarnorm[ivv]=0.6+2.*log10(std::abs(_varnorm[ivv]));
       if(ivv==5 || ivv == 21 || ivv == 26 || ivv == 27) revarnorm[ivv]=revarnorm[ivv]*(exp(0.1*revarnorm[ivv])) - 1.;
       if(ivv==5 && _evpatt<2) revarnorm[ivv]=revarnorm[ivv]-16.;
       if(ivv==27 && _evpatt!=5) revarnorm[ivv]=0.;
@@ -2544,45 +2654,54 @@ float TrkCCNozzoli::GetRegression(int regtype, unsigned long long masktype, int 
       }
     }
   }
+  */
 
-  if (fixbin>=0) { // forced the training energy bin (for calibration purposes)
-      _EvaluateRegression(revarnorm,_rweight[regtype][_evpatt][0][fixbin],_rweight[regtype][_evpatt][1][fixbin],_rweight[regtype][_evpatt][2][fixbin],reg);
-      regnorm = (reg-_mddd[regtype][fixbin][_evpatt])/_rmss[regtype][fixbin][_evpatt];
-      delete [] revarnorm;
+  if (fixbin!=0) { // forced the training energy bin (for equalization/calibration purposes)
+    int efbin = abs(fixbin)-1; 
+      _EvaluateRegression(_varnorm,_rweight[regtype][_evpatt][0][efbin],_rweight[regtype][_evpatt][1][efbin],_rweight[regtype][_evpatt][2][efbin],reg);
+      if (fixbin>0)  {regnorm = (reg-_mddd[regtype][efbin][_evpatt])/_rmss[regtype][efbin][_evpatt];}
+      else {regnorm = reg;} // this is used externally to found mddd[][] and rmss[][] values
+      //      delete [] _varnorm;
+      
+      if( !(std::abs(regnorm)<1.e30)) {
+	for (int ivv = 0;ivv<_nvars; ivv++){
+	  cerr << ivv << " " << regtype << " " << _evpatt << " " << efbin << " " << fixbin << " " <<  _rweight[regtype][_evpatt][0][efbin][ivv] << " " << _rweight[regtype][_evpatt][1][efbin][ivv] << " " << _rweight[regtype][_evpatt][2][efbin][ivv] << endl;
+	}
+      }
       return regnorm;
   }
 
-  // here fixbin <0 (default) use bin interpolation
+  // here fixbin==0 (default) use bin interpolation
   if (_evenergy < _reneth[regtype][0])  // below first bin  
     {
-      _EvaluateRegression(revarnorm,_rweight[regtype][_evpatt][0][0],_rweight[regtype][_evpatt][1][0],_rweight[regtype][_evpatt][2][0],reg);
+      _EvaluateRegression(_varnorm,_rweight[regtype][_evpatt][0][0],_rweight[regtype][_evpatt][1][0],_rweight[regtype][_evpatt][2][0],reg);
       regnorm = (reg-_mddd[regtype][0][_evpatt])/_rmss[regtype][0][_evpatt];
-      delete [] revarnorm;
+      //      delete [] _varnorm;
       return regnorm;
     }
   
   if (_evenergy >= _reneth[regtype][_nene[regtype]-1]) // over last bin                                          
     {
-      _EvaluateRegression(revarnorm,_rweight[regtype][_evpatt][0][_nene[regtype]-1],_rweight[regtype][_evpatt][1][_nene[regtype]-1],_rweight[regtype][_evpatt][2][_nene[regtype]-1],reg);
+      _EvaluateRegression(_varnorm,_rweight[regtype][_evpatt][0][_nene[regtype]-1],_rweight[regtype][_evpatt][1][_nene[regtype]-1],_rweight[regtype][_evpatt][2][_nene[regtype]-1],reg);
       regnorm = (reg-_mddd[regtype][_nene[regtype]-1][_evpatt])/_rmss[regtype][_nene[regtype]-1][_evpatt];
       //cout << " exit2 " << regnorm<< endl;
-      delete [] revarnorm;
+      //      delete [] _varnorm;
       return regnorm;
     }
   for (int ieg = 1; ieg<_nene[regtype];ieg++){
     if (_evenergy>=_reneth[regtype][ieg-1] && _evenergy <_reneth[regtype][ieg]){
       double x = (_evenergy-_reneth[regtype][ieg-1])/(_reneth[regtype][ieg]-_reneth[regtype][ieg-1]);
-      _EvaluateRegression(revarnorm,_rweight[regtype][_evpatt][0][ieg-1],_rweight[regtype][_evpatt][1][ieg-1],_rweight[regtype][_evpatt][2][ieg-1],reg);
+      _EvaluateRegression(_varnorm,_rweight[regtype][_evpatt][0][ieg-1],_rweight[regtype][_evpatt][1][ieg-1],_rweight[regtype][_evpatt][2][ieg-1],reg);
       float regnorm_dw = (reg-_mddd[regtype][ieg-1][_evpatt])/_rmss[regtype][ieg-1][_evpatt];
-      _EvaluateRegression(revarnorm,_rweight[regtype][_evpatt][0][ieg],_rweight[regtype][_evpatt][1][ieg],_rweight[regtype][_evpatt][2][ieg],reg);
+      _EvaluateRegression(_varnorm,_rweight[regtype][_evpatt][0][ieg],_rweight[regtype][_evpatt][1][ieg],_rweight[regtype][_evpatt][2][ieg],reg);
       float regnorm_up = (reg-_mddd[regtype][ieg][_evpatt])/_rmss[regtype][ieg][_evpatt];
       regnorm = regnorm_dw*(1.-x) + x*regnorm_up;
-      delete [] revarnorm;
+      //      delete [] _varnorm;
       return regnorm;
     }
   }
 
-  delete [] revarnorm;
+  //  delete [] _varnorm;
     
   return 0;
 }
@@ -2731,9 +2850,9 @@ int TrkCCNozzoli::NormWeights(float ps[], int nvars, int imatr, float nval){
   for(int ivv=0;ivv<nvv;ivv++){
     //    ps[ivv]=ps[ivv]);
     if (ivv==imatr) continue;
-    ppar = ppar+fabs(ps[ivv]);
+    ppar = ppar+std::abs(ps[ivv]);
   }
-  ptot = fabs(ppar/(1.-npes));
+  ptot = std::abs(ppar/(1.-npes));
   for(int ivv=0;ivv<nvv;ivv++){
     ps[ivv]=ps[ivv]/ptot;
     if (ivv==imatr) ps[ivv]=npes;}
@@ -2921,7 +3040,71 @@ TMVA::Reader* TrkCCPizzolotto::_InitBDTReader( TString bdtWeightsPath, TString b
   }
   return reader;
 }
- 
+
+
+//---------------------------------------------------------------
+// is invoked "LoadDatacardX<datacard_path>"
+TrkCCLoadDatacardX::TrkCCLoadDatacardX(TString filename, int version, int verbose){
+  _subid=filename(filename.First('X')+1,filename.Length()).Data();
+  _verbose=verbose;  
+  LoadDatacard(_subid);
+
+
+};
+
+
+TrkCCLoadDatacardX::~TrkCCLoadDatacardX(){
+
+  _head[_version]=0;
+
+  delete [] _varlist;
+  delete [] _varnorm;
+  for (int ii=0; ii<_nvars; ii++) {
+    delete [] _listamatr[ii];
+  }
+  delete [] _listamatr;
+  
+};
+
+TrkCCLoadDatacardX* TrkCCLoadDatacardX::gethead(TString filename, int version, int verbose) {
+  
+  static bool firstever = true;
+  if (firstever) {
+    for (int jj=0; jj<nVer; jj++) {
+      _head[jj]=NULL;
+    }
+  }
+  
+  if (!_head[version]) {
+    printf("TrkCCLoadDatacardX::gethead()-M-Creating object TrkCCLoadDatacardX_%d as singleton\n", version);
+    _head[version] = new TrkCCLoadDatacardX(filename, version, verbose);
+  }
+  
+  return _head[version];
+}
+
+int TrkCCLoadDatacardX::LoadDatacard(TString fname) {
+  //                                                                                                
+  // LIST OF VARIABLES TO BE NORMALIZED IS IN A TEXT FILE.                                          
+  // Import file:                                                                                   
+  // OPEN FILE WITH LIST OF VAR AND GET VARIABLES TO BE NORMALIZED:                                 
+  //                                                                                                
+  //TString vlistfilename="lista_vars.dat";                                                         
+  _list = new TTree("vlist","var to be normalized");
+  // nvars: total number of variables to be normalized (float+int vars)                             
+  _nvars = (int) _list->ReadFile(fname.Data(),"vpos/I:vname/C:islog/I:isflat/D:hlow/D:hhigh/D:nbins/D:hloglow/D:hloghigh/D:linint/D");
+  printf("[LoadDatacard] found %d variables \n",_nvars);
+
+  _varlist = new float[_nvars];
+  _varnorm = new float[_nvars];
+  _listamatr = new float*[_nvars];
+  for (int ii=0; ii<_nvars; ii++) {
+    _listamatr[ii] = new float[9];
+  }
+  if(_nvars<=0) return 1;
+  return 0;
+}
+
 //---------------------------
  
 int MakeSubIdInt(TString subid) {
