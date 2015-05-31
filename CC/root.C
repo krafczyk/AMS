@@ -14748,7 +14748,47 @@ double ds=dsxy[0];
       }
     }
     if (mc) {
-      if(ds<-0.1){//global scale
+		 if( ds > 100 && ds < 200 ){ // proton chi2x tuning, tuned based on B1027 tb mc, but also applied to B928 tb mc
+			 static int count = 0;
+			 const int kNpar=12;
+			 const int kNLayer=9;
+			 static double spline_x[kNpar] = {
+				0,  3,  7, 10,  15, 20, 30, 40, 70, 100,  200, 300
+			 };
+			 static TSpline3 *spline3_MCtune_z1_X_layer[kNLayer]={0};
+			 if( ds < 120 ){ 
+				 //Ds[0]=111.0, Tuned based on B1034 e110 to BT.B950
+				 static double spline_value[kNLayer][kNpar] = {
+					 0.841, 0.858, 0.872, 0.877, 0.881, 0.880, 0.870, 0.860, 0.843, 0.835, 0.824, 0.823,  // L1
+					 0.841, 0.858, 0.872, 0.877, 0.881, 0.880, 0.870, 0.860, 0.843, 0.835, 0.824, 0.823,  // L2
+					 0.841, 0.868, 0.895, 0.907, 0.918, 0.931, 0.940, 0.935, 0.862, 0.834, 0.819, 0.813,  // L3
+					 0.844, 0.871, 0.895, 0.907, 0.920, 0.931, 0.947, 0.954, 0.900, 0.858, 0.821, 0.816,  // L4
+					 0.900, 0.920, 0.935, 0.940, 0.944, 0.948, 0.950, 0.947, 0.897, 0.858, 0.825, 0.819,  // L5
+					 0.810, 0.837, 0.870, 0.893, 0.912, 0.926, 0.938, 0.950, 0.915, 0.877, 0.847, 0.836,  // L6
+					 0.860, 0.878, 0.894, 0.900, 0.909, 0.915, 0.917, 0.915, 0.892, 0.852, 0.804, 0.797,  // L7
+					 0.860, 0.878, 0.894, 0.900, 0.909, 0.915, 0.917, 0.925, 0.884, 0.849, 0.804, 0.797,  // L8
+					 0.853, 0.875, 0.897, 0.908, 0.919, 0.928, 0.935, 0.938, 0.892, 0.855, 0.820, 0.813   // L9
+				 };
+				 for(int ilayer=0; ilayer<kNLayer; ilayer++){
+					 if( spline3_MCtune_z1_X_layer[ilayer] == 0 ){
+						 cout << "--> MC X residual tuning for Z1: use version 111, layer " << ilayer <<" <--" << endl;
+						 spline3_MCtune_z1_X_layer[ilayer] = new TSpline3( Form("spline3_MCtune_z1_X_layer_%d", ilayer), spline_x, spline_value[ilayer], kNpar, "b2e2", 0, 0 );
+					 }
+				 }
+			 }
+
+			 int layerj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+			 double scale = ds - int(ds/10)*10; // should be around 1
+			 double invs = TMath::Abs(dmin)<dmax?spline3_MCtune_z1_X_layer[layerj-1]->Eval( 1e4*TMath::Abs(dmin) ):1.0;
+			 double shift = (1/invs-1)*dmin*scale; // in cm
+			 if( TMath::Abs(shift) < dmax && TMath::Abs(dmin) > shift) {
+				 coo[0] += shift; // move the hit toward MC cluster
+			 }
+			 if( count++ < 20 ) 
+				 cout << "invs=" << invs << ", dminx=" << dmin << ", shiftx=" << shift << ", tkid=" << tkid << ", coo[0]=" << coo[0] << endl;
+			 ret+=1;
+		 }
+		 else if(ds<-0.1){//global scale
        double scale=TMath::Abs(ds-int(ds)/10*10);
        if(scale>0.1&&scale<10){
          coo[0] =(coo[0]-mc->GetXgl().x())*scale+mc->GetXgl().x();
@@ -15121,35 +15161,76 @@ double ds=dsxy[1];
      coo[1]+=-ds*rnd[0];
      ret+=10;
    }
-   else if( ds > 100 && ds < 200 ){ // proton point-by-point resolution tuning, WXU, 2015-01-13
-     static int count = 0;
-     if( count ++ < 20 ) cout << "using new proton tuning in root.C, Ds[1]=" << ds << endl;
-    // Ds=101.0
-    // Scale = Ds - int(Ds/10)*10
-    const int kNpar=12;
-    static double spline_x[kNpar] = {
-      0,  5,  10,  15, 20,
-      30, 40, 50,  60, 75,
-      100,  150
-     };
-    static double vstart[kNpar] = {
-     1.55, 1.54, 1.53, 1.52, 1.50,
-     1.40, 1.20, 1.1, 1.05, 1.03,
-     1.01, 1.0
-    }; 
-    static TSpline3 *spline3_MCtune_z1 = 0;
-    if( spline3_MCtune_z1==0 ) spline3_MCtune_z1 = new TSpline3("spline3_MCtune_z1", spline_x, vstart, kNpar, "b2e2", 0, 0 );
+	else if( ds > 100 && ds < 200 ){ // proton point-by-point resolution tuning, WXU, 2015-01-13
+		// Scale = Ds - int(Ds/10)*10
+		static int count = 0;
+		if( ds < 110 ){ // version 0
+			// Ds=101.0
+			static TSpline3 *spline3_MCtune_z1=0;
+			const int kNpar=12;
+			static double spline_x[kNpar] = {
+				0,  5,  10,  15, 20,
+				30, 40, 50,  60, 75,
+				100,  150
+			};
+			static double vstart[kNpar] = {
+				1.55, 1.54, 1.53, 1.52, 1.50,
+				1.40, 1.20, 1.1, 1.05, 1.03,
+				1.01, 1.0
+			}; 
+			if( spline3_MCtune_z1 == 0 ){
+				spline3_MCtune_z1 = new TSpline3("spline3_MCtune_z1", spline_x, vstart, kNpar, "b2e2", 0, 0 );
+				cout << "--> MC tuning for Z1: use version 0 <--" << endl;
+			}
+			double scale = ds - int(ds/10)*10; // should be around 1
+			double invs = TMath::Abs(dmin)<dmax?spline3_MCtune_z1->Eval( 1e4*TMath::Abs(dmin) ):1.0;
+			double shift = (1/invs-1)*dmin*0.5*scale; // in cm
+			if( TMath::Abs(shift) < dmax && TMath::Abs(dmin) > shift) {
+				coo[1] += shift; // move the hit toward MC cluster
+			}
+			if( count++ < 20 ) 
+				cout << "invs=" << invs << ", dminy=" << dmin << ", shifty=" << shift << ", tkid=" << tkid << ", coo[1]=" << coo[1] << endl;
+			ret+=10;
+		}else {
+			const int kNpar=12;
+			const int kNLayer=9;
+			static double spline_x[kNpar] = {
+				0,  3,  7, 10,  15, 20, 30, 40, 70, 100,  200, 300
+			};
+			static TSpline3 *spline3_MCtune_z1_layer[kNLayer]={0};
 
-    double scale = ds - int(ds/10)*10; // should be around 1
-    double invs = TMath::Abs(dmin)<0.01?spline3_MCtune_z1->Eval( 1e4*TMath::Abs(dmin) ):1.0;
-    double shift = (1/invs-1)*dmin*0.5*scale; // in cm
-    if( TMath::Abs(shift) < dmax && TMath::Abs(dmin) > shift) {
-      coo[1] += shift; // move the hit toward MC cluster
-    }
-    if( count < 20 ) 
-       cout << "invs=" << invs << ", dmin=" << dmin << ", shift=" << shift << ", tkid=" << tkid << ", coo[1]=" << coo[1] << endl;
-     ret+=10;
-  }
+			if( ds < 120 ){ // version 1, for test beam
+				// Ds[1]=111.0, B1034 e110 MC and BT.B950 newalignment
+				static double spline_value[kNLayer][kNpar] = {
+					1.305, 1.303, 1.303, 1.303, 1.302, 1.271, 1.100, 0.976, 0.798, 0.772, 0.910, 1.000,  // L1
+					1.305, 1.303, 1.303, 1.303, 1.302, 1.271, 1.100, 0.976, 0.798, 0.772, 0.910, 1.000,  // L2, as L1
+					1.688, 1.688, 1.688, 1.687, 1.685, 1.677, 1.365, 1.100, 0.794, 0.753, 0.902, 1.000,  // L3
+					1.760, 1.760, 1.759, 1.758, 1.759, 1.720, 1.403, 1.143, 0.835, 0.791, 0.914, 1.000,  // L4
+					1.683, 1.681, 1.680, 1.673, 1.662, 1.546, 1.188, 0.979, 0.733, 0.681, 0.857, 1.000,  // L5
+					1.643, 1.642, 1.620, 1.614, 1.604, 1.511, 1.181, 0.945, 0.686, 0.640, 0.834, 1.000,  // L6
+					1.645, 1.649, 1.652, 1.655, 1.659, 1.595, 1.268, 1.017, 0.762, 0.753, 0.934, 1.000,  // L7
+					1.645, 1.649, 1.652, 1.655, 1.659, 1.595, 1.268, 1.017, 0.762, 0.753, 0.934, 1.000,  // L8
+					1.678, 1.678, 1.675, 1.674, 1.671, 1.608, 1.279, 1.034, 0.762, 0.728, 0.896, 1.000   // L9, avg L3-L8
+				};	
+				for(int ilayer=0; ilayer<kNLayer; ilayer++){
+					if( spline3_MCtune_z1_layer[ilayer] == 0 ){
+						cout << "--> MC tuning for Z1: use version 1, layer " << ilayer << " <--" << endl;
+						spline3_MCtune_z1_layer[ilayer] = new TSpline3( Form("spline3_MCtune_z1_layer_%d", ilayer), spline_x, spline_value[ilayer], kNpar, "b2e2", 0, 0 );
+					}
+				}
+			}
+			int layerj=TkDBc::Head?TkDBc::Head->GetJFromLayer(abs(tkid)/100):0;
+			double scale = ds - int(ds/10)*10; // should be around 1
+			double invs = TMath::Abs(dmin)<dmax?spline3_MCtune_z1_layer[layerj-1]->Eval( 1e4*TMath::Abs(dmin) ):1.0;
+			double shift = (1/invs-1)*dmin*0.5*scale; // in cm
+			if( TMath::Abs(shift) < dmax && TMath::Abs(dmin) > shift) {
+				coo[1] += shift; // move the hit toward MC cluster
+			}
+			if( count++ < 20 ) 
+				cout << "invs=" << invs << ", dminy=" << dmin << ", shifty=" << shift << ", tkid=" << tkid << ", coo[1]=" << coo[1] << endl;
+			ret+=10;
+		}
+	}
   else{
     if (ds < dmax && TMath::Abs(dmin) > ds) {
        coo[1] += (dmin > 0) ? -ds : ds;
