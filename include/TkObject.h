@@ -158,6 +158,13 @@ public:
   void WriteT(ostream &o){putoutT(o);}
   void PrintT();
 
+  void ResetAlignment(){
+    posA=AMSPoint(0,0,0);
+    posT=AMSPoint(0,0,0);
+    rotA.Reset();
+    rotT.Reset();
+    return;
+  }
   void Align2Lin(float * off);
   void Lin2Align(float * off);
   void MCAlign2Lin(float * off);

@@ -373,6 +373,10 @@ public:
   //!  Read the alignement data from a file with a format "tkid dx dy dz alpha beta gamma"
   int readAlignmentAngles(const char* filename, int pri=0);
 
+  //!  Reset the alignement data (posA/rotA) to null alignment
+  void ResetAlignment();
+  //! Reset the sensor alignment to nominal values
+  void ResetSensorAlignment();
   //!  Write the alignement data (posA/rotA) to a file
   int writeAlignment(const char* filename);
   //!  Write the (Dis)alignement data (posT/rotT) to a file

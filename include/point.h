@@ -69,7 +69,9 @@ public:
   AMSPoint abs(){return AMSPoint(fabs(_x),fabs(_y),fabs(_z));}
   //! it returns the vector sum of two AMSPoints
   AMSPoint  operator+( AMSPoint o)
-    const{return AMSPoint(_x+o._x,_y+o._y,_z+o._z);}
+    const {return AMSPoint(_x+o._x,_y+o._y,_z+o._z);}
+  AMSPoint  operator+=( const AMSPoint& o)
+      { _x+=o._x; _y+=o._y; _z+=o._z; return *this;}
   //! it returns the vector difference of two AMSPoints
   AMSPoint  operator-( AMSPoint o)const
     {return AMSPoint(_x-o._x,_y-o._y,_z-o._z);}

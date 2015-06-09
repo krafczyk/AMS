@@ -760,6 +760,16 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     return;
 }
 
+void TkDBc::ResetSensorAlignment(){
+  for (tkidIT lad=tkidmap.begin(); lad!=tkidmap.end();lad++){
+    for (int i = 0; i < trconst::maxsen; i++) 
+      lad->second->_sensx[i] = GetSensAlignX(lad->second->GetTkId(), i);
+    
+    for (int i = 0; i < trconst::maxsen; i++) 
+      lad->second->_sensy[i] = GetSensAlignY(lad->second->GetTkId(), i);
+  }
+  return;
+}
 
 number TkDBc::GetSlotY(int layer, int slot,int side){
   number ladpitch= _ladder_Ypitch;
@@ -1336,7 +1346,18 @@ int TkDBc::readDisalignment(const char* filename, int pri){
 
 }
 
+void TkDBc::ResetAlignment(){
 
+
+  for (int ii=0;ii<nplanes;ii++)
+    GetPlane(ii+1)->ResetAlignment();
+  for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
+    pp->second->ResetAlignment();
+
+
+  return;
+
+}
 int TkDBc::writeAlignment(const char* filename){
 
   ofstream  fileout(filename);
