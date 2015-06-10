@@ -4,9 +4,6 @@ import os
 import re
 import traceback
 
-import Logger
-import TransferDataFilesScript
-
 class DBSQLServer:
     one=0
     dbinit=0

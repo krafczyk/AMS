@@ -14,9 +14,11 @@ import math
 import socket
 import pwd
 
+import DBServer
+import DBSQLServer
+import JournalFile
+
 from stat import *
-from DBSQLServer import DBSQLServer
-from DBServer import DBServer
 from array import *
 
 class RemoteClientException(Exception):
@@ -60,88 +62,6 @@ def sorta(s,o):
     else:
         return -1
 
-class JournalFile:
-    __file_path = None
-    run = 0
-    good = 0
-    crc = 0
-    crc32 = 0
-    fevent = 0
-    levent = 0
-    events = 0
-    size = 0
-    tfevent = 0
-    tlevent = 0
-    timestamp = 0
-    path = ""
-    errors = ""
-    tag = ""
-    t0 = ""
-    t1 = ""
-    t2 = ""
-    t3 = ""
-    f1 = ""
-    f2 = ""
-    version = ""
-
-    def __init__(self, file_path):
-        self.__file_path = file_path
-        f = open(self.__file_path, 'r')
-        for linea in f.readlines():
-            line = linea.split('\n')[0]
-            if(line.find("Run")>=0):
-                self.run = int(line.split("=")[1])
-            elif(line.find("FEvent")>=0):
-                self.fevent = int(line.split("=")[1])
-            elif(line.find("LEvent")>=0):
-                self.levent = int(line.split("=")[1])
-            elif(line.find("TFevent")>=0):
-                self.tfevent = int(line.split("=")[1])
-            elif(line.find("TLevent")>=0):
-                self.tlevent = int(line.split("=")[1])
-            elif(line.find("Version")>=0):
-                self.version = line.split("=")[1]
-            elif(line.find("NEvent")>=0):
-                self.events = int(line.split("=")[1])
-            elif(line.find("NError")>=0):
-                self.errors = line.split("=")[1]
-            elif(line.find("CRC32=")>=0):
-                self.crc32 = int(line.split("=")[1])
-            elif(line.find("CRC=")>=0):
-                self.crc = int(line.split("=")[1])
-            elif(line.find("Size")>=0):
-                self.size = int(line.split("=")[1])
-            elif(line.find("Timestamp")>=0):
-                self.rtime = int(line.split("=")[1])
-            elif(line.find("Path")>=0):
-                self.path=line.split("=")[1]
-            elif(line.find("Tag")>=0):
-                self.tag=line.split("=")[1]
-            elif(line.find("Type0")>=0):
-                self.t0=line.split("=")[1]
-            elif(line.find("Type1")>=0):
-                self.t1=line.split("=")[1]
-            elif(line.find("Type2")>=0):
-                self.t2=line.split("=")[1]
-            elif(line.find("Type3")>=0):
-                self.t3=line.split("=")[1]
-            elif(line.find("FileF")>=0):
-                self.f1=line.split("=")[1]
-            elif(line.find("FileL")>=0):
-                self.f2=line.split("=")[1]
-
-        f.close()
-
-    def ok(self):
-        if(self.size>0 and (self.crc>0 or self.crc32>0) and self.events>0 and self.tlevent>0 and self.tfevent>0 and self.levent>0 and self.fevent>0 and self.run>0 and self.rtime>0):
-            return 1
-        else:
-            return 0
-
-    @property
-    def file_path(self):
-        return self.__file_path
-
 class RemoteClient:
     env={}
     dbclient=""
@@ -164,7 +84,7 @@ class RemoteClient:
 
 
     def ConnectDB(self, one=0):
-        self.sqlserver = DBSQLServer(sys.argv, one=one, logger=self.logger)
+        self.sqlserver = DBSQLServer.DBSQLServer(sys.argv, one=one, logger=self.logger)
         self.sqlconnected = self.sqlserver.Connect()
         self.setenv()
         return self.sqlconnected
@@ -591,7 +511,7 @@ class RemoteClient:
                        self.sqlserver.Commit()
                    continue
 
-               pair = commands.getstatusoutput("cat %s | grep Data | wc -l" % stf)
+               pair = self.__cmd_output("cat %s | grep Data | wc -l" % stf)
                if( not (pair[0]==0 and pair[1]=='1')):
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    self.__log_info("%s Is Offline by 2" % stf)
@@ -605,7 +525,7 @@ class RemoteClient:
                res=""
                os.unlink(stf)
                tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
-               pair = commands.getstatusoutput("%s df -P %s | grep -v ^Filesystem | awk '{print $2, $3, $4}'" %(tmout, fs[0]))
+               pair = self.__cmd_output("%s df -P %s | grep -v ^Filesystem | awk '{print $2, $3, $4}'" %(tmout, fs[0]))
                df_output = pair[1]
                self.__log_info(df_output)
 #               try:
@@ -1884,8 +1804,8 @@ class RemoteClient:
 
     def ServerConnect(self,serverno=0):
         try:
-            (ior,iord)=self.getior(serverno)
-            self.dbclient=DBServer(ior,iord)
+            (ior,iord) = self.getior(serverno)
+            self.dbclient = DBServer.DBServer(ior,iord)
             return 1
         except:
             print "Problem to ConnectServer "
@@ -2316,7 +2236,7 @@ class RemoteClient:
         self.eoslink = '/eosams'
         self.eosreservegb = 100  #GBype reserved on EOS
         chkeoscmd = "%s quota -m %s%s | grep \"space=%s/ \" | grep \"gid=va\"; test ${PIPESTATUS[0]} -eq 0" %(self.eosselect, self.eoshome, path, self.eoshome)
-        pair=commands.getstatusoutput(chkeoscmd)
+        pair = self.__cmd_output(chkeoscmd)
         if (pair[0] != 0 or len(pair) < 2):
             print "%s\nreturned %d\n" %(chkeoscmd, pair[0])
             return -4, os.path.exists(self.eoslink)
@@ -2338,12 +2258,12 @@ class RemoteClient:
 #                self.__cmd("ls -l /eosams/")
 #                return -2, os.path.exists(self.eoslink)
 #            print "Testing readout"
-#            pair=commands.getstatusoutput("cat /eosams/test")
+#            pair = self.__cmd_output("cat /eosams/test")
 #            if (pair[0]):
 #                return -3, os.path.exists(self.eoslink)
 #            print pair
 #            print "Testing remove"
-#            pair=commands.getstatusoutput("rm -v /eosams/test")
+#            pair = self.__cmd_output("rm -v /eosams/test")
 #            if (pair[0]):
 #                return -4, os.path.exists(self.eoslink)
 #            print pair
@@ -2535,8 +2455,8 @@ class RemoteClient:
         return path.replace('/eosams/', '/eos/ams/')
 
     def eosGetSize(self, path):
-        cmd = "%s ls -l %s" %(self.eosselect, self.eosLink2Real(path))
-        pair=commands.getstatusoutput(cmd)
+        cmd = "%s ls -l %s" % (self.eosselect, self.eosLink2Real(path))
+        pair = self.__cmd_output(cmd)
         eossize = -1
         if (pair[0] != 0 or len(pair) < 2):
             print "%s\nreturned %d\n" %(cmd, pair[0])
@@ -3457,7 +3377,7 @@ class RemoteClient:
                             return 0, ""
                         realpath=os.path.realpath(dirpath+"/"+file)
                         if (realpath.find('/castor/') >=0 ):
-                            pair=commands.getstatusoutput("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_qry -M %s -S \*" %(realpath))
+                            pair = self.__cmd_output("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_qry -M %s -S \*" % (realpath))
                             if (pair[0] != 0 or len(pair) < 2 or pair[1].find('STAGED') < 0 and pair[1].find('CANBEMIGR') < 0):
                                 self.__cmd("stager_get -M %s" %(realpath))
                                 unstaged += 1
@@ -4249,7 +4169,7 @@ class RemoteClient:
                         continue
                 pathso=file[1]
                 cmd="ls -lL "+pathso
-                pair=commands.getstatusoutput(cmd)
+                pair = self.__cmd_output(cmd)
                 out=pair[1]
                 if(out.find("No such")>=0 or pathso.find('ams.cern.ch/Offline')>=0):
                     paths=pathso.replace('ams.cern.ch/Offline','cern.ch/ams/Offline',1)
@@ -4358,7 +4278,7 @@ class RemoteClient:
             for path in paths:
                 if(path[0].find('/castor/cern.ch')>=0):
                     nsls="nsls -l "+path[0]
-                    pair=commands.getstatusoutput(nsls)
+                    pair = self.__cmd_output(nsls)
                     if(pair[0]==0):
                         sp1=pair[1].split(' ')
                         if(len(sp1)>4):
@@ -4371,7 +4291,7 @@ class RemoteClient:
                                     
                             patheos=path[0].replace('/castor/cern.ch',eos_prefix,1)
                             eosls ="ls -l "+patheos
-                            p2=commands.getstatusoutput(eosls)
+                            p2 = self.__cmd_output(eosls)
                             sizemb=path[2]
                             sp2=p2[1].split(' ')
                             if(p2[0]!=0 or len(sp2)<=4):
@@ -4482,21 +4402,22 @@ class RemoteClient:
   			tot=tot+1
                         if(tab==0):
                             print "Run ",run,"  not found in dataset ",dataset,tot
-		            eosfind=" ls -l /tmp/eosams/ams/Data/AMS02/2014/ISS.B700/pass5/%d*.root" %(run[0])
-                            eosout=commands.getstatusoutput(eosfind)
+                            eosfind = "ls -l /tmp/eosams/ams/Data/AMS02/2014/ISS.B700/pass5/%d*.root" % run[0]
+                            eosout = self.__cmd_output(eosfind)
                             eosfiles=eosout[1].split("\n")
       	                    for eos in eosfiles:
 				e=eos.split(' ')
 				if(len(e)>7):
 					print e[8]
 				continue
+                                '''
 				r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s 1 1 1 1 1 " %(e[8])
 			 	cp=e[8].replace("/tmp/eosams","/castor/cern.ch",1)
-				co=commands.getstatusoutput("nsls -l "+cp)
+				co = self.__cmd_output("nsls -l %s" % cp)
 				if(co[0]):
 					print " problem with castor ",co,cp
 					continue
-				f1=commands.getstatusoutput(r64)
+				f1 = self.__cmd_output(r64)
 				f1a=f1[1]
 				f1_1=f1a.split("entries")
 				if(len(f1_1)<2):
@@ -4504,7 +4425,7 @@ class RemoteClient:
 					continue
 				f1_2=f1_1[1].split(" ")
 				r64="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/fastntrd64.exe %s %s 1 1 1 1 " %(e[8],f1_2[1])
-				f2=commands.getstatusoutput(r64)
+				f2 = self.__cmd_output(r64)
 				f2a=f2[1]
 				f2_1=f2a.split(",,,")
 				if(len(f2_1)<3):
@@ -4514,7 +4435,7 @@ class RemoteClient:
 				fe=int(f2_1[2])	
 				ver=f2_1[3]
 				crc="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/crc %s 1 1" %(e[8])
-				c2=commands.getstatusoutput(crc)					
+				c2 = self.__cmd_output(crc)
 				c3=c2[1]
 				c3_1=c3.split(" ")
 				timenow=int(time.time())
@@ -4522,6 +4443,7 @@ class RemoteClient:
 				sizemb=int(int(e[4])/1024/1024+0.5)
 				self.InsertNtuple(run[0],version,"RootFile",run[1],fe,le,int(f1_2[1]),0,timenow,sizemb,"Validated",cp,int(c3_1[1]),timenow,0,timenow,1,None,None,timenow)
 				self.sqlserver.Commit(1)
+                                '''
 			    bad1.append(run[0])   		
                         else:
                             print "<tr>"
@@ -4799,8 +4721,8 @@ class RemoteClient:
             turn=turn+1
             notify=1
             junk=dir.split("/")
-            cmd="df /"+junk[1]
-            p=commands.getstatusoutput(cmd)
+            cmd="df /%s" % junk[1]
+            p = self.__cmd_output(cmd)
             sizet=0 
             if(p[0]==0):
                 junk1=p[1].split("\n")
@@ -4808,8 +4730,8 @@ class RemoteClient:
             alldir=os.listdir("/"+junk[1])
             for file in alldir:
                 if(file.find(junk[2])<0):
-                    cmd="du -ks /"+junk[1]+"/"+file
-                    p=commands.getstatusoutput(cmd)
+                    cmd="du -ks /%s/%s" % (junk[1], file)
+                    p = self.__cmd_output(cmd)
                     if(p[0]==0):
                         problem=0
                         sizet=sizet-int(p[1].split("/"+junk[1]+"/"+file)[0])
@@ -5031,7 +4953,7 @@ class RemoteClient:
                     self.logger.error("File not found %s", pfile)
                     continue
 
-                journalFile = JournalFile(pfilej)
+                journalFile = JournalFile.JournalFile(pfilej)
                 if journalFile.ok():
                     self.logger.info("Run %d", journalFile.run)
 
@@ -5439,3 +5361,7 @@ class RemoteClient:
         self.logger.debug("CMD='%s'", cmd)
         #return os.system(cmd)
         return 0
+
+    def __cmd_output(self, cmd):
+        self.logger.debug("CMD='%s'", cmd)
+        return commands.getstatusoutput(cmd)

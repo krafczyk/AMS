@@ -36,7 +36,7 @@ class TransferDataFilesScript:
         #self.cmd = Cmd.Cmd(self.logger)
 
     def run(self, run2p, i, v, u, h, source, c, p, disk, eos):
-        self.logger.debug("TransferDataFilesScript.run start")
+        self.logger.info("TransferDataFilesScript.run start")
 
         try:
             rc = RemoteClient()
@@ -44,9 +44,9 @@ class TransferDataFilesScript:
             #rc.setCmd(self.cmd)
             rc.transferDataFiles(run2p, i, v, u, h, source, c, p, disk, eos)
 
-        #except cx_Oracle.DatabaseError, info:
-        #    traceback.print_stack()
-        #    self.logger.error("sql_error='%s'", str(info).replace("\n", ""))
+        except cx_Oracle.DatabaseError, info:
+            #traceback.print_stack()
+            self.logger.error("sql_error='%s'", str(info).replace("\n", ""))
         
         except(InfoTransferDataFilesException), error:
             self.db.logger.info(error)
@@ -66,4 +66,4 @@ class TransferDataFilesScript:
         except(Exception), error:
             self.logger.critical("python_error='%s' traceback='%s'", error, traceback.format_exc())
 
-        self.logger.debug("TransferDataFilesScript.run stop")
+        self.logger.info("TransferDataFilesScript.run stop")
