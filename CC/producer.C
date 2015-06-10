@@ -649,6 +649,7 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
    ifstream fbin;
    fbin.open((const char*)a(bstart));
    uinteger crc=0;
+   Long64_t pos = 0;
    if(fbin){
        cout <<"SendNtupleEnd-I-AddingCRC "<<(const char*)a(bstart)<<endl;
        int buf_size = 65536;
