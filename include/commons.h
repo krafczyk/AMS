@@ -77,6 +77,7 @@ class MISCFFKEY_DEF{
   integer ScanElemAbundance;
   integer NoOrderedWrite;
   integer G4AllocatorSize;
+  integer NewCRC;
 };
 
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);

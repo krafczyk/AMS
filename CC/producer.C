@@ -16,6 +16,7 @@
 #include <malloc.h>
 #include <netdb.h>
 #include <sys/utsname.h>
+#include "crclib.h"
 #ifdef G4MULTITHREADED
 #include "G4Threading.hh"
 #endif
@@ -639,62 +640,54 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 
 
 // add crc to a local file (to save bandwitdh)
-
 {
-
-
    struct stat64 statbuf;
-    stat64((const char*)a(bstart), &statbuf);
-      ntend->Insert=statbuf.st_ctime;
-      ntend->size=statbuf.st_size/1024./1024.+0.5;
- 
+   stat64((const char*)a(bstart), &statbuf);
+   ntend->Insert=statbuf.st_ctime;
+   ntend->size=statbuf.st_size/1024./1024.+0.5;
 
-   if(!AMSTimeID::_Table){
-     AMSTimeID::_InitTable;
-   }
    ifstream fbin;
    fbin.open((const char*)a(bstart));
    uinteger crc=0;
    if(fbin){
-         cout <<"SendNtupleEnd-I-AddingCRC "<<(const char*)a(bstart)<<endl;
-          unsigned int chunk[65536]; 
-         int i=0;
-          long long fsize=statbuf.st_size;
-         for(;;){
+       cout <<"SendNtupleEnd-I-AddingCRC "<<(const char*)a(bstart)<<endl;
+       int buf_size = 65536;
+       unsigned int chunk[buf_size];
+       int i=0;
+       long long fsize, mysize;
+       fsize = mysize = statbuf.st_size;
+       Long64_t pos = 0;
+       for(;;){
            if(!fsize) break;
            unsigned int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
            fbin.read((char*)chunk,myread);
            fsize-=myread;
            if(fbin.good() && !fbin.eof()){
-           int beg;
-           if(i==0){
-            crc=~chunk[0];
-            beg=1;
+               if (MISCFFKEY.NewCRC) {
+                   crc = crc_update(crc, chunk, myread, buf_size, mysize, &pos);
+               } else {
+                   crc = amscrc_update(crc, chunk, myread);
+               }
+               if(i++%8192==0){
+                   cout <<"SendNtupleEnd-I-AddingCRC "<<fsize/1024/1024<< " MB left"<<endl;
+                   if(!_Solo)sendCurrentRunInfo();
+               }
            }
-           else{
-            beg=0;
-           }
-           if(i%8192==0){
-               cout <<"SendNtupleEnd-I-AddingCRC "<<fsize/1024/1024<< " MB left"<<endl;
-               if(!_Solo)sendCurrentRunInfo();
-           }
-           for(int m=beg;m<myread/sizeof(chunk[0]);m++){
-            for(int j=0;j<3;j++)crc=AMSTimeID::_Table[crc>>24]^(crc<<8);
-            crc=crc^chunk[m];  
-           }
-           i++;
-          }
-          else break;
-         }
-         fbin.close();
-         ntend->crc=~crc;
+           else break;
+       }
+       fbin.close();
+       if (MISCFFKEY.NewCRC) {
+           crc = amscrc_finalize(crc);
+       } else {
+           crc = crc_finalize(crc, mysize);
+       }
+       ntend->crc = crc;
    }
    else{
-         cout <<"SendNtupleEnd-W-UnableToAddCRC "<<(const char*)a(bstart)<<endl;
+       cout <<"SendNtupleEnd-W-UnableToAddCRC "<<(const char*)a(bstart)<<endl;
    }
-  if(!_Solo)sendCurrentRunInfo();
+   if(!_Solo)sendCurrentRunInfo();
 }
-
 
 
 // add validation

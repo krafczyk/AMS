@@ -328,6 +328,7 @@ void AMSJob::_siamsdata(){
   MISCFFKEY.NoOrderedWrite=0;
   MISCFFKEY.G4AllocatorSize=0;
 #endif
+  MISCFFKEY.NewCRC=0;
 
   FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 

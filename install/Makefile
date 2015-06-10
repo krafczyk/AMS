@@ -389,7 +389,7 @@ COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  $(SFF)tr
 
 #Utils
 COMMON_FILES +=  $(SCC)commons.C  $(SCC)cern.C    $(SFF)sgif.F   $(SCC)rnormx.C  $(SFF)geocoor.F     \
-		 $(SCC)status.C   $(SCC)user.C    $(SCC)timelx.c 
+		 $(SCC)status.C   $(SCC)user.C    $(SCC)timelx.c $(SCC)crclib.C
 
 ifndef NO_NAG
   COMMON_FILES += $(SFF)e04ccf.f

@@ -705,6 +705,7 @@ R27 MCTrackMinEne(1)        // minimum kinetic energy in MeV to save a secondary
 I28 ScanElemAbundance(0)    // Activate a scan of element abudance along the track
 I29 NoOrderedWrite(00)       // xy Activate for no ordered write in rootfile y or daqfile x
 I30 G4Allocatorsize(-1)      //  G4AllocatorSize to garbage collactor
+I31 NewCRC(0)                //  Use new crc calculation(cksum) instead old on
  
 G4FF    // Geant4 Datacards
 I 1 BFOrder(4)       // Runge Kutta order 
