@@ -1,5 +1,5 @@
 bin/
-lib/
+./lib/
 exe/
 amsut/tmp/
 include/root_methodsPG.h
@@ -10,3 +10,4 @@ F/gskpho.F
 F/gstord.F
 F/hadevv.F
 F/sbcomp.F
+*.pyc

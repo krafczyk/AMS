@@ -580,8 +580,7 @@ class RemoteClient:
                try:
                    stat =os.stat(stf)
                except:
-                   print stf, " Failed to stat " 
-                   self.logger.error("%s Failed to stat", stf)
+                   self.__log_error("%s Failed to stat", stf)
 
                if (stat[ST_SIZE]==0 or (not os.path.isdir(fs[0]))) :
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
@@ -705,7 +704,7 @@ class RemoteClient:
            sql="select disk from filesystems where isonline=1 and status='Full' and path='%s' order by totalsize-occupied desc" %(path)
            ret=self.sqlserver.Query(sql)
            if(len(ret)<=0):
-               self.sendMailMessage('vitali.choutko@cern.ch,baosong.shan@cern.ch', 'FileSystems are Offline: Exited!!!', sql)
+               self.sendMailMessage('vitali.choutko@cern.ch,baosong.shan@cern.ch,oleg.demakov@cern.ch', 'FileSystems are Offline: Exited!!!', sql)
                return None
 
         return ret[0][0]
@@ -2309,7 +2308,6 @@ class RemoteClient:
         return outputpath,gb,outputdisk,time.time()-timew
            
     def checkEOS(self, path='/Data'):
-        return 1
         # return gbyte, mounted
         self.eosselect = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
         eosmount = self.eosselect + ' -b fuse mount'
@@ -2352,7 +2350,7 @@ class RemoteClient:
             return (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
         else:
             print "EOS quota problem: ", quota
-            self.sendMailMessage('baosong.shan@cern.ch', 'EOS quota', quota)
+            self.sendMailMessage('baosong.shan@cern.ch, oleg.demakov@cern.ch', 'EOS quota', quota)
             return -1, os.path.exists(self.eoslink)
 
 
@@ -2798,6 +2796,7 @@ class RemoteClient:
         if( len(ret)>0):
             self.env[key] = "%s/%s" % (self.env['AMSDataDir'], ret[0][0])
         else:
+            # Exception?
             print "AMSSoftwareDir Not Defined "
             return 0
 
