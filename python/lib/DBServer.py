@@ -4,8 +4,44 @@ ORBit.load_typelib('Everything')
 ORBit.load_file('/usr/include/server.idl')
 import CORBA
 from DBSQLServer import DBSQLServer
+
 class DBServer:
-    fields={'cid':None,'start':None,'ac':None,'orb':None,'root_poa':None,'mypoadbserver':None,'myref':None,'myior':None,'arsref':[],'arpref':[],'nhl':None,'ahls':None,'acl':None,'aml':None,'asl':None,'adbsl':None,'acl_maxc':0,'aml_maxc':0,'asl_maxc':0,'adbsl_maxc':0,'nsl':None,'ncl':None,'nkl':None,'rtb':None,'rtb_maxr':None,'dsti':None,'dsts':None,'db':None,'env':None,'rn':None,'dbfile':None,'ok':0,'rundummy':None}
+    fields = {
+        'cid': None,
+        'start': None,
+        'ac': None,
+        'orb': None,
+        'root_poa': None,
+        'mypoadbserver': None,
+        'myref': None,
+        'myior': None,
+        'arsref': [],
+        'arpref': [],
+        'nhl': None,
+        'ahls': None,
+        'acl': None,
+        'aml': None,
+        'asl': None,
+        'adbsl': None,
+        'acl_maxc': 0,
+        'aml_maxc': 0,
+        'asl_maxc': 0,
+        'adbsl_maxc': 0,
+        'nsl': None,
+        'ncl': None,
+        'nkl': None,
+        'rtb': None,
+        'rtb_maxr': None,
+        'dsti': None,
+        'dsts': None,
+        'db': None,
+        'env': None,
+        'rn': None,
+        'dbfile': None,
+        'ok': 0,
+        'rundummy': None
+    }
+
     def __init__(self,ior,iord):
         if(ior == None):
             #start server
@@ -30,6 +66,7 @@ class DBServer:
             else:
               self.iord=self.orb.string_to_object(iord)
             self.UpdateEverything()
+
     def CreateRun(self,run,fevent,levent,tfevent,tlevent,priority,datamc,path):
         self.dummyrun.Run=run
         self.dummyrun.FirstEvent=fevent
@@ -45,6 +82,7 @@ class DBServer:
 #            print "Unable to create run ",e
 #            return 0
         
+
     def UpdateEverything(self):
         self.dsts=[]
 #	(length,self.dsts)=self.iorp.getDSTS(self.cid)
@@ -67,6 +105,7 @@ class DBServer:
                 except:
                     print "Exception ",run.Run
         print l1
+
     def ct(self,status):
         if status==self.iorp.Ntuple:
             return "Ntuple"
@@ -119,8 +158,6 @@ class DBServer:
         
         else:
             return None
-        
-
 
     def cr(self,status):
         if status==self.iorp.Foreign:
@@ -142,8 +179,6 @@ class DBServer:
         else:
             return None
         
-
-
     def cn(self,status):
         if status==self.iorp.Success:
             return "Success"
@@ -155,10 +190,6 @@ class DBServer:
             return "Validated"
         else:
             return None
-        
-
-
-
         
 class CID:
     HostName=""
@@ -177,4 +208,3 @@ class CID:
         self.Type=type
         self.HostName=socket.gethostname()
         self.pid=os.getpid()
-    

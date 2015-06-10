@@ -5,9 +5,11 @@
 #
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
-sys.path.insert(0,os.environ['Offline'] + '/vdev/python/lib')
+#sys.path.insert(0,os.environ['Offline'] + '/vdev/python/lib')
+sys.path.insert(0,'./python/lib/')
 #sys.path.insert(0,'lib')
-import RemoteClient
+import TransferDataFilesScript
+
 p=0
 c=1
 v=1
@@ -20,6 +22,7 @@ disk=""
 eos=0
 if(os.environ.has_key('ProductionRunsDir')):
     source=os.environ['ProductionRunsDir']
+
 for x in sys.argv:
     if x == "-h": h=1
     elif x == "-i": i=1
@@ -35,12 +38,13 @@ for x in sys.argv:
         disk=(x[2:len(x)])
     elif x[0:2] == "-s" :
         source=x[2:len(x)]
+
 if(len(source)<2):
     print "source directory not defined, exiting "
     sys.exit()
-html= RemoteClient.RemoteClient()
-html.ConnectDB(1)
-#if(html.ServerConnect(1)):
-html.TransferDataFiles(run2p,i,v,u,h,source,c,p,disk,eos)
+
+
+transfer = TransferDataFilesScript.TransferDataFilesScript()
+transfer.run(run2p, i, v, u, h, source, c, p, disk, eos)
 
 

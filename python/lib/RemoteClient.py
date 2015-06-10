@@ -1,11 +1,52 @@
-import sys,os,time,string,re,threading,thread,smtplib,commands,math,socket,pwd
-from stat import *
-from DBSQLServer import DBSQLServer
-from DBServer import DBServer
 import cgi
 import datetime
 import traceback
+import sys
+import os
+import time
+import string
+import re
+import threading
+import thread
+import smtplib
+import commands
+import math
+import socket
+import pwd
+
+from stat import *
+from DBSQLServer import DBSQLServer
+from DBServer import DBServer
 from array import *
+
+class RemoteClientException(Exception):
+    def __init__(self, error):
+        self.error = error
+    def __str__(self):
+        return self.error.encode("utf-8")
+
+class InfoRemoteClientException(RemoteClientException):
+    pass
+
+class WarningRemoteClientException(RemoteClientException):
+    pass
+
+class ErrorRemoteClientException(RemoteClientException):
+    pass
+
+class ConnectionFailRemoteClientException(ErrorRemoteClientException):
+    def __init__(self):
+        self.error = "Could not connect to DB"
+
+class CannotFindActiveProductionPeroidRemoteClientException(ErrorRemoteClientException):
+    def __init__(self, path):
+        self.error = "Cannot find Active Production Period for path %s" % path
+
+class CannotAddAnyDiskRemoteClientException(ErrorRemoteClientException):
+    def __init__(self):
+        self.error = "doCopy-F-CannotFindAnyDisk"
+
+
 def sorta(s,o):
     timenow=int(time.time())
     dts=timenow-s[2]
@@ -18,12 +59,98 @@ def sorta(s,o):
         return 1
     else:
         return -1
+
+class JournalFile:
+    __file_path = None
+    run = 0
+    good = 0
+    crc = 0
+    crc32 = 0
+    fevent = 0
+    levent = 0
+    events = 0
+    size = 0
+    tfevent = 0
+    tlevent = 0
+    timestamp = 0
+    path = ""
+    errors = ""
+    tag = ""
+    t0 = ""
+    t1 = ""
+    t2 = ""
+    t3 = ""
+    f1 = ""
+    f2 = ""
+    version = ""
+
+    def __init__(self, file_path):
+        self.__file_path = file_path
+        f = open(self.__file_path, 'r')
+        for linea in f.readlines():
+            line = linea.split('\n')[0]
+            if(line.find("Run")>=0):
+                self.run = int(line.split("=")[1])
+            elif(line.find("FEvent")>=0):
+                self.fevent = int(line.split("=")[1])
+            elif(line.find("LEvent")>=0):
+                self.levent = int(line.split("=")[1])
+            elif(line.find("TFevent")>=0):
+                self.tfevent = int(line.split("=")[1])
+            elif(line.find("TLevent")>=0):
+                self.tlevent = int(line.split("=")[1])
+            elif(line.find("Version")>=0):
+                self.version = line.split("=")[1]
+            elif(line.find("NEvent")>=0):
+                self.events = int(line.split("=")[1])
+            elif(line.find("NError")>=0):
+                self.errors = line.split("=")[1]
+            elif(line.find("CRC32=")>=0):
+                self.crc32 = int(line.split("=")[1])
+            elif(line.find("CRC=")>=0):
+                self.crc = int(line.split("=")[1])
+            elif(line.find("Size")>=0):
+                self.size = int(line.split("=")[1])
+            elif(line.find("Timestamp")>=0):
+                self.rtime = int(line.split("=")[1])
+            elif(line.find("Path")>=0):
+                self.path=line.split("=")[1]
+            elif(line.find("Tag")>=0):
+                self.tag=line.split("=")[1]
+            elif(line.find("Type0")>=0):
+                self.t0=line.split("=")[1]
+            elif(line.find("Type1")>=0):
+                self.t1=line.split("=")[1]
+            elif(line.find("Type2")>=0):
+                self.t2=line.split("=")[1]
+            elif(line.find("Type3")>=0):
+                self.t3=line.split("=")[1]
+            elif(line.find("FileF")>=0):
+                self.f1=line.split("=")[1]
+            elif(line.find("FileL")>=0):
+                self.f2=line.split("=")[1]
+
+        f.close()
+
+    def ok(self):
+        if(self.size>0 and (self.crc>0 or self.crc32>0) and self.events>0 and self.tlevent>0 and self.tfevent>0 and self.levent>0 and self.fevent>0 and self.run>0 and self.rtime>0):
+            return 1
+        else:
+            return 0
+
+    @property
+    def file_path(self):
+        return self.__file_path
+
 class RemoteClient:
     env={}
     dbclient=""
     sqlserver=""
     sqlconnected=-1
     productionPeriods = []
+    logger = None
+    cmd = None
+
     def getior(self,datamc=0):
         if self.sqlconnected==-1:
             self.ConnectDB()
@@ -32,12 +159,17 @@ class RemoteClient:
             ret=self.sqlserver.Query(sql)
             if(len(ret)>0):
                 return ret[0][0],ret[0][2]
-            else: return ""
-    def ConnectDB(self,one=0):
-        self.sqlserver=DBSQLServer(sys.argv,one)
-        self.sqlconnected=self.sqlserver.Connect()
+            else:
+                return ""
+
+
+    def ConnectDB(self, one=0):
+        self.sqlserver = DBSQLServer(sys.argv, one=one, logger=self.logger)
+        self.sqlconnected = self.sqlserver.Connect()
         self.setenv()
         return self.sqlconnected
+
+
     def CheckCRC(self,v,irm,upd,run2p,force,dir,nocastoronly):
         #
         #  check crc of files on disks
@@ -70,15 +202,20 @@ class RemoteClient:
         if not (whoami == None or whoami =='ams' or whoami=='casadmva' or whoami=='choutko'):
             print "castorPath -ERROR- script cannot be run from account : ",whoami 
             return 0
+
         sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb,ntuples.datamc from ntuples where  ntuples.path not like  '"+castorPrefix+"%' ";
         if force==0 :
             sql=sql+"  and ( ntuples.status='OK' or ntuples.status='Validated') "
+
         if dir != None:
             sql= sql+" and ntuples.path like '%"+dir+"%' "
+
         if run2p>0 :
             sql= sql+" and ntuples.run="+run2p+" ";
+
         if nocastoronly !=None and nocastoronly==1:
             sql=sql+" and ntuples.castortime=0 "
+
         sql=sql+" order by ntuples.run "
         ret_nt=self.sqlserver.Query(sql)
         totmb=0
@@ -91,10 +228,11 @@ class RemoteClient:
         ntp=0
         for ntuple in ret_nt:
             totmb=totmb+ntuple[6]
+
         times=time.time()
         #print len(ret_nt)
         run=0
-        self.CheckFS(1,600,"")
+        self.checkFS(1, 600, "")
         for ntuple in ret_nt:
             if run != ntuple[3]:
                 if(ntuple[7]==1):
@@ -134,7 +272,7 @@ class RemoteClient:
             ntp=ntp+1
             cmb=cmb+ntuple[6]
             crccmd="/Offline/AMSDataDir/DataManagement/exe/linux/crc "+ntuple[0]+" "+str(ntuple[1])
-            rstatus=os.system(crccmd)
+            rstatus=self.__cmd(crccmd)
             rstatus=(rstatus>>8)
             if rstatus !=1:
                 if v:
@@ -151,13 +289,14 @@ class RemoteClient:
         if v and ntp>0:
             print "Total of ",runs,"  runs, ",ntp," ntuples  processed. \n ",ntpb," bad ntuples found. \n ",ntpf,"  ntuples could not be repared\n ",ntna," ntuples could not be verified"
 
+
     def NotifyResp(self,message):
         # send mail message responsible for the server
-        sql ="select address from mails where rserver=1"
-        ret_a=self.sqlserver.Query(sql)
-        if(len(ret_a[0][0])):
-            address=ret_a[0][0]
-            self.sendmailmessage(address,message," ")
+        ret = self.sqlserver.sql("SELECT ADDRESS FROM MAILS WHERE RSERVER=1")
+        # should be all emails from the table?
+        if(len(ret[0][0])):
+            address = ret[0][0]
+            self.sendMailMessage(address,message," ")
 
          
     def CheckCRCT(self,v,irm,upd,run2p,force,dir,nocastoronly):
@@ -221,7 +360,7 @@ class RemoteClient:
         for ntuple in ret_nt:
             totmb=totmb+ntuple[6]
         self.times=time.time()
-        self.CheckFS(1,300,'/')
+        self.CheckFS(1, 300, '/')
         sql="select disk from filesystems where isonline=1"
         ret_fs=self.sqlserver.Query(sql)
         global exitmutexes
@@ -291,13 +430,13 @@ class RemoteClient:
             self.cmb=self.cmb+ntuple[6]
             crccmd="/Offline/AMSDataDir/DataManagement/exe/linux/crc "+ntuple[0]+" "+str(ntuple[1])
             mutex.release()
-            rstatus=os.system(crccmd)
+            rstatus=self.__cmd(crccmd)
             mutex.acquire()
             rstatus=(rstatus>>8)
             if rstatus !=1:
                 if self.v:
                     print ntuple[0]," crc error: ",rstatus
-                    self.sendmailmessage(address,"crc failed"+ntuple[0]," ")
+                    self.sendMailMessage(address,"crc failed"+ntuple[0]," ")
                     self.ntpb=self.ntpb+1
                 if ntuple[2]>0:
                     #copy from castor
@@ -307,31 +446,31 @@ class RemoteClient:
                         castornt=castorPrefix+"/"+delimiter+junk[1]
                         sys=rfcp+" "+castornt+" "+ntuple[0]+".castor"
                         mutex.release()
-                        i=os.system(sys)
+                        i=self.__cmd(sys)
                         mutex.acquire()
                         if(i):
                             suc=0
                             if(self.v):
                                 print sys," failed for ",castornt
                             self.ntpf=self.ntpf+1
-                            os.system("rm "+ntuple[0]+".castor")
+                            self.__cmd("rm "+ntuple[0]+".castor")
                             continue
                         else:
                             crccmd="/Offline/AMSDataDir/DataManagement/exe/linux/crc "+ntuple[0]+".castor "+str(ntuple[1])
                             mutex.release()
-                            rstatus=os.system(crccmd)
+                            rstatus=self.__cmd(crccmd)
                             mutex.acquire()
                             rstatus=(rstatus>>8)
                             if rstatus !=1:
                                 if self.v:
-                                    self.sendmailmessage(address,"crc castor failed"+castornt," ")
+                                    self.sendMailMessage(address,"crc castor failed"+castornt," ")
                                     print castornt," castor crc error: ",rstatus
                             if(suc):
                                 if(self.update):
-                                    os.system("mv "+ntuple[0]+".castor "+ntuple[0])
-                                else: os.system("rm "+ntuple[0]+".castor")
+                                    self.__cmd("mv "+ntuple[0]+".castor "+ntuple[0])
+                                else: self.__cmd("rm "+ntuple[0]+".castor")
                             else:
-                                os.system("rm "+ntuple[0]+".castor")
+                                self.__cmd("rm "+ntuple[0]+".castor")
                                 self.ntpf=self.ntpf+1
                                 sql="update ntuples set ntuples.status='BAD' where ntuples.path='"+ntuple[0]+"' "
                                 self.sqlserver.Update(sql)
@@ -352,8 +491,8 @@ class RemoteClient:
                                       sys=rm+" "+fname
                                       if(fname.find('/castor/cern.ch')>=0):
                                           sys="rfrm "+fname
-                                      i=os.system(sys)
-                                      if(i): self.sendmailmessage(address,"unable to "+sys," ")
+                                      i=self.__cmd(sys)
+                                      if(i): self.sendMailMessage(address,"unable to "+sys," ")
                                 else: self.sqlserver.Commit(0)
                     else:
                       print "fatal error with delimiter for "+ntuple[0]+" do nothing"
@@ -385,14 +524,15 @@ class RemoteClient:
                                       sys=rm+" "+fname
                                       if(fname.find('/castor/cern.ch')>=0):
                                           sys="rfrm "+fname
-                                      i=os.system(sys)
-                                      if(i): self.sendmailmessage(address,"unable to "+sys," ")
+                                      i=self.__cmd(sys)
+                                      if(i): self.sendMailMessage(address,"unable to "+sys," ")
                     else: self.sqlserver.Commit(0)
 
             mutex.release()
         exitmutexes[fs].acquire()
 
-    def CheckFS(self,updatedb=0,cachetime=60,path='/',vrb=0):
+
+    def checkFS(self, updatedb=0, cachetime=60, path='/', vrb=0):
         #
         #  check  filesystems, update the tables accordingly if $updatedb is set
         #  status: Active  :  May be used 
@@ -403,23 +543,26 @@ class RemoteClient:
         #  return disk with highest available and online=1 and path like req
         #
         # add priority if the current hostname listed in the host table
-        hostname=socket.gethostname()
         if(path== ""):
            sql="select disk from filesystems where isonline=1 and status='Active'  order by available desc" 
         else:
            sql="select disk from filesystems where isonline=1 and status='Active' and path like '%s%%' order by available desc" %(path)
         ret=self.sqlserver.Query(sql);
-        if(updatedb<2 and time.time()-cachetime < self.dbfsupdate() and len(ret)>0 ):
+
+        if(updatedb<2 and time.time()-cachetime < self.dbfsUpdate() and len(ret)>0 ):
             return ret[0][0]
+
         if updatedb>0:
             sql="update mods set modtime=sysdate where tabname='fs'"
             self.sqlserver.Update(sql)
             self.sqlserver.Commit()
+
         if(path == ""):
            sql="select disk,host,status,allowed  from filesystems " 
         else:
            sql="select disk,host,status,allowed  from filesystems where path like '%s%%'" %(path)
         ret=self.sqlserver.Query(sql);
+
         for fs in ret:
                #
                #          check to see if it is can be readed
@@ -429,36 +572,43 @@ class RemoteClient:
                stf=re.sub(r'/','',stf)
                stf="/tmp/"+stf
                if(self.v):
-                   print stf
-               os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
+                   self.__log_info(stf)
+
+               self.__cmd("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
                time.sleep(1)
                stat=[0,0,0,0,0,0,0,0,0,0,0]
                try:
                    stat =os.stat(stf)
                except:
                    print stf, " Failed to stat " 
+                   self.logger.error("%s Failed to stat", stf)
+
                if (stat[ST_SIZE]==0 or (not os.path.isdir(fs[0]))) :
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    if(self.v):
-                       print stf," Is Offline"
+                       self.__log_info("%s Is Offline" % stf)
                    if updatedb!=0:
                        self.sqlserver.Update(sql)
                        self.sqlserver.Commit()
                    continue
-               pair=commands.getstatusoutput("cat "+stf+" | grep Data | wc -l ")
+
+               pair = commands.getstatusoutput("cat %s | grep Data | wc -l" % stf)
                if( not (pair[0]==0 and pair[1]=='1')):
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
-                   print stf," Is Offline by 2"
+                   self.__log_info("%s Is Offline by 2" % stf)
+
                    if updatedb!=0:
                        self.sqlserver.Update(sql)
                        self.sqlserver.Commit()
+
                    continue           
+
                res=""
                os.unlink(stf)
                tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
                pair = commands.getstatusoutput("%s df -P %s | grep -v ^Filesystem | awk '{print $2, $3, $4}'" %(tmout, fs[0]))
                df_output = pair[1]
-               print df_output
+               self.__log_info(df_output)
 #               try:
 #                   res=os.statvfs(os.path.realpath(fs[0]))
 #               except:
@@ -473,8 +623,9 @@ class RemoteClient:
                        occ = int(occ)
                        bavail = int(bavail)
                    except:
-                       print fs[0]," Is Offline (by df)"
+                       self.__log_error("%s Is Offline (by df)" % fs[0])
                        continue
+
                    timestamp=int(time.time())
 #                   bsize=res[1]
 #                   blocks=res[2]
@@ -525,18 +676,20 @@ class RemoteClient:
                         if(vrb):
                             print sql," ava ",ava1,ava,rused,tot,fs[3]
                    else:
-                    sql="update filesystems set isonline=0 where disk='"+fs[0]+"'"
+                       sql="update filesystems set isonline=0 where disk='%s'" % fs[0]
+
                    if updatedb>0:
-                    self.sqlserver.Update(sql)
-                    self.sqlserver.Commit()
+                       self.sqlserver.Update(sql)
+                       self.sqlserver.Commit()
+
         if(path == ""):
            sql="select disk from filesystems where isonline=1 and status='Active'  order by available desc" 
         else:
            sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
+
         ret=self.sqlserver.Query(sql)
         if(len(ret)<=0):
-#           self.sendmailmessage('vitali.choutko@cern.ch','FileSystems are  Full or Offline Python',sql)
-           self.NotifyResp('FileSystems are  Full or Offline Python: ' + sql);
+           self.NotifyResp('FileSystems are  Full or Offline Python: %s' % sql);
            sql="select path from ntuples where sizemb>20000"
            ret=self.sqlserver.Query(sql)
            for disk in ret:
@@ -547,15 +700,19 @@ class RemoteClient:
                        sql="update ntuples set sizemb=%d where path like '%s' " %(fs,disk[0])
                        self.sqlserver.Update(sql)
                except:
-                   print "unable to stat",disk[0]
+                   self.__log_error("Unable to stat %s" % disk[0])
+
            sql="select disk from filesystems where isonline=1 and status='Full' and path='%s' order by totalsize-occupied desc" %(path)
            ret=self.sqlserver.Query(sql)
            if(len(ret)<=0):
-               self.sendmailmessage('vitali.choutko@cern.ch,baosong.shan@cern.ch','FileSystems are  Offline: Exited!!!',sql)
+               self.sendMailMessage('vitali.choutko@cern.ch,baosong.shan@cern.ch', 'FileSystems are Offline: Exited!!!', sql)
                return None
+
         return ret[0][0]
 
-    def  dblupdate(self):
+
+    # deprecated?
+    def dblupdate(self):
            part=0
            sql="select sessiontimezone from dual"
            got=self.sqlserver.Query(sql)
@@ -570,27 +727,31 @@ class RemoteClient:
            if len(rdt)>0: lupdate=rdt[0][0]
            return lupdate
 
-    def dbfsupdate(self):
+    def dbfsUpdate(self):
            part=0
-           sql="select sessiontimezone from dual"
-           got=self.sqlserver.Query(sql)
+           got = self.sqlserver.sql("SELECT SESSIONTIMEZONE FROM DUAL")
            if len(got)>0:
               sh1=string.split(got[0][0], ':')
               if( len(sh1)>1):
                   part=(float(sh1[0])+float(sh1[1])/60.)/24.
-           sql="select max(date_to_unixts(modtime-"+str(part)+")) as u_modtime from mods where tabname = 'fs'"
-           rdt=self.sqlserver.Query(sql)
+
+           rdt = self.sqlserver.sql("SELECT MAX(DATE_TO_UNIXTS(MODTIME-:part)) AS U_MODTIME FROM MODS WHERE TABNAME=:fs", part=part, fs="fs")
            lupdate=-1
            if len(rdt)>0: lupdate=rdt[0][0]
            return lupdate
 
+    # deprecated?
     def DiskIsOnline(self,disk):
-           self.CheckFS(1,300,'/')
+           self.checkFS(1, 300, '/')
            sql="select disk from filesystems where isonline=1 and disk like '"+disk+"'"
            ret=self.sqlserver.Query(sql)
            if len(ret)>0: return 1
            return 0
-    def sendmailmessage(self,add,sub,mes="",att=""):
+
+    def sendMailMessage(self, add, sub, mes="", att=""):
+        add = 'oleg.demakov@cern.ch'
+        self.logger.info("MAIL: to='%s', subject='%s', message='%s', att='%s'", add, sub, mes, att)
+
         import mimetypes
         from email import Encoders
         from email.Message import Message
@@ -761,7 +922,8 @@ class RemoteClient:
             return 0
         else: 
             print "ValidateRuns-I-ProcessingFlagSet  off ",ret[0][0],ret[0][1],force," continuing"
-            self.setprocessingflag(1,timenow,1)
+            self.setProcessingFlag(1, timenow, 1)
+
         global vdir,vlog,output
         vdir=self.getValidationDir()
         vlog=vdir+"validateRuns.log."+str(timenow)
@@ -770,15 +932,17 @@ class RemoteClient:
             print "ValidateRuns-I-Open ",vlog
         except IOError,e:
             print e
-            self.setprocessingflag(0,timenow,1)
+            self.setProcessingFlag(0, timenow, 1)
             return 0
+
         global vst
         vst=timenow
         ret=self.sqlserver.Query("SELECT min(begin) FROM productionset WHERE STATUS='Active' ORDER BY begin")
         if (len(ret)==0):
             print "ValidateRuns=E-CannotFindActiveProductionSet"
-            self.setprocessingflag(0,timenow,1)
+            self.setProcessingFlag(0, timenow, 1)
             return 0
+
         firstjobtime=ret[0][0]-24*60*60
         global exitmutexes
         exitmutexes = {}
@@ -863,9 +1027,11 @@ class RemoteClient:
               """ %(self.validated,self.copied,self.failedcp,self.bad,self.unchecked,self.thrusted)
         output.write(warn)
         output.close()
+
         self.printValidateStat()
+
         timenow=int(time.time())
-        self.setprocessingflag(0,timenow,1)
+        self.setProcessingFlag(0, timenow, 1)
         if(self.delete):
             for run in self.dbclient.rtb:
                 if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p) and not(run2p/10000000000>0 and run.Run<=(run2p%10000000000))):
@@ -962,16 +1128,16 @@ class RemoteClient:
                         run.cinfo.Status=self.dbclient.iorp.ToBeRerun
                         self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Update)
 
-    
-                
         return 1
+
+
     def getValidationDir(self):
-        sql="SELECT myvalue FROM Environment WHERE mykey='ValidationDirPath'"
-        ret=self.sqlserver.Query(sql)
+        ret = self.sqlserver.sql("SELECT MYVALUE FROM ENVIRONMENT WHERE MYKEY=:mykey", mykey='ValidationDirPath')
         if(len(ret)>0):
             return ret[0][0]
         else:
             return None
+
         
     def printValidateStat(self):
         timenow=int(time.time())
@@ -1155,11 +1321,11 @@ class RemoteClient:
                                            if(hostok):
                                                dir=fpath.split(str(run.Run))
                                                cmd="mkdir -p "+dir[0]
-                                               i=os.system(cmd)
+                                               i=self.__cmd(cmd)
                                                cmd="scp -2 %s:%s %s " %(host,fpath,fpath)
                                                if(dir[0].find('/dat0/')>=0):
                                                    mutex.release()
-                                                   i=os.system(cmd)
+                                                   i=self.__cmd(cmd)
                                                    mutex.acquire()
                                                else:
                                                    i=1
@@ -1172,7 +1338,8 @@ class RemoteClient:
                                                    rmcmd.append(cmd)
                                         if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0 and fpath.find('/eosams/')<0):
                                             print "unable to open file ",fpath
-                                retcrc=self.calculateCRC(fpath,ntuple.crc)
+
+                                retcrc = self.compareCRC(fpath, ntuple.crc)
                                 if(retcrc !=1):
                                             print "ValidateRuns-E_Error-CRC status ",retcrc
                                             output.write("ValidateRuns-E_Error-CRC status "+str(retcrc))
@@ -1244,7 +1411,7 @@ class RemoteClient:
                                                             cmd="rm "+outputpath
                                                             if(outputpath.find('/castor/cern.ch')>=0):
                                                                 cmd="rfrm "+outputpath
-                                                            rstat=os.system(cmd)
+                                                            rstat=self.__cmd(cmd)
                                                             output.write("remove bad file "+cmd)
 
                         status="Failed"
@@ -1266,7 +1433,7 @@ class RemoteClient:
                                  cmd="rm "+ntuple
                                  if(ntuple.find('/castor/cern.ch')>=0):
                                      cmd="rfrm "+ntuple
-                                 os.system(cmd)
+                                 self.__cmd(cmd)
                                  print "Validation failed "+cmd
                                  output.write("Validation failed "+cmd)
                                  self.failedcp=self.failedcp+1
@@ -1324,7 +1491,7 @@ class RemoteClient:
                                 if(ntuple == mn):
                                     cmd=" "
                                     break
-                            os.system(cmd)
+                            self.__cmd(cmd)
                             warn=" validation done "+cmd
                            
                             output.write(warn)
@@ -1334,18 +1501,18 @@ class RemoteClient:
                             self.updateRunCatalog(run.Run)
                             warn=" Update RunCatalog table "+str(run.Run)
                             for cmd in rmcmd:
-                                i=os.system(cmd)
+                                i=self.__cmd(cmd)
                                 if(i):
                                     print "Remote command ",cmd," failed"
                             del rmcmd[:]
                             for cmd in rmbad:
-                                i=os.system(cmd)
+                                i=self.__cmd(cmd)
                                 if(i):
                                     print " remove bad ntuples command failed ",cmd
                             del rmbad [:]
         del cpntuples[:]
         del mvntuples[:]
-        os.system(rmdir)
+        self.__cmd(rmdir)
         #print "run finished ",run.Run
 	self.sqlserver.Commit()
         mutex.release()
@@ -1494,11 +1661,11 @@ class RemoteClient:
                                            if(hostok):
                                                dir=fpath.split(str(run.Run))
                                                cmd="mkdir -p "+dir[0]
-                                               i=os.system(cmd)
+                                               i=self.__cmd(cmd)
                                                cmd="scp -2 %s:%s %s " %(host,fpath,fpath)
                                                if(dir[0].find('/dat0/')>=0):
                                                    mutex.release()
-                                                   i=os.system(cmd)
+                                                   i=self.__cmd(cmd)
                                                    mutex.acquire()
                                                else:
                                                    i=1
@@ -1511,7 +1678,8 @@ class RemoteClient:
                                                    rmcmd.append(cmd)
                                         if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0 and fpath.find('/eosams/')<0):
                                             print "unable to open file ",fpath
-                                retcrc=self.calculateCRC(fpath,ntuple.crc)
+
+                                retcrc = self.compareCRC(fpath, ntuple.crc)
                                 if(retcrc !=1):
                                             print "ValidateRuns-E_Error-CRC status ",retcrc
                                             output.write("ValidateRuns-E_Error-CRC status "+str(retcrc))
@@ -1586,7 +1754,7 @@ class RemoteClient:
                                                             cmd="rm "+outputpath
                                                             if(outputpath.find('/castor/cern.ch')>=0):
                                                                 cmd="rfrm "+outputpath
-                                                            rstat=os.system(cmd)
+                                                            rstat=self.__cmd(cmd)
                                                             output.write("remove bad file "+cmd)
 
                         status="Failed"
@@ -1609,7 +1777,7 @@ class RemoteClient:
                                  if(ntuple.find('/castor/cern.ch')>=0):
                                      cmd="rfrm "+ntuple
                                  if(self.deleteuncnt):
-                                     os.system(cmd)
+                                     self.__cmd(cmd)
                                  print "Validation failed "+cmd
                                  output.write("Validation failed "+cmd)
                                  self.failedcp=self.failedcp+1
@@ -1662,25 +1830,25 @@ class RemoteClient:
                                 if(ntuple == mn):
                                     cmd=" "
                                     break
-                            os.system(cmd)
+                            self.__cmd(cmd)
                             warn=" validation done "+cmd
                             output.write(warn)
                             print warn
                         
                         if(status =="Completed"):
                             for cmd in rmcmd:
-                                i=os.system(cmd)
+                                i=self.__cmd(cmd)
                                 if(i):
                                     print "Remote command ",cmd," failed"
                             del rmcmd[:]
                             for cmd in rmbad:
-                                i=os.system(cmd)
+                                i=self.__cmd(cmd)
                                 if(i):
                                     print " remove bad ntuples command failed ",cmd
                             del rmbad [:]
         del cpntuples[:]
         del mvntuples[:]
-        os.system(rmdir)
+        self.__cmd(rmdir)
         #print "run finished ",run.Run,run.uid
 	self.sqlserver.Commit()
         try:
@@ -1689,6 +1857,7 @@ class RemoteClient:
             print "-E- Mutex not locked "
         if(self.mt):
               exitmutexes[run.Run].acquire()
+
 
     def isinterrupt(self):
         sql="select interrupt from filesprocessing "
@@ -1701,15 +1870,17 @@ class RemoteClient:
                 sql="update filesprocessing set interrupt=0"
                 self.sqlserver.Update(sql)                
                 self.sqlserver.Commit()  
-        return interrupt              
-    def setprocessingflag(self,flag,timenow,which):
-        sql="Update FilesProcessing set flag="+str(flag)+",timestamp="+str(timenow)
+        return interrupt
+
+
+    def setProcessingFlag(self, flag, timenow, which):
         if(which==1):
-            sql="Update FilesProcessing set flaglocal="+str(flag)+",timestamplocal="+str(timenow)
+            sql="UPDATE FILESPROCESSING SET FLAGLOCAL=:flag, TIMESTAMPLOCAL=:timenow"
+        else:
+            sql="UPDATE FILESPROCESSING SET FLAG=:flag, TIMESTAMP=:timenow"
 
-        self.sqlserver.Update(sql)
+        self.sqlserver.sql(sql, flag=flag, timenow=timenow)
         self.sqlserver.Commit()
-
 
 
     def ServerConnect(self,serverno=0):
@@ -1720,7 +1891,8 @@ class RemoteClient:
         except:
             print "Problem to ConnectServer "
             return 0
-    
+
+
     def doCopy(self,run,inputfile,crc,version,outputpath,path='/MC'):
 #       self.sqlserver.Commit()
        time0=time.time()
@@ -1767,7 +1939,7 @@ class RemoteClient:
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
-                   self.setprocessingflag(0,timenow,1)
+                   self.setProcessingFlag(0, timenow, 1)
                    sys.exit("doCopy-F-CannotFindAnyDisk Exit")
            elif(outputpath.find('/castor/cern.ch')>=0):
                stime=100
@@ -1791,7 +1963,7 @@ class RemoteClient:
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
-                   self.setprocessingflag(0,timenow,1)
+                   self.setProcessingFlag(0, timenow, 1)
                    sys.exit("doCopy-F-CannotFindAnyDisk Exit")
            else:
                junk=outputpath.split('/')
@@ -1820,7 +1992,7 @@ class RemoteClient:
                        cmd="mkdir -p "+outputpath
                        if (outputpath.find('/eosams/') == 0):
                            cmd = self.eosselect + " mkdir -p " +  self.eosLink2Real(outputpath)
-                       cmdstatus=os.system(cmd)
+                       cmdstatus=self.__cmd(cmd)
                        if(cmdstatus==0):
                            outputpath=outputpath+"/"+file
                            cmdstatus=self.copyFile(inputfile,outputpath)
@@ -1830,7 +2002,8 @@ class RemoteClient:
                                if(cmdstatus==1024):
                                    rstatus=1
                                else:
-                                   rstatus=self.calculateCRC(outputpath,crc)
+                                   rstatus = self.compareCRC(outputpath, crc)
+
                                if(rstatus==1):
                                    (castortime,castorpath)=self.moveCastor(inputfile,outputpath)
                                    if(self.castoronly):
@@ -1842,7 +2015,7 @@ class RemoteClient:
                                                cmd="rm "+inputfile
                                                if (outputpath.find('/eosams/') == 0):
                                                    cmd = self.eosselect + " rm " +  self.eosLink2Real(outputpath)
-                                               cmdstatus=os.system(cmd)
+                                               cmdstatus=self.__cmd(cmd)
                                                if(cmdstatus):
                                                    print "cmd failed ",cmdstatus,cmd
                                        # originaly on castor, castoronly specified, and castor copy failed
@@ -1868,20 +2041,21 @@ class RemoteClient:
            return None,0,odisk,0
 
 
-
-    def doCopyRaw(self,run,inputfile,crc,path='/MC'):
+    def __doCopyRaw(self, journalFile, inputfile, path='/MC'):
        time0=time.time()
        time00=0
 #       (period,prodstarttime,periodid,vrs)=self.getActiveProductionPeriodByName(path)
        (period,prodstarttime,periodid,vrs)=self.getActiveProductionPeriodByName("2011A")
        if(period == None or prodstarttime==0):
-           sys.exit("Cannot find Active Production Period for path "+str(path))
-       self.doCopyCalls=self.doCopyCalls+1
+           raise CannotFindActiveProductionPeroidRemoteClientException(path)
+
+       self.doCopyCalls += 1
        junk=inputfile.split('/')
        file=junk[len(junk)-1]
        filesize=1
        if(inputfile.find('/castor/cern.ch')<0):
-           filesize=os.stat(inputfile)[ST_SIZE]
+           filesize = os.stat(inputfile)[ST_SIZE]
+
        outputpath=None
        if(filesize>0):
            #get output disk
@@ -1892,14 +2066,18 @@ class RemoteClient:
                    if(odisk!=None):
                        if(fsmutexes.has_key(odisk)):
                            fsmutexes[odisk].release()
-                   (outputpatha,gb,odisk,stime)=self.getOutputPathRaw(period,path)
+
+                   (outputpatha, gb, odisk, stime) = self.__getOutputPathRaw(period, path)
                    if(odisk==None):
-                       print "odisk Problem to getoutputpathraw file ",path
-                       return None,0,None,0
-                   print "acquired:  ",outputpatha,gb,odisk,stime
+                       self.logger.info("odisk Problem to __getOutputPathRaw file %s", path)
+                       return None,0,None
+
+                   self.logger.info("acquired: %s %s %s %s", outputpatha, gb, odisk, stime)
+
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
-                   sys.exit("doCopy-F-CannotFindAnyDisk Exit")
+                   raise CannotAddAnyDiskRemoteClientException()
+
            else:
                junk=outputpath.split('/')
                odisk="/"+junk[1]
@@ -1907,42 +2085,44 @@ class RemoteClient:
                for i in range (0,len(junk)-3):
                    if(i>0):
                        outputpath=outputpath+"/"
+
                    outputpath=outputpath+junk[i]
-           dataset="RawData"
-           outputpath=outputpath+'/'+dataset
-           cmd="mkdir -p "+outputpath
+
+           outputpath = "%s/RawData" % outputpath
+           cmd = "mkdir -p %s" % outputpath
            if (outputpath.find('/eosams/') == 0):
-               cmd = self.eosselect + " mkdir -p " +  self.eosLink2Real(outputpath)
-           cmdstatus=os.system(cmd)
+               cmd = "%s mkdir -p %s" % (self.eosselect, self.eosLink2Real(outputpath))
+
+           cmdstatus = self.__cmd(cmd)
            if(cmdstatus==0):
-               outputpath=outputpath+"/"+file
-               cmdstatus=self.copyFile(inputfile,outputpath)
+               outputpath = "%s/%s" % (outputpath, file)
+               cmdstatus = self.copyFile(inputfile, outputpath)
                time00=time.time()
-               self.doCopyTime=self.doCopyTime+time00-time0
+               self.doCopyTime = self.doCopyTime+time00-time0
                if(cmdstatus==0):
-                   rstatus=self.calculateCRC(outputpath,crc)
+                   rstatus = self.compareCRC(outputpath, journalFile.crc, journalFile.crc32)
                    if(rstatus==1):
-                       castortime=self.UploadtoCastor(outputpath)
-                       return outputpath,1,castortime
+                       castortime = self.__uploadtoCastor(outputpath)
+                       return outputpath, 1, castortime
                    else:
-                       print "doCopyraw-E-ErorrCRC ",rstatus
-                       self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
-                       return outputpath,0,0
+                       self.logger.error("__doCopyRaw-E-ErorrCRC %d", rstatus)
+                       self.BadCRC[self.nCheckedCite] += 1
+                       return outputpath, 0, 0
                else:
-                   self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
-                   print "docopyraw-E-cannot copyfile",cmdstatus,inputfile,outputpath
+                   self.logger.error("__doCopyRaw-E-cannot copyfile %d %s %s", cmdstatus, inputfile, outputpath)
+                   self.BadDSTCopy[self.nCheckedCite] += 1
                    return outputpath,0,0
            else:
-               self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
-               print "docopyraw-E-cannot ",cmd
+               self.logger.error("__doCopyRaw-E-cannot %s", cmd)
+               self.BadDSTCopy[self.nCheckedCite] += 1
                return None,0,0
-               
        else:
-           print "doCopyraw-E-cannot stat",inputfile
-           self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
+           self.logger.error("__doCopyRaw-E-cannot stat %s", inputfile)
+           self.BadDSTs[self.nCheckedCite] += 1
            return None,0,0
     
-    def UploadtoCastor(self,input):
+
+    def __uploadtoCastor(self, input):
 #
 # only one file to uploads
 #
@@ -1952,7 +2132,7 @@ class RemoteClient:
         output=output+buf2[1]
         tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
         cmd=tmout+" nsrm "+output
-        cmdstatus=os.system(cmd)
+        cmdstatus=self.__cmd(cmd)
         ossize=10000000000
         if (input.find('/eosams/') == 0):
             ossize = self.eosGetSize(input)
@@ -1964,6 +2144,7 @@ class RemoteClient:
                 ossize=os.stat(input)[ST_SIZE]
             except:
                 print "unable to get size for ",input
+
         timeout=int(3600.*ossize/10000000000)
         if(timeout<30):
             timeout=30
@@ -1974,21 +2155,21 @@ class RemoteClient:
         if (input.find('/eosams/') == 0):
             input_xrootd = self.eosLink2Xrootd(input)
         cmd=tmout+" /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v "+input_xrootd+" 'root://castorpublic.cern.ch//"+output+"?svcClass=%s'" %(os.environ['STAGE_SVCCLASS']) 
-        cmdstatus=os.system(cmd)
+        cmdstatus=self.__cmd(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
             tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
             cmd=tmout+" nsrm "+output
-            cmdstatus=os.system(cmd)
+            cmdstatus=self.__cmd(cmd)
         else:
             return int(time.time())
         cmd=tmout+" /usr/bin/rfcp "+input+" "+output
-        cmdstatus=os.system(cmd)
+        cmdstatus=self.__cmd(cmd)
         if(cmdstatus):
             print "Error uploadToCastor ",input,output,cmdstatus
             tmout="/afs/cern.ch/ams/local/bin/timeout --signal 9 10 "
             cmd=tmout+" nsrm "+output
-            cmdstatus1=os.system(cmd)
+            cmdstatus1=self.__cmd(cmd)
             if(cmdstatus):
                 print "Error uploadToCastor ",input,output,cmdstatus
                 return 0                        
@@ -1999,7 +2180,7 @@ class RemoteClient:
         
 
     def getActiveProductionPeriodByName(self,name):
-       ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID,vdb  FROM ProductionSet WHERE STATUS='Active' and name like '%"+name+"%'")
+       ret = self.sqlserver.sql("SELECT NAME, BEGIN, DID,VDB FROM PRODUCTIONSET WHERE STATUS='Active' and name like '%' || :name || '%'", name=name)
        if(len(ret)>0):
            return self.trimblanks(ret[0][0]),ret[0][1],ret[0][2],self.trimblanks(ret[0][3])
        else:
@@ -2066,12 +2247,13 @@ class RemoteClient:
             ret=self.sqlserver.Query(sql)
             if(len(ret)<=0):
                 ct=1
-        rescue=self.CheckFS(1,ct,path)
+        rescue=self.checkFS(1, ct, path)
         if(idisk!=None):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and disk ='%s'ORDER BY priority DESC, available " %(path,idisk)
             ret=self.sqlserver.Query(sql)
             if(len(ret)<=0):
                 idisk=None;
+
         tme=int(time.time())
         hostname=socket.gethostname()
         if(tme%2 ==0 and idisk==None):
@@ -2084,14 +2266,18 @@ class RemoteClient:
             ret=self.sqlserver.Query(sql)
             if(len(ret)>0):
                 idisk="";
+
         if(tme%2 ==0 and idisk==None):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
         elif(idisk==None):
             sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
+
         ret=self.sqlserver.Query(sql)
+
         if(len(ret)<=0):
             sql = "SELECT disk, path, totalsize-occupied, allowed  FROM filesystems WHERE status='Full' and isonline=1 and path='%s' ORDER BY totalsize-occupied DESC" %(path)
             ret=self.sqlserver.Query(sql)
+
         for disk in ret:
             outputdisk=self.trimblanks(disk[0])
             outputpath=self.trimblanks(disk[1])
@@ -2099,7 +2285,7 @@ class RemoteClient:
                 outputpath=outputpath+"/"+period
             else:
                 outputpath=outputdisk+outputpath+"/"+period
-            os.system("mkdir -p "+outputpath)
+            self.__cmd("mkdir -p "+outputpath)
             mtime=os.stat(outputpath)[9]
             if(mtime != None):
                 if(mtime!=0):
@@ -2123,6 +2309,7 @@ class RemoteClient:
         return outputpath,gb,outputdisk,time.time()-timew
            
     def checkEOS(self, path='/Data'):
+        return 1
         # return gbyte, mounted
         self.eosselect = '/afs/cern.ch/project/eos/installation/ams/bin/eos.select'
         eosmount = self.eosselect + ' -b fuse mount'
@@ -2135,6 +2322,7 @@ class RemoteClient:
         if (pair[0] != 0 or len(pair) < 2):
             print "%s\nreturned %d\n" %(chkeoscmd, pair[0])
             return -4, os.path.exists(self.eoslink)
+
         out=pair[1]
         try:
             quota = dict(s.split('=') for s in out.split())
@@ -2142,14 +2330,14 @@ class RemoteClient:
             print "%s\nreturned %d, and output:\n%s" %(chkeoscmd, pair[0], out)
             return -5, os.path.exists(self.eoslink)
 #        if (not os.path.exists(self.eoslink)):
-#            os.system(eosumount + ' $HOME/eos')
-#            os.system(eosmount + ' $HOME/eos')
+#            self.__cmd(eosumount + ' $HOME/eos')
+#            self.__cmd(eosmount + ' $HOME/eos')
         if (quota['statusbytes'] == 'ok' and quota['statusfiles'] == 'ok'):
 #            print (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
 #            print "Testing write-in"
-#            ret = os.system("touch /eosams/test && date >> /eosams/test")
+#            ret = self.__cmd("touch /eosams/test && date >> /eosams/test")
 #            if (ret):
-#                os.system("ls -l /eosams/")
+#                self.__cmd("ls -l /eosams/")
 #                return -2, os.path.exists(self.eoslink)
 #            print "Testing readout"
 #            pair=commands.getstatusoutput("cat /eosams/test")
@@ -2164,10 +2352,11 @@ class RemoteClient:
             return (int(quota['maxlogicalbytes'])-int(quota['usedlogicalbytes']))/1000000000, os.path.exists(self.eoslink)
         else:
             print "EOS quota problem: ", quota
-            self.sendmailmessage('baosong.shan@cern.ch', 'EOS quota', quota)
+            self.sendMailMessage('baosong.shan@cern.ch', 'EOS quota', quota)
             return -1, os.path.exists(self.eoslink)
-           
-    def getOutputPathRaw(self,period,path='/MC'):
+
+
+    def __getOutputPathRaw(self, period, path='/MC'):
         # try eos if self.eos is set
         if (self.eos):
             gb, eosmounted = self.checkEOS()
@@ -2177,62 +2366,88 @@ class RemoteClient:
                 return outputpath, gb, self.eoslink, 0
             else:
                 print "EOS has some problem in quota or not mounted (checkEOS() returned %d, %d), trying normal disk..." %(gb, eosmounted)
+
         #
         # select disk to be used to store ntuples
         #
         gb=0
         outputpath='xyz'
         outputdisk=None 
-        rescue=self.CheckFS(1,300,path)
-        hostname=socket.gethostname()
-        tme=int(time.time())
-        if(tme%2 ==0):
-            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
-        else:
-            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
-        if(tme%2 ==0):
-            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and host like '%%%s%%' ORDER BY priority DESC, available " %(path,hostname)
-        else:
-            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and host like '%%%s%%' ORDER BY priority DESC, available DESC" %(path,hostname)
-        ret=self.sqlserver.Query(sql)
-        if(len(ret)<=0):
-            if(tme%2 ==0):
-                sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
-            else:
-                sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
-            ret=self.sqlserver.Query(sql)
-        if(len(ret)<=0):
-            sql = "SELECT disk, path, totalsize-occupied, allowed  FROM filesystems WHERE status='Full' and isonline=1 and path='%s' ORDER BY totalsize-occupied DESC" %(path)
-            ret=self.sqlserver.Query(sql)
-        for disk in ret:
+        rescue=self.checkFS(1, 300, path)
+        disks, sql = self.__getFSDisks(path)
+        for disk in disks:
             outputdisk=self.trimblanks(disk[0])
             outputpath=self.trimblanks(disk[1])
             if(outputdisk.find('vice')>=0):
                 outputpath=outputpath+"/"+period
             else:
                 outputpath=outputdisk+outputpath+"/"+period
-            os.system("mkdir -p "+outputpath)
-            
+
+            self.__cmd("mkdir -p %s" % outputpath)
             try:
                 mtime=os.stat(outputpath)[9]
             except:
-                print "Enable to open ", outputpath
+                self.logger.info("Enable to open %s", outputpath)
                 continue
            
             if(mtime != None):
                 if(mtime!=0):
                     gb=disk[2]
                     break
+
         timew=time.time()
-        print "getoutputpath raw ",outputpath,sql
-        return outputpath,gb,outputdisk,time.time()-timew
-           
+        self.logger.info("getoutputpath raw %s %s", outputpath, sql)
+        return outputpath, gb, outputdisk, time.time()-timew
+
+    def __getFSDisks(self, path):
+        hostname = socket.gethostname()
+        tme = int(time.time())
+        if(tme%2 == 0):
+            res = self.sqlserver.sql(
+                "SELECT DISK, PATH, AVAILABLE, ALLOWED FROM FILESYSTEMS \
+                WHERE STATUS='Active' AND ISONLINE=1 AND PATH=:path AND HOST LIKE '%' || :hostname || '%' ORDER BY PRIORITY DESC, AVAILABLE",
+                path = path,
+                hostname = hostname
+            )
+        else:
+            res = self.sqlserver.sql(
+                "SELECT DISK, PATH, AVAILABLE, ALLOWED FROM FILESYSTEMS \
+                WHERE STATUS='Active' AND ISONLINE=1 AND PATH=:path AND HOST LIKE '%' || :hostname || '%' ORDER BY PRIORITY DESC, AVAILABLE DESC",
+                path = path,
+                hostname = hostname
+            )
+
+        if(len(res)<=0):
+            if(tme%2 ==0):
+                res = self.sqlserver.sql(
+                    "SELECT DISK, PATH, AVAILABLE, ALLOWED FROM FILESYSTEMS \
+                    WHERE STATUS='Active' AND ISONLINE=1 AND PATH=:path ORDER BY PRIORITY DESC, AVAILABLE",
+                    path=path
+                )
+            else:
+                res = self.sqlserver.sql(
+                    "SELECT DISK, PATH, AVAILABLE, ALLOWED FROM FILESYSTEMS \
+                    WHERE STATUS='Active' AND ISONLINE=1 AND PATH=:path ORDER BY PRIORITY DESC, AVAILABLE DESC",
+                    path=path
+                )
+
+        if(len(res)<=0):
+            res = self.sqlserver.sql(
+                "SELECT DISK, PATH, TOTALSIZE-OCCUPIED, ALLOWED FROM FILESYSTEMS \
+                WHERE STATUS='Full' AND ISONLINE=1 AND PATH=:path ORDER BY TOTALSIZE-OCCUPIED DESC",
+                path=path
+            )
+
+        return (res, self.sqlserver.last_sql)
+
+
     def mkdirCastor(self, cdir):
         timeout = "/afs/cern.ch/ams/local/bin/timeout --signal 9 90 "
-        i = os.system("%s nsmkdir -p %s" %(timeout, cdir))
+        i = self.__cmd("%s nsmkdir -p %s" %(timeout, cdir))
         if (i):
-            i = os.system("%s rfmkdir -p %s" %(timeout, cdir))
+            i = self.__cmd("%s rfmkdir -p %s" %(timeout, cdir))
         return i
+
 
     def moveCastor(self,input,output):
         output_orig = output
@@ -2252,12 +2467,12 @@ class RemoteClient:
                 if (output.find('/eosams/') == 0):
                     output = self.eosLink2Xrootd(output)
                 cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp -f -np -v -ODsvcClass=" + os.environ['STAGE_SVCCLASS'] + " "+output+" \"root://castorpublic.cern.ch//"+cmove+"\""
-                i=os.system(cmd)
+                i=self.__cmd(cmd)
                 if(i and output.find('/eosams/') < 0):
                     print cmd
                     print "xrdcp failed, trying rfcp..."
                     cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp "+output_orig+" "+cmove
-                    i=os.system(cmd)
+                    i=self.__cmd(cmd)
                 if(i==0):
                     if(self.castorcopy>0):
                         mutex.acquire()
@@ -2268,7 +2483,7 @@ class RemoteClient:
                 else:
                     print "moveCastor-E-2 ",cmd
                     castordel="/usr/bin/rfrm "+cmove
-                    os.system(castordel)
+                    self.__cmd(castordel)
                     mutex.acquire()
                     return 0,None   
             else:
@@ -2279,11 +2494,11 @@ class RemoteClient:
             mutex.acquire()
             return 0, None
         cmd="rfrename "+input+" "+cmove
-        i=os.system(cmd)
+        i=self.__cmd(cmd)
         if (i!=0):
             print "rfrename failed, retrying with nsrename ..."
             cmd="nsrename -fv "+input+" "+cmove
-            i=os.system(cmd)
+            i=self.__cmd(cmd)
             
         if(i==0):
             mutex.acquire()
@@ -2291,7 +2506,7 @@ class RemoteClient:
         else:
             print "moveCastor-W-failed ",cmd
             cmdn="nsls "+cmove
-            cmdstatus=os.system(cmdn)
+            cmdstatus=self.__cmd(cmdn)
             if(cmdstatus):
                 mutex.acquire()
                 print "moveCastor-E-failed ",cmdn
@@ -2309,7 +2524,7 @@ class RemoteClient:
         for i in range (2,len(junk)):
             cmove=cmove+'/'+junk[i]
         cmdn="nsls "+cmove
-        cmdstatus=os.system(cmdn)
+        cmdstatus=self.__cmd(cmdn)
         if(cmdstatus):
             return None
         else:
@@ -2340,7 +2555,7 @@ class RemoteClient:
         input_orig = input
         mutex.release()
         if(input == output):
-            print "acquirung  mutex in copyfile ups"
+            self.__log_info("acquirung  mutex in copyfile ups")
             mutex.acquire()
             return 0
         time0=time.time()
@@ -2348,17 +2563,17 @@ class RemoteClient:
         if(input.find('/castor/cern.ch')>=0):
             # check if already been put in place
             cmdn="nsls "+input;
-            cmdstatus=os.system(cmdn);
+            cmdstatus=self.__cmd(cmdn);
             if(cmdstatus):
-                print "copyFile-W-Failed ",cmdn
-                print "copyFile-W-Failed ",output
+                self.__log_error("copyFile-W-Failed %s" % cmdn)
+                self.__log_error("copyFile-W-Failed %s" % output)
                 cmove=self.getmoveCastor(input,output)
                 if(cmove!=None):
                     input=cmove
                 else:
                     if(self.castoronly):
                         mutex.acquire()
-                        print "copyFile-E-FailedCastorOnly ",input,output
+                        self.__log_info("copyFile-E-FailedCastorOnly %s %s" % (input, output))
                         return 1
             if(self.castoronly):
                 mutex.acquire()
@@ -2393,24 +2608,24 @@ class RemoteClient:
                 cmd="mv "+input_orig+" "+output_orig
 
         #cmd="cp -pi -d -v "+input+" "+output
-        print cmd
-        cmdstatus=os.system(cmd)
+        cmdstatus=self.__cmd(cmd)
         if (cmdstatus and cmd.find("xrdcp") >= 0):
             # try first xrdcp and then rfcp
-            print cmd
-            print "xrdcp failed, trying rfcp..."
+            self.__log_info("xrdcp failed, trying rfcp...")
             cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 rfcp "+input_orig+" "+output_orig
-            cmdstatus=os.system(cmd)
+            cmdstatus=self.__cmd(cmd)
 
-        print "acquirung  mutex in copyfile ", cmd
+        self.__log_info("acquirung mutex in copyfile %s" % cmd)
         mutex.acquire()
-        print "got  mutex in copyfile ", cmd
+        self.__log_info("got mutex in copyfile %s" % cmd)
         if ( self.v ):
-            print "docopy-I-",cmd,cmdstatus
+            self.__log_info("docopy-I- %s %d" % (cmd, cmdstatus))
+
         self.copyCalls=self.copyCalls+1
         self.copyTime=self.copyTime+time.time()-time0
         if(cmdstatus==0 and ifa[1]==ofa[1]):
             cmdstatus=1024
+
         return cmdstatus
 
 
@@ -2479,7 +2694,7 @@ class RemoteClient:
         if(type=="RawFile" and datamc==0):
 #            paths="/Offline/RunsDir/MC/";
 #            cmd="ln -sf %s %s" %(path,paths)
-#            os.system(cmd)
+#            self.__cmd(cmd)
             paths=self.linkdataset(path,"/Offline/RunsDir",1)
             if (fetime is None or letime is None):
                 sql="select fetime,letime from runs where jid=%d" %(jid)
@@ -2564,26 +2779,31 @@ class RemoteClient:
 	print "  insert ntuple before ",sql
         self.linkdataset(path,"/Offline/DataSetsDir",1)
         self.sqlserver.Update(sql)
-   
+
+
     def setenv(self):
         if(os.environ.has_key('AMSDataDirRW')):
             dir=os.environ['AMSDataDirRW']
         else:
             dir="/afs/cern.ch/ams/Offline/AMSDataDir"
             os.environ['AMSDataDirRW']=dir
+
         if(not os.environ.has_key('STAGE_SVCCLASS')):
             os.environ['STAGE_SVCCLASS']='amscdr'
-        self.env['AMSDataDir']=dir
+
+        self.env['AMSDataDir'] = dir
+
         key='AMSSoftwareDir'
-        sql="select myvalue from Environment where mykey='"+key+"'";
-        ret=self.sqlserver.Query(sql)
+        ret = self.sqlserver.sql("SELECT MYVALUE FROM ENVIRONMENT WHERE MYKEY=:mykey", mykey=key)
         if( len(ret)>0):
-            self.env[key]=self.env['AMSDataDir']+"/"+ret[0][0]
+            self.env[key] = "%s/%s" % (self.env['AMSDataDir'], ret[0][0])
         else:
-            print "AMSSoftwareSir Not Defined "
+            print "AMSSoftwareDir Not Defined "
             return 0
+
         return 1
-   
+
+
     def validateDST(self,fname,nevents,ftype,levent):
         time0=time.time()
         ret=1
@@ -2604,15 +2824,15 @@ class RemoteClient:
             validatecmd="/exe/linux/fastntrd64.exe %s%s %d %d %d " %(prefix,fname,nevents,dtype,levent)
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             validatecmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 600 "+validatecmd
-            vcode=os.system(validatecmd)
+            vcode=self.__cmd(validatecmd)
 #            mutex.release()
             if (fname.find('/castor/cern.ch')>=0 and vcode != 0 and vcode/256==134):
-                os.system("stager_get -M %s " %(fname))
+                self.__cmd("stager_get -M %s " %(fname))
 #                time.sleep(5)
-                vcode=os.system(validatecmd)
+                vcode=self.__cmd(validatecmd)
                 while (sys.argv[0].find('parsejf') >=0 and sys.argv[0].find('parsejf.data') < 0 and vcode/256==134):
                     time.sleep(30)
-                    vcode=os.system(validatecmd)
+                    vcode=self.__cmd(validatecmd)
             print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
             print "got  mutex in validate", validatecmd
@@ -2752,30 +2972,39 @@ class RemoteClient:
                     print sql
 
       
-    def calculateCRC(self,filename,crc):
+    def compareCRC(self, filename, crc, crc32=0):
         if (self.skipcrc):
             return 1
+
         self.crcCalls=self.crcCalls+1
         time0=time.time()
         if (filename.find('/eosams/') == 0):
             filename = self.eosLink2Xrootd(filename)
+
+        if crc32 != 0:
+            crc = crc32
+
         mutex.release()
-        crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
+        crccmd = "%s/exe/linux/crc %s %d" % (self.env['AMSSoftwareDir'], filename, crc)
         if(filename.find('/castor/cern.ch')>=0):
             rstatus=1
         else:
-            rstatus=os.system(crccmd)
+            rstatus=self.__cmd(crccmd)
             rstatus=rstatus>>8
+
         print "acquirung  mutex in calccrc", filename
         mutex.acquire()
         print "got  mutex in calccrc", filename
         if(self.v):
             print crccmd,rstatus
+
         self.crcTime=self.crcTime+time.time()-time0
         if(crc==0 and self.crczero==1):
             return 1
         else:
             return rstatus
+
+
     def parseJournalFiles(self,d,i,v,h,s,m,mt=1,co=0,eos=0,force=0,skipcrc=0):
         self.castoronly=co
         self.castorcopy=0
@@ -2831,15 +3060,17 @@ class RemoteClient:
             print "ParseJournalFiles-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
         else: 
-            self.setprocessingflag(1,timenow,0)
+            self.setProcessingFlag(1, timenow, 0)
+
         ret=self.sqlserver.Query("SELECT min(begin) FROM productionset WHERE STATUS='Active' ORDER BY begin")
         if (len(ret)==0):
             print "ValidateRuns=E-CannotFindActiveProductionSet"
-            self.setprocessingflag(0,timenow,0)
+            self.setProcessingFlag(0, timenow, 0)
             return 0
         else:
             periodStartTime = ret[0][0]
             print "periodStartTime is %d" %(periodStartTime)
+
         self.getProductionPeriods(0)
         firstjobtime=ret[0][0]-24*60*60
         lastjobtime=int(time.time())+24*60*60
@@ -2942,7 +3173,7 @@ class RemoteClient:
                             if (not re.match("\.journal$", file)):
                                 continue
 #                            elif (junk[1] == "work"):
-#                                ret = os.system("mv %s/%s %s/%s" %(joudir,file,joudir,file.replace(".work","")))
+#                                ret = self.__cmd("mv %s/%s %s/%s" %(joudir,file,joudir,file.replace(".work","")))
 #                                if (ret == 0):
 #                                    file = file.replace(".work","")
 #                                else:
@@ -2998,7 +3229,7 @@ class RemoteClient:
                                     input=open(logfile,'r')
                                     mes=input.read()
                                     input.close()
-                                self.sendmailmessage(address,sub,mes)
+                                self.sendMailMessage(address,sub,mes)
                         
                         self.JF[self.nCheckedCite]=self.JF[self.nCheckedCite]+1
                         if(self.oneonly):
@@ -3024,9 +3255,12 @@ class RemoteClient:
             if(len(rmail)>0):
                 address=rnail[0][0]
                 sub="parseHournalFile:  Good: %d  Bad: %d " %(good,bad)
-                self.sendmailmessage(address,sub,message)
-        self.setprocessingflag(0,timenow,0)
+                self.sendMailMessage(address,sub,message)
+
+        self.setProcessingFlag(0, timenow, 0)
         return 1
+
+
     def updateFilesProcessing(self):
         timenow=int(time.time())
         nCites=self.nCheckedCite
@@ -3177,7 +3411,7 @@ class RemoteClient:
         mutex.acquire()
         inputwork = inputfile + ".work"
         inputorig = inputfile
-        ret = os.system("mv %s %s" %(inputfile, inputwork))
+        ret = self.__cmd("mv %s %s" %(inputfile, inputwork))
         if (ret == 0):
             inputfile = inputwork
         else:
@@ -3198,7 +3432,7 @@ class RemoteClient:
             if(inputfile.find(sp2[0])<0):
                 print "Fatal - Run %s does not match file  %s"  %(sp2[0],inputfile)
                 cmd="mv %s %s.o"  %(inputfile,inputfile)
-                os.system(cmd)
+                self.__cmd(cmd)
                 mutex.release()
                 return 0, ""
             else:
@@ -3206,7 +3440,7 @@ class RemoteClient:
                     files=os.listdir(dirpath)
                 except  IOError,e:
                     print e
-                    os.system("mv %s %s" %(inputwork, inputfile))
+                    self.__cmd("mv %s %s" %(inputwork, inputfile))
                     mutex.release()
                     return 0, ""
                 tnow=int(time.time())
@@ -3219,21 +3453,21 @@ class RemoteClient:
                             mtim = 0
                         if(tnow-mtim<300):
                             print "run %s not yet completed.  Postponed " %(sp2[0])
-                            os.system("mv %s %s" %(inputwork, inputfile))
+                            self.__cmd("mv %s %s" %(inputwork, inputfile))
                             mutex.release()
                             return 0, ""
                         realpath=os.path.realpath(dirpath+"/"+file)
                         if (realpath.find('/castor/') >=0 ):
                             pair=commands.getstatusoutput("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_qry -M %s -S \*" %(realpath))
                             if (pair[0] != 0 or len(pair) < 2 or pair[1].find('STAGED') < 0 and pair[1].find('CANBEMIGR') < 0):
-                                os.system("stager_get -M %s" %(realpath))
+                                self.__cmd("stager_get -M %s" %(realpath))
                                 unstaged += 1
                                 print "%s has not been staged." %(realpath)
                             else:
                                 print pair[1]
                 if (unstaged > 0):
                     print "run %s not yet staged.  Postponed " %(sp2[0])
-                    os.system("mv %s %s" %(inputwork, inputfile))
+                    self.__cmd("mv %s %s" %(inputwork, inputfile))
                     mutex.release()
                     return 0, ""
         blocks=buf.split("-I-TimeStamp")
@@ -3282,7 +3516,7 @@ class RemoteClient:
             if(utime < firstjobtime or utime > lastjobtime):
                 self.BadRuns[self.nCheckedCite] += 1;
                 output.write("*********** wrong timestamp : %d (%d,%d)\n" %(utime, firstjobtime, lastjobtime))
-#                os.system("mv %s %s.0" %(inputfile, inputorig))
+#                self.__cmd("mv %s %s.0" %(inputfile, inputorig))
 #                output.write(lastline + "\n")
 #                output.close
 #                mutex.release()
@@ -3337,7 +3571,7 @@ class RemoteClient:
                     ret = selfsqlserverQuery(sql)
                     if(len(ret)>0):
                         mailto=mailto+", "+ret[0][0]
-                    self.sendmailmessage(mailto,subject,text)
+                    self.sendMailMessage(mailto,subject,text)
                     break
             elif(block.find('StartingJob')>=0):
                 pattarnsmatched=0
@@ -3400,13 +3634,13 @@ class RemoteClient:
                     if(self.findJob(jobid,buf,dirpath,cid) !=jobid):
                         output.write("fatal - cannot find JobInfo for %d\n" %(jobid))
                         self.BadRuns[self.nCheckedCite] += 1
-                        os.system("mv %s %s.0" %(inputfile,inputorig))
+                        self.__cmd("mv %s %s.0" %(inputfile,inputorig))
                         mutex.release()
                         return 0, copylog
                 else:
                         output.write("fatal - cannot find JobInfo for in %s\n" %(inputfile))
                         print("fatal - cannot find JobInfo for in "+inputfile)
-                        os.system("mv %s %s.0" %(inputfile,inputorig))
+                        self.__cmd("mv %s %s.0" %(inputfile,inputorig))
                         mutex.release()
                         return 0, copylog 
                 if(patternsmatched == len(JobStartedPatterns)-1 or patternsmatched == len(JobStartedPatterns)-2):
@@ -3449,7 +3683,7 @@ class RemoteClient:
                 rq=self.sqlserver.Query(sql)
                 if(len(rq)>0 and rq[0][0].find('Completed')>=0):
                     print "Run ",run," already completed in database do nothing"
-                    os.system("mv -f %s %s.1" %(inputfile,inputorig))
+                    self.__cmd("mv -f %s %s.1" %(inputfile,inputorig))
                     mutex.release()
                     return 0, copylog
                 if(patternsmatched == len(StartingRunPatterns)+3 or patternsmatched == len(StartingRunPatterns)+2):
@@ -3464,7 +3698,7 @@ class RemoteClient:
                     if (runtype != 0 and (run_incomplete == 1 or run_finished == 0)):
                         # data do not allow incomplete run
                         print "Run %s incomplete or not finished while real data mode, do nothing." %(startingrun[2])
-                        os.system("mv %s %s.0" %(inputfile, inputorig))
+                        self.__cmd("mv %s %s.0" %(inputfile, inputorig))
                         mutex.release()
                         return 0, copylog
 
@@ -3570,9 +3804,9 @@ class RemoteClient:
                                     os.unlink(tmpf)
                                 except IOError,e:
                                     print e
-#                            os.system("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_get -M %s" %(dstfile))
+#                            self.__cmd("/afs/cern.ch/ams/local/bin/timeout --signal 9 600 stager_get -M %s" %(dstfile))
                             cmd = "/usr/bin/nsls -l %s >%s" %(dstfile, tmpf)
-                            i = os.system(cmd)
+                            i = self.__cmd(cmd)
                             if (i == 0):
                                 try:
                                     fo = open(tmpf, "r")
@@ -3627,9 +3861,10 @@ class RemoteClient:
                                 copyfailed += 1
                                 self.BadDSTs[self.nCheckedCite] += 1
                                 break
+
                             levent += dstlevent-dstfevent+1
-                            i=self.calculateCRC(dstfile,ntcrc)
-                            output.write("calculateCRC(%s,%d):  Status %d \n" %(dstfile,ntcrc,i))
+                            i = self.compareCRC(dstfile, ntcrc)
+                            output.write("compareCRC(%s,%d):  Status %d \n" %(dstfile,ntcrc,i))
                             if(i!=1):
                                 self.unchecked += 1
                                 copyfailed += 1
@@ -3655,7 +3890,7 @@ class RemoteClient:
                                 i >>= 8
                                 if(i==134):
                                     ntstatus="STAGEIN"
-                                    os.system("mv -v %s %s" %(inputwork, inputorig))
+                                    self.__cmd("mv -v %s %s" %(inputwork, inputorig))
                                     mutex.release()
                                     return 0, copylog
                                 if (int(i/128)):
@@ -3681,7 +3916,7 @@ class RemoteClient:
                                         mvntuples.append(outputpath)
                                     else:
                                         print "Cannot find an active disk, skipping ", jobid
-                                        os.system("mv %s %s" %(inputwork, inputfile))
+                                        self.__cmd("mv %s %s" %(inputwork, inputfile))
                                         mutex.release()
                                         return 0, copylog                                        
                                     output.write("doCopy return status : %d \n" %(rstatus))
@@ -3693,10 +3928,10 @@ class RemoteClient:
                                             for i in range(2, len(junk)-1):
                                                 castordir += "/%s" %(junk[i])
 #                                            sys = "/afs/cern.ch/ams/local/bin/timeout --signal 9 90 /usr/bin/nsmkdir -p %s" %(castordir)
-#                                            i = os.system(sys)
+#                                            i = self.__cmd(sys)
                                             i = self.mkdirCastor(castordir)
                                             rfcp = "/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp %s %s" %(outputpath, castordir)
-                                            failure = os.system(rfcp)
+                                            failure = self.__cmd(rfcp)
                                             if (failure):
                                                 print " %s failed" %(rfcp)
                                             else:
@@ -3824,7 +4059,7 @@ class RemoteClient:
                         if (ntuple.find('/eosams/') == 0):
                             cmd = "%s rm %s" %(self.eosselect, self.eosLink2Real(ntuple))
                         output.write(cmd + "\n")
-                        os.system(cmd)
+                        self.__cmd(cmd)
                         output.write("Validation done : system command %s \n" %(cmd))
                         self.GoodDSTs[self.nCheckedCite] += 1
                 else:
@@ -3840,7 +4075,7 @@ class RemoteClient:
                         cmd = "%s rm %s" %(self.eosselect, self.eosLink2Real(ntuple))
                     output.write("Validation failed : system command %s \n" %(cmd))
                     output.write(cmd + "\n")
-                    os.system(cmd)
+                    self.__cmd(cmd)
                 sql = "DELETE ntuples WHERE jid=%d" %(lastjobid)
                 self.sqlserver.Update(sql)
                 self.sqlserver.Commit(1)
@@ -3867,12 +4102,12 @@ class RemoteClient:
                         self.sqlserver.Commit(1)
                         output.write("Validation/copy failed : mv ntuples to %s \n" %(junkdir))
                         output.close
-                        os.system("mv %s %s" %(inputfile, inputfileLink))
+                        self.__cmd("mv %s %s" %(inputfile, inputfileLink))
                         mutex.release()
                         self.suc[jobid] = jobid
                         return (jobid, copylog)
-            os.system("mv %s %s" %(inputfile, inputfileLink))
-            os.system("cat %s >> %s" %(inputfileAdd, inputfileLink))
+            self.__cmd("mv %s %s" %(inputfile, inputfileLink))
+            self.__cmd("cat %s >> %s" %(inputfileAdd, inputfileLink))
             os.unlink(inputfileAdd)
             output.write("mv %s %s\n" %(inputfile, inputfileLink))
             if (self.v == 1):
@@ -3887,7 +4122,7 @@ class RemoteClient:
                 return 0, copylog
         else:
             inputfileLink = inputorig + '.0'
-            os.system("mv %s %s" %(inputfile, inputfileLink))
+            self.__cmd("mv %s %s" %(inputfile, inputfileLink))
             if (self.v == 1):
                 print "mv %s %s\n" %(inputfile, inputfileLink)
             self.sqlserver.Commit(0)
@@ -3957,7 +4192,7 @@ class RemoteClient:
                                     if(verbose):
                                         print " "
                                 readtdv=ltdv+" "+ptdv+" > "+ltdvo
-                                os.system(readtdv)
+                                self.__cmd(readtdv)
                                 fltdvo=open(ltdvo,'r')
                                 good=0
                                 crc=""
@@ -4020,7 +4255,7 @@ class RemoteClient:
                 if(out.find("No such")>=0 or pathso.find('ams.cern.ch/Offline')>=0):
                     paths=pathso.replace('ams.cern.ch/Offline','cern.ch/ams/Offline',1)
                     cmd="ln -sf "+file[0]+" "+paths
-                    os.system(cmd)
+                    self.__cmd(cmd)
                     print cmd
         types=["0SCI","0LAS","0CAL","0CMD","0CAB"]
         datapath=dataset
@@ -4088,15 +4323,15 @@ class RemoteClient:
                 sdir="/%d" %(isdir)
                 if(paths.find(sdir)<0):
                         sysc="rm "+paths
-                        os.system(sysc)
+                        self.__cmd(sysc)
                         bpath=bpath+sdir;
                         cmd="mkdir -p "+bpath
-                        i=os.system(cmd)
+                        i=self.__cmd(cmd)
                         if(i):
                                 print "Command failed ",cmd  
                         else:
                            sysc="ln -sf "+file[0]+" "+bpath
-                           os.system(sysc)
+                           self.__cmd(sysc)
                            bpath=bpath+"/"+junk[len(junk)-1]
                            sql="update datafiles set paths='%s' where paths='%s'" %(bpath,file[1])     
                            self.sqlserver.Update(sql)
@@ -4104,7 +4339,7 @@ class RemoteClient:
                 else:
                    continue     
                    sysc="ln -sf "+file[0]+" /afs/cern.ch/ams/Offline/RunsDir/"+type+"/"
-                   os.system(sysc)
+                   self.__cmd(sysc)
         if(run2p!=0):
             rundd=" and datafiles.run=%d " %(run2p)
             rund=" and dataruns.run=%d " %(run2p)
@@ -4118,7 +4353,7 @@ class RemoteClient:
         if(self.force>1):
             eos_prefix="/tmp/eosams"
             eosmount="/afs/cern.ch/project/eos/installation/0.3.1-22/bin/eos.select -b fuse mount "+eos_prefix 
-            os.system(eosmount)
+            self.__cmd(eosmount)
             sql="select path,run,sizemb,jid,buildno from ntuples where path like '%%%s/%%' and eostime>0 and datamc=1  %s " %(datapath,runn)
             paths=self.sqlserver.Query(sql)
             for path in paths:
@@ -4445,7 +4680,7 @@ class RemoteClient:
                     self.linkdataset(file[0],"/Offline/RunsDir",0)
                 cmd="rm "+file[0]
                 i=0
-                i=os.system(cmd)
+                i=self.__cmd(cmd)
                 if(i and self.force==-1 ):
                     print " Command Failed ",cmd
                     return
@@ -4461,7 +4696,7 @@ class RemoteClient:
                     if len(junk)>=2:
                         castorfile=castorPrefix+delimiter+junk[1]
                         castordel="/usr/bin/rfrm "+castorfile
-                        i=os.system(castordel)
+                        i=self.__cmd(castordel)
                         if(i):
                             print " CastorCommand Failed ",castordel
                 if(file[2]>0 or self.force):
@@ -4477,10 +4712,10 @@ class RemoteClient:
                             eosdir = junk2[0] + datapath;
                             print "chmod for " + eosdir + " ..."
                             eoschmod = "/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select chmod "
-                            os.system(eoschmod + " 750 " + eosdir)
+                            self.__cmd(eoschmod + " 750 " + eosdir)
                             eosdel="/afs/cern.ch/project/eos/installation/0.3.2/bin/eos.select rm  "+eosfile
-                            i=os.system(eosdel)
-#                            os.system(eoschmod + " 550 " + eosdir)
+                            i=self.__cmd(eosdel)
+#                            self.__cmd(eoschmod + " 550 " + eosdir)
                             if(i):
                                 print " EosCommand Failed ",eosdel
         if(len(files)==0):
@@ -4525,7 +4760,7 @@ class RemoteClient:
                         self.linkdataset(file[0],"/Offline/RunsDir",0)
                     cmd="rm "+file[0]
                     i=0
-		    i=os.system(cmd)
+		    i=self.__cmd(cmd)
                     if(i and self.force==-1 ):
                         print " Command Failed ",cmd
                         self.sqlserver.Commit(0)
@@ -4542,7 +4777,7 @@ class RemoteClient:
                         if len(junk)>=2:
                             castorfile=castorPrefix+delimiter+junk[1]
                             castordel="/usr/bin/rfrm "+castorfile
-                            i=os.system(castordel)
+                            i=self.__cmd(castordel)
                             if(i):
                                 print " CastorCommand Failed ",castordel
                                 
@@ -4735,22 +4970,27 @@ class RemoteClient:
         return fn
         
         
-        
-    def TransferDataFiles(self,run2p,i,v,u,h,source,c,replace,disk,eos=0):
+    def transferDataFiles(self, run2p, i, v, u, h, source, c, replace, disk, eos):
+        self.ConnectDB(1)
+        if (not self.sqlconnected):
+            raise ConnectionFailRemoteClientException()
+
         if(os.environ.has_key('RunsDir')):
             runsdir=os.environ['RunsDir']
         else:
-            sql = "SELECT myvalue from Environment where mykey='RunsDir'"
-            ret=self.sqlserver.Query(sql)
+            ret = self.sqlserver.sql("SELECT MYVALUE FROM ENVIRONMENT WHERE MYKEY=:mykey", mykey="RunsDir")
             if(len(ret)>0):
                 runsdir=ret[0][0]
             else:
                 runsdir="/afs/cern.ch/ams/Offline/RunsDir"
+
         global mutex
         mutex=thread.allocate_lock()
         mutex.acquire()
-        self.v=v
+
         self.checkEOS()
+
+        self.v=v
         self.eos=eos
         self.BadCRC=[0]
         self.CheckedDSTs=[0]
@@ -4772,227 +5012,213 @@ class RemoteClient:
         self.BadRuns=[0]
         self.skipcrc=0
         delay=86400
-        joudir=source+"/jou";
+        joudir = "%s/jou" % source
         filesfound=0
         timenotify=0
         while 1:
-            notify=1
             for filej in os.listdir(joudir):
-                pfilej=os.path.join(joudir,filej)
                 if(filej.find(".jou.0")>=0):
                     notify=0
                 if(filej.find(".jou.")>=0):
                     continue
                 if(filej.find(".jou")<0):
                     continue
-                writetime=os.stat(pfilej)[ST_MTIME]
-                timenow=time.time()
-                file=filej.split(".jou")[0]
-                pfile=os.path.join(source,file)
+
+                pfilej = os.path.join(joudir,filej)
+                timenow = time.time()
+                file = filej.split(".jou")[0]
+                pfile = os.path.join(source, file)
                 if(not os.path.isfile(pfile)):
-                    print "file not found ",pfile
+                    self.logger.error("File not found %s", pfile)
                     continue
-                fltdvo=open(pfilej,'r')
-                good=0
-                crc=""
-                fevent=""
-                levent=""
-                events=""
-                size=""
-                tfevent=""
-                tlevent=""
-                path=""
-                errors=""
-                timestamp=""
-                tag=""
-                t0=""
-                t1=""
-                t2=""
-                t3=""
-                run=""
-                f1=""
-                f2=""
-                version=""
-                for linea in fltdvo.readlines():
-                    line=linea.split('\n')[0]
-                    if(line.find("Run")>=0):
-                        run=line.split("=")[1]
-                    elif(line.find("FEvent")>=0):
-                        fevent=line.split("=")[1]
-                    elif(line.find("LEvent")>=0):
-                        levent=line.split("=")[1]
-                    elif(line.find("TFevent")>=0):
-                        tfevent=line.split("=")[1]
-                    elif(line.find("TLevent")>=0):
-                        tlevent=line.split("=")[1]
-                    elif(line.find("Version")>=0):
-                        version=line.split("=")[1]
-                    elif(line.find("NEvent")>=0):
-                        events=line.split("=")[1]
-                    elif(line.find("NError")>=0):
-                        errors=line.split("=")[1]
-                    elif(line.find("CRC")>=0):
-                        crc=line.split("=")[1]
-                    elif(line.find("Size")>=0):
-                        size=line.split("=")[1]
-                    elif(line.find("Timestamp")>=0):
-                        rtime=line.split("=")[1]
-                    elif(line.find("Path")>=0):
-                        path=line.split("=")[1]
-                    elif(line.find("Tag")>=0):
-                        tag=line.split("=")[1]
-                    elif(line.find("Type0")>=0):
-                        t0=line.split("=")[1]
-                    elif(line.find("Type1")>=0):
-                        t1=line.split("=")[1]
-                    elif(line.find("Type2")>=0):
-                        t2=line.split("=")[1]
-                    elif(line.find("Type3")>=0):
-                        t3=line.split("=")[1]
-                    elif(line.find("FileF")>=0):
-                        f1=line.split("=")[1]
-                    elif(line.find("FileL")>=0):
-                        f2=line.split("=")[1]
-                fltdvo.close()
 
-                if(len(size)>0 and len(crc)>0 and len(events)>0 and len(tlevent)>0 and len(tfevent)>0 and len(levent)>0 and len(fevent)>0 and len(run)>0 and len(rtime)>0):
+                journalFile = JournalFile(pfilej)
+                if journalFile.ok():
+                    self.logger.info("Run %d", journalFile.run)
 
-                    print "Run ",run;
-                    if(run2p!=0 and int(run)!=run2p):
+                    if(run2p!=0 and journalFile.run!=run2p):
                         continue
-		    if(abs(int(tfevent)-int(run)) >3600):
-		        print "TransferDataRuns-E-WrongRun ",run," ",tfevent
-			cmd="mv "+pfilej+" "+pfilej+".0"
-                        os.system(cmd)
-		        continue 
-                    sql="select path,run,nevents,type,fevent,levent,pathb from datafiles where path like '%"+file+"'"
-                    ret=self.sqlserver.Query(sql);
-                    eventsi=int(events)
-                    feventi=int(fevent)
-                    leventi=int(levent)
+
+		    if(abs(journalFile.tfevent - journalFile.run) > 3600):
+                        self.logger.error("TransferDataRuns-E-WrongRun %d %d", journalFile.run, journalFile.tfevent)
+                        cmd = "mv %s %s.0" % (journalFile.file_path, journalFile.file_path)
+                        self._cmd(cmd)
+                        continue
+
+                    ret = self.sqlserver.sql("SELECT PATH,RUN,NEVENTS,TYPE,FEVENT,LEVENT,PATHB FROM DATAFILES WHERE PATH LIKE '%' || :path", path=file);
                     calibnotfull=False
                     if(len(ret)>0):
-                        orig=f1.split('/')
+                        orig=journalFile.f1.split('/')
                         origpath=""
                         if(len(orig)>2):
                              origpath=origpath+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
-                        orig=f2.split('/')
+                        orig=journalFile.f2.split('/')
                         if(len(orig)>2):
                              origpath=origpath+" "+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
 
-                        if(ret[0][3].find("CAL")>=0 and (ret[0][2]<eventsi or (ret[0][2]==eventsi and ret[0][6] != origpath))):
+                        if(ret[0][3].find("CAL")>=0 and (ret[0][2]<journalFile.events or (ret[0][2]==journalFile.events and ret[0][6] != origpath))):
                            calibnotfull=True
-                        if(ret[0][3].find("SCI")>=0 and (ret[0][2]<eventsi or (ret[0][2]==eventsi and ret[0][6] != origpath) ) and ret[0][4]>=feventi and ret[0][5]<=leventi):
+                        if(ret[0][3].find("SCI")>=0 and (ret[0][2]<journalFile.events or (ret[0][2]==journalFile.events and ret[0][6] != origpath) ) and ret[0][4]>=journalFile.fevent and ret[0][5]<=journalFile.levent):
                            calibnotfull=True
+
                         if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
-                            fd=ret[0][0] 
-                            cmd="rm -rf "+fd
-                            i=os.system(cmd)
+                            fd = ret[0][0] 
+                            cmd = "rm -rf %s" % fd
+                            i = self.__cmd(cmd)
                             if(i):
-                                print "command failed ",cmd
+                                self.logger.error("command failed '%s'", " ".join(cmd))
                                 if(replace>1):
-                                    sql="delete from datafiles where path='"+fd+"'"  
-                                    self.sqlserver.Update(sql)
+                                    self.sqlserver.sql("DELETE FROM DATAFILES WHERE PATH=:path", path=fd)
                                 else:
                                     continue
                             else:
-                                sql="delete from datafiles where path='"+fd+"'"  
-                                self.sqlserver.Update(sql)
+                                self.sqlserver.sql("DELETE FROM DATAFILES WHERE PATH=:path", path=fd)
                         else:
                             continue
-                    (outputpath,ret,castortime)=self.doCopyRaw(run,pfile,int(crc),'/Data')
+
+                    (outputpath, ret, castortime) = self.__doCopyRaw(journalFile, pfile, '/Data')
                     if(ret==1):
-                        sizemb=int(size)/2
+                        sizemb = journalFile.size/2
                         type="UNK"
-                        if(t0=="5"):
+                        if(journalFile.t0=="5"):
                             type="SCI"
                             try:
-                               itag = int(tag)%256
+                               itag = int(journalFile.tag)%256
                             except ValueError:
                                itag=0
                             if(itag==204):
                                type="LAS"
-                        elif (t0=="6"):
+
+                        elif (journalFile.t0=="6"):
                             type="CAL"
-                            fevent=1
-                            levent=events
-                        elif (t0=="7"):
+                            journalFile.fevent = 1
+                            journalFile.levent = journalFile.events
+
+                        elif (journalFile.t0=="7"):
                             type="CMD"
-                        elif (t0=="8"):
+
+                        elif (journalFile.t0=="8"):
                             type="HKD"
-                        elif (t0=="27" or t0=="896"):
+
+                        elif (journalFile.t0=="27" or journalFile.t0=="896"):
                             type="CAB"
-                        bpath=runsdir+"/"+type
+
+                        bpath = "%s/%s" % (runsdir, type)
                         if(calibnotfull):
-                            type=type+" MERGED "
+                            type = "%s MERGED " % type
+
                         if(type!="UNK"):
-                                isdir=int(run)/1000000;
-                                isdir=isdir*1000000;
-                                sdir="/%d" %(isdir)
-                                bpath=bpath+sdir;
-                                cmd="mkdir -p "+bpath
-                                i=os.system(cmd)
-                                if(i):
-                                        print "Command failed ",cmd  
-                        cmd="ln -sf "+outputpath+" "+bpath
-                        i=os.system(cmd)
+                            isdir = journalFile.run/1000000;
+                            isdir = isdir*1000000;
+                            sdir = "/%d" %(isdir)
+                            bpath = bpath+sdir;
+                            cmd = "mkdir %s" % bpath
+                            i = self.__cmd(cmd)
+                            if(i):
+                                # we should not continue loop?
+                                self.logger.error("command failed '%s'", " ".join(cmd))
+
+                        cmd = "ln -sf %s %s" % (outputpath, bpath)
+                        i = self.__cmd(cmd)
                         if(i):
-                            print "Command Failed ",cmd
-                        bpath=bpath+"/"+file
-                        it2=int(t2)
+                            # we should not continue loop?
+                            self.logger.error("command failed '%s'", " ".join(cmd))
+
+                        bpath = "%s/%s" % (bpath, file)
                         if(type=="SCI" or type=="LAS"):
-                            type=type+" "+t0+" "+t1+" "
-                            mnemonic=" TUSREL3";
+                            type = "%s %s %s" % (type, journalFile.t0, journalFile.t1)
+                            mnemonic = " TUSREL3";
                             for i in range (0,7):
-                                it=(it2>>(i*4))&15;
+                                it = (int(journalFile.t2)>>(i*4))&15;
                                 if(it>0):
                                     type=type+mnemonic[i]
-                                    type="%s%d" %(type,it)
+                                    type="%s%d" % (type, it)
                         else:
-                            type=type+" "+t0+" "+t1+" "+t2+" "+t3
-                        orig=f1.split('/')
-                        origpath=""
-                        if(len(orig)>3):
-                             origpath+=orig[len(orig)-4]+"/"+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
-                        orig=f2.split('/')
-                        if(len(orig)>3):
-                             origpath+=" "+orig[len(orig)-4]+"/"+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                            type = "%s %s %s %s %s" % (type, journalFile.t0, journalFile.t1, journalFile.t2, journalFile.t3)
+
                         status='OK'
-                        if(type.find('SCI')>=0 and int(tlevent)-int(tfevent)<60):
+                        if(type.find('SCI')>=0 and journalFile.tlevent - journalFile.tfevent < 60):
                             status='SHORT'
+
                         if (outputpath.find('/eosams/') >= 0):
                             eostime = time.time()
                         else:
                             eostime = 0
-                        sql ="insert into datafiles (RUN,VERSION,TYPE,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,PATHB,CRC,CRCTIME,CASTORTIME,BACKUPTIME,TAG,FETIME,LETIME,PATHS,EOSTIME) values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'%s','%s','%s',%s,%s,%d,0,%s,%s,%s,'%s',%s)" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,status,outputpath,origpath,crc,int(timenow),castortime,tag,tfevent,tlevent,bpath,eostime)
-                        self.sqlserver.Update(sql)
-                        self.sqlserver.Commit(1)
-                        cmd="rm -rf "+pfile
-                        os.system(cmd)
-                        cmd="mv "+pfilej+" "+pfilej+".1"
-                        os.system(cmd)
+
+                        result = self.sqlserver.sql(
+                            "INSERT INTO DATAFILES \
+                            (RUN,VERSION,TYPE,FEVENT,LEVENT,NEVENTS,NEVENTSERR,TIMESTAMP,SIZEMB,STATUS,PATH,PATHB,CRC,CRC32,CRCTIME,CASTORTIME,BACKUPTIME,TAG,FETIME,LETIME,PATHS,EOSTIME) \
+                            VALUES \
+                            (:run,:version,:type,:fevent,:levent,:nevents,:neventserr,:timestamp,:sizemb,:status,:path,:pathb,:crc,:crc32,:crctime,:castortime,:backuptime,:tag,:fetime,:letime,:paths,:eostime)",
+                            run = journalFile.run,
+                            version = journalFile.version,
+                            type = type,
+                            fevent = journalFile.fevent,
+                            levent = journalFile.levent,
+                            nevents=journalFile.events,
+                            neventserr = journalFile.errors,
+                            timestamp = journalFile.rtime,
+                            sizemb = sizemb,
+                            status = status,
+                            path = outputpath,
+                            pathb = self.__getOrigpath(journalFile),
+                            crc = journalFile.crc,
+                            crc32 = journalFile.crc32,
+                            crctime = int(timenow),
+                            castortime = castortime,
+                            backuptime = 0,
+                            tag = journalFile.tag,
+                            fetime = journalFile.tfevent,
+                            letime = journalFile.tlevent,
+                            paths = bpath,
+                            eostime = eostime,
+                        )
+                        self.sqlserver.sql("COMMIT")
+
+                        cmd = "rm -rf %s" % pfile
+                        self.__cmd(cmd)
+
+                        cmd = "mv %s %s.1" % (pfilej, pfilej)
+                        self.__cmd(cmd)
+
                         notify=0
-                        filesfound=filesfound+1
+                        filesfound+=1
                     else:
                         if(outputpath!=None):
-                            cmd="rm  "+outputpath
-                            print "TransferDataFiles-ECopyFail ",cmd 
+                            cmd = "rm %s" % outputpath
+                            self.logger.error("TransferDataFiles-ECopyFail, run '%s'", cmd)
                             time.sleep(60) 
                             if(not os.path.islink(outputpath) and not os.path.isdir(outputpath)):
-                                os.system(cmd)
+                                self.__cmd(cmd)
+
             if(c==0 or run2p!=0):
-                break;
+                break
             else:
                 time.sleep(60)
                 if(notify>0 and filesfound>0):
-                    message="%d New DataRuns Transferred " %(filesfound)
+                    message="%d New DataRuns Transferred " % filesfound
                     self.NotifyResp(message)
-                    filesfound=0
+                    filesfound = 0
 #                    suc=self.dbserver.CreateRun(run,fevent,levent,tfevent,tlevent,0,1,outputpath)
 #                    if(suc==1):
 #                        self.sqlserver.Commit(1)
 #                    else:
 #                        self.sqlserver.Commit(0)
+
+
+
+    def __getOrigpath(self, journalFile):
+        orig = journalFile.f1.split('/')
+        origpath = ""
+        if(len(orig)>3):
+            origpath = "%s/%s/%s/%s" % (orig[len(orig)-4], orig[len(orig)-3], orig[len(orig)-2], orig[len(orig)-1])
+
+        orig = journalFile.f2.split('/')
+        if(len(orig)>3):
+            origpath = "%s %s/%s/%s/%s" % (origpath, orig[len(orig)-4], orig[len(orig)-3], orig[len(orig)-2], orig[len(orig)-1])
+
+        return origpath
+
 
     def linkdataset(self,path,sdir,crdel):
         rmpath=path.split('/')
@@ -5014,7 +5240,7 @@ class RemoteClient:
                 if(i<len(rmpath)-1):
                     dir=dir+"/"+rmpath[i]
                     newdir=newdir+"/"+rmpath[i]
-        os.system("mkdir -p "+newdir)
+        self.__cmd("mkdir -p "+newdir)
         cmd=""
         if(crdel==1):
                 if(path.find('/castor/cern.ch/ams')>=0):
@@ -5023,12 +5249,13 @@ class RemoteClient:
                 
         else:
                 cmd="rm "+file
-                i=os.system(cmd)
+                i=self.__cmd(cmd)
                 cmd="rm "+newfile
-        i=os.system(cmd)
+        i=self.__cmd(cmd)
         if(i):
                 print "Problem with "+cmd
         return newfile
+
 
     def findJob(self, jid, buf, dir, cid):
         rstatus = 0
@@ -5113,9 +5340,9 @@ class RemoteClient:
                         if (dir != None):
                             fnam = dir + '/' + junk[len(junk)-1]
                         validatecmd = self.env['AMSSoftwareDir']+"/exe/linuxfastntrd64.exe %s 0 2 0 1" %(fnam)
-                        os.system(validatecmd)
+                        self.__cmd(validatecmd)
                         fnam += '.jou'
-                        os.system("sed -i \"s/\\.job.*/.job/g\" %s" %(fnam))
+                        self.__cmd("sed -i \"s/\\.job.*/.job/g\" %s" %(fnam))
                         bufj = ''
                         try:
                             jouf = open(fnam, 'r')
@@ -5170,10 +5397,11 @@ class RemoteClient:
                                 print "  Job %d restored from ntuple" %(jid)
         return rstatus
 
+
     def getProductionPeriods(self, flag):
         i = 0
         sql = "SELECT DID, NAME, BEGIN, END, STATUS, VGBATCH, VDB, VOS  FROM ProductionSet ORDER by begin desc"
-        ret = self.sqlserver.Query(sql)
+        ret = self.sqlserver.sql(sql)
         if (ret[0][0] != None):
             for p in ret:
                 period = {}
@@ -5190,3 +5418,25 @@ class RemoteClient:
                     print " %5d %15s %10d %10d %12s %6s %6d %6s" %(period['id'], period['name'], period['begin'], period['end'], period['status'], period['vdb'], period['vgbatch'], period['vos'])
                 i += 1
 
+    def setLogger(self, logger):
+        self.logger = logger
+
+    def setCmd(self, cmd):
+        self.cmd = cmd
+
+    def __log_info(self, str):
+        if self.logger == None:
+            print stf
+        else:
+            self.logger.info(str)
+
+    def __log_error(self, str):
+        if self.logger == None:
+            print stf
+        else:
+            self.logger.error(str)
+
+    def __cmd(self, cmd):
+        self.logger.debug("CMD='%s'", cmd)
+        #return os.system(cmd)
+        return 0
