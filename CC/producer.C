@@ -677,9 +677,9 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
        }
        fbin.close();
        if (MISCFFKEY.NewCRC) {
-           crc = amscrc_finalize(crc);
-       } else {
            crc = crc_finalize(crc, mysize);
+       } else {
+           crc = amscrc_finalize(crc);
        }
        ntend->crc = crc;
    }
