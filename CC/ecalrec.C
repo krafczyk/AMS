@@ -2256,9 +2256,9 @@ void AMSEcalShower::DirectionFit(){
     _EntryPoint[proj]=t0[proj]+tantz[proj]*_EntryPoint[2];
     _ExitPoint[proj]=t0[proj]+tantz[proj]*_ExitPoint[2];
   }
+  _Dir=_ExitPoint-_EntryPoint;
   _AngleTrue3DChi2=getTrue3DChi2(tantz,t0,zcorr);
   _AngleTrue3DChi2/=_Chi2Corr();
-  _Dir=_ExitPoint-_EntryPoint;
   _Angle3DChi2=(chi2[0]*(tot[0]-1)+chi2[1]*(tot[1]-1))/(tot[0]+tot[1]-2);
   _Angle3DChi2/=_Chi2Corr();
   if(max(fabs(_ExitPoint[0]),fabs(_ExitPoint[1]))>ECREFFKEY.CalorTransSize)setstatus(AMSDBc::CATLEAK);
@@ -3470,11 +3470,11 @@ void AMSEcalShower::ProfileFit(){
 
   integer ifail=1;
   const integer mp=4;
+  number f=0,x[mp];
   x[0]=1;
   x[1]=_Dz*_ShowerMax;
   x[2]=1;
   _Direction=0;
-  number f=0,x[mp];
 #ifndef NO_NAG
   integer n=3;
   number tol=3.99e-2;

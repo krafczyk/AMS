@@ -2170,12 +2170,15 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel*     pai    = new G4PAIModel(particle,"PAIModel");
 	muioni->AddEmModel(0,pai,pai,gasregion);
       }
+      if(GCPHYS.IMULS){
       pmanager->AddProcess(new G4MuMultipleScattering, -1, 1, 1);
+      }
       pmanager->AddProcess( muioni,                 -1, 2, 2);
+      if(GCPHYS.IMULS){
       pmanager->AddProcess(new G4MuBremsstrahlung,  -1, 3, 3);
       pmanager->AddProcess(new G4MuPairProduction,  -1, 4, 4);
       pmanager->AddDiscreteProcess(processXTR);
-      
+     }      
     } else if (particleName == "alpha" ||
                particleName == "He3" ||
                particleName == "GenericIon"){
