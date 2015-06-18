@@ -7,8 +7,12 @@ import cx_Oracle
 import Logger
 from RemoteClient import *
 
-APP_NAME = "transfer_dev"
-LOG_DIR  = '/tmp/'
+APP_NAME = "transfer"
+logpath_pair = commands.getstatusoutput("/afs/cern.ch/ams/local/bin/get_log_path.sh")
+if (logpath_pair[0] == 0):
+    LOG_DIR  = logpath_pair[1]
+else:
+    LOG_DIR  = '/afs/cern.ch/ams/local/logs/production_logs/'
 
 class TransferDataFilesException(Exception):
     def __init__(self, error):
@@ -32,7 +36,7 @@ class TransferDataFilesScript:
 
     def __init__(self):
         logger = Logger.Logger(APP_NAME, LOG_DIR)
-        self.logger = logger.getLogger(level_log=logging.INFO, level_console=logging.DEBUG)
+        self.logger = logger.getLogger(level_log=logging.DEBUG, level_console=logging.DEBUG)
         #self.cmd = Cmd.Cmd(self.logger)
 
     def run(self, run2p, i, v, u, h, source, c, p, disk, eos):

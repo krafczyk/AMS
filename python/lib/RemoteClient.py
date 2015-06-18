@@ -4987,7 +4987,7 @@ class RemoteClient:
                             cmd = "rm -rf %s" % fd
                             i = self.__cmd(cmd)
                             if(i):
-                                self.logger.error("command failed '%s'", " ".join(cmd))
+                                self.logger.error("command failed '%s'", cmd)
                                 if(replace>1):
                                     self.sqlserver.sql("DELETE FROM DATAFILES WHERE PATH=:path", path=fd)
                                 else:
@@ -5033,17 +5033,17 @@ class RemoteClient:
                             isdir = isdir*1000000;
                             sdir = "/%d" %(isdir)
                             bpath = bpath+sdir;
-                            cmd = "mkdir %s" % bpath
+                            cmd = "mkdir -p %s" % bpath
                             i = self.__cmd(cmd)
                             if(i):
                                 # we should not continue loop?
-                                self.logger.error("command failed '%s'", " ".join(cmd))
+                                self.logger.error("command failed '%s'", cmd)
 
                         cmd = "ln -sf %s %s" % (outputpath, bpath)
                         i = self.__cmd(cmd)
                         if(i):
                             # we should not continue loop?
-                            self.logger.error("command failed '%s'", " ".join(cmd))
+                            self.logger.error("command failed '%s'", cmd)
 
                         bpath = "%s/%s" % (bpath, file)
                         if(type=="SCI" or type=="LAS"):
@@ -5347,21 +5347,26 @@ class RemoteClient:
 
     def __log_info(self, str):
         if self.logger == None:
-            print stf
+            print str
         else:
             self.logger.info(str)
 
     def __log_error(self, str):
         if self.logger == None:
-            print stf
+            print str
         else:
             self.logger.error(str)
 
     def __cmd(self, cmd):
-        self.logger.debug("CMD='%s'", cmd)
-        #return os.system(cmd)
-        return 0
+        if self.logger == None:
+            print cmd
+        else:
+            self.logger.debug("CMD='%s'", cmd)
+        return os.system(cmd)
 
     def __cmd_output(self, cmd):
-        self.logger.debug("CMD='%s'", cmd)
+        if self.logger == None:
+            print cmd
+        else:
+            self.logger.debug("CMD='%s'", cmd)
         return commands.getstatusoutput(cmd)
