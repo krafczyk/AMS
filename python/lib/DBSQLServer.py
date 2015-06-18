@@ -8,7 +8,7 @@ class DBSQLServer:
     one=0
     dbinit=0
     dbdriver="Oracle"
-    dbfile="pdb_ams_rac10"
+    dbfile="pdb_ams"
     dbhandler=""
     dbcursor=""
     last_insert_id=None
