@@ -668,7 +668,6 @@ class RemoteClient:
            return 0
 
     def sendMailMessage(self, add, sub, mes="", att=""):
-        add = 'oleg.demakov@cern.ch'
         self.logger.info("MAIL: to='%s', subject='%s', message='%s', att='%s'", add, sub, mes, att)
 
         import mimetypes
